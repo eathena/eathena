@@ -63,7 +63,7 @@ static const int packet_len_table[0x220] = {
     0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
     0,  0,  0,  0, 55, 17,  3, 37,  46, -1, 23, -1,  3,108,  3,  2, 
 #if PACKETVER < 2
-    3, 28, 19, 11,  3, -1,  9,  5,  54, 53, 56, 58, 41,  2,  6,  6, // 0x78->54 (was 52), 0x79->53 (was 51), 0x7a->58 (was 
+    3, 28, 19, 11,  3, -1,  9,  5,  52, 51, 56, 58, 41,  2,  6,  6,
 #else	// 78-7b 亀島以降 lv99エフェクト用
     3, 28, 19, 11,  3, -1,  9,  5,  54, 53, 58, 60, 41,  2,  6,  6,
 #endif
@@ -73,7 +73,7 @@ static const int packet_len_table[0x220] = {
    23,  6,  6, -1, -1, -1, -1,  8,   7,  6,  7,  4,  7,  0, -1,  6,
     8,  8,  3,  3, -1,  6,  6, -1,   7,  6,  2,  5,  6, 44,  5,  3,
 //#0x00C0
-    7,  2,  6,  8,  6,  7, -1, -1,  -1, -1,  3,  3,  6,  6,  2, 27,
+    7,  2,  6,  8,  6,  7, -1, -1,  -1, -1,  3,  3,  6,  3,  2, 27, // 0xcd change to 3 (was 6)
     3,  4,  4,  2, -1, -1,  3, -1,   6, 14,  3, -1, 28, 29, -1, -1,
    30, 30, 26,  2,  6, 26,  3,  3,   8, 19,  5,  2,  3,  2,  2,  2,
     3,  2,  6,  8, 21,  8,  8,  2,   2, 26,  3, -1,  6, 27, 30, 10,
@@ -103,7 +103,7 @@ static const int packet_len_table[0x220] = {
    30,  8, 34, 14,  2,  6, 26,  2,  28, 81,  6, 10, 26,  2, -1, -1,
    -1, -1, 20, 10, 32,  9, 34, 14,   2,  6, 48, 56, -1,  4,  5, 10,
 //#0x200
-   26, -1,  26, 10, 18, 26, 11, 34,  14, 36, 10, 19,  0, -1, 24,  0,
+   26, -1,  26, 10, 18, 26, 11, 34,  14, 36, 10, 0,  0, -1, 24,  0, // 0x20c change to 0 (was 19)
     0,  0,   0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
 };
 
@@ -10358,6 +10358,10 @@ int do_init_clif(void) {
 	memcpy(clif_parse_func_table[5], clif_parse_func_table[4], sizeof(clif_parse_func_table[0]));
 	// init packet function calls for packet ver 13 (same function of packet version 12, but size are different)
 	memcpy(clif_parse_func_table[6], clif_parse_func_table[5], sizeof(clif_parse_func_table[0]));
+	// init packet function calls for packet ver 14 (same function of packet version 13, but size are different)
+	memcpy(clif_parse_func_table[7], clif_parse_func_table[6], sizeof(clif_parse_func_table[0]));
+	// Init packet function calls for packet ver 15 (same function of packet version 14, but size are different)
+	memcpy(clif_parse_func_table[8], clif_parse_func_table[7], sizeof(clif_parse_func_table[0]));
 
 	// size of packet version 5
 	memcpy(&packet_size_table[0], &packet_len_table, sizeof(packet_len_table));
