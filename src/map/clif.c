@@ -108,7 +108,7 @@ static const int packet_len_table[0x220] = {
 };
 
 // size list for each packet version after packet version 4.
-static int packet_size_table[9][0x220];
+static int packet_size_table[11][0x220];
 
 // local define
 enum {
