@@ -1,5 +1,6 @@
 Date	Added
 
-01/12 
+01/12
+	* Began work on socket class [Codemaster] 
 	* Made the Lock class functions static, so they act like they used to [Ajarn]
 	* Created cxx branch [Codemaster]
