@@ -1,6 +1,10 @@
 Date	Added
 
 01/12
+	* Switched .c files to .cpp files [Codemaster]
+	* Created core.c/.h [Codemaster]
+	* Created showmsg.c/.h [Codemaster]
+	* Updated socket.c/.h [Codemaster]
 	* Began work on socket class [Codemaster] 
 	* Made the Lock class functions static, so they act like they used to [Ajarn]
 	* Created cxx branch [Codemaster]
