@@ -9980,7 +9980,7 @@ void clif_parse_GMkillall(int fd,struct map_session_data *sd)
 }
 
 // functions list
-static void (*clif_parse_func_table[7][0x220])() = {
+static void (*clif_parse_func_table[9][0x220])() = {
 	{
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
