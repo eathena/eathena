@@ -1,1 +1,5 @@
-2005/01/12 - Created cxx branch [Codemaster]
+Date	Added
+
+01/12 
+	* Made the Lock class functions static, so they act like they used to [Ajarn]
+	* Created cxx branch [Codemaster]
