@@ -61,14 +61,14 @@ static const int packet_len_table[0x220] = {
 //#0x0040
     0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
     0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0, 55, 17,  3, 37,  46, -1, 23, -1,  3,108,  3,  2,
+    0,  0,  0,  0, 55, 17,  3, 37,  46, -1, 23, -1,  3,108,  3,  2, 
 #if PACKETVER < 2
-    3, 28, 19, 11,  3, -1,  9,  5,  52, 51, 56, 58, 41,  2,  6,  6,
+    3, 28, 19, 11,  3, -1,  9,  5,  54, 53, 56, 58, 41,  2,  6,  6, // 0x78->54 (was 52), 0x79->53 (was 51), 0x7a->58 (was 
 #else	// 78-7b 亀島以降 lv99エフェクト用
     3, 28, 19, 11,  3, -1,  9,  5,  54, 53, 58, 60, 41,  2,  6,  6,
 #endif
 //#0x0080
-    7,  3,  2,  2,  2,  5, 16, 12,  10,  7, 29, 23, -1, -1, -1,  0, // 0x8b unknown... size 2 or 23?
+    7,  3,  2,  2,  2,  5, 16, 12,  10,  7, 29,  2, -1, -1, -1,  0, // 0x8b changed to 2 (was 23)
     7, 22, 28,  2,  6, 30, -1, -1,   3, -1, -1,  5,  9, 17, 17,  6,
    23,  6,  6, -1, -1, -1, -1,  8,   7,  6,  7,  4,  7,  0, -1,  6,
     8,  8,  3,  3, -1,  6,  6, -1,   7,  6,  2,  5,  6, 44,  5,  3,
@@ -10499,6 +10499,55 @@ int do_init_clif(void) {
 	packet_size_table[8][0x116] = 9;
 	packet_size_table[8][0x190] = 26;
 	packet_size_table[8][0x193] = 22;
+	// size of packet version 14 - Added by nsstrunks
+	memcpy(&packet_size_table[9], &packet_size_table[8], sizeof(packet_len_table));
+	packet_size_table[9][0x072] = 13;
+	packet_size_table[9][0x07e] = 13;
+	packet_size_table[9][0x085] = 15;
+	packet_size_table[9][0x089] = 6;
+	packet_size_table[9][0x08c] = 108;
+	packet_size_table[9][0x094] = 12;
+	packet_size_table[9][0x09b] = 10;
+	packet_size_table[9][0x09f] = -1;
+	packet_size_table[9][0x0a2] = 16;
+	packet_size_table[9][0x0a7] = 28;
+	packet_size_table[9][0x0f3] = 15;
+	packet_size_table[9][0x0f5] = 29;
+	packet_size_table[9][0x113] = 9;
+	packet_size_table[9][0x116] = 9;
+	packet_size_table[9][0x190] = 26;
+	packet_size_table[9][0x193] = 22;
+	packet_size_table[9][0x215] = 6;
+	packet_size_table[9][0x216] = 6;
+	packet_size_table[9][0x217] = 2;
+	packet_size_table[9][0x218] = 2;
+	packet_size_table[9][0x219] = 282;
+	packet_size_table[9][0x21a] = 282;
+	packet_size_table[9][0x21b] = 10;
+	packet_size_table[9][0x21c] = 10;
+	// Size of packet version 15 - Added by nsstrunks
+	memcpy(&packet_size_table[10], &packet_size_table[9], sizeof(packet_len_table));
+	packet_size_table[10][0x072] = 22;
+	packet_size_table[10][0x07e] = 30;
+	packet_size_table[10][0x094] = 14;
+	packet_size_table[10][0x09f] = 18;
+	packet_size_table[10][0x085] = -1;
+	packet_size_table[10][0x08c] = 13;
+	packet_size_table[10][0x089] = 7;
+	packet_size_table[10][0x09b] = 2;
+	packet_size_table[10][0x0a2] = 7;
+	packet_size_table[10][0x0a7] = 7;
+	packet_size_table[10][0x0f3] = 8;
+	packet_size_table[10][0x0f5] = 29;
+	packet_size_table[10][0x0f7] = 14;
+	packet_size_table[10][0x113] = 110;
+	packet_size_table[10][0x116] = 12;
+	packet_size_table[10][0x190] = 15;
+	packet_size_table[10][0x193] = 21;
+	packet_size_table[10][0x21b] = 6;
+	packet_size_table[10][0x222] = 6;
+	packet_size_table[10][0x221] = -1;
+	packet_size_table[10][0x223] = 8;
 
 	set_defaultparse(clif_parse);
 #ifdef __WIN32

@@ -1,6 +1,7 @@
 Date	Added
 
 12/19
+	* Updated clif.c to work with 1108 and 1206, tested and works [nsstrunks]
 	* Added ShowDebug(), Debug(), DisplayDebug(), printDebug(), CL_DEBUG, MSG_DEBUG to _ShowMessage() [MC Cameri]
 	* Replaced many \033[x;xm with their corresponding CL_xx constants [MC Cameri]
 	* Separated NPCs and Maps from map_athena.conf into npcs_list.txt and maps_list.conf [MC Cameri]
