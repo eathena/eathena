@@ -22,9 +22,8 @@
 #endif
 
 static int null_parse(int fd);
-static int (*default_func_parse)(int) = null_parse;
-
 static int null_console_parse(char *buf);
+static int (*default_func_parse)(int) = null_parse;
 static int (*default_console_parse)(char*) = null_console_parse;
 
 Socket::Socket(void)
@@ -233,4 +232,161 @@ int	Socket::StartConsole(void)
 	
 	return 0;
 	return;
+}
+
+void	Socket::SetDefaultParse(int (*defaultparse)(int))
+{
+	default_func_parse = defaultparse;
+	return;
+}
+
+void	Socket::SetDefaultConsole(int (*defaultparse)(char*))
+{
+	default_console_parse = defaultparse;
+	return;
+}
+
+int	Socket::ReallocFifo(int fd, int rfifo_size, int wfifo_size)
+{
+	struct socket_data *s = session[fd];
+
+	if(s->max_rdata != rfifo_size && s->rdata_size < rfifo_size)
+	{
+		RECREATE(s->rdata, unsigned char, rfifo_size);
+		s->max_rdata  = rfifo_size;
+	}
+
+	if(s->max_wdata != wfifo_size && s->wdata_size < wfifo_size)
+	{
+		RECREATE(s->wdata, unsigned char, wfifo_size);
+		s->max_wdata  = wfifo_size;
+	}
+
+	return 0;
+}
+
+int	Socket::WFIFOSET(int fd, int len)
+{
+	struct socket_data *s = session[fd];
+	if(!s || !s->wdata)
+		return 0;
+	if(s->wdata_size + len + 16384 > s->max_wdata )
+	{
+		unsigned char *sin_addr = (unsigned char *)&s->client_addr.sin_addr;
+		realloc_fifo(fd,s->max_rdata, s->max_wdata << 1);
+		printf("socket: %d (%d.%d.%d.%d) wdata expanded to %d bytes.\n",fd, sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3], s->max_wdata);
+	}
+	s->wdata_size = (s->wdata_size+(len)+2048 < s->max_wdata) ? s->wdata_size+len : (printf("socket: %d wdata lost !!\n",fd),s->wdata_size);
+	if (s->wdata_size > (TCP_FRAME_LEN)) 
+		send_from_fifo(fd);
+	return 0;
+}
+
+int	Socket::RFIFOSKIP(int fd, int len)
+{
+	struct socket_data *s = session[fd];
+	if(s->rdata_size-s->rdata_pos-len < 0)
+	{
+		fprintf(stderr,"too many skip\n");
+		exit(1);
+	}
+
+	s->rdata_pos = s->rdata_pos + len;
+
+	return 0;
+}
+
+int	Socket::MakeListenPort(int listen_port)
+{
+	struct sockaddr_in server_address;
+	int fd, result;
+
+	fd = socket(AF_INET, SOCK_STREAM, 0);
+	if(fd_max <= fd)
+		fd_max = fd + 1;
+
+#if defined(WIN32)
+		unsigned long val = 1;
+		ioctlsocket(fd, FIONBIO, &val);
+#else
+		result = fcntl(fd, F_SETFL, O_NONBLOCK);
+#endif
+
+	setsocketopts(fd);
+
+	server_address.sin_family      = AF_INET;
+	server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+	server_address.sin_port        = htons(listen_port);
+
+	result = bind(fd, (struct sockaddr*)&server_address, sizeof(server_address));
+	if(result == -1)
+	{
+		perror("bind");
+		exit(1);
+	}
+
+	result = listen(fd, 5);
+
+	if(result == -1)
+	{
+		perror("listen");
+		exit(1);
+	}
+
+	FD_SET(fd, &readfds);
+
+	CREATE(session[fd], struct socket_data, 1);
+
+	if(!session[fd])
+	{
+		printf("out of memory : make_listen_port\n");
+		exit(1);
+	}
+
+	memset(session[fd],0,sizeof(*session[fd]));
+
+	session[fd]->func_recv = connect_client;
+
+	return fd;
+}
+
+int	Socket::MakeConnection(long conncetion_ip)
+{
+	struct sockaddr_in server_address;
+	int fd;
+	int result;
+
+	fd = socket(AF_INET, SOCK_STREAM, 0);
+	if(fd_max <= fd) 
+		fd_max=fd+1;
+
+	setsocketopts(fd);
+
+	server_address.sin_family = AF_INET;
+	server_address.sin_addr.s_addr = ip;
+	server_address.sin_port = htons(port);
+
+#if defined(WIN32)
+		unsigned long val = 1;
+		ioctlsocket(fd, FIONBIO, &val);
+#else
+		result = fcntl(fd, F_SETFL, O_NONBLOCK);
+#endif
+
+	result = connect(fd, (struct sockaddr *)(&server_address),sizeof(struct sockaddr_in));
+
+	FD_SET(fd,&readfds);
+
+	CREATE(session[fd], struct socket_data, 1);
+	CREATE(session[fd]->rdata, unsigned char, rfifo_size);
+	CREATE(session[fd]->wdata, unsigned char, wfifo_size);
+
+	session[fd]->max_rdata  = rfifo_size;
+	session[fd]->max_wdata  = wfifo_size;
+	session[fd]->func_recv  = recv_to_fifo;
+	session[fd]->func_send  = send_from_fifo;
+	session[fd]->func_parse = default_func_parse;
+	session[fd]->rdata_tick = tick_;
+
+	return fd;
 }

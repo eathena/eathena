@@ -1,6 +1,7 @@
 
 
 #include "lock.h"	// Lock Header
+#include "showmsg.h"	// ShowMsg Header
 #include <errno.h>
 
 Lock::open(const char *filename,int *info)
@@ -32,8 +33,8 @@ Lock::close(FILE *fp, const char *filename,int *info)
 		remove(filename);
 		if(rename(newfile, filename) != 0)
 		{
-			sprintf(tmp_output,"%s - '"CL_WHITE"%s"CL_RESET"'\n", strerror(errno), newfile);
-			ShowError(tmp_output);
+			sprintf(ShowMsg.tmp_output,"%s - '"CL_WHITE"%s"CL_RESET"'\n", strerror(errno), newfile);
+			ShowMsg.ShowError(tmp_output);
 		}
 		return ret;
 	}

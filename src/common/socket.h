@@ -1,7 +1,6 @@
 #pragma once
 #include <stdio.h>
 #if defined(WIN32)
-	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
 	#include <winsock2.h>
 #else
@@ -51,7 +50,7 @@ class Socket {
 		void				SetDefaultParse(int (*defaultparse)(int));
 		void				SetDefaultConsoleParse(int (*defaultparse)(char*));
 
-		int				ReallocateInfo(int fd, int rfifo_size, int wfifo_size);
+		int				ReallocFifo(int fd, int rfifo_size, int wfifo_size);
 		int				WFIFOSET(int fd, int len);
 		int				RFIFOSKIP(int fd, int len);
 
