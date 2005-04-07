@@ -8,7 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them i believe.
 
-
+04/07
+	* Fixed Sphinx Hat equip location [DracoRPG]
 04/06
 	* Added Einbrook monsters and drops, thanx to Landarma [Lupus]
 04/05
