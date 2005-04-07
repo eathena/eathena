@@ -33,6 +33,8 @@ Other Ppl
 Date		Added
 ======
 
+04/08
+	* Fixed some Rogue Job Quest bugs [Lupus] 
 04/06
 	* removed previous "fix". Please, never submit "fixes" w/o checking. [Lupus]
 	  that guy didn't know about a special SN Kafra from supernovice.txt file.

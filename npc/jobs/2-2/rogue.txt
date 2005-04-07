@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.0
+//= 1.1
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -11,7 +11,7 @@
 //= There are some differences from official quest due to scripting issues.
 //= Missing some message text.  
 //===== Additional Comments: ================================= 
-//= Working.
+//= 1.1 fixed 3 wrong questions, added missing lines [Lupus]
 //============================================================ 
 
 
@@ -96,16 +96,16 @@ L_Test1:
 		mes "[Markie]";
 		mes "1) What is the added flee rate that a Thief recieves when the ^5533FFImprove Dodge^000000 skill is ^5533FFmastered^000000?";
 		next;
-		menu "30",-, "40",sM1_1, "160",sM1_1, "20",sM1_1;
+		menu "20",sM1_1, "30",-, "40",sM1_1, "160",sM1_1;
 
 			set @score, @score + 10;
 
 		sM1_1:
 
 		mes "[Markie]";
-		mes "2) Choose a monster that can detect a hidden or cloaked character?";
+		mes "2) Choose a monster that cannot detect a hidden or cloaked character?";
 		next;
-		menu "Worm Tail",-, "Argos",sM1_2, "Mummy",sM1_2, "Soldier Skeleton",sM1_2;
+		menu "Mummy",sM1_2, "Worm Tail",-, "Argos",sM1_2, "Soldier Skeleton",sM1_2;
 
 			set @score, @score + 10;
 
@@ -188,7 +188,7 @@ L_Test1:
 
 	L_QSet2:
 		mes "[Markie]";
-		mes "1) What skill do you need to learn before you can learn ^5533FFStalk^000000?";
+		mes "1) What skill do you need to learn before you can learn ^5533FFTunnel Drive^000000?";
 		next;
 		menu "Hiding",-, "Steal",sM2_1, "Improve Dodge",sM2_1, "Bash",sM2_1;
 
@@ -215,7 +215,7 @@ L_Test1:
 		sM2_3:
 
 		mes "[Markie]";
-		mes "4) How many Rogues are required to activate the skill ^5533FFSlyness^000000?";
+		mes "4) How many Rogues are required to activate the skill ^5533FFGangster's Paradise^000000?";
 		next;
 		menu "1 Rogue + 2 Assassins",sM2_4, "2 Rogues + 1 Thief",sM2_4, "4 Thieves",sM2_4, "2 or more Rogues",-;
 
@@ -235,7 +235,7 @@ L_Test1:
 		mes "[Markie]";
 		mes "6) Choose a skill that allows its user to move while being hidden?";
 		next;
-		menu "Hiding",sM2_6, "Back Slide",sM2_6, "Stalk",-, "Sand Attack",sM2_6;
+		menu "Hiding",sM2_6, "Back Slide",sM2_6, "Tunnel Drive",-, "Sand Attack",sM2_6;
 
 			set @score, @score + 10;
 
@@ -543,10 +543,15 @@ L_Test3:
 		mes "You will have to go and find ^5533FFHollgrehen Junior^000000.";
 		next;
 		mes "[Mr. Smith]";
-		mes "He lives lives in a little house somewhere ^5533FFSouthEast^000000 of the Fortress of Sandarman.";
+		mes "He lives in a little house somewhere ^5533FFSouthEast^000000 of the Fortress of Sandarman.";
 		mes "That area is located ^5533FFone map East^000000 from here and is on the ^5533FFEastern land mass^000000.";
 		next;
 		mes "[Mr. Smith]";
+		mes "He's a really nice guy who works real hard and is very good at collecting unpaid debts.";
+		mes "Unfortunately people were trying to kill him because of something his father had done in the past.";
+		next;
+		mes "[Mr. Smith]";
+		mes "When he joined the Rogue guild, he decided he was going to keep low which is why he's in his current hiding place.";
 		mes "No one is supposed to know where he is except for those of us at the Rogue Guild.";
 		next;
 		mes "[Mr. Smith]";
@@ -557,10 +562,15 @@ L_Test3:
 		mes "You will have to go and find ^5533FFAntonio Junior.^000000.";
 		next;
 		mes "[Mr. Smith]";
-		mes "He lives lives in a little hut somewhere on the ^5533FFEastern end of Kokomo Beach^000000.";
+		mes "He lives in a little hut somewhere on the ^5533FFEastern end of Kokomo Beach^000000.";
 		mes "That area is located ^5533FF1 map North, and 1 map West^000000 from here.";
 		next;
 		mes "[Mr. Smith]";
+		mes "He's a really nice guy who works real hard and is very good at collecting unpaid debts.";
+		mes "Unfortunately people were trying to kill him because of something his father had done in the past.";
+		next;
+		mes "[Mr. Smith]";
+		mes "When he joined the Rogue guild, he decided he was going to keep low which is why he's in his current hiding place.";
 		mes "No one is supposed to know where he is except for those of us at the Rogue Guild.";
 		next;
 		mes "[Mr. Smith]";
