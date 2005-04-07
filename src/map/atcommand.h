@@ -247,6 +247,7 @@ enum AtCommandType {
 	AtCommand_AutoLoot, //by Upa-Kun
 	AtCommand_MobInfo, //by Lupus
         AtCommand_Adopt, // by Veider
+        AtCommand_Version, // by Ancyker
 
 	// end
 	AtCommand_Unknown,

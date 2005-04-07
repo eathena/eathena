@@ -267,6 +267,7 @@ ACMD_FUNC(changelook);
 ACMD_FUNC(mobinfo);	//by Lupus
 ACMD_FUNC(adopt); // by Veider
 
+ACMD_FUNC(version); // by Ancyker
 /*==========================================
  *AtCommandInfo atcommand_info[]\‘¢‘Ì‚Ì’è‹`
  *------------------------------------------
@@ -553,6 +554,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_MobInfo,		"@monsterinfo",	1,	atcommand_mobinfo }, // [Lupus]
 	{ AtCommand_MobInfo,		"@mi",	1,	atcommand_mobinfo }, // [Lupus]
         { AtCommand_Adopt,              "@adopt",       40, atcommand_adopt }, // [Veider]
+	{ AtCommand_Version,				"@version",			0, atcommand_version },
 	
 // add new commands before this line
 	{ AtCommand_Unknown,             NULL,                1, NULL }
@@ -9225,5 +9227,43 @@ const char* command, const char* message)
         }
         else
                 return -1;
+}
+
+/*==========================================
+ * Display SVN Version [Ancyker]
+ *------------------------------------------
+ */
+// Stolen from core.c!
+int get_svn_revisionx(char *svnentry) { // Warning: minor syntax checking
+	char line[1024];
+	int rev = 0;
+	FILE *fp;
+	if ((fp = fopen(svnentry, "r")) == NULL) {
+		return 0;
+	} else {
+		while (fgets(line,1023,fp))
+			if (strstr(line,"revision=")) break;
+		fclose(fp);
+		if (sscanf(line," %*[^\"]\"%d%*[^\n]",&rev) == 1)
+			return rev;
+		else
+			return 0;
+	}
+//	return 0;
+}
+int atcommand_version(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	int revision;
+//	int tmp_output;
+	char tmp_output[200];
+
+ 	if ((revision = get_svn_revisionx(".svn\\entries"))>0) {
+ 		sprintf(tmp_output,"eAthena Version SVN r%d",revision);
+            clif_displaymessage(fd,tmp_output);
+ 	}
+
+	return 0;
 }
 
