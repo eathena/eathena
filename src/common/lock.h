@@ -1,9 +1,8 @@
+#ifndef _LOCK_H_
+#define _LOCK_H_
 
+FILE* lock_fopen(const char* filename,int *info);
+int   lock_fclose(FILE *fp,const char* filename,int *info);
 
-#pragma once
+#endif
 
-class Lock {
-	public:
-		static FILE*	open(const char *filename, int *info);
-		static int	close(FILE *fp, const char *filename, int *info);
-};

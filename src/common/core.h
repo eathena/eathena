@@ -1,22 +1,21 @@
-#pragma once
-#ifndef SIGPIPE
-	#define SIGPIPE SIGINT
-#endif
-#if defined(WIN32)
-		#define WIN32_LEAN_AND_MEAN
-#endif
+// original : core.h 2003/03/14 11:55:25 Rev 1.4
 
-class Core {
-	public:
-		// Constructors
-		Core(void);
-		Core(int argc, char **argv);
-		void		SetTermFunc(void (*termfunc)(void));
+#ifndef	_CORE_H_
+#define	_CORE_H_
 
-		static void	Sig_Proc(int sn);
-		static int	Get_SVNRev(char *svnentry);
-		static void	Display_Title(void);
-		sigfunc*	compat_signal(int signo, sigfunc *func);
-	private:
-		int runflag;
+extern char *argp;
+extern int runflag;
+extern unsigned long ticks;
+extern char SERVER_TYPE;
+
+enum {
+	SERVER_NONE,
+	SERVER_LOGIN,
+	SERVER_CHAR,
+	SERVER_MAP,
 };
+
+int do_init(int,char**);
+void set_termfunc(void (*termfunc)(void));
+
+#endif	// _CORE_H_
