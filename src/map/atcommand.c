@@ -2804,9 +2804,9 @@ int atcommand_model(
 	if (hair_style >= MIN_HAIR_STYLE && hair_style <= MAX_HAIR_STYLE &&
 		hair_color >= MIN_HAIR_COLOR && hair_color <= MAX_HAIR_COLOR &&
 		cloth_color >= MIN_CLOTH_COLOR && cloth_color <= MAX_CLOTH_COLOR) {
-		//•ž‚ÌF•ÏX
+		//•bÌF•ÏX
 		if (cloth_color != 0 && sd->status.sex == 1 && (sd->status.class_ == 12 ||  sd->status.class_ == 17)) {
-			//•ž‚ÌF–¢ŽÀ‘•E‚Ì”»’è
+			//•bÌF–¢ŽÀ‘•E‚Ì”»’è
 			clif_displaymessage(fd, msg_table[35]); // You can't use this command with this class.
 			return -1;
 		} else {
@@ -9229,40 +9229,18 @@ const char* command, const char* message)
                 return -1;
 }
 
-/*==========================================
- * Display SVN Version [Ancyker]
- *------------------------------------------
- */
-// Stolen from core.c!
-int get_svn_revisionx(char *svnentry) { // Warning: minor syntax checking
-	char line[1024];
-	int rev = 0;
-	FILE *fp;
-	if ((fp = fopen(svnentry, "r")) == NULL) {
-		return 0;
-	} else {
-		while (fgets(line,1023,fp))
-			if (strstr(line,"revision=")) break;
-		fclose(fp);
-		if (sscanf(line," %*[^\"]\"%d%*[^\n]",&rev) == 1)
-			return rev;
-		else
-			return 0;
-	}
-//	return 0;
-}
 int atcommand_version(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
 	int revision;
-//	int tmp_output;
 	char tmp_output[200];
 
- 	if ((revision = get_svn_revisionx(".svn\\entries"))>0) {
+ 	if ((revision = get_svn_revision(".svn\\entries"))>0) {
  		sprintf(tmp_output,"eAthena Version SVN r%d",revision);
             clif_displaymessage(fd,tmp_output);
- 	}
+ 	} else 
+          clif_displaymessage(fd,"Cannot determine SVN revision");
 
 	return 0;
 }

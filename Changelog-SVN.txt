@@ -2,6 +2,7 @@
 Date	Added
 
 04/07
+        * Added @version atcommand [Ancyker]
 	* Readded @disablenpc (not the same as @hidenpc) [celest]
 	* Fixed @reloadscript not removing old NPC's and monsters first [celest]
 	* Some changes in mob and NPC unloading [celest]
