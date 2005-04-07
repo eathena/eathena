@@ -1430,7 +1430,7 @@
 5050,Mysterious_Fruit_Shell,Mysterious Fruit Shell,5,20,0,300,,5,,0,10477567,2,256,,30,134,{},{}
 5051,Bell_of_Pussycat,Bell of Pussycat,5,20,0,100,,5,,0,10477567,2,1,,0,135,{},{}
 5052,Blue_Bandana,Blue Bandana,5,20,0,150,,1,,0,10477567,2,256,,0,136,{},{}
-5053,Sphinx_Hat,Sphinx Hat,5,20,0,3000,,5,,0,16514,2,768,,65,137,{},{ bonus bStr,2; }
+5053,Sphinx_Hat,Sphinx Hat,5,20,0,3000,,5,,0,16514,2,257,,65,137,{},{ bonus bStr,2; }
 5054,Assassin_Mask,Assassin Mask,5,20,0,100,,0,,0,4096,2,1,,70,180,{},{}
 5055,Novice_Eggshell,Novice Eggshell,5,20,0,10,,3,,0,8388609,2,256,,0,101,{},{}
 5056,Seed_Of_Love,Seed Of Love,5,20,0,200,,0,,0,10477567,2,256,,0,140,{},{}

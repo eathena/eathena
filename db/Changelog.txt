@@ -9,6 +9,7 @@
 	Skill databases == celest working on them i believe.
 
 04/07
+	* Fixed materials for forging Lance : 1 Evil Horn -> 2 [DracoRPG]
 	* Fixed Sphinx Hat equip location [DracoRPG]
 04/06
 	* Added Einbrook monsters and drops, thanx to Landarma [Lupus]
