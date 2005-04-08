@@ -2263,8 +2263,14 @@ static int npc_parse_mapflag(char *w1,char *w2,char *w3,char *w4)
 	else if (strcmpi(w3,"snow")==0) { // snow [Valaris]
 		map[m].flag.snow=1;
 	}
+	else if (strcmpi(w3,"clouds")==0) {
+		map[m].flag.clouds=1;
+	}
 	else if (strcmpi(w3,"fog")==0) { // fog [Valaris]
 		map[m].flag.fog=1;
+	}
+	else if (strcmpi(w3,"fireworks")==0) {
+		map[m].flag.fireworks=1;
 	}
 	else if (strcmpi(w3,"sakura")==0) { // sakura [Valaris]
 		map[m].flag.sakura=1;

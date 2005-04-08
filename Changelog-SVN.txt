@@ -1,6 +1,11 @@
 
 Date	Added
 
+04/08
+	* Added 'clouds' and 'fireworks' mapflag [celest]
+	* Added a new @fog and @fireworks [celest]
+	* Changed the old @fog to @clouds [celest]
+
 04/07
         * Added @version atcommand [Ancyker]
 	* Readded @disablenpc (not the same as @hidenpc) [celest]

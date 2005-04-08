@@ -210,7 +210,7 @@ int clif_countusers(void)
 	struct map_session_data *sd;
 
 	for(i = 0; i < fd_max; i++) {
-		if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd && sd->state.auth &&
+		if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->state.auth &&
 		    !(battle_config.hide_GM_session && pc_isGM(sd)))
 			users++;
 	}
@@ -229,7 +229,7 @@ int clif_foreachclient(int (*func)(struct map_session_data*, va_list),...)
 
 	va_start(ap,func);
 	for(i = 0; i < fd_max; i++) {
-		if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd && sd->state.auth)
+		if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->state.auth)
 			func(sd, ap);
 	}
 	va_end(ap);
@@ -295,7 +295,7 @@ int clif_send_sub(struct block_list *bl, va_list ap)
  *
  *------------------------------------------
  */
-int clif_send(unsigned char *buf, int len, struct block_list *bl, int type) {
+int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 	int i;
 	struct map_session_data *sd = NULL;
 	struct party *p = NULL;
@@ -304,15 +304,15 @@ int clif_send(unsigned char *buf, int len, struct block_list *bl, int type) {
 
 	if (type != ALL_CLIENT) {
 		nullpo_retr(0, bl);
-	}
-	if (bl && bl->type == BL_PC) {
-		nullpo_retr (0, sd=(struct map_session_data*)bl);
+		if (bl->type == BL_PC) {
+			nullpo_retr (0, sd = (struct map_session_data *)bl);
+		}
 	}
 
 	switch(type) {
 	case ALL_CLIENT: // 全クライアントに送信
-		for(i = 0; i < fd_max; i++) {
-			if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth) {
+		for (i = 0; i < fd_max; i++) {
+			if (session[i] && (sd = (struct map_session_data *)session[i]->session_data) != NULL && sd->state.auth) {
 				if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
 					memcpy(WFIFOP(i,0), buf, len);
 					WFIFOSET(i,len);
@@ -322,7 +322,8 @@ int clif_send(unsigned char *buf, int len, struct block_list *bl, int type) {
 		break;
 	case ALL_SAMEMAP: // 同じマップの全クライアントに送信
 		for(i = 0; i < fd_max; i++) {
-			if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth && sd->bl.m == bl->m) {
+			if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL &&
+				sd->state.auth && sd->bl.m == bl->m) {
 				if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
 					memcpy(WFIFOP(i,0), buf, len);
 					WFIFOSET(i,len);
@@ -334,10 +335,12 @@ int clif_send(unsigned char *buf, int len, struct block_list *bl, int type) {
 	case AREA_WOS:
 	case AREA_WOC:
 	case AREA_WOSC:
-		map_foreachinarea(clif_send_sub, bl->m, bl->x-AREA_SIZE, bl->y-AREA_SIZE, bl->x+AREA_SIZE, bl->y+AREA_SIZE, BL_PC, buf, len, bl, type);
+		map_foreachinarea(clif_send_sub, bl->m, bl->x-AREA_SIZE, bl->y-AREA_SIZE, bl->x+AREA_SIZE, bl->y+AREA_SIZE,
+			BL_PC, buf, len, bl, type);
 		break;
 	case AREA_CHAT_WOC:
-		map_foreachinarea(clif_send_sub, bl->m, bl->x-(AREA_SIZE-5), bl->y-(AREA_SIZE-5), bl->x+(AREA_SIZE-5), bl->y+(AREA_SIZE-5), BL_PC, buf, len, bl, AREA_WOC);
+		map_foreachinarea(clif_send_sub, bl->m, bl->x-(AREA_SIZE-5), bl->y-(AREA_SIZE-5),
+			bl->x+(AREA_SIZE-5), bl->y+(AREA_SIZE-5), BL_PC, buf, len, bl, AREA_WOC);
 		break;
 	case CHAT:
 	case CHAT_WOS:
@@ -347,8 +350,7 @@ int clif_send(unsigned char *buf, int len, struct block_list *bl, int type) {
 				cd = (struct chat_data*)map_id2bl(sd->chatID);
 			} else if (bl->type == BL_CHAT) {
 				cd = (struct chat_data*)bl;
-			} else if (bl->type != BL_CHAT)
-				break;
+			} else break;
 			if (cd == NULL)
 				break;
 			for(i = 0; i < cd->users; i++) {
@@ -512,12 +514,8 @@ int clif_authok(struct map_session_data *sd) {
 
 	nullpo_retr(0, sd);
 
-	if (!sd)
-		return 0;
-
 	if (!sd->fd)
 		return 0;
-
 	fd = sd->fd;
 
 	WFIFOW(fd, 0) = 0x73;
@@ -1311,8 +1309,15 @@ int clif_spawnpc(struct map_session_data *sd) {
 
 	if (map[sd->bl.m].flag.snow)
 		clif_specialeffect(&sd->bl, 162, 1);
-	if (map[sd->bl.m].flag.fog)
+	if (map[sd->bl.m].flag.clouds)
 		clif_specialeffect(&sd->bl, 233, 1);
+	if (map[sd->bl.m].flag.fog)
+		clif_specialeffect(&sd->bl, 515, 1);
+	if (map[sd->bl.m].flag.fireworks) {
+		clif_specialeffect(&sd->bl, 297, 1);
+		clif_specialeffect(&sd->bl, 299, 1);
+		clif_specialeffect(&sd->bl, 301, 1);
+	}
 	if (map[sd->bl.m].flag.sakura)
 		clif_specialeffect(&sd->bl, 163, 1);
 	if (map[sd->bl.m].flag.leaves)

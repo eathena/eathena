@@ -198,7 +198,9 @@ ACMD_FUNC(summon);
 ACMD_FUNC(rain);
 ACMD_FUNC(snow);
 ACMD_FUNC(sakura);
+ACMD_FUNC(clouds);
 ACMD_FUNC(fog);
+ACMD_FUNC(fireworks);
 ACMD_FUNC(leaves);
 ACMD_FUNC(adjgmlvl); // by MouseJstr
 ACMD_FUNC(adjcmdlvl); // by MouseJstr
@@ -473,7 +475,9 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Rain,				"@rain",			99, atcommand_rain },
 	{ AtCommand_Snow,				"@snow",			99, atcommand_snow },
 	{ AtCommand_Sakura,				"@sakura",			99, atcommand_sakura },
+	{ AtCommand_Clouds,				"@clouds",			99,	atcommand_clouds },
 	{ AtCommand_Fog,				"@fog",				99,	atcommand_fog },
+	{ AtCommand_Fireworks,			"@fireworks",		99,	atcommand_fireworks },
 	{ AtCommand_Leaves,				"@leaves",			99, atcommand_leaves },
 /*
 	{ AtCommand_Shuffle,			"@shuffle",			99, atcommand_shuffle },
@@ -7654,9 +7658,8 @@ atcommand_rain(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int effno = 0;
+	int effno = 161;
 	nullpo_retr(-1, sd);
-	effno = 161;
 	if (map[sd->bl.m].flag.rain) {
 		map[sd->bl.m].flag.rain=0;
 		clif_displaymessage(fd, "The rain has stopped.");
@@ -7676,8 +7679,7 @@ atcommand_snow(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int effno = 0;
-	effno = 162;
+	int effno = 162;
 	nullpo_retr(-1, sd);
 	if (map[sd->bl.m].flag.snow) {
 		map[sd->bl.m].flag.snow=0;
@@ -7700,8 +7702,7 @@ atcommand_sakura(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int effno = 0;
-	effno = 163;
+	int effno = 163;
 	nullpo_retr(-1, sd);
 	if (map[sd->bl.m].flag.sakura) {
 		map[sd->bl.m].flag.sakura=0;
@@ -7715,6 +7716,29 @@ atcommand_sakura(
 }
 
 /*==========================================
+ * Clouds appear.
+ *------------------------------------------
+ */
+int
+atcommand_clouds(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	int effno = 233;
+	nullpo_retr(-1, sd);
+	if (map[sd->bl.m].flag.clouds) {
+		map[sd->bl.m].flag.clouds=0;
+		clif_displaymessage(fd, "The clouds has gone.");
+	} else {
+		map[sd->bl.m].flag.clouds=1;
+		clif_specialeffect(&sd->bl,effno,2);
+		clif_displaymessage(fd, "Clouds appear.");
+	}
+
+	return 0;
+}
+
+/*==========================================
  * Fog hangs over.
  *------------------------------------------
  */
@@ -7723,8 +7747,7 @@ atcommand_fog(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int effno = 0;
-	effno = 233;
+	int effno = 515;
 	nullpo_retr(-1, sd);
 	if (map[sd->bl.m].flag.fog) {
 		map[sd->bl.m].flag.fog=0;
@@ -7747,8 +7770,7 @@ atcommand_leaves(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int effno = 0;
-	effno = 333;
+	int effno = 333;
 	nullpo_retr(-1, sd);
 	if (map[sd->bl.m].flag.leaves) {
 		map[sd->bl.m].flag.leaves=0;
@@ -7763,6 +7785,32 @@ atcommand_leaves(
 }
 
 /*==========================================
+ * Clouds appear.
+ *------------------------------------------
+ */
+int
+atcommand_fireworks(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	//int effno = 0;
+	//effno = 233;
+	nullpo_retr(-1, sd);
+	if (map[sd->bl.m].flag.fireworks) {
+		map[sd->bl.m].flag.fireworks=0;
+		clif_displaymessage(fd, "Fireworks are launched.");
+	} else {
+		map[sd->bl.m].flag.fireworks=1;
+		clif_specialeffect(&sd->bl,297,2);
+		clif_specialeffect(&sd->bl,299,2);
+		clif_specialeffect(&sd->bl,301,2);
+		clif_displaymessage(fd, "Fireworks are launched.");
+	}
+
+	return 0;
+}
+
+/*==========================================
  * Clearing Weather Effects by Dexity
  *------------------------------------------
  */
@@ -7771,14 +7819,15 @@ atcommand_clearweather(
    const int fd, struct map_session_data* sd,
    const char* command, const char* message)
 {
-	//int effno = 0;
 	nullpo_retr(-1, sd);
 	map[sd->bl.m].flag.rain=0;
 	map[sd->bl.m].flag.snow=0;
 	map[sd->bl.m].flag.sakura=0;
+	map[sd->bl.m].flag.clouds=0;
 	map[sd->bl.m].flag.fog=0;
+	map[sd->bl.m].flag.fireworks=0;
 	map[sd->bl.m].flag.leaves=0;
-	//clif_specialeffect(&sd->bl,effno,2); // not required. [celest]
+
 	return 0;
 }
 

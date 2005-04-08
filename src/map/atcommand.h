@@ -180,7 +180,9 @@ enum AtCommandType {
 	AtCommand_Rain,
 	AtCommand_Snow,
 	AtCommand_Sakura,
+	AtCommand_Clouds,
 	AtCommand_Fog,
+	AtCommand_Fireworks,
 	AtCommand_Leaves,
 	AtCommand_AdjGmLvl, // MouseJstr
 	AtCommand_AdjCmdLvl, // MouseJstr

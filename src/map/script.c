@@ -4818,7 +4818,8 @@ int buildin_isloggedin(struct script_state *st)
  */
 enum {  MF_NOMEMO,MF_NOTELEPORT,MF_NOSAVE,MF_NOBRANCH,MF_NOPENALTY,MF_NOZENYPENALTY,
 	MF_PVP,MF_PVP_NOPARTY,MF_PVP_NOGUILD,MF_GVG,MF_GVG_NOPARTY,MF_NOTRADE,MF_NOSKILL,
-	MF_NOWARP,MF_NOPVP,MF_NOICEWALL,MF_SNOW,MF_FOG,MF_SAKURA,MF_LEAVES,MF_RAIN,MF_INDOORS,MF_NOGO };
+	MF_NOWARP,MF_NOPVP,MF_NOICEWALL,MF_SNOW,MF_FOG,MF_SAKURA,MF_LEAVES,MF_RAIN,
+	MF_INDOORS,MF_NOGO,MF_CLOUDS,MF_FIREWORKS };
 
 int buildin_setmapflagnosave(struct script_state *st)
 {
@@ -4898,8 +4899,14 @@ int buildin_setmapflag(struct script_state *st)
 			case MF_SNOW: // [Valaris]
 				map[m].flag.snow=1;
 				break;
+			case MF_CLOUDS:
+				map[m].flag.clouds=1;
+				break;
 			case MF_FOG: // [Valaris]
 				map[m].flag.fog=1;
+				break;
+			case MF_FIREWORKS:
+				map[m].flag.fireworks=1;
 				break;
 			case MF_SAKURA: // [Valaris]
 				map[m].flag.sakura=1;
@@ -4981,8 +4988,14 @@ int buildin_removemapflag(struct script_state *st)
 			case MF_SNOW: // [Valaris]
 				map[m].flag.snow=0;
 				break;
+			case MF_CLOUDS:
+				map[m].flag.clouds=0;
+				break;
 			case MF_FOG: // [Valaris]
 				map[m].flag.fog=0;
+				break;
+			case MF_FIREWORKS:
+				map[m].flag.fireworks=0;
 				break;
 			case MF_SAKURA: // [Valaris]
 				map[m].flag.sakura=0;

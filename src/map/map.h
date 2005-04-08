@@ -581,7 +581,9 @@ struct map_data {
 		unsigned nopvp : 1; // [Valaris]
 		unsigned noicewall : 1; // [Valaris]
 		unsigned snow : 1; // [Valaris]
+		unsigned clouds : 1;
 		unsigned fog : 1; // [Valaris]
+		unsigned fireworks : 1;
 		unsigned sakura : 1; // [Valaris]
 		unsigned leaves : 1; // [Valaris]
 		unsigned rain : 1; // [Valaris]

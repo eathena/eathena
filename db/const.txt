@@ -73,7 +73,7 @@ mf_nosave	2
 mf_nobranch	3
 mf_nopenalty	4
 mf_nozenypenalty	5
-mf_pvp	6
+mf_pvp		6
 mf_pvp_noparty	7
 mf_pvp_noguild	8
 mf_gvg		9
@@ -87,9 +87,11 @@ mf_snow		16
 mf_fog		17
 mf_sakura	18
 mf_leaves	19
-mf_rain	20
+mf_rain		20
 mf_indoors	21
-mf_nogo	22
+mf_nogo		22
+mf_clouds	23
+mf_fireworks	24
 
 StatusPoint	9	1
 BaseLevel	11	1
