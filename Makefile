@@ -1,3 +1,4 @@
+HAVESVN = 1
 
 CC = gcc -pipe
 # CC = gcc -pipe -DPCRE_SUPPORT
@@ -87,7 +88,7 @@ conf:
 	cp -r save-tmpl save
 	rm -rf save/.svn
 
-txt : src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile conf
+txt : src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile conf svnversion.h
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd ..
@@ -96,7 +97,7 @@ txt : src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/
 
 
 ifdef SQLFLAG
-sql: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/txt-converter/login/GNUmakefile src/txt-converter/char/GNUmakefile conf
+sql: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/txt-converter/login/GNUmakefile src/txt-converter/char/GNUmakefile conf svnversion.h
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd login_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
 	cd src ; cd char_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
@@ -104,12 +105,12 @@ sql: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile s
 	cd src ; cd txt-converter ; cd login ; $(MAKE) $(MYLIB) ; cd ..
 	cd src ; cd txt-converter ; cd char ; $(MAKE) $(MYLIB) ; cd ..
 else
-sql:
+sql: svnversion.h
 	$(MAKE) CC="$(CC)" OPT="$(OPT)" SQLFLAG=1 $@
 endif
 
 
-tools:
+tools: svnversion.h
 	cd src ; cd tool && $(MAKE) $(MKDEF) && cd ..
 
 webserver:
@@ -126,22 +127,33 @@ clean: src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map
 	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd txt-converter ; cd login ; $(MAKE) $(MKLIB) $@ ; cd ..
 	cd src ; cd txt-converter ; cd char ; $(MAKE) $(MKLIB) $@ ; cd ..
+	rm -f svnversion.h
 
-src/common/GNUmakefile: src/common/Makefile
+src/common/GNUmakefile: src/common/Makefile svnversion.h
 	sed -e 's/$$>/$$^/' src/common/Makefile > src/common/GNUmakefile
-src/login/GNUmakefile: src/login/Makefile
+src/login/GNUmakefile: src/login/Makefile svnversion.h
 	sed -e 's/$$>/$$^/' src/login/Makefile > src/login/GNUmakefile
-src/login_sql/GNUmakefile: src/login_sql/Makefile
+src/login_sql/GNUmakefile: src/login_sql/Makefile svnversion.h
 	sed -e 's/$$>/$$^/' src/login_sql/Makefile > src/login_sql/GNUmakefile
-src/char/GNUmakefile: src/char/Makefile
+src/char/GNUmakefile: src/char/Makefile svnversion.h
 	sed -e 's/$$>/$$^/' src/char/Makefile > src/char/GNUmakefile
-src/char_sql/GNUmakefile: src/char_sql/Makefile
+src/char_sql/GNUmakefile: src/char_sql/Makefile svnversion.h
 	sed -e 's/$$>/$$^/' src/char_sql/Makefile > src/char_sql/GNUmakefile
-src/map/GNUmakefile: src/map/Makefile
+src/map/GNUmakefile: src/map/Makefile svnversion.h
 	sed -e 's/$$>/$$^/' src/map/Makefile > src/map/GNUmakefile
-src/ladmin/GNUmakefile: src/ladmin/Makefile
+src/ladmin/GNUmakefile: src/ladmin/Makefile svnversion.h
 	sed -e 's/$$>/$$^/' src/ladmin/Makefile > src/ladmin/GNUmakefile
-src/txt-converter/login/GNUmakefile: src/txt-converter/login/Makefile
+src/txt-converter/login/GNUmakefile: src/txt-converter/login/Makefile svnversion.h
 	sed -e 's/$$>/$$^/' src/txt-converter/login/Makefile > src/txt-converter/login/GNUmakefile
-src/txt-converter/char/GNUmakefile: src/txt-converter/char/Makefile
+src/txt-converter/char/GNUmakefile: src/txt-converter/char/Makefile svnversion.h
 	sed -e 's/$$>/$$^/' src/txt-converter/char/Makefile > src/txt-converter/char/GNUmakefile
+
+
+ifdef HAVESVN
+svnversion.h: Changelog-SVN.txt Changelog.txt
+	echo -n "#define SVNVERSION " > svnversion.h
+	svnversion . >> svnversion.h
+#else
+svnversion.h:
+	echo "#define SVNVERSION $rev$
+#endif
