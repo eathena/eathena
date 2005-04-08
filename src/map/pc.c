@@ -33,6 +33,7 @@
 #include "atcommand.h"
 #include "log.h"
 #include "showmsg.h"
+#include "core.h"
 
 #ifndef TXT_ONLY // mail system [Valaris]
 #include "mail.h"

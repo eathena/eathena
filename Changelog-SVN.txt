@@ -2,6 +2,7 @@
 Date	Added
 
 04/08	
+        * Fixed compile warnings in pc.c [MouseJstr]
         * Fixed a crash in clif_send when sending messages to guild
           members [MouseJstr]
         * Added @shuffle map, @shuffle area, @shuffle world [MouseJstr]
