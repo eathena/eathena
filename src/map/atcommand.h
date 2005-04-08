@@ -251,6 +251,10 @@ enum AtCommandType {
         AtCommand_Adopt, // by Veider
         AtCommand_Version, // by Ancyker
 
+        AtCommand_MuteArea, // MouseJstr
+        AtCommand_Shuffle, // MouseJstr
+        AtCommand_Rates, // MouseJstr
+
 	// end
 	AtCommand_Unknown,
 	AtCommand_MAX

@@ -270,6 +270,11 @@ ACMD_FUNC(mobinfo);	//by Lupus
 ACMD_FUNC(adopt); // by Veider
 
 ACMD_FUNC(version); // by Ancyker
+
+ACMD_FUNC(mutearea); // by MouseJstr
+ACMD_FUNC(shuffle); // by MouseJstr
+ACMD_FUNC(rates); // by MouseJstr
+
 /*==========================================
  *AtCommandInfo atcommand_info[]\‘¢‘Ì‚Ì’è‹`
  *------------------------------------------
@@ -479,11 +484,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Fog,				"@fog",				99,	atcommand_fog },
 	{ AtCommand_Fireworks,			"@fireworks",		99,	atcommand_fireworks },
 	{ AtCommand_Leaves,				"@leaves",			99, atcommand_leaves },
-/*
-	{ AtCommand_Shuffle,			"@shuffle",			99, atcommand_shuffle },
-	{ AtCommand_Maintenance,		"@maintenance",		99, atcommand_maintenance },
-	{ AtCommand_Misceffect,			"@misceffect",		60, atcommand_misceffect },
-*/
 	{ AtCommand_Summon,				"@summon",			60, atcommand_summon },
 	{ AtCommand_AdjGmLvl,			"@adjgmlvl",		99, atcommand_adjgmlvl },
 	{ AtCommand_AdjCmdLvl,			"@adjcmdlvl",		99, atcommand_adjcmdlvl },
@@ -559,6 +559,11 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_MobInfo,		"@mi",	1,	atcommand_mobinfo }, // [Lupus]
         { AtCommand_Adopt,              "@adopt",       40, atcommand_adopt }, // [Veider]
 	{ AtCommand_Version,				"@version",			0, atcommand_version },
+
+	{ AtCommand_MuteArea,				"@mutearea",			99, atcommand_mutearea }, // MouseJstr
+	{ AtCommand_MuteArea,				"@stfu",			99, atcommand_mutearea }, // MouseJstr
+	{ AtCommand_Shuffle,				"@shuffle",			40, atcommand_shuffle }, // MouseJstr
+	{ AtCommand_Rates,				"@rates",			10, atcommand_rates }, // MouseJstr
 	
 // add new commands before this line
 	{ AtCommand_Unknown,             NULL,                1, NULL }
@@ -9294,3 +9299,98 @@ int atcommand_version(
 	return 0;
 }
 
+
+static int atcommand_mutearea_sub(struct block_list *bl,va_list ap)
+{
+  int time;
+  struct map_session_data *pl_sd = (struct map_session_data *) bl;
+  if (bl == NULL)
+    return;
+
+  time = va_arg(ap, int);
+
+  if (!pc_isGM(pl_sd)) {
+    pl_sd->status.manner -= time;
+    if(pl_sd->status.manner < 0)
+      status_change_start(&pl_sd->bl,SC_NOCHAT,0,0,0,0,0,0);
+  }
+  return 0;
+}
+
+/*==========================================
+ * @mutearea by MouseJstr
+ *------------------------------------------
+ */
+int atcommand_mutearea(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+  int time;
+  nullpo_retr(0, sd);
+
+  time = atoi(message);
+  if (time <= 0)
+    time = 15; // 15 second default
+  map_foreachinarea(atcommand_mutearea_sub,sd->bl.m, 
+    sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE, 
+    sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_PC, 15);
+
+  return 0;
+}
+
+static int atcommand_shuffle_sub(struct block_list *bl,va_list ap)
+{
+  struct map_session_data *pl_sd = (struct map_session_data *) bl;
+  if (bl == NULL)
+    return;
+
+  if (!pc_isGM(pl_sd)) 
+    pc_setpos(pl_sd, pl_sd->mapname, rand() % 399 + 1, rand() % 399 + 1, 3);
+
+  return 0;
+}
+
+/*==========================================
+ * @shuffle by MouseJstr
+ *------------------------------------------
+ */
+int atcommand_shuffle(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+  nullpo_retr(0, sd);
+
+  if (strcmp(message, "area")== 0) {
+    map_foreachinarea(atcommand_shuffle_sub,sd->bl.m, 
+      sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE, 
+      sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_PC);  
+  } else if (strcmp(message, "map")== 0) {
+    map_foreachinarea(atcommand_shuffle_sub,sd->bl.m, 
+      0, 399, 0, 399, BL_PC);
+  } else if (strcmp(message, "world") == 0) {
+    struct map_session_data *pl_sd;
+    int i;
+    for (i = 0; i < fd_max; i++) 
+      if (session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) != NULL && pl_sd->state.auth)
+        atcommand_shuffle_sub(&pl_sd->bl, 0);
+  } else 
+    clif_displaymessage(fd, "options are area, map, or world");
+
+  return 0;
+}
+
+int atcommand_rates(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+  char buf[255];
+
+  nullpo_retr(0, sd);
+
+  sprintf(buf, "base_exp_rate: %d    job_exp_rate: %d", 
+    battle_config.base_exp_rate, battle_config.job_exp_rate);
+
+  clif_displaymessage(fd, buf);
+
+  return 0;
+}

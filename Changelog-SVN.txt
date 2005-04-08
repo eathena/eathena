@@ -2,6 +2,8 @@
 Date	Added
 
 04/08	
+        * Added @shuffle map, @shuffle area, @shuffle world [MouseJstr]
+        * Added @mutearea [MouseJstr]  
 	* Readded setting of sd->skilllv, sd->skillid to skill_use_id
 	  caused skill failures for BARD/DANCER combo skills [veider]
         * Changed how get_svn_revision() is implemented to compile the actual
