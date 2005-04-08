@@ -9305,7 +9305,7 @@ static int atcommand_mutearea_sub(struct block_list *bl,va_list ap)
   int time;
   struct map_session_data *pl_sd = (struct map_session_data *) bl;
   if (bl == NULL)
-    return;
+    return 0;
 
   time = va_arg(ap, int);
 
@@ -9342,7 +9342,7 @@ static int atcommand_shuffle_sub(struct block_list *bl,va_list ap)
 {
   struct map_session_data *pl_sd = (struct map_session_data *) bl;
   if (bl == NULL)
-    return;
+    return 0;
 
   if (!pc_isGM(pl_sd)) 
     pc_setpos(pl_sd, pl_sd->mapname, rand() % 399 + 1, rand() % 399 + 1, 3);

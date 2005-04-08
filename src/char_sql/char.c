@@ -3520,59 +3520,56 @@ int debug_mysql_query(char *file, int line, void *mysql, const char *q) {
 }
 
 int char_child(int parent_id, int child_id) {
-        int tmp_id = 0;
-        sprintf (tmp_sql, "SELECT `child` FROM `%s` WHERE `char_id` = '%d'", char_db, parent_id);
-        if (mysql_query (&mysql_handle, tmp_sql)) {
-                printf ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
-        }
-        sql_res = mysql_store_result (&mysql_handle);
-        if (sql_res) {
-                sql_row = mysql_fetch_row (sql_res);
-                tmp_id = atoi (sql_row[0]);
-                mysql_free_result (sql_res);
-        }
-        else
-                printf("CHAR: child Failed!\n");
-        if ( tmp_id == child_id )
-                return 1;
-        else
-                return 0;
+		int tmp_id = 0;
+		sprintf (tmp_sql, "SELECT `child` FROM `%s` WHERE `char_id` = '%d'", char_db, parent_id);
+		if (mysql_query (&mysql_handle, tmp_sql)) {
+			printf ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
+		}
+		sql_res = mysql_store_result (&mysql_handle);
+		if (sql_res && (sql_row = mysql_fetch_row (sql_res))) {
+			tmp_id = atoi (sql_row[0]);
+			mysql_free_result (sql_res);
+		}
+		else
+			printf("CHAR: child Failed!\n");
+		if ( tmp_id == child_id )
+			return 1;
+		else
+			return 0;
 }
 
 int char_married(int pl1,int pl2) {
-        int tmp_id = 0;
-        sprintf (tmp_sql, "SELECT `partner_id` FROM `%s` WHERE `char_id` = '%d'", char_db, pl1);
-        if (mysql_query (&mysql_handle, tmp_sql)) {
-                printf ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
-        }
-        sql_res = mysql_store_result (&mysql_handle);
-        if (sql_res) {
-                sql_row = mysql_fetch_row (sql_res);
-                tmp_id = atoi (sql_row[0]);
-                mysql_free_result (sql_res);
-        }
-        else
-                printf("CHAR: married Failed!\n");
-        if ( tmp_id == pl2 )
-                return 1;
-        else
-                return 0;
+		int tmp_id = 0;
+		sprintf (tmp_sql, "SELECT `partner_id` FROM `%s` WHERE `char_id` = '%d'", char_db, pl1);
+		if (mysql_query (&mysql_handle, tmp_sql)) {
+				printf ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
+		}
+		sql_res = mysql_store_result (&mysql_handle);
+		if (sql_res && (sql_row = mysql_fetch_row (sql_res))) {
+				tmp_id = atoi (sql_row[0]);
+				mysql_free_result (sql_res);
+		}
+		else
+				printf("CHAR: married Failed!\n");
+		if ( tmp_id == pl2 )
+				return 1;
+		else
+				return 0;
 }
 
 int char_nick2id (char *name) {
-        int char_id = 0;
-        sprintf (tmp_sql, "SELECT `char_id` FROM `%s` WHERE `name` = '%s'", char_db, name);
-        if (mysql_query (&mysql_handle, tmp_sql)) {
-                printf ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
-        }
-        sql_res = mysql_store_result (&mysql_handle);
-        if (sql_res) {
-                sql_row = mysql_fetch_row (sql_res);
-                char_id = atoi (sql_row[0]);
-                mysql_free_result (sql_res);
-        }
-        else
-                printf ("CHAR: nick2id Failed!\n");
-        return char_id;
+		int char_id = 0;
+		sprintf (tmp_sql, "SELECT `char_id` FROM `%s` WHERE `name` = '%s'", char_db, name);
+		if (mysql_query (&mysql_handle, tmp_sql)) {
+				printf ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
+		}
+		sql_res = mysql_store_result (&mysql_handle);
+		if (sql_res && (sql_row = mysql_fetch_row (sql_res))) {
+				char_id = atoi (sql_row[0]);
+				mysql_free_result (sql_res);
+		}
+		else
+				printf ("CHAR: nick2id Failed!\n");
+		return char_id;
 }
 
