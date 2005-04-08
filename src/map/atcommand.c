@@ -9282,11 +9282,11 @@ int atcommand_version(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int revision;
+	const char * revision;
 	char tmp_output[200];
 
- 	if ((revision = get_svn_revision(".svn\\entries"))>0) {
- 		sprintf(tmp_output,"eAthena Version SVN r%d",revision);
+ 	if ((revision = get_svn_revision()) != 0) {
+ 		sprintf(tmp_output,"eAthena Version SVN r%s",revision);
             clif_displaymessage(fd,tmp_output);
  	} else 
           clif_displaymessage(fd,"Cannot determine SVN revision");

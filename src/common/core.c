@@ -21,6 +21,7 @@
 #include "../common/timer.h"
 #include "../common/version.h"
 #include "../common/showmsg.h"
+#include "svnversion.h"
 
 #ifdef MEMWATCH
 #include "memwatch.h"
@@ -165,23 +166,37 @@ void sig_dump(int sn)
 }
 #endif
 
-int get_svn_revision(char *svnentry) { // Warning: minor syntax checking
+#ifdef SVNVERSION
+
+#define xstringify(x)  stringify(x)
+#define stringify(x)  #x
+
+const char *get_svn_revision() {
+       return xstringify(SVNVERSION);
+}
+
+#else
+
+const char* get_svn_revision() {
+	static char version[10];
 	char line[1024];
 	int rev = 0;
 	FILE *fp;
-	if ((fp = fopen(svnentry, "r")) == NULL) {
-		return 0;
+	if ((fp = fopen(".svn/entries", "r")) == NULL) {
+		return "Unknown";
 	} else {
 		while (fgets(line,1023,fp))
 			if (strstr(line,"revision=")) break;
 		fclose(fp);
-		if (sscanf(line," %*[^\"]\"%d%*[^\n]",&rev) == 1)
-			return rev;
-		else
-			return 0;
+		if (sscanf(line," %*[^\"]\"%d%*[^\n]",&rev) == 1) {
+			sprintf(version, "%d", rev);
+			return version;
+		} else
+			return "Unknown";
 	}
-//	return 0;
+	return 0;
 }
+#endif
 
 /*======================================
  *	CORE : Display title
@@ -190,7 +205,7 @@ int get_svn_revision(char *svnentry) { // Warning: minor syntax checking
 
 static void display_title(void)
 {
-	int revision;
+	const char *revision;
 	ClearScreen(); // clear screen and go up/left (0, 0 position in text)
 	ShowMessage(""CL_WTBL"          (=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=)"CL_CLL""CL_NORMAL"\n"); // white writing (37) on blue background (44), \033[K clean until end of file
 	ShowMessage(""CL_XXBL"          ("CL_BT_YELLOW"        (c)2005 eAthena Development Team presents        "CL_XXBL")"CL_CLL""CL_NORMAL"\n"); // yellow writing (33)
@@ -209,8 +224,8 @@ static void display_title(void)
 	ShowMessage(""CL_XXBL"          ("CL_BT_YELLOW"  Advanced Fusion Maps (c) 2003-2005 The Fusion Project  "CL_XXBL")"CL_CLL""CL_NORMAL"\n"); // yellow writing (33)
 	ShowMessage(""CL_WTBL"          (=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=)"CL_CLL""CL_NORMAL"\n\n"); // reset color
 	
-	if ((revision = get_svn_revision(".svn\\entries"))>0) {
-		ShowInfo("SVN Revision: '"CL_WHITE"%d"CL_RESET"'.\n",revision);
+	if ((revision = get_svn_revision())!=NULL) {
+		ShowInfo("SVN Revision: '"CL_WHITE"%s"CL_RESET"'.\n",revision);
 	}
 }
 

@@ -846,6 +846,12 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	// Send friends list
 	clif_friends_list_send(sd);
 
+	{
+		char buf[256];
+		sprintf(buf, "eAthena SVN version: %s", get_svn_revision());
+		clif_displaymessage(sd->fd, buf);
+	}
+
 	// Message of the Day‚Ì‘—M
 	{
 		char buf[256];

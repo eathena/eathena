@@ -8,7 +8,7 @@ common: obj/core.o obj/socket.o obj/timer.o obj/grfio.o obj/db.o obj/lock.o obj/
 obj/%.o: %.c
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
-obj/core.o: core.c core.h showmsg.h
+obj/core.o: core.c core.h showmsg.h svnversion.h
 obj/socket.o: socket.c socket.h mmo.h showmsg.h dll.h
 obj/timer.o: timer.c timer.h showmsg.h
 obj/grfio.o: grfio.c grfio.h showmsg.h
@@ -21,3 +21,15 @@ obj/strlib.o: strlib.c strlib.h utils.h
 
 clean:
 	rm -rf *.o obj
+
+
+HAVESVN = $(shell which svnversion)
+
+ifeq ($(findstring /,$(HAVESVN)), /)
+svnversion.h: ../../Changelog-SVN.txt
+	echo -n "#define SVNVERSION " > svnversion.h
+	svnversion . >> svnversion.h
+else
+svnversion.h:
+	echo -n "" > svnversion.h
+endif
