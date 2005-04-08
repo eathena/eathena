@@ -1,0 +1,212 @@
+    436560 bytes   1819 chunks allocated at itemdb.c, 153
+                          calloc()  (interface)
+                   itemdb_search()  itemdb.c, 153
+                   itemdb_readdb()  itemdb.c, 326
+                     itemdb_read()  itemdb.c, 264
+                  do_init_itemdb()  itemdb.c, 972
+                         do_init()  map.c, 3389
+                            main()  core.c, 325
+
+    122304 bytes 1 chunk allocated at map.c, 2205
+                          calloc()  (interface)
+                  map_cache_read()  map.c, 2205
+                     map_readmap()  map.c, 2518
+                  map_readallmap()  map.c, 2638
+                         do_init()  map.c, 3369
+                            main()  core.c, 325
+
+     65536 bytes 1 chunk allocated at socket.c, 1057
+                          calloc()  (interface)
+                       do_socket()  socket.c, 1057
+                            main()  core.c, 307
+
+     65536 bytes 1 chunk allocated at socket.c, 1058
+                          calloc()  (interface)
+                       do_socket()  socket.c, 1058
+                            main()  core.c, 307
+
+     65484 bytes   1819 chunks allocated at db.c, 465
+                          calloc()  (interface)
+                       db_insert()  db.c, 465
+                   itemdb_search()  itemdb.c, 154
+                   itemdb_readdb()  itemdb.c, 326
+                     itemdb_read()  itemdb.c, 264
+                  do_init_itemdb()  itemdb.c, 972
+                         do_init()  map.c, 3389
+                            main()  core.c, 325
+
+     60200 bytes     52 chunks allocated at script.c, 1284
+                          calloc()  (interface)
+                    parse_script()  script.c, 1219
+              npc_parse_function()  npc.c, 2029
+                npc_parsesrcfile()  npc.c, 2345
+                     do_init_npc()  npc.c, 2546
+                         do_init()  map.c, 3399
+                            main()  core.c, 325
+
+     32256 bytes 1 chunk allocated at script.c, 657
+                         realloc()  (interface)
+                         add_str()  script.c, 657
+                add_buildin_func()  script.c, 1163
+                    parse_script()  script.c, 1215
+                   itemdb_readdb()  itemdb.c, 377
+                     itemdb_read()  itemdb.c, 264
+                  do_init_itemdb()  itemdb.c, 972
+                         do_init()  map.c, 3389
+                            main()  core.c, 325
+
+     29085 bytes     33 chunks allocated at script.c, 1284
+                          calloc()  (interface)
+                    parse_script()  script.c, 1219
+                npc_parse_script()  npc.c, 1741
+                npc_parsesrcfile()  npc.c, 2347
+                     do_init_npc()  npc.c, 2546
+                         do_init()  map.c, 3399
+                            main()  core.c, 325
+
+     16637 bytes   1819 chunks allocated at script.c, 1284
+                          calloc()  (interface)
+                    parse_script()  script.c, 1219
+                   itemdb_readdb()  itemdb.c, 380
+                     itemdb_read()  itemdb.c, 264
+                  do_init_itemdb()  itemdb.c, 972
+                         do_init()  map.c, 3389
+                            main()  core.c, 325
+
+     14824 bytes     34 chunks allocated at npc.c, 1768
+                          calloc()  (interface)
+                npc_parse_script()  npc.c, 1768
+                npc_parsesrcfile()  npc.c, 2347
+                     do_init_npc()  npc.c, 2546
+                         do_init()  map.c, 3399
+                            main()  core.c, 325
+
+     10752 bytes 1 chunk allocated at script.c, 662
+                         realloc()  (interface)
+                         add_str()  script.c, 662
+                add_buildin_func()  script.c, 1163
+                    parse_script()  script.c, 1215
+                   itemdb_readdb()  itemdb.c, 377
+                     itemdb_read()  itemdb.c, 264
+                  do_init_itemdb()  itemdb.c, 972
+                         do_init()  map.c, 3389
+                            main()  core.c, 325
+
+      8856 bytes    246 chunks allocated at db.c, 465
+                          calloc()  (interface)
+                       db_insert()  db.c, 465
+                    parse_script()  script.c, 1264
+              npc_parse_function()  npc.c, 2029
+                npc_parsesrcfile()  npc.c, 2345
+                     do_init_npc()  npc.c, 2546
+                         do_init()  map.c, 3399
+                            main()  core.c, 325
+
+      8436 bytes    270 chunks allocated at atcommand.c, 957
+                          calloc()  (interface)
+                 msg_config_read()  atcommand.c, 957
+                         do_init()  map.c, 3337
+                            main()  core.c, 325
+
+      8284 bytes     19 chunks allocated at npc.c, 1510
+                          calloc()  (interface)
+                  npc_parse_warp()  npc.c, 1510
+                npc_parsesrcfile()  npc.c, 2340
+                     do_init_npc()  npc.c, 2546
+                         do_init()  map.c, 3399
+                            main()  core.c, 325
+
+      7644 bytes 1 chunk allocated at map.c, 2565
+                          calloc()  (interface)
+                     map_readmap()  map.c, 2565
+                  map_readallmap()  map.c, 2638
+                         do_init()  map.c, 3369
+                            main()  core.c, 325
+
+      7644 bytes 1 chunk allocated at map.c, 2566
+                          calloc()  (interface)
+                     map_readmap()  map.c, 2566
+                  map_readallmap()  map.c, 2638
+                         do_init()  map.c, 3369
+                            main()  core.c, 325
+
+      7644 bytes 1 chunk allocated at map.c, 2568
+                          calloc()  (interface)
+                     map_readmap()  map.c, 2568
+                  map_readallmap()  map.c, 2638
+                         do_init()  map.c, 3369
+                            main()  core.c, 325
+
+      7644 bytes 1 chunk allocated at map.c, 2569
+                          calloc()  (interface)
+                     map_readmap()  map.c, 2569
+                  map_readallmap()  map.c, 2638
+                         do_init()  map.c, 3369
+                            main()  core.c, 325
+
+      7168 bytes 1 chunk allocated at timer.c, 181
+                          calloc()  (interface)
+                       add_timer()  timer.c, 181
+              add_timer_interval()  timer.c, 206
+                       do_socket()  socket.c, 1063
+                            main()  core.c, 307
+
+      6465 bytes   1819 chunks allocated at script.c, 1284
+                          calloc()  (interface)
+                    parse_script()  script.c, 1219
+                   itemdb_readdb()  itemdb.c, 377
+                     itemdb_read()  itemdb.c, 264
+                  do_init_itemdb()  itemdb.c, 972
+                         do_init()  map.c, 3389
+                            main()  core.c, 325
+
+      5688 bytes    158 chunks allocated at db.c, 465
+                          calloc()  (interface)
+                       db_insert()  db.c, 465
+                    parse_script()  script.c, 1264
+                npc_parse_script()  npc.c, 1741
+                npc_parsesrcfile()  npc.c, 2347
+                     do_init_npc()  npc.c, 2546
+                         do_init()  map.c, 3399
+                            main()  core.c, 325
+
+      4992 bytes     24 chunks allocated at guild.c, 110
+                          calloc()  (interface)
+             guild_read_castledb()  guild.c, 110
+                   do_init_guild()  guild.c, 149
+                         do_init()  map.c, 3395
+                            main()  core.c, 325
+
+      4480 bytes     26 chunks allocated at npc.c, 1661
+                          calloc()  (interface)
+             npc_convertlabel_db()  npc.c, 1658
+                      db_foreach()  db.c, 587
+                npc_parse_script()  npc.c, 1864
+                npc_parsesrcfile()  npc.c, 2347
+                     do_init_npc()  npc.c, 2546
+                         do_init()  map.c, 3399
+                            main()  core.c, 325
+
+      3720 bytes      8 chunks allocated at npc.c, 1625
+                          calloc()  (interface)
+                  npc_parse_shop()  npc.c, 1579
+                npc_parsesrcfile()  npc.c, 2342
+                     do_init_npc()  npc.c, 2546
+                         do_init()  map.c, 3399
+                            main()  core.c, 325
+
+      3488 bytes      8 chunks allocated at npc.c, 1768
+                          calloc()  (interface)
+                npc_parse_script()  npc.c, 1768
+                npc_parsesrcfile()  npc.c, 2350
+                     do_init_npc()  npc.c, 2546
+                         do_init()  map.c, 3399
+                            main()  core.c, 325
+
+      2600 bytes     52 chunks allocated at npc.c, 2036
+                          calloc()  (interface)
+              npc_parse_function()  npc.c, 2036
+                npc_parsesrcfile()  npc.c, 2345
+                     do_init_npc()  npc.c, 2546
+                         do_init()  map.c, 3399
+                            main()  core.c, 325
