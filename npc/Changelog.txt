@@ -28,11 +28,16 @@ DracoRPG
 Other Ppl	
 	* Their Work?
 
+TODO:
+	* Redo all NPC to work with BABY CLASS
+
 == Changelog ==
 
 Date		Added
 ======
 
+04/09
+	* valkyrie.txt Fixed: now alternative classes can use their 1-1 job NPC to become Advanced 1st Class [Lupus]
 04/08
 	* Fixed some Rogue Job Quest bugs [Lupus] 
 04/06

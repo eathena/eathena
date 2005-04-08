@@ -4,7 +4,7 @@
 //= Nana, fixes by Poki
 //= finished, optimized and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -13,6 +13,8 @@
 //= v1.1 Made all into functions,additional checks,quest skills,
 //= now Valhallana can return you back. She also makes reborn
 //= process only when you got no Zeny/items (as in kRO) [Lupus]
+//= 1.2 now alternative classes can use their 1-1 job NPC
+//= to become Advanced 1st Class [Lupus]
 //============================================================ 
 
 
@@ -309,9 +311,17 @@ L_Gef:
 //getarg(8) - current NPC's name
 
 function	script	F_ToHigh	{
+	set @fjob,ADVJOB; //alternative classes should pass, too
+	if(@fjob == Job_Rogue + 4001 ) set @fjob,Job_Assassin+4001;
+	if(@fjob == Job_Alchem + 4001 ) set @fjob,Job_Blacksmith+4001;
+	if(@fjob == Job_Bard + 4001 || @fjob == Job_Dancer + 4001 ) set @fjob,Job_Hunter+4001;
+	if(@fjob == Job_Crusader + 4001 ) set @fjob,Job_Knight+4001;
+	if(@fjob == Job_Monk + 4001 ) set @fjob,Job_Priest+4001;
+	if(@fjob == Job_Sage + 4001 ) set @fjob,Job_Wizard+4001;
+
 	if(Class == 3977+getarg(0) ) goto L_WELCOME; //3rd Job
 	if(Class >= 4008) goto L_ALREADY; //already advanced class
-	if(Class == 4001 && ADVJOB == (3977+getarg(2))) goto L_GETHIGH; //High Novice -> High XXXX
+	if(Class == 4001 && @fjob == 3977+getarg(2) ) goto L_GETHIGH; //High Novice -> High XXXX
 	return; //this char doesn't want to get HIGH class
 
 L_GETHIGH:
