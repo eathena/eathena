@@ -2696,7 +2696,7 @@ int parse_char(int fd) {
 				session[fd]->session_data = sd;
 
 				memset(sd, 0, sizeof(struct char_session_data));
-				memcpy(sd->email, "no mail", 40); // put here a mail without '@' to refuse deletion if we don't receive the e-mail
+				strncpy(sd->email, "no mail", 40); // put here a mail without '@' to refuse deletion if we don't receive the e-mail
 				sd->connect_until_time = 0; // unknow or illimited (not displaying on map-server)
 			}
 			sd->account_id = RFIFOL(fd,2);

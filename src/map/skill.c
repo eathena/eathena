@@ -9267,7 +9267,7 @@ int skill_readdb(void)
 		if(line[0]=='/' && line[1]=='/')
 			continue;
 		j = skill_split_str(line,split,14);
-		if(split[13]==NULL || j<14)
+		if(j < 14 || split[13]==NULL)
 			continue;
 
 		i=atoi(split[0]);
@@ -9316,7 +9316,7 @@ int skill_readdb(void)
 		if(line[0]=='/' && line[1]=='/')
 			continue;
 		j = skill_split_str(line,split,30);
-		if(split[29]==NULL || j<30)
+		if(j < 30 || split[29]==NULL)
 			continue;
 
 		i=atoi(split[0]);

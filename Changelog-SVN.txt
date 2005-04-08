@@ -2,6 +2,12 @@
 Date	Added
 
 04/08	
+	* Fixed use of deprecated strerror in common/lock.c  [MouseJstr]
+	* Fixed buffer read-overflow in mail system in char/char.c  [MouseJstr]
+	* Fixed msg_table definition mismatch in map server  [MouseJstr]
+	* Fixed memory leak when doubly allocating the scriptlabel_db  [MouseJstr]
+	* Fixed two uninitialized memory reads in map/skill.c  [MouseJstr]
+	* Fixed memory leak when accessing AFM files in map/map.c  [MouseJstr]
 	* Changed default limit for MaxHP/SP from 32500 to 1M in battle_athena.conf [DracoRPG]
 	  (this is because with Berserk and Tao Gunka Card, players can go up to 100k+ HP)
 	* Added 'delay_battle_damage' [celest]

@@ -48,8 +48,6 @@
 static int exp_table[14][MAX_LEVEL];
 static short statp[MAX_LEVEL];
 
-extern char msg_table[1000][256];
-
 // h-files are for declarations, not for implementations... [Shinomori]
 struct skill_tree_entry skill_tree[3][25][MAX_SKILL_TREE];
 // timer for night.day implementation

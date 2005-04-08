@@ -1760,9 +1760,10 @@ int map_mapname2mapid(char *name) {
 #ifdef USE_AFM
 	// If we can't find the .gat map try .afm instead [celest]
 	if(md==NULL && strstr(name,".gat")) {
-	  char *afm_name = strdup(name);
+	  char *afm_name = aStrdup(name);
 	  strcpy(&afm_name[strlen(name) - 3], "afm");
 	  md = (struct map_data*)strdb_search(map_db,afm_name);
+	  aFree(afm_name);
 	}
 #endif
 

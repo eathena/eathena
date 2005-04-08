@@ -39,7 +39,6 @@
 
 static char command_symbol = '@'; // first char of the commands (by [Yor])
 
-#define MAX_MSG 1000
 char *msg_table[MAX_MSG]; // Server messages (0-499 reserved for GM commands, 500-999 reserved for others)
 
 #define ACMD_FUNC(x) int atcommand_ ## x (const int fd, struct map_session_data* sd, const char* command, const char* message)

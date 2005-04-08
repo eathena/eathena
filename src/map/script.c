@@ -7870,6 +7870,7 @@ int do_init_script()
 	add_timer_interval(gettick()+MAPREG_AUTOSAVE_INTERVAL,
 		script_autosave_mapreg,0,0,MAPREG_AUTOSAVE_INTERVAL);
 
-	scriptlabel_db=strdb_init(50);
+	if (scriptlabel_db == NULL)
+	  scriptlabel_db=strdb_init(50);
 	return 0;
 }
