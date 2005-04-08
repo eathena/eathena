@@ -1,7 +1,9 @@
 
 Date	Added
 
-04/08
+04/08	
+	* Readded setting of sd->skilllv, sd->skillid to skill_use_id
+	  caused skill failures for BARD/DANCER combo skills [veider]
 	* Replaced some printf's in the core with showmsg functions [celest]
 	* Replaced 'exists' with a built in function for WIN32 builds [celest]
 	* Added 'clouds' and 'fireworks' mapflag [celest]

@@ -6905,6 +6905,9 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 
 	sc_data = sd->sc_data;
 
+	sd->skillid = skill_num;
+	sd->skilllv = skill_lv;
+
 	/* 沈?や異常（ただし、グリムなどの判定をする） */
 	if (sd->opt1 > 0)
 		return 0;
