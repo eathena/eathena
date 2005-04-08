@@ -2,6 +2,8 @@
 Date	Added
 
 04/08	
+	* Changed default limit for MaxHP/SP from 32500 to 1M in battle_athena.conf [DracoRPG]
+	  (this is because with Berserk and Tao Gunka Card, players can go up to 100k+ HP)
 	* Added 'delay_battle_damage' [celest]
 	* Fixed @kamib not working properly, thanks to maldersoft
         * Fixed compile warnings in pc.c [MouseJstr]
