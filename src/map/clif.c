@@ -444,6 +444,8 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 		if (g) {
 			for(i = 0; i < g->max_member; i++) {
 				if ((sd = g->member[i].sd) != NULL) {
+                                        if (session[sd->fd] == NULL || sd->state.auth == 0 || session[sd->fd]->session_data == NULL)
+                                                continue;
 					if (type == GUILD_WOS && sd->bl.id == bl->id)
 						continue;
 					if (sd->packet_ver > MAX_PACKET_VER)
