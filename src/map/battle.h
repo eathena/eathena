@@ -313,6 +313,7 @@ extern struct Battle_Config {
 	int min_skill_delay_limit;
 	int require_glory_guild;
 	int idle_no_share;
+	int delay_battle_damage;
 
 #ifndef TXT_ONLY /* SQL-only options */
 	int mail_system; // [Valaris]

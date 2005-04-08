@@ -50,139 +50,139 @@ static int distance(int x0,int y0,int x1,int y1)
 int battle_counttargeted(struct block_list *bl,struct block_list *src,int target_lv)
 {
 	nullpo_retr(0, bl);
-	if(bl->type == BL_PC)
+	if (bl->type == BL_PC)
 		return pc_counttargeted((struct map_session_data *)bl,src,target_lv);
-	else if(bl->type == BL_MOB)
+	else if (bl->type == BL_MOB)
 		return mob_counttargeted((struct mob_data *)bl,src,target_lv);
 	return 0;
 }
 
 // ダメージの遅延
-struct battle_delay_damage_ {
+struct delay_damage {
 	struct block_list *src;
 	int target;
 	int damage;
 	int flag;
 };
-int battle_delay_damage_sub(int tid,unsigned int tick,int id,int data)
+int battle_delay_damage_sub (int tid, unsigned int tick, int id, int data)
 {
-	struct battle_delay_damage_ *dat=(struct battle_delay_damage_ *)data;
-	struct block_list *target=map_id2bl(dat->target);
-	if( dat && map_id2bl(id)==dat->src && target && target->prev!=NULL)
-		battle_damage(dat->src,target,dat->damage,dat->flag);
+	struct delay_damage *dat = (struct delay_damage *)data;
+	struct block_list *target = map_id2bl(dat->target);
+	if (target && dat && map_id2bl(id) == dat->src && target->prev != NULL)
+		battle_damage(dat->src, target, dat->damage, dat->flag);
 	aFree(dat);
 	return 0;
 }
-int battle_delay_damage(unsigned int tick,struct block_list *src,struct block_list *target,int damage,int flag)
+int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int damage, int flag)
 {
-	struct battle_delay_damage_ *dat = (struct battle_delay_damage_*)aCalloc(1,sizeof(struct battle_delay_damage_));
-
+	struct delay_damage *dat;
 	nullpo_retr(0, src);
 	nullpo_retr(0, target);
 
+	if (!battle_config.delay_battle_damage) {
+		battle_damage(src, target, damage, flag);
+		return 0;
+	}
+	dat = (struct delay_damage *)aCalloc(1, sizeof(struct delay_damage));
+	dat->src = src;
+	dat->target = target->id;
+	dat->damage = damage;
+	dat->flag = flag;
+	add_timer(tick, battle_delay_damage_sub, src->id, (int)dat);
 
-	dat->src=src;
-	dat->target=target->id;
-	dat->damage=damage;
-	dat->flag=flag;
-	add_timer(tick,battle_delay_damage_sub,src->id,(int)dat);
 	return 0;
 }
 
 // 実際にHPを操作
 int battle_damage(struct block_list *bl,struct block_list *target,int damage,int flag)
 {
-	struct map_session_data *sd=NULL;
-	struct status_change *sc_data=status_get_sc_data(target);
+	struct map_session_data *sd = NULL;
+	struct status_change *sc_data;
 	short *sc_count;
 	int i;
 
 	nullpo_retr(0, target); //blはNULLで呼ばれることがあるので他でチェック
+	
+	sc_data = status_get_sc_data(target);
+	sc_count = status_get_sc_count(target);
 
-	if(damage==0 || target->type == BL_PET)
+	if (damage == 0 ||
+		target->prev == NULL ||
+		target->type == BL_PET)
 		return 0;
 
-	if(target->prev == NULL)
-		return 0;
-
-	if(bl) {
-		if(bl->prev==NULL)
+	if (bl) {
+		if (bl->prev == NULL)
 			return 0;
-
-		if(bl->type==BL_PC)
-			sd=(struct map_session_data *)bl;
+		if (bl->type == BL_PC) {
+			nullpo_retr(0, sd = (struct map_session_data *)bl);
+		}
 	}
 
-	if(damage<0)
+	if (damage < 0)
 		return battle_heal(bl,target,-damage,0,flag);
 
-	if(!flag && (sc_count=status_get_sc_count(target))!=NULL && *sc_count>0){
+	if (!flag && sc_count && *sc_count > 0) {
 		// 凍結、石化、睡眠を消去
-		if(sc_data[SC_FREEZE].timer!=-1)
+		if (sc_data[SC_FREEZE].timer != -1)
 			status_change_end(target,SC_FREEZE,-1);
-		if(sc_data[SC_STONE].timer!=-1 && sc_data[SC_STONE].val2==0)
+		if (sc_data[SC_STONE].timer!=-1 && sc_data[SC_STONE].val2 == 0)
 			status_change_end(target,SC_STONE,-1);
-		if(sc_data[SC_SLEEP].timer!=-1)
+		if (sc_data[SC_SLEEP].timer != -1)
 			status_change_end(target,SC_SLEEP,-1);
 	}
 
-	if(target->type==BL_MOB){	// MOB
-		struct mob_data *md=(struct mob_data *)target;
-		if(md && md->skilltimer!=-1 && md->state.skillcastcancel)	// 詠唱妨害
+	if (target->type == BL_MOB) {	// MOB
+		struct mob_data *md = (struct mob_data *)target;
+		if (md && md->skilltimer != -1 && md->state.skillcastcancel)	// 詠唱妨害
 			skill_castcancel(target,0);
 		return mob_damage(bl,md,damage,0);
-	}
-	else if(target->type==BL_PC){	// PC
-
-		struct map_session_data *tsd=(struct map_session_data *)target;
-
-		if(tsd && tsd->sc_data && tsd->sc_data[SC_DEVOTION].val1){	// ディボーションをかけられている
-			struct map_session_data *md = map_id2sd(tsd->sc_data[SC_DEVOTION].val1);
-			if(md && skill_devotion3(&md->bl,target->id)){
-				skill_devotion(md,target->id);
-			}
-			else if(md && bl)
-				for(i=0;i<5;i++)
-					if(md->dev.val1[i] == target->id){
-						clif_damage(bl,&md->bl, gettick(), 0, 0,
-							damage, 0 , 0, 0);
-						pc_damage(&md->bl,md,damage);
-
+	} else if (target->type == BL_PC) {	// PC
+		struct map_session_data *tsd = (struct map_session_data *)target;
+		if (!tsd)
+			return 0;
+		if (sc_data[SC_DEVOTION].val1) {	// ディボーションをかけられている
+			struct map_session_data *sd2 = map_id2sd(tsd->sc_data[SC_DEVOTION].val1);
+			if (sd2 && skill_devotion3(&sd2->bl, target->id)) {
+				skill_devotion(sd2, target->id);
+			} else if (sd2 && bl) {
+				for (i = 0; i < 5; i++)
+					if (sd2->dev.val1[i] == target->id) {
+						clif_damage(bl, &sd2->bl, gettick(), 0, 0, damage, 0 , 0, 0);
+						pc_damage(&sd2->bl, sd2, damage);
 						return 0;
 					}
+			}
 		}
 
-		if(tsd && tsd->skilltimer!=-1){	// 詠唱妨害
-				// フェンカードや妨害されないスキルかの検査
-			if( (!tsd->special_state.no_castcancel || map[bl->m].flag.gvg) && tsd->state.skillcastcancel &&
+		if (tsd->skilltimer != -1) {	// 詠唱妨害
+			// フェンカードや妨害されないスキルかの検査
+			if ((!tsd->special_state.no_castcancel || map[bl->m].flag.gvg) && tsd->state.skillcastcancel &&
 				!tsd->special_state.no_castcancel2)
 				skill_castcancel(target,0);
 		}
-
 		return pc_damage(bl,tsd,damage);
-
-	}
-	else if(target->type==BL_SKILL)
-		return skill_unit_ondamaged((struct skill_unit *)target,bl,damage,gettick());
+	} else if (target->type == BL_SKILL)
+		return skill_unit_ondamaged((struct skill_unit *)target, bl, damage, gettick());
 	return 0;
 }
 int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,int flag)
 {
 	nullpo_retr(0, target); //blはNULLで呼ばれることがあるので他でチェック
 
-	if(target->type == BL_PET)
+	if (target->type == BL_PET)
 		return 0;
-	if( target->type ==BL_PC && pc_isdead((struct map_session_data *)target) )
+	if (target->type == BL_PC && pc_isdead((struct map_session_data *)target) )
 		return 0;
-	if(hp==0 && sp==0)
+	if (hp == 0 && sp == 0)
 		return 0;
 
-	if(hp<0)
+	if (hp < 0)
 		return battle_damage(bl,target,-hp,flag);
 
-	if(target->type==BL_MOB)
+	if (target->type == BL_MOB)
 		return mob_heal((struct mob_data *)target,hp);
-	else if(target->type==BL_PC)
+	else if (target->type == BL_PC)
 		return pc_heal((struct map_session_data *)target,hp,sp);
 	return 0;
 }
@@ -191,11 +191,11 @@ int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,in
 int battle_stopattack(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB)
+	if (bl->type == BL_MOB)
 		return mob_stopattack((struct mob_data*)bl);
-	else if(bl->type==BL_PC)
+	else if (bl->type == BL_PC)
 		return pc_stopattack((struct map_session_data*)bl);
-	else if(bl->type==BL_PET)
+	else if (bl->type == BL_PET)
 		return pet_stopattack((struct pet_data*)bl);
 	return 0;
 }
@@ -203,11 +203,11 @@ int battle_stopattack(struct block_list *bl)
 int battle_stopwalking(struct block_list *bl,int type)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB)
+	if (bl->type == BL_MOB)
 		return mob_stop_walking((struct mob_data*)bl,type);
-	else if(bl->type==BL_PC)
+	else if (bl->type == BL_PC)
 		return pc_stop_walking((struct map_session_data*)bl,type);
-	else if(bl->type==BL_PET)
+	else if (bl->type == BL_PET)
 		return pet_stop_walking((struct pet_data*)bl,type);
 	return 0;
 }
@@ -219,11 +219,12 @@ int battle_stopwalking(struct block_list *bl,int type)
  */
 int battle_attr_fix(int damage,int atk_elem,int def_elem)
 {
-	int def_type= def_elem%10, def_lv=def_elem/10/2;
+	int def_type = def_elem % 10, def_lv = def_elem / 10 / 2;
 
-	if(	atk_elem<0 || atk_elem>9 || def_type<0 || def_type>9 ||
-		def_lv<1 || def_lv>4){	// 属 性値がおかしいのでとりあえずそのまま返す
-		if(battle_config.error_log)
+	if (atk_elem < 0 || atk_elem > 9 ||
+		def_type < 0 || def_type > 9 ||
+		def_lv < 1 || def_lv > 4) {	// 属 性値がおかしいのでとりあえずそのまま返す
+		if (battle_config.error_log)
 			printf("battle_attr_fix: unknown attr type: atk=%d def_type=%d def_lv=%d\n",atk_elem,def_type,def_lv);
 		return damage;
 	}
@@ -238,22 +239,26 @@ int battle_attr_fix(int damage,int atk_elem,int def_elem)
  */
 int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,int div_,int skill_num,int skill_lv,int flag)
 {
-	struct map_session_data *sd=NULL;
-	struct mob_data *md=NULL;
-	struct status_change *sc_data,*sc;
+	struct map_session_data *sd = NULL;
+	struct mob_data *md = NULL;
+	struct status_change *sc_data, *sc;
 	short *sc_count;
 	int class_;
 
 	nullpo_retr(0, bl);
 
 	class_ = status_get_class(bl);
-	if(bl->type==BL_MOB) md=(struct mob_data *)bl;
-	else sd=(struct map_session_data *)bl;
 
-	sc_data=status_get_sc_data(bl);
-	sc_count=status_get_sc_count(bl);
+	if (bl->type == BL_MOB) {
+		nullpo_retr (0, md=(struct mob_data *)bl);
+	} else if (bl->type == BL_PC) {
+		nullpo_retr (0, sd=(struct map_session_data *)bl);
+	}
 
-	if(sc_count!=NULL && *sc_count>0){
+	sc_data = status_get_sc_data(bl);
+	sc_count = status_get_sc_count(bl);
+
+	if (sc_count && *sc_count > 0) {
 		if (sc_data[SC_SAFETYWALL].timer!=-1 && damage>0 && flag&BF_WEAPON &&
 			flag&BF_SHORT && skill_num != NPC_GUIDEDATTACK) {
 			// セーフティウォール
@@ -4204,6 +4209,7 @@ static const struct {
 	{ "min_skill_delay_limit",    &battle_config.min_skill_delay_limit}, // [celest]
 	{ "require_glory_guild",    &battle_config.require_glory_guild}, // [celest]
 	{ "idle_no_share",			&battle_config.idle_no_share}, // [celest], for a feature by [MouseJstr]
+	{ "delay_battle_damage",	&battle_config.delay_battle_damage}, // [celest]
 
 //SQL-only options start
 #ifndef TXT_ONLY
@@ -4453,6 +4459,7 @@ void battle_set_defaults() {
 	battle_config.min_skill_delay_limit = 100;
 	battle_config.require_glory_guild = 0;
 	battle_config.idle_no_share = 0;
+	battle_config.delay_battle_damage = 1;
 
 //SQL-only options start
 #ifndef TXT_ONLY

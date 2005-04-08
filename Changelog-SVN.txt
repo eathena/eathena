@@ -2,6 +2,8 @@
 Date	Added
 
 04/08	
+	* Added 'delay_battle_damage' [celest]
+	* Fixed @kamib not working properly, thanks to maldersoft
         * Fixed compile warnings in pc.c [MouseJstr]
         * Fixed a crash in clif_send when sending messages to guild
           members [MouseJstr]
