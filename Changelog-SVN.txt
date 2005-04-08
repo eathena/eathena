@@ -2,6 +2,8 @@
 Date	Added
 
 04/08
+	* Replaced some printf's in the core with showmsg functions [celest]
+	* Replaced 'exists' with a built in function for WIN32 builds [celest]
 	* Added 'clouds' and 'fireworks' mapflag [celest]
 	* Added a new @fog and @fireworks [celest]
 	* Changed the old @fog to @clouds [celest]

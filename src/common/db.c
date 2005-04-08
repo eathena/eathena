@@ -2,10 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "db.h"
-#include "mmo.h"
-#include "utils.h"
-#include "malloc.h"
+#include "../common/mmo.h"
+#include "../common/utils.h"
+#include "../common/malloc.h"
+#include "../common/showmsg.h"
 
 #ifdef MEMWATCH
 #include "memwatch.h"
@@ -72,7 +74,7 @@ void exit_dbn(void)
 		p = p2;
 		i++;
 	}
-	//printf ("freed %d stray dbn\n", i);
+	//ShowInfo ("freed %d stray dbn\n", i);
 	return;
 }
 #endif
@@ -437,7 +439,7 @@ struct dbn* db_insert(struct dbt *table,void* key,void* data)
 					}
 				}
 				if(i == table->free_count || table->free_count <= 0) {
-					printf("db_insert: cannnot find deleted db node.\n");
+					ShowError("db_insert: cannnot find deleted db node.\n");
 				} else {
 					table->free_count--;
 					if(table->cmp == strdb_cmp) {
@@ -463,7 +465,7 @@ struct dbn* db_insert(struct dbt *table,void* key,void* data)
 	CREATE(p, struct dbn, 1);
 #endif
 	if(p==NULL){
-		printf("out of memory : db_insert\n");
+		ShowError("out of memory : db_insert\n");
 		return NULL;
 	}
 	p->parent= NULL;
@@ -579,7 +581,7 @@ void db_foreach(struct dbt *table,int (*func)(void*,void*,va_list),...)
 		while(1){
 			//reverted it back. sorry that brought thios bug from Freya [Lupus]
 			//if (!p->data) {
-			//	printf("Warning: no data for key %d in db_foreach (db.c) !\n",(int)p->key);
+			//	ShowWarning("no data for key %d in db_foreach (db.c) !\n",(int)p->key);
 			//} else {
 			if(!p->deleted)
 				func(p->key, p->data, ap);
@@ -603,7 +605,7 @@ void db_foreach(struct dbt *table,int (*func)(void*,void*,va_list),...)
 	}
 	db_free_unlock(table);
 	if(count) {
-		printf(
+		ShowError(
 			"db_foreach : data lost %d item(s) allocated from %s line %d\n",
 			count,table->alloc_file,table->alloc_line
 		);

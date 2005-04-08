@@ -34,6 +34,7 @@ typedef int socklen_t;
 #include "../common/mmo.h"	// [Valaris] thanks to fov
 #include "../common/timer.h"
 #include "../common/utils.h"
+#include "../common/showmsg.h"
 
 #ifdef MEMWATCH
 #include "memwatch.h"
@@ -117,7 +118,7 @@ static int recv_to_fifo(int fd)
 {
 	int len;
 
-	//printf("recv_to_fifo : %d %d\n",fd,session[fd]->eof);
+	//ShowMessage("recv_to_fifo : %d %d\n",fd,session[fd]->eof);
 	if(session[fd]->eof)
 		return -1;
 
@@ -128,16 +129,16 @@ static int recv_to_fifo(int fd)
 	len=read(fd,session[fd]->rdata+session[fd]->rdata_size,RFIFOSPACE(fd));
 #endif
 
-//	printf (":::RECEIVE:::\n");
-//	dump(session[fd]->rdata, len); printf ("\n");
+//	ShowInfo (":::RECEIVE:::\n");
+//	dump(session[fd]->rdata, len); ShowMessage ("\n");
 
-	//{ int i; printf("recv %d : ",fd); for(i=0;i<len;i++){ printf("%02x ",RFIFOB(fd,session[fd]->rdata_size+i)); } printf("\n");}
+	//{ int i; ShowMessage("recv %d : ",fd); for(i=0;i<len;i++){ ShowMessage("%02x ",RFIFOB(fd,session[fd]->rdata_size+i)); } ShowMessage("\n");}
 	if(len>0){
 		session[fd]->rdata_size+=len;
 		session[fd]->rdata_tick = tick_;
 	} else if(len<=0){
 		// value of connection is not necessary the same
-//		printf("set eof : connection #%d\n", fd);
+//		ShowMessage("set eof : connection #%d\n", fd);
 		session[fd]->eof=1;
 	}
 	return 0;
@@ -147,7 +148,7 @@ static int send_from_fifo(int fd)
 {
 	int len;
 
-	//printf("send_from_fifo : %d\n",fd);
+	//ShowMessage("send_from_fifo : %d\n",fd);
 	if(session[fd]->eof || session[fd]->wdata == 0)
 		return -1;
 	if (session[fd]->wdata_size == 0)
@@ -159,10 +160,10 @@ static int send_from_fifo(int fd)
 	len=write(fd,session[fd]->wdata,session[fd]->wdata_size);
 #endif
 
-//	printf (":::SEND:::\n");
-//	dump(session[fd]->wdata, len); printf ("\n");
+//	ShowInfo (":::SEND:::\n");
+//	dump(session[fd]->wdata, len); ShowMessage ("\n");
 
-	//{ int i; printf("send %d : ",fd);  for(i=0;i<len;i++){ printf("%02x ",session[fd]->wdata[i]); } printf("\n");}
+	//{ int i; ShowMessage("send %d : ",fd);  for(i=0;i<len;i++){ ShowMessage("%02x ",session[fd]->wdata[i]); } ShowMessage("\n");}
 	if(len>0){
 		if(len<session[fd]->wdata_size){
 			memmove(session[fd]->wdata,session[fd]->wdata+len,session[fd]->wdata_size-len);
@@ -171,7 +172,7 @@ static int send_from_fifo(int fd)
 			session[fd]->wdata_size=0;
 		}
 	} else if (errno != EAGAIN) {
-//		printf("set eof :%d\n",fd);
+//		ShowMessage("set eof :%d\n",fd);
 		session[fd]->eof=1;
 	}
 	return 0;
@@ -188,7 +189,7 @@ void flush_fifos()
 
 static int null_parse(int fd)
 {
-	printf("null_parse : %d\n",fd);
+	ShowMessage("null_parse : %d\n",fd);
 	RFIFOSKIP(fd,RFIFOREST(fd));
 	return 0;
 }
@@ -207,7 +208,7 @@ static int connect_client(int listen_fd)
 	int result;
 #endif
 
-	//printf("connect_client : %d\n",listen_fd);
+	//ShowMessage("connect_client : %d\n",listen_fd);
 
 	len=sizeof(client_address);
 
@@ -246,7 +247,7 @@ static int connect_client(int listen_fd)
 	session[fd]->client_addr = client_address;
 	session[fd]->rdata_tick = tick_;
 
-  //printf("new_session : %d %d\n",fd,session[fd]->eof);
+  //ShowMessage("new_session : %d %d\n",fd,session[fd]->eof);
 	return fd;
 }
 
@@ -290,7 +291,7 @@ int make_listen_port(int port)
 	CREATE(session[fd], struct socket_data, 1);
 
 	if(session[fd]==NULL){
-		printf("out of memory : make_listen_port\n");
+		ShowFatalError("out of memory : make_listen_port\n");
 		exit(1);
 	}
 	memset(session[fd],0,sizeof(*session[fd]));
@@ -329,13 +330,13 @@ int make_listen_bind(long ip,int port)
 		unsigned char *natip = (unsigned char *)&localaddr;
 		char buf[16];
 		sprintf(buf, "%d.%d.%d.%d", natip[0], natip[1], natip[2], natip[3]);
-		//printf("natip=%d.%d.%d.%d\n", natip[0], natip[1], natip[2], natip[3]);
+		//ShowMessage("natip=%d.%d.%d.%d\n", natip[0], natip[1], natip[2], natip[3]);
 		if (firewall_addport(argp, port))
-			printf ("Firewall port %d successfully opened\n", port);
+			ShowInfo ("Firewall port %d successfully opened\n", port);
 		if (natip[0] == 192 && natip[1] == 168) {
 			if (upnp_addport(argp, natip, port))
-				printf ("Upnp mappings successfull\n");
-			else printf ("Upnp mapping failed\n");
+				ShowInfo ("Upnp mappings successfull\n");
+			else ShowError ("Upnp mapping failed\n");
 		}
 	}
 #endif
@@ -356,7 +357,7 @@ int make_listen_bind(long ip,int port)
 	CREATE(session[fd], struct socket_data, 1);
 
 	if(session[fd]==NULL){
-		printf("out of memory : make_listen_bind\n");
+		ShowFatalError("out of memory : make_listen_bind\n");
 		exit(1);
 	}
 	memset(session[fd],0,sizeof(*session[fd]));
@@ -377,7 +378,7 @@ int console_recieve(int i) {
 	n = read(0, buf , 64);
 
 	if ( n < 0 )
-		printf("Console input read error\n");
+		ShowError("Console input read error\n");
 	else
 		session[0]->func_console(buf);
 	return 0;
@@ -390,7 +391,7 @@ void set_defaultconsoleparse(int (*defaultparse)(char*))
 
 static int null_console_parse(char *buf)
 {
-	printf("null_console_parse : %s\n",buf);
+	ShowMessage("null_console_parse : %s\n",buf);
 	return 0;
 }
 
@@ -400,7 +401,7 @@ int start_console(void) {
 
 	CREATE(session[0], struct socket_data, 1);
 	if(session[0]==NULL){
-		printf("out of memory : start_console\n");
+		ShowFatalError("out of memory : start_console\n");
 		exit(1);
 	}
 
@@ -470,7 +471,7 @@ int delete_session(int fd)
 		aFree(session[fd]);
 	}
 	session[fd]=NULL;
-	//printf("delete_session:%d\n",fd);
+	//ShowMessage("delete_session:%d\n",fd);
 	return 0;
 }
 
@@ -502,10 +503,10 @@ int WFIFOSET(int fd,int len)
 	if( s->wdata_size+len+16384 > s->max_wdata ){
 		unsigned char *sin_addr = (unsigned char *)&s->client_addr.sin_addr;
 		realloc_fifo(fd,s->max_rdata, s->max_wdata <<1 );
-		printf("socket: %d (%d.%d.%d.%d) wdata expanded to %d bytes.\n",fd, sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3], s->max_wdata);
+		ShowMessage("socket: %d (%d.%d.%d.%d) wdata expanded to %d bytes.\n",fd, sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3], s->max_wdata);
 	}
 	s->wdata_size=(s->wdata_size+(len)+2048 < s->max_wdata) ?
-		 s->wdata_size+len : (printf("socket: %d wdata lost !!\n",fd),s->wdata_size);
+		 s->wdata_size+len : (ShowError("socket: %d wdata lost !!\n",fd),s->wdata_size);
 	if (s->wdata_size > (TCP_FRAME_LEN))
 		send_from_fifo(fd);
 	return 0;
@@ -524,7 +525,7 @@ int do_sendrecv(int next)
 	FD_ZERO(&wfd);
 	for(i=0;i<fd_max;i++){
 		if(!session[i] && FD_ISSET(i,&readfds)){
-			printf("force clr fds %d\n",i);
+			ShowMessage("force clr fds %d\n",i);
 			FD_CLR(i,&readfds);
 			continue;
 		}
@@ -542,12 +543,12 @@ int do_sendrecv(int next)
 		if(!session[i])
 			continue;
 		if(FD_ISSET(i,&wfd)){
-			//printf("write:%d\n",i);
+			//ShowMessage("write:%d\n",i);
 			if(session[i]->func_send)
 				session[i]->func_send(i);
 		}
 		if(FD_ISSET(i,&rfd)){
-			//printf("read:%d\n",i);
+			//ShowMessage("read:%d\n",i);
 			if(session[i]->func_recv)
 				session[i]->func_recv(i);
 		}
@@ -615,7 +616,7 @@ static int connect_check_(unsigned int ip);
 static int connect_check(unsigned int ip) {
 	int result = connect_check_(ip);
 	if(access_debug) {
-		printf("connect_check: Connection from %d.%d.%d.%d %s\n",
+		ShowMessage("connect_check: Connection from %d.%d.%d.%d %s\n",
 			CONVIP(ip),result ? "allowed." : "denied!");
 	}
 	return result;
@@ -630,7 +631,7 @@ static int connect_check_(unsigned int ip) {
 	for(i = 0;i < access_allownum; i++) {
 		if((ip & access_allow[i].mask) == (access_allow[i].ip & access_allow[i].mask)) {
 			if(access_debug) {
-				printf("connect_check: Found match from allow list:%d.%d.%d.%d IP:%d.%d.%d.%d Mask:%d.%d.%d.%d\n",
+				ShowMessage("connect_check: Found match from allow list:%d.%d.%d.%d IP:%d.%d.%d.%d Mask:%d.%d.%d.%d\n",
 					CONVIP(ip),
 					CONVIP(access_allow[i].ip),
 					CONVIP(access_allow[i].mask));
@@ -642,7 +643,7 @@ static int connect_check_(unsigned int ip) {
 	for(i = 0;i < access_denynum; i++) {
 		if((ip & access_deny[i].mask) == (access_deny[i].ip & access_deny[i].mask)) {
 			if(access_debug) {
-				printf("connect_check: Found match from deny list:%d.%d.%d.%d IP:%d.%d.%d.%d Mask:%d.%d.%d.%d\n",
+				ShowMessage("connect_check: Found match from deny list:%d.%d.%d.%d IP:%d.%d.%d.%d Mask:%d.%d.%d.%d\n",
 					CONVIP(ip),
 					CONVIP(access_deny[i].ip),
 					CONVIP(access_deny[i].mask));
@@ -698,7 +699,7 @@ static int connect_check_(unsigned int ip) {
 				if(hist->count++ >= ddos_count) {
 					// ddos UŒ‚‚ðŒŸo
 					hist->status = 1;
-					printf("connect_check: DDOS Attack detected from %d.%d.%d.%d!\n",
+					ShowWarning("connect_check: DDOS Attack detected from %d.%d.%d.%d!\n",
 						CONVIP(ip));
 					return (connect_ok == 2 ? 1 : 0);
 				} else {
@@ -734,10 +735,8 @@ static int connect_check_clear(int tid,unsigned int tick,int id,int data) {
 	for(i = 0;i < 0x10000 ; i++) {
 		hist = connect_history[i];
 		while(hist) {
-			if(
-				(DIFF_TICK(tick,hist->tick) > ddos_interval * 3 && !hist->status) ||
-				(DIFF_TICK(tick,hist->tick) > ddos_autoreset && hist->status)
-			) {
+			if ((DIFF_TICK(tick,hist->tick) > ddos_interval * 3 && !hist->status) ||
+				(DIFF_TICK(tick,hist->tick) > ddos_autoreset && hist->status)) {
 				// clear data
 				hist2 = hist->next;
 				if(hist->prev) {
@@ -753,12 +752,12 @@ static int connect_check_clear(int tid,unsigned int tick,int id,int data) {
 				clear++;
 			} else {
 				hist = hist->next;
-				list++;
 			}
+			list++;
 		}
 	}
 	if(access_debug) {
-		printf("connect_check_clear: Cleared %d of %d from IP list.\n", clear, clear+list);
+		ShowMessage("connect_check_clear: Cleared %d of %d from IP list.\n", clear, list);
 	}
 	return list;
 }
@@ -772,7 +771,7 @@ int access_ipmask(const char *str,struct _access_control* acc)
 		mask = 0;
 	} else {
 		if( sscanf(str,"%d.%d.%d.%d%n",&a0,&a1,&a2,&a3,&i)!=4 || i==0) {
-			printf("access_ipmask: Unknown format %s!\n",str);
+			ShowError("access_ipmask: Unknown format %s!\n",str);
 			return 0;
 		}
 		ip = (a3 << 24) | (a2 << 16) | (a1 << 8) | a0;
@@ -789,7 +788,7 @@ int access_ipmask(const char *str,struct _access_control* acc)
 		}
 	}
 	if(access_debug) {
-		printf("access_ipmask: Loaded IP:%d.%d.%d.%d mask:%d.%d.%d.%d\n",
+		ShowMessage("access_ipmask: Loaded IP:%d.%d.%d.%d mask:%d.%d.%d.%d\n",
 			CONVIP(ip), CONVIP(mask));
 	}
 	acc->ip   = ip;
@@ -804,7 +803,7 @@ int socket_config_read(const char *cfgName) {
 
 	fp=fopen(cfgName, "r");
 	if(fp==NULL){
-		printf("File not found: %s\n", cfgName);
+		ShowError("File not found: %s\n", cfgName);
 		return 1;
 	}
 	while(fgets(line,1020,fp)){
@@ -902,12 +901,12 @@ int  Net_Init(void)
     WSADATA wsaData;
 
     if ( WSAStartup(WINSOCK_VERSION, &wsaData) != 0 ) {
-        printf("SYSERR: WinSock not available!\n");
+        ShowFatalError("SYSERR: WinSock not available!\n");
         exit(1);
     }
 
     if(gethostname(fullhost, sizeof(fullhost)) == SOCKET_ERROR) {
-        printf("Ugg.. no hostname defined!\n");
+        ShowError("Ugg.. no hostname defined!\n");
         return 0;
     }
 
@@ -917,7 +916,7 @@ int  Net_Init(void)
     // this as T.B.D.
     hent = gethostbyname(fullhost);
     if (hent == NULL) {
-        printf("Cannot resolve our own hostname to a IP address");
+        ShowError("Cannot resolve our own hostname to a IP address");
         return 0;
     }
 
@@ -938,7 +937,7 @@ int  Net_Init(void)
   ic.ifc_len = sizeof(buf);
   ic.ifc_buf = buf;
   if(ioctl(fdes, SIOCGIFCONF, &ic) == -1) {
-    printf("SIOCGIFCONF failed!\n");
+    ShowError("SIOCGIFCONF failed!\n");
     return 0;
   }
 
@@ -979,7 +978,7 @@ void do_init_upnp(void)
 
 	upnp_dll = DLL_OPEN ("upnp.dll");
 	if (!upnp_dll) {
-		printf ("Cannot open upnp.dll: %s\n", dlerror());
+		ShowError ("Cannot open upnp.dll: %s\n", dlerror());
 		return;
 	}
 	DLL_SYM (upnp_init, upnp_dll, "do_init");
@@ -987,7 +986,7 @@ void do_init_upnp(void)
 	DLL_SYM (firewall_addport, upnp_dll, "Firewall_AddPort");
 	DLL_SYM (upnp_addport, upnp_dll, "UPNP_AddPort");
 	if (!upnp_init || !upnp_final || !firewall_addport || !upnp_addport) {
-		printf ("Cannot load symbol: %s\n", dlerror());
+		ShowError ("Cannot load symbol: %s\n", dlerror());
 		DLL_CLOSE (upnp_dll);
 		upnp_dll = NULL;
 		return;
@@ -1001,7 +1000,7 @@ void do_init_upnp(void)
 		*_close_ports = close_ports;
 
 	if (upnp_init() == 0) {
-		printf ("Error initialising upnp.dll, unloading...\n");
+		ShowError ("Error initialising upnp.dll, unloading...\n");
 		DLL_CLOSE (upnp_dll);
 		upnp_dll = NULL;
 	}

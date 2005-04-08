@@ -34,11 +34,12 @@ void Gettimeofday(struct timeval *timenow)
 #include <string.h>
 #include <stdarg.h>
 
+#include "login.h"
 #include "../common/core.h"
 #include "../common/socket.h"
 #include "../common/timer.h"
-#include "login.h"
 #include "../common/mmo.h"
+#include "../common/showmsg.h"
 #include "../common/version.h"
 #include "../common/db.h"
 #include "../common/lock.h"
@@ -2836,7 +2837,7 @@ int lan_ip_check(unsigned char *p) {
 			break;
 		}
 	}
-	printf("LAN test (result): %s source\033[0m.\n", (lancheck) ? "\033[1;36mLAN" : "\033[1;32mWAN");
+	ShowMessage("LAN test (result): "CL_CYAN"%s source"CL_RESET".\n", (lancheck) ? "LAN" : "WAN");
 	return lancheck;
 }
 
@@ -4009,7 +4010,7 @@ int do_init(int argc, char **argv) {
 	}
 
 	login_log("The login-server is ready (Server is listening on the port %d)." RETCODE, login_port);
-	printf("The login-server is \033[1;32mready\033[0m (Server is listening on the port %d).\n\n", login_port);
+	printf("The login-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", login_port);
 
 	atexit(do_final);
 

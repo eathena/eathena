@@ -11,7 +11,17 @@
 #endif
 #include "lock.h"
 #include "showmsg.h"
-#define exists(filename) (!access(filename, F_OK))
+
+#ifndef _WIN32
+	#define exists(filename) (!access(filename, F_OK))
+#else
+// could be speed up maybe?
+int exists(char *file) {
+	FILE *fp;
+	if ((fp = fopen(file,"r")) && fclose(fp)) return 1;
+	return 0;
+}
+#endif
 
 // 書き込みファイルの保護処理
 // （書き込みが終わるまで、旧ファイルを保管しておく）
@@ -45,8 +55,7 @@ int lock_fclose (FILE *fp, const char* filename, int *info) {
 
 		// このタイミングで落ちると最悪。
 		if ((ret = rename(newfile,filename)) != 0) {	// rename our temporary file to its correct name
-			sprintf(tmp_output,"%s - '"CL_WHITE"%s"CL_RESET"'\n", strerror(errno), newfile);
-			ShowError(tmp_output);
+			ShowError("%s - '"CL_WHITE"%s"CL_RESET"'\n", strerror(errno), newfile);
 		}
 	}
 	

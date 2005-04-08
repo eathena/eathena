@@ -52,6 +52,7 @@ void Gettimeofday(struct timeval *timenow)
 #include "../common/timer.h"
 #include "../common/strlib.h"
 #include "../common/mmo.h"
+#include "../common/showmsg.h"
 #include "../common/version.h"
 #include "login.h"
 
@@ -1094,7 +1095,7 @@ int lan_ip_check(unsigned char *p) {
 		lancheck = 0;
 		break; }
 
-	printf("LAN check: %s.\n", (lancheck) ? "\033[1;32mLAN\033[0m" : "\033[1;31mWAN\033[0m");
+	printf("LAN check: "CL_CYAN"%s"CL_RESET".\n", (lancheck) ? "LAN" : "WAN");
 	return lancheck;
 }
 
@@ -1888,7 +1889,7 @@ int do_init(int argc,char **argv){
     aFree(online_db);
 	online_db = numdb_init();
 
-	printf("The login-server is \033[1;32mready\033[0m (Server is listening on the port %d).\n\n", login_port);
+	printf("The login-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", login_port);
 
 	return 0;
 }

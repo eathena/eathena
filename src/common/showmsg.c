@@ -14,7 +14,7 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 	char prefix[40];
 	
 	if (!string || strlen(string) <= 0) {
-		printf("Empty string passed to _ShowMessage().\n");
+		ShowError("Empty string passed to _vShowMessage().\n");
 		return 1;
 	}
 	switch (flag) {
@@ -45,7 +45,7 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 			strcpy(prefix,CL_RED"[Fatal Error]"CL_RESET":");
 			break;
 		default:
-			printf("In function _ShowMessage() -> Invalid flag passed.\n");
+			ShowError("In function _vShowMessage() -> Invalid flag passed.\n");
 			return 1;
 	}
 
@@ -62,7 +62,7 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 		FILE *fp;
 		fp=fopen(OUTPUT_MESSAGES_LOG,"a");
 		if (fp == NULL)	{
-			printf(CL_RED"[Error]"CL_RESET": Could not open '"CL_WHITE"%s"CL_RESET"', file not found.\n",OUTPUT_MESSAGES_LOG);
+			ShowError("Could not open '"CL_WHITE"%s"CL_RESET"', file not found.\n",OUTPUT_MESSAGES_LOG);
 			fflush(stdout);
 			return;
 		}
@@ -75,12 +75,18 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 	return 0;
 }
 
+void ClearScreen(void)
+{
+#ifndef _WIN32
+	ShowMessage(CL_CLS);	// to prevent empty string passed messages
+#endif
+}
 int _ShowMessage(enum msg_type flag, const char *string, ...)
 {
-  	va_list ap;
+	va_list ap;
 	
 	va_start(ap, string);
-        return _vShowMessage(flag, string, ap);
+		return _vShowMessage(flag, string, ap);
 }
 
 // direct printf replacement

@@ -414,7 +414,7 @@ static FILELIST* filelist_add(FILELIST *entry)
 	int hash;
 
 	if (filelist_entrys>=FILELIST_LIMIT) {
-		printf("filelist limit : filelist_add\n");
+		ShowFatalError("filelist limit : filelist_add\n");
 		exit(1);
 	}
 
@@ -427,7 +427,7 @@ static FILELIST* filelist_add(FILELIST *entry)
 				FILELIST_ADDS * sizeof(FILELIST));
 			filelist_maxentry += FILELIST_ADDS;
 		} else {
-			printf("out of memory : filelist_add\n");
+			ShowFatalError("out of memory : filelist_add\n");
 			exit(1);
 		}
 	}
@@ -470,7 +470,7 @@ static void filelist_adjust(void)
 				filelist = new_filelist;
 				filelist_maxentry = filelist_entrys;
 			} else {
-				printf("out of memory : filelist\n");
+				ShowFatalError("out of memory : filelist\n");
 				exit(1);
 			}
 		}
@@ -496,7 +496,7 @@ char* grfio_resnametable(char* fname, char *lfname)
 
 	fp = fopen(restable,"rb");
 	if(fp==NULL) {
-		printf("%s not found (grfio_resnametable)\n",restable);
+		ShowError("%s not found (grfio_resnametable)\n",restable);
 		return NULL;	// 1:not found error
 	}
 
@@ -528,11 +528,11 @@ int grfio_size(char *fname)
 		struct stat st;
 
 	    if(strcmp(data_dir, "") != 0 && (rname=grfio_resnametable(fname,lfname))!=NULL) {
-            //printf("%s\t",fname);
+            //ShowMessage("%s\t",fname);
             //sprintf(rname,"%s",grfio_resnametable(fname,lfname));
-            //printf("%s\n",rname);
+            //ShowMessage("%s\n",rname);
             sprintf(lfname,"%s%s",data_dir,rname);
-            //printf("%s\n",lfname);
+            //ShowMessage("%s\n",lfname);
         }
 
 		for(p=&lfname[0];*p!=0;p++) if (*p=='\\') *p = '/';	// * At the time of Unix
@@ -543,7 +543,7 @@ int grfio_size(char *fname)
 			lentry.gentry = 0;	// 0:LocalFile
 			entry = filelist_modify(&lentry);
 		} else if (entry==NULL) {
-			printf("%s not found (grfio_size)\n", fname);
+			ShowError("%s not found (grfio_size)\n", fname);
 			//exit(1);
          	return -1;
 		}
@@ -575,7 +575,7 @@ void* grfio_reads(char *fname, int *size)
 			//sprintf(rname,"%s",grfio_resnametable(fname,lfname));
 			sprintf(tbuf,"%s%s",data_dir,rname);
 			strcpy(lfname, tbuf);
-			//printf("%s\n",lfname);
+			//ShowMessage("%s\n",lfname);
 		}
 
 		for(p=&lfname[0];*p!=0;p++) if (*p=='\\') *p = '/';	// * At the time of Unix
@@ -591,7 +591,7 @@ void* grfio_reads(char *fname, int *size)
 			fseek(in,0,0);	// SEEK_SET
 			buf2 = (unsigned char *)aCallocA(lentry.declen+1024, 1);
 			if (buf2==NULL) {
-				printf("file read memory allocate error : declen\n");
+				ShowError("file read memory allocate error : declen\n");
 				goto errret;
 			}
 			fread(buf2,1,lentry.declen,in);
@@ -603,7 +603,7 @@ void* grfio_reads(char *fname, int *size)
 			if (entry!=NULL && entry->gentry<0) {
 				entry->gentry = -entry->gentry;	// local file checked
 			} else {
-				printf("%s not found (grfio_reads)\n", fname);
+				ShowError("%s not found (grfio_reads)\n", fname);
 				//goto errret;
 				aFree(buf2);
 				return NULL;
@@ -613,13 +613,13 @@ void* grfio_reads(char *fname, int *size)
 	if (entry!=NULL && entry->gentry>0) {	// Archive[GRF] File Read
 		buf = (unsigned char *) aCallocA(entry->srclen_aligned+1024, 1);
 		if (buf==NULL) {
-			printf("file read memory allocate error : srclen_aligned\n");
+			ShowError("file read memory allocate error : srclen_aligned\n");
 			goto errret;
 		}
 		gfname = gentry_table[entry->gentry-1];
 		in = fopen(gfname,"rb");
 		if(in==NULL) {
-			printf("%s not found (grfio_reads)\n",gfname);
+			ShowError("%s not found (grfio_reads)\n",gfname);
 			//goto errret;
 			aFree(buf);
 			return NULL;
@@ -629,7 +629,7 @@ void* grfio_reads(char *fname, int *size)
 		fclose(in);
 		buf2 = (unsigned char *)aCallocA(entry->declen+1024, 1);
 		if (buf2==NULL) {
-			printf("file decode memory allocate error\n");
+			ShowError("file decode memory allocate error\n");
 			goto errret;
 		}
 		if(entry->type==1 || entry->type==3 || entry->type==5) {
@@ -640,7 +640,7 @@ void* grfio_reads(char *fname, int *size)
 			len=entry->declen;
 			decode_zip(buf2,&len,buf,entry->srclen);
 			if(len!=entry->declen) {
-				printf("decode_zip size miss match err: %d != %d\n",(int)len,entry->declen);
+				ShowError("decode_zip size miss match err: %d != %d\n",(int)len,entry->declen);
 				goto errret;
 			}
 		} else {
@@ -709,7 +709,7 @@ static int grfio_entryread(char *gfname,int gentry)
 	fread(grf_header,1,0x2e,fp);
 	if(strcmp((const char *) grf_header,"Master of Magic") || fseek(fp,getlong(grf_header+0x1e),1)){	// SEEK_CUR
 		fclose(fp);
-		printf("%s read error\n",gfname);
+		ShowError("%s read error\n",gfname);
 		return 2;	// 2:file format error
 	}
 
@@ -720,7 +720,7 @@ static int grfio_entryread(char *gfname,int gentry)
 		grf_filelist = (unsigned char *) aCallocA(list_size, 1);
 		if(grf_filelist==NULL){
 			fclose(fp);
-			printf("out of memory : grf_filelist\n");
+			ShowError("out of memory : grf_filelist\n");
 			return 3;	// 3:memory alloc error
 		}
 		fread(grf_filelist,1,list_size,fp);
@@ -739,7 +739,7 @@ static int grfio_entryread(char *gfname,int gentry)
 			if( type!=0 ){	// Directory Index ... skip
 				fname = decode_filename(grf_filelist+ofs+6,grf_filelist[ofs]-6);
 				if(strlen(fname)>sizeof(aentry.fn)-1){
-					printf("file name too long : %s\n",fname);
+					ShowFatalError("file name too long : %s\n",fname);
 					aFree(grf_filelist);
 					exit(1);
 				}
@@ -788,21 +788,21 @@ static int grfio_entryread(char *gfname,int gentry)
 
 		if (rSize > grf_size-ftell(fp)) {
 			fclose(fp);
-			printf("Illegal data format : grf compress entry size\n");
+			ShowError("Illegal data format : grf compress entry size\n");
 			return 4;
 		}
 
 		rBuf = (unsigned char *)aCallocA( rSize , 1);	// Get a Read Size
 		if (rBuf==NULL) {
 			fclose(fp);
-			printf("out of memory : grf compress entry table buffer\n");
+			ShowError("out of memory : grf compress entry table buffer\n");
 			return 3;
 		}
 		grf_filelist = (unsigned char *)aCallocA( eSize , 1);	// Get a Extend Size
 		if (grf_filelist==NULL) {
 			aFree(rBuf);
 			fclose(fp);
-			printf("out of memory : grf extract entry table buffer\n");
+			ShowError("out of memory : grf extract entry table buffer\n");
 			return 3;
 		}
 		fread(rBuf,1,rSize,fp);
@@ -820,7 +820,7 @@ static int grfio_entryread(char *gfname,int gentry)
 
 			fname = (char*)(grf_filelist+ofs);
 			if (strlen(fname)>sizeof(aentry.fn)-1) {
-				printf("grf : file name too long : %s\n",fname);
+				ShowFatalError("grf : file name too long : %s\n",fname);
 				aFree(grf_filelist);
 				exit(1);
 			}
@@ -857,7 +857,7 @@ static int grfio_entryread(char *gfname,int gentry)
 
 	} else {	//****** Grf Other version ******
 		fclose(fp);
-		printf("not support grf versions : %04x\n",getlong(grf_header+0x2a));
+		ShowError("not support grf versions : %04x\n",getlong(grf_header+0x2a));
 		return 4;
 	}
 
@@ -896,7 +896,7 @@ static void grfio_resourcecheck()
 				strncpy( fentry.fn ,src, sizeof(fentry.fn)-1 );
 				filelist_modify(&fentry);
 			} else {
-				//printf("file not found in data.grf : %s < %s\n",dst,src);
+				//ShowError("file not found in data.grf : %s < %s\n",dst,src);
 			}
 		}
 		ptr = strchr(ptr,'\n');	// Next line
@@ -919,7 +919,7 @@ int grfio_add(char *fname)
 	char *buf;
 
 	if (gentry_entrys>=GENTRY_LIMIT) {
-		printf("gentrys limit : grfio_add\n");
+		ShowFatalError("gentrys limit : grfio_add\n");
 		exit(1);
 	}
 
@@ -936,14 +936,14 @@ int grfio_add(char *fname)
 			for(lop=gentry_entrys;lop<gentry_maxentry;lop++)
 				gentry_table[lop] = NULL;
 		} else {
-			printf("out of memory : grfio_add\n");
+			ShowFatalError("out of memory : grfio_add\n");
 			exit(1);
 		}
 	}
 	len = strlen( fname );
 	buf = (char*)aCallocA(len+1, 1);
 	if (buf==NULL) {
-		printf("out of memory : gentry\n");
+		ShowFatalError("out of memory : gentry\n");
 		exit(1);
 	}
 	strcpy( buf, fname );
@@ -1064,7 +1064,7 @@ void grfio_init(char *fname)
 		result4 = 1;	                    // Data directory
 /*
 	if (result != 0 && result2 != 0 && result3 != 0 && result4 != 0) {
-		printf("not grf file readed exit!!\n");
+		ShowFatalError("not grf file readed exit!!\n");
 		exit(1);	// It ends, if a resource cannot read one.
 	}*/
 }
