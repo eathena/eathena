@@ -1,0 +1,63 @@
+//===== eAthena Script =======================================
+//= Einbroch Fields Monster Spawn Script
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Additional Comments: =================================
+//= 1.0 totally custom monster spawn yet. Have no info [Lupus]
+//=	these monsters don't drop rares, but i had to set a big
+//=	respawn delay, tough
+//============================================================
+
+//(einbroch.gat)
+einbroch.gat,0,0,0,0	monster	Metaling	1613,2,180000,180000
+einbroch.gat,0,0,0,0	monster	Teddy Bear	1622,2,180000,180000
+
+//(einbech.gat)
+einbech.gat,0,0,0,0	monster	Metaling	1613,5,180000,180000
+einbech.gat,0,0,0,0	monster	Teddy Bear	1622,1,180000,180000
+
+//(ein_fild06.gat)
+ein_fild06.gat,0,0,0,0	monster	Metaling	1613,30,0,0
+ein_fild06.gat,0,0,0,0	monster	Teddy Bear	1622,10,90000,90000
+ein_fild06.gat,0,0,0,0	monster	The Paper	1375,10,0,0,0
+ein_fild06.gat,0,0,0,0	monster	Yellow Plant	1081,5,360000,180000,1
+ein_fild06.gat,0,0,0,0	monster	Red Plant	1078,5,180000,90000,1
+
+//(ein_fild07.gat)
+ein_fild07.gat,0,0,0,0	monster	Metaling	1613,30,0,0
+ein_fild07.gat,0,0,0,0	monster	Teddy Bear	1622,5,90000,90000
+ein_fild07.gat,0,0,0,0	monster	Drops		1113,5,0,0,0
+ein_fild07.gat,0,0,0,0	monster	Poring	1002,5,0,0,0
+ein_fild07.gat,0,0,0,0	monster	Sleeper	1386,15,0,0,0
+ein_fild07.gat,0,0,0,0	monster	Yellow Plant	1081,5,360000,180000,1
+ein_fild07.gat,0,0,0,0	monster	Red Plant	1078,5,180000,90000,1
+
+//(ein_fild08.gat)
+ein_fild08.gat,0,0,0,0	monster	Metaling	1613,40,0,0
+ein_fild08.gat,0,0,0,0	monster	Drops		1113,5,0,0,0
+ein_fild08.gat,0,0,0,0	monster	Poring	1002,5,0,0,0
+ein_fild08.gat,0,0,0,0	monster	Geographer	1368,5,0,0,0
+ein_fild08.gat,0,0,0,0	monster	Yellow Plant	1081,5,360000,180000,1
+ein_fild08.gat,0,0,0,0	monster	Red Plant	1078,5,180000,90000,1
+
+//(ein_fild09.gat)
+ein_fild09.gat,0,0,0,0	monster	Metaling	1613,35,0,0
+ein_fild10.gat,0,0,0,0	monster	Poporing	1031,15,0,0,0
+ein_fild10.gat,0,0,0,0	monster	Dustiness	1114,5,0,0,0
+ein_fild10.gat,0,0,0,0	monster	Green Plant	1080,10,180000,90000,1
+ein_fild10.gat,0,0,0,0	monster	Red Plant	1078,5,180000,90000,1
+ein_fild10.gat,0,0,0,0	monster	Yellow Plant	1081,10,360000,180000,1
+ein_fild10.gat,0,0,0,0	monster	Demon Pungus	1378,5,0,0,0
+
+//(ein_fild10.gat)
+ein_fild10.gat,0,0,0,0	monster	Metaling	1613,35,0,0
+ein_fild10.gat,0,0,0,0	monster	Poring	1002,25,0,0,0
+ein_fild10.gat,0,0,0,0	monster	Poporing	1031,15,0,0,0
+ein_fild10.gat,0,0,0,0	monster	Dustiness	1114,5,0,0,0
+ein_fild10.gat,0,0,0,0	monster	Green Plant	1080,5,180000,90000,1
+ein_fild10.gat,0,0,0,0	monster	Red Plant	1078,5,180000,90000,1
+ein_fild10.gat,0,0,0,0	monster	Yellow Plant	1081,10,360000,180000,1

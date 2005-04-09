@@ -37,6 +37,7 @@ Date		Added
 ======
 
 04/09
+	* Added Einbroch monsters spawn, fixed one mapflag for Einnech mines [Lupus]
 	* valkyrie.txt Fixed: now alternative classes can use their 1-1 job NPC to become Advanced 1st Class [Lupus]
 04/08
 	* Fixed some Rogue Job Quest bugs [Lupus] 

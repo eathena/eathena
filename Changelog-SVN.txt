@@ -1,6 +1,8 @@
 
 Date	Added
 
+04/09
+        * Added Einbroch monsters spawn, fixed one mapflag for Einnech mines [Lupus]
 04/08	
         * Changed how signals shut the process down so that we were
           not doing work in a signal handling thread but instead on

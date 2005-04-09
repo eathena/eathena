@@ -2,7 +2,7 @@
 //= Map flags that disable warp portal memory
 //===== By: ==================================================
 //= eAthena Dev Team
-//= 1.2 [Lupus]
+//= 1.3 [Lupus]
 //===== Current Version: =====================================
 
 
@@ -111,6 +111,9 @@ c_tower1.gat	mapflag	nomemo
 c_tower2.gat	mapflag	nomemo
 c_tower3.gat	mapflag	nomemo
 c_tower4.gat	mapflag	nomemo
+// Einbech Mines -------------
+ein_dun01.gat	mapflag	nomemo
+ein_dun02.gat	mapflag	nomemo
 // Geffen Dun ----------------
 gef_dun00.gat	mapflag	nomemo
 gef_dun01.gat	mapflag	nomemo
