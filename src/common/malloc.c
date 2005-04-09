@@ -2,14 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include "malloc.h"
-#include "showmsg.h"
+#include "../common/core.h"
+#include "../common/showmsg.h"
 
 #ifdef MEMWATCH
 #include "memwatch.h"
 #endif
 
 // 独自メモリマネージャを使用する場合、次のコメントを外してください。
-//#define USE_MEMMGR
+#define USE_MEMMGR
 
 #if !defined(DMALLOC) && !defined(GCOLLECT) && !defined(BCHECK) && !defined(USE_MEMMGR)
 
@@ -223,7 +224,7 @@ void* aMalloc_(size_t size, const char *file, int line, const char *func ) {
 			}
 			return (char *)p + sizeof(struct unit_head_large);
 		} else {
-			ShowFatalError("MEMMGR::memmgr_alloc failed.\n");
+			ShowFatalError("Memory manager::memmgr_alloc failed.\n");
 			exit(1);
 		}
 	}
@@ -282,7 +283,7 @@ void* aMalloc_(size_t size, const char *file, int line, const char *func ) {
 		}
 	}
 	// ここに来てはいけない。
-	ShowFatalError("MEMMGR::memmgr_malloc() serious error.\n");
+	ShowFatalError("Memory manager::memmgr_malloc() serious error.\n");
 	memmgr_info();
 	exit(1);
 	return NULL;
@@ -347,7 +348,7 @@ void aFree_(void *ptr, const char *file, int line, const char *func ) {
 		/* ユニット解放 */
 		struct block *block = head->block;
 		if(head->block == NULL) {
-			ShowError("memmgr: args of aFree is freed pointer %s line %d\n",file,line);
+			ShowError("Memory manager: args of aFree is freed pointer %s line %d\n",file,line);
 		} else {
 			head->block = NULL;
 			if(--block->unit_used == 0) {
@@ -449,7 +450,7 @@ static struct block* block_malloc(void) {
 		int  block_no;
 		struct block* p = (struct block *)calloc(sizeof(struct block),BLOCK_ALLOC);
 		if(p == NULL) {
-			ShowFatalError("MEMMGR::block_alloc failed.\n");
+			ShowFatalError("Memory manager::block_alloc failed.\n");
 			exit(1);
 		}
 		if(block_first == NULL) {
@@ -531,18 +532,41 @@ static void memmer_exit(void) {
 		large = large->next;
 	}
 	if(!fp) {
-		ShowInfo("memmgr: no memory leaks found.\n");
+		ShowInfo("Memory manager: No memory leaks found.\n");
 	} else {
-		ShowWarning("memmgr: memory leaks found.\n");
+		ShowWarning("Memory manager: Memory leaks found.\n");
 		fclose(fp);
 	}
 }
+
+int do_init_memmgr(const char* file)
+{
+	sprintf(memmer_logfile,"%s.log",file);
+	ShowStatus("Memory manager initialised: "CL_WHITE"%s"CL_RESET"\n",memmer_logfile);
+
+	return 0;
+}
 #endif
 
-int do_init_memmgr(const char* file) {
+
+/*======================================
+ * Initialise
+ *--------------------------------------
+ */
+void do_final_malloc (void)
+{
 #ifdef USE_MEMMGR
-  sprintf(memmer_logfile,"%s.log",file);
-  ShowInfo("memmgr: initialised: %s\n",memmer_logfile);
+	memmer_exit ();	
 #endif
-  return 0;
+
+	return;
+}
+
+void do_init_malloc (void)
+{
+#ifdef USE_MEMMGR
+	do_init_memmgr (argp);
+#endif
+
+	return;
 }

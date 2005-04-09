@@ -85,7 +85,6 @@ static void sig_ignore(int sn) {
 }
 static void sig_proc(int sn)
 {
-	int i;
 	static int is_called = 0;
 
 	if(is_called++)
@@ -231,10 +230,10 @@ void pid_delete(void) {
 	unlink(pid_file);
 }
 
-void pid_create(const char* file) {
+void pid_create (void) {
 	FILE *fp;
-	int len = strlen(file);
-	strcpy(pid_file,file);
+	int len = strlen(argp);
+	strcpy(pid_file, argp);
 	if(len > 4 && pid_file[len - 4] == '.') {
 		pid_file[len - 4] = 0;
 	}
@@ -292,8 +291,8 @@ int main(int argc,char **argv)
 
 	display_title();
 	
-	do_init_memmgr(argp); // 一番最初に実行する必要がある
-	pid_create(argp);
+	do_init_malloc(); // 一番最初に実行する必要がある
+	pid_create();
 	Net_Init();
 	do_socket();
 	
@@ -321,13 +320,11 @@ int main(int argc,char **argv)
 		do_parsepacket();
 	}
 
-        log_uptime();
-        pid_delete();
-        do_final();
-        do_final_socket();
-#ifdef USE_MEMMGR
-        memmer_exit();
-#endif
+	log_uptime();
+	pid_delete();
+	do_final();
+	do_final_socket();
+	do_final_malloc();
 
 	return 0;
 }

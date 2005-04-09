@@ -72,6 +72,7 @@
 
 #endif
 
-int do_init_memmgr(const char* file);
+void do_init_malloc(void);
+void do_final_malloc(void);
 
 #endif

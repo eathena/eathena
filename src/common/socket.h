@@ -98,6 +98,7 @@ int RFIFOSKIP(int fd,int len);
 int do_sendrecv(int next);
 int do_parsepacket(void);
 void do_socket(void);
+void do_final_socket(void);
 
 extern void flush_fifos();
 extern void set_nonblocking(int fd, int yes);
