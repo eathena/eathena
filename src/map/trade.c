@@ -24,6 +24,7 @@
  */
 void trade_traderequest(struct map_session_data *sd, int target_id) {
 	struct map_session_data *target_sd;
+	int level;
 
 	nullpo_retv(sd);
 
@@ -34,7 +35,7 @@ void trade_traderequest(struct map_session_data *sd, int target_id) {
 				return;
 			}
 		}
-		if(pc_isGM(sd) && pc_isGM(target_sd) < battle_config.gm_can_drop_lv) {
+		if((level = pc_isGM(sd)) > 0 && level < battle_config.gm_can_drop_lv) {
 			clif_displaymessage(sd->fd, msg_txt(246));
 			trade_tradecancel(sd); // GM is not allowed to trade
 		} else if ((target_sd->trade_partner != 0) || (sd->trade_partner != 0)) {
@@ -181,7 +182,10 @@ void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 			for(trade_i = 0; trade_i < 10; trade_i++) {
 				if (sd->deal_item_amount[trade_i] == 0) {
 					trade_weight += sd->inventory_data[index-2]->weight * amount;
-					if (target_sd->weight + trade_weight > target_sd->max_weight){
+					if (itemdb_isdropable(sd->inventory_data[index-2]->nameid) == 0) {
+						clif_tradeitemok(sd, index, 1); // fail to add item -- this item is not allowed
+						amount = 0;
+					} else if (target_sd->weight + trade_weight > target_sd->max_weight){
 						clif_tradeitemok(sd, index, 1); // fail to add item -- the player was over weighted.
 						amount = 0;
 					} else {

@@ -10,7 +10,7 @@
 #endif
 
 // 独自メモリマネージャを使用する場合、次のコメントを外してください。
-#define USE_MEMMGR
+// #define USE_MEMMGR
 
 #if !defined(DMALLOC) && !defined(GCOLLECT) && !defined(BCHECK) && !defined(USE_MEMMGR)
 

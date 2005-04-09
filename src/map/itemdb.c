@@ -164,6 +164,7 @@ struct item_data* itemdb_search(int nameid)
 	id->flag.value_notdc=0;  //ˆê‰žEEE
 	id->flag.value_notoc=0;
 	id->flag.no_equip=0;
+	id->flag.no_refine=0;
 	id->view_id=0;
 
 	if(nameid>500 && nameid<600)

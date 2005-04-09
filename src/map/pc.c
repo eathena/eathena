@@ -2369,7 +2369,6 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
 	    sd->status.inventory[n].amount < amount ||
 	    sd->trade_partner != 0 || sd->vender_id != 0 ||
 	    sd->status.inventory[n].amount <= 0 ||
-		itemdb_isdropable(sd->status.inventory[n].nameid) == 0 || // Celest
 		pc_candrop(sd,sd->status.inventory[n].nameid))
 		return 1;
 	map_addflooritem(&sd->status.inventory[n], amount, sd->bl.m, sd->bl.x, sd->bl.y, NULL, NULL, NULL, 0);
@@ -2602,8 +2601,6 @@ int pc_putitemtocart(struct map_session_data *sd,int idx,int amount) {
 	nullpo_retr(0, sd);
 	nullpo_retr(0, item_data = &sd->status.inventory[idx]);
 
-	if(itemdb_isdropable(sd->status.inventory[idx].nameid) == 0)
-		return 1;
 	if(pc_candrop(sd,sd->status.inventory[idx].nameid)==1)
 		return 1;
 	if (item_data->nameid==0 || item_data->amount<amount || sd->vender_id)
@@ -2732,19 +2729,18 @@ int pc_item_refine(struct map_session_data *sd,int idx)
 	nullpo_retr(0, sd);
 	item = &sd->status.inventory[idx];
 
-	if(idx >= 0 && idx < MAX_INVENTORY) {
-		if(item->nameid > 0 && itemdb_type(item->nameid)==4) {
-			// if it's no longer refineable
-			if (item->refine >= sd->skilllv || item->refine == 10) {
-				clif_skill_fail(sd,sd->skillid,0,0);
-				return 0;
-			}
-			if ((i=pc_search_inventory(sd, material [itemdb_wlv (item->nameid)])) < 0 ) { //fixed by Lupus (item pos can be = 0!)
+	if (idx >= 0 && idx < MAX_INVENTORY) {
+		struct item_data *ditem;
+		if(item->nameid > 0 && (ditem = itemdb_search(item->nameid))->type == 4) {
+			if (item->refine >= sd->skilllv ||
+				item->refine == 10 ||		// if it's no longer refineable
+				ditem->flag.no_refine ||	// if the item isn't refinable
+				(i = pc_search_inventory(sd, material [ditem->wlv])) < 0 ) { //fixed by Lupus (item pos can be = 0!)
 				clif_skill_fail(sd,sd->skillid,0,0);
 				return 0;
 			}
 
-			per = percentrefinery [itemdb_wlv (item->nameid)][(int)item->refine];
+			per = percentrefinery [ditem->wlv][(int)item->refine];
 			//per += pc_checkskill(sd,BS_WEAPONRESEARCH);
 			per *= (75 + sd->status.job_level/2)/100;
 
@@ -5566,10 +5562,12 @@ int pc_setriding(struct map_session_data *sd)
  */
 int pc_candrop(struct map_session_data *sd,int item_id)
 {
-	int level;
-	if((level=pc_isGM(sd))>0 && level < battle_config.gm_can_drop_lv) // search only once [Celest]
+	int level = pc_isGM(sd);
+	if (level > 0 && level < battle_config.gm_can_drop_lv)
 		return 1;
-	return 0;
+	if (level == 0 && (item_id == 2634 || item_id == 2635))
+		return 1;
+	return (itemdb_isdropable(item_id) == 0);
 }
 
 /*==========================================

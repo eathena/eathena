@@ -2,6 +2,8 @@
 Date	Added
 
 04/09
+	* Fixed Weapon Refine not checking if the item type is refineable [celest]
+	* Improved checking if items can be dropped, traded, refined or stored [celest]
 	* Fixed a bug in SQL char.c, thanks to Alex14
 	* Fixed some compile errors in the core [celest]
 	* Fixed compile errors when Mem manager is enabled [celest]
