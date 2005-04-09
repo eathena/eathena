@@ -94,14 +94,7 @@ static void sig_proc(int sn)
 	switch(sn){
 	case SIGINT:
 	case SIGTERM:
-		if(term_func)
-			term_func();
-		for(i=0;i<fd_max;i++){
-			if(!session[i])
-				continue;
-			close(i);
-		}
-		exit(0);
+                runflag = 0;
 		break;
 	}
 }
@@ -254,7 +247,6 @@ void pid_create(const char* file) {
 		fprintf(fp,"%d",getpid());
 #endif
 		fclose(fp);
-		atexit(pid_delete);
 	}
 }
 
@@ -301,7 +293,6 @@ int main(int argc,char **argv)
 	display_title();
 	
 	do_init_memmgr(argp); // ˆê”ÔÅ‰‚ÉŽÀs‚·‚é•K—v‚ª‚ ‚é
-	atexit(log_uptime);
 	pid_create(argp);
 	Net_Init();
 	do_socket();
@@ -329,6 +320,14 @@ int main(int argc,char **argv)
 		do_sendrecv(next);
 		do_parsepacket();
 	}
+
+        log_uptime();
+        pid_delete();
+        do_final();
+        do_final_socket();
+#ifdef USE_MEMMGR
+        memmer_exit();
+#endif
 
 	return 0;
 }

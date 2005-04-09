@@ -3573,3 +3573,7 @@ int char_nick2id (char *name) {
 		return char_id;
 }
 
+void do_final()
+{
+  inter_final();
+}

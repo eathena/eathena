@@ -4012,7 +4012,5 @@ int do_init(int argc, char **argv) {
 	login_log("The login-server is ready (Server is listening on the port %d)." RETCODE, login_port);
 	printf("The login-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", login_port);
 
-	atexit(do_final);
-
 	return 0;
 }

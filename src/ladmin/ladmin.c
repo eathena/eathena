@@ -4377,7 +4377,5 @@ int do_init(int argc, char **argv) {
 
 	Connect_login_server();
 
-	atexit(do_final);
-
 	return 0;
 }

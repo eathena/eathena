@@ -1047,7 +1047,6 @@ void grfio_init(char *fname)
 
 	filelist = NULL;     filelist_entrys = filelist_maxentry = 0;
 	gentry_table = NULL; gentry_entrys = gentry_maxentry = 0;
-	atexit(grfio_final);	// End processing definition
 
 	// Entry table reading
 

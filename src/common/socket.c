@@ -1049,7 +1049,6 @@ void do_socket(void)
 
 	FD_ZERO(&readfds);
 
-	atexit(do_final_socket);
 	socket_config_read(SOCKET_CONF_FILENAME);
 
 	// session[0] にダミーデータを確保する

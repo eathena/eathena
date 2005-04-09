@@ -2,6 +2,16 @@
 Date	Added
 
 04/08	
+        * Changed how signals shut the process down so that we were
+          not doing work in a signal handling thread but instead on
+          the main thread.. which is important due to the limited
+          stack size of a signal thread. [MouseJstr]
+        * Eliminated the use of atexit() so that we could control
+          the order objects were destroyed in as well as make
+          high end debuggers happier about what we were doing after
+          exit. [MouseJstr]
+        * Fixed a bug in do_final_npc() that was hanging
+          shutdown [MouseJstr]
 	* Fixed use of deprecated strerror in common/lock.c  [MouseJstr]
 	* Fixed buffer read-overflow in mail system in char/char.c  [MouseJstr]
 	* Fixed msg_table definition mismatch in map server  [MouseJstr]

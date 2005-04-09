@@ -540,10 +540,9 @@ static void memmer_exit(void) {
 #endif
 
 int do_init_memmgr(const char* file) {
-	#ifdef USE_MEMMGR
-		sprintf(memmer_logfile,"%s.log",file);
-		atexit(memmer_exit);
-		ShowInfo("memmgr: initialised: %s\n",memmer_logfile);
-	#endif
-	return 0;
+#ifdef USE_MEMMGR
+  sprintf(memmer_logfile,"%s.log",file);
+  ShowInfo("memmgr: initialised: %s\n",memmer_logfile);
+#endif
+  return 0;
 }

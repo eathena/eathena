@@ -2484,13 +2484,6 @@ int do_final_npc(void)
 	struct mob_data *md;
 	struct pet_data *pd;
 
-	if(ev_db)
-		strdb_final(ev_db,ev_db_final);
-	if(npcname_db)
-		strdb_final(npcname_db,npcname_db_final);
-
-	npc_clearsrcfile();
-
 	for (i = START_NPC_NUM; i < npc_id; i++){
 		if((bl = map_id2bl(i))){
 			if(bl->type == BL_NPC && (nd = (struct npc_data *)bl)){
@@ -2508,6 +2501,13 @@ int do_final_npc(void)
 			}
 		}
 	}
+
+	if(ev_db)
+		strdb_final(ev_db,ev_db_final);
+ 	if(npcname_db)
+		strdb_final(npcname_db,npcname_db_final);
+
+	npc_clearsrcfile();
 
 	return 0;
 }

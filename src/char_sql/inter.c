@@ -290,8 +290,6 @@ int inter_init(const char *file)
 	inter_pet_sql_init();
 	inter_accreg_sql_init();
 
-	atexit(inter_final);
-
 	//printf ("interserver timer initializing : %d sec...\n",autosave_interval);
 	//i=add_timer_interval(gettick()+autosave_interval,inter_save_timer,0,0,autosave_interval);
 
