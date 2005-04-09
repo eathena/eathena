@@ -2500,8 +2500,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		break;
 
 	case PR_BENEDICTIO:			/* ¹?~•Ÿ */
-		if(status_get_race(bl)==1 || status_get_race(bl)==6)
-			skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
+		if (status_get_race(bl) == 1 || status_get_race(bl) == 6)
+			skill_attack(BF_MAGIC, src, src, bl, skillid, skilllv, tick, flag);
 		break;
 
 	/* –‚–@Œn”Í?U?ƒXƒLƒ‹ */
@@ -4905,14 +4905,14 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	switch(skillid)
 	{
 	case PR_BENEDICTIO:			/* ¹?~•Ÿ */
-		skill_area_temp[1]=src->id;
-		map_foreachinarea(skill_area_sub,
-			src->m,x-1,y-1,x+1,y+1,0,
-			src,skillid,skilllv,tick, flag|BCT_NOENEMY|1,
+		skill_area_temp[1] = src->id;
+		map_foreachinarea(skill_area_sub, 
+			src->m, x-1, y-1, x+1, y+1, 0,
+			src, skillid, skilllv, tick, flag|BCT_NOENEMY|1,
 			skill_castend_nodamage_id);
 		map_foreachinarea(skill_area_sub,
-			src->m,x-1,y-1,x+1,y+1,0,
-			src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
+			src->m, x-1, y-1, x+1, y+1, 0,
+			src, skillid, skilllv, tick, flag|BCT_ENEMY|1,
 			skill_castend_damage_id);
 		break;
 
@@ -6289,10 +6289,10 @@ static int skill_check_condition_use_sub(struct block_list *bl,va_list ap)
 	if(skillid > 0 && skilllv <= 0) return 0;	// celest
 	switch(skillid){
 	case PR_BENEDICTIO:				/* ¹?~•Ÿ */
-		if(sd != ssd && (s_class.job == 4 || s_class.job == 8 || s_class.job == 15) &&
+		if (sd != ssd && (s_class.job == 4 || s_class.job == 8 || s_class.job == 15) &&
 			(sd->bl.x == ssd->bl.x - 1 || sd->bl.x == ssd->bl.x + 1) && sd->status.sp >= 10){
 			sd->status.sp -= 10;
-			status_calc_pc(sd,0);
+			clif_updatestatus(sd,SP_SP);
 			(*c)++;
 		}
 		break;
@@ -6521,20 +6521,20 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		break;
 	case PR_BENEDICTIO:				/* ¹?~•Ÿ */
 		{
-			int range=1;
-			int c=0;
-			if(!(type&1)){
-			map_foreachinarea(skill_check_condition_char_sub,sd->bl.m,
-				sd->bl.x-range,sd->bl.y-range,
-				sd->bl.x+range,sd->bl.y+range,BL_PC,&sd->bl,&c);
-			if(c<2){
-				clif_skill_fail(sd,skill,0,0);
-				return 0;
-			}
-			}else{
-				map_foreachinarea(skill_check_condition_use_sub,sd->bl.m,
-					sd->bl.x-range,sd->bl.y-range,
-					sd->bl.x+range,sd->bl.y+range,BL_PC,&sd->bl,&c);
+			int range = 1;
+			int c = 0;
+			if  (!(type & 1)) {
+				map_foreachinarea(skill_check_condition_char_sub, sd->bl.m,
+					sd->bl.x-range, sd->bl.y-range,
+					sd->bl.x+range, sd->bl.y+range, BL_PC, &sd->bl, &c);
+				if (c < 2) {
+					clif_skill_fail(sd,skill,0,0);
+					return 0;
+				}
+			} else {
+				map_foreachinarea (skill_check_condition_use_sub, sd->bl.m,
+					sd->bl.x-range, sd->bl.y-range,
+					sd->bl.x+range, sd->bl.y+range, BL_PC, &sd->bl, &c);
 			}
 		}
 		break;

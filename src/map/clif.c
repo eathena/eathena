@@ -5837,35 +5837,48 @@ int clif_party_hp(struct party *p,struct map_session_data *sd)
  */
 int clif_hpmeter(struct map_session_data *sd)
 {
-	struct map_session_data *md;
+	struct map_session_data *sd2;
 	unsigned char buf[16];
 	unsigned char buf2[16];
-	int i;
+	int i, x0, y0, x1, y1;
 
 	nullpo_retr(0, sd);
 
-	WBUFW(buf,0)=0x107;
-	WBUFL(buf,2)=sd->bl.id;
-	WBUFW(buf,6)=sd->bl.x;
-	WBUFW(buf,8)=sd->bl.y;
+	x0 = sd->bl.x - AREA_SIZE;
+	y0 = sd->bl.y - AREA_SIZE;
+	x1 = sd->bl.x + AREA_SIZE;
+	y1 = sd->bl.y + AREA_SIZE;
 
-	for(i=0;i<fd_max;i++){
-		if(session[i] && (md = (struct map_session_data*)session[i]->session_data) && md->state.auth &&
-			md->bl.m == sd->bl.m && pc_isGM(md) && sd != md){
-			memcpy(WFIFOP(i,0),buf,packet_len_table[0x107]);
-			WFIFOSET(i,packet_len_table[0x107]);
+	WBUFW(buf,0) = 0x107;
+	WBUFL(buf,2) = sd->bl.id;
+	WBUFW(buf,6) = sd->bl.x;
+	WBUFW(buf,8) = sd->bl.y;
+
+	for (i = 0; i < fd_max; i++) {
+		if (session[i] && (sd2 = (struct map_session_data*)session[i]->session_data) &&  sd != sd2 && sd2->state.auth) {
+			if (sd2->bl.m != sd->bl.m || 
+				sd2->bl.x < x0 || sd2->bl.y < y0 ||
+				sd2->bl.x > x1 || sd2->bl.y > y1 ||
+				pc_isGM(sd2) < pc_isGM(sd))
+				continue;
+			memcpy (WFIFOP(i,0), buf, packet_len_table[0x107]);
+			WFIFOSET (i, packet_len_table[0x107]);
 		}
 	}
 
-	WBUFW(buf2,0)=0x106;
-	WBUFL(buf2,2)=sd->status.account_id;
-	WBUFW(buf2,6)=(sd->status.hp > 0x7fff)? 0x7fff:sd->status.hp;
-	WBUFW(buf2,8)=(sd->status.max_hp > 0x7fff)? 0x7fff:sd->status.max_hp;
-	for(i=0;i<fd_max;i++){
-		if(session[i] && (md = (struct map_session_data*)session[i]->session_data) && md->state.auth &&
-			md->bl.m == sd->bl.m && pc_isGM(md) && sd != md){
-			memcpy(WFIFOP(i,0),buf2,packet_len_table[0x106]);
-			WFIFOSET(i,packet_len_table[0x106]);
+	WBUFW(buf2,0) = 0x106;
+	WBUFL(buf2,2) = sd->status.account_id;
+	WBUFW(buf2,6) = (sd->status.hp > 0x7fff) ? 0x7fff : sd->status.hp;
+	WBUFW(buf2,8) = (sd->status.max_hp > 0x7fff) ? 0x7fff : sd->status.max_hp;
+	for (i = 0; i < fd_max; i++) {
+		if (session[i] && (sd2 = (struct map_session_data*)session[i]->session_data) &&  sd != sd2 && sd2->state.auth) {
+			if (sd2->bl.m != sd->bl.m || 
+				sd2->bl.x < x0 || sd2->bl.y < y0 ||
+				sd2->bl.x > x1 || sd2->bl.y > y1 ||
+				pc_isGM(sd2) < pc_isGM(sd))
+				continue;
+			memcpy (WFIFOP(i,0), buf2, packet_len_table[0x106]);
+			WFIFOSET (i, packet_len_table[0x106]);
 		}
 	}
 
