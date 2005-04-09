@@ -96,15 +96,23 @@ txt : src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/
 
 
 ifdef SQLFLAG
-sql: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/txt-converter/login/GNUmakefile src/txt-converter/char/GNUmakefile conf
+sql: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile conf
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd login_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
 	cd src ; cd char_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
-	cd src ; cd map ; $(MAKE) $(MYLIB) $@ ; cd ..
+	cd src ; cd map ; $(MAKE) $(MYLIB) $@ ; cd ..	
+else
+sql: 
+	$(MAKE) CC="$(CC)" OPT="$(OPT)" SQLFLAG=1 $@
+endif
+
+
+ifdef SQLFLAG
+converters: src/txt-converter/login/GNUmakefile src/txt-converter/char/GNUmakefile
 	cd src ; cd txt-converter ; cd login ; $(MAKE) $(MYLIB) ; cd ..
 	cd src ; cd txt-converter ; cd char ; $(MAKE) $(MYLIB) ; cd ..
 else
-sql: 
+converters:
 	$(MAKE) CC="$(CC)" OPT="$(OPT)" SQLFLAG=1 $@
 endif
 
