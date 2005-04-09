@@ -2,7 +2,8 @@
 Date	Added
 
 04/09
-        * Fixed a NPC memory leak [MouseJstr]
+	* Added Einbroch to @go [DracoRPG]
+      * Fixed a NPC memory leak [MouseJstr]
 	* Added lower level gm's shouldn't be able to see higher level gm's with the
 	  'disp_hpmeter' option -- thanks to starlon
 	* Added 'make converters' -- compiled converters will go under

@@ -2966,10 +2966,11 @@ int atcommand_go(
 	       { "umbala.gat",    89, 157  },	//	12=Umbala
 	       { "niflheim.gat",  21, 153  },	//	13=Niflheim
 	       { "louyang.gat",  217,  40  },	//	14=Lou Yang
-	       { "new_1-1.gat",   53, 111  },	//	15=Start point
+	       { "new_1-1.gat",   53, 111  },	//	15=Training Grounds
 	       { "sec_pri.gat",   23,  61  },	//	16=Prison
            { "jawaii.gat",   249, 127  },	//  17=Jawaii
 		   { "ayothaya.gat", 151, 117  },	//  18=Ayothaya
+		   { "einbroch.gat", 64, 200  },	//  19=Einbroch		   
 	};
 
 	nullpo_retr(-1, sd);
@@ -2989,14 +2990,14 @@ int atcommand_go(
 	if (!message || !*message || sscanf(message, "%99s", map_name) < 1 || town < -3 || town >= (int)(sizeof(data) / sizeof(data[0]))) {
 		clif_displaymessage(fd, msg_table[38]); // Invalid location number or name.
 		clif_displaymessage(fd, msg_table[82]); // Please, use one of this number/name:
-		clif_displaymessage(fd, "-3=(Memo point 2)   4=Alberta       11=Gon Ryun");
-		clif_displaymessage(fd, "-2=(Memo point 1)   5=Izlude        12=Umbala");
-		clif_displaymessage(fd, "-1=(Memo point 0)   6=Al de Baran   13=Niflheim");
-		clif_displaymessage(fd, " 0=Prontera         7=Lutie         14=Lou Yang");
-		clif_displaymessage(fd, " 1=Morroc           8=Comodo        15=Start point");
-		clif_displaymessage(fd, " 2=Geffen           9=Yuno          16=Prison");
-		clif_displaymessage(fd, " 3=Payon           10=Amatsu        17=Jawaii");
-		clif_displaymessage(fd, "                                    18=Ayothaya");
+		clif_displaymessage(fd, "-3=(Memo point 2)   5=Izlude       13=Niflheim");
+		clif_displaymessage(fd, "-2=(Memo point 1)   6=Al de Baran  14=Lou Yang");
+		clif_displaymessage(fd, "-1=(Memo point 0)   7=Lutie        15=Training Grounds");
+		clif_displaymessage(fd, " 0=Prontera         8=Comodo       16=Prison");
+		clif_displaymessage(fd, " 1=Morroc           9=Yuno         17=Jawaii");
+		clif_displaymessage(fd, " 2=Geffen           10=Amatsu      18=Ayothaya");
+		clif_displaymessage(fd, " 3=Payon            11=Gon Ryun    19=Einbroch");
+		clif_displaymessage(fd, " 4=Alberta          12=Umbala");
 		return -1;
 	} else {
 		// get possible name of the city and add .gat if not in the name
@@ -3057,6 +3058,9 @@ int atcommand_go(
 		} else if (strncmp(map_name, "ayothaya.gat", 4) == 0 || // 3 first characters
 		           strncmp(map_name, "ayotaya.gat", 4) == 0) { // writing error (3 first characters)
 			town = 18;
+		} else if (strncmp(map_name, "einbroch.gat", 3) == 0 || // 3 first characters
+		           strncmp(map_name, "ainbroch.gat", 3) == 0) { // writing error (3 first characters)
+			town = 19;
 		}
 
 		if (town >= -3 && town <= -1) {
@@ -9287,11 +9291,10 @@ int atcommand_version(
 	const char* command, const char* message)
 {
 	const char * revision;
-	char tmp_output[200];
 
  	if ((revision = get_svn_revision()) != 0) {
- 		sprintf(tmp_output,"eAthena Version SVN r%s",revision);
-            clif_displaymessage(fd,tmp_output);
+ 		sprintf(atcmd_output,"eAthena Version SVN r%s",revision);
+            clif_displaymessage(fd,atcmd_output);
  	} else 
           clif_displaymessage(fd,"Cannot determine SVN revision");
 
