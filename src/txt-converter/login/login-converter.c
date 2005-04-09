@@ -260,3 +260,6 @@ int do_init(int argc,char **argv)
 }
 
 
+void do_final()
+{
+}

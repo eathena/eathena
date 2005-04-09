@@ -3120,6 +3120,8 @@ void do_final(void) {
 
 	set_all_offline();
 
+        inter_final();
+
 	flush_fifos();
 
 	sprintf(tmp_sql,"DELETE FROM `ragsrvinfo");
@@ -3573,7 +3575,3 @@ int char_nick2id (char *name) {
 		return char_id;
 }
 
-void do_final()
-{
-  inter_final();
-}
