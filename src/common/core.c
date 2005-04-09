@@ -87,8 +87,8 @@ static void sig_proc(int sn)
 {
 	static int is_called = 0;
 
-	if(is_called++)
-		return;
+	if(++is_called > 3)
+		exit(0);
 
 	switch(sn){
 	case SIGINT:

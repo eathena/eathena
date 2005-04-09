@@ -1376,33 +1376,9 @@ int npc_remove_map (struct npc_data *nd)
 
 int npc_unload(struct npc_data *nd)
 {
-	nullpo_retr (0, nd);
-
-	if (nd->chat_id) {
-		struct chat_data *cd = (struct chat_data*)map_id2bl(nd->chat_id);
-		if (cd) aFree (cd);
-		cd = NULL;
-	}	
-	if (nd->bl.subtype == SCRIPT) {
-		if (nd->u.scr.timerid != -1)
-			delete_timer(nd->u.scr.timerid, npc_timerevent);
-		npc_cleareventtimer (nd);
-		if (nd->u.scr.timer_event)
-			aFree(nd->u.scr.timer_event);
-		if (nd->u.scr.src_id == 0) {
-			if(nd->u.scr.script) {
-				aFree(nd->u.scr.script);
-				nd->u.scr.script = NULL;
-			}
-			if (nd->u.scr.label_list) {
-				aFree(nd->u.scr.label_list);
-				nd->u.scr.label_list = NULL;
-			}
-		}
-	}
 	npc_remove_map (nd);
-	aFree(nd);
-	nd = NULL;
+
+	npc_data_final(nd);
 
 	return 0;
 }
@@ -2400,11 +2376,37 @@ static int ev_db_final(void *key,void *data,va_list ap)
 	return 0;
 }
 
+static void npc_data_final(struct npc_data *nd) {
+	if (nd->chat_id) {
+		struct chat_data *cd = (struct chat_data*)map_id2bl(nd->chat_id);
+		if (cd) aFree (cd);
+		cd = NULL;
+	}	
+	if (nd->bl.subtype == SCRIPT) {
+		if (nd->u.scr.timerid != -1)
+			delete_timer(nd->u.scr.timerid, npc_timerevent);
+		npc_cleareventtimer (nd);
+		if (nd->u.scr.timer_event)
+			aFree(nd->u.scr.timer_event);
+		if (nd->u.scr.src_id == 0) {
+			if(nd->u.scr.script) {
+				aFree(nd->u.scr.script);
+				nd->u.scr.script = NULL;
+			}
+			if (nd->u.scr.label_list) {
+				aFree(nd->u.scr.label_list);
+				nd->u.scr.label_list = NULL;
+			}
+		}
+	}
+	aFree(nd);
+}
+
 static int npcname_db_final(void *key,void *data,va_list ap)
 {
         struct npc_data *nd = (struct npc_data *) data;
 
-        npc_unload(nd);
+	npc_data_final(nd);
 
 	return 0;
 }

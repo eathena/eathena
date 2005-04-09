@@ -2,8 +2,13 @@
 Date	Added
 
 04/09
+        * We now can come up and shutdown leak free.. thanks go to celest for
+	  assisting me in this long and painful quest [MouseJstr]
+	* hitting Control-C three times causes a instant shutdown without any
+	  cleanup [MouseJstr]
+        * Fixed a NPC memory leak [MouseJstr]
 	* Added Einbroch to @go [DracoRPG]
-      * Fixed a NPC memory leak [MouseJstr]
+        * Fixed a NPC memory leak [MouseJstr]
 	* Added lower level gm's shouldn't be able to see higher level gm's with the
 	  'disp_hpmeter' option -- thanks to starlon
 	* Added 'make converters' -- compiled converters will go under
