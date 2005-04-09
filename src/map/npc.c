@@ -2399,8 +2399,13 @@ static int ev_db_final(void *key,void *data,va_list ap)
 		aFree(key);
 	return 0;
 }
+
 static int npcname_db_final(void *key,void *data,va_list ap)
 {
+        struct npc_data *nd = (struct npc_data *) data;
+
+        npc_unload(nd);
+
 	return 0;
 }
 /*==========================================
