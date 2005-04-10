@@ -1356,7 +1356,7 @@
 4310,Panzer_Goblin_Card,Panzer Goblin Card,6,20,0,10,,,,,,,2,,,,{},{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,6,7; } //OK
 4311,Permeter_Card,Permeter Card,6,20,0,10,,,,,,,769,,,,{},{ bonus2 bSubEle,7,15; bonus2 bSubEle,9,15; } //OK
 4312,Seal_Card,Seal Card,6,20,0,10,,,,,,,2,,,,{},{ bonus bFlee,3; bonus bHit,10; if(callfunc("Is_Holy_Class")==0) end; bonus2 bCriticalAddRace,1,9; bonus2 bCriticalAddRace,6,9; } //??OK
-4313,Punk_Card,Punk Card,6,20,0,10,,,,,,,4,,,,{},{ if(getskilllv(92)==5) goto QU_5; bonus4 bAutoSpellWhenHit,92,1,1,0; end; QU_5: bonus4 bAutoSpellWhenHit,10,5,1,0; } //??OK
+4313,Punk_Card,Punk Card,6,20,0,10,,,,,,,4,,,,{},{ if(getskilllv(92)==5) goto QU_5; bonus4 bAutoSpellWhenHit,92,1,1,0; end; QU_5: bonus4 bAutoSpellWhenHit,92,5,1,0; } //??OK
 4314,Penomena_Card,Penomena Card,6,20,0,10,,,,,,,32,,,,{},{ bonus2 bSubRace,0,30; } //OK
 4315,Pest_Card,Pest Card,6,20,0,10,,,,,,,16,,,,{},{ if(readparam(bInt)<=77) bonus2 bAddEffWhenHit,Eff_Stone,1000; if(readparam(bInt)>77) bonus2 bAddEffWhenHit,Eff_Stone,3000; } //??OK
 4316,False_Angel_Card,False Angel Card,6,20,0,10,,,,,,,2,,,,{},{} //missing recoversponracekill??

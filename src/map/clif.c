@@ -6556,6 +6556,8 @@ int clif_guild_memberlist(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
+	if (fd==NULL)
+		return 0;
 	g=guild_search(sd->status.guild_id);
 	if(g==NULL)
 		return 0;
