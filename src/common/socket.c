@@ -537,20 +537,40 @@ int do_sendrecv(int next)
 	timeout.tv_sec  = next/1000;
 	timeout.tv_usec = next%1000*1000;
 	ret = select(fd_max,&rfd,&wfd,NULL,&timeout);
+#ifndef TURBO
 	if(ret<=0)
 		return 0;
-	for(i=0;i<fd_max;i++){
+        for(i=0;i<fd_max;i++){
+#else
+
+#ifndef __FDS_BITS
+#define __FDS_BITS(set) ((set)->fds_bits)
+#endif
+
+	for(i=0;(i<fd_max) && (ret > 0);i++){
+                if ((i & (NFDBITS - 1)) == 0) {
+                        int off = i / NFDBITS;
+                        if ((__FDS_BITS(&wfd)[off] == 0) && (__FDS_BITS(&rfd)[off] == 0))
+                                continue;
+                }
+#endif
 		if(!session[i])
 			continue;
 		if(FD_ISSET(i,&wfd)){
 			//ShowMessage("write:%d\n",i);
 			if(session[i]->func_send)
 				session[i]->func_send(i);
+#ifdef TURBO
+                        ret--;
+#endif
 		}
 		if(FD_ISSET(i,&rfd)){
 			//ShowMessage("read:%d\n",i);
 			if(session[i]->func_recv)
 				session[i]->func_recv(i);
+#ifdef TURBO
+                        ret--;
+#endif
 		}
 	}
 	return 0;
