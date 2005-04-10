@@ -109,7 +109,8 @@ endif
 
 
 ifdef SQLFLAG
-converters: src/txt-converter/login/GNUmakefile src/txt-converter/char/GNUmakefile
+converters: src/common/GNUmakefile src/txt-converter/login/GNUmakefile src/txt-converter/char/GNUmakefile
+	cd src ; cd common ; $(MAKE) $(MKDEF) sql ; cd ..
 	cd src ; cd txt-converter ; cd login ; $(MAKE) $(MYLIB) ; cd ..
 	cd src ; cd txt-converter ; cd char ; $(MAKE) $(MYLIB) ; cd ..
 else
