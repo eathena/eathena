@@ -2,6 +2,7 @@
 Date	Added
 
 04/10
+	* Fixed a warning in npc.c, started implementing fame point system [DracoRPG]
 	* Added fix for "bad setting of guild members", thanks to Alex14
 	* Fixed a bad typo in 'disp_hpmeter', thanks to starlon again ^^;
 	* Fixed Bleeding and Poisoned status continueing even after death [celest]

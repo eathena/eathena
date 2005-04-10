@@ -2406,7 +2406,7 @@ static void npc_data_final(struct npc_data *nd) {
 
 static int npcname_db_final(void *key,void *data,va_list ap)
 {
-        struct npc_data *nd = (struct npc_data *) data;
+    //    struct npc_data *nd = (struct npc_data *) data;
 
 	//	npc_data_final(nd);
 

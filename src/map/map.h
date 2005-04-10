@@ -232,9 +232,6 @@ struct map_session_data {
 	unsigned int canregen_tick;
 	int hp_sub,sp_sub;
 	int inchealhptick,inchealsptick,inchealspirithptick,inchealspiritsptick;
-// -- moonsoul (new tick for berserk self-damage)
-//	int berserkdamagetick;
-	int fame;
 
 	short view_class;
 	short weapontype1,weapontype2;
@@ -314,9 +311,11 @@ struct map_session_data {
 	int random_attack_increase_add,random_attack_increase_per; // [Valaris]
 	int perfect_hiding; // [Valaris]
 	int classchange; // [Valaris]
-
+	int fame;
+	
 	int die_counter;
 	short doridori_counter;
+	char potion_success_counter;
 
 	int reg_num;
 	struct script_reg *reg;

@@ -8863,7 +8863,8 @@ int skill_produce_mix( struct map_session_data *sd,
 	}
 
 	/* 確率判定 */
-	equip = itemdb_isequip(nameid);
+	if((equip=itemdb_isequip(nameid)))
+		wlv = itemdb_wlv(nameid);
 	if(!equip) {
 // Corrected rates [DracoRPG] --------------------------//
 		if(skill_produce_db[idx].req_skill==AM_PHARMACY) {
@@ -8875,8 +8876,7 @@ int skill_produce_mix( struct map_session_data *sd,
 				make_per += 2000 + pc_checkskill(sd,AM_POTIONPITCHER)*100;
 			else if(nameid >= 605 && nameid <= 606) // Anodyne & Aloevera (not sure of the formula, I put the same base value as normal pots but without the Aid Potion bonus since they are not throwable pots ^^)
 				make_per += 2000;
-			else if(nameid >= 545 && nameid <= 547) // Concentrated potions
-				;
+			/*else if(nameid >= 545 && nameid <= 547) // Concentrated potions*/
 			else if(nameid == 970) // Alcohol
 				make_per += 1000;
 			else if(nameid == 7135) // Bottle Grenade
@@ -8891,12 +8891,12 @@ int skill_produce_mix( struct map_session_data *sd,
 				make_per += 500 + pc_checkskill(sd,AM_CP_WEAPON)*100 + pc_checkskill(sd,AM_CP_SHIELD)*100 +
 					pc_checkskill(sd,AM_CP_ARMOR)*100 + pc_checkskill(sd,AM_CP_HELM)*100;
 		} else if (skill_produce_db[idx].req_skill == ASC_CDP) {
-			make_per = 2000 + 40*sd->paramc[4] + 20*sd->paramc[5];			
+			make_per = 2000 + 40*sd->paramc[4] + 20*sd->paramc[5]; // Poison Bottle
 		} else {
 			if(nameid == 998)
-				make_per = 1500 + sd->status.job_level*35 + sd->paramc[4]*10 + sd->paramc[5]*10 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*600;
+				make_per = 1500 + sd->status.job_level*35 + sd->paramc[4]*10 + sd->paramc[5]*10 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*600; // Iron
 			else
-				make_per = 1000 + sd->status.job_level*35 + sd->paramc[4]*10 + sd->paramc[5]*10 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*500;
+				make_per = 1000 + sd->status.job_level*35 + sd->paramc[4]*10 + sd->paramc[5]*10 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*500; // Steel and Enchantedstones
 		}
 		if(battle_config.pp_rate != 100)
 			make_per = make_per * battle_config.pp_rate / 100;
@@ -8906,7 +8906,6 @@ int skill_produce_mix( struct map_session_data *sd,
 		else if(pc_search_inventory(sd,988) >= 0) add_per = 300;
 		else if(pc_search_inventory(sd,987) >= 0) add_per = 200;
 		else if(pc_search_inventory(sd,986) >= 0) add_per = 100;
-		wlv = itemdb_wlv(nameid);
 		make_per = 1500 + sd->status.job_level*35 + sd->paramc[4]*10 + sd->paramc[5]*10 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*1000 + pc_checkskill(sd,BS_WEAPONRESEARCH)*100 +
 			((wlv >= 3)? pc_checkskill(sd,BS_ORIDEOCON)*100 : 0) + add_per - (ele? 2500:0) - sc*((4-wlv)*500) - wlv*1000;
 		if(battle_config.wp_rate != 100)	/* 確率補正 */
@@ -8945,6 +8944,19 @@ int skill_produce_mix( struct map_session_data *sd,
 			case AM_PHARMACY:
 				clif_produceeffect(sd,2,nameid);/* 製?エフェクト */
 				clif_misceffect(&sd->bl,5); /* 他人にも成功を通知 */
+				if(nameid >= 545 && nameid <= 547) { // Fame point system [DracoRPG]
+		  			sd->potion_success_counter++;
+		  			if(sd->potion_success_counter == 3)
+						sd->fame++; // Success to prepare 3 Concentrated Potions in a row = +1 fame point
+		  			if(sd->potion_success_counter == 5)
+						sd->fame += 2; // Success to prepare 5 Concentrated Potions in a row = +3 fame point
+		  			if(sd->potion_success_counter == 7)
+						sd->fame += 7; // Success to prepare 7 Concentrated Potions in a row = +10 fame point
+		  			if(sd->potion_success_counter == 10) {
+						sd->fame += 40;	// Success to prepare 10 Concentrated Potions in a row = +50 fame point
+						sd->potion_success_counter = 0;
+						}
+				}
 				break;
 			case ASC_CDP:
 				clif_produceeffect(sd,2,nameid);/* 暫定で製?エフェクト */
@@ -8953,6 +8965,8 @@ int skill_produce_mix( struct map_session_data *sd,
 			default:  /* 武器製造、コイン製造 */
 				clif_produceeffect(sd,0,nameid); /* 武器製造エフェクト */
 				clif_misceffect(&sd->bl,3);
+				if(equip && itemdb_wlv(nameid) >= 3 && ((ele? 1 : 0) + sc) >= 3) // Fame point system [DracoRPG]
+					sd->fame += 10; // Success to forge a lv3 weapon with 3 additional ingredients = +10 fame point
 				break;
 		}
 
@@ -8968,13 +8982,12 @@ int skill_produce_mix( struct map_session_data *sd,
 			case AM_PHARMACY:
 				clif_produceeffect(sd,3,nameid);/* 製?失敗エフェクト */
 				clif_misceffect(&sd->bl,6); /* 他人にも失敗を通知 */
+				sd->potion_success_counter = 0; // Fame point system [DracoRPG]
 				break;
 			case ASC_CDP:
-				{
 					clif_produceeffect(sd,3,nameid); /* 暫定で製?エフェクト */
 					clif_misceffect(&sd->bl,6); /* 他人にも失敗を通知 */
 					pc_heal(sd, -(sd->status.max_hp>>2), 0);
-				}
 				break;
 			default:
 				clif_produceeffect(sd,1,nameid);/* 武器製造失敗エフェクト */
