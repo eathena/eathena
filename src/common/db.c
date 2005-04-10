@@ -13,7 +13,7 @@
 #include "memwatch.h"
 #endif
 
-//#define MALLOC_DBN
+#define MALLOC_DBN
 
 // Backup cleaning routine in case the core doesn't do so properly,
 // only enabled if malloc_dbn is not defined.

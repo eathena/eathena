@@ -398,7 +398,7 @@ void aFree_(void *ptr, const char *file, int line, const char *func ) {
 static void memmgr_info(void) {
 	int i;
 	struct block *p;
-	ShowInfo("** Memory Maneger Information **\n");
+	ShowInfo("** Memory Manager Information **\n");
 	if(block_first == NULL) {
 		ShowMessage("Uninitialized.\n");
 		return;
@@ -503,20 +503,23 @@ static FILE* memmgr_log(void) {
 
 static void memmer_exit(void) {
 	FILE *fp = NULL;
-	int i;
-	int count = 0;
 	struct block *block = block_first;
-	struct unit_head_large *large = unit_head_large_first;
+	struct unit_head_large *large = unit_head_large_first, *large2;
+	int i, count = 0;
+	char *ptr;
+	
 	while(block) {
 		if(block->unit_size) {
 			if(!fp) { fp = memmgr_log(); }
-			for(i=0;i<block->unit_count;i++) {
+			for (i = 0; i < block->unit_count; i++) {
 				struct unit_head *head = (struct unit_head*)(&block->data[block->unit_size * i]);
 				if(head->block != NULL) {
-					fprintf(
-						fp,"%04d : %s line %d size %d\n",++count,
-						head->file,head->line,head->size
+					fprintf (
+						fp, "%04d : %s line %d size %d\n", ++count, 
+						head->file, head->line, head->size
 					);
+					ptr = (char *)head + sizeof(struct unit_head);
+					aFree_ (ptr, ALC_MARK);
 				}
 			}
 		}
@@ -524,25 +527,34 @@ static void memmer_exit(void) {
 	}
 	while(large) {
 		if(!fp) { fp = memmgr_log(); }
-		fprintf(
-			fp,"%04d : %s line %d size %d\n",++count,
-			large->unit_head.file,
-			large->unit_head.line,large->unit_head.size
+		large2 = large->next;
+		fprintf (
+			fp, "%04d : %s line %d size %d\n", ++count,
+			large->unit_head.file, large->unit_head.line, large->unit_head.size
 		);
-		large = large->next;
+		if (large->prev) {
+			large->prev->next = large->next;
+		} else {
+			unit_head_large_first  = large->next;
+		}
+		if (large->next) {
+			large->next->prev = large->prev;
+		}
+		free(large);
+		large = large2;
 	}
 	if(!fp) {
 		ShowInfo("Memory manager: No memory leaks found.\n");
 	} else {
-		ShowWarning("Memory manager: Memory leaks found.\n");
+		ShowWarning("Memory manager: Memory leaks found and fixed.\n");
 		fclose(fp);
 	}
 }
 
-int do_init_memmgr(const char* file)
+int do_init_memmgr (void)
 {
-	sprintf(memmer_logfile,"%s.log",file);
-	ShowStatus("Memory manager initialised: "CL_WHITE"%s"CL_RESET"\n",memmer_logfile);
+	sprintf(memmer_logfile, "%s.log", argp);
+	ShowStatus("Memory manager initialised: "CL_WHITE"%s"CL_RESET"\n", memmer_logfile);
 
 	return 0;
 }
@@ -565,7 +577,7 @@ void do_final_malloc (void)
 void do_init_malloc (void)
 {
 #ifdef USE_MEMMGR
-	do_init_memmgr (argp);
+	do_init_memmgr ();
 #endif
 
 	return;
