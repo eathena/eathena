@@ -317,7 +317,9 @@ int main(int argc,char **argv)
 	while(runflag){
 		next=do_timer(gettick_nocache());
 		do_sendrecv(next);
+#ifndef TURBO
 		do_parsepacket();
+#endif
 	}
 
 	log_uptime();

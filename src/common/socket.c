@@ -41,6 +41,9 @@ typedef int socklen_t;
 #endif
 
 fd_set readfds;
+#ifdef TURBO
+fd_set writefds;
+#endif
 int fd_max;
 time_t tick_;
 time_t stall_time_ = 60;
@@ -151,8 +154,12 @@ static int send_from_fifo(int fd)
 	//ShowMessage("send_from_fifo : %d\n",fd);
 	if(session[fd]->eof || session[fd]->wdata == 0)
 		return -1;
-	if (session[fd]->wdata_size == 0)
+	if (session[fd]->wdata_size == 0) {
+#ifdef TURBO
+	        FD_CLR(fd, &writefds);
+#endif
 		return 0;
+	}
 
 #ifdef _WIN32
 	len=send(fd, session[fd]->wdata,session[fd]->wdata_size, 0);
@@ -170,6 +177,9 @@ static int send_from_fifo(int fd)
 			session[fd]->wdata_size-=len;
 		} else {
 			session[fd]->wdata_size=0;
+#ifdef TURBO
+			FD_CLR(fd, &writefds);
+#endif
 		}
 	} else if (errno != EAGAIN) {
 //		ShowMessage("set eof :%d\n",fd);
@@ -461,6 +471,9 @@ int delete_session(int fd)
 	if(fd<=0 || fd>=FD_SETSIZE)
 		return -1;
 	FD_CLR(fd,&readfds);
+#ifdef TURBO
+	FD_CLR(fd,&writefds);
+#endif
 	if(session[fd]){
 		if(session[fd]->rdata)
 			aFree(session[fd]->rdata);
@@ -507,8 +520,14 @@ int WFIFOSET(int fd,int len)
 	}
 	s->wdata_size=(s->wdata_size+(len)+2048 < s->max_wdata) ?
 		 s->wdata_size+len : (ShowError("socket: %d wdata lost !!\n",fd),s->wdata_size);
+
+#ifdef TURBO
+	FD_SET(fd,&writefds);
+#endif
+
 	if (s->wdata_size > (TCP_FRAME_LEN))
 		send_from_fifo(fd);
+
 	return 0;
 }
 
@@ -516,12 +535,14 @@ int do_sendrecv(int next)
 {
 	fd_set rfd,wfd;
 	struct timeval timeout;
-	int ret,i;
+	int ret,i,j;
 
 	tick_ = time(0);
 
 	memcpy(&rfd, &readfds, sizeof(rfd));
-
+#ifdef TURBO
+	memcpy(&wfd, &writefds, sizeof(wfd));
+#else
 	FD_ZERO(&wfd);
 	for(i=0;i<fd_max;i++){
 		if(!session[i] && FD_ISSET(i,&readfds)){
@@ -534,6 +555,7 @@ int do_sendrecv(int next)
 		if(session[i]->wdata_size)
 			FD_SET(i,&wfd);
 	}
+#endif
 	timeout.tv_sec  = next/1000;
 	timeout.tv_usec = next%1000*1000;
 	ret = select(fd_max,&rfd,&wfd,NULL,&timeout);
@@ -551,16 +573,44 @@ int do_sendrecv(int next)
                 if ((i & (NFDBITS - 1)) == 0) {
                         int off = i / NFDBITS;
                         if ((__FDS_BITS(&wfd)[off] == 0) && (__FDS_BITS(&rfd)[off] == 0))
-                                continue;
+                                i += NFDBITS;
                 }
+		for (j = 0; (j < NFDBITS) && (ret > 0); j++, i++) {
 #endif
-		if(!session[i])
+
+#if defined(TURBO) && defined(DEBUG)
+		  if(!session[i]) {
+		    if (FD_ISSET(i, &readfds))
+		      printf("FD_ISSET(i, &readfds) returned true with no session set\n");
+		    if (FD_ISSET(i, &writefds))
+		      printf("FD_ISSET(i, &writefds) returned true with no session set\n");
 			continue;
+		  } else {
+		    if ((i != 0) && FD_ISSET(i, &readfds) == 0)
+		      printf("FD_ISSET(%d, &readfds) returned false with session set\n", i);
+		    if (session[i]->wdata_size == 0) {
+		      if (FD_ISSET(i, &writefds))
+			printf("FD_ISSET(i, &writefds) returned true with session set and no data\n");
+		    } else {
+		      if (FD_ISSET(i, &writefds) == 0)
+			printf("FD_ISSET(i, &writefds) returned false with session set and data\n");
+		    }
+		  }
+#else
+		if(!session[i]) 
+			continue;
+#endif
 		if(FD_ISSET(i,&wfd)){
 			//ShowMessage("write:%d\n",i);
 			if(session[i]->func_send)
 				session[i]->func_send(i);
 #ifdef TURBO
+			if ((session[i]->rdata_tick != 0) && ((tick_ - session[i]->rdata_tick) > stall_time_)) {
+			        session[i]->eof = 1;
+				if(session[i]->func_parse)
+				       session[i]->func_parse(i);
+				continue;
+			}
                         ret--;
 #endif
 		}
@@ -569,13 +619,19 @@ int do_sendrecv(int next)
 			if(session[i]->func_recv)
 				session[i]->func_recv(i);
 #ifdef TURBO
+			if(session[i]->func_parse)
+			        session[i]->func_parse(i);
                         ret--;
 #endif
 		}
-	}
+#ifdef TURBO
+		} // for (j = 0; 
+#endif
+	} // for (i = 0
 	return 0;
 }
 
+#ifndef TURBO
 int do_parsepacket(void)
 {
 	int i;
@@ -595,6 +651,7 @@ int do_parsepacket(void)
 	}
 	return 0;
 }
+#endif
 
 /* DDoS çUåÇëŒçÙ */
 
@@ -1068,6 +1125,10 @@ void do_socket(void)
 	char *SOCKET_CONF_FILENAME = "conf/packet_athena.conf";
 
 	FD_ZERO(&readfds);
+
+#ifdef TURBO
+	FD_ZERO(&writefds);
+#endif
 
 	socket_config_read(SOCKET_CONF_FILENAME);
 

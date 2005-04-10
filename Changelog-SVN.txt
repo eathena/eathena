@@ -2,6 +2,8 @@
 Date	Added
 
 04/10
+        * Performance improvements (currently protected with -DTURBO) to
+	  common/socket.c for very large servers (500+ users) [MouseJstr]
 	* Fixed a warning in npc.c, started implementing fame point system [DracoRPG]
 	* Added fix for "bad setting of guild members", thanks to Alex14
 	* Fixed a bad typo in 'disp_hpmeter', thanks to starlon again ^^;
