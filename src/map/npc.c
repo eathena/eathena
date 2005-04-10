@@ -62,6 +62,8 @@ static struct tm ev_tm_b;	// 時計イベント用
 static int npc_walktimer(int,unsigned int,int,int); // [Valaris]
 static int npc_walktoxy_sub(struct npc_data *nd); // [Valaris]
 
+static void npc_data_final(struct npc_data *nd);
+
 /*==========================================
  * NPCの無効化/有効化
  * npc_enable
