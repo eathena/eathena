@@ -2,6 +2,14 @@
 Date	Added
 
 04/10
+	* Added fix for "bad setting of guild members", thanks to Alex14
+	* Fixed a bad typo in 'disp_hpmeter', thanks to starlon again ^^;
+	* Fixed Bleeding and Poisoned status continueing even after death [celest]
+	* Updated bleeding effect for Acid Terror, Head Crush and Pressure [celest]
+	* Fixed 'make converters' not working in clean builds [celest]
+	* Added capability for Mem manager to clean up ALL unfreed memory on shutdown.
+	  Leaks will still be reported [celest]
+	* Added enable jA's MALLOC_DBN in db.c by default [celest]
 	* Fixed compile error caused by strerror_r() [veider]
 
 04/09

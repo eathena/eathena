@@ -446,7 +446,7 @@ int guild_recv_info(struct guild *sg)
 				sd->status.guild_id == g->guild_id &&
 				!sd->state.waitingdisconnect)
 				g->member[i].sd = sd;
-			else sd = NULL;
+			else g->member[i].sd = NULL;
 			m++;
 		}else
 			g->member[i].sd=NULL;
@@ -673,6 +673,7 @@ int guild_explusion(struct map_session_data *sd,int guild_id,
 		if(	g->member[i].account_id==account_id &&
 			g->member[i].char_id==char_id ){
 			intif_guild_leave(g->guild_id,account_id,char_id,1,mes);
+			memset(&g->member[i],0,sizeof(struct guild_member));
 			return 0;
 		}
 	}
@@ -700,8 +701,7 @@ int guild_member_leaved(int guild_id,int account_id,int char_id,int flag,
 					else
 						clif_guild_explusion(sd2,name,mes,account_id);
 				}
-				g->member[i].account_id=0;
-				g->member[i].sd=NULL;
+				memset(&g->member[i],0,sizeof(struct guild_member));
 			}
 			// メンバーリストを全員に再通知
 			for(i=0;i<g->max_member;i++){

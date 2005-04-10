@@ -5841,6 +5841,7 @@ int clif_hpmeter(struct map_session_data *sd)
 	unsigned char buf[16];
 	unsigned char buf2[16];
 	int i, x0, y0, x1, y1;
+	int level;
 
 	nullpo_retr(0, sd);
 
@@ -5859,7 +5860,7 @@ int clif_hpmeter(struct map_session_data *sd)
 			if (sd2->bl.m != sd->bl.m || 
 				sd2->bl.x < x0 || sd2->bl.y < y0 ||
 				sd2->bl.x > x1 || sd2->bl.y > y1 ||
-				pc_isGM(sd2) < pc_isGM(sd))
+				(level = pc_isGM(sd2)) <= 0 || level < pc_isGM(sd))
 				continue;
 			memcpy (WFIFOP(i,0), buf, packet_len_table[0x107]);
 			WFIFOSET (i, packet_len_table[0x107]);
@@ -5875,7 +5876,7 @@ int clif_hpmeter(struct map_session_data *sd)
 			if (sd2->bl.m != sd->bl.m || 
 				sd2->bl.x < x0 || sd2->bl.y < y0 ||
 				sd2->bl.x > x1 || sd2->bl.y > y1 ||
-				pc_isGM(sd2) < pc_isGM(sd))
+				(level = pc_isGM(sd2)) <= 0 || level < pc_isGM(sd))
 				continue;
 			memcpy (WFIFOP(i,0), buf2, packet_len_table[0x106]);
 			WFIFOSET (i, packet_len_table[0x106]);

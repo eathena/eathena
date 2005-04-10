@@ -3812,13 +3812,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 		case SC_BLEEDING:
 			{
-				// every 1 vit deducts 1 second
-				val3 = tick - status_get_vit(bl) * 1000;
-				// minimum 50 seconds
-				if (val3 < 50000)
-					val3 = 50000;
-				val4 = 10000;
-				tick = 1000;
+				//val4 = 10000;
+				val4 = tick;
+				tick = 10000;
 			}
 			break;
 
@@ -4521,9 +4517,9 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 				md->hp -= hp;
 			}
 		}
-		if (sc_data[type].val3 > 0)
+		if (sc_data[type].val3 > 0 && !status_isdead(bl))
 		{
-			sc_data[type].timer=add_timer(1000+tick,status_change_timer, bl->id, data );
+			sc_data[type].timer = add_timer (1000 + tick, status_change_timer, bl->id, data );
 			// hmm setting up a timer and breaking then to call status_change_end just right away?
 			// I think you're missing brackets and a:
 			return 0;
@@ -4557,24 +4553,21 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		// Source:
 		// - 10õ©ª´ªÈªËHPª¬Êõá´
 		// - õóúìªÎªÞªÞ«µ?«Ðì¹ÔÑªä«ê«í«°ª·ªÆªâ?ÍýªÏá¼ª¨ªÊª¤
-		if((sc_data[type].val3 -= 1000) > 0) {
-			if((sc_data[type].val4 -= 1000) > 0) {
-				int hp = rand()%300+400;
-				if(sd) {
-					pc_heal(sd,-hp,0);
-					sd->canmove_tick = tick+1000;
-				}
-				else if(bl->type == BL_MOB) {
-					struct mob_data *md;
-					nullpo_retr(0, md=(struct mob_data *)bl);
-					md->hp -= hp;
-				}
+		// To-do: bleeding effect increases damage taken?
+		if ((sc_data[type].val4 -= 10000) > 0) {
+			int hp = rand()%300 + 400;
+			if(sd) {
+				pc_heal(sd,-hp,0);
+			} else if(bl->type == BL_MOB) {
+				struct mob_data *md = (struct mob_data *)bl;
+				if (md) md->hp -= hp;
 			}
-			if (sd) {				
-				sd->canact_tick = tick+1000;
+			if (!status_isdead(bl)) {
+				// walking and casting effect is lost
+				battle_stopwalking (bl, 1);
+				skill_castcancel (bl, 0);
+				sc_data[type].timer = add_timer(10000 + tick, status_change_timer, bl->id, data );
 			}
-
-			sc_data[type].timer=add_timer(1000+tick,status_change_timer, bl->id, data );
 			// hmm setting up a timer and breaking then to call status_change_end just right away?
 			// I think you're missing a:
 			return 0;

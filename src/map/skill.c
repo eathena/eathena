@@ -887,8 +887,12 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case AM_ACIDTERROR:
-		if( rand()%100 < (skilllv*3)*sc_def_vit/100 )
-			status_change_start(bl,SC_BLEEDING,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		if (rand()%100 < (skilllv*3)*sc_def_vit/100 ) {
+			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
+			if (bleed_time < 50000)
+				bleed_time = 50000;	// minimum 50 seconds
+			status_change_start(bl,SC_BLEEDING,skilllv,0,0,0,bleed_time,0);
+		}
 		break;
 
 	case CR_SHIELDCHARGE:		/* シ?ルドチャ?ジ */
@@ -988,10 +992,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		}
 		break;
 	case LK_HEADCRUSH:				/* ヘッドクラッシュ */
-		{//?件が良く分からないので適?に
-			int race=status_get_race(bl);
-			if( !(battle_check_undead(race,status_get_elem_type(bl)) || race == 6) && rand()%100 < (2*skilllv+10)*sc_def_vit/100 )
-				status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		{
+			//?件が良く分からないので適?に
+			int race = status_get_race(bl);
+			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
+			if (bleed_time < 90000)
+				bleed_time = 90000;	// minimum 90 seconds
+			if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit/100)
+				status_change_start(bl, SkillStatusChangeTable[skillid], skilllv, 0, 0, 0, bleed_time, 0);
 		}
 			break;
 	case LK_JOINTBEAT:				/* ジョイントビ?ト */
@@ -2210,16 +2218,23 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		break;
 
 	case PA_PRESSURE:	/* プレッシャ? */
-		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-		if (rand()%100 < 50)
-			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(PA_PRESSURE,skilllv),0);
-		else
-			status_change_start(bl,SC_BLEEDING,skilllv,0,0,0,skill_get_time2(PA_PRESSURE,skilllv),0);
-		if (tsd) {
-			int sp = tsd->status.max_sp * 10 * skilllv / 100;
-			if (sp > tsd->status.sp) sp = tsd->status.sp;
-			tsd->status.sp -= sp;
-			clif_updatestatus(tsd,SP_SP);
+		{
+			int race = status_get_race(bl);
+			int sc_def_vit = status_get_sc_def_vit(bl);
+			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
+			if (bleed_time < 60000)
+				bleed_time = 60000;	// minimum time for pressure is?
+			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+			if (rand()%100 < 50 * sc_def_vit / 100)	// is chance 50%?
+				status_change_start(bl, SC_STAN, skilllv, 0, 0, 0, skill_get_time2(PA_PRESSURE,skilllv), 0);
+			else if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit / 100)
+				status_change_start(bl, SC_BLEEDING, skilllv, 0, 0, 0, bleed_time, 0);
+			if (tsd) {
+				int sp = tsd->status.max_sp * 10 * skilllv / 100;
+				if (sp > tsd->status.sp) sp = tsd->status.sp;
+				tsd->status.sp -= sp;
+				clif_updatestatus(tsd,SP_SP);
+			}
 		}
 		break;
 
