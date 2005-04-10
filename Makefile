@@ -27,6 +27,7 @@ MAKE = make
 endif
 ifeq ($(findstring NetBSD,$(PLATFORM)), NetBSD)
 MAKE = gmake
+CC += -D__NETBSD__
 endif
 
 OPT = -g -O2 -ffast-math -Wall -Wno-sign-compare

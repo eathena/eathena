@@ -56,7 +56,11 @@ int lock_fclose (FILE *fp, const char* filename, int *info) {
 		// このタイミングで落ちると最悪。
 		if ((ret = rename(newfile,filename)) != 0) {	// rename our temporary file to its correct name
 		        char ebuf[255];
+#ifdef __NETBSD__
+			ShowError("%s - '"CL_WHITE"%s"CL_RESET"'\n", strerror(errno), newfile);
+#else
 			ShowError("%s - '"CL_WHITE"%s"CL_RESET"'\n", strerror_r(errno, ebuf, sizeof(ebuf)), newfile);
+#endif
 		}
 	}
 	

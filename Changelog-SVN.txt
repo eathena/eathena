@@ -1,6 +1,9 @@
 
 Date	Added
 
+04/10
+	* Fixed compile error caused by strerror_r() [veider]
+
 04/09
         * We now can come up and shutdown leak free.. thanks go to celest for
 	  assisting me in this long and painful quest [MouseJstr]
