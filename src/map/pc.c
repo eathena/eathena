@@ -2758,7 +2758,7 @@ int pc_item_refine(struct map_session_data *sd,int idx)
 				if (ep)
 					pc_equipitem(sd,idx,ep);
 				clif_misceffect(&sd->bl,3);
-				if (item->refine == 10 && itemdb_wlv(item->nameid) <= 3 && item->card[0] == 0x00ff && item->card[2] == sd->char_id){ // Fame point system [DracoRPG]
+				if(item->refine == 10 && item->card[0] == 0x00ff && item->card[2] == sd->char_id && itemdb_wlv(item->nameid) <= 3){ // Fame point system [DracoRPG]
 	 	 	 		 switch(itemdb_wlv(item->nameid)){
 	 	 	 	 	 	 case 1:
 						 	  sd->fame += 1; // Success to refine to +10 a lv1 weapon you forged = +1 fame point
