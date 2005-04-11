@@ -537,6 +537,18 @@
 477,0,6,4,0,1,10,1,no,0,0,0,weapon,0	//WS_WEAPONREFINE##
 478,3,6,2,0,1,10,1,no,0,0,0,none,0	//CR_SLIMPITCHER##
 479,1,6,16,0,1,5,1,yes,0,0,0,weapon,0	//CR_FULLPROTECTION##
+480,0,0,0,0,0,0,0,no,0,0,0,none,0	//PA_SHIELDCHAIN##
+481,0,0,0,0,0,0,0,no,0,0,0,none,0	//HP_MANARECHARGE##
+482,0,0,0,0,0,0,0,no,0,0,0,none,0	//PF_DOUBLECASTING##
+483,0,0,0,0,0,0,0,no,0,0,0,none,0	//HW_GANBANTEIN##
+484,0,0,0,0,0,0,0,no,0,0,0,none,0	//HW_GRAVITATION##
+485,0,0,0,0,0,0,0,no,0,0,0,none,0	//WS_CARTTERMINATION##
+486,0,0,0,0,0,0,0,no,0,0,0,none,0	//WS_OVERTHRUSTMAX##
+487,0,0,0,0,0,0,0,no,0,0,0,none,0	//CG_LONGINGFREEDOM##
+488,0,0,0,0,0,0,0,no,0,0,0,none,0	//CG_HERMODE##
+489,0,0,0,0,0,0,0,no,0,0,0,none,0	//CG_TAROTCARD##
+490,0,0,0,0,0,0,0,no,0,0,0,none,0	//CR_ACIDDEMONSTRATION##
+491,0,0,0,0,0,0,0,no,0,0,0,none,0	//CR_CULTIVATION##
 
 //id,range,hit,inf,pl,nk,max,list_num,castcancel,cast_defence_rate,inf2,maxcount,skill_type,blow_count
 10000,0,0,0,0,0,1,0,no,0,0,0,none,0	//GD_APPROVAL#ê≥ãKÉMÉãÉhè≥îF#

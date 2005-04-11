@@ -8,6 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them i believe.
 
+04/12
+	* Corrected 1 wrong entry in the create arrow DB, thanks to Komurka
 04/08
 	* Corrected wrong entries in the create arrow DB, thanks to Komurka
 04/07
