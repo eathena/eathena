@@ -1,6 +1,9 @@
 
 Date	Added
-04/11
+04/11	
+	* Card fix - owl_duke_card should cast Imposito manus on self, not on
+	  enemy, wind_ghost_card should cast jupiter thunder level 10, not
+	  Sight level 10 [veider]
 	* Finished coding fame point gain [DracoRPG]
 	* Fixed crash in clif_guild_memberlist not checking sd->fd could be NULL [veider]
 	* Fixed Punk card giving Sight (10) level 5 instead of Quagmarine (92)
