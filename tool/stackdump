@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ "$1" = "" ]; then
+	echo Usage: stackdump [server-type] [sql]
+	echo Server type can be map, login, or char.
+	echo
+	echo Examples:
+	echo stackdump map
+	echo stackdump login sql
+	exit
+fi
+
+if [ "$2" = "sql" ]; then
+	sql="_sql"
+fi
+
+if [ ! -e $1-server$sql.exe.stackdump ]; then
+	echo $1-server$sql.exe.stackdump not found
+	exit
+fi
+
+awk '/^[0-9]/{print $2}' $1-server$sql.exe.stackdump | addr2line -f -e $1-server$sql.exe
