@@ -1,6 +1,8 @@
 
 Date	Added
 04/11	
+	* Fixed AC_DOUBLE and AC_SHOWER cast delays according to kRO Patch - 6/29/04
+	  they both have 0.1 sec cast delay thanks to Moraddin
 	~ Please upgrade your SQL char DB with /sql-files/upgrade_svn1499.sql
 	  to accomodate Fame saving!
 
