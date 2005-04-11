@@ -57,6 +57,11 @@ int night_timer_tid;
 static int dirx[8]={0,-1,-1,-1,0,1,1,1};
 static int diry[8]={1,1,0,-1,-1,-1,0,1};
 
+#define UPDATE_FAME_INTERVAL 3600000
+#define CHECK_FAME_INTERVAL 600000
+struct Fame_list fame_list[10];
+unsigned long fame_update_tick = -1;
+
 static unsigned int equip_pos[11]={0x0080,0x0008,0x0040,0x0004,0x0001,0x0200,0x0100,0x0010,0x0020,0x0002,0x8000};
 
 //static struct dbt *gm_account_db;
@@ -785,6 +790,18 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	sd->pvp_rank = 0;
 	sd->pvp_point = 0;
 	sd->pvp_timer = -1;
+
+	if ((i = pc_checkskill(sd,RG_PLAGIARISM)) > 0) {
+		sd->cloneskill_id = pc_readglobalreg(sd,"CLONE_SKILL");
+		if (sd->cloneskill_id > 0) {
+			sd->status.skill[sd->cloneskill_id].id = sd->cloneskill_id;
+			sd->status.skill[sd->cloneskill_id].lv = skill_get_max(sd->cloneskill_id);
+			if (i < sd->status.skill[sd->cloneskill_id].lv)
+				sd->status.skill[sd->cloneskill_id].lv = i;
+			sd->status.skill[sd->cloneskill_id].flag = 13;	//cloneskill flag			
+			clif_skillinfoblock(sd);
+		}
+	}
 
 	// ’Ê’m
 
@@ -2727,11 +2744,12 @@ int pc_item_refine(struct map_session_data *sd,int idx)
 	struct item *item;
 
 	nullpo_retr(0, sd);
-	item = &sd->status.inventory[idx];
-
+	
 	if (idx >= 0 && idx < MAX_INVENTORY) {
-		struct item_data *ditem;
-		if(item->nameid > 0 && (ditem = itemdb_search(item->nameid))->type == 4) {
+		struct item_data *ditem = sd->inventory_data[idx];
+		item = &sd->status.inventory[idx];
+
+		if(item->nameid > 0 && ditem->type == 4) {
 			if (item->refine >= sd->skilllv ||
 				item->refine == 10 ||		// if it's no longer refineable
 				ditem->flag.no_refine ||	// if the item isn't refinable
@@ -2758,21 +2776,21 @@ int pc_item_refine(struct map_session_data *sd,int idx)
 				if (ep)
 					pc_equipitem(sd,idx,ep);
 				clif_misceffect(&sd->bl,3);
-				if(item->refine == 10 && item->card[0] == 0x00ff && item->card[2] == sd->char_id && itemdb_wlv(item->nameid) <= 3){ // Fame point system [DracoRPG]
-	 	 	 		 switch(itemdb_wlv(item->nameid)){
-	 	 	 	 	 	 case 1:
-						 	  sd->fame += 1; // Success to refine to +10 a lv1 weapon you forged = +1 fame point
-						 	  break;
-	 	 	 	 	 	 case 2:
-						 	  sd->fame += 25; // Success to refine to +10 a lv2 weapon you forged = +25 fame point
-						 	  break;
-					 	 case 3:
-						 	  sd->fame += 1000; // Success to refine to +10 a lv3 weapon you forged = +1000 fame point
-						 	  break;
-	 	 	 	 	 }
-		 		} else if(item->refine == 10 && itemdb_wlv(item->nameid) == 4){
- 	   				 sd->fame += 2500;// Success to refine to +10 a lv4 weapon = +2500 fame point
-		 		}
+				if(item->refine == 10 && item->card[0] == 0x00ff && item->card[2] == sd->char_id && ditem->wlv <= 3){ // Fame point system [DracoRPG]
+					switch(ditem->wlv){
+						case 1:
+							sd->status.fame += 1; // Success to refine to +10 a lv1 weapon you forged = +1 fame point
+							break;
+						case 2:
+							sd->status.fame += 25; // Success to refine to +10 a lv2 weapon you forged = +25 fame point
+							break;
+						case 3:
+							sd->status.fame += 1000; // Success to refine to +10 a lv3 weapon you forged = +1000 fame point
+							break;
+					}
+				} else if(item->refine == 10 && ditem->wlv == 4){
+					 sd->status.fame += 2500;// Success to refine to +10 a lv4 weapon = +2500 fame point
+				}
 			} else {
 				pc_delitem(sd, i, 1, 0);
 				item->refine = 0;
@@ -4983,7 +5001,7 @@ int pc_readparam(struct map_session_data *sd,int type)
 		val = sd->status.manner;
 		break;
 	case SP_FAME:
-		val= sd->fame;
+		val= sd->status.fame;
 		break;
 	}
 
@@ -5132,7 +5150,7 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 		sd->status.manner = val;
 		break;
 	case SP_FAME:
-		sd->fame = val;
+		sd->status.fame = val;
 		break;
 	}
 	clif_updatestatus(sd,type);
@@ -6544,6 +6562,18 @@ struct map_session_data *pc_get_child (struct map_session_data *sd)
 	return NULL;
 }
 
+/*==========================================
+ * Fame system
+ *------------------------------------------
+ */
+int pc_update_famelist(int tid,unsigned int tick,int id,int data)
+{
+	if (fame_update_tick == -1 ||
+		DIFF_TICK (tick, fame_update_tick) >= UPDATE_FAME_INTERVAL)
+		chrif_reqfamelist();
+	return 0;
+}
+
 //
 // Ž©‘R‰ñ•œ•¨
 //
@@ -7327,6 +7357,9 @@ int do_init_pc(void) {
 	add_timer_func_list(pc_spiritball_timer, "pc_spiritball_timer");
 	add_timer_interval((natural_heal_prev_tick = gettick() + NATURAL_HEAL_INTERVAL), pc_natural_heal, 0, 0, NATURAL_HEAL_INTERVAL);
 	add_timer(gettick() + autosave_interval, pc_autosave, 0, 0);
+
+	add_timer_func_list(pc_update_famelist, "pc_update_famelist");
+	add_timer_interval(gettick() + 1000, pc_update_famelist, 0, 0, CHECK_FAME_INTERVAL);
 
 #ifndef TXT_ONLY
 	pc_read_gm_account(0);

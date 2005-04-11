@@ -1,6 +1,18 @@
 
 Date	Added
 04/11	
+	~ Please upgrade your SQL char DB with /sql-files/upgrade_svn1491.sql
+	  to accomodate Fame saving!
+
+	* Added SQL DB compatibility testing upon SQL char server startup -- now it
+	  will not run if any important fields are missing [celest]
+	* Added sending list of characters with highest fame for TXT and SQL [celest]
+	* Added saving of fame for TXT and SQL [celest]
+	* Added saving of plagiarised skills for rogues [celest]
+	* Corrected heal and max hp bonus for Apple of Idun [celest]
+	* Added /tool/stackdump for Cygwin users to debug .stackdump files.
+	  Usage: ./stackdump [map/char/login] [sql]
+	* Removed set_termfunc usage in char and login servers [celest]
 	* Card fix - owl_duke_card should cast Imposito manus on self, not on
 	  enemy, wind_ghost_card should cast jupiter thunder level 10, not
 	  Sight level 10 [veider]
@@ -8,6 +20,7 @@ Date	Added
 	* Fixed crash in clif_guild_memberlist not checking sd->fd could be NULL [veider]
 	* Fixed Punk card giving Sight (10) level 5 instead of Quagmarine (92)
 	  level 5 [veider]
+
 04/10
         * Performance improvements (currently protected with -DTURBO) to
 	  common/socket.c for very large servers (500+ users) [MouseJstr]

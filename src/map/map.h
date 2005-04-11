@@ -311,7 +311,6 @@ struct map_session_data {
 	int random_attack_increase_add,random_attack_increase_per; // [Valaris]
 	int perfect_hiding; // [Valaris]
 	int classchange; // [Valaris]
-	int fame;
 	
 	int die_counter;
 	short doridori_counter;

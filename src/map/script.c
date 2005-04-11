@@ -3124,20 +3124,20 @@ int buildin_successrefitem(struct script_state *st)
 		clif_additem(sd,i,1,0);
 		pc_equipitem(sd,i,ep);
 		clif_misceffect(&sd->bl,3);
-		if(sd->status.inventory[i].refine == 10 && sd->status.inventory[i].card[0] == 0x00ff && sd->status.inventory[i].card[2] == sd->char_id && itemdb_wlv(sd->status.inventory[i].nameid) <= 3){ // Fame point system [DracoRPG]
-	 		switch(itemdb_wlv(sd->status.inventory[i].nameid)){
+		if(sd->status.inventory[i].refine == 10 && sd->status.inventory[i].card[0] == 0x00ff && sd->status.inventory[i].card[2] == sd->char_id && sd->inventory_data[i]->wlv <= 3){ // Fame point system [DracoRPG]
+	 		switch (sd->inventory_data[i]->wlv){
 	 	 		case 1:
-		 	  		 sd->fame += 1; // Success to refine to +10 a lv1 weapon you forged = +1 fame point
+		 	  		 sd->status.fame += 1; // Success to refine to +10 a lv1 weapon you forged = +1 fame point
 		 	  		 break;
 	 	   		case 2:
-					 sd->fame += 25; // Success to refine to +10 a lv2 weapon you forged = +25 fame point
+					 sd->status.fame += 25; // Success to refine to +10 a lv2 weapon you forged = +25 fame point
 					 break;
 				case 3:
-					 sd->fame += 1000; // Success to refine to +10 a lv3 weapon you forged = +1000 fame point
+					 sd->status.fame += 1000; // Success to refine to +10 a lv3 weapon you forged = +1000 fame point
 					 break;
 	 	 	 }
-		} else if(sd->status.inventory[i].refine == 10 && itemdb_wlv(sd->status.inventory[i].nameid) == 4){
-	 		sd->fame += 2500;// Success to refine to +10 a lv4 weapon = +2500 fame point
+		} else if(sd->status.inventory[i].refine == 10 && sd->inventory_data[i]->wlv == 4){
+	 		sd->status.fame += 2500;// Success to refine to +10 a lv4 weapon = +2500 fame point
 		}
 	}
 

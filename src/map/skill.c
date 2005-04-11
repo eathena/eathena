@@ -1515,11 +1515,13 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 				tsd->status.skill[tsd->cloneskill_id].id=0;
 				tsd->status.skill[tsd->cloneskill_id].flag=0;
 			}
-			tsd->cloneskill_id=skillid;
-			tsd->status.skill[skillid].id=skillid;
-			tsd->status.skill[skillid].lv=(pc_checkskill(tsd,RG_PLAGIARISM) > skill_get_max(skillid))?
-							skill_get_max(skillid):pc_checkskill(tsd,RG_PLAGIARISM);
-			tsd->status.skill[skillid].flag=13;//cloneskill flag
+			tsd->cloneskill_id = skillid;
+			tsd->status.skill[skillid].id = skillid;
+			tsd->status.skill[skillid].lv = skill_get_max(skillid);
+			if ((lv = pc_checkskill(tsd,RG_PLAGIARISM)) < tsd->status.skill[skillid].lv)
+				tsd->status.skill[skillid].lv = lv;
+			tsd->status.skill[skillid].flag = 13;//cloneskill flag
+			pc_setglobalreg(tsd, "CLONE_SKILL", tsd->cloneskill_id);
 			clif_skillinfoblock(tsd);
 		}
 	}
@@ -7963,7 +7965,7 @@ int skill_idun_heal (struct block_list *bl, va_list ap)
 	if (bl->id == sg->src_id)
 		return 0;
 
-	heal = 30 + sg->skill_lv * 5 + ((sg->val1) >> 16) * 5 + ((sg->val1) & 0xfff) / 2;
+	heal = 30 + sg->skill_lv * 5 + ((sg->val1) >> 16) * 5 + ((sg->val2) & 0xfff) / 2;
 	clif_skill_nodamage(&unit->bl, bl, AL_HEAL, heal, 1);
 	battle_heal(NULL, bl, heal, 0, 0);
 
@@ -8947,13 +8949,13 @@ int skill_produce_mix( struct map_session_data *sd,
 				if(nameid >= 545 && nameid <= 547) { // Fame point system [DracoRPG]
 		  			sd->potion_success_counter++;
 		  			if(sd->potion_success_counter == 3)
-						sd->fame++; // Success to prepare 3 Concentrated Potions in a row = +1 fame point
+						sd->status.fame++; // Success to prepare 3 Concentrated Potions in a row = +1 fame point
 		  			if(sd->potion_success_counter == 5)
-						sd->fame += 2; // Success to prepare 5 Concentrated Potions in a row = +3 fame point
+						sd->status.fame += 2; // Success to prepare 5 Concentrated Potions in a row = +3 fame point
 		  			if(sd->potion_success_counter == 7)
-						sd->fame += 7; // Success to prepare 7 Concentrated Potions in a row = +10 fame point
+						sd->status.fame += 7; // Success to prepare 7 Concentrated Potions in a row = +10 fame point
 		  			if(sd->potion_success_counter == 10) {
-						sd->fame += 40;	// Success to prepare 10 Concentrated Potions in a row = +50 fame point
+						sd->status.fame += 40;	// Success to prepare 10 Concentrated Potions in a row = +50 fame point
 						sd->potion_success_counter = 0;
 						}
 				}
@@ -8966,7 +8968,7 @@ int skill_produce_mix( struct map_session_data *sd,
 				clif_produceeffect(sd,0,nameid); /* 武器製造エフェクト */
 				clif_misceffect(&sd->bl,3);
 				if(equip && itemdb_wlv(nameid) >= 3 && ((ele? 1 : 0) + sc) >= 3) // Fame point system [DracoRPG]
-					sd->fame += 10; // Success to forge a lv3 weapon with 3 additional ingredients = +10 fame point
+					sd->status.fame += 10; // Success to forge a lv3 weapon with 3 additional ingredients = +10 fame point
 				break;
 		}
 

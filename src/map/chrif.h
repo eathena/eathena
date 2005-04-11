@@ -23,6 +23,7 @@ int chrif_changeemail(int id, const char *actual_email, const char *new_email);
 int chrif_char_ask_name(int id, char * character_name, short operation_type, int year, int month, int day, int hour, int minute, int second);
 int chrif_saveaccountreg2(struct map_session_data *sd);
 int chrif_reloadGMdb(void);
+int chrif_reqfamelist(void);
 int chrif_ragsrvinfo(int base_rate,int job_rate, int drop_rate);
 int chrif_char_offline(struct map_session_data *sd);
 int chrif_char_reset_offline(void);

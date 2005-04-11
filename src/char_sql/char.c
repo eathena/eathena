@@ -414,7 +414,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	    (p->shield != cp->shield) || (p->head_top != cp->head_top) ||
 	    (p->head_mid != cp->head_mid) || (p->head_bottom != cp->head_bottom) ||
 	    (p->partner_id != cp->partner_id) || (p->father != cp->father) ||
-	    (p->mother != cp->mother) || (p->child != cp->child)) {
+	    (p->mother != cp->mother) || (p->child != cp->child) || (p->fame != cp->fame)) {
 
 //}//---------------------------test count------------------------------
 	//check party_exist
@@ -456,7 +456,9 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		"`str`='%d',`agi`='%d',`vit`='%d',`int`='%d',`dex`='%d',`luk`='%d',"
 		"`option`='%d',`karma`='%d',`manner`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',"
 		"`hair`='%d',`hair_color`='%d',`clothes_color`='%d',`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
-		"`last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d',`partner_id`='%d', `father`='%d', `mother`='%d', `child`='%d' WHERE  `account_id`='%d' AND `char_id` = '%d'",
+		"`last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d',"
+		"`partner_id`='%d', `father`='%d', `mother`='%d', `child`='%d', `fame`='%d'"
+		"WHERE  `account_id`='%d' AND `char_id` = '%d'",
 		char_db, p->class_, p->base_level, p->job_level,
 		p->base_exp, p->job_exp, p->zeny,
 		p->max_hp, p->hp, p->max_sp, p->sp, p->status_point, p->skill_point,
@@ -466,7 +468,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
 		p->last_point.map, p->last_point.x, p->last_point.y,
 		p->save_point.map, p->save_point.x, p->save_point.y, p->partner_id, p->father, p->mother,
-		p->child, p->account_id, p->char_id
+		p->child, p->fame, p->account_id, p->char_id
 	);
 
 	if(mysql_query(&mysql_handle, tmp_sql)) {
@@ -799,7 +801,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 
 	sprintf(tmp_sql, "SELECT `option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`hair`,`hair_color`,"
 		"`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`,"
-		"`last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`, `partner_id`, `father`, `mother`, `child` FROM `%s` WHERE `char_id` = '%d'",char_db, char_id); // TBR
+		"`last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`, `partner_id`, `father`, `mother`, `child`, `fame`"
+		"FROM `%s` WHERE `char_id` = '%d'",char_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		printf("DB server Error (select `char2`)- %s\n", mysql_error(&mysql_handle));
 	}
@@ -818,6 +821,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 		strcpy(p->last_point.map,sql_row[14]); p->last_point.x = atoi(sql_row[15]);	p->last_point.y = atoi(sql_row[16]);
 		strcpy(p->save_point.map,sql_row[17]); p->save_point.x = atoi(sql_row[18]);	p->save_point.y = atoi(sql_row[19]);
 		p->partner_id = atoi(sql_row[20]); p->father = atoi(sql_row[21]); p->mother = atoi(sql_row[22]); p->child = atoi(sql_row[23]);
+		p->fame = atoi(sql_row[24]);
 
 		//free mysql result.
 		mysql_free_result(sql_res);
@@ -2291,6 +2295,37 @@ int parse_frommap(int fd) {
 			RFIFOSKIP(fd,10);
 			break;
 
+		// Request sending of fame list
+		case 0x2b1a:
+			if (RFIFOREST(fd) < 2)
+				return 0;
+		{
+			int len = 4, num = 0;
+			unsigned char buf[32000];
+
+			sprintf(tmp_sql, "SELECT `account_id`,`fame` FROM `%s` ORDER BY `fame` DESC", char_db);
+			if (mysql_query(&mysql_handle, tmp_sql)) {
+				printf("DB server Error (select fame)- %s\n", mysql_error(&mysql_handle));
+			}	
+			sql_res = mysql_store_result(&mysql_handle);
+			if (sql_res) {
+				WBUFW(buf,0) = 0x2b1b;
+				while((sql_row = mysql_fetch_row(sql_res))) {
+					WBUFL(buf, len) = atoi(sql_row[0]);
+					WBUFL(buf, len+4) = atoi(sql_row[1]);
+					len += 8;
+					if (++num == 10)
+						break;
+				}
+				WBUFW(buf, 2) = len;
+				mapif_sendall(buf, len);
+			}
+
+   			mysql_free_result(sql_res);    
+			RFIFOSKIP(fd,2);
+			break;
+		}
+
 		default:
 			// inter server - packet
 			{
@@ -3415,7 +3450,6 @@ int do_init(int argc, char **argv){
 	set_defaultparse(parse_char);
 
 	printf("set terminate function -> do_final().....\n");
-	set_termfunc(do_final);
 
         if ((naddr_ != 0) && (login_ip_set_ == 0 || char_ip_set_ == 0)) {
           // The char server should know what IP address it is running on

@@ -205,8 +205,14 @@ int pc_setinvincibletimer(struct map_session_data *sd,int);
 int pc_delinvincibletimer(struct map_session_data *sd);
 int pc_addspiritball(struct map_session_data *sd,int,int);
 int pc_delspiritball(struct map_session_data *sd,int,int);
+int pc_eventtimer(int tid,unsigned int tick,int id,int data); // for npc_dequeue
 
-int pc_eventtimer(int tid,unsigned int tick,int id,int data); // for npc_dequeue 
+struct Fame_list {
+	int id;
+	int fame;
+};
+extern struct Fame_list fame_list[10];
+extern unsigned long fame_update_tick;
 
 int pc_readdb(void);
 int do_init_pc(void);

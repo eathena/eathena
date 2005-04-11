@@ -8,12 +8,12 @@
 
 #include "char.h"
 #include "../common/strlib.h"
+#include "../common/showmsg.h"
 #include "inter.h"
 #include "int_party.h"
 #include "int_guild.h"
 #include "int_storage.h"
 #include "int_pet.h"
-#include "lock.h"
 
 #define WISDATA_TTL		(60*1000)	// Wisデータの生存時間(60秒)
 #define WISDELLIST_MAX	256			// Wisデータ削除リストの要素数
@@ -83,6 +83,8 @@ struct WisData {
 };
 static struct dbt * wis_db = NULL;
 static int wis_dellist[WISDELLIST_MAX], wis_delnum;
+
+int inter_sql_test (void);
 
 //--------------------------------------------------------
 // Save account_reg to sql (type=2)
@@ -268,7 +270,7 @@ int inter_init(const char *file)
 			printf("%s\n",mysql_error(&mysql_handle));
 			exit(1);
 	}
-	else {
+	else if (inter_sql_test()) {
 		printf ("Connect Success! (Character Server)\n");
 	}
 
@@ -294,6 +296,41 @@ int inter_init(const char *file)
 	//i=add_timer_interval(gettick()+autosave_interval,inter_save_timer,0,0,autosave_interval);
 
 	return 0;
+}
+
+int inter_sql_test (void)
+{
+	const char fields[][24] = {
+		"father",	// version 1363
+		"fame",		// version 1491
+	};	
+	char buf[1024] = "";
+	int i;
+
+	sprintf(tmp_sql, "EXPLAIN `%s`",char_db);
+	if (mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL ("DB server Error (explain)- %s\n", mysql_error(&mysql_handle));
+	}
+	sql_res = mysql_store_result(&mysql_handle);
+	// store DB fields
+	if (sql_res) {
+		while((sql_row = mysql_fetch_row(sql_res))) {
+			strcat (buf, sql_row[0]);
+			strcat (buf, " ");
+		}
+	}
+
+	// check DB strings
+	for (i = 0; i < (int)(sizeof(fields) / sizeof(fields[0])); i++) {
+		if(!strstr(buf, fields[i])) {
+			ShowSQL ("Field `%s` not be found in `%s`. Consider updating your database!\n", fields[i], char_db);
+			exit(1);
+		}
+	}
+
+	mysql_free_result(sql_res);
+
+	return 1;
 }
 
 // finalize
