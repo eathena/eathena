@@ -1,7 +1,7 @@
 
 Date	Added
 04/11	
-	~ Please upgrade your SQL char DB with /sql-files/upgrade_svn1491.sql
+	~ Please upgrade your SQL char DB with /sql-files/upgrade_svn1499.sql
 	  to accomodate Fame saving!
 
 	* Added SQL DB compatibility testing upon SQL char server startup -- now it
