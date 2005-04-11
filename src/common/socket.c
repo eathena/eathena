@@ -535,7 +535,10 @@ int do_sendrecv(int next)
 {
 	fd_set rfd,wfd;
 	struct timeval timeout;
-	int ret,i,j;
+	int ret,i;
+#ifdef TURBO
+	int j;
+#endif
 
 	tick_ = time(0);
 
