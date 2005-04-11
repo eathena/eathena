@@ -1863,7 +1863,6 @@ int do_init(int argc,char **argv){
 	printf ("Running mmo_auth_sqldb_init()\n");
 	mmo_auth_sqldb_init();
 	printf ("finished mmo_auth_sqldb_init()\n");
-	set_termfunc(do_final);
 
 	//set default parser as parse_login function
 	set_defaultparse(parse_login);

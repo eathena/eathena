@@ -322,9 +322,9 @@ int main(int argc,char **argv)
 #endif
 	}
 
+	do_final();
 	log_uptime();
 	pid_delete();
-	do_final();
 	do_final_socket();
 	do_final_malloc();
 

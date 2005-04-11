@@ -1660,207 +1660,199 @@ int npc_convertlabel_db(void *key,void *data,va_list ap)
  */
 static int npc_parse_script(char *w1,char *w2,char *w3,char *w4,char *first_line,FILE *fp,int *lines)
 {
-	int x,y,dir=0,m,xs=0,ys=0,class_=0;	// [Valaris] thanks to fov
+	int x, y, dir = 0, m, xs = 0, ys = 0, class_ = 0;	// [Valaris] thanks to fov
 	char mapname[24];
-	unsigned char *srcbuf=NULL,*script;
-	int srcsize=65536;
-	int startline=0;
+	unsigned char *srcbuf = NULL, *script;
+	int srcsize = 65536;
+	int startline = 0;
 	unsigned char line[1024];
 	int i;
 	struct npc_data *nd;
-	int evflag=0;
+	int evflag = 0;
 	struct dbt *label_db;
 	char *p;
-	struct npc_label_list *label_dup=NULL;
-	int label_dupnum=0;
-	int src_id=0;
+	struct npc_label_list *label_dup = NULL;
+	int label_dupnum = 0;
+	int src_id = 0;
 
-	if(strcmp(w1,"-")==0){
-		x=0;y=0;m=-1;
-	}else{
-	// 引数の個数チェック
-	if (sscanf(w1,"%[^,],%d,%d,%d",mapname,&x,&y,&dir) != 4 ||
-		   ( strcmp(w2,"script")==0 && strchr(w4,',')==NULL) ) {
-		printf("bad script line : %s\n",w3);
-		return 1;
-	}
-	m = map_mapname2mapid(mapname);
-	}
-
-	if(strcmp(w2,"script")==0){
-		// スクリプトの解析
-		srcbuf=(unsigned char *)aCallocA(srcsize,sizeof(char));
-	if (strchr(first_line,'{')) {
-		strcpy((char *) srcbuf,strchr(first_line,'{'));
-		startline=*lines;
-	} else
-		srcbuf[0]=0;
-	while(1) {
-		for(i=strlen((const char *) srcbuf)-1;i>=0 && isspace(srcbuf[i]);i--);
-		if (i>=0 && srcbuf[i]=='}')
-			break;
-		fgets((char *) line,1020,fp);
-		(*lines)++;
-		if (feof(fp))
-			break;
-		if (strlen((char *) srcbuf)+strlen((char *) line)+1>=srcsize) {
-			srcsize += 65536;
-				srcbuf = (unsigned char *)aRealloc(srcbuf, srcsize);
-			memset(srcbuf + srcsize - 65536, '\0', 65536);
+	if (strcmp(w1, "-") == 0) {
+		x = 0; y = 0; m = -1;
+	} else {
+		// 引数の個数チェック
+		if (sscanf(w1, "%[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
+			(strcmp(w2, "script") == 0 && strchr(w4,',') == NULL)) {
+			printf("bad script line : %s\n", w3);
+			return 1;
 		}
-		if (srcbuf[0]!='{') {
-			if (strchr((char *) line,'{')) {
-				strcpy((char *) srcbuf,strchr((const char *) line,'{'));
-				startline=*lines;
-			}
+		m = map_mapname2mapid(mapname);
+	}
+
+	if (strcmp(w2, "script") == 0){
+		// スクリプトの解析
+		srcbuf = (unsigned char *)aCallocA(srcsize, sizeof(char));
+		if (strchr(first_line, '{')) {
+			strcpy((char *)srcbuf, strchr(first_line, '{'));
+			startline = *lines;
 		} else
-			strcat((char *) srcbuf,(const char *) line);
-	}
-	script=(unsigned char *) parse_script((unsigned char *) srcbuf,startline);
-	if (script==NULL) {
-		// script parse error?
-		aFree(srcbuf);
-		return 1;
-	}
-
-	}else{
+			srcbuf[0] = 0;
+		while (1) {
+			for (i = strlen((const char *)srcbuf) - 1; i >= 0 && isspace(srcbuf[i]); i--)
+				;
+			if (i >= 0 && srcbuf[i] == '}')
+				break;
+			fgets ((char *)line, 1020, fp);
+			(*lines)++;
+			if (feof(fp))
+				break;
+			if (strlen((char *)srcbuf) + strlen((char *)line) + 1 >= srcsize) {
+				srcsize += 65536;
+				srcbuf = (unsigned char *)aRealloc(srcbuf, srcsize);
+				memset(srcbuf + srcsize - 65536, '\0', 65536);
+			}
+			if (srcbuf[0] != '{') {
+				if (strchr((char *) line,'{')) {
+					strcpy((char *) srcbuf, strchr((const char *) line, '{'));
+					startline = *lines;
+				}
+			} else
+				strcat((char *) srcbuf, (const char *) line);
+		}
+		script = (unsigned char *) parse_script((unsigned char *) srcbuf, startline);
+		if (script == NULL) {
+			// script parse error?
+			aFree(srcbuf);
+			return 1;
+		}
+	} else {
 		// duplicateする
-
 		char srcname[128];
 		struct npc_data *nd2;
-		if( sscanf(w2,"duplicate(%[^)])",srcname)!=1 ){
-			printf("bad duplicate name (in %s)! : %s",current_file, w2);
+		if (sscanf(w2, "duplicate(%[^)])", srcname) != 1) {
+			printf("bad duplicate name (in %s)! : %s", current_file, w2);
 			return 0;
 		}
-		if( (nd2=npc_name2id(srcname))==NULL ){
+		if ((nd2 = npc_name2id(srcname)) == NULL) {
 			printf("bad duplicate name (in %s)! (not exist) : %s\n", current_file, srcname);
 			return 0;
 		}
-		script=(unsigned char *)nd2->u.scr.script;
-		label_dup=nd2->u.scr.label_list;
-		label_dupnum=nd2->u.scr.label_list_num;
-		src_id=nd2->bl.id;
+		script = (unsigned char *)nd2->u.scr.script;
+		label_dup = nd2->u.scr.label_list;
+		label_dupnum = nd2->u.scr.label_list_num;
+		src_id = nd2->bl.id;
 
 	}// end of スクリプト解析
 
-	nd=(struct npc_data *)aCalloc(1,sizeof(struct npc_data));
+	nd = (struct npc_data *)aCalloc(1, sizeof(struct npc_data));
 
-	if(m==-1){
+	if (m == -1){
 		// スクリプトコピー用のダミーNPC
-
-	}else if( sscanf(w4,"%d,%d,%d",&class_,&xs,&ys)==3) {
+	} else if (sscanf(w4, "%d,%d,%d", &class_, &xs, &ys) == 3) {
 		// 接触型NPC
-		int i,j;
+		int i, j;
 
-		if (xs>=0)xs=xs*2+1;
-		if (ys>=0)ys=ys*2+1;
+		if (xs >= 0) xs = xs * 2 + 1;
+		if (ys >= 0) ys = ys * 2 + 1;
 
-		if (class_>=0) {
-
-			for(i=0;i<ys;i++) {
-				for(j=0;j<xs;j++) {
-					if(map_getcell(m,x-xs/2+j,y-ys/2+i,CELL_CHKNOPASS))
+		if (class_ >= 0) {
+			for (i = 0; i < ys; i++) {
+				for (j = 0; j < xs; j++) {
+					if (map_getcell(m, x - xs/2 + j, y - ys/2 + i, CELL_CHKNOPASS))
 						continue;
-					map_setcell(m,x-xs/2+j,y-ys/2+i,CELL_SETNPC);
+					map_setcell(m, x - xs/2 + j, y - ys/2 + i, CELL_SETNPC);
 				}
 			}
 		}
-
-		nd->u.scr.xs=xs;
-		nd->u.scr.ys=ys;
-	} else {	// クリック型NPC
-		class_=atoi(w4);
-		nd->u.scr.xs=0;
-		nd->u.scr.ys=0;
+		nd->u.scr.xs = xs;
+		nd->u.scr.ys = ys;
+	} else {
+		// クリック型NPC
+		class_ = atoi(w4);
+		nd->u.scr.xs = 0;
+		nd->u.scr.ys = 0;
 	}
 
-	if (class_<0 && m>=0) {	// イベント型NPC
-		evflag=1;
+	if (class_ < 0 && m >= 0) {	// イベント型NPC
+		evflag = 1;
 	}
 
-	while((p=strchr(w3,':'))) {
-		if (p[1]==':') break;
+	while ((p = strchr(w3,':'))) {
+		if (p[1] == ':') break;
 	}
 	if (p) {
-		*p=0;
-		memcpy(nd->name,w3,24);
-		memcpy(nd->exname,p+2,24);
-	}else{
-		memcpy(nd->name,w3,24);
-		memcpy(nd->exname,w3,24);
+		*p = 0;
+		memcpy(nd->name, w3, 24);
+		memcpy(nd->exname, p+2, 24);
+	} else {
+		memcpy(nd->name, w3, 24);
+		memcpy(nd->exname, w3, 24);
 	}
 
 	nd->bl.prev = nd->bl.next = NULL;
 	nd->bl.m = m;
 	nd->bl.x = x;
 	nd->bl.y = y;
-	nd->bl.id=npc_get_new_npc_id();
+	nd->bl.id = npc_get_new_npc_id();
 	nd->dir = dir;
-	nd->flag=0;
-	nd->class_=class_;
-	nd->speed=200;
-	nd->u.scr.script=(char *) script;
-	nd->u.scr.src_id=src_id;
-	nd->chat_id=0;
+	nd->flag = 0;
+	nd->class_ = class_;
+	nd->speed = 200;
+	nd->u.scr.script = (char *) script;
+	nd->u.scr.src_id = src_id;
+	nd->chat_id = 0;
 	nd->option = 0;
 	nd->opt1 = 0;
 	nd->opt2 = 0;
 	nd->opt3 = 0;
-	nd->walktimer=-1;
+	nd->walktimer = -1;
 
 	//printf("script npc %s %d %d read done\n",mapname,nd->bl.id,nd->class_);
 	npc_script++;
-	nd->bl.type=BL_NPC;
-	nd->bl.subtype=SCRIPT;
-	if(m>=0){
-	nd->n=map_addnpc(m,nd);
-	map_addblock(&nd->bl);
+	nd->bl.type = BL_NPC;
+	nd->bl.subtype = SCRIPT;
+	if (m >= 0) {
+		nd->n = map_addnpc(m, nd);
+		map_addblock(&nd->bl);
 
-	// clear event timers upon initialise
-	memset(nd->eventqueue, 0, sizeof(nd->eventqueue));
-	for(i = 0; i < MAX_EVENTTIMER; i++)
-		nd->eventtimer[i] = -1;
+		// clear event timers upon initialise
+		memset (nd->eventqueue, 0, sizeof(nd->eventqueue));
+		for (i = 0; i < MAX_EVENTTIMER; i++)
+			nd->eventtimer[i] = -1;
 
-	if (evflag) {	// イベント型
-			struct event_data *ev=(struct event_data *)aCalloc(1,sizeof(struct event_data));
-			ev->nd=nd;
-			ev->pos=0;
-			strdb_insert(ev_db,nd->exname,ev);
-		}else
-		clif_spawnnpc(nd);
+		if (evflag) {	// イベント型
+			struct event_data *ev = (struct event_data *)aCalloc(1, sizeof(struct event_data));
+			ev->nd = nd;
+			ev->pos = 0;
+			strdb_insert(ev_db, nd->exname, ev);
+		} else
+			clif_spawnnpc(nd);
 	}
-	strdb_insert(npcname_db,nd->exname,nd);
-
+	strdb_insert(npcname_db, nd->exname, nd);
 
 	//-----------------------------------------
 	// ラベルデータの準備
-	if(srcbuf){
+	if (srcbuf){
 		// script本体がある場合の処理
-
 		// ラベルデータのコンバート
-	label_db=script_get_label_db();
-		strdb_foreach(label_db,npc_convertlabel_db,nd);
+		label_db = script_get_label_db();
+		strdb_foreach(label_db, npc_convertlabel_db, nd);
 
 		// もう使わないのでバッファ解放
 		aFree(srcbuf);
-
-	}else{
+	} else {
 		// duplicate
-
-//		nd->u.scr.label_list=aMallocA(sizeof(struct npc_label_list)*label_dupnum);
+//		nd->u.scr.label_list = aMallocA(sizeof(struct npc_label_list)*label_dupnum);
 //		memcpy(nd->u.scr.label_list,label_dup,sizeof(struct npc_label_list)*label_dupnum);
-
-		nd->u.scr.label_list=label_dup;	// ラベルデータ共有
-		nd->u.scr.label_list_num=label_dupnum;
+		nd->u.scr.label_list = label_dup;	// ラベルデータ共有
+		nd->u.scr.label_list_num = label_dupnum;
 	}
 
 	//-----------------------------------------
 	// イベント用ラベルデータのエクスポート
-	for(i=0;i<nd->u.scr.label_list_num;i++){
-		char *lname=nd->u.scr.label_list[i].name;
-		int pos=nd->u.scr.label_list[i].pos;
+	for (i = 0; i < nd->u.scr.label_list_num; i++){
+		char *lname = nd->u.scr.label_list[i].name;
+		int pos = nd->u.scr.label_list[i].pos;
 
-		if ((lname[0]=='O' || lname[0]=='o')&&(lname[1]=='N' || lname[1]=='n')) {
+		if ((lname[0] == 'O' || lname[0] == 'o') && (lname[1] == 'N' || lname[1] == 'n')) {
 /*
 I rearrange the code so this is just for commenting; remove it if you have enough if it [Shinomori]
 			struct event_data *ev;
@@ -1931,33 +1923,32 @@ wouldn't it be easier just not to insert the new duplicate event, it is a duplic
 
 	//-----------------------------------------
 	// ラベルデータからタイマーイベント取り込み
-	for(i=0;i<nd->u.scr.label_list_num;i++){
-		int t=0,k=0;
-		char *lname=nd->u.scr.label_list[i].name;
-		int pos=nd->u.scr.label_list[i].pos;
-		if(sscanf(lname,"OnTimer%d%n",&t,&k)==1 && lname[k]=='\0') {
+	for (i = 0; i < nd->u.scr.label_list_num; i++){
+		int t = 0, k = 0;
+		char *lname = nd->u.scr.label_list[i].name;
+		int pos = nd->u.scr.label_list[i].pos;
+		if (sscanf(lname, "OnTimer%d%n", &t, &k) == 1 && lname[k] == '\0') {
 			// タイマーイベント
-			struct npc_timerevent_list *te=nd->u.scr.timer_event;
-			int j,k=nd->u.scr.timeramount;
-			if(te==NULL)
-				te=(struct npc_timerevent_list *)aCallocA(1,sizeof(struct npc_timerevent_list));
+			struct npc_timerevent_list *te = nd->u.scr.timer_event;
+			int j, k = nd->u.scr.timeramount;
+			if (te == NULL)
+				te = (struct npc_timerevent_list *)aCallocA(1,sizeof(struct npc_timerevent_list));
 			else
-				te=(struct npc_timerevent_list *)aRealloc( te, sizeof(struct npc_timerevent_list) * (k+1) );
-			for(j=0;j<k;j++){
-				if(te[j].timer>t){
-					memmove(te+j+1,te+j,sizeof(struct npc_timerevent_list)*(k-j));
+				te = (struct npc_timerevent_list *)aRealloc( te, sizeof(struct npc_timerevent_list) * (k+1) );
+			for (j = 0; j < k; j++){
+				if (te[j].timer > t){
+					memmove(te+j+1, te+j, sizeof(struct npc_timerevent_list)*(k-j));
 					break;
 				}
 			}
-			te[j].timer=t;
-			te[j].pos=pos;
-			nd->u.scr.timer_event=te;
-			nd->u.scr.timeramount=k+1;
+			te[j].timer = t;
+			te[j].pos = pos;
+			nd->u.scr.timer_event = te;
+			nd->u.scr.timeramount = k+1;
 		}
 	}
-	nd->u.scr.nexttimer=-1;
-	nd->u.scr.timerid=-1;
-
+	nd->u.scr.nexttimer = -1;
+	nd->u.scr.timerid = -1;
 
 	return 0;
 }
@@ -2406,9 +2397,9 @@ static void npc_data_final(struct npc_data *nd) {
 
 static int npcname_db_final(void *key,void *data,va_list ap)
 {
-    //    struct npc_data *nd = (struct npc_data *) data;
-
-	//	npc_data_final(nd);
+	struct npc_data *nd = (struct npc_data *) data;
+	if (nd && nd->bl.prev != NULL)
+		npc_data_final(nd);
 
 	return 0;
 }

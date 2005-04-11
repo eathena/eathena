@@ -4356,7 +4356,6 @@ int do_init(int argc, char **argv) {
 
 	srand(time(NULL));
 
-	set_termfunc(do_final);
 	set_defaultparse(parse_fromlogin);
 
 	if (defaultlanguage == 'F') {

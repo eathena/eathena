@@ -3972,7 +3972,6 @@ int do_init(int argc, char **argv) {
 	GM_max = 0;
 	mmo_auth_init();
 	read_gm_account();
-//	set_termfunc(mmo_auth_sync);
 	set_defaultparse(parse_login);
 	// Online user database init
     online_db = numdb_init();
