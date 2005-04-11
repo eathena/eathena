@@ -20,6 +20,6 @@ ein_dun01.gat,0,0,0,0	monster	Waste Stove	1617,2,60000,60000,0
 
 //(ein_dun02.gat)
 ein_dun02.gat,0,0,0,0	monster	Mineral	1614,30,30000,30000,0
-ein_dun02.gat,0,0,0,0	monster	Obsidean	1615,40,30000,30000,0
+ein_dun02.gat,0,0,0,0	monster	Obsidian	1615,40,30000,30000,0
 ein_dun02.gat,0,0,0,0	monster	Waste Stove	1617,4,60000,60000,0
 ein_dun02.gat,0,0,0,0	monster	Venomus	1621,40,10000,10000,0

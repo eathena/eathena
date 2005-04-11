@@ -777,7 +777,7 @@ Only place specification skill is good for a round system. friend is good only o
 1179,ƒNƒ[ƒLƒ“ƒO—ƒEƒBƒXƒp[,attack,135,1,100,1000,10000,yes,self,always,0,,,,,,
 1179,”O‘®«UŒ‚—ƒEƒBƒXƒp[,attack,191,5,200,0,7500,yes,target,always,0,,,,,,
 1179,ƒGƒ‚[ƒVƒ‡ƒ“—ƒEƒBƒXƒp[,chase,197,1,15,0,10000,yes,self,always,0,,,,,,
-1179,ƒNƒ[ƒLƒ“ƒO—ƒEƒBƒXƒp[,chase,135,1,100,1500,10000,yes,self,always,0,,,,,,
+1179,ƒNƒ[ƒLƒ“ƒO—ƒEƒBƒXƒp[,chase,135,1,10000,1500,10000,yes,self,always,0,,,,,,
 1180,‰Î‘®«UŒ‚—‹ã”öŒÏ,attack,186,3,200,0,7500,yes,target,always,0,,,,,,
 1180,ƒ‰ƒ“ƒ_ƒ€‘®«•Ï‰»—‹ã”öŒÏ,attack,161,1,1000,1000,30000,no,self,myhpltmaxrate,80,,,,,,
 1180,ƒjƒ…[ƒ}—‹ã”öŒÏ,attack,25,1,1000,0,20000,yes,self,longrangeattacked,,,,,,,
@@ -1986,19 +1986,74 @@ Only place specification skill is good for a round system. friend is good only o
 1499,ƒ}ƒOƒiƒ€ƒuƒŒƒCƒN—ƒE[ƒ^ƒ“ƒtƒ@ƒCƒ^[,attack,7,5,1000,1500,10000,no,target,attackpcge,2,,,,,,
 1511,æ‚èŠª‚«¢Š«—ƒAƒ‚ƒ“ƒ‰[,any,196,10,3000,5000,2000,no,around1,slavele,0,1132,1194,,,,
 
-// ** eAthena Developers ** //
-// Valaris
-//MOB_ID, Skill name, STATE, SKILL_ID, SKILL_LV, the rate of 10,000th of a minute, cast time, delay, the disturbance possibility of, Target, when to cast, a condition value, Mob Id, a value 2, a value 3, a value 4, 5/of values, a dummy character sequence: Or that it is good to put in an intelligible 
-1900,Summon Worshippers,attack,196,4,500,3000,3600000,no,self,slavele,0,1901,,,,,
-1900,Sonic Blow,attack,136,10,300,0,0,no,target,always,0,,,,,,
-1900,Venom Dust,attack,140,10,400,0,0,no,target,always,0,,,,,,
-1900,Envenom,attack,52,10,500,0,10000,no,target,always,0,,,,,,
-1900,Grimtooth,chase,137,5,2500,0,0,no,target,always,0,,,,,,
-// Valaris's Worshipper
-1901,Envenom,attack,52,10,500,0,10000,no,target,always,0,,,,,,
-// MC Cameri
+//Deviling (call slaves: )
+1582,_'_"_X_^_[_¢_<_-_~_X_g___X,attack,196,1,1000,3000,3600000,no,self,myhpltmaxrate,5,1242,1242,1242,1109,,
+1582,_æ'è_ª'<_¢_<_-_~_X_g___X,attack,196,1,1000,3000,3600000,no,self,slavele,0,1242,1242,1242,1109,,
 
+//Tao Gunka - call slaves
+1583,Call Slave,attack,196,5,1000,3000,36000,no,self,myhpltmaxrate,5,1584,,,,,
+1583,Call Slaves if they are dead,chase,196,5,10000,3000,36000,no,self,slavele,0,1584,,,,,
+
+//Einbroch
+//Metaling (copy of Poring)
+1613,’§”­—ƒ|ƒŠƒ“,idle,194,1,2,0,0,yes,self,always,0,1,,,,,
+1613,…‘®«UŒ‚—ƒ|ƒŠƒ“,attack,184,1,100,0,15000,yes,target,always,0,,,,,,
+1613,ƒGƒ‚[ƒVƒ‡ƒ“—ƒ|ƒŠƒ“,loot,197,1,15,0,10000,yes,self,always,0,2,,,,,
+
+//Mineral - Hiding/Reflect Shield
+1614,ƒnƒCƒfƒBƒ“ƒO—ƒXƒ‚[ƒL[,attack,51,1,300,1000,20000,yes,self,myhpltmaxrate,30,,,,,,
+1614,ƒnƒCƒfƒBƒ“ƒO—ƒXƒ‚[ƒL[,chase,51,1,300,1000,20000,yes,self,myhpltmaxrate,30,,,,,,
+1614,Î‰»UŒ‚—ƒCƒrƒ‹ƒhƒ‹ƒCƒh,attack,252,5,100,1000,40000,yes,target,always,0,,,,,,
+
+//Obsidian - Shield Charge
+1615,ƒoƒbƒVƒ…—ƒGƒ“ƒWƒFƒŠƒ“ƒO,attack,5,10,250,1100,10000,no,target,always,0,,,,,,
+
+//Waste Stove - Stun/Throwing Stone
+1617,ƒXƒ^ƒ“UŒ‚—ƒrƒbƒNƒtƒbƒg,attack,179,4,300,1000,10000,no,target,myhpltmaxrate,30,,,,,,
+1617,ƒXƒ^ƒ“UŒ‚—ƒrƒbƒNƒtƒbƒg,attack,179,4,100,1000,10000,no,target,always,0,,,,,,
+1617,Î“Š‚°—ƒˆ[ƒˆ[,chase,152,1,300,1000,10000,yes,target,myhpltmaxrate,30,,,,,,
+1617,Î“Š‚°—ƒˆ[ƒˆ[,chase,152,1,100,1000,10000,yes,target,always,0,,,,,,
+
+//Mini-Boss Ungoliatnt, Petrify/Assumptio?
+1618,Call Slave Porcellio Scabber,attack,196,4,1000,3000,36000,no,self,myhpltmaxrate,5,1625,,,,,
+1618,Call Slaves if they are dead,chase,196,4,10000,3000,36000,no,self,slavele,0,1625,,,,,
+1618,Î‰»UŒ‚—ƒCƒrƒ‹ƒhƒ‹ƒCƒh,attack,180,5,100,1000,40000,yes,target,always,0,,,,,,
+1618,Î‰»UŒ‚—ƒCƒrƒ‹ƒhƒ‹ƒCƒh,attack,361,5,100,1000,40000,yes,target,always,0,,,,,,
+
+//Noxious - Self-Explode
+1620,self Destroy,idle,173,1,160,0,0,no,self,myhpltmaxrate,90,,,,,,
+1620,self Destroy,idle,173,1,1000,0,0,no,self,skillused,173,,,,,,
+
+//Venomous - Self-Explode(maybe)
+1621,self Destroy,idle,173,1,160,0,0,no,self,myhpltmaxrate,90,,,,,,
+1621,self Destroy,idle,173,1,1000,0,0,no,self,skillused,173,,,,,,
+
+//Teddy Bear - Bash/Critical Attack
+1622,ƒoƒbƒVƒ…—ƒIƒVƒŠƒX,attack,5,10,300,0,15000,yes,target,always,0,,,,,,
+1622,–hŒä–³‹UŒ‚—ƒz[ƒlƒbƒg,attack,170,1,100,0,30000,no,target,always,0,,,,,,
+
+//MVP RSX 0806
+1623,Call Slave Waste Stove,attack,196,2,1000,3000,36000,no,self,myhpltmaxrate,5,1624,,,,,
+1623,Call Slaves if they are dead,chase,196,2,10000,3000,36000,no,self,slavele,0,1624,,,,,
+
+//Waste Stove (slave) - Stun/Throwing Stone
+1624,ƒXƒ^ƒ“UŒ‚—ƒrƒbƒNƒtƒbƒg,attack,179,4,300,1000,10000,no,target,myhpltmaxrate,30,,,,,,
+1624,ƒXƒ^ƒ“UŒ‚—ƒrƒbƒNƒtƒbƒg,attack,179,4,100,1000,10000,no,target,always,0,,,,,,
+1624,Î“Š‚°—ƒˆ[ƒˆ[,chase,152,1,300,1000,10000,yes,target,myhpltmaxrate,30,,,,,,
+1624,Î“Š‚°—ƒˆ[ƒˆ[,chase,152,1,100,1000,10000,yes,target,always,0,,,,,,
 
 // Easter Bunny
 1921,Summon Minions,attack,196,5,1000,3000,10000,no,self,slavele,2,1063,,,,,
-1921,Lay Easter Eggs,idle,209,5,500,2000,40000,no,self,always,2,1920,,,,,
+1921,Lay Easter Eggs,idle,196,5,500,2000,40000,no,self,always,2,1920,,,,,
+
+// ** eAthena Developers ** // Custom stuff:
+// Valaris
+//MOB_ID, Skill name, STATE, SKILL_ID, SKILL_LV, the rate of 10,000th of a minute, cast time, delay, the disturbance possibility of, Target, when to cast, a condition value, Mob Id, a value 2, a value 3, a value 4, 5/of values, a dummy character sequence: Or that it is good to put in an intelligible 
+//1900,Summon Worshippers,attack,196,4,500,3000,3600000,no,self,slavele,0,1901,,,,,
+//1900,Sonic Blow,attack,136,10,300,0,0,no,target,always,0,,,,,,
+//1900,Venom Dust,attack,140,10,400,0,0,no,target,always,0,,,,,,
+/1900,Envenom,attack,52,10,500,0,10000,no,target,always,0,,,,,,
+//1900,Grimtooth,chase,137,5,2500,0,0,no,target,always,0,,,,,,
+// Valaris's Worshipper
+//1901,Envenom,attack,52,10,500,0,10000,no,target,always,0,,,,,,
+// MC Cameri

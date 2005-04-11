@@ -9,6 +9,10 @@
 	Skill databases == celest working on them i believe.
 
 04/12
+	* Added monsters skills and slaves to all Einbrook monsters, thx4info2 Landarma [Lupus]
+	* fixed Deviling and Lou-Yang monsters drops, thx2 MasterOfMuppets [Lupus]
+	* Added missing summon slaves to Deviling, Tao Gunka (correct # and type) [Lupus]
+	* Made Deviling, Tao Gunka aggressive (st - according to most DBs, 2nd - it's MVP)
 	* Corrected 1 wrong entry in the create arrow DB, thanks to Komurka
 04/08
 	* Corrected wrong entries in the create arrow DB, thanks to Komurka
