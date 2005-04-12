@@ -590,6 +590,8 @@ int pc_break_equip(struct map_session_data *sd, unsigned short where)
 		return 0;
 	if(sd->unbreakable >= rand()%100)
 		return 0;
+	if(where == EQP_WEAPON && sd->status.weapon && (sd->status.weapon == 6 || sd->status.weapon == 7 || sd->status.weapon == 8)) // Axes and Maces can't be broken [DracoRPG]
+		return 0;
 	switch (where) {
 		case EQP_WEAPON:
 			sc = SC_CP_WEAPON;
@@ -2776,7 +2778,7 @@ int pc_item_refine(struct map_session_data *sd,int idx)
 				if (ep)
 					pc_equipitem(sd,idx,ep);
 				clif_misceffect(&sd->bl,3);
-				if(item->refine == 10 && item->card[0] == 0x00ff && item->card[2] == sd->char_id && ditem->wlv <= 3){ // Fame point system [DracoRPG]
+				if(item->refine == 10 && item->card[0] == 0x00ff && item->card[2] == sd->char_id){ // Fame point system [DracoRPG]
 					switch(ditem->wlv){
 						case 1:
 							sd->status.fame += 1; // Success to refine to +10 a lv1 weapon you forged = +1 fame point
@@ -2788,8 +2790,6 @@ int pc_item_refine(struct map_session_data *sd,int idx)
 							sd->status.fame += 1000; // Success to refine to +10 a lv3 weapon you forged = +1000 fame point
 							break;
 					}
-				} else if(item->refine == 10 && ditem->wlv == 4){
-					 sd->status.fame += 2500;// Success to refine to +10 a lv4 weapon = +2500 fame point
 				}
 			} else {
 				pc_delitem(sd, i, 1, 0);

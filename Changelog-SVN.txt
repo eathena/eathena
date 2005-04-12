@@ -1,6 +1,10 @@
 
 Date	Added
 04/12
+	*  Fixes and updates [DracoRPG]
+	  - Fixed Cart Boost speed bonus being not removed when the skill ended (missing calc_flag)
+	  - Lv4 weapons don't give fame point anymore when upgraded to +10
+	  - Axes and Maces can't be broken
 	* Added checks in event timers from crashing when freeing memory [celest]
 	* Implemented Acid Demonstration, fixed Double Casting [celest]
 	  (10 of 14 skills roughly done)

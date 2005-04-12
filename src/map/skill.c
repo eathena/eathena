@@ -141,15 +141,21 @@ const struct skill_name_db skill_names[] = {
  { BS_WEAPONPERFECT, "WEAPONPERFECT", "Weapon_Perfection" } ,
  { BS_WEAPONRESEARCH, "WEAPONRESEARCH", "Weaponry_Research" } ,
  { CG_ARROWVULCAN, "ARROWVULCAN", "Vulcan_Arrow" } ,
+ { CG_HERMODE, "HERMODE", "Hermode" } ,
+ { CG_LONGINGFREEDOM, "LONGINGFREEDOM", "Longing_Freedom" } ,
  { CG_MARIONETTE, "MARIONETTE", "Marionette_Control" } ,
  { CG_MOONLIT, "MOONLIT", "Moonlight_Petals" } ,
+ { CG_TAROTCARD, "TAROTCARD", "Tarot_Card" } ,
  { CH_CHAINCRUSH, "CHAINCRUSH", "Chain_Crush_Combo" } ,
  { CH_PALMSTRIKE, "PALMSTRIKE", "Palm_Push_Strike" } ,
  { CH_SOULCOLLECT, "SOULCOLLECT", "Collect_Soul" } ,
  { CH_TIGERFIST, "TIGERFIST", "Tiger_Knuckle_Fist" } ,
+ { CR_ACIDDEMONSTRATION, "ACIDDEMONSTRATION", "Acid_Demonstration" } ,
  { CR_ALCHEMY, "ALCHEMY", "Alchemy" } ,
+ { CR_CULTIVATION, "CULTIVATION", "Cultivation" } ,
  { CR_SLIMPITCHER, "SLIMPITCHER", "Slim_Pitcher" } ,
  { CR_FULLPROTECTION, "FULLPROTECTION", "Full_Chemical_Protection" } ,
+ { CR_SYNTHESISPOTION, "SYNTHESISPOTION", "Potion_Synthesis" } ,
  { CR_AUTOGUARD, "AUTOGUARD", "Guard" } ,
  { CR_DEFENDER, "DEFENDER", "Defender" } ,
  { CR_DEVOTION, "DEVOTION", "Sacrifice" } ,
@@ -160,7 +166,6 @@ const struct skill_name_db skill_names[] = {
  { CR_SHIELDBOOMERANG, "SHIELDBOOMERANG", "Shield_Boomerang" } ,
  { CR_SHIELDCHARGE, "SHIELDCHARGE", "Shield_Charge" } ,
  { CR_SPEARQUICKEN, "SPEARQUICKEN", "Spear_Quicken" } ,
- { CR_SYNTHESISPOTION, "SYNTHESISPOTION", "Potion_Synthesis" } ,
  { CR_TRUST, "TRUST", "Faith" } ,
  { DC_DANCINGLESSON, "DANCINGLESSON", "Dancing_Lesson" } ,
  { DC_DONTFORGETME, "DONTFORGETME", "Don't_Forget_Me" } ,
@@ -175,7 +180,7 @@ const struct skill_name_db skill_names[] = {
  { GD_RESTORE, "RESTORE", "Restore" } ,
  { GD_EMERGENCYCALL, "EMERGENCYCALL", "Emergency_Call" } ,
  { HP_ASSUMPTIO, "ASSUMPTIO", "Assumptio" } ,
- { HP_BASILICA, "BASILICA", "Basilica" } ,
+ { HP_MANARECHARGE, "MANARECHARGE", "Mana_Recharge" } ,
  { HP_MEDITATIO, "MEDITATIO", "Meditation" } ,
  { HT_ANKLESNARE, "ANKLESNARE", "Ankle_Snare" } ,
  { HT_BEASTBANE, "BEASTBANE", "Beast_Bane" } ,
@@ -194,6 +199,8 @@ const struct skill_name_db skill_names[] = {
  { HT_SPRINGTRAP, "SPRINGTRAP", "Spring_Trap" } ,
  { HT_STEELCROW, "STEELCROW", "Steel_Crow" } ,
  { HT_TALKIEBOX, "TALKIEBOX", "Talkie_Box" } ,
+ { HW_GANBANTEIN, "GANBANTEIN", "GanBanTeIn" } ,
+ { HW_GRAVITATION, "GRAVITATION", "Gravitation" } ,
  { HW_MAGICCRASHER, "MAGICCRASHER", "Magic_Crasher" } ,
  { HW_MAGICPOWER, "MAGICPOWER", "Magic_Power" } ,
  { HW_NAPALMVULCAN, "NAPALMVULCAN", "Napalm_Vulcan" } ,
@@ -317,6 +324,8 @@ const struct skill_name_db skill_names[] = {
  { PA_GOSPEL, "GOSPEL", "Gospel" } ,
  { PA_PRESSURE, "PRESSURE", "Pressure" } ,
  { PA_SACRIFICE, "SACRIFICE", "Sacrificial_Ritual" } ,
+ { PA_SHIELDCHAIN, "SHIELDCHAIN", "Shield_Chain" } ,
+ { PF_DOUBLECASTING, "DOUBLECASTING", "Double_Casting" } ,
  { PF_FOGWALL, "FOGWALL", "Wall_of_Fog" } ,
  { PF_HPCONVERSION, "HPCONVERSION", "Health_Conversion" } ,
  { PF_MEMORIZE, "MEMORIZE", "Memorize" } ,
@@ -481,9 +490,11 @@ const struct skill_name_db skill_names[] = {
  { WE_FEMALE, "FEMALE", "I Only Look Up to You" } ,
  { WE_MALE, "MALE", "I Will Protect You" } ,
  { WS_CARTBOOST, "CARTBOOST", "Cart_Boost" } ,
+ { WS_CARTTERMINATION, "CARTTERMINATION", "Cart_Termination" } ,
  { WS_CREATECOIN, "CREATECOIN", "Create_Coins" } ,
  { WS_CREATENUGGET, "CREATENUGGET", "Create_Nuggets" } ,
  { WS_MELTDOWN, "MELTDOWN", "Meltdown" } ,
+ { WS_OVERTHRUSTMAX, "OVERTHRUSTMAX", "Over_Thrust_Max" } ,
  { WS_SYSTEMCREATE, "SYSTEMCREATE", "Create_System_tower" } ,
  { WS_WEAPONREFINE, "WEAPONREFINE", "Weapon_Refine" } ,
  { WZ_EARTHSPIKE, "EARTHSPIKE", "Earth_Spike" } ,
@@ -3211,7 +3222,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case AS_POISONREACT:	/* ポイズンリアクト */
 	case MC_LOUD:			/* ラウドボイス */
 	case MG_ENERGYCOAT:		/* エナジ?コ?ト */
-//	case SM_ENDURE:			/* インデュア */
 	case MG_SIGHT:			/* サイト */
 	case AL_RUWACH:			/* ルアフ */
 	case MO_EXPLOSIONSPIRITS:	// 爆裂波動
@@ -3219,7 +3229,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case LK_AURABLADE:		/* オ?ラブレ?ド */
 	case LK_PARRYING:		/* パリイング */
 	case LK_CONCENTRATION:	/* コンセントレ?ション */
-//	case LK_BERSERK:		/* バ?サ?ク */
 	case HP_ASSUMPTIO:		/*  */
 	case WS_CARTBOOST:		/* カ?トブ?スト */
 	case SN_SIGHT:			/* トゥル?サイト */
@@ -9163,7 +9172,7 @@ int skill_produce_mix( struct map_session_data *sd,
 						sd->status.fame += 40;	// Success to prepare 10 Concentrated Potions in a row = +50 fame point
 						sd->potion_success_counter = 0;
 						}
-				}
+				} else sd->potion_success_counter = 0;
 				break;
 			case ASC_CDP:
 				clif_produceeffect(sd,2,nameid);/* 暫定で製?エフェクト */

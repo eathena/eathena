@@ -716,7 +716,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 		if (t_sc_data[SC_SLEEP].timer!=-1)
 			cri <<=1;
 		if(t_sc_data[SC_JOINTBEAT].timer != -1 &&
-			t_sc_data[SC_JOINTBEAT].val2 == 6) // Always take crits with Neck broken by Joint Beat [DracoRPG]
+			t_sc_data[SC_JOINTBEAT].val2 == 5) // Always take crits with Neck broken by Joint Beat [DracoRPG]
 			cri = 1000;
 	}
 
@@ -1204,7 +1204,7 @@ static struct Damage battle_calc_mob_weapon_attack(
 		if (t_sc_data[SC_SLEEP].timer!=-1 )	// 睡眠中はクリティカルが倍に
 			cri <<=1;
 		if(t_sc_data[SC_JOINTBEAT].timer != -1 &&
-			t_sc_data[SC_JOINTBEAT].val2 == 6) // Always take crits with Neck broken by Joint Beat [DracoRPG]
+			t_sc_data[SC_JOINTBEAT].val2 == 5) // Always take crits with Neck broken by Joint Beat [DracoRPG]
 			cri = 1000;
 	}
 
@@ -1849,7 +1849,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			if (t_sc_data[SC_SLEEP].timer!=-1 )	// 睡眠中はクリティカルが倍に
 				cri <<=1;
 			if(t_sc_data[SC_JOINTBEAT].timer != -1 &&
-				t_sc_data[SC_JOINTBEAT].val2 == 6) // Always take crits with Neck broken by Joint Beat [DracoRPG]
+				t_sc_data[SC_JOINTBEAT].val2 == 5) // Always take crits with Neck broken by Joint Beat [DracoRPG]
 				cri = 1000;
 		}
 		if(ac_flag) cri = 1000;

@@ -1346,20 +1346,20 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 		if(sd->sc_data[SC_JOINTBEAT].timer!=-1) { // Random break [DracoRPG]
 			switch(sd->sc_data[SC_JOINTBEAT].val2) {
-			case 1: //Ankle break
+			case 0: //Ankle break
 				sd->speed_rate += 50;
 				break;
-			case 2:	//Wrist	break
+			case 1:	//Wrist	break
 				sd->aspd_rate += 25;
 				break;
-			case 3:	//Knee break
+			case 2:	//Knee break
 				sd->speed_rate += 30;
 				sd->aspd_rate += 10;
 				break;
-			case 4:	//Shoulder break
+			case 3:	//Shoulder break
 				sd->def2 -= sd->def2*50/100;
 				break;
-			case 5:	//Waist	break
+			case 4:	//Waist	break
 				sd->def2 -= sd->def2*50/100;
 				sd->base_atk -= sd->base_atk*25/100;
 				break;
@@ -2435,9 +2435,9 @@ int status_get_def(struct block_list *bl)
 						def = 0;
 				}
 				if(sc_data[SC_JOINTBEAT].timer!=-1) {
-					if (sc_data[SC_JOINTBEAT].val2 == 4)
+					if (sc_data[SC_JOINTBEAT].val2 == 3)
 						def -= def*50/100;
-					else if (sc_data[SC_JOINTBEAT].val2 == 5)
+					else if (sc_data[SC_JOINTBEAT].val2 == 4)
 						def -= def*25/100;
 				}
 				if(sc_data[SC_INCDEF2].timer!=-1)
@@ -2618,9 +2618,9 @@ int status_get_speed(struct block_list *bl)
 				sc_data[SC_GOSPEL].val3 == 8)
 				speed = speed*125/100;
 			if(sc_data[SC_JOINTBEAT].timer!=-1) {
-				if (sc_data[SC_JOINTBEAT].val2 == 1)
+				if (sc_data[SC_JOINTBEAT].val2 == 0)
 					speed = speed*150/100;
-				else if (sc_data[SC_JOINTBEAT].val2 == 3)
+				else if (sc_data[SC_JOINTBEAT].val2 == 2)
 					speed = speed*130/100;				
 			}
 		}
@@ -2689,9 +2689,9 @@ int status_get_adelay(struct block_list *bl)
 				sc_data[SC_GOSPEL].val3 == 8)
 				aspd_rate = aspd_rate*125/100;
 			if(sc_data[SC_JOINTBEAT].timer!=-1) {
-				if (sc_data[SC_JOINTBEAT].val2 == 2)
+				if (sc_data[SC_JOINTBEAT].val2 == 1)
 					aspd_rate = aspd_rate*125/100;
-				else if (sc_data[SC_JOINTBEAT].val2 == 3)
+				else if (sc_data[SC_JOINTBEAT].val2 == 2)
 					aspd_rate = aspd_rate*110/100;
 			}
 		}
@@ -3261,7 +3261,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_SIGNUMCRUCIS:		/* シグナムクルシス */
 			calc_flag = 1;
-//			val2 = 14 + val1;
 			val2 = 10 + val1*2;
 			tick = 600*1000;
 			clif_emotion(bl,4);
@@ -3422,19 +3421,15 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_VOLCANO:
 			calc_flag = 1;
 			val3 = val1*10;
-			//val4 = val1>=5?20: (val1==4?19: (val1==3?17: ( val1==2?14:10 ) ) );
 			break;
 		case SC_DELUGE:
 			calc_flag = 1;
-			//val3 = val1>=5?15: (val1==4?14: (val1==3?12: ( val1==2?9:5 ) ) );
-			//val4 = val1>=5?20: (val1==4?19: (val1==3?17: ( val1==2?14:10 ) ) );
 			if (sc_data[SC_FOGWALL].timer != -1 && sc_data[SC_BLIND].timer != -1)
 				status_change_end(bl,SC_BLIND,-1);
 			break;
 		case SC_VIOLENTGALE:
 			calc_flag = 1;
 			val3 = val1*3;
-			//val4 = val1>=5?20: (val1==4?19: (val1==3?17: ( val1==2?14:10 ) ) );
 			break;
 
 		case SC_SPEARSQUICKEN:		/* スピアクイッケン */
@@ -3605,9 +3600,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_SLEEP:				/* 睡眠 */
 			if(!(flag&2)) {
-//				int sc_def = 100 - (status_get_int(bl) + status_get_luk(bl)/3);
-//				tick = tick * sc_def / 100;
-//				if(tick < 1000) tick = 1000;
 				tick = 30000;//睡眠はステ?タス耐性に?わらず30秒
 			}
 			break;
@@ -3771,38 +3763,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 		case SC_AURABLADE:		/* オ?ラブレ?ド */
 		case SC_PARRYING:		/* パリイング */
-//		case SC_ASSUMPTIO:		/*  */
-//		case SC_HEADCRUSH:		/* ヘッドクラッシュ */
-//		case SC_JOINTBEAT:		/* ジョイントビ?ト */
-//		case SC_MARIONETTE:		/* マリオネットコントロ?ル */
-
 			//とりあえず手?き
 			break;
-
-// -- moonsoul	(for new upper class related skill status effects)
-/*
-		case SC_AURABLADE:
-			val2 = val1*10;
-			break;
-		case SC_PARRYING:
-			val2=val1*3;
-			break;
-		case SC_CONCENTRATION:
-			calc_flag=1;
-			val2=val1*10;
-			val3=val1*5;
-			break;
-		case SC_TENSIONRELAX:
-//			val2 = 10;
-//			val3 = 15;
-			break;
-		case SC_BERSERK:
-			calc_flag=1;
-			break;
-		case SC_ASSUMPTIO:
-			if(sc_data[SC_KYRIE].timer!=-1 )
-				status_change_end(bl,SC_KYRIE,-1);
-				break;*/
 
 		case SC_WINDWALK:		/* ウインドウォ?ク */
 			calc_flag = 1;
@@ -3811,8 +3773,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		
 		case SC_JOINTBEAT: // Random break [DracoRPG]
 			calc_flag = 1;
-			val2 = rand()%6 + 1;
-			if (val2 == 6) status_change_start(bl,SC_BLEEDING,val1,0,0,0,skill_get_time2(type,val1),0);
+			val2 = rand()%6;
+			if (val2 == 5) status_change_start(bl,SC_BLEEDING,val1,0,0,0,skill_get_time2(type,val1),0);
 			break;
 
 		case SC_BERSERK:		/* バ?サ?ク */
@@ -4160,6 +4122,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_MATKPOT:		/* magic attack potion [Valaris] */
 			case SC_WEDDING:	//結婚用(結婚衣裳になって?くのが?いとか)
 			case SC_MELTDOWN:		/* メルトダウン */
+			case SC_CARTBOOST:
 			case SC_MINDBREAKER:		/* マインドブレーカー */
 			// Celest
 			case SC_EDP:
