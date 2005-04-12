@@ -1,5 +1,12 @@
 
 Date	Added
+04/12
+	* Overhaul on status changes' numbering -- some statuses will show icons now
+	* Implemented Mana Regeneration, Shield Chain, Plant Cultivation, Cart
+	  Termination, Max Overthrust and Tarot Card [celest]
+	~ To get the new skills you need 2005-04-11aSakexe!
+	* Enable cards to be stolen with level 5, thanks to Ishizu-chan
+
 04/11	
 	~ Please upgrade your SQL char DB with /sql-files/upgrade_svn1499.sql
 	  to accomodate Fame saving!

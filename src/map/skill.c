@@ -1031,6 +1031,11 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		if (rand()%10000 < 5*skilllv*sc_def_luk)
 			status_change_start(bl,SC_CURSE,7,0,0,0,skill_get_time2(NPC_CURSEATTACK,7),0);
 		break;
+
+	case WS_CARTTERMINATION:	// Cart termination
+		if (rand() % 10000 < 5 * skilllv * sc_def_vit)
+			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(WS_CARTTERMINATION,skilllv),0);
+		break;		
 	}
 
 	if((sd||dstsd) && skillid != MC_CARTREVOLUTION && attack_type&BF_WEAPON){	/* カ?ドによる追加?果 */
@@ -2202,8 +2207,16 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case MO_COMBOFINISH:	/* 猛龍拳 */
 	case CH_CHAINCRUSH:		/* 連柱崩? */
 	case CH_PALMSTRIKE:		/* 猛虎硬派山 */
+	case PA_SHIELDCHAIN:	// Shield Chain
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
+
+	case WS_CARTTERMINATION:	// Cart Termination
+		if (sc_data && sc_data[SC_CARTBOOST].timer != -1)
+			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+		else if (sd)
+			clif_skill_fail(sd,skillid,0,0);
+		break;		
 
 	case ASC_BREAKER:				/* ソウルブレ?カ? */	// [DracoRPG]
 		// separate weapon and magic attacks
@@ -4632,6 +4645,103 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
+	case WS_OVERTHRUSTMAX:	// Overthrust Max
+		if (sc_data && sc_data[SC_MAXOVERTHRUST].timer == -1) {
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+		}
+		break;
+
+	case CG_TAROTCARD:
+		{
+			int eff, count = 1;
+			if (rand() % 100 < skilllv * 8) {
+				clif_skill_fail(sd,skillid,0,0);
+				map_freeblock_unlock();
+				return 0;
+			}
+			do {
+				eff = rand() % 14;
+				switch (eff)
+				{
+				case 0:	// heals SP to 0
+					if (dstsd) pc_heal(dstsd,0,-dstsd->status.sp);
+					break;
+				case 1:	// matk halved
+					break;
+				case 2:	// all buffs removed
+					{
+						int i;
+						struct status_change *sc_data = status_get_sc_data(bl);
+						if (!sc_data)
+							break;
+						for (i = 0; i <= 26; i++) {
+							if(sc_data[i].timer != -1)
+								status_change_end(bl,i,-1);
+						}
+						for (i = 37; i <= 42; i++) {
+							if(sc_data[i].timer != -1)
+								status_change_end(bl,i,-1);
+						}
+						for (i = 54; i <= 122; i++) {
+							if(sc_data[i].timer != -1)
+								status_change_end(bl,i,-1);
+						}
+					}
+					break;
+				case 3:	// 1000 damage, random armor destroyed
+					{
+						int where[] = { EQP_ARMOR, EQP_SHIELD, EQP_HELM };
+						battle_damage(src, bl, 1000, 0);
+						if (dstsd) pc_break_equip(dstsd, where[rand() % 3]);
+					}
+					break;
+				case 4:	// atk halved
+					break;
+				case 5:	// random teleported
+					if (bl->prev != NULL) {
+						if(dstsd && !pc_isdead(dstsd))
+							pc_setpos(dstsd,dstsd->mapname,-1,-1,3);
+						else if(dstmd)
+							mob_warp(dstmd,-1,-1,-1,3);
+					}
+					break;
+				case 6:	// random 2 other effects
+					count = 3;
+					break;
+				case 7:	// stun freeze or stoned
+					status_change_start(bl,SC_STAN,skilllv,0,0,0,30000,0);
+					status_change_start(bl,SC_FREEZE,skilllv,0,0,0,30000,0);
+					status_change_start(bl,SC_STONE,skilllv,0,0,0,30000,0);
+					break;
+				case 8:	// curse coma or poison
+					status_change_start(bl,SC_CURSE,skilllv,0,0,0,30000,0);
+					//status_change_start(bl,SC_COMA,skilllv,0,0,0,30000,0);
+					status_change_start(bl,SC_POISON,skilllv,0,0,0,30000,0);
+					break;
+				case 9:	// chaos
+					status_change_start(bl,SC_CONFUSION,skilllv,0,0,0,30000,0);
+					break;
+				case 10:	// 6666 damage, atk matk halved, cursed
+					battle_damage(src, bl, 6666, 0);
+					status_change_start(bl,SC_CURSE,skilllv,0,0,0,30000,0);
+					break;
+				case 11:	// 4444 damage
+					battle_damage(src, bl, 4444, 0);
+					break;
+				case 12:	// stun
+					status_change_start(bl,SC_STAN,skilllv,0,0,0,5000,0);
+					break;
+				case 13:	// atk,matk,hit,flee,def reduced
+					break;
+				default:
+					break;			
+				}			
+			} while ((--count) > 0);
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		}
+		break;
+
 	// New guild skills [Celest]
 	case GD_BATTLEORDER:
 		{
@@ -4913,7 +5023,8 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	}
 	if( skillid != WZ_METEOR &&
 		skillid != AM_CANNIBALIZE &&
-		skillid != AM_SPHEREMINE)
+		skillid != AM_SPHEREMINE &&
+		skillid != CR_CULTIVATION)
 		clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
 
 	if (sd && skillnotok(skillid, sd)) // [MouseJstr]
@@ -5120,6 +5231,26 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 						src,skillid,skilllv,tick,flag|BCT_PARTY|1,
 						skill_castend_nodamage_id);
 				}
+			}
+		}
+		break;
+
+	// Plant Cultivation [Celest]
+	case CR_CULTIVATION:
+		{
+			if (sd) {
+				int i = skilllv - 1;
+				int j = pc_search_inventory(sd,skill_db[skillid].itemid[i]);
+				if(j < 0 || skill_db[skillid].itemid[i] <= 0 || sd->inventory_data[j] == NULL ||
+					sd->status.inventory[j].amount < skill_db[skillid].amount[i] ||
+					rand() % 1000 > 750) {	// unknown failure rate!
+					clif_skill_fail(sd,skillid,0,0);
+					return 1;
+				}
+				mob_once_spawn(sd, "this", x, y, "--ja--",
+					(skilllv < 2 ? 1084 + rand() % 2 : 1078 + rand() % 6 ), 1, "");
+				clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
+				pc_delitem(sd,j,skill_db[skillid].amount[i],0);
 			}
 		}
 		break;
@@ -6738,7 +6869,8 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		if(skill == WZ_FIREPILLAR && lv<=5)
 			continue; // no gemstones for 1-5 [Celest]
 		if((skill == AM_POTIONPITCHER ||
-			skill == CR_SLIMPITCHER) && i != x)
+			skill == CR_SLIMPITCHER ||
+			skill == CR_CULTIVATION) && i != x)
 			continue;
 
 		index[i] = pc_search_inventory(sd,itemid[i]);
@@ -6756,7 +6888,8 @@ int skill_check_condition(struct map_session_data *sd,int type)
 
 	if(skill != AM_POTIONPITCHER &&
 		skill != CR_SLIMPITCHER &&
-		skill != MG_STONECURSE) {
+		skill != MG_STONECURSE &&
+		skill != CR_CULTIVATION) {
 		if(skill == AL_WARP && !(type&2))
 			return 1;
 		for(i=0;i<10;i++) {

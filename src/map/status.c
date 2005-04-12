@@ -257,6 +257,28 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	-1,
 /* 410- */
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 420- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 430- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 440- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 450- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 460- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+/* 470- */
+	-1,-1,-1,-1,-1,
+	SC_PRESERVE,
+	-1,-1,-1,-1,
+/* 480- */
+	-1,-1,
+	SC_DOUBLECAST,
+	-1,-1,-1,
+	SC_MAXOVERTHRUST,
+	-1,-1,-1,
+/* 490- */
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 };
 
 static int max_weight_base[MAX_PC_CLASS];
@@ -723,6 +745,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	}
 	if((skill=pc_checkskill(sd,SA_DRAGONOLOGY))>0 ){ // Dragonology increases +1 int every 2 levels
 		sd->paramb[3] += (int) ((skill+1)*0.5);
+	}
+	if((skill=pc_checkskill(sd,HP_MANARECHARGE))>0 ){
+		sd->dsprate -= 4 * skill;
 	}
 
 	// ステ?タス?化による基本パラメ?タ補正
@@ -1226,8 +1251,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			if(sd->status.max_sp < 0 || sd->status.max_sp > battle_config.max_sp)
 				sd->status.max_sp = battle_config.max_sp;
 			sd->dsprate-=(10+sd->sc_data[SC_SERVICE4U].val1*3+sd->sc_data[SC_SERVICE4U].val2
-					+sd->sc_data[SC_SERVICE4U].val3);
-			if(sd->dsprate<0)sd->dsprate=0;
+					+sd->sc_data[SC_SERVICE4U].val3);			
 		}
 
 		if(sd->sc_data[SC_FORTUNE].timer!=-1)	// 幸運のキス
@@ -1368,7 +1392,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	if (sd->speed_rate <= 0)
 		sd->speed_rate = 1;
-
 	if(sd->speed_rate != 100)
 		sd->speed = sd->speed*sd->speed_rate/100;
 	if(sd->speed < 1) sd->speed = 1;
@@ -1385,7 +1408,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->prev_speed = sd->speed;
 		sd->speed = sd->speed*(175 - skill*5)/100;
 	}
-
+	if(sd->dsprate < 0)
+		sd->dsprate = 0;
 	if(sd->status.hp>sd->status.max_hp)
 		sd->status.hp=sd->status.max_hp;
 	if(sd->status.sp>sd->status.max_sp)
@@ -3008,7 +3032,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	short *sc_count, *option, *opt1, *opt2, *opt3;
 	int opt_flag = 0, calc_flag = 0,updateflag = 0, save_flag = 0, race, mode, elem, undead_flag;
 	int scdef = 0;
-	int type2 = type;
 
 	nullpo_retr(0, bl);
 	if(bl->type == BL_SKILL)
@@ -3836,8 +3859,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			tick = 1000;
 			break;
 
-		case SC_BABY:
-			type2 = _SC_BABY;
+		case SC_BABY:			
 			break;
 
 		default:
@@ -3846,9 +3868,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			return 0;
 	}
 
-	if(bl->type==BL_PC &&
-		(type<SC_SENDMAX || type==SC_PRESERVE || type==SC_BATTLEORDERS || type==SC_BABY))
-		clif_status_change(bl,type2,1);	/* アイコン表示 */
+	if (bl->type == BL_PC)
+		clif_status_change(bl,type,1);	/* アイコン表示 */
 
 	/* optionの?更 */
 	switch(type){
@@ -3987,7 +4008,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 	struct status_change* sc_data;
 	int opt_flag=0, calc_flag = 0;
 	short *sc_count, *option, *opt1, *opt2, *opt3;
-	int type2 = type;
 
 	nullpo_retr(0, bl);
 	if(bl->type!=BL_PC && bl->type!=BL_MOB) {
@@ -4181,13 +4201,11 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				break;
 
 			case SC_BABY:
-				type2 = _SC_BABY;
 				break;
 			}
 
-		if(bl->type==BL_PC &&
-			(type<SC_SENDMAX || type==SC_PRESERVE || type==SC_BATTLEORDERS || type==SC_BABY))
-			clif_status_change(bl,type2,0);	/* アイコン消去 */
+		if (bl->type == BL_PC)
+			clif_status_change(bl,type,0);	/* アイコン消去 */
 
 		switch(type){	/* 正常に?るときなにか?理が必要 */
 		case SC_STONE:

@@ -4,7 +4,7 @@
 enum {	// struct map_session_data の status_changeの番?テ?ブル
 // SC_SENDMAX未?はクライアントへの通知あり。
 // 2-2次職の値はなんかめちゃくちゃっぽいので暫定。たぶん?更されます。
-	SC_SENDMAX			= 128,	// note: max is now 182, but we'll need to do alot of moving around
+	SC_SENDMAX			= 200,	// note: max is now 182, but we'll need to do alot of moving around
 	SC_PROVOKE			= 0,
 	SC_ENDURE			= 1,
 	SC_TWOHANDQUICKEN	= 2,
@@ -48,7 +48,13 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_SPEEDPOTION3		= 40,
 	SC_SPEEDUP0			= 41, // for skill speedup
 	SC_SPEEDUP1			= 42, // for skill speedup
-//-- 43-50
+	SC_ATKPOT			= 43,	// [Valaris]
+	SC_MATKPOT			= 44,	// [Valaris]
+	SC_WEDDING			= 45,	//結婚用(結婚衣裳になって?くのが?いとか)
+	SC_SLOWDOWN			= 46,
+	SC_ANKLE			= 47,
+	SC_KEEPING			= 48,
+	SC_BARRIER			= 49,
 	SC_STRIPWEAPON		= 50,
 	SC_STRIPSHIELD		= 51,
 	SC_STRIPARMOR		= 52,
@@ -59,129 +65,135 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_CP_HELM			= 57,
 	SC_AUTOGUARD		= 58,
 	SC_REFLECTSHIELD	= 59,
-	SC_DEVOTION			= 60,
+	SC_SPLASHER			= 60,	/* ベナムスプラッシャ? */
 	SC_PROVIDENCE		= 61,
 	SC_DEFENDER			= 62,
+	SC_MAGICROD			= 63,
+	SC_SPELLBREAKER		= 64,
 	SC_AUTOSPELL		= 65,
+	SC_SIGHTTRASHER		= 66,
+	SC_AUTOBERSERK		= 67,
 	SC_SPEARSQUICKEN	= 68,
-//-- 69-85
+	SC_AUTOCOUNTER		= 69,
+	SC_SIGHT			= 70,
+	SC_SAFETYWALL		= 71,
+	SC_RUWACH			= 72,	
+	SC_PNEUMA			= 73,
+
+	SC_STONE			= 74,
+	SC_FREEZE			= 75,
+	SC_STAN				= 76,
+	SC_SLEEP			= 77,
+	SC_POISON			= 78,
+	SC_CURSE			= 79,
+	SC_SILENCE			= 80,
+	SC_CONFUSION		= 81,
+	SC_BLIND			= 82,
+	SC_DIVINA			= SC_SILENCE,
+	SC_BLEEDING			= 83,
+	SC_DPOISON			= 84,		/* 猛毒 */
+
+	SC_EXTREMITYFIST	= 85,
 	SC_EXPLOSIONSPIRITS	= 86,
-	SC_STEELBODY		= 87,
-	SC_COMBO			= 89,
+	SC_COMBO			= 87,
+	SC_BLADESTOP_WAIT	= 88,
+	SC_BLADESTOP		= 89,
 	SC_FLAMELAUNCHER	= 90,
 	SC_FROSTWEAPON		= 91,
 	SC_LIGHTNINGLOADER	= 92,
-	SC_SEISMICWEAPON	= 93,
-//-- 94-102
+	SC_SEISMICWEAPON	= 93,	
+	SC_VOLCANO			= 94,
+	SC_DELUGE			= 95,
+	SC_VIOLENTGALE		= 96,
+// <-- 97 = gloria
+	SC_LANDPROTECTOR	= 98,
+	SC_SELFDESTRUCTION	= 99,	/* 自爆 */
+	SC_NOCHAT			= 100,	//赤エモ?態
+	SC_BABY				= 101,
+// <-- 102 = gloria
 	SC_AURABLADE		= 103, /* オ?ラブレ?ド */
 	SC_PARRYING			= 104, /* パリイング */
 	SC_CONCENTRATION	= 105, /* コンセントレ?ション */
 	SC_TENSIONRELAX		= 106, /* テンションリラックス */
 	SC_BERSERK			= 107, /* バ?サ?ク */
-//-- 108, 109
+	SC_FURY				= 108,
+	SC_GOSPEL			= 109,
 	SC_ASSUMPTIO		= 110, /* アシャンプティオ */
-//-- 111, 112
+	SC_BASILICA			= 111,
+// <-- 112 = sage skill icon
 	SC_MAGICPOWER		= 113, /* 魔法力?幅 */
 	SC_EDP				= 114, /* エフェクトが判明したら移動 */
 	SC_TRUESIGHT		= 115, /* トゥル?サイト */
 	SC_WINDWALK			= 116, /* ウインドウォ?ク */
 	SC_MELTDOWN			= 117, /* メルトダウン */
 	SC_CARTBOOST		= 118, /* カ?トブ?スト */
-//-- 119
+	SC_CHASEWALK		= 119,
 	SC_REJECTSWORD		= 120, /* リジェクトソ?ド */
 	SC_MARIONETTE		= 121, /* マリオネットコントロ?ル */
 	SC_MARIONETTE2		= 122, // Marionette target
-//-- 123
-	SC_BLEEDING			= 124, /* ヘッドクラッシュ */
+	SC_MOONLIT			= 123,
+	SC_HEADCRUSH		= 124, /* ヘッドクラッシュ */
 	SC_JOINTBEAT		= 125, /* ジョイントビ?ト */
-//-- 126, 127
+	SC_MINDBREAKER		= 126,
+	SC_MEMORIZE			= 127,		/* メモライズ */
+	SC_FOGWALL			= 128,
+	SC_SPIDERWEB		= 129,		/* スパイダ?ウェッブ */
+	SC_DEVOTION			= 130,
+	SC_SACRIFICE		= 131,	/* サクリファイス */
+	SC_STEELBODY		= 132,
 
-	SC_STONE			= 128,
-	SC_FREEZE			= 129,
-// <-- 130 = a baby skill status?
-	SC_STAN				= 130,
-	SC_SLEEP			= 131,
-// <-- 132 = another baby skill?
-	SC_POISON			= 132,
-	SC_CURSE			= 133,
-	SC_SILENCE			= 134,
-	SC_CONFUSION		= 135,
-	SC_BLIND			= 136,
-	SC_DIVINA			= SC_SILENCE,
-//-- 137-139
-	SC_SAFETYWALL		= 140,
-	SC_PNEUMA			= 141,
-//-- 142
-	SC_ANKLE			= 143,
-	SC_DANCING			= 144,
-	SC_KEEPING			= 145,
-	SC_BARRIER			= 146,
-//-- 147,148
-	SC_MAGICROD			= 149,
-	SC_SIGHT			= 150,
-	SC_RUWACH			= 151,
-	SC_AUTOCOUNTER		= 152,
-	SC_VOLCANO			= 153,
-	SC_DELUGE			= 154,
-	SC_VIOLENTGALE		= 155,
-	SC_BLADESTOP_WAIT	= 156,
-	SC_BLADESTOP		= 157,
-	SC_EXTREMITYFIST	= 158,
-//-- 159	
-	SC_LULLABY			=160,
-	SC_RICHMANKIM		=161,
-	SC_ETERNALCHAOS		=162,
-	SC_DRUMBATTLE		=163,
-	SC_NIBELUNGEN		=164,
-	SC_ROKISWEIL		=165,
-	SC_INTOABYSS		=166,
-	SC_SIEGFRIED		=167,
-	SC_DISSONANCE		=168,
-	SC_WHISTLE			=169,
-	SC_ASSNCROS			=170,
-	SC_POEMBRAGI		=171,
-	SC_APPLEIDUN		=172,
-	SC_UGLYDANCE		=173,
-	SC_HUMMING			=174,
-	SC_DONTFORGETME		=175,
-	SC_FORTUNE			=176,
-	SC_SERVICE4U		=177,
-	SC_SPIDERWEB		=180,		/* スパイダ?ウェッブ */
-// <-- 181 = unknown status
-// <-- 182 = unknown status
-	SC_SACRIFICE		=184,		/* サクリファイス */
-	SC_WEDDING			=187,	//結婚用(結婚衣裳になって?くのが?いとか)
-	SC_NOCHAT			=188,	//赤エモ?態
-	SC_SPLASHER			=189,	/* ベナムスプラッシャ? */
-	SC_SELFDESTRUCTION	=190,	/* 自爆 */
-	SC_MEMORIZE			=197,		/* メモライズ */ // changed from 181 to 192
-	SC_DPOISON			=198,		/* 猛毒 */
+//<-- 133 = gloria
+//<-- 134 = 1:gloria 0:wobble? o_O
+//<-- 135 = gloria
+// 136
+//<-- 137 = gloria
+// 138
+//<-- 139 = gloria
+// 140
+//<-- 141 = gloria
+// 142
+//<-- 143 = gloria
+// 144
+//-- 145 = 2nd Seismic weapon?
+//<-- 146 = trickdead
+//<-- 147 = peco peco
+//<-- 148 = falcon
 
-// Used by English Team
-	SC_SLOWDOWN			=45, // for skill slowdown
-	SC_AUTOBERSERK		=46,
-	SC_SIGHTTRASHER		=73,
-	SC_BASILICA			=102, // temporarily use this before an actual id is found [celest]	
-	
-	SC_ENSEMBLE			=159,
-	SC_FOGWALL			=178,
-	SC_GOSPEL			=179,
-	SC_PRESERVE         =181,
-	SC_BATTLEORDERS		=182,
-	SC_MOONLIT			=183,
-	SC_ATKPOT			=185,	// [Valaris]
-	SC_MATKPOT			=186,	// [Valaris]
-	SC_MINDBREAKER		=191,
-	SC_SPELLBREAKER		=192,
-	SC_LANDPROTECTOR	=193,
-	SC_ADAPTATION		=194,
-	SC_CHASEWALK		=195,
-	SC_REGENERATION		=196,
-	SC_GUILDAURA		=199,
-	SC_BABY				=200,
+	SC_DANCING			= 149,
+	SC_LULLABY			= 150,
+	SC_RICHMANKIM		= 151,
+	SC_ETERNALCHAOS		= 152,
+	SC_DRUMBATTLE		= 153,
+	SC_NIBELUNGEN		= 154,
+	SC_ROKISWEIL		= 155,
+	SC_INTOABYSS		= 156,
+	SC_SIEGFRIED		= 157,
+	SC_DISSONANCE		= 158,
+	SC_WHISTLE			= 159,
+	SC_ASSNCROS			= 160,
+	SC_POEMBRAGI		= 161,
+	SC_APPLEIDUN		= 162,
+	SC_UGLYDANCE		= 163,
+	SC_HUMMING			= 164,
+	SC_DONTFORGETME		= 165,
+	SC_FORTUNE			= 166,
+	SC_SERVICE4U		= 167,
 
-// Icons
-	_SC_BABY			=200
+//<-- 169 = gloria
+//<-- 170 = gloria
+//<-- 171 = gloria
+
+	SC_PRESERVE         = 181,
+	SC_BATTLEORDERS		= 182,	// unsure
+	SC_GUILDAURA		= 183,
+	SC_REGENERATION		= 184,
+	SC_DOUBLECAST		= 186,
+	SC_MAXOVERTHRUST	= 188,
+	SC_TAROT			= 191,	// unsure
+
+//<-- 192 = gloria
+//<-- 193 = gloria
+// <-- 201 = two hand quicken	
 };
 extern int SkillStatusChangeTable[];
 

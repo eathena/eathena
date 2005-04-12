@@ -996,7 +996,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 		}
 		for(i=355;i<411;i++)
 			sd->status.skill[i].id=i;
-		for(i=475;i<480;i++)
+		for(i=475;i<491;i++)
 			sd->status.skill[i].id=i;
 	} else {
             do {
@@ -2868,7 +2868,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 					i = rand()%10; //8 -> 10 Lupus
 					itemid = mob_db[md->class_].dropitem[i].nameid;
 
-					if(itemid > 0 && itemdb_type(itemid) != 6)
+					if(itemid > 0 && (itemdb_type(itemid) != 6 || pc_checkskill(sd,TF_STEAL) > 5))
 					{
 						//fixed rate. From Freya [Lupus]
 						if (rand() % 10000 < ((mob_db[md->class_].dropitem[i].p * skill) / 100 + sd->add_steal_rate))
@@ -4422,7 +4422,7 @@ int pc_allskillup(struct map_session_data *sd)
 		}
 		for(i=355;i<411;i++)
 			sd->status.skill[i].lv=skill_get_max(i);
-		for(i=475;i<480;i++)
+		for(i=475;i<491;i++)
 			sd->status.skill[i].lv=skill_get_max(i);
 	}
 	else {

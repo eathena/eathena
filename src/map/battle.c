@@ -941,6 +941,16 @@ static struct Damage battle_calc_pet_weapon_attack(
 				damage = damage*(200+20*skill_lv)/100;
 				hitrate = 1000000;
 				break;
+			case PA_SHIELDCHAIN:	// Shield Chain
+				damage = damage*(30*skill_lv)/100;
+				flag = (flag&~BF_RANGEMASK)|BF_LONG;
+				hitrate += (35-5*skill_lv);
+				div_flag = 1;
+				s_ele = 0;				
+				break;
+			case WS_CARTTERMINATION:
+				damage = damage * (80000 / (10 * (16 - skill_lv)) )/100;
+				break;
 			}
 			if (div_flag && div_ > 1) {	// [Skotlex]
 				damage *= div_;
@@ -1235,6 +1245,8 @@ static struct Damage battle_calc_mob_weapon_attack(
 				damage += damage*2;
 			if(sc_data && sc_data[SC_AURABLADE].timer!=-1)	//[DracoRPG]
 				damage += sc_data[SC_AURABLADE].val1 * 20;
+			if(sc_data[SC_MAXOVERTHRUST].timer!=-1)
+				damage += damage*(10*sc_data[SC_MAXOVERTHRUST].val1)/100;
 		}
 
 		if(skill_num>0){
@@ -1445,6 +1457,16 @@ static struct Damage battle_calc_mob_weapon_attack(
 			case AS_SPLASHER:		/* ベナムスプラッシャー */
 				damage = damage*(200+20*skill_lv)/100;
 				hitrate = 1000000;
+				break;
+			case PA_SHIELDCHAIN:	// Shield Chain
+				damage = damage*(30*skill_lv)/100;
+				flag = (flag&~BF_RANGEMASK)|BF_LONG;
+				hitrate += (35-5*skill_lv);
+				div_flag = 1;
+				s_ele = 0;				
+				break;
+			case WS_CARTTERMINATION:
+				damage = damage * (80000 / (10 * (16 - skill_lv)) )/100;
 				break;
 			}
 			if (div_flag && div_ > 1) {	// [Skotlex]
@@ -1950,13 +1972,13 @@ static struct Damage battle_calc_pc_weapon_attack(
 		// ソニックブロー
 		if(sc_data){ //状態異常中のダメージ追加
 			if(sc_data[SC_OVERTHRUST].timer!=-1){	// オーバートラスト
-			damage += damage*(5*sc_data[SC_OVERTHRUST].val1)/100;
-			damage2 += damage2*(5*sc_data[SC_OVERTHRUST].val1)/100;
-		}
+				damage += damage*(5*sc_data[SC_OVERTHRUST].val1)/100;
+				damage2 += damage2*(5*sc_data[SC_OVERTHRUST].val1)/100;
+			}
 			if(sc_data[SC_TRUESIGHT].timer!=-1){	// トゥルーサイト
-			damage += damage*(2*sc_data[SC_TRUESIGHT].val1)/100;
-			damage2 += damage2*(2*sc_data[SC_TRUESIGHT].val1)/100;
-		}
+				damage += damage*(2*sc_data[SC_TRUESIGHT].val1)/100;
+				damage2 += damage2*(2*sc_data[SC_TRUESIGHT].val1)/100;
+			}
 			if(sc_data[SC_BERSERK].timer!=-1){	// バーサーク
 				damage += damage*2;
 				damage2 += damage2*2;
@@ -1964,6 +1986,10 @@ static struct Damage battle_calc_pc_weapon_attack(
 			if(sc_data && sc_data[SC_AURABLADE].timer!=-1) {	//[DracoRPG]
 				damage += sc_data[SC_AURABLADE].val1 * 20;
 				damage2 += sc_data[SC_AURABLADE].val1 * 20;
+			}
+			if(sc_data[SC_MAXOVERTHRUST].timer!=-1) {
+				damage += damage*(10*sc_data[SC_MAXOVERTHRUST].val1)/100;
+				damage2 += damage2*(10*sc_data[SC_MAXOVERTHRUST].val1)/100;
 			}
 		}
 
@@ -2347,6 +2373,20 @@ static struct Damage battle_calc_pc_weapon_attack(
 
 #endif /* TWILIGHT */
 					flag=(flag&~BF_RANGEMASK)|BF_LONG;
+				}
+				break;
+			case PA_SHIELDCHAIN:	// Shield Chain
+				damage = damage*(30*skill_lv)/100;
+				damage2 = damage2*(30*skill_lv)/100;
+				flag = (flag&~BF_RANGEMASK)|BF_LONG;
+				hitrate += (35-5*skill_lv);
+				div_flag = 1;
+				s_ele = 0;
+				break;
+			case WS_CARTTERMINATION:
+				if(sd->cart_max_weight > 0 && sd->cart_weight > 0) {
+					damage = ( damage * sd->cart_weight / (10 * (16 - skill_lv)) )/100;
+					damage2 = ( damage2 * sd->cart_weight / (10 * (16 - skill_lv)) )/100;
 				}
 				break;
 			}
@@ -2872,6 +2912,8 @@ struct Damage battle_calc_weapon_attack(
 			}
 			if(sd->sc_data[SC_OVERTHRUST].timer!=-1)
 				breakrate += 10;
+			if(sd->sc_data[SC_MAXOVERTHRUST].timer!=-1)
+				breakrate += 10;				
 		}
 
 		if(sd->status.weapon && sd->status.weapon != 11) {
