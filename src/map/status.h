@@ -183,6 +183,15 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 //<-- 170 = gloria
 //<-- 171 = gloria
 
+	SC_INCALLSTATUS		= 172,		/* 全てのステータスを上昇(今のところゴスペル用) */
+	SC_INCHIT			= 173,		/* HIT上昇(今のところゴスペル用) */
+	SC_INCFLEE			= 174,		/* FLEE上昇(今のところゴスペル用) */
+	SC_INCMHP2			= 175,		/* MHPを%上昇(今のところゴスペル用) */
+	SC_INCMSP2			= 176,		/* MSPを%上昇(今のところゴスペル用) */
+	SC_INCATK2			= 177,		/* ATKを%上昇(今のところゴスペル用) */
+	SC_INCMATK2			= 178,		/* ATKを%上昇(今のところゴスペル用) */
+	SC_INCHIT2			= 179,		/* HITを%上昇(今のところゴスペル用) */
+	SC_INCFLEE2			= 180,		/* FLEEを%上昇(今のところゴスペル用) */
 	SC_PRESERVE         = 181,
 	SC_BATTLEORDERS		= 182,	// unsure
 	SC_GUILDAURA		= 183,
@@ -193,6 +202,8 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 
 //<-- 192 = gloria
 //<-- 193 = gloria
+
+	SC_INCDEF2			= 194,
 // <-- 201 = two hand quicken	
 };
 extern int SkillStatusChangeTable[];

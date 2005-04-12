@@ -752,6 +752,14 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	// ステ?タス?化による基本パラメ?タ補正
 	if(sd->sc_count){
+		if(sd->sc_data[SC_INCALLSTATUS].timer!=-1){
+			sd->paramb[0]+= sd->sc_data[SC_INCALLSTATUS].val1;
+			sd->paramb[1]+= sd->sc_data[SC_INCALLSTATUS].val1;
+			sd->paramb[2]+= sd->sc_data[SC_INCALLSTATUS].val1;
+			sd->paramb[3]+= sd->sc_data[SC_INCALLSTATUS].val1;
+			sd->paramb[4]+= sd->sc_data[SC_INCALLSTATUS].val1;
+			sd->paramb[5]+= sd->sc_data[SC_INCALLSTATUS].val1;
+		}
 		if(sd->sc_data[SC_CONCENTRATE].timer!=-1 && sd->sc_data[SC_QUAGMIRE].timer == -1){	// 集中力向上
 			sd->paramb[1]+= (sd->status.agi+sd->paramb[1]+sd->parame[1]-sd->paramcard[1])*(2+sd->sc_data[SC_CONCENTRATE].val1)/100;
 			sd->paramb[4]+= (sd->status.dex+sd->paramb[4]+sd->parame[4]-sd->paramcard[4])*(2+sd->sc_data[SC_CONCENTRATE].val1)/100;
@@ -969,51 +977,58 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	if((skill=pc_checkskill(sd,SA_ADVANCEDBOOK))>0 )
 		aspd_rate -= (int) (skill*0.5);
 
-	bl=sd->status.base_level;
+	bl = sd->status.base_level;
+	sd->status.max_hp += (3500 + bl*hp_coefficient2[s_class.job] +
+		hp_sigma_val[s_class.job][(bl > 0)? bl-1:0])/100 *
+		(100 + sd->paramc[2])/100 + (sd->parame[2] - sd->paramcard[2]);
 
-	sd->status.max_hp += (3500 + bl*hp_coefficient2[s_class.job] + hp_sigma_val[s_class.job][(bl > 0)? bl-1:0])/100 * (100 + sd->paramc[2])/100 + (sd->parame[2] - sd->paramcard[2]);
-		if (s_class.upper==1) // [MouseJstr]
-			sd->status.max_hp = sd->status.max_hp * 130/100;
-		else if (s_class.upper==2)
-			sd->status.max_hp = sd->status.max_hp * 70/100;
+	if (s_class.upper==1) // [MouseJstr]
+		sd->status.max_hp = sd->status.max_hp * 130/100;
+	else if (s_class.upper==2)
+		sd->status.max_hp = sd->status.max_hp * 70/100;
 
-	if (sd->hprate <= 0)
-		sd->hprate = 1;
-	if(sd->hprate!=100)
-		sd->status.max_hp = sd->status.max_hp*sd->hprate/100;
-
-	if(sd->sc_count && sd->sc_data[SC_BERSERK].timer!=-1){	// バ?サ?ク
-		sd->status.max_hp = sd->status.max_hp * 3;
-		// sd->status.hp = sd->status.hp * 3;
-		if(sd->status.max_hp > battle_config.max_hp) // removed negative max hp bug by Valaris
-			sd->status.max_hp = battle_config.max_hp;
-		if(sd->status.hp > battle_config.max_hp) // removed negative max hp bug by Valaris
-			sd->status.hp = battle_config.max_hp;
+	if(sd->sc_count) {
+		if (sd->sc_data[SC_INCMHP2].timer!=-1){
+			sd->status.max_hp *= (100 + sd->sc_data[SC_INCMHP2].val1)/100;
+		}
+		if (sd->sc_data[SC_BERSERK].timer!=-1){	// バ?サ?ク
+			sd->status.max_hp = sd->status.max_hp * 3;			
+		}
 	}
 	if(s_class.job == 23 && sd->status.base_level >= 99){
 		sd->status.max_hp = sd->status.max_hp + 2000;
 	}
 
+	if (sd->hprate <= 0)
+		sd->hprate = 1;
+	if(sd->hprate!=100)
+		sd->status.max_hp = sd->status.max_hp * sd->hprate/100;
+
+	if(sd->status.hp > battle_config.max_hp) // removed negative max hp bug by Valaris
+		sd->status.hp = battle_config.max_hp;
 	if(sd->status.max_hp > battle_config.max_hp) // removed negative max hp bug by Valaris
 		sd->status.max_hp = battle_config.max_hp;
 	if(sd->status.max_hp <= 0) sd->status.max_hp = 1; // end
 
 	// 最大SP計算
 	sd->status.max_sp += ((sp_coefficient[s_class.job] * bl) + 1000)/100 * (100 + sd->paramc[3])/100 + (sd->parame[3] - sd->paramcard[3]);
-		if (s_class.upper==1) // [MouseJstr]
-			sd->status.max_sp = sd->status.max_sp * 130/100;
-		else if (s_class.upper==2)
-			sd->status.max_sp = sd->status.max_sp * 70/100;
-	if (sd->sprate <= 0)
-		sd->sprate = 1;
-	if(sd->sprate!=100)
-		sd->status.max_sp = sd->status.max_sp*sd->sprate/100;
-
+	if (s_class.upper == 1) // [MouseJstr]
+		sd->status.max_sp = sd->status.max_sp * 130/100;
+	else if (s_class.upper==2)
+		sd->status.max_sp = sd->status.max_sp * 70/100;
+	
 	if((skill=pc_checkskill(sd,HP_MEDITATIO))>0) // メディテイティオ
 		sd->status.max_sp += sd->status.max_sp*skill/100;
 	if((skill=pc_checkskill(sd,HW_SOULDRAIN))>0) /* ソウルドレイン */
 		sd->status.max_sp += sd->status.max_sp*2*skill/100;
+	if(sd->sc_data && sd->sc_data[SC_INCMSP2].timer!=-1) {
+		sd->status.max_sp *= (100+sd->sc_data[SC_INCMSP2].val1)/100;
+	}
 
+	if (sd->sprate <= 0)
+		sd->sprate = 1;
+	if(sd->sprate!=100)
+		sd->status.max_sp = sd->status.max_sp*sd->sprate/100;
 	if(sd->status.max_sp < 0 || sd->status.max_sp > battle_config.max_sp)
 		sd->status.max_sp = battle_config.max_sp;
 
@@ -1070,6 +1085,13 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	if( (skill=pc_checkskill(sd,MO_DODGE))>0 )	// 見切り
 		sd->flee += (skill*3)>>1;
 
+	if (sd->sc_count) {
+		if( sd->sc_data[SC_INCFLEE].timer!=-1 )
+			sd->flee += sd->sc_data[SC_INCFLEE].val1;
+		if( sd->sc_data[SC_INCFLEE2].timer!=-1 )
+			sd->flee += sd->sc_data[SC_INCFLEE2].val1;
+	}
+
 	// スキルやステ?タス異常による?りのパラメ?タ補正
 	if(sd->sc_count){
 		// ATK/DEF?化形
@@ -1096,6 +1118,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->matk1 = sd->matk1*(100+2*sd->sc_data[SC_MINDBREAKER].val1)/100;
 			sd->matk2 = sd->matk2*(100+2*sd->sc_data[SC_MINDBREAKER].val1)/100;
 		}
+		if(sd->sc_data[SC_INCMATK2].timer!=-1){	// プロボック
+			sd->matk1 *= (100 + sd->sc_data[SC_INCMATK2].val1)/100;			
+		}
+		
 		if(sd->sc_data[SC_POISON].timer!=-1)	// 毒?態
 			sd->def2 = sd->def2*75/100;
 		if(sd->sc_data[SC_CURSE].timer!=-1){
@@ -1130,7 +1156,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(sd->sc_data[SC_VOLCANO].timer!=-1 && sd->def_ele==3){	// ボルケ?ノ
 			sd->watk += sd->sc_data[SC_VOLCANO].val3;
 		}
-
+		if(sd->sc_data[SC_INCATK2].timer!=-1) {
+			sd->watk *= (100+sd->sc_data[SC_INCATK2].val1)/100;
+		}
 		if(sd->sc_data[SC_SIGNUMCRUCIS].timer!=-1)
 			sd->def = sd->def * (100 - sd->sc_data[SC_SIGNUMCRUCIS].val2)/100;
 		if(sd->sc_data[SC_ETERNALCHAOS].timer!=-1)	// エタ?ナルカオス
@@ -1214,6 +1242,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->hit += 3*(sd->sc_data[SC_TRUESIGHT].val1);
 		if(sd->sc_data[SC_CONCENTRATION].timer!=-1) //コンセントレ?ション
 			sd->hit += (10*(sd->sc_data[SC_CONCENTRATION].val1));
+		if(sd->sc_data[SC_INCHIT].timer!=-1)
+			sd->hit += sd->sc_data[SC_INCHIT].val1;
+		if(sd->sc_data[SC_INCHIT2].timer!=-1)
+			sd->hit *= (100+sd->sc_data[SC_INCHIT2].val1)/100;
 
 		// 耐性
 		if(sd->sc_data[SC_SIEGFRIED].timer!=-1){  // 不死身のジ?クフリ?ド
@@ -1303,6 +1335,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->flee -= sd->flee*50/100;
 			aspd_rate -= 30;
 			//sd->base_atk *= 3;
+		}
+		if(sd->sc_data[SC_INCDEF2].timer!=-1) {
+			sd->def *= (100+sd->sc_data[SC_INCDEF2].val1)/100;
 		}
 		if(sd->sc_data[SC_KEEPING].timer!=-1)
 			sd->def = 100;
@@ -1736,6 +1771,8 @@ int status_get_max_hp(struct block_list *bl)
 				sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
 				sc_data[SC_GOSPEL].val3 == 4)
 				max_hp += max_hp * 25 / 100;
+			if(sc_data[SC_INCMHP2].timer!=-1)
+				max_hp *= (100+ sc_data[SC_INCMHP2].val1)/100;
 		}
 		if(max_hp < 1) max_hp = 1;
 		return max_hp;
@@ -1777,6 +1814,8 @@ int status_get_str(struct block_list *bl)
 			}
 			if(sc_data[SC_TRUESIGHT].timer!=-1)	// トゥルーサイト
 				str += 5;
+			if(sc_data[SC_INCALLSTATUS].timer!=-1)
+				str += sc_data[SC_INCALLSTATUS].val1;
 		}
 	}
 	if(str < 0) str = 0;
@@ -1821,6 +1860,8 @@ int status_get_agi(struct block_list *bl)
 			}
 			if(sc_data[SC_TRUESIGHT].timer!=-1)	// トゥルーサイト
 				agi += 5;
+			if(sc_data[SC_INCALLSTATUS].timer!=-1)
+				agi += sc_data[SC_INCALLSTATUS].val1;
 		}
 	}
 	if(agi < 0) agi = 0;
@@ -1853,6 +1894,8 @@ int status_get_vit(struct block_list *bl)
 				vit = vit*60/100;
 			if(sc_data[SC_TRUESIGHT].timer!=-1)	// トゥルーサイト
 				vit += 5;
+			if(sc_data[SC_INCALLSTATUS].timer!=-1)
+				vit += sc_data[SC_INCALLSTATUS].val1;
 		}
 	}
 	if(vit < 0) vit = 0;
@@ -1893,6 +1936,8 @@ int status_get_int(struct block_list *bl)
 				int_ = int_*60/100;
 			if(sc_data[SC_TRUESIGHT].timer!=-1)	// トゥルーサイト
 				int_ += 5;
+			if(sc_data[SC_INCALLSTATUS].timer!=-1)
+				int_ += sc_data[SC_INCALLSTATUS].val1;
 		}
 	}
 	if(int_ < 0) int_ = 0;
@@ -1938,6 +1983,8 @@ int status_get_dex(struct block_list *bl)
 			}
 			if(sc_data[SC_TRUESIGHT].timer!=-1)	// トゥルーサイト
 				dex += 5;
+			if(sc_data[SC_INCALLSTATUS].timer!=-1)
+				dex += sc_data[SC_INCALLSTATUS].val1;
 		}
 	}
 	if(dex < 0) dex = 0;
@@ -1972,6 +2019,8 @@ int status_get_luk(struct block_list *bl)
 				luk += 5;
 			if(sc_data[SC_CURSE].timer!=-1)		// 呪い
 				luk = 0;
+			if(sc_data[SC_INCALLSTATUS].timer!=-1)
+				luk += sc_data[SC_INCALLSTATUS].val1;
 		}
 	}
 	if(luk < 0) luk = 0;
@@ -2013,6 +2062,8 @@ int status_get_flee(struct block_list *bl)
 					sc_data[SC_GOSPEL].val3 == 7)
 					flee = 0;
 			}
+			if(sc_data[SC_INCFLEE].timer!=-1)
+				flee *= (100+ sc_data[SC_INCFLEE].val1)/100;
 		}
 	}
 	if(flee < 1) flee = 1;
@@ -2050,6 +2101,8 @@ int status_get_hit(struct block_list *bl)
 				hit += hit*5/100;
 			if(sc_data[SC_EXPLOSIONSPIRITS].timer!=-1)
 				hit += 20*sc_data[SC_EXPLOSIONSPIRITS].val1;
+			if(sc_data[SC_INCHIT].timer!=-1)
+				hit *= (100+ sc_data[SC_INCHIT].val1)/100;
 		}
 	}
 	if(hit < 1) hit = 1;
@@ -2140,6 +2193,8 @@ int status_get_baseatk(struct block_list *bl)
 				batk -= batk*25/100; //base_atkが25%減少
 			if(sc_data[SC_CONCENTRATION].timer!=-1) //コンセントレーション
 				batk += batk*(5*sc_data[SC_CONCENTRATION].val1)/100;
+			if(sc_data[SC_INCATK2].timer!=-1)
+				batk *= (100+ sc_data[SC_INCATK2].val1)/100;
 		}
 	}
 	if(batk < 1) batk = 1; //base_atkは最低でも1
@@ -2186,6 +2241,8 @@ int status_get_atk(struct block_list *bl)
 					sc_data[SC_GOSPEL].val3 == 6)
 					atk = 0;
 			}
+			if(sc_data[SC_INCATK2].timer!=-1)
+				atk *= (100+ sc_data[SC_INCATK2].val1)/100;
 		}
 	}
 	if(atk < 0) atk = 0;
@@ -2280,6 +2337,8 @@ int status_get_matk1(struct block_list *bl)
 		if(sc_data) {
 			if(sc_data[SC_MINDBREAKER].timer!=-1)
 				matk = matk*(100+2*sc_data[SC_MINDBREAKER].val1)/100;
+			if(sc_data[SC_INCMATK2].timer!=-1)
+				matk *= (100+ sc_data[SC_INCMATK2].val1)/100;
 		}
 	}
 	return matk;
@@ -2304,6 +2363,8 @@ int status_get_matk2(struct block_list *bl)
 		if(sc_data) {
 			if(sc_data[SC_MINDBREAKER].timer!=-1)
 				matk = matk*(100+2*sc_data[SC_MINDBREAKER].val1)/100;
+			if(sc_data[SC_INCMATK2].timer!=-1)
+				matk *= (100+ sc_data[SC_INCMATK2].val1)/100;
 		}
 	}
 	return matk;
@@ -2379,6 +2440,8 @@ int status_get_def(struct block_list *bl)
 					else if (sc_data[SC_JOINTBEAT].val2 == 5)
 						def -= def*25/100;
 				}
+				if(sc_data[SC_INCDEF2].timer!=-1)
+					def *= (100+ sc_data[SC_INCDEF2].val1)/100;
 			}
 		}
 		//詠唱中は詠唱時減算率に基づいて減算
@@ -3834,6 +3897,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_PRESERVE:
 			break;
 
+		case SC_DOUBLECAST:
+			break;
+
 		case SC_BLEEDING:
 			{
 				//val4 = 10000;
@@ -3844,6 +3910,16 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 		case SC_SLOWDOWN:
 		case SC_SPEEDUP0:
+		case SC_INCALLSTATUS:
+		case SC_INCHIT:			/* HIT上昇 */
+		case SC_INCFLEE:		/* FLEE上昇 */
+		case SC_INCMHP2:		/* MHP%上昇 */
+		case SC_INCMSP2:		/* MSP%上昇 */
+		case SC_INCATK2:		/* ATK%上昇 */
+		case SC_INCMATK2:
+		case SC_INCHIT2:		/* HIT%上昇 */
+		case SC_INCFLEE2:		/* FLEE%上昇 */
+		case SC_INCDEF2:
 			calc_flag = 1;
 			break;
 
@@ -4089,6 +4165,16 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_EDP:
 			case SC_SLOWDOWN:
 			case SC_SPEEDUP0:
+			case SC_INCALLSTATUS:
+			case SC_INCHIT:
+			case SC_INCFLEE:
+			case SC_INCMHP2:
+			case SC_INCMSP2:
+			case SC_INCATK2:
+			case SC_INCMATK2:
+			case SC_INCHIT2:
+			case SC_INCFLEE2:
+			case SC_INCDEF2:
 			case SC_BATTLEORDERS:
 			case SC_REGENERATION:
 			case SC_GUILDAURA:

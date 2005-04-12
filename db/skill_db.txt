@@ -539,7 +539,7 @@
 479,1,6,16,0,1,5,1,yes,0,0,0,weapon,0	//CR_FULLPROTECTION##
 480,5,6,1,0,0,5,5,no,0,0,0,weapon,0	//PA_SHIELDCHAIN##
 481,0,0,0,0,0,5,0,no,0,0,0,magic,0	//HP_MANARECHARGE##
-482,0,0,0,0,0,0,0,no,0,0,0,none,0	//PF_DOUBLECASTING##
+482,0,6,4,0,1,5,1,no,0,0,0,magic,0	//PF_DOUBLECASTING##
 483,0,0,0,0,0,0,0,no,0,0,0,none,0	//HW_GANBANTEIN##
 484,0,0,0,0,0,0,0,no,0,0,0,none,0	//HW_GRAVITATION##
 485,-2,6,1,0,0,10,1,no,0,0,0,weapon,0	//WS_CARTTERMINATION##	// doesn't show?

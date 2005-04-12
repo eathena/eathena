@@ -585,6 +585,7 @@ int skill_count_target(struct block_list *bl, va_list ap );
 struct skill_unit_group_tickset *skill_unitgrouptickset_search(struct block_list *bl,struct skill_unit_group *sg,int tick);
 int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int tick);
 int skill_unit_effect(struct block_list *bl,va_list ap);
+int skill_castend_delay (struct block_list* src, struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag);
 
 int enchant_eff[5] = { 10, 14, 17, 19, 20 };
 int deluge_eff[5] = { 5, 9, 12, 14, 15 };
@@ -1596,6 +1597,12 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			battle_weapon_attack(bl,dsrc,tick,0x8000|sc_data[SC_AUTOCOUNTER].val1);
 		status_change_end(bl,SC_AUTOCOUNTER,-1);
 	}
+	
+	if ((sc_data = status_get_sc_data(src)) &&
+		sc_data[SC_DOUBLECAST].timer != -1) {
+		if (!(flag & 1))
+			skill_castend_delay (src, bl, skillid, skilllv, tick + dmg.div_*dmg.amotion, flag|1);
+	}
 
 	map_freeblock_unlock();
 
@@ -2095,6 +2102,40 @@ int skill_cleartimerskill(struct block_list *src)
 			}
 		}
 	}
+
+	return 0;
+}
+
+struct castend_delay {
+	struct block_list *src;
+	int target;
+	int id;
+	int lv;
+	int flag;
+};
+int skill_castend_delay_sub (int tid, unsigned int tick, int id, int data)
+{
+	struct castend_delay *dat = (struct castend_delay *)data;
+	struct block_list *target = map_id2bl(dat->target);
+	
+	if (target && dat && map_id2bl(id) == dat->src && target->prev != NULL)
+		skill_castend_damage_id(dat->src, target, dat->id, dat->lv, tick, dat->flag);
+	aFree(dat);
+	return 0;
+}
+int skill_castend_delay (struct block_list* src, struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag)
+{
+	struct castend_delay *dat;
+	nullpo_retr(0, src);
+	nullpo_retr(0, bl);
+
+	dat = (struct castend_delay *)aCalloc(1, sizeof(struct castend_delay));
+	dat->src = src;
+	dat->target = bl->id;
+	dat->id = skillid;
+	dat->lv = skilllv;
+	dat->flag = flag;
+	add_timer (tick, skill_castend_delay_sub, src->id, (int)dat);
 
 	return 0;
 }
@@ -2761,11 +2802,13 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		map_freeblock_unlock();
 		return 1;
 	}
+
 	if(sc_data) {
 		if (sc_data[SC_MAGICPOWER].timer != -1 && skillid != HW_MAGICPOWER)	//マジックパワ?の?果終了
-			status_change_end(src,SC_MAGICPOWER,-1);
+			status_change_end(src,SC_MAGICPOWER,-1);		
 	}
-	map_freeblock_unlock();
+
+	map_freeblock_unlock();	
 
 	return 0;
 }
@@ -3171,6 +3214,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case PA_SACRIFICE:
 	case ASC_EDP:			// [Celest]
 	case CG_MOONLIT:		/* 月明りの泉に落ちる花びら */
+	case PF_DOUBLECASTING:	// [celest]
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
@@ -4646,9 +4690,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case WS_OVERTHRUSTMAX:	// Overthrust Max
-		if (sc_data && sc_data[SC_MAXOVERTHRUST].timer == -1) {
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+		{
+			struct status_change *sc_data = status_get_sc_data(src);
+			if (sc_data && sc_data[SC_MAXOVERTHRUST].timer == -1) {
+				clif_skill_nodamage(src,bl,skillid,skilllv,1);
+				status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+			}
 		}
 		break;
 
@@ -4668,6 +4715,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					if (dstsd) pc_heal(dstsd,0,-dstsd->status.sp);
 					break;
 				case 1:	// matk halved
+					status_change_start(bl,SC_INCMATK2,-50,0,0,0,30000,0);
 					break;
 				case 2:	// all buffs removed
 					{
@@ -4697,6 +4745,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					}
 					break;
 				case 4:	// atk halved
+					status_change_start(bl,SC_INCATK2,-50,0,0,0,30000,0);
 					break;
 				case 5:	// random teleported
 					if (bl->prev != NULL) {
@@ -4724,6 +4773,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					break;
 				case 10:	// 6666 damage, atk matk halved, cursed
 					battle_damage(src, bl, 6666, 0);
+					status_change_start(bl,SC_INCATK2,-50,0,0,0,30000,0);
+					status_change_start(bl,SC_INCMATK2,-50,0,0,0,30000,0);
 					status_change_start(bl,SC_CURSE,skilllv,0,0,0,30000,0);
 					break;
 				case 11:	// 4444 damage
@@ -4733,6 +4784,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					status_change_start(bl,SC_STAN,skilllv,0,0,0,5000,0);
 					break;
 				case 13:	// atk,matk,hit,flee,def reduced
+					status_change_start(bl,SC_INCATK2,-20,0,0,0,30000,0);
+					status_change_start(bl,SC_INCMATK2,-20,0,0,0,30000,0);
+					status_change_start(bl,SC_INCHIT2,-20,0,0,0,30000,0);
+					status_change_start(bl,SC_INCFLEE2,-20,0,0,0,30000,0);
+					status_change_start(bl,SC_INCDEF2,-20,0,0,0,30000,0);
 					break;
 				default:
 					break;			

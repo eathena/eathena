@@ -1,6 +1,7 @@
 
 Date	Added
 04/12
+	* Implemented Double Casting, finished Tarot Card effects [celest]
 	* Overhaul on status changes' numbering -- some statuses will show icons now
 	* Implemented Mana Regeneration, Shield Chain, Plant Cultivation, Cart
 	  Termination, Max Overthrust and Tarot Card [celest]
