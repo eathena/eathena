@@ -1036,7 +1036,17 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case WS_CARTTERMINATION:	// Cart termination
 		if (rand() % 10000 < 5 * skilllv * sc_def_vit)
 			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(WS_CARTTERMINATION,skilllv),0);
-		break;		
+		break;
+
+	case CR_ACIDDEMONSTRATION:
+		if (dstsd) {
+			if (rand() % 100 < skilllv)
+				pc_breakweapon(dstsd);
+			// separate chances?
+			if (rand() % 100 < skilllv)
+				pc_breakarmor(dstsd);
+		}
+		break;
 	}
 
 	if((sd||dstsd) && skillid != MC_CARTREVOLUTION && attack_type&BF_WEAPON){	/* ƒJ?ƒh‚É‚æ‚é’Ç‰Á?‰Ê */
@@ -1598,8 +1608,13 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		status_change_end(bl,SC_AUTOCOUNTER,-1);
 	}
 	
-	if ((sc_data = status_get_sc_data(src)) &&
-		sc_data[SC_DOUBLECAST].timer != -1) {
+	if ((skillid == MG_NAPALMBEAT || skillid == MG_SOULSTRIKE ||
+		skillid == MG_COLDBOLT || skillid == MG_FROSTDIVER ||		
+		skillid == MG_FIREBOLT || skillid == MG_FIREBALL ||
+		skillid == MG_LIGHTNINGBOLT) &&
+		(sc_data = status_get_sc_data(src)) &&
+		sc_data[SC_DOUBLECAST].timer != -1 &&
+		rand() % 100 < 40+10*skilllv) {
 		if (!(flag & 1))
 			skill_castend_delay (src, bl, skillid, skilllv, tick + dmg.div_*dmg.amotion, flag|1);
 	}
@@ -2249,6 +2264,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case CH_CHAINCRUSH:		/* ˜A’Œ•ö? */
 	case CH_PALMSTRIKE:		/* –ÒŒÕd”hŽR */
 	case PA_SHIELDCHAIN:	// Shield Chain
+	case CR_ACIDDEMONSTRATION:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 

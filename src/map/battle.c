@@ -951,6 +951,10 @@ static struct Damage battle_calc_pet_weapon_attack(
 			case WS_CARTTERMINATION:
 				damage = damage * (80000 / (10 * (16 - skill_lv)) )/100;
 				break;
+			case CR_ACIDDEMONSTRATION:
+				div_flag = 1;
+				// damage according to vit and int
+				break;
 			}
 			if (div_flag && div_ > 1) {	// [Skotlex]
 				damage *= div_;
@@ -1467,6 +1471,10 @@ static struct Damage battle_calc_mob_weapon_attack(
 				break;
 			case WS_CARTTERMINATION:
 				damage = damage * (80000 / (10 * (16 - skill_lv)) )/100;
+				break;
+			case CR_ACIDDEMONSTRATION:
+				div_flag = 1;
+				// damage according to vit and int
 				break;
 			}
 			if (div_flag && div_ > 1) {	// [Skotlex]
@@ -2388,6 +2396,10 @@ static struct Damage battle_calc_pc_weapon_attack(
 					damage = ( damage * sd->cart_weight / (10 * (16 - skill_lv)) )/100;
 					damage2 = ( damage2 * sd->cart_weight / (10 * (16 - skill_lv)) )/100;
 				}
+				break;
+			case CR_ACIDDEMONSTRATION:
+				div_flag = 1;
+				// damage according to vit and int
 				break;
 			}
 			if (div_flag && div_ > 1) {	// [Skotlex]

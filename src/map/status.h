@@ -196,8 +196,12 @@ enum {	// struct map_session_data ‚Ì status_change‚Ì”Ô?ƒe?ƒuƒ‹
 	SC_BATTLEORDERS		= 182,	// unsure
 	SC_GUILDAURA		= 183,
 	SC_REGENERATION		= 184,
+	
 	SC_DOUBLECAST		= 186,
+	SC_GRAVITATION		= 187,
 	SC_MAXOVERTHRUST	= 188,
+	SC_LONGING			= 189,
+	SC_WANDHERMOD		= 190,
 	SC_TAROT			= 191,	// unsure
 
 //<-- 192 = gloria

@@ -1,6 +1,9 @@
 
 Date	Added
 04/12
+	* Added checks in event timers from crashing when freeing memory [celest]
+	* Implemented Acid Demonstration, fixed Double Casting [celest]
+	  (10 of 14 skills roughly done)
 	* Implemented Double Casting, finished Tarot Card effects [celest]
 	* Overhaul on status changes' numbering -- some statuses will show icons now
 	* Implemented Mana Regeneration, Shield Chain, Plant Cultivation, Cart
