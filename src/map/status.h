@@ -201,7 +201,7 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_GRAVITATION		= 187,
 	SC_MAXOVERTHRUST	= 188,
 	SC_LONGING			= 189,
-	SC_WANDHERMOD		= 190,
+	SC_HERMODE			= 190,
 	SC_TAROT			= 191,	// unsure
 
 //<-- 192 = gloria
@@ -269,6 +269,7 @@ int status_get_atk_2(struct block_list *bl);
 int status_get_atk2(struct block_list *bl);
 
 int status_isdead(struct block_list *bl);
+int status_isimmune(struct block_list *bl);
 
 int status_get_sc_def(struct block_list *bl, int type);
 #define status_get_sc_def_mdef(bl)	(status_get_sc_def(bl, SP_MDEF1))
@@ -282,6 +283,8 @@ int status_change_end( struct block_list* bl , int type,int tid );
 int status_change_timer(int tid, unsigned int tick, int id, int data);
 int status_change_timer_sub(struct block_list *bl, va_list ap );
 int status_change_clear(struct block_list *bl,int type);
+int status_change_clear_buffs(struct block_list *bl);
+int status_change_clear_debuffs(struct block_list *bl);
 
 // ステータス計算 pc.c から分離
 // pc_calcstatus

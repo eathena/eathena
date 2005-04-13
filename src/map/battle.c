@@ -3244,9 +3244,9 @@ struct Damage battle_calc_magic_attack(
 	if(t_mode&0x40 && damage > 0)
 		damage = 1;
 
-	if(tsd && tsd->special_state.no_magic_damage) {
+	if (tsd && status_isimmune(target)) {
 		if (battle_config.gtb_pvp_only != 0)  { // [MouseJstr]
-			if ((map[target->m].flag.pvp || map[target->m].flag.gvg) && target->type==BL_PC)
+			if (map[target->m].flag.pvp || map[target->m].flag.gvg)
 				damage = (damage * (100 - battle_config.gtb_pvp_only)) / 100;
 		} else damage=0;	// 黄 金蟲カード（魔法ダメージ０）
 	}

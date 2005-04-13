@@ -1,8 +1,9 @@
 
 Date	Added
 04/13
-	* Implemented Gravitation [celest]
-	* Implemented Gambatein [celest]
+	* Implemented Longing for Freedom (roughly), Wand of Hermod, Gravitation and
+	  Gambatein (14 of 14 skills done! Please post any problems, since they're done
+	  mostly in a rush ^^; ) [celest]
 	* Added -1 skill id checks [celest]
 	* Fixed event timers crashing when freeing memory [celest]
 	* Fixed sage enchanting skills using up gems even if it failed [celest]

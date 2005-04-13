@@ -2907,7 +2907,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			
 			if (skilllv > 10)
 				heal = 9999; //9999ヒール
-			if (dstsd && dstsd->special_state.no_magic_damage)
+			if (status_isimmune(bl))
 				heal=0;	/* ?金蟲カ?ド（ヒ?ル量０） */
 			if (sd) {
 				if ((skill = pc_checkskill(sd, HP_MEDITATIO)) > 0) // メディテイティオ
@@ -2974,7 +2974,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case AL_DECAGI:			/* 速度減少 */
-		if (dstsd && dstsd->special_state.no_magic_damage)
+		if (status_isimmune(bl))
 			break;
 		if (rand() % 100 < (50 + skilllv * 3 + (status_get_lv(src) + status_get_int(src) / 5) - sc_def_mdef)) {
 			clif_skill_nodamage (src, bl, skillid, skilllv, 1);
@@ -3004,7 +3004,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			struct status_change *sc_data = status_get_sc_data(bl);
 			clif_skill_nodamage (src, bl, skillid, skilllv, 1);
-			if (dstsd && dstsd->special_state.no_magic_damage)
+			if (status_isimmune(bl))
 				break;
 			if (sc_data && sc_data[SC_DIVINA].timer != -1)
 				status_change_end(bl,SC_DIVINA, -1);
@@ -3041,9 +3041,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case SA_COMA:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if (dstsd) {
-			if (dstsd->special_state.no_magic_damage)
-				break;
+		if (status_isimmune(bl))
+			break;
+		if (dstsd) {			
 			dstsd->status.hp = 1;
 			dstsd->status.sp = 1;
 			clif_updatestatus(dstsd, SP_HP);
@@ -3053,12 +3053,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case SA_FULLRECOVERY:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if (dstsd) {
-			if (dstsd->special_state.no_magic_damage)
-				break;
-			pc_heal (dstsd, dstsd->status.max_hp, dstsd->status.max_sp);
-		}
-		if (dstmd) dstmd->hp = status_get_max_hp(bl);
+		if (status_isimmune(bl))
+			break;
+		if (dstsd) pc_heal (dstsd, dstsd->status.max_hp, dstsd->status.max_sp);
+		else if (dstmd) dstmd->hp = status_get_max_hp(bl);
 		break;
 	case SA_SUMMONMONSTER:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
@@ -3125,7 +3123,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case PR_SUFFRAGIUM:		/* サフラギウム */
 	case PR_BENEDICTIO:		/* 聖?降福 */
 	case CR_PROVIDENCE:		/* プロヴィデンス */
-		if (dstsd && dstsd->special_state.no_magic_damage)
+		if (status_isimmune(bl))
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		else {
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
@@ -3172,7 +3170,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case SA_LIGHTNINGLOADER:
 	case SA_SEISMICWEAPON:
 		if (dstsd) {
-			if (dstsd->special_state.no_magic_damage) {
+			if (status_isimmune(bl)) {
 				clif_skill_nodamage(src,bl,skillid,skilllv,0);
 				break;
 			}
@@ -3213,16 +3211,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case PR_ASPERSIO:		/* アスペルシオ */
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if (dstsd && dstsd->special_state.no_magic_damage)
-			break;
-		if (dstmd)
+		if (status_isimmune(bl) || dstmd)
 			break;
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
 
 	case PR_KYRIE:			/* キリエエレイソン */
 		clif_skill_nodamage(bl,bl,skillid,skilllv,1);
-		if (dstsd && dstsd->special_state.no_magic_damage)
+		if (status_isimmune(bl))
 			break;
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
@@ -3552,7 +3548,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if (sd == NULL || sd->status.party_id == 0 || (flag & 1)) {
 			/* 個別の?理 */
 			clif_skill_nodamage(bl,bl,skillid,skilllv,1);
-			if(dstsd && dstsd->special_state.no_magic_damage)
+			if(status_isimmune(bl))
 				break;
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
 		} else if (sd) {
@@ -3657,6 +3653,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case DC_FORTUNEKISS:		/* 幸運のキス */
 	case DC_SERVICEFORYOU:		/* サ?ビスフォ?ユ? */
 //	case CG_MOONLIT:			/* 月明りの泉に落ちる花びら */
+	case CG_HERMODE:			// Wand of Hermod
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		skill_unitsetting(src,skillid,skilllv,src->x,src->y,0);
 		break;
@@ -3729,7 +3726,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				break;
 			}
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(dstsd && dstsd->special_state.no_magic_damage )
+			if(status_isimmune(bl))
 				break;
 			if (sc_data && sc_data[SC_STONE].timer != -1) {
 				status_change_end(bl,SC_STONE,-1);
@@ -3764,7 +3761,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case AL_CURE:				/* キュア? */
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if(dstsd && dstsd->special_state.no_magic_damage )
+		if(status_isimmune(bl))
 			break;
 		status_change_end(bl, SC_SILENCE	, -1 );
 		status_change_end(bl, SC_BLIND	, -1 );
@@ -3783,7 +3780,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case PR_STRECOVERY:			/* リカバリ? */
 		{
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(dstsd && dstsd->special_state.no_magic_damage)
+			if(status_isimmune(bl))
 				break;
 			status_change_end(bl, SC_FREEZE	, -1 );
 			status_change_end(bl, SC_STONE	, -1 );
@@ -4072,7 +4069,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			int i;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(dstsd && dstsd->special_state.no_magic_damage )
+			if(status_isimmune(bl))
 				break;
 			for(i=0;i<136;i++){
 				if(i==SC_RIDING || i== SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50
@@ -4172,7 +4169,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 	case SA_MAGICROD:
-		if (dstsd && dstsd->special_state.no_magic_damage )
+		if (status_isimmune(bl))
 			break;
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
@@ -4238,7 +4235,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case NPC_HALLUCINATION:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if(dstsd && dstsd->special_state.no_magic_damage )
+		if(status_isimmune(bl))
 			break;
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
@@ -4260,7 +4257,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			int sc_def = 100 - status_get_mdef(bl);
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(dstsd && dstsd->special_state.no_magic_damage )
+			if(status_isimmune(bl))
 				break;
 			if(status_get_elem_type(bl) == 7 || status_get_race(bl) == 6)
 				break;
@@ -4736,6 +4733,17 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
+	case CG_LONGINGFREEDOM:
+		{
+			struct status_change *sc_data = status_get_sc_data(src);
+			if (sc_data && sc_data[SC_LONGING].timer == -1 && sc_data[SC_DANCING].timer != -1 &&
+				skill_get_unit_flag(sc_data[SC_DANCING].val1)&UF_ENSEMBLE) {
+				clif_skill_nodamage(src,bl,skillid,skilllv,1);
+				status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+			}
+		}
+		break;
+
 	case CG_TAROTCARD:
 		{
 			int eff, count = 1;
@@ -4755,24 +4763,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					status_change_start(bl,SC_INCMATK2,-50,0,0,0,30000,0);
 					break;
 				case 2:	// all buffs removed
-					{
-						int i;
-						struct status_change *sc_data = status_get_sc_data(bl);
-						if (!sc_data)
-							break;
-						for (i = 0; i <= 26; i++) {
-							if(sc_data[i].timer != -1)
-								status_change_end(bl,i,-1);
-						}
-						for (i = 37; i <= 42; i++) {
-							if(sc_data[i].timer != -1)
-								status_change_end(bl,i,-1);
-						}
-						for (i = 54; i <= 122; i++) {
-							if(sc_data[i].timer != -1)
-								status_change_end(bl,i,-1);
-						}
-					}
+					status_change_clear_buffs(bl);
 					break;
 				case 3:	// 1000 damage, random armor destroyed
 					{
@@ -5888,7 +5879,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 		break;
 
 	case 0x8e:	/* クァグマイア */
-		if(bl->type==BL_PC && ((struct map_session_data *)bl)->special_state.no_magic_damage )
+		if(status_isimmune(bl))
 			break;
 		if(sc_data && sc_data[type].timer==-1)
 			status_change_start(bl,type,sg->skill_lv,(int)src,0,0,
@@ -5926,6 +5917,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	case 0xad:	/* 私を忘れないで… */
 	case 0xae:	/* 幸運のキス */
 	case 0xaf:	/* サ?ビスフォ?ユ? */
+	case 0xb9:	// Wand of Hermod
 		if (sg->src_id==bl->id)
 			break;
 		if (sc_data && sc_data[type].timer!=-1) {
@@ -6050,7 +6042,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 				int heal = sg->val2;
 				if (status_get_hp(bl) >= status_get_max_hp(bl))
 					break;
-				if (bl->type == BL_PC && ((struct map_session_data *)bl)->special_state.no_magic_damage)
+				if (status_isimmune(bl))
 					heal = 0;	/* 黄金蟲カード（ヒール量０） */
 				clif_skill_nodamage(&src->bl, bl, AL_HEAL, heal, 1);
 				battle_heal(NULL, bl, heal, 0, 0);
@@ -6296,6 +6288,7 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 	case 0xa4:	/* 深淵の中に */
 	case 0xa5:	/* 不死身のジークフリード */
 	case 0xad:	/* 私を忘れないで… */
+	case 0xb9:	// Wand of Hermod
 		if (sc_data[type].timer!=-1 && sc_data[type].val4==(int)src) {
 			status_change_end(bl,type,-1);
 		}
@@ -6627,6 +6620,21 @@ static int skill_check_condition_mob_master_sub(struct block_list *bl,va_list ap
 	return 0;
 }
 
+static int skill_check_condition_hermod_sub(struct block_list *bl,va_list ap)
+{
+	int *c;
+	struct npc_data *nd;
+
+	nullpo_retr(0, bl);
+	nullpo_retr(0, ap);
+	nullpo_retr(0, nd=(struct npc_data*)bl);
+	nullpo_retr(0, c=va_arg(ap,int *));
+
+	if (nd->bl.subtype == WARP)
+		(*c)++;
+	return 0;
+}
+
 /*==========================================
  * スキル使用?件（?で使用失敗）
  *------------------------------------------
@@ -6914,6 +6922,17 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case SA_LIGHTNINGLOADER:
 	case SA_SEISMICWEAPON:
 		delitem_flag = 0;
+		break;
+	case CG_HERMODE:
+		{
+			int c = 0;
+			map_foreachinarea (skill_check_condition_hermod_sub, sd->bl.m,
+				sd->bl.x-3, sd->bl.y-3, sd->bl.x+3, sd->bl.y+3, BL_NPC, &c);
+			if (c < 1) {
+				clif_skill_fail(sd,skill,0,0);
+				return 0;
+			}
+		}
 		break;
 	}
 
@@ -7261,6 +7280,8 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			if (skill_num != BD_ADAPTATION && skill_num != BA_MUSICALSTRIKE && skill_num != DC_THROWARROW)
 				return 0;
 		}
+		if (sc_data[SC_HERMODE].timer != -1)
+			return 0;
 	}
 
 	if (sd->status.option & 4 && skill_num == TF_HIDING)
@@ -7591,6 +7612,8 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 			// otherwise...
 			else return 0;
 		}
+		if (sc_data[SC_HERMODE].timer != -1)
+			return 0;
 	}
 
 	if(sd->status.option & 2)

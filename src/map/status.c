@@ -278,7 +278,9 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	SC_GRAVITATION,
 	-1,
 	SC_MAXOVERTHRUST,
-	-1,-1,-1,
+	SC_LONGING,
+	SC_HERMODE,
+	-1,
 /* 490- */
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 };
@@ -1314,7 +1316,14 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->addeff[4] += sd->sc_data[SC_ENCPOISON].val2;
 
 		if( sd->sc_data[SC_DANCING].timer!=-1 ){		// ‰‰‘t/ƒ_ƒ“ƒXŽg—p’†
-			sd->speed = (short) ((double)sd->speed * (6.- 0.4 * pc_checkskill(sd, ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON))));
+			int s_rate = 600 - 40 * pc_checkskill(sd, ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
+			if (sd->sc_data[SC_LONGING].timer != -1)
+				s_rate -= 20 * sd->sc_data[SC_LONGING].val1;
+			sd->speed = sd->speed * s_rate / 100;
+			// is attack speed affected?
+			//aspd_rate = 600 - 40 * pc_checkskill(sd, ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
+			//if (sd->sc_data[SC_LONGING].timer != -1)
+			//	aspd_rate -= 20 * sd->sc_data[SC_LONGING].val1;
 			//sd->speed*=4;
 			sd->nhealsp = 0;
 			sd->nshealsp = 0;
@@ -1596,7 +1605,10 @@ int status_calc_speed (struct map_session_data *sd)
 			sd->speed = (sd->speed * (155 - sd->sc_data[SC_DEFENDER].val1*5)) / 100;
 		}
 		if( sd->sc_data[SC_DANCING].timer!=-1 ){
-			sd->speed = (int) ((double)sd->speed * (6.- 0.4 * pc_checkskill(sd, ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON))));
+			int s_rate = 600 - 40 * pc_checkskill(sd, ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
+			if (sd->sc_data[SC_LONGING].timer != -1)
+				s_rate -= 20 * sd->sc_data[SC_LONGING].val1;
+			sd->speed = sd->speed * s_rate / 100;			
 		}
 		if(sd->sc_data[SC_CURSE].timer!=-1)
 			sd->speed += 450;
@@ -2963,6 +2975,19 @@ int status_isdead(struct block_list *bl)
 	else
 		return 0;
 }
+int status_isimmune(struct block_list *bl)
+{
+	struct map_session_data *sd = NULL;
+	
+	nullpo_retr(0, bl);
+	if (bl->type == BL_PC && (sd = (struct map_session_data *)bl)) {
+		if (sd->special_state.no_magic_damage)
+			return 1;
+		if (sd->sc_count && sd->sc_data[SC_HERMODE].timer != -1)
+			return 1;
+	}	
+	return 0;
+}
 
 // StatusChangeŒn‚ÌŠ“¾
 struct status_change *status_get_sc_data(struct block_list *bl)
@@ -3810,25 +3835,13 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 		case SC_GOSPEL:
 			if (val4 == BCT_SELF) {	// self effect
-				int i;
 				if (sd) {
 					sd->canact_tick += tick;
 					sd->canmove_tick += tick;
 				}
 				val2 = tick;
 				tick = 1000;
-				for (i=0; i<=26; i++) {
-					if(sc_data[i].timer!=-1)
-						status_change_end(bl,i,-1);
-				}
-				for (i=58; i<=62; i++) {
-					if(sc_data[i].timer!=-1)
-						status_change_end(bl,i,-1);
-				}
-				for (i=132; i<=136; i++) {
-					if(sc_data[i].timer!=-1)
-						status_change_end(bl,i,-1);
-				}
+				status_change_clear_buffs(bl);
 			}
 			break;
 
@@ -3877,6 +3890,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				} else calc_flag = 1;
 			}
 			//val2 = 10+val1*2;
+			break;
+
+		case SC_HERMODE:
+			status_change_clear_buffs(bl);
 			break;
 
 		case SC_BLEEDING:
@@ -4198,6 +4215,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 							d_sc_data[type].val4=0;
 					}
 				}
+				if (sc_data[SC_LONGING].timer!=-1)
+					status_change_end(bl,SC_LONGING,-1);				
 				calc_flag = 1;
 				break;
 			case SC_NOCHAT:	//ƒ`ƒƒƒbƒg‹ÖŽ~?‘Ô
@@ -4690,52 +4709,61 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 
 	case SC_DANCING: //ƒ_ƒ“ƒXƒXƒLƒ‹‚ÌŽžŠÔSPÁ”ï
 		{
-			int s=0;
-			if(sd){
-				if(sd->status.sp > 0 && (--sc_data[type].val3)>0){
-					switch(sc_data[type].val1){
-					case BD_RICHMANKIM:				/* ƒjƒˆƒ‹ƒh‚Ì‰ƒ 3•b‚ÉSP1 */
-					case BD_DRUMBATTLEFIELD:		/* ?‘¾ŒÛ‚Ì‹¿‚« 3•b‚ÉSP1 */
-					case BD_RINGNIBELUNGEN:			/* ƒj?ƒxƒ‹ƒ“ƒO‚ÌŽw—Ö 3•b‚ÉSP1 */
-					case BD_SIEGFRIED:				/* •sŽ€g‚ÌƒW?ƒNƒtƒŠ?ƒh 3•b‚ÉSP1 */
-					case BA_DISSONANCE:				/* •s‹¦˜a‰¹ 3•b‚ÅSP1 */
-					case BA_ASSASSINCROSS:			/* —[—z‚ÌƒAƒTƒVƒ“ƒNƒƒX 3•b‚ÅSP1 */
-					case DC_UGLYDANCE:				/* Ž©•ªŸŽè‚Èƒ_ƒ“ƒX 3•b‚ÅSP1 */
-						s=3;
-						break;
-					case BD_LULLABY:				/* ŽqŽç‰Ì 4•b‚ÉSP1 */
-					case BD_ETERNALCHAOS:			/* ‰i‰“‚Ì¬“× 4•b‚ÉSP1 */
-					case BD_ROKISWEIL:				/* ƒƒL‚Ì‹©‚Ñ 4•b‚ÉSP1 */
-					case DC_FORTUNEKISS:			/* K‰^‚ÌƒLƒX 4•b‚ÅSP1 */
-						s=4;
-						break;
-					case BD_INTOABYSS:				/* [•£‚Ì’†‚É 5•b‚ÉSP1 */
-					case BA_WHISTLE:				/* Œû“J 5•b‚ÅSP1 */
-					case DC_HUMMING:				/* ƒnƒ~ƒ“ƒO 5•b‚ÅSP1 */
-					case BA_POEMBRAGI:				/* ƒuƒ‰ƒM‚ÌŽ 5•b‚ÅSP1 */
-					case DC_SERVICEFORYOU:			/* ƒT?ƒrƒXƒtƒH?ƒ†? 5•b‚ÅSP1 */
-						s=5;
-						break;
-					case BA_APPLEIDUN:				/* ƒCƒhƒDƒ“‚Ì—ÑŒç 6•b‚ÅSP1 */
-						s=6;
-						break;
-					case DC_DONTFORGETME:			/* Ž„‚ð–Y‚ê‚È‚¢‚Åc 10•b‚ÅSP1 */
-					case CG_MOONLIT:				/* ŒŽ–¾‚è‚Ìò‚É—Ž‚¿‚é‰Ô‚Ñ‚ç 10•b‚ÅSP1H */
-						s=10;
-						break;
-					}
-					if(s && ((sc_data[type].val3 % s) == 0)){
-						sd->status.sp--;
-						clif_updatestatus(sd,SP_SP);
-					}
-					sc_data[type].timer=add_timer(	/* ƒ^ƒCƒ}?ÄÝ’è */
-						1000+tick, status_change_timer,
-						bl->id, data);
-					return 0;
+			int s = 0;
+			int sp = 1;
+			if(sd && (--sc_data[type].val3) > 0) {
+				switch(sc_data[type].val1){
+				case BD_RICHMANKIM:				/* ƒjƒˆƒ‹ƒh‚Ì‰ƒ 3•b‚ÉSP1 */
+				case BD_DRUMBATTLEFIELD:		/* ?‘¾ŒÛ‚Ì‹¿‚« 3•b‚ÉSP1 */
+				case BD_RINGNIBELUNGEN:			/* ƒj?ƒxƒ‹ƒ“ƒO‚ÌŽw—Ö 3•b‚ÉSP1 */
+				case BD_SIEGFRIED:				/* •sŽ€g‚ÌƒW?ƒNƒtƒŠ?ƒh 3•b‚ÉSP1 */
+				case BA_DISSONANCE:				/* •s‹¦˜a‰¹ 3•b‚ÅSP1 */
+				case BA_ASSASSINCROSS:			/* —[—z‚ÌƒAƒTƒVƒ“ƒNƒƒX 3•b‚ÅSP1 */
+				case DC_UGLYDANCE:				/* Ž©•ªŸŽè‚Èƒ_ƒ“ƒX 3•b‚ÅSP1 */
+					s=3;
+					break;
+				case BD_LULLABY:				/* ŽqŽç‰Ì 4•b‚ÉSP1 */
+				case BD_ETERNALCHAOS:			/* ‰i‰“‚Ì¬“× 4•b‚ÉSP1 */
+				case BD_ROKISWEIL:				/* ƒƒL‚Ì‹©‚Ñ 4•b‚ÉSP1 */
+				case DC_FORTUNEKISS:			/* K‰^‚ÌƒLƒX 4•b‚ÅSP1 */
+					s=4;
+					break;
+				case BD_INTOABYSS:				/* [•£‚Ì’†‚É 5•b‚ÉSP1 */
+				case BA_WHISTLE:				/* Œû“J 5•b‚ÅSP1 */
+				case DC_HUMMING:				/* ƒnƒ~ƒ“ƒO 5•b‚ÅSP1 */
+				case BA_POEMBRAGI:				/* ƒuƒ‰ƒM‚ÌŽ 5•b‚ÅSP1 */
+				case DC_SERVICEFORYOU:			/* ƒT?ƒrƒXƒtƒH?ƒ†? 5•b‚ÅSP1 */
+				case CG_HERMODE:				// Wand of Hermod
+					s=5;
+					break;
+				case BA_APPLEIDUN:				/* ƒCƒhƒDƒ“‚Ì—ÑŒç 6•b‚ÅSP1 */
+					s=6;
+					break;
+				case DC_DONTFORGETME:			/* Ž„‚ð–Y‚ê‚È‚¢‚Åc 10•b‚ÅSP1 */
+				case CG_MOONLIT:				/* ŒŽ–¾‚è‚Ìò‚É—Ž‚¿‚é‰Ô‚Ñ‚ç 10•b‚ÅSP1H */
+					s=10;
+					break;
 				}
+				if (s && ((sc_data[type].val3 % s) == 0)) {
+					if (sc_data[SC_LONGING].timer != -1 ||
+						sc_data[type].val1 == CG_HERMODE) {
+						sp = s;						
+					}
+					if (sp > sd->status.sp)
+						sp = sd->status.sp;
+					sd->status.sp -= sp;
+					clif_updatestatus(sd,SP_SP);
+					if (sd->status.sp <= 0)
+						break;
+				}
+				sc_data[type].timer=add_timer(	/* ƒ^ƒCƒ}?ÄÝ’è */
+					1000+tick, status_change_timer,
+					bl->id, data);
+				return 0;
 			}
 		}
 		break;
+
 	case SC_BERSERK:		/* ƒo?ƒT?ƒN */
 		if(sd){		/* HP‚ª100ˆÈã‚È‚ç?? */
 			if( (sd->status.hp - sd->status.max_hp*5/100) > 100 ){	// 5% every 10 seconds [DracoRPG]
@@ -4877,14 +4905,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 					}
 					break;
 				case 2: // end negative status
-					{
-						int j;
-						for (j=0; j<4; j++)
-							if(sc_data[i + SC_POISON].timer!=-1) {
-								status_change_end(bl,j,-1);
-								break;
-							}
-					}
+					status_change_clear_debuffs (bl);
 					break;
 				case 3:	// +25% resistance to negative status
 				case 4: // +25% max hp
@@ -5056,6 +5077,55 @@ int status_change_timer_sub(struct block_list *bl, va_list ap )
 	return 0;
 }
 
+int status_change_clear_buffs (struct block_list *bl)
+{
+	int i;
+	struct status_change *sc_data = status_get_sc_data(bl);
+	if (!sc_data)
+		return 0;		
+	for (i = 0; i <= 26; i++) {
+		if(sc_data[i].timer != -1)
+			status_change_end(bl,i,-1);
+	}
+	for (i = 37; i <= 44; i++) {
+		if(sc_data[i].timer != -1)
+			status_change_end(bl,i,-1);
+	}
+	for (i = 46; i <= 73; i++) {
+		if(sc_data[i].timer != -1)
+			status_change_end(bl,i,-1);
+	}
+	for (i = 90; i <= 93; i++) {
+		if(sc_data[i].timer != -1)
+			status_change_end(bl,i,-1);
+	}
+	for (i = 103; i <= 106; i++) {
+		if(sc_data[i].timer != -1)
+			status_change_end(bl,i,-1);
+	}
+	for (i = 109; i <= 132; i++) {
+		if(sc_data[i].timer != -1)
+			status_change_end(bl,i,-1);
+	}
+	for (i = 172; i <= 188; i++) {
+		if(sc_data[i].timer != -1)
+			status_change_end(bl,i,-1);
+	}
+	return 0;
+}
+int status_change_clear_debuffs (struct block_list *bl)
+{
+	int i;
+	struct status_change *sc_data = status_get_sc_data(bl);
+	if (!sc_data)
+		return 0;
+	for (i = SC_STONE; i <= SC_DPOISON; i++) {
+		if(sc_data[i].timer != -1)
+			status_change_end(bl,i,-1);
+	}
+
+	return 0;
+}
 
 static int status_calc_sigma(void)
 {

@@ -793,6 +793,16 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	sd->pvp_point = 0;
 	sd->pvp_timer = -1;
 
+	// 通知
+
+	clif_authok(sd);
+	map_addnickdb(sd);
+	if (map_charid2nick(sd->status.char_id) == NULL)
+		map_addchariddb(sd->status.char_id, sd->status.name);
+
+	//スパノビ用死にカウンタ?のスクリプト??からの?み出しとsdへのセット
+	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
+
 	if ((i = pc_checkskill(sd,RG_PLAGIARISM)) > 0) {
 		sd->cloneskill_id = pc_readglobalreg(sd,"CLONE_SKILL");
 		if (sd->cloneskill_id > 0) {
@@ -804,16 +814,6 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 			clif_skillinfoblock(sd);
 		}
 	}
-
-	// 通知
-
-	clif_authok(sd);
-	map_addnickdb(sd);
-	if (map_charid2nick(sd->status.char_id) == NULL)
-		map_addchariddb(sd->status.char_id, sd->status.name);
-
-	//スパノビ用死にカウンタ?のスクリプト??からの?み出しとsdへのセット
-	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
 
 	// Automated script events
 	if (script_config.event_requires_trigger) {
