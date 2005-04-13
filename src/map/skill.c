@@ -109,7 +109,7 @@ const struct skill_name_db skill_names[] = {
  { BA_WHISTLE, "WHISTLE", "Whistle" } ,
  { BD_ADAPTATION, "ADAPTATION", "Adaption" } ,
  { BD_DRUMBATTLEFIELD, "DRUMBATTLEFIELD", "Drumb_BattleField" } ,
- { BD_ENCORE, "ENCORE", "Encore" } ,
+ { BD_ENCORE, "ENCORE", "Encore" } ,	
  { BD_ETERNALCHAOS, "ETERNALCHAOS", "Eternal_Chaos" } ,
  { BD_INTOABYSS, "INTOABYSS", "Into_the_Abyss" } ,
  { BD_LULLABY, "LULLABY", "Lullaby" } ,
@@ -130,7 +130,7 @@ const struct skill_name_db skill_names[] = {
  { BS_KNUCKLE, "KNUCKLE", "Smith_Knucklebrace" } ,
  { BS_MACE, "MACE", "Smith_Mace" } ,
  { BS_MAXIMIZE, "MAXIMIZE", "Power_Maximize" } ,
- { BS_ORIDEOCON, "ORIDEOCON", "Orideocon_Research" } ,
+ { BS_ORIDEOCON, "ORIDEOCON", "Oridecon_Research" } ,
  { BS_OVERTHRUST, "OVERTHRUST", "Power-Thrust" } ,
  { BS_REPAIRWEAPON, "REPAIRWEAPON", "Weapon_Repair" } ,
  { BS_SKINTEMPER, "SKINTEMPER", "Skin_Tempering" } ,
@@ -141,18 +141,18 @@ const struct skill_name_db skill_names[] = {
  { BS_WEAPONPERFECT, "WEAPONPERFECT", "Weapon_Perfection" } ,
  { BS_WEAPONRESEARCH, "WEAPONRESEARCH", "Weaponry_Research" } ,
  { CG_ARROWVULCAN, "ARROWVULCAN", "Vulcan_Arrow" } ,
- { CG_HERMODE, "HERMODE", "Hermode" } ,
- { CG_LONGINGFREEDOM, "LONGINGFREEDOM", "Longing_Freedom" } ,
+ { CG_HERMODE, "HERMODE", "Wand_of_Hermode" } ,
+ { CG_LONGINGFREEDOM, "LONGINGFREEDOM", "Longing_for_Freedom" } ,
  { CG_MARIONETTE, "MARIONETTE", "Marionette_Control" } ,
  { CG_MOONLIT, "MOONLIT", "Moonlight_Petals" } ,
- { CG_TAROTCARD, "TAROTCARD", "Tarot_Card" } ,
+ { CG_TAROTCARD, "TAROTCARD", "Tarot_Card_of_Fate" } ,
  { CH_CHAINCRUSH, "CHAINCRUSH", "Chain_Crush_Combo" } ,
  { CH_PALMSTRIKE, "PALMSTRIKE", "Palm_Push_Strike" } ,
  { CH_SOULCOLLECT, "SOULCOLLECT", "Collect_Soul" } ,
  { CH_TIGERFIST, "TIGERFIST", "Tiger_Knuckle_Fist" } ,
  { CR_ACIDDEMONSTRATION, "ACIDDEMONSTRATION", "Acid_Demonstration" } ,
  { CR_ALCHEMY, "ALCHEMY", "Alchemy" } ,
- { CR_CULTIVATION, "CULTIVATION", "Cultivation" } ,
+ { CR_CULTIVATION, "CULTIVATION", "Plant_Cultivation" } ,
  { CR_SLIMPITCHER, "SLIMPITCHER", "Slim_Pitcher" } ,
  { CR_FULLPROTECTION, "FULLPROTECTION", "Full_Chemical_Protection" } ,
  { CR_SYNTHESISPOTION, "SYNTHESISPOTION", "Potion_Synthesis" } ,
@@ -180,6 +180,7 @@ const struct skill_name_db skill_names[] = {
  { GD_RESTORE, "RESTORE", "Restore" } ,
  { GD_EMERGENCYCALL, "EMERGENCYCALL", "Emergency_Call" } ,
  { HP_ASSUMPTIO, "ASSUMPTIO", "Assumptio" } ,
+ { HP_BASILICA, "BASILICA", "Basilica" } ,
  { HP_MANARECHARGE, "MANARECHARGE", "Mana_Recharge" } ,
  { HP_MEDITATIO, "MEDITATIO", "Meditation" } ,
  { HT_ANKLESNARE, "ANKLESNARE", "Ankle_Snare" } ,
@@ -5723,7 +5724,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 	case BA_APPLEIDUN:			/* イドゥンの林檎 */
 		if(src->type == BL_PC)
 			val1 = pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON)&0xffff;
-		val2 |= (status_get_vit(src))&0xffff;
+		val2 |= (status_get_vit(src)-status_get_vit(src)%10)&0xffff; // Used modulus to prevent e.g. 42VIT/10*5 gives 21 HP healing bonus instead if 20 [DracoRPG]
 		val3 = 0;//回復用タイムカウンタ(6秒?に1?加)
 		break;
 	case DC_SERVICEFORYOU:		/* サ?ビスフォ?ユ? */

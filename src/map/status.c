@@ -796,7 +796,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		}
 		if(sd->sc_data[SC_GLORIA].timer!=-1)	// グロリア
 			sd->paramb[5]+= 30;
-		if(sd->sc_data[SC_LOUD].timer!=-1 && sd->sc_data[SC_QUAGMIRE].timer == -1)	// ラウドボイス
+		if(sd->sc_data[SC_LOUD].timer!=-1)	// ラウドボイス
 			sd->paramb[0]+= 4;
 		if(sd->sc_data[SC_QUAGMIRE].timer!=-1){	// クァグマイア
 			//int agib = (sd->status.agi+sd->paramb[1]+sd->parame[1])*(sd->sc_data[SC_QUAGMIRE].val1*10)/100;
@@ -1823,7 +1823,7 @@ int status_get_str(struct block_list *bl)
 			str = mob_db[((struct pet_data *)bl)->class_].str;
 
 		if(sc_data) {
-			if(sc_data[SC_LOUD].timer != -1 && sc_data[SC_QUAGMIRE].timer == -1)
+			if(sc_data[SC_LOUD].timer != -1)
 				str += 4;
 			if( sc_data[SC_BLESSING].timer != -1){	// ブレッシング
 				int race = status_get_race(bl);
@@ -3237,7 +3237,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if ((sc_data[SC_QUAGMIRE].timer!=-1 || sc_data[SC_DONTFORGETME].timer!=-1) &&
 		(type==SC_CONCENTRATE || type==SC_INCREASEAGI ||
 		type==SC_TWOHANDQUICKEN || type==SC_SPEARSQUICKEN ||
-		type==SC_ADRENALINE || type==SC_LOUD || type==SC_TRUESIGHT ||
+		type==SC_ADRENALINE || type==SC_TRUESIGHT ||
 		type==SC_WINDWALK || type==SC_CARTBOOST || type==SC_ASSNCROS))
 	return 0;
 
@@ -3394,8 +3394,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				status_change_end(bl,SC_SPEARSQUICKEN,-1);
 			if(sc_data[SC_ADRENALINE].timer!=-1 )
 				status_change_end(bl,SC_ADRENALINE,-1);
-			if(sc_data[SC_LOUD].timer!=-1 )
-				status_change_end(bl,SC_LOUD,-1);
 			if(sc_data[SC_TRUESIGHT].timer!=-1 )	/* トゥル?サイト */
 				status_change_end(bl,SC_TRUESIGHT,-1);
 			if(sc_data[SC_WINDWALK].timer!=-1 )	/* ウインドウォ?ク */

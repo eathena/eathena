@@ -6656,7 +6656,7 @@ static int pc_hpheal(struct map_session_data *sd)
 static int pc_natural_heal_hp(struct map_session_data *sd)
 {
 	int bhp;
-	int inc_num,bonus,skill,hp_flag;
+	int inc_num,bonus,hp_flag;
 
 	nullpo_retr(0, sd);
 
@@ -6735,7 +6735,7 @@ static int pc_natural_heal_hp(struct map_session_data *sd)
 
 	if(sd->sc_count && sd->sc_data[SC_APPLEIDUN].timer!=-1 && sd->sc_data[SC_BERSERK].timer==-1) { // Apple of Idun
 		if(sd->inchealhptick >= 6000 && sd->status.hp < sd->status.max_hp) {
-			bonus = skill*20;
+			bonus = 30 + sd->sc_data[SC_APPLEIDUN].val1 * 5 + sd->sc_data[SC_APPLEIDUN].val2 * 5 + sd->sc_data[SC_APPLEIDUN].val3 / 10 * 5;
 			while(sd->inchealhptick >= 6000) {
 				sd->inchealhptick -= 6000;
 				if(sd->status.hp + bonus <= sd->status.max_hp)

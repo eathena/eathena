@@ -1,6 +1,8 @@
 
 Date	Added
 04/13
+	* Removed Quagmire cancelling Crazy Uproar (Lord Exclamation) [DracoRPG]
+	* Corrected Song of Lutie (Apple of Idun) healing [DracoRPG]
 	* Moved server type info to version.h
 	* Added dumping svn revision or Athena version when saving stacktrace
 	* Added auto disable built-in stacktrace in Cygwin if 'error_start' is already
