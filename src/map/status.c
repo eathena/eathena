@@ -274,7 +274,9 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 /* 480- */
 	-1,-1,
 	SC_DOUBLECAST,
-	-1,-1,-1,
+	-1,
+	SC_GRAVITATION,
+	-1,
 	SC_MAXOVERTHRUST,
 	-1,-1,-1,
 /* 490- */
@@ -1423,6 +1425,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				sd->flee += 10;
 			}
 		}
+		if (sd->sc_data[SC_GRAVITATION].timer != -1) {
+			sd->speed_rate += sd->sc_data[SC_GRAVITATION].val2;
+		}
 	}
 
 	if (sd->speed_rate <= 0)
@@ -1599,6 +1604,8 @@ int status_calc_speed (struct map_session_data *sd)
 			sd->speed = sd->speed*150/100;
 		if(sd->sc_data[SC_SPEEDUP0].timer!=-1)
 			sd->speed -= sd->speed*25/100;
+		if (sd->sc_data[SC_GRAVITATION].timer != -1)
+			sd->speed = sd->speed * (100 + sd->sc_data[SC_GRAVITATION].val2) / 100;
 	}
 
 	if(sd->status.option&2 && (skill = pc_checkskill(sd,RG_TUNNELDRIVE))>0 )
@@ -3862,6 +3869,16 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_DOUBLECAST:
 			break;
 
+		case SC_GRAVITATION:
+			if (sd) {
+				if (val3 == BCT_SELF) {
+					sd->canmove_tick += tick;
+					sd->canact_tick += tick;
+				} else calc_flag = 1;
+			}
+			//val2 = 10+val1*2;
+			break;
+
 		case SC_BLEEDING:
 			{
 				//val4 = 10000;
@@ -4246,6 +4263,19 @@ int status_change_end( struct block_list* bl , int type,int tid )
 							status_change_end(pbl, type2, -1);
 					}
 					calc_flag = 1;
+				}
+				break;
+
+			case SC_GRAVITATION:
+				if (bl->type == BL_PC) {
+					if (sc_data[type].val3 == BCT_SELF) {
+						struct map_session_data *sd = (struct map_session_data *)bl;
+						if (sd) {
+							int tick = gettick();
+							sd->canmove_tick = tick;
+							sd->canact_tick = tick;
+						}
+					} else calc_flag = 1;
 				}
 				break;
 

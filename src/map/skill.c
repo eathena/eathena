@@ -583,7 +583,6 @@ int skill_tree_get_max(int id, int b_class){
 }
 
 /* プロトタイプ */
-//struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,int skilllv,int x,int y,int flag);
 int skill_check_condition( struct map_session_data *sd,int type);
 int skill_castend_damage_id( struct block_list* src, struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag );
 int skill_frostjoke_scream(struct block_list *bl,va_list ap);
@@ -591,6 +590,7 @@ int status_change_timer_sub(struct block_list *bl, va_list ap );
 int skill_attack_area(struct block_list *bl,va_list ap);
 int skill_clear_element_field(struct block_list *bl);
 int skill_landprotector(struct block_list *bl, va_list ap );
+int skill_ganbatein(struct block_list *bl, va_list ap );
 int skill_trap_splash(struct block_list *bl, va_list ap );
 int skill_count_target(struct block_list *bl, va_list ap );
 struct skill_unit_group_tickset *skill_unitgrouptickset_search(struct block_list *bl,struct skill_unit_group *sg,int tick);
@@ -1705,6 +1705,9 @@ static int skill_check_unit_range_sub( struct block_list *bl,va_list ap )
 			return 0;
 	} else if (skillid==HP_BASILICA) {
 		if ((unit_id<0x8f || unit_id>0x99) && unit_id!=0x92 && unit_id!=0x83)
+			return 0;
+	} else if (skillid==HW_GRAVITATION) {
+		if (unit_id!=0xb8)
 			return 0;
 	} else
 		return 0;
@@ -3185,6 +3188,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				break;
 			}
 		}
+		if (sd) {
+			int i = pc_search_inventory (sd, skill_db[skillid].itemid[0]);
+			if(i < 0 || sd->status.inventory[i].amount < skill_db[skillid].amount[0]) {
+				clif_skill_fail(sd,skillid,0,0);
+				break;
+			}
+			pc_delitem(sd, i, skill_db[skillid].amount[0], 0);
+		}
+
 		if(skilllv < 5 && rand()%100 > (60+skilllv*10) ) { //fixed by Lupus (4 -> 5) or else it has 100% success even at lv4
 			if (sd) clif_skill_fail(sd,skillid,0,0);
 			clif_skill_nodamage(src,bl,skillid,skilllv,0);
@@ -4963,6 +4975,8 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	if( sd->bl.prev == NULL ) //prevが無いのはありなの？
 		return 0;
 
+	if (sd->skillid == -1 || sd->skilllv == -1)	// skill has failed after starting casting
+		return 0;
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != tid )	/* タイマIDの確認 */
 		return 0;
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && pc_checkskill(sd,SA_FREECAST) > 0) {
@@ -5081,6 +5095,150 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 			skill_castend_nodamage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
 		break;
 	}
+
+	return 0;
+}
+
+/*---------------------------------------------------------------------------- */
+
+/*==========================================
+ * スキル使用（詠唱完了、場所指定）
+ *------------------------------------------
+ */
+int skill_castend_pos( int tid, unsigned int tick, int id,int data )
+{
+	struct map_session_data* sd=map_id2sd(id)/*,*target_sd=NULL*/;
+	int range,maxcount;
+
+	nullpo_retr(0, sd);
+
+	if( sd->bl.prev == NULL )
+		return 0;
+	if( sd->skilltimer != tid )	/* タイマIDの確認 */
+		return 0;
+	if (sd->skillid == -1 || sd->skilllv == -1)	// skill has failed after starting casting
+		return 0;
+	if(sd->skilltimer != -1 && pc_checkskill(sd,SA_FREECAST) > 0) {
+		sd->speed = sd->prev_speed;
+		clif_updatestatus(sd,SP_SPEED);
+	}
+	sd->skilltimer=-1;
+	if(pc_isdead(sd)) {
+		sd->canact_tick = tick;
+		sd->canmove_tick = tick;
+		sd->skillitem = sd->skillitemlv = -1;
+		return 0;
+	}
+
+	/*case MG_SAFETYWALL:
+			case WZ_FIREPILLAR:
+			case HT_SKIDTRAP:
+			case HT_LANDMINE:
+			case HT_ANKLESNARE:
+			case HT_SHOCKWAVE:
+			case HT_SANDMAN:
+			case HT_FLASHER:
+			case HT_FREEZINGTRAP:
+			case HT_BLASTMINE:
+			case HT_CLAYMORETRAP:
+			case HT_TALKIEBOX:
+			case AL_WARP:
+			case PF_SPIDERWEB:
+			case RG_GRAFFITI:
+				range = 0;
+				break;
+			case AL_PNEUMA:
+				range = 1;
+				break;*/
+	if (!battle_config.pc_skill_reiteration &&
+			skill_get_unit_flag(sd->skillid)&UF_NOREITERATION &&
+			skill_check_unit_range(sd->bl.m,sd->skillx,sd->skilly,sd->skillid,sd->skilllv)) {
+		clif_skill_fail(sd,sd->skillid,0,0);
+		sd->canact_tick = tick;
+		sd->canmove_tick = tick;
+		sd->skillitem = sd->skillitemlv = -1;
+		return 0;
+	}
+	/*case WZ_FIREPILLAR:
+			case HT_SKIDTRAP:
+			case HT_LANDMINE:
+			case HT_ANKLESNARE:
+			case HT_SHOCKWAVE:
+			case HT_SANDMAN:
+			case HT_FLASHER:
+			case HT_FREEZINGTRAP:
+			case HT_BLASTMINE:
+			case HT_CLAYMORETRAP:
+			case HT_TALKIEBOX:
+			case PF_SPIDERWEB:
+			case WZ_ICEWALL:
+				range = 2;
+				break;
+			case AL_WARP:
+				range = 0;
+				break;*/
+	if (battle_config.pc_skill_nofootset &&
+			skill_get_unit_flag(sd->skillid)&UF_NOFOOTSET &&
+			skill_check_unit_range2(&sd->bl,sd->bl.m,sd->skillx,sd->skilly,sd->skillid,sd->skilllv)) {
+		clif_skill_fail(sd,sd->skillid,0,0);
+		sd->canact_tick = tick;
+		sd->canmove_tick = tick;
+		sd->skillitem = sd->skillitemlv = -1;
+		return 0;
+	}
+	if(battle_config.pc_land_skill_limit) {
+		maxcount = skill_get_maxcount(sd->skillid);
+		if(maxcount > 0) {
+			int i,c;
+			for(i=c=0;i<MAX_SKILLUNITGROUP;i++) {
+				if(sd->skillunit[i].alive_count > 0 && sd->skillunit[i].skill_id == sd->skillid)
+					c++;
+			}
+			if(c >= maxcount) {
+				clif_skill_fail(sd,sd->skillid,0,0);
+				sd->canact_tick = tick;
+				sd->canmove_tick = tick;
+				sd->skillitem = sd->skillitemlv = -1;
+				return 0;
+			}
+		}
+	}
+
+	if(sd->skilllv <= 0) return 0;
+	range = skill_get_range(sd->skillid,sd->skilllv);
+	if(range < 0)
+		range = status_get_range(&sd->bl) - (range + 1);
+	range += battle_config.pc_skill_add_range;
+	if(battle_config.skill_out_range_consume) {  // changed to allow casting when target walks out of range [Valaris]
+		if(range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
+			clif_skill_fail(sd,sd->skillid,0,0);
+			sd->canact_tick = tick;
+			sd->canmove_tick = tick;
+			sd->skillitem = sd->skillitemlv = -1;
+			return 0;
+		}
+	}
+	if(!skill_check_condition(sd,1)) {		/* 使用?件チェック */
+		sd->canact_tick = tick;
+		sd->canmove_tick = tick;
+		sd->skillitem = sd->skillitemlv = -1;
+		return 0;
+	}
+	sd->skillitem = sd->skillitemlv = -1;
+	if(battle_config.skill_out_range_consume) {
+		if(range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
+			clif_skill_fail(sd,sd->skillid,0,0);
+			sd->canact_tick = tick;
+			sd->canmove_tick = tick;
+			return 0;
+		}
+	}
+
+	if(battle_config.pc_skill_log)
+		printf("PC %d skill castend skill=%d\n",sd->bl.id,sd->skillid);
+	pc_stop_walking(sd,0);
+
+	skill_castend_pos2(&sd->bl,sd->skillx,sd->skilly,sd->skillid,sd->skilllv,tick,0);
 
 	return 0;
 }
@@ -5313,6 +5471,21 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 						skill_castend_nodamage_id);
 				}
 			}
+		}
+		break;
+
+	case HW_GANBANTEIN:
+		clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
+		map_foreachinarea (skill_ganbatein, src->m, x-1, y-1, x+1, y+1, BL_SKILL);
+		break;
+	
+	case HW_GRAVITATION:
+		{
+			struct skill_unit_group *sg;
+			clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
+			sg = skill_unitsetting(src,skillid,skilllv,x,y,0);	
+			status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,BCT_SELF,(int)sg,
+				skill_get_time(skillid,skilllv),0);
 		}
 		break;
 
@@ -5614,10 +5787,10 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 			val2=group->val2;
 			break;
 		case WZ_ICEWALL:		/* アイスウォ?ル */
-				if(skilllv <= 1)
-					val1 = 500;
-				else
-					val1 = 200 + 200*skilllv;
+			if(skilllv <= 1)
+				val1 = 500;
+			else
+				val1 = 200 + 200*skilllv;
 			break;
 		case RG_GRAFFITI:	/* Graffiti [Valaris] */
 			ux+=(i%5-2);
@@ -5646,9 +5819,9 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 			unit->range=range;
 
 			if (range==0 && active_flag)
-				map_foreachinarea(skill_unit_effect,unit->bl.m
-					,unit->bl.x,unit->bl.y,unit->bl.x,unit->bl.y
-					,0,&unit->bl,gettick(),1);
+				map_foreachinarea(skill_unit_effect,unit->bl.m,
+					unit->bl.x,unit->bl.y,unit->bl.x,unit->bl.y,
+					0,&unit->bl,gettick(),1);
 		}
 	}
 	
@@ -5771,9 +5944,9 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 				struct skill_unit_group *sg2 = (struct skill_unit_group *)sc_data[type].val4;
 				if (sg2 && (sg2 == src->group || DIFF_TICK(sg->tick,sg2->tick)<=0))
 					break;
-			} else
-				status_change_start(bl,type,sg->skill_lv,(int)src,0,0,
-					skill_get_time2(sg->skill_id,sg->skill_lv),0);
+			}
+			status_change_start(bl,type,sg->skill_lv,0,0,(int)sg,
+				skill_get_time2(sg->skill_id,sg->skill_lv),0);
 		} else if (!status_get_mode(bl)&0x20)
 			skill_blown(&src->bl,bl,1);
 		break;
@@ -5788,6 +5961,20 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 				skill_get_time2(sg->skill_id, sg->skill_lv), 0);
 		if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0)
 			skill_additional_effect (ss, bl, sg->skill_id, sg->skill_lv, BF_MISC, tick);
+		break;
+
+	case 0xb8:	// Gravitation
+		if (battle_check_target(&src->bl,bl,BCT_NOENEMY)>0) {
+			if (sc_data && sc_data[type].timer!=-1) {
+				struct skill_unit_group *sg2 = (struct skill_unit_group *)sc_data[type].val4;
+				if (sg2 && (sg2 == src->group || DIFF_TICK(sg->tick,sg2->tick)<=0))
+					break;
+				if (!status_get_mode(bl)&0x20)
+					break;
+			}
+			status_change_start(bl,type,sg->skill_lv,10+sg->skill_lv*2,BCT_ENEMY,(int)sg,
+				skill_get_time2(sg->skill_id,sg->skill_lv),0);
+		}
 		break;
 
 	case 0xb2:				/* あなたを_?いたいです */
@@ -6031,6 +6218,11 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		}
 		break;
 
+	case 0xb8:	// Gravitation
+		if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0)
+			skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);		
+		break;
+
 /*	default:
 		if(battle_config.error_log)
 			printf("skill_unit_onplace: Unknown skill unit id=%d block=%d\n",sg->unit_id,bl->id);
@@ -6128,6 +6320,7 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 		break;		
 
 	case 0xb4:	// Basilica
+	case 0xb8:	// Gravitation
 		if (sc_data[type].timer!=-1 && sc_data[type].val4==(int)sg) {
 			status_change_end(bl,type,-1);
 		}
@@ -6276,149 +6469,6 @@ int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,
 		break;
 	}
 	return damage;
-}
-
-
-/*---------------------------------------------------------------------------- */
-
-/*==========================================
- * スキル使用（詠唱完了、場所指定）
- *------------------------------------------
- */
-int skill_castend_pos( int tid, unsigned int tick, int id,int data )
-{
-	struct map_session_data* sd=map_id2sd(id)/*,*target_sd=NULL*/;
-	int range,maxcount;
-
-	nullpo_retr(0, sd);
-
-	if( sd->bl.prev == NULL )
-		return 0;
-	if( sd->skilltimer != tid )	/* タイマIDの確認 */
-		return 0;
-	if(sd->skilltimer != -1 && pc_checkskill(sd,SA_FREECAST) > 0) {
-		sd->speed = sd->prev_speed;
-		clif_updatestatus(sd,SP_SPEED);
-	}
-	sd->skilltimer=-1;
-	if(pc_isdead(sd)) {
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
-		return 0;
-	}
-
-	/*case MG_SAFETYWALL:
-			case WZ_FIREPILLAR:
-			case HT_SKIDTRAP:
-			case HT_LANDMINE:
-			case HT_ANKLESNARE:
-			case HT_SHOCKWAVE:
-			case HT_SANDMAN:
-			case HT_FLASHER:
-			case HT_FREEZINGTRAP:
-			case HT_BLASTMINE:
-			case HT_CLAYMORETRAP:
-			case HT_TALKIEBOX:
-			case AL_WARP:
-			case PF_SPIDERWEB:
-			case RG_GRAFFITI:
-				range = 0;
-				break;
-			case AL_PNEUMA:
-				range = 1;
-				break;*/
-	if (!battle_config.pc_skill_reiteration &&
-			skill_get_unit_flag(sd->skillid)&UF_NOREITERATION &&
-			skill_check_unit_range(sd->bl.m,sd->skillx,sd->skilly,sd->skillid,sd->skilllv)) {
-		clif_skill_fail(sd,sd->skillid,0,0);
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
-		return 0;
-	}
-	/*case WZ_FIREPILLAR:
-			case HT_SKIDTRAP:
-			case HT_LANDMINE:
-			case HT_ANKLESNARE:
-			case HT_SHOCKWAVE:
-			case HT_SANDMAN:
-			case HT_FLASHER:
-			case HT_FREEZINGTRAP:
-			case HT_BLASTMINE:
-			case HT_CLAYMORETRAP:
-			case HT_TALKIEBOX:
-			case PF_SPIDERWEB:
-			case WZ_ICEWALL:
-				range = 2;
-				break;
-			case AL_WARP:
-				range = 0;
-				break;*/
-	if (battle_config.pc_skill_nofootset &&
-			skill_get_unit_flag(sd->skillid)&UF_NOFOOTSET &&
-			skill_check_unit_range2(&sd->bl,sd->bl.m,sd->skillx,sd->skilly,sd->skillid,sd->skilllv)) {
-		clif_skill_fail(sd,sd->skillid,0,0);
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
-		return 0;
-	}
-	if(battle_config.pc_land_skill_limit) {
-		maxcount = skill_get_maxcount(sd->skillid);
-		if(maxcount > 0) {
-			int i,c;
-			for(i=c=0;i<MAX_SKILLUNITGROUP;i++) {
-				if(sd->skillunit[i].alive_count > 0 && sd->skillunit[i].skill_id == sd->skillid)
-					c++;
-			}
-			if(c >= maxcount) {
-				clif_skill_fail(sd,sd->skillid,0,0);
-				sd->canact_tick = tick;
-				sd->canmove_tick = tick;
-				sd->skillitem = sd->skillitemlv = -1;
-				return 0;
-			}
-		}
-	}
-
-	if(sd->skilllv <= 0) return 0;
-	range = skill_get_range(sd->skillid,sd->skilllv);
-	if(range < 0)
-		range = status_get_range(&sd->bl) - (range + 1);
-	range += battle_config.pc_skill_add_range;
-	if(battle_config.skill_out_range_consume) {  // changed to allow casting when target walks out of range [Valaris]
-		if(range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
-			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			sd->skillitem = sd->skillitemlv = -1;
-			return 0;
-		}
-	}
-	if(!skill_check_condition(sd,1)) {		/* 使用?件チェック */
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
-		return 0;
-	}
-	sd->skillitem = sd->skillitemlv = -1;
-	if(battle_config.skill_out_range_consume) {
-		if(range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
-			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			return 0;
-		}
-	}
-
-	if(battle_config.pc_skill_log)
-		printf("PC %d skill castend skill=%d\n",sd->bl.id,sd->skillid);
-	pc_stop_walking(sd,0);
-
-	skill_castend_pos2(&sd->bl,sd->skillx,sd->skilly,sd->skillid,sd->skilllv,tick,0);
-
-	return 0;
 }
 
 /*==========================================
@@ -6586,6 +6636,8 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	int i,hp,sp,hp_rate,sp_rate,zeny,weapon,state,spiritball,skill,lv,mhp;
 	int	index[10],itemid[10],amount[10];
 	int arrow_flag = 0;
+	int force_gem_flag = 0;
+	int delitem_flag = 1;
 
 	nullpo_retr(0, sd);
 
@@ -6635,14 +6687,15 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			return 0;	/* ?態異常や沈?など */
 		}
 	}
+
 	skill = sd->skillid;
 	lv = sd->skilllv;
-	if(lv <= 0) return 0;
+	if (lv <= 0) return 0;
 	// for the guild skills [celest]
 	if (skill >= 10000 && skill < 10015) skill-= 9500;
-	hp=skill_get_hp(skill, lv);	/* 消費HP */
-	sp=skill_get_sp(skill, lv);	/* 消費SP */
-	if((sd->skillid_old == BD_ENCORE) && skill==sd->skillid_dance)
+	hp = skill_get_hp(skill, lv);	/* 消費HP */
+	sp = skill_get_sp(skill, lv);	/* 消費SP */
+	if((sd->skillid_old == BD_ENCORE) && skill == sd->skillid_dance)
 		sp=sp/2;	//アンコ?ル時はSP消費が半分
 	hp_rate = (lv <= 0)? 0:skill_db[skill].hp_rate[lv-1];
 	sp_rate = (lv <= 0)? 0:skill_db[skill].sp_rate[lv-1];
@@ -6650,8 +6703,8 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	weapon = skill_db[skill].weapon;
 	state = skill_db[skill].state;
 	spiritball = (lv <= 0)? 0:skill_db[skill].spiritball[lv-1];
-	mhp=skill_get_mhp(skill, lv);	/* 消費HP */
-	for(i=0;i<10;i++) {
+	mhp = skill_get_mhp(skill, lv);	/* 消費HP */
+	for(i = 0; i < 10; i++) {
 		itemid[i] = skill_db[skill].itemid[i];
 		amount[i] = skill_db[skill].amount[i];
 	}
@@ -6791,9 +6844,26 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		break;
 	case MG_FIREWALL:		/* ファイア?ウォ?ル */
 	case WZ_QUAGMIRE:
-	case WZ_FIREPILLAR: // celest
 	case PF_FOGWALL:
 		/* ?制限 */
+		if(battle_config.pc_land_skill_limit) {
+			int maxcount = skill_get_maxcount(skill);
+			if(maxcount > 0) {
+				int i,c;
+				for(i=c=0;i<MAX_SKILLUNITGROUP;i++) {
+					if(sd->skillunit[i].alive_count > 0 && sd->skillunit[i].skill_id == skill)
+						c++;
+				}
+				if(c >= maxcount) {
+					clif_skill_fail(sd,skill,0,0);
+					return 0;
+				}
+			}
+		}
+		break;
+	case WZ_FIREPILLAR: // celest
+		if (lv <= 5)	// no gems required at level 1-5
+			itemid[0] = 0;
 		if(battle_config.pc_land_skill_limit) {
 			int maxcount = skill_get_maxcount(skill);
 			if(maxcount > 0) {
@@ -6831,6 +6901,19 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			}
 			arrow_flag = 1;
 		}
+		break;
+	case HW_GANBANTEIN:
+		force_gem_flag = 1;
+		break;
+	case AM_POTIONPITCHER:
+	case CR_SLIMPITCHER:
+	case MG_STONECURSE:
+	case CR_CULTIVATION:
+	case SA_FLAMELAUNCHER:
+	case SA_FROSTWEAPON:
+	case SA_LIGHTNINGLOADER:
+	case SA_SEISMICWEAPON:
+		delitem_flag = 0;
 		break;
 	}
 
@@ -6943,12 +7026,11 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		index[i] = -1;
 		if(itemid[i] <= 0)
 			continue;
-		if(itemid[i] >= 715 && itemid[i] <= 717 && sd->special_state.no_gemstone)
+		if(itemid[i] >= 715 && itemid[i] <= 717 && sd->special_state.no_gemstone && !force_gem_flag)
 			continue;
-		if(((itemid[i] >= 715 && itemid[i] <= 717) || itemid[i] == 1065) && sd->sc_data[SC_INTOABYSS].timer != -1)
+		if(((itemid[i] >= 715 && itemid[i] <= 717) || itemid[i] == 1065)
+			&& sd->sc_data[SC_INTOABYSS].timer != -1 && !force_gem_flag)
 			continue;
-		if(skill == WZ_FIREPILLAR && lv<=5)
-			continue; // no gemstones for 1-5 [Celest]
 		if((skill == AM_POTIONPITCHER ||
 			skill == CR_SLIMPITCHER ||
 			skill == CR_CULTIVATION) && i != x)
@@ -6967,10 +7049,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	if(!(type&1))
 		return 1;
 
-	if(skill != AM_POTIONPITCHER &&
-		skill != CR_SLIMPITCHER &&
-		skill != MG_STONECURSE &&
-		skill != CR_CULTIVATION) {
+	if(delitem_flag) {
 		if(skill == AL_WARP && !(type&2))
 			return 1;
 		for(i=0;i<10;i++) {
@@ -8152,10 +8231,31 @@ int skill_landprotector(struct block_list *bl, va_list ap )
 	if ((unit = (struct skill_unit *)bl) == NULL)
 		return 0;
 
-	if (skillid == SA_LANDPROTECTOR)
+	if (skillid == SA_LANDPROTECTOR || 
+		skillid == HW_GANBANTEIN)
 		skill_delunit(unit);
 	else if (alive && unit->group && unit->group->skill_id == SA_LANDPROTECTOR)
 			(*alive) = 0;
+
+	return 0;
+}
+
+/*==========================================
+ * variation of skill_landprotector
+ *------------------------------------------
+ */
+int skill_ganbatein(struct block_list *bl, va_list ap )
+{
+	struct skill_unit *unit;
+
+	nullpo_retr(0, bl);
+	nullpo_retr(0, ap);
+	if ((unit = (struct skill_unit *)bl) == NULL || unit->group == NULL)
+		return 0;
+
+	if (unit->group->skill_id == SA_LANDPROTECTOR)
+		skill_delunit(unit);
+	else skill_delunitgroup(unit->group);
 
 	return 0;
 }

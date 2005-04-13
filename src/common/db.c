@@ -527,7 +527,7 @@ void* db_erase(struct dbt *table,void* key)
 	if(table->free_lock) {
 		if(table->free_count == table->free_max) {
 			table->free_max += 32;
-			table->free_list = (struct db_free*)realloc(table->free_list,sizeof(struct db_free) * table->free_max);
+			table->free_list = (struct db_free*)aRealloc(table->free_list,sizeof(struct db_free) * table->free_max);
 		}
 		table->free_list[table->free_count].z    = p;
 		table->free_list[table->free_count].root = &table->ht[hash];
@@ -536,11 +536,11 @@ void* db_erase(struct dbt *table,void* key)
 		p->data    = NULL;
 		if(table->cmp == strdb_cmp) {
 			if(table->maxlen) {
-				char *key = (char*)malloc(table->maxlen);
+				char *key = (char*)aMalloc(table->maxlen);
 				memcpy(key,p->key,table->maxlen);
 				p->key = key;
 			} else {
-				p->key = strdup((const char*)p->key);
+				p->key = aStrdup((const char*)p->key);
 			}
 		}
 	} else {

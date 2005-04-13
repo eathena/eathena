@@ -1,5 +1,12 @@
 
 Date	Added
+04/13
+	* Implemented Gravitation [celest]
+	* Implemented Gambatein [celest]
+	* Added -1 skill id checks [celest]
+	* Fixed event timers crashing when freeing memory [celest]
+	* Fixed sage enchanting skills using up gems even if it failed [celest]
+
 04/12
 	*  Fixes and updates [DracoRPG]
 	  - Fixed Cart Boost speed bonus being not removed when the skill ended (missing calc_flag)

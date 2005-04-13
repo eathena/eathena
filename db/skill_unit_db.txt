@@ -13,11 +13,6 @@
 // Notes:
 // ------
 //    0x89,0x8a,0x8b 表示無し
-//    0x9a 炎属性の詠唱みたいなエフェクト
-//    0x9b 水属性の詠唱みたいなエフェクト
-//    0x9c 風属性の詠唱みたいなエフェクト
-//    0x9d 白い小さなエフェクト
-//
 //
 //    u1   u2 lay  r intr target  flag
 //
@@ -69,12 +64,14 @@
 322,0xaa,    ,  3, 0,  -1,friend,0x100	//BA_APPLEIDUN#イドゥンの林檎
 325,0xab,    ,  3, 0,  -1,enemy, 0x100	//DC_UGLYDANCE#自分勝手なダンス
 327,0xac,    ,  3, 0,  -1,friend,0x100	//DC_HUMMING#ハミング
-328,0xad,    ,  3, 0,  -1,enemy, 0x100,0	//DC_DONTFORGETME#私を忘れないで…
-329,0xae,    ,  3, 0,  -1,friend,0x100,0	//DC_FORTUNEKISS#幸運のキス
-330,0xaf,    ,  3, 0,  -1,party, 0x100,0	//DC_SERVICEFORYOU#サービスフォーユー
-336,0xb2,    ,  0,-1,  -1,all,   0x000,0	//WE_CALLPARTNER#あなたに逢いたい
-339,0x86,    , -1, 0, 300,enemy, 0x000,0	//NPC_DARKGRANDCROSS#闇グランドクロス
-362,0xb4,    ,  0, 3, 300,all,   0x000,0	//HP_BASILICA#バジリカ
-369,0xb3,    , -1, 0,10000,all,  0x000,0	//PA_GOSPEL#ゴスペル
-404,0xb6,    , -1, 0,  -1,all,   0x000,0	//PF_FOGWALL#フォグウォール
-405,0xb7,    ,  0, 1,1000,enemy, 0x006,0	//PF_SPIDERWEB#スパイダーウェッブ
+328,0xad,    ,  3, 0,  -1,enemy, 0x100	//DC_DONTFORGETME#私を忘れないで…
+329,0xae,    ,  3, 0,  -1,friend,0x100	//DC_FORTUNEKISS#幸運のキス
+330,0xaf,    ,  3, 0,  -1,party, 0x100	//DC_SERVICEFORYOU#サービスフォーユー
+336,0xb2,    ,  0,-1,  -1,all,   0x000	//WE_CALLPARTNER#あなたに逢いたい
+339,0x86,    , -1, 0, 300,enemy, 0x000	//NPC_DARKGRANDCROSS#闇グランドクロス
+362,0xb4,    ,  0, 3, 300,all,   0x000	//HP_BASILICA#バジリカ
+369,0xb3,    , -1, 0,10000,all,  0x000	//PA_GOSPEL#ゴスペル
+404,0xb6,    , -1, 0,  -1,all,   0x000	//PF_FOGWALL#フォグウォール
+405,0xb7,    ,  0, 1,1000,enemy, 0x006	//PF_SPIDERWEB#スパイダーウェッブ
+484,0xb8,    ,  2, 0,1000,enemy, 0x000	//HW_GRAVITATION
+488,0xb9,    ,  3, 0,  -1,friend,0x100	//CG_HERMODE

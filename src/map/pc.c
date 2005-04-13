@@ -3760,6 +3760,8 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 			return 0;
 		if(sd->sc_data[SC_BLADESTOP].timer != -1)
 			return 0;
+		if(sd->sc_data[SC_GRAVITATION].timer != -1)
+			return 0;
 	}
 
 	//if((opt = status_get_option(bl)) != NULL && *opt&0x46)
@@ -4646,6 +4648,16 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 			if ((--sd->sc_data[SC_ENDURE].val2) < 0) 
 				status_change_end(&sd->bl, SC_ENDURE, -1);
 		} else pc_stop_walking(sd,3);
+
+		if (sd->sc_data[SC_GRAVITATION].timer != -1 &&
+			sd->sc_data[SC_GRAVITATION].val3 == BCT_SELF) {
+			struct skill_unit_group *sg = (struct skill_unit_group *)sd->sc_data[SC_GRAVITATION].val4;
+			if (sg) {
+				skill_delunitgroup(sg);
+				status_change_end(&sd->bl, SC_GRAVITATION, -1);
+			}
+		}
+
 	}
 
 	// ‰‰‘t/ƒ_ƒ“ƒX‚Ì’†?
@@ -5924,7 +5936,7 @@ int pc_addeventtimer(struct map_session_data *sd,int tick,const char *name)
 		if( sd->eventtimer[i]==-1 )
 			break;
 	if(i<MAX_EVENTTIMER){
-		char *evname=strdup(name);
+		char *evname = aStrdup(name);
 		//char *evname=(char *)aMallocA((strlen(name)+1)*sizeof(char));
 		//memcpy(evname,name,(strlen(name)+1));
 		sd->eventtimer[i]=add_timer(gettick()+tick,

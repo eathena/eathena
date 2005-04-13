@@ -2961,17 +2961,15 @@ struct Damage battle_calc_weapon_attack(
 struct Damage battle_calc_magic_attack(
 	struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag)
 	{
-	int mdef1=status_get_mdef(target);
-	int mdef2=status_get_mdef2(target);
-	int matk1,matk2,damage=0,div_=1,blewcount=skill_get_blewcount(skill_num,skill_lv),rdamage = 0;
-	struct Damage md;
-	int aflag;
-	int normalmagic_flag=1;
-	int matk_flag = 1;
-	int ele=0,race=7,size=1,race2=7,t_ele=0,t_race=7,t_mode = 0,cardfix,t_class,i;
-	struct map_session_data *sd=NULL,*tsd=NULL;
+	int mdef1, mdef2, matk1, matk2, damage = 0, div_ = 1, blewcount, rdamage = 0;
+	int ele=0, race=7, size=1, race2=7, t_ele=0, t_race=7, t_mode = 0, cardfix, t_class, i;
+	struct map_session_data *sd = NULL, *tsd = NULL;
 	struct mob_data *tmd = NULL;
-
+	struct Damage md;
+	int aflag;	
+	int normalmagic_flag = 1;
+	int matk_flag = 1;
+	int no_cardfix = 0;
 
 	//return前の処理があるので情報出力部のみ変更
 	if( bl == NULL || target == NULL ){
@@ -2985,12 +2983,15 @@ struct Damage battle_calc_magic_attack(
 		return md;
 	}
 
+	blewcount = skill_get_blewcount(skill_num,skill_lv);
 	matk1=status_get_matk1(bl);
 	matk2=status_get_matk2(bl);
 	ele = skill_get_pl(skill_num);
 	race = status_get_race(bl);
 	size = status_get_size(bl);
 	race2 = status_get_race2(bl);
+	mdef1 = status_get_mdef(target);
+	mdef2 = status_get_mdef2(target);
 	t_ele = status_get_elem_type(target);
 	t_race = status_get_race(target);
 	t_mode = status_get_mode(target);
@@ -3140,6 +3141,11 @@ struct Damage battle_calc_magic_attack(
 			damage = rand()%500 + 500 + skill_lv * status_get_int(bl) * 5;
 			matk_flag = 0; // don't consider matk and matk2
 			break;
+		case HW_GRAVITATION:
+			damage = 200 + skill_lv * 200;
+			normalmagic_flag = 0;
+			no_cardfix = 1;
+			break;
 		}
 	}
 
@@ -3176,7 +3182,7 @@ struct Damage battle_calc_magic_attack(
 			damage=1;
 	}
 
-	if(sd) {
+	if (sd && !no_cardfix) {
 		cardfix=100;
 		cardfix=cardfix*(100+sd->magic_addrace[t_race])/100;
 		cardfix=cardfix*(100+sd->magic_addele[t_ele])/100;
@@ -3196,7 +3202,7 @@ struct Damage battle_calc_magic_attack(
 			damage += damage*sd->skillatk[1]/100;
 	}
 
-	if( tsd ){
+	if (tsd && !no_cardfix) {
 		int s_class = status_get_class(bl);
 		cardfix=100;
 		cardfix=cardfix*(100-tsd->subele[ele])/100;	// 属 性によるダメージ耐性
@@ -3238,13 +3244,12 @@ struct Damage battle_calc_magic_attack(
 	if(t_mode&0x40 && damage > 0)
 		damage = 1;
 
-	if( tsd && tsd->special_state.no_magic_damage) {
-                if (battle_config.gtb_pvp_only != 0)  { // [MouseJstr]
-                    if ((map[target->m].flag.pvp || map[target->m].flag.gvg) && target->type==BL_PC)
-                      damage = (damage * (100 - battle_config.gtb_pvp_only)) / 100;
-                } else
-		    damage=0;	// 黄 金蟲カード（魔法ダメージ０）
-        }
+	if(tsd && tsd->special_state.no_magic_damage) {
+		if (battle_config.gtb_pvp_only != 0)  { // [MouseJstr]
+			if ((map[target->m].flag.pvp || map[target->m].flag.gvg) && target->type==BL_PC)
+				damage = (damage * (100 - battle_config.gtb_pvp_only)) / 100;
+		} else damage=0;	// 黄 金蟲カード（魔法ダメージ０）
+	}
 
 	damage=battle_calc_damage(bl,target,damage,div_,skill_num,skill_lv,aflag);	// 最終修正
 
