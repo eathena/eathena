@@ -8,13 +8,6 @@ extern int runflag;
 extern unsigned long ticks;
 extern char SERVER_TYPE;
 
-enum {
-	SERVER_NONE,
-	SERVER_LOGIN,
-	SERVER_CHAR,
-	SERVER_MAP,
-};
-
 extern const char *get_svn_revision();
 extern int do_init(int,char**);
 extern void set_termfunc(void (*termfunc)(void));

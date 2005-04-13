@@ -8,10 +8,8 @@
 #endif
 #include <signal.h>
 #include <string.h>
-#ifdef DUMPSTACK
-	#ifndef CYGWIN	// HAVE_EXECINFO_H
-		#include <execinfo.h>
-	#endif
+#ifndef CYGWIN	// HAVE_EXECINFO_H
+	#include <execinfo.h>
 #endif
 
 #include "core.h"
@@ -29,7 +27,7 @@
 
 char *argp;
 int runflag = 1;
-char SERVER_TYPE = SERVER_NONE;
+char SERVER_TYPE = ATHENA_SERVER_NONE;
 unsigned long ticks = 0; // by MC Cameri
 char pid_file[256];
 static void (*term_func)(void)=NULL;
@@ -58,19 +56,19 @@ void set_termfunc(void (*termfunc)(void))
 #else
 sigfunc *compat_signal(int signo, sigfunc *func)
 {
-  struct sigaction sact, oact;
+	struct sigaction sact, oact;
 
-  sact.sa_handler = func;
-  sigemptyset(&sact.sa_mask);
-  sact.sa_flags = 0;
+	sact.sa_handler = func;
+	sigemptyset(&sact.sa_mask);
+	sact.sa_flags = 0;
 #ifdef SA_INTERRUPT
-  sact.sa_flags |= SA_INTERRUPT;	/* SunOS */
+	sact.sa_flags |= SA_INTERRUPT;	/* SunOS */
 #endif
 
-  if (sigaction(signo, &sact, &oact) < 0)
-    return (SIG_ERR);
+	if (sigaction(signo, &sact, &oact) < 0)
+		return (SIG_ERR);
 
-  return (oact.sa_handler);
+	return (oact.sa_handler);
 }
 #endif
 
@@ -102,15 +100,12 @@ static void sig_proc(int sn)
  *	Dumps the stack using glibc's backtrace
  *-----------------------------------------
  */
-#ifndef DUMPSTACK
-	#define sig_dump SIG_DFL
-#else	
-	#ifdef CYGWIN
-		#define FOPEN_ freopen
-		extern void cygwin_stackdump();
-	#else
-		#define FOPEN_(fn,m,s) fopen(fn,m)
-	#endif
+#ifdef CYGWIN
+	#define FOPEN_ freopen
+	extern void cygwin_stackdump();
+#else
+	#define FOPEN_(fn,m,s) fopen(fn,m)
+#endif
 extern const char *strsignal(int);
 void sig_dump(int sn)
 {	
@@ -118,12 +113,6 @@ void sig_dump(int sn)
 	char file[256];
 	int no = 0;
 	
-	#ifndef CYGWIN
-		void* array[20];
-		char **stack;
-		size_t size;
-	#endif
-
 	// search for a usable filename
 	do {
 		sprintf (file, "log/%s%04d.stackdump", argp, ++no);
@@ -131,7 +120,18 @@ void sig_dump(int sn)
 	// dump the trace into the file
 
 	if ((fp = FOPEN_(file, "w", stderr)) != NULL) {
-		ShowMessage ("Dumping stack... ");
+		const char *revision;
+	#ifndef CYGWIN
+		void* array[20];
+		char **stack;
+		size_t size;
+	#endif
+
+		ShowMessage ("Dumping stack to '"CL_WHITE"%s"CL_RESET"'... ", file);
+		if ((revision = get_svn_revision()) != NULL)
+			fprintf(fp, "Version: svn%s\n ", revision);
+		else
+			fprintf(fp, "Version: %2d.%02d.%02d mod%02d\n ", ATHENA_MAJOR_VERSION, ATHENA_MINOR_VERSION, ATHENA_REVISION, ATHENA_MOD_VERSION);
 		fprintf(fp, "Exception: %s \n", strsignal(sn));
 		fflush (fp);
 
@@ -156,7 +156,33 @@ void sig_dump(int sn)
 	compat_signal(sn, SIG_DFL);
 	raise(sn);
 }
+
+void init_signals (void)
+{
+#ifndef DUMPSTACK
+	void (*func) = SIG_DFL;
+#else
+	void (*func) = sig_dump;
+#ifdef CYGWIN	// test if dumper is enabled
+	char *buf = getenv ("CYGWIN");
+	if (buf && strstr(buf, "error_start") != NULL)
+		func = SIG_DFL;
 #endif
+#endif
+
+	compat_signal(SIGPIPE, sig_ignore);
+	compat_signal(SIGTERM, sig_proc);
+	compat_signal(SIGINT, sig_proc);
+
+	// Signal to create coredumps by system when necessary (crash)
+	compat_signal(SIGSEGV, func);
+	compat_signal(SIGFPE, func);
+	compat_signal(SIGILL, func);
+	#ifndef _WIN32
+		compat_signal(SIGBUS, func);
+		compat_signal(SIGTRAP, SIG_DFL);
+	#endif	
+}
 
 #ifdef SVNVERSION
 
@@ -290,32 +316,19 @@ int main(int argc,char **argv)
 	else argp = argv[0];
 
 	display_title();
-	
 	do_init_malloc(); // ˆê”ÔÅ‰‚ÉŽÀs‚·‚é•K—v‚ª‚ ‚é
+	init_signals();
 	pid_create();
 	Net_Init();
 	do_socket();
-	
-	compat_signal(SIGPIPE, sig_ignore);
-	compat_signal(SIGTERM,sig_proc);
-	compat_signal(SIGINT,sig_proc);
-
-	// Signal to create coredumps by system when necessary (crash)
-	compat_signal(SIGSEGV, sig_dump);
-	compat_signal(SIGFPE, sig_dump);
-	compat_signal(SIGILL, sig_dump);
-	#ifndef _WIN32
-		compat_signal(SIGBUS, sig_dump);
-		compat_signal(SIGTRAP, SIG_DFL);
-	#endif
 
 	tick_ = time(0);
 	ticks = gettick();
 
 	do_init(argc,argv);
 
-	while(runflag){
-		next=do_timer(gettick_nocache());
+	while (runflag) {
+		next = do_timer(gettick_nocache());
 		do_sendrecv(next);
 #ifndef TURBO
 		do_parsepacket();

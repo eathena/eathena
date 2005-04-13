@@ -3595,7 +3595,7 @@ void do_final(void) {
 int do_init(int argc, char **argv) {
 	int i;
 
-	SERVER_TYPE = SERVER_CHAR;
+	SERVER_TYPE = ATHENA_SERVER_CHAR;
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
 	lan_config_read((argc > 1) ? argv[1] : LOGIN_LAN_CONF_NAME);
 

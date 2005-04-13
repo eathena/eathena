@@ -183,7 +183,7 @@ void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 				if (sd->deal_item_amount[trade_i] == 0) {
 					trade_weight += sd->inventory_data[index-2]->weight * amount;
 					if (itemdb_isdropable(sd->inventory_data[index-2]->nameid) == 0) {
-						clif_tradeitemok(sd, index, 1); // fail to add item -- this item is not allowed
+						clif_displaymessage (sd->fd, "This item cannot be traded.");
 						amount = 0;
 					} else if (target_sd->weight + trade_weight > target_sd->max_weight){
 						clif_tradeitemok(sd, index, 1); // fail to add item -- the player was over weighted.

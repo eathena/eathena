@@ -3261,7 +3261,7 @@ int do_init(int argc, char *argv[]) {
 	FILE *data_conf;
 	char line[1024], w1[1024], w2[1024];
 
-	SERVER_TYPE = SERVER_MAP;
+	SERVER_TYPE = ATHENA_SERVER_MAP;
 #ifdef GCOLLECT
 	GC_enable_incremental();
 #endif

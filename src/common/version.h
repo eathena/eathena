@@ -9,10 +9,11 @@
 #define ATHENA_RELEASE_FLAG		1	// 1=Develop,0=Stable
 #define ATHENA_OFFICIAL_FLAG	1	// 1=Mod,0=Official
 
-#define ATHENA_SERVER_LOGIN		1	// login server
-#define ATHENA_SERVER_CHAR		2	// char server
-#define ATHENA_SERVER_INTER		4	// inter server
-#define ATHENA_SERVER_MAP		8	// map server
+#define ATHENA_SERVER_NONE	0	// not defined
+#define ATHENA_SERVER_LOGIN	1	// login server
+#define ATHENA_SERVER_CHAR	2	// char server
+#define ATHENA_SERVER_INTER	4	// inter server
+#define ATHENA_SERVER_MAP	8	// map server
 
 // ATHENA_MOD_VERSIONはパッチ番号です。
 // これは無理に変えなくても気が向いたら変える程度の扱いで。

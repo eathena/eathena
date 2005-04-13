@@ -1,6 +1,11 @@
 
 Date	Added
 04/13
+	* Moved server type info to version.h
+	* Added dumping svn revision or Athena version when saving stacktrace
+	* Added auto disable built-in stacktrace in Cygwin if 'error_start' is already
+	  set in the environment, thanks to Ser
+	* Display a more appropriate message if items are not allowed in trading
 	* Implemented Longing for Freedom (roughly), Wand of Hermod, Gravitation and
 	  Gambatein (14 of 14 skills done! Please post any problems, since they're done
 	  mostly in a rush ^^; ) [celest]
