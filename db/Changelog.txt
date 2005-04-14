@@ -8,6 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them i believe.
 
+04/15
+	* Added new items, thanx to Landarma [Lupus]
 04/12
 	* Added monsters skills and slaves to all Einbrook monsters, thx4info2 Landarma [Lupus]
 	* fixed Deviling and Lou-Yang monsters drops, thx2 MasterOfMuppets [Lupus]

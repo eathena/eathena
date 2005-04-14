@@ -1029,7 +1029,8 @@
 2641,Fashion_Hip_Sack,Fashion Hip Sack,5,20,0,700,,0,,0,263200,2,136,,50,,{},{ bonus bStr,2; }
 2642,Celines_Ring,Celine's Ring,5,20,0,100,,0,,0,10477567,2,136,,,,{},{}
 2643,Celines_Ring_,Celine's Ring,5,20,0,100,,0,,0,10477567,2,136,,,,{},{}
-2644,The_Sign_,The Sign,5,20,0,0,,0,,0,10477567,2,136,,,,{},{}
+2644,The_Sign_,The Sign,5,20,0,0,,0,,0,10477567,2,136,,,,{},{ bonus bMatkRate,5; }
+
 2645,Moonlight_Ring,Moonlight Ring,5,20,0,200,,0,,0,135232,2,136,,60,,{},{}
 2646,Bouquet,Bunch of Carnations,5,20,0,100,,0,,0,10477567,2,136,,,,{},{ bonus bAllStats,3; }
 
@@ -1886,7 +1887,7 @@
 11005,Alberta_History_Book,Alberta History Book,3,20,0,0,,,,,,,,,,,{},{}
 11006,Payon_History_Book,Payon History Book,3,20,0,0,,,,,,,,,,,{},{}
 11007,History_Book,Unknown Item,3,20,0,0,,,,,,,,,,,{},{}
-11009,History_Book,Unknown Item,3,20,0,0,,,,,,,,,,,{},{}
+11009,History_Book_,Unknown Item,3,20,0,0,,,,,,,,,,,{},{}
 11010,Archer_Village_History_Book,Archer Village History Book,3,20,0,0,,,,,,,,,,,{},{}
 11011,Lutie_History_Book,Lutie History Book,3,20,0,0,,,,,,,,,,,{},{}
 11012,Jawaii_History_Book,Jawaii History Book,3,20,0,0,,,,,,,,,,,{},{}
@@ -1927,4 +1928,7 @@
 
 // 2005
 12019,Sacred_Egg,Sacred Egg,2,20,0,150,,,,,10477567,2,,,,,{},{} //Acts like Yggdra 
-12020,Dark_Water,Dark Water,2,20,0,10,,,,,10477567,2,,,,,{},{}
+12020,Dark_Water,Dark_Water,2,20,0,30,,,,,10477567,2,,,,,{},{}
+//Test Items
+12021,Fatback,Fatback,2,20,0,10,,,,,10477567,2,,,,,{},{}
+12022,Ribs,Ribs,2,20,0,10,,,,,10477567,2,,,,,{},{}
