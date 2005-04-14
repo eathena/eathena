@@ -1050,25 +1050,32 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->nshealsp = skill*3 + (sd->status.max_sp*skill/500);
 		if(sd->nshealsp > 0x7fff) sd->nshealsp = 0x7fff;
 	}
-
 	if((skill = pc_checkskill(sd,MO_SPIRITSRECOVERY)) > 0) {
 		sd->nsshealhp = skill*4 + (sd->status.max_hp*skill/500);
 		sd->nsshealsp = skill*2 + (sd->status.max_sp*skill/500);
 		if(sd->nsshealhp > 0x7fff) sd->nsshealhp = 0x7fff;
 		if(sd->nsshealsp > 0x7fff) sd->nsshealsp = 0x7fff;
 	}
+	if((skill=pc_checkskill(sd,HP_MEDITATIO)) > 0) {
+		// メディテイティオはSPRではなく自然回復にかかる
+		sd->nhealsp += (sd->nhealsp)*3*skill/100;
+		if(sd->nhealsp > 0x7fff) sd->nhealsp = 0x7fff;
+	}
+	/* if((skill=pc_checkskill(sd,HP_MEDITATIO)) > 0) {
+		sd->nhealsp += 3*skill*(sd->status.max_sp)/100;
+		if(sd->nhealsp > 0x7fff) sd->nhealsp = 0x7fff;
+		} Increase natural SP regen instead of colossal SP Recovery effect [DracoRPG]*/
+
 	if(sd->hprecov_rate != 100) {
 		sd->nhealhp = sd->nhealhp*sd->hprecov_rate/100;
 		if(sd->nhealhp < 1) sd->nhealhp = 1;
+		if(sd->nhealhp > 0x7fff) sd->nhealhp = 0x7fff;
 	}
 	if(sd->sprecov_rate != 100) {
 		sd->nhealsp = sd->nhealsp*sd->sprecov_rate/100;
 		if(sd->nhealsp < 1) sd->nhealsp = 1;
-	}
-	/* if((skill=pc_checkskill(sd,HP_MEDITATIO)) > 0) { // f?fffBfefCfefBfI,I'SPR,A*,I',E`,｡ｩZ((c)｡ｮR｢ｶn~.ｩｫ,E',(c),(c),e'
-		sd->nhealsp += 3*skill*(sd->status.max_sp)/100;
 		if(sd->nhealsp > 0x7fff) sd->nhealsp = 0x7fff;
-		} Increase natural SP regen instead of colossal SP Recovery effect [DracoRPG]*/
+	}
 
 	// 種族耐性（これでいいの？ ディバインプロテクションと同じ?理がいるかも）
 	if( (skill=pc_checkskill(sd,SA_DRAGONOLOGY))>0 ){ // ドラゴノロジ?

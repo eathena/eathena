@@ -211,7 +211,8 @@ struct Fame_list {
 	int id;
 	int fame;
 };
-extern struct Fame_list fame_list[10];
+extern struct Fame_list smith_fame_list[10];
+extern struct Fame_list chemist_fame_list[10];
 extern unsigned long fame_update_tick;
 
 int pc_readdb(void);

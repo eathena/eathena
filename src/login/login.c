@@ -212,10 +212,12 @@ int login_log(char *fmt, ...) {
 //-----------------------------------------------------
 
 void add_online_user (int account_id) {
-	int *p;
-	p = (int *)aMalloc(sizeof(int));
-	*p = account_id;
-	numdb_insert(online_db, account_id, p);
+	int *p = (int*)numdb_search(online_db, account_id);
+	if (p == NULL) {
+		p = (int *)aMalloc(sizeof(int));
+		*p = account_id;
+		numdb_insert(online_db, account_id, p);
+	}
 }
 int is_user_online (int account_id) {
 	int *p = (int*)numdb_search(online_db, account_id);
@@ -1126,11 +1128,9 @@ int mmo_auth(struct mmo_account* account, int fd) {
 	}
 	
 	//EXE Version check [Sirius]
-	if(check_client_version == 1 && account->version != 0){
-        		if(account->version != client_version_to_connect){
-        			return 5;
-			}
-	}
+	if (check_client_version == 1 && account->version != 0 &&
+		account->version != client_version_to_connect)
+		return 5;
 	
 	// Strict account search
 	for(i = 0; i < auth_num; i++) {
@@ -1223,6 +1223,10 @@ int mmo_auth(struct mmo_account* account, int fd) {
 			default:
 				return 99; // 99 = ID has been totally erased
 			}
+		}
+
+		if (is_user_online(auth_dat[i].account_id)) {
+			return 3; // Rejected
 		}
 
 		if (auth_dat[i].ban_until_time != 0) { // if account is banned

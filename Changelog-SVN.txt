@@ -1,7 +1,18 @@
-
 Date	Added
 04/14
+	* Allow married couples to exchange normally untradeable rings with each other
+	* Finished adding saving character online/offline for TXT char and login [celest]
+	* Added save guild storage as well when auto saving characters to prevent duping
+	  if the server crashes, by End_of_exam / jA 1064
+	* Moved Meditatio's effect back to status calculation [celest]
+	* Updated the fame list sending between char and map to separate blacksmiths
+	  and alchemists [celest]
+	* Added 'setcell' support in scripts. Usage:
+		[map name]tab[cell type],[x0,y0,x1,y1]
+	* Added REGEN cell (0x20) [celest]
+	* Fixed a memory leak in SQL login [celest]
 	* Made display version on login settable in battle_athena. [Ancyker]
+
 04/13
 	* Removed Quagmire cancelling Crazy Uproar (Lord Exclamation) [DracoRPG]
 	* Corrected Song of Lutie (Apple of Idun) healing [DracoRPG]

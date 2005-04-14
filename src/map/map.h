@@ -672,8 +672,9 @@ enum {
 #define CELL_MASK		0x0f
 #define CELL_NPC		0x80	// NPCセル
 #define CELL_BASILICA	0x40	// BASILICAセル
-#define CELL_MOONLIT	0x100
-#define CELL_REGEN		0x200
+#define CELL_REGEN		0x20
+#define CELL_PEACE
+#define CELL_PCONLY
 /*
  * map_getcell()で使用されるフラグ
  */
@@ -686,12 +687,14 @@ typedef enum {
 	CELL_GETTYPE,		// セルタイプを返す
 	CELL_CHKNPC=0x10,	// タッチタイプのNPC(セルタイプ0x80フラグ)
 	CELL_CHKBASILICA,	// バジリカ(セルタイプ0x40フラグ)
+	CELL_CHKREGEN,		// cells that improve regeneration
 } cell_t;
 // map_setcell()で使用されるフラグ
 enum {
 	CELL_SETNPC=0x10,	// タッチタイプのNPCをセット
 	CELL_SETBASILICA,	// バジリカをセット
 	CELL_CLRBASILICA,	// バジリカをクリア
+	CELL_SETREGEN,		// set regen cell
 };
 
 struct chat_data {

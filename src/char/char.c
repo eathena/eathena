@@ -233,18 +233,38 @@ char * search_character_name(int index) {
 //-------------------------------------------------
 
 void set_char_online(int char_id, int account_id) {
+	//char id not used by TXT
 	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
 	WFIFOW(login_fd,0) = 0x272b;
 	WFIFOL(login_fd,2) = account_id;
 	WFIFOSET(login_fd,6);
+
+	//printf ("set online\n");
 }
 void set_char_offline(int char_id, int account_id) {
+	//char id not used by TXT
     if (login_fd <= 0 || session[login_fd]->eof)
 		return;
 	WFIFOW(login_fd,0) = 0x272c;
 	WFIFOL(login_fd,2) = account_id;
 	WFIFOSET(login_fd,6);
+
+	//printf ("set offline\n");
+}
+void set_all_offline(void) {
+	if (login_fd <= 0 || session[login_fd]->eof)
+		return;
+	/*while some condition {
+		if (login_fd > 0) {
+			printf("send user offline: %d\n",atoi(sql_row[0]));
+			WFIFOW(login_fd,0) = 0x272c;
+			WFIFOL(login_fd,2) = atoi(sql_row[0]);
+			WFIFOSET(login_fd,6);
+		}
+	}*/
+
+	//printf ("set all offline\n");
 }
 
 /*---------------------------------------------------
@@ -1467,6 +1487,8 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	const int offset = 4;
 #endif
 
+	set_char_online(99,sd->account_id);
+
 	found_num = 0;
 	for(i = 0; i < char_num; i++) {
 		if (char_dat[i].account_id == sd->account_id) {
@@ -1715,6 +1737,7 @@ int parse_tologin(int fd) {
 				exit(1);
 			} else {
 				printf("Connected to login-server (connection #%d).\n", fd);
+				set_all_offline();
 				// if no map-server already connected, display a message...
 				for(i = 0; i < MAX_MAP_SERVERS; i++)
 					if (server_fd[i] >= 0 && server[i].map[0][0]) // if map-server online and at least 1 map
@@ -2209,6 +2232,7 @@ int parse_frommap(int fd) {
 				printf("Map-server %d loading complete.\n", id);
 				char_log("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d. Map-server %d loading complete." RETCODE,
 				         id, j, p[0], p[1], p[2], p[3], server[id].port, id);
+				set_all_offline();
 			}
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;
@@ -2271,6 +2295,7 @@ int parse_frommap(int fd) {
 					WFIFOL(fd,4) = RFIFOL(fd,2);
 					WFIFOL(fd,8) = auth_fifo[i].login_id2;
 					WFIFOL(fd,12) = (unsigned long)auth_fifo[i].connect_until_time;
+					set_char_online(auth_fifo[i].char_id, auth_fifo[i].account_id);
 					char_dat[auth_fifo[i].char_pos].sex = auth_fifo[i].sex;
 					memcpy(WFIFOP(fd,16), &char_dat[auth_fifo[i].char_pos], sizeof(struct mmo_charstatus));
 					WFIFOSET(fd, WFIFOW(fd,2));
@@ -2593,6 +2618,12 @@ int parse_frommap(int fd) {
 			RFIFOSKIP(fd,10);
 			break;
 
+		// Reset all chars to offline [Wizputer]
+		case 0x2b18:
+		    set_all_offline();
+			RFIFOSKIP(fd,2);
+			break;
+
 		// Character set online [Wizputer]
 		case 0x2b19:
 			if (RFIFOREST(fd) < 6)
@@ -2607,7 +2638,7 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 2)
 				return 0;
 		{
-			int i, j, k, len = 4;
+			int i, j, k, len = 6;
 			unsigned char buf[32000];
 			//struct mmo_charstatus *dat;
 			//dat = (struct mmo_charstatus *)aCalloc(char_num, sizeof(struct mmo_charstatus *));
@@ -2633,16 +2664,40 @@ int parse_frommap(int fd) {
 
 			// starting to send to map
 			WBUFW(buf,0) = 0x2b1b;
-			// we'll send only 10 characters for now
-			for (i = 0; i < 10 && i < char_num; i++) {
-				//WBUFL(buf, len) = dat[i].account_id;
-				//WBUFL(buf, len+4) = dat[i].fame;
-				WBUFL(buf, len) = char_dat[id[i]].account_id;
-				WBUFL(buf, len+4) = char_dat[id[i]].fame;
-				len += 8;
+			// send first list for blacksmiths
+			for (i = 0, j = 0; i < char_num && j < 10; i++) {
+				if (char_dat[id[i]].class_ == 10 ||
+					char_dat[id[i]].class_ == 4011 ||
+					char_dat[id[i]].class_ == 4033)
+				{
+					//WBUFL(buf, len) = dat[i].account_id;
+					//WBUFL(buf, len+4) = dat[i].fame;
+					WBUFL(buf, len) = char_dat[id[i]].account_id;
+					WBUFL(buf, len+4) = char_dat[id[i]].fame;
+					len += 8;
+					j++;
+				}
+			}
+			// adding blacksmith's list length
+			WBUFW(buf, 4) = len;
+			
+			// adding second list for alchemists
+			for (i = 0, j = 0; i < char_num && j < 10; i++) {
+				if (char_dat[id[i]].class_ == 18 ||
+					char_dat[id[i]].class_ == 4019 ||
+					char_dat[id[i]].class_ == 4041)
+				{
+					//WBUFL(buf, len) = dat[i].account_id;
+					//WBUFL(buf, len+4) = dat[i].fame;
+					WBUFL(buf, len) = char_dat[id[i]].account_id;
+					WBUFL(buf, len+4) = char_dat[id[i]].fame;
+					len += 8;
+					j++;
+				}
 			}
 			// adding packet length			
 			WBUFW(buf, 2) = len;
+			
 			// sending to all maps
 			mapif_sendall(buf, len);
 			// done!
@@ -2728,17 +2783,19 @@ int parse_char(int fd) {
 	struct char_session_data *sd;
 	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
 
+	sd = (struct char_session_data*)session[fd]->session_data;
+
 	if (login_fd < 0)
 		session[fd]->eof = 1;
 	if(session[fd]->eof) { // disconnect any player (already connected to char-server or coming back from map-server) if login-server is diconnected.
 		if (fd == login_fd)
 			login_fd = -1;
+		if (sd != NULL)
+			set_char_offline(99,sd->account_id);
 		close(fd);
 		delete_session(fd);
 		return 0;
 	}
-
-	sd = (struct char_session_data*)session[fd]->session_data;
 
 	while (RFIFOREST(fd) >= 2) {
 		cmd = RFIFOW(fd,0);
@@ -2858,6 +2915,7 @@ int parse_char(int fd) {
 					if (sd->found_char[ch] >= 0 && char_dat[sd->found_char[ch]].char_num == RFIFOB(fd,2))
 						break;
 				if (ch != 9) {
+					set_char_online(char_dat[sd->found_char[ch]].char_id, char_dat[sd->found_char[ch]].account_id);
 					char_log("Character Selected, Account ID: %d, Character Slot: %d, Character Name: %s." RETCODE,
 					         sd->account_id, RFIFOB(fd,2), char_dat[sd->found_char[ch]].name);
 					// searching map server
@@ -3578,6 +3636,7 @@ void do_final(void) {
 
 	mmo_char_sync();
 	inter_save();
+	set_all_offline();
 
 	if(gm_account) aFree(gm_account);
 	if(char_dat) aFree(char_dat);

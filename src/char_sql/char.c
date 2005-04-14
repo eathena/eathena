@@ -2300,16 +2300,17 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 2)
 				return 0;
 		{
-			int len = 4, num = 0;
+			int len = 6, num = 0;
 			unsigned char buf[32000];
 
-			sprintf(tmp_sql, "SELECT `account_id`,`fame` FROM `%s` ORDER BY `fame` DESC", char_db);
+			WBUFW(buf,0) = 0x2b1b;
+			sprintf(tmp_sql, "SELECT `account_id`,`fame` FROM `%s` WHERE `class`='10' OR `class`='4011'"
+				"OR `class`='4033' ORDER BY `fame` DESC", char_db);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				printf("DB server Error (select fame)- %s\n", mysql_error(&mysql_handle));
-			}	
+			}
 			sql_res = mysql_store_result(&mysql_handle);
 			if (sql_res) {
-				WBUFW(buf,0) = 0x2b1b;
 				while((sql_row = mysql_fetch_row(sql_res))) {
 					WBUFL(buf, len) = atoi(sql_row[0]);
 					WBUFL(buf, len+4) = atoi(sql_row[1]);
@@ -2317,11 +2318,30 @@ int parse_frommap(int fd) {
 					if (++num == 10)
 						break;
 				}
-				WBUFW(buf, 2) = len;
-				mapif_sendall(buf, len);
 			}
+   			mysql_free_result(sql_res);
+			WBUFW(buf, 4) = len;
 
-   			mysql_free_result(sql_res);    
+			num = 0;
+			sprintf(tmp_sql, "SELECT `account_id`,`fame` FROM `%s` WHERE `class`='18' OR `class`='4019'"
+				"OR `class`='4041' ORDER BY `fame` DESC", char_db);
+			if (mysql_query(&mysql_handle, tmp_sql)) {
+				printf("DB server Error (select fame)- %s\n", mysql_error(&mysql_handle));
+			}
+			sql_res = mysql_store_result(&mysql_handle);
+			if (sql_res) {
+				while((sql_row = mysql_fetch_row(sql_res))) {
+					WBUFL(buf, len) = atoi(sql_row[0]);
+					WBUFL(buf, len+4) = atoi(sql_row[1]);
+					len += 8;
+					if (++num == 10)
+						break;
+				}
+			}
+			mysql_free_result(sql_res);
+			WBUFW(buf, 2) = len;
+
+			mapif_sendall(buf, len);
 			RFIFOSKIP(fd,2);
 			break;
 		}

@@ -2260,6 +2260,42 @@ static int npc_parse_mapflag(char *w1,char *w2,char *w3,char *w4)
 	return 0;
 }
 
+/*==========================================
+ * Setting up map cells
+ *------------------------------------------
+ */
+static int npc_parse_mapcell(char *w1,char *w2,char *w3,char *w4)
+{
+	int m, cell, x, y, x0, y0, x1, y1;
+	char type[24], mapname[24];
+
+	if (sscanf(w1, "%[^,]", mapname) != 1)
+		return 1;
+
+	m = map_mapname2mapid(mapname);
+	if (m < 0)
+		return 1;
+
+	if (sscanf(w3, "%[^,],%d,%d,%d,%d", type, &x0, &y0, &x1, &y1) < 4) {
+		ShowError("Bad setcell line : %s\n",w3);
+		return 1;
+	}
+	cell = strtol(type,(char **)NULL,0);
+	//printf ("0x%x %d %d %d %d\n", cell, x0, y0, x1, y1);
+
+	if (x0 > x1) { int t = x0; x0 = x1; x1 = t; }
+	if (y0 > y1) { int t = y0; y0 = y1; y1 = t; }
+
+	for (x = x0; x <= x1; x++) {
+		for (y = y0; y <= y1; y++) {
+			map_setcell(m,x,y,cell);
+			//printf ("setcell 0x%x %d %d %d\n", cell, m, x, y);
+		}
+	}
+
+	return 0;
+}
+
 void npc_parsesrcfile(char *name)
 {
 	int m, lines = 0;
@@ -2321,6 +2357,8 @@ void npc_parsesrcfile(char *name)
 			npc_parse_mob(w1,w2,w3,w4);
 		} else if (strcmpi(w2,"mapflag") == 0 && count >= 3) {
 			npc_parse_mapflag(w1,w2,w3,w4);
+		} else if (strcmpi(w2,"setcell") == 0 && count >= 3) {
+			npc_parse_mapcell(w1,w2,w3,w4);
 		}
 	}
 	fclose(fp);

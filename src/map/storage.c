@@ -589,6 +589,18 @@ int storage_guild_storagegettocart(struct map_session_data *sd,int index,int amo
 	return 0;
 }
 
+int storage_guild_storagesave(struct map_session_data *sd)
+{
+	struct guild_storage *stor;
+
+	nullpo_retr(0, sd);
+
+	if((stor=guild2storage(sd->status.guild_id)) != NULL) {
+		intif_send_guild_storage(sd->status.account_id,stor);
+	}
+	return 0;
+}
+
 int storage_guild_storageclose(struct map_session_data *sd)
 {
 	struct guild_storage *stor;

@@ -914,25 +914,42 @@ int chrif_reqfamelist(void)
 }
 int chrif_recvfamelist(int fd)
 {
-	int i, num = 0, id, fame;
-	int count = RFIFOW(fd,2);
+	int i, num, id, fame, count;
+	int total = 0;
 
 	// response from 0x2b1b
-	memset (fame_list, 0, sizeof(fame_list));
-	for (i = 4; i < count; i = i + 8) {
-		if ((id = RFIFOL(fd,i)) <= 0 ||
-			(fame = RFIFOL(fd,i+4)) <= 0)
-			break;
-		fame_list[num].id = id;
-		fame_list[num].fame = fame;
-		//printf("received id: %d fame:%d\n", id, fame);
+	memset (smith_fame_list, 0, sizeof(smith_fame_list));
+	memset (chemist_fame_list, 0, sizeof(chemist_fame_list));
+
+	count = RFIFOW(fd,4);
+	for (i = 6, num = 0; i < count; i = i + 8) {
+		if ((id = RFIFOL(fd,i)) > 0 && (fame = RFIFOL(fd,i+4)) > 0) {
+			smith_fame_list[num].id = id;
+			smith_fame_list[num].fame = fame;
+			//printf("received id: %d fame:%d\n", id, fame);
+		}
 		// in case the char server sends too long
 		if (++num == 10)
 			break;
 	}
+	total += num;
+
+	count = RFIFOW(fd,2);
+	for (num = 0; i < count; i = i + 8) {
+		if ((id = RFIFOL(fd,i)) > 0 && (fame = RFIFOL(fd,i+4)) > 0) {
+			chemist_fame_list[num].id = id;
+			chemist_fame_list[num].fame = fame;
+			//printf("received id: %d fame:%d\n", id, fame);
+		}
+		// in case the char server sends too long
+		if (++num == 10)
+			break;
+	}
+	total += num;
+
 	fame_update_tick = gettick();
 
-	ShowInfo("Receiving Fame List of '"CL_WHITE"%d"CL_RESET"' characters.\n", num);
+	ShowInfo("Receiving Fame List of '"CL_WHITE"%d"CL_RESET"' characters.\n", total);
 
 	return 0;
 }

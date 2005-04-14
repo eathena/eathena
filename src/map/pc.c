@@ -59,7 +59,8 @@ static int diry[8]={1,1,0,-1,-1,-1,0,1};
 
 #define UPDATE_FAME_INTERVAL 3600000
 #define CHECK_FAME_INTERVAL 600000
-struct Fame_list fame_list[10];
+struct Fame_list smith_fame_list[10];
+struct Fame_list chemist_fame_list[10];
 unsigned long fame_update_tick = -1;
 
 static unsigned int equip_pos[11]={0x0080,0x0008,0x0040,0x0004,0x0001,0x0200,0x0100,0x0010,0x0020,0x0002,0x8000};
@@ -6596,29 +6597,33 @@ int pc_update_famelist(int tid,unsigned int tick,int id,int data)
 static int natural_heal_tick,natural_heal_prev_tick,natural_heal_diff_tick;
 static int pc_spheal(struct map_session_data *sd)
 {
-	int a, skill;
-	struct guild_castle *gc = NULL;
-
+	int a = natural_heal_diff_tick;
+	
 	nullpo_retr(0, sd);
-
-	a = natural_heal_diff_tick;
-	if(pc_issit(sd)) a += a;
+	
+	if(pc_issit(sd))
+		a += a;
 	if (sd->sc_count) {
 		if (sd->sc_data[SC_MAGNIFICAT].timer!=-1)	// マグニフィカ?ト
 			a += a;
 		if (sd->sc_data[SC_REGENERATION].timer != -1)
 			a *= sd->sc_data[SC_REGENERATION].val1;
 	}
-	if((skill = pc_checkskill(sd,HP_MEDITATIO)) > 0) //Increase natural SP regen with Meditatio [DracoRPG]
-		a += a*skill*3/100;
+	// Re-added back to status_calc
+	//if((skill = pc_checkskill(sd,HP_MEDITATIO)) > 0) //Increase natural SP regen with Meditatio [DracoRPG]
+		//a += a*skill*3/100;
+	
+	if (sd->status.guild_id > 0) {
+		struct guild_castle *gc = guild_mapname2gc(sd->mapname);	// Increased guild castle regen [Valaris]
+		if(gc)	{
+			struct guild *g = guild_search(sd->status.guild_id);
+			if(g && g->guild_id == gc->guild_id)
+				a += a;
+		}	// end addition [Valaris]
+	}
 
-	gc=guild_mapname2gc(sd->mapname);	// Increased guild castle regen [Valaris]
-	if(gc)	{
-		struct guild *g;
-		g=guild_search(sd->status.guild_id);
-		if(g && g->guild_id == gc->guild_id)
-			a += a;
-	}	// end addition [Valaris]
+	if (map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKREGEN))
+		a += a;
 
 	return a;
 }
@@ -6629,26 +6634,29 @@ static int pc_spheal(struct map_session_data *sd)
  */
 static int pc_hpheal(struct map_session_data *sd)
 {
-	int a;
-	struct guild_castle *gc;
+	int a = natural_heal_diff_tick;
 
 	nullpo_retr(0, sd);
 
-	a = natural_heal_diff_tick;
-	if(pc_issit(sd)) a += a;
+	if(pc_issit(sd))
+		a += a;
 	if (sd->sc_count) {
-		if( sd->sc_data[SC_MAGNIFICAT].timer!=-1 )	// Modified by RoVeRT
+		if (sd->sc_data[SC_MAGNIFICAT].timer != -1)	// Modified by RoVeRT
 			a += a;
 		if (sd->sc_data[SC_REGENERATION].timer != -1)
 			a *= sd->sc_data[SC_REGENERATION].val1;
 	}
-	gc=guild_mapname2gc(sd->mapname);	// Increased guild castle regen [Valaris]
-	if(gc)	{
-		struct guild *g;
-		g=guild_search(sd->status.guild_id);
-		if(g && g->guild_id == gc->guild_id)
-			a += a;
-	}	// end addition [Valaris]
+	if (sd->status.guild_id > 0) {
+		struct guild_castle *gc = guild_mapname2gc(sd->mapname);	// Increased guild castle regen [Valaris]
+		if(gc)	{
+			struct guild *g = guild_search(sd->status.guild_id);
+			if(g && g->guild_id == gc->guild_id)
+				a += a;
+		}	// end addition [Valaris]
+	}
+
+	if (map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKREGEN))
+		a += a;
 
 	return a;
 }
@@ -7027,6 +7035,8 @@ static int pc_autosave_sub(struct map_session_data *sd,va_list ap)
 		pc_makesavestatus(sd);
 		chrif_save(sd);
 		storage_storage_save(sd);
+		if(sd->state.storage_flag)
+			storage_guild_storagesave(sd);
 
 		save_flag=1;
 		last_save_fd = sd->fd;
@@ -7371,7 +7381,7 @@ int do_init_pc(void) {
 	add_timer(gettick() + autosave_interval, pc_autosave, 0, 0);
 
 	add_timer_func_list(pc_update_famelist, "pc_update_famelist");
-	add_timer_interval(gettick() + 1000, pc_update_famelist, 0, 0, CHECK_FAME_INTERVAL);
+	add_timer_interval(gettick() + 10000, pc_update_famelist, 0, 0, CHECK_FAME_INTERVAL);
 
 #ifndef TXT_ONLY
 	pc_read_gm_account(0);

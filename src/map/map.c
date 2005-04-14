@@ -102,10 +102,10 @@ int read_gm_interval = 600000;
 
 char char_db[32] = "char";
 
+#endif /* not TXT_ONLY */
+
 static int online_timer(int,unsigned int,int,int);
 int CHECK_INTERVAL = 3600000; // [Valaris]
-
-#endif /* not TXT_ONLY */
 
 char *INTER_CONF_NAME;
 char *LOG_CONF_NAME;
@@ -1907,6 +1907,8 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 			return (type&CELL_NPC);
 		case CELL_CHKBASILICA:
 			return (type&CELL_BASILICA);
+		case CELL_CHKREGEN:
+			return (type&CELL_REGEN);
 		default:
 			return 0;
 	}
@@ -1932,6 +1934,9 @@ void map_setcell(int m,int x,int y,int cell)
 			break;
 		case CELL_CLRBASILICA:
 			map[m].gat[j] &= ~CELL_BASILICA;
+			break;
+		case CELL_SETREGEN:
+			map[m].gat[j] |= CELL_REGEN;
 			break;
 		default:
 			map[m].gat[j] = (map[m].gat[j]&~CELL_MASK) + cell;
@@ -3067,12 +3072,8 @@ int log_sql_init(void){
 
 	return 0;
 }
+#endif /* not TXT_ONLY */
 
-int online_timer (int tid,unsigned int tick,int id,int data)
-{
-	char_online_check();
-	return 0;
-}
 void char_online_check(void)
 {
 	int i;
@@ -3087,7 +3088,11 @@ void char_online_check(void)
 				 chrif_char_online(sd);
 	}
 }
-#endif /* not TXT_ONLY */
+int online_timer (int tid,unsigned int tick,int id,int data)
+{
+	char_online_check();
+	return 0;
+}
 
 //-----------------------------------------------------
 //I'm Alive Alert
@@ -3381,10 +3386,9 @@ int do_init(int argc, char *argv[]) {
 	if (imalive_on)
 		add_timer_interval(gettick()+10, imalive_timer,0,0,imalive_time*1000);
 
-#ifndef TXT_ONLY // online status timer, checks every hour [Valaris]
+	// online status timer, checks every hour [Valaris]
 	add_timer_func_list(online_timer, "online_timer");
-	add_timer_interval(gettick()+10, online_timer, 0, 0, CHECK_INTERVAL);	
-#endif /* not TXT_ONLY */
+	add_timer_interval(gettick()+1000, online_timer, 0, 0, CHECK_INTERVAL);	
 
 	do_init_chrif();
 	do_init_clif();
