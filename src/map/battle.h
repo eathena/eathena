@@ -315,6 +315,7 @@ extern struct Battle_Config {
 	int idle_no_share;
 	int delay_battle_damage;
 	int display_version;
+	int who_display_aid;
 
 #ifndef TXT_ONLY /* SQL-only options */
 	int mail_system; // [Valaris]
