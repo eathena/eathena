@@ -9,6 +9,7 @@
 	Skill databases == celest working on them i believe.
 
 04/15
+	* Removed Raid not allowed in GvG (never seen it anywhere...) [DracoRPG]
 	* Added new items, thanx to Landarma [Lupus]
 04/12
 	* Added monsters skills and slaves to all Einbrook monsters, thx4info2 Landarma [Lupus]
