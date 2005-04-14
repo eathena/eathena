@@ -53,6 +53,7 @@ um_fild01.gat	mapflag	nomemo
 um_fild02.gat	mapflag	nomemo
 um_fild03.gat	mapflag	nomemo
 xmas_in.gat	mapflag	nomemo
+valkyrie.gat	mapflag	nomemo
 yuno_fild02.gat	mapflag	nomemo
 yuno_in01.gat	mapflag	nomemo
 yuno_in02.gat	mapflag	nomemo
