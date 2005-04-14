@@ -373,6 +373,10 @@ int make_listen_bind(long ip,int port)
 	memset(session[fd],0,sizeof(*session[fd]));
 	session[fd]->func_recv = connect_client;
 
+
+	ShowStatus("Open listen port on %d.%d.%d.%d:%i\n",
+		(ip)&0xFF,(ip>>8)&0xFF,(ip>>16)&0xFF,(ip>>24)&0xFF,port);
+
 	return fd;
 }
 
@@ -448,7 +452,12 @@ int make_connection(long ip,int port)
         result = fcntl(fd, F_SETFL, O_NONBLOCK);
 #endif
 
+	ShowStatus("Connecting to %d.%d.%d.%d:%i\n",
+		(ip)&0xFF,(ip>>8)&0xFF,(ip>>16)&0xFF,(ip>>24)&0xFF,port);
+
 	result = connect(fd, (struct sockaddr *)(&server_address),sizeof(struct sockaddr_in));
+
+	// cool, what do you do if connect fails (result<0)?
 
 	FD_SET(fd,&readfds);
 
