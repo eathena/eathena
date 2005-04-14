@@ -314,6 +314,7 @@ extern struct Battle_Config {
 	int require_glory_guild;
 	int idle_no_share;
 	int delay_battle_damage;
+	int display_version;
 
 #ifndef TXT_ONLY /* SQL-only options */
 	int mail_system; // [Valaris]

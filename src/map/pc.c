@@ -866,7 +866,7 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 
 	{
 		char buf[256];
-		sprintf(buf, "eAthena SVN version: %s", get_svn_revision());
+		if (battle_config.display_version == 1) { sprintf(buf, "eAthena SVN version: %s", get_svn_revision()); }
 		clif_displaymessage(sd->fd, buf);
 	}
 

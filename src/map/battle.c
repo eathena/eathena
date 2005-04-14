@@ -4269,6 +4269,7 @@ static const struct {
 	{ "require_glory_guild",    &battle_config.require_glory_guild}, // [celest]
 	{ "idle_no_share",			&battle_config.idle_no_share}, // [celest], for a feature by [MouseJstr]
 	{ "delay_battle_damage",	&battle_config.delay_battle_damage}, // [celest]
+	{ "display_version",	&battle_config.display_version}, // [Ancyker], for a feature by...?
 
 //SQL-only options start
 #ifndef TXT_ONLY
@@ -4519,6 +4520,7 @@ void battle_set_defaults() {
 	battle_config.require_glory_guild = 0;
 	battle_config.idle_no_share = 0;
 	battle_config.delay_battle_damage = 1;
+	battle_config.display_version = 1;
 
 //SQL-only options start
 #ifndef TXT_ONLY

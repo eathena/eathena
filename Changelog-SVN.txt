@@ -1,5 +1,7 @@
 
 Date	Added
+04/14
+	* Made display version on login settable in battle_athena. [Ancyker]
 04/13
 	* Removed Quagmire cancelling Crazy Uproar (Lord Exclamation) [DracoRPG]
 	* Corrected Song of Lutie (Apple of Idun) healing [DracoRPG]
