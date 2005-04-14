@@ -1030,7 +1030,7 @@ yuno.gat,227,292,4	script	Yuno Soldier	105,{
 			mes "Welcome to City of scholars where wisdom exists, Yuno.";
 			next;
 			mes "[Yuno Soldier]";
-			mes "Around the City of Juno, there is fallen angel that fakes himself as the real angel, named 'Fake Angel'.";
+			mes "Around the City of Yuno, there is fallen angel that fakes himself as the real angel, named 'Fake Angel'.";
 			next;
 			mes "[Yuno Soldier]";
 			mes "This one fakes itself as the real angel, and acts as if it's blessing travelers, and attacks them.";
@@ -1114,7 +1114,7 @@ yuno.gat,227,292,4	script	Yuno Soldier	105,{
          mes "Welcome to City of scholars where wisdom exists, Yuno."; 
          next; 
          mes "[Yuno Soldier]"; 
-         mes "Around the City of Juno, there is fallen angel that fakes himself as the real angel, named 'Fake Angel'."; 
+         mes "Around the City of Yuno, there is fallen angel that fakes himself as the real angel, named 'Fake Angel'."; 
          next; 
          mes "[Yuno Soldier]"; 
          mes "This one fakes itself as the real angel, and acts as if it's blessing travelers, and attacks them."; 

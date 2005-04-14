@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena RC4
 //===== Description: ========================================= 
@@ -19,6 +19,7 @@
 //= without controls.  Changed the doevent that triggers him to an
 //= addtimer and that seemed make the prob. go away[kobra_k88]
 //= 1.2 Fixed WRONG skillpoint check! [Lupus]
+//= 1.3 Fixed missing commands and typos [Lupus]
 //============================================================ 
 
 
@@ -109,7 +110,7 @@ L_Start:
 
 	M_0:
 		mes "[Angry looking man]";
-		mes "It's been a long time since we've recieved any Assassin candidates..... anyhow let me send you ^5533FFAssassin 'Khai'^000000.";
+		mes "It's been a long time since we've recieved any Assassin candidates..... anyhow let me send you ^5533FFAssassin 'Kai'^000000.";
 		mes "He'll take care of the registration process.";
 		enablenpc "Assassin Kai#1";
 		disablenpc "Assassin Kai#2";
@@ -490,7 +491,7 @@ sF_Quiz:
 		return;
 	sL_Quiz3:
 		mes "[Assassin Kai]";
-		mes "The ^554433Elder willow card adds to your intelligence^000000.";
+		mes "The ^554433Elder Willow Card adds to your intelligence^000000.";
 		next;
 		mes "[Assassin Kai]";
 		mes "We Assassins specialize in the ability to dodge and attack.  Our defense however, is very poor.";
@@ -508,7 +509,7 @@ sF_Quiz:
 		mes "Stealing mushrooms..... what fond memories I had of those orange gooey mushrooms.....";
 		next;
 		mes "[Assassin Kai]";
-		mes "The ^554433Baphomet Jr. card adds 3 agility and 1 critical^000000 to your stats";
+		mes "The ^554433Baphomet Jr. Card adds 3 agility and 1 critical^000000 to your stats";
 		next;
 		mes "[Assassin Kai]";
 		mes "We Assassins have the highest agility of all the other classes.  We can get a ^5533FFmaximum of 10 extra points in agility^000000.";
@@ -910,7 +911,7 @@ L_Test:
 		mes "[Nameless One]";
 		mes "5. Which card has ^FF3355nothing^000000 to do with ^5533FFagility^000000?";
 		next;
-		menu "Baphomet Jr card",sM_5c, "Whisper Card",-, "Male Thief Bug card",sM_5c, "Chonchon card",sM_5c;
+		menu "Baphomet Jr Card",sM_5c, "Whisper Card",-, "Male Thief Bug Card",sM_5c, "Chonchon Card",sM_5c;
 
 			set @score, @score + 10;
 		sM_5c:
@@ -950,7 +951,7 @@ L_Test:
 		mes "[Nameless One]";
 		mes "10. What card listed below is useless to an Assassin?";
 		next; 
-		menu "Ghostring card",sM_10c, "Elder willow card",-, "Skeleton Soldier card",sM_10c, "Kobold card",sM_10c;
+		menu "Ghostring Card",sM_10c, "Elder Willow Card",-, "Skeleton Soldier Card",sM_10c, "Kobold Card",sM_10c;
 
 			set @score, @score + 10;
 		sM_10c:
@@ -980,7 +981,7 @@ L_Score:
 		mes "Since you don't seem to have an ounce of intelligence, I will give you some tips.......";
 		next;
 		mes "[Nameless One]";
-		mes "Speak with Assassin 'Khai', he may be able to help you out.  If not try to interperet this code:";
+		mes "Speak with Assassin 'Kai', he may be able to help you out.  If not try to interperet this code:";
 		mes "^5533FFwww.emperium.org......^000000";
 		next;
 		mes "[Nameless One]";
@@ -1601,8 +1602,7 @@ OnTouch:
 	disablenpc "Nameless One#End";
 	disablenpc "Barkadi#End";
 	disablenpc "Observer#End";
-	disablenpc "Dante#End";
-	disablenpc "Gail#End";
+	disablenpc "Thomas#End";
 	savepoint "in_moc_16.gat", 18, 28;
 	close2;
 	warp "in_moc_16.gat", 18, 28;

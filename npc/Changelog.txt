@@ -36,6 +36,8 @@ TODO:
 Date		Added
 ======
 
+04/14
+	* Fixed typos in Alchemist JQ, Fixed bugs and typos in Assassin JQ [Lupus]
 04/09
 	* Added Einbroch monsters spawn, fixed one mapflag for Einnech mines [Lupus]
 	* valkyrie.txt Fixed: now alternative classes can use their 1-1 job NPC to become Advanced 1st Class [Lupus]
