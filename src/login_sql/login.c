@@ -154,11 +154,14 @@ struct dbt *online_db;
 
 void add_online_user(int account_id) {
 	int *p;
-	if(register_users_online <= 0)
+	if (register_users_online <= 0)
 		return;
-	p = (int*)aMalloc(sizeof(int));
-	*p = account_id;
-	numdb_insert(online_db, account_id, p);
+	p = (int*)numdb_search(online_db, account_id);
+	if (p == NULL) {
+		p = (int*)aMalloc(sizeof(int));
+		*p = account_id;
+		numdb_insert(online_db, account_id, p);
+	}
 }
 
 int is_user_online(int account_id) {
@@ -167,8 +170,8 @@ int is_user_online(int account_id) {
 		return 0;
 
 	p = (int*)numdb_search(online_db, account_id);
-        if (p != NULL)
-	    printf("Acccount %d\n",*p);
+	//if (p != NULL)
+	//	printf("Acccount %d\n",*p);
 	
 	return (p != NULL);
 }
@@ -178,7 +181,7 @@ void remove_online_user(int account_id) {
 	if(register_users_online <= 0)
 		return;
 	p = (int*)numdb_erase(online_db,account_id);
-	aFree(p);
+	if (p) aFree(p);
 }
 
 //-----------------------------------------------------
@@ -601,7 +604,7 @@ int mmo_auth( struct mmo_account* account , int fd){
 		return 2; // 2 = This ID is expired
 	}
 
-	if ( is_user_online(atol(sql_row[0])) && register_users_online > 0) {
+	if (register_users_online > 0 && is_user_online(atol(sql_row[0]))) {
 	        printf("User [%s] is already online - Rejected.\n",sql_row[1]);
 #ifndef TWILIGHT
 		return 3; // Rejected
@@ -1661,12 +1664,11 @@ int login_config_read(const char *cfgName){
 			new_account_flag = atoi(w2);		//Added by Sirius for new account _M/_F		
 		} else if(strcmpi(w1, "check_client_version") == 0){ 		//Added by Sirius for client version check
 			//check_client_version = config_switch(w2); 		//Added by Sirius for client version check
-                           if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 ){
-                           	check_client_version = 1;
-			   }
-			   if(strcmpi(w2,"off") == 0 || strcmpi(w2,"no") == 0 ){
-                           	check_client_version = 0;
-                           }                                                                                          
+			if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 ){
+				check_client_version = 1;
+			} else if(strcmpi(w2,"off") == 0 || strcmpi(w2,"no") == 0 ){
+				check_client_version = 0;
+			}                                                                                          
 		} else if(strcmpi(w1, "client_version_to_connect") == 0){	//Added by Sirius for client version check
 			client_version_to_connect = atoi(w2);			//Added by SIrius for client version check
 		} else if(strcmpi(w1,"use_MD5_passwords")==0){
@@ -1851,10 +1853,13 @@ int do_init(int argc,char **argv){
 	printf ("set max servers complete\n");
 	//server port open & binding
 
-        if (bind_ip_str[0] != '\0')
-            bind_ip = inet_addr(bind_ip_str);
-        else
-            bind_ip = INADDR_ANY;
+	// Online user database init
+    online_db = numdb_init();
+
+	if (bind_ip_str[0] != '\0')
+		bind_ip = inet_addr(bind_ip_str);
+	else
+		bind_ip = INADDR_ANY;
 
 	//login_fd=make_listen_port(login_port);
 	login_fd=make_listen_bind(bind_ip,login_port);
@@ -1883,10 +1888,6 @@ int do_init(int argc,char **argv){
 		set_defaultconsoleparse(parse_console);
 		start_console();
 	}
-
-	// Online user database init
-    aFree(online_db);
-	online_db = numdb_init();
 
 	printf("The login-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", login_port);
 
