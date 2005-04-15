@@ -8,7 +8,7 @@
 #endif
 #include <signal.h>
 #include <string.h>
-#ifndef CYGWIN	// HAVE_EXECINFO_H
+#if !defined(CYGWIN) && !defined(__NETBSD__)	// HAVE_EXECINFO_H
 	#include <execinfo.h>
 #endif
 
@@ -106,7 +106,9 @@ static void sig_proc(int sn)
 #else
 	#define FOPEN_(fn,m,s) fopen(fn,m)
 #endif
+#ifndef __NETBSD__
 extern const char *strsignal(int);
+#endif
 void sig_dump(int sn)
 {	
 	FILE *fp;
@@ -138,6 +140,7 @@ void sig_dump(int sn)
 	#ifdef CYGWIN
 		cygwin_stackdump ();
 	#else
+#ifndef __NETBSD__
 		fprintf(fp, "Stack trace:\n");
 		size = backtrace (array, 20);
 		stack = backtrace_symbols (array, size);
@@ -146,6 +149,7 @@ void sig_dump(int sn)
 		}
 		fprintf(fp,"End of stack trace\n");
 		aFree(stack);
+#endif
 	#endif
 
 		ShowMessage ("Done.\n");

@@ -1,5 +1,6 @@
 Date	Added
 04/15
+	* Fixed building under FreeBSD [MouseJstr]
 	* Shield Chain and Acid Demonstration should now display damage properly [celest]
 	* Fixed memory leak when an npc with no maps defined is loaded [celest]
 	* Changed default mem manager log path to "log/[server name].leaks" [celest]

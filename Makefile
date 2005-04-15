@@ -22,6 +22,7 @@ PLATFORM = $(shell uname)
 
 ifeq ($(findstring FreeBSD,$(PLATFORM)), FreeBSD)
 MAKE = gmake
+CC += -D__NETBSD__
 else
 MAKE = make
 endif
