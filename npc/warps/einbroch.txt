@@ -1,5 +1,8 @@
 //Einbroch and Einbech warps by Sara - Semi-final 2
 //Einbroch Field <-> Juno Field
+// fixed ein005a thx 2Exyle
+
+
 yuno_fild04.gat,251,21,0	warp	ein001	1,1,ein_fild06.gat,252,363
 ein_fild06.gat,252,365,0	warp	ein001a	1,1,yuno_fild04.gat,251,23
 yuno_fild07.gat,73,219,0	warp	ein002	1,1,ein_fild06.gat,338,170
@@ -11,7 +14,7 @@ ein_fild07.gat,382,263,0	warp	ein004a	1,1,yuno_fild11.gat,30,266
 
 //Einbroch Field
 ein_fild06.gat,135,35,0	warp	ein005	1,1,ein_fild07.gat,147,360
-ein_fild07.gat,145,362,0	warp	ein005a	1,1,ein_fild07.gat,135,37
+ein_fild07.gat,145,362,0	warp	ein005a	1,1,ein_fild06.gat,135,37
 ein_fild07.gat,191,42,0	warp	ein006	1,1,ein_fild10.gat,194,370
 ein_fild10.gat,194,372,0	warp	ein006a	1,1,ein_fild07.gat,191,44
 ein_fild10.gat,24,331,0	warp	ein007	1,1,ein_fild09.gat,327,346

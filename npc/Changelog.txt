@@ -36,6 +36,8 @@ TODO:
 Date		Added
 ======
 
+04/15
+	* Fixed 1 warp map name - ein005a thx 2Exyle [Lupus]
 04/14
 	* Fixed typos in Louyang's mob spawns, thanks to Gwendalin
 	* Added nomemo mapflag to valkyrie, thanks to Dino9021
