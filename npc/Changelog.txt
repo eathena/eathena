@@ -37,6 +37,8 @@ Date		Added
 ======
 
 04/14
+	* Fixed typos in Louyang's mob spawns, thanks to Gwendalin
+	* Added nomemo mapflag to valkyrie, thanks to Dino9021
 	* Fixed typos in Alchemist JQ, Fixed bugs and typos in Assassin JQ [Lupus]
 04/09
 	* Added Einbroch monsters spawn, fixed one mapflag for Einnech mines [Lupus]

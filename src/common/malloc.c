@@ -553,7 +553,7 @@ static void memmer_exit(void) {
 
 int do_init_memmgr (void)
 {
-	sprintf(memmer_logfile, "%s.log", argp);
+	sprintf(memmer_logfile, "log/%s.leaks", argp);
 	ShowStatus("Memory manager initialised: "CL_WHITE"%s"CL_RESET"\n", memmer_logfile);
 
 	return 0;

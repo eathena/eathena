@@ -1809,14 +1809,15 @@ static int npc_parse_script(char *w1,char *w2,char *w3,char *w4,char *first_line
 	npc_script++;
 	nd->bl.type = BL_NPC;
 	nd->bl.subtype = SCRIPT;
+
+	// clear event timers upon initialise
+	memset (nd->eventqueue, 0, sizeof(nd->eventqueue));
+	for (i = 0; i < MAX_EVENTTIMER; i++)
+		nd->eventtimer[i] = -1;
+
 	if (m >= 0) {
 		nd->n = map_addnpc(m, nd);
 		map_addblock(&nd->bl);
-
-		// clear event timers upon initialise
-		memset (nd->eventqueue, 0, sizeof(nd->eventqueue));
-		for (i = 0; i < MAX_EVENTTIMER; i++)
-			nd->eventtimer[i] = -1;
 
 		if (evflag) {	// ƒCƒxƒ“ƒgŒ^
 			struct event_data *ev = (struct event_data *)aCalloc(1, sizeof(struct event_data));
@@ -1825,6 +1826,9 @@ static int npc_parse_script(char *w1,char *w2,char *w3,char *w4,char *first_line
 			strdb_insert(ev_db, nd->exname, ev);
 		} else
 			clif_spawnnpc(nd);
+	} else {
+		// we skip map_addnpc, but still add it to the list of ID's
+		map_addiddb(&nd->bl);
 	}
 	strdb_insert(npcname_db, nd->exname, nd);
 

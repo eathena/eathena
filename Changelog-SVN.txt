@@ -1,4 +1,8 @@
 Date	Added
+04/15
+	* Fixed memory leak when an npc with no maps defined is loaded [celest]
+	* Changed default mem manager log path to "log/[server name].leaks" [celest]
+
 04/14
 	* The display of account/character IDs is now a setting in battle_athena [Ancyker]
 	* Allow married couples to exchange normally untradeable rings with each other
