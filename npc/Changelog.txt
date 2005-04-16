@@ -36,7 +36,8 @@ TODO:
 Date		Added
 ======
 
-04/15
+04/16
+	* Added more correct Einbroch/Einbech monster spawn [Lupus]
 	* Fixed 1 warp map name - ein005a thx 2Exyle [Lupus]
 04/14
 	* Fixed typos in Louyang's mob spawns, thanks to Gwendalin
