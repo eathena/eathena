@@ -1,6 +1,15 @@
 Date	Added
 04/16
+	* Fixed Frost Joke and Scream working on dead characters, and set them to not
+	  affect hidden GM's [celest]
+	* Added support for 'rudeattacked' condition in the mob skill db [celest]
+	* Added blind monsters will try and move to its attacker's position [celest]
+	* Added monsters will try and escape if attacked but cannot retaliate
+	  (a 'rude attack') [celest]
+	* Added a crash check in mob skill casting [celest]
+	* Adding support for Fusion AF2 maps (not finished) [celest]
 	* Added more correct Einbroch/Einbech monster spawn [Lupus]
+
 04/15
 	* Fixed building under FreeBSD [MouseJstr]
 	* Shield Chain and Acid Demonstration should now display damage properly [celest]

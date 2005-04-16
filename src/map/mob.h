@@ -74,15 +74,16 @@ enum {
 	MSC_LONGRANGEATTACKED=	0x1001,
 	MSC_SKILLUSED		=	0x1010,
 	MSC_CASTTARGETED	=	0x1011,
+	MSC_RUDEATTACKED	=	0x1100,
 };
 
 enum {
-	MSS_IDLE,	// ?@
-	MSS_WALK,	// ?
-	MSS_ATTACK,	// U
-	MSS_DEAD,	// S
-	MSS_LOOT,	// [g
-	MSS_CHASE,	// ?
+	MSS_IDLE,
+	MSS_WALK,
+	MSS_ATTACK,
+	MSS_DEAD,
+	MSS_LOOT,
+	MSS_CHASE,
 };
 
 int mobdb_searchname(const char *str);

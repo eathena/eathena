@@ -10,6 +10,7 @@ int grfio_size(char*);			// GRFIO data file size get
 
 int decode_zip(unsigned char *dest, unsigned long* destLen, const unsigned char* source, unsigned long sourceLen);
 int encode_zip(unsigned char *dest, unsigned long* destLen, const unsigned char* source, unsigned long sourceLen);
+int decode_file (FILE *source, FILE *dest);
 
 // Accessor to GRF filenames
 char *grfio_setdatafile(const char *str);

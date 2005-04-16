@@ -7,15 +7,17 @@
 #include <winsock.h>
 #else
 #include <netdb.h>
+#include <unistd.h>
 #endif
 #include <math.h>
 
-#include "core.h"
-#include "timer.h"
-#include "db.h"
-#include "grfio.h"
-#include "malloc.h"
-#include "version.h"
+#include "../common/core.h"
+#include "../common/timer.h"
+#include "../common/db.h"
+#include "../common/grfio.h"
+#include "../common/malloc.h"
+#include "../common/version.h"
+#include "../common/nullpo.h"
 
 #include "map.h"
 #include "chrif.h"
@@ -37,7 +39,6 @@
 #include "pet.h"
 #include "atcommand.h"
 #include "charcommand.h"
-#include "nullpo.h"
 #include "socket.h"
 #include "log.h"
 #include "showmsg.h"
@@ -2479,6 +2480,36 @@ static int map_readafm(int m,char *fn) {
 
 	return 0;
 }
+
+static int map_readaf2(int m, char *fn)
+{
+	FILE *af2_file, *dest;
+	char buf[256];
+	int ret;
+
+	af2_file = fopen(fn, "r");
+	if (af2_file != NULL) {
+		strncpy (buf, fn, strlen(fn) - 4);
+		strcat(buf, ".out");
+
+		dest = fopen(buf, "w");
+		if (dest == NULL) {
+			printf ("cant open\n");
+			fclose(af2_file);
+			return 0;
+		}
+		ret = decode_file (af2_file, dest);
+		fclose(af2_file);
+		fclose(dest);
+
+		if (ret) map_readafm(m, buf);
+		unlink (buf);
+
+		return ret;
+	}
+
+	return 0;
+}
 #endif
 
 /*==========================================
@@ -2586,7 +2617,7 @@ static int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap) 
  */
 int map_readallmap(void) {
 	int i,maps_removed=0;
-	char fn[256];
+	char fn[256], *p;
 #ifdef USE_AFM
 	FILE *afm_file;
 #endif
@@ -2605,30 +2636,39 @@ int map_readallmap(void) {
 	ShowStatus(tmp_output);
 
 	// 先に全部のャbプの存在を確認
-	for(i=0;i<map_num;i++){
-
+	for (i = 0; i < map_num; i++){		
 #ifdef USE_AFM
 		char afm_name[256] = "";
-		char *p;
-		if(!strstr(map[i].name,".afm")) {
+		// set it by default first
+		map[i].alias = NULL;
+
+		if(!strstr(map[i].name, ".afm")) {
 		// check if it's necessary to replace the extension - speeds up loading abit
 			strncpy(afm_name, map[i].name, strlen(map[i].name) - 4);
 			strcat(afm_name, ".afm");
 		}
-		map[i].alias = NULL;
-		sprintf(fn,"%s\\%s",afm_dir,afm_name);
-		for(p=&fn[0];*p!=0;p++) if (*p=='\\') *p = '/';	// * At the time of Unix
+		sprintf(fn,"%s\\%s", afm_dir, afm_name);
+		for (p = &fn[0]; *p != 0; p++)
+			if (*p == '\\') *p = '/';	// * At the time of Unix
 
 		afm_file = fopen(fn, "r");
 		if (afm_file != NULL) {
-			map_readafm(i,fn);
 			fclose(afm_file);
+			map_readafm(i,fn);			
+			continue;
 		}
-		else if(strstr(map[i].name,".gat")!=NULL) {
-#else
-		if(strstr(map[i].name,".gat")!=NULL) {
+
+		// try with *.af2
+		fn[strlen(fn)-1] = '2';
+		afm_file = fopen(fn, "r");
+		if (afm_file != NULL) {
+			fclose(afm_file);
+			if (map_readaf2(i,fn) != 0)
+				continue;
+		}
 #endif
-			char *p = strstr(map[i].name, "<"); // [MouseJstr]
+		if (strstr(map[i].name,".gat") != NULL) {
+			p = strstr(map[i].name, "<"); // [MouseJstr]
 			if (p != NULL) {
 				char buf[64];
 				*p++ = '\0';

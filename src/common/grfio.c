@@ -31,6 +31,8 @@
 #include "../common/showmsg.h"
 #include "../common/malloc.h"
 
+#define CHUNK 16384
+
 #ifdef _WIN32
 	#ifdef LOCALZLIB
 		#include "zlib.h"
@@ -356,6 +358,78 @@ int encode_zip(unsigned char *dest, unsigned long* destLen, const unsigned char*
 
 	err = zlib_deflateEnd(&stream);
 	return err;
+}
+
+/*==========================================
+*  Decompress from file source to file dest until stream ends or EOF.
+*  inf() returns Z_OK on success, Z_MEM_ERROR if memory could not be
+*  allocated for processing, Z_DATA_ERROR if the deflate data is
+*  invalid or incomplete, Z_VERSION_ERROR if the version of zlib.h and
+*  the version of the library linked do not match, or Z_ERRNO if there
+*  is an error reading or writing the files.
+*
+*  Version 1.2  9 November 2004  Mark Adler
+*------------------------------------------
+*/
+int decode_file (FILE *source, FILE *dest)
+{
+	int err;
+	unsigned have;
+	z_stream strm;
+	char in[CHUNK];
+	char out[CHUNK];
+
+	/* allocate inflate state */
+	strm.zalloc = Z_NULL;
+	strm.zfree = Z_NULL;
+	strm.opaque = Z_NULL;
+	strm.avail_in = 0;
+	strm.next_in = Z_NULL;
+
+	err = zlib_inflateInit(&strm);
+	if (err != Z_OK) return 0;	//return err;
+
+	/* decompress until deflate stream ends or end of file */
+	do {
+		strm.avail_in = fread(in, 1, CHUNK, source);
+		if (ferror(source)) {
+			zlib_inflateEnd(&strm);
+			return 0;
+		}
+		if (strm.avail_in == 0)
+			break;
+		strm.next_in = in;
+
+		/* run inflate() on input until output buffer not full */
+		do {
+			strm.avail_out = CHUNK;
+			strm.next_out = out;
+			err = zlib_inflate(&strm, Z_NO_FLUSH);
+			Assert(err != Z_STREAM_ERROR);  /* state not clobbered */
+			switch (err) {
+			case Z_NEED_DICT:
+				err = Z_DATA_ERROR;     /* and fall through */
+			case Z_DATA_ERROR:
+			case Z_MEM_ERROR:
+				zlib_inflateEnd(&strm);
+				//return err;
+				return 0;
+			}
+			have = CHUNK - strm.avail_out;
+			if (fwrite(out, 1, have, dest) != have || ferror(dest)) {
+				zlib_inflateEnd(&strm);
+				//return Z_ERRNO;
+				return 0;
+			}
+		} while (strm.avail_out == 0);
+		Assert(strm.avail_in == 0);     /* all input will be used */
+
+		/* done when inflate() says it's done */
+	} while (err != Z_STREAM_END);
+
+	/* clean up and return */
+	zlib_inflateEnd(&strm);
+	return err == Z_STREAM_END ? 1 : 0;
 }
 
 /***********************************************************

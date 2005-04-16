@@ -456,6 +456,7 @@ struct mob_data {
 	short speed;
 	int hp;
 	int target_id,attacked_id;
+	short attacked_count;
 	short target_lv;
 	struct walkpath_data walkpath;
 	unsigned int next_walktime;

@@ -8,8 +8,10 @@
 #endif
 #include <signal.h>
 #include <string.h>
-#if !defined(CYGWIN) && !defined(__NETBSD__)	// HAVE_EXECINFO_H
+#ifdef DUMPSTACK
+#if !defined(CYGWIN) && !defined(_WIN32) && !defined(__NETBSD__)	// HAVE_EXECINFO_H
 	#include <execinfo.h>
+#endif
 #endif
 
 #include "core.h"
@@ -100,6 +102,7 @@ static void sig_proc(int sn)
  *	Dumps the stack using glibc's backtrace
  *-----------------------------------------
  */
+#ifdef DUMPSTACK
 #ifdef CYGWIN
 	#define FOPEN_ freopen
 	extern void cygwin_stackdump();
@@ -131,9 +134,9 @@ void sig_dump(int sn)
 
 		ShowMessage ("Dumping stack to '"CL_WHITE"%s"CL_RESET"'... ", file);
 		if ((revision = get_svn_revision()) != NULL)
-			fprintf(fp, "Version: svn%s\n ", revision);
+			fprintf(fp, "Version: svn%s \n", revision);
 		else
-			fprintf(fp, "Version: %2d.%02d.%02d mod%02d\n ", ATHENA_MAJOR_VERSION, ATHENA_MINOR_VERSION, ATHENA_REVISION, ATHENA_MOD_VERSION);
+			fprintf(fp, "Version: %2d.%02d.%02d mod%02d \n", ATHENA_MAJOR_VERSION, ATHENA_MINOR_VERSION, ATHENA_REVISION, ATHENA_MOD_VERSION);
 		fprintf(fp, "Exception: %s \n", strsignal(sn));
 		fflush (fp);
 
@@ -160,6 +163,7 @@ void sig_dump(int sn)
 	compat_signal(sn, SIG_DFL);
 	raise(sn);
 }
+#endif
 
 void init_signals (void)
 {

@@ -4319,39 +4319,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case NPC_RUNAWAY:		//後退
 		if(md) {
-			int check;
 			int dist = skilllv;//後退する距離
-			check = md->dir; //自分がどの方向に向いてるかチェック
+			int dir = md->dir; //自分がどの方向に向いてるかチェック
+			int mask[8][2] = {{0,-1},{1,-1},{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1}};
+
 			md->attacked_id = 0;
+			md->attacked_count = 0;
 			md->target_id = 0;
 			md->state.targettype = NONE_ATTACKABLE;
-			md->state.skillstate = MSS_IDLE;
-			switch (check) {
-				case 0:	//自分の向いてる方向と逆に移動する
-					mob_walktoxy(md,md->bl.x,md->bl.y-dist,0);//そして、移動する
-					break;
-				case 1:
-					mob_walktoxy(md,md->bl.x-dist,md->bl.y-dist,0);
-					break;
-				case 2:
-					mob_walktoxy(md,md->bl.x+dist,md->bl.y,0);
-					break;
-				case 3:
-					mob_walktoxy(md,md->bl.x+dist,md->bl.y+dist,0);
-					break;
-				case 4:
-					mob_walktoxy(md,md->bl.x,md->bl.y+dist,0);
-					break;
-				case 5:
-					mob_walktoxy(md,md->bl.x-dist,md->bl.y+dist,0);
-					break;
-				case 6:
-					mob_walktoxy(md,md->bl.x-dist,md->bl.y,0);
-					break;
-				case 7:
-					mob_walktoxy(md,md->bl.x-dist,md->bl.y-dist,0);
-					break;
-			}
+			md->state.skillstate = MSS_IDLE;			
+			mob_walktoxy(md, md->bl.x + dist * mask[dir][0], md->bl.y + dist * mask[dir][1], 0);
 		}
 		break;
 
@@ -6222,18 +6199,17 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		break;*/
 	}
 
-	if(bl->type==BL_MOB && ss!=bl)	/* スキル使用?件のMOBスキル */
-	{
-		if(battle_config.mob_changetarget_byskill == 1)
-		{
-			int target=((struct mob_data *)bl)->target_id;
-			if(ss->type == BL_PC)
-				((struct mob_data *)bl)->target_id=ss->id;
-			mobskill_use((struct mob_data *)bl,tick,MSC_SKILLUSED|(sg->skill_id<<16));
-			((struct mob_data *)bl)->target_id=target;
-		}
-		else
-			mobskill_use((struct mob_data *)bl,tick,MSC_SKILLUSED|(sg->skill_id<<16));
+	if (bl->type == BL_MOB && ss != bl) {	/* スキル使用?件のMOBスキル */
+		struct mob_data *md = (struct mob_data *)bl;
+		if (!md) return 0;
+		if (battle_config.mob_changetarget_byskill == 1) {
+			int target = md->target_id;
+			if (ss->type == BL_PC)
+				md->target_id = ss->id;
+			mobskill_use(md, tick, MSC_SKILLUSED|(sg->skill_id << 16));
+			md->target_id = target;
+		} else
+			mobskill_use(md, tick, MSC_SKILLUSED|(sg->skill_id << 16));
 	}
 
 	return 0;
@@ -8108,9 +8084,15 @@ int skill_frostjoke_scream(struct block_list *bl,va_list ap)
 	if(skilllv <= 0) return 0;
 	tick=va_arg(ap,unsigned int);
 
-	if(src == bl)//自分には?かない
+	if (src == bl ||	//自分には?かない
+		bl->prev == NULL ||
+		status_isdead(bl))
 		return 0;
-
+	if (bl->type == BL_PC) {
+		struct map_session_data *sd = (struct map_session_data *)bl;
+		if (sd && sd->status.option & OPTION_HIDE && pc_isGM(sd) > 0)
+			return 0;
+	}
 	if (map[src->m].flag.gvg || map[src->m].flag.pvp)
 		skill_additional_effect(src,bl,skillnum,skilllv,BF_MISC,tick);
 	// we freeze everybody except of ourselfes on pvp/gvg [veider]
