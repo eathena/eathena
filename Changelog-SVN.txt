@@ -1,5 +1,8 @@
 Date	Added
 04/16
+	* Started implementing Baby Class compatibility for items / job quests,
+	  some optimizations due to usege of BaseJob [Lupus]
+04/16
 	* Fixed Frost Joke and Scream working on dead characters, and set them to not
 	  affect hidden GM's [celest]
 	* Added support for 'rudeattacked' condition in the mob skill db [celest]
