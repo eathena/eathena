@@ -3234,13 +3234,10 @@ void do_final(void) {
 		if(map[i].block_mob_count) aFree(map[i].block_mob_count);
 	}
 
-//    do_final_timer(); (we used timer_final() instead)
-    timer_final();
     numdb_final(id_db, id_db_final);
 	strdb_final(map_db, map_db_final);
     strdb_final(nick_db, nick_db_final);
     numdb_final(charid_db, charid_db_final);
-	exit_dbn();
 
 //#endif
 

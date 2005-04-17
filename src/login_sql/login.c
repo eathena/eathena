@@ -1819,8 +1819,6 @@ void do_final(void) {
 	//but no need when you using DBMS (mysql)
 	mmo_db_close();
 	numdb_final(online_db, online_db_final);
-	exit_dbn();
-	timer_final();
 }
 
 int do_init(int argc,char **argv){

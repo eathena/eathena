@@ -1,5 +1,7 @@
 Date	Added
 04/17
+	* Moved timer and db finalising to core.c [celest]
+	* Fixed a typo that was causing crashes from blind monsters [celest]
 	* Added reset all character's status to offline when map disconnects from char
 	  (TXT) [celest]
 	* Fixed Tarot Card damage not showing, and the Lover Card to warp the caster

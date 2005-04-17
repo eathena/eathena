@@ -3944,8 +3944,6 @@ void do_final(void) {
 	}
 	close(login_fd);
 	delete_session(login_fd);
-	exit_dbn();
-	timer_final();
 
 	login_log("----End of login-server (normal end with closing of all files)." RETCODE);
 

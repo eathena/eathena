@@ -3640,8 +3640,6 @@ void do_final(void) {
 	delete_session(char_fd);
 
 	inter_final();
-	exit_dbn();
-	timer_final();
 
 	char_log("----End of char-server (normal end with closing of all files)." RETCODE);
 }

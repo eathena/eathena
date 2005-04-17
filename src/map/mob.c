@@ -1664,8 +1664,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					md->next_walktime = tick + 500;
 				}
 			} else if (blind_flag && dist > 1 && DIFF_TICK(tick,md->next_walktime) < 0) {
-				dx = tbl->x - md->bl.x;
-				dy = tbl->y - md->bl.y;
+				dx = abl->x - md->bl.x;
+				dy = abl->y - md->bl.y;
 				md->target_id = 0;
 				md->state.targettype = NONE_ATTACKABLE;
 				md->next_walktime = tick + 500;

@@ -3196,11 +3196,9 @@ void do_final(void) {
 	delete_session(login_fd);
 	delete_session(char_fd);
 	numdb_final(char_db_, char_db_final);
-	exit_dbn();
 
 	mysql_close(&mysql_handle);
 	mysql_close(&lmysql_handle);
-	timer_final();
 
 	printf("ok! all done...\n");
 }

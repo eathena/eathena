@@ -15,6 +15,7 @@
 #endif
 
 #include "core.h"
+#include "../common/db.h"
 #include "../common/mmo.h"
 #include "../common/malloc.h"
 #include "../common/socket.h"
@@ -344,6 +345,8 @@ int main(int argc,char **argv)
 	}
 
 	do_final();
+	exit_dbn();
+	timer_final();
 	log_uptime();
 	pid_delete();
 	do_final_socket();
