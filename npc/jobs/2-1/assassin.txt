@@ -1349,7 +1349,7 @@ in_moc_16.gat,1,1,1	script	SinTest2_2	-1,{
 	end;
 OnMobDead:
 	stopnpctimer "TimerSin";
-	announce ". . . You engaged a target without permission!  You have failed the test!",8;
+	areaannounce "in_moc_16.gat", 64, 46, 111, 105, ". . . You engaged a target without permission! You have failed the test!",8;
 	enablenpc "Thomas";
 	addtimer 3000, "TimerSin::OnTimer188000";
 	end;

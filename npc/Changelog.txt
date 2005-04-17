@@ -36,6 +36,10 @@ TODO:
 Date		Added
 ======
 
+04/17
+	* Changed the assassin job quest npc to do an area announce instead of global,
+	  thanks to NeoSaro
+	* Fixed a typo in Aldebaran script, thanks to NeoSaro
 04/16
 	* Added more correct Einbroch/Einbech monster spawn [Lupus]
 	* Fixed 1 warp map name - ein005a thx 2Exyle [Lupus]

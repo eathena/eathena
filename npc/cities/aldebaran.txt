@@ -565,7 +565,7 @@ aldeba_in.gat,152,47,4	script	Giddy Fellow	97,{
 		mes "It's 'The Great Picky ' ... SOB SOB SOB... gosh... what am I gonna do?!~ Please find my cutey for meee~~~";
 		emotion 28;
 		next;
-		menu "Dude! It's such a common name...",L00,". . . . .",L1;
+		menu "Dude! It's such a common name...",L00,". . . . .",M_1;
 
 		L00:
 			mes "[Giddy Fellow]";
