@@ -8,7 +8,9 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them i believe.
 
-04//16
+04/17
+	* Fixed "Every job except Novice" armors wearable by Novices [DracoRPG]
+04/16
 	* Corrected job bonuses for novice, super novice and dancer [celest]
 04/15
 	* Removed Raid not allowed in GvG (never seen it anywhere...) [DracoRPG]
