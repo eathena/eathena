@@ -3346,8 +3346,8 @@ struct Damage  battle_calc_misc_attack(
 		break;
 
 	case NPC_SELFDESTRUCTION:	// Ž©”š
-		damage=status_get_hp(bl)-(bl==target?1:0);
-		damagefix=0;
+		damage = status_get_hp(bl);
+		damagefix = 0;
 		break;
 
 	case NPC_SMOKING:	// ƒ^ƒoƒR‚ð‹z‚¤

@@ -1,7 +1,13 @@
 Date	Added
-04/16
+04/17
+	* Added reset all character's status to offline when map disconnects from char
+	  (TXT) [celest]
+	* Fixed Tarot Card damage not showing, and the Lover Card to warp the caster
+	  instead of target [celest]
+	* Fixed ground-targetting skills usable with Blade Stop on [celest]
 	* Started implementing Baby Class compatibility for items / job quests,
 	  some optimizations due to usege of BaseJob [Lupus]
+
 04/16
 	* Fixed Frost Joke and Scream working on dead characters, and set them to not
 	  affect hidden GM's [celest]

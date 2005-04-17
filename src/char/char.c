@@ -255,14 +255,9 @@ void set_char_offline(int char_id, int account_id) {
 void set_all_offline(void) {
 	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
-	/*while some condition {
-		if (login_fd > 0) {
-			printf("send user offline: %d\n",atoi(sql_row[0]));
-			WFIFOW(login_fd,0) = 0x272c;
-			WFIFOL(login_fd,2) = atoi(sql_row[0]);
-			WFIFOSET(login_fd,6);
-		}
-	}*/
+	WFIFOW(login_fd,0) = 0x272c;
+	WFIFOL(login_fd,2) = 99;
+	WFIFOSET(login_fd,6);
 
 	//printf ("set all offline\n");
 }

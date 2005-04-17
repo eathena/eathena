@@ -3195,8 +3195,6 @@ int cleanup_sub(struct block_list *bl, va_list ap) {
 	return 0;
 }
 
-extern void grfio_final();
-
 /*==========================================
  * mapŽII—¹Ž—
  *------------------------------------------
@@ -3212,10 +3210,7 @@ void do_final(void) {
 		if(map[i].m)
 			map_foreachinarea(cleanup_sub, i, 0, 0, map[i].xs, map[i].ys, 0, 0);
 
-#ifndef TXT_ONLY
     chrif_char_reset_offline();
-#endif
-
     chrif_flush_fifo();
 
 //#if 0	// why is this here? >_>
