@@ -3905,7 +3905,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		strip_fix = status_get_dex(src) - status_get_dex(bl);
 		if(strip_fix < 0)
 			strip_fix=0;
-		strip_per = 5+5*skilllv+strip_fix/5;
+		strip_per = 5+2*skilllv+strip_fix/5;
 		if (rand()%100 >= strip_per)
 			break;
 
@@ -3936,7 +3936,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		strip_fix = status_get_dex(src) - status_get_dex(bl);
 		if(strip_fix < 0)
 			strip_fix = 0;
-		strip_per = 5+5*skilllv+strip_fix/5;
+		strip_per = 5+2*skilllv+strip_fix/5;
 		if (rand()%100 >= strip_per)
 			break;
 		strip_time = skill_get_time(skillid,skilllv)+strip_fix/2;
@@ -5075,26 +5075,6 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 		return 0;
 	}
 
-	/*case MG_SAFETYWALL:
-			case WZ_FIREPILLAR:
-			case HT_SKIDTRAP:
-			case HT_LANDMINE:
-			case HT_ANKLESNARE:
-			case HT_SHOCKWAVE:
-			case HT_SANDMAN:
-			case HT_FLASHER:
-			case HT_FREEZINGTRAP:
-			case HT_BLASTMINE:
-			case HT_CLAYMORETRAP:
-			case HT_TALKIEBOX:
-			case AL_WARP:
-			case PF_SPIDERWEB:
-			case RG_GRAFFITI:
-				range = 0;
-				break;
-			case AL_PNEUMA:
-				range = 1;
-				break;*/
 	if (!battle_config.pc_skill_reiteration &&
 			skill_get_unit_flag(sd->skillid)&UF_NOREITERATION &&
 			skill_check_unit_range(sd->bl.m,sd->skillx,sd->skilly,sd->skillid,sd->skilllv)) {
@@ -5104,24 +5084,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 		sd->skillitem = sd->skillitemlv = -1;
 		return 0;
 	}
-	/*case WZ_FIREPILLAR:
-			case HT_SKIDTRAP:
-			case HT_LANDMINE:
-			case HT_ANKLESNARE:
-			case HT_SHOCKWAVE:
-			case HT_SANDMAN:
-			case HT_FLASHER:
-			case HT_FREEZINGTRAP:
-			case HT_BLASTMINE:
-			case HT_CLAYMORETRAP:
-			case HT_TALKIEBOX:
-			case PF_SPIDERWEB:
-			case WZ_ICEWALL:
-				range = 2;
-				break;
-			case AL_WARP:
-				range = 0;
-				break;*/
+
 	if (battle_config.pc_skill_nofootset &&
 			skill_get_unit_flag(sd->skillid)&UF_NOFOOTSET &&
 			skill_check_unit_range2(&sd->bl,sd->bl.m,sd->skillx,sd->skilly,sd->skillid,sd->skilllv)) {
@@ -5266,7 +5229,6 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	case WZ_FIREPILLAR:			/* ファイアピラ? */
 	case WZ_QUAGMIRE:			/* クァグマイア */
 	case WZ_VERMILION:			/* ロ?ドオブヴァ?ミリオン */
-	//case WZ_FROSTNOVA:			/* フロストノヴァ */
 	case WZ_STORMGUST:			/* スト?ムガスト */
 	case WZ_HEAVENDRIVE:		/* ヘヴンズドライブ */
 	case PR_SANCTUARY:			/* サンクチュアリ */

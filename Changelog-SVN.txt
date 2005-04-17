@@ -1,5 +1,6 @@
 Date	Added
 04/17
+	* Corrected Strip skills rates [DracoRPG]
 	* Moved timer and db finalising to core.c [celest]
 	* Fixed a typo that was causing crashes from blind monsters [celest]
 	* Added reset all character's status to offline when map disconnects from char
@@ -8,7 +9,7 @@ Date	Added
 	  instead of target [celest]
 	* Fixed ground-targetting skills usable with Blade Stop on [celest]
 	* Started implementing Baby Class compatibility for items / job quests,
-	  some optimizations due to usege of BaseJob [Lupus]
+	  some optimizations due to usage of BaseJob [Lupus]
 
 04/16
 	* Fixed Frost Joke and Scream working on dead characters, and set them to not
