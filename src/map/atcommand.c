@@ -1048,22 +1048,28 @@ int atcommand_send(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int a = atoi(message);
-	if (a)
-	{
+	int type = strtol(message,(char **)NULL,0);
+
+	if (type > 0 && type < MAX_PACKET_DB) {
 		unsigned char buf[1024];
-		switch(a)
+
+		switch (type)
 		{
-		case 1:
-			WBUFW(buf,0)=0x18d;
-		case 2:
-			WBUFW(buf,0)=0x18e;
-		case 3:
-			WBUFW(buf,0)=0x18f;
-		case 4:
-			WBUFW(buf,0)=0x190;
+		//case xxx:
+		//	add others here
+		//	break;
+		default:		
+			WBUFW(buf,0) = type;
+			WFIFOSET(fd,2);
+			break;
 		}
+
+		sprintf (atcmd_output, msg_table[258], type, type);
+		clif_displaymessage(fd, atcmd_output);
+	} else {
+		clif_displaymessage(fd, msg_table[259]);
 	}
+
 	return 0;
 }
 
@@ -3739,15 +3745,25 @@ int atcommand_packet(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int x = 0, y = 0;
+	static int packet_mode = 0;
+	int i, x = 0, y = 0;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%d %d", &x, &y) < 2) {
+	if (!message || !*message || (i = sscanf(message, "%d %d", &x, &y)) < 1) {
 		clif_displaymessage(fd, "Please, enter a status type/flag (usage: @packet <status type> <flag>).");
 		return -1;
 	}
+	if (i == 1) y = 1;
 
-	clif_status_change(&sd->bl, x, y);
+	switch (packet_mode)
+	{
+	case 0:
+		clif_status_change(&sd->bl, x, y);
+		break;
+	default:
+		break;
+		//added later
+	}
 
 	return 0;
 }
@@ -8087,7 +8103,7 @@ atcommand_adjcmdlvl(
         return -1;
     }
 
-    for (i = 0; atcommand_info[i].type != AtCommand_None; i++)
+    for (i = 0; (atcommand_info[i].command) && atcommand_info[i].type != AtCommand_None; i++)
         if (strcmpi(cmd, atcommand_info[i].command+1) == 0) {
             atcommand_info[i].level = newlev;
             clif_displaymessage(fd, "@command level changed.");

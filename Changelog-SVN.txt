@@ -1,4 +1,8 @@
 Date	Added
+04/18
+	* Some changes to @send and @packet [celest]
+	* Fixed a crash in @adjcmdlvl [celest]
+
 04/17
 	* Corrected Strip skills rates [DracoRPG]
 	* Moved timer and db finalising to core.c [celest]
