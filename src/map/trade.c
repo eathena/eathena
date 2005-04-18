@@ -35,13 +35,14 @@ void trade_traderequest(struct map_session_data *sd, int target_id) {
 				return;
 			}
 		}
-		if((level = pc_isGM(sd)) > 0 && level < battle_config.gm_can_drop_lv) {
+		level = pc_isGM(sd);
+		if(level > 0 && level < battle_config.gm_can_drop_lv) {
 			clif_displaymessage(sd->fd, msg_txt(246));
 			trade_tradecancel(sd); // GM is not allowed to trade
 		} else if ((target_sd->trade_partner != 0) || (sd->trade_partner != 0)) {
 			trade_tradecancel(sd); // person is in another trade
 		} else {
-			if (!pc_isGM(sd) && (sd->bl.m != target_sd->bl.m ||
+			if (!level && (sd->bl.m != target_sd->bl.m ||
 			    (sd->bl.x - target_sd->bl.x <= -5 || sd->bl.x - target_sd->bl.x >= 5) ||
 			    (sd->bl.y - target_sd->bl.y <= -5 || sd->bl.y - target_sd->bl.y >= 5))) {
 				clif_tradestart(sd, 0); // too far
@@ -158,9 +159,8 @@ int impossible_trade_check(struct map_session_data *sd) {
  */
 void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 	struct map_session_data *target_sd;
-	int trade_i;
-	int trade_weight = 0;
-	int c;
+	int trade_i, trade_weight = 0;
+	int c, level;
 
 	nullpo_retv(sd);
 
@@ -182,8 +182,9 @@ void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 			for(trade_i = 0; trade_i < 10; trade_i++) {
 				if (sd->deal_item_amount[trade_i] == 0) {
 					trade_weight += sd->inventory_data[index-2]->weight * amount;
-					if (itemdb_isdropable(sd->inventory_data[index-2]->nameid) == 0 && pc_get_partner(sd) != target_sd) {
-						clif_displaymessage (sd->fd, "This item cannot be traded.");
+					level = pc_isGM(sd);
+					if (itemdb_isdropable(sd->inventory_data[index-2]->nameid) == 0 && pc_get_partner(sd) != target_sd && !level) {
+						clif_displaymessage (sd->fd, msg_txt(260));
 						amount = 0;
 					} else if (target_sd->weight + trade_weight > target_sd->max_weight){
 						clif_tradeitemok(sd, index, 1); // fail to add item -- the player was over weighted.

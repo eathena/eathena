@@ -1,5 +1,9 @@
 Date	Added
 04/18
+	* Fixed exp overflow in mob.c and guild.c [celest]
+	* Allow gm's to drop/trade limited items (i.e wedding rings) [celest]
+	* Fixed super novices' guardian angel couldn't be summoned because the message
+	  was uncapitalised (yep you need to follow the caps too ^^) [celest]
 	* Fixed wrong EXP table usage / Max possible Job Level calculation of BABY CLASS [Lupus]
 	* Some changes to @send and @packet [celest]
 	* Fixed a crash in @adjcmdlvl [celest]

@@ -2516,34 +2516,33 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			// jAthena's exp formula
 			per = ((double)md->dmglog[i].dmg)*(9.+(double)((count > 6)? 6:count))/10./tdmg;
 			temp = (double)mob_db[md->class_].base_exp * per;
-			base_exp = (temp > 2147483647.)? 0x7fffffff:(int)temp;
-			if(mob_db[md->class_].base_exp > 0 && base_exp < 1) base_exp = 1;
-			if(base_exp < 0) base_exp = 0;
+			base_exp = (temp > 2147483647.) ? 0x7fffffff : (int)temp;
 			temp = (double)mob_db[md->class_].job_exp * per;
-			job_exp = (temp > 2147483647.)? 0x7fffffff:(int)temp;
-			if(mob_db[md->class_].job_exp > 0 && job_exp < 1) job_exp = 1;
-			if(job_exp < 0) job_exp = 0;
+			job_exp = (temp > 2147483647.) ? 0x7fffffff : (int)temp;
 		}
 		else if (battle_config.exp_calc_type == 1) {
 			//eAthena's exp formula rather than jAthena's
-			per=(double)md->dmglog[i].dmg*256*(9+(double)((count > 6)? 6:count))/10/(double)max_hp;
-			if(per>512) per=512;
-			if(per<1) per=1;
-			base_exp=(int) (mob_db[md->class_].base_exp*per/256);
-			if(base_exp < 1) base_exp = 1;
-			job_exp=(int) (mob_db[md->class_].job_exp*per/256);
-			if(job_exp < 1) job_exp = 1;
+			per = (double)md->dmglog[i].dmg*256*(9+(double)((count > 6)? 6:count))/10/(double)max_hp;
+			if (per > 512) per = 512;
+			if (per < 1) per = 1;
+			temp = (double)(mob_db[md->class_].base_exp*per/256);
+			base_exp = (temp > 2147483647.) ? 0x7fffffff : (int)temp;
+			temp = (double)(mob_db[md->class_].job_exp*per/256);
+			job_exp = (temp > 2147483647.) ? 0x7fffffff : (int)temp;
 		}
 		else {
 			//eAthena's exp formula rather than jAthena's, but based on total damage dealt
-			per=(double)md->dmglog[i].dmg*256*(9+(double)((count > 6)? 6:count))/10/tdmg;
-			if(per>512) per=512;
-			if(per<1) per=1;
-			base_exp=(int) (mob_db[md->class_].base_exp*per/256);
-			if(base_exp < 1) base_exp = 1;
-			job_exp=(int) (mob_db[md->class_].job_exp*per/256);
-			if(job_exp < 1) job_exp = 1;
+			per = (double)md->dmglog[i].dmg*256*(9+(double)((count > 6)? 6:count))/10/tdmg;
+			if (per > 512) per = 512;
+			if (per < 1) per = 1;
+			temp = (double)(mob_db[md->class_].base_exp*per/256);
+			base_exp = (temp > 2147483647.) ? 0x7fffffff : (int)temp;
+			temp = (double)(mob_db[md->class_].job_exp*per/256);
+			job_exp = (temp > 2147483647.) ? 0x7fffffff : (int)temp;			
 		}
+
+		if (base_exp < 1) base_exp = 1;
+		if (job_exp < 1) job_exp = 1;
 
 		if(sd) {
 			int rate;

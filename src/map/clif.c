@@ -8035,24 +8035,22 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 
 	// Celest
 	if (pc_calc_base_job2 (sd->status.class_) == 23 ) {
-		int next = pc_nextbaseexp(sd)>0 ? pc_nextbaseexp(sd) : sd->status.base_exp;
-		if (next > 0 && (sd->status.base_exp*100/next)%10 == 0) {
-			estr_lower((char*)RFIFOP(fd,4));
-			if (sd->state.snovice_flag == 0 && strstr((char*)RFIFOP(fd,4), msg_txt(504)))
+		int next = pc_nextbaseexp(sd) > 0 ? pc_nextbaseexp(sd) : sd->status.base_exp;
+		char *rfifo = (char*)RFIFOP(fd,4);
+		if (next > 0 && (sd->status.base_exp * 100 / next) % 10 == 0) {
+			if (sd->state.snovice_flag == 0 && strstr(rfifo, msg_txt(504)))
 				sd->state.snovice_flag = 1;
 			else if (sd->state.snovice_flag == 1) {
 				sprintf(message, msg_txt(505), sd->status.name);
-				estr_lower(message);
-				if (strstr((char*)RFIFOP(fd,4), message))
+				if (strstr(rfifo, message))
 					sd->state.snovice_flag = 2;
 			}
-			else if (sd->state.snovice_flag == 2 && strstr((char*)RFIFOP(fd,4), msg_txt(506)))
+			else if (sd->state.snovice_flag == 2 && strstr(rfifo, msg_txt(506)))
 				sd->state.snovice_flag = 3;
 			else if (sd->state.snovice_flag == 3) {
-				int i;
-				status_change_start(&sd->bl,SkillStatusChangeTable[MO_EXPLOSIONSPIRITS],1,0,0,0,skill_get_time(MO_EXPLOSIONSPIRITS,1),0 );
-				for(i=0;i<5;i++)
-					pc_addspiritball(sd,skill_get_time(MO_CALLSPIRITS,1),5);
+				clif_skill_nodamage(&sd->bl,&sd->bl,MO_EXPLOSIONSPIRITS,-1,1);
+				status_change_start(&sd->bl,SkillStatusChangeTable[MO_EXPLOSIONSPIRITS],
+						1,0,0,0,skill_get_time(MO_EXPLOSIONSPIRITS,1),0 );
 				sd->state.snovice_flag = 0;
 			}
 		}

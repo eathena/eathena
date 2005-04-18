@@ -267,23 +267,25 @@ int guild_check_conflict(struct map_session_data *sd)
 }
 
 // ギルドのEXPキャッシュをinter鯖にフラッシュする
-int guild_payexp_timer_sub(void *key,void *data,va_list ap)
+int guild_payexp_timer_sub(void *key, void *data, va_list ap)
 {
-	int i, *dellist,*delp, dataid=(int)key;
+	int i, *dellist, *delp, dataid = (int)key;
 	struct guild_expcache *c;
 	struct guild *g;
+	double exp2;
 
 	nullpo_retr(0, ap);
-	nullpo_retr(0, c=(struct guild_expcache *)data);
-	nullpo_retr(0, dellist=va_arg(ap,int *));
-	nullpo_retr(0, delp=va_arg(ap,int *));
+	nullpo_retr(0, c = (struct guild_expcache *)data);
+	nullpo_retr(0, dellist = va_arg(ap,int *));
+	nullpo_retr(0, delp = va_arg(ap,int *));
 
-	if( *delp>=GUILD_PAYEXP_LIST || (g=guild_search(c->guild_id))==NULL )
-		return 0;
-	if( ( i=guild_getindex(g,c->account_id,c->char_id) )<0 )
+	if (*delp >= GUILD_PAYEXP_LIST ||
+		(g = guild_search(c->guild_id)) == NULL ||
+		(i = guild_getindex(g, c->account_id, c->char_id)) < 0)
 		return 0;
 
-	g->member[i].exp+=c->exp;
+	exp2 = g->member[i].exp + c->exp;
+	g->member[i].exp = (exp2 > 0x7FFFFFFF) ? 0x7FFFFFFF : (int)exp2;
 	intif_guild_change_memberinfo(g->guild_id,c->account_id,c->char_id,
 		GMI_EXP,&g->member[i].exp,sizeof(g->member[i].exp));
 	c->exp=0;
@@ -292,13 +294,13 @@ int guild_payexp_timer_sub(void *key,void *data,va_list ap)
 	aFree(c);
 	return 0;
 }
-int guild_payexp_timer(int tid,unsigned int tick,int id,int data)
+
+int guild_payexp_timer(int tid, unsigned int tick, int id, int data)
 {
-	int dellist[GUILD_PAYEXP_LIST],delp=0,i;
-	numdb_foreach(guild_expcache_db,guild_payexp_timer_sub,
-		dellist,&delp);
-	for(i=0;i<delp;i++)
-		numdb_erase(guild_expcache_db,dellist[i]);
+	int dellist[GUILD_PAYEXP_LIST], delp = 0, i;
+	numdb_foreach(guild_expcache_db, guild_payexp_timer_sub, dellist, &delp);
+	for (i = 0; i < delp; i++)
+		numdb_erase(guild_expcache_db, dellist[i]);
 //	if(battle_config.etc_log)
 //		printf("guild exp %d charactor's exp flushed !\n",delp);
 	return 0;
@@ -939,28 +941,30 @@ int guild_payexp(struct map_session_data *sd,int exp)
 {
 	struct guild *g;
 	struct guild_expcache *c;
-	int per,exp2;
-
+	int per, exp2;
+	
 	nullpo_retr(0, sd);
 
-	if(sd->status.guild_id==0 || (g=guild_search(sd->status.guild_id))==NULL )
-		return 0;
-	if( (per=g->position[guild_getposition(sd,g)].exp_mode)<=0 )
-		return 0;
-	if( per>100 )per=100;
-
-	if( (exp2=exp*per/100)<=0 )
+	if (sd->status.guild_id == 0 ||
+		(g = guild_search(sd->status.guild_id)) == NULL ||
+		(per = g->position[guild_getposition(sd,g)].exp_mode) <= 0)
 		return 0;
 
-	if( (c=(struct guild_expcache *) numdb_search(guild_expcache_db,sd->status.char_id))==NULL ){
-		c=(struct guild_expcache *)aCallocA(1,sizeof(struct guild_expcache));
-		c->guild_id=sd->status.guild_id;
-		c->account_id=sd->status.account_id;
-		c->char_id=sd->status.char_id;
-		c->exp=exp2;
-		numdb_insert(guild_expcache_db,c->char_id,c);
-	}else{
-		c->exp+=exp2;
+	if (per > 100) per = 100;
+
+	if ((exp2 = exp * per / 100) <= 0)
+		return 0;
+
+	if ((c = (struct guild_expcache *)numdb_search(guild_expcache_db, sd->status.char_id)) == NULL) {
+		c = (struct guild_expcache *)aCallocA(1, sizeof(struct guild_expcache));
+		c->guild_id = sd->status.guild_id;
+		c->account_id = sd->status.account_id;
+		c->char_id = sd->status.char_id;
+		c->exp = exp2;
+		numdb_insert(guild_expcache_db, c->char_id, c);
+	} else {
+		double tmp = c->exp + exp2;
+		c->exp = (tmp > 0x7fffffff) ? 0x7fffffff : (int)tmp;
 	}
 	return exp2;
 }
@@ -970,21 +974,22 @@ int guild_getexp(struct map_session_data *sd,int exp)
 {
 	struct guild *g;
 	struct guild_expcache *c;
-
+	
 	nullpo_retr(0, sd);
 
-	if(sd->status.guild_id==0 || (g=guild_search(sd->status.guild_id))==NULL )
+	if (sd->status.guild_id == 0 || (g = guild_search(sd->status.guild_id)) == NULL)
 		return 0;
 
-	if( (c=(struct guild_expcache *) numdb_search(guild_expcache_db,sd->status.char_id))==NULL ){
-		c=(struct guild_expcache *)aCallocA(1,sizeof(struct guild_expcache));
-		c->guild_id=sd->status.guild_id;
-		c->account_id=sd->status.account_id;
-		c->char_id=sd->status.char_id;
-		c->exp=exp;
+	if ((c = (struct guild_expcache *) numdb_search(guild_expcache_db,sd->status.char_id)) == NULL) {
+		c = (struct guild_expcache *)aCallocA(1,sizeof(struct guild_expcache));
+		c->guild_id = sd->status.guild_id;
+		c->account_id = sd->status.account_id;
+		c->char_id = sd->status.char_id;
+		c->exp = exp;
 		numdb_insert(guild_expcache_db,c->char_id,c);
-	}else{
-		c->exp+=exp;
+	} else {
+		double tmp = c->exp + exp;
+		c->exp = (tmp > 0x7fffffff) ? 0x7fffffff : (int)tmp;
 	}
 	return exp;
 }
