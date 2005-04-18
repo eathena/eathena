@@ -1,5 +1,6 @@
 Date	Added
 04/18
+	* Fixed wrong EXP table usage / Max possible Job Level calculation of BABY CLASS [Lupus]
 	* Some changes to @send and @packet [celest]
 	* Fixed a crash in @adjcmdlvl [celest]
 
@@ -14,7 +15,6 @@ Date	Added
 	* Fixed ground-targetting skills usable with Blade Stop on [celest]
 	* Started implementing Baby Class compatibility for items / job quests,
 	  some optimizations due to usage of BaseJob [Lupus]
-
 04/16
 	* Fixed Frost Joke and Scream working on dead characters, and set them to not
 	  affect hidden GM's [celest]
@@ -25,7 +25,6 @@ Date	Added
 	* Added a crash check in mob skill casting [celest]
 	* Adding support for Fusion AF2 maps (not finished) [celest]
 	* Added more correct Einbroch/Einbech monster spawn [Lupus]
-
 04/15
 	* Fixed building under FreeBSD [MouseJstr]
 	* Shield Chain and Acid Demonstration should now display damage properly [celest]

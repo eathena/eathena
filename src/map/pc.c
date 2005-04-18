@@ -4105,13 +4105,13 @@ int pc_nextbaseexp(struct map_session_data *sd)
 	if(sd->status.base_level>=MAX_LEVEL || sd->status.base_level<=0)
 		return 0;
 
-	if(sd->status.class_==0) i=0;
-	else if(sd->status.class_<=6) i=1;
-	else if(sd->status.class_<=22) i=2;
-	else if(sd->status.class_==23) i=3;
-	else if(sd->status.class_==4001) i=4;
-	else if(sd->status.class_<=4007) i=5;
-	else i=6;
+	if(sd->status.class_==0 || sd->status.class_==4023) i=0; //Novice & Baby Novice [Lupus]
+	else if(sd->status.class_<=6 || (sd->status.class_>=4024 && sd->status.class_<=4029)) i=1; //1st Job & Baby 1st Job
+	else if(sd->status.class_<=22 || (sd->status.class_>=4030 && sd->status.class_<=4044)) i=2; //2nd Job & Baby 2nd Job
+	else if(sd->status.class_==23 || sd->status.class_==4045) i=3; //Super Novice & Super Baby
+	else if(sd->status.class_==4001) i=4; //High Novice
+	else if(sd->status.class_<=4007) i=5; //High 1st Job
+	else i=6; //3rd Job
 
 	return exp_table[i][sd->status.base_level-1];
 }
@@ -4129,13 +4129,13 @@ int pc_nextjobexp(struct map_session_data *sd)
 	if(sd->status.job_level>=MAX_LEVEL || sd->status.job_level<=0)
 		return 0;
 
-	if(sd->status.class_==0) i=7;
-	else if(sd->status.class_<=6) i=8;
-	else if(sd->status.class_<=22) i=9;
-	else if(sd->status.class_==23) i=10;
-	else if(sd->status.class_==4001) i=11;
-	else if(sd->status.class_<=4007) i=12;
-	else i=13;
+	if(sd->status.class_==0 || sd->status.class_==4023) i=7; //Novice & Baby Novice [Lupus]
+	else if(sd->status.class_<=6 || (sd->status.class_>=4024 && sd->status.class_<=4029)) i=8; //1st Job & Baby 1st Job
+	else if(sd->status.class_<=22 || (sd->status.class_>=4030 && sd->status.class_<=4044)) i=9; //2nd Job & Baby 2nd Job
+	else if(sd->status.class_==23 || sd->status.class_==4045) i=10; //Super Novice & Super Baby
+	else if(sd->status.class_==4001) i=11; //High Novice
+	else if(sd->status.class_<=4007) i=12; //High 1st Job
+	else i=13; //3rd Job
 
 	return exp_table[i][sd->status.job_level-1];
 }
@@ -4153,13 +4153,13 @@ int pc_nextbaseafter(struct map_session_data *sd)
 	if(sd->status.base_level>=MAX_LEVEL || sd->status.base_level<=0)
 		return 0;
 
-	if(sd->status.class_==0) i=0;
-	else if(sd->status.class_<=6) i=1;
-	else if(sd->status.class_<=22) i=2;
-	else if(sd->status.class_==23) i=3;
-	else if(sd->status.class_==4001) i=4;
-	else if(sd->status.class_<=4007) i=5;
-	else i=6;
+	if(sd->status.class_==0 || sd->status.class_==4023) i=0; //Novice & Baby Novice [Lupus]
+	else if(sd->status.class_<=6 || (sd->status.class_>=4024 && sd->status.class_<=4029)) i=1; //1st Job & Baby 1st Job
+	else if(sd->status.class_<=22 || (sd->status.class_>=4030 && sd->status.class_<=4044)) i=2; //2nd Job & Baby 2nd Job
+	else if(sd->status.class_==23 || sd->status.class_==4045) i=3; //Super Novice & Super Baby
+	else if(sd->status.class_==4001) i=4; //High Novice
+	else if(sd->status.class_<=4007) i=5; //High 1st Job
+	else i=6; //3rd Job
 
 	return exp_table[i][sd->status.base_level];
 }
@@ -4177,13 +4177,13 @@ int pc_nextjobafter(struct map_session_data *sd)
 	if(sd->status.job_level>=MAX_LEVEL || sd->status.job_level<=0)
 		return 0;
 
-	if(sd->status.class_==0) i=7;
-	else if(sd->status.class_<=6) i=8;
-	else if(sd->status.class_<=22) i=9;
-	else if(sd->status.class_==23) i=10;
-	else if(sd->status.class_==4001) i=11;
-	else if(sd->status.class_<=4007) i=12;
-	else i=13;
+	if(sd->status.class_==0 || sd->status.class_==4023) i=7; //Novice & Baby Novice [Lupus]
+	else if(sd->status.class_<=6 || (sd->status.class_>=4024 && sd->status.class_<=4029)) i=8; //1st Job & Baby 1st Job
+	else if(sd->status.class_<=22 || (sd->status.class_>=4030 && sd->status.class_<=4044)) i=9; //2nd Job & Baby 2nd Job
+	else if(sd->status.class_==23 || sd->status.class_==4045) i=10; //Super Novice & Super Baby
+	else if(sd->status.class_==4001) i=11; //High Novice
+	else if(sd->status.class_<=4007) i=12; //High 1st Job
+	else i=13; //3rd Job
 
 	return exp_table[i][sd->status.job_level];
 }
@@ -5050,15 +5050,14 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 		pc_heal(sd, sd->status.max_hp, sd->status.max_sp);
 		break;
 	case SP_JOBLEVEL:
-		if (s_class.job == 0)
+		if (s_class.job == 0) //Novice & Baby Novice have 10 Job Levels only
 			up_level -= 40;
-		// super novices can go up to 99 [celest]
-		else if (s_class.job == 23)
+		else if (s_class.job == 23) //Super Novice & Super Baby can go up to 99
 			up_level += 49;
-		else if (sd->status.class_ >= 4008 && sd->status.class_ <= 4022)
+		else if (sd->status.class_ >= 4008 && sd->status.class_ <= 4022) //3rd Job has 70 Job Levels
 			up_level += 20;
 		if (val >= sd->status.job_level) {
-			if (val > up_level)val = up_level;
+			if (val > up_level) val = up_level;
 			sd->status.skill_point += (val-sd->status.job_level);
 			sd->status.job_level = val;
 			sd->status.job_exp = 0;
