@@ -1,5 +1,8 @@
 Date	Added
 04/19
+	* Added extra info in 'goto' and 'if' script errors [celest]
+	* Added new mapflag 'gvg_dungeon' -- Same as GvG, but doesn't show simplified
+	  effects for the client [celest]
 	* Fixed blind mobs can still follow out-of-range attackers [celest]
 	* Support for /blacksmith and /alchemist commands (doesn't do anything yet)
 	* Added allow gm levels for the /[str/agi/..]+ commands to be set in atcommand

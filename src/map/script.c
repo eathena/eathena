@@ -1588,15 +1588,16 @@ int buildin_goto(struct script_state *st)
 {
 	int pos;
 
-	if( st->stack->stack_data[st->start+2].type!=C_POS ){
-		printf("script: goto: not label!\n");
-		st->state=END;
+	if (st->stack->stack_data[st->start+2].type != C_POS){
+		int func = st->stack->stack_data[st->start+2].u.num;
+		ShowMessage("script: goto '"CL_WHITE"%s"CL_RESET"': not label!\n", str_buf + str_data[func].str);
+		st->state = END;
 		return 0;
 	}
 
-	pos=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	st->pos=pos;
-	st->state=GOTO;
+	pos = conv_num(st,& (st->stack->stack_data[st->start+2]));
+	st->pos = pos;
+	st->state = GOTO;
 	return 0;
 }
 
@@ -4832,7 +4833,7 @@ int buildin_isloggedin(struct script_state *st)
 enum {  MF_NOMEMO,MF_NOTELEPORT,MF_NOSAVE,MF_NOBRANCH,MF_NOPENALTY,MF_NOZENYPENALTY,
 	MF_PVP,MF_PVP_NOPARTY,MF_PVP_NOGUILD,MF_GVG,MF_GVG_NOPARTY,MF_NOTRADE,MF_NOSKILL,
 	MF_NOWARP,MF_NOPVP,MF_NOICEWALL,MF_SNOW,MF_FOG,MF_SAKURA,MF_LEAVES,MF_RAIN,
-	MF_INDOORS,MF_NOGO,MF_CLOUDS,MF_FIREWORKS };
+	MF_INDOORS,MF_NOGO,MF_CLOUDS,MF_FIREWORKS,MF_GVG_DUNGEON };
 
 int buildin_setmapflagnosave(struct script_state *st)
 {
@@ -4893,6 +4894,9 @@ int buildin_setmapflag(struct script_state *st)
 				break;
 			case MF_GVG_NOPARTY:
 				map[m].flag.gvg_noparty=1;
+				break;
+			case MF_GVG_DUNGEON:
+				map[m].flag.gvg_dungeon=1;
 				break;
 			case MF_NOTRADE:
 				map[m].flag.notrade=1;
@@ -4982,6 +4986,9 @@ int buildin_removemapflag(struct script_state *st)
 				break;
 			case MF_GVG_NOPARTY:
 				map[m].flag.gvg_noparty=0;
+				break;
+			case MF_GVG_DUNGEON:
+				map[m].flag.gvg_dungeon=0;
 				break;
 			case MF_NOZENYPENALTY:
 				map[m].flag.nozenypenalty=0;
@@ -7345,7 +7352,8 @@ int run_func(struct script_state *st)
 
 	func=st->stack->stack_data[st->start].u.num;
 	if( st->stack->stack_data[st->start].type!=C_NAME || str_data[func].type!=C_FUNC ){
-		printf("run_func: not function and command! \n");
+		ShowMessage ("run_func: '"CL_WHITE"%s"CL_RESET"' (type %d) is not function and command!\n",
+				str_buf + str_data[func].str, str_data[func].type);
 //		st->stack->sp=0;
 		st->state=END;
 		return 0;

@@ -2217,6 +2217,9 @@ static int npc_parse_mapflag(char *w1,char *w2,char *w3,char *w4)
 	else if (strcmpi(w3,"gvg_noparty")==0) {
 		map[m].flag.gvg_noparty=1;
 	}
+	else if (strcmpi(w3,"gvg_dungeon")==0) {
+		map[m].flag.gvg_dungeon=1;
+	}
 	else if (strcmpi(w3,"nozenypenalty")==0) {
 		map[m].flag.nozenypenalty=1;
 	}

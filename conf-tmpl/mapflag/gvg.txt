@@ -40,7 +40,7 @@ prtg_cas04.gat	mapflag	gvg
 prtg_cas05.gat	mapflag	gvg
 
 // Guild Dungeons ==========
-gld_dun01.gat	mapflag	gvg
-gld_dun02.gat	mapflag	gvg
-gld_dun03.gat	mapflag	gvg
-gld_dun04.gat	mapflag	gvg
+gld_dun01.gat	mapflag	gvg_dungeon
+gld_dun02.gat	mapflag	gvg_dungeon
+gld_dun03.gat	mapflag	gvg_dungeon
+gld_dun04.gat	mapflag	gvg_dungeon

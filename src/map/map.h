@@ -572,6 +572,7 @@ struct map_data {
 		unsigned pvp_nocalcrank : 1;
 		unsigned gvg : 1;
 		unsigned gvg_noparty : 1;
+		unsigned gvg_dungeon : 1; // celest
 		unsigned nozenypenalty : 1;
 		unsigned notrade : 1;
 		unsigned noskill : 1;

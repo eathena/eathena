@@ -3790,6 +3790,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	struct block_list *ss=src;
 	struct status_change *sc_data;
 	struct status_change *tsc_data;
+	struct map_session_data *srcsd = NULL;
+	struct map_session_data *tsd = NULL;
 
 	nullpo_retr(0, src);
 	nullpo_retr(0, target);
@@ -3808,10 +3810,20 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			return -1;
 	}
 
-	if(src->type == BL_SKILL && target->type == BL_SKILL)	// 対象がスキルユニットなら無条件肯定
+	if (src->type == BL_SKILL && target->type == BL_SKILL)	// 対象がスキルユニットなら無条件肯定
 		return -1;
 
-	if(target->type == BL_PC && ((struct map_session_data *)target)->invincible_timer != -1)
+	if (target->type == BL_PET)
+		return -1;
+
+	if (src->type == BL_PC) {
+		nullpo_retr(-1, srcsd = (struct map_session_data *)src);
+	}
+	if (target->type == BL_PC) {
+		nullpo_retr(-1, tsd = (struct map_session_data *)target);
+	}
+	
+	if(tsd && (tsd->invincible_timer != -1 || pc_isinvisible(tsd)))
 		return -1;
 
 	// Celest
@@ -3821,59 +3833,55 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		(tsc_data && tsc_data[SC_BASILICA].timer != -1))
 		return -1;
 
-	if(target->type == BL_SKILL) {
-		switch(((struct skill_unit *)target)->group->unit_id){
-		case 0x8d:
-		case 0x8f:
-		case 0x98:
-			return 0;
-			break;
+	if (target->type == BL_SKILL) {
+		struct skill_unit *tsu = (struct skill_unit *)target;
+		if (tsu && tsu->group) {
+			switch (tsu->group->unit_id) {
+			case 0x8d:
+			case 0x8f:
+			case 0x98:
+				return 0;
+				break;
+			}
 		}
 	}
 
-	if(target->type == BL_PET)
-		return -1;
-
-				// スキルユニットの場合、親を求める
-	if( src->type==BL_SKILL) {
+	// スキルユニットの場合、親を求める
+	if (src->type == BL_SKILL) {
 		struct skill_unit *su = (struct skill_unit *)src;
-		int skillid, inf2;
-
-		nullpo_retr (-1, su);
-		nullpo_retr (-1, su->group);
-		skillid = su->group->skill_id;
-		inf2 = skill_get_inf2(skillid);
-		if( (ss=map_id2bl( su->group->src_id))==NULL )
-			return -1;
-		if(ss->prev == NULL)
-			return -1;
-		if(inf2&0x80 &&
-			(map[src->m].flag.pvp ||
-			(skillid >= 115 && skillid <= 125 && map[src->m].flag.gvg)) &&
-			!(target->type == BL_PC && pc_isinvisible((struct map_session_data *)target)))
-				return 0;
-		if(ss == target) {
-			if(inf2&0x100)
-				return 0;
-			if(inf2&0x200)
+		if (su && su->group) {
+			int skillid, inf2;		
+			skillid = su->group->skill_id;
+			inf2 = skill_get_inf2(skillid);
+			if ((ss = map_id2bl(su->group->src_id)) == NULL)
 				return -1;
+			if (ss->prev == NULL)
+				return -1;
+			if (inf2&0x80 &&
+				(map[src->m].flag.pvp ||
+				(skillid >= 115 && skillid <= 125 && map[src->m].flag.gvg)) &&
+				!(target->type == BL_PC && pc_isinvisible(tsd)))
+					return 0;
+			if (ss == target) {
+				if (inf2&0x100)
+					return 0;
+				if (inf2&0x200)
+					return -1;
+			}
 		}
 	}
 	
-	if( src->type==BL_MOB ){
-		struct mob_data *md=(struct mob_data *)src;
+	if (src->type == BL_MOB) {
+		struct mob_data *md = (struct mob_data *)src;
 		nullpo_retr (-1, md);
 
-		if(target->type == BL_PC) {
-			struct map_session_data *sd = (struct map_session_data *)target;
-			nullpo_retr (-1, sd);
-
+		if (tsd) {
 			if(md->class_ >= 1285 && md->class_ <= 1287){
 				struct guild_castle *gc = guild_mapname2gc (map[target->m].name);
 				if(gc && agit_flag==0)	// Guardians will not attack during non-woe time [Valaris]
 					return 1;  // end addition [Valaris]
-				if(gc && sd->status.guild_id > 0) {
-					struct guild *g=guild_search(sd->status.guild_id);	// don't attack guild members [Valaris]
+				if(gc && tsd->status.guild_id > 0) {
+					struct guild *g=guild_search(tsd->status.guild_id);	// don't attack guild members [Valaris]
 					if(g && g->guild_id == gc->guild_id)
 						return 1;
 					if(g && guild_isallied(g,gc))
@@ -3881,17 +3889,17 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				}
 			}
 			// option to have monsters ignore GMs [Valaris]
-			if (battle_config.monsters_ignore_gm > 0 && pc_isGM(sd) >= battle_config.monsters_ignore_gm)
+			if (battle_config.monsters_ignore_gm > 0 && pc_isGM(tsd) >= battle_config.monsters_ignore_gm)
 				return 1;
 		}
 		// Mobでmaster_idがあってspecial_mob_aiなら、召喚主を求める
-		if(md->master_id>0){
-			if(md->master_id==target->id)	// 主なら肯定
+		if (md->master_id > 0) {
+			if (md->master_id == target->id)	// 主なら肯定
 				return 1;
-			if(md->state.special_mob_ai){
-				if(target->type==BL_MOB){	//special_mob_aiで対象がMob
-					struct mob_data *tmd=(struct mob_data *)target;
-					if(tmd){
+			if (md->state.special_mob_ai){
+				if (target->type == BL_MOB){	//special_mob_aiで対象がMob
+					struct mob_data *tmd = (struct mob_data *)target;
+					if (tmd){
 						if(tmd->master_id != md->master_id)	//召喚主が一緒でなければ否定
 							return 0;
 						else{	//召喚主が一緒なので肯定したいけど自爆は否定
@@ -3903,68 +3911,66 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 					}
 				}
 			}
-			if((ss=map_id2bl(md->master_id))==NULL)
+			if((ss = map_id2bl(md->master_id)) == NULL)
 				return -1;
 		}
 	}
 
-	if( src==target || ss==target )	// 同じなら肯定
+	if (src == target || ss == target)	// 同じなら肯定
 		return 1;
 
-	if(target->type == BL_PC && pc_isinvisible((struct map_session_data *)target))
+	if (src->prev == NULL ||	// 死んでるならエラー
+		(srcsd && pc_isdead(srcsd)))
 		return -1;
 
-	if( src->prev==NULL ||	// 死んでるならエラー
-		(src->type==BL_PC && pc_isdead((struct map_session_data *)src) ) )
-		return -1;
-
-	if( (ss->type == BL_PC && target->type==BL_MOB) ||
-		(ss->type == BL_MOB && target->type==BL_PC) )
+	if ((ss->type == BL_PC && target->type == BL_MOB) ||
+		(ss->type == BL_MOB && target->type == BL_PC) )
 		return 0;	// PCvsMOBなら否定
 
-	if(ss->type == BL_PET && target->type==BL_MOB)
+	if (ss->type == BL_PET && target->type == BL_MOB)
 		return 0;
 
-	s_p=status_get_party_id(ss);
-	s_g=status_get_guild_id(ss);
+	s_p = status_get_party_id(ss);
+	s_g = status_get_guild_id(ss);
 
-	t_p=status_get_party_id(target);
-	t_g=status_get_guild_id(target);
+	t_p = status_get_party_id(target);
+	t_g = status_get_guild_id(target);
 
-	if(flag&0x10000) {
-		if(s_p && t_p && s_p == t_p)	// 同じパーティなら肯定（味方）
+	if (flag&0x10000) {
+		if (s_p && t_p && s_p == t_p)	// 同じパーティなら肯定（味方）
 			return 1;
 		else		// パーティ検索なら同じパーティじゃない時点で否定
 			return 0;
 	}
 
-	if(ss->type == BL_MOB && s_g > 0 && t_g > 0 && s_g == t_g )	// 同じギルド/mobクラスなら肯定（味方）
+	if (ss->type == BL_MOB && s_g > 0 && t_g > 0 && s_g == t_g )	// 同じギルド/mobクラスなら肯定（味方）
 		return 1;
 
 //printf("ss:%d src:%d target:%d flag:0x%x %d %d ",ss->id,src->id,target->id,flag,src->type,target->type);
 //printf("p:%d %d g:%d %d\n",s_p,t_p,s_g,t_g);
 
-	if( ss->type==BL_PC && target->type==BL_PC) { // 両方PVPモードなら否定（敵）
-		struct skill_unit *su=NULL;
-		if(src->type==BL_SKILL)
-			su=(struct skill_unit *)src;
-		if(map[ss->m].flag.pvp || pc_iskiller((struct map_session_data *)ss, (struct map_session_data*)target)) { // [MouseJstr]
+	if (ss->type == BL_PC && target->type == BL_PC) { // 両方PVPモードなら否定（敵）
+		struct map_session_data *ssd = (struct map_session_data *)ss;		
+		struct skill_unit *su = NULL;
+		if (src->type == BL_SKILL)
+			su = (struct skill_unit *)src;
+		if (map[ss->m].flag.pvp || pc_iskiller(ssd, tsd)) { // [MouseJstr]
 			if(su && su->group->target_flag==BCT_NOENEMY)
 				return 1;
 			else if (battle_config.pk_mode &&
-				(((struct map_session_data*)ss)->status.class_==0 || ((struct map_session_data*)target)->status.class_==0 ||
-				((struct map_session_data*)ss)->status.base_level < battle_config.pk_min_level ||
-				((struct map_session_data*)target)->status.base_level < battle_config.pk_min_level))
+				(ssd->status.class_ == 0 || tsd->status.class_ == 0 ||
+				ssd->status.base_level < battle_config.pk_min_level ||
+				tsd->status.base_level < battle_config.pk_min_level))
 				return 1; // prevent novice engagement in pk_mode [Valaris]
-			else if(map[ss->m].flag.pvp_noparty && s_p > 0 && t_p > 0 && s_p == t_p)
+			else if (map[ss->m].flag.pvp_noparty && s_p > 0 && t_p > 0 && s_p == t_p)
 				return 1;
-			else if(map[ss->m].flag.pvp_noguild && s_g > 0 && t_g > 0 && s_g == t_g)
+			else if (map[ss->m].flag.pvp_noguild && s_g > 0 && t_g > 0 && s_g == t_g)
 				return 1;
 			return 0;
 		}
-		if(map[src->m].flag.gvg) {
-			struct guild *g=NULL;
-			if(su && su->group->target_flag==BCT_NOENEMY)
+		if (map[src->m].flag.gvg || map[src->m].flag.gvg_dungeon) {
+			struct guild *g = NULL;
+			if(su && su->group->target_flag == BCT_NOENEMY)
 				return 1;
 			if( s_g > 0 && s_g == t_g)
 				return 1;
