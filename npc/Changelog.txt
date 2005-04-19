@@ -37,6 +37,7 @@ Date		Added
 ======
 
 04/19
+	* Added custom jobchanger fix by Zoc
 	* Added custom Adoption script by Fredzilla [Lupus]
 	* Removed annoying Kafra Storage issue [Lupus]
 	* Fixed some Job Quests bugs (wrong constants, wrong variable names, etc) [Lupus]

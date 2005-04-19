@@ -13,6 +13,7 @@
 //Added missing param into resetlevel [Lupus]
 //Remade Adv. Classes Menu. [shadowlady]
 //Fixed some bugs, by midas
+//Fixed Mounted Class bugs and Baby Class bugs [Zoc]
 //============================================================
 
 prontera.gat,160,186,6	script	Jobchanger	94,{
@@ -32,7 +33,7 @@ LNovice2:
 	close;
 
 Lchange:
-	if ((readparam(19) >= 46) && (readparam(19) <= 68)) goto Babynochange;
+	if (((readparam(19) >= 46) && (readparam(19) <= 68)) || ((readparam(19) >= 4023) && (readparam(19) <= 4045))) goto Babynochange;
 	mes "[ ^0065DFJobra^000000 ]";
 	mes "We shall start the ceremony....";
 	next;
@@ -61,9 +62,10 @@ Llevelcheck:
 Ladvclasses:
 	if(SkillPoint != 0) goto Lskillpt;
 //Lord Knight & Paladin
-	if(oldclass == 7 && readparam(19) == 4001 || oldclass == 13 && readparam(19) == 4001 || oldclass == 14 && readparam(19) == 4001 || oldclass == 21 && readparam(19) == 4001) goto Lswordsmanhigh;
-	if(readparam(19) == 4002 && oldclass == 7) goto Llordknight;
-	if(readparam(19) == 4002 && oldclass == 14) goto Lpaladin;
+	if(oldclass == 7 && readparam(19) == 4001 || oldclass == 13 && readparam(19) == 4001 || oldclass == 14 && 
+readparam(19) == 4001 || oldclass == 21 && readparam(19) == 4001) goto Lswordsmanhigh;
+	if(readparam(19) == 4002 && oldclass == 7 || readparam(19) == 4002 && oldclass == 13) goto Llordknight;
+	if(readparam(19) == 4002 && oldclass == 14 || readparam(19) == 4002 && oldclass == 21) goto Lpaladin;
 //Assassin Cross & Stalker
 	if(oldclass == 12 && readparam(19) == 4001 || oldclass == 17 && readparam(19) == 4001) goto Ltheifhigh;
 	if(readparam(19) == 4007 && oldclass == 12) goto Lassassincross;
