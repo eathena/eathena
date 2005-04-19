@@ -17,7 +17,7 @@
 
 payon_in01.gat,143,8,5	script	Nan Hyang	814,{
  If (getequipisequiped(5073)) GOTO L_GOOD;
- If (Class == 0) GOTO L_NOVICE;
+ If (BaseJob == 0) GOTO L_NOVICE;
  mes "[Nan Hyang]";
  mes "Tut tut! you have terrible posture!";
  mes "You need to correct it immediately!";

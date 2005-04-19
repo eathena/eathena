@@ -4,7 +4,7 @@
 //= nestor_zulueta (Fusion)
 //= converted by Darkchild
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -16,7 +16,8 @@
 //= v1.1 Fixed some minor bugs.  Optimized some lines. Re-organized the script a bit. 
 //= Giving Parmry NPC, Hammer and Old Book now waves the 50000 fee. (based of mRO website)
 //= Having a joblvl of 50 allows you to skip Rasputin's test. (based of mRO website) [kobra_k88]
-//= 1.2 fixed a few typos (heve to hunt more) [Lupus]
+//= 1.2 fixed a few typos (have to hunt more) [Lupus]
+//= 1.3 Added Baby Class Support [Lupus]
 //============================================================ 
 
 
@@ -25,8 +26,8 @@
 //==================================================================================================//
 alde_alche.gat,27,185,4	script	Parmry Gianino	744,{
 	mes "[Parmry Gianino]";
-	if(Class == 5) goto L_Merc;
-	if(Class == Job_Alchem) goto L_Alch;
+	if(BaseJob == 5) goto L_Merc;
+	if(BaseJob == Job_Alchem) goto L_Alch;
 L_Other:	
 	mes "Welcome to the Alchemist Union.  Ah, I apologize but I'm busy right now.";
 	close;
@@ -198,7 +199,7 @@ L_GoChange:
 //==================================================================================================//
 alde_alche.gat,175,107,4	script	Rasputin Gregory	749,{
 	mes "[Rasputin Gregory]";
-	if(class == 5) goto L_Merc;
+	if(BaseJob == 5) goto L_Merc;
 L_Other:
 	mes "What is it, kikikiki.  Are you curious about what I do...?";
 	mes "I'll just especially let you know.  You see I... Kekeke..";
@@ -462,7 +463,7 @@ L_Skip:
 //==================================================================================================//
 alde_alche.gat,13,15,8	script	Darwin	750,{
 	mes "[Darwin]";
-	if(class == 5) goto L_Merc;
+	if(BaseJob == 5) goto L_Merc;
 L_Other:
 	mes "more to lose or gain...";
 	mes "It's always like that...";
@@ -686,7 +687,7 @@ L_NotEnuf:
 //==================================================================================================//
 alde_alche.gat,79,19,4	script	Van Helmont	748,{
 	mes "[Van Helmont]";
-	if(class == 5) goto L_Merc;
+	if(BaseJob == 5) goto L_Merc;
 L_Other:
 	mes "Just a little ... yes, a little bit more ....";
 	mes "agh, just a little bit more and it would've been done!";
@@ -852,7 +853,7 @@ L_Done:
 //==================================================================================================//
 alde_alche.gat,145,19,4	script	Nicholas Flamel	57,{
 	mes "[Nicholas Flamel]";
-	if(class == 5) goto L_Merc;
+	if(BaseJob == 5) goto L_Merc;
 L_Other:
 	mes "Lorem ipsum dolor sit amet,";
 	mes "consectetuer adipiscing elit.";
@@ -1013,8 +1014,8 @@ L_Done:
 //==================================================================================================//
 alde_alche.gat,101,184,4	script	Vincent Carsciallo	122,{
 	mes "[Vincent Carsciallo]";
-	if(Class == 5) goto L_Merc;
-	if(Class == Job_Alchem) goto L_Alch;
+	if(BaseJob == 5) goto L_Merc;
+	if(BaseJob == Job_Alchem) goto L_Alch;
 L_Other:
 	mes "Hmmm? What may a civilian have to do here?";
 	next;
@@ -1050,6 +1051,7 @@ L_Change:
 	if(skillpoint != 0) goto L_Skpoint;
 	mes "Ooh, Ok. You joined and learned the basics, too. Well done.";
 	next;
+	callfunc "Job_Change",Job_Alchem;
 	jobchange 18;
 	emotion 46;
 	mes "[Vincent Carsciallo]";

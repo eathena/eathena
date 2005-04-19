@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= kobra_k88
 //===== Current Version: =====================================
-//= 1.1a
+//= 1.2
 //===== Compatible With: =====================================
 //= eAthena 7.15 +
 //===== Description: =========================================
@@ -13,6 +13,7 @@
 //= v1.1 Bug fixes
 //= v1.a Now using functions found in "Global_Functions.txt"
 //= for class checks.[kobra_k88]
+//= 1.2 Added Baby Class Support [Lupus]
 //============================================================
 
 
@@ -45,7 +46,7 @@ L_Start:
 	mes "I'll let you in on something....... My voice is more than just loud..... it's actually quite unique......";
 	next;
 	mes "[Necko]";
-	if(Class==Job_Merchant && JobLevel < 15) goto L_JobLvl;
+	if(BaseJob==Job_Merchant && JobLevel < 15) goto L_JobLvl;
 	mes "You see, I know a skill that lets me shout in a way that actually helps me.... It is the ^3355FFCrazy Uproar^000000 skill!!!";
 	emotion 5;
 	next;
@@ -137,7 +138,7 @@ L_Start:
 	mes "I can change the way your cart looks for you.  Of course some conditions need to be met......";
 	next;
 	mes "[Charlron]";
-	if (Class==Job_Merchant && JobLevel < 30) goto L_JobLvl;
+	if (BaseJob==Job_Merchant && JobLevel < 30) goto L_JobLvl;
 	mes "First you will need to bring me these items:";
 	mes "^3355FF50 Trunks,";
 	mes "20 Animal Skin,";
@@ -237,7 +238,7 @@ L_Start:
 
 		sM_0:
 			mes "[Gershuan]";
-			if (Class==Job_Merchant && JobLevel < 35) goto ssL_LowLvl;
+			if (BaseJob==Job_Merchant && JobLevel < 35) goto ssL_LowLvl;
 			mes "Ok! I will give you the special training for Cart Revolution.  The first thing you will have to do is bring me these items:";
 			mes "^3355FF30 Sticky Mucus,";
 			mes "20 Fly wings,";

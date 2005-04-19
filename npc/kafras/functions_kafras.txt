@@ -3,13 +3,9 @@
 //===== By: ================================================== 
 //= Lotsa People (1.0)
 //= eAthena Dev Team
-//= Darlskies
-//= Darkchild
-//= Syrus22
-//= Lupus
-//= kobra_k88 (2.0)
+//= Darlskies, Darkchild, Syrus22, Lupus, kobra_k88 (2.0)
 //===== Current Version: ===================================== 
-//= 2.3
+//= 2.4
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ===============================================
@@ -27,6 +23,9 @@
 //= 2.3 Removed SAVE from Niflheim. [Lupus]
 //= 2.3 removed "fix" by HawkMoon RTFM and check supernovice.txt . There's a SPECIAL Kafra
 //= which gives CARTS to SN for a special proce. [Lupus]
+//= 2.4 Added Baby Class Support (Baby Novice check)
+//= Removed annoying storage feature where u had to close dialog
+//= window to be able to use your storage [Lupus]
 //============================================================ 
 
 
@@ -82,16 +81,21 @@ function	script	F_Kafra	{
 // Storage Function =======================================================
 function	script	F_KafStor	{
 	if(getarg(0) == 3) goto L_Guild;
-	if((class ==Job_Novice) && (JobLevel<6)) goto sL_JbLvl;
-	if(Class == Job_Novice) set @fee, 30;
-	if(Class != Job_Novice) set @fee, 60;
+	if((BaseJob ==Job_Novice) && (JobLevel<6)) goto sL_JbLvl;
+	if(BaseJob == Job_Novice) set @fee, 30;
+	if(BaseJob != Job_Novice) set @fee, 60;
 	if(@kafPass==1 || getarg(0)==2) set @fee, 0;
 	if(Zeny<@fee) goto sL_Zeny;
 	set Zeny, Zeny-@fee;
 	set RESRVPTS, RESRVPTS + (@fee/5);
+
+	mes "[Kafra]";
+	mes "Close this window to open your storage.";
+	mes "We hope to see you again soon.";
+	close2;
 	openstorage;
 	cutin "", 255;
-	close;
+	end;
 
 	sL_JbLvl:
 		mes "[Kafra]";

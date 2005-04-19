@@ -5,7 +5,7 @@
 //= Converted by: kobra_k88.
 //= Further bugfixed and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena  1.0
 //===== Description: ========================================= 
@@ -13,11 +13,8 @@
 //===== Additional Comments: ================================= 
 //= Fully working.  Changed the way Priests enter the test room to help Acos.
 //= Must use this with the included Acolyte quest to work properely.
-//= v1.1 Rollback from the wrong Kashy's fix
+//= 1.3 Added Baby Class support, fixed 3 wrong constants bugs [Lupus]
 ==========================================================
-
-
-
 
 
 //*********************************************************************************************************************************************************************************\\
@@ -25,9 +22,9 @@
 //*********************************************************************************************************************************************************************************\\
 prt_church.gat,16,41,4	script	Father Thomas	60,{
 	mes "[Father Thomas]";
-	if (class == Job_Novice) goto L_Novice;
-	if (class == Job_Priest) goto L_Priest;
-	if (class == Job_Acolyte) goto L_Start;
+	if (BaseJob == Job_Novice) goto L_Novice;
+	if (BaseJob == Job_Priest) goto L_Priest;
+	if (BaseJob == Job_Acolyte) goto L_Start;
 
 L_Other:
 	mes "May God bless you my child.";
@@ -353,18 +350,18 @@ L_Test3:
 
 L_Change:
 	if (SkillPoint > 0) mes "Wait.  You must use up your skill points in order to become a Priest.";
-       	if (SkillPoint > 0) close;
+	if (SkillPoint > 0) close;
 	mes "Congratulations! You have just completed all of the tests.  I can now turn you into a Priest.";
 	emotion 21;
 	next;
 	mes "[Father Thomas]";
 	mes "God, please endow "+strcharinfo(0)+" with the strength and courage to fight evil and help mankind.";
 	next;
-	jobchange Job_Priest;
+	callfunc "Job_Change",Job_Priest;
 	mes "[Father Thomas]";
 	mes "You are now a Priest.  As a Priest, you can now help a lot of people in the name of God.";
 	next;
-	if (JBLVL == 40) getitem 1550, 1;
+	if (JBLVL != 50) getitem 1550, 1;
 	if (JBLVL == 50) getitem 1551, 1;
 	callfunc "F_ClearJobVar";		// clears all job variables for the current player
 	mes "[Father Thomas]";
@@ -651,7 +648,7 @@ job_prist.gat,23,92,1	script	Zombie5_Trig	139,16,0,{
 // End warp for 1st part of test--------------------------------------------------------------------
 job_prist.gat,24,109,1	script	prst1_1	45,3,3,{
 
-	if(class == Priest) end;		//If a Priest friend steps on the warp nothing happens.  Need the aco to step on the warp.
+	if(BaseJob == Job_Priest) end;		//If a Priest friend steps on the warp nothing happens.  Need the aco to step on the warp.
 OnTimer30000:
 	stopnpctimer;
 	areawarp "job_prist.gat",8,34,39,109,"job_prist.gat",168,17;
@@ -701,7 +698,7 @@ OnTimer500:
 job_prist.gat,168,45,4	script	Deviruchi	738,{
 
 OnStart:
-	if(class == Job_Acolyte) goto L_Aco;
+	if(BaseJob == Job_Acolyte) goto L_Aco;
 
 L_Priest:
 	mes "[Deviruchi]";
@@ -777,7 +774,7 @@ L_Aco:
 job_prist.gat,168,80,4	script	Doppelganger::Doppel	739,{
 
 OnStart:
-	if(class == Job_Acolyte) goto L_Aco;
+	if(BaseJob == Job_Acolyte) goto L_Aco;
 
 L_Priest:
 	mes "[Doppelganger]";
@@ -851,7 +848,7 @@ L_Aco:
 job_prist.gat,168,115,4	script	Dark Lord	737,{
 
 OnStart:
-	if(class == Job_Acolyte) goto L_Aco;
+	if(BaseJob == Job_Acolyte) goto L_Aco;
 
 L_Priest:
 	mes "[Dark Lord]";
@@ -912,7 +909,7 @@ L_Aco:
 job_prist.gat,168,150,4	script	Baphomet	736,{
 
 OnStart:
-	if(class == Job_Acolyte) goto L_Aco;
+	if(BaseJob == Job_Acolyte) goto L_Aco;
 
 L_Priest:
 	mes "[Baphomet]";
@@ -1000,7 +997,7 @@ job_prist.gat,167,145,1	script	Bapho_Trig	139,8,0,{
 // End warp for 2nd part of test ---------------------------------------------------------
 job_prist.gat,168,180,0	script	prst2_1	45,3,3,{
 
-	if(class == Priest) end;		//If a Priest friend steps on the warp nothing happens.  Need the Aco to step on the warp.
+	if(BaseJob == Job_Priest) end;		//If a Priest friend steps on the warp nothing happens.  Need the Aco to step on the warp.
 OnTimer30000:
 	set $@PrstRm, 3;
 	set $PRIEST_Q3, 0;
@@ -1046,7 +1043,7 @@ job_prist.gat,97,80,0	script	Mummy3_Trig	139,8,1,{
 // End warp for 3rd part of test ----------------------------------------------
 job_prist.gat,98,105,0	script	prst3_1	45,2,2,{
 
-	if(class == Priest) end;		//If a Priest friend steps on the warp nothing happens.  Need the Aco to step on the warp.
+	if(BaseJob == Job_Priest) end;		//If a Priest friend steps on the warp nothing happens.  Need the Aco to step on the warp.
 	stopnpctimer "TimerPrst";
 	areawarp "job_prist.gat", 90, 34, 105, 105, "prt_church.gat",16, 37;
 	set PRIEST_Q2, 2;
@@ -1135,9 +1132,9 @@ AnnouncePrst:
 //**********************************************************************************************************************************************************************************\\
 prt_church.gat,27,24,4	script	Sister Cecile	79,{
 	mes "[Sister Cecile]";
-	if(Class == Job_Priest) goto L_Prst;
-	if(Class == Job_Acolyte) goto L_Aco;
-	if(Class == Job_Novice) goto L_Nov;
+	if(BaseJob == Job_Priest) goto L_Prst;
+	if(BaseJob == Job_Acolyte) goto L_Aco;
+	if(BaseJob == Job_Novice) goto L_Nov;
 
 L_Other:
 	mes "This is the Prontera Church, what can I help you with?";

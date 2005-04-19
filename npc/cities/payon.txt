@@ -4,7 +4,7 @@
 //= Muad Dib (1.0) Darkchild (1.1) Muad Dib (1.2)
 //= Darkchild (1.3) DracoRPG (1.5)
 //===== Current Version: ===================================== 
-//= 1.5b
+//= 1.5c
 //===== Compatible With: ===================================== 
 //= Any eAthena Mod
 //===== Description: ========================================= 
@@ -15,6 +15,7 @@
 //= 1.5 - Rescripted old NPCs + scripted new ones (from iRO Sak) [DracoRPG]
 //= 1.5b - Used Dino9021's script for the Gemstone exchanger [DracoRPG]
 //= 1.5b1 fixed Gemstone Exchanger NPC [Lupus]
+//= 1.5b2 added adv.classes/baby classes support [Lupus]
 //============================================================ 
 
 payon.gat,190,115,0	script	Lady	90,{
@@ -249,7 +250,7 @@ L_Menu2:
 }
 
 payon.gat,210,110,4	script	Drunk	120,{
-	   if(Class != 3) goto L_Menu1_F1;
+	   if(BaseJob != 3) goto L_Menu1_F1;
 	mes "[Drunk]";
 	mes "Hey hey! I am wondering how stupid archers who don't know how to aim targets could drink alcohol. Hahaha~!";
 	mes "Do you want to buy me a drink?";
@@ -264,11 +265,11 @@ L_Menu1_F1:
 	next;
 	menu "Promise me you won't drink more than one jug.",L_Menu1,"No thanks,buddy.",L_Menu2,"Oh my god~ hell no~!",L_Menu3;
 L_Menu1:
-	   if(Class == 3) goto L1L; 
+	   if(BaseJob == 3) goto L1L; 
       mes "Thanksh!... shhtrangersszz are alwayssszz a generoushhh bunch!... archer guysh are penny pinchershh nowadayssszz!..(hicup!)";
 	goto L1L;
 L1L:
-	   if(Class != 3) goto L2L; 
+	   if(BaseJob != 3) goto L2L; 
       mes "Thanksh brothaaa!... archerrrzzz are alwayssszz a generoushhh bunch!...(hicup!)";
 	goto L2L;
 L2L:

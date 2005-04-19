@@ -625,7 +625,7 @@ M_Menu:
 // Dark Wizard -------------------------------------------------------------------------
 geffen_in.gat,164,109,2	script	Dark Wizard	64,{
 
-	if(Class == 2 || Class == 9) goto L_Magic;
+	if(BaseJob == 2 || BaseJob == 9) goto L_Magic;
 	
 	mes "[Dark Wizard]";
 	mes "Hmf.  I only speak to those with magic abilities....";

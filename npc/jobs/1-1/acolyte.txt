@@ -12,7 +12,8 @@
 //= v1.0 Fully working.
 //= v1.1 Added function calls for Priest Quest.
 //= v1.2 Fixed Marthilda, Yosuke bugs. [Lupus]
-//= v1.3 Added instant job change for High Novice [Lupus]
+//= v1.2a Added instant job change for High Novice [Lupus]
+//= 1.3 Added Baby Class support [Lupus]
 //============================================================ 
 
 
@@ -20,7 +21,7 @@
 prt_church.gat,184,41,4	script	"Father Mareusis"	60,{
 	callfunc "F_ToHigh",28,"Acolyte High",32,"High Priest",156,0,0,0,"Father Mareusis";
 	mes "[Father Mareusis]";
-	if(Class==Job_Novice && job_acolyte_q > 0) goto L_Check;
+	if(BaseJob==Job_Novice && job_acolyte_q > 0) goto L_Check;
 	mes "What is it you are looking for?";
 	next;
 	menu "Father, I want to become an Acolyte.",M_0,"The Requirements.",M_1,"I'm just looking around that's all",M_End;
@@ -28,8 +29,8 @@ prt_church.gat,184,41,4	script	"Father Mareusis"	60,{
 
 	M_0:
 		mes "[Father Mareusis]";
-		if(Class == Job_Acolyte) goto JobAco;
-		if(Class != Job_Novice) goto NotNov;
+		if(BaseJob == Job_Acolyte) goto JobAco;
+		if(BaseJob != Job_Novice) goto NotNov;
 		if(JobLevel < 10) goto JobLess10;
 		mes "Do you truly wish to become a servant of God?";
 		next;
@@ -105,8 +106,8 @@ prt_church.gat,184,41,4	script	"Father Mareusis"	60,{
 
 	M_1:
 		mes "[Father Mareusis]";
-		if(Class == Job_Acolyte) goto M1b;
-		if(Class != Job_Novice) goto M1a;
+		if(BaseJob == Job_Acolyte) goto M1b;
+		if(BaseJob != Job_Novice) goto M1a;
 		
 		mes "So you wish to become an Acolyte do you?";
 		mes "Here are the two requirements you must fullfill first in order to do so.";
@@ -146,9 +147,8 @@ L_Check:
 	next;
 	mes "(whispers a prayer)";
 	next;
-	set job_acolyte_q,0;
-	set job_acolyte_q2,0;
-	JobChange Job_Acolyte;
+	callfunc "Job_Change",Job_Acolyte;
+	callfunc "F_ClearJobVar";		// clears all job variables for the current player
 	mes "[Father Mareusis]";
 	mes "Remember to be thankful to God, who is taking care of us all of the time.";  
 	mes "That you have the unique chance to serve him...you should feel very fortunate and blessed."; 
@@ -176,8 +176,8 @@ L_Check:
 // -- Father Rubalkabara --
 prt_fild03.gat,365,259,2	script	Father Rubalkabara	110,{
 	mes "[Father Rubalkabara]";
-	if(Class==Job_Acolyte || Class==Job_Priest) callfunc "F_FatherRub";
-	if(Class==Job_Novice) goto L_Novice;
+	if(BaseJob==Job_Acolyte || BaseJob==Job_Priest) callfunc "F_FatherRub";
+	if(BaseJob==Job_Novice) goto L_Novice;
 
 L_Other:
 	mes "Oh.. Have you come here to train Or are you just a Wanderer..?";
@@ -237,8 +237,8 @@ L_Start:
 // -- Mother Marthilda --
 moc_fild07.gat,36,354,4	script	Mother Marthilda	79,{
 	mes "[Mother Marthilda]";
-	if(Class == Job_Acolyte || Class==Job_Priest) callfunc "F_MotherMart";
-	if(Class == Job_Novice) goto L_Novice;
+	if(BaseJob == Job_Acolyte || BaseJob==Job_Priest) callfunc "F_MotherMart";
+	if(BaseJob == Job_Novice) goto L_Novice;
 
 L_Other:
 	mes "Hello and welcome.  I am Mother Marthilda.  Are you a weary traveler or a mighty warrior?";
@@ -292,8 +292,8 @@ L_Start:
 // -- Father Yosuke --
 prt_fild00.gat,208,218,6	script	Father Yosuke	120,{
 	mes "[Father Yosuke]";
-	if(Class == Job_Acolyte || Class==Job_Priest) callfunc "F_FatherYos";
-	if(Class == Job_Novice) goto L_Novice;
+	if(BaseJob == Job_Acolyte || BaseJob==Job_Priest) callfunc "F_FatherYos";
+	if(BaseJob == Job_Novice) goto L_Novice;
 
 L_Other:
 	mes "What brings you to this place.  Try not to bother me ok.";

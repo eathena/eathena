@@ -1,12 +1,13 @@
 //Dancer/Bard NPC for Athena by DiaDz
 //No Quests, just npc on location
 //1.1 Added SkillPoint check [Lupus]
+//1.2 Baby class Support added [Lupus]
 
 //Dancer & Bard - Comodo 189 166 4_F_07
 comodo.gat,189,166,4	script	Performance Master	741,{
-	   if(Class==19) goto bard;
-	   if(Class==20) goto dance;
-	   if(Class !=3) goto notarch;
+	   if(BaseJob==19) goto bard;
+	   if(BaseJob==20) goto dance;
+	   if(BaseJob !=3) goto notarch;
 
        mes "[Performance Master]";
        mes "Welcome to Comodo and the Performers Guild.";
@@ -22,16 +23,18 @@ comodo.gat,189,166,4	script	Performance Master	741,{
 					if(SkillPoint > 0) mes "You need to use up all of your skill points before I can make you a Dancer.";
 					if(SkillPoint > 0) close;
 					mes "Welcome Glorious Dancer";
-					jobchange 20;// Job: Job_Dancer
+					callfunc "Job_Change",Job_Dancer;
+					callfunc "F_ClearJobVar";
 					close;
       			        			
        				M:
 					mes "[Performance Master]";
 					if(SkillPoint > 0) mes "You need to use up all of your skill points before I can make you a Bard.";
 					if(SkillPoint > 0) close;
-	                		mes "Welcome Master Bard";
-					jobchange 19;// Job: Job_Bard
-       					close;
+               		mes "Welcome Master Bard";
+					callfunc "Job_Change",Job_Bard;
+					callfunc "F_ClearJobVar";
+					close;
        			       			
 				notlvl:
        					mes "[Performance Master]";

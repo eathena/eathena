@@ -1,32 +1,31 @@
 //===== eAthena Script ======================================= 
 //= Wizard Job Quest
 //===== By: ================================================== 
-//= ?? (Aegis)
-//= Translated by yoshiki
+//= ?? (Aegis) Translated by yoshiki
 //= converted by kobra_k88
 //= Further bugfixed and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.3c
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
 //= Wizard job quest converted from aegis script, plus my own RO screenies.
 //===== Additional Comments: ================================= 
-//= v1.1 Now using the initnpctimer command, donpcevent,
+//= 1.1 Now using the initnpctimer command, donpcevent,
 //= and new waitingroom event commands.  No more addtimer spamming.
 //= No longer have to talk to the npc to take the test.  Just enter the chat room.
-//= v1.2 Changed global variable names to unique ones.
-//= v1.3 Rollback from the wrong Kashy's fix
-//= v1.3a Fixed issue with duplicating monsters thx to Bison.[kobra_k88]
-//= v1.3b changed one Horong to Frilldora (now 3rd room contains 1 agressive mob.)
-//= v1.3c more simplified fire room - removed agressive Desert Wolf. Got it from Freya [Lupus]
+//= 1.2 Changed global variable names to unique ones.
+//= 1.2a Rollback from the wrong Kashy's fix
+//= 1.2b Fixed issue with duplicating monsters thx to Bison.[kobra_k88]
+//= 1.2c changed one Horong to Frilldora (now 3rd room contains 1 agressive mob.)
+//= 1.2d more simplified fire room - removed agressive Desert Wolf [Lupus]
+//= 1.3 Added Baby Class support [Lupus]
 //============================================================ 
-
 
 
 //<=================== Some dog =========================>
 gef_tower.gat,107,35,5	script	Some Dog	81,{
-	if(Class == Job_Mage) goto L_JobMage;
+	if(BaseJob == Job_Mage) goto L_JobMage;
 	if(callfunc("Is_Magic_Class")) goto L_Magic;
 	if(callfunc("Is_Holy_Class")) goto L_Holy;
 L_Other:
@@ -156,9 +155,9 @@ L_JobMage:
 //<=========================================== Registrar and Examiner Catherine Medichi ==============================================>\\
 gef_tower.gat,111,37,4	script	Catherine Medichi	68,{
 	mes "[Catherine Medichi]";
-	if(Class == Job_Wizard) goto L_Wizard;
-	if(Class == Job_Novice) goto L_Novice;
-	if(Class == Job_Mage) goto L_Mage;
+	if(BaseJob == Job_Wizard) goto L_Wizard;
+	if(BaseJob == Job_Novice) goto L_Novice;
+	if(BaseJob == Job_Mage) goto L_Mage;
 L_Other:
 	mes "Hmm? What brings you all the way up here? If you have nothing to do here, please leave.";
 	mes "This place is for wizards only. =P";
@@ -465,8 +464,8 @@ L_Mage:
 		mes "[Catherine Medichi]";
 		mes "Ack, I'm wasting time, I better change you!";
 		next;
+		callfunc "Job_Change",Job_Wizard;
 		callfunc "F_ClearJobVar";		// clears all job variables for the current player
-		JobChange Job_Wizard;
 
 		mes "[Catherine Medichi]";
 		mes "Now you're a wizard! Act responsibly!";
@@ -497,10 +496,10 @@ L_Mage:
 //<================================================ Examiner: Raul Expagarus ==================================================>\\
 gef_tower.gat,102,24,3	script	Raul Expagarus	735,{
 	mes "[Raul Expagarus]";
-	if(Class == Job_Mage) goto L_Mage;
-	if(Class == Job_Wizard) goto L_Wizard;
+	if(BaseJob == Job_Mage) goto L_Mage;
+	if(BaseJob == Job_Wizard) goto L_Wizard;
 	if(callfunc("Is_Holy_Class")) goto L_Holy;
-	if(Class == Job_Novice) goto L_Novice;
+	if(BaseJob == Job_Novice) goto L_Novice;
 L_Other:
 	mes "Ugh, I don't feel good....I feel like I'm trapped in ice........";
 	next;

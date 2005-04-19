@@ -19,7 +19,8 @@
 //= without controls.  Changed the doevent that triggers him to an
 //= addtimer and that seemed make the prob. go away[kobra_k88]
 //= 1.2 Fixed WRONG skillpoint check! [Lupus]
-//= 1.3 Fixed missing commands and typos [Lupus]
+//= 1.2b Fixed missing commands and typos [Lupus]
+//= 1.3 Baby class Support added [Lupus]
 //============================================================ 
 
 
@@ -29,9 +30,9 @@
 //****************************************************************************//
 
 in_moc_16.gat,19,33,4	script	Guildsman	55,{
-	if(Class==Job_Assassin) goto L_JobSin;
+	if(BaseJob==Job_Assassin) goto L_JobSin;
 	mes "[Angry looking man]";
-	if(Class==Job_Thief) goto L_Thief;
+	if(BaseJob==Job_Thief) goto L_Thief;
 	if(callfunc("Is_Sword_Class")) goto L_JobSwo;
 	if(callfunc("Is_Magic_Class")) goto L_JobMag;
 	if(callfunc("Is_Bow_Class")) goto L_JobArch;
@@ -160,7 +161,7 @@ L_Change:
 	mes "[Assassin Huey]";
 	mes "Very well done, you are now offically an Assassin.  Although you are free to visit us at anytime..............";
 	setlook 7,0;
-	jobchange Job_Assassin;
+	callfunc "Job_Change",Job_Assassin;
 	callfunc "F_ClearJobVar";		// clears all job variables for the current player
 	set kaitrig, 0;
 	next;

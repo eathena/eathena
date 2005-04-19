@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -11,6 +11,7 @@
 //===== Additional Comments: ================================= 
 //= Fully working
 //= v1.1 Added instant job change for High Novice [Lupus]
+//= 1.3 Added Baby Class support [Lupus]
 //============================================================ 
 
 
@@ -19,10 +20,10 @@
 alberta_in.gat,53,43,6	script	Chief Mahnsoo	86,{
 	callfunc "F_ToHigh",29,"Merchant High",34,"White Smith",153,154,155,0,"Chief Mahnsoo";
 	mes "[Chief Mahnsoo]";
-	if(Class==Job_Novice && job_merchant_q3 == 4) goto L_MakeMerc;
-	if(Class==Job_Novice && job_merchant_q3 == 3) goto L_GiveRecpt;
-	if(Class==Job_Novice && job_merchant_q3 == 5) goto L_Failed;
-	if(Class==Job_Novice && job_merchant_q2 > 0) goto L_Back;
+	if(BaseJob==Job_Novice && job_merchant_q3 == 4) goto L_MakeMerc;
+	if(BaseJob==Job_Novice && job_merchant_q3 == 3) goto L_GiveRecpt;
+	if(BaseJob==Job_Novice && job_merchant_q3 == 5) goto L_Failed;
+	if(BaseJob==Job_Novice && job_merchant_q2 > 0) goto L_Back;
 
 	mes "What brings you here? Something on your mind?";
 M_Menu:
@@ -30,8 +31,8 @@ M_Menu:
 	menu "I want to be a Merchant.",M_0,"What exactly is a Merchant?",M_1,"Give me the Requirements.",M_2,"End.",M_End;
 
      	M_0:
-     		if(Class==5) goto L_JobMer;
-		if(Class !=0) goto L_JobOther;
+     		if(BaseJob==5) goto L_JobMer;
+		if(BaseJob !=0) goto L_JobOther;
 		if(JobLevel < 10) goto L_JobLvl;
 
 		mes "[Chief Mahnsoo]";
@@ -312,10 +313,8 @@ L_MakeMerc:
 	mes "[Chief Mahnsoo]";
 	mes "Because of your HARD work, The Merchant Guild as decided to ACCEPT YOU as one of its members!";
 	next;
-	JobChange 5;// Job: Job_Merchant
-	set job_merchant_q,0;
-	set job_merchant_q2,0;
-	set job_merchant_q3,0;
+	callfunc "Job_Change",Job_Merchant;
+	callfunc "F_ClearJobVar";		// clears all job variables for the current player
 
 	mes "[Chief Mahnsoo]";
 	mes "Congratulations! You are now one of us, A PROUD MERCHANT!!";
@@ -398,7 +397,7 @@ L_Failed:
 
 // -- Wharehouse Manager Kay --
 alberta_in.gat,28,29,2	script	Merchant Guildsman	83,{
-	if(Class==Job_Novice && job_merchant_q3 > 0) goto L_Check;
+	if(BaseJob==Job_Novice && job_merchant_q3 > 0) goto L_Check;
 
 	mes "[Wharehouse Manager Kay]";
 	mes "Hey~ What brings you here?";
@@ -407,7 +406,7 @@ alberta_in.gat,28,29,2	script	Merchant Guildsman	83,{
 
 	M_0:
 		mes "[Wharehouse Manager Kay]";
-		if(Class!=0) goto L_NotNov;
+		if(BaseJob!=0) goto L_NotNov;
 		if(job_merchant_q==0) goto L_NotRdy;
 		mes "You're ^0000cc"+ strcharinfo(0) +"^000000, right?  Ok I'll give you a product to deliver.  First I'll need the destination";
 		next;
@@ -718,7 +717,7 @@ L_WrongDest:
 // -- Kafra(Prontera) --
 prontera.gat,248,42,8	script	Kafra	115,{
 	cutin "kafra_03",2;
-	if(Class==Job_Novice && job_merchant_q3>0) goto L_Start;
+	if(BaseJob==Job_Novice && job_merchant_q3>0) goto L_Start;
 L_Other:
 	mes "[Kafra]";
 	mes "Hello.  I am a Kafra Service Agent.  As you can see, the ^3355FFSwordsman Association^000000 has moved to Izlude.";
@@ -825,7 +824,7 @@ L_WrongDest:
 // -- Guild Staff --
 geffen_in.gat,155,122,4	script	Guild Staff	47,{
 
-	if(Class==Job_Novice && job_merchant_q3>0) goto L_Start;
+	if(BaseJob==Job_Novice && job_merchant_q3>0) goto L_Start;
 L_Other:
 	mes "[Guild Staff]";
 	mes "It should be arriving any time now...... it seems to be late.... Hmm...";
@@ -895,7 +894,7 @@ L_WrongProd:
 
 // -- Dyer's Student --
 morocc_in.gat,140,102,4	script	Dyer's Student	86,{
-	if(Class==Job_Novice && job_merchant_q3>0) goto L_Start;
+	if(BaseJob==Job_Novice && job_merchant_q3>0) goto L_Start;
 
 L_Other:
 	mes "[Dyer's Student]";

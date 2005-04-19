@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Darkchild
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.3
 //===== Compatible With: ===================================== 
 //= Any eAthena
 //===== Description: ========================================= 
@@ -12,13 +12,16 @@
 //= Some Other Useless Super Novice Npc
 //===== Additional Comments: ================================= 
 //= Dialogs From Some Other Scripts (Most Of It)
+//= 1.3 Added Baby class support (and to the Kafta SN Cart
+//= renter, too) [Lupus]
 //============================================================ 
+
 
 // -- Jobchanger --
 aldeba_in.gat,223,167,3	script	Tozel	709,{
-	if(job_snovice == 1) goto L_Start2;
-	if(Class == 23) goto L_Twice;
-	if(Class != 0) goto L_Otherjob;
+	if(SUPNOV_Q == 1) goto L_Start2;
+	if(BaseJob == 23) goto L_Twice;
+	if(BaseJob != 0) goto L_Otherjob;
 	mes "[Tozel]";
 	mes "Hello, Novice!";
 	mes "Are you enjoying yourself as a novice, the preferred class of the common man?";
@@ -54,7 +57,7 @@ aldeba_in.gat,223,167,3	script	Tozel	709,{
    	next;
 	mes "[Tozel]";
 	mes "Once you collect this common number of common items, head on back to this common guild of common men.";
-	set job_snovice,1;
+	set SUPNOV_Q,1;
 	close;
 
 L_Stupid:
@@ -100,10 +103,11 @@ L_Start2:
 	mes "- Tozel's uncommon demeanor catches you off guard, -";
 	mes "- leaving you speechless! -";
 	next;
-	jobchange 23;
+	callfunc "Job_Change",Job_SuperNovice;
 	delitem 938,30;
 	delitem 907,30;
 	getitem 2339,1;
+	callfunc "F_ClearJobVar";
 	mes "[Tozel]";
 	mes "Hahahah!  Were you surprised?!";
 	mes "Just because we're common people doesn't mean we can't be misfits sometimes!";
@@ -114,7 +118,6 @@ L_Start2:
 	mes "[Tozel]";
 	mes "Now you're a part of Kima's legacy!";
 	mes "Please continue his good (but common) name.";
-	set job_snovice,2;
 	close;
 
 L_LowSkill:
@@ -172,8 +175,8 @@ L_Otherjob:
 
 // -- Totaly Useless :) --
 aldeba_in.gat,216,169,5	script	Serei	86,{
-	if(Class == 23) goto L_Supernovice;
-	if(Class != 0) goto L_Otherjob;
+	if(BaseJob == 23) goto L_Supernovice;
+	if(BaseJob != 0) goto L_Otherjob;
 	mes "[Serei]";
 	mes "You're pretty common.";
 	mes "A common man should live a happy life.";
@@ -209,7 +212,7 @@ L_Otherjob:
 
 // -- Car Rental --
 aldebaran.gat,54,238,5	script	Kafra	117,{
-	if(Class != 23) goto L_Otherjob;
+	if(BaseJob != 23) goto L_Otherjob;
 	if(checkcart(0) == 1) goto L_GotCart;
 	mes "[Kafra]";
 	mes "Oh, a Super Novice!";

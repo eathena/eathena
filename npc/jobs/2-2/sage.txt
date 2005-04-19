@@ -1,11 +1,11 @@
 //===== eAthena Script ======================================= 
 //= Sage Job Quest
 //===== By: ==================================================
-//= jAthena (1.0) - I guess
-//= Unknown Translator (2.0)
-//= Darkchild (3.0)
+//= jAthena (0.9) - I guess
+//= Unknown Translator (1.0)
+//= Darkchild (1.2)
 //===== Current Version: ===================================== 
-//= 3.0
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -16,16 +16,18 @@
 //= So a lot of those are based upon mRO site and my own info
 //= IF you by excident have (or can get) screenshots of these questions
 //= Then PLEASE send them to Darkchild
+//= 1.3 Baby class Support added [Lupus]
 //============================================================ 
+
 
 //==================================
 //Sage Castle
 //==================================
 yuno_in02.gat,38,61,4	script	Magic Academy Headmaster 	743,{
-	if (Class == 16) goto L_Menu3_3;
-	if (Class != 2) goto L_Menu2_1;
-	if (job2nd_sage == 11) goto L_Menu3_1;
-	if (job2nd_sage >= 3) goto L_Menu2_2;
+	if (BaseJob == 16) goto L_Menu3_3;
+	if (BaseJob != 2) goto L_Menu2_1;
+	if (SAGE_Q == 11) goto L_Menu3_1;
+	if (SAGE_Q >= 3) goto L_Menu2_2;
 	mes "[Keiron]";
 	mes "All who appreciate the fine art";
 	mes "of magic are welcome here.";
@@ -125,7 +127,8 @@ L_Menu3_2:
 	close;
 		
 	LCHANGE:
-	jobchange 16;
+	callfunc "Job_Change",Job_Sage;
+	callfunc "F_ClearJobVar";
 	mes "[Keiron]";
 	mes "Congratulations!";
 	mes "You're a Sage now.";
@@ -151,14 +154,14 @@ L_Menu3_3:
 //Biotech Lab
 //===============================
 yuno_in03.gat,244,31,3	script	Physics Professor	120,{
-	if (Class == 16) goto L_Menu3_2;
-	if (Class != 2) goto L_Menu1_1;
-	if (job2nd_sage == 11) goto L_Menu3_1;
-	if (job2nd_sage2 == 8) goto L_Menu2_1;
-	if (job2nd_sage2 == 9) goto L_Menu2_3;
-	if (job2nd_sage2 == 10) goto L_Menu2_5;
-	if (job2nd_sage2 == 11) goto L_ThesisStart1;
-	if (job2nd_sage == 9) goto L_Menu1_2;
+	if (BaseJob == 16) goto L_Menu3_2;
+	if (BaseJob != 2) goto L_Menu1_1;
+	if (SAGE_Q == 11) goto L_Menu3_1;
+	if (SAGE_Q2 == 8) goto L_Menu2_1;
+	if (SAGE_Q2 == 9) goto L_Menu2_3;
+	if (SAGE_Q2 == 10) goto L_Menu2_5;
+	if (SAGE_Q2 == 11) goto L_ThesisStart1;
+	if (SAGE_Q == 9) goto L_Menu1_2;
 	mes "[Ebeshi]";
 	mes "What?";
 	next;
@@ -181,7 +184,7 @@ L_Menu1_1:
 	mes "Hehehehe....";
 	close;
 L_Menu1_2:
-	set job2nd_sage2,8;
+	set SAGE_Q2,8;
 	mes "[Ebeshi]";
 	mes "Well, I'm glad to meet another fine student such as yourself.";
 	next;
@@ -227,7 +230,7 @@ L_Menu2_1:
 		mes "Abracadabra!!";
 		next;
 		delitem 7049,30;
-		set job2nd_sage2,9;
+		set SAGE_Q2,9;
 		mes "[Ebeshi]";
 		mes "You see that?";
 		mes "I created three elemental stones!";
@@ -300,7 +303,7 @@ L_Menu2_1:
 		delitem 1754,50;
 		delitem 1756,50;
 		delitem 1755,50;
-		set job2nd_sage2,10;
+		set SAGE_Q2,10;
 		mes "[Ebeshi]";
 		mes "Next time you come, bring ^3051FD1x Holy Water^000000.";
 		mes "We'll need it for the lesson.";
@@ -349,7 +352,7 @@ L_Menu2_1:
 		mes "You think so too, right?";
 		next;
 		delitem 523,1;
-		set job2nd_sage2,11;
+		set SAGE_Q2,11;
 		mes "[Ebeshi]";
 		mes "Now, you have enough knowledge to prepare a defensible thesis.";
 		mes "Hehehehehe!";
@@ -523,7 +526,7 @@ L_Menu2_1:
 		next;
 		mes "......";
 		next;
-		set job2nd_sage,11;
+		set SAGE_Q,11;
 		getitem 1550,1;
 		mes "[Ebeshi]";
 		mes "Alright!";
@@ -562,13 +565,13 @@ L_Menu3_2:
 //==================================
 
 yuno_in03.gat,32,102,0	script	Biology Professor	755,{
-	if (Class == 16) goto L_Menu5_4;
-	if (Class != 2) goto L_Menu1_1;
-	if (job2nd_sage == 11) goto L_Menu5_3;
-	if ((job2nd_sage2 >= 1) && (job2nd_sage2 <= 3)) goto L_Menu3_1;
-	if ((job2nd_sage2 >= 4) && (job2nd_sage2 <= 6)) goto L_Menu4_1;
-	if (job2nd_sage2 == 7) goto L_Menu5_1;
-	if (job2nd_sage == 8) goto L_Menu2_1;
+	if (BaseJob == 16) goto L_Menu5_4;
+	if (BaseJob != 2) goto L_Menu1_1;
+	if (SAGE_Q == 11) goto L_Menu5_3;
+	if ((SAGE_Q2 >= 1) && (SAGE_Q2 <= 3)) goto L_Menu3_1;
+	if ((SAGE_Q2 >= 4) && (SAGE_Q2 <= 6)) goto L_Menu4_1;
+	if (SAGE_Q2 == 7) goto L_Menu5_1;
+	if (SAGE_Q == 8) goto L_Menu2_1;
 	mes "[Lucias]";
 	mes "I have a headache...";
 	mes "I've got too many things going on at once!";
@@ -632,14 +635,14 @@ L_Menu2_3:
 		mes "So, first, you need to collect ";
 		if (@sagerand == 1) goto L_Menu2_4;
 		if (@sagerand == 2) goto L_Menu2_5;
-		set job2nd_sage2,1;
+		set SAGE_Q2,1;
 		mes "^3051FD5x Tendons^000000";
 		mes "^3051FD5x Nippers^000000";
 		mes "^3051FD5x Sharp Scales^000000";
 		next;
 		goto L_Menu2_6;
 	L_Menu2_4:
-		set job2nd_sage2,2;
+		set SAGE_Q2,2;
 //==================================
 //mes–¢‰ñŽû
 		mes "^3051FD5x Clam Flesh^000000";
@@ -648,7 +651,7 @@ L_Menu2_3:
 		next;
 		goto L_Menu2_6;
 	L_Menu2_5:
-		set job2nd_sage2,3;
+		set SAGE_Q2,3;
 		mes "^3051FD5x Single Cells^000000";
 		mes "^3051FD5x Tentacles^000000";
 		mes "^3051FD5x Fish Tails^000000";
@@ -659,16 +662,16 @@ L_Menu2_3:
 		mes "We'll continue once you've gathered those.";
 		close;
 L_Menu3_1:
-	if ((countitem(1050) >= 5) && (countitem(960) >= 5) && (countitem(963) >= 5) && (job2nd_sage2 == 1)) goto L_Menu3_4;
-	if ((countitem(966) >= 5) && (countitem(960) >= 5) && (countitem(950) >= 5) && (job2nd_sage2 == 2)) goto L_Menu3_4;
-	if ((countitem(1052) >= 5) && (countitem(962) >= 5) && (countitem(1023) >= 5) && (job2nd_sage2 == 3)) goto L_Menu3_4;
+	if ((countitem(1050) >= 5) && (countitem(960) >= 5) && (countitem(963) >= 5) && (SAGE_Q2 == 1)) goto L_Menu3_4;
+	if ((countitem(966) >= 5) && (countitem(960) >= 5) && (countitem(950) >= 5) && (SAGE_Q2 == 2)) goto L_Menu3_4;
+	if ((countitem(1052) >= 5) && (countitem(962) >= 5) && (countitem(1023) >= 5) && (SAGE_Q2 == 3)) goto L_Menu3_4;
 	mes "[Lucias]";
 	mes "You don't have the necessary items.";
 	mes "Let me repeat what you need:";
 	next;
 		mes "[Lucias]";
-		if (job2nd_sage2 == 2) goto L_Menu3_2;
-		if (job2nd_sage2 == 3) goto L_Menu3_3;
+		if (SAGE_Q2 == 2) goto L_Menu3_2;
+		if (SAGE_Q2 == 3) goto L_Menu3_3;
 		mes "^3051FD5x Tendon^000000";
 		mes "^3051FD5x Nipper^000000";
 		mes "^3051FD5x Sharp Scale^000000";
@@ -747,14 +750,14 @@ L_Menu3_4:
 		mes "Next, you need to collect ";
 		if (@sagerand == 1) goto L_Menu3_10;
 		if (@sagerand == 2) goto L_Menu3_11;
-		set job2nd_sage2,4;
+		set SAGE_Q2,4;
 		mes "^3051FD5x Cobweb^000000";
 		mes "^3051FD5x Shell^000000";
 		mes "^3051FD5x Insect Feeler^000000";
 		next;
 		goto L_Menu2_6;
 	L_Menu3_10:
-		set job2nd_sage2,5;
+		set SAGE_Q2,5;
 //==================================
 //mes–¢‰ñŽû
 		mes "^3051FD5x Moth Dust^000000";
@@ -763,7 +766,7 @@ L_Menu3_4:
 		next;
 		goto L_Menu2_6;
 	L_Menu3_11:
-		set job2nd_sage2,6;
+		set SAGE_Q2,6;
 		mes "^3051FD5x Mantis Leg^000000";
 		mes "^3051FD5x Worm Peeling^000000";
 		mes "^3051FD5x Rainbow Shell^000000";
@@ -771,16 +774,16 @@ L_Menu3_4:
 		next;
 		goto L_Menu2_6;
 L_Menu4_1:
-	if ((countitem(1025) >= 5) && (countitem(935) >= 5) && (countitem(928) >= 5) && (job2nd_sage2 == 4)) goto L_Menu4_4;
-	if ((countitem(1057) >= 5) && (countitem(946) >= 5) && (countitem(947) >= 5) && (job2nd_sage2 == 5)) goto L_Menu4_4;
-	if ((countitem(1031) >= 5) && (countitem(955) >= 5) && (countitem(1013) >= 5) && (job2nd_sage2 == 6)) goto L_Menu4_4;
+	if ((countitem(1025) >= 5) && (countitem(935) >= 5) && (countitem(928) >= 5) && (SAGE_Q2 == 4)) goto L_Menu4_4;
+	if ((countitem(1057) >= 5) && (countitem(946) >= 5) && (countitem(947) >= 5) && (SAGE_Q2 == 5)) goto L_Menu4_4;
+	if ((countitem(1031) >= 5) && (countitem(955) >= 5) && (countitem(1013) >= 5) && (SAGE_Q2 == 6)) goto L_Menu4_4;
 	mes "[Lucias]";
 	mes "You forgot what you're supposed to gather?";
 	mes "Listen carefully this time!  You need to gather:";
 	next;
 		mes "[Lucias]";
-		if (job2nd_sage2 == 5) goto L_Menu4_2;
-		if (job2nd_sage2 == 6) goto L_Menu4_3;
+		if (SAGE_Q2 == 5) goto L_Menu4_2;
+		if (SAGE_Q2 == 6) goto L_Menu4_3;
 		mes "^3051FD5x Cobweb^000000";
 		mes "^3051FD5x Shell^000000";
 		mes "^3051FD5x Insect Feeler^000000";
@@ -796,7 +799,7 @@ L_Menu4_1:
 		mes "^3051FD5x Rainbow Shell^000000";
 		close;
 L_Menu4_4:
-	set job2nd_sage2,7;
+	set SAGE_Q2,7;
 	mes "[Lucias]";
 	mes "Excellent.  You've done well.";
 	mes "I hope you were also dilligent in observing your surroundings when you collected the items.";
@@ -837,7 +840,7 @@ L_Menu4_4:
 	mes "We can get started when you return.";
 	close;
 L_Menu5_1:
-	if ((countitem(916) >= 1) && (countitem(919) >= 1) && (countitem(1019) >= 1) && (countitem(1024) >= 1) && (countitem(713) >= 1) && (job2nd_sage2 == 7)) goto L_Menu5_2;
+	if ((countitem(916) >= 1) && (countitem(919) >= 1) && (countitem(1019) >= 1) && (countitem(1024) >= 1) && (countitem(713) >= 1) && (SAGE_Q2 == 7)) goto L_Menu5_2;
 	mes "[Lucias]";
 	mes "You need to gather those items first.";
 	mes "They are:";
@@ -895,7 +898,7 @@ L_Menu5_2:
 	next;
 	mes "......";
 	next;
-	set job2nd_sage,11;
+	set SAGE_Q,11;
 	getitem 1550,1;
 	mes "[Lucias]";
 	mes "This is pretty good!";
@@ -931,12 +934,12 @@ L_Menu5_4:
 //=================================
 
 yuno_in03.gat,154,35,4	script	Academy Staff	742,{
-	if (Class == 16) goto L_Menu6_4;
-	if (Class != 2) goto L_Menu1_1;
-	if (job2nd_sage == 11) goto L_Menu6_3;
-	if (job2nd_sage >= 4) goto L_Menu6_2;
-	if (job2nd_sage == 3) goto L_Menu6_1;
-	if (job2nd_sage == 2) goto L_Menu5_1;
+	if (BaseJob == 16) goto L_Menu6_4;
+	if (BaseJob != 2) goto L_Menu1_1;
+	if (SAGE_Q == 11) goto L_Menu6_3;
+	if (SAGE_Q >= 4) goto L_Menu6_2;
+	if (SAGE_Q == 3) goto L_Menu6_1;
+	if (SAGE_Q == 2) goto L_Menu5_1;
 	mes "[Mathias]";
 	mes "Hello.";
 	mes "This is the Shubaichul Magic Academy?";
@@ -1015,7 +1018,7 @@ L_Menu3_1:
 		mes "Well...we need the tuition money to cover instruction and materials...";
 		next;
 		menu "Isn't there another way?",-,"I'll try again later.",L_Menu3_2;
-		set job2nd_sage,2;
+		set SAGE_Q,2;
 		mes "[Mathias]";
 		mes "Well...Perhaps there is.  I can lower the tuition to 30000 Zeny if you can bring us some materials we need for our research department:";
 		next;
@@ -1051,7 +1054,7 @@ L_Menu5_1:
 	if ((countitem(1006) >= 1) && (countitem(1007) >= 1)) goto L_Menu5_4;
 	if (Zeny < 70000) goto L_Menu5_2;
 		set Zeny,Zeny-70000;
-		set job2nd_sage,3;
+		set SAGE_Q,3;
 		mes "[Mathias]";
 		mes "I see you have 70000 Zeny.";
 		mes "I'll take that for tuition. You are now enrolled into the school.";
@@ -1069,11 +1072,11 @@ L_Menu5_1:
 		mes "That's a nice name.";
 		next;
 			if (JobLevel == 50) goto L_JobMax;
-			if (job2nd_sage == 3) goto L_Menu5_6;
+			if (SAGE_Q == 3) goto L_Menu5_6;
 			if ((countitem(1006) >= 1) || (countitem(1007) >= 1)) goto L_Menu5_7;
 			if (Zeny < 70000) goto L_Menu5_2;
 			set Zeny,Zeny-70000;
-			set job2nd_sage,3;
+			set SAGE_Q,3;
 
 			mes "[Mathias]";
 		        mes "I see you have 70000 Zeny.";
@@ -1093,7 +1096,7 @@ L_Menu5_1:
 			mes "Good luck on the test.";
 			close;
 		L_JobMax:
-			set job2nd_sage,3;
+			set SAGE_Q,3;
 			mes "[Mathias]";
 			mes "You've trained yourself up to the maximum class level for Magicians!";
 			mes "In that case, I'll give you a full scholarship!";
@@ -1105,7 +1108,7 @@ L_Menu5_1:
 			mes "Go see Professor Kreitos in the library on the far left side of the building.";
 			close;
 	L_Menu5_2:
-		if (job2nd_sage != 2) goto L_Menu5_8;
+		if (SAGE_Q != 2) goto L_Menu5_8;
 		if ((countitem(916) >= 50) && (countitem(914) >= 50) && (countitem(949) >= 50) && (countitem(705) >= 50)) goto L_Menu5_3;
 		mes "[Mathias]";
 		mes "You don't seem to have the materials yet.";
@@ -1130,18 +1133,18 @@ L_Menu5_1:
 		delitem 705,50;
 		delitem 949,50;
 		set Zeny,Zeny-30000;
-		set job2nd_sage,3;
+		set SAGE_Q,3;
 		mes "[Mathias]";
 		mes "It seems like you have the materials I asked for and 30000 Zeny.";
 		mes "Congratulations.";
 		mes "You're now enrolled in the Academy.";
-		set job2nd_sage,3;
+		set SAGE_Q,3;
 		next;
 		goto L_Menu5_5;
 	L_Menu5_4:
 		delitem 1006,1;
 		delitem 1007,1;
-		set job2nd_sage,3;
+		set SAGE_Q,3;
 		mes "[Mathias]";
 		mes "Oh, you have the special items.";
 		mes "I'll accept those in lieu of tuition.";
@@ -1150,7 +1153,7 @@ L_Menu5_1:
 	L_Menu5_7:
 		delitem 1006,1;
 		delitem 1007,1;
-		set job2nd_sage,3;
+		set SAGE_Q,3;
 		mes "[Mathias]";
 		mes "Oh, you have the special items.";
 		mes "I'll accept those in lieu of tuition.";
@@ -1201,20 +1204,20 @@ L_Menu6_4:
 }
 
 yuno_in03.gat,169,180,4	script	Test Professor	755,{
-	if (Class == 16) goto L_Menu4_5;
-	if (Class != 2) goto L_Menu1_1;
-	if (job2nd_sage == 5) goto L_Menu2_1;
-	if (job2nd_sage == 6) goto L_Menu2_3;
-	if (job2nd_sage == 7) goto L_Menu3_1;
-	if (job2nd_sage == 8) goto L_Menu4_1;
-	if (job2nd_sage == 9) goto L_Menu4_2;
-	if (job2nd_sage == 11) goto L_Menu4_4;
+	if (BaseJob == 16) goto L_Menu4_5;
+	if (BaseJob != 2) goto L_Menu1_1;
+	if (SAGE_Q == 5) goto L_Menu2_1;
+	if (SAGE_Q == 6) goto L_Menu2_3;
+	if (SAGE_Q == 7) goto L_Menu3_1;
+	if (SAGE_Q == 8) goto L_Menu4_1;
+	if (SAGE_Q == 9) goto L_Menu4_2;
+	if (SAGE_Q == 11) goto L_Menu4_4;
 	mes "[Hermes]";
 	mes "Hello, I'm Hermes.  I am part of the skill testing staff.";
 	mes "Are you a Sage candidate?";
 	next;
-	if (job2nd_sage == 3) goto L_Menu1_2;
-	if (job2nd_sage >= 3) goto L_Menu1_2;
+	if (SAGE_Q == 3) goto L_Menu1_2;
+	if (SAGE_Q >= 3) goto L_Menu1_2;
 	mes "[Hermes]";
 	mes "Oh, alright.";
 	mes "First you need to enroll and take the placement test.";
@@ -1236,7 +1239,7 @@ L_Menu1_2:
 	mes "You need to take the placement test from Kreitos before you can take my test.";
 	close;
 L_Menu2_1:
-	set job2nd_sage,6;
+	set SAGE_Q,6;
 	mes "[Hermes]";
 	mes "Oh?  You took and passed the placement test?";
 	mes "Now you need to take the skill test from me.";
@@ -1293,7 +1296,7 @@ L_Menu3_1:
 //It's not clear how the script decides
 
 	if (sagecheck >= 12) goto L_Menu3_2;
-	set job2nd_sage,8;
+	set SAGE_Q,8;
 	mes "[Hermes]";
 	mes "It looks like monster research would be your best bet.";
 	next;
@@ -1303,7 +1306,7 @@ L_Menu3_1:
 	next;
 	goto L_Menu3_4;
 L_Menu3_2:
-	set job2nd_sage,9;
+	set SAGE_Q,9;
 	mes "[Hermes]";
 	mes "It looks like we have a budding elemental magic researcher here.";
 	mes "This field is fundamental to the advancement of magical knowledge.";
@@ -1346,9 +1349,9 @@ L_Menu4_5:
 }
 
 yuno_in03.gat,62,176,3	script	History Professor	109,{
-	if (Class == 16) goto L_Menu2_2;
-	if (Class != 2) goto L_Menu1_1;
-	if (job2nd_sage == 11) goto L_Menu2_1;
+	if (BaseJob == 16) goto L_Menu2_2;
+	if (BaseJob != 2) goto L_Menu1_1;
+	if (SAGE_Q == 11) goto L_Menu2_1;
 	mes "[Sapien]";
 	mes "You don't seem sure of your intended direction of study.";
 	mes "Perhaps you should consider it...";
@@ -1389,13 +1392,13 @@ L_Menu2_2:
 }
 
 yuno_in03.gat,105,177,4	script	Placement Test Professor	754,{
-	if (Class == 16) goto L_Menu3_4;
-	if (Class != 2) goto L_Menu1_1;
-	if (job2nd_sage == 11) goto L_Menu3_3;
-	if (job2nd_sage >= 6) goto L_Menu3_2;
-	if (job2nd_sage == 3) goto L_Menu1_2;
-	if (job2nd_sage == 4) goto L_Menu2_1;
-	if (job2nd_sage == 5) goto L_Menu3_1;
+	if (BaseJob == 16) goto L_Menu3_4;
+	if (BaseJob != 2) goto L_Menu1_1;
+	if (SAGE_Q == 11) goto L_Menu3_3;
+	if (SAGE_Q >= 6) goto L_Menu3_2;
+	if (SAGE_Q == 3) goto L_Menu1_2;
+	if (SAGE_Q == 4) goto L_Menu2_1;
+	if (SAGE_Q == 5) goto L_Menu3_1;
 	mes "[Kreitos]";
 	mes "You have that look in your eye...";
 	mes "You want to be a Sage, I take it.";
@@ -1413,7 +1416,7 @@ L_Menu1_1:
 	mes "Please keep that in mind.";
 	close;
 L_Menu1_2:
-	set job2nd_sage,4;
+	set SAGE_Q,4;
 	set sagecheck,10;
 	mes "[Kreitos]";
 	mes "It looks like you've enrolled in the Shubaichul Magic Academy.";
@@ -1820,7 +1823,7 @@ L_Menu1_2:
 			mes "There is no doubt you'll make a great Sage.";
 			next;
 		L_Menu2_6:
-			set job2nd_sage,5;
+			set SAGE_Q,5;
 			mes "[Kreitos]";
 			mes "Alright.";
 			mes "You've completed the placement test.";
@@ -2092,7 +2095,7 @@ OnKilled:
 	if( $@jobsage_m > 0 )goto L_NotWin;
 		stopnpctimer;
 		killmonster "job_sage.gat","All";
-		set job2nd_sage,7;
+		set SAGE_Q,7;
 		if (getnpctimer(1,"jobsage_3rd") < 20000 ) set sagecheck,sagecheck+1;
 		if ((getnpctimer(1,"jobsage_3rd") >= 30000 ) && (getnpctimer(1,"jobsage_2nd") <= 50000 )) set sagecheck,sagecheck-1;
 		if (getnpctimer(1,"jobsage_3rd") > 50000 ) set sagecheck,sagecheck-2;

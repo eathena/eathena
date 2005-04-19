@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.1a
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -15,6 +15,7 @@
 //= Added npc RuRumuni, maker of Leather Bag of Infinity. [kobra_k88]
 //= v1.1a Now using functions found in "Global_Functions.txt" for
 //= class checks.[kobra_k88]
+//= 1.2 Added Baby Class Support [Lupus]
 //============================================================ 
 
 
@@ -24,7 +25,7 @@
 moc_prydb1.gat,154,128,4	script	Alcouskou	118,{
 	mes "[Alcouskou]";
 	if(callfunc("Is_Thief_Class")) goto L_Start;
-	if(Class==Job_Novice) goto L_Novice;
+	if(BaseJob==Job_Novice) goto L_Novice;
 
 L_Other:
 	mes "Your kind isn't welcome here.";
@@ -73,7 +74,7 @@ M_Menu:
 		next;
 		mes "[Alcouskou]";
 		mes "In order to learn this skill you will need to gather ^5555FF5 Fine Grit^000000 and a ^FF3355'Leather Bag of Infinity'^000000.";
-		if(Class == Job_Thief) mes "You will also need a job level of at least ^5555FF25^000000.";
+		if(BaseJob == Job_Thief) mes "You will also need a job level of at least ^5555FF25^000000.";
 		next;
 		mes "[Alcouskou]";
 		mes "You can find the Leather Bag of Infinity by talking to a merchant by the name of ^5533FFRuRumuni^000000.";
@@ -116,7 +117,7 @@ M_Menu:
 		next;
 		mes "[Alcouskou]";
 		mes "Think of it as the first part of your training.";
-		if(Class == Job_Thief) mes "If you are a Thief, you will also need to have a job level of at least ^5555FF35^000000.";
+		if(BaseJob == Job_Thief) mes "If you are a Thief, you will also need to have a job level of at least ^5555FF35^000000.";
 		set BACKSLIDE, 1;
 		goto M_Menu;
 	M_Find:
@@ -172,7 +173,7 @@ M_Menu:
 
 L_Sand:
 	if (countitem(7041)<5 || countitem(7042)<1) goto L_NotRdy1;
-	if (Class==Job_Thief && JobLevel<25) goto L_LowLvl1;
+	if (BaseJob==Job_Thief && JobLevel<25) goto L_LowLvl1;
 	mes "Alright, you've got all the items.  Now its time to learn.... the... ultimate.... attack.... Sand Attack!!!";
 	next;
 	mes "[Alcouskou]";
@@ -219,7 +220,7 @@ L_Sand:
 
 L_Back:
 	if (countitem(940)<20) goto L_NotRdy2;
-	if (Class==Thief && JobLevel<35) goto L_LowLvl2;
+	if (BaseJob==Thief && JobLevel<35) goto L_LowLvl2;
 	mes "Great, you have the grasshopper legs.  While you were collecting them I'm sure you picked up on many of the characteristics of grasshoppers.";
 	next;
 	mes "[Alcouskou]";

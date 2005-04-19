@@ -68,7 +68,7 @@ L_START:
 yuno_in02.gat,91,176,5	script	Librarian	754,{
 	mes "[Librarian]";
 	if(valkyrie_Q>0) goto L_DONE;
-	if(Class >= 7) goto L_PAY;
+	if(BaseJob >= 7) goto L_PAY;
 	mes "Have a look around, but dont touch the book. Only a few chosen one can read its wise words.";
 	close;
 
@@ -149,10 +149,10 @@ yuno_in02.gat,90,77,4	script	Researcher	744,{
 
 // -== Valhallana ==-
 valkyrie.gat,48,86,6	script	Valkyrie	811,{
-	if(Class == 23) goto L_SN;
-	if(Class >= 24) goto L_ALREADY;
-	if(BaseLevel >= 99 && JobLevel >= 50 && Class >= 7) goto L_CHANGE;
-	if(Class < 7) goto L_NOTHING;
+	if(BaseJob == 23) goto L_SN;
+	if(BaseJob >= 24) goto L_ALREADY;
+	if(BaseLevel >= 99 && JobLevel >= 50 && BaseJob >= 7) goto L_CHANGE;
+	if(BaseJob < 7) goto L_NOTHING;
 
 	mes "[Valhallana]";
 	mes "You need 99 Base Level and 50 Job Level.";

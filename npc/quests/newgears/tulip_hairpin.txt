@@ -16,7 +16,7 @@
 
 geffen.gat,84,189,6	script	Ses	815,{ 
  mes "[Ses]";
- If (Class == 0) GOTO L_NOVICE;
+ If (BaseJob == 0) GOTO L_NOVICE;
  mes "Woo, hello! Fruit fruit!";
  mes "Sorry, I just love flowers, fruits and everything that makes me";
  mes "look more FRUITY!";

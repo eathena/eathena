@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= eAthena dev team
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.2b
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -12,6 +12,7 @@
 //= Not complete.
 //= 1.1 Rolled back from the wron Kashy's fix
 //= Implemented the 'Cheese'/Stone of Awakening quest.  Re-organized stuff. [kobra_k88]
+// 1.2b Added Baby Class support [Lupus]
 //============================================================
 
 
@@ -860,7 +861,7 @@ L_2:
 cmd_in02.gat,189,99,4	script	Manzi	85,{
 	if(dmdswrd_Q == 10) goto L_1;
 	if(dmdswrd_Q == 11) goto L_2;
-	if(Class == Job_Novice) goto L_Nov;
+	if(BaseJob == Job_Novice) goto L_Nov;
 
 	mes "[Manzi]";
 	mes "There have been some people who've bet too much and have lost their pecopeco and many other precious items.";

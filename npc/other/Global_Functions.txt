@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Lupus, kobra_k88
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -11,6 +11,7 @@
 //===== Additional Comments: ================================= 
 //= Added F_ClearJobVar - on getting a new job it clears all Job Quest variables
 //= Removed individual job check functions as they were redundant [kobra_k88]
+//= 1.3 Added Job Change Function for Baby/Normal Classes
 //============================================================ 
 
 
@@ -27,6 +28,8 @@ function	script	F_ClearJobVar	{
 	set job_merchant_q,0; set job_merchant_q2,0; set job_merchant_q3,0;
 	set job_sword_q,0; set job_sword_q2,0;
 	set job_thief_q,0;
+	// Super Novice
+	set SUPNOV_Q,0;
 	// 2-1 Jobs ------------------------------
 	set ASSIN_Q,0; set ASSIN_Q2,0;
 	set BSMITH_Q,0; set BSMITH_Q2,0;
@@ -37,7 +40,9 @@ function	script	F_ClearJobVar	{
 	// 2-2 Jobs ------------------------------
 	set ROGUE_Q,0; set ROGUE_Q2,0;
 	set ALCH_Q,0; set ALCH_Q2,0;
+	set CRUS_Q,0;
 	set MONK_Q,0;
+	set SAGE_Q,0; set SAGE_Q2,0;
 	return;
 }
 
@@ -45,6 +50,12 @@ function	script	F_ClearJobVar	{
 // Class = Internal Class ID
 // BaseJob = Base Job (0..23)
 // Upper : 0 - Default, 1 - Advanced, 2 - Baby
+
+function	script	Job_Change	{
+	if (Upper==0) jobchange getarg(0); //Change Job For Common
+	if (Upper==2) jobchange getarg(0)+Job_Baby; //Change Job For Baby Class
+	return;
+}
 
 //=====================================================
 // Functions used to check a players job class
@@ -90,9 +101,3 @@ function	script	Is_Thief_Class	{
 function	script	Is_Sword_Class	{
 	return ( BaseJob==Job_Swordman || BaseJob==Job_Knight || BaseJob==Job_Knight2 || BaseJob==Job_Crusader || BaseJob==Job_Crusader2 );
 }
-
-// returns 1 if the player is either Super Novice or Super Baby, 0 otherwise
-//function	script	Is_Super_Class	{
-//	return ( BaseJob==Job_SuperNovice );
-//}
-//^^^^^^^^^^^ - this func is useless

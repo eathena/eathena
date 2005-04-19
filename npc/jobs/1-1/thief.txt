@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= eAthena dev team
 //===== Current Version: =====================================
-//= 1.1
+//= 1.3
 //===== Compatible With: =====================================
 //= eAthena 1.0 +
 //===== Description: =========================================
@@ -11,6 +11,7 @@
 //===== Additional Comments: =================================
 //= Fully working
 //= v1.1 Added instant job change for High Novice [Lupus]
+//= 1.3 Added Baby Class support [Lupus]
 //============================================================
 
 
@@ -25,16 +26,16 @@ job_thief1.gat,0,0,0,0	monster	Spore	1014,30,0,0,0
 // == NPCs ==
 // -- Interviewer --
 moc_prydb1.gat,39,129,5	script	Thief Guide	69,{
-	if(Class== Job_Thief) goto L_JobThief;
-	if(Class == Job_Novice) goto L_Start;
+	if(BaseJob== Job_Thief) goto L_JobThief;
+	if(BaseJob == Job_Novice) goto L_Start;
 
 L_JobOther:
 	mes "[Thief Guide]";
-	if(Class==1 || Class==7 || Class==14) goto L_Swordman;
-	if(Class==2 || Class==9 || Class==16) goto L_Mage;
-	if(Class==3 || Class==11 || Class==19 || Class==20) goto L_Archer;
-	if(Class==4 || Class==8 || Class==15) goto L_Acolyte;
-	if(Class==5 || Class==10 || Class==18) goto L_Merchant;
+	if(BaseJob==1 || BaseJob==7 || BaseJob==14) goto L_Swordman;
+	if(BaseJob==2 || BaseJob==9 || BaseJob==16) goto L_Mage;
+	if(BaseJob==3 || BaseJob==11 || BaseJob==19 || BaseJob==20) goto L_Archer;
+	if(BaseJob==4 || BaseJob==8 || BaseJob==15) goto L_Acolyte;
+	if(BaseJob==5 || BaseJob==10 || BaseJob==18) goto L_Merchant;
 
 		mes "You already have a job.  Stop bothering me and go help out some newbies or something.";
 		emotion 21;
@@ -234,8 +235,8 @@ M_Menu:
 // -- Test Grader --
 moc_prydb1.gat,42,133,2	script	Comrade Brad	118,{
 	callfunc "F_ToHigh",30,"Theif High",36,"Assassin Cross",149,150,151,152,"Brad";
-	if(Class == 0) goto L_Novice;
-	if(Class == 6) goto L_Thief;
+	if(BaseJob == 0) goto L_Novice;
+	if(BaseJob == 6) goto L_Thief;
 
 L_Other:
 	mes "[Brad]";
@@ -298,8 +299,10 @@ L_4:
 		if(SkillPoint > 0) goto sL_SkPoint;
 		delitem 1069, countitem(1069);//Items: Orange_Net_Mushroom,
 		delitem 1070, countitem(1070);//Items: Orange_Gooey_Mushroom_,
-		JobChange 6;// Job: Job_Thief
-		set job_thief_q,0;
+
+		callfunc "Job_Change",Job_Thief;
+		callfunc "F_ClearJobVar";		// clears all job variables for the current player
+
 		mes "[Comrade Brad]";
 		mes "Here's a small reward for your hard work.  Spend it any way you want to.";
 		next;
@@ -327,8 +330,8 @@ L_4:
 
 // -- Irrelevant Man --
 moc_ruins.gat,141,125,3	script	Irrelevant Man	118,{
-	if(Class == 6) goto L_Thief;
-	if(Class == 0) goto L_Novice;
+	if(BaseJob == 6) goto L_Thief;
+	if(BaseJob == 0) goto L_Novice;
 
 L_Other:
 	if(@s_flag==1) goto L_1b;

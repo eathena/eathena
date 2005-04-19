@@ -1,25 +1,24 @@
 //===== eAthena Script ======================================= 
 //= Hunter Job Quest
 //===== By: ================================================== 
-//= EREMES THE CANIVALIZER (Aegis).
-//= Translated by yoshiki (Aegis)
+//= EREMES THE CANIVALIZER (Aegis)Translated by yoshiki (Aegis)
 //= Converted by kobra_k88
 //= Further bugfixed and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.8
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
 //= Hunter Job Quest converted from aegis script
 //===== Additional Comments: ================================= 
-//= v1.0 Fully working.
-//= v1.1 Changed global variable names to unique ones.
-//= v1.2 - 1.3 Updates for eAthena +Knight2,Crusader2 fix
-//= v1.4 Rollback from the wrong Kashy's fix
-//= v1.5 Fixed items quest fork bug [Lupus]
-//= v1.6 Fixed items quest bug: added extra condition [Lupus]
-//= v1.7 Fixed skillpoints check bug [Lupus]
-//= v1.8 Fixed an exploit, thanks to nonox [celest]
+//= 0.5 Fully working.
+//= 0.6 Changed global variable names to unique ones.
+//= 0.7 - 0.8 Updates for eAthena +Knight2,Crusader2 fix
+//= 0.9 Fixed items quest fork bug [Lupus]
+//= 1.0 Fixed items quest bug: added extra condition [Lupus]
+//= 1.1 Fixed skillpoints check bug [Lupus]
+//= 1.2 Fixed an exploit, thanks to nonox [celest]
+//= 1.3 Added Baby Class support [Lupus]
 //============================================================ 
 
 
@@ -37,8 +36,8 @@ pay_fild10.gat,148,251,4	script	Hunter Guildsman	98,{
 
 //<====================================== Job Changer ========================================>\\
 in_hunter.gat,99,99,4	script	Hunter Sharon	727,{
-	if(Class==Job_Archer) goto L_Start;
-	if(Class==Job_Hunter) goto L_Hunt;
+	if(BaseJob==Job_Archer) goto L_Start;
+	if(BaseJob==Job_Hunter) goto L_Hunt;
 	if(callfunc("Is_Bow_Class")) goto L_Other;
 	if(callfunc("Is_Sword_Class")) goto L_Swo;
 	if(callfunc("Is_Magic_Class")) goto L_Mage;
@@ -331,13 +330,14 @@ L_Change:
 	next;
 	mes "[Hunter Sharon]";
 	mes "There you go! You look great in the hunter outfit";
-	jobchange Job_HUNTER;
+
+	callfunc "Job_Change",Job_Hunter;
 	emotion 21;
 	next;
 	mes "[Hunter Sharon]";
 	mes "Now, for working so hard, the guild has a small reward for you.";
 	if(JBLVL == 50) getitem 1718, 1;
-	if(JBLVL == 40) getitem 1710, 1;
+	if(JBLVL != 50) getitem 1710, 1;
 	callfunc "F_ClearJobVar";		// clears all job variables for the current player
 	next;
 	mes "[Hunter Sharon]";
@@ -374,8 +374,8 @@ L_Change:
 
 //<=========================== Demon Hunter: Second Test ===============================>\\
 in_hunter.gat,55,99,7	script	Demon Hunter	732,{
-	if(Class == Job_Archer) goto L_Arc;
-	if(Class == Job_Hunter) goto L_Hnt;
+	if(BaseJob == Job_Archer) goto L_Arc;
+	if(BaseJob == Job_Hunter) goto L_Hnt;
 
 L_Other:
 	mes "[Demon Hunter]";
@@ -538,8 +538,8 @@ L_Done:
 
 //<=============================== Guild Master: Last Test =================================>\\
 payon_in02.gat,21,31,1	script	Guild Master	59,{
-	if(Class == Job_Archer) goto L_Archer;
-	if(Class == Job_Hunter) goto L_Hnt;
+	if(BaseJob == Job_Archer) goto L_Archer;
+	if(BaseJob == Job_Hunter) goto L_Hnt;
 
 L_Other:
 	mes "[Hunter]";

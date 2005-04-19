@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -11,6 +11,7 @@
 //===== Additional Comments: ================================= 
 //= Fully working
 //= v1.1 Added instant job change for High Novice [Lupus]
+//= 1.3 Added Baby Class support [Lupus]
 //============================================================ 
 
 
@@ -18,15 +19,15 @@
 payon_in02.gat,64,71,4	script	Archer Guildsman	59,{
 	callfunc "F_ToHigh",27,"High Archer",35,"Sniper",147,148,0,0,"Archer Guildsman";
 	mes "[Archer Guildsman]";
-	if(Class==Job_Novice && job_archer_q == 1) goto L_Check;
+	if(BaseJob==Job_Novice && job_archer_q == 1) goto L_Check;
 	mes "Good Day. How may I help you?";
 	next;
 	menu "I would like to become an Archer.",M_0,"What are the Requirements?",M_1,"Never mind.",M_End;
 
 	M_0:
 		mes "[Archer Guildsman]";
-		if(Class == Job_Archer) goto sL_Archer;
-		if(Class != Job_Novice) goto sL_Other;
+		if(BaseJob == Job_Archer) goto sL_Archer;
+		if(BaseJob != Job_Novice) goto sL_Other;
 
 		mes "You have made an execellent job choice.";
 		mes "Please submit your resume so that I can check your qualifications.";
@@ -79,8 +80,8 @@ payon_in02.gat,64,71,4	script	Archer Guildsman	59,{
 
 	M_1:
 		mes "[Archer Guildsman]";
-		if(Class == Job_Archer) goto sM_1a;
-		if(Class != Job_Novice) goto sM_1b;
+		if(BaseJob == Job_Archer) goto sM_1a;
+		if(BaseJob != Job_Novice) goto sM_1b;
 		mes "Let me explain the requirements for becoming an archer to you:";
 		next;
 		mes "[Archer Guildsman]";
@@ -139,8 +140,8 @@ L_Check:
 	mes "[Archer Guildsman]";
 	mes "I will now transform you...";
 	next;
-	JobChange Job_Archer;
-	set job_archer_q, 0;
+	callfunc "Job_Change",Job_Archer;
+	callfunc "F_ClearJobVar";		// clears all job variables for the current player
 	mes "[Archer Guildsman]";
 	mes "In exchange for the trunks you brought in I will give you this Bow and some arrows.  Please take them.";
 	next;

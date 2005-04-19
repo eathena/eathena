@@ -37,6 +37,10 @@ Date		Added
 ======
 
 04/19
+	* Added custom Adoption script by Fredzilla [Lupus]
+	* Removed annoying Kafra Storage issue [Lupus]
+	* Fixed some Job Quests bugs (wrong constants, wrong variable names, etc) [Lupus]
+	* Redo tons of NPC - added Baby Class support to all renters, job questsm etc [Lupus]
 	* Added skillpoint check to Rogue job quest, thanks to Dino9021
 04/17
 	* Changed the assassin job quest npc to do an area announce instead of global,

@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Dino9021, Edited / Translated by Celest
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -12,7 +12,9 @@
 // 1.1 Fixed missing '";'. Now it's loading fine [Lupus]
 // 1.1+ Edited/Translated 5% [Celest]
 // 1.2 Made Poetry Quiz passable, and Fixed Marathon Part 8))) [Lupus]
+// 1.3 Added Baby Class Support [Lupus]
 //============================================================ 
+
 
 prt_monk.gat,55,249,4	script	Tohobu the Guarding Monk	139,0,5,{
 	mes "[Tohobu]";
@@ -26,7 +28,7 @@ prt_monk.gat,55,249,4	script	Tohobu the Guarding Monk	139,0,5,{
 prt_monk.gat,59,247,4	script	Master	120,{
 	if(MONK_Q == 1 ) goto Part1;
 	if(MONK_Q == 2 ) goto Part2;
-	if(Class == 15 || Class == 4016) goto IsMonk;
+	if(BaseJob == 15) goto IsMonk;
 	goto L_START;
 
 IsMonk:
@@ -71,7 +73,7 @@ L_MENU_1:
 		close;
 
 	L_MENU_1_1:
-		if(Class != 4 && Class != 4005) goto IsNot4;
+		if(BaseJob != 4) goto IsNot4;
 		if(joblevel >= 40 ) goto SkillPointChk;
 			mes "[Tohobu]";
 			mes "Your Job Level is not high enough to be a Monk.";
@@ -109,7 +111,7 @@ L_MENU_1:
 			mes "[Tohobu]";
 			mes "Well... Seems you have the ability to be a Monk.";
 			mes "Very well then... Go to Wuhai the Elder, He will guide you.";
-			set JBLVL, 40;				// used to determine what item to get at the end
+			// used to determine what item to get at the end
 			if(JobLevel == 50) set JBLVL, 50;	// used to determine what item to get at the end
 			set MONK_Q, 2;
 			close;
@@ -574,7 +576,7 @@ L_MONK_Q_9:
 	mes "[Elder Wuhai]";
 	mes "WowHoooo... Okay, you are now a Monk!";
 	setoption 0;
-	jobchange 15;// Job: Job_Monk
+	callfunc "Job_Change",Job_Monk;
 	next;
 	mes "[Elder Wuhai]";
 	mes "(Caught!) (Caught!)";

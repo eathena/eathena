@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.3b
+//= 1.3c
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -13,7 +13,7 @@
 //= Fixed Lapidary sprite, Implemented ANTHELL trigger
 //= (in both NPC/Warps) [Lupus]. Removed it from NPC and put in Warp
 //= 1.3 Removed some NPC due to Assassin Job Quest [kobra_k88]
-//= 1.3b mobs name corrected [Lupus]
+//= 1.3b mobs name corrected [Lupus], 1.3c - Adv classes support
 //============================================================
 
 
@@ -390,8 +390,8 @@ moc_fild16.gat,199,212,4	script	Hashisid	48,{
 
 moc_fild16.gat,195,281,4	script	Assassin Guardian#1::SinGuard	707,{
 	mes "[Assassin Guardian]";
-	if(Class == Job_Assassin) mes "Welcome.";
-	if(Class == Job_Assassin) close;
+	if(BaseJob == Job_Assassin) mes "Welcome.";
+	if(BaseJob == Job_Assassin) close;
 
 	set @temp, rand(1,4);
 	if(@temp == 1) mes "........";

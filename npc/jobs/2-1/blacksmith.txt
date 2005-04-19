@@ -7,9 +7,9 @@
 //= Optimized and further edited by kobra_k88.
 //= Further bugfixed and tested by Lupus
 //===== Current Version: =====================================
-//= 1.1
+//= 1.3
 //===== Compatible With: =====================================
-//= eAthena  0.5.2 +
+//= eAthena  1.0+
 //===== Description: =========================================
 //= 
 //===== Additional Comments: =================================
@@ -18,6 +18,7 @@
 //= Removed "if(JobLevel > 48) goto higher". It was a left over line.
 //= Thx to "Decker".[kobra_k88]
 //= Fixed some typos, thanks to Riotblade [celest]
+//= 1.3 Added Baby Class support [Lupus]
 ==============================================================
 
 
@@ -25,7 +26,7 @@
 //<==================================================== Blacksmith Altiregen (Job changer)==================================================>\\
 geffen_in.gat,110,169,4	script	Guildsman	731,{
 
-	if (class == 5) goto L_Merc;
+	if (BaseJob == 5) goto L_Merc;
 	mes "[Blacksmith Altiregen]";
 	mes "Welcome! We're the masters of the metal, blacksmiths!";
 	mes "Our skills in creating weapons, in a way, is almost a art form!.";
@@ -34,13 +35,13 @@ geffen_in.gat,110,169,4	script	Guildsman	731,{
 	mes "Those weapons, heh, can be sold for quite a profit as well.";
 	next;
 	mes "[Blacksmith Altiregen]";
-	if (class == 0) goto L_Nov;
+	if (BaseJob == 0) goto L_Nov;
 	if (callfunc("Is_Sword_Class")) goto L_Sword;
 	if (callfunc("Is_Holy_Class")) goto L_Aco;
 	if (callfunc("Is_Thief_Class")) goto L_Theif;
 	if (callfunc("Is_Magic_Class")) goto L_Wiz;
 	if (callfunc("Is_Bow_Class")) goto L_Arc;
-	if (class == 10) goto L_Black;
+	if (BaseJob == 10) goto L_Black;
 	mes "Only Merchants can become Blacksmiths.";
 	close;
 
@@ -190,13 +191,13 @@ L_Change:
 	mes "I'll grant you the power to work metals!";
 	next;
 	delitem 1005,1;
-	jobchange 10;
+	callfunc "Job_Change",Job_Blacksmith;
 	mes "[Blacksmith Altiregen]";
 	mes "Don't forget! We're the artists that put beauty into metal! Don't you dare forget that!";
 	next;
 	mes "[Blacksmith Altiregen]";
 	mes "Here's a present! Congrats on passing!";
-	if(JBLVL == 40) getitem 999,5;
+	if(JBLVL != 50) getitem 999,5;
 	if(JBLVL == 50) getitem 999,10;
 	callfunc "F_ClearJobVar";		// clears all job variables for the current player
 	emotion 21;
@@ -230,7 +231,7 @@ L_Change:
 //<=============================================== Geshupenschte: 1st, 2nd, 3rd Test ===================================================>\\
 alberta_in.gat,174,22,4	script	Geshupenschte	63,{
 
-	if(Class==5) goto L_merchant;
+	if(BaseJob==5) goto L_merchant;
 	mes "[Geshupenschte]";
 	mes "Hello sir! I'm the blacksmith.  Geshupenschte! Nice to meet you!";
 	next;

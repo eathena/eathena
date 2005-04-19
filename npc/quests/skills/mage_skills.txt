@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= kobra_k88
 //===== Current Version: =====================================
-//= 1.0a
+//= 1.2
 //===== Compatible With: =====================================
 //= eAthena 7.15 +
 //===== Description: =========================================
@@ -11,6 +11,7 @@
 //===== Additional Comments: =================================
 //= v1.0a Now using functions found in "Global_Functions.txt"
 //= for class checks.[kobra_k88]
+//= 1.2 Added Baby Class Support [Lupus]
 //============================================================
 
 
@@ -76,7 +77,7 @@ L_Start:
 		close;
 
 L_GetSkill:
-	if(Class==Job_Mage && JobLevel < 35) goto L_JobLvl;
+	if(BaseJob==Job_Mage && JobLevel < 35) goto L_JobLvl;
 	if(countitem(746)<3 || countitem(730)<1 || countitem(935)<5 || countitem(943)<1) goto L_Items;
 	mes "Ohh my, ohh my...... This is going to be swell.  Hand over the items... Thank you.";
  	next;

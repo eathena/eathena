@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= kobra_k88
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= eAthena 7.15 +
 //===== Description: =========================================
@@ -13,6 +13,7 @@
 //= 1.0a Now using functions found in "Global_Functions.txt"
 //= for class checks.
 //= 1.1 Added missing delitem [Lupus]
+//= 1.2 Added Baby Class Support [Lupus]
 //============================================================
 
 
@@ -21,7 +22,7 @@
 prt_in.gat,75,88,5	script	Leon	85,{
 	mes "[Leon]";
 	if(callfunc("Is_Sword_Class")) goto L_Start;
-	if(Class == Job_Novice) goto L_Novice;
+	if(BaseJob == Job_Novice) goto L_Novice;
 
 	mes "Hello there.  I am Leon, a well known and well respected member of the famous Prontera Chivalry.";
 	next;
@@ -223,7 +224,7 @@ L_Check:
 	next;
 	mes "[Knight De Thomas]";
 	if ((countitem(713)<200) || (countitem(1058)<1) || (countitem(2312)<1)) goto L_NoItems;
-	if (Class==Job_Swordman && JobLevel < 35) goto L_LowLvl;
+	if (BaseJob==Job_Swordman && JobLevel < 35) goto L_LowLvl;
 
 	mes "Great! You have everything needed to learn this skill.  Take a deep breath.... let us begin.";
 	next;
@@ -275,7 +276,7 @@ L_Other:
 	close;
 
 L_Start:
-	if (Class==Job_Swordman && JobLevel<34) goto L_LowLvl;
+	if (BaseJob==Job_Swordman && JobLevel<34) goto L_LowLvl;
 	if (BERSERK == 1) goto L_Check;
 	if (getskilllv(146)>0) goto L_GotSkill;
 

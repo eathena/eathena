@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= eAthena dev team
 //===== Current Version: =====================================
-//= 1.0 a
+//= 1.2
 //===== Compatible With: =====================================
 //= eAthena 7.15 +
 //===== Description: =========================================
@@ -14,6 +14,7 @@
 //= All items are from official quests though.[kobra_k88]
 //= v1.0a Now using functions found in "Global_Functions.txt"
 //= for class checks.[kobra_k88]
+//= 1.2 Added Baby Class Support [Lupus]
 //============================================================
 
 
@@ -30,7 +31,7 @@ L_Other:
 	emotion 1;
 	close;
 L_Start:
-	if (Class==Job_Archer && JobLevel<35) goto L_LowLvl;
+	if (BaseJob==Job_Archer && JobLevel<35) goto L_LowLvl;
 	if (getskilllv(147)>0) goto L_GotSkill;
 	if (ARWCRFT == 1) goto L_GetSkill;
 	mes "Hmmm?.... Oh you seem to be a high level Archer type.  Why don't we";
@@ -151,7 +152,7 @@ L_Other:
 	close;
 L_Start:
 	if (getskilllv(148)>0) goto L_GotSkill;
-	if (Class == Job_Archer && JobLevel < 35) goto L_LowLvl;
+	if (BaseJob == Job_Archer && JobLevel < 35) goto L_LowLvl;
 	if (ARWREP == 1) goto L_Check;
 	mes "Hi, I'm the master of the skill ^0033FFArrow Repel^000000. I might be able to";
 	mes "teach you the skill, but only if you help me get the ingredients";

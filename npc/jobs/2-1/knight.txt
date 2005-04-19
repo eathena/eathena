@@ -12,21 +12,21 @@
 //= Official RO Knight job quest converted from aegis script, and my own
 //= RO screenies and play experience
 //===== Additional Comments: ================================= 
-//=v1.0 Fully working.  Please comment out any pre-existing warps for the
+//= 1.0 Fully working.  Please comment out any pre-existing warps for the
 //= test rooms in any other files so that the ones specified here can work.
-//= v1.1 Fixed a major bug.  Now using the initnpctimer command,
+//= 1.1 Fixed a major bug.  Now using the initnpctimer command,
 //= donpcevent, and new waitingroom event commands.  No more addtimer
 //= spamming.  No longer have to talk to the npc to take the test.  Just enter the chat room.
-//= v1.2 More bug fixes.  Changed global variable names to unique ones.
-//= Added second set of items to first test.  Added Awake pots award for job change.
-//= v1.3 Rollback from the wrong Kashy's fix
+//= 1.2 More bug fixes.  Changed global variable names to unique ones.
+//= Added second set of items to first test. Added Awake pots award for job change.
+//= 1.3 Added Baby Class support [Lupus]
 //============================================================ 
 
 
 
 //<------------------------------------------------------------------------------------ Chivalry Captain Herman------------------------------------------------------------------------------------------>\\
 prt_in.gat,88,101,3	script	Chivalry Captain Herman	56,{
-	if (Class == Job_Swordman && KNIGHT_Q > 0) goto L_Check;
+	if (BaseJob == Job_Swordman && KNIGHT_Q > 0) goto L_Check;
 
 	mes "[Chivalry Captain Herman]";
 	mes "Good Day.  This is the Prontera Chivarly, home of the famous Prontera Knights.";
@@ -36,7 +36,7 @@ M_Menu:
 
 	M_0:
 		mes "[Chivalry Captain Herman]";
-		if(Class != Job_Swordman) goto L_NotSwo;
+		if(BaseJob != Job_Swordman) goto L_NotSwo;
 
 		mes "Well then, first fill out this application form....";
 		next;
@@ -69,8 +69,8 @@ M_Menu:
 			mes "Hmm...it looks like you have not reached Job Level 40 yet.  Please come back when you do.  I shall be waiting here.";
 			close;
 		L_NotSwo:
-			if(Class == Job_Knight) goto sL_JobKni;
-			if(Class == Job_Novice) goto sL_JobNov;
+			if(BaseJob == Job_Knight) goto sL_JobKni;
+			if(BaseJob == Job_Novice) goto sL_JobNov;
 
 			sL_JobOther:
 				mes "I'm sorry but only Swordsmen can become Knights.";
@@ -207,8 +207,8 @@ L_Check:
 		mes "[Chivalry Captain Herman]";
 		mes "^ff0000"+strcharinfo(0)+"^000000, in the name of King Tristin the 3rd, ruler of the kingdom of Run-Midgard, I hereby bestow upon thee the title of Knight!";
 		next;
-		JobChange Job_Knight;
-		if(JBLVL == 40) getitem 656, 3;
+		callfunc "Job_Change",Job_Knight;
+		if(JBLVL != 50) getitem 656, 3;
 		if(JBLVL == 50) getitem 656, 7;
 		callfunc "F_ClearJobVar";		// clears all job variables for the current player
 		mes "[Chivalry Captain Herman]";
@@ -226,10 +226,10 @@ L_Check:
 //<--------------------------------------------------------------------------------- Sir Andrew Syloc (1st test) ------------------------------------------------------------------------------------------>\\
 prt_in.gat,75,107,4	script	Sir Andrew Syloc	65,{
 	mes "[Sir Andrew Syloc]";
-	if (Class == Job_Knight) goto L_Knight;
-	if (Class == Job_Novice) goto L_Novice;
-	if (Class == Job_Swordman && KNIGHT_Q == 1) goto L_Test;
-	if (Class == Job_Swordman && KNIGHT_Q == 2) goto L_Done;
+	if (BaseJob == Job_Knight) goto L_Knight;
+	if (BaseJob == Job_Novice) goto L_Novice;
+	if (BaseJob == Job_Swordman && KNIGHT_Q == 1) goto L_Test;
+	if (BaseJob == Job_Swordman && KNIGHT_Q == 2) goto L_Done;
 L_Other:
 	mes "We Knights of Prontera battle for peace and freedom!  We fight to ensure a prosperous future for the people of Rune-Midgard!";
 	close;
@@ -384,10 +384,10 @@ L_Check:
 //<------------------------------------------------------------------------------ Sir James Syracuse (2nd Test) ----------------------------------------------------------------------------------------->\\
 prt_in.gat,71,91,6	script	Sir James Syracuse	65,{
 	mes "[Sir James Syracuse]";
-	if (class == Job_Knight) goto L_Knight;
-	if (class == Job_Novice) goto L_Novice;
-	if (class == Job_Swordman && KNIGHT_Q == 2) goto L_Test;
-	if (class == Job_Swordman && KNIGHT_Q == 3) goto L_Done;
+	if (BaseJob == Job_Knight) goto L_Knight;
+	if (BaseJob == Job_Novice) goto L_Novice;
+	if (BaseJob == Job_Swordman && KNIGHT_Q == 2) goto L_Test;
+	if (BaseJob == Job_Swordman && KNIGHT_Q == 3) goto L_Done;
 L_Other:
 	mes "Attacking and defending..... is there a way to do both at the same time?";
 	mes "With a 'two-handed' weapon you have a great attack but no defense.  Is there anything that can compensate for this weakness?";
@@ -723,10 +723,10 @@ L_Test:
 // Sir Windsor ---------------------------------------------------------
 prt_in.gat,79,94,3	script	Sir Windsor#1	733,{
 	mes "[Sir Windsor]";
-	if(Class == Job_Knight) goto L_Knight;
-	if(Class == Job_Novice) goto L_Novice;
-	if(Class == Job_Swordman && KNIGHT_Q == 3) goto L_Test;
-	if(Class == Job_Swordman && KNIGHT_Q == 4) goto L_Done;
+	if(BaseJob == Job_Knight) goto L_Knight;
+	if(BaseJob == Job_Novice) goto L_Novice;
+	if(BaseJob == Job_Swordman && KNIGHT_Q == 3) goto L_Test;
+	if(BaseJob == Job_Swordman && KNIGHT_Q == 4) goto L_Done;
 L_Other:
 	mes "..........";
 	next;
@@ -1025,11 +1025,11 @@ AnnounceKnt:
 //<------------------------------------------------------------------------------------ Lady Amy Beatris (4th Test) ---------------------------------------------------------------------------------------------->\\
 prt_in.gat,69,107,5	script	Lady Amy Beatris	728,{
 	mes "[Lady Amy Beatris]";
-	if (class == Job_Knight) goto L_Knight;
-	if (class == Job_Novice) goto L_Novice;
-	if (class == Job_Swordman && KNIGHT_Q == 4) goto L_Test;
-	if (class == Job_Swordman && KNIGHT_Q == 5) mes "Speak to the Chivalry Captain Herman about your next test.";
-	if (class == Job_Swordman && KNIGHT_Q == 5) close;
+	if (BaseJob == Job_Knight) goto L_Knight;
+	if (BaseJob == Job_Novice) goto L_Novice;
+	if (BaseJob == Job_Swordman && KNIGHT_Q == 4) goto L_Test;
+	if (BaseJob == Job_Swordman && KNIGHT_Q == 5) mes "Speak to the Chivalry Captain Herman about your next test.";
+	if (BaseJob == Job_Swordman && KNIGHT_Q == 5) close;
 L_Other:
 	mes "Welcome to the Prontera Chivalry.";
 	next;
@@ -1340,9 +1340,9 @@ M_Menu:
 //<------------------------------------------------------------------------------------------- Sir Edmund (5th Test) --------------------------------------------------------------------------------------------->\\
 prt_in.gat,70,99,5	script	Sir Edmund	734,{
 	mes "[Sir Edmund]";
-	if (class == Job_Knight) goto L_Knight;
-	if (class == Job_Swordman) goto L_Sword;
-	if (class == Job_Novice) goto L_Novice;
+	if (BaseJob == Job_Knight) goto L_Knight;
+	if (BaseJob == Job_Swordman) goto L_Sword;
+	if (BaseJob == Job_Novice) goto L_Novice;
 L_Other:
 	mes "Everything in this world exists in harmony.";
 	next;
@@ -1494,11 +1494,11 @@ OnTimerWarp:
 //<------------------------------------------------------------------------------------------ Sir Grey (Final Test) ------------------------------------------------------------------------------------------------------>\\
 prt_in.gat,87,90,3	script	Sir Grey	119,{
 	mes "[Sir Grey]";
-	if (class == Job_Knight) goto L_Knight;
-	if (class == Job_Novice) goto L_Novice;
-	if (class == Job_Swordman && KNIGHT_Q == 6) goto L_Test;
-	if (class == Job_Swordman && KNIGHT_Q == 7) mes "Go to Chivalry Captain Herman and allow him to bestow upon you the great honor of Knighthood.";
-	if (class == Job_Swordman && KNIGHT_Q == 7) close;
+	if (BaseJob == Job_Knight) goto L_Knight;
+	if (BaseJob == Job_Novice) goto L_Novice;
+	if (BaseJob == Job_Swordman && KNIGHT_Q == 6) goto L_Test;
+	if (BaseJob == Job_Swordman && KNIGHT_Q == 7) mes "Go to Chivalry Captain Herman and allow him to bestow upon you the great honor of Knighthood.";
+	if (BaseJob == Job_Swordman && KNIGHT_Q == 7) close;
 L_Other:
 	mes "Use your time wisely young one......";
 	next;

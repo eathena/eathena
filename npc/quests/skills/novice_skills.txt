@@ -3,13 +3,14 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.0 
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
 //= Customized novice skills quest
 //===== Additional Comments: ================================= 
 //= Fully working
+//= 1.2 Added Baby Class Support [Lupus]
 //============================================================ 
 
 
@@ -92,7 +93,7 @@ L_GotAid:
 //<-------------------------------------------------------------------------------------------------- Bulma: Play Dead -------------------------------------------------------------------------------------------->\\
 prt_in.gat,73,87,2	script	Bulma	98,{
 	mes "[Bulma]";
-	if(Class == Job_Novice) goto L_Novice;
+	if(BaseJob == Job_Novice) goto L_Novice;
 
 L_Other:
 	mes "Yeah... I look great.... Afterall, I'm a Knight of the Prontera Chivalry.  Kuhahahaha!";
@@ -221,7 +222,7 @@ L_GotSkill:
 //Newbie Assistant------------------------------------------------------------------------------
 prt_castle.gat,174,147,2	script	Newbie Assistant	84,{
 	mes "[Newbie Assistant]";
-	if(Class == Job_Novice) goto L_Start;
+	if(BaseJob == Job_Novice) goto L_Start;
 
 L_NonNov:
 	mes "What am I doing here?  I'm just trying to help out young newbies.  You remember how it was to be a newbie... confused.... lost.... heh heh.";

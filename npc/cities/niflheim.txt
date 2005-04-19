@@ -76,8 +76,8 @@ niflheim.gat,184,199,5	script	Little Girl	793,{
 	if(niflheimlost == 1) goto L_foundhim;
 	if(lostgirl == 1) goto L_sure2;
 	mes "Sir, will you please help me?";
-	if(Class==Job_Novice) mes "Oh... you are lost, too..."; //Exploit fix
-	if(Class==Job_Novice) close;
+	if(BaseJob==Job_Novice) mes "Oh... you are lost, too..."; //Exploit fix
+	if(BaseJob==Job_Novice) close;
 	next;
 	menu "Yes",-, "No",M_no;
 

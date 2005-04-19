@@ -18,7 +18,7 @@
 
 morocc.gat,274,79,6	script	Traveler	807,{ 
  mes "[Traveler]";
- if (Class == 0) GOTO L_NOVICE;
+ if (BaseJob == 0) GOTO L_NOVICE;
  mes "What kind of hat do you want from me?";
  next;
  menu "Lazy Racoon Hat.",M_N1,"Fresh Bluish Fish",M_N2,"Drooping Cat",M_N3,"Transformation Leaf",M_N4,"Nothing.",M_EXIT;

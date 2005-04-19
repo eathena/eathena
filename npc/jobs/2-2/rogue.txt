@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -12,8 +12,8 @@
 //= Missing some message text.  
 //===== Additional Comments: ================================= 
 //= 1.1 fixed 3 wrong questions, added missing lines [Lupus]
+//= 1.3 Baby Class Support + 40/50 JobLevel Item fix [Lupus]
 //============================================================ 
-
 
 
 //=======================================================================================================//
@@ -22,8 +22,8 @@
 in_rogue.gat,363,123,3	script	Markie	747,{
 
 	mes "[Markie]";
-	if(Class == Job_Thief) goto L_Thief;
-	if(Class == Job_Rogue) goto L_Rogue;
+	if(BaseJob == Job_Thief) goto L_Thief;
+	if(BaseJob == Job_Rogue) goto L_Rogue;
 
 L_JobOther:
 	mes "I don't know how you found this place, but I think you better leave..........";
@@ -346,12 +346,12 @@ L_Change:
 	mes "[Markie]";
 	mes "Tada! Congratulations on becoming a Rogue.  You showed a lot of effort and deserve a reward for it......";
 	setlook 7,0;
-	jobchange Job_Rogue;
+	callfunc "Job_Change",Job_Rogue;
 	emotion 46;
 	next;
 	mes "[Markie]";
 	mes "Now that you are a Rogue you are free to go where ever you want to and do what ever you want.";
-	if(JBLVL == 40) getitem 1219,1;		// 2 slott gladius
+	if(JBLVL != 50) getitem 1219,1;		// 2 slott gladius
 	if(JBLVL == 50) getitem 1220,1;		// 3 slott gladius
 	callfunc "F_ClearJobVar";
 	next;
@@ -379,8 +379,8 @@ L_SkillP:
 in_rogue.gat,376,23,3	script	Mr. Smith	57,{
 
 	mes "[Mr. Smith]";
-	if(Class == Job_Thief) goto L_Thief;
-	if(Class == Job_Rogue) goto L_Rogue;
+	if(BaseJob == Job_Thief) goto L_Thief;
+	if(BaseJob == Job_Rogue) goto L_Rogue;
 
 L_OtherJob:
 	mes "Go away! I'm busy.....";
@@ -651,7 +651,7 @@ function	script	F_RogueTest3	{
 	mes "[???]";
 	mes "Who's there?!!!";
 	mes "Who dares to trespass on my territory?";
-	if(Class!=Job_Thief || ROGUE_Q<3 || ROGUE_Q2==0) close;
+	if(BaseJob!=Job_Thief || ROGUE_Q<3 || ROGUE_Q2==0) close;
 L_Start:
 	deletearray @choice$[1], 4;
 	next;

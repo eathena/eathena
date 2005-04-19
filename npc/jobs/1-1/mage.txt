@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -12,13 +12,14 @@
 //= Fully working
 //= 1.1 Fixed input ingridients bug [Lupus]
 //= v1.2 Added instant job change for High Novice [Lupus]
+//= 1.3 Added Baby Class support [Lupus]
 //============================================================ 
 
 
 // -- Expert Mage -- 
 geffen_in.gat,164,124,4	script	Expert Mage	123,{
 	callfunc "F_ToHigh",26,"High Mage",33,"High Wizard",157,0,0,0,"Expert Mage";
-	if(Class==Job_Novice && job_magician_q >= 1) goto L_BeMage;
+	if(BaseJob==Job_Novice && job_magician_q >= 1) goto L_BeMage;
 
 	mes "[Expert Mage]";
 	mes "Hi hi!  What can I help you with today?";
@@ -32,8 +33,8 @@ M_Menu:
 		next;
 		mes "[Expert Mage]";
 
-		if(Class == 2) goto L_JobMage;
-		if(Class != 0) goto L_JobOther;
+		if(BaseJob == 2) goto L_JobMage;
+		if(BaseJob != 0) goto L_JobOther;
 
 		mes "Okays, just fill out this application form pleeassse.";
 		next;
@@ -117,13 +118,15 @@ L_BeMage:
 	mes "[Expert Mage]";
 	mes "Abra-kadabra and hocus pocus, turn this young novice into a ^00aa00MAGE^000000!!";
 	next;
-	JobChange 2;// Job: Job_Mage
+	callfunc "Job_Change",Job_Mage;
+
 	set Zeny,Zeny+500;
 	if(job_magician_q == 1) delitem 1071,1;//Items: Unknown_Test_Tube,
 	if(job_magician_q == 2) delitem 1085,1;//Items: Unknown_Test_Tube,
 	if(job_magician_q == 3) delitem 1086,1;//Items: Unknown_Test_Tube,
 	if(job_magician_q == 4) delitem 1087,1;//Items: Unknown_Test_Tube,
-	set job_magician_q,0;
+
+	callfunc "F_ClearJobVar";		// clears all job variables for the current player
 	mes "[Expert Mage]";
 	mes "'Welcome to My World~ teh hehe.  I've always wanted to say that.  Anyways, congratulations!.  You're one of us now so let's be friends okays!";
 	emotion 18;
