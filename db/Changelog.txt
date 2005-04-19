@@ -8,6 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them i believe.
 
+04/19
+	* Corrected skill tree entry for Peco lord knight's Berserk [celest]
 04/17
 	* Fixed "Every job except Novice" armors wearable by Novices [DracoRPG]
 04/16

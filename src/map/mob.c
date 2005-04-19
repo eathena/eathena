@@ -1663,12 +1663,13 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					mob_walktoxy(md, md->bl.x + dist * mask[dir][0], md->bl.y + dist * mask[dir][1], 0);
 					md->next_walktime = tick + 500;
 				}
-			} else if (blind_flag && dist > 1 && DIFF_TICK(tick,md->next_walktime) < 0) {
+			} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) {
 				dx = abl->x - md->bl.x;
 				dy = abl->y - md->bl.y;
 				md->target_id = 0;
+				md->attacked_id = 0;
 				md->state.targettype = NONE_ATTACKABLE;
-				md->next_walktime = tick + 500;
+				md->next_walktime = tick + 1000;
 				ret = mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
 			} else {
 				//距離が遠い場合はタゲを変更しない
@@ -1729,11 +1730,13 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					(dist = distance(md->bl.x, md->bl.y, tbl->x, tbl->y)) >= search_size)
 				{
 					mob_unlocktarget(md,tick);	// 別マップか、視界外
-				} else if (blind_flag && dist > 1 && DIFF_TICK(tick,md->next_walktime) < 0) {
+				} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) {
 					md->target_id = 0;
+					md->attacked_id = 0;
 					md->state.targettype = NONE_ATTACKABLE;
 					dx = tbl->x - md->bl.x;
 					dy = tbl->y - md->bl.y;
+					md->next_walktime = tick + 1000;
 					ret = mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
 				} else if (tsd && !(mode & 0x20) &&
 					(tsd->sc_data[SC_TRICKDEAD].timer != -1 ||
@@ -3929,8 +3932,9 @@ static int mob_readdb(void)
 			return -1;
 		}
 		while(fgets(line,1020,fp)){
-			int class_,i;
-			char *str[60],*p,*np; // 55->60 Lupus
+			int class_, i;
+			double exp;
+			char *str[60], *p, *np; // 55->60 Lupus
 
 			if(line[0] == '/' && line[1] == '/')
 				continue;
@@ -3944,41 +3948,27 @@ static int mob_readdb(void)
 					str[i]=p;
 			}
 
-			class_=atoi(str[0]);
-			if(class_<=1000 || class_>MAX_MOB_DB)
+			class_ = atoi(str[0]);
+			if (class_ <= 1000 || class_ > MAX_MOB_DB)
 				continue;
 
-			mob_db[class_].view_class=class_;
-			memcpy(mob_db[class_].name,str[1],24);
-			memcpy(mob_db[class_].jname,str[2],24);
-			mob_db[class_].lv=atoi(str[3]);
-			mob_db[class_].max_hp=atoi(str[4]);
-			mob_db[class_].max_sp=atoi(str[5]);
+			mob_db[class_].view_class = class_;
+			memcpy(mob_db[class_].name, str[1], 24);
+			memcpy(mob_db[class_].jname, str[2], 24);
+			mob_db[class_].lv = atoi(str[3]);
+			mob_db[class_].max_hp = atoi(str[4]);
+			mob_db[class_].max_sp = atoi(str[5]);
 
-			mob_db[class_].base_exp = atoi(str[6]);
-			if (mob_db[class_].base_exp <= 0)
-				mob_db[class_].base_exp = 0;
-			else if (mob_db[class_].base_exp * battle_config.base_exp_rate / 100 > 1000000000 ||
-			         mob_db[class_].base_exp * battle_config.base_exp_rate / 100 < 0)
-				mob_db[class_].base_exp = 1000000000;
-			else {
-				mob_db[class_].base_exp = mob_db[class_].base_exp * battle_config.base_exp_rate / 100;
-				if (mob_db[class_].base_exp < 1)
-					mob_db[class_].base_exp = 1;
-			}
+			exp = (double)(atoi(str[6]) * battle_config.base_exp_rate / 100);
+			if (exp < 0) exp = 0;
+			else if (exp > 1000000000) exp = 1000000000;
+			mob_db[class_].base_exp = exp;
 
-			mob_db[class_].job_exp = atoi(str[7]);
-			if (mob_db[class_].job_exp <= 0)
-				mob_db[class_].job_exp = 0;
-			else if (mob_db[class_].job_exp * battle_config.job_exp_rate / 100 > 1000000000 ||
-			         mob_db[class_].job_exp * battle_config.job_exp_rate / 100 < 0)
-				mob_db[class_].job_exp = 1000000000;
-			else {
-				mob_db[class_].job_exp = mob_db[class_].job_exp * battle_config.job_exp_rate / 100;
-				if (mob_db[class_].job_exp < 1)
-					mob_db[class_].job_exp = 1;
-			}
-
+			exp = (double)(atoi(str[7]) * battle_config.job_exp_rate / 100);
+			if (exp < 0) exp = 0;
+			else if (exp > 1000000000) exp = 1000000000;
+			mob_db[class_].job_exp = exp;
+			
 			mob_db[class_].range=atoi(str[8]);
 			mob_db[class_].atk1=atoi(str[9]);
 			mob_db[class_].atk2=atoi(str[10]);

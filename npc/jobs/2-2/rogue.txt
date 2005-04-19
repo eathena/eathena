@@ -342,6 +342,7 @@ L_Change:
 	mes "You have proven that you are ready to become a Rogue!";
 	emotion 5;
 	next;
+	if(SkillPoint != 0) goto L_SkillP;
 	mes "[Markie]";
 	mes "Tada! Congratulations on becoming a Rogue.  You showed a lot of effort and deserve a reward for it......";
 	setlook 7,0;
@@ -359,6 +360,14 @@ L_Change:
 	next;
 	mes "[Markie]";
 	mes "Have fun shuga! See ya around!";
+	close;
+
+//=======================================================================
+L_SkillP:
+//===========
+	mes "[Markie]";
+	mes "Oh but one thing honey... you have leftover skill points!";
+	mes "Finish them first and come back, 'kay?";
 	close;
 }
 
