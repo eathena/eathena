@@ -312,6 +312,9 @@ int buildin_isequipped(struct script_state *st); // [celest]
 int buildin_isequippedcnt(struct script_state *st); // [celest]
 int buildin_cardscnt(struct script_state *st); // [Lupus]
 int buildin_getrefine(struct script_state *st); // [celest]
+int buildin_adopt(struct script_state *st);
+int buildin_night(struct script_state *st);
+int buildin_day(struct script_state *st);
 int buildin_getusersname(struct script_state *st); //jA commands added [Lupus]
 int buildin_dispbottom(struct script_state *st);
 int buildin_recovery(struct script_state *st);
@@ -560,6 +563,9 @@ struct {
 	{buildin_isequippedcnt,"isequippedcnt","i*"}, // check how many items/cards are being equipped [Celest]
 	{buildin_cardscnt,"cardscnt","i*"}, // check how many items/cards are being equipped in the same arm [Lupus]
 	{buildin_getrefine,"getrefine",""}, // returns the refined number of the current item, or an item with index specified [celest]
+	{buildin_adopt,"adopt","sss"}, // allows 2 parents to adopt a child
+	{buildin_night,"night",""}, // sets the server to night time
+	{buildin_day,"day",""}, // sets the server to day time
 #ifdef PCRE_SUPPORT
         {buildin_defpattern, "defpattern", "iss"}, // Define pattern to listen for [MouseJstr]
         {buildin_activatepset, "activatepset", "i"}, // Activate a pattern set [MouseJstr]
@@ -6886,6 +6892,10 @@ int buildin_summon(struct script_state *st)
 	return 0;
 }
 
+/*==========================================
+ * Checks whether it is daytime/nighttime
+ *------------------------------------------
+ */
 int buildin_isnight(struct script_state *st)
 {
 	push_val(st->stack,C_INT, (night_flag == 1));
@@ -7060,6 +7070,48 @@ int buildin_getrefine(struct script_state *st)
 	struct map_session_data *sd;
 	if ((sd = script_rid2sd(st))!= NULL)
 		push_val(st->stack, C_INT, sd->status.inventory[current_equip_item_index].refine);
+	return 0;
+}
+
+/*=======================================================
+ * Allows 2 Parents to adopt a character as a Baby
+ *-------------------------------------------------------
+ */
+int buildin_adopt(struct script_state *st)
+{
+	int ret;
+	
+	char *parent1 = conv_str(st,& (st->stack->stack_data[st->start+2]));
+	char *parent2 = conv_str(st,& (st->stack->stack_data[st->start+3]));
+	char *child = conv_str(st,& (st->stack->stack_data[st->start+4]));
+
+	struct map_session_data *p1_sd = map_nick2sd(parent1);
+	struct map_session_data *p2_sd = map_nick2sd(parent2);
+	struct map_session_data *c_sd = map_nick2sd(child);
+
+	if (!p1_sd || !p2_sd || !c_sd ||
+		p1_sd->status.base_level < 70 ||
+		p2_sd->status.base_level < 70)
+		return -1;
+
+	ret = pc_adoption(p1_sd, p2_sd, c_sd);
+	push_val(st->stack, C_INT, ret);
+
+	return 0;
+}
+
+/*=======================================================
+ * Day/Night controls
+ *-------------------------------------------------------
+ */
+int buildin_night(struct script_state *st)
+{
+	if (night_flag != 1) map_night_timer(night_timer_tid, 0, 0, 1);
+	return 0;
+}
+int buildin_day(struct script_state *st)
+{
+	if (night_flag != 0) map_day_timer(day_timer_tid, 0, 0, 1);
 	return 0;
 }
 

@@ -4522,26 +4522,10 @@ int atcommand_night(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	struct map_session_data *pl_sd;
-	int i;
 	nullpo_retr(-1, sd);
 
 	if (night_flag != 1) {
-		night_flag = 1; // 0=day, 1=night [Yor]
-		for(i = 0; i < fd_max; i++) {
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth && !map[sd->bl.m].flag.indoors) {
-				//pl_sd->opt2 |= STATE_BLIND;
-				//clif_changeoption(&pl_sd->bl);
-				if (battle_config.night_darkness_level > 0)
-					clif_specialeffect(&pl_sd->bl, 474 + battle_config.night_darkness_level, 0);
-				else {
-					//clif_specialeffect(&pl_sd->bl, 483, 0); // default darkness level
-					pl_sd->opt2 |= STATE_BLIND;
-					clif_changeoption(&pl_sd->bl);
-				}
-				clif_displaymessage(pl_sd->fd, msg_table[59]); // Night has fallen.
-			}
-		}
+		map_night_timer(night_timer_tid, 0, 0, 1);
 	} else {
 		clif_displaymessage(fd, msg_table[89]); // Sorry, it's already the night. Impossible to execute the command.
 		return -1;
@@ -4558,23 +4542,10 @@ int atcommand_day(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	struct map_session_data *pl_sd;
-	int i;
 	nullpo_retr(-1, sd);
 
 	if (night_flag != 0) {
-		night_flag = 0; // 0=day, 1=night [Yor]
-		for(i = 0; i < fd_max; i++) {
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
-				if (battle_config.night_darkness_level > 0)
-					clif_refresh (pl_sd);
-				else {
-					pl_sd->opt2 &= ~STATE_BLIND;
-					clif_changeoption(&pl_sd->bl);
-				}
-				clif_displaymessage(pl_sd->fd, msg_table[60]); // Day has arrived.
-			}
-		}
+		map_day_timer(day_timer_tid, 0, 0, 1);
 	} else {
 		clif_displaymessage(fd, msg_table[90]); // Sorry, it's already the day. Impossible to execute the command.
 		return -1;

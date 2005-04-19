@@ -7102,29 +7102,31 @@ int pc_read_gm_account(int fd)
 	return GM_num;
 }
 
-/*==========================================
- * timer to do the day
- *------------------------------------------
+/*================================================
+ * timer to do the day [Yor]
+ * data: 0 = called by timer, 1 = gmcommand/script
+ *------------------------------------------------
  */
-int map_day_timer(int tid, unsigned int tick, int id, int data) { // by [yor]
-	struct map_session_data *pl_sd = NULL;
-	int i;
-	char tmpstr[1024];
-
-	if (battle_config.day_duration > 0) { // if we want a day
-		if (night_flag != 0) {
-			strcpy(tmpstr, msg_txt(502)); // The day has arrived!
-			night_flag = 0; // 0=day, 1=night [Yor]
-			for(i = 0; i < fd_max; i++) {
-				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
-					if (battle_config.night_darkness_level > 0)
-						clif_refresh (pl_sd);
-					else {
-						pl_sd->opt2 &= ~STATE_BLIND;
-						clif_changeoption(&pl_sd->bl);
-					}
-					clif_wis_message(pl_sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
+int map_day_timer(int tid, unsigned int tick, int id, int data)
+{
+	struct map_session_data *pl_sd;
+	
+	if (data == 0 && battle_config.day_duration <= 0)	// if we want a day
+		return 0;
+	
+	if (night_flag != 0) {
+		int i;
+		strcpy(tmp_output, (data == 0) ? msg_txt(502) : msg_txt(60)); // The day has arrived!
+		night_flag = 0; // 0=day, 1=night [Yor]
+		for(i = 0; i < fd_max; i++) {
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
+				if (battle_config.night_darkness_level > 0)
+					clif_refresh (pl_sd);
+				else {
+					pl_sd->opt2 &= ~STATE_BLIND;
+					clif_changeoption(&pl_sd->bl);
 				}
+				clif_wis_message(pl_sd->fd, wisp_server_name, tmp_output, strlen(tmp_output)+1);
 			}
 		}
 	}
@@ -7132,30 +7134,32 @@ int map_day_timer(int tid, unsigned int tick, int id, int data) { // by [yor]
 	return 0;
 }
 
-/*==========================================
- * timer to do the night
- *------------------------------------------
+/*================================================
+ * timer to do the night [Yor]
+ * data: 0 = called by timer, 1 = gmcommand/script
+ *------------------------------------------------
  */
-int map_night_timer(int tid, unsigned int tick, int id, int data) { // by [yor]
-	struct map_session_data *pl_sd = NULL;
-	int i;
-	char tmpstr[1024];
+int map_night_timer(int tid, unsigned int tick, int id, int data)
+{
+	struct map_session_data *pl_sd;
 
-	if (battle_config.night_duration > 0) { // if we want a night
-		if (night_flag == 0) {
-			strcpy(tmpstr, msg_txt(503)); // The night has fallen...
-			night_flag = 1; // 0=day, 1=night [Yor]
-			for(i = 0; i < fd_max; i++) {
-				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth  && !map[pl_sd->bl.m].flag.indoors) {
-					if (battle_config.night_darkness_level > 0)
-						clif_specialeffect(&pl_sd->bl, 474 + battle_config.night_darkness_level, 0);
-					else {
-						//clif_specialeffect(&pl_sd->bl, 483, 0); // default darkness level
-						pl_sd->opt2 |= STATE_BLIND;
-						clif_changeoption(&pl_sd->bl);
-					}
-					clif_wis_message(pl_sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
+	if (data == 0 && battle_config.night_duration <= 0)	// if we want a night
+		return 0;
+	
+	if (night_flag == 0) {
+		int i;
+		strcpy(tmp_output, (data == 0) ? msg_txt(503) : msg_txt(59)); // The night has fallen...
+		night_flag = 1; // 0=day, 1=night [Yor]
+		for(i = 0; i < fd_max; i++) {
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth  && !map[pl_sd->bl.m].flag.indoors) {
+				if (battle_config.night_darkness_level > 0)
+					clif_specialeffect(&pl_sd->bl, 474 + battle_config.night_darkness_level, 0);
+				else {
+					//clif_specialeffect(&pl_sd->bl, 483, 0); // default darkness level
+					pl_sd->opt2 |= STATE_BLIND;
+					clif_changeoption(&pl_sd->bl);
 				}
+				clif_wis_message(pl_sd->fd, wisp_server_name, tmp_output, strlen(tmp_output)+1);
 			}
 		}
 	}

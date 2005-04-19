@@ -3245,10 +3245,9 @@ struct Damage battle_calc_magic_attack(
 		damage = 1;
 
 	if (tsd && status_isimmune(target)) {
-		if (battle_config.gtb_pvp_only != 0)  { // [MouseJstr]
-			if (map[target->m].flag.pvp || map[target->m].flag.gvg)
-				damage = (damage * (100 - battle_config.gtb_pvp_only)) / 100;
-		} else damage=0;	// 黄 金蟲カード（魔法ダメージ０）
+		if (sd && battle_config.gtb_pvp_only != 0)  { // [MouseJstr]
+			damage = (damage * (100 - battle_config.gtb_pvp_only)) / 100;
+		} else damage = 0;	// 黄 金蟲カード（魔法ダメージ０）
 	}
 
 	damage=battle_calc_damage(bl,target,damage,div_,skill_num,skill_lv,aflag);	// 最終修正

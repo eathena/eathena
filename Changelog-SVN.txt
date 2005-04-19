@@ -1,5 +1,8 @@
 Date	Added
 04/19
+	* Simplified @day and @night [celest]
+	* Added script command 'adopt', 'day' and 'night' [celest]
+	* Refixed the 'gtb_pvp_only' option, thanks to Zoc
 	* Added Baby Class support to all renters, job quests, etc [Lupus]
 	* Added UPnP plugin (will only load in Windows XP) [celest]
 	  - if everything loads successfully you should get a "Firewall port xxx
