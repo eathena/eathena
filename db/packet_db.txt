@@ -644,6 +644,8 @@ prefer_packet_db: yes
 0x007e,114,useskilltopos,9:18:22:32:34
 0x00a2,11,solvecharname,7
 0x0143,10,npcamountinput,2:6
+0x0217,2,blacksmith,0
+0x0218,2,alchemist,0
 
 // packet_ver: 17
 // Add new packets here

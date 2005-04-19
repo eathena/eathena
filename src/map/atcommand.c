@@ -506,8 +506,9 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_CleanMap,			"@cleanmap",		 0, atcommand_cleanmap },
 	{ AtCommand_NpcTalk,			"@npctalk",			 0,	atcommand_npctalk },
 	{ AtCommand_PetTalk,			"@pettalk",			 0,	atcommand_pettalk },
-	{ AtCommand_Users,				"@users",		 0, atcommand_users },
+	{ AtCommand_Users,				"@users",			 0, atcommand_users },
 	{ AtCommand_ResetState,			"/reset",			40,	NULL },
+	{ AtCommand_StatusUp,			"/str+",			 0,	NULL },
 
 #ifndef TXT_ONLY // sql-only commands
 	{ AtCommand_CheckMail,			"@checkmail",		 1, atcommand_listmail }, // [Valaris]
@@ -520,52 +521,52 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_RefreshOnline,		"@refreshonline",	99, atcommand_refreshonline }, // [Valaris]
 
 #endif /* TXT_ONLY */
-	{ AtCommand_SkillTree,		"@skilltree",	40, atcommand_skilltree }, // [MouseJstr]
-	{ AtCommand_Marry,		"@marry",	40, atcommand_marry }, // [MouseJstr]
-	{ AtCommand_Divorce,		"@divorce",	40, atcommand_divorce }, // [MouseJstr]
-	{ AtCommand_Rings,		"@rings",	40, atcommand_rings }, // [MouseJstr]
-	{ AtCommand_Grind,		"@grind",	99, atcommand_grind }, // [MouseJstr]
-	{ AtCommand_Grind2,		"@grind2",	99, atcommand_grind2 }, // [MouseJstr]
+	{ AtCommand_SkillTree,			"@skilltree",		40, atcommand_skilltree }, // [MouseJstr]
+	{ AtCommand_Marry,				"@marry",			40, atcommand_marry }, // [MouseJstr]
+	{ AtCommand_Divorce,			"@divorce",			40, atcommand_divorce }, // [MouseJstr]
+	{ AtCommand_Rings,				"@rings",			40, atcommand_rings }, // [MouseJstr]
+	{ AtCommand_Grind,				"@grind",			99, atcommand_grind }, // [MouseJstr]
+	{ AtCommand_Grind2,				"@grind2",			99, atcommand_grind2 }, // [MouseJstr]
 
 #ifdef DMALLOC
-	{ AtCommand_DMStart,		"@dmstart",	99, atcommand_dmstart }, // [MouseJstr]
-	{ AtCommand_DMTick,		"@dmtick",	99, atcommand_dmtick }, // [MouseJstr]
+	{ AtCommand_DMStart,			"@dmstart",			99, atcommand_dmstart }, // [MouseJstr]
+	{ AtCommand_DMTick,				"@dmtick",			99, atcommand_dmtick }, // [MouseJstr]
 #endif
 
-	{ AtCommand_JumpToId,       "@jumptoid",  20, atcommand_jumptoid }, // [Dino9021]
-	{ AtCommand_JumpToId,       "@warptoid",  20, atcommand_jumptoid }, // [Dino9021]
-	{ AtCommand_JumpToId,       "@gotoid",  20, atcommand_jumptoid }, // [Dino9021]
-	{ AtCommand_JumpToId2,       "@jumptoid2",  20, atcommand_jumptoid2 }, // [Dino9021]
-	{ AtCommand_JumpToId2,       "@warptoid2",  20, atcommand_jumptoid2 }, // [Dino9021]
-	{ AtCommand_JumpToId2,       "@gotoid2",  20, atcommand_jumptoid2 }, // [Dino9021]
-	{ AtCommand_RecallId,       "@recallid", 60, atcommand_recallid }, // [Dino9021]
-	{ AtCommand_RecallId2,       "@recallid2", 60, atcommand_recallid2 }, // [Dino9021]
-	{ AtCommand_KickId,                "@kickid", 99, atcommand_kickid }, // [Dino9021]
-	{ AtCommand_KickId2,                "@kickid2", 99, atcommand_kickid2 }, // [Dino9021]
-	{ AtCommand_ReviveId,              "@reviveid", 60, atcommand_reviveid }, // [Dino9021]
-	{ AtCommand_ReviveId2,              "@reviveid2", 60, atcommand_reviveid2 }, // [Dino9021]
-	{ AtCommand_KillId,                "@killid", 60, atcommand_killid }, // [Dino9021]
-	{ AtCommand_KillId2,                "@killid2", 60, atcommand_killid2 }, // [Dino9021]
-	{ AtCommand_CharKillableId,      "@charkillableid",    40, atcommand_charkillableid }, // [Dino9021]
-	{ AtCommand_CharKillableId2,      "@charkillableid2",    40, atcommand_charkillableid2 }, // [Dino9021]
-	{ AtCommand_Sound,		"@sound",	40,	atcommand_sound },
+	{ AtCommand_JumpToId,			"@jumptoid",		20, atcommand_jumptoid }, // [Dino9021]
+	{ AtCommand_JumpToId,			"@warptoid",		20, atcommand_jumptoid }, // [Dino9021]
+	{ AtCommand_JumpToId,			"@gotoid",			20, atcommand_jumptoid }, // [Dino9021]
+	{ AtCommand_JumpToId2,			"@jumptoid2",		20, atcommand_jumptoid2 }, // [Dino9021]
+	{ AtCommand_JumpToId2,			"@warptoid2",		20, atcommand_jumptoid2 }, // [Dino9021]
+	{ AtCommand_JumpToId2,			"@gotoid2",			20, atcommand_jumptoid2 }, // [Dino9021]
+	{ AtCommand_RecallId,			"@recallid",		60, atcommand_recallid }, // [Dino9021]
+	{ AtCommand_RecallId2,			"@recallid2",		60, atcommand_recallid2 }, // [Dino9021]
+	{ AtCommand_KickId,				"@kickid",			99, atcommand_kickid }, // [Dino9021]
+	{ AtCommand_KickId2,			"@kickid2",			99, atcommand_kickid2 }, // [Dino9021]
+	{ AtCommand_ReviveId,			"@reviveid",		60, atcommand_reviveid }, // [Dino9021]
+	{ AtCommand_ReviveId2,			"@reviveid2",		60, atcommand_reviveid2 }, // [Dino9021]
+	{ AtCommand_KillId,				"@killid",			60, atcommand_killid }, // [Dino9021]
+	{ AtCommand_KillId2,			"@killid2",			60, atcommand_killid2 }, // [Dino9021]
+	{ AtCommand_CharKillableId,		"@charkillableid",	40, atcommand_charkillableid }, // [Dino9021]
+	{ AtCommand_CharKillableId2,	"@charkillableid2",	40, atcommand_charkillableid2 }, // [Dino9021]
+	{ AtCommand_Sound,				"@sound",			40,	atcommand_sound },
 	{ AtCommand_UndisguiseAll,		"@undisguiseall",	99,	atcommand_undisguiseall },
-	{ AtCommand_DisguiseAll,		"@disguiseall",	99,	atcommand_disguiseall },
-	{ AtCommand_ChangeLook,		"@changelook",	99,	atcommand_changelook },
-	{ AtCommand_AutoLoot,		"@autoloot",	10,	atcommand_autoloot }, // Upa-Kun
-	{ AtCommand_MobInfo,		"@mobinfo",	1,	atcommand_mobinfo }, // [Lupus]
-	{ AtCommand_MobInfo,		"@monsterinfo",	1,	atcommand_mobinfo }, // [Lupus]
-	{ AtCommand_MobInfo,		"@mi",	1,	atcommand_mobinfo }, // [Lupus]
-        { AtCommand_Adopt,              "@adopt",       40, atcommand_adopt }, // [Veider]
-	{ AtCommand_Version,				"@version",			0, atcommand_version },
+	{ AtCommand_DisguiseAll,		"@disguiseall",		99,	atcommand_disguiseall },
+	{ AtCommand_ChangeLook,			"@changelook",		99,	atcommand_changelook },
+	{ AtCommand_AutoLoot,			"@autoloot",		10,	atcommand_autoloot }, // Upa-Kun
+	{ AtCommand_MobInfo,			"@mobinfo",			1,	atcommand_mobinfo }, // [Lupus]
+	{ AtCommand_MobInfo,			"@monsterinfo",		1,	atcommand_mobinfo }, // [Lupus]
+	{ AtCommand_MobInfo,			"@mi",				1,	atcommand_mobinfo }, // [Lupus]
+	{ AtCommand_Adopt,              "@adopt",			40, atcommand_adopt }, // [Veider]
+	{ AtCommand_Version,			"@version",			0,	atcommand_version },
 
-	{ AtCommand_MuteArea,				"@mutearea",			99, atcommand_mutearea }, // MouseJstr
-	{ AtCommand_MuteArea,				"@stfu",			99, atcommand_mutearea }, // MouseJstr
-	{ AtCommand_Shuffle,				"@shuffle",			40, atcommand_shuffle }, // MouseJstr
+	{ AtCommand_MuteArea,			"@mutearea",		99, atcommand_mutearea }, // MouseJstr
+	{ AtCommand_MuteArea,			"@stfu",			99, atcommand_mutearea }, // MouseJstr
+	{ AtCommand_Shuffle,			"@shuffle",			40, atcommand_shuffle }, // MouseJstr
 	{ AtCommand_Rates,				"@rates",			10, atcommand_rates }, // MouseJstr
 	
 // add new commands before this line
-	{ AtCommand_Unknown,             NULL,                1, NULL }
+	{ AtCommand_Unknown,			NULL,				1,	NULL }
 };
 
 /*=========================================

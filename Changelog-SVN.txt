@@ -1,4 +1,10 @@
 Date	Added
+04/19
+	* Fixed blind mobs can still follow out-of-range attackers [celest]
+	* Support for /blacksmith and /alchemist commands (doesn't do anything yet)
+	* Added allow gm levels for the /[str/agi/..]+ commands to be set in atcommand
+	  config -- set to 0 by default [celest]
+
 04/18
 	* Fixed exp overflow in mob.c and guild.c [celest]
 	* Allow gm's to drop/trade limited items (i.e wedding rings) [celest]

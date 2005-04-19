@@ -116,7 +116,7 @@ static const int packet_len_table[MAX_PACKET_DB] = {
 //#0x200
    26, -1,  26, 10, 18, 26, 11, 34,  14, 36, 10, 0,  0, -1, 24,  0, // 0x20c change to 0 (was 19)
     0,  0,   0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,   0,  0
+    0,  0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
 // local define
@@ -8974,7 +8974,8 @@ void clif_parse_ChangeCart(int fd,struct map_session_data *sd)
  */
 void clif_parse_StatusUp(int fd,struct map_session_data *sd)
 {
-	pc_statusup(sd,RFIFOW(fd,2));
+	if (pc_isGM(sd) >= get_atcommand_level(AtCommand_StatusUp))
+		pc_statusup(sd,RFIFOW(fd,2));
 }
 
 /*==========================================
@@ -10516,6 +10517,24 @@ void clif_parse_GMkillall(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
+ * /blacksmith
+ *------------------------------------------
+ */
+void clif_parse_Blacksmith(int fd,struct map_session_data *sd)
+{
+	return;
+}
+
+/*==========================================
+ * /alchemist
+ *------------------------------------------
+ */
+void clif_parse_Alchemist(int fd,struct map_session_data *sd)
+{
+	return;
+}
+
+/*==========================================
  * パケットデバッグ
  *------------------------------------------
  */
@@ -10634,7 +10653,8 @@ static void (*clif_parse_func_table[MAX_PACKET_DB])(int, struct map_session_data
 	NULL, NULL, clif_parse_friends_list_add, clif_parse_friends_list_remove, NULL, NULL, NULL, NULL,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	// 210
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, clif_parse_Blacksmith,  clif_parse_Alchemist,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 #if 0
 	case 0xd3: clif_parse_IgnoreList
 #endif
@@ -10870,7 +10890,7 @@ static int clif_parse(int fd) {
 	if (dump) {
 		int i;
 		if (fd)
-			printf("\nclif_parse: session #%d, packet 0x%x, lenght %d\n", fd, cmd, packet_len);
+			printf("\nclif_parse: session #%d, packet 0x%x, length %d\n", fd, cmd, packet_len);
 		printf("---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
 		for(i = 0; i < packet_len; i++) {
 			if ((i & 15) == 0)
@@ -11024,6 +11044,8 @@ static int packetdb_readdb(void)
 		{clif_parse_Recall,"summon"},
 		{clif_parse_GM_Monster_Item,"itemmonster"},
 		{clif_parse_Shift,"shift"},
+		{clif_parse_Blacksmith,"blacksmith"},
+		{clif_parse_Alchemist,"alchemist"},
 		{clif_parse_debug,"debug"},
 
 		{NULL,NULL}

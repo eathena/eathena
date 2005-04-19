@@ -206,7 +206,7 @@ enum AtCommandType {
 	AtCommand_NpcTalk,
 	AtCommand_PetTalk,
 	AtCommand_Users,
-
+	AtCommand_StatusUp,
 	// SQL-only commands start
 #ifndef TXT_ONLY
 	AtCommand_CheckMail, // [Valaris]
