@@ -4,7 +4,7 @@
 //= Fredzilla
 //= Help from Kamari,Acky
 //===== Version ===========================================
-//= 1.2 - More fixes + Added Acky's teacher to the end 
+//= 1.2b - More fixes + Added Acky's teacher to the end 
 //=	  (stoped it from saying a particular word I thought
 //=	  was inapropriate for a kids game)
 //= 1.1 - Minor correction, replaced missing close; and mes :D
@@ -37,7 +37,8 @@
 //= event_adopted = Put on baby so it cant be adopted again.
 //=
 //= Removed useless Teacher. Because Baby Class can get any
-//= job with common Job quests NPCs now [Lupus]
+//= job with common Job quests NPCs now
+//= Made it to use new adopt command [Lupus]
 //=========================================================
 
 prt_church.gat,115,122,0	warp	prtch03	1,2,prt_church.gat,164,171
@@ -371,7 +372,8 @@ A_SameFail:
 	close;
 
 THEEND:
-	gmcommand strcharinfo(0)+"@adopt "+$@ParentOne$+","+$@ParentTwo$+","+$@Baby$;
+	logmes "Adoption: "+$@Baby$+" adopted by "+$@ParentOne$+" and "+$@ParentTwo$+"."+;
+	adopt $@ParentOne$,$@ParentTwo$,$@Baby$;
 	announce $@ParentOne$+" and "+$@ParentTwo$+" has just adopted a new baby "+$@GenderBaby$+", called "+$@Baby$,5;
 	deltimer "timeadopt";
 	set $@AdoptionActive, 0;
