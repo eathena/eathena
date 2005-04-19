@@ -49,22 +49,17 @@ time_t tick_;
 time_t stall_time_ = 60;
 int ip_rules = 1;
 
-// #define UPNP
-
-#ifdef UPNP
 #if defined(CYGWIN) || defined(_WIN32)
-DLL upnp_dll;
-int (*upnp_init)();
-int (*upnp_final)();
-int (*firewall_addport)(char *desc, int port);
-int (*upnp_addport)(char *desc, char *ip, int port);
-extern char *argp;
+	#define UPNP
+	DLL upnp_dll;
+	int (*upnp_init)();
+	int (*upnp_final)();
+	int (*firewall_addport)(char *desc, int port);
+	int	(*upnp_addport)(char *desc, char *ip, int port);
+	extern char *argp;
 
-int release_mappings = 1;
-int close_ports = 1;
-#else
-#error This doesnt work with non-Windows yet
-#endif
+	int release_mappings = 1;
+	int close_ports = 1;
 #endif
 
 int rfifo_size = 65536;
@@ -285,6 +280,22 @@ int make_listen_port(int port)
 	server_address.sin_addr.s_addr = htonl( INADDR_ANY );
 	server_address.sin_port        = htons((unsigned short)port);
 
+#ifdef UPNP
+	if (upnp_dll) {
+		int localaddr = ntohl(addr_[0]);
+		unsigned char *natip = (unsigned char *)&localaddr;
+		char buf[16];
+		sprintf(buf, "%d.%d.%d.%d", natip[0], natip[1], natip[2], natip[3]);
+		//ShowMessage("natip=%d.%d.%d.%d\n", natip[0], natip[1], natip[2], natip[3]);
+		if (firewall_addport(argp, port))
+			ShowInfo ("Firewall port %d successfully opened\n", port);
+		if (natip[0] == 192 && natip[1] == 168) {
+			if (upnp_addport(argp, natip, port))
+				ShowInfo ("UPnP mappings successfull\n");
+		}
+	}
+#endif
+
 	result = bind(fd, (struct sockaddr*)&server_address, sizeof(server_address));
 	if( result == -1 ) {
 		perror("bind");
@@ -345,8 +356,7 @@ int make_listen_bind(long ip,int port)
 			ShowInfo ("Firewall port %d successfully opened\n", port);
 		if (natip[0] == 192 && natip[1] == 168) {
 			if (upnp_addport(argp, natip, port))
-				ShowInfo ("Upnp mappings successfull\n");
-			else ShowError ("Upnp mapping failed\n");
+				ShowInfo ("UPnP mappings successfull\n");
 		}
 	}
 #endif
@@ -650,8 +660,10 @@ int do_parsepacket(void)
 	for(i=0;i<fd_max;i++){
 		if(!session[i])
 			continue;
-		if ((session[i]->rdata_tick != 0) && ((tick_ - session[i]->rdata_tick) > stall_time_))
+		if ((session[i]->rdata_tick != 0) && ((tick_ - session[i]->rdata_tick) > stall_time_)) {
+			ShowInfo ("Session #%d timed out\n");
 			session[i]->eof = 1;
+		}
 		if(session[i]->rdata_size==0 && session[i]->eof==0)
 			continue;
 		if(session[i]->func_parse){
@@ -1059,15 +1071,14 @@ int  Net_Init(void)
 }
 
 #ifdef UPNP
-// not implemented yet ^^;
 void do_init_upnp(void)
 {
 	int *_release_mappings;
 	int *_close_ports;
 
-	upnp_dll = DLL_OPEN ("upnp.dll");
+	upnp_dll = DLL_OPEN ("addons/upnp.dll");
 	if (!upnp_dll) {
-		ShowError ("Cannot open upnp.dll: %s\n", dlerror());
+		ShowInfo ("Cannot find "CL_WHITE"addons/upnp.dll"CL_WHITE": %s\n", dlerror());
 		return;
 	}
 	DLL_SYM (upnp_init, upnp_dll, "do_init");
@@ -1075,7 +1086,7 @@ void do_init_upnp(void)
 	DLL_SYM (firewall_addport, upnp_dll, "Firewall_AddPort");
 	DLL_SYM (upnp_addport, upnp_dll, "UPNP_AddPort");
 	if (!upnp_init || !upnp_final || !firewall_addport || !upnp_addport) {
-		ShowError ("Cannot load symbol: %s\n", dlerror());
+		ShowInfo ("Unable to load UPnP: %s\n", dlerror());
 		DLL_CLOSE (upnp_dll);
 		upnp_dll = NULL;
 		return;
@@ -1083,17 +1094,19 @@ void do_init_upnp(void)
 
 	DLL_SYM (_release_mappings, upnp_dll, "release_mappings");
 	DLL_SYM (_close_ports, upnp_dll, "close_ports");
-	if (release_mappings && _release_mappings)
+	if (_release_mappings)
 		*_release_mappings = release_mappings;
-	if (close_ports && _close_ports)
+	if (_close_ports)
 		*_close_ports = close_ports;
-
+	
 	if (upnp_init() == 0) {
-		ShowError ("Error initialising upnp.dll, unloading...\n");
+		ShowInfo ("Unable to initialise UPnP, unloading DLL...\n");
 		DLL_CLOSE (upnp_dll);
 		upnp_dll = NULL;
 	}
-	return;
+
+	ShowStatus ("UPnP plugin initialised.\n");
+	return;	
 }
 #endif
 
@@ -1101,12 +1114,11 @@ void do_final_socket(void)
 {
 	int i;
 	struct _connect_history *hist , *hist2;
-	for(i=0; i<fd_max; i++) {
-		if(session[i]) {
+	for (i = 1; i < fd_max; i++) {
+		if(session[i])
 			delete_session(i);
-		}
 	}
-	for(i=0; i<0x10000; i++) {
+	for(i = 0; i < 0x10000; i++) {
 		hist = connect_history[i];
 		while(hist) {
 			hist2 = hist->next;

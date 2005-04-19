@@ -1,5 +1,12 @@
 Date	Added
 04/19
+	* Added UPnP plugin (will only load in Windows XP) [celest]
+	  - if everything loads successfully you should get a "Firewall port xxx
+	    successfully opened" and "Upnp mappings successfull" for each server.
+	    If it doesn't, either your router has it turned off or doesn't support it
+	  - Go here for the debug version and source code:
+		http://svn2.stormbirds.org:8080/svn/ea/devel/Celest/addons/upnp/
+
 	* Added extra info in 'goto' and 'if' script errors [celest]
 	* Added new mapflag 'gvg_dungeon' -- Same as GvG, but doesn't show simplified
 	  effects for the client [celest]
