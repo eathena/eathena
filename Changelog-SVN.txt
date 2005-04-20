@@ -1,5 +1,6 @@
 Date	Added
 04/19
+	* Fixed adoption script [Codemaster]
 	* Simplified @day and @night [celest]
 	* Added script command 'adopt', 'day' and 'night' [celest]
 	* Refixed the 'gtb_pvp_only' option, thanks to Zoc

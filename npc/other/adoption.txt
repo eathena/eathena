@@ -372,7 +372,7 @@ A_SameFail:
 	close;
 
 THEEND:
-	logmes "Adoption: "+$@Baby$+" adopted by "+$@ParentOne$+" and "+$@ParentTwo$+"."+;
+	logmes "Adoption: "+$@Baby$+" adopted by "+$@ParentOne$+" and "+$@ParentTwo$+".";
 	adopt $@ParentOne$,$@ParentTwo$,$@Baby$;
 	announce $@ParentOne$+" and "+$@ParentTwo$+" has just adopted a new baby "+$@GenderBaby$+", called "+$@Baby$,5;
 	deltimer "timeadopt";
