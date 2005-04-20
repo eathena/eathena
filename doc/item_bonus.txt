@@ -75,14 +75,16 @@ bonus bDefEle,n;				Gives the player's defense element n
 							n: 0=Neutral, 1=Water, 2=Earth, 3=Fire, 4=Wind, 5=Poison, 6=Holy, 7=Dark, 8=Spirit, 9=Undead
 bonus bSplashRange n;			Splash attack radius + n (e.g. n=1 makes a 3*3 cells area, n=2 a 5*5 area, etc | only the highest among all is applied)
 bonus bSplashAddRange n;		Splash attack radius + n (e.g. n=1 makes a 3*3 cells area, n=2 a 5*5 area, etc)
+
 bonus bInfiniteEndure,n;		Unlimited Endure effect, n is meaningless 
-bonus bRestartFullRecover,n;		When reviving, HP and SP all recoveries, n is meaningless 
+bonus bRestartFullRecover,n;		When reviving, HP and SP are fully filled (n is meaningless)
 bonus bNoCastCancel,n;			Prevents casting from being interrupted when hit (does not work in GvG | n is meaningless)
 bonus bNoCastCancel2,n;			Prevents casting from being interrupted when hit (works even in GvG | n is meaningless)
 bonus bNoSizeFix,n;			The attack revision with the size of the monster is not received (n is meaningless)
-bonus bNoWeaponDamage,n;		Prevents from receiving any physical damage, n is meaningless
+bonus bNoWeaponDamage,n;		Prevents from receiving any physical damage (n is meaningless)
 bonus bNoMagicDamage,n;			Prevents from receiving any magical effect (Attack, Healing, Support spells are all blocked | n is meaningless)
-bonus bNoGemStone,n;			Skills requiring Gemstones do no more require them (Hocus Pocus will still require 1 Yellow one | n is meaningless)
+bonus bNoGemStone,n;			Skills requiring Gemstones do no more require them (Hocus Pocus will still require 1 Yellow Gemstone | n is meaningless)
+bonus bIntravision,n;			Always see Hiding and Cloaking players/mobs (n is meaningless)
 
 bonus2 bAddEff,e,x;			Adds a x/10000 chance to cause effect e to the target when attacking (e.g. x=100 makes 1% chance, x=10000 makes 100% chance, etc)
 							e: Eff_Blind, Eff_Sleep, Eff_Poison, Eff_Freeze, Eff_Silence, Eff_Stan, Eff_Curse, Eff_Confusion, Eff_Stone, Eff_Bleeding

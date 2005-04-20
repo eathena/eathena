@@ -9,6 +9,7 @@
 	Skill databases == celest working on them i believe.
 
 04/20
+	* Added Intravision item bonus [DracoRPG]
 	* Adding supported map cell types to const.txt [celest]
 	* Added summoned Geographers can heal their masters [celest]
 04/19

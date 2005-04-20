@@ -1,5 +1,8 @@
 Date	Added
 04/20
+	* Changed a bad mistake in map cache configuration (swap between compressed and uncompressed options) [DracoRPG]
+	  -> Check this !! using '1' you can get a 1MB mapinfo with all 450 maps inside !!
+	* Added Intravision vars and all the stuff, but not the code (for Maya Purple Card) [DracoRPG]
 	* Fixed memory leak in @reloadmobdb [celest]
 	* Fixed logging settings reset to default after reading the conf file [celest]
 	* Added support for 'masterhpltmaxrate' condition in the mob skill db [celest]
