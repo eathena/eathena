@@ -1450,9 +1450,11 @@ Only place specification skill is good for a round system. friend is good only o
 1367,‰Î‘®«UŒ‚—ƒuƒŒƒCƒU[,attack,186,3,100,0,15000,yes,target,always,0,,,,,,
 1367,ƒtƒ@ƒCƒA[ƒ{[ƒ‹—ƒuƒŒƒCƒU[,chase,17,10,350,0,0,no,target,always,0,,,,,,
 1368,ƒq[ƒ‹—ƒWƒIƒOƒ‰ƒtƒ@[,idle,28,10,1000,1500,4000,yes,friend,friendhpltmaxrate,60,,,,,,
+1368,ƒq[ƒ‹—ƒWƒIƒOƒ‰ƒtƒ@[,idle,28,10,1000,1500,4000,yes,friend,masterhpltmaxrate,60,,,,,,
 1368,‡–°UŒ‚—ƒWƒIƒOƒ‰ƒtƒ@[,attack,182,5,100,0,10000,no,target,always,0,,,,,,
 1368,ƒq[ƒ‹—ƒWƒIƒOƒ‰ƒtƒ@[,attack,28,10,1000,1500,4000,yes,friend,friendhpltmaxrate,60,,,,,,
 1368,ƒq[ƒ‹—ƒWƒIƒOƒ‰ƒtƒ@[,attack,28,10,1000,0,4000,yes,self,myhpltmaxrate,30,,,,,,
+1368,ƒq[ƒ‹—ƒWƒIƒOƒ‰ƒtƒ@[,attack,28,10,1000,1500,4000,yes,friend,masterhpltmaxrate,60,,,,,,
 1369,ƒ\ƒjƒbƒNƒuƒ[—ƒOƒ‰ƒ“ƒyƒR,attack,136,3,10,1500,10000,no,target,always,0,,,,,,
 1369,‘½’iUŒ‚—ƒOƒ‰ƒ“ƒyƒR,attack,171,5,100,0,10000,no,target,always,0,,,,,,
 1370,ƒeƒŒƒ|[ƒg—ƒTƒLƒ…ƒoƒX,idle,26,1,100,0,100000,yes,self,always,0,,,,,,
@@ -1988,7 +1990,7 @@ Only place specification skill is good for a round system. friend is good only o
 
 //Deviling (call slaves: )
 1582,_'_"_X_^_[_¢_<_-_~_X_g___X,attack,196,1,1000,3000,3600000,no,self,myhpltmaxrate,5,1242,1242,1242,1109,,
-1582,_æ'è_ª'<_¢_<_-_~_X_g___X,attack,196,1,1000,3000,3600000,no,self,slavele,0,1242,1242,1242,1109,,
+1582,_Eè_ª'<_¢_<_-_~_X_g___X,attack,196,1,1000,3000,3600000,no,self,slavele,0,1242,1242,1242,1109,,
 
 //Tao Gunka - call slaves
 1583,Call Slave,attack,196,5,1000,3000,36000,no,self,myhpltmaxrate,5,1584,,,,,

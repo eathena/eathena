@@ -93,6 +93,13 @@ mf_nogo		22
 mf_clouds	23
 mf_fireworks	24
 
+cell_wall	1
+cell_water	3
+cell_ground	5
+cell_regen	32
+cell_basilica	64
+cell_npc	128
+
 StatusPoint	9	1
 BaseLevel	11	1
 SkillPoint	12	1

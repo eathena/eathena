@@ -8,6 +8,9 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them i believe.
 
+04/20
+	* Adding supported map cell types to const.txt [celest]
+	* Added summoned Geographers can heal their masters [celest]
 04/19
 	* Corrected skill tree entry for Peco lord knight's Berserk [celest]
 04/17
