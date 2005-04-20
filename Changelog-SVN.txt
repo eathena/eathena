@@ -1,4 +1,6 @@
 Date	Added
+04/20
+	* Fixed Ruwach not dealing damage to revealed players/mobs [DracoRPG]
 04/19
 	* Fixed insert like item as card hack. [Ancyker]
 	* Fixed adoption script [Codemaster]
