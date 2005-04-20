@@ -2122,6 +2122,7 @@ int pc_insert_card(struct map_session_data *sd,int idx_card,int idx_equip)
 		if( nameid <= 0 || sd->inventory_data[idx_equip] == NULL ||
 			(sd->inventory_data[idx_equip]->type!=4 && sd->inventory_data[idx_equip]->type!=5)||	// ? ”õ‚¶‚á‚È‚¢
 			( sd->status.inventory[idx_equip].identify==0 ) ||		// –¢ŠÓ’è
+			(sd->inventory_data[idx_card]->type!=6)|| // Prevent Hack [Ancyker]
 			( sd->status.inventory[idx_equip].card[0]==0x00ff) ||		// »‘¢•Ší
 			( sd->status.inventory[idx_equip].card[0]==0x00fe) ||
 			( (sd->inventory_data[idx_equip]->equip&ep)==0 ) ||					// ? ”õŒÂŠˆá‚¢

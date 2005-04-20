@@ -1,5 +1,6 @@
 Date	Added
 04/19
+	* Fixed insert like item as card hack. [Ancyker]
 	* Fixed adoption script [Codemaster]
 	* Simplified @day and @night [celest]
 	* Added script command 'adopt', 'day' and 'night' [celest]
