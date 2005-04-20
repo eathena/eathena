@@ -498,24 +498,31 @@ int log_npc(struct map_session_data *sd, const char *message)
 	return 0;
 }
 
+void log_set_defaults(void)
+{
+	memset(&log_config, 0, sizeof(log_config));
+
+	//LOG FILTER Default values
+	log_config.refine_items_log = 7; //log refined items, with refine >= +7
+	log_config.rare_items_log = 100; //log rare items. drop chance <= 1%
+	log_config.price_items_log = 1000; //1000z
+	log_config.amount_items_log = 100;	
+}
+
 int log_config_read(char *cfgName)
 {
+	static int count = 0;
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
-        memset(&log_config, 0, sizeof(log_config));
+	if ((count++) == 0)
+		log_set_defaults();		
 
 	if((fp = fopen(cfgName, "r")) == NULL)
 	{
 		printf("Log configuration file not found at: %s\n", cfgName);
 		return 1;
-	}
-	
-	//LOG FILTER Default values
-	log_config.refine_items_log = 7; //log refined items, with refine >= +7
-	log_config.rare_items_log = 100; //log rare items. drop chance <= 1%
-	log_config.price_items_log = 1000; //1000z
-	log_config.amount_items_log = 100;
+	}	
 
 	while(fgets(line, sizeof(line) -1, fp))
 	{
@@ -561,7 +568,7 @@ int log_config_read(char *cfgName)
 					log_config.zeny = 0;
 				else
 					log_config.zeny = (atoi(w2));
-			} else if(strcmpi(w1,"log_gm") == 0) {				
+			} else if(strcmpi(w1,"log_gm") == 0) {
 				log_config.gm = (atoi(w2));
 			} else if(strcmpi(w1,"log_npc") == 0) {
 				log_config.npc = (atoi(w2));

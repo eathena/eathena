@@ -3586,10 +3586,12 @@ int mob_getfriendhpltmaxrate_sub(struct block_list *bl,va_list ap)
 
 	if( mmd->bl.id == bl->id )
 		return 0;
+	if (battle_check_target(&mmd->bl,bl,BCT_ENEMY)>0)
+		return 0;
 	rate=va_arg(ap,int);
 	fr=va_arg(ap,struct mob_data **);
-	if( md->hp < mob_db[md->class_].max_hp*rate/100 )
-		(*fr)=md;
+	if (md->hp < mob_db[md->class_].max_hp * rate / 100)
+		(*fr) = md;
 	return 0;
 }
 struct mob_data *mob_getfriendhpltmaxrate(struct mob_data *md,int rate)
@@ -3603,6 +3605,20 @@ struct mob_data *mob_getfriendhpltmaxrate(struct mob_data *md,int rate)
 		md->bl.x-r ,md->bl.y-r, md->bl.x+r, md->bl.y+r,
 		BL_MOB,md,rate,&fr);
 	return fr;
+}
+/*==========================================
+ * Check hp rate of its master
+ *------------------------------------------
+ */
+struct block_list *mob_getmasterhpltmaxrate(struct mob_data *md,int rate)
+{
+	if (md && md->master_id > 0) {
+		struct block_list *bl = map_id2bl(md->master_id);
+		if (status_get_hp(bl) < status_get_max_hp(bl) * rate / 100)
+			return bl;
+	}
+
+	return NULL;
 }
 /*==========================================
  * What a status state suits by nearby MOB is looked for.
@@ -3620,6 +3636,8 @@ int mob_getfriendstatus_sub(struct block_list *bl,va_list ap)
 	nullpo_retr(0, mmd=va_arg(ap,struct mob_data *));
 
 	if( mmd->bl.id == bl->id )
+		return 0;
+	if (battle_check_target(&mmd->bl,bl,BCT_ENEMY)>0)
 		return 0;
 	cond1=va_arg(ap,int);
 	cond2=va_arg(ap,int);
@@ -3657,6 +3675,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 {
 	struct mob_skill *ms;
 	struct mob_data *fmd = NULL;
+	struct map_session_data *fsd = NULL;
 	int i;
 
 	nullpo_retr (0, md);
@@ -3664,7 +3683,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 
 	if (battle_config.mob_skill_use == 0 ||
 		md->skilltimer != -1 ||
-		md->state.special_mob_ai ||
+		md->state.special_mob_ai != 1 ||
 		(md->sc_data && md->sc_data[SC_SELFDESTRUCTION].timer != -1))	//自爆中はスキルを使わない
 		return 0;
 
@@ -3721,6 +3740,17 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					flag = ((event & 0xffff) == MSC_SKILLUSED && ((event >> 16) == c2 || c2 == 0)); break;
 				case MSC_RUDEATTACKED:
 					flag = (!md->attacked_id && md->attacked_count > 0); break;
+				case MSC_MASTERHPLTMAXRATE:
+					{
+						struct block_list *bl = mob_getmasterhpltmaxrate(md, ms[i].cond2);
+						if (bl) {
+							if (bl->type == BL_MOB)
+								fmd=(struct mob_data *)bl;
+							else if (bl->type == BL_PC)
+								fsd=(struct map_session_data *)bl;
+						}
+						flag = (fmd || fsd); break;
+					}
 			}
 		}
 
@@ -3732,8 +3762,23 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				struct block_list *bl = NULL;
 				int x = 0, y = 0;
 				if (ms[i].target <= MST_AROUND) {
-					bl = ((ms[i].target == MST_TARGET || ms[i].target == MST_AROUND5) ? map_id2bl(md->target_id):
-						(ms[i].target == MST_FRIEND && fmd) ? &fmd->bl : &md->bl);
+					switch (ms[i].target) {
+						case MST_TARGET:
+						case MST_AROUND5:
+							bl = map_id2bl(md->target_id);
+							break;
+						case MST_FRIEND:
+							if (fmd) {
+								bl = &fmd->bl;
+								break;
+							} else if (fsd) {
+								bl = &fsd->bl;
+								break;
+							} // else fall through
+						default:
+							bl = &md->bl;
+							break;
+					}
 					if (bl != NULL) {
 						x = bl->x; y=bl->y;
 					}
@@ -3771,9 +3816,23 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 			} else {
 				// ID指定
 				if (ms[i].target <= MST_FRIEND) {
-					struct block_list *bl = NULL;
-					bl = ((ms[i].target == MST_TARGET) ? map_id2bl(md->target_id):
-						 (ms[i].target == MST_FRIEND && fmd) ? &fmd->bl : &md->bl);
+					struct block_list *bl;
+					switch (ms[i].target) {
+						case MST_TARGET:
+							bl = map_id2bl(md->target_id);
+							break;
+						case MST_FRIEND:
+							if (fmd) {
+								bl = &fmd->bl;
+								break;
+							} else if (fsd) {
+								bl = &fsd->bl;
+								break;
+							} // else fall through
+						default:
+							bl = &md->bl;
+							break;
+					}
 					if (bl && !mobskill_use_id(md, bl, i))
 						return 0;
 				}
@@ -4199,6 +4258,7 @@ static int mob_readskilldb(void)
 		{	"skillused",		MSC_SKILLUSED			},
 		{	"casttargeted",		MSC_CASTTARGETED		},
 		{	"rudeattacked",		MSC_RUDEATTACKED		},
+		{	"masterhpltmaxrate",MSC_MASTERHPLTMAXRATE	},
 	}, cond2[] ={
 		{	"anybad",		-1				},
 		{	"stone",		SC_STONE		},
