@@ -9,6 +9,7 @@
 	Skill databases == celest working on them i believe.
 
 04/20
+	* Added Thief cards set and fixed other ones, now they should all work [DracoRPG]
 	* Added Intravision item bonus [DracoRPG]
 	* Adding supported map cell types to const.txt [celest]
 	* Added summoned Geographers can heal their masters [celest]
