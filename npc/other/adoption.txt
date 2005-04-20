@@ -338,6 +338,7 @@ A_ParentTwoEnd:
 A_AlreadyReged:
 	mes "[Adoption Lady]";
 	mes "Please wait for the others to talk to me";
+	close;
 A_BabyEnd:
 	if (@regged>1) goto AlreadyReged;
 	mes "[Adoption Lady]";
