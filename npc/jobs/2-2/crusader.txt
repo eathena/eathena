@@ -5,7 +5,7 @@
 //= Converted by: Shin
 //=
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.3a
 //===== Compatible With: ===================================== 
 //= eAthena  0.5.2 +
 //===== Description: ========================================= 
@@ -17,6 +17,7 @@
 //= 1.2 minor fix of announcement by Freya people
 //= 1.3 Added Baby Class Support, fixed 40/50 lvl item reward
 //=     also fixed too common script names [Lupus]
+//= 1.3a fixed "dead lock" bugs [Lupus]
 //============================================================
 
 
@@ -846,7 +847,7 @@ NEXT_o:
 	mes "Go talk to ^000080Lothar^000000, he will turn you into a ^800000Crusader^000000.";
 	close;
 	PART2:
-	if (@cru2 == 43) goto EXIT2;
+	if (@CRU2 == 43) goto EXIT2;
 	PART2A:
 	mes "So, do you want to try again?";
 	next;
@@ -869,6 +870,7 @@ NEXT_o:
 	mes "Let me make sure it's empty first.";
 	next;
 	if( getmapusers("job_cru.gat")>0 ) goto EXIT1;
+	killmonster "job_cru.gat","CR_KILL";
 	savepoint "prt_in.gat",81,100;
 	set CRUS_Q, 12;
 	warp "job_cru",167,175;
@@ -888,8 +890,7 @@ NEXT_o:
 	mes "[^000080Harrison^000000]";
 	mes "If you do, you'll find yourself coming back to me for one of the tests.";
 	close;
-	EXIT2:
-	if( getmapusers("job_cru.gat") != 0 ) goto PART2A;
+EXIT2:
 	mes "Well done!";
 	set CRUS_Q,13;
 	next;
@@ -996,10 +997,10 @@ NEXT19:
 
 job_cru.gat,23,42,0	script	CR_DEAD	-1,{
 	killmonster "job_cru.gat","CR_DEAD";
+	set @CRU1,0;
 	enablenpc "CR_TST_2";
 	warp "prt_castle.gat",162,27;
 }
-
 
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1011,8 +1012,8 @@ job_cru.gat,23,42,0	script	CR_DEAD	-1,{
 job_cru.gat,23,42,0	script	CR_TST_2	139,8,8,{
 
 	if (CRUS_Q != 6) goto EXIT;
-	set @CR_etmp,1;
-	areaannounce "job_cru.gat",0,0,23,42,"Please endure here and go to exit",8;
+	set @CRU1,1;
+	mapannounce "job_cru.gat","Please endure here and go to the exit.",8;
 
 	monster "job_cru.gat",10,43,"Ghoul",1423,1,"CR_DEAD";
 	monster "job_cru.gat",14,47,"Khalitzburg",1438,1,"CR_DEAD";
@@ -1066,8 +1067,9 @@ job_cru.gat,23,42,0	script	CR_TST_2	139,8,8,{
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 job_cru.gat,23,109,0	script	CR_EXT_1	139,1,1,{
 
-if (@CR_etmp == 0) goto JUMP;
+if (@CRU1 == 0) goto JUMP;
 	set CRUS_Q,7;
+	killmonster "job_cru.gat","CR_DEAD";
 	enablenpc "CR_TST_2";
 JUMP:
 	warp "prt_castle.gat",162,28;
@@ -1084,17 +1086,16 @@ JUMP:
 
 job_cru.gat,167,175,0	script	CR_KILL	-1,{
 
-	if (@cru2 == 43) goto good;
+	if (@CRU2 == 43) goto good;
 
-	set @cru2,@cru2 +1;
-	announce " You killed another monster",3;
+	set @CRU2,@CRU2 +1;
+	announce "You killed another monster.",3;
 	end;
 
 	good:
-	announce " You killed all monster, you may go to exit",3;
+	announce "You killed all monsters, you may go to the exit.",3;
 	end;
 }
-
 
 job_cru.gat,167,175,0	script	CR_TST_4	139,1,1,{
 
