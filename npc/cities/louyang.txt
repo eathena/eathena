@@ -3,14 +3,16 @@
 //===== By: ================================================== 
 //= Vidar (1.0)
 //= Mass Zero (1.1)
+//= Dino9021, translated by Celest
 //===== Current Version: ===================================== 
-//= 1.0 
+//= 1.2
 //===== Compatible With: ===================================== 
 //= Any eAthena Version
 //===== Description: ========================================= 
 //= Unofficial NPC's for Lou Yang city.
 //===== Additional Comments: ================================= 
 //= Originally made for Vidar
+//= 1.2 - Added official warp NPC's
 //============================================================
 
 louyang.gat,260,96,2	script	Chun Hua	770,{
@@ -23,43 +25,91 @@ mes "Do not be afraid about how much you ask for, there is much to go around.";
 close;
 }
 
-lou_fild01.gat,188,102,1	script	Extraordinary Sailor	100,{
-mes "[Extraordinary Sailor]";
-mes "We run a line to Alberta, we could take you there if you like.";
+
+lou_fild01.gat,190,100,1	script	Young Girl	815,{
+mes "[Young Girl]";
+mes "You'd like to go back now?";
 next;
-menu "Let me travel to Alberta",L_Menu1,"No, thanks",L_Menu2;
-close;
-L_Menu1:
-warp "alberta.gat",247,44;
-L_Menu2:
-mes "[Extraordinary Sailor]";
-mes "Suit yourself.";
-close;
+menu "Return to Alberta",L_Return,"Cancel",L_Cancle;
+
+L_Return:
+	mes "[Young Girl]";
+	mes "Come back againÅ`";
+	mes "Let's goÅ`Å`";
+	next;
+	warp "alberta.gat",235,45;
+	close;
+
+L_Cancle:
+	mes "[Young Girl]";
+	mes "Stay if you can,";
+	mes "We have good food and cute girls here!";
+	close;
 }
 
-alberta.gat,247,42,4	script	Expert Sailor	100,{
-mes "[Expert Sailor]";
-mes "Have you ever been over seas?";
+alberta.gat,245,45,4	script	Young Girl	815,{
+mes "[Young Girl]";
+mes "NanaÅ` NanananaÅ` Such a good mood todayÅ`";
+mes "I wish i could go somewhere and playÅ`";
 next;
-menu "Yes",YES,"No",NO;
-YES:
-mes "Same here! I'm about to head back out that way again.";
-mes "Would you like to come with me?";
-next;
-menu "Sure",L_Menu1,"No, thanks",L_Menu3;
-close;
-L_Menu1:
-warp "lou_fild01.gat",192,105;
-NO:
-mes "What a shame, it is truley a sight to behold. I'm about to head back out that way again.";
-mes "Would you like to come with me?";
-next;
-menu "Sure",L_Menu2,"No, thanks",L_Menu3;
-close;
-L_Menu2:
-warp "lou_fild01.gat",192,105;
-L_Menu3:
-mes "[Expert Sailor]";
-mes "Suit yourself.";
-close;
+menu "About LouyangÅDÅDÅD",L_AboutLouyang,"Go to Louyang",L_GoToLouyang,"Cancel",L_Cancle;
+
+L_AboutLouyang:
+	mes "[Young Girl]";
+	mes "You'd like to visit Louyang?";
+	mes "That is such a wonderful place~";
+	mes "A country with thousands of years of history,";
+	mes "With beautiful cities and fields~";
+	next;
+	mes "[Young Girl]";
+	mes "Especially myterious things of the arcane";
+	mes "sometimes happen here, and you can";
+	mes "find the rarest but most potent medicine!";
+	next;
+	mes "[Young Girl]";
+	mes "Alot of people practise martial arts there,";
+	mes "I used to go there to practise hard";
+	mes "too! I'm very strong you knowÅDÅDÅDÅI";
+	next;
+	mes "[Young Girl]";
+	mes "Tell me if you wish to go,";
+	mes "I'll charge you a small fee of course~";
+	mes "And then we can go to LouyangÅDÅDÅD";
+	mes "Haha-ha, I'm just kidding!";
+	close;
+
+L_GoToLouyang:
+	mes "[Young Girl]";
+	mes "Pay me 10,000 zeny first,";
+	mes "Then we'll be leaving now,";
+	mes "Have fun on your trip!";
+	next;
+	mes "[Young Girl]";
+	mes "Okay, shall we leave now?";
+	next;
+	menu "SureÅI",L_KickToLouyang,"Cancel",L_Cancle;
+
+L_KickToLouyang:
+	if(Zeny < 10000) goto L_NoZeny;
+	mes "[Young Girl]";
+	mes "YeeÅ`HaÅ`Å`";
+	mes "Let's goÅ`Å`Å`";
+	next;
+	set Zeny,Zeny-10000;
+	warp "lou_fild01.gat",190,101;
+	close;
+
+L_NoZeny:
+	mes "[Young Girl]";
+	mes "You have no moneyÅ`";
+	mes "You need 10,000 zenyÅ`";
+	mes "Otherwise? Sorry!";
+	close;
+
+L_Cancle:
+	mes "[Young Girl]";
+	mes "?! That's so dissapointing,";
+	mes "I'm going home to make";
+	mes "dumplings for dinner then~";
+	close;
 }
