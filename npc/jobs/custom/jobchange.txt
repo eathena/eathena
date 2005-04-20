@@ -683,7 +683,7 @@ LSuperNovice:
 	if(Class == 23) goto L_Twice;
 	if(Class != 0) goto L_Otherjob;
 	if(JobLevel < 10) goto L_LowSkill;
-	if(BaseLevel < 45) goto L_Lowlevel;
+	if(BaseLevel < 45) goto L_LowLevel;
 	if(SkillPoint != 0) goto L_StillSk; 
 	mes "[ ^0065DFJobra^000000 ]";
 	mes "Hello, Novice!";

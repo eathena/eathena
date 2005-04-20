@@ -36,6 +36,8 @@ TODO:
 Date		Added
 ======
 
+04/20
+	* Fixed a typo in the custom jobchanger, thanks to manutdcom
 04/19
 	* Added custom jobchanger fix by Zoc
 	* Added custom Adoption script by Fredzilla [Lupus]
