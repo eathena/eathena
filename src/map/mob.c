@@ -3683,7 +3683,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 
 	if (battle_config.mob_skill_use == 0 ||
 		md->skilltimer != -1 ||
-		md->state.special_mob_ai != 1 ||
+		(md->state.special_mob_ai > 0 && md->state.special_mob_ai != 1) ||
 		(md->sc_data && md->sc_data[SC_SELFDESTRUCTION].timer != -1))	//©”š’†‚ÍƒXƒLƒ‹‚ğg‚í‚È‚¢
 		return 0;
 

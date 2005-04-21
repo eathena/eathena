@@ -37,6 +37,7 @@ Date		Added
 ======
 
 04/20
+	* Adding more NPC's to Louyang [celest]
 	* Updated Louyang city script, thanks to Dino9021
 	* Fixed Crusader Job quest (again). And several typos [Lupus]
 	* Fixed a typo in the custom jobchanger, thanks to manutdcom

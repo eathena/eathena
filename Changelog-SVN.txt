@@ -1,4 +1,7 @@
 Date	Added
+04/21
+	* Fixed a typo in mobs skills checking [celest]
+
 04/20
 	* Fixed a few item errors with callfunc("Is_Merc_Class") (not checking if it returned 0)
 	* Changed a bad mistake in map cache configuration (swap between compressed and uncompressed options) [DracoRPG]
