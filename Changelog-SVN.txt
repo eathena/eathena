@@ -1,5 +1,6 @@
 Date	Added
 04/20
+	* Fixed a few item errors with callfunc("Is_Merc_Class") (not checking if it returned 0)
 	* Changed a bad mistake in map cache configuration (swap between compressed and uncompressed options) [DracoRPG]
 	  -> Check this !! using '1' you can get a 1MB mapinfo with all 450 maps inside !!
 	* Added Intravision vars and all the stuff, but not the code (for Maya Purple Card) [DracoRPG]
