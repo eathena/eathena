@@ -37,6 +37,9 @@ Date		Added
 ======
 
 04/20
+	* Converted Treasure Hunters Guild (40 New Quests + Guild Shop) [Fredzilla]
+	* Added time penalty to THQ. To prevent exploits. [Lupus]
+	* Fixed Super Novice Job Quest (thanks to guy from eA forums .... <-- his name will be here)
 	* Removed one warp from Swordsman Assiciation (due to overlapping Job Quest Warp) [Lupus]
 	* Adding more NPC's to Louyang [celest]
 	* Updated Louyang city script, thanks to Dino9021

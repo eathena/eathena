@@ -36,7 +36,7 @@ aldeba_in.gat,223,167,3	script	Tozel	709,{
 	next;
 	menu "I'm sold!",-,"Super Novice is Super Stupid",L_Stupid,"Well, to make an informed choice...",L_Well;
 	if(JobLevel < 10) goto L_LowSkill;
-	if(BaseLevel < 45) goto L_Lowlevel;
+	if(BaseLevel < 45) goto L_LowLevel;
 	if(SkillPoint != 0) goto L_StillSk; 
 	mes "[Tozel]";
 	mes "Wonderful!";
