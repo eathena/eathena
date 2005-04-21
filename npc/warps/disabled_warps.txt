@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Nana (1.0)
 //===== Current Version: =====================================
-//= 1.0
+//= 1.1
 //===== Description: =========================================
 //= Disabled Warp's for entire Athena
 //===== Additional Comments: =================================
@@ -32,6 +32,10 @@
 
 //= Morroc Town ==============================================
 //morocc_in.gat,72,67,0	warp	w341	2,2,morocc_in.gat,44,162
+
+//= Izlude Town ==============================================
+//= Due to Job Quest
+//izlude_in.gat,62,170,0	warp	w1039	1,1,izlude_in.gat,68,165
 
 //= Payon Cave
 //pay_dun03.gat,127,62,0	warp	payd04	1,2,pay_dun04.gat,201,204
