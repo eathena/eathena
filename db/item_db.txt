@@ -19,7 +19,7 @@
 513,Banana,Banana,0,15,0,20,,,,,10477567,2,,,,,{ itemheal rand(17,20),0; },{}
 514,Grape,Grape,0,200,0,20,,,,,10477567,2,,,,,{ itemheal 0,rand(10,14); },{}
 515,Carrot,Carrot,0,15,0,20,,,,,10477567,2,,,,,{ itemheal rand(18,19),0; },{}
-516,Sweet_Potato,Sweet Potato,0,15,0,20,,,,,10477567,2,,,,,{ itemheal rand(15,22),0; if(rand(100)<3) sc_start SC_Stan,10000,0; },{} //??
+516,Sweet_Potato,Sweet Potato,0,15,0,20,,,,,10477567,2,,,,,{ itemheal rand(15,22),0; },{}
 517,Meat,Meat,0,50,0,150,,,,,10477567,2,,,,,{ itemheal rand(70,99),0; },{}
 518,Honey,Honey,0,500,0,100,,,,,10477567,2,,,,,{ itemheal rand(70,99),rand(20,39); },{}
 519,Milk,Milk,0,25,0,30,,,,,10477567,2,,,,,{ itemheal rand(27,36),0; },{}
@@ -1290,7 +1290,7 @@
 4243,Antonio_Card,Antonio Card,6,20,0,10,,,,,,,16,,,,{},{ bonus4 bAutoSpellWhenHit,26,1,1,0; } //??OK
 4244,Alarm_Card,Alarm Card,6,20,0,10,,,,,,,64,,,,{},{ bonus4 bAutoSpellWhenHit,10,1,1,0; bonus bMaxHP,300; bonus bVit,1; } //??OK
 4245,Am_Mut_Card,Am Mut Card,6,20,0,10,,,,,,,64,,,,{},{ bonus2 bSubRace,7,-20; } //missing increaseexponracekill??
-4246,Assulter_Card,Assulter Card,6,20,0,10,,,,,,,2,,,,{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,7,7; },{}
+4246,Assulter_Card,Assulter Card,6,20,0,10,,,,,,,2,,,,{},{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,7,7; }
 4247,Aster_Card,Aster Card,6,20,0,10,,,,,,,2,,,,{},{ bonus bAtk,5; bonus2 bAddDamageClass,1074,30; } //OK
 4248,Ancient_Mummy_Card,Ancient Mummy Card,6,20,0,10,,,,,,,32,,,,{},{ bonus4 bAutoSpellWhenHit,32,5,1,0; }
 4249,Ancient_Worm_Card,Ancient Worm Card,6,20,0,10,,,,,,,64,,,,{},{ bonus2 bSubRace,6,-20; } //missing increaseexponracekill??

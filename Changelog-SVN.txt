@@ -1,4 +1,9 @@
 Date	Added
+
+04/22
+	* Fixed Ruwach revealing Chasewalking players [DracoRPG]
+	* Changed equipment breaking to 'on' by default [DracoRPG]
+
 04/21
 	* Fixed a typo in mobs skills checking [celest]
 

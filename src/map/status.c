@@ -4556,11 +4556,6 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			struct skill_unit *unit=
 				(struct skill_unit *)sc_data[type].val4;
 			struct block_list *src;
-			/*if(!unit || !unit->group)
-				break;
-			src=map_id2bl(unit->group->src_id);
-			if(!src)
-				break;*/
 			nullpo_retb(unit);
 			nullpo_retb(unit->group);
 			nullpo_retb(src=map_id2bl(unit->group->src_id));
@@ -4651,10 +4646,6 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_TENSIONRELAX:	/* テンションリラックス */
 		if(sd){		/* SPがあって、HPが?タンでなければ?? */
 			if( sd->status.sp > 12 && sd->status.max_hp > sd->status.hp ){
-/*				if(sc_data[type].val2 % (sc_data[type].val1+3) ==0 ){
-					sd->status.sp -= 12;
-					clif_updatestatus(sd,SP_SP);
-				}						*/
 				sc_data[type].timer=add_timer(	/* タイマ?再設定 */
 					10000+tick, status_change_timer,
 					bl->id, data);
@@ -5073,10 +5064,9 @@ int status_change_timer_sub(struct block_list *bl, va_list ap )
 				sc_data[SC_CLOAKING].timer != -1)) {
 				status_change_end( bl, SC_HIDING, -1);
 				status_change_end( bl, SC_CLOAKING, -1);
+				if(battle_check_target( src, bl, BCT_ENEMY ) > 0)
+					skill_attack(BF_MAGIC,src,src,bl,AL_RUWACH,1,tick,0);
 			}
-			sc_data = status_get_sc_data(src); // now we need to check the caster's SC ! [DracoRPG]
-			if(sc_data && battle_check_target( src,bl, BCT_ENEMY ) > 0)
-				skill_attack(BF_MAGIC,src,src,bl,AL_RUWACH,sc_data[type].val1,tick,0);
 		}
 		break;
 	}

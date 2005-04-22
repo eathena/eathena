@@ -8,7 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them i believe.
 
-04/21
+04/22
+	* Removed the Stun effect ????? on Sweet Potato, fixed Assulter Card script not in correct field [DracoRPG]
 	* Minor cards sets fixes [DracoRPG]
 	  - Reverted some wrong Codemaster's if(callfunc("Is_xx_Class"))) => if(callfunc("Is_xx_Class"))==0) changes
 	  - Fixed Thief cards set checking for Merchant class instead of Thief class
