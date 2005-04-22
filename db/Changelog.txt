@@ -8,6 +8,10 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them i believe.
 
+04/21
+	* Minor cards sets fixes [DracoRPG]
+	  - Reverted some wrong Codemaster's if(callfunc("Is_xx_Class"))) => if(callfunc("Is_xx_Class"))==0) changes
+	  - Fixed Thief cards set checking for Merchant class instead of Thief class
 04/20
 	* Added Thief cards set and fixed other ones, now they should all work [DracoRPG]
 	* Added Intravision item bonus [DracoRPG]
