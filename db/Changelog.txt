@@ -9,6 +9,7 @@
 	Skill databases == celest working on them i believe.
 
 04/22
+	* Added 4 items of THQ -> item_avail.txt [Lupus]
 	* Removed the Stun effect ????? on Sweet Potato, fixed Assulter Card script not in correct field [DracoRPG]
 	* Minor cards sets fixes [DracoRPG]
 	  - Reverted some wrong Codemaster's if(callfunc("Is_xx_Class"))) => if(callfunc("Is_xx_Class"))==0) changes
