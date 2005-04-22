@@ -23,7 +23,6 @@ struct item_data {
 	int look;
 	int elv;
 	int wlv;
-	int refine;
 	char *use_script;	// ‰ñ•œ‚Æ‚©‚à‘S•”‚±‚Ì’†‚Å‚â‚ë‚¤‚©‚È‚Æ
 	char *equip_script;	// UŒ‚,–hŒä‚Ì‘®«Ý’è‚à‚±‚Ì’†‚Å‰Â”\‚©‚È?
 	struct {
@@ -42,6 +41,10 @@ struct random_item_data {
 	int per;
 };
 
+struct item_group {
+	int id[30];	// 120 bytes
+};
+
 struct item_data* itemdb_searchname(const char *name);
 struct item_data* itemdb_search(int nameid);
 struct item_data* itemdb_exists(int nameid);
@@ -58,8 +61,10 @@ struct item_data* itemdb_exists(int nameid);
 #define itemdb_slot(n) itemdb_search(n)->slot
 #define	itemdb_available(n) (itemdb_exists(n) && itemdb_search(n)->flag.available)
 #define	itemdb_viewid(n) (itemdb_search(n)->view_id)
+int itemdb_group(int nameid);
 
 int itemdb_searchrandomid(int flags);
+int itemdb_searchrandomgroup(int groupid);
 
 #define itemdb_value_buy(n) itemdb_search(n)->value_buy
 #define itemdb_value_sell(n) itemdb_search(n)->value_sell

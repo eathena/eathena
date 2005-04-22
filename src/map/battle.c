@@ -436,21 +436,34 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		else damage = 0;
 	}
 
-	if(map[bl->m].flag.gvg && damage > 0) { //GvG
-		if(bl->type == BL_MOB){	//defenseがあればダメージが減るらしい？
-			struct guild_castle *gc=guild_mapname2gc(map[bl->m].name);
-			if (gc) damage -= damage*(gc->defense/100)*(battle_config.castle_defense_rate/100);
+	if (damage > 0) { // damage reductions
+		if (map[bl->m].flag.gvg) { //GvG
+			if (bl->type == BL_MOB){	//defenseがあればダメージが減るらしい？
+				struct guild_castle *gc = guild_mapname2gc(map[bl->m].name);
+				if (gc) damage -= damage * (gc->defense / 100) * (battle_config.castle_defense_rate/100);
+			}
+			if (flag & BF_WEAPON) {
+				if (flag & BF_SHORT)
+					damage = damage * battle_config.gvg_short_damage_rate/100;
+				if (flag & BF_LONG)
+					damage = damage * battle_config.gvg_long_damage_rate/100;
+			}
+			if (flag&BF_MAGIC)
+				damage = damage * battle_config.gvg_magic_damage_rate/100;
+			if (flag&BF_MISC)
+				damage = damage * battle_config.gvg_misc_damage_rate/100;
+		} else if (battle_config.pk_mode && bl->type == BL_PC) {
+			if (flag & BF_WEAPON) {
+				if (flag & BF_SHORT)
+					damage = damage * 80/100;
+				if (flag & BF_LONG)
+					damage = damage * 70/100;
+			}
+			if (flag & BF_MAGIC)
+				damage = damage * 60/100;
+			if(flag & BF_MISC)
+				damage = damage * 60/100;
 		}
-		if(flag&BF_WEAPON) {
-			if(flag&BF_SHORT)
-				damage=damage*battle_config.gvg_short_damage_rate/100;
-			if(flag&BF_LONG)
-				damage=damage*battle_config.gvg_long_damage_rate/100;
-		}
-		if(flag&BF_MAGIC)
-			damage = damage*battle_config.gvg_magic_damage_rate/100;
-		if(flag&BF_MISC)
-			damage=damage*battle_config.gvg_misc_damage_rate/100;
 		if(damage < 1) damage  = 1;
 	}
 

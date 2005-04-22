@@ -1,6 +1,18 @@
 Date	Added
-
 04/22
+	* Added base code for PK/Karma system (not completed) [celest]
+	  - Added equipment drop based on alignment (not enabled yet)
+	  - Added alignment shift after PK (not enabled yet)
+	  - Added 5 minute silenced status PK penalty
+	* Added @packetmode (for debug only) [celest]
+	* Added clif_gm_silence to clif.c and rearranged ReqNoChat abit [celest]
+	* Added damage reduction in PK mode [celest]
+	* Added /memo cannot be used when dead [celest]
+	* Added bonus2 support for bAddMonsterDropItem [celest]
+	* Added db/item_group_db.txt [celest]
+	* Added bAddMonsterDropItemGroup [celest]
+	  ~ check doc/item_bonus.txt
+	* Fixed bCriticalAddRace giving too little increments [celest]
 	* Fixed Ruwach revealing Chasewalking players [DracoRPG]
 	* Changed equipment breaking to 'on' by default [DracoRPG]
 

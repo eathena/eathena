@@ -112,10 +112,10 @@ bonus2 bAddDefClass,n,x;		In monster of class n the damage reduction of x% (only
 bonus2 bAddMDefClass,n,x;		In monster of class n in case of the magical damage reduction and prayer of x% in n occupation the magical damage reduction of x%
 bonus2 bHPDrainRate,n,x;		it obtained to the enemy -- ? ME ? JI -- n % probability -- x % -- HP -- absorption (+ n and x are carried out)
 bonus2 bSPDrainRate,n,x;		it obtained to the enemy -- ? ME ? JI -- n % probability -- x % -- SP -- absorption (+ n and x are carried out)
+bonus2 bAddMonsterDropItem,n,x;		When killing any monsters with physical attack, the probability which drops item n +x% (the item which the monster drops unrelated ones)
 
-
-bonus3 bAddMonsterDropItem,n,x;	When killing the monster with physical attack, the probability which drops item n +x% (the item which the monster drops unrelated ones)
-							0=Formless, 1=Undead, 2=Brute, 3=Plant, 4=Insect, 5=Fish, 6=Demon, 7=Demi-Human, 8=Angel, 9=Dragon, 10=Boss monster, 11=Other than (normal monster) boss monster
+bonus3 bAddMonsterDropItem,n,x,y;		When killing monsters from race x with physical attack, the probability which drops item n +y% (the item which the monster drops unrelated ones)
+						0=Formless, 1=Undead, 2=Brute, 3=Plant, 4=Insect, 5=Fish, 6=Demon, 7=Demi-Human, 8=Angel, 9=Dragon, 10=Boss monster, 11=Other than (normal monster) boss monster
 bonus3 bAutoSpell,n,x,y;		Auto Spell casting of spell n at level x with y% chance
 
 // bAddDamageClass, bAddMagicDamageClass and bAddMonsterDropItem it is setting possible up to 10. Those which exceed 10 are ignored.
@@ -173,7 +173,7 @@ bonus4 bAutoSpellWhenHit,x,y,n,i;	n% chance to cast skill x of level y when
 //---- 2/22 new card effects ----
 
 bonus2 bAddItemHealRate,n,x;		Increases HP recovered by n type items by x%
-                                        n: 1=potions, 2=herbs, 3=fruits, 4=meat, 5=candy, 6=juices, 7=sashimi
+                                        (Check db/item_group_db.txt)
 
 //---- 3/15 new card effects ----
 
@@ -184,3 +184,10 @@ bonus2 bSPGainRace,n,x;			When killing a monster of type x by physical
                                         attack gain n amount of sp
 bonus2 bSPSubRace2,n,x;			Damage x% reduction from enemies of race n
                                         (Check db/mob_race2_db.txt)
+
+bonus2 bAddMonsterDropItemGroup,n,x;	x% chance to get an item of type n when you kill a
+                                        monster (Check db/item_group_db.txt)
+
+bonus3 bAddMonsterDropItemGroup,n,x,y;	y% chance to get an item of type n when you kill a
+					monster of race x (Check db/item_group_db.txt)
+					0=Formless, 1=Undead, 2=Brute, 3=Plant, 4=Insect, 5=Fish, 6=Demon, 7=Demi-Human, 8=Angel, 9=Dragon, 10=Boss monster, 11=Other than (normal monster) boss monster

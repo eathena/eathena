@@ -305,6 +305,8 @@ struct map_session_data {
 	int expaddrace[12];
 	int subrace2[12];
 	short sp_gain_race[12];
+	short monster_drop_itemgroup[10];
+	//--- end effects
 
 	short spiritball, spiritball_old;
 	int spirit_timer[MAX_SKILL_LEVEL];
@@ -665,7 +667,7 @@ enum {
 	SP_SUBSIZE, SP_DAMAGE_WHEN_UNEQUIP, SP_ADD_ITEM_HEAL_RATE, SP_LOSESP_WHEN_UNEQUIP, SP_EXP_ADDRACE,	// 2026-2030
 	SP_SP_GAIN_RACE, SP_SUBRACE2, SP_ADDEFF_WHENHIT_SHORT,	// 2031-2033
 	SP_UNSTRIPABLE_WEAPON,SP_UNSTRIPABLE_ARMOR,SP_UNSTRIPABLE_HELM,SP_UNSTRIPABLE_SHIELD,  // 2034-2037
-	SP_INTRAVISION // 2038
+	SP_INTRAVISION, SP_ADD_MONSTER_DROP_ITEMGROUP // 2038
 };
 
 enum {

@@ -2614,31 +2614,32 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		party_exp_share(pt[i].p,md->bl.m,pt[i].base_exp,pt[i].job_exp,pt[i].zeny);
 
 	// item drop
-	if(!(type&1)) {
+	if (!(type&1)) {
 		int log_item[10] = {0}; //8 -> 10 Lupus
-		int drop_ore = -1,drop_items=0; //slot N for DROP LOG, number of dropped items
-		for(i=0;i<10;i++){ // 8 -> 10 Lupus
+		int drop_ore = -1, drop_items = 0; //slot N for DROP LOG, number of dropped items
+		for (i = 0; i < 10; i++) { // 8 -> 10 Lupus
 			struct delay_item_drop *ditem;
 			int drop_rate;
 
-			if((master && status_get_mode(master)&0x20) ||	// check if its master is a boss (MVP's and minibosses)
+			if ((master && status_get_mode(master) & 0x20) ||	// check if its master is a boss (MVP's and minibosses)
 				(md->state.special_mob_ai >= 1 && battle_config.alchemist_summon_reward != 1))	// Added [Valaris]
 				break;	// End
-
-			if(mob_db[md->class_].dropitem[i].nameid <= 0)
+			if (mob_db[md->class_].dropitem[i].nameid <= 0)
 				continue;
 			drop_rate = mob_db[md->class_].dropitem[i].p;
-			if(drop_rate <= 0 && !battle_config.drop_rate0item)
+			if (drop_rate <= 0 && !battle_config.drop_rate0item)
 				drop_rate = 1;
-			if(battle_config.drops_by_luk>0 && sd && md) drop_rate+=(sd->status.luk*battle_config.drops_by_luk)/100;	// drops affected by luk [Valaris]
-			if(sd && md && battle_config.pk_mode==1 && (mob_db[md->class_].lv - sd->status.base_level >= 20)) drop_rate = (int) (drop_rate*1.25); // pk_mode increase drops if 20 level difference [Valaris]
-			if(drop_rate < rand() % 10000 + 1) { //fixed 0.01% impossible drops bug [Lupus]
+			if (sd && battle_config.drops_by_luk > 0)
+				drop_rate += (sd->status.luk * battle_config.drops_by_luk) / 100;	// drops affected by luk [Valaris]
+			if (sd && battle_config.pk_mode == 1 && (mob_db[md->class_].lv - sd->status.base_level >= 20))
+				drop_rate = (int)(drop_rate*1.25); // pk_mode increase drops if 20 level difference [Valaris]
+			if (drop_rate < rand() % 10000 + 1) { //fixed 0.01% impossible drops bug [Lupus]
 				drop_ore = i; //we remember an empty slot to put there ORE DISCOVERY drop later.
 				continue;
 			}
 			drop_items++; //we count if there were any drops
 
-			ditem=(struct delay_item_drop *)aCalloc(1,sizeof(struct delay_item_drop));
+			ditem = (struct delay_item_drop *)aCalloc(1,sizeof(struct delay_item_drop));
 			ditem->nameid = mob_db[md->class_].dropitem[i].nameid;
 			log_item[i] = ditem->nameid;
 			ditem->amount = 1;
@@ -2648,7 +2649,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			ditem->first_sd = mvp_sd;
 			ditem->second_sd = second_sd;
 			ditem->third_sd = third_sd;
-			add_timer(tick+500+i,mob_delay_item_drop,(int)ditem,0);
+			add_timer(tick+500+i, mob_delay_item_drop, (int)ditem, 0);
 		}
 
 		// Ore Discovery [Celest]
@@ -2674,18 +2675,22 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			log_drop(sd, md->class_, log_item); //mvp_sd
 
 		if(sd && sd->state.attack_type == BF_WEAPON) {
-			for(i=0;i<sd->monster_drop_item_count;i++) {
+			int itemid = 0;
+			for (i = 0; i < sd->monster_drop_item_count; i++) {
 				struct delay_item_drop *ditem;
-				if(sd->monster_drop_itemid[i] <= 0)
+				if (sd->monster_drop_itemid[i] < 0)
 					continue;
-				if(sd->monster_drop_race[i] & (1<<race) ||
+				if (sd->monster_drop_race[i] & (1<<race) ||
 					(mob_db[md->class_].mode & 0x20 && sd->monster_drop_race[i] & 1<<10) ||
-					(!(mob_db[md->class_].mode & 0x20) && sd->monster_drop_race[i] & 1<<11) ) {
-					if(sd->monster_drop_itemrate[i] <= rand()%10000)
+					(!(mob_db[md->class_].mode & 0x20) && sd->monster_drop_race[i] & 1<<11) )
+				{
+					if (sd->monster_drop_itemrate[i] <= rand()%10000)
 						continue;
+					itemid = (sd->monster_drop_itemid[i] > 0) ? sd->monster_drop_itemid[i] :
+						itemdb_searchrandomgroup(sd->monster_drop_itemgroup[i]);
 
 					ditem=(struct delay_item_drop *)aCalloc(1,sizeof(struct delay_item_drop));
-					ditem->nameid = sd->monster_drop_itemid[i];
+					ditem->nameid = itemid;
 					ditem->amount = 1;
 					ditem->m = md->bl.m;
 					ditem->x = md->bl.x;

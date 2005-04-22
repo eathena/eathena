@@ -556,13 +556,15 @@ int pc_isequip(struct map_session_data *sd,int n)
 //			 as it allows all advanced classes to equip items their normal versions
 //			 could equip)
 //
-	if(((sd->status.class_==13 || sd->status.class_==4014) && ((1<<7)&item->class_) == 0) || // have mounted classes use unmounted equipment [Valaris]
-  	  ((sd->status.class_==21 || sd->status.class_==4022) && ((1<<14)&item->class_) == 0))
+	if (((sd->status.class_ == 13 || sd->status.class_ == 4014) && ((1<<7)&item->class_) == 0) || // have mounted classes use unmounted equipment [Valaris]
+		((sd->status.class_ == 21 || sd->status.class_ == 4022) && ((1<<14)&item->class_) == 0))
 		return 0;
-	if(sd->status.class_!=13 && sd->status.class_!=4014 && sd->status.class_!=21 && sd->status.class_!=4022)
-	if((sd->status.class_<=4000 && ((1<<sd->status.class_)&item->class_) == 0) || (sd->status.class_>4000 && sd->status.class_<4023 && ((1<<(sd->status.class_-4001))&item->class_) == 0) ||
-		(sd->status.class_>=4023 && ((1<<(sd->status.class_-4023))&item->class_) == 0))
-		return 0;
+	if (sd->status.class_ != 13 && sd->status.class_ != 4014 && sd->status.class_ != 21 && sd->status.class_ != 4022)
+		if((sd->status.class_ <= 4000 && ((1<<sd->status.class_)&item->class_) == 0) ||
+			(sd->status.class_ > 4000 && sd->status.class_ < 4023 && ((1<<(sd->status.class_-4001))&item->class_) == 0) ||
+			(sd->status.class_ >= 4023 && ((1<<(sd->status.class_-4023))&item->class_) == 0))
+			return 0;
+
 //	if(((1<<sd->status.class_)&item->class_) == 0)
 //		return 0;
 	if(map[sd->bl.m].flag.pvp && (item->flag.no_equip&1)) //optimized by Lupus
@@ -1871,7 +1873,7 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		break;
 	case SP_CRITICAL_ADDRACE:
 		if(sd->state.lr_flag != 2)
-			sd->critaddrace[type2]+=val;
+			sd->critaddrace[type2] += val*10;
 		break;
 	case SP_ADDEFF_WHENHIT:
 		if(sd->state.lr_flag != 2) {
@@ -1943,6 +1945,46 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 	case SP_SP_GAIN_RACE:
 		if(sd->state.lr_flag != 2)
 			sd->sp_gain_race[type2]+=val;
+		break;
+	case SP_ADD_MONSTER_DROP_ITEM:
+		if (sd->state.lr_flag != 2) {
+			for(i = 0; i < sd->monster_drop_item_count; i++) {
+				if(sd->monster_drop_itemid[i] == type2) {
+					sd->monster_drop_race[i] |= (1<<10)|(1<<11);
+					if(sd->monster_drop_itemrate[i] < val)
+						sd->monster_drop_itemrate[i] = val;
+					break;
+				}
+			}
+			if(i >= sd->monster_drop_item_count && sd->monster_drop_item_count < 10) {
+				sd->monster_drop_itemid[sd->monster_drop_item_count] = type2;
+				// all monsters, including boss and non boss monsters
+				sd->monster_drop_race[sd->monster_drop_item_count] |= (1<<10)|(1<<11);
+				sd->monster_drop_itemrate[sd->monster_drop_item_count] = val;
+				sd->monster_drop_item_count++;
+			}
+		}
+		break;
+	case SP_ADD_MONSTER_DROP_ITEMGROUP:
+		if (sd->state.lr_flag != 2) {
+			for(i = 0; i < sd->monster_drop_item_count; i++) {
+				if(sd->monster_drop_itemgroup[i] == type2) {
+					sd->monster_drop_itemid[i] = 0;
+					sd->monster_drop_race[i] |= (1<<10)|(1<<11);
+					if(sd->monster_drop_itemrate[i] < val)
+						sd->monster_drop_itemrate[i] = val;
+					break;
+				}
+			}
+			if(i >= sd->monster_drop_item_count && sd->monster_drop_item_count < 10) {
+				sd->monster_drop_itemgroup[sd->monster_drop_item_count] = type2;
+				sd->monster_drop_itemid[sd->monster_drop_item_count] = 0;
+				// all monsters, including boss and non boss monsters
+				sd->monster_drop_race[sd->monster_drop_item_count] |= (1<<10)|(1<<11);
+				sd->monster_drop_itemrate[sd->monster_drop_item_count] = val;
+				sd->monster_drop_item_count++;
+			}
+		}
 		break;
 
 	default:
@@ -2018,6 +2060,29 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 			sd->sp_drain_value_ += type3;
 		}
 		sd->sp_drain_type = val;
+		break;
+	case SP_ADD_MONSTER_DROP_ITEMGROUP:
+		if (sd->state.lr_flag != 2) {
+			for(i = 0; i < sd->monster_drop_item_count; i++) {
+				if(sd->monster_drop_itemgroup[i] == type2) {
+					sd->monster_drop_itemid[i] = 0;
+					sd->monster_drop_race[i] |= 1<<type3;
+					if(sd->monster_drop_itemrate[i] < val)
+						sd->monster_drop_itemrate[i] = val;
+					break;
+				}
+			}
+			if(i >= sd->monster_drop_item_count && sd->monster_drop_item_count < 10) {
+				sd->monster_drop_itemgroup[sd->monster_drop_item_count] = type2;
+				sd->monster_drop_itemid[sd->monster_drop_item_count] = 0;
+				// all monsters, including boss and non boss monsters
+				sd->monster_drop_race[sd->monster_drop_item_count] |= 1<<type3;
+				sd->monster_drop_itemrate[sd->monster_drop_item_count] = val;
+				sd->monster_drop_item_count++;
+			}
+		}
+		break;
+
 	default:
 		if(battle_config.error_log)
 			printf("pc_bonus3: unknown type %d %d %d %d!\n",type,type2,type3,val);
@@ -4719,14 +4784,6 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 	pc_stop_walking(sd,0);
 	skill_castcancel(&sd->bl,0);	// 詠唱の中止
 	clif_clearchar_area(&sd->bl,1);
-	pc_setdead(sd);
-	skill_unit_move(&sd->bl,gettick(),0);
-	if(sd->sc_data[SC_BLADESTOP].timer!=-1)//白刃は事前に解除
-		status_change_end(&sd->bl,SC_BLADESTOP,-1);
-	pc_setglobalreg(sd,"PC_DIE_COUNTER",++sd->die_counter); //死にカウンタ?書き?み
-	status_change_clear(&sd->bl,0);	// ステ?タス異常を解除する
-	clif_updatestatus(sd,SP_HP);
-	status_calc_pc(sd,0);
 
 	if (src && src->type == BL_PC) {
 		struct map_session_data *ssd = (struct map_session_data *)src;
@@ -4747,6 +4804,29 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 					ShowStatus(tmp_output);
 				}
 			}
+			if (battle_config.pk_mode && ssd->status.manner >= 0) {
+				ssd->status.manner -= 5;
+				if(ssd->status.manner < 0)
+					status_change_start(src,SC_NOCHAT,0,0,0,0,0,0);
+
+			// PK/Karma system code (not enabled yet) [celest]
+			// originally from Kade Online, so i don't know if any of these is correct ^^;
+			// note: karma is measured REVERSE, so more karma = more 'evil' / less honourable,
+			// karma going down = more 'good' / more honourable.
+			// The Karma System way...
+				/*if (sd->status.karma > ssd->status.karma) {	// If player killed was more evil
+					sd->status.karma--;
+					ssd->status.karma--;
+				}
+				else if (sd->status.karma < ssd->status.karma)	// If player killed was more good
+					ssd->status.karma++;*/
+
+			// or the PK System way...
+				/* if (sd->status.karma > 0)	// player killed is dishonourable?
+					ssd->status.karma--; // honour points earned
+				sd->status.karma++;	// honour points lost */
+				// To-do: Receive exp on certain occasions
+			}
 		}
 	}
 
@@ -4764,6 +4844,30 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 			ShowStatus(tmp_output);
 		}
 	}
+
+// PK/Karma system code (not enabled yet) [celest]
+	/*if(sd->status.karma < 0) {
+		int eq_num=0,eq_n[MAX_INVENTORY];
+		memset(eq_n,0,sizeof(eq_n));
+		for(i=0;i<MAX_INVENTORY;i++){
+			int k;
+			for(k=0;k<MAX_INVENTORY;k++){
+				if(eq_n[k] <= 0){
+					eq_n[k]=i;
+					break;
+				}
+			}
+			eq_num++;
+		}
+		if(eq_num > 0){
+			int n = eq_n[rand()%eq_num];
+			if(rand()%10000 < sd->status.karma && pc_checkskill(sd,BS_HILTBINDING) < 1){
+				if(sd->status.inventory[n].equip)
+					pc_unequipitem(sd,n,0);
+				pc_dropitem(sd,n,1);
+			}
+		}
+	}*/
 
 	if(battle_config.bone_drop==2
 		|| (battle_config.bone_drop==1 && map[sd->bl.m].flag.pvp)){	// ドクロドロップ
@@ -4790,6 +4894,15 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 			status_change_end(&map_id2sd(sd->dev.val1[i])->bl,SC_DEVOTION,-1);
 			sd->dev.val1[i] = sd->dev.val2[i]=0;
 		}
+
+	pc_setdead(sd);
+	skill_unit_move(&sd->bl,gettick(),0);
+	if(sd->sc_data[SC_BLADESTOP].timer!=-1)//白刃は事前に解除
+		status_change_end(&sd->bl,SC_BLADESTOP,-1);
+	pc_setglobalreg(sd,"PC_DIE_COUNTER",++sd->die_counter); //死にカウンタ?書き?み
+	status_change_clear(&sd->bl,0);	// ステ?タス異常を解除する
+	clif_updatestatus(sd,SP_HP);
+	status_calc_pc(sd,0);
 
 	if(battle_config.death_penalty_type>0) { // changed penalty options, added death by player if pk_mode [Valaris]
 		if(sd->status.class_ != 0 && !map[sd->bl.m].flag.nopenalty && !map[sd->bl.m].flag.gvg &&	// only novices will recieve no penalty
@@ -5230,7 +5343,7 @@ int pc_heal(struct map_session_data *sd,int hp,int sp)
  */
 int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 {
-	int bonus, type = 0;
+	int bonus, type;
 //	if(battle_config.battle_log)
 //		printf("heal %d %d\n",hp,sp);
 
@@ -5254,25 +5367,10 @@ int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 			sp = 0;
 	}
 
-	if (sd->itemid >= 501 && sd->itemid <= 505)
-		type = 1;	// potions
-	else if (sd->itemid >= 507 && sd->itemid <= 510)
-		type = 2;	// herbs
-	else if (sd->itemid >= 512 && sd->itemid <= 516)
-		type = 3;	// fruits
-	else if (sd->itemid == 517 || sd->itemid == 528)
-		type = 4;	// meat
-	else if (sd->itemid == 529 || sd->itemid == 530)
-		type = 5;	// candy
-	else if (sd->itemid >= 531 && sd->itemid <= 534)
-		type = 6;	// juice
-	else if (sd->itemid == 544 || sd->itemid == 551)
-		type = 7;	// sashimi
-
 	if(hp > 0) {
 		bonus = (sd->paramc[2]<<1) + 100 + pc_checkskill(sd,SM_RECOVERY)*10
 			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5;
-		if (type > 0)
+		if ((type = itemdb_group(sd->itemid)) > 0 && type <= 7)
 			bonus += sd->itemhealrate[type - 1];
 		if(bonus != 100)
 			hp = hp * bonus / 100;
