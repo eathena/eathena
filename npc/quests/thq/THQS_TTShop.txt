@@ -30,11 +30,11 @@ prt_in.gat,164,174,1	script	Treasure Hunter's Shop	65,{
 	menu "How does this place work?",-,"What do you have in stock?",N_Shop,"Nevermind",N_NVM;
 	mes "[Ash]";
 	mes "Well you see here you can exchange your treasure hunter tokens for zeny or rare weapons forged by our blacksmith's.";
-	mes "";
+	mes " ";
 	mes "Everything has its own price value and the only way you can get the tokens is by completing quests assigned to you,the system normally works like this.";
-	mes "";
+	mes " ";
 	mes "The harder the mission the more Tokens you will earn. All red quests are worth 4-8 Tokens, and the rest are worth 1-5.";
-	mes "";
+	mes " ";
 	mes "Hope that solves your problem and questions.";
 	close;
 N_NVM:
@@ -44,7 +44,7 @@ N_Shop:
 //This is when it gets hard :)
 	mes "[Ash]";
 	mes "Ok here is our Big list of goods.";
-	mes "";
+	mes " ";
 	mes "(Note T stands for a Treasure Token.)";
 	next;
 	menu "Trade for Zeny",-,"Trade for Weapons",N_BuyWeps,"Trade for Cards",N_BuyCards,"Nevermind",N_NVM;

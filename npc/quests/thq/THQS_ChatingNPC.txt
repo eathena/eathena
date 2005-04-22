@@ -24,11 +24,11 @@
 //Entrance Flags
 yuno.gat,48,101,6	script	Notice	722,{
 	mes "^FF0000[ Treasure Hunter Guild House ]^000000";
-	mes "";
+	mes " ";
 	mes "Welcome to the Treasure Hunter's Guild House.";
 	mes "Feel free to drop in and look around";
 	mes "and feel free to become a memeber if you wish.";
-	mes "";
+	mes " ";
 	mes "For membership applications please talk to Keegan";
 	mes "up the stairs and down the hall.";
 	close;
@@ -58,7 +58,7 @@ yuno_in01.gat,33,162,3	script	Smile Helper	92,{
 	mes "[Smile Gal]";
 	mes "Oh man...I am so sick of";
 	mes "trading Mr. Smile masks for crap.";
-	mes "";
+	mes " ";
 	mes "You ask me for one and you'll find yourself 10 pounds lighter!";
 	close;
 }
@@ -94,7 +94,7 @@ N_Member:
 	if (@TEMP == 1) goto N_Chat;
 	mes "Ahh welcome fellow Treasure Hunter "+strcharinfo(0)+".";
 	mes "Did you hear about that goat man running around in the trees?";
-	mes "";
+	mes " ";
 	mes "Aperently his name is Baphomet and he has been runing around the Forest Maze out side of prontera for quite some time now.";
 	close;
 N_Chat:

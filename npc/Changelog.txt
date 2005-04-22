@@ -37,6 +37,8 @@ Date		Added
 ======
 
 04/21
+	* Fixed THQ penalty again, added anti-cheat stuff [Lupus]
+	* changed item_avail.txt to support THQ [Lupus]
 	* Added Baby Class Support to Vallhallana. [Lupus]
 	* Added a missing check. Now Baby Classes can get 1st job [Lupus]
 	* Fixed few things in THQ Quest NPCs [Lupus]
