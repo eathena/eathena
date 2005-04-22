@@ -7216,6 +7216,24 @@ int clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd,int ty
 	return 0;
 }
 
+int clif_GM_silence(struct map_session_data *sd, struct map_session_data *tsd, int type)
+{
+	int fd;
+	
+	nullpo_retr(0, sd);
+	nullpo_retr(0, tsd);
+
+	fd = tsd->fd;
+	if (fd <= 0)
+		return 0;
+	WFIFOW(fd,0) = 0x14b;
+	WFIFOB(fd,2) = 0;
+	memcpy(WFIFOP(fd,3), sd->status.name, 24);
+	WFIFOSET(fd, packet_len_table[0x14b]);
+
+	return 0;
+}
+
 /*==========================================
  *
  *------------------------------------------
@@ -9321,7 +9339,10 @@ void clif_parse_UseSkillMap(int fd,struct map_session_data *sd)
  */
 void clif_parse_RequestMemo(int fd,struct map_session_data *sd)
 {
-	pc_memo(sd,-1);
+	nullpo_retv(sd);
+
+	if (!pc_isdead(sd))
+		pc_memo(sd,-1);
 }
 /*==========================================
  * ƒAƒCƒeƒ€‡¬
@@ -10149,12 +10170,9 @@ void clif_parse_GMHide(int fd, struct map_session_data *sd) {	// Modified by [Yo
  */
 void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 {
-	int tid = RFIFOL(fd,2);
-	int type = RFIFOB(fd,6);
-	int limit = RFIFOW(fd,7);
-	struct block_list *bl = map_id2bl(tid);
+	int type, limit, level;
+	struct block_list *bl;
 	struct map_session_data *dstsd;
-	int dstfd;
 
 	nullpo_retv(sd);
 
@@ -10163,24 +10181,26 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 		return;
 	}
 
-	if(type == 0)
+	bl = map_id2bl(RFIFOL(fd,2));
+	if (!bl || bl->type != BL_PC)
+		return;
+	nullpo_retv(dstsd =(struct map_session_data *)bl);
+
+	type = RFIFOB(fd,6);
+	limit = RFIFOW(fd,7);
+	if (type == 0)
 		limit = 0 - limit;
-	if(bl->type == BL_PC && (dstsd =(struct map_session_data *)bl)){
-		if((tid == bl->id && type == 2 && !pc_isGM(sd)) || (pc_isGM(sd) > pc_isGM(dstsd)) ){
-			dstfd = dstsd->fd;
-			WFIFOW(dstfd,0)=0x14b;
-			WFIFOB(dstfd,2)=(type==2)?1:type;
-			memcpy(WFIFOP(dstfd,3),sd->status.name,24);
-			WFIFOSET(dstfd,packet_len_table[0x14b]);
-			dstsd->status.manner -= limit;
-			if(dstsd->status.manner < 0)
-				status_change_start(bl,SC_NOCHAT,0,0,0,0,0,0);
-			else{
-				dstsd->status.manner = 0;
-				status_change_end(bl,SC_NOCHAT,-1);
-			}
-		printf("name:%s type:%d limit:%d manner:%d\n",dstsd->status.name,type,limit,dstsd->status.manner);
+	
+	if (dstsd && (((level = pc_isGM(sd)) > pc_isGM(dstsd)) || (type == 2 && !level))) {
+		clif_GM_silence(sd, dstsd, ((type == 2) ? 1 : type));
+		dstsd->status.manner -= limit;
+		if(dstsd->status.manner < 0)
+			status_change_start(bl,SC_NOCHAT,0,0,0,0,0,0);
+		else{
+			dstsd->status.manner = 0;
+			status_change_end(bl,SC_NOCHAT,-1);
 		}
+		printf("name:%s type:%d limit:%d manner:%d\n", dstsd->status.name, type, limit, dstsd->status.manner);
 	}
 
 	return;

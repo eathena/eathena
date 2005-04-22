@@ -301,6 +301,7 @@ int clif_message(struct block_list *bl, char* msg); // messages (from mobs/npcs)
 
 int clif_GM_kickack(struct map_session_data *sd,int id);
 int clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd,int type);
+int clif_GM_silence(struct map_session_data *sd,struct map_session_data *tsd,int type);
 int clif_timedout(struct map_session_data *sd);
 
 int clif_foreachclient(int (*)(struct map_session_data*,va_list),...);

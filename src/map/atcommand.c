@@ -347,6 +347,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Memo,				"@memo",			40, atcommand_memo },
 	{ AtCommand_GAT,				"@gat",				99, atcommand_gat }, // debug function
 	{ AtCommand_Packet,				"@packet",			99, atcommand_packet }, // debug function
+	{ AtCommand_Packet,				"@packetmode",		99, atcommand_packet }, // debug function
 	{ AtCommand_StatusPoint,		"@stpoint",			60, atcommand_statuspoint },
 	{ AtCommand_SkillPoint,			"@skpoint",			60, atcommand_skillpoint },
 	{ AtCommand_Zeny,				"@zeny",			60, atcommand_zeny },
@@ -3750,6 +3751,12 @@ int atcommand_packet(
 	int i, x = 0, y = 0;
 	nullpo_retr(-1, sd);
 
+	if (strstr(command, "packetmode")) {
+		packet_mode = atoi(message);
+		clif_displaymessage(fd, "Packet mode changed.");
+		return 0;
+	}
+	
 	if (!message || !*message || (i = sscanf(message, "%d %d", &x, &y)) < 1) {
 		clif_displaymessage(fd, "Please, enter a status type/flag (usage: @packet <status type> <flag>).");
 		return -1;
@@ -8261,6 +8268,7 @@ int atcommand_mute(
 	}
 
 	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
+		clif_GM_silence(sd, pl_sd, 0);
 		pl_sd->status.manner -= manner;
 		if(pl_sd->status.manner < 0)
 			status_change_start(&pl_sd->bl,SC_NOCHAT,0,0,0,0,0,0);
