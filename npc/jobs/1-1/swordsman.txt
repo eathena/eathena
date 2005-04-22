@@ -13,6 +13,8 @@
 //= the one in your warp script or scripts.  It is this warp: "izlude_in.gat",40,170.
 //= v1.1 Added instant job change for High Novice [Lupus]
 //= 1.3 Added Baby Class support [Lupus]
+//= 1.4 Changed the timing system to initnpctimer, now you do get warnings about time
+//=     and are limited to 7min to complete the quest [Fredzilla]
 //============================================================ 
 
 
@@ -183,7 +185,7 @@ L_Done:
 	next;
 	if(SkillPoint > 0) goto L_Skillpt;
 	mes "[Master Swordsman]";
-	mes "Congratulations! Now you are now fully qualified to become a Real Swordsman! I will transform you right away!!";
+	mes "Congratulations! Now you are now fully qualified to become a Real Swordsman! I will transform you right away!!";	
 	next;
 	callfunc "Job_Change",Job_Swordman;
 	callfunc "F_ClearJobVar";		// clears all job variables for the current player
@@ -260,7 +262,7 @@ izlude_in.gat,30,175,4	script	Test Guide	92,{
 	mes "You need to make through an obsticale course within ^FF00007 minutes^000000 in order to pass.";
 	next;
 	mes "[Test Guide]";
-	mes "The obsticale course is made up of 3 parts and is littered with booby-traps so becarefull!";
+	mes "The obsticale course is made up of 3 parts and is littered with booby-traps so be carefull!";
 	mes "Some traps will reduce your HP while others will warp you to an random underground cave causing you to start over.";
 	next;
 	mes "[Test Guide]";
@@ -291,19 +293,9 @@ izlude_in.gat,30,163,8	script	Test Hall Staff	105,{
 	M_yes:
 		set SWTEST, SWTEST + 1;
 		savepoint "izlude_in.gat",39,170;
+		stopnpctimer;
+		initnpctimer "TimerSwrdmn";
 		warp "sword_1-1.gat",10,245;
-		deltimer "Test Hall Staff::OnTimer7min";
-		deltimer "Test Hall Staff::OnTimer4min";
-		deltimer "Test Hall Staff::OnTimer2min";
-		deltimer "Test Hall Staff::OnTimer1min";
-		deltimer "Test Hall Staff::OnTimer30sec";
-		deltimer "Test Hall Staff::OnTimer0min";
-		addtimer 2000, "Test Hall Staff::OnTimer7min";
-		addtimer 182000, "Test Hall Staff::OnTimer4min";
-		addtimer 302000, "Test Hall Staff::OnTimer2min";
-		addtimer 362000, "Test Hall Staff::OnTimer1min";
-		addtimer 392000, "Test Hall Staff::OnTimer30sec";
-		addtimer 422000, "Test Hall Staff::OnTimer0min";
 		end;
 
 	M_no:
@@ -324,29 +316,30 @@ L_Option3:
 	next;
 	goto M_yes;
 	end;
-
-L_Timer:
-	OnTimer7min:
-		areaannounce "sword_1-1.gat", 8, 162, 191, 251, "[Test Hall Staff]: Your 7 minutes starts now!",0;
+}
+sword_1-1.gat,1,1,0	script	TimerSwrdmn	-1,{
+	OnTimer4000:
+		areaannounce "sword_1-1.gat", 0, 0, 400, 400, "[Test Hall Staff]: Your 7 minutes starts now!",0;
 		end;
-	OnTimer4min:
-		areaannounce "sword_1-1.gat", 8, 162, 191, 251, "[Test Hall Staff]: You have 4 minutes left!",0;
+	OnTimer184000:
+		areaannounce "sword_1-1.gat", 0, 0, 400, 400, "[Test Hall Staff]: You have 4 minutes left!",0;
 		end;
-	OnTimer2min:
-		areaannounce "sword_1-1.gat", 8, 162, 191, 251, "[Test Hall Staff]: You have 2 minutes left!",0;
+	OnTimer304000:
+		areaannounce "sword_1-1.gat", 0, 0, 400, 400, "[Test Hall Staff]: You have 2 minutes left!",0;
 		end;
-	OnTimer1min:
-		areaannounce "sword_1-1.gat", 8, 162, 191, 251, "[Test Hall Staff]: You have 1minute left",0;
+	OnTimer364000:
+		areaannounce "sword_1-1.gat", 0, 0, 400, 400, "[Test Hall Staff]: You have 1 minutes left!",0;
 		end;
-	OnTimer30sec:
-		areaannounce "sword_1-1.gat", 8, 162, 191, 251, "[Test Hall Staff]: You have 30 seconds left, hurry!",0;
+	OnTimer394000:
+		areaannounce "sword_1-1.gat", 0, 0, 400, 400, "[Test Hall Staff]: You have 30 seconds left, hurry!",0;
 		end;
-	OnTimer0min:
-		areaannounce "sword_1-1.gat", 8, 162, 191, 251, "[Test Hall Staff]: Your times up!  You failed the test.",0;
-		addtimer 4000, "Test Hall Staff::OnTimerWarp";
+	OnTimer424000:
+		areaannounce "sword_1-1.gat", 0, 0, 400, 400, "[Test Hall Staff]: Your times up!  You failed the test.",0;
 		end;
-	OnTimerWarp:
+	OnTimer428000:
+		stopnpctimer "TimerSwrdmn";
 		warp "izlude_in.gat",39,170;
+		end;
 }
 
 
@@ -405,6 +398,7 @@ sword_1-1.gat,223,167,2	script	Mae	92,{
 	mes "I've already sent your test results to the 'Master Swordsman'.";
 	mes "Please inquire with him about your results. Thank you.";
 	next;
+	stopnpctimer "TimerSwrdmn";
 	percentheal 100, 100;
 	set job_sword_q,2;
 	set SWTEST,0;
