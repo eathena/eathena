@@ -3,14 +3,14 @@
 //===== Converted By ======================================
 //= Fredzilla
 //= Original
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                    Treasure Hunter Quests                                          //
-//                                                         By: Ezekial                                                //
-//                                                for the use on nRO run by Newbe5                                    //
-//                                                      revised By Warlock                                            //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+//                 Treasure Hunter Quests                //
+//                      By: Ezekial                      //
+//                 for the use on nRO run by Newbe5      //
+//                   revised By Warlock                  //
+///////////////////////////////////////////////////////////
 //===== Version ===========================================
-//= 1.0 - Straight conversionof Aegis NPC file
+//= 1.1
 //===== Compatible With ===================================
 //= eAthena 1.0
 //===== Description =======================================
@@ -18,6 +18,8 @@
 //===== Comments ==========================================
 //= Event_THQS - Used to check if you have already registerd
 //= #Treasure_Token - used to keep track of tokens
+//= 1.0 - Straight conversionof Aegis NPC file
+//= 1.1 some bugfixes, typos [Lupus]
 //////////////////////////////////////////////////////////
 
 
@@ -95,6 +97,7 @@ N_QuestComp:
 	mes "[Old Lady]";
 	mes "You have them?!";
 	next;
+	mes "[Old Lady]";
 	mes "Thank you sooo much here have these 3 Treasure Tokens.";
 	set #Treasure_Token,#Treasure_Token+3;
 	delitem 934,15;
@@ -107,6 +110,7 @@ N_QuestStart:
 	mes "";
 	mes "Ok well this is what I wanted you to do,this greave beside me is my husbands grave and I promised him that I would bury some Mementos with him, The problem is that I have no Mementos...";
 	next;
+	mes "[Old Lady]";
 	mes "Bring me 15 Mementos, please.";
 	close;
 }
@@ -138,6 +142,7 @@ N_QuestComp:
 	set two_qset,0;
 	set #Treasure_Token,#Treasure_Token+1;
 	set On_Quest,0;
+	close;
 N_QuestStart:
 	mes "[Erika]";
 	mes "So your the one that has a letter for me?";
@@ -214,8 +219,9 @@ N_QuestComp:
 N_QuestStart:
 	mes "[Molly]";
 	mes "Wow you must be the brave man from the treasure hunter guild!";
-	mes "ok here is whats happening, I don't know what started it but there is a strange Ronan Skeleton running aroung the woods 2 East from here.";
+	mes "Ok here is whats happening, I don't know what started it but there is a strange Ronan Skeleton running aroung the woods 2 East from here.";
 	next;
+	mes "[Molly]";
 	mes "We have try to kill him in the past but it was not...ummm...It was a bad idea. What I want you to do is go there and bring me back his Skull as proof of you killing him.";
 	mes "";
 	mes "Good Luck";
@@ -247,6 +253,7 @@ N_QuestStart:
 	mes "";
 	mes "Ok well this is my problem, yah see that hole in the ground? Yah that thing just popped out of nowhere a couple years ago, inside its full of these ugly ants and these monsters called Giearths.";
 	next;
+	mes "[Clark]";
 	mes "What I want you to do is kill some of the Giearths.Bring me 30 of there little Moustaches.";
 	close;
 }
@@ -261,6 +268,7 @@ N_QuestComp:
 	mes "[Flank]";
 	mes "Perfect right on time, now I must be going to plant this bomb.... Err I meen give this package to my mother for her birthday.";
 	next;
+	mes "[Flank]";
 	mes "Thanks";
 	mes "Have this Treasure Token";
 	set three_qset,0;
@@ -353,8 +361,9 @@ N_QuestStart:
 	mes "";
 	mes "Well this is what I need you to do, bring me 50 Decayed Nails - awile back Payon Cave used to be a safe place to go...But now things have gone out of controll and Zombies have invaded the first floor...";
 	mes "";
-	mes "There is also these new monsters that have just poped out of no were,we call them Flaming Bastards...Be carfull if you arn't powerfull yet because they are very strong.";
+	mes "There is also these new monsters that have just poped out of no were, we call them Flaming Bastards...Be carfull if you arn't powerfull yet because they are very strong.";
 	next;
+	mes "[Flora]";
 	mes "Good Luck";
 	mes "Remember I need 50 Nail's";
 	monster "pay_dun00.gat",0,0,"Flaming Bastard",1072,1,"kaho";
@@ -374,6 +383,7 @@ N_QuestComp:
 	mes "You know how much my time is worth!!!!";
 	mes "Your slow and I'm never gona recomend a job for you, Gimmie my staff and get out of me face!";
 	next;
+	mes "[Zed]";
 	mes "Well you can take this crapy Treausre Token.";
 	set On_Quest,0;
 	set four_qset,0;
@@ -394,10 +404,9 @@ prontera.gat,176,204,6	script	Dassy	95,{
 	close;
 N_QuestComp:
 	mes "[Dassy]";
-	mes "Yes!now my pet will not starve!";
-	mes "thank you some much!";
-	mes "have this Treasure Tokens";
-	next;
+	mes "Yes! Now my pet will not starve!";
+	mes "Thank you so much!";
+	mes "Have this Treasure Token.";
 	set On_Quest,0;
 	set four_qset,0;
 	delitem 711,20;
@@ -424,8 +433,9 @@ N_QuestComp:
 	mes "[Czhore]";
 	mes "Thank god!";
 	mes "";
-	mes "Im so happy to see one of these Emperiums! Thank you "+strcharinfo(0)+".";
+	mes "I'm so happy to see one of these Emperiums! Thank you "+strcharinfo(0)+".";
 	next;
+	mes "[Czhore]";
 	mes "Here have these 2 Treasure Tokens.";
 	mes "And some of my old treasure...";
 	monster "prt_gld.gat",155,99,"Old Man's Treasure",1324,1,"treasure";
@@ -440,7 +450,7 @@ N_QuestStart:
 	mes "I know this may sound stupid but ever since I was a boy I have dreamed of having an Emperium...";
 	mes "As I know I look old, I have just never been able to find one, now that I am retired from the Treasure Hunter Guild there is no more action for me...";
 	mes "";
-	mes "if you can get me one I shall reward you.";
+	mes "If you can get me one I shall reward you.";
 	close;
 }
 ///////Job list 5///////
@@ -454,7 +464,7 @@ prt_maze01.gat,18,184,6	script	Lithin	752,{
 	close;
 N_QuestComp:
 	mes "[Lithin]";
-	mes "Oh thank you so much,but they will be back...";
+	mes "Oh thank you so much, but they will be back...";
 	next;
 	mes "Take these 2 Treasure Tokens";
 	set five_qset,0;
@@ -465,7 +475,7 @@ N_QuestComp:
 N_QuestStart:
 	mes "[Lithin]";
 	mes "Well hello.";
-	mes "Welcome to the Forest Maze,I have a task for you.";
+	mes "Welcome to the Forest Maze, I have a task for you.";
 	mes "";
 	mes "Ever heard of a moster called a Savage? It looks like a boar but it makes very annoying noices.";
 	mes "What I want you to do is bring me 15 Manes from the savages.";
@@ -512,6 +522,7 @@ N_QuestComp:
 	mes " ";
 	mes "You can keep them is you want.";
 	next;
+	mes "[Blonde Girl]";
 	mes "Here take this Treasure Token as a reward.";
 	set five_qset,0;
 	set On_Quest,0;
@@ -533,6 +544,7 @@ N_QuestComp:
 	mes "[Wizard]";
 	mes "Thank you for helping me, I presume the worse.";
 	next;
+	mes "[Wizard]";
 	mes "Here take these 4 Treasure Tokens.";
 	set five_qset,0;
 	set On_Quest,0;
@@ -560,6 +572,7 @@ N_QuestComp:
 	mes "[Theif]";
 	mes "Thank you for this delivery.";
 	next;
+	mes "[Theif]";
 	mes "Here take this Treasure Token as a reward.";
 	set six_qset,0;
 	delitem 1083,1;
@@ -582,18 +595,17 @@ function	script	six_qset2	{
 	mes "Bring back for me their wrappings you must.";
 	mes "It is 30 Rotten bandages I desire.";
 	close;
-	end;
 N_QuestComp2:
 	mes "[Strange]";
 	mes "Much thanks for you that I have.";
 	next;
+	mes "[Strange]";
 	mes "Take with you these 3 tokens.";
 	set #Treasure_Token,#Treasure_Token+3;
 	delitem 930,30;
 	set On_Quest,0;
 	set six_qset,0;
 	close;
-	end;
 }
 //6-3;
 xmas.gat,144,136,6	script	Chirach	48,{
@@ -606,6 +618,7 @@ N_QuestComp:
 	mes "[Chirach]";
 	mes "Thank you for this delivery.";
 	next;
+	mes "[Chirach]";
 	mes "Here take this Treasure Token as a reward.";
 	set six_qset,0;
 	delitem 1083,1;
@@ -661,6 +674,7 @@ N_QuestComp:
 	mes "[Girl]";
 	mes "Thank you so much!";
 	next;
+	mes "[Girl]";
 	mes "Have these 1 Treasure Tokens.";
 	set seven_qset,0;
 	set On_Quest,0;
@@ -686,6 +700,7 @@ N_QuestComp:
 	mes "[Klye]";
 	mes "Thank you for this delivery.";
 	next;
+	mes "[Klye]";
 	mes "Here take this Treasure Token as a reward.";
 	set seven_qset,0;
 	delitem 1082,1;
@@ -705,30 +720,30 @@ function	script	seven_qset-3	{
 	mes "";
 	mes "Bring me 1 Gold Bar from him.";
 	close;
-	end;
 N_QuestComp2:
 	mes "[Sewer Managment]";
 	mes "Thank you for helping me.";
 	next;
+	mes "[Sewer Managment]";
 	mes "Here take these 4 Treasure Tokens.";
 	set seven_qset,0;
 	set On_Quest,0;
 	delitem 969,1;
 	set #Treasure_Token,#Treasure_Token+4;
 	close;
-	end;
 }
 //7-4;
 alb2trea.gat,94,102,6	script	Scarlet	725,{
 	if (seven_qset == 4 && countitem(1127) > 0) goto N_QuestComp;
 	if (seven_qset == 4) goto N_QuestStart;
 	mes "[Scarlet]";
-	mes "Sorry,Busy.";
+	mes "Sorry, busy.";
 	close;
 N_QuestComp:
 	mes "[Scarlet]";
 	mes "Thank you for helping me, I presume the worse.";
 	next;
+	mes "[Scarlet]";
 	mes "Here take these 4 Treasure Tokens.";
 	set seven_qset,0;
 	set On_Quest,0;
@@ -747,21 +762,20 @@ N_QuestStart:
 function	script	eight_qset1	{
 	if (eight_qset == 1 && countitem(532) > 4) goto N_QuestComp2;
 	mes "[Girl]";
-	mes "Hi mister person, Can you get me some Banana juice?";
+	mes "Hi mister person. Can you get me some Banana juice?";
 	mes "I want 5 of them.";
 	close;
-	end;
 N_QuestComp2:
 	mes "[Girl]";
 	mes "thank you so much!";
 	next;
+	mes "[Girl]";
 	mes "Have these 1 Treasure Tokens.";
 	set eight_qset,0;
 	set On_Quest,0;
 	delitem 532,5;
 	set #Treasure_Token,#Treasure_Token+1;
 	close;
-	end;
 }
 //8-2;
 morocc.gat,165,55,6	script	Klye	48,{
@@ -774,6 +788,7 @@ N_QuestComp:
 	mes "[Klye]";
 	mes "Thank you for this delivery.";
 	next;
+	mes "[Klye]";
 	mes "Here take this Treasure Token as a reward.";
 	set eight_qset,0;
 	delitem 1081,1;
@@ -795,8 +810,9 @@ prt_maze02.gat,103,86,6	script	Zack	751,{
 	close;
 N_QuestComp:
 	mes "[Zack]";
-	mes "Thank you for helping me,I presume the worse.";
+	mes "Thank you for helping me, I presume the worse.";
 	next;
+	mes "[Zack]";
 	mes "Here take these 5 Treasure Tokens.";
 	set eight_qset,0;
 	set On_Quest,0;
@@ -822,6 +838,7 @@ N_QuestComp:
 	mes "[Flower]";
 	mes "Thank you for helping me, I presume the worse.";
 	next;
+	mes "[Flower]";
 	mes "Here take these 2 Treasure Tokens.";
 	set eight_qset,0;
 	set On_Quest,0;
@@ -847,6 +864,7 @@ N_QuestComp:
 	mes "[Mage]";
 	mes "Thank you for this delivery. Sorry about the smell, Its a box of Toad Tounges";
 	next;
+	mes "[Mage]";
 	mes "Here take this Treasure Token as a reward.";
 	set nine_qset,0;
 	delitem 1082,1;
@@ -869,6 +887,7 @@ N_QuestComp:
 	mes "[School Girl]";
 	mes "Thank you for helping me.";
 	next;
+	mes "[School Girl]";
 	mes "Here take these 4 Treasure Tokens.";
 	set nine_qset,0;
 	set On_Quest,0;
@@ -879,6 +898,7 @@ N_QuestStart:
 	mes "[School Girl]";
 	mes "Help, Well what we know about Payon is that a while ago there was a freak fire that burnt down the old school.";
 	next;
+	mes "[School Girl]";
 	mes "The strange thing about what happened was that the children inside did not seem to die from the flames. They have taken over the entire 3rd floor of Payon Cave.";
 	mes "";
 	mes "Bring me 20 Black Hair!";
@@ -896,6 +916,7 @@ N_QuestComp:
 	mes "[Jack]";
 	mes "Thank you for helping me.";
 	next;
+	mes "[Jack]";
 	mes "Here take these 4 Treasure Tokens.";
 	set nine_qset,0;
 	set On_Quest,0;
@@ -920,6 +941,7 @@ N_QuestComp2:
 	mes "[Jack]";
 	mes "Thank you for helping me.";
 	next;
+	mes "[Jack]";
 	mes "Here take these 3 Treasure Tokens.";
 	set nine_qset,0;
 	set On_Quest,0;
@@ -939,6 +961,7 @@ N_QuestComp:
 	mes "[Kreg]";
 	mes "Thank you for this delivery.";
 	next;
+	mes "[Kreg]";
 	mes "Here take this Treasure Token as a reward.";
 	set ten_qset,0;
 	delitem 1082,1;
@@ -961,6 +984,7 @@ N_QuestComp:
 	mes "[Man]";
 	mes "Thank you for helping me.";
 	next;
+	mes "[Man]";
 	mes "Here take these 4 Treasure Tokens.";
 	set ten_qset,0;
 	set On_Quest,0;
@@ -985,6 +1009,7 @@ N_QuestComp:
 	mes "[Caral]";
 	mes "Thank you for helping me.";
 	next;
+	mes "[Caral]";
 	mes "Here take these 4 Treasure Tokens.";
 	set ten_qset,0;
 	set On_Quest,0;
@@ -1003,12 +1028,13 @@ moc_fild15.gat,250,251,6	script	Jeni	727,{
 	if (ten_qset == 4 && countitem(1096) > 0) goto N_QuestComp;
 	if (ten_qset == 4) goto N_QuestStart;
 	mes "[Jeni]";
-	mes "Sorry I'm waiting for someone,you will have to come back later";
+	mes "Sorry I'm waiting for someone, You will have to come back later";
 	close;
 N_QuestComp:
 	mes "[Jeni]";
 	mes "Thank you for helping me.";
 	next;
+	mes "[Jeni]";
 	mes "Here take these 3 Treasure Tokens.";
 	set ten_qset,0;
 	set On_Quest,0;

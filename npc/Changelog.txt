@@ -36,6 +36,10 @@ TODO:
 Date		Added
 ======
 
+04/21
+	* Added Baby Class Support to Vallhallana. [Lupus]
+	* Added a missing check. Now Baby Classes can get 1st job [Lupus]
+	* Fixed few things in THQ Quest NPCs [Lupus]
 04/20
 	* Converted Treasure Hunters Guild (40 New Quests + Guild Shop) [Fredzilla]
 	* Added time penalty to THQ. To prevent exploits. [Lupus]

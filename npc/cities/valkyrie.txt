@@ -4,7 +4,7 @@
 //= Nana, fixes by Poki
 //= finished, optimized and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -15,6 +15,7 @@
 //= process only when you got no Zeny/items (as in kRO) [Lupus]
 //= 1.2 now alternative classes can use their 1-1 job NPC
 //= to become Advanced 1st Class [Lupus]
+//= 1.2 added Baby Class support [Lupus]
 //============================================================ 
 
 
@@ -25,8 +26,10 @@ valkyrie.gat,48,66,0	warp	valk01	1,1,valkyrie.gat,48,75,0
 // -== Book of Ymir (Heavens Door) ==-
 yuno_in02.gat,93,207,0	script	Book of Ymir	111,{
 	mes "[Book of Ymir]";
+	if(Upper==2) goto L_BABY;
 	if(valkyrie_Q == 1) goto L_FADED;
 	if(valkyrie_Q == 2) goto L_START;
+L_BABY:
 	mes ". . . . .";
 	close;
 
@@ -68,7 +71,7 @@ L_START:
 yuno_in02.gat,91,176,5	script	Librarian	754,{
 	mes "[Librarian]";
 	if(valkyrie_Q>0) goto L_DONE;
-	if(BaseJob >= 7) goto L_PAY;
+	if(BaseJob >= 7 && Upper==0) goto L_PAY;
 	mes "Have a look around, but dont touch the book. Only a few chosen one can read its wise words.";
 	close;
 
@@ -150,7 +153,8 @@ yuno_in02.gat,90,77,4	script	Researcher	744,{
 // -== Valhallana ==-
 valkyrie.gat,48,86,6	script	Valkyrie	811,{
 	if(BaseJob == 23) goto L_SN;
-	if(BaseJob >= 24) goto L_ALREADY;
+	if(Upper == 2 ) goto L_BABY;
+	if(Upper > 0 ) goto L_ALREADY;
 	if(BaseLevel >= 99 && JobLevel >= 50 && BaseJob >= 7) goto L_CHANGE;
 	if(BaseJob < 7) goto L_NOTHING;
 
@@ -159,6 +163,15 @@ valkyrie.gat,48,86,6	script	Valkyrie	811,{
 	mes "Also you must get rid of all of your money and items.";
 	next;
 	goto L_NOTHING;
+
+L_BABY:
+	mes "[Valhallana]";
+	mes "[Вальхалана]";
+	mes "A Baby?! How did you her here?";
+	mes "I'm passing you back to your parents.";
+	emotion 1;
+	next;
+	goto L_Y;
 
 L_SN:
 	mes "[Valhallana]";
@@ -311,6 +324,7 @@ L_Gef:
 //getarg(8) - current NPC's name
 
 function	script	F_ToHigh	{
+	if(Upper == 2) return; //Baby Class - skip it
 	set @fjob,ADVJOB; //alternative classes should pass, too
 	if(@fjob == Job_Rogue + 4001 ) set @fjob,Job_Assassin+4001;
 	if(@fjob == Job_Alchem + 4001 ) set @fjob,Job_Blacksmith+4001;
@@ -408,6 +422,7 @@ L_ALREADY:
 //getarg(3) - 3rd Job Name
 function	script	F_Rebirth	{
 	mes "["+getarg(3)+"]";
+	if(Upper == 2) goto L_BABY; //Baby Class - skip it
 	if(Class >= 4008) goto L_ALREADY; //already advanced class
 	if(Class == (3977+getarg(0)) && ADVJOB == (3977+getarg(2))) goto L_GET3RD; //Hight XXXX -> 3rd Job
 	mes "Go talk to either Valhallana or my collegues...";
@@ -457,4 +472,11 @@ L_ALREADY:
 	mes "Well, hello there! You have been reborn once, there is no second chance.";
 	emotion 2;
 	close;
+
+L_BABY:
+	mes "What a lively baby!";
+	mes "How did you get here? Go to aunt Valhallana and ask her to take your home.";
+	emotion 41;
+	close;
+
 }
