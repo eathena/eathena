@@ -42,8 +42,8 @@ int should_log_item(int filter, int nameid) {
 		(filter&32 && item_data->type == 5 ) ||	//armor
 		(filter&64 && item_data->type == 6 ) ||	//cards
 		(filter&128 && (item_data->type == 7 || item_data->type == 8) ) ||	//eggs+pet access
-		(filter&256 && item_data->value_buy >= log_config.price_items_log ) ||
-		(filter&512 && item_data->refine >= log_config.refine_items_log )
+		(filter&256 && item_data->value_buy >= log_config.price_items_log )
+		//|| (filter&512 && item_data->refine >= log_config.refine_items_log )
 	) return item_data->nameid;
 
 	return 0;

@@ -1541,12 +1541,13 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			//?に?んでいるスキルがあれば該?スキルを消す
 			if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag==13){
 				tsd->status.skill[tsd->cloneskill_id].id=0;
+				tsd->status.skill[tsd->cloneskill_id].lv=0;
 				tsd->status.skill[tsd->cloneskill_id].flag=0;
 			}
 			tsd->cloneskill_id = skillid;
 			tsd->status.skill[skillid].id = skillid;
-			tsd->status.skill[skillid].lv = skill_get_max(skillid);
-			if ((lv = pc_checkskill(tsd,RG_PLAGIARISM)) < tsd->status.skill[skillid].lv)
+			tsd->status.skill[skillid].lv = skilllv;
+			if ((lv = pc_checkskill(tsd,RG_PLAGIARISM)) < skilllv)
 				tsd->status.skill[skillid].lv = lv;
 			tsd->status.skill[skillid].flag = 13;//cloneskill flag
 			pc_setglobalreg(tsd, "CLONE_SKILL", tsd->cloneskill_id);

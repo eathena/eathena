@@ -1,5 +1,10 @@
 Date	Added
 04/22
+	* Fixed compile error in log.c -- had to remove the 'Log refined items' option
+	  in log config [celest]
+	* Fixed plagariased skills not cleaned up properly when copying another new skill,
+	  and corrected copying skill level [celest]
+	* Added Spiral Pierce ignores defense, thanks to Komurka
 	* Added base code for PK/Karma system (not completed) [celest]
 	  - Added equipment drop based on alignment (not enabled yet)
 	  - Added alignment shift after PK (not enabled yet)
