@@ -2022,6 +2022,7 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 			sd->autospell_id = type2;
 			sd->autospell_lv = type3;
 			sd->autospell_rate = val;
+			sd->autospell_type = 1;
 		}
 		break;
 	case SP_AUTOSPELL_WHENHIT:
@@ -2095,6 +2096,14 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 int pc_bonus4(struct map_session_data *sd,int type,int type2,int type3,int type4,int val)
 {
 	switch(type){
+	case SP_AUTOSPELL:
+		if(sd->state.lr_flag != 2){
+			sd->autospell_id = type2;
+			sd->autospell_lv = type3;
+			sd->autospell_rate = type4;
+			sd->autospell_type = val;	// 0: self, 1: enemy
+		}
+		break;
 	case SP_AUTOSPELL_WHENHIT:
 		if(sd->state.lr_flag != 2){
 			sd->autospell2_id = type2;

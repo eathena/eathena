@@ -7150,9 +7150,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 
 	sc_data = sd->sc_data;
 
-	sd->skillid = skill_num;
-	sd->skilllv = skill_lv;
-
 	/* 沈?や異常（ただし、グリムなどの判定をする） */
 	if (sd->opt1 > 0)
 		return 0;
@@ -7209,8 +7206,8 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		if (sd->skillid != skill_num){ //キャストキャンセル自?は?えない
 			sd->skillid_old = sd->skillid;
 			sd->skilllv_old = sd->skilllv;
-			break;
 		}
+		break;
 
 	case BD_ENCORE:					/* アンコ?ル */
 		if (!sd->skillid_dance) { //前回使用した踊りがないとだめ
