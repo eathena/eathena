@@ -308,3 +308,4 @@ SC_Flame	90
 SC_Frost	91
 SC_Lightning	92
 SC_Seismic	93
+SC_Hallucination	34

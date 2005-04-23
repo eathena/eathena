@@ -27,8 +27,8 @@
 521,Aloe_Leaflet,Aloe Leaflet,0,360,0,20,,,,,10477567,2,,,,,{ itemheal rand(325,404),0; },{}
 522,Mastela_Fruit,Mastela Fruit,0,840,0,30,,,,,10477567,2,,,,,{ itemheal rand(400,599),0; },{}
 523,Holy_Water,Holy Water,0,20,0,30,,,,,10477567,2,,,,,{ sc_end SC_Curse; },{}
-525,Panacea,Panacea,0,500,0,100,,,,,10477567,2,,,,,{ sc_end SC_Poison; sc_end SC_Silence; sc_end SC_Blind; sc_end SC_Confusion; sc_end SC_Curse; },{}
-526,Royal_Jelly,Royal Jelly,0,7000,0,150,,,,,10477567,2,,,,,{ itemheal rand(325,404),rand(40,59); sc_end SC_Poison; sc_end SC_Silence; sc_end SC_Blind; sc_end SC_Confusion; sc_end SC_Curse; },{}
+525,Panacea,Panacea,0,500,0,100,,,,,10477567,2,,,,,{ sc_end SC_Poison; sc_end SC_Silence; sc_end SC_Blind; sc_end SC_Confusion; sc_end SC_Curse; sc_end SC_Hallucination; },{}
+526,Royal_Jelly,Royal Jelly,0,7000,0,150,,,,,10477567,2,,,,,{ itemheal rand(325,404),rand(40,59); sc_end SC_Poison; sc_end SC_Silence; sc_end SC_Blind; sc_end SC_Confusion; sc_end SC_Curse; sc_end SC_Hallucination; },{}
 528,Monster's_Feed,Monster Food,0,60,0,150,,,,,10477567,2,,,,,{ itemheal rand(72,107),0; },{}
 529,Candy,Candy,0,10,0,30,,,,,10477567,2,,,,,{ itemheal rand(45,64),0; },{}
 530,Candy_Cane,Candy Cane,0,20,0,40,,,,,10477567,2,,,,,{ itemheal rand(105,144),0; },{}
@@ -1281,7 +1281,7 @@
 4234,Anolian_Card,Anolian Card,6,20,0,10,,,,,,,16,,,,{},{ if(getskilllv(45)==10) goto IC_10; bonus4 bAutoSpellWhenHit,45,1,1,0; end; IC_10: bonus4 bAutoSpellWhenHit,45,10,1,0; } //??OK
 4235,Cookie_Xmas_Card,Cookie Xmas Card,6,20,0,10,,,,,,,64,,,,{},{ bonus2 bSubRace,8,-20; } //missing increaseexponracekill??
 4236,Amon_Ra_Card,Amon Ra Card,6,20,0,10,,,,,,,64,,,,{},{ bonus bAllStats,1; bonus4 bAutoSpellWhenHit,73,10,1+(readparam(bInt)>=99),0; } //??OK  (X>=Y) returns 0 or 1
-4237,Owl_Duke_Card,Owl Duke Card,6,20,0,10,,,,,,,136,,,,{},{ bonus3 bAutoSpell,66,3,0; if(isequipped(4238)) bonus3 bAutoSpell,20,5,1; } //??OK
+4237,Owl_Duke_Card,Owl Duke Card,6,20,0,10,,,,,,,136,,,,{},{ bonus4 bAutoSpell,66,3,1,0; if(isequipped(4238)) bonus3 bAutoSpell,20,5,1; } //??OK
 4238,Owl_Baron_Card,Owl Baron Card,6,20,0,10,,,,,,,136,,,,{},{ bonus3 bAutoSpell,78,1,1; } //??OK
 4239,Iron_Fist_Card,Iron Fist Card,6,20,0,10,,,,,,,64,,,,{},{ bonus2 bSubRace,0,-20; } //missing increaseexponracekill??
 4240,Arclouze_Card,Arclouze Card,6,20,0,10,,,,,,,32,,,,{},{ bonus bDef,2; bonus bMdef,3+2*(getrefine>=6); } //OK
@@ -1710,7 +1710,7 @@
 7223,Ruined_Self_Portrait,Ruined Self Portrait,3,2032,0,10,,,,,,,,,,,{},{}
 7224,Philosophers_Stone,Philosopher's Stone,3,20,0,10,,,,,,,,,,,{},{}
 7225,Silk_Lantern,Silk Lantern,3,486,0,10,,,,,,,,,,,{},{}
-7226,Hallucination_Pill,Hallucination Pill,3,20,0,10,,,,,,,,,,,{},{}
+7226,Hallucination_Pill,Hallucination Pill,0,20,0,10,,,,,10477567,2,,,,,{ sc_start SC_Hallucination,10000,0; },{}
 7227,TCG_Card,TCG Card,3,20,0,10,,,,,,,,,,,{},{}
 7228,Gold_Nugget,Gold Nugget,3,20,0,300,,,,,,,,,,,{},{}
 7229,Iron_Nugget,Iron Nugget,3,20,0,300,,,,,,,,,,,{},{}
