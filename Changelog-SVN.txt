@@ -1,5 +1,7 @@
 Date	Added
 04/22
+        * Fix main.sql to include the fields that are in the
+          upgrade files [MouseJstr]
 	* Added bonus4 support for bAutoSpelll [celest]
 	* Fixed Cast Cancel [celest]
 	* Fixed compile error in log.c -- had to remove the 'Log refined items' option

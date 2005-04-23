@@ -67,6 +67,10 @@ CREATE TABLE `char` (
   `save_y` int(11) NOT NULL default '111',
   `partner_id` int(11) NOT NULL default '0',
   `online` tinyint(4) NOT NULL default '0',
+  `father` int(11) NOT NULL default '0',
+  `mother` int(11) NOT NULL default '0',
+  `child` int(11) NOT NULL default '0',
+  `fame` int(11) NOT NULL default '0',
   PRIMARY KEY  (`char_id`),
   KEY `party_id` (`party_id`),
   KEY `guild_id` (`guild_id`)
