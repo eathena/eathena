@@ -5082,7 +5082,7 @@ int buildin_pvpoff(struct script_state *st)
 
 	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	m = map_mapname2mapid(str);
-	if(m >= 0 && map[m].flag.pvp && map[m].flag.nopvp) {
+	if(m >= 0 && map[m].flag.pvp && !map[m].flag.nopvp) { //fixed Lupus
 		map[m].flag.pvp = 0;
 		clif_send0199(m,0);
 
