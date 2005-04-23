@@ -1,7 +1,11 @@
 Date	Added
+04/23
+	* Added item produce pentlty to Baby Class [Lupus]
+	  Comparing with common classes, Baby Alchemist/Blacksmith have 20% less chance of successful item making.
+
 04/22
-        * Fix main.sql to include the fields that are in the
-          upgrade files [MouseJstr]
+	* Fix main.sql to include the fields that are in the
+		upgrade files [MouseJstr]
 	* Added bonus4 support for bAutoSpelll [celest]
 	* Fixed Cast Cancel [celest]
 	* Fixed compile error in log.c -- had to remove the 'Log refined items' option

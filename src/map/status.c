@@ -357,7 +357,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	nullpo_retr(0, sd);
 
-	//?¶‚â—{q‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ğZo‚·‚é
+	//Calculate Common Class and Baby/High/Common flags
 	s_class = pc_calc_base_job(sd->status.class_);
 
 	b_speed = sd->speed;
@@ -866,7 +866,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		}
 	}
 
-	//1“x‚à€‚ñ‚Å‚È‚¢Job70ƒXƒpƒmƒr‚É+10
+	// If Super Novice / Super Bany Never Died till Job70 they get bonus: AllStats +10
 	if(s_class.job == 23 && sd->die_counter == 0 && sd->status.job_level >= 70){
 		sd->paramb[0]+= 15;
 		sd->paramb[1]+= 15;

@@ -9064,8 +9064,12 @@ int skill_produce_mix( struct map_session_data *sd,
 {
 	int slot[3];
 	int i,sc,ele,idx,equip,wlv,make_per,flag;
+	struct pc_base_job s_class;
 
 	nullpo_retr(0, sd);
+
+	//Calculate Common Class and Baby/High/Common flags
+	s_class = pc_calc_base_job(sd->status.class_);
 
 	if( !(idx=skill_can_produce_mix(sd,nameid,-1)) )	/* ?件不足 */
 		return 0;
@@ -9082,11 +9086,11 @@ int skill_produce_mix( struct map_session_data *sd,
 		j = pc_search_inventory(sd,slot[i]);
 		if(j < 0)	/* 不正パケット(アイテム存在)チェック */
 			continue;
-		if(slot[i]==1000){	/* 星のかけら */
+		if(slot[i]==1000){	/* Star Crumb */
 			pc_delitem(sd,j,1,1);
 			sc++;
 		}
-		if(slot[i]>=994 && slot[i]<=997 && ele==0){	/* ?性石 */
+		if(slot[i]>=994 && slot[i]<=997 && ele==0){	/* Flame Heart . . . Great Nature */
 			static const int ele_table[4]={3,1,4,2};
 			pc_delitem(sd,j,1,1);
 			ele=ele_table[slot[i]-994];
@@ -9147,7 +9151,7 @@ int skill_produce_mix( struct map_session_data *sd,
 		} else if (skill_produce_db[idx].req_skill == ASC_CDP) {
 			make_per = 2000 + 40*sd->paramc[4] + 20*sd->paramc[5]; // Poison Bottle
 		} else {
-			if(nameid == 998)
+			if(nameid == 998) //Iron
 				make_per = 1500 + sd->status.job_level*35 + sd->paramc[4]*10 + sd->paramc[5]*10 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*600; // Iron
 			else
 				make_per = 1000 + sd->status.job_level*35 + sd->paramc[4]*10 + sd->paramc[5]*10 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*500; // Steel and Enchantedstones
@@ -9165,6 +9169,9 @@ int skill_produce_mix( struct map_session_data *sd,
 		if(battle_config.wp_rate != 100)	/* 確率補正 */
 			make_per = make_per * battle_config.wp_rate / 100;
 	}
+// - Baby Class Penalty = 80% (from adult's chance) ----//
+	if (s_class.upper==2) //if it's a Baby Class
+		make_per = (make_per * 80) / 100; //Lupus
 // -----------------------------------------------------//
 
 	if(make_per < 1) make_per = 1;
