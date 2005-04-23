@@ -146,16 +146,16 @@
 666,Gift_Box___,Gift Box,2,20,0,200,,,,,10477567,2,,,,,{ getitem -4,1; },{},
 667,Gift_Box____,Gift Box,2,20,0,200,,,,,10477567,2,,,,,{ getitem -4,1; },{},
 668,Angpow,Angpow,0,1,0,2,,,,,10477567,2,,,,,{ set Zeny,Zeny+rand(1000,10000); },{}
-669,Rice_Cake_Soup,Rice Cake Soup,2,20,0,100,,,,,,,,,,,{},{}
-670,Gold_Coin_Pouch,Gold Coin Pouch,2,20,0,400,,,,,,,,,,,{},{}
+669,Rice_Cake_Soup,Rice Cake Soup,2,20,0,100,,,,,,,,,,,{ percentheal -100, -100; },{}
+670,Gold_Coin_Pouch,Bag of Gold Coins,2,20,0,400,,,,,,,,,,,{},{}
 671,Gold_Coin,Gold Coin,2,20,0,40,,,,,10477567,2,,,,,{ set Zeny,Zeny+rand(100,1000); },{}
-672,Copper_Coin_Pouch,Copper Coin Pouch,2,20,0,400,,,,,,,,,,,{},{}
-673,Copper_Coin,Copper Coin,2,20,0,40,,,,,,,,,,,{},{}
-674,Mysterious_Ore_Coin,Mysterious Ore Coin,2,20,0,40,,,,,0,3,,,,,{},{}
+672,Bronze_Coin_Pouch,Bag of Bronze Coins,2,20,0,400,,,,,,,,,,,{},{}
+673,Bronze_Coin,Bronze Coin,2,20,0,40,,,,,,,,,,,{},{}
+674,Mithril_Coin,Mithril Coin,2,20,0,40,,,,,0,3,,,,,{},{}
 675,Silver_Coin,Silver Coin,2,20,0,40,,,,,0,3,,,,,{},{}
-676,Silver_Coin_Pouch,Silver Coin Pouch,2,20,0,400,,,,,0,3,,,,,{},{}
+676,Silver_Coin_Pouch,Bag of Silver Coins,2,20,0,400,,,,,0,3,,,,,{},{}
 677,Platinum_Coin,Platinum Coin,2,20,0,40,,,,,0,3,,,,,{},{}
-678,Deadly_Poison_Bottle,Deadly Poison Bottle,2,20,0,100,,,,,10477567,2,,,,,{ if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_SpeedPot0,30,0; end; Not_ASC: percentheal -100,0; },{}
+678,Deadly_Poison_Bottle,Poison Bottle,2,20,0,100,,,,,10477567,2,,,,,{ if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_SpeedPot0,30,0; end; Not_ASC: percentheal -100,0; },{}
 679,Recall_Pills,Golden Pill,2,20,0,300,,,,,10477567,3,,,,,{ itemheal 50,50; },{}
 680,Carnation,Magical Carnation,2,20,0,1000,,,,,10477567,3,,,,,{ itemheal 25,0; },{}
 681,Wedding_Photo_Album,Wedding Photo Album,2,20,0,10,,,,,0,3,,,,,{},{} //should call wedding effect
@@ -1186,12 +1186,7 @@
 4148,Pharaoh_Card,Pharaoh Card,6,20,0,10,,,,,,,769,,,,{},{ bonus bUseSPrate,-30; }
 
 // New Cards
-// //OK = Tested, Works fine. //??OK = looks right, but not properly tested yet
-//bonus2 bAddItemHealRate,n,x;		Increases HP recovered by n type items by x%
-//                                        n:1=potions 2=herbs 3=fruits 4=meat 5=candy 6=juice 7=sashimi
-//bonus3 bAddMonsterDropItem,n,x;		When killing a monster with physical attack, the probability which drops item n +x% (the item which the monster drops unrelated ones)
-//0=Formless, 1=Undead, 2=Brute, 3=Plant, 4=Insect, 5=Fish, 6=Demon, 7=Demi-Human, 8=Angel, 9=Dragon, 10=Boss monster, 11=Other than (normal monster) boss monster
-
+// OK = Tested, Works fine. //??OK = looks right, but not properly tested yet
 //===================================================================
 4149,Gargoyle_Card,Gargoyle Card,6,20,0,10,,,,,,,136,,,,{},{} //missing getitemonkill?? (item not implemented)
 4150,Goat_Card,Goat Card,6,20,0,10,,,,,,,16,,,,{},{ bonus bDef,2; bonus bMdef,5+5*(getrefine>=6); } //OK
@@ -1691,33 +1686,33 @@
 7204,Gun_Powder,Gun Powder,3,20,0,10,,,,,,,,,,,{},{}
 7205,Black_Piece_of_Cloth,Black Piece of Cloth,3,526,0,10,,,,,,,,,,,{},{}
 7206,Cat_Doll,Black Cat Doll,3,1440,0,10,,,,,,,,,,,{},{}
-7207,Old_Mantle,Old Mantle,3,1050,0,10,,,,,,,,,,,{},{}
-7208,Rusted_Knife,Rusted Knife,3,1780,0,10,,,,,,,,,,,{},{}
+7207,Old_Mantle,Old Manteau,3,1050,0,10,,,,,,,,,,,{},{}
+7208,Rusted_Knife,Rusty Kitchen Knife,3,1780,0,10,,,,,,,,,,,{},{}
 7209,Dullahan's_Helm,Dullahan's Helm,3,1350,0,10,,,,,,,,,,,{},{}
 7210,Piece_of_Dullahan's_Armor,Dullahan's Armor Piece,3,750,0,10,,,,,,,,,,,{},{}
-7211,Rosetta_Stone_Fragment,Rosetta Stone Fragment,3,2600,0,10,,,,,,,,,,,{},{}
-7212,Hanging_Doll,Hanging Doll,3,1020,0,10,,,,,,,,,,,{},{}
+7211,Rosetta_Stone_Fragment,Fragment of Rossata Stone,3,2600,0,10,,,,,,,,,,,{},{}
+7212,Hanging_Doll,Hung Doll,3,1020,0,10,,,,,,,,,,,{},{}
 7213,Pin_Cusion,Pin Cusion,3,832,0,10,,,,,,,,,,,{},{}
 7214,Bat_Cage,Bat Cage,3,880,0,10,,,,,,,,,,,{},{}
 7215,Broken_Needle,Broken Needle,3,690,0,10,,,,,,,,,,,{},{}
-7216,Red_Scarf,Red Scarf,3,660,0,10,,,,,,,,,,,{},{}
-7217,Spool_of_Thread,Spool of Thread,3,424,0,10,,,,,,,,,,,{},{}
-7218,Rotted_Rope,Rotted Rope,3,390,0,10,,,,,,,,,,,{},{}
+7216,Red_Muffler,Red Muffler,3,660,0,10,,,,,,,,,,,{},{}
+7217,Spool_of_Thread,Spool,3,424,0,10,,,,,,,,,,,{},{}
+7218,Decomposed_Rope,Decomposed Rope,3,390,0,10,,,,,,,,,,,{},{}
 7219,Striped_Socks,Striped Socks,3,920,0,10,,,,,,,,,,,{},{}
 7220,Ectoplasm,Ectoplasm,3,332,0,10,,,,,,,,,,,{},{}
-7221,Chains,Chains,3,740,0,10,,,,,,,,,,,{},{}
-7222,Old_Tree_Branch,Old Tree Branch,3,468,0,10,,,,,,,,,,,{},{}
-7223,Ruined_Self_Portrait,Ruined Self Portrait,3,2032,0,10,,,,,,,,,,,{},{}
+7221,Tangled_Chains,Tangled Chains,3,740,0,10,,,,,,,,,,,{},{}
+7222,Wooden_Gnarl,Wooden Gnarl,3,468,0,10,,,,,,,,,,,{},{}
+7223,Contorted_Self-Portrait,Contorted Self-Portrait,3,2032,0,10,,,,,,,,,,,{},{}
 7224,Philosophers_Stone,Philosopher's Stone,3,20,0,10,,,,,,,,,,,{},{}
-7225,Silk_Lantern,Silk Lantern,3,486,0,10,,,,,,,,,,,{},{}
-7226,Hallucination_Pill,Hallucination Pill,0,20,0,10,,,,,10477567,2,,,,,{ sc_start SC_Hallucination,10000,0; },{}
+7225,Pumpkin_Lantern,Pumpkin Lantern,3,486,0,10,,,,,,,,,,,{},{}
+7226,Hallucination_Pill,Pellet,0,20,0,10,,,,,10477567,2,,,,,{ sc_start SC_Hallucination,10000,0; },{}
 7227,TCG_Card,TCG Card,3,20,0,10,,,,,,,,,,,{},{}
-7228,Gold_Nugget,Gold Nugget,3,20,0,300,,,,,,,,,,,{},{}
-7229,Iron_Nugget,Iron Nugget,3,20,0,300,,,,,,,,,,,{},{}
-7230,Silver_Nugget,Silver Nugget,3,20,0,30,,,,,,,,,,,{},{}
+7228,Gold_Bullion,Gold Bullion,3,20,0,300,,,,,,,,,,,{},{}
+7229,Silver_Bullion,Silver Bullion,3,20,0,300,,,,,,,,,,,{},{}
+7230,Platinum_Bullion,Platinum Bullion,3,20,0,300,,,,,,,,,,,{},{}
 7231,Gold_Ore,Gold Ore,3,20,0,150,,,,,,,,,,,{},{}
 7232,Silver_Ore,Silver Ore,3,20,0,150,,,,,,,,,,,{},{}
-7233,Mysterious_Ore,Mysterious Ore,3,20,0,150,,,,,,,,,,,{},{}
+7233,Mithril_Ore,Mithril Ore,3,20,0,150,,,,,,,,,,,{},{}
 
 // RWC Reward items
 //===================================================================
