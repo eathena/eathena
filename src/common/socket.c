@@ -670,6 +670,8 @@ int do_parsepacket(void)
 			continue;
 		if(session[i]->func_parse){
 			session[i]->func_parse(i);
+			if(!session[i])
+				continue;
 		}
 		RFIFOFLUSH(i);
 	}
