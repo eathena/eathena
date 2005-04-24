@@ -1,6 +1,9 @@
 Date	Added
+04/24
+	* Pets can't attack Guardians and Emperium, WoE or not !! [DracoRPG]
+
 04/23
-	* Fixed not working PVPOFF in scrips. [Lupus]
+	* Fixed not working PVPOFF in scripts. [Lupus]
 	  Due to the bug it could work only on maps with NOPVP flag.
 	* Added item produce pentlty to Baby Class [Lupus]
 	  Comparing with common classes, Baby Alchemist/Blacksmith have 20% less chance of successful item making.

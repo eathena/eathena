@@ -180,7 +180,7 @@ static int pet_attack(struct pet_data *pd,unsigned int tick,int data)
 	md=(struct mob_data *)map_id2bl(pd->target_id);
 	if(md == NULL || md->bl.type != BL_MOB || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
 		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13 || 
-		(!agit_flag && md->class_ >= 1285 && md->class_ <= 1288)) // Cannot attack Guardians outside of WoE
+		(md->class_ >= 1285 && md->class_ <= 1288)) // Cannot attack Guardians/Emperium
 	{
 		pd->target_id=0;
 		return 0;
