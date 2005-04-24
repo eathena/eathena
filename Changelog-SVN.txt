@@ -1,6 +1,9 @@
 Date	Added
 04/24
 	* Pets can't attack Guardians and Emperium, WoE or not !! [DracoRPG]
+	* Replaced autospell_type and autospell2_type with a simpler way to save auto-
+	  casting [celest] + Fixed a typo, thanks to Landarma
+	* Fixed a typo in socket timeout messages [celest]
 
 04/23
 	* Fixed not working PVPOFF in scripts. [Lupus]

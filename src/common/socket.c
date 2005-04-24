@@ -101,7 +101,7 @@ static void setsocketopts(int fd)
 #ifdef SO_REUSEPORT
 	setsockopt(fd,SOL_SOCKET,SO_REUSEPORT,(char *)&yes,sizeof yes);
 #endif
-	set_nonblocking(fd, yes);
+	setsockopt(fd,IPPROTO_TCP,TCP_NODELAY,(char *)&yes,sizeof yes);
 
 	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char *) &wfifo_size , sizeof(rfifo_size ));
 	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char *) &rfifo_size , sizeof(rfifo_size ));
@@ -311,10 +311,6 @@ int make_listen_port(int port)
 
 	CREATE(session[fd], struct socket_data, 1);
 
-	if(session[fd]==NULL){
-		ShowFatalError("out of memory : make_listen_port\n");
-		exit(1);
-	}
 	memset(session[fd],0,sizeof(*session[fd]));
 	session[fd]->func_recv = connect_client;
 
@@ -376,13 +372,8 @@ int make_listen_bind(long ip,int port)
 
 	CREATE(session[fd], struct socket_data, 1);
 
-	if(session[fd]==NULL){
-		ShowFatalError("out of memory : make_listen_bind\n");
-		exit(1);
-	}
 	memset(session[fd],0,sizeof(*session[fd]));
 	session[fd]->func_recv = connect_client;
-
 
 	ShowStatus("Open listen port on %d.%d.%d.%d:%i\n",
 		(ip)&0xFF,(ip>>8)&0xFF,(ip>>16)&0xFF,(ip>>24)&0xFF,port);
@@ -423,12 +414,12 @@ static int null_console_parse(char *buf)
 int start_console(void) {
 	FD_SET(0,&readfds);
 
-	CREATE(session[0], struct socket_data, 1);
-	if(session[0]==NULL){
-		ShowFatalError("out of memory : start_console\n");
-		exit(1);
+	if (session[0]) {	// dummy socket already uses fd 0
+		return 0;
 	}
 
+	CREATE(session[0], struct socket_data, 1);
+	
 	memset(session[0],0,sizeof(*session[0]));
 
 	session[0]->func_recv = console_recieve;
@@ -444,8 +435,8 @@ int make_connection(long ip,int port)
 	int result;
 
 	fd = socket( AF_INET, SOCK_STREAM, 0 );
-	if(fd_max<=fd)
-		fd_max=fd+1;
+	if (fd_max <= fd)
+		fd_max = fd + 1;
 
 	setsocketopts(fd);
 
@@ -465,9 +456,13 @@ int make_connection(long ip,int port)
 	ShowStatus("Connecting to %d.%d.%d.%d:%i\n",
 		(ip)&0xFF,(ip>>8)&0xFF,(ip>>16)&0xFF,(ip>>24)&0xFF,port);
 
-	result = connect(fd, (struct sockaddr *)(&server_address),sizeof(struct sockaddr_in));
+	result = connect(fd, (struct sockaddr *)(&server_address), sizeof(struct sockaddr_in));
 
 	// cool, what do you do if connect fails (result<0)?
+	/*if (result == -1) {
+		//perror("connect");
+		return result;
+	}*/
 
 	FD_SET(fd,&readfds);
 
@@ -487,22 +482,22 @@ int make_connection(long ip,int port)
 
 int delete_session(int fd)
 {
-	if(fd<=0 || fd>=FD_SETSIZE)
+	if (fd <= 0 || fd >= FD_SETSIZE)
 		return -1;
-	FD_CLR(fd,&readfds);
+	FD_CLR(fd, &readfds);
 #ifdef TURBO
-	FD_CLR(fd,&writefds);
+	FD_CLR(fd, &writefds);
 #endif
-	if(session[fd]){
-		if(session[fd]->rdata)
+	if (session[fd]){
+		if (session[fd]->rdata)
 			aFree(session[fd]->rdata);
-		if(session[fd]->wdata)
+		if (session[fd]->wdata)
 			aFree(session[fd]->wdata);
-		if(session[fd]->session_data)
+		if (session[fd]->session_data)
 			aFree(session[fd]->session_data);
 		aFree(session[fd]);
+		session[fd] = NULL;
 	}
-	session[fd]=NULL;
 	//ShowMessage("delete_session:%d\n",fd);
 	return 0;
 }
@@ -511,8 +506,10 @@ int realloc_fifo(int fd,int rfifo_size,int wfifo_size)
 {
 	struct socket_data *s;
 
-	if (fd <= 0) return 0;
+	if (fd <= 0)
+		return 0;
 	s = session[fd];
+
 	if( s->max_rdata != rfifo_size && s->rdata_size < rfifo_size){
 		RECREATE(s->rdata, unsigned char, rfifo_size);
 		s->max_rdata  = rfifo_size;
@@ -528,17 +525,16 @@ int WFIFOSET(int fd,int len)
 {
 	struct socket_data *s;
 
-	if (fd <= 0) return 0;
-	s = session[fd];
-	if (s == NULL  || s->wdata == NULL)
+	if (fd <= 0 || (s = session[fd]) == NULL || s->wdata == NULL)
 		return 0;
-	if( s->wdata_size+len+16384 > s->max_wdata ){
+	if (s->wdata_size + len + 16384 > s->max_wdata) {
 		unsigned char *sin_addr = (unsigned char *)&s->client_addr.sin_addr;
-		realloc_fifo(fd,s->max_rdata, s->max_wdata <<1 );
-		ShowMessage("socket: %d (%d.%d.%d.%d) wdata expanded to %d bytes.\n",fd, sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3], s->max_wdata);
+		realloc_fifo(fd, s->max_rdata, s->max_wdata << 1);
+		ShowMessage("socket: %d (%d.%d.%d.%d) wdata expanded to %d bytes.\n", fd,
+			sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3], s->max_wdata);
 	}
-	s->wdata_size=(s->wdata_size+(len)+2048 < s->max_wdata) ?
-		 s->wdata_size+len : (ShowError("socket: %d wdata lost !!\n",fd),s->wdata_size);
+	s->wdata_size = (s->wdata_size + (len) + 2048 < s->max_wdata) ?
+		s->wdata_size + len : (ShowError("socket: %d wdata lost !!\n",fd), s->wdata_size);
 
 #ifdef TURBO
 	FD_SET(fd,&writefds);
@@ -566,86 +562,92 @@ int do_sendrecv(int next)
 	memcpy(&wfd, &writefds, sizeof(wfd));
 #else
 	FD_ZERO(&wfd);
-	for(i=0;i<fd_max;i++){
-		if(!session[i] && FD_ISSET(i,&readfds)){
-			ShowMessage("force clr fds %d\n",i);
-			FD_CLR(i,&readfds);
+
+	for (i = 0; i < fd_max; i++){
+		if(!session[i] && FD_ISSET(i, &readfds)){
+			ShowMessage("force clr fds %d\n", i);
+			FD_CLR(i, &readfds);
 			continue;
 		}
 		if(!session[i])
 			continue;
 		if(session[i]->wdata_size)
-			FD_SET(i,&wfd);
+			FD_SET(i, &wfd);
 	}
 #endif
+
 	timeout.tv_sec  = next/1000;
 	timeout.tv_usec = next%1000*1000;
-	ret = select(fd_max,&rfd,&wfd,NULL,&timeout);
+	ret = select(fd_max, &rfd, &wfd, NULL, &timeout);
+
 #ifndef TURBO
-	if(ret<=0)
+	if (ret <= 0)
 		return 0;
-        for(i=0;i<fd_max;i++){
+	for (i = 0; i < fd_max; i++){
 #else
 
 #ifndef __FDS_BITS
-#define __FDS_BITS(set) ((set)->fds_bits)
+	#define __FDS_BITS(set) ((set)->fds_bits)
 #endif
 
-	for(i=0;(i<fd_max) && (ret > 0);i++){
-                if ((i & (NFDBITS - 1)) == 0) {
-                        int off = i / NFDBITS;
-                        if ((__FDS_BITS(&wfd)[off] == 0) && (__FDS_BITS(&rfd)[off] == 0))
-                                i += NFDBITS;
-                }
+	for (i = 0; i < fd_max && ret > 0; i++){
+		if ((i & (NFDBITS - 1)) == 0) {
+			int off = i / NFDBITS;
+			if ((__FDS_BITS(&wfd)[off] == 0) && (__FDS_BITS(&rfd)[off] == 0))
+				i += NFDBITS;
+		}
 		for (j = 0; (j < NFDBITS) && (ret > 0); j++, i++) {
 #endif
 
 #if defined(TURBO) && defined(DEBUG)
-		  if(!session[i]) {
-		    if (FD_ISSET(i, &readfds))
-		      printf("FD_ISSET(i, &readfds) returned true with no session set\n");
-		    if (FD_ISSET(i, &writefds))
-		      printf("FD_ISSET(i, &writefds) returned true with no session set\n");
-			continue;
-		  } else {
-		    if ((i != 0) && FD_ISSET(i, &readfds) == 0)
-		      printf("FD_ISSET(%d, &readfds) returned false with session set\n", i);
-		    if (session[i]->wdata_size == 0) {
-		      if (FD_ISSET(i, &writefds))
-			printf("FD_ISSET(i, &writefds) returned true with session set and no data\n");
-		    } else {
-		      if (FD_ISSET(i, &writefds) == 0)
-			printf("FD_ISSET(i, &writefds) returned false with session set and data\n");
-		    }
-		  }
+			if(!session[i]) {
+				if (FD_ISSET(i, &readfds))
+					printf("FD_ISSET(i, &readfds) returned true with no session set\n");
+				if (FD_ISSET(i, &writefds))
+					printf("FD_ISSET(i, &writefds) returned true with no session set\n");
+				continue;
+			} else {
+				if ((i != 0) && FD_ISSET(i, &readfds) == 0)
+					printf("FD_ISSET(%d, &readfds) returned false with session set\n", i);
+				if (session[i]->wdata_size == 0) {
+					if (FD_ISSET(i, &writefds))
+						printf("FD_ISSET(i, &writefds) returned true with session set and no data\n");
+				} else {
+					if (FD_ISSET(i, &writefds) == 0)
+						printf("FD_ISSET(i, &writefds) returned false with session set and data\n");
+				}
+			}
 #else
 		if(!session[i]) 
 			continue;
 #endif
-		if(FD_ISSET(i,&wfd)){
+
+		if (FD_ISSET(i, &wfd)) {
 			//ShowMessage("write:%d\n",i);
 			if(session[i]->func_send)
 				session[i]->func_send(i);
 #ifdef TURBO
 			if ((session[i]->rdata_tick != 0) && ((tick_ - session[i]->rdata_tick) > stall_time_)) {
-			        session[i]->eof = 1;
+				session[i]->eof = 1;
 				if(session[i]->func_parse)
-				       session[i]->func_parse(i);
+					session[i]->func_parse(i);
 				continue;
 			}
-                        ret--;
+			ret--;
 #endif
 		}
+
 		if(FD_ISSET(i,&rfd)){
 			//ShowMessage("read:%d\n",i);
 			if(session[i]->func_recv)
 				session[i]->func_recv(i);
 #ifdef TURBO
 			if(session[i]->func_parse)
-			        session[i]->func_parse(i);
-                        ret--;
+				session[i]->func_parse(i);
+			ret--;
 #endif
 		}
+
 #ifdef TURBO
 		} // for (j = 0; 
 #endif
@@ -657,19 +659,17 @@ int do_sendrecv(int next)
 int do_parsepacket(void)
 {
 	int i;
-	for(i=0;i<fd_max;i++){
+	for(i = 0; i < fd_max; i++){
 		if(!session[i])
 			continue;
-		if ((session[i]->rdata_tick != 0) && ((tick_ - session[i]->rdata_tick) > stall_time_)) {
-			ShowInfo ("Session #%d timed out\n");
+		if ((session[i]->rdata_tick != 0) && DIFF_TICK(tick_, session[i]->rdata_tick) > stall_time_) {
+			ShowInfo ("Session #%d timed out\n", i);
 			session[i]->eof = 1;
 		}
-		if(session[i]->rdata_size==0 && session[i]->eof==0)
+		if(session[i]->rdata_size == 0 && session[i]->eof == 0)
 			continue;
 		if(session[i]->func_parse){
 			session[i]->func_parse(i);
-			if(!session[i])
-				continue;
 		}
 		RFIFOFLUSH(i);
 	}

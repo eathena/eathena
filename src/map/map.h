@@ -271,7 +271,7 @@ struct map_session_data {
 	int monster_drop_race[10],monster_drop_itemrate[10];
 	int double_add_rate,speed_add_rate,aspd_add_rate,perfect_hit_add, get_zeny_add_num;
 	short splash_range,splash_add_range;
-	short autospell_id,autospell_lv,autospell_rate,autospell_type;
+	short autospell_id,autospell_lv,autospell_rate;
 	short hp_drain_rate,hp_drain_per,sp_drain_rate,sp_drain_per;
 	short hp_drain_rate_,hp_drain_per_,sp_drain_rate_,sp_drain_per_;
 	short hp_drain_value,sp_drain_value,hp_drain_value_,sp_drain_value_;
@@ -285,7 +285,7 @@ struct map_session_data {
 	short no_regen;
 	int addeff3[10];
 	short addeff3_type[10];
-	short autospell2_id,autospell2_lv,autospell2_rate,autospell2_type;
+	short autospell2_id,autospell2_lv,autospell2_rate;
 	int skillatk[2];
 	unsigned short unstripable_equip;
 	short add_damage_classid2[10],add_damage_class_count2;

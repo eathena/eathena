@@ -1811,8 +1811,8 @@
 7325,Tube,Tube,3,20,0,10,0,0,0,0,0,0,0,0,0,0,{},{}
 7326,Fluorescent_Colored_Liquid,Fluorescent Liquid,3,20,0,10,0,0,0,0,0,0,0,0,0,0,{},{}
 7327,Flashlight,Flashlight,3,20,0,10,0,0,0,0,0,0,0,0,0,0,{},{}
-7328,Songkran_Legend,Songkran Legend,3,20,0,10,0,0,0,0,0,0,0,0,0,0,0,{},{}
-7329,Old_Copper_Key,Old Copper Key,3,20,0,10,0,0,0,0,0,0,0,0,0,0,0,{},{}
+7328,Songkran_Legend,Songkran Legend,3,20,0,10,0,0,0,0,0,0,0,0,0,0,{},{}
+7329,Old_Copper_Key,Old Copper Key,3,20,0,10,0,0,0,0,0,0,0,0,0,0,{},{}
 
 7500,THG_Membership,THG Membership,3,20,0,10,,,,,,,,,,,{},{}
 7501,Token_Bag,Token Bag,3,20,0,10,,,,,,,,,,,{},{}
