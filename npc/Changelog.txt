@@ -37,6 +37,7 @@ Date		Added
 ======
 
 04/23
+	* Removed old duplicate job change in Alchemist job quest, thanks to NeoSaro [DracoRPG]
 	* Added Hatii Baby spawn [Lupus]
 04/21
 	* Fixed THQ penalty again, added anti-cheat stuff [Lupus]

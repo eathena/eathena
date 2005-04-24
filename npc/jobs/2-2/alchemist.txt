@@ -1052,7 +1052,6 @@ L_Change:
 	mes "Ooh, Ok. You joined and learned the basics, too. Well done.";
 	next;
 	callfunc "Job_Change",Job_Alchem;
-	jobchange 18;
 	emotion 46;
 	mes "[Vincent Carsciallo]";
 	mes "From now on, you are also a member of the Union as an Alchemist.";
