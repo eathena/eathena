@@ -1869,7 +1869,7 @@
 10016,Golden_Bell,Golden Bell,8,20,0,0,,,,,,,,,,,{},{}
 10017,Bark_Shorts,Bark Shorts,8,20,0,0,,,,,,,,,,,{},{}
 10018,Monkey_Circlet,Monkey Circlet,8,20,0,0,,,,,,,,,,,{},{}
-10019,Red_Muffler,Red Muffler,8,20,0,0,,,,,,,,,,,{},{}
+10019,Red_Scarf,Red Scarf,8,20,0,0,,,,,,,,,,,{},{}
 10020,Sword_of_Chinese_Exorcist,Sword of Chinese Exorcist,8,20,0,0,,,,,,,,,,,{},{}
 
 // History books

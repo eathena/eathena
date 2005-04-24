@@ -6732,7 +6732,7 @@ int clif_guild_skillinfo(struct map_session_data *sd)
 				//Kafra and Guardian changed to require Approval [Sara]
 				switch (g->skill[i].id)
 				{
-					case GD_KAFRACONTACT:
+					case GD_KAFRACONTRACT:
 					case GD_GUARDIANRESEARCH:
 					case GD_GUARDUP:
 					case GD_DEVELOPMENT:

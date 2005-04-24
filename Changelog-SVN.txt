@@ -1,5 +1,10 @@
 Date	Added
 04/24
+	* Work on skills [DracoRPG]
+	  - Cleanup in skill.c, added missing guild skills and switched all names to iRO ones in skill names list
+	  - Fixed typo in a guild skill name : GD_KAFRACONTACT -> GD_KAFRACONTRACT
+	  - Entirely rewrote equipment stripping/breaking so that stripping/breaking weapon will affect BOTH weapons of
+	    a dual wielding Assassin, and that stripping/breaking shield won't affect two-handed or left-hand weapons
 	* Pets can't attack Guardians and Emperium, WoE or not !! [DracoRPG]
 	* Replaced autospell_type and autospell2_type with a simpler way to save auto-
 	  casting [celest] + Fixed a typo, thanks to Landarma

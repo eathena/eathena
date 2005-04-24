@@ -1061,10 +1061,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->nhealsp += (sd->nhealsp)*3*skill/100;
 		if(sd->nhealsp > 0x7fff) sd->nhealsp = 0x7fff;
 	}
-	/* if((skill=pc_checkskill(sd,HP_MEDITATIO)) > 0) {
-		sd->nhealsp += 3*skill*(sd->status.max_sp)/100;
-		if(sd->nhealsp > 0x7fff) sd->nhealsp = 0x7fff;
-		} Increase natural SP regen instead of colossal SP Recovery effect [DracoRPG]*/
 
 	if(sd->hprecov_rate != 100) {
 		sd->nhealhp = sd->nhealhp*sd->hprecov_rate/100;
@@ -1151,12 +1147,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		}
 		if(sd->sc_data[SC_NIBELUNGEN].timer!=-1) {	// ニ?ベルングの指輪
 			index = sd->equip_index[9];
-			/*if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->wlv == 3)
-				sd->watk += sd->sc_data[SC_NIBELUNGEN].val3;
-			index = sd->equip_index[8];
-			if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->wlv == 3)
-				sd->watk_ += sd->sc_data[SC_NIBELUNGEN].val3;
-			index = sd->equip_index[9];*/
 			if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->wlv == 4)
 				sd->watk2 += sd->sc_data[SC_NIBELUNGEN].val3;
 			index = sd->equip_index[8];

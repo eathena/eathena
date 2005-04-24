@@ -9,6 +9,7 @@
 	Skill databases == celest working on them i believe.
 
 04/23
+	* Fixed Red Scarf name, thanks to Sasuke [DracoRPG]
 	* Removed some extra 0's in the item_db, thanks to Zoc
 	* Added monsters skills to all Niflheim / Louyang monsters,
 	  changed Garm slaves to Garm Bebe. Thanx to MasterOfMuppets

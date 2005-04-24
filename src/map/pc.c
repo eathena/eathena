@@ -541,7 +541,6 @@ int pc_isequip(struct map_session_data *sd,int n)
 
 	item = sd->inventory_data[n];
 	sc_data = status_get_sc_data(&sd->bl);
-	//s_class = pc_calc_base_job(sd->status.class_);
 
 	if( battle_config.gm_allequip>0 && pc_isGM(sd)>=battle_config.gm_allequip )
 		return 1;
@@ -565,15 +564,13 @@ int pc_isequip(struct map_session_data *sd,int n)
 			(sd->status.class_ >= 4023 && ((1<<(sd->status.class_-4023))&item->class_) == 0))
 			return 0;
 
-//	if(((1<<sd->status.class_)&item->class_) == 0)
-//		return 0;
 	if(map[sd->bl.m].flag.pvp && (item->flag.no_equip&1)) //optimized by Lupus
 		return 0;
 	if(map[sd->bl.m].flag.gvg && (item->flag.no_equip>1)) //optimized by Lupus
 		return 0;
-	if(item->equip & 0x0002 && sc_data && sc_data[SC_STRIPWEAPON].timer != -1)
+	if((item->equip & 0x0002 || item->equip & 0x0020) && itemdb_type(item->nameid) == 4 && sc_data && sc_data[SC_STRIPWEAPON].timer != -1) // Also works with left-hand weapons [DracoRPG]
 		return 0;
-	if(item->equip & 0x0020 && sc_data && sc_data[SC_STRIPSHIELD].timer != -1)
+	if(item->equip & 0x0020 && itemdb_type(item->nameid) == 5 && sc_data && sc_data[SC_STRIPSHIELD].timer != -1) // Also works with left-hand weapons [DracoRPG]
 		return 0;
 	if(item->equip & 0x0010 && sc_data && sc_data[SC_STRIPARMOR].timer != -1)
 		return 0;
@@ -615,15 +612,17 @@ int pc_break_equip(struct map_session_data *sd, unsigned short where)
 		return 0;
 
 	for (i=0;i<MAX_INVENTORY;i++) {
-		if (sd->status.inventory[i].equip & where &&
-			sd->status.inventory[i].attribute != 1) {
+		if (sd->status.inventory[i].attribute != 1 &&
+		   ((where == EQP_HELM && sd->status.inventory[i].equip &0x0100) ||
+		   (where == EQP_ARMOR && sd->status.inventory[i].equip &0x0010) ||
+	  	   (where == EQP_WEAPON && (sd->status.inventory[i].equip &0x0002 || sd->status.inventory[i].equip &0x0020) && itemdb_type(sd->status.inventory[i].nameid)==4) ||
+		   (where == EQP_SHIELD && sd->status.inventory[i].equip &0x0020 && itemdb_type(sd->status.inventory[i].nameid)==5))) {
 			sd->status.inventory[i].attribute = 1;
 			pc_unequipitem(sd,i,3);
 			sprintf(tmp_output, "%s has broken.",sd->inventory_data[i]->jname);
 			clif_emotion(&sd->bl,23);
 			clif_displaymessage(sd->fd, tmp_output);
 			clif_equiplist(sd);
-			break;
 		}
 	}
 

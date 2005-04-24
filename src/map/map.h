@@ -541,10 +541,10 @@ enum { ATK_LUCKY=1,ATK_FLEE,ATK_DEF};	// 囲まれペナルティ計算用
 
 // 装備コード
 enum {
-	EQP_WEAPON		= 0x0002,		// 右手
-	EQP_ARMOR		= 0x0010,		// 体
-	EQP_SHIELD		= 0x0020,		// 左手
-	EQP_HELM		= 0x0100,		// 頭上段
+	EQP_WEAPON		= 1,		// 右手
+	EQP_ARMOR		= 2,		// 体
+	EQP_SHIELD		= 4,		// 左手
+	EQP_HELM		= 8,		// 頭上段
 };
 
 struct map_data {

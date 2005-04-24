@@ -37,10 +37,10 @@
 #define swap(x,y) { int t; t = x; x = y; y = t; }
 
 const struct skill_name_db skill_names[] = {
- { AC_CHARGEARROW, "CHARGEARROW", "Charge_Arrow" } ,
+ { AC_CHARGEARROW, "CHARGEARROW", "Arrow_Repel" } ,
  { AC_CONCENTRATION, "CONCENTRATION", "Improve_Concentration" } ,
  { AC_DOUBLE, "DOUBLE", "Double_Strafe" } ,
- { AC_MAKINGARROW, "MAKINGARROW", "Arrow_Creation" } ,
+ { AC_MAKINGARROW, "MAKINGARROW", "Arrow_Crafting" } ,
  { AC_OWL, "OWL", "Owl's_Eye" } ,
  { AC_SHOWER, "SHOWER", "Arrow_Shower" } ,
  { AC_VULTURE, "VULTURE", "Vulture's_Eye" } ,
@@ -62,30 +62,30 @@ const struct skill_name_db skill_names[] = {
  { AL_WARP, "WARP", "Warp_Portal" } ,
  { AM_ACIDTERROR, "ACIDTERROR", "Acid_Terror" } ,
  { AM_AXEMASTERY, "AXEMASTERY", "Axe_Mastery" } ,
- { AM_BERSERKPITCHER, "BERSERKPITCHER", "Berserk Pitcher" } ,
+ { AM_BERSERKPITCHER, "BERSERKPITCHER", "Berserk_Pitcher" } ,
  { AM_BIOETHICS, "BIOETHICS", "Bioethics" } ,
  { AM_BIOTECHNOLOGY, "BIOTECHNOLOGY", "Biotechnology" } ,
  { AM_CALLHOMUN, "CALLHOMUN", "Call_Homunculus" } ,
- { AM_CANNIBALIZE, "CANNIBALIZE", "Bio_Cannibalize" } ,
- { AM_CP_ARMOR, "ARMOR", "Chemical_Protection_Armor" } ,
- { AM_CP_HELM, "HELM", "Chemical_Protection_Helm" } ,
- { AM_CP_SHIELD, "SHIELD", "Chemical_Protection_Shield" } ,
- { AM_CP_WEAPON, "WEAPON", "Chemical_Protection_Weapon" } ,
- { AM_CREATECREATURE, "CREATECREATURE", "Life_Creation" } ,
+ { AM_CANNIBALIZE, "CANNIBALIZE", "Summon_Flora" } ,
+ { AM_CP_ARMOR, "ARMOR", "Synthetic_Armor" } ,
+ { AM_CP_HELM, "HELM", "Biochemical_Helm" } ,
+ { AM_CP_SHIELD, "SHIELD", "Synthetized_Shield" } ,
+ { AM_CP_WEAPON, "WEAPON", "Alchemical_Weapon" } ,
+ { AM_CREATECREATURE, "CREATECREATURE", "Creature_Creation" } ,
  { AM_CULTIVATION, "CULTIVATION", "Cultivation" } ,
- { AM_DEMONSTRATION, "DEMONSTRATION", "Demonstration" } ,
+ { AM_DEMONSTRATION, "DEMONSTRATION", "Bomb" } ,
  { AM_DRILLMASTER, "DRILLMASTER", "Drillmaster" } ,
  { AM_FLAMECONTROL, "FLAMECONTROL", "Flame_Control" } ,
  { AM_HEALHOMUN, "HEALHOMUN", "Heal_Homunculus" } ,
- { AM_LEARNINGPOTION, "LEARNINGPOTION", "AM_LEARNINGPOTION" } ,
- { AM_PHARMACY, "PHARMACY", "Pharmacy" } ,
- { AM_POTIONPITCHER, "POTIONPITCHER", "Potion_Pitcher" } ,
- { AM_REST, "REST", "Sabbath" } ,
- { AM_RESURRECTHOMUN, "RESURRECTHOMUN", "Ressurect_Homunculus" } ,
- { AM_SPHEREMINE, "SPHEREMINE", "Sphere_Mine" } ,
- { ASC_BREAKER, "BREAKER", "Breaker" } ,
+ { AM_LEARNINGPOTION, "LEARNINGPOTION", "Potion_Research" } ,
+ { AM_PHARMACY, "PHARMACY", "Prepare_Potion" } ,
+ { AM_POTIONPITCHER, "POTIONPITCHER", "Aid_Potion" } ,
+ { AM_REST, "REST", "Vaporize" } ,
+ { AM_RESURRECTHOMUN, "RESURRECTHOMUN", "Homunculus_Resurrection" } ,
+ { AM_SPHEREMINE, "SPHEREMINE", "Summon_Marine_Sphere" } ,
+ { ASC_BREAKER, "BREAKER", "Soul_Destroyer" } ,
  { ASC_CDP, "CDP", "Create_Deadly_Poison" } ,
- { ASC_EDP, "EDP", "Deadly_Poison_Enchantment" } ,
+ { ASC_EDP, "EDP", "Enchant_Deadly_Poison" } ,
  { ASC_HALLUCINATION, "HALLUCINATION", "Hallucination_Walk" } ,
  { ASC_KATAR, "KATAR", "Advanced_Katar_Mastery" } ,
  { ASC_METEORASSAULT, "METEORASSAULT", "Meteor_Assault" } ,
@@ -99,27 +99,27 @@ const struct skill_name_db skill_names[] = {
  { AS_SONICBLOW, "SONICBLOW", "Sonic_Blow" } ,
  { AS_SPLASHER, "SPLASHER", "Venom_Splasher" } ,
  { AS_VENOMDUST, "VENOMDUST", "Venom_Dust" } ,
- { BA_APPLEIDUN, "APPLEIDUN", "Apple_of_Idun" } ,
- { BA_ASSASSINCROSS, "ASSASSINCROSS", "Assassin_Cross" } ,
- { BA_DISSONANCE, "DISSONANCE", "Dissonance" } ,
- { BA_FROSTJOKE, "FROSTJOKE", "Dumb_Joke" } ,
- { BA_MUSICALLESSON, "MUSICALLESSON", "Musical_Lesson" } ,
- { BA_MUSICALSTRIKE, "MUSICALSTRIKE", "Musical_Strike" } ,
- { BA_POEMBRAGI, "POEMBRAGI", "Poem_of_Bragi" } ,
- { BA_WHISTLE, "WHISTLE", "Whistle" } ,
- { BD_ADAPTATION, "ADAPTATION", "Adaption" } ,
- { BD_DRUMBATTLEFIELD, "DRUMBATTLEFIELD", "Drumb_BattleField" } ,
+ { BA_APPLEIDUN, "APPLEIDUN", "Song_of_Lutie" } ,
+ { BA_ASSASSINCROSS, "ASSASSINCROSS", "Impressive_Riff" } ,
+ { BA_DISSONANCE, "DISSONANCE", "Unchained_Serenade" } ,
+ { BA_FROSTJOKE, "FROSTJOKE", "Unbarring_Octave" } ,
+ { BA_MUSICALLESSON, "MUSICALLESSON", "Music_Lessons" } ,
+ { BA_MUSICALSTRIKE, "MUSICALSTRIKE", "Melody_Strike" } ,
+ { BA_POEMBRAGI, "POEMBRAGI", "Magic_Strings" } ,
+ { BA_WHISTLE, "WHISTLE", "Perfect_Tablature" } ,
+ { BD_ADAPTATION, "ADAPTATION", "Amp" } ,
+ { BD_DRUMBATTLEFIELD, "DRUMBATTLEFIELD", "Battle_Theme" } ,
  { BD_ENCORE, "ENCORE", "Encore" } ,	
- { BD_ETERNALCHAOS, "ETERNALCHAOS", "Eternal_Chaos" } ,
- { BD_INTOABYSS, "INTOABYSS", "Into_the_Abyss" } ,
+ { BD_ETERNALCHAOS, "ETERNALCHAOS", "Down_Tempo" } ,
+ { BD_INTOABYSS, "INTOABYSS", "Power_Cord" } ,
  { BD_LULLABY, "LULLABY", "Lullaby" } ,
  { BD_RAGNAROK, "RAGNAROK", "Ragnarok" } ,
- { BD_RICHMANKIM, "RICHMANKIM", "Rich_Mankim" } ,
- { BD_RINGNIBELUNGEN, "RINGNIBELUNGEN", "Ring_of_Nibelugen" } ,
- { BD_ROKISWEIL, "ROKISWEIL", "Loki's_Wail" } ,
- { BD_SIEGFRIED, "SIEGFRIED", "Invulnerable_Siegfried" } ,
+ { BD_RICHMANKIM, "RICHMANKIM", "Mental_Sensing" } ,
+ { BD_RINGNIBELUNGEN, "RINGNIBELUNGEN", "Harmonic_Lick" } ,
+ { BD_ROKISWEIL, "ROKISWEIL", "Classical_Pluck" } ,
+ { BD_SIEGFRIED, "SIEGFRIED", "Acoustic_Rhythm" } ,
  { BS_ADRENALINE, "ADRENALINE", "Adrenaline_Rush" } ,
- { BS_ADRENALINE2, "ADRENALINE2", "Adrenaline Rush 2" } ,
+ { BS_ADRENALINE2, "ADRENALINE2", "Adrenaline_Rush_2" } ,
  { BS_AXE, "AXE", "Smith_Axe" } ,
  { BS_DAGGER, "DAGGER", "Smith_Dagger" } ,
  { BS_ENCHANTEDSTONE, "ENCHANTEDSTONE", "Enchantedstone_Craft" } ,
@@ -144,45 +144,55 @@ const struct skill_name_db skill_names[] = {
  { CG_HERMODE, "HERMODE", "Wand_of_Hermode" } ,
  { CG_LONGINGFREEDOM, "LONGINGFREEDOM", "Longing_for_Freedom" } ,
  { CG_MARIONETTE, "MARIONETTE", "Marionette_Control" } ,
- { CG_MOONLIT, "MOONLIT", "Moonlight_Petals" } ,
+ { CG_MOONLIT, "MOONLIT", "Sheltering_Bliss" } ,
  { CG_TAROTCARD, "TAROTCARD", "Tarot_Card_of_Fate" } ,
  { CH_CHAINCRUSH, "CHAINCRUSH", "Chain_Crush_Combo" } ,
- { CH_PALMSTRIKE, "PALMSTRIKE", "Palm_Push_Strike" } ,
- { CH_SOULCOLLECT, "SOULCOLLECT", "Collect_Soul" } ,
- { CH_TIGERFIST, "TIGERFIST", "Tiger_Knuckle_Fist" } ,
+ { CH_PALMSTRIKE, "PALMSTRIKE", "Raging_Palm_Strike" } ,
+ { CH_SOULCOLLECT, "SOULCOLLECT", "Zen" } ,
+ { CH_TIGERFIST, "TIGERFIST", "Glacier_Fist" } ,
  { CR_ACIDDEMONSTRATION, "ACIDDEMONSTRATION", "Acid_Demonstration" } ,
  { CR_ALCHEMY, "ALCHEMY", "Alchemy" } ,
  { CR_CULTIVATION, "CULTIVATION", "Plant_Cultivation" } ,
  { CR_SLIMPITCHER, "SLIMPITCHER", "Slim_Pitcher" } ,
- { CR_FULLPROTECTION, "FULLPROTECTION", "Full_Chemical_Protection" } ,
+ { CR_FULLPROTECTION, "FULLPROTECTION", "Full_Protection" } ,
  { CR_SYNTHESISPOTION, "SYNTHESISPOTION", "Potion_Synthesis" } ,
  { CR_AUTOGUARD, "AUTOGUARD", "Guard" } ,
- { CR_DEFENDER, "DEFENDER", "Defender" } ,
+ { CR_DEFENDER, "DEFENDER", "Defending_Aura" } ,
  { CR_DEVOTION, "DEVOTION", "Sacrifice" } ,
  { CR_GRANDCROSS, "GRANDCROSS", "Grand_Cross" } ,
  { CR_HOLYCROSS, "HOLYCROSS", "Holy_Cross" } ,
- { CR_PROVIDENCE, "PROVIDENCE", "Providence" } ,
+ { CR_PROVIDENCE, "PROVIDENCE", "Resistant_Souls" } ,
  { CR_REFLECTSHIELD, "REFLECTSHIELD", "Shield_Reflect" } ,
  { CR_SHIELDBOOMERANG, "SHIELDBOOMERANG", "Shield_Boomerang" } ,
- { CR_SHIELDCHARGE, "SHIELDCHARGE", "Shield_Charge" } ,
+ { CR_SHIELDCHARGE, "SHIELDCHARGE", "Smite" } ,
  { CR_SPEARQUICKEN, "SPEARQUICKEN", "Spear_Quicken" } ,
  { CR_TRUST, "TRUST", "Faith" } ,
- { DC_DANCINGLESSON, "DANCINGLESSON", "Dancing_Lesson" } ,
- { DC_DONTFORGETME, "DONTFORGETME", "Don't_Forget_Me" } ,
- { DC_FORTUNEKISS, "FORTUNEKISS", "Fortune_Kiss" } ,
- { DC_HUMMING, "HUMMING", "Humming" } ,
- { DC_SCREAM, "SCREAM", "Scream" } ,
- { DC_SERVICEFORYOU, "SERVICEFORYOU", "Prostitute" } ,
- { DC_THROWARROW, "THROWARROW", "Throw_Arrow" } ,
- { DC_UGLYDANCE, "UGLYDANCE", "Ugly_Dance" } ,
+ { DC_DANCINGLESSON, "DANCINGLESSON", "Dance_Lessons" } ,
+ { DC_DONTFORGETME, "DONTFORGETME", "Slow_Grace" } ,
+ { DC_FORTUNEKISS, "FORTUNEKISS", "Lady_Luck" } ,
+ { DC_HUMMING, "HUMMING", "Focus_Ballet" } ,
+ { DC_SCREAM, "SCREAM", "Dazzler" } ,
+ { DC_SERVICEFORYOU, "SERVICEFORYOU", "Gypsy's_Kiss" } ,
+ { DC_THROWARROW, "THROWARROW", "Slinging_Arrow" } ,
+ { DC_UGLYDANCE, "UGLYDANCE", "Hip_Shaker" } ,
+ { GD_APPROVAL, "APPROVAL", "Official_Guild_Approval" } ,
  { GD_BATTLEORDER, "BATTLEORDER", "Battle_Orders" } ,
+ { GD_DEVELOPMENT, "DEVELOPMENT", "Guild_Development" } ,
+ { GD_EMERGENCYCALL, "EMERGENCYCALL", "Emergency_Call" } ,
+ { GD_EXTENSION, "EXTENSION", "Guild_Extension" } ,
+ { GD_GLORYGUILD, "GLORYGUILD", "The_Glory_of_the_Guild" } ,
+ { GD_GLORYWOUNDS, "GLORYWOUNDS", "Wounds_of_Glory" } ,
+ { GD_GUARDUP, "GUARDUP", "Build_Up_The_Guardian" } ,
+ { GD_LEADERSHIP, "LEADERSHIP", "Great_Leadership" } ,
+ { GD_HAWKEYES, "HAWKEYES", "Sharp_Hawk_Eyes" } ,
+ { GD_KAFRACONTRACT, "KAFRACONTRACT", "Contract_with_Kafra" } ,
  { GD_REGENERATION, "REGENERATION", "Regeneration" } ,
  { GD_RESTORE, "RESTORE", "Restore" } ,
- { GD_EMERGENCYCALL, "EMERGENCYCALL", "Emergency_Call" } ,
+ { GD_SOULCOLD, "SOULCOLD", "Soul_of_Cold" } ,
  { HP_ASSUMPTIO, "ASSUMPTIO", "Assumptio" } ,
  { HP_BASILICA, "BASILICA", "Basilica" } ,
  { HP_MANARECHARGE, "MANARECHARGE", "Mana_Recharge" } ,
- { HP_MEDITATIO, "MEDITATIO", "Meditation" } ,
+ { HP_MEDITATIO, "MEDITATIO", "Meditatio" } ,
  { HT_ANKLESNARE, "ANKLESNARE", "Ankle_Snare" } ,
  { HT_BEASTBANE, "BEASTBANE", "Beast_Bane" } ,
  { HT_BLASTMINE, "BLASTMINE", "Blast_Mine" } ,
@@ -200,13 +210,13 @@ const struct skill_name_db skill_names[] = {
  { HT_SPRINGTRAP, "SPRINGTRAP", "Spring_Trap" } ,
  { HT_STEELCROW, "STEELCROW", "Steel_Crow" } ,
  { HT_TALKIEBOX, "TALKIEBOX", "Talkie_Box" } ,
- { HW_GANBANTEIN, "GANBANTEIN", "GanBanTeIn" } ,
- { HW_GRAVITATION, "GRAVITATION", "Gravitation" } ,
- { HW_MAGICCRASHER, "MAGICCRASHER", "Magic_Crasher" } ,
- { HW_MAGICPOWER, "MAGICPOWER", "Magic_Power" } ,
+ { HW_GANBANTEIN, "GANBANTEIN", "Ganbantein" } ,
+ { HW_GRAVITATION, "GRAVITATION", "Gravitation_Field" } ,
+ { HW_MAGICCRASHER, "MAGICCRASHER", "Stave_Crasher" } ,
+ { HW_MAGICPOWER, "MAGICPOWER", "Mystical_Amplification" } ,
  { HW_NAPALMVULCAN, "NAPALMVULCAN", "Napalm_Vulcan" } ,
  { HW_SOULDRAIN, "SOULDRAIN", "Soul_Drain" } ,
- { ITM_TOMAHAWK, "TOMAHAWK", "Throw_Tomahawk" } ,
+ { ITM_TOMAHAWK, "TOMAHAWK", "Tomahawk_Throw" } ,
  { KN_AUTOCOUNTER, "AUTOCOUNTER", "Counter_Attack" } ,
  { KN_BOWLINGBASH, "BOWLINGBASH", "Bowling_Bash" } ,
  { KN_BRANDISHSPEAR, "BRANDISHSPEAR", "Brandish_Spear" } ,
@@ -218,20 +228,20 @@ const struct skill_name_db skill_names[] = {
  { KN_SPEARSTAB, "SPEARSTAB", "Spear_Stab" } ,
  { KN_TWOHANDQUICKEN, "TWOHANDQUICKEN", "Twohand_Quicken" } ,
  { LK_AURABLADE, "AURABLADE", "Aura_Blade" } ,
- { LK_BERSERK, "BERSERK", "Berserk" } ,
- { LK_CONCENTRATION, "CONCENTRATION", "Concentration" } ,
- { LK_FURY, "FURY", "LK_FURY" } ,
- { LK_HEADCRUSH, "HEADCRUSH", "Head_Crusher" } ,
- { LK_JOINTBEAT, "JOINTBEAT", "Joint_Beat" } ,
- { LK_PARRYING, "PARRYING", "Parrying" } ,
- { LK_SPIRALPIERCE, "SPIRALPIERCE", "Spiral_Pierce" } ,
- { LK_TENSIONRELAX, "TENSIONRELAX", "Tension_Relax" } ,
+ { LK_BERSERK, "BERSERK", "Frenzy" } ,
+ { LK_CONCENTRATION, "CONCENTRATION", "Spear_Dynamo" } ,
+ { LK_FURY, "FURY", "Fury_2" } ,
+ { LK_HEADCRUSH, "HEADCRUSH", "Traumatic_Blow" } ,
+ { LK_JOINTBEAT, "JOINTBEAT", "Vital_Strike" } ,
+ { LK_PARRYING, "PARRYING", "Parry" } ,
+ { LK_SPIRALPIERCE, "SPIRALPIERCE", "Clashing_Spiral" } ,
+ { LK_TENSIONRELAX, "TENSIONRELAX", "Relax" } ,
  { MC_CARTREVOLUTION, "CARTREVOLUTION", "Cart_Revolution" } ,
  { MC_CHANGECART, "CHANGECART", "Change_Cart" } ,
  { MC_DISCOUNT, "DISCOUNT", "Discount" } ,
  { MC_IDENTIFY, "IDENTIFY", "Item_Appraisal" } ,
  { MC_INCCARRY, "INCCARRY", "Enlarge_Weight_Limit" } ,
- { MC_LOUD, "LOUD", "Lord_Exclamation" } ,
+ { MC_LOUD, "LOUD", "Crazy_Uproar" } ,
  { MC_MAMMONITE, "MAMMONITE", "Mammonite" } ,
  { MC_OVERCHARGE, "OVERCHARGE", "Overcharge" } ,
  { MC_PUSHCART, "PUSHCART", "Pushcart" } ,
@@ -250,21 +260,21 @@ const struct skill_name_db skill_names[] = {
  { MG_SRECOVERY, "SRECOVERY", "Increase_SP_Recovery" } ,
  { MG_STONECURSE, "STONECURSE", "Stone_Curse" } ,
  { MG_THUNDERSTORM, "THUNDERSTORM", "Thunderstorm" } ,
- { MO_ABSORBSPIRITS, "ABSORBSPIRITS", "Absorb_Spirits" } ,
+ { MO_ABSORBSPIRITS, "ABSORBSPIRITS", "Spiritual_Sphere_Absorption" } ,
  { MO_BLADESTOP, "BLADESTOP", "Blade_Stop" } ,
- { MO_BODYRELOCATION, "BODYRELOCATION", "Body_Relocation" } ,
- { MO_CALLSPIRITS, "CALLSPIRITS", "Call_Spirits" } ,
- { MO_CHAINCOMBO, "CHAINCOMBO", "Chain_Combo" } ,
- { MO_COMBOFINISH, "COMBOFINISH", "Combo_Finish" } ,
- { MO_DODGE, "DODGE", "Dodge" } ,
- { MO_EXPLOSIONSPIRITS, "EXPLOSIONSPIRITS", "Explosion_Spirits" } ,
- { MO_EXTREMITYFIST, "EXTREMITYFIST", "Extremity_Fist" } ,
- { MO_FINGEROFFENSIVE, "FINGEROFFENSIVE", "Finger_Offensive" } ,
- { MO_INVESTIGATE, "INVESTIGATE", "Investigate" } ,
- { MO_IRONHAND, "IRONHAND", "Iron_Hand" } ,
- { MO_SPIRITSRECOVERY, "SPIRITSRECOVERY", "Spirit_Recovery" } ,
- { MO_STEELBODY, "STEELBODY", "Steel_Body" } ,
- { MO_TRIPLEATTACK, "TRIPLEATTACK", "Triple_Blows" } ,
+ { MO_BODYRELOCATION, "BODYRELOCATION", "Snap" } ,
+ { MO_CALLSPIRITS, "CALLSPIRITS", "Summon_Spirit_Sphere" } ,
+ { MO_CHAINCOMBO, "CHAINCOMBO", "Raging_Quadruple_Blow" } ,
+ { MO_COMBOFINISH, "COMBOFINISH", "Raging_Thrust" } ,
+ { MO_DODGE, "DODGE", "Flee" } ,
+ { MO_EXPLOSIONSPIRITS, "EXPLOSIONSPIRITS", "Fury" } ,
+ { MO_EXTREMITYFIST, "EXTREMITYFIST", "Guillotine_Fist" } ,
+ { MO_FINGEROFFENSIVE, "FINGEROFFENSIVE", "Throw_Spirit_Sphere" } ,
+ { MO_INVESTIGATE, "INVESTIGATE", "Occult_Impaction" } ,
+ { MO_IRONHAND, "IRONHAND", "Iron_Fists" } ,
+ { MO_SPIRITSRECOVERY, "SPIRITSRECOVERY", "Spiritual_Cadence" } ,
+ { MO_STEELBODY, "STEELBODY", "Mental_Strength" } ,
+ { MO_TRIPLEATTACK, "TRIPLEATTACK", "Raging_Trifecta_Blow" } ,
  { NPC_ATTRICHANGE, "ATTRICHANGE", "NPC_ATTRICHANGE" } ,
  { NPC_BARRIER, "BARRIER", "NPC_BARRIER" } ,
  { NPC_BLINDATTACK, "BLINDATTACK", "NPC_BLINDATTACK" } ,
@@ -322,18 +332,18 @@ const struct skill_name_db skill_names[] = {
  { NV_BASIC, "BASIC", "Basic_Skill" } ,
  { NV_FIRSTAID, "FIRSTAID", "First Aid" } ,
  { NV_TRICKDEAD, "TRICKDEAD", "Play_Dead" } ,
- { PA_GOSPEL, "GOSPEL", "Gospel" } ,
- { PA_PRESSURE, "PRESSURE", "Pressure" } ,
- { PA_SACRIFICE, "SACRIFICE", "Sacrificial_Ritual" } ,
+ { PA_GOSPEL, "GOSPEL", "Battle_Chant" } ,
+ { PA_PRESSURE, "PRESSURE", "Gloria_Domini" } ,
+ { PA_SACRIFICE, "SACRIFICE", "Martyr's_Reckoning" } ,
  { PA_SHIELDCHAIN, "SHIELDCHAIN", "Shield_Chain" } ,
  { PF_DOUBLECASTING, "DOUBLECASTING", "Double_Casting" } ,
- { PF_FOGWALL, "FOGWALL", "Wall_of_Fog" } ,
- { PF_HPCONVERSION, "HPCONVERSION", "Health_Conversion" } ,
- { PF_MEMORIZE, "MEMORIZE", "Memorize" } ,
+ { PF_FOGWALL, "FOGWALL", "Blinding_Mist" } ,
+ { PF_HPCONVERSION, "HPCONVERSION", "Indulge" } ,
+ { PF_MEMORIZE, "MEMORIZE", "Foresight" } ,
  { PF_MINDBREAKER, "MINDBREAKER", "Mind_Breaker" } ,
- { PF_SOULBURN, "SOULBURN", "Soul_Burn" } ,
- { PF_SOULCHANGE, "SOULCHANGE", "Soul_Change" } ,
- { PF_SPIDERWEB, "SPIDERWEB", "Spider_Web" } ,
+ { PF_SOULBURN, "SOULBURN", "Soul_Siphon" } ,
+ { PF_SOULCHANGE, "SOULCHANGE", "Soul_Exhale" } ,
+ { PF_SPIDERWEB, "SPIDERWEB", "Fiber_Lock" } ,
  { PR_ASPERSIO, "ASPERSIO", "Aspersio" } ,
  { PR_BENEDICTIO, "BENEDICTIO", "B.S_Sacramenti" } ,
  { PR_GLORIA, "GLORIA", "Gloria" } ,
@@ -344,56 +354,56 @@ const struct skill_name_db skill_names[] = {
  { PR_MACEMASTERY, "MACEMASTERY", "Mace_Mastery" } ,
  { PR_MAGNIFICAT, "MAGNIFICAT", "Magnificat" } ,
  { PR_MAGNUS, "MAGNUS", "Magnus_Exorcismus" } ,
- { PR_SANCTUARY, "SANCTUARY", "Santuary" } ,
+ { PR_SANCTUARY, "SANCTUARY", "Sanctuary" } ,
  { PR_SLOWPOISON, "SLOWPOISON", "Slow_Poison" } ,
  { PR_STRECOVERY, "STRECOVERY", "Status_Recovery" } ,
  { PR_SUFFRAGIUM, "SUFFRAGIUM", "Suffragium" } ,
  { PR_TURNUNDEAD, "TURNUNDEAD", "Turn_Undead" } ,
  { RG_BACKSTAP, "BACKSTAP", "Back_Stab" } ,
  { RG_CLEANER, "CLEANER", "Remover" } ,
- { RG_COMPULSION, "COMPULSION", "Compulsion_Discount" } ,
- { RG_FLAGGRAFFITI, "FLAGGRAFFITI", "Flag_Graffity" } ,
- { RG_GANGSTER, "GANGSTER", "Gangster's_Paradise" } ,
- { RG_GRAFFITI, "GRAFFITI", "Graffiti" } ,
- { RG_INTIMIDATE, "INTIMIDATE", "Intimidate" } ,
- { RG_PLAGIARISM, "PLAGIARISM", "Plagiarism" } ,
- { RG_RAID, "RAID", "Raid" } ,
- { RG_SNATCHER, "SNATCHER", "Snatcher" } ,
- { RG_STEALCOIN, "STEALCOIN", "Steal_Coin" } ,
- { RG_STRIPARMOR, "STRIPARMOR", "Strip_Armor" } ,
- { RG_STRIPHELM, "STRIPHELM", "Strip_Helm" } ,
- { RG_STRIPSHIELD, "STRIPSHIELD", "Strip_Shield" } ,
- { RG_STRIPWEAPON, "STRIPWEAPON", "Strip_Weapon" } ,
- { RG_TUNNELDRIVE, "TUNNELDRIVE", "Tunnel_Drive" } ,
+ { RG_COMPULSION, "COMPULSION", "Haggle" } ,
+ { RG_FLAGGRAFFITI, "FLAGGRAFFITI", "Piece" } ,
+ { RG_GANGSTER, "GANGSTER", "Slyness" } ,
+ { RG_GRAFFITI, "GRAFFITI", "Scribble" } ,
+ { RG_INTIMIDATE, "INTIMIDATE", "Snatch" } ,
+ { RG_PLAGIARISM, "PLAGIARISM", "Intimidate" } ,
+ { RG_RAID, "RAID", "Sightless_Mind" } ,
+ { RG_SNATCHER, "SNATCHER", "Gank" } ,
+ { RG_STEALCOIN, "STEALCOIN", "Mug" } ,
+ { RG_STRIPARMOR, "STRIPARMOR", "Divest_Armor" } ,
+ { RG_STRIPHELM, "STRIPHELM", "Divest_Helm" } ,
+ { RG_STRIPSHIELD, "STRIPSHIELD", "Divest_Shield" } ,
+ { RG_STRIPWEAPON, "STRIPWEAPON", "Divest_Weapon" } ,
+ { RG_TUNNELDRIVE, "TUNNELDRIVE", "Stalk" } ,
  { SA_ABRACADABRA, "ABRACADABRA", "Hocus-pocus" } ,
  { SA_ADVANCEDBOOK, "ADVANCEDBOOK", "Advanced_Book" } ,
- { SA_AUTOSPELL, "AUTOSPELL", "Auto_Cast" } ,
+ { SA_AUTOSPELL, "AUTOSPELL", "Hindsight" } ,
  { SA_CASTCANCEL, "CASTCANCEL", "Cast_Cancel" } ,
  { SA_CLASSCHANGE, "CLASSCHANGE", "Class_Change" } ,
  { SA_COMA, "COMA", "Coma" } ,
- { SA_DEATH, "DEATH", "Death" } ,
+ { SA_DEATH, "DEATH", "Grim_Reaper" } ,
  { SA_DELUGE, "DELUGE", "Deluge" } ,
  { SA_DISPELL, "DISPELL", "Dispel" } ,
  { SA_DRAGONOLOGY, "DRAGONOLOGY", "Dragonology" } ,
- { SA_FLAMELAUNCHER, "FLAMELAUNCHER", "Flame_Launcher" } ,
- { SA_FORTUNE, "FORTUNE", "Fortune" } ,
- { SA_FREECAST, "FREECAST", "Cast_Freedom" } ,
- { SA_FROSTWEAPON, "FROSTWEAPON", "Frost_Weapon" } ,
- { SA_FULLRECOVERY, "FULLRECOVERY", "Full_Recovery" } ,
+ { SA_FLAMELAUNCHER, "FLAMELAUNCHER", "Endow_Blaze" } ,
+ { SA_FORTUNE, "FORTUNE", "Gold_Digger" } ,
+ { SA_FREECAST, "FREECAST", "Free_Cast" } ,
+ { SA_FROSTWEAPON, "FROSTWEAPON", "Endow_Tsunami" } ,
+ { SA_FULLRECOVERY, "FULLRECOVERY", "Rejuvenation" } ,
  { SA_GRAVITY, "GRAVITY", "Gravity" } ,
- { SA_INSTANTDEATH, "INSTANTDEATH", "Instant_Death" } ,
- { SA_LANDPROTECTOR, "LANDPROTECTOR", "Land_Protector" } ,
- { SA_LEVELUP, "LEVELUP", "Level_Up" } ,
- { SA_LIGHTNINGLOADER, "LIGHTNINGLOADER", "Lightning_Loader" } ,
+ { SA_INSTANTDEATH, "INSTANTDEATH", "Suicide" } ,
+ { SA_LANDPROTECTOR, "LANDPROTECTOR", "Magnetic_Earth" } ,
+ { SA_LEVELUP, "LEVELUP", "Leveling" } ,
+ { SA_LIGHTNINGLOADER, "LIGHTNINGLOADER", "Endow_Tornado" } ,
  { SA_MAGICROD, "MAGICROD", "Magic_Rod" } ,
- { SA_MONOCELL, "MONOCELL", "Monocell" } ,
- { SA_QUESTION, "QUESTION", "Question?" } ,
- { SA_REVERSEORCISH, "REVERSEORCISH", "Reverse_Orcish" } ,
- { SA_SEISMICWEAPON, "SEISMICWEAPON", "Seismic_Weapon" } ,
- { SA_SPELLBREAKER, "SPELLBREAKER", "Break_Spell" } ,
- { SA_SUMMONMONSTER, "SUMMONMONSTER", "Summon_Monster" } ,
- { SA_TAMINGMONSTER, "TAMINGMONSTER", "Taming_Monster" } ,
- { SA_VIOLENTGALE, "VIOLENTGALE", "Violent_Gale" } ,
+ { SA_MONOCELL, "MONOCELL", "Mono_Cell" } ,
+ { SA_QUESTION, "QUESTION", "Questioning" } ,
+ { SA_REVERSEORCISH, "REVERSEORCISH", "Grampus_Morph" } ,
+ { SA_SEISMICWEAPON, "SEISMICWEAPON", "Endow_Quake" } ,
+ { SA_SPELLBREAKER, "SPELLBREAKER", "Spell_Breaker" } ,
+ { SA_SUMMONMONSTER, "SUMMONMONSTER", "Monster_Chant" } ,
+ { SA_TAMINGMONSTER, "TAMINGMONSTER", "Beastly_Hypnosis" } ,
+ { SA_VIOLENTGALE, "VIOLENTGALE", "Whirlwind" } ,
  { SA_VOLCANO, "VOLCANO", "Volcano" } ,
  { SG_DEVIL, "DEVIL", "Devil" } ,
  { SG_FEEL, "FEEL", "Feel" } ,
@@ -414,9 +424,9 @@ const struct skill_name_db skill_names[] = {
  { SG_SUN_COMFORT, "COMFORT", "Sun Comfort" } ,
  { SG_SUN_WARM, "WARM", "Sun Warm" } ,
  { SL_ALCHEMIST, "ALCHEMIST", "Alchemist" } ,
- { SL_ASSASIN, "ASSASIN", "Assasin" } ,
+ { SL_ASSASIN, "ASSASIN", "Assassin" } ,
  { SL_BARDDANCER, "BARDDANCER", "Bard Dancer" } ,
- { SL_BLACKSMITH, "BLACKSMITH", "Black Smith" } ,
+ { SL_BLACKSMITH, "BLACKSMITH", "Blacksmith" } ,
  { SL_CRUSADER, "CRUSADER", "Crusader" } ,
  { SL_HUNTER, "HUNTER", "Hunter" } ,
  { SL_KAAHI, "KAAHI", "Kaahi" } ,
@@ -439,35 +449,35 @@ const struct skill_name_db skill_names[] = {
  { SL_SUPERNOVICE, "SUPERNOVICE", "Super Novice" } ,
  { SL_SWOO, "SWOO", "Swoo" } ,
  { SL_WIZARD, "WIZARD", "Wizard" } ,
- { SM_AUTOBERSERK, "AUTOBERSERK", "Auto_Berserk" } ,
+ { SM_AUTOBERSERK, "AUTOBERSERK", "Berserk" } ,
  { SM_BASH, "BASH", "Bash" } ,
  { SM_ENDURE, "ENDURE", "Endure" } ,
- { SM_FATALBLOW, "FATALBLOW", "Attack_Weak_Point" } ,
+ { SM_FATALBLOW, "FATALBLOW", "Fatal_Blow" } ,
  { SM_MAGNUM, "MAGNUM", "Magnum_Break" } ,
- { SM_MOVINGRECOVERY, "MOVINGRECOVERY", "Moving_HP_Recovery" } ,
+ { SM_MOVINGRECOVERY, "MOVINGRECOVERY", "HP_Recovery_While_Moving" } ,
  { SM_PROVOKE, "PROVOKE", "Provoke" } ,
  { SM_RECOVERY, "RECOVERY", "Increase_HP_Recovery" } ,
  { SM_SWORD, "SWORD", "Sword_Mastery" } ,
  { SM_TWOHAND, "TWOHAND", "Two-Handed_Sword_Mastery" } ,
  { SN_FALCONASSAULT, "FALCONASSAULT", "Falcon_Assault" } ,
- { SN_SHARPSHOOTING, "SHARPSHOOTING", "Sharpshooting" } ,
- { SN_SIGHT, "SIGHT", "True_Sight" } ,
- { SN_WINDWALK, "WINDWALK", "Wind_Walk" } ,
- { ST_CHASEWALK, "CHASEWALK", "Chase_Walk" } ,
- { ST_REJECTSWORD, "REJECTSWORD", "Reject_Sword" } ,
- { ST_STEALBACKPACK, "STEALBACKPACK", "Steal_Backpack" } ,
+ { SN_SHARPSHOOTING, "SHARPSHOOTING", "Focused_Arrow_Strike" } ,
+ { SN_SIGHT, "SIGHT", "Falcon_Eyes" } ,
+ { SN_WINDWALK, "WINDWALK", "Wind_Walker" } ,
+ { ST_CHASEWALK, "CHASEWALK", "Stealth" } ,
+ { ST_REJECTSWORD, "REJECTSWORD", "Counter_Instinct" } ,
+ { ST_STEALBACKPACK, "STEALBACKPACK", "Pickpocket" } ,
  { ST_PRESERVE, "PRESERVE", "Preserve" } ,
- { ST_FULLSTRIP, "FULLSTRIP", "Full_Strip" } ,
- { TF_BACKSLIDING, "BACKSLIDING", "Back_Sliding" } ,
+ { ST_FULLSTRIP, "FULLSTRIP", "Divest_All" } ,
+ { TF_BACKSLIDING, "BACKSLIDING", "Back_Slide" } ,
  { TF_DETOXIFY, "DETOXIFY", "Detoxify" } ,
  { TF_DOUBLE, "DOUBLE", "Double_Attack" } ,
  { TF_HIDING, "HIDING", "Hiding" } ,
  { TF_MISS, "MISS", "Improve_Dodge" } ,
- { TF_PICKSTONE, "PICKSTONE", "Take_Stone" } ,
+ { TF_PICKSTONE, "PICKSTONE", "Find_Stone" } ,
  { TF_POISON, "POISON", "Envenom" } ,
- { TF_SPRINKLESAND, "SPRINKLESAND", "Throw_Sand" } ,
+ { TF_SPRINKLESAND, "SPRINKLESAND", "Sand_Attack" } ,
  { TF_STEAL, "STEAL", "Steal" } ,
- { TF_THROWSTONE, "THROWSTONE", "Throw_Stone" } ,
+ { TF_THROWSTONE, "THROWSTONE", "Stone_Fling" } ,
  { TK_COUNTER, "COUNTER", "Counter" } ,
  { TK_DODGE, "DODGE", "Dodge" } ,
  { TK_DOWNKICK, "DOWNKICK", "Down Kick" } ,
@@ -487,16 +497,16 @@ const struct skill_name_db skill_names[] = {
  { WE_BABY, "BABY", "I Love Mama and Fafa" } ,
  { WE_CALLBABY, "CALLBABY", "Come With Me, Baby" } ,
  { WE_CALLPARENT, "CALLPARENT", "I Miss My Parents" } ,
- { WE_CALLPARTNER, "CALLPARTNER", "I Want to See You" } ,
- { WE_FEMALE, "FEMALE", "I Only Look Up to You" } ,
- { WE_MALE, "MALE", "I Will Protect You" } ,
+ { WE_CALLPARTNER, "CALLPARTNER", "Romantic_Rendezvous" } ,
+ { WE_FEMALE, "FEMALE", "Loving_Touch" } ,
+ { WE_MALE, "MALE", "Undying_Love" } ,
  { WS_CARTBOOST, "CARTBOOST", "Cart_Boost" } ,
  { WS_CARTTERMINATION, "CARTTERMINATION", "Cart_Termination" } ,
- { WS_CREATECOIN, "CREATECOIN", "Create_Coins" } ,
- { WS_CREATENUGGET, "CREATENUGGET", "Create_Nuggets" } ,
- { WS_MELTDOWN, "MELTDOWN", "Meltdown" } ,
- { WS_OVERTHRUSTMAX, "OVERTHRUSTMAX", "Over_Thrust_Max" } ,
- { WS_SYSTEMCREATE, "SYSTEMCREATE", "Create_System_tower" } ,
+ { WS_CREATECOIN, "CREATECOIN", "Coin_Craft" } ,
+ { WS_CREATENUGGET, "CREATENUGGET", "Nugget_Craft" } ,
+ { WS_MELTDOWN, "MELTDOWN", "Shattering_Strike" } ,
+ { WS_OVERTHRUSTMAX, "OVERTHRUSTMAX", "Max_Power-Thust" } ,
+ { WS_SYSTEMCREATE, "SYSTEMCREATE", "Auto_Attacking_Machine_Craft" } ,
  { WS_WEAPONREFINE, "WEAPONREFINE", "Weapon_Refine" } ,
  { WZ_EARTHSPIKE, "EARTHSPIKE", "Earth_Spike" } ,
  { WZ_ESTIMATION, "ESTIMATION", "Sense" } ,
@@ -2290,13 +2300,13 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		if (sc_data && sc_data[SC_CARTBOOST].timer != -1)
 			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		else if (sd) clif_skill_fail(sd,skillid,0,0);
-		break;		
+		break;
 
 	case ASC_BREAKER:				/* ソウルブレ?カ? */	// [DracoRPG]
 		// separate weapon and magic attacks
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
-		break;		
+		break;
 	
 	case SN_SHARPSHOOTING:			/* シャ?プシュ?ティング */
 			map_foreachinpath (skill_attack_area,src->m,					// function, map
@@ -3214,10 +3224,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case LK_AURABLADE:		/* オ?ラブレ?ド */
 	case LK_PARRYING:		/* パリイング */
 	case LK_CONCENTRATION:	/* コンセントレ?ション */
+	case LK_BERSERK:		/* バ?サ?ク */
 	case HP_ASSUMPTIO:		/*  */
 	case WS_CARTBOOST:		/* カ?トブ?スト */
 	case SN_SIGHT:			/* トゥル?サイト */
 	case WS_MELTDOWN:		/* メルトダウン */
+	case WS_OVERTHRUSTMAX:	// Overthrust Max [Celest]
 	case ST_REJECTSWORD:	/* リジェクトソ?ド */
 	case HW_MAGICPOWER:		/* 魔法力?幅 */
 	case PF_MEMORIZE:		/* メモライズ */
@@ -3269,11 +3281,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		pc_setsit(sd);
 		clif_sitting(sd);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
-		break;
-	case LK_BERSERK:		/* バ?サ?ク */
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
-		//sd->status.hp = sd->status.max_hp * 3;
 		break;
 
 	case MC_CHANGECART:
@@ -3629,7 +3636,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case DC_DONTFORGETME:		/* 私を忘れないで… */
 	case DC_FORTUNEKISS:		/* 幸運のキス */
 	case DC_SERVICEFORYOU:		/* サ?ビスフォ?ユ? */
-//	case CG_MOONLIT:			/* 月明りの泉に落ちる花びら */
 	case CG_HERMODE:			// Wand of Hermod
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		skill_unitsetting(src,skillid,skilllv,src->x,src->y,0);
@@ -3794,13 +3800,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case BS_REPAIRWEAPON:			/* 武器修理 */
 		if(sd) {
 //動作しないのでとりあえずコメントアウト
-			/*if (pc_search_inventory(sd, 999) < 0 ) { //fixed by Lupus (item pos can be = 0!)
-				clif_skill_fail(sd,sd->skillid,0,0);
-				map_freeblock_unlock();
-				return 1;
-			}*/
 			clif_item_repair_list(sd);
 		}
+		break;
+
+	// Weapon Refining [Celest]
+	case WS_WEAPONREFINE:
+		if(sd)
+			clif_item_refine_list(sd);
 		break;
 
 	case MC_VENDING:			/* 露店開設 */
@@ -3869,99 +3876,54 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case RG_STRIPSHIELD:		/* ストリップシールド */
 	case RG_STRIPARMOR:			/* ストリップアーマー */
 	case RG_STRIPHELM:			/* ストリップヘルム */
-	{
+	case ST_FULLSTRIP:			// Rewritten most of the code [DracoRPG]
+		{
 		struct status_change *tsc_data;
-		int strip_time, strip_per, strip_fix;
-		int scid, cp_scid = 0, equip;
+		int strip_fix, strip_flag = 0, equip = 0;
+		int scid[4] = {0,0,0,0};
 
 		tsc_data = status_get_sc_data(bl);
-		scid = SkillStatusChangeTable[skillid];
-		switch (skillid) {
-			case RG_STRIPWEAPON:
-				equip = EQP_WEAPON;
-				cp_scid = SC_CP_WEAPON;
-				break;
-			case RG_STRIPSHIELD:
-				equip = EQP_SHIELD;
-				cp_scid = SC_CP_SHIELD;
-				break;
-			case RG_STRIPARMOR:
-				equip = EQP_ARMOR;
-				cp_scid = SC_CP_ARMOR;
-				break;
-			case RG_STRIPHELM:
-				equip = EQP_HELM;
-				cp_scid = SC_CP_HELM;
-				break;
-			default:
-				map_freeblock_unlock();
-				return 1;
-		}
 
-		if (tsc_data && (tsc_data[scid].timer != -1 || tsc_data[cp_scid].timer != -1))
-			break;
-		if (dstsd && dstsd->unstripable_equip & equip)
-			break;
+		if (skillid == RG_STRIPWEAPON || skillid == ST_FULLSTRIP)
+		   equip |= EQP_WEAPON;
+		if (skillid == RG_STRIPSHIELD || skillid == ST_FULLSTRIP)
+		   equip |= EQP_SHIELD;
+		if (skillid == RG_STRIPARMOR || skillid == ST_FULLSTRIP)
+		   equip |= EQP_ARMOR;
+		if (skillid == RG_STRIPHELM || skillid == ST_FULLSTRIP)
+		   equip |= EQP_HELM;
 
 		strip_fix = status_get_dex(src) - status_get_dex(bl);
 		if(strip_fix < 0)
 			strip_fix=0;
-		strip_per = 5+2*skilllv+strip_fix/5;
-		if (rand()%100 >= strip_per)
+		if (rand()%100 >= 5+2*skilllv+strip_fix/5)
 			break;
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 
 		if (dstsd) {
 			for (i=0;i<MAX_INVENTORY;i++) {
-				if (dstsd->status.inventory[i].equip && (dstsd->status.inventory[i].equip & equip)){
-					pc_unequipitem(dstsd,i,3);
-					break;
+				if (dstsd->status.inventory[i].equip) {
+				   if (equip &EQP_HELM && !(dstsd->unstripable_equip &EQP_HELM) && !(tsc_data && tsc_data[SC_CP_HELM].timer != -1) && dstsd->status.inventory[i].equip &0x0100)
+				   	  strip_flag = (scid[1] = SC_STRIPHELM); // Okay, we found a helm to strip
+				   else if (equip &EQP_ARMOR && !(dstsd->unstripable_equip &EQP_ARMOR) && !(tsc_data && tsc_data[SC_CP_ARMOR].timer != -1) && dstsd->status.inventory[i].equip &0x0010)
+				   	  strip_flag = (scid[2] = SC_STRIPARMOR); // Okay, we found an armor to strip
+				   else if (equip &EQP_WEAPON && !(dstsd->unstripable_equip &EQP_WEAPON) && !(tsc_data && tsc_data[SC_CP_WEAPON].timer != -1) && (dstsd->status.inventory[i].equip &0x0002 || dstsd->status.inventory[i].equip &0x0020) && itemdb_type(dstsd->status.inventory[i].nameid)==4)
+				   	  strip_flag = (scid[3] = SC_STRIPWEAPON); // Okay, we found a weapon to strip - It can be a right-hand, left-hand or two-handed weapon
+				   else if (equip &EQP_SHIELD && !(dstsd->unstripable_equip &EQP_SHIELD) && !(tsc_data && tsc_data[SC_CP_SHIELD].timer != -1) && dstsd->status.inventory[i].equip &0x0020 && itemdb_type(dstsd->status.inventory[i].nameid)==5)
+				   	  strip_flag = (scid[4] = SC_STRIPSHIELD); // Okay, we found a shield to strip - It was really a shield, not a two-handed weapon or a left-hand weapon
+				   if (strip_flag)
+				   	  pc_unequipitem(dstsd,i,3); // Unequip only if one of the 4 previous checks was successful
+				   strip_flag = 0;
 				}
 			}
-			if (i == MAX_INVENTORY)
-				break;
 		}
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		strip_time = skill_get_time(skillid,skilllv)+strip_fix/2;
-		status_change_start(bl,scid,skilllv,0,0,0,strip_time,0 );
-		break;
-	}
-	case ST_FULLSTRIP:	// Celest
-	{
-		struct status_change *tsc_data;
-		int i, j, strip_time, strip_per, strip_fix;
-		int equip[4] = { EQP_WEAPON, EQP_SHIELD, EQP_ARMOR, EQP_HELM };
-		int scid[4] = { SC_STRIPWEAPON, SC_STRIPSHIELD, SC_STRIPARMOR, SC_STRIPHELM };
-		int cp_scid[4] = { SC_CP_WEAPON, SC_CP_SHIELD, SC_CP_ARMOR, SC_CP_HELM };
-		
-		tsc_data = status_get_sc_data(bl);
-		strip_fix = status_get_dex(src) - status_get_dex(bl);
-		if(strip_fix < 0)
-			strip_fix = 0;
-		strip_per = 5+2*skilllv+strip_fix/5;
-		if (rand()%100 >= strip_per)
-			break;
-		strip_time = skill_get_time(skillid,skilllv)+strip_fix/2;
-
-		for (i=0; i<4; i++) {
-			if (dstsd) {
-				if (tsc_data && (tsc_data[scid[i]].timer != -1 || tsc_data[cp_scid[i]].timer != -1))
-					continue;
-				if (dstsd->unstripable_equip & equip[i])
-					continue;
-				for (j=0; j<MAX_INVENTORY; j++) {
-					if (dstsd->status.inventory[j].equip && (dstsd->status.inventory[j].equip & equip[i])){
-						pc_unequipitem(dstsd,j,3);
-						break;
-					}
-				}
-				if (j == MAX_INVENTORY)
-					continue;
+		for (i=1;i<=4;i++) {
+			if (scid[i] != 0) { // Start the SC only if an equipment was stripped from this location
+			   status_change_start(bl,scid[i],skilllv,0,0,0,skill_get_time(skillid,skilllv)+strip_fix/2,0);
 			}
-			status_change_start(bl,scid[i],skilllv,0,0,0,strip_time,0 );
 		}
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
-	}
+		}
 
 	/* PotionPitcher */
 	case AM_POTIONPITCHER:		/* ポ?ションピッチャ? */
@@ -4614,12 +4576,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		skill_unitsetting(src,skillid,skilllv,bl->x,bl->y,0);
 		break;
 
-	// Weapon Refining [Celest]
-	case WS_WEAPONREFINE:
-		if(sd)
-			clif_item_refine_list(sd);
-		break;
-
 	// Slim Pitcher
 	case CR_SLIMPITCHER:
 		{
@@ -4674,16 +4630,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			else
 				status_change_start(src,SC_PRESERVE,skilllv,0,0,0,skill_get_time(skillid, skilllv),0 );
 			clif_skill_nodamage(src,src,skillid,skilllv,1);
-		}
-		break;
-
-	case WS_OVERTHRUSTMAX:	// Overthrust Max
-		{
-			struct status_change *sc_data = status_get_sc_data(src);
-			if (sc_data && sc_data[SC_MAXOVERTHRUST].timer == -1) {
-				clif_skill_nodamage(src,bl,skillid,skilllv,1);
-				status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-			}
 		}
 		break;
 
