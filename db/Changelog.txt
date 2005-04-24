@@ -9,9 +9,11 @@
 	Skill databases == celest working on them i believe.
 
 04/23
+	* Added monsters skills to all Niflheim / Louyang monsters,
+	  changed Garm slaves to Garm Bebe. Thanx to MasterOfMuppets
 	* Fixed Owl Duke Card, now casting IMPOSITIO on the card holder [Lupus]
 	* Panacea,Roayl Jelly now remove Hallucination Effect. accord.to 10 May patch [Lupus]
-	* Hallucination Pills cause Hallucination Effect [Lupus]
+	* Hallucination Pills (Pellet) cause Hallucination Effect [Lupus]
 04/22
 	* Updated effects for Ahura Mazda, Gaia Sword, Freezer Card
 	* Added 4 items of THQ -> item_avail.txt [Lupus]
