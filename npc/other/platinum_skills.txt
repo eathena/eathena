@@ -19,8 +19,8 @@ next;
 menu "Yes",Lgetskills,"No",Lnogetskills;
 
 Lgetskills:
-if ((Class==0) || (Class==Job_Baby) || (Class==4001)) goto Lskillsnovice;
-if ((Class==Job_SuperNovice) || (Class==Job_Super_Baby)) goto Lskillssnovice;
+if (BaseJob==0) goto Lskillsnovice;
+if (BaseJob==Job_SuperNovice) goto Lskillssnovice;
 if ((Class==Job_Swordman) || (Class==7) || (Class==13) || (Class==14)|| (Class==21) || (Class==Job_Baby_Swordman) || (Class==Job_Baby_Knight) || (Class==Job_Baby_Knight2) || (Class==Job_Baby_Crusader) || (Class==Job_Baby_Crusader2)) || (Class==4002) || (Class==4008) || (Class==Job_Lord_Knight2) || (Class==4015) || (Class==Job_Paladin2)  goto Lskillsswordie;
 if ((Class==Job_Mage) || (Class==Job_Baby_Mage) || (Class==Job_Baby_Wizard) || (Class==Job_Baby_Sage) || (Class==9) || (Class==16) || (Class==4003) || (Class==4010) || (Class==4017)) goto Lskillsmage;
 if ((Class==Job_Archer) || (Class==11) || (Class==19) || (Class==20) || (Class==49) ||  (Class==65) || (Class==66) ||(Class==4004) || (Class==4012) || (Class==4020) || (Class==4021)) goto Lskillsarcher;
