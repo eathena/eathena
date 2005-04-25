@@ -1856,13 +1856,16 @@ int clif_cutin(struct map_session_data *sd, char *image, int type) {
  *------------------------------------------
  */
 int clif_additem(struct map_session_data *sd, int n, int amount, int fail) {
-	int fd,j;
+	int fd, j;
 	unsigned char *buf;
 
 	nullpo_retr(0, sd);
 
-	fd=sd->fd;
-	buf=WFIFOP(fd,0);
+	fd = sd->fd;
+	if (fd <= 0)
+		return 0;
+
+	buf = WFIFOP(fd,0);
 	if(fail) {
 		WBUFW(buf,0)=0xa0;
 		WBUFW(buf,2)=n+2;

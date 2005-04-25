@@ -1,4 +1,15 @@
 Date	Added
+04/25
+	* Added fd check to clif_additem [celest]
+	* Optimised weapon stripping/breaking a bit -- skip searching from the item DB
+	  everything we call this [celest]
+	* Fixed a possible crash when adding timer function strings [celest]
+	* Tidied up skill casting time calculating a bit [celest] + Fixed a possible bad
+	  setting when dex > 'castrate_dex_scale', thanks to phabyo
+	* Changed skill unit group checks in status_change_timer a bit [celest]
+	* Fixed possible sql injection with SQL gm command logging, thanks to starlon
+	  [celest]
+
 04/24
 	* Work on skills [DracoRPG]
 	  - Cleanup in skill.c, added missing guild skills and switched all names to iRO ones in skill names list

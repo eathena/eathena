@@ -615,8 +615,8 @@ int pc_break_equip(struct map_session_data *sd, unsigned short where)
 		if (sd->status.inventory[i].attribute != 1 &&
 		   ((where == EQP_HELM && sd->status.inventory[i].equip &0x0100) ||
 		   (where == EQP_ARMOR && sd->status.inventory[i].equip &0x0010) ||
-	  	   (where == EQP_WEAPON && (sd->status.inventory[i].equip &0x0002 || sd->status.inventory[i].equip &0x0020) && itemdb_type(sd->status.inventory[i].nameid)==4) ||
-		   (where == EQP_SHIELD && sd->status.inventory[i].equip &0x0020 && itemdb_type(sd->status.inventory[i].nameid)==5))) {
+	  	   (where == EQP_WEAPON && (sd->status.inventory[i].equip &0x0002 || sd->status.inventory[i].equip &0x0020) && sd->inventory_data[i]->type == 4) ||
+		   (where == EQP_SHIELD && sd->status.inventory[i].equip &0x0020 && sd->inventory_data[i]->type == 5))) {
 			sd->status.inventory[i].attribute = 1;
 			pc_unequipitem(sd,i,3);
 			sprintf(tmp_output, "%s has broken.",sd->inventory_data[i]->jname);

@@ -53,16 +53,15 @@ void gettimeofday(struct timeval *t, void *dummy) {
 int add_timer_func_list(int (*func)(int,unsigned int,int,int), char* name) {
 	struct timer_func_list* tfl;
 
-	//CALLOC(tfl, struct timer_func_list, 1);
-	tfl = (struct timer_func_list*) aCalloc( sizeof(struct timer_func_list) , 1);
-	//MALLOC(tfl->name, char, strlen(name) + 1);
-	tfl->name = (char *) aMalloc( strlen(name) + 1 );
+	if (name) {
+		tfl = (struct timer_func_list*) aCalloc( sizeof(struct timer_func_list) , 1);
+		tfl->name = (char *) aMalloc( strlen(name) + 1 );
 
-	tfl->next = tfl_root;
-	tfl->func = func;
-	strcpy(tfl->name, name);
-	tfl_root = tfl;
-
+		tfl->next = tfl_root;
+		tfl->func = func;
+		strcpy(tfl->name, name);
+		tfl_root = tfl;
+	}
 	return 0;
 }
 

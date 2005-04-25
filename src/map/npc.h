@@ -39,6 +39,7 @@ int npc_get_new_npc_id(void);
 
 void npc_addsrcfile(char *);
 void npc_delsrcfile(char *);
+void npc_parsesrcfile(char *);
 int do_final_npc(void);
 int do_init_npc(void);
 int npc_event_do_oninit(void);

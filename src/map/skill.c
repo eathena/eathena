@@ -3907,9 +3907,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				   	  strip_flag = (scid[1] = SC_STRIPHELM); // Okay, we found a helm to strip
 				   else if (equip &EQP_ARMOR && !(dstsd->unstripable_equip &EQP_ARMOR) && !(tsc_data && tsc_data[SC_CP_ARMOR].timer != -1) && dstsd->status.inventory[i].equip &0x0010)
 				   	  strip_flag = (scid[2] = SC_STRIPARMOR); // Okay, we found an armor to strip
-				   else if (equip &EQP_WEAPON && !(dstsd->unstripable_equip &EQP_WEAPON) && !(tsc_data && tsc_data[SC_CP_WEAPON].timer != -1) && (dstsd->status.inventory[i].equip &0x0002 || dstsd->status.inventory[i].equip &0x0020) && itemdb_type(dstsd->status.inventory[i].nameid)==4)
+				   else if (equip &EQP_WEAPON && !(dstsd->unstripable_equip &EQP_WEAPON) && !(tsc_data && tsc_data[SC_CP_WEAPON].timer != -1) && (dstsd->status.inventory[i].equip &0x0002 || dstsd->status.inventory[i].equip &0x0020) && dstsd->inventory_data[i]->type == 4)
 				   	  strip_flag = (scid[3] = SC_STRIPWEAPON); // Okay, we found a weapon to strip - It can be a right-hand, left-hand or two-handed weapon
-				   else if (equip &EQP_SHIELD && !(dstsd->unstripable_equip &EQP_SHIELD) && !(tsc_data && tsc_data[SC_CP_SHIELD].timer != -1) && dstsd->status.inventory[i].equip &0x0020 && itemdb_type(dstsd->status.inventory[i].nameid)==5)
+				   else if (equip &EQP_SHIELD && !(dstsd->unstripable_equip &EQP_SHIELD) && !(tsc_data && tsc_data[SC_CP_SHIELD].timer != -1) && dstsd->status.inventory[i].equip &0x0020 && dstsd->inventory_data[i]->type == 5)
 				   	  strip_flag = (scid[4] = SC_STRIPSHIELD); // Okay, we found a shield to strip - It was really a shield, not a two-handed weapon or a left-hand weapon
 				   if (strip_flag)
 				   	  pc_unequipitem(dstsd,i,3); // Unequip only if one of the 4 previous checks was successful
@@ -6968,51 +6968,59 @@ int skill_check_condition(struct map_session_data *sd,int type)
 int skill_castfix( struct block_list *bl, int time )
 {
 	struct map_session_data *sd = NULL;
-	struct mob_data *md; // [Valaris]
 	struct status_change *sc_data;
-	int castrate=100;
-	int skill,lv;
+	int skill, lv, castrate = 100;
 
 	nullpo_retr(0, bl);
 
-	if(bl->type==BL_MOB){ // Crash fix [Valaris]
-		nullpo_retr(0, md=(struct mob_data*)bl);
+	if (bl->type == BL_MOB){ // Crash fix [Valaris]
+		struct mob_data *md = (struct mob_data*)bl;
+		if (!md) return 0;
 		skill = md->skillid;
 		lv = md->skilllv;
-	} else {
-		nullpo_retr(0, sd=(struct map_session_data*)bl);
+	} else if (bl->type == BL_PC){
+		sd = (struct map_session_data*)bl;
+		if (!sd) return 0;
 		skill = sd->skillid;
 		lv = sd->skilllv;
-	}
+	} else return 0;
 
-	if(lv <= 0) return 0;
-
-	sc_data = status_get_sc_data(bl);
-
-	if (skill > MAX_SKILL_DB || skill < 0)
-	    return 0;
-
-	/* サフラギウム */
-	if(sc_data && sc_data[SC_SUFFRAGIUM].timer!=-1 )
-		time=time*(100-sc_data[SC_SUFFRAGIUM].val1*15)/100;
-			status_change_end( bl, SC_SUFFRAGIUM, -1);
-
-	if(time==0)
-		return 0;
 	if (sd) {
-		if(!skill_get_castnodex(skill, lv) > 0) {
-			castrate=((struct map_session_data *)bl)->castrate;
-			time=time*castrate*(battle_config.castrate_dex_scale - status_get_dex(bl))/(battle_config.castrate_dex_scale * 100);
-			time=time*battle_config.cast_rate/100;
+		// calculate cast time reduced by dex
+		if (!skill_get_castnodex(skill, lv) > 0) {
+			int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
+			if (scale > 0)	// not instant cast
+				castrate = castrate * scale / battle_config.castrate_dex_scale;
+			else // instant cast -- but we still continue calculating in case
+				castrate = 0;
 		}
+		// calculate cast time reduced by card bonuses
+		if (sd->castrate != 100)
+			castrate -= (100 - sd->castrate);
 	}
 
-	/* ブラギの詩 */
-	if(sc_data && sc_data[SC_POEMBRAGI].timer!=-1)
-		time=time*(100-(sc_data[SC_POEMBRAGI].val1*3+sc_data[SC_POEMBRAGI].val2
-			+(sc_data[SC_POEMBRAGI].val3>>16)))/100;
+	// calculate cast time reduced by skill bonuses
+	sc_data = status_get_sc_data(bl);
+	/* サフラギウム */
+	if (sc_data) {
+		if (sc_data[SC_SUFFRAGIUM].timer != -1) {
+			castrate -= sc_data[SC_SUFFRAGIUM].val1 * 15;
+			status_change_end(bl, SC_SUFFRAGIUM, -1);
+		}	
+		/* ブラギの詩 */
+		if (sc_data[SC_POEMBRAGI].timer != -1)
+			castrate -= (sc_data[SC_POEMBRAGI].val1 * 3 + sc_data[SC_POEMBRAGI].val2
+				+(sc_data[SC_POEMBRAGI].val3 >> 16));
+	}
 
-	return (time>0)?time:0;
+	// return if cast time is already zero
+	if (castrate <= 0)
+		return 0;
+
+	// calculate final cast time
+	time = time * castrate * battle_config.cast_rate / 10000;
+
+	return (time > 0) ? time : 0;
 }
 /*==========================================
  * ディレイ計算

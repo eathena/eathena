@@ -4546,33 +4546,27 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			struct skill_unit *unit=
 				(struct skill_unit *)sc_data[type].val4;
 			struct block_list *src;
-			nullpo_retb(unit);
-			nullpo_retb(unit->group);
-			nullpo_retb(src=map_id2bl(unit->group->src_id));
-			skill_attack(BF_MISC,src,&unit->bl,bl,unit->group->skill_id,sc_data[type].val1,tick,0);
-			if( (bl->type==BL_MOB) && (MS_DEAD==((struct mob_data *)bl)->state.state) )
-				break;
-			sc_data[type].timer=add_timer(skill_get_time2(unit->group->skill_id,unit->group->skill_lv)+tick,
-				status_change_timer, bl->id, data );
+			if (unit && unit->group && (src = map_id2bl(unit->group->src_id)) != NULL) {
+				skill_attack(BF_MISC, src, &unit->bl, bl, unit->group->skill_id, sc_data[type].val1, tick, 0);
+				if (status_isdead(bl))
+					break;
+				sc_data[type].timer = add_timer(skill_get_time2(unit->group->skill_id, unit->group->skill_lv) + tick,
+					status_change_timer, bl->id, data);
+			}
 			return 0;
 		}
 		break;
 
 	case SC_LULLABY:	/* qç‰S */
 		if( (--sc_data[type].val2)>0){
-			struct skill_unit *unit=
+			struct skill_unit *unit =
 				(struct skill_unit *)sc_data[type].val4;
-			nullpo_retb(unit);
-			nullpo_retb(unit->group);
-			if(unit->group->src_id == bl->id)
-				break;
-			skill_additional_effect(bl,bl,unit->group->skill_id,sc_data[type].val1,BF_LONG|BF_SKILL|BF_MISC,tick);
-			if (unit->group != 0)
-			{
-				sc_data[type].timer=add_timer(skill_get_time(unit->group->skill_id,unit->group->skill_lv)/10+tick,
-					status_change_timer, bl->id, data );
+			if (unit && unit->group && unit->group->src_id != bl->id) {
+				skill_additional_effect(bl, bl, unit->group->skill_id, sc_data[type].val1, BF_LONG|BF_SKILL|BF_MISC, tick);
+				sc_data[type].timer = add_timer(skill_get_time(unit->group->skill_id, unit->group->skill_lv)/10+tick,
+					status_change_timer, bl->id, data);
 				return 0;
-			}// dont forget the brackets
+			}
 		}
 		break;
 

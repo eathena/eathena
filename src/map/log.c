@@ -441,6 +441,7 @@ int log_atcommand(struct map_session_data *sd, const char *message)
 	FILE *logfp;
 #ifndef TXT_ONLY
 		char t_name[100];
+		char t_msg[100];
 #endif
 
 	if(log_config.enable_logs <= 0)
@@ -450,7 +451,7 @@ int log_atcommand(struct map_session_data *sd, const char *message)
 	if(log_config.sql_logs > 0)
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`atcommand_date`, `account_id`, `char_id`, `char_name`, `map`, `command`) VALUES(NOW(), '%d', '%d', '%s', '%s', '%s') ",
-			log_config.log_gm_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), sd->mapname, message);
+			log_config.log_gm_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), sd->mapname, jstrescapecpy(t_msg, (char *)message));
 		if(mysql_query(&mmysql_handle, tmp_sql))
 			printf("DB server Error - %s\n",mysql_error(&mmysql_handle));
 	} else {
