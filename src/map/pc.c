@@ -568,9 +568,9 @@ int pc_isequip(struct map_session_data *sd,int n)
 		return 0;
 	if(map[sd->bl.m].flag.gvg && (item->flag.no_equip>1)) //optimized by Lupus
 		return 0;
-	if((item->equip & 0x0002 || item->equip & 0x0020) && itemdb_type(item->nameid) == 4 && sc_data && sc_data[SC_STRIPWEAPON].timer != -1) // Also works with left-hand weapons [DracoRPG]
+	if((item->equip & 0x0002 || item->equip & 0x0020) && item->type == 4 && sc_data && sc_data[SC_STRIPWEAPON].timer != -1) // Also works with left-hand weapons [DracoRPG]
 		return 0;
-	if(item->equip & 0x0020 && itemdb_type(item->nameid) == 5 && sc_data && sc_data[SC_STRIPSHIELD].timer != -1) // Also works with left-hand weapons [DracoRPG]
+	if(item->equip & 0x0020 && item->type == 5 && sc_data && sc_data[SC_STRIPSHIELD].timer != -1) // Also works with left-hand weapons [DracoRPG]
 		return 0;
 	if(item->equip & 0x0010 && sc_data && sc_data[SC_STRIPARMOR].timer != -1)
 		return 0;
@@ -619,7 +619,7 @@ int pc_break_equip(struct map_session_data *sd, unsigned short where)
 		   (where == EQP_SHIELD && sd->status.inventory[i].equip &0x0020 && sd->inventory_data[i]->type == 5))) {
 			sd->status.inventory[i].attribute = 1;
 			pc_unequipitem(sd,i,3);
-			sprintf(tmp_output, "%s has broken.",sd->inventory_data[i]->jname);
+			sprintf(tmp_output, "%s has broken.",sd->inventory_data[i]->name);
 			clif_emotion(&sd->bl,23);
 			clif_displaymessage(sd->fd, tmp_output);
 			clif_equiplist(sd);

@@ -3879,8 +3879,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case ST_FULLSTRIP:			// Rewritten most of the code [DracoRPG]
 		{
 		struct status_change *tsc_data;
-		int strip_fix, strip_flag = 0, equip = 0;
-		int scid[4] = {0,0,0,0};
+		int strip_fix, equip = 0;
+		int sclist[4] = {0,0,0,0};
 
 		tsc_data = status_get_sc_data(bl);
 
@@ -3900,28 +3900,41 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			break;
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 
-		if (dstsd) {
+		if (bl->type == BL_PC && dstsd) {
 			for (i=0;i<MAX_INVENTORY;i++) {
 				if (dstsd->status.inventory[i].equip) {
-				   if (equip &EQP_HELM && !(dstsd->unstripable_equip &EQP_HELM) && !(tsc_data && tsc_data[SC_CP_HELM].timer != -1) && dstsd->status.inventory[i].equip &0x0100)
-				   	  strip_flag = (scid[1] = SC_STRIPHELM); // Okay, we found a helm to strip
-				   else if (equip &EQP_ARMOR && !(dstsd->unstripable_equip &EQP_ARMOR) && !(tsc_data && tsc_data[SC_CP_ARMOR].timer != -1) && dstsd->status.inventory[i].equip &0x0010)
-				   	  strip_flag = (scid[2] = SC_STRIPARMOR); // Okay, we found an armor to strip
-				   else if (equip &EQP_WEAPON && !(dstsd->unstripable_equip &EQP_WEAPON) && !(tsc_data && tsc_data[SC_CP_WEAPON].timer != -1) && (dstsd->status.inventory[i].equip &0x0002 || dstsd->status.inventory[i].equip &0x0020) && dstsd->inventory_data[i]->type == 4)
-				   	  strip_flag = (scid[3] = SC_STRIPWEAPON); // Okay, we found a weapon to strip - It can be a right-hand, left-hand or two-handed weapon
-				   else if (equip &EQP_SHIELD && !(dstsd->unstripable_equip &EQP_SHIELD) && !(tsc_data && tsc_data[SC_CP_SHIELD].timer != -1) && dstsd->status.inventory[i].equip &0x0020 && dstsd->inventory_data[i]->type == 5)
-				   	  strip_flag = (scid[4] = SC_STRIPSHIELD); // Okay, we found a shield to strip - It was really a shield, not a two-handed weapon or a left-hand weapon
-				   if (strip_flag)
-				   	  pc_unequipitem(dstsd,i,3); // Unequip only if one of the 4 previous checks was successful
-				   strip_flag = 0;
+					if (equip &EQP_WEAPON && (dstsd->status.inventory[i].equip &0x0002 || dstsd->status.inventory[i].equip &0x0020) && dstsd->inventory_data[i]->type == 4 && !(dstsd->unstripable_equip &EQP_WEAPON) && !(tsc_data && tsc_data[SC_CP_WEAPON].timer != -1)) {
+				   		sclist[1] = SC_STRIPWEAPON; // Okay, we found a weapon to strip - It can be a right-hand, left-hand or two-handed weapon
+						pc_unequipitem(dstsd,i,3);
+					} else if (equip &EQP_SHIELD && dstsd->status.inventory[i].equip &0x0020 && dstsd->inventory_data[i]->type == 5 && !(dstsd->unstripable_equip &EQP_SHIELD) && !(tsc_data && tsc_data[SC_CP_SHIELD].timer != -1)) {
+						sclist[2] = SC_STRIPSHIELD; // Okay, we found a shield to strip - It is really a shield, not a two-handed weapon or a left-hand weapon
+						pc_unequipitem(dstsd,i,3);
+					} else if (equip &EQP_ARMOR && dstsd->status.inventory[i].equip &0x0010 && !(dstsd->unstripable_equip &EQP_ARMOR) && !(tsc_data && tsc_data[SC_CP_ARMOR].timer != -1)) {
+						sclist[3] = SC_STRIPARMOR; // Okay, we found an armor to strip
+						pc_unequipitem(dstsd,i,3);
+					} else if (equip &EQP_HELM && dstsd->status.inventory[i].equip &0x0100 && !(dstsd->unstripable_equip &EQP_HELM) && !(tsc_data && tsc_data[SC_CP_HELM].timer != -1)) {
+						sclist[4] = SC_STRIPHELM; // Okay, we found a helm to strip
+						pc_unequipitem(dstsd,i,3);
+					}
 				}
 			}
+		} else if (bl->type == BL_MOB) {
+			if (equip &EQP_WEAPON)
+				sclist[1] = SC_STRIPWEAPON;
+			if (equip &EQP_SHIELD)
+				sclist[2] = SC_STRIPSHIELD;
+			if (equip &EQP_ARMOR)
+				sclist[3] = SC_STRIPARMOR;
+			if (equip &EQP_HELM)
+				sclist[4] = SC_STRIPHELM;
 		}
+
 		for (i=1;i<=4;i++) {
-			if (scid[i] != 0) { // Start the SC only if an equipment was stripped from this location
-			   status_change_start(bl,scid[i],skilllv,0,0,0,skill_get_time(skillid,skilllv)+strip_fix/2,0);
+			if (sclist[i] != 0) { // Start the SC only if an equipment was stripped from this location
+			   status_change_start(bl,sclist[i],skilllv,0,0,0,skill_get_time(skillid,skilllv)+strip_fix/2,0);
 			}
 		}
+
 		break;
 		}
 

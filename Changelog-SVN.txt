@@ -1,5 +1,6 @@
 Date	Added
 04/25
+	* Further improvements on stripping/breaking + added support for targeting mobs with strip skills [DracoRPG]
 	* Added fd check to clif_additem [celest]
 	* Optimised weapon stripping/breaking a bit -- skip searching from the item DB
 	  everything we call this [celest]
