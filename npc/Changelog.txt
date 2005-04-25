@@ -36,6 +36,8 @@ TODO:
 Date		Added
 ======
 
+04/25
+	* Fixed typos in novice and thief job quests, thanks to zlider
 04/23
 	* Fixed 2 scripts which used old job_baby constant [Lupus]
 	* Removed old duplicate job change in Alchemist job quest, thanks to NeoSaro [DracoRPG]

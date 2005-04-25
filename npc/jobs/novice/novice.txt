@@ -2066,7 +2066,7 @@ new_1-4.gat,60,149,4	script	Helper	55,{
 			mes "[Helper]";
 			mes "Let warp you";
 			next;
-			warp "new-5_4.gat",100,176;
+			warp "new_1-4.gat",100,176;
 			close;
 		WarpJobMagican:
 			mes "[Helper]";

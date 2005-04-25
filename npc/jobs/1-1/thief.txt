@@ -117,7 +117,7 @@ M_Menu:
 		next;
 		mes "(you fill out the form and hand it back)";
 		next;
-		if(JobLevel < 10) goto sL_Joblvl;
+		if(JobLevel < 10) goto sL_JobLvl;
 
 		mes "[Thief Guide]";
 		mes "Alrighty ^ff0000"+ strcharinfo(0) + "^000000, if that IS your real name..... looks like you've got quite a 'record' here.";

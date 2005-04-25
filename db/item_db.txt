@@ -161,8 +161,8 @@
 681,Wedding_Photo_Album,Wedding Photo Album,2,20,0,10,,,,,0,3,,,,,{},{} //should call wedding effect
 682,Realgar_Wine,Realgar Wine,2,20,0,100,,,,,10477567,2,,,,,{ sc_start SC_ATKPOT,60,30; },{}
 683,Exorcize_Herb,Exorcize Herb,2,20,0,50,,,,,10477567,2,,,,,{ sc_start SC_MATKPOT,60,30; },{}
-684,Durian,Durian,2,20,0,30,,,,,0,3,,,,,{ sc_start SC_ATKPOT,60,10; sc_start SC_MATKPOT,60,10; },{}
-685,Ramadan,Ramadan,2,20,10,300,,,,,0,3,,,,,{},{}
+684,Durian,Durian,2,20,0,30,,,,,10477567,2,,,,,{ sc_start SC_ATKPOT,60,10; sc_start SC_MATKPOT,60,10; },{}
+685,Ramadan,Ramadan,2,20,10,300,,,,,10477567,2,,,,,{},{}
 
 // Scrolls
 686,Earth_Spike_3,Earth Spike Level 3,2,650,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 90,3,"Earth Spike Level 3"; },{}

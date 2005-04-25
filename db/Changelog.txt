@@ -8,6 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them i believe.
 
+04/25
+	* Fixed Durian and Ramadan, thanks to rollopop
 04/23
 	* Fixed Red Scarf name, thanks to Sasuke [DracoRPG]
 	* Removed some extra 0's in the item_db, thanks to Zoc
