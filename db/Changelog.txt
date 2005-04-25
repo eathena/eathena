@@ -8,6 +8,10 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them i believe.
 
+04/26
+	* Started implementing missing card effects [Lupus]
+	* Reverted changes of DOUBLE / ARROWSHOWER delays (outdated info) [Lupus]
+	* Added more mobs skills, thanx to MasterOfMuppets [Lupus]
 04/25
 	* Fixed Durian and Ramadan, thanks to rollopop
 04/23

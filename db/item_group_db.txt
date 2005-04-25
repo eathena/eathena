@@ -5,7 +5,7 @@
 3,512,513,514,515,516		// fruits
 4,517,528			// meat
 5,529,530			// candy
-6,531,532,533,534		// juices
+6,531,532,534		// juices (removed Grape juice 533)
 7,544,551			// raw fish
 8,603,617,644			// boxes
 9,715,716,717			// gemstones
