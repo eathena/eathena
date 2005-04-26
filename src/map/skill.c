@@ -383,7 +383,7 @@ const struct skill_name_db skill_names[] = {
  { SA_COMA, "COMA", "Coma" } ,
  { SA_DEATH, "DEATH", "Grim_Reaper" } ,
  { SA_DELUGE, "DELUGE", "Deluge" } ,
- { SA_DISPELL, "DISPELL", "Dispel" } ,
+ { SA_DISPELL, "DISPELL", "Dispell" } ,
  { SA_DRAGONOLOGY, "DRAGONOLOGY", "Dragonology" } ,
  { SA_FLAMELAUNCHER, "FLAMELAUNCHER", "Endow_Blaze" } ,
  { SA_FORTUNE, "FORTUNE", "Gold_Digger" } ,
@@ -4689,10 +4689,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				case 4:	// atk halved
 					status_change_start(bl,SC_INCATK2,-50,0,0,0,30000,0);
 					break;
-				case 5:	// random teleported
+				case 5:	// 2000HP heal, random teleported
 					if (bl->prev != NULL) {
-						if(sd) pc_setpos(sd,sd->mapname,-1,-1,3);
-						else if(md) mob_warp(md,-1,-1,-1,3);
+						if(sd){
+							pc_heal(sd,2000,0);
+							if(!map[sd->bl.m].flag.noteleport)
+								pc_setpos(sd,sd->mapname,-1,-1,3);
+						}
 					}
 					break;
 				case 6:	// random 2 other effects
@@ -5342,8 +5345,13 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 		break;
 
 	case HW_GANBANTEIN:
-		clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
-		map_foreachinarea (skill_ganbatein, src->m, x-1, y-1, x+1, y+1, BL_SKILL);
+		if (rand()%100 < 80) {
+			clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
+			map_foreachinarea (skill_ganbatein, src->m, x-1, y-1, x+1, y+1, BL_SKILL);
+		} else {
+			clif_skill_fail(sd,skillid,0,0);
+			return 1;
+		}
 		break;
 	
 	case HW_GRAVITATION:
@@ -5363,15 +5371,19 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 				int i = skilllv - 1;
 				int j = pc_search_inventory(sd,skill_db[skillid].itemid[i]);
 				if(j < 0 || skill_db[skillid].itemid[i] <= 0 || sd->inventory_data[j] == NULL ||
-					sd->status.inventory[j].amount < skill_db[skillid].amount[i] ||
-					rand() % 1000 > 750) {	// unknown failure rate!
+					sd->status.inventory[j].amount < skill_db[skillid].amount[i]) {
+					clif_skill_fail(sd,skillid,0,0);
+					return 1;
+				}
+				pc_delitem(sd,j,skill_db[skillid].amount[i],0);
+				if (rand()%100 > 50) {
 					clif_skill_fail(sd,skillid,0,0);
 					return 1;
 				}
 				mob_once_spawn(sd, "this", x, y, "--ja--",
 					(skilllv < 2 ? 1084 + rand() % 2 : 1078 + rand() % 6 ), 1, "");
 				clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
-				pc_delitem(sd,j,skill_db[skillid].amount[i],0);
+
 			}
 		}
 		break;
@@ -9127,10 +9139,10 @@ int skill_produce_mix( struct map_session_data *sd,
 			make_per = make_per * battle_config.pp_rate / 100;
 	} else { // Corrected rates [DracoRPG]
 		int add_per=0;
-		if(pc_search_inventory(sd,989) >= 0) add_per = 400;
-		else if(pc_search_inventory(sd,988) >= 0) add_per = 300;
-		else if(pc_search_inventory(sd,987) >= 0) add_per = 200;
-		else if(pc_search_inventory(sd,986) >= 0) add_per = 100;
+		if(pc_search_inventory(sd,989) > 0) add_per = 400;
+		else if(pc_search_inventory(sd,988) > 0) add_per = 300;
+		else if(pc_search_inventory(sd,987) > 0) add_per = 200;
+		else if(pc_search_inventory(sd,986) > 0) add_per = 100;
 		make_per = 1500 + sd->status.job_level*35 + sd->paramc[4]*10 + sd->paramc[5]*10 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*1000 + pc_checkskill(sd,BS_WEAPONRESEARCH)*100 +
 			((wlv >= 3)? pc_checkskill(sd,BS_ORIDEOCON)*100 : 0) + add_per - (ele? 2500:0) - sc*((4-wlv)*500) - wlv*1000;
 		if(battle_config.wp_rate != 100)	/* ämó¶ï‚ê≥ */

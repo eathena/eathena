@@ -1,15 +1,20 @@
 Date	Added
+04/26
+	* Applied new advanced skills changes from 4/26 patch [DracoRPG]
+	  I could not do everything, things remaining to do :
+	  - Alter Double Casting success rate (did not find the code... is there one ? xD)
+	  - Check that all songs/dances/duets are uncancelable by Dispell
+	  - Make Wand of Hermod affect only party/guild members (and check for a warp portal !)
 04/25
 	* Further improvements on stripping/breaking + added support for targeting mobs with strip skills [DracoRPG]
 	* Added fd check to clif_additem [celest]
 	* Optimised weapon stripping/breaking a bit -- skip searching from the item DB
 	  everything we call this [celest]
 	* Fixed a possible crash when adding timer function strings [celest]
-	* Tidied up skill casting time calculating a bit [celest] + Fixed a possible bad
-	  setting when dex > 'castrate_dex_scale', thanks to phabyo
+	* Tidied up skill casting time calculating a bit + Fixed a possible bad
+	  setting when dex > 'castrate_dex_scale', thanks to phabyo [celest]
 	* Changed skill unit group checks in status_change_timer a bit [celest]
-	* Fixed possible sql injection with SQL gm command logging, thanks to starlon
-	  [celest]
+	* Fixed possible sql injection with SQL gm command logging, thanks to starlon [celest]
 
 04/24
 	* Work on skills [DracoRPG]

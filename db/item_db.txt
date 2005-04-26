@@ -19,7 +19,7 @@
 513,Banana,Banana,0,15,0,20,,,,,10477567,2,,,,,{ itemheal rand(17,20),0; },{}
 514,Grape,Grape,0,200,0,20,,,,,10477567,2,,,,,{ itemheal 0,rand(10,14); },{}
 515,Carrot,Carrot,0,15,0,20,,,,,10477567,2,,,,,{ itemheal rand(18,19),0; },{}
-516,Sweet_Potato,Sweet Potato,0,15,0,20,,,,,10477567,2,,,,,{ itemheal rand(15,22),0; },{}
+516,Sweet_Potato,Sweet Potato,0,15,0,20,,,,,10477567,2,,,,,{ itemheal rand(15,22),0; if(rand(100)<3) sc_stat SC_Stan,10000,0; },{}
 517,Meat,Meat,0,50,0,150,,,,,10477567,2,,,,,{ itemheal rand(70,99),0; },{}
 518,Honey,Honey,0,500,0,100,,,,,10477567,2,,,,,{ itemheal rand(70,99),rand(20,39); },{}
 519,Milk,Milk,0,25,0,30,,,,,10477567,2,,,,,{ itemheal rand(27,36),0; },{}
@@ -37,7 +37,7 @@
 533,Grape_Juice,Grape Juice,0,250,0,40,,,,,10477567,2,,,,,{ itemheal 0,rand(15,24); },{}
 534,Carrot_Juice,Carrot Juice,0,20,0,40,,,,,10477567,2,,,,,{ itemheal rand(27,32),0; },{}
 535,Pumkin,Pumpkin,0,15,0,20,,,,,10477567,2,,,,,{ itemheal 19,0; },{}
-536,Ice_Cream,Ice Cream,0,150,0,80,,,,,10477567,2,,,,,{ itemheal rand(105,144),0; if(rand(100)>24) end; sc_start SC_Freeze,10000,0; },{}
+536,Ice_Cream,Ice Cream,0,150,0,80,,,,,10477567,2,,,,,{ itemheal rand(105,144),0; if(rand(100)<24) sc_start SC_Freeze,10000,0; },{}
 537,Pet_Food,Pet Food,0,1000,0,10,,,,,10477567,2,,,,,{ itemheal rand(50,89),0; },{}
 538,Well-baked_Cookie,Well-baked Cookie,0,1000,0,30,,,,,10477567,2,,,,,{ itemheal rand(160,199),0; },{}
 539,Piece_of_Cake,Piece of Cake,0,3000,0,100,,,,,10477567,2,,,,,{ itemheal rand(270,329),0; },{}
@@ -70,7 +70,7 @@
 567,Prawn,Prawn,0,20,0,20,,,,,10477567,3,,,,,{ itemheal rand(50,100),0; },{}
 568,Lemon,Lemon,0,20,0,20,,,,,0,3,,,,,{},{}
 569,Novice's_Red_Potion,Novices Red Potion,0,50,0,70,,,,,10477567,2,,,,,{ itemheal rand(45,64),0; },{}
-// st.Valentine's Day Items
+// St.Valentine's Day Items
 570,Fortune_Candy,Fortune Candy,0,10,0,30,,,,,10477567,2,,,,,{ itemheal rand(45,64),0; },{}
 571,Fortune_Candy_Cane,Fortune Candy Cane,0,20,0,40,,,,,10477567,2,,,,,{ itemheal rand(105,144),0; },{}
 572,Fortune_Cookie,Fortune Cookie,0,15,0,30,,,,,10477567,2,,,,,{ itemheal rand(45,64),0; },{}
@@ -128,17 +128,19 @@
 642,Book_of_Devil,Book of Devil,2,1800,0,50,,,,,10477567,2,,,,,{ pet 1101; },{}
 643,Pet_Incubator,Pet Incubator,2,3000,,30,,,,,10477567,2,,,,,{ bpet; },{}
 
-// Misc Items
+// More Usable Items
 //===================================================================
 644,Gift_Box,Gift Box,2,2,0,200,,,,,10477567,2,,,,,{ getitem -4,1; },{},
+// ASPD Potions
 645,Concentration_Potion,Concentration Potion,2,800,0,100,,,,,10477567,2,,,,,{ sc_start SC_SpeedPot0,1800,0; },{}
 656,Awakening_Potion,Awakening Potion,2,1500,0,150,,,,,8904431,2,,,40,,{ sc_start SC_SpeedPot1,1800,0; },{}
 657,Berserk_Potion,Berserk Potion,2,3000,0,200,,,,,411302,2,,,85,,{ sc_start SC_SpeedPot2,1800,0; },{}
+// Guild EXP Giver
 658,Tribal_Solidarity,Tribal Solidarity,2,1000,0,500,,,,,10477567,2,,,,,{ guildgetexp rand(1,10000); },{}
+// New Pet Tames
 659,Her_Heart,Her Heart,2,500,0,50,,,,,10477567,2,,,,,{ pet 1188; },{}
 660,Forbidden_Red_Candle,Red Candle,2,20,0,50,,,,,10477567,2,,,,,{ pet 1200; },{}
 661,Sky_Apron,Soft Apron,2,20,0,50,,,,,10477567,2,,,,,{ pet 1275; },{}
-
 // Newer Items
 662,Horse_Crest,Crest of the Horse,2,3000,0,30,0,0,0,0,10477567,2,0,0,0,0,{ skilleffect 507,5; sc_start SC_SpeedUp0,240000,0; },{}
 664,Gift_Box_,Gift Box,2,20,0,200,,,,,10477567,2,,,,,{ getitem -4,1; },{},

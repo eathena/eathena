@@ -799,10 +799,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(sd->sc_data[SC_LOUD].timer!=-1)	// ラウドボイス
 			sd->paramb[0]+= 4;
 		if(sd->sc_data[SC_QUAGMIRE].timer!=-1){	// クァグマイア
-			//int agib = (sd->status.agi+sd->paramb[1]+sd->parame[1])*(sd->sc_data[SC_QUAGMIRE].val1*10)/100;
-			//int dexb = (sd->status.dex+sd->paramb[4]+sd->parame[4])*(sd->sc_data[SC_QUAGMIRE].val1*10)/100;
-			//sd->paramb[1]-= agib > 50 ? 50 : agib;
-			//sd->paramb[4]-= dexb > 50 ? 50 : dexb;
 			sd->paramb[1]-= sd->sc_data[SC_QUAGMIRE].val1*5;
 			sd->paramb[4]-= sd->sc_data[SC_QUAGMIRE].val1*5;
 			sd->speed = sd->speed*3/2;
@@ -866,14 +862,14 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		}
 	}
 
-	// If Super Novice / Super Bany Never Died till Job70 they get bonus: AllStats +10
+	// If Super Novice / Super Baby Never Died till Job70 they get bonus: AllStats +10
 	if(s_class.job == 23 && sd->die_counter == 0 && sd->status.job_level >= 70){
-		sd->paramb[0]+= 15;
-		sd->paramb[1]+= 15;
-		sd->paramb[2]+= 15;
-		sd->paramb[3]+= 15;
-		sd->paramb[4]+= 15;
-		sd->paramb[5]+= 15;
+		sd->paramb[0]+= 10;
+		sd->paramb[1]+= 10;
+		sd->paramb[2]+= 10;
+		sd->paramb[3]+= 10;
+		sd->paramb[4]+= 10;
+		sd->paramb[5]+= 10;
 	}
 	sd->paramc[0]=sd->status.str+sd->paramb[0]+sd->parame[0];
 	sd->paramc[1]=sd->status.agi+sd->paramb[1]+sd->parame[1];
@@ -1210,6 +1206,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->sc_data[i=SC_SPEEDPOTION1].timer!=-1 ||
 			sd->sc_data[i=SC_SPEEDPOTION0].timer!=-1)	// ? 速ポ?ション
 			aspd_rate -= sd->sc_data[i].val2;
+		if(sd->sc_data[SC_GRAVITATION].timer!=-1)
+		    aspd_rate += sd->sc_data[SC_GRAVITATION].val1*5;
 		if(sd->sc_data[SC_WINDWALK].timer!=-1 && sd->sc_data[SC_INCREASEAGI].timer==-1)	//ウィンドウォ?ク暫ﾍLv*2%減算
 			sd->speed -= sd->speed *(sd->sc_data[SC_WINDWALK].val1*2)/100;
 		if(sd->sc_data[SC_CARTBOOST].timer!=-1)	// カ?トブ?スト
@@ -1332,17 +1330,11 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(sd->sc_data[SC_TRUESIGHT].timer!=-1) //トゥル?サイト
 			sd->critical += sd->critical*(sd->sc_data[SC_TRUESIGHT].val1)/100;
 
-/*		if(sd->sc_data[SC_VOLCANO].timer!=-1)	// エンチャントポイズン(?性はbattle.cで)
-			sd->addeff[2]+=sd->sc_data[SC_VOLCANO].val2;//% of granting
-		if(sd->sc_data[SC_DELUGE].timer!=-1)	// エンチャントポイズン(?性はbattle.cで)
-			sd->addeff[0]+=sd->sc_data[SC_DELUGE].val2;//% of granting
-		*/
 		if(sd->sc_data[SC_BERSERK].timer!=-1) {	//All Def/MDef reduced to 0 while in Berserk [DracoRPG]
 			sd->def = sd->def2 = 0;
 			sd->mdef = sd->mdef2 = 0;
 			sd->flee -= sd->flee*50/100;
 			aspd_rate -= 30;
-			//sd->base_atk *= 3;
 		}
 		if(sd->sc_data[SC_INCDEF2].timer!=-1) {
 			sd->def *= (100+sd->sc_data[SC_INCDEF2].val1)/100;
@@ -1430,9 +1422,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				sd->hit += 10;
 				sd->flee += 10;
 			}
-		}
-		if (sd->sc_data[SC_GRAVITATION].timer != -1) {
-			sd->speed_rate += sd->sc_data[SC_GRAVITATION].val2;
 		}
 	}
 
@@ -1613,8 +1602,6 @@ int status_calc_speed (struct map_session_data *sd)
 			sd->speed = sd->speed*150/100;
 		if(sd->sc_data[SC_SPEEDUP0].timer!=-1)
 			sd->speed -= sd->speed*25/100;
-		if (sd->sc_data[SC_GRAVITATION].timer != -1)
-			sd->speed = sd->speed * (100 + sd->sc_data[SC_GRAVITATION].val2) / 100;
 	}
 
 	if(sd->status.option&2 && (skill = pc_checkskill(sd,RG_TUNNELDRIVE))>0 )
@@ -2703,13 +2690,15 @@ int status_get_adelay(struct block_list *bl)
 			if(sc_data[SC_GOSPEL].timer!=-1 &&
 				sc_data[SC_GOSPEL].val4 == BCT_ENEMY &&
 				sc_data[SC_GOSPEL].val3 == 8)
-				aspd_rate = aspd_rate*125/100;
+				aspd_rate += 25;
 			if(sc_data[SC_JOINTBEAT].timer!=-1) {
 				if (sc_data[SC_JOINTBEAT].val2 == 1)
-					aspd_rate = aspd_rate*125/100;
+					aspd_rate += 25;
 				else if (sc_data[SC_JOINTBEAT].val2 == 2)
-					aspd_rate = aspd_rate*110/100;
+					aspd_rate += 10;
 			}
+			if(sc_data[SC_GRAVITATION].timer!=-1)
+			    aspd_rate += sc_data[SC_GRAVITATION].val1*5;
 		}
 		if(aspd_rate != 100)
 			adelay = adelay*aspd_rate/100;
@@ -3884,7 +3873,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 					sd->canact_tick += tick;
 				} else calc_flag = 1;
 			}
-			//val2 = 10+val1*2;
 			break;
 
 		case SC_HERMODE:
