@@ -144,9 +144,10 @@ enum AtCommandType {
 	AtCommand_GuildRecall, // by Yor
 	AtCommand_PartyRecall, // by Yor
 	AtCommand_Nuke,	// [Valaris]
-	AtCommand_Enablenpc,
+	AtCommand_Shownpc,
 	AtCommand_Hidenpc,
-	AtCommand_Disablenpc,
+	AtCommand_Loadnpc,
+	AtCommand_Unloadnpc,
 	AtCommand_ServerTime, // by Yor
 	AtCommand_CharDelItem, // by Yor
 	AtCommand_Jail, // by Yor

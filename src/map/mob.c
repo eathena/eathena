@@ -4023,15 +4023,15 @@ static int mob_readdb(void)
 			mob_db[class_].max_hp = atoi(str[4]);
 			mob_db[class_].max_sp = atoi(str[5]);
 
-			exp = (double)(atoi(str[6]) * battle_config.base_exp_rate / 100);
+			exp = (double)atoi(str[6]) * (double)battle_config.base_exp_rate / 100.;
 			if (exp < 0) exp = 0;
-			else if (exp > 1000000000) exp = 1000000000;
-			mob_db[class_].base_exp = exp;
+			else if (exp > 0x7fffffff) exp = 0x7fffffff;
+			mob_db[class_].base_exp = (int)exp;
 
-			exp = (double)(atoi(str[7]) * battle_config.job_exp_rate / 100);
+			exp = (double)atoi(str[7]) * (double)battle_config.job_exp_rate / 100.;
 			if (exp < 0) exp = 0;
-			else if (exp > 1000000000) exp = 1000000000;
-			mob_db[class_].job_exp = exp;
+			else if (exp > 0x7fffffff) exp = 0x7fffffff;
+			mob_db[class_].job_exp = (int)exp;
 			
 			mob_db[class_].range=atoi(str[8]);
 			mob_db[class_].atk1=atoi(str[9]);

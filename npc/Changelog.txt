@@ -36,6 +36,8 @@ TODO:
 Date		Added
 ======
 
+04/26
+	* Corrected view for Whitesmith NPC, thanks to Disiesel
 04/25
 	* Fixed typos in novice and thief job quests, thanks to zlider
 04/23

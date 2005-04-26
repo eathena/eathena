@@ -1,5 +1,13 @@
 Date	Added
 04/26
+	* Added @load/unloadnpc [celest]
+	  usage: @loadnpc <path to script file, i.e npc/other/test.txt>,
+		@unloadnpc <NPC name>
+	* Changed @enable/disablenpc to @show/hidenpc [celest]
+	  -- Note: the script commands 'enable/disablenpc' arent affected
+	* Updated max packet to 0x234 for 205-04-25aSakexe [celest]
+	* Added cannot use warps when hidden/cloaked [celest]
+	* Re-fixed an exp overflow bug and raised cap to 2bil [celest]
 	* Added some more of kRO's 04/26 patch [celest]
 	* Fixed a crash in stripping skills [celest]
 	* Tidied up battle.c a bit [celest]

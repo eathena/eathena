@@ -165,9 +165,10 @@ ACMD_FUNC(repairall); // [Valaris]
 ACMD_FUNC(guildrecall); // by Yor
 ACMD_FUNC(partyrecall); // by Yor
 ACMD_FUNC(nuke); // [Valaris]
-ACMD_FUNC(enablenpc);
+ACMD_FUNC(shownpc);
 ACMD_FUNC(hidenpc);
-ACMD_FUNC(disablenpc);
+ACMD_FUNC(loadnpc);
+ACMD_FUNC(unloadnpc);
 ACMD_FUNC(servertime); // by Yor
 ACMD_FUNC(chardelitem); // by Yor
 ACMD_FUNC(jail); // by Yor
@@ -441,9 +442,12 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_GuildRecall,		"@guildrecall",		60, atcommand_guildrecall }, // by Yor
 	{ AtCommand_PartyRecall,		"@partyrecall",		60, atcommand_partyrecall }, // by Yor
 	{ AtCommand_Nuke,				"@nuke",			60, atcommand_nuke }, // [Valaris]
-	{ AtCommand_Enablenpc,			"@enablenpc",		80, atcommand_enablenpc }, // []
+	{ AtCommand_Shownpc,			"@shownpc",			80, atcommand_shownpc }, // []
 	{ AtCommand_Hidenpc,			"@hidenpc",			80, atcommand_hidenpc }, // []
-	{ AtCommand_Disablenpc,			"@disablenpc",		80, atcommand_disablenpc }, // []
+	{ AtCommand_Loadnpc,			"@loadnpc",			80, atcommand_loadnpc }, // []
+	{ AtCommand_Unloadnpc,			"@unloadnpc",		80, atcommand_unloadnpc }, // []
+//	{ AtCommand_Enablenpc,			"@enablenpc",		80, atcommand_enablenpc }, // []
+//	{ AtCommand_Disablenpc,			"@disablenpc",		80, atcommand_disablenpc }, // []
 	{ AtCommand_ServerTime,			"@time",			 0, atcommand_servertime }, // by Yor
 	{ AtCommand_ServerTime,			"@date",			 0, atcommand_servertime }, // by Yor
 	{ AtCommand_ServerTime,			"@server_date",		 0, atcommand_servertime }, // by Yor
@@ -6175,7 +6179,7 @@ int atcommand_nuke(
  *
  *------------------------------------------
  */
-int atcommand_enablenpc(const int fd, struct map_session_data* sd,
+int atcommand_shownpc(const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
 	char NPCname[100];
@@ -6227,7 +6231,33 @@ int atcommand_hidenpc(const int fd, struct map_session_data* sd,
 	return 0;
 }
 
-int atcommand_disablenpc(const int fd, struct map_session_data* sd,
+int atcommand_loadnpc(const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	FILE *fp;
+
+	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter a script file name (usage: @loadnpc <file name>).");
+		return -1;
+	}
+
+	// check if script file exists
+	if ((fp = fopen(message, "r")) == NULL) {
+		clif_displaymessage(fd, msg_table[261]);
+		return -1;
+	}
+	fclose(fp);
+
+	// add to list of script sources and run it
+	npc_addsrcfile((char *)message);
+	npc_parsesrcfile((char *)message);
+
+	clif_displaymessage(fd, msg_table[262]);
+
+	return 0;
+}
+
+int atcommand_unloadnpc(const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
 	struct npc_data *nd;

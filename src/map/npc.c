@@ -811,11 +811,13 @@ int npc_touch_areanpc(struct map_session_data *sd,int m,int x,int y)
 		return 1;
 	}
 	switch(map[m].npc[i]->bl.subtype) {
-	case WARP:
-		skill_stop_dancing(&sd->bl,0);
-		pc_setpos(sd,map[m].npc[i]->u.warp.name,map[m].npc[i]->u.warp.x,map[m].npc[i]->u.warp.y,0);
-		break;
-	case SCRIPT:
+		case WARP:
+			if (sd->status.option&6)	// hidden chars cannot use warps -- is it the same for scripts too?
+				break;
+			skill_stop_dancing(&sd->bl,0);
+			pc_setpos(sd,map[m].npc[i]->u.warp.name,map[m].npc[i]->u.warp.x,map[m].npc[i]->u.warp.y,0);
+			break;
+		case SCRIPT:
 		{
 			//char *name=(char *)aCallocA(50,sizeof(char));  // fixed [Shinomori]
 			char name[50]; // need 24 max + 9 for "::OnTouch"

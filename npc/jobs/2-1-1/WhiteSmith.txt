@@ -14,6 +14,6 @@
 //============================================================ 
 
 // -== White Smith ==-
-valkyrie.gat,44,51,6	script	White Smith	725,{
+valkyrie.gat,44,51,6	script	White Smith	726,{
 	callfunc "F_Rebirth",29,"Merchant High",34,"White Smith",153,154,155,0;
 }
