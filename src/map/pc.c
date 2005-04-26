@@ -1997,6 +1997,8 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 {
 	int i;
+	nullpo_retr(0, sd);
+
 	switch(type){
 	case SP_ADD_MONSTER_DROP_ITEM:
 		if(sd->state.lr_flag != 2) {
@@ -2017,17 +2019,33 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 		}
 		break;
 	case SP_AUTOSPELL:
-		if(sd->state.lr_flag != 2){
-			sd->autospell_id = type2;
-			sd->autospell_lv = type3;
-			sd->autospell_rate = val;
+		if(sd->state.lr_flag != 2) {
+			for (i = 0; i < 10; i++) {
+				if (sd->autospell_id[i] == 0 ||
+					(sd->autospell_id[i] == type2 && sd->autospell_lv[i] < type3) ||
+					(sd->autospell_id[i] == type2 && sd->autospell_lv[i] == type3 && sd->autospell_rate[i] < val))
+				{
+					sd->autospell_id[i] = type2;
+					sd->autospell_lv[i] = type3;
+					sd->autospell_rate[i] = val;
+					break;
+				}
+			}
 		}
 		break;
 	case SP_AUTOSPELL_WHENHIT:
-		if(sd->state.lr_flag != 2){
-			sd->autospell2_id = type2;
-			sd->autospell2_lv = type3;
-			sd->autospell2_rate = val;
+		if(sd->state.lr_flag != 2) {
+			for (i = 0; i < 10; i++) {
+				if (sd->autospell2_id[i] == 0 ||
+					(sd->autospell2_id[i] == type2 && sd->autospell2_lv[i] < type3) ||
+					(sd->autospell2_id[i] == type2 && sd->autospell2_lv[i] == type3 && sd->autospell2_rate[i] < val))
+				{
+					sd->autospell2_id[i] = type2;
+					sd->autospell2_lv[i] = type3;
+					sd->autospell2_rate[i] = val;
+					break;
+				}
+			}
 		}
 		break;
 	case SP_HP_LOSS_RATE:
@@ -2092,19 +2110,38 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 
 int pc_bonus4(struct map_session_data *sd,int type,int type2,int type3,int type4,int val)
 {
+	int i;
+	nullpo_retr(0, sd);
+
 	switch(type){
 	case SP_AUTOSPELL:
-		if(sd->state.lr_flag != 2){	// val = 0: self, 1: enemy
-			sd->autospell_id = (val) ? type2 : -type2;
-			sd->autospell_lv = type3;
-			sd->autospell_rate = type4;
-		}
+		if(sd->state.lr_flag != 2) {
+			for (i = 0; i < 10; i++) {
+				if (sd->autospell_id[i] == 0 ||
+					(sd->autospell_id[i] == type2 && sd->autospell_lv[i] < type3) ||
+					(sd->autospell_id[i] == type2 && sd->autospell_lv[i] == type3 && sd->autospell_rate[i] < val))
+				{
+					sd->autospell_id[i] = (val) ? type2 : -type2;		// val = 0: self, 1: enemy
+					sd->autospell_lv[i] = type3;
+					sd->autospell_rate[i] = val;
+					break;
+				}
+			}
+		}			
 		break;
 	case SP_AUTOSPELL_WHENHIT:
-		if(sd->state.lr_flag != 2){	// val = 0: self, 1: enemy
-			sd->autospell2_id = (val) ? type2 : -type2;
-			sd->autospell2_lv = type3;
-			sd->autospell2_rate = type4;
+		if(sd->state.lr_flag != 2) {
+			for (i = 0; i < 10; i++) {
+				if (sd->autospell2_id[i] == 0 ||
+					(sd->autospell2_id[i] == type2 && sd->autospell2_lv[i] < type3) ||
+					(sd->autospell2_id[i] == type2 && sd->autospell2_lv[i] == type3 && sd->autospell2_rate[i] < val))
+				{
+					sd->autospell2_id[i] = (val) ? type2 : -type2;		// val = 0: self, 1: enemy
+					sd->autospell2_lv[i] = type3;
+					sd->autospell2_rate[i] = val;
+					break;
+				}
+			}
 		}
 		break;
 	default:
@@ -2587,6 +2624,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 			sd->status.inventory[n].amount <= 0 ||
 			sd->sc_data[SC_BERSERK].timer!=-1 ||
 			sd->sc_data[SC_MARIONETTE].timer!=-1 ||
+			sd->sc_data[SC_GRAVITATION].timer!=-1 ||
 			(pc_issit(sd) && (sd->itemid == 605 || sd->itemid == 606)) ||
 			//added item_noequip.txt items check by Maya&[Lupus]
 			(map[sd->bl.m].flag.pvp && (sd->inventory_data[n]->flag.no_equip&1) ) || // PVP
@@ -3013,7 +3051,7 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *bl)
 int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrtype)
 {
 	char mapname[24];
-	int m=0,disguise=0;
+	int i, m, disguise = 0;
 
 	nullpo_retr(0, sd);
 
@@ -3036,6 +3074,13 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 	skill_castcancel(&sd->bl,0);	// ârè•íÜ?
 	pc_stop_walking(sd,0);		// ?çsíÜ?
 	pc_stopattack(sd);			// çU?íÜ?
+
+	for (i = 0; i < 5; i++){
+		if(sd->dev.val1[i]){
+			struct map_session_data *tsd = map_id2sd(sd->dev.val1[i]);
+			skill_devotion_end(sd,tsd,i);
+		}
+	}
 
 	if(pc_issit(sd)) {
 		pc_setstand(sd);
@@ -3060,6 +3105,8 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 				skill_delunitgroup (sg);
 			status_change_end(&sd->bl,SC_BASILICA,-1);
 		}
+		if (sd->sc_data[SC_DEVOTION].timer!=-1)
+			status_change_end(&sd->bl,SC_DEVOTION,-1);
 	}
 
 	if(sd->status.option&2)
@@ -4893,9 +4940,10 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 			sd->state.snovice_flag = 4;
 	}
 
-	for(i=0;i<5;i++)
-		if(sd->dev.val1[i]){
-			status_change_end(&map_id2sd(sd->dev.val1[i])->bl,SC_DEVOTION,-1);
+	for(i = 0; i < 5; i++)
+		if (sd->dev.val1[i]){
+			struct map_session_data *devsd = map_id2sd(sd->dev.val1[i]);
+			if (devsd) status_change_end(&devsd->bl,SC_DEVOTION,-1);
 			sd->dev.val1[i] = sd->dev.val2[i]=0;
 		}
 

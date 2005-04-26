@@ -2329,7 +2329,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			else if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit / 100)
 				status_change_start(bl, SC_BLEEDING, skilllv, 0, 0, 0, bleed_time, 0);
 			if (tsd) {
-				int sp = tsd->status.max_sp * 10 * skilllv / 100;
+				int sp = tsd->status.max_sp * (15 + 5 * skilllv) / 100;
 				if (sp > tsd->status.sp) sp = tsd->status.sp;
 				tsd->status.sp -= sp;
 				clif_updatestatus(tsd,SP_SP);
@@ -3236,7 +3236,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case PA_SACRIFICE:
 	case ASC_EDP:			// [Celest]
 	case CG_MOONLIT:		/* ŒŽ–¾‚è‚Ìò‚É—Ž‚¿‚é‰Ô‚Ñ‚ç */
-	case PF_DOUBLECASTING:	// [celest]
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
@@ -3900,36 +3899,36 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			break;
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 
-		if (bl->type == BL_PC && dstsd) {
+		if (dstsd) {
 			for (i=0;i<MAX_INVENTORY;i++) {
 				if (dstsd->status.inventory[i].equip) {
 					if (equip &EQP_WEAPON && (dstsd->status.inventory[i].equip &0x0002 || dstsd->status.inventory[i].equip &0x0020) && dstsd->inventory_data[i]->type == 4 && !(dstsd->unstripable_equip &EQP_WEAPON) && !(tsc_data && tsc_data[SC_CP_WEAPON].timer != -1)) {
-				   		sclist[1] = SC_STRIPWEAPON; // Okay, we found a weapon to strip - It can be a right-hand, left-hand or two-handed weapon
+				   		sclist[0] = SC_STRIPWEAPON; // Okay, we found a weapon to strip - It can be a right-hand, left-hand or two-handed weapon
 						pc_unequipitem(dstsd,i,3);
 					} else if (equip &EQP_SHIELD && dstsd->status.inventory[i].equip &0x0020 && dstsd->inventory_data[i]->type == 5 && !(dstsd->unstripable_equip &EQP_SHIELD) && !(tsc_data && tsc_data[SC_CP_SHIELD].timer != -1)) {
-						sclist[2] = SC_STRIPSHIELD; // Okay, we found a shield to strip - It is really a shield, not a two-handed weapon or a left-hand weapon
+						sclist[1] = SC_STRIPSHIELD; // Okay, we found a shield to strip - It is really a shield, not a two-handed weapon or a left-hand weapon
 						pc_unequipitem(dstsd,i,3);
 					} else if (equip &EQP_ARMOR && dstsd->status.inventory[i].equip &0x0010 && !(dstsd->unstripable_equip &EQP_ARMOR) && !(tsc_data && tsc_data[SC_CP_ARMOR].timer != -1)) {
-						sclist[3] = SC_STRIPARMOR; // Okay, we found an armor to strip
+						sclist[2] = SC_STRIPARMOR; // Okay, we found an armor to strip
 						pc_unequipitem(dstsd,i,3);
 					} else if (equip &EQP_HELM && dstsd->status.inventory[i].equip &0x0100 && !(dstsd->unstripable_equip &EQP_HELM) && !(tsc_data && tsc_data[SC_CP_HELM].timer != -1)) {
-						sclist[4] = SC_STRIPHELM; // Okay, we found a helm to strip
+						sclist[3] = SC_STRIPHELM; // Okay, we found a helm to strip
 						pc_unequipitem(dstsd,i,3);
 					}
 				}
 			}
-		} else if (bl->type == BL_MOB) {
+		} else if (dstmd) {
 			if (equip &EQP_WEAPON)
-				sclist[1] = SC_STRIPWEAPON;
+				sclist[0] = SC_STRIPWEAPON;
 			if (equip &EQP_SHIELD)
-				sclist[2] = SC_STRIPSHIELD;
+				sclist[1] = SC_STRIPSHIELD;
 			if (equip &EQP_ARMOR)
-				sclist[3] = SC_STRIPARMOR;
+				sclist[2] = SC_STRIPARMOR;
 			if (equip &EQP_HELM)
-				sclist[4] = SC_STRIPHELM;
+				sclist[3] = SC_STRIPHELM;
 		}
 
-		for (i=1;i<=4;i++) {
+		for (i=0;i<4;i++) {
 			if (sclist[i] != 0) { // Start the SC only if an equipment was stripped from this location
 			   status_change_start(bl,sclist[i],skilllv,0,0,0,skill_get_time(skillid,skilllv)+strip_fix/2,0);
 			}
@@ -4646,6 +4645,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
+	case PF_DOUBLECASTING:
+		if (rand() % 100 < 30 + skilllv * 10) {
+			clif_skill_fail(sd,skillid,0,0);
+			map_freeblock_unlock();
+			return 0;
+		}
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
+		break;
+
 	case CG_LONGINGFREEDOM:
 		{
 			struct status_change *sc_data = status_get_sc_data(src);
@@ -4690,12 +4699,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					status_change_start(bl,SC_INCATK2,-50,0,0,0,30000,0);
 					break;
 				case 5:	// 2000HP heal, random teleported
+					if (sd) pc_heal(sd,2000,0);
 					if (bl->prev != NULL) {
-						if(sd){
-							pc_heal(sd,2000,0);
-							if(!map[sd->bl.m].flag.noteleport)
-								pc_setpos(sd,sd->mapname,-1,-1,3);
-						}
+						if(sd && !map[src->m].flag.noteleport) pc_setpos(sd,sd->mapname,-1,-1,3);
+						else if(md && !map[src->m].flag.monster_noteleport) mob_setpos(md,-1,-1,-1,3);
 					}
 					break;
 				case 6:	// random 2 other effects
@@ -5383,7 +5390,6 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 				mob_once_spawn(sd, "this", x, y, "--ja--",
 					(skilllv < 2 ? 1084 + rand() % 2 : 1078 + rand() % 6 ), 1, "");
 				clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
-
 			}
 		}
 		break;
@@ -5852,7 +5858,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 				if (!status_get_mode(bl)&0x20)
 					break;
 			}
-			status_change_start(bl,type,sg->skill_lv,10+sg->skill_lv*2,BCT_ENEMY,(int)sg,
+			status_change_start(bl,type,sg->skill_lv,5*sg->skill_lv,BCT_ENEMY,(int)sg,
 				skill_get_time2(sg->skill_id,sg->skill_lv),0);
 		}
 		break;

@@ -537,7 +537,7 @@
 477,0,6,4,0,1,10,1,no,0,0,0,weapon,0	//WS_WEAPONREFINE##
 478,3,6,2,0,1,10,1,no,0,0,0,none,0	//CR_SLIMPITCHER##
 479,1,6,16,0,1,5,1,yes,0,0,0,weapon,0	//CR_FULLPROTECTION##
-480,5,8,1,0,0,5,5,no,0,0,0,weapon,0	//PA_SHIELDCHAIN##
+480,4,8,1,0,0,5,5,no,0,0,0,weapon,0	//PA_SHIELDCHAIN##
 481,0,0,0,0,0,5,0,no,0,0,0,magic,0	//HP_MANARECHARGE##
 482,0,6,4,0,1,5,1,no,0,0,0,magic,0	//PF_DOUBLECASTING##
 483,8,6,2,0,1,1,1,no,0,0,0,none,0	//HW_GANBANTEIN##

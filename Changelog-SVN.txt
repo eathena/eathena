@@ -1,10 +1,17 @@
 Date	Added
 04/26
+	* Added some more of kRO's 04/26 patch [celest]
+	* Fixed a crash in stripping skills [celest]
+	* Tidied up battle.c a bit [celest]
+	* Added Devotion's effects will be lost if changed map/teleported [celest]
+	* Added bDoubleRate effects can stack with Double Attack [celest]
+	* Added support to have up to 20 autocast skills from cards [celest]
 	* Applied new advanced skills changes from 4/26 patch [DracoRPG]
 	  I could not do everything, things remaining to do :
 	  - Alter Double Casting success rate (did not find the code... is there one ? xD)
 	  - Check that all songs/dances/duets are uncancelable by Dispell
 	  - Make Wand of Hermod affect only party/guild members (and check for a warp portal !)
+
 04/25
 	* Further improvements on stripping/breaking + added support for targeting mobs with strip skills [DracoRPG]
 	* Added fd check to clif_additem [celest]

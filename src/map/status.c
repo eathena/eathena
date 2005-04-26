@@ -509,7 +509,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->speed_add_rate = sd->aspd_add_rate = 100;
 	sd->double_add_rate = sd->perfect_hit_add = sd->get_zeny_add_num = 0;
 	sd->splash_range = sd->splash_add_range = 0;
-	sd->autospell_id = sd->autospell_lv = sd->autospell_rate = 0;
+	memset(sd->autospell_id,0,sizeof(sd->autospell_id));
+	memset(sd->autospell_lv,0,sizeof(sd->autospell_lv));
+	memset(sd->autospell_rate,0,sizeof(sd->autospell_rate));
 	sd->hp_drain_rate = sd->hp_drain_per = sd->sp_drain_rate = sd->sp_drain_per = 0;
 	sd->hp_drain_rate_ = sd->hp_drain_per_ = sd->sp_drain_rate_ = sd->sp_drain_per_ = 0;
 	sd->short_weapon_damage_return = sd->long_weapon_damage_return = 0;
@@ -523,7 +525,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->crit_atk_rate = 0;
 	sd->no_regen = 0;
 	sd->unstripable_equip = 0;
-	sd->autospell2_id = sd->autospell2_lv = sd->autospell2_rate = 0;
+	memset(sd->autospell2_id,0,sizeof(sd->autospell2_id));
+	memset(sd->autospell2_lv,0,sizeof(sd->autospell2_lv));
+	memset(sd->autospell2_rate,0,sizeof(sd->autospell2_rate));
 	memset(sd->critaddrace,0,sizeof(sd->critaddrace));
 	memset(sd->addeff3,0,sizeof(sd->addeff3));
 	memset(sd->addeff3_type,0,sizeof(sd->addeff3_type));
@@ -1207,7 +1211,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->sc_data[i=SC_SPEEDPOTION0].timer!=-1)	// ? 速ポ?ション
 			aspd_rate -= sd->sc_data[i].val2;
 		if(sd->sc_data[SC_GRAVITATION].timer!=-1)
-		    aspd_rate += sd->sc_data[SC_GRAVITATION].val1*5;
+			aspd_rate += sd->sc_data[SC_GRAVITATION].val2;
 		if(sd->sc_data[SC_WINDWALK].timer!=-1 && sd->sc_data[SC_INCREASEAGI].timer==-1)	//ウィンドウォ?ク暫ﾍLv*2%減算
 			sd->speed -= sd->speed *(sd->sc_data[SC_WINDWALK].val1*2)/100;
 		if(sd->sc_data[SC_CARTBOOST].timer!=-1)	// カ?トブ?スト
@@ -2698,7 +2702,7 @@ int status_get_adelay(struct block_list *bl)
 					aspd_rate += 10;
 			}
 			if(sc_data[SC_GRAVITATION].timer!=-1)
-			    aspd_rate += sc_data[SC_GRAVITATION].val1*5;
+				aspd_rate += sc_data[SC_GRAVITATION].val2;
 		}
 		if(aspd_rate != 100)
 			adelay = adelay*aspd_rate/100;
@@ -3873,6 +3877,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 					sd->canact_tick += tick;
 				} else calc_flag = 1;
 			}
+			//val2 = val1*5;
 			break;
 
 		case SC_HERMODE:

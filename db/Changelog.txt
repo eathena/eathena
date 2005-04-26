@@ -9,6 +9,7 @@
 	Skill databases == celest working on them i believe.
 
 04/26
+	* Fixed some items, thanks to Komurka and shadow
 	* Applied new advanced skills changes from 4/26 patch [DracoRPG]
 	* Reverted Arrow Shower / Double back to 0.1. Sorry! [Lupus]
 	* Started implementing missing card effects [Lupus]

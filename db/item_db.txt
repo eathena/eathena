@@ -157,7 +157,7 @@
 675,Silver_Coin,Silver Coin,2,20,0,40,,,,,0,3,,,,,{},{}
 676,Silver_Coin_Pouch,Bag of Silver Coins,2,20,0,400,,,,,0,3,,,,,{},{}
 677,Platinum_Coin,Platinum Coin,2,20,0,40,,,,,0,3,,,,,{},{}
-678,Deadly_Poison_Bottle,Poison Bottle,2,20,0,100,,,,,10477567,2,,,,,{ if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_SpeedPot0,30,0; end; Not_ASC: percentheal -100,0; },{}
+678,Deadly_Poison_Bottle,Poison Bottle,2,20,0,100,,,,,10477567,2,,,,,{ if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_SpeedPot3,30,0; end; Not_ASC: percentheal -100,0; },{}
 679,Recall_Pills,Golden Pill,2,20,0,300,,,,,10477567,3,,,,,{ itemheal 50,50; },{}
 680,Carnation,Magical Carnation,2,20,0,1000,,,,,10477567,3,,,,,{ itemheal 25,0; },{}
 681,Wedding_Photo_Album,Wedding Photo Album,2,20,0,10,,,,,0,3,,,,,{},{} //should call wedding effect
@@ -604,7 +604,7 @@
 1413,Gungnir,Gungnir,4,20,0,500,120,,3,0,16514,2,2,4,4,4,{},{ bonus bAtkEle,4; bonus bPerfectHitRate,25; bonus bHit,30; }
 1414,Gelerdria,Gelerdria,4,20,0,700,145,,3,0,16514,2,2,4,48,4,{},{ bonus bAtkEle,2; bonus bMaxHP,500; bonus bMaxSP,-50; }
 1415,Skewer,Brocca,4,20,0,850,100,,3,0,16514,2,2,4,48,4,{},{ bonus bIgnoreDefRace,11; bonus2 bAddEle,0,25; }
-1416,Tjungkuletti,Tjungkuletti,4,20,0,1000,95,,3,0,16514,2,2,4,48,4,{},{ bonus2 bSPDrainRate,100,1; bonus2 bSPDrainRate,1,5; }
+1416,Tjungkuletti,Tjungkuletti,4,20,0,1000,95,,3,0,16514,2,2,4,48,4,{},{ bonus3 bSPDrainValue,100,1,1; bonus bSPGainValue,5; }
 1417,Pole_Axe,Pole Axe,4,20,0,3800,160,,3,1,16514,2,2,3,71,4,{},{ bonus bStr,1; bonus bInt,2; bonus bDex,1; }
 1451,Guisarme,Guisarme,4,13000,0,1000,84,,3,2,16514,2,34,2,18,5,{},{}
 1452,Guisarme_,Guisarme,4,13000,0,1000,84,,3,3,16514,2,34,2,18,5,{},{}
@@ -1248,7 +1248,7 @@
 4204,Mini_Demon_Card,Mini Demon Card,6,20,0,10,,,,,,,64,,,,{},{ bonus2 bSubRace,2,-20; } //missing increaseexponracekill??
 4205,Mimic_Card,Mimic Card,6,20,0,10,,,,,,,136,,,,{},{} //missing getitemonkill??
 4206,Myst_Case_Card,Mystcase Card,6,20,0,10,,,,,,,769,,,,{},{} //missing getitemonkill??
-4207,Mysteltainn_Card,Mysteltainn Card,6,20,0,10,,,,,,,32,,,,{},{ bonus2 bSubSize,0,25; bonus bDef,1; } //OK
+4207,Mysteltainn_Card,Mysteltainn Card,6,20,0,10,,,,,,,32,,,,{},{ bonus2 bSubSize,1,25; bonus bDef,1; } //OK
 4208,Miyabi_Ningyo_Card,Miyabi Ningyo Card,6,20,0,10,,,,,,,64,,,,{},{ bonus bMaxSPrate,10; bonus2 bSkillAtk,15,5; } //OK
 4209,Violy_Card,Violy Card,6,20,0,10,,,,,,,136,,,,{},{ if(getskilllv(318)==5) goto FJ_5; bonus3 bAutoSpell,318,1,1; end; FJ_5: bonus3 bAutoSpell,318,5,1; } //??OK
 4210,Wanderer_Card,Wanderer Card,6,20,0,10,,,,,,,4,,,,{},{ if(callfunc("Is_Thief_Class")) bonus bFlee,20;  if(isequipped(4172,4257,4230,4272)) goto THIEF_SET; bonus3 bAutoSpell,219,1,1; end; THIEF_SET: bonus bAgi,5; bonus bStr,5; bonus bAspdRate,5; bonus bSpeedRate,5; bonus3 bSPDrainValue,100,1,0; if(callfunc("Is_Thief_Class")) bonus bNoGemStone,0; } //??OK
@@ -1295,7 +1295,7 @@
 4251,Elder_Card,Elder Card,6,20,0,10,,,,,,,2,,,,{},{ bonus2 bAddRace2,5,40; } //OK
 4252,Alligator_Card,Alligator Card,6,20,0,10,,,,,,,136,,,,{},{ bonus bLongAtkDef,5; } //OK
 4253,Alice_Card,Alice Card,6,20,0,10,,,,,,,32,,,,{},{ bonus2 bSubRace,10,40; bonus2 bSubRace,11,-40; } //??OK
-4254,Tirfing_Card,Tirfing Card,6,20,0,10,,,,,,,32,,,,{},{ bonus2 bSubSize,1,25; bonus bDef,1; } //OK
+4254,Tirfing_Card,Tirfing Card,6,20,0,10,,,,,,,32,,,,{},{ bonus2 bSubSize,0,25; bonus bDef,1; } //OK
 4255,Orc_Lady_Card,Orc Lady Card,6,20,0,10,,,,,,,2,,,,{},{ bonus2 bAddRace2,3,30; } //OK
 4256,Orc_Archer_Card,Orc Archer Card,6,20,0,10,,,,,,,136,,,,{},{} //missing getitemonkill?? (item not implemented)
 4257,Wild_Rose_Card,Wild Rose Card,6,20,0,10,,,,,,,64,,,,{},{ bonus bAgi,1; if(callfunc("Is_Thief_Class")) bonus bFlee2,5; } //OK
