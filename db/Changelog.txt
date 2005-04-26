@@ -9,8 +9,8 @@
 	Skill databases == celest working on them i believe.
 
 04/26
+	* Reverted Arrow Shower / Double back to 0.1. Sorry! [Lupus]
 	* Started implementing missing card effects [Lupus]
-	* Reverted changes of DOUBLE / ARROWSHOWER delays (outdated info) [Lupus]
 	* Added more mobs skills, thanx to MasterOfMuppets [Lupus]
 04/25
 	* Fixed Durian and Ramadan, thanks to rollopop
@@ -20,7 +20,7 @@
 	* Added monsters skills to all Niflheim / Louyang monsters,
 	  changed Garm slaves to Garm Bebe. Thanx to MasterOfMuppets
 	* Fixed Owl Duke Card, now casting IMPOSITIO on the card holder [Lupus]
-	* Panacea,Roayl Jelly now remove Hallucination Effect. accord.to 10 May patch [Lupus]
+	* Panacea,Royal Jelly now remove Hallucination Effect. accord.to 10 May patch [Lupus]
 	* Hallucination Pills (Pellet) cause Hallucination Effect [Lupus]
 
 04/22
