@@ -4702,7 +4702,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					if (sd) pc_heal(sd,2000,0);
 					if (bl->prev != NULL) {
 						if(sd && !map[src->m].flag.noteleport) pc_setpos(sd,sd->mapname,-1,-1,3);
-						else if(md && !map[src->m].flag.monster_noteleport) mob_setpos(md,-1,-1,-1,3);
+						else if(md && !map[src->m].flag.monster_noteleport) mob_warp(md,-1,-1,-1,3);
 					}
 					break;
 				case 6:	// random 2 other effects
