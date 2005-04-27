@@ -5850,7 +5850,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 		break;
 
 	case 0xb8:	// Gravitation
-		if (battle_check_target(&src->bl,bl,BCT_NOENEMY)>0) {
+		if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0) {
 			if (sc_data && sc_data[type].timer!=-1) {
 				struct skill_unit_group *sg2 = (struct skill_unit_group *)sc_data[type].val4;
 				if (sg2 && (sg2 == src->group || DIFF_TICK(sg->tick,sg2->tick)<=0))
@@ -7030,26 +7030,26 @@ int skill_castfix( struct block_list *bl, int time )
 			castrate -= (100 - sd->castrate);
 	}
 
+	// return if cast time is already zero
+	if (castrate <= 0)
+		return 0;
+
+	// calculate cast time
+	time = time * castrate * battle_config.cast_rate / 10000;
+
 	// calculate cast time reduced by skill bonuses
 	sc_data = status_get_sc_data(bl);
 	/* ƒTƒtƒ‰ƒMƒEƒ€ */
 	if (sc_data) {
 		if (sc_data[SC_SUFFRAGIUM].timer != -1) {
-			castrate -= sc_data[SC_SUFFRAGIUM].val1 * 15;
+			time = time * (100 - sc_data[SC_SUFFRAGIUM].val1 * 15) / 100;
 			status_change_end(bl, SC_SUFFRAGIUM, -1);
-		}	
+		}
 		/* ƒuƒ‰ƒM‚Ì */
 		if (sc_data[SC_POEMBRAGI].timer != -1)
-			castrate -= (sc_data[SC_POEMBRAGI].val1 * 3 + sc_data[SC_POEMBRAGI].val2
-				+(sc_data[SC_POEMBRAGI].val3 >> 16));
-	}
-
-	// return if cast time is already zero
-	if (castrate <= 0)
-		return 0;
-
-	// calculate final cast time
-	time = time * castrate * battle_config.cast_rate / 10000;
+			time = time * (100 - (sc_data[SC_POEMBRAGI].val1 * 3 + sc_data[SC_POEMBRAGI].val2
+				+(sc_data[SC_POEMBRAGI].val3 >> 16))) / 100;
+	}	
 
 	return (time > 0) ? time : 0;
 }

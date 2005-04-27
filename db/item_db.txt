@@ -473,7 +473,7 @@
 1133,Fire_Brand,Fireblend,4,20,0,500,100,,1,0,414946,2,2,4,40,2,{},{ bonus bAtkEle,3; skill 19,3; bonus3 bAutoSpell,19,3,25; }
 1134,Caesar's_Sword,Caesar's Sword,4,20,0,700,140,,1,0,414946,2,2,4,40,2,{},{ bonus2 bAddRace,3,25; bonus bIgnoreDefRace,3; }
 1135,Cutlas,Cutlas,4,20,0,900,150,,1,0,414946,2,2,4,40,2,{},{ skill 5,5; bonus bStr,2; bonus bDef,1; }
-1136,Solar_Sword,Solar Sword,4,20,0,1200,85,,1,0,414946,2,2,4,40,2,{},{ bonus bAtkEle,3; bonus2 bHPDrainRate,100,1; bonus2 bSPDrainRate,5,-15; }
+1136,Solar_Sword,Solar Sword,4,20,0,1200,85,,1,0,414946,2,2,4,40,2,{},{ bonus2 bHPDrainRate,100,1; bonus2 bSPLossRate,15,10000; }
 1137,Excalibur,Excalibur,4,20,0,1200,150,,1,0,414946,2,2,4,40,2,{},{ bonus bInt,5; bonus bLuk,10; bonus bDex,-1; bonus bAtkEle,6; }
 1138,Mysteltainn_,Mysteltainn,4,20,0,1000,170,,1,0,414946,2,2,4,40,2,{},{ bonus bAtkEle,7; bonus2 bAddEle,8,15; bonus2 bAddEff,Eff_Stone,100; bonus bDex,3; },
 1139,Talefing_,Talefing,4,20,0,1000,200,,1,0,414946,2,2,4,40,2,{},{ bonus bAtkEle,7; bonus2 bSPDrainRate,5,-35; }

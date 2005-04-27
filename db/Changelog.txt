@@ -8,6 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them i believe.
 
+04/27
+	* Added effect for Solar Sword
 04/26
 	* Fixed some items, thanks to Komurka and shadow
 	* Applied new advanced skills changes from 4/26 patch [DracoRPG]

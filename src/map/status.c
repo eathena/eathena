@@ -550,6 +550,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->sp_gain_value = 0;
 	sd->ignore_def_mob = sd->ignore_def_mob_ = 0;
 	sd->hp_loss_rate = sd->hp_loss_value = sd->hp_loss_type = 0;
+	sd->sp_loss_rate = sd->sp_loss_value = 0;
 	memset(sd->addrace2,0,sizeof(sd->addrace2));
 	memset(sd->addrace2_,0,sizeof(sd->addrace2_));
 	sd->hp_gain_value = sd->sp_drain_type = 0;
@@ -2750,6 +2751,8 @@ int status_get_amotion(struct block_list *bl)
 			if(sc_data[SC_DEFENDER].timer != -1)
 				aspd_rate += (25 - sc_data[SC_DEFENDER].val1*5);
 				//amotion += (550 - sc_data[SC_DEFENDER].val1*50);
+			if(sc_data[SC_GRAVITATION].timer!=-1)
+				aspd_rate += sc_data[SC_GRAVITATION].val2;
 		}
 		if(aspd_rate != 100)
 			amotion = amotion*aspd_rate/100;

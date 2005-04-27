@@ -2943,6 +2943,7 @@ struct Damage battle_calc_magic_attack(
 	int normalmagic_flag = 1;
 	int matk_flag = 1;
 	int no_cardfix = 0;
+	int no_elefix = 0;
 
 	//return前の処理があるので情報出力部のみ変更
 	if( bl == NULL || target == NULL ){
@@ -3118,6 +3119,7 @@ struct Damage battle_calc_magic_attack(
 			damage = 200 + skill_lv * 200;
 			normalmagic_flag = 0;
 			no_cardfix = 1;
+			no_elefix = 1;
 			break;
 		}
 	}
@@ -3198,7 +3200,8 @@ struct Damage battle_calc_magic_attack(
 	}
 	if(damage < 0) damage = 0;
 
-	damage=battle_attr_fix(damage, ele, status_get_element(target) );		// 属 性修正
+	if (!no_elefix)
+		damage=battle_attr_fix(damage, ele, status_get_element(target) );		// 属 性修正
 
 	if(skill_num == CR_GRANDCROSS) {	// グランドクロス
 		struct Damage wd;

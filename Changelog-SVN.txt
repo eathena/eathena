@@ -1,4 +1,10 @@
 Date	Added
+04/27
+	* Fixed a typo in the bAutospell's, thanks to Komurka
+	* Reverted a setting in skill casting time calculating [celest]
+	* Fixed Gravitation not affecting enemies, and ignore element modifiers [celest]
+	* Added 'bSPLossRate' effect [celest]
+
 04/26
 	* Added @load/unloadnpc [celest]
 	  usage: @loadnpc <path to script file, i.e npc/other/test.txt>,

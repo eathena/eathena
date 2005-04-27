@@ -182,6 +182,7 @@ bonus2 bAddItemHealRate,n,x;		Increases HP recovered by n type items by x%
 
 bonus bLoseSPWhenUnequip,n;		Lose n SP when the item is unequipped
 
+bonus2 bSPLossRate,n,x;			Lose n SP every x milliseconds
 bonus2 bExpAddRace,n,x;			Increase exp gained by x% vs. enemies of race n
 bonus2 bSPGainRace,n,x;			When killing a monster of race n by physical
                                         attack gain x amount of sp

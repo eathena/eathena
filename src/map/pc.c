@@ -1985,6 +1985,12 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			}
 		}
 		break;
+	case SP_SP_LOSS_RATE:
+		if(sd->state.lr_flag != 2) {
+			sd->sp_loss_value = type2;
+			sd->sp_loss_rate = val;
+		}
+		break;
 
 	default:
 		if(battle_config.error_log)
@@ -2123,7 +2129,7 @@ int pc_bonus4(struct map_session_data *sd,int type,int type2,int type3,int type4
 				{
 					sd->autospell_id[i] = (val) ? type2 : -type2;		// val = 0: self, 1: enemy
 					sd->autospell_lv[i] = type3;
-					sd->autospell_rate[i] = val;
+					sd->autospell_rate[i] = type4;
 					break;
 				}
 			}
@@ -2138,7 +2144,7 @@ int pc_bonus4(struct map_session_data *sd,int type,int type2,int type3,int type4
 				{
 					sd->autospell2_id[i] = (val) ? type2 : -type2;		// val = 0: self, 1: enemy
 					sd->autospell2_lv[i] = type3;
-					sd->autospell2_rate[i] = val;
+					sd->autospell2_rate[i] = type4;
 					break;
 				}
 			}
@@ -7070,25 +7076,34 @@ static int pc_spirit_heal_sp(struct map_session_data *sd)
 
 static int pc_bleeding (struct map_session_data *sd)
 {
-	int interval, hp;
-
+	int hp = 0, sp = 0;
 	nullpo_retr(0, sd);
-	interval = sd->hp_loss_rate;
-	hp = sd->hp_loss_value;
 
-	sd->hp_loss_tick += natural_heal_diff_tick;
-	if(sd->hp_loss_tick >= interval) {
-		while(sd->hp_loss_tick >= interval) {
-			sd->hp_loss_tick -= interval;
-			if (sd->status.hp < hp)
-				hp = sd->status.hp;
-			if (sd->hp_loss_type == 1) {
-				clif_damage(&sd->bl,&sd->bl,gettick(),0,0,hp,0,0,0);
-			}
-			pc_heal(sd,-hp,0);
+	if (sd->hp_loss_value > 0) {
+		sd->hp_loss_tick += natural_heal_diff_tick;
+		if (sd->hp_loss_tick >= sd->hp_loss_rate) {
+			do {
+				hp += sd->hp_loss_value;
+				sd->hp_loss_tick -= sd->hp_loss_rate;
+			} while (sd->hp_loss_tick >= sd->hp_loss_rate);
 			sd->hp_loss_tick = 0;
 		}
 	}
+	
+	if (sd->sp_loss_value > 0) {
+		sd->sp_loss_tick += natural_heal_diff_tick;
+		if (sd->sp_loss_tick >= sd->sp_loss_rate) {
+			do {
+				sp += sd->sp_loss_value;
+				sd->sp_loss_tick -= sd->sp_loss_rate;
+			} while (sd->sp_loss_tick >= sd->sp_loss_rate);
+			sd->sp_loss_tick = 0;
+		}
+	}
+
+	if (hp > 0 || sp > 0)
+		pc_heal(sd,-hp,-sp);
+
 	return 0;
 }
 
@@ -7111,7 +7126,8 @@ static int pc_natural_heal_sub(struct map_session_data *sd,va_list ap) {
 	//-- cannot regen for 5 minutes after using Berserk --- [Celest]
 		DIFF_TICK (tick, sd->canregen_tick)>=0 &&
 		(sd->sc_data && !(sd->sc_data[SC_POISON].timer != -1 && sd->sc_data[SC_SLOWPOISON].timer == -1) &&
-		sd->sc_data[SC_BERSERK].timer == -1 )) {
+		sd->sc_data[SC_BERSERK].timer == -1 ))
+	{
 		pc_natural_heal_hp(sd);
 		if( sd->sc_data && sd->sc_data[SC_EXTREMITYFIST].timer == -1 &&	//ˆ¢C—…?‘Ô‚Å‚ÍSP‚ª‰ñ•œ‚µ‚È‚¢
 			sd->sc_data[SC_DANCING].timer == -1 && //ƒ_ƒ“ƒX?‘Ô‚Å‚ÍSP‚ª‰ñ•œ‚µ‚È‚¢
@@ -7131,10 +7147,10 @@ static int pc_natural_heal_sub(struct map_session_data *sd,va_list ap) {
 		sd->inchealspirithptick = 0;
 		sd->inchealspiritsptick = 0;
 	}
-	if (sd->hp_loss_value > 0)
+	if (sd->hp_loss_value > 0 || sd->sp_loss_value > 0)
 		pc_bleeding(sd);
 	else
-		sd->hp_loss_tick = 0;
+		sd->hp_loss_tick = sd->sp_loss_tick = 0;
 
 	return 0;
 }
