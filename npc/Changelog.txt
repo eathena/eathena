@@ -35,6 +35,9 @@ TODO:
 
 Date		Added
 ======
+04/27   
+	* Added the Engagement Quest into Ayothaya [Fredzilla]
+	* In accordance with this quest I have also added some needed warps
 
 04/26
 	* Some fixes of THG Quest [Lupus]
