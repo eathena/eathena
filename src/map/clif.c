@@ -114,9 +114,10 @@ static const int packet_len_table[MAX_PACKET_DB] = {
    30,  8, 34, 14,  2,  6, 26,  2,  28, 81,  6, 10, 26,  2, -1, -1,
    -1, -1, 20, 10, 32,  9, 34, 14,   2,  6, 48, 56, -1,  4,  5, 10,
 //#0x200
-   26, -1,  26, 10, 18, 26, 11, 34,  14, 36, 10, 0,  0, -1, 24,  0, // 0x20c change to 0 (was 19)
-    0,  0,   0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
+   26, -1,  26, 10, 18, 26, 11, 34,  14, 36, 10, 0,  0, -1, 24, 10, // 0x20c change to 0 (was 19)
+   22,  0,  26, 26, 42, -1, -1,  2,   0,282,282,10, 10, -1, -1, 66,
+   10, -1,  -1,  8, 10,  2,282, 18,  18, 15, 58, 57, 64, 5,  0,  0,
+    0,  0,   9, 11, -1
 };
 
 // local define
@@ -6801,7 +6802,9 @@ int clif_guild_notice(struct map_session_data *sd,struct guild *g)
 	nullpo_retr(0, sd);
 	nullpo_retr(0, g);
 
-	fd=sd->fd;
+	fd = sd->fd;
+	if (fd <= 0)
+		return 0;
 	if(*g->mes1==0 && *g->mes2==0)
 		return 0;
 	WFIFOW(fd,0)=0x16f;
@@ -6995,7 +6998,9 @@ int clif_guild_delalliance(struct map_session_data *sd,int guild_id,int flag)
 
 	nullpo_retr(0, sd);
 
-	fd=sd->fd;
+	fd = sd->fd;
+	if (fd <= 0)
+		return 0;
 	WFIFOW(fd,0)=0x184;
 	WFIFOL(fd,2)=guild_id;
 	WFIFOL(fd,6)=flag;
@@ -7133,6 +7138,21 @@ void clif_adopt_process(struct map_session_data *sd)
 	fd=sd->fd;
 	WFIFOW(fd,0)=0x1f8;
 	WFIFOSET(fd,packet_len_table[0x1f8]);
+}
+
+/*==========================================
+ * Notice of divorce
+ *------------------------------------------
+ */
+void clif_divorced(struct map_session_data *sd, char *name)
+{
+	int fd;
+	nullpo_retv(sd);
+
+	fd=sd->fd;
+	WFIFOW(fd,0)=0x205;
+	memcpy(WFIFOP(fd,2), name, 24);
+	WFIFOSET(fd, packet_len_table[0x205]);
 }
 
 /*==========================================
@@ -7584,6 +7604,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 			sd->pvp_rank=0;
 			sd->pvp_lastusers=0;
 			sd->pvp_point=5;
+			sd->pvp_won=0;
+			sd->pvp_lost=0;
 		}
 		clif_set0199(sd->fd,1);
 	} else {
@@ -9174,6 +9196,8 @@ void clif_parse_UseSkillToPos(int fd, struct map_session_data *sd) {
 		skillnum = RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[1]);
 		x = RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[2]);
 		y = RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[3]);
+		if (packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[4] > 0)
+			skillmoreinfo = packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[4];
 	} else {
 		switch (sd->packet_ver) { // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 		case 6:
@@ -10376,39 +10400,11 @@ void clif_parse_PMIgnoreList(int fd,struct map_session_data *sd)
 	return;
 }
 
-void clif_parse_skillMessage(int fd, struct map_session_data *sd) {	// Added by RoVeRT
-	int skillid,skilllv, x, y;
-	char *mes;
-
-	skilllv = RFIFOW(fd,2);
-	skillid = RFIFOW(fd,4);
-
-	y = RFIFOB(fd,6);
-	x = RFIFOB(fd,8);
-
-	mes = (char*)RFIFOP(fd,10);
-
-	// skill 220 = graffiti
-//	printf("skill: %d %d location: %3d %3d message: %s\n", skillid, skilllv, x, y, (char*)mes);
-}
-
-int monk(struct map_session_data *sd, struct block_list *target, int type) {
-//R 01d1 <Monk id>L <Target monster id>L <Bool>L
-	int fd=sd->fd;
-	WFIFOW(fd,0)=0x1d1;
-	WFIFOL(fd,2)=sd->bl.id;
-	WFIFOL(fd,6)=target->id;
-	WFIFOL(fd,10)=type;
-	WFIFOSET(fd,packet_len_table[0x1d1]);
-
-	return 0;
-}
-
 /*==========================================
  * ƒXƒpƒmƒr‚Ì/doridori‚É‚æ‚éSPR2”{
  *------------------------------------------
  */
-void clif_parse_sn_doridori(int fd, struct map_session_data *sd) {
+void clif_parse_NoviceDoriDori(int fd, struct map_session_data *sd) {
 	if (sd)
 		sd->doridori_counter = 1;
 
@@ -10418,7 +10414,7 @@ void clif_parse_sn_doridori(int fd, struct map_session_data *sd) {
  * ƒXƒpƒmƒr‚Ì”š—ô”g“®
  *------------------------------------------
  */
-void clif_parse_sn_explosionspirits(int fd, struct map_session_data *sd)
+void clif_parse_NoviceExplosionSpirits(int fd, struct map_session_data *sd)
 {
 	if(sd){
 		int nextbaseexp=pc_nextbaseexp(sd);
@@ -10437,74 +10433,127 @@ void clif_parse_sn_explosionspirits(int fd, struct map_session_data *sd)
 	return;
 }
 
+// random notes:
+// 0x214: forging chance?
+
 /*==========================================
  * Friends List
  *------------------------------------------
  */
-void clif_friends_list_send(struct map_session_data *sd) {
-	int i, n;
+void clif_friendslist_send(struct map_session_data *sd) {
+	int i, n = 0;
 
 	// Send friends list
-	n = 0;
 	WFIFOW(sd->fd, 0) = 0x201;
 	for(i = 0; i < 20; i++)
 		if (sd->status.friend_id[i]) {
-			WFIFOL(sd->fd,4 + 32 * n + 1) = sd->status.friend_id[i];
-			//WFIFOB(sd->fd,4 + 32 * n + 5) = (online[n]) ? 0 : 1; // <- We don't know this yet. I'd reckon its 5 but... i could be wrong.
-			memcpy(WFIFOP(sd->fd,4 + 32 * n + 8), &sd->status.friend_name[i], 23);
+			//WFIFOL(sd->fd, 4 + 32 * n + 1) = sd->status.friend_id[i];
+			//WFIFOB(sd->fd, 4 + 32 * n + 5) = (online[n]) ? 0 : 1; // <- We don't know this yet. I'd reckon its 5 but... i could be wrong.
+			WFIFOL(sd->fd, 4 + 32 * n + 0) = (map_charid2sd(sd->status.friend_id[i]) != NULL);
+			WFIFOL(sd->fd, 4 + 32 * n + 4) = sd->status.friend_id[i];
+			memcpy(WFIFOP(sd->fd, 4 + 32 * n + 8), &sd->status.friend_name[i], 23);
 			n++;
 		}
 	WFIFOW(sd->fd,2) = 4 + 32 * n;
 	WFIFOSET(sd->fd, WFIFOW(sd->fd,2));
 }
 
-void clif_parse_friends_list_add(int fd, struct map_session_data *sd) {
+// Status for adding friend - 0: successfull 1: not exist/rejected 2: over limit
+void clif_friendslist_reqack(struct map_session_data *sd, int type)
+{
+	int fd;
+	nullpo_retv(sd);
+
+	fd = sd->fd;
+	WFIFOW(fd,0) = 0x209;
+	WFIFOW(fd,2) = type;
+	WFIFOSET(fd, packet_len_table[0x209]);
+}
+
+void clif_parse_FriendsListAdd(int fd, struct map_session_data *sd) {
 	struct map_session_data *f_sd;
-	int i;
+	int i, f_fd, count = 0;
 
 	f_sd = map_nick2sd((char*)RFIFOP(fd,2));
 
 	// Friend doesn't exist (no player with this name)
 	if (f_sd == NULL) {
-		clif_displaymessage(fd, "This name (for a friend) doesn't exist.");
+		clif_friendslist_reqack(sd, 1);
 		return;
 	}
 
 	// Friend already exists
-	for (i = 0; i < 20; i++)
+	for (i = 0; i < 20; i++) {
+		if (sd->status.friend_id[i] != 0)
+			count++;		
 		if (sd->status.friend_id[i] == f_sd->status.char_id) {
 			clif_displaymessage(fd, "Friend already exists.");
 			return;
 		}
-
-	// Find an empty slot
-	for (i = 0; i < 20; i++)
-		if (sd->status.friend_id[i] == 0)
-			break;
-	if (i == 20) {
-		clif_displaymessage(fd, "Friends list is full.");
-		return;
 	}
+	// Friend list is full
+	if (count >= 20)
+		clif_friendslist_reqack(f_sd, 2);
 
-	sd->status.friend_id[i] = f_sd->status.char_id;
-	memset(sd->status.friend_name[i], 0, sizeof(sd->status.friend_name[i]));
-	memcpy(sd->status.friend_name[i], f_sd->status.name, 23);
-	clif_displaymessage(fd, "Friend added.");
-
-	clif_friends_list_send(sd);
-
-	//printf("clif_parse_friends_list_add");
+	f_fd = f_sd->fd;
+	WFIFOW(f_fd,0) = 0x207;
+	WFIFOL(f_fd,2) = sd->status.char_id;
+	WFIFOL(f_fd,6) = sd->bl.id;
+	memcpy(WFIFOP(f_fd,10), sd->status.name, 24);
+	WFIFOSET(f_fd, packet_len_table[0x207]);
 
 	return;
 }
 
-void clif_parse_friends_list_remove(int fd, struct map_session_data *sd) {
+void clif_parse_FriendsListReply(int fd, struct map_session_data *sd) {
+	//<W: id> <L: Player 1 chara ID> <L: Player 1 AID> <B: Response>
+	struct map_session_data *f_sd;
+	int char_id, id;
+	char reply;
+
+	char_id = RFIFOL(fd,2);
+	id = RFIFOL(fd,6);
+	reply = RFIFOB(fd,10);
+//	printf ("reply: %d %d %d\n", char_id, id, reply);
+
+	f_sd = map_id2sd(id);
+	if (f_sd == NULL)
+		return;
+
+	if (reply == 0)
+		clif_friendslist_reqack(f_sd, 1);
+	else {
+		int i;
+		// Find an empty slot
+		for (i = 0; i < 20; i++)
+			if (f_sd->status.friend_id[i] == 0)
+				break;
+		if (i == 20) {
+			clif_friendslist_reqack(f_sd, 2);
+			return;
+		}
+
+		f_sd->status.friend_id[i] = sd->status.char_id;
+		memset(f_sd->status.friend_name[i], 0, sizeof(f_sd->status.friend_name[i]));
+		memcpy(f_sd->status.friend_name[i], f_sd->status.name, 23);
+		clif_friendslist_reqack(f_sd, 0);
+
+		clif_friendslist_send(sd);
+	}
+
+	return;
+}
+
+void clif_parse_FriendsListRemove(int fd, struct map_session_data *sd) {
 	// 0x203 </o> <ID to be removed W 4B>
-	int id = RFIFOL(fd,3);
+	struct map_session_data *f_sd = NULL;
+	int id = RFIFOL(fd,6);
 	int i, j;
 
+	f_sd = map_charid2sd(id);
+
 	// Search friend
-	for (i = 0; i < 20; i ++)
+	for (i = 0; i < 20; i ++) {
 		if (sd->status.friend_id[i] == id) {
 			// move all chars down
 			for(j = i + 1; j < 20; j++) {
@@ -10514,9 +10563,14 @@ void clif_parse_friends_list_remove(int fd, struct map_session_data *sd) {
 			sd->status.friend_id[19] = 0;
 			memset(sd->status.friend_name[19], 0, sizeof(sd->status.friend_name[19]));
 			clif_displaymessage(fd, "Friend removed");
-			clif_friends_list_send(sd);
+			WFIFOW(fd,0) = 0x20a;
+			WFIFOW(fd,2) = (f_sd) ? f_sd->bl.id : 0;	//account id;
+			WFIFOW(fd,6) = id;
+			WFIFOSET(fd, packet_len_table[0x20a]);
+			clif_friendslist_send(sd);
 			break;
 		}
+	}
 
 	if (i == 20)
 		clif_displaymessage(fd, "Name not found in list.");
@@ -10528,7 +10582,7 @@ void clif_parse_friends_list_remove(int fd, struct map_session_data *sd) {
  * /killall
  *------------------------------------------
  */
-void clif_parse_GMkillall(int fd,struct map_session_data *sd)
+void clif_parse_GMKillAll(int fd,struct map_session_data *sd)
 {
 	char message[50];
 
@@ -10541,12 +10595,56 @@ void clif_parse_GMkillall(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
+ * /pvpinfo
+ *------------------------------------------
+ */
+void clif_parse_PVPInfo(int fd,struct map_session_data *sd)
+{
+	WFIFOW(fd,0) = 0x210;
+	//WFIFOL(fd,2) = 0;	// not sure what for yet
+	//WFIFOL(fd,6) = 0;
+	WFIFOL(fd,10) = sd->pvp_won;	// times won
+	WFIFOL(fd,14) = sd->pvp_lost;	// times lost
+	WFIFOL(fd,18) = sd->pvp_point;
+	WFIFOSET(fd, packet_len_table[0x210]);
+
+	return;
+}
+
+/*==========================================
  * /blacksmith
  *------------------------------------------
  */
 void clif_parse_Blacksmith(int fd,struct map_session_data *sd)
 {
-	return;
+	struct map_session_data *tsd;
+	int i;
+	
+	nullpo_retv(sd);
+
+	WFIFOW(fd,0) = 0x219;
+	for (i = 0; i < 10; i++) {
+		// To-do: save blacksmith names in fame list...
+		if (smith_fame_list[i].id > 0) {
+			if ((tsd = map_id2sd(smith_fame_list[i].id)) != NULL)
+				memcpy(WFIFOP(fd, 2 + 24 * i), tsd->status.name, 24);
+			else
+				memcpy(WFIFOP(fd, 2 + 24 * i), "Unknown", 24);
+		} else memcpy(WFIFOP(fd, 2 + 24 * i), "None", 24);
+		WFIFOL(fd, 242 + i * 4) = smith_fame_list[i].fame;
+	}
+	WFIFOSET(fd, packet_len_table[0x219]);
+}
+
+int clif_fame_blacksmith(struct map_session_data *sd, int points)
+{
+	int fd = sd->fd;
+	WFIFOW(fd,0) = 0x21b;
+	WFIFOL(fd,2) = points;
+	WFIFOL(fd,6) = sd->status.fame;
+	WFIFOSET(fd, packet_len_table[0x21b]);
+
+	return 0;
 }
 
 /*==========================================
@@ -10555,7 +10653,52 @@ void clif_parse_Blacksmith(int fd,struct map_session_data *sd)
  */
 void clif_parse_Alchemist(int fd,struct map_session_data *sd)
 {
-	return;
+	struct map_session_data *tsd;
+	int i;
+
+	nullpo_retv(sd);
+
+	WFIFOW(fd,0) = 0x21a;
+	for (i = 0; i < 10; i++) {
+		// To-do: save alchemist names in fame list...
+		if (chemist_fame_list[i].id > 0) {
+			if ((tsd = map_id2sd(chemist_fame_list[i].id)) != NULL)
+				memcpy(WFIFOP(fd, 2 + 24 * i), tsd->status.name, 24);
+			else
+				memcpy(WFIFOP(fd, 2 + 24 * i), "Unknown", 24);
+		} else memcpy(WFIFOP(fd, 2 + 24 * i), "None", 24);
+		WFIFOL(fd, 242 + i * 4) = chemist_fame_list[i].fame;
+	}
+	WFIFOSET(fd, packet_len_table[0x21a]);
+}
+
+int clif_fame_alchemist(struct map_session_data *sd, int points)
+{
+	int fd = sd->fd;
+	WFIFOW(fd,0) = 0x21c;
+	WFIFOL(fd,2) = points;
+	WFIFOL(fd,6) = sd->status.fame;
+	WFIFOSET(fd, packet_len_table[0x21c]);
+	
+	return 0;
+}
+
+/*==========================================
+ * /taekwon?
+ *------------------------------------------
+ */
+void clif_parse_Taekwon(int fd,struct map_session_data *sd)
+{
+	int i;
+
+	nullpo_retv(sd);
+
+	WFIFOW(fd,0) = 0x226;
+	for (i = 0; i < 10; i++) {
+		memcpy(WFIFOP(fd, 2 + 24 * i), "Unknown", 24);
+		WFIFOL(fd, 242 + i * 4) = 0;
+	}
+	WFIFOSET(fd, packet_db[clif_config.packet_db_ver][0x226].len);
 }
 
 /*==========================================
@@ -10609,7 +10752,7 @@ static void (*clif_parse_func_table[MAX_PACKET_DB])(int, struct map_session_data
 
 	// c0
 	NULL, clif_parse_HowManyConnections, NULL, NULL, NULL, clif_parse_NpcBuySellSelected, NULL, NULL,
-	clif_parse_NpcBuyListSend, clif_parse_NpcSellListSend, NULL, NULL, clif_parse_GMKick, NULL, clif_parse_GMkillall, clif_parse_PMIgnore,
+	clif_parse_NpcBuyListSend, clif_parse_NpcSellListSend, NULL, NULL, clif_parse_GMKick, NULL, clif_parse_GMKillAll, clif_parse_PMIgnore,
 	// d0
 	clif_parse_PMIgnoreAll, NULL, NULL, clif_parse_PMIgnoreList, NULL, clif_parse_CreateChatRoom, NULL, NULL,
 	NULL, clif_parse_ChatAddMember, NULL, NULL, NULL, NULL, clif_parse_ChatRoomStatusChange, NULL,
@@ -10667,15 +10810,15 @@ static void (*clif_parse_func_table[MAX_PACKET_DB])(int, struct map_session_data
 	NULL, NULL, NULL, NULL, NULL, clif_parse_NpcStringInput, NULL, NULL,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, clif_parse_GMReqNoChatCount,
 	// 1e0
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, clif_parse_sn_doridori,
-	clif_parse_CreateParty2, NULL, NULL, NULL, NULL, clif_parse_sn_explosionspirits, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, clif_parse_NoviceDoriDori,
+	clif_parse_CreateParty2, NULL, NULL, NULL, NULL, clif_parse_NoviceExplosionSpirits, NULL, NULL,
 	// 1f0
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,  NULL, clif_parse_ReqAdopt,
 	NULL, NULL, NULL, NULL, NULL, NULL,
 
 	// 200
-	NULL, NULL, clif_parse_friends_list_add, clif_parse_friends_list_remove, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, clif_parse_FriendsListAdd, clif_parse_FriendsListRemove, NULL, NULL, NULL, NULL,
+	clif_parse_FriendsListReply, NULL, NULL, NULL, NULL, NULL, NULL, clif_parse_PVPInfo,
 	// 210
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, clif_parse_Blacksmith,  clif_parse_Alchemist,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -11057,14 +11200,14 @@ static int packetdb_readdb(void)
 		{clif_parse_GMHide,"gmhide"},
 		{clif_parse_GMReqNoChat,"gmreqnochat"},
 		{clif_parse_GMReqNoChatCount,"gmreqnochatcount"},
-		{clif_parse_sn_doridori,"sndoridori"},
-		{clif_parse_sn_explosionspirits,"snexplosionspirits"},
+		{clif_parse_NoviceDoriDori,"sndoridori"},
+		{clif_parse_NoviceExplosionSpirits,"snexplosionspirits"},
 		{clif_parse_PMIgnore,"wisexin"},
 		{clif_parse_PMIgnoreList,"wisexlist"},
 		{clif_parse_PMIgnoreAll,"wisall"},
-		{clif_parse_friends_list_add,"friendslistadd"},
-		{clif_parse_friends_list_remove,"friendslistremove"},
-		{clif_parse_GMkillall,"killall"},
+		{clif_parse_FriendsListAdd,"friendslistadd"},
+		{clif_parse_FriendsListRemove,"friendslistremove"},
+		{clif_parse_GMKillAll,"killall"},
 		{clif_parse_Recall,"summon"},
 		{clif_parse_GM_Monster_Item,"itemmonster"},
 		{clif_parse_Shift,"shift"},

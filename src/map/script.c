@@ -5066,6 +5066,8 @@ int buildin_pvpon(struct script_state *st)
 					pl_sd->pvp_rank=0;
 					pl_sd->pvp_lastusers=0;
 					pl_sd->pvp_point=5;
+					pl_sd->pvp_won = 0;
+					pl_sd->pvp_lost = 0;
 				}
 			}
 		}

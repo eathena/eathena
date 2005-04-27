@@ -104,9 +104,13 @@ int clif_leavechat(struct chat_data*,struct map_session_data*);	// chat
 int clif_changechatstatus(struct chat_data*);	// chat
 int clif_refresh(struct map_session_data*);	// self
 
+int clif_fame_blacksmith(struct map_session_data *, int);
+int clif_fame_alchemist(struct map_session_data *, int);
+
 void clif_emotion(struct block_list *bl,int type);
 void clif_talkiebox(struct block_list *bl,char* talkie);
 void clif_wedding_effect(struct block_list *bl);
+void clif_divorced(struct map_session_data *sd, char *);
 //void clif_sitting(int fd, struct map_session_data *sd);
 //void clif_callpartner(struct map_session_data *sd);
 void clif_adopt_process(struct map_session_data *sd);
@@ -292,9 +296,8 @@ int clif_pet_equip(struct pet_data *pd,int nameid);
 int clif_pet_food(struct map_session_data *sd,int foodid,int fail);
 
 //friends list
-void clif_friends_list_send(struct map_session_data *sd);
-void clif_parse_friends_list_add(int fd,struct map_session_data *sd);
-void clif_parse_friends_list_remove(int fd,struct map_session_data *sd);
+void clif_friendslist_send(struct map_session_data *sd);
+void clif_friendslist_reqack(struct map_session_data *sd, int type);
 
 int clif_specialeffect(struct block_list *bl,int type, int flag); // special effects [Valaris]
 int clif_message(struct block_list *bl, char* msg); // messages (from mobs/npcs) [Valaris]

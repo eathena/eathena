@@ -1,5 +1,14 @@
 Date	Added
 04/27
+	* Updated friend list functions, much thanks to Tsusai / Fusion!
+	* Added packet for a divorce notice ("<your name> has divorced with <your spouse>
+	  name>") [celest]
+	* Added packet for /pvpinfo (only usable in pvp maps) [celest]
+	* Added display for /blacksmith and /alchemist [celest]
+	  -- To-do: Offline characters won't have their name displayed properly yet
+	* Added display when blacksmiths and alchemists gain fame points [celest]
+	* Fixed talkie box not working when packet DB is enabled [celest]
+	* Removed redundant monk() and parse_SkillMessage in clif.c [celest]
 	* Updated @send to check send lengths from packet_db [celest]
 	* Fixed @mutearea's time always set to 15 minutes [celest]
 	* Fixed a typo in the bAutospell's, thanks to Komurka

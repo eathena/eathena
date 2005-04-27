@@ -355,7 +355,8 @@ struct map_session_data {
 	struct pet_data *pd;
 	int pet_hungry_timer;
 
-	int pvp_point,pvp_rank,pvp_timer,pvp_lastusers;
+	int pvp_point, pvp_rank, pvp_timer, pvp_lastusers;
+	int pvp_won, pvp_lost;
 
 	char eventqueue[MAX_EVENTQUEUE][50];
 	int eventtimer[MAX_EVENTTIMER];

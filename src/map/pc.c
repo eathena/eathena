@@ -794,6 +794,8 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	sd->pvp_rank = 0;
 	sd->pvp_point = 0;
 	sd->pvp_timer = -1;
+	sd->pvp_won = 0;
+	sd->pvp_lost = 0;
 
 	// 通知
 
@@ -864,7 +866,7 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	}
 
 	// Send friends list
-	clif_friends_list_send(sd);
+	clif_friendslist_send(sd);
 
 	{
 		char buf[256];
@@ -2901,12 +2903,15 @@ int pc_item_refine(struct map_session_data *sd,int idx)
 					switch(ditem->wlv){
 						case 1:
 							sd->status.fame += 1; // Success to refine to +10 a lv1 weapon you forged = +1 fame point
+							clif_fame_blacksmith(sd, 1);
 							break;
 						case 2:
 							sd->status.fame += 25; // Success to refine to +10 a lv2 weapon you forged = +25 fame point
+							clif_fame_blacksmith(sd, 25);
 							break;
 						case 3:
 							sd->status.fame += 1000; // Success to refine to +10 a lv3 weapon you forged = +1000 fame point
+							clif_fame_blacksmith(sd, 1000);
 							break;
 					}
 				}
@@ -5063,10 +5068,13 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 	// pvp
 	if( map[sd->bl.m].flag.pvp && !battle_config.pk_mode){ // disable certain pvp functions on pk_mode [Valaris]
 		//ランキング計算
-		if(!map[sd->bl.m].flag.pvp_nocalcrank){
-			sd->pvp_point-=5;
-			if(src && src->type==BL_PC )
-				((struct map_session_data *)src)->pvp_point++;
+		if (!map[sd->bl.m].flag.pvp_nocalcrank) {
+			sd->pvp_point -= 5;
+			sd->pvp_lost++;
+			if (src && src->type == BL_PC) {
+				struct map_session_data *ssd = (struct map_session_data *)src;
+				if (ssd) { ssd->pvp_point++; ssd->pvp_won++; }
+			}
 		//} //fixed wrong '{' placement by Lupus
 			pc_setdead(sd);
 		}
@@ -6621,10 +6629,12 @@ int pc_ismarried(struct map_session_data *sd)
  */
 int pc_marriage(struct map_session_data *sd,struct map_session_data *dstsd)
 {
-	if(sd == NULL || dstsd == NULL || sd->status.partner_id > 0 || dstsd->status.partner_id > 0 || pc_calc_upper(sd->status.class_)==2)
+	if(sd == NULL || dstsd == NULL ||
+		sd->status.partner_id > 0 || dstsd->status.partner_id > 0 ||
+		pc_calc_upper(sd->status.class_) == 2)
 		return -1;
-	sd->status.partner_id=dstsd->status.char_id;
-	dstsd->status.partner_id=sd->status.char_id;
+	sd->status.partner_id = dstsd->status.char_id;
+	dstsd->status.partner_id = sd->status.char_id;
 	return 0;
 }
 
@@ -6634,26 +6644,27 @@ int pc_marriage(struct map_session_data *sd,struct map_session_data *dstsd)
  */
 int pc_divorce(struct map_session_data *sd)
 {
-	struct map_session_data *p_sd=NULL;
-	if(sd == NULL || !pc_ismarried(sd))
+	struct map_session_data *p_sd;
+	if (sd == NULL || !pc_ismarried(sd))
 		return -1;
 
-	if( (p_sd=map_nick2sd(map_charid2nick(sd->status.partner_id))) !=NULL){
+	if ((p_sd = map_charid2sd(sd->status.partner_id)) != NULL) {
 		int i;
-		if(p_sd->status.partner_id != sd->status.char_id || sd->status.partner_id != p_sd->status.char_id){
-			printf("pc_divorce: Illegal partner_id sd=%d p_sd=%d\n",sd->status.partner_id,p_sd->status.partner_id);
+		if (p_sd->status.partner_id != sd->status.char_id || sd->status.partner_id != p_sd->status.char_id) {
+			printf("pc_divorce: Illegal partner_id sd=%d p_sd=%d\n", sd->status.partner_id, p_sd->status.partner_id);
 			return -1;
 		}
-		sd->status.partner_id=0;
-		p_sd->status.partner_id=0;
-		for(i=0;i<MAX_INVENTORY;i++)
-			if(sd->status.inventory[i].nameid == WEDDING_RING_M || sd->status.inventory[i].nameid == WEDDING_RING_F)
-				pc_delitem(sd,i,1,0);
-		for(i=0;i<MAX_INVENTORY;i++)
-			if(p_sd->status.inventory[i].nameid == WEDDING_RING_M || p_sd->status.inventory[i].nameid == WEDDING_RING_F)
-				pc_delitem(p_sd,i,1,0);
-
-	}else{
+		sd->status.partner_id = 0;
+		p_sd->status.partner_id = 0;
+		for (i = 0; i < MAX_INVENTORY; i++)
+			if (sd->status.inventory[i].nameid == WEDDING_RING_M || sd->status.inventory[i].nameid == WEDDING_RING_F)
+				pc_delitem(sd, i, 1, 0);
+		for (i = 0; i < MAX_INVENTORY; i++)
+			if (p_sd->status.inventory[i].nameid == WEDDING_RING_M || p_sd->status.inventory[i].nameid == WEDDING_RING_F)
+				pc_delitem(p_sd, i, 1, 0);
+		clif_divorced(sd, p_sd->status.name);
+		clif_divorced(p_sd, sd->status.name);
+	} else {
 		printf("pc_divorce: p_sd nullpo\n");
 		return -1;
 	}
@@ -6665,24 +6676,28 @@ int pc_divorce(struct map_session_data *sd)
  */
 int pc_adoption(struct map_session_data *sd,struct map_session_data *dstsd, struct map_session_data *jasd)
 {       
-        int j;          
-        if(sd == NULL || dstsd == NULL || jasd == NULL || sd->status.partner_id <= 0 || dstsd->status.partner_id <= 0 || sd->status.partner_id != dstsd->status.char_id || dstsd->status.partner_id != sd->status.char_id || sd->status.child > 0 || dstsd->status.child || jasd->status.father > 0 || jasd->status.mother > 0)
-                return -1;
-        jasd->status.father=sd->status.char_id;
-        jasd->status.mother=dstsd->status.char_id;
-        sd->status.child=jasd->status.char_id;
-        dstsd->status.child=jasd->status.char_id;
-        for (j=0; j < MAX_INVENTORY; j++) {
-                if(jasd->status.inventory[j].nameid>0 && jasd->status.inventory[j].equip!=0)
-                        pc_unequipitem(jasd, j, 3);
-        }
-        if (pc_jobchange(jasd, 4023, 0) == 0)
-                clif_displaymessage(jasd->fd, msg_table[12]); // Your job has been changed.
-        else {
-                clif_displaymessage(jasd->fd, msg_table[155]); // Impossible to change your job.
-                return -1;
-        }
-        return 0;
+	int j;          
+	if (sd == NULL || dstsd == NULL || jasd == NULL ||
+		sd->status.partner_id <= 0 || dstsd->status.partner_id <= 0 ||
+		sd->status.partner_id != dstsd->status.char_id || dstsd->status.partner_id != sd->status.char_id ||
+		sd->status.child > 0 || dstsd->status.child || jasd->status.father > 0 || jasd->status.mother > 0)
+			return -1;
+	jasd->status.father = sd->status.char_id;
+	jasd->status.mother = dstsd->status.char_id;
+	sd->status.child = jasd->status.char_id;
+	dstsd->status.child = jasd->status.char_id;
+
+	for (j=0; j < MAX_INVENTORY; j++) {
+		if(jasd->status.inventory[j].nameid>0 && jasd->status.inventory[j].equip!=0)
+			pc_unequipitem(jasd, j, 3);
+	}
+	if (pc_jobchange(jasd, 4023, 0) == 0)
+		clif_displaymessage(jasd->fd, msg_txt(12)); // Your job has been changed.
+	else {
+		clif_displaymessage(jasd->fd, msg_txt(155)); // Impossible to change your job.
+		return -1;
+	}
+	return 0;
 }
 
 /*==========================================
