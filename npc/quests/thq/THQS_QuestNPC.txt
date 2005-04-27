@@ -255,7 +255,7 @@ N_CoalMine:
 	mes " ";
 	mes "Recently there was an acident at the coal mines. There was a huge chasm that released some undead Evil Druids.";
 	next;
-	mes "The Evil Druids started to turn all the workers into the undead. We do not know why, but we do not want to find out,contact a man named Rudolfo outside the Coal Mines.";
+	mes "The Evil Druids started to turn all the workers into the undead. We do not know why, but we do not want to find out, contact a man named Rudolfo outside the Coal Mines.";
 	set three_qset,4;
 	goto L_QuestGiven;
 
@@ -269,7 +269,7 @@ N_JobList4:
 	mes "^FF0000-------------^000000";
 	mes "The undead have invaded Payon Cave!";
 	mes " ";
-	mes "I remember when Payon Cave used to be a safe place to visit, but now undead Zombies have infested the cave!Please contact ^FF0000Flora outside on Payon Cave^000000 and aid her.";
+	mes "I remember when Payon Cave used to be a safe place to visit, but now undead Zombies have infested the cave! Please contact ^FF0000Flora outside on Payon Cave^000000 and aid her.";
 	set four_qset,1;
 	goto L_QuestGiven;
 
@@ -278,7 +278,7 @@ N_MWizard:
 	mes "^FF0000-------------^000000";
 	mes "Proto-type of a Staff must be delivered to Zed the Wizard.";
 	mes " ";
-	mes "Zed the Wizard has requested to try out a new un-named proto-type staff. It will be your job to deliver this to him.Zed tend to stay within the general area of Juno.";
+	mes "Zed the Wizard has requested to try out a new un-named proto-type staff. It will be your job to deliver this to him. Zed tend to stay within the general area of Juno.";
 	getitem 1999,1; //Zed's_Staff
 	set four_qset,2;
 	goto L_QuestGiven;

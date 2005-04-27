@@ -10,7 +10,7 @@
 //                   revised By Warlock                  //
 ///////////////////////////////////////////////////////////
 //===== Version ===========================================
-//= 1.1
+//= 1.2
 //===== Compatible With ===================================
 //= eAthena 1.0
 //===== Description =======================================
@@ -19,7 +19,7 @@
 //= Event_THQS - Used to check if you have already registerd
 //= #Treasure_Token - used to keep track of tokens
 //= 1.0 - Straight conversionof Aegis NPC file
-//= 1.1 some bugfixes, typos [Lupus]
+//= 1.2 some bugfixes, typos [Lupus]
 //////////////////////////////////////////////////////////
 
 
@@ -169,7 +169,7 @@ N_QuestComp:
 	close;
 N_QuestStart:
 	mes "[Jeramiah]";
-	mes "SO your the one that is supposed to bring my Jur?";
+	mes "So your the one that is supposed to bring my Jur?";
 	mes "So where's my Jur?";
 	close;
 }
@@ -314,11 +314,11 @@ N_QuestStart2:
 mjolnir_02.gat,87,357,6	script	Man	51,{
 	if (three_qset == 4 && countitem(1041) > 49) goto N_QuestComp;
 	if (three_qset == 4) goto N_QuestStart;
-	mes "[Man]";
+	mes "[Rudolfo]";
 	mes "Danger, the Coal Mine is now a hostile area.";
 	close;
 N_QuestComp:
-	mes "[Man]";
+	mes "[Rudolfo]";
 	mes "Well its good to see that you have come back alive.";
 	mes "I had my doughts but thank you for your help.";
 	mes " ";
@@ -329,7 +329,7 @@ N_QuestComp:
 	set #Treasure_Token,#Treasure_Token+4;
 	close;
 N_QuestStart:
-	mes "[Man]";
+	mes "[Rudolfo]";
 	mes "Hello, you must be from the Treasure Hunter Guild.";
 	mes " ";
 	mes "They must have filled you in on what is happening on the lower levels of this Coal Mine, I know its desturbing and we are still trying to figure out why and how 2 Evil Druids got down there.";
@@ -596,10 +596,10 @@ function	script	six_qset2	{
 	mes "It is 30 Rotten bandages I desire.";
 	close;
 N_QuestComp2:
-	mes "[Strange]";
+	mes "[Strange Man]";
 	mes "Much thanks for you that I have.";
 	next;
-	mes "[Strange]";
+	mes "[Strange Man]";
 	mes "Take with you these 3 tokens.";
 	set #Treasure_Token,#Treasure_Token+3;
 	delitem 930,30;
@@ -683,7 +683,7 @@ N_QuestComp:
 	close;
 N_QuestStart:
 	mes "[Girl]";
-	mes "Hi mister person,Can you get me some apple juice?";
+	mes "Hi mister person. Can you get me some apple juice?";
 	mes "I want 5 of them.";
 	close;
 N_QuestStart2:
@@ -693,14 +693,14 @@ N_QuestStart2:
 alberta.gat,101,84,6	script	Charles	48,{
 	if (seven_qset == 2 && countitem(1082) > 0) goto N_QuestComp;
 	if (seven_qset == 2) goto N_QuestStart;
-	mes "[Klye]";
+	mes "[Charles]";
 	mes "Hello "+strcharinfo(0)+" welcome to Alberta.";
 	close;
 N_QuestComp:
-	mes "[Klye]";
+	mes "[Charles]";
 	mes "Thank you for this delivery.";
 	next;
-	mes "[Klye]";
+	mes "[Charles]";
 	mes "Here take this Treasure Token as a reward.";
 	set seven_qset,0;
 	delitem 1082,1;
@@ -708,7 +708,7 @@ N_QuestComp:
 	set #Treasure_Token,#Treasure_Token+1;
 	close;
 N_QuestStart:
-	mes "[Kyle]";
+	mes "[Charles]";
 	mes "So where is my package?";
 	close;
 }
@@ -906,7 +906,7 @@ N_QuestStart:
 }
 //9-3
 payon_in02.gat,19,33,6	script	Jack	740,{
-	if (nine_qset == 3 && countitem(1023) > 0) goto N_QuestComp;
+	if (nine_qset == 3 && countitem(1022) > 0) goto N_QuestComp;
 	if (nine_qset == 3) goto N_QuestStart;
 	if (nine_qset == 4) goto N_QuestStart2;
 	mes "[Jack]";
@@ -920,7 +920,7 @@ N_QuestComp:
 	mes "Here take these 4 Treasure Tokens.";
 	set nine_qset,0;
 	set On_Quest,0;
-	delitem 1023,1;
+	delitem 1022,1;
 	set #Treasure_Token,#Treasure_Token+4;
 	close;
 N_QuestStart:
