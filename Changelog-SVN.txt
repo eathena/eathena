@@ -1,5 +1,7 @@
 Date	Added
 04/27
+	* Updated @send to check send lengths from packet_db [celest]
+	* Fixed @mutearea's time always set to 15 minutes [celest]
 	* Fixed a typo in the bAutospell's, thanks to Komurka
 	* Reverted a setting in skill casting time calculating [celest]
 	* Fixed Gravitation not affecting enemies, and ignore element modifiers [celest]

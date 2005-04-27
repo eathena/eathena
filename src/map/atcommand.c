@@ -1057,16 +1057,15 @@ int atcommand_send(
 	int type = strtol(message,(char **)NULL,0);
 
 	if (type > 0 && type < MAX_PACKET_DB) {
-		unsigned char buf[1024];
 
 		switch (type)
 		{
 		//case xxx:
 		//	add others here
 		//	break;
-		default:		
-			WBUFW(buf,0) = type;
-			WFIFOSET(fd,2);
+		default:
+			WFIFOW(fd,0) = type;
+			WFIFOSET(fd, packet_db[clif_config.packet_db_ver][type].len);
 			break;
 		}
 
@@ -9339,19 +9338,20 @@ int atcommand_version(
 
 static int atcommand_mutearea_sub(struct block_list *bl,va_list ap)
 {
-  int time;
-  struct map_session_data *pl_sd = (struct map_session_data *) bl;
-  if (bl == NULL)
-    return 0;
+	int time, id;
+	struct map_session_data *pl_sd = (struct map_session_data *)bl;
+	if (pl_sd == NULL)
+		return 0;
 
-  time = va_arg(ap, int);
+	id = va_arg(ap, int);
+	time = va_arg(ap, int);	
 
-  if (!pc_isGM(pl_sd)) {
-    pl_sd->status.manner -= time;
-    if(pl_sd->status.manner < 0)
-      status_change_start(&pl_sd->bl,SC_NOCHAT,0,0,0,0,0,0);
-  }
-  return 0;
+	if (id != bl->id && !pc_isGM(pl_sd)) {
+		pl_sd->status.manner -= time;
+		if (pl_sd->status.manner < 0)
+			status_change_start(&pl_sd->bl,SC_NOCHAT,0,0,0,0,0,0);
+	}
+	return 0;
 }
 
 /*==========================================
@@ -9362,17 +9362,17 @@ int atcommand_mutearea(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-  int time;
-  nullpo_retr(0, sd);
+	int time;
+	nullpo_retr(0, sd);
 
-  time = atoi(message);
-  if (time <= 0)
-    time = 15; // 15 second default
-  map_foreachinarea(atcommand_mutearea_sub,sd->bl.m, 
-    sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE, 
-    sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_PC, 15);
+	time = atoi(message);
+	if (time <= 0)
+		time = 15; // 15 minutes default
+	map_foreachinarea(atcommand_mutearea_sub,sd->bl.m, 
+		sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE, 
+		sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_PC, sd->bl.id, time);
 
-  return 0;
+	return 0;
 }
 
 static int atcommand_shuffle_sub(struct block_list *bl,va_list ap)
