@@ -2127,7 +2127,7 @@ int pc_bonus4(struct map_session_data *sd,int type,int type2,int type3,int type4
 			for (i = 0; i < 10; i++) {
 				if (sd->autospell_id[i] == 0 ||
 					(sd->autospell_id[i] == type2 && sd->autospell_lv[i] < type3) ||
-					(sd->autospell_id[i] == type2 && sd->autospell_lv[i] == type3 && sd->autospell_rate[i] < val))
+					(sd->autospell_id[i] == type2 && sd->autospell_lv[i] == type3 && sd->autospell_rate[i] < type4))
 				{
 					sd->autospell_id[i] = (val) ? type2 : -type2;		// val = 0: self, 1: enemy
 					sd->autospell_lv[i] = type3;
@@ -2142,7 +2142,7 @@ int pc_bonus4(struct map_session_data *sd,int type,int type2,int type3,int type4
 			for (i = 0; i < 10; i++) {
 				if (sd->autospell2_id[i] == 0 ||
 					(sd->autospell2_id[i] == type2 && sd->autospell2_lv[i] < type3) ||
-					(sd->autospell2_id[i] == type2 && sd->autospell2_lv[i] == type3 && sd->autospell2_rate[i] < val))
+					(sd->autospell2_id[i] == type2 && sd->autospell2_lv[i] == type3 && sd->autospell2_rate[i] < type4))
 				{
 					sd->autospell2_id[i] = (val) ? type2 : -type2;		// val = 0: self, 1: enemy
 					sd->autospell2_lv[i] = type3;
@@ -2433,26 +2433,32 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount)
 
 	i = MAX_INVENTORY;
 
-	if(!itemdb_isequip2(data)){
+	if (!itemdb_isequip2(data)){
 		// 装 備品ではないので、既所有品なら個数のみ変化させる
-		for(i=0;i<MAX_INVENTORY;i++)
-		if(sd->status.inventory[i].nameid == item_data->nameid &&
-			sd->status.inventory[i].card[0] == item_data->card[0] && sd->status.inventory[i].card[1] == item_data->card[1] &&
-			sd->status.inventory[i].card[2] == item_data->card[2] && sd->status.inventory[i].card[3] == item_data->card[3]) {
-			if(sd->status.inventory[i].amount+amount > MAX_AMOUNT)
-				return 5;
-			sd->status.inventory[i].amount+=amount;
-			clif_additem(sd,i,amount,0);
-			break;
-		}
+		for (i = 0; i < MAX_INVENTORY; i++)
+			if(sd->status.inventory[i].nameid == item_data->nameid &&
+				sd->status.inventory[i].card[0] == item_data->card[0] &&
+				sd->status.inventory[i].card[1] == item_data->card[1] &&
+				sd->status.inventory[i].card[2] == item_data->card[2] &&
+				sd->status.inventory[i].card[3] == item_data->card[3])
+			{
+				if (sd->status.inventory[i].amount + amount > MAX_AMOUNT)
+					return 5;
+				sd->status.inventory[i].amount += amount;
+				clif_additem(sd,i,amount,0);
+				break;
+			}
 	}
-	if(i >= MAX_INVENTORY){
+	if (i >= MAX_INVENTORY){
 		// 装 備品か未所有品だったので空き欄へ追加
 		i = pc_search_inventory(sd,0);
 		if(i >= 0) {
-			memcpy(&sd->status.inventory[i],item_data,sizeof(sd->status.inventory[0]));
-			sd->status.inventory[i].amount=amount;
-			sd->inventory_data[i]=data;
+			// clear equips field first, just in case
+			if (item_data->equip != 0)
+				item_data->equip = 0;
+			memcpy(&sd->status.inventory[i], item_data, sizeof(sd->status.inventory[0]));
+			sd->status.inventory[i].amount = amount;
+			sd->inventory_data[i] = data;
 			clif_additem(sd,i,amount,0);
 		}
 		else return 4;
@@ -5437,7 +5443,7 @@ int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 		bonus = (sd->paramc[2]<<1) + 100 + pc_checkskill(sd,SM_RECOVERY)*10
 			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5;
 		if ((type = itemdb_group(sd->itemid)) > 0 && type <= 7)
-			bonus += sd->itemhealrate[type - 1];
+			bonus = bonus * (100+sd->itemhealrate[type - 1]) / 100;
 		if(bonus != 100)
 			hp = hp * bonus / 100;
 	}

@@ -578,6 +578,7 @@ int	skill_get_mhp( int id ,int lv ){ skill_get (skill_db[id].mhp[lv-1], id, lv);
 int	skill_get_castnodex( int id ,int lv ){ skill_get (skill_db[id].castnodex[lv-1], id, lv); }
 int	skill_get_delaynodex( int id ,int lv ){ skill_get (skill_db[id].delaynodex[lv-1], id, lv); }
 int	skill_get_nocast ( int id ){ skill_get (skill_db[id].nocast, id, 1); }
+int	skill_get_type( int id ){ skill_get (skill_db[id].skill_type, id, 1); }
 int	skill_get_unit_id ( int id, int flag ){ skill_get (skill_db[id].unit_id[flag], id, 1); }
 int	skill_get_unit_layout_type( int id ,int lv ){ skill_get (skill_db[id].unit_layout_type[lv-1], id, lv); }
 int	skill_get_unit_interval( int id ){ skill_get (skill_db[id].unit_interval, id, 1); }
@@ -6998,44 +6999,30 @@ int skill_check_condition(struct map_session_data *sd,int type)
  */
 int skill_castfix( struct block_list *bl, int time )
 {
-	struct map_session_data *sd = NULL;
 	struct status_change *sc_data;
-	int skill, lv, castrate = 100;
-
+	
 	nullpo_retr(0, bl);
 
-	if (bl->type == BL_MOB){ // Crash fix [Valaris]
-		struct mob_data *md = (struct mob_data*)bl;
-		if (!md) return 0;
-		skill = md->skillid;
-		lv = md->skilllv;
-	} else if (bl->type == BL_PC){
-		sd = (struct map_session_data*)bl;
-		if (!sd) return 0;
-		skill = sd->skillid;
-		lv = sd->skilllv;
-	} else return 0;
+	if (bl->type == BL_PC){
+		struct map_session_data *sd = (struct map_session_data*)bl;
+		nullpo_retr(0, sd);
 
-	if (sd) {
-		// calculate cast time reduced by dex
-		if (!skill_get_castnodex(skill, lv) > 0) {
+		// calculate base cast time (reduced by dex)
+		if (!skill_get_castnodex(sd->skillid, sd->skilllv) > 0) {
 			int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
 			if (scale > 0)	// not instant cast
-				castrate = castrate * scale / battle_config.castrate_dex_scale;
-			else // instant cast -- but we still continue calculating in case
-				castrate = 0;
+				time = time * scale / battle_config.castrate_dex_scale;
+			else return 0;	// instant cast
 		}
+
+		// config cast time multiplier
+		if (battle_config.cast_rate != 100)
+			time = time * battle_config.cast_rate / 100;
+
 		// calculate cast time reduced by card bonuses
 		if (sd->castrate != 100)
-			castrate -= (100 - sd->castrate);
+			time -= time * (100 - sd->castrate) / 100;
 	}
-
-	// return if cast time is already zero
-	if (castrate <= 0)
-		return 0;
-
-	// calculate cast time
-	time = time * castrate * battle_config.cast_rate / 10000;
 
 	// calculate cast time reduced by skill bonuses
 	sc_data = status_get_sc_data(bl);
@@ -7049,8 +7036,9 @@ int skill_castfix( struct block_list *bl, int time )
 		if (sc_data[SC_POEMBRAGI].timer != -1)
 			time = time * (100 - (sc_data[SC_POEMBRAGI].val1 * 3 + sc_data[SC_POEMBRAGI].val2
 				+(sc_data[SC_POEMBRAGI].val3 >> 16))) / 100;
-	}	
+	}
 
+	// return final cast time
 	return (time > 0) ? time : 0;
 }
 /*==========================================
@@ -7059,51 +7047,49 @@ int skill_castfix( struct block_list *bl, int time )
  */
 int skill_delayfix( struct block_list *bl, int time )
 {
-	struct status_change *sc_data;
-	struct map_session_data *sd = NULL;
-	int skill = 0,lv = 0;
-	int delayrate = 100;
+	struct status_change *sc_data;	
 
 	nullpo_retr(0, bl);
 
-	if(bl->type == BL_PC){
-		nullpo_retr(0, sd = (struct map_session_data*)bl);
-		skill = sd->skillid;
-		lv = sd->skilllv;
-	}
-
-	if(lv <= 0) return 0;
-
-	sc_data = status_get_sc_data(bl);
-
-	if(sd) {
-		delayrate = sd->delayrate;
+	if (bl->type == BL_PC){
+		struct map_session_data *sd = (struct map_session_data*)bl;
+		nullpo_retr(0, sd);
 
 		// instant cast attack skills depend on aspd as delay [celest]
 		if (time == 0) {
-			if (skill_db[skill].skill_type == BF_WEAPON)
+			if (skill_get_type(sd->skillid) == BF_WEAPON)
 				time = status_get_adelay (bl)/2;
 			else
 				time = 300;	// default delay, according to official servers
 		} else if (time < 0)
 			time = abs(time) + status_get_adelay (bl)/2;	// if set to <0, the aspd delay will be added
 
-		if(battle_config.delay_dependon_dex &&	/* dex‚Ì‰e‹¿‚ðŒvŽZ‚·‚é */
-			!skill_get_delaynodex(skill, lv))	// if skill casttime is allowed to be reduced by dex
-			time = time * (battle_config.castrate_dex_scale - status_get_dex(bl)) / (battle_config.castrate_dex_scale);
+		if (battle_config.delay_dependon_dex &&	/* dex‚Ì‰e‹¿‚ðŒvŽZ‚·‚é */
+			!skill_get_delaynodex(sd->skillid, sd->skilllv))	// if skill casttime is allowed to be reduced by dex
+		{
+			int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
+			if (scale < 0)
+				scale = 0;
+			time = time * scale / battle_config.castrate_dex_scale;
+		}
 
-		time = time * delayrate * battle_config.delay_rate / 10000;
+		if (battle_config.delay_rate != 100)
+			time = time * battle_config.delay_rate / 100;
+
+		if (sd->delayrate != 100)
+			time = time * sd->delayrate / 100;
 
 		if (time < battle_config.min_skill_delay_limit)	// check minimum skill delay
 			time = battle_config.min_skill_delay_limit;
 	}
 
 	/* ƒuƒ‰ƒM‚ÌŽ */
-	if(sc_data && sc_data[SC_POEMBRAGI].timer != -1 )
+	sc_data = status_get_sc_data(bl);
+	if (sc_data && sc_data[SC_POEMBRAGI].timer != -1)
 		time = time * (100 - (sc_data[SC_POEMBRAGI].val1 * 3 + sc_data[SC_POEMBRAGI].val2
 				+ (sc_data[SC_POEMBRAGI].val3 & 0xffff))) / 100;
 
-	return (time>0)?time:0;
+	return (time > 0) ? time : 0;
 }
 
 /*==========================================

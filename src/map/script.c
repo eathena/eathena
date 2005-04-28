@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 
 #ifndef _WIN32
 #include <sys/time.h>
@@ -6915,6 +6916,8 @@ int buildin_isday(struct script_state *st)
  * equipped - used for 2/15's cards patch [celest]
  *------------------------------------------------
  */
+// leave this here, just in case
+#if 0
 int buildin_isequipped(struct script_state *st)
 {
 	struct map_session_data *sd;
@@ -6967,6 +6970,7 @@ int buildin_isequipped(struct script_state *st)
 	push_val(st->stack,C_INT,ret);
 	return 0;
 }
+#endif
 
 /*================================================
  * Check how many items/cards in the list are
@@ -7011,6 +7015,95 @@ int buildin_isequippedcnt(struct script_state *st)
 				}				
 			}
 		}
+	}
+	
+	push_val(st->stack,C_INT,ret);
+	return 0;
+}
+
+/*================================================
+ * Check whether another card has been
+ * equipped - used for 2/15's cards patch [celest]
+ * -- Items checked cannot be reused in another
+ * card set to prevent exploits
+ *------------------------------------------------
+ */
+int buildin_isequipped(struct script_state *st)
+{
+	struct map_session_data *sd;
+	int i, j, k, id = 1;
+	int ret = -1;
+
+	sd = script_rid2sd(st);
+	
+	for (i=0; id!=0; i++) {
+		int flag = 0;
+	
+		FETCH (i+2, id) else id = 0;
+		if (id <= 0)
+			continue;
+		
+		for (j=0; j<10; j++) {
+			int index, type;
+			index = sd->equip_index[j];
+			if(index < 0) continue;
+			if(j == 9 && sd->equip_index[8] == index) continue;
+			if(j == 5 && sd->equip_index[4] == index) continue;
+			if(j == 6 && (sd->equip_index[5] == index || sd->equip_index[4] == index)) continue;
+			type = itemdb_type(id);
+			
+			if(sd->inventory_data[index]) {
+				if (type == 4 || type == 5) {					
+					if (sd->inventory_data[index]->nameid == id)
+						flag = 1;
+				} else if (type == 6) {
+					// Item Hash format:
+					// 1111 1111 1111 1111 1111 1111 1111 1111
+					// [ left  ] [ right ] [ NA ] [  armor  ]
+					for (k = 0; k < sd->inventory_data[index]->slot; k++) {
+						// --- Calculate hash for current card ---
+						// Defense equipment
+						// They *usually* have only 1 slot, so we just assign 1 bit
+						int hash = 0;
+						if (sd->inventory_data[index]->type == 5) {
+							hash = sd->inventory_data[index]->equip;
+						}
+						// Weapons
+						// right hand: slot 1 - 0x10000 ... slot 4 - 0x80000
+						// left hand: slot 1 - 0x1000000 ... slot 4 - 0x8000000
+						// We can support up to 8 slots each, just in case
+						else if (sd->inventory_data[index]->type == 4) {
+							if (sd->inventory_data[index]->equip & 2)	// right hand
+								hash = 0x10000 * (int)pow(2,k);	// x slot number
+							else if (sd->inventory_data[index]->equip & 32)	// left hand
+								hash = 0x1000000 * (int)pow(2,k);	// x slot number
+						} else
+							continue;	// slotted item not armour nor weapon? we're not going to support it
+
+						if (sd->setitem_hash & hash)	// check if card is already used by another set
+							continue;	// this item is used, move on to next card
+
+						if (sd->status.inventory[index].card[0] != 0x00ff &&
+							sd->status.inventory[index].card[0] != 0x00fe &&
+							sd->status.inventory[index].card[0] != (short)0xff00 &&
+							sd->status.inventory[index].card[k] == id)
+						{
+							// We have found a match
+							flag = 1;
+							// Set hash so this card cannot be used by another
+							sd->setitem_hash |= hash;
+							break;
+						}
+					}
+				}
+				if (flag) break;
+			}
+		}
+		if (ret == -1)
+			ret = flag;
+		else
+			ret &= flag;
+		if (!ret) break;
 	}
 	
 	push_val(st->stack,C_INT,ret);

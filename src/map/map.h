@@ -308,6 +308,7 @@ struct map_session_data {
 	short monster_drop_itemgroup[10];
 	int sp_loss_tick, sp_loss_rate;
 	short sp_loss_value;
+	int setitem_hash;
 	//--- end effects
 
 	short spiritball, spiritball_old;

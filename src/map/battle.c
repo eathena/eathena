@@ -3608,7 +3608,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 					int skilllv = (sd->autospell_lv[i] > 0) ? sd->autospell_lv[i] : 1;
 					int j, rate = (!sd->state.arrow_atk) ? sd->autospell_rate[i] : sd->autospell_rate[i] / 2;
 					
-					if (rand()%100 < rate)
+					if (rand()%100 > rate)
 						continue;
 					if (sd->autospell_id[i] < 0)
 						tbl = src;
@@ -3664,7 +3664,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 					int j, rate = ((sd && !sd->state.arrow_atk) || (status_get_range(src)<=2)) ?
 						tsd->autospell2_rate[i] : tsd->autospell2_rate[i] / 2;
 					
-					if (rand()%100 < rate)
+					if (rand()%100 > rate)
 						continue;
 					if (tsd->autospell2_id[i] < 0)
 						tbl = target;
@@ -3762,15 +3762,15 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	nullpo_retr(0, src);
 	nullpo_retr(0, target);
 
-	if( flag&0x40000 ){	// ”½“]ƒtƒ‰ƒO
-		int ret=battle_check_target(src,target,flag&0x30000);
-		if(ret!=-1)
+	if (flag & BCT_ENEMY){	// ”½“]ƒtƒ‰ƒO
+		int ret = battle_check_target(src,target,flag&0x30000);
+		if (ret != -1)
 			return !ret;
 		return -1;
 	}
 
-	if( flag&0x20000 ){
-		if( target->type==BL_MOB || target->type==BL_PC )
+	if (flag & BCT_ALL){
+		if (target->type == BL_MOB || target->type == BL_PC)
 			return 1;
 		else
 			return -1;

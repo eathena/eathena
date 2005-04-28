@@ -1,4 +1,13 @@
 Date	Added
+04/28
+	* Fixed a bot trading hack [celest]
+	* 'isequipped' will now 'tag' items that are used in its set, so a 2nd set will
+	  not be able to use items from the 1st set [celest]
+	* Changed bAddItemHealRate to be based on total hp healed including vit bonuses
+	  instead of base hp [celest]
+	* Tweaked skill casting time and delay logic again [celest]
+	* Fixed another typo in bAutospell, thanks to Komurka [celest]
+
 04/27
 	* Updated friend list functions, much thanks to Tsusai / Fusion!
 	* Added packet for a divorce notice ("<your name> has divorced with <your spouse>

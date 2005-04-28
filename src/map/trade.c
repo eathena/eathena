@@ -107,12 +107,12 @@ int impossible_trade_check(struct map_session_data *sd) {
 	// get inventory of player
 	memcpy(&inventory, &sd->status.inventory, sizeof(struct item) * MAX_INVENTORY);
 
-/* remove this part: arrows can be trade and equiped
+	// remove this part: arrows can be trade and equiped
+	// re-added! [celest]
 	// remove equiped items (they can not be trade)
 	for (i = 0; i < MAX_INVENTORY; i++)
-		if (inventory[i].nameid > 0 && inventory[i].equip)
+		if (inventory[i].nameid > 0 && inventory[i].equip && !(inventory[i].equip & 0x8000))
 			memset(&inventory[i], 0, sizeof(struct item));
-*/
 
 	// check items in player inventory
 	for(i = 0; i < 10; i++)
