@@ -1194,8 +1194,8 @@
 4150,Goat_Card,Goat Card,6,20,0,10,,,,,,,16,,,,{},{ if(getrefine>=6) end; bonus bDef,2; bonus bMdef,5; } //OK
 4151,Gajomart_Card,Gajomart Card,6,20,0,10,,,,,,,64,,,,{},{ bonus2 bSubRace,3,-20; bonus2 bExpAddRace,2,20; } //??OK
 4152,Galapago_Card,Galapago Card,6,20,0,10,,,,,,,136,,,,{},{ bonus2 bAddItemHealRate,6,50; bonus3 bAddMonsterDropItemGroup,6,4,10000; } //??OK
-4153,Crab_Card,Crab Card,6,20,0,10,,,,,,,2,,,,{},{ bonus bAtk,5; bonus2 bAddDamageClass,1266,30; bonus2 bAddEle,4,30; if(cardscnt(4247)&&cardscnt(4273)) bonus3 bAddMonsterDropItem,544,5,3000; } //OK
-4154,Dumpling_Child_Card,Dumpling Child Card,6,20,0,10,,,,,,,,,,,{},{}
+4153,Crab_Card,Crab Card,6,20,0,10,,,,,,,2,,,,{},{ bonus bAtk,5; bonus2 bAddDamageClass,1266,30; if(isequipped(4247,4273)) goto CRAB; end; CRAB: bonus3 bAddMonsterDropItem,544,5,3000; bonus2 bAddEle,4,30; } //OK
+4154,Dumpling_Child_Card,Dumpling Child Card,6,20,0,10,,,,,,,136,,,,{},{ bonus2 bAddItemHealRate,4,50; bonus3 bAddMonsterDropItemGroup,4,7,10000; }
 4155,Goblin_Leader_Card,Goblin Leader Card,6,20,0,10,,,,,,,2,,,,{},{ bonus2 bAddRace2,1,30; } //OK
 4156,Goblin_Rider_Card,Goblin Steam Rider Card,6,20,0,10,,,,,,,2,,,,{},{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,0,7; } //OK
 4157,Goblin_Archer_Card,Goblin Archer Card,6,20,0,10,,,,,,,2,,,,{},{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,1,7; } //OK
@@ -1226,7 +1226,7 @@
 4182,Diabolic_Card,Diabolic Card,6,20,0,10,,,,,,,2,,,,{},{} //missing recoversponracekill??
 4183,Vagabond_Wolf_Card,Vagabond Wolf Card,6,20,0,10,,,,,,,4,,,,{},{ bonus bStr,1; if(isequipped(4029)) bonus bFlee,18; } //OK
 4184,Lava_Golem_Card,Lava Golem Card,6,20,0,10,,,,,,,2,,,,{},{ bonus2 bAddRace2,4,30; } //OK
-4185,Rideword_Card,Rideword Card,6,20,0,10,,,,,,,769,,,,{},{ bonus bInt,1; if(callfunc("Is_Holy_Class")) bonus bMdef,1; } //OK
+4185,Rideword_Card,Rideword Card,6,20,0,10,,,,,,,769,,,,{},{ bonus bInt,1; if(callfunc("Is_Holy_Class")) goto R_WORD; end; R_WORD: bonus bInt,1; bonus bMdef,1; } //OK
 4186,Raggler_Card,Raggler Card,6,20,0,10,,,,,,,64,,,,{},{ bonus bStr,1; bonus bVit,1; if(isequipped(4233,4281,4321,4206)) end; bonus bLuk,10; bonus3 bSPDrainValue,100,2,0; bonus2 bSkillAtk,42,20; if(callfunc("Is_Merc_Class")) bonus bMagicDamageReturn,20; } //OK
 4187,Raydric_Archer_Card,Raydric Archer Card,6,20,0,10,,,,,,,136,,,,{},{} //missing getitemonkill?? (item not implemented)
 4188,Leib_Olmai_Card,Leib Olmai Card,6,20,0,10,,,,,,,769,,,,{},{ bonus2 bSubEle,3,10; } //missing getitemonracekill??
@@ -1273,7 +1273,7 @@
 4229,Clock_Tower_Manager_Card,Clock Tower Manager Card,6,20,0,10,,,,,,,769,,,,{},{ bonus bInt,1; bonus bDelayrate,-5; if(isequipped(4244,4299,4313)==0) end; bonus bDef,3; bonus bMdef,3; } //??OK
 4230,Shinobi_Card,Shinobi Card,6,20,0,10,,,,,,,136,,,,{},{ bonus bAgi,1; bonus4 bAutoSpellWhenHit,135,5,1,0; } //??OK
 4231,Increase_Soil_Card,Increase Soil Card,6,20,0,10,,,,,,,,,,,{},{}
-4232,Hermit_Plant_Card,Hermit Plant Card,6,20,0,10,,,,,,,,,,,{},{}
+4232,Hermit_Plant_Card,Hermit Plant Card,6,20,0,10,,,,,,,136,,,,{},{ bonus2 bAddItemHealRate,2,50; bonus3 bAddMonsterDropItemGroup,2,3,10000;  }
 4233,Baby_Leopard_Card,Baby Leopard Card,6,20,0,10,,,,,,,16,,,,{},{ bonus bLuk,3; if(callfunc("Is_Merc_Class")==0) end; bonus bUnbreakableArmor,0; bonus bUnstripableArmor,0; } //??OK
 4234,Anolian_Card,Anolian Card,6,20,0,10,,,,,,,16,,,,{},{ if(getskilllv(45)==10) goto IC_10; bonus4 bAutoSpellWhenHit,45,1,1,0; end; IC_10: bonus4 bAutoSpellWhenHit,45,10,1,0; } //??OK
 4235,Cookie_Xmas_Card,Cookie Xmas Card,6,20,0,10,,,,,,,64,,,,{},{ bonus2 bSubRace,8,-20; } //missing increaseexponracekill??

@@ -8,6 +8,9 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them i believe.
 
+04/28
+	* Added effect for Dumpling Child and Hermit Plant card
+	* Changed Crab card to use 'isequipped' and fixed Rideword card
 04/27
 	* Added effect for Solar Sword
 04/26
