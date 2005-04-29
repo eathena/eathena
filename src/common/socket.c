@@ -33,7 +33,7 @@ typedef int socklen_t;
 #include "../common/dll.h"
 #include "../common/mmo.h"	// [Valaris] thanks to fov
 #include "../common/timer.h"
-#include "../common/utils.h"
+#include "../common/malloc.h"
 #include "../common/showmsg.h"
 
 #ifdef MEMWATCH
@@ -386,16 +386,16 @@ int console_recieve(int i) {
 	int n;
 	char *buf;
 
-	CREATE_A(buf, char , 64);
-
+	CREATE_A(buf, char, 64);
 	memset(buf,0,sizeof(64));
 
 	n = read(0, buf , 64);
-
 	if ( n < 0 )
 		ShowError("Console input read error\n");
 	else
 		session[0]->func_console(buf);
+
+	aFree(buf);
 	return 0;
 }
 
@@ -414,12 +414,9 @@ static int null_console_parse(char *buf)
 int start_console(void) {
 	FD_SET(0,&readfds);
 
-	if (session[0]) {	// dummy socket already uses fd 0
-		return 0;
+	if (!session[0]) {	// dummy socket already uses fd 0
+		CREATE(session[0], struct socket_data, 1);
 	}
-
-	CREATE(session[0], struct socket_data, 1);
-	
 	memset(session[0],0,sizeof(*session[0]));
 
 	session[0]->func_recv = console_recieve;

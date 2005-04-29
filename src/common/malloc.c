@@ -5,118 +5,130 @@
 #include "../common/core.h"
 #include "../common/showmsg.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
-// 独自メモリマネージャを使用する場合、次のコメントを外してください。
-#define USE_MEMMGR
-
-#if !defined(DMALLOC) && !defined(GCOLLECT) && !defined(BCHECK) && !defined(USE_MEMMGR)
-
-void* aMalloc_( size_t size, const char *file, int line, const char *func )
+void* aMalloc_ (size_t size, const char *file, int line, const char *func)
 {
-	void *ret;
-
-//	ShowMessage("%s:%d: in func %s: malloc %d\n",file,line,func,size);
-#ifdef MEMWATCH
-	ret=mwMalloc(size,file,line);
+#ifndef MEMWATCH
+	void *ret = MALLOC(size);
 #else
-	ret=malloc(size);
+	void *ret = mwMalloc(size, file, line);
 #endif
-	if(ret==NULL){
+	// ShowMessage("%s:%d: in func %s: malloc %d\n",file,line,func,size);
+	if (ret == NULL){
 		ShowFatalError("%s:%d: in func %s: malloc error out of memory!\n",file,line,func);
 		exit(1);
+	}
 
+	return ret;
+}
+void* aMallocA_ (size_t size, const char *file, int line, const char *func)
+{
+#ifndef MEMWATCH
+	void *ret = MALLOCA(size);
+#else
+	void *ret = mwMalloc(size, file, line);
+#endif
+	// ShowMessage("%s:%d: in func %s: malloc %d\n",file,line,func,size);
+	if (ret == NULL){
+		ShowFatalError("%s:%d: in func %s: malloc error out of memory!\n",file,line,func);
+		exit(1);
+	}
+
+	return ret;
+}
+void* aCalloc_ (size_t num, size_t size, const char *file, int line, const char *func)
+{
+#ifndef MEMWATCH
+	void *ret = CALLOC(num, size);
+#else
+	void *ret = mwCalloc(num, size, file, line);
+#endif
+	// ShowMessage("%s:%d: in func %s: calloc %d %d\n",file,line,func,num,size);
+	if (ret == NULL){
+		ShowFatalError("%s:%d: in func %s: calloc error out of memory!\n", file, line, func);
+		exit(1);
 	}
 	return ret;
 }
-void* aCalloc_( size_t num, size_t size, const char *file, int line, const char *func )
+void* aCallocA_ (size_t num, size_t size, const char *file, int line, const char *func)
 {
-	void *ret;
-
-//	ShowMessage("%s:%d: in func %s: calloc %d %d\n",file,line,func,num,size);
-#ifdef MEMWATCH
-	ret=mwCalloc(num,size,file,line);
+#ifndef MEMWATCH
+	void *ret = CALLOCA(num, size);
 #else
-	ret=calloc(num,size);
+	void *ret = mwCalloc(num, size, file, line);
 #endif
-	if(ret==NULL){
+	// ShowMessage("%s:%d: in func %s: calloc %d %d\n",file,line,func,num,size);
+	if (ret == NULL){
 		ShowFatalError("%s:%d: in func %s: calloc error out of memory!\n",file,line,func);
 		exit(1);
-
 	}
 	return ret;
 }
-
-void* aRealloc_( void *p, size_t size, const char *file, int line, const char *func )
+void* aRealloc_ (void *p, size_t size, const char *file, int line, const char *func)
 {
-	void *ret;
-
-//	ShowMessage("%s:%d: in func %s: realloc %p %d\n",file,line,func,p,size);
-#ifdef MEMWATCH
-	ret=mwRealloc(p,size,file,line);
+#ifndef MEMWATCH
+	void *ret = REALLOC(p, size);
 #else
-	ret=realloc(p,size);
+	void *ret = mwRealloc(p, size, file, line);
 #endif
-	if(ret==NULL){
+	// ShowMessage("%s:%d: in func %s: realloc %p %d\n",file,line,func,p,size);
+	if (ret == NULL){
 		ShowFatalError("%s:%d: in func %s: realloc error out of memory!\n",file,line,func);
 		exit(1);
-
 	}
 	return ret;
 }
-
-char* aStrdup_( const void *p, const char *file, int line, const char *func )
+char* aStrdup_ (const void *p, const char *file, int line, const char *func)
 {
-	char *ret;
-	
-	// ShowMessage("%s:%d: in func %s: strdup %p\n",file,line,func,p);
-#ifdef MEMWATCH
-	ret=mwStrdup(p,file,line);
+#ifndef MEMWATCH
+	char *ret = STRDUP(p);
 #else
-	ret= strdup((char *) p);
+	char *ret = mwStrdup(p, file, line);
 #endif
-	if(ret==NULL){
-		ShowFatalError("%s:%d: in func %s: strdup error out of memory!\n",file,line,func);
+	// ShowMessage("%s:%d: in func %s: strdup %p\n",file,line,func,p);
+	if (ret == NULL){
+		ShowFatalError("%s:%d: in func %s: strdup error out of memory!\n", file, line, func);
 		exit(1);
-
 	}
 	return ret;
 }
-
-void aFree_( void *p, const char *file, int line, const char *func )
+void aFree_ (void *p, const char *file, int line, const char *func)
 {
 	// ShowMessage("%s:%d: in func %s: free %p\n",file,line,func,p);
-#ifdef MEMWATCH
-	mwFree(p,file,line);
-#else
-	free(p);
-#endif
+	if (p)
+	#ifndef MEMWATCH
+		FREE(p);
+	#else
+		mwFree(p, file, line);
+	#endif
+
+	p = NULL;
 }
 
-#elif defined(GCOLLECT)
+#ifdef GCOLLECT
 
-void * _bcallocA(size_t size, size_t cnt) {
-	void *ret = aMallocA(size * cnt);
-	memset(ret, 0, size * cnt);
+void* _bcallocA(size_t size, size_t cnt)
+{
+	void *ret = MALLOCA(size * cnt);
+	if (ret) memset(ret, 0, size * cnt);
 	return ret;
 }
-
-void * _bcalloc(size_t size, size_t cnt) {
-	void *ret = aMalloc(size * cnt);
-	memset(ret, 0, size * cnt);
+void* _bcalloc(size_t size, size_t cnt)
+{
+	void *ret = MALLOC(size * cnt);
+	if (ret) memset(ret, 0, size * cnt);
 	return ret;
 }
-
-char * _bstrdup(const char *chr) {
+char* _bstrdup(const char *chr)
+{
 	int len = strlen(chr);
-	char *ret = (char*)aMalloc(len + 1);
-	strcpy(ret, chr);
+	char *ret = (char*)MALLOC(len + 1);
+	if (ret) memcpy(ret, chr, len + 1);
 	return ret;
 }
 
-#elif defined(USE_MEMMGR)
+#endif
+
+#ifdef USE_MEMMGR
 
 /* USE_MEMMGR */
 
@@ -189,7 +201,10 @@ static struct block* block_malloc(void);
 static void   block_free(struct block* p);
 static void memmgr_info(void);
 
-void* aMalloc_(size_t size, const char *file, int line, const char *func ) {
+static char memmer_logfile[128];
+static FILE *log_fp;
+
+void* _mmalloc(size_t size, const char *file, int line, const char *func ) {
 	int i;
 	struct block *block;
 	int size_hash = (size+BLOCK_ALIGNMENT-1) / BLOCK_ALIGNMENT;
@@ -205,7 +220,7 @@ void* aMalloc_(size_t size, const char *file, int line, const char *func ) {
 #ifdef MEMWATCH
 		struct unit_head_large* p = (struct unit_head_large*)mwMalloc(sizeof(struct unit_head_large) + size,file,line);
 #else
-		struct unit_head_large* p = (struct unit_head_large*)malloc(sizeof(struct unit_head_large) + size);
+		struct unit_head_large* p = (struct unit_head_large*) MALLOC (sizeof(struct unit_head_large) + size);
 #endif
 		if(p != NULL) {
 			p->unit_head.block = NULL;
@@ -289,16 +304,16 @@ void* aMalloc_(size_t size, const char *file, int line, const char *func ) {
 	return NULL;
 };
 
-void* aCalloc_(size_t num, size_t size, const char *file, int line, const char *func ) {
-	void *p = aMalloc_(num * size,file,line,func);
+void* _mcalloc(size_t num, size_t size, const char *file, int line, const char *func ) {
+	void *p = _mmalloc(num * size,file,line,func);
 	memset(p,0,num * size);
 	return p;
 }
 
-void* aRealloc_(void *memblock, size_t size, const char *file, int line, const char *func ) {
+void* _mrealloc(void *memblock, size_t size, const char *file, int line, const char *func ) {
 	size_t old_size;
 	if(memblock == NULL) {
-		return aMalloc_(size,file,line,func);
+		return _mmalloc(size,file,line,func);
 	}
 
 	old_size = ((struct unit_head *)((char *)memblock - sizeof(struct unit_head)))->size;
@@ -307,27 +322,27 @@ void* aRealloc_(void *memblock, size_t size, const char *file, int line, const c
 		return memblock;
 	}  else {
 		// サイズ拡大
-		void *p = aMalloc_(size,file,line,func);
+		void *p = _mmalloc(size,file,line,func);
 		if(p != NULL) {
 			memcpy(p,memblock,old_size);
 		}
-		aFree_(memblock,file,line,func);
+		_mfree(memblock,file,line,func);
 		return p;
 	}
 }
 
-char* aStrdup_(const void *p, const char *file, int line, const char *func ) {
+char* _mstrdup(const void *p, const char *file, int line, const char *func ) {
 	if(p == NULL) {
 		return NULL;
 	} else {
 		int  len = strlen(p);
-		char *string  = (char *)aMalloc_(len + 1,file,line,func);
+		char *string  = (char *)_mmalloc(len + 1,file,line,func);
 		memcpy(string,p,len+1);
 		return string;
 	}
 }
 
-void aFree_(void *ptr, const char *file, int line, const char *func ) {
+void _mfree(void *ptr, const char *file, int line, const char *func ) {
 	struct unit_head *head = (struct unit_head *)((char *)ptr - sizeof(struct unit_head));
 	if(ptr == NULL) {
 		return;
@@ -342,13 +357,15 @@ void aFree_(void *ptr, const char *file, int line, const char *func ) {
 		if(head_large->next) {
 			head_large->next->prev = head_large->prev;
 		}
-		free(head_large);
+		FREE (head_large);
+		ptr = NULL;
 		return;
 	} else {
 		/* ユニット解放 */
 		struct block *block = head->block;
 		if(head->block == NULL) {
-			ShowError("Memory manager: args of aFree is freed pointer %s line %d\n",file,line);
+			ShowError("Memory manager: args of aFree is freed pointer %s line %d\n", file, line);
+			return;
 		} else {
 			head->block = NULL;
 			if(--block->unit_used == 0) {
@@ -390,6 +407,7 @@ void aFree_(void *ptr, const char *file, int line, const char *func ) {
 					unit_unfill[block->unit_hash] = block;
 				}
 			}
+			ptr = NULL;
 		}
 	}
 }
@@ -448,7 +466,7 @@ static struct block* block_malloc(void) {
 		/* ブロック用の領域を新たに確保する */
 		int i;
 		int  block_no;
-		struct block* p = (struct block *)calloc(sizeof(struct block),BLOCK_ALLOC);
+		struct block* p = (struct block *) CALLOC (sizeof(struct block),BLOCK_ALLOC);
 		if(p == NULL) {
 			ShowFatalError("Memory manager::block_alloc failed.\n");
 			exit(1);
@@ -492,46 +510,57 @@ static void block_free(struct block* p) {
 	}
 }
 
-static char memmer_logfile[128];
-
-static FILE* memmgr_log(void) {
-	FILE *fp = fopen(memmer_logfile,"w");
-	if(!fp) { fp = stdout; }
-	fprintf(fp,"memmgr: memory leaks found\n");
-	return fp;
+static void memmgr_log (char *buf)
+{
+	if (!log_fp)
+	{
+		log_fp = fopen(memmer_logfile,"w");
+		if (!log_fp) log_fp = stdout;
+		fprintf(log_fp, "Memory manager: Memory leaks found.\n");
+	}
+	fprintf(log_fp, buf);
+	return;
 }
 
 static void memmer_exit(void) {
-	FILE *fp = NULL;
 	struct block *block = block_first;
 	struct unit_head_large *large = unit_head_large_first, *large2;
-	int i, count = 0;
 	char *ptr;
+	int i;
+
+#ifdef LOG_MEMMGR
+	int count = 0;
+	char buf[128];
+#endif
 	
-	while(block) {
-		if(block->unit_size) {
-			if(!fp) { fp = memmgr_log(); }
+	while (block) {
+		if (block->unit_size) {
 			for (i = 0; i < block->unit_count; i++) {
 				struct unit_head *head = (struct unit_head*)(&block->data[block->unit_size * i]);
-				if(head->block != NULL) {
-					fprintf (
-						fp, "%04d : %s line %d size %d\n", ++count, 
-						head->file, head->line, head->size
-					);
+				if(head->block != NULL)
+				{
+				#ifdef LOG_MEMMGR
+					sprintf (buf,
+						"%04d : %s line %d size %d\n", ++count,
+						head->file, head->line, head->size);
+					memmgr_log (buf);
+				#endif
+					// get block pointer and free it
 					ptr = (char *)head + sizeof(struct unit_head);
-					aFree_ (ptr, ALC_MARK);
+					_mfree (ptr, ALC_MARK);
 				}
 			}
 		}
 		block = block->block_next;
 	}
 	while(large) {
-		if(!fp) { fp = memmgr_log(); }
 		large2 = large->next;
-		fprintf (
-			fp, "%04d : %s line %d size %d\n", ++count,
-			large->unit_head.file, large->unit_head.line, large->unit_head.size
-		);
+	#ifdef LOG_MEMMGR
+		sprintf (buf,
+			"%04d : %s line %d size %d\n", ++count,
+			large->unit_head.file, large->unit_head.line, large->unit_head.size);
+		memmgr_log (buf);
+	#endif
 		if (large->prev) {
 			large->prev->next = large->next;
 		} else {
@@ -540,21 +569,25 @@ static void memmer_exit(void) {
 		if (large->next) {
 			large->next->prev = large->prev;
 		}
-		free(large);
+		FREE (large);
 		large = large2;
 	}
-	if(!fp) {
+#ifdef LOG_MEMMGR
+	if(count == 0) {
 		ShowInfo("Memory manager: No memory leaks found.\n");
 	} else {
 		ShowWarning("Memory manager: Memory leaks found and fixed.\n");
-		fclose(fp);
+		fclose(log_fp);
 	}
+#endif
 }
 
 int do_init_memmgr (void)
 {
-	sprintf(memmer_logfile, "log/%s.leaks", argp);
-	ShowStatus("Memory manager initialised: "CL_WHITE"%s"CL_RESET"\n", memmer_logfile);
+	#ifdef LOG_MEMMGR
+		sprintf(memmer_logfile, "log/%s.leaks", argp);
+		ShowStatus("Memory manager initialised: "CL_WHITE"%s"CL_RESET"\n", memmer_logfile);
+	#endif
 
 	return 0;
 }
@@ -570,7 +603,6 @@ void do_final_malloc (void)
 #ifdef USE_MEMMGR
 	memmer_exit ();	
 #endif
-
 	return;
 }
 
@@ -579,6 +611,5 @@ void do_init_malloc (void)
 #ifdef USE_MEMMGR
 	do_init_memmgr ();
 #endif
-
 	return;
 }

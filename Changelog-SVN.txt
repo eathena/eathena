@@ -1,4 +1,20 @@
 Date	Added
+04/29
+	* Restructured malloc.h / malloc.c a bit [celest]
+	* Fixed a memory leak in console [celest]
+	* Fixed console to be compatible with the dummy socket [celest]
+	* Fixed TXT login and map not shutdown cleanly if exitting by console [celest]
+	* Changed Spiral Pierce's effect to stop movement instead of stun [celest]
+	* Fixed Chase Walk to properly add a STR bonus [celest]
+	* Added effect for Tarot Card [celest]
+	* Cleaned up clif_specialeffect [celest]
+	* Added hidden gm's will not show warp effect when logging off, and will return
+	  'target character not logged in' when /exall is on, thanks to starlon
+	* Fixed non-movable monsters moving if they're blind [celest]
+	* Added boss-type monsters will auto teleport when 'rude-attacked' [celest]
+	  -- note: Just a temporary fix, the mob skill db still needs updating
+	* Added boss-type monsters cannot be knocked back by skills, thanks to Komurka
+
 04/28
 	* Fixed a bot trading hack [celest]
 	* 'isequipped' will now 'tag' items that are used in its set, so a 2nd set will

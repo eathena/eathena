@@ -44,7 +44,6 @@ void Gettimeofday(struct timeval *timenow)
 #include "../common/db.h"
 #include "../common/lock.h"
 #include "../common/malloc.h"
-#include "../common/buffer.h"
 #include "../common/strlib.h"
 
 #ifdef PASSWORDENC
@@ -3249,12 +3248,12 @@ int parse_console(char *buf) {
 	login_log("Console command :%s" RETCODE, command);
 
 	if(strcmpi("shutdown", command) == 0 ||
-	    strcmpi("exit", command) == 0 ||
-	    strcmpi("quit", command) == 0 ||
-	    strcmpi("end", command) == 0)
-		exit(0);
+		strcmpi("exit", command) == 0 ||
+		strcmpi("quit", command) == 0 ||
+		strcmpi("end", command) == 0)
+		runflag = 0;
 	else if(strcmpi("alive", command) == 0 ||
-	         strcmpi("status", command) == 0)
+		strcmpi("status", command) == 0)
 		printf("\033[0;36mConsole: \033[0m\033[1mI'm Alive.\033[0m\n");
 	else if(strcmpi("help", command) == 0) {
 		printf("\033[32mHelp of commands:\033[0m\n");
