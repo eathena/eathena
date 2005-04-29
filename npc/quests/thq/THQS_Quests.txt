@@ -32,7 +32,7 @@ mjolnir_09.gat,187,189,6	script	Old Man	107,{
 	close;
 N_QuestStart:
 	mes "[Old Man]";
-	mes "eh? whats that?!";
+	mes "Eh? whats that?!";
 	mes " ";
 	mes "My wife wants me home?! Alright, alright... I'm going, I'm going. Thank you for telling me the message.";
 	mes " ";
@@ -83,7 +83,7 @@ N_QuestComp:
 N_QuestStart:
 	mes "[Billy-Bob]";
 	mes "Those Bastard Bugs are Everywere!!!";
-	mes "You must be from the guild! OK, bring me 20 Worm Peelings, 20 Jellopys, 20 fluff, and 20 Clovers.";
+	mes "You must be from the guild! OK, bring me 20 Worm Peelings, 20 Jellopys, 20 fluff and 20 Clovers.";
 	close;
 }
 //1-4
@@ -767,7 +767,7 @@ function	script	eight_qset1	{
 	close;
 N_QuestComp2:
 	mes "[Girl]";
-	mes "thank you so much!";
+	mes "Thank you so much!";
 	next;
 	mes "[Girl]";
 	mes "Have these 1 Treasure Tokens.";
@@ -832,7 +832,7 @@ payon.gat,136,129,6	script	Flower	703,{
 	if (eight_qset == 4 && countitem(746) > 9) goto N_QuestComp;
 	if (eight_qset == 4) goto N_QuestStart;
 	mes "[Flower]";
-	mes "Sorry I'm waiting for someone, you will have to come back later";
+	mes "Sorry I'm waiting for someone. You will have to come back later.";
 	close;
 N_QuestComp:
 	mes "[Flower]";

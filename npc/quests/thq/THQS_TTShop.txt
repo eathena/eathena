@@ -29,7 +29,7 @@ prt_in.gat,164,174,1	script	Treasure Hunter's Shop	65,{
 	next;
 	menu "How does this place work?",-,"What do you have in stock?",N_Shop,"Nevermind",N_NVM;
 	mes "[Ash]";
-	mes "Well you see here you can exchange your treasure hunter tokens for zeny or rare weapons forged by our blacksmith's.";
+	mes "Well you see here you can exchange your treasure hunter tokens for zeny or rare weapons forged by our blacksmiths.";
 	mes " ";
 	mes "Everything has its own price value and the only way you can get the tokens is by completing quests assigned to you,the system normally works like this.";
 	mes " ";

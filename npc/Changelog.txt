@@ -36,6 +36,8 @@ TODO:
 Date		Added
 ======
 04/29
+	* Added Penal Servitude script. Some quest for prisoners [Lupus]
+	  This script works with kafra_bank.txt script
 	* Fixed a typo in the warpra, thanks to ShAPoNe
 04/27   
 	* Added Einbroch and Ayothaya, cites and dungeons, to the Warpra [Fredzilla]
