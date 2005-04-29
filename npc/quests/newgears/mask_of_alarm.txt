@@ -13,7 +13,7 @@
 //= 1.2 Fixed wrong labels, added missing text and labels,
 //= changed Zeny amount, fixed wrong item ID [Lupus]
 //= 1.3 Fixed possible exploit [Lupus]
-//= 1.4 Added correct item list. [shadow]
+//= 1.4 Added correct item list. [shadow] & [Lupus]
 //============================================================
 
 aldebaran.gat,236,235,3	script	Muslam	819,{
@@ -22,9 +22,9 @@ mes "I love Alarms, so evil, just like me.";
 mes "Touch me and I will rip your arm off!";
 next;
 mes "[Muslam]";
-mes "Anyways... If you want a Alarm Mask,";
-mes "bring me 3,000 Clock Hand,";
-mes "and 1 Mr Scream.";
+mes "Anyways... If you want an Alarm Mask, bring me";
+mes "3,000 Clock Hands,";
+mes "and 1 Mr. Scream.";
 next;
 mes "[Muslam]";
 mes "Got these?";
@@ -44,7 +44,7 @@ close;
 
 L_NOITEM:
 mes "[Muslam]";
-mes "Where is 1 Monster Oxygen Mask and 300,000 Zeny?";
+mes "Where are 3,000 Clock Hands and 1 Mr. Scream?";
 close;
 
 M_EXIT:
