@@ -36,6 +36,7 @@ TODO:
 Date		Added
 ======
 04/29
+	* Alarm Mask Quest corrected txt 2 Shadow
 	* Added Penal Servitude script. Some quest for prisoners [Lupus]
 	  This script works with kafra_bank.txt script
 	* Fixed a typo in the warpra, thanks to ShAPoNe
