@@ -208,7 +208,8 @@ enum {	// struct map_session_data ‚Ì status_change‚Ì”Ô?ƒe?ƒuƒ‹
 //<-- 193 = gloria
 
 	SC_INCDEF2			= 194,
-// <-- 201 = two hand quicken	
+	SC_INCSTR			= 195,
+// <-- 201 = two hand quicken
 };
 extern int SkillStatusChangeTable[];
 

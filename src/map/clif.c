@@ -7163,6 +7163,18 @@ void clif_parse_ReqAdopt(int fd, struct map_session_data *sd) {
 	nullpo_retv(sd);
 
 	printf ("%d\n", RFIFOL(fd,2));
+	// send 0x1e3
+}
+
+/*==========================================
+ *
+ *------------------------------------------
+ */
+void clif_parse_ReqMarriage(int fd, struct map_session_data *sd) {
+	nullpo_retv(sd);
+
+	printf ("%d\n", RFIFOL(fd,2));
+	// send 0x1f6
 }
 
 /*==========================================
@@ -7351,7 +7363,8 @@ int clif_soundeffectall(struct block_list *bl, char *name, int type)
 }
 
 // displaying special effects (npcs, weather, etc) [Valaris]
-int clif_specialeffect(struct block_list *bl, int type, int flag) {
+int clif_specialeffect(struct block_list *bl, int type, int flag)
+{
 	unsigned char buf[24];
 
 	nullpo_retr(0, bl);
@@ -7362,33 +7375,21 @@ int clif_specialeffect(struct block_list *bl, int type, int flag) {
 	WBUFL(buf,2) = bl->id;
 	WBUFL(buf,6) = type;
 
-	if (flag == 3) {
-//		struct map_session_data *sd;
-		struct map_session_data *pl_sd;
-		int i;
-		for(i = 0; i < fd_max; i++) {
-			if (session[i] && (pl_sd = (struct map_session_data*)session[i]->session_data) != NULL &&
-				pl_sd->state.auth &&
-				(pc_isGM((struct map_session_data *)&bl) > pc_isGM((struct map_session_data *)&pl_sd->bl)))
-				clif_specialeffect(&pl_sd->bl, type, 1);
-		}
-	}
-	if (flag == 2) {
-		struct map_session_data *sd;
-		int i;
-		for(i = 0; i < fd_max; i++) {
-			if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth && sd->bl.m == bl->m)
-				clif_specialeffect(&sd->bl, type, 1);
-		}
-	}
-
-	else if (flag == 1)
+	switch (flag) {
+	case 3:
+		clif_send(buf, packet_len_table[0x1f3], bl, ALL_CLIENT);
+		break;
+	case 2:
+		clif_send(buf, packet_len_table[0x1f3], bl, ALL_SAMEMAP);
+		break;
+	case 1:
 		clif_send(buf, packet_len_table[0x1f3], bl, SELF);
-	else if (!flag)
+		break;
+	default:
 		clif_send(buf, packet_len_table[0x1f3], bl, AREA);
+	}
 
 	return 0;
-
 }
 
 // refresh the client's screen, getting rid of any effects
@@ -8470,9 +8471,12 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 			clif_wis_message(fd, wisp_server_name, "You can not page yourself. Sorry.", strlen("You can not page yourself. Sorry.") + 1);
 		// otherwise, send message and answer immediatly
 		else {
-			if (dstsd->ignoreAll == 1)
-				clif_wis_end(fd, 2); // type: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
-			else {
+			if (dstsd->ignoreAll == 1) {
+				if (dstsd->status.option & OPTION_HIDE && pc_isGM(sd) < pc_isGM(dstsd))
+					clif_wis_end(fd, 1); // 1: target character is not loged in
+				else
+					clif_wis_end(fd, 2); // type: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
+			} else {
 				// if player ignore the source character
 				for(i = 0; i < MAX_IGNORE_LIST; i++)
 					if (strcmp(dstsd->ignore[i].name, sd->status.name) == 0) {

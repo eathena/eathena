@@ -770,6 +770,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->paramb[4]+= sd->sc_data[SC_INCALLSTATUS].val1;
 			sd->paramb[5]+= sd->sc_data[SC_INCALLSTATUS].val1;
 		}
+		if(sd->sc_data[SC_INCSTR].timer!=-1)
+			sd->paramb[0] += sd->sc_data[SC_INCSTR].val1;
 		if(sd->sc_data[SC_CONCENTRATE].timer!=-1 && sd->sc_data[SC_QUAGMIRE].timer == -1){	// 集中力向上
 			sd->paramb[1]+= (sd->status.agi+sd->paramb[1]+sd->parame[1]-sd->paramcard[1])*(2+sd->sc_data[SC_CONCENTRATE].val1)/100;
 			sd->paramb[4]+= (sd->status.dex+sd->paramb[4]+sd->parame[4]-sd->paramcard[4])*(2+sd->sc_data[SC_CONCENTRATE].val1)/100;
@@ -786,11 +788,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->critical_rate += 100; // critical increases
 			sd->speed = sd->speed * (sd->sc_data[SC_CLOAKING].val3-sd->sc_data[SC_CLOAKING].val1*3) /100;
 		}
-		if(sd->sc_data[SC_CHASEWALK].timer!=-1) {
+		if(sd->sc_data[SC_CHASEWALK].timer!=-1)
 			sd->speed = sd->speed * sd->sc_data[SC_CHASEWALK].val3 /100; // slow down by chasewalk
-			if(sd->sc_data[SC_CHASEWALK].val4)
-				sd->paramb[0] += (1<<(sd->sc_data[SC_CHASEWALK].val1-1)); // increases strength after 10 seconds
-		}
 		if(sd->sc_data[SC_SLOWDOWN].timer!=-1)
 			sd->speed = sd->speed*150/100;
 		if(sd->sc_data[SC_SPEEDUP0].timer!=-1 && sd->sc_data[SC_INCREASEAGI].timer==-1)
@@ -1825,6 +1824,8 @@ int status_get_str(struct block_list *bl)
 				str += 5;
 			if(sc_data[SC_INCALLSTATUS].timer!=-1)
 				str += sc_data[SC_INCALLSTATUS].val1;
+			if(sc_data[SC_INCSTR].timer!=-1)
+				str += sc_data[SC_INCSTR].val1;
 		}
 	}
 	if(str < 0) str = 0;
@@ -3908,6 +3909,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_INCHIT2:		/* HIT%上昇 */
 		case SC_INCFLEE2:		/* FLEE%上昇 */
 		case SC_INCDEF2:
+		case SC_INCSTR:
 			calc_flag = 1;
 			break;
 
@@ -4164,6 +4166,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_INCHIT2:
 			case SC_INCFLEE2:
 			case SC_INCDEF2:
+			case SC_INCSTR:
 			case SC_BATTLEORDERS:
 			case SC_REGENERATION:
 			case SC_GUILDAURA:
@@ -4459,15 +4462,15 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		if(sd){
 			int sp = 10+sc_data[SC_CHASEWALK].val1*2;
 			if (map[sd->bl.m].flag.gvg) sp *= 5;
-			if( sd->status.sp > sp){
+			if (sd->status.sp > sp){
 				sd->status.sp -= sp; // update sp cost [Celest]
 				clif_updatestatus(sd,SP_SP);
-				sc_data[type].timer=add_timer( /* タイマ?再設定 */
-					sc_data[type].val2+tick, status_change_timer, bl->id, data);
-				sc_data[SC_CHASEWALK].val4++;
-				if (sc_data[SC_CHASEWALK].val4 > 3)
-					sc_data[SC_CHASEWALK].val4 = 0;
-				status_calc_pc (sd, 0);
+				if ((++sc_data[SC_CHASEWALK].val4) == 1) {
+					status_change_start(bl, SC_INCSTR, 1<<(sc_data[SC_CHASEWALK].val1-1), 0, 0, 0, 30000, 0);
+					status_calc_pc (sd, 0);
+				}
+				sc_data[type].timer = add_timer( /* タイマ?再設定 */
+					sc_data[type].val2+tick, status_change_timer, bl->id, data);				
 				return 0;
 			}
 		}

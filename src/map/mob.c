@@ -1653,24 +1653,33 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				battle_check_target(bl, abl, BCT_ENEMY) == 0)
 			{
 				md->attacked_id = 0;
-				if (++md->attacked_count > 1 &&
-					mobskill_use(md, tick, MSC_RUDEATTACKED) == 0)	// teleport
-				{
-					int dist = rand() % 10 + 1;//Œã‘Þ‚·‚é‹——£
-					int dir = map_calc_dir(abl, bl->x, bl->y);
-					int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
+				if (++md->attacked_count > 3 && mode & 0x20) {
+					// force teleport -- this should be removed as soon as the mob skill db supports it! [celest]
 					md->attacked_count = 0;
-					mob_walktoxy(md, md->bl.x + dist * mask[dir][0], md->bl.y + dist * mask[dir][1], 0);
-					md->next_walktime = tick + 500;
+					mob_warp(md,-1,-1,-1,3);
+				} else if (md->attacked_count > 1 &&
+					mobskill_use(md, tick, MSC_RUDEATTACKED) == 0)
+				{
+					if (!(mode & 0x20))
+						md->attacked_count = 0;
+					if (mode & 1 && mob_can_move(md)) {
+						int dist = rand() % 10 + 1;//Œã‘Þ‚·‚é‹——£
+						int dir = map_calc_dir(abl, bl->x, bl->y);
+						int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
+						mob_walktoxy(md, md->bl.x + dist * mask[dir][0], md->bl.y + dist * mask[dir][1], 0);
+						md->next_walktime = tick + 500;
+					}
 				}
 			} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) {
-				dx = abl->x - md->bl.x;
-				dy = abl->y - md->bl.y;
 				md->target_id = 0;
 				md->attacked_id = 0;
 				md->state.targettype = NONE_ATTACKABLE;
-				md->next_walktime = tick + 1000;
-				ret = mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
+				if (mode & 1 && mob_can_move(md)) {
+					dx = abl->x - md->bl.x;
+					dy = abl->y - md->bl.y;
+					md->next_walktime = tick + 1000;
+					ret = mob_walktoxy(md, md->bl.x+dx, md->bl.y+dy, 0);
+				}				
 			} else {
 				//‹——£‚ª‰“‚¢ê‡‚Íƒ^ƒQ‚ð•ÏX‚µ‚È‚¢
 
@@ -1734,6 +1743,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					md->target_id = 0;
 					md->attacked_id = 0;
 					md->state.targettype = NONE_ATTACKABLE;
+					if (!(mode & 1) || !mob_can_move(md))
+						return 0;
 					dx = tbl->x - md->bl.x;
 					dy = tbl->y - md->bl.y;
 					md->next_walktime = tick + 1000;

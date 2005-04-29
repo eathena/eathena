@@ -1523,7 +1523,8 @@ int map_quit(struct map_session_data *sd) {
 			status_calc_pc(sd,4);
 	//	skill_clear_unitgroup(&sd->bl);	// [Sara-chan]
 
-		clif_clearchar_area(&sd->bl,2);
+		if (!(sd->status.option & OPTION_HIDE))
+			clif_clearchar_area(&sd->bl,2);
 
 		if(sd->status.pet_id && sd->pd) {
 			pet_lootitem_drop(sd->pd,sd);
@@ -2812,7 +2813,7 @@ int parse_console(char *buf) {
             printf("Console: not atcommand\n");
     } else if ( strcmpi("server",type) == 0 && n == 2 ) {
         if ( strcmpi("shutdown", command) == 0 || strcmpi("exit",command) == 0 || strcmpi("quit",command) == 0 ) {
-            exit(0);
+            runflag = 0;
         }
     } else if ( strcmpi("help",type) == 0 ) {
         printf("To use GM commands:\n");

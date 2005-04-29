@@ -1082,6 +1082,9 @@ static struct Damage battle_calc_pet_weapon_attack(
 	if(t_mode&0x40 && damage > 0)
 		damage = 1;
 
+	if(t_mode&0x20)
+		blewcount = 0;
+
 	if(skill_num != CR_GRANDCROSS)
 		damage=battle_calc_damage(src,target,damage,div_,skill_num,skill_lv,flag);
 
@@ -1659,6 +1662,9 @@ static struct Damage battle_calc_mob_weapon_attack(
 //	if(def1 >= 1000000 && damage > 0)
 	if(t_mode&0x40 && damage > 0)
 		damage = 1;
+
+	if(t_mode&0x20)
+		blewcount = 0;
 
 	if( tsd && tsd->special_state.no_weapon_damage)
 		damage = 0;
@@ -2783,6 +2789,9 @@ static struct Damage battle_calc_pc_weapon_attack(
 			damage2 = 1;
 	}
 
+	if(t_mode&0x20)
+		blewcount = 0;
+
 	//bNoWeaponDamage(設定アイテム無し？)でグランドクロスじゃない場合はダメージが0
 	if( tsd && tsd->special_state.no_weapon_damage && skill_num != CR_GRANDCROSS)
 		damage = damage2 = 0;
@@ -3220,6 +3229,9 @@ struct Damage battle_calc_magic_attack(
 	if(t_mode&0x40 && damage > 0)
 		damage = 1;
 
+	if(t_mode&0x20)
+		blewcount = 0;
+
 	if (tsd && status_isimmune(target)) {
 		if (sd && battle_config.gtb_pvp_only != 0)  { // [MouseJstr]
 			damage = (damage * (100 - battle_config.gtb_pvp_only)) / 100;
@@ -3259,7 +3271,7 @@ struct Damage  battle_calc_misc_attack(
 	int int_=status_get_int(bl);
 //	int luk=status_get_luk(bl);
 	int dex=status_get_dex(bl);
-	int skill,ele,race,size,cardfix,race2;
+	int skill,ele,race,size,cardfix,race2,t_mode;
 	struct map_session_data *sd=NULL,*tsd=NULL;
 	int damage=0,div_=1,blewcount=skill_get_blewcount(skill_num,skill_lv);
 	struct Damage md;
@@ -3286,6 +3298,12 @@ struct Damage  battle_calc_misc_attack(
 
 	if( target->type==BL_PC )
 		tsd=(struct map_session_data *)target;
+
+	t_mode = status_get_mode(target);
+	ele = skill_get_pl(skill_num);
+	race = status_get_race(bl);
+	size = status_get_size(bl);
+	race2 = status_get_race(bl);
 
 	switch(skill_num){
 
@@ -3360,11 +3378,6 @@ struct Damage  battle_calc_misc_attack(
 		break;
 	}
 
-	ele = skill_get_pl(skill_num);
-	race = status_get_race(bl);
-	size = status_get_size(bl);
-	race2 = status_get_race(bl);
-
 	if(damagefix){
 		if(damage<1 && skill_num != NPC_DARKBREATH)
 			damage=1;
@@ -3393,8 +3406,11 @@ struct Damage  battle_calc_misc_attack(
 		damage = div_;
 	}
 
-	if(status_get_mode(target)&0x40 && damage>0)
+	if(t_mode&0x40 && damage>0)
 		damage = 1;
+
+	if(t_mode&0x20)
+		blewcount = 0;
 
 	damage=battle_calc_damage(bl,target,damage,div_,skill_num,skill_lv,aflag);	// 最終修正
 

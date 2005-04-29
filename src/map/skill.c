@@ -1001,8 +1001,15 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case LK_SPIRALPIERCE:
-		if( rand()%100 < (15 + skilllv*5)*sc_def_vit/100 )
-			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		if (rand()%100 < (15 + skilllv*5)*sc_def_vit/100) {
+			int sec = skill_get_time2 (skillid,skilllv);
+			if (dstsd) {
+				dstsd->canmove_tick += sec;
+			} else if (dstmd)
+				dstmd->canmove_tick += sec;
+		}
+		// changed to 'unable to move' instead of stun [celest]
+		//status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 	case ST_REJECTSWORD:	/* フリ?ジングトラップ */
 		if( rand()%100 < (skilllv*15) )
@@ -4677,6 +4684,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 			do {
 				eff = rand() % 14;
+				clif_specialeffect(bl, 523 + eff, 0);
 				switch (eff)
 				{
 				case 0:	// heals SP to 0
