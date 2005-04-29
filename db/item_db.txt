@@ -1360,13 +1360,13 @@
 4316,False_Angel_Card,False Angel Card,6,20,0,10,,,,,,,2,,,,{},{} //missing recoversponracekill??
 4317,Mobster_Card,Mobster Card,6,20,0,10,,,,,,,2,,,,{},{ bonus bCritAtkRate,15; if(callfunc("Is_Thief_Class")) bonus bCritical,4; } //??OK
 4318,Stormy_Knight_Card,Stormy Knight Card,6,20,0,10,,,,,,,2,,,,{},{ bonus3 bAutoSpell,89,1,2; bonus2 bAddEffWhenHit,Eff_Freeze,2000; } //??OK
-4319,Freezer_Card,Freezer Card,6,20,0,10,,,,,,,64,,,,{},{ bonus bMaxHP,300; if(getrefine>7) bonus2 bSkillAtk,5,10; if(isequipped(4246,4311,4220,4331)) end; bonus bStr,10; bonus bMaxHPrate,20; bonus bHPrecovRate,50; bonus3 bAutoSpell,112,1,1; bonus2 bAddMonsterDropItem,501,100; if(callfunc("Is_Sword_Class")==0) end; bonus2 bAddItemHealRate,501,50; bonus2 bAddItemHealRate,503,50; bonus2 bAddItemHealRate,504,50; }
+4319,Freezer_Card,Freezer Card,6,20,0,10,,,,,,,64,,,,{},{ bonus bMaxHP,300; if(getrefine>7) bonus2 bSkillAtk,5,10; if(isequipped(4246,4311,4220,4331)==0) end; bonus bStr,10; bonus bMaxHPrate,20; bonus bHPrecovRate,50; bonus3 bAutoSpell,112,1,1; bonus2 bAddMonsterDropItem,501,100; if(callfunc("Is_Sword_Class")==0) end; bonus2 bAddItemHealRate,501,50; bonus2 bAddItemHealRate,503,50; bonus2 bAddItemHealRate,504,50; }
 4320,Bloody_Knight_Card,Bloody Knight Card,6,20,0,10,,,,,,,2,,,,{},{ bonus3 bAutoSpell,83,1,2; } //OK
 4321,Heirozoist_Card,Heirozoist Card,6,20,0,10,,,,,,,136,,,,{},{ bonus bClassChange,1; } //??OK
 4322,High_Orc_Card,High Orc Card,6,20,0,10,,,,,,,32,,,,{},{ bonus bDef,1; } //missing damagereturnbychance??
 4323,Garm_Baby_Card,Garm Baby Card,6,20,0,10,,,,,,,2,,,,{},{ if(isequipped(4324)) goto GARM; bonus3 bAutoSpell,15,3,1; end; GARM: bonus3 bAutoSpell,15,3,2; } //??OK
 4324,Garm_Card,Garm Card,6,20,0,10,,,,,,,16,,,,{},{ bonus2 bAddEffWhenHit,Eff_Freeze,5000; } //OK
-4325,Harpy_Card,Harpy Card,6,20,0,10,,,,,,,4,,,,{},{ bonus2 bSubEle,0,15; bonus2 bSkillAtk,11,5; if(isequipped(4208,4258,4309,4327)) end; bonus bMaxHP,500; bonus bDef,5; bonus bMDef,5; bonus2 bSkillAtk,14,10; bonus2 bSkillAtk,19,10; bonus2 bSkillAtk,20,10; if(callfunc("Is_Magic_Class")==0) end; bonus bMatkRate,3; bonus bCastrate,-15; } //??OK
+4325,Harpy_Card,Harpy Card,6,20,0,10,,,,,,,4,,,,{},{ bonus2 bSubEle,0,15; bonus2 bSkillAtk,11,5; if(isequipped(4208,4258,4309,4327)==0) end; bonus bMaxHP,500; bonus bDef,5; bonus bMDef,5; bonus2 bSkillAtk,14,10; bonus2 bSkillAtk,19,10; bonus2 bSkillAtk,20,10; if(callfunc("Is_Magic_Class")==0) end; bonus bMatkRate,3; bonus bCastrate,-15; } //??OK
 4326,Sea_Otter_Card,Sea Otter Card,6,20,0,10,,,,,,,136,,,,{},{ bonus2 bAddItemHealRate,7,50; bonus3 bAddMonsterDropItem,544,5,5000; bonus3 bAddMonsterDropItem,551,5,5000; } 
 4327,Bloody_Butterfly_Card,Bloody Butterfly Card,6,20,0,10,,,,,,,136,,,,{},{ bonus bCastrate,30; bonus bNoCastCancel2,0; bonus2 bSkillAtk,18,5; } //??OK
 4328,Hyegun_Card,Hyegun Card,6,20,0,10,,,,,,,4,,,,{},{ bonus bFlee,15; bonus bCritical,1; if(isequipped(4090,4212)) bonus bAllStats,1; } //??OK

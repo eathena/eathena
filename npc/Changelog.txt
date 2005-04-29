@@ -35,6 +35,8 @@ TODO:
 
 Date		Added
 ======
+04/29
+	* Fixed a typo in the warpra, thanks to ShAPoNe
 04/27   
 	* Added Einbroch and Ayothaya, cites and dungeons, to the Warpra [Fredzilla]
 	* Added the Engagement Quest into Ayothaya [Fredzilla]

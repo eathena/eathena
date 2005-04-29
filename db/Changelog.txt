@@ -8,6 +8,10 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them i believe.
 
+04/29
+	* Re-added Spiral Pierce to Lord knight's skill tree
+	* Added missing Shield Chain to the skill tree, thanks to Komurka
+	* Fixed Harpy Card and Freezer Card, thanks to Komurka
 04/28
 	* Added effect for Dumpling Child and Hermit Plant card
 	* Changed Crab card to use 'isequipped' and fixed Rideword card

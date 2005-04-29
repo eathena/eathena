@@ -30,7 +30,7 @@
 	menu "Alberta",walberta,"Aldebaran",waldebaran,"Amatsu",wamatsu,"Ayothaya",wayothaya,"Comodo",wcomodo,"Einbroch",weinbroch,"Geffen",wgeffen,"Gonryun",wgonryun,"Izlude",wizlude,"Louyang",wlouyang,"Lutie",wxmas,"Morroc",wmorroc,"Niflheim",wniflheim,"Payon",wpayon,"Prontera",wprontera,"Umbala",wumbala,"Yuno",wyuno;
 	
 	dungeon:
-	menu "Amatsu Dungeon",damatsu,"Anthell",dant,"Ayothaya Dungeon",dayothaya,"Bibilan Dungeon",dbibilan,"Coal Mine (Dead Pit)",dcoal,"Culvert",dculvert,"Einbroch Dungeon",dein,"Glast Heim",dglast,"Gonryun Dungeon",dgonryun,"Magma-Dungeon",dmagma,"Orc-Dungeon",dorc,"Payon-Dungeon",dpayon,"Pyramids",dpyramids,"Sphinx",dsphinx,"Sunken Ship",dsunken,"Turtle Dungeon",dturtle;
+	menu "Amatsu Dungeon",damatsu,"Anthell",dant,"Ayothaya Dungeon",dayothaya,"Bibilan Dungeon",dbibilan,"Coal Mine (Dead Pit)",dcoal,"Culvert",dculvert,"Einbech Dungeon",dein,"Glast Heim",dglast,"Gonryun Dungeon",dgonryun,"Magma-Dungeon",dmagma,"Orc-Dungeon",dorc,"Payon-Dungeon",dpayon,"Pyramids",dpyramids,"Sphinx",dsphinx,"Sunken Ship",dsunken,"Turtle Dungeon",dturtle;
 
 
 //----------------Towns----------------\\
@@ -40,7 +40,7 @@ waldebaran:	warp "aldebaran.gat",	145,	120;	close;
 wamatsu:	warp "amatsu.gat",	197,	86;	close;
 wayothaya:	warp "ayothaya.gat",	149,	118;	close;
 wcomodo:   	warp "comodo.gat",	188,	161;    close;
-weinbroch:   	warp "comodo.gat",	64, 	200;	close;
+weinbroch:   	warp "einbroch.gat",	64, 	200;	close;
 wgonryun:	warp "gonryun.gat",	150,    130; 	close;
 wgeffen:	warp "geffen.gat",	119,	66;	close;
 wizlude:	warp "izlude.gat",	128,	111;	close;
