@@ -2,12 +2,14 @@
 
 	==== progress ====
 	
-	Ayothaya mobs == 90% All have correct stats now ?
-	Einbroch mobs == 5% Added but using poring stats
+	Ayothaya mobs == 50% All have correct stats now ? Nope!
+	Einbroch mobs == 85% But their stats could be wrong. No info about MVP RSX 0608
 	Ayothaya items == 70% Added but no effect ( all are "etc" itens)
 	Einbroch items == 5%
-	Skill databases == celest working on them i believe.
+	Skill databases == celest working on them I believe.
 
+04/30
+	* fixed cards that required bExpAddRace,bSPGainRace,bLoseSPWhenUnequip by MasterOfMuppets [Lupus]
 04/29
 	* Re-added Spiral Pierce to Lord knight's skill tree
 	* Added missing Shield Chain to the skill tree, thanks to Komurka
