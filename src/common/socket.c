@@ -116,6 +116,9 @@ static int recv_to_fifo(int fd)
 {
 	int len;
 
+	if( (fd<0) || (fd>=FD_SETSIZE) || (NULL==session[fd]) )
+		return -1;
+
 	//ShowMessage("recv_to_fifo : %d %d\n",fd,session[fd]->eof);
 	if(session[fd]->eof)
 		return -1;
@@ -145,6 +148,9 @@ static int recv_to_fifo(int fd)
 static int send_from_fifo(int fd)
 {
 	int len;
+	
+	if( (fd<0) || (fd>=FD_SETSIZE) || (NULL==session[fd]) )
+		return -1;
 
 	//ShowMessage("send_from_fifo : %d\n",fd);
 	if(session[fd]->eof || session[fd]->wdata == 0)

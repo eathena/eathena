@@ -1,5 +1,6 @@
 Date	Added
 04/29
+	* fd checks in send/recv fifo, thanks to Sasuke [Shinomori]
 	* Restructured malloc.h / malloc.c a bit [celest]
 	* Fixed a memory leak in console [celest]
 	* Fixed console to be compatible with the dummy socket [celest]
