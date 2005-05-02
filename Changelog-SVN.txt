@@ -1,5 +1,6 @@
 Date	Added
 05/01
+	* Added new mob skills -- could be inaccurate though ^^; [celest]
 	* Added proper support for script functions with no parameters, thanks to Wallex
 	  i.e getrefine() instead of getrefine(0)
 	* Removed 'skill failed' message for Frost Diver [celest]

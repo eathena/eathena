@@ -98,12 +98,12 @@ int mob_once_spawn_area(struct map_session_data *sd,char *mapname,
 int mob_spawn_guardian(struct map_session_data *sd,char *mapname,	// Spawning Guardians [Valaris]
 	int x,int y,const char *mobname,int class_,int amount,const char *event,int guardian);	// Spawning Guardians [Valaris]
 
-
 int mob_walktoxy(struct mob_data *md,int x,int y,int easy);
-//int mob_randomwalk(struct mob_data *md,int tick);
-//int mob_can_move(struct mob_data *md);
+int mob_randomwalk(struct mob_data *md,int tick);
+int mob_can_move(struct mob_data *md);
 
 int mob_target(struct mob_data *md,struct block_list *bl,int dist);
+int mob_unlocktarget(struct mob_data *md,int tick);
 int mob_stop_walking(struct mob_data *md,int type);
 int mob_stopattack(struct mob_data *);
 int mob_spawn(int);

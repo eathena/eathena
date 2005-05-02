@@ -2797,13 +2797,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		}
 		break;
 
-	// unknown skills [Celest]
-	case NPC_STOP:
-	case NPC_POWERUP:
-	case NPC_AGIUP:
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		break;
-
 	case 0:
 		if(sd) {
 			if (flag & 3){
@@ -3454,6 +3447,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		}
 		break;
+
 	case BS_HAMMERFALL:		/* ハンマ?フォ?ル */
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		if(dstsd && dstsd->special_state.no_weapon_damage)
@@ -4275,6 +4269,40 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
+	case NPC_RANDOMMOVE:
+		if (md && mob_db[md->class_].mode & 1 && mob_can_move(md) &&
+			(md->master_id == 0 || md->state.special_mob_ai || md->master_dist > 10) &&
+			(DIFF_TICK(md->next_walktime, tick) > 7000 &&
+			(md->walkpath.path_len == 0 || md->walkpath.path_pos >= md->walkpath.path_len)))
+		{
+			md->next_walktime = tick + 3000 * rand() % 2000;
+			mob_randomwalk(md,tick);
+		}
+		break;
+	
+	case NPC_SPEEDUP:
+		{
+			// or does it increase casting rate? just a guess xD
+			int i = SC_SPEEDPOTION0 + skilllv - 1;
+			if (i > SC_SPEEDPOTION3)
+				i = SC_SPEEDPOTION3;
+			status_change_start(bl,i,skilllv,0,0,0,skilllv * 60000,0);
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		}
+		break;
+
+	case NPC_REVENGE:
+		// not really needed... but adding here anyway ^^
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		break;
+
+	case NPC_STOP:
+		if (md && md->target_id > 0) {
+			mob_unlocktarget(md, tick);
+		}
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		break;
+
 	case NPC_RUN:		//後退
 		if(md) {
 			int dist = skilllv;//後退する距離
@@ -4332,7 +4360,20 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case NPC_POWERUP:	//NPC爆裂波動
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		status_change_start(bl,SC_EXPLOSIONSPIRITS,skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
+		status_change_start(bl,SC_EXPLOSIONSPIRITS,skilllv,0,0,0,skilllv * 60000,0);
+		// another random guess xP
+		status_change_start(bl,SC_INCALLSTATUS,skilllv * 5,0,0,0,skilllv * 60000,0);
+		break;
+
+	case NPC_AGIUP:
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		status_change_start(bl,SC_INCAGI,skilllv * 10,0,0,0,skilllv * 60000,0);
+		break;
+
+	case NPC_SIEGEMODE:
+	case NPC_INVISIBLE:
+		// not sure what it does
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
 
 	case WE_MALE:				/* 君だけは護るよ */

@@ -48,7 +48,6 @@ int mobskill_use(struct mob_data *md,unsigned int tick,int event);
 int mobskill_deltimer(struct mob_data *md );
 int mob_skillid2skillidx(int class_,int skillid);
 int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx);
-static int mob_unlocktarget(struct mob_data *md,int tick);
 
 /*==========================================
  * Mob is searched with a name.
@@ -1514,7 +1513,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
  * A lock of target is stopped and mob moves to a standby state.
  *------------------------------------------
  */
-static int mob_unlocktarget(struct mob_data *md,int tick)
+int mob_unlocktarget(struct mob_data *md,int tick)
 {
 	nullpo_retr(0, md);
 
@@ -1528,7 +1527,7 @@ static int mob_unlocktarget(struct mob_data *md,int tick)
  * Random walk
  *------------------------------------------
  */
-static int mob_randomwalk(struct mob_data *md,int tick)
+int mob_randomwalk(struct mob_data *md,int tick)
 {
 	const int retrycount=20;
 	int speed;

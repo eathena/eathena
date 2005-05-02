@@ -772,6 +772,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		}
 		if(sd->sc_data[SC_INCSTR].timer!=-1)
 			sd->paramb[0] += sd->sc_data[SC_INCSTR].val1;
+		if(sd->sc_data[SC_INCAGI].timer!=-1)
+			sd->paramb[1] += sd->sc_data[SC_INCAGI].val1;
 		if(sd->sc_data[SC_CONCENTRATE].timer!=-1 && sd->sc_data[SC_QUAGMIRE].timer == -1){	// W’†—ÍŒüã
 			sd->paramb[1]+= (sd->status.agi+sd->paramb[1]+sd->parame[1]-sd->paramcard[1])*(2+sd->sc_data[SC_CONCENTRATE].val1)/100;
 			sd->paramb[4]+= (sd->status.dex+sd->paramb[4]+sd->parame[4]-sd->paramcard[4])*(2+sd->sc_data[SC_CONCENTRATE].val1)/100;
@@ -1872,6 +1874,8 @@ int status_get_agi(struct block_list *bl)
 				agi += 5;
 			if(sc_data[SC_INCALLSTATUS].timer!=-1)
 				agi += sc_data[SC_INCALLSTATUS].val1;
+			if(sc_data[SC_INCAGI].timer!=-1)
+				agi += sc_data[SC_INCAGI].val1;
 		}
 	}
 	if(agi < 0) agi = 0;
@@ -3910,6 +3914,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_INCFLEE2:		/* FLEE%ã¸ */
 		case SC_INCDEF2:
 		case SC_INCSTR:
+		case SC_INCAGI:
 			calc_flag = 1;
 			break;
 
@@ -4167,6 +4172,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_INCFLEE2:
 			case SC_INCDEF2:
 			case SC_INCSTR:
+			case SC_INCAGI:
 			case SC_BATTLEORDERS:
 			case SC_REGENERATION:
 			case SC_GUILDAURA:
