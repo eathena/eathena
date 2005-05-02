@@ -4461,156 +4461,150 @@ static int mob_readdb_race(void)
 static int mob_read_sqldb(void)
 {
 	char line[1024];
-	int i,class_;
-	long unsigned int ln=0;
-	char *str[60],*p,*np; // 55->60 Lupus
+	int i, j, class_;
+	double exp;
+	long unsigned int ln = 0;
+	char *str[60], *p, *np; // 55->60 Lupus
+	char *mob_db_name[] = { mob_db_db, mob_db2_db };
 
 	memset(mob_db,0,sizeof(mob_db));
 
-    sprintf (tmp_sql, "SELECT * FROM `%s`",mob_db_db);
-	if(mysql_query(&mmysql_handle, tmp_sql) ) {
-		printf("DB server Error (select %s to Memory)- %s\n",mob_db_db,mysql_error(&mmysql_handle) );
-	}
-	sql_res = mysql_store_result(&mmysql_handle);
-	if (sql_res) {
-		while((sql_row = mysql_fetch_row(sql_res))){
-            sprintf(line,"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-                        sql_row[0],sql_row[1],sql_row[2],sql_row[3],sql_row[4],
-                        sql_row[5],sql_row[6],sql_row[7],sql_row[8],sql_row[9],
-                        sql_row[10],sql_row[11],sql_row[12],sql_row[13],sql_row[14],
-                        sql_row[15],sql_row[16],sql_row[17],sql_row[18],sql_row[19],
-                        sql_row[20],sql_row[21],sql_row[22],sql_row[23],sql_row[24],
-                        sql_row[25],sql_row[26],sql_row[27],sql_row[28],sql_row[29],
-                        sql_row[30],sql_row[31],sql_row[32],sql_row[33],sql_row[34],
-                        sql_row[35],sql_row[36],sql_row[37],sql_row[38],sql_row[39],
-                        sql_row[40],sql_row[41],sql_row[42],sql_row[43],sql_row[44],
-                        sql_row[45],sql_row[46],sql_row[47],sql_row[48],sql_row[49],
-                        sql_row[50],sql_row[51],sql_row[52],sql_row[53],sql_row[54],
-			sql_row[55],sql_row[56]);
-
-			for(i=0,p=line;i<57;i++){
-				if((np=strchr(p,','))!=NULL){
-					str[i]=p;
-					*np=0;
-					p=np+1;
-				} else
-					str[i]=p;
-			}
-
-			class_=atoi(str[0]);
-			if(class_<=1000 || class_>MAX_MOB_DB)
-				continue;
-
-			ln++;
-
-			mob_db[class_].view_class=class_;
-			memcpy(mob_db[class_].name,str[1],24);
-			memcpy(mob_db[class_].jname,str[2],24);
-			mob_db[class_].lv=atoi(str[3]);
-			mob_db[class_].max_hp=atoi(str[4]);
-			mob_db[class_].max_sp=atoi(str[5]);
-
-			mob_db[class_].base_exp = atoi(str[6]);
-			if (mob_db[class_].base_exp <= 0)
-				mob_db[class_].base_exp = 0;
-			else if (mob_db[class_].base_exp * battle_config.base_exp_rate / 100 > 1000000000 ||
-			         mob_db[class_].base_exp * battle_config.base_exp_rate / 100 < 0)
-				mob_db[class_].base_exp = 1000000000;
-			else {
-				mob_db[class_].base_exp = mob_db[class_].base_exp * battle_config.base_exp_rate / 100;
-				if (mob_db[class_].base_exp < 1)
-					mob_db[class_].base_exp = 1;
-			}
-			mob_db[class_].job_exp = atoi(str[7]);
-			if (mob_db[class_].job_exp <= 0)
-				mob_db[class_].job_exp = 0;
-			else if (mob_db[class_].job_exp * battle_config.job_exp_rate / 100 > 1000000000 ||
-			         mob_db[class_].job_exp * battle_config.job_exp_rate / 100 < 0)
-				mob_db[class_].job_exp = 1000000000;
-			else {
-				mob_db[class_].job_exp = mob_db[class_].job_exp * battle_config.job_exp_rate / 100;
-				if (mob_db[class_].job_exp < 1)
-					mob_db[class_].job_exp = 1;
-			}
-
-			mob_db[class_].range=atoi(str[8]);
-			mob_db[class_].atk1=atoi(str[9]);
-			mob_db[class_].atk2=atoi(str[10]);
-			mob_db[class_].def=atoi(str[11]);
-			mob_db[class_].mdef=atoi(str[12]);
-			mob_db[class_].str=atoi(str[13]);
-			mob_db[class_].agi=atoi(str[14]);
-			mob_db[class_].vit=atoi(str[15]);
-			mob_db[class_].int_=atoi(str[16]);
-			mob_db[class_].dex=atoi(str[17]);
-			mob_db[class_].luk=atoi(str[18]);
-			mob_db[class_].range2=atoi(str[19]);
-			mob_db[class_].range3=atoi(str[20]);
-			mob_db[class_].size=atoi(str[21]);
-			mob_db[class_].race=atoi(str[22]);
-			mob_db[class_].element=atoi(str[23]);
-			mob_db[class_].mode=atoi(str[24]);
-			mob_db[class_].speed=atoi(str[25]);
-			mob_db[class_].adelay=atoi(str[26]);
-			mob_db[class_].amotion=atoi(str[27]);
-			mob_db[class_].dmotion=atoi(str[28]);
-
-			for(i=0;i<10;i++){ // 8 -> 10 Lupus
-				int rate = 0,type,ratemin,ratemax;
-				mob_db[class_].dropitem[i].nameid=atoi(str[29+i*2]);
-				type = itemdb_type(mob_db[class_].dropitem[i].nameid);
-				if (type == 0) {							// Added by Valaris
-					rate = battle_config.item_rate_heal * atoi(str[30+i*2]) / 100;
-					ratemin = battle_config.item_drop_heal_min;
-					ratemax = battle_config.item_drop_heal_max;
-				}
-				else if (type == 2) {
-					rate = battle_config.item_rate_use * atoi(str[30+i*2]) / 100;
-					ratemin = battle_config.item_drop_use_min;
-					ratemax = battle_config.item_drop_use_max;	// End
-				}
-				else if (type == 4 || type == 5 || type == 8) {		// Changed to include Pet Equip
-					rate = battle_config.item_rate_equip * atoi(str[30+i*2]) / 100;
-					ratemin = battle_config.item_drop_equip_min;
-					ratemax = battle_config.item_drop_equip_max;
-				}
-				else if (type == 6) {
-					rate = battle_config.item_rate_card * atoi(str[30+i*2]) / 100;
-					ratemin = battle_config.item_drop_card_min;
-					ratemax = battle_config.item_drop_card_max;
-				}
-				else {
-					rate = battle_config.item_rate_common * atoi(str[30+i*2]) / 100;
-					ratemin = battle_config.item_drop_common_min;
-					ratemax = battle_config.item_drop_common_max;
-				}
-
-				mob_db[class_].dropitem[i].p = (rate < ratemin) ? ratemin : (rate > ratemax) ? ratemax: rate;
-			}
-			// MVP EXP Bonus, Chance: MEXP,ExpPer
-			mob_db[class_].mexp=atoi(str[49])*battle_config.mvp_exp_rate/100;
-			mob_db[class_].mexpper=atoi(str[50]);
-			// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
-			for(i=0;i<3;i++){
-				mob_db[class_].mvpitem[i].nameid=atoi(str[51+i*2]);
-				mob_db[class_].mvpitem[i].p=atoi(str[52+i*2])*battle_config.mvp_item_rate/100;
-			}
-			for(i=0;i<MAX_RANDOMMONSTER;i++)
-				mob_db[class_].summonper[i]=0;
-			mob_db[class_].maxskill=0;
-
-			mob_db[class_].sex=0;
-			mob_db[class_].hair=0;
-			mob_db[class_].hair_color=0;
-			mob_db[class_].weapon=0;
-			mob_db[class_].shield=0;
-			mob_db[class_].head_top=0;
-			mob_db[class_].head_mid=0;
-			mob_db[class_].head_buttom=0;
+    for (i = 0; i < 2; i++) {
+		sprintf (tmp_sql, "SELECT * FROM `%s`", mob_db_name[i]);
+		if (mysql_query(&mmysql_handle, tmp_sql)) {
+			printf("DB server Error (select %s to Memory)- %s\n", mob_db_name[i], mysql_error(&mmysql_handle));
 		}
-		mysql_free_result(sql_res);
-		sprintf(tmp_output,"Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,mob_db_db);
-		ShowStatus(tmp_output);
+		sql_res = mysql_store_result(&mmysql_handle);
+		if (sql_res) {
+			while((sql_row = mysql_fetch_row(sql_res))){
+				sprintf(line,"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
+							"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
+							"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+							sql_row[0],sql_row[1],sql_row[2],sql_row[3],sql_row[4],
+							sql_row[5],sql_row[6],sql_row[7],sql_row[8],sql_row[9],
+							sql_row[10],sql_row[11],sql_row[12],sql_row[13],sql_row[14],
+							sql_row[15],sql_row[16],sql_row[17],sql_row[18],sql_row[19],
+							sql_row[20],sql_row[21],sql_row[22],sql_row[23],sql_row[24],
+							sql_row[25],sql_row[26],sql_row[27],sql_row[28],sql_row[29],
+							sql_row[30],sql_row[31],sql_row[32],sql_row[33],sql_row[34],
+							sql_row[35],sql_row[36],sql_row[37],sql_row[38],sql_row[39],
+							sql_row[40],sql_row[41],sql_row[42],sql_row[43],sql_row[44],
+							sql_row[45],sql_row[46],sql_row[47],sql_row[48],sql_row[49],
+							sql_row[50],sql_row[51],sql_row[52],sql_row[53],sql_row[54],
+							sql_row[55],sql_row[56]);
+
+				for (j = 0, p = line; j < 57; j++){
+					if ((np = strchr(p,',')) != NULL){
+						str[j] = p;
+						*np = 0;
+						p = np+1;
+					} else
+						str[j] = p;
+				}
+
+				class_ = atoi(str[0]);
+				if (class_ <= 1000 || class_ > MAX_MOB_DB)
+					continue;
+
+				ln++;
+
+				mob_db[class_].view_class = class_;
+				memcpy(mob_db[class_].name, str[1], 24);
+				memcpy(mob_db[class_].jname, str[2], 24);
+				mob_db[class_].lv = atoi(str[3]);
+				mob_db[class_].max_hp = atoi(str[4]);
+				mob_db[class_].max_sp = atoi(str[5]);
+
+				exp = (double)atoi(str[6]) * (double)battle_config.base_exp_rate / 100.;
+				if (exp < 0) exp = 0;
+				else if (exp > 0x7fffffff) exp = 0x7fffffff;
+				mob_db[class_].base_exp = (int)exp;
+
+				exp = (double)atoi(str[7]) * (double)battle_config.job_exp_rate / 100.;
+				if (exp < 0) exp = 0;
+				else if (exp > 0x7fffffff) exp = 0x7fffffff;
+				mob_db[class_].job_exp = (int)exp;
+				
+				mob_db[class_].range = atoi(str[8]);
+				mob_db[class_].atk1 = atoi(str[9]);
+				mob_db[class_].atk2 = atoi(str[10]);
+				mob_db[class_].def = atoi(str[11]);
+				mob_db[class_].mdef = atoi(str[12]);
+				mob_db[class_].str = atoi(str[13]);
+				mob_db[class_].agi = atoi(str[14]);
+				mob_db[class_].vit = atoi(str[15]);
+				mob_db[class_].int_ = atoi(str[16]);
+				mob_db[class_].dex = atoi(str[17]);
+				mob_db[class_].luk = atoi(str[18]);
+				mob_db[class_].range2 = atoi(str[19]);
+				mob_db[class_].range3 = atoi(str[20]);
+				mob_db[class_].size = atoi(str[21]);
+				mob_db[class_].race = atoi(str[22]);
+				mob_db[class_].element = atoi(str[23]);
+				mob_db[class_].mode = atoi(str[24]);
+				mob_db[class_].speed = atoi(str[25]);
+				mob_db[class_].adelay = atoi(str[26]);
+				mob_db[class_].amotion = atoi(str[27]);
+				mob_db[class_].dmotion = atoi(str[28]);
+
+				for (j = 0; j < 10; j++){ // 8 -> 10 Lupus
+					int rate = 0, type, ratemin, ratemax;
+					mob_db[class_].dropitem[j].nameid=atoi(str[29+j*2]);
+					type = itemdb_type(mob_db[class_].dropitem[j].nameid);
+					if (type == 0) {							// Added by Valaris
+						rate = battle_config.item_rate_heal * atoi(str[30+j*2]) / 100;
+						ratemin = battle_config.item_drop_heal_min;
+						ratemax = battle_config.item_drop_heal_max;
+					}
+					else if (type == 2) {
+						rate = battle_config.item_rate_use * atoi(str[30+j*2]) / 100;
+						ratemin = battle_config.item_drop_use_min;
+						ratemax = battle_config.item_drop_use_max;	// End
+					}
+					else if (type == 4 || type == 5 || type == 8) {		// Changed to include Pet Equip
+						rate = battle_config.item_rate_equip * atoi(str[30+j*2]) / 100;
+						ratemin = battle_config.item_drop_equip_min;
+						ratemax = battle_config.item_drop_equip_max;
+					}
+					else if (type == 6) {
+						rate = battle_config.item_rate_card * atoi(str[30+j*2]) / 100;
+						ratemin = battle_config.item_drop_card_min;
+						ratemax = battle_config.item_drop_card_max;
+					}
+					else {
+						rate = battle_config.item_rate_common * atoi(str[30+j*2]) / 100;
+						ratemin = battle_config.item_drop_common_min;
+						ratemax = battle_config.item_drop_common_max;
+					}
+
+					mob_db[class_].dropitem[j].p = (rate < ratemin) ? ratemin : (rate > ratemax) ? ratemax: rate;
+				}
+				// MVP EXP Bonus, Chance: MEXP,ExpPer
+				mob_db[class_].mexp = atoi(str[49]) * battle_config.mvp_exp_rate / 100;
+				mob_db[class_].mexpper = atoi(str[50]);
+				// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
+				for (j = 0; j < 3; j++) {
+					mob_db[class_].mvpitem[j].nameid = atoi(str[51+j*2]);
+					mob_db[class_].mvpitem[j].p = atoi(str[52+j*2]) * battle_config.mvp_item_rate / 100;
+				}
+				for (j = 0; j < MAX_RANDOMMONSTER; j++)
+					mob_db[class_].summonper[j] = 0;
+				mob_db[class_].maxskill = 0;
+
+				mob_db[class_].sex = 0;
+				mob_db[class_].hair = 0;
+				mob_db[class_].hair_color = 0;
+				mob_db[class_].weapon = 0;
+				mob_db[class_].shield = 0;
+				mob_db[class_].head_top = 0;
+				mob_db[class_].head_mid = 0;
+				mob_db[class_].head_buttom = 0;
+			}
+			mysql_free_result(sql_res);
+			sprintf(tmp_output,"Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, mob_db_name[i]);
+			ShowStatus(tmp_output);
+			ln = 0;
+		}
 	}
 	return 0;
 }

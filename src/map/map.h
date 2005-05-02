@@ -858,7 +858,9 @@ extern char tmp_msql[65535];
 extern int db_use_sqldbs;
 
 extern char item_db_db[32];
+extern char item_db2_db[32];
 extern char mob_db_db[32];
+extern char mob_db2_db[32];
 extern char login_db[32];
 
 extern char login_db_level[32];

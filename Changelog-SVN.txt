@@ -1,5 +1,9 @@
 Date	Added
 05/01
+	~ Added sql_files/upgrade_svn1623.sql to update item_db2's format, and mob stats
+	  in mob_db to unsigned int (thanks to Zoc, Wallex and akusarujin)
+
+	* Added item_db2 and mob_db2 reading for SQL map, thanks to sbilly
 	* Added new mob skills -- could be inaccurate though ^^; [celest]
 	* Added proper support for script functions with no parameters, thanks to Wallex
 	  i.e getrefine() instead of getrefine(0)

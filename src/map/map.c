@@ -83,7 +83,9 @@ char login_server_pw[32] = "ragnarok";
 char login_server_db[32] = "ragnarok";
 
 char item_db_db[32] = "item_db";
+char item_db2_db[32] = "item_db2";
 char mob_db_db[32] = "mob_db";
+char mob_db2_db[32] = "mob_db2";
 char login_db[32] = "login";
 char login_db_level[32] = "level";
 char login_db_account_id[32] = "account_id";
@@ -2976,6 +2978,10 @@ int inter_config_read(char *cfgName)
 			strcpy(item_db_db,w2);
 		} else if(strcmpi(w1,"mob_db_db")==0){
 			strcpy(mob_db_db,w2);
+		} else if(strcmpi(w1,"item_db2_db")==0){
+			strcpy(item_db2_db,w2);
+		} else if(strcmpi(w1,"mob_db2_db")==0){
+			strcpy(mob_db2_db,w2);
 		} else if(strcmpi(w1,"login_db_level")==0){
 			strcpy(login_db_level,w2);
 		} else if(strcmpi(w1,"login_db_account_id")==0){
