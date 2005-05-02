@@ -61,7 +61,7 @@ dayothaya:	warp "ayo_fild02.gat",	280,	149;	close;
 dbibilan:	warp "izlu2dun.gat",	106,	88;	close;
 dculvert:	warp "prt_fild05.gat",	273,	210;	close;
 dcoal:		warp "mjolnir_02.gat",	81,	359;	close;
-dein:		warp "einbech.gat",	135,	249;	Close;	
+dein:		warp "einbech.gat",	135,	249;	close;	
 dglast:		warp "glast_01.gat",	368,	303;	close;
 dgonryun:	warp "gonryun.gat",	160,    195; 	close;
 dmagma:		warp "yuno_fild03.gat",	39,	140;	close;

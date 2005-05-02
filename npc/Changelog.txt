@@ -35,6 +35,8 @@ TODO:
 
 Date		Added
 ======
+05/02
+	* Fixed some script typos, thanks to zBuffer and Er Pirata
 04/29
 	* Alarm Mask Quest corrected txt 2 Shadow
 	* Added Penal Servitude script. Some quest for prisoners [Lupus]

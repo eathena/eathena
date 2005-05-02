@@ -20,7 +20,7 @@ sec_pri.gat,36,58,1	script	Chief Warder	105,{
 	emotion 1;
 	if (sex) mes "Mr. Prisoner #"+BaseLevel+JobLevel+",";
 	if (!sex) mes "Ms. Prisoner #"+BaseLevel+JobLevel+",";
-	mes "what's the noice over there?";
+	mes "what's the noise over there?";
 	next;
 	menu "Let me free, I'll pay!",-, "Let me to work off my freedom!",M_Q1, "Nothing",M_NO_THANKS;
 
@@ -33,20 +33,20 @@ M_PAY:
 	if (PRISON>1) mes "You again? Sombody hasn't grown wiser from the very first visit...";
 	mes "OK, we could release you for ^FF0000"+@MUSTPAY+"z^000000.";
 	next;
-	menu "I pay cache!",M_PAYCACHE,"Do you accept cheques?",M_PAYBANK,"I've changed my mind.",-;
+	menu "I pay cash!",M_PAYCASH,"Do you accept cheques?",M_PAYBANK,"I've changed my mind.",-;
 
 	mes "[Saddeus]";
 	mes "You've got some time to think about...";
 	close;
 
-M_PAYCACHE:
-	if (@MUSTPAY>Zeny) goto L_NOCACHE;
+M_PAYCASH:
+	if (@MUSTPAY>Zeny) goto L_NOCASH;
 	set Zeny,Zeny-@MUSTPAY;
 	mes "[Saddeus]";
 	mes "OK, sing here and there.";
 	goto L_RELEASE;
 
-L_NOCACHE:
+L_NOCASH:
 	mes "[Saddeus]";
 	mes "What's this? It's not enough!";
 	close;
@@ -55,7 +55,7 @@ M_PAYBANK:
 	if (@MUSTPAY>#kafrabank) goto L_NOBANK;
 	set #kafrabank,#kafrabank-@MUSTPAY;
 	mes "[Saddeus]";
-	mes "OK, singn your cheque. And put down your name in my book.";
+	mes "OK, sign your cheque. And put down your name in my book.";
 	goto L_RELEASE;
 
 L_NOBANK:
@@ -66,7 +66,7 @@ L_NOBANK:
 	close;
 
 L_RELEASE:
-	set PRISON,PRISON+1; //ïîáûâàë â òþðüìå...
+	set PRISON,PRISON+1; //EáûâàEEEðüE...
 	next;
 	mes "[Saddeus]";
 	mes "You are free now!";
@@ -76,7 +76,7 @@ L_RELEASE:
 	close;
 
 M_Q1:
-//êâåñò 1
+//EåñE1
 	mes "[Saddeus]";
 	mes "Our stocks are short of toadstools.  Remeber your morning's skilly?  What about some work at our sponsored mushroom farm?";
 	next;
@@ -148,7 +148,7 @@ sec_in02.gat,137,57,1	script	Overseer	708,{
 	close;
 
 L_GET_Q:
-	set PRISON,PRISON+1; //ïîáûâàë â òþðüìå...
+	set PRISON,PRISON+1; //EáûâàEEEðüE...
 	if (PRISON > 1) mes "Hmm... You've been here already... Well-well...";
 
 	if ( countitem(1069) || countitem(1070) ) mes "Drop these mushrooms!! They are poisonous!";//Items: Orange_Net_Mushroom, Orange_Gooey_Mushroom_,
