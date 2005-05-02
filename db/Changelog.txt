@@ -9,6 +9,7 @@
 	Skill databases == celest working on them I believe.
 
 05/02
+	* Fixed # of Deviling's slaves [Lupus]
 	* Fixed cards that use getrefine [celest]
 05/01
 	* Fixed skill tree entry for Potion Synthesis, thanks to shadow
