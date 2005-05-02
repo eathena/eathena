@@ -3771,7 +3771,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 		}
 
 		// Šm—¦”»’è
-		if (flag && rand() % 10000 < ms[i].permillage)
+		if (flag && rand() % 1000 < ms[i].permillage)
 		{
 			if (skill_get_inf(ms[i].skill_id) & 2) {
 				// êŠŽw’è

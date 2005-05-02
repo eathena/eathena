@@ -8,6 +8,10 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them I believe.
 
+05/02
+	* Fixed cards that use getrefine [celest]
+05/01
+	* Fixed skill tree entry for Potion Synthesis, thanks to shadow
 04/30
 	* fixed cards that required bExpAddRace,bSPGainRace,bLoseSPWhenUnequip by MasterOfMuppets [Lupus]
 04/29

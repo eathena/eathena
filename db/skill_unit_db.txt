@@ -45,11 +45,11 @@
 220,0xb0,    ,  0, 0,  -1,all,   0x002	//RG_GRAFFITI#グラフィティ
 229,0xb1,    ,  0, 1,1000,enemy, 0x000	//AM_DEMONSTRATION#デモンストレーション
 254,0x86,    , -1, 0, 300,enemy, 0x000	//CR_GRANDCROSS#グランドクロス
-285,0x9a,    ,  3, 0, -1,all,   0x000	//SA_VOLCANO#ボルケーノ
-286,0x9b,    ,  3, 0, -1,all,   0x000	//SA_DELUGE#デリュージ
-287,0x9c,    ,  3, 0, -1,all,   0x000	//SA_VIOLENTGALE#バイオレントゲイル
-288,0x9d,    ,  3, 0, -1,all,   0x000	//SA_LANDPROTECTOR#ランドプロテクター
-306,0x9e,    ,  4, 0,  -1,all,   0x300	//BD_LULLABY#子守歌
+285,0x9a,    ,  3, 0,  -1,all,   0x000	//SA_VOLCANO#ボルケーノ
+286,0x9b,    ,  3, 0,  -1,all,   0x000	//SA_DELUGE#デリュージ
+287,0x9c,    ,  3, 0,  -1,all,   0x000	//SA_VIOLENTGALE#バイオレントゲイル
+288,0x9d,    ,  3, 0,  -1,all,   0x000	//SA_LANDPROTECTOR#ランドプロテクター
+306,0x9e,    ,  4, 0,6000,all,   0x300	//BD_LULLABY#子守歌
 307,0x9f,    ,  4, 0,  -1,party, 0x300	//BD_RICHMANKIM#ニヨルドの宴
 308,0xa0,    ,  4, 0,  -1,enemy, 0x300	//BD_ETERNALCHAOS#永遠の混沌
 309,0xa1,    ,  4, 0,  -1,party, 0x300	//BD_DRUMBATTLEFIELD#戦太鼓の響き
@@ -57,7 +57,7 @@
 311,0xa3,    ,  4, 0,  -1,all,   0x300	//BD_ROKISWEIL#ロキの叫び
 312,0xa4,    ,  4, 0,  -1,party, 0x300	//BD_INTOABYSS#深淵の中に
 313,0xa5,    ,  4, 0,  -1,party, 0x300	//BD_SIEGFRIED#不死身のジークフリード
-317,0xa6,    ,  3, 0,  -1,enemy, 0x100	//BA_DISSONANCE#不協和音
+317,0xa6,    ,  3, 0,3000,enemy, 0x100	//BA_DISSONANCE#不協和音
 319,0xa7,    ,  3, 0,  -1,friend,0x100	//BA_WHISTLE#口笛
 320,0xa8,    ,  3, 0,  -1,friend,0x100	//BA_ASSASSINCROSS#夕陽のアサシンクロス
 321,0xa9,    ,  3, 0,  -1,friend,0x100	//BA_POEMBRAGI#ブラギの詩

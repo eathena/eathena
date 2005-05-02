@@ -2778,7 +2778,7 @@ int status_get_dmotion(struct block_list *bl)
 	else if(bl->type==BL_PC && (struct map_session_data *)bl){
 		ret=((struct map_session_data *)bl)->dmotion;
 		if(battle_config.pc_damage_delay_rate != 100)
-			ret = ret*battle_config.pc_damage_delay_rate/400;
+			ret = ret*battle_config.pc_damage_delay_rate/100;
 	}
 	else if(bl->type==BL_PET && (struct pet_data *)bl)
 		ret=mob_db[((struct pet_data *)bl)->class_].dmotion;
@@ -4538,35 +4538,6 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 #endif
 			//sc_data[type].val2=1;
 			return 0;
-		}
-		break;
-
-	case SC_DISSONANCE:	/* •s‹¦˜a‰¹ */
-		if( (--sc_data[type].val2)>0){
-			struct skill_unit *unit=
-				(struct skill_unit *)sc_data[type].val4;
-			struct block_list *src;
-			if (unit && unit->group && (src = map_id2bl(unit->group->src_id)) != NULL) {
-				skill_attack(BF_MISC, src, &unit->bl, bl, unit->group->skill_id, sc_data[type].val1, tick, 0);
-				if (status_isdead(bl))
-					break;
-				sc_data[type].timer = add_timer(skill_get_time2(unit->group->skill_id, unit->group->skill_lv) + tick,
-					status_change_timer, bl->id, data);
-			}
-			return 0;
-		}
-		break;
-
-	case SC_LULLABY:	/* qç‰S */
-		if( (--sc_data[type].val2)>0){
-			struct skill_unit *unit =
-				(struct skill_unit *)sc_data[type].val4;
-			if (unit && unit->group && unit->group->src_id != bl->id) {
-				skill_additional_effect(bl, bl, unit->group->skill_id, sc_data[type].val1, BF_LONG|BF_SKILL|BF_MISC, tick);
-				sc_data[type].timer = add_timer(skill_get_time(unit->group->skill_id, unit->group->skill_lv)/10+tick,
-					status_change_timer, bl->id, data);
-				return 0;
-			}
 		}
 		break;
 

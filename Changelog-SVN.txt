@@ -1,4 +1,15 @@
 Date	Added
+05/01
+	* Added proper support for script functions with no parameters, thanks to Wallex
+	  i.e getrefine() instead of getrefine(0)
+	* Removed 'skill failed' message for Frost Diver [celest]
+	* Moved Lullaby and Dissonance effect code to skill_onplace_timer [celest]
+	* Updated some skill id's to fit in a few new mob skills (not coded yet) [celest]
+	* Increased mob skills using base chance to 1/1000 instead of 1/10000, and monster
+	  delay base rate to 1/100 instead of 1/400, thanks to Komurka
+	* Fixed players able to request trade with gm's even if gm_can_drop_lv was set,
+	  thanks to Komurka
+
 04/29
 	* fd checks in send/recv fifo, thanks to Sasuke [Shinomori]
 	* Restructured malloc.h / malloc.c a bit [celest]

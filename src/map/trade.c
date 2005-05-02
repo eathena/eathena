@@ -24,7 +24,7 @@
  */
 void trade_traderequest(struct map_session_data *sd, int target_id) {
 	struct map_session_data *target_sd;
-	int level;
+	int level, level2;
 
 	nullpo_retv(sd);
 
@@ -36,9 +36,12 @@ void trade_traderequest(struct map_session_data *sd, int target_id) {
 			}
 		}
 		level = pc_isGM(sd);
-		if(level > 0 && level < battle_config.gm_can_drop_lv) {
+		if (battle_config.gm_can_drop_lv &&
+			((level > 0 && level < battle_config.gm_can_drop_lv) ||
+			((level2 = pc_isGM(target_sd)) > 0 && level2 < battle_config.gm_can_drop_lv)))
+		{
 			clif_displaymessage(sd->fd, msg_txt(246));
-			trade_tradecancel(sd); // GM is not allowed to trade
+			trade_tradecancel(sd); // GM is not allowed to trade		
 		} else if ((target_sd->trade_partner != 0) || (sd->trade_partner != 0)) {
 			trade_tradecancel(sd); // person is in another trade
 		} else {

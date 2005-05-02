@@ -929,10 +929,11 @@ unsigned char* parse_simpleexpr(unsigned char *p)
 		int c,l;
 		char *p2;
 		// label , register , function etc
-		if(skip_word(p)==p){
+		if(skip_word(p)==p && !(*p==')' && p[-1]=='(')){
 			disp_error_message("unexpected character",p);
 			exit(1);
 		}
+
 		p2=(char *) skip_word(p);
 		c=*p2;	*p2=0;	// –¼‘O‚ðadd_str‚·‚é
 		l=add_str(p);
@@ -950,7 +951,7 @@ unsigned char* parse_simpleexpr(unsigned char *p)
 		}
 */
 		*p2=c;	
-                p=(unsigned char *) p2;
+		p=(unsigned char *) p2;
 
 		if(str_data[l].type!=C_FUNC && c=='['){
 			// array(name[i] => getelementofarray(name,i) )
@@ -1053,11 +1054,11 @@ unsigned char* parse_subexpr(unsigned char *p,int limit)
 				exit(1);
 			}
 
-			if( str_data[func].type==C_FUNC && script_config.warn_func_mismatch_paramnum){
-				const char *arg=buildin_func[str_data[func].val].arg;
-				int j=0;
-				for(j=0;arg[j];j++) if(arg[j]=='*')break;
-				if( (arg[j]==0 && i!=j) || (arg[j]=='*' && i<j) ){
+			if (str_data[func].type == C_FUNC && script_config.warn_func_mismatch_paramnum) {
+				const char *arg = buildin_func[str_data[func].val].arg;
+				int j = 0;
+				for (; arg[j]; j++) if (arg[j] == '*') break;
+				if (!(i <= 1 && j == 0) && ((arg[j] == 0 && i != j) || (arg[j] == '*' && i < j))) {
 					disp_error_message("illegal number of parameters",(unsigned char *) (plist[(i<j)?i:j]));
 				}
 			}
