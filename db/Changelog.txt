@@ -8,6 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them I believe.
 
+05/03
+	* Fixed Heater Card and Freezer Card [celest]
 05/02
 	* Fixed # of Deviling's slaves [Lupus]
 	* Fixed cards that use getrefine [celest]
