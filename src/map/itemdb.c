@@ -33,23 +33,6 @@ static int blue_box_default=0, violet_box_default=0, card_album_default=0, gift_
 
 static struct item_group itemgroup_db[MAX_ITEMGROUP];
 
-// Function declarations
-
-static void itemdb_read(void);
-static int itemdb_readdb(void);
-#ifndef TXT_ONLY
-static int itemdb_read_sqldb(void);
-#endif /* not TXT_ONLY */
-static int itemdb_read_randomitem();
-static int itemdb_read_itemavail(void);
-static int itemdb_read_itemnametable(void);
-static int itemdb_read_itemslottable(void);
-static int itemdb_read_itemslotcounttable(void);
-static int itemdb_read_cardillustnametable(void);
-static int itemdb_read_noequip(void);
-static int itemdb_read_norefine(void);
-void itemdb_reload(void);
-
 /*==========================================
  * –¼‘O‚ÅŒŸõ—p
  *------------------------------------------
@@ -928,31 +911,6 @@ static int itemdb_readdb(void)
 	return 0;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
-static int itemdb_final(void *key,void *data,va_list ap)
-{
-	struct item_data *id;
-
-	nullpo_retr(0, id= (struct item_data *) data);
-
-	if(id->use_script)
-		aFree(id->use_script);
-	if(id->equip_script)
-		aFree(id->equip_script);
-	aFree(id);
-
-	return 0;
-}
-
-void itemdb_reload(void)
-{
-	numdb_final(item_db,itemdb_final);
-	do_init_itemdb();
-}
-
 /*====================================
  * Removed item_value_db, don't re-add
  *------------------------------------
@@ -982,39 +940,39 @@ static void itemdb_read(void)
 }
 
 /*==========================================
- *
+ * Initialize / Finalize
  *------------------------------------------
  */
-void do_final_itemdb(void)
+static int itemdb_final(void *key,void *data,va_list ap)
 {
-	if(item_db){
-		numdb_final(item_db,itemdb_final);
-		item_db=NULL;
-	}
-}
+	struct item_data *id = (struct item_data *)data;
 
-/*
-static FILE *dfp;
-static int itemdebug(void *key,void *data,va_list ap){
-//	struct item_data *id=(struct item_data *)data;
-	fprintf(dfp,"%6d",(int)key);
+	if (id == NULL)
+		return 0;
+	if (id->use_script)
+		aFree(id->use_script);
+	if (id->equip_script)
+		aFree(id->equip_script);
+	aFree(id);
+
 	return 0;
 }
-void itemdebugtxt()
+
+void itemdb_reload(void)
 {
-	dfp=fopen("itemdebug.txt","wt");
-	numdb_foreach(item_db,itemdebug);
-	fclose(dfp);
+	numdb_final(item_db,itemdb_final);
+	do_init_itemdb();
 }
-*/
-/*==========================================
- *
- *------------------------------------------
- */
+
+void do_final_itemdb(void)
+{
+	if (item_db)
+		numdb_final(item_db, itemdb_final);
+}
+
 int do_init_itemdb(void)
 {
 	item_db = numdb_init();
-
 	itemdb_read();
 
 	return 0;

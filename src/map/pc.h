@@ -30,7 +30,6 @@ int pc_isGM(struct map_session_data *sd);
 int pc_iskiller(struct map_session_data *src, struct map_session_data *target); // [MouseJstr]
 int pc_getrefinebonus(int lv,int type);
 
-int pc_counttargeted(struct map_session_data *sd,struct block_list *src,int target_lv);
 int pc_setrestartvalue(struct map_session_data *sd,int type);
 int pc_makesavestatus(struct map_session_data *);
 int pc_setnewpc(struct map_session_data*,int,int,int,int,int,int);
@@ -210,6 +209,7 @@ int pc_eventtimer(int tid,unsigned int tick,int id,int data); // for npc_dequeue
 struct Fame_list {
 	int id;
 	int fame;
+	char name[24];
 };
 extern struct Fame_list smith_fame_list[10];
 extern struct Fame_list chemist_fame_list[10];

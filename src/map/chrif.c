@@ -916,6 +916,7 @@ int chrif_recvfamelist(int fd)
 {
 	int i, num, id, fame, count;
 	int total = 0;
+	char *name;
 
 	// response from 0x2b1b
 	memset (smith_fame_list, 0, sizeof(smith_fame_list));
@@ -926,7 +927,14 @@ int chrif_recvfamelist(int fd)
 		if ((id = RFIFOL(fd,i)) > 0 && (fame = RFIFOL(fd,i+4)) > 0) {
 			smith_fame_list[num].id = id;
 			smith_fame_list[num].fame = fame;
-			//printf("received id: %d fame:%d\n", id, fame);
+			name = map_charid2nick(id);
+			if (name != NULL)
+				memcpy(smith_fame_list[num].name, name, 24);
+			else {
+				memcpy(smith_fame_list[num].name, "-", 24);
+				chrif_searchcharid(id);
+			}
+			//printf("received : %s (id:%d) fame:%d\n", name, id, fame);
 		}
 		// in case the char server sends too long
 		if (++num == 10)
@@ -939,7 +947,14 @@ int chrif_recvfamelist(int fd)
 		if ((id = RFIFOL(fd,i)) > 0 && (fame = RFIFOL(fd,i+4)) > 0) {
 			chemist_fame_list[num].id = id;
 			chemist_fame_list[num].fame = fame;
-			//printf("received id: %d fame:%d\n", id, fame);
+			name = map_charid2nick(id);
+			if (name != NULL)
+				memcpy(chemist_fame_list[num].name, name, 24);
+			else {
+				memcpy(chemist_fame_list[num].name, "Unknown", 24);
+				chrif_searchcharid(id);
+			}
+			//printf("received : %s (id:%d) fame:%d\n", name, id, fame);
 		}
 		// in case the char server sends too long
 		if (++num == 10)

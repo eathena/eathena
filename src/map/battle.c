@@ -43,18 +43,59 @@ static int distance(int x0,int y0,int x1,int y1)
 }
 
 /*==========================================
+ * 自分をロックしているMOBの?を?える(foreachclient)
+ *------------------------------------------
+ */
+static int battle_counttargeted_sub(struct block_list *bl, va_list ap)
+{
+	int id, *c, target_lv;
+	struct block_list *src;
+
+	nullpo_retr(0, bl);
+	nullpo_retr(0, ap);
+
+	id = va_arg(ap,int);
+	nullpo_retr(0, c = va_arg(ap, int *));
+	src = va_arg(ap,struct block_list *);
+	target_lv = va_arg(ap,int);
+
+	if (id == bl->id || (src && id == src->id))
+		return 0;
+	if (bl->type == BL_PC) {
+		struct map_session_data *sd = (struct map_session_data *)bl;
+		if (sd && sd->attacktarget == id && sd->attacktimer != -1 && sd->attacktarget_lv >= target_lv)
+			(*c)++;
+	}
+	else if (bl->type == BL_MOB) {
+		struct mob_data *md = (struct mob_data *)bl;
+		if (md && md->target_id == id && md->timer != -1 && md->state.state == MS_ATTACK && md->target_lv >= target_lv)		
+			(*c)++;
+		//printf("md->target_lv:%d, target_lv:%d\n", md->target_lv, target_lv);
+	}
+	else if (bl->type == BL_PET) {
+		struct pet_data *pd = (struct pet_data *)bl;
+		if (pd->target_id == id && pd->timer != -1 && pd->state.state == MS_ATTACK && pd->target_lv >= target_lv)
+			(*c)++;
+	}
+
+	return 0;
+}
+/*==========================================
  * 自分をロックしている対象の数を返す(汎用)
  * 戻りは整数で0以上
  *------------------------------------------
  */
 int battle_counttargeted(struct block_list *bl,struct block_list *src,int target_lv)
 {
+	int c = 0;
 	nullpo_retr(0, bl);
-	if (bl->type == BL_PC)
-		return pc_counttargeted((struct map_session_data *)bl,src,target_lv);
-	else if (bl->type == BL_MOB)
-		return mob_counttargeted((struct mob_data *)bl,src,target_lv);
-	return 0;
+
+	map_foreachinarea(battle_counttargeted_sub, bl->m,
+		bl->x-AREA_SIZE, bl->y-AREA_SIZE,
+		bl->x+AREA_SIZE, bl->y+AREA_SIZE, 0,
+		bl->id, &c, src, target_lv);
+
+	return c;
 }
 
 // ダメージの遅延
@@ -4388,13 +4429,13 @@ void battle_set_defaults() {
 	battle_config.undead_detect_type = 0;
 	battle_config.pc_auto_counter_type = 1;
 	battle_config.monster_auto_counter_type = 1;
-	battle_config.agi_penalty_type = 0;
+	battle_config.agi_penalty_type = 1;
 	battle_config.agi_penalty_count = 3;
-	battle_config.agi_penalty_num = 0;
+	battle_config.agi_penalty_num = 10;
 	battle_config.agi_penalty_count_lv = ATK_FLEE;
-	battle_config.vit_penalty_type = 0;
+	battle_config.vit_penalty_type = 1;
 	battle_config.vit_penalty_count = 3;
-	battle_config.vit_penalty_num = 0;
+	battle_config.vit_penalty_num = 5;
 	battle_config.vit_penalty_count_lv = ATK_DEF;
 	battle_config.player_defense_type = 0;
 	battle_config.monster_defense_type = 0;

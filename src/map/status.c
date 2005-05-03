@@ -1247,7 +1247,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(sd->sc_data[SC_TRUESIGHT].timer!=-1) //トゥル?サイト
 			sd->hit += 3*(sd->sc_data[SC_TRUESIGHT].val1);
 		if(sd->sc_data[SC_CONCENTRATION].timer!=-1) //コンセントレ?ション
-			sd->hit += (10*(sd->sc_data[SC_CONCENTRATION].val1));
+			sd->hit *= (100+(5*sd->sc_data[SC_CONCENTRATION].val1))/100;
 		if(sd->sc_data[SC_INCHIT].timer!=-1)
 			sd->hit += sd->sc_data[SC_INCHIT].val1;
 		if(sd->sc_data[SC_INCHIT2].timer!=-1)
@@ -2108,7 +2108,7 @@ int status_get_hit(struct block_list *bl)
 			if(sc_data[SC_TRUESIGHT].timer!=-1)		// トゥルーサイト
 				hit += 3*(sc_data[SC_TRUESIGHT].val1);
 			if(sc_data[SC_CONCENTRATION].timer!=-1) //コンセントレーション
-				hit += (hit*(10*(sc_data[SC_CONCENTRATION].val1)))/100;
+				hit *= (100+(5*sc_data[SC_CONCENTRATION].val1))/100;
 			if(sc_data[SC_GOSPEL].timer!=-1 &&
 				sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
 				sc_data[SC_GOSPEL].val3 == 14)

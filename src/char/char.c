@@ -2667,7 +2667,7 @@ int parse_frommap(int fd) {
 				{
 					//WBUFL(buf, len) = dat[i].account_id;
 					//WBUFL(buf, len+4) = dat[i].fame;
-					WBUFL(buf, len) = char_dat[id[i]].account_id;
+					WBUFL(buf, len) = char_dat[id[i]].char_id;
 					WBUFL(buf, len+4) = char_dat[id[i]].fame;
 					len += 8;
 					j++;

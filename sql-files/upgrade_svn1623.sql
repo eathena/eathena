@@ -5,6 +5,13 @@ ALTER TABLE `mob_db` MODIFY `INT` tinyint(4) unsigned NOT NULL;
 ALTER TABLE `mob_db` MODIFY `DEX` tinyint(4) unsigned NOT NULL;
 ALTER TABLE `mob_db` MODIFY `LUK` tinyint(4) unsigned NOT NULL;
 
+ALTER TABLE `mob_db2` MODIFY `STR` tinyint(4) unsigned NOT NULL;
+ALTER TABLE `mob_db2` MODIFY `AGI` tinyint(4) unsigned NOT NULL;
+ALTER TABLE `mob_db2` MODIFY `VIT` tinyint(4) unsigned NOT NULL;
+ALTER TABLE `mob_db2` MODIFY `INT` tinyint(4) unsigned NOT NULL;
+ALTER TABLE `mob_db2` MODIFY `DEX` tinyint(4) unsigned NOT NULL;
+ALTER TABLE `mob_db2` MODIFY `LUK` tinyint(4) unsigned NOT NULL;
+
 ALTER TABLE `item_db2` CHANGE `ID` `id` SMALLINT( 5 ) UNSIGNED NOT NULL DEFAULT '0',
 CHANGE `Name` `name_english` VARCHAR( 24 ) NOT NULL ,
 CHANGE `Name2` `name_japanese` VARCHAR( 24 ) NOT NULL ,

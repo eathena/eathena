@@ -316,49 +316,6 @@ int pc_setrestartvalue(struct map_session_data *sd,int type) {
 }
 
 /*==========================================
- * 自分をロックしているMOBの?を?える(foreachclient)
- *------------------------------------------
- */
-static int pc_counttargeted_sub(struct block_list *bl,va_list ap)
-{
-	int id,*c,target_lv;
-	struct block_list *src;
-
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-
-	id=va_arg(ap,int);
-
-	nullpo_retr(0, c=va_arg(ap,int *));
-
-	src=va_arg(ap,struct block_list *);
-	target_lv=va_arg(ap,int);
-	if(id == bl->id || (src && id == src->id)) return 0;
-	if(bl->type == BL_PC) {
-		struct map_session_data *sd=(struct map_session_data *)bl;
-		if( sd && sd->attacktarget == id && sd->attacktimer != -1 && sd->attacktarget_lv >= target_lv)
-			(*c)++;
-	}
-	else if(bl->type == BL_MOB) {
-		struct mob_data *md = (struct mob_data *)bl;
-		if(md && md->target_id == id && md->timer != -1 && md->state.state == MS_ATTACK && md->target_lv >= target_lv)
-
-			(*c)++;
-		//printf("md->target_lv:%d, target_lv:%d\n",((struct mob_data *)bl)->target_lv,target_lv);
-	}
-	return 0;
-}
-
-int pc_counttargeted(struct map_session_data *sd,struct block_list *src,int target_lv)
-{
-	int c=0;
-	map_foreachinarea(pc_counttargeted_sub, sd->bl.m,
-		sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,
-		sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,0,sd->bl.id,&c,src,target_lv);
-	return c;
-}
-
-/*==========================================
  * ロ?カルプロトタイプ宣言 (必要な物のみ)
  *------------------------------------------
  */

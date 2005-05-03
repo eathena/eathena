@@ -1,4 +1,13 @@
 Date	Added
+05/02
+	* Tidied up pc and mob counttargetted code [celest]
+	* Updated fame lists to display offline characters' names properly, and
+	* Changed char server to send char id instead of account id in fame lists, thanks
+	  to Sara-chan
+	* Fixed a mistake in the friends list code [celest]
+	* Fixed friend's names not sent properly [celest]
+	* Changed Concentration's hit bonus, thanks to ShAPoNe
+
 05/01
 	~ Added sql_files/upgrade_svn1623.sql to update item_db2's format, and mob stats
 	  in mob_db to unsigned int (thanks to Zoc, Wallex and akusarujin)

@@ -1379,23 +1379,24 @@ int map_addflooritem(struct item *item_data,int amount,int m,int x,int y,struct 
  *------------------------------------------
  */
 void map_addchariddb(int charid, char *name) {
-	struct charid2nick *p=NULL;
-	int req=0;
+	struct charid2nick *p;
+	int req = 0;
 
 	p = (struct charid2nick*)numdb_search(charid_db,charid);
-	if(p==NULL){	// デ?タベ?スにない
-		p = (struct charid2nick *)aCallocA(1,sizeof(struct charid2nick));
-		p->req_id=0;
-	}else
-		numdb_erase(charid_db,charid);
+	if (p == NULL){	// デ?タベ?スにない
+		p = (struct charid2nick *)aCallocA(1, sizeof(struct charid2nick));		
+	} else {
+		numdb_erase(charid_db, charid);
+		req = p->req_id;
+	}
 
-	req=p->req_id;
-	memcpy(p->nick,name,24);
-	p->req_id=0;
-	numdb_insert(charid_db,charid,p);
-	if(req){	// 返信待ちがあれば返信
+	p->req_id = 0;
+	memcpy(p->nick, name, 24);
+	numdb_insert(charid_db, charid, p);
+
+	if (req) {	// 返信待ちがあれば返信
 		struct map_session_data *sd = map_id2sd(req);
-		if(sd!=NULL)
+		if (sd != NULL)
 			clif_solved_charname(sd,charid);
 	}
 }

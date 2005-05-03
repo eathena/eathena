@@ -3134,56 +3134,6 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int flag)
 }
 
 /*==========================================
- * 自分をロックしているPCの数を数える(foreachclient)
- *------------------------------------------
- */
-static int mob_counttargeted_sub(struct block_list *bl,va_list ap)
-{
-	int id,*c,target_lv;
-	struct block_list *src;
-
-	id=va_arg(ap,int);
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, c=va_arg(ap,int *));
-
-	src=va_arg(ap,struct block_list *);
-	target_lv=va_arg(ap,int);
-	if(id == bl->id || (src && id == src->id)) return 0;
-	if(bl->type == BL_PC) {
-		struct map_session_data *sd = (struct map_session_data *)bl;
-		if(sd && sd->attacktarget == id && sd->attacktimer != -1 && sd->attacktarget_lv >= target_lv)
-			(*c)++;
-	}
-	else if(bl->type == BL_MOB) {
-		struct mob_data *md = (struct mob_data *)bl;
-		if(md && md->target_id == id && md->timer != -1 && md->state.state == MS_ATTACK && md->target_lv >= target_lv)
-			(*c)++;
-	}
-	else if(bl->type == BL_PET) {
-		struct pet_data *pd = (struct pet_data *)bl;
-		if(pd->target_id == id && pd->timer != -1 && pd->state.state == MS_ATTACK && pd->target_lv >= target_lv)
-			(*c)++;
-	}
-	return 0;
-}
-/*==========================================
- * 自分をロックしているPCの数を数える
- *------------------------------------------
- */
-int mob_counttargeted(struct mob_data *md,struct block_list *src,int target_lv)
-{
-	int c=0;
-
-	nullpo_retr(0, md);
-
-	map_foreachinarea(mob_counttargeted_sub, md->bl.m,
-		md->bl.x-AREA_SIZE,md->bl.y-AREA_SIZE,
-		md->bl.x+AREA_SIZE,md->bl.y+AREA_SIZE,0,md->bl.id,&c,src,target_lv);
-	return c;
-}
-
-/*==========================================
  *MOBskillから該当skillidのskillidxを返す
  *------------------------------------------
  */
@@ -3746,11 +3696,11 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				case MSC_SLAVELT:		// slave < num
 					flag = (mob_countslave(md) < c2 ); break;
 				case MSC_ATTACKPCGT:	// attack pc > num
-					flag = (mob_counttargeted(md, NULL, 0) > c2); break;
+					flag = (battle_counttargeted(&md->bl, NULL, 0) > c2); break;
 				case MSC_SLAVELE:		// slave <= num
 					flag = (mob_countslave(md) <= c2 ); break;
 				case MSC_ATTACKPCGE:	// attack pc >= num
-					flag = (mob_counttargeted(md, NULL, 0) >= c2); break;
+					flag = (battle_counttargeted(&md->bl, NULL, 0) >= c2); break;
 				case MSC_SKILLUSED:		// specificated skill used
 					flag = ((event & 0xffff) == MSC_SKILLUSED && ((event >> 16) == c2 || c2 == 0)); break;
 				case MSC_RUDEATTACKED:
