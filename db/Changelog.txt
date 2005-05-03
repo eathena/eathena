@@ -8,6 +8,12 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them I believe.
 
+05/04
+	* Added 1% Horse Crest drops to Greatest General, Sohee monsters [Lupus]
+	* Added implemented cards into card albums and to mobs drops [Lupus]
+	* Set Mimic Card, Mystcase Card bonus to 0.1% (it was 0.01%, they has been increased to 0.1% due recent patch)
+	  But it isn't 1% for sure
+	? Greatest General Card semms having wrong effect, tough 8) [Lupus]
 05/03
 	* Added missing item drop effects for some new cards [celest]
 	* Fixed Heater Card and Freezer Card [celest]

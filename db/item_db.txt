@@ -1246,8 +1246,8 @@
 4202,Civil_Servant_Card,Civil Servant Card,6,20,0,10,,,,,,,2,,,,{},{ bonus2 bAddEle,8,20; } //OK
 4203,Mutant_Dragonoid_Card,Mutant Dragonoid Card,6,20,0,10,,,,,,,2,,,,{},{ bonus bAtk,15; if(getskilllv(17)==10) goto FB_10; bonus3 bAutoSpell,17,3,1; end; FB_10: bonus3 bAutoSpell,17,10,1; } //??OK
 4204,Mini_Demon_Card,Mini Demon Card,6,20,0,10,,,,,,,64,,,,{},{ bonus2 bSubRace,2,-20; bonus2 bExpAddRace,2,10; } //??OK
-4205,Mimic_Card,Mimic Card,6,20,0,10,,,,,,,136,,,,{},{ bonus2 bAddMonsterDropItem,603,100; } //??OK - 1% chance
-4206,Myst_Case_Card,Mystcase Card,6,20,0,10,,,,,,,769,,,,{},{ bonus2 bAddMonsterDropItem,644,100; } //??OK - 1% chance
+4205,Mimic_Card,Mimic Card,6,20,0,10,,,,,,,136,,,,{},{ bonus2 bAddMonsterDropItem,603,10; } //??OK - 0.1% chance
+4206,Myst_Case_Card,Mystcase Card,6,20,0,10,,,,,,,769,,,,{},{ bonus2 bAddMonsterDropItem,644,10; } //??OK - 0.1% chance
 4207,Mysteltainn_Card,Mysteltainn Card,6,20,0,10,,,,,,,32,,,,{},{ bonus2 bSubSize,1,25; bonus bDef,1; } //OK
 4208,Miyabi_Ningyo_Card,Miyabi Ningyo Card,6,20,0,10,,,,,,,64,,,,{},{ bonus bMaxSPrate,10; bonus2 bSkillAtk,15,5; } //OK
 4209,Violy_Card,Violy Card,6,20,0,10,,,,,,,136,,,,{},{ if(getskilllv(318)==5) goto FJ_5; bonus3 bAutoSpell,318,1,1; end; FJ_5: bonus3 bAutoSpell,318,5,1; } //??OK

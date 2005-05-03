@@ -35,7 +35,10 @@ TODO:
 
 Date		Added
 ======
-05/02
+05/04
+	* Removed Horse Crest from the temp shop [Lupus]
+	* Borrowed Easter Event fix from Freya [Lupus]
+
 	* Fixed some script typos, thanks to zBuffer and Er Pirata
 04/29
 	* Alarm Mask Quest corrected txt 2 Shadow

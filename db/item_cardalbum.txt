@@ -23,6 +23,7 @@
 4015,Condor Card,50000
 4016,Thief Bug Card,50000
 4017,Savage Babe Card,50000
+4018,Andre Larva Card,50000
 4019,Hornet Card,50000
 4020,Farmiliar Card,50000
 4021,Rocker Card,50000
@@ -146,7 +147,7 @@
 4151,Gajomart Card,10000
 4152,Galapago Card,10000
 4153,Crab Card,10000
-//4154,Dumpling Child Card,10000
+4154,Dumpling Child Card,10000
 4155,Goblin Leader Card,10000
 4156,Goblin Steamrider Card,10000
 4157,Goblin Archer Card,10000
@@ -222,8 +223,8 @@
 4228,Sleeper Card,10000
 4229,Clock Tower Manager Card,10000
 4230,Shinobi Card,10000
-//4231,Increase Soil Card,10000
-//4232,Hermit Plant Card,10000
+//4231,Increase Soil Card,10000 //not implemented yet
+4232,Hermit Plant Card,10000
 4233,Baby Leopard Card,10000
 4234,Anolian Card,10000
 4235,Cookie Xmas Card,10000
@@ -252,9 +253,9 @@
 4259,Wooden Golem Card,10000
 4260,Wootan Shooter Card,10000
 4261,Wootan Fighter Card,10000
-//4262,Taoist Hermit Card,10000
+4262,Taoist Hermit Card,10000
 4264,Wind Ghost Card,10000
-//4265,Li Me Mang Ryang Card,10000
+//4265,Li Me Mang Ryang Card,10000 //not implemented yet
 4266,Eclipse Card,5000
 4267,Explosion Card,10000
 4268,Incubus Card,10000
@@ -271,6 +272,7 @@
 4280,Geographer Card,10000
 4281,Zipper Bear Card,10000
 4282,Tengu Card,10000
+4283,Greatest General Card,10000
 4284,Chepet Card,10000
 4285,Choco Card,10000
 4286,Karakasa Card,10000
@@ -289,8 +291,7 @@
 4299,Clock Card,10000
 4300,Chimera Card,10000
 4301,Killer Mantis Card,10000
-//isn't Tao Gunka a MVP?
-//4302,Tao Gunka Card,10000
+4303,Whisper Boss Card,5000
 4304,Tamruan Card,10000
 4306,Toad Card,10000
 4307,Beetle King Card,10000
