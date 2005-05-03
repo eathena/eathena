@@ -9,6 +9,7 @@
 	Skill databases == celest working on them I believe.
 
 05/03
+	* Added missing item drop effects for some new cards [celest]
 	* Fixed Heater Card and Freezer Card [celest]
 05/02
 	* Fixed # of Deviling's slaves [Lupus]
