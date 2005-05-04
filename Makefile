@@ -3,6 +3,7 @@ CC = gcc -pipe
 # CC = gcc -pipe -DPCRE_SUPPORT
 # CC = g++ --pipe
 # CC = gcc -pipe -DGCOLLECT
+# CC = gcc -pipe -DMEMWATCH
 # CC = gcc -pipe -DDMALLOC -DDMALLOC_FUNC_CHECK
 # CC = /usr/local/bin/gcc -fbounds-checking -pipe -DBCHECK
 
@@ -17,6 +18,11 @@ PACKETDEF = -DPACKETVER=6 -DNEW_006b -DSO_REUSEPORT
 #PACKETDEF = -DPACKETVER=3 -DNEW_006b
 #PACKETDEF = -DPACKETVER=2 -DNEW_006b
 #PACKETDEF = -DPACKETVER=1 -DNEW_006b
+
+LIBS = -lz -lm
+ifndef CYGWIN
+LIBS += -ldl
+endif
 
 PLATFORM = $(shell uname)
 
@@ -75,11 +81,11 @@ else
 LIB_S = $(LIB_S_DEFAULT)
 endif
 
-MYLIB = CC="$(CC)" CFLAGS="$(CFLAGS) $(MYSQLFLAG_INCLUDE)" LIB_S="$(LIB_S) $(GCLIB)"
+MYLIB = CC="$(CC)" CFLAGS="$(CFLAGS) $(MYSQLFLAG_INCLUDE)" LIB_S="$(LIB_S) $(GCLIB) $(LIBS)"
 
 endif
 
-MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS)" LIB_S="$(GCLIB)"
+MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS)" LIB_S="$(GCLIB) $(LIBS)"
 
 all: conf txt
 
@@ -94,6 +100,7 @@ txt : src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/
 	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd map ; $(MAKE) $(MKDEF) $@ ; cd ..
+	cd src ; cd addons ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd ..
 
 
@@ -102,7 +109,8 @@ sql: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile s
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd login_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
 	cd src ; cd char_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
-	cd src ; cd map ; $(MAKE) $(MYLIB) $@ ; cd ..	
+	cd src ; cd map ; $(MAKE) $(MYLIB) $@ ; cd ..
+	cd src ; cd addons ; $(MAKE) $(MKDEF) $@ ; cd ..
 else
 sql: 
 	$(MAKE) CC="$(CC)" OPT="$(OPT)" SQLFLAG=1 $@
@@ -135,6 +143,7 @@ clean: src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map
 	cd src ; cd char_sql ; $(MAKE) $(MKLIB) $@ ; cd ..
 	cd src ; cd map ; $(MAKE) $(MKLIB) $@ ; cd ..
 	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd ..
+	cd src ; cd addons ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd txt-converter ; cd login ; $(MAKE) $(MKLIB) $@ ; cd ..
 	cd src ; cd txt-converter ; cd char ; $(MAKE) $(MKLIB) $@ ; cd ..
 
@@ -150,6 +159,8 @@ src/char_sql/GNUmakefile: src/char_sql/Makefile
 	sed -e 's/$$>/$$^/' src/char_sql/Makefile > src/char_sql/GNUmakefile
 src/map/GNUmakefile: src/map/Makefile 
 	sed -e 's/$$>/$$^/' src/map/Makefile > src/map/GNUmakefile
+src/addons/GNUmakefile: src/addons/Makefile 
+	sed -e 's/$$>/$$^/' src/addons/Makefile > src/addons/GNUmakefile
 src/ladmin/GNUmakefile: src/ladmin/Makefile 
 	sed -e 's/$$>/$$^/' src/ladmin/Makefile > src/ladmin/GNUmakefile
 src/txt-converter/login/GNUmakefile: src/txt-converter/login/Makefile 

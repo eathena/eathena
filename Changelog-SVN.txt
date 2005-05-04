@@ -1,5 +1,6 @@
 Date	Added
 05/03
+	* Added sample plugin 'sample.dll' [celest]
 	* Finished plugin events system [celest]
 	* Finished plugin loading system [celest]
 	* Added Shinomori's findfile function [celest]
