@@ -3,14 +3,14 @@
 //===== Converted By ======================================
 //= Fredzilla
 //= Original
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                    Treasure Hunter Quests                                          //
-//                                                         By: Ezekial                                                //
-//                                                for the use on nRO run by Newbe5                                    //
-//                                                      revised By Warlock                                            //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+//         Treasure Hunter Quests                        //
+//         By: Ezekial                                   //
+//         for the use on nRO run by Newbe5              //
+//         revised By Warlock                            //
+///////////////////////////////////////////////////////////
 //===== Version ===========================================
-//= 1.0 - Straight conversion of Aegis NPC file
+//= 1.1
 //===== Compatible With ===================================
 //= eAthena 1.0
 //===== Description =======================================
@@ -18,6 +18,9 @@
 //===== Comments ==========================================
 //= Event_THQS - Used to check if you have already registerd
 //= #Treasure_Token - used to keep track of tokens
+//= v1.0 - Straight conversion of Aegis NPC file
+//= v1.1 - balanced some prices, fixed 1 missing label
+//= 	removed Executioner&Mysteltain swords [Lupus]
 //////////////////////////////////////////////////////////
 
 prt_in.gat,159,172,0	warp	thqwrp	3,3,yuno_in01.gat,123,155
@@ -85,7 +88,7 @@ N_BuyWeps:
 	mes "[Ash]";
 	mes "This is what we have to offer.";
 	next;
-	menu "Sabbath - 160T",-,"Slaughter - 160T",N_Slau,"Tomahawk - 180T",N_Toma,"Light Epsilon - Sold Out",N_Sorry,"Great Axe - 200T",N_GreatA,"Guillotine - 200T",N_Guill,"Nevermind",N_NVM;
+	menu "Sabbath - 160T",-,"Slaughter - 160T",N_Slau,"Tomahawk - 180T",N_Toma,"Great Axe - 200T",N_GreatA,"Guillotine - 200T",N_Guill,"Nevermind",N_NVM;
 
 	if (#Treasure_Token < 160) goto N_NeedToken;
 	set #Treasure_Token,#Treasure_Token-160;
@@ -126,7 +129,7 @@ N_1HandSword:
 	mes "[Ash]";
 	mes "This is what we have to offer.";
 	next;
-	menu "Edge - 130T",-,"Solar Sword - 150T",N_SolarS,"Caesar's Sword - 170T",N_CaesarS,"Nagan - 180T",N_Nagan,"Immaterial Sword - 200T",N_ImmatS,"Excalibur - 200T",N_Excal,"Byeollungum - 240T",N_Byeoll,"Mysteltain - 270T",N_Myste,"Talefing - 320T",N_Talef,"Nevermind",N_NVM;
+	menu "Edge - 130T",-,"Solar Sword - 150T",N_SolarS,"Caesar's Sword - 170T",N_CaesarS,"Nagan - 180T",N_Nagan,"Immaterial Sword - 200T",N_ImmatS,"Excalibur - 200T",N_Excal,"Byeollungum - 240T",N_Byeoll,"Talefing - 320T",N_Talef,"Nevermind",N_NVM;
 
 	if (#Treasure_Token < 130) goto N_NeedToken;
 	set #Treasure_Token,#Treasure_Token-130;
@@ -169,12 +172,6 @@ N_Byeoll:
 	logmes "Treasure Token: Bought a Byeollungum";
 	getitem 1140,1;
 	close;
-N_Myste:
-	if (#Treasure_Token < 270) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-270;
-	logmes "Treasure Token: Bought a Mysteltain";
-	getitem 1138,1;
-	close;
 N_Talef:
 	if (#Treasure_Token < 320) goto N_NeedToken;
 	set #Treasure_Token,#Treasure_Token-320;
@@ -187,18 +184,12 @@ N_2HandSword:
 	mes "[Ash]";
 	mes "This is what we have to offer.";
 	next;
-	menu "Dragon Slayer - 140T",-,"Executioner - 160T",N_Execut,"Schweizersabel - 200T",N_Schwe,"Katzbalger - 300T",N_Katzb,"Muramasa - 300T",N_Murama,"Masamune - 400T",N_Masamu,"Balmung - 2000T",N_Balmu,"Nevermind",N_NVM;
+	menu "Dragon Slayer - 140T",-,"Schweizersabel - 200T",N_Schwe,"Katzbalger - 300T",N_Katzb,"Muramasa - 300T",N_Murama,"Masamune - 400T",N_Masamu,"Balmung - 2000T",N_Balmu,"Nevermind",N_NVM;
 
 	if (#Treasure_Token < 140) goto N_NeedToken;
 	set #Treasure_Token,#Treasure_Token-140;
 	logmes "Treasure Token: Bought a Dragon Slayer";
 	getitem 1166,1;
-	close;
-N_Execut:
-	if (#Treasure_Token < 160) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-160;
-	logmes "Treasure Token: Bought a Executioner";
-	getitem 1169,1;
 	close;
 N_Schwe:
 	if (#Treasure_Token < 200) goto N_NeedToken;
@@ -416,113 +407,117 @@ N_Wand:
 	mes "[Ash]";
 	mes "This is what we have to offer.";
 	next;
-	menu "Wand of Occult - Sold Out",N_NVM,"Mighty Staff - 90T",-,"Wizardry Staff - 90T",N_Wizardry,"Bone Wand - 100T",N_BoneW,"Staff of Soul - 110T",N_SOSoul,"Nevermind",N_NVM;
+	menu "Mighty Staff - 90T",-,"Wizardry Staff - 90T",N_Wizardry,"Bone Wand - 100T",N_BoneW,"Staff of Soul - 110T",N_SOSoul,"Nevermind",N_NVM;
 
 	if (#Treasure_Token < 90) goto N_NeedToken;
 	set #Treasure_Token,#Treasure_Token-90;
 	logmes "Treasure Token: Bought a Mighty Staff";
-	getitem 1613,1;
+	getitem 1613,1;//Items: Mighty_Staff,
 	close;
 N_Wizardry:
-	if (#Treasure_Token < 90) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-90;
+	if (#Treasure_Token < 150) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-150;
 	logmes "Treasure Token: Bought a Wizardry Staff";
-	getitem 1473,1;
+	getitem 1473,1;//Items: Wizardy_Staff,
 	close;
 N_BoneW:
-	if (#Treasure_Token < 100) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-100;
-	logmes "Treasure Token: Bought a Bone Wand";
-	getitem 1615,1;
-	close;
-N_SOSoul:
 	if (#Treasure_Token < 110) goto N_NeedToken;
 	set #Treasure_Token,#Treasure_Token-110;
+	logmes "Treasure Token: Bought a Bone Wand";
+	getitem 1615,1;//Items: Bone_Wand,
+	close;
+N_SOSoul:
+	if (#Treasure_Token < 120) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-120;
 	logmes "Treasure Token: Bought a Staff of Soul";
-	getitem 1472,1;
+	getitem 1472,1;//Items: Staff_of_Soul,
 	close;
 
 N_BuyCards:
 	mes "[Ash]";
 	mes "This is what we have to offer. All Cards are 300T";
 	next;
-	menu "Mimic Card",-,"Pasana Card",N_CPasana,"Dokkebi Card",N_CDokk,"Swordfish Card",N_CSFish,"Sandman Card",N_CSMan,"Drainliar Card",N_CDrain,"Kaho Card",N_CKaho,"Mandragora Card",N_CMand,"Vadon Card",N_CVadon,"Mummy Card",N_CMummy,"Zenorc Card",N_CZeno,"Condor Card",N_CCond,"Zombie Card",N_CZomb,"Nevermind",N_NVM;
+	menu "Poring Card - 2T",-,"Pasana Card - 420T",N_CPasana,"Dokkebi Card - 420T",N_CDokk,"Swordfish Card - 420T",N_CSFish,
+		"Sandman Card - 420T",N_CSMan,"Drainliar Card - 360T",N_CDrain,"Kaho Card - 360T",N_CKaho,"Mandragora Card - 360T",N_CMand,
+		"Vadon Card - 360T",N_CVadon,"Mummy Card - 540T",N_CMummy,"Zenorc Card - 240T",N_CZeno,"Condor Card - 240T",N_CCond,
+		"Zombie Card - 210T",N_CZomb,"Nevermind",N_NVM;
 
-	if (#Treasure_Token < 300) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-300;
-	logmes "Treasure Token: Bought a Mimic Card";
-	getitem 4205,1;
+	if (#Treasure_Token < 2) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-2;
+	logmes "Treasure Token: Bought a Poring Card";
+	getitem 4001,1;//Items: Poring_Card,
 	close;
+
 N_CPasana:
-	if (#Treasure_Token < 300) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-300;
+	if (#Treasure_Token < 420) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-420;
 	logmes "Treasure Token: Bought a Pasana Card";
-	getitem 4099,1;
+	getitem 4099,1;//Items: Pasana_Card,
 	close;
 N_CDokk:
-	if (#Treasure_Token < 300) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-300;
+	if (#Treasure_Token < 420) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-420;
 	logmes "Treasure Token: Bought a Dokkebi Card";
-	getitem 4098,1;
+	getitem 4098,1;//Items: Dokebi_Card,
 	close;
 N_CSFish:
-	if (#Treasure_Token < 300) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-300;
+	if (#Treasure_Token < 420) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-420;
 	logmes "Treasure Token: Bought a Swordfish Card";
-	getitem 4089,1;
+	getitem 4089,1;//Items: Sword_Fish_Card,
 	close;
 N_CSMan:
-	if (#Treasure_Token < 300) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-300;
+	if (#Treasure_Token < 420) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-420;
 	logmes "Treasure Token: Bought a Sandman Card";
-	getitem 4101,1;
+	getitem 4101,1;//Items: Sand_Man_Card,
 	close;
 N_CDrain:
-	if (#Treasure_Token < 300) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-300;
+	if (#Treasure_Token < 360) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-360;
 	logmes "Treasure Token: Bought a Drainliar Card";
-	getitem 4069,1;
+	getitem 4069,1;//Items: Drainliar_Card,
 	close;
 N_CKaho:
-	if (#Treasure_Token < 300) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-300;
+	if (#Treasure_Token < 360) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-360;
 	logmes "Treasure Token: Bought a Kaho Card";
-	getitem 4065,1;
+	getitem 4065,1;//Items: Kaho_Card,
 	close;
 N_CMand:
-	if (#Treasure_Token < 300) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-300;
+	if (#Treasure_Token < 360) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-360;
 	logmes "Treasure Token: Bought a Mandragora Card";
-	getitem 4030,1;
+	getitem 4030,1;//Items: Mandragora_Card,
 	close;
 N_CVadon:
-	if (#Treasure_Token < 300) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-300;
+	if (#Treasure_Token < 360) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-360;
 	logmes "Treasure Token: Bought a Vadon Card";
-	getitem 4049,1;
+	getitem 4049,1;//Items: Vadon_Card,
 	close;
 N_CMummy:
-	if (#Treasure_Token < 300) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-300;
+	if (#Treasure_Token < 540) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-540;
 	logmes "Treasure Token: Bought a Mummy Card";
-	getitem 4106,1;
+	getitem 4106,1;//Items: Mummy_Card,
 	close;
 N_CZeno:
-	if (#Treasure_Token < 300) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-300;
+	if (#Treasure_Token < 240) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-240;
 	logmes "Treasure Token: Bought a Zenorc Card";
-	getitem 4096,1;
+	getitem 4096,1;//Items: Zenorc_Card,
 	close;
 N_CCond:
-	if (#Treasure_Token < 300) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-300;
+	if (#Treasure_Token < 240) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-240;
 	logmes "Treasure Token: Bought a Condor Card";
-	getitem 4015,1;
+	getitem 4015,1;//Items: Condor_Card,
 	close;
 N_CZomb:
-	if (#Treasure_Token < 300) goto N_NeedToken;
-	set #Treasure_Token,#Treasure_Token-300;
+	if (#Treasure_Token < 210) goto N_NeedToken;
+	set #Treasure_Token,#Treasure_Token-210;
 	logmes "Treasure Token: Bought a Zombie Card";
-	getitem 4038,1;
+	getitem 4038,1;//Items: Zombie_Card,
 	close;
 }

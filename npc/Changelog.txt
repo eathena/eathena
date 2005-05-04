@@ -35,6 +35,8 @@ TODO:
 
 Date		Added
 ======
+05/05/05
+	* Balanced THQ Shop prices, fixed one missed label [Lupus]
 05/04
 	* Removed Horse Crest from the temp shop [Lupus]
 	* Borrowed Easter Event fix from Freya [Lupus]
