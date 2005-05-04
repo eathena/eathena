@@ -1,5 +1,7 @@
 Date	Added
 05/03
+	* Fixed monsters can't use Heal/Potion Pitcher when hidden, thanks to Komurka
+	* Documented the sample plugin source a bit [celest]
 	* Added sample plugin 'sample.dll' [celest]
 	* Finished plugin events system [celest]
 	* Finished plugin loading system [celest]

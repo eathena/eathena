@@ -4,8 +4,6 @@
 #include <string.h>
 #ifndef _WIN32
 #include <unistd.h>
-#else
-#include <windows.h>
 #endif
 
 #include "dll.h"
@@ -130,9 +128,9 @@ void dll_open (const char *filename)
 	
 	// Retrieve plugin information
 	addon->state = 0;	// initialising
-	DLL_SYM (info, addon->dll, "Addon_Info");
+	DLL_SYM (info, addon->dll, "addon_info");
 	if (!info ||
-		(atof(info->req_version) < DLL_VERSION) ||	// plugin is based on older code
+		(atof(info->req_version) < atof(DLL_VERSION)) ||	// plugin is based on older code
 		(info->type != ATHENA_SERVER_ALL && info->type != SERVER_TYPE))
 	{
 		//printf ("not loaded (incompatible) : %s\n", filename);		
@@ -144,7 +142,7 @@ void dll_open (const char *filename)
 	strcpy(addon->filename, filename);
 	
 	// Register plugin events
-	DLL_SYM (events, addon->dll, "Addon_Event_Table");
+	DLL_SYM (events, addon->dll, "addon_event_table");
 	if (events) {
 		int i = 0;
 		while (events[i].func_name) {

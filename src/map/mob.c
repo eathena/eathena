@@ -3358,9 +3358,11 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 			return 0;
 	}
 
-	if(md->option&4 && skill_id==TF_HIDING)
+	if(md->option&4 && skill_id == TF_HIDING)
 		return 0;
-	if(md->option&2 && skill_id!=TF_HIDING && skill_id!=AS_GRIMTOOTH && skill_id!=RG_BACKSTAP && skill_id!=RG_RAID)
+	if(md->option&2 && skill_id != TF_HIDING && skill_id != AS_GRIMTOOTH &&
+		skill_id != RG_BACKSTAP && skill_id != RG_RAID &&
+		skill_id != AM_POTIONPITCHER && skill_id != AL_HEAL)
 		return 0;
 
 	if(map[md->bl.m].flag.gvg && skill_db[skill_id].nocast & 4)

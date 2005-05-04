@@ -2,7 +2,7 @@
 #ifndef	_DLL_H_
 #define _DLL_H_
 
-#define DLL_VERSION 1.00
+#define DLL_VERSION "1.00"
 
 #ifdef _WIN32
 

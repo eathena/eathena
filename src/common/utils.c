@@ -306,7 +306,6 @@ void findfile(const char *p, const char *pat, void (func)(const char*))
 			continue;
 
 		sprintf(tmppath,"%s%c%s",path, PATHSEP, entry->d_name);
-		printf ("tmppath %s path %s\n", tmppath, pat);
 
 		// check if the pattern matchs.
 		if (entry->d_name && strstr(entry->d_name, pattern)) {
