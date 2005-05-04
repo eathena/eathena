@@ -10,9 +10,9 @@ txtobj:
 sqlobj:
 	mkdir sqlobj
 
-COMMON_OBJ = ../common/obj/core.o ../common/obj/socket.o ../common/obj/timer.o ../common/obj/grfio.o ../common/obj/db.o ../common/obj/lock.o ../common/obj/nullpo.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/utils.o ../common/obj/strlib.o
+COMMON_OBJ = ../common/obj/core.o ../common/obj/socket.o ../common/obj/timer.o ../common/obj/grfio.o ../common/obj/db.o ../common/obj/dll.o ../common/obj/lock.o ../common/obj/nullpo.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/utils.o ../common/obj/strlib.o
 
-COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/grfio.h ../common/db.h ../common/lock.h ../common/nullpo.h ../common/malloc.h ../common/showmsg.h ../common/utils.h ../common/strlib.h
+COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/grfio.h ../common/db.h ../common/dll.h ../common/lock.h ../common/nullpo.h ../common/malloc.h ../common/showmsg.h ../common/utils.h ../common/strlib.h
 LIBS = -lz -lm
 
 map-server: txtobj/map.o txtobj/chrif.o txtobj/clif.o txtobj/pc.o txtobj/status.o txtobj/npc.o txtobj/npc_chat.o txtobj/chat.o txtobj/path.o txtobj/itemdb.o txtobj/mob.o txtobj/script.o txtobj/storage.o txtobj/skill.o txtobj/atcommand.o txtobj/charcommand.o txtobj/battle.o txtobj/intif.o txtobj/trade.o txtobj/party.o txtobj/vending.o txtobj/guild.o txtobj/pet.o txtobj/log.o $(COMMON_OBJ)

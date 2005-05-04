@@ -1060,6 +1060,14 @@ int atcommand_send(
 
 		switch (type)
 		{
+		case 0x209:
+			WFIFOW(fd,0) = 0x209;
+			WFIFOW(fd,2) = 2;
+			memcpy(WFIFOP(fd, 12), sd->status.name, 24);
+			WFIFOSET(fd, packet_db[clif_config.packet_db_ver][type].len);
+			break;
+		case 0x1b1:
+		case 0x1c2:
 		//case xxx:
 		//	add others here
 		//	break;
@@ -3771,6 +3779,16 @@ int atcommand_packet(
 	{
 	case 0:
 		clif_status_change(&sd->bl, x, y);
+		break;
+	case 1:
+		sd->status.skill[sd->cloneskill_id].id=0;
+		sd->status.skill[sd->cloneskill_id].lv=0;
+		sd->status.skill[sd->cloneskill_id].flag=0;
+		sd->cloneskill_id = x;
+		sd->status.skill[x].id = x;
+		sd->status.skill[x].lv = skill_get_max(x);
+		sd->status.skill[x].flag = 13;//cloneskill flag
+		clif_skillinfoblock(sd);
 		break;
 	default:
 		break;

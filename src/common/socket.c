@@ -1083,7 +1083,7 @@ void do_init_upnp(void)
 
 	upnp_dll = DLL_OPEN ("addons/upnp.dll");
 	if (!upnp_dll) {
-		ShowInfo ("Cannot find "CL_WHITE"addons/upnp.dll"CL_WHITE": %s\n", dlerror());
+		ShowInfo ("Cannot find "CL_WHITE"addons/upnp.dll"CL_WHITE": %s\n", DLL_ERROR());
 		return;
 	}
 	DLL_SYM (upnp_init, upnp_dll, "do_init");
@@ -1091,7 +1091,7 @@ void do_init_upnp(void)
 	DLL_SYM (firewall_addport, upnp_dll, "Firewall_AddPort");
 	DLL_SYM (upnp_addport, upnp_dll, "UPNP_AddPort");
 	if (!upnp_init || !upnp_final || !firewall_addport || !upnp_addport) {
-		ShowInfo ("Unable to load UPnP: %s\n", dlerror());
+		ShowInfo ("Unable to load UPnP: %s\n", DLL_ERROR());
 		DLL_CLOSE (upnp_dll);
 		upnp_dll = NULL;
 		return;

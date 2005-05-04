@@ -16,6 +16,7 @@
 
 #include "core.h"
 #include "../common/db.h"
+#include "../common/dll.h"
 #include "../common/mmo.h"
 #include "../common/malloc.h"
 #include "../common/socket.h"
@@ -328,6 +329,7 @@ int main(int argc,char **argv)
 	do_init_malloc(); // àÍî‘ç≈èâÇ…é¿çsÇ∑ÇÈïKóvÇ™Ç†ÇÈ
 	init_signals();
 	pid_create();
+	dll_init();
 	Net_Init();
 	do_socket();
 
@@ -335,6 +337,7 @@ int main(int argc,char **argv)
 	ticks = gettick();
 
 	do_init(argc,argv);
+	addon_event_trigger("Athena_Init");
 
 	while (runflag) {
 		next = do_timer(gettick_nocache());
@@ -344,11 +347,13 @@ int main(int argc,char **argv)
 #endif
 	}
 
-	do_final();
+	addon_event_trigger("Athena_Final");
+	do_final();	
 	exit_dbn();
 	timer_final();
 	log_uptime();
 	pid_delete();
+	dll_final();
 	do_final_socket();
 	do_final_malloc();
 

@@ -26,12 +26,14 @@ struct StringBuf {
 	unsigned int max_;
 };
 
-extern struct StringBuf * StringBuf_Malloc();
-extern void StringBuf_Init(struct StringBuf *);
-extern int StringBuf_Printf(struct StringBuf *,const char *,...);
-extern int StringBuf_Append(struct StringBuf *,const struct StringBuf *);
-extern char * StringBuf_Value(struct StringBuf *);
-extern void StringBuf_Destroy(struct StringBuf *);
-extern void StringBuf_Free(struct StringBuf *);
+struct StringBuf * StringBuf_Malloc();
+void StringBuf_Init(struct StringBuf *);
+int StringBuf_Printf(struct StringBuf *,const char *,...);
+int StringBuf_Append(struct StringBuf *,const struct StringBuf *);
+char * StringBuf_Value(struct StringBuf *);
+void StringBuf_Destroy(struct StringBuf *);
+void StringBuf_Free(struct StringBuf *);
+
+void findfile(const char *p, const char *pat, void (func)(const char*));
 
 #endif

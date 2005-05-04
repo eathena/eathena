@@ -1,4 +1,9 @@
 Date	Added
+05/03
+	* Finished plugin events system [celest]
+	* Finished plugin loading system [celest]
+	* Added Shinomori's findfile function [celest]
+
 05/02
 	* Tidied up pc and mob counttargetted code [celest]
 	* Updated fame lists to display offline characters' names properly, and
