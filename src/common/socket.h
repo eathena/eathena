@@ -86,6 +86,25 @@ extern int rfifo_size,wfifo_size;
 extern int fd_max;
 
 
+
+
+
+/////////////////////////////
+// for those still not building c++
+#ifndef __cplusplus
+//////////////////////////////
+
+// boolean types for C
+typedef int bool;
+#define false	(1==0)
+#define true	(1==1)
+
+//////////////////////////////
+#endif // not cplusplus
+//////////////////////////////
+
+
+
 //////////////////////////////////
 // some checking on sockets
 extern inline bool session_isValid(int fd)
@@ -98,6 +117,15 @@ extern inline bool session_isActive(int fd)
 }	
 	
 //////////////////////////////////
+
+
+
+
+
+
+
+
+
 
 // Function prototype declaration
 
