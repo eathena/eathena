@@ -1943,5 +1943,5 @@
 12021,Fatback,Fatback,2,20,0,10,,,,,10477567,2,,,,,{},{}
 12022,Ribs,Ribs,2,20,0,10,,,,,10477567,2,,,,,{},{}
 //RO Indonesian Service 2nd Anniversary
-12023,2nd_Anniversary_Giftbox,2nd Annual Commemoration Giftbox,2,,,200,,,,,10477567,2,,,,,{},{} //Seems it acts like giftbox
-12024,Unknown,Red Pouch,2,,,50,,,,,10477567,2,,,,,{},{} //also like..
+12023,2nd_Anniversary_Giftbox,2nd Annual Commemoration Giftbox,2,,,200,,,,,10477567,2,,,,,{ getitem -4,1; },{}
+12024,Red_Pouch,Red Pouch,2,,,50,,,,,10477567,2,,,,,{ set Zeny,Zeny+rand(100,1000); },{}
