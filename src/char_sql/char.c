@@ -1137,36 +1137,52 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 				return -2;
 	} // else, all letters/symbols are authorised (except control char removed before)
 
-
 	//check stat error
-	if ((dat[24]+dat[25]+dat[26]+dat[27]+dat[28]+dat[29]!=5*6 ) ||
-	    (dat[30] >= 9) ||
-	    (dat[33] <= 0) || (dat[33] >= 20) ||
-	    (dat[31] >= 9)) {
-
-		// check individual stat value
-		for(i = 24; i <= 29; i++) {
-			if (dat[i] < 1 || dat[i] > 9) {
-				printf("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
-        		return -2;
-			}
-		}
-
-		if (log_char) {
+	if ((dat[24]+dat[25]+dat[26]+dat[27]+dat[28]+dat[29]!=6*5 ) || // stats
+	    (dat[30] >= 9) || // slots (dat[30] can not be negativ)
+	    (dat[33] <= 0) || (dat[33] >= 20) || // hair style
+	    (dat[31] >= 9)) { // hair color (dat[31] can not be negativ)
+		if (log_char) {	
 			// char.log to charlog
 			sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
 				"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
 				charlog_db,"make new char error", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 			//query
+			mysql_query(&mysql_handle, tmp_sql);		
+		}
+		printf("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
+		return -2;
+	} // for now we have checked: stat points used <31, char slot is less then 9, hair style/color values are acceptable
+
+	// check individual stat value
+	for(i = 24; i <= 29; i++) {
+		if (dat[i] < 1 || dat[i] > 9) {
+			if (log_char) {
+				// char.log to charlog
+				sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
+					"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+					charlog_db,"make new char error", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
+				//query
+				mysql_query(&mysql_handle, tmp_sql);
+			}
+			printf("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
+       			return -2;
+		}
+	} // now we know that every stat has proper value but we have to check if str/int agi/luk vit/dex pairs are correct
+
+	if( ((dat[24]+dat[27]) > 10) || ((dat[25]+dat[28]) > 10) || ((dat[26]+dat[29]) > 10) ) {
+		if (log_char) {
+			// char.log to charlog
+			sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
+					"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+					charlog_db,"make new char error", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
+			//query
 			mysql_query(&mysql_handle, tmp_sql);
 		}
-		//printf("make new char error %d-%d %s %d, %d, %d, %d, %d, %d %d, %d" RETCODE,
-		//	fd, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
-		
-                printf("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
+		printf("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
 		return -2;
-	}
-
+	} // now when we have passed all stat checks
+		
 	if (log_char) {
 		// char.log to charlog
 		sprintf(tmp_sql,"INSERT INTO `%s`(`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"

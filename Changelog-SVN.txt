@@ -1,5 +1,7 @@
 Date	Added
-06/03
+05/06
+	* Fixed possible stat exploit in char_sql, thanks WoWer [veider]
+	* Fixed compilation warnings on NetBSD [veider]
 	* Adding unequip script command, tnx to Spectre [Shinomori]
 05/03
 	* Fixed monsters can't use Heal/Potion Pitcher when hidden, thanks to Komurka

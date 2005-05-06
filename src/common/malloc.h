@@ -1,12 +1,14 @@
 #ifndef _MALLOC_H_
 #define _MALLOC_H_
 
+#ifndef __NETBSD__
 #if __STDC_VERSION__ < 199901L
 #	if __GNUC__ >= 2
 #		define __func__ __FUNCTION__
 #	else
 #		define __func__ ""
 #	endif
+#endif
 #endif
 #define ALC_MARK __FILE__, __LINE__, __func__
 
