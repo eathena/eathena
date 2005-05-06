@@ -325,7 +325,7 @@ int buildin_globalmes(struct script_state *st);
 int buildin_jump_zero(struct script_state *st);
 int buildin_select(struct script_state *st);
 int buildin_getmapmobs(struct script_state *st); //jA addition end
-
+int buildin_unequip(struct script_state *st); // unequip [Spectre]
 
 void push_val(struct script_stack *stack,int type,int val);
 int run_func(struct script_state *st);
@@ -582,6 +582,7 @@ struct {
 	{buildin_select,"select","*"}, //for future jA script compatibility
 	{buildin_globalmes,"globalmes","s*"},
 	{buildin_getmapmobs,"getmapmobs","s"}, //end jA addition
+	{buildin_unequip,"unequip","i"}, // unequip command [Spectre]
 	{NULL,NULL,NULL},
 };
 
@@ -7210,6 +7211,27 @@ int buildin_day(struct script_state *st)
 	if (night_flag != 0) map_day_timer(day_timer_tid, 0, 0, 1);
 	return 0;
 }
+
+//=======================================================
+// Unequip [Spectre]
+//-------------------------------------------------------
+int buildin_unequip(struct script_state *st)
+{
+	int i;
+	size_t num;
+	struct map_session_data *sd;
+
+	num = conv_num(st,& (st->stack->stack_data[st->start+2])) - 1;
+	sd=script_rid2sd(st);
+	if(sd!=NULL && num<10)
+	{
+		i=pc_checkequip(sd,equip[num]);
+		pc_unequipitem(sd,i,2);
+		return 0;
+	}
+	return 0;
+}
+
 
 //
 // ŽÀs•”main

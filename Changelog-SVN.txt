@@ -1,4 +1,6 @@
 Date	Added
+06/03
+	* Adding unequip script command, tnx to Spectre [Shinomori]
 05/03
 	* Fixed monsters can't use Heal/Potion Pitcher when hidden, thanks to Komurka
 	* Documented the sample plugin source a bit [celest]
