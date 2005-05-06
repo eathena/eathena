@@ -1,5 +1,6 @@
 Date	Added
 05/06
+	* Dev's pls take a look to Dev/mmo_change_report.txt
 	* Fixed build issue under linux machines [MouseJstr]
 	* Fixed possible stat exploit in char_sql, thanks WoWer [veider]
 	* Fixed compilation warnings on NetBSD [veider]
