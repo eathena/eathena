@@ -1,5 +1,6 @@
 Date	Added
 05/06
+	* Fixed build issue under linux machines [MouseJstr]
 	* Fixed possible stat exploit in char_sql, thanks WoWer [veider]
 	* Fixed compilation warnings on NetBSD [veider]
 	* Adding unequip script command, tnx to Spectre [Shinomori]

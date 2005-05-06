@@ -229,11 +229,11 @@ int is_user_online (int account_id) {
 	return (p != NULL);
 }
 void remove_online_user (int account_id) {
+	int *p;
 	if (account_id == 99) {	// reset all to offline
 		numdb_final(online_db, online_db_final);	// purge db
 		online_db = numdb_init();	// reinitialise
 	}
-	int *p;
 	p = (int*)numdb_erase(online_db, account_id);
 	aFree(p);
 }

@@ -20,17 +20,19 @@ PACKETDEF = -DPACKETVER=6 -DNEW_006b -DSO_REUSEPORT
 #PACKETDEF = -DPACKETVER=1 -DNEW_006b
 
 LIBS = -lz -lm
-#ifndef CYGWIN
-#LIBS += -ldl
-#endif
 
 PLATFORM = $(shell uname)
+
+ifeq ($(findstring Linux,$(PLATFORM)), Linux)
+LIBS += -ldl
+endif
 
 ifeq ($(findstring FreeBSD,$(PLATFORM)), FreeBSD)
 MAKE = gmake
 else
 MAKE = make
 endif
+
 ifeq ($(findstring NetBSD,$(PLATFORM)), NetBSD)
 MAKE = gmake
 CC += -D__NETBSD__
