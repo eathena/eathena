@@ -51,9 +51,7 @@ int ip_rules = 1;
 
 #if defined(CYGWIN) || defined(_WIN32)
 	#define UPNP
-	DLL upnp_dll;
-	int (*upnp_init)();
-	int (*upnp_final)();
+	Addon *upnp;
 	int (*firewall_addport)(char *desc, int port);
 	int	(*upnp_addport)(char *desc, char *ip, int port);
 	extern char *argp;
@@ -287,7 +285,7 @@ int make_listen_port(int port)
 	server_address.sin_port        = htons((unsigned short)port);
 
 #ifdef UPNP
-	if (upnp_dll) {
+	if (upnp && upnp->state) {
 		int localaddr = ntohl(addr_[0]);
 		unsigned char *natip = (unsigned char *)&localaddr;
 		char buf[16];
@@ -348,7 +346,7 @@ int make_listen_bind(long ip,int port)
 	server_address.sin_port        = htons((unsigned short)port);
 
 #ifdef UPNP
-	if (upnp_dll) {
+	if (upnp && upnp->state) {
 		int localaddr = ntohl(addr_[0]);
 		unsigned char *natip = (unsigned char *)&localaddr;
 		char buf[16];
@@ -1078,40 +1076,33 @@ int  Net_Init(void)
 #ifdef UPNP
 void do_init_upnp(void)
 {
+	int (*upnp_init)();
 	int *_release_mappings;
 	int *_close_ports;
 
-	upnp_dll = DLL_OPEN ("addons/upnp.dll");
-	if (!upnp_dll) {
-		ShowInfo ("Cannot find "CL_WHITE"addons/upnp.dll"CL_WHITE": %s\n", DLL_ERROR());
+	upnp = dll_open ("addons/upnp.dll");
+	if (!upnp)
 		return;
-	}
-	DLL_SYM (upnp_init, upnp_dll, "do_init");
-	DLL_SYM (upnp_final, upnp_dll, "do_final");
-	DLL_SYM (firewall_addport, upnp_dll, "Firewall_AddPort");
-	DLL_SYM (upnp_addport, upnp_dll, "UPNP_AddPort");
-	if (!upnp_init || !upnp_final || !firewall_addport || !upnp_addport) {
+	DLL_SYM (upnp_init, upnp->dll, "do_init");
+	DLL_SYM (firewall_addport, upnp->dll, "Firewall_AddPort");
+	DLL_SYM (upnp_addport, upnp->dll, "UPNP_AddPort");
+	if (!upnp_init || !firewall_addport || !upnp_addport) {
 		ShowInfo ("Unable to load UPnP: %s\n", DLL_ERROR());
-		DLL_CLOSE (upnp_dll);
-		upnp_dll = NULL;
+		upnp->state = 0;
 		return;
 	}
 
-	DLL_SYM (_release_mappings, upnp_dll, "release_mappings");
-	DLL_SYM (_close_ports, upnp_dll, "close_ports");
+	DLL_SYM (_release_mappings, upnp->dll, "release_mappings");
+	DLL_SYM (_close_ports, upnp->dll, "close_ports");
 	if (_release_mappings)
 		*_release_mappings = release_mappings;
 	if (_close_ports)
 		*_close_ports = close_ports;
 	
-	if (upnp_init() == 0) {
-		ShowInfo ("Unable to initialise UPnP, unloading DLL...\n");
-		DLL_CLOSE (upnp_dll);
-		upnp_dll = NULL;
-	}
+	if (upnp_init() == 0)
+		upnp->state = 0;
 
-	ShowStatus ("UPnP plugin initialised.\n");
-	return;	
+	return;
 }
 #endif
 
@@ -1140,13 +1131,6 @@ void do_final_socket(void)
 	aFree(session[0]->rdata);
 	aFree(session[0]->wdata);
 	aFree(session[0]);
-
-#ifdef UPNP
-	if (upnp_dll) {
-		upnp_final();
-		DLL_CLOSE(upnp_dll);
-	}
-#endif
 }
 
 void do_socket(void)

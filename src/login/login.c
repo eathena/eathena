@@ -3954,10 +3954,13 @@ void do_final(void) {
 //------------------------------
 // Main function of login-server
 //------------------------------
+void set_server_type(void)
+{
+	SERVER_TYPE = ATHENA_SERVER_LOGIN;
+}
 int do_init(int argc, char **argv) {
 	int i, j;
 
-	SERVER_TYPE = ATHENA_SERVER_LOGIN;
 	// read login-server configuration
 	login_config_read((argc > 1) ? argv[1] : LOGIN_CONF_NAME);
 	display_conf_warnings(); // not in login_config_read, because we can use 'import' option, and display same message twice or more

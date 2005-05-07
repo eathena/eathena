@@ -14,7 +14,6 @@
 #define ATHENA_SERVER_CHAR	2	// char server
 #define ATHENA_SERVER_INTER	4	// inter server
 #define ATHENA_SERVER_MAP	8	// map server
-#define ATHENA_SERVER_ALL	15
 
 // ATHENA_MOD_VERSIONはパッチ番号です。
 // これは無理に変えなくても気が向いたら変える程度の扱いで。

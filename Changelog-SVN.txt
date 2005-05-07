@@ -1,13 +1,22 @@
 Date	Added
 05/07
+	* Fixed plagiarised skills not updated when hit by different skill level [celest]
+	* Added server type will be set in the core earlier -- Fixes some plugins cannot
+	  loaded if called before the server finished initialising [celest]
+	* Added high priority plugins (explicitly set in conf file) will not be unloaded
+	  even if incompatible [celest]
+	* Added 'DLL_Test' plugin event [celest]
+	* Ported the upnp feature to eA plugin form [celest]
 	* massdriller's npc update, fixing SIGPIPE in core and SunOS additions to makefile [Shinomori]
+
 05/06
 	* Dev's pls take a look to Dev/mmo_change_report.txt [Sirius]
 	* Fixed build issue under linux machines [MouseJstr]
 	* Fixed possible stat exploit in char_sql, thanks WoWer [veider]
 	* Fixed compilation warnings on NetBSD [veider]
 	* Adding unequip script command, tnx to Spectre [Shinomori]
-05/03
+
+05/04
 	* Fixed monsters can't use Heal/Potion Pitcher when hidden, thanks to Komurka
 	* Documented the sample plugin source a bit [celest]
 	* Added sample plugin 'sample.dll' [celest]

@@ -263,3 +263,8 @@ int do_init(int argc,char **argv)
 void do_final()
 {
 }
+
+void set_server_type(void) {
+	// no server type
+	return;
+}

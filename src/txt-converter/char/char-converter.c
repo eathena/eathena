@@ -79,7 +79,7 @@ int char_num, char_max;
 int max_connect_user=0;
 int autosave_interval=DEFAULT_AUTOSAVE_INTERVAL;
 
-// 초기 위치(conf 파일로부터 재설정 가능)
+// 초콅E위치(conf 파일로부터 재설정 가능)
 struct point start_point={"new_1-1.gat", 53,111};
 
 
@@ -845,4 +845,9 @@ int do_init(int argc, char **argv){
 
 void do_final()
 {
+}
+
+void set_server_type(void) {
+	// no server type
+	return;
 }

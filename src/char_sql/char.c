@@ -3455,10 +3455,13 @@ int flush_timer(int tid, unsigned int tick, int id, int data){
 	return 0;
 }
 
+void set_server_type(void)
+{
+	SERVER_TYPE = ATHENA_SERVER_CHAR;
+}
 int do_init(int argc, char **argv){
 	int i;
 
-	SERVER_TYPE = ATHENA_SERVER_CHAR;
 	for(i = 0; i < MAX_MAP_SERVERS; i++) {
 		memset(&server[i], 0, sizeof(struct mmo_map_server));
 		server_fd[i] = -1;

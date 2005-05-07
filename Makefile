@@ -78,7 +78,7 @@ else
 MYSQLFLAG_INCLUDE = -I$(MYSQLFLAG_INCLUDE_DEFAULT)
 endif
 
-LIB_S_DEFAULT = -L/usr/local/lib/mysql -lmysqlclient -lz
+LIB_S_DEFAULT = -L/usr/local/lib/mysql -lmysqlclient
 MYSQLFLAG_CONFIG = $(shell which mysql_config)
 ifeq ($(findstring /,$(MYSQLFLAG_CONFIG)), /)
 LIB_S = $(shell $(MYSQLFLAG_CONFIG) --libs)

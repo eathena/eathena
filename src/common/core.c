@@ -325,6 +325,7 @@ int main(int argc,char **argv)
 		argp+=2;
 	else argp = argv[0];
 
+	set_server_type();
 	display_title();
 	do_init_malloc(); // ˆê”ÔÅ‰‚ÉÀs‚·‚é•K—v‚ª‚ ‚é
 	init_signals();

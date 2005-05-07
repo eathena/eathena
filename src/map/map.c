@@ -3301,12 +3301,15 @@ void map_versionscreen(int flag) {
  * Map-Server Init and Command-line Arguments [Valaris]
  *------------------------------------------------------
  */
+void set_server_type(void)
+{
+	SERVER_TYPE = ATHENA_SERVER_MAP;
+}
 int do_init(int argc, char *argv[]) {
 	int i;
 	FILE *data_conf;
 	char line[1024], w1[1024], w2[1024];
 
-	SERVER_TYPE = ATHENA_SERVER_MAP;
 #ifdef GCOLLECT
 	GC_enable_incremental();
 #endif

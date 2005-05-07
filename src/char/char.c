@@ -3644,10 +3644,13 @@ void do_final(void) {
 	char_log("----End of char-server (normal end with closing of all files)." RETCODE);
 }
 
+void set_server_type(void)
+{
+	SERVER_TYPE = ATHENA_SERVER_CHAR;
+}
 int do_init(int argc, char **argv) {
 	int i;
 
-	SERVER_TYPE = ATHENA_SERVER_CHAR;
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
 	lan_config_read((argc > 1) ? argv[1] : LOGIN_LAN_CONF_NAME);
 

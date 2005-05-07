@@ -1821,11 +1821,14 @@ void do_final(void) {
 	numdb_final(online_db, online_db_final);
 }
 
+void set_server_type(void)
+{
+	SERVER_TYPE = ATHENA_SERVER_LOGIN;
+}
 int do_init(int argc,char **argv){
 	//initialize login server
 	int i;
 
-	SERVER_TYPE = ATHENA_SERVER_LOGIN;	
 	//read login configue
 	login_config_read( (argc>1)?argv[1]:LOGIN_CONF_NAME );
 	sql_config_read(SQL_CONF_NAME);

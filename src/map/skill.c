@@ -1550,15 +1550,16 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	}
 	if(damage > 0 && dmg.flag&BF_SKILL && bl->type==BL_PC && pc_checkskill((struct map_session_data *)bl,RG_PLAGIARISM) && sc_data[SC_PRESERVE].timer == -1){
 		struct map_session_data *tsd = (struct map_session_data *)bl;
-		nullpo_retr(0, tsd);
-		if(!tsd->status.skill[skillid].id && !tsd->status.skill[skillid].lv
-			&& !(skillid > NPC_PIERCINGATT && skillid < NPC_SUMMONMONSTER)
-			&& !(skillid > NPC_SELFDESTRUCTION2 && skillid < NPC_UNDEADATTACK)){
+		if (tsd && ((!tsd->status.skill[skillid].id && !tsd->status.skill[skillid].lv) ||
+			(tsd->cloneskill_id && (tsd->status.skill[tsd->cloneskill_id].id != skillid || tsd->status.skill[tsd->cloneskill_id].lv != skilllv))) &&
+			!(skillid > NPC_PIERCINGATT && skillid < NPC_SUMMONMONSTER) &&
+			!(skillid > NPC_SELFDESTRUCTION2 && skillid < NPC_UNDEADATTACK))
+		{
 			//?に?んでいるスキルがあれば該?スキルを消す
-			if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag==13){
-				tsd->status.skill[tsd->cloneskill_id].id=0;
-				tsd->status.skill[tsd->cloneskill_id].lv=0;
-				tsd->status.skill[tsd->cloneskill_id].flag=0;
+			if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag == 13){
+				tsd->status.skill[tsd->cloneskill_id].id = 0;
+				tsd->status.skill[tsd->cloneskill_id].lv = 0;
+				tsd->status.skill[tsd->cloneskill_id].flag = 0;
 			}
 			tsd->cloneskill_id = skillid;
 			tsd->status.skill[skillid].id = skillid;

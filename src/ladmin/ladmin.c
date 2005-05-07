@@ -4343,6 +4343,10 @@ void do_final(void) {
 //------------------------
 // Main function of ladmin
 //------------------------
+void set_server_type(void) {
+	// no server type
+	return;
+}
 int do_init(int argc, char **argv) {
 	// read ladmin configuration
 	ladmin_config_read((argc > 1) ? argv[1] : LADMIN_CONF_NAME);
