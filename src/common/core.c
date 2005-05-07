@@ -51,7 +51,7 @@ void set_termfunc(void (*termfunc)(void))
 // (sigaction() is POSIX; signal() is not.)  Taken from Stevens' _Advanced
 // Programming in the UNIX Environment_.
 //
-#ifndef SIGPIPE
+#ifdef WIN32	// windows don't have SIGPIPE
 #define SIGPIPE SIGINT
 #endif
 
@@ -180,7 +180,6 @@ void init_signals (void)
 #endif
 #endif
 
-	compat_signal(SIGPIPE, sig_ignore);
 	compat_signal(SIGTERM, sig_proc);
 	compat_signal(SIGINT, sig_proc);
 
@@ -189,6 +188,7 @@ void init_signals (void)
 	compat_signal(SIGFPE, func);
 	compat_signal(SIGILL, func);
 	#ifndef _WIN32
+		compat_signal(SIGPIPE, sig_ignore);		
 		compat_signal(SIGBUS, func);
 		compat_signal(SIGTRAP, SIG_DFL);
 	#endif	

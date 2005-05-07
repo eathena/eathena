@@ -1,4 +1,6 @@
 Date	Added
+05/07
+	* massdriller's npc update, fixing SIGPIPE in core and SunOS additions to makefile [Shinomori]
 05/06
 	* Dev's pls take a look to Dev/mmo_change_report.txt [Sirius]
 	* Fixed build issue under linux machines [MouseJstr]

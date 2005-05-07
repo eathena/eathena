@@ -27,6 +27,10 @@ ifeq ($(findstring Linux,$(PLATFORM)), Linux)
 LIBS += -ldl
 endif
 
+ifeq ($(findstring SunOS,$(PLATFORM)), SunOS)
+LIBS += -lsocket -lnsl -ldl
+endif
+
 ifeq ($(findstring FreeBSD,$(PLATFORM)), FreeBSD)
 MAKE = gmake
 else
