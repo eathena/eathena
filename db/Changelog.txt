@@ -9,6 +9,9 @@
 	Skill databases == celest working on them I believe.
 
 05/08
+	* Fixed Whisper Boss card, thanks to sbilly
+	* Updated the packet db (removed some duplicates, corrected some packets),
+	  thanks to glucose
 	* Removed Sword Mastery from Alchemist's skill tree :o [DracoRPG]
 05/06
 	* Fixed some genders for some FOOD. Added some new items into item_db. Thanks 2 Landarma [Lupus]

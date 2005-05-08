@@ -237,7 +237,7 @@ prefer_packet_db: yes
 0x013c,4
 0x013d,6
 0x013e,24
-0x013F,26,itemmonster,2
+0x013f,26,itemmonster,2
 0x0140,22,mapmove,2:18:20
 0x0141,14
 0x0142,6
@@ -310,7 +310,6 @@ prefer_packet_db: yes
 0x0185,34
 0x0186,0
 0x0187,6
-0x0187,6
 0x0188,8
 0x0189,4
 0x018a,4,quitgame,0
@@ -377,7 +376,7 @@ prefer_packet_db: yes
 0x01c7,2
 0x01c8,13
 0x01c9,97
-0x01ca,0
+0x01ca,3
 0x01cb,9
 0x01cc,9
 0x01cd,30
@@ -424,7 +423,7 @@ prefer_packet_db: yes
 0x01f6,34
 0x01f7,14
 0x01f8,2
-0x01f9,6
+0x01f9,6,adopt,5
 0x01fa,48
 0x01fb,56
 0x01fc,-1
@@ -433,13 +432,13 @@ prefer_packet_db: yes
 0x01ff,10
 0x0200,26
 0x0201,-1
-0x0202,26
-0x0203,10
+0x0202,26,friendslistadd,2
+0x0203,10,friendslistremove,2:6
 0x0204,18
 0x0205,26
 0x0206,11
 0x0207,34
-0x0208,14
+0x0208,14,friendslistreply,2:6:10
 0x0209,36
 0x020a,10
 0x020b,0
@@ -511,14 +510,14 @@ prefer_packet_db: yes
 //2004-08-16aSakexe
 // 0x020f,0
 // 0x0210,0
-// 0x0211,0
-// 0x0212,26
-// 0x0213,26
-// 0x0214,42
+0x0211,0
+0x0212,26
+0x0213,26
+0x0214,42
 
 //2004-08-17aSakexe
-// 0x020f,10
-// 0x0210,22
+0x020f,10
+0x0210,22
 
 //2004-09-06aSakexe
 // packet_ver: 10
@@ -595,10 +594,9 @@ prefer_packet_db: yes
 
 //2004-11-01aSakexe by Sara
 // packet_ver: 14
-// 0x0215,6
-// 0x0143,23,npcamountinput,2:6
-// 0x0145,19
-//0x01f9,6,adopt,5
+0x0143,23,npcamountinput,2:6
+0x0215,6
+0x0216,6
 
 //2004-12-06aSakexe
 // packet_ver: 15
@@ -619,10 +617,17 @@ prefer_packet_db: yes
 // 0x0072,22,useskilltoid,8:12:18
 // 0x0193,21,movefromkafra,4:17
 // 0x009b,2,closekafra,0
-// 0x0222,6
-// 0x0221,-1
-// 0x021d,6
-// 0x0223,8
+0x0217,2,blacksmith,0
+0x0218,2,alchemist,0
+0x0219,282
+0x021a,282
+0x021b,10
+0x021c,10
+0x021d,6
+0x021e,6
+0x0221,-1
+0x0222,6
+0x0223,8
 
 //2005-01-10bSakexe by Sara
 // packet_ver: 16
@@ -644,8 +649,21 @@ prefer_packet_db: yes
 0x007e,114,useskilltopos,9:18:22:32:34
 0x00a2,11,solvecharname,7
 0x0143,10,npcamountinput,2:6
-0x0217,2,blacksmith,0
-0x0218,2,alchemist,0
+0x021f,66
+0x0220,10
 
 // packet_ver: 17
+0x0224,10
+0x0225,2
+0x0226,282
+0x0227,18
+0x0228,18
+0x0229,15
+0x022a,58
+0x022b,57
+0x022c,64
+0x022d,5
+0x0232,9
+0x0233,11
+0x0234,-1
 // Add new packets here
