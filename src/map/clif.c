@@ -109,7 +109,7 @@ static const int packet_len_table[MAX_PACKET_DB] = {
     3,  3, 35,  5, 11, 26, -1,  4,   4,  6, 10, 12,  6, -1,  4,  4,
    11,  7, -1, 67, 12, 18,114,  6,   3,  6, 26, 26, 26, 26,  2,  3,
 //#0x01C0,   Set 0x1d5=-1
-    2, 14, 10, -1, 22, 22,  4,  2,  13, 97,  0,  9,  9, 30,  6, 28,
+    2, 14, 10, -1, 22, 22,  4,  2,  13, 97,  3,  9,  9, 30,  6, 28,
     8, 14, 10, 35,  6, -1,  4, 11,  54, 53, 60,  2, -1, 47, 33,  6,
    30,  8, 34, 14,  2,  6, 26,  2,  28, 81,  6, 10, 26,  2, -1, -1,
    -1, -1, 20, 10, 32,  9, 34, 14,   2,  6, 48, 56, -1,  4,  5, 10,
@@ -11230,6 +11230,7 @@ static int packetdb_readdb(void)
 		{clif_parse_PMIgnoreAll,"wisall"},
 		{clif_parse_FriendsListAdd,"friendslistadd"},
 		{clif_parse_FriendsListRemove,"friendslistremove"},
+		{clif_parse_FriendsListReply,"friendslistreply"},
 		{clif_parse_GMKillAll,"killall"},
 		{clif_parse_Recall,"summon"},
 		{clif_parse_GM_Monster_Item,"itemmonster"},

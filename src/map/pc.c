@@ -4696,22 +4696,19 @@ int pc_resetstate(struct map_session_data* sd)
  */
 int pc_resetskill(struct map_session_data* sd)
 {
-	int  i,skill;
-
+	int i, skill;
 	nullpo_retr(0, sd);
 
-	for(i=1;i<MAX_SKILL;i++){
-	        skill =  ( i >= 10000 ) ? pc_checkskill(sd,i) : sd->status.skill[i].lv;
-		if( skill > 0) {
-			if(!(skill_get_inf2(i)&0x01) || battle_config.quest_skill_learn) {
-				if(!sd->status.skill[i].flag)
+	for (i = 1; i < MAX_SKILL; i++) {
+		if ((skill = sd->status.skill[i].lv) > 0) {
+			if (!(skill_get_inf2(i) & 0x01) || battle_config.quest_skill_learn) {
+				if (!sd->status.skill[i].flag)
 					sd->status.skill_point += skill;
-				else if(sd->status.skill[i].flag > 2 && sd->status.skill[i].flag != 13) {
+				else if (sd->status.skill[i].flag > 2 && sd->status.skill[i].flag != 13)
 					sd->status.skill_point += (sd->status.skill[i].flag - 2);
-				}
 				sd->status.skill[i].lv = 0;
 			}
-			else if(battle_config.quest_skill_reset)
+			else if (battle_config.quest_skill_reset)
 				sd->status.skill[i].lv = 0;
 			sd->status.skill[i].flag = 0;
 		} else {

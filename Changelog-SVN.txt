@@ -1,5 +1,9 @@
 Date	Added
 05/08
+	* Fixed ensemble skills and Benedictio, thanks to shaeh and massdriller
+	* Fixed typo in Concentration's hit bonus, thanks to UniRing
+	* Added additional hit bonus for Weapon Research [celest]
+	* Fixed a missing check in Absorb Spirits [celest]
 	* Made Meteor Assault cause Bleeding effectm too. According the skill desc, it causes all effects
 	  to ANY enemy by chance now. [Lupus]
 	* Typos and grammatical fixes in various files [DracoRPG]
@@ -8,6 +12,7 @@ Date	Added
 	* ATK % bonuses provided by Power-Thrust (and similar skills) and attack skills now add instead of multiplicating [DracoRPG]
 	* Added sd->right_weapon and sd->left_weapon structs to store all weapon-specific values like watk [DracoRPG]
 	* Added pc_istop10fame function [DracoRPG]
+
 05/07
 	* Fixed plagiarised skills not updated when hit by different skill level [celest]
 	* Added server type will be set in the core earlier -- Fixes some plugins cannot

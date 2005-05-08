@@ -2443,7 +2443,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			no_cardfix = 1;
 		}
 		// sacrifice works on boss monsters, and does 9% damage to self [Celest]
-		if (!skill_num && /*!(t_mode&0x20) &&*/ sc_data[SC_SACRIFICE].timer != -1) {
+		if (!skill_num && sc_data[SC_SACRIFICE].timer != -1) {
 			int dmg = status_get_max_hp(src) * 9/100;
 			pc_heal(sd, -dmg, 0);
 			damage = dmg * (90 + sc_data[SC_SACRIFICE].val1 * 10) / 100;
@@ -2509,14 +2509,12 @@ static struct Damage battle_calc_pc_weapon_attack(
 	if()
 	    damage2 += 10;*/
 
-	if(sd->perfect_hit > 0) {
-		if(rand()%100 < sd->perfect_hit)
-			hitrate = 1000000;
-	}
+	if (sd->perfect_hit > 0 && rand()%100 < sd->perfect_hit)
+		hitrate = 1000000;
 
 	// 回避修正
-	if(	hitrate < 1000000 && t_sc_data ) {			// 必中攻撃
-		if(t_sc_data[SC_FOGWALL].timer != -1 && flag&BF_LONG)
+	if (hitrate < 1000000 && t_sc_data) {			// 必中攻撃
+		if (t_sc_data[SC_FOGWALL].timer != -1 && flag&BF_LONG)
 			hitrate -= 75;
 		if (t_sc_data[SC_SLEEP].timer!=-1 ||	// 睡眠は必中
 			t_sc_data[SC_STAN].timer!=-1 ||		// スタンは必中
@@ -2524,8 +2522,13 @@ static struct Damage battle_calc_pc_weapon_attack(
 			(t_sc_data[SC_STONE].timer!=-1 && t_sc_data[SC_STONE].val2==0))	// 凍結は必中
 			hitrate = 1000000;
 	}
-	hitrate = (hitrate<5)?5:hitrate;
-	if(type == 0 && rand()%100 >= hitrate) {
+	// weapon research hidden bonus
+	if ((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0) {
+		hitrate = hitrate * (100+2*skill) / 100;
+	}
+	if(hitrate < 5)
+		hitrate = 5;
+	if (type == 0 && rand()%100 >= hitrate) {
 		damage = damage2 = 0;
 		dmg_lv = ATK_FLEE;
 	} else {
@@ -2533,9 +2536,9 @@ static struct Damage battle_calc_pc_weapon_attack(
 	}
 
 	// スキル修正３（武器研究）
-	if( (skill=pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0) {
-		damage+= skill*2;
-		damage2+= skill*2;
+	if ((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0) {
+		damage += skill*2;
+		damage2 += skill*2;
 	}
 
 //スキルによるダメージ補正ここまで

@@ -3415,10 +3415,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					clif_skill_nodamage(src,bl,skillid,skilllv,1);
 					i = dstsd->spiritball * 7;
 					pc_delspiritball(dstsd,dstsd->spiritball,0);
-					if(i > 0x7FFF)
-						i = 0x7FFF;
-					if(sd && sd->status.sp + i > sd->status.max_sp)
-						i = sd->status.max_sp - sd->status.sp;
 				}
 			}
 		} else if (dstmd) { //?象がモンスタ?の場合
@@ -3428,9 +3424,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				mob_target(dstmd,src,0);
 			}
 		}
-		if (i && sd){
+		if (sd){
+			if (i > 0x7FFF)
+				i = 0x7FFF;
+			if (sd->status.sp + i > sd->status.max_sp)
+				i = sd->status.max_sp - sd->status.sp;
 			sd->status.sp += i;
-			clif_heal(sd->fd,SP_SP,i);
+			if (i) clif_heal(sd->fd,SP_SP,i);
 		} else clif_skill_nodamage(src,bl,skillid,skilllv,0);
 		break;
 
@@ -6445,58 +6445,63 @@ int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,
  *------------------------------------------
  */
 
-static int skill_check_condition_char_sub(struct block_list *bl,va_list ap)
+static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 {
-	int *c;
+	int *c, skillid;
 	struct block_list *src;
 	struct map_session_data *sd;
-	struct map_session_data *ssd;
+	struct map_session_data *tsd;
 	struct pc_base_job s_class;
-	struct pc_base_job ss_class;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
 	nullpo_retr(0, sd=(struct map_session_data*)bl);
 	nullpo_retr(0, src=va_arg(ap,struct block_list *));
+	nullpo_retr(0, tsd=(struct map_session_data*)src);
 	nullpo_retr(0, c=va_arg(ap,int *));
-	nullpo_retr(0, ssd=(struct map_session_data*)src);
+	skillid = va_arg(ap,int);
+
+	if (bl == src)
+		return 0;
 
 	s_class = pc_calc_base_job(sd->status.class_);
 	//チェックしない設定ならcにありえない大きな?字を返して終了
-	if(!battle_config.player_skill_partner_check){	//本?はforeachの前にやりたいけど設定適用箇所をまとめるためにここへ
-		(*c)=99;
+	if (!battle_config.player_skill_partner_check) {	//本?はforeachの前にやりたいけど設定適用箇所をまとめるためにここへ
+		(*c) = 99;
 		return 0;
 	}
 
-	ss_class = pc_calc_base_job(ssd->status.class_);
-
-	switch(ssd->skillid){
-	case PR_BENEDICTIO:				/* 聖?降福 */
-		if(sd != ssd && (s_class.job == 4 || s_class.job == 8 || s_class.job == 15) &&
-			(sd->bl.x == ssd->bl.x - 1 || sd->bl.x == ssd->bl.x + 1) && sd->status.sp >= 10)
-			(*c)++;
-		break;
-	case BD_LULLABY:				/* 子守歌 */
-	case BD_RICHMANKIM:				/* ニヨルドの宴 */
-	case BD_ETERNALCHAOS:			/* 永遠の混沌 */
-	case BD_DRUMBATTLEFIELD:		/* ?太鼓の響き */
-	case BD_RINGNIBELUNGEN:			/* ニ?ベルングの指輪 */
-	case BD_ROKISWEIL:				/* ロキの叫び */
-	case BD_INTOABYSS:				/* 深淵の中に */
-	case BD_SIEGFRIED:				/* 不死身のジ?クフリ?ド */
-	case BD_RAGNAROK:				/* 神?の?昏 */
-	case CG_MOONLIT:				/* 月明りの泉に落ちる花びら */
-		if(sd != ssd &&
-		 ((ss_class.job==19 && s_class.job==20) ||
-		 (ss_class.job==20 && s_class.job==19)) &&
-		 pc_checkskill(sd,ssd->skillid) > 0 &&
-		 (*c)==0 &&
-		 sd->status.party_id == ssd->status.party_id &&
-		 !pc_issit(sd) &&
-		 sd->sc_data[SC_DANCING].timer==-1
-		 )
-			(*c)=pc_checkskill(sd,ssd->skillid);
-		break;
+	switch(skillid)
+	{
+		case PR_BENEDICTIO:				/* 聖?降福 */
+			if ((s_class.job == 4 || s_class.job == 8 || s_class.job == 15) &&
+					(sd->bl.x == tsd->bl.x - 1 || sd->bl.x == tsd->bl.x + 1) &&
+					sd->status.sp >= 10)
+				(*c)++;
+			break;
+		case BD_LULLABY:				/* 子守歌 */
+		case BD_RICHMANKIM:				/* ニヨルドの宴 */
+		case BD_ETERNALCHAOS:			/* 永遠の混沌 */
+		case BD_DRUMBATTLEFIELD:		/* ?太鼓の響き */
+		case BD_RINGNIBELUNGEN:			/* ニ?ベルングの指輪 */
+		case BD_ROKISWEIL:				/* ロキの叫び */
+		case BD_INTOABYSS:				/* 深淵の中に */
+		case BD_SIEGFRIED:				/* 不死身のジ?クフリ?ド */
+		case BD_RAGNAROK:				/* 神?の?昏 */
+		case CG_MOONLIT:				/* 月明りの泉に落ちる花びら */
+			{
+				struct pc_base_job t_class = pc_calc_base_job(tsd->status.class_);
+				int skilllv;
+				if (((t_class.job == 19 && s_class.job == 20) ||
+						(t_class.job == 20 && s_class.job == 19)) &&
+						(skilllv = pc_checkskill(sd, skillid)) > 0 &&
+						sd->status.party_id == tsd->status.party_id &&
+						!pc_issit(sd) &&
+						(*c) == 0 &&
+						sd->sc_data[SC_DANCING].timer == -1)
+					(*c) = skilllv;
+			}
+			break;
 	}
 	return 0;
 }
@@ -6792,7 +6797,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			if  (!(type & 1)) {
 				map_foreachinarea(skill_check_condition_char_sub, sd->bl.m,
 					sd->bl.x-range, sd->bl.y-range,
-					sd->bl.x+range, sd->bl.y+range, BL_PC, &sd->bl, &c);
+					sd->bl.x+range, sd->bl.y+range, BL_PC, &sd->bl, &c, skill);
 				if (c < 2) {
 					clif_skill_fail(sd,skill,0,0);
 					return 0;
@@ -7303,7 +7308,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			int c = 0;
 			map_foreachinarea (skill_check_condition_char_sub, sd->bl.m,
 				sd->bl.x-range, sd->bl.y-range,
-				sd->bl.x+range, sd->bl.y+range, BL_PC, &sd->bl, &c);
+				sd->bl.x+range, sd->bl.y+range, BL_PC, &sd->bl, &c, skill_num);
 			if (c < 1) {
 				clif_skill_fail(sd,skill_num,0,0);
 				return 0;
