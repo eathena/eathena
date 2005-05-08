@@ -1,5 +1,8 @@
 Date	Added
 05/08
+	* Optimising 2 party queries in SQL char, thanks to Zoc
+	* Fixed a typo in SQL party saving, sorry ^^; [celest]
+	* Fixed compile errors in login and char converters [celest]
 	* Fixed ensemble skills and Benedictio, thanks to shaeh and massdriller
 	* Fixed typo in Concentration's hit bonus, thanks to UniRing
 	* Added additional hit bonus for Weapon Research [celest]

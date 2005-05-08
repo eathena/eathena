@@ -84,20 +84,26 @@ int inter_party_tosql(int party_id,struct party *p)
 			memset(p, 0, sizeof(struct party));
 			return 0;
 		} else {
+			char *tmp = tmp_sql;
+			tmp_sql[0] = '\0';
 			// Update party information, if exists
 			for (i = 0; i < MAX_PARTY; i++) {
 				if (p->member[i].account_id > 0){
-					sprintf(tmp_sql, "UPDATE `%s` SET `party_id`='%d' WHERE `account_id`='%d' AND `name`='%s'",
-						char_db, party_id, p->member[i].account_id, jstrescapecpy(t_member, p->member[i].name));
-					//printf("%s",tmp_sql);
-					if (mysql_query(&mysql_handle, tmp_sql)) {
-						printf("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle));
-					}
+					if (tmp_sql[0] == '\0')
+						tmp += sprintf(tmp_sql, "UPDATE `%s` SET `party_id`='%d' WHERE (`account_id` = '%d' AND `name` = '%s')",
+							char_db, party_id, p->member[i].account_id, jstrescapecpy(t_member, p->member[i].name));
+					else
+						tmp += sprintf(tmp, " OR (`account_id` = '%d' AND `name` = '%s')",
+							p->member[i].account_id, jstrescapecpy(t_member, p->member[i].name));
 				}
 			}
+			//printf("%s",tmp_sql);
+			if (tmp_sql[0] != '\0' && mysql_query(&mysql_handle, tmp_sql)) {
+				printf("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle));
+			}
 
-			sprintf(tmp_sql, "UPDATE `%s` SET `name`='%s', `exp`='%d', `item`='%d', WHERE `party_id`='%d'",
-				party_db, t_name,p->exp,p->item,party_id);
+			sprintf(tmp_sql, "UPDATE `%s` SET `name`='%s', `exp`='%d', `item`='%d' WHERE `party_id`='%d'",
+				party_db, t_name, p->exp, p->item, party_id);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				printf("DB server Error (inset/update `party`)- %s\n", mysql_error(&mysql_handle));
 			}
@@ -597,69 +603,71 @@ int mapif_parse_PartyLeave(int fd,int party_id,int account_id)
 {
 	char t_member[24];
 	struct party *p = party_pt;
-	if(p==NULL){
+	if (p == NULL) {
 		printf("int_party: out of memory !\n");
 		return 0;
 	}
 
 	inter_party_fromsql(party_id, p);
-
-	if(p->party_id >= 0){
-		int i,j;
-		for(i=0;i<MAX_PARTY;i++){
-
-			if(p->member[i].account_id==account_id){
+	if (p->party_id >= 0) {
+		int i;
+		for (i = 0; i < MAX_PARTY; i++) {
+			if (p->member[i].account_id == account_id) {
 				//printf("p->member[i].account_id = %d , account_id = %d \n",p->member[i].account_id,account_id);
-				mapif_party_leaved(party_id,account_id,p->member[i].name);
-
-
+				mapif_party_leaved(party_id, account_id, p->member[i].name);
 
 				// Update char information, does the name need encoding?
-				sprintf(tmp_sql,"UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d' AND `name`='%s'",
+				sprintf (tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d' AND `name`='%s'",
 					char_db, party_id, jstrescapecpy(t_member,p->member[i].name));
-				if(mysql_query(&mysql_handle, tmp_sql) ) {
-					printf("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
+				if (mysql_query (&mysql_handle, tmp_sql)) {
+					printf("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle));
 				}
 //				printf("Delete member %s from MySQL \n", p->member[i].name);
 
-				if (p->member[i].leader==1){
-					for(j=0;j<MAX_PARTY;j++)
-					{
+				if (p->member[i].leader == 1){
+					int j;
+					//char *tmp = tmp_sql;
+					//tmp_sql[0] = '\0';
+					for (j = 0; j < MAX_PARTY; j++) {
 						//printf("j = %d , p->member[j].account_id = %d , p->member[j].account_id = %d \n",j,p->member[j].account_id,p->member[j].account_id);
-						if(p->member[j].account_id>0&&j!=i){
-							mapif_party_leaved(party_id,p->member[j].account_id,p->member[j].name);
+						if (p->member[j].account_id > 0 && j != i) {
+							mapif_party_leaved(party_id, p->member[j].account_id, p->member[j].name);
 							// Update char information, does the name need encoding?
-							sprintf(tmp_sql,"UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d' AND `name`='%s'",
-								char_db, party_id, jstrescapecpy(t_member,p->member[i].name));
-							if(mysql_query(&mysql_handle, tmp_sql) ) {
-								printf("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
-							}
+							/*if (tmp_sql[0] == '\0')
+								tmp += sprintf (tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d', `name`='%s'",
+									char_db, party_id, jstrescapecpy(t_member, p->member[i].name));
+							else
+								tmp += sprintf (tmp, " OR `name`='%s'", jstrescapecpy(t_member, p->member[i].name));*/
 //							printf("Delete member %s from MySQL \n", p->member[j].name);
 						}
 					}
+					// we'll skip name-checking and just reset everyone with the same party id [celest]
+					// -- if anything goes wrong just uncomment the section above ^^;
+					sprintf (tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d'", char_db, party_id);
+					if (/*tmp_sql != '\0' &&*/ mysql_query(&mysql_handle, tmp_sql)) {
+						printf("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
+					}
 					// Delete the party, if has no member.
-					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `party_id`='%d'",party_db, party_id);
-					if(mysql_query(&mysql_handle, tmp_sql) ) {
+					sprintf(tmp_sql, "DELETE FROM `%s` WHERE `party_id`='%d'", party_db, party_id);
+					if (mysql_query(&mysql_handle, tmp_sql)) {
 						printf("DB server Error - %s\n", mysql_error(&mysql_handle) );
 					}
 //					printf("Leader breaks party %d \n",party_id);
 					memset(p, 0, sizeof(struct party));
-				}else memset(&p->member[i],0,sizeof(struct party_member));
-
+				} else
+					memset(&p->member[i], 0, sizeof(struct party_member));
 				break;
-
 			}
 		}
-		if( party_check_empty(p)==0 )
+
+		if (party_check_empty(p) == 0)
 			mapif_party_info(-1,p);// まだ人がいるのでデータ送信
-		/*
-		else
-			inter_party_tosql(party_id,p);	// Break the party if no member
-		*/
-	}else{
-		sprintf(tmp_sql,"UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d' AND `account_id`='%d' AND `online`='1'",
+		//else
+		//	inter_party_tosql(party_id,p);	// Break the party if no member
+	} else {
+		sprintf(tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d' AND `account_id`='%d' AND `online`='1'",
 			char_db, party_id, account_id);
-		if(mysql_query(&mysql_handle, tmp_sql) ) {
+		if (mysql_query(&mysql_handle, tmp_sql)) {
 			printf("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
 		}
 	}
