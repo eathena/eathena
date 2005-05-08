@@ -3107,6 +3107,8 @@ int clif_joinchatok(struct map_session_data *sd,struct chat_data* cd)
 	nullpo_retr(0, cd);
 
 	fd=sd->fd;
+        if (fd <= 0)
+                return 0;
 	WFIFOW(fd,0)=0xdb;
 	WFIFOW(fd,2)=8+(28*cd->users);
 	WFIFOL(fd,4)=cd->bl.id;
