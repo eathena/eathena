@@ -1046,10 +1046,28 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		}
 		break;
 	case ASC_METEORASSAULT:			/* メテオアサルト */
-		if( rand()%100 < (15 + skilllv*5)*sc_def_vit/100 ) //?態異常は詳細が分からないので適?に
+/*		if( rand()%100 < (15 + skilllv*5)*sc_def_vit/100 ) //?態異常は詳細が分からないので適?に
 			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		if( rand()%100 < (10+3*skilllv)*sc_def_int/100 )
 			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+*/
+		//Any enemies hit by this skill will receive Stun, Darkness, or external bleeding status ailment with a 5%+5*SkillLV% chance.
+		if( rand()%100 < (5+skilllv*5) ) //5%+5*SkillLV%
+			switch(rand()%3) {
+				case 0:
+					status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+					break;
+				case 1:
+					{
+					int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
+					if (bleed_time < 30000)
+					bleed_time = 30000;	// minimum 30 seconds (it could be up to 60 sec.. but no info yet)
+					status_change_start(bl,SC_BLEEDING,skilllv,0,0,0,bleed_time,0);
+					}
+					break;
+				default:
+					status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+  			}
 		break;
 	case MO_EXTREMITYFIST:			/* 阿修羅覇凰拳 */
 		//阿修羅を使うと5分間自然回復しないようになる

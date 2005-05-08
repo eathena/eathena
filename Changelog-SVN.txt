@@ -1,5 +1,7 @@
 Date	Added
 05/08
+	* Made Meteor Assault cause Bleeding effectm too. According the skill desc, it causes all effects
+	  to ANY enemy by chance now. [Lupus]
 	* Typos and grammatical fixes in various files [DracoRPG]
 	* Changed Hair style, Hair & Clothes colors fields to unsigned to allow use of 255 palettes [DracoRPG]
 	* Enhanced @send to allow use of 20 additionnal arguments after the packet identifier [DracoRPG]
