@@ -2,6 +2,7 @@
 //
 // Ayothaya Town Warps - Warp Locations
 // - Created by Muad_Dib.
+// - Fixed Armory part by massdriller
 //
 //========================================================================================
 
@@ -48,16 +49,16 @@ ayothaya.gat,229,70,0	warp	ayothayawarp015	2,2,ayo_in01.gat,137,192
 ayo_in01.gat,137,194,0	warp	ayothayawarp016	2,2,ayothaya.gat,232,75
 
 //Armory -- East door
-ayothaya.gat,176,90,0	warp	ayothayawarp017	2,2,ayo_in01.gat,95,174
-ayo_in01.gat,89,174,0		warp	ayothayawarp018	2,2,ayothaya.gat,180,90
+ayothaya.gat,176,90,0   warp    ayothayawarp017 2,2,ayo_in01.gat,92,174
+ayo_in01.gat,97,174,0       warp    ayothayawarp018 2,2,ayothaya.gat,180,90
 
 //Armory -- South door
-ayothaya.gat,172,77,0	warp	ayothayawarp019	2,2,ayo_in01.gat,88,154
-ayo_in01.gat,84,149,0		warp	ayothayawarp020	2,2,ayothaya.gat,172,74
+ayothaya.gat,172,77,0   warp    ayothayawarp019 2,2,ayo_in01.gat,88,154
+ayo_in01.gat,84,149,0       warp    ayothayawarp020 2,2,ayothaya.gat,172,74
 
 //Armory -- West door
-ayothaya.gat,172,77,0	warp	ayothayawarp021	2,2,ayo_in01.gat,75,174
-ayo_in01.gat,73,174,0		warp	ayothayawarp022	2,2,ayothaya.gat,172,74
+ayothaya.gat,166,90,0   warp    ayothayawarp021 2,2,ayo_in01.gat,75,174
+ayo_in01.gat,73,174,0       warp    ayothayawarp022 2,2,ayothaya.gat,163,90
 
 //Straw-roof hut -- Middle - Facing West
 //ayothaya.gat,120,164,0	warp	ayothayawarp023	2,2,ayo_in01.gat,,

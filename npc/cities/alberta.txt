@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -11,6 +11,7 @@
 //===== Additional Comments: ================================= 
 //= Fully working
 //= 1.1 Negative input bug fixed [Lupus]
+//= 1.2 Fixed typos in script [massdriller]
 //============================================================ 
 
 
@@ -220,8 +221,8 @@ alberta.gat,90,71,3	script	Soda Man	89,{
 	mes "Hmm... then what about the story of the old man who almost conquered ^5555FFTurtle Island^000000?";
 	next;
 	mes "[Soda Man]";
-	mes "Go to the inn and you'll find an old drunkard there.  When you speak to him at first, it may seem like he's taliking nonsense.";
-	mes "But be patient and if you listen to his words carefully you may be able to pick up some usefull information.";
+	mes "Go to the inn and you'll find an old drunkard there.  When you speak to him at first, it may seem like he's talking nonsense.";
+	mes "But be patient and if you listen to his words carefully you may be able to pick up some useful information.";
 	next;
 	mes "[Soda Man]";
 	mes "Oh, and there is a letter on the table inside of that old man's room.  It's a scary story about Turtle Island.";
@@ -419,7 +420,7 @@ M_Menu:
 		mes "We could not tell which way was East and which way was West.  But it didn't matter... for we were all exhausted at that point.";
 		next;
 		mes "[Gotanblue]";
-		mes "Then what we feared most happened.  A huge rock formation piereced through the fog right in front of us!";
+		mes "Then what we feared most happened.  A huge rock formation pierced through the fog right in front of us!";
 		mes "There was no way to avoid it and we crashed violently into it, severly damaging our ship!!";
 		emotion 0;
 		next;
@@ -434,7 +435,7 @@ M_Menu:
 		next;
 		mes "[Gotanblue]";
 		mes "We set up camp immediately and rested our weary bodies.  A few days later we began to extensively search the island.";
-		mes "What we found was shocking! Apparently someone had found the island before us.  He left a very well kept journal of his expidition.";
+		mes "What we found was shocking! Apparently someone had found the island before us.  He left a very well kept journal of his expedition.";
 		next;
 		mes "[Gotanblue]";
 		mes "According to his journal, the man had come by himself to find the island.  Unfortunatley we could not find him anywhere.";
@@ -448,7 +449,7 @@ M_Menu:
 		mes "Oh, now I remeber his name... ^5555FF'Won'^000000... apparently a great sword master....";
 		next;
 		mes "[Gotanblue]";
-		mes "Anyway, he wrote about a '^FF5555Jewel Fragment'^000000 of some kind.  He described it as, 'the most beautifull thing in the world'.";
+		mes "Anyway, he wrote about a '^FF5555Jewel Fragment'^000000 of some kind.  He described it as, 'the most beautiful thing in the world'.";
 		next;
 		mes "[Gotanblue]";
 		mes "We became intent on finding that jewel no matter what.  Day after day we searched for it.  Months passed.";
