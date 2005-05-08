@@ -1,4 +1,4 @@
-// $Id: chrif.c,v 1.6 2004/09/25 11:39:17 MouseJstr Exp $
+z
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,13 +29,59 @@
 #include "memwatch.h"
 #endif
 
+//Updated table (only doc^^) [Sirius]
+//Used Packets: U->2af8 
+//Free Packets: F->2af8 
+
 static const int packet_len_table[0x28] = {
-	60, 3,-1,27,22,-1, 6,-1,	// 2af8-2aff
-	 6,-1,18, 7,-1,49,44, 0,	// 2b00-2b07
-	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f
-	-1,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17
-	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b18-2b1f
+	60, 3,-1,27,22,-1, 6,-1,	// 2af8-2aff: U->2af8, U->2af9, U->2afa, U->2afb, U->2afc, U->2afd, U->2afe, U->2aff
+	 6,-1,18, 7,-1,49,44, 0,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, F->2b07
+	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
+	-1,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
+	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, F->2b1c, F->2b1d, F->2b1e, F->2b1f
 };
+
+//Used Packets:
+//2af8: Outgoing, chrif_connect -> 'connect to charserver / auth @ charserver' 
+//2af9: Incomming, chrif_connectack -> 'awnser of the 2af8 login(ok / fail)' 
+//2afa: Outgoing, chrif_sendmap -> 'sending our maps'
+//2afb: Incomming, chrif_sendmapack -> 'Maps recived successfully / or not ..'
+//2afc: Outgoing, chrif_authreq -> 'validate the incomming client' ? (not sure)
+//2afd: Incomming, pc_authok -> 'ok awnser of the 2afc'
+//2afe: Incomming, pc_authfail -> 'fail awnser of the 2afc' ? (not sure)
+//2aff: Outgoing, send_users_tochar -> 'sends all actual connected charactersids to charserver'
+//2b00: Incomming, map_setusers -> 'set the actual usercount? PACKET.2B COUNT.L.. ?' (not sure)
+//2b01: Outgoing, chrif_save -> 'charsave of char XY account XY (complete struct)' 
+//2b02: Outgoing, chrif_charselectreq -> 'player returns from ingame to charserver to select another char.., this packets includes sessid etc' ? (not 100% sure)
+//2b03: Incomming, clif_charselectok -> '' (i think its the packet after enterworld?) (not sure)
+//2b04: Incomming, chrif_recvmap -> 'getting maps from charserver of other mapserver's'
+//2b05: Outgoing, chrif_changemapserver -> 'Tell the charserver the mapchange / quest for ok...' 
+//2b06: Incomming, chrif_changemapserverack -> 'awnser of 2b05, ok/fail, data: dunno^^'
+//2b07: FREE
+//2b08: Outgoing, chrif_searchcharid -> '...'
+//2b09: Incomming, map_addchariddb -> 'dunno^^'
+//2b0a: Outgoing, chrif_changegm -> 'level change of acc/char XY'
+//2b0b: Incomming, chrif_changedgm -> 'awnser of 2b0a..'
+//2b0c: Outgoing, chrif_changeemail -> 'change mail address ...'
+//2b0d: Incomming, chrif_changedsex -> 'Change sex of acc XY'
+//2b0e: Outgoing, chrif_char_ask_name -> 'Do some operations (change sex, ban / unban etc)'
+//2b0f: Incomming, chrif_char_ask_name_answer -> 'awnser of the 2b0e'
+//2b10: Outgoing, chrif_saveaccountreg2 -> dunno? (register an account??)
+//2b11: Outgoing, chrif_changesex -> 'change sex of acc X'
+//2b12: Incomming, chrif_divorce -> 'divorce a wedding of charid X and partner id X'
+//2b13: Incomming, chrif_accountdeletion -> 'Delete acc XX, if the player is on, kick ....'
+//2b14: Incomming, chrif_accountban -> 'not sure: kick the player with message XY'
+//2b15: Incomming, chrif_recvgmaccounts -> 'recive gm accs from charserver (seems to be incomplete !)'
+//2b16: Outgoing, chrif_ragsrvinfo -> 'sends motd / rates ....'
+//2b17: Outgoing, chrif_char_offline -> 'tell the charserver that the char is now offline'
+//2b18: Outgoing, chrif_chardisconnect -> 'same as 2b17 LOL!'
+//2b19: Outgoing, chrif_char_online -> 'tell the charserver that the char .. is online'
+//2b1a: Outgoing, chrif_reqfamelist -> 'Request the fame list (top10)'
+//2b1b: Incomming, chrif_recvfamelist -> 'awnser of 2b1a ..... the famelist top10^^'
+//2b1c: FREE
+//2b1d: FREE
+//2b1e: FREE
+//2b1f: FREE
 
 int chrif_connected;
 int char_fd = -1;
@@ -285,7 +331,7 @@ int chrif_sendmapack(int fd)
 	}
 
 	memcpy(wisp_server_name, RFIFOP(fd,3), 24);
-
+	
 	chrif_state = 2;
 
 	return 0;
@@ -1142,7 +1188,7 @@ int chrif_parse(int fd)
 		case 0x2af9: chrif_connectack(fd); break;
 		case 0x2afb: chrif_sendmapack(fd); break;
 		case 0x2afd: pc_authok(RFIFOL(fd,4), RFIFOL(fd,8), (time_t)RFIFOL(fd,12), (struct mmo_charstatus*)RFIFOP(fd,16)); break;
-		case 0x2afe: pc_authfail(RFIFOL(fd,2)); break;
+                case 0x2afe: pc_authfail(RFIFOL(fd,2)); break;
 		case 0x2b00: map_setusers(fd); break;
 		case 0x2b03: clif_charselectok(RFIFOL(fd,2)); break;
 		case 0x2b04: chrif_recvmap(fd); break;

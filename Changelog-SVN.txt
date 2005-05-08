@@ -1,5 +1,6 @@
 Date	Added
 05/08	
+	* documented the packetlentable of chrif [Sirius]
 	* fixed crash in clif_joinchatok [veider]
 	* Optimising 2 party queries in SQL char, thanks to Zoc
 	* Fixed a typo in SQL party saving, sorry ^^; [celest]
