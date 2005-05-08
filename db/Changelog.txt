@@ -8,6 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them I believe.
 
+05/08
+	* Removed Sword Mastery from Alchemist's skill tree :o [DracoRPG]
 05/06
 	* Fixed some genders for some FOOD. Added some new items into item_db. Thanks 2 Landarma [Lupus]
 05/04

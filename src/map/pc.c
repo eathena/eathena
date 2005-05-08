@@ -65,23 +65,36 @@ unsigned long fame_update_tick = -1;
 
 static unsigned int equip_pos[11]={0x0080,0x0008,0x0040,0x0004,0x0001,0x0200,0x0100,0x0010,0x0020,0x0002,0x8000};
 
-//static struct dbt *gm_account_db;
 static struct gm_account *gm_account = NULL;
 static int GM_num = 0;
 
+int pc_istop10fame(int char_id,int type) {
+	int i;
+
+	switch(type){
+	case 0: // Blacksmith
+	    for(i=1;i<=10;i++){
+			if(smith_fame_list[i].id==char_id)
+			    return 1;
+		}
+		break;
+	case 1: // Alchemist
+	    for(i=1;i<=10;i++){
+	        if(chemist_fame_list[i].id==char_id)
+	            return 1;
+		}
+	}
+
+	return 0;
+}
+
 int pc_isGM(struct map_session_data *sd) {
-//	struct gm_account *p;
 	int i;
 
 	nullpo_retr(0, sd);
 
 	if(sd->bl.type!=BL_PC )
 		return 0;
-
-/*	p = numdb_search(gm_account_db, sd->status.account_id);
-	if (p == NULL)
-		return 0;
-	return p->level;*/
 
 	//For console [Wizputer]
 	if ( sd->fd == 0 )
@@ -1157,15 +1170,15 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		break;
 	case SP_ATK1:
 		if(!sd->state.lr_flag)
-			sd->watk+=val;
+			sd->right_weapon.watk+=val;
 		else if(sd->state.lr_flag == 1)
-			sd->watk_+=val;
+			sd->left_weapon.watk+=val;
 		break;
 	case SP_ATK2:
 		if(!sd->state.lr_flag)
-			sd->watk2+=val;
+			sd->right_weapon.watk2+=val;
 		else if(sd->state.lr_flag == 1)
-			sd->watk_2+=val;
+			sd->left_weapon.watk2+=val;
 		break;
 	case SP_BASE_ATK:
 		if(sd->state.lr_flag != 2)
@@ -1219,9 +1232,9 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		break;
 	case SP_ATKELE:
 		if(!sd->state.lr_flag)
-			sd->atk_ele=val;
+			sd->right_weapon.atk_ele=val;
 		else if(sd->state.lr_flag == 1)
-			sd->atk_ele_=val;
+			sd->left_weapon.atk_ele=val;
 		else if(sd->state.lr_flag == 2)
 			sd->arrow_ele=val;
 		break;
@@ -1323,15 +1336,15 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		break;
 	case SP_IGNORE_DEF_ELE:
 		if(!sd->state.lr_flag)
-			sd->ignore_def_ele |= 1<<val;
+			sd->right_weapon.ignore_def_ele |= 1<<val;
 		else if(sd->state.lr_flag == 1)
-			sd->ignore_def_ele_ |= 1<<val;
+			sd->left_weapon.ignore_def_ele |= 1<<val;
 		break;
 	case SP_IGNORE_DEF_RACE:
 		if(!sd->state.lr_flag)
-			sd->ignore_def_race |= 1<<val;
+			sd->right_weapon.ignore_def_race |= 1<<val;
 		else if(sd->state.lr_flag == 1)
-			sd->ignore_def_race_ |= 1<<val;
+			sd->left_weapon.ignore_def_race |= 1<<val;
 		break;
 	case SP_ATK_RATE:
 		if(sd->state.lr_flag != 2)
@@ -1375,15 +1388,15 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		break;
 	case SP_DEF_RATIO_ATK_ELE:
 		if(!sd->state.lr_flag)
-			sd->def_ratio_atk_ele |= 1<<val;
+			sd->right_weapon.def_ratio_atk_ele |= 1<<val;
 		else if(sd->state.lr_flag == 1)
-			sd->def_ratio_atk_ele_ |= 1<<val;
+			sd->left_weapon.def_ratio_atk_ele |= 1<<val;
 		break;
 	case SP_DEF_RATIO_ATK_RACE:
 		if(!sd->state.lr_flag)
-			sd->def_ratio_atk_race |= 1<<val;
+			sd->right_weapon.def_ratio_atk_race |= 1<<val;
 		else if(sd->state.lr_flag == 1)
-			sd->def_ratio_atk_race_ |= 1<<val;
+			sd->left_weapon.def_ratio_atk_race |= 1<<val;
 		break;
 	case SP_HIT_RATE:
 		if(sd->state.lr_flag != 2)
@@ -1585,9 +1598,9 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		break;
 	case SP_IGNORE_DEF_MOB:	// 0:normal monsters only, 1:affects boss monsters as well
 		if(!sd->state.lr_flag)
-			sd->ignore_def_mob |= 1<<val;
+			sd->right_weapon.ignore_def_mob |= 1<<val;
 		else if(sd->state.lr_flag == 1)
-			sd->ignore_def_mob_ |= 1<<val;
+			sd->left_weapon.ignore_def_mob |= 1<<val;
 		break;
 	case SP_HP_GAIN_VALUE:
 		if(!sd->state.lr_flag)
@@ -1634,25 +1647,25 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 	switch(type){
 	case SP_ADDELE:
 		if(!sd->state.lr_flag)
-			sd->addele[type2]+=val;
+			sd->right_weapon.addele[type2]+=val;
 		else if(sd->state.lr_flag == 1)
-			sd->addele_[type2]+=val;
+			sd->left_weapon.addele[type2]+=val;
 		else if(sd->state.lr_flag == 2)
 			sd->arrow_addele[type2]+=val;
 		break;
 	case SP_ADDRACE:
 		if(!sd->state.lr_flag)
-			sd->addrace[type2]+=val;
+			sd->right_weapon.addrace[type2]+=val;
 		else if(sd->state.lr_flag == 1)
-			sd->addrace_[type2]+=val;
+			sd->left_weapon.addrace[type2]+=val;
 		else if(sd->state.lr_flag == 2)
 			sd->arrow_addrace[type2]+=val;
 		break;
 	case SP_ADDSIZE:
 		if(!sd->state.lr_flag)
-			sd->addsize[type2]+=val;
+			sd->right_weapon.addsize[type2]+=val;
 		else if(sd->state.lr_flag == 1)
-			sd->addsize_[type2]+=val;
+			sd->left_weapon.addsize[type2]+=val;
 		else if(sd->state.lr_flag == 2)
 			sd->arrow_addsize[type2]+=val;
 		break;
@@ -1694,29 +1707,29 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		break;
 	case SP_ADD_DAMAGE_CLASS:
 		if(!sd->state.lr_flag) {
-			for(i=0;i<sd->add_damage_class_count;i++) {
-				if(sd->add_damage_classid[i] == type2) {
-					sd->add_damage_classrate[i] += val;
+			for(i=0;i<sd->right_weapon.add_damage_class_count;i++) {
+				if(sd->right_weapon.add_damage_classid[i] == type2) {
+					sd->right_weapon.add_damage_classrate[i] += val;
 					break;
 				}
 			}
-			if(i >= sd->add_damage_class_count && sd->add_damage_class_count < 10) {
-				sd->add_damage_classid[sd->add_damage_class_count] = type2;
-				sd->add_damage_classrate[sd->add_damage_class_count] += val;
-				sd->add_damage_class_count++;
+			if(i >= sd->right_weapon.add_damage_class_count && sd->right_weapon.add_damage_class_count < 10) {
+				sd->right_weapon.add_damage_classid[sd->right_weapon.add_damage_class_count] = type2;
+				sd->right_weapon.add_damage_classrate[sd->right_weapon.add_damage_class_count] += val;
+				sd->right_weapon.add_damage_class_count++;
 			}
 		}
 		else if(sd->state.lr_flag == 1) {
-			for(i=0;i<sd->add_damage_class_count_;i++) {
-				if(sd->add_damage_classid_[i] == type2) {
-					sd->add_damage_classrate_[i] += val;
+			for(i=0;i<sd->left_weapon.add_damage_class_count;i++) {
+				if(sd->left_weapon.add_damage_classid[i] == type2) {
+					sd->left_weapon.add_damage_classrate[i] += val;
 					break;
 				}
 			}
-			if(i >= sd->add_damage_class_count_ && sd->add_damage_class_count_ < 10) {
-				sd->add_damage_classid_[sd->add_damage_class_count_] = type2;
-				sd->add_damage_classrate_[sd->add_damage_class_count_] += val;
-				sd->add_damage_class_count_++;
+			if(i >= sd->left_weapon.add_damage_class_count && sd->left_weapon.add_damage_class_count < 10) {
+				sd->left_weapon.add_damage_classid[sd->left_weapon.add_damage_class_count] = type2;
+				sd->left_weapon.add_damage_classrate[sd->left_weapon.add_damage_class_count] += val;
+				sd->left_weapon.add_damage_class_count++;
 			}
 		}
 		break;
@@ -1767,43 +1780,43 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		break;
 	case SP_HP_DRAIN_RATE:
 		if(!sd->state.lr_flag) {
-			sd->hp_drain_rate += type2;
-			sd->hp_drain_per += val;
+			sd->right_weapon.hp_drain_rate += type2;
+			sd->right_weapon.hp_drain_per += val;
 		}
 		else if(sd->state.lr_flag == 1) {
-			sd->hp_drain_rate_ += type2;
-			sd->hp_drain_per_ += val;
+			sd->left_weapon.hp_drain_rate += type2;
+			sd->left_weapon.hp_drain_per += val;
 		}
 		break;
 	case SP_HP_DRAIN_VALUE:
 		if(!sd->state.lr_flag) {
-			sd->hp_drain_rate += type2;
-			sd->hp_drain_value += val;
+			sd->right_weapon.hp_drain_rate += type2;
+			sd->right_weapon.hp_drain_value += val;
 		}
 		else if(sd->state.lr_flag == 1) {
-			sd->hp_drain_rate_ += type2;
-			sd->hp_drain_value_ += val;
+			sd->left_weapon.hp_drain_rate += type2;
+			sd->left_weapon.hp_drain_value += val;
 		}
 		break;
 	case SP_SP_DRAIN_RATE:
 		if(!sd->state.lr_flag) {
-			sd->sp_drain_rate += type2;
-			sd->sp_drain_per += val;
+			sd->right_weapon.sp_drain_rate += type2;
+			sd->right_weapon.sp_drain_per += val;
 		}
 		else if(sd->state.lr_flag == 1) {
-			sd->sp_drain_rate_ += type2;
-			sd->sp_drain_per_ += val;			
+			sd->left_weapon.sp_drain_rate += type2;
+			sd->left_weapon.sp_drain_per += val;
 		}
 		sd->sp_drain_type = 0;
 		break;
 	case SP_SP_DRAIN_VALUE:
 		if(!sd->state.lr_flag) {
-			sd->sp_drain_rate += type2;
-			sd->sp_drain_value += val;
+			sd->right_weapon.sp_drain_rate += type2;
+			sd->right_weapon.sp_drain_value += val;
 		}
 		else if(sd->state.lr_flag == 1) {
-			sd->sp_drain_rate_ += type2;
-			sd->sp_drain_value_ += val;
+			sd->left_weapon.sp_drain_rate += type2;
+			sd->left_weapon.sp_drain_value += val;
 		}
 		sd->sp_drain_type = 0;
 		break;
@@ -1880,9 +1893,9 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		if (type2 > 0 && type2 < MAX_MOB_RACE_DB)
 			break;
 		if(sd->state.lr_flag != 2)
-			sd->addrace2[type2] += val;
+			sd->right_weapon.addrace2[type2] += val;
 		else
-			sd->addrace2_[type2] += val;
+			sd->left_weapon.addrace2[type2] += val;
 		break;
 	case SP_SUBSIZE:
 		if(sd->state.lr_flag != 2)
@@ -2022,23 +2035,23 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 		break;
 	case SP_SP_DRAIN_RATE:
 		if(!sd->state.lr_flag) {
-			sd->sp_drain_rate += type2;
-			sd->sp_drain_per += type3;			
+			sd->right_weapon.sp_drain_rate += type2;
+			sd->right_weapon.sp_drain_per += type3;
 		}
 		else if(sd->state.lr_flag == 1) {
-			sd->sp_drain_rate_ += type2;
-			sd->sp_drain_per_ += type3;
+			sd->left_weapon.sp_drain_rate += type2;
+			sd->left_weapon.sp_drain_per += type3;
 		}
 		sd->sp_drain_type = val;
 		break;
 	case SP_SP_DRAIN_VALUE:
 		if(!sd->state.lr_flag) {
-			sd->sp_drain_rate += type2;
-			sd->sp_drain_value += type3;
+			sd->right_weapon.sp_drain_rate += type2;
+			sd->right_weapon.sp_drain_value += type3;
 		}
 		else if(sd->state.lr_flag == 1) {
-			sd->sp_drain_rate_ += type2;
-			sd->sp_drain_value_ += type3;
+			sd->left_weapon.sp_drain_rate += type2;
+			sd->left_weapon.sp_drain_value += type3;
 		}
 		sd->sp_drain_type = val;
 		break;
@@ -2845,7 +2858,6 @@ int pc_item_refine(struct map_session_data *sd,int idx)
 			}
 
 			per = percentrefinery [ditem->wlv][(int)item->refine];
-			//per += pc_checkskill(sd,BS_WEAPONRESEARCH);
 			per *= (75 + sd->status.job_level/2)/100;
 
 			if (per > rand() % 100) {

@@ -411,21 +411,21 @@ const struct skill_name_db skill_names[] = {
  { SG_FUSION, "FUSION", "Fusion" } ,
  { SG_HATE, "HATE", "Hate" } ,
  { SG_KNOWLEDGE, "KNOWLEDGE", "Knowledge" } ,
- { SG_MOON_ANGER, "ANGER", "Moon Anger" } ,
- { SG_MOON_BLESS, "BLESS", "Moon Bless" } ,
- { SG_MOON_COMFORT, "COMFORT", "Moon Comfort" } ,
- { SG_MOON_WARM, "WARM", "Moon Warm" } ,
- { SG_STAR_ANGER, "ANGER", "Star Anger" } ,
- { SG_STAR_BLESS, "BLESS", "Star Bless" } ,
- { SG_STAR_COMFORT, "COMFORT", "Star Comfort" } ,
- { SG_STAR_WARM, "WARM", "Star Warm" } ,
- { SG_SUN_ANGER, "ANGER", "Sun Anger" } ,
- { SG_SUN_BLESS, "BLESS", "Sun Bless" } ,
- { SG_SUN_COMFORT, "COMFORT", "Sun Comfort" } ,
- { SG_SUN_WARM, "WARM", "Sun Warm" } ,
+ { SG_MOON_ANGER, "ANGER", "Moon_Anger" } ,
+ { SG_MOON_BLESS, "BLESS", "Moon_Bless" } ,
+ { SG_MOON_COMFORT, "COMFORT", "Moon_Comfort" } ,
+ { SG_MOON_WARM, "WARM", "Moon_Warm" } ,
+ { SG_STAR_ANGER, "ANGER", "Star_Anger" } ,
+ { SG_STAR_BLESS, "BLESS", "Star_Bless" } ,
+ { SG_STAR_COMFORT, "COMFORT", "Star_Comfort" } ,
+ { SG_STAR_WARM, "WARM", "Star_Warm" } ,
+ { SG_SUN_ANGER, "ANGER", "Sun_Anger" } ,
+ { SG_SUN_BLESS, "BLESS", "Sun_Bless" } ,
+ { SG_SUN_COMFORT, "COMFORT", "Sun_Comfort" } ,
+ { SG_SUN_WARM, "WARM", "Sun_Warm" } ,
  { SL_ALCHEMIST, "ALCHEMIST", "Alchemist" } ,
  { SL_ASSASIN, "ASSASIN", "Assassin" } ,
- { SL_BARDDANCER, "BARDDANCER", "Bard Dancer" } ,
+ { SL_BARDDANCER, "BARDDANCER", "Bard_Dancer" } ,
  { SL_BLACKSMITH, "BLACKSMITH", "Blacksmith" } ,
  { SL_CRUSADER, "CRUSADER", "Crusader" } ,
  { SL_HUNTER, "HUNTER", "Hunter" } ,
@@ -442,11 +442,11 @@ const struct skill_name_db skill_names[] = {
  { SL_SKA, "SKA", "SKA" } ,
  { SL_SKE, "SKE", "SKE" } ,
  { SL_SMA, "SMA", "SMA" } ,
- { SL_SOULLINKER, "SOULLINKER", "Soul Linker" } ,
+ { SL_SOULLINKER, "SOULLINKER", "Soul_Linker" } ,
  { SL_STAR, "STAR", "Star" } ,
  { SL_STIN, "STIN", "Stin" } ,
  { SL_STUN, "STUN", "Stun" } ,
- { SL_SUPERNOVICE, "SUPERNOVICE", "Super Novice" } ,
+ { SL_SUPERNOVICE, "SUPERNOVICE", "Super_Novice" } ,
  { SL_SWOO, "SWOO", "Swoo" } ,
  { SL_WIZARD, "WIZARD", "Wizard" } ,
  { SM_AUTOBERSERK, "AUTOBERSERK", "Berserk" } ,
@@ -480,23 +480,23 @@ const struct skill_name_db skill_names[] = {
  { TF_THROWSTONE, "THROWSTONE", "Stone_Fling" } ,
  { TK_COUNTER, "COUNTER", "Counter" } ,
  { TK_DODGE, "DODGE", "Dodge" } ,
- { TK_DOWNKICK, "DOWNKICK", "Down Kick" } ,
- { TK_HIGHJUMP, "HIGHJUMP", "High Jump" } ,
- { TK_HPTIME, "HPTIME", "HP Time" } ,
- { TK_JUMPKICK, "JUMPKICK", "Jump Kick" } ,
+ { TK_DOWNKICK, "DOWNKICK", "Down_Kick" } ,
+ { TK_HIGHJUMP, "HIGHJUMP", "High_Jump" } ,
+ { TK_HPTIME, "HPTIME", "HP_Time" } ,
+ { TK_JUMPKICK, "JUMPKICK", "Jump_Kick" } ,
  { TK_POWER, "POWER", "Power" } ,
- { TK_READYCOUNTER, "READYCOUNTER", "Ready Counter" } ,
- { TK_READYDOWN, "READYDOWN", "Ready Down" } ,
- { TK_READYSTORM, "READYSTORM", "Ready Storm" } ,
- { TK_READYTURN, "READYTURN", "Ready Turn" } ,
- { TK_RUN, "RUN", "TK_RUN" } ,
- { TK_SEVENWIND, "SEVENWIND", "Seven Wind" } ,
- { TK_SPTIME, "SPTIME", "SP Time" } ,
- { TK_STORMKICK, "STORMKICK", "Storm Kick" } ,
- { TK_TURNKICK, "TURNKICK", "Turn Kick" } ,
- { WE_BABY, "BABY", "I Love Mama and Fafa" } ,
- { WE_CALLBABY, "CALLBABY", "Come With Me, Baby" } ,
- { WE_CALLPARENT, "CALLPARENT", "I Miss My Parents" } ,
+ { TK_READYCOUNTER, "READYCOUNTER", "Ready_Counter" } ,
+ { TK_READYDOWN, "READYDOWN", "Ready_Down" } ,
+ { TK_READYSTORM, "READYSTORM", "Ready_Storm" } ,
+ { TK_READYTURN, "READYTURN", "Ready_Turn" } ,
+ { TK_RUN, "RUN", "Run" } ,
+ { TK_SEVENWIND, "SEVENWIND", "Seven_Wind" } ,
+ { TK_SPTIME, "SPTIME", "SP_Time" } ,
+ { TK_STORMKICK, "STORMKICK", "Storm_Kick" } ,
+ { TK_TURNKICK, "TURNKICK", "Turn_Kick" } ,
+ { WE_BABY, "BABY", "I_Love_Mama_and_Fafa" } ,
+ { WE_CALLBABY, "CALLBABY", "Come_With_Me,_Baby" } ,
+ { WE_CALLPARENT, "CALLPARENT", "I_Miss_My_Parents" } ,
  { WE_CALLPARTNER, "CALLPARTNER", "Romantic_Rendezvous" } ,
  { WE_FEMALE, "FEMALE", "Loving_Touch" } ,
  { WE_MALE, "MALE", "Undying_Love" } ,
@@ -1599,25 +1599,25 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		struct map_session_data *sd = (struct map_session_data *)src;
 		int hp = 0,sp = 0;
 		nullpo_retr(0, sd);
-		if(sd->hp_drain_rate && sd->hp_drain_per > 0 && dmg.damage > 0 && rand()%100 < sd->hp_drain_rate) {
-			hp += (dmg.damage * sd->hp_drain_per)/100;
-			if(sd->hp_drain_rate > 0 && hp < 1) hp = 1;
-			else if(sd->hp_drain_rate < 0 && hp > -1) hp = -1;
+		if(sd->right_weapon.hp_drain_rate && sd->right_weapon.hp_drain_per > 0 && dmg.damage > 0 && rand()%100 < sd->right_weapon.hp_drain_rate) {
+			hp += (dmg.damage * sd->right_weapon.hp_drain_per)/100;
+			if(sd->right_weapon.hp_drain_rate > 0 && hp < 1) hp = 1;
+			else if(sd->right_weapon.hp_drain_rate < 0 && hp > -1) hp = -1;
 		}
-		if(sd->hp_drain_rate_ && sd->hp_drain_per_ > 0 && dmg.damage2 > 0 && rand()%100 < sd->hp_drain_rate_) {
-			hp += (dmg.damage2 * sd->hp_drain_per_)/100;
-			if(sd->hp_drain_rate_ > 0 && hp < 1) hp = 1;
-			else if(sd->hp_drain_rate_ < 0 && hp > -1) hp = -1;
+		if(sd->left_weapon.hp_drain_rate && sd->left_weapon.hp_drain_per > 0 && dmg.damage2 > 0 && rand()%100 < sd->left_weapon.hp_drain_rate) {
+			hp += (dmg.damage2 * sd->left_weapon.hp_drain_per)/100;
+			if(sd->left_weapon.hp_drain_rate > 0 && hp < 1) hp = 1;
+			else if(sd->left_weapon.hp_drain_rate < 0 && hp > -1) hp = -1;
 		}
-		if(sd->sp_drain_rate > 0 && sd->sp_drain_per > 0 && dmg.damage > 0 && rand()%100 < sd->sp_drain_rate) {
-			sp += (dmg.damage * sd->sp_drain_per)/100;
-			if(sd->sp_drain_rate > 0 && sp < 1) sp = 1;
-			else if(sd->sp_drain_rate < 0 && sp > -1) sp = -1;
+		if(sd->right_weapon.sp_drain_rate > 0 && sd->right_weapon.sp_drain_per > 0 && dmg.damage > 0 && rand()%100 < sd->right_weapon.sp_drain_rate) {
+			sp += (dmg.damage * sd->right_weapon.sp_drain_per)/100;
+			if(sd->right_weapon.sp_drain_rate > 0 && sp < 1) sp = 1;
+			else if(sd->right_weapon.sp_drain_rate < 0 && sp > -1) sp = -1;
 		}
-		if(sd->sp_drain_rate_ > 0 && sd->sp_drain_per_ > 0 && dmg.damage2 > 0 && rand()%100 < sd->sp_drain_rate_) {
-			sp += (dmg.damage2 * sd->sp_drain_per_)/100;
-			if(sd->sp_drain_rate_ > 0 && sp < 1) sp = 1;
-			else if(sd->sp_drain_rate_ < 0 && sp > -1) sp = -1;
+		if(sd->left_weapon.sp_drain_rate > 0 && sd->left_weapon.sp_drain_per > 0 && dmg.damage2 > 0 && rand()%100 < sd->left_weapon.sp_drain_rate) {
+			sp += (dmg.damage2 * sd->left_weapon.sp_drain_per)/100;
+			if(sd->left_weapon.sp_drain_rate > 0 && sp < 1) sp = 1;
+			else if(sd->left_weapon.sp_drain_rate < 0 && sp > -1) sp = -1;
 		}
 		if(hp || sp)
 			pc_heal(sd,hp,sp);
@@ -3930,9 +3930,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 
 		for (i=0;i<4;i++) {
-			if (sclist[i] != 0) { // Start the SC only if an equipment was stripped from this location
+			if (sclist[i] != 0) // Start the SC only if an equipment was stripped from this location
 			   status_change_start(bl,sclist[i],skilllv,0,0,0,skill_get_time(skillid,skilllv)+strip_fix/2,0);
-			}
 		}
 
 		break;
@@ -4024,10 +4023,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if(status_isimmune(bl))
 				break;
 			for(i=0;i<136;i++){
-				if(i==SC_RIDING || i== SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50
+				if(i==SC_RIDING || i==SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50
 					|| i==SC_WEIGHT90 || i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR
 					|| i==SC_STRIPHELM || i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR
-					|| i==SC_CP_HELM || i==SC_COMBO)
+					|| i==SC_CP_HELM || i==SC_COMBO || i==SC_LULLABY || i==SC_RICHMANKIM
+					|| i==SC_ETERNALCHAOS || i==SC_DRUMBATTLE || i==SC_NIBELUNGEN || i==SC_ROKISWEIL
+					|| i==SC_INTOABYSS || i==SC_SIEGFRIED || i==SC_DISSONANCE || i==SC_WHISTLE
+					|| i==SC_ASSNCROS || i==SC_POEMBRAGI || i==SC_APPLEIDUN || i==SC_UGLYDANCE
+					|| i==SC_HUMMING || i==SC_DONTFORGETME || i==SC_FORTUNE || i==SC_SERVICE4U
+					|| i==SC_MOONLIT || i==SC_LONGING || i==SC_HERMODE || i== SC_DANCING)
 						continue;
 				status_change_end(bl,i,-1);
 			}

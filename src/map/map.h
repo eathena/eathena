@@ -77,6 +77,33 @@ struct vending {
 	unsigned int value;
 };
 
+struct weapon_data {
+	int watk;
+	int watk2;
+	int overrefine;
+	int star;
+	int atk_ele;
+	int atkmods[3];
+	int addsize[3];
+	int addele[10];
+	int addrace[12];
+	int addrace2[12];
+	int ignore_def_ele;
+	int ignore_def_race;
+	short ignore_def_mob;
+	int def_ratio_atk_ele;
+	int def_ratio_atk_race;
+	int add_damage_class_count;
+	short add_damage_classid[10];
+	int add_damage_classrate[10];
+	short hp_drain_rate;
+	short hp_drain_per;
+	short hp_drain_value;
+	short sp_drain_rate;
+	short sp_drain_per;
+	short sp_drain_value;
+};
+
 struct skill_unit_group;
 struct skill_unit {
 	struct block_list bl;
@@ -237,16 +264,16 @@ struct map_session_data {
 	short view_class;
 	short weapontype1,weapontype2;
 	short disguiseflag,disguise; // [Valaris]
+
+	struct weapon_data right_weapon;
+	struct weapon_data left_weapon;
 	int paramb[6],paramc[6],parame[6],paramcard[6];
 	int hit,flee,flee2,aspd,amotion,dmotion;
-	int watk,watk2,atkmods[3];
 	int def,def2,mdef,mdef2,critical,matk1,matk2;
-	int atk_ele,def_ele,star,overrefine;
+	int def_ele;
 	int castrate,delayrate,hprate,sprate,dsprate;
-	int addele[10],addrace[12],addsize[3],subele[10],subrace[12];
+	int subele[10],subrace[12];
 	int addeff[10],addeff2[10],reseff[10];
-	int watk_,watk_2,atkmods_[3],addele_[10],addrace_[12],addsize_[3];	//二刀流のために追加
-	int atk_ele_,star_,overrefine_;				//二刀流のために追加
 	int base_atk,atk_rate;
 	int weapon_atk[16],weapon_atk_rate[16];
 	int arrow_atk,arrow_ele,arrow_cri,arrow_hit,arrow_range;
@@ -254,15 +281,13 @@ struct map_session_data {
 	int nhealhp,nhealsp,nshealhp,nshealsp,nsshealhp,nsshealsp;
 	int aspd_rate,speed_rate,hprecov_rate,sprecov_rate,critical_def,double_rate;
 	int near_attack_def_rate,long_attack_def_rate,magic_def_rate,misc_def_rate;
-	int matk_rate,ignore_def_ele,ignore_def_race,ignore_def_ele_,ignore_def_race_;
+	int matk_rate;
 	int ignore_mdef_ele,ignore_mdef_race;
 	int magic_addele[10],magic_addrace[12],magic_subrace[12];
 	int perfect_hit,get_zeny_num;
 	int critical_rate,hit_rate,flee_rate,flee2_rate,def_rate,def2_rate,mdef_rate,mdef2_rate;
-	int def_ratio_atk_ele,def_ratio_atk_ele_,def_ratio_atk_race,def_ratio_atk_race_;
-	int add_damage_class_count,add_damage_class_count_,add_magic_damage_class_count;
-	short add_damage_classid[10],add_damage_classid_[10],add_magic_damage_classid[10];
-	int add_damage_classrate[10],add_damage_classrate_[10],add_magic_damage_classrate[10];
+	int add_magic_damage_class_count,add_magic_damage_classrate[10];
+	short add_magic_damage_classid[10];
 	short add_def_class_count,add_mdef_class_count;
 	short add_def_classid[10],add_mdef_classid[10];
 	int add_def_classrate[10],add_mdef_classrate[10];
@@ -272,9 +297,6 @@ struct map_session_data {
 	int double_add_rate,speed_add_rate,aspd_add_rate,perfect_hit_add, get_zeny_add_num;
 	short splash_range,splash_add_range;
 	short autospell_id[10],autospell_lv[10],autospell_rate[10];
-	short hp_drain_rate,hp_drain_per,sp_drain_rate,sp_drain_per;
-	short hp_drain_rate_,hp_drain_per_,sp_drain_rate_,sp_drain_per_;
-	short hp_drain_value,sp_drain_value,hp_drain_value_,sp_drain_value_;
 	int short_weapon_damage_return,long_weapon_damage_return;
 	int weapon_coma_ele[10],weapon_coma_race[12];
 	int break_weapon_rate,break_armor_rate;
@@ -292,10 +314,8 @@ struct map_session_data {
 	int add_damage_classrate2[10];
 	short sp_gain_value, hp_gain_value;
 	short sp_drain_type;
-	short ignore_def_mob, ignore_def_mob_;
 	int hp_loss_tick, hp_loss_rate;
 	short hp_loss_value, hp_loss_type;
-	int addrace2[12],addrace2_[12];
 	int subsize[3];
 	short unequip_losehp[11];
 	short unequip_losesp[11];
@@ -543,12 +563,12 @@ enum { NONE_ATTACKABLE,ATTACKABLE };
 
 enum { ATK_LUCKY=1,ATK_FLEE,ATK_DEF};	// 囲まれペナルティ計算用
 
-// 装備コード
+// For equipment breaking/stripping effects
 enum {
-	EQP_WEAPON		= 1,		// 右手
-	EQP_ARMOR		= 2,		// 体
-	EQP_SHIELD		= 4,		// 左手
-	EQP_HELM		= 8,		// 頭上段
+	EQP_WEAPON		= 1,		// Both weapons
+	EQP_ARMOR		= 2,		// Armor
+	EQP_SHIELD		= 4,		// Shield
+	EQP_HELM		= 8,		// Top-head headgear
 };
 
 struct map_data {

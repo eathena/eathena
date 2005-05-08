@@ -78,7 +78,7 @@ L_RELEASE:
 M_Q1:
 //ÅEÂÒÅE1
 	mes "[Saddeus]";
-	mes "Our stocks are short of toadstools.  Remeber your morning's skilly?  What about some work at our sponsored mushroom farm?";
+	mes "Our stocks are short of toadstools.  Remember your morning's skilly?  What about some work at our sponsored mushroom farm?";
 	next;
 	menu "OK, I'll work off!",-, "I love this prison!",M_NO_THANKS;
 
@@ -116,7 +116,7 @@ L_W4:
 M_NO_THANKS:
 	mes "[Saddeus]";  
 	if (rand(2)) mes "Is today X-Mas time, huh?";
-	mes "Now shududp and back off!";
+	mes "Now shut up and back off!";
 	if (rand(2)) emotion 23;
 	close;  
 }

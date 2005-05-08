@@ -1054,7 +1054,13 @@ int atcommand_send(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int type = strtol(message,(char **)NULL,0);
+	int i,type=0;
+	int info[20];
+	
+   	if (!message || !*message || sscanf(message, "%x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &type, &info[1], &info[2], &info[3], &info[4], &info[5], &info[6], &info[7], &info[8], &info[9], &info[10], &info[11], &info[12], &info[13], &info[14], &info[15], &info[16], &info[17], &info[18], &info[19], &info[20]) < 1) {
+		clif_displaymessage(fd, "Please enter a packet number, and - if required - up to 20 additional values.");
+		return -1;
+	}
 
 	if (type > 0 && type < MAX_PACKET_DB) {
 
@@ -1073,6 +1079,9 @@ int atcommand_send(
 		//	break;
 		default:
 			WFIFOW(fd,0) = type;
+			for(i=1;i<=sizeof(info);i++)
+				if(info[i])
+					WFIFOW(fd,i) = info[i];
 			WFIFOSET(fd, packet_db[clif_config.packet_db_ver][type].len);
 			break;
 		}

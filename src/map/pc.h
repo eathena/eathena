@@ -13,7 +13,6 @@
 
 #define pc_setdead(sd) ((sd)->state.dead_sit = 1)
 #define pc_setsit(sd) ((sd)->state.dead_sit = 2)
-//#define pc_setstand(sd) ((sd)->state.dead_sit = 0)
 #define pc_isdead(sd) ((sd)->state.dead_sit == 1)
 #define pc_issit(sd) ((sd)->state.dead_sit == 2)
 #define pc_setdir(sd,b,h) ((sd)->dir = (b) ,(sd)->head_dir = (h) )
@@ -26,6 +25,7 @@
 #define pc_is50overweight(sd) (sd->weight*2 >= sd->max_weight) 
 #define pc_is90overweight(sd) (sd->weight*10 >= sd->max_weight*9)
 
+int pc_istop10fame(int char_id, int type);
 int pc_isGM(struct map_session_data *sd);
 int pc_iskiller(struct map_session_data *src, struct map_session_data *target); // [MouseJstr]
 int pc_getrefinebonus(int lv,int type);

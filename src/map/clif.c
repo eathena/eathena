@@ -2426,7 +2426,7 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 		WFIFOL(fd,4)=sd->aspd;
 		break;
 	case SP_ATK1:
-		WFIFOL(fd,4)=sd->base_atk+sd->watk;
+		WFIFOL(fd,4)=sd->base_atk+sd->right_weapon.watk;
 		break;
 	case SP_DEF1:
 		WFIFOL(fd,4)=sd->def;
@@ -2435,7 +2435,7 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 		WFIFOL(fd,4)=sd->mdef;
 		break;
 	case SP_ATK2:
-		WFIFOL(fd,4)=sd->watk2;
+		WFIFOL(fd,4)=sd->right_weapon.watk2;
 		break;
 	case SP_DEF2:
 		WFIFOL(fd,4)=sd->def2;
@@ -2695,8 +2695,8 @@ int clif_initialstatus(struct map_session_data *sd)
 	WBUFB(buf,14)=(sd->status.luk > 255)? 255:sd->status.luk;
 	WBUFB(buf,15)=pc_need_status_point(sd,SP_LUK);
 
-	WBUFW(buf,16) = sd->base_atk + sd->watk;
-	WBUFW(buf,18) = sd->watk2; //atk bonus
+	WBUFW(buf,16) = sd->base_atk + sd->right_weapon.watk;
+	WBUFW(buf,18) = sd->right_weapon.watk2; //atk bonus
 	WBUFW(buf,20) = sd->matk1;
 	WBUFW(buf,22) = sd->matk2;
 	WBUFW(buf,24) = sd->def; // def
@@ -4943,7 +4943,7 @@ int clif_wis_message(int fd, char *nick, char *mes, int mes_len) // R 0097 <len>
  * The transmission result of Wisp/page is transmitted to the source player
  *------------------------------------------
  */
-int clif_wis_end(int fd, int flag) // R 0098 <type>.B: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
+int clif_wis_end(int fd, int flag) // R 0098 <type>.B: 0: success to send wisper, 1: target character is not loged in, 2: ignored by target, 3: everyone ignored by target
 {
 	WFIFOW(fd,0) = 0x98;
 	WFIFOW(fd,2) = flag;
@@ -7139,6 +7139,20 @@ void clif_adopt_process(struct map_session_data *sd)
 	WFIFOW(fd,0)=0x1f8;
 	WFIFOSET(fd,packet_len_table[0x1f8]);
 }
+/*==========================================
+ * Marry [DracoRPG]
+ *------------------------------------------
+ */
+void clif_marriage_process(struct map_session_data *sd)
+{
+	int fd;
+	nullpo_retv(sd);
+
+	fd=sd->fd;
+	WFIFOW(fd,0)=0x1e4;
+	WFIFOSET(fd,packet_len_table[0x1e4]);
+}
+
 
 /*==========================================
  * Notice of divorce
@@ -7162,8 +7176,8 @@ void clif_divorced(struct map_session_data *sd, char *name)
 void clif_parse_ReqAdopt(int fd, struct map_session_data *sd) {
 	nullpo_retv(sd);
 
-	printf ("%d\n", RFIFOL(fd,2));
-	// send 0x1e3
+	WFIFOW(fd,0)=0x1f6;
+	WFIFOSET(fd, packet_len_table[0x1f6]);
 }
 
 /*==========================================
@@ -7173,8 +7187,8 @@ void clif_parse_ReqAdopt(int fd, struct map_session_data *sd) {
 void clif_parse_ReqMarriage(int fd, struct map_session_data *sd) {
 	nullpo_retv(sd);
 
-	printf ("%d\n", RFIFOL(fd,2));
-	// send 0x1f6
+	WFIFOW(fd,0)=0x1e2;
+	WFIFOSET(fd, packet_len_table[0x1e2]);
 }
 
 /*==========================================
@@ -8475,18 +8489,18 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 				if (dstsd->status.option & OPTION_HIDE && pc_isGM(sd) < pc_isGM(dstsd))
 					clif_wis_end(fd, 1); // 1: target character is not loged in
 				else
-					clif_wis_end(fd, 2); // type: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
+					clif_wis_end(fd, 3); // 3: everyone ignored by target
 			} else {
 				// if player ignore the source character
 				for(i = 0; i < MAX_IGNORE_LIST; i++)
 					if (strcmp(dstsd->ignore[i].name, sd->status.name) == 0) {
-						clif_wis_end(fd, 2);	// flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
+						clif_wis_end(fd, 2);	// 2: ignored by target
 						break;
 					}
 				// if source player not found in ignore list
 				if (i == MAX_IGNORE_LIST) {
 					clif_wis_message(dstsd->fd, sd->status.name, (char*)RFIFOP(fd,28), RFIFOW(fd,2) - 28);
-					clif_wis_end(fd, 0); // type: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
+					clif_wis_end(fd, 0); // 0: success to send wisper
 				}
 			}
 		}
