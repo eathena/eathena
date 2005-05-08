@@ -1,4 +1,4 @@
-z
+// $Id: chrif.c,v 1.6 2004/09/25 11:39:17 MouseJstr Exp $
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
