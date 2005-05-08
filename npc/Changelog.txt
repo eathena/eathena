@@ -36,8 +36,9 @@ TODO:
 Date		Added
 ======
 
-05/09	* Fixed some typos [massdriller]
-	* (Thanks to neko for point those out)
+05/09
+	* Added first Ayothaya city NPCs
+	* Fixed some typos [massdriller] (Thanks to neko for point those out)
 	* Fixed Ayothaya warps.[massdriller]
 
 05/07

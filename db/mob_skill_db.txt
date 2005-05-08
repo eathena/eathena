@@ -1,4 +1,5 @@
-//mob_skill_db.txt@AthenaDB plan 2004/04/28 00:45:49 +0900/(JST)/
+// Monsters Skills Database v 1.0
+//
 //MOB_ID, a dummy character sequence, STATE, SKILL_ID, SKILL_LV, the rate of 10,000th of a minute, casttime, delay, the disturbance possibility of, a target, a condition type, a condition value, a value 1, a value 2, a value 3, a value 4, 5/of values, a dummy character sequence: Or that it is good to put in an intelligible 
 //Example
 //1001,Gibberish,attack,52,3,100,1500,10000,no,target,always,0,,,,,
@@ -67,9 +68,6 @@ Only place specification skill is good for a round system. friend is good only o
 1014,水属性攻撃＠スポア,attack,184,1,100,0,15000,yes,target,always,0,,,,,,
 1014,睡眠攻撃＠スポア,attack,182,5,100,0,10000,no,target,always,0,,,,,,
 1015,毒攻撃＠ゾンビ,attack,176,1,100,1000,10000,no,target,always,0,,,,,,
-1016,ダブルストレイフィング＠アーチャースケルトン,attack,46,1,300,1500,10000,yes,target,myhpltmaxrate,30,,,,,,
-1016,ダブルストレイフィング＠アーチャースケルトン,attack,46,1,100,1500,10000,yes,target,always,0,,,,,,
-1016,ダブルストレイフィング＠アーチャースケルトン,chase,46,1,100,1500,10000,yes,target,always,0,,,,,,
 1018,テレポート＠クリーミー,idle,26,1,50,0,100000,yes,self,always,0,,,,,,
 1018,風属性攻撃＠クリーミー,attack,187,1,100,0,15000,yes,target,always,0,,,,,,
 1018,睡眠攻撃＠クリーミー,attack,182,5,100,0,10000,no,target,always,0,,,,,,
@@ -92,9 +90,6 @@ Only place specification skill is good for a round system. friend is good only o
 1028,エモーション＠ソルジャースケルトン,chase,197,1,15,0,10000,yes,self,always,0,,,,,,
 1029,闇属性攻撃＠イシス,attack,190,2,100,0,15000,yes,target,always,0,,,,,,
 1029,速度増加＠イシス,chase,29,1,100,1000,120000,yes,self,always,0,,,,,,
-1030,インベナム＠アナコンダク,attack,52,3,300,1500,10000,no,target,myhpltmaxrate,30,,,,,,
-1030,インベナム＠アナコンダク,attack,52,3,100,1500,10000,no,target,always,0,,,,,,
-1030,毒属性攻撃＠アナコンダク,attack,188,1,100,0,15000,yes,target,always,0,,,,,,
 1031,毒属性攻撃＠ポポリン,attack,188,1,100,0,15000,yes,target,always,0,,,,,,
 1031,毒攻撃＠ポポリン,attack,176,3,100,1000,10000,no,target,always,0,,,,,,
 1031,エモーション＠ポポリン,loot,197,1,15,0,10000,yes,self,always,0,2,,,,,
@@ -146,26 +141,6 @@ Only place specification skill is good for a round system. friend is good only o
 1038,必中攻撃＠オシリス,chase,172,1,200,0,5000,yes,target,always,0,,,,,,
 1038,ベナムダスト＠オシリス,chase,140,8,200,0,0,yes,target,always,0,,,,,,
 1038,呪い攻撃＠オシリス,chase,181,1,100,0,10000,yes,target,always,0,,,,,,
-1039,テレポート＠バフォメット,idle,26,1,1000,0,3600000,yes,self,closedattacked,,,,,,,
-1039,テレポート＠バフォメット,idle,26,1,100,0,100000,yes,self,always,0,,,,,,
-1039,テレポート＠バフォメット,walk,26,1,1000,0,3600000,yes,self,closedattacked,,,,,,,
-1039,モンスター召喚＠バフォメット,attack,209,4,1000,3000,3600000,no,self,myhpltmaxrate,5,1101,,,,,
-1039,風属性攻撃＠バフォメット,attack,187,5,200,0,5000,yes,target,always,0,,,,,,
-1039,ツーハンドクイッケン＠バフォメット,attack,60,10,500,3000,300000,no,self,myhpltmaxrate,20,,,,,,
-1039,取り巻き召喚＠バフォメット,attack,196,4,1000,3000,3600000,no,self,slavele,0,1101,,,,,
-1039,必中攻撃＠バフォメット,attack,172,1,200,0,5000,yes,target,always,0,,,,,,
-1039,ブランディッシュスピア＠バフォメット,attack,57,5,1000,0,3000,yes,target,attackpcge,2,,,,,,
-1039,防御無視攻撃＠バフォメット,attack,170,1,200,0,5000,yes,target,always,0,,,,,,
-1039,マキシマイズパワー＠バフォメット,attack,114,1,100,0,20000,yes,self,always,0,,,,,,
-1039,ロードオブヴァーミリオン＠バフォメット,attack,85,10,500,1500,4000,no,target,attackpcge,2,,,,,,
-1039,ロードオブヴァーミリオン＠バフォメット,attack,85,10,500,1500,4000,no,target,longrangeattacked,,,,,,,
-1039,ロードオブヴァーミリオン＠バフォメット,attack,85,10,800,1500,4000,no,target,skillused,18,,,,,,
-1039,呪い攻撃＠バフォメット,attack,181,1,100,0,10000,yes,target,always,0,,,,,,
-1039,速度増加＠バフォメット,chase,29,1,500,3000,120000,no,self,myhpltmaxrate,50,,,,,,
-1039,取り巻き召喚＠バフォメット,chase,196,4,10000,3000,3600000,no,self,slavele,2,1101,,,,,
-1039,ロードオブヴァーミリオン＠バフォメット,chase,85,10,500,1500,4000,no,target,attackpcge,2,,,,,,
-1039,ロードオブヴァーミリオン＠バフォメット,chase,85,10,500,1500,4000,no,target,longrangeattacked,,,,,,,
-1039,ロードオブヴァーミリオン＠バフォメット,chase,85,10,800,1500,4000,no,target,skillused,18,,,,,,
 1040,エモーション＠ゴーレム,idle,197,1,5,0,10000,yes,self,always,0,9,,,,,
 1040,スタン攻撃＠ゴーレム,attack,179,4,300,1500,10000,no,target,myhpltmaxrate,30,,,,,,
 1040,スタン攻撃＠ゴーレム,attack,179,4,100,1500,10000,no,target,always,0,,,,,,
@@ -251,12 +226,6 @@ Only place specification skill is good for a round system. friend is good only o
 1059,ユピテルサンダー＠ミストレス,chase,84,8,300,1500,0,no,target,longrangeattacked,,,,,,,
 1059,ユピテルサンダー＠ミストレス,chase,84,8,800,1500,0,no,target,skillused,18,,,,,,
 1059,レックスディビーナ＠ミストレス,chase,76,8,300,1500,5000,no,target,always,0,,,,,,
-1060,スタン攻撃＠ビックフット,attack,179,4,300,1000,10000,no,target,myhpltmaxrate,30,,,,,,
-1060,スタン攻撃＠ビックフット,attack,179,4,100,1000,10000,no,target,always,0,,,,,,
-1060,地属性攻撃＠ビックフット,attack,185,1,100,0,15000,yes,target,always,0,,,,,,
-1060,インデュア＠ビックフット,chase,8,1,1000,0,30000,yes,self,longrangeattacked,,,,,,,
-1060,インデュア＠ビックフット,chase,8,1,1000,0,30000,yes,self,skillused,18,,,,,,
-1060,エモーション＠ビックフット,chase,197,1,15,0,10000,yes,self,always,0,,,,,,
 1061,精神破壊＠ナイトメア,attack,159,2,150,0,10000,no,target,myhpltmaxrate,30,,,,,,
 1061,精神破壊＠ナイトメア,attack,159,2,50,0,10000,no,target,always,0,,,,,,
 1061,念属性攻撃＠ナイトメア,attack,191,5,200,0,7500,yes,target,always,0,,,,,,
@@ -359,41 +328,6 @@ Only place specification skill is good for a round system. friend is good only o
 1092,多段攻撃＠さすらい狼,attack,171,1,500,0,0,no,target,always,0,,,,,,
 1092,エモーション＠さすらい狼,chase,197,1,15,0,10000,yes,self,always,0,27,,,,,
 1093,取り巻き召喚＠エクリプス,attack,196,5,1000,3000,10000,no,self,slavele,2,1063,,,,,
-1094,エモーション＠アンバーナイト,walk,197,1,15,0,10000,yes,self,always,0,19,,,,,
-1094,水属性攻撃＠アンバーナイト,attack,184,1,100,0,15000,yes,target,always,0,,,,,,
-1094,地属性変化＠アンバーナイト,attack,163,1,1000,1000,300000,no,self,myhpltmaxrate,50,,,,,,
-1094,地属性変化＠アンバーナイト,chase,163,1,1000,1000,300000,no,self,myhpltmaxrate,50,,,,,,
-1095,地属性攻撃＠アンドレ,attack,185,1,100,0,15000,yes,target,always,0,,,,,,
-1095,エモーション＠アンドレ,loot,197,1,15,0,10000,yes,self,always,0,,,,,,
-1096,ヒール＠エンジェリング,idle,28,10,1000,2500,3000,yes,friend,friendhpltmaxrate,60,,,,,,
-1096,エモーション＠エンジェリング,walk,197,1,100,0,10000,yes,self,always,0,22,,,,,
-1096,セイフティウォール＠エンジェリング,attack,12,10,1000,3000,5000,no,self,myhpltmaxrate,30,,,,,,
-1096,セイフティウォール＠エンジェリング,attack,12,10,120,3000,5000,no,self,always,0,,,,,,
-1096,聖属性攻撃＠エンジェリング,attack,189,1,200,0,7500,yes,target,always,0,,,,,,
-1096,取り巻き召喚＠エンジェリング,attack,196,4,1000,3000,3600000,no,self,slavele,2,1031,,,,,
-1096,取り巻き召喚＠エンジェリング,attack,196,3,300,3000,10000,no,self,slavele,0,1062,,,,,
-1096,バッシュ＠エンジェリング,attack,5,10,250,1100,10000,no,target,always,0,,,,,,
-1096,ヒール＠エンジェリング,attack,28,10,1000,2500,3000,yes,friend,friendhpltmaxrate,60,,,,,,
-1096,ヒール＠エンジェリング,attack,28,10,1000,0,3000,yes,self,friendstatusoff,30,,,,,,
-1096,ホーリーライト＠エンジェリング,attack,156,1,200,0,5000,yes,target,always,0,,,,,,
-1096,ホーリーライト＠エンジェリング,chase,156,1,200,0,5000,yes,target,always,0,,,,,,
-1097,エモーション＠蟻の卵,idle,197,1,500,0,10000,yes,self,always,0,19,,,,,
-1097,メタモルフォース＠蟻の卵,idle,193,1,1,2000,0,yes,self,always,0,1095,1105,,,,
-1099,インベナム＠アルギオペ,attack,52,5,100,1500,10000,no,target,always,0,,,,,,
-1099,毒属性攻撃＠アルギオペ,attack,188,2,100,0,15000,yes,target,always,0,,,,,,
-1099,ベナムダスト＠アルギオペ,attack,140,5,100,2000,20000,no,target,always,0,,,,,,
-1099,ベナムダスト＠アルギオペ,chase,140,5,100,2000,20000,no,target,always,0,,,,,,
-1100,毒属性攻撃＠アルゴス,attack,188,1,100,0,15000,yes,target,always,0,,,,,,
-1100,毒攻撃＠アルゴス,attack,176,5,100,1000,10000,no,target,always,0,,,,,,
-1101,錯覚＠バフォメットJr.,attack,207,1,100,0,10000,yes,target,always,0,,,,,,
-1101,闇属性攻撃＠バフォメットJr.,attack,190,3,100,0,15000,yes,target,always,0,,,,,,
-1101,アドレナリンラッシュ＠バフォメットJr.,chase,111,1,10,3000,30000,yes,self,always,0,,,,,,
-1101,錯覚＠バフォメットJr.,chase,207,1,100,0,10000,yes,target,always,0,,,,,,
-1102,エナジードレイン＠バースリー,attack,200,1,1000,0,10000,yes,target,myhpltmaxrate,70,,,,,,
-1102,沈黙攻撃＠バースリー,attack,178,5,200,0,10000,no,target,always,0,,,,,,
-1102,闇属性攻撃＠バースリー,attack,190,2,100,0,15000,yes,target,always,0,,,,,,
-1102,エナジードレイン＠バースリー,chase,200,1,1000,0,10000,yes,target,myhpltmaxrate,70,,,,,,
-1102,エモーション＠バースリー,chase,197,1,15,0,10000,yes,self,always,0,30,,,,,
 1103,エモーション＠キャラメル,attack,197,1,15,0,10000,yes,self,always,0,16,,,,,
 1103,地属性攻撃＠キャラメル,attack,185,1,100,0,15000,yes,target,always,0,,,,,,
 1103,防御無視攻撃＠キャラメル,attack,170,1,100,0,10000,no,target,always,0,,,,,,
@@ -782,9 +716,6 @@ Only place specification skill is good for a round system. friend is good only o
 1180,ランダム属性変化＠九尾狐,attack,161,1,1000,1000,30000,no,self,myhpltmaxrate,80,,,,,,
 1180,ニューマ＠九尾狐,attack,25,1,1000,0,20000,yes,self,longrangeattacked,,,,,,,
 1180,ランダム属性変化＠九尾狐,chase,161,1,1000,1000,30000,no,self,myhpltmaxrate,80,,,,,,
-1188,スピアスタブ＠ボンゴン,attack,58,1,1000,1500,30000,no,target,myhpltmaxrate,30,,,,,,
-1188,スピアスタブ＠ボンゴン,attack,58,1,100,1500,10000,no,target,always,0,,,,,,
-1188,バックステップ＠ボンゴン,attack,150,1,1000,0,60000,yes,self,myhpltmaxrate,30,,,,,,
 1189,アンクルスネア＠オークアーチャー,idle,117,5,50,1500,50000,yes,self,always,0,,,,,,
 1189,アローシャワー＠オークアーチャー,attack,47,5,1000,1500,10000,yes,target,attackpcge,2,,,,,,
 1189,アローシャワー＠オークアーチャー,attack,47,5,300,1500,10000,yes,target,myhpltmaxrate,30,,,,,,
@@ -823,9 +754,6 @@ Only place specification skill is good for a round system. friend is good only o
 1192,呪い攻撃＠レイス,attack,181,5,300,0,10000,no,target,myhpltmaxrate,30,,,,,,
 1192,呪い攻撃＠レイス,attack,181,5,100,0,10000,no,target,always,0,,,,,,
 1192,エナジードレイン＠レイス,chase,200,1,1000,2000,10000,yes,target,myhpltmaxrate,70,,,,,,
-1193,範囲攻撃＠アラーム,attack,174,1,1000,1500,0,no,target,attackpcge,2,,,,,,
-1193,暗闇攻撃＠アラーム,attack,177,5,1000,0,10000,no,target,always,0,,,,,,
-1194,地属性攻撃＠アクラウス,attack,185,3,200,0,7500,yes,target,always,0,,,,,,
 1195,吸血＠ライドワード,attack,199,1,1000,0,0,yes,target,myhpltmaxrate,70,,,,,,
 1195,暗闇攻撃＠ライドワード,attack,177,5,1000,0,10000,no,target,always,0,,,,,,
 1195,防御無視攻撃＠ライドワード,attack,170,2,500,0,10000,no,target,always,0,,,,,,
@@ -868,8 +796,6 @@ Only place specification skill is good for a round system. friend is good only o
 1205,スピアブーメラン＠エクスキューショナー,chase,59,7,300,3000,5000,no,target,longrangeattacked,,,,,,,
 1205,スピアブーメラン＠エクスキューショナー,chase,59,7,100,3000,5000,no,target,always,0,,,,,,
 1205,マキシマイズパワー＠エクスキューショナー,chase,114,1,100,1000,40000,yes,self,always,0,,,,,,
-1206,エモーション＠アノリアン,walk,197,1,15,0,10000,yes,self,always,0,,,,,,
-1206,水属性攻撃＠アノリアン,attack,184,3,200,0,7500,yes,target,always,0,,,,,,
 1207,エモーション＠スティング,walk,197,1,15,0,10000,yes,self,always,0,,,,,,
 1207,クァグマイア＠スティング,attack,92,2,150,500,10000,yes,target,myhpltmaxrate,30,,,,,,
 1207,クァグマイア＠スティング,attack,92,2,50,500,10000,yes,target,always,0,,,,,,
@@ -886,9 +812,6 @@ Only place specification skill is good for a round system. friend is good only o
 1209,インベナム＠クランプ,attack,52,6,300,1500,10000,no,target,myhpltmaxrate,30,,,,,,
 1209,インベナム＠クランプ,attack,52,6,100,1500,10000,no,target,always,0,,,,,,
 1209,毒属性攻撃＠クランプ,attack,188,3,200,0,7500,yes,target,always,0,,,,,,
-1211,火属性攻撃＠ブリライト,attack,186,2,100,0,15000,yes,target,always,0,,,,,,
-1211,風属性変化＠ブリライト,attack,165,1,1000,1000,300000,no,self,myhpltmaxrate,50,,,,,,
-1211,風属性変化＠ブリライト,chase,165,1,1000,1000,300000,no,self,myhpltmaxrate,50,,,,,,
 1213,喫煙＠ハイオーク,idle,195,1,10,0,0,yes,self,always,0,,,,,,
 1213,火属性攻撃＠ハイオーク,attack,186,3,200,0,7500,yes,target,always,0,,,,,,
 1213,必中攻撃＠ハイオーク,attack,172,1,500,0,5000,yes,target,always,0,,,,,,
@@ -913,18 +836,6 @@ Only place specification skill is good for a round system. friend is good only o
 1216,毒属性攻撃＠ペノメナ,attack,188,3,100,0,15000,yes,target,always,0,,,,,,
 1216,多段攻撃＠ペノメナ,attack,171,3,300,1500,10000,no,target,myhpltmaxrate,30,,,,,,
 1216,多段攻撃＠ペノメナ,attack,171,3,100,1500,10000,no,target,always,0,,,,,,
-1219,テレポート＠深淵の騎士,idle,26,1,50,0,100000,yes,self,always,0,,,,,,
-1219,闇属性攻撃＠深淵の騎士,attack,190,4,200,0,7500,yes,target,always,0,,,,,,
-1219,ブランディッシュスピア＠深淵の騎士,attack,57,8,1000,2500,3000,no,target,attackpcge,2,,,,,,
-1219,ブランディッシュスピア＠深淵の騎士,attack,57,8,300,2500,10000,no,target,myhpltmaxrate,30,,,,,,
-1219,ブランディッシュスピア＠深淵の騎士,attack,57,8,100,2500,10000,no,target,always,0,,,,,,
-1219,ブランディッシュスピア＠深淵の騎士,attack,57,8,100,2500,10000,no,target,skillused,61,,,,,,
-1219,マキシマイズパワー＠深淵の騎士,attack,114,1,100,1000,40000,yes,self,always,0,,,,,,
-1219,取り巻き召喚＠深淵の騎士,attack,196,2,10000,1500,40000,no,self,slavele,0,1132,,,,,
-1219,チャージアロー＠深淵の騎士,chase,148,1,300,0,10000,no,target,myhpltmaxrate,30,,,,,,
-1219,チャージアロー＠深淵の騎士,chase,148,1,100,0,10000,no,target,always,0,,,,,,
-1219,マキシマイズパワー＠深淵の騎士,chase,114,1,100,1000,40000,yes,self,always,0,,,,,,
-1219,取り巻き召喚＠深淵の騎士,idle,196,2,100,1500,40000,no,self,slavele,0,1132,,,,,
 1242,水属性攻撃＠マーリン,attack,184,1,200,0,7500,yes,target,always,0,,,,,,
 1242,フロストダイバー＠マーリン,attack,15,1,300,1000,10000,yes,target,myhpltmaxrate,70,,,,,,
 1242,フロストダイバー＠マーリン,attack,15,1,100,1000,10000,yes,target,always,0,,,,,,
@@ -950,9 +861,6 @@ Only place specification skill is good for a round system. friend is good only o
 1246,ライトニングボルト＠クリスマスクッキー,chase,20,2,300,4000,10000,yes,target,longrangeattacked,,,,,,,
 1246,ライトニングボルト＠クリスマスクッキー,chase,20,2,50,4000,10000,yes,target,always,0,,,,,,
 1246,レックスエーテルナ＠クリスマスクッキー,chase,78,1,50,0,10000,yes,target,always,0,,,,,,
-1247,テレポート＠アンソニ,idle,26,1,100,0,100000,yes,self,always,0,,,,,,
-1247,テレポート＠アンソニ,attack,26,1,100,0,100000,yes,self,always,0,,,,,,
-1247,テレポート＠アンソニ,chase,26,1,100,0,10000,yes,self,always,0,,,,,,
 1248,多段攻撃＠クルーザー,attack,171,1,100,0,10000,no,target,always,0,,,,,,
 1248,多段攻撃＠クルーザー,attack,171,1,300,0,10000,no,target,always,0,,,,,,
 1248,エモーション＠クルーザー,chase,197,1,15,0,10000,yes,self,always,0,27,,,,,
@@ -1110,15 +1018,6 @@ Only place specification skill is good for a round system. friend is good only o
 1267,ヒール＠ジェスター,chase,28,6,1000,2500,7000,yes,friend,friendhpltmaxrate,60,,,,,,
 1267,ヒール＠ジェスター,chase,28,6,1000,0,7000,yes,self,myhpltmaxrate,30,,,,,,
 1267,プロボック＠ジェスター,chase,6,10,100,1500,30000,yes,target,always,0,,,,,,
-1268,闇属性攻撃＠ブラッディナイト,attack,190,5,200,0,7500,yes,target,always,0,,,,,,
-1268,火属性変化＠ブラッディナイト,attack,164,1,1000,1000,300000,no,self,myhpltmaxrate,30,,,,,,
-1268,ブランディッシュスピア＠ブラッディナイト,attack,57,9,1000,2500,3000,no,target,attackpcge,2,,,,,,
-1268,ブランディッシュスピア＠ブラッディナイト,attack,57,9,100,2500,10000,no,target,always,0,,,,,,
-1268,メテオストーム＠ブラッディナイト,attack,83,8,300,2500,0,no,target,myhpltmaxrate,30,,,,,,
-1268,メテオストーム＠ブラッディナイト,attack,83,8,100,2500,10000,no,target,always,0,,,,,,
-1268,火属性変化＠ブラッディナイト,chase,164,1,1000,1000,300000,no,self,myhpltmaxrate,30,,,,,,
-1268,メテオストーム＠ブラッディナイト,chase,83,8,300,2500,0,no,target,myhpltmaxrate,30,,,,,,
-1268,メテオストーム＠ブラッディナイト,chase,83,8,100,2500,10000,no,target,always,0,,,,,,
 1269,エモーション＠クロック,attack,197,1,15,0,10000,yes,self,always,0,,,,,,
 1269,精神破壊＠クロック,attack,159,3,100,0,10000,no,target,always,0,,,,,,
 1269,地属性攻撃＠クロック,attack,185,3,200,0,7500,yes,target,always,0,,,,,,
@@ -1134,7 +1033,6 @@ Only place specification skill is good for a round system. friend is good only o
 1270,レックスディビーナ＠時計塔管理者,chase,76,7,300,3500,10000,yes,target,myhpltmaxrate,30,,,,,,
 1270,レックスディビーナ＠時計塔管理者,chase,76,5,1000,3500,10000,yes,target,casttargeted,,,,,,,
 1270,レックスディビーナ＠時計塔管理者,chase,76,7,100,3500,10000,yes,target,always,0,,,,,,
-1271,水属性攻撃＠アリゲーター,attack,184,2,100,0,15000,yes,target,always,0,,,,,,
 1272,テレポート＠ダークロード,walk,26,1,10,0,3600000,yes,self,closedattacked,,,,,,,
 1272,エナジードレイン＠ダークロード,attack,200,1,1000,2000,10000,no,target,myhpltmaxrate,70,,,,,,
 1272,モンスター召喚＠ダークロード,attack,209,4,1000,3000,3600000,no,self,myhpltmaxrate,5,1302,,,,,
@@ -1160,15 +1058,6 @@ Only place specification skill is good for a round system. friend is good only o
 1273,速度増加＠オークレディ,chase,29,1,200,1000,120000,yes,self,always,0,,,,,,30
 1274,エモーション＠メガリス,idle,197,1,5,0,10000,yes,self,always,0,9,,,,,
 1274,テレポート＠メガリス,idle,26,1,50,0,100000,yes,self,always,0,,,,,,
-1275,エモーション＠アリス,idle,197,1,500,0,10000,yes,self,always,0,5,,,,,
-1275,取り巻き召喚＠アリス,idle,196,2,300,0,3600000,no,self,slavele,0,1281,,,,,
-1275,ヒール＠アリス,idle,28,7,1000,2500,7000,yes,friend,friendhpltmaxrate,60,,,,,,
-1275,スピアスタブ＠アリス,attack,58,1,300,1300,5000,no,target,myhpltmaxrate,30,,,,,,
-1275,スピアスタブ＠アリス,attack,58,1,100,1300,5000,no,target,always,0,,,,,,
-1275,ヒール＠アリス,attack,28,7,1000,2500,7000,yes,friend,friendhpltmaxrate,60,,,,,,
-1275,ヒール＠アリス,attack,28,7,1000,0,7000,yes,self,myhpltmaxrate,30,,,,,,
-1275,ヒール＠アリス,chase,28,7,1000,2500,7000,yes,friend,friendhpltmaxrate,60,,,,,,
-1275,ヒール＠アリス,chase,28,7,1000,0,7000,yes,self,myhpltmaxrate,30,,,,,,
 1276,闇属性攻撃＠レイドリックアーチャー,attack,190,3,200,0,7500,yes,target,always,0,,,,,,
 1276,チャージアロー＠レイドリックアーチャー,attack,148,1,300,2000,10000,no,target,myhpltmaxrate,30,,,,,,
 1276,チャージアロー＠レイドリックアーチャー,attack,148,1,100,2000,10000,no,target,always,0,,,,,,
@@ -1216,8 +1105,6 @@ Only place specification skill is good for a round system. friend is good only o
 1283,ヘヴンズドライブ＠キメラ,attack,91,5,100,2500,10000,no,target,always,0,,,,,,
 1283,ヘヴンズドライブ＠キメラ,chase,91,5,100,2500,10000,no,target,longrangeattacked,,,,,,,
 1283,ヘヴンズドライブ＠キメラ,chase,91,5,100,2500,10000,no,target,always,0,,,,,,
-1285,ダブルストレイフィング＠アーチャーガーディアン,attack,46,10,200,0,0,yes,target,always,0,,,,,,
-1285,チャージアロー＠アーチャーガーディアン,attack,148,1,200,0,0,yes,target,always,0,,,,,,
 1287,スタン攻撃＠ソルジャーガーディアン,attack,179,5,200,0,0,yes,target,always,0,,,,,,
 1287,バッシュ＠ソルジャーガーディアン,attack,5,10,200,0,0,yes,target,always,0,,,,,,
 1289,ヒール＠マヤパープル,idle,28,10,100,1000,10000,yes,friend,friendhpltmaxrate,80,,,,,,
@@ -1268,7 +1155,6 @@ Only place specification skill is good for a round system. friend is good only o
 1296,アドレナリンラッシュ＠コボルドリーダー,attack,111,1,250,1500,30000,yes,self,always,0,,,,,,
 1296,防御無視攻撃＠コボルドリーダー,attack,170,5,250,0,0,no,target,always,0,,,,,,
 1296,アドレナリンラッシュ＠コボルドリーダー,chase,111,1,120,1500,30000,yes,self,always,0,,,,,,
-1297,多段攻撃＠エンシェントマミー,attack,171,2,250,0,0,no,target,always,0,,,,,,
 1298,取り巻き召喚＠ゾンビマスター,attack,196,2,1000,0,3600000,no,self,slavele,2,1036,,,,,
 1298,ブランディッシュスピア＠ゾンビマスター,attack,57,10,1000,2500,0,no,target,attackpcge,2,,,,,,
 1298,ブランディッシュスピア＠ゾンビマスター,attack,57,10,160,2500,0,no,target,always,0,,,,,,
@@ -1282,11 +1168,6 @@ Only place specification skill is good for a round system. friend is good only o
 1300,毒属性攻撃＠キャタピラー,attack,188,5,200,0,7500,yes,target,always,0,,,,,,
 1300,石化攻撃＠キャタピラー,attack,180,5,300,0,10000,no,target,myhpltmaxrate,30,,,,,,
 1300,石化攻撃＠キャタピラー,attack,180,5,100,0,10000,no,target,always,0,,,,,,
-1301,エモーション＠アムムト,walk,197,1,15,0,10000,yes,self,always,0,2,,,,,
-1301,取り巻き召喚＠アムムト,attack,196,2,1000,0,3600000,no,self,slavele,2,1077,,,,,
-1301,アドレナリンラッシュ＠アムムト,attack,111,1,250,1000,30000,yes,self,always,0,,,,,,
-1301,闇属性攻撃＠アムムト,attack,190,5,100,0,15000,yes,target,always,0,,,,,,
-1301,メマーナイト＠アムムト,attack,42,10,250,1500,0,no,target,always,0,,,,,,
 1302,風属性攻撃＠ダークイリュージョン,attack,187,5,100,1000,10000,yes,target,always,0,,,,,,
 1302,必中攻撃＠ダークイリュージョン,attack,172,1,100,1000,10000,yes,target,always,0,,,,,,
 1302,ファイアーウォール＠ダークイリュージョン,attack,18,7,100,1000,10000,yes,target,always,0,,,,,,
@@ -1305,12 +1186,6 @@ Only place specification skill is good for a round system. friend is good only o
 1304,毒属性攻撃＠ジャイアントスパイダー,attack,188,5,100,0,15000,yes,target,always,0,,,,,,
 1304,毒攻撃＠ジャイアントスパイダー,attack,176,5,250,1000,0,no,target,always,0,,,,,,
 1304,グリムトゥース＠ジャイアントスパイダー,chase,137,5,200,0,0,no,target,always,0,,,,,,
-1305,ベナムダスト＠エンシェントワーム,idle,140,10,50,2000,0,no,self,always,0,,,,,,
-1305,取り巻き召喚＠エンシェントワーム,attack,196,2,1000,0,3600000,no,self,slavele,2,1099,,,,,
-1305,インベナム＠エンシェントワーム,attack,52,10,250,1500,0,no,target,always,0,,,,,,
-1305,毒属性攻撃＠エンシェントワーム,attack,188,5,100,0,15000,yes,target,always,0,,,,,,
-1305,ベナムダスト＠エンシェントワーム,attack,140,10,250,2000,0,yes,target,always,0,,,,,,
-1305,ベナムダスト＠エンシェントワーム,chase,140,10,120,2000,0,no,target,always,0,,,,,,
 1306,スタン攻撃＠レイブオルマイ,attack,179,5,250,1000,0,no,target,always,0,,,,,,
 1306,地属性攻撃＠レイブオルマイ,attack,185,4,200,0,7500,yes,target,always,0,,,,,,
 1306,マグナムブレイク＠レイブオルマイ,attack,7,10,1000,1500,0,no,target,attackpcge,2,,,,,,
@@ -1394,12 +1269,6 @@ Only place specification skill is good for a round system. friend is good only o
 1314,ヒール＠パーメットタートル,attack,28,10,1000,0,4000,yes,self,myhpltmaxrate,30,,,,,,
 1314,ヒール＠パーメットタートル,chase,28,10,1000,1500,4000,yes,friend,friendhpltmaxrate,60,,,,,,
 1314,ヒール＠パーメットタートル,chase,28,10,1000,0,4000,yes,self,myhpltmaxrate,30,,,,,,
-1315,エモーション＠アサルトタートル,attack,197,1,15,0,10000,yes,self,myhpltmaxrate,5,23,,,,,
-1315,風属性攻撃＠アサルトタートル,attack,187,3,200,0,7500,yes,target,always,0,,,,,,
-1315,ソニックブロー＠アサルトタートル,attack,136,5,300,1500,10000,no,target,myhpltmaxrate,30,,,,,,
-1315,ソニックブロー＠アサルトタートル,attack,136,5,100,1500,10000,no,target,always,0,,,,,,
-1315,取り巻き召喚＠アサルトタートル,attack,196,2,1000,3000,3600000,no,self,myhpltmaxrate,20,1364,,,,,
-1315,バックステップ＠アサルトタートル,attack,150,1,1000,1000,0,no,self,myhpltmaxrate,20,,,,,,
 1316,エモーション＠ソリッドタートル,walk,197,1,15,0,10000,yes,self,always,0,9,,,,,
 1316,スタン攻撃＠ソリッドタートル,attack,179,5,300,1500,10000,no,target,myhpltmaxrate,30,,,,,,
 1316,スタン攻撃＠ソリッドタートル,attack,179,4,100,1500,10000,no,target,always,0,,,,,,
@@ -1443,14 +1312,8 @@ Only place specification skill is good for a round system. friend is good only o
 1364,ソニックブロー＠アサルトタートル,attack,136,5,100,1500,10000,no,target,always,0,,,,,,
 1364,取り巻き召喚＠アサルトタートル,attack,196,2,1000,3000,3600000,no,self,myhpltmaxrate,20,1364,,,,,
 1364,バックステップ＠アサルトタートル,attack,150,1,1000,1000,0,no,self,myhpltmaxrate,20,,,,,,
-1365,ブランディッシュスピア＠アポカリプス,attack,57,5,1000,0,3000,yes,target,attackpcge,2,,,,,,
-1365,自爆＠アポカリプス,attack,173,1,50,3000,0,no,self,myhpltmaxrate,30,,,,,,
-1365,多段攻撃＠アポカリプス,attack,171,4,250,1500,0,no,target,always,0,,,,,,
 1366,取り巻き召喚＠ラーヴァゴーレム,attack,196,2,1000,0,3600000,no,self,slavele,2,1367,,,,,
 1366,火属性攻撃＠ラーヴァゴーレム,attack,186,5,100,0,15000,yes,target,always,0,,,,,,
-1367,ファイアーボール＠ブレイザー,attack,17,10,350,0,0,no,target,attackpcge,2,,,,,,
-1367,火属性攻撃＠ブレイザー,attack,186,3,100,0,15000,yes,target,always,0,,,,,,
-1367,ファイアーボール＠ブレイザー,chase,17,10,350,0,0,no,target,always,0,,,,,,
 1368,ヒール＠ジオグラファー,idle,28,10,1000,1500,4000,yes,friend,friendhpltmaxrate,60,,,,,,
 1368,ヒール＠ジオグラファー,idle,28,10,1000,1500,4000,yes,friend,masterhpltmaxrate,60,,,,,,
 1368,睡眠攻撃＠ジオグラファー,attack,182,5,100,0,10000,no,target,always,0,,,,,,
@@ -1537,18 +1400,6 @@ Only place specification skill is good for a round system. friend is good only o
 1387,地属性攻撃＠ギグ,attack,185,3,100,0,15000,yes,target,always,0,,,,,,
 1387,ハイディング＠ギグ,attack,51,1,300,1000,20000,yes,self,myhpltmaxrate,30,,,,,,
 1387,インベナム＠ギグ,attack,52,5,100,1500,10000,no,target,always,0,,,,,,
-1388,ヒール＠アークエンジェリング,idle,28,10,1000,2500,3000,yes,friend,friendhpltmaxrate,60,,,,,,
-1388,インティミデイト＠アークエンジェリング,attack,219,10,500,0,1000000,no,target,always,0,,,,,,
-1388,セイフティウォール＠アークエンジェリング,attack,12,10,1000,3000,5000,no,self,slavele,3,,,,,,
-1388,セイフティウォール＠アークエンジェリング,attack,12,10,120,3000,5000,no,self,always,0,,,,,,
-1388,聖属性攻撃＠アークエンジェリング,attack,189,1,200,0,7500,yes,target,always,0,,,,,,
-1388,ヒール＠アークエンジェリング,attack,28,10,1000,2500,3000,yes,friend,friendhpltmaxrate,60,,,,,,
-1388,ヒール＠アークエンジェリング,attack,28,10,1000,0,3000,yes,self,myhpltmaxrate,30,,,,,,
-1388,ホーリーライト＠アークエンジェリング,attack,156,1,200,0,5000,yes,target,always,0,,,,,,
-1388,取り巻き召喚＠アークエンジェリング,attack,196,3,10000,0,3600000,yes,self,myhpltmaxrate,50,1261,1281,,,,
-1388,取り巻き召喚＠アークエンジェリング,attack,196,5,10000,3000,30000,no,self,slavele,0,1267,1246,,,,
-1388,取り巻き召喚＠アークエンジェリング,chase,196,5,1000,3000,3600000,no,self,slavele,0,1267,1246,,,,
-1388,ホーリーライト＠アークエンジェリング,chase,156,1,200,0,5000,yes,target,always,0,,,,,,
 1389,テレポート＠ドラキュラ,idle,26,1,1000,0,100000,yes,self,always,0,,,,,,
 1389,吸血＠ドラキュラ,attack,199,5,100,0,0,yes,target,myhpltmaxrate,70,,,,,,
 1389,精神破壊＠ドラキュラ,attack,159,5,100,0,0,yes,target,myhpltmaxrate,70,,,,,,
@@ -1607,8 +1458,6 @@ Only place specification skill is good for a round system. friend is good only o
 1401,スタン攻撃＠カブキ忍者,attack,179,5,100,1500,10000,no,target,always,0,,,,,,
 1402,毒攻撃＠大口蛙,attack,176,5,100,1000,10000,no,target,always,0,,,,,,
 1402,インベナム＠大口蛙,attack,52,5,100,1500,10000,no,target,always,0,,,,,,
-1403,ダブルストレイフィング＠銃奇兵,attack,46,1,100,1500,10000,yes,target,always,0,,,,,,
-1403,ダブルストレイフィング＠銃奇兵,chase,46,1,100,1500,10000,yes,target,always,0,,,,,,
 1404,暗闇攻撃＠雅人形,attack,177,5,100,0,10000,no,target,always,0,,,,,,
 1404,呪い攻撃＠雅人形,attack,181,5,100,0,10000,yes,target,always,0,,,,,,
 1404,沈黙攻撃＠雅人形,attack,178,5,100,0,10000,no,target,always,0,,,,,,
@@ -1621,9 +1470,6 @@ Only place specification skill is good for a round system. friend is good only o
 1406,吸血＠河童,attack,199,1,100,0,0,yes,target,myhpltmaxrate,70,,,,,,
 1406,ウォーターボール＠河童,attack,86,3,100,2000,10000,yes,target,always,0,,,,,,
 1406,ウォーターボール＠河童,chase,86,3,100,2000,10000,yes,target,always,0,,,,,,
-1408,睡眠攻撃＠パピヨン,attack,182,5,100,0,10000,no,target,always,0,,,,,,
-1408,ピアース＠パピヨン,attack,56,8,100,0,3000,yes,target,always,0,,,,,,
-1408,吸血＠パピヨン,attack,199,1,100,0,0,yes,target,myhpltmaxrate,70,,,,,,
 1409,風属性攻撃＠団子童子,attack,187,3,200,0,7500,yes,target,always,0,,,,,,
 1410,ヒール＠人面桃樹,any,28,10,1000,300,3000,no,self,myhpltmaxrate,90,,,,,,
 1410,ヒール＠人面桃樹,any,28,10,1000,300,3000,no,friend,friendhpltmaxrate,60,,,,,,
@@ -1631,7 +1477,6 @@ Only place specification skill is good for a round system. friend is good only o
 1412,テレポート＠天寿仙人,attack,26,1,20,1000,100000,yes,self,always,0,,,,,,
 1412,ファイアーボルト＠天寿仙人,attack,19,5,100,4000,10000,yes,target,always,0,,,,,,
 1412,ファイアーボルト＠天寿仙人,chase,19,5,100,4000,10000,yes,target,always,0,,,,,,
-1415,防御無視攻撃＠コウ,attack,170,5,250,0,0,no,target,always,0,,,,,,
 1416,ヒール＠天仙娘々,attack,28,5,1000,0,3000,yes,self,myhpltmaxrate,50,,,,,,
 1416,ピアース＠天仙娘々,attack,56,8,100,0,3000,yes,target,always,0,,,,,,
 1417,防御無視攻撃＠チャッキー,attack,170,5,250,0,0,no,target,always,0,,,,,,
@@ -2150,6 +1995,231 @@ Only place specification skill is good for a round system. friend is good only o
 // Easter Bunny
 1921,Summon Minions,attack,196,5,1000,3000,10000,no,self,slavele,2,1063,,,,,
 1921,Lay Easter Eggs,idle,196,5,500,2000,40000,no,self,always,2,1920,,,,,
+
+//= The Latest Updated Mobs Skills (in alphabetical order)
+
+//Abyss_Knight
+1219,Charge Arrow,chase,148,1,100,0,5000,no,target,always,0,,,,,,
+1219,Summon Slave,idle,196,2,1000,2000,600000,no,self,slavele,0,1132,,,,, //2 Khalitzburgs
+1219,Brandish Spear,attack,57,8,100,1000,5000,no,target,always,0,,,,,,
+1219,Dark Elemental Attack,attack,190,5,100,5000,5000,yes,target,always,0,,,,,,
+1219,Break Armor,attack,344,10,100,0,5000,yes,target,always,0,,,,,,
+1219,Auto-Guard,chase,249,10,200,0,300000,yes,self,longrangeattacked,,,,,,,
+1219,Auto-Guard,attack,249,10,100,0,300000,yes,self,always,0,,,,,,
+
+//Alarm
+1193,Splash Attack,attack,174,1,200,0,5000,no,target,attackpcge,2,,,,,,
+1193,Blind Status Attack,attack,177,3,100,0,5000,no,target,always,0,,,,,,
+1193,Dark Breath,attack,202,2,100,800,5000,no,target,always,0,,,,,,
+
+//Alice
+1275,Display Emotion,idle,197,1,500,0,10000,yes,self,always,0,5,,,,,
+1275,Summon Slave,idle,196,2,300,0,60000,no,self,slavele,0,1281,,,,, //2 Sage Worms
+1275,Heal,idle,28,9,1000,500,5000,yes,friend,friendhpltmaxrate,60,,,,,,
+1275,Heal,attack,28,9,1000,0,5000,yes,self,myhpltmaxrate,30,,,,,,
+1275,Heal,chase,28,9,1000,0,5000,yes,self,myhpltmaxrate,30,,,,,,
+1275,Shield Charge,attack,250,3,200,0,5000,yes,target,always,0,,,,,,
+1275,Dispel,chase,289,5,100,0,5000,yes,target,always,0,,,,,,
+1275,Dispel,attack,289,5,100,0,5000,yes,target,always,0,,,,,,
+
+//Alligator
+1271,Water Element Attack,attack,184,2,100,500,5000,no,target,always,0,,,,,,
+//1271,Display Emotion,chase,197,1,100,0,5000,yes,self,always,0,<emoticion?>,,,,,
+
+//Am_Mut
+1301,Mammonite,attack,42,9,100,800,5000,no,target,always,0,,,,,,
+1301,Acid Terror,chase,230,5,100,0,5000,yes,target,always,0,,,,,,
+1301,Dark Element Attack,190,3,100,500,5000,no,target,always,0,,,,,,
+1301,Summon Slave,idle,196,2,1000,2000,60000,no,self,slavele,2,1077,,,,, //2 Poison Spores
+1301,Display Emotion,walk,197,1,200,0,5000,yes,self,always,0,2,,,,,
+
+//Ambernite
+1094,Display Emotion,walk,197,1,200,0,5000,yes,self,always,0,19,,,,,
+1094,Water Element Attack,attack,184,1,200,0,5000,yes,target,always,0,,,,,,
+
+//Anacondaq
+1030,Poison Status Attack,attack,176,3,100,800,5000,no,target,always,0,,,,,,
+1030,Poison Element Attack,attack,188,1,200,0,5000,yes,target,always,0,,,,,,
+
+//Ancient_Mummy
+1297,Undead Element Attack,attack,347,3,100,500,5000,no,target,always,0,,,,,,
+1297,Dark Breath,attack,202,3,100,800,5000,no,target,always,0,,,,,,
+
+//Ancient_Worm
+1305,Venom Dust,attack,140,1,100,1500,5000,no,target,always,0,,,,,,
+1305,Poison Status Attack,attack,176,5,100,800,5000,no,target,always,0,,,,,,
+1305,Summon Slave,attack,196,2,1000,2000,60000,no,self,slavele,0,1099,,,,, //2 Argiopes
+
+//Andre
+1095,Earth Element Attack,attack,185,2,100,500,5000,no,target,always,0,,,,,,
+//1095,Display Emotion,loot,197,1,200,0,5000,yes,self,always,0,<emoticion?>,,,,,
+
+//Angeling
+1096,Heal,attack,28,9,1000,500,5000,no,friend,friendhpltmaxrate,60,,,,,,
+1096,Heal,attack,28,9,1000,500,5000,no,self,myhpltmaxrate,30,,,,,,
+1096,Heal,chase,28,9,1000,500,5000,no,friend,friendhpltmaxrate,60,,,,,,
+1096,Heal,chase,28,9,1000,500,5000,no,self,myhpltmaxrate,30,,,,,,
+1096,Safety Wall,attack,12,5,120,1000,5000,no,self,always,0,,,,,,
+1096,Display Emotion,idle,197,1,200,0,5000,yes,self,always,0,22,,,,,
+1096,Holy Element Attack,attack,189,5,100,500,5000,no,target,always,0,,,,,,
+1096,Holy Element Attack,chase,189,5,100,500,5000,no,target,always,0,,,,,,
+1096,Summon Slave,attack,196,4,1000,2000,60000,no,self,slavele,3,1031,,,,,
+1096,Summon Slave,attack,196,3,1000,2000,60000,no,self,slavele,0,1062,,,,,
+1096,Summon Slave,idle,196,3,1000,2000,60000,no,self,slavele,0,1062,,,,,
+1096,Reverse Orchish,chase,294,1,100,0,30000,yes,target,always,0,,,,,,
+1096,Reverse Orchish,attack,294,1,100,0,30000,yes,target,always,0,,,,,,
+
+//Anolian
+//1206,Display Emotion,Idle,197,1,200,0,5000,yes,self,always,0,<emoticion?>,,,,,
+//1206,Display Emotion,Chase,197,1,200,0,5000,yes,self,always,0,<emoticion?>,,,,,
+1206,Water Element Attack,attack,184,1,200,0,5000,yes,target,always,0,,,,,,
+1206,Bash,attack,5,5,100,800,5000,no,target,always,0,,,,,,
+
+//Ant_Egg
+1097,Display Emotion,idle,197,1,200,0,5000,yes,self,always,0,19,,,,,
+1097,Metamorphosis,idle,193,1,1,2000,0,no,self,always,0,1095,1105,1160,,,
+
+//Anique_Firelock
+1403,Fire Element Attack,attack,186,3,100,500,5000,no,target,always,0,,,,,,
+
+//Antonio
+//NPC_RUNAWAY skill isn't working properly so the current skills will do for now.
+//1247,Run,chase,348,1,1000,0,0,yes,self,always,0,,,,,,
+//1247,Run,attack,348,1,1000,0,0,yes,self,always,0,,,,,,
+1247,Display Emotion,chase,197,1,200,0,5000,yes,self,always,0,29,,,,,
+1247,Display Emotion,attack,197,1,200,0,5000,yes,self,always,0,29,,,,,
+1247,Teleport,idle,26,1,100,0,100000,yes,self,always,0,,,,,,
+1247,Teleport,attack,26,1,100,0,100000,yes,self,always,0,,,,,,
+1247,Teleport,chase,26,1,100,0,10000,yes,self,always,0,,,,,,
+
+//Apocalypse
+1365,Brandish Spear,attack,57,5,100,500,5000,no,target,always,0,,,,,,
+1365,Self-Destruct,attack,173,1,100,2000,5000,no,self,attackpcge,2,,,,,,
+1365,Dark Jupitel,attack,341,4,100,700,5000,no,target,always,0,,,,,,
+1365,Auto-Guard,chase,249,5,200,0,300000,yes,self,longrangeattacked,,,,,,,
+1365,Auto-Guard,attack,249,5,100,0,300000,yes,self,always,0,,,,,,
+
+//Archangeling
+1388,Grand Cross,attack,241,1,200,0,0,yes,target,always,0,,,,,,
+1388,Heal,attack,28,9,1000,0,1000,no,friend,friendhpltmaxrate,50,,,,,,
+1388,Heal,attack,28,9,1000,0,1000,no,self,myhpltmaxrate,50,,,,,,
+1388,Heal,chase,28,9,1000,0,1000,no,friend,friendhpltmaxrate,50,,,,,,
+1388,Heal,chase,28,9,1000,0,1000,no,self,myhpltmaxrate,50,,,,,,
+1388,Sanctuary,attack,10,1000,500,30000,no,self,always,0,,,,,,
+1388,Sanctuary,attack,10,1000,500,30000,no,self,always,0,,,,,,
+1388,Barrier,attack,204,1,50,1000,5000,no,self,myhpltmaxrate,30,,,,,,
+1388,Summon Slave,attack,196,1,10000,7000,60000,no,self,slavele,0,1267,1267,1267,1267,1267,1246,, // 5 Carat and Cookie_Xmas
+1388,Summon Slave,idle,196,1,1000,700,60000,no,self,slavele,0,1267,1267,1267,1267,1267,1246,, // 5 Carat and Cookie_Xmas
+1388,Holy Element Attack,attack,189,5,100,0,5000,no,target,always,0,,,,,,
+1388,Holy Element Attack,chase,189,5,100,0,5000,no,target,always,0,,,,,,
+1388,Intimidate,attack,219,5,200,0,5000,yes,self,always,0,,,,,,
+
+//Archer_Guardian
+1285,Double Strafe,attack,46,1,200,1000,5000,no,target,always,0,,,,,,
+1285,Charge Arrow,attack,148,1,200,0,5000,yes,target,always,0,,,,,,
+
+//Archer_Skeleton
+1016,Double Strafe,attack,46,1,100,1000,5000,no,target,always,0,,,,,,
+1016,Undead Element Attack,attack,347,2,100,500,5000,no,target,always,0,,,,,,
+
+//Arclouse
+1194,Earth Element Attack,attack,185,1,200,0,5000,yes,target,always,0,,,,,,
+//1194,Display Emotion,idle,197,1,200,0,5000,yes,self,always,0,<emoticion?>,,,,,
+
+//Argiope
+1099,Poison Status Attack,attack,176,2,100,500,5000,no,target,always,0,,,,,,
+1099,Poison Element Attack,attack,188,2,100,500,5000,no,target,always,0,,,,,,
+1099,Venom Dust,attack,140,1,100,1500,5000,no,target,always,0,,,,,,
+//1099,Display Emotion,attack,197,1,200,0,5000,yes,self,always,0,<emoticion?>,,,,,
+
+//Argos
+1100,Poison Status Attack,attack,176,2,100,800,5000,no,target,always,0,,,,,,
+1100,Poison Element Attack,attack,188,1,200,0,5000,no,target,always,0,,,,,,
+
+//Assulter
+1315,Display Emotion,attack,197,1,200,0,60000,yes,self,myhpltmaxrate,20,23,,,,,
+1315,Wind Element Attack,attack,187,3,100,500,5000,no,target,always,0,,,,,,
+1315,Sonic Blow,attack,136,10,100,800,5000,no,target,always,0,,,,,,
+1315,Summon Slave,chase,196,3,1000,0,600000,no,self,myhpltmaxrate,10,1364,,,,, //3 G_Assulter
+1315,Back-Sliding,attack,150,1,1000,1000,0,no,self,myhpltmaxrate,10,,,,,,
+1315,Body Relocation,chase,264,1,200,500,5000,no,target,always,0,,,,,,
+
+//Baby_Leopard
+1415,Critical Slash,attack,170,1,100,500,5000,no,target,always,0,,,,,,
+//1415,Display Emotion,walk,197,1,200,0,5000,yes,self,always,0,<emoticion?>,,,,,
+
+//Baphomet
+//1039,Teleport,idle,26,1,100,0,100000,yes,self,always,0,,,,,,
+1039,Brandish Spear,attack,57,10,200,500,5000,no,target,always,0,,,,,,
+1039,Body Relocation,chase,264,1,200,200,1000,no,target,always,0,,,,,,
+1039,Darkstrike,attack,340,10,200,0,1000,no,target,always,0,,,,,,
+//1039,Power-Up,attack,<skill NPC_POWERUP missing>,5,1000,0,30000,no,self,myhpltmaxrate,30,,,,,,
+1039,Summon Slave,attack,196,4,1000,3000,10000,no,self,slavele,0,1101,,,,, // 4 Baphomet_Jr
+1039,Summon Slave,idle,196,4,1000,700,10000,no,self,slavele,0,1101,,,,, // 4 Baphomet_Jr
+1039,Dark Breath,attack,202,5,200,800,5000,no,target,always,0,,,,,,
+1039,Break Armor,attack,344,10,200,0,5000,no,target,always,0,,,,,,
+1039,Guided Attack,attack,172,5,100,0,20000,yse,target,always,0,,,,,,
+1039,Lord of Vermilion,attack,85,10,500,500,2000,no,target,skillused,18,,,,,,
+1039,Lord of Vermilion,attack,85,10,200,500,2000,no,target,always,0,,,,,,
+
+//Baphomet_Jr
+1101,Hallucination,attack,207,1,100,500,5000,yes,target,always,0,,,,,,
+1101,Hallucination,chase,207,1,100,500,5000,yes,target,always,0,,,,,,
+1101,Curse Status Attack,attack,181,3,100,800,5000,no,target,always,0,,,,,,
+1101,Blind Status Attack,attack,177,2,100,500,5000,no,target,always,0,,,,,,
+1101,Dispel,attack,289,1,0,0,30000,yes,target,always,0,,,,,, //??
+//1101,Display Emotion,idle,197,1,200,0,5000,yes,self,always,0,<emoticion?>,,,,,
+
+//Bathory
+1102,Curse Status Attack,attack,181,3,100,800,5000,no,target,always,0,,,,,,
+1102,Energy Drain,attack,200,1,100,0,5000,yes,target,always,0,,,,,,
+1102,Silence Status Attack,attack,178,3,100,700,5000,no,target,always,0,,,,,,
+1102,Energy Drain,chase,200,1,100,0,5000,yes,target,always,0,,,,,,
+1102,Display Emotion,chase,197,1,200,0,5000,yes,self,always,0,30,,,,,
+
+//Beetle_King
+1494,Combo Attack,attack,171,1,100,700,5000,no,target,always,0,,,,,,
+1494,Earth Element Attack,attack,185,2,100,500,5000,no,target,always,0,,,,,,
+//1491,Keeping,<?>,201,1,200,0,5000,no,<?>,always,0,,,,,, I don't know what this skill is
+
+//Bigfoot
+1060,Stun Status Attack,attack,179,2,100,1500,5000,no,target,always,0,,,,,,
+1060,Earth Element Attack,attack,185,1,200,0,5000,yes,target,always,0,,,,,,
+1060,Endure,chase,8,1,500,0,5000,yes,self,longrangeattacked,,,,,,,
+1060,Endure,chase,8,1,500,0,5000,yes,self,skillused,18,,,,,,
+//1060,Display Emotion,chase,197,1,20,0,5000,yes,self,always,0,<emoticion?>,,,,,
+
+//Blazzer
+1367,Fireball,chase,17,9,200,0,5000,yes,target,always,0,,,,,,
+1367,Fire Element Attack,attack,186,3,100,500,5000,no,target,always,0,,,,,,
+1367,Sightrasher,attack,81,5,100,1000,5000,no,target,always,0,,,,,,
+//1367,Display Emotion,idle,197,1,20,0,5000,yes,self,always,0,<emoticion?>,,,,,
+
+//Bloody_Butterfly
+1408,Pierce,attack,56,10,100,700,5000,no,target,always,0,,,,,,
+1408,Darkstrike,chase,340,5,200,700,5000,no,target,always,0,,,,,,
+1408,Sleep Status Attack,attack,182,5,100,0,5000,no,target,always,0,,,,,,
+1408,Sleep Status Attack,chase,182,5,100,0,5000,no,target,always,0,,,,,,
+
+//Bloody_Knight
+1268,Brandish Spear,attack,57,5,100,1000,5000,no,target,always,0,,,,,,
+1268,Change Element to Fire,attack,164,1,1000,2000,600000,no,self,myhpltmaxrate,20,,,,,,
+1268,Dark Element Attack,attack,190,2,100,500,5000,no,target,always,0,,,,,,
+1268,Shield Charge,attack,250,5,100,0,5000,no,target,always,0,,,,,,
+1268,Meteor Storm,attack,83,5,200,1500,5000,no,target,myhpltmaxrate,20,,,,,,
+1268,Meteor Storm,chase,83,5,200,1500,5000,no,target,myhpltmaxrate,20,,,,,,
+1268,Weapon Breaker,attack,343,5,100,0,30000,no,target,always,0,,,,,,
+
+//Bon_Gun
+1188,Spear Stab,attack,58,5,100,800,5000,no,target,always,0,,,,,,
+1188,Stun Status Attack,attack,179,3,50,1500,5000,no,target,always,0,,,,,,
+
+//Brilight
+1211,Fire Element Attack,attack,186,2,100,500,5000,no,target,always,0,,,,,,
+//1211,Keeping,<?>,201,1,200,0,5000,no,<?>,always,0,,,,,, I don't know what this skill is
+1211,Piercing Attack,attack,2,100,0,5000,yes,target,always,0,,,,,,
+1211,Silence Status Attack,attack,178,3,100,700,5000,no,target,always,0,,,,,,
+
 
 // ** eAthena Developers ** // Custom stuff:
 // Valaris

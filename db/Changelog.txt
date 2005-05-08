@@ -8,6 +8,11 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them I believe.
 
+05/09
+	* Fixed drops of Antique Firelock (thanx 2 Freya) [Lupus]
+	* Added skills to Beetle King thanks to MasterOfMuppets [Lupus]
+	* Started updating monsters skills according to the recent servers
+	  thanks to MasterOfMuppets [Lupus]
 05/08
 	* Fixed Whisper Boss card, thanks to sbilly
 	* Updated the packet db (removed some duplicates, corrected some packets),
