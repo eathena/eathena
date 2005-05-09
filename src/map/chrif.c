@@ -33,12 +33,13 @@
 //Used Packets: U->2af8 
 //Free Packets: F->2af8 
 
-static const int packet_len_table[0x28] = {
+static const int packet_len_table[0x3d] = {
 	60, 3,-1,27,22,-1, 6,-1,	// 2af8-2aff: U->2af8, U->2af9, U->2afa, U->2afb, U->2afc, U->2afd, U->2afe, U->2aff
 	 6,-1,18, 7,-1,49,44, 0,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, F->2b07
 	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	-1,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
 	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, F->2b1c, F->2b1d, F->2b1e, F->2b1f
+	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b20-2b27: F->2b20, F->2b21, F->2b22, F->2b23, F->2b24, F->2b25, F->2b26, F->2b27
 };
 
 //Used Packets:
@@ -82,6 +83,7 @@ static const int packet_len_table[0x28] = {
 //2b1d: FREE
 //2b1e: FREE
 //2b1f: FREE
+//2b20-2b27: FREE
 
 int chrif_connected;
 int char_fd = -1;
