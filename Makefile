@@ -1,5 +1,6 @@
 
 CC = gcc -pipe
+# CC = gcc -pipe -DCHRIF_OLDINFO
 # CC = gcc -pipe -DPCRE_SUPPORT
 # CC = g++ --pipe
 # CC = gcc -pipe -DGCOLLECT

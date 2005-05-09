@@ -82,7 +82,7 @@ static const int packet_len_table[0x3d] = {
 //2b1c: FREE
 //2b1d: FREE
 //2b1e: FREE
-//2b1f: Outgoing, chrif_newragsrvinfo -> 'Sends the motd / rates ....' (Newer one) [Sirius]
+//2b1f: FREE
 //2b20: Incomming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
 //2b21-2b27: FREE
 
@@ -1083,43 +1083,6 @@ int chrif_recvfamelist(int fd)
 	WFIFOSET(char_fd,WFIFOW(char_fd,8));
 	return 0;
 }
-
-//The new one [Sirius]
-int chrif_newragsrvinfo(int base_rate, int job_rate, int drop_rate){
-        //New Packet [Sirius]
-        //now it supports a motd longer than 250 byte :P
-        //Packet: 16 2B LEN.W Base_Rate.W Job_Rate.W Drop_rate.W motd.XByte
-
-        int i;
-        char buf[15000];
-        FILE *fp;
-
-        WFIFOW(char_fd, 0) = 0x2b1f;
-
-        WFIFOW(char_fd, 4) = base_rate;
-        WFIFOW(char_fd, 6) = job_rate;
-        WFIFOW(char_fd, 8) = drop_rate;
-
-        if((fp = fopen(motd_txt, "r")) != NULL){//file open
-                if (fgets(buf, 15000, fp) != NULL){ //data read
-                        for(i = 0; buf[i]; i++){ //loop until buf[i] == NULL
-                                if(buf[i] == '\r' || buf[i] == '\n'){ //repalce \r and \n with 0
-                                        buf[i] = 0;
-                                }
-                        }
-                WFIFOW(char_fd, 2) = sizeof(buf) + 10; //packetlen
-                memcpy(WFIFOP(char_fd,10), buf, sizeof(buf)); //motd into socket
-                fclose(fp);
-                }
-        }else{
-                //motd file open error
-                WFIFOW(char_fd, 2) = 10;
-        }
-
-        WFIFOSET(char_fd, WFIFOW(char_fd, 2)); 
-return 0; 
-}
-
 
 
 /*=========================================

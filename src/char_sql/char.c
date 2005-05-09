@@ -2289,6 +2289,7 @@ int parse_frommap(int fd) {
 			RFIFOSKIP(fd,RFIFOW(fd,8));
 			break;
 
+
 		// Character disconnected set online 0 [Wizputer]
 		case 0x2b17:
 			if (RFIFOREST(fd) < 6 )
