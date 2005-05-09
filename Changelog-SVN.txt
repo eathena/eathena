@@ -1,5 +1,6 @@
 Date	Added
 05/09
+	* Added FULLY updated mobs skills DB by Komurka (up to Aegis Zone 8.5) [Lupus]
 	* added a packet to remove maps of other servers [Sirius]
 
 05/08	
