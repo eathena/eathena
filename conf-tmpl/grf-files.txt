@@ -1,5 +1,14 @@
-data: C:\Program Files\Gravity\RO\data.grf
-sdata: C:\Program Files\Gravity\RO\sdata.grf
-//adata: C:\Program Files\Gravity\RO\adata.grf
+//-----------------------------------------
+// GRF List
+//-----------------------------------------
+
+grf: C:\Program Files\Gravity\RO\data.grf
+grf: C:\Program Files\Gravity\RO\sdata.grf
+
+// You may add more in this format
+// grf: <data file path>
+
+//------ Others ---------------------------
+
+// Data Directory
 //data_dir: C:\Program Files\Gravity\RO\
-//afm_dir: afm

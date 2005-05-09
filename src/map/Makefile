@@ -10,14 +10,14 @@ txtobj:
 sqlobj:
 	mkdir sqlobj
 
-COMMON_OBJ = ../common/obj/core.o ../common/obj/socket.o ../common/obj/timer.o ../common/obj/grfio.o ../common/obj/db.o ../common/obj/dll.o ../common/obj/lock.o ../common/obj/nullpo.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/utils.o ../common/obj/strlib.o
+COMMON_OBJ = ../common/obj/core.o ../common/obj/socket.o ../common/obj/timer.o ../common/obj/db.o ../common/obj/dll.o ../common/obj/lock.o ../common/obj/nullpo.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/utils.o ../common/obj/strlib.o
 
-COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/grfio.h ../common/db.h ../common/dll.h ../common/lock.h ../common/nullpo.h ../common/malloc.h ../common/showmsg.h ../common/utils.h ../common/strlib.h
+COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/db.h ../common/dll.h ../common/lock.h ../common/nullpo.h ../common/malloc.h ../common/showmsg.h ../common/utils.h ../common/strlib.h
 
-map-server: txtobj/map.o txtobj/chrif.o txtobj/clif.o txtobj/pc.o txtobj/status.o txtobj/npc.o txtobj/npc_chat.o txtobj/chat.o txtobj/path.o txtobj/itemdb.o txtobj/mob.o txtobj/script.o txtobj/storage.o txtobj/skill.o txtobj/atcommand.o txtobj/charcommand.o txtobj/battle.o txtobj/intif.o txtobj/trade.o txtobj/party.o txtobj/vending.o txtobj/guild.o txtobj/pet.o txtobj/log.o $(COMMON_OBJ)
+map-server: txtobj/map.o txtobj/chrif.o txtobj/clif.o txtobj/pc.o txtobj/status.o txtobj/npc.o txtobj/npc_chat.o txtobj/chat.o txtobj/path.o txtobj/grfio.o txtobj/itemdb.o txtobj/mob.o txtobj/script.o txtobj/storage.o txtobj/skill.o txtobj/atcommand.o txtobj/charcommand.o txtobj/battle.o txtobj/intif.o txtobj/trade.o txtobj/party.o txtobj/vending.o txtobj/guild.o txtobj/pet.o txtobj/log.o $(COMMON_OBJ)
 	$(CC) -o ../../$@ $> $(LIBS) $(LIB_S)
 
-map-server_sql: sqlobj/map.o sqlobj/chrif.o sqlobj/clif.o sqlobj/pc.o sqlobj/status.o sqlobj/npc.o sqlobj/npc_chat.o sqlobj/chat.o sqlobj/path.o sqlobj/itemdb.o sqlobj/mob.o sqlobj/script.o sqlobj/storage.o sqlobj/skill.o sqlobj/atcommand.o sqlobj/charcommand.o sqlobj/battle.o sqlobj/intif.o sqlobj/trade.o sqlobj/party.o sqlobj/vending.o sqlobj/guild.o sqlobj/pet.o sqlobj/mail.o sqlobj/log.o $(COMMON_OBJ)
+map-server_sql: sqlobj/map.o sqlobj/chrif.o sqlobj/clif.o sqlobj/pc.o sqlobj/status.o sqlobj/npc.o sqlobj/npc_chat.o sqlobj/chat.o sqlobj/path.o sqlobj/grfio.o sqlobj/itemdb.o sqlobj/mob.o sqlobj/script.o sqlobj/storage.o sqlobj/skill.o sqlobj/atcommand.o sqlobj/charcommand.o sqlobj/battle.o sqlobj/intif.o sqlobj/trade.o sqlobj/party.o sqlobj/vending.o sqlobj/guild.o sqlobj/pet.o sqlobj/mail.o sqlobj/log.o $(COMMON_OBJ)
 	$(CC) -o ../../$@ $> $(LIB_S)
 
 txtobj/%.o: %.c
@@ -35,6 +35,7 @@ txtobj/npc.o: npc.c map.h npc.h clif.h pc.h script.h mob.h itemdb.h battle.h $(C
 txtobj/npc_chat.o: npc_chat.c map.h npc.h clif.h pc.h script.h mob.h itemdb.h battle.h $(COMMON_H)
 txtobj/chat.o: chat.c map.h clif.h pc.h chat.h $(COMMON_H)
 txtobj/path.o: path.c map.h battle.h $(COMMON_H)
+txtobj/grfio.o: grfio.c $(COMMON_H)
 txtobj/itemdb.o: itemdb.c map.h battle.h itemdb.h $(COMMON_H)
 txtobj/mob.o: mob.c map.h clif.h intif.h pc.h mob.h skill.h battle.h npc.h itemdb.h $(COMMON_H)
 txtobj/script.o: script.c itemdb.h map.h pc.h mob.h clif.h intif.h npc.h script.h storage.h skill.h pet.h battle.h log.h $(COMMON_H)
@@ -60,6 +61,7 @@ sqlobj/npc.o: npc.c map.h npc.h clif.h pc.h script.h mob.h itemdb.h battle.h $(C
 sqlobj/npc_chat.o: npc_chat.c map.h npc.h clif.h pc.h script.h mob.h itemdb.h battle.h $(COMMON_H)
 sqlobj/chat.o: chat.c map.h clif.h pc.h chat.h $(COMMON_H)
 sqlobj/path.o: path.c map.h battle.h $(COMMON_H)
+sqlobj/grfio.o: grfio.c $(COMMON_H)
 sqlobj/itemdb.o: itemdb.c map.h battle.h itemdb.h $(COMMON_H)
 sqlobj/mob.o: mob.c map.h clif.h intif.h pc.h mob.h skill.h battle.h npc.h itemdb.h  log.h $(COMMON_H)
 sqlobj/script.o: script.c itemdb.h map.h pc.h mob.h clif.h intif.h npc.h script.h storage.h skill.h pet.h battle.h log.h $(COMMON_H)

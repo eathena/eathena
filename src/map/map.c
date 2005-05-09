@@ -14,8 +14,8 @@
 #include "../common/core.h"
 #include "../common/timer.h"
 #include "../common/db.h"
-#include "../common/grfio.h"
 #include "../common/malloc.h"
+#include "../common/showmsg.h"
 #include "../common/version.h"
 #include "../common/nullpo.h"
 
@@ -25,6 +25,7 @@
 #include "intif.h"
 #include "npc.h"
 #include "pc.h"
+#include "grfio.h"
 #include "status.h"
 #include "mob.h"
 #include "chat.h"
@@ -41,7 +42,6 @@
 #include "charcommand.h"
 #include "socket.h"
 #include "log.h"
-#include "showmsg.h"
 
 #ifdef MEMWATCH
 #include "memwatch.h"
@@ -2904,12 +2904,6 @@ int map_config_read(char *cfgName) {
 				npc_addsrcfile(w2);
 			} else if (strcmpi(w1, "delnpc") == 0) {
 				npc_delsrcfile(w2);
-			} else if (strcmpi(w1, "data_grf") == 0) {
-				grfio_setdatafile(w2);
-			} else if (strcmpi(w1, "sdata_grf") == 0) {
-				grfio_setsdatafile(w2);
-			} else if (strcmpi(w1, "adata_grf") == 0) {
-				grfio_setadatafile(w2);
 			} else if (strcmpi(w1, "autosave_time") == 0) {
 				autosave_interval = atoi(w2) * 1000;
 				if (autosave_interval <= 0)
@@ -2920,15 +2914,17 @@ int map_config_read(char *cfgName) {
 				strcpy(help_txt, w2);
 			} else if (strcmpi(w1, "mapreg_txt") == 0) {
 				strcpy(mapreg_txt, w2);
-			}else if(strcmpi(w1,"read_map_from_cache")==0){
+			} else if(strcmpi(w1,"read_map_from_cache") == 0){
 				if (atoi(w2) == 2)
 					map_read_flag = READ_FROM_BITMAP_COMPRESSED;
 				else if (atoi(w2) == 1)
 					map_read_flag = READ_FROM_BITMAP;
 				else
 					map_read_flag = READ_FROM_GAT;
-			}else if(strcmpi(w1,"map_cache_file")==0){
+			} else if(strcmpi(w1,"map_cache_file") == 0) {
 				strncpy(map_cache_file,w2,255);
+			} else if(strcmpi(w1,"afm_dir") == 0) {
+				strcpy(afm_dir, w2);
 			} else if (strcmpi(w1, "import") == 0) {
 				map_config_read(w2);
 			} else if (strcmpi(w1, "console") == 0) {
@@ -3307,8 +3303,6 @@ void set_server_type(void)
 }
 int do_init(int argc, char *argv[]) {
 	int i;
-	FILE *data_conf;
-	char line[1024], w1[1024], w2[1024];
 
 #ifdef GCOLLECT
 	GC_enable_incremental();
@@ -3402,19 +3396,6 @@ int do_init(int argc, char *argv[]) {
 #endif /* not TXT_ONLY */
 
 	grfio_init(GRF_PATH_FILENAME);
-
-	data_conf = fopen(GRF_PATH_FILENAME, "r");
-	// It will read, if there is grf-files.txt.
-	if (data_conf) {
-		while(fgets(line, 1020, data_conf)) {
-			if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2) {
-				if(strcmp(w1,"afm_dir") == 0)
-					strcpy(afm_dir, w2);
-			}
-		}
-		fclose(data_conf);
-	} // end of reading grf-files.txt for AFMs
-
 
 	map_readallmap();
 

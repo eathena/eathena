@@ -1,5 +1,17 @@
 Date	Added
 05/09
+	~ Added sql_files/upgrade_svn1665.sql to update hair, hair colour and clothes
+	  colours' field format (thanks to Zoc)
+
+	* Moved the win32 zlib .h files from /lib to /zlib [celest]
+	* Moved 'afm_dir' setting to map_athena.conf [celest]
+	* Moved grfio.c from /common to /map [celest]
+	* Changed grf-files.txt loading: [celest]
+	  ~ 'data/sdata/adata' loading will still be supported, but is replaced with
+		grf: <path to grf or gpf file>
+	    To load extra GRFs (if you have custom ones for your server for example,
+	    or to load weekly kRO gpf's) just add as many 'grf' commands as you want
+	* Tidied up grfio.c a bit [celest]
 	* Added FULLY updated mobs skills DB by Komurka (up to Aegis Zone 8.5) [Lupus]
 	* added a packet to remove maps of other servers [Sirius]
 

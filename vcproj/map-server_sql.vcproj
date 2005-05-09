@@ -156,7 +156,7 @@
 				RelativePath="..\src\zlib\deflate.c">
 			</File>
 			<File
-				RelativePath="..\src\common\grfio.c">
+				RelativePath="..\src\map\grfio.c">
 			</File>
 			<File
 				RelativePath="..\src\map\guild.c">
@@ -287,7 +287,7 @@
 				RelativePath="..\src\common\db.h">
 			</File>
 			<File
-				RelativePath="..\src\common\grfio.h">
+				RelativePath="..\src\map\grfio.h">
 			</File>
 			<File
 				RelativePath="..\src\map\guild.h">

@@ -73,13 +73,13 @@ int pc_istop10fame(int char_id,int type) {
 
 	switch(type){
 	case 0: // Blacksmith
-	    for(i=1;i<=10;i++){
+	    for(i=0;i<10;i++){
 			if(smith_fame_list[i].id==char_id)
 			    return 1;
 		}
 		break;
 	case 1: // Alchemist
-	    for(i=1;i<=10;i++){
+	    for(i=0;i<10;i++){
 	        if(chemist_fame_list[i].id==char_id)
 	            return 1;
 		}
