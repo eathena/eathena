@@ -841,9 +841,11 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case HT_FREEZINGTRAP:	/* フリ?ジングトラップ */
-		rate=skilllv*3+35;
-		if(rand()%100 < rate*sc_def_mdef/100)
-			status_change_start(bl,SC_FREEZE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		if( bl->type == BL_MOB || (bl->type == BL_PC && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) ) {
+			rate=skilllv*3+35;
+			if(rand()%100 < rate*sc_def_mdef/100)
+				status_change_start(bl,SC_FREEZE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		}
 		break;
 
 	case MG_FROSTDIVER:		/* フロストダイバ? */
@@ -870,19 +872,21 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case HT_LANDMINE:		/* ランドマイン */
-		if( rand()%100 < (5*skilllv+30)*sc_def_vit/100 )
-			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		if( bl->type == BL_MOB || (bl->type == BL_PC && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) )
+			if( rand()%100 < (5*skilllv+30)*sc_def_vit/100 )
+				status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
-	case HT_SHOCKWAVE:				/* ショックウェ?ブトラップ */
-		if(map[bl->m].flag.pvp && dstsd){
+	case HT_SHOCKWAVE:				//it can't affect mobs, because they have no SP...
+		if( bl->type == BL_PC && dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg) ){
 			dstsd->status.sp -= dstsd->status.sp*(5+15*skilllv)/100;
 			status_calc_pc(dstsd,0);
 		}
 		break;
 	case HT_SANDMAN:		/* サンドマン */
-		if( rand()%100 < (5*skilllv+30)*sc_def_int/100 )
-			status_change_start(bl,SC_SLEEP,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		if( bl->type == BL_MOB || (bl->type == BL_PC && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) )
+			if( rand()%100 < (5*skilllv+30)*sc_def_int/100 )
+				status_change_start(bl,SC_SLEEP,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 	case TF_SPRINKLESAND:	/* 砂まき */
 		if( rand()%100 < 20*sc_def_int/100 )
@@ -5652,6 +5656,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		if (map[src->m].flag.gvg) limit *= 4;
 		break;
 	case HT_SHOCKWAVE:			/* ショックウェ?ブトラップ */
+		if (map[src->m].flag.gvg) limit *= 4;
 		val1=skilllv*15+10;
 		break;
 

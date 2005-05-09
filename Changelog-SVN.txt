@@ -1,4 +1,7 @@
 Date	Added
+05/10
+	* Fixed all Hunters traps to affect Players in PVP/GVG places only. [Lupus]
+	  And Shockwave Trap doesn't work on monsters, because they don't have SP
 05/09
 	~ Added sql_files/upgrade_svn1665.sql to update hair, hair colour and clothes
 	  colours' field format (thanks to Zoc)
