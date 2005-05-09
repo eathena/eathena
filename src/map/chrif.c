@@ -75,7 +75,7 @@ static const int packet_len_table[0x3d] = {
 //2b15: Incomming, chrif_recvgmaccounts -> 'recive gm accs from charserver (seems to be incomplete !)'
 //2b16: Outgoing, chrif_ragsrvinfo -> 'sends motd / rates ....'
 //2b17: Outgoing, chrif_char_offline -> 'tell the charserver that the char is now offline'
-//2b18: Outgoing, chrif_chardisconnect -> 'same as 2b17 LOL!'
+//2b18: Outgoing, chrif_chardisconnect/chrif_char_reset_offline -> 'same as 2b17 LOL!/set all players OFF!'
 //2b19: Outgoing, chrif_char_online -> 'tell the charserver that the char .. is online'
 //2b1a: Outgoing, chrif_reqfamelist -> 'Request the fame list (top10)'
 //2b1b: Incomming, chrif_recvfamelist -> 'awnser of 2b1a ..... the famelist top10^^'
