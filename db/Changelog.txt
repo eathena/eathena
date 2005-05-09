@@ -9,6 +9,7 @@
 	Skill databases == celest working on them I believe.
 
 05/09
+	* added Sara-chan's 18th packets update [Lupus]
 	* Added FULLY updated mobs skills DB by Komurka (up to Aegis Zone 8.5) [Lupus]
 	* Fixed drops of Antique Firelock (thanx 2 Freya) [Lupus]
 	* Added skills to Beetle King thanks to MasterOfMuppets [Lupus]
