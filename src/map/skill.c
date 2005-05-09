@@ -3149,7 +3149,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 			if ((sd == dstsd)
 			 || (!sd->status.party_id)
-			 || (sd->status.party_id != dstsd->status.party_id)) {
+			 || (sd->status.party_id != dstsd->status.party_id)
+			 || (sd->status.class_ == 4020) || (sd->status.class_ == 4021) //You can't target other Clown or Gypsy!!! fixed by Lupus
+			) {
 			 	clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
 				return 1;

@@ -1,5 +1,6 @@
 Date	Added
 05/10
+	* Fixed Marionette skill. Now you can't target other Clowns or Gypsies [Lupus]
 	* Fixed all Hunters traps to affect Players in PVP/GVG places only. [Lupus]
 	  And Shockwave Trap doesn't work on monsters, because they don't have SP
 05/09
