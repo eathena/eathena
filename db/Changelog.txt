@@ -8,6 +8,12 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them I believe.
 
+05/10
+	* Fixed Merchant Class Card Combo Set bug (it was always ON) [Lupus]
+	* Merchant Class Card Combo Set: added 0.1% Old Purple Box drop [Lupus]
+	* Archer Class Card Combo Set: added +5% EXP bonus on killing Brute [Lupus]
+	* Holy Class Card Combo Set: added +5% EXP bonus on killing Undead/Demon [Lupus]
+
 05/09
 	* added Sara-chan's 18th packets update [Lupus]
 	* Added FULLY updated mobs skills DB by Komurka (up to Aegis Zone 8.5) [Lupus]
