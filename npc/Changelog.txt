@@ -37,6 +37,7 @@ Date		Added
 ======
 
 05/09
+	* Added new Sara-chan's maps / warps for Einbroch and Lhztargen [Lupus]
 	* Added first Ayothaya city NPCs
 	* Fixed some typos [massdriller] (Thanks to neko for point those out)
 	* Fixed Ayothaya warps.[massdriller]
