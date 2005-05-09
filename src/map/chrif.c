@@ -39,7 +39,7 @@ static const int packet_len_table[0x3d] = {
 	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	-1,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
 	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, F->2b1c, F->2b1d, F->2b1e, F->2b1f
-	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b20-2b27: F->2b20, F->2b21, F->2b22, F->2b23, F->2b24, F->2b25, F->2b26, F->2b27
+	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b20-2b27: U->2b20, F->2b21, F->2b22, F->2b23, F->2b24, F->2b25, F->2b26, F->2b27
 };
 
 //Used Packets:
@@ -83,7 +83,7 @@ static const int packet_len_table[0x3d] = {
 //2b1d: FREE
 //2b1e: FREE
 //2b1f: FREE
-//2b21: Incomming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
+//2b20: Incomming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
 //2b21-2b27: FREE
 
 int chrif_connected;
@@ -1234,7 +1234,7 @@ int chrif_parse(int fd)
 		case 0x2b14: chrif_accountban(fd); break;
 		case 0x2b15: chrif_recvgmaccounts(fd); break;
 		case 0x2b1b: chrif_recvfamelist(fd); break;
-		case 0x2b21: chrif_removemap(fd); break; //Remove maps of a server [Sirius]
+		case 0x2b20: chrif_removemap(fd); break; //Remove maps of a server [Sirius]
 
 		default:
 			if (battle_config.error_log)
