@@ -527,31 +527,29 @@ static int itemdb_read_cardillustnametable(void)
  */
 static int itemdb_read_itemslottable(void)
 {
-	char *buf,*p;
+	char *buf, *p;
 	int s;
 
-	buf=(char *) grfio_read("data\\itemslottable.txt");
-	if(buf==NULL)
+	buf = (char *)grfio_reads("data\\itemslottable.txt", &s);
+	if (buf == NULL)
 		return -1;
-	s=grfio_size("data\\itemslottable.txt");
-	buf[s]=0;
-	for(p=buf;p-buf<s;){
-		int nameid,equip;
+	buf[s] = 0;
+	for (p = buf; p - buf < s; ) {
+		int nameid, equip;
 		struct item_data* item;
-		sscanf(p,"%d#%d#",&nameid,&equip);
+		sscanf(p, "%d#%d#", &nameid, &equip);
 		item = itemdb_search(nameid);
 		if (item && itemdb_isequip2(item))			
-			item->equip=equip;
-		p=strchr(p,10);
+			item->equip = equip;
+		p = strchr(p, 10);
 		if(!p) break;
 		p++;
-		p=strchr(p,10);
+		p=strchr(p, 10);
 		if(!p) break;
 		p++;
 	}
 	aFree(buf);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\itemslottable.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\itemslottable.txt");
 
 	return 0;
 }
@@ -562,28 +560,26 @@ static int itemdb_read_itemslottable(void)
  */
 static int itemdb_read_itemslotcounttable(void)
 {
-	char *buf,*p;
+	char *buf, *p;
 	int s;
 
-	buf=(char *) grfio_read("data\\itemslotcounttable.txt");
-	if(buf==NULL)
+	buf = (char *)grfio_reads("data\\itemslotcounttable.txt", &s);
+	if (buf == NULL)
 		return -1;
-	s=grfio_size("data\\itemslotcounttable.txt");
-	buf[s]=0;
-	for(p=buf;p-buf<s;){
-		int nameid,slot;
-		sscanf(p,"%d#%d#",&nameid,&slot);
-		itemdb_search(nameid)->slot=slot;
-		p=strchr(p,10);
+	buf[s] = 0;
+	for (p = buf; p - buf < s;){
+		int nameid, slot;
+		sscanf(p, "%d#%d#", &nameid, &slot);
+		itemdb_slot(nameid) = slot;
+		p = strchr(p,10);
 		if(!p) break;
 		p++;
-		p=strchr(p,10);
+		p = strchr(p,10);
 		if(!p) break;
 		p++;
 	}
 	aFree(buf);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\itemslotcounttable.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n", "data\\itemslotcounttable.txt");
 
 	return 0;
 }

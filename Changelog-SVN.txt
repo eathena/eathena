@@ -3,6 +3,10 @@ Date	Added
 	~ Added sql_files/upgrade_svn1665.sql to update hair, hair colour and clothes
 	  colours' field format (thanks to Zoc)
 
+	* Updated char creation to support 24 hairstyles (from 5/10's patch) [celest]
+	* Fixed broken stats check during SQL char creation, thanks to Sasuke
+	* Removed an unnecessary check in plugins loading, thanks to Shinomori
+	* Changed grfio_read + grfio_size usage to grfio_reads() -- a bit faster [celest]
 	* Moved the win32 zlib .h files from /lib to /zlib [celest]
 	* Moved 'afm_dir' setting to map_athena.conf [celest]
 	* Moved grfio.c from /common to /map [celest]

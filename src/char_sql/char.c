@@ -1140,7 +1140,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	//check stat error
 	if ((dat[24]+dat[25]+dat[26]+dat[27]+dat[28]+dat[29]!=6*5 ) || // stats
 	    (dat[30] >= 9) || // slots (dat[30] can not be negativ)
-	    (dat[33] <= 0) || (dat[33] >= 20) || // hair style
+	    (dat[33] <= 0) || (dat[33] >= 24) || // hair style
 	    (dat[31] >= 9)) { // hair color (dat[31] can not be negativ)
 		if (log_char) {	
 			// char.log to charlog
@@ -1170,7 +1170,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		}
 	} // now we know that every stat has proper value but we have to check if str/int agi/luk vit/dex pairs are correct
 
-	if( ((dat[24]+dat[27]) > 10) || ((dat[25]+dat[28]) > 10) || ((dat[26]+dat[29]) > 10) ) {
+	if( ((dat[24]+dat[27]) > 10) || ((dat[25]+dat[29]) > 10) || ((dat[26]+dat[28]) > 10) ) {
 		if (log_char) {
 			// char.log to charlog
 			sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"

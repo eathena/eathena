@@ -176,13 +176,8 @@ Addon *dll_open (const char *filename)
 		}
 	}
 
-	if (addon_head == NULL) {
-		addon->next = NULL;
-		addon_head = addon;
-	} else {
-		addon->next = addon_head;
-		addon_head = addon;
-	}
+	addon->next = addon_head;
+	addon_head = addon;
 
 	addon->state = init_flag;	// fully loaded
 	ShowStatus ("Done loading plugin '"CL_WHITE"%s"CL_RESET"'\n", (info) ? addon->info->name : filename);
