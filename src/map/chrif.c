@@ -83,7 +83,8 @@ static const int packet_len_table[0x3d] = {
 //2b1d: FREE
 //2b1e: FREE
 //2b1f: FREE
-//2b20-2b27: FREE
+//2b21: Incomming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
+//2b21-2b27: FREE
 
 int chrif_connected;
 int char_fd = -1;
@@ -229,6 +230,34 @@ int chrif_recvmap(int fd)
 	return 0;
 }
 
+/*==========================================
+ * Delete maps of other servers, (if an other mapserver is going OFF)
+ *------------------------------------------
+ */
+int chrif_removemap(int fd){
+	int i, j, ip, port;
+        unsigned char *p = (unsigned char *)&ip;
+        
+         	
+	if(chrif_state < 2){	
+		return -1; //i dunno, but i know if its 3 the link is ok^^ 
+	}
+	
+	ip = RFIFOL(fd, 4);
+	port = RFIFOW(fd, 8);
+	
+	for(i = 10, j = 0; i < RFIFOW(fd, 2); i += 16, j++){
+		map_eraseipport((char*)RFIFOP(fd, i), ip, port);
+	}
+	
+	
+	if(battle_config.etc_log){
+		printf("remove map of server %d.%d.%d.%d:%d (%d maps)\n", p[0], p[1], p[2], p[3], port, j);
+	}
+	
+	return 0;	
+}
+	
 /*==========================================
  * マップ鯖間移動のためのデータ準備要求
  *------------------------------------------
@@ -1205,6 +1234,7 @@ int chrif_parse(int fd)
 		case 0x2b14: chrif_accountban(fd); break;
 		case 0x2b15: chrif_recvgmaccounts(fd); break;
 		case 0x2b1b: chrif_recvfamelist(fd); break;
+		case 0x2b21: chrif_removemap(fd); break; //Remove maps of a server [Sirius]
 
 		default:
 			if (battle_config.error_log)

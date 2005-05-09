@@ -1,4 +1,7 @@
 Date	Added
+05/09
+	* added a packet to remove maps of other servers [Sirius]
+
 05/08	
 	* documented the packetlentable of chrif [Sirius]
 	* fixed crash in clif_joinchatok [veider]
