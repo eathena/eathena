@@ -1787,6 +1787,7 @@ int status_get_max_hp(struct block_list *bl)
 			if(battle_config.mobs_level_up) // mobs leveling up increase [Valaris]
 				max_hp += (md->level - mob_db[md->class_].lv) * status_get_vit(bl);
 
+/* Moved this code to where the mob_db is read in mob.c [Skotlex]
 			if(mob_db[md->class_].mexp > 0) { //MVP Monsters
 				if(battle_config.mvp_hp_rate != 100) {
 					double hp = (double)max_hp * battle_config.mvp_hp_rate / 100.0;
@@ -1799,12 +1800,13 @@ int status_get_max_hp(struct block_list *bl)
 					max_hp = (hp > 0x7FFFFFFF ? 0x7FFFFFFF : (int)hp);
 				}
 			}
+*/
 		}
 		else if(bl->type == BL_PET) {
 			struct pet_data *pd;
 			nullpo_retr(1, pd = (struct pet_data*)bl);
 			max_hp = mob_db[pd->class_].max_hp;
-
+/* Moved this code to where the mob_db is read in mob.c [Skotlex]
 			if(mob_db[pd->class_].mexp > 0) { //MVP Monsters 
 				if(battle_config.mvp_hp_rate != 100)
 					max_hp = (max_hp * battle_config.mvp_hp_rate)/100;
@@ -1813,6 +1815,7 @@ int status_get_max_hp(struct block_list *bl)
 				if(battle_config.monster_hp_rate != 100)
 					max_hp = (max_hp * battle_config.monster_hp_rate)/100;
 			}
+*/
 		}
 
 		sc_data = status_get_sc_data(bl);

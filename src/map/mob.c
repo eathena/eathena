@@ -3974,7 +3974,7 @@ static int mob_readdb(void)
 		}
 		while(fgets(line,1020,fp)){
 			int class_, i;
-			double exp;
+			double exp, maxhp;
 			char *str[60], *p, *np; // 55->60 Lupus
 
 			if(line[0] == '/' && line[1] == '/')
@@ -4066,6 +4066,19 @@ static int mob_readdb(void)
 			// MVP EXP Bonus, Chance: MEXP,ExpPer
 			mob_db[class_].mexp=atoi(str[49])*battle_config.mvp_exp_rate/100;
 			mob_db[class_].mexpper=atoi(str[50]);
+			//Now that we know if it is an mvp or not,
+			//apply battle_config modifiers [Skotlex]
+			maxhp = (double)mob_db[class_].max_hp;
+			if (mob_db[class_].mexp > 0)
+			{	//Mvp
+				if (battle_config.mvp_hp_rate != 100) 
+					maxhp = maxhp * (double)battle_config.mvp_hp_rate /100.;
+			} else if (battle_config.monster_hp_rate != 100) //Normal mob
+				maxhp = maxhp * (double)battle_config.monster_hp_rate /100.;
+			if (maxhp < 0) maxhp = 1;
+			else if (maxhp > 0x7fffffff) maxhp = 0x7fffffff;
+			mob_db[class_].max_hp = (int)maxhp;
+
 			// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
 			for(i=0;i<3;i++){
 				int rate=atoi(str[52+i*2])*battle_config.mvp_item_rate/100; //idea of the fix from Freya
@@ -4430,7 +4443,7 @@ static int mob_read_sqldb(void)
 {
 	char line[1024];
 	int i, j, class_;
-	double exp;
+	double exp, maxhp;
 	long unsigned int ln = 0;
 	char *str[60], *p, *np; // 55->60 Lupus
 	char *mob_db_name[] = { mob_db_db, mob_db2_db };
@@ -4550,6 +4563,19 @@ static int mob_read_sqldb(void)
 				// MVP EXP Bonus, Chance: MEXP,ExpPer
 				mob_db[class_].mexp = atoi(str[49]) * battle_config.mvp_exp_rate / 100;
 				mob_db[class_].mexpper = atoi(str[50]);
+				//Now that we know if it is an mvp or not,
+				//apply battle_config modifiers [Skotlex]
+				maxhp = (double)mob_db[class_].max_hp;
+				if (mob_db[class_].mexp > 0)
+				{	//Mvp
+					if (battle_config.mvp_hp_rate != 100) 
+						maxhp = maxhp * (double)battle_config.mvp_hp_rate /100.;
+				} else if (battle_config.monster_hp_rate != 100) //Normal mob
+					maxhp = maxhp * (double)battle_config.monster_hp_rate /100.;
+				if (maxhp < 0) maxhp = 1;
+				else if (maxhp > 0x7fffffff) maxhp = 0x7fffffff;
+				mob_db[class_].max_hp = (int)maxhp;
+
 				// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
 				for (j = 0; j < 3; j++) {
 					mob_db[class_].mvpitem[j].nameid = atoi(str[51+j*2]);
