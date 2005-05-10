@@ -3433,6 +3433,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 			if(sc_data[SC_MAXOVERTHRUST].timer!=-1)
 				skillratio += 20*sc_data[SC_MAXOVERTHRUST].val1;
 			if(sc_data[SC_EDP].timer != -1 &&
+				!(t_mode & 0x20) &&
 				skill_num != AS_SPLASHER &&
 				skill_num != ASC_BREAKER &&
 				skill_num != ASC_METEORASSAULT) //why these skills?
