@@ -294,7 +294,7 @@ static int hp_sigma_val[MAX_PC_CLASS][MAX_LEVEL];
 static int sp_coefficient[MAX_PC_CLASS];
 static int aspd_base[MAX_PC_CLASS][20];
 static int refinebonus[5][3];	// 精錬ボーナステーブル(refine_db.txt)
-int percentrefinery[5][10];	// 精錬成功率(refine_db.txt)
+int percentrefinery[5][MAX_REFINE+1];	// 精錬成功率(refine_db.txt)
 static int atkmods[3][20];	// 武器ATKサイズ修正(size_fix.txt)
 static char job_bonus[3][MAX_PC_CLASS][MAX_LEVEL];
 
@@ -5320,8 +5320,9 @@ int status_readdb(void) {
 
 	// 精?デ?タテ?ブル
 	for(i=0;i<5;i++){
-		for(j=0;j<10;j++)
+		for(j=0;j<MAX_REFINE; j++)
 			percentrefinery[i][j]=100;
+		percentrefinery[i][j]=0; //Slot MAX+1 always has 0% success chance [Skotlex]
 		refinebonus[i][0]=0;
 		refinebonus[i][1]=0;
 		refinebonus[i][2]=10;
@@ -5347,7 +5348,7 @@ int status_readdb(void) {
 		refinebonus[i][0]=atoi(split[0]);	// 精?ボ?ナス
 		refinebonus[i][1]=atoi(split[1]);	// 過?精?ボ?ナス
 		refinebonus[i][2]=atoi(split[2]);	// 安全精?限界
-		for(j=0;j<10 && split[j];j++)
+		for(j=0;j<MAX_REFINE && split[j];j++)
 			percentrefinery[i][j]=atoi(split[j+3]);
 		i++;
 	}

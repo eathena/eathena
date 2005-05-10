@@ -2850,7 +2850,7 @@ int pc_item_refine(struct map_session_data *sd,int idx)
 
 		if(item->nameid > 0 && ditem->type == 4) {
 			if (item->refine >= sd->skilllv ||
-				item->refine == 10 ||		// if it's no longer refineable
+				item->refine >= MAX_REFINE ||		// if it's no longer refineable
 				ditem->flag.no_refine ||	// if the item isn't refinable
 				(i = pc_search_inventory(sd, material [ditem->wlv])) < 0 ) { //fixed by Lupus (item pos can be = 0!)
 				clif_skill_fail(sd,sd->skillid,0,0);
@@ -2874,7 +2874,7 @@ int pc_item_refine(struct map_session_data *sd,int idx)
 				if (ep)
 					pc_equipitem(sd,idx,ep);
 				clif_misceffect(&sd->bl,3);
-				if(item->refine == 10 && item->card[0] == 0x00ff && item->card[2] == sd->char_id){ // Fame point system [DracoRPG]
+				if(item->refine == MAX_REFINE && item->card[0] == 0x00ff && item->card[2] == sd->char_id){ // Fame point system [DracoRPG]
 					switch(ditem->wlv){
 						case 1:
 							sd->status.fame += 1; // Success to refine to +10 a lv1 weapon you forged = +1 fame point
