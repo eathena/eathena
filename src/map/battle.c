@@ -4057,6 +4057,9 @@ static const struct {
 	{ "monster_loot_type",                 &battle_config.monster_loot_type		},
 	{ "mob_skill_use",                     &battle_config.mob_skill_use			},
 	{ "mob_count_rate",                    &battle_config.mob_count_rate			},
+	{ "mob_spawn_delay",                   &battle_config.mob_spawn_delay			},
+	{ "plant_spawn_delay",                 &battle_config.plant_spawn_delay			},
+	{ "boss_spawn_delay",                  &battle_config.boss_spawn_delay			},
 	{ "quest_skill_learn",                 &battle_config.quest_skill_learn		},
 	{ "quest_skill_reset",                 &battle_config.quest_skill_reset		},
 	{ "basic_skill_check",                 &battle_config.basic_skill_check		},
@@ -4314,6 +4317,9 @@ void battle_set_defaults() {
 	battle_config.monster_loot_type=0;
 	battle_config.mob_skill_use=1;
 	battle_config.mob_count_rate=100;
+	battle_config.mob_spawn_delay=100;
+	battle_config.plant_spawn_delay=100;
+	battle_config.boss_spawn_delay=100;
 	battle_config.quest_skill_learn=0;
 	battle_config.quest_skill_reset=1;
 	battle_config.basic_skill_check=1;
@@ -4635,6 +4641,15 @@ void battle_validate_conf() {
 
 	if (battle_config.min_skill_delay_limit < 10)
 		battle_config.min_skill_delay_limit = 10;	// minimum delay of 10ms
+
+	//Spawn delays [Skotlex]
+	if (battle_config.mob_spawn_delay < 0)
+		battle_config.mob_spawn_delay = 0;
+	if (battle_config.boss_spawn_delay < 0)
+		battle_config.boss_spawn_delay = 0;
+	if (battle_config.plant_spawn_delay < 0)
+		battle_config.plant_spawn_delay = 0;
+	
 }
 
 /*==========================================

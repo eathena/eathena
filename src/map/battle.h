@@ -136,6 +136,7 @@ extern struct Battle_Config {
 	int monster_loot_type;
 	int mob_skill_use;
 	int mob_count_rate;
+	short mob_spawn_delay, plant_spawn_delay, boss_spawn_delay;	// [Skotlex]
 	int quest_skill_learn;
 	int quest_skill_reset;
 	int basic_skill_check;

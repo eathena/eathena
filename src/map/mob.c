@@ -862,6 +862,7 @@ static int mob_delayspawn(int tid,unsigned int tick,int m,int n)
 int mob_setdelayspawn(int id)
 {
 	unsigned int spawntime,spawntime1,spawntime2,spawntime3;
+	unsigned short mode, delayrate=100; //for battle config delays
 	struct mob_data *md;
 	struct block_list *bl;
 
@@ -886,9 +887,21 @@ int mob_setdelayspawn(int id)
 		map_freeblock(md);	// Instead of [ of free ]
 		return 0;
 	}
-
-	spawntime1=md->last_spawntime+md->spawndelay1;
-	spawntime2=md->last_deadtime+md->spawndelay2;
+	//Apply the spawn delay fix [Skotlex]
+	mode = status_get_mode(bl);
+	if (mode&0x20)
+	{	//Bosses
+		if (battle_config.boss_spawn_delay != 100)
+			delayrate = delayrate*battle_config.boss_spawn_delay/100;
+	} else if (mode&0x40)
+	{	//Plants
+		if (battle_config.plant_spawn_delay != 100)
+			delayrate = delayrate*battle_config.plant_spawn_delay/100; 
+	}	else if (battle_config.mob_spawn_delay != 100) //Normal mobs
+		delayrate = delayrate*battle_config.mob_spawn_delay/100;
+	
+	spawntime1=md->last_spawntime+(md->spawndelay1*delayrate/100);
+	spawntime2=md->last_deadtime+(md->spawndelay2*delayrate/100);
 	spawntime3=gettick()+5000+rand()%5000; //Lupus
 	// spawntime = max(spawntime1,spawntime2,spawntime3);
 	if(DIFF_TICK(spawntime1,spawntime2)>0)
