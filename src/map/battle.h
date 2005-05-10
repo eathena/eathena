@@ -322,6 +322,7 @@ extern struct Battle_Config {
 	int who_display_aid;
 
 	short display_hallucination;	// [Skotlex]
+	short use_statpoint_table;	// [Skotlex]
 #ifndef TXT_ONLY /* SQL-only options */
 	int mail_system; // [Valaris]
 #endif

@@ -4641,30 +4641,30 @@ int pc_resetlvl(struct map_session_data* sd,int type)
  */
 int pc_resetstate(struct map_session_data* sd)
 {
-	#define sumsp(a) ((a)*((a-2)/10+2) - 5*((a-2)/10)*((a-2)/10) - 6*((a-2)/10) -2)
-//	int add=0; // Removed by Dexity
-	int lv;
-
 	nullpo_retr(0, sd);
-	// allow it to just read the last entry [celest]
-	lv = sd->status.base_level < MAX_LEVEL ? sd->status.base_level : MAX_LEVEL - 1;
-
-//	New statpoint table used here - Dexity
-	sd->status.status_point = statp[lv];
-	if(sd->status.class_ >= 4001 && sd->status.class_ <= 4024)
-		sd->status.status_point+=52;	// extra 52+48=100 stat points
-//	End addition
-
-//	Removed by Dexity - old count
-//	add += sumsp(sd->status.str);
-//	add += sumsp(sd->status.agi);
-//	add += sumsp(sd->status.vit);
-//	add += sumsp(sd->status.int_);
-//	add += sumsp(sd->status.dex);
-//	add += sumsp(sd->status.luk);
-//	sd->status.status_point+=add;
-
-	clif_updatestatus(sd,SP_STATUSPOINT);
+	
+	if (battle_config.use_statpoint_table)
+	{	// New statpoint table used here - Dexity
+		int lv;
+		// allow it to just read the last entry [celest]
+		lv = sd->status.base_level < MAX_LEVEL ? sd->status.base_level : MAX_LEVEL - 1;
+		
+		sd->status.status_point = statp[lv];
+		if(sd->status.class_ >= 4001 && sd->status.class_ <= 4024)
+			sd->status.status_point+=52;	// extra 52+48=100 stat points
+	} else { //Use new stat-calculating equation [Skotlex]
+#define sumsp(a) (((a-1)/10 +2)*(5*((a-1)/10 +1) + (a-1)%10) -10)
+//Old bugged equation:
+//#define sumsp(a) ((a)*((a-2)/10+2) - 5*((a-2)/10)*((a-2)/10) - 6*((a-2)/10) -2)
+		int add=0;
+		add += sumsp(sd->status.str);
+		add += sumsp(sd->status.agi);
+		add += sumsp(sd->status.vit);
+		add += sumsp(sd->status.int_);
+		add += sumsp(sd->status.dex);
+		add += sumsp(sd->status.luk);
+		sd->status.status_point+=add;
+	}
 
 	sd->status.str=1;
 	sd->status.agi=1;
@@ -4686,7 +4686,8 @@ int pc_resetstate(struct map_session_data* sd)
 	clif_updatestatus(sd,SP_UINT);
 	clif_updatestatus(sd,SP_UDEX);
 	clif_updatestatus(sd,SP_ULUK);	// End Addition
-
+	
+	clif_updatestatus(sd,SP_STATUSPOINT);
 	status_calc_pc(sd,0);
 
 	return 0;

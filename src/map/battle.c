@@ -4237,6 +4237,7 @@ static const struct {
 	{ "display_version",	&battle_config.display_version}, // [Ancyker], for a feature by...?
 	{ "who_display_aid",	&battle_config.who_display_aid}, // [Ancyker], for a feature by...?
 	{ "display_hallucination", &battle_config.display_hallucination}, // [Skotlex]
+	{ "use_statpoint_table", &battle_config.use_statpoint_table}, // [Skotlex]
 
 //SQL-only options start
 #ifndef TXT_ONLY
@@ -4494,6 +4495,7 @@ void battle_set_defaults() {
 	battle_config.display_version = 1;
 	battle_config.who_display_aid = 0;
 	battle_config.display_hallucination = 1;
+	battle_config.use_statpoint_table = 1;
 
 //SQL-only options start
 #ifndef TXT_ONLY

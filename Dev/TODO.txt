@@ -720,3 +720,30 @@ Assignee
 
 Stealing my name/pass does not give you my powers
 **
+77.
+Description	Update this file.
+Status		Pending
+Assignee		None
+
+Anyone noticed this file seems way old? There's stuff here that has either
+been forgotten, or are already fixed. Should we give a wake up call to for all
+devs to review it and update it? Personally I have seen that #10 and #24 were
+fixed recently by moi. [Skotlex]
+**
+78.
+Description	Use item_db.txt to define unrefineable items.
+Status		Pending
+Assignee		Skotlex
+
+Using a function which has hardcoded which items are not refineable is not a
+very elegant way to do it. The logical thing would be to either (1): Add a new
+column to item_db specifically to state whether the item is refineable or not,
+or (2) reuse one of the columns. I am vouching for (2), after checking the
+item_db, I would suggest either type, loc, or eLv. Maybe eLv can do. The idea
+is to use a mask. For example, an item's type only goes up to 5 or so. The
+mask could be 16. So if an item is refineable, you add 16 to the type, and
+then filter it out when reading the item_db. This is easy as cake to do, but
+we need to come to an agreement of which item column to use. My vote goes for
+type since that's the most simple of the fields (and would be easier for
+server admins to custom modify).
+**

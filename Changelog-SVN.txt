@@ -1,5 +1,11 @@
 Date	Added
 05/10
+	* Added battle_config.use_statpoint_table [Skotlex]
+	  When set to no, a new equation is used to calculate stat points after a
+	  reset. I've tested the equation to death, so it should work flawlessly.
+	  Advantages of using the equation: No need for statpoint.txt (it is still
+	  read for the time being), and stat changes through npc buyers/sellers are
+	  preserved after a reset.
 	* Restructured clif_parse_Wanttoconnection [celest]
 	* Fixed packet version detecting not working properly if last version's connection
 	  packet is the same as the DB but with different values [celest]
