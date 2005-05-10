@@ -3731,6 +3731,8 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 						}
 						flag = (fmd || fsd); break;
 					}
+				case MSC_MASTERATTACKED:
+					flag = (md->master_id > 0 && battle_counttargeted(map_id2bl(md->master_id), NULL, 0) > 0); break;
 			}
 		}
 
@@ -4239,6 +4241,7 @@ static int mob_readskilldb(void)
 		{	"casttargeted",		MSC_CASTTARGETED		},
 		{	"rudeattacked",		MSC_RUDEATTACKED		},
 		{	"masterhpltmaxrate",MSC_MASTERHPLTMAXRATE	},
+		{	"masterattacked",	MSC_MASTERATTACKED		},
 	}, cond2[] ={
 		{	"anybad",		-1				},
 		{	"stone",		SC_STONE		},

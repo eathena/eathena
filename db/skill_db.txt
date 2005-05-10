@@ -336,8 +336,8 @@
 330,0,6,4,0,1,10,1,no,0,0,0,misc,0	//DC_SERVICEFORYOU#サ?ビスフォ?ユ?#
 
 331,0,6,4,0,1,10,0,no,0,0,0,none,0	//NPC_RANDOMMOVE
-332,0,0,0,0,0,0,0,no,0,0,0,none,0	//NPC_SPEEDUP
-333,0,0,0,0,0,0,0,no,0,0,0,none,0	//NPC_REVENGE
+332,0,6,4,0,1,10,0,no,0,0,0,none,0	//NPC_SPEEDUP
+333,0,6,4,0,1,1,0,no,0,0,0,none,0	//NPC_REVENGE
 
 334,8,6,4,0,1,1,1,yes,0,0,0,magic,0	//WE_MALE#君だけは護るよ#
 335,8,6,4,0,1,1,1,yes,0,0,0,magic,0	//WE_FEMALE#あなたに尽くします#

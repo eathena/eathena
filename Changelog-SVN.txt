@@ -1,7 +1,11 @@
 Date	Added
 05/10
-	* Added battle options mob_spawn_delay, boss_spawn_delay and
-	  plant_spawn_delay [Skotlex]
+	* Skill updates [celest]
+	  - Fixed Charge Arrow not requiring bows
+	  - Fixed Enchant Deadly Poison working on bosses
+	  - Fixed Concentration (again! xD) def penalty, thanks to UniRing
+	  - Added code for NPC_REVENGE
+	* Added 'masterattacked' mob skill condition [celest]
 	* Added battle_config.use_statpoint_table [Skotlex]
 	  When set to no, a new equation is used to calculate stat points after a
 	  reset. I've tested the equation to death, so it should work flawlessly.

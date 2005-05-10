@@ -74,7 +74,7 @@ static int battle_counttargeted_sub(struct block_list *bl, va_list ap)
 	}
 	else if (bl->type == BL_PET) {
 		struct pet_data *pd = (struct pet_data *)bl;
-		if (pd->target_id == id && pd->timer != -1 && pd->state.state == MS_ATTACK && pd->target_lv >= target_lv)
+		if (pd && pd->target_id == id && pd->timer != -1 && pd->state.state == MS_ATTACK && pd->target_lv >= target_lv)
 			(*c)++;
 	}
 
@@ -96,6 +96,61 @@ int battle_counttargeted(struct block_list *bl,struct block_list *src,int target
 		bl->id, &c, src, target_lv);
 
 	return c;
+}
+
+/*==========================================
+ * Get random targetting enemy
+ *------------------------------------------
+ */
+static int battle_gettargeted_sub(struct block_list *bl, va_list ap)
+{
+	struct block_list **bl_list;
+	struct block_list *target;
+	int *c;
+
+	nullpo_retr(0, bl);
+	nullpo_retr(0, ap);
+
+	bl_list = va_arg(ap, struct block_list **);
+	nullpo_retr(0, c = va_arg(ap, int *));
+	nullpo_retr(0, target = va_arg(ap, struct block_list *));
+
+	if (bl->id == target->id)
+		return 0;
+	if (*c >= 24)
+		return 0;
+
+	if (bl->type == BL_PC) {
+		struct map_session_data *sd = (struct map_session_data *)bl;
+		if (!sd || sd->attacktarget != target->id || sd->attacktimer == -1)
+			return 0;
+	} else if (bl->type == BL_MOB) {
+		struct mob_data *md = (struct mob_data *)bl;
+		if (!md || md->target_id != target->id || md->timer == -1 || md->state.state != MS_ATTACK)
+			return 0;
+	} else if (bl->type == BL_PET) {
+		struct pet_data *pd = (struct pet_data *)bl;
+		if (!pd || pd->target_id != target->id || pd->timer == -1 || pd->state.state != MS_ATTACK)
+			return 0;
+	}
+
+	bl_list[(*c)++] = bl;
+	return 0;
+}
+struct block_list* battle_gettargeted(struct block_list *target)
+{
+	struct block_list *bl_list[24];
+	int c = 0;
+	nullpo_retr(NULL, target);
+
+	memset(bl_list, 0, sizeof(bl_list));
+	map_foreachinarea(battle_gettargeted_sub, target->m,
+		target->x-AREA_SIZE, target->y-AREA_SIZE,
+		target->x+AREA_SIZE, target->y+AREA_SIZE, 0,
+		bl_list, &c, target);
+	if (c == 0 || c > 24)
+		return NULL;
+	return bl_list[rand()%c];
 }
 
 // ダメージの遅延
@@ -2438,7 +2493,9 @@ static struct Damage battle_calc_pc_weapon_attack(
 	// 状態異常中のダメージ追加でクリティカルにも有効なスキル
 	if (sc_data) {
 		// エンチャントデッドリーポイズン
-		if(!no_cardfix && sc_data[SC_EDP].timer != -1 && skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT) {
+		if(!no_cardfix && sc_data[SC_EDP].timer != -1 && !(t_mode & 0x20) &&
+			skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
+		{
 			damage += damage * (150 + sc_data[SC_EDP].val1 * 50) / 100;
 			no_cardfix = 1;
 		}

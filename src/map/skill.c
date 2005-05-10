@@ -4328,7 +4328,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case NPC_REVENGE:
 		// not really needed... but adding here anyway ^^
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		if (md && md->master_id > 0) {
+			struct block_list *mbl, *tbl;
+			if ((mbl = map_id2bl(md->master_id)) == NULL ||
+				(tbl = battle_gettargeted(mbl)) == NULL)
+				break;
+			md->state.provoke_flag = tbl->id;
+			mob_target(md, tbl, mob_db[md->class_].range);
+		}
 		break;
 
 	case NPC_STOP:

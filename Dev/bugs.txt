@@ -419,6 +419,6 @@ Progress:	0%
 
 Problem:	Charge Arrow bug
 			It can be casted w/o any BOW.. and with other weapon, or.. even with bare hands
-Assigned:	N/A
-Progress:	0%
+Assigned:	Celest
+Progress:	100%
 
