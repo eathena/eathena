@@ -2619,9 +2619,16 @@ int pc_useitem(struct map_session_data *sd,int n)
 		}
 		script = sd->inventory_data[n]->use_script;
 		amount = sd->status.inventory[n].amount;
-		clif_useitemack(sd,n,amount-1,1);
+		if (	//List items that are not consumed inmediately [Skotlex]
+			(sd->itemid >= 619 && sd->itemid <= 642) || //Pet catchers
+			(sd->itemid >= 659 && sd->itemid <= 661)	//Newer pet catchers
+			)
+			clif_useitemack(sd,n,amount,1);
+		else {
+			clif_useitemack(sd,n,amount-1,1);
+			pc_delitem(sd,n,1,1);
+		}
 		run_script(script,0,sd->bl.id,0);
-		pc_delitem(sd,n,1,1);
 	}
 
 	return 0;

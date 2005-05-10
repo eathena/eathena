@@ -1,5 +1,7 @@
 Date	Added
 05/10
+	* Added code to prevent pet lures from being wasted until after selecting a
+	target (only works with official lures). [Skotlex]
 	* Added MAX_REFINE to status.h [Skotlex]
 	  Enables for custom max refine levels using the success rates in
 	  refine_db.txt, npcs will know they reached the max level when the success
