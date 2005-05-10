@@ -320,6 +320,7 @@ struct map_session_data {
 	short unequip_losehp[11];
 	short unequip_losesp[11];
 	int itemid;
+	short itemindex;	//Used item's index in sd->inventory [Skotlex]
 	int itemhealrate[7];
 	//--- 03/15's new card effects
 	int expaddrace[12];

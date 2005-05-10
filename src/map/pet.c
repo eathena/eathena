@@ -1140,10 +1140,10 @@ int pet_catch_process2(struct map_session_data *sd,int target_id)
 		(sd->itemid >= 659 && sd->itemid <= 661)
 		))
 	{  //Skotlex: Consume the item
-		for(i=0;i<MAX_INVENTORY && sd->status.inventory[i].nameid != sd->itemid; i++);
-		if (i<MAX_INVENTORY && sd->status.inventory[i].nameid == sd->itemid && sd->status.inventory[i].amount > 0)
+		i = sd->itemindex;
+		if (i >= 0 && i < MAX_INVENTORY && sd->status.inventory[i].nameid == sd->itemid && sd->status.inventory[i].amount > 0)
 		{
-			sd->itemid = -1;
+			sd->itemid = sd->itemindex = -1;
 			pc_delitem(sd,i,1,0);
 		} else { //Item exploit?
 			clif_pet_rulet(sd,0);

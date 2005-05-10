@@ -6677,7 +6677,23 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	}
 
 	if(sd->skillitem == sd->skillid) {	/* ƒAƒCƒeƒ€‚Ìê‡–³?Œ¬Œ÷ */
-		if(type&1)
+		if(!type) //When a target was selected
+		{	//Consume items that were skipped in pc_use_item [Skotlex]
+			if (sd->skillitem == 610 ||	//Yggdrasil Leaf
+				(sd->itemid >= 686 && sd->itemid <= 700) ||	//Scrolls
+				(sd->itemid >= 12000 && sd->itemid <= 12003)	//More Scrolls
+				) 
+			{
+				i = sd->itemindex;
+				if (i >= 0 && i < MAX_INVENTORY && sd->status.inventory[i].nameid == sd->itemid && sd->status.inventory[i].amount > 0)
+				{	//Consume
+					sd->itemid = sd->itemindex = -1;
+					pc_delitem(sd,i,1,0);
+				} else 	//Item exploit?
+					return 0;
+			}
+		}
+		if (type&1) //Casting finished
 			sd->skillitem = sd->skillitemlv = -1;
 		return 1;
 	}

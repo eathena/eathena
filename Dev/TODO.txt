@@ -747,3 +747,22 @@ we need to come to an agreement of which item column to use. My vote goes for
 type since that's the most simple of the fields (and would be easier for
 server admins to custom modify).
 **
+78.
+Description	Use item_db.txt to define items that cast a skill 
+Status		Pending
+Assignee		Skotlex
+
+Maybe not many complain of this, but I've always been annoyed at the way I
+wasted yggdrasil leafs by not clicking on the target or cancelling via a
+right-click. The correct behaviour is that the item should be consumed until
+after a target has been selected.
+The logical solution is to not consume the spell-items in pc_useitem, and in
+skill_check_condition delete it. The problem lies in that currently there is no way to know which skills are "spell type" items, to avoid deleting them until later.
+Like the previous point, perhaps using a mask-flag with the item type to
+signal which items are "cast-type" the thing could be solved. If types go up
+to 5 currently, the next flag to use would be 16 (leaving enough room for
+natural expansion). Considering the previous point, would it do using 16 for
+refineable items, and 32 for casting spells? (even thought items that can be
+equipped can't be used, I don't think the same flag should be used to signal
+both events). 
+**
