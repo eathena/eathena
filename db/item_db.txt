@@ -1458,7 +1458,7 @@
 5078,Sea_Otter_Hat,Sea Otter Hat,5,20,0,800,,3,,0,10477567,2,256,,50,162,{},{ bonus bVit,1; }
 5079,X_Hairpin,X Hairpin,5,20,0,100,,1,,0,10477567,2,256,,0,163,{},{}
 5080,Crown_of_the_Ancient_Queen,Crown of The Ancient Queen,5,20,0,400,,4,,0,10477567,2,256,,45,164,{},{}
-5081,Crown_of_Mistress,Crown of Mistress,5,20,0,100,,1,,0,10477567,0,256,,75,165,{},{ bonus bMaxSP,100; }
+5081,Crown_of_Mistress,Crown of Mistress,5,20,0,100,,1,,0,10477567,0,256,,75,165,{},{ bonus bMaxSP,100; bonus bInt,2; bonus bUnbreakableHelm,0; }
 5082,Mushroom_Hairband,Mushroom Hairband,5,20,0,100,,2,,0,10477567,2,256,,0,166,{},{}
 5083,Back_Ribbon,Back Ribbon,5,20,0,200,,1,,0,10477567,0,256,,45,167,{},{ bonus bMdef,10; }
 5084,Lazy_Raccoon_Hat,Lazy Racoon Hat,5,20,0,500,,1,,0,10477567,2,256,,0,168,{},{ bonus2 bResEff,Eff_Sleep,2000; }
