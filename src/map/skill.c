@@ -5062,7 +5062,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		sd->skillitem = sd->skillitemlv = -1;
 		return 0;
 	}
-	sd->skillitem = sd->skillitemlv = -1;
+//	sd->skillitem = sd->skillitemlv = -1; <- skill_check_condition(sd,1) does this
 	if(battle_config.skill_out_range_consume) {
 		if(range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y)) {
 			clif_skill_fail(sd,sd->skillid,0,0);
@@ -5181,7 +5181,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 		sd->skillitem = sd->skillitemlv = -1;
 		return 0;
 	}
-	sd->skillitem = sd->skillitemlv = -1;
+//	sd->skillitem = sd->skillitemlv = -1; <- skill_check_condition(sd,1) does this
 	if(battle_config.skill_out_range_consume) {
 		if(range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
 			clif_skill_fail(sd,sd->skillid,0,0);
