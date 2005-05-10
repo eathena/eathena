@@ -405,3 +405,20 @@ Problem:	Guilds Breaking
 			Probably it isn't being deleted from memory.
 Assigned:	N/A
 Progress:	0%
+
+Problem:	Character global VARS save with delay. (BTW Account #vars are fine!)
+			It cause multi exploits in all quests (you can leave the game - changing character
+			and you lose your vars saving. So you can complete the quest again, etc)
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Client Crash
+			When a wizard casts Energy coat then TELEPORTs
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Charge Arrow bug
+			It can be casted w/o any BOW.. and with other weapon, or.. even with bare hands
+Assigned:	N/A
+Progress:	0%
+
