@@ -166,33 +166,43 @@ static int pet_calc_pos(struct pet_data *pd,int tx,int ty,int dir)
 	return 0;
 }
 
+static int pet_unlocktarget(struct pet_data *pd)
+{
+	nullpo_retr(0, pd);
+
+	pd->target_id=0;
+
+	return 0;
+}
+
 static int pet_attack(struct pet_data *pd,unsigned int tick,int data)
 {
 	struct mob_data *md;
-	int mode,race,range;
+//	int mode,race;
+	short range;
 
 	nullpo_retr(0, pd);
 
 	Assert((pd->msd == 0) || (pd->msd->pd == pd));
 
-	pd->state.state=MS_IDLE;
+//	pd->state.state=MS_IDLE;
 
 	md=(struct mob_data *)map_id2bl(pd->target_id);
-	if(md == NULL || md->bl.type != BL_MOB || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
-		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13 || 
-		(md->class_ >= 1285 && md->class_ <= 1288)) // Cannot attack Guardians/Emperium
+	if(md == NULL || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
+		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13)
+//	|| md->bl.type != BL_MOB
 	{
-		pd->target_id=0;
+		pet_unlocktarget(pd);
 		return 0;
 	}
-
+/*
 	mode=mob_db[pd->class_].mode;
 	race=mob_db[pd->class_].race;
 	if(mob_db[pd->class_].mexp <= 0 && !(mode&0x20) && (md->option & 0x06 && race != 4 && race != 6) ) {
 		pd->target_id=0;
 		return 0;
 	}
-
+*/
 	range = mob_db[pd->class_].range + 1;
 	if(distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > range)
 		return 0;
@@ -220,30 +230,30 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, sho
  */
 static int pet_attackskill(struct pet_data *pd, unsigned int tick, int data)
 {
-	short mode,race;
+	//short mode,race;
 	struct mob_data *md;
 	
 	nullpo_retr(0, pd);
 	Assert((pd->msd == 0) || (pd->msd->pd == pd));
 
-	pd->state.state=MS_IDLE;
+//	pd->state.state=MS_IDLE;
 
 	md=(struct mob_data *)map_id2bl(pd->target_id);
-	if(md == NULL || md->bl.type != BL_MOB || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
-		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13 || 
-		(!agit_flag && md->class_ >= 1285 && md->class_ <= 1288)) // Cannot attack Guardians outside of WoE
+	if(md == NULL || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
+		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13)
+//			|| md->bl.type != BL_MOB || (!agit_flag && md->class_ >= 1285 && md->class_ <= 1288)) // Cannot attack Guardians outside of WoE
 	{
-		pd->target_id=0;
+		pet_unlocktarget(pd);
 		return 0;
 	}
-
+/*
 	mode=mob_db[pd->class_].mode;
 	race=mob_db[pd->class_].race;
 	if(mob_db[pd->class_].mexp <= 0 && !(mode&0x20) && (md->option & 0x06 && race != 4 && race != 6) ) {
 		pd->target_id=0;
 		return 0;
 	}
-
+*/
 	petskill_use(pd, &md->bl, pd->a_skill->id, pd->a_skill->lv, tick);
 	return 0;
 }
@@ -344,7 +354,7 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, sho
 		if(range < 0)
 			range = status_get_range(&pd->bl) - (range + 1);
 		if(distance(pd->bl.x, pd->bl.y, target->x, target->y) > range)
-			return 0; //inf == 4: Skill casted on yourself
+			return 0; 
 		switch( skill_get_nk(skill_id) )
 		{
 			case 0:
@@ -478,8 +488,10 @@ int pet_target_check(struct map_session_data *sd,struct block_list *bl,int type)
 		mode=mob_db[pd->class_].mode;
 		race=mob_db[pd->class_].race;
 		md=(struct mob_data *)bl;
-		if(md->bl.type != BL_MOB || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
-			distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13)
+		if(md->bl.type != BL_MOB || pd->bl.m != md->bl.m ||
+			md->bl.prev == NULL ||
+			distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13 || 
+			(md->class_ >= 1285 && md->class_ <= 1288)) // Cannot attack Guardians/Emperium
 			return 0;
 		if(mob_db[pd->class_].mexp <= 0 && !(mode&0x20) && (md->option & 0x06 && race!=4 && race!=6) )
 			return 0;
@@ -565,7 +577,7 @@ int pet_changestate(struct pet_data *pd,int state,int type)
 				pd->timer=add_timer(tick+1,pet_timer,pd->bl.id,0);
 			break;
 		case MS_DELAY:
-			pd->timer=add_timer(gettick()+type,pet_timer,pd->bl.id,0);
+				pd->timer=add_timer(gettick()+type,pet_timer,pd->bl.id,0);
 			break;
 	}
 
@@ -857,7 +869,6 @@ int pet_remove_map(struct map_session_data *sd)
 //		if (sd->pd->lootitem)
 //			aFree(sd->pd->lootitem);
 		map_deliddb(&sd->pd->bl);
-		//Skotlex: FREE pet data
 		aFree(sd->pd);
 		sd->pd = NULL;
 	}
@@ -963,7 +974,7 @@ int pet_data_init(struct map_session_data *sd)
 	sd->pd = pd = (struct pet_data *)aCalloc(1,sizeof(struct pet_data));
 	memset(pd,0,sizeof(struct pet_data)); //Skotlex: I suggest to zero up this...
 	pd->bl.m = sd->bl.m;
-	pd->bl.prev = pd->bl.next = NULL;
+//	pd->bl.prev = pd->bl.next = NULL;
 	pd->bl.x = pd->to_x = sd->bl.x;
 	pd->bl.y = pd->to_y = sd->bl.y;
 	pet_calc_pos(pd,sd->bl.x,sd->bl.y,sd->dir);
@@ -977,12 +988,12 @@ int pet_data_init(struct map_session_data *sd)
 	pd->speed = sd->petDB->speed;
 	pd->bl.subtype = MONS;
 	pd->bl.type = BL_PET;
-	memset(&pd->state,0,sizeof(pd->state));
+//	memset(&pd->state,0,sizeof(pd->state));
 	pd->state.state = MS_IDLE;
-	pd->state.change_walk_target = 0;
+//	pd->state.change_walk_target = 0;
 	pd->timer = -1;
-	pd->target_id = 0;
-	pd->move_fail_count = 0;
+//	pd->target_id = 0;
+//	pd->move_fail_count = 0;
 	pd->next_walktime = pd->attackabletime = pd->last_thinktime = gettick();
 	pd->msd = sd;
 	
@@ -1296,7 +1307,7 @@ int pet_unequipitem(struct map_session_data *sd)
 		map_addflooritem(&tmp_item,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
 	}
 	if (battle_config.pet_equip_required)
-	{ 	//Skotlex: halt support timers if needd
+	{ 	//Skotlex: halt support timers if needed
 		if (sd->pd->s_skill && sd->pd->s_skill->timer != -1)
 		{
 			if (sd->pd->s_skill->id == 0)
@@ -1415,15 +1426,6 @@ static int pet_randomwalk(struct pet_data *pd,int tick)
 	return 0;
 }
 
-static int pet_unlocktarget(struct pet_data *pd)
-{
-	nullpo_retr(0, pd);
-
-	pd->target_id=0;
-
-	return 0;
-}
-
 static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 {
 	struct map_session_data *sd = pd->msd;
@@ -1471,11 +1473,11 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 			mode=mob_db[pd->class_].mode;
 			race=mob_db[pd->class_].race;
 			md=(struct mob_data *)map_id2bl(pd->target_id);
-			if(md == NULL || md->bl.type != BL_MOB || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
+			if(md == NULL /*|| md->bl.type != BL_MOB*/ || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
 				distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13)
 				pet_unlocktarget(pd);
-			else if(mob_db[pd->class_].mexp <= 0 && !(mode&0x20) && (md->option & 0x06 && race!=4 && race!=6) )
-				pet_unlocktarget(pd);
+/*			else if(mob_db[pd->class_].mexp <= 0 && !(mode&0x20) && (md->option & 0x06 && race!=4 && race!=6) )
+				pet_unlocktarget(pd);*/
 			else if(!battle_check_range(&pd->bl,&md->bl,mob_db[pd->class_].range && !pd->casting_flag)){ //Skotlex Don't interrupt a casting spell when targed moved
 				if(pd->timer != -1 && pd->state.state == MS_WALK && distance(pd->to_x,pd->to_y,md->bl.x,md->bl.y) < 2)
 					return 0;
@@ -1903,13 +1905,11 @@ int pet_skill_support_timer(int tid,unsigned int tick,int id,int data)
 		pd->s_skill->timer=add_timer(gettick()+30*MIN_PETTHINKTIME,pet_skill_support_timer,sd->bl.id,0);
 		return 0;
 	}
-	//Skotlex: Execute the skill by luck?
-	if (sd->pet.intimate > 100 && rand()%sd->pet.intimate > 100)
-	{
-		if (pd->state.state == MS_ATTACK)
-			pet_stopattack(pd);
-		petskill_use(pd, &sd->bl, pd->s_skill->id, pd->s_skill->lv, tick);
-	}
+
+	if (pd->state.state == MS_ATTACK)
+		pet_stopattack(pd);
+	petskill_use(pd, &sd->bl, pd->s_skill->id, pd->s_skill->lv, tick);
+
 	pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000,pet_skill_support_timer,sd->bl.id,0);
 	
 	return 0;

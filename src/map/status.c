@@ -672,11 +672,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	if(sd->status.pet_id > 0) { // Pet
 		struct pet_data *pd=sd->pd;
-		if((pd && battle_config.pet_status_support==1) && (battle_config.pet_equip_required==0 || (battle_config.pet_equip_required && pd->equip > 0))) {
-			if(sd->status.pet_id > 0 && sd->petDB && sd->pet.intimate > 0 &&
-				pd->state.skillbonus == 1 && pd->bonus) { //Skotlex: Readjusted for pets
+		if((pd && battle_config.pet_status_support) && (!battle_config.pet_equip_required || pd->equip > 0)) {
+			if(sd->pet.intimate > 0 && pd->state.skillbonus == 1 && pd->bonus) { //Skotlex: Readjusted for pets
 				pc_bonus(sd,pd->bonus->type, pd->bonus->val);
-//				run_script(sd->petDB->script,0,sd->bl.id,0);
 			}
 			pele = sd->right_weapon.atk_ele;
 			pdef_ele = sd->def_ele;
