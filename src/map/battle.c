@@ -2891,6 +2891,1196 @@ static struct Damage battle_calc_pc_weapon_attack(
 }
 
 /*==========================================
+ * battle_calc_weapon_attack_sub (by Skotlex)
+ *------------------------------------------
+ */
+static struct Damage battle_calc_weapon_attack_sub(
+	struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int wflag)
+{
+	struct map_session_data *sd=NULL, *tsd=NULL;
+	struct mob_data *md=NULL, *tmd=NULL;
+	struct pet_data *pd=NULL;//, *tpd=NULL; (Noone can target pets)
+	struct Damage wd;
+	short skill=0;
+	unsigned short skillratio = 100;	//Skill dmg modifiers
+	//Flags:
+	char hit_flag=0, //the attack Hit? (not a miss)
+		cri_flag=0,		//Critical hit
+		idef_flag=0,	//Ignore defense
+		idef_flag_=0,	//Ignore defense (left weapon)
+		infdef_flag=0,	//Infinite defense (plants?)
+		arrow_flag=0,	//Attack is arrow-based
+		rh_flag=1,		//Attack considers right hand (wd.damage)
+		lh_flag=0,		//Attack considers left hand (wd.damage2)
+		no_cardfix=0;
+	short i;
+	short t_mode = status_get_mode(target), t_size = status_get_size(target);
+	short t_race=0, t_ele=0, s_race=0;	//Set to 0 because the compiler does not notices they are NOT gonna be used uninitialized
+	short s_ele, s_ele_;
+	short def1, def2;
+	struct status_change *sc_data = status_get_sc_data(src);
+	struct status_change *t_sc_data = status_get_sc_data(target);
+
+	memset(&wd,0,sizeof(wd));
+	if(src==NULL || target==NULL)
+	{
+		nullpo_info(NLP_MARK);
+		return wd;
+	}
+	
+	//Initial Values
+	wd.type=0; //Normal attack
+	wd.div_=skill_get_num(skill_num,skill_lv);
+	wd.amotion=status_get_amotion(src);
+	if(skill_num == KN_AUTOCOUNTER)
+		wd.amotion >>= 1;
+	wd.dmotion=status_get_dmotion(target);
+	wd.blewcount==skill_get_blewcount(skill_num,skill_lv);
+	wd.flag=BF_SHORT|BF_WEAPON|BF_NORMAL; //Initial Flag
+	wd.dmg_lv=ATK_DEF;	//This assumption simplifies the assignation later
+
+	switch (src->type)
+	{
+		case BL_PC:
+			sd=(struct map_session_data *)src;
+			break;
+		case BL_MOB:
+			md=(struct mob_data *)src;
+			break;
+		case BL_PET:
+			pd=(struct pet_data *)src;
+			break;
+	}
+	switch (target->type)
+	{
+		case BL_PC:	
+			tsd=(struct map_session_data *)target;
+			if (pd) { //Pets can't target players
+				memset(&wd,0,sizeof(wd));	
+				return wd;
+			}
+			break;
+		case BL_MOB:
+			tmd=(struct mob_data *)target;
+			break;
+		case BL_PET://Cannot target pets
+			memset(&wd,0,sizeof(wd));	
+			return wd;
+	}
+	
+	if(sd && skill_num != CR_GRANDCROSS)
+		sd->state.attack_type = BF_WEAPON;
+
+	//Set miscelanous data that needs be filled regardless of hit/miss
+	if(sd)
+	{
+		if (sd->status.weapon == 11)
+		{
+			wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
+			arrow_flag=1;
+		}
+	} else if (status_get_range(src) > 3)
+		wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
+	
+	if(skill_num){
+		wd.flag=(wd.flag&~BF_SKILLMASK)|BF_SKILL;
+		switch(skill_num)
+		{		
+			case AC_DOUBLE:
+			case AC_SHOWER:
+			case AC_CHARGEARROW:
+			case BA_MUSICALSTRIKE:
+			case DC_THROWARROW:
+			case CG_ARROWVULCAN:
+				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
+				arrow_flag=1;
+				break;
+			
+			case MO_FINGEROFFENSIVE:
+				if(sd && battle_config.finger_offensive_type == 0)
+					wd.div_ = sd->spiritball_old;
+			case KN_SPEARBOOMERANG:
+			case NPC_RANGEATTACK:
+			case CR_SHIELDBOOMERANG:
+			case LK_SPIRALPIERCE:
+			case ASC_BREAKER:
+			case PA_SHIELDCHAIN:
+			case CR_GRANDCROSS:	//GrandCross really shouldn't count as short-range, aight?
+				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
+				break;
+			case KN_PIERCE:
+				wd.div_= t_size+1;
+				break;
+			
+			case KN_SPEARSTAB:
+			case KN_BOWLINGBASH:
+				wd.blewcount=0;
+				break;
+			
+			case NPC_PIERCINGATT:
+			case CR_SHIELDCHARGE:
+				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_SHORT;
+				break;
+			
+			case KN_AUTOCOUNTER:
+				wd.flag=(wd.flag&~BF_SKILLMASK)|BF_NORMAL;
+				break;
+		}
+	}
+
+	if(t_mode&0x20) //Bosses can't be knocked-back
+		wd.blewcount = 0;
+	
+	if (sd)
+	{	//Arrow consumption
+		if (arrow_flag)
+			sd->state.arrow_atk = 1;
+		else
+			sd->state.arrow_atk = 0;
+	}
+	
+	//Check for counter 
+	if(skill_num != CR_GRANDCROSS &&
+ 		(!skill_num ||
+		(tsd && battle_config.pc_auto_counter_type&2) ||
+		(tmd && battle_config.monster_auto_counter_type&2)))
+	{
+		if(t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1)
+		{
+			int dir = map_calc_dir(src,target->x,target->y),t_dir = status_get_dir(target);
+			int dist = distance(src->x,src->y,target->x,target->y);
+			if(dist <= 0 || map_check_dir(dir,t_dir) )
+			{
+				memset(&wd,0,sizeof(wd));
+				t_sc_data[SC_AUTOCOUNTER].val3 = 0;
+				t_sc_data[SC_AUTOCOUNTER].val4 = 1;
+				if(sc_data && sc_data[SC_AUTOCOUNTER].timer == -1)
+				{ //How can the attacking char have Auto-counter active?
+					int range = status_get_range(target);
+					if((tsd && tsd->status.weapon != 11 && dist <= range+1) ||
+						(tmd && range <= 3 && dist <= range+1))
+						t_sc_data[SC_AUTOCOUNTER].val3 = src->id;
+				}
+				return wd;
+			} else
+				cri_flag = 1;
+		}
+		else if(t_sc_data && t_sc_data[SC_POISONREACT].timer != -1)
+		{	// poison react [Celest]
+			t_sc_data[SC_POISONREACT].val3 = 0;
+			t_sc_data[SC_POISONREACT].val4 = 1;
+			t_sc_data[SC_POISONREACT].val3 = src->id;
+		}
+	}	//End counter-check
+
+	if(sd && !skill_num && !cri_flag)
+	{	//Check for conditions that convert an attack to a skill
+		char da=0;
+		skill = 0;
+		if((sd->weapontype1 == 0x01 && (skill = pc_checkskill(sd,TF_DOUBLE)) > 0) ||
+			sd->double_rate > 0) //success rate from Double Attack is counted in
+			da = (rand()%100 <  sd->double_rate + 5*skill) ? 1:0;
+		if((skill = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16) // triple blow works with bows ^^ [celest]
+			da = (rand()%100 < (30 - skill)) ? 2:da;
+		
+		if (da == 1)
+		{
+			skill_num = TF_DOUBLE;
+			wd.div_ = 2;
+		} else if (da == 2) {
+			skill_num = MO_TRIPLEATTACK;
+			skill_lv = skill;
+			wd.div_ = 255;
+		}
+		
+		if (da)
+			wd.type = 0x08;
+	}
+
+	if (!skill_num && !cri_flag && sc_data && sc_data[SC_SACRIFICE].timer != -1)
+	{
+		skill_num = PA_SACRIFICE;
+		skill_lv	=  sc_data[SC_SACRIFICE].val1;
+	}
+	
+	if (!skill_num && (tsd || battle_config.enemy_perfect_flee))
+	{	//Check for Lucky Dodge
+		short flee2 = status_get_flee2(target);
+		if (rand()%1000 < flee2)
+		{
+			wd.type=0x0b;
+			wd.dmg_lv=ATK_LUCKY;
+			return wd;
+		}
+	}
+	
+	//Initialize variables that will be used afterwards
+	if (sd)
+	{
+		t_race = status_get_race(target);
+		t_ele = status_get_elem_type(target);
+	}
+	if (tsd)
+	{
+		s_race = status_get_race(src);
+	}
+	s_ele=status_get_attack_element(src);
+	s_ele_=status_get_attack_element2(src);
+
+	if (arrow_flag && sd && sd->arrow_ele)
+		s_ele = sd->arrow_ele;
+
+	if (sd)
+	{	//Set whether damage1 or damage2 (or both) will be used
+		if(sd->weapontype1 == 0 && sd->weapontype2 > 0)
+			{
+				rh_flag=0;
+				lh_flag=1;
+			}
+		if(sd->status.weapon > 16)
+			rh_flag = lh_flag = 1;
+	}
+
+	//Check for critical
+	if(!cri_flag &&
+		(sd || battle_config.enemy_critical) &&
+		(!skill_num || skill_num == KN_AUTOCOUNTER || skill_num == SN_SHARPSHOOTING))
+	{
+		short cri = status_get_critical(target);
+		cri -= status_get_luk(target) * 2; //RoDatazone claims that it should be 2
+		if (sd)
+		{
+			cri+= sd->critaddrace[t_race];
+			if(arrow_flag)
+				cri += sd->arrow_cri;
+			if(sd->status.weapon == 16)
+				cri <<=1;
+		}
+		else if(battle_config.enemy_critical_rate != 100)
+		{ //Mob/Pets
+			cri = cri*battle_config.enemy_critical_rate/100;
+			if (cri<1) cri = 1;
+		}
+		
+		if(t_sc_data)
+		{
+			if (t_sc_data[SC_SLEEP].timer!=-1 )
+				cri <<=1;
+			if(t_sc_data[SC_JOINTBEAT].timer != -1 &&
+				t_sc_data[SC_JOINTBEAT].val2 == 6) // Always take crits with Neck broken by Joint Beat [DracoRPG]
+				cri_flag=1;
+		}
+		switch (skill_num)
+		{
+			case KN_AUTOCOUNTER:
+				if(!(battle_config.pc_auto_counter_type&1))
+					cri_flag = 1;
+				else
+					cri <<= 1;
+				break;
+			case SN_SHARPSHOOTING:
+				cri += 200;
+				break;
+		}
+		if(tsd && tsd->critical_def)
+			cri = cri*(100-tsd->critical_def)/100;
+		if (cri_flag || rand() % 1000 < cri)
+			cri_flag= 1;
+	}
+	if (cri_flag)
+	{
+		wd.type = 0x0a;
+		idef_flag = idef_flag_ = 1;
+		hit_flag = 1;
+	} else {	//Check for Perfect Hit
+		if(sd && sd->perfect_hit > 0 && rand()%100 < sd->perfect_hit)
+			hit_flag=1;
+		if (skill_num && !hit_flag)
+			switch(skill_num)
+		{
+			case NPC_GUIDEDATTACK:
+			case RG_BACKSTAP:
+			case CR_GRANDCROSS:
+			case AM_ACIDTERROR:
+			case MO_INVESTIGATE:
+			case MO_EXTREMITYFIST:
+				hit_flag=1;
+				break;
+		}
+		if ((t_sc_data && !hit_flag) &&
+			(t_sc_data[SC_SLEEP].timer!=-1 ||
+			t_sc_data[SC_STAN].timer!=-1 ||
+			t_sc_data[SC_FREEZE].timer!=-1 ||
+			(t_sc_data[SC_STONE].timer!=-1 && t_sc_data[SC_STONE].val2==0))
+			)
+			hit_flag=1;
+	}
+	
+	if (!hit_flag)
+	{	//Hit/Flee calculation
+		short
+			flee = status_get_flee(target),
+			hitrate=80; //Default hitrate
+		if(battle_config.agi_penalty_type)
+		{	
+			unsigned char target_count; //256 max targets should be a sane max
+			target_count = 1+battle_counttargeted(target,src,battle_config.agi_penalty_count_lv);
+			if(target_count >= battle_config.agi_penalty_count)
+			{
+				if (battle_config.agi_penalty_type == 1)
+					flee = (flee * (100 - (target_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num))/100;
+				else //asume type 2: absolute reduction
+					flee -= (target_count - (battle_config.agi_penalty_count - 1))*battle_config.agi_penalty_num;
+				if(flee < 1) flee = 1;
+			}
+		}
+
+		hitrate+= status_get_hit(src) - flee;
+		
+		if(sd)
+		{	
+			if (arrow_flag)
+				hitrate += sd->arrow_hit;
+			// weapon research hidden bonus
+			if ((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
+				hitrate += hitrate * (2*skill)/100;
+		}
+		if(skill_num)
+			switch(skill_num)
+		{	//Hit skill modifiers
+			case SM_BASH:
+				hitrate += (skill_lv>5?20:10);
+				break;
+			case SM_MAGNUM:
+				hitrate += hitrate*(10*skill_lv)/100;
+				break;
+			case KN_AUTOCOUNTER:
+				hitrate += 20;
+				break;
+			case KN_PIERCE:
+				hitrate += hitrate*(5*skill_lv)/100;
+				break;
+			case PA_SHIELDCHAIN:
+				hitrate += 20;
+				break;
+		}
+		
+		hitrate = ((hitrate>95)?95: ((hitrate<5)?5:hitrate));
+	
+		if(rand()%100 >= hitrate)
+			wd.dmg_lv = ATK_FLEE;
+		else
+			hit_flag =1;
+	}	//End hit/miss calculation
+	
+	if(tsd && tsd->special_state.no_weapon_damage && skill_num != CR_GRANDCROSS)	
+		return wd;
+ 
+	if (hit_flag && !(t_mode&0x40)) //No need to do the math for plants
+	{	//Hitting attack
+
+//Assuming that 99% of the cases we will not need to check for the rh_flag... we don't.
+//ATK_RATE scales the damage. 100 = no change. 50 is halved, 200 is doubled, etc
+#define ATK_RATE( a ) { wd.damage= wd.damage*(a)/100 ; if(lh_flag) wd.damage2+= wd.damage2*(a)/100; }
+#define ATK_RATE2( a , b ) { wd.damage= wd.damage*(a)/100 ; if(lh_flag) wd.damage2+= wd.damage2*(b)/100; }
+//Adds dmg%. 100 = +100% (double) damage. 10 = +10% damage
+#define ATK_ADDRATE( a ) { wd.damage+= wd.damage*(a)/100 ; if(lh_flag) wd.damage2+= wd.damage2*(a)/100; }
+#define ATK_ADDRATE2( a , b ) { wd.damage+= wd.damage*(a)/100 ; if(lh_flag) wd.damage2+= wd.damage2*(b)/100; }
+//Adds an absolute value to damage. 100 = +100 damage
+#define ATK_ADD( a ) { wd.damage+= a; if (lh_flag) wd.damage2+= a; }
+#define ATK_ADD2( a , b ) { wd.damage+= a; if (lh_flag) wd.damage2+= b; }
+
+		if (status_get_def(target) >= 1000000)
+			infdef_flag =1;
+		def1 = status_get_def(target);
+		def2 = status_get_def2(target);
+		
+		switch (skill_num)
+		{	//Calc base damage according to skill
+			case PA_SACRIFICE:
+				ATK_ADD(status_get_max_hp(src)* 9/100);
+				break;
+			case PA_PRESSURE: //Since PRESSURE ignores everything, finish here
+				wd.damage=battle_calc_damage(src,target,500+300*skill_lv,wd.div_,skill_num,skill_lv,wd.flag);
+				wd.damage2=0;
+				return wd;	
+			default:
+			{
+				unsigned short baseatk=0, baseatk_=0, atkmin=0, atkmax=0, atkmin_=0, atkmax_=0;
+				if (!sd)
+				{	//Mobs/Pets
+					if ((md && battle_config.enemy_str) ||
+						(pd && battle_config.pet_str))
+						baseatk = status_get_baseatk(src);
+
+					if(skill_num==HW_MAGICCRASHER)
+					{		  
+						if (!cri_flag)
+							atkmin = status_get_matk1(src);
+						atkmax = status_get_matk2(src);
+					} else {
+						if (!cri_flag)
+							atkmin = status_get_atk(src);
+						atkmax = status_get_atk2(src);
+					}
+					if (atkmin > atkmax)
+						atkmin = atkmax;
+				} else {	//PCs
+					if(skill_num==HW_MAGICCRASHER)
+					{
+						baseatk = status_get_matk1(src);
+						if (lh_flag) baseatk_ = baseatk;
+					} else { 
+						baseatk = status_get_baseatk(src);
+						if (lh_flag) baseatk_ = baseatk;
+					}
+					//rodatazone says that Overrefine bonuses are part of baseatk
+					if(sd->right_weapon.overrefine>0)
+						baseatk+= rand()%sd->right_weapon.overrefine+1;
+					if (lh_flag && sd->left_weapon.overrefine>0)
+						baseatk_+= rand()%sd->left_weapon.overrefine+1;
+
+					if (!cri_flag)
+					{	//Normal attacks
+						atkmax = status_get_atk(src);
+						atkmin = atkmin_ = status_get_dex(src);
+						
+						if (sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]])
+							atkmin = atkmin*(80 + sd->inventory_data[sd->equip_index[9]]->wlv*20)/100;
+						
+						if (atkmin > atkmax)
+							atkmin = atkmax;
+						
+						if(lh_flag)
+						{
+							atkmax_ = status_get_atk_(src);
+							
+							if (sd->equip_index[8] >= 0 && sd->inventory_data[sd->equip_index[8]])
+								atkmin_ = atkmin_*(80 + sd->inventory_data[sd->equip_index[8]]->wlv*20)/100;
+						
+							if (atkmin_ > atkmax_)
+								atkmin_ = atkmax_;
+						}
+						
+						if(sd->status.weapon == 11)
+						{	//Bows
+							atkmin = atkmin*atkmax/100;
+							if (atkmin > atkmax)
+								atkmax = atkmin;
+						}
+					} else {
+						atkmax = status_get_atk(src);
+						if (lh_flag)
+							atkmax_ = status_get_atk(src);
+					}
+				}
+				
+				if (sc_data && sc_data[SC_MAXIMIZEPOWER].timer!=-1)
+				{
+					atkmin = atkmax;
+					atkmin_ = atkmax_;
+				}
+				//Weapon Damage calculation
+				//Store watk in wd.damage to use the above defines for easy handling, and then add baseatk
+				if (!cri_flag)
+				{
+					ATK_ADD2((atkmax>atkmin? rand()%(atkmax-atkmin) :0) +atkmin,
+						(atkmax_>atkmin_? rand()%(atkmax_-atkmin_) :0) +atkmin_);
+				} else 
+					ATK_ADD2(atkmax, atkmax_);
+				
+				if (sd)
+				{
+					if (arrow_flag && sd->arrow_atk)
+					{
+						if (cri_flag) {
+							ATK_ADD(sd->arrow_atk);
+						} else 
+							ATK_ADD(rand()%(sd->arrow_atk+1));
+					}
+					
+					if(sd->status.weapon < 16 && (sd->atk_rate != 100 || sd->weapon_atk_rate != 0))
+						ATK_ADDRATE(sd->atk_rate + sd->weapon_atk_rate[sd->status.weapon]);
+
+					if(cri_flag && sd->crit_atk_rate)
+						ATK_ADDRATE(sd->crit_atk_rate);
+				
+					//SizeFix only for players
+					if (!(
+						!tsd || //rodatazone claims that target human players don't have a size!
+						sd->special_state.no_sizefix ||
+						(sc_data && sc_data[SC_WEAPONPERFECTION].timer!=-1) ||
+						(pc_isriding(sd) && (sd->status.weapon==4 || sd->status.weapon==5) && t_size==1) ||
+						(skill_num == MO_EXTREMITYFIST)
+						))
+						ATK_RATE2(sd->right_weapon.atkmods[t_size], sd->left_weapon.atkmods[t_size]);	}
+				
+				//Finally, add baseatk
+				ATK_ADD2(baseatk, baseatk_);
+				break;
+			}	//End default case
+		} //End switch(skill_num)
+		
+		//Skill damage modifiers
+		if(sc_data && skill_num != PA_SACRIFICE)
+		{
+			if(sc_data[SC_OVERTHRUST].timer!=-1)
+				skillratio += 5*sc_data[SC_OVERTHRUST].val1;
+			if(sc_data[SC_TRUESIGHT].timer!=-1)
+				skillratio += 2*sc_data[SC_TRUESIGHT].val1;
+			if(sc_data[SC_BERSERK].timer!=-1)
+				skillratio += 200;
+			if(sc_data[SC_MAXOVERTHRUST].timer!=-1)
+				skillratio += 20*sc_data[SC_MAXOVERTHRUST].val1;
+			if(sc_data[SC_EDP].timer != -1 &&
+				skill_num != AS_SPLASHER &&
+				skill_num != ASC_BREAKER &&
+				skill_num != ASC_METEORASSAULT) //why these skills?
+			{	
+				skillratio += 150 + sc_data[SC_EDP].val1 * 50;
+				no_cardfix = 1;
+			}
+		}
+		if (!skill_num)
+		{
+			//Executioner card addition - Consider it as part of skill-based-damage
+			if(sd &&
+				sd->random_attack_increase_add > 0 &&
+				sd->random_attack_increase_per &&
+				rand()%100 < sd->random_attack_increase_per
+				)
+				skillratio += sd->random_attack_increase_add;
+		
+			ATK_RATE(skillratio);
+		} else {	//Skills
+			char ele_flag=0;	//For skills that force the neutral element.
+
+			switch( skill_num )
+			{
+				case SM_BASH:
+					skillratio+= 30*skill_lv;
+					break;
+				case SM_MAGNUM:
+					// 20*skill level+100? I think this will do for now [based on jRO info]
+					skillratio+= (wflag > 1 ? 5*skill_lv+15 : 30*skill_lv);
+					break;
+				case MC_MAMMONITE:
+					skillratio+= 50*skill_lv;
+					break;
+				case AC_DOUBLE:
+					skillratio+=80+ 20*skill_lv;
+					break;
+				case AC_SHOWER:
+					skillratio+= 5*skill_lv -25;
+					break;
+				case AC_CHARGEARROW:
+					skillratio+= 50;
+					break;
+				case KN_PIERCE:
+					skillratio+= wd.div_*(100+10*skill_lv) -100;
+					//div_flag=1;
+					break;
+				case KN_SPEARSTAB:
+					skillratio+= 15*skill_lv;
+					break;
+				case KN_SPEARBOOMERANG:
+					skillratio+= 50*skill_lv;
+					break;
+				case KN_BRANDISHSPEAR:
+					skillratio+=20*skill_lv;
+					if(skill_lv>3 && wflag==1) skillratio+= 50;
+					if(skill_lv>6 && wflag==1) skillratio+= 25;
+					if(skill_lv>9 && wflag==1) skillratio+= 12; //1/8th = 12.5%, rounded to 12?
+					if(skill_lv>6 && wflag==2) skillratio+= 50;
+					if(skill_lv>9 && wflag==2) skillratio+= 25;
+					if(skill_lv>9 && wflag==3) skillratio+= 50;
+				case KN_BOWLINGBASH:
+					skillratio+= 50*skill_lv;
+					break;
+				case KN_AUTOCOUNTER:
+					idef_flag= idef_flag_= 1;
+					break;
+				case TF_DOUBLE:
+					skillratio += 100;
+					break;
+				case AS_GRIMTOOTH:
+					skillratio+= 20*skill_lv;
+					break;
+				case AS_POISONREACT: // celest
+					skillratio+= 30*skill_lv;
+					ele_flag=1;
+					break;
+				case AS_SONICBLOW:
+					skillratio+= 200+ 50*skill_lv;
+					break;
+				case TF_SPRINKLESAND:
+					skillratio+= 25;
+					break;
+				case MC_CARTREVOLUTION:
+					if(sd && sd->cart_max_weight > 0 && sd->cart_weight > 0)
+						skillratio+= 50+sd->cart_weight/800; //Should max_cart_weight be used instead of 800?
+					else
+						skillratio+= 50;
+					break;
+				case NPC_COMBOATTACK:
+						skillratio += 100*wd.div_ -100;
+						//div_flag=1;
+					break;
+				case NPC_RANDOMATTACK:
+					skillratio+= rand()%150-50;
+					break;
+				case NPC_WATERATTACK:
+				case NPC_GROUNDATTACK:
+				case NPC_FIREATTACK:
+				case NPC_WINDATTACK:
+				case NPC_POISONATTACK:
+				case NPC_HOLYATTACK:
+				case NPC_DARKNESSATTACK:
+				case NPC_UNDEADATTACK:
+				case NPC_TELEKINESISATTACK:
+					skillratio+= 25*skill_lv;
+					break;
+				case NPC_GUIDEDATTACK:
+				case NPC_RANGEATTACK:
+				case NPC_PIERCINGATT:
+					break;
+				case NPC_CRITICALSLASH:
+					idef_flag= idef_flag_= 1;
+					break;
+				case RG_BACKSTAP:
+					if(sd && sd->status.weapon == 11 && battle_config.backstab_bow_penalty)
+						skillratio+= (200+ 40*skill_lv)/2;
+					else
+						skillratio+= 200+ 40*skill_lv;
+					break;
+				case RG_RAID:
+					skillratio+= 40*skill_lv;
+					break;
+				case RG_INTIMIDATE:
+					skillratio+= 30*skill_lv;
+					break;
+				case CR_SHIELDCHARGE:
+					skillratio+= 20*skill_lv;
+					ele_flag=1;
+					break;
+				case CR_SHIELDBOOMERANG:
+					skillratio+= 30*skill_lv;
+					ele_flag=1;
+					break;
+				case CR_HOLYCROSS:
+					skillratio+= 35*skill_lv;
+					break;
+				case CR_GRANDCROSS:
+					if(!battle_config.gx_cardfix)
+						no_cardfix= 1;
+					break;
+				case AM_DEMONSTRATION:
+					skillratio+= 20*skill_lv;
+					no_cardfix = 1;
+					break;
+				case AM_ACIDTERROR:
+					skillratio+= 40*skill_lv;
+					ele_flag=1;
+					idef_flag= idef_flag_= 1;
+					no_cardfix= 1;
+					break;
+				case MO_FINGEROFFENSIVE:
+					if(battle_config.finger_offensive_type == 0)
+						//div_flag = 1;
+						skillratio+= wd.div_ * (125 + 25*skill_lv) -100;
+					else
+						skillratio+= 25 + 25 * skill_lv;
+					break;
+				case MO_INVESTIGATE:
+					if (!infdef_flag)
+					{
+						skillratio+=75*skill_lv;
+						ATK_RATE((def1 + def2)/2);
+					}
+					idef_flag= idef_flag_= 1;
+					break;
+				case MO_EXTREMITYFIST:
+					if (sd)
+					{
+						skillratio+= 100*(8 + ((sd->status.sp)/10));
+						sd->status.sp = 0;
+						clif_updatestatus(sd,SP_SP);
+					}
+					idef_flag= idef_flag_= 1;
+					ele_flag=1;
+					break;
+				case MO_TRIPLEATTACK:
+					skillratio+= 20*skill_lv;
+					break;
+				case MO_CHAINCOMBO:
+					skillratio+= 50+ 50*skill_lv;
+					break;
+				case MO_COMBOFINISH:
+					skillratio+= 140+ 60*skill_lv;
+					break;
+				case BA_MUSICALSTRIKE:
+					skillratio+= 40*skill_lv -40;
+					break;
+				case DC_THROWARROW:
+					skillratio+= 50*skill_lv;
+					break;
+				case CH_TIGERFIST:
+					skillratio+= 100*skill_lv-60;
+					break;
+				case CH_CHAINCRUSH:
+					skillratio+= 300+ 100*skill_lv;
+					break;
+				case CH_PALMSTRIKE:
+					skillratio+= 100+ 100*skill_lv;
+					break;
+				case LK_SPIRALPIERCE:
+					skillratio+=50*skill_lv;
+					idef_flag= idef_flag_= 1;
+					if(tsd)
+						tsd->canmove_tick = gettick() + 1000;
+					else if(tmd)
+						tmd->canmove_tick = gettick() + 1000;
+					break;
+				case LK_HEADCRUSH:
+					skillratio+=40*skill_lv;
+					break;
+				case LK_JOINTBEAT:
+					skillratio+= 10*skill_lv-50;
+					break;
+				case ASC_METEORASSAULT:
+					skillratio+= 40*skill_lv-60;
+					break;
+				case SN_SHARPSHOOTING:
+					skillratio+= 30*skill_lv;
+					break;
+				case CG_ARROWVULCAN:
+					skillratio+= 100+100*skill_lv;
+					break;
+				case AS_SPLASHER:
+					skillratio+= 100+20*skill_lv;
+					if (sd)
+						skillratio+= 20*pc_checkskill(sd,AS_POISONREACT);
+					no_cardfix = 1;
+					break;
+				case ASC_BREAKER:
+					skillratio+= 100*skill_lv -100;
+					break;
+				case PA_SACRIFICE:
+					skillratio+= 10*skill_lv -10;
+					idef_flag = idef_flag_ = 1;
+					ele_flag=1;
+					break;
+				case PA_SHIELDCHAIN:
+					skillratio+= wd.div_*(100+30*skill_lv)-100;
+					//div_flag=1;
+					ele_flag=1;
+					break;
+				case WS_CARTTERMINATION:
+					if(sd && sd->cart_max_weight && sd->cart_weight > 0) //Why check for cart_max_weight? It is not used!
+						skillratio += sd->cart_weight / (10 * (16 - skill_lv)) - 100;
+					else if (!sd)
+						skillratio += 80000 / (10 * (16 - skill_lv));
+					break;
+				case CR_ACIDDEMONSTRATION:
+					skillratio += wd.div_*100 - 100;
+					break;
+			}
+			if (ele_flag)
+				s_ele=s_ele_=0;
+			else if((skill=skill_get_pl(skill_num))>0) //Checking for the skill's element
+				s_ele=s_ele_=skill;
+			
+			if (sd && sd->skillatk[0] == skill_num)
+				//If we apply skillatk[] as ATK_RATE, it will also affect other skills,
+				//unfortunately this way ignores a skill's constant modifiers...
+				skillratio += sd->skillatk[1];
+			
+			//Double attack does not applies to left hand
+			ATK_RATE2(skillratio, skillratio - (skill_num==TF_DOUBLE?100:0));
+
+			//Constant/misc additions from skills
+			if (skill_num == MO_EXTREMITYFIST)
+				ATK_ADD(250 + 150*skill_lv);
+		
+			if (sd)
+			{
+				short index= 0;
+				switch (skill_num)
+				{
+					case	PA_SACRIFICE:
+						pc_heal(sd, -wd.damage, 0);//Do we really always use wd.damage here?
+						//clif_skill_nodamage(src,target,skill_num,skill_lv,1);  // this doesn't show effect either.. hmm =/
+						sc_data[SC_SACRIFICE].val2 --;
+						if (sc_data[SC_SACRIFICE].val2 == 0)
+							status_change_end(src, SC_SACRIFICE,-1);
+						break;
+					case CR_SHIELDBOOMERANG:
+					case PA_SHIELDCHAIN:
+						if ((index = sd->equip_index[8]) >= 0 &&
+							sd->inventory_data[index] &&
+							sd->inventory_data[index]->type == 5)
+						{
+							ATK_ADD(sd->inventory_data[index]->weight/10);
+							ATK_ADD(sd->status.inventory[index].refine * status_getrefinebonus(0,1));
+						}
+						break;
+					case LK_SPIRALPIERCE:
+						if ((index = sd->equip_index[9]) >= 0 &&
+							sd->inventory_data[index] &&
+							sd->inventory_data[index]->type == 4)
+						{
+							ATK_ADD((int)(double)(sd->inventory_data[index]->weight*(0.8*skill_lv*4/10)));
+							ATK_ADD(sd->status.inventory[index].refine * status_getrefinebonus(0,1));
+						}
+						break;
+				}	//switch
+			}	//if (sd)
+		}
+	
+		if(sd)
+		{
+			if (skill_num != PA_SACRIFICE && skill_num != MO_INVESTIGATE && !cri_flag && !infdef_flag)
+			{	//Elemental/Racial adjustments
+				char raceele_flag=0, raceele_flag_=0;
+				if(sd->right_weapon.def_ratio_atk_ele & (1<<t_ele) ||
+					sd->right_weapon.def_ratio_atk_race & (1<<t_race) ||
+					sd->right_weapon.def_ratio_atk_race & (t_mode & 0x20?1<<10:1<<11)
+					)
+					raceele_flag = idef_flag = 1;
+				if(sd->left_weapon.def_ratio_atk_ele & (1<<t_ele) ||
+					sd->left_weapon.def_ratio_atk_race & (1<<t_race) ||
+					sd->left_weapon.def_ratio_atk_race & (t_mode & 0x20?1<<10:1<<11)
+					)
+					raceele_flag_ = idef_flag_ = 1;
+				if (raceele_flag || raceele_flag_)
+					ATK_RATE2(raceele_flag?(def1 + def2):100, raceele_flag_?(def1 + def2):100);
+			}
+		
+			//Ignore Defense?
+			if (!idef_flag && (
+				(tmd && sd->right_weapon.ignore_def_mob & (t_mode & 0x20?2:1)) ||
+				sd->right_weapon.ignore_def_ele & (1<<t_ele) ||
+				sd->right_weapon.ignore_def_race & (1<<t_race) ||
+				sd->right_weapon.ignore_def_race & (t_mode & 0x20?1<<10:1<<11)
+				))
+				idef_flag = 1;
+				
+			if (!idef_flag_ && (
+				(tmd && sd->left_weapon.ignore_def_mob & (t_mode & 0x20?2:1)) ||
+				sd->left_weapon.ignore_def_ele & (1<<t_ele) ||
+				sd->left_weapon.ignore_def_race & (1<<t_race) ||
+				sd->left_weapon.ignore_def_race & (t_mode & 0x20?1<<10:1<<11)
+				))
+				idef_flag_ = 1;
+		}
+
+		if (!infdef_flag && (!idef_flag || !idef_flag_))
+		{	//Defense reduction
+			short t_vit = status_get_vit(target);
+			short t_def, vitbonusmax;
+			short defense;
+			
+			if(battle_config.vit_penalty_type)
+			{
+				unsigned char target_count; //256 max targets should be a sane max
+				target_count = 1 + battle_counttargeted(target,src,battle_config.vit_penalty_count_lv);
+				if(target_count >= battle_config.vit_penalty_count) {
+					if(battle_config.vit_penalty_type == 1) {
+						def1 = (def1 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
+						def2 = (def2 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
+						t_vit = (t_vit * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
+					} else { //Assume type 2
+						def1 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
+						def2 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
+						t_vit -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
+					}
+				}
+				if(def1 < 0) def1 = 0;
+				if(def2 < 1) def2 = 1;
+				if(t_vit < 1) t_vit = 1;
+			}
+			t_def = def2*8/10;
+			if(tsd &&
+				(battle_check_undead(s_race,status_get_elem_type(src)) || s_race==6) &&
+				(skill=pc_checkskill(tsd,AL_DP)) >0)
+				t_def += skill*(int)(3 +(tsd->status.base_level+1)*0.04);   // submitted by orn
+			vitbonusmax = (t_vit/20)*(t_vit/20)-1;
+			
+			if(!idef_flag || !idef_flag_)
+			{				
+				if(battle_config.player_defense_type) {
+					defense = -(def1*battle_config.player_defense_type) -t_def -(vitbonusmax<1)?0:rand()%(vitbonusmax+1);
+				} else {
+					defense = -t_def -(vitbonusmax<1)?0:rand()%(vitbonusmax+1);
+					ATK_RATE2(idef_flag?100:100-def1, idef_flag_?100:100-def1);
+				}
+				ATK_ADD2(idef_flag?0:defense, idef_flag_?0:defense);
+			}
+		}
+
+		//Post skill/vit reduction damage increases
+		if (sc_data)
+		{	//SC skill damages
+			if(sc_data[SC_AURABLADE].timer!=-1) 
+				ATK_ADD(20*sc_data[SC_AURABLADE].val1);
+		}
+		
+	if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST)
+		{	//refine bonus
+			ATK_ADD2(status_get_atk2(src), status_get_atk_2(src));
+		}
+
+		//Set to min of 1
+		if (rh_flag && wd.damage < 1) wd.damage = 1;
+		if (lh_flag && wd.damage2 < 1) wd.damage2 = 1;
+			
+		if (skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST && skill_num != CR_GRANDCROSS)
+		{	//Add mastery damage
+			if((sd->weapontype1 == 0x10 || sd->weapontype2 == 0x10) && (skill = pc_checkskill(sd,ASC_KATAR)) > 0)
+				ATK_ADDRATE(10+(skill *2));	//Advanced Katar Research by zanetheinsane
+			wd.damage = battle_addmastery(sd,target,wd.damage,0);
+			if (lh_flag) wd.damage2 = battle_addmastery(sd,target,wd.damage2,1);
+		}
+	} //Here ends hit_flag section, the rest of the function applies to both hitting and missing attacks
+
+	if(sd && (skill=pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
+		ATK_ADD(skill*2);
+
+	if(skill_num==TF_POISON)
+		ATK_ADD(15*skill_lv);
+	
+	if (sd ||
+		(md && !skill_num && !battle_config.mob_attack_attr_none) ||
+		(pd && !skill_num && !battle_config.pet_attack_attr_none))
+	{	//Elemental attribute fix
+		if	(!(!sd && tsd && !battle_config.mob_ghostring_fix && t_ele==8))
+		{
+			short t_element = status_get_element(target);
+			if (wd.damage > 0)
+			{
+				wd.damage=battle_attr_fix(wd.damage,s_ele,t_element);
+				if(skill_num==MC_CARTREVOLUTION) //Cart Revolution is weird like that
+					wd.damage=battle_attr_fix(wd.damage,0,t_element);
+			}
+			if (lh_flag && wd.damage2 > 0) wd.damage2=battle_attr_fix(wd.damage2,s_ele_,t_element);
+		}
+	}
+
+	if ((!rh_flag || wd.damage == 0) && (!lh_flag || wd.damage2 == 0))
+		no_cardfix=1;	//When the attack does no damage, avoid doing %bonuses
+	
+	if (sd)
+	{
+		ATK_ADD2(sd->right_weapon.star, sd->left_weapon.star);
+		//TODO: Items forged from the Top 10 most famous BS's get 10 dmg bonus
+		ATK_ADD(sd->spiritball*3);
+
+		//Card Fix, sd side
+		if (!no_cardfix)
+		{
+			short cardfix = 1000, cardfix_ = 1000;
+			short t_class = status_get_class(target);
+			short t_race2 = status_get_race2(target);	
+			if(sd->state.arrow_atk)
+			{
+				cardfix=cardfix*(100+sd->right_weapon.addrace[t_race]+sd->arrow_addrace[t_race])/100;
+				cardfix=cardfix*(100+sd->right_weapon.addele[t_ele]+sd->arrow_addele[t_ele])/100;
+				cardfix=cardfix*(100+sd->right_weapon.addsize[t_size]+sd->arrow_addsize[t_size])/100;
+				cardfix=cardfix*(100+sd->right_weapon.addrace2[t_race2])/100;
+				cardfix=cardfix*(100+sd->right_weapon.addrace[t_mode & 0x20?10:11]+sd->arrow_addrace[t_mode & 0x20?10:11])/100;
+			} else {	//Melee attack
+				if(!battle_config.left_cardfix_to_right)
+				{
+					cardfix=cardfix*(100+sd->right_weapon.addrace[t_race])/100;
+					cardfix=cardfix*(100+sd->right_weapon.addele[t_ele])/100;
+					cardfix=cardfix*(100+sd->right_weapon.addsize[t_size])/100;
+					cardfix=cardfix*(100+sd->right_weapon.addrace2[t_race2])/100;
+					cardfix=cardfix*(100+sd->right_weapon.addrace[t_mode & 0x20?10:11])/100;
+
+					if (lh_flag)
+					{
+						cardfix_=cardfix_*(100+sd->left_weapon.addrace[t_race])/100;
+						cardfix_=cardfix_*(100+sd->left_weapon.addele[t_ele])/100;
+						cardfix_=cardfix_*(100+sd->left_weapon.addsize[t_size])/100;
+						cardfix_=cardfix_*(100+sd->left_weapon.addrace2[t_race2])/100;
+						cardfix_=cardfix_*(100+sd->left_weapon.addrace[t_mode & 0x20?10:11])/100;
+					}
+				} else {
+					cardfix=cardfix*(100+sd->right_weapon.addrace[t_race]+sd->left_weapon.addrace[t_race])/100;
+					cardfix=cardfix*(100+sd->right_weapon.addele[t_ele]+sd->left_weapon.addele[t_ele])/100;
+					cardfix=cardfix*(100+sd->right_weapon.addsize[t_size]+sd->left_weapon.addsize[t_size])/100;
+					cardfix=cardfix*(100+sd->right_weapon.addrace2[t_race2]+sd->left_weapon.addrace2[t_race2])/100;
+					cardfix=cardfix*(100+sd->right_weapon.addrace[t_mode & 0x20?10:11]+sd->left_weapon.addrace[t_mode & 0x20?10:11])/100;
+				}
+			}
+
+			for(i=0;i<sd->right_weapon.add_damage_class_count;i++) {
+				if(sd->right_weapon.add_damage_classid[i] == t_class) {
+					cardfix=cardfix*(100+sd->right_weapon.add_damage_classrate[i])/100;
+					break;
+				}
+			}
+
+			if (lh_flag)
+			{
+				for(i=0;i<sd->left_weapon.add_damage_class_count;i++) {
+					if(sd->left_weapon.add_damage_classid[i] == t_class) {
+						cardfix_=cardfix_*(100+sd->left_weapon.add_damage_classrate[i])/100;
+						break;
+					}
+				}
+			}
+			
+			if (cardfix != 1000 || cardfix_ != 1000)
+				ATK_RATE2(cardfix/10, cardfix_/10);	//What happens if you use right-to-left and there's no right weapon, only left?
+		}
+	} //if (sd)
+	
+	//Card Fix, tsd side
+	if (!no_cardfix && tsd) {
+		short s_size,s_race2,s_mode,s_class;
+		short cardfix=1000;
+		
+		s_size = status_get_size(src);
+		s_race2 = status_get_race2(src);
+		s_mode = status_get_mode(src);
+		s_class = status_get_class(src);
+		
+		cardfix=cardfix*(100-tsd->subrace[s_race])/100;
+		cardfix=cardfix*(100-tsd->subele[s_ele])/100;
+		cardfix=cardfix*(100-tsd->subsize[s_size])/100;
+ 		cardfix=cardfix*(100-tsd->subrace2[s_race2])/100;
+		cardfix=cardfix*(100-tsd->subrace[s_mode & 0x20?10:11])/100;
+		
+		for(i=0;i<tsd->add_damage_class_count2;i++) {
+				if(tsd->add_damage_classid2[i] == s_class) {
+					cardfix=cardfix*(100+tsd->add_damage_classrate2[i])/100;
+					break;
+				}
+			}
+	
+		if(wd.flag&BF_SHORT)
+			cardfix=cardfix*(100-tsd->near_attack_def_rate)/100;
+		else	// BF_LONG (there's no other choice)
+			cardfix=cardfix*(100-tsd->long_attack_def_rate)/100;
+
+		if (cardfix != 1000)
+			ATK_RATE(cardfix/10);
+	}
+
+	//SC_data fixes
+	if (t_sc_data)
+	{
+		short scfix=1000;
+
+		if(t_sc_data[SC_DEFENDER].timer != -1 && wd.flag&BF_LONG)
+			scfix=scfix*(100-t_sc_data[SC_DEFENDER].val2)/100;
+		
+		if(t_sc_data[SC_FOGWALL].timer != -1 && wd.flag&BF_LONG)
+			scfix=scfix*50/100;
+		
+		if(t_sc_data[SC_ASSUMPTIO].timer != -1){
+			if(!map[target->m].flag.pvp)
+				scfix=scfix/3;
+			else
+				scfix=scfix*50/100;
+		}
+	
+		if(scfix != 1000)
+			ATK_RATE(scfix/10);
+   }
+
+	if(t_mode&0x40)
+	{ //Plants receive 1 damage when hit
+		if (rh_flag && (hit_flag || wd.damage>0))
+			wd.damage = 1;
+		if (lh_flag && (hit_flag || wd.damage2>0))
+			wd.damage2 = 1;
+		return wd;
+	}
+	
+	if(!rh_flag || wd.damage<1)
+		wd.damage=0;
+	
+	if(!lh_flag || wd.damage2<1)
+		wd.damage2=0;
+	
+	if (sd)
+	{
+		if (!rh_flag && lh_flag) 
+		{	//Move lh damage to the rh
+			wd.damage = wd.damage2;
+			wd.damage2 = 0;
+			rh_flag=1;
+			lh_flag=0;
+		}
+
+		if(sd->status.weapon > 16)
+		{	//Dual-wield
+			if (wd.damage > 0)
+			{
+				skill = pc_checkskill(sd,AS_RIGHT);
+				wd.damage = wd.damage * (50 + (skill * 10))/100;
+				if(wd.damage < 1) wd.damage = 1;
+			}
+			if (wd.damage2 > 0)
+			{
+				skill = pc_checkskill(sd,AS_LEFT);
+				wd.damage2 = wd.damage2 * (30 + (skill * 10))/100;
+				if(wd.damage2 < 1) wd.damage2 = 1;
+			}
+		} else if(sd->status.weapon == 16)
+		{ //Katars
+			skill = pc_checkskill(sd,TF_DOUBLE);
+			wd.damage2 = wd.damage * (1 + (skill * 2))/100;
+			
+			if(wd.damage > 0 && wd.damage2 < 1) wd.damage2 = 1;
+			lh_flag = 1;
+		}
+	}
+
+	if(skill_num != CR_GRANDCROSS && (wd.damage > 0 || wd.damage2 > 0) )
+	{
+		if(wd.damage2<1)
+			wd.damage=battle_calc_damage(src,target,wd.damage,wd.div_,skill_num,skill_lv,wd.flag);
+		else if(wd.damage<1)
+			wd.damage2=battle_calc_damage(src,target,wd.damage2,wd.div_,skill_num,skill_lv,wd.flag);
+		else
+		{
+			int d1=wd.damage+wd.damage2,d2=wd.damage2;
+			wd.damage=battle_calc_damage(src,target,d1,wd.div_,skill_num,skill_lv,wd.flag);
+			wd.damage2=(d2*100/d1)*wd.damage/100;
+			if(wd.damage > 1 && wd.damage2 < 1) wd.damage2=1;
+			wd.damage-=wd.damage2;
+		}
+	}
+	
+	if(sd && sd->classchange && tmd && (rand()%10000 < sd->classchange))
+	{	//Classchange:
+		int changeclass[]={
+			1001,1002,1004,1005,1007,1008,1009,1010,1011,1012,1013,1014,1015,1016,1018,1019,1020,
+			1021,1023,1024,1025,1026,1028,1029,1030,1031,1032,1033,1034,1035,1036,1037,1040,1041,
+			1042,1044,1045,1047,1048,1049,1050,1051,1052,1053,1054,1055,1056,1057,1058,1060,1061,
+			1062,1063,1064,1065,1066,1067,1068,1069,1070,1071,1076,1077,1078,1079,1080,1081,1083,
+			1084,1085,1094,1095,1097,1099,1100,1101,1102,1103,1104,1105,1106,1107,1108,1109,1110,
+			1111,1113,1114,1116,1117,1118,1119,1121,1122,1123,1124,1125,1126,1127,1128,1129,1130,
+			1131,1132,1133,1134,1135,1138,1139,1140,1141,1142,1143,1144,1145,1146,1148,1149,1151,
+			1152,1153,1154,1155,1156,1158,1160,1161,1163,1164,1165,1166,1167,1169,1170,1174,1175,
+			1176,1177,1178,1179,1180,1182,1183,1184,1185,1188,1189,1191,1192,1193,1194,1195,1196,
+			1197,1199,1200,1201,1202,1204,1205,1206,1207,1208,1209,1211,1212,1213,1214,1215,1216,
+			1219,1242,1243,1245,1246,1247,1248,1249,1250,1253,1254,1255,1256,1257,1258,1260,1261,
+			1263,1264,1265,1266,1267,1269,1270,1271,1273,1274,1275,1276,1277,1278,1280,1281,1282,
+			1291,1292,1293,1294,1295,1297,1298,1300,1301,1302,1304,1305,1306,1308,1309,1310,1311,
+			1313,1314,1315,1316,1317,1318,1319,1320,1321,1322,1323,1364,1365,1366,1367,1368,1369,
+			1370,1371,1372,1374,1375,1376,1377,1378,1379,1380,1381,1382,1383,1384,1385,1386,1387,
+			1390,1391,1392,1400,1401,1402,1403,1404,1405,1406,1408,1409,1410,1412,1413,1415,1416,
+			1417,1493,1494,1495,1497,1498,1499,1500,1502,1503,1504,1505,1506,1507,1508,1509,1510,
+			1511,1512,1513,1514,1515,1516,1517,1519,1520,1582,1584,1585,1586,1587 };
+		mob_class_change(tmd, changeclass);
+	}
+	return wd;
+}
+/*==========================================
  * 武器ダメージ計算
  *------------------------------------------
  */
