@@ -7448,7 +7448,7 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 		char_id		= RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]);
 		login_id1	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]);
 		client_tick	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]);
-		sex			= RFIFOL(fd, packet_db[packet_ver][cmd].pos[4]);
+		sex			= RFIFOB(fd, packet_db[packet_ver][cmd].pos[4]);
 	} else if (cmd == 0x72) {
 		if (RFIFOREST(fd) >= 39 && (RFIFOB(fd,38) == 0 || RFIFOB(fd,38) == 1)) {
 			packet_ver = 7;
@@ -7456,21 +7456,21 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			char_id		= RFIFOL(fd, 22);
 			login_id1	= RFIFOL(fd, 30);
 			client_tick	= RFIFOL(fd, 34);
-			sex			= RFIFOL(fd, 38);
+			sex			= RFIFOB(fd, 38);
 		} else if (RFIFOREST(fd) >= 22 && (RFIFOB(fd,21) == 0 || RFIFOB(fd,21) == 1)) {
 			packet_ver = 6;
 			account_id	= RFIFOL(fd, 5);
 			char_id		= RFIFOL(fd, 9);
 			login_id1	= RFIFOL(fd, 13);
 			client_tick	= RFIFOL(fd, 17);
-			sex			= RFIFOL(fd, 21);
+			sex			= RFIFOB(fd, 21);
 		} else {
 			packet_ver = 5;
 			account_id	= RFIFOL(fd, 2);
 			char_id		= RFIFOL(fd, 6);
 			login_id1	= RFIFOL(fd, 10);
 			client_tick	= RFIFOL(fd, 14);
-			sex			= RFIFOL(fd, 18);
+			sex			= RFIFOB(fd, 18);
 		}
 	} else if (cmd == 0x7E) {
 		if (RFIFOREST(fd) >= 37 && (RFIFOB(fd,36) == 0 || RFIFOB(fd,36) == 1)) {
@@ -7479,14 +7479,14 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			char_id		= RFIFOL(fd, 21);
 			login_id1	= RFIFOL(fd, 28);
 			client_tick	= RFIFOL(fd, 32);
-			sex			= RFIFOL(fd, 36);
+			sex			= RFIFOB(fd, 36);
 		} else {
 			packet_ver = 8;
 			account_id	= RFIFOL(fd, 12);
 			char_id		= RFIFOL(fd, 18);
 			login_id1	= RFIFOL(fd, 24);
 			client_tick	= RFIFOL(fd, 28);
-			sex			= RFIFOL(fd, 32);
+			sex			= RFIFOB(fd, 32);
 		}
 	} else if (cmd == 0xF5) {
 		if (RFIFOREST(fd) >= 34 && (RFIFOB(fd,33) == 0 || RFIFOB(fd,33) == 1)) {
@@ -7495,21 +7495,21 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			char_id		= RFIFOL(fd, 15);
 			login_id1	= RFIFOL(fd, 25);
 			client_tick	= RFIFOL(fd, 29);
-			sex			= RFIFOL(fd, 33);
+			sex			= RFIFOB(fd, 33);
 		} else if (RFIFOREST(fd) >= 33 && (RFIFOB(fd,32) == 0 || RFIFOB(fd,32) == 1)) {
 			packet_ver = 12;
 			account_id	= RFIFOL(fd, 12);
 			char_id		= RFIFOL(fd, 18);
 			login_id1	= RFIFOL(fd, 24);
 			client_tick	= RFIFOL(fd, 28);
-			sex			= RFIFOL(fd, 32);
+			sex			= RFIFOB(fd, 32);
 		} else if (RFIFOREST(fd) >= 32 && (RFIFOB(fd,31) == 0 || RFIFOB(fd,31) == 1)) {
 			packet_ver = 11;
 			account_id	= RFIFOL(fd, 10);
 			char_id		= RFIFOL(fd, 17);
 			login_id1	= RFIFOL(fd, 23);
 			client_tick	= RFIFOL(fd, 27);
-			sex			= RFIFOL(fd, 31);
+			sex			= RFIFOB(fd, 31);
 		} else { // 29
 			// if account id and char id of version 14
 			if (RFIFOL(fd, 3) > 700000 && RFIFOL(fd, 10) >= 150000 && RFIFOL(fd, 10) < 5000000) { // account id / char id (more than 5.000.000 characters?)
@@ -7518,14 +7518,14 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 				char_id		= RFIFOL(fd, 10);
 				login_id1	= RFIFOL(fd, 20);
 				client_tick	= RFIFOL(fd, 24);
-				sex			= RFIFOL(fd, 28);
+				sex			= RFIFOB(fd, 28);
 			} else {
 				packet_ver = 13;
 				account_id	= RFIFOL(fd, 5);
 				char_id		= RFIFOL(fd, 14);
 				login_id1	= RFIFOL(fd, 20);
 				client_tick	= RFIFOL(fd, 24);
-				sex			= RFIFOL(fd, 28);
+				sex			= RFIFOB(fd, 28);
 			}
 		}
 	} else {
@@ -7535,14 +7535,14 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			char_id		= RFIFOL(fd, 12);
 			login_id1	= RFIFOL(fd, 23);
 			client_tick	= RFIFOL(fd, 27);
-			sex			= RFIFOL(fd, 31);
+			sex			= RFIFOB(fd, 31);
 		} else {
 			packet_ver = 17;
 			account_id	= RFIFOL(fd, 4);
 			char_id		= RFIFOL(fd, 9);
 			login_id1	= RFIFOL(fd, 17);
 			client_tick	= RFIFOL(fd, 18);
-			sex			= RFIFOL(fd, 25);
+			sex			= RFIFOB(fd, 25);
 		}
 	}
 
