@@ -4030,7 +4030,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			return 0;
 	}
 
-	if (bl->type == BL_PC)
+	if (bl->type == BL_PC && (battle_config.display_hallucination || type != SC_HALLUCINATION))
 		clif_status_change(bl,type,1);	/* アイコン表示 */
 
 	/* optionの?更 */
@@ -4396,7 +4396,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				break;
 			}
 
-		if (bl->type == BL_PC)
+		if (bl->type == BL_PC && (battle_config.display_hallucination || type != SC_HALLUCINATION))
 			clif_status_change(bl,type,0);	/* アイコン消去 */
 
 		switch(type){	/* 正常に?るときなにか?理が必要 */

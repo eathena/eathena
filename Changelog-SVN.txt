@@ -1,5 +1,7 @@
 Date	Added
 05/10
+	* Added display_hallucination for clients where the effect lags badly [Skotlex]
+	* Added the battle_config options for managing the pet-skills system [Skotlex]
 	* Incorporated the new pet attack/skill system. [Skotlex]
 	  See db/pet_db.txt for explanation, or visit 
 	  http://www.eathena.deltaanime.net/board/index.php?showtopic=29918 for
