@@ -337,6 +337,53 @@ int status_percentrefinery(struct map_session_data *sd,struct item *item)
 	return percent;
 }
 
+//Skotlex: Calculates the stats of the given pet.
+int status_calc_pet(struct map_session_data *sd, int first)
+{
+	struct pet_data *pd;
+	
+	nullpo_retr(0, sd);
+	if (sd->status.pet_id == 0 || sd->pd == NULL)
+		return 1;
+
+	pd = sd->pd;
+	
+	if (battle_config.pet_lv_rate && pd->status)
+	{
+		sd->pet.level = sd->status.base_level*battle_config.pet_lv_rate/100;
+		if (sd->pet.level < 0)
+			sd->pet.level = 1;
+		if (pd->status->level != sd->pet.level)
+		{
+			if (!first) //Lv Up animation
+				clif_misceffect(&pd->bl, 0);
+			pd->status->level = sd->pet.level;
+			pd->status->atk1 = (mob_db[pd->class_].atk1*pd->status->level)/mob_db[pd->class_].lv;
+			pd->status->atk2 = (mob_db[pd->class_].atk2*pd->status->level)/mob_db[pd->class_].lv;
+			pd->status->str = (mob_db[pd->class_].str*pd->status->level)/mob_db[pd->class_].lv;
+			pd->status->agi = (mob_db[pd->class_].agi*pd->status->level)/mob_db[pd->class_].lv;
+			pd->status->vit = (mob_db[pd->class_].vit*pd->status->level)/mob_db[pd->class_].lv;
+			pd->status->int_ = (mob_db[pd->class_].int_*pd->status->level)/mob_db[pd->class_].lv;
+			pd->status->dex = (mob_db[pd->class_].dex*pd->status->level)/mob_db[pd->class_].lv;
+			pd->status->luk = (mob_db[pd->class_].luk*pd->status->level)/mob_db[pd->class_].lv;
+		
+			if (pd->status->atk1 > battle_config.pet_max_atk1) pd->status->atk1 = battle_config.pet_max_atk1;
+			if (pd->status->atk2 > battle_config.pet_max_atk2) pd->status->atk2 = battle_config.pet_max_atk2;
+
+			if (pd->status->str > battle_config.pet_max_stats) pd->status->str = battle_config.pet_max_stats;
+			if (pd->status->agi > battle_config.pet_max_stats) pd->status->agi = battle_config.pet_max_stats;
+			if (pd->status->vit > battle_config.pet_max_stats) pd->status->vit = battle_config.pet_max_stats;
+			if (pd->status->int_ > battle_config.pet_max_stats) pd->status->int_ = battle_config.pet_max_stats;
+			if (pd->status->dex > battle_config.pet_max_stats) pd->status->dex = battle_config.pet_max_stats;
+			if (pd->status->luk > battle_config.pet_max_stats) pd->status->luk = battle_config.pet_max_stats;
+
+			if (!first)	//Not done the first time because the pet is not visible yet
+				clif_send_petstatus(sd);
+		}
+	}
+	return 0;
+}	
+
 /*==========================================
  * パラメータ計算
  * first==0の時、計算対象のパラメータが呼び出し前から
@@ -627,8 +674,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		struct pet_data *pd=sd->pd;
 		if((pd && battle_config.pet_status_support==1) && (battle_config.pet_equip_required==0 || (battle_config.pet_equip_required && pd->equip > 0))) {
 			if(sd->status.pet_id > 0 && sd->petDB && sd->pet.intimate > 0 &&
-				pd->state.skillbonus == 1) {
-				pc_bonus(sd,pd->skillbonustype,pd->skillbonusval);
+				pd->state.skillbonus == 1 && pd->bonus) { //Skotlex: Readjusted for pets
+				pc_bonus(sd,pd->bonus->type, pd->bonus->val);
 //				run_script(sd->petDB->script,0,sd->bl.id,0);
 			}
 			pele = sd->right_weapon.atk_ele;
@@ -1809,8 +1856,12 @@ int status_get_str(struct block_list *bl)
 				str += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 		}
 		else if(bl->type == BL_PET && ((struct pet_data *)bl))
-			str = mob_db[((struct pet_data *)bl)->class_].str;
-
+		{	//<Skotlex> Use pet's stats
+			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+				str = ((struct pet_data *)bl)->status->str;
+			else
+				str = mob_db[((struct pet_data *)bl)->class_].str;
+		}
 		if(sc_data) {
 			if(sc_data[SC_LOUD].timer != -1)
 				str += 4;
@@ -1853,8 +1904,12 @@ int status_get_agi(struct block_list *bl)
 				agi += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 		}
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
-			agi = mob_db[((struct pet_data *)bl)->class_].agi;
-
+		{	//<Skotlex> Use pet's stats
+			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+				agi = ((struct pet_data *)bl)->status->agi;
+			else
+				agi = mob_db[((struct pet_data *)bl)->class_].agi;
+		}
 		if(sc_data) {
 			if(sc_data[SC_INCREASEAGI].timer!=-1 && sc_data[SC_QUAGMIRE].timer == -1 && sc_data[SC_DONTFORGETME].timer == -1)	// 速度増加(PCはpc.cで)
 				agi += 2 + sc_data[SC_INCREASEAGI].val1;
@@ -1900,7 +1955,12 @@ int status_get_vit(struct block_list *bl)
 				vit += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 		}	
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
-			vit = mob_db[((struct pet_data *)bl)->class_].vit;
+		{	//<Skotlex> Use pet's stats
+			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+				vit = ((struct pet_data *)bl)->status->vit;
+			else
+				vit = mob_db[((struct pet_data *)bl)->class_].vit;
+		}
 		if(sc_data) {
 			if(sc_data[SC_STRIPARMOR].timer != -1)
 				vit = vit*60/100;
@@ -1934,7 +1994,12 @@ int status_get_int(struct block_list *bl)
 				int_ += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 		}		
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
-			int_ = mob_db[((struct pet_data *)bl)->class_].int_;
+		{	//<Skotlex> Use pet's stats
+			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+				int_ = ((struct pet_data *)bl)->status->int_;
+			else
+				int_ = mob_db[((struct pet_data *)bl)->class_].int_;
+		}
 
 		if(sc_data) {
 			if(sc_data[SC_BLESSING].timer != -1){	// ブレッシング
@@ -1976,7 +2041,12 @@ int status_get_dex(struct block_list *bl)
 				dex += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 		}		
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
-			dex = mob_db[((struct pet_data *)bl)->class_].dex;
+		{	//<Skotlex> Use pet's stats
+			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+				dex = ((struct pet_data *)bl)->status->dex;
+			else
+				dex = mob_db[((struct pet_data *)bl)->class_].dex;
+		}
 
 		if(sc_data) {
 			if(sc_data[SC_CONCENTRATE].timer!=-1 && sc_data[SC_QUAGMIRE].timer == -1)
@@ -2023,7 +2093,12 @@ int status_get_luk(struct block_list *bl)
 				luk += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 		}		
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
-			luk = mob_db[((struct pet_data *)bl)->class_].luk;
+		{	//<Skotlex> Use pet's stats
+			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+				luk = ((struct pet_data *)bl)->status->luk;
+			else
+				luk = mob_db[((struct pet_data *)bl)->class_].luk;
+		}
 		if(sc_data) {
 			if(sc_data[SC_GLORIA].timer!=-1)	// グロリア(PCはpc.cで)
 				luk += 30;
@@ -2231,8 +2306,12 @@ int status_get_atk(struct block_list *bl)
 		if(bl->type == BL_MOB && (struct mob_data *)bl)
 			atk = mob_db[((struct mob_data*)bl)->class_].atk1;
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
-			atk = mob_db[((struct pet_data*)bl)->class_].atk1;
-
+		{	//<Skotlex> Use pet's stats
+			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+				atk = ((struct pet_data *)bl)->status->atk1;
+			else
+				atk = mob_db[((struct pet_data*)bl)->class_].atk1;
+		}
 		if(sc_data) {
 			if(sc_data[SC_PROVOKE].timer!=-1)
 				atk = atk*(100+2*sc_data[SC_PROVOKE].val1)/100;
@@ -2291,7 +2370,12 @@ int status_get_atk2(struct block_list *bl)
 		if(bl->type==BL_MOB && (struct mob_data *)bl)
 			atk2 = mob_db[((struct mob_data*)bl)->class_].atk2;
 		else if(bl->type==BL_PET && (struct pet_data *)bl)
-			atk2 = mob_db[((struct pet_data*)bl)->class_].atk2;
+		{	//<Skotlex> Use pet's stats
+			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+				atk2 = ((struct pet_data *)bl)->status->atk2;
+			else
+				atk2 = mob_db[((struct pet_data*)bl)->class_].atk2;
+		}		  
 		if(sc_data) {
 			if( sc_data[SC_IMPOSITIO].timer!=-1)
 				atk2 += sc_data[SC_IMPOSITIO].val1*5;
@@ -2518,8 +2602,12 @@ int status_get_def2(struct block_list *bl)
 		if(bl->type==BL_MOB)
 			def2 = mob_db[((struct mob_data *)bl)->class_].vit;
 		else if(bl->type==BL_PET)
-			def2 = mob_db[((struct pet_data *)bl)->class_].vit;
-
+		{	//<Skotlex> Use pet's stats
+			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+				def2 = ((struct pet_data *)bl)->status->vit;
+			else
+				def2 = mob_db[((struct pet_data *)bl)->class_].vit;
+		}
 		sc_data = status_get_sc_data(bl);
 		if(sc_data) {
 			if(sc_data[SC_ANGELUS].timer != -1)
@@ -2562,7 +2650,12 @@ int status_get_mdef2(struct block_list *bl)
 		if(bl->type == BL_MOB)
 			mdef2 = mob_db[((struct mob_data *)bl)->class_].int_ + (mob_db[((struct mob_data *)bl)->class_].vit>>1);
 		else if(bl->type == BL_PET)
-			mdef2 = mob_db[((struct pet_data *)bl)->class_].int_ + (mob_db[((struct pet_data *)bl)->class_].vit>>1);
+		{	//<Skotlex> Use pet's stats
+			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+				mdef2 = ((struct pet_data *)bl)->status->int_ +(((struct pet_data *)bl)->status->vit>>1);
+			else
+				mdef2 = mob_db[((struct pet_data *)bl)->class_].int_ + (mob_db[((struct pet_data *)bl)->class_].vit>>1);
+		}
 		if(sc_data) {
 			if(sc_data[SC_MINDBREAKER].timer!=-1)
 				mdef2 -= (mdef2*6*sc_data[SC_MINDBREAKER].val1)/100;
@@ -4025,6 +4118,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if(bl->type==BL_PC && updateflag)
 		clif_updatestatus(sd,updateflag);	/* ステ?タスをクライアントに送る */
 
+	if (bl->type==BL_PC && sd->pd)
+		pet_sc_check(sd, type); //Skotlex: Pet Status Effect Healing
 	return 0;
 }
 /*==========================================

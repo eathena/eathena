@@ -288,6 +288,7 @@ int status_change_clear(struct block_list *bl,int type);
 int status_change_clear_buffs(struct block_list *bl);
 int status_change_clear_debuffs(struct block_list *bl);
 
+int status_calc_pet(struct map_session_data* sd, int first); // [Skotlex]
 // ステータス計算 pc.c から分離
 // pc_calcstatus
 int status_calc_pc(struct map_session_data* sd,int first);

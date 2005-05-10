@@ -4080,6 +4080,8 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 		sd->status.base_exp -= next;
 
 		sd->status.base_level ++;
+		if (battle_config.pet_lv_rate && sd->pd)	//<Skotlex> update pet's level
+			status_calc_pet(sd,0);
 		sd->status.status_point += (sd->status.base_level+14) / 5 ;
 		clif_updatestatus(sd,SP_STATUSPOINT);
 		clif_updatestatus(sd,SP_BASELEVEL);

@@ -1,5 +1,9 @@
 Date	Added
 05/10
+	* Incorporated the new pet attack/skill system. [Skotlex]
+	  See db/pet_db.txt for explanation, or visit 
+	  http://www.eathena.deltaanime.net/board/index.php?showtopic=29918 for
+	  details and support.
 	* Fixed Marionette skill. Now you can't target other Clowns or Gypsies [Lupus]
 	* Fixed all Hunters traps to affect Players in PVP/GVG places only. [Lupus]
 	  And Shockwave Trap doesn't work on monsters, because they don't have SP

@@ -282,8 +282,10 @@ int buildin_petskillbonus(struct script_state *st); // petskillbonus [Valaris]
 int buildin_petrecovery(struct script_state *st); // pet skill for curing status [Valaris]
 int buildin_petloot(struct script_state *st); // pet looting [Valaris]
 int buildin_petheal(struct script_state *st); // pet healing [Valaris]
-int buildin_petmag(struct script_state *st); // pet magnificat [Valaris]
-int buildin_petskillattack(struct script_state *st); // pet skill attacks [Valaris]
+//int buildin_petmag(struct script_state *st); // pet magnificat [Valaris]
+int buildin_petskillattack(struct script_state *st); // pet skill attacks [Skotlex]
+int buildin_petskillattack2(struct script_state *st); // pet skill attacks [Skotlex]
+int buildin_petskillsupport(struct script_state *st); // pet support skill [Valaris]
 int buildin_skilleffect(struct script_state *st); // skill effects [Celest]
 int buildin_npcskilleffect(struct script_state *st); // skill effects for npcs [Valaris]
 int buildin_specialeffect(struct script_state *st); // special effect script [Valaris]
@@ -526,9 +528,11 @@ struct {
 	{buildin_petskillbonus,"petskillbonus","iiii"}, // [Valaris]
 	{buildin_petrecovery,"petrecovery","ii"}, // [Valaris]
 	{buildin_petloot,"petloot","i"}, // [Valaris]
-	{buildin_petheal,"petheal","iii"}, // [Valaris]
-	{buildin_petmag,"petmag","iiii"}, // [Valaris]
-	{buildin_petskillattack,"petskillattack","iiii"}, // [Valaris]
+	{buildin_petheal,"petheal","iiii"}, // [Valaris]
+//	{buildin_petmag,"petmag","iiii"}, // [Valaris]
+	{buildin_petskillattack,"petskillattack","iiii"}, // [Skotlex]
+	{buildin_petskillattack2,"petskillattack2","iiiii"}, // [Valaris]
+	{buildin_petskillsupport,"petskillsupport","iiiii"}, // [Skotlex]
 	{buildin_skilleffect,"skilleffect","ii"}, // skill effect [Celest]
 	{buildin_npcskilleffect,"npcskilleffect","iiii"}, // npc skill effect [Valaris]
 	{buildin_specialeffect,"specialeffect","i"}, // npc skill effect [Valaris]
@@ -563,7 +567,7 @@ struct {
 	{buildin_isequipped,"isequipped","i*"}, // check whether another item/card has been equipped [Celest]
 	{buildin_isequippedcnt,"isequippedcnt","i*"}, // check how many items/cards are being equipped [Celest]
 	{buildin_cardscnt,"cardscnt","i*"}, // check how many items/cards are being equipped in the same arm [Lupus]
-	{buildin_getrefine,"getrefine",""}, // returns the refined number of the current item, or an item with index specified [celest]
+	{buildin_getrefine,"getrefine","*"}, // returns the refined number of the current item, or an item with index specified [celest]
 	{buildin_adopt,"adopt","sss"}, // allows 2 parents to adopt a child
 	{buildin_night,"night",""}, // sets the server to night time
 	{buildin_day,"day",""}, // sets the server to day time
@@ -5822,13 +5826,12 @@ int buildin_getitemname(struct script_state *st)
 }
 
 /*==========================================
- * petskillbonus [Valaris]
+ * petskillbonus [Valaris] //Rewritten by [Skotlex]
  *------------------------------------------
  */
 
 int buildin_petskillbonus(struct script_state *st)
 {
-	int type,val,duration,timer;
 	struct pet_data *pd;
 
 	struct map_session_data *sd=script_rid2sd(st);
@@ -5837,55 +5840,64 @@ int buildin_petskillbonus(struct script_state *st)
 		return 0;
 
 	pd=sd->pd;
+	if (pd->bonus)
+	{ //Clear previous bonus
+		if (pd->bonus->timer != -1)
+			delete_timer(pd->bonus->timer, pet_skill_bonus_timer);
+	} else //init
+		pd->bonus = (struct pet_bonus *) aCalloc(1, sizeof(struct pet_bonus));
 
-	if(pd==NULL)
-		return 0;
-
-	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	val=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	duration=conv_num(st,& (st->stack->stack_data[st->start+4]));
-	timer=conv_num(st,& (st->stack->stack_data[st->start+5]));
-
-	// initialise bonuses
-	pd->skillbonustype=type;
-	pd->skillbonusval=val;
-	pd->skillduration=duration*1000;
-	pd->skilltimer=timer*1000;
+	pd->bonus->type=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	pd->bonus->val=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	pd->bonus->duration=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	pd->bonus->delay=conv_num(st,& (st->stack->stack_data[st->start+5]));
 
 	if (pd->state.skillbonus == -1)
 		pd->state.skillbonus=0;	// waiting state
 
 	// wait for timer to start
-	pd->skillbonustimer=add_timer(gettick()+pd->skilltimer,pet_skill_bonus_timer,sd->bl.id,0);
+	if (battle_config.pet_equip_required && pd->equip == 0)
+		pd->bonus->timer=-1;
+	else
+		pd->bonus->timer=add_timer(gettick()+pd->bonus->delay*1000, pet_skill_bonus_timer, sd->bl.id, 0);
 
 	return 0;
 }
 
 /*==========================================
- * pet looting [Valaris]
+ * pet looting [Valaris] //Rewritten by [Skotlex]
  *------------------------------------------
  */
 int buildin_petloot(struct script_state *st)
 {
 	int max;
 	struct pet_data *pd;
-
 	struct map_session_data *sd=script_rid2sd(st);
+	
 	if(sd==NULL || sd->pd==NULL)
-		return 0;
-
-	pd=sd->pd;
-
-	if(pd==NULL)
 		return 0;
 
 	max=conv_num(st,& (st->stack->stack_data[st->start+2]));
 
-	if(!max)
+	if(max < 1)
 		return 0;
-
-	pd->loot=1;
-	pd->lootmax=max;
+	if (max > PETLOOT_SIZE)
+		max = PETLOOT_SIZE;
+	
+	pd = sd->pd;
+	if (pd->loot == NULL)
+	{
+		pd->loot = (struct pet_loot *)aCalloc(1, sizeof(struct pet_loot));
+		pd->loot->item = (struct item *)aCalloc(PETLOOT_SIZE,sizeof(struct item));
+	}
+	else //Release whatever was there already
+		pet_lootitem_drop(pd, pd->msd);
+	
+	memset(pd->loot->item,0,PETLOOT_SIZE * sizeof(struct item));
+	pd->loot->max=max;
+	pd->loot->count = 0;
+	pd->loot->weight = 0;
+	pd->loot->timer = gettick();
 
 	return 0;
 }
@@ -6024,37 +6036,39 @@ int buildin_soundeffectall(struct script_state *st)
 	return 0;
 }
 /*==========================================
- * pet status recovery [Valaris]
+ * pet status recovery [Valaris] / Rewritten by [Skotlex]
  *------------------------------------------
  */
 int buildin_petrecovery(struct script_state *st)
 {
 	struct pet_data *pd;
-
 	struct map_session_data *sd=script_rid2sd(st);
 
 	if(sd==NULL || sd->pd==NULL)
 		return 0;
 
 	pd=sd->pd;
+	
+	if (pd->recovery)
+	{ //Halt previous bonus
+		if (pd->recovery->timer != -1)
+			delete_timer(pd->recovery->timer, pet_recovery_timer);
+	} else //Init
+		pd->recovery = (struct pet_recovery *)aCalloc(1, sizeof(struct pet_recovery));
+		
+	pd->recovery->type=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	pd->recovery->delay=conv_num(st,& (st->stack->stack_data[st->start+3]));
 
-	if(pd==NULL)
-		return 0;
-
-	pd->skilltype=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	pd->skilltimer=conv_num(st,& (st->stack->stack_data[st->start+3]));
-
-	pd->skillbonustimer=add_timer(gettick()+pd->skilltimer*1000,pet_recovery_timer,sd->bl.id,0);
+	pd->recovery->timer=-1;
 
 	return 0;
 }
 
 /*==========================================
- * pet healing [Valaris]
+ * pet healing [Valaris] //Rewritten by [Skotlex]
  *------------------------------------------
  */
 int buildin_petheal(struct script_state *st)
-
 {
 	struct pet_data *pd;
 	struct map_session_data *sd=script_rid2sd(st);
@@ -6063,15 +6077,25 @@ int buildin_petheal(struct script_state *st)
 		return 0;
 
 	pd=sd->pd;
+	if (pd->s_skill)
+	{ //Clear previous skill
+		if (pd->s_skill->timer != -1)
+			delete_timer(pd->s_skill->timer, pet_skill_support_timer);
+	} else //init memory
+		pd->s_skill = (struct pet_skill_support *) aCalloc(1, sizeof(struct pet_skill_support)); 
+	
+	pd->s_skill->id=0; //This id identifies that it IS petheal rather than pet_skillsupport
+	//Use the lv as the amount to heal
+	pd->s_skill->lv=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	pd->s_skill->delay=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	pd->s_skill->hp=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	pd->s_skill->sp=conv_num(st,& (st->stack->stack_data[st->start+5]));
 
-	if(pd==NULL)
-		return 0;
-
-	pd->skilltype=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	pd->skillval=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	pd->skilltimer=conv_num(st,& (st->stack->stack_data[st->start+4]));
-
-	pd->skillbonustimer=add_timer(gettick()+pd->skilltimer*1000,pet_heal_timer,sd->bl.id,0);
+	//Use delay as initial offset to avoid skill/heal exploits
+	if (battle_config.pet_equip_required && pd->equip == 0)
+		pd->s_skill->timer=-1;
+	else
+		pd->s_skill->timer=add_timer(gettick()+pd->s_skill->delay*1000,pet_heal_timer,sd->bl.id,0);
 
 	return 0;
 }
@@ -6080,6 +6104,7 @@ int buildin_petheal(struct script_state *st)
  * pet magnificat [Valaris]
  *------------------------------------------
  */
+/*
 int buildin_petmag(struct script_state *st)
 {
 	struct pet_data *pd;
@@ -6102,9 +6127,9 @@ int buildin_petmag(struct script_state *st)
 
 	return 0;
 }
-
+*/
 /*==========================================
- * pet attack skills [Valaris]
+ * pet attack skills [Valaris] //Rewritten by [Skotlex]
  *------------------------------------------
  */
 int buildin_petskillattack(struct script_state *st)
@@ -6116,16 +6141,74 @@ int buildin_petskillattack(struct script_state *st)
 		return 0;
 
 	pd=sd->pd;
+	if (pd->a_skill == NULL)
+		pd->a_skill = (struct pet_skill_attack *)aCalloc(1, sizeof(struct pet_skill_attack));
+				
+	pd->a_skill->id=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	pd->a_skill->lv=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	pd->a_skill->div_ = 0;
+	pd->a_skill->rate=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	pd->a_skill->bonusrate=conv_num(st,& (st->stack->stack_data[st->start+5]));
 
-	if(pd==NULL)
+	return 0;
+}
+
+/*==========================================
+ * pet attack skills [Valaris]
+ *------------------------------------------
+ */
+int buildin_petskillattack2(struct script_state *st)
+{
+	struct pet_data *pd;
+	struct map_session_data *sd=script_rid2sd(st);
+
+	if(sd==NULL || sd->pd==NULL)
 		return 0;
 
-	pd->skilltype=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	pd->skillval=conv_num(st,& (st->stack->stack_data[st->start+3]));
-	pd->skillduration=conv_num(st,& (st->stack->stack_data[st->start+4]));
-	pd->skilltimer=conv_num(st,& (st->stack->stack_data[st->start+5]));
+	pd=sd->pd;
+	if (pd->a_skill == NULL)
+		pd->a_skill = (struct pet_skill_attack *)aCalloc(1, sizeof(struct pet_skill_attack));
+				
+	pd->a_skill->id=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	pd->a_skill->lv=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	pd->a_skill->div_ = conv_num(st,& (st->stack->stack_data[st->start+4]));
+	pd->a_skill->rate=conv_num(st,& (st->stack->stack_data[st->start+5]));
+	pd->a_skill->bonusrate=conv_num(st,& (st->stack->stack_data[st->start+6]));
 
-	pd->skillbonustimer=add_timer(gettick()+100,pet_skillattack_timer,sd->bl.id,0);
+	return 0;
+}
+
+/*==========================================
+ * pet support skills [Skotlex]
+ *------------------------------------------
+ */
+int buildin_petskillsupport(struct script_state *st)
+{
+	struct pet_data *pd;
+	struct map_session_data *sd=script_rid2sd(st);
+
+	if(sd==NULL || sd->pd==NULL)
+		return 0;
+
+	pd=sd->pd;
+	if (pd->s_skill)
+	{ //Clear previous skill
+		if (pd->s_skill->timer != -1)
+			delete_timer(pd->s_skill->timer, pet_skill_support_timer);
+	} else //init memory
+		pd->s_skill = (struct pet_skill_support *) aCalloc(1, sizeof(struct pet_skill_support)); 
+	
+	pd->s_skill->id=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	pd->s_skill->lv=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	pd->s_skill->delay=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	pd->s_skill->hp=conv_num(st,& (st->stack->stack_data[st->start+5]));
+	pd->s_skill->sp=conv_num(st,& (st->stack->stack_data[st->start+6]));
+
+	//Use delay as initial offset to avoid skill/heal exploits
+	if (battle_config.pet_equip_required && pd->equip == 0)
+		pd->s_skill->timer=-1;
+	else
+		pd->s_skill->timer=add_timer(gettick()+pd->s_skill->delay*1000,pet_skill_support_timer,sd->bl.id,0);
 
 	return 0;
 }

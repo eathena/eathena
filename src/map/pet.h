@@ -33,6 +33,7 @@ enum { PET_CLASS,PET_CATCH,PET_EGG,PET_EQUIP,PET_FOOD };
 
 int pet_hungry_val(struct map_session_data *sd);
 int pet_target_check(struct map_session_data *sd,struct block_list *bl,int type);
+int pet_sc_check(struct map_session_data *sd, int type); //Skotlex
 int pet_stopattack(struct pet_data *pd);
 int pet_changestate(struct pet_data *pd,int state,int type);
 int pet_walktoxy(struct pet_data *pd,int x,int y);
@@ -55,11 +56,13 @@ int pet_food(struct map_session_data *sd);
 int pet_lootitem_drop(struct pet_data *pd,struct map_session_data *sd);
 int pet_delay_item_drop2(int tid,unsigned int tick,int id,int data);
 int pet_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap);
+int pet_skill_support_timer(int tid, unsigned int tick, int id, int data); // [Skotlex]
 int pet_skill_bonus_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
 int pet_recovery_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
-int pet_mag_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
+//int pet_mag_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
 int pet_heal_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
-int pet_skillattack_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
+//int pet_skillattack_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
+int pet_skillsupport_timer(int tid,unsigned int tick,int id,int data); // [Skotlex]
 
 int read_petdb();
 int do_init_pet(void);

@@ -155,6 +155,10 @@ extern struct Battle_Config {
 	int pet_support_rate;
 	int pet_attack_exp_to_master;
 	int pet_attack_exp_rate;
+	short pet_lv_rate; //[Skotlex]
+	unsigned short pet_max_stats; //[Skotlex]
+	unsigned short pet_max_atk1; //[Skotlex]
+	unsigned short pet_max_atk2; //[Skotlex]
 	int skill_min_damage;
 	int finger_offensive_type;
 	int heal_exp;

@@ -1393,10 +1393,16 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		clif_skill_nodamage(bl,bl,SA_MAGICROD,sc_data[SC_MAGICROD].val1,1); //マジックロッドエフェクトを表示
 	}
 //マジックロッド?理ここまで
-
-	if(src->type==BL_PET) { // [Valaris]
-		dmg.damage=battle_attr_fix(skilllv, skill_get_pl(skillid), status_get_element(bl) );
-		dmg.damage2=0;
+	//Skotlex: Adjusted to the new system
+	if(src->type==BL_PET && (struct pet_data *)src)
+	{ // [Valaris]
+		struct pet_data *pd = (struct pet_data *)src;
+		if (pd->a_skill && pd->a_skill->div_ && pd->a_skill->id == skillid)
+		{
+			dmg.damage=battle_attr_fix(skilllv, skill_get_pl(skillid), status_get_element(bl) );
+			dmg.damage2=0;
+			dmg.div_= pd->a_skill->div_;
+		}
 	}
 
 	damage = dmg.damage + dmg.damage2;
@@ -7116,6 +7122,14 @@ int skill_castfix( struct block_list *bl, int time )
 		// calculate cast time reduced by card bonuses
 		if (sd->castrate != 100)
 			time -= time * (100 - sd->castrate) / 100;
+	} else if (bl->type == BL_PET) { //Skotlex: Simple scaling
+		int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
+		if (scale > 0)	// not instant cast
+			time = time * scale / battle_config.castrate_dex_scale;
+		else return 0;	// instant cast
+		
+		if (battle_config.cast_rate != 100)
+			time = time * battle_config.cast_rate / 100;
 	}
 
 	// calculate cast time reduced by skill bonuses

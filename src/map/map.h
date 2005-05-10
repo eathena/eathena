@@ -542,15 +542,59 @@ struct pet_data {
 	short target_lv;
 	int move_fail_count;
 	unsigned int attackabletime,next_walktime,last_thinktime;
-	int skilltype,skillval,skilltimer,skillduration; // [Valaris]
+	struct pet_status { //Pet Status data
+		short level;
+		short atk1,atk2;
+		short str,agi,vit,int_,dex,luk;
+	} *status;  //[Skotlex]
+//	int skilltype,skillval,skilltimer,skillduration; // [Valaris]
 	//int skillbonustype,skillbonusval,skillbonustimer,skillbonusduration; // [Valaris]
-	int skillbonustype,skillbonusval,skillbonustimer;
-	struct item *lootitem;
-	short loot; // [Valaris]
-	short lootmax; // [Valaris]
-	short lootitem_count;
-	short lootitem_weight;
-	int lootitem_timer;
+	//int skillbonustype,skillbonusval,skillbonustimer;
+	struct pet_recovery { //Stat recovery
+		unsigned short type;	//Status Change id
+		unsigned short delay; //How long before curing (secs).
+		int timer;
+	} *recovery; //[Valaris] / Reimplemented by [Skotlex]
+	
+	struct pet_bonus {
+		unsigned short type; //bStr, bVit?
+		unsigned short val;	//Qty
+		unsigned short duration; //in secs
+		unsigned short delay;	//Time before recasting (secs)
+		int timer;
+	} *bonus; //[Valaris] / Reimplemented by [Skotlex]
+	
+	char casting_flag; //Skotlex: Used to identify when we are casting. I want a state.state value for that....
+	struct pet_skill_attack { //Attack Skill
+		unsigned short id;
+		unsigned short lv;
+		unsigned short div_; //0 = Normal skill. >0 = Fixed damage (lv), fixed div_.
+		unsigned short rate; //Base chance of skill ocurrance (10 = 10% of attacks)
+		unsigned short bonusrate; //How being 100% loyal affects cast rate (10 = At 1000 intimacy->rate+10%
+	} *a_skill;	//[Skotlex]
+	
+	struct pet_skill_support { //Support Skill
+		unsigned short id;
+		unsigned short lv;
+		unsigned short hp; //Max HP% for skill to trigger (50 -> 50% for Magnificat)
+		unsigned short sp; //Max SP% for skill to trigger (100 = no check)
+		unsigned short delay; //Time (secs) between being able to recast.
+		int timer;
+	} *s_skill;	//[Skotlex]
+
+	struct pet_loot {
+		struct item *item;
+		unsigned short count;
+		unsigned short weight;
+		unsigned short max;
+		int timer;
+	} *loot; //[Valaris] / Rewritten by [Skotlex]
+//	struct item *lootitem;
+//	short loot; // [Valaris]
+//	short lootmax; // [Valaris]
+//	short lootitem_count;
+//	short lootitem_weight;
+//	int lootitem_timer;
 	struct skill_timerskill skilltimerskill[MAX_MOBSKILLTIMERSKILL]; // [Valaris]
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP]; // [Valaris]
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET]; // [Valaris]

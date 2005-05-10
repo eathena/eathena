@@ -886,7 +886,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 			case NPC_DARKNESSATTACK:
 			case NPC_UNDEADATTACK:
 			case NPC_TELEKINESISATTACK:
-				div_= pd->skillduration; // [Valaris]
+//				div_= pd->skillduration; // [Valaris]
 				break;
 			case NPC_GUIDEDATTACK:
 				hitrate = 1000000;
@@ -4075,6 +4075,10 @@ static const struct {
 	{ "pet_support_rate",                  &battle_config.pet_support_rate			},
 	{ "pet_attack_exp_to_master",          &battle_config.pet_attack_exp_to_master	},
 	{ "pet_attack_exp_rate",               &battle_config.pet_attack_exp_rate	 },
+	{ "pet_lv_rate",                       &battle_config.pet_lv_rate				},	//Skotlex
+	{ "pet_max_stats",                     &battle_config.pet_max_stats				},	//Skotlex
+	{ "pet_max_atk1",                      &battle_config.pet_max_atk1				},	//Skotlex
+	{ "pet_max_atk2",                      &battle_config.pet_max_atk2				},	//Skotlex
 	{ "skill_min_damage",                  &battle_config.skill_min_damage			},
 	{ "finger_offensive_type",             &battle_config.finger_offensive_type	},
 	{ "heal_exp",                          &battle_config.heal_exp					},
@@ -4326,6 +4330,10 @@ void battle_set_defaults() {
 	battle_config.pet_support_rate=100;
 	battle_config.pet_attack_exp_to_master=0;
 	battle_config.pet_attack_exp_rate=100;
+	battle_config.pet_lv_rate=0;	//Skotlex
+	battle_config.pet_max_stats=99;	//Skotlex
+	battle_config.pet_max_atk1=750;	//Skotlex
+	battle_config.pet_max_atk2=1000;	//Skotlex
 	battle_config.skill_min_damage=0;
 	battle_config.finger_offensive_type=0;
 	battle_config.heal_exp=0;
@@ -4555,6 +4563,9 @@ void battle_validate_conf() {
 	if(battle_config.guild_exp_limit < 0)
 		battle_config.guild_exp_limit = 0;
 
+	if(battle_config.pet_max_atk1 > battle_config.pet_max_atk2)	//Skotlex
+		battle_config.pet_max_atk1 = battle_config.pet_max_atk2;
+	
 	if(battle_config.castle_defense_rate < 0)
 		battle_config.castle_defense_rate = 0;
 	if(battle_config.castle_defense_rate > 100)
