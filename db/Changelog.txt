@@ -9,6 +9,7 @@
 	Skill databases == celest working on them I believe.
 
 05/10
+	* Changed 2005-05-09Sakexe's packet version to 17 [celest]
 	* Fixed Merchant Class Card Combo Set bug (it was always ON) [Lupus]
 	* Merchant Class Card Combo Set: added 0.1% Old Purple Box drop [Lupus]
 	* Archer Class Card Combo Set: added +5% EXP bonus on killing Brute [Lupus]

@@ -26,14 +26,11 @@
 #include <sys/stat.h>
 
 #include "grfio.h"
-#include "../common/utils.h"
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/malloc.h"
 
 #define CHUNK 16384
-
-#define LOCALZLIB
 
 #ifdef _WIN32
 	#ifdef LOCALZLIB
@@ -112,13 +109,24 @@ typedef struct {
 #define	GENTRY_LIMIT	127
 #define	FILELIST_LIMIT	65536	// temporary maximum, and a theory top maximum are 2G.
 
-static FILELIST *filelist;
-static int	filelist_entrys;
-static int	filelist_maxentry;
+static FILELIST *filelist		= NULL;
+static int	filelist_entrys		= 0;
+static int	filelist_maxentry	= 0;
 
-static char **gentry_table;
-static int gentry_entrys;
-static int gentry_maxentry;
+static char **gentry_table		= NULL;
+static int gentry_entrys		= 0;
+static int gentry_maxentry		= 0;
+
+#define RESNAME_LIMIT	1024
+#define RESNAME_ADDS	16
+
+typedef struct resname_entry {
+	char	src[64];
+	char	dst[64];
+} Resname;
+static struct resname_entry *localresname = NULL;
+static int resname_entrys		= 0;
+static int resname_maxentrys	= 0;
 
 //----------------------------
 //	file list hash table
@@ -490,9 +498,7 @@ static FILELIST* filelist_add(FILELIST *entry)
 	}
 
 	if (filelist_entrys >= filelist_maxentry) {
-		FILELIST *new_filelist = (FILELIST*)aRealloc(
-			(void*)filelist, (filelist_maxentry + FILELIST_ADDS) * sizeof(FILELIST));
-		filelist = new_filelist;
+		filelist = (FILELIST *)aRealloc(filelist, (filelist_maxentry + FILELIST_ADDS) * sizeof(FILELIST));
 		memset(filelist + filelist_maxentry, '\0', FILELIST_ADDS * sizeof(FILELIST));
 		filelist_maxentry += FILELIST_ADDS;
 	}
@@ -529,10 +535,9 @@ static void filelist_adjust(void)
 {
 	if (filelist != NULL) {
 		if (filelist_maxentry > filelist_entrys) {
-			FILELIST *new_filelist = (FILELIST *)aRealloc(
-				(void *)filelist, filelist_entrys * sizeof(FILELIST));
-			filelist = new_filelist;
-			filelist_maxentry = filelist_entrys;			
+			filelist = (FILELIST *)aRealloc(
+				filelist, filelist_entrys * sizeof(FILELIST));
+			filelist_maxentry = filelist_entrys;
 		}
 	}
 }
@@ -541,39 +546,73 @@ static void filelist_adjust(void)
  ***                  Grfio Sobroutines                  ***
  ***********************************************************/
 /*==========================================
- * Grfio : Resnametable replace
+ * Grfio : Local Resnametable replace
  *------------------------------------------
  */
 char* grfio_resnametable(char* fname, char *lfname)
 {
-   	FILE *fp;
+	int lop;
+	if (localresname == NULL)
+		return NULL;	// 1:not found error
+	if (sscanf(fname, "%*5s%s", lfname) < 1)
+		return fname;
+
+	for (lop = 0; lop < resname_entrys; lop++) {
+		if (strcmpi(localresname[lop].src, lfname) == 0) {
+			sprintf(lfname, "data\\%s", localresname[lop].dst);
+			return lfname;
+		}
+	}
+
+	return fname;
+}
+
+/*==========================================
+ * Grfio : Local Resnametable Initialize
+ *------------------------------------------
+ */
+static void grfio_resnameinit ()
+{
+	FILE *fp;
 	char *p;
-	char w1[256],w2[256],restable[256],line[512];
+	// max length per entry is 34 in resnametable
+	char w1[64], w2[64], restable[256], line[256];
 
 	sprintf(restable, "%sdata\\resnametable.txt", data_dir);
-
 	for (p = &restable[0]; *p != 0; p++)
 		if (*p == '\\') *p = '/';
 
 	fp = fopen(restable,"rb");
 	if (fp == NULL) {
-		ShowError("%s not found (grfio_resnametable)\n", restable);
-		return NULL;	// 1:not found error
+		//ShowError("%s not found (grfio_resnameinit)\n", restable);
+		return;
 	}
 
-	while (fgets(line, 508, fp)){
-	    if((sscanf(line, "%[^#]#%[^#]#", w1, w2) == 2) &&
-			(sscanf(fname, "%*5s%s", lfname) == 1) &&
-			(!strcmpi(w1, lfname)))
-		{
-			sprintf(lfname, "data\\%s", w2);
-			fclose(fp);
-			return lfname;
-        }
-    }
+	while (fgets(line, sizeof(line) - 1, fp)){
+		if (sscanf(line, "%[^#]#%[^#]#", w1, w2) != 2)
+			continue;
+		// only save up necessary resource files
+		if (strstr(w1, ".gat") == NULL &&
+			strstr(w1, ".txt") == NULL)
+			continue;
+		if (resname_entrys >= RESNAME_LIMIT)
+			break;
+		if (resname_entrys >= resname_maxentrys) {
+			resname_maxentrys += RESNAME_ADDS;
+			localresname = (Resname*) aRealloc (localresname, resname_maxentrys * sizeof(Resname));
+			memset(localresname + (resname_maxentrys - RESNAME_ADDS), '\0', sizeof(Resname) * RESNAME_ADDS);
+		}
+		strcpy(localresname[resname_entrys].src, w1);
+		strcpy(localresname[resname_entrys].dst, w2);
+		resname_entrys++;
+	}
+	fclose(fp);
 
-    fclose(fp);
-    return fname;
+	// free up unused sections
+	if (resname_maxentrys > resname_entrys) {
+		localresname = (Resname*) aRealloc (localresname, resname_entrys * sizeof(Resname));
+		resname_maxentrys = resname_entrys;
+	}
 }
 
 /*==========================================
@@ -704,7 +743,7 @@ void* grfio_reads(char *fname, int *size)
  */
 void* grfio_read(char *fname)
 {
-	return grfio_reads(fname,NULL);
+	return grfio_reads(fname, NULL);
 }
 
 /*==========================================
@@ -919,6 +958,8 @@ static void grfio_resourcecheck()
 	FILELIST *entry;
 
 	buf = (char *)grfio_reads("data\\resnametable.txt", &size);
+	if (buf == NULL)
+		return;
 	buf[size] = 0;
 
 	for (ptr = buf; ptr - buf < size;) {
@@ -934,7 +975,7 @@ static void grfio_resourcecheck()
 			if (entry != NULL) {
 				FILELIST fentry;
 				memcpy(&fentry, entry, sizeof(FILELIST));
-				strncpy(fentry.fn ,src, sizeof(fentry.fn) - 1);
+				strncpy(fentry.fn, src, sizeof(fentry.fn) - 1);
 				filelist_modify(&fentry);
 			} else {
 				//ShowError("file not found in data.grf : %s < %s\n",dst,src);
@@ -965,13 +1006,9 @@ int grfio_add(char *fname)
 	}
 
 	if (gentry_entrys >= gentry_maxentry) {
-		int lop;
-		char **new_gentry = (char**)aRealloc(
-			(void*)gentry_table, (gentry_maxentry + GENTRY_ADDS) * sizeof(char*));
-		gentry_table = new_gentry;
 		gentry_maxentry += GENTRY_ADDS;
-		for (lop = gentry_entrys; lop < gentry_maxentry; lop++)
-			gentry_table[lop] = NULL;
+		gentry_table = (char**)aRealloc(gentry_table, gentry_maxentry * sizeof(char*));
+		memset(gentry_table + (gentry_maxentry - GENTRY_ADDS), 0, sizeof(char*) * GENTRY_ADDS);
 	}
 	len = strlen( fname );
 	buf = (char*)aCallocA(len + 1, 1);
@@ -1007,6 +1044,8 @@ void grfio_final(void)
 	gentry_table = NULL;
 	gentry_entrys = gentry_maxentry = 0;
 
+	if (localresname) aFree(localresname);
+
 #ifdef _WIN32
 	#ifndef LOCALZLIB
 		DLL_CLOSE(zlib_dll);
@@ -1032,12 +1071,12 @@ void grfio_init(char *fname)
 	#ifndef LOCALZLIB
 	if(!zlib_dll) {
 		zlib_dll = DLL_OPEN ("zlib.dll");
-		DLL_SYM (zlib_inflateInit_, zlib_dll, "inflateInit_");
-		DLL_SYM (zlib_inflate,      zlib_dll, "inflate");
-		DLL_SYM (zlib_inflateEnd,   zlib_dll, "inflateEnd");
-		DLL_SYM (zlib_deflateInit_, zlib_dll, "deflateInit_");
-		DLL_SYM (zlib_deflate,      zlib_dll, "deflate");
-		DLL_SYM (zlib_deflateEnd,   zlib_dll, "deflateEnd");
+		DLL_SYM (zlib_inflateInit_,	zlib_dll,	"inflateInit_");
+		DLL_SYM (zlib_inflate,		zlib_dll,	"inflate");
+		DLL_SYM (zlib_inflateEnd,	zlib_dll,	"inflateEnd");
+		DLL_SYM (zlib_deflateInit_,	zlib_dll,	"deflateInit_");
+		DLL_SYM (zlib_deflate,		zlib_dll,	"deflate");
+		DLL_SYM (zlib_deflateEnd,	zlib_dll,	"deflateEnd");
 		if(zlib_dll == NULL) {
 			MessageBox(NULL,"Can't load zlib.dll","grfio.c",MB_OK);
 			exit(1);
@@ -1047,15 +1086,11 @@ void grfio_init(char *fname)
 #endif
 
 	hashinit();	// hash table initialization
-	filelist = NULL;
-	filelist_entrys = filelist_maxentry = 0;
-	gentry_table = NULL;
-	gentry_entrys = gentry_maxentry = 0;
 
 	data_conf = fopen(fname, "r");
 	// It will read, if there is grf-files.txt.
 	if (data_conf) {
-		while(fgets(line, 1020, data_conf)) {
+		while(fgets(line, sizeof(line) - 1, data_conf)) {
 			if (line[0] == '/' && line[1] == '/')
 				continue;
 			if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) != 2)
@@ -1079,4 +1114,9 @@ void grfio_init(char *fname)
 		ShowInfo("No grf's loaded.. using default data directory\n");
 		//exit(1);	// It ends, if a resource cannot read one.
 	}
+
+	// initialise Resnametable
+	grfio_resnameinit();
+
+	return;
 }

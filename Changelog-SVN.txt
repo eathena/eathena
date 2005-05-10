@@ -1,5 +1,14 @@
 Date	Added
 05/10
+	* Restructured clif_parse_Wanttoconnection [celest]
+	* Fixed packet version detecting not working properly if last version's connection
+	  packet is the same as the DB but with different values [celest]
+	* Added built-in support for 2005-05-09aSakexe and changed 'packet_ver_flag'
+	  default in battle conf to 511 [celest]
+	* Added load local resnametables.txt into memory instead of opening and reading
+	  it every time we look for a file [celest]
+	* Fixed crash if resnametables.txt was not found in a grf [celest]
+	* Removed some unnecessary steps in grf file lists loading [celest]
 	* Added display_hallucination for clients where the effect lags badly [Skotlex]
 	* Added the battle_config options for managing the pet-skills system [Skotlex]
 	* Incorporated the new pet attack/skill system. [Skotlex]
@@ -9,6 +18,7 @@ Date	Added
 	* Fixed Marionette skill. Now you can't target other Clowns or Gypsies [Lupus]
 	* Fixed all Hunters traps to affect Players in PVP/GVG places only. [Lupus]
 	  And Shockwave Trap doesn't work on monsters, because they don't have SP
+
 05/09
 	~ Added sql_files/upgrade_svn1665.sql to update hair, hair colour and clothes
 	  colours' field format (thanks to Zoc)

@@ -7426,7 +7426,8 @@ int clif_refresh(struct map_session_data *sd) {
 void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 {
 	struct map_session_data *old_sd;
-	int cmd, account_id; // account_id in the packet 0x72 or 0x7E
+	int cmd, account_id, char_id, login_id1, client_tick, sex;
+	int packet_ver;	// 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 
 	if (sd) {
 		if (battle_config.error_log)
@@ -7435,46 +7436,114 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 	}
 
 	cmd = RFIFOW(fd,0);
+	// printf("Received bytes %d with packet 0x%d.\n", RFIFOREST(fd), cmd);
 
-	// packet DB
-	if (IS_PACKET_DB_VER(cmd)) {
-		//printf("Received bytes %d with packet 0x72.\n", RFIFOREST(fd));
-		account_id = RFIFOL(fd,packet_db[clif_config.packet_db_ver][clif_config.connect_cmd].pos[0]);
-	// 0x72
+	if (IS_PACKET_DB_VER(cmd) &&
+		RFIFOREST(fd) == packet_db[clif_config.packet_db_ver][clif_config.connect_cmd].len &&
+		(RFIFOB(fd, packet_db[clif_config.packet_db_ver][clif_config.connect_cmd].pos[4]) == 0 ||	// 00 = Female
+		RFIFOB(fd, packet_db[clif_config.packet_db_ver][clif_config.connect_cmd].pos[4]) == 1))		// 01 = Male
+	{
+		packet_ver	= clif_config.packet_db_ver;
+		account_id	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]);
+		char_id		= RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]);
+		login_id1	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]);
+		client_tick	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]);
+		sex			= RFIFOL(fd, packet_db[packet_ver][cmd].pos[4]);
 	} else if (cmd == 0x72) {
-		//printf("Received bytes %d with packet 0x72.\n", RFIFOREST(fd));
-		if (RFIFOREST(fd) >= 39 && (RFIFOB(fd,38) == 0 || RFIFOB(fd,38) == 1)) // 00 = Female, 01 = Male
-			account_id = RFIFOL(fd,12);
-		else if (RFIFOREST(fd) >= 22 && (RFIFOB(fd,21) == 0 || RFIFOB(fd,21) == 1)) // 00 = Female, 01 = Male
-			account_id = RFIFOL(fd,5);
-		else // old packet version
-			account_id = RFIFOL(fd,2);
-	// 0x7E
-	} else if (cmd == 0x7E) {
-		//printf("Received bytes %d with packet 0x7E.\n", RFIFOREST(fd));
-		if (RFIFOREST(fd) >= 37 && (RFIFOB(fd,36) == 0 || RFIFOB(fd,36) == 1)) // 00 = Female, 01 = Male
-			account_id = RFIFOL(fd,9);
-		else
-			account_id = RFIFOL(fd,12);
-	// 0xF5
-	} else if (cmd == 0xF5) {
-		//printf("Received bytes %d with packet 0xF5.\n", RFIFOREST(fd));
-		if (RFIFOREST(fd) >= 34 && (RFIFOB(fd,33) == 0 || RFIFOB(fd,33) == 1)) // 00 = Female, 01 = Male
-			account_id = RFIFOL(fd,7);
-		else if (RFIFOREST(fd) >= 33 && (RFIFOB(fd,32) == 0 || RFIFOB(fd,32) == 1)) // 00 = Female, 01 = Male
-			account_id = RFIFOL(fd,12);
-		else if (RFIFOREST(fd) >= 32 && (RFIFOB(fd,31) == 0 || RFIFOB(fd,31) == 1)) // 00 = Female, 01 = Male
-			account_id = RFIFOL(fd,10);
-		else {	// 29 28 28 // search correct value
-			// if account id and char id of version 14
-			if (RFIFOL(fd,3) > 700000 && RFIFOL(fd,10) >= 150000 && RFIFOL(fd,10) < 5000000) // account id / char id (more than 5.000.000 characters?) [Yor]
-				account_id = RFIFOL(fd,3);
-			else
-				account_id = RFIFOL(fd,5);
+		if (RFIFOREST(fd) >= 39 && (RFIFOB(fd,38) == 0 || RFIFOB(fd,38) == 1)) {
+			packet_ver = 7;
+			account_id	= RFIFOL(fd, 12);
+			char_id		= RFIFOL(fd, 22);
+			login_id1	= RFIFOL(fd, 30);
+			client_tick	= RFIFOL(fd, 34);
+			sex			= RFIFOL(fd, 38);
+		} else if (RFIFOREST(fd) >= 22 && (RFIFOB(fd,21) == 0 || RFIFOB(fd,21) == 1)) {
+			packet_ver = 6;
+			account_id	= RFIFOL(fd, 5);
+			char_id		= RFIFOL(fd, 9);
+			login_id1	= RFIFOL(fd, 13);
+			client_tick	= RFIFOL(fd, 17);
+			sex			= RFIFOL(fd, 21);
+		} else {
+			packet_ver = 5;
+			account_id	= RFIFOL(fd, 2);
+			char_id		= RFIFOL(fd, 6);
+			login_id1	= RFIFOL(fd, 10);
+			client_tick	= RFIFOL(fd, 14);
+			sex			= RFIFOL(fd, 18);
 		}
-	// 0x9B
+	} else if (cmd == 0x7E) {
+		if (RFIFOREST(fd) >= 37 && (RFIFOB(fd,36) == 0 || RFIFOB(fd,36) == 1)) {
+			packet_ver = 9;
+			account_id	= RFIFOL(fd, 9);
+			char_id		= RFIFOL(fd, 21);
+			login_id1	= RFIFOL(fd, 28);
+			client_tick	= RFIFOL(fd, 32);
+			sex			= RFIFOL(fd, 36);
+		} else {
+			packet_ver = 8;
+			account_id	= RFIFOL(fd, 12);
+			char_id		= RFIFOL(fd, 18);
+			login_id1	= RFIFOL(fd, 24);
+			client_tick	= RFIFOL(fd, 28);
+			sex			= RFIFOL(fd, 32);
+		}
+	} else if (cmd == 0xF5) {
+		if (RFIFOREST(fd) >= 34 && (RFIFOB(fd,33) == 0 || RFIFOB(fd,33) == 1)) {
+			packet_ver = 10;
+			account_id	= RFIFOL(fd, 7);
+			char_id		= RFIFOL(fd, 15);
+			login_id1	= RFIFOL(fd, 25);
+			client_tick	= RFIFOL(fd, 29);
+			sex			= RFIFOL(fd, 33);
+		} else if (RFIFOREST(fd) >= 33 && (RFIFOB(fd,32) == 0 || RFIFOB(fd,32) == 1)) {
+			packet_ver = 12;
+			account_id	= RFIFOL(fd, 12);
+			char_id		= RFIFOL(fd, 18);
+			login_id1	= RFIFOL(fd, 24);
+			client_tick	= RFIFOL(fd, 28);
+			sex			= RFIFOL(fd, 32);
+		} else if (RFIFOREST(fd) >= 32 && (RFIFOB(fd,31) == 0 || RFIFOB(fd,31) == 1)) {
+			packet_ver = 11;
+			account_id	= RFIFOL(fd, 10);
+			char_id		= RFIFOL(fd, 17);
+			login_id1	= RFIFOL(fd, 23);
+			client_tick	= RFIFOL(fd, 27);
+			sex			= RFIFOL(fd, 31);
+		} else { // 29
+			// if account id and char id of version 14
+			if (RFIFOL(fd, 3) > 700000 && RFIFOL(fd, 10) >= 150000 && RFIFOL(fd, 10) < 5000000) { // account id / char id (more than 5.000.000 characters?)
+				packet_ver = 15;
+				account_id	= RFIFOL(fd, 3);
+				char_id		= RFIFOL(fd, 10);
+				login_id1	= RFIFOL(fd, 20);
+				client_tick	= RFIFOL(fd, 24);
+				sex			= RFIFOL(fd, 28);
+			} else {
+				packet_ver = 13;
+				account_id	= RFIFOL(fd, 5);
+				char_id		= RFIFOL(fd, 14);
+				login_id1	= RFIFOL(fd, 20);
+				client_tick	= RFIFOL(fd, 24);
+				sex			= RFIFOL(fd, 28);
+			}
+		}
 	} else {
-		account_id = RFIFOL(fd,3);
+		if (RFIFOREST(fd) >= 32 && (RFIFOB(fd,31) == 0 || RFIFOB(fd,31) == 1)) {
+			packet_ver = 16;
+			account_id	= RFIFOL(fd, 3);
+			char_id		= RFIFOL(fd, 12);
+			login_id1	= RFIFOL(fd, 23);
+			client_tick	= RFIFOL(fd, 27);
+			sex			= RFIFOL(fd, 31);
+		} else {
+			packet_ver = 17;
+			account_id	= RFIFOL(fd, 4);
+			char_id		= RFIFOL(fd, 9);
+			login_id1	= RFIFOL(fd, 17);
+			client_tick	= RFIFOL(fd, 18);
+			sex			= RFIFOL(fd, 25);
+		}
 	}
 
 	// if same account already connected, we disconnect the 2 sessions
@@ -7487,66 +7556,13 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 		sd = (struct map_session_data*)aCalloc(1, sizeof(struct map_session_data));
 		session[fd]->session_data = sd;
 		sd->fd = fd;
+		sd->packet_ver = packet_ver;
 
-		if (IS_PACKET_DB_VER(cmd)) {
-			sd->packet_ver = clif_config.packet_db_ver; // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-			pc_setnewpc(sd, account_id, RFIFOL(fd,packet_db[clif_config.packet_db_ver][clif_config.connect_cmd].pos[1]),
-				RFIFOL(fd,packet_db[clif_config.packet_db_ver][clif_config.connect_cmd].pos[2]),
-				RFIFOL(fd,packet_db[clif_config.packet_db_ver][clif_config.connect_cmd].pos[3]),
-				RFIFOL(fd,packet_db[clif_config.packet_db_ver][clif_config.connect_cmd].pos[4]), fd);
-		// 0x72
-		} else if (cmd == 0x72) {
-			if (RFIFOREST(fd) >= 39 && (RFIFOB(fd,38) == 0 || RFIFOB(fd,38) == 1)) { // 00 = Female, 01 = Male
-				sd->packet_ver = 7; // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-				pc_setnewpc(sd, account_id, RFIFOL(fd,22), RFIFOL(fd,30), RFIFOL(fd,34), RFIFOB(fd,38), fd);
-			} else if (RFIFOREST(fd) >= 22 && (RFIFOB(fd,21) == 0 || RFIFOB(fd,21) == 1)) { // 00 = Female, 01 = Male
-				sd->packet_ver = 6; // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-				pc_setnewpc(sd, account_id, RFIFOL(fd,9), RFIFOL(fd,13), RFIFOL(fd,17), RFIFOB(fd,21), fd);
-			} else { // old packet version
-				sd->packet_ver = 5; // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-				pc_setnewpc(sd, account_id, RFIFOL(fd,6), RFIFOL(fd,10), RFIFOL(fd,14), RFIFOB(fd,18), fd);
-			}
-		// 0x7E
-		} else if (cmd == 0x7E) {
-			if (RFIFOREST(fd) >= 37 && (RFIFOB(fd,36) == 0 || RFIFOB(fd,36) == 1)) { // 00 = Female, 01 = Male
-				sd->packet_ver = 9; // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-				pc_setnewpc(sd, account_id, RFIFOL(fd,21), RFIFOL(fd,28), RFIFOL(fd,32), RFIFOB(fd,36), fd);
-			} else {
-				sd->packet_ver = 8; // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-				pc_setnewpc(sd, account_id, RFIFOL(fd,18), RFIFOL(fd,24), RFIFOL(fd,28), RFIFOB(fd,32), fd);
-			}
-		// 0xF5
-		} else if (cmd == 0xF5) {
-			if (RFIFOREST(fd) >= 34 && (RFIFOB(fd,33) == 0 || RFIFOB(fd,33) == 1)) { // 00 = Female, 01 = Male
-				sd->packet_ver = 10; // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-				pc_setnewpc(sd, account_id, RFIFOL(fd,15), RFIFOL(fd,25), RFIFOL(fd,29), RFIFOB(fd,33), fd);
-			} else if (RFIFOREST(fd) >= 33 && (RFIFOB(fd,32) == 0 || RFIFOB(fd,32) == 1)) { // 00 = Female, 01 = Male
-				sd->packet_ver = 12; // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-				pc_setnewpc(sd, account_id, RFIFOL(fd,18), RFIFOL(fd,24), RFIFOL(fd,28), RFIFOB(fd,32), fd);
-			} else if (RFIFOREST(fd) >= 32 && (RFIFOB(fd,31) == 0 || RFIFOB(fd,31) == 1)) { // 00 = Female, 01 = Male
-				sd->packet_ver = 11; // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-				pc_setnewpc(sd, account_id, RFIFOL(fd,17), RFIFOL(fd,23), RFIFOL(fd,27), RFIFOB(fd,31), fd);
-			} else { // 29
-				// if account id and char id of version 14
-				if (RFIFOL(fd,3) > 700000 && RFIFOL(fd,10) >= 150000 && RFIFOL(fd,10) < 5000000) { // account id / char id (more than 5.000.000 characters?)
-					sd->packet_ver = 15; // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-					pc_setnewpc(sd, account_id, RFIFOL(fd,10), RFIFOL(fd,20), RFIFOL(fd,24), RFIFOB(fd,28), fd);
-				} else {
-					sd->packet_ver = 13; // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-					pc_setnewpc(sd, account_id, RFIFOL(fd,14), RFIFOL(fd,20), RFIFOL(fd,24), RFIFOB(fd,28), fd);
-				}
-			}
-		// 0x9B
-		} else {
-			sd->packet_ver = 16; // 16: 10jan05
-			pc_setnewpc(sd, account_id, RFIFOL(fd,12), RFIFOL(fd,23), RFIFOL(fd,27), RFIFOB(fd,31), fd);
-		}
-
+		pc_setnewpc(sd, account_id, char_id, login_id1, client_tick, sex, fd);
 		WFIFOL(fd,0) = sd->bl.id;
 		WFIFOSET(fd,4);
 
 		map_addiddb(&sd->bl);
-
 		chrif_authreq(sd);
 	}
 
@@ -7750,6 +7766,9 @@ void clif_parse_TickSend(int fd, struct map_session_data *sd) {
 		case 16:
 			sd->client_tick = RFIFOL(fd,5);
 			break;
+		case 17:
+			sd->client_tick = RFIFOL(fd,4);
+			break;
 
 		default: // old version by default (and version 6 + 7)
 			sd->client_tick = RFIFOL(fd,2);
@@ -7855,6 +7874,10 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 			x = RFIFOB(fd,10) * 4 + (RFIFOB(fd,11) >> 6);
 			y = ((RFIFOB(fd,11) & 0x3f) << 4) + (RFIFOB(fd,12) >> 4);
 			break;
+		case 17:
+			x = RFIFOB(fd,5) * 4 + (RFIFOB(fd,6) >> 6);
+			y = ((RFIFOB(fd,6) & 0x3f) << 4) + (RFIFOB(fd,7) >> 4);
+			break;
 		default: // old version by default
 			x = RFIFOB(fd,2) * 4 + (RFIFOB(fd,3) >> 6);
 			y = ((RFIFOB(fd,3) & 0x3f) << 4) + (RFIFOB(fd,4) >> 4);
@@ -7932,6 +7955,9 @@ void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd) {
 			break;
 		case 16:
 			account_id = RFIFOL(fd,4);
+			break;
+		case 17:
+			account_id = RFIFOL(fd,7);
 			break;
 		default: // old version by default (+ packet version 6 and 7)
 			account_id = RFIFOL(fd,2);
@@ -8241,6 +8267,10 @@ void clif_parse_ChangeDir(int fd, struct map_session_data *sd) {
 			headdir = RFIFOW(fd,12);
 			dir = RFIFOB(fd,22);
 			break;
+		case 17:
+			headdir = RFIFOW(fd,7);
+			dir = RFIFOB(fd,10);
+			break;
 
 		default: // old version by default (and packet version 6)
 			headdir = RFIFOW(fd,2);
@@ -8360,6 +8390,10 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		case 16:
 			target_id = RFIFOL(fd,9);
 			action_type = RFIFOB(fd,19);
+			break;
+		case 17:
+			target_id = RFIFOL(fd,5);
+			action_type = RFIFOB(fd,18);
 			break;
 
 		default: // old version by default (and packet version 6 and 7)
@@ -8566,6 +8600,9 @@ void clif_parse_TakeItem(int fd, struct map_session_data *sd) {
 		case 16:
 			map_object_id = RFIFOL(fd,5);
 			break;
+		case 17:
+			map_object_id = RFIFOL(fd,4);
+			break;
 		default: // old version by default (and packet version 6)
 			map_object_id = RFIFOL(fd,2);
 			break;
@@ -8648,6 +8685,10 @@ void clif_parse_DropItem(int fd, struct map_session_data *sd) {
 			item_index = RFIFOW(fd,15) - 2;
 			item_amount = RFIFOW(fd,18);
 			break;
+		case 17:
+			item_index = RFIFOW(fd,5) - 2;
+			item_amount = RFIFOW(fd,8);
+			break;
 		default: // old version by default (+ packet version 6 and 7)
 			item_index = RFIFOW(fd,2) - 2;
 			item_amount = RFIFOW(fd,4);
@@ -8714,6 +8755,9 @@ void clif_parse_UseItem(int fd, struct map_session_data *sd) {
 			break;
 		case 16:
 			pc_useitem(sd,RFIFOW(fd,5)-2);
+			break;
+		case 17:
+			pc_useitem(sd,RFIFOW(fd,4)-2);
 			break;
 		default: // old version by default
 			pc_useitem(sd,RFIFOW(fd,2)-2);
@@ -9121,6 +9165,11 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 			skillnum = RFIFOW(fd,16);
 			target_id = RFIFOL(fd,22);
 			break;
+		case 17:
+			skilllv = RFIFOW(fd,6);
+			skillnum = RFIFOW(fd,10);
+			target_id = RFIFOL(fd,21);
+			break;
 		default: // old version by default
 			skilllv = RFIFOW(fd,2);
 			skillnum = RFIFOW(fd,4);
@@ -9300,6 +9349,14 @@ void clif_parse_UseSkillToPos(int fd, struct map_session_data *sd) {
 			y = RFIFOW(fd,32);
 			if (RFIFOW(fd,0) == 0x07e)
 				skillmoreinfo = 34;
+			break;
+		case 17:
+			skilllv = RFIFOW(fd,5);
+			skillnum = RFIFOW(fd,9);
+			x = RFIFOW(fd,12);
+			y = RFIFOW(fd,20);
+			if (RFIFOW(fd,0) == 0x07e)
+				skillmoreinfo = 22;
 			break;
 		default: // old version by default
 			skilllv = RFIFOW(fd,2);
@@ -9548,6 +9605,9 @@ void clif_parse_SolveCharName(int fd, struct map_session_data *sd) {
 		case 16:
 			char_id = RFIFOL(fd,7);
 			break;
+		case 17:
+			char_id = RFIFOL(fd,11);
+			break;
 		default: // old version by default (+ packet version 6 and 7)
 			char_id = RFIFOL(fd,2);
 			break;
@@ -9644,6 +9704,10 @@ void clif_parse_MoveToKafra(int fd, struct map_session_data *sd) {
 			item_index = RFIFOW(fd,10) - 2;
 			item_amount = RFIFOL(fd,16);
 			break;
+		case 17:
+			item_index = RFIFOW(fd,7) - 2;
+			item_amount = RFIFOL(fd,10);
+			break;
 		default: // old version by default (+ packet version 6 and 7)
 			item_index = RFIFOW(fd,2) - 2;
 			item_amount = RFIFOL(fd,4);
@@ -9709,6 +9773,10 @@ void clif_parse_MoveFromKafra(int fd,struct map_session_data *sd) {
 		case 16:
 			item_index = RFIFOW(fd,11) - 1;
 			item_amount = RFIFOL(fd,17);
+			break;
+		case 17:
+			item_index = RFIFOW(fd,14) - 1;
+			item_amount = RFIFOL(fd,18);
 			break;
 		default: // old version by default (+ packet version 6 and 7)
 			item_index = RFIFOW(fd,2) - 1;
@@ -10932,12 +11000,12 @@ static int clif_parse(int fd) {
 	// check authentification packet to know packet version
 	} else {
 		// packet DB
-		if (IS_PACKET_DB_VER (cmd)) {
-			if (RFIFOREST(fd) >= packet_db[clif_config.packet_db_ver][cmd].len &&
-				(RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[4]) == 0 ||
-				RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[4]) == 1)) {// 00 = Female, 01 = Male
-				packet_ver = clif_config.packet_db_ver;
-			}
+		if (IS_PACKET_DB_VER (cmd) && 
+			RFIFOREST(fd) >= packet_db[clif_config.packet_db_ver][cmd].len &&
+			(RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[4]) == 0 ||	// 01 = Male
+			RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[4]) == 1))		// 00 = Female
+		{
+			packet_ver = clif_config.packet_db_ver;
 		// 0x72
 		} else if (cmd == 0x72) {
 			if (RFIFOREST(fd) >= 39 && (RFIFOB(fd,38) == 0 || RFIFOB(fd,38) == 1)) // 00 = Female, 01 = Male
@@ -10977,8 +11045,10 @@ static int clif_parse(int fd) {
 				return 0;
 		// 0x9B
 		} else if (cmd == 0x9B) {
-			if (RFIFOREST(fd) >= 32 && (RFIFOB(fd,31) == 0 || RFIFOB(fd,31) == 1)) // 00 = Female, 01 = Male
+			if (RFIFOREST(fd) >= 32 && (RFIFOB(fd,31) == 0 || RFIFOB(fd,31) == 1))	// 00 = Female, 01 = Male
 				packet_ver = 16; // 16: 10jan05
+			else if (RFIFOREST(fd) >= 26 && (RFIFOB(fd,25) == 0 || RFIFOB(fd,25) == 1))	// 00 = Female, 01 = Male
+				packet_ver = 17; // 17: 10may05
 			else if (RFIFOREST(fd) < 32)
 				return 0;
 		} else {
@@ -10995,6 +11065,7 @@ static int clif_parse(int fd) {
 			(packet_ver == 14 && (battle_config.packet_ver_flag &	32) == 0) ||
 			(packet_ver == 15 && (battle_config.packet_ver_flag &	64) == 0) ||
 			(packet_ver == 16 && (battle_config.packet_ver_flag &	128) == 0) ||
+			(packet_ver == 17 && (battle_config.packet_ver_flag &	256) == 0) ||
 			packet_ver > MAX_PACKET_VER ||	// no packet version support yet
 			// identified version, but unknown client?
 			(!sd && packet_db[packet_ver][cmd].func != clif_parse_WantToConnection)) {
@@ -11637,7 +11708,7 @@ int do_init_clif(void) {
 	packet_db[15][0x222].len = 6;
 	packet_db[15][0x221].len = -1;
 	packet_db[15][0x223].len = 8;
-	// Init packet function calls for packet ver 16
+	// Init packet function calls for packet ver 16 (10jan05)
 	memcpy(packet_db[16], packet_db[15], sizeof(packet_db[0]));
 	packet_db[16][0x072].func = clif_parse_UseSkillToId;
 	packet_db[16][0x07e].func = clif_parse_UseSkillToPos;
@@ -11675,7 +11746,24 @@ int do_init_clif(void) {
 	packet_db[16][0x09f].len = 17;
 	packet_db[16][0x0f7].len = 21;
 	packet_db[16][0x143].len = 10;
-	// Init packet function calls for the packet_db.txt (17)
+	// Init packet function calls for packet ver 17 (10may05)
+	memcpy(packet_db[17], packet_db[16], sizeof(packet_db[0]));
+	packet_db[17][0x072].len = 25;
+	packet_db[17][0x07e].len = 102;
+	packet_db[17][0x089].len = 8;
+	packet_db[17][0x08c].len = 11;
+	packet_db[17][0x094].len = 14;
+	packet_db[17][0x190].len = 19;
+	packet_db[17][0x0f5].len = 8;
+	packet_db[17][0x0a7].len = 8;
+	packet_db[17][0x085].len = 11;
+	packet_db[17][0x09b].len = 26;
+	packet_db[17][0x0a2].len = 15;
+	packet_db[17][0x113].len = 22;
+	packet_db[17][0x116].len = 10;
+	packet_db[17][0x09f].len = 14;
+	packet_db[17][0x0f7].len = 22;
+	// Init packet function calls for the packet_db.txt (18)
 	memcpy(packet_db[MAX_PACKET_VER], packet_db[MAX_PACKET_VER - 1], sizeof(packet_db[0]));
 #endif
 

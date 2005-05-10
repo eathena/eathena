@@ -14,7 +14,7 @@ typedef unsigned int in_addr_t;
 #include "map.h"
 
 #define MAX_PACKET_DB		0x235
-#define MAX_PACKET_VER		17
+#define MAX_PACKET_VER		18
 
 struct packet_db {
 	short len;
