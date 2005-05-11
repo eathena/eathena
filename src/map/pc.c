@@ -2620,13 +2620,8 @@ int pc_useitem(struct map_session_data *sd,int n)
 		}
 		script = sd->inventory_data[n]->use_script;
 		amount = sd->status.inventory[n].amount;
-		if (	//List items that are not consumed inmediately [Skotlex]
-			sd->itemid == 610 ||    //Yggdrasil Leaf
-			(sd->itemid >= 686 && sd->itemid <= 700) ||  //Scrolls
-			(sd->itemid >= 12000 && sd->itemid <= 12003) || //More Scrolls
-			(sd->itemid >= 619 && sd->itemid <= 642) || //Pet catchers
-			(sd->itemid >= 659 && sd->itemid <= 661)	//Newer pet catchers
-			)
+		//Check if the item is to be consumed inmediately [Skotlex]
+		if (sd->inventory_data[n]->flag.delay_consume)
 			clif_useitemack(sd,n,amount,1);
 		else {
 			clif_useitemack(sd,n,amount-1,1);

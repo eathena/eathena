@@ -1,5 +1,14 @@
 Date	Added
 05/12
+	* New item type (11) to item_db: delay-consumed usables. [Skotlex]
+	. All items that have in their script "pet" or "itemskill" must be changed
+	  from type 2 to 11. The new type of item has the property of not being
+	  consumed on double click, but after a target is selected (hence it is
+	  ideal for lures, skill-casting items and the yggdrasil leaf)
+	  The item_db.txt file was updated to reflect these changes. Custom pet 
+	  lure owners, update!
+	  SQL users can run upgrade_svn1705.sql which will upgrade both item
+	  databases (including all custom lures)
 	* Added battle config option 'ignore_items_gender'. [Lupus]
 	  So any player can equip any item regardless of the gender restrictions.
 	  Note: It's ignored by default since gender check isn't implemented at

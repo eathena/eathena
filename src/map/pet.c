@@ -1134,21 +1134,20 @@ int pet_catch_process2(struct map_session_data *sd,int target_id)
 
 	nullpo_retr(1, sd);
 
-	//Consume the pet lure [Skotlex]
-	if (sd->itemid > 0 && (	//Consume only known pet lures (custom lures were consumed in pc_useitem)
-		(sd->itemid >= 619 && sd->itemid <= 642) ||
-		(sd->itemid >= 659 && sd->itemid <= 661)
-		))
-	{  //Skotlex: Consume the item
-		i = sd->itemindex;
-		if (i >= 0 && i < MAX_INVENTORY && sd->status.inventory[i].nameid == sd->itemid && sd->status.inventory[i].amount > 0)
-		{
-			sd->itemid = sd->itemindex = -1;
-			pc_delitem(sd,i,1,0);
-		} else { //Item exploit?
+	if (sd->itemid > 0)
+	{	//Consume the pet lure [Skotlex]
+		if ((i = sd->itemindex) == -1 ||
+			sd->status.inventory[i].nameid != sd->itemid ||
+			!sd->inventory_data[i]->flag.delay_consume ||
+			sd->status.inventory[i].amount < 1	
+			)
+		{	//Something went wrong, items moved or they tried an exploit.
 			clif_pet_rulet(sd,0);
 			return 1;
 		}
+		//Delete the item
+		sd->itemid = sd->itemindex = -1;
+		pc_delitem(sd,i,1,0);
 	}
 	
 	md=(struct mob_data*)map_id2bl(target_id);

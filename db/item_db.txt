@@ -1,4 +1,7 @@
 //ID,Name,Name,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Gender,Loc,wLV,eLV,View,{UseScript},{EquipScript}
+//Type: 0 Healing, 2: Usable, 3: Misc, 4: Weapon, 5: Armor, 6: Card, 7: egg,
+//8: petequip, 10: arrow, 11: Usable with delayed consumption (all items with
+//script "pet" or "itemskill": Lures, Scrolls, Magnifier, Yggdrasil Leaf)
 //Elements: 0 Nothing, 1 Water, 2 Earth ,3 Fire, 4 Wind, 5 Poison, 6 Saint, 7 Darkness, 8 Sense, 9 Immortality
 
 // Healing Items
@@ -84,13 +87,13 @@
 602,Butterfly_Wing,Butterfly Wing,2,300,0,50,,,,,10477567,2,,,,,{ warp "SavePoint",0,0; },{}
 603,Old_Blue_Box,Old Blue Box,2,10000,0,200,,,,,10477567,2,,,,,{ getitem -1,1; },{}
 604,Dead_Branch,Dead Branch,2,50,0,50,,,,,10477567,2,,,,,{ monster "this",0,0,"--ja--",-1,1,; },{}
-605,Anodyne,Anodyne,2,2000,0,100,,,,,10477567,2,,,,,{ itemskill 8,1,"Endure"; },{}
-606,Aloevera,Aloevera,2,1500,0,100,,,,,10477567,2,,,,,{ itemskill 6,1,"Provoke"; },{}
+605,Anodyne,Anodyne,11,2000,0,100,,,,,10477567,2,,,,,{ itemskill 8,1,"Endure"; },{}
+606,Aloevera,Aloevera,11,1500,0,100,,,,,10477567,2,,,,,{ itemskill 6,1,"Provoke"; },{}
 607,Yggdrasilberry,Yggdrasilberry,0,2,0,300,,,,,10477567,2,,,,,{ percentheal 100,100; },{}
 608,Yggdrasil_Seed,Yggdrasil Seed,0,5000,0,300,,,,,10477567,2,,,,,{ percentheal 50,50; },{}
 609,Amulet,Amulet,2,100,0,100,,,,,10477567,2,,,,,{},{}
-610,Yggdrasil_Leaf,Yggdrasil Leaf,2,4000,0,100,,,,,10477567,2,,,,,{ itemskill 54,1,"Resurrection"; },{}
-611,Magnifier,Magnifier,2,40,0,50,,,,,10477567,2,,,,,{ itemskill 40,1,"Identify"; },{}
+610,Yggdrasil_Leaf,Yggdrasil Leaf,11,4000,0,100,,,,,10477567,2,,,,,{ itemskill 54,1,"Resurrection"; },{}
+611,Magnifier,Magnifier,11,40,0,50,,,,,10477567,2,,,,,{ itemskill 40,1,"Identify"; },{}
 // Smithing Items
 612,Mini_Furnace,Mini Furnace,2,150,0,200,,,,,10477567,2,,,,,{ produce 16; },{}
 613,Iron_Hammer,Iron Hammer,2,1000,0,200,,,,,10477567,2,,,,,{ produce 1; },{}
@@ -103,30 +106,30 @@
 
 // Pet Tames
 //===================================================================
-619,Unripe_Apple,Unripe Apple,2,1000,0,50,,,,,10477567,2,,,,,{ pet 1002; },{}
-620,Orange_Juice,Orange Juice,2,1500,0,50,,,,,10477567,2,,,,,{ pet 1113; },{}
-621,Bitter_Herb,Bitter Herb,2,20,0,50,,,,,10477567,2,,,,,{ pet 1031; },{},
-622,Rainbow_Carrot,Rainbow Carrot,2,2500,0,50,,,,,10477567,2,,,,,{ pet 1063; },{},
-623,Earthworm_the_Dude,Earthworm the Dude,2,4000,0,50,,,,,10477567,2,,,,,{ pet 1049; },{},
-624,Rotten_Fish,Rotten Fish,2,2500,0,50,,,,,10477567,2,,,,,{ pet 1011; },{},
-625,Rusty_Iron,Rusty Iron,2,100,0,50,,,,,10477567,2,,,,,{ pet 1042; },{},
-626,Monster_Juice,Monster Juice,2,1500,0,50,,,,,10477567,2,,,,,{ pet 1035; },{}
-627,Sweet_Milk,Sweet Milk,2,7000,0,50,,,,,10477567,2,,,,,{ pet 1167; },{}
-628,Well_Dried_Bone,Well Dried Bone,2,10000,0,50,,,,,10477567,2,,,,,{ pet 1107; },{}
-629,Singing_Flower,Singing Flower,2,300,0,50,,,,,10477567,2,,,,,{ pet 1052; },{}
-630,Dew_Laden_Moss,Dew Laden Moss,2,10,0,50,,,,,10477567,2,,,,,{ pet 1014; },{},
-631,Deadly_Noxious_Herb,Deadly Noxious Herb,2,20,0,50,,,,,10477567,2,,,,,{ pet 1077; },{},
-632,Fatty_Chubby_Earthworm,Fatty Chubby Earthworm,2,5000,0,50,,,,,10477567,2,,,,,{ pet 1019; },{},
-633,Baked_Yam,Baked Yam,2,20,0,50,,,,,10477567,2,,,,,{ pet 1056; },{}
-634,Tropical_Banana,Tropical Banana,2,20,0,50,,,,,10477567,2,,,,,{ pet 1057; },{}
-635,Horror_of_Tribe,Horror of Tribe,2,300,0,50,,,,,10477567,2,,,,,{ pet 1023; },{}
-636,No_Recipient,No Recipient,2,100,0,50,,,,,10477567,2,,,,,{ pet 1026; },{}
-637,Old_Broom,Old Broom,2,350,0,50,,,,,10477567,2,,,,,{ pet 1110; },{}
-638,Silver_Knife_of_Chastity,Silver Knife of Chastity,2,12000,0,50,,,,,10477567,2,,,,,{ pet 1170; },{}
-639,Armlet_of_Obedience,Armlet of Obedience,2,18000,0,50,,,,,10477567,2,,,,,{ pet 1029; },{}
-640,Shining_Stone,Shining Stone,2,3000,0,50,,,,,10477567,2,,,,,{ pet 1155; },{}
-641,Contract_in_Shadow,Contracts in Shadow,2,100,0,50,,,,,10477567,2,,,,,{ pet 1109; },{}
-642,Book_of_Devil,Book of Devil,2,1800,0,50,,,,,10477567,2,,,,,{ pet 1101; },{}
+619,Unripe_Apple,Unripe Apple,11,1000,0,50,,,,,10477567,2,,,,,{ pet 1002; },{}
+620,Orange_Juice,Orange Juice,11,1500,0,50,,,,,10477567,2,,,,,{ pet 1113; },{}
+621,Bitter_Herb,Bitter Herb,11,20,0,50,,,,,10477567,2,,,,,{ pet 1031; },{},
+622,Rainbow_Carrot,Rainbow Carrot,11,2500,0,50,,,,,10477567,2,,,,,{ pet 1063; },{},
+623,Earthworm_the_Dude,Earthworm the Dude,11,4000,0,50,,,,,10477567,2,,,,,{ pet 1049; },{},
+624,Rotten_Fish,Rotten Fish,11,2500,0,50,,,,,10477567,2,,,,,{ pet 1011; },{},
+625,Rusty_Iron,Rusty Iron,11,100,0,50,,,,,10477567,2,,,,,{ pet 1042; },{},
+626,Monster_Juice,Monster Juice,11,1500,0,50,,,,,10477567,2,,,,,{ pet 1035; },{}
+627,Sweet_Milk,Sweet Milk,11,7000,0,50,,,,,10477567,2,,,,,{ pet 1167; },{}
+628,Well_Dried_Bone,Well Dried Bone,11,10000,0,50,,,,,10477567,2,,,,,{ pet 1107; },{}
+629,Singing_Flower,Singing Flower,11,300,0,50,,,,,10477567,2,,,,,{ pet 1052; },{}
+630,Dew_Laden_Moss,Dew Laden Moss,11,10,0,50,,,,,10477567,2,,,,,{ pet 1014; },{},
+631,Deadly_Noxious_Herb,Deadly Noxious Herb,11,20,0,50,,,,,10477567,2,,,,,{ pet 1077; },{},
+632,Fatty_Chubby_Earthworm,Fatty Chubby Earthworm,11,5000,0,50,,,,,10477567,2,,,,,{ pet 1019; },{},
+633,Baked_Yam,Baked Yam,11,20,0,50,,,,,10477567,2,,,,,{ pet 1056; },{}
+634,Tropical_Banana,Tropical Banana,11,20,0,50,,,,,10477567,2,,,,,{ pet 1057; },{}
+635,Horror_of_Tribe,Horror of Tribe,11,300,0,50,,,,,10477567,2,,,,,{ pet 1023; },{}
+636,No_Recipient,No Recipient,11,100,0,50,,,,,10477567,2,,,,,{ pet 1026; },{}
+637,Old_Broom,Old Broom,11,350,0,50,,,,,10477567,2,,,,,{ pet 1110; },{}
+638,Silver_Knife_of_Chastity,Silver Knife of Chastity,11,12000,0,50,,,,,10477567,2,,,,,{ pet 1170; },{}
+639,Armlet_of_Obedience,Armlet of Obedience,11,18000,0,50,,,,,10477567,2,,,,,{ pet 1029; },{}
+640,Shining_Stone,Shining Stone,11,3000,0,50,,,,,10477567,2,,,,,{ pet 1155; },{}
+641,Contract_in_Shadow,Contracts in Shadow,11,100,0,50,,,,,10477567,2,,,,,{ pet 1109; },{}
+642,Book_of_Devil,Book of Devil,11,1800,0,50,,,,,10477567,2,,,,,{ pet 1101; },{}
 643,Pet_Incubator,Pet Incubator,2,3000,,30,,,,,10477567,2,,,,,{ bpet; },{}
 
 // More Usable Items
@@ -139,9 +142,9 @@
 // Guild EXP Giver
 658,Tribal_Solidarity,Tribal Solidarity,2,1000,0,500,,,,,10477567,2,,,,,{ guildgetexp rand(1,10000); },{}
 // New Pet Tames
-659,Her_Heart,Her Heart,2,500,0,50,,,,,10477567,2,,,,,{ pet 1188; },{}
-660,Forbidden_Red_Candle,Red Candle,2,20,0,50,,,,,10477567,2,,,,,{ pet 1200; },{}
-661,Sky_Apron,Soft Apron,2,20,0,50,,,,,10477567,2,,,,,{ pet 1275; },{}
+659,Her_Heart,Her Heart,11,500,0,50,,,,,10477567,2,,,,,{ pet 1188; },{}
+660,Forbidden_Red_Candle,Red Candle,11,20,0,50,,,,,10477567,2,,,,,{ pet 1200; },{}
+661,Sky_Apron,Soft Apron,11,20,0,50,,,,,10477567,2,,,,,{ pet 1275; },{}
 // Newer Items
 662,Horse_Crest,Crest of the Horse,2,3000,0,30,0,0,0,0,10477567,2,0,0,0,0,{ skilleffect 507,5; sc_start SC_SpeedUp0,240000,0; },{}
 664,Gift_Box_,Gift Box,2,20,0,200,,,,,10477567,2,,,,,{ getitem -4,1; },{},
@@ -168,21 +171,21 @@
 685,Ramadan,Ramadan,2,20,10,300,,,,,10477567,2,,,,,{},{}
 
 // Scrolls
-686,Earth_Spike_3,Earth Spike Level 3,2,650,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 90,3,"Earth Spike Level 3"; },{}
-687,Earth_Spike_5,Earth Spike Level 5,2,1300,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 90,5,"Earth Spike Level 5"; },{}
-688,Cold_Bolt_3,Cold Bolt Level 3,2,500,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 14,3,"Cold Bolt Level 3"; },{}
-689,Cold_Bolt_5,Cold Bolt Level 5,2,1000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 14,5,"Cold Bolt Level 5"; },{}
-690,Fire_Bolt_3,Fire Bolt Level 3,2,500,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 19,3,"Fire Bolt Level 3"; },{}
-691,Fire_Bolt_5,Fire Bolt Level 5,2,1000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 19,5,"Fire bolt Level 5"; },{}
-692,Lightning_Bolt_3,Lightning Bolt Level 3,2,500,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 20,3,"Lightning Bolt Level 3"; },{}
-693,Lightning_Bolt_5,Lightning Bolt Level 5,2,1000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 20,5,"Lightning Bolt Level 5"; },{}
-694,Soul_Strike_3,Soul Strike Level 3,2,500,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 13,3,"Soul Strike Level 3"; },{}
-695,Soul_Strike_5,Soul Strike Level 5,2,1000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 13,5,"Soul Strike Level 5"; },{}
-696,Fire_Ball_1,Fire Ball Level 1,2,500,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 17,1,"Fire Ball Level 1"; },{}
-697,Fire_Ball_5,Fire Ball Level 5,2,1000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 17,5,"Fire Ball Level 5"; },{}
-698,Fire_Wall_1,Fire Wall Level 1,2,350,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 18,1,"Fire Wall Level 1"; },{}
-699,Fire_Wall_5,Fire Wall Level 5,2,700,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 18,5,"Fire Wall Level 5"; },{}
-700,Frost_Diver_1,Frost Diver Level 1,2,350,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 15,1,"Frost Diver Level 1"; },{}
+686,Earth_Spike_3,Earth Spike Level 3,11,650,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 90,3,"Earth Spike Level 3"; },{}
+687,Earth_Spike_5,Earth Spike Level 5,11,1300,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 90,5,"Earth Spike Level 5"; },{}
+688,Cold_Bolt_3,Cold Bolt Level 3,11,500,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 14,3,"Cold Bolt Level 3"; },{}
+689,Cold_Bolt_5,Cold Bolt Level 5,11,1000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 14,5,"Cold Bolt Level 5"; },{}
+690,Fire_Bolt_3,Fire Bolt Level 3,11,500,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 19,3,"Fire Bolt Level 3"; },{}
+691,Fire_Bolt_5,Fire Bolt Level 5,11,1000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 19,5,"Fire bolt Level 5"; },{}
+692,Lightning_Bolt_3,Lightning Bolt Level 3,11,500,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 20,3,"Lightning Bolt Level 3"; },{}
+693,Lightning_Bolt_5,Lightning Bolt Level 5,11,1000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 20,5,"Lightning Bolt Level 5"; },{}
+694,Soul_Strike_3,Soul Strike Level 3,11,500,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 13,3,"Soul Strike Level 3"; },{}
+695,Soul_Strike_5,Soul Strike Level 5,11,1000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 13,5,"Soul Strike Level 5"; },{}
+696,Fire_Ball_1,Fire Ball Level 1,11,500,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 17,1,"Fire Ball Level 1"; },{}
+697,Fire_Ball_5,Fire Ball Level 5,11,1000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 17,5,"Fire Ball Level 5"; },{}
+698,Fire_Wall_1,Fire Wall Level 1,11,350,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 18,1,"Fire Wall Level 1"; },{}
+699,Fire_Wall_5,Fire Wall Level 5,11,700,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 18,5,"Fire Wall Level 5"; },{}
+700,Frost_Diver_1,Frost Diver Level 1,11,350,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 15,1,"Frost Diver Level 1"; },{}
 
 701,Ora_Ora,Ora Ora,3,55000,0,200,,,,,,,,,,,{},{}
 702,Animal_Gore,Animal Gore,3,2,0,100,,,,,,,,,,,{},{}
@@ -1912,10 +1915,10 @@
 
 // More Scrolls
 //===================================================================
-12000,Frost_Diver_5,Frost Diver Level 5,2,700,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 15,5,"Frost Diver Level 5"; },{}
-12001,Heal_3,Heal Level 3,2,1000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 28,3,"Heal Level 3"; },{}
-12002,Heal_5,Heal Level 5,2,2000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 28,5,"Heal Level 5"; },{}
-12003,Teleport_1,Teleport Level 1,2,100,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 26,1,"Teleport Level 1"; },{}
+12000,Frost_Diver_5,Frost Diver Level 5,11,700,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 15,5,"Frost Diver Level 5"; },{}
+12001,Heal_3,Heal Level 3,11,1000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 28,3,"Heal Level 3"; },{}
+12002,Heal_5,Heal Level 5,11,2000,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 28,5,"Heal Level 5"; },{}
+12003,Teleport_1,Teleport Level 1,11,100,0,10,0,0,0,0,10477567,2,0,0,0,0,{ itemskill 26,1,"Teleport Level 1"; },{}
 
 // Arrow Quivers
 //===================================================================

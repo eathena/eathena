@@ -20,7 +20,6 @@
 
 #define MAX_RANDITEM	2000
 #define MAX_ITEMGROUP	20
-
 // ** ITEMDB_OVERRIDE_NAME_VERBOSE **
 //   定義すると、itemdb.txtとgrfで名前が異なる場合、表示します.
 //#define ITEMDB_OVERRIDE_NAME_VERBOSE	1
@@ -168,20 +167,23 @@ struct item_data* itemdb_search(int nameid)
 	id=(struct item_data *)aCalloc(1,sizeof(struct item_data));
 	numdb_insert(item_db,nameid,id);
 
+	memset (id, 0, sizeof(struct item_data)); //Isn't this quicker? [Skotlex]
 	id->nameid=nameid;
 	id->value_buy=10;
 	id->value_sell=id->value_buy/2;
 	id->weight=10;
 	id->sex=2;
-	id->elv=0;
+//	id->elv=0;
 	id->class_=0xffffffff;
+/*	
 	id->flag.available=0;
 	id->flag.value_notdc=0;  //一応・・・
 	id->flag.value_notoc=0;
 	id->flag.no_equip=0;
 	id->flag.no_refine=0;
+	id->flag.delay_consume=0;
 	id->view_id=0;
-
+*/
 	if(nameid>500 && nameid<600)
 		id->type=0;   //heal item
 	else if(nameid>600 && nameid<700)
@@ -846,6 +848,12 @@ static int itemdb_readdb(void)
 			memcpy(id->name,str[1],24);
 			memcpy(id->jname,str[2],24);
 			id->type=atoi(str[3]);
+			if (id->type == 11)
+			{	//Items that are consumed upon target confirmation
+				//(yggdrasil leaf, spells & pet lures) [Skotlex]
+				id->type = 2;
+				id->flag.delay_consume=1;
+			}
 
 			{
 				int buy = atoi(str[4]), sell = atoi(str[5]);

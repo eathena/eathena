@@ -32,6 +32,7 @@ struct item_data {
 		unsigned no_equip : 3;
 		unsigned no_use : 1;
 		unsigned no_refine : 1;	// [celest]
+		unsigned delay_consume : 1;	// Signifies items that are not consumed inmediately upon double-click [Skotlex]
 	} flag;
 	int view_id;
 };

@@ -9,6 +9,8 @@
 	Skill databases == celest working on them I believe.
 
 05/11
+	* Updated item_db (all items with use_script "pet" or "itemskill") to use
+	  the new type of item (11: delay-consumed usables) [Skotlex]
 	* Added the new G_ mobs with poring stats, thanks to Komurka
 05/10
 	* Changed 2005-05-09Sakexe's packet version to 17 [celest]
@@ -398,3 +400,4 @@
 
 11/14
 	- Fixed Golden Thief Bug Mode!(+detects hidden) [Lupus]
+	
