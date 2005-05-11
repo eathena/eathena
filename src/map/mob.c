@@ -4340,9 +4340,14 @@ static int mob_readskilldb(void)
 			if (j<=0 || j>MAX_SKILL_DB)
 				continue;
 			ms->skill_lv=j;
+			//Apply battle_config modifiers to rate (permillage) and delay [Skotlex]
 			ms->permillage=atoi(sp[5]);
+			if (battle_config.mob_skill_rate != 100)
+				ms->permillage = ms->permillage*battle_config.mob_skill_rate/100;
 			ms->casttime=atoi(sp[6]);
 			ms->delay=atoi(sp[7]);
+			if (battle_config.mob_skill_delay != 100)
+				ms->delay = ms->delay*battle_config.mob_skill_delay/100;
 			ms->cancel=atoi(sp[8]);
 			if( strcmp(sp[8],"yes")==0 ) ms->cancel=1;
 			ms->target=atoi(sp[9]);

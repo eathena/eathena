@@ -1,5 +1,7 @@
 Date	Added
 05/11
+	* Added by popular demand battle config options mob_skill_rate & 
+	  mob_skill_delay. See battle_athena.conf for further information. [Skotlex]
 	* Added battle config option wedding_ignorepalette (default no)
 	  When enabled, the wedding dress/tux will always display with the default
 	  dye (not all palette packs bring palettes for the wedding class, nor
