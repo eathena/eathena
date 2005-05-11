@@ -1,8 +1,11 @@
 // Aegis zone 8.5 -> eAthena conversion by Komurka
 //
-//MOB_ID, a dummy character sequence (skill name), STATE, SKILL_ID, SKILL_LV, the rate of 1,000th of a minute (for idle skill 70/1000), casttime, delay, the disturbance possibility of, a target, a condition type, a condition value, a value 1, a value 2, a value 3, a value 4, a value 5, emotion
+//MOB_ID, a dummy character sequence (skill name), STATE, SKILL_ID, SKILL_LV, use rate (1000 = 100%), casttime, delay, cancelable, a target, a condition type, a condition value, a value 1, a value 2, a value 3, a value 4, a value 5, emotion
 //Example
 //1001,Gibberish,attack,52,3,100,1500,10000,no,target,always,0,,,,,7
+//Use rate refers to the chance of the skill being casted when the condition
+//is fulfilled.
+//delay is the time in milliseconds that has to be pass before recasting the same skill.
 //
 //STATE: any Even when /idle standby /walk movement /attack attack /// dead death /loot route /chase rush or pursuit. /counterattack (?)//// target: target PC / self himself under attack /friend friend /// One's circumference (it is circumference 81 mass =around4 now) /// One's circumference 9 mass One's circumference 25 mass /// One's circumference 49 mass [ around ] [ around1 ] [ /around2 ] [ around3 ] One's circumference 81 mass//a [ /around4 ] 
 //Only place specification skill is good for a round system. friend is good only on condition that a friend system. // 
