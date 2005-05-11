@@ -1,5 +1,6 @@
 Date	Added
 05/12
+        * Put a fix in for the bug mentioned below [MouseJstr]
 
 	**********
 	URGENT BUG: Now we have instant CAST and ~2 MAX HP ~80 Max SP of any Player.

@@ -215,7 +215,7 @@ int delete_timer(int id,int (*func)(int,unsigned int,int,int)) {
 		return -1;
 	}
 	if (timer_data[id].func != func) {
-		printf("delete_timer error : function dismatch %08x(%s) != %08x(%s)\n",
+		printf("delete_timer error : function mismatch %08x(%s) != %08x(%s)\n",
 			 (int)timer_data[id].func, search_timer_func_list(timer_data[id].func),
 			 (int)func, search_timer_func_list(func));
 		return -2;
