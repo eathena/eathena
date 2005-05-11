@@ -36,6 +36,8 @@ TODO:
 Date		Added
 ======
 
+05/11
+	* Ayothaya NPCs fix by MasterOfMuppets
 05/09
 	* Added new Sara-chan's maps / warps for Einbroch and Lhztargen [Lupus]
 	* Added first Ayothaya city NPCs
