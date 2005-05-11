@@ -1901,7 +1901,7 @@ int pet_skill_support_timer(int tid,unsigned int tick,int id,int data)
 {
 	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
 	struct pet_data *pd;
-	short rate;	
+	short rate = 100;	
 	if(sd==NULL || sd->bl.type!=BL_PC || sd->pd == NULL)
 		return 1;
 	

@@ -3826,7 +3826,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 				ATK_ADD(20*sc_data[SC_AURABLADE].val1);
 		}
 		
-	if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST)
+		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST)
 		{	//refine bonus
 			ATK_ADD2(status_get_atk2(src), status_get_atk_2(src));
 		}
@@ -3835,7 +3835,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 		if (rh_flag && wd.damage < 1) wd.damage = 1;
 		if (lh_flag && wd.damage2 < 1) wd.damage2 = 1;
 			
-		if (skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST && skill_num != CR_GRANDCROSS)
+		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST && skill_num != CR_GRANDCROSS)
 		{	//Add mastery damage
 			if((sd->weapontype1 == 0x10 || sd->weapontype2 == 0x10) && (skill = pc_checkskill(sd,ASC_KATAR)) > 0)
 				ATK_ADDRATE(10+(skill *2));	//Advanced Katar Research by zanetheinsane
