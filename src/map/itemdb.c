@@ -742,7 +742,8 @@ static int itemdb_read_sqldb(void)
 					id->range	= (sql_row[9] != NULL) ? atoi(sql_row[9]) : 0;
 					id->slot	= (sql_row[10] != NULL) ? atoi(sql_row[10]) : 0;
 					id->class_	= (sql_row[11] != NULL) ? atoi(sql_row[11]) : 0;
-					id->sex		= (sql_row[12] != NULL) ? atoi(sql_row[12]) : 0;
+					id->sex	= (battle_config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 :
+									( (sql_row[12] != NULL) ? atoi(sql_row[12]) : 0);
 					id->equip	= (sql_row[13] != NULL) ? atoi(sql_row[13]) : 0;
 					id->wlv		= (sql_row[14] != NULL) ? atoi(sql_row[14]) : 0;
 					id->elv		= (sql_row[15] != NULL)	? atoi(sql_row[15]) : 0;
@@ -876,6 +877,7 @@ static int itemdb_readdb(void)
 			id->slot=atoi(str[10]);
 			id->class_=atoi(str[11]);
 			id->sex=atoi(str[12]);
+			id->sex	= (battle_config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 : atoi(str[12]);
 			if(id->equip != atoi(str[13])){
 				id->equip=atoi(str[13]);
 			}

@@ -5498,6 +5498,7 @@ static const struct {
 	{ "display_hallucination", &battle_config.display_hallucination}, // [Skotlex]
 	{ "use_statpoint_table", &battle_config.use_statpoint_table}, // [Skotlex]
 	{ "new_attack_function", &battle_config.new_attack_function}, // [Skotlex]
+	{ "ignore_items_gender", &battle_config.ignore_items_gender}, // [Lupus]
 
 //SQL-only options start
 #ifndef TXT_ONLY
@@ -5761,6 +5762,8 @@ void battle_set_defaults() {
 	battle_config.display_version = 1;
 	battle_config.who_display_aid = 0;
 	battle_config.display_hallucination = 1;
+	battle_config.ignore_items_gender = 1;
+
 	battle_config.use_statpoint_table = 1;
 	battle_config.new_attack_function = 0; //This is for test/debug purposes [Skotlex]
 
