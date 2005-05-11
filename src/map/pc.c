@@ -5634,7 +5634,11 @@ int pc_changelook(struct map_session_data *sd,int type,int val)
 	nullpo_retr(0, sd);
 
 	switch(type){
-	case LOOK_HAIR:
+	case LOOK_HAIR:	//Use the battle_config limits! [Skotlex]
+		if (val < battle_config.min_hair_style)
+			val = battle_config.min_hair_style;
+		else if (val > battle_config.max_hair_style)
+			val = battle_config.max_hair_style;
 		sd->status.hair=val;
 		break;
 	case LOOK_WEAPON:
@@ -5649,10 +5653,18 @@ int pc_changelook(struct map_session_data *sd,int type,int val)
 	case LOOK_HEAD_MID:
 		sd->status.head_mid=val;
 		break;
-	case LOOK_HAIR_COLOR:
+	case LOOK_HAIR_COLOR:	//Use the battle_config limits! [Skotlex]
+		if (val < battle_config.min_hair_color)
+			val = battle_config.min_hair_color;
+		else if (val > battle_config.max_hair_color)
+			val = battle_config.max_hair_color;
 		sd->status.hair_color=val;
 		break;
-	case LOOK_CLOTHES_COLOR:
+	case LOOK_CLOTHES_COLOR:	//Use the battle_config limits! [Skotlex]
+		if (val < battle_config.min_cloth_color)
+			val = battle_config.min_cloth_color;
+		else if (val > battle_config.max_cloth_color)
+			val = battle_config.max_cloth_color;
 		sd->status.clothes_color=val;
 		break;
 	case LOOK_SHIELD:

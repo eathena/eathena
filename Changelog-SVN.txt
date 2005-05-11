@@ -5,7 +5,17 @@ Date	Added
 	URGENT BUG: Now we have instant CAST and ~2 MAX HP ~80 Max SP of any Player.
 		Should be fixed ASAP!
 	**********
+		(I suspect this could have to do with type-casting
+		and range changing due to the battle_config changes of this morning? Try
+		changing the data type from "unsigned short" to "int" to battle_config
+		parameters such as hp_rate or some other involved value. I'll look into
+		it when I get my hands in a server in an hour or so [Skotlex])
 
+	* Added code to make min_hair_style, max_hair_style, min_hair_color,
+	  max_hair_color, min_cloth_color, max_cloth_color work [Skotlex]
+	  What it does, is cap the values whenever you try to change the
+	  character's dye via an npc/script, it won't touch character's dye colors
+	  upon loading.
 	* Shrinked @mapinfo output, added 2 missing flags NOWARP / NOWARPTO [Lupus]
 	* New item type (11) to item_db: delay-consumed usables. [Skotlex]
 	. All items that have in their script "pet" or "itemskill" must be changed
