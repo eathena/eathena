@@ -1,4 +1,11 @@
 Date	Added
+05/11
+	* Removed boss warping code since it is currently supported by the mob skill DB
+	  'rudeattacked' state [celest]
+	* Fixed plagiarised skills replacing actual learnt skills [celest]
+	* Fixed 'gmcommand' script command crashing when no players are attached [celest]
+	  ... which means the command does not work in script events like OnClock!
+
 05/10
 	* Added code to prevent pet lures from being wasted until after selecting a
 	target (only works with official lures). [Skotlex]

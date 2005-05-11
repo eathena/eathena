@@ -6311,9 +6311,10 @@ int buildin_gmcommand(struct script_state *st)
 	char *cmd;
 
 	sd = script_rid2sd(st);
+	if (!sd)
+		return 0;
 	cmd = conv_str(st,& (st->stack->stack_data[st->start+2]));
-
-        is_atcommand(sd->fd, sd, cmd, 99);
+	is_atcommand(sd->fd, sd, cmd, 99);
 
 	return 0;
 }

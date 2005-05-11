@@ -37,6 +37,7 @@ Date		Added
 ======
 
 05/11
+	* Added WOE script fix, thanks to Avaj
 	* Ayothaya NPCs fix by MasterOfMuppets
 05/09
 	* Added new Sara-chan's maps / warps for Einbroch and Lhztargen [Lupus]

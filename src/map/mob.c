@@ -1665,15 +1665,10 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				battle_check_target(bl, abl, BCT_ENEMY) == 0)
 			{
 				md->attacked_id = 0;
-				if (++md->attacked_count > 3 && mode & 0x20) {
-					// force teleport -- this should be removed as soon as the mob skill db supports it! [celest]
-					md->attacked_count = 0;
-					mob_warp(md,-1,-1,-1,3);
-				} else if (md->attacked_count > 1 &&
+				if (++md->attacked_count > 3 &&
 					mobskill_use(md, tick, MSC_RUDEATTACKED) == 0)
 				{
-					if (!(mode & 0x20))
-						md->attacked_count = 0;
+					md->attacked_count = 0;
 					if (mode & 1 && mob_can_move(md)) {
 						int dist = rand() % 10 + 1;//Œã‘Þ‚·‚é‹——£
 						int dir = map_calc_dir(abl, bl->x, bl->y);
