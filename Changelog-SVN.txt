@@ -1,5 +1,11 @@
 Date	Added
 05/12
+
+	**********
+	URGENT BUG: Now we have instant CAST and ~2 MAX HP ~80 Max SP of any Player.
+		Should be fixed ASAP!
+	**********
+
 	* Shrinked @mapinfo output, added 2 missing flags NOWARP / NOWARPTO [Lupus]
 	* New item type (11) to item_db: delay-consumed usables. [Skotlex]
 	. All items that have in their script "pet" or "itemskill" must be changed
