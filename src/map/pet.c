@@ -302,7 +302,7 @@ static int petskill_use(struct pet_data *pd, struct block_list *target, short sk
 		dat->y = target->y;
 
 		pd->state.state=MS_ATTACK;
-		pd->casting_flag = 1;
+		pd->state.casting_flag = 1;
 		if (skill_get_inf(skill_id) & 2) //Area Skill
 			clif_skillcasting( &pd->bl, pd->bl.id, 0, dat->x, dat->y, skill_id,casttime);
 		else
@@ -324,7 +324,7 @@ static int petskill_castend(struct pet_data *pd,unsigned int tick,int data)
 	struct castend_delay *dat = (struct castend_delay *)data;
 	struct block_list *target = map_id2bl(dat->target);
 	pd->state.state = MS_IDLE;
-	pd->casting_flag = 0;
+	pd->state.casting_flag = 0;
 	if (target && dat && pd == dat->src && target->prev != NULL)
 		petskill_castend2(pd, target, dat->id, dat->lv, dat->x, dat->y, tick);
 	aFree(dat);
@@ -555,9 +555,9 @@ int pet_changestate(struct pet_data *pd,int state,int type)
 		delete_timer(pd->timer,pet_timer);
 	pd->timer=-1;
 	pd->state.state=state;
-	if (pd->casting_flag)
+	if (pd->state.casting_flag)
 	{//Skotlex: Cancel casting
-		pd->casting_flag = 0;
+		pd->state.casting_flag = 0;
 		clif_skillcastcancel(&pd->bl);
 	}
 	switch(state) {
@@ -616,7 +616,7 @@ static int pet_timer(int tid,unsigned int tick,int id,int data)
 				pet_stopattack(pd);
 				break;
 			}
-			if (pd->casting_flag) 
+			if (pd->state.casting_flag) 
 			{	//There is a skill being cast.
 				petskill_castend(pd, tick, data);
 				break;
@@ -1486,7 +1486,7 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 			if(pet_walktoxy(pd,pd->to_x,pd->to_y))
 				pet_randomwalk(pd,tick);
 		}
-		else if(pd->target_id - MAX_FLOORITEM > 0) {
+		else if(pd->target_id - MAX_FLOORITEM > 0) {	//Mob targeted
 			mode=mob_db[pd->class_].mode;
 			race=mob_db[pd->class_].race;
 			md=(struct mob_data *)map_id2bl(pd->target_id);
@@ -1495,7 +1495,7 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 				pet_unlocktarget(pd);
 /*			else if(mob_db[pd->class_].mexp <= 0 && !(mode&0x20) && (md->option & 0x06 && race!=4 && race!=6) )
 				pet_unlocktarget(pd);*/
-			else if(!battle_check_range(&pd->bl,&md->bl,mob_db[pd->class_].range && !pd->casting_flag)){ //Skotlex Don't interrupt a casting spell when targed moved
+			else if(!battle_check_range(&pd->bl,&md->bl,mob_db[pd->class_].range && !pd->state.casting_flag)){ //Skotlex Don't interrupt a casting spell when targed moved
 				if(pd->timer != -1 && pd->state.state == MS_WALK && distance(pd->to_x,pd->to_y,md->bl.x,md->bl.y) < 2)
 					return 0;
 				if( !pet_can_reach(pd,md->bl.x,md->bl.y))
@@ -1537,7 +1537,7 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 				pet_changestate(pd,MS_ATTACK,0);
 			}
 		}
-		else if(pd->target_id > 0){	// ƒ‹[ƒgˆ—
+		else if(pd->target_id > 0 && pd->loot){	//Item Targeted, attempt loot
 			struct block_list *bl_item;
 			struct flooritem_data *fitem;
 
@@ -1564,21 +1564,21 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 				if(pd->state.state==MS_WALK){	// •às’†‚È‚ç’âŽ~
 					pet_stop_walking(pd,1);
 				}
-				if(pd->loot && pd->loot->count < pd->loot->max){
+				if(pd->loot->count < pd->loot->max){
 					memcpy(&pd->loot->item[pd->loot->count++],&fitem->item_data,sizeof(pd->loot->item[0]));
 					pd->loot->weight += itemdb_search(fitem->item_data.nameid)->weight*fitem->item_data.amount;
 				}
-				else if(pd->loot && pd->loot->count >= pd->loot->max) {
+				else { //Maxed out on carried items
 					pet_unlocktarget(pd);
 					return 0;
 				}
-				else {
+			/*	else { //As Shinomori pointed out, this piece of code won't ever be executed. What where the jA devs thinking? [Skotlex]
 					if(pd->loot->item[0].card[0] == (short)0xff00)
 						intif_delete_petdata(*((long *)(&pd->loot->item[0].card[1])));
 					for(i=0;i<PETLOOT_SIZE-1;i++)
 						memcpy(&pd->loot->item[i],&pd->loot->item[i+1],sizeof(pd->loot->item[0]));
 					memcpy(&pd->loot->item[PETLOOT_SIZE-1],&fitem->item_data,sizeof(pd->loot->item[0]));
-				}
+				}*/
 				map_clearflooritem(bl_item->id);
 				pet_unlocktarget(pd);
 			}
@@ -1682,8 +1682,8 @@ int pet_lootitem_drop(struct pet_data *pd,struct map_session_data *sd)
 				else
 					add_timer(gettick()+540+i,pet_delay_item_drop2,(int)ditem,0);
 			}
-			//Skotlex: PETLOOT_SIZE should be used here!
-			memset(pd->loot->item,0,PETLOOT_SIZE * sizeof(struct item));
+			//The smart thing to do is use pd->loot->max (thanks for pointing it out, Shinomori)
+			memset(pd->loot->item,0,pd->loot->max * sizeof(struct item));
 			pd->loot->count = 0;
 			pd->loot->weight = 0;
 			pd->loot->timer = gettick()+10000;	//	10*1000ms‚ÌŠÔE‚í‚È‚¢
@@ -1795,7 +1795,7 @@ int pet_heal_timer(int tid,unsigned int tick,int id,int data)
 	}
 	
 	if(pc_isdead(sd) ||
-		pd->casting_flag || //Another skill is in effect
+		pd->state.casting_flag || //Another skill is in effect
 		pd->state.state == MS_WALK || //Better wait until the pet stops moving
 		sd->status.hp > sd->status.max_hp * pd->s_skill->hp/100 ||
 		sd->status.sp > sd->status.max_sp * pd->s_skill->sp/100)
@@ -1914,7 +1914,7 @@ int pet_skill_support_timer(int tid,unsigned int tick,int id,int data)
 	}
 	
 	if(pc_isdead(sd) ||
-		pd->casting_flag || //Another skill is in effect
+		pd->state.casting_flag || //Another skill is in effect
 		pd->state.state == MS_WALK || //Better wait until the pet stops moving
 		sd->status.hp > sd->status.max_hp * pd->s_skill->hp/100 ||
 		sd->status.sp > sd->status.max_sp * pd->s_skill->sp/100)

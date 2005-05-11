@@ -5880,20 +5880,22 @@ int buildin_petloot(struct script_state *st)
 	max=conv_num(st,& (st->stack->stack_data[st->start+2]));
 
 	if(max < 1)
-		return 0;
-	if (max > PETLOOT_SIZE)
-		max = PETLOOT_SIZE;
+		max = 1;	//Let'em loot at least 1 item.
+	else if (max > MAX_PETLOOT_SIZE)
+		max = MAX_PETLOOT_SIZE;
 	
 	pd = sd->pd;
-	if (pd->loot == NULL)
-	{
-		pd->loot = (struct pet_loot *)aCalloc(1, sizeof(struct pet_loot));
-		pd->loot->item = (struct item *)aCalloc(PETLOOT_SIZE,sizeof(struct item));
-	}
-	else //Release whatever was there already
+	if (pd->loot != NULL)
+	{	//Release whatever was there already and reallocate memory
 		pet_lootitem_drop(pd, pd->msd);
+		aFree(pd->loot->item);
+	}
+	else
+		pd->loot = (struct pet_loot *)aCalloc(1, sizeof(struct pet_loot));
+
+	pd->loot->item = (struct item *)aCalloc(max,sizeof(struct item));
+	memset(pd->loot->item,0,max * sizeof(struct item));
 	
-	memset(pd->loot->item,0,PETLOOT_SIZE * sizeof(struct item));
 	pd->loot->max=max;
 	pd->loot->count = 0;
 	pd->loot->weight = 0;

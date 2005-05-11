@@ -533,6 +533,7 @@ struct pet_data {
 		unsigned state : 8 ;
 		unsigned skillstate : 8 ;
 		unsigned change_walk_target : 1 ;
+		unsigned casting_flag :1 ;//Skotlex: Used to identify when we are casting.
 		short skillbonus;
 	} state;
 	int timer;
@@ -565,7 +566,6 @@ struct pet_data {
 		int timer;
 	} *bonus; //[Valaris] / Reimplemented by [Skotlex]
 	
-	char casting_flag; //Skotlex: Used to identify when we are casting. I want a state.state value for that....
 	struct pet_skill_attack { //Attack Skill
 		unsigned short id;
 		unsigned short lv;

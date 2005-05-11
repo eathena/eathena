@@ -3,7 +3,7 @@
 #define _PET_H_
 
 #define MAX_PET_DB	300
-#define PETLOOT_SIZE	20 // [Valaris]
+#define MAX_PETLOOT_SIZE	30 // [Valaris] - Changed to MAX_PETLOOT_SIZE [Skotlex]
 
 struct pet_db {
 	int	class_;
