@@ -5338,6 +5338,7 @@ static const struct {
 	{ "combo_delay_rate",                  &battle_config.combo_delay_rate			},
 	{ "item_check",                        &battle_config.item_check				},
 	{ "wedding_modifydisplay",             &battle_config.wedding_modifydisplay	},
+	{ "wedding_ignorepalette",             &battle_config.wedding_ignorepalette	},	//[Skotlex]
 	{ "natural_healhp_interval",           &battle_config.natural_healhp_interval	},
 	{ "natural_healsp_interval",           &battle_config.natural_healsp_interval	},
 	{ "natural_heal_skill_interval",       &battle_config.natural_heal_skill_interval},
@@ -5598,6 +5599,7 @@ void battle_set_defaults() {
 	battle_config.combo_delay_rate=100;
 	battle_config.item_check=1;
 	battle_config.wedding_modifydisplay=0;
+	battle_config.wedding_ignorepalette=0;
 	battle_config.natural_healhp_interval=6000;
 	battle_config.natural_healsp_interval=8000;
 	battle_config.natural_heal_skill_interval=10000;

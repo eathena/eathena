@@ -1,5 +1,9 @@
 Date	Added
 05/11
+	* Added battle config option wedding_ignorepalette (default no)
+	  When enabled, the wedding dress/tux will always display with the default
+	  dye (not all palette packs bring palettes for the wedding class, nor
+	  they should) (Needs testing)
 	* Changed most battle_athena options to unsigned short. This means the
 	  maximum valid value is around 60K (65535 on most systems) which 
 	  translates to ~60 secs or 600% (600x) for most options. See 

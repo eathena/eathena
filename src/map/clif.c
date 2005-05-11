@@ -1522,7 +1522,10 @@ int clif_movechar(struct map_session_data *sd) {
 	} else
 		clif_send(buf, len, &sd->bl, AREA_WOS);
 
-	if (battle_config.save_clothcolor == 1 && sd->status.clothes_color > 0)
+	if(battle_config.save_clothcolor &&
+		sd->status.clothes_color > 0 &&
+		(sd->view_class != 22 || battle_config.wedding_ignorepalette)
+		)
 		clif_changelook(&sd->bl, LOOK_CLOTHES_COLOR, sd->status.clothes_color);
 
 	return 0;
@@ -3565,7 +3568,10 @@ void clif_getareachar_pc(struct map_session_data* sd,struct map_session_data* ds
 		clif_set01e1(dstsd,WFIFOP(sd->fd,0));
 		WFIFOSET(sd->fd,packet_len_table[0x1e1]);
 	}
-	if(battle_config.save_clothcolor==1 && dstsd->status.clothes_color > 0)
+	if(battle_config.save_clothcolor &&
+		dstsd->status.clothes_color > 0 &&
+		(dstsd->view_class != 22 || battle_config.wedding_ignorepalette)
+		)
 		clif_changelook(&dstsd->bl,LOOK_CLOTHES_COLOR,dstsd->status.clothes_color);
 	if(sd->status.manner < 0)
 		clif_changestatus(&sd->bl,SP_MANNER,sd->status.manner);
@@ -7683,7 +7689,10 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 #else
 	clif_changelook(&sd->bl,LOOK_WEAPON,0);
 #endif
-	if(battle_config.save_clothcolor==1 && sd->status.clothes_color > 0)
+	if(battle_config.save_clothcolor &&
+		sd->status.clothes_color > 0 &&
+		(sd->view_class != 22 || battle_config.wedding_ignorepalette)
+		)
 		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
 
 	//if(sd->status.hp<sd->status.max_hp>>2 && pc_checkskill(sd,SM_AUTOBERSERK)>0 &&
