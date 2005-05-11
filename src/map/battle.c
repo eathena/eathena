@@ -5511,7 +5511,10 @@ int battle_set_value(char *w1, char *w2) {
 	int i;
 	for(i = 0; i < sizeof(battle_data) / (sizeof(battle_data[0])); i++)
 		if (strcmpi(w1, battle_data[i].str) == 0) {
-			*((unsigned int *) battle_data[i].val) = battle_config_switch(w2);
+			if (sizeof ((unsigned int *)battle_data[i].val) == sizeof(unsigned short))
+				*((unsigned int *) battle_data[i].val) = (unsigned short)battle_config_switch(w2);
+			else
+				*((unsigned int *) battle_data[i].val) = battle_config_switch(w2);
 			return 1;
 		}
 	return 0;
