@@ -1901,7 +1901,7 @@ int pet_skill_support_timer(int tid,unsigned int tick,int id,int data)
 {
 	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
 	struct pet_data *pd;
-	
+	short rate;	
 	if(sd==NULL || sd->bl.type!=BL_PC || sd->pd == NULL)
 		return 1;
 	
@@ -1914,15 +1914,15 @@ int pet_skill_support_timer(int tid,unsigned int tick,int id,int data)
 	}
 	
 	if(pc_isdead(sd) ||
-		pd->state.casting_flag || //Another skill is in effect
-		pd->state.state == MS_WALK || //Better wait until the pet stops moving
-		sd->status.hp > sd->status.max_hp * pd->s_skill->hp/100 ||
-		sd->status.sp > sd->status.max_sp * pd->s_skill->sp/100)
-	{	//Wait (how long? 30x Min PetThinkTime (3sec) is fair enough?)
-		pd->s_skill->timer=add_timer(gettick()+30*MIN_PETTHINKTIME,pet_skill_support_timer,sd->bl.id,0);
+		(rate = sd->status.sp*100/sd->status.max_sp) > pd->s_skill->sp ||
+		(rate = sd->status.hp*100/sd->status.max_hp) > pd->s_skill->hp ||
+		(rate = pd->state.casting_flag) || //Another skill is in effect
+		(rate = pd->state.state) == MS_WALK) //Better wait until the pet stops moving (MS_WALK is 2)
+	{  //Wait (how long? 1 sec for every 10% of remaining)
+		pd->s_skill->timer=add_timer(gettick()+(rate>10?rate:10)*100,pet_skill_support_timer,sd->bl.id,0);
 		return 0;
 	}
-
+	
 	if (pd->state.state == MS_ATTACK)
 		pet_stopattack(pd);
 	petskill_use(pd, &sd->bl, pd->s_skill->id, pd->s_skill->lv, tick);
