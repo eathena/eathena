@@ -5,7 +5,7 @@
 //= Converted by: Shin
 //=
 //===== Current Version: ===================================== 
-//= 1.3a
+//= 1.3b
 //===== Compatible With: ===================================== 
 //= eAthena  0.5.2 +
 //===== Description: ========================================= 
@@ -18,6 +18,7 @@
 //= 1.3 Added Baby Class Support, fixed 40/50 lvl item reward
 //=     also fixed too common script names [Lupus]
 //= 1.3a fixed "dead lock" bugs [Lupus]
+//= 1.3b changed monsters ID in patience test [Komurka]
 //============================================================
 
 
@@ -1015,44 +1016,44 @@ job_cru.gat,23,42,0	script	CR_TST_2	139,8,8,{
 	set @CRU1,1;
 	mapannounce "job_cru.gat","Please endure here and go to the exit.",8;
 
-	monster "job_cru.gat",10,43,"Ghoul",1423,1,"CR_DEAD";
-	monster "job_cru.gat",14,47,"Khalitzburg",1438,1,"CR_DEAD";
-	monster "job_cru.gat",26,46,"Injustice",1446,1,"CR_DEAD";
-	monster "job_cru.gat",31,46,"Requium",1468,1,"CR_DEAD";
-	monster "job_cru.gat",16,52,"Raydric Archer",1453,0,"CR_DEAD";
-	monster "job_cru.gat",22,53,"Khalitzburg",1438,1,"CR_DEAD";
-	monster "job_cru.gat",28,49,"Injustice",1446,1,"CR_DEAD";
-	monster "job_cru.gat",12,54,"Khalitzburg",1438,1,"CR_DEAD";
-	monster "job_cru.gat",17,55,"Ghoul",1423,1,"CR_DEAD";
-	monster "job_cru.gat",21,57,"Injustice",1446,1,"CR_DEAD";
-	monster "job_cru.gat",30,58,"Khalitzburg",1438,1,"CR_DEAD";
-	monster "job_cru.gat",11,64,"Raydric Archer",1453,1,"CR_DEAD";
-	monster "job_cru.gat",19,67,"Injustice",1446,1,"CR_DEAD";
-	monster "job_cru.gat",24,62,"Khalitzburg",1438,1,"CR_DEAD";
-	monster "job_cru.gat",13,70,"Ghoul",1423,1,"CR_DEAD";
-	monster "job_cru.gat",18,69,"Injustice",1446,1,"CR_DEAD";
-	monster "job_cru.gat",29,67,"Khalitzburg",1438,1,"CR_DEAD";
-	monster "job_cru.gat",32,68,"Requium",1468,1,"CR_DEAD";
-	monster "job_cru.gat",16,75,"Raydric Archer",1453,1,"CR_DEAD";
-	monster "job_cru.gat",21,74,"Khalitzburg",1438,1,"CR_DEAD";
-	monster "job_cru.gat",27,76,"Injustice",1446,1,"CR_DEAD";
-	monster "job_cru.gat",14,78,"Khalitzburg",1438,1,"CR_DEAD";
-	monster "job_cru.gat",19,76,"Ghoul",1423,1,"CR_DEAD";
-	monster "job_cru.gat",24,79,"Requium",1468,1,"CR_DEAD";
-	monster "job_cru.gat",14,83,"Raydric Archer",1453,1,"CR_DEAD";
-	monster "job_cru.gat",18,85,"Khalitzburg",1438,1,"CR_DEAD";
-	monster "job_cru.gat",22,84,"Injustice",1446,1,"CR_DEAD";
-	monster "job_cru.gat",33,86,"Khalitzburg",1438,1,"CR_DEAD";
-	monster "job_cru.gat",13,89,"Ghoul",1423,1,"CR_DEAD";
-	monster "job_cru.gat",17,92,"Injustice",1446,1,"CR_DEAD";
-	monster "job_cru.gat",23,90,"Khalitzburg",1438,1,"CR_DEAD";
-	monster "job_cru.gat",26,88,"Ghoul",1423,1,"CR_DEAD";
-	monster "job_cru.gat",17,97,"Khalitzburg",1438,1,"CR_DEAD";
-	monster "job_cru.gat",23,100,"Injustice",1446,1,"CR_DEAD";
-	monster "job_cru.gat",31,101,"Ghoul",1423,1,"CR_DEAD";
-	monster "job_cru.gat",13,103,"Raydric Archer",1453,1,"CR_DEAD";
-	monster "job_cru.gat",22,105,"Injustice",1446,1,"CR_DEAD";
-	monster "job_cru.gat",30,107,"Khalitzburg",1438,1,"CR_DEAD";
+	monster "job_cru.gat",10,43,"Ghoul",1910,1,"CR_DEAD";
+	monster "job_cru.gat",14,47,"Khalitzburg",1911,1,"CR_DEAD";
+	monster "job_cru.gat",26,46,"Injustice",1912,1,"CR_DEAD";
+	monster "job_cru.gat",31,46,"Requium",1913,1,"CR_DEAD";
+	monster "job_cru.gat",16,52,"Raydric Archer",1914,0,"CR_DEAD";
+	monster "job_cru.gat",22,53,"Khalitzburg",1911,1,"CR_DEAD";
+	monster "job_cru.gat",28,49,"Injustice",1912,1,"CR_DEAD";
+	monster "job_cru.gat",12,54,"Khalitzburg",1911,1,"CR_DEAD";
+	monster "job_cru.gat",17,55,"Ghoul",1910,1,"CR_DEAD";
+	monster "job_cru.gat",21,57,"Injustice",1912,1,"CR_DEAD";
+	monster "job_cru.gat",30,58,"Khalitzburg",1911,1,"CR_DEAD";
+	monster "job_cru.gat",11,64,"Raydric Archer",1914,1,"CR_DEAD";
+	monster "job_cru.gat",19,67,"Injustice",1912,1,"CR_DEAD";
+	monster "job_cru.gat",24,62,"Khalitzburg",1911,1,"CR_DEAD";
+	monster "job_cru.gat",13,70,"Ghoul",1910,1,"CR_DEAD";
+	monster "job_cru.gat",18,69,"Injustice",1912,1,"CR_DEAD";
+	monster "job_cru.gat",29,67,"Khalitzburg",1911,1,"CR_DEAD";
+	monster "job_cru.gat",32,68,"Requium",1913,1,"CR_DEAD";
+	monster "job_cru.gat",16,75,"Raydric Archer",1914,1,"CR_DEAD";
+	monster "job_cru.gat",21,74,"Khalitzburg",1911,1,"CR_DEAD";
+	monster "job_cru.gat",27,76,"Injustice",1912,1,"CR_DEAD";
+	monster "job_cru.gat",14,78,"Khalitzburg",1911,1,"CR_DEAD";
+	monster "job_cru.gat",19,76,"Ghoul",1910,1,"CR_DEAD";
+	monster "job_cru.gat",24,79,"Requium",1913,1,"CR_DEAD";
+	monster "job_cru.gat",14,83,"Raydric Archer",1914,1,"CR_DEAD";
+	monster "job_cru.gat",18,85,"Khalitzburg",1911,1,"CR_DEAD";
+	monster "job_cru.gat",22,84,"Injustice",1912,1,"CR_DEAD";
+	monster "job_cru.gat",33,86,"Khalitzburg",1911,1,"CR_DEAD";
+	monster "job_cru.gat",13,89,"Ghoul",1910,1,"CR_DEAD";
+	monster "job_cru.gat",17,92,"Injustice",1912,1,"CR_DEAD";
+	monster "job_cru.gat",23,90,"Khalitzburg",1911,1,"CR_DEAD";
+	monster "job_cru.gat",26,88,"Ghoul",1910,1,"CR_DEAD";
+	monster "job_cru.gat",17,97,"Khalitzburg",1911,1,"CR_DEAD";
+	monster "job_cru.gat",23,100,"Injustice",1912,1,"CR_DEAD";
+	monster "job_cru.gat",31,101,"Ghoul",1910,1,"CR_DEAD";
+	monster "job_cru.gat",13,103,"Raydric Archer",1914,1,"CR_DEAD";
+	monster "job_cru.gat",22,105,"Injustice",1912,1,"CR_DEAD";
+	monster "job_cru.gat",30,107,"Khalitzburg",1911,1,"CR_DEAD";
 	disablenpc "CR_TST_2";
 	end;
 	EXIT:

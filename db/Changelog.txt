@@ -8,6 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them I believe.
 
+05/11
+	* Added the new G_ mobs with poring stats, thanks to Komurka
 05/10
 	* Changed 2005-05-09Sakexe's packet version to 17 [celest]
 	* Fixed Merchant Class Card Combo Set bug (it was always ON) [Lupus]

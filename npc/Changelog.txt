@@ -37,6 +37,7 @@ Date		Added
 ======
 
 05/11
+	* Updated crusader quest to use the new poring stats mobs, thanks to Komurka
 	* Added WOE script fix, thanks to Avaj
 	* Ayothaya NPCs fix by MasterOfMuppets
 05/09

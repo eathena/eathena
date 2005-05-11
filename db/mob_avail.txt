@@ -8,6 +8,13 @@
 
 //1002,1039	//Poring,Baphomet (Make Porings look like Baphomet)
 
+//Crusader quest monsters with poring stats
+1910,1036,0
+1911,1132,0
+1912,1257,0
+1913,1164,0
+1914,1276,0
+
 // eAthena Dev Team
 // Valaris
 1900,12,1,1,1,16,0,67,12,54,16,1
