@@ -85,248 +85,248 @@ int battle_check_range(struct block_list *src,struct block_list *bl,int range);
 int battle_config_switch(const char *str); // [Valaris]
 
 extern struct Battle_Config {
-	int warp_point_debug;
-	int enemy_critical;
-	int enemy_critical_rate;
-	int enemy_str;
-	int enemy_perfect_flee;
-	int cast_rate,delay_rate,delay_dependon_dex;
-	int sdelay_attack_enable;
-	int left_cardfix_to_right;
-	int pc_skill_add_range;
-	int skill_out_range_consume;
-	int mob_skill_add_range;
-	int pc_damage_delay;
-	int pc_damage_delay_rate;
-	int defnotenemy;
-	int random_monster_checklv;
-	int attr_recover;
-	int flooritem_lifetime;
-	int item_auto_get;
+	unsigned short warp_point_debug;
+	unsigned short enemy_critical;
+	unsigned short enemy_critical_rate;
+	unsigned short enemy_str;
+	unsigned short enemy_perfect_flee;
+	unsigned short cast_rate,delay_rate,delay_dependon_dex;
+	unsigned short sdelay_attack_enable;
+	unsigned short left_cardfix_to_right;
+	unsigned short pc_skill_add_range;
+	unsigned short skill_out_range_consume;
+	unsigned short mob_skill_add_range;
+	unsigned short pc_damage_delay;
+	unsigned short pc_damage_delay_rate;
+	unsigned short defnotenemy;
+	unsigned short random_monster_checklv;
+	unsigned short attr_recover;
+	unsigned short flooritem_lifetime;
+	unsigned short item_auto_get;
 	int item_first_get_time;
 	int item_second_get_time;
 	int item_third_get_time;
 	int mvp_item_first_get_time;
 	int mvp_item_second_get_time;
 	int mvp_item_third_get_time;
-	int item_rate,base_exp_rate,job_exp_rate; // removed item rate, depreciated
-	int drop_rate0item;
-	int death_penalty_type;
-	int death_penalty_base,death_penalty_job;
-        int pvp_exp;  // [MouseJstr]
-        int gtb_pvp_only;  // [MouseJstr]
+	int /*item_rate,*/base_exp_rate,job_exp_rate; // removed item rate, no longer used anywhere in the code
+	unsigned short drop_rate0item;
+	unsigned short death_penalty_type;
+	unsigned short death_penalty_base,death_penalty_job;
+	unsigned short pvp_exp;  // [MouseJstr]
+	unsigned short gtb_pvp_only;  // [MouseJstr]
 	int zeny_penalty;
-	int restart_hp_rate;
-	int restart_sp_rate;
+	unsigned short restart_hp_rate;
+	unsigned short restart_sp_rate;
 	int mvp_item_rate,mvp_exp_rate;
-	int mvp_hp_rate;
-	int monster_hp_rate;
-	int monster_max_aspd;
-	int atc_gmonly;
-	int atc_spawn_quantity_limit;
-	int gm_allskill;
-	int gm_allskill_addabra;
-	int gm_allequip;
-	int gm_skilluncond;
-	int skillfree;
-	int skillup_limit;
-	int wp_rate;
-	int pp_rate;
-	int monster_active_enable;
-	int monster_damage_delay_rate;
-	int monster_loot_type;
-	int mob_skill_use;
-	int mob_count_rate;
-	short mob_spawn_delay, plant_spawn_delay, boss_spawn_delay;	// [Skotlex]
-	int quest_skill_learn;
-	int quest_skill_reset;
-	int basic_skill_check;
-	int guild_emperium_check;
-	int guild_exp_limit;
-	int guild_max_castles;
-	int pc_invincible_time;
-	int pet_catch_rate;
-	int pet_rename;
-	int pet_friendly_rate;
-	int pet_hungry_delay_rate;
-	int pet_hungry_friendly_decrease;
-	int pet_str;
-	int pet_status_support;
-	int pet_attack_support;
-	int pet_damage_support;
-	int pet_support_rate;
-	int pet_attack_exp_to_master;
-	int pet_attack_exp_rate;
-	short pet_lv_rate; //[Skotlex]
+	unsigned short mvp_hp_rate;
+	unsigned short monster_hp_rate;
+	unsigned short monster_max_aspd;
+	unsigned short atc_gmonly;
+	unsigned short atc_spawn_quantity_limit;
+	unsigned short gm_allskill;
+	unsigned short gm_allskill_addabra;
+	unsigned short gm_allequip;
+	unsigned short gm_skilluncond;
+	unsigned short skillfree;
+	unsigned short skillup_limit;
+	unsigned short wp_rate;
+	unsigned short pp_rate;
+	unsigned short monster_active_enable;
+	unsigned short monster_damage_delay_rate;
+	unsigned short monster_loot_type;
+	unsigned short mob_skill_use;
+	unsigned short mob_count_rate;
+	unsigned short mob_spawn_delay, plant_spawn_delay, boss_spawn_delay;	// [Skotlex]
+	unsigned short quest_skill_learn;
+	unsigned short quest_skill_reset;
+	unsigned short basic_skill_check;
+	unsigned short guild_emperium_check;
+	unsigned short guild_exp_limit;
+	unsigned short guild_max_castles;
+	unsigned short pc_invincible_time;
+	unsigned short pet_catch_rate;
+	unsigned short pet_rename;
+	unsigned short pet_friendly_rate;
+	unsigned short pet_hungry_delay_rate;
+	unsigned short pet_hungry_friendly_decrease;
+	unsigned short pet_str;
+	unsigned short pet_status_support;
+	unsigned short pet_attack_support;
+	unsigned short pet_damage_support;
+	unsigned short pet_support_rate;
+	unsigned short pet_attack_exp_to_master;
+	unsigned short pet_attack_exp_rate;
+	unsigned short pet_lv_rate; //[Skotlex]
 	unsigned short pet_max_stats; //[Skotlex]
 	unsigned short pet_max_atk1; //[Skotlex]
 	unsigned short pet_max_atk2; //[Skotlex]
-	int skill_min_damage;
-	int finger_offensive_type;
-	int heal_exp;
-	int resurrection_exp;
-	int shop_exp;
-	int combo_delay_rate;
-	int item_check;
-	int wedding_modifydisplay;
+	unsigned short skill_min_damage;
+	unsigned short finger_offensive_type;
+	unsigned short heal_exp;
+	unsigned short resurrection_exp;
+	unsigned short shop_exp;
+	unsigned short combo_delay_rate;
+	unsigned short item_check;
+	unsigned short wedding_modifydisplay;
 	int natural_healhp_interval;
 	int natural_healsp_interval;
 	int natural_heal_skill_interval;
-	int natural_heal_weight_rate;
-	int item_name_override_grffile;
-	int indoors_override_grffile;	// [Celest]
-	int skill_sp_override_grffile;	// [Celest]
-	int cardillust_read_grffile;
-	int item_equip_override_grffile;
-	int item_slots_override_grffile;
-	int arrow_decrement;
-	int max_aspd;
+	unsigned short natural_heal_weight_rate;
+	unsigned short item_name_override_grffile;
+	unsigned short indoors_override_grffile;	// [Celest]
+	unsigned short skill_sp_override_grffile;	// [Celest]
+	unsigned short cardillust_read_grffile;
+	unsigned short item_equip_override_grffile;
+	unsigned short item_slots_override_grffile;
+	unsigned short arrow_decrement;
+	unsigned short max_aspd;
 	int max_hp;
 	int max_sp;
-	int max_lv;
-	unsigned int max_parameter;
+	unsigned short max_lv;
+	unsigned short max_parameter;
 	int max_cart_weight;
-	int pc_skill_log;
-	int mob_skill_log;
-	int battle_log;
-	int save_log;
-	int error_log;
-	int etc_log;
-	int save_clothcolor;
-	int undead_detect_type;
-	int pc_auto_counter_type;
-	int monster_auto_counter_type;
-	int agi_penalty_type;
-	int agi_penalty_count;
-	int agi_penalty_num;
-	int vit_penalty_type;
-	int vit_penalty_count;
-	int vit_penalty_num;
-	int player_defense_type;
-	int monster_defense_type;
-	int pet_defense_type;
-	int magic_defense_type;
-	int pc_skill_reiteration;
-	int monster_skill_reiteration;
-	int pc_skill_nofootset;
-	int monster_skill_nofootset;
-	int pc_cloak_check_type;
-	int monster_cloak_check_type;
-	int gvg_short_damage_rate;
-	int gvg_long_damage_rate;
-	int gvg_magic_damage_rate;
-	int gvg_misc_damage_rate;
+	unsigned short pc_skill_log;
+	unsigned short mob_skill_log;
+	unsigned short battle_log;
+	unsigned short save_log;
+	unsigned short error_log;
+	unsigned short etc_log;
+	unsigned short save_clothcolor;
+	unsigned short undead_detect_type;
+	unsigned short pc_auto_counter_type;
+	unsigned short monster_auto_counter_type;
+	unsigned short agi_penalty_type;
+	unsigned short agi_penalty_count;
+	unsigned short agi_penalty_num;
+	unsigned short vit_penalty_type;
+	unsigned short vit_penalty_count;
+	unsigned short vit_penalty_num;
+	unsigned short player_defense_type;
+	unsigned short monster_defense_type;
+	unsigned short pet_defense_type;
+	unsigned short magic_defense_type;
+	unsigned short pc_skill_reiteration;
+	unsigned short monster_skill_reiteration;
+	unsigned short pc_skill_nofootset;
+	unsigned short monster_skill_nofootset;
+	unsigned short pc_cloak_check_type;
+	unsigned short monster_cloak_check_type;
+	unsigned short gvg_short_damage_rate;
+	unsigned short gvg_long_damage_rate;
+	unsigned short gvg_magic_damage_rate;
+	unsigned short gvg_misc_damage_rate;
 	int gvg_eliminate_time;
-	int mob_changetarget_byskill;
-	int pc_attack_direction_change;
-	int monster_attack_direction_change;
-	int pc_land_skill_limit;
-	int monster_land_skill_limit;
-	int party_skill_penalty;
-	int monster_class_change_full_recover;
-	int produce_item_name_input;
-	int produce_potion_name_input;
-	int making_arrow_name_input;
-	int holywater_name_input;
-	int display_delay_skill_fail;
-	int display_snatcher_skill_fail;
-	int chat_warpportal;
-	int mob_warpportal;
-	int dead_branch_active;
+	unsigned short mob_changetarget_byskill;
+	unsigned short pc_attack_direction_change;
+	unsigned short monster_attack_direction_change;
+	unsigned short pc_land_skill_limit;
+	unsigned short monster_land_skill_limit;
+	unsigned short party_skill_penalty;
+	unsigned short monster_class_change_full_recover;
+	unsigned short produce_item_name_input;
+	unsigned short produce_potion_name_input;
+	unsigned short making_arrow_name_input;
+	unsigned short holywater_name_input;
+	unsigned short display_delay_skill_fail;
+	unsigned short display_snatcher_skill_fail;
+	unsigned short chat_warpportal;
+	unsigned short mob_warpportal;
+	unsigned short dead_branch_active;
 	int vending_max_value;
-//	int pet_lootitem; // removed [Valaris]
-//	int pet_weight; // removed [Valaris]
-	int show_steal_in_same_party;
-	int pet_attack_attr_none;
-	int mob_attack_attr_none;
-	int mob_ghostring_fix;
-	int pc_attack_attr_none;
+//	unsigned short pet_lootitem; // removed [Valaris]
+//	unsigned short pet_weight; // removed [Valaris]
+	unsigned short show_steal_in_same_party;
+	unsigned short pet_attack_attr_none;
+	unsigned short mob_attack_attr_none;
+	unsigned short mob_ghostring_fix;
+	unsigned short pc_attack_attr_none;
 	int item_rate_common,item_rate_card,item_rate_equip,item_rate_heal,item_rate_use;	// Added by RoVeRT, Additional Heal and Usable item rate by Val
-	int item_drop_common_min,item_drop_common_max;	// Added by TyrNemesis^
-	int item_drop_card_min,item_drop_card_max;
-	int item_drop_equip_min,item_drop_equip_max;
-	int item_drop_mvp_min,item_drop_mvp_max;	// End Addition
-	int item_drop_heal_min,item_drop_heal_max;	// Added by Valatris
-	int item_drop_use_min,item_drop_use_max;	//End
+	unsigned short item_drop_common_min,item_drop_common_max;	// Added by TyrNemesis^
+	unsigned short item_drop_card_min,item_drop_card_max;
+	unsigned short item_drop_equip_min,item_drop_equip_max;
+	unsigned short item_drop_mvp_min,item_drop_mvp_max;	// End Addition
+	unsigned short item_drop_heal_min,item_drop_heal_max;	// Added by Valatris
+	unsigned short item_drop_use_min,item_drop_use_max;	//End
 
-	int prevent_logout;	// Added by RoVeRT
+	unsigned short prevent_logout;	// Added by RoVeRT
 
-	int alchemist_summon_reward;	// [Valaris]
-	unsigned int maximum_level;
-	int drops_by_luk;
-	int monsters_ignore_gm;
-	int equipment_breaking;
-	int equipment_break_rate;
-	int pet_equip_required;
-	int multi_level_up;
-	int pk_mode;
-	int show_mob_hp;  // end additions [Valaris]
+	unsigned short alchemist_summon_reward;	// [Valaris]
+	unsigned short maximum_level;
+	unsigned short drops_by_luk;
+	unsigned short monsters_ignore_gm;
+	unsigned short equipment_breaking;
+	unsigned short equipment_break_rate;
+	unsigned short pet_equip_required;
+	unsigned short multi_level_up;
+	unsigned short pk_mode;
+	unsigned short show_mob_hp;  // end additions [Valaris]
 
-	int agi_penalty_count_lv;
-	int vit_penalty_count_lv;
+	unsigned short agi_penalty_count_lv;
+	unsigned short vit_penalty_count_lv;
 
-	int gx_allhit;
-	int gx_cardfix;
-	int gx_dupele;
-	int gx_disptype;
-	int devotion_level_difference;
-	int player_skill_partner_check;
-	int hide_GM_session;
-	int unit_movement_type;
-	int invite_request_check;
-	int skill_removetrap_type;
-	int disp_experience;
-	int castle_defense_rate;
-	int backstab_bow_penalty;
-	int hp_rate;
-	int sp_rate;
-	int gm_can_drop_lv;
-	int disp_hpmeter;
-	int bone_drop;
-	int monster_damage_delay;
+	unsigned short gx_allhit;
+	unsigned short gx_cardfix;
+	unsigned short gx_dupele;
+	unsigned short gx_disptype;
+	unsigned short devotion_level_difference;
+	unsigned short player_skill_partner_check;
+	unsigned short hide_GM_session;
+	unsigned short unit_movement_type;
+	unsigned short invite_request_check;
+	unsigned short skill_removetrap_type;
+	unsigned short disp_experience;
+	unsigned short castle_defense_rate;
+	unsigned short backstab_bow_penalty;
+	unsigned short hp_rate;
+	unsigned short sp_rate;
+	unsigned short gm_can_drop_lv;
+	unsigned short disp_hpmeter;
+	unsigned short bone_drop;
+	unsigned short monster_damage_delay;
 
 // eAthena additions
-	int night_at_start; // added by [Yor]
+	unsigned short night_at_start; // added by [Yor]
 	int day_duration; // added by [Yor]
 	int night_duration; // added by [Yor]
-	int ban_spoof_namer; // added by [Yor]
-	int ban_hack_trade; // added by [Yor]
-	int hack_info_GM_level; // added by [Yor]
-	int any_warp_GM_min_level; // added by [Yor]
-	int packet_ver_flag; // added by [Yor]
-	int muting_players; // added by [PoW]
+	unsigned short ban_spoof_namer; // added by [Yor]
+	short ban_hack_trade; // added by [Yor]
+	unsigned short hack_info_GM_level; // added by [Yor]
+	unsigned short any_warp_GM_min_level; // added by [Yor]
+	unsigned short packet_ver_flag; // added by [Yor]
+	unsigned short muting_players; // added by [PoW]
 	
-	int min_hair_style; // added by [MouseJstr]
-	int max_hair_style; // added by [MouseJstr]
-	int min_hair_color; // added by [MouseJstr]
-	int max_hair_color; // added by [MouseJstr]
-	int min_cloth_color; // added by [MouseJstr]
-	int max_cloth_color; // added by [MouseJstr]
+	unsigned short min_hair_style; // added by [MouseJstr]
+	unsigned short max_hair_style; // added by [MouseJstr]
+	unsigned short min_hair_color; // added by [MouseJstr]
+	unsigned short max_hair_color; // added by [MouseJstr]
+	unsigned short min_cloth_color; // added by [MouseJstr]
+	unsigned short max_cloth_color; // added by [MouseJstr]
 
-	int castrate_dex_scale; // added by [MouseJstr]
-	int area_size; // added by [MouseJstr]
+	unsigned short castrate_dex_scale; // added by [MouseJstr]
+	unsigned short area_size; // added by [MouseJstr]
 
-	int zeny_from_mobs; // [Valaris]
-	int mobs_level_up; // [Valaris]
-	unsigned int pk_min_level; // [celest]
-	int skill_steal_type; // [celest]
-	int skill_steal_rate; // [celest]
-	int night_darkness_level; // [celest]
-	int motd_type; // [celest]
-	int allow_atcommand_when_mute; // [celest]
-	int finding_ore_rate; // orn
-	int exp_calc_type;
-	int min_skill_delay_limit;
-	int require_glory_guild;
-	int idle_no_share;
-	int delay_battle_damage;
-	int display_version;
-	int who_display_aid;
+	unsigned short zeny_from_mobs; // [Valaris]
+	unsigned short mobs_level_up; // [Valaris]
+	unsigned short pk_min_level; // [celest]
+	unsigned short skill_steal_type; // [celest]
+	unsigned short skill_steal_rate; // [celest]
+	unsigned short night_darkness_level; // [celest]
+	unsigned short motd_type; // [celest]
+	unsigned short allow_atcommand_when_mute; // [celest]
+	unsigned short finding_ore_rate; // orn
+	unsigned short exp_calc_type;
+	unsigned short min_skill_delay_limit;
+	unsigned short require_glory_guild;
+	unsigned short idle_no_share;
+	unsigned short delay_battle_damage;
+	unsigned short display_version;
+	unsigned short who_display_aid;
 
-	short display_hallucination;	// [Skotlex]
-	short use_statpoint_table;	// [Skotlex]
+	unsigned short display_hallucination;	// [Skotlex]
+	unsigned short use_statpoint_table;	// [Skotlex]
 #ifndef TXT_ONLY /* SQL-only options */
-	int mail_system; // [Valaris]
+	unsigned short mail_system; // [Valaris]
 #endif
 
 } battle_config;

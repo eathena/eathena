@@ -5272,7 +5272,7 @@ static const struct {
 	{ "mvp_item_first_get_time",           &battle_config.mvp_item_first_get_time	},
 	{ "mvp_item_second_get_time",          &battle_config.mvp_item_second_get_time	},
 	{ "mvp_item_third_get_time",           &battle_config.mvp_item_third_get_time	},
-	{ "item_rate",					&battle_config.item_rate				},
+//	{ "item_rate",					&battle_config.item_rate				}, //unused [Skotlex]
 	{ "drop_rate0item",                    &battle_config.drop_rate0item			},
 	{ "base_exp_rate",                     &battle_config.base_exp_rate			},
 	{ "job_exp_rate",                      &battle_config.job_exp_rate				},
@@ -5761,13 +5761,13 @@ void battle_set_defaults() {
 void battle_validate_conf() {
 	if(battle_config.flooritem_lifetime < 1000)
 		battle_config.flooritem_lifetime = LIFETIME_FLOORITEM*1000;
-	if(battle_config.restart_hp_rate < 0)
+/*	if(battle_config.restart_hp_rate < 0)
 		battle_config.restart_hp_rate = 0;
-	else if(battle_config.restart_hp_rate > 100)
+	else*/ if(battle_config.restart_hp_rate > 100)
 		battle_config.restart_hp_rate = 100;
-	if(battle_config.restart_sp_rate < 0)
+/*	if(battle_config.restart_sp_rate < 0)
 		battle_config.restart_sp_rate = 0;
-	else if(battle_config.restart_sp_rate > 100)
+	else*/ if(battle_config.restart_sp_rate > 100)
 		battle_config.restart_sp_rate = 100;
 	if(battle_config.natural_healhp_interval < NATURAL_HEAL_INTERVAL)
 		battle_config.natural_healhp_interval=NATURAL_HEAL_INTERVAL;
@@ -5789,9 +5789,9 @@ void battle_validate_conf() {
 		battle_config.max_aspd = 10;
 	if(battle_config.max_aspd > 1000)
 		battle_config.max_aspd = 1000;
-	if(battle_config.hp_rate < 0)
+	if(battle_config.hp_rate < 1)
 		battle_config.hp_rate = 1;
-	if(battle_config.sp_rate < 0)
+	if(battle_config.sp_rate < 1)
 		battle_config.sp_rate = 1;
 	if(battle_config.max_hp > 1000000)
 		battle_config.max_hp = 1000000;
@@ -5818,14 +5818,14 @@ void battle_validate_conf() {
 
 	if(battle_config.guild_exp_limit > 99)
 		battle_config.guild_exp_limit = 99;
-	if(battle_config.guild_exp_limit < 0)
-		battle_config.guild_exp_limit = 0;
+/*	if(battle_config.guild_exp_limit < 0)
+		battle_config.guild_exp_limit = 0;*/
 
 	if(battle_config.pet_max_atk1 > battle_config.pet_max_atk2)	//Skotlex
 		battle_config.pet_max_atk1 = battle_config.pet_max_atk2;
 	
-	if(battle_config.castle_defense_rate < 0)
-		battle_config.castle_defense_rate = 0;
+//	if(battle_config.castle_defense_rate < 0)
+//		battle_config.castle_defense_rate = 0;
 	if(battle_config.castle_defense_rate > 100)
 		battle_config.castle_defense_rate = 100;
 	if(battle_config.item_drop_common_min < 1)		// Added by TyrNemesis^
@@ -5845,28 +5845,28 @@ void battle_validate_conf() {
 	if(battle_config.item_drop_mvp_max > 10000)
 		battle_config.item_drop_mvp_max = 10000;	// End Addition
 
-	if (battle_config.night_at_start < 0) // added by [Yor]
+/*	if (battle_config.night_at_start < 0) // added by [Yor]
 		battle_config.night_at_start = 0;
 	else if (battle_config.night_at_start > 1) // added by [Yor]
-		battle_config.night_at_start = 1;
+		battle_config.night_at_start = 1; */
 	if (battle_config.day_duration != 0 && battle_config.day_duration < 60000) // added by [Yor]
 		battle_config.day_duration = 60000;
 	if (battle_config.night_duration != 0 && battle_config.night_duration < 60000) // added by [Yor]
 		battle_config.night_duration = 60000;
 	
-	if (battle_config.ban_spoof_namer < 0) // added by [Yor]
+/*	if (battle_config.ban_spoof_namer < 0) // added by [Yor]
 		battle_config.ban_spoof_namer = 0;
-	else if (battle_config.ban_spoof_namer > 32767)
+	else*/ if (battle_config.ban_spoof_namer > 32767)
 		battle_config.ban_spoof_namer = 32767;
 
-	if (battle_config.hack_info_GM_level < 0) // added by [Yor]
+/*	if (battle_config.hack_info_GM_level < 0) // added by [Yor]
 		battle_config.hack_info_GM_level = 0;
-	else if (battle_config.hack_info_GM_level > 100)
+	else*/ if (battle_config.hack_info_GM_level > 100)
 		battle_config.hack_info_GM_level = 100;
 
-	if (battle_config.any_warp_GM_min_level < 0) // added by [Yor]
+/*	if (battle_config.any_warp_GM_min_level < 0) // added by [Yor]
 		battle_config.any_warp_GM_min_level = 0;
-	else if (battle_config.any_warp_GM_min_level > 100)
+	else*/ if (battle_config.any_warp_GM_min_level > 100)
 		battle_config.any_warp_GM_min_level = 100;
 
 	// at least 1 client must be accepted
@@ -5876,13 +5876,13 @@ void battle_validate_conf() {
 	if (battle_config.night_darkness_level > 10) // Celest
 		battle_config.night_darkness_level = 10;
 
-	if (battle_config.motd_type < 0)
+/*	if (battle_config.motd_type < 0)
 		battle_config.motd_type = 0;
 	else if (battle_config.motd_type > 1)
 		battle_config.motd_type = 1;
-
-	if (battle_config.finding_ore_rate < 0)
-		battle_config.finding_ore_rate = 0;
+*/
+//	if (battle_config.finding_ore_rate < 0)
+//		battle_config.finding_ore_rate = 0;
 
 	if (battle_config.vending_max_value > 10000000 || battle_config.vending_max_value<=0) // Lupus & Kobra_k88
 		battle_config.vending_max_value = 10000000;
@@ -5891,13 +5891,13 @@ void battle_validate_conf() {
 		battle_config.min_skill_delay_limit = 10;	// minimum delay of 10ms
 
 	//Spawn delays [Skotlex]
-	if (battle_config.mob_spawn_delay < 0)
+/*	if (battle_config.mob_spawn_delay < 0)
 		battle_config.mob_spawn_delay = 0;
 	if (battle_config.boss_spawn_delay < 0)
 		battle_config.boss_spawn_delay = 0;
 	if (battle_config.plant_spawn_delay < 0)
 		battle_config.plant_spawn_delay = 0;
-	
+*/	
 }
 
 /*==========================================

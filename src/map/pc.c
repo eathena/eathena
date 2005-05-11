@@ -7569,7 +7569,7 @@ int do_init_pc(void) {
 		add_timer_func_list(map_day_timer, "map_day_timer"); // by [yor]
 		add_timer_func_list(map_night_timer, "map_night_timer"); // by [yor]
 
-		if (battle_config.night_at_start == 0) {
+		if (!battle_config.night_at_start) {
 			night_flag = 0; // 0=day, 1=night [Yor]
 			day_timer_tid = add_timer_interval(gettick() + day_duration + night_duration, map_day_timer, 0, 0, day_duration + night_duration);
 			night_timer_tid = add_timer_interval(gettick() + day_duration, map_night_timer, 0, 0, day_duration + night_duration);
