@@ -1,5 +1,6 @@
 Date	Added
 05/12
+	* Shrinked @mapinfo output, added 2 missing flags NOWARP / NOWARPTO [Lupus]
 	* New item type (11) to item_db: delay-consumed usables. [Skotlex]
 	. All items that have in their script "pet" or "itemskill" must be changed
 	  from type 2 to 11. The new type of item has the property of not being

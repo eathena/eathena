@@ -5854,12 +5854,6 @@ int atcommand_mapinfo(
 	}
 
 	clif_displaymessage(fd, "------ Map Info ------");
-	sprintf(atcmd_output, "Map Name: %s", atcmd_player_name);
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "Players In Map: %d", map[m_id].users);
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "NPCs In Map: %d", map[m_id].npc_num);
-	clif_displaymessage(fd, atcmd_output);
 	chat_num = 0;
 	for (i = 0; i < fd_max; i++) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
@@ -5867,31 +5861,25 @@ int atcommand_mapinfo(
 			chat_num++;
 		}
 	}
-	sprintf(atcmd_output, "Chats In Map: %d", chat_num);
+	sprintf(atcmd_output, "Map Name: %s | Players In Map: %d | NPCs In Map: %d | Chats In Map: %d", atcmd_player_name, map[m_id].users, map[m_id].npc_num, chat_num);
 	clif_displaymessage(fd, atcmd_output);
 	clif_displaymessage(fd, "------ Map Flags ------");
-	sprintf(atcmd_output, "Player vs Player: %s | No Guild: %s | No Party: %s",
+	sprintf(atcmd_output, "Player vs Player: %s | PvP No Guild: %s | PvP No Party: %s",
 	        (map[m_id].flag.pvp) ? "True" : "False",
 	        (map[m_id].flag.pvp_noguild) ? "True" : "False",
 	        (map[m_id].flag.pvp_noparty) ? "True" : "False");
 	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "Guild vs Guild: %s | No Party: %s", (map[m_id].flag.gvg) ? "True" : "False", (map[m_id].flag.gvg_noparty) ? "True" : "False");
+	sprintf(atcmd_output, "Guild vs Guild: %s | GvG No Party: %s", (map[m_id].flag.gvg) ? "True" : "False", (map[m_id].flag.gvg_noparty) ? "True" : "False");
 	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Dead Branch: %s", (map[m_id].flag.nobranch) ? "True" : "False");
+	sprintf(atcmd_output, "No Dead Branch: %s | No Memo: %s", (map[m_id].flag.nobranch) ? "True" : "False", (map[m_id].flag.nomemo) ? "True" : "False");
 	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Memo: %s", (map[m_id].flag.nomemo) ? "True" : "False");
+	sprintf(atcmd_output, "No Save: %s | No Return: %s", (map[m_id].flag.nosave) ? "True" : "False", (map[m_id].flag.noreturn) ? "True" : "False");
 	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Penalty: %s", (map[m_id].flag.nopenalty) ? "True" : "False");
+	sprintf(atcmd_output, "No Teleport: %s | No Monster Teleport: %s", (map[m_id].flag.noteleport) ? "True" : "False", (map[m_id].flag.monster_noteleport) ? "True" : "False");
 	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Return: %s", (map[m_id].flag.noreturn) ? "True" : "False");
+	sprintf(atcmd_output, "No Warp: %s | No WarpTo: %s", (map[m_id].flag.nowarp) ? "True" : "False", (map[m_id].flag.nowarpto) ? "True" : "False");
 	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Save: %s", (map[m_id].flag.nosave) ? "True" : "False");
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Teleport: %s", (map[m_id].flag.noteleport) ? "True" : "False");
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Monster Teleport: %s", (map[m_id].flag.monster_noteleport) ? "True" : "False");
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Zeny Penalty: %s", (map[m_id].flag.nozenypenalty) ? "True" : "False");
+	sprintf(atcmd_output, "No Penalty: %s | No Zeny Penalty: %s", (map[m_id].flag.nopenalty) ? "True" : "False", (map[m_id].flag.nozenypenalty) ? "True" : "False");
 	clif_displaymessage(fd, atcmd_output);
 
 	switch (list) {
