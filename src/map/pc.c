@@ -5583,7 +5583,11 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	}
 
 	clif_changelook(&sd->bl,LOOK_BASE,sd->view_class); // move sprite update to prevent client crashes with incompatible equipment [Valaris]
-	if(sd->status.clothes_color > 0)
+
+	if(battle_config.save_clothcolor &&
+		sd->status.clothes_color > 0 &&
+		(sd->view_class != 22 || !battle_config.wedding_ignorepalette)
+		)
 		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
 	if(battle_config.muting_players && sd->status.manner < 0)
 		clif_changestatus(&sd->bl,SP_MANNER,sd->status.manner);

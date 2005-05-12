@@ -1,5 +1,6 @@
 Date	Added
 05/12
+	* Tested and fixed wedding_ignorepalette, it now works as it should [Skotlex]
 	* Tested the new item type 11. I forgot to add the code for the sql
 	  version, but that's now fixed and the new system works as it should [Skotlex]
 	* Put a fix in for the bug mentioned below [MouseJstr]

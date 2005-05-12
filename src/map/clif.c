@@ -1524,7 +1524,7 @@ int clif_movechar(struct map_session_data *sd) {
 
 	if(battle_config.save_clothcolor &&
 		sd->status.clothes_color > 0 &&
-		(sd->view_class != 22 || battle_config.wedding_ignorepalette)
+		(sd->view_class != 22 || !battle_config.wedding_ignorepalette)
 		)
 		clif_changelook(&sd->bl, LOOK_CLOTHES_COLOR, sd->status.clothes_color);
 
@@ -3570,7 +3570,7 @@ void clif_getareachar_pc(struct map_session_data* sd,struct map_session_data* ds
 	}
 	if(battle_config.save_clothcolor &&
 		dstsd->status.clothes_color > 0 &&
-		(dstsd->view_class != 22 || battle_config.wedding_ignorepalette)
+		(dstsd->view_class != 22 || !battle_config.wedding_ignorepalette)
 		)
 		clif_changelook(&dstsd->bl,LOOK_CLOTHES_COLOR,dstsd->status.clothes_color);
 	if(sd->status.manner < 0)
@@ -7691,7 +7691,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 #endif
 	if(battle_config.save_clothcolor &&
 		sd->status.clothes_color > 0 &&
-		(sd->view_class != 22 || battle_config.wedding_ignorepalette)
+		(sd->view_class != 22 || !battle_config.wedding_ignorepalette)
 		)
 		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
 
