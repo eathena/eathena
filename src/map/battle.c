@@ -3396,7 +3396,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 						ATK_ADD(flag.cri?sd->arrow_atk:rand()%sd->arrow_atk);
 					
 					if(sd->status.weapon < 16 && (sd->atk_rate != 100 || sd->weapon_atk_rate != 0))
-						ATK_ADDRATE(sd->atk_rate + sd->weapon_atk_rate[sd->status.weapon]);
+						ATK_RATE(sd->atk_rate + sd->weapon_atk_rate[sd->status.weapon]);
 
 					if(flag.cri && sd->crit_atk_rate)
 						ATK_ADDRATE(sd->crit_atk_rate);
