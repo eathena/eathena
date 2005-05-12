@@ -281,10 +281,6 @@ Problem:	When 2 players try to pickup one dropped item at the same time
 Assigned:	N/A
 Progress:	0%
 
-Problem:	[ATCommands] GMs teleportings to non-existing maps crash the server
-Assigned:	N/A
-Progress:	0%
-
 Problem:	[script.c] script command DOEVENT now doesn't work...
 		so Knight JOB Quest is unpassable now, Monks Job Quest is too easy (traps don't work)
 		probably more bugs...
@@ -316,21 +312,10 @@ Problem:	Scripts prob
 Assigned:	N/A
 Progress:	0%
 
-Problem:	BARD HP exploit
-		When he plays that 'apple' healing song. Accidently players get HPMAX 32000.
-		With low HP, but big HPMAX.
-Assigned:	N/A
-Progress:	0%
-
 Problem:	Sniper
 		They have 2 skills to dismount traps: Emeny's and Our's.
 		So.. during GVG you can't use 1 of the skills at all
 		but the 2ns one dismounts BOTH types of traps: yours and enemies
-Assigned:	N/A
-Progress:	0%
-
-Problem:	WARP PORTAL
-		You can cast it under someone's feet. (He warps)
 Assigned:	N/A
 Progress:	0%
 
@@ -363,16 +348,6 @@ Progress:	0%
 
 Problem:	Arrows Dupe (or random amount change)
 		You should prepare/remove arrows while trade. And have both - names and unnamed arrows ^_-
-Assigned:	N/A
-Progress:	0%
-
-Problem:	PArty EXP shar Exploit.
-		1. you enter the game with your HIGH-level character
-		2. start killing some mobs (e.g. 5 Seals) within a party... Don't finish them!
-		3. Re-enter with a LOW-LEVEL character from your account 
-		4. now finish the mobs or... let someone do it.
-		5. u get all your HIGH-LEVEL exp!!!
-			Why does it look at ACCOUNT ID ? instead of the CHAR ID ?
 Assigned:	N/A
 Progress:	0%
 
@@ -421,4 +396,29 @@ Problem:	Charge Arrow bug
 			It can be casted w/o any BOW.. and with other weapon, or.. even with bare hands
 Assigned:	Celest
 Progress:	100%
+
+Problem:	Storm Gust (it worked fine before ~9 may 2005)
+			It works and casts as LEVEL 10, even if u cast it on lvl 1
+Assigned:	NA
+Progress:	0%
+
+Problem:	Bards songs do BLIND players...
+Assigned:	NA
+Progress:	0%
+
+Problem:	Wedding Teleport Skills
+			Somehow.. just married could RECALL players from Prison
+			(probably NOT all map flags are checked)
+Assigned:	NA
+Progress:	0%
+
+Problem:	Wedding Skills (thousand brides...)
+			The skills work even if PARTNER_ID of destination player doesn't coinside
+			to CALLER
+			in other words... if you aren't properly married.
+			I'd suggest to CLEAR bugged Patner_id automatically
+			And automatically remove wedding rings from not married players
+			when they enter the server
+Assigned:	NA
+Progress:	0%
 
