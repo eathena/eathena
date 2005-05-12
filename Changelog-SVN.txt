@@ -1,5 +1,8 @@
 Date	Added
 05/12
+        * updated the battle.c change made to generate compile time
+          errors if you put the wrong battle_config option with the
+          wrong type into the wrong place [MouseJstr]
 	* Added item type 11 into LOGs filter [Lupus]
 	* Removed mob_skill_use, if you don't want mobskills, set mob_skill_rate to 
 	  zero [Skotlex]

@@ -5247,9 +5247,9 @@ int battle_config_switch(const char *str) {
 	return atoi(str);
 }
 
-static const struct battle_data {
+static const struct battle_data_short {
 	const char *str;
-	void *val;
+	short *val;
 } battle_data_short[] = {	//List here battle_athena options which are type short!
 	{ "warp_point_debug",                  &battle_config.warp_point_debug			},
 	{ "enemy_critical",                    &battle_config.enemy_critical			},
@@ -5481,7 +5481,10 @@ static const struct battle_data {
 #endif
 };
 
-static const struct battle_data battle_data_int[] = {	//List here battle_athena options which are type int!
+static const struct battle_data_int {
+	const char *str;
+	int *val;
+} battle_data_int[] = {	//List here battle_athena options which are type int!
 	{ "item_first_get_time",               &battle_config.item_first_get_time		},
 	{ "item_second_get_time",              &battle_config.item_second_get_time		},
 	{ "item_third_get_time",               &battle_config.item_third_get_time		},
@@ -5515,12 +5518,12 @@ int battle_set_value(char *w1, char *w2) {
 	int i;
 	for(i = 0; i < sizeof(battle_data_short) / (sizeof(battle_data_short[0])); i++)
 		if (strcmpi(w1, battle_data_short[i].str) == 0) {
-			*((unsigned short *) battle_data_short[i].val) = battle_config_switch(w2);
+			* battle_data_short[i].val = battle_config_switch(w2);
 			return 1;
 		}
 	for(i = 0; i < sizeof(battle_data_int) / (sizeof(battle_data_int[0])); i++)
 		if (strcmpi(w1, battle_data_int[i].str) == 0) {
-			*((unsigned int *) battle_data_int[i].val) = battle_config_switch(w2);
+			*battle_data_int[i].val = battle_config_switch(w2);
 			return 1;
 		}
 /*			
