@@ -1,8 +1,3 @@
-Problem:	2-2-1 classes are regarded as Novicies by the game server. NPCs aren't taking them as thier jobs but if you the the NPC to do something for a novice class it works with the 2-2-1 like renters. Also if some one becomes high novice, if they use jobra they can become first jobs like a swordsman.
-Assigned:	N/A
-Progess:	0%
-Ideas:		Codemaster - I believe that they register them as normal classes, but sets Upper as 1, so you can do things such as if(Upper == 1)
-
 Problem:	Stats nor skills don't downgrade when your level gets reverted due to exp loss.
 Assigned:	N/A
 Progess:	0%
@@ -10,11 +5,6 @@ Progess:	0%
 Problem:	Pre skill requirements for new skills are wrong it makes you use 49 skills points before you can get the newer skills.
 Assigned:	Celest
 Progess:	~90% (Notes: not sure if it causes problems, need more testing =p)
-
-Problem:	When u spawn ~300 mobs (and more or less) then do @killmonster then some mobs freeze on the screen (have no names, don't move, etc)
-Assigned:	N/A
-Progess:	0%
-Note by Cameri:	This is not a bug, it's something that has to do with the client...
 
 Problem:	Joker card 4139 lets anyone to steal money / zeny. Just like he's a thief. It shoul;d be revised - success rates lowered and "steal item" disabled
 Assigned:	N/A
@@ -30,23 +20,12 @@ Progress:	jA's mob skill DB itself already has skills that have no cast time,
                 does the same problem happen in jA? Perhaps it should read right from
                 skill_cast_db instead? [celest]
 
-Problem:	~40+ players connected.. and soon can't re-connect, they can enter password, but never see "select character" screen.
-Assigned:	MouseJstr
-Progress:	75%
-
-                In many cases, this is due to horrible performance
-                under MySQL
-
 Problem:        Chars with ' in their name.. is legal.. and messes up sql
 Assigned:       N/A
 Progress:       0%
 Information:	http://dev.mysql.com/doc/mysql/en/mysql_real_escape_string.html
 
 	DB server Error - You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'n' Sniff')' at line 1    Scratch 'n' Sniff
-
-Problem:	PETS can attack Guardians, so players go to enemy castles before WOE and KILL all their Guards with PETS... LoL!
-Assigned:       Codemaster
-Progress:       100% - Make sure you test this for me :)
 
 Problem:	mob_aval clone bug crashes client
 Assigned:       N/A
@@ -64,15 +43,6 @@ Progress:       0%
                 1002,1039,1 // makes a poring a big bapho  
                 1002,1039,2 // makes a poring a small bapho
                 effect id or something
-
-Problem:	Due to the Guilds CACHE we see some went-offline members as online ones. It is very confusing. You don't know who's really on.
-Assigned:	MouseJstr
-Progress:	100%
-
-Problem:	Guilds BUG (it isn't related to the scripts, because noone change them recently)
-		When some guild SEIZE any castle, then Castle N 1 becomes their own, too (not M 0, but M 1)
-Assigned:	MouseJstr
-Progress:	100%
 
 Problem:	Storage BUGS! Items doubles/clones again any kinds of items! (due to "latest storage fix")
 Assigned:	N/A
@@ -113,40 +83,10 @@ Problem:	This bug's appeared again: Permanent #Variables/Variables disappear.
 Assigned:	N/A
 Progress:	0%
 
-Problem:	Sometimes a new empty guild appears with ID 10000, blank name, blank master..
-		but some chars contain its ID and Guild Memebers Table isn't empty.
-		(probably can't get real Last used ID)
-Assigned:	N/A
-Progress:	0%
-
-Problem:	SVN 8XX. After 1 day up it started to repeat every players commands twice:
-			i.g. Item usage, movement, etc. It looks like LAGS
-Assigned:	N/A
-Progress:	0%
-
-Problem:	SVN 8XX. Firewall Spell doesn't hold mobs. They get all the damage and
-			walk trough the wall. (even at the level of 10th)
-Assigned:	N/A
-Progress:	0%
-
-Problem:	Chase walk skill slightly messed up. You see yourself as invisible, but other players
-		can still see you
-Assigned:	N/A
-Progress:	0%
-
 Problem:	Potion Pitcher skill should be able to target yourself.
 Assigned:	N/A
 Progress:	-
 Notes:          Gravity disabled that some time ago ;P
-
-Problem:	There are many empty entries of newly created characters in Char DB Table (missing names)
-Assigned:	N/A
-Progress:	0%
-
-IMPORTANT: = NEVERENDING SOURCE OF SP/HP
-Problem:	Wedding skills fully donate SP/HP even when the donor has 1 SP / HP (when player has low amount of Max SP/HP)
-Assigned:	Codemaster
-Progress:	100% - should be fixed. Checks for 15% of HP for males, 15% of SP for females.
 
 Problem:	Exp Party Sharing Bug.
 		i.g. Hunter + Merchant are in the same party. M. is sitting. Hunter is killing some Seals. M. doesn't get EXP.
@@ -168,17 +108,8 @@ Problem:	Disguise Stats Bonus bug.
 Assigned:	N/A
 Progress:	0%
 
-Problem:	Guilds DB
-		There always appears an empty guild with ID 100000.
-Assigned:	N/A
-Progress:	0%
-
 Problem:	You can put in Cart goods more than Cart Max Weight limit allows
 		(it's an old good bug about Named / Unnamed Stackable items)
-Assigned:	N/A
-Progress:	0%
-
-Problem:	Berserk Skill supposedly disappears randomly.
 Assigned:	N/A
 Progress:	0%
 
@@ -186,28 +117,10 @@ Problem:	Lord Kaho Horns supposedly disappear when equipped.
 Assigned:	N/A
 Progress:	0%
 
-Problem:	Older Clients are unable to log into the server, period. 
-		Even if the packet_db is set to use the older clients, they still are unable to connect.
-Assigned:	Celest
-Progress:	~100%
-Notes:          Fixed. A typo caused the code to block packet version 5 clients
-
 Problem:	Fire Pillar doesn't consume GEMS!
 Assigned:	N/A
 Progress:	N/A
-Notes:          It isn't supposed to for level 1-5 ^^ [Celest]
-
-Problem:	Friends List doesn't save / load again. It used to work 2 months ago.
-		Let's use Freya's Friends solution (faster, better)
-Assigned:	N/A
-Progress:	0%
-
-Problem:	Problems with View ID od wearable Items / Weapons
-		e.g.
-		You put off Goggles, but see them on the character even after relogin
-		You can see both Knife + Shield in a hand
-Assigned:	N/A
-Progress:	0%
+Notes:	It isn't supposed to for level 1-5 ^^ [Celest]
 
 Problem:	[item exploit] Hunters can set traps not consuming the TRAPS ITEMS, when Bards
 		use their special support skill.
@@ -237,11 +150,6 @@ Progress:	0%
 Problem:	[item exploit] Trade Window + Blacksmith's/Alchemyst's MAKE skills -> item exploit
 Assigned:	N/A
 Progress:	0%
-
-Problem:	New Guilds Active Skills Abuse. You call 1st skill, then call 2nd and NOW, without dalay of 30 min (or whatever)
-		you can AGAIN call the 1st skill... So there's no time limit... etc.
-Assigned:	Celest
-Progress:	100% - Fixed
 
 Problem:	Wedding TELEPORT skills now work on maps where TELEPORT was disabled
 Assigned:	N/A
@@ -287,19 +195,6 @@ Problem:	[script.c] script command DOEVENT now doesn't work...
 		I (Lupus) have script-wise solution. But it isn't good! 8((( DOEVENT used to work fine!
 Assigned:	N/A
 Progress:	0%
-
-Problem:	Compilers Bug: Some skills don't work under win32 builds
-		e.g. HIDE, CLOACKING, etc (both MOB's and PC's skills)
-		e.g. Whispers can't cloak... Players can't Hide, etc
-		LINUX builds work fine (or maybe 116x fukked them up...)
-		oh yeah, Celest mentoned it
-Assigned:	Celest
-Progress:	100% [My bad, fixed ^^; ]
-
-Problem:	Rogues Skill "back stab" works without PREPARING arrows.
-		It consumes arrows, but works even when them aren't prepered (equipped)
-Assigned:	Celest
-Progress:	100%
 
 Problem:	Skill Delays Bug (Hunters)
 		When you use a skill then Equip Another kind of arrows,
@@ -352,17 +247,9 @@ Assigned:	N/A
 Progress:	0%
 
 Problem:	ICE WALL
-		1. It again lets you freeze mobs and yourself inside of the wall...
-		2. When you set a diagonal wall - in its middle sometimes a segment's dropped. So monsters can walk trough it.
-		WHY?
+		When you set a diagonal wall - in its middle sometimes a segment's dropped. So monsters can walk trough it.
 Assigned:	N/A
 Progress:	0%
-
-Problem:	SQL Castles Again!
-		The casltes data isn't being saved at all.
-		During WOE everything acts like it was at the previous Castles save bug time.
-Assigned:	Lupus
-Progress:	100%
 
 Problem:	Party EXP share bug
 		1. Create a party
@@ -422,3 +309,19 @@ Problem:	Wedding Skills (thousand brides...)
 Assigned:	NA
 Progress:	0%
 
+
+Problem:	New Guilds Active Skills Abuse.
+			You can re-enter the game and call guild skills again w/o delay
+Assigned:	na
+Progress:	0%
+
+Problem:	Baby Merchant + Cart = Client Crash (when other players see him)
+Assigned:	na
+Progress:	0%
+
+Problem:	Guilds Abuse
+			1. you break guild...
+			2. other player creates guild with the SAME name as just breaked guild
+			3. he gets all GUILDS skills and levels of the just breaked guild
+Assigned:	na
+Progress:	0%
