@@ -20,7 +20,7 @@ time_t curtime;
 //Bits: ||
 //2 - Healing items (0)
 //3 - Etc Items(3) + Arrows (10)
-//4 - Usable Items(2)
+//4 - Usable Items(2) + Scrolls,Lures(11)
 //5 - Weapon(4)
 //6 - Shields,Armor,Headgears,Accessories,etc(5)
 //7 - Cards(6)
@@ -37,7 +37,7 @@ int should_log_item(int filter, int nameid) {
 	if ( (filter&1) || // Filter = 1, we log any item
 		(filter&2 && item_data->type == 0 ) ||	//healing items
 		(filter&4 && (item_data->type == 3 || item_data->type == 10) ) ||	//etc+arrows
-		(filter&8 && item_data->type == 2 ) ||	//usable
+		(filter&8 && (item_data->type == 2 || item_data->type == 11) ) ||	//usable
 		(filter&16 && item_data->type == 4 ) ||	//weapon
 		(filter&32 && item_data->type == 5 ) ||	//armor
 		(filter&64 && item_data->type == 6 ) ||	//cards

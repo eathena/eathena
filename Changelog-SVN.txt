@@ -1,5 +1,6 @@
 Date	Added
 05/12
+	* Added item type 11 into LOGs filter [Lupus]
 	* Removed mob_skill_use, if you don't want mobskills, set mob_skill_rate to 
 	  zero [Skotlex]
 	* Modified drops_by_luk behaviour. See battle_athena.conf for details [Skotlex]
