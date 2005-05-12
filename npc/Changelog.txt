@@ -36,10 +36,17 @@ TODO:
 Date		Added
 ======
 
+05/13
+	* Fixed typos in some cities [massdriller]
+	~ Thanks to neko for the idea
+	* Fixed bug in alberta & aldebaran script [massdriller]
+	* Added MRO's Official Dumpling festifal event [massdriller]
+
 05/11
 	* Updated crusader quest to use the new poring stats mobs, thanks to Komurka
 	* Added WOE script fix, thanks to Avaj
 	* Ayothaya NPCs fix by MasterOfMuppets
+
 05/09
 	* Added new Sara-chan's maps / warps for Einbroch and Lhztargen [Lupus]
 	* Added first Ayothaya city NPCs
