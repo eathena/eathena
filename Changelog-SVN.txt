@@ -1,5 +1,8 @@
 Date	Added
 05/12
+	* Implemented pet idle skills restrictions as explained by Komurka [Skotlex]
+	  From what I was told, a mob can only cast a skill while in idle state
+	  once, and it needs to move before it can do another idle-state skill.
 	* Tested and fixed wedding_ignorepalette, it now works as it should [Skotlex]
 	* Tested the new item type 11. I forgot to add the code for the sql
 	  version, but that's now fixed and the new system works as it should [Skotlex]

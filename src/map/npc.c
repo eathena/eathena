@@ -2055,6 +2055,7 @@ int npc_parse_mob(char *w1,char *w2,char *w3,char *w4)
 
 	for(i=0;i<num;i++) {
 		md=(struct mob_data *)aCalloc(1,sizeof(struct mob_data));
+		memset(md,0,sizeof(struct mob_data));	//Why not 0 up the structure?	[Skotlex]
 
 		if(class_>4000) { // large/tiny mobs [Valaris]
 			md->size=2;
@@ -2090,10 +2091,10 @@ int npc_parse_mob(char *w1,char *w2,char *w3,char *w4)
 		md->spawndelay1=delay1;
 		md->spawndelay2=delay2;
 
-		memset(&md->state,0,sizeof(md->state));
+//		memset(&md->state,0,sizeof(md->state));
 		md->timer = -1;
-		md->target_id=0;
-		md->attacked_id=0;
+//		md->target_id=0;
+//		md->attacked_id=0;
 		md->speed=mob_db[class_].speed;
 
 		if (mob_db[class_].mode&0x02)

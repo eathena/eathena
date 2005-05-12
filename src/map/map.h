@@ -476,6 +476,7 @@ struct mob_data {
 		unsigned walk_easy : 1;
 		unsigned special_mob_ai : 3;
 		unsigned soul_change_flag : 1; // Celest
+		unsigned idle_skill_flag : 1;	// signals if the pet can do a skill while in idle state [Skotlex]
 		int provoke_flag; // Celest
 	} state;
 	int timer;
