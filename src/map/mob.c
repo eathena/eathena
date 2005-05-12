@@ -2652,8 +2652,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			drop_rate = mob_db[md->class_].dropitem[i].p;
 			if (drop_rate <= 0 && !battle_config.drop_rate0item)
 				drop_rate = 1;
-			if (sd && battle_config.drops_by_luk > 0)
-				drop_rate += (sd->status.luk * battle_config.drops_by_luk) / 100;	// drops affected by luk [Valaris]
+			//Drops affected by luk as a % increase [Skotlex] (original implementation by Valaris)
+			if (src && battle_config.drops_by_luk > 0)
+				drop_rate += drop_rate*status_get_luk(src)*battle_config.drops_by_luk/10000;
 			if (sd && battle_config.pk_mode == 1 && (mob_db[md->class_].lv - sd->status.base_level >= 20))
 				drop_rate = (int)(drop_rate*1.25); // pk_mode increase drops if 20 level difference [Valaris]
 			if (drop_rate < rand() % 10000 + 1) { //fixed 0.01% impossible drops bug [Lupus]

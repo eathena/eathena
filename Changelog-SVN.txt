@@ -1,5 +1,8 @@
 Date	Added
 05/12
+	* Modified drops_by_luk behaviour. See battle_athena.conf for details [Skotlex]
+	  The new system works a lot like Diablo 2, where having 100% better chance
+	  of finding items means that you basicly get double drop rates than others.
 	* Implemented pet idle skills restrictions as explained by Komurka [Skotlex]
 	  From what I was told, a mob can only cast a skill while in idle state
 	  once, and it needs to move before it can do another idle-state skill.
