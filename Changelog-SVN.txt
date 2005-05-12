@@ -1,16 +1,13 @@
 Date	Added
 05/12
-        * Put a fix in for the bug mentioned below [MouseJstr]
+	* Tested the new item type 11. I forgot to add the code for the sql
+	  version, but that's now fixed and the new system works as it should [Skotlex]
+	* Put a fix in for the bug mentioned below [MouseJstr]
 
 	**********
 	URGENT BUG: Now we have instant CAST and ~2 MAX HP ~80 Max SP of any Player.
 		Should be fixed ASAP!
 	**********
-		(I suspect this could have to do with type-casting
-		and range changing due to the battle_config changes of this morning? Try
-		changing the data type from "unsigned short" to "int" to battle_config
-		parameters such as hp_rate or some other involved value. I'll look into
-		it when I get my hands in a server in an hour or so [Skotlex])
 
 	* Added code to make min_hair_style, max_hair_style, min_hair_color,
 	  max_hair_color, min_cloth_color, max_cloth_color work [Skotlex]

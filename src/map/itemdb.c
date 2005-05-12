@@ -716,6 +716,12 @@ static int itemdb_read_sqldb(void)
 					memcpy(id->jname, sql_row[2], 25);
 
 					id->type = atoi(sql_row[3]);
+					if (id->type == 11)
+					{	//Items that are consumed upon target confirmation
+						//(yggdrasil leaf, spells & pet lures) [Skotlex]
+						id->type = 2;
+						id->flag.delay_consume=1;
+					}
 
 					// If price_buy is not NULL and price_sell is not NULL...
 					if ((sql_row[4] != NULL) && (sql_row[5] != NULL)) {
