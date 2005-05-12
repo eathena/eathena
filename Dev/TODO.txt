@@ -98,11 +98,12 @@ Notes:      	to receive any messages of all characters on a specifical map.
 10.
 Description:	Pet Skills.
 
-Status:     	90%
+Status:     	100%
 
-Assignee:   	Valaris
+Assignee:   	Valaris -> Skotlex
 
-Notes:      	Don't touch pet.c, pet.h, or pet dbs.
+Notes:      	Implemented a different system, it should now work as
+               pet-skills were intended to.
 
 
 **********
@@ -273,15 +274,16 @@ Notes:      	All checkcart were in the old/ folder o_O?
 24.
 Description:	In script.c parser should be fixed to allow argumentless functions return value.
 
-Status:     	Pending
+Status:     	100%
 
-Assignee:   	None
+Assignee:   	Skotlex
 
 Notes:      	Functions like "checkcart", "checkfalcon", "checkriding" don't return value if used without agruments or without "()".
             	Example: 'checkcart' always return Zero (because the parser doesn't recognize it as a function!)
             	Example: 'checkcart()' map server doesn't load (because argless funcs aren't in use)
             	As a temp fix Lupus added "*" in script.c in "checkcart", "checkfalcon", "checkriding" definitions.
             	To be able running them with any fake arg. i.e. checkcart(0) works fine!
+					Celest introduced my small patch to fix this :D [Skotlex]
 
 
 **********
@@ -746,23 +748,22 @@ then filter it out when reading the item_db. This is easy as cake to do, but
 we need to come to an agreement of which item column to use. My vote goes for
 type since that's the most simple of the fields (and would be easier for
 server admins to custom modify).
+
+Update: After further thought, using a mask is kinda ugly, using a separate
+text file to load the unrefinable items seems more sane (considering that
+there's very few items that are not refineable). This should be easy recycling
+code from other functions, beats me why noone has done it yet.
 **
-78.
+79.
 Description	Use item_db.txt to define items that cast a skill 
-Status		Pending
+Status		100%
 Assignee		Skotlex
 
-Maybe not many complain of this, but I've always been annoyed at the way I
-wasted yggdrasil leafs by not clicking on the target or cancelling via a
-right-click. The correct behaviour is that the item should be consumed until
-after a target has been selected.
-The logical solution is to not consume the spell-items in pc_useitem, and in
-skill_check_condition delete it. The problem lies in that currently there is no way to know which skills are "spell type" items, to avoid deleting them until later.
-Like the previous point, perhaps using a mask-flag with the item type to
-signal which items are "cast-type" the thing could be solved. If types go up
-to 5 currently, the next flag to use would be 16 (leaving enough room for
-natural expansion). Considering the previous point, would it do using 16 for
-refineable items, and 32 for casting spells? (even thought items that can be
-equipped can't be used, I don't think the same flag should be used to signal
-both events). 
-**
+Since all items that cast skills are type 2, using a new type (11) works
+without needing a flag mask. The new type of item I refer to as a
+"consume-delayed usable" item, in the sense that you double click it and the
+script is ran, but the item is not consumed until the script is "done". It
+works for two cases:
+Pet Lures: The item is consumed after clicking on a mob. 
+skillitem: The item is consumed on skill_check_condition(type 1), which occurs
+after selecting a target (this also works when the target is yourself).
