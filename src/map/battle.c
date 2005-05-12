@@ -5248,7 +5248,7 @@ int battle_config_switch(const char *str) {
 }
 
 static const struct battle_data {
-	char str[128];
+	const char *str;
 	void *val;
 } battle_data_short[] = {	//List here battle_athena options which are type short!
 	{ "warp_point_debug",                  &battle_config.warp_point_debug			},
