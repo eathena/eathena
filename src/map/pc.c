@@ -581,15 +581,15 @@ int pc_break_equip(struct map_session_data *sd, unsigned short where)
 	if(sd->sc_count && sd->sc_data[sc].timer != -1)
 		return 0;
 
-	for (i=0;i<MAX_INVENTORY;i++) {
-		if (sd->status.inventory[i].attribute != 1 &&
-		   ((where == EQP_HELM && sd->status.inventory[i].equip &0x0100) ||
-		   (where == EQP_ARMOR && sd->status.inventory[i].equip &0x0010) ||
-	  	   (where == EQP_WEAPON && (sd->status.inventory[i].equip &0x0002 || sd->status.inventory[i].equip &0x0020) && sd->inventory_data[i]->type == 4) ||
-		   (where == EQP_SHIELD && sd->status.inventory[i].equip &0x0020 && sd->inventory_data[i]->type == 5))) {
-			sd->status.inventory[i].attribute = 1;
-			pc_unequipitem(sd,i,3);
-			sprintf(tmp_output, "%s has broken.",sd->inventory_data[i]->name);
+	for (i=0;i<11;i++) {
+		if (sd->equip_index[i]>0 &&	sd->status.inventory[sd->equip_index[i]].attribute != 1 &&
+		   ((where == EQP_HELM && i == 6) ||
+		   (where == EQP_ARMOR && i == 7) ||
+	  	   (where == EQP_WEAPON && (i == 8 || i == 9) && sd->inventory_data[sd->equip_index[i]]->type == 4) ||
+		   (where == EQP_SHIELD && i == 9 && sd->inventory_data[sd->equip_index[i]]->type == 5))) {
+			sd->status.inventory[sd->equip_index[i]].attribute = 1;
+			pc_unequipitem(sd,sd->equip_index[i],3);
+			sprintf(tmp_output, "%s has broken.",sd->inventory_data[sd->equip_index[i]]->name);
 			clif_emotion(&sd->bl,23);
 			clif_displaymessage(sd->fd, tmp_output);
 			clif_equiplist(sd);
@@ -2627,7 +2627,10 @@ int pc_useitem(struct map_session_data *sd,int n)
 			clif_useitemack(sd,n,amount-1,1);
 			pc_delitem(sd,n,1,1);
 		}
+		if(sd->status.inventory[n].card[0]==0x00ff && pc_istop10fame(sd->status.inventory[n].card[2],1))
+		    sd->state.potion_flag = 1;
 		run_script(script,0,sd->bl.id,0);
+		sd->state.potion_flag = 0;
 	}
 
 	return 0;
@@ -5399,7 +5402,7 @@ int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 	if(sd->sc_count && sd->sc_data[SC_GOSPEL].timer!=-1) //ƒo?ƒT?ƒN’†‚Í‰ñ•œ‚³‚¹‚È‚¢‚ç‚µ‚¢
 		return 0;
 
-	if(sd->state.potionpitcher_flag) {
+	if(sd->state.potion_flag==1) {
 		sd->potion_hp = hp;
 		sd->potion_sp = sp;
 		return 0;
@@ -5416,7 +5419,7 @@ int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 
 	if(hp > 0) {
 		bonus = (sd->paramc[2]<<1) + 100 + pc_checkskill(sd,SM_RECOVERY)*10
-			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5;
+			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5 + (sd->state.potion_flag == 2)*50; // A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
 		if ((type = itemdb_group(sd->itemid)) > 0 && type <= 7)
 			bonus = bonus * (100+sd->itemhealrate[type - 1]) / 100;
 		if(bonus != 100)
@@ -5424,7 +5427,7 @@ int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 	}
 	if(sp > 0) {
 		bonus = (sd->paramc[3]<<1) + 100 + pc_checkskill(sd,MG_SRECOVERY)*10
-			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5;
+			+ pc_checkskill(sd,AM_LEARNINGPOTION)*5 + (sd->state.potion_flag == 2)*50; // A potion produced by an Alchemist in the Fame Top 10 gets +50% effect [DracoRPG]
 		if(bonus != 100)
 			sp = sp * bonus / 100;
 	}
@@ -5457,7 +5460,7 @@ int pc_percentheal(struct map_session_data *sd,int hp,int sp)
 {
 	nullpo_retr(0, sd);
 
-	if(sd->state.potionpitcher_flag) {
+	if(sd->state.potion_flag==1) {
 		sd->potion_per_hp = hp;
 		sd->potion_per_sp = sp;
 		return 0;

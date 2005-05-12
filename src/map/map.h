@@ -83,6 +83,7 @@ struct weapon_data {
 	int overrefine;
 	int star;
 	int atk_ele;
+	unsigned fameflag : 1;
 	int atkmods[3];
 	int addsize[3];
 	int addele[10];
@@ -169,7 +170,7 @@ struct map_session_data {
 		unsigned gangsterparadise : 1;
 		unsigned produce_flag : 1;
 		unsigned make_arrow_flag : 1;
-		unsigned potionpitcher_flag : 1;
+		unsigned potion_flag : 2;
 		unsigned storage_flag : 1;
 		unsigned snovice_flag : 4;
 		int gmaster_flag;

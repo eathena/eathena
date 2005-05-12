@@ -1,8 +1,10 @@
 Date	Added
 05/12
-        * updated the battle.c change made to generate compile time
-          errors if you put the wrong battle_config option with the
-          wrong type into the wrong place [MouseJstr]
+	* Very very very strong weapons (forged with 3 Star Crumbs) now give +40 dmg instead of 15 [DracoRPG]
+	* Weapons/potions made by a top-10 famous player now give bonus effects [DracoRPG]
+	* Updated the battle.c change made to generate compile time
+        errors if you put the wrong battle_config option with the
+        wrong type into the wrong place [MouseJstr]
 	* Added item type 11 into LOGs filter [Lupus]
 	* Removed mob_skill_use, if you don't want mobskills, set mob_skill_rate to 
 	  zero [Skotlex]
@@ -16,12 +18,6 @@ Date	Added
 	* Tested the new item type 11. I forgot to add the code for the sql
 	  version, but that's now fixed and the new system works as it should [Skotlex]
 	* Put a fix in for the bug mentioned below [MouseJstr]
-
-	**********
-	URGENT BUG: Now we have instant CAST and ~2 MAX HP ~80 Max SP of any Player.
-		Should be fixed ASAP!
-	**********
-
 	* Added code to make min_hair_style, max_hair_style, min_hair_color,
 	  max_hair_color, min_cloth_color, max_cloth_color work [Skotlex]
 	  What it does, is cap the values whenever you try to change the

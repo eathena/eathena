@@ -4394,7 +4394,7 @@ int buildin_sc_start(struct script_state *st)
 	bl = map_id2bl(st->rid);
 
 	if (bl != 0) {
-		if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potionpitcher_flag)
+		if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
 			bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
 		status_change_start(bl,type,val1,0,0,0,tick,0);
 	}
@@ -4417,7 +4417,7 @@ int buildin_sc_start2(struct script_state *st)
 		bl = map_id2bl(conv_num(st,& (st->stack->stack_data[st->start+6])));
 	else
 	bl = map_id2bl(st->rid);
-	if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potionpitcher_flag)
+	if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
 		bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
 	if(rand()%10000 < per)
 	status_change_start(bl,type,val1,0,0,0,tick,0);
@@ -4434,7 +4434,7 @@ int buildin_sc_end(struct script_state *st)
 	int type;
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	bl = map_id2bl(st->rid);
-	if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potionpitcher_flag)
+	if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
 		bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
 	status_change_end(bl,type,-1);
 //	if(battle_config.etc_log)

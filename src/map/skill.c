@@ -3930,20 +3930,20 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 
 		if (dstsd) {
-			for (i=0;i<MAX_INVENTORY;i++) {
-				if (dstsd->status.inventory[i].equip) {
-					if (equip &EQP_WEAPON && (dstsd->status.inventory[i].equip &0x0002 || dstsd->status.inventory[i].equip &0x0020) && dstsd->inventory_data[i]->type == 4 && !(dstsd->unstripable_equip &EQP_WEAPON) && !(tsc_data && tsc_data[SC_CP_WEAPON].timer != -1)) {
+			for (i=0;i<11;i++) {
+				if (dstsd->equip_index[i]>0) {
+					if (equip &EQP_WEAPON && (i == 8 || i == 9) && dstsd->inventory_data[dstsd->equip_index[i]]->type == 4 && !(dstsd->unstripable_equip &EQP_WEAPON) && !(tsc_data && tsc_data[SC_CP_WEAPON].timer != -1)) {
 				   		sclist[0] = SC_STRIPWEAPON; // Okay, we found a weapon to strip - It can be a right-hand, left-hand or two-handed weapon
-						pc_unequipitem(dstsd,i,3);
-					} else if (equip &EQP_SHIELD && dstsd->status.inventory[i].equip &0x0020 && dstsd->inventory_data[i]->type == 5 && !(dstsd->unstripable_equip &EQP_SHIELD) && !(tsc_data && tsc_data[SC_CP_SHIELD].timer != -1)) {
+						pc_unequipitem(dstsd,dstsd->equip_index[i],3);
+					} else if (equip &EQP_SHIELD && i == 9 && dstsd->inventory_data[dstsd->equip_index[i]]->type == 5 && !(dstsd->unstripable_equip &EQP_SHIELD) && !(tsc_data && tsc_data[SC_CP_SHIELD].timer != -1)) {
 						sclist[1] = SC_STRIPSHIELD; // Okay, we found a shield to strip - It is really a shield, not a two-handed weapon or a left-hand weapon
-						pc_unequipitem(dstsd,i,3);
-					} else if (equip &EQP_ARMOR && dstsd->status.inventory[i].equip &0x0010 && !(dstsd->unstripable_equip &EQP_ARMOR) && !(tsc_data && tsc_data[SC_CP_ARMOR].timer != -1)) {
+						pc_unequipitem(dstsd,dstsd->equip_index[i],3);
+					} else if (equip &EQP_ARMOR && i == 7 && !(dstsd->unstripable_equip &EQP_ARMOR) && !(tsc_data && tsc_data[SC_CP_ARMOR].timer != -1)) {
 						sclist[2] = SC_STRIPARMOR; // Okay, we found an armor to strip
-						pc_unequipitem(dstsd,i,3);
-					} else if (equip &EQP_HELM && dstsd->status.inventory[i].equip &0x0100 && !(dstsd->unstripable_equip &EQP_HELM) && !(tsc_data && tsc_data[SC_CP_HELM].timer != -1)) {
+						pc_unequipitem(dstsd,dstsd->equip_index[i],3);
+					} else if (equip &EQP_HELM && i == 6 && !(dstsd->unstripable_equip &EQP_HELM) && !(tsc_data && tsc_data[SC_CP_HELM].timer != -1)) {
 						sclist[3] = SC_STRIPHELM; // Okay, we found a helm to strip
-						pc_unequipitem(dstsd,i,3);
+						pc_unequipitem(dstsd,dstsd->equip_index[i],3);
 					}
 				}
 			}
@@ -3984,12 +3984,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					map_freeblock_unlock();
 					return 1;
 				}
-				sd->state.potionpitcher_flag = 1;
+				sd->state.potion_flag = 1;
 				sd->potion_hp = sd->potion_sp = sd->potion_per_hp = sd->potion_per_sp = 0;
 				sd->skilltarget = bl->id;
 				run_script(sd->inventory_data[i]->use_script,0,sd->bl.id,0);
 				pc_delitem(sd,i,skill_db[skillid].amount[x],0);
-				sd->state.potionpitcher_flag = 0;
+				sd->state.potion_flag = 0;
 				if(sd->potion_per_hp > 0 || sd->potion_per_sp > 0) {
 					hp = status_get_max_hp(bl) * sd->potion_per_hp / 100;
 					hp = hp * (100 + pc_checkskill(sd,AM_POTIONPITCHER)*10 + pc_checkskill(sd,AM_LEARNINGPOTION)*5)/100;
@@ -5426,11 +5426,11 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 					clif_skill_fail(sd,skillid,0,0);
 					return 1;
 				}
-				sd->state.potionpitcher_flag = 1;
+				sd->state.potion_flag = 1;
 				sd->potion_hp = 0;
 				run_script(sd->inventory_data[j]->use_script,0,sd->bl.id,0);
 				pc_delitem(sd,j,skill_db[skillid].amount[i],0);
-				sd->state.potionpitcher_flag = 0;
+				sd->state.potion_flag = 0;
 				clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
 				if(sd->potion_hp > 0) {
 					map_foreachinarea(skill_area_sub,
@@ -9234,7 +9234,7 @@ int skill_produce_mix( struct map_session_data *sd,
 				make_per += 2000 + pc_checkskill(sd,AM_POTIONPITCHER)*100;
 			else if(nameid >= 605 && nameid <= 606) // Anodyne & Aloevera (not sure of the formula, I put the same base value as normal pots but without the Aid Potion bonus since they are not throwable pots ^^)
 				make_per += 2000;
-			/*else if(nameid >= 545 && nameid <= 547) // Concentrated potions*/
+//			else if(nameid >= 545 && nameid <= 547) // Concentrated potions
 			else if(nameid == 970) // Alcohol
 				make_per += 1000;
 			else if(nameid == 7135) // Bottle Grenade
@@ -9312,17 +9312,17 @@ int skill_produce_mix( struct map_session_data *sd,
 						clif_fame_alchemist(sd, 1);
 		  			}
 					if(sd->potion_success_counter == 5) {
-						sd->status.fame += 2; // Success to prepare 5 Concentrated Potions in a row = +3 fame point
-						clif_fame_alchemist(sd, 2);
+						sd->status.fame += 3; // Success to prepare 5 Concentrated Potions in a row = +3 fame point
+						clif_fame_alchemist(sd, 3);
 					}
 		  			if(sd->potion_success_counter == 7) {
-						sd->status.fame += 7; // Success to prepare 7 Concentrated Potions in a row = +10 fame point
-						clif_fame_alchemist(sd, 7);
+						sd->status.fame += 10; // Success to prepare 7 Concentrated Potions in a row = +10 fame point
+						clif_fame_alchemist(sd, 10);
 		  			}
 					if(sd->potion_success_counter == 10) {
-						sd->status.fame += 40;	// Success to prepare 10 Concentrated Potions in a row = +50 fame point
+						sd->status.fame += 50;	// Success to prepare 10 Concentrated Potions in a row = +50 fame point
 						sd->potion_success_counter = 0;
-						clif_fame_alchemist(sd, 40);
+						clif_fame_alchemist(sd, 50);
 					}
 				} else sd->potion_success_counter = 0;
 				break;

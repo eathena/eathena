@@ -2561,10 +2561,10 @@ static struct Damage battle_calc_pc_weapon_attack(
 	}
 
 	// A weapon forged by a Blacksmith in the Fame Top 10 gets +10 dmg [DracoRPG]
-/*	if()
+	if(sd->right_weapon.fameflag)
 		damage += 10;
-	if()
-	    damage2 += 10;*/
+	if(sd->left_weapon.fameflag)
+	    damage2 += 10;
 
 	if (sd->perfect_hit > 0 && rand()%100 < sd->perfect_hit)
 		hitrate = 1000000;
@@ -2922,10 +2922,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 		unsigned lh : 1;		//Attack considers left hand (wd.damage2)
 		unsigned cardfix : 1;
 	}	flag;	
-	
+
 	memset(&wd,0,sizeof(wd));
 	memset(&flag,0,sizeof(struct bcwasf));
-	
+
 	if(src==NULL || target==NULL)
 	{
 		nullpo_info(NLP_MARK);
@@ -2934,7 +2934,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 	//Initial flag
 	flag.rh=1;
 	flag.cardfix=1;
-	
+
 	//Initial Values
 	wd.type=0; //Normal attack
 	wd.div_=skill_get_num(skill_num,skill_lv);
@@ -2974,7 +2974,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 			memset(&wd,0,sizeof(wd));	
 			return wd;
 	}
-	
+
 	if(sd && skill_num != CR_GRANDCROSS)
 		sd->state.attack_type = BF_WEAPON;
 
@@ -2988,7 +2988,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 		}
 	} else if (status_get_range(src) > 3)
 		wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
-	
+
 	if(skill_num){
 		wd.flag=(wd.flag&~BF_SKILLMASK)|BF_SKILL;
 		switch(skill_num)
@@ -3002,7 +3002,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 				flag.arrow = 1;
 				break;
-			
+
 			case MO_FINGEROFFENSIVE:
 				if(sd && battle_config.finger_offensive_type == 0)
 					wd.div_ = sd->spiritball_old;
@@ -3018,17 +3018,17 @@ static struct Damage battle_calc_weapon_attack_sub(
 			case KN_PIERCE:
 				wd.div_= t_size+1;
 				break;
-			
+
 			case KN_SPEARSTAB:
 			case KN_BOWLINGBASH:
 				wd.blewcount=0;
 				break;
-			
+
 			case NPC_PIERCINGATT:
 			case CR_SHIELDCHARGE:
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_SHORT;
 				break;
-			
+
 			case KN_AUTOCOUNTER:
 				wd.flag=(wd.flag&~BF_SKILLMASK)|BF_NORMAL;
 				break;
@@ -3037,12 +3037,12 @@ static struct Damage battle_calc_weapon_attack_sub(
 
 	if(t_mode&0x20) //Bosses can't be knocked-back
 		wd.blewcount = 0;
-	
+
 	if (sd)
 	{	//Arrow consumption
 		sd->state.arrow_atk = flag.arrow;
 	}
-	
+
 	//Check for counter 
 	if(skill_num != CR_GRANDCROSS &&
  		(!skill_num ||
@@ -3106,7 +3106,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 		skill_num = PA_SACRIFICE;
 		skill_lv	=  sc_data[SC_SACRIFICE].val1;
 	}
-	
+
 	if (!skill_num && (tsd || battle_config.enemy_perfect_flee))
 	{	//Check for Lucky Dodge
 		short flee2 = status_get_flee2(target);
@@ -3117,7 +3117,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 			return wd;
 		}
 	}
-	
+
 	//Initialize variables that will be used afterwards
 	if (sd)
 	{
@@ -3218,7 +3218,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 			)
 			flag.hit = 1;
 	}
-	
+
 	if (!flag.hit)
 	{	//Hit/Flee calculation
 		short
@@ -3267,18 +3267,18 @@ static struct Damage battle_calc_weapon_attack_sub(
 				hitrate += 20;
 				break;
 		}
-		
+
 		hitrate = ((hitrate>95)?95: ((hitrate<5)?5:hitrate));
-	
+
 		if(rand()%100 >= hitrate)
 			wd.dmg_lv = ATK_FLEE;
 		else
 			flag.hit =1;
 	}	//End hit/miss calculation
-	
+
 	if(tsd && tsd->special_state.no_weapon_damage && skill_num != CR_GRANDCROSS)	
 		return wd;
- 
+
 	if (flag.hit && !(t_mode&0x40)) //No need to do the math for plants
 	{	//Hitting attack
 
@@ -3403,7 +3403,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 				
 					//SizeFix only for players
 					if (!(
-						!tsd || //rodatazone claims that target human players don't have a size!
+						/*!tsd || //rodatazone claims that target human players don't have a size! -- I really don't believe it... removed until we find some evidence*/
 						sd->special_state.no_sizefix ||
 						(sc_data && sc_data[SC_WEAPONPERFECTION].timer!=-1) ||
 						(pc_isriding(sd) && (sd->status.weapon==4 || sd->status.weapon==5) && t_size==1) ||
@@ -3416,7 +3416,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 				break;
 			}	//End default case
 		} //End switch(skill_num)
-		
+
 		//Skill damage modifiers
 		if(sc_data && skill_num != PA_SACRIFICE)
 		{
@@ -3425,14 +3425,14 @@ static struct Damage battle_calc_weapon_attack_sub(
 			if(sc_data[SC_TRUESIGHT].timer!=-1)
 				skillratio += 2*sc_data[SC_TRUESIGHT].val1;
 			if(sc_data[SC_BERSERK].timer!=-1)
-				skillratio += 200;
+				skillratio += 100; // Although RagnaInfo says +200%, it's *200% so +100%
 			if(sc_data[SC_MAXOVERTHRUST].timer!=-1)
 				skillratio += 20*sc_data[SC_MAXOVERTHRUST].val1;
 			if(sc_data[SC_EDP].timer != -1 &&
-				!(t_mode & 0x20) &&
+				!(t_mode & 0x20) && //Enchant Deadly Poison does not work on bosses and with those 3 skills
 				skill_num != AS_SPLASHER &&
 				skill_num != ASC_BREAKER &&
-				skill_num != ASC_METEORASSAULT) //why these skills?
+				skill_num != ASC_METEORASSAULT)
 			{	
 				skillratio += 150 + sc_data[SC_EDP].val1 * 50;
 				flag.cardfix = 0;
@@ -3465,7 +3465,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					skillratio+= 50*skill_lv;
 					break;
 				case AC_DOUBLE:
-					skillratio+=80+ 20*skill_lv;
+					skillratio+= 80+ 20*skill_lv;
 					break;
 				case AC_SHOWER:
 					skillratio+= 5*skill_lv -25;
@@ -3515,7 +3515,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					break;
 				case MC_CARTREVOLUTION:
 					if(sd && sd->cart_max_weight > 0 && sd->cart_weight > 0)
-						skillratio+= 50+sd->cart_weight/800; //Should max_cart_weight be used instead of 800?
+						skillratio+= 50+sd->cart_weight/800; // +1% every 80 weight units
 					else
 						skillratio+= 50;
 					break;
@@ -3686,19 +3686,19 @@ static struct Damage battle_calc_weapon_attack_sub(
 				s_ele=s_ele_=0;
 			else if((skill=skill_get_pl(skill_num))>0) //Checking for the skill's element
 				s_ele=s_ele_=skill;
-			
+
 			if (sd && sd->skillatk[0] == skill_num)
 				//If we apply skillatk[] as ATK_RATE, it will also affect other skills,
 				//unfortunately this way ignores a skill's constant modifiers...
 				skillratio += sd->skillatk[1];
-			
+
 			//Double attack does not applies to left hand
 			ATK_RATE2(skillratio, skillratio - (skill_num==TF_DOUBLE?100:0));
 
 			//Constant/misc additions from skills
 			if (skill_num == MO_EXTREMITYFIST)
 				ATK_ADD(250 + 150*skill_lv);
-		
+
 			if (sd)
 			{
 				short index= 0;
@@ -3733,7 +3733,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 				}	//switch
 			}	//if (sd)
 		}
-	
+
 		if(sd)
 		{
 			if (skill_num != PA_SACRIFICE && skill_num != MO_INVESTIGATE && !flag.cri && !flag.infdef)
@@ -3754,7 +3754,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 				if (raceele_flag || raceele_flag_)
 					ATK_RATE2(raceele_flag?(def1 + def2):100, raceele_flag_?(def1 + def2):100);
 			}
-		
+
 			//Ignore Defense?
 			if (!flag.idef && (
 				(tmd && sd->right_weapon.ignore_def_mob & (t_mode & 0x20?2:1)) ||
@@ -3763,7 +3763,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 				sd->right_weapon.ignore_def_race & (t_mode & 0x20?1<<10:1<<11)
 				))
 				flag.idef = 1;
-				
+
 			if (!flag.idef2 && (
 				(tmd && sd->left_weapon.ignore_def_mob & (t_mode & 0x20?2:1)) ||
 				sd->left_weapon.ignore_def_ele & (1<<t_ele) ||
@@ -3778,7 +3778,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 			short t_vit = status_get_vit(target);
 			short t_def, vitbonusmax;
 			short defense;
-			
+
 			if(battle_config.vit_penalty_type)
 			{
 				unsigned char target_count; //256 max targets should be a sane max
@@ -3804,7 +3804,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 				(skill=pc_checkskill(tsd,AL_DP)) >0)
 				t_def += skill*(int)(3 +(tsd->status.base_level+1)*0.04);   // submitted by orn
 			vitbonusmax = (t_vit/20)*(t_vit/20)-1;
-			
+
 			if(battle_config.player_defense_type) {
 				defense = -(def1*battle_config.player_defense_type) -t_def -(vitbonusmax<1)?0:rand()%(vitbonusmax+1);
 			} else {
@@ -3820,16 +3820,18 @@ static struct Damage battle_calc_weapon_attack_sub(
 			if(sc_data[SC_AURABLADE].timer!=-1) 
 				ATK_ADD(20*sc_data[SC_AURABLADE].val1);
 		}
-		
+
 		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST)
 		{	//refine bonus
 			ATK_ADD2(status_get_atk2(src), status_get_atk_2(src));
+			//Items forged from the Top 10 most famous BS's get 10 dmg bonus
+			ATK_ADD2(sd->right_weapon.fameflag*10, sd->left_weapon.fameflag*10);
 		}
 
 		//Set to min of 1
 		if (flag.rh && wd.damage < 1) wd.damage = 1;
 		if (flag.lh && wd.damage2 < 1) wd.damage2 = 1;
-			
+
 		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST && skill_num != CR_GRANDCROSS)
 		{	//Add mastery damage
 			if((sd->weapontype1 == 0x10 || sd->weapontype2 == 0x10) && (skill = pc_checkskill(sd,ASC_KATAR)) > 0)
@@ -3844,7 +3846,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 
 	if(skill_num==TF_POISON)
 		ATK_ADD(15*skill_lv);
-	
+
 	if (sd ||
 		(md && !skill_num && !battle_config.mob_attack_attr_none) ||
 		(pd && !skill_num && !battle_config.pet_attack_attr_none))
@@ -3855,7 +3857,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 			if (wd.damage > 0)
 			{
 				wd.damage=battle_attr_fix(wd.damage,s_ele,t_element);
-				if(skill_num==MC_CARTREVOLUTION) //Cart Revolution is weird like that
+				if(skill_num==MC_CARTREVOLUTION) //Cart Revolution applies the element fix once more with neutral element
 					wd.damage=battle_attr_fix(wd.damage,0,t_element);
 			}
 			if (flag.lh && wd.damage2 > 0) wd.damage2=battle_attr_fix(wd.damage2,s_ele_,t_element);
@@ -3864,11 +3866,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 
 	if ((!flag.rh || wd.damage == 0) && (!flag.lh || wd.damage2 == 0))
 		flag.cardfix = 0;	//When the attack does no damage, avoid doing %bonuses
-	
+
 	if (sd)
 	{
 		ATK_ADD2(sd->right_weapon.star, sd->left_weapon.star);
-		//TODO: Items forged from the Top 10 most famous BS's get 10 dmg bonus
 		ATK_ADD(sd->spiritball*3);
 
 		//Card Fix, sd side
@@ -3926,12 +3927,12 @@ static struct Damage battle_calc_weapon_attack_sub(
 					}
 				}
 			}
-			
+
 			if (cardfix != 1000 || cardfix_ != 1000)
 				ATK_RATE2(cardfix/10, cardfix_/10);	//What happens if you use right-to-left and there's no right weapon, only left?
 		}
 	} //if (sd)
-	
+
 	//Card Fix, tsd side
 	if (tsd && flag.cardfix) {
 		short s_size,s_race2,s_mode,s_class;
@@ -4029,7 +4030,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 		{ //Katars
 			skill = pc_checkskill(sd,TF_DOUBLE);
 			wd.damage2 = wd.damage * (1 + (skill * 2))/100;
-			
+
 			if(wd.damage > 0 && wd.damage2 < 1) wd.damage2 = 1;
 			flag.lh = 1;
 		}
@@ -4050,7 +4051,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 			wd.damage-=wd.damage2;
 		}
 	}
-	
+
 	if(sd && sd->classchange && tmd && (rand()%10000 < sd->classchange))
 	{	//Classchange:
 		int changeclass[]={
@@ -4118,7 +4119,7 @@ struct Damage battle_calc_weapon_attack(
 
 		breakrate_[0] += sd->break_weapon_rate;
 		breakrate_[1] += sd->break_armor_rate;
-		
+
 		if (sd->sc_count) {
 			if (sd->sc_data[SC_MELTDOWN].timer!=-1) {
 				breakrate_[0] += 100*sd->sc_data[SC_MELTDOWN].val1;
@@ -4314,8 +4315,6 @@ struct Damage battle_calc_magic_attack(
 			MATK_FIX( skill_lv*20+80, 100 );
 			break;
 		case WZ_WATERBALL:	// ウォーターボール
-			//matk1+= skill_lv*30;
-			//matk2+= skill_lv*30;
 			MATK_FIX( 100+skill_lv*30, 100 );
 			break;
 		case WZ_STORMGUST:	// ストームガスト
