@@ -8,6 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them I believe.
 
+05/12
+	* Added missing 'close storage' packet for Sakexe 05-09 [celest]
 05/11
 	* Updated item_db (all items with use_script "pet" or "itemskill") to use
 	  the new type of item (11: delay-consumed usables) [Skotlex]

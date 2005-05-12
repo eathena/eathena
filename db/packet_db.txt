@@ -662,6 +662,7 @@ prefer_packet_db: yes
 0x008c,11,getcharnamerequest,7
 0x0085,11,changedir,7:10
 0x0094,14,movetokafra,7:10
+0x0193,2,closekafra,0
 0x00f7,22,movefromkafra,14:18
 0x009f,14,useitem,4:10
 0x0116,10,dropitem,5:8
