@@ -5297,7 +5297,7 @@ static const struct battle_data {
 	{ "monster_active_enable",             &battle_config.monster_active_enable	},
 	{ "monster_damage_delay_rate",         &battle_config.monster_damage_delay_rate},
 	{ "monster_loot_type",                 &battle_config.monster_loot_type		},
-	{ "mob_skill_use",                     &battle_config.mob_skill_use			},
+//	{ "mob_skill_use",                     &battle_config.mob_skill_use			},	//Deprecated
 	{ "mob_skill_rate",                    &battle_config.mob_skill_rate			},
 	{ "mob_skill_delay",                   &battle_config.mob_skill_delay			},
 	{ "mob_count_rate",                    &battle_config.mob_count_rate			},
@@ -5598,7 +5598,7 @@ void battle_set_defaults() {
 	battle_config.monster_active_enable=1;
 	battle_config.monster_damage_delay_rate=100;
 	battle_config.monster_loot_type=0;
-	battle_config.mob_skill_use=1;
+//	battle_config.mob_skill_use=1;
 	battle_config.mob_skill_rate=100;
 	battle_config.mob_skill_delay=100;
 	battle_config.mob_count_rate=100;

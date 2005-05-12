@@ -135,7 +135,7 @@ extern struct Battle_Config {
 	unsigned short monster_active_enable;
 	unsigned short monster_damage_delay_rate;
 	unsigned short monster_loot_type;
-	unsigned short mob_skill_use;
+//	unsigned short mob_skill_use;	// Deprecated by mob_skill)_rate
 	unsigned short mob_skill_rate;	//[Skotlex]
 	unsigned short mob_skill_delay;	//[Skotlex]
 	unsigned short mob_count_rate;
