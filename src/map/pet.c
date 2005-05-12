@@ -337,10 +337,11 @@ static int petskill_castend(struct pet_data *pd,unsigned int tick,int data)
  */
 static int petskill_castend2(struct pet_data *pd, struct block_list *target, short skill_id, short skill_lv, short skill_x, short skill_y, unsigned int tick)
 {	//Invoked after the casting time has passed.
+	short delaytime =0, range;
+
 	nullpo_retr(0, pd);
    nullpo_retr(0, target);
 	
-	short delaytime =0, range;
 	nullpo_retr(0, pd);
 
 	pd->state.state=MS_IDLE;
