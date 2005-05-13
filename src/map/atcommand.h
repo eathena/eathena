@@ -256,6 +256,9 @@ enum AtCommandType {
         AtCommand_Shuffle, // MouseJstr
         AtCommand_Rates, // MouseJstr
 
+	AtCommand_ItemInfo, // Lupus
+	AtCommand_MapFlag, // Lupus
+
 	// end
 	AtCommand_Unknown,
 	AtCommand_MAX
