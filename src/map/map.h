@@ -663,6 +663,10 @@ struct map_data {
 		unsigned rain : 1; // [Valaris]
 		unsigned indoors : 1; // celest
 		unsigned nogo : 1; // [Valaris]
+		unsigned nobaseexp	: 1; // [Lorky] added by Lupus
+		unsigned nojobexp	: 1; // [Lorky]
+		unsigned nomobloot	: 1; // [Lorky]				
+		unsigned nomvploot	: 1; // [Lorky]		
 	} flag;
 	struct point save;
 	struct npc_data *npc[MAX_NPC_PER_MAP];

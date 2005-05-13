@@ -2266,6 +2266,26 @@ static int npc_parse_mapflag(char *w1,char *w2,char *w3,char *w4)
 	else if (strcmpi(w3,"nogo")==0) { // celest
 		map[m].flag.nogo=1;
 	}
+	else if (strcmpi(w3,"noexp")==0) { // Lorky
+		map[m].flag.nobaseexp=1;
+		map[m].flag.nojobexp=1;
+	}
+	else if (strcmpi(w3,"nobaseexp")==0) { // Lorky
+		map[m].flag.nobaseexp=1;
+	}
+	else if (strcmpi(w3,"nojobexp")==0) { // Lorky
+		map[m].flag.nojobexp=1;
+	}
+	else if (strcmpi(w3,"noloot")==0) { // Lorky
+		map[m].flag.nomobloot=1;
+		map[m].flag.nomvploot=1;
+	}
+	else if (strcmpi(w3,"nomobloot")==0) { // Lorky
+		map[m].flag.nomobloot=1;
+	}
+	else if (strcmpi(w3,"nomvploot")==0) { // Lorky
+		map[m].flag.nomvploot=1;
+	}
 
 	return 0;
 }

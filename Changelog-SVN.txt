@@ -1,4 +1,17 @@
 Date	Added
+05/14
+	* Added new mapflags (mainly for fixing jobquests abuse and arenas) by Lorky, fixed added by [Lupus]
+	  - noexp - on killing a monster you don't obtain both Base and Job EXP at all (including MVP EXP bonus)
+	  - nobaseexp - on killing a monster you don't obtain Base EXP at all (including MVP EXP bonus)
+	  - nojobexp - on killing a monster you don't obtain Job EXP at all (including MVP EXP bonus)
+		nobaseexp+nojobexp=noexp
+	in other words, 'noexp' set both mapflags 'nobaseexp' and 'nojobexp'
+	  - noloot - on killing ANY monster you get no loot at all
+	  - nomobloot - on killing a common monster you get no loot at all
+	  - nomvploot - on killing a MVP monster you get no MVP loot at all
+		nomobloot+nomvploot=noloot
+	in other words, 'noloot' set both mapflags 'nomobloot' and 'nomvploot'
+
 05/12
 	* Very very very strong weapons (forged with 3 Star Crumbs) now give +40 dmg instead of 15 [DracoRPG]
 	* Weapons/potions made by a top-10 famous player now give bonus effects [DracoRPG]

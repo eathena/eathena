@@ -2598,7 +2598,10 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				base_exp+=(int) (((md->level-mob_db[md->class_].lv)*mob_db[md->class_].base_exp*.03)*per/256);
 			}
 		}
-
+		//mapflags: noexp check [Lorky]
+		if (map[md->bl.m].flag.nobaseexp == 1)	base_exp=0; 
+		if (map[md->bl.m].flag.nojobexp == 1)	job_exp=0; 
+		//end added Lorky 
 		if((pid=tmpsd[i]->status.party_id)>0){	// パーティに入っている
 			int j;
 			for(j=0;j<pnum;j++)	// 公平パーティリストにいるかどうか
@@ -2657,6 +2660,11 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				drop_rate += drop_rate*status_get_luk(src)*battle_config.drops_by_luk/10000;
 			if (sd && battle_config.pk_mode == 1 && (mob_db[md->class_].lv - sd->status.base_level >= 20))
 				drop_rate = (int)(drop_rate*1.25); // pk_mode increase drops if 20 level difference [Valaris]
+
+			//mapflag: noloot check [Lorky]
+			if (map[md->bl.m].flag.nomobloot == 1)	drop_rate=0; 
+			//end added [Lorky]
+
 			if (drop_rate < rand() % 10000 + 1) { //fixed 0.01% impossible drops bug [Lupus]
 				drop_ore = i; //we remember an empty slot to put there ORE DISCOVERY drop later.
 				continue;
@@ -2677,7 +2685,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		}
 
 		// Ore Discovery [Celest]
-		if (sd == mvp_sd && pc_checkskill(sd,BS_FINDINGORE)>0 && battle_config.finding_ore_rate/100 >= rand()%1000) {
+		if (sd == mvp_sd && map[md->bl.m].flag.nomobloot==0 && pc_checkskill(sd,BS_FINDINGORE)>0 && battle_config.finding_ore_rate/100 >= rand()%1000) {
 			struct delay_item_drop *ditem;
 			ditem=(struct delay_item_drop *)aCalloc(1,sizeof(struct delay_item_drop));
 			ditem->nameid = itemdb_searchrandomid(6);
@@ -2708,7 +2716,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 					(mob_db[md->class_].mode & 0x20 && sd->monster_drop_race[i] & 1<<10) ||
 					(!(mob_db[md->class_].mode & 0x20) && sd->monster_drop_race[i] & 1<<11) )
 				{
-					if (sd->monster_drop_itemrate[i] <= rand()%10000)
+					if (sd->monster_drop_itemrate[i] <= rand()%10000+1)
 						continue;
 					itemid = (sd->monster_drop_itemid[i] > 0) ? sd->monster_drop_itemid[i] :
 						itemdb_searchrandomgroup(sd->monster_drop_itemgroup[i]);
@@ -2752,6 +2760,11 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		int mexp;
 		temp = ((double)mob_db[md->class_].mexp * (9.+(double)count)/10.);	//[Gengar]
 		mexp = (temp > 2147483647.)? 0x7fffffff:(int)temp;
+
+		//mapflag: noexp check [Lorky]
+		if (map[md->bl.m].flag.nobaseexp == 1 || map[md->bl.m].flag.nojobexp == 1)	mexp=1; 
+		//end added [Lorky] 
+
 		if(mexp < 1) mexp = 1;
 		clif_mvp_effect(mvp_sd);					// エフェクト
 		clif_mvp_exp(mvp_sd,mexp);
@@ -2769,6 +2782,10 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			else if(drop_rate > battle_config.item_drop_mvp_max) //fixed
 				drop_rate = battle_config.item_drop_mvp_max;
 */
+			//mapflag: noloot check [Lorky]
+			if (map[md->bl.m].flag.nomvploot == 1)	drop_rate=0; 
+			//end added Lorky 			
+
 			if(drop_rate <= rand()%10000+1) //if ==0, then it doesn't drop
 				continue;
 			memset(&item,0,sizeof(item));
