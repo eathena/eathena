@@ -1,5 +1,6 @@
 Date	Added
 05/14
+	* Fixed a guild bug in inif_guild_leave in intif.c, would expel are characters on an account [Kevin]
 	* Added new mapflags (mainly for fixing jobquests abuse and arenas) by Lorky, fixed added by [Lupus]
 	  - noexp - on killing a monster you don't obtain both Base and Job EXP at all (including MVP EXP bonus)
 	  - nobaseexp - on killing a monster you don't obtain Base EXP at all (including MVP EXP bonus)
