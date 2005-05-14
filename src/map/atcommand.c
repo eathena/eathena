@@ -9501,6 +9501,12 @@ int atcommand_mutearea(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
+	
+	if(!battle_config.muting_players) {
+		clif_displaymessage(fd, "Please enable the muting system before using it.");
+		return 0;
+	}
+	
 	int time;
 	nullpo_retr(0, sd);
 
