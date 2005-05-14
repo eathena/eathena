@@ -8240,6 +8240,11 @@ int atcommand_unmute(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
+	
+	if(!battle_config.muting_players) {
+		clif_displaymessage(fd, "Please enable the muting system before using it.");
+		return 0;
+	}
 	struct map_session_data *pl_sd = NULL;
 	nullpo_retr(-1, sd);
 	if (!message || !*message)
@@ -8310,6 +8315,12 @@ int atcommand_mute(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
+	
+	if(!battle_config.muting_players) {
+		clif_displaymessage(fd, "Please enable the muting system before using it.");
+		return 0;
+	}
+	
 	struct map_session_data *pl_sd = NULL;
 	int manner;
 	nullpo_retr(-1, sd);
@@ -9465,6 +9476,12 @@ int atcommand_version(
 
 static int atcommand_mutearea_sub(struct block_list *bl,va_list ap)
 {
+	
+	if(!battle_config.muting_players) {
+		clif_displaymessage(fd, "Please enable the muting system before using it.");
+		return 0;
+	}
+	
 	int time, id;
 	struct map_session_data *pl_sd = (struct map_session_data *)bl;
 	if (pl_sd == NULL)
