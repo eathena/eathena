@@ -42,10 +42,6 @@ typedef long in_addr_t;
 #include "int_party.h"
 #include "int_storage.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 struct mmo_map_server server[MAX_MAP_SERVERS];
 int server_fd[MAX_MAP_SERVERS];
 

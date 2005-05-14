@@ -43,10 +43,6 @@
 #include "socket.h"
 #include "log.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 // maybe put basic macros to somewhere else
 #define swap(a,b) ((a == b) || ((a ^= b), (b ^= a), (a ^= b)))
 

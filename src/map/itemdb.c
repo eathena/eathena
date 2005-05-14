@@ -14,10 +14,6 @@
 #include "pc.h"
 #include "showmsg.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 #define MAX_RANDITEM	2000
 #define MAX_ITEMGROUP	20
 // ** ITEMDB_OVERRIDE_NAME_VERBOSE **

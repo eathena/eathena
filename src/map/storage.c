@@ -16,10 +16,6 @@
 #include "battle.h"
 #include "atcommand.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 static struct dbt *storage_db;
 static struct dbt *guild_storage_db;
 

@@ -1,16 +1,17 @@
 // $Id: int_storage.c,v 1.1.1.1 2004/09/10 17:26:51 MagicalTux Exp $
+
+#include <string.h>
+#include <stdlib.h>
+
+#include "../common/mmo.h"
+#include "../common/socket.h"
+#include "../common/db.h"
+#include "../common/lock.h"
+#include "char.h"
 #include "inter.h"
 #include "int_storage.h"
 #include "int_pet.h"
 #include "int_guild.h"
-#include "mmo.h"
-#include "char.h"
-#include "socket.h"
-#include "db.h"
-#include "lock.h"
-
-#include <string.h>
-#include <stdlib.h>
 
 // ファイル名のデフォルト
 // inter_config_read()で再設定される

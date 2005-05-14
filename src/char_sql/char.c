@@ -40,10 +40,6 @@
 #include "db.h"
 #include "malloc.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 static struct dbt *char_db_;
 
 char char_db[256] = "char";

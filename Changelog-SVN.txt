@@ -1,7 +1,18 @@
 Date	Added
-05/15
-	* You can only use mute commands when the system is enabled. [Kevin]
 05/14
+	* Fixed base file name sometimes not retrieved properly in core [celest]
+	* Removed "memwatch.h" includes for all source files other than malloc.h -- only
+	  1 define is enough [celest]
+	* Fixed wrong packet for 01-10aSakexe's UseSkillToPos [celest]
+	* Skip rearranging large memory blocks while cleaning up on memory manager
+	  shutdown [celest]
+	* Updated the guild aura skills -- gives +1 stat per level, and runs a bit
+	  faster [celest]
+	* Fixed broken Marionette Control -- changed to clowns/gypsies that are under
+	  marionette will not be able to use the skill [celest]
+	* Fixed Absorb Spirits working on boss-type monsters [celest]
+	* Fixed Body Relocation hiding when used by monsters [celest]
+	* You can only use mute commands when the system is enabled. [Kevin]
 	* Fixed a guild bug in inif_guild_leave in intif.c, would expel are characters on an account [Kevin]
 	* Added new mapflags (mainly for fixing jobquests abuse and arenas) by Lorky, fixed added by [Lupus]
 	  - noexp - on killing a monster you don't obtain both Base and Job EXP at all (including MVP EXP bonus)

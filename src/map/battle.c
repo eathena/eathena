@@ -20,10 +20,6 @@
 #include "pet.h"
 #include "guild.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 int attr_fix_table[4][10][10];
 
 struct Battle_Config battle_config;

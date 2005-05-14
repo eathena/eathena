@@ -20,10 +20,6 @@
 #include "char.h"
 #include "../../common/strlib.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 char pet_txt[256]="save/pet.txt";
 char storage_txt[256]="save/storage.txt";
 

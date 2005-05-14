@@ -28,10 +28,6 @@
 #include "showmsg.h"
 #include "grfio.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 #define SKILLUNITTIMER_INVERVAL	100
 #define STATE_BLIND 0x10
 #define swap(x,y) { int t; t = x; x = y; y = t; }
@@ -1843,34 +1839,26 @@ int skill_check_unit_range2(struct block_list *bl, int m,int x,int y,int skillid
 int skill_guildaura_sub (struct block_list *bl,va_list ap)
 {
 	struct map_session_data *sd;
-	struct guild *g;
-	int gid, id;
-	int flag = 0;
+	int gid, id, *flag;
 	
-	nullpo_retr(0, sd=(struct map_session_data *)bl);
-
+	nullpo_retr(0, sd = (struct map_session_data *)bl);
 	nullpo_retr(0, ap);
+
 	id = va_arg(ap,int);
 	gid = va_arg(ap,int);
 	if (sd->status.guild_id != gid)
 		return 0;
-	
-	g = va_arg(ap,struct guild *);
-	if (guild_checkskill(g, GD_LEADERSHIP)>0) flag |= 1<<0;
-	if (guild_checkskill(g, GD_GLORYWOUNDS)>0) flag |= 1<<1;
-	if (guild_checkskill(g, GD_SOULCOLD)>0) flag |= 1<<2;
-	if (guild_checkskill(g, GD_HAWKEYES)>0) flag |= 1<<3;
-	if (guild_checkskill(g, GD_CHARISMA)>0) flag |= 1<<4;
+	nullpo_retr(0, flag = va_arg(ap,int *));
 
-	if (flag > 0) {
+	if (flag && *flag > 0) {
 		if (sd->sc_count && sd->sc_data[SC_GUILDAURA].timer != -1) {
-			if (sd->sc_data[SC_GUILDAURA].val4 != flag) {
-				sd->sc_data[SC_GUILDAURA].val4 = flag;
+			if (sd->sc_data[SC_GUILDAURA].val4 != *flag) {
+				sd->sc_data[SC_GUILDAURA].val4 = *flag;
 				status_calc_pc (sd, 0);
 			}
 			return 0;
 		}
-		status_change_start(&sd->bl, SC_GUILDAURA,1,id,0,flag,0,0 );
+		status_change_start(&sd->bl, SC_GUILDAURA, 1, id, 0, *flag, 0, 0);
 	}
 
 	return 0;
@@ -3154,9 +3142,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 			if ((sd == dstsd)
 			 || (!sd->status.party_id)
-			 || (sd->status.party_id != dstsd->status.party_id)
-			 || (sd->status.class_ == 4020) || (sd->status.class_ == 4021) //You can't target other Clown or Gypsy!!! fixed by Lupus
-			) {
+			 || (sd->status.party_id != dstsd->status.party_id)) {
 			 	clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
 				return 1;
@@ -3419,30 +3405,30 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case MO_ABSORBSPIRITS:	// ?奪
-		i=0;
-		if (dstsd) {
-			if ((sd && sd == dstsd) || map[src->m].flag.pvp || map[src->m].flag.gvg) {
-				if (dstsd->spiritball > 0) {
-					clif_skill_nodamage(src,bl,skillid,skilllv,1);
-					i = dstsd->spiritball * 7;
-					pc_delspiritball(dstsd,dstsd->spiritball,0);
-				}
-			}
-		} else if (dstmd) { //?象がモンスタ?の場合
+		i = 0;
+		if (dstsd && dstsd->spiritball > 0 &&
+			((sd && sd == dstsd) || map[src->m].flag.pvp || map[src->m].flag.gvg))
+		{
+			i = dstsd->spiritball * 7;
+			pc_delspiritball(dstsd,dstsd->spiritball,0);
+		} else if (dstmd && //?象がモンスタ?の場合
 			//20%の確率で?象のLv*2のSPを回復する。成功したときはタ?ゲット(σ?Д?)σ????!!
-			if(rand() % 100 < 20) {
-				i = 2 * mob_db[dstmd->class_].lv;
-				mob_target(dstmd,src,0);
-			}
+			!(mob_db[dstmd->class_].mode & 20) && rand() % 100 < 20)
+		{
+			i = 2 * mob_db[dstmd->class_].lv;
+			mob_target(dstmd,src,0);
 		}
 		if (sd){
 			if (i > 0x7FFF)
 				i = 0x7FFF;
 			if (sd->status.sp + i > sd->status.max_sp)
 				i = sd->status.max_sp - sd->status.sp;
-			sd->status.sp += i;
-			if (i) clif_heal(sd->fd,SP_SP,i);
-		} else clif_skill_nodamage(src,bl,skillid,skilllv,0);
+			if (i) {
+				sd->status.sp += i;
+				clif_heal(sd->fd,SP_SP,i);
+			}
+		}
+		clif_skill_nodamage(src,bl,skillid,skilllv,0);
 		break;
 
 	case AC_MAKINGARROW:			/* 矢作成 */
@@ -5368,14 +5354,18 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 				(sd->skilllv>3)?sd->status.memo_point[2].map:"");
 		}
 		break;
+
 	case MO_BODYRELOCATION:
-		if(sd){
-			pc_movepos(sd,x,y);
-		}else if( src->type==BL_MOB )
-			mob_warp((struct mob_data *)src,-1,x,y,0);
-		if (sd)
+		if (sd) {
+			pc_movepos(sd, x, y);
 			pc_blockskill_start (sd, MO_EXTREMITYFIST, 2000);
+		} else if (src->type == BL_MOB) {
+			struct mob_data *md = (struct mob_data *)src;
+			mob_warp(md, -1, x, y, 0);
+			clif_spawnmob(md);
+		}
 		break;
+
 	case AM_CANNIBALIZE:	// バイオプラント
 		if(sd) {
 			int id;
@@ -7260,6 +7250,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 				(sc_data[SC_ROKISWEIL].timer != -1 && skill_num == BD_ADAPTATION) ||
 				(sc_data[SC_AUTOCOUNTER].timer != -1 && sd->skillid != KN_AUTOCOUNTER) ||
 				(sc_data[SC_MARIONETTE].timer != -1 && sd->skillid != CG_MARIONETTE) ||
+				(sc_data[SC_MARIONETTE2].timer != -1 && sd->skillid == CG_MARIONETTE) ||
 				sc_data[SC_DIVINA].timer != -1 ||
 				sc_data[SC_ROKISWEIL].timer != -1 ||			
 				sc_data[SC_STEELBODY].timer != -1 ||

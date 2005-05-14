@@ -25,10 +25,6 @@
 #include "grfio.h"
 #include "showmsg.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 #ifdef _WIN32
 #undef isspace
 #define isspace(x)  (x == ' ' || x == '\t')

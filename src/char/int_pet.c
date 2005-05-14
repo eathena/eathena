@@ -1,15 +1,16 @@
 // $Id: int_pet.c,v 1.1.1.1 2004/09/10 17:26:51 MagicalTux Exp $
-#include "inter.h"
-#include "int_pet.h"
-#include "mmo.h"
-#include "char.h"
-#include "socket.h"
-#include "db.h"
-#include "lock.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "../common/mmo.h"
+#include "../common/socket.h"
+#include "../common/db.h"
+#include "../common/lock.h"
+#include "char.h"
+#include "inter.h"
+#include "int_pet.h"
 
 char pet_txt[1024]="save/pet.txt";
 

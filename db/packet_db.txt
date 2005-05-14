@@ -646,7 +646,7 @@ prefer_packet_db: yes
 //0x00f5,9,takeitem,5
 //0x0113,34,useskilltopos,10:18:22:32
 //0x0072,26,useskilltoid,8:16:22
-//0x007e,114,useskilltopos,9:18:22:32:34
+//0x007e,114,useskilltopos,10:18:22:32:34
 //0x00a2,11,solvecharname,7
 //0x0143,10,npcamountinput,2:6
 0x021f,66

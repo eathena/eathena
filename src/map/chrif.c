@@ -25,10 +25,6 @@
 #include "nullpo.h"
 #include "showmsg.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 //Updated table (only doc^^) [Sirius]
 //Used Packets: U->2af8 
 //Free Packets: F->2af8 

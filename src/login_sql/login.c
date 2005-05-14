@@ -60,10 +60,6 @@ void Gettimeofday(struct timeval *timenow)
 #include "md5calc.h"
 #endif
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 #define J_MAX_MALLOC_SIZE 65535
 
 //-----------------------------------------------------

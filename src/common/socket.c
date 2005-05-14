@@ -36,10 +36,6 @@ typedef int socklen_t;
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 fd_set readfds;
 #ifdef TURBO
 fd_set writefds;

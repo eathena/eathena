@@ -9,10 +9,6 @@
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 #define MALLOC_DBN
 
 // Backup cleaning routine in case the core doesn't do so properly,

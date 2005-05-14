@@ -909,14 +909,27 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->paramb[4]+= 5;
 		}
 		if (sd->sc_data[SC_GUILDAURA].timer != -1) {
-			if (sd->sc_data[SC_GUILDAURA].val4 & 1<<0)
-				sd->paramb[0] += 2;
-			if (sd->sc_data[SC_GUILDAURA].val4 & 1<<1)
-				sd->paramb[2] += 2;
-			if (sd->sc_data[SC_GUILDAURA].val4 & 1<<2)
-				sd->paramb[1] += 2;
-			if (sd->sc_data[SC_GUILDAURA].val4 & 1<<3)
-				sd->paramb[4] += 2;				
+			int guildflag = sd->sc_data[SC_GUILDAURA].val4;
+			for (i = 16; i >= 0; i -= 4) {
+				skill = guildflag >> i;
+				switch (i) {
+					// guild skills
+					case 16: sd->paramb[0] += skill; break;
+					case 12: sd->paramb[2] += skill; break;
+					case 8: sd->paramb[1] += skill; break;
+					case 4: sd->paramb[4] += skill; break;
+					case 0:
+						// custom stats, since there's no info on how much it actually gives ^^; [Celest]
+						if (skill) {
+							sd->hit += 10;
+							sd->flee += 10;
+						}
+						break;
+					default:
+						break;
+				}
+				guildflag ^= skill << i;
+			}
 		}
 	}
 
@@ -1470,13 +1483,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 						aspd_rate += 75;
 						break;
 				}
-			}
-		}
-		// custom stats, since there's no info on how much it actually gives ^^; [Celest]
-		if (sd->sc_data[SC_GUILDAURA].timer != -1) {
-			if (sd->sc_data[SC_GUILDAURA].val4 & 1<<4) {
-				sd->hit += 10;
-				sd->flee += 10;
 			}
 		}
 	}

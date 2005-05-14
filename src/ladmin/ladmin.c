@@ -47,10 +47,6 @@ void Gettimeofday(struct timeval *timenow)
 #include "md5calc.h"
 #endif
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 //-------------------------------INSTRUCTIONS------------------------------
 // Set the variables below:
 //   IP of the login server.

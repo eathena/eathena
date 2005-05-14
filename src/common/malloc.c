@@ -561,14 +561,15 @@ static void memmer_exit(void) {
 			large->unit_head.file, large->unit_head.line, large->unit_head.size);
 		memmgr_log (buf);
 	#endif
-		if (large->prev) {
-			large->prev->next = large->next;
-		} else {
-			unit_head_large_first  = large->next;
-		}
-		if (large->next) {
-			large->next->prev = large->prev;
-		}
+		// we're already quitting, just skip tidying things up ^^
+		//if (large->prev) {
+		//	large->prev->next = large->next;
+		//} else {
+		//	unit_head_large_first  = large->next;
+		//}
+		//if (large->next) {
+		//	large->next->prev = large->prev;
+		//}
 		FREE (large);
 		large = large2;
 	}

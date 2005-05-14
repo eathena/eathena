@@ -24,10 +24,6 @@
 #include "log.h"
 #include "showmsg.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 #define MIN_MOBTHINKTIME 100
 
 #define MOB_LAZYMOVEPERC 50	// Move probability in the negligent mode MOB (rate of 1000 minute)

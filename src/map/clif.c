@@ -49,10 +49,6 @@
 #include "vending.h"
 #include "pet.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 #define STATE_BLIND 0x10
 
 struct Clif_Config clif_config;
@@ -9352,7 +9348,7 @@ void clif_parse_UseSkillToPos(int fd, struct map_session_data *sd) {
 				skillmoreinfo = 30;
 			break;
 		case 16:
-			skilllv = RFIFOW(fd,9);
+			skilllv = RFIFOW(fd,10);
 			skillnum = RFIFOW(fd,18);
 			x = RFIFOW(fd,22);
 			y = RFIFOW(fd,32);

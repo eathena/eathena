@@ -7,10 +7,6 @@
 #include "battle.h"
 #include "nullpo.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 //#define PATH_STANDALONETEST
 
 #define MAX_HEAP 150

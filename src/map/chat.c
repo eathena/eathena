@@ -12,10 +12,6 @@
 #include "chat.h"
 #include "npc.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 int chat_triggerevent(struct chat_data *cd);
 
 

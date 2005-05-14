@@ -23,10 +23,6 @@
 #include "skill.h"
 #include "showmsg.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 #define MIN_PETTHINKTIME 100
 
 struct pet_db pet_db[MAX_PET_DB];

@@ -42,10 +42,6 @@
 #include "log.h"
 #include "showmsg.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 #define SCRIPT_BLOCK_SIZE 256
 
 #define FETCH(n, t) \

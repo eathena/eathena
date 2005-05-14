@@ -26,10 +26,6 @@ int MAIL_CHECK_TIME = 120000;
 int mail_timer;
 //extern char *msg_table[1000]; // Server messages (0-499 reserved for GM commands, 500-999 reserved for others)
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 int mail_check(struct map_session_data *sd,int type)
 {
 	int i = 0, new_ = 0, priority = 0;

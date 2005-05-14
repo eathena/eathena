@@ -71,10 +71,6 @@
 	#define zlib_deflateEnd  deflateEnd
 #endif
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 typedef	unsigned char	BYTE;
 typedef	unsigned short	WORD;
 typedef	unsigned long	DWORD;

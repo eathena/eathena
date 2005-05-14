@@ -1,16 +1,17 @@
 // $Id: int_guild.c,v 1.2 2004/09/25 19:36:53 Akitasha Exp $
-#include "inter.h"
-#include "int_guild.h"
-#include "int_storage.h"
-#include "mmo.h"
-#include "char.h"
-#include "socket.h"
-#include "db.h"
-#include "lock.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "../common/mmo.h"
+#include "../common/socket.h"
+#include "../common/db.h"
+#include "../common/lock.h"
+#include "char.h"
+#include "inter.h"
+#include "int_storage.h"
+#include "int_guild.h"
 
 char guild_txt[1024] = "save/guild.txt";
 char castle_txt[1024] = "save/castle.txt";

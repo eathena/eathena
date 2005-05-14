@@ -50,10 +50,6 @@ void Gettimeofday(struct timeval *timenow)
 #include "md5calc.h"
 #endif
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 int account_id_count = START_ACCOUNT_NUM;
 int server_num;
 int new_account_flag = 0;

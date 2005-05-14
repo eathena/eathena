@@ -33,10 +33,6 @@
 #include "nullpo.h"
 #include "malloc.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 static const int packet_len_table[]={
 	-1,-1,27,-1, -1, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	-1, 7, 0, 0,  0, 0, 0, 0, -1,11, 0, 0,  0, 0,  0, 0,

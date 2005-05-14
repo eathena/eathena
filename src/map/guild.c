@@ -21,10 +21,6 @@
 #include "skill.h"
 #include "showmsg.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 static struct dbt *guild_db;
 static struct dbt *castle_db;
 static struct dbt *guild_expcache_db;

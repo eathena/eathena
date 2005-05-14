@@ -17,11 +17,7 @@
 #endif
 
 #include "timer.h"
-#include "malloc.h"
-
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
+#include "../common/malloc.h"
 
 static struct TimerData* timer_data;
 static int timer_data_max, timer_data_num;

@@ -39,10 +39,6 @@
 #include "mail.h"
 #endif
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 #define PVP_CALCRANK_INTERVAL 1000	// PVP順位計算の間隔
 
 static int exp_table[14][MAX_LEVEL];
@@ -3494,23 +3490,23 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
  * 移動可能か確認して、可能なら?行開始
  *------------------------------------------
  */
-static int pc_walktoxy_sub(struct map_session_data *sd)
+static int pc_walktoxy_sub (struct map_session_data *sd)
 {
 	struct walkpath_data wpd;
 	int i;
 
 	nullpo_retr(1, sd);
 
-	if(path_search(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,sd->to_x,sd->to_y,0))
+	if (path_search(&wpd, sd->bl.m, sd->bl.x, sd->bl.y, sd->to_x, sd->to_y, 0))
 		return 1;
-	memcpy(&sd->walkpath,&wpd,sizeof(wpd));
+	memcpy(&sd->walkpath, &wpd, sizeof(wpd));
 
 	clif_walkok(sd);
-	sd->state.change_walk_target=0;
+	sd->state.change_walk_target = 0;
 
-	if((i=calc_next_walk_step(sd))>0){
-		i = i>>2;
-		sd->walktimer=add_timer(gettick()+i,pc_walk,sd->bl.id,0);
+	if ((i = calc_next_walk_step(sd)) > 0){
+		i = i >> 2;
+		sd->walktimer = add_timer(gettick()+i, pc_walk, sd->bl.id, 0);
 	}
 	clif_movechar(sd);
 
@@ -3521,29 +3517,36 @@ static int pc_walktoxy_sub(struct map_session_data *sd)
  * pc? 行要求
  *------------------------------------------
  */
-int pc_walktoxy(struct map_session_data *sd,int x,int y)
+int pc_walktoxy (struct map_session_data *sd, int x, int y)
 {
-
 	nullpo_retr(0, sd);
 
-	sd->to_x=x;
-	sd->to_y=y;
+	sd->to_x = x;
+	sd->to_y = y;
 	sd->idletime = tick_;
 
-	if(sd->walktimer != -1 && sd->state.change_walk_target==0){
+	if (sd->walktimer != -1 && sd->state.change_walk_target == 0) {
 		// 現在?いている最中の目的地?更なのでマス目の中心に?た暫ﾉ
 		// timer??からpc_walktoxy_subを呼ぶようにする
-		sd->state.change_walk_target=1;
+		sd->state.change_walk_target = 1;
 	} else {
 		pc_walktoxy_sub(sd);
 	}
 
 	if (sd->state.gmaster_flag > 0) {
 		struct guild *g = (struct guild *)sd->state.gmaster_flag;
-		if (g)
-			map_foreachinarea (skill_guildaura_sub, sd->bl.m,
-				sd->bl.x-2, sd->bl.y-2, sd->bl.x+2, sd->bl.y+2, BL_PC,
-				sd->bl.id, sd->status.guild_id, g);
+		if (g) {
+			int skill, guildflag = 0;
+			if ((skill = guild_checkskill(g, GD_LEADERSHIP)) > 0) guildflag |= skill<<16;
+			if ((skill = guild_checkskill(g, GD_GLORYWOUNDS)) > 0) guildflag |= skill<<12;
+			if ((skill = guild_checkskill(g, GD_SOULCOLD)) > 0) guildflag |= skill<<8;
+			if ((skill = guild_checkskill(g, GD_HAWKEYES)) > 0) guildflag |= skill<<4;
+			if ((skill = guild_checkskill(g, GD_CHARISMA)) > 0) guildflag |= skill;
+			if (guildflag)
+				map_foreachinarea (skill_guildaura_sub, sd->bl.m,
+					sd->bl.x-2, sd->bl.y-2, sd->bl.x+2, sd->bl.y+2, BL_PC,
+					sd->bl.id, sd->status.guild_id, &guildflag);
+		}
 	}
 
 	return 0;
@@ -3553,23 +3556,23 @@ int pc_walktoxy(struct map_session_data *sd,int x,int y)
  * ? 行停止
  *------------------------------------------
  */
-int pc_stop_walking(struct map_session_data *sd,int type)
+int pc_stop_walking (struct map_session_data *sd, int type)
 {
 	nullpo_retr(0, sd);
 
-	if(sd->walktimer != -1) {
-		delete_timer(sd->walktimer,pc_walk);
-		sd->walktimer=-1;
+	if (sd->walktimer != -1) {
+		delete_timer(sd->walktimer, pc_walk);
+		sd->walktimer = -1;
 	}
-	sd->walkpath.path_len=0;
+	sd->walkpath.path_len = 0;
 	sd->to_x = sd->bl.x;
 	sd->to_y = sd->bl.y;
-	if(type&0x01)
+	if (type & 0x01)
 		clif_fixpos(&sd->bl);
-	if(type&0x02 && battle_config.pc_damage_delay) {
+	if (type & 0x02 && battle_config.pc_damage_delay) {
 		unsigned int tick = gettick();
 		int delay = status_get_dmotion(&sd->bl);
-		if(sd->canmove_tick < tick)
+		if (sd->canmove_tick < tick)
 			sd->canmove_tick = tick + delay;
 	}
 
@@ -3580,19 +3583,20 @@ int pc_stop_walking(struct map_session_data *sd,int type)
  * Random walk
  *------------------------------------------
  */
-int pc_randomwalk(struct map_session_data *sd,int tick)
+int pc_randomwalk (struct map_session_data *sd, int tick)
 {
 	const int retrycount = 20;
 	nullpo_retr(0, sd);
 
-	if(DIFF_TICK(sd->next_walktime,tick)<0){
-		int i,x,y,d;
-		d = rand()%7+5;
-		for(i=0;i<retrycount;i++){	// Search of a movable place
-			int r=rand();
-			x=sd->bl.x+r%(d*2+1)-d;
-			y=sd->bl.y+r/(d*2+1)%(d*2+1)-d;
-			if((map_getcell(sd->bl.m,x,y,CELL_CHKPASS)) && pc_walktoxy(sd,x,y)==0)
+	if (DIFF_TICK(sd->next_walktime, tick) < 0) {
+		int i, x, y, d;
+		d = rand() % 7 + 5;
+		for (i = 0; i < retrycount; i++) {	// Search of a movable place
+			int r = rand();
+			x = sd->bl.x + r % (d*2+1) - d;
+			y = sd->bl.y + r / (d*2+1) % (d*2+1) - d;
+			if ((map_getcell(sd->bl.m, x, y, CELL_CHKPASS)) &&
+				pc_walktoxy(sd, x, y) == 0)
 				break;
 		}
 		// Working on this part later [celest]

@@ -25,10 +25,6 @@
 #include "../common/showmsg.h"
 #include "svnversion.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 char *argp;
 int runflag = 1;
 char SERVER_TYPE = ATHENA_SERVER_NONE;
@@ -321,9 +317,11 @@ int main(int argc,char **argv)
 {
 	int next;
 
-	if ((argp = strstr(argv[0], "./")) != NULL)
-		argp+=2;
-	else argp = argv[0];
+	{
+		char *p = argp = argv[0];
+		while ((p = strchr(p, '/')) != NULL)
+			argp = ++p;
+	}
 
 	set_server_type();
 	display_title();

@@ -15,10 +15,6 @@
 #include "intif.h"
 #include "clif.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 #define PARTY_SEND_XYHP_INVERVAL	1000	// À•W‚â‚g‚o‘—M‚ÌŠÔŠu
 
 static struct dbt* party_db;
