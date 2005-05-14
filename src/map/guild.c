@@ -268,7 +268,6 @@ int guild_payexp_timer_sub(void *key, void *data, va_list ap)
 	int i, *dellist, *delp, dataid = (int)key;
 	struct guild_expcache *c;
 	struct guild *g;
-	double exp2;
 
 	nullpo_retr(0, ap);
 	nullpo_retr(0, c = (struct guild_expcache *)data);
@@ -280,8 +279,12 @@ int guild_payexp_timer_sub(void *key, void *data, va_list ap)
 		(i = guild_getindex(g, c->account_id, c->char_id)) < 0)
 		return 0;
 
-	exp2 = g->member[i].exp + c->exp;
-	g->member[i].exp = (exp2 > 0x7FFFFFFF) ? 0x7FFFFFFF : (int)exp2;
+	//fixed a bug in exp overflow [Kevin]
+	g->member[i].exp += c->exp;
+	if(g->member[i].exp < 0)
+		g->member[i].exp = 0x7FFFFFFF;
+	
+	
 	intif_guild_change_memberinfo(g->guild_id,c->account_id,c->char_id,
 		GMI_EXP,&g->member[i].exp,sizeof(g->member[i].exp));
 	c->exp=0;

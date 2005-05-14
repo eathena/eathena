@@ -1,5 +1,6 @@
 Date	Added
 05/15
+	* fixed a guild exp overflow [Kevin]
 	* new command @iteminfo item_name/id (@ii). It works, but will be improved [Lupus]
 	* added all known mapflags into @mapinfo command. Rearranged output [Lupus]
 

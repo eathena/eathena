@@ -800,7 +800,7 @@ int guild_calcinfo(struct guild *g)
 	if(g->guild_lv<=0) g->guild_lv=1;
 	nextexp = guild_nextexp(g->guild_lv);
 	if(nextexp > 0) {
-		while(g->exp >= nextexp && nextexp>0){	// Change by hack
+		while(g->exp >= nextexp && nextexp > 0){	//fixed guild exp overflow [Kevin]
 			g->exp-=nextexp;
 			g->guild_lv++;
 			g->skill_point++;

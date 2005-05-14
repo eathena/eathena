@@ -663,7 +663,7 @@ int guild_calcinfo(struct guild *g) {
 		g->guild_lv = 1;
 	nextexp = guild_nextexp(g->guild_lv);
 	if (nextexp > 0) {
-		while(g->exp >= nextexp) {	// レベルアップ処理
+		while(g->exp >= nextexp && nextexp > 0) {	//fixed guild exp overflow [Kevin]
 			g->exp -= nextexp;
 			g->guild_lv++;
 			g->skill_point++;
