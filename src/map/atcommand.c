@@ -9477,11 +9477,6 @@ int atcommand_version(
 static int atcommand_mutearea_sub(struct block_list *bl,va_list ap)
 {
 	
-	if(!battle_config.muting_players) {
-		clif_displaymessage(fd, "Please enable the muting system before using it.");
-		return 0;
-	}
-	
 	int time, id;
 	struct map_session_data *pl_sd = (struct map_session_data *)bl;
 	if (pl_sd == NULL)
