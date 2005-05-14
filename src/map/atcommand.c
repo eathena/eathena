@@ -562,9 +562,9 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_DisguiseAll,		"@disguiseall",		99,	atcommand_disguiseall },
 	{ AtCommand_ChangeLook,			"@changelook",		99,	atcommand_changelook },
 	{ AtCommand_AutoLoot,			"@autoloot",		10,	atcommand_autoloot }, // Upa-Kun
-	{ AtCommand_MobInfo,			"@mobinfo",			1,	atcommand_mobinfo }, // [Lupus]
-	{ AtCommand_MobInfo,			"@monsterinfo",		1,	atcommand_mobinfo }, // [Lupus]
-	{ AtCommand_MobInfo,			"@mi",				1,	atcommand_mobinfo }, // [Lupus]
+	{ AtCommand_MobInfo,			"@mobinfo",			0,	atcommand_mobinfo }, // [Lupus]
+	{ AtCommand_MobInfo,			"@monsterinfo",		0,	atcommand_mobinfo }, // [Lupus]
+	{ AtCommand_MobInfo,			"@mi",				0,	atcommand_mobinfo }, // [Lupus]
 	{ AtCommand_Adopt,              "@adopt",			40, atcommand_adopt }, // [Veider]
 	{ AtCommand_Version,			"@version",			0,	atcommand_version },
 
@@ -573,8 +573,8 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Shuffle,			"@shuffle",			40, atcommand_shuffle }, // MouseJstr
 	{ AtCommand_Rates,				"@rates",			10, atcommand_rates }, // MouseJstr
 
-	{ AtCommand_ItemInfo,			"@iteminfo",		1, atcommand_iteminfo }, // [Lupus]
-	{ AtCommand_ItemInfo,			"@ii",		1, atcommand_iteminfo }, // [Lupus]
+	{ AtCommand_ItemInfo,			"@iteminfo",		0, atcommand_iteminfo }, // [Lupus]
+	{ AtCommand_ItemInfo,			"@ii",		0, atcommand_iteminfo }, // [Lupus]
 	{ AtCommand_MapFlag,			"@mapflag",		99, atcommand_mapflag }, // [Lupus]
 
 // add new commands before this line
@@ -5846,24 +5846,105 @@ int atcommand_mapinfo(
 	}
 	sprintf(atcmd_output, "Map Name: %s | Players In Map: %d | NPCs In Map: %d | Chats In Map: %d", atcmd_player_name, map[m_id].users, map[m_id].npc_num, chat_num);
 	clif_displaymessage(fd, atcmd_output);
+	if (map[m_id].flag.alias)
+		strcat(atcmd_output, "This map is an alias (a named clone of some other map).");
 	clif_displaymessage(fd, "------ Map Flags ------");
-	sprintf(atcmd_output, "Player vs Player: %s | PvP No Guild: %s | PvP No Party: %s",
-	        (map[m_id].flag.pvp) ? "True" : "False",
-	        (map[m_id].flag.pvp_noguild) ? "True" : "False",
-	        (map[m_id].flag.pvp_noparty) ? "True" : "False");
+	strcpy(atcmd_output,"PvP Flags: ");
+	if (map[m_id].flag.pvp)
+		strcat(atcmd_output, "Pvp ON | ");
+	if (map[m_id].flag.nopvp)
+		strcat(atcmd_output, "NoPvp | ");
+	if (map[m_id].flag.pvp_noguild)
+		strcat(atcmd_output, "NoGuild | ");
+	if (map[m_id].flag.pvp_noparty)
+		strcat(atcmd_output, "NoParty | ");
+	if (map[m_id].flag.pvp_noparty)
+		strcat(atcmd_output, "NoParty | ");
+	if (map[m_id].flag.pvp_nightmaredrop)
+		strcat(atcmd_output, "NightmareDrop | ");
+	if (map[m_id].flag.pvp_nocalcrank)
+		strcat(atcmd_output, "NoCalcRank | ");
 	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "Guild vs Guild: %s | GvG No Party: %s", (map[m_id].flag.gvg) ? "True" : "False", (map[m_id].flag.gvg_noparty) ? "True" : "False");
+
+	strcpy(atcmd_output,"GvG Flags: ");
+	if (map[m_id].flag.gvg)
+		strcat(atcmd_output, "GvG ON | ");
+	if (map[m_id].flag.gvg_dungeon)
+		strcat(atcmd_output, "GvGDungeon | ");
+	if (map[m_id].flag.gvg_noparty)
+		strcat(atcmd_output, "NoParty | ");
 	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Dead Branch: %s | No Memo: %s", (map[m_id].flag.nobranch) ? "True" : "False", (map[m_id].flag.nomemo) ? "True" : "False");
+
+	strcpy(atcmd_output,"Teleport Flags: ");
+	if (map[m_id].flag.noteleport)
+		strcat(atcmd_output, "NoTeleport | ");
+	if (map[m_id].flag.monster_noteleport)
+		strcat(atcmd_output, "Monster NoTeleport | ");
+	if (map[m_id].flag.nowarp)
+		strcat(atcmd_output, "NoWarp | ");
+	if (map[m_id].flag.nowarpto)
+		strcat(atcmd_output, "NoWarpTo | ");
+	if (map[m_id].flag.noreturn)
+		strcat(atcmd_output, "NoReturn | ");
+	if (map[m_id].flag.nogo)
+		strcat(atcmd_output, "NoGo | ");
+	if (map[m_id].flag.nomemo)
+		strcat(atcmd_output, "NoMemo | ");
 	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Save: %s | No Return: %s", (map[m_id].flag.nosave) ? "True" : "False", (map[m_id].flag.noreturn) ? "True" : "False");
+
+	sprintf(atcmd_output, "No Penalty: %s | No Zeny Penalty: %s", (map[m_id].flag.nopenalty) ? "On" : "Off", (map[m_id].flag.nozenypenalty) ? "On" : "Off");
 	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Teleport: %s | No Monster Teleport: %s", (map[m_id].flag.noteleport) ? "True" : "False", (map[m_id].flag.monster_noteleport) ? "True" : "False");
+
+	if (map[m_id].flag.nosave) {
+		if (map[m_id].save.x == -1 || map[m_id].save.y == -1 )
+			sprintf(atcmd_output, "No Save, Save Point: %s,Random",map[m_id].save.map);
+		else
+			sprintf(atcmd_output, "No Save, Save Point: %s,%d,%d",
+				map[m_id].save.map,map[m_id].save.x,map[m_id].save.y);
+		clif_displaymessage(fd, atcmd_output);
+	}
+
+	strcpy(atcmd_output,"Weather Flags: ");
+	if (map[m_id].flag.snow)
+		strcat(atcmd_output, "Snow | ");
+	if (map[m_id].flag.fog)
+		strcat(atcmd_output, "Fog | ");
+	if (map[m_id].flag.sakura)
+		strcat(atcmd_output, "Sakura | ");
+	if (map[m_id].flag.clouds)
+		strcat(atcmd_output, "Clouds | ");
+	if (map[m_id].flag.fireworks)
+		strcat(atcmd_output, "Fireworks | ");
+	if (map[m_id].flag.leaves)
+		strcat(atcmd_output, "Leaves | ");
+	if (map[m_id].flag.rain)
+		strcat(atcmd_output, "Rain | ");
+	if (map[m_id].flag.indoors)
+		strcat(atcmd_output, "Indoors | ");
 	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Warp: %s | No WarpTo: %s", (map[m_id].flag.nowarp) ? "True" : "False", (map[m_id].flag.nowarpto) ? "True" : "False");
+
+	strcpy(atcmd_output,"Other Flags: ");
+	if (map[m_id].flag.nobranch)
+		strcat(atcmd_output, "NoBranch | ");
+	if (map[m_id].flag.notrade)
+		strcat(atcmd_output, "NoTrade | ");
+	if (map[m_id].flag.noskill)
+		strcat(atcmd_output, "NoSkill | ");
+	if (map[m_id].flag.noicewall)
+		strcat(atcmd_output, "NoIcewall | ");
 	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Penalty: %s | No Zeny Penalty: %s", (map[m_id].flag.nopenalty) ? "True" : "False", (map[m_id].flag.nozenypenalty) ? "True" : "False");
+
+	strcpy(atcmd_output,"Other Flags: ");
+	if (map[m_id].flag.nobaseexp)
+		strcat(atcmd_output, "NoBaseEXP | ");
+	if (map[m_id].flag.nojobexp)
+		strcat(atcmd_output, "NoJobEXP | ");
+	if (map[m_id].flag.nomobloot)
+		strcat(atcmd_output, "NoMobLoot | ");
+	if (map[m_id].flag.nomvploot)
+		strcat(atcmd_output, "NoMVPLoot | ");
 	clif_displaymessage(fd, atcmd_output);
+
 
 	switch (list) {
 	case 0:
@@ -9292,99 +9373,72 @@ int atcommand_iteminfo(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	unsigned char msize[3][7] = {"Small", "Medium", "Large"};
-	unsigned char mrace[12][11] = {"Formless", "Undead", "Beast", "Plant", "Insect", "Fish", "Demon", "Demi-Human", "Angel", "Dragon", "Boss", "Non-Boss"};
-	unsigned char melement[11][8] = {"None", "Neutral", "Water", "Earth", "Fire", "Wind", "Poison", "Holy", "Dark", "Ghost", "Undead"};
-	char atcmd_output2[200];
-	struct item_data *item_data;
-	struct mob_db *mob;
-	int mob_id;
-	int i, j;
+	char *itype[12] = {"Potion/Food", "BUG!", "Usable", "Etc", "Weapon", "Protection", "Card", "Egg", "Pet Acessory", "BUG!", "Arrow", "Lure/Scroll"};
 
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
-	memset(atcmd_output2, '\0', sizeof(atcmd_output2));
+	struct item_data *item_data;
+	int item_id=0;
 
 	if (!message || !*message) {
-		clif_displaymessage(fd, "Please, enter a Item name/id (usage: @iteminfo <item_name_or_ID>).");
+		clif_displaymessage(fd, "Please, enter Item name or its ID (usage: @iteminfo <item_name_or_ID>).");
 		return -1;
 	}
 
-	// If monster identifier/name argument is a name
-	if ((mob_id = mobdb_searchname(message)) == 0) // check name first (to avoid possible name begining by a number)
-		mob_id = mobdb_checkid(atoi(message));
+	if ((item_data = itemdb_searchname(message)) != NULL ||
+	    (item_data = itemdb_exists(atoi(message))) != NULL)
+		item_id = item_data->nameid;
 
-	if (mob_id == 0) {
-		clif_displaymessage(fd, msg_table[40]); // Invalid monster ID or name.
-		return -1;
-	}
+	if (item_id >= 500) {
 
-	mob = &mob_db[mob_id];
-
-	// stats
-	if (mob->mexp)
-		sprintf(atcmd_output, "Monster (MVP): '%s'/'%s' (%d)", mob->name, mob->jname, mob_id);
-	else
-		sprintf(atcmd_output, "Monster: '%s'/'%s' (%d)", mob->name, mob->jname, mob_id);
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, " Level:%d  HP:%d  SP:%d  Base EXP:%d  Job EXP:%d", mob->lv, mob->max_hp, mob->max_sp, mob->base_exp, mob->job_exp);
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, " DEF:%d  MDEF:%d  STR:%d  AGI:%d  VIT:%d  INT:%d  DEX:%d  LUK:%d", mob->def, mob->mdef, mob->str, mob->agi, mob->vit, mob->int_, mob->dex, mob->luk);
-	clif_displaymessage(fd, atcmd_output);
-	if (mob->element < 20) {
-		//Element - None, Level 0
-		i = 0;
-		j = 0;
-	} else {
-		i = mob->element % 20 + 1;
-		j = mob->element / 20;
-	}
-	sprintf(atcmd_output, " ATK:%d~%d  Range:%d~%d~%d  Size:%s  Race: %s  Element: %s (Lv:%d)", mob->atk1, mob->atk2, mob->range, mob->range2 , mob->range3, msize[mob->size], mrace[mob->race], melement[i], j);
-	clif_displaymessage(fd, atcmd_output);
-	// drops
-	clif_displaymessage(fd, " Drops:");
-	strcpy(atcmd_output, " ");
-	j = 0;
-	for (i = 0; i < 10; i++) {
-		if (mob->dropitem[i].nameid <= 0 || (item_data = itemdb_search(mob->dropitem[i].nameid)) == NULL)
-			continue;
-		if (mob->dropitem[i].p > 0) {
-			sprintf(atcmd_output2, " - %s  %02.02f%%", item_data->name, (float)mob->dropitem[i].p / 100);
-			strcat(atcmd_output, atcmd_output2);
-			if (++j % 3 == 0) {
-				clif_displaymessage(fd, atcmd_output);
-				strcpy(atcmd_output, " ");
-			}
-		}
-	}
-	if (j == 0)
-		clif_displaymessage(fd, "This monster has no drop.");
-	else if (j % 3 != 0)
+		sprintf(atcmd_output, "Item: '%s'/'%s'[%d] (%d) Type: %s | Extra Effect: %s",
+			item_data->name,item_data->jname,item_data->slot,item_id,
+			item_data->type < 12 ? itype[item_data->type] : "BUG!", 
+			(item_data->use_script==NULL && item_data->equip_script==NULL) ? "None" : (item_data->use_script==NULL ? "On Equip" : "On Usage")
+		);
 		clif_displaymessage(fd, atcmd_output);
-	// mvp
-	if (mob->mexp) {
-		sprintf(atcmd_output, " MVP Bonus EXP:%d  %02.02f%%", mob->mexp, (float)mob->mexpper / 100);
+
+		sprintf(atcmd_output, "NPC Buy:%dz%s, Sell:%dz%s | Weight: %d ", item_data->value_buy, item_data->flag.value_notdc ? "(No Discount!)":"", item_data->value_sell, item_data->flag.value_notoc ? "(No Overcharge!)":"", item_data->weight );
 		clif_displaymessage(fd, atcmd_output);
-		strcpy(atcmd_output, " MVP Items:");
-		j = 0;
-		for (i = 0; i < 3; i++) {
-			if (mob->mvpitem[i].nameid <= 0 || (item_data = itemdb_search(mob->mvpitem[i].nameid)) == NULL)
-				continue;
-			if (mob->mvpitem[i].p > 0) {
-				j++;
-				if (j == 1)
-					sprintf(atcmd_output2, " %s  %02.02f%%", item_data->name, (float)mob->mvpitem[i].p / 100);
-				else
-					sprintf(atcmd_output2, " - %s  %02.02f%%", item_data->name, (float)mob->mvpitem[i].p / 100);
-				strcat(atcmd_output, atcmd_output2);
-			}
-		}
-		if (j == 0)
-			clif_displaymessage(fd, "This monster has no MVP drop.");
-		else
-			clif_displaymessage(fd, atcmd_output);
+		return 0;
 	}
 
-	return 0;
+	clif_displaymessage(fd, "Item not found.");
+	return -1;
+/*
+struct item_data {
+	int nameid;
+	char name[24],jname[24];
+	char prefix[24],suffix[24];
+	char cardillustname[64];
+	int value_buy;
+	int value_sell;
+	int type;
+	int class_;
+	int sex;
+	int equip;
+	int weight;
+	int atk;
+	int def;
+	int range;
+	int slot;
+	int look;
+	int elv;
+	int wlv;
+	char *use_script;	// %ñ_'Æ'c'à'S"'+'Ì'+'Å'â'ë'¤'c'È'Æ
+	char *equip_script;	// _U_',-h_ä'Ì'R_<_Ý'è'à'+'Ì'+'Å%Â"\'c'È?
+	struct {
+		unsigned available : 1;
+		unsigned value_notdc : 1;
+		unsigned value_notoc : 1;
+		unsigned no_equip : 3;
+		unsigned no_use : 1;
+		unsigned no_refine : 1;	// [celest]
+		unsigned delay_consume : 1;	// Signifies items that are not consumed inmediately upon double-click [Skotlex]
+	} flag;
+	int view_id;
+};
+
+*/
+
 }
 
 /*==========================================
@@ -9408,7 +9462,7 @@ const char* command, const char* message)
                 return -1;
 
         if (sscanf(message, "%[^,],%[^,],%[^\r\n]", player1, player2, player3) != 3) {
-                clif_displaymessage(fd, "usage: @adopt <player1> <player2> <player3>.");
+                clif_displaymessage(fd, "usage: @adopt <player1>,<player2>,<player3>.");
                 return -1;
         }
 
@@ -9574,119 +9628,6 @@ int atcommand_mapflag(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	struct map_session_data *pl_sd;
-	struct npc_data *nd = NULL;
-	struct chat_data *cd = NULL;
-	char direction[12];
-	int m_id, i, chat_num, list = 0;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-	memset(direction, '\0', sizeof(direction));
-
-	sscanf(message, "%d %99[^\n]", &list, atcmd_player_name);
-
-	if (list < 0 || list > 3) {
-		clif_displaymessage(fd, "Please, enter at least a valid list number (usage: @mapflag [flagap name] [1|0|on|off] [map name]).");
-		return -1;
-	}
-
-	if (atcmd_player_name[0] == '\0')
-		strcpy(atcmd_player_name, sd->mapname);
-	if (strstr(atcmd_player_name, ".gat") == NULL && strstr(atcmd_player_name, ".afm") == NULL && strlen(atcmd_player_name) < 13) // 16 - 4 (.gat)
-		strcat(atcmd_player_name, ".gat");
-
-	if ((m_id = map_mapname2mapid(atcmd_player_name)) < 0) {
-		clif_displaymessage(fd, msg_table[1]); // Map not found.
-		return -1;
-	}
-
-	clif_displaymessage(fd, "------ Map Flags ------");
-	chat_num = 0;
-	for (i = 0; i < fd_max; i++) {
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
-		    (cd = (struct chat_data*)map_id2bl(pl_sd->chatID))) {
-			chat_num++;
-		}
-	}
-	sprintf(atcmd_output, "Map Name: %s | Players In Map: %d | NPCs In Map: %d | Chats In Map: %d", atcmd_player_name, map[m_id].users, map[m_id].npc_num, chat_num);
-	clif_displaymessage(fd, atcmd_output);
-	clif_displaymessage(fd, "------ Map Flags ------");
-	sprintf(atcmd_output, "Player vs Player: %s | PvP No Guild: %s | PvP No Party: %s",
-	        (map[m_id].flag.pvp) ? "True" : "False",
-	        (map[m_id].flag.pvp_noguild) ? "True" : "False",
-	        (map[m_id].flag.pvp_noparty) ? "True" : "False");
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "Guild vs Guild: %s | GvG No Party: %s", (map[m_id].flag.gvg) ? "True" : "False", (map[m_id].flag.gvg_noparty) ? "True" : "False");
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Dead Branch: %s | No Memo: %s", (map[m_id].flag.nobranch) ? "True" : "False", (map[m_id].flag.nomemo) ? "True" : "False");
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Save: %s | No Return: %s", (map[m_id].flag.nosave) ? "True" : "False", (map[m_id].flag.noreturn) ? "True" : "False");
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Teleport: %s | No Monster Teleport: %s", (map[m_id].flag.noteleport) ? "True" : "False", (map[m_id].flag.monster_noteleport) ? "True" : "False");
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Warp: %s | No WarpTo: %s", (map[m_id].flag.nowarp) ? "True" : "False", (map[m_id].flag.nowarpto) ? "True" : "False");
-	clif_displaymessage(fd, atcmd_output);
-	sprintf(atcmd_output, "No Penalty: %s | No Zeny Penalty: %s", (map[m_id].flag.nopenalty) ? "True" : "False", (map[m_id].flag.nozenypenalty) ? "True" : "False");
-	clif_displaymessage(fd, atcmd_output);
-
-	switch (list) {
-	case 0:
-		// Do nothing. It's list 0, no additional display.
-		break;
-	case 1:
-		clif_displaymessage(fd, "----- Players in Map -----");
-		for (i = 0; i < fd_max; i++) {
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth && strcmp(pl_sd->mapname, atcmd_player_name) == 0) {
-				sprintf(atcmd_output, "Player '%s' (session #%d) | Location: %d,%d",
-				        pl_sd->status.name, i, pl_sd->bl.x, pl_sd->bl.y);
-				clif_displaymessage(fd, atcmd_output);
-			}
-		}
-		break;
-	case 2:
-		clif_displaymessage(fd, "----- NPCs in Map -----");
-		for (i = 0; i < map[m_id].npc_num;) {
-			nd = map[m_id].npc[i];
-			switch(nd->dir) {
-			case 0:  strcpy(direction, "North"); break;
-			case 1:  strcpy(direction, "North West"); break;
-			case 2:  strcpy(direction, "West"); break;
-			case 3:  strcpy(direction, "South West"); break;
-			case 4:  strcpy(direction, "South"); break;
-			case 5:  strcpy(direction, "South East"); break;
-			case 6:  strcpy(direction, "East"); break;
-			case 7:  strcpy(direction, "North East"); break;
-			case 9:  strcpy(direction, "North"); break;
-			default: strcpy(direction, "Unknown"); break;
-			}
-			sprintf(atcmd_output, "NPC %d: %s | Direction: %s | Sprite: %d | Location: %d %d",
-			        ++i, nd->name, direction, nd->class_, nd->bl.x, nd->bl.y);
-			clif_displaymessage(fd, atcmd_output);
-		}
-		break;
-	case 3:
-		clif_displaymessage(fd, "----- Chats in Map -----");
-		for (i = 0; i < fd_max; i++) {
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
-			    (cd = (struct chat_data*)map_id2bl(pl_sd->chatID)) &&
-			    strcmp(pl_sd->mapname, atcmd_player_name) == 0 &&
-			    cd->usersd[0] == pl_sd) {
-				sprintf(atcmd_output, "Chat %d: %s | Player: %s | Location: %d %d",
-				        i, cd->title, pl_sd->status.name, cd->bl.x, cd->bl.y);
-				clif_displaymessage(fd, atcmd_output);
-				sprintf(atcmd_output, "   Users: %d/%d | Password: %s | Public: %s",
-				        cd->users, cd->limit, cd->pass, (cd->pub) ? "Yes" : "No");
-				clif_displaymessage(fd, atcmd_output);
-			}
-		}
-		break;
-	default: // normally impossible to arrive here
-		clif_displaymessage(fd, "Please, enter at least a valid list number (usage: @mapinfo <0-3> [map]).");
-		return -1;
-		break;
-	}
-
+// WIP
 	return 0;
 }

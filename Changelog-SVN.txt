@@ -1,4 +1,8 @@
 Date	Added
+05/15
+	* new command @iteminfo item_name/id (@ii). It works, but will be improved [Lupus]
+	* added all known mapflags into @mapinfo command. Rearranged output [Lupus]
+
 05/14
 	* Simplified @cleanmap [celest]
 	* Fixed finalizing clean up could miss 1 map [celest]
