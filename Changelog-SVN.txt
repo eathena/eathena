@@ -1,4 +1,6 @@
 Date	Added
+05/15
+	* You can only use mute commands when the system is enabled. [Kevin]
 05/14
 	* Fixed a guild bug in inif_guild_leave in intif.c, would expel are characters on an account [Kevin]
 	* Added new mapflags (mainly for fixing jobquests abuse and arenas) by Lorky, fixed added by [Lupus]
