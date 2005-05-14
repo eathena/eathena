@@ -2397,8 +2397,9 @@ static struct Damage battle_calc_pc_weapon_attack(
 				break;
 			}
 
-			damage *= damage_rate/100;
-			damage2 *= damage_rate/100;
+			//what about normal attacks? [celest]
+			//damage *= damage_rate/100;
+			//damage2 *= damage_rate/100;
 
 			if (div_flag && div_ > 1) {	// [Skotlex]
 				damage *= div_;
@@ -2407,6 +2408,10 @@ static struct Damage battle_calc_pc_weapon_attack(
 			if (sd && skill_num > 0 && sd->skillatk[0] == skill_num)
 				damage += damage*sd->skillatk[1]/100;
 		}
+
+		damage = damage * damage_rate / 100;
+		damage2 = damage2 * damage_rate / 100;
+
 		if(da == 2) { //三段掌が発動しているか
 			type = 0x08;
 			div_ = 255;	//三段掌用に…

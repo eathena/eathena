@@ -914,30 +914,6 @@ static int atmobsearch_sub(struct block_list *bl,va_list ap)
 	}
 	return 0;
 }
-/*==========================================
- * cleanmap
- *------------------------------------------
- */
-static int atcommand_cleanmap_sub(struct block_list *bl,va_list ap)
-{
-	struct flooritem_data *fitem;
-
-	nullpo_retr(0, bl);
-
-	fitem = (struct flooritem_data *)bl;
-	if(fitem==NULL || fitem->bl.type!=BL_ITEM){
-		if(battle_config.error_log)
-			printf("map_clearflooritem_timer : error\n");
-		return 1;
-	}
-	delete_timer(fitem->cleartimer,map_clearflooritem_timer);
-	if(fitem->item_data.card[0] == (short)0xff00)
-		intif_delete_petdata(*((long *)(&fitem->item_data.card[1])));
-	clif_clearflooritem(fitem,0);
-	map_delobject(fitem->bl.id);
-
-	return 0;
-}
 
 /*==========================================
  * Read Message Data
@@ -7968,16 +7944,27 @@ atcommand_mobsearch(
  * ドロップアイテムの掃除
  *------------------------------------------
  */
+/*==========================================
+ * cleanmap
+ *------------------------------------------
+ */
+static int atcommand_cleanmap_sub(struct block_list *bl, va_list ap)
+{
+	nullpo_retr(0, bl);
+	map_clearflooritem(bl->id);
+
+	return 0;
+}
+
 int
 atcommand_cleanmap(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int i=0;
-	map_foreachinarea(atcommand_cleanmap_sub,sd->bl.m,
-					  sd->bl.x-AREA_SIZE*2,sd->bl.y-AREA_SIZE*2,
-					  sd->bl.x+AREA_SIZE*2,sd->bl.y+AREA_SIZE*2,
-					  BL_ITEM,sd,&i);
+	map_foreachinarea(atcommand_cleanmap_sub, sd->bl.m,
+		sd->bl.x-AREA_SIZE*2, sd->bl.y-AREA_SIZE*2,
+		sd->bl.x+AREA_SIZE*2, sd->bl.y+AREA_SIZE*2,
+		BL_ITEM);
 	clif_displaymessage(fd, "All dropped items have been cleaned up.");
 	return 0;
 }

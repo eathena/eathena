@@ -3168,6 +3168,7 @@ int charid_db_final(void *k,void *d,va_list ap)
 	if (p) aFree(p);
 	return 0;
 }
+
 int cleanup_sub(struct block_list *bl, va_list ap) {
 	nullpo_retr(0, bl);
 
@@ -3207,8 +3208,8 @@ void do_final(void) {
     grfio_final();
 
     for (i = 0; i < map_num; i++)
-		if(map[i].m)
-			map_foreachinarea(cleanup_sub, i, 0, 0, map[i].xs, map[i].ys, 0, 0);
+		if (map[i].m >= 0)
+			map_foreachinarea(cleanup_sub, i, 0, 0, map[i].xs, map[i].ys, 0);
 
     chrif_char_reset_offline();
     chrif_flush_fifo();

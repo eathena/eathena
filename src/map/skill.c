@@ -292,6 +292,7 @@ const struct skill_name_db skill_names[] = {
  { NPC_DARKNESSATTACK, "DARKNESSATTACK", "NPC_DARKNESSATTACK" } ,
  { NPC_DEFENDER, "DEFENDER", "NPC_DEFENDER" } ,
  { NPC_EMOTION, "EMOTION", "NPC_EMOTION" } ,
+ { NPC_EMOTION_ON, "EMOTION_ON", "NPC_EMOTION_ON" } ,
  { NPC_ENERGYDRAIN, "ENERGYDRAIN", "NPC_ENERGYDRAIN" } ,
  { NPC_FIREATTACK, "FIREATTACK", "NPC_FIREATTACK" } ,
  { NPC_GROUNDATTACK, "GROUNDATTACK", "NPC_GROUNDATTACK" } ,
@@ -4354,6 +4355,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NPC_EMOTION:			/* ƒGƒ‚?ƒVƒ‡ƒ“ */
 		if(md)
 			clif_emotion(&md->bl,mob_db[md->class_].skill[md->skillidx].val[0]);
+		break;
+
+	case NPC_EMOTION_ON:
+		// not sure what it does
 		break;
 
 	case NPC_DEFENDER:

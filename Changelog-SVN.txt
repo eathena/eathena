@@ -1,5 +1,10 @@
 Date	Added
 05/14
+	* Simplified @cleanmap [celest]
+	* Fixed finalizing clean up could miss 1 map [celest]
+	* Added placeholder code for NPC_EMOTION_ON [celest]
+	* Fixed damage bonuses (damage_rate) not working for normal attacks [celest]
+	* Fixed Concentration (again ^^; ), thanks to lordalfa
 	* Fixed base file name sometimes not retrieved properly in core [celest]
 	* Removed "memwatch.h" includes for all source files other than malloc.h -- only
 	  1 define is enough [celest]
