@@ -3639,7 +3639,8 @@ int atcommand_produce(
 		tmp_item.identify = 1;
 		tmp_item.card[0] = 0x00ff;
 		tmp_item.card[1] = ((star * 5) << 8) + attribute;
-		*((unsigned long *)(&tmp_item.card[2])) = sd->char_id;
+		tmp_item.card[2] = GetWord(sd->char_id, 0);
+		tmp_item.card[3] = GetWord(sd->char_id, 1);
 		clif_produceeffect(sd, 0, item_id); // 製造エフェクトパケット
 		clif_misceffect(&sd->bl, 3); // 他人にも成功を通知
 		if ((flag = pc_additem(sd, &tmp_item, 1)))

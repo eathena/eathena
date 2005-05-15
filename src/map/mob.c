@@ -1858,7 +1858,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 						return 0;
 					} else {
 						if (md->lootitem[0].card[0] == (short)0xff00)
-							intif_delete_petdata(*((long *)(&md->lootitem[0].card[1])));
+							intif_delete_petdata( MakeDWord(md->lootitem[0].card[1],md->lootitem[0].card[2]) );
 						for (i = 0; i < LOOTITEM_SIZE - 1; i++)
 							memcpy (&md->lootitem[i], &md->lootitem[i+1], sizeof(md->lootitem[0]));
 						memcpy (&md->lootitem[LOOTITEM_SIZE-1], &fitem->item_data, sizeof(md->lootitem[0]));

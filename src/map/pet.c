@@ -923,7 +923,8 @@ int pet_return_egg(struct map_session_data *sd)
 		tmp_item.nameid = sd->petDB->EggID;
 		tmp_item.identify = 1;
 		tmp_item.card[0] = 0xff00;
-		*((long *)(&tmp_item.card[1])) = sd->pet.pet_id;
+		tmp_item.card[1] = GetWord(sd->pet.pet_id,0);
+		tmp_item.card[2] = GetWord(sd->pet.pet_id,1);
 		tmp_item.card[3] = sd->pet.rename_flag;
 		if((flag = pc_additem(sd,&tmp_item,1))) {
 			clif_additem(sd,0,0,flag);
@@ -1104,7 +1105,7 @@ int pet_select_egg(struct map_session_data *sd,short egg_index)
 	nullpo_retr(0, sd);
 
 	if(sd->status.inventory[egg_index].card[0] == (short)0xff00)
-		intif_request_petdata(sd->status.account_id,sd->status.char_id,*((long *)&sd->status.inventory[egg_index].card[1]));
+		intif_request_petdata(sd->status.account_id, sd->status.char_id, MakeDWord(sd->status.inventory[egg_index].card[1], sd->status.inventory[egg_index].card[2]) );
 	else {
 		if(battle_config.error_log)
 			printf("wrong egg item inventory %d\n",egg_index);
@@ -1200,7 +1201,8 @@ int pet_get_egg(int account_id,int pet_id,int flag)
 			tmp_item.nameid = pet_db[i].EggID;
 			tmp_item.identify = 1;
 			tmp_item.card[0] = 0xff00;
-			tmp_item.card[1] = pet_id;
+			tmp_item.card[1] = GetWord(pet_id,0);
+			tmp_item.card[2] = GetWord(pet_id,1);
 			tmp_item.card[3] = sd->pet.rename_flag;
 			if((ret = pc_additem(sd,&tmp_item,1))) {
 				clif_additem(sd,0,0,ret);

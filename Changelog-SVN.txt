@@ -1,5 +1,9 @@
 Date	Added
 05/15
+	* Added Shinomori's MakeWord, MakeDWord and GetWord functions to split a 'long' into
+	  'short' & assemble 'short' into 'long', used for produced items and pet eggs [DracoRPG]
+	* Fixed famous player's produced items not giving bonuses if the producer had a too long
+	  character ID (exceeding 'short' capacity and then stored both in card2 and 3) [DracoRPG]
 	* Added gm command symbol checks for atcommand/charcommand.c, thanks to akusarujin
 	* Added valid session check in clif_additem, thanks to Sasuke
 	* Fixed a heavy memory leak with the Memory Manager, by Shinomori
@@ -56,7 +60,8 @@ Date	Added
 	in other words, 'noloot' set both mapflags 'nomobloot' and 'nomvploot'
 
 05/12
-	* Very very very strong weapons (forged with 3 Star Crumbs) now give +40 dmg instead of 15 [DracoRPG]
+	* Very very very strong weapons (forged with 3 Star Crumbs) now give +40 dmg
+	  instead of +15 dmg [DracoRPG]
 	* Weapons/potions made by a top-10 famous player now give bonus effects [DracoRPG]
 	* Updated the battle.c change made to generate compile time
         errors if you put the wrong battle_config option with the

@@ -1676,10 +1676,10 @@ static int char_delete(struct mmo_charstatus *cs) {
 		inter_pet_delete(cs->pet_id);
 	for (j = 0; j < MAX_INVENTORY; j++)
 		if (cs->inventory[j].card[0] == (short)0xff00)
-			inter_pet_delete(*((long *)(&cs->inventory[j].card[2])));
+			inter_pet_delete(MakeDWord(cs->inventory[j].card[1],cs->inventory[j].card[2]));
 	for (j = 0; j < MAX_CART; j++)
 		if (cs->cart[j].card[0] == (short)0xff00)
-			inter_pet_delete(*((long *)(&cs->cart[j].card[2])));
+			inter_pet_delete( MakeDWord(cs->cart[j].card[1],cs->cart[j].card[2]) );
 	// ƒMƒ‹ƒh’E‘Þ
 	if (cs->guild_id)
 		inter_guild_leave(cs->guild_id, cs->account_id, cs->char_id);

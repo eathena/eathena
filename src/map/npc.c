@@ -1100,15 +1100,11 @@ int npc_selllist(struct map_session_data *sd,int n,unsigned short *item_list)
 			sd->inventory_data[item_id]->type==7 && sd->status.inventory[item_id].amount>0 &&
 			sd->status.inventory[item_id].card[0] == (short)0xff00)
 				if(search_petDB_index(sd->status.inventory[item_id].nameid, PET_EGG) >= 0)
-					intif_delete_petdata((*(long *)(&sd->status.inventory[item_id].card[1])));
+					intif_delete_petdata(MakeDWord(sd->status.inventory[item_id].card[1],sd->status.inventory[item_id].card[2]));
 		pc_delitem(sd,item_id,item_list[i*2+1],0);
 	}
 
 	//¤lŒoŒ±’l
-/*	if ((sd->status.class_ == 5) || (sd->status.class_ == 10) || (sd->status.class_ == 18)) {
-		z = z * pc_checkskill(sd,MC_OVERCHARGE) / ((1 + 500 / itemamount) * 4000) * battle_config.shop_exp ;
-		pc_gainexp(sd,0,z);
-	}*/
 	if (battle_config.shop_exp > 0 && z > 0 && (skill = pc_checkskill(sd,MC_OVERCHARGE)) > 0) {
 		if (sd->status.skill[MC_OVERCHARGE].flag != 0)
 			skill = sd->status.skill[MC_OVERCHARGE].flag - 2;

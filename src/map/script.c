@@ -2605,7 +2605,7 @@ int buildin_delitem(struct script_state *st)
 			continue;
 		//1 egg uses 1 cell in the inventory. so it's ok to delete 1 pet / per cycle
 		if(sd->inventory_data[i]->type==7 && sd->status.inventory[i].card[0] == (short)0xff00 && search_petDB_index(nameid, PET_EGG) >= 0 ){
-			intif_delete_petdata(*((long *)(&sd->status.inventory[i].card[1])));
+			intif_delete_petdata( MakeDWord(sd->status.inventory[i].card[1], sd->status.inventory[i].card[2]) );
 			//clear egg flag. so it won't be put in IMPORTANT items (eggs look like item with 2 cards ^_^)
 			sd->status.inventory[i].card[1] = sd->status.inventory[i].card[0] = 0;
 			//now this egg'll be deleted as a common unimportant item
@@ -3145,7 +3145,7 @@ int buildin_successrefitem(struct script_state *st)
 		clif_additem(sd,i,1,0);
 		pc_equipitem(sd,i,ep);
 		clif_misceffect(&sd->bl,3);
-		if(sd->status.inventory[i].refine == 10 && sd->status.inventory[i].card[0] == 0x00ff && sd->status.inventory[i].card[2] == sd->char_id){ // Fame point system [DracoRPG]
+		if(sd->status.inventory[i].refine == 10 && sd->status.inventory[i].card[0] == 0x00ff && sd->char_id == MakeDWord(sd->status.inventory[i].card[2],sd->status.inventory[i].card[3])){ // Fame point system [DracoRPG]
 	 		switch (sd->inventory_data[i]->wlv){
 	 	 		case 1:
 		 	  		 sd->status.fame += 1; // Success to refine to +10 a lv1 weapon you forged = +1 fame point

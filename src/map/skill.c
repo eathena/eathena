@@ -3861,7 +3861,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if(battle_config.holywater_name_input) {
 				item_tmp.card[0] = 0xfe;
 				item_tmp.card[1] = 0;
-				*((unsigned long *)(&item_tmp.card[2]))=sd->char_id;	/* キャラID */
+				item_tmp.card[2] = GetWord(sd->char_id,0); // CharId
+				item_tmp.card[3] = GetWord(sd->char_id,1);
 			}
 			eflag = pc_additem(sd,&item_tmp,1);
 			if(eflag) {
@@ -5706,7 +5707,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 	case BA_APPLEIDUN:			/* イドゥンの林檎 */
 		if(src->type == BL_PC)
 			val1 = pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON)&0xffff;
-		val2 |= (status_get_vit(src)-status_get_vit(src)%10)&0xffff; // Used modulus to prevent e.g. 42VIT/10*5 gives 21 HP healing bonus instead if 20 [DracoRPG]
+		val2 |= (status_get_vit(src))&0xffff; // Used modulus to prevent e.g. 42VIT/10*5 gives 21 HP healing bonus instead if 20 [DracoRPG]
 		val3 = 0;//回復用タイムカウンタ(6秒?に1?加)
 		break;
 	case DC_SERVICEFORYOU:		/* サ?ビスフォ?ユ? */
@@ -8311,7 +8312,6 @@ int skill_idun_heal (struct block_list *bl, va_list ap)
 	nullpo_retr(0, sg = unit->group);
 	if (bl->id == sg->src_id)
 		return 0;
-
 	heal = 30 + sg->skill_lv * 5 + ((sg->val1) >> 16) * 5 + ((sg->val2) & 0xfff) / 2;
 	clif_skill_nodamage(&unit->bl, bl, AL_HEAL, heal, 1);
 	battle_heal(NULL, bl, heal, 0, 0);
@@ -9223,7 +9223,7 @@ int skill_produce_mix( struct map_session_data *sd,
 		if(skill_produce_db[idx].req_skill==AM_PHARMACY) {
 			make_per = pc_checkskill(sd,AM_LEARNINGPOTION)*100
 				+ pc_checkskill(sd,AM_PHARMACY)*300 + sd->status.job_level*20
-				+ sd->paramc[4]*10+sd->paramc[5]*10;
+				+ sd->paramc[3]*5 + sd->paramc[4]*10+sd->paramc[5]*10;
 
 			if(nameid >= 501 && nameid <= 505) // Normal potions
 				make_per += 2000 + pc_checkskill(sd,AM_POTIONPITCHER)*100;
@@ -9284,13 +9284,15 @@ int skill_produce_mix( struct map_session_data *sd,
 		if(equip){	/* 武器の場合 */
 			tmp_item.card[0]=0x00ff; /* 製造武器フラグ */
 			tmp_item.card[1]=((sc*5)<<8)+ele;	/* ?性とつよさ */
-			*((unsigned long *)(&tmp_item.card[2]))=sd->char_id;	/* キャラID */
+			tmp_item.card[2]=GetWord(sd->char_id,0); // CharId
+            tmp_item.card[3]=GetWord(sd->char_id,1);
 		}
 		else if((battle_config.produce_item_name_input && skill_produce_db[idx].req_skill!=AM_PHARMACY) ||
 			(battle_config.produce_potion_name_input && skill_produce_db[idx].req_skill==AM_PHARMACY)) {
 			tmp_item.card[0]=0x00fe;
 			tmp_item.card[1]=0;
-			*((unsigned long *)(&tmp_item.card[2]))=sd->char_id;	/* キャラID */
+            tmp_item.card[2]=GetWord(sd->char_id,0); // CharId
+            tmp_item.card[3]=GetWord(sd->char_id,1);
 		}
 
 		if(log_config.produce > 0)
@@ -9391,7 +9393,8 @@ int skill_arrow_create( struct map_session_data *sd,int nameid)
 		if(battle_config.making_arrow_name_input) {
 			tmp_item.card[0]=0x00fe;
 			tmp_item.card[1]=0;
-			*((unsigned long *)(&tmp_item.card[2]))=sd->char_id;	/* キャラID */
+			tmp_item.card[2]=GetWord(sd->char_id,0); // CharId
+            tmp_item.card[3]=GetWord(sd->char_id,1);
 		}
 		if(tmp_item.nameid <= 0 || tmp_item.amount <= 0)
 			continue;

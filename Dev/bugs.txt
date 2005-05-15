@@ -113,10 +113,6 @@ Problem:	You can put in Cart goods more than Cart Max Weight limit allows
 Assigned:	N/A
 Progress:	0%
 
-Problem:	Lord Kaho Horns supposedly disappear when equipped.
-Assigned:	N/A
-Progress:	0%
-
 Problem:	Fire Pillar doesn't consume GEMS!
 Assigned:	N/A
 Progress:	N/A
@@ -133,10 +129,6 @@ Problem:	Speed hack and other proxy-like hacks
 			dupe, multiattack (destroy Emp in 1 minute.) etc...
 		We should check packets, should keep eye on frequency of users packets
 			and ban / kick / log funkers
-Assigned:	N/A
-Progress:	0%
-
-Problem:	ATCommand @addwarp crashes the server
 Assigned:	N/A
 Progress:	0%
 
@@ -159,7 +151,7 @@ Problem:	Guilds Skill - Emergency Call doesn't work in castles (it somehow usele
 Assigned:	N/A
 Progress:	0%
 
-Problem:	Guilds Skill - GD_EVELOPMENT (Extend_Guild)
+Problem:	Guilds Skill - GD_DEVELOPMENT (Extend_Guild)
 		has different description in korean desc table (some numbersm etc)
 		so it's different from the current implementation (Celest, plz check)
 Assigned:	N/A
@@ -261,13 +253,6 @@ Problem:	Party EXP share bug
 Assigned:	N/A
 Progress:	0%
 
-Problem:	Guilds Breaking
-		When you BREAK your guild and then someone re-creates another guild with the same Name
-		Then new GULD would have LEVEL, EXP, STATS of the broken guild
-			Probably it isn't being deleted from memory.
-Assigned:	N/A
-Progress:	0%
-
 Problem:	Character global VARS save with delay. (BTW Account #vars are fine!)
 			It cause multi exploits in all quests (you can leave the game - changing character
 			and you lose your vars saving. So you can complete the quest again, etc)
@@ -284,7 +269,7 @@ Problem:	Charge Arrow bug
 Assigned:	Celest
 Progress:	100%
 
-Problem:	Storm Gust (it worked fine before ~9 may 2005)
+Problem:	Storm Gust, Lord of Vermilion and maybe others AoE skills (it worked fine before ~9 may 2005)
 			It works and casts as LEVEL 10, even if u cast it on lvl 1
 Assigned:	NA
 Progress:	0%
@@ -292,6 +277,7 @@ Progress:	0%
 Problem:	Bards songs do BLIND players...
 Assigned:	NA
 Progress:	0%
+Notes:	It's only the client-side visual effect, not an actual blind state
 
 Problem:	Wedding Teleport Skills
 			Somehow.. just married could RECALL players from Prison
@@ -311,7 +297,7 @@ Progress:	0%
 
 
 Problem:	New Guilds Active Skills Abuse.
-			You can re-enter the game and call guild skills again w/o delay
+			You can re-enter the game and call guild skills again w/o delay since the delay is applied to the character
 Assigned:	na
 Progress:	0%
 
@@ -319,11 +305,11 @@ Problem:	Baby Merchant + Cart = Client Crash (when other players see him)
 Assigned:	na
 Progress:	0%
 
-Problem:	Guilds Abuse
-			1. you break guild...
-			2. other player creates guild with the SAME name as just breaked guild
-			3. he gets all GUILDS skills and levels of the just breaked guild
-Assigned:	na
+Problem:	Guilds Breaking
+		When you BREAK your guild and then someone re-creates another guild with the same Name
+		Then new GULD would have LEVEL, EXP, STATS of the broken guild
+			Probably it isn't being deleted from memory.
+Assigned:	N/A
 Progress:	0%
 
 

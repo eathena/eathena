@@ -709,7 +709,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 						sd->left_weapon.star = (sd->status.inventory[index].card[1]>>8);	// ¯‚Ì‚©‚¯‚ç
 						if(sd->left_weapon.star >= 15) sd->left_weapon.star = 40; // 3 Star Crumbs now give +40 dmg
 						wele_= (sd->status.inventory[index].card[1]&0x0f);	// ? «
-						sd->left_weapon.fameflag = pc_istop10fame(sd->status.inventory[index].card[2],0);
+						sd->left_weapon.fameflag = pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,0);
 					}
 					sd->attackrange_ += sd->inventory_data[index]->range;
 					sd->state.lr_flag = 1;
@@ -727,7 +727,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 						sd->right_weapon.star += (sd->status.inventory[index].card[1]>>8);	// ¯‚Ì‚©‚¯‚ç
 						if(sd->right_weapon.star >= 15) sd->right_weapon.star = 40; // 3 Star Crumbs now give +40 dmg
 						wele = (sd->status.inventory[index].card[1]&0x0f);	// ? «
-						sd->right_weapon.fameflag = pc_istop10fame(sd->status.inventory[index].card[2],0);
+						sd->right_weapon.fameflag = pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,0);
 					}
 					sd->attackrange += sd->inventory_data[index]->range;
 					run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);

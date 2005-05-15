@@ -42,6 +42,7 @@
 #define MAX_INVENTORY 100
 #define MAX_AMOUNT 30000
 #define MAX_ZENY 1000000000	// 1G zeny
+#define MAX_FAME 1000000000 // 1G fame point [DracoRPG]
 #define MAX_CART 100
 #define MAX_SKILL 650
 #define GLOBAL_REG_NUM 96

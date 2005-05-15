@@ -2624,7 +2624,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 			clif_useitemack(sd,n,amount-1,1);
 			pc_delitem(sd,n,1,1);
 		}
-		if(sd->status.inventory[n].card[0]==0x00ff && pc_istop10fame(sd->status.inventory[n].card[2],1))
+		if(sd->status.inventory[n].card[0]==0x00ff && pc_istop10fame(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]),1))
 		    sd->state.potion_flag = 1;
 		run_script(script,0,sd->bl.id,0);
 		sd->state.potion_flag = 0;
@@ -2880,7 +2880,7 @@ int pc_item_refine(struct map_session_data *sd,int idx)
 				if (ep)
 					pc_equipitem(sd,idx,ep);
 				clif_misceffect(&sd->bl,3);
-				if(item->refine == MAX_REFINE && item->card[0] == 0x00ff && item->card[2] == sd->char_id){ // Fame point system [DracoRPG]
+				if(item->refine == MAX_REFINE && item->card[0] == 0x00ff && MakeDWord(item->card[2],item->card[3]) == sd->char_id){ // Fame point system [DracoRPG]
 					switch(ditem->wlv){
 						case 1:
 							sd->status.fame += 1; // Success to refine to +10 a lv1 weapon you forged = +1 fame point
@@ -4928,7 +4928,8 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 		item_tmp.identify=1;
 		item_tmp.card[0]=0x00fe;
 		item_tmp.card[1]=0;
-		*((unsigned long *)(&item_tmp.card[2]))=sd->char_id;	/* ƒLƒƒƒ‰ID */
+		item_tmp.card[2]=GetWord(sd->char_id,0); // CharId
+		item_tmp.card[3]=GetWord(sd->char_id,1);
 		map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
 	}
 
@@ -6906,26 +6907,6 @@ static int pc_natural_heal_hp(struct map_session_data *sd)
 			bonus = sd->nshealhp;
 			while(sd->inchealhptick >= battle_config.natural_heal_skill_interval) {
 				sd->inchealhptick -= battle_config.natural_heal_skill_interval;
-				if(sd->status.hp + bonus <= sd->status.max_hp)
-					sd->status.hp += bonus;
-				else {
-					bonus = sd->status.max_hp - sd->status.hp;
-					sd->status.hp = sd->status.max_hp;
-					sd->hp_sub = sd->inchealhptick = 0;
-				}
-				clif_heal(sd->fd,SP_HP,bonus);
-			}
-		}
-	}
-	else sd->inchealhptick = 0;
-
-	return 0;
-
-	if(sd->sc_count && sd->sc_data[SC_APPLEIDUN].timer!=-1 && sd->sc_data[SC_BERSERK].timer==-1) { // Apple of Idun
-		if(sd->inchealhptick >= 6000 && sd->status.hp < sd->status.max_hp) {
-			bonus = 30 + sd->sc_data[SC_APPLEIDUN].val1 * 5 + sd->sc_data[SC_APPLEIDUN].val2 * 5 + sd->sc_data[SC_APPLEIDUN].val3 / 10 * 5;
-			while(sd->inchealhptick >= 6000) {
-				sd->inchealhptick -= 6000;
 				if(sd->status.hp + bonus <= sd->status.max_hp)
 					sd->status.hp += bonus;
 				else {
