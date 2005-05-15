@@ -14,6 +14,7 @@
 #include "battle.h"
 #include "intif.h"
 #include "clif.h"
+#include "log.h"
 
 #define PARTY_SEND_XYHP_INVERVAL	1000	// À•W‚â‚g‚o‘—M‚ÌŠÔŠu
 
@@ -480,6 +481,10 @@ int party_send_message(struct map_session_data *sd,char *mes,int len)
 		return 0;
 	intif_party_message(sd->status.party_id,sd->status.account_id,mes,len);
         party_recv_message(sd->status.party_id,sd->status.account_id,mes,len);
+	//Chat Logging support Type 'P'
+	log_chat("P", sd->status.party_id, sd->status.char_id, sd->status.account_id, (char*)sd->mapname, sd->bl.x, sd->bl.y, NULL, mes);
+	
+
 	return 0;
 }
 

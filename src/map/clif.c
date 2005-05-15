@@ -48,6 +48,7 @@
 #include "guild.h"
 #include "vending.h"
 #include "pet.h"
+#include "log.h"
 
 #define STATE_BLIND 0x10
 
@@ -8514,6 +8515,10 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 	}
 
 	if(gm_command) aFree(gm_command);
+
+
+	//Chat Logging type 'W' / Whisper
+	log_chat("W", 0, sd->status.char_id, sd->status.account_id, (char*)sd->mapname, sd->bl.x, sd->bl.y, (char*)RFIFOP(fd, 4), (char*)RFIFOP(fd, 28));
 
 	// searching destination character
 	dstsd = map_nick2sd((char*)RFIFOP(fd,4));
