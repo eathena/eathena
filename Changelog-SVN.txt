@@ -1,5 +1,7 @@
 Date	Added
 05/15
+	* Fixed alot of null pointers thanks to Sasuke-. [Kevin]
+	* Set default in battle_athena.conf of player_skillup_limit to yes. [Kevin]
 	* Extended hide_gm_session to @where [Kevin]
 	* Fixed a guild exp overflow bug in guild.c & int_guild.c[Kevin]
 	* new command @iteminfo item_name/id (@ii). It works, but will be improved [Lupus]

@@ -20,6 +20,7 @@
 #include "../common/malloc.h"
 #include "../common/lock.h"
 #include "../common/db.h"
+#include "../common/nullpo.h"
 
 #include "map.h"
 #include "clif.h"
@@ -4430,6 +4431,9 @@ int buildin_sc_end(struct script_state *st)
 	int type;
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	bl = map_id2bl(st->rid);
+	
+	nullpo_retr(0,bl);  //Fixed null pointer right here [Kevin]
+
 	if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
 		bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
 	status_change_end(bl,type,-1);

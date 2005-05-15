@@ -6807,6 +6807,10 @@ int clif_guild_notice(struct map_session_data *sd,struct guild *g)
 	nullpo_retr(0, g);
 
 	fd = sd->fd;
+
+	if ( !session_isActive(fd) )  //null pointer right here [Kevin]
+		return 0;
+ 
 	if (fd <= 0)
 		return 0;
 	if(*g->mes1==0 && *g->mes2==0)
