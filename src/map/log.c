@@ -500,17 +500,43 @@ int log_npc(struct map_session_data *sd, const char *message)
 }
 
 //ChatLogging
-int log_chat(char type, int type_id, int src_charid, int src_accid, char *map, int x, int y, char *dst_charname, char *message){
+int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, int x, int y, char *dst_charname, char *message){
+
+	//Check ON/OFF
+	if(log_config.chat <= 0){
+		return 0; //Deactivated
+	}
 
 #ifndef TXT_ONLY
-	//Todo [Sirius]
-	return 1;
+	if(log_config.sql_logs > 0){
+		sprintf(tmp_sql, "INSERT INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_x`, `src_y`, `dst_charname`, `message`) VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s')", 
+		 	log_config.log_chat_db, type, type_id, src_charid, src_accid, map, x, y, dst_charname, message);
+	
+		if(mysql_query(&mmysql_handle, tmp_sql)){
+			printf("log_chat() -> SQL ERROR / FAIL: %s\n", mysql_error(&mmysql_handle));
+			return -1;	
+		}else{
+			return 0;
+		}
+	}			
 #endif
 
 #ifdef TXT_ONLY
-	printf("log_chat() -> Currently only for SQL Logging!\n");
-	return 0;
+
+	FILE *logfp;
+	
+	if((logfp = fopen(log_config.log_chat, "a+")) != NULL){
+		time(&curtime);
+		strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+		//DATE - type,type_id,src_charid,src_accountid,src_map,src_x,src_y,dst_charname,message
+		fprintf(logfp, "%s - %s,%d,%d,%d,%s,%d,%d,%s,%s%s", timestring, type, type_id, src_charid, src_accountid, src_map, src_x, src_y, dst_charname, message, RETCODE);
+		fclose(logfp);
+		return 0;
+	}else{
+		return -1;
+	}
 #endif
+return -1;
 }
 
 
@@ -706,6 +732,7 @@ int log_config_read(char *cfgName)
 					printf("Logging NPC 'logmes' to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_chat_file") == 0) {
 				if(log_config.chat > 0 && log_config.sql_logs < 1)
+					strcpy(log_config.log_chat, w2);
 					printf("Logging CHAT to file `%s`.txt\n", w2);
 			//support the import command, just like any other config
 			} else if(strcmpi(w1,"import") == 0) {
