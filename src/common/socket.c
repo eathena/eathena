@@ -974,8 +974,7 @@ int RFIFOSKIP(int fd,int len)
 	
 	if ( !session_isActive(fd) ) //Nullpo error here[Kevin]
 		return 0;
- 
-	if (fd <= 0) return 0;
+
 	s = session[fd];
 
 	if (s->rdata_size-s->rdata_pos-len<0) {

@@ -1,5 +1,6 @@
 Date	Added
 05/15
+	* Fixed equip breaking bug in pc.c. [Kevin]
 	* Fixed alot of null pointers thanks to Sasuke-. [Kevin]
 	* Set default in battle_athena.conf of player_skillup_limit to yes. [Kevin]
 	* Extended hide_gm_session to @where [Kevin]
