@@ -529,7 +529,8 @@ int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, 
 		time(&curtime);
 		strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
 		//DATE - type,type_id,src_charid,src_accountid,src_map,src_x,src_y,dst_charname,message
-		fprintf(logfp, "%s - %s,%d,%d,%d,%s,%d,%d,%s,%s%s", timestring, type, type_id, src_charid, src_accountid, src_map, src_x, src_y, dst_charname, message, RETCODE);
+		fprintf(logfp, "%s - %s,%d,%d,%d,%s,%d,%d,%s,%s%s", 
+			timestring, type, type_id, src_charid, src_accid, map, x, y, dst_charname, message, RETCODE);
 		fclose(logfp);
 		return 0;
 	}else{
