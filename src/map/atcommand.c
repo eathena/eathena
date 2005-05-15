@@ -1141,6 +1141,7 @@ int atcommand_where(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
+	int GM_level;
 
 	nullpo_retr(-1, sd);
 
@@ -1151,6 +1152,13 @@ int atcommand_where(
 		return -1;
 	if(strncmp(sd->status.name,atcmd_player_name,24)==0)
 		return -1;
+		
+	GM_level = pc_isGM(sd);//also hide gms depending on settings in battle_athena.conf, show if they are aid [Kevin]
+	if (battle_config.hide_GM_session) {
+		if (!(battle_config.who_display_aid > 0 && pc_isGM(sd) >= battle_config.who_display_aid)) {
+			return -1;
+		}
+	}
 
 	if ((pl_sd = map_nick2sd(atcmd_player_name)) == NULL) {
 		snprintf(atcmd_output, sizeof atcmd_output, "%s %d %d",

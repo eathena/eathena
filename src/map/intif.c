@@ -448,12 +448,8 @@ int intif_guild_leave(int guild_id,int account_id,int char_id,int flag,const cha
 		return 0;
 	WFIFOW(inter_fd, 0) = 0x3034;
 	WFIFOL(inter_fd, 2) = guild_id;
-	
-	//there was a bug here, if two chars from the same account were in a guild twice, and one was expelled all the chars would be expelled [Kevin]
-	
-	WFIFOL(inter_fd, 10) = account_id; //wasn't sure what was causing the problem, but after switching 10 and 6 worked, this is a temporary fix
-	WFIFOL(inter_fd,6) = char_id;
-	
+	WFIFOL(inter_fd, 6) = account_id;
+	WFIFOL(inter_fd,10) = char_id;
 	WFIFOB(inter_fd,14) = flag;
 	memcpy(WFIFOP(inter_fd,15),mes,40);
 	WFIFOSET(inter_fd,55);

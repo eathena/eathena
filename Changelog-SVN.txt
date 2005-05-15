@@ -1,6 +1,7 @@
 Date	Added
 05/15
-	* fixed a guild exp overflow [Kevin]
+	* Extended hide_gm_session to @where [Kevin]
+	* Fixed a guild exp overflow bug in guild.c & int_guild.c[Kevin]
 	* new command @iteminfo item_name/id (@ii). It works, but will be improved [Lupus]
 	* added all known mapflags into @mapinfo command. Rearranged output [Lupus]
 
