@@ -562,9 +562,9 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_DisguiseAll,		"@disguiseall",		99,	atcommand_disguiseall },
 	{ AtCommand_ChangeLook,			"@changelook",		99,	atcommand_changelook },
 	{ AtCommand_AutoLoot,			"@autoloot",		10,	atcommand_autoloot }, // Upa-Kun
-	{ AtCommand_MobInfo,			"@mobinfo",			0,	atcommand_mobinfo }, // [Lupus]
-	{ AtCommand_MobInfo,			"@monsterinfo",		0,	atcommand_mobinfo }, // [Lupus]
-	{ AtCommand_MobInfo,			"@mi",				0,	atcommand_mobinfo }, // [Lupus]
+	{ AtCommand_MobInfo,			"@mobinfo",			1,	atcommand_mobinfo }, // [Lupus]
+	{ AtCommand_MobInfo,			"@monsterinfo",		1,	atcommand_mobinfo }, // [Lupus]
+	{ AtCommand_MobInfo,			"@mi",				1,	atcommand_mobinfo }, // [Lupus]
 	{ AtCommand_Adopt,              "@adopt",			40, atcommand_adopt }, // [Veider]
 	{ AtCommand_Version,			"@version",			0,	atcommand_version },
 
@@ -573,8 +573,8 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Shuffle,			"@shuffle",			40, atcommand_shuffle }, // MouseJstr
 	{ AtCommand_Rates,				"@rates",			10, atcommand_rates }, // MouseJstr
 
-	{ AtCommand_ItemInfo,			"@iteminfo",		0, atcommand_iteminfo }, // [Lupus]
-	{ AtCommand_ItemInfo,			"@ii",		0, atcommand_iteminfo }, // [Lupus]
+	{ AtCommand_ItemInfo,			"@iteminfo",		1, atcommand_iteminfo }, // [Lupus]
+	{ AtCommand_ItemInfo,			"@ii",		1, atcommand_iteminfo }, // [Lupus]
 	{ AtCommand_MapFlag,			"@mapflag",		99, atcommand_mapflag }, // [Lupus]
 
 // add new commands before this line
@@ -5864,8 +5864,6 @@ int atcommand_mapinfo(
 		strcat(atcmd_output, "NoPvp | ");
 	if (map[m_id].flag.pvp_noguild)
 		strcat(atcmd_output, "NoGuild | ");
-	if (map[m_id].flag.pvp_noparty)
-		strcat(atcmd_output, "NoParty | ");
 	if (map[m_id].flag.pvp_noparty)
 		strcat(atcmd_output, "NoParty | ");
 	if (map[m_id].flag.pvp_nightmaredrop)

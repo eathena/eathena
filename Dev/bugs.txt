@@ -325,3 +325,16 @@ Problem:	Guilds Abuse
 			3. he gets all GUILDS skills and levels of the just breaked guild
 Assigned:	na
 Progress:	0%
+
+
+Problem:	Plagiarizm
+			When you recieve ROGUIE SKILL - it could replace your own skill... then wipe it off the SQL
+			So u lose your own skills..
+Assigned:	na
+Progress:	0% ??? probably fixed?
+
+
+Problem:	Plagiarizm Client CRASH
+			When you get a plagiarized MONSTERS skill in your SKILL list - client crashes.
+Assigned:	na
+Progress:	0%
