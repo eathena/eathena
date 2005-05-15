@@ -1196,7 +1196,7 @@
 //===================================================================
 4149,Gargoyle_Card,Gargoyle Card,6,20,0,10,,,,,,,136,,,,{},{} //missing getitemonkill?? (item not implemented)
 4150,Goat_Card,Goat Card,6,20,0,10,,,,,,,16,,,,{},{ if(getrefine()>=6) end; bonus bDef,2; bonus bMdef,5; } //OK
-4151,Gajomart_Card,Gajomart Card,6,20,0,10,,,,,,,64,,,,{},{ bonus2 bSubRace,3,-20; bonus2 bExpAddRace,2,10; } //??OK
+4151,Gajomart_Card,Gajomart Card,6,20,0,10,,,,,,,64,,,,{},{ bonus2 bSubRace,3,-20; bonus2 bExpAddRace,3,10; } //??OK
 4152,Galapago_Card,Galapago Card,6,20,0,10,,,,,,,136,,,,{},{ bonus2 bAddItemHealRate,6,50; bonus3 bAddMonsterDropItemGroup,6,4,10000; } //??OK
 4153,Crab_Card,Crab Card,6,20,0,10,,,,,,,2,,,,{},{ bonus bAtk,5; bonus2 bAddDamageClass,1266,30; if(isequipped(4247,4273)==0) end; bonus3 bAddMonsterDropItem,544,5,3000; bonus2 bAddEle,4,30; } //OK
 4154,Dumpling_Child_Card,Dumpling Child Card,6,20,0,10,,,,,,,136,,,,{},{ bonus2 bAddItemHealRate,4,50; bonus3 bAddMonsterDropItemGroup,4,7,10000; }

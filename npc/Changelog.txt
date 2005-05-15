@@ -45,7 +45,11 @@ TODO:
 
 Date		Added
 ======
-05/14	* Fixed some more typos in city scripts [massdriller]
+05/15
+	* Fixed some Ayothaya warps, thanks to Fress_Boy [DracoRPG]
+
+05/14
+	* Fixed some more typos in city scripts [massdriller]
 
 05/09
 	* Added new Sara-chan's maps / warps for Einbroch and Lhztargen [Lupus]
