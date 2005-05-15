@@ -23,6 +23,7 @@ int log_vend(struct map_session_data *sd,struct map_session_data *vsd,int n,int 
 int log_zeny(struct map_session_data *sd, struct map_session_data *target_sd,int amount);
 int log_atcommand(struct map_session_data *sd, const char *message);
 int log_npc(struct map_session_data *sd, const char *message);
+int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, int x, int y, char *dst_charname, char *message);
 
 int log_config_read(char *cfgName);
 
