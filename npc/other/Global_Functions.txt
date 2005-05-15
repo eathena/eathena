@@ -44,6 +44,7 @@ function	script	F_ClearJobVar	{
 	set CRUS_Q,0;
 	set MONK_Q,0;
 	set SAGE_Q,0; set SAGE_Q2,0;
+	set DANC_Q,0;
 	return;
 }
 

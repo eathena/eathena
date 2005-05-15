@@ -2,6 +2,7 @@
 //No Quests, just npc on location
 //1.1 Added SkillPoint check [Lupus]
 //1.2 Baby class Support added [Lupus]
+//1.3 Made it so Dancers can no-longer change here, so the new dancer script can be used
 
 //Dancer & Bard - Comodo 189 166 4_F_07
 comodo.gat,189,166,4	script	Performance Master	741,{
@@ -20,11 +21,7 @@ comodo.gat,189,166,4	script	Performance Master	741,{
        				if(JobLevel < 40) goto notlvl;
 				if(sex==1) goto M;
 					mes "[Performance Master]";
-					if(SkillPoint > 0) mes "You need to use up all of your skill points before I can make you a Dancer.";
-					if(SkillPoint > 0) close;
-					mes "Welcome Glorious Dancer";
-					callfunc "Job_Change",Job_Dancer;
-					callfunc "F_ClearJobVar";
+					mes "You will need to go to Comodo theater if you wish to become a dancer, I think ^00FF00Bor Robin^000000 can help you with this";
 					close;
       			        			
        				M:
