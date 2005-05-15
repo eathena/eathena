@@ -1,4 +1,6 @@
 Date	Added
+05/16
+	* Added Chat-Logging (for Whisper, Party and GuildChat!) [Sirius]
 05/15
 	* Minor bug fix by NSSTrunks
 	* Added Shinomori's MakeWord, MakeDWord and GetWord functions to split a 'long' into
