@@ -671,6 +671,7 @@ prefer_packet_db: yes
 0x0072,25,useskilltoid,6:10:21
 0x007e,102,useskilltopos,5:9:12:20:22
 0x00a2,15,solvecharname,11
+0x0143,10,npcamountinput,2:6
 0x0224,10
 0x0225,2
 0x0226,282

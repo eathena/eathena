@@ -8,6 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them I believe.
 
+05/15
+	* Added missing 'amount input' packet for Sakexe 05-09 [celest]
 05/12
 	* Added missing 'close storage' packet for Sakexe 05-09 [celest]
 05/11
