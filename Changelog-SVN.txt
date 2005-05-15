@@ -1,5 +1,10 @@
 Date	Added
 05/15
+	* Added gm command symbol checks for atcommand/charcommand.c, thanks to akusarujin
+	* Added valid session check in clif_additem, thanks to Sasuke
+	* Fixed a heavy memory leak with the Memory Manager, by Shinomori
+	* Fixed a memory leak with empty scripts, by Shinomori
+	* Removed npc unloading via npcname_db finalising -- fixes some wild frees [celest]
 	* Fixed monsters' attacked_count never cleared if it successfully casts a skill
 	  from 'rudeattacked' condition [celest]
 	* Fixed some NPC skills can be copied by Plagiarism [celest]

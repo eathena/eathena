@@ -2461,9 +2461,11 @@ static void npc_data_final(struct npc_data *nd) {
 
 static int npcname_db_final(void *key,void *data,va_list ap)
 {
-	struct npc_data *nd = (struct npc_data *) data;
+// At this point there shouldn't be any npc's left! If there are leave them to
+// the memory allocators to report as memory leaks so it can be fixed
+	/*struct npc_data *nd = (struct npc_data *) data;
 	if (nd && nd->bl.prev != NULL)
-		npc_data_final(nd);
+		npc_data_final(nd);*/
 
 	return 0;
 }

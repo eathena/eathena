@@ -1217,103 +1217,113 @@ static void read_constdb(void)
  */
 char* parse_script(unsigned char *src,int line)
 {
-	unsigned char *p,*tmpp;
+	unsigned char *p, *tmpp;
 	int i;
-	static int first=1;
+	static int first = 1;
 
-	if(first){
+	if (first) {
 		add_buildin_func();
 		read_constdb();
 	}
-	first=0;
-	script_buf=(unsigned char *)aCallocA(SCRIPT_BLOCK_SIZE,sizeof(unsigned char));
-	script_pos=0;
-	script_size=SCRIPT_BLOCK_SIZE;
-	str_data[LABEL_NEXTLINE].type=C_NOP;
-	str_data[LABEL_NEXTLINE].backpatch=-1;
-	str_data[LABEL_NEXTLINE].label=-1;
-	for(i=LABEL_START;i<str_num;i++){
-		if(str_data[i].type==C_POS || str_data[i].type==C_NAME){
-			str_data[i].type=C_NOP;
-			str_data[i].backpatch=-1;
-			str_data[i].label=-1;
+	first = 0;
+
+////////////////////////////////////////////// 
+// additional check on the input to filter empty scripts ("{}" and "{ }") 
+	p = (char*)src;
+	p = skip_space(p);
+	if (*p != '{') {
+		disp_error_message("not found '{'", p);
+		return NULL;
+	}
+	p++;
+	p = skip_space(p);
+	if (*p == '}') {
+		// an empty function, just return  
+		return NULL;
+	}
+////////////////////////////////////////////
+
+	script_buf = (unsigned char *) aCallocA (SCRIPT_BLOCK_SIZE,sizeof(unsigned char));
+	script_pos = 0;
+	script_size = SCRIPT_BLOCK_SIZE;
+	str_data[LABEL_NEXTLINE].type = C_NOP;
+	str_data[LABEL_NEXTLINE].backpatch = -1;
+	str_data[LABEL_NEXTLINE].label = -1;
+	for (i = LABEL_START; i < str_num; i++) {
+		if (str_data[i].type == C_POS || str_data[i].type == C_NAME) {
+			str_data[i].type = C_NOP;
+			str_data[i].backpatch = -1;
+			str_data[i].label = -1;
 		}
 	}
 
 	// ŠO•”—plabel db‚Ì‰Šú‰»
-	if(scriptlabel_db!=NULL)
-		strdb_final(scriptlabel_db,scriptlabel_final);
-	scriptlabel_db=strdb_init(50);
+	if (scriptlabel_db)
+		strdb_final (scriptlabel_db, scriptlabel_final);
+	scriptlabel_db = strdb_init(50);
 
 	// for error message
 	startptr = src;
 	startline = line;
 
-	p=src;
-	p=skip_space(p);
-	if(*p!='{'){
-		disp_error_message("not found '{'",p);
-		return NULL;
-	}
-	for(p++;p && *p && *p!='}';){
-		p=skip_space(p);
+	while (p && *p && *p != '}') {
+		p = skip_space(p);
 		// label‚¾‚¯“ÁŽêˆ—
-		tmpp=skip_space(skip_word(p));
-		if(*tmpp==':'){
-			int l,c;
-
-			c=*skip_word(p);
-			*skip_word(p)=0;
-			l=add_str(p);
-			if(str_data[l].label!=-1){
-				*skip_word(p)=c;
-				disp_error_message("dup label ",p);
+		tmpp = skip_space(skip_word(p));
+		if (*tmpp == ':') {
+			int l, c;
+			c = *skip_word(p);
+			*skip_word(p) = 0;
+			l = add_str(p);
+			if (str_data[l].label != -1) {
+				*skip_word(p) = c;
+				disp_error_message("dup label ", p);
 				exit(1);
 			}
-			set_label(l,script_pos);
-			strdb_insert(scriptlabel_db,p,script_pos);	// ŠO•”—plabel db“o˜^
-			*skip_word(p)=c;
-			p=tmpp+1;
+			set_label(l, script_pos);
+			strdb_insert(scriptlabel_db, p, script_pos);	// ŠO•”—plabel db“o˜^
+			*skip_word(p) = c;
+			p = tmpp + 1;
 			continue;
 		}
 
 		// ‘¼‚Í‘S•”ˆê‚­‚½
-		p=parse_line(p);
-		p=skip_space(p);
+		p = parse_line(p);
+		p = skip_space(p);
 		add_scriptc(C_EOL);
 
-		set_label(LABEL_NEXTLINE,script_pos);
-		str_data[LABEL_NEXTLINE].type=C_NOP;
-		str_data[LABEL_NEXTLINE].backpatch=-1;
-		str_data[LABEL_NEXTLINE].label=-1;
+		set_label(LABEL_NEXTLINE, script_pos);
+		str_data[LABEL_NEXTLINE].type = C_NOP;
+		str_data[LABEL_NEXTLINE].backpatch = -1;
+		str_data[LABEL_NEXTLINE].label = -1;
 	}
 
 	add_scriptc(C_NOP);
 
 	script_size = script_pos;
-	script_buf=(unsigned char *)aRealloc(script_buf,script_pos + 1);
+	script_buf = (unsigned char *)aRealloc(script_buf, script_pos + 1);
 
 	// –¢‰ðŒˆ‚Ìƒ‰ƒxƒ‹‚ð‰ðŒˆ
-	for(i=LABEL_START;i<str_num;i++){
-		if(str_data[i].type==C_NOP){
-			int j,next;
-			str_data[i].type=C_NAME;
-			str_data[i].label=i;
-			for(j=str_data[i].backpatch;j>=0 && j!=0x00ffffff;){
-				next=(*(int*)(script_buf+j)) & 0x00ffffff;
-				script_buf[j]=i;
-				script_buf[j+1]=i>>8;
-				script_buf[j+2]=i>>16;
-				j=next;
+	for (i = LABEL_START; i < str_num; i++) {
+		if (str_data[i].type == C_NOP) {
+			int j, next;
+			str_data[i].type = C_NAME;
+			str_data[i].label = i;
+			for (j = str_data[i].backpatch; j >= 0 && j != 0x00ffffff; ) {
+				next = (*(int*)(script_buf+j)) & 0x00ffffff;
+				script_buf[j] = i;
+				script_buf[j+1] = i>>8;
+				script_buf[j+2] = i>>16;
+				j = next;
 			}
 		}
 	}
 
 #ifdef DEBUG_DISP
-	for(i=0;i<script_pos;i++){
-		if((i&15)==0) printf("%04x : ",i);
-		printf("%02x ",script_buf[i]);
-		if((i&15)==15) printf("\n");
+	for (i = 0; i < script_pos; i++) {
+		if ((i & 15) == 0) printf("%04x : ", i);
+		printf("%02x ", script_buf[i]);
+		if((i&15) == 15) printf("\n");
 	}
 	printf("\n");
 #endif

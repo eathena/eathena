@@ -465,7 +465,7 @@ static struct block* block_malloc(void) {
 	} else {
 		/* ブロック用の領域を新たに確保する */
 		int i;
-		int  block_no;
+		int block_no;
 		struct block* p = (struct block *) CALLOC (sizeof(struct block),BLOCK_ALLOC);
 		if(p == NULL) {
 			ShowFatalError("Memory manager::block_alloc failed.\n");
@@ -523,7 +523,7 @@ static void memmgr_log (char *buf)
 }
 
 static void memmer_exit(void) {
-	struct block *block = block_first;
+	struct block *block, *block2;
 	struct unit_head_large *large = unit_head_large_first, *large2;
 	char *ptr;
 	int i;
@@ -533,6 +533,7 @@ static void memmer_exit(void) {
 	char buf[128];
 #endif
 	
+	block = block2 = block_first;
 	while (block) {
 		if (block->unit_size) {
 			for (i = 0; i < block->unit_count; i++) {
@@ -551,8 +552,16 @@ static void memmer_exit(void) {
 				}
 			}
 		}
+		if (block->block_no >= block2->block_no + BLOCK_ALLOC - 1) {
+			// reached a new block array
+			block = block->block_next;
+			FREE(block2);
+			block2 = block;
+			continue;
+		}
 		block = block->block_next;
 	}
+
 	while(large) {
 		large2 = large->next;
 	#ifdef LOG_MEMMGR

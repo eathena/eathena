@@ -1862,7 +1862,7 @@ int clif_additem(struct map_session_data *sd, int n, int amount, int fail) {
 	nullpo_retr(0, sd);
 
 	fd = sd->fd;
-	if (fd <= 0)
+	if (!session_isActive(fd))  //Sasuke-
 		return 0;
 
 	buf = WFIFOP(fd,0);
