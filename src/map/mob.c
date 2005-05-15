@@ -1662,11 +1662,11 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				battle_check_target(bl, abl, BCT_ENEMY) == 0)
 			{
 				md->attacked_id = 0;
-				if (++md->attacked_count > 3 &&
-					mobskill_use(md, tick, MSC_RUDEATTACKED) == 0)
-				{
+				if (md->attacked_count++ > 3) {
 					md->attacked_count = 0;
-					if (mode & 1 && mob_can_move(md)) {
+					if (mobskill_use(md, tick, MSC_RUDEATTACKED) == 0 &&
+						mode & 1 && mob_can_move(md))
+					{
 						int dist = rand() % 10 + 1;//Œã‘Ş‚·‚é‹——£
 						int dir = map_calc_dir(abl, bl->x, bl->y);
 						int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};

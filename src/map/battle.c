@@ -2494,7 +2494,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	// 状態異常中のダメージ追加でクリティカルにも有効なスキル
 	if (sc_data) {
 		// エンチャントデッドリーポイズン
-		if(!no_cardfix && sc_data[SC_EDP].timer != -1 && !(t_mode & 0x20) &&
+		if(!no_cardfix && sc_data[SC_EDP].timer != -1 &&
 			skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
 		{
 			damage += damage * (150 + sc_data[SC_EDP].val1 * 50) / 100;
@@ -5144,7 +5144,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	t_p = status_get_party_id(target);
 	t_g = status_get_guild_id(target);
 
-	if (flag&0x10000) {
+	if (flag & 0x10000) {
 		if (s_p && t_p && s_p == t_p)	// 同じパーティなら肯定（味方）
 			return 1;
 		else		// パーティ検索なら同じパーティじゃない時点で否定
@@ -5163,7 +5163,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		if (src->type == BL_SKILL)
 			su = (struct skill_unit *)src;
 		if (map[ss->m].flag.pvp || pc_iskiller(ssd, tsd)) { // [MouseJstr]
-			if(su && su->group->target_flag==BCT_NOENEMY)
+			if(su && su->group->target_flag == BCT_NOENEMY)
 				return 1;
 			else if (battle_config.pk_mode &&
 				(ssd->status.class_ == 0 || tsd->status.class_ == 0 ||
@@ -5177,18 +5177,18 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			return 0;
 		}
 		if (map[src->m].flag.gvg || map[src->m].flag.gvg_dungeon) {
-			struct guild *g = NULL;
-			if(su && su->group->target_flag == BCT_NOENEMY)
+			struct guild *g;
+			if (su && su->group->target_flag == BCT_NOENEMY)
 				return 1;
-			if( s_g > 0 && s_g == t_g)
+			if (s_g > 0 && s_g == t_g)
 				return 1;
-			if(map[src->m].flag.gvg_noparty && s_p > 0 && t_p > 0 && s_p == t_p)
+			if (map[src->m].flag.gvg_noparty && s_p > 0 && t_p > 0 && s_p == t_p)
 				return 1;
-			if((g = guild_search(s_g))) {
+			if ((g = guild_search(s_g))) {
 				int i;
-				for(i=0;i<MAX_GUILDALLIANCE;i++){
-					if(g->alliance[i].guild_id > 0 && g->alliance[i].guild_id == t_g) {
-						if(g->alliance[i].opposition)
+				for (i = 0; i < MAX_GUILDALLIANCE; i++) {
+					if (g->alliance[i].guild_id > 0 && g->alliance[i].guild_id == t_g) {
+						if (g->alliance[i].opposition)
 							return 0;//敵対ギルドなら無条件に敵
 						else
 							return 1;//同盟ギルドなら無条件に味方

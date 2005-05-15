@@ -800,7 +800,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					0,0,0,skill_get_time2(AS_ENCHANTPOISON,sd->sc_data[SC_ENCPOISON].val1),0);
 			}
 			// エンチャントデットリ?ポイズン(猛毒?果)
-			if (sd->sc_data[SC_EDP].timer != -1 && sc_data && sc_data[SC_DPOISON].timer == -1 &&
+			if (sd->sc_data[SC_EDP].timer != -1 && !(status_get_mode(bl) & 0x20) &&
+				sc_data && sc_data[SC_DPOISON].timer == -1 &&
 				rand() % 100 < sd->sc_data[SC_EDP].val2 * sc_def_vit / 100)
 				status_change_start(bl,SC_DPOISON,sd->sc_data[SC_EDP].val1,
 					0,0,0,skill_get_time2(ASC_EDP,sd->sc_data[SC_EDP].val1),0);			
@@ -1576,8 +1577,9 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	if(damage > 0 && dmg.flag&BF_SKILL && bl->type==BL_PC && pc_checkskill((struct map_session_data *)bl,RG_PLAGIARISM) && sc_data[SC_PRESERVE].timer == -1){
 		struct map_session_data *tsd = (struct map_session_data *)bl;
 		if (tsd && (!tsd->status.skill[skillid].id || tsd->status.skill[skillid].flag >= 13) &&
-			!(skillid > NPC_PIERCINGATT && skillid < NPC_SUMMONMONSTER) &&
-			!(skillid > NPC_SELFDESTRUCTION2 && skillid < NPC_UNDEADATTACK))
+			!((skillid > NPC_PIERCINGATT && skillid < NPC_SUMMONMONSTER) ||
+			(skillid > NPC_RANDOMMOVE && skillid < NPC_RUN) ||
+			(skillid > TK_RUN && skillid < NPC_EMOTION_ON)))
 		{
 			//?に?んでいるスキルがあれば該?スキルを消す
 			if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag == 13){

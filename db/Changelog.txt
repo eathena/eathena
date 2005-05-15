@@ -9,6 +9,7 @@
 	Skill databases == celest working on them I believe.
 
 05/15
+	* Changed Hylozoist's race to demon, thanks to Dino9021
 	* Fixed Gajomart Card, thanks to starlon [DracoRPG]
 	* Added missing 'amount input' packet for Sakexe 05-09 [celest]
 05/12
