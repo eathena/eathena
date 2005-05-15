@@ -583,8 +583,8 @@ int pc_break_equip(struct map_session_data *sd, unsigned short where)
 		   (where == EQP_ARMOR && i == 7) ||
 	  	   (where == EQP_WEAPON && (i == 8 || i == 9) && sd->inventory_data[sd->equip_index[i]]->type == 4) ||
 		   (where == EQP_SHIELD && i == 9 && sd->inventory_data[sd->equip_index[i]]->type == 5))) {
-			sprintf(tmp_output, "%s has broken.",sd->inventory_data[sd->equip_index[i]]->name);
 			sd->status.inventory[sd->equip_index[i]].attribute = 1;
+			sprintf(tmp_output, "%s has broken.",sd->inventory_data[sd->equip_index[i]]->name);
 			pc_unequipitem(sd,sd->equip_index[i],3);
 			clif_emotion(&sd->bl,23);
 			clif_displaymessage(sd->fd, tmp_output);
