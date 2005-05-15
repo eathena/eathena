@@ -24,6 +24,16 @@ MC Cameri
 DracoRPG
 	* New Novice Training Grounds - In progress with Riotblade's help
 	* Towns Message Boards - Recruited Riotblade to work on them ^^
+Massdriller
+	* Correcting & Bugfixing scripts
+	* Bard Job Quest - 0.5% Botting on MRO
+	* New Novice Grounds From MRO - 65% -(Not sure it should be stopped as DracoRPG 
+	  did it, but intending to add it as an alternative novice quest)
+	* Gonryunn Quests - 0% - Botting on official Servers
+	* Artifacts of God (MRO GOD ITEM QUESTS) - 1% - resources only from MRO Official
+	  guide book so, probably unofficial
+	* Level 4 forge (MRO Lvl 4 Forging Quest) - 1% - resources only from MRO Official
+	  guide book so, probably unofficial
 
 Other Ppl	
 	* Their Work?
@@ -35,21 +45,11 @@ TODO:
 
 Date		Added
 ======
-
-05/13
-	* Fixed typos in some cities [massdriller]
-	~ Thanks to neko for the idea
-	* Fixed bug in alberta & aldebaran script [massdriller]
-	* Added MRO's Official Dumpling festifal event [massdriller]
-
-05/11
-	* Updated crusader quest to use the new poring stats mobs, thanks to Komurka
-	* Added WOE script fix, thanks to Avaj
-	* Ayothaya NPCs fix by MasterOfMuppets
+05/14	* Fixed some more typos in city scripts [massdriller]
 
 05/09
 	* Added new Sara-chan's maps / warps for Einbroch and Lhztargen [Lupus]
-	* Added first Ayothaya city NPCs
+	* Added first Ayothaya city NPCs [Thanks to akusarujin]
 	* Fixed some typos [massdriller] (Thanks to neko for point those out)
 	* Fixed Ayothaya warps.[massdriller]
 

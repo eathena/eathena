@@ -4,7 +4,7 @@
 //= jAthena (1.0)
 //= Fusion Dev Team (1.1)
 //= Muad Dib (1.2)
-//= Darkchild (1.3) 
+//= Darkchild (1.3)
 //===== Current Version: =====================================
 //= 1.4
 //===== Compatible With: =====================================
@@ -27,7 +27,8 @@
 //= 1.1 - Translated by Fusion Dev Team
 //= 1.2 - Fixed Something by Muad Dib
 //= 1.3 - Fixed up For eA by Darkchild
-//= 1.4 fixed some wrong item names [Lupus]
+//= 1.4 - Fixed some wrong item names [Lupus]
+//= 1.5 – Spell Checked [massdriller]
 //============================================================
 
 
@@ -81,7 +82,7 @@ comodo.gat,171,137,1	script	Heath	92,{
 		emotion 29;
 		mes "[Heath]";
 		mes "Oh, you want to hear the story of the";
-		mes "treasure, huh?  Well, how imporant";
+		mes "treasure, huh?  Well, how important";
 		mes "is it to you, really?";
 		next;
 		mes "[Reid and Heath]";
@@ -186,7 +187,7 @@ cmd_in01.gat,164,115,1	script	Niles	731,{
 	mes "[Niles]";
 	mes "Oh?";
 	mes "Another fool come to ask about";
-	mes "that idiotic rumor circulating";
+	mes "that idiotic rumour circulating";
 	mes "around town?";
 	next;
 	mes "[Niles]";
@@ -202,7 +203,7 @@ cmd_in01.gat,164,115,1	script	Niles	731,{
 	next;
 	mes "[Niles]";
 	mes "Don't you think that cave";
-	mes "near Komodo village is interesting?";
+	mes "near Comodo village is interesting?";
 	next;
 	mes "[Niles]";
 	mes "I think a large jewel may be";
@@ -294,7 +295,7 @@ if(event_umbala < 3) goto LumWord;
 
 		LError2:
 			mes "[Hatan]";
-			mes "Well, maybe I misunderestimated your";
+			mes "Well, maybe I underestimated your";
 			mes "wealth, but you shouldn't lie...";
 			emotion 32;
 			close;
@@ -677,7 +678,7 @@ LStart2:
 	mes "[Karukatan]";
 	mes "Hmm?  You need something from me?";
 	mes "How can I make your stay in the village";
-	mes "more pleasent?";
+	mes "more pleasant?";
 	next;
 	menu "I want to learn the tribal language",-,"Umbaumbaba?",L2,"Forget it",L3;
 		if ((getequipisequiped(9)>0) && (getequipisequiped(10)>0)) goto L1_mask;
@@ -701,7 +702,7 @@ LStart2:
 		mes "What a cute mask.  The Utan tribe";
 		mes "appreciates its traditional masks";
 		mes "because sometimes by hiding your";
-		mes "face, you can express more geniune";
+		mes "face, you can express more genuine";
 		mes "feelings.";
 	//Activate Sphinx Mask Quest (optional)
 		set mask_q,1;
@@ -849,7 +850,7 @@ LStart5:
 	next;
 	mes "[Karukatan]";
 	mes "If I could have the ^3377FFSmile Mask^000000,";
-	mes "it would be a great honor, but";
+	mes "it would be a great honour, but";
 	mes "I promised I would give it to";
 	mes "to Putsuchiratan as a gift if I ever";
 	mes "came across one.  If you can find a Smile Mask for me,";
@@ -1230,7 +1231,7 @@ umbala.gat,177,153,3	script	Bast	97,{
 	mes "of progress.";
 	next;
 	mes "[Bast]";
-	mes "Not only that, but the natives' skin color";
+	mes "Not only that, but the natives' skin colour";
 	mes "and language are also different.";
 	mes "Aren't you confused by their";
 	mes "alien gestures and expressions?";
@@ -1506,7 +1507,7 @@ um_in.gat,158,71,3	script	Utan Tribesman	787,{
 	mes "that studying them never gets old!";
 	next;
 	mes "[Mutakutan]";
-	mes "My favorite tree near Umbala is huge!";
+	mes "My favourite tree near Umbala is huge!";
 	mes "It stretches into the sky as far";
 	mes "as the eye can see!";
 	mes "It's supposed to be the tallest tree in the world!";

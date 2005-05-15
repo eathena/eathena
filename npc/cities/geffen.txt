@@ -3,13 +3,14 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.0 
+//= 1.1 
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
 //=
 //===== Additional Comments: ================================= 
 //= Fully working
+//= 1.1 - Spell Checked [massdriller]
 //============================================================
 
 
@@ -19,11 +20,11 @@ geffen.gat,59,143,8	script	Lady	91,{
 	mes "Oh, you must be a Stranger here.";
 	next;
 	mes "[Lady]";
-	mes "Wellcome to geffen, the City of Magic.  You Must be very tired? Why don't you eat Some ^ffaa00Honey^000000? It will relieve of your fatigue";
+	mes "Welcome to geffen, the City of Magic.  You Must be very tired? Why don't you eat Some ^ffaa00Honey^000000? It will relieve of your fatigue";
 	next;
 	mes "[Lady]";
 	mes "Honey is very sweet and highly nutritious.  It will allow you to ^0000ffregain^000000 some of your ^0000ffHP as well as SP^000000.";
-	mes "It's gatthered by Hornets for the queen bee ^ff0000Mistress^000000.  MIstress is a very rare and powerfull monster.";
+	mes "It's gathered by Hornets for the queen bee ^ff0000Mistress^000000.  mistress is a very rare and powerfully monster.";
 	next;
 	mes "[Lady]";
 	mes "BELIEVE me, you DON'T want to try and take honey away from HER....";
@@ -42,17 +43,17 @@ geffen.gat,59,143,8	script	Lady	91,{
 
 
 // Womankind ------------------------------------------------------------
-geffen.gat,111,48,2	script	Womankind	101,{
-	mes "[Womankind]";
+geffen.gat,111,48,2	script	Kind Woman	101,{
+	mes "[Kind Woman]";
 	mes "Good Day, adventurer.";
 	next;
-	mes "[Womankind]";
+	mes "[Kind Woman]";
 	mes "Have you ever seen the ^ff0000Orcs^000000, the Demi-Human Tribe?";
 	next;
-	mes "[Womankind]";
+	mes "[Kind Woman]";
 	mes "South of here, deep in the forest, lies the home land of the Orcs.  I here they have a unique culture and language that is much different from our own.";
 	next;
-	mes "[Womankind]";
+	mes "[Kind Woman]";
 	mes "I wonder.....? Do they dream of love and romance just as we do? Hmm..... I wonder........";
 	close;
 }
@@ -81,7 +82,7 @@ geffen.gat,156,190,8	script	Researcher	57,{
 // Young Man --------------------------------------------------------------------------
 geffen.gat,147,26,0	script	"Young man"	97,{
 	mes "[Young Man]";
-	mes "I heard that somewhere in this world, there is a rare staff which transforms its owner's psychic power into phisycal powers, and endows with destructive force also...";
+	mes "I heard that somewhere in this world, there is a rare staff which transforms its owner's psychic power into physical powers, and endows with destructive force also...";
 	mes "With this, everybody could be as strong as Hercules, despite their lack of muscles. Haw haw...I will take it.";
 	next;
 	mes "[Young Man]";
@@ -135,7 +136,7 @@ M_Menu:
 
 	M_0:
 		mes "[Waitress]";
-		mes "Oh my, I'm sorry but that DRUNKARD swallowed up every last drop of liquior we have.";
+		mes "Oh my, I'm sorry but that DRUNKARD swallowed up every last drop of liquor we have.";
 		mes "Everyday it's the same thing... as soon as the Inn opens he comes in and gulps down drink after drink.";
 		next;
 		mes "[Waitress]";
@@ -143,11 +144,11 @@ M_Menu:
 		goto M_Menu;
 	M_1:
 		mes "[Waitress]";
-		mes "Well... of all of the people who have stopped by latelty, there are a group of merchants that have caught my attention.";
+		mes "Well... of all of the people who have stopped by lately, there are a group of merchants that have caught my attention.";
 		mes "I could tell right away that they were from out of town.  My younger sister tells me they are from Schubaltzwald...";
 		next;
 		mes "[Waitress]";
-		mes "It really doesn't matter who they are or where they're from, afterall business is business.  They could be from Schuschu Chocolate Land for all I care....";
+		mes "It really doesn't matter who they are or where they're from, after all business is business.  They could be from Schuschu Chocolate Land for all I care....";
 		next;
 		mes "[Waitress]";
 		mes "I just wish the amount of local customers would start increasing again, since they are the bulk of my customers.";
@@ -158,10 +159,10 @@ M_Menu:
 		close;
 }
 
-// Merhcant Daven -------------------------------------------------------------------
+// Merchant Daven -------------------------------------------------------------------
 geffen_in.gat,79,75,2	script	Merchant Daven	61,{
 	mes "[Merchant Daven]";
-	mes "Back in the day when I frist came to Geffen, the town was a very boring place to live in.";
+	mes "Back in the day when I first came to Geffen, the town was a very boring place to live in.";
 	next;
 	mes "[Merchant Daven]";
 	mes "But now there are noble Mages and a flourishing community of Blacksmiths, that make Geffen.......";
@@ -177,15 +178,15 @@ M_Menu:
 		mes "Mages and Wizards love to carry books around with them wherever they go.  That's just how they are.";
 		next;
 		mes "[Merchant Daven]";
-		mes "Mages like to gather at the ^5555FFMagic Academey^000000 where they study the basics of magic use.";
+		mes "Mages like to gather at the ^5555FFMagic Academy^000000 where they study the basics of magic use.";
 		next;
 		mes "[Merchant Daven]";
-		mes "After much study and with enough experience, Mages can become Wizards.  Wizards can use much more powerfull magical spells.";
+		mes "After much study and with enough experience, Mages can become Wizards.  Wizards can use much more powerful magical spells.";
 		mes "You can find them at the top floor of the ^5555FFGeffen Tower^000000.";
 		goto M_Menu;
 	M_1:
 		mes "[Merchant Daven]";
-		mes "Blaksmiths are difficult people.  They are also a dirty bunch, whose faces are often covered with black soot.";
+		mes "Blacksmiths are difficult people.  They are also a dirty bunch, whose faces are often covered with black soot.";
 		mes "No matter where they are or what they do, they always smell of iron and soot.";
 		next;
 		mes "[Merchant Daven]";
@@ -193,13 +194,13 @@ M_Menu:
 		mes "It's just not possible to be a Blacksmith and not be dirty and smelly.  Unfortunately it's part of the job.";
 		next;
 		mes "[Merchant Daven]";
-		mes "Weapons forged by Blacksmiths can be much more unique then those sold in Armories.";
+		mes "Weapons forged by Blacksmiths can be much more unique then those sold in Armouries.";
 		mes "The actual ores and stones used by the Blacksmiths are of a much higher quality and are often scarce.";
-		mes "This can give their weapons special qualities that are very benificial to a character.";
+		mes "This can give their weapons special qualities that are very beneficial to a character.";
 		goto M_Menu;
 	M_2:
 		mes "[Merchant Daven]";
-		mes "Me?.... Oh I'm the world's PRETTIEST street merchant!!..... teh he he...";
+		mes "Me?.... Oh I'm the world's PRETTIEST street merchant!!..... the he he...";
 		emotion 30;
 		next;
 		menu "..... I'm gonna puke....",sM_0, ".... SLAPP him upside his head!!!",sM_1;		
@@ -242,7 +243,7 @@ geffen_in.gat,59,62,2	script	Drunkard	120,{
 		close;
 	M_2:
 		mes "[Drunkard]";
-		mes "Oh... I see, I see. My appologies.  You seem to be sensative about this.  To think that you have no friends....";
+		mes "Oh... I see, I see. My apologies.  You seem to be sensitive about this.  To think that you have no friends....";
 		mes "Ya know, you remind me of my younger self! Heck... you might end up just like me... heh heh.";
 		next;
 		mes "[Drunkard]";
@@ -250,7 +251,7 @@ geffen_in.gat,59,62,2	script	Drunkard	120,{
 		emotion 28;
 		next;
 		mes "[Waitress]";
-		mes "ARGH!! STOP being so noisey!";
+		mes "ARGH!! STOP being so noisy!";
 		close;
 }
 
@@ -267,7 +268,7 @@ geffen_in.gat,113,73,4	script	Schubaltzwald Merchant	709,{
 	mes "Because of their uniqueness, these items have become quite valuable in my city.";
 	next;
 	mes "[Schubaltzwald Merchant]";
-	mes "Something may be plentifull here, but scarce somewhere else, an item may be popular there but not here....";
+	mes "Something may be plentiful here, but scarce somewhere else, an item may be popular there but not here....";
 	mes "That is what makes being a merchant so interesting, the variety of items to buy and sell between different places.";
 	next;
 	mes "[Schubaltzwald Merchant]";
@@ -300,7 +301,7 @@ M_Menu:
 
 	M_0:
 		mes "[Waitress]";
-		mes "Jeez, I'm real sorry but we ran out of liquior. THAT DRUNKARD chugged down every last drop we had....";
+		mes "Jeez, I'm real sorry but we ran out of liquor. THAT DRUNKARD chugged down every last drop we had....";
 		mes "As soon as we open he's in here downing drink after drink! I'm surprised he's still alive.";
 		next;
 		mes "[Waitress]";
@@ -308,7 +309,7 @@ M_Menu:
 		goto M_Menu;
 	M_1:
 		mes "[Waitress]";
-		mes "Hmm... there really hasn't been anything new going on lately.... there haven't been any rumors from the customers either....";
+		mes "Hmm... there really hasn't been anything new going on lately.... there haven't been any rumours from the customers either....";
 		mes "Come to think of it.... you yourself are a person of few words....";
 		next;
 		mes "[Waitress]";
@@ -352,7 +353,7 @@ M_Menu:
 			next;
 			mes "[Friend of Youth]";
 			mes "Being tossed out in the desert, naked, and chased by a Peco Peco really isn't that bad.";
-			mes "If you maintain your composure and perservere, you will be able to enjoy the sweet taste of acomplishment.";
+			mes "If you maintain your composure and persevere, you will be able to enjoy the sweet taste of accomplishment.";
 			next;
 			mes "[Friend of Youth]";
 			mes "So keep your head up and endure for a bit longer!";
@@ -370,12 +371,12 @@ M_Menu:
 			goto R0_End;
 		R0_2:
 			mes "[Friend of Youth]";
-			mes "The evil forces that evny your fortune and good health are always watching you.";
+			mes "The evil forces that envy your fortune and good health are always watching you.";
 			mes "They are jealous of what you have and are eagerly waiting for you to make mistakes.";
 			next;
 			mes "[Friend of Youth]";
-			mes "Therefore you must be more careful with your actions.  Proceed with caution, especially in dangerous sitiuations.";
-			mes "Remain calm however, and continue to prepapre for the days to come.";
+			mes "Therefore you must be more careful with your actions.  Proceed with caution, especially in dangerous situations.";
+			mes "Remain calm however, and continue to prepare for the days to come.";
 			next;
 			goto R0_End;
 		R0_3:
@@ -434,7 +435,7 @@ M_Menu:
 			goto R1_End;
 		R1_2:
 			mes "[Friend of Youth]";
-			mes "Oh ho! To be in love is a wonderful existance!";
+			mes "Oh ho! To be in love is a wonderful existence!";
 			mes "Love can be as exciting as running through a forest filled with porings while wildly swinging your sword around!!";
 			next;
 			mes "[Friend of Youth]";
@@ -469,32 +470,32 @@ M_Menu:
 		R2_0:
 			mes "[Friend of Youth]";
 			mes "For a young one such as yourself, money should not be the most important thing in your life.";
-			mes "Don't worry about money too much, just live your life to the fullest! Only then can something wonderfull can happen to you.";
+			mes "Don't worry about money too much, just live your life to the fullest! Only then can something wonderful can happen to you.";
 			goto M_Menu;
 		R2_1:
 			mes "[Friend of Youth]";
 			mes "Let me tell you something, DON'T become obsessed with materialistic things!";
 			next;
 			mes "[Friend of Youth]";
-			mes "Although you need money to get by in this world, if aquiring wealth is your sole purpose in life....";
-			mes "you will ultimately find yourself dissapointed and empty.";
+			mes "Although you need money to get by in this world, if acquiring wealth is your sole purpose in life....";
+			mes "you will ultimately find yourself disappointed and empty.";
 			goto M_Menu;
 		R2_2:
 			mes "[Friend of Youth]";
-			mes "Are you envious of someones else's items?? DON'T BE!!";
+			mes "Are you envious of someone's else's items?? DON'T BE!!";
 			mes "You are better then that! Seek that which makes you a better person";
 			goto M_Menu;
 		R2_3:
 			mes "[Friend of Youth]";
-			mes "Saving money is important.  Don't get into the habbit of buying cheap things you can afford right away.";
-			mes "It's better to wait untill you have enough for something that is of high quality.  That way you spend less money overall.";
+			mes "Saving money is important.  Don't get into the habit of buying cheap things you can afford right away.";
+			mes "It's better to wait until you have enough for something that is of high quality.  That way you spend less money overall.";
 			goto M_Menu;
 		R2_4:
 			mes "[Friend of Youth]";
 			mes "It's a very interesting thing.  To be honest, money just might be the REAL MONSTER in this world....";
 			next;
 			mes "[Friend of Youth]";
-			mes "One man's trash is another man's treasure! Go out and gather everything you can find! Don't be embarressed about it!";
+			mes "One man's trash is another man's treasure! Go out and gather everything you can find! Don't be embarrassed about it!";
 			goto M_Menu;
 	M_3:
 		if(@temp ==1) goto R3_1;
@@ -509,12 +510,12 @@ M_Menu:
 		R3_1:
 			mes "[Friend of Youth]";
 			mes "Worrying about your grades can be a hassle.  And sometimes it's hard to be confident that you will get good grades.";
-			mes "But stay positive and keep your head up! With hard work and preseverance you'll surely achieve your goals.";
+			mes "But stay positive and keep your head up! With hard work and perseverance you'll surely achieve your goals.";
 			next;
 			goto R3_End;
 		R3_End:
 			mes "[Friend of Youth]";
-			mes "Concentrating on studies is difficult.  Come back anytime to ask questions regarding your studies! I'll be waiting.";
+			mes "Concentrating on studies is difficult.  Come back any time to ask questions regarding your studies! I'll be waiting.";
 			goto M_Menu;
 
 	M_4:
@@ -552,13 +553,13 @@ M_Menu:
 			mes "You have the ability to leap towards the future! But the past has a hold of your ankle and wont let go.";
 			next;
 			mes "[Friend of Youth]";
-			mes "Break free and move towards the future and be prepapred to face what lies ahead!";	
+			mes "Break free and move towards the future and be prepared to face what lies ahead!";	
 			emotion 21;
 			next;
 			goto R4_End;
 		R4_End:
 			mes "[Friend of Youth]";
-			mes "There are many reasons to look forward to the future.  So untill you find one for yourself, keep searching for it.";
+			mes "There are many reasons to look forward to the future.  So until you find one for yourself, keep searching for it.";
 			mes "And feel free to come back for another reading any time okay?";
 			goto M_Menu;
 	M_5:
@@ -643,10 +644,10 @@ L_Magic:
 	mes "However, if it is used for evil, then negative reactions will occur instead.  When using magic you truly reap what you sew.";
 	next;
 	mes "[Dark Wizard]";
-	mes "Have you ever heard of ^0000ddGemstones^000000? Some magic spells are so powerfull that they require the use of a Gemstone.";
+	mes "Have you ever heard of ^0000ddGemstones^000000? Some magic spells are so powerful that they require the use of a Gemstone.";
 	mes "These stones amplify a magic users power and allow them to cast high level spells.  They can be bought at the magic store in town.";
 	next;
 	mes "[Dark Wizard]";
-	mes "Always remeber that magic should only be used for the bennefit of people, not to do them harm.";
+	mes "Always remember that magic should only be used for the benefit of people, not to do them harm.";
 	close;
 }

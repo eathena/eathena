@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Some people & eAthena Dev Team
 //===== Current Version: ===================================== 
-//= 1.01
+//= 1.02
 //===== Compatible With: ===================================== 
 //= Any eAthena Version; Niflheim Required
 //===== Description: ========================================= 
@@ -12,6 +12,7 @@
 // Revisions and edits by Valaris and Darkchild
 // 1.01 event_sushi -> ama_sushi fixed
 //      and other fixes, thanks to Shinomori
+// 1.02 Fixed & Spell Checked [massdriller]
 //=====================================================================
 alberta.gat,245,93,4	script	Captain	709,{
 	mes "[Carter Moores]";
@@ -380,14 +381,14 @@ L0:
 	mes "Hanging Under the Blue Sky's Blue Roof";
 	mes "Shining on Blue Wall's Reflection on the Blue Lake";
 	mes "Blue Hearting Containing a Blue Desire";
-	mes "Blue Blue Everything's Blue";
+	mes "Blue Blue Every thing's Blue";
 	next;
 	goto LEnd;
 L1:
 	mes "[Kuruchi]";
 	mes "Monk, Monk, the fox is following me";
-	mes "Because I have its favorite food";
-	mes "Ramen noodle, my favorite too";
+	mes "Because I have its favourite food";
+	mes "Ramen noodle, my favourite too";
 	mes "I can eat it three times a day";
 	set event_amatsu,3;
 	goto LEnd;
@@ -402,7 +403,7 @@ L2:
 L3:
 	mes "[Kuruchi]";
 	mes "Monk,Monk, The Fox Is Following Me";
-	mes "Ramen NoodleIs My Favorite";
+	mes "Ramen noodles My Favorite";
 	mes "But Now I am No Longer Afraid?";
 	mes "I Shouted Loudly To Scare It Off!";
 	goto LEnd;
@@ -434,7 +435,7 @@ amatsu.gat,205,163,4	script	Mimi	759,{
 	next;
 	mes "[Mimi]";
 	mes "Although I look like this, I am still the most beautiful woman in town..";
-	mes "Women always need to watch their apparence, whoohoohoohooo.";
+	mes "Women always need to watch their appearance, whoohoohoohooo.";
 	close;
 }
 //=====================================================================
@@ -580,7 +581,7 @@ ama_in01.gat,22,111,0	script	Old Lady	761,{
 	mes "Get out... Clang Clannng! Clang Clannng!^000000";
 	next;
 	mes "[...]";
-	mes "^FF6060I have decided to live here til";
+	mes "^FF6060I have decided to live here till";
 	mes "the Ishida Family line ends!";
 	mes "Stop bothering me and get out! Clang Clannng!^000000";
 	next;
@@ -606,7 +607,7 @@ LStart2:
 	mes "Sick! Not fair!!^000000";
 	next;
 	mes "[...]";
-	mes "^FF0066That goddamed Ishida that rendered me to this.";
+	mes "^FF0066That god-damned Ishida that rendered me to this.";
 	mes "I'll curse them forever! FOREVER!";
 	mes "Human, you better be careful too!^000000";
 	next;
@@ -825,7 +826,7 @@ ama_in02.gat,37,157,4	script	Soldier	767,{
 	mes "And I also frequently see strange people.";
 	mes "I've heard that the customers upstairs are";
 	mes "from far away, but because of their";
-	mes "auspicious behaviors.  I already command the soldiers";
+	mes "auspicious behaviours.  I already command the soldiers";
 	mes "to monitor their movements...";
 	next;
 	mes "[Sbarro]";
@@ -862,7 +863,7 @@ ama_in02.gat,40,167,3	script	Soldier	767,{
 	mes "I will tell you a story";
 	next;
 	mes "[Kuro]";
-	mes "In Amatsu there is this rumor.";
+	mes "In Amatsu there is this rumour.";
 	mes "The truth is the current master";
 	mes "is not the real master of the town... shh, quiet!";
 	mes "Don't panic, please continue to listen.";
@@ -950,7 +951,7 @@ ama_in02.gat,195,156,4	script	Soldier	767,{
 	mes "Usually he's a very nice guy...";
 	next;
 	mes "[Kuro]";
-	mes "There are strange rumors going around,";
+	mes "There are strange rumours going around,";
 	mes "but I still trust my master,";
 	mes "because he was the one who";
 	mes "transformed our town. So I became";
@@ -999,7 +1000,7 @@ L2_2:
 			mes "isn't all that much.";
 			mes "I have not been inside.";
 			mes "It's a mysterious place, its only proof is";
-			mes "of existance is from the";
+			mes "of existence is from the";
 			mes "survivors that ventured inside";
 			next;
 			mes "[Juro]";
@@ -1248,7 +1249,7 @@ LStart2:
 	mes "Anyway,I've heard that when";
 	mes "there's a strong animal then a fox will chased,";
 	mes "away from the human.";
-	mes "So try hard, and try summoming the animal spirit!";
+	mes "So try hard, and try summoning the animal spirit!";
 	next;
 	menu "Haaaa!!",-;
 	mes "[Takikuwi]";
@@ -1341,7 +1342,7 @@ amatsu.gat,287,266,3	script	Jyaburo	766,{
 	mes "[Jyaburo]";
 	mes "After that, we talked a lot here under this tree,";
 	mes "this is the ideal location";
-	mes "because of its tranquility and harmony,";
+	mes "because of its tranquillity and harmony,";
 	mes "an everlasting moment of happiness";
 	next;
 	mes "[Jyaburo]";
@@ -1352,7 +1353,7 @@ amatsu.gat,287,266,3	script	Jyaburo	766,{
 	mes "[Jyaburo]";
 	mes "Even though she passed away some times ago";
 	mes " I always come here alone now,";
-	mes "Everytime I come here it is as if my wife is just besides me,";
+	mes "Every time I come here it is as if my wife is just besides me,";
 	mes "And my depressed and broken heart is gone";
 	next;
 	mes "[Jyaburo]";
@@ -1386,7 +1387,7 @@ amatsu.gat,274,178,0	script	Vet	735,{
 	next;
 	mes "[Sakura Seiichi]";
 	mes "The reason that tree can maintain";
-	mes "its everlasting  youth and bueaty";
+	mes "its everlasting  youth and beauty";
 	mes "lies within its secret...";
 	mes "that is... Because below the tree";
 	mes "dead people are buried...";
@@ -1395,7 +1396,7 @@ amatsu.gat,274,178,0	script	Vet	735,{
 L1:
 	mes "[Sakura Seiichi]";
 	mes "... Maybe...";
-	mes "Anyways, do you believe me or not";
+	mes "Anyway, do you believe me or not";
 	mes "want to make a bet...?";
 	next;
 	emotion 9;
@@ -1406,14 +1407,14 @@ L1:
 	next;
 	mes "^6633FFHer laugh gradually fades^000000";
 	mes "^6633FFAway in the wind,^000000";
-	mes "^6633FFUntil nothing can be heard anymore,^000000";
+	mes "^6633FFUntil nothing can be heard any more,^000000";
 	mes "^6633FFCannot even remember what^000000";
 	mes "^6633FFHe was about to say...^000000";
 	close;
 L2:
 	mes "[Sakura Seiichi]";
 	mes "So entranced, I suppose you are all right...";
-	mes "becareful, one day that kind of things";
+	mes "be careful, one day that kind of things";
 	mes "Will happen to you as well..";
 	next;
 	Emotion 9;
@@ -1424,7 +1425,7 @@ L2:
 	next;
 	mes "^6633FFHer laugh gradually fades^000000";
 	mes "^6633FFAway in the wind,^000000";
-	mes "^6633FFUntil nothing can be heard anymore,^000000";
+	mes "^6633FFUntil nothing can be heard any more,^000000";
 	mes "^6633FFI don't understand why she told^000000";
 	mes "^6633FFMe that...^000000";
 	close;
@@ -1464,7 +1465,7 @@ amatsu.gat,261,197,4	script	Legendary Sakura Tree	111,{
 	mes "this tree is famous because";
 	mes "many couples confessed their love here";
 	mes "Sometimes you can still see a few people";
-	mes "Drawinging a heart with the lover's";
+	mes "Drawing a heart with the lover's";
 	mes "Name within it.^000000";
 	next;
 	mes "^0000FFThey are not only here for lover's confessions,";

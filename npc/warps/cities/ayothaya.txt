@@ -2,7 +2,7 @@
 //
 // Ayothaya Town Warps v 1.1 - Warp Locations
 // - Created by Muad_Dib.
-// - 1.1 Fixed Armory part by massdriller
+// - 1.1 Fixed Armory part by massdriller [Thanks to akusarujin]
 //
 //========================================================================================
 
