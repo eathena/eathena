@@ -499,6 +499,21 @@ int log_npc(struct map_session_data *sd, const char *message)
 	return 0;
 }
 
+//ChatLogging
+int log_chat(char type, int type_id, int src_charid, int src_accid, char *map, int x, int y, char *dst_charname, char *message){
+
+#ifndef TXT_ONLY
+	//Todo [Sirius]
+	return 1;
+#endif
+
+#ifdef TXT_ONLY
+	printf("log_chat() -> Currently only for SQL Logging!\n");
+	return 0;
+#endif
+}
+
+
 void log_set_defaults(void)
 {
 	memset(&log_config, 0, sizeof(log_config));
@@ -573,6 +588,8 @@ int log_config_read(char *cfgName)
 				log_config.gm = (atoi(w2));
 			} else if(strcmpi(w1,"log_npc") == 0) {
 				log_config.npc = (atoi(w2));
+			} else if(strcmpi(w1, "log_chat") == 0) {
+				log_config.chat = (atoi(w2));
 			}
 
 #ifndef TXT_ONLY
@@ -628,6 +645,10 @@ int log_config_read(char *cfgName)
 				strcpy(log_config.log_npc_db, w2);
 				if(log_config.npc > 0)
 					printf("Logging NPC 'logmes' to table `%s`\n", w2);
+			} else if(strcmpi(w1, "log_chat_db") == 0) {
+				strcpy(log_config.log_chat_db, w2);
+				if(log_config.chat > 0)
+					printf("Logging CHAT to table `%s`\n", w2);
 			}
 #endif
 
@@ -683,6 +704,9 @@ int log_config_read(char *cfgName)
 				strcpy(log_config.log_npc, w2);
 				if(log_config.npc > 0 && log_config.sql_logs < 1)
 					printf("Logging NPC 'logmes' to file `%s`.txt\n", w2);
+			} else if(strcmpi(w1, "log_chat_file") == 0) {
+				if(log_config.chat > 0 && log_config.sql_logs < 1)
+					printf("Logging CHAT to file `%s`.txt\n", w2);
 			//support the import command, just like any other config
 			} else if(strcmpi(w1,"import") == 0) {
 				log_config_read(w2);

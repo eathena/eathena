@@ -30,9 +30,9 @@ extern struct Log_Config {
 	int enable_logs;
 	int sql_logs;
 	int rare_items_log,refine_items_log,price_items_log,amount_items_log;
-	int branch, drop, mvpdrop, present, produce, refine, trade, vend, zeny, gm, npc, storage;
-	char log_branch[32], log_drop[32], log_mvpdrop[32], log_present[32], log_produce[32], log_refine[32], log_trade[32], log_vend[32], log_gm[32], log_npc[32], log_storage[32];
-	char log_branch_db[32], log_drop_db[32], log_mvpdrop_db[32], log_present_db[32], log_produce_db[32], log_refine_db[32], log_trade_db[32], log_vend_db[32], log_gm_db[32], log_npc_db[32];
+	int branch, drop, mvpdrop, present, produce, refine, trade, vend, zeny, gm, npc, storage, chat;
+	char log_branch[32], log_drop[32], log_mvpdrop[32], log_present[32], log_produce[32], log_refine[32], log_trade[32], log_vend[32], log_gm[32], log_npc[32], log_storage[32], log_chat[32];
+	char log_branch_db[32], log_drop_db[32], log_mvpdrop_db[32], log_present_db[32], log_produce_db[32], log_refine_db[32], log_trade_db[32], log_vend_db[32], log_gm_db[32], log_npc_db[32], log_chat_db[32];
 	int uptime;
 	char log_uptime[32];
 } log_config;
