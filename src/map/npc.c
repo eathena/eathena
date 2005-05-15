@@ -1367,7 +1367,7 @@ int npc_remove_map (struct npc_data *nd)
     npc_chat_finalize(nd);
 #endif
     clif_clearchar_area(&nd->bl,2);
-	strdb_erase(npcname_db, nd->name);
+	strdb_erase(npcname_db, (nd->bl.subtype < SCRIPT) ? nd->name : nd->exname);
     map_delblock(&nd->bl);
 	map_deliddb(&nd->bl);
 

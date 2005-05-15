@@ -2771,26 +2771,29 @@ int clif_arrow_fail(struct map_session_data *sd,int type)
  */
 int clif_arrow_create_list(struct map_session_data *sd)
 {
-	int i,c,view;
+	int i, c, j;
 	int fd;
 
 	nullpo_retr(0, sd);
 
-	fd=sd->fd;
-	WFIFOW(fd,0)=0x1ad;
+	fd = sd->fd;
+	WFIFOW(fd,0) = 0x1ad;
 
-	for(i=0,c=0;i<MAX_SKILL_ARROW_DB;i++){
-		if(skill_arrow_db[i].nameid > 0 && pc_search_inventory(sd,skill_arrow_db[i].nameid)>=0){
-			if((view = itemdb_viewid(skill_arrow_db[i].nameid)) > 0)
-				WFIFOW(fd,c*2+4) = view;
+	for (i = 0, c = 0; i < MAX_SKILL_ARROW_DB; i++) {
+		if (skill_arrow_db[i].nameid > 0 &&
+			(j = pc_search_inventory(sd, skill_arrow_db[i].nameid)) >= 0 &&
+			!sd->status.inventory[j].equip)
+		{
+			if ((j = itemdb_viewid(skill_arrow_db[i].nameid)) > 0)
+				WFIFOW(fd,c*2+4) = j;
 			else
 				WFIFOW(fd,c*2+4) = skill_arrow_db[i].nameid;
 			c++;
 		}
 	}
-	WFIFOW(fd,2)=c*2+4;
-	WFIFOSET(fd,WFIFOW(fd,2));
-	if(c > 0) sd->state.make_arrow_flag = 1;
+	WFIFOW(fd,2) = c*2+4;
+	WFIFOSET(fd, WFIFOW(fd,2));
+	if (c > 0) sd->state.produce_flag = 1;
 
 	return 0;
 }
@@ -9550,7 +9553,7 @@ void clif_parse_SelectArrow(int fd,struct map_session_data *sd)
 {
 	nullpo_retv(sd);
 
-	sd->state.make_arrow_flag = 0;
+	sd->state.produce_flag = 0;
 	skill_arrow_create(sd,RFIFOW(fd,2));
 }
 /*==========================================

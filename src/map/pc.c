@@ -548,47 +548,48 @@ int pc_isequip(struct map_session_data *sd,int n)
 //‘•”õ”j‰ó
 int pc_break_equip(struct map_session_data *sd, unsigned short where)
 {
-	int i;
-	int sc;
+	int i, j;
 
 	nullpo_retr(-1, sd);
-	if(sd->unbreakable_equip & where)
+	if (sd->unbreakable_equip & where)
 		return 0;
-	if(sd->unbreakable >= rand()%100)
+	if (sd->unbreakable >= rand()%100)
 		return 0;
-	if(where == EQP_WEAPON && sd->status.weapon && (sd->status.weapon == 6 || sd->status.weapon == 7 || sd->status.weapon == 8)) // Axes and Maces can't be broken [DracoRPG]
+	if (where == EQP_WEAPON && (sd->status.weapon == 6 || sd->status.weapon == 7 || sd->status.weapon == 8)) // Axes and Maces can't be broken [DracoRPG]
 		return 0;
 	switch (where) {
 		case EQP_WEAPON:
-			sc = SC_CP_WEAPON;
+			i = SC_CP_WEAPON;
 			break;
 		case EQP_ARMOR:
-			sc = SC_CP_ARMOR;
+			i = SC_CP_ARMOR;
 			break;
 		case EQP_SHIELD:
-			sc = SC_CP_SHIELD;
+			i = SC_CP_SHIELD;
 			break;
 		case EQP_HELM:
-			sc = SC_CP_HELM;
+			i = SC_CP_HELM;
 			break;
 		default:
 			return 0;
 	}
-	if(sd->sc_count && sd->sc_data[sc].timer != -1)
+	if (sd->sc_count && sd->sc_data[i].timer != -1)
 		return 0;
 
-	for (i=0;i<11;i++) {
-		if (sd->equip_index[i]>0 &&	sd->status.inventory[sd->equip_index[i]].attribute != 1 &&
-		   ((where == EQP_HELM && i == 6) ||
-		   (where == EQP_ARMOR && i == 7) ||
-	  	   (where == EQP_WEAPON && (i == 8 || i == 9) && sd->inventory_data[sd->equip_index[i]]->type == 4) ||
-		   (where == EQP_SHIELD && i == 9 && sd->inventory_data[sd->equip_index[i]]->type == 5))) {
-			sd->status.inventory[sd->equip_index[i]].attribute = 1;
-			sprintf(tmp_output, "%s has broken.",sd->inventory_data[sd->equip_index[i]]->name);
-			pc_unequipitem(sd,sd->equip_index[i],3);
-			clif_emotion(&sd->bl,23);
+	for (i = 0; i < 11; i++) {
+		if ((j = sd->equip_index[i]) > 0 && sd->status.inventory[j].attribute != 1 &&
+			((where == EQP_HELM && i == 6) ||
+			(where == EQP_ARMOR && i == 7) ||
+			(where == EQP_WEAPON && (i == 8 || i == 9) && sd->inventory_data[j]->type == 4) ||
+			(where == EQP_SHIELD && i == 9 && sd->inventory_data[j]->type == 5)))
+		{
+			sd->status.inventory[j].attribute = 1;
+			sprintf(tmp_output, "%s has broken.", sd->inventory_data[j]->name);
+			pc_unequipitem(sd, j, 3);
+			clif_emotion(&sd->bl, 23);
 			clif_displaymessage(sd->fd, tmp_output);
 			clif_equiplist(sd);
+			return 1;
 		}
 	}
 

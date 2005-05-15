@@ -6660,12 +6660,9 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		return 0;
 	}
 
-	if(sd->skillid == AC_MAKINGARROW &&	sd->state.make_arrow_flag == 1) {
-		sd->skillitem = sd->skillitemlv = -1;
-		return 0;
-	}
-	if((sd->skillid == AM_PHARMACY || sd->skillid == ASC_CDP)
-		&& sd->state.produce_flag == 1) {
+	if (sd->state.produce_flag &&
+		(sd->skillid == AM_PHARMACY || sd->skillid == ASC_CDP || sd->skillid == AC_MAKINGARROW))
+	{
 		sd->skillitem = sd->skillitemlv = -1;
 		return 0;
 	}

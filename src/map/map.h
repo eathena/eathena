@@ -169,7 +169,6 @@ struct map_session_data {
 		unsigned skill_flag : 1;
 		unsigned gangsterparadise : 1;
 		unsigned produce_flag : 1;
-		unsigned make_arrow_flag : 1;
 		unsigned potion_flag : 2;
 		unsigned storage_flag : 1;
 		unsigned snovice_flag : 4;
