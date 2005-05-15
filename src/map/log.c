@@ -509,7 +509,7 @@ int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, 
 
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0){
-		sprintf(tmp_sql, "INSERT INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_x`, `src_y`, `dst_charname`, `message`) VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s')", 
+		sprintf(tmp_sql, "INSERT INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_map_x`, `src_map_y`, `dst_charname`, `message`) VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s')", 
 		 	log_config.log_chat_db, type, type_id, src_charid, src_accid, map, x, y, dst_charname, message);
 	
 		if(mysql_query(&mmysql_handle, tmp_sql)){
