@@ -45,8 +45,8 @@ Progress:       0%
                 effect id or something
 
 Problem:	Storage BUGS! Items doubles/clones again any kinds of items! (due to "latest storage fix")
-Assigned:	N/A
-Progress:	0%
+Assigned:	Kevin
+Progress:	Done
 
                 Only happens during crashes.. 
 

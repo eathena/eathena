@@ -1,5 +1,6 @@
 Date	Added
 05/15
+	* Fixed an item dupe bug, very rare occasions [Kevin]
 	* Tidied up pc.c [celest]
 	* Fixed some wild frees from npc unloading at shutdown [celest]
 	* Changed Make Arrow to not display equipped items as material choices [celest]
