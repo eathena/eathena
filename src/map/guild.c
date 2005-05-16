@@ -825,7 +825,7 @@ int guild_send_message(struct map_session_data *sd,char *mes,int len)
 	guild_recv_message(sd->status.guild_id,sd->status.account_id,mes,len);
 
 	//Chatlogging type 'G'
-	log_chat("G", sd->status.party_id, sd->status.char_id, sd->status.account_id, (char*)sd->mapname, sd->bl.x, sd->bl.y, NULL, mes);
+	log_chat("G", sd->status.guild_id, sd->status.char_id, sd->status.account_id, (char*)sd->mapname, sd->bl.x, sd->bl.y, NULL, mes);
 	
 
 	return 0;
