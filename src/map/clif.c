@@ -5817,9 +5817,21 @@ int clif_party_xy(struct party *p,struct map_session_data *sd)
 
 	WBUFW(buf,0)=0x107;
 	WBUFL(buf,2)=sd->status.account_id;
-	WBUFW(buf,6)=sd->bl.x;
-	WBUFW(buf,8)=sd->bl.y;
-	clif_send(buf,packet_len_table[0x107],&sd->bl,PARTY_SAMEMAP_WOS);
+	
+	if (sd->party_x==-1 && sd->party_y==-1) { //bug fix for minimap [Kevin]
+		
+		WBUFW(buf,6)=sd->party_x;
+		WBUFW(buf,8)=sd->party_y;
+		clif_send(buf,packet_len_table[0x107],&sd->bl,PARTY_WOS);
+		
+	} else {
+		
+		WBUFW(buf,6)=sd->bl.x;
+		WBUFW(buf,8)=sd->bl.y;
+		clif_send(buf,packet_len_table[0x107],&sd->bl,PARTY_SAMEMAP_WOS);
+	
+	}
+	
 //	if(battle_config.etc_log)
 //		printf("clif_party_xy %d\n",sd->status.account_id);
 	return 0;

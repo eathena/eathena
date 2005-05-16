@@ -520,7 +520,7 @@ int party_send_xyhp_timer_sub(void *key,void *data,va_list ap)
 		if((sd=p->member[i].sd)!=NULL){
 			// À•W’Ê’m
 			if(sd->party_x!=sd->bl.x || sd->party_y!=sd->bl.y){
-				clif_party_xy(p,sd);
+				//clif_party_xy(p,sd); //moved because of minimap bug [Kevin]
 				sd->party_x=sd->bl.x;
 				sd->party_y=sd->bl.y;
 			}
@@ -553,7 +553,8 @@ int party_send_xy_clear(struct party *p)
 		if((sd=p->member[i].sd)!=NULL){
 			sd->party_x=-1;
 			sd->party_y=-1;
-			sd->party_hp=-1;
+			sd->party_hp=-1;	
+			clif_party_xy(p,sd); //added here to fix minimap bug [Kevin]
 		}
 	}
 	return 0;
