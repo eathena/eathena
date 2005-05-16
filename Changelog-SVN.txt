@@ -1,5 +1,7 @@
 Date	Added
 05/16
+	* Replaced zlib_win32.h and zconf_win32.h with the v1.2.2 files in /zlib [celest]
+	* Ported zlib.dll loading to eAthena plugin form [celest]
 	* Fixed some NPC skills acquirable by @allskill [celest]
 	* Merged sigpipe's handler with sig_proc [celest]
 	* Optimised timer.c a bit (partially from Shinomori's changes) [celest]

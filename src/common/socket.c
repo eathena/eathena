@@ -30,7 +30,6 @@ typedef int socklen_t;
 #include <string.h>
 
 #include "socket.h"
-#include "../common/dll.h"
 #include "../common/mmo.h"	// [Valaris] thanks to fov
 #include "../common/timer.h"
 #include "../common/malloc.h"
@@ -46,7 +45,9 @@ time_t stall_time_ = 60;
 int ip_rules = 1;
 
 #if defined(CYGWIN) || defined(_WIN32)
+	#include "../common/dll.h"
 	#define UPNP
+
 	Addon *upnp;
 	int (*firewall_addport)(char *desc, int port);
 	int	(*upnp_addport)(char *desc, char *ip, int port);

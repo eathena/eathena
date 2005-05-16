@@ -42,19 +42,19 @@
 		#define zlib_deflate     deflate
 		#define zlib_deflateEnd  deflateEnd
 	#else
-		#include "../zlib/zlib_win32.h"
+		#include "../zlib/zlib.h"
 		#include "../common/dll.h"
-		DLL zlib_dll;
-		#define zlib_inflateInit(strm) zlib_inflateInit_((strm),ZLIB_VERSION, sizeof(z_stream))
-		#define zlib_deflateInit(strm, level) zlib_deflateInit_((strm),(level),ZLIB_VERSION,sizeof(z_stream))
+		Addon *zlib_dll;
+		#define zlib_inflateInit(strm) zlib_inflateInit_((strm), ZLIB_VERSION, sizeof(z_stream))
+		#define zlib_deflateInit(strm, level) zlib_deflateInit_((strm), (level), ZLIB_VERSION, sizeof(z_stream))
 
-		int (WINAPI* zlib_inflateInit_) (z_streamp strm, const char *version, int stream_size);
-		int (WINAPI* zlib_inflate) (z_streamp strm, int flush);
-		int (WINAPI* zlib_inflateEnd) (z_streamp strm);
+		int (*zlib_inflateInit_) (z_streamp strm, const char *version, int stream_size);
+		int (*zlib_inflate) (z_streamp strm, int flush);
+		int (*zlib_inflateEnd) (z_streamp strm);
 
-		int (WINAPI* zlib_deflateInit_) (z_streamp strm, int level, const char *version, int stream_size);
-		int (WINAPI* zlib_deflate) (z_streamp strm, int flush);
-		int (WINAPI* zlib_deflateEnd) (z_streamp strm);
+		int (*zlib_deflateInit_) (z_streamp strm, int level, const char *version, int stream_size);
+		int (*zlib_deflate) (z_streamp strm, int flush);
+		int (*zlib_deflateEnd) (z_streamp strm);
 	#endif
 #else
 	#ifdef LOCALZLIB
@@ -1041,16 +1041,6 @@ void grfio_final(void)
 	gentry_entrys = gentry_maxentry = 0;
 
 	if (localresname) aFree(localresname);
-
-#ifdef _WIN32
-	#ifndef LOCALZLIB
-		DLL_CLOSE(zlib_dll);
-		zlib_inflateInit_ = NULL;
-		zlib_inflate      = NULL;
-		zlib_inflateEnd   = NULL;
-	#endif
-#endif
-
 }
 
 /*==========================================
@@ -1065,19 +1055,17 @@ void grfio_init(char *fname)
 
 #ifdef _WIN32
 	#ifndef LOCALZLIB
-	if(!zlib_dll) {
-		zlib_dll = DLL_OPEN ("zlib.dll");
+		zlib_dll = dll_open ("zlib.dll");
+		if (zlib_dll == NULL) {
+			ShowFatalError("Can't load zlib.dll\n");
+			exit(1);
+		}
 		DLL_SYM (zlib_inflateInit_,	zlib_dll,	"inflateInit_");
 		DLL_SYM (zlib_inflate,		zlib_dll,	"inflate");
 		DLL_SYM (zlib_inflateEnd,	zlib_dll,	"inflateEnd");
 		DLL_SYM (zlib_deflateInit_,	zlib_dll,	"deflateInit_");
 		DLL_SYM (zlib_deflate,		zlib_dll,	"deflate");
 		DLL_SYM (zlib_deflateEnd,	zlib_dll,	"deflateEnd");
-		if(zlib_dll == NULL) {
-			MessageBox(NULL,"Can't load zlib.dll","grfio.c",MB_OK);
-			exit(1);
-		}
-	}
 	#endif
 #endif
 
