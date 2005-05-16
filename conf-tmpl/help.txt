@@ -122,14 +122,14 @@
  50:@gstorage - Opens guild storage
  60:/item <item_name> - Gives you 1 of the desired item.
  60:@item <item name or ID> <quantity> - Gives you the desired item.
- 60:@item2 <item name or ID> <quantity> <Identify_flag> <refine> <attribut> <Card1> <Card2> <Card3> <Card4> = Gives you the desired item.
+ 60:@item2 <item name or ID> <quantity> <identified_flag> <refine> <broken_flag> <Card1> <Card2> <Card3> <Card4> - Gives you the desired item.
  40:@itemreset - Remove all your items.
  60:@itemcheck - Check your items with authorised items.
  60:@idsearch <part_of_item_name> - Search all items that name have part_of_item_name
  60:@refine <equip position> <+/- amount>
  60:@produce <equip name or equip ID> <element> <# of very's>
  60:	Element: 0=None 1=Ice 2=Earth 3=Fire 4=Wind
- 60:	It has separately with fragment 3 of the attribute + stars, you can apply.
+ 60:	You can add up to 3 Star Crumbs and 1 element
  60:@repairall - Repair all items of your inventory
  40: 
  40:--- PVP CMD ---

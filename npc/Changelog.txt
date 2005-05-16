@@ -4,37 +4,32 @@ Person	Working On
 ======
 Darkchild	
 	* New Payon City - 99% - As Far Done As Posible	
-	* Alchemist - Done
-	* Sage - Done
-	* Monk Quest - Botting An Acolyte Atm
 Lupus
-	* looking for exploits, optimization, bugs hunt
+	* Looking for exploits, optimization, bugs hunt
 	* Adding new cards, checking/adding mobs/items
 kobra_k88
 	* Optimize WoE
 Shinigami
-	* Organizing/Optmizing/Checking for Typo in all NPCs.
+	* Organizing/Optimizing/Checking for Typo in all NPCs.
 Mass Zero
 	* Novice Training Ground.
 	* (Probably unofficial) Lou Yang NPC's, mobs, etc...
 MC Cameri
-	* Bank NPC - Now 100% done for new payon
+	* Bank NPC - Now 100% done for new Payon
 	* Warper NPC - 100%, fixed memory consumption problem
 	* Heal NPC - 100%
 DracoRPG
-	* New Novice Training Grounds - In progress with Riotblade's help
-	* Towns Message Boards - Recruited Riotblade to work on them ^^
+	* Towns Message Boards - They should come fast
 Massdriller
 	* Correcting & Bugfixing scripts
 	* Bard Job Quest - 0.5% Botting on MRO
-	* New Novice Grounds From MRO - 65% -(Not sure it should be stopped as DracoRPG 
+	* New Novice Grounds from MRO - 65% -(Not sure it should be stopped as DracoRPG 
 	  did it, but intending to add it as an alternative novice quest)
 	* Gonryunn Quests - 0% - Botting on official Servers
 	* Artifacts of God (MRO GOD ITEM QUESTS) - 1% - resources only from MRO Official
 	  guide book so, probably unofficial
 	* Level 4 forge (MRO Lvl 4 Forging Quest) - 1% - resources only from MRO Official
 	  guide book so, probably unofficial
-
 Other Ppl	
 	* Their Work?
 
@@ -45,29 +40,29 @@ TODO:
 
 Date		Added
 ======
+
+05/16
+	* Cleanup in NPCs that are enabled by default : removed most of custom ones
+	  (including dev NPCs, WoE warper, Ayothaya poetry...) [DracoRPG]
+	* Added an Orc Hero Helm quest, custom but as accurate as possible [DracoRPG]
 05/15
 	* Fixed some Ayothaya warps, thanks to Fress_Boy [DracoRPG]
-
 05/14
 	* Fixed some more typos in city scripts [massdriller]
-
 05/09
 	* Added new Sara-chan's maps / warps for Einbroch and Lhztargen [Lupus]
 	* Added first Ayothaya city NPCs [Thanks to akusarujin]
 	* Fixed some typos [massdriller] (Thanks to neko for point those out)
 	* Fixed Ayothaya warps.[massdriller]
-
 05/07
 	* Modified and added more npc location for healers [massdriller]
-	* Added city cleaners as these were reported systems that exsist
+	* Added city cleaners as these were reported systems that exist
 	  in IRO & KRO [massdriller]
-
 05/05/05
 	* Balanced THQ Shop prices, fixed one missed label [Lupus]
 05/04
 	* Removed Horse Crest from the temp shop [Lupus]
 	* Borrowed Easter Event fix from Freya [Lupus]
-
 	* Fixed some script typos, thanks to zBuffer and Er Pirata
 04/29
 	* Alarm Mask Quest corrected txt 2 Shadow
@@ -78,7 +73,6 @@ Date		Added
 	* Added Einbroch and Ayothaya, cites and dungeons, to the Warpra [Fredzilla]
 	* Added the Engagement Quest into Ayothaya [Fredzilla]
 	* In accordance with this quest I have also added some needed warps
-
 04/26
 	* Some fixes of THG Quest [Lupus]
 	* Corrected view for Whitesmith NPC, thanks to Disiesel

@@ -1,5 +1,5 @@
 //===== eAthena Script =======================================
-//= Quest For Slotted Sunglasses
+//= Quest For New Headgears
 //===== By: ==================================================
 //= RedxSwordxHero 
 //===== Current Version: =====================================
