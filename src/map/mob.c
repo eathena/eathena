@@ -1659,11 +1659,11 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			if (asd == NULL || md->bl.m != abl->m || abl->prev == NULL ||
 				asd->invincible_timer != -1 || pc_isinvisible(asd) ||
 				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
-				battle_check_target(bl, abl, BCT_ENEMY) == 0)
+				battle_check_target(bl, abl, BCT_ENEMY) == 0 ||
+				!mob_can_reach(md, abl, distance(md->bl.x, md->bl.y, abl->x, abl->y))) //added
 			{
 				md->attacked_id = 0;
 				if (md->attacked_count++ > 3) {
-					md->attacked_count = 0;
 					if (mobskill_use(md, tick, MSC_RUDEATTACKED) == 0 &&
 						mode & 1 && mob_can_move(md))
 					{
@@ -1673,6 +1673,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 						mob_walktoxy(md, md->bl.x + dist * mask[dir][0], md->bl.y + dist * mask[dir][1], 0);
 						md->next_walktime = tick + 500;
 					}
+					md->attacked_count = 0;
 				}
 			} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) {
 				md->target_id = 0;

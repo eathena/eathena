@@ -1,5 +1,6 @@
 Date	Added
 05/16
+	* Fixed 'rudeattacked' skill condition, thanks to Komurka
 	* Replaced zlib_win32.h and zconf_win32.h with the v1.2.2 files in /zlib [celest]
 	* Ported zlib.dll loading to eAthena plugin form [celest]
 	* Fixed some NPC skills acquirable by @allskill [celest]
