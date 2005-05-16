@@ -3223,6 +3223,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		return 0;
 	if(bl->type == BL_MOB)
 		if (status_isdead(bl)) return 0;
+		
+	if(!status_get_sc_data(bl)) //null pointer right here [Kevin]
+		return 0;
 
 	nullpo_retr(0, sc_data=status_get_sc_data(bl));
 	nullpo_retr(0, sc_count=status_get_sc_count(bl));

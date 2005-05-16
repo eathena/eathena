@@ -1,5 +1,6 @@
 Date	Added
 05/16
+	* Fixed up some more null pointers. [Kevin]
 	* Added Chat-Logging (for Whisper, Party and GuildChat!) [Sirius]
 		- Sql Log Users please upgrade: sql-files/upgrade_svn1759.sql 
 
