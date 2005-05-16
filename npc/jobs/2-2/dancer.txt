@@ -4,22 +4,23 @@
 //= Kalen - Original jAthena
 //= Fredzilla - Converted
 //===== Current Version: ===================================== 
-//= 1.0
+//= 1.1
 //===== Compatible With: ===================================== 
 //= eAthena Final
 //===== Description: ========================================= 
 //= Dancer job quest based off a jAthena script and other sources for clarity
 //===== Additional Comments: ================================= 
+//= 1.1 Removed the warp I left here my accident, added a check for using 
+//=     Improved Concentration and arrow shower, people could get away with it
+//=     [Fredzilla]
 //= 1.0 I tried to keep as much the same from the Jap version as possible
 //=     this turned out to be quite hard, but on the whole it is the same script
 //=     I have added some new things, and changed some of the used commands,
-//=     along with some optimization, just waiting for Lupus to change this to v1.1
-//=     (I just know it will happen ^_^)
+//=     along with some optimization. [Fredzilla]
 
 
 //= Warning Warp to escape the quest if need be
-job_duncer.gat,70,45,0	warp	ComodoJobWarp	2,2,comodo.gat,193,149
-job_duncer.gat,69,165,1	script	w1039	45,1,1,{
+job_duncer.gat,69,165,1	script	wwarp	45,1,1,{
 	mes "[Warning]";
 	mes "This is the way out, this will cancel your quest if you leave";
 	next;
@@ -711,12 +712,11 @@ OnTimer21000:
 	mapannounce "job_duncer.gat","Bijou: Stay still!",8;
 	end;
 OnTimer26000:
-	mapannounce "job_duncer.gat","Bijou: Do 'Improved Concentration'!",8;
-	end;
-OnTimer28000:
-	mapannounce "job_duncer.gat","Bijou: Great one.",8;
+	set @skillcheck,Sp;
+	mapannounce "job_duncer.gat","Bijou: Use 'Improved Concentration'!",8;
 	end;
 OnTimer29000:
+	if (@skillcheck==Sp) goto OnTimer80000;
 	donpcevent "::OnDE1";
 	mapannounce "job_duncer.gat","Bijou: To the left.  [ < ]",8;
 	callsub L_SUB2,2000;
@@ -769,14 +769,15 @@ OnTimer68000:
 	end;
 OnTimer71000:
 	donpcevent "::OnDE1";
-	mapannounce "job_duncer.gat","Bijou:  Kill it, using Arrow Shower!",8;
+	mapannounce "job_duncer.gat","Bijou:  Kill the monster using Arrow Shower!",8;
+	set @skillcheck,Sp;
 	monster "job_duncer.gat",69,106,"Poring",1002,1,"jddie";
 	end;
 OnTimer76000:
 	killmonsterall "job_duncer.gat";
 	end;
 OnTimer80000:
-	mapannounce "job_duncer.gat","Dancer: You was a bit too slow at the end there, sorry you have failed.",8;
+	mapannounce "job_duncer.gat","Dancer: You was a bit too slow, sorry you have failed.",8;
 	disablenpc "uppertile";
 	disablenpc "lefttile";
 	disablenpc "righttile";
@@ -829,15 +830,18 @@ L_SUB5:
 	return;
 }
 job_duncer.gat,0,0,0	script	jddie	-1,{
-	mapannounce "job_duncer.gat","Dancer: Well done, you were very skillful, and have passed the test.",8;
+	if (@skillcheck==Sp) set @check,1;
+	if (@check==0) mapannounce "job_duncer.gat","Dancer: Well done, you were very skillful, and have passed the test.",8;
+	if (@check==1) mapannounce "job_duncer.gat","Dancer: Sorry "+strcharinfo(0)+" the failed to use arrow shower to kill the monster",8;
 	disablenpc "uppertile";
 	disablenpc "lefttile";
 	disablenpc "righttile";
 	disablenpc "lowertile";
 	disablenpc "middletile";
-	set DANC_Q,10;
+	if (@check==0)	set DANC_Q,10;
 	stopnpctimer "jobDq";
 	enablewaitingroomevent "dancew";
+	if (@check==1)	set @check,0;
 	warp "job_duncer.gat",69,102;
 	end;
 }
@@ -1025,8 +1029,16 @@ OnInit:
 //		close;
 //Lgo:
 //	warp "job_duncer.gat",70,112;
-//	disablewaitingroomevent "dancew";
 //	initnpctimer "jobDq";
 //	end;
 //}
-
+//job_duncer.gat,65,101,4	script	Tester NPC	100,{
+//	mes "[TEST]";
+//	mes "StatusPoint "+StatusPoint+" ";
+//	mes "bAspd "+bAspd+" ";
+//	mes readparam(53);
+//	mes "BaseLevel "+BaseLevel+" ";
+//	mes Karma;
+//	mes Sp;
+//	close;
+//}

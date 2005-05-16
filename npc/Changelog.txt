@@ -42,16 +42,19 @@ Date		Added
 ======
 
 05/16
+	* Small fix in the Dancer Job NPC and added checks for skill using, 
+	  Improved Concentration and Arrow Shower [Fredzilla]
 	* Cleanup in NPCs that are enabled by default : removed most of custom ones
 	  (including dev NPCs, WoE warper, Ayothaya poetry...) [DracoRPG]
 	* Added an Orc Hero Helm quest, custom but as accurate as possible [DracoRPG]
 05/15
+	* Added Dancer Job quest NPC [Fredzilla]
 	* Fixed some Ayothaya warps, thanks to Fress_Boy [DracoRPG]
 05/14
 	* Fixed some more typos in city scripts [massdriller]
 05/09
 	* Added new Sara-chan's maps / warps for Einbroch and Lhztargen [Lupus]
-	* Added first Ayothaya city NPCs [Thanks to akusarujin]
+	* Added first Ayothaya city NPCs [Thanks to akusarujin] {< Yeah right check 04/27 ;) }
 	* Fixed some typos [massdriller] (Thanks to neko for point those out)
 	* Fixed Ayothaya warps.[massdriller]
 05/07
