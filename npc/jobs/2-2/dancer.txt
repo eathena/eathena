@@ -1032,13 +1032,3 @@ OnInit:
 //	initnpctimer "jobDq";
 //	end;
 //}
-//job_duncer.gat,65,101,4	script	Tester NPC	100,{
-//	mes "[TEST]";
-//	mes "StatusPoint "+StatusPoint+" ";
-//	mes "bAspd "+bAspd+" ";
-//	mes readparam(53);
-//	mes "BaseLevel "+BaseLevel+" ";
-//	mes Karma;
-//	mes Sp;
-//	close;
-//}
