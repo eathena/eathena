@@ -48,10 +48,3 @@ cmd_in02.gat,69,129,0	warp	cmd09-1		4,4,comodo.gat,115,288
 cmd_in02.gat,74,21,0	warp	cmd01-1		1,1,comodo.gat,140,86
 cmd_in02.gat,90,37,0	warp	cmd14		1,1,cmd_in02.gat,191,77
 cmd_in02.gat,98,216,0	warp	cmd16-1		1,1,cmd_in02.gat,207,210
-job_duncer.gat,70,45,0	warp	ComodoJobWarp	2,2,comodo.gat,193,149
-
-
-
-
-
-
