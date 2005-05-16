@@ -1,5 +1,8 @@
 Date	Added
 05/16
+	* Fixed some NPC skills acquirable by @allskill [celest]
+	* Merged sigpipe's handler with sig_proc [celest]
+	* Optimised timer.c a bit (partially from Shinomori's changes) [celest]
 	* Fixed up some more null pointers. [Kevin]
 	* Added Chat-Logging (for Whisper, Party and GuildChat!) [Sirius]
 		- Sql Log Users please upgrade: sql-files/upgrade_svn1759.sql 

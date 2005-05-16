@@ -76,23 +76,20 @@ sigfunc *compat_signal(int signo, sigfunc *func)
  *	CORE : Signal Sub Function
  *--------------------------------------
  */
-// for handling certain signals ourselves, like SIGPIPE
-static void sig_ignore(int sn) {
-	ShowMessage ("Broken pipe found... closing socket\n");	// set to eof in socket.c
-	return;	// does nothing here
-}
 static void sig_proc(int sn)
 {
 	static int is_called = 0;
 
-	if(++is_called > 3)
-		exit(0);
-
-	switch(sn){
+	switch (sn) {
 	case SIGINT:
 	case SIGTERM:
-                runflag = 0;
+		if (++is_called > 3)
+			exit(0);
+		runflag = 0;
 		break;
+	case SIGPIPE:
+		ShowMessage ("Broken pipe found... closing socket\n");	// set to eof in socket.c
+		break;	// does nothing here
 	}
 }
 
@@ -184,7 +181,7 @@ void init_signals (void)
 	compat_signal(SIGFPE, func);
 	compat_signal(SIGILL, func);
 	#ifndef _WIN32
-		compat_signal(SIGPIPE, sig_ignore);		
+		compat_signal(SIGPIPE, sig_proc);
 		compat_signal(SIGBUS, func);
 		compat_signal(SIGTRAP, SIG_DFL);
 	#endif	
