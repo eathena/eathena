@@ -14,8 +14,10 @@
 // extern "C" {
 #include <assert.h>
 // }
+#ifndef DEFCPP
 #if defined(_WIN32)
 #include <crtdbg.h>
+#endif
 #endif
 #define Assert(EX) assert(EX)
 #endif
