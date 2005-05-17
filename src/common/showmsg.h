@@ -2,6 +2,7 @@
 #define _SHOWMSG_H_
 
 //davidsiaw, 'lookee' here!
+//ok thanks MC I see it
 #define SHOW_DEBUG_MSG 1
 
 // for help with the console colors look here:
