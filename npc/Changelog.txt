@@ -40,6 +40,8 @@ TODO:
 
 Date		Added
 ======
+05/17
+	* Fixed Crusader Quest.(Thanks to Komurka) [massdriller]
 
 05/16
 	* Small fix in the Dancer Job NPC and added checks for skill using, 
@@ -54,9 +56,8 @@ Date		Added
 	* Fixed some more typos in city scripts [massdriller]
 05/09
 	* Added new Sara-chan's maps / warps for Einbroch and Lhztargen [Lupus]
-	* Added first Ayothaya city NPCs [Thanks to akusarujin] {< Yeah right check 04/27 ;) }
 	* Fixed some typos [massdriller] (Thanks to neko for point those out)
-	* Fixed Ayothaya warps.[massdriller]
+	* Fixed Ayothaya warps.[massdriller] [Thanks to akusarujin]
 05/07
 	* Modified and added more npc location for healers [massdriller]
 	* Added city cleaners as these were reported systems that exist

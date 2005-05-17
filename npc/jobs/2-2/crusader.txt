@@ -5,7 +5,7 @@
 //= Converted by: Shin
 //=
 //===== Current Version: ===================================== 
-//= 1.3b
+//= 1.4
 //===== Compatible With: ===================================== 
 //= eAthena  0.5.2 +
 //===== Description: ========================================= 
@@ -19,6 +19,7 @@
 //=     also fixed too common script names [Lupus]
 //= 1.3a fixed "dead lock" bugs [Lupus]
 //= 1.3b changed monsters ID in patience test [Komurka]
+//= 1.4 Fixed Job Level parameters mix-up. [massdriller] (Thanks to Komurka)
 //============================================================
 
 
@@ -60,12 +61,12 @@ NEXT_0:
 	mes "[^000080Lothar^000000]";
 	mes "All right, let me take a look at you first.";
 	next;	
-	if (BaseLevel != 50) goto SKIP;
+	if (JobLevel != 50) goto SKIP;
 	set JBLVL,50;
 	set CRUS_Q,5;
 	goto TEST1;
 	SKIP:
-	if (BaseLevel > 39) goto OKAY;
+	if (JobLevel > 39) goto OKAY;
 	mes "[^000080Lothar^000000]";
 	mes "I'm sorry, but you need to be at least at a job level of 40.";
 	next;
