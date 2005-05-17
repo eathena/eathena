@@ -12,6 +12,9 @@ GM COMMANDS
 Note:
      To use these commands, type them inside the message window where you usually
      type to chat.
+
+Rewritten by: Kevin
+
 ---------------------------------------------------------------------------------
 <> = type of parameter that the command need to have
 [] = optionnal parameter
@@ -22,20 +25,24 @@ Note:
 =================================================================================
 ANNOUNCEMENT COMMANDS
 =================================================================================
-/b/@broadcast <message>       = Broadcasts a GM message with name of the GM
-                                (in yellow)
-/nb/@kami <message>           = Broadcasts a GM message without name of the GM
-                                (in yellow)
-@kamib <message>              = Broadcasts a GM message without name of the GM
-                                (in blue)
-/lb/@localbroadcast <message> = Broadcasts a GM message with name of the GM
-                                (in yellow) ONLY on your map
-/nlb <message>                = Broadcasts a GM message without name of the GM
-                                (in yellow) ONLY on your map
+
+/b, @broadcast <message>         = Send a message to everybody, with GM name.
+                                   (yellow text)
+/nb, @kami <message>             = Send a message to everybody, with no GM name.
+                                   (yellow text)
+/bb, @kamib <message>            = Send a message to everybody, with no GM name.
+                                   (blue text)
+/lb, @localbroadcast <message>   = Send a message to everybody, with GM name.
+                                   (yellow text) (current map only)
+/nlb <message>                   = Send a message to everybody, with no GM name.
+                                   (yellow text) (current map only)
 
 =================================================================================
 INFORMATION COMMANDS
 =================================================================================
+
+-----Character Information-----
+
 @who [match_text]      = Lists which characters are currently online in your
                          server and their location. [match_text] is a parameter
                          to search only characters that have this text in their
@@ -60,16 +67,14 @@ INFORMATION COMMANDS
 @whogm [match_text]    = Like @who+@who2+who3, but only for GM.
 @where [char name]     = Tells you the location of a character. If [char name]
                          isn't specified, you display your own location.
-@charstatsall          = Displays stats of all characters.
-@charitemlist <char name>    = Displays all items of a player.
-@charstoragelist <char name> = Displays all items of a player's storage.
 @charcartlist <char name>    = Displays all items of a player's cart.
-@ignorelist            = Displays your ignore list
 @mapinfo [<0-3> [map]] = Give information about a map (general info +:
                          0: no more, 1: players, 2: NPC, 3: shops/chat).
 
 @time/@date/@server_date/@serverdate/@server_time/@servertime = Display the date/
                                                                time of the server
+
+-----guild/party information-----
 
 @guildspy <guild_name/id> = You will receive all messages of the specified guild
                             channel
@@ -77,18 +82,19 @@ INFORMATION COMMANDS
                             channel
 
 =================================================================================
-(YOURSELF-)CONTROL COMMANDS
+YOURSELF ONLY COMMANDS
 =================================================================================
-MOVE COMMANDS
--------------
+
+-----move commands-----
+
 /hide/@hide                             = GM Hide. Perfect hide that's totally
                                           invisible. Type @hide again become
                                           visible.
 @save                                   = Sets save point as current location
 @load/@return                           = Warps you to your save point (like
                                           butterfly wing)
-/mm <mapname> <xpos> <ypos>             = Warps you to the selected position
-/mapmove <map_name> <x> <y>             = Warps you to the selected position
+/mm <mapname> <> <p>
+/mapmove <map_name> <x> <y>
 @warp/@rura/@mapmove <mapname> <x> <y>  = Warps you to the selected position
                                           Example: @warp morocc 150 160 -> Warps
                                                    you to Morroc (X:150, Y:160)
@@ -107,17 +113,15 @@ MOVE COMMANDS
                                 2=Geffen           9=Yuno          16=Prison
                                 3=Payon           10=Amatsu
 
-HEALTH COMMANDS
----------------
+-----Health Commands-----
+
 @die              = Kill yourself :) (suicide)
 @alive            = Revives yourself from death
 @heal [<HP> <SP>] = Heals the desired amount of HP and SP. No value specified
                     will do a full heal.
 
-OTHER COMMANDS
----------------
-/resetstatus          = Resets all status points for you to reuse.
-/resetskill           = Resets all skill points for you to reuse.
+-------Job/Skill/Stat Commands-----
+
 @job/@jobchange <job> = Changes your job to the job assigned to the ID:
                    0 Novice          7 Knight          14 Crusader    22 Formal
                    1 Swordman        8 Priest          15 Monk        23 Super Novice
@@ -144,6 +148,30 @@ OTHER COMMANDS
                                                 Novice and Advanced Classes it is
                                                 70.
 @allskill/@allskills/@skillall/@skillsall     = Give you all skills.
+@stpoint <number of points>            = Gives you the desired number of stat
+                                         points.
+@skpoint <number of points>            = Gives you the desired number of skill
+                                         points.
+@str,@agi,@vit,@int,@dex,@luk <amount> = Adds desired amount to any stat. For
+                                         example "@str 10" raises your str by 10.
+@statall/@statsall/@allstats/@allstat [value] = Adds value in all stats (maximum
+                                                if no value).
+@questskill <id>                       = Gives you the specified quest skill
+@lostskill <id>                        = Takes away the specified quest skill
+                                         from you
+      Novice                 Archer                 Swordsman
+      142 = Emergency Care   147 = Arrow Creation   144 = Moving HP Recovery
+      143 = Act dead         148 = Charge Arrows    145 = Attack Weak Point
+                             Thief                  146 = Auto Berserk
+                             149 = Throw Sand       Merchant
+                             150 = Back Sliding     153 = Cart Revolution
+                             151 = Take Stone       154 = Change Cart
+                             152 = Stone Throw      155 = Crazy Uproar/Loud Voice
+                             Acolyte                Magician
+                             156 = Holy Light       157 = Energy Coat
+
+-----Other Commands-----
+
 @option <param1> <param2> <param3>            = Changes options of your character
     Example: @option 0 0 16 - would give falcon
     <param1>        <param2>       <param3>                <param3>
@@ -183,58 +211,93 @@ OTHER COMMANDS
 @speed <1-1000>                        = Changes you walking speed (1 being the
                                          fastest & 1000 the slowest. Default 150.
 @effect <effect_id> [flag]             = Give an efect to your character.
-@stpoint <number of points>            = Gives you the desired number of stat
-                                         points.
-@skpoint <number of points>            = Gives you the desired number of skill
-                                         points.
 @zeny <amount>                         = Gives you desired amount of Zeny.
-@str,@agi,@vit,@int,@dex,@luk <amount> = Adds desired amount to any stat. For
-                                         example "@str 10" raises your str by 10.
-@statall/@statsall/@allstats/@allstat [value] = Adds value in all stats (maximum
-                                                if no value).
 @memo [memo_position]                  = set/change a memo location.
                                          (no position: display memo points).
 @spiritball <number: 1-1000>           = Gives you monk "spirit spheres" like
                                          from the skill "Call Spirits" (If the
                                          number you use is > 1000, your server
                                          may become instable or crash)
-@questskill <id>                       = Gives you the specified quest skill
-@lostskill <id>                        = Takes away the specified quest skill
-                                         from you
-      Novice                 Archer                 Swordsman
-      142 = Emergency Care   147 = Arrow Creation   144 = Moving HP Recovery
-      143 = Act dead         148 = Charge Arrows    145 = Attack Weak Point
-                             Thief                  146 = Auto Berserk
-                             149 = Throw Sand       Merchant
-                             150 = Back Sliding     153 = Cart Revolution
-                             151 = Take Stone       154 = Change Cart
-                             152 = Stone Throw      155 = Crazy Uproar/Loud Voice
-                             Acolyte                Magician
-                             156 = Holy Light       157 = Energy Coat
-
-@changesex                              = Changes your sex to the opposite one.
 
 =================================================================================
-MONSTERS COMMANDS
+REMOTE CHAR COMMANDS
 =================================================================================
+
+@kill <char name>           = Kills specified character name
+                              Example: @kill TestChar -> The character named
+                                                         TestChar is dead
+@jail <char_name>           = Sends specified character in jails
+/recall/@recall <char name> = Warps target character to you.
+@recallall                  = Warps every character online to you.
+@unjail/@discharge <char_name>                 = Discharges specified character
+                                                 or prisoner
+@charwarp/@rura+ <mapname> <x> <y> <char name> = Warps character to location of
+                                                 choice: Example:
+                                                 @charwarp morocc 150 160 testet
+@revive <char name>         = Revives target character.
+@charstats <char name>      = Displays the character's stats.
+@charignorelist <char name> = Displays ignore list of the player
+@inall <char name>          = Allows all wispers for the player
+@exall <char name>          = Blocks all wispers for the player
+@charoption <param1> <param2> <param3> <char name> = Does the same as the @option
+                                                     command only to target
+                                                     character.
+@charmountpeco <charname>           = Give/remove to a player a peco (Class is
+                                      required, but not skill).
+@charpetrename <charname>           = Re-enable pet rename to a player.
+@charsave <map> <x> <y> <char name> = Changes the target player's respawn point.
+@charbaselvl <#> <char name>        = Change a character's base level.
+@charjlvl <#> <char name>           = Change a character's job level.
+@charstpoint <amount> <char name>   = Give/take a player's stat points
+@charskpoint <amount> <char name>   = Give/take a player's skill points
+@charskreset <charname>             = Reset skills of a character.
+@charstreset <charname>             = Reset stats of a character.
+@charquestskill <#> <charname>      = Gives to a player the specified quest skill.
+@charlostskill <#> <charname>       = Takes away the specified quest skill from
+                                      the player.
+@chardelitem <item_name_or_ID> <quantity> <player> = Remove items from a character
+@charmodel <hair type> <hair color> <clothes color> <char name> = Changes a
+                                                                  player's model
+@chardisguise <monster_name/ID> <char name> = Changes disguise of a player
+@charundisguise <char name>         = Cancels disguise of a player
+@charblock/@block <name>            = Blocks definitively a account
+@charunblock/@unblock <name>        = Unblocks a account
+@charban/@ban/@banish/@charbanish <time> <name>  = Ban temporarily a account
+                                                   Time usage: adjustement
+                                                   (+/- value) and element
+                                                   (y/a, m, d/j, h, mn, s)
+                                                   Example:
+                                                   @ban +1m-2mn1s-6y testplayer
+@charunban/@unban/@unbanish/@uncharbanish <name> = Unban a account
+@kick <charname>                    = Kicks specified character off the server
+@kickall                            = Kick all characters off the server
+@mapexit                            = Kick all players and shut down map-server.
+@doom                               = Kills all NON GM chars on the server.
+@doommap                            = Kills all non GM characters on the map.
+@raise                              = Resurrects all characters on the server.
+@raisemap                           = Resurrects all characters on the map.
+
+=================================================================================
+MOB COMMANDS
+=================================================================================
+
 /monster <monster_name> = Spawns 1 of the desired monster.
 @spawn/@monster/@summon <monster_name_or_monster_ID> [<number to spawn> [<desired_monster_name> [<x coord> [<y coord>]]]]
                         = Spawns the desired monster with any desired name,
                           quantity and x and y location (if specified).
 @monster2 <desired_monster_name> <monster_name_or_monster_ID> [<number to spawn> [<x coord> [<y coord>]]]
                         = Spawns the desired monster with any desired name.
-@spawn/@monster/@summon/@monster2 "desired monster name" <monster_name_or_monster_ID> [<number to spawn> [<x coord> [<y coord>]]]
 @spawn/@monster/@summon/@monster2 <monster_name_or_monster_ID> "desired monster name" [<number to spawn> [<x coord> [<y coord>]]]
                         = There 2 last forms can use spaces for desired names.
 @killmonster [map]      = kill all monsters of the map (they drop items)
 @killmonster2           = kill all monsters of your map (without drops)
 
 =================================================================================
-ITEMS COMMANDS
+ITEM COMMANDS
 =================================================================================
+
 @storage                              = Opens storage
 @gstorage                             = Opens guild storage
-/item <item_name>                     = Gives you 1 of the desired item.
 @item <item name or ID> [quantity]    = Gives you the desired item.
 @item2 <item name or ID> <quantity> <Identify_flag> <refine> <attribut> <Card1> <Card2> <Card3> <Card4>
                                       = Gives you the desired item.
@@ -266,104 +329,44 @@ ITEMS COMMANDS
 @repairall                            = Repair all items of your inventory
 
 =================================================================================
-PVP COMMANDS
+ADMINISTRATION COMMANDS
 =================================================================================
-@pvpon           = Turns pvp on on the current map
-@pvpoff          = Turns pvp off on the current map
-@gvgon/@gpvpon   = Turns gvg on on the current map
-@gvgoff/@gpvpoff = Turns gvg off on the current map
-@agitstart       = Starts Guild Wars (War of Emperium)
-@agitend         = End Guild Wars (War of Emperium)
+
+@reloaditemdb      = Reload item database (admin command)
+@reloadmobdb       = Reload monster database (admin command)
+@reloadskilldb     = Reload skills definition database (admin command)
+@reloadscript      = Reload all scripts (admin command)
+@reloadgmdb        = Reload GM levels (admin command)
+@reloadatcommand   = Reload GM command levels (admin command)
+@reloadbattleconf  = Reload Battle Config(admin command)
+@reloadstatusdb    = Reload status database(admin command)
+@reloadpcdb        = Reload pc database(admin command)
+
+@loadnpc <path/to/npc> - Load a NPC (admin command)
+@unloadnpc <NPC_name> - Disable a NPC (admin command)
+@shownpc <NPC_name> - Show a hidden NPC (admin command)
+@hidenpc <NPC_name> - Hide a NPC (admin command)
+
+
+@gat           = For debugging (you inspect around gat)
+@packet        = For debugging (packet variety)
+
+@GM <password> = it becomes GM!
+@email <actual@email> <new@email> = to change your e-mail (characters protection)
+
+@refreshonline = Rechecks to make sure online column is correct (SQL Only)
 
 =================================================================================
-GROUPS COMMANDS
+OTHER COMMANDS
 =================================================================================
-@party <party_name>          = Create a party
-@guild <guild_name>          = Create a guild.
-@guildlvup/@guildlvlup <# of levels> = Raise Guild by desired number of levels
-@guildrecall <guild_name/id> = Warps all online character of a guild to you.
-@partyrecall <party_name/id> = Warps all online character of a party to you.
 
-=================================================================================
-PETS COMMANDS
-=================================================================================
-@hatch           = Create a pet from your inventory eggs list.
-@makeegg <ID>    = Gives pet egg for monster ID in pet DB
-@petfriendly <#> = Set pet friendly amount (0-1000) 0 = Min, 1000 = Max
-@pethungry <#>   = Set pet hungry amount (0-100) 0 = Min, 100 = Max
-@petrename       = Re-enable pet rename
+-----Environmental Commands-----
 
-=================================================================================
-REMOTE CHARACTERS COMMANDS
-=================================================================================
-@kill <char name>           = Kills specified character name
-                              Example: @kill TestChar -> The character named
-                                                         TestChar is dead
-@jail <char_name>           = Sends specified character in jails
-/recall/@recall <char name> = Warps target character to you.
-@recallall                  = Warps every character online to you.
-@unjail/@discharge <char_name>                 = Discharges specified character
-                                                 or prisoner
-@charwarp/@rura+ <mapname> <x> <y> <char name> = Warps character to location of
-                                                 choice: Example:
-                                                 @charwarp morocc 150 160 testet
-@revive <char name>         = Revives target character.
-@charstats <char name>      = Displays the character's stats.
-@charignorelist <char name> = Displays ignore list of the player
-@inall <char name>          = Allows all wispers for the player
-@exall <char name>          = Blocks all wispers for the player
-@charoption <param1> <param2> <param3> <char name> = Does the same as the @option
-                                                     command only to target
-                                                     character.
-@charmountpeco <charname>           = Give/remove to a player a peco (Class is
-                                      required, but not skill).
-@charpetrename <charname>           = Re-enable pet rename to a player.
-@charsave <map> <x> <y> <char name> = Changes the target player's respawn point.
-@charbaselvl <#> <char name>        = Change a character's base level.
-@charjlvl <#> <char name>           = Change a character's job level.
-@charjob/@charjobchange <job ID> <char name> = Changes target character's job.
-@charzeny <amount> <char name>      = Give/take a player's Zeny
-@charstpoint <amount> <char name>   = Give/take a player's stat points
-@charskpoint <amount> <char name>   = Give/take a player's skill points
-@charskreset <charname>             = Reset skills of a character.
-@charstreset <charname>             = Reset stats of a character.
-@charreset <charname>               = Reset stats AND skills of a character.
-@charquestskill <#> <charname>      = Gives to a player the specified quest skill.
-@charlostskill <#> <charname>       = Takes away the specified quest skill from
-                                      the player.
-@chardelitem <item_name_or_ID> <quantity> <player> = Remove items from a character
-@charmodel <hair type> <hair color> <clothes color> <char name> = Changes a
-                                                                  player's model
-@chardisguise <monster_name/ID> <char name> = Changes disguise of a player
-@charundisguise <char name>         = Cancels disguise of a player
-@charchangesex <name>               = Changes sex of a player (all characters of
-                                      the account)
-@charblock/@block <name>            = Blocks definitively a account
-@charunblock/@unblock <name>        = Unblocks a account
-@charban/@ban/@banish/@charbanish <time> <name>  = Ban temporarily a account
-                                                   Time usage: adjustement
-                                                   (+/- value) and element
-                                                   (y/a, m, d/j, h, mn, s)
-                                                   Example:
-                                                   @ban +1m-2mn1s-6y testplayer
-@charunban/@unban/@unbanish/@uncharbanish <name> = Unban a account
-@kick <charname>                    = Kicks specified character off the server
-@kickall                            = Kick all characters off the server
-@mapexit                            = Kick all players and shut down map-server.
-@doom                               = Kills all NON GM chars on the server.
-@doommap                            = Kills all non GM characters on the map.
-@raise                              = Resurrects all characters on the server.
-@raisemap                           = Resurrects all characters on the map.
-
-=================================================================================
-ENVIRONMENT COMMANDS
-=================================================================================
 @night = Uses @option 00 16 00 on all characters. All characters are in darkness
 @day   = Uses @option 00 00 00 on all characters.
 
-=================================================================================
-MAIL SYSTEM (SQL Only)
-=================================================================================
+-----Mail System Commands(SQL)-----
+
 @checkmail 	= Checks # of messages in your mailbox.
 @listmail	= Lists all the messages in your mailbox.
 @listnewmail	= Lists all new messages in your mailbox.
@@ -376,21 +379,24 @@ MAIL SYSTEM (SQL Only)
 @sendprioritymail <name> <message> = Send priority mail to a player.
 
 Use * for name to send to all players.
-=================================================================================
-ADMINISTRATION COMMANDS
-=================================================================================
-@reloaditemdb  = Reload item database (admin command)
-@reloadmobdb   = Reload monster database (admin command)
-@reloadskilldb = Reload skills definition database (admin command)
-@reloadscript  = Reload all scripts (admin command)
-@reloadgmdb    = Reload GM levels (admin command)
-@enablenpc <NPC_name> - Enable a NPC (admin command)
-@disablenpc <NPC_name> - Disable a NPC (admin command)
 
-@gat           = For debugging (you inspect around gat)
-@packet        = For debugging (packet variety)
+-----Pet Commands-----
 
-@GM <password> = it becomes GM!
-@email <actual@email> <new@email> = to change your e-mail (characters protection)
+@hatch           = Create a pet from your inventory eggs list.
+@makeegg <ID>    = Gives pet egg for monster ID in pet DB
+@petfriendly <#> = Set pet friendly amount (0-1000) 0 = Min, 1000 = Max
+@pethungry <#>   = Set pet hungry amount (0-100) 0 = Min, 100 = Max
+@petrename       = Re-enable pet rename
 
-@refreshonline = Rechecks to make sure online column is correct (SQL Only)
+-----Group Commands-----
+
+@party <party_name>          = Create a party
+@guild <guild_name>          = Create a guild.
+@guildlvup/@guildlvlup <# of levels> = Raise Guild by desired number of levels
+@guildrecall <guild_name/id> = Warps all online character of a guild to you.
+@partyrecall <party_name/id> = Warps all online character of a party to you.
+
+-----Mute Commands (muting_players must be enabled)-----
+
+@mute/@red <time> <char_name>     = Mutes char_name for time period of time.
+@mutearea/@stfu [time]       = Mutes area for time, sets defualt to 15.
