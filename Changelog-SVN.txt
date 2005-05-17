@@ -1,5 +1,6 @@
 Date	Added
 05/16
+	* Fixed a slightly large inefficiency and bug in clif_foreachclient thanks to Sasuke-! [Kevin]
 	* Fixed a bug in minimap thanks to Komurka. [Kevin]
 	* Added mysql_real_escape_string() while creating a new character
 		- Might fix a few character names if you have no restrictions [Codemaster]
