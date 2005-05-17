@@ -1,5 +1,6 @@
 Date	Added
 05/17
+	* Removed 'Agi Up' visual effect from Berserk [DracoRPG]
 	* Tidied up npc.c a bit [celest]
 	* Added crash check in SQL char creation [celest]
 	* Changed Marionette Control's inf type [celest]

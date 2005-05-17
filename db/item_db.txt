@@ -1252,7 +1252,7 @@
 4204,Mini_Demon_Card,Mini Demon Card,6,20,0,10,,,,,,,64,,,,{},{ bonus2 bSubRace,2,-20; bonus2 bExpAddRace,2,10; } //??OK
 4205,Mimic_Card,Mimic Card,6,20,0,10,,,,,,,136,,,,{},{ bonus2 bAddMonsterDropItem,603,10; } //??OK - 0.1% chance OBB
 4206,Myst_Case_Card,Mystcase Card,6,20,0,10,,,,,,,769,,,,{},{ bonus2 bAddMonsterDropItem,644,10; } //??OK - 0.1% chance
-4207,Mysteltainn_Card,Mysteltainn Card,6,20,0,10,,,,,,,32,,,,{},{ bonus2 bSubSize,1,25; bonus bDef,1; } //OK
+4207,Mysteltainn_Card,Mysteltainn Card,6,20,0,10,,,,,,,32,,,,{},{ bonus2 bSubSize,0,25; bonus bDef,1; } //OK
 4208,Miyabi_Ningyo_Card,Miyabi Ningyo Card,6,20,0,10,,,,,,,64,,,,{},{ bonus bMaxSPrate,10; bonus2 bSkillAtk,15,5; } //OK
 4209,Violy_Card,Violy Card,6,20,0,10,,,,,,,136,,,,{},{ if(getskilllv(318)==5) goto FJ_5; bonus3 bAutoSpell,318,1,1; end; FJ_5: bonus3 bAutoSpell,318,5,1; } //??OK
 4210,Wanderer_Card,Wanderer Card,6,20,0,10,,,,,,,4,,,,{},{ if(callfunc("Is_Thief_Class")) bonus bFlee,20;  if(isequipped(4172,4257,4230,4272)) goto THIEF_SET; bonus3 bAutoSpell,219,1,1; end; THIEF_SET: bonus bAgi,5; bonus bStr,5; bonus bAspdRate,5; bonus bSpeedRate,5; bonus3 bSPDrainValue,100,1,0; if(callfunc("Is_Thief_Class")) bonus bNoGemStone,0; } //??OK
@@ -1299,7 +1299,7 @@
 4251,Elder_Card,Elder Card,6,20,0,10,,,,,,,2,,,,{},{ bonus2 bAddRace2,5,40; } //OK
 4252,Alligator_Card,Alligator Card,6,20,0,10,,,,,,,136,,,,{},{ bonus bLongAtkDef,5; } //OK
 4253,Alice_Card,Alice Card,6,20,0,10,,,,,,,32,,,,{},{ bonus2 bSubRace,10,40; bonus2 bSubRace,11,-40; } //??OK
-4254,Tirfing_Card,Tirfing Card,6,20,0,10,,,,,,,32,,,,{},{ bonus2 bSubSize,0,25; bonus bDef,1; } //OK
+4254,Tirfing_Card,Tirfing Card,6,20,0,10,,,,,,,32,,,,{},{ bonus2 bSubSize,1,25; bonus bDef,1; } //OK
 4255,Orc_Lady_Card,Orc Lady Card,6,20,0,10,,,,,,,2,,,,{},{ bonus2 bAddRace2,3,30; } //OK
 4256,Orc_Archer_Card,Orc Archer Card,6,20,0,10,,,,,,,136,,,,{},{} //missing getitemonkill?? (item not implemented)
 4257,Wild_Rose_Card,Wild Rose Card,6,20,0,10,,,,,,,64,,,,{},{ bonus bAgi,1; if(callfunc("Is_Thief_Class")) bonus bFlee2,5; } //OK

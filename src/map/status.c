@@ -3342,11 +3342,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_ENDURE:				/* インデュア */
 			if(tick <= 0) tick = 1000 * 60;
 			calc_flag = 1; // for updating mdef
-#ifdef TWILIGHT
-			val2 = 40; // [Celest]
-#else
 			val2 = 7; // [Celest]
-#endif
 			break;
 		case SC_AUTOBERSERK:
 			{
@@ -3414,6 +3410,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 					tick += tick / 10;
 			break;
 		case SC_OVERTHRUST:			/* オ?バ?スラスト */
+		case SC_OVERTHRUSTMAX:
 			if(bl->type == BL_PC)
 				if(pc_checkskill(sd,BS_HILTBINDING)>0)
 					tick += tick / 10;
@@ -3830,7 +3827,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 
 		/* セ?フティウォ?ル、ニュ?マ */
-		case SC_SAFETYWALL:	case SC_PNEUMA:
+		case SC_SAFETYWALL:
+		case SC_PNEUMA:
 			tick=((struct skill_unit *)val2)->group->limit;
 			break;
 
@@ -3906,7 +3904,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				sd->status.sp = 0;
 				clif_updatestatus(sd,SP_HP);
 				clif_updatestatus(sd,SP_SP);
-				clif_status_change(bl,SC_INCREASEAGI,1);	/* アイコン表示 */
 				sd->canregen_tick = gettick() + 300000;
 			}
 			*opt3 |= 128;
@@ -4253,6 +4250,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_MELTDOWN:		/* メルトダウン */
 			case SC_CARTBOOST:
 			case SC_MINDBREAKER:		/* マインドブレーカー */
+			case SC_BERSERK:
 			// Celest
 			case SC_EDP:
 			case SC_SLOWDOWN:
@@ -4277,10 +4275,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_AUTOBERSERK:
 				if (sc_data[SC_PROVOKE].timer != -1)
 					status_change_end(bl,SC_PROVOKE,-1);
-				break;
-			case SC_BERSERK:			/* バ?サ?ク */
-				calc_flag = 1;
-				clif_status_change(bl,SC_INCREASEAGI,0);	/* アイコン消去 */
 				break;
 			case SC_DEVOTION:		/* ディボ?ション */
 				{
@@ -4466,6 +4460,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			*opt3 &= ~1;
 			break;
 		case SC_OVERTHRUST:			/* オ?バ?スラスト */
+		case SC_OVERTHRUSTMAX:
 			*opt3 &= ~2;
 			break;
 		case SC_ENERGYCOAT:			/* エナジ?コ?ト */

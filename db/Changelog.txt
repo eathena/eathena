@@ -8,6 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them I believe.
 
+05/17
+	* Switched Tirfing and Mystelltain card effects, thanks to starlon [DracoRPG]
 05/15
 	* Changed Hylozoist's race to demon, thanks to Dino9021
 	* Fixed Gajomart Card, thanks to starlon [DracoRPG]
