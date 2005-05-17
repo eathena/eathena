@@ -90,6 +90,7 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	SC_ADRENALINE,		/* アドレナリンラッシュ */
 	SC_WEAPONPERFECTION,/* ウェポンパ?フェクション */
 	SC_OVERTHRUST,		/* オ?バ?トラスト */
+	SC_OVERTHRUSTMAX,		// not sure about skill but fixes compile time error for undeclared identifier [Kevin]
 	SC_MAXIMIZEPOWER,	/* マキシマイズパワ? */
 	-1,-1,-1,-1,-1,
 /* 120- */
