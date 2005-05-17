@@ -1785,7 +1785,7 @@ int status_get_max_hp(struct block_list *bl)
 		if(bl->type == BL_MOB) {
 			struct mob_data *md;
 			nullpo_retr(1, md = (struct mob_data *)bl);
-			max_hp = mob_db[md->class_].max_hp;
+			max_hp = md->max_hp;
 
 			if(battle_config.mobs_level_up) // mobs leveling up increase [Valaris]
 				max_hp += (md->level - mob_db[md->class_].lv) * status_get_vit(bl);

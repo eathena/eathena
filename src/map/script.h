@@ -3,19 +3,21 @@
 #define _SCRIPT_H_
 
 extern struct Script_Config {
-	int warn_func_no_comma;
-	int warn_cmd_no_comma;
-	int warn_func_mismatch_paramnum;
-	int warn_cmd_mismatch_paramnum;
+	unsigned verbose_mode : 1;
+	unsigned warn_func_no_comma : 1;
+	unsigned warn_cmd_no_comma : 1;
+	unsigned warn_func_mismatch_paramnum : 1;
+	unsigned warn_cmd_mismatch_paramnum : 1;
 	int check_cmdcount;
 	int check_gotocount;
 
-	int event_script_type;
+	unsigned event_script_type : 1;
 	char* die_event_name;
 	char* kill_event_name;
 	char* login_event_name;
 	char* logout_event_name;
-	int event_requires_trigger;
+	char* mapload_event_name;
+	unsigned event_requires_trigger : 1;
 } script_config;
 
 struct script_data {

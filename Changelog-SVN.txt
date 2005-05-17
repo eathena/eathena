@@ -1,4 +1,10 @@
 Date	Added
+05/17
+	* Tidied up npc.c a bit [celest]
+	* Added crash check in SQL char creation [celest]
+	* Changed Marionette Control's inf type [celest]
+	* Added infinite emperium/guardian hp fix, thanks to random
+
 05/16
 	* Fixed a slightly large inefficiency and bug in clif_foreachclient thanks to Sasuke-! [Kevin]
 	* Fixed a bug in minimap thanks to Komurka. [Kevin]

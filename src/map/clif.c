@@ -3122,17 +3122,17 @@ int clif_joinchatok(struct map_session_data *sd,struct chat_data* cd)
 	nullpo_retr(0, sd);
 	nullpo_retr(0, cd);
 
-	fd=sd->fd;
-        if (fd <= 0)
-                return 0;
-	WFIFOW(fd,0)=0xdb;
-	WFIFOW(fd,2)=8+(28*cd->users);
-	WFIFOL(fd,4)=cd->bl.id;
-	for(i = 0;i < cd->users;i++){
-		WFIFOL(fd,8+i*28) = (i!=0)||((*cd->owner)->type==BL_NPC);
-		memcpy(WFIFOP(fd,8+i*28+4),cd->usersd[i]->status.name,24);
+	fd = sd->fd;
+	if (!session_isActive(fd))
+		return 0;
+	WFIFOW(fd, 0) = 0xdb;
+	WFIFOW(fd, 2) = 8 + (28*cd->users);
+	WFIFOL(fd, 4) = cd->bl.id;
+	for (i = 0; i < cd->users; i++) {
+		WFIFOL(fd, 8+i*28) = (i!=0) || ((*cd->owner)->type == BL_NPC);
+		memcpy(WFIFOP(fd, 8+i*28+4), cd->usersd[i]->status.name, 24);
 	}
-	WFIFOSET(fd,WFIFOW(fd,2));
+	WFIFOSET(fd, WFIFOW(fd, 2));
 
 	return 0;
 }
@@ -8061,7 +8061,7 @@ void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd) {
 				}
 			} else if (battle_config.show_mob_hp == 1) {
 				char mobhp[50];
-				sprintf(mobhp, "hp: %d/%d", md->hp, mob_db[md->class_].max_hp);
+				sprintf(mobhp, "hp: %d/%d", md->hp, md->max_hp);
 				WFIFOW(fd, 0) = 0x195;
 				memcpy(WFIFOP(fd,30), mobhp, 24);
 				WFIFOB(fd,54) = 0;

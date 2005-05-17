@@ -8014,34 +8014,39 @@ int script_config_read(char *cfgName)
 	char line[1024],w1[1024],w2[1024];
 	FILE *fp;
 
-	script_config.warn_func_no_comma=1;
-	script_config.warn_cmd_no_comma=1;
-	script_config.warn_func_mismatch_paramnum=1;
-	script_config.warn_cmd_mismatch_paramnum=1;
-	script_config.check_cmdcount=65535;
-	script_config.check_gotocount=2048;
+	script_config.verbose_mode = 0;
+	script_config.warn_func_no_comma = 1;
+	script_config.warn_cmd_no_comma = 1;
+	script_config.warn_func_mismatch_paramnum = 1;
+	script_config.warn_cmd_mismatch_paramnum = 1;
+	script_config.check_cmdcount = 65535;
+	script_config.check_gotocount = 2048;
 
-	script_config.die_event_name = (char *)aCallocA(24,sizeof(char));
-	script_config.kill_event_name = (char *)aCallocA(24,sizeof(char));
-	script_config.login_event_name = (char *)aCallocA(24,sizeof(char));
-	script_config.logout_event_name = (char *)aCallocA(24,sizeof(char));
+	script_config.die_event_name = (char *) aCallocA (24, sizeof(char));
+	script_config.kill_event_name = (char *) aCallocA (24, sizeof(char));
+	script_config.login_event_name = (char *) aCallocA (24, sizeof(char));
+	script_config.logout_event_name = (char *) aCallocA (24, sizeof(char));
+	script_config.mapload_event_name = (char *) aCallocA (24, sizeof(char));
 
 	script_config.event_script_type = 0;
 	script_config.event_requires_trigger = 1;
 
-	fp=fopen(cfgName,"r");
-	if(fp==NULL){
-		printf("file not found: %s\n",cfgName);
+	fp = fopen(cfgName, "r");
+	if (fp == NULL) {
+		printf("file not found: %s\n", cfgName);
 		return 1;
 	}
-	while(fgets(line,1020,fp)){
-		if(line[0] == '/' && line[1] == '/')
+	while (fgets(line, sizeof(line) - 1, fp)) {
+		if (line[0] == '/' && line[1] == '/')
 			continue;
-		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
-		if(i!=2)
+		i = sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
+		if (i != 2)
 			continue;
 		if(strcmpi(w1,"refine_posword")==0) {
 			set_posword(w2);
+		}
+		else if(strcmpi(w1,"verbose_mode")==0) {
+			script_config.verbose_mode = battle_config_switch(w2);
 		}
 		else if(strcmpi(w1,"warn_func_no_comma")==0) {
 			script_config.warn_func_no_comma = battle_config_switch(w2);
@@ -8075,6 +8080,9 @@ int script_config_read(char *cfgName)
 		}
 		else if(strcmpi(w1,"logout_event_name")==0) {
 			strcpy(script_config.logout_event_name, w2);
+		}
+		else if(strcmpi(w1,"mapload_event_name")==0) {
+			strcpy(script_config.mapload_event_name, w2);
 		}
 		else if(strcmpi(w1,"require_set_trigger")==0) {
 			script_config.event_requires_trigger = battle_config_switch(w2);
@@ -8140,6 +8148,8 @@ int do_final_script()
 		aFree(script_config.login_event_name);
 	if (script_config.logout_event_name)
 		aFree(script_config.logout_event_name);
+	if (script_config.mapload_event_name)
+		aFree(script_config.mapload_event_name);
 
 	return 0;
 }

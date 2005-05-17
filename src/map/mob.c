@@ -206,8 +206,8 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 		if(class_ == 1288) {	// emperium hp based on defense level [Valaris]
 			struct guild_castle *gc = guild_mapname2gc(map[md->bl.m].name);
 			if(gc)	{
-				mob_db[class_].max_hp += 2000 * gc->defense;
-				md->hp = mob_db[class_].max_hp;
+				md->max_hp += 2000 * gc->defense;
+				md->hp = md->max_hp;
 			}
 		}	// end addition [Valaris]
 	}
@@ -315,7 +315,7 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
 
 		gc=guild_mapname2gc(map[md->bl.m].name);
 		if(gc)	{
-			mob_db[class_].max_hp+=2000*gc->defense;
+			md->max_hp += 2000 * gc->defense;
 			if(guardian==0) { md->hp=gc->Ghp0; gc->GID0=md->bl.id; }
 			if(guardian==1) { md->hp=gc->Ghp1; gc->GID1=md->bl.id; }
 			if(guardian==2) { md->hp=gc->Ghp2; gc->GID2=md->bl.id; }
@@ -1025,6 +1025,7 @@ int mob_spawn(int id)
 	memset(md->skillunit,0,sizeof(md->skillunit));
 	memset(md->skillunittick,0,sizeof(md->skillunittick));
 
+	md->max_hp = mob_db[md->class_].max_hp;
 	md->hp = status_get_max_hp(&md->bl);
 	if(md->hp<=0){
 		mob_makedummymobdb(md->class_);
@@ -3586,7 +3587,7 @@ int mob_getfriendhpltmaxrate_sub(struct block_list *bl,va_list ap)
 		return 0;
 	rate=va_arg(ap,int);
 	fr=va_arg(ap,struct mob_data **);
-	if (md->hp < mob_db[md->class_].max_hp * rate / 100)
+	if (md->hp < md->max_hp * rate / 100)
 		(*fr) = md;
 	return 0;
 }

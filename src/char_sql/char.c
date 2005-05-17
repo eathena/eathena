@@ -1100,28 +1100,29 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 
 	mysql_real_escape_string(&mysql_handle, t_name, t_name_temp, sizeof(t_name_temp));
 
-	sd = (struct char_session_data*)session[fd]->session_data;
-        
-        printf("[CHAR] Add - ");
-        
+	if (!session_isValid(fd) || !(sd = (struct char_session_data*)session[fd]->session_data))
+		return -2;
+
+	printf("[CHAR] Add - ");
+		
 	//check for charcount (maxchars) :)
 	if(char_per_account != 0){
-          sprintf(tmp_sql, "SELECT `account_id` FROM `%s` WHERE `account_id` = '%d'", char_db, sd->account_id);
-          if(mysql_query(&mysql_handle, tmp_sql)){
-            printf("fail, SQL Error: %s !!FAIL!!\n", tmp_sql);
-          }
-          sql_res = mysql_store_result(&mysql_handle);
-          if(sql_res){
-            //ok 
-            temp = mysql_num_rows(sql_res);
-            if(temp >= char_per_account){
-              //hehe .. limit exceeded :P
-              printf("fail (aid: %d), charlimit exceeded.\n", sd->account_id);
-              mysql_free_result(sql_res);
-              return -2;
-            }
-            mysql_free_result(sql_res);          
-          }
+		sprintf(tmp_sql, "SELECT `account_id` FROM `%s` WHERE `account_id` = '%d'", char_db, sd->account_id);
+		if(mysql_query(&mysql_handle, tmp_sql)){
+			printf("fail, SQL Error: %s !!FAIL!!\n", tmp_sql);
+		}
+		sql_res = mysql_store_result(&mysql_handle);
+		if(sql_res){
+			//ok 
+			temp = mysql_num_rows(sql_res);
+			if(temp >= char_per_account){
+				//hehe .. limit exceeded :P
+				printf("fail (aid: %d), charlimit exceeded.\n", sd->account_id);
+				mysql_free_result(sql_res);
+				return -2;
+			}
+			mysql_free_result(sql_res);
+		}
 	}
 	
 	// Check Authorised letters/symbols in the name of the character
@@ -1137,9 +1138,9 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 
 	//check stat error
 	if ((dat[24]+dat[25]+dat[26]+dat[27]+dat[28]+dat[29]!=6*5 ) || // stats
-	    (dat[30] >= 9) || // slots (dat[30] can not be negativ)
-	    (dat[33] <= 0) || (dat[33] >= 24) || // hair style
-	    (dat[31] >= 9)) { // hair color (dat[31] can not be negativ)
+		(dat[30] >= 9) || // slots (dat[30] can not be negativ)
+		(dat[33] <= 0) || (dat[33] >= 24) || // hair style
+		(dat[31] >= 9)) { // hair color (dat[31] can not be negativ)
 		if (log_char) {	
 			// char.log to charlog
 			sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
@@ -1164,7 +1165,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 				mysql_query(&mysql_handle, tmp_sql);
 			}
 			printf("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
-       			return -2;
+				return -2;
 		}
 	} // now we know that every stat has proper value but we have to check if str/int agi/luk vit/dex pairs are correct
 
@@ -1202,14 +1203,14 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if(sql_res){
-	  temp = mysql_num_rows(sql_res);
+		temp = mysql_num_rows(sql_res);
 	
-	  if (temp > 0) {
+		if (temp > 0) {
+			mysql_free_result(sql_res);
+			printf("fail, charname already in use\n");
+			return -1;
+		}
 		mysql_free_result(sql_res);
-		printf("fail, charname already in use\n");
-		return -1;
-          }
-	mysql_free_result(sql_res);
 	}
 
 	// check char slot.
@@ -1220,20 +1221,20 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	sql_res = mysql_store_result(&mysql_handle);
 	
 	if(sql_res){
-	  temp = mysql_num_rows(sql_res);
+		temp = mysql_num_rows(sql_res);
 
-	  if (temp > 0) {
+		if (temp > 0) {
+			mysql_free_result(sql_res);
+			printf("fail (aid: %d, slot: %d), slot already in use\n", sd->account_id, dat[30]);
+			return -2;
+		}
 		mysql_free_result(sql_res);
-		printf("fail (aid: %d, slot: %d), slot already in use\n", sd->account_id, dat[30]);
-		return -2;
-          } 
-	  mysql_free_result(sql_res);
-        }
-  	
+	}
+	
 	//char_id_count++;
 
 	// make new char.
-         /*
+		 /*
 	sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`account_id`,`char_num`,`name`,`zeny`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`max_hp`,`hp`,`max_sp`,`sp`,`hair`,`hair_color`)"
 		" VALUES ('%d', '%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d')",
 		 char_db, char_id_count, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29],
@@ -1264,74 +1265,74 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 
 	// Insert friends list
 	insert_friends(char_id_count);
-           */
+	*/
 
-         //New Querys [Sirius]
-         //Insert the char to the 'chardb' ^^
-         sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", char_db, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.map, start_point.x, start_point.y, start_point.map, start_point.x, start_point.y);
-         if(mysql_query(&mysql_handle, tmp_sql)){
-         	printf("failed (insert in chardb), SQL error: %s\n", mysql_error(&mysql_handle));
-         	return -2; //No, stop the procedure!
-         }
+	//New Querys [Sirius]
+	//Insert the char to the 'chardb' ^^
+	sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", char_db, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.map, start_point.x, start_point.y, start_point.map, start_point.x, start_point.y);
+	if(mysql_query(&mysql_handle, tmp_sql)){
+		printf("failed (insert in chardb), SQL error: %s\n", mysql_error(&mysql_handle));
+		return -2; //No, stop the procedure!
+	}
 
-         //Now we need the charid from sql!
-         sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id , dat[30] , t_name);
-         if(mysql_query(&mysql_handle, tmp_sql)){
-         	printf("failed (get char_id), SQL error: %s\n", mysql_error(&mysql_handle));
-               	//delete the char ..(no trash in DB!)
-                 sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-                 mysql_query(&mysql_handle, tmp_sql);
-                 return -2; //XD end of the (World? :P) .. charcreate (denied)
-         }else{
-         	//query ok -> get the data!
-                 sql_res = mysql_store_result(&mysql_handle);
-                 if(sql_res){
-                 	sql_row = mysql_fetch_row(sql_res);
-                         char_id = atoi(sql_row[0]); //char id :)
-                         mysql_free_result(sql_res);
-                         if(char_id <= 0){
-                         	printf("failed (get char id..) CHARID wrong!\n");
-                                 sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-                                 mysql_query(&mysql_handle, tmp_sql);
-                                 return -2; //charcreate denied ..
-                         }
-                 }else{
-                 	//prevent to crash (if its false, and we want to free -> segfault :)
-                 	printf("failed (get char id.. res), SQL error: %s\n", mysql_error(&mysql_handle));
-	                sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-	                mysql_query(&mysql_handle, tmp_sql);
-                         return -2; //end ...... -> charcreate failed :)
-                 }
-         }
+	//Now we need the charid from sql!
+	sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id , dat[30] , t_name);
+	if(mysql_query(&mysql_handle, tmp_sql)){
+		printf("failed (get char_id), SQL error: %s\n", mysql_error(&mysql_handle));
+		//delete the char ..(no trash in DB!)
+		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
+		mysql_query(&mysql_handle, tmp_sql);
+		return -2; //XD end of the (World? :P) .. charcreate (denied)
+	} else {
+		//query ok -> get the data!
+		sql_res = mysql_store_result(&mysql_handle);
+		if(sql_res){
+			sql_row = mysql_fetch_row(sql_res);
+			char_id = atoi(sql_row[0]); //char id :)
+			mysql_free_result(sql_res);
+			if(char_id <= 0){
+				printf("failed (get char id..) CHARID wrong!\n");
+				sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
+				mysql_query(&mysql_handle, tmp_sql);
+				return -2; //charcreate denied ..
+			}
+		}else{
+			//prevent to crash (if its false, and we want to free -> segfault :)
+			printf("failed (get char id.. res), SQL error: %s\n", mysql_error(&mysql_handle));
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
+			mysql_query(&mysql_handle, tmp_sql);
+			return -2; //end ...... -> charcreate failed :)
+		}
+	}
 
-         //Give the char the default items
-         //knife
+	//Give the char the default items
+	//knife
 	sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, 1201,1,0x02,1); //add Knife
 	if (mysql_query(&mysql_handle, tmp_sql)){
 		printf("fail (insert in inventory  the 'knife'), SQL error: %s\n", mysql_error(&mysql_handle));
-	        sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-	        mysql_query(&mysql_handle, tmp_sql);
-                 return -2;//end XD
-         }
-         //cotton shirt
+		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
+		mysql_query(&mysql_handle, tmp_sql);
+		return -2;//end XD
+	}
+	//cotton shirt
 	sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, 2301,1,0x10,1); //add Cotton Shirt
 	if (mysql_query(&mysql_handle, tmp_sql)){
 		printf("fail (insert in inventroxy the 'cotton shirt'), SQL error: %s\n", mysql_error(&mysql_handle));
-	        sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-	        mysql_query(&mysql_handle, tmp_sql);
-                 sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
-                 mysql_query(&mysql_handle, tmp_sql);
-                 return -2; //end....
-         }
+		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
+		mysql_query(&mysql_handle, tmp_sql);
+		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
+		mysql_query(&mysql_handle, tmp_sql);
+		return -2; //end....
+	}
 
-         if(!insert_friends(char_id)){
-          	printf("fail (friendlist entrys..)\n");
-                 sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", char_db, char_id);
-                 mysql_query(&mysql_handle, tmp_sql);
-                 sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
-                 mysql_query(&mysql_handle, tmp_sql);
-                 return -2; //end.. charcreate failed
-         }
+	if(!insert_friends(char_id)){
+		printf("fail (friendlist entrys..)\n");
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", char_db, char_id);
+			mysql_query(&mysql_handle, tmp_sql);
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
+			mysql_query(&mysql_handle, tmp_sql);
+			return -2; //end.. charcreate failed
+	}
 
 	//printf("making new char success - id:(\033[1;32m%d\033[0m\tname:\033[1;32%s\033[0m\n", char_id, t_name);
 	printf("success, aid: %d, cid: %d, slot: %d, name: %s\n", sd->account_id, char_id, dat[30], t_name);
@@ -2804,6 +2805,23 @@ int parse_char(int fd) {
 				if(mysql_query(&mysql_handle, tmp_sql)) {
 						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
 				}
+
+				// Komurka
+				// temporary disabled on branch, still needs testing
+				/*sprintf(tmp_sql,"DELETE FROM `%s` USING `%s`, `%s`, `%s` "
+					"WHERE `%s`.char_id='%d' AND `%s`.char_id=`%s`.char_id AND `%s`.card0=-256 AND `%s`.card1=`%s`.pet_id",
+					pet_db, pet_db, inventory_db,char_db,char_db,RFIFOL(fd, 2),char_db,inventory_db,inventory_db,inventory_db,pet_db);
+				if(mysql_query(&mysql_handle, tmp_sql)) {
+					printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				}
+
+				sprintf(tmp_sql,"DELETE FROM `%s` USING `%s`, `%s`, `%s` "
+					"WHERE `%s`.char_id='%d' AND `%s`.char_id=`%s`.char_id AND `%s`.card0=-256 AND `%s`.card1=`%s`.pet_id",
+					pet_db, pet_db, cart_db,char_db,char_db,RFIFOL(fd, 2),char_db,cart_db,cart_db,cart_db,pet_db);
+				if(mysql_query(&mysql_handle, tmp_sql)) {
+					printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				}*/
+
 				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",inventory_db, RFIFOL(fd, 2));
 				if(mysql_query(&mysql_handle, tmp_sql)) {
 						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
