@@ -3220,6 +3220,9 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 
 	if(disguise) // disguise teleport fix [Valaris]
 		sd->disguise=disguise;
+		
+	if (strcmp(sd->mapname,mapname)!=0) //minimap dot fix [Kevin]
+		party_send_dot_remove(sd);
 
 	memcpy(sd->mapname,mapname,24);
 	sd->bl.m = m;

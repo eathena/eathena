@@ -312,6 +312,9 @@ int clif_foreachclient(int (*)(struct map_session_data*,va_list),...);
 int do_final_clif(void);
 int do_init_clif(void);
 
+//Fix for minimap [Kevin]
+int clif_party_xy_remove(struct map_session_data *sd);
+
 #endif
 
 
