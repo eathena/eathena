@@ -1,6 +1,7 @@
 Problem:	Stats nor skills don't downgrade when your level gets reverted due to exp loss.
 Assigned:	N/A
 Progess:	0%
+Note:		Lets make it reset completely when you do a leveldown.
 
 Problem:	Pre skill requirements for new skills are wrong it makes you use 49 skills points before you can get the newer skills.
 Assigned:	Celest
@@ -9,6 +10,7 @@ Progess:	~90% (Notes: not sure if it causes problems, need more testing =p)
 Problem:	Joker card 4139 lets anyone to steal money / zeny. Just like he's a thief. It shoul;d be revised - success rates lowered and "steal item" disabled
 Assigned:	N/A
 Progess:	0%
+Note:		It DOES let people use Steal Level 1 like a thief. But nothing else apart from that.
 
 Problem:	Wierd login-server bug on sql, it displays that the server is full when map-server crashes, has something to do with anti double login feature?
 Assigned:	N/A
