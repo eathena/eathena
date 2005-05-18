@@ -324,3 +324,18 @@ Problem:	Plagiarizm Client CRASH
 			When you get a plagiarized MONSTERS skill in your SKILL list - client crashes.
 Assigned:	na
 Progress:	0%
+
+Problem:	Disconnected from server
+			Some players recieve this note and can't re-connect the server till its reboot.
+Assigned:	na
+Progress:	0%
+
+Problem:	HP_ASSUMPTIO skill
+			When you cast it, then you lose all your SP.
+			And the affected people can't talk and use skills.
+
+			Note: Due to the patch change, this skill now affects people around you, and takes in less SP.
+				 It also shows different effect. 
+
+Assigned:	na
+Progress:	0%
