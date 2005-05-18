@@ -1,4 +1,8 @@
 Date	Added
+05/18
+	* Fixed broken status changes [celest]
+	* Fixed Max Overthrust not working [celest]
+
 05/17
 	* Fixed null pointer in map.c. [Kevin]
 	* Fixed on a compile time error in status.c/h [Kevin]

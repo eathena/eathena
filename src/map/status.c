@@ -90,7 +90,6 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	SC_ADRENALINE,		/* アドレナリンラッシュ */
 	SC_WEAPONPERFECTION,/* ウェポンパ?フェクション */
 	SC_OVERTHRUST,		/* オ?バ?トラスト */
-	SC_OVERTHRUSTMAX,		// not sure about skill but fixes compile time error for undeclared identifier [Kevin]
 	SC_MAXIMIZEPOWER,	/* マキシマイズパワ? */
 	-1,-1,-1,-1,-1,
 /* 120- */
@@ -3225,8 +3224,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if(bl->type == BL_MOB)
 		if (status_isdead(bl)) return 0;
 		
-	if(!status_get_sc_data(bl)) //null pointer right here [Kevin]
-		return 0;
+	// it's exactly the same thing as line 3231, so not needed ^^;
+	//if(!status_get_sc_data(bl)) //null pointer right here [Kevin]
+	//	return 0;
 
 	nullpo_retr(0, sc_data=status_get_sc_data(bl));
 	nullpo_retr(0, sc_count=status_get_sc_count(bl));
@@ -3411,7 +3411,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 					tick += tick / 10;
 			break;
 		case SC_OVERTHRUST:			/* オ?バ?スラスト */
-		case SC_OVERTHRUSTMAX:
 			if(bl->type == BL_PC)
 				if(pc_checkskill(sd,BS_HILTBINDING)>0)
 					tick += tick / 10;
@@ -3960,15 +3959,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 
 		case SC_SPLASHER:		/* ベナムスプラッシャ? */
-			break;
-
 		case SC_FOGWALL:
-			break;
-
 		case SC_PRESERVE:
-			break;
-
 		case SC_DOUBLECAST:
+		case SC_MAXOVERTHRUST:
 			break;
 
 		case SC_GRAVITATION:
@@ -4461,7 +4455,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			*opt3 &= ~1;
 			break;
 		case SC_OVERTHRUST:			/* オ?バ?スラスト */
-		case SC_OVERTHRUSTMAX:
 			*opt3 &= ~2;
 			break;
 		case SC_ENERGYCOAT:			/* エナジ?コ?ト */
