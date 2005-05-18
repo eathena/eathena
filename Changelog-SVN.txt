@@ -1,5 +1,7 @@
 Date	Added
 05/18
+	* Removed status points adding can be limited via gm level [celest]
+	* Removed double clean up when char server disconnects from map [celest]
 	* Removed 'mysql_real_escape_string' usage in SQL char until it'll no longer cause
 	  crashes [celest]
 	* Added signal handler for SIGXFSZ [celest]

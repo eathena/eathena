@@ -9116,8 +9116,7 @@ void clif_parse_ChangeCart(int fd,struct map_session_data *sd)
  */
 void clif_parse_StatusUp(int fd,struct map_session_data *sd)
 {
-	if (pc_isGM(sd) >= get_atcommand_level(AtCommand_StatusUp))
-		pc_statusup(sd,RFIFOW(fd,2));
+	pc_statusup(sd,RFIFOW(fd,2));
 }
 
 /*==========================================

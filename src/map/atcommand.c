@@ -516,7 +516,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_PetTalk,			"@pettalk",			 0,	atcommand_pettalk },
 	{ AtCommand_Users,				"@users",			 0, atcommand_users },
 	{ AtCommand_ResetState,			"/reset",			40,	NULL },
-	{ AtCommand_StatusUp,			"/str+",			 0,	NULL },
 
 #ifndef TXT_ONLY // sql-only commands
 	{ AtCommand_CheckMail,			"@checkmail",		 1, atcommand_listmail }, // [Valaris]
