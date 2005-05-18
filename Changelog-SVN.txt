@@ -1,5 +1,6 @@
 Date	Added
 05/17
+	* Fixed null pointer in map.c. [Kevin]
 	* Fixed on a compile time error in status.c/h [Kevin]
 	* Fixed an invalid pointer in clif.c [Kevin]
 	* Removed 'Agi Up' visual effect from Berserk [DracoRPG]
