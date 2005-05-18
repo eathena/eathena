@@ -8316,13 +8316,14 @@ int atcommand_unmute(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	
+	struct map_session_data *pl_sd = NULL;
+	nullpo_retr(-1, sd);
+
 	if(!battle_config.muting_players) {
 		clif_displaymessage(fd, "Please enable the muting system before using it.");
 		return 0;
 	}
-	struct map_session_data *pl_sd = NULL;
-	nullpo_retr(-1, sd);
+
 	if (!message || !*message)
         	return -1;
 
@@ -8391,15 +8392,14 @@ int atcommand_mute(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	
+	struct map_session_data *pl_sd = NULL;
+	int manner;
+	nullpo_retr(-1, sd);
+
 	if(!battle_config.muting_players) {
 		clif_displaymessage(fd, "Please enable the muting system before using it.");
 		return 0;
 	}
-	
-	struct map_session_data *pl_sd = NULL;
-	int manner;
-	nullpo_retr(-1, sd);
 
 	if (!message || !*message || sscanf(message, "%d %99[^\n]", &manner, atcmd_player_name) < 1) {
 		clif_displaymessage(fd, "Usage: @mute <time> <character name>.");
@@ -9550,14 +9550,13 @@ int atcommand_mutearea(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	
+	int time;
+	nullpo_retr(0, sd);
+
 	if(!battle_config.muting_players) {
 		clif_displaymessage(fd, "Please enable the muting system before using it.");
 		return 0;
 	}
-	
-	int time;
-	nullpo_retr(0, sd);
 
 	time = atoi(message);
 	if (time <= 0)

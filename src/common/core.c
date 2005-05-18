@@ -87,6 +87,11 @@ static void sig_proc(int sn)
 			exit(0);
 		runflag = 0;
 		break;
+	case SIGXFSZ:
+		// ignore and allow it to set errno to EFBIG
+		ShowWarning ("Max file size reached!\n");
+		//run_flag = 0;	// should we quit?
+		break;
 	case SIGPIPE:
 		ShowMessage ("Broken pipe found... closing socket\n");	// set to eof in socket.c
 		break;	// does nothing here
@@ -175,6 +180,7 @@ void init_signals (void)
 
 	compat_signal(SIGTERM, sig_proc);
 	compat_signal(SIGINT, sig_proc);
+	compat_signal(SIGXFSZ, sig_proc);
 
 	// Signal to create coredumps by system when necessary (crash)
 	compat_signal(SIGSEGV, func);

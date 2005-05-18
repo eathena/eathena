@@ -9,6 +9,7 @@
 	Skill databases == celest working on them I believe.
 
 05/17
+	* Corrected typo for sweet potato, thanks to maeki
 	* Switched Tirfing and Mystelltain card effects, thanks to starlon [DracoRPG]
 05/15
 	* Changed Hylozoist's race to demon, thanks to Dino9021
