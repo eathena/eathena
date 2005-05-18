@@ -339,3 +339,7 @@ Problem:	HP_ASSUMPTIO skill
 
 Assigned:	na
 Progress:	0%
+
+Problem:	Energu Coat, Cloaking, etc DON'T work at all
+Assigned:	na
+Progress:	0%
