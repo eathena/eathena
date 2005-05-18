@@ -1539,10 +1539,12 @@ int parse_tologin(int fd) {
 //						else
 //							printf("count_users(): %d < max_connect_user (%d) -> accepted.\n", count_users(), max_connect_user);
 						sd->connect_until_time = (time_t)RFIFOL(fd,47);
+						memcpy(sd->email, RFIFOP(fd, 7), 40);
 						// send characters to player
 						mmo_char_send006b(i, sd);
 					} else if(isGM(sd->account_id) >= gm_allow_level) {
 						sd->connect_until_time = (time_t)RFIFOL(fd,47);
+						memcpy(sd->email, RFIFOP(fd, 7), 40);
 						// send characters to player
 						mmo_char_send006b(i, sd);
 					} else {
@@ -2764,6 +2766,7 @@ int parse_char(int fd) {
 				return 0;
 			printf("\033[1;31m Request Char Del:\033[0m \033[1;32m%d\033[0m(\033[1;32m%d\033[0m)\n", sd->account_id, RFIFOL(fd, 2));
 			memcpy(email, RFIFOP(fd,6), 40);
+/* ---------- REMOVED ----------
 			sprintf(tmp_sql, "SELECT `email` FROM `%s` WHERE `%s`='%d'",login_db, login_db_account_id, sd->account_id);
 			if (mysql_query(&lmysql_handle, tmp_sql)) {
 				printf("\033[1;31m DB server Error Delete Char data - %s \033[0m  \n", mysql_error(&lmysql_handle));
@@ -2792,6 +2795,32 @@ int parse_char(int fd) {
 				mysql_free_result(sql_res);
 				break;
 			}
+
+------------- END REMOVED -------- */
+			//Remove recoded by Sirius 
+			if(strcmp(email, sd->email) != 0){
+				if(strcmp("a@a.com", sd->email) == 0){
+					if(strcmp("a@a.com", email) == 0 || strcmp("", email) == 0){
+						//ignore
+					}else{
+						//del fail
+						WFIFOW(fd, 0) = 0x70;
+						WFIFOB(fd, 2) = 0;
+						WFIFOSET(fd, 3);
+						RFIFOSKIP(fd, 46);	
+						break;
+					}
+				}else{
+					//del fail
+					WFIFOW(fd, 0) = 0x70;
+					WFIFOB(fd, 2) = 0;
+					WFIFOSET(fd, 3);
+					RFIFOSKIP(fd, 46);
+					break;
+				}			
+			}
+
+
 			sprintf(tmp_sql, "SELECT `name`,`partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, RFIFOL(fd,2));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
