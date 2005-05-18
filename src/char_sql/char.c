@@ -1092,13 +1092,14 @@ int mmo_char_sql_init(void) {
 int make_new_char_sql(int fd, unsigned char *dat) {
 	struct char_session_data *sd;
 	char t_name[100];
-	char t_name_temp[100];
 	int i, char_id, temp;
 
 	//aphostropy error check! - fixed!
-	jstrescapecpy(t_name_temp, (char*)dat);
+	jstrescapecpy(t_name, (char*)dat);
 
-	mysql_real_escape_string(&mysql_handle, t_name, t_name_temp, sizeof(t_name_temp));
+	// disabled until fixed >.>
+	// Note: escape characters should be added to jstrescape()!
+	//mysql_real_escape_string(&mysql_handle, t_name, t_name_temp, sizeof(t_name_temp));
 
 	if (!session_isValid(fd) || !(sd = (struct char_session_data*)session[fd]->session_data))
 		return -2;

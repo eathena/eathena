@@ -1,5 +1,7 @@
 Date	Added
 05/18
+	* Removed 'mysql_real_escape_string' usage in SQL char until it'll no longer cause
+	  crashes [celest]
 	* Added signal handler for SIGXFSZ [celest]
 	* Fixed some compile errors [celest]
 	* Fixed broken status changes [celest]
