@@ -22,7 +22,7 @@ mes "[Exorcist Master Fahae]";
 mes "I feel it is time i let another warrior try to complete";
 mes "my quest. I have some items to assist you for my Quest.";
 next;
-menu "I wish to buy",menu_1, "No Thanks",end;
+menu "I wish to buy",menu_1, "No Thanks",finish;
   
 menu_1:
 mes "[Exorcist Master Fahae]";
@@ -52,7 +52,7 @@ mes "[Exorcist Master Fahae]";
 mes "You must not be stingy. It is the path of god to be honest.";
 close;
   
-end:
+finish:
 mes "[Exorcist Master Fahae]";
 mes "The path of fully venquishing evil is far. Help me in the way of god.";
 close;

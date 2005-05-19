@@ -3,6 +3,7 @@
 //===== By: ==================================================
 //= eAthena Dev Team
 //= 1.2 [Lupus]
+//= 1.3 [massdriller]
 //===== Current Version: =====================================
 
 // Cities ================>\\
@@ -228,3 +229,25 @@ pvp_n_8-3.gat	mapflag	nobranch
 pvp_n_8-4.gat	mapflag	nobranch
 pvp_n_8-5.gat	mapflag	nobranch
 pvp_2vs2.gat	mapflag	nobranch
+
+//Main City maps
+izlude.gat	mapflag	nobranch
+prontera.gat	mapflag	nobranch
+geffen.gat	mapflag	nobranch
+morocc.gat	mapflag	nobranch
+aldebaran.gat	mapflag	nobranch
+jawaii.gat	mapflag	nobranch
+xmas.gat	mapflag	nobranch
+alberta.gat	mapflag	nobranch
+payon.gat	mapflag	nobranch
+comodo.gat	mapflag	nobranch
+yuno.gat	mapflag	nobranch
+amatsu.gat	mapflag	nobranch
+gonryun.gat	mapflag	nobranch
+umbala.gat	mapflag	nobranch
+niflheim.gat	mapflag	nobranch
+ayothaya.gat	mapflag	nobranch
+einbroch.gat	mapflag	nobranch
+einbech.gat	mapflag	nobranch
+
+

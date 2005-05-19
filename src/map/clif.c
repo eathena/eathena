@@ -9243,7 +9243,10 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 	} else {
 		sd->skillitem = sd->skillitemlv = -1;
 		if (skillnum == MO_EXTREMITYFIST) {
-			if ((sd->sc_data[SC_COMBO].timer == -1 || (sd->sc_data[SC_COMBO].val1 != MO_COMBOFINISH && sd->sc_data[SC_COMBO].val1 != CH_CHAINCRUSH))) {
+			if ((sd->sc_data[SC_COMBO].timer == -1 ||
+				(sd->sc_data[SC_COMBO].val1 != MO_COMBOFINISH &&
+				sd->sc_data[SC_COMBO].val1 != CH_TIGERFIST &&
+				sd->sc_data[SC_COMBO].val1 != CH_CHAINCRUSH))) {
 				if (!sd->state.skill_flag ) {
 					sd->state.skill_flag = 1;
 					clif_skillinfo(sd, MO_EXTREMITYFIST, 1, -1);

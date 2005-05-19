@@ -1457,7 +1457,9 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		else if(skillid == CH_TIGERFIST) {
 			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
 			if(damage < status_get_hp(bl)) {
-				if(pc_checkskill(sd, CH_CHAINCRUSH) > 0) //˜A’Œ•ö?(CH_CHAINCRUSH)æ“¾‚Í+300ms
+				//ˆ¢C—…”e™€Œ(MO_EXTREMITYFIST)æ“¾•?‹…4ŒÂ•Û•”š—ô”g“®(MO_EXPLOSIONSPIRITS)?‘Ô‚Í+300ms
+				if((pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 3 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
+					(pc_checkskill(sd, CH_CHAINCRUSH) > 0)) //˜A’Œ•ö?(CH_CHAINCRUSH)æ“¾‚Í+300ms
 					delay += 300 * battle_config.combo_delay_rate /100; //’Ç‰ÁƒfƒBƒŒƒC‚ğconf‚É‚æ‚è’²®
 
 				status_change_start(src,SC_COMBO,CH_TIGERFIST,skilllv,0,0,delay,0); //ƒRƒ“ƒ{?‘Ô‚É
@@ -1471,7 +1473,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
 			if(damage < status_get_hp(bl)) {
 				//ˆ¢C—…”e™€Œ(MO_EXTREMITYFIST)æ“¾•?‹…4ŒÂ•Û•”š—ô”g“®(MO_EXPLOSIONSPIRITS)?‘Ô‚Í+300ms
-				if(pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 4 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1)
+				if(pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 1 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1)
 					delay += 300 * battle_config.combo_delay_rate /100; //’Ç‰ÁƒfƒBƒŒƒC‚ğconf‚É‚æ‚è’²®
 
 				status_change_start(src,SC_COMBO,CH_CHAINCRUSH,skilllv,0,0,delay,0); //ƒRƒ“ƒ{?‘Ô‚É
@@ -5048,11 +5050,16 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	if(range < 0)
 		range = status_get_range(&sd->bl) - (range + 1);
 	range += battle_config.pc_skill_add_range;
-	if((sd->skillid == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].timer != -1 && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
-	   (sd->skillid == CH_TIGERFIST && sd->sc_data[SC_COMBO].timer != -1 && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
-	   (sd->skillid == CH_CHAINCRUSH && sd->sc_data[SC_COMBO].timer != -1 && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
-	   (sd->skillid == CH_CHAINCRUSH && sd->sc_data[SC_COMBO].timer != -1 && sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST))
+
+	if (sd->sc_data[SC_COMBO].timer != -1 &&
+		((sd->skillid == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
+		(sd->skillid == CH_TIGERFIST && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
+		(sd->skillid == CH_CHAINCRUSH && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
+		(sd->skillid == CH_CHAINCRUSH && sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST) ||
+		(sd->skillid == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST) ||
+		(sd->skillid == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)))
 		range += skill_get_blewcount(MO_COMBOFINISH,sd->sc_data[SC_COMBO].val2);
+
 	if(battle_config.skill_out_range_consume) { // changed to allow casting when target walks out of range [Valaris]
 		if(range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y)) {
 			clif_skill_fail(sd,sd->skillid,0,0);
@@ -6807,8 +6814,18 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			return 0;
 		break;
 	case MO_EXTREMITYFIST:					// ˆ¢C—…”e–PŒ
-		if((sd->sc_data[SC_COMBO].timer != -1 && (sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH || sd->sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)) || sd->sc_data[SC_BLADESTOP].timer!=-1)
+		if(sd->sc_data[SC_BLADESTOP].timer!=-1)
 			spiritball--;
+		else if (sd->sc_data[SC_COMBO].timer != -1) {
+			if (sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH)
+				spiritball = 4;
+			else if (sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST)
+				spiritball = 3;
+			else if (sd->sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)
+				spiritball = 1;
+			// if chain crush came after tiger fist it should be 2...
+			// but i'm not sure how to check that yet ^^;
+		}
 		break;
 	case BD_ADAPTATION:				/* ƒAƒhƒŠƒu */
 		{
@@ -7019,9 +7036,12 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		}
 		break;
 	case ST_EXPLOSIONSPIRITS:
-		if (skill == MO_EXTREMITYFIST && ((sd->sc_data[SC_COMBO].timer != -1 && (sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH || sd->sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)) || sd->sc_data[SC_BLADESTOP].timer!=-1)) {
+		if (skill == MO_EXTREMITYFIST && ((sd->sc_data[SC_COMBO].timer != -1 &&
+				(sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH ||
+				sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST ||
+				sd->sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)) ||
+				sd->sc_data[SC_BLADESTOP].timer!=-1))
 			break;
-		}
 		if(sd->sc_data[SC_EXPLOSIONSPIRITS].timer == -1) {
 			clif_skill_fail(sd,skill,0,0);
 			return 0;
@@ -7419,6 +7439,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			target_id = tbl->id;
 		}
 		break;
+
 	case MO_COMBOFINISH:	/*–Ò—´Œ*/
 	case CH_CHAINCRUSH:		/* ˜A’Œ•ö? */
 		target_id = sd->attacktarget;
@@ -7432,7 +7453,11 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 // -- moonsoul	(altered to allow proper usage of extremity from new champion combos)
 //
 	case MO_EXTREMITYFIST:	/*ˆ¢C—…”e–PŒ*/
-		if (sc_data && sc_data[SC_COMBO].timer != -1 && (sc_data[SC_COMBO].val1 == MO_COMBOFINISH || sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)) {
+		if (sc_data && sc_data[SC_COMBO].timer != -1 &&
+			(sc_data[SC_COMBO].val1 == MO_COMBOFINISH ||
+			sc_data[SC_COMBO].val1 == CH_TIGERFIST ||
+			sc_data[SC_COMBO].val1 == CH_CHAINCRUSH))
+		{
 			casttime = 0;
 			target_id = sd->attacktarget;
 		}
