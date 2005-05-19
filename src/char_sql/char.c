@@ -2676,7 +2676,11 @@ int parse_char(int fd) {
 //			printf("0x67>request make new char\n");
 			if (RFIFOREST(fd) < 37)
 				return 0;
-			i = make_new_char_sql(fd, RFIFOP(fd, 2));
+				
+			if(char_new == 0) //turn character creation on/off [Kevin]
+				i = -2;
+			else
+				i = make_new_char_sql(fd, RFIFOP(fd, 2));
 
 			//if (i < 0) {
 			//	WFIFOW(fd, 0) = 0x6e;

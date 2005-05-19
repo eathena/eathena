@@ -1,5 +1,6 @@
 Date	Added
 05/18
+	* Fixed up character creation, txt supports three status error and char_new is now enabled. [Kevin]
 	* CharSQL: fixed the Delete Char issue, now it's using the sd->email instead if the sql email [Sirius]
 	* Removed status points adding can be limited via gm level [celest]
 	* Removed double clean up when char server disconnects from map [celest]

@@ -2999,14 +2999,34 @@ int parse_char(int fd) {
 		case 0x67:	// ì¬
 			if (RFIFOREST(fd) < 37)
 				return 0;
-			i = make_new_char(fd, RFIFOP(fd,2));
-			if (i < 0) {
-				WFIFOW(fd,0) = 0x6e;
-				WFIFOB(fd,2) = 0x00;
-				WFIFOSET(fd,3);
-				RFIFOSKIP(fd,37);
-				break;
-			}
+				
+			if(char_new == 0) //turn character creation on/off [Kevin]
+				i = -2;
+			else
+				i = make_new_char(fd, RFIFOP(fd,2));
+				
+			if(i == -1){ //added some better faile reporting to client on the txt version [Kevin]
+                         //already exists
+                            WFIFOW(fd, 0) = 0x6e;
+                            WFIFOB(fd, 2) = 0x00;
+                            WFIFOSET(fd, 3);
+                            RFIFOSKIP(fd, 37);
+                            break;
+                        }else if(i == -2){
+                            //denied
+                            WFIFOW(fd, 0) = 0x6e;
+                            WFIFOB(fd, 2) = 0x02;
+                            WFIFOSET(fd, 3); 
+                            RFIFOSKIP(fd, 37);                           
+                            break;
+                        }else if(i == -3){
+                            //underaged XD
+                            WFIFOW(fd, 0) = 0x6e;
+                            WFIFOB(fd, 2) = 0x01;
+                            WFIFOSET(fd, 3);
+                            RFIFOSKIP(fd, 37);
+                            break;
+                        }
 
 			WFIFOW(fd,0) = 0x6d;
 			memset(WFIFOP(fd,2), 0, 106);
