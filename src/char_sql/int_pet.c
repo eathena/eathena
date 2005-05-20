@@ -16,7 +16,7 @@ static int pet_newid = 100;
 
 #ifndef SQL_DEBUG
 
-#define mysql_query(_x, _y) mysql_real_query(_x, _y, sizeof(_y)) //supports ' in names and runs faster [Kevin]
+#define mysql_query(_x, _y) mysql_real_query(_x, _y, strlen(_y)) //supports ' in names and runs faster [Kevin]
 
 #else 
 
