@@ -36,7 +36,17 @@ int mapif_guild_basicinfochanged(int guild_id,int type,const void *data,int len)
 int mapif_guild_info(int fd,struct guild *g);
 int guild_break_sub(void *key,void *data,va_list ap);
 
-#define mysql_query(_x, _y)  debug_mysql_query(__FILE__, __LINE__, _x, _y)
+
+
+#ifndef SQL_DEBUG
+
+#define mysql_query(_x, _y) mysql_real_query(_x, _y, sizeof(_y)) //supports ' in names and runs faster [Kevin]
+
+#else 
+
+#define mysql_query(_x, _y) debug_mysql_query(__FILE__, __LINE__, _x, _y)
+
+#endif
 
 static int _erase_guild(void *key, void *data, va_list ap) {
     int guild = va_arg(ap, int);

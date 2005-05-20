@@ -14,7 +14,17 @@
 struct storage *storage_pt=NULL;
 struct guild_storage *guild_storage_pt=NULL;
 
-#define mysql_query(_x, _y)  debug_mysql_query(__FILE__, __LINE__, _x, _y)
+
+
+#ifndef SQL_DEBUG
+
+#define mysql_query(_x, _y) mysql_real_query(_x, _y, sizeof(_y)) //supports ' in names and runs faster [Kevin]
+
+#else 
+
+#define mysql_query(_x, _y) debug_mysql_query(__FILE__, __LINE__, _x, _y)
+
+#endif
 
 // storage data -> DB conversion
 int storage_tosql(int account_id,struct storage *p){

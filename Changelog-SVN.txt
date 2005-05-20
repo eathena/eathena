@@ -1,5 +1,10 @@
 Date	Added
 05/19
+	* Fixed a previous fix with pet idle skills, needs db update not hard coding [Kevin]
+	* Fixed mysql queries to support the following [Kevin]
+	  -Names now support the ' character
+	  -Runs faster because querying string fields doesn't do strlen.
+	  -Debug option to revert back to old debug queries, will disable the support of the two above.
 	* Added No Dead Branching Mapflags in cities [massdriller]
 	* Fixed an inconsistent message for log_chat in conf file reading [celest]
 	* Fixed Asura Strike to need only 1 spiritball if used after Chain Crush [celest]

@@ -152,7 +152,17 @@ int GM_num = 0;
 
 int console = 0;
 
-#define mysql_query(_x, _y)  debug_mysql_query(__FILE__, __LINE__, _x, _y)
+
+
+#ifndef SQL_DEBUG
+
+#define mysql_query(_x, _y) mysql_real_query(_x, _y, sizeof(_y)) //supports ' in names and runs faster [Kevin]
+
+#else 
+
+#define mysql_query(_x, _y) debug_mysql_query(__FILE__, __LINE__, _x, _y)
+
+#endif
 
 //-------------------------------------------------
 // Set Character online/offline [Wizputer]

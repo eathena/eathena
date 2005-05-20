@@ -7,6 +7,16 @@
 #define SQL_CONF_NAME "conf/inter_athena.conf"
 #define LAN_CONF_NAME     "conf/lan_support.conf"
 
+#ifndef SQL_DEBUG
+
+#define mysql_query(_x, _y) mysql_real_query(_x, _y, sizeof(_y)) //supports ' in names and runs faster [Kevin]
+
+#else 
+
+#define mysql_query(_x, _y)  debug_mysql_query(__FILE__, __LINE__, _x, _y)
+
+#endif
+
 #define PASSWORDENC		3	// A definition is given when making an encryption password correspond.
 							// It is 1 at the time of passwordencrypt.
 							// It is made into 2 at the time of passwordencrypt2.

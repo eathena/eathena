@@ -18,7 +18,17 @@ int mapif_party_broken(int party_id,int flag);
 int party_check_empty(struct party *p);
 int mapif_parse_PartyLeave(int fd,int party_id,int account_id);
 
-#define mysql_query(_x, _y)  debug_mysql_query(__FILE__, __LINE__, _x, _y)
+
+
+#ifndef SQL_DEBUG
+
+#define mysql_query(_x, _y) mysql_real_query(_x, _y, sizeof(_y)) //supports ' in names and runs faster [Kevin]
+
+#else 
+
+#define mysql_query(_x, _y) debug_mysql_query(__FILE__, __LINE__, _x, _y)
+
+#endif
 
 // Save party to mysql
 int inter_party_tosql(int party_id,struct party *p)

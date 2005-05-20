@@ -3,6 +3,8 @@
 #ifndef	_CORE_H_
 #define	_CORE_H_
 
+//#define SQL_DEBUG //uncomment for debug_mysql_query instead of mysql_real_query
+
 extern char *argp;
 extern int runflag;
 extern unsigned long ticks;
