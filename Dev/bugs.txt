@@ -23,8 +23,9 @@ Progress:	jA's mob skill DB itself already has skills that have no cast time,
                 skill_cast_db instead? [celest]
 
 Problem:        Chars with ' in their name.. is legal.. and messes up sql
-Assigned:       N/A
-Progress:       0%
+Assigned:       Kevin
+Progress:       done
+Note:           I used a sql query instead of escaping the string, works better, causes less lag on the server, puts less stress on mysql.
 Information:	http://dev.mysql.com/doc/mysql/en/mysql_real_escape_string.html
 
 	DB server Error - You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'n' Sniff')' at line 1    Scratch 'n' Sniff
