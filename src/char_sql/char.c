@@ -92,6 +92,7 @@ in_addr_t char_ip;
 int char_port = 6121;
 int char_maintenance;
 int char_new;
+int char_new_display;
 int name_ignoring_case = 0; // Allow or not identical name for characters but with a different case by [Yor]
 int char_name_option = 0; // Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
 char char_name_letters[1024] = ""; // list of letters/symbols used to authorise or not a name of a character. by [Yor]
@@ -3171,7 +3172,9 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 		memcpy(WFIFOP(login_fd,60), server_name, strlen(server_name) < 20 ? strlen(server_name) : 20);
 		WFIFOW(login_fd,80) = 0;
 		WFIFOW(login_fd,82) = char_maintenance;
-		WFIFOW(login_fd,84) = char_new;
+		
+		WFIFOW(login_fd,84) = char_new_display; //only display (New) if they want to [Kevin]
+			
 		WFIFOSET(login_fd,86);
 	}
 	return 0;
@@ -3426,6 +3429,8 @@ int char_config_read(const char *cfgName) {
 			char_maintenance = atoi(w2);
 		} else if (strcmpi(w1, "char_new")==0){
 			char_new = atoi(w2);
+		} else if (strcmpi(w1, "char_new_display")==0){
+			char_new_display = atoi(w2);
 		} else if (strcmpi(w1, "max_connect_user") == 0) {
 			max_connect_user = atoi(w2);
 			if (max_connect_user < 0)

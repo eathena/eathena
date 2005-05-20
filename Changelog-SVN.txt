@@ -1,5 +1,6 @@
 Date	Added
 05/19
+	* Fixed displaying new when char_new is set to one and changed the option to char_new_display. [Kevin]
 	* Fixed mysql fix. [Kevin]
 	* Fixed a previous fix with pet idle skills, needs db update not hard coding [Kevin]
 	* Fixed mysql queries to support the following [Kevin]

@@ -62,6 +62,7 @@ in_addr_t char_ip;
 int char_port = 6121;
 int char_maintenance;
 int char_new;
+int char_new_display;
 int email_creation = 0; // disabled by default
 char char_txt[1024]="save/athena.txt";
 char backup_txt[1024]="save/backup.txt"; //By zanetheinsane
@@ -3351,7 +3352,9 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 		memcpy(WFIFOP(login_fd,60), server_name, strlen(server_name) < 20 ? strlen(server_name) : 20);
 		WFIFOW(login_fd,80) = 0;
 		WFIFOW(login_fd,82) = char_maintenance;
-		WFIFOW(login_fd,84) = char_new;
+
+		WFIFOW(login_fd,84) = char_new_display; //only display (New) if they want to [Kevin]
+		
 		WFIFOSET(login_fd,86);
 	}
 	return 0;
@@ -3524,6 +3527,8 @@ int char_config_read(const char *cfgName) {
 			char_maintenance = atoi(w2);
 		} else if (strcmpi(w1, "char_new") == 0) {
 			char_new = atoi(w2);
+		} else if (strcmpi(w1, "char_new_display") == 0) {
+			char_new_display = atoi(w2);
 		} else if (strcmpi(w1, "email_creation") == 0) {
 			email_creation = config_switch(w2);
 		} else if (strcmpi(w1, "char_txt") == 0) {
