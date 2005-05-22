@@ -34,7 +34,7 @@ static const int packet_len_table[0x3d] = {
 	 6,-1,18, 7,-1,49,44, 0,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, F->2b07
 	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	-1,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
-	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, F->2b1c, F->2b1d, F->2b1e, U->2b1f
+	-1,-1,-1,-1,-1,-1,-1, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, F->2b1c, F->2b1d, F->2b1e, U->2b1f
 	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b20-2b27: U->2b20, F->2b21, F->2b22, F->2b23, F->2b24, F->2b25, F->2b26, F->2b27
 };
 
@@ -78,7 +78,7 @@ static const int packet_len_table[0x3d] = {
 //2b1c: FREE
 //2b1d: FREE
 //2b1e: FREE
-//2b1f: FREE
+//2b1f: Incomming, chrif_disconnectplayer -> 'disconnects a player (aid X) with the message XY ... 0x81 ..' [Sirius]
 //2b20: Incomming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
 //2b21-2b27: FREE
 
@@ -924,6 +924,48 @@ int chrif_accountban(int fd)
 	return 0;
 }
 
+//Disconnect the player out of the game, simple packet
+//packet.w AID.L WHY.B 2+4+1 = 7byte
+int chrif_disconnectplayer(int fd){
+	struct map_session_data *sd;
+	
+	sd = map_id2sd(RFIFOL(fd, 2));
+	
+	if(RFIFOL(fd, 2) <= 0 || sd == NULL){
+		return -1;
+	}
+	
+	//change sessid1 
+	sd->login_id1++;
+
+	switch(RFIFOB(fd, 6)){
+		//clif_authfail_fd
+		case 1: //server closed 
+			clif_authfail_fd(fd, 1);	
+		break;
+		
+		case 2: //someone else logged in
+			clif_authfail_fd(fd, 2);		
+		break;
+		
+		case 3: //server overpopulated
+			clif_authfail_fd(fd, 4);
+		
+		break;
+		
+		case 4: //out of time payd for .. (avail)
+			clif_authfail_fd(fd, 10);
+		break;
+		
+		case 5: //forced to dc by gm
+			clif_authfail_fd(fd, 15);
+		break;
+	}
+	
+return 0;
+}
+
+
 /*==========================================
  * キャラクター切断通知
  *------------------------------------------
@@ -1230,6 +1272,7 @@ int chrif_parse(int fd)
 		case 0x2b14: chrif_accountban(fd); break;
 		case 0x2b15: chrif_recvgmaccounts(fd); break;
 		case 0x2b1b: chrif_recvfamelist(fd); break;
+		case 0x2b1f: chrif_disconnectplayer(fd); break;
 		case 0x2b20: chrif_removemap(fd); break; //Remove maps of a server [Sirius]
 
 		default:

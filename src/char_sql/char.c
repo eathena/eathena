@@ -1078,6 +1078,8 @@ int mmo_char_sql_init(void) {
           printf("Chars per Account: '%d'.......\n", char_per_account);
         }
 
+        /*
+
 	//sprintf(tmp_sql , "REPLACE INTO `%s` SET `online`=0", char_db);   //OLD QUERY ! BUGGED
 	sprintf(tmp_sql, "UPDATE `%s` SET `online` = '0'", char_db);//fixed the on start 0 entrys!
 	if (mysql_query(&mysql_handle, tmp_sql))
@@ -1092,6 +1094,11 @@ int mmo_char_sql_init(void) {
 	sprintf(tmp_sql, "UPDATE `%s` SET `connect_member` = '0'", guild_db);//fixed the 0 entrys in start.....
 	if (mysql_query(&mysql_handle, tmp_sql))
 		printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+	*/
+	//the 'set offline' part is now in check_login_conn ... 
+	//if the server connects to loginserver
+	//it will dc all off players
+	//and send the loginserver the new state....
 
 	printf("init end.......\n");
 
@@ -3176,6 +3183,72 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 		WFIFOW(login_fd,84) = char_new_display; //only display (New) if they want to [Kevin]
 			
 		WFIFOSET(login_fd,86);
+		
+		//(re)connected to login-server,
+		//now wi'll look in sql which player's are ON and set them OFF
+		//AND send to all mapservers (if we have one / ..) to kick the players
+		//so the bug is fixed, if'ure using more than one charservers (worlds)
+		//that the player'S got reejected from server after a 'world' crash^^
+		//2b1f AID.L B1
+		struct char_session_data *sd;
+		int i, cc;
+		unsigned char buf[16];
+		
+		sprintf(tmp_sql, "SELECT `account_id`, `online` FROM `%s` WHERE `online` = '1'", char_db);
+		if(mysql_query(&mysql_handle, tmp_sql)){
+			printf("SQL Error: check_conn_loginserver '1', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+			return -1;
+		}
+		
+		sql_res = mysql_store_result(&mysql_handle);
+		if(sql_res){
+			cc = mysql_num_rows(sql_res);
+			printf("Setting %d Players offline\n", cc);
+			while((sql_row = mysql_fetch_row(sql_res))){
+				//sql_row[0] == AID
+				//tell the loginserver
+				WFIFOW(login_fd, 0) = 0x272c; //set off
+				WFIFOL(login_fd, 2) = atoi(sql_row[0]); //AID
+				WFIFOSET(login_fd, 6);
+				
+				//tell map to 'kick' the player (incase of 'on' ..)
+				WBUFW(buf, 0) = 0x2b1f;
+				WBUFL(buf, 2) = atoi(sql_row[0]);
+				WBUFB(buf, 6) = 1;
+				mapif_sendall(buf, 7);
+				
+				//kick the player if he's on charselect
+				for(i = 0; i < fd_max; i++){
+					if(session[i] && (sd = (struct char_session_data*)session[i]->session_data)){
+						if(sd->account_id == atoi(sql_row[0])){
+							session[i]->eof = 1;
+							break;
+						}
+					}
+				}
+				
+			}
+			mysql_free_result(sql_res);			
+		}else{
+			//fail
+			printf("SQL ERROR: check_conn_loginserver '2', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+			return -1;
+		}
+		
+		//Now Update all players to 'OFFLINE'
+		sprintf(tmp_sql, "UPDATE `%s` SET `online` = '0'", char_db);
+		if(mysql_query(&mysql_handle, tmp_sql)){
+			printf("SQL ERROR: check_conn_loginserver '3', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+		}
+		sprintf(tmp_sql, "UPDATE `%s` SET `online` = '0'", guild_member_db);
+		if(mysql_query(&mysql_handle, tmp_sql)){
+			printf("SQL ERROR: check_conn_loginserver '4', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+		}
+		sprintf(tmp_sql, "UPDATE `%s` SET `connect_member` = '0'", guild_db);
+		if(mysql_query(&mysql_handle, tmp_sql)){
+			printf("SQL ERROR: check_conn_loginserver '5', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+		}
+	
 	}
 	return 0;
 }
