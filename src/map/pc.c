@@ -64,26 +64,6 @@ static unsigned int equip_pos[11]={0x0080,0x0008,0x0040,0x0004,0x0001,0x0200,0x0
 static struct gm_account *gm_account = NULL;
 static int GM_num = 0;
 
-int pc_istop10fame(int char_id,int type) {
-	int i;
-
-	switch(type){
-	case 0: // Blacksmith
-	    for(i=0;i<10;i++){
-			if(smith_fame_list[i].id==char_id)
-			    return 1;
-		}
-		break;
-	case 1: // Alchemist
-	    for(i=0;i<10;i++){
-	        if(chemist_fame_list[i].id==char_id)
-	            return 1;
-		}
-	}
-
-	return 0;
-}
-
 int pc_isGM(struct map_session_data *sd) {
 	int i;
 
@@ -264,6 +244,44 @@ int pc_delspiritball(struct map_session_data *sd,int count,int type) {
 
 	if(!type)
 		clif_spiritball(sd);
+
+	return 0;
+}
+
+// Increases a player's fame and displays a notice to him
+int pc_addfame(struct map_session_data *sd,int count,int type) {
+	sd->status.fame += count;
+	if(sd->status.fame > MAX_FAME)
+	    sd->status.fame = MAX_FAME;
+	switch(type){
+		case 0: // Blacksmith
+            clif_fame_blacksmith(sd,count);
+            break;
+		case 1: // Alchemist
+            clif_fame_alchemist(sd,count);
+            break;
+	}
+	return 0;
+}
+
+// Check whether a player ID is in the Top 10 fame list of its job
+int pc_istop10fame(int char_id,int type) {
+	int i;
+
+	switch(type){
+	case 0: // Blacksmith
+	    for(i=0;i<10;i++){
+			if(smith_fame_list[i].id==char_id)
+			    return 1;
+		}
+		break;
+	case 1: // Alchemist
+	    for(i=0;i<10;i++){
+	        if(chemist_fame_list[i].id==char_id)
+	            return 1;
+		}
+		break;
+	}
 
 	return 0;
 }
@@ -2625,7 +2643,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 			pc_delitem(sd,n,1,1);
 		}
 		if(sd->status.inventory[n].card[0]==0x00ff && pc_istop10fame(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]),1))
-		    sd->state.potion_flag = 1;
+		    sd->state.potion_flag = 1; // Famous player's potions have 50% more efficiency
 		run_script(script,0,sd->bl.id,0);
 		sd->state.potion_flag = 0;
 	}
@@ -2883,16 +2901,13 @@ int pc_item_refine(struct map_session_data *sd,int idx)
 				if(item->refine == MAX_REFINE && item->card[0] == 0x00ff && MakeDWord(item->card[2],item->card[3]) == sd->char_id){ // Fame point system [DracoRPG]
 					switch(ditem->wlv){
 						case 1:
-							sd->status.fame += 1; // Success to refine to +10 a lv1 weapon you forged = +1 fame point
-							clif_fame_blacksmith(sd, 1);
+							pc_addfame(sd,1,0); // Success to refine to +10 a lv1 weapon you forged = +1 fame point
 							break;
 						case 2:
-							sd->status.fame += 25; // Success to refine to +10 a lv2 weapon you forged = +25 fame point
-							clif_fame_blacksmith(sd, 25);
+							pc_addfame(sd,25,0); // Success to refine to +10 a lv2 weapon you forged = +25 fame point
 							break;
 						case 3:
-							sd->status.fame += 1000; // Success to refine to +10 a lv3 weapon you forged = +1000 fame point
-							clif_fame_blacksmith(sd, 1000);
+							pc_addfame(sd,1000,0); // Success to refine to +10 a lv3 weapon you forged = +1000 fame point
 							break;
 					}
 				}
@@ -2904,7 +2919,6 @@ int pc_item_refine(struct map_session_data *sd,int idx)
 				clif_refine(sd->fd,sd,1,idx,item->refine);
 				pc_delitem(sd,idx,1,0);
 				clif_misceffect(&sd->bl,2);
-
 				clif_emotion(&sd->bl, 23);
 			}
 		}

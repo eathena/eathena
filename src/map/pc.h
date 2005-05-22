@@ -25,7 +25,6 @@
 #define pc_is50overweight(sd) (sd->weight*2 >= sd->max_weight) 
 #define pc_is90overweight(sd) (sd->weight*10 >= sd->max_weight*9)
 
-int pc_istop10fame(int char_id, int type);
 int pc_isGM(struct map_session_data *sd);
 int pc_iskiller(struct map_session_data *src, struct map_session_data *target); // [MouseJstr]
 int pc_getrefinebonus(int lv,int type);
@@ -204,6 +203,8 @@ int pc_setinvincibletimer(struct map_session_data *sd,int);
 int pc_delinvincibletimer(struct map_session_data *sd);
 int pc_addspiritball(struct map_session_data *sd,int,int);
 int pc_delspiritball(struct map_session_data *sd,int,int);
+int pc_addfame(struct map_session_data *sd,int count,int type);
+int pc_istop10fame(int char_id, int type);
 int pc_eventtimer(int tid,unsigned int tick,int id,int data); // for npc_dequeue
 
 struct Fame_list {

@@ -82,7 +82,6 @@ struct socket_data{
 
 extern struct socket_data *session[FD_SETSIZE];
 
-extern int rfifo_size,wfifo_size;
 extern int fd_max;
 
 

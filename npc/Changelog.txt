@@ -40,9 +40,10 @@ TODO:
 
 Date		Added
 ======
+05/22
+	* Fixed a typo in guild castles' manager, thanks to the__android [DracoRPG]
 05/17
 	* Fixed Crusader Quest.(Thanks to Komurka) [massdriller]
-
 05/16
 	* Small fix in the Dancer Job NPC and added checks for skill using, 
 	  Improved Concentration and Arrow Shower [Fredzilla]

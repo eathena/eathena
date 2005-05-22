@@ -9330,21 +9330,17 @@ int skill_produce_mix( struct map_session_data *sd,
 				if(nameid >= 545 && nameid <= 547) { // Fame point system [DracoRPG]
 		  			sd->potion_success_counter++;
 		  			if(sd->potion_success_counter == 3) {
-						sd->status.fame++; // Success to prepare 3 Concentrated Potions in a row = +1 fame point
-						clif_fame_alchemist(sd, 1);
+						pc_addfame(sd,1,1); // Success to prepare 3 Concentrated Potions in a row = +1 fame point
 		  			}
 					if(sd->potion_success_counter == 5) {
-						sd->status.fame += 3; // Success to prepare 5 Concentrated Potions in a row = +3 fame point
-						clif_fame_alchemist(sd, 3);
+						pc_addfame(sd,3,1); // Success to prepare 5 Concentrated Potions in a row = +3 fame point
 					}
 		  			if(sd->potion_success_counter == 7) {
-						sd->status.fame += 10; // Success to prepare 7 Concentrated Potions in a row = +10 fame point
-						clif_fame_alchemist(sd, 10);
+						pc_addfame(sd,10,1); // Success to prepare 7 Concentrated Potions in a row = +10 fame point
 		  			}
 					if(sd->potion_success_counter == 10) {
-						sd->status.fame += 50;	// Success to prepare 10 Concentrated Potions in a row = +50 fame point
+						pc_addfame(sd,50,1);	// Success to prepare 10 Concentrated Potions in a row = +50 fame point
 						sd->potion_success_counter = 0;
-						clif_fame_alchemist(sd, 50);
 					}
 				} else sd->potion_success_counter = 0;
 				break;
@@ -9356,8 +9352,7 @@ int skill_produce_mix( struct map_session_data *sd,
 				clif_produceeffect(sd,0,nameid); /* 武器製造エフェクト */
 				clif_misceffect(&sd->bl,3);
 				if(equip && itemdb_wlv(nameid) >= 3 && ((ele? 1 : 0) + sc) >= 3) { // Fame point system [DracoRPG]
-					sd->status.fame += 10; // Success to forge a lv3 weapon with 3 additional ingredients = +10 fame point
-					clif_fame_blacksmith(sd, 10);
+					pc_addfame(sd,10,0); // Success to forge a lv3 weapon with 3 additional ingredients = +10 fame point
 				}
 				break;
 		}

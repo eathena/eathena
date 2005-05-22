@@ -30,10 +30,10 @@ typedef int socklen_t;
 #include <string.h>
 
 #include "socket.h"
-#include "../common/mmo.h"	// [Valaris] thanks to fov
-#include "../common/timer.h"
-#include "../common/malloc.h"
-#include "../common/showmsg.h"
+#include "mmo.h"	// [Valaris] thanks to fov
+#include "timer.h"
+#include "malloc.h"
+#include "showmsg.h"
 
 fd_set readfds;
 #ifdef TURBO
@@ -45,7 +45,7 @@ time_t stall_time_ = 60;
 int ip_rules = 1;
 
 #if defined(CYGWIN) || defined(_WIN32)
-	#include "../common/dll.h"
+	#include "dll.h"
 	#define UPNP
 
 	Addon *upnp;
@@ -57,8 +57,11 @@ int ip_rules = 1;
 	int close_ports = 1;
 #endif
 
-int rfifo_size = 65536;
-int wfifo_size = 65536;
+// values derived from freya
+// a player that send more than 2k is probably a hacker without be parsed
+// biggest known packet: S 0153 <len>.w <emblem data>.?B -> 24x24 256 color .bmp (0153 + len.w + 1618/1654/1756 bytes)
+size_t rfifo_size = (16*1024);
+size_t wfifo_size = (16*1024);
 
 #ifndef TCP_FRAME_LEN
 #define TCP_FRAME_LEN 1053
@@ -122,7 +125,7 @@ static int recv_to_fifo(int fd)
 #ifdef _WIN32
 	len=recv(fd,session[fd]->rdata+session[fd]->rdata_size, RFIFOSPACE(fd), 0);
 #else
-	len=read(fd,session[fd]->rdata+session[fd]->rdata_size,RFIFOSPACE(fd));
+	len=read(fd,session[fd]->rdata+session[fd]->rdata_size, RFIFOSPACE(fd));
 #endif
 
 //	ShowInfo (":::RECEIVE:::\n");
@@ -143,19 +146,28 @@ static int recv_to_fifo(int fd)
 static int send_from_fifo(int fd)
 {
 	int len;
-	
-	if( (fd<0) || (fd>=FD_SETSIZE) || (NULL==session[fd]) )
+	if( !session_isValid(fd) )
 		return -1;
 
-	//ShowMessage("send_from_fifo : %d\n",fd);
-	if(session[fd]->eof || session[fd]->wdata == 0)
-		return -1;
-	if (session[fd]->wdata_size == 0) {
+	// clear write buffer if not connected
+	if( session[fd]->eof )
+	{
+		session[fd]->wdata_size = 0;
 #ifdef TURBO
-	        FD_CLR(fd, &writefds);
+		FD_CLR(fd, &writefds);
+#endif
+		return -1;
+	}
+	
+	//ShowMessage("send_from_fifo : %d\n",fd);
+	if (session[fd]->wdata_size == 0)
+	{
+#ifdef TURBO
+		FD_CLR(fd, &writefds);
 #endif
 		return 0;
 	}
+
 
 #ifdef _WIN32
 	len=send(fd, session[fd]->wdata,session[fd]->wdata_size, 0);
@@ -502,44 +514,80 @@ int delete_session(int fd)
 
 int realloc_fifo(int fd,int rfifo_size,int wfifo_size)
 {
-	struct socket_data *s;
-
-	if (fd <= 0)
+	if( !session_isValid(fd) )
 		return 0;
-	s = session[fd];
 
-	if( s->max_rdata != rfifo_size && s->rdata_size < rfifo_size){
-		RECREATE(s->rdata, unsigned char, rfifo_size);
-		s->max_rdata  = rfifo_size;
+	if( session[fd]->max_rdata != rfifo_size && session[fd]->rdata_size < rfifo_size){
+		RECREATE(session[fd]->rdata, unsigned char, rfifo_size);
+		session[fd]->max_rdata  = rfifo_size;
 	}
-	if( s->max_wdata != wfifo_size && s->wdata_size < wfifo_size){
-		RECREATE(s->wdata, unsigned char, wfifo_size);
-		s->max_wdata  = wfifo_size;
+	
+	if( session[fd]->max_wdata != wfifo_size && session[fd]->wdata_size < wfifo_size){
+		RECREATE(session[fd]->wdata, unsigned char, wfifo_size);
+		session[fd]->max_wdata  = wfifo_size;
 	}
+	return 0;
+}
+
+int realloc_writefifo(int fd, size_t addition)
+{
+	size_t newsize;
+
+	if( !session_isValid(fd) ) // might not happen
+		return 0;
+
+	if( session[fd]->wdata_size + addition  > session[fd]->max_wdata )
+	{	// grow rule; grow in multiples of wfifo_size
+		newsize = wfifo_size;
+		while( session[fd]->wdata_size + addition > newsize ) newsize += newsize;
+	}
+	else if( session[fd]->max_wdata>wfifo_size && (session[fd]->wdata_size+addition)*4 < session[fd]->max_wdata )
+	{	// shrink rule, shrink by 2 when ony a quater of the fifo is used, don't shrink below 4*addition
+		newsize = session[fd]->max_wdata/2;
+	}
+	else // no change
+		return 0;
+
+	RECREATE(session[fd]->wdata, unsigned char, newsize);
+	session[fd]->max_wdata  = newsize;
+
 	return 0;
 }
 
 int WFIFOSET(int fd,int len)
 {
-	struct socket_data *s;
+	size_t newreserve;
+	struct socket_data *s = session[fd];
 
-	if (fd <= 0 || (s = session[fd]) == NULL || s->wdata == NULL)
+	if( !session_isValid(fd) || s->wdata == NULL )
 		return 0;
-	if (s->wdata_size + len + 16384 > s->max_wdata) {
+
+	// we have written len bytes to the buffer already before calling WFIFOSET
+	s->wdata_size += len;
+
+	if(s->wdata_size > s->max_wdata)
+	{	// actually there was a buffer overflow already
 		unsigned char *sin_addr = (unsigned char *)&s->client_addr.sin_addr;
-		realloc_fifo(fd, s->max_rdata, s->max_wdata << 1);
-		ShowMessage("socket: %d (%d.%d.%d.%d) wdata expanded to %d bytes.\n", fd,
-			sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3], s->max_wdata);
+		ShowMessage("socket: Buffer Overflow. Connection %d (%d.%d.%d.%d) has written %d bytes (%d allowed)\n", fd,
+			sin_addr[0], sin_addr[1], sin_addr[2], sin_addr[3], s->wdata_size + len, s->max_wdata);
+		// no other chance, make a better fifo model
+		exit(1);
 	}
-	s->wdata_size = (s->wdata_size + (len) + 2048 < s->max_wdata) ?
-		s->wdata_size + len : (ShowError("socket: %d wdata lost !!\n",fd), s->wdata_size);
 
 #ifdef TURBO
 	FD_SET(fd,&writefds);
 #endif
 
+
+	// always keep a wfifo_size reserve in the buffer
+	newreserve = s->wdata_size + wfifo_size;
+
 	if (s->wdata_size > (TCP_FRAME_LEN))
 		send_from_fifo(fd);
+
+	// realloc after sending
+	// readfifo does not need to be realloced at all
+	realloc_writefifo(fd, newreserve);
 
 	return 0;
 }

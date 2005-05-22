@@ -98,7 +98,7 @@ L_Start:
 
 		mes "[ "+getarg(0)+" ]";
 		if(@TriggerE == 2) goto L_MaxTimesC;
-		if(@Economy >= 100) goto L_MaxInvesC;
+		if(@Economy >= 100) goto L_MaxInvestC;
 		mes "If you improve your Commerce Investment, the guild's productive power increases to produce more goods.";
 		mes "So an investment will be required if you're considering future growth.";
 		next;
