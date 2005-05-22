@@ -1,7 +1,7 @@
 Date	Added
 05/22	
 	* CharSQL: changed the init / login connection issue, now 'online'
-	  players will be set offline in login @ start / login reconnect
+	  players will be set offline in login @ start / login reconnect [Sirius]
 
 05/19
 	* Fixed displaying new when char_new is set to one and changed the option to char_new_display. [Kevin]
