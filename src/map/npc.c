@@ -43,6 +43,8 @@ static int npc_warp=0;
 static int npc_shop=0;
 static int npc_script=0;
 static int npc_mob=0;
+static int npc_delay_mob=0;
+static int npc_cache_mob=0;
 char *current_file = NULL;
 int npc_get_new_npc_id(void){ return npc_id++; }
 
@@ -2033,95 +2035,113 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 
 
 /*==========================================
- * mob行解析
+ * Parse Mob 1 - Parse mob list into each map
+ * Parse Mob 2 - Actually Spawns Mob
+ * [Wizputer]
  *------------------------------------------
  */
-int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
+int npc_parse_mob2 (struct mob_list *mob)
 {
-	int m, x, y, xs, ys, class_, num, delay1, delay2, level, i;
-	char mapname[24];
-	char mobname[24];
-	char eventname[24] = "";
+    int i;
 	struct mob_data *md;
 
-	xs = ys = 0;
-	delay1 = delay2 = 0;
-	// 引数の個数チェック
-	if (sscanf(w1, "%[^,],%d,%d,%d,%d", mapname, &x, &y, &xs, &ys) < 3 ||
-		sscanf(w4, "%d,%d,%d,%d,%s", &class_, &num, &delay1, &delay2, eventname) < 2 ) {
-		ShowError("bad monster line : %s\n", w3);
-		return 1;
-	}
-
-	m = map_mapname2mapid(mapname);
-	if (m < 0)
-		return 1;
-
-	if (num > 1 && battle_config.mob_count_rate != 100) {
-		if ((num = num * battle_config.mob_count_rate / 100) < 1)
-			num = 1;
-	}
-
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < mob->num; i++) {
 		md = (struct mob_data *) aCalloc (1, sizeof(struct mob_data));
 		memset(md, 0, sizeof(struct mob_data));	//Why not 0 up the structure?	[Skotlex]
 
-		if (class_ > 4000) { // large/tiny mobs [Valaris]
+		if (mob->class_ > 4000) { // large/tiny mobs [Valaris]
 			md->size = 2;
-			class_ -= 4000;
-		} else if (class_ > 2000) {
+			mob->class_ -= 4000;
+		} else if (mob->class_ > 2000) {
 			md->size = 1;
-			class_ -= 2000;
+			mob->class_ -= 2000;
 		}
 
 		md->bl.prev = NULL;
 		md->bl.next = NULL;
-		md->bl.m = m;
-		md->bl.x = x;
-		md->bl.y = y;
-
-		if (sscanf(w3, "%[^,],%d", mobname, &level) > 1)
-			md->level = level;
-		if (strcmp(mobname, "--en--") == 0)
-			memcpy(md->name, mob_db[class_].name, 24);
-		else if (strcmp(mobname, "--ja--") == 0)
-			memcpy(md->name, mob_db[class_].jname, 24);
-		else memcpy(md->name, mobname, 24);
-
+		md->bl.m = mob->m;
+		md->bl.x = mob->x;
+		md->bl.y = mob->y;
+		md->level = mob->level;
+		memcpy(md->name, mob->mobname, 24);
 		md->n = i;
-		md->base_class = md->class_ = class_;
+		md->base_class = md->class_ = mob->class_;
 		md->bl.id = npc_get_new_npc_id();
-		md->m = m;
-		md->x0 = x;
-		md->y0 = y;
-		md->xs = xs;
-		md->ys = ys;
-		md->spawndelay1 = delay1;
-		md->spawndelay2 = delay2;
+		md->m = mob->m;
+		md->x0 = mob->x;
+		md->y0 = mob->y;
+		md->xs = mob->xs;
+		md->ys = mob->ys;
+		md->spawndelay1 = mob->delay1;
+		md->spawndelay2 = mob->delay2;
 
 //		memset(&md->state,0,sizeof(md->state));
 		md->timer = -1;
 //		md->target_id=0;
 //		md->attacked_id=0;
-		md->speed = mob_db[class_].speed;
+		md->speed = mob_db[mob->class_].speed;
 
-		if (mob_db[class_].mode & 0x02)
+		if (mob_db[mob->class_].mode & 0x02)
 			md->lootitem = (struct item *)aCalloc(LOOTITEM_SIZE, sizeof(struct item));
 		else
 			md->lootitem = NULL;
 
-		if (strlen(eventname) >= 4) {
-			memcpy(md->npc_event, eventname, 24);
+		if (strlen(mob->eventname) >= 4) {
+			memcpy(md->npc_event, mob->eventname, 24);
 		} else
 			memset(md->npc_event, 0, 24);
 
 		md->bl.type = BL_MOB;
 		map_addiddb(&md->bl);
 		mob_spawn(md->bl.id);
+	}
+
+	return 0;
+}
+
+int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
+{
+    int level;
+	char mapname[24];
+	char mobname[24];
+	struct mob_list *mob;
+
+	mob = (struct mob_list *) aCalloc (1, sizeof(struct mob_list));
+	memset(mob, 0, sizeof(struct mob_list));
+	
+	// 引数の個数チェック
+	if (sscanf(w1, "%[^,],%d,%d,%d,%d", mapname, &mob->x, &mob->y, &mob->xs, &mob->ys) < 3 ||
+		sscanf(w4, "%d,%d,%d,%d,%s", &mob->class_, &mob->num, &mob->delay1, &mob->delay2, mob->eventname) < 2 ) {
+		ShowError("bad monster line : %s\n", w3);
+		return 1;
+	}
+
+	mob->m = map_mapname2mapid(mapname);
+	if (mob->m < 0)
+		return 1;
+		
+	if (mob->num > 1 && battle_config.mob_count_rate != 100) {
+		if ((mob->num = mob->num * battle_config.mob_count_rate / 100) < 1)
+			mob->num = 1;
+	}
+	
+	if (sscanf(w3, "%[^,],%d", mobname, &level) > 1)
+			mob->level = level;
+	if (strcmp(mobname, "--en--") == 0)
+			memcpy(mob->mobname, mob_db[mob->class_].name, 24);
+	else if (strcmp(mobname, "--ja--") == 0)
+			memcpy(mob->mobname, mob_db[mob->class_].jname, 24);
+	else memcpy(mob->mobname, mobname, 24);
+
+	if ( mob->delay1 || mob->delay2 ) {
+	    npc_parse_mob2(mob);
+	    npc_delay_mob += mob->num;
+	} else {
+	    map_addmobtolist(mob);
+	    npc_cache_mob += mob->num;
+ 	}    
 
 		npc_mob++;
-	}
-	//printf("warp npc %s %d read done\n",mapname,nd->bl.id);
 
 	return 0;
 }
@@ -2612,8 +2632,10 @@ int do_init_npc(void)
 		CL_WHITE"%d"CL_RESET"' Warps\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Shops\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Scripts\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Mobs\n",
-		npc_id - START_NPC_NUM, "", npc_warp, npc_shop, npc_script, npc_mob);
+		CL_WHITE"%d"CL_RESET"' Mobs\n\t-'"
+        CL_WHITE"%d"CL_RESET"' Mobs Cached\n\t-'"
+        CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
+		npc_id - START_NPC_NUM, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
 	
 	add_timer_func_list(npc_walktimer,"npc_walktimer"); // [Valaris]
 	add_timer_func_list(npc_event_timer,"npc_event_timer");

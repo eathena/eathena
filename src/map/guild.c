@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "map.h"
 #include "guild.h"
 #include "storage.h"
 #include "db.h"
@@ -14,7 +15,6 @@
 #include "npc.h"
 #include "pc.h"
 #include "status.h"
-#include "map.h"
 #include "mob.h"
 #include "intif.h"
 #include "clif.h"

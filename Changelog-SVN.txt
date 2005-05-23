@@ -1,5 +1,9 @@
 Date	Added
-05/22	
+05/22
+	* Drastically Improved Memory usage by making mobs dynamic [Wizputer]
+		Mobs load only when a PC is present on the map
+		Mobs that have special spawn delays are not loaded/unloaded
+		( Reduced memory usage by 60% for 419 Maps )
 	* FIFO size fixes [Shinomori]
 	* Fame point system now uses pc_addfame [DracoRPG]
 	* Added support for new NPC sprites in @disguise, thanks to akusarujin [DracoRPG]

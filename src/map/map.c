@@ -1754,6 +1754,48 @@ void map_removenpc(void) {
 	ShowStatus(tmp_output);
 }
 
+/*=========================================
+ * Dynamic Mobs [Wizputer]
+ *-----------------------------------------
+ */
+
+void map_addmobtolist(struct mob_list *mob) {
+    int i;
+    
+    for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)
+		if(map[mob->m].moblist[i]==NULL)
+			break;
+
+    map[mob->m].moblist[i]=mob;
+        
+}
+
+void map_spawnmobs(int m) {
+    int i;
+    
+    for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)
+		if(map[m].moblist[i]!=NULL)
+			npc_parse_mob2(map[m].moblist[i]);
+}
+
+int mob_cleanup_sub (struct block_list *bl, va_list ap) {
+	nullpo_retr(0, bl);
+
+	switch(bl->type) {
+	case BL_MOB:
+		mob_unload((struct mob_data *)bl);
+		break;
+	}
+
+	return 0;
+}
+
+void map_removemobs(int m) {
+    
+    map_foreachinarea(mob_cleanup_sub, m, 0, 0, map[m].xs, map[m].ys, 0);
+    
+}
+    
 /*==========================================
  * map–¼‚©‚çmap”Ô?‚Ö?Š·
  *------------------------------------------

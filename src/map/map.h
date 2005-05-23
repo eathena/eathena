@@ -24,6 +24,7 @@
 #define MAX_SKILLTIMERSKILL 32
 #define MAX_MOBSKILLTIMERSKILL 10
 #define MAX_MOBSKILL 32
+#define MAX_MOB_LIST_PER_MAP 32
 #define MAX_EVENTQUEUE 2
 #define MAX_EVENTTIMER 32
 #define NATURAL_HEAL_INTERVAL 500
@@ -618,6 +619,12 @@ enum {
 	EQP_HELM		= 8,		// Top-head headgear
 };
 
+// Mob List Held in memory for Dynamic Mobs [Wizputer]
+struct mob_list {
+    int m,x,y,xs,ys,class_,num,delay1,delay2,level;
+    char mobname[24],eventname[24];
+};
+
 struct map_data {
 	char name[24];
 	unsigned char *gat;	// NULL‚È‚ç‰º‚Ìmap_data_other_server‚Æ‚µ‚Äˆµ‚¤
@@ -675,7 +682,9 @@ struct map_data {
 		int drop_type;
 		int drop_per;
 	} drop_list[MAX_DROP_PER_MAP];
+	struct mob_list *moblist[MAX_MOB_LIST_PER_MAP]; // [Wizputer]
 };
+
 struct map_data_other_server {
 	char name[24];
 	unsigned char *gat;	// NULLŒÅ’è‚É‚µ‚Ä”»’f
@@ -888,6 +897,10 @@ int cleanup_sub(struct block_list *bl, va_list ap);
 
 void map_helpscreen(); // [Valaris]
 int map_delmap(char *mapname);
+
+void map_addmobtolist(struct mob_list *); // [Wizputer]
+void map_spawnmobs(int); // [Wizputer]
+void map_removemobs(int); // [Wizputer]
 
 extern char *INTER_CONF_NAME;
 extern char *LOG_CONF_NAME;
