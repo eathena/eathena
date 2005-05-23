@@ -1,5 +1,6 @@
 Date	Added
 05/22
+	* Added Jbain's server restarter bat files. [massdriller]
 	* Drastically Improved Memory usage by making mobs dynamic [Wizputer]
 		Mobs load only when a PC is present on the map
 		Mobs that have special spawn delays are not loaded/unloaded
@@ -13,8 +14,8 @@ Date	Added
 05/19
 	* Fixed displaying new when char_new is set to one and changed the option to char_new_display. [Kevin]
 	* Fixed mysql fix. [Kevin]
-	* Fixed a previous fix with pet idle skills, needs db update not hard coding [Kevin]
-	* Fixed mysql queries to support the following [Kevin]
+	* Fixed a previous fix with pet idle skills, needs db update not hard coding. [Kevin]
+	* Fixed mysql queries to support the following: [Kevin]
 	  -Names now support the ' character
 	  -Runs faster because querying string fields doesn't do strlen.
 	  -Debug option to revert back to old debug queries, will disable the support of the two above.

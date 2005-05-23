@@ -1,4 +1,9 @@
 @echo off
-:mapserv 
-start /min /wait map-server.exe conf\map_athena.conf 
-goto mapserv
+rem Writen by Jbain
+:end
+map-server.exe
+echo .
+echo .
+echo Map server crashed! restarting in 15 seconds! press ctl+C to cancel restart!
+PING -n 15 127.0.0.1 >nul
+goto end
