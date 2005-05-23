@@ -40,6 +40,10 @@ TODO:
 
 Date		Added
 ======
+05/23
+	* Fixed various gramatical errors in the Dumpling Festival, Twin Towers,
+	  Valentine's Day and X-mas scripts. [Mass Zero]
+	* Removed useless quotation marks (") in the Acolyte jobquest. [Mass Zero]
 05/22
 	* Fixed a typo in guild castles' manager, thanks to the__android [DracoRPG]
 05/17

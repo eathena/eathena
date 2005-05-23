@@ -6,10 +6,10 @@ alberta.gat,26,243,4	script	Trader	58,{
 //íjèóçwì¸â¬î\
 	mes "[Marco Bascinio]";
 	mes "A special treat... Not easily found";
-	mes "in Rune-Midgard Kingdom!";
+	mes "in the Rune-Midgard Kingdom!";
 	mes "No one can resist the temptation";
 	mes "of its wonderful taste!";
-	mes "Makes a great gift for a friend, or even for yourself!";
+	mes "It makes a great gift for a friend, or even for yourself!";
 	next;
 	mes "[Marco Bascinio]";
 	mes "A gorgeous fancy looking chocolate for...";
@@ -27,9 +27,9 @@ Lend:
 		close;
 L1:
 		mes "[Marco Bascinio]";
-		mes "No way! The chocolate has the spirit of it's maker!";
-		mes "That is why I only sell not more than five to each person";
-		mes "If you want more than five, come back again";
+		mes "No way! The chocolate has the spirit of its maker!";
+		mes "That is why I only sell no more than five to each person.";
+		mes "If you want more than five, come back again.";
 		mes "So how many do you want?";
 		next;
 		goto Linput;

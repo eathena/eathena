@@ -31,7 +31,7 @@ L_Start:
 	mes "I'm having a bit of a problem...";
 	mes "Do you care to listen?";
 	next;
-	menu "Listen to Santa Claus.",M_0, "Give Santa Claus Proof.",M_1, "Cancel.",M_End;
+	menu "Listen to Santa Claus.",M_0, "Give Santa Claus proof.",M_1, "Cancel.",M_End;
 
 	M_0:
 		mes "[Santa Claus]";
@@ -42,7 +42,7 @@ L_Start:
 		next;
 		mes "[Santa Claus]";
 		mes "Like the Grinch of legend, he's taking";
-		mes "all the children's toys and keeping them";
+		mes "all the childrens' toys and keeping them";
 		mes "for himself.";
 		next;
 		mes "[Santa Claus]";
@@ -55,21 +55,21 @@ L_Start:
 		mes "[Santa Claus]";
 		mes "He has in his posession one of my";
 		mes "magic sacks, however, so he will";
-		mes "escape into it into another place when";
-		mes "you attack him each time.";
+		mes "escape into it to another place each";
+		mes "time you attack him.";
 		next;
 		mes "[Santa Claus]";
 		mes "However,";
 		mes "In his haste, he tends to drop things.";
-		mes "If by chance he drops one of his stockings";
-		mes "with holes that he uses to steal the";
-		mes "poor children's toys, pick it up.";
+		mes "If by chance he drops one of his Stockings";
+		mes "With Holes that he uses to steal the";
+		mes "poor childrens' toys, pick it up.";
 		next;
 		mes "[Santa Claus]";
 		mes "If you collect 3 of these, I will give";
 		mes "you a prototype mystery box that";
 		mes "I've been keeping around the";
-		mes "lab.  It spits out random presents";
+		mes "lab. It spits out random presents";
 		mes "and saves me a ton of work.";
 		close;
 	M_1:
@@ -78,7 +78,7 @@ L_Start:
 		delitem 7034,3;
 		mes "Seems you've been doing a";
 		mes "good job of taking down those";
-		mes "fake Santas.  Keep it up!";
+		mes "fake Santas. Keep it up!";
 		next;
 		getitem 644,1; //Gift Box Prototype
 		set #event_xmas,#event_xmas+1;
@@ -95,8 +95,8 @@ L_Start:
 			close;
 	M_End:
 		mes "[Santa Claus]";
-		mes "I see.  Well, at the very least";
-		mes "we shall meet again on Chirstmas morning.";
+		mes "I see. Well, at the very least";
+		mes "we shall meet again on Christmas morning.";
 		close;
 
 OnInit:
