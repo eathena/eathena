@@ -1354,20 +1354,20 @@ int npc_stop_walking(struct npc_data *nd,int type)
 
 int npc_remove_map (struct npc_data *nd)
 {
-    nullpo_retr(1, nd);
+	nullpo_retr(1, nd);
 
-    if(nd->bl.prev == NULL)
-        return 1;
+	if(nd->bl.prev == NULL)
+		return 1;
 
 #ifdef PCRE_SUPPORT
-    npc_chat_finalize(nd);
+	npc_chat_finalize(nd);
 #endif
-    clif_clearchar_area(&nd->bl,2);
+	clif_clearchar_area(&nd->bl,2);
 	strdb_erase(npcname_db, (nd->bl.subtype < SCRIPT) ? nd->name : nd->exname);
-    map_delblock(&nd->bl);
+	map_delblock(&nd->bl);
 	map_deliddb(&nd->bl);
 
-    return 0;
+	return 0;
 }
 
 int npc_unload (struct npc_data *nd)
@@ -2042,7 +2042,7 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
  */
 int npc_parse_mob2 (struct mob_list *mob)
 {
-    int i;
+	int i;
 	struct mob_data *md;
 
 	for (i = 0; i < mob->num; i++) {
@@ -2101,7 +2101,7 @@ int npc_parse_mob2 (struct mob_list *mob)
 
 int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 {
-    int level;
+	int level;
 	char mapname[24];
 	char mobname[24];
 	struct mob_list *mob;
@@ -2113,12 +2113,15 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 	if (sscanf(w1, "%[^,],%d,%d,%d,%d", mapname, &mob->x, &mob->y, &mob->xs, &mob->ys) < 3 ||
 		sscanf(w4, "%d,%d,%d,%d,%s", &mob->class_, &mob->num, &mob->delay1, &mob->delay2, mob->eventname) < 2 ) {
 		ShowError("bad monster line : %s\n", w3);
+		aFree(mob);
 		return 1;
 	}
 
 	mob->m = map_mapname2mapid(mapname);
-	if (mob->m < 0)
+	if (mob->m < 0) {
+		aFree(mob);
 		return 1;
+	}
 		
 	if (mob->num > 1 && battle_config.mob_count_rate != 100) {
 		if ((mob->num = mob->num * battle_config.mob_count_rate / 100) < 1)
@@ -2126,22 +2129,24 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 	}
 	
 	if (sscanf(w3, "%[^,],%d", mobname, &level) > 1)
-			mob->level = level;
+		mob->level = level;
 	if (strcmp(mobname, "--en--") == 0)
-			memcpy(mob->mobname, mob_db[mob->class_].name, 24);
+		memcpy(mob->mobname, mob_db[mob->class_].name, 24);
 	else if (strcmp(mobname, "--ja--") == 0)
-			memcpy(mob->mobname, mob_db[mob->class_].jname, 24);
+		memcpy(mob->mobname, mob_db[mob->class_].jname, 24);
 	else memcpy(mob->mobname, mobname, 24);
 
 	if ( mob->delay1 || mob->delay2 ) {
-	    npc_parse_mob2(mob);
-	    npc_delay_mob += mob->num;
+		npc_parse_mob2(mob);
+		npc_delay_mob += mob->num;
+		// we're not using mob_list anymore, so discard it
+		aFree(mob);
 	} else {
-	    map_addmobtolist(mob);
-	    npc_cache_mob += mob->num;
- 	}    
+		map_addmobtolist(mob);
+		npc_cache_mob += mob->num;
+	}
 
-		npc_mob++;
+	npc_mob++;
 
 	return 0;
 }
@@ -2384,7 +2389,7 @@ void npc_parsesrcfile (char *name)
 				if (!(j && line[j-1]=='\t'))
 					line[j++]='\t';
 			} else
- 				line[j++]=line[i];
+				line[j++]=line[i];
 		}
 		// 最初はタブ区切りでチェックしてみて、ダメならスペース区切りで確認
 		if ((count = sscanf(line,"%[^\t]\t%[^\t]\t%[^\t\r\n]\t%n%[^\t\r\n]", w1, w2, w3, &w4pos, w4)) < 3 &&
@@ -2574,7 +2579,7 @@ int do_final_npc(void)
 
 	if(ev_db)
 		strdb_final(ev_db, ev_db_final);
- 	if(npcname_db)
+	if(npcname_db)
 		strdb_final(npcname_db, npcname_db_final);
 
 	npc_clearsrcfile();
@@ -2633,8 +2638,8 @@ int do_init_npc(void)
 		CL_WHITE"%d"CL_RESET"' Shops\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Scripts\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Mobs\n\t-'"
-        CL_WHITE"%d"CL_RESET"' Mobs Cached\n\t-'"
-        CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
+		CL_WHITE"%d"CL_RESET"' Mobs Cached\n\t-'"
+		CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
 		npc_id - START_NPC_NUM, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
 	
 	add_timer_func_list(npc_walktimer,"npc_walktimer"); // [Valaris]

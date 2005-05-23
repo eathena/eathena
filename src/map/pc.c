@@ -3208,11 +3208,11 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		skill_gangsterparadise(sd,0);
 		
 		if ( sd->bl.m != m ) { // Dynamic Mobs [Wizputer]
-		    if ( ( map[sd->bl.m].users - 1 ) == 0 )
-                map_removemobs(sd->bl.m);
-            if ( map[m].users == 0 )
-                map_spawnmobs(m);
-        } 
+			if ( ( map[sd->bl.m].users - 1 ) == 0 )
+				map_removemobs(sd->bl.m);
+			if ( map[m].users == 0 )
+				map_spawnmobs(m);
+		}
 		
 		map_delblock(&sd->bl);
 		// pet

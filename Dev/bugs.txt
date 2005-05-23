@@ -346,3 +346,8 @@ Progress:	0%
 Problem:	Energu Coat, Cloaking, etc DON'T work at all
 Assigned:	na
 Progress:	0%
+
+Problem:	Maps with more than 32 monsters (like anthell01 has 90++) will not load
+		the rest of them because map[i].moblist is full
+Assigned:	na
+Progress:	0%

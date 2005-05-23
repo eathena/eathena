@@ -1759,43 +1759,36 @@ void map_removenpc(void) {
  *-----------------------------------------
  */
 
-void map_addmobtolist(struct mob_list *mob) {
-    int i;
-    
-    for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)
-		if(map[mob->m].moblist[i]==NULL)
-			break;
+void map_addmobtolist(struct mob_list *mob)
+{
+	int i;
 
-    map[mob->m].moblist[i]=mob;
-        
+	for (i = 0; i < MAX_MOB_LIST_PER_MAP; i++)
+		if (map[mob->m].moblist[i] == NULL)
+			break;
+	// moblist is full, so don't add it?
+	if (i == MAX_MOB_LIST_PER_MAP) {
+		aFree(mob);
+		return;
+	}
+
+	map[mob->m].moblist[i] = mob;
 }
 
-void map_spawnmobs(int m) {
-    int i;
-    
-    for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)
+void map_spawnmobs(int m)
+{
+	int i;
+	
+	for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)
 		if(map[m].moblist[i]!=NULL)
 			npc_parse_mob2(map[m].moblist[i]);
 }
 
-int mob_cleanup_sub (struct block_list *bl, va_list ap) {
-	nullpo_retr(0, bl);
-
-	switch(bl->type) {
-	case BL_MOB:
-		mob_unload((struct mob_data *)bl);
-		break;
-	}
-
-	return 0;
+void map_removemobs(int m)
+{
+	map_foreachinarea(cleanup_sub, m, 0, 0, map[m].xs, map[m].ys, BL_MOB);
 }
 
-void map_removemobs(int m) {
-    
-    map_foreachinarea(mob_cleanup_sub, m, 0, 0, map[m].xs, map[m].ys, 0);
-    
-}
-    
 /*==========================================
  * map名からmap番?へ?換
  *------------------------------------------
@@ -2166,15 +2159,15 @@ struct map_cache_info {
 }; // 56 byte
 
 struct map_cache_head {
-    int sizeof_header;
-    int sizeof_map;
-    // 上の２つ改変不可
-    int nmaps; // マップの個数
-    int filesize;
+	int sizeof_header;
+	int sizeof_map;
+	// 上の２つ改変不可
+	int nmaps; // マップの個数
+	int filesize;
 };
 
 struct {
-        struct map_cache_head head;
+	struct map_cache_head head;
 	struct map_cache_info *map;
 	FILE *fp;
 	int dirty;
@@ -3220,26 +3213,26 @@ int charid_db_final(void *k,void *d,va_list ap)
 int cleanup_sub(struct block_list *bl, va_list ap) {
 	nullpo_retr(0, bl);
 
-        switch(bl->type) {
-        case BL_PC:
-            map_quit((struct map_session_data *) bl);
-            break;
-        case BL_NPC:
-            npc_unload((struct npc_data *)bl);
-            break;
-        case BL_MOB:
-            mob_unload((struct mob_data *)bl);
-            break;
-        case BL_PET:
-            pet_remove_map((struct map_session_data *)bl);
-            break;
-        case BL_ITEM:
-            map_clearflooritem(bl->id);
-            break;
-        case BL_SKILL:
-            skill_delunit((struct skill_unit *) bl);
-            break;
-        }
+	switch(bl->type) {
+		case BL_PC:
+			map_quit((struct map_session_data *) bl);
+			break;
+		case BL_NPC:
+			npc_unload((struct npc_data *)bl);
+			break;
+		case BL_MOB:
+			mob_unload((struct mob_data *)bl);
+			break;
+		case BL_PET:
+			pet_remove_map((struct map_session_data *)bl);
+			break;
+		case BL_ITEM:
+			map_clearflooritem(bl->id);
+			break;
+		case BL_SKILL:
+			skill_delunit((struct skill_unit *) bl);
+			break;
+	}
 
 	return 0;
 }
@@ -3249,18 +3242,18 @@ int cleanup_sub(struct block_list *bl, va_list ap) {
  *------------------------------------------
  */
 void do_final(void) {
-    int i;
-    ShowStatus("Terminating...\n");
+	int i, j;
+	ShowStatus("Terminating...\n");
 
-    map_cache_close();
-    grfio_final();
+	map_cache_close();
+	grfio_final();
 
-    for (i = 0; i < map_num; i++)
+	for (i = 0; i < map_num; i++)
 		if (map[i].m >= 0)
 			map_foreachinarea(cleanup_sub, i, 0, 0, map[i].xs, map[i].ys, 0);
 
-    chrif_char_reset_offline();
-    chrif_flush_fifo();
+	chrif_char_reset_offline();
+	chrif_flush_fifo();
 
 //#if 0	// why is this here? >_>
 	do_final_chrif(); // この内部でキャラを全て切断する
@@ -3281,12 +3274,14 @@ void do_final(void) {
 		if(map[i].block_mob) aFree(map[i].block_mob);
 		if(map[i].block_count) aFree(map[i].block_count);
 		if(map[i].block_mob_count) aFree(map[i].block_mob_count);
+		for (j=0; j<MAX_MOB_LIST_PER_MAP; j++)
+			if (map[i].moblist[j]) aFree(map[i].moblist[j]);
 	}
 
-    numdb_final(id_db, id_db_final);
+	numdb_final(id_db, id_db_final);
 	strdb_final(map_db, map_db_final);
-    strdb_final(nick_db, nick_db_final);
-    numdb_final(charid_db, charid_db_final);
+	strdb_final(nick_db, nick_db_final);
+	numdb_final(charid_db, charid_db_final);
 
 //#endif
 

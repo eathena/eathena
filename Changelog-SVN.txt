@@ -1,4 +1,12 @@
 Date	Added
+05/23
+	* Updated tool/stackdump script to support eA's own stackdumps [celest]
+	  - Type ./stackdump help to check
+	* Changed mob_cleanup_sub simply to cleanup_sub [celest]
+	* Fixed some memory leaks with dynamic mobs [celest]
+	  -- notes: Check bugs.txt
+	* Fixed some compile warnings in gcc 4.0 [celest]
+
 05/22
 	* Added Jbain's server restarter bat files. [massdriller]
 	* Drastically Improved Memory usage by making mobs dynamic [Wizputer]
