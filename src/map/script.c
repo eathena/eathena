@@ -1229,7 +1229,7 @@ char* parse_script(unsigned char *src,int line)
 
 ////////////////////////////////////////////// 
 // additional check on the input to filter empty scripts ("{}" and "{ }") 
-	p = (char*)src;
+	p = src;
 	p = skip_space(p);
 	if (*p != '{') {
 		disp_error_message("not found '{'", p);

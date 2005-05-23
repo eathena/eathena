@@ -5249,7 +5249,7 @@ int battle_config_switch(const char *str) {
 
 static const struct battle_data_short {
 	const char *str;
-	short *val;
+	unsigned short *val;
 } battle_data_short[] = {	//List here battle_athena options which are type short!
 	{ "warp_point_debug",                  &battle_config.warp_point_debug			},
 	{ "enemy_critical",                    &battle_config.enemy_critical			},

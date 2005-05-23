@@ -377,8 +377,8 @@ int decode_file (FILE *source, FILE *dest)
 	int err;
 	unsigned have;
 	z_stream strm;
-	char in[CHUNK];
-	char out[CHUNK];
+	unsigned char in[CHUNK];
+	unsigned char out[CHUNK];
 
 	/* allocate inflate state */
 	strm.zalloc = Z_NULL;
