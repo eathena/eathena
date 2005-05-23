@@ -5625,7 +5625,7 @@ int buildin_mobcount(struct script_state *st)	// Added by RoVeRT
 	map_foreachinarea(buildin_mobcount_sub,
 		m,0,0,map[m].xs,map[m].ys,BL_MOB, event,&c );
 
-	push_val(st->stack,C_INT, (c - 1));
+	push_val(st->stack,C_INT, (c));
 
 	return 0;
 }

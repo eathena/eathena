@@ -1,5 +1,6 @@
 Date	Added
 05/23
+	* Mob count in scripts returned 1 less then it was supposed to. [Kevin]
 	* Updated tool/stackdump script to support eA's own stackdumps [celest]
 	  - Type ./stackdump help to check
 	* Changed mob_cleanup_sub simply to cleanup_sub [celest]
