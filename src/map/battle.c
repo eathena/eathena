@@ -5,10 +5,10 @@
 #include <math.h>
 
 #include "battle.h"
-
-#include "timer.h"
-#include "nullpo.h"
-#include "malloc.h"
+#include "../common/timer.h"
+#include "../common/nullpo.h"
+#include "../common/malloc.h"
+#include "../common/showmsg.h"
 
 #include "map.h"
 #include "pc.h"
