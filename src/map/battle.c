@@ -4100,16 +4100,15 @@ struct Damage battle_calc_weapon_attack(
 	else
 	{
 		if(target->type == BL_PET)
-		memset(&wd,0,sizeof(wd));
-
-	else if(src->type == BL_PC)
-		wd = battle_calc_pc_weapon_attack(src,target,skill_num,skill_lv,wflag);
-	else if(src->type == BL_MOB)
-		wd = battle_calc_mob_weapon_attack(src,target,skill_num,skill_lv,wflag);
-	else if(src->type == BL_PET)
-		wd = battle_calc_pet_weapon_attack(src,target,skill_num,skill_lv,wflag);
-	else
-		memset(&wd,0,sizeof(wd));
+			memset(&wd,0,sizeof(wd));
+		else if(src->type == BL_PC)
+			wd = battle_calc_pc_weapon_attack(src,target,skill_num,skill_lv,wflag);
+		else if(src->type == BL_MOB)
+			wd = battle_calc_mob_weapon_attack(src,target,skill_num,skill_lv,wflag);
+		else if(src->type == BL_PET)
+			wd = battle_calc_pet_weapon_attack(src,target,skill_num,skill_lv,wflag);
+		else
+			memset(&wd,0,sizeof(wd));
 	}
 	if(battle_config.equipment_breaking && src->type==BL_PC && (wd.damage > 0 || wd.damage2 > 0)) {
 		struct map_session_data *sd = (struct map_session_data *)src;
@@ -4561,7 +4560,7 @@ struct Damage  battle_calc_misc_attack(
 		break;
 
 	case BA_DISSONANCE:	// •s‹¦˜a‰¹
-		damage=(skill_lv)*20+pc_checkskill(sd,BA_MUSICALLESSON)*3;
+		damage=30+(skill_lv)*10+pc_checkskill(sd,BA_MUSICALLESSON)*3;
 		break;
 
 	case NPC_SELFDESTRUCTION:	// Ž©”š
@@ -4667,8 +4666,8 @@ struct Damage battle_calc_attack(	int attack_type,
 	case BF_MISC:
 		return battle_calc_misc_attack(bl,target,skill_num,skill_lv,flag);
 	default:
-		if(battle_config.error_log)
-			printf("battle_calc_attack: unknwon attack type ! %d\n",attack_type);
+		if (battle_config.error_log)
+			ShowError("battle_calc_attack: unknown attack type! %d\n",attack_type);
 		memset(&d,0,sizeof(d));
 		break;
 	}

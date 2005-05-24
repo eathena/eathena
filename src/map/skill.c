@@ -6485,15 +6485,15 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 	nullpo_retr(0, c=va_arg(ap,int *));
 	skillid = va_arg(ap,int);
 
-	if (bl == src)
-		return 0;
-
 	s_class = pc_calc_base_job(sd->status.class_);
 	//チェックしない設定ならcにありえない大きな?字を返して終了
 	if (!battle_config.player_skill_partner_check) {	//本?はforeachの前にやりたいけど設定適用箇所をまとめるためにここへ
 		(*c) = 99;
 		return 0;
 	}
+
+	if (bl == src)
+		return 0;
 
 	switch(skillid)
 	{
