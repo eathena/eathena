@@ -1807,7 +1807,7 @@ int mob_cache_cleanup_sub(struct block_list *bl, va_list ap) {
 
 void map_removemobs(int m)
 {
-	map_foreachinarea(cleanup_sub, m, 0, 0, map[m].xs, map[m].ys, BL_MOB);
+	map_foreachinarea(mob_cache_cleanup_sub, m, 0, 0, map[m].xs, map[m].ys, BL_MOB);
 }
 
 /*==========================================
