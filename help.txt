@@ -14,6 +14,7 @@ Note:
      type to chat.
 
 Rewritten by: Kevin
+Updated by: massdriller
 
 ---------------------------------------------------------------------------------
 <> = type of parameter that the command need to have
@@ -81,6 +82,15 @@ INFORMATION COMMANDS
 @partyspy <party_name/id> = You will receive all messages of the specified party
                             channel
 
+-----Database Information-----
+
+@mobinfo/@monsterinfo/@mi <monstername>	  = Gives information about the monster
+@iteminfo/@ii <itemname>	  = Gives information about the item
+@rates				  = Displays the Rates of the server
+@version			  = Gives the number of the SVN Version
+
+
+
 =================================================================================
 YOURSELF ONLY COMMANDS
 =================================================================================
@@ -112,6 +122,8 @@ YOURSELF ONLY COMMANDS
                                 1=Morroc           8=Comodo        15=Start point
                                 2=Geffen           9=Yuno          16=Prison
                                 3=Payon           10=Amatsu
+@follow					= Teleports and follows the player 
+					  persistantly
 
 -----Health Commands-----
 
@@ -277,6 +289,10 @@ REMOTE CHAR COMMANDS
 @raise                              = Resurrects all characters on the server.
 @raisemap                           = Resurrects all characters on the map.
 
+@killable			    = Other players can kill you
+@charkillable <character name>	    = Enable other players to be killable
+
+
 =================================================================================
 MOB COMMANDS
 =================================================================================
@@ -327,6 +343,7 @@ ITEM COMMANDS
     Example: @produce 1163 3 3 - Produces a Very Very Very Strong (Your Nick)'s
                                  Fire Claymore
 @repairall                            = Repair all items of your inventory
+@cleanmap			      = Clears map of all fallen items
 
 =================================================================================
 ADMINISTRATION COMMANDS
@@ -347,6 +364,15 @@ ADMINISTRATION COMMANDS
 @shownpc <NPC_name> - Show a hidden NPC (admin command)
 @hidenpc <NPC_name> - Hide a NPC (admin command)
 
+@disguiseall <monster_name/monster_ID/NPC_ID>	= Change everybody on the map's appearence to a mob or npc.
+						If using NPC ID 104 Will become an effect.
+						Speed of player will determine effect, be very careful with this ID
+						it can create client crashes with improper ids and can easily lag players
+						off of the server.
+@undisguiseall					= Removes all Disguises 
+@happyhappyjoyjoy				= Random emotions from all players on the map
+@autoloot					= All items will go into inventory upon killing a monster
+
 
 @gat           = For debugging (you inspect around gat)
 @packet        = For debugging (packet variety)
@@ -364,6 +390,15 @@ OTHER COMMANDS
 
 @night = Uses @option 00 16 00 on all characters. All characters are in darkness
 @day   = Uses @option 00 00 00 on all characters.
+
+@rain		= Gives Rain effect on activated map
+@snow		= Gives Snow effect on activated map
+@sakura		= Gives Flower petal effect on activated map
+@clouds		= Gives Clouds effect on activated map
+@fog		= Gives Foggy effect on activated map
+@fireworks	= Gives Fireworks effect on activated map
+@leaves		= Gives attumn effect on activated map
+@clearweather	= Clears all "weather" effects on the map (Works only when players leave the map and rejoin again)
 
 -----Mail System Commands(SQL)-----
 
@@ -400,3 +435,11 @@ Use * for name to send to all players.
 
 @mute/@red <time> <char_name>     = Mutes char_name for time period of time.
 @mutearea/@stfu [time]       = Mutes area for time, sets defualt to 15.
+
+-----System Commands usually used with scripts-------
+
+@marry	<Char 1> <char 2>	= Makes 2 target characters married
+@divorce <Char 1> <Char 2>	= Divorces 2 characters 
+@rings	<Char>			= Gives the player the wedding ring
+@adopt <Char>			= Adopts a player
+
