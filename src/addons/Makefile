@@ -1,4 +1,4 @@
-txt sql all: sample
+txt sql all: sample uptime dump pid
 
 COMMON_H = ../common/dll.h
 ifdef CYGWIN
@@ -8,7 +8,13 @@ else
 endif
 
 sample: sample.c $(COMMON_H)
-	$(CC) -shared -o ../../addons/$@.$(EXT) $<
+	$(CC) $(CFLAGS) -shared -o ../../addons/$@.$(EXT) $<
+uptime: uptime.c $(COMMON_H)
+	$(CC) $(CFLAGS) -shared -o ../../addons/$@.$(EXT) $<
+dump: dump.c $(COMMON_H)
+	$(CC) $(CFLAGS) -shared -o ../../addons/$@.$(EXT) $<
+pid: pid.c $(COMMON_H)
+	$(CC) $(CFLAGS) -shared -o ../../addons/$@.$(EXT) $<
 
 clean:
 	rm -rf *.o

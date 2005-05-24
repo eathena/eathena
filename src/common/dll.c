@@ -9,6 +9,7 @@
 #include "dll.h"
 #include "../common/mmo.h"
 #include "../common/core.h"
+#include "../common/timer.h"
 #include "../common/utils.h"
 #include "../common/malloc.h"
 #include "../common/version.h"
@@ -33,6 +34,10 @@ Addon_Event_List *event_head = NULL;
 Addon *addon_head = NULL;
 
 Addon_Info default_info = { "Unknown", ADDON_ALL, "0", DLL_VERSION, "Unknown" };
+
+void *call_table = NULL;
+static int call_table_size	= 0;
+static int max_call_table	= 4;
 
 ////// Plugin Events Functions //////////////////
 
@@ -103,6 +108,25 @@ int addon_event_trigger (char *name)
 	return c;
 }
 
+////// Plugins Call Table Functions /////////
+
+int export_symbol (void *var, int offset)
+{
+	//printf ("0x%x\n", var);
+
+	if (offset < 0)
+		offset = call_table_size*4;
+
+	if (++call_table_size > max_call_table) {
+		max_call_table += 4;
+		call_table = aRealloc(call_table,
+			sizeof(void*) * max_call_table);
+	}
+
+	memcpy(call_table+offset, &var, 4);
+	return 0;
+}
+
 ////// Plugins Core /////////////////////////
 
 Addon *dll_open (const char *filename)
@@ -110,6 +134,7 @@ Addon *dll_open (const char *filename)
 	Addon *addon;
 	Addon_Info *info;
 	Addon_Event_Table *events;
+	void **procs;
 	int init_flag = 1;
 
 	//printf ("loading %s\n", filename);
@@ -153,6 +178,10 @@ Addon *dll_open (const char *filename)
 
 	addon->filename = (char *) aMalloc (strlen(filename) + 1);
 	strcpy(addon->filename, filename);
+
+	// Initialise plugin call table (For exporting procedures)
+	DLL_SYM (procs, addon->dll, "addon_call_table");
+	if (procs) *procs = call_table;
 	
 	// Register plugin events
 	DLL_SYM (events, addon->dll, "addon_event_table");
@@ -197,6 +226,22 @@ void dll_unload (Addon *addon)
 	if (addon->filename) aFree(addon->filename);
 	if (addon->dll)	DLL_CLOSE(addon->dll);
 	aFree(addon);
+}
+
+// Find a previously loaded plugin
+Addon *dll_findloaded (const char *name)
+{
+	char path[256];
+	Addon *addon = addon_head;
+	sprintf (path, "addons/%s%s", name, DLL_EXT);
+
+	while (addon) {
+		if (addon->state && strcmpi(addon->filename, path) == 0)
+			return addon;
+		addon = addon->next;
+	}
+
+	return NULL;
 }
 
 #ifdef _WIN32
@@ -252,6 +297,12 @@ void dll_init (void)
 	register_addon_func("Athena_Init");
 	register_addon_func("Athena_Final");
 
+	call_table = aMalloc(max_call_table * sizeof(void *));
+	export_symbol (&SERVER_TYPE, 0);
+	export_symbol (argp, 4);
+	export_symbol (gettick, 8);
+	export_symbol (get_svn_revision, 12);
+
 	load_priority = 1;
 	dll_config_read (DLL_CONF_FILENAME);
 	load_priority = 0;
@@ -290,6 +341,8 @@ void dll_final (void)
 		aFree(evl);
 		evl = evl2;
 	}
+
+	aFree(call_table);
 
 	return;
 }

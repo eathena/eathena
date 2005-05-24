@@ -95,6 +95,8 @@ MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS)" LIB_S="$(GCLIB) $(LIBS)"
 
 all: conf txt
 
+.PHONY: txt sql converters addons tools webserver
+
 conf:
 	cp -r conf-tmpl conf
 	rm -rf conf/.svn conf/*/.svn
@@ -106,7 +108,6 @@ txt : src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/
 	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd map ; $(MAKE) $(MKDEF) $@ ; cd ..
-	cd src ; cd addons ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd ..
 
 
@@ -116,7 +117,6 @@ sql: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile s
 	cd src ; cd login_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
 	cd src ; cd char_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
 	cd src ; cd map ; $(MAKE) $(MYLIB) $@ ; cd ..
-	cd src ; cd addons ; $(MAKE) $(MKDEF) $@ ; cd ..
 else
 sql: 
 	$(MAKE) CC="$(CC)" OPT="$(OPT)" SQLFLAG=1 $@
@@ -133,6 +133,8 @@ converters:
 	$(MAKE) CC="$(CC)" OPT="$(OPT)" SQLFLAG=1 $@
 endif
 
+addons:
+	cd src ; cd addons && $(MAKE) $(MKDEF) && cd ..
 
 tools: 
 	cd src ; cd tool && $(MAKE) $(MKDEF) && cd ..

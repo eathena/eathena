@@ -1,6 +1,7 @@
 // Sample Athena plugin
 
 #include <stdio.h>
+#include <string.h>
 #include "../common/dll.h"
 
 ////// Plugin information ////////
@@ -31,16 +32,33 @@ ADDON_EVENTS_TABLE = {
 	{ NULL, NULL }
 };
 
+///// Import tables and variables /////
+ADDON_CALL_TABLE = NULL;
+char *server_type;
+char *argp;
+
 //////// Plugin functions //////////
 int do_init ()
 {
-	printf ("Hello world\n");
+	// import symbols from the server
+	IMPORT_SYMBOL(server_type, 0);
+	IMPORT_SYMBOL(argp, 4);
+
+	printf ("Server type is ");
+	switch (*server_type) {
+		case ADDON_LOGIN: printf ("Login\n"); break;
+		case ADDON_CHAR: printf ("Char\n"); break;
+		case ADDON_MAP: printf ("Map\n"); break;
+	}
+	printf ("Filename is %s\n", argp);
+
 	return 1;
 }
 
 int do_final ()
 {
 	printf ("Bye world\n");
+
 	return 1;
 }
 

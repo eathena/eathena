@@ -8,11 +8,6 @@
 #endif
 #include <signal.h>
 #include <string.h>
-#ifdef DUMPSTACK
-#if !defined(CYGWIN) && !defined(_WIN32) && !defined(__NETBSD__)	// HAVE_EXECINFO_H
-	#include <execinfo.h>
-#endif
-#endif
 
 #include "core.h"
 #include "../common/db.h"
@@ -29,7 +24,6 @@ char *argp;
 int runflag = 1;
 char SERVER_TYPE = ATHENA_SERVER_NONE;
 unsigned long ticks = 0; // by MC Cameri
-char pid_file[256];
 static void (*term_func)(void)=NULL;
 
 /*======================================
@@ -98,97 +92,19 @@ static void sig_proc(int sn)
 	}
 }
 
-/*=========================================
- *	Dumps the stack using glibc's backtrace
- *-----------------------------------------
- */
-#ifdef DUMPSTACK
-#ifdef CYGWIN
-	#define FOPEN_ freopen
-	extern void cygwin_stackdump();
-#else
-	#define FOPEN_(fn,m,s) fopen(fn,m)
-#endif
-#ifndef __NETBSD__
-extern const char *strsignal(int);
-#endif
-void sig_dump(int sn)
-{	
-	FILE *fp;
-	char file[256];
-	int no = 0;
-	
-	// search for a usable filename
-	do {
-		sprintf (file, "log/%s%04d.stackdump", argp, ++no);
-	} while((fp = fopen(file,"r")) && (fclose(fp), no < 9999));
-	// dump the trace into the file
-
-	if ((fp = FOPEN_(file, "w", stderr)) != NULL) {
-		const char *revision;
-	#ifndef CYGWIN
-		void* array[20];
-		char **stack;
-		size_t size;
-	#endif
-
-		ShowMessage ("Dumping stack to '"CL_WHITE"%s"CL_RESET"'... ", file);
-		if ((revision = get_svn_revision()) != NULL)
-			fprintf(fp, "Version: svn%s \n", revision);
-		else
-			fprintf(fp, "Version: %2d.%02d.%02d mod%02d \n", ATHENA_MAJOR_VERSION, ATHENA_MINOR_VERSION, ATHENA_REVISION, ATHENA_MOD_VERSION);
-		fprintf(fp, "Exception: %s \n", strsignal(sn));
-		fflush (fp);
-
-	#ifdef CYGWIN
-		cygwin_stackdump ();
-	#else
-#ifndef __NETBSD__
-		fprintf(fp, "Stack trace:\n");
-		size = backtrace (array, 20);
-		stack = backtrace_symbols (array, size);
-		for (no = 0; no < size; no++) {
-			fprintf(fp, "%s\n", stack[no]);
-		}
-		fprintf(fp,"End of stack trace\n");
-		aFree(stack);
-#endif
-	#endif
-
-		ShowMessage ("Done.\n");
-		fflush(stdout);
-		fclose(fp);
-	}
-	// Pass the signal to the system's default handler
-	compat_signal(sn, SIG_DFL);
-	raise(sn);
-}
-#endif
-
 void init_signals (void)
 {
-#ifndef DUMPSTACK
-	void (*func) = SIG_DFL;
-#else
-	void (*func) = sig_dump;
-#ifdef CYGWIN	// test if dumper is enabled
-	char *buf = getenv ("CYGWIN");
-	if (buf && strstr(buf, "error_start") != NULL)
-		func = SIG_DFL;
-#endif
-#endif
-
 	compat_signal(SIGTERM, sig_proc);
 	compat_signal(SIGINT, sig_proc);
 	compat_signal(SIGXFSZ, sig_proc);
 
 	// Signal to create coredumps by system when necessary (crash)
-	compat_signal(SIGSEGV, func);
-	compat_signal(SIGFPE, func);
-	compat_signal(SIGILL, func);
+	compat_signal(SIGSEGV, SIG_DFL);
+	compat_signal(SIGFPE, SIG_DFL);
+	compat_signal(SIGILL, SIG_DFL);
 	#ifndef _WIN32
 		compat_signal(SIGPIPE, sig_proc);
-		compat_signal(SIGBUS, func);
+		compat_signal(SIGBUS, SIG_DFL);
 		compat_signal(SIGTRAP, SIG_DFL);
 	#endif	
 }
@@ -260,62 +176,6 @@ static void display_title(void)
  *	CORE : MAINROUTINE
  *--------------------------------------
  */
-
-void pid_delete(void) {
-	unlink(pid_file);
-}
-
-void pid_create (void) {
-	FILE *fp;
-	int len = strlen(argp);
-	strcpy(pid_file, argp);
-	if(len > 4 && pid_file[len - 4] == '.') {
-		pid_file[len - 4] = 0;
-	}
-	strcat(pid_file,".pid");
-	fp = fopen(pid_file,"w");
-	if(fp) {
-#ifdef _WIN32
-		fprintf(fp,"%d",GetCurrentProcessId());
-#else
-		fprintf(fp,"%d",getpid());
-#endif
-		fclose(fp);
-	}
-}
-
-#define LOG_UPTIME 0
-void log_uptime(void)
-{
-#if LOG_UPTIME
-	time_t curtime;
-	char curtime2[24];
-	FILE *fp;
-	long seconds = 0, day = 24*60*60, hour = 60*60,
-		minute = 60, days = 0, hours = 0, minutes = 0;
-
-	fp = fopen("log/uptime.log","a");
-	if (fp) {
-		time(&curtime);
-		strftime(curtime2, 24, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-
-		seconds = (gettick()-ticks)/CLOCKS_PER_SEC;
-		days = seconds/day;
-		seconds -= (seconds/day>0)?(seconds/day)*day:0;
-		hours = seconds/hour;
-		seconds -= (seconds/hour>0)?(seconds/hour)*hour:0;
-		minutes = seconds/minute;
-		seconds -= (seconds/minute>0)?(seconds/minute)*minute:0;
-
-		fprintf(fp, "%s: %s uptime - %ld days, %ld hours, %ld minutes, %ld seconds.\n",
-			curtime2, argp, days, hours, minutes, seconds);
-		fclose(fp);
-	}
-
-	return;
-#endif
-}
-
 int main(int argc,char **argv)
 {
 	int next;
@@ -330,7 +190,6 @@ int main(int argc,char **argv)
 	display_title();
 	do_init_malloc(); // àÍî‘ç≈èâÇ…é¿çsÇ∑ÇÈïKóvÇ™Ç†ÇÈ
 	init_signals();
-	pid_create();
 	dll_init();
 	Net_Init();
 	do_socket();
@@ -353,8 +212,6 @@ int main(int argc,char **argv)
 	do_final();	
 	exit_dbn();
 	timer_final();
-	log_uptime();
-	pid_delete();
 	dll_final();
 	do_final_socket();
 	do_final_malloc();

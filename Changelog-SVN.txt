@@ -1,5 +1,12 @@
 Date	Added
 05/24
+	* Added 'make addons' -- plugins will not be compiled by default now [celest]
+	* Ported uptime logging function to eAthena plugin [celest]
+	* Ported pid file creation function to eAthena plugin [celest]
+	* Ported stackdump creation function to eAthena plugin [celest]
+	* Added capability to export to plugins [celest]
+	* Fixed ensemble skills, thanks to Komurka
+	* Fixed Dissonance damage, thanks to shadow
 	* Reverted db/pet_db.txt to it's original form.	[Skotlex]
 	  The pet skills shipped with eA should be as close as possible to the
 	  original servers. If you prefer the current custom skills in place just don't
