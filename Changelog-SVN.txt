@@ -1,4 +1,12 @@
 Date	Added
+05/24
+	* Reverted db/pet_db.txt to it's original form.	[Skotlex]
+	  The pet skills shipped with eA should be as close as possible to the
+	  original servers. If you prefer the current custom skills in place just don't
+	  update the pet_db.txt file.
+`	  (Somehow my custom pet skills table got updated to svn and I didn't notice
+	  it ^^') 
+
 05/23
 	* Fixed a few problems wit Dynamic Mobs [Wizputer]
 		Increased max mobs per map from 32 -> 128
