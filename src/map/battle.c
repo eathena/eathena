@@ -5795,6 +5795,8 @@ void battle_set_defaults() {
 	battle_config.use_statpoint_table = 1;
 	battle_config.new_attack_function = 0; //This is for test/debug purposes [Skotlex]
 
+	battle_config.mob_remove_damaged = 1; // Dynamic Mobs - Remove mobs even if damaged [Wizputer]
+
 //SQL-only options start
 #ifndef TXT_ONLY
 	battle_config.mail_system = 0;

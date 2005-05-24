@@ -349,5 +349,6 @@ Progress:	0%
 
 Problem:	Maps with more than 32 monsters (like anthell01 has 90++) will not load
 		the rest of them because map[i].moblist is full
+			Sorry, i only checked a few NPC files, wasn't seeing more than 32
 Assigned:	na
-Progress:	0%
+Progress:	100%

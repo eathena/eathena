@@ -1,5 +1,10 @@
 Date	Added
 05/23
+	* Fixed a few problems wit Dynamic Mobs [Wizputer]
+		Increased max mobs per map from 32 -> 128
+		Fix mob unloading
+			Special Mobs w/ Spawn delays are exempted (MVPs, Gaurdians, Branches, and summoned)
+			Added Option for damaged mobs not to be removed in battle config ( Default yes )
 	* Mob count in scripts returned 1 less then it was supposed to. [Kevin]
 	* Updated tool/stackdump script to support eA's own stackdumps [celest]
 	  - Type ./stackdump help to check

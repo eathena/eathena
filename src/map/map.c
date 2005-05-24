@@ -1784,6 +1784,27 @@ void map_spawnmobs(int m)
 			npc_parse_mob2(map[m].moblist[i]);
 }
 
+void mob_cache_unload(struct mob_data *md)
+{
+	nullpo_retv(md);
+	
+	if ( md->spawndelay1 != 0  || ( md->hp != md->max_hp && !battle_config.mob_remove_damaged ) )
+	    return;	
+
+	mob_remove_map(md, 0);
+	map_deliddb(&md->bl);
+	aFree(md);
+	md = NULL;
+}
+
+int mob_cache_cleanup_sub(struct block_list *bl, va_list ap) {
+	nullpo_retr(0, bl);
+	
+	mob_cache_unload((struct mob_data *)bl);
+
+	return 0;
+}
+
 void map_removemobs(int m)
 {
 	map_foreachinarea(cleanup_sub, m, 0, 0, map[m].xs, map[m].ys, BL_MOB);
