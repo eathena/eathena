@@ -1262,7 +1262,7 @@
 4214,Bloody_Murderer_Card,Bloody Murderer Card,6,20,0,10,,,,,,,2,,,,{},{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,4,7; } //OK
 4215,Blazer_Card,Blazer Card,6,20,0,10,,,,,,,136,,,,{},{ bonus2 bAddMonsterDropItemGroup,12,500; } //??OK
 4216,Sasquatch_Card,Sasquatch Card,6,20,0,10,,,,,,,16,,,,{},{ bonus2 bAddEffWhenHit,Eff_Freeze,2000; } //??OK
-4217,Enchanted_Peach_Tree_Card,Enchanted Peach Tree Card,6,20,0,10,,,,,,,32,,,,{},{ if(!getskilllv(28)==10) bonus3 bAutoSpell,28,1,1; if(getskilllv(28)==10) bonus3 bAutoSpell,28,10,1; if(isequipped(4280,4185,4293,4312)==0) end; bonus bVit,10; bonus bCastrate,-10; bonus bUseSPRate,-10; if(callfunc("Is_Holy_Class")==0) end; bonus2 bExpAddRace,1,5; bonus2 bExpAddRace,6,5; bonus2 bSubRace,1,30; bonus2 bSubRace,6,30; } //??OK
+4217,Enchanted_Peach_Tree_Card,Enchanted Peach Tree Card,6,20,0,10,,,,,,,32,,,,{},{ if(getskilllv(28)!=10) bonus3 bAutoSpell,28,1,1; if(getskilllv(28)==10) bonus3 bAutoSpell,28,10,1; if(isequipped(4280,4185,4293,4312)==0) end; bonus bVit,10; bonus bCastrate,-10; bonus bUseSPRate,-10; if(callfunc("Is_Holy_Class")==0) end; bonus2 bExpAddRace,1,5; bonus2 bExpAddRace,6,5; bonus2 bSubRace,1,30; bonus2 bSubRace,6,30; } //??OK
 4218,Succubus_Card,Succubus Card,6,20,0,10,,,,,,,16,,,,{},{ bonus bMaxHP,1000; if(isequipped(4268)) goto L_INCUB; bonus bVit,-3; bonus bHPrecovRate,-20; end; L_INCUB: bonus bVit,4; bonus bHPrecovRate,30; } //??OK HpRecoveryRate != +30% when combo
 4219,Sage_Worm_Card,Sage Worm Card,6,20,0,10,,,,,,,136,,,,{},{ bonus2 bAddMonsterDropItemGroup,9,500; } //??OK
 4220,Solider_Card,Solider Card,6,20,0,10,,,,,,,16,,,,{},{ bonus bDef,2; bonus bMdef,2; } //OK

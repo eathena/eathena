@@ -8,6 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them I believe.
 
+05/25
+	* Fixed Peach Tree card, thanks to Komurka
 05/20
 	* Updated mob skill DB, thanks to Komurka
 05/17

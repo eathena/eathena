@@ -1,5 +1,8 @@
 Date	Added
 05/25
+	* Fixed typos in Absorb Spirits, Double Casting and Tarot Card, thanks to Komurka
+	  and Avaj
+	* Added missing code for Flasher, thanks to Komurka
 	* Fixed a string bug in grfio_resnametable [celest]
 	* Updated the readme files to the current statistics. [Mass Zero]
 

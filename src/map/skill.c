@@ -831,7 +831,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case AS_GRIMTOOTH:
-		if (bl->type == BL_MOB) {
+		if (dstmd) {
 			struct status_change *sc_data = status_get_sc_data(bl);
 			if (sc_data && sc_data[SC_SLOWDOWN].timer == -1)
 				status_change_start(bl,SC_SLOWDOWN,0,0,0,0,1000,0);
@@ -839,11 +839,18 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case HT_FREEZINGTRAP:	/* フリ?ジングトラップ */
-		if( bl->type == BL_MOB || (bl->type == BL_PC && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) ) {
-			rate=skilllv*3+35;
+		if(dstmd || (dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) ) {
+			rate = skilllv*3 + 35;
 			if(rand()%100 < rate*sc_def_mdef/100)
 				status_change_start(bl,SC_FREEZE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		}
+		break;
+
+	 case HT_FLASHER:  /* Flasher */
+		if (!(status_get_mode(bl) & 0x20) && !(status_get_mode(bl)&0x40) &&
+				((dstsd && md) || (dstmd && !md) || (dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg))) &&
+				rand()%100 < (10*skilllv+30)*sc_def_int/100)
+			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
 	case MG_FROSTDIVER:		/* フロストダイバ? */
@@ -3418,7 +3425,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			pc_delspiritball(dstsd,dstsd->spiritball,0);
 		} else if (dstmd && //?象がモンスタ?の場合
 			//20%の確率で?象のLv*2のSPを回復する。成功したときはタ?ゲット(σ?Д?)σ????!!
-			!(mob_db[dstmd->class_].mode & 20) && rand() % 100 < 20)
+			!(mob_db[dstmd->class_].mode & 0x20) && rand() % 100 < 20)
 		{
 			i = 2 * mob_db[dstmd->class_].lv;
 			mob_target(dstmd,src,0);
@@ -4732,7 +4739,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case PF_DOUBLECASTING:
-		if (rand() % 100 < 30 + skilllv * 10) {
+		if (rand() % 100 > 30 + skilllv * 10) {
 			clif_skill_fail(sd,skillid,0,0);
 			map_freeblock_unlock();
 			return 0;
@@ -4755,7 +4762,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case CG_TAROTCARD:
 		{
 			int eff, count = 1;
-			if (rand() % 100 < skilllv * 8) {
+			if (rand() % 100 > skilllv * 8) {
 				clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
 				return 0;
