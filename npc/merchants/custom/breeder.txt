@@ -1,5 +1,6 @@
-//Peco Peco breeder for Knight by Darkchild v1.1
+//Peco Peco breeder for Knight by Darkchild v1.2
 //FIXED checkriding/cart/falcon funcs [Lupus]
+//Added Rebirth/Advanced Class support [Mass Zero]
 
 prontera.gat,122,200,1	script	Universal Rental Npc	726,{
 mes "[Universal Rental Npc]";
@@ -12,9 +13,12 @@ L_Cart:
 if(BaseJob == 5 && checkcart(0) == 0) goto L_Cart_Ok;
 if(BaseJob == 10 && checkcart(0) == 0) goto L_Cart_Ok;
 if(BaseJob == 18 && checkcart(0) == 0) goto L_Cart_Ok;
+if(BaseJob == 29 && checkcart(0) == 0) goto L_Cart_Ok;
+if(BaseJob == 34 && checkcart(0) == 0) goto L_Cart_Ok;
+if(BaseJob == 42 && checkcart(0) == 0) goto L_Cart_Ok;
 if(getskilllv(39)<1) goto L_Need_Skill;
 mes "[Universal Rental Npc]";
-mes "Sorry " + strcharinfo(0) + " but I only rent carts to Merchants, Blacksmiths and Alchimists who have enough skills to handle a cart.";
+mes "Sorry " + strcharinfo(0) + " but I only rent carts to people with the Merchant job root, who have enough skills to handle a cart.";
 close;
 L_Cart_Ok:
 	setcart;
@@ -25,10 +29,10 @@ mes "Sorry you don't have the required skill to rent a cart.";
 close;
 L_Falcon:
 	if(BaseJob == 11 && checkfalcon(0) == 0) goto L_falc;
-	if(BaseJob == 4012 && checkfalcon(0) == 0) goto L_falc;
+	if(BaseJob == 35 && checkfalcon(0) == 0) goto L_falc;
 	if(getskilllv(127)<1) goto L_Need_Skill2;
 	mes "[Universal Rental Npc]";
-	mes "Sorry " + strcharinfo(0) + " but I only rent falcons to Hunters who the ability to handle 'em.";
+	mes "Sorry " + strcharinfo(0) + " but I only rent falcons to Hunters and Snipers who the ability to handle 'em.";
 	close;
 	L_falc:
 		setfalcon;
@@ -40,9 +44,11 @@ close;
 L_Peco:
 if (BaseJob == 7 && checkriding(0) == 0) goto L_Peco_Ok;
 if (BaseJob == 14 && checkriding(0) == 0) goto L_Peco_Ok;
+if (BaseJob == 31 && checkriding(0) == 0) goto L_Peco_Ok;
+if (BaseJob == 38 && checkriding(0) == 0) goto L_Peco_Ok;
 if(getskilllv(63)<1) goto L_Need_Skill3;
 mes "[Universal Rental Npc]";
-mes "Sorry" + strcharinfo(0) + "but I only rent pecopecos to Knight and Crusader who have the ability to handle 'em";
+mes "Sorry" + strcharinfo(0) + "but I only rent Pecopecos to Knights and Crusaders who have the ability to handle 'em";
 close;
 L_Peco_Ok:
 setriding;

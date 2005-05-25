@@ -79,7 +79,7 @@ L_Undead_Walk:
 	if ($UNEASY_DL == 0) mes "THEY could return tomorrow's night again!";
 	if ($UNEASY_DL == 0 && $UNEASY_H$==strcharinfo(0)) mes "Thank you, "+$UNEASY_H$+"! Now we'll manage to rest till the next midnight!";
 	if ($UNEASY_DL == 0 && $UNEASY_H$!=strcharinfo(0)) mes "But due to "+$UNEASY_H$+"'s help we'll manage to rest till the next midnight!";
-	mes "To calm down the resless cemetery,  we should pour all these grave with the Holy Water. But our sisters and broters are run out of it.";
+	mes "To calm down the restless cemetery, we should pour all these graves with the Holy Water. But our sisters and broters have run out of it.";
 	mes "Could you supply us with Holy Water?";
 	next;
 	menu "Yes, have all my Holy Water!",-, "Nope, I need it.",M_NO, "I don't have any.",M_DONT_HAVE;
@@ -96,7 +96,7 @@ L_Undead_Walk:
 	mes "Thank you, "+$UNEASY_H$+"! Now we've got enough Holy Water!";
 	next;
 	mes "[Mother Mathana]";
-	mes "On pouring the cemetery with that water we'll get " + $UNEASY_DL + " safe nights!";
+	mes "Upon pouring the cemetery with that water we'll get " + $UNEASY_DL + " safe nights!";
 	next;
 	killmonsterall "prontera.gat";	//kills any left monsters
 	mes "[Mother Mathana]";
@@ -116,17 +116,17 @@ L_Undead_Walk:
 
 L_NEED_MORE:
 	mes "[Mother Mathana]";
-	mes "Thank you, good "+strcharinfo(0)+", but we still nedd " + $UNEASY_BL + " more Holy Water bottles.";
+	mes "Thank you, good "+strcharinfo(0)+", but we still need " + $UNEASY_BL + " more Holy Water bottles.";
 	close;
 
 M_NO:
 	mes "[Mother Mathana]";
-	mes "I'm afraid the old cemetery is going out of control soon...  Please, get us all the Holy Water you could get.";
+	mes "I'm afraid the old cemetery is going out of control soon... Please, get us all the Holy Water you can get.";
 	close;
 
 M_DONT_HAVE:
 	mes "[Mother Mathana]";
-	mes "Alas! We still need " + $UNEASY_BL + " more bottles of Holy Water...  Why don't you go and ask other people for some extra Holy Water.";
+	mes "Alas! We still need " + $UNEASY_BL + " more bottles of Holy Water...  Why don't you go and ask other people for some extra Holy Water?";
 	mes "The old cemetery is going out of control soon...";
 	mes "Please, in the name of Odin, help Prontera city.";
 	close;

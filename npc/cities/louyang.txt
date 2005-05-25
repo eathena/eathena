@@ -3,9 +3,10 @@
 //===== By: ================================================== 
 //= Vidar (1.0)
 //= Mass Zero (1.1)
-//= Dino9021, roughly translated by Celest
+//= Dino9021, roughly translated by Celest (1.2)
+//= Mass Zero (1.3)
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.3
 //===== Compatible With: ===================================== 
 //= Any eAthena Version
 //===== Description: ========================================= 
@@ -13,6 +14,8 @@
 //===== Additional Comments: ================================= 
 //= Originally made for Vidar
 //= 1.2 - Added official warp NPC's
+//= 1.3 - Fixed gramatical errors. (Like wtf's with the weird
+//	  texts celest? xD)
 //============================================================
 
 louyang.gat,260,96,2	script	Chun Hua	770,{
@@ -34,8 +37,8 @@ menu "Return to Alberta",L_Return,"Cancel",L_Cancle;
 
 L_Return:
 	mes "[Young Girl]";
-	mes "Come back againÅ`";
-	mes "Let's goÅ`Å`";
+	mes "Come back again";
+	mes "Let's go";
 	next;
 	warp "alberta.gat",235,45;
 	close;
@@ -49,51 +52,51 @@ L_Cancle:
 
 alberta.gat,245,45,4	script	Young Girl	815,{
 mes "[Young Girl]";
-mes "NanaÅ` NanananaÅ` Such a good mood todayÅ`";
-mes "I wish i could go somewhere and playÅ`";
+mes "Nana, Nananana, I'm in such a good mood today";
+mes "I wish I could go somewhere and play";
 next;
-menu "About LouyangÅDÅDÅD",L_AboutLouyang,"Go to Louyang",L_GoToLouyang,"Cancel",L_Cancle;
+menu "About Louyang",L_AboutLouyang,"Go to Louyang",L_GoToLouyang,"Cancel",L_Cancle;
 
 L_AboutLouyang:
 	mes "[Young Girl]";
-	mes "You'd like to visit Louyang?";
-	mes "That is such a wonderful place~";
+	mes "You'd like to visit Lou Yang?";
+	mes "That is such a wonderful place.";
 	mes "A country with thousands of years of history,";
-	mes "With beautiful cities and fields~";
+	mes "with beautiful cities and fields.";
 	next;
 	mes "[Young Girl]";
 	mes "Especially myterious things of the arcane";
-	mes "sometimes happen here, and you can";
+	mes "sometimes happen there, and you can";
 	mes "find the rarest but most potent medicine!";
 	next;
 	mes "[Young Girl]";
-	mes "Alot of people practise martial arts there,";
-	mes "I used to go there to practise hard";
-	mes "too! I'm very strong you knowÅDÅDÅDÅI";
+	mes "Alot of people practice martial arts there,";
+	mes "I used to go there to practice hard";
+	mes "too! I'm very strong you know!";
 	next;
 	mes "[Young Girl]";
 	mes "Tell me if you wish to go,";
-	mes "I'll charge you a small fee of course~";
-	mes "And then we can go to LouyangÅDÅDÅD";
+	mes "I'll charge you a small fee of course.";
+	mes "And then we can go to Louyang";
 	mes "Haha-ha, I'm just kidding!";
 	close;
 
 L_GoToLouyang:
 	mes "[Young Girl]";
 	mes "Pay me 10,000 zeny first,";
-	mes "Then we'll be leaving now,";
-	mes "Have fun on your trip!";
+	mes "then we'll be leaving now,";
+	mes "have fun on your trip!";
 	next;
 	mes "[Young Girl]";
 	mes "Okay, shall we leave now?";
 	next;
-	menu "SureÅI",L_KickToLouyang,"Cancel",L_Cancle;
+	menu "Sure",L_KickToLouyang,"Cancel",L_Cancle;
 
 L_KickToLouyang:
 	if(Zeny < 10000) goto L_NoZeny;
 	mes "[Young Girl]";
-	mes "YeeÅ`HaÅ`Å`";
-	mes "Let's goÅ`Å`Å`";
+	mes "Yee Ha!";
+	mes "Let's go!";
 	next;
 	set Zeny,Zeny-10000;
 	warp "lou_fild01.gat",190,101;
@@ -101,16 +104,16 @@ L_KickToLouyang:
 
 L_NoZeny:
 	mes "[Young Girl]";
-	mes "You have no moneyÅ`";
-	mes "You need 10,000 zenyÅ`";
+	mes "You have no money.";
+	mes "You need 10,000 zeny.";
 	mes "Otherwise? Sorry!";
 	close;
 
 L_Cancle:
 	mes "[Young Girl]";
-	mes "?! That's so dissapointing,";
+	mes "That's so dissapointing!";
 	mes "I'm going home to make";
-	mes "dumplings for dinner then~";
+	mes "dumplings for dinner then.";
 	close;
 }
 
@@ -129,15 +132,15 @@ louyang.gat,224,104,3	script	Promotion Guide	818,{
 louyang.gat,297,167,2	script	Strong-looking Woman	815,{
 	if (Sex == 0) goto L_Female;
 	mes "[Ji Ceng Liu]";
-	mes "In the Women's Court all members are female,";
+	mes "In the Women's Court all members are female.";
 	mes "However recently,";
-	mes "There are less people who wish To join the court,";
-	mes "So the court isn't in very good condition.";
+	mes "there are less people who wish to join the court,";
+	mes "so the court isn't in very good condition.";
 	emotion 20;
 	next;
 	mes "[Ji Ceng Liu]";
-	mes "That's why i'm taking a walk outside to find out";
-	mes "If anyone wishes to join the court.";
+	mes "That's why I'm taking a walk outside to find out";
+	mes "if anyone wishes to join the court.";
 	close;
 L_Female:
 	mes "[Ji Ceng Liu]";
@@ -151,25 +154,25 @@ L_Female:
 louyang.gat,274,136,4	script	A Strong Looking Man	819,{
 	mes "[Akira]";
 	mes "The name 'Eight Extremes Dragon Fist' has 3 meanings";
-	mes "The first oneÅC";
-	mes "Extremity is the same as Simplicity";
-	mes "The second one is 'Yi',";
-	mes "The third one, 'Bu Yi'";
+	mes "The first one is";
+	mes "Extremity is the same as Simplicity.";
+	mes "The second one is 'Yi'.";
+	mes "The third one, 'Bu Yi'.";
 	next;
 	mes "[Akira]";
 	mes "'Yi' refers to the life and death of all creatures,";
-	mes "Also called Virtue, it";
+	mes "also called Virtue. It";
 	mes "contains the meaning of change.";
-	mes "'Bian Yi' means the rule where all beings change in their lives,";
+	mes "'Bian Yi' means the rule where all beings change in their lives.";
 	mes "However even though they change,";
 	mes "they are still connected to each other in a way.";
 	next;
 	mes "[Akira]";
-	mes "'Bu Yi' refers to the position of heavens and earth";
-	mes "which means none of them can influence each other";
+	mes "'Bu Yi' refers to the position of heavens and earth,";
+	mes "which means none of them can influence each other.";
 	mes "Things of Change,";
 	mes "'Yi' is the rule of change,";
-	mes "meaning the universe that never stops working";
+	mes "meaning the universe that never stops working.";
 	mes "Never stopping work,";
 	mes "has the same meaning as";
 	mes "'Change'.";
@@ -180,28 +183,28 @@ louyang.gat,276,136,4	script	Man Who Understood Power	819,{
 	mes "[Zheng Ke Zhi]";
 	mes "However all things within heaven and earth";
 	mes "although they experience change";
-	mes "But in this change there is still unchanged rules,";
-	mes "Other than supporting this 'Bian Yi' of change,";
+	mes "But in this change there are still unchanged rules,";
+	mes "other than supporting this 'Bian Yi' of change,";
 	mes "There is still";
-	mes "The rule of 'Bu Yi'";
+	mes "the rule of 'Bu Yi'";
 	next;
 	mes "[Zheng Ke Zhi]";
-	mes "'Bian Yi' is the event";
-	mes "'Bu Yi' is the rules,";
+	mes "'Bian Yi' is the event,";
+	mes "'Bu Yi' are the rules,";
 	mes "'Jian Yi' however is the way.";
-	mes "The god 'Fu Hsi' opened Heaven and Earth in one hit";
+	mes "The god 'Fu Hsi' opened Heaven and Earth in one hit,";
 	mes "but in reality it is not that easy.";
 	next;
 	mes "[Zheng Ke Zhi]";
-	mes "'Tai chi' is the first rule,'Yin Yang' as the second";
+	mes "'Tai chi' is the first rule,'Yin Yang' as the second.";
 	mes "So the change of all things can never leave 'Yin Yang',";
-	mes "From simple to complex,";
-	mes "With continuation";
-	mes "And yet abiding the rules.";
+	mes "from simple to complex,";
+	mes "with continuation,";
+	mes "and yet abiding the rules.";
 	next;
 	mes "[Zheng Ke Zhi]";
 	mes "From complex to simple,";
-	mes "Only then we become systematic yet traditional,";
+	mes "only then we become systematic yet traditional.";
 	mes "The 'Eight Extremes Dragon Fist' uses";
 	mes "this rule as its foundations.";
 	close;

@@ -40,6 +40,9 @@ TODO:
 
 Date		Added
 ======
+05/25
+	* Fixed various gramatical errors in the Uneasy Cemetary, Valkyrie and Lou Yang scripts. [Mass Zero]
+	* Added Rebirth/Advanced class support to the Universal Renter. [Mass Zero]
 05/23
 	* Fixed various gramatical errors in the Dumpling Festival, Twin Towers,
 	  Valentine's Day and X-mas scripts. [Mass Zero]

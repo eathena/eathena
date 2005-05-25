@@ -4,7 +4,7 @@
 //= Nana, fixes by Poki
 //= finished, optimized and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.5
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -15,7 +15,8 @@
 //= process only when you got no Zeny/items (as in kRO) [Lupus]
 //= 1.2 now alternative classes can use their 1-1 job NPC
 //= to become Advanced 1st Class [Lupus]
-//= 1.2 added Baby Class support [Lupus]
+//= 1.4 added Baby Class support [Lupus]
+//= 1.5 Fixed loads of gramatical errors. [Mass Zero]
 //============================================================ 
 
 
@@ -35,34 +36,34 @@ L_BABY:
 
 L_FADED:
 	mes "[Book of Ymir]";
-	mes "*The book opens as you aproach it*";
+	mes "*The book opens as you aproach it.*";
 	next;
 	mes "[Book of Ymir]";
-	mes "Those seeking the final foretreess in this world shall venture through hardships let alone to mankind. Venturing through rough times, helped by friends and loved ones, one can finaly after alot of work and commitment see the true view of the world and then.. go beond it.";
+	mes "Those seeking the final foretress in this world shall venture through hardships let alone to mankind. Venturing through rough times, helped by friends and loved ones, one can finaly after alot of work and commitment see the true view of the world and then... go beyond it.";
 	next;
 	mes "[Book of Ymir]";
-	mes "*After reading the two first pages you turn the other page, and watches the words fade away as you try to read them...";
+	mes "*After reading the two first pages you turn the other page and watch the words fade away as you try to read them...";
 	close;
 
 L_START:
 	mes "[Book of Ymir]";
-	mes "*The book opens as you aproach it*";
+	mes "*The book opens as you aproach it.*";
 	next;
 	mes "[Book of Ymir]";
-	mes "Those seeking the final foretreess in this world shall venture through hardships let alone to mankind. Venturing through rough times, helped by friends and loved ones, one can finaly after alot of work and commitment see the true view of the world and then.. go beond it.";
+	mes "Those seeking the final foretress in this world shall venture through hardships let alone to mankind. Venturing through rough times, helped by friends and loved ones, one can finaly after alot of work and commitment see the true view of the world and then... go beyond it.";
 	next;
 	mes "[Book of Ymir]";
-	mes "*After reading the first two pages you flip the last one and continues to read..";
+	mes "*After reading the first two pages you flip the last one and continue to read...*";
 	next;
 	mes "[Book of Ymir]";
-	mes "That is when the god's and goddess of this world comes forth towards you in all disguise, checking you though. Reading your mind, thoughts and true feeling of the heart.";
-	mes "If the god's, decended from the world along time ago, accepts you into the halls of Valkyrie, high up above the clouds in the sacred realm of Valkyrie, into gods light you will become reborn, and sendt out to face the world once again.";
+	mes "That is when the God's and Goddess's of this world comes forth towards you in all disguise, checking you through. Reading your mind, thoughts and true feeling of the heart.";
+	mes "If the God's, descended from the world along time ago, accept you into the halls of Valkyrie, high up above the clouds in the sacred realm of Valkyrie, into God's light you will be reborn, and sent out to face the world once again.";
 	next;
 	mes "[Book of Ymir]";
-	mes "And only after then, the decended ones will aprove you to the highest obedience.. Into the warmth of Valkyrie, you will be welcomed by the gods themself.";
+	mes "And only after then, the descended ones will aprove you to the highest obedience... Into the warmth of Valkyrie, you will be welcomed by the Gods themselves.";
 	next;
 	mes "[Book of Ymir]";
-	mes "*As you close the book a strange ray of light sourounds you and you suddently feel light. Everything around you fades away and all you can see left is white before you pass out.*";
+	mes "*As you close the book a strange ray of light surrounds you and you suddenly feel light. Everything around you fades away and all you can see left is white before you pass out.*";
 	warp "valkyrie",48,9;
 	close;
 }
@@ -72,12 +73,12 @@ yuno_in02.gat,91,176,5	script	Librarian	754,{
 	mes "[Librarian]";
 	if(valkyrie_Q>0) goto L_DONE;
 	if(BaseJob >= 7 && Upper==0) goto L_PAY;
-	mes "Have a look around, but dont touch the book. Only a few chosen one can read its wise words.";
+	mes "Have a look around, but don't touch the book. Only a few chosen ones can read its wise words.";
 	close;
 
 L_PAY:
 	mes "You seem like a worthy human.";
-	mes "I, the 78th Librarian of the secret order sworn to protect this book wont thread lightly on you.";
+	mes "I, the 78th Librarian of the secret order have sworn to protect this book, it won't thread lightly on you.";
 	mes "In order to let me allow you to view into this wonderous book, you have to do two things for me.";
 	next;
 	mes "[Librarian]";
@@ -90,14 +91,14 @@ L_PAY:
 	if(Zeny != 1285000) goto L_WRONGZ;
 	mes "[Librarian]";
 	mes "Go now, into Heart of Ymir";
-	mes "There, you'll find the last pice of information before you can open the book.";
+	mes "There, you'll find the last piece of information before you can open the book.";
 	set valkyrie_Q,1;
 	set Zeny,0;
 	close;
 
 L_WRONGZ:
 	mes "[Librarian]";
-	mes "You didnt bring me the accurate number of zeny I wanted. Bring me back only 1,285,000 zeny!";
+	mes "You didn't bring me the accurate number of zeny I wanted. Bring me back only 1,285,000 zeny!";
 	mes "Not more, nor less.";
 	close;
 
@@ -113,18 +114,18 @@ yuno_in05.gat,80,44,0	script	Heart of Ymir	803,{
 	mes "[Heart of Ymir]";
 	if(valkyrie_Q == 1) goto L_LISTEN;
 	if(valkyrie_Q == 2) goto L_DONE;
-	mes "The book wont open.";
+	mes "The book won't open.";
 	mes "It seems like you have to pay the Librarian to open this book first!";
 	close;
 
 L_LISTEN:
-	mes "Thus upon hard times and our self esteem is at it's lowest, then is when our faith have to be the strongest.";
-	mes "For aeon's the secret guardians of the path to heaven has protected the sacret gate from evil spirits entering it.";
-	mes "Thus, the bonds became to weaken over time.. Thats when the Legion of Sages started recruiting and making young, brave, quick minded mages, sages, teaching them the laws and propositions of our world.";
+	mes "Thus upon hard times and when our self esteem is at its lowest, then is when our faith has to be the strongest.";
+	mes "For aeons the secret guardians of the path to heaven have protected the secret gate from evil spirits entering it.";
+	mes "Thus, the bonds became to weaken over time... That's when the Legion of Sages started recruiting and making young, brave and quick minded mages and sages, teaching them the laws and propositions of our world.";
 	next;
 	mes "[Heart of Ymir]";
-	mes "Aeons passed and the Sages grew stronger in both min and forces. Until they all were feared throughout the monsters world.";
-	mes "Now, after listening to my words of wisdom, please advance to the Book of Ymir and give yourself in to god's light.";
+	mes "Aeons passed and the Sages grew stronger in both mind and forces, until they all were feared throughout the monsters' world.";
+	mes "Now, after listening to my words of wisdom, please advance to the Book of Ymir and give yourself into God's light.";
 	mes "If you are pure of heart and have no evil intentions, the gates of dawn will open for you and take you in...";
 	set valkyrie_Q,2;
 	close;
@@ -138,8 +139,8 @@ L_DONE:
 yuno_in02.gat,90,77,4	script	Researcher	744,{
 	mes "[Researcher]";
 	mes "Argh, where is it!?";
-	mes "They said that it would be around here somewhere..";
-	mes "Maybe I have to look deeper into this castle..";
+	mes "They said that it would be around here somewhere...";
+	mes "Maybe I have to look deeper into this castle...";
 	emotion 1;
 	close;
 }
@@ -166,8 +167,7 @@ valkyrie.gat,48,86,6	script	Valkyrie	811,{
 
 L_BABY:
 	mes "[Valhallana]";
-	mes "[Вальхалана]";
-	mes "A Baby?! How did you her here?";
+	mes "A Baby?! How did you get here?";
 	mes "I'm passing you back to your parents.";
 	emotion 1;
 	next;
@@ -175,8 +175,8 @@ L_BABY:
 
 L_SN:
 	mes "[Valhallana]";
-	mes "Welcome to Valkyrie "+strcharinfo(0)+".";
-	mes "I see, you have followed a hard way of Super Novice.";
+	mes "Welcome to Valkyrie, "+strcharinfo(0)+".";
+	mes "I see you have followed a hard way of the Super Novice.";
 	next;
 	mes "[Valhallana]";
 	mes "I am sorry, but I can't help you.";
@@ -186,13 +186,13 @@ L_SN:
 
 L_ALREADY:
 	mes "[Valhallana]";
-	mes "You have been reborn already. I can't help you more.";
+	mes "You have been reborn already. I can't help you anymore.";
 	next;
 //	goto L_NOTHING;
 
 L_NOTHING:
 	mes "[Valhallana]";
-	mes "Do you wish to go back in Your world?";
+	mes "Do you wish to go back to your world?";
 	next;
 	menu "Yes",L_Y,"No",-;
 
@@ -209,7 +209,7 @@ L_Y:
 
 L_CHANGE:
 	mes "[Valhallana]";
-	mes "Welcome to Valkyrie "+strcharinfo(0)+", from this point of, there is no returning back.";
+	mes "Welcome to Valkyrie, "+strcharinfo(0)+". From this point on, there is no returning back.";
 	next;
 	if(Zeny || Weight) goto L_ZENYITEMS;
 	if(checkcart(0)) goto L_CART;
@@ -263,17 +263,17 @@ L_ZENYITEMS:
 
 L_CART:
 	mes "[Valhallana]";
-	mes "Please, drop your cart. And we'll continue.";
+	mes "Please, drop your cart and we'll continue.";
 	close;
 
 L_FALCON:
 	mes "[Valhallana]";
-	mes "Please, free your Falcon. And we'll continue.";
+	mes "Please, free your Falcon and we'll continue.";
 	close;
 
 L_PECO:
 	mes "[Valhallana]";
-	mes "Please, free your Pecopeco. And we'll continue.";
+	mes "Please, free your Pecopeco and we'll continue.";
 	close;
 
 L_SKILLPNTS:
@@ -346,8 +346,8 @@ L_GETHIGH:
 	if(checkriding(0)) goto L_PECO;
 	if(skillpoint > 0) goto L_SKILLPNTS;
 
-	mes "Hello there "+strcharinfo(0)+"!";
-	mes "You've made a brave choice in coming here to be reborn and stepping forth into the advanced ranks,";
+	mes "Hello there, "+strcharinfo(0)+"!";
+	mes "You've made a brave choice in coming here to be reborn and stepping forth into the advanced ranks.";
 	mes "Now... close your eyes.";
 	next;
 	mes "["+getarg(8)+"]";
@@ -387,24 +387,24 @@ L_SKILLPNTS:
 	close;
 
 L_CART:
-	mes "Please, drop your cart. And we'll continue.";
+	mes "Please, drop your cart and we'll continue.";
 	emotion 20;
 	close;
 
 L_FALCON:
-	mes "Please, free your Falcon. And we'll continue.";
+	mes "Please, free your Falcon and we'll continue.";
 	emotion 20;
 	close;
 
 L_PECO:
-	mes "Please, free your Pecopeco. And we'll continue.";
+	mes "Please, free your Pecopeco and we'll continue.";
 	emotion 20;
 	close;
 
 L_WELCOME:
 	mes "["+getarg(8)+"]";
 	mes "You are welcome, "+strcharinfo(0)+"!";
-	mes "We always glad to see here a "+getarg(1)+"!";
+	mes "We're always glad to see a "+getarg(1)+" here!";
 	close;
 
 L_ALREADY:
@@ -425,7 +425,7 @@ function	script	F_Rebirth	{
 	if(Upper == 2) goto L_BABY; //Baby Class - skip it
 	if(Class >= 4008) goto L_ALREADY; //already advanced class
 	if(Class == (3977+getarg(0)) && ADVJOB == (3977+getarg(2))) goto L_GET3RD; //Hight XXXX -> 3rd Job
-	mes "Go talk to either Valhallana or my collegues...";
+	mes "Go talk to either Valhallana or one of my collegues...";
 	emotion 17;
 	close;
 
@@ -454,17 +454,17 @@ L_SKILLPNTS:
 	close;
 
 L_CART:
-	mes "Please, drop your cart. And we'll continue.";
+	mes "Please, drop your cart and we'll continue.";
 	emotion 20;
 	close;
 
 L_FALCON:
-	mes "Please, free your Falcon. And we'll continue.";
+	mes "Please, free your Falcon and we'll continue.";
 	emotion 20;
 	close;
 
 L_PECO:
-	mes "Please, free your Pecopeco. And we'll continue.";
+	mes "Please, free your Pecopeco and we'll continue.";
 	emotion 20;
 	close;
 
