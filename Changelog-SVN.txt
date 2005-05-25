@@ -1,6 +1,8 @@
 Date	Added
 05/25
+	* Fixed a string bug in grfio_resnametable [celest]
 	* Updated the readme files to the current statistics. [Mass Zero]
+
 05/24
 	* Added 'make addons' -- plugins will not be compiled by default now [celest]
 	* Ported uptime logging function to eAthena plugin [celest]

@@ -545,22 +545,25 @@ static void filelist_adjust(void)
  * Grfio : Local Resnametable replace
  *------------------------------------------
  */
-char* grfio_resnametable(char* fname, char *lfname)
+static void grfio_resnametable(char *src, char *dest)
 {
 	int lop;
-	if (localresname == NULL)
-		return NULL;	// 1:not found error
-	if (sscanf(fname, "%*5s%s", lfname) < 1)
-		return fname;
+	if (localresname == NULL ||
+		sscanf(src, "%*5s%s", dest) < 1)
+	{
+		// if not found copy the unresolved name into buffer
+		strcpy(dest, src);
+		return;
+	}
 
 	for (lop = 0; lop < resname_entrys; lop++) {
-		if (strcmpi(localresname[lop].src, lfname) == 0) {
-			sprintf(lfname, "data\\%s", localresname[lop].dst);
-			return lfname;
+		if (strcmpi(localresname[lop].src, dest) == 0) {
+			sprintf(dest, "data\\%s", localresname[lop].dst);
+			return;
 		}
 	}
 
-	return fname;
+	return;
 }
 
 /*==========================================
@@ -622,12 +625,12 @@ int grfio_size(char *fname)
 	entry = filelist_find(fname);
 
 	if (entry == NULL || entry->gentry < 0) {	// LocalFileCheck
-		char lfname[256], *rname, *p;
+		char lfname[256], rname[256], *p;
 		FILELIST lentry;
 		struct stat st;
 
-	    if (strcmp(data_dir, "") != 0 && (rname = grfio_resnametable(fname, lfname)) != NULL)
-            sprintf(lfname, "%s%s", data_dir, rname);
+		grfio_resnametable(fname, rname);
+		sprintf(lfname, "%s%s", data_dir, rname);
 
 		for (p = &lfname[0]; *p != 0; p++)
 			if (*p=='\\') *p = '/';	// * At the time of Unix
@@ -640,7 +643,7 @@ int grfio_size(char *fname)
 		} else if (entry == NULL) {
 			ShowError("%s not found (grfio_size)\n", fname);
 			//exit(1);
-         	return -1;
+			return -1;
 		}
 	}
 	return entry->declen;
@@ -659,17 +662,13 @@ void* grfio_reads(char *fname, int *size)
 	entry = filelist_find(fname);
 
 	if (entry == NULL || entry->gentry <= 0) {	// LocalFileCheck
-		char lfname[256], *rname, *p;
+		char lfname[256], rname[256], *p;
 		FILELIST lentry;
 
-		strncpy(lfname, fname, 255);
-		// i hope this is the correct way =p [celest]
-		if ((rname = grfio_resnametable(fname, lfname)) != NULL) {
-			//sprintf(rname,"%s",grfio_resnametable(fname,lfname));
-			sprintf(lfname, "%s%s", data_dir, rname);
-			//ShowMessage("%s\n",lfname);
-		}
-
+		// resolve filename into rname
+		grfio_resnametable(fname, rname);
+		sprintf(lfname, "%s%s", data_dir, rname);
+		
 		for (p = &lfname[0]; *p != 0; p++)
 			if (*p == '\\') *p = '/';	// * At the time of Unix
 
