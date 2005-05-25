@@ -1,9 +1,9 @@
 //===== eAthena Script ======================================= 
-//= ayotaya Town
+//= Ayotaya Town
 //===== By: ================================================== 
 //= 
 //===== Current Version: =====================================
-//= 0.2
+//= 0.3
 //===== Compatible With: ===================================== 
 //= Any eAthena +
 //===== Description: ========================================= 
@@ -11,6 +11,9 @@
 //===== Additional Comments: ================================= 
 //= Added a Sailor NPC to get back to Alberta [ZoDIaC]
 //= 0.2 fixed coords, dialogues
+//= 0.3 Fixed Warp name, ayotaya.gat doesnt exist, even though iRO 
+//= 	decided to call it Ayotaya, it really is Ayothaya, like 
+//=	that Yuno/Juno thing
 //============================================================ 
 
 
@@ -25,7 +28,7 @@ M_End:
 close;
 } 
 
-// ayotaya Sailor --------------------------------------------------------------------
+// Ayotaya Sailor --------------------------------------------------------------------
 
 alberta.gat,242,45,3	script	Aibakthing	100,{
 mes "[Aibakthing]";
@@ -35,7 +38,7 @@ next;
 menu "Yeah, tell me",-,"Nah",M_End;
 
 mes "[Aibakthing]"; 
-mes "It's called ^000088ayotaya^000000.";
+mes "It's called ^000088Ayotaya^000000.";
 mes "I can take you there, but it's gonna cost ya.";
 next; 
 mes "[Aibakthing]"; 
@@ -45,7 +48,7 @@ menu "Take me there!",-,"No thanks",M_End2;
 
 if(Zeny < 10000) goto NoZenyM1;
 set Zeny, Zeny - 10000;
-warp "ayotaya.gat",149,57;
+warp "ayothaya.gat",149,57;
 close;
 
 NoZenyM1:

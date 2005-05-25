@@ -530,7 +530,7 @@ L3:
 	mes" Where did it come from!?";
 	close;
 L4:
-	mes "[Guardian Soldier]";
+	mes "[Guard Soldier]";
 	mes "The master's mother still";
 	mes "hasn't fully recovered.. ";
 	mes "Although, it seems to have turned for the better.";
