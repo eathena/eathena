@@ -1,5 +1,5 @@
 //===== eAthena Script ======================================= 
-//= Ayothaya Town
+//= ayotaya Town
 //===== By: ================================================== 
 //= 
 //===== Current Version: =====================================
@@ -25,33 +25,33 @@ M_End:
 close;
 } 
 
-// Ayothaya Sailor --------------------------------------------------------------------
+// ayotaya Sailor --------------------------------------------------------------------
 
 alberta.gat,242,45,3	script	Aibakthing	100,{
 mes "[Aibakthing]";
 mes "Hey... you there,";
-mes "Would you like to know about a far-away place?";
+mes "would you like to know about a far-away place?";
 next;
 menu "Yeah, tell me",-,"Nah",M_End;
 
 mes "[Aibakthing]"; 
-mes "It's called ^000088Ayothaya^000000.";
+mes "It's called ^000088ayotaya^000000.";
 mes "I can take you there, but it's gonna cost ya.";
 next; 
 mes "[Aibakthing]"; 
-mes "Unless you have 10000 zeny I can't take you there.";
+mes "Unless you have 10000 zeny, I can't take you there.";
 next;
 menu "Take me there!",-,"No thanks",M_End2; 
 
 if(Zeny < 10000) goto NoZenyM1;
 set Zeny, Zeny - 10000;
-warp "ayothaya.gat",149,57;
+warp "ayotaya.gat",149,57;
 close;
 
 NoZenyM1:
 mes "[Aibakthing]";
 mes "I told you...";
-mes "I can't take you there unless you pay me 10000 zeny.";
+mes "I can't take you there, unless you pay me 10000 zeny.";
 close;
 
 M_End:

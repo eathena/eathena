@@ -1,23 +1,13 @@
-== Progress ==
-
 Person	Working On
 ======
-Darkchild	
-	* New Payon City - 99% - As Far Done As Posible	
 Lupus
 	* Looking for exploits, optimization, bugs hunt
 	* Adding new cards, checking/adding mobs/items
-kobra_k88
-	* Optimize WoE
-Shinigami
-	* Organizing/Optimizing/Checking for Typo in all NPCs.
 Mass Zero
-	* Novice Training Ground.
-	* (Probably unofficial) Lou Yang NPC's, mobs, etc...
-MC Cameri
-	* Bank NPC - Now 100% done for new Payon
-	* Warper NPC - 100%, fixed memory consumption problem
-	* Heal NPC - 100%
+	* Fixing gramatical errors.
+	* Fixing small bugs.
+	* Adding small stuff.
+	* Redoing lots of the custom scripts.
 DracoRPG
 	* Towns Message Boards - They should come fast
 Massdriller
@@ -30,18 +20,20 @@ Massdriller
 	  guide book so, probably unofficial
 	* Level 4 forge (MRO Lvl 4 Forging Quest) - 1% - resources only from MRO Official
 	  guide book so, probably unofficial
-Other Ppl	
-	* Their Work?
 
 TODO:
-	* Redo all NPC to work with BABY CLASS
+	* Redo all NPCs to work with BABY CLASSES.
 
 == Changelog ==
 
 Date		Added
 ======
+
 05/25
-	* Fixed various gramatical errors in the Uneasy Cemetary, Valkyrie and Lou Yang scripts. [Mass Zero]
+	* Changed Ayothaya to Ayotaya. (In the scripts, iRO calls it Ayotaya.) [Mass Zero]
+	* Removed lots of unneccesary spaces from the Ayotaya poetry script. [Mass Zero]
+	* Fixed various gramatical errors in the Uneasy Cemetary, Valkyrie cite, Lou Yang
+	  city, Ayotaya city Buny Band quest and Bard jobchanger scripts. [Mass Zero]
 	* Added Rebirth/Advanced class support to the Universal Renter. [Mass Zero]
 05/23
 	* Fixed various gramatical errors in the Dumpling Festival, Twin Towers,

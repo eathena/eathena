@@ -11,9 +11,12 @@ L_Cart:
 if(BaseJob == 5 && checkcart(0) == 0) goto L_Cart_Ok;
 if(BaseJob == 10 && checkcart(0) == 0) goto L_Cart_Ok;
 if(BaseJob == 18 && checkcart(0) == 0) goto L_Cart_Ok;
+if(BaseJob == 29 && checkcart(0) == 0) goto L_Cart_Ok;
+if(BaseJob == 34 && checkcart(0) == 0) goto L_Cart_Ok;
+if(BaseJob == 42 && checkcart(0) == 0) goto L_Cart_Ok;
 if(getskilllv(39)<1) goto L_Need_Skill;
 mes "[Universal Rental Npc]";
-mes "Sorry " + strcharinfo(0) + " but I only rent carts to Merchants, Blacksmiths and Alchimists who have enough skills to handle a cart.";
+mes "Sorry " + strcharinfo(0) + ", but I only rent carts to Merchants root classes, who have enough skills to handle a cart.";
 close;
 L_Cart_Ok:
 	setcart;
@@ -24,9 +27,10 @@ mes "Sorry you don't have the required skill to rent a cart.";
 close;
 L_Falcon:
 	if(BaseJob == 11 && checkfalcon(0) == 0) goto L_falc;
+	if(BaseJob == 35 && checkfalcon(0) == 0) goto L_falc;
 	if(getskilllv(127)<1) goto L_Need_Skill2;
 	mes "[Universal Rental Npc]";
-	mes "Sorry " + strcharinfo(0) + " but I only rent falcons to Hunters who the ability to handle 'em.";
+	mes "Sorry " + strcharinfo(0) + " but I only rent falcons to Hunters and Snipers who the ability to handle 'em.";
 	close;
 	L_falc:
 setfalcon;
@@ -39,16 +43,18 @@ close;
 L_Peco:
 if (BaseJob == 7 && checkriding(0) == 0) goto L_Peco_Ok;
 if (BaseJob == 14 && checkriding(0) == 0) goto L_Peco_Ok;
+if (BaseJob == 31 && checkriding(0) == 0) goto L_Peco_Ok;
+if (BaseJob == 38 && checkriding(0) == 0) goto L_Peco_Ok;
 if(getskilllv(63)<1) goto L_Need_Skill3;
 mes "[Universal Rental Npc]";
-mes "Sorry" + strcharinfo(0) + "but I only rent pecopecos to Knights and Crusaders who can harness them.";
+mes "Sorry" + strcharinfo(0) + "but I only rent Pecopecos to Knights and Crusaders who can harness them.";
 close;
 L_Peco_Ok:
 setriding;
 goto L_Quit2;
 L_Need_Skill3:
 mes "[Universal Rental Npc]";
-mes "Sorry you don't have the required skill to ride a Peco Peco.";
+mes "Sorry, you don't have the required skill to ride a Peco Peco.";
 close;
 L_Quit:
 mes "[Universal Rental Npc]";
