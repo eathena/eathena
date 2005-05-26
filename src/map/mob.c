@@ -850,7 +850,7 @@ int mob_walktoxy(struct mob_data *md,int x,int y,int easy)
  * mob spawn with delay (timer function)
  *------------------------------------------
  */
-static int mob_delayspawn(int tid,unsigned int tick,int m,int n)
+static int mob_delayspawn(int tid, unsigned int tick, int m, int n)
 {
 	mob_spawn(m);
 	return 0;
@@ -862,58 +862,49 @@ static int mob_delayspawn(int tid,unsigned int tick,int m,int n)
  */
 int mob_setdelayspawn(int id)
 {
-	unsigned int spawntime,spawntime1,spawntime2,spawntime3;
-	unsigned short mode, delayrate=100; //for battle config delays
+	unsigned int spawntime, spawntime1, spawntime2, spawntime3;
+	unsigned short mode, delayrate = 100; //for battle config delays
 	struct mob_data *md;
 	struct block_list *bl;
 
-	if((bl=map_id2bl(id)) == NULL)
+	if ((bl = map_id2bl(id)) == NULL || bl->type != BL_MOB)
 		return -1;
-
-	if(!bl || !bl->type || bl->type!=BL_MOB)
-		return -1;
-
-	nullpo_retr(-1, md=(struct mob_data*)bl);
-
-	if(!md || md->bl.type!=BL_MOB)
-		return -1;
+	nullpo_retr(-1, md = (struct mob_data*)bl);
 
 	// Processing of MOB which is not revitalized
-	if(md->spawndelay1==-1 && md->spawndelay2==-1 && md->n==0){
+	if (md->spawndelay1 == -1 && md->spawndelay2 == -1 && md->n == 0) {
 		map_deliddb(&md->bl);
-		if(md->lootitem) {
+		if (md->lootitem) {
 			map_freeblock(md->lootitem);
-			md->lootitem=NULL;
+			md->lootitem = NULL;
 		}
 		map_freeblock(md);	// Instead of [ of free ]
 		return 0;
 	}
+
 	//Apply the spawn delay fix [Skotlex]
 	mode = status_get_mode(bl);
-	if (mode&0x20)
-	{	//Bosses
+	if (mode & 0x20) {	//Bosses
 		if (battle_config.boss_spawn_delay != 100)
 			delayrate = delayrate*battle_config.boss_spawn_delay/100;
-	} else if (mode&0x40)
-	{	//Plants
+	} else if (mode&0x40) {	//Plants
 		if (battle_config.plant_spawn_delay != 100)
 			delayrate = delayrate*battle_config.plant_spawn_delay/100; 
-	}	else if (battle_config.mob_spawn_delay != 100) //Normal mobs
+	} else if (battle_config.mob_spawn_delay != 100) //Normal mobs
 		delayrate = delayrate*battle_config.mob_spawn_delay/100;
-	
-	spawntime1=md->last_spawntime+(md->spawndelay1*delayrate/100);
-	spawntime2=md->last_deadtime+(md->spawndelay2*delayrate/100);
-	spawntime3=gettick()+5000+rand()%5000; //Lupus
+
+	spawntime1 = md->last_spawntime + (md->spawndelay1*delayrate/100);
+	spawntime2 = md->last_deadtime + (md->spawndelay2*delayrate/100);
+	spawntime3 = gettick() + 5000 + rand()%5000; //Lupus
 	// spawntime = max(spawntime1,spawntime2,spawntime3);
-	if(DIFF_TICK(spawntime1,spawntime2)>0)
-		spawntime=spawntime1;
+	if (DIFF_TICK(spawntime1, spawntime2) > 0)
+		spawntime = spawntime1;
 	else
-		spawntime=spawntime2;
+		spawntime = spawntime2;
+	if (DIFF_TICK(spawntime3, spawntime) > 0)
+		spawntime = spawntime3;
 
-	if(DIFF_TICK(spawntime3,spawntime)>0)
-		spawntime=spawntime3;
-
-	add_timer(spawntime,mob_delayspawn,id,0);
+	add_timer(spawntime, mob_delayspawn, id, 0);
 	return 0;
 }
 
@@ -921,72 +912,61 @@ int mob_setdelayspawn(int id)
  * Mob spawning. Initialization is also variously here.
  *------------------------------------------
  */
-int mob_spawn(int id)
+int mob_spawn (int id)
 {
-	int x=0,y=0,i=0,c;
-	unsigned int tick = gettick();
+	int x, y, i = 0;
+	unsigned int c, tick = gettick();
 	struct mob_data *md;
 	struct block_list *bl;
 
-	//nullpo_retr(-1, bl=map_id2bl(id));
-	bl=map_id2bl(id);
-
-	if(!bl || !bl->type || bl->type!=BL_MOB)
+	if ((bl = map_id2bl(id)) == NULL || bl->type != BL_MOB)
 		return -1;
+	nullpo_retr(-1, md = (struct mob_data*)bl);
 
-	nullpo_retr(-1, md=(struct mob_data*)bl);
-
-	if(!md || !md->bl.type || md->bl.type!=BL_MOB)
-		return -1;
-
-	md->last_spawntime=tick;
-	if( md->bl.prev!=NULL ){
-//		clif_clearchar_area(&md->bl,3);
-//		skill_unit_move(&md->bl,tick,0);
+	md->last_spawntime = tick;
+	if (md->bl.prev != NULL)
 		map_delblock(&md->bl);
-	}
 	else
 		md->class_ = md->base_class;
 
-	md->bl.m =md->m;
+	md->bl.m = md->m;
 	do {
-		if(md->x0==0 && md->y0==0){
-			x=rand()%(map[md->bl.m].xs-2)+1;
-			y=rand()%(map[md->bl.m].ys-2)+1;
+		if (md->x0 == 0 && md->y0 == 0) {
+			x = rand()%(map[md->bl.m].xs-2)+1;
+			y = rand()%(map[md->bl.m].ys-2)+1;
 		} else {
-			x=md->x0+rand()%(md->xs+1)-md->xs/2;
-			y=md->y0+rand()%(md->ys+1)-md->ys/2;
+			x = md->x0+rand()%(md->xs+1)-md->xs/2;
+			y = md->y0+rand()%(md->ys+1)-md->ys/2;
 		}
 		i++;
-	} while(map_getcell(md->bl.m,x,y,CELL_CHKNOPASS) && i<50);
+	} while(map_getcell(md->bl.m,x,y,CELL_CHKNOPASS) && i < 50);
 
-	if(i>=50){
-//		if(battle_config.error_log==1)
-//			printf("MOB spawn error %d @ %s\n",id,map[md->bl.m].name);
+	if (i >= 50) {
+		// retry again later
 		add_timer(tick+5000,mob_delayspawn,id,0);
 		return 1;
 	}
 
-	md->to_x=md->bl.x=x;
-	md->to_y=md->bl.y=y;
-	md->dir=0;
-	md->target_dir=0;
+	md->to_x = md->bl.x = x;
+	md->to_y = md->bl.y = y;
+	md->dir = 0;
+	md->target_dir = 0;
 
-	memset(&md->state,0,sizeof(md->state));
+	memset(&md->state, 0, sizeof(md->state));
 	md->attacked_id = 0;
 	md->attacked_count = 0;
 	md->target_id = 0;
 	md->move_fail_count = 0;
 
-	if(!md->speed)
+	if (!md->speed)
 		md->speed = mob_db[md->class_].speed;
 	md->def_ele = mob_db[md->class_].element;
 
-	if(!md->level) // [Valaris]
+	if (!md->level) // [Valaris]
 		md->level=mob_db[md->class_].lv;
 
-	md->master_id=0;
-	md->master_dist=0;
+	md->master_id = 0;
+	md->master_dist = 0;
 
 	md->state.state = MS_IDLE;
 	md->state.skillstate = MSS_IDLE;
@@ -1003,35 +983,35 @@ int mob_spawn(int id)
 			md->guild_id = gc->guild_id;
 	}
 
-	md->deletetimer=-1;
+	md->deletetimer = -1;
 
-	md->skilltimer=-1;
-	for(i=0,c=tick-1000*3600*10;i<MAX_MOBSKILL;i++)
+	md->skilltimer = -1;
+	for (i = 0, c = tick-1000*3600*10; i < MAX_MOBSKILL; i++)
 		md->skilldelay[i] = c;
-	md->skillid=0;
-	md->skilllv=0;
+	md->skillid = 0;
+	md->skilllv = 0;
 
-	memset(md->dmglog,0,sizeof(md->dmglog));
-	if(md->lootitem)
-		memset(md->lootitem,0,sizeof(md->lootitem));
+	memset(md->dmglog, 0, sizeof(md->dmglog));
+	if (md->lootitem)
+		memset(md->lootitem, 0, sizeof(md->lootitem));
 	md->lootitem_count = 0;
 
-	for(i=0;i<MAX_MOBSKILLTIMERSKILL;i++)
+	for (i = 0; i < MAX_MOBSKILLTIMERSKILL; i++)
 		md->skilltimerskill[i].timer = -1;
 
-	for(i=0;i<MAX_STATUSCHANGE;i++) {
-		md->sc_data[i].timer=-1;
-		md->sc_data[i].val1 = md->sc_data[i].val2 = md->sc_data[i].val3 = md->sc_data[i].val4 =0;
+	for (i = 0; i < MAX_STATUSCHANGE; i++) {
+		md->sc_data[i].timer = -1;
+		md->sc_data[i].val1 = md->sc_data[i].val2 = md->sc_data[i].val3 = md->sc_data[i].val4 = 0;
 	}
-	md->sc_count=0;
-	md->opt1=md->opt2=md->opt3=md->option=0;
+	md->sc_count = 0;
+	md->opt1 = md->opt2 = md->opt3 = md->option = 0;
 
-	memset(md->skillunit,0,sizeof(md->skillunit));
-	memset(md->skillunittick,0,sizeof(md->skillunittick));
+	memset(md->skillunit, 0, sizeof(md->skillunit));
+	memset(md->skillunittick, 0, sizeof(md->skillunittick));
 
 	md->max_hp = mob_db[md->class_].max_hp;
 	md->hp = status_get_max_hp(&md->bl);
-	if(md->hp<=0){
+	if (md->hp <= 0) {
 		mob_makedummymobdb(md->class_);
 		md->hp = status_get_max_hp(&md->bl);
 	}
@@ -2161,8 +2141,7 @@ void mob_unload(struct mob_data *md)
 	nullpo_retv(md);
 	mob_remove_map(md, 0);
 	map_deliddb(&md->bl);
-	aFree(md);
-	md = NULL;
+	map_freeblock(md);
 }
 int mob_remove_map(struct mob_data *md, int type)
 {

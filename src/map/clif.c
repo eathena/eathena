@@ -10658,7 +10658,7 @@ void clif_parse_FriendsListReply(int fd, struct map_session_data *sd) {
 
 		f_sd->status.friend_id[i] = sd->status.char_id;
 		memset(f_sd->status.friend_name[i], 0, sizeof(f_sd->status.friend_name[i]));
-		memcpy(f_sd->status.friend_name[i], f_sd->status.name, 23);
+		memcpy(f_sd->status.friend_name[i], sd->status.name, 23);
 		clif_friendslist_reqack(f_sd, sd->status.name, 0);
 
 		clif_friendslist_send(sd);

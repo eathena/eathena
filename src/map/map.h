@@ -898,7 +898,7 @@ int cleanup_sub(struct block_list *bl, va_list ap);
 void map_helpscreen(); // [Valaris]
 int map_delmap(char *mapname);
 
-void map_addmobtolist(struct mob_list *); // [Wizputer]
+struct mob_list* map_addmobtolist(unsigned short m);	// [Wizputer]
 void map_spawnmobs(int); // [Wizputer]
 void map_removemobs(int); // [Wizputer]
 

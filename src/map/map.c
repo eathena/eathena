@@ -202,28 +202,27 @@ int map_getusers(void) {
  * ロックされているときはバッファにためる
  *------------------------------------------
  */
-int map_freeblock( void *bl )
+int map_freeblock (void *bl)
 {
-	if(block_free_lock==0){
+	if (block_free_lock == 0) {
 		aFree(bl);
 		bl = NULL;
+	} else{
+		if (block_free_count >= block_free_max) {
+			if (battle_config.error_log)
+				ShowWarning("map_freeblock: too many free block! %d %d\n",
+					block_free_count, block_free_lock);
+		} else block_free[block_free_count++] = bl;
 	}
-	else{
-		if( block_free_count>=block_free_max ) {
-			if(battle_config.error_log)
-				printf("map_freeblock: *WARNING* too many free block! %d %d\n",
-			block_free_count,block_free_lock);
-		}
-		else
-			block_free[block_free_count++]=bl;
-	}
+
 	return block_free_lock;
 }
 /*==========================================
  * blockのfreeを一市Iに禁止する
  *------------------------------------------
  */
-int map_freeblock_lock(void) {
+int map_freeblock_lock (void)
+{
 	return ++block_free_lock;
 }
 
@@ -233,23 +232,21 @@ int map_freeblock_lock(void) {
  * バッファにたまっていたblockを全部削除
  *------------------------------------------
  */
-int map_freeblock_unlock(void) {
+int map_freeblock_unlock (void)
+{
 	if ((--block_free_lock) == 0) {
 		int i;
-//		if(block_free_count>0) {
-//			if(battle_config.error_log)
-//				printf("map_freeblock_unlock: free %d object\n",block_free_count);
-//		}
-		for(i=0;i<block_free_count;i++){
+		for (i = 0; i < block_free_count; i++) {
 			aFree(block_free[i]);
 			block_free[i] = NULL;
 		}
-		block_free_count=0;
-	}else if(block_free_lock<0){
-		if(battle_config.error_log)
-			printf("map_freeblock_unlock: lock count < 0 !\n");
+		block_free_count = 0;
+	} else if (block_free_lock < 0) {
+		if (battle_config.error_log)
+			ShowError("map_freeblock_unlock: lock count < 0 !\n");
 		block_free_lock = 0; // 次回以降のロックに支障が出てくるのでリセット
 	}
+
 	return block_free_lock;
 }
 
@@ -258,15 +255,14 @@ int map_freeblock_unlock(void) {
 // この関数は、do_timer() のトップレベルから呼ばれるので、
 // block_free_lock を直接いじっても支障無いはず。
 
-int map_freeblock_timer(int tid,unsigned int tick,int id,int data) {
-	if(block_free_lock > 0) {
-		printf("map_freeblock_timer: block_free_lock(%d) is invalid.\n",block_free_lock);
+int map_freeblock_timer (int tid, unsigned int tick, int id, int data)
+{
+	if (block_free_lock > 0) {
+		ShowError("map_freeblock_timer: block_free_lock(%d) is invalid.\n", block_free_lock);
 		block_free_lock = 1;
 		map_freeblock_unlock();
 	}
-	// else {
-	// 	printf("map_freeblock_timer: check ok\n");
-	// }
+
 	return 0;
 }
 
@@ -287,39 +283,40 @@ static struct block_list bl_head;
  * ?にlink?みかの確認が無い。危?かも
  *------------------------------------------
  */
-int map_addblock(struct block_list *bl)
+int map_addblock (struct block_list *bl)
 {
-	int m,x,y;
+	int m, x, y, pos;
 
 	nullpo_retr(0, bl);
 
-	if(bl->prev != NULL){
-			if(battle_config.error_log)
-				printf("map_addblock error : bl->prev!=NULL\n");
+	if (bl->prev != NULL) {
+		if(battle_config.error_log)
+			printf("map_addblock error : bl->prev != NULL\n");
 		return 0;
 	}
 
-	m=bl->m;
-	x=bl->x;
-	y=bl->y;
-	if(m<0 || m>=map_num ||
-	   x<0 || x>=map[m].xs ||
-	   y<0 || y>=map[m].ys)
+	m = bl->m;
+	x = bl->x;
+	y = bl->y;
+	if (m < 0 || m >= map_num ||
+		x < 0 || x >= map[m].xs ||
+		y < 0 || y >= map[m].ys)
 		return 1;
 
-	if(bl->type==BL_MOB){
-		bl->next = map[m].block_mob[x/BLOCK_SIZE+(y/BLOCK_SIZE)*map[m].bxs];
+	pos = x/BLOCK_SIZE+(y/BLOCK_SIZE)*map[m].bxs;
+	if (bl->type == BL_MOB) {
+		bl->next = map[m].block_mob[pos];
 		bl->prev = &bl_head;
-		if(bl->next) bl->next->prev = bl;
-		map[m].block_mob[x/BLOCK_SIZE+(y/BLOCK_SIZE)*map[m].bxs] = bl;
-		map[m].block_mob_count[x/BLOCK_SIZE+(y/BLOCK_SIZE)*map[m].bxs]++;
+		if (bl->next) bl->next->prev = bl;
+		map[m].block_mob[pos] = bl;
+		map[m].block_mob_count[pos]++;
 	} else {
-		bl->next = map[m].block[x/BLOCK_SIZE+(y/BLOCK_SIZE)*map[m].bxs];
+		bl->next = map[m].block[pos];
 		bl->prev = &bl_head;
-		if(bl->next) bl->next->prev = bl;
-		map[m].block[x/BLOCK_SIZE+(y/BLOCK_SIZE)*map[m].bxs] = bl;
-		map[m].block_count[x/BLOCK_SIZE+(y/BLOCK_SIZE)*map[m].bxs]++;
-		if(bl->type==BL_PC)
+		if (bl->next) bl->next->prev = bl;
+		map[m].block[pos] = bl;
+		map[m].block_count[pos]++;
+		if (bl->type == BL_PC)
 			map[m].users++;
 	}
 
@@ -331,14 +328,14 @@ int map_addblock(struct block_list *bl)
  * prevがNULLの場合listに?がってない
  *------------------------------------------
  */
-int map_delblock(struct block_list *bl)
+int map_delblock (struct block_list *bl)
 {
 	int b;
 	nullpo_retr(0, bl);
 
 	// ?にblocklistから?けている
-	if(bl->prev==NULL){
-		if(bl->next!=NULL){
+	if (bl->prev == NULL) {
+		if (bl->next != NULL) {
 			// prevがNULLでnextがNULLでないのは有ってはならない
 			if(battle_config.error_log)
 				printf("map_delblock error : bl->next!=NULL\n");
@@ -348,15 +345,15 @@ int map_delblock(struct block_list *bl)
 
 	b = bl->x/BLOCK_SIZE+(bl->y/BLOCK_SIZE)*map[bl->m].bxs;
 
-	if(bl->type==BL_PC)
+	if (bl->type == BL_PC)
 		map[bl->m].users--;
-	if(bl->next)
+	if (bl->next)
 		bl->next->prev = bl->prev;
-	if(bl->prev==&bl_head){
+	if (bl->prev == &bl_head) {
 		// リストの頭なので、map[]のblock_listを更新する
-		if(bl->type==BL_MOB){
+		if (bl->type == BL_MOB) {
 			map[bl->m].block_mob[b] = bl->next;
-			if((map[bl->m].block_mob_count[b]--) < 0)
+			if ((map[bl->m].block_mob_count[b]--) < 0)
 				map[bl->m].block_mob_count[b] = 0;
 		} else {
 			map[bl->m].block[b] = bl->next;
@@ -373,28 +370,31 @@ int map_delblock(struct block_list *bl)
 }
 
 /*==========================================
- * 周?のPC人?を?える (現在未使用)
+ * 周?のPC人?を?える (unused)
  *------------------------------------------
  */
-int map_countnearpc(int m, int x, int y) {
-	int bx,by,c=0;
+int map_countnearpc (int m, int x, int y)
+{
+	int bx, by, c = 0;
 	struct block_list *bl=NULL;
 
-	if(map[m].users==0)
+	if (map[m].users == 0)
 		return 0;
-	for(by=y/BLOCK_SIZE-AREA_SIZE/BLOCK_SIZE-1;by<=y/BLOCK_SIZE+AREA_SIZE/BLOCK_SIZE+1;by++){
-		if(by<0 || by>=map[m].bys)
+	for (by = y/BLOCK_SIZE-AREA_SIZE/BLOCK_SIZE-1; by<=y/BLOCK_SIZE+AREA_SIZE/BLOCK_SIZE+1; by++) {
+		if (by < 0 || by >= map[m].bys)
 			continue;
-		for(bx=x/BLOCK_SIZE-AREA_SIZE/BLOCK_SIZE-1;bx<=x/BLOCK_SIZE+AREA_SIZE/BLOCK_SIZE+1;bx++){
-			if(bx<0 || bx>=map[m].bxs)
+		for (bx = x/BLOCK_SIZE-AREA_SIZE/BLOCK_SIZE-1; bx <= x/BLOCK_SIZE+AREA_SIZE/BLOCK_SIZE+1; bx++) {
+			if (bx < 0 || bx >= map[m].bxs)
 				continue;
 			bl = map[m].block[bx+by*map[m].bxs];
-			for(;bl;bl=bl->next){
-				if(bl->type==BL_PC)
+			while(bl) {
+				if (bl->type == BL_PC)
 					c++;
+				bl = bl->next;
 			}
 		}
 	}
+
 	return c;
 }
 
@@ -1759,7 +1759,22 @@ void map_removenpc(void) {
  *-----------------------------------------
  */
 
-void map_addmobtolist(struct mob_list *mob)
+// allocates a struct when it there is place free in the cache,
+// and returns NULL otherwise
+// -- i'll just leave the old code in case it's needed ^^;
+struct mob_list* map_addmobtolist(unsigned short m)
+{
+	size_t i;
+	for (i = 0; i < MAX_MOB_LIST_PER_MAP; i++) {
+		if (map[m].moblist[i] == NULL) {
+			map[m].moblist[i] = (struct mob_list *) aMalloc (sizeof(struct mob_list));
+			return map[m].moblist[i];
+		}
+	}
+	return NULL;
+}
+
+/*void map_addmobtolist(struct mob_list *mob)
 {
 	int i;
 
@@ -1773,7 +1788,7 @@ void map_addmobtolist(struct mob_list *mob)
 	}
 
 	map[mob->m].moblist[i] = mob;
-}
+}*/
 
 void map_spawnmobs(int m)
 {

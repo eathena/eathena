@@ -867,54 +867,6 @@ AtCommandType atcommand(struct map_session_data* sd, const int level, const char
 }
 
 /*==========================================
- *
- *------------------------------------------
- */
-static int atkillmonster_sub(struct block_list *bl, va_list ap) {
-	struct mob_data *md;
-	int flag;
-	
-	nullpo_retr(0, ap);
-	nullpo_retr(0, md=(struct mob_data *)bl);
-	flag = va_arg(ap, int);
-
-	if (flag)
-		mob_damage(NULL, md, md->hp, 2);
-	else
-		mob_delete(md);
-	
-	return 0;
-}
-/*==========================================
- * Mob search
- *------------------------------------------
- */
-static int atmobsearch_sub(struct block_list *bl,va_list ap)
-{
-	int mob_id,fd;
-	static int number=0;
-	struct mob_data *md;
-
-	nullpo_retr(0, bl);
-
-	if(!ap){
-		number=0;
-		return 0;
-	}
-	mob_id = va_arg(ap,int);
-	fd = va_arg(ap,int);
-
-	md = (struct mob_data *)bl;
-
-	if(md && fd && (mob_id==-1 || (md->class_==mob_id))){
-		snprintf(atcmd_output, sizeof atcmd_output, "%2d[%3d:%3d] %s",
-				++number,bl->x, bl->y,md->name);
-		clif_displaymessage(fd, atcmd_output);
-	}
-	return 0;
-}
-
-/*==========================================
  * Read Message Data
  *------------------------------------------
  */
@@ -3478,6 +3430,21 @@ int atcommand_monsterbig(
  *
  *------------------------------------------
  */
+static int atkillmonster_sub(struct block_list *bl, va_list ap) {
+	struct mob_data *md;
+	int flag;
+	
+	nullpo_retr(0, ap);
+	nullpo_retr(0, md=(struct mob_data *)bl);
+	flag = va_arg(ap, int);
+
+	if (flag)
+		mob_damage(NULL, md, md->hp, 2);
+	else
+		mob_delete(md);
+	
+	return 0;
+}
 void atcommand_killmonster_sub(
 	const int fd, struct map_session_data* sd, const char* message,
 	const int drop)
@@ -5758,15 +5725,6 @@ atcommand_reloadpcdb(
  *
  *------------------------------------------
  */
-void rehash(void)
-{
-	int map_id;
-
-	for (map_id = 0; map_id < map_num; map_id++) {
-		map_foreachinarea(cleanup_sub, map_id, 0, 0, map[map_id].xs, map[map_id].ys, BL_MOB);
-		map_foreachinarea(cleanup_sub, map_id, 0, 0, map[map_id].xs, map[map_id].ys, BL_NPC);
-	}
-}
 int atcommand_reloadscript(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
@@ -5774,10 +5732,9 @@ int atcommand_reloadscript(
 	nullpo_retr(-1, sd);
 	atcommand_broadcast( fd, sd, "@broadcast", "eAthena Server is Rehashing..." );
 	atcommand_broadcast( fd, sd, "@broadcast", "You will feel a bit of lag at this point !" );
-
-	rehash();
-
 	atcommand_broadcast( fd, sd, "@broadcast", "Reloading NPCs..." );
+	flush_fifos();
+
 	//do_init_npc();
 	do_init_script();
 	npc_reload();
@@ -7991,8 +7948,31 @@ atcommand_sound(
  * 	MOB Search
  *------------------------------------------
  */
-int
-atcommand_mobsearch(
+static int atmobsearch_sub(struct block_list *bl,va_list ap)
+{
+	int mob_id,fd;
+	static int number=0;
+	struct mob_data *md;
+
+	nullpo_retr(0, bl);
+
+	if(!ap){
+		number=0;
+		return 0;
+	}
+	mob_id = va_arg(ap,int);
+	fd = va_arg(ap,int);
+
+	md = (struct mob_data *)bl;
+
+	if(md && fd && (mob_id==-1 || (md->class_==mob_id))){
+		snprintf(atcmd_output, sizeof atcmd_output, "%2d[%3d:%3d] %s",
+				++number,bl->x, bl->y,md->name);
+		clif_displaymessage(fd, atcmd_output);
+	}
+	return 0;
+}
+int atcommand_mobsearch(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {

@@ -668,34 +668,32 @@ int npc_settimerevent_tick(struct npc_data *nd,int newtimer)
  * イベント型のNPC処理
  *------------------------------------------
  */
-int npc_event(struct map_session_data *sd,const char *eventname,int mob_kill)
+int npc_event (struct map_session_data *sd, const char *eventname, int mob_kill)
 {
 	struct event_data *ev=(struct event_data *) strdb_search(ev_db,eventname);
 	struct npc_data *nd;
 	int xs,ys;
 	char mobevent[100];
 
-	if( sd == NULL ){
-		printf("npc_event nullpo?\n");
-	}
+	if (sd == NULL)
+		nullpo_info(NLP_MARK);
 
-	if(ev==NULL && eventname && strcmp(((eventname)+strlen(eventname)-9),"::OnTouch") == 0)
-	return 1;
+	if (ev == NULL && eventname && strcmp(((eventname)+strlen(eventname)-9),"::OnTouch") == 0)
+		return 1;
 
-	if(ev==NULL || (nd=ev->nd)==NULL){
-		if(mob_kill && (ev==NULL || (nd=ev->nd)==NULL)){
+	if (ev == NULL || (nd = ev->nd) == NULL) {
+		if (mob_kill) {
 			strcpy( mobevent, eventname);
 			strcat( mobevent, "::OnMyMobDead");
-			ev= (struct event_data *) strdb_search(ev_db,mobevent);
-	if (ev==NULL || (nd=ev->nd)==NULL) {
-				if (strnicmp(eventname,"GM_MONSTER",10)!=0)
-					printf("npc_event: event not found [%s]\n",mobevent);
+			ev = (struct event_data *) strdb_search(ev_db, mobevent);
+			if (ev == NULL || (nd = ev->nd) == NULL) {
+				if (strnicmp(eventname, "GM_MONSTER",10) != 0)
+					ShowError("npc_event: event not found [%s]\n", mobevent);
 				return 0;
 			}
-		}
-		else {
-			if(battle_config.error_log)
-				printf("npc_event: event not found [%s]\n",eventname);
+		} else {
+			if (battle_config.error_log)
+				ShowError("npc_event: event not found [%s]\n", eventname);
 			return 0;
 		}
 	}
@@ -2104,46 +2102,55 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 	int level;
 	char mapname[24];
 	char mobname[24];
-	struct mob_list *mob;
+	struct mob_list mob;
 
-	mob = (struct mob_list *) aCalloc (1, sizeof(struct mob_list));
-	memset(mob, 0, sizeof(struct mob_list));
+	memset(&mob, 0, sizeof(struct mob_list));
 	
 	// 引数の個数チェック
-	if (sscanf(w1, "%[^,],%d,%d,%d,%d", mapname, &mob->x, &mob->y, &mob->xs, &mob->ys) < 3 ||
-		sscanf(w4, "%d,%d,%d,%d,%s", &mob->class_, &mob->num, &mob->delay1, &mob->delay2, mob->eventname) < 2 ) {
+	if (sscanf(w1, "%[^,],%d,%d,%d,%d", mapname, &mob.x, &mob.y, &mob.xs, &mob.ys) < 3 ||
+		sscanf(w4, "%d,%d,%d,%d,%s", &mob.class_, &mob.num, &mob.delay1, &mob.delay2, mob.eventname) < 2 ) {
 		ShowError("bad monster line : %s\n", w3);
-		aFree(mob);
 		return 1;
 	}
 
-	mob->m = map_mapname2mapid(mapname);
-	if (mob->m < 0) {
-		aFree(mob);
+	mob.m = map_mapname2mapid(mapname);
+	if (mob.m < 0)
 		return 1;
-	}
 		
-	if (mob->num > 1 && battle_config.mob_count_rate != 100) {
-		if ((mob->num = mob->num * battle_config.mob_count_rate / 100) < 1)
-			mob->num = 1;
+	if (mob.num > 1 && battle_config.mob_count_rate != 100) {
+		if ((mob.num = mob.num * battle_config.mob_count_rate / 100) < 1)
+			mob.num = 1;
 	}
 	
 	if (sscanf(w3, "%[^,],%d", mobname, &level) > 1)
-		mob->level = level;
+		mob.level = level;
 	if (strcmp(mobname, "--en--") == 0)
-		memcpy(mob->mobname, mob_db[mob->class_].name, 24);
+		memcpy(mob.mobname, mob_db[mob.class_].name, 24);
 	else if (strcmp(mobname, "--ja--") == 0)
-		memcpy(mob->mobname, mob_db[mob->class_].jname, 24);
-	else memcpy(mob->mobname, mobname, 24);
+		memcpy(mob.mobname, mob_db[mob.class_].jname, 24);
+	else memcpy(mob.mobname, mobname, 24);
 
-	if ( mob->delay1 || mob->delay2 ) {
-		npc_parse_mob2(mob);
-		npc_delay_mob += mob->num;
-		// we're not using mob_list anymore, so discard it
-		aFree(mob);
+	 
+	if( mob.delay1 || mob.delay2 ) {
+		npc_parse_mob2(&mob);
+		npc_delay_mob += mob.num;
 	} else {
-		map_addmobtolist(mob);
-		npc_cache_mob += mob->num;
+		struct mob_list *dynmob = map_addmobtolist(mob.m);
+		if( dynmob ) {
+			memcpy(dynmob, &mob, sizeof(struct mob_list));
+			// check if target map has players
+			// (usually shouldn't occur when map server is just starting,
+			// but not the case when we do @reloadscript
+			if (map[mob.m].users > 0)
+				npc_parse_mob2(&mob);
+			npc_cache_mob += mob.num;
+		} else {
+			// mobcache is full
+			// create them as delayed with one second
+			mob.delay1 = 1000;
+			npc_parse_mob2(&mob);
+			npc_delay_mob += mob.num;
+		}
 	}
 
 	npc_mob++;
@@ -2498,13 +2505,16 @@ int npc_cleanup_sub (struct block_list *bl, va_list ap) {
 int npc_reload (void)
 {
 	struct npc_src_list *nsl;
-	int m, last_npc_id;
+	int m, i;
 	time_t last_time = time(0);
 	int busy = 0;
 	char c = '-';
 
 	for (m = 0; m < map_num; m++) {
 		map_foreachinarea(npc_cleanup_sub, m, 0, 0, map[m].xs, map[m].ys, 0);
+		for (i = 0; i < MAX_MOB_LIST_PER_MAP; i++)
+			if (map[m].moblist[i]) aFree(map[m].moblist[i]);
+		memset (map[m].moblist, 0, sizeof(map[m].moblist));
 		map[m].npc_num = 0;
 	}
 	if(ev_db)
@@ -2517,8 +2527,8 @@ int npc_reload (void)
 	ev_db = strdb_init(51);
 	npcname_db = strdb_init(24);
 	ev_db->release = ev_release;
-	npc_warp = npc_shop = npc_script = npc_mob = 0;
-	last_npc_id = npc_id;
+	npc_warp = npc_shop = npc_script = 0;
+	npc_mob = npc_cache_mob = npc_delay_mob = 0;
 	
 	for (nsl = npc_src_first; nsl; nsl = nsl->next) {
 		npc_parsesrcfile(nsl->name);
@@ -2545,8 +2555,10 @@ int npc_reload (void)
 		CL_WHITE"%d"CL_RESET"' Warps\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Shops\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Scripts\n\t-'"
-		CL_WHITE"%d"CL_RESET"' Mobs\n",
-		npc_id - last_npc_id, "", npc_warp, npc_shop, npc_script, npc_mob);
+		CL_WHITE"%d"CL_RESET"' Mobs\n\t-'"
+		CL_WHITE"%d"CL_RESET"' Mobs Cached\n\t-'"
+		CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
+		npc_id - START_NPC_NUM, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
 
 	return 0;
 }

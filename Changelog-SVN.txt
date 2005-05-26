@@ -1,5 +1,12 @@
 Date	Added
 05/26
+	* Tidied up mob.c and map.c a bit [celest]
+	* Removed rehash() in atcommand.c [celest]
+	* Fixed @reloadscript issue with dynamic mobs [celest]
+	* Added flush fifos first before reloading in @reloadscript [celest]
+	* Added spawn mobs with 1 second delay instead if moblist is full, by Shinomori
+	* Fixed wrong name saved when adding friends, thanks to Maeki
+	* Fixed itemhealrate stackable, thanks to starlon
 	* Set the new_attack_function to be used by default. [Skotlex]
 	  This function replaces the three previously used functions (pc/mob/pet)
 	  into a single one which was rewritten to follow the attack algorythm as
@@ -11,6 +18,7 @@ Date	Added
 	  If you absolutely don't want to test it and prefer the old method, in
 	  battle_athena.conf add a line that goes:
 	  new_attack_function: no
+
 05/25
 	* Fixed typos in Absorb Spirits, Double Casting and Tarot Card, thanks to Komurka
 	  and Avaj
