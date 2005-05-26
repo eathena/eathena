@@ -1,4 +1,16 @@
 Date	Added
+05/26
+	* Set the new_attack_function to be used by default. [Skotlex]
+	  This function replaces the three previously used functions (pc/mob/pet)
+	  into a single one which was rewritten to follow the attack algorythm as
+	  described in http://rodatazone.simgaming.net/mechanics/attacks.php
+	  Please report any inconsistencies or strange behaviour that this new
+	  function brings (only affects physical attacks/skills) on the boards.
+	  If anyone can do some performance comparisons with the old method, that'd
+	  be useful too.
+	  If you absolutely don't want to test it and prefer the old method, in
+	  battle_athena.conf add a line that goes:
+	  new_attack_function: no
 05/25
 	* Fixed typos in Absorb Spirits, Double Casting and Tarot Card, thanks to Komurka
 	  and Avaj

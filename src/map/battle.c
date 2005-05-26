@@ -5792,7 +5792,7 @@ void battle_set_defaults() {
 	battle_config.ignore_items_gender = 1;
 
 	battle_config.use_statpoint_table = 1;
-	battle_config.new_attack_function = 0; //This is for test/debug purposes [Skotlex]
+	battle_config.new_attack_function = 1; //This is for test/debug purposes [Skotlex]
 
 	battle_config.mob_remove_damaged = 1; // Dynamic Mobs - Remove mobs even if damaged [Wizputer]
 
