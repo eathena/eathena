@@ -1,4 +1,7 @@
 Date	Added
+05/27
+	* Fixed 1 delete_timer error with pc_stopwalking [celest]
+
 05/26
 	* Tidied up mob.c and map.c a bit [celest]
 	* Removed rehash() in atcommand.c [celest]
