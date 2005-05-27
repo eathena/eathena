@@ -353,13 +353,10 @@ Problem:	Maps with more than 32 monsters (like anthell01 has 90++) will not load
 Assigned:	na
 Progress:	100%
 
-Problem: (script related) Using String variables inside a Menu crashes the
-server.
+Problem: (script related) Using callfunc/callsub inside a Menu crashes the server.
 Assigned:	None
 Progress:	0% 
-	Note: Buildin functions that return strings (like getitemname) work alright
-	within a menu, it is only using variables of the type @var$ or those
-	returned by callfunc() that crash it. The menu does display correctly, it
-	is after choosing a menu entry that the server crashes.
-	I am gonna try to fix it (but it could take me days), if anyone else wants
-	to take care of it, be my guest. (Skotlex)
+	Using callfunc/callsub within a menu will cause the server to crash after the
+	user has selected an entry (the menu does finish displaying correctly). I
+	speculate that the return of the function is messing up the script resume point
+	in these situations. [Skotlex]
