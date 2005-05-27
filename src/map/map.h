@@ -552,9 +552,7 @@ struct pet_data {
 		short atk1,atk2;
 		short str,agi,vit,int_,dex,luk;
 	} *status;  //[Skotlex]
-//	int skilltype,skillval,skilltimer,skillduration; // [Valaris]
-	//int skillbonustype,skillbonusval,skillbonustimer,skillbonusduration; // [Valaris]
-	//int skillbonustype,skillbonusval,skillbonustimer;
+
 	struct pet_recovery { //Stat recovery
 		unsigned short type;	//Status Change id
 		unsigned short delay; //How long before curing (secs).
@@ -593,12 +591,7 @@ struct pet_data {
 		unsigned short max;
 		int timer;
 	} *loot; //[Valaris] / Rewritten by [Skotlex]
-//	struct item *lootitem;
-//	short loot; // [Valaris]
-//	short lootmax; // [Valaris]
-//	short lootitem_count;
-//	short lootitem_weight;
-//	int lootitem_timer;
+	
 	struct skill_timerskill skilltimerskill[MAX_MOBSKILLTIMERSKILL]; // [Valaris]
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP]; // [Valaris]
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET]; // [Valaris]

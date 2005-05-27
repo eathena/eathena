@@ -59,9 +59,7 @@ int pet_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap);
 int pet_skill_support_timer(int tid, unsigned int tick, int id, int data); // [Skotlex]
 int pet_skill_bonus_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
 int pet_recovery_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
-//int pet_mag_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
 int pet_heal_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
-//int pet_skillattack_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
 int pet_skillsupport_timer(int tid,unsigned int tick,int id,int data); // [Skotlex]
 
 int read_petdb();

@@ -1,5 +1,6 @@
 Date	Added
 05/27
+	* Fixed some crashes related to pet skills and timers [Skotlex]
 	* Fixed 1 delete_timer error with pc_stopwalking [celest]
 
 05/26

@@ -848,14 +848,7 @@ int pet_remove_map(struct map_session_data *sd)
 			aFree (pd->loot);
 			pd->loot = NULL;
 		}
-//		if(pd->skillbonustimer!=-1) pd->skillbonustimer=-1;
-//		pd->skilltype=0;
-//		pd->skillval=0;
-//		if(pd->skilltimer!=-1) pd->skilltimer=-1;
 		pd->state.skillbonus=-1;
-//		pd->skillduration=0;
-//		pd->skillbonustype=0;
-//		pd->skillbonusval=0;
 		if(sd->perfect_hiding==1) sd->perfect_hiding=0;	// end additions
 
 		pet_changestate(sd->pd,MS_IDLE,0);
@@ -863,8 +856,6 @@ int pet_remove_map(struct map_session_data *sd)
 			pet_hungry_timer_delete(sd);
 		clif_clearchar_area(&sd->pd->bl,0);
 		map_delblock(&sd->pd->bl);
-//		if (sd->pd->lootitem)
-//			aFree(sd->pd->lootitem);
 		map_deliddb(&sd->pd->bl);
 		aFree(sd->pd);
 		sd->pd = NULL;
@@ -972,7 +963,6 @@ int pet_data_init(struct map_session_data *sd)
 	sd->pd = pd = (struct pet_data *)aCalloc(1,sizeof(struct pet_data));
 	memset(pd,0,sizeof(struct pet_data)); //Skotlex: I suggest to zero up this...
 	pd->bl.m = sd->bl.m;
-//	pd->bl.prev = pd->bl.next = NULL;
 	pd->bl.x = pd->to_x = sd->bl.x;
 	pd->bl.y = pd->to_y = sd->bl.y;
 	pet_calc_pos(pd,sd->bl.x,sd->bl.y,sd->dir);
@@ -986,12 +976,8 @@ int pet_data_init(struct map_session_data *sd)
 	pd->speed = sd->petDB->speed;
 	pd->bl.subtype = MONS;
 	pd->bl.type = BL_PET;
-//	memset(&pd->state,0,sizeof(pd->state));
 	pd->state.state = MS_IDLE;
-//	pd->state.change_walk_target = 0;
 	pd->timer = -1;
-//	pd->target_id = 0;
-//	pd->move_fail_count = 0;
 	pd->next_walktime = pd->attackabletime = pd->last_thinktime = gettick();
 	pd->msd = sd;
 	
@@ -1017,12 +1003,6 @@ int pet_data_init(struct map_session_data *sd)
 	if(interval <= 0)
 		interval = 1;
 	sd->pet_hungry_timer = add_timer(gettick()+interval,pet_hungry,sd->bl.id,0);
-/* Skotlex: unneeded
-	pd->lootitem=(struct item *)aCalloc(PETLOOT_SIZE,sizeof(struct item));
-	pd->lootitem_count = 0;
-	pd->lootitem_weight = 0;
-	pd->lootitem_timer = gettick();
-	*/
 	return 0;
 }
 
@@ -1570,13 +1550,6 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 					pet_unlocktarget(pd);
 					return 0;
 				}
-			/*	else { //As Shinomori pointed out, this piece of code won't ever be executed. What where the jA devs thinking? [Skotlex]
-					if(pd->loot->item[0].card[0] == (short)0xff00)
-						intif_delete_petdata(*((long *)(&pd->loot->item[0].card[1])));
-					for(i=0;i<PETLOOT_SIZE-1;i++)
-						memcpy(&pd->loot->item[i],&pd->loot->item[i+1],sizeof(pd->loot->item[0]));
-					memcpy(&pd->loot->item[PETLOOT_SIZE-1],&fitem->item_data,sizeof(pd->loot->item[0]));
-				}*/
 				map_clearflooritem(bl_item->id);
 				pet_unlocktarget(pd);
 			}
@@ -1717,9 +1690,14 @@ int pet_skill_bonus_timer(int tid,unsigned int tick,int id,int data)
 	
 	pd=sd->pd;
 
-	if(pd->bonus->timer != tid) {
+	if(pd->bonus == NULL || pd->bonus->timer != tid) {
 		if(battle_config.error_log)
-			printf("pet_skill_bonus_timer %d != %d\n",pd->bonus->timer,tid);
+		{
+			if (pd->bonus)
+				printf("pet_skill_bonus_timer %d != %d\n",pd->bonus->timer,tid);
+			else
+				printf("pet_skill_bonus_timer called with no bonus defined (tid=%d)\n",tid);
+		}
 		return 0;
 	}
 	
@@ -1759,9 +1737,14 @@ int pet_recovery_timer(int tid,unsigned int tick,int id,int data)
 	
 	pd=sd->pd;
 
-	if(pd->recovery->timer != tid) {
+	if(pd->recovery == NULL || pd->recovery->timer != tid) {
 		if(battle_config.error_log)
-			printf("pet_recovery_timer %d != %d\n",pd->recovery->timer,tid);
+		{
+			if (pd->recovery)
+				printf("pet_recovery_timer %d != %d\n",pd->recovery->timer,tid);
+			else
+				printf("pet_recovery_timer called with no recovery skill defined (tid=%d)\n",tid);
+		}
 		return 0;
 	}
 
@@ -1786,9 +1769,14 @@ int pet_heal_timer(int tid,unsigned int tick,int id,int data)
 	
 	pd=sd->pd;
 
-	if(pd->s_skill->timer != tid) {
+	if(pd->s_skill == NULL && pd->s_skill->timer != tid) {
 		if(battle_config.error_log)
-			printf("pet_heal_timer %d != %d\n",pd->s_skill->timer,tid);
+		{
+			if (pd->s_skill)
+				printf("pet_heal_timer %d != %d\n",pd->s_skill->timer,tid);
+			else
+				printf("pet_heal_timer called with no support skill defined (tid=%d)\n",tid);
+		}
 		return 0;
 	}
 	
@@ -1812,85 +1800,6 @@ int pet_heal_timer(int tid,unsigned int tick,int id,int data)
 	return 0;
 }
 
-/* Skotlex: Unneeded
-int pet_mag_timer(int tid,unsigned int tick,int id,int data)
-{
-	struct pet_data *pd;
-	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
-	
-	if(sd==NULL || sd->bl.type!=BL_PC)
-		return 1;
-	
-	pd=sd->pd;
-
-	if(pd==NULL || pd->bl.type!=BL_PET)
-		return 1;
-
-	if(pd->skillbonustimer != tid)
-		return 0;
-
-	if(sd->status.hp < sd->status.max_hp * pd->skilltype/100 && sd->status.sp < sd->status.max_sp * pd->skillduration/100) {
-		clif_skill_nodamage(&pd->bl,&sd->bl,PR_MAGNIFICAT,pd->skillval,1);
-		status_change_start(&sd->bl,SkillStatusChangeTable[PR_MAGNIFICAT],pd->skillval,0,0,0,skill_get_time(PR_MAGNIFICAT,pd->skillval),0 );
-  	}
-	
-	pd->skillbonustimer=add_timer(gettick()+pd->skilltimer*1000,pet_mag_timer,sd->bl.id,0);
-	
-	return 0;
-}
-*/
-/*
-int pet_skillattack_timer(int tid,unsigned int tick,int id,int data)
-{
-	struct mob_data *md;
-	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
-	struct pet_data *pd;
-
-	if(sd==NULL || sd->bl.type!=BL_PC)
-		return 1;
-	
-	pd=sd->pd;
-
-	if(pd==NULL || pd->bl.type!=BL_PET)
-		return 1;
-
-	if(pd->skillbonustimer != tid)
-		return 0;
-
-	md=(struct mob_data *)map_id2bl(sd->attacktarget);
-	if(md == NULL || md->bl.type != BL_MOB || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
-		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 6) {
-		pd->target_id=0;
-		pd->skillbonustimer=add_timer(gettick()+100,pet_skillattack_timer,sd->bl.id,pd->skillduration);
-		return 0;
-	}
-
-	if(md && rand()%100 < sd->pet.intimate*pd->skilltimer/100 ) {
-		switch(pd->skilltype)
-		{
-		case SM_PROVOKE:
-		//case NPC_POISON: poison is not handled there
-			skill_castend_nodamage_id(&pd->bl,&md->bl,pd->skilltype,pd->skillval,tick,0);
-			break;
-		case BS_HAMMERFALL:
-			skill_castend_pos2(&pd->bl,md->bl.x,md->bl.y,pd->skilltype,pd->skillval,tick,0);
-			break;
-		case WZ_HEAVENDRIVE:
-			skill_castend_pos2(&pd->bl,md->bl.x,md->bl.y,pd->skilltype,pd->skillval+rand()%100,tick,0);
-			break;
-		default:
-			skill_castend_damage_id(&pd->bl,&md->bl,pd->skilltype,pd->skillval,tick,0);
-			break;
-		}
-		pd->skillbonustimer=add_timer(gettick()+1000,pet_skillattack_timer,sd->bl.id,0);
-		return 0;
-	}
-
-	pd->skillbonustimer=add_timer(gettick()+100,pet_skillattack_timer,sd->bl.id,0);
-	
-	return 0;
-}
-*/
 /*==========================================
  * pet support skills [Skotlex]
  *------------------------------------------
@@ -1904,10 +1813,15 @@ int pet_skill_support_timer(int tid,unsigned int tick,int id,int data)
 		return 1;
 	
 	pd=sd->pd;
-
-	if(pd->s_skill->timer != tid) {
+	
+	if(pd->s_skill == NULL || pd->s_skill->timer != tid) {
 		if(battle_config.error_log)
-			printf("pet_skill_support_timer %d != %d\n",pd->s_skill->timer,tid);
+		{
+			if (pd->s_skill)
+				printf("pet_skill_support_timer %d != %d\n",pd->s_skill->timer,tid);
+			else
+				printf("pet_skill_support_timer called with no support skill defined (tid=%d)\n",tid);
+		}
 		return 0;
 	}
 	
@@ -2026,9 +1940,7 @@ int do_init_pet(void)
 	add_timer_func_list(pet_skill_bonus_timer,"pet_skill_bonus_timer"); // [Valaris]
 	add_timer_func_list(pet_skill_support_timer, "pet_skill_support_timer"); // [Skotlex]
 	add_timer_func_list(pet_recovery_timer,"pet_recovery_timer"); // [Valaris]
-//	add_timer_func_list(pet_mag_timer,"pet_mag_timer"); // [Valaris]
 	add_timer_func_list(pet_heal_timer,"pet_heal_timer"); // [Valaris]
-//	add_timer_func_list(pet_skillattack_timer,"pet_skillattack_timer"); // [Valaris]
 	add_timer_interval(gettick()+MIN_PETTHINKTIME,pet_ai_hard,0,0,MIN_PETTHINKTIME);
 
 	return 0;
