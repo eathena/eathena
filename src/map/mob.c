@@ -761,12 +761,8 @@ static int mob_timer(int tid,unsigned int tick,int id,int data)
 	map_freeblock_lock();
 	switch(md->state.state){
 	case MS_WALK:
-	
-		mob_walk(md,tick,data); //reverted [Kevin]
-		
-		//This fix was broken
-		//if (!mob_walk(md,tick,data))	//mob_walk returns 0 on success, 1 on fail? o.O
-			//md->state.idle_skill_flag = 1;	//Once the mob moved, it can again do it's idle skill	[Skotlex].
+		if (!mob_walk(md,tick,data))	//mob_walk returns 0 on success, 1 on fail? o.O
+			md->state.idle_skill_flag = 1;	//Once the mob moved, it can again do it's idle skill	[Skotlex].
 		break;
 	case MS_ATTACK:
 		mob_attack(md,tick,data);
@@ -1864,14 +1860,11 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 
 	// It is skill use at the time of /standby at the time of a walk. 
 	// But only if it has not been done yet [Skotlex]
-	//if (md->state.idle_skill_flag && mobskill_use(md, tick, -1))
-	//{	//Used up the idle skill
-    //md->state.idle_skill_flag = 0;
-	//	return 0;
-	//}
-	
-	if(mobskill_use(md, tick, -1))
+	if (md->state.idle_skill_flag && mobskill_use(md, tick, -1))
+	{	//Used up the idle skill
+		md->state.idle_skill_flag = 0;
 		return 0;
+	}
 
 	// •àsˆ—
 	if (mode & 1 && mob_can_move(md) &&	// ˆÚ“®‰Â”\MOB&“®‚¯‚éó‘Ô‚É‚ ‚é

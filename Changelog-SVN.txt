@@ -1,5 +1,13 @@
 Date	Added
 05/27
+	* Re-Applied the idle_skill_flag [Skotlex]
+	  It was removed because people said it was broken, however it works
+	  exactly the way Komurka explained it to me:
+	  A mob can cast only one idle skill, and can't do another one until it
+	  moves. If the mob casts too many idle skills because it
+	  casts/moves/casts, then increase the skill's delay in the database! If it
+	  still does "not works", drop me a line explaining why, because it works
+	  exactly as I was told it should.
 	* Small adjustment of the critical equation in the new attack function [Skotlex]
 	* Fixed some crashes related to pet skills and timers [Skotlex]
 	* Fixed 1 delete_timer error with pc_stopwalking [celest]
