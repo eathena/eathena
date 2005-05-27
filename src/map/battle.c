@@ -3152,7 +3152,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 		(!skill_num || skill_num == KN_AUTOCOUNTER || skill_num == SN_SHARPSHOOTING))
 	{
 		short cri = status_get_critical(target);
-		cri -= status_get_luk(target) * 2; //RoDatazone claims that it should be 2
 		if (sd)
 		{
 			cri+= sd->critaddrace[t_race];
@@ -3161,7 +3160,8 @@ static struct Damage battle_calc_weapon_attack_sub(
 			if(sd->status.weapon == 16)
 				cri <<=1;
 		}
-		else if(battle_config.enemy_critical_rate != 100)
+		cri -= status_get_luk(target) * 2; //RoDatazone claims that it should be 2
+		if(!sd && battle_config.enemy_critical_rate != 100)
 		{ //Mob/Pets
 			cri = cri*battle_config.enemy_critical_rate/100;
 			if (cri<1) cri = 1;
