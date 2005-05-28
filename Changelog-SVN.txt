@@ -1,7 +1,15 @@
 Date	Added
 05/28
 	~ Name of NPC file in map_athena.conf is now scripts_main.conf
-
+	~ Added a new column to item_db.txt/item_db2.txt: refineable [Skotlex]
+	  The column goes between equip_level and view, use upgrade_svn1863.sql
+	  to update sql tables (including item_db2.txt). Custom item users of txt
+	  servers will have to update manually.
+	  When the column's value is 0, NULL (sql) or blank (txt), the item can't be
+	  refined.
+	  OLD ITEM_DBS WILL NOT WORK WITH THIS NEW UPDATE, update your custom
+	  items!
+		
 	* Fixed a crash bug in pet_heal_timer on timer mismatch. [Skotlex]
 	  Thanks to Celest for noticing it out.
 	* Fixed the critical attacks bug in the new attack function. [Skotlex]

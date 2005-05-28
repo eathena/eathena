@@ -1,4 +1,4 @@
-//ID,Name,Name,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Gender,Loc,wLV,eLV,View,{UseScript},{EquipScript}
+//ID,Name,Name,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Gender,Loc,wLV,eLV,Refineable,View,{UseScript},{EquipScript}
 //Type: 0 Healing, 2: Usable, 3: Misc, 4: Weapon, 5: Armor, 6: Card, 7: egg,
 //8: petequip, 10: arrow, 11: Usable with delayed consumption (all items with
 //script "pet" or "itemskill": Lures, Scrolls, Magnifier, Yggdrasil Leaf)
@@ -6,5 +6,5 @@
 
 // Custom Items go here
 //=============================================================
-0,DEFAULT,Default,0,20,,10,,,,,0,2,0,0,,,{},{}
+0,DEFAULT,Default,0,20,,10,,,,,0,2,0,0,,,,{},{}
 
