@@ -3151,7 +3151,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 		(sd || battle_config.enemy_critical) &&
 		(!skill_num || skill_num == KN_AUTOCOUNTER || skill_num == SN_SHARPSHOOTING))
 	{
-		short cri = status_get_critical(target);
+		short cri = status_get_critical(src);
 		if (sd)
 		{
 			cri+= sd->critaddrace[t_race];
@@ -3162,7 +3162,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 		}
 		//The official equation is *2, but that only applies when sd's do critical.
 		//Therefore, we use the old value 3 on cases when an sd gets attacked by a mob
-		cri -= status_get_luk(target) * (md&&tsd)?3:2;
+		cri -= status_get_luk(target) * (md&&tsd?3:2);
 		if(!sd && battle_config.enemy_critical_rate != 100)
 		{ //Mob/Pets
 			cri = cri*battle_config.enemy_critical_rate/100;
@@ -3191,7 +3191,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 		}
 		if(tsd && tsd->critical_def)
 			cri = cri*(100-tsd->critical_def)/100;
-		if (flag.cri || rand() % 1000 < cri)
+		if (rand()%1000 < cri)
 			flag.cri= 1;
 	}
 	if (flag.cri)

@@ -1,9 +1,9 @@
 Date	Added
 05/28
-<<<<<<< .mine
-	* Added MassDriller's updated readme.html files. [committed by Skotlex]
 	~ Name of NPC file in map_athena.conf is now scripts_main.conf
-
+	
+	* Fixed the critical attacks bug in the new attack function. [Skotlex]
+	* Added MassDriller's updated readme.html files. [committed by Skotlex]
 	* Reorganized scripts (npc/) folder. [Ancyker]
 	* Fixed script_athena.conf reading of "event_requires_trigger". [Skotlex]
 	  It was looking for "require_set_trigger" instead of
