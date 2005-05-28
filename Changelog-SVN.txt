@@ -1,5 +1,7 @@
 Date	Added
 05/27
+	* Removed YET AGAIN the mob's skill_idle_flag function. [Skotlex]
+	  Komurka updated the mob_skill_db so that it is not needed anymore.
 	* Modified the critical equation on the new attack function [Skotlex]
 	  The original equation ((1 + LUK*0.3 + EquipmentBonuses) * CritModifier -
 	  TargetLuk/5) was meant for official servers, where mobs don't do
