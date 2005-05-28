@@ -1,5 +1,10 @@
 Date	Added
 05/28
+	* Fixed script_athena.conf reading of "event_requires_trigger". [Skotlex]
+	  It was looking for "require_set_trigger" instead of
+	  "event_requires_trigger", which effectively ignored the
+	  event_require_trigger's value. Logout events should now be usable without
+	  the need of a global variable.
 	* Added emotion constants to const.txt	[Skotlex - R1853]
 	  The constants mirror their command counter part (ie: /meh -> e_meh),
 	  for the most part, except for the following:

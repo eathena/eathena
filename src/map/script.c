@@ -8084,7 +8084,7 @@ int script_config_read(char *cfgName)
 		else if(strcmpi(w1,"mapload_event_name")==0) {
 			strcpy(script_config.mapload_event_name, w2);
 		}
-		else if(strcmpi(w1,"require_set_trigger")==0) {
+		else if(strcmpi(w1,"event_requires_trigger")==0) {
 			script_config.event_requires_trigger = battle_config_switch(w2);
 		}
 		else if(strcmpi(w1,"import")==0){
