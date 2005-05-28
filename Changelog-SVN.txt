@@ -1,5 +1,11 @@
 Date	Added
 05/27
+	* Modified the critical equation on the new attack function [Skotlex]
+	  The original equation ((1 + LUK*0.3 + EquipmentBonuses) * CritModifier -
+	  TargetLuk/5) was meant for official servers, where mobs don't do
+	  criticals. If applied to mobs, they get very high critical rate, so the
+	  luk reduction was bumped up to TargetLuk*3/10 on situations where a player
+	  is targeted by a mob.
 	* Re-Applied the idle_skill_flag [Skotlex]
 	  It was removed because people said it was broken, however it works
 	  exactly the way Komurka explained it to me:
