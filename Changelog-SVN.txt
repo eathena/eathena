@@ -1,5 +1,8 @@
 Date	Added
 05/28
+	~ Name of NPC file in map_athena.conf is now scripts_main.conf
+
+	* Reorganized scripts (npc/) folder. [Ancyker]
 	* Fixed script_athena.conf reading of "event_requires_trigger". [Skotlex]
 	  It was looking for "require_set_trigger" instead of
 	  "event_requires_trigger", which effectively ignored the
