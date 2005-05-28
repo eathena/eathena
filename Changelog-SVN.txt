@@ -1,7 +1,9 @@
 Date	Added
 05/28
 	~ Name of NPC file in map_athena.conf is now scripts_main.conf
-	
+
+	* Fixed a crash bug in pet_heal_timer on timer mismatch. [Skotlex]
+	  Thanks to Celest for noticing it out.
 	* Fixed the critical attacks bug in the new attack function. [Skotlex]
 	* Added MassDriller's updated readme.html files. [committed by Skotlex]
 	* Reorganized scripts (npc/) folder. [Ancyker]

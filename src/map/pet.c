@@ -1769,7 +1769,7 @@ int pet_heal_timer(int tid,unsigned int tick,int id,int data)
 	
 	pd=sd->pd;
 
-	if(pd->s_skill == NULL && pd->s_skill->timer != tid) {
+	if(pd->s_skill == NULL || pd->s_skill->timer != tid) {
 		if(battle_config.error_log)
 		{
 			if (pd->s_skill)
