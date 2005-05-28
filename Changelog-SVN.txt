@@ -1,4 +1,6 @@
 Date	Added
+05/28
+	* Fixed a bug in the new attack function dealing with dual-wielding [Skotlex]
 05/27
 	* Removed YET AGAIN the mob's skill_idle_flag function. [Skotlex]
 	  Komurka updated the mob_skill_db so that it is not needed anymore.
