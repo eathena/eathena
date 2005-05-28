@@ -1,25 +1,28 @@
-// MobID,Name,JName,ItemID,EggID,AcceID,FoodID,Fullness,HungryDeray ,R_Hungry,R_Full,Intimate,Die,Capture,Speed,S_Performance,talk_convert_class,attack_rate,defence_attack_rate,change_target_rate,pet_script
-//Available pet scripts:
-//petskillattack skillid, skilllv, rate, bonusrate: Casts a normal skill.
-//rate is the base success chance of happpening, bonusrate is the extra
-//chance when intimacy reaches 100%
+// MobID,Name,JName,ItemID,EggID,AcceID,FoodID,Fullness,HungryDelay,R_Hungry,R_Full,Intimate,Die,Capture,Speed,S_Performance,talk_convert_class,attack_rate,defence_attack_rate,change_target_rate,pet_script
+//Specific pet scripts:
 
-//petskillattack2 skillid, damage, div, rate, bonusrate: Casts a skill,
-//but it will always do the specified amount of damage (and hits div times)
+//petskillattack skillid, skilllv, rate, bonusrate
+//Skill attack that triggers while the pet is attacking. Rate is the base
+//chance of execution per attack. Bonusrate is an additional success rate when
+//intimacy reaches max.
 
-//petskillsupport skillid, skilllv, delay, hp%, sp%: Casts a support skill
-//delay is the minimum time between casts. Hp%, Sp% signal the maximum the
-//player can have for the skill to be cast.
+//petskillattack2 skillid, damage, hits, rate, bonusrate
+//Same as petskillattack, but the damage and number of hits is fixed
+//the damage specified is total, not per hit.
 
-//petheal amount, delay, hp%, sp%: Casts heal.
+//petskillsupport skillid, skilllv, delay, hp%, sp%
+//Casts a support skill when the health levels are below the specified hp% and
+//sp%. Delay is the minimum time in seconds before the skill can be cast again
+
+//petheal amount, delay, hp%, sp%
 //Similar to petskillsupport, but the skill is fixed to heal (28) and the
 //heal-amount is fixed to the value given.
 
 //petrecovery type, delay: Cures the "type" status effect after "delay" seconds
 
-//petskillbonus type, value, duration, delay: Gives bonus stats. Type is the
-//stat to increase (bStr, bLuk), value is the amount by which it is increased
-//duration signals how long the bonus lasts
+//petskillbonus type, value, duration, delay
+//Gives bonus stats. Type is the stat to increase (bStr, bLuk), value is the
+//amount by which it is increased, duration signals how long the bonus lasts
 //delay is the time between "Castings" of the bonus.
 
 //A single pet can have petloot, petskillbonus, petskillattack (or
