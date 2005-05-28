@@ -35,6 +35,7 @@ void set_termfunc(void (*termfunc)(void))
 	term_func = termfunc;
 }
 
+#ifndef MINICORE	// minimalist Core
 // Added by Gabuzomeu
 //
 // This is an implementation of signal() using sigaction() for portability.
@@ -108,36 +109,35 @@ void init_signals (void)
 		compat_signal(SIGTRAP, SIG_DFL);
 	#endif	
 }
+#endif
 
 #ifdef SVNVERSION
-
-#define xstringify(x)  stringify(x)
-#define stringify(x)  #x
-
-const char *get_svn_revision() {
-       return xstringify(SVNVERSION);
-}
-
+	#define xstringify(x) stringify(x)
+	#define stringify(x) #x
+	const char *get_svn_revision()
+	{
+		return xstringify(SVNVERSION);
+	}
 #else
-
-const char* get_svn_revision() {
+const char* get_svn_revision()
+{
 	static char version[10];
-	char line[1024];
-	int rev = 0;
 	FILE *fp;
-	if ((fp = fopen(".svn/entries", "r")) == NULL) {
-		return "Unknown";
-	} else {
+
+	if ((fp = fopen(".svn/entries", "r")) != NULL) {
+		char line[1024];
+		int rev;
 		while (fgets(line,1023,fp))
 			if (strstr(line,"revision=")) break;
 		fclose(fp);
-		if (sscanf(line," %*[^\"]\"%d%*[^\n]",&rev) == 1) {
+		if (sscanf(line," %*[^\"]\"%d%*[^\n]", &rev) == 1) {
 			sprintf(version, "%d", rev);
 			return version;
-		} else
-			return "Unknown";
+		}
 	}
-	return 0;
+
+	// if getting revision has failed
+	return "Unknown";
 }
 #endif
 
@@ -148,7 +148,6 @@ const char* get_svn_revision() {
 
 static void display_title(void)
 {
-	const char *revision;
 	ClearScreen(); // clear screen and go up/left (0, 0 position in text)
 	ShowMessage(""CL_WTBL"          (=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=)"CL_CLL""CL_NORMAL"\n"); // white writing (37) on blue background (44), \033[K clean until end of file
 	ShowMessage(""CL_XXBL"          ("CL_BT_YELLOW"        (c)2005 eAthena Development Team presents        "CL_XXBL")"CL_CLL""CL_NORMAL"\n"); // yellow writing (33)
@@ -167,16 +166,15 @@ static void display_title(void)
 	ShowMessage(""CL_XXBL"          ("CL_BT_YELLOW"  Advanced Fusion Maps (c) 2003-2005 The Fusion Project  "CL_XXBL")"CL_CLL""CL_NORMAL"\n"); // yellow writing (33)
 	ShowMessage(""CL_WTBL"          (=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=)"CL_CLL""CL_NORMAL"\n\n"); // reset color
 	
-	if ((revision = get_svn_revision())!=NULL) {
-		ShowInfo("SVN Revision: '"CL_WHITE"%s"CL_RESET"'.\n",revision);
-	}
+	ShowInfo("SVN Revision: '"CL_WHITE"%s"CL_RESET"'.\n", get_svn_revision());
 }
 
 /*======================================
  *	CORE : MAINROUTINE
  *--------------------------------------
  */
-int main(int argc,char **argv)
+#ifndef MINICORE	// minimalist Core
+int main (int argc, char **argv)
 {
 	int next;
 
@@ -194,7 +192,6 @@ int main(int argc,char **argv)
 	Net_Init();
 	do_socket();
 
-	tick_ = time(0);
 	ticks = gettick();
 
 	do_init(argc,argv);
@@ -218,6 +215,21 @@ int main(int argc,char **argv)
 
 	return 0;
 }
+#else
+int main (int argc, char **argv)
+{
+	{
+		char *p = argp = argv[0];
+		while ((p = strchr(p, '/')) != NULL)
+			argp = ++p;
+	}
+	display_title();
+	do_init(argc,argv);
+	do_final();	
+
+	return 0;
+}
+#endif
 
 #ifdef BCHECK
 unsigned int __invalid_size_argument_for_IOC;

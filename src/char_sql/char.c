@@ -3659,10 +3659,12 @@ int do_init(int argc, char **argv){
 
 	// send ALIVE PING to login server.
 	printf("add interval tic (check_connect_login_server)....\n");
+	add_timer_func_list(check_connect_login_server, "check_connect_login_server");
 	i = add_timer_interval(gettick() + 10, check_connect_login_server, 0, 0, 10 * 1000);
 
 	// send USER COUNT PING to login server.
 	printf("add interval tic (send_users_tologin)....\n");
+	add_timer_func_list(send_users_tologin, "send_users_tologin");
 	i = add_timer_interval(gettick() + 10, send_users_tologin, 0, 0, 5 * 1000);
 
 	//no need to set sync timer on SQL version.
@@ -3670,12 +3672,16 @@ int do_init(int argc, char **argv){
 	//i = add_timer_interval(gettick() + 10, mmo_char_sync_timer, 0, 0, autosave_interval);
 
 	//Added for Mugendais I'm Alive mod
-	if(imalive_on)
+	if(imalive_on) {
+		add_timer_func_list(imalive_timer, "imalive_timer");
 		add_timer_interval(gettick()+10, imalive_timer,0,0,imalive_time*1000);
+	}
 
 	//Added by Mugendai for GUI support
-	if(flush_on)
+	if(flush_on) {
+		add_timer_func_list(flush_timer, "flush_timer");
 		add_timer_interval(gettick()+10, flush_timer,0,0,flush_time);
+	}
 
 	read_gm_account();
 

@@ -595,7 +595,7 @@ int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 		return 0;
 	for (i = 0; i < MAX_PARTY; i++)
 		if ((sd = p->member[i].sd) != NULL && p->member[i].online && sd->bl.m == map /*&& session[sd->fd] != NULL*/) {
-			if (battle_config.idle_no_share && (/* pc_issit(sd) || */ sd->chatID || (sd->idletime < (tick_ - 120))))
+			if (battle_config.idle_no_share && (/* pc_issit(sd) || */ sd->chatID || (sd->idletime < (last_tick - 120))))
 				continue;
 		#ifdef TWILIGHT
 			pc_gainexp(sd,base_exp,job_exp);

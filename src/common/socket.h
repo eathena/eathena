@@ -15,8 +15,8 @@
 #include <time.h>
 #include "malloc.h"
 
-extern time_t tick_;
-extern time_t stall_time_;
+extern time_t last_tick;
+extern time_t stall_time;
 
 // define declaration
 

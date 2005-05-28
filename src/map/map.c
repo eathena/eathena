@@ -3475,16 +3475,20 @@ int do_init(int argc, char *argv[]) {
 
 	map_readallmap();
 
-	add_timer_func_list(map_freeblock_timer,"map_freeblock_timer");
+	add_timer_func_list(map_freeblock_timer, "map_freeblock_timer");
 	add_timer_func_list(map_clearflooritem_timer, "map_clearflooritem_timer");
-	add_timer_interval(gettick()+1000,map_freeblock_timer,0,0,60*1000);
+	add_timer_interval(gettick()+1000, map_freeblock_timer, 0, 0, 60*1000);
 
 	//Added by Mugendai for GUI support
-	if (flush_on)
+	if (flush_on) {
+		add_timer_func_list(flush_timer, "flush_timer");
 		add_timer_interval(gettick()+10, flush_timer,0,0,flush_time);
+	}
 	//Added for Mugendais I'm Alive mod
-	if (imalive_on)
+	if (imalive_on) {
+		add_timer_func_list(imalive_timer, "imalive_timer");
 		add_timer_interval(gettick()+10, imalive_timer,0,0,imalive_time*1000);
+	}
 
 	// online status timer, checks every hour [Valaris]
 	add_timer_func_list(online_timer, "online_timer");

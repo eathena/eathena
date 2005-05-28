@@ -1938,6 +1938,7 @@ int do_init_pet(void)
 	add_timer_func_list(pet_hungry,"pet_hungry");
 	add_timer_func_list(pet_ai_hard,"pet_ai_hard");
 	add_timer_func_list(pet_skill_bonus_timer,"pet_skill_bonus_timer"); // [Valaris]
+	add_timer_func_list(pet_delay_item_drop2,"pet_delay_item_drop2");	
 	add_timer_func_list(pet_skill_support_timer, "pet_skill_support_timer"); // [Skotlex]
 	add_timer_func_list(pet_recovery_timer,"pet_recovery_timer"); // [Valaris]
 	add_timer_func_list(pet_heal_timer,"pet_heal_timer"); // [Valaris]

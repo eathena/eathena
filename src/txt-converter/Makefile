@@ -1,17 +1,16 @@
 all: char-converter login-converter
 sql: char-converter login-converter
 
-COMMON_OBJ = core.o ../common/obj/db.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/strlib.o
-
-
-char-converter: char-converter.o $(COMMON_OBJ)
+char-converter: char-converter.o ../common/obj/minicore.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/strlib.o
 	$(CC) -o ../../tools/$@ $^ $(LIB_S)
-login-converter: login-converter.o $(COMMON_OBJ)
+
+login-converter: login-converter.o ../common/obj/minicore.o ../common/obj/db.o ../common/obj/malloc.o ../common/obj/showmsg.o
 	$(CC) -o ../../tools/$@ $^ $(LIB_S)
 
 char-converter.o: char-converter.c
 login-converter.o: login-converter.c
-core.o: ../common/core.c ../common/core.h
+
+../common/obj/minicore.o: ../common/core.c ../common/core.h
 	$(COMPILE.c) -DMINICORE $(OUTPUT_OPTION) $<	
 
 clean:

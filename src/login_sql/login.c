@@ -1870,15 +1870,20 @@ int do_init(int argc,char **argv){
 	set_defaultparse(parse_login);
 
 	//Added for Mugendais I'm Alive mod
-	if(imalive_on)
+	if(imalive_on) {
+		add_timer_func_list(imalive_timer,"imalive_timer");
 		add_timer_interval(gettick()+10, imalive_timer,0,0,imalive_time*1000);
+	}
 
 	//Added by Mugendai for GUI support
-	if(flush_on)
+	if(flush_on) {
+		add_timer_func_list(flush_timer,"flush_timer");
 		add_timer_interval(gettick()+10, flush_timer,0,0,flush_time);
+	}
 
 	// ban deleter timer - 1 minute term
 	printf("add interval tic (ip_ban_check)....\n");
+	add_timer_func_list(ip_ban_check,"ip_ban_check");
 	i=add_timer_interval(gettick()+10, ip_ban_check,0,0,60*1000);
 
 	if (console) {

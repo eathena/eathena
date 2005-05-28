@@ -3997,12 +3997,16 @@ int do_init(int argc, char **argv) {
 		j = 60;
 
 	//Added for Mugendais I'm Alive mod
-	if(imalive_on)
+	if(imalive_on) {
+		add_timer_func_list(imalive_timer, "imalive_timer");
 		add_timer_interval(gettick()+10, imalive_timer,0,0,imalive_time*1000);
+	}
 
 	//Added by Mugendai for GUI support
-	if(flush_on)
+	if(flush_on) {
+		add_timer_func_list(flush_timer, "flush_timer");
 		add_timer_interval(gettick()+10, flush_timer,0,0,flush_time);
+	}
 
 	add_timer_func_list(check_GM_file, "check_GM_file");
 	i = add_timer_interval(gettick() + j * 1000, check_GM_file, 0, 0, j * 1000); // every x sec we check if gm file has been changed

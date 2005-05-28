@@ -40,8 +40,8 @@ fd_set readfds;
 fd_set writefds;
 #endif
 int fd_max;
-time_t tick_;
-time_t stall_time_ = 60;
+time_t last_tick;
+time_t stall_time = 60;
 int ip_rules = 1;
 
 #if defined(CYGWIN) || defined(_WIN32)
@@ -134,7 +134,7 @@ static int recv_to_fifo(int fd)
 	//{ int i; ShowMessage("recv %d : ",fd); for(i=0;i<len;i++){ ShowMessage("%02x ",RFIFOB(fd,session[fd]->rdata_size+i)); } ShowMessage("\n");}
 	if(len>0){
 		session[fd]->rdata_size+=len;
-		session[fd]->rdata_tick = tick_;
+		session[fd]->rdata_tick = last_tick;
 	} else if(len<=0){
 		// value of connection is not necessary the same
 //		ShowMessage("set eof : connection #%d\n", fd);
@@ -263,7 +263,7 @@ static int connect_client(int listen_fd)
 	session[fd]->func_send   = send_from_fifo;
 	session[fd]->func_parse  = default_func_parse;
 	session[fd]->client_addr = client_address;
-	session[fd]->rdata_tick = tick_;
+	session[fd]->rdata_tick = last_tick;
 
   //ShowMessage("new_session : %d %d\n",fd,session[fd]->eof);
 	return fd;
@@ -485,7 +485,7 @@ int make_connection(long ip,int port)
 	session[fd]->func_recv  = recv_to_fifo;
 	session[fd]->func_send  = send_from_fifo;
 	session[fd]->func_parse = default_func_parse;
-	session[fd]->rdata_tick = tick_;
+	session[fd]->rdata_tick = last_tick;
 
 	return fd;
 }
@@ -601,7 +601,7 @@ int do_sendrecv(int next)
 	int j;
 #endif
 
-	tick_ = time(0);
+	last_tick = time(0);
 
 	memcpy(&rfd, &readfds, sizeof(rfd));
 #ifdef TURBO
@@ -673,7 +673,7 @@ int do_sendrecv(int next)
 			if(session[i]->func_send)
 				session[i]->func_send(i);
 #ifdef TURBO
-			if ((session[i]->rdata_tick != 0) && ((tick_ - session[i]->rdata_tick) > stall_time_)) {
+			if ((session[i]->rdata_tick != 0) && ((last_tick - session[i]->rdata_tick) > stall_time)) {
 				session[i]->eof = 1;
 				if(session[i]->func_parse)
 					session[i]->func_parse(i);
@@ -708,7 +708,7 @@ int do_parsepacket(void)
 	for(i = 0; i < fd_max; i++){
 		if(!session[i])
 			continue;
-		if ((session[i]->rdata_tick != 0) && DIFF_TICK(tick_, session[i]->rdata_tick) > stall_time_) {
+		if ((session[i]->rdata_tick != 0) && DIFF_TICK(last_tick, session[i]->rdata_tick) > stall_time) {
 			ShowInfo ("Session #%d timed out\n", i);
 			session[i]->eof = 1;
 		}
@@ -962,7 +962,7 @@ int socket_config_read(const char *cfgName) {
 		if(i!=2)
 			continue;
 		if(strcmpi(w1,"stall_time")==0){
-			stall_time_ = atoi(w2);
+			stall_time = atoi(w2);
 		} else if(strcmpi(w1,"enable_ip_rules")==0){
 			if(strcmpi(w2,"yes")==0)
 				ip_rules = 1;
@@ -1192,6 +1192,9 @@ void do_socket(void)
 
 	socket_config_read(SOCKET_CONF_FILENAME);
 
+	// initialise last send-receive tick
+	last_tick = time(0);
+
 	// session[0] にダミーデータを確保する
 	CREATE(session[0], struct socket_data, 1);
 	CREATE_A(session[0]->rdata, unsigned char, rfifo_size);
@@ -1200,6 +1203,7 @@ void do_socket(void)
 	session[0]->max_wdata   = wfifo_size;
 
 	// とりあえず５分ごとに不要なデータを削除する
+	add_timer_func_list(connect_check_clear, "connect_check_clear");	
 	add_timer_interval(gettick()+1000,connect_check_clear,0,0,300*1000);
 
 #ifdef UPNP

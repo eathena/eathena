@@ -302,6 +302,10 @@ void dll_init (void)
 	export_symbol (argp, 4);
 	export_symbol (gettick, 8);
 	export_symbol (get_svn_revision, 12);
+	export_symbol (add_timer, 16);
+	export_symbol (add_timer_interval, 20);
+	export_symbol (add_timer_func_list, 24);
+	export_symbol (delete_timer, 28);
 
 	load_priority = 1;
 	dll_config_read (DLL_CONF_FILENAME);

@@ -1,6 +1,12 @@
 Date	Added
 05/28
+	* Registered all used timer functions to help debugging [celest]
+	* Added -DMINICORE to compile core.c (for converters and ladmin) [celest]
+	* Removed most unused code and files in char and login converters [celest]
+	* Moved converters to /txt-converters [celest]
+	* Some tidying up in core and socket.c [celest]
 	* Fixed a bug in the new attack function dealing with dual-wielding [Skotlex]
+
 05/27
 	* Removed YET AGAIN the mob's skill_idle_flag function. [Skotlex]
 	  Komurka updated the mob_skill_db so that it is not needed anymore.

@@ -36,9 +36,10 @@ void Gettimeofday(struct timeval *timenow)
 #include <stdarg.h> // valist
 #include <ctype.h> // tolower
 
-#include "../common/strlib.h"
 #include "../common/core.h"
+#include "../common/strlib.h"
 #include "../common/socket.h"
+#include "../common/timer.h"
 #include "ladmin.h"
 #include "../common/version.h"
 #include "../common/mmo.h"
@@ -4339,11 +4340,12 @@ void do_final(void) {
 //------------------------
 // Main function of ladmin
 //------------------------
-void set_server_type(void) {
-	// no server type
-	return;
-}
-int do_init(int argc, char **argv) {
+int do_init(int argc, char **argv)
+{
+	int next;
+	Net_Init();
+	do_socket();
+
 	// read ladmin configuration
 	ladmin_config_read((argc > 1) ? argv[1] : LADMIN_CONF_NAME);
 
@@ -4375,6 +4377,16 @@ int do_init(int argc, char **argv) {
 	}
 
 	Connect_login_server();
+
+	// minimalist core doesn't have sockets parsing,
+	// so we have to do this ourselves
+	while (runflag) {
+		next = do_timer(gettick_nocache());
+		do_sendrecv(next);
+#ifndef TURBO
+		do_parsepacket();
+#endif
+	}
 
 	return 0;
 }

@@ -3558,7 +3558,7 @@ int pc_walktoxy (struct map_session_data *sd, int x, int y)
 
 	sd->to_x = x;
 	sd->to_y = y;
-	sd->idletime = tick_;
+	sd->idletime = last_tick;
 
 	if (sd->walktimer != -1 && sd->state.change_walk_target == 0) {
 		// 現在?いている最中の目的地?更なのでマス目の中心に?た暫ﾉ
@@ -3879,7 +3879,7 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 	if(sd == NULL)
 		return 0;
 
-	sd->idletime = tick_;
+	sd->idletime = last_tick;
 
 	if(sd->attacktimer != tid){
 		if(battle_config.error_log)
@@ -4013,7 +4013,7 @@ int pc_attack(struct map_session_data *sd,int target_id,int type)
 	if(bl==NULL)
 		return 1;
 
-	sd->idletime = tick_;
+	sd->idletime = last_tick;
 
 	if(bl->type==BL_NPC) { // monster npcs [Valaris]
 		//npc_click(sd,RFIFOL(sd->fd,2));
@@ -7586,6 +7586,8 @@ int do_init_pc(void) {
 	add_timer_func_list(pc_calc_pvprank_timer, "pc_calc_pvprank_timer");
 	add_timer_func_list(pc_autosave, "pc_autosave");
 	add_timer_func_list(pc_spiritball_timer, "pc_spiritball_timer");
+	add_timer_func_list(pc_blockskill_end, "pc_blockskill_end");
+	add_timer_func_list(pc_follow_timer, "pc_follow_timer");	
 	add_timer_interval((natural_heal_prev_tick = gettick() + NATURAL_HEAL_INTERVAL), pc_natural_heal, 0, 0, NATURAL_HEAL_INTERVAL);
 	add_timer(gettick() + autosave_interval, pc_autosave, 0, 0);
 
