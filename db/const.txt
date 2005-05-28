@@ -348,7 +348,7 @@ e_kis2	31
 e_pif	32
 e_ok	33
 
-e_indonesia	35
+
 e_bzz	36
 e_rice	37
 e_awsm	38
@@ -363,3 +363,5 @@ e_grat	46
 e_hp	47
 e_philippines	48
 e_usa	49
+e_indonesia	50
+e_brazil	51
