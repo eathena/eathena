@@ -8,6 +8,8 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them I believe.
 
+05/29
+	* Fixed Novices able to wear all "Every class except Novice" headgears, thanks to duduc [DracoRPG]
 05/25
 	* Fixed Peach Tree card, thanks to Komurka
 05/20

@@ -329,6 +329,7 @@ int chrif_connectack(int fd)
 	chrif_connected=1;
 
 	chrif_sendmap(fd);
+	chrif_reqfamelist();
 
 	sprintf(tmp_output,"Event '"CL_WHITE"OnCharIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnCharIfInit"));
 	ShowStatus(tmp_output);
@@ -1046,7 +1047,7 @@ int chrif_recvfamelist(int fd)
 			if (name != NULL)
 				memcpy(smith_fame_list[num].name, name, 24);
 			else {
-				memcpy(smith_fame_list[num].name, "-", 24);
+				memcpy(smith_fame_list[num].name, "Unknown", 24);
 				chrif_searchcharid(id);
 			}
 			//printf("received : %s (id:%d) fame:%d\n", name, id, fame);
@@ -1076,8 +1077,6 @@ int chrif_recvfamelist(int fd)
 			break;
 	}
 	total += num;
-
-	fame_update_tick = gettick();
 
 	ShowInfo("Receiving Fame List of '"CL_WHITE"%d"CL_RESET"' characters.\n", total);
 
@@ -1257,7 +1256,7 @@ int chrif_parse(int fd)
 		case 0x2af9: chrif_connectack(fd); break;
 		case 0x2afb: chrif_sendmapack(fd); break;
 		case 0x2afd: pc_authok(RFIFOL(fd,4), RFIFOL(fd,8), (time_t)RFIFOL(fd,12), (struct mmo_charstatus*)RFIFOP(fd,16)); break;
-                case 0x2afe: pc_authfail(RFIFOL(fd,2)); break;
+        case 0x2afe: pc_authfail(RFIFOL(fd,2)); break;
 		case 0x2b00: map_setusers(fd); break;
 		case 0x2b03: clif_charselectok(RFIFOL(fd,2)); break;
 		case 0x2b04: chrif_recvmap(fd); break;

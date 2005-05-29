@@ -207,14 +207,13 @@ int pc_addfame(struct map_session_data *sd,int count,int type);
 int pc_istop10fame(int char_id, int type);
 int pc_eventtimer(int tid,unsigned int tick,int id,int data); // for npc_dequeue
 
-struct Fame_list {
+struct fame_list {
 	int id;
 	int fame;
 	char name[24];
 };
-extern struct Fame_list smith_fame_list[10];
-extern struct Fame_list chemist_fame_list[10];
-extern unsigned long fame_update_tick;
+extern struct fame_list smith_fame_list[10];
+extern struct fame_list chemist_fame_list[10];
 
 int pc_readdb(void);
 int do_init_pc(void);

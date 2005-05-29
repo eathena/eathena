@@ -53,11 +53,8 @@ int night_timer_tid;
 static int dirx[8]={0,-1,-1,-1,0,1,1,1};
 static int diry[8]={1,1,0,-1,-1,-1,0,1};
 
-#define UPDATE_FAME_INTERVAL 3600000
-#define CHECK_FAME_INTERVAL 600000
-struct Fame_list smith_fame_list[10];
-struct Fame_list chemist_fame_list[10];
-unsigned long fame_update_tick = -1;
+struct fame_list smith_fame_list[10];
+struct fame_list chemist_fame_list[10];
 
 static unsigned int equip_pos[11]={0x0080,0x0008,0x0040,0x0004,0x0001,0x0200,0x0100,0x0010,0x0020,0x0002,0x8000};
 
@@ -261,6 +258,8 @@ int pc_addfame(struct map_session_data *sd,int count,int type) {
             clif_fame_alchemist(sd,count);
             break;
 	}
+	chrif_save(sd); // Save to allow up-to-date fame list refresh
+	chrif_reqfamelist(); // Refresh the fame list
 	return 0;
 }
 
@@ -853,9 +852,9 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	// Send friends list
 	clif_friendslist_send(sd);
 
-	{
+	if (battle_config.display_version == 1){
 		char buf[256];
-		if (battle_config.display_version == 1) { sprintf(buf, "eAthena SVN version: %s", get_svn_revision()); }
+		sprintf(buf, "eAthena SVN version: %s", get_svn_revision());
 		clif_displaymessage(sd->fd, buf);
 	}
 
@@ -6790,18 +6789,6 @@ struct map_session_data *pc_get_child (struct map_session_data *sd)
 	return NULL;
 }
 
-/*==========================================
- * Fame system
- *------------------------------------------
- */
-int pc_update_famelist(int tid,unsigned int tick,int id,int data)
-{
-	if (fame_update_tick == -1 ||
-		DIFF_TICK (tick, fame_update_tick) >= UPDATE_FAME_INTERVAL)
-		chrif_reqfamelist();
-	return 0;
-}
-
 //
 // Ž©‘R‰ñ•œ•¨
 //
@@ -7576,8 +7563,6 @@ void do_final_pc(void) {
 int do_init_pc(void) {
 	pc_readdb();
 
-//	gm_account_db = numdb_init();
-
 	add_timer_func_list(pc_walk, "pc_walk");
 	add_timer_func_list(pc_attack_timer, "pc_attack_timer");
 	add_timer_func_list(pc_natural_heal, "pc_natural_heal");
@@ -7590,9 +7575,6 @@ int do_init_pc(void) {
 	add_timer_func_list(pc_follow_timer, "pc_follow_timer");	
 	add_timer_interval((natural_heal_prev_tick = gettick() + NATURAL_HEAL_INTERVAL), pc_natural_heal, 0, 0, NATURAL_HEAL_INTERVAL);
 	add_timer(gettick() + autosave_interval, pc_autosave, 0, 0);
-
-	add_timer_func_list(pc_update_famelist, "pc_update_famelist");
-	add_timer_interval(gettick() + 10000, pc_update_famelist, 0, 0, CHECK_FAME_INTERVAL);
 
 #ifndef TXT_ONLY
 	pc_read_gm_account(0);

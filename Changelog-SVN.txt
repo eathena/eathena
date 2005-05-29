@@ -1,4 +1,10 @@
 Date	Added
+05/29
+	* Fixed SVN version display at client connection, thanks to Maeki [DracoRPG]
+	* Prevented Snatcher to try stealing players and already stolen mobs, thanks to shadow [DracoRPG]
+	* Fixed Parrying and slightly organized status_change_start [DracoRPG]
+	* Removed fame list update timer and made it to refresh the list everytime pc_addfame is ran [DracoRPG]
+
 05/28
 	~ Name of NPC file in map_athena.conf is now scripts_main.conf
 	~ Added a new column to item_db.txt/item_db2.txt: refineable [Skotlex]
@@ -368,7 +374,7 @@ Date	Added
 	* Fixed typo in Concentration's hit bonus, thanks to UniRing
 	* Added additional hit bonus for Weapon Research [celest]
 	* Fixed a missing check in Absorb Spirits [celest]
-	* Made Meteor Assault cause Bleeding effectm too. According the skill desc, it causes all effects
+	* Made Meteor Assault cause Bleeding effect too. According the skill desc, it causes all effects
 	  to ANY enemy by chance now. [Lupus]
 	* Typos and grammatical fixes in various files [DracoRPG]
 	* Changed Hair style, Hair & Clothes colors fields to unsigned to allow use of 255 palettes [DracoRPG]

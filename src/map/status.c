@@ -3354,12 +3354,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 					status_change_start(bl,SC_PROVOKE,10,1,0,0,0,0);
 			}
 			break;
-
-		case SC_CONCENTRATE:		/* 集中力向上 */
-		case SC_BLESSING:			/* ブレッシング */
-		case SC_ANGELUS:			/* アンゼルス */
-			calc_flag = 1;
-			break;
 		
 		case SC_INCREASEAGI:		/* 速度上昇 */
 			calc_flag = 1;
@@ -3435,16 +3429,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_POISONREACT:	/* ポイズンリアクト */
 			val2=val1/2 + val1%2; // [Celest]
 			break;
-		case SC_IMPOSITIO:			/* インポシティオマヌス */
-			calc_flag = 1;
-			break;
 		case SC_ASPERSIO:			/* アスペルシオ */
 			skill_enchant_elemental_end(bl,SC_ASPERSIO);
-			break;
-		case SC_SUFFRAGIUM:			/* サフラギム */
-		case SC_BENEDICTIO:			/* 聖? */
-		case SC_MAGNIFICAT:			/* マグニフィカ?ト */
-		case SC_AETERNA:			/* エ?テルナ */
 			break;
 		case SC_ENERGYCOAT:			/* エナジ?コ?ト */
 			*opt3 |= 4;
@@ -3462,12 +3448,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_MINDBREAKER:
 			calc_flag = 1;
 			if(tick <= 0) tick = 1000;	/* (オ?トバ?サ?ク) */
-		case SC_GLORIA:				/* グロリア */
-			calc_flag = 1;
-			break;
-		case SC_LOUD:				/* ラウドボイス */
-			calc_flag = 1;
-			break;
 		case SC_TRICKDEAD:			/* 死んだふり */
 			if (bl->type == BL_PC) {
 				pc_stopattack((struct map_session_data *)sd);
@@ -3511,9 +3491,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_SEISMICWEAPON:		/* サイズミックウェポン */
 			skill_enchant_elemental_end(bl,SC_SEISMICWEAPON);
 			break;
-		case SC_DEVOTION:			/* ディボ?ション */
-			calc_flag = 1;
-			break;
 		case SC_PROVIDENCE:			/* プロヴィデンス */
 			calc_flag = 1;
 			val2=val1*5;
@@ -3526,13 +3503,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_STRIPSHIELD:
 			if (val2==0) val2=85;
-			break;
-		case SC_STRIPARMOR:
-		case SC_STRIPHELM:
-		case SC_CP_WEAPON:
-		case SC_CP_SHIELD:
-		case SC_CP_ARMOR:
-		case SC_CP_HELM:
 			break;
 
 		case SC_AUTOSPELL:			/* オ?トスペル */
@@ -3558,10 +3528,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			val2 = 20+val1;
 			*opt3 |= 1;
 			break;
-		case SC_COMBO:
-			break;
-		case SC_BLADESTOP_WAIT:		/* 白刃取り(待ち) */
-			break;
+
 		case SC_BLADESTOP:		/* 白刃取り */
 			if(val2==2) clif_bladestop((struct block_list *)val3,(struct block_list *)val4,1);
 			*opt3 |= 32;
@@ -3657,8 +3624,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			calc_flag = 1;
 			*opt3 |= 16;
 			break;
-		case SC_EXTREMITYFIST:		/* 阿修羅覇凰拳 */
-			break;
+
 		case SC_AUTOCOUNTER:
 			val3 = val4 = 0;
 			break;
@@ -3833,10 +3799,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			tick=((struct skill_unit *)val2)->group->limit;
 			break;
 
-		/* アンクル */
-		case SC_ANKLE:
-			break;
-
 		/* スキルじゃない/時間に?係しない */
 		case SC_RIDING:
 			calc_flag = 1;
@@ -3865,13 +3827,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			val2 = 5 + val1*15;
 			break;
 
-		case SC_KEEPING:
-		case SC_BARRIER:
-			calc_flag = 1;
-
-		case SC_HALLUCINATION:
-			break;
-
 		case SC_CONCENTRATION:	/* コンセントレ?ション */
 			*opt3 |= 1;
 			calc_flag = 1;
@@ -3883,9 +3838,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			} else return 0;
 			break;
 
-		case SC_AURABLADE:		/* オ?ラブレ?ド */
 		case SC_PARRYING:		/* パリイング */
-			//とりあえず手?き
+		    val2 = 20 + val1*3;
 			break;
 
 		case SC_WINDWALK:		/* ウインドウォ?ク */
@@ -3919,9 +3873,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			*opt3 |= 2048;
 			break;
 
-		case SC_BASILICA: // [celest]
-			break;
-
 		case SC_GOSPEL:
 			if (val4 == BCT_SELF) {	// self effect
 				if (sd) {
@@ -3944,26 +3895,12 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			*opt3 |= 1024;
 			break;
 
-		case SC_MELTDOWN:		/* メルトダウン */
-		case SC_CARTBOOST:		/* カ?トブ?スト */
-		case SC_TRUESIGHT:		/* トゥル?サイト */
-		case SC_SPIDERWEB:		/* スパイダ?ウェッブ */
-			calc_flag = 1;
-			break;
-
 		case SC_REJECTSWORD:	/* リジェクトソ?ド */
 			val2 = 3; //3回攻?を跳ね返す
 			break;
 
 		case SC_MEMORIZE:		/* メモライズ */
 			val2 = 5; //回詠唱を1/3にする
-			break;
-
-		case SC_SPLASHER:		/* ベナムスプラッシャ? */
-		case SC_FOGWALL:
-		case SC_PRESERVE:
-		case SC_DOUBLECAST:
-		case SC_MAXOVERTHRUST:
 			break;
 
 		case SC_GRAVITATION:
@@ -3988,6 +3925,30 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			}
 			break;
 
+		case SC_REGENERATION:
+			val1 = 2;
+		case SC_BATTLEORDERS:
+			tick = 60000; // 1 minute
+			calc_flag = 1;
+			break;
+		case SC_GUILDAURA:
+			calc_flag = 1;
+			tick = 1000;
+			break;
+
+		case SC_CONCENTRATE:		/* 集中力向上 */
+		case SC_BLESSING:			/* ブレッシング */
+		case SC_ANGELUS:			/* アンゼルス */
+		case SC_IMPOSITIO:			/* インポシティオマヌス */
+		case SC_GLORIA:				/* グロリア */
+		case SC_LOUD:				/* ラウドボイス */
+		case SC_DEVOTION:			/* ディボ?ション */
+		case SC_KEEPING:
+		case SC_BARRIER:
+		case SC_MELTDOWN:		/* メルトダウン */
+		case SC_CARTBOOST:		/* カ?トブ?スト */
+		case SC_TRUESIGHT:		/* トゥル?サイト */
+		case SC_SPIDERWEB:		/* スパイダ?ウェッブ */
 		case SC_SLOWDOWN:
 		case SC_SPEEDUP0:
 		case SC_INCALLSTATUS:
@@ -4005,19 +3966,29 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			calc_flag = 1;
 			break;
 
-		case SC_REGENERATION:
-			val1 = 2;
-		case SC_BATTLEORDERS:
-			tick = 60000; // 1 minute
-			calc_flag = 1;
-			break;
-
-		case SC_GUILDAURA:
-			calc_flag = 1;
-			tick = 1000;
-			break;
-
-		case SC_BABY:			
+		case SC_SUFFRAGIUM:			/* サフラギム */
+		case SC_BENEDICTIO:			/* 聖? */
+		case SC_MAGNIFICAT:			/* マグニフィカ?ト */
+		case SC_AETERNA:			/* エ?テルナ */
+  		case SC_STRIPARMOR:
+		case SC_STRIPHELM:
+		case SC_CP_WEAPON:
+		case SC_CP_SHIELD:
+		case SC_CP_ARMOR:
+		case SC_CP_HELM:
+		case SC_EXTREMITYFIST:		/* 阿修羅覇凰拳 */
+		case SC_ANKLE:	/* アンクル */
+		case SC_COMBO:
+		case SC_BLADESTOP_WAIT:		/* 白刃取り(待ち) */
+		case SC_HALLUCINATION:
+		case SC_BASILICA: // [celest]
+		case SC_SPLASHER:		/* ベナムスプラッシャ? */
+		case SC_FOGWALL:
+		case SC_PRESERVE:
+		case SC_DOUBLECAST:
+		case SC_MAXOVERTHRUST:
+        case SC_AURABLADE:		/* オ?ラブレ?ド */
+       	case SC_BABY:
 			break;
 
 		default:
