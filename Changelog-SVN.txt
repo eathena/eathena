@@ -1,5 +1,14 @@
 Date	Added
 05/29
+	* Fixed item_db.txt to contain the new refinable column [Skotlex]
+	  (I accidentally commited the old item_db last time...)
+	  TXT users with custom items can update their custom db using gawk (*nix
+	  or under Cygwin) this way (thanks to Sasuke):
+	  gawk -F, '{ for (i=1; i<= NF; i++) { if (i==16) { printf $i; printf ",";printf ","; } else if ( i==NF ) { print $i; } else { printf $i; printf ","; } } }' db/item_db2.txt > item_db2.new.txt
+	  Run it from within the root eAthena directory, and you'll get an updated
+	  item_db2.txt in your root directory. However, all custom items are not
+	  refineable by default this way, you still have to set to 1 the refineable
+	  column where it applies on your custom item_db.
 	* Improved uptime checking, by Shinomori
 	* Improved calltable import/exporting, by Shinomori
 	* Standardised init/finalise functions' names [celest]
