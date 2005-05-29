@@ -29,6 +29,8 @@ TODO:
 Date		Added
 ======
 
+05/29
+	* Fixed many grammatical errors (mostly in Merchant job quest) thanks to the__android [DracoRPG]
 05/25
 	* Changed Ayothaya to Ayotaya. (In the scripts, iRO calls it Ayotaya.) [Mass Zero]
 	* Removed lots of unneccesary spaces from the Ayotaya poetry script. [Mass Zero]

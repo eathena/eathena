@@ -99,7 +99,7 @@ function	script	F_KafStor	{
 
 	sL_JbLvl:
 		mes "[Kafra]";
-		mes "I am sorry but you have to be at leaset Novice level 6 if you want to use the storage.";
+		mes "I am sorry but you have to be at least Novice level 6 if you want to use the storage.";
 		return;
 	sL_Zeny:
 		mes "[Kafra]";
