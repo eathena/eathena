@@ -9,6 +9,7 @@
 	Skill databases == celest working on them I believe.
 
 05/29
+	* Added the new column to item_db: refineable to specify which items can be refined. [Skotlex]
 	* Fixed Novices able to wear all "Every class except Novice" headgears, thanks to duduc [DracoRPG]
 05/25
 	* Fixed Peach Tree card, thanks to Komurka
