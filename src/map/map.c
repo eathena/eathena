@@ -3401,7 +3401,7 @@ int do_init(int argc, char *argv[]) {
 	for (i = 1; i < argc ; i++) {
 		if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "--h") == 0 || strcmp(argv[i], "--?") == 0 || strcmp(argv[i], "/?") == 0)
 			map_helpscreen(1);
-		if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "--v") == 0 || strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "/v") == 0)
+		else if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "--v") == 0 || strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "/v") == 0)
 			map_versionscreen(1);
 		else if (strcmp(argv[i], "--map_config") == 0 || strcmp(argv[i], "--map-config") == 0)
 			MAP_CONF_NAME=argv[i+1];
@@ -3419,42 +3419,44 @@ int do_init(int argc, char *argv[]) {
 			GRF_PATH_FILENAME = argv[i+1];
 #ifndef TXT_ONLY
 		else if (strcmp(argv[i],"--inter_config") == 0 || strcmp(argv[i],"--inter-config") == 0)
-		    INTER_CONF_NAME = argv[i+1];
+			INTER_CONF_NAME = argv[i+1];
 #endif
 		else if (strcmp(argv[i],"--log_config") == 0 || strcmp(argv[i],"--log-config") == 0)
-		    LOG_CONF_NAME = argv[i+1];
+			LOG_CONF_NAME = argv[i+1];
 		else if (strcmp(argv[i],"--run_once") == 0)	// close the map-server as soon as its done.. for testing [Celest]
 			runflag = 0;
 	}
 
 	map_config_read(MAP_CONF_NAME);
 
-        if ((naddr_ == 0) && (map_ip_set_ == 0 || char_ip_set_ == 0)) {
-            printf("\nUnable to determine your IP address... please edit\n");
-            printf("the map_athena.conf file and set it.\n");
-            printf("(127.0.0.1 is valid if you have no network interface)\n");
-        }
+	if ((naddr_ == 0) && (map_ip_set_ == 0 || char_ip_set_ == 0)) {
+		printf("\nUnable to determine your IP address... please edit\n");
+		printf("the map_athena.conf file and set it.\n");
+		printf("(127.0.0.1 is valid if you have no network interface)\n");
+	}
 
-        if (map_ip_set_ == 0 || char_ip_set_ == 0) {
-          // The map server should know what IP address it is running on
-          //   - MouseJstr
-          int localaddr = ntohl(addr_[0]);
-          unsigned char *ptr = (unsigned char *) &localaddr;
-          char buf[16];
-          sprintf(buf, "%d.%d.%d.%d", ptr[0], ptr[1], ptr[2], ptr[3]);;
-          if (naddr_ != 1)
-            printf("Multiple interfaces detected..  using %s as our IP address\n", buf);
-          else
-            printf("Defaulting to %s as our IP address\n", buf);
-          if (map_ip_set_ == 0)
-          	clif_setip(buf);
-          if (char_ip_set_ == 0)
-		chrif_setip(buf);
+	if (map_ip_set_ == 0 || char_ip_set_ == 0) {
+		// The map server should know what IP address it is running on
+		//   - MouseJstr
+		int localaddr = ntohl(addr_[0]);
+		unsigned char *ptr = (unsigned char *) &localaddr;
+		char buf[16];
+		sprintf(buf, "%d.%d.%d.%d", ptr[0], ptr[1], ptr[2], ptr[3]);;
+		if (naddr_ != 1)
+			printf("Multiple interfaces detected..  using %s as our IP address\n", buf);
+		else
+			printf("Defaulting to %s as our IP address\n", buf);
+		if (map_ip_set_ == 0)
+			clif_setip(buf);
+		if (char_ip_set_ == 0)
+				chrif_setip(buf);
+		if (ptr[0] == 192 && ptr[1] == 168)
+			printf("\nFirewall detected.. \n    edit lan_support.conf and map_athena.conf\n\n");
+	}
 
-          if (ptr[0] == 192 && ptr[1] == 168)
-            printf("\nFirewall detected.. \n    edit lan_support.conf and map_athena.conf\n\n");
-        }
-	if (SHOW_DEBUG_MSG) ShowNotice("Server running in '"CL_WHITE"Debug Mode"CL_RESET"'.\n");
+	if (SHOW_DEBUG_MSG)
+		ShowNotice("Server running in '"CL_WHITE"Debug Mode"CL_RESET"'.\n");
+
 	battle_config_read(BATTLE_CONF_FILENAME);
 	msg_config_read(MSG_CONF_NAME);
 	atcommand_config_read(ATCOMMAND_CONF_FILENAME);
@@ -3522,8 +3524,8 @@ int do_init(int argc, char *argv[]) {
 	npc_event_do_oninit();	// npcのOnInitイベント?行
 
 	if ( console ) {
-	    set_defaultconsoleparse(parse_console);
-	   	start_console();
+		set_defaultconsoleparse(parse_console);
+		start_console();
 	}
 
 	if (battle_config.pk_mode == 1)
@@ -3536,13 +3538,13 @@ int do_init(int argc, char *argv[]) {
 }
 
 int compare_item(struct item *a, struct item *b) {
-  return (
-          (a->nameid == b->nameid) &&
-          (a->identify == b->identify) &&
-          (a->refine == b->refine) &&
-          (a->attribute == b->attribute) &&
-          (a->card[0] == b->card[0]) &&
-          (a->card[1] == b->card[1]) &&
-          (a->card[2] == b->card[2]) &&
-          (a->card[3] == b->card[3]));
+	return (
+		(a->nameid == b->nameid) &&
+		(a->identify == b->identify) &&
+		(a->refine == b->refine) &&
+		(a->attribute == b->attribute) &&
+		(a->card[0] == b->card[0]) &&
+		(a->card[1] == b->card[1]) &&
+		(a->card[2] == b->card[2]) &&
+		(a->card[3] == b->card[3]));
 }

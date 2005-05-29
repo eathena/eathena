@@ -17,6 +17,8 @@
 
 #define DIFF_TICK(a,b) ((int)((a)-(b)))
 
+extern time_t start_time;
+
 // Struct declaration
 
 struct TimerData {
@@ -50,6 +52,7 @@ int do_timer(unsigned int tick);
 int add_timer_func_list(int (*)(int,unsigned int,int,int),char*);
 char* search_timer_func_list(int (*)(int,unsigned int,int,int));
 
+void timer_init();
 void timer_final();
 
 #endif	// _TIMER_H_

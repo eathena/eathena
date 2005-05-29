@@ -11,6 +11,7 @@
 #ifdef __WIN32
 #define __USE_W32_SOCKETS
 #include <windows.h>
+#include <time.h>
 #else
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -46,6 +47,8 @@ struct timer_func_list {
 	char* name;
 };
 static struct timer_func_list* tfl_root;
+
+time_t start_time;
 
 #ifdef __WIN32
 /* Modified struct timezone to void - we pass NULL anyway */
@@ -328,7 +331,13 @@ int do_timer(unsigned int tick)
 	return nextmin;
 }
 
-void timer_final() {
+void timer_init()
+{
+	time(&start_time);
+}
+
+void timer_final()
+{
 	struct timer_func_list* tfl = tfl_root, *tfl2;
 
 	while (tfl) {

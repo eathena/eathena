@@ -29,7 +29,7 @@ void pid_create ()
 	FILE *fp;
 	int len;
 	
-	IMPORT_SYMBOL(argp, 4);
+	IMPORT_SYMBOL(argp, 1);
 	len = strlen(argp);
 	strcpy(pid_file, argp);
 	if(len > 4 && pid_file[len - 4] == '.') {

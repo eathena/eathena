@@ -77,7 +77,7 @@ void* aRealloc_ (void *p, size_t size, const char *file, int line, const char *f
 	}
 	return ret;
 }
-char* aStrdup_ (const void *p, const char *file, int line, const char *func)
+char* aStrdup_ (const char *p, const char *file, int line, const char *func)
 {
 #ifndef MEMWATCH
 	char *ret = STRDUP(p);
@@ -331,7 +331,7 @@ void* _mrealloc(void *memblock, size_t size, const char *file, int line, const c
 	}
 }
 
-char* _mstrdup(const void *p, const char *file, int line, const char *func ) {
+char* _mstrdup(const char *p, const char *file, int line, const char *func ) {
 	if(p == NULL) {
 		return NULL;
 	} else {
@@ -522,7 +522,8 @@ static void memmgr_log (char *buf)
 	return;
 }
 
-static void memmer_exit(void) {
+static void memmgr_final (void)
+{
 	struct block *block, *block2;
 	struct unit_head_large *large = unit_head_large_first, *large2;
 	char *ptr;
@@ -590,16 +591,16 @@ static void memmer_exit(void) {
 		fclose(log_fp);
 	}
 #endif
+	return;
 }
 
-int do_init_memmgr (void)
+static void memmgr_init (void)
 {
 	#ifdef LOG_MEMMGR
 		sprintf(memmer_logfile, "log/%s.leaks", argp);
 		ShowStatus("Memory manager initialised: "CL_WHITE"%s"CL_RESET"\n", memmer_logfile);
 	#endif
-
-	return 0;
+	return;
 }
 #endif
 
@@ -608,18 +609,18 @@ int do_init_memmgr (void)
  * Initialise
  *--------------------------------------
  */
-void do_final_malloc (void)
+void malloc_final (void)
 {
 #ifdef USE_MEMMGR
-	memmer_exit ();	
+	memmgr_final ();
 #endif
 	return;
 }
 
-void do_init_malloc (void)
+void malloc_init (void)
 {
 #ifdef USE_MEMMGR
-	do_init_memmgr ();
+	memmgr_init ();
 #endif
 	return;
 }

@@ -32,7 +32,7 @@
 	void* _mmalloc	(size_t, const char *, int, const char *);
 	void* _mcalloc	(size_t, size_t, const char *, int, const char *);
 	void* _mrealloc	(void *, size_t, const char *, int, const char *);
-	char* _mstrdup	(const void *, const char *, int, const char *);
+	char* _mstrdup	(const char *, const char *, int, const char *);
 	void  _mfree	(void *, const char *, int, const char *);	
 
 #else
@@ -50,7 +50,7 @@
 	void* aCalloc_	(size_t, size_t, const char *, int, const char *);
 	void* aCallocA_	(size_t, size_t, const char *, int, const char *);
 	void* aRealloc_	(void *, size_t, const char *, int, const char *);
-	char* aStrdup_	(const void *, const char *, int, const char *);
+	char* aStrdup_	(const char *, const char *, int, const char *);
 	void  aFree_	(void *, const char *, int, const char *);
 
 #endif
@@ -144,7 +144,7 @@
 
 ////////////////////////////////////////////////
 
-void do_init_malloc(void);
-void do_final_malloc(void);
+void malloc_init (void);
+void malloc_final (void);
 
 #endif

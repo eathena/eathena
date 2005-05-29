@@ -134,8 +134,8 @@ int sig_init ()
 		func = SIG_DFL;
 #endif
 
-	IMPORT_SYMBOL(argp, 4);
-	IMPORT_SYMBOL(getrevision, 12);
+	IMPORT_SYMBOL(argp, 1);
+	IMPORT_SYMBOL(getrevision, 3);
 
 	compat_signal(SIGSEGV, func);
 	compat_signal(SIGFPE, func);

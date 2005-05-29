@@ -138,8 +138,8 @@ int RFIFOSKIP(int fd,int len);
 
 int do_sendrecv(int next);
 int do_parsepacket(void);
-void do_socket(void);
-void do_final_socket(void);
+void socket_init(void);
+void socket_final(void);
 
 extern void flush_fifos();
 extern void set_nonblocking(int fd, int yes);
@@ -148,8 +148,6 @@ int start_console(void);
 
 void set_defaultparse(int (*defaultparse)(int));
 void set_defaultconsoleparse(int (*defaultparse)(char*));
-
-int  Net_Init(void);
 
 extern unsigned int addr_[16];   // ip addresses of local host (host byte order)
 extern unsigned int naddr_;   // # of ip addresses

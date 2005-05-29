@@ -4343,8 +4343,7 @@ void do_final(void) {
 int do_init(int argc, char **argv)
 {
 	int next;
-	Net_Init();
-	do_socket();
+	socket_init();
 
 	// read ladmin configuration
 	ladmin_config_read((argc > 1) ? argv[1] : LADMIN_CONF_NAME);

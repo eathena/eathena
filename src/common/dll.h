@@ -37,7 +37,7 @@
 
 #define ADDON_INFO			struct _Addon_Info addon_info
 #define ADDON_EVENTS_TABLE	struct _Addon_Event_Table addon_event_table[]
-#define ADDON_CALL_TABLE	void *addon_call_table
+#define ADDON_CALL_TABLE	void **addon_call_table
 
 #define ADDON_ALL			0
 #define ADDON_LOGIN			1
@@ -45,8 +45,8 @@
 #define ADDON_MAP			8
 #define ADDON_CORE			16
 
-#define EXPORT_SYMBOL(s)	export_symbol(s, -1);
-#define IMPORT_SYMBOL(s,n)	memcpy(&s, addon_call_table+n, 4);
+#define EXPORT_SYMBOL(s)	export_symbol((s), -1);
+#define IMPORT_SYMBOL(s,n)	(s) = addon_call_table[n]
 
 /////////////////////////////////////////////
 

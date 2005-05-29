@@ -31,8 +31,8 @@ char *argp;
 
 int uptime_init ()
 {
-	IMPORT_SYMBOL(argp, 4);
-	IMPORT_SYMBOL(gettick, 8);
+	IMPORT_SYMBOL(argp, 1);
+	IMPORT_SYMBOL(gettick, 2);
 	tick = gettick();
 	return 1;
 }

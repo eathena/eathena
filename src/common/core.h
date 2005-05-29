@@ -7,7 +7,6 @@
 
 extern char *argp;
 extern int runflag;
-extern unsigned long ticks;
 extern char SERVER_TYPE;
 
 extern const char *get_svn_revision();

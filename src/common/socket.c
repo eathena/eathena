@@ -123,7 +123,7 @@ static int recv_to_fifo(int fd)
 
 
 #ifdef _WIN32
-	len=recv(fd,session[fd]->rdata+session[fd]->rdata_size, RFIFOSPACE(fd), 0);
+	len=recv(fd,(char *)session[fd]->rdata+session[fd]->rdata_size, RFIFOSPACE(fd), 0);
 #else
 	len=read(fd,session[fd]->rdata+session[fd]->rdata_size, RFIFOSPACE(fd));
 #endif
@@ -170,7 +170,7 @@ static int send_from_fifo(int fd)
 
 
 #ifdef _WIN32
-	len=send(fd, session[fd]->wdata,session[fd]->wdata_size, 0);
+	len=send(fd, (const char *)session[fd]->wdata,session[fd]->wdata_size, 0);
 #else
 	len=write(fd,session[fd]->wdata,session[fd]->wdata_size);
 #endif
@@ -1040,88 +1040,8 @@ int RFIFOSKIP(int fd,int len)
 unsigned int addr_[16];   // ip addresses of local host (host byte order)
 unsigned int naddr_ = 0;   // # of ip addresses
 
-int  Net_Init(void)
-{
-#ifdef _WIN32
-	char** a;
-	unsigned int i;
-	char fullhost[255];
-	struct hostent* hent;
-
-		/* Start up the windows networking */
-	WSADATA wsaData;
-
-	if ( WSAStartup(WINSOCK_VERSION, &wsaData) != 0 ) {
-		ShowFatalError("SYSERR: WinSock not available!\n");
-		exit(1);
-	}
-
-	if(gethostname(fullhost, sizeof(fullhost)) == SOCKET_ERROR) {
-		ShowError("Ugg.. no hostname defined!\n");
-		return 0;
-	}
-
-	// XXX This should look up the local IP addresses in the registry
-	// instead of calling gethostbyname. However, the way IP addresses
-	// are stored in the registry is annoyingly complex, so I'll leave
-	// this as T.B.D.
-	hent = gethostbyname(fullhost);
-	if (hent == NULL) {
-		ShowError("Cannot resolve our own hostname to a IP address");
-		return 0;
-	}
-
-	a = hent->h_addr_list;
-	for(i = 0; a[i] != 0 && i < 16; ++i) {
-		unsigned long addr1 = ntohl(*(unsigned long*) a[i]);
-		addr_[i] = addr1;
-	}
-	naddr_ = i;
-#else
-	int pos;
-	int fdes = socket(AF_INET, SOCK_STREAM, 0);
-	char buf[16 * sizeof(struct ifreq)];
-	struct ifconf ic;
-
-	// The ioctl call will fail with Invalid Argument if there are more
-	// interfaces than will fit in the buffer
-	ic.ifc_len = sizeof(buf);
-	ic.ifc_buf = buf;
-	if(ioctl(fdes, SIOCGIFCONF, &ic) == -1) {
-		ShowError("SIOCGIFCONF failed!\n");
-		return 0;
-	}
-
-	for(pos = 0; pos < ic.ifc_len;)
-	{
-		struct ifreq * ir = (struct ifreq *) (ic.ifc_buf + pos);
-
-		struct sockaddr_in * a = (struct sockaddr_in *) &(ir->ifr_addr);
-
-		if(a->sin_family == AF_INET) {
-			u_long ad = ntohl(a->sin_addr.s_addr);
-			if(ad != INADDR_LOOPBACK) {
-				addr_[naddr_ ++] = ad;
-				if(naddr_ == 16)
-					break;
-			}
-		}
-
-#if defined(_AIX) || defined(__APPLE__)
-		pos += ir->ifr_addr.sa_len;  // For when we port athena to run on Mac's :)
-		pos += sizeof(ir->ifr_name);
-#else
-		pos += sizeof(struct ifreq);
-#endif
-	}
-
-#endif
-
-	return(0);
-}
-
 #ifdef UPNP
-void do_init_upnp(void)
+void upnp_init (void)
 {
 	int (*upnp_init)();
 	int *_release_mappings;
@@ -1153,7 +1073,7 @@ void do_init_upnp(void)
 }
 #endif
 
-void do_final_socket(void)
+void socket_final (void)
 {
 	int i;
 	struct _connect_history *hist , *hist2;
@@ -1180,12 +1100,84 @@ void do_final_socket(void)
 	aFree(session[0]);
 }
 
-void do_socket(void)
+void socket_init (void)
 {
 	char *SOCKET_CONF_FILENAME = "conf/packet_athena.conf";
+#ifdef _WIN32
+	char** a;
+	unsigned int i;
+	char fullhost[255];
+	struct hostent* hent;
+
+		/* Start up the windows networking */
+	WSADATA wsaData;
+
+	if ( WSAStartup(WINSOCK_VERSION, &wsaData) != 0 ) {
+		ShowFatalError("SYSERR: WinSock not available!\n");
+		exit(1);
+	}
+
+	if(gethostname(fullhost, sizeof(fullhost)) == SOCKET_ERROR) {
+		ShowError("Ugg.. no hostname defined!\n");
+		return;
+	}
+
+	// XXX This should look up the local IP addresses in the registry
+	// instead of calling gethostbyname. However, the way IP addresses
+	// are stored in the registry is annoyingly complex, so I'll leave
+	// this as T.B.D.
+	hent = gethostbyname(fullhost);
+	if (hent == NULL) {
+		ShowError("Cannot resolve our own hostname to a IP address");
+		return;
+	}
+
+	a = hent->h_addr_list;
+	for(i = 0; a[i] != 0 && i < 16; ++i) {
+		unsigned long addr1 = ntohl(*(unsigned long*) a[i]);
+		addr_[i] = addr1;
+	}
+	naddr_ = i;
+#else
+	int pos;
+	int fdes = socket(AF_INET, SOCK_STREAM, 0);
+	char buf[16 * sizeof(struct ifreq)];
+	struct ifconf ic;
+
+	// The ioctl call will fail with Invalid Argument if there are more
+	// interfaces than will fit in the buffer
+	ic.ifc_len = sizeof(buf);
+	ic.ifc_buf = buf;
+	if(ioctl(fdes, SIOCGIFCONF, &ic) == -1) {
+		ShowError("SIOCGIFCONF failed!\n");
+		return;
+	}
+
+	for(pos = 0; pos < ic.ifc_len;)
+	{
+		struct ifreq * ir = (struct ifreq *) (ic.ifc_buf + pos);
+
+		struct sockaddr_in * a = (struct sockaddr_in *) &(ir->ifr_addr);
+
+		if(a->sin_family == AF_INET) {
+			u_long ad = ntohl(a->sin_addr.s_addr);
+			if(ad != INADDR_LOOPBACK) {
+				addr_[naddr_ ++] = ad;
+				if(naddr_ == 16)
+					break;
+			}
+		}
+
+	#if defined(_AIX) || defined(__APPLE__)
+		pos += ir->ifr_addr.sa_len;  // For when we port athena to run on Mac's :)
+		pos += sizeof(ir->ifr_name);
+	#else
+		pos += sizeof(struct ifreq);
+	#endif
+	}
+#endif
 
 	FD_ZERO(&readfds);
-
 #ifdef TURBO
 	FD_ZERO(&writefds);
 #endif
@@ -1207,6 +1199,6 @@ void do_socket(void)
 	add_timer_interval(gettick()+1000,connect_check_clear,0,0,300*1000);
 
 #ifdef UPNP
-	do_init_upnp();
+	upnp_init();
 #endif
 }

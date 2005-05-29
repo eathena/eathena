@@ -35,9 +35,9 @@ Addon *addon_head = NULL;
 
 Addon_Info default_info = { "Unknown", ADDON_ALL, "0", DLL_VERSION, "Unknown" };
 
-void *call_table = NULL;
-static int call_table_size	= 0;
-static int max_call_table	= 4;
+void **call_table = NULL;
+static size_t call_table_size	= 0;
+static size_t max_call_table	= 0;
 
 ////// Plugin Events Functions //////////////////
 
@@ -70,6 +70,12 @@ Addon_Event_List *search_addon_func (char *name)
 int register_addon_event (void (*func)(), char* name)
 {
 	Addon_Event_List *evl = search_addon_func(name);
+	if (!evl) {
+		// register event if it doesn't exist already
+		register_addon_func(name);
+		// relocate the new event list
+		evl = search_addon_func(name);
+	}
 	if (evl) {
 		Addon_Event *ev;
 
@@ -113,17 +119,26 @@ int addon_event_trigger (char *name)
 int export_symbol (void *var, int offset)
 {
 	//printf ("0x%x\n", var);
-
+	
+	// add to the end of the list
 	if (offset < 0)
-		offset = call_table_size*4;
-
-	if (++call_table_size > max_call_table) {
-		max_call_table += 4;
-		call_table = aRealloc(call_table,
-			sizeof(void*) * max_call_table);
+		offset = call_table_size;
+	
+	// realloc if not large enough  
+	if ((size_t)offset >= max_call_table) {
+		max_call_table = 1 + offset;
+		call_table = (void**)aRealloc(call_table, max_call_table*sizeof(void*));
+		
+		// clear the new alloced block
+		memset(call_table + call_table_size, 0, (max_call_table-call_table_size)*sizeof(void*));
 	}
 
-	memcpy(call_table+offset, &var, 4);
+	// the new table size is delimited by the new element at the end
+	if ((size_t)offset >= call_table_size)
+		call_table_size = offset+1;
+	
+	// put the pointer at the selected place
+	call_table[offset] = var;
 	return 0;
 }
 
@@ -150,7 +165,7 @@ Addon *dll_open (const char *filename)
 		addon = addon->next;
 	}
 
-	addon = aMallocA(sizeof(Addon));
+	addon = (Addon *)aMallocA(sizeof(Addon));
 	addon->state = -1;	// not loaded
 
 	addon->dll = DLL_OPEN(filename);
@@ -297,15 +312,14 @@ void dll_init (void)
 	register_addon_func("Athena_Init");
 	register_addon_func("Athena_Final");
 
-	call_table = aMalloc(max_call_table * sizeof(void *));
+	export_symbol (delete_timer, 7);
+	export_symbol (add_timer_func_list, 6);
+	export_symbol (add_timer_interval, 5);
+	export_symbol (add_timer, 4);
+	export_symbol (get_svn_revision, 3);
+	export_symbol (gettick, 2);
+	export_symbol (argp, 1);
 	export_symbol (&SERVER_TYPE, 0);
-	export_symbol (argp, 4);
-	export_symbol (gettick, 8);
-	export_symbol (get_svn_revision, 12);
-	export_symbol (add_timer, 16);
-	export_symbol (add_timer_interval, 20);
-	export_symbol (add_timer_func_list, 24);
-	export_symbol (delete_timer, 28);
 
 	load_priority = 1;
 	dll_config_read (DLL_CONF_FILENAME);

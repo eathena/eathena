@@ -42,7 +42,7 @@ int do_init ()
 {
 	// import symbols from the server
 	IMPORT_SYMBOL(server_type, 0);
-	IMPORT_SYMBOL(argp, 4);
+	IMPORT_SYMBOL(argp, 1);
 
 	printf ("Server type is ");
 	switch (*server_type) {

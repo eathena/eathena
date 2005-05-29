@@ -8328,11 +8328,11 @@ atcommand_uptime(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	long seconds = 0, day = 24*60*60, hour = 60*60,
+	unsigned long seconds = 0, day = 24*60*60, hour = 60*60,
 		minute = 60, days = 0, hours = 0, minutes = 0;
 	nullpo_retr(-1, sd);
 
-	seconds = (gettick()-ticks)/CLOCKS_PER_SEC;
+	seconds = (unsigned long) difftime (time(NULL), start_time);
 	days = seconds/day;
 	seconds -= (seconds/day>0)?(seconds/day)*day:0;
 	hours = seconds/hour;
@@ -8340,9 +8340,8 @@ atcommand_uptime(
 	minutes = seconds/minute;
 	seconds -= (seconds/minute>0)?(seconds/minute)*minute:0;
 
-        snprintf(atcmd_output, sizeof(atcmd_output), msg_table[245], days, hours, minutes, seconds);
-
-	clif_displaymessage(fd,atcmd_output);
+	snprintf(atcmd_output, sizeof(atcmd_output), msg_table[245], days, hours, minutes, seconds);
+	clif_displaymessage(fd, atcmd_output);
 
 	return 0;
 }

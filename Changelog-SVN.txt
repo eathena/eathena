@@ -1,5 +1,8 @@
 Date	Added
 05/29
+	* Improved uptime checking, by Shinomori
+	* Improved calltable import/exporting, by Shinomori
+	* Standardised init/finalise functions' names [celest]
 	* Fixed SVN version display at client connection, thanks to Maeki [DracoRPG]
 	* Prevented Snatcher to try stealing players and already stolen mobs, thanks to shadow [DracoRPG]
 	* Fixed Parrying and slightly organized status_change_start [DracoRPG]

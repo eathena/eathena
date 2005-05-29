@@ -20,116 +20,111 @@ struct dbn *tail;
 #ifdef MALLOC_DBN
 #define ROOT_SIZE 4096
 static struct dbn *dbn_root[512], *dbn_free;
-static int dbn_root_rest=0,dbn_root_num=0;
+static int dbn_root_rest = 0, dbn_root_num = 0;
 
-static void * malloc_dbn(void)
+static struct dbn* malloc_dbn (void)
 {
 	struct dbn* ret;
 
-	if(dbn_free==NULL){
-		if(dbn_root_rest<=0){
+	if (dbn_free == NULL) {
+		if (dbn_root_rest <= 0) {
 			CREATE(dbn_root[dbn_root_num], struct dbn, ROOT_SIZE);
 
-			dbn_root_rest=ROOT_SIZE;
+			dbn_root_rest = ROOT_SIZE;
 			dbn_root_num++;
 		}
 		return &(dbn_root[dbn_root_num-1][--dbn_root_rest]);
 	}
-	ret=dbn_free;
+	ret = dbn_free;
 	dbn_free = dbn_free->parent;
 	return ret;
 }
 
-static void free_dbn(struct dbn* add_dbn)
+static void free_dbn (struct dbn *add_dbn)
 {
 	add_dbn->parent = dbn_free;
 	dbn_free = add_dbn;
 }
 
-void exit_dbn(void)
+void exit_dbn (void)
 {
 	int i;
 
-	for (i=0;i<dbn_root_num;i++)
+	for (i = 0; i < dbn_root_num; i++)
 		if (dbn_root[i])
 			aFree(dbn_root[i]);
 
-	dbn_root_rest=0;
-	dbn_root_num=0;
-
+	dbn_root_rest = dbn_root_num = 0;
 	return;
 }
 #else
 void exit_dbn(void)
 {
-	int i = 0;
 	struct dbn *p = head, *p2;
-	while (p) {		
+	while (p) {
 		p2 = p->next;
 		aFree(p);
 		p = p2;
-		i++;
 	}
-	//ShowInfo ("freed %d stray dbn\n", i);
 	return;
 }
 #endif
 
 // maybe change the void* to const char* ???
-static int strdb_cmp(struct dbt* table,void* a,void* b)
+static int strdb_cmp (struct dbt* table, void* a, void* b)
 {
-	if(table->maxlen)
-		return strncmp((const char*)a,(const char*)b,table->maxlen);
-	return strcmp((const char*)a,(const char*)b);
+	if (table->maxlen)
+		return strncmp ((const char*)a, (const char*)b, table->maxlen);
+	return strcmp ((const char*)a, (const char*)b);
 }
 
 // maybe change the void* to unsigned char* ???
-static unsigned int strdb_hash(struct dbt* table,void* a)
+static unsigned int strdb_hash (struct dbt* table, void* a)
 {
-	int i;
-	unsigned int h;
+	unsigned int h = 0;
 	unsigned char *p = (unsigned char*)a;
+	int i = table->maxlen;
 
-	i=table->maxlen;
-	if(i==0) i=0x7fffffff;
-	for(h=0;*p && --i>=0;){
-		h=(h*33 + *p++) ^ (h>>24);
-	}
+	if (i == 0) i = 0x7fffffff;
+	while (*p && --i >= 0)
+		h = (h*33 + *p++) ^ (h>>24);
+
 	return h;
 }
 
-struct dbt* strdb_init_(int maxlen,const char *file,int line)
+struct dbt* strdb_init_ (int maxlen, const char *file, int line)
 {
 	int i;
 	struct dbt* table;
 
 	CREATE(table, struct dbt, 1);
 
-	table->cmp=strdb_cmp;
-	table->hash=strdb_hash;
-	table->maxlen=maxlen;
-	for(i=0;i<HASH_SIZE;i++)
-		table->ht[i]=NULL;
+	table->cmp = strdb_cmp;
+	table->hash = strdb_hash;
+	table->maxlen = maxlen;
+	for (i = 0; i < HASH_SIZE; i++)
+		table->ht[i] = NULL;
 	table->alloc_file = file;
 	table->alloc_line = line;
 	table->item_count = 0;
+
 	return table;
 }
 
-static int numdb_cmp(struct dbt* table,void* a,void* b)
+static int numdb_cmp (struct dbt *table, void *a, void *b)
 {
-	int ia,ib;
+	int ia, ib;
 
-	ia=(int)a;
-	ib=(int)b;
+	ia = (int)a;
+	ib = (int)b;
 
-	if((ia^ib) & 0x80000000)
-		return ia<0 ? -1 : 1;
+	if ((ia^ib) & 0x80000000)
+		return ia < 0 ? -1 : 1;
 
-	return ia-ib;
+	return ia - ib;
 }
 
-static unsigned int numdb_hash(struct dbt* table,void* a)
+static unsigned int numdb_hash (struct dbt *table, void *a)
 {
 	return (unsigned int)a;
 }
@@ -152,55 +147,54 @@ struct dbt* numdb_init_(const char *file,int line)
 	return table;
 }
 
-void* db_search(struct dbt *table,void* key)
+void* db_search (struct dbt *table, void  *key)
 {
-	struct dbn *p;
+	struct dbn *p = table->ht[table->hash(table,key) % HASH_SIZE];
 
-	for(p=table->ht[table->hash(table,key) % HASH_SIZE];p;){
-		int c=table->cmp(table,key,p->key);
-		if(c==0)
+	while (p) {
+		int c = table->cmp(table, key, p->key);
+		if (c == 0)
 			return p->data;
-		if(c<0)
-			p=p->left;
+		if (c < 0)
+			p = p->left;
 		else
-			p=p->right;
+			p = p->right;
 	}
 	return NULL;
 }
 
-void * db_search2(struct dbt *table, const char *key)
+void* db_search2 (struct dbt *table, const char *key)
 {
-	int i,sp;
-	struct dbn *p,*pn,*stack[64];
-    int slen = strlen(key);
+	int i, sp;
+	struct dbn *p, *pn, *stack[64];
+	int slen = strlen(key);
 
-	for(i=0;i<HASH_SIZE;i++){
-		if((p=table->ht[i])==NULL)
+	for (i = 0; i < HASH_SIZE; i++) {
+		if ((p = table->ht[i]) == NULL)
 			continue;
-		sp=0;
-		while(1){
-                        if (strnicmp(key, (const char*)p->key, slen) == 0)
-                           return p->data;
-			if((pn=p->left)!=NULL){
-				if(p->right){
-					stack[sp++]=p->right;
-				}
-				p=pn;
+		sp = 0;
+		while (1) {
+			if (strnicmp(key, (const char*)p->key, slen) == 0)
+				return p->data;
+			if((pn = p->left) != NULL) {
+				if (p->right)
+					stack[sp++] = p->right;
+				p = pn;
 			} else {
-				if(p->right){
-					p=p->right;
-				} else {
-					if(sp==0)
+				if (p->right)
+					p = p->right;
+				else {
+					if (sp == 0)
 						break;
-					p=stack[--sp];
+					p = stack[--sp];
 				}
 			}
 		}
 	}
-        return 0;
+	return 0;
 }
 
-static void db_rotate_left(struct dbn *p,struct dbn **root)
+static void db_rotate_left (struct dbn *p, struct dbn **root)
 {
 	struct dbn * y = p->right;
 	p->right = y->left;
@@ -456,7 +450,7 @@ struct dbn* db_insert(struct dbt *table,void* key,void* data)
 		}
 	}
 #ifdef MALLOC_DBN
-	p=malloc_dbn();
+	p=(struct dbn *)malloc_dbn();
 #else
 	CREATE(p, struct dbn, 1);
 #endif

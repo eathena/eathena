@@ -23,8 +23,7 @@
 char *argp;
 int runflag = 1;
 char SERVER_TYPE = ATHENA_SERVER_NONE;
-unsigned long ticks = 0; // by MC Cameri
-static void (*term_func)(void)=NULL;
+static void (*term_func)(void) = NULL;
 
 /*======================================
  *	CORE : Set function
@@ -82,6 +81,7 @@ static void sig_proc(int sn)
 			exit(0);
 		runflag = 0;
 		break;
+#ifndef _WIN32
 	case SIGXFSZ:
 		// ignore and allow it to set errno to EFBIG
 		ShowWarning ("Max file size reached!\n");
@@ -90,20 +90,21 @@ static void sig_proc(int sn)
 	case SIGPIPE:
 		ShowMessage ("Broken pipe found... closing socket\n");	// set to eof in socket.c
 		break;	// does nothing here
+#endif
 	}
 }
 
-void init_signals (void)
+void signals_init (void)
 {
 	compat_signal(SIGTERM, sig_proc);
 	compat_signal(SIGINT, sig_proc);
-	compat_signal(SIGXFSZ, sig_proc);
 
 	// Signal to create coredumps by system when necessary (crash)
 	compat_signal(SIGSEGV, SIG_DFL);
 	compat_signal(SIGFPE, SIG_DFL);
 	compat_signal(SIGILL, SIG_DFL);
 	#ifndef _WIN32
+		compat_signal(SIGXFSZ, sig_proc);
 		compat_signal(SIGPIPE, sig_proc);
 		compat_signal(SIGBUS, SIG_DFL);
 		compat_signal(SIGTRAP, SIG_DFL);
@@ -186,13 +187,12 @@ int main (int argc, char **argv)
 
 	set_server_type();
 	display_title();
-	do_init_malloc(); // 一番最初に実行する必要がある
-	init_signals();
-	dll_init();
-	Net_Init();
-	do_socket();
+	malloc_init(); // 一番最初に実行する必要がある
+	signals_init();
 
-	ticks = gettick();
+	timer_init();
+	dll_init();
+	socket_init();
 
 	do_init(argc,argv);
 	addon_event_trigger("Athena_Init");
@@ -206,12 +206,13 @@ int main (int argc, char **argv)
 	}
 
 	addon_event_trigger("Athena_Final");
-	do_final();	
+	do_final();
+
 	exit_dbn();
 	timer_final();
 	dll_final();
-	do_final_socket();
-	do_final_malloc();
+	socket_final();
+	malloc_final();
 
 	return 0;
 }
