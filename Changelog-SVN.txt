@@ -1,5 +1,6 @@
 Date	Added
 05/29
+	* Dynamic mobs now also removes mobs that have a master [Skotlex]
 	* Fixed Knockback skills on the new attack function [Skotlex]
 	* Rewrote the vitality reduction equation in the new attack funcion [Skotlex]
 	  The new equation conforms to rodatazone's information here:
