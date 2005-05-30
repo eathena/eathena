@@ -20,6 +20,8 @@ Version 1.0.0 DEV-SVN
 Please read new HTML readme at:
 ./readme.html
 
+This file is not needed anymore...
+
 --------------------------------------------------------------
 --------------------------------------------------------------
 License:
