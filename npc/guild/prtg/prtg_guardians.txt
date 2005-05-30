@@ -47,7 +47,7 @@ OnAgitInit:
 	if (GetCastleData("prtg_cas02.gat",17) == 1) guardian "prtg_cas02.gat",59,24,"Knight Guardian",1286,1,"Guardian_Pt02::OnGuardianDied",7;
 	end;
 
-GuardianDied:
+OnGuardianDied:
 	// Event when Guardian dies
 	MapAnnounce "prtg_cas02.gat","A Guardian Has Fallen",17;
 	end;
