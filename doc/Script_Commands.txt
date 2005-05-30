@@ -1,0 +1,3291 @@
+//===== Athena Script =====================================
+//= eAthena Script Commands
+//===== By ================================================
+//= Fredzilla
+//===== Helped By =========================================
+//= Terminal Vertex & Z3R0 - Helped define getmapxy
+//= HappyDenn - Gave everything to do with getpartymember a great help
+//===== Version ===========================================
+//= 1.0 - First release, filled will as much info as I could
+//=	  remember or figure out, most likely there are errors,
+//=	  and things I have missed out
+//= 1.1 - Added better discription for "getmapxy"
+//= 1.2b- Added a description for getpartymember 
+//=	  (+few spelling mistakes corrected)
+//===== Compatible With ===================================
+//= LOL, can be used by anyone hopefully
+//===== Description =======================================
+//= A list of all the command you can possibly use in eAthena
+//===== Notes =============================================
+//= It is recommened you have word warp on, since I didnt 
+//= use the "Enter" button too offen and I trail of the side
+//=========================================================
+
+Below I have listed each and every command available inside eAthena, I have tried to be as detailed as possible, but not explained too hard so that even a novice scripter can understand them :P well that is my hope any way
+
+Structure
+---------
+Name of command
+
+Description
+
+Small example in possible
+
+//This is the basic stucture I have tried to follow, some times the Description can be just one line, in others it can be paragraphs of explaination, this also rings true about the examples 
+
+
+Note: To find a specific command, using Ctrl+F, put an * followed by the command, and it should find it
+
+If there are any I have missed please tell me and I will glady add them ;)
+
+-------------------------
+
+*mes
+
+Displays a box on the screen, which will contain the text specified
+
+	mes "Text that will appear in the box";
+
+---------------------------------------
+
+*goto
+
+Will make the script jump to a label, usually used in conjunction with other command, such as "if"
+
+	goto Label;
+	mes "This will not be seen";
+Label:
+	mes "This will be seen";
+
+---------------------------------------
+
+*callsub
+
+Works like goto, will goto a label and run in, when finished it will return (using the return command) back to the point it was called, used when there is a specific thing the script will do over and over, this lets you use the same bit of code as many times as you like, to save space and time
+
+	mes "[Woman]"
+	mes "Lets see if you win";
+	callsub "Check";
+	mes "Well done you have won";
+Check:
+	set @win, rand(2);
+	if(@win==0) return;
+	mes "Sorry you lost";
+
+It is not necessary that you understand everything in that example, just what happens using the callsub and return.
+
+---------------------------------------
+
+*callfunc
+
+Lets you create a function NPC, this will be invisable, and can be called on from any script, again using the return command you can came back to the place that called it
+
+place.gat,50,50,6	script	Woman	115,{
+	mes "[Woman]"
+	mes "Lets see if you win";
+	callfunc "funcNPC";
+	mes "Well done you have won";	
+
+function	script	funcNPC	{
+	set @win, rand(2);
+	if(@win==0) return;
+	mes "Sorry you lost";
+
+This is alot like "callsub", but it uses another NPC as a place of referance
+
+---------------------------------------
+
+*return
+
+When you use callsub or callfunc, it allows you to go back to the place that called them
+
+For an example see either "callfunc" or "callsub"
+
+---------------------------------------
+
+*getarg
+
+This command is used when you use the advanced functions of callsub or callfunc, in the call you can specify variables that will make that call differant from another one, this is another things that can let you use the same but of code more than once
+
+place.gat,50,50,6	script	Woman1	115,{
+	mes "[Woman]"
+	mes "Lets see if you win";
+	callfunc "funcNPC",2;
+	mes "Well done you have won";
+
+place.gat,52,50,6	script	Woman2	115,{
+	mes "[Woman]"
+	mes "Lets see if you win";
+	callfunc "funcNPC",5;
+	mes "Well done you have won";
+
+function	script	funcNPC	{
+	set @win, rand(getarg(0));
+	if(@win==0) return;
+	mes "Sorry you lost";
+
+The example shows 2 npcs, "woman1" called the funcNPC, but its argument 0 is stated as 2 so when if try to find a random number it can only be 0 or 1, were as "woman2" has 5 as its argument 0, so its random number could be 0 1 2 3 or 4, this makes "woman2" less likely to have a successful number return
+The numbers count from 0 so if there was 
+
+callfunc "funcNPC",5,4,3;
+
+getarg(0) would = 5
+getarg(1) would = 4
+getarg(2) would = 3
+
+getarg can also be used to carry information back from using the "callfunc" script command, by adding a number, or a variable to the end of the "return" command you can use getarg to retrieve that piece of information
+
+place.gat,50,50,6	script	Woman	115,{
+	mes "[Woman]"
+	mes "Lets see if you win";
+	callfunc "funcNPC";
+	mes "Well it seems you have "+getarg(0);	
+
+function	script	funcNPC	{
+	set @win, rand(2);
+	if(@win==0) return(won);
+	return(lost);
+
+---------------------------------------
+
+*next
+
+Used to segment talking, this command is used ALOT
+
+	mes "[Woman]";
+	mes "This would appear on the page";
+	next;
+	mes "[Woman]";    // This is needed cause it is a new page and the top will now be blank
+	mes "This would appear on the 2nd page";
+
+---------------------------------------
+
+*close
+
+This is one of the ways to end a speech from an NPC, after this command is issued a button will appear with close writen on it, once clicked the NPC script will end, and the message box will disappear
+
+	mes "[Woman]";
+	mes "I am finished talking to you, click the close button";
+	close;
+	mes "This will not be seen at all cause the script has ended";
+
+---------------------------------------
+
+*close2
+
+This is another one of the ways to end a speech from an NPC, there is one small differance even though the message box will have closed things listed after close2 will still run, meaning an "end" has to be used to stop the script in many cases 
+
+	mes "[Woman]";
+	mes "I will warp you now";
+	close2;
+	warp "place.gat",50,50;
+	end;
+
+---------------------------------------
+
+*menu
+
+Creates a menu that a player gets to pick from, depending on what a the player picks depends on what Label the script skips to
+
+	menu "I want to Start",L_Start,"I want to end",L_End;
+
+L_Start:
+	//If they click "I want to Start" they will end up here
+L_End:
+	//If they click "I want to end" they will end up here
+
+
+Please be aware if "-" is used as a label the script will carry on from that point if that option is selected, this can be used to save you time, and optimize big scripts
+
+	menu "I want to Start",-,"I want to end",L_End;
+	//If they click "I want to Start" they will end up here
+L_End:
+	//If they click "I want to end" they will end up here
+
+Both examples will perform the same task
+
+---------------------------------------
+
+*rand
+
+Creates a random number from a range stated, or an ammount of random numbers selected
+
+rand(10) would result in 0,1,2,3,4,5,6,7,8 or 9
+
+rand(2,10) would result in 2,3,4,5,6,7,8,9 or 10
+
+See also callsub, callfunc and getarg
+
+---------------------------------------
+
+*warp
+
+Will take the player to a specifed map, and if wanted specified co-ordinates too, but these can be random
+
+	warp "place.gat",50,55;
+// Would take the player to X 50 Y 55 on the map called "place", if your X and Y co-ordinates land on a place you cannot land/walk it will send you to a random place, for this see below
+
+	warp "place.gat",0,0;
+// Would take the player to a totally random set of co-ordinates, but will be on the map "place", in most cases it will land you in a place where you are able to get to normally, but in strange cases some places have been left open so people could randomly land on a bad place, so be aware of this 
+
+---------------------------------------
+
+*areawarp
+
+This has the same effect as the "warp" command, but will not just effect the person that activated it but people within a specified area, if the uses is not inside the area they will not be warped
+
+	areawarp "place.gat",10,10,120,120,"place2.gat",150,150;
+// Every one that is in the area between X 10 Y 10 and X 120 Y 120, in a square shape, on the map called "place", will be effected, and warped to "place2" X 150 Y 150
+	areawarp "place.gat",10,10,120,120,"place2.gat",0,0;
+// By using ,0,0; at the end it will take all the people in the effected to a random set of co-ordinates on "place2"
+
+For more info check the "warp" command
+
+---------------------------------------
+
+*heal
+
+Can be used to heal a set ammount of HP or SP, or both
+
+	heal 30000,0; // This will heal 30,000 HP
+	heal 0,30000; // This will heal 30,000 SP
+	heal 300,300; // This will heal 300 HP and 300 SP
+
+---------------------------------------
+
+*itemheal
+
+Not normally used in normal NPC scripts, but is used inside the item_db, it gives the effect of drinking a potion, eating fruit ect..., it is used in the same way as "heal"
+
+	itemheal 30000,0; // This will heal 30,000 HP
+	itemheal 0,30000; // This will heal 30,000 SP
+	itemheal 300,300; // This will heal 300 HP and 300 SP
+
+There is also a nice example on using this with the "rand" NPC command, to give you an random ammount of healing
+
+	itemheal rand(100,150),0; // This will heal anything thing from 100 to 150 HP and no SP
+
+Unlike heal no green numbers will rise to say how much you have been healed
+
+---------------------------------------
+
+*percentheal
+
+Used alot like heal, but you specify a percent to heal the player
+
+	percentheal 100,0; // This will heal 100% HP
+	percentheal 0,100; // This will heal 100% SP
+	percentheal 50,50; // This will heal 50% HP and 50% SP
+
+So the ammount that this will heal will depend on the total ammount of HP or SP you have maximum 
+
+---------------------------------------
+
+*jobchange
+
+A simple job change command, you state it, then the number that corrisponds to the job you want the player to become
+
+	jobchange 1; // This would change your player into a Swordman
+	jobchange 4002; // This would change your player into a Swordman High
+
+Yes this does work with numbers, but you could also use the names if used correctally
+
+	jobchange Job_Swordman; // This would change your player into a Swordman
+	jobchange Job_Swordman_High; // This would change your player into a Swordman High
+
+This is made possible from inside the const.txt file, you can also check there for all the numbers/names of all the jobs you are able to use
+
+---------------------------------------
+
+*input
+
+Makes a box pop-up where the player can enter a number, has many uses, one example would be a guessing game, also including the "rand" NPC command
+
+	mes "[Woman]";
+	mes "Try and guess the number I am thinking of";
+	mes "The number will be between 1 and 10";
+	next;
+	set @number, rand(1,10);
+	input @guess;
+	if(@guess==@number) goto L_Correct;
+	mes "[Woman]";
+	mes "Sorry that wasnt the number I was thinking of";
+	close;
+L_Correct:
+	mes "[Woman]";
+	mes "Well done that was the number I was thinking of";
+	close;
+
+Now there are 2 input boxes, the one that appears depend on the type a variable you try and save it as, using a standard variable you would get asked for a number, if your variable ends with a $ it will ask for text, you can use that text to fill things in inside a script, and just like numbers can be used to compare
+
+	mes "[Woman]";
+	mes "Please say HELLO";
+	next;
+	input @var$;
+	if(@var$=="HELLO") goto L_Correct;
+	mes "[Woman]";
+	mes "Sorry you got it wrong";
+	close;
+L_Correct:
+	mes "[Woman]";
+	mes "Well done you typed it correctally";
+	close;
+
+Another example where it can be used to fill in what an NPC says
+
+	mes "[Woman]";
+	mes "What is your favourite food?";
+	next;
+	input @food$;
+	if (@food$==null) goto L_None; //Null should be used for text comparison if you want to check if they have typed anything of not
+	mes "[Woman]";
+	mes "mmmmm, yeah I love " + @food$ + " too";
+	close;
+L_None:
+	mes "[Woman]";
+	mes "Dont you have a favourite food?!?";
+	close;	
+
+For more information about what variable you could use see the "set" NPC command
+
+---------------------------------------
+
+*setlook
+
+Used for changing the palette used on hair and clothes mainly, you specify which one you want to change, then the palette you want to use, make sure you specify a palette No. that exists/is usable by the client you use
+
+		setlook 6,8; // This will change your hair(6), so that it uses palette 8, what ever your palette 8 is your hair will use that colour
+		setlook 7,1; // This will change your clothes(7), so they are using palette 1, what ever your palette 1 is your clothes will then use that set of colours
+
+Since alot of people have differant palettes, for hair and clothes, I cant list what all the colours are, experiment untill you find a colour you like
+
+If you want a better example there is the dyer script inside a normal eAthena installation that you can look at, this may help you create a dyer of your own if you like
+	"\npc\merchants\custom\dye.txt"
+
+---------------------------------------
+
+*set
+
+Used to set a variable to a Player, globally and to a seperate file that is still char based
+
+There are many differant variables, I will now try and remember them all :P
+
+" "	= Thats right nothing before a variable, this a perminant variable set on the player
+"@"	= Makes a temporary version of the variable above
+"$"	= This creates a global variable, this variable can be called by anyone, and is not player specific, stored inside "save\mapreg.txt"
+"$@"	= Makes a temporary version of the variable above
+"#"	= This creates a player specific variable but does not save the variable on the player, but inside the file "save\accreg.txt"
+
+Each one has there uses, it is really up to you to select the one you need to use
+
+The differance between and perminant and temporary variable, a perminant variable will servive a reset of the server and re-log of your char, and a temporary one will whip out if the server is reset or the player re-logs but will no be saved anywhere so will not take up space in a file, it will take memory up of the PC/Server running eAthena though
+
+As said in "input" placing a $ after a variable makes it a text variable, also known as a char string
+
+Setting any variable to 0 (or null for text) will removed that variable cause it is no longer needed, if a variable is asked for and does not exist it will just return 0 (or null for text) anyway so they really are no longer needed
+
+For examples see "input","getarg","callsub" and "callfunc"
+
+---------------------------------------
+
+*setarray
+
+Used in the same way as "set" but many variables can be set inside the same variable
+
+	setarray @array[0], 100, 200, 300, 400, 500, 600;
+// We have stated [0] cause we are setting the array starting at array 0, if we want to set a specific array we state that number followed but one variable
+Using that example above if we recall that information now
+@array[0] 	= 100
+@array[1] 	= 200
+@array[2] 	= 300
+@array[3] 	= 400
+@array[4] 	= 500
+@array[5] 	= 600
+@array[6] 	= 0
+
+For more information see "set"
+
+Yes you use the setarray with text variables, the $ goes before the array number
+setarray @textarray$[0],text1,text2,text3
+
+@textarray$[0] 		= text1
+@textarray$[1] 		= text2
+@textarray$[2] 		= text3
+@textarray$[3] 		= NULL
+
+I've not seen many examples of this in use, I think it can be used to cut down the ammount of variable you use, other than this I doesnt really see a point in it :D
+
+---------------------------------------
+
+*cleararray
+
+Can change many array values at the same time
+
+	cleararray @array[#],*,$;	// # = number of array to start on, * = What you want the array value to be after, $ = How many arrays it will effect, including the one stated
+
+	setarray @array[0], 100, 200, 300, 400, 500, 600;
+
+	cleararray @array[0],0,6;	// This will make all 6 arrays 0
+
+	cleararray @array[0],245,1;	// This will make array 0 change to 245
+
+	cleararray @array[1],345,2;	// This will make array 1 and 2 change to 345
+
+---------------------------------------
+
+*copyarray
+
+This one is kinda hazey, dont really see a point in it
+	setarray @array[0], 100, 200, 300, 400, 500, 600;
+// So we have made @array[#]
+	copyarray @array2[0],@array[2],2;
+// Now what we have done here is copy part of @array into @array2
+// Ok try and explain what we have copied, starting at @array[2] we use that as @array2[0], then we count 2 on from that, so @array[3] will be used as @array2[2], and @array[4] will be used as @array2[3] (phew)
+
+So using the examples above
+@array[0] 	= 100
+@array[1] 	= 200
+@array[2] 	= 300
+@array[3] 	= 400
+@array[4] 	= 500
+@array[5] 	= 600
+
+@array2[0] 	= 300
+@array2[1] 	= 400
+@array2[2] 	= 500
+@array2[3] 	= 0 // I put this in to show that @array[5] wont be coppied to this array, and it will return a 0
+
+---------------------------------------
+
+*getarraysize
+
+This returns the ammount of variables thats are contained inside an array
+
+So this would mean this
+
+	setarray @array[0], 100, 200, 300, 400, 500, 600;
+	set @arraysize,getarraysize(@array);
+
+@arraysize == 6
+
+---------------------------------------
+
+*deletearray
+
+Delete a specified array value totally from an array
+
+	deletearray @array[0],1	// Will delete array 0, and move all the other array values up one place
+
+	deletearray @array[1],3	// This would delete array 1 2 and 3, leave array 0 in its place, and move the other arrays ups, so there are no gaps
+
+
+---------------------------------------
+
+*getelementofarray
+
+Finds a value from inside an array, pointless IMO
+
+	getelementofarray(@array,1)	// This will find the 2nd array value
+
+When you can just do
+
+	@array[1]
+
+and it has the same effect
+
+---------------------------------------
+
+*if
+
+This is the way you compare things, and take actions if these are correct, or wrong
+(Some explaining to do I guess :P)
+This command can be combined with pretty much any other command
+
+The ways of comparing are as followed
+
+== 	= If both numbers (or text) match the action at the end is taken
+>=	= If the first number is equal to, or more than, the second number the action is taken
+<=	= If the first number is equal to, or less than, the second number the action is taken 
+>	= If the first number more than the second number the action is taken
+<	= If the first number less than the second number the action is taken
+!=	= If the first number (or text) DOSENT equal the seconed number (or text) the action is taken
+
+Using the IF command
+EX 1.
+	set @var1,1;
+	input @var2;
+	if(@var1==@var2) goto L_Same;
+	mes "Sorry that is wrong";
+	close;
+L_Same:
+	close;
+
+EX 2.
+	set @var1,1;
+	input @var2;
+	if(@var1!=@var2) mes "Sorry that is wrong";
+	close;
+(EX 1 and EX 2 have the same affect)
+
+EX 3.
+	set @var1,@var1+1;
+	mes "[Forgetfull Man]";
+	if (@var==1) mes "This is the first time you have talked to me";
+	if (@var==2) mes "This is the second time you have talked to me";
+	if (@var==3) mes "This is the third time you have talked to me";
+	if (@var==4) mes "This is the forth time you have talked to me, but I think I am getting amnesia, I have forgoten about you";
+	if (@var==4) set @var,0;
+	close;
+
+EX 4.
+	mes "[Quest Person]";
+	if(countitem(512)>=1) goto L_GiveApple; // The number 512 was found from item_db, it is the item number for the apple
+	mes "Can you please bring me an apple?";
+	close;
+L_GiveApple:
+	mes "Oh an apple, I didnt want it, I just wanted to see one";
+	close;	
+
+EX 5.
+	mes "[Person Checker]";
+	if($name$!=null) goto L_Check;
+	mes "Please tell me someones name";
+	next;
+	input $name$;
+	set $name2$,strcharinfo(0);
+	mes "[Person Checker]";
+	mes "Thank you";
+L_Check:
+	if($name$==strcharinfo(0) ) goto L_SameName;
+	mes "[Person Checker]";
+	mes "You are not the person that " +$name2$+ " mentioned";
+L_End:
+	set $name$,null;
+	set $name2$,null;			
+	close;
+L_SameName:
+	mes "[Person Checker]";
+	mes "You are the person that " +$name2$+ " just mentioned";
+	mes "nice to meet you";
+	goto L_End;
+
+Note: strcharinfo(0) will equal the name of the person using the NPC at that time
+
+EX 6.
+Multiple checks
+	mes "[Multi Checker]";
+	if( (@queststarted==1) && (countitem(512)>=5) ) goto L_MultiCheck; // Only if the quest has been started & You have 5 apples will it goto "L_MultiCheck"
+	mes "Please get me 5 apples";
+	set @queststarted,1;
+	close;
+L_MultiCheck:
+	mes "[Multi Checker]";
+	mes "Well done you have started the quest of got me 5 apples";
+	mes "Thank you";
+	set @queststarted,0;
+	delitem 512,5;
+	close;
+
+Note: You can also issue an "or" argument, in the same way "and" is &&, "or" is ||, so if anyone one of the arguments stated is true, it will run the event
+
+---------------------------------------
+
+*getitem
+
+Give an item to the player, this uses the ID of the item found inside "db\item_db.txt"
+
+	getitem 502,10 // The person will recieve 10 apples
+	getitem 617,1  // The person will recieve 1 Old Violet Box
+
+For more examples of the use of this check in pretty much any quest NPC file
+
+---------------------------------------
+
+*getitem2
+
+Works the same as "getitem" but has more options to add into the command
+
+	getitem <itemid>,<num>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>;
+
+itemid		= Found in "db\item_db.txt"
+num		= Ammount you want produced
+identify	= Whether you want the item to be identified or not, 0 unidentified, 1 identified
+refine		= How much it will be refined
+attribute	= What Element you want on it
+card1[2,3,4]	= If you want a card compound to it also found in "db\item_db.txt"
+
+---------------------------------------
+
+*makeitem
+
+Make the NPC drop an item, on a specified map, on specified co-ordinates
+	
+	makeitem <itemid>,<num>,<X>,<Y>,"<map>";
+
+itemid	= Found in "db\item_db.txt"
+num	= Ammount you want produced
+X	= The X co-ordinate
+Y	= The Y co-ordinate
+map	= The map name that corisponds to them co-ordinate, needs the ".gat" at the of the map name
+
+---------------------------------------
+
+*delitem
+
+Take an items from a player, this uses the ID of the item found inside "db\item_db.txt"
+
+	delitem 502,10 // The person will lose 10 apples
+	delitem 617,1  // The person will lose 1 Old Violet Box
+
+Note: It is always good to to check if the player has the item before you take it from them, see EX 4. under "If" command
+
+---------------------------------------
+	
+*viewpoint
+
+Used to mark places on the mini map, it uses the normal X and Y from the main map, it also using a hexidecimal number to change the colour of the mark on the map
+
+		viewpoint 1,30,40,1,0xFF0000;
+// This command would yield, a "X" appearing on the map, at co-ordinates X 30 Y 40, is mark number 1, and will be a Red "X"
+To remove that mark from the map use the same command as you use to create it, just change the first 1 into a 2 so
+		viewpoint 2,30,40,1,0xFF0000;
+
+
+		viewpoint 1,30,40,*,0xFF0000;
+If you want to add more than one at once you keep adding 1 to the place with the *, so
+		viewpoint 1,30,40,1,0xFF0000;
+		viewpoint 1,35,45,2,0xFF0000;
+		viewpoint 1,40,50,3,0xFF0000;
+and then to remove these
+		viewpoint 2,30,40,1,0xFF0000;
+		viewpoint 2,35,45,2,0xFF0000;
+		viewpoint 2,40,50,3,0xFF0000;
+
+---------------------------------------
+
+*countitem
+
+Used to see if you have a specified ammout of an item, or to state how many of an item you have
+
+Check EX 4. under "If" for an example of how to check the ammount of items you have by an NPC
+
+	mes "[Item Checker]";
+	mes "Hmmm, it seems you have "+countitem(502)+" apples";
+	close;
+
+if you want to state the number at the end of a sentance it is like this
+
+	mes "[Item Checker]";
+	mes "Hmmm, the total number of apples you are holding is "+countitem(502); //no need for another " " at the end
+	close;
+
+---------------------------------------
+
+*checkweight
+
+Not an often used command, but I think it should be :P, used to check if you are able to hold the weight of a specified ammount of items
+
+	checkweight(502,10) // 10 apples
+if you can hold that ammount it will return a 1, if you would go over weight but holding this ammount it will return a 0
+
+Soooooooo
+
+	if (checkweight(502,10) == 0 ) goto L_OverWeight;
+	getitem 502,10;
+	close;
+L_OverWeight:
+	mes "Sorry you cannot hold this ammount of apples";
+	close;
+
+Or to put this another way
+
+
+	if (checkweight(502,10)) goto L_Getapples;
+	mes "Sorry you cannot hold this ammount of apples";
+	close;
+L_Getapples:
+	getitem 502,10;
+	close;
+
+Both examples have the same effect
+
+---------------------------------------
+
+*readparam
+
+Used to read things about the player, there HP, there Str, anything really
+
+The things you can use in this command can be found inside "db\const.txt"
+
+	readparam(9) // This would return how many status points you havnt spent yet
+
+Alternatally you can just put
+
+	StatusPoint 
+
+And this gives the same result
+
+
+You can also use this command to find peoples stats
+	readparam(bVit)	would return the persons Vit // Using "b" followed by any base stat will give you that stat
+
+	if(readparam(bVit)<=77) goto L_End;
+	mes "Only people with over 77 Vit are reading this";
+L_End:
+	close;
+
+---------------------------------------
+
+*getcharid
+
+Works like the "strcharinfo" command, but will return the ID of each requested piece of data
+
+	getcharid(0)	// This would be the players char ID, if this returns a 0 you really have a problem
+	getcharid(1)	// The Party ID, if the player is not in a party it returns a 0
+	getcharid(2)	// The Guild ID, if the player is not in a guild it returns a 0
+
+I think some other NPC commands need to use the ID of a player, instead of the text version of the name
+
+---------------------------------------
+
+*getpartyname
+
+Gets the name of a party name from the ID
+
+Lets say the ID of a party was saved as a Global Var
+
+	getpartyname($@var) // This would return the name of the party from the ID in the variable
+
+---------------------------------------
+
+*getpartymember
+
+Thank you to HappyDenn for all this information
+
+Takes the party ID as the parameter. Returns all members' names inside the specified party to the global temp array $@partymembername$ and party member count to the global temp variable $@partymembercount. Note that the names come in no particular order. (at least from what i've tested) 
+
+NOTE: It's better to copy the contents of $@partymembercount and $@partymembername$ to new ones and clear the old ones before each time you call the command since it's a GLOBAL array. So if someone with 7 party members has use the script, the array would have 7 elements. But if another person call the NPC and he has a party of 5, now there would be a problem since the server will not clear the array for you, so in addition to returning the 5 member names, the 6th and 7th elements from the last call remains so you will get 5+2members which the last 2 don't belong to the new guy's party. (Hope someone can help me explain this part since I'm not that good on explaining things...)
+
+	getpartymember(party_id); // This will set an array $@partymembername$[0] will all the names of the people in that party, and also count all the member in that party and out put that value to $@partymembercount
+
+Example:
+
+//clear the global temp variable and array
+set $@partymembercount,0;
+deletearray $@partymembername$[0],0;
+
+
+//get the character's party info
+getpartymember(getcharid(1));
+
+
+//copy $@partymembercount value to a new variable
+set @partymembercount,$@partymembercount;
+
+
+//copy $@partymembername array to a new array
+copyarray @partymembername$[0],$@partymembername$[0],@partymembercount;
+
+
+//list the party members in NPC dialog
+set @count,0;
+L_DisplayMember:
+if(@count == @partymembercount) goto L_DisplayMemberEnd;
+mes (@count + 1) + ". ^0000FF" + @partymembername$[@count] + "^000000";
+set @count,@count+1;
+goto L_DisplayMember;
+L_DisplayMemberEnd:
+close;
+
+
+---------------------------------------
+
+*getguildname
+
+Returns a guilds name, if its ID is enter or placed by a variable
+
+	GetGuildName(10007) // Would return what ever guild 10007 was, in my case this would return "AlcoROhics"
+
+	set @var,10007;
+	GetGuildName(@var); // Would return the same as above
+
+This is being used inside all the guild func's to do with castles, and what happens when WoE starts ect ect
+
+You could also use it for a guild event, maybe a killing event
+
+The monsters spawns could have a script on them that counts the guild kills, and displays the name at the top of the screen as a winner
+
+	monster "prontera.gat",50,100,"Poring",1002,1,"NPC_NAME::Label"; //Will explain this more in its own section, all you need to know is if this poring is killed it will go to the label called "Label"
+
+Label:
+	announce GetGuildName(getcharid(2))+" guild has just killed a Poring";
+
+// Note: using strcharinfo(2) works in the same way, but this way you can have the ID saved as a variable and recalled later, and does not depend on the person using the NPC for its information
+	
+
+---------------------------------------
+
+*getguildmaster
+
+Using the ID of a guild, it would return the name of the master of that guild
+
+	getguildmaster(10007)	// Would return the guild master of guild 10007, whatever that might be, in my case it would return "MissDjax" cause she owns "AlcoROhics" (10007)
+
+Can be used to check if you are the owner of a guild
+
+Maybe you want to make a room only guild masters can enter
+
+	set @GID,getcharid(2);
+	if(@GID==0) goto L_NoGuild;
+	if(strcharinfo(0)==getguildmaster(@GID)) goto L_GuildMaster;
+	mes "Sorry you dont own the guild you are in";
+	close;
+L_NoGuild:
+	mes "Sorry you are not in a guild";
+	close;
+L_GuildMaster:
+	mes "Welcome guild master of "+GetGuildName(@GID);
+	close;
+
+
+---------------------------------------
+
+*getguildmasterid
+
+Works the same as the above but will return the ID of the guild master, not the plain text
+
+For an example see "getguildmaster"
+
+---------------------------------------
+
+*strcharinfo
+
+Can be uses to find a players, Name, Party Name and Guild Name
+
+	strcharinfo(0)	// This would be the username, if this return a 0, your name is either 0 or you really have a problem
+	strcharinfo(1)	// The Party name, if the player is not in a party it returns a 0
+	strcharinfo(2)	// The Guild name, if the player is not in a guild it returns a 0
+
+
+---------------------------------------
+
+*getequipid
+
+You specify an equipment slot (ie Helm Armor Accessory) and it returns the ID of the thing equiped in that place, if nothing is there it returns 0
+
+	getequipid(#)	// See below for the numbers you can use
+
+1	= This would find your upper head gear
+2	= This would find your Armor, Jacket, Robe ect
+3	= What is in your Left hand
+4	= What is in your Right hand
+5	= The garment the player has on
+6	= What foot gear the player has on
+7	= Accessory 1
+8	= Accessory 2
+9	= Mid Headgear
+10	= Lower Headgear
+ 
+Can be used to check if you have something equiped, or if you havent got something equiped
+
+	if(getequipid(1)==2234) goto L_WearingTiara;
+	mes "Come back when you have a Tiara on";
+	close;
+L_WearingTiara:
+	mes "What a lovely Tiara you have on";
+	close;
+
+You can also use it to make sure people dont pass a point before removing an item totally from them
+
+Lets say you dont want people to wear Legion Plate armor, but also dont what them to equip if after the check, you would do this
+
+	if( (getequipid(2) == 2341) || (getequipid(2) == 2342) goto L_EquipedLegionPlate; // the || is used as an or argument, there is 2341 and 2342 cause there are 2 legion plate armors, one with a slot one without
+	if( (countitem(2341) > 0) || (countitem(2432) > 0) goto L_InvertoryLegionPlate;
+	mes "I will lets you pass";
+	close2;
+	warp "place.gat",50,50;
+L_EquipedLegionPlate:
+	mes "You are wearing some Legion Plate Armor, please drop that in your stash before continuing";
+	close;
+L_InvertoryLegionPlate:
+	mes "You have some Legion Plate Armor in your invertory, please drop that in your stash before continuing";
+	close;
+
+//Note: I used long lables to make a point there, and to explain what each one meant, normally you would/could use short ones
+
+
+---------------------------------------
+
+*getequipname
+
+Works alot like "getequipid" but will yield the name of the equipment, good for an NPC to state what your are wearing, or maybe saving as a text variable
+
+The numbers here match the ones from "getequipid"
+
+	getequipname(1) // this would be the name of the headgear you have on
+	ect...
+
+	if (getequipname(1)==0) goto L_No_HeadGear;
+	mes "So you are wearing a "+getequipname(1)+" on your head";
+	close;
+L_No_HeadGear:
+	mes "You are not wearing any head gear";
+	close;
+
+
+---------------------------------------
+
+*getbrokenid
+
+Can find broken equipment inside you inventory
+
+	getbrokenid(0) // This would be the first thing broken
+	getbrokenid(1) // This would be the second thing broken
+	ect...
+
+
+---------------------------------------
+
+*repair
+
+Repairs a broken peice of equipment, using the numbering system stated in "getbrokenid"
+
+	repair(#) // # would equal the equipment you want to repair
+
+---------------------------------------
+
+*getequipisequiped
+
+Can be used in the same way as "getequipid" 's example
+
+You state an item ID, if they are wearing that item it returns a 1, or run the action if used in a "if" command, else it returns a 0, or carries on with the script
+
+	if( (getequipisequiped(2341)) || (getequipisequiped(2342)) ) goto L_EquipedLegionPlate;
+
+can also be used is reverse to check if someone is not wearing one, depending on how your script is structed you may want one
+
+	if(getequipisequiped(2341) == 0) got L_LegionPlateNotEquiped;
+
+---------------------------------------
+
+*getequipisenableref
+
+Checks if the an item, using its equipment placement ID (check "getequipid" for these), can be refined or not
+
+	getequipisenableref(1) // Will check if the head the player is wearing can be refined or not
+
+If it can be refined it will returns a 1, and will run an action if used in an "if" command, else it will return a 0 and will carry on with the script
+
+	if(getequipisenableref(1)) goto L_Refine;
+	mes "[Refiner]";
+	mes "I can't work on this item...";
+	close;
+L_Refine:
+	mes "[Refiner]";
+	mes "Ok I can refine this";
+	close;
+
+---------------------------------------
+
+*getequipisidentify
+
+IMO this is totally worthless, it checks if the equiped item has been identified or not, since you cant even equip un-identified equipment this command should be removed
+
+---------------------------------------
+
+*getequiprefinerycnt
+
+Find the current refine value of an armor wep ect... using its equipment placement ID (check "getequipid" for these)
+
+	getequiprefinerycnt(1) // would return how many times the headgear equiped have been refined
+
+Can be used to check if you have reached a maximum refine value, default for this is +10
+
+		if(getequiprefinerycnt(1) < 10) goto L_Refine_HeadGear;
+		mes "Sorry you have reached the max ammount of refinement";
+		close;
+L_Refine_HeadGear:
+		mes "I will now upgrade your "+getequipname(1);
+
+---------------------------------------
+
+*getequipweaponlv
+
+Put simply finds the weapon lvl, of the wep you are holding, using its equipment placement ID (check "getequipid" for these)
+
+	getequipweaponlv(3) // Will check the lvl of the wep in your left hand, and return the lvl if its a wep, if its a shield it will return 0
+	getequipweaponlv(4) // Will check the lvl of the wep in your right hand and return the lvl of the wep
+
+You can use this for other equipement, but only weps have a level so they are the only ones that will return a positive value
+
+	if(getequipweaponlv(4)==0) mes "Seems you dont have a weapon on";
+	if(getequipweaponlv(4)==1) mes "You are holding a lvl 1 weapon";
+	if(getequipweaponlv(4)==2) mes "You are holding a lvl 2 weapon";
+	if(getequipweaponlv(4)==3) mes "You are holding a lvl 3 weapon";
+	if(getequipweaponlv(4)==4) mes "You are holding a lvl 4 weapon";
+	if(getequipweaponlv(4)==5) mes "You are holding a lvl 5 weapon, hm, must be a custom design";
+
+or for the left hand, cause it can hold a wep or a shield
+
+	if(getequipid(3)==0) goto L_NothingEquiped;
+	if(getequipweaponlv(3)==0) mes "You are holding a shield, so it doesnt have a level";
+	if(getequipweaponlv(3)==1) mes "You are holding a lvl 1 weapon";
+	if(getequipweaponlv(3)==2) mes "You are holding a lvl 2 weapon";
+	if(getequipweaponlv(3)==3) mes "You are holding a lvl 3 weapon";
+	if(getequipweaponlv(3)==4) mes "You are holding a lvl 4 weapon";
+	if(getequipweaponlv(3)==5) mes "You are holding a lvl 5 weapon, hm, must be a custom design";
+	close;
+L_NothingEquiped:
+	mes "Seems you have nothing equiped";
+	close;
+
+---------------------------------------
+
+*getequippercentrefinery
+
+Calculates the percent value chance of the current weapon armor ect... using its equipment placement ID (check "getequipid" for these), will break due to refining, even though this is not shown but this will depend on the lvl of the wep (if it is a wep) and how many times you have previously refined
+This infomation is pulled from "\db\refine_db.txt" and can be changed to suit you
+
+	getequippercentrefinery(3) 
+// If it was a lvl 3 sword, that is +5, it would return 60
+// If it was a lvl 4 sword, that is +9, it would return 10
+These values can be displayed for the player to see, or used to calculate the random change of a refine succeeding or failing
+
+	if (getequippercentrefinery(3)<=rand(100)) goto L_Fail;
+// It will find a random number from 0 - 99 and if that is equal to or more than the value recoverd by this command it will go to L_Fail
+
+---------------------------------------
+
+*successrefitem
+
+Will successfully refine an item using its equipment placement ID (check "getequipid" for these)
+
+	successrefitem(3) // The left hand wep/shield will increase refine value by 1
+
+It will also show the animation of the success above your head
+
+---------------------------------------
+
+*failedrefitem
+
+Will fail at refining an item using its equipment placement ID (check "getequipid" for these)
+
+	failedrefitem(3) // The left hand wep/shield will disappear
+
+It will also show the animation of the fail above your head
+
+---------------------------------------
+
+*cutin
+
+Used for displaying a picture stored inside the grf files for the game, this or a correctally placed picture inside your games data folder
+
+	cutin "kafra_7",2; 	// This will display the picture of the 7th kafra, the one in orange and the mini-skirt :P
+
+	cutin "Kafra_7",255; 	// This will remove the displayed picture, but so will
+
+	cutin "",255;
+
+List of availiable pictures currently
+
+mets_alpha 	- This is a old fat man, holding a pipe, also with a pocket watch and cane
+pay_soldier	- Wanna take a wild guess, thats right the Soldiers that appear in Payon :D
+prt_soldier	- Obvious
+ein_soldier	- This guy looks cool, just need to see him ;), he is one of the new Einbroch guards
+moc_soldier	- Obvious
+gef_soldier	- Obvious
+katsua01-
+katsua02-	- Not sure what this girl is for, there 3 pictures look the same, just differant expressions on the face
+katsua03-
+kafra_01	- Obvious
+kafra_02	- Obvious
+kafra_03	- Obvious
+kafra_04	- Obvious
+kafra_05	- Obvious
+kafra_06	- Obvious
+kafra_07	- Do I need to mention this one again ;)
+
+Each of these are .bmp format and use pink (FF00FF) as an alpha colour
+
+The biggest one is 400 x 503 (pixels), and the smallest 303 x 493 (pixels), this is out of the above pictures
+
+Others exist but these are the main ones, and the others cant really be used in any script
+
+If you want to use your own, you need to place you pictures into "\data\유저인터페이스\illust" this is kRO, not sure about the other RO's
+Then as above state the name of that file, no need for the .bmp at the end
+
+---------------------------------------
+
+*cutincard
+
+I believe this to be much like the "cutin" NPC command, but instead of looking in one folder, it will instead look inside the card folder for the pictures
+
+There is a small process you will need to take before you can display the card picture you want, since the picture names are "plain" but are korean you need to enter the "broken" text that represent that korean
+
+First you will need to find the ID number of the card picture you want to use, so lets say I want to display a poring, I would look inside my item_db, and find "poring card" and I find
+
+4001,Poring_Card,Poring Card,6,20,0,10,,,,,,,16,,,,{},{ bonus bLuk,2; bonus bFlee2,1; }
+
+So the ID of this card is 4001
+
+We then open our "num2cardillustnametable.txt" you may have this loose in your data folder, or you may need to extract it from your GRF (sdata or data its doesnt matter)
+
+Search for that number, so find 4001 (well its at the top not much searching :D )
+
+Now we have the broken name it uses
+
+So the command would be
+
+	cutincard "포링카드",2; 			// This would display the poring card on the screen
+
+	cutincard "포링카드",255 or cutincard "",255;	// Do the same job as "cutin" will remove the picture from the screen
+
+---------------------------------------
+
+*statusup
+
+Will raise a specified stat by 1
+
+	statusup #;	// # = Stat type, see below
+
+bStr	= Strength
+bVit	= Vitality
+bInt	= Intelligence
+bAgi	= Agility
+bDex	= Dexterity
+bLuk 	= Luck
+
+---------------------------------------
+
+*statusup2
+
+Works just like "statusup" but you specify a number to raise a stat by
+
+	statusup #,*;	// # = Stat type, see "statusup", * = Number you want to raise it by
+
+---------------------------------------
+
+*bonus
+
+Used on items + equip to give the player using or equiping the item a bonus (or effect) of some kind
+
+These are listed inside "\doc\item_bonus.txt"
+
+---------------------------------------
+
+*bonus2
+
+Used on items + equip to give the player using or equiping the item a bonus (or effect) of some kind
+
+These are listed inside "\doc\item_bonus.txt"
+
+---------------------------------------
+
+*bonus3
+
+Used on items + equip to give the player using or equiping the item a bonus (or effect) of some kind
+
+These are listed inside "\doc\item_bonus.txt"
+
+---------------------------------------
+
+*bonus4
+
+Used on items + equip to give the player using or equiping the item a bonus (or effect) of some kind
+
+These are listed inside "\doc\item_bonus.txt"
+
+---------------------------------------
+
+*skill
+
+Can be used to give a player a skill, is currentally used to give players quest skills
+
+	skill 152,1,0; // This says the player will get Stone Throw (TF_THROWSTONE,152), and it will be lvl 1, the 0 at the end means it is a perminant skill, using 1 here make is temporary
+
+---------------------------------------
+
+*addtoskill
+
+Changes the lvl of a skill you already have
+
+	addtoskill #,*,$; // # Skill ID, * Lvl you want to change it to, $ Not entirely sure, could be the same as "skill" the 0 at the end means it is a perminant skill, using 1 here make is temporary
+
+
+	addtoskill 5,4,0; // This says the player will go to lvl 4 of Bash (skill ID 5)
+
+---------------------------------------
+
+*guildskill
+
+I think it is used like the "skill" NPC command, but for guild skills, so instead of giving you the skills, it gives it to your guild
+
+	guildskill 10000,1,0; // This would give your guild Approval (GD_APPROVAL ID 10000), at lvl 1
+
+You might want to make a quest for getting a certain guild skill, make it hard enough that all the guild needs to help or something, I would prob do this for Glory of the Guild, do a quest to allow you to use a symbol/logo for your guild, wasting a point on that is really annoying :D
+
+---------------------------------------
+
+*getskilllv
+
+Used to check the level of a skill, using its ID found inside "\db\skill_db.txt" 
+
+2 uses for this, it can check of you have a skill or not, it also returns the lvl of the skill
+
+EX 1.
+	if( getskilllv(152) ) goto L_HasSkillThrowStone;
+	mes "You dont have Throw Stone";
+	close;
+L_HasSkillThrowStone:
+	mes "You have got the skill Throw Stone";
+	close;
+
+EX 2.
+	if( getskilllv(28) >= 5) goto L_HasSkillHeallvl5orMore;
+	if( getskilllv(28) == 10) goto L_HasSkillHealMaxed;
+	mes "You heal skill is below lvl 5";
+	close;
+L_HasSkillHeallvl6orMore:
+	mes "Your heal lvl is 5 or more";
+	close;
+L_HasSkillHealMaxed:
+	mes "Your heal lvl has been maxed";
+	close;
+	
+---------------------------------------
+
+*getgdskilllv
+
+This would be used exactally the say way as "getskilllv" but for the guild someone was in
+
+Check examples in "getskilllv", one slight differance in example 3, the guild ID needs to be placed there not the players ID
+
+---------------------------------------
+
+
+*basicskillcheck
+
+I guess this is to check what lvl your basic skill is, not really needed cause you can use "getskilllv"
+
+Please check "getskilllv"
+
+---------------------------------------
+
+*getgmlevel
+
+Used for finding the GM lvl of the player using the NPC, or that have activated somethings script related
+
+Can make NPC's, or pieces of scripts, only accessable by a certain GM lvl, or GM lvl and over
+
+	getgmlevel(1)  // Will return the GM lvl it they are over GM lvl 1
+	getgmlevel(50) // Will return the GM lvl if they are over GM lvl 50, anything lower will result in a 0
+
+Personally I have used this in one of my custom scripts, it was a guild dungeon kicker (if you want a copy of it I will post it for you in the release section), since the people on my server wanted to be able to memo inside guild dungeons, I needed a way of checking if people inside the dungeons were technically allowed there
+So I have a made a script that finds the persons guild ID, compares it to the owner of each castle that has access to that dungeon, if you can be there it lets you be, if not it kicks you out, and announces you have been caught tresspassing
+but this also made another problem, people could hide in dungeons, knowing if a GM entered they would be kicked out
+So I added a clause that makes it so if you are GM lvl 1 or above it skips the guild check and just allows you to be there
+
+Example
+
+// payon ================================================
+gld_dun01.gat,119,144,1	script	check#Dun01	139,200,200{ // 139 makes the NPC invisable, and the 200,200 is for the OnTouch label activation, when ever a person is within 200x200 squares of this NPC it activates
+end;
+OnTouch:
+	callfunc "F_Dungeonkicker","payg_cas";
+	end;
+}
+
+function	script	F_Dungeonkicker	{
+		if (getgmlevel(1) >= 1) goto L_Allowed;
+<<<<<<<<Rest of the script here>>>>>>>>>>>
+	L_Allowed:
+		Return;
+}
+
+This script stoped people from memo'ing in there, loosing the castle they used to get there to begin with, and still had access to it
+
+---------------------------------------
+
+*end
+
+Needed for ending a script that does not have text showing, and using the "close" command
+
+See the example of "getgmlevel"
+
+Since there was no text box "end" was used to stop the script from running
+
+	if(Baselvl<=10) goto L_Lvl10;
+	if(Baselvl<=20) goto L_Lvl20;
+	if(Baselvl<=30) goto L_Lvl30;
+	if(Baselvl<=40) goto L_Lvl40;
+	if(Baselvl<=50) goto L_Lvl50;
+	if(Baselvl<=60) goto L_Lvl60;
+	if(Baselvl<=70) goto L_Lvl70;
+
+L_Lvl10:
+	npctalk "Look at that you are still a n00b";
+	end;
+L_Lvl20:
+	npctalk "Look at that you are getting better, but still a n00b";
+	end;
+L_Lvl30:
+	npctalk "Look at that you are getting there, you are almost 2nd profession now right???";
+	end;
+L_Lvl40:
+	npctalk "Look at that you are almost 2nd profession";
+	end;
+
+Without the use if end it would traval through the labels until the end of the script
+
+If you was lvl 10 or less, you would see all the speech, the use of "end" stops this, and ends the script
+
+Note: Sometimes phrased as "break", but both "end" and "break" do the same things
+
+---------------------------------------
+
+*checkoption
+
+Checks for an option that is set on a player, most scripts that used to use this now have specific NPC commands, such as checkcart, checkfalcon and checkpeco
+
+Could still be usefull for some people that like checking for things other than these stated
+
+	<param1>		<param2>		<param3>
+	0x000001 Petrified	0x000001 Poison		0x000001 Sight
+	0x000002 Frozen		0x000002 Cursed		0x000002 Hide
+	0x000003 Stunned	0x000004 Silenced	0x000004 Cloak
+	0x000004 Sleeping	0x000010 Darkness	0x000008 Cart 1
+							0x000010 Falcon
+							0x000040 GM Perfect Hide
+							0x000080 Cart 2
+							0x000100 Cart 3
+							0x000200 Cart 4
+							0x000400 Cart 5
+							0x000800 Orc Head
+							0x001000 Wedding Sprites
+							0x002000 Ruwach
+
+(Param1 and Param2 are used in later commands and you will be promted back to here)
+
+These are the ones I know about, I dont think all will be usefull to you, but some might
+
+	checkoption(<param3>) // Will return 1 if the argument is met
+
+	checkoption(0x000001) // Will do a specific check for if you have Sight on, returning 1 if you have, 0 if you dont
+
+	checkoption(0x000081) // Will do a check for if you have Cart 2 AND Sight (0x000001+0x000080)
+
+
+---------------------------------------
+
+*setoption
+
+uses the number sets from "checkoption" to set options on players
+
+	setoption(0x000800) 	// This will give you an orc head (note: any other options in effect will stop)
+
+	setoption(0x000000)	// This is stop all options on a player
+
+To stack options from the same catagory simply add them together
+
+	setoption(0x000018)	// This would give you the 1st cart and a Falcon (0x000008 + 0x000010)
+
+---------------------------------------
+
+*setcart
+
+Will give a player a cart simply state it in a script
+
+	setcart;
+
+---------------------------------------
+
+*checkcart
+
+Will check if you have a cart on
+
+	checkcart()
+
+Will return 1 for having a cart, and 0 for not having a cart
+
+If used in an "If" command it will run the action at the end if you have a cart
+
+---------------------------------------
+
+*setfalcon
+
+Will give a player a falcon simply state it in a script
+
+	setfalcon;
+
+---------------------------------------
+
+*checkfalcon
+
+Will check if you have a cart on
+
+	checkfalcon(0)
+
+Will return 1 for having a falcon, and 0 for not having a falcon
+
+If used in an "If" command it will run the action at the end if you have a falcon
+
+---------------------------------------
+
+*setriding
+
+Will give a player a peco simply state it in a script
+
+	setriding;
+
+Unlike "setfalcon" and "setcart" this can only be used by people who can use Peco, this would be, Knight/Lord Knight and Crusader/Paladin
+
+---------------------------------------
+
+*checkriding
+
+Will check if you have a peco on
+
+	checkriding(0)
+
+Will return 1 for having a peco, and 0 for not having a peco
+
+If used in an "If" command it will run the action at the end if you have a peco
+
+---------------------------------------
+
+*savepoint
+
+Saves a point that you will return to on death, or will be taken to if your place could not be saved on a map due to a Map Flag, and you have logged out, and then logged back in
+
+	savepoint "place.gat",350,75;
+
+The place you want to save goes inside the " " , then you state the X co-ordinate, then the Y co-ordinate;
+
+---------------------------------------
+
+*gettimetick
+
+Can be used to find the system time, or tick(?) time
+
+	gettimetick(0);	// System Tick
+	gettimetick(1);	// Time Tick
+
+---------------------------------------
+
+*gettime
+
+used for finding the time, this can be done seperatally depending on the number used as the argument
+
+	gettime(1);	// Sec
+	gettime(2);	// Min
+	gettime(3);	// Hour
+	gettime(4);	// WeekDay - Start from 0 which is Sunday, to 6 which is Saturday
+	gettime(5);	// MonthDay
+	gettime(6);	// Month
+	gettime(7);	// Year
+
+---------------------------------------
+
+*gettimestr
+
+From what I can tell it can state all the time things at once, not really sure how it is supposed to work
+
+The example given in eAthena is
+
+gettimestr("%Y-%m/%d %H:%M:%S",21)
+
+%Y	= Year
+%m	= Month (why this got the lower-case m I dont know :P )
+%d	= Day
+%H	= Hour
+%M	= Min
+%S	= Sec
+
+So I am guessing this will display, Year-Month/Day Hour:Min:Sec, 21 = The ammount number/symbols it will show
+---------------------------------------
+
+*openstorage
+
+Well, it opens your storage, simply state it
+
+To allow you to access it properly make sure no other text boxes are open in the background
+
+ex
+	mes "I will now open your stash for you";
+	close2;
+	openstorage;
+	end;
+
+---------------------------------------
+
+*guildopenstorage
+
+Same as "openstorage" but relating to the guild store
+
+see "openstorage" for an example
+
+---------------------------------------
+
+*itemskill
+
+Used on items to replicate skills, can state skill and skill level to use
+
+605,Anodyne,Anodyne,11,2000,0,100,,,,,10477567,2,,,,,{ itemskill 8,1,"Endure"; },{}
+
+//You will cast Endure(8) level 1, and "Endure" will appear above your head as you use it
+
+---------------------------------------
+
+*produce
+
+Used for opening a crafting window, the number stated after the command depends on what crafting windows will pop-up
+
+	produce #; // # = crafting window number
+
+	1 	= Lvl 1 Weapons
+	2	= Lvl 2 Weapons
+	3	= Lvl 3 Weapons
+//     (4	= Lvl 4 Weapons this should exist but not put in yet I am guessing it will be 4)
+	16	= Stones and Metals
+	32	= All potion types (exl. deadly potion Sin-X)
+	64	= Coins
+	256	= For deadly potions only
+
+
+---------------------------------------
+
+*monster
+
+Makes the NPC summons a monster, using its ID found inside Mob_DB.txt, it can conatain a label that it will goto if that monster is killed
+
+	monster "place.gat",60,100,"Poring",1002,1,"NPCNAME::Label";
+
+// first you designate a map, this goes inside the " " and has to have the .gat at the end, then the X co-ordinate, then the Y co-cordinate, The name you want it to be called inside " " it doesnt need to be the actual name of the summoned monster, the ID of the monster you want to summon, the ammount you want to summon, the NPC you want it to goto after this monster is dead inside after the :: the label you want it to go to inside that NPC " "; 
+
+Example
+Simple monster killing script
+
+	<<<<<script header>>>>		{
+	mes "[Summon Man]";
+	mes "Want to start the kill?";
+	next;
+	menu "Yes",L_Yes,"No",-;
+	mes "[Summon Man]";
+	mes "Come back later";
+	close;
+L_Yes:
+	monster "prontera.gat",0,0,"Quest Poring",1002,10,"NPCNAME::L_PoringKilled"; // By using 0,0 it will make them spawn randomly around the player
+	mes "[Summon Man]";
+	mes "Now go and kill all the Poring I summoned";
+	close;
+L_PoringKilled:
+	set $PoringKilled,$PoringKilled+1;
+	if ($PoringKilled==10) goto L_AllDead;
+	end;
+L_AllDead:
+	announce "Summon Man: Well done all the poring are dead",3;
+	set $PoringKilled,0
+	end;
+}
+
+
+
+---------------------------------------
+
+*areamonster
+
+Much like the "monster" NPC command, but this command has 2 spaces for X and Y co-ordinates
+
+	monster "place.gat",X1,Y1,X2,Y2,"Poring",1002,1,"NPC_NAME::Label";
+
+These extra co-ordinates are for a range, the monsters will be summoned randomly within the area selected by these 2 sets or co-ordinates
+
+For more information see the "monster" NPC command
+
+---------------------------------------
+
+*killmonster
+
+Used to kill monsters on a map, that contains a specific label
+
+	killmonster "place.gat","NPC_NAME::Label";
+//This will kill all monster in the map called place, and has the label "Label"
+
+According so some of the script I have seen, putting "All" as a label it will kill all the monsters, not sure about this, sorta makes the "killmonsterall" command worthless
+
+---------------------------------------
+
+*killmonsterall
+
+Used to kill all monsters on a map, and disregards the label it has been given
+
+	killmonsterall "place.gat";
+
+---------------------------------------
+
+*doevent
+
+Used alot like the "CallFunc" NPC command, but you are able to select a usable NPC, instead of a function one, and able to specify a label to go to when you start that NPC
+
+	doevent "NPC::Label";
+
+place.gat,100,100,1	script	NPC	53,{
+	mes "This is what you will see when you click me";
+	close;
+Label:
+	mes "This is what you will see if the doevent above is activated";
+	close;
+}
+
+Note: The part that is used in doevent, will make it seem like it is being run from this NPC, and not the NPC that actually has the script inside it
+
+---------------------------------------
+
+*donpcevent
+
+Works exactally like the "doevent" NPC command, with only one differance, the script that is called for will be run from inside the NPC that owns it
+
+Used for making another NPC react to an action that you have done with another NPC, i.e show an emotion, or say something
+
+place.gat,100,100,1	script	NPC	53,{
+	mes "Hey NPC2 copy what I do";
+	close2;
+	set @emo, rand(1,30);
+	donpcevent "NPC2::Emo";
+Emo:
+	emotion @emo;
+	end;
+
+}
+place.gat,102,100,1	script	NPC2	53,{
+	mes "Hey NPC copy what I do";
+	close2;
+	set @emo, rand(1,30);
+	donpcevent "NPC::Emo";
+Emo:
+	emotion @emo;
+	end;
+}
+
+// This will make both NPC perform the same random emotion from 1 to 30, and the emotion will appear above each of there heads
+
+if you state
+
+	donpcevent "::Emo";
+
+// This would called EVERY Emo label in EVERY NPC that has a label "Emo"
+
+---------------------------------------
+
+*addtimer
+
+Starts a countdown timer, when this timer runs out it will go to an NPC and runs a label
+
+	addtimer 4000, "NPC::OnTimer"; 
+// This will set a timer at 4000 (this is in Milliseconds, so it will be 4sec), when this has counted down, it will goto to the NPC called "NPC" and the label within that NPC "OnTimer"
+// It you dont have the label in there it will simply just run the NPC stated
+
+---------------------------------------
+
+*deltimer
+
+Used with "addtimer" to stop it from running the action it would have performed
+
+	deltimer "NPC::OnTimer";
+
+// This would remove the the timer shown in "addtimer", and stop any action it would have taken if it were to run out
+
+---------------------------------------
+
+*addtimercount
+
+Used to add an ammount of time back onto a time set with "addtimer"
+
+
+	addtimercount 10000, "NPC::OnTimer";
+
+// This would add an extra 10sec onto the count down, could be used in a check point thing, to get from point A to point B in this ammount of time, then you will be award this ammount of extra sec's to get to point C, then the faster you complete A-B the easier it will be from B-C :P
+
+
+---------------------------------------
+
+*stoptimer
+
+Will stop a timer but not forget the time it has counted down to
+
+	stoptimer "NPC::OnTimer";
+
+To continue use the "inittimer" command
+
+---------------------------------------
+
+*inittimer
+
+Start a timer that was stoped by the "stoptimer" command
+
+	inittimer "NPC::OnTimer"; 
+
+---------------------------------------
+
+*initnpctimer
+
+A timer that is NPC based, when the NPC hits a time, stated by you through labels, it will take an action
+
+	initnpctimer;			// Will start the timer within the current NPC
+
+	initnpctimer "NPC_NAME";	// Will start a timer within another NPC
+
+Example 1.
+
+	<<<NPC header>>> {
+	initnpctimer;
+	npctalk "I cant talk right now, give me 10 seconds";
+	end;
+OnTimer5000:
+	npctalk "Ok 5 seconds more";
+	end;
+OnTimer6000:
+	npctalk "4";
+	end;
+OnTimer7000:
+	npctalk "3";
+	end;
+OnTimer8000:
+	npctalk "2";
+	end;
+OnTimer9000:
+	npctalk "1";
+	end;
+OnTimer10000:
+	stopnpctimer;
+	mes "[Man]";
+	mes "Ok we can talk now";
+}
+
+// Please note this would make everyone on that screen, within range of this NPC get the message at the end :P (couldnt think of a better example for this one)
+
+Example 2.
+
+OnTimer15000:
+        set $quote,rand(5);
+	if($quote == 0) goto Lquote0;
+	if($quote == 1) goto Lquote1;
+	if($quote == 2) goto Lquote2;
+	if($quote == 3) goto Lquote3;
+	if($quote == 4) goto Lquote4;
+
+Lquote0:
+	npctalk "If 0 is randomly picked you will see this";
+	setnpctimer 0;
+	end;
+Lquote1:
+	npctalk "If 1 is randomly picked you will see this";
+	setnpctimer 0;
+	end;
+Lquote2:
+	npctalk "If 2 is randomly picked you will see this";
+	setnpctimer 0;
+	end;
+Lquote3:
+	npctalk "If 3 is randomly picked you will see this";
+	setnpctimer 0;
+	end;
+Lquote4:
+	npctalk "If 4 is randomly picked you will see this";
+	setnpctimer 0;
+	end;
+OnInit:		// This is used so that "initnpctimer" will be run the seconed it is loaded by the server, so no need for someone to click it
+ 	initnpctimer;
+	end;
+
+---------------------------------------
+
+*stopnpctimer
+
+Will stop a timer, but still remember the time it has counted too
+
+	stopnpctimer;			// Will stop the timer within the current NPC
+
+	stopnpctimer "NPC_NAME";	// Will stop a timer within another NPC
+
+For more information about the use of this script command see "initnpctimer"
+
+---------------------------------------
+
+*startnpctimer
+
+Will resume a count from a stoped timer
+
+	startnpctimer;			// Will start the timer again, within the current NPC
+
+	startnpctimer "NPC_NAME";	// Will start the timer again, within another NPC	
+
+For more information about the use of this script command see "initnpctimer"
+
+---------------------------------------
+
+*setnpctimer
+
+Will let you change the timer count, higher or lower, or simply set it at a certain number
+
+	setnpctimer 1000;		// Will set the timer within this NPC to 1 sec
+
+	setnpctimer 1000,"NPC_NAME";	// Will set the timer at 1 sec, for "NPC_NAME"
+
+To just add or minus you need to use "getnpctimer"
+
+---------------------------------------
+
+*getnpctimer
+
+Lets you recover information about a started initiated NPC timer, using "initnpctimer"
+
+A few uses for this
+
+	getnpctimer(0) 		// Will return the current time of this NPC
+
+	getnpctimer(1,NPC_NAME) // Will return the current time of the stated NPC
+
+	getnpctimer(2)		// Will return a number equal to the ammount of event this timer has trigger since it started at 0 (millisec)
+
+Example 1.
+
+	mes "[Man]";
+	mes "I have been waiting "+(getnpctimer(0)/1000)+" seconds for you"; // we divide the timer returned by 1000 cause it will be displayed in milliseconds otherwise
+	close;
+
+Example 2.
+(as mentioned in "setnpctimer" )
+
+	mes "[Man]";
+	stopnpctimer;
+	mes "Ok I will let you have 30 sec more";
+	close2;
+	setnpctimer (getnpctimer(0)-30000); // I put this after the close cause it timer would be set after you have finished read, and not while you are reading
+	startnpctimer;
+	end;
+
+
+For more information about the use of this script command see "initnpctimer"
+
+---------------------------------------
+
+*attachnpctimer
+
+Make a timer you have started specific for you, if anything is triggerd by a timer the action will only effect the player it is attached too
+
+I will use the example 1. again from "initnpctimer"
+
+
+	attachnpctimer;			// Will attach the current NPC timer to the player
+
+	attachnpctimer "PLAYER_NAME";	// Will attach the current NPC timer to a stated player
+
+	<<<NPC header>>> {
+	initnpctimer;
+	attachnpctimer;		// Now this timer is attached to the user
+	npctalk "I cant talk right now, give me 10 seconds";
+	end;
+OnTimer5000:
+	npctalk "Ok 5 seconds more";
+	end;
+OnTimer6000:
+	npctalk "4";
+	end;
+OnTimer7000:
+	npctalk "3";
+	end;
+OnTimer8000:
+	npctalk "2";
+	end;
+OnTimer9000:
+	npctalk "1";
+	end;
+OnTimer10000:
+	stopnpctimer;
+	mes "[Man]";
+	mes "Ok we can talk now";
+	detachnpctimer;		// Now this timer is free from the user
+}
+
+For more information about the use of this script command see "initnpctimer"
+
+---------------------------------------
+
+*detachnpctimer
+
+	detachnpctimer;			// Will detach the current NPC timer from the player
+
+	detachnpctimer "PLAYER_NAME";	// Will detach the current NPC timer from a stated player
+
+For more information about the use of this script command see "initnpctimer" and "attachnpctimer"
+
+---------------------------------------
+
+*announce
+
+This command lets you place a message at the top of the screen, for just 1 person, everyone on 1 map, or the entire server
+
+Basic command
+
+	announce "This will be shown at the top of the screen",0; //This will be show to everyone on the server, in a yellow colour
+
+For advanced read below
+
+I am not sure myself of all the combinations you can use with this command
+
+I have tested these, and the ones listed are the only important ones
+
+0	= Yellow To everyone
+1 	= Yellow To everyone on the same map as the player
+2	= Yellow To everyone in the area around the player
+3	= Yellow Can only be seen by the player
+16  	= Blue To everyone
+17	= Blue To everyone on the same map as the player
+18	= Blue To everyone in the area around the player
+19	= Blue Can only be seen by the player
+
+So
+	announce "This is my message just for you",19; 			// Will be a private message to the player using the NPC that made the annonucement
+and
+	announce "This is my message just for you people here",2;	// Will be shown on everyones screen that is in sight on the player using the NPC
+
+---------------------------------------
+
+*mapannounce
+
+Works the same as "announce" but you select a map for it to annouce on
+
+	mapannounce "place.gat","This is the message on that map will see",0;
+
+Can be used for annoucing something on a map that the NPC does not reside in
+
+For more information about the use of this script command see "announce"
+
+---------------------------------------
+
+*areaannounce
+
+Works the same as "annouce" but you select a map for it to annouce on, and a set of co-ordinate that will only effect people within
+
+	areaannounce "prt_church.gat",0,0,350,350,"What people will see if they are on that map and within the co-ordinates",0;
+
+Can be used for annoucing something only to people that have made it to a correct location, anyone outside that area will not see it
+
+For more information about the use of this script command see "announce"
+
+---------------------------------------
+
+*getusers
+
+Finds uses on the map, the entire server, or NPC on the map
+
+	getusers(0)	// Returns a number equal to the ammount of players on the map this command in issued on
+
+	getusers(1)	// Returns a number equal to the total ammount of players that are logged into the server
+
+	getusers(8)	// Returns the ammount of NPC that are currentally on the map
+
+I think you can find your own uses for this command
+
+---------------------------------------
+
+*getmapusers
+
+Works the same as "getusers" but you can specify a map to check
+
+	getmapusers("place.gat")	//Will return all the players on the name called "place"
+
+Currentally being used in the PVP script to check if a PVP room is full of not, if the number returned it equal to the max allowed it will not let you enter
+
+---------------------------------------
+
+*getareausers
+
+Used much like "getmapusers" but takes it one step further in checking how many people are within a certain area
+
+	getareausers("place.gat", 50, 50, 100, 100) // This will return how many players are standing between (X1 50, Y1 50) and (X2 100, Y2 100)
+
+Good for maps that are split it many building, such as all the "*_in.gat" maps, due to all the shops, houses ect...
+
+You could check how many people are at the item, and not count the people in the shop for instance, why you would want to do this though :P
+
+---------------------------------------
+
+*getareadropitem
+
+I can only guess what this does, it has not been used anywhere in official scripts
+
+---------------------------------------
+
+*enablenpc
+
+Used to enable a disabled NPC
+
+	enablenpc;		// Would enable the current NPC, can be called for with a "DoNPCEvent" or some other timer event
+
+	enablenpc "NPC_NAME";	// Would enable a stated NPC
+
+---------------------------------------
+
+*disablenpc
+
+Used for disabling a NPC, by this it means it will not be visable, and there for not clickable
+
+	disablenpc;		// Would disable the current NPC
+
+	disablenpc "NPC_NAME";	// Would disable a stated NPC
+
+---------------------------------------
+
+*enablearena
+
+Makes the current map an arena(?)
+
+	enablearena;
+
+---------------------------------------
+
+*disablearena
+
+Disables an arena(?) on this map
+
+	disablearena;
+
+---------------------------------------
+
+*hideoffnpc
+
+Works just like "enablenpc", but you can sometimes see the NPC do the hide effect (thief)
+
+---------------------------------------
+
+*hideonnpc
+
+Works just like "disablenpc", but you can sometimes see the NPC do the hide effect (thief)
+
+---------------------------------------
+
+*sc_start
+
+Starts a status effect of a player, whether it be good or bad
+
+	sc_start SC_Poison,600000,0;	// This would poison them for 10 min
+
+Other status commands you can use are
+
+SC_Stone
+SC_Freeze
+SC_Stan
+SC_Sleep
+SC_Poison
+SC_Curse
+SC_Silence
+SC_Confusion
+SC_Blind
+SC_Bleeding
+SC_DPoison
+SC_SpeedPot0
+SC_SpeedPot1
+SC_SpeedPot2
+SC_SpeedPot3
+SC_SpeedUp0
+SC_SpeedUp1
+SC_ATKPot
+SC_MATKPot
+SC_EncPoison
+SC_Holy
+SC_Flame
+SC_Frost
+SC_Lightning
+SC_Seismic
+SC_Hallucination	// This is a nasty effect that wiggles the screen and really slows things down :'(
+
+---------------------------------------
+
+*sc_start2
+
+I believe this work the same as "sc_start" but for stacking the effects
+
+For more information about the use of this script command see "sc_start"
+
+---------------------------------------
+
+*sc_end
+
+Used for stopping status effect on a player
+
+	sc_end SC_BLIND; // Would stop a player from being blind
+
+For more information about the use of this script command see "sc_start"
+
+---------------------------------------
+
+*getscrate
+
+Not sure what this command does
+
+---------------------------------------
+
+*debugmes
+
+Will produce a message that is visable only in the map-server window
+
+	debugmes strcharinfo(0)+" has just done this that and the other"; // You would see on the map-server window "NAME has just done this that and the other"
+
+---------------------------------------
+
+*pet
+
+Used on items to make them into taming items
+
+	pet 1002;	// Would produce a Poring taming item
+
+Pet ID can be found inside "db\pet_db.txt"
+
+---------------------------------------
+
+*bpet
+
+Opens up the incubater screen, so you are able to hatch an owned egg
+
+	bpet;
+
+---------------------------------------
+
+*resetlvl
+
+The only use I can see for this is if you are making a reborn script of your own, or you just really wanna punish people for doing something wrong
+
+Will reset the players level back to a stated level, removing all armor ect that you can no longer were (you get to keep in your inventory)
+
+	resetlvl(1);	// Would take everything away, including skills, and leave you at base lvl 1
+
+---------------------------------------
+
+*resetstatus
+
+Takes off all the stat points you have assigned, so each stat is 1, and returns the points to you to spend again
+
+	resetstatus;
+
+Used in reset NPC's (duh!)
+
+---------------------------------------
+
+*resetskill
+
+Takes off all the skill points you have assigned, so you have only basic skill blanked out (lvl 0) left, and returns the points to you to spend again
+
+	resetskill;
+
+Used in reset NPC's (duh!)
+
+---------------------------------------
+
+*changebase
+
+Used to change the appearance of a player to that of another job, without getting all the skills of that job
+
+This is used on the "Wedding Dress" and "Tuxedo" so you look like job 22, job 22 is the wedding sprites
+
+It would be entered in the equip bonus section of an item
+
+2338,Wedding_Dress,Wedding Dress,5,43000,0,500,,0,,0,2088958,0,16,,0,0,{(This is for use bonus)},{ bonus bMdef,15; changebase 22; },
+
+I guess you can use it inside a normal NPC script, but it wont stick, and will return to normal after the player relogs (unless you use variables and PCLoginEvent)
+
+---------------------------------------
+
+*changesex
+
+Will change male, female, and will change female, male
+
+	changesex;
+
+---------------------------------------
+
+*waitingroom
+
+Displays the same box as would appear is someone sets up a char room, Can be used for triggering an event, or just be used as a constant message to all the people that see the title of the chat window
+
+	waitingroom "Hello World",0;					// The NPC will just show a box above its head that says "Hello World" clicking it will do nothing
+
+	waitingroom "Disco - Waiting Room",8,"Bouncer::OnStart",1; 	// The NPC will have a box above its head, it will say "Disco - Waiting Room" and will have 8 waiting slots, clicking it will make the NPC "Bouncer" run the label "OnStart"
+
+---------------------------------------
+
+*delwaitingroom
+
+Once a waiting room has been created it will not disappear no matter if someone goes away from the NPC, stops using the NPC
+
+So if you want the room to be destoryed simply state this command
+
+	delwaitingroom; 		// Will remove the waiting room from this NPC's head
+
+	delwaitingroom "NPC_NAME";	// Will remove a waiting room from a specified NPC's head
+
+---------------------------------------
+
+*disablewaitingroomevent
+
+Will stop an event from running from a "waitingroom" box, when someone has used the waiting room to run the event, this command will usually be used in that event to stop other people from getting in
+
+	disablewaitingroomevent;		// Will stop the event happening on this NPC's waiting room
+
+	disablewaitingroomevent "NPC_NAME";	// Will stop the event happening on a specified NPC's waiting room
+
+The room this still stay there above the head of the NPC, but will no longer work as an event trigger
+
+---------------------------------------
+
+*enablewaitingroomevent
+
+Used for re-enabling disabled waiting room events
+
+	enablewaitingroomevent;			// Will re-enable the event on this NPC's waiting room
+
+	enablewaitingroomevent "NPC_NAME";	// Will re-enable the event on a specified NPC's waiting room	
+
+---------------------------------------
+
+*getwaitingroomstate
+
+Used for finding out information about waiting rooms
+
+	getwaitingroomstate(#)			// The # equals a numerical value
+
+	getwaitingroomstate(#,"NPC_NAME")	// The # equals a numerical value, and it will find the information fron "NPC_NAME"
+
+The numerical values and what they mean are listed below
+
+0	= The ammount of players that have entered into the waiting room (numerical value)
+1	= The ammount maximum that is allowed in this waiting room (numerical value)
+2	= The ammount of players that have caused the event of the waiting room (numerical value)
+3	= Whether or not event of the waiting room is valid (numerical value)
+4	= The Title of the waiting room (character string)
+5	= Password of the waiting room (character string)
+16	= Event name of the waiting room (character string)
+32	= Whether or not the waiting room is full (numerical value)
+33	= Whether or not there is anyone inside the waiting room (numerical value)
+
+---------------------------------------
+
+*warpwaitingpc
+
+Used inside the event that is called by "waitingroom" too warp a player
+
+	warpwaitingpc "place.gat", 50, 50;	// When the player clicks the NPC's waiting box (and passed anything before this command is issued) will take the player to "place" X 50 Y 50
+
+//I cant work out myself why a normal warp command isnt used here
+
+---------------------------------------
+
+*attachrid
+
+The explaination on this is kinda hazey, can anyone tell me???
+
+---------------------------------------
+
+*detachrid
+
+The explaination on this is kinda hazey, can anyone tell me???
+
+---------------------------------------
+
+*isloggedin
+
+Using the ID of a player, it returns 1 if that player is logged on, and 0 if they are not, if use in an "If" command it will run the action at the end
+
+	isloggedin(150172);	// Would return a 1 if the player with ID "150172" was logged on, and 0 if not
+
+---------------------------------------
+
+*setmapflagnosave
+
+Makes it unable to save on a specific map, this is not just phyical saving but if you log out it will not save you position there
+
+It also allows you to designate a place that will save if they try and log out, and back to that map
+
+	setmapflagnosave "place.gat","place2.gat",100,100;	// Will stop saving on the map called "place", if it trys to save it will instead save on "place2" X100 Y100
+
+---------------------------------------
+
+*setmapflag
+
+Adds a new mapflag to a specified map
+
+	setmapflag "Place.gat",20;	// Makes it rain on the map called "Place", the map flag can be a numerical value, or the full name (but the number is shorter)
+
+mf_nomemo		0
+mf_noteleport		1
+mf_nosave		2
+mf_nobranch		3
+mf_nopenalty		4
+mf_nozenypenalty	5
+mf_pvp			6
+mf_pvp_noparty		7
+mf_pvp_noguild		8
+mf_gvg			9
+mf_gvg_noparty		10
+mf_notrade		11
+mf_noskill		12
+mf_nowarp		13
+mf_nopvp		14
+mf_noicewall		15
+mf_snow			16
+mf_fog			17
+mf_sakura		18
+mf_leaves		19
+mf_rain			20
+mf_indoors		21
+mf_nogo			22
+mf_clouds		23
+mf_fireworks		24
+
+---------------------------------------
+
+*removemapflag
+
+Removes a mapflag from a specified map
+
+	removemapflag "Place.gat",20;	// Will makes it stop raining on the map called "Place", the map flag can be a numerical value, or the full name (but the number is shorter)
+
+Some effect (i.e rain and snow) will seem to carry on when the flag in removed, leaving the map and returning to it will stop this effect, also refreshing your char will have the same effect
+
+See "setmapflag" for all the numbers you can use
+
+---------------------------------------
+
+*pvpon
+
+Will turn on PVP
+
+	pvpon;			// Enable PVP on this map
+
+	pvpon "place.gat";	// Enable PVP on the map "place"
+
+---------------------------------------
+
+*pvpoff
+
+Will turn off PVP
+
+	pvpoff;			// Disable PVP on this map
+
+	pvpoff "place.gat";	// Disable PVP on the map "place"
+
+---------------------------------------
+
+*gvgon
+
+Please see "pvpon"
+
+---------------------------------------
+
+*gvgoff
+
+Please see "pvpoff"
+
+---------------------------------------
+
+*emotion
+
+makes the NPC perform an emotion, all the emotions you are able to perform
+
+You need to use numbers to show the emotion
+
+	emotion #;	// Refer to the list below for each emotion that can take the place of #
+
+0 = !		10 = KO (Scissor)	20 = Hmmm	30 = Kiss 1 (R)		40 = Tsk tsk tsk (No)
+1 = ?		11 = Fist (Stone)	21 = Number 1!	31 = Kiss 2 (L)		41 = Petting
+2 = Music	12 = Hand (Paper)	22 = No (??)	32 = Smoking		42 = SP! (Timer)
+3 = Heart 1	13 = Korean Flag	23 = OMG!!	33 = Okay		43 = Obsessed 2 (Dumb face, eyes popping)
+4 = Sweat	14 = Heart 2		24 = O		34 = ... (Bugged)	44 = Come (Moving finger)
+5 = Light bulb	15 = Thanks		25 = X		35 = ??? Flag		45 = Yawn (Sleepy)
+6 = Annoyed	16 = Wah (Crying)	26 = Help!	36 = Evil 2		46 = Congratulations
+7 = Smoke cloud	17 = Sorry		27 = Go!	37 = Obsessed 1		47 = HP! (Timer)
+8 = $		18 = Heh (Laughing)	28 = Sobbing	38 = Two Hearts		
+9 = ...		19 = Sweating		29 = Evil 1	39 = Tongue
+
+---------------------------------------
+
+*maprespawnguildid
+
+Not entirely sure, but I think it stops the people who own a specific guild castle from attacking monsters (guardians and emp) inside that castle
+
+	MapRespawnGuildID "guildcastle.gat",GetCastleData(guildcastle.gat",1),2; // I think this stops people who own "guildcastle.gat" from attacking monsters spawned inside that castle
+
+	MapRespawnGuildID "guildcastle.gat",GetCastleData(guildcastle.gat",1),7; // I think this negates the effect of the above command, letting them attack again (this was run when they surrenderd the castle, so it seems to make sense)
+
+---------------------------------------
+
+*agitstart
+
+Start the "War of Emperium"
+
+	agitstart;
+
+---------------------------------------
+
+*agitend
+
+Stops the "War of Emperium"
+
+	agitend;
+
+---------------------------------------
+
+*agitcheck
+
+Can be used to check the status of the "War of Emperium"
+
+	agitcheck(0);	// Would return a 0 if the "War of Emperium" is off, 1 if it is on
+
+---------------------------------------
+
+*flagemblem
+
+This will set what emblem a flag should use
+
+(this needs to be places inside the npc script of a flag 3Dmob)
+
+	flagemblem 10007;	// Will print the emblem used by the guild with the ID "10007" in my case a sword infront of a pint of beer (AlcoROhics)
+
+You can also do a castle map argument
+
+	flagemblem GetCastleData("guildcastle.gat",1); // This will change the emblem on the flag to the same as the guild that owns "guildcastle"
+
+---------------------------------------
+
+*getcastlename
+
+Gets the name of the castle, when provided with the map it is on
+
+	GetCastleName(guildcastle.gat)	// This would check "db\castle_db.txt" and find the name of the castle that is on the map "guildcastle"
+
+---------------------------------------
+
+*getcastledata
+
+Gets castle information stored in "save\castle.txt"
+
+	getcastledata("guildcastle.gat",1) // This will find the ID of the guild thats owns the castle thats on the map "guildcastle"
+
+Some of the numbers that can be placed in that command
+
+0	= Castle Number
+1 	= Guild ID
+2	= Economy
+3	= Defence
+4	= How many times you have invested that day in Economy
+5	= How many times you have invested that day in Defence
+9	= Is 1 if you have hired a Kafra for that castle
+10	= Is 1 if you have bought the 1st guardian (Soldier Guardian)
+11	= Is 1 if you have bought the 2nd guardian (Soldier Guardian)
+12	= Is 1 if you have bought the 3rd guardian (Soldier Guardian)
+13	= Is 1 if you have bought the 4th guardian (Archer Guardian)
+14	= Is 1 if you have bought the 5th guardian (Archer Guardian)
+15	= Is 1 if you have bought the 6th guardian (Knight Guardian)
+16	= Is 1 if you have bought the 7th guardian (Knight Guardian)
+17	= Is 1 if you have bought the 8th guardian (Knight Guardian)
+
+
+---------------------------------------
+
+*setcastledata
+
+Can be used for changing the data inside "save\castle.txt"
+
+	setcastledata "guildcastle.gat",2,(getcastledata("guildcastle.gat",2) + 1
+// Technically this should add 1 point onto that guild castles Economy
+
+For more infomation about the numbers you can use see "getcastledata"
+
+---------------------------------------
+
+*requestguildinfo
+
+I cant figure out what this command does can you tell me???
+
+---------------------------------------
+
+*getequipcardcnt
+
+Will count the ammount of cards that have been compounded onto a specific equiped items
+
+	getequipcardcnt(#)	// For the numbers you can use see "getequipid"
+
+	getequipcardcnt(4)	// Will return the number of cards componded in you right hand weapon
+
+---------------------------------------
+
+*successremovecards
+
+Removes all the cards for a selected equiped item
+
+	successremovecards #;	// For the numbers you can use see "getequipid"
+
+	successremovecards 4;	// Will successfully remove all the cards from your right hand weapon, and return them cards back to your inventory
+
+---------------------------------------
+
+*failedremovecards
+
+	failedremovecards #;	// For the numbers you can use see "getequipid"
+
+	failedremovecards 4;	// Will successfully remove all the cards from your right hand weapon, and destroys them cards
+
+---------------------------------------
+
+*marriage
+
+Used for marrying 2 people together, this will join the 2 people so they can used wedding skills on each other
+
+	marriage "SPOUSE";		// This will marry the user of this script to "SPOUSE"
+
+Normally the name (SPOUSE) will be a text variable
+
+A seconed command has to be issused to then marry "SPOUSE" to the original user
+
+Just let me note this now, this is not how I would structure this command, if I had my way I would have it done this way
+
+	marriage "BRIDE","GROOM"; 	// But this ISNT how it is 
+
+
+---------------------------------------
+
+*wedding
+
+Used for showing the confetti and playing the music, after the wedding has finished (to show the ending and both people are married)
+
+	wedding;
+
+// This could be combined with, or atleast added to, the "marriage" command if it was structured how I said :P 
+
+---------------------------------------
+
+*divorce
+
+Used for un-marrying people
+
+	divorce;	// This will just remove the players SPOUSE ID from them, so they wont be married anymore
+
+---------------------------------------
+
+*ispartneron
+
+Finds out if the players partner is on or not
+
+	ispartneron(0)	// Will return 1 if partner is on, 0 if your partner is, or you have no partner
+
+---------------------------------------
+
+*getpartnerid
+
+Finds out the ID of your partner
+
+	getpartnerid(0)	// Will return the ID of your partner, and 0 if you have no partner
+
+---------------------------------------
+
+*warppartner
+
+Will warp your partner to you
+
+	warppartner;	// Like using the wedding skill "I miss you"
+
+(I was not able to test this one)
+
+---------------------------------------
+
+*getitemname
+
+Using the ID of an item you can return a name
+
+	getitemname(#)		// # = ID of an item
+
+	getitemname(501)	// Would return Red Potion
+
+---------------------------------------
+
+*makepet
+
+Create a pet using its ID
+
+	makepet #;	// # = Pet ID found in "db\pet_db.txt"
+
+	makepet 1002;	// This would make a poring for you
+
+---------------------------------------
+
+*getexp
+
+Used for adding a specific amount of experience to a player, can be used as a quest reward, or used in a custom it to add an ammount of exp for using it
+
+	getexp #,*;		// # = Base exp  * = Job exp
+
+	getexp 10000,5000;	// This would give 10,000 Base exp, and 5,000 Job exp
+
+You can also use the "set" command
+
+	set BaseExp,BaseExp+10000;	// These 2 combined has the same effect as the above command
+	set JobExp,JobExp+5000;		//
+
+You can also reduce the ammount of exp too
+
+	set BaseExp,BaseExp-10000;	// This would take 10,000 Base exp off you, it cannot change you level, with take you to you 0 exp within that level
+
+---------------------------------------
+
+*getinventorylist
+
+Tells you whats in your inventory, am I the only one that thinks this is pointless?
+
+---------------------------------------
+
+*getskilllist
+
+Gets a list of skills I guess, why would you want this, you could use the "getskilllv" to find out if a player has a skill or not
+
+---------------------------------------
+
+*clearitem
+
+Will remove all your items, equiped, or otherwise
+
+Does not effect Storage or cart items
+
+	clearitem;
+
+---------------------------------------
+
+*classchange
+
+I have tested this, but no visual changes accoured
+
+If anyone else can tell me :D 
+
+---------------------------------------
+
+*misceffect
+
+Does an effect on the NPC, effects found in "doc\effect_list.txt"
+
+	misceffect #;	// see above for location of numbers
+
+---------------------------------------
+
+*soundeffect
+
+Plays a sound effect to you
+
+Unsure of the syntax
+
+---------------------------------------
+
+*soundeffectall
+
+Plays a sound effect to everyone
+
+Unsure of the syntax
+
+---------------------------------------
+
+*mapwarp
+
+Warp everyone of a map to another place
+
+	mapwarp "place.gat","place2.gat",50,50;
+
+Will take everyone from the map called "place" and take them too "place2" X50 Y50
+
+---------------------------------------
+
+*cmdothernpc
+
+I guess it lets you tell another NPC to do something, what you can tell it to do, I dont know
+
+---------------------------------------
+
+*mobcount
+
+Count the ammount of monsters on a map
+
+	mobcount(place.gat);
+or
+	mobcount place.gat;	// Will return a number equal to the ammount of monsters on the map stated
+---------------------------------------
+
+*strmobinfo
+
+Can be used to find information about monsters from "db\mob_db.txt" 
+
+	strmobinfo(#,*)		//# = Piece of infomation you wanna find, * = Monster ID you want to find out about
+
+	strmobinfo(3,1002)	// This would return "1" cause a poring is lvl 1
+
+1	= Name
+2	= JName
+3	= Level
+4	= HP
+5	= SP
+6	= EXP
+7	= JEXP
+8	= Range1
+9	= ATK1
+10	= ATK2
+11	= DEF
+12	= MDEF
+13	= STR
+14	= AGI
+15	= VIT
+16	= INT
+17	= DEX
+18	= LUK
+19	= Range2
+20	= Range3
+21	= Scale
+22	= Race
+23	= Element
+24	= Mode
+25	= Speed
+26	= ADelay
+27	= aMotion
+28	= dMotion
+29	= Drop1id
+30	= Drop1per
+31	= Drop2id
+32	= Drop2per
+33	= Drop3id
+34	= Drop3per
+35	= Drop4id
+36	= Drop4per
+37	= Drop5id
+38	= Drop5per
+39	= Drop6id
+40	= Drop6per
+41	= Drop7id
+42	= Drop7per
+43	= Drop8id
+44	= Drop8per
+45	= Drop9id
+46	= Drop9per
+47	= DropCardid
+48	= DropCardper
+49	= MEXP
+50	= ExpPer
+51	= MVP1id
+52	= MVP1per
+53	= MVP2id
+54	= MVP2per
+55	= MVP3id
+56	= MVP3per
+
+To find a mob ID look is "db\mob_db.txt"
+
+---------------------------------------
+
+*guardian
+
+Works just like the "monster" NPC command, but seems to only really work with the real guardians
+
+guardian "prtg_cas01.gat",196,92,"Soldier Guardian",1287,1,"Guardian_Pt01::OnGuardianDied",0; // This will make Soldier Guardian that will only attack none guild members, 0 classes this as the 1st guardian
+
+---------------------------------------
+
+*guardianinfo
+
+Will find the HP of a selected guardian on that map
+
+	guardianinfo(0)		// If the guardian was that Soldier Guardian in the "Guardian" command this would return "15,670"
+
+---------------------------------------
+
+*petskillbonus
+
+Used with pets only, but still counted as an NPC script
+
+---------------------------------------
+
+*petrecovery
+
+Used with pets only, but still counted as an NPC script
+
+---------------------------------------
+
+*petloot
+
+Used with pets only, but still counted as an NPC script
+
+---------------------------------------
+
+*petheal
+
+Used with pets only, but still counted as an NPC script
+
+---------------------------------------
+
+//*petmag
+
+Used with pets only, but still counted as an NPC script
+(This is been removed for some reason, Isis owners must hate this)
+
+---------------------------------------
+
+*petskillattack
+
+Used with pets only, but still counted as an NPC script
+
+---------------------------------------
+
+*petskillattack2
+
+Used with pets only, but still counted as an NPC script
+
+---------------------------------------
+
+*petskillsupport
+
+Used with pets only, but still counted as an NPC script
+
+---------------------------------------
+
+*skilleffect
+
+Will show an effect of the player
+
+---------------------------------------
+
+*npcskilleffect
+
+Will show an effect of the NPC
+
+---------------------------------------
+
+*specialeffect
+
+Shows an effect on the NPC
+
+---------------------------------------
+
+*specialeffect2
+
+Shows an effect on the player interacting with the NPC
+
+	specialeffect2 422; 	// Will make you Big 
+	specialeffect2 420;	// Will make you Small 
+
+I am not sure about all the numbers
+
+---------------------------------------
+
+*nude
+
+Will strip a players of all the equipment
+
+	nude;
+
+Can be used when changing Jobs, it will remove all equipment and they will be able to put it back on if they are still allowed to after the change
+
+---------------------------------------
+
+*gmcommand
+
+Allows an NPC to use any GM atcommand, the NPC thinks it is a lvl 99 GM with no restrictions
+
+	gmcommand strcharinfo(0)+"@command argument"	// You need to specify who this will effect, or who is using it, followed by the @ command, and then any extra arguments required for that command to work
+
+	gmcommand strcharinfo(0)+"@summon poring"	// This would summon a poring that would fight for you against your enemies, can be placed on a use bonus of an item (try having a dark lord fight for you :D )
+
+	input $player$;
+	gmcommand $player$+"@die"			// Will cause the person that is set under the variable "$player$" to die misteriously
+
+This command has so many good uses, I am sure you can have some fun with this one
+
+---------------------------------------
+
+//*movenpc
+
+It used to be able to move an NPC from one location to another, seems it has been disabled
+
+---------------------------------------
+
+*message
+
+After testing this seems to have no effect
+
+---------------------------------------
+
+*npctalk
+
+Will make the NPC talk to you will speech above there head, as if they was a real char, everyone will see the same text, even if a variable set on one play effects what it says
+
+	npctalk "Message above my head";	// Self explanatary
+
+	npctalk "Hello "+strcharinfo(0)" how are you";	// You will see "Hello USERNAME how are you"
+
+	npctalk "So far you have found "+@var;		// You will see "So far you have found NUMBER" and so will everyone else even though that variable was pulled from that player
+
+---------------------------------------
+
+*hasitems
+
+Checks if the player has any items at all, if they have even 1 item or even if they have 1000 it will return 1, if they dont have have any it will return 0
+
+	if(hasitems(0)==0) L_HasNothing;
+---------------------------------------
+
+*getlook
+
+Can find out things about the player, what number hair they have, what weapon they have
+
+	getlook(#)	// See below for the numbers you can use
+
+1	= Hair
+2	= weapon
+3	= Head bottom
+4	= Head top
+5	= Head mid
+6	= Hair color
+7	= Clothes color
+8	= Shield
+9	= Shoe
+
+Will return a numerical value that represents the specified information
+
+---------------------------------------
+
+*getsavepoint
+
+Will find the players save point, using differant numbers to find each piece
+
+	getsavepoint(#)	// See below for the numbers you can use
+
+0	= map name
+1	= x co-ordinate
+2	= y co-ordinate
+
+---------------------------------------
+
+*npcspeed
+
+Sets how fast an NPC can walk, 50 is default, 1000 is the slowest, and 1 the fastest
+
+	npcspeed #;	// Simple fill in with the speed you want your NPC to move at
+
+	npcspeed 1000;	// Will make it move like a snail on a tread mill :D
+
+	npcspeed 1;	// Every heard of the flash?
+
+---------------------------------------
+
+*npcwalkto
+
+Will make an NPC walk to a selected location, I think you need to set a speed before it is able to move
+
+	npcwalkto #,*;		// # = X value	* = Y value
+
+	npcwalkto 70,140;	// Will make the NPC walk to X70 Y140
+
+---------------------------------------
+
+*npcstop
+
+Will stop an NPC from moving, issuing a new "npcwalkto" command will counter act this
+
+	npcstop;
+
+---------------------------------------
+
+*getmapxy
+
+Thanks to Terminal Vertex and Z3R0, we now have a proper discription of this command
+
+This command will find a players/NPC's/Pet's[/Mob's)]current co-ordinates, and the map they are standing on
+
+	getMapXY var1$,var2,var3,type[,PLAYER$];
+
+Using the command above it will set the variables stated as followed
+
+var1$	= Map name
+var2	= The X value
+var3	= The Y value
+
+Thing you need to specify
+
+type	= type of object
+		0 - Character coord
+ 		1 - NPC coord
+		2 - Pet coord
+		3 - Mob coord (not released)
+PLAYER$	= Can be set before this command is called to find someone elses information
+	  Simply leave out everything inside the [ ] if you want to find out the current players information
+
+Other things the variables can return, other than the name on the map, and the X Y values
+
+ 0	= Means the player stated is not on
+-1	= some error, MapName$,MapX,MapY contains unknown value.
+
+EX
+	mes "[Person Finder]";
+	mes "Who would you like me to find?";
+	next;
+	input @name$;
+	getMapXY @map$,@X,@Y,1,@name$;
+	if(@X == 0) goto L_NotOn;
+	mes "[Person Finder]";
+	mes "Ok that person is";
+	mes "on a map called "+@map$;
+	mes "At the co-ordinates X"+@X+" Y"+@Y;
+	close;
+L_NotOn:
+	mes "[Person Finder]";
+	mes "Sorry the player you mentioned is not on";
+	close;	
+
+---------------------------------------
+
+*checkoption1
+
+see "checkoption" uses <param2>
+
+---------------------------------------
+
+*checkoption2
+
+see "checkoption" uses <param1>
+
+---------------------------------------
+
+*guildgetexp
+
+Used the same as "getexp" will added a specified ammount of exp onto the guild you are in
+
+	guildgetexp 1000;	// Will add 1000 exp to the guild you are in
+
+---------------------------------------
+
+*skilluseid
+
+The NPC uses a skill on the player using it
+
+	skilluseid #,*;		// # = Skill ID, * = Lvl of the skill
+
+	skilluseid 28,10;	// Will used heal(28) lvl 10
+
+---------------------------------------
+
+*skillusepos
+
+Use a skill on an area specified
+
+
+	skillusepos #,*,%,$;		// # = Skill ID, * = Lvl of Skill, % = X value, $ = Y value
+
+	skillusepos 79,10,100,100;	// Will use magnus Exorcismus(79) lvl 10, on X 100 Y 100 on that map
+
+---------------------------------------
+
+*logmes
+
+Good for logging important things into a log file
+
+	logmes "has just won 1 mill zeny";	// Would job the persons name that caused this logmes time place, then the message "has just won 1 mill zeny"
+
+Like my example says, if you make something that has a chance of giving out good prizes it is always a good idea to use "logmes" then you know who has won what and when, so you can scan for an expliot ect
+
+It will only log if you have logs enabled
+
+---------------------------------------
+
+*summon
+
+Will summon a moster to fight on your side (Like the example given in "gmcommand" )
+
+	summon MONSTERNAME,MONSTERID[,"NPCNAME::LABEL"]; // What the summoned monster will be called, the ID of the monster you want to summon, if you want to add an event to the end if you want, you dont need to
+
+	summon "Poring", 1002, "OnPoringKilled";	// Will summon (note: not *spawn*) 1 poring that'll help its master for 1 minute, and activate the "OnPoringKilled" event when killed.
+        
+	summon "--ja--",-1;				// Will summon a random monster.
+
+---------------------------------------
+
+*isnight
+
+Checks of if is night
+
+	isnight()	// Will return a 1 if it is night, and 0 if it is not (day) 
+
+---------------------------------------
+
+*isday
+
+I dont see a point in having both "isday" and "isnight", you can just use "isnight" to check if it day too
+
+	isday()				// Will return a 1 if it is day, and 0 if it is not (night)
+
+	if(isnight()==0) got L_Day	// Example of how to use "isnight" to check if it is day (waste of time whoever made it, no-offence :D )
+
+---------------------------------------
+
+*isequipped
+
+Will check if a selection of equipment is one, used for finding out cards that are compounded, and are equiped
+
+	if(isequipped(card1[,card2][,card3][,card4][,ect])) ACTION;
+// If all the cards are found it will return a 1, if not a 0, if used in an "if" command will run the action at the end 
+	if(isequipped(4001,4005,4033,4196)) goto L_AllEquiped
+// Will check if all the cards (Poring,Santa Poring,Poporing,Marin) if the player has all of them, they get sent to the label "L_AllEquiped"
+---------------------------------------
+
+*isequippedcnt
+
+Will work the same as above, but will return a number equal to the ammount of matches
+
+	isequippedcnt(4001,4005,4033,4196) 	// If you only had Poring and Santa Poring equiped, it would return 2
+						// If you had Poring,Santa Poring,Poporing and Marin equiped it would return 4
+
+---------------------------------------
+
+*cardscnt
+
+It will return the number of same cards within a weapon
+
+	cardscnt()
+
+Used to stop abuse, like having 8 cards in 2-4slotted weps all the same
+
+---------------------------------------
+
+*getrefine
+
+Seems to work just like "getequiprefinerycnt" see that command
+
+---------------------------------------
+
+*adopt
+
+Used for joining 3 people as a family, 2 married people, and 1 novice
+
+	adopt	partent1,partent2,novice;	// Will change "novice" into a baby and join them to the parents
+
+---------------------------------------
+
+*night
+
+Will make it change to night
+
+	night;
+
+---------------------------------------
+
+*day
+
+Will make it change to day
+
+	day;
+
+---------------------------------------
+
+*getusersname
+
+works like @WHO ATCommand, outputs by 10 names in the Pop-up window
+	
+	getusersname;
+
+---------------------------------------
+
+*dispbottom
+
+Will display a message in the chat window at the bottom of the screen, where no-one else will see it
+
+	disbottom "whisper whisper whisper";	// Take a guess :P
+
+---------------------------------------
+
+*recovery
+
+Restore MaxHP/SP and revives all players on the server
+
+	recovery;
+
+---------------------------------------
+
+*getpetinfo
+
+Returns information about the players pet
+
+	getpetinfo(#)	// See below for the numbers
+
+0	= pet's name
+1	= type
+2	= class
+3	= hunger
+4	= intimacy
+
+This is how it is supposed to work, but when testing it it turned out to be
+
+0	= Came out as "100" not sure why
+1	= ID of the pet
+2	= Crashed the server
+3	= Friendly/Intimacy (out of 1000)
+4	= Hunger (out of 100)
+
+---------------------------------------
+
+*checkequipedcard
+
+Shows wether your inventory(and equips) contain selected card or not.
+	
+	checkequipedcard(4001); // Will return 1 if you have card "4001" in any piece of equipment, equiped or not, and 0 if you dont
+
+Can be used to stop people from, let say, entering a PVP zone when they have a Ghostring Card :P
+
+---------------------------------------
+
+*globalmes
+
+Works like Announce, but outputs in the common chat window
+
+	globalmes "Everyone listen to me";
+
+---------------------------------------
+
+*jump_zero
+
+Has no use yet
+
+(reserved - for future compatibility)
+
+---------------------------------------
+
+*select
+
+Has no use yet
+
+(reserved - for future compatibility)
+
+---------------------------------------
+
+*getmapmobs
+
+Number of mobs on a named map, use "this" for current map
+
+	getmapmobs(place.gat)	// Returns a number equal to the ammount of monsters on that map (thinks about alot of 0's since there is dynamic monsters now :D ) 
+
+---------------------------------------
+
+*unequip
+
+Unequip a specified equipment using the list in the "getequipid" command
+
+	unequip(1)	// Would remove the players upper 	head gear
+
+If somethings takes up more that 1 slot, and you select anyone of them slots it will still remove it
+
+Take the example of "Solar God Helm", it occupies upper and middle
+
+Issuing either, unequip(1) or unequip(9) will remove it
+
+---------------------------------------
