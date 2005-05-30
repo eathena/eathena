@@ -9,7 +9,7 @@
 //===== Description: ========================================= 
 //= Optimised scripts by moving all their checkers here.
 //===== Additional Comments: ================================= 
-//= -None-
+//= For 1-1 Jobs
 //============================================================ 
 
 //Acolyte Check
