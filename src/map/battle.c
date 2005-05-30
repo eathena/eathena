@@ -5488,8 +5488,9 @@ static const struct battle_data_short {
 	{ "use_statpoint_table",               &battle_config.use_statpoint_table}, // [Skotlex]
 	{ "new_attack_function",               &battle_config.new_attack_function}, // [Skotlex]
 	{ "ignore_items_gender",               &battle_config.ignore_items_gender}, // [Lupus]
-	{ "show_hp_sp_drain",               &battle_config.show_hp_sp_drain}, // [Skotlex]
-	{ "show_hp_sp_gain",               &battle_config.show_hp_sp_gain}, // [Skotlex]
+	{ "mob_remove_damaged",                &battle_config.mob_remove_damaged},
+	{ "show_hp_sp_drain",                  &battle_config.show_hp_sp_drain}, // [Skotlex]
+	{ "show_hp_sp_gain",                   &battle_config.show_hp_sp_gain}, // [Skotlex]
 
 //SQL-only options start
 #ifndef TXT_ONLY

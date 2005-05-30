@@ -1,5 +1,6 @@
 Date	Added
 05/30
+	* Fixed mob_remove_damaged [Skotlex]
 	* Added two new battle_athena options:	[Skotlex]
 	  show_hp_sp_drain (yes/no): displays drained hp/sp from attacks (ie:
 	  Hunter Fly Card)
