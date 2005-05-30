@@ -222,19 +222,19 @@ int clif_countusers(void)
  
 int clif_foreachclient(int (*func)(struct map_session_data*, va_list),...) //recoded by sasuke, bug when player count gets higher [Kevin]
 {
-int i;
-va_list ap;
-struct map_session_data *sd;
+	int i;
+	va_list ap;
+	struct map_session_data *sd;
 
-va_start(ap,func);
+	va_start(ap,func);
 
- for(i = 0; i < fd_max; i++) {
-  if ( session[i] ) {
-   sd = (struct map_session_data*)session[i]->session_data;
-   if ( sd && sd->state.auth )
-    func(sd, ap);
- }
-}
+	for(i = 0; i < fd_max; i++) {
+		if ( session[i] ) {
+			sd = (struct map_session_data*)session[i]->session_data;
+			if ( sd && sd->state.auth )
+				func(sd, ap);
+		}
+	}
 
 /* Let's try the above! [Sasuke]
 for(i = 0; i < fd_max; i++) {
@@ -243,8 +243,8 @@ for(i = 0; i < fd_max; i++) {
 }
 */
 
-va_end(ap);
-return 0;
+	va_end(ap);
+	return 0;
 }
 
 /*==========================================

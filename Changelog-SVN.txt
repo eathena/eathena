@@ -1,4 +1,8 @@
 Date	Added
+05/30
+	* Fixed item_avail.txt reading could crash on newline [celest]
+	* Speedup and fixed @reloaditemdb messing up inventory data [celest]
+
 05/29
 	* Fixed a typo in an NPC [Codemaster]
 	* Fixed guild expulsion bug, two chars on same account would be expelled. [Kevin]

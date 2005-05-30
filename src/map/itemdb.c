@@ -3,16 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "db.h"
-#include "grfio.h"
-#include "nullpo.h"
-#include "malloc.h"
+#include "../common/db.h"
+#include "../common/nullpo.h"
+#include "../common/malloc.h"
+#include "../common/showmsg.h"
 #include "map.h"
+#include "grfio.h"
 #include "battle.h"
 #include "itemdb.h"
 #include "script.h"
 #include "pc.h"
-#include "showmsg.h"
 
 #define MAX_RANDITEM	2000
 #define MAX_ITEMGROUP	20
@@ -342,48 +342,43 @@ static int itemdb_read_randomitem()
  * アイテム使用可能フラグのオーバーライド
  *------------------------------------------
  */
-static int itemdb_read_itemavail(void)
+static int itemdb_read_itemavail (void)
 {
 	FILE *fp;
-	char line[1024];
-	int ln = 0;
-	int nameid,j,k;
-	char *str[10],*p;
+	int nameid, j, k, ln = 0;
+	char line[1024], *str[10], *p;
+	struct item_data *id;
 
 	if ((fp = fopen("db/item_avail.txt","r")) == NULL) {
 		printf("can't read db/item_avail.txt\n");
 		return -1;
 	}
 
-	while(fgets(line,1020,fp)){
-		struct item_data *id;
-		if(line[0]=='/' && line[1]=='/')
+	while (fgets(line, sizeof(line) - 1, fp)) {
+		if (line[0] == '/' && line[1] == '/')
 			continue;
-		memset(str,0,sizeof(str));
-		for(j=0,p=line;j<2 && p;j++){
-			str[j]=p;
-			p=strchr(p,',');
-			if(p) *p++=0;
+		memset(str, 0, sizeof(str));
+		for (j = 0, p = line; j < 2 && p; j++) {
+			str[j] = p;
+			p = strchr(p, ',');
+			if(p) *p++ = 0;
 		}
 
-		if(str[0]==NULL)
+		if (j < 2 || str[0] == NULL ||
+			(nameid = atoi(str[0])) < 0 || nameid >= 20000 || !(id = itemdb_exists(nameid)))
 			continue;
 
-		nameid=atoi(str[0]);
-		if(nameid<0 || nameid>=20000 || !(id=itemdb_exists(nameid)) )
-			continue;
-		k=atoi(str[1]);
-		if(k > 0) {
+		k = atoi(str[1]);
+		if (k > 0) {
 			id->flag.available = 1;
 			id->view_id = k;
-		}
-		else
+		} else
 			id->flag.available = 0;
 		ln++;
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"db/item_avail.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, "db/item_avail.txt");
+
 	return 0;
 }
 
@@ -933,7 +928,7 @@ static void itemdb_read(void)
 		itemdb_read_sqldb();
 	else
 #endif
-		itemdb_readdb();	
+		itemdb_readdb();
 
 	itemdb_read_itemgroup();
 	itemdb_read_randomitem();
@@ -954,31 +949,36 @@ static void itemdb_read(void)
  * Initialize / Finalize
  *------------------------------------------
  */
-static int itemdb_final(void *key,void *data,va_list ap)
+static int itemdb_final_sub (void *key,void *data,va_list ap)
 {
+	int flag;
 	struct item_data *id = (struct item_data *)data;
 
 	if (id == NULL)
 		return 0;
+	flag = va_arg(ap, int);
 	if (id->use_script)
 		aFree(id->use_script);
 	if (id->equip_script)
 		aFree(id->equip_script);
-	aFree(id);
+	// Whether to clear the item data
+	if (flag)
+		aFree(id);
 
 	return 0;
 }
 
 void itemdb_reload(void)
 {
-	numdb_final(item_db,itemdb_final);
-	do_init_itemdb();
+	// free up all item scripts first
+	numdb_foreach(item_db, itemdb_final_sub, 0);
+	itemdb_read();
 }
 
 void do_final_itemdb(void)
 {
 	if (item_db)
-		numdb_final(item_db, itemdb_final);
+		numdb_final(item_db, itemdb_final_sub, 1);
 }
 
 int do_init_itemdb(void)
