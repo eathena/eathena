@@ -123,7 +123,7 @@ function	script	Mag_check	{
 			close;
 			
 
-)
+}
 
 //Merchant Check
 function	script	Mag_check	{
