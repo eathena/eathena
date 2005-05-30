@@ -227,6 +227,8 @@ enum AtCommandType {
 	AtCommand_Grind, // by MouseJstr
 	AtCommand_Grind2, // by MouseJstr
 
+	AtCommand_Me, //added by massdriller, code by lordalfa
+
 	AtCommand_DMStart, // by MouseJstr
 	AtCommand_DMTick, // by MouseJstr
 
@@ -257,7 +259,6 @@ enum AtCommandType {
 
 	AtCommand_ItemInfo, // Lupus
 	AtCommand_MapFlag, // Lupus
-	AtCommand_Me, //added by massdriller, code by lordalfa
 
 	// end
 	AtCommand_Unknown,

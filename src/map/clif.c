@@ -11833,26 +11833,6 @@ int do_init_clif(void) {
 }
 
 
-
-//minimap fix [Kevin]
-
-/* Remove dot from minimap 
- *------------------------------------------
-*/
-int clif_party_xy_remove(struct map_session_data *sd)
-{
-	unsigned char buf[16];
-	nullpo_retr(0, sd);
-	WBUFW(buf,0)=0x107;
-	WBUFL(buf,2)=sd->status.account_id;
-	WBUFW(buf,6)=-1;
-	WBUFW(buf,8)=-1;
-	clif_send(buf,packet_len_table[0x107],&sd->bl,PARTY_SAMEMAP_WOS);
-	return 0;
-}
-
-
-
 /*------------------------------------------
  * @me command by lordalfa
  *------------------------------------------
@@ -11872,5 +11852,22 @@ nullpo_retr(-1, mes);
 		clif_send(buf, WBUFW(buf,2), &sd->bl, AREA); //Sends self speech to Area
 }
 
+	return 0;
+}
+
+//minimap fix [Kevin]
+
+/* Remove dot from minimap 
+ *------------------------------------------
+*/
+int clif_party_xy_remove(struct map_session_data *sd)
+{
+	unsigned char buf[16];
+	nullpo_retr(0, sd);
+	WBUFW(buf,0)=0x107;
+	WBUFL(buf,2)=sd->status.account_id;
+	WBUFW(buf,6)=-1;
+	WBUFW(buf,8)=-1;
+	clif_send(buf,packet_len_table[0x107],&sd->bl,PARTY_SAMEMAP_WOS);
 	return 0;
 }

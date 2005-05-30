@@ -9608,20 +9608,6 @@ int atcommand_rates(
 }
 
 /*==========================================
- * @mapflag [flagap name] [1|0|on|off] [map name] by Lupus
- * => Shows information about the map flags [map name]
- * Also set flags
- *------------------------------------------
- */
-int atcommand_mapflag(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
-{
-// WIP
-	return 0;
-}
-
-/*==========================================
  * @me by lordalfa
  * => Displays the OUTPUT string on top of 
  *    the Visible players Heads.
@@ -9645,4 +9631,18 @@ int atcommand_mapflag(
 		sprintf(atcmd_output, "** %s %s **",sd->status.name,tempmes);
      		clif_disp_overhead( sd,atcmd_output);
 		return 0;
+}
+
+/*==========================================
+ * @mapflag [flagap name] [1|0|on|off] [map name] by Lupus
+ * => Shows information about the map flags [map name]
+ * Also set flags
+ *------------------------------------------
+ */
+int atcommand_mapflag(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+// WIP
+	return 0;
 }
