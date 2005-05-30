@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.4
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -11,7 +11,8 @@
 //===== Additional Comments: ================================= 
 //= Fully working
 //= v1.1 Added instant job change for High Novice [Lupus]
-//= 1.3 Added Baby Class support [Lupus]
+//= v1.3 Added Baby Class support [Lupus]
+//= v1.4 Optimised and moved first checker to Jfunc1-1 [massdriller]
 //============================================================ 
 
 
@@ -26,17 +27,7 @@ payon_in02.gat,64,71,4	script	Archer Guildsman	59,{
 
 	M_0:
 		mes "[Archer Guildsman]";
-		if(BaseJob == Job_Archer) goto sL_Archer;
-		if(BaseJob != Job_Novice) goto sL_Other;
-
-		mes "You have made an execellent job choice.";
-		mes "Please submit your resume so that I can check your qualifications.";
-		next;
-		mes "(You hand over your resume)";
-		next;
-		mes "[Archer Guildsman]";
-		if(JobLevel < 10) goto sL_LowLvl;
-		set job_archer_q,1;
+		callfunc "Arc_check";
 		mes "Looks good.  You have the necesssary skills to become an archer....";
 		next;
 		mes "[Archer Guildsman]";
@@ -63,20 +54,6 @@ payon_in02.gat,64,71,4	script	Archer Guildsman	59,{
 		mes "[Archer Guildsman]";
 		mes "I must warn you, the Willows can be tough monsters so be carefull and remember to rest and use your healing items.  Good luck!";
 		close;
-
-		sL_Archer:
-			mes "Your free spirited nature tells me that you're already an archer....that and the bow and arrow in your hands...Haha";
-			emotion 18;
-			close;
-
-		sL_Other:
-			mes "I'm sorry but you cannot leave your current job to become an Archer...though I can understand why you would want to do so."; 
-			close;
-		
-		sL_LowLvl:
-			mes "It seems that you are not qualified to become an Archer yet.  Please take a look at the job requirments once more.";
-			close;
-
 
 	M_1:
 		mes "[Archer Guildsman]";

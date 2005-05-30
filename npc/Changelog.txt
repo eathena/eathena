@@ -28,7 +28,10 @@ TODO:
 
 Date		Added
 ======
-
+05/30
+	* Optimised Job Quests by placing checkers into JFunc [massdriller]
+	- Currently completed only 1-1 scripts
+	- Acolyte, Archer, Mage, Merchant, Thief, Swordsman
 05/29
 	* Fixed many grammatical errors (mostly in Merchant job quest) thanks to the__android [DracoRPG]
 05/25

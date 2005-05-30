@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.5
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -15,6 +15,7 @@
 //= 1.3 Added Baby Class support [Lupus]
 //= 1.4 Changed the timing system to initnpctimer, now you do get warnings about time
 //=     and are limited to 7min to complete the quest [Fredzilla]
+//= v1.5 Optimised and moved first checker to Jfunc1-1 [massdriller]
 //============================================================ 
 
 
@@ -64,14 +65,7 @@ L_Menu:
 
 	M_0:
 		mes "[Master Swordsman]";
-		if(BaseJob == Job_Swordman) goto O_1b;
-		if(BaseJob != Job_Novice) goto O_1c;
-		mes "So you wish to become a Swordsman aye? A very good choice!!  Fill out this application form first.";
-		next;
-		mes "..(you fill out the form and hand it to him)..";
-		next;
-		mes "[Master Swordsman]";
-		if(JobLevel < 10) goto O_1d;
+		callfunc "Swo_check";
 
 		O_1a:
 			set job_sword_q,1;
@@ -102,23 +96,6 @@ L_Menu:
 				mes "[Master Swordsman]";
 				mes "Very well then. Your registration is complete.  When you are ready to take the test, just enter the testing room to my right.";
 				close;
-
-		O_1b:
-			mes "Muhahaha! You must be kidding me! You're already a swordsman.";
-			emotion 18;
-			close;
-
-		O_1c:
-			mes "Im sorry but you can not hold more than one job at a time and therefore I must refuse your request.";
-			next;
-			mes "[Master Swordsman]";
-			mes "Try picking up a hobby to make use of your spare time. Muhahahahah!!";
-			emotion 18;
-			close;
-
-		O_1d:
-			mes "A hem...., you have yet to learn all of the 'Basic Skills' needed to become a Swordsman.  Please check the requirements again.";
-			close;
 
 	M_1:
 		mes "[Master Swordsman]";
