@@ -2943,7 +2943,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 	if(skill_num == KN_AUTOCOUNTER)
 		wd.amotion >>= 1;
 	wd.dmotion=status_get_dmotion(target);
-	wd.blewcount==skill_get_blewcount(skill_num,skill_lv);
+	wd.blewcount=skill_get_blewcount(skill_num,skill_lv);
 	wd.flag=BF_SHORT|BF_WEAPON|BF_NORMAL; //Initial Flag
 	wd.dmg_lv=ATK_DEF;	//This assumption simplifies the assignation later
 
