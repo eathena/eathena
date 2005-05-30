@@ -1803,7 +1803,7 @@ void mob_cache_unload(struct mob_data *md)
 {
 	nullpo_retv(md);
 	
-	if (( md->spawndelay1 != 0 || ( md->hp != md->max_hp && !battle_config.mob_remove_damaged ))
+	if (( md->spawndelay1 != 0 || md->deletetimer != 0 || ( md->hp != md->max_hp && !battle_config.mob_remove_damaged ))
 		&& !md->master_id ) //Remove spawned slave mobs
 	    return;	
 
