@@ -1,5 +1,7 @@
 Date	Added
 05/30
+	* Changed hp_dispmeter from yes/no to GM-level [Skotlex]
+	  Note that now the default value is hp_dispmeter: 100
 	* Fixed item_avail.txt reading could crash on newline [celest]
 	* Speedup and fixed @reloaditemdb messing up inventory data [celest]
 

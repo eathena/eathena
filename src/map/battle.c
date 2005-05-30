@@ -5732,7 +5732,7 @@ void battle_set_defaults() {
 	battle_config.hp_rate = 100;
 	battle_config.sp_rate = 100;
 	battle_config.gm_can_drop_lv = 0;
-	battle_config.disp_hpmeter = 0;
+	battle_config.disp_hpmeter = 100;
 	battle_config.bone_drop = 0;
 	battle_config.monster_damage_delay = 1;
 
