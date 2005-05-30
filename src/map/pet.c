@@ -1199,7 +1199,9 @@ int pet_get_egg(int account_id,int pet_id,int flag)
 int pet_menu(struct map_session_data *sd,int menunum)
 {
 	nullpo_retr(0, sd);
-
+	if (sd->pd == NULL)
+		return 1;
+	
 	switch(menunum) {
 		case 0:
 			clif_send_petstatus(sd);
