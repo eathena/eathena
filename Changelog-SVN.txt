@@ -1,5 +1,7 @@
 Date	Added
 05/30
+	* bHPGainValue, bSPGainValue will only display gained hp/sp when said
+	gain is above 0. [Skotlex]
 	* Changed hp_dispmeter from yes/no to GM-level [Skotlex]
 	  Note that now the default value is hp_dispmeter: 100
 	* Fixed item_avail.txt reading could crash on newline [celest]

@@ -2461,13 +2461,13 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			if(sd->status.sp + sp > sd->status.max_sp)
 				sp = sd->status.max_sp - sd->status.sp;
 			sd->status.sp += sp;
-			clif_heal(sd->fd,SP_SP,sp);
+			if (sp > 0) clif_heal(sd->fd,SP_SP,sp);
 		}
 		if (hp > 0) {
 			if(sd->status.hp + hp > sd->status.max_hp)
 				hp = sd->status.max_hp - sd->status.hp;
 			sd->status.hp += hp;
-			clif_heal(sd->fd,SP_HP,hp);
+			if (hp > 0) clif_heal(sd->fd,SP_HP,hp);
 		}
 	}
 
