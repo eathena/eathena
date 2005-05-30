@@ -3,22 +3,25 @@
 
 //#include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-
 #ifdef __WIN32
 #define __USE_W32_SOCKETS
+#define _USE_32BIT_TIME_T	// use 32 bit time variables on 64bit windows
 #include <windows.h>
-#include <time.h>
 #else
 #include <sys/socket.h>
 #include <sys/time.h>
 #endif
 
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <sys/types.h>
+
+
 #include "timer.h"
-#include "../common/malloc.h"
+#include "malloc.h"
 
 // タイマー間隔の最小値。モンスターの大量召還時、多数のクライアント接続時に
 // サーバーが反応しなくなる場合は、TIMER_MIN_INTERVAL を増やしてください。
