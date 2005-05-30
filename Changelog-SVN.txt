@@ -18,7 +18,7 @@ Date	Added
 	* Speedup and fixed @reloaditemdb messing up inventory data [celest]
 
 05/29
-	* Optimised and job quests scripts [massdriller]
+	* Optimised job quests scripts [massdriller]
 	* Fixed guild expulsion bug, two chars on same account would be expelled. [Kevin]
 	* Dynamic mob unloading won't touch mobs with a deletetimer now [Skotlex]
 	  this affects mobs scheduled to be removed (including @summon mobs)
