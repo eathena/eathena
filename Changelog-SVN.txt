@@ -1,5 +1,10 @@
 Date	Added
 05/30
+	* Added two new battle_athena options:	[Skotlex]
+	  show_hp_sp_drain (yes/no): displays drained hp/sp from attacks (ie:
+	  Hunter Fly Card)
+	  show_hp_sp_gain (yes/no): displays gained hp/sp from killing mobs (ie:
+	  Sky Deleter Card)
 	* bHPGainValue, bSPGainValue will only display gained hp/sp when said
 	gain is above 0. [Skotlex]
 	* Changed hp_dispmeter from yes/no to GM-level [Skotlex]

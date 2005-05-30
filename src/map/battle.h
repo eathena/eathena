@@ -334,6 +334,8 @@ extern struct Battle_Config {
 
 	unsigned short mob_remove_damaged; // Dynamic Mobs - Remove mobs even if damaged [Wizputer]
 
+	unsigned short show_hp_sp_drain, show_hp_sp_gain;	//[Skotlex]
+
 #ifndef TXT_ONLY /* SQL-only options */
 	unsigned short mail_system; // [Valaris]
 #endif

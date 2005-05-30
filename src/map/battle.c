@@ -4897,7 +4897,16 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 					sp += battle_calc_drain(wd.damage, sp_drain_rate, sp_drain_per, sp_drain_value);
 				}
 
-				if (hp || sp) pc_heal(sd, hp, sp);
+				if (battle_config.show_hp_sp_drain)
+				{	//Display gained values [Skotlex]
+					if (hp > 0 && pc_heal(sd, hp, 0) > 0)
+						clif_heal(sd->fd, SP_HP, hp);
+					if (sp > 0 && pc_heal(sd, 0, sp) > 0)
+						clif_heal(sd->fd, SP_SP, sp);
+				}
+				else	if (hp || sp)
+					pc_heal(sd, hp, sp);
+
 				if (tsd && sd->sp_drain_type)
 					pc_heal(tsd, 0, -sp);
 			}
@@ -5256,7 +5265,7 @@ int battle_config_switch(const char *str) {
 static const struct battle_data_short {
 	const char *str;
 	unsigned short *val;
-} battle_data_short[] = {	//List here battle_athena options which are type short!
+} battle_data_short[] = {	//List here battle_athena options which are type unsigned short!
 	{ "warp_point_debug",                  &battle_config.warp_point_debug			},
 	{ "enemy_critical",                    &battle_config.enemy_critical			},
 	{ "enemy_critical_rate",               &battle_config.enemy_critical_rate		},
@@ -5479,6 +5488,8 @@ static const struct battle_data_short {
 	{ "use_statpoint_table",               &battle_config.use_statpoint_table}, // [Skotlex]
 	{ "new_attack_function",               &battle_config.new_attack_function}, // [Skotlex]
 	{ "ignore_items_gender",               &battle_config.ignore_items_gender}, // [Lupus]
+	{ "show_hp_sp_drain",               &battle_config.show_hp_sp_drain}, // [Skotlex]
+	{ "show_hp_sp_gain",               &battle_config.show_hp_sp_gain}, // [Skotlex]
 
 //SQL-only options start
 #ifndef TXT_ONLY
@@ -5803,6 +5814,9 @@ void battle_set_defaults() {
 
 	battle_config.mob_remove_damaged = 1; // Dynamic Mobs - Remove mobs even if damaged [Wizputer]
 
+	battle_config.show_hp_sp_drain = 0; //Display drained hp/sp from attacks
+	battle_config.show_hp_sp_gain = 1;	//Display gained hp/sp from mob-kills
+	
 //SQL-only options start
 #ifndef TXT_ONLY
 	battle_config.mail_system = 0;
