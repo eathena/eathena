@@ -37,53 +37,7 @@ pay_fild10.gat,148,251,4	script	Hunter Guildsman	98,{
 //<====================================== Job Changer ========================================>\\
 in_hunter.gat,99,99,4	script	Hunter Sharon	727,{
 	if(BaseJob==Job_Archer) goto L_Start;
-	if(BaseJob==Job_Hunter) goto L_Hunt;
-	if(callfunc("Is_Bow_Class")) goto L_Other;
-	if(callfunc("Is_Sword_Class")) goto L_Swo;
-	if(callfunc("Is_Magic_Class")) goto L_Mage;
-	if(callfunc("Is_Thief_Class")) goto L_Thf;
-	if(callfunc("Is_Holy_Class")) goto L_Aco;
-	if(callfunc("Is_Merc_Class")) goto L_Merc;
-
-L_Nov:
-	mes "[Hunter Sharon]";
-	mes "What's a novice like you doing here? Leave, we have nothing for you.";
-	emotion 1;
-	close;
-L_Swo:
-	mes "[Hunter Sharon]";
-	mes "A follower of the way of the blade! We have nothing for you here so please leave.";
-	close;
-L_Mage:
-	mes "[Hunter Sharon]";
-	mes "Hello mage type person.  If you have no business here, please leave,";
-	close;
-L_Aco:
-	mes "[Hunter Sharon]";
-	mes "Good day, religious zealot! It's nice to meet you and all, but you have no buisiness here.";
-	close;
-L_Merc:
-	mes "[Hunter Sharon]";
-	mes "Hey, how's buisiness? Perhaps if you want to sell something, go back to town.";
-	close;
-L_Thf:
-	mes "[Hunter Sharon]";
-	mes "Eeep! There's nothing to steal here!! Leave us alone..... go rob an old lady or something......";
-	emotion 23;
-	close;
-L_Hunt:
-	mes "[Hunter Sharon]";
-	mes "What up! "+strcharinfo(0)+" Why did you come back? Falcon run away or something? Te hehe.";
-	emotion 18;
-	next;
-	mes "[Hunter Sharon]";
-	mes "I hope you didn't think you could get free stuff from us just because your part of our guild now......";
-	close;
-L_Other:
-	mes "[Hunter Sharon]";
-	mes "What are YOU doing her? Did you come to do a little song and dance... ke.. keke....kekekeHahahahhaha!!!";
-	emotion 18;
-	close;
+	callfunc "Hun_check";
 
 
 L_Start:

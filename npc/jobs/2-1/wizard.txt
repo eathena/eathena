@@ -26,30 +26,7 @@
 //<=================== Some dog =========================>
 gef_tower.gat,107,35,5	script	Some Dog	81,{
 	if(BaseJob == Job_Mage) goto L_JobMage;
-	if(callfunc("Is_Magic_Class")) goto L_Magic;
-	if(callfunc("Is_Holy_Class")) goto L_Holy;
-L_Other:
-	mes "[Dog]";
-	mes "Sheesh....... Why would someone who can't even cast a single spell come all the way up here???";
-	next;
-	mes "[Dog]";
-	mes "If you're that bored, do the world a favor and climb to the top of this building from the outside, then do some acrobatics....";
-	emotion 32;
-	next;
-	mes "[Dog]";
-	mes "~WOOF~ Get lost! I don't have time for people like you!!";
-	emotion 27;
-	close;
-L_Holy:
-	mes "[Dog]";
-	mes "Eeek! What's a holy type person doing up here?  I thought you people didn't like magic....";
-	mes "You religious types are always calling it the 'dark arts'......... ooooh scary!!!...... ~grrr!~WOOF!~";
-	close;
-L_Magic:
-	mes "[Dog]";
-	mes "Ah! High level magic users, welcome.  It's always nice to see experienced magic users around here.";
-	mes "Actually it's nice to see them anywhere! ~Woof!~";
-	close;
+	callfunc "Wiz1_check";
 
 L_JobMage:
 	mes "[Dog]";
@@ -155,31 +132,9 @@ L_JobMage:
 //<=========================================== Registrar and Examiner Catherine Medichi ==============================================>\\
 gef_tower.gat,111,37,4	script	Catherine Medichi	68,{
 	mes "[Catherine Medichi]";
-	if(BaseJob == Job_Wizard) goto L_Wizard;
-	if(BaseJob == Job_Novice) goto L_Novice;
+	callfunc "Wiz2_check";
 	if(BaseJob == Job_Mage) goto L_Mage;
-L_Other:
-	mes "Hmm? What brings you all the way up here? If you have nothing to do here, please leave.";
-	mes "This place is for wizards only. =P";
-	next;
-	mes "[Catherine Medichi]";
-	mes "Try not to fall as you go back down....";
-	close;
-L_Novice:
-	mes "Awwww, a little novice!  How cute! This place is for Wizards only though.";
-	emotion 14;
-	next;
-	mes "[Catherine Medichi]";
-	mes "If you're interested in magic, the ^0000FFMagician's Guild^000000 is the place for you.";
-	close;
-L_Wizard:
-	mes "What do you need fellow Wizard? If it's nothing, please leave...";
-	next;
-	mes "[Catherine Medichi]";
-	if(sex==1) mes "... Of course, if your here to ask me out... (*giggles*)....";
-	if(sex==0) mes "If you get yourself a boyfriend, feel free to drop by and show him off. XD";
-	emotion 3;
-	close;
+
 
 L_Mage:
 	if(WIZ_Q == 2) goto L_Test2;

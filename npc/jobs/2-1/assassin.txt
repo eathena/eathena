@@ -30,59 +30,8 @@
 //****************************************************************************//
 
 in_moc_16.gat,19,33,4	script	Guildsman	55,{
-	if(BaseJob==Job_Assassin) goto L_JobSin;
-	mes "[Angry looking man]";
 	if(BaseJob==Job_Thief) goto L_Thief;
-	if(callfunc("Is_Sword_Class")) goto L_JobSwo;
-	if(callfunc("Is_Magic_Class")) goto L_JobMag;
-	if(callfunc("Is_Bow_Class")) goto L_JobArch;
-	if(callfunc("Is_Holy_Class")) goto L_JobAco;
-	if(callfunc("Is_Merc_Class")) goto L_JobMerc;
-	if(callfunc("Is_Thief_Class")) goto L_JobOther;
-
-L_JobNov:
-	mes "....HEY Novice!!! GET out of here now!! I won't be held responsible if anything bad happens to you.......";
-	emotion 0;
-	close;
-L_JobSwo:
-	mes "....What are you doing here???";
-	emotion 1;
-	next;
-	mes "[Angry looking man]";
-	mes "Doing what you're ordered to do eh?........ You guys are nothing more than dogs that listen to their owners.............";
-	emotion 32;
-	close;
-L_JobMag:
-	mes "...What's a mage like you doing here? You should be paying more attention to your training.....";
-	emotion 20;
-	close;
-L_JobArch:
-	mes "Uh.... you're one of those people with bows right? Sorry but there are no cute pets here for u to kill..........";
-	emotion 4;
-	next;
-	mes "[Angry looking man]";
-	mes "Wait...... You're not here to create trouble eh!!? ....LEAVE AT ONCE!!";
-	emotion 0;
-	close;
-L_JobAco:
-	mes "...Oh God's little helper..... What are you doing down in a dreadful place like this?";
-	mes "Trust me, you're not going to find any salvation here........ why don't you just run along ok?........";
-	emotion 20;
-	close;
-L_JobMerc:
-	mes ".... What the??? Do you have any idea where you are??...... GREEDY SCAMMERS like you are not welcome here!!";
-	emotion 29;
-	close;
-L_JobOther:
-	mes ".... Hmm.... although you're not an Assassin or Thief... I have to say I like your sense of style.";
-	close;
-L_JobSin:
-	mes "[Assassin Huey]";
-	mes "Oohh, its you.  You're...." + strcharinfo(0) + " right?";
-	next;
-	mes "[Assassin Huey]";
-	mes "Too bad there's nothing to do right now.  You should go train more.  Bye.";
-	close;
+	callfunc "Ass_check";
 
 L_Thief:
 	if(JobLevel >= 40) goto L_Start;
