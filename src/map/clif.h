@@ -308,6 +308,7 @@ int clif_GM_silence(struct map_session_data *sd,struct map_session_data *tsd,int
 int clif_timedout(struct map_session_data *sd);
 
 int clif_foreachclient(int (*)(struct map_session_data*,va_list),...);
+int clif_disp_overhead(struct map_session_data *sd, char* mes);
 
 int do_final_clif(void);
 int do_init_clif(void);

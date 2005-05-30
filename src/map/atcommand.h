@@ -257,6 +257,7 @@ enum AtCommandType {
 
 	AtCommand_ItemInfo, // Lupus
 	AtCommand_MapFlag, // Lupus
+	AtCommand_Me, //added by massdriller, code by lordalfa
 
 	// end
 	AtCommand_Unknown,

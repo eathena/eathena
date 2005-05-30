@@ -277,6 +277,7 @@ ACMD_FUNC(rates); // by MouseJstr
 
 ACMD_FUNC(iteminfo); // Lupus
 ACMD_FUNC(mapflag); // Lupus
+ACMD_FUNC(me); //added by massdriller, code by lordalfa
 
 /*==========================================
  *AtCommandInfo atcommand_info[]\‘¢‘Ì‚Ì’è‹`
@@ -575,6 +576,9 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_ItemInfo,			"@iteminfo",		1, atcommand_iteminfo }, // [Lupus]
 	{ AtCommand_ItemInfo,			"@ii",		1, atcommand_iteminfo }, // [Lupus]
 	{ AtCommand_MapFlag,			"@mapflag",		99, atcommand_mapflag }, // [Lupus]
+
+	{ AtCommand_Me,				"@me",			0, atcommand_me }, //added by massdriller, code by lordalfa
+
 
 // add new commands before this line
 	{ AtCommand_Unknown,			NULL,				1,	NULL }
@@ -9615,4 +9619,30 @@ int atcommand_mapflag(
 {
 // WIP
 	return 0;
+}
+
+/*==========================================
+ * @me by lordalfa
+ * => Displays the OUTPUT string on top of 
+ *    the Visible players Heads.
+ *------------------------------------------
+ */
+
+	int atcommand_me(
+		const int fd, struct map_session_data* sd,
+			const char* command, const char* message)
+{
+	nullpo_retr(-1, sd);
+   		char tempmes[200];
+		memset(tempmes, '\0', sizeof(tempmes));    
+	memset(atcmd_output, '\0', sizeof(atcmd_output));
+
+	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter a message (usage: @me <message>).");
+		return -1;
+}
+	sscanf(message, "%199[^\n]", tempmes);
+		sprintf(atcmd_output, "** %s %s **",sd->status.name,tempmes);
+     		clif_disp_overhead( sd,atcmd_output);
+		return 0;
 }

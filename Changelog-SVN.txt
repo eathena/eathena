@@ -1,5 +1,6 @@
 Date	Added
 05/30
+	* added lordalfa's @me action command [massdriller]
 	* Reverted changes to dynamic mob removal, now all mobs are removed [Skotlex]
 	  mob_remove_damaged is still respected.
 	* Partial implementation of item_trade.txt, not quite finished yet [Skotlex]

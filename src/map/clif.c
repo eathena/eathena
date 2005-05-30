@@ -11850,3 +11850,27 @@ int clif_party_xy_remove(struct map_session_data *sd)
 	clif_send(buf,packet_len_table[0x107],&sd->bl,PARTY_SAMEMAP_WOS);
 	return 0;
 }
+
+
+
+/*------------------------------------------
+ * @me command by lordalfa
+ *------------------------------------------
+*/
+int clif_disp_overhead(struct map_session_data *sd, char* mes)
+{
+	unsigned char *buf;
+
+nullpo_retr(-1, mes);
+
+	int len_mes = strlen(mes);
+		buf = (unsigned char*)aCallocA(len_mes + 8, sizeof(unsigned char));
+			if (len_mes > 0) {
+	WBUFW(buf, 0) = 0x08e; //SelfSpeech
+	WBUFW(buf, 2) = len_mes + 5;
+	memcpy(WBUFP(buf,4), mes, len_mes + 1);  
+		clif_send(buf, WBUFW(buf,2), &sd->bl, AREA); //Sends self speech to Area
+}
+
+	return 0;
+}
