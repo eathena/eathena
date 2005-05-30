@@ -713,13 +713,13 @@ Both examples have the same effect
 
 *readparam
 
-Used to read things about the player, there HP, there Str, anything really
+Used to read things about the player, their HP, their STR, anything really
 
 The things you can use in this command can be found inside "db\const.txt"
 
 	readparam(9) // This would return how many status points you havnt spent yet
 
-Alternatally you can just put
+Alternatively you can just put
 
 	StatusPoint 
 
@@ -900,18 +900,18 @@ You can also use it to make sure people dont pass a point before removing an ite
 Lets say you dont want people to wear Legion Plate armor, but also dont what them to equip if after the check, you would do this
 
 	if( (getequipid(2) == 2341) || (getequipid(2) == 2342) goto L_EquipedLegionPlate; // the || is used as an or argument, there is 2341 and 2342 cause there are 2 legion plate armors, one with a slot one without
-	if( (countitem(2341) > 0) || (countitem(2432) > 0) goto L_InvertoryLegionPlate;
+	if( (countitem(2341) > 0) || (countitem(2432) > 0) goto L_InventoryLegionPlate;
 	mes "I will lets you pass";
 	close2;
 	warp "place.gat",50,50;
 L_EquipedLegionPlate:
 	mes "You are wearing some Legion Plate Armor, please drop that in your stash before continuing";
 	close;
-L_InvertoryLegionPlate:
-	mes "You have some Legion Plate Armor in your invertory, please drop that in your stash before continuing";
+L_InventoryLegionPlate:
+	mes "You have some Legion Plate Armor in your inventory, please drop that in your stash before continuing";
 	close;
 
-//Note: I used long lables to make a point there, and to explain what each one meant, normally you would/could use short ones
+//Note: I used long labels to make a point there, and to explain what each one meant, normally you would/could use short ones
 
 
 ---------------------------------------
@@ -1199,9 +1199,9 @@ These are listed inside "\doc\item_bonus.txt"
 
 *skill
 
-Can be used to give a player a skill, is currentally used to give players quest skills
+Can be used to give a player a skill, is currently used to give players quest skills
 
-	skill 152,1,0; // This says the player will get Stone Throw (TF_THROWSTONE,152), and it will be lvl 1, the 0 at the end means it is a perminant skill, using 1 here make is temporary
+	skill 152,1,0; // This says the player will get Stone Throw (TF_THROWSTONE,152), and it will be lvl 1, the 0 at the end means it is a permanent skill, using 1 here makes it temporary
 
 ---------------------------------------
 
@@ -1209,7 +1209,7 @@ Can be used to give a player a skill, is currentally used to give players quest 
 
 Changes the lvl of a skill you already have
 
-	addtoskill #,*,$; // # Skill ID, * Lvl you want to change it to, $ Not entirely sure, could be the same as "skill" the 0 at the end means it is a perminant skill, using 1 here make is temporary
+	addtoskill #,*,$; // # Skill ID, * Lvl you want to change it to, $ Not entirely sure, could be the same as "skill" the 0 at the end means it is a permanent skill, using 1 here makes it temporary
 
 
 	addtoskill 5,4,0; // This says the player will go to lvl 4 of Bash (skill ID 5)
@@ -1349,22 +1349,22 @@ Checks for an option that is set on a player, most scripts that used to use this
 
 Could still be usefull for some people that like checking for things other than these stated
 
-	<param1>		<param2>		<param3>
+	<param1>			<param2>			<param3>
 	0x000001 Petrified	0x000001 Poison		0x000001 Sight
 	0x000002 Frozen		0x000002 Cursed		0x000002 Hide
-	0x000003 Stunned	0x000004 Silenced	0x000004 Cloak
-	0x000004 Sleeping	0x000010 Darkness	0x000008 Cart 1
-							0x000010 Falcon
-							0x000040 GM Perfect Hide
-							0x000080 Cart 2
-							0x000100 Cart 3
-							0x000200 Cart 4
-							0x000400 Cart 5
-							0x000800 Orc Head
-							0x001000 Wedding Sprites
-							0x002000 Ruwach
+	0x000003 Stunned		0x000004 Silenced		0x000004 Cloak
+	0x000004 Sleeping		0x000010 Darkness		0x000008 Cart 1
+									0x000010 Falcon
+									0x000040 GM Perfect Hide
+									0x000080 Cart 2
+									0x000100 Cart 3
+									0x000200 Cart 4
+									0x000400 Cart 5
+									0x000800 Orc Head
+									0x001000 Wedding Sprites
+									0x002000 Ruwach
 
-(Param1 and Param2 are used in later commands and you will be promted back to here)
+(Param1 and Param2 are used in later commands and you will be prompted back to here)
 
 These are the ones I know about, I dont think all will be usefull to you, but some might
 
@@ -1546,17 +1546,18 @@ Used for opening a crafting window, the number stated after the command depends 
 	2	= Lvl 2 Weapons
 	3	= Lvl 3 Weapons
 //     (4	= Lvl 4 Weapons this should exist but not put in yet I am guessing it will be 4)
-	16	= Stones and Metals
-	32	= All potion types (exl. deadly potion Sin-X)
-	64	= Coins
-	256	= For deadly potions only
+	16	= Blacksmith's Stones and Metals
+	32	= Alchemist's Potions
+	64	= Whitesmith's Coins
+	123	= Whitesmith's Nuggets
+	256	= Assassin Cross's Deadly Poison
 
 
 ---------------------------------------
 
 *monster
 
-Makes the NPC summons a monster, using its ID found inside Mob_DB.txt, it can conatain a label that it will goto if that monster is killed
+Makes the NPC summons a monster, using its ID found inside Mob_DB.txt, it can contain a label that it will goto if that monster is killed
 
 	monster "place.gat",60,100,"Poring",1002,1,"NPCNAME::Label";
 
@@ -1667,7 +1668,7 @@ Emo:
 	end;
 }
 
-// This will make both NPC perform the same random emotion from 1 to 30, and the emotion will appear above each of there heads
+// This will make both NPC perform the same random emotion from 1 to 30, and the emotion will appear above each of their heads
 
 if you state
 
@@ -1794,7 +1795,7 @@ Lquote4:
 	npctalk "If 4 is randomly picked you will see this";
 	setnpctimer 0;
 	end;
-OnInit:		// This is used so that "initnpctimer" will be run the seconed it is loaded by the server, so no need for someone to click it
+OnInit:		// This is used so that "initnpctimer" will be run the second it is loaded by the server, so no need for someone to click it
  	initnpctimer;
 	end;
 
@@ -1984,7 +1985,7 @@ Finds uses on the map, the entire server, or NPC on the map
 
 	getusers(1)	// Returns a number equal to the total ammount of players that are logged into the server
 
-	getusers(8)	// Returns the ammount of NPC that are currentally on the map
+	getusers(8)	// Returns the ammount of NPC that are currently on the map
 
 I think you can find your own uses for this command
 
@@ -2147,7 +2148,7 @@ Pet ID can be found inside "db\pet_db.txt"
 
 *bpet
 
-Opens up the incubater screen, so you are able to hatch an owned egg
+Opens up the incubator screen, so you are able to hatch an owned egg
 
 	bpet;
 
@@ -2157,7 +2158,7 @@ Opens up the incubater screen, so you are able to hatch an owned egg
 
 The only use I can see for this is if you are making a reborn script of your own, or you just really wanna punish people for doing something wrong
 
-Will reset the players level back to a stated level, removing all armor ect that you can no longer were (you get to keep in your inventory)
+Will reset the players level back to a stated level, removing all armor ect that you can no longer wear (you get to keep in your inventory)
 
 	resetlvl(1);	// Would take everything away, including skills, and leave you at base lvl 1
 
@@ -2303,7 +2304,7 @@ Using the ID of a player, it returns 1 if that player is logged on, and 0 if the
 
 *setmapflagnosave
 
-Makes it unable to save on a specific map, this is not just phyical saving but if you log out it will not save you position there
+Makes it unable to save on a specific map, this is not just physical saving but if you log out it will not save you position there
 
 It also allows you to designate a place that will save if they try and log out, and back to that map
 
@@ -2397,16 +2398,16 @@ You need to use numbers to show the emotion
 
 	emotion #;	// Refer to the list below for each emotion that can take the place of #
 
-0 = !		10 = KO (Scissor)	20 = Hmmm	30 = Kiss 1 (R)		40 = Tsk tsk tsk (No)
-1 = ?		11 = Fist (Stone)	21 = Number 1!	31 = Kiss 2 (L)		41 = Petting
-2 = Music	12 = Hand (Paper)	22 = No (??)	32 = Smoking		42 = SP! (Timer)
-3 = Heart 1	13 = Korean Flag	23 = OMG!!	33 = Okay		43 = Obsessed 2 (Dumb face, eyes popping)
-4 = Sweat	14 = Heart 2		24 = O		34 = ... (Bugged)	44 = Come (Moving finger)
-5 = Light bulb	15 = Thanks		25 = X		35 = ??? Flag		45 = Yawn (Sleepy)
-6 = Annoyed	16 = Wah (Crying)	26 = Help!	36 = Evil 2		46 = Congratulations
-7 = Smoke cloud	17 = Sorry		27 = Go!	37 = Obsessed 1		47 = HP! (Timer)
-8 = $		18 = Heh (Laughing)	28 = Sobbing	38 = Two Hearts		
-9 = ...		19 = Sweating		29 = Evil 1	39 = Tongue
+0 = !			10 = KO (Scissor)		20 = Hmmm		30 = Kiss 1 (R)		40 = Tsk tsk tsk (No)
+1 = ?			11 = Fist (Stone)		21 = Number 1!	31 = Kiss 2 (L)		41 = Petting
+2 = Music		12 = Hand (Paper)		22 = No (??)	32 = Smoking		42 = SP! (Timer)
+3 = Heart 1		13 = Korean Flag		23 = OMG!!		33 = Okay			43 = Obsessed 2 (Dumb face, eyes popping)
+4 = Sweat		14 = Heart 2		24 = O		34 = ... (Bugged)		44 = Come (Moving finger)
+5 = Light bulb	15 = Thanks			25 = X		35 = ??? Flag		45 = Yawn (Sleepy)
+6 = Annoyed		16 = Wah (Crying)		26 = Help!		36 = Evil 2			46 = Congratulations
+7 = Smoke cloud	17 = Sorry			27 = Go!		37 = Obsessed 1		47 = HP! (Timer)
+8 = $			18 = Heh (Laughing)	28 = Sobbing	38 = Two Hearts		
+9 = ...		19 = Sweating		29 = Evil 1		39 = Tongue
 
 ---------------------------------------
 
@@ -2416,7 +2417,7 @@ Not entirely sure, but I think it stops the people who own a specific guild cast
 
 	MapRespawnGuildID "guildcastle.gat",GetCastleData(guildcastle.gat",1),2; // I think this stops people who own "guildcastle.gat" from attacking monsters spawned inside that castle
 
-	MapRespawnGuildID "guildcastle.gat",GetCastleData(guildcastle.gat",1),7; // I think this negates the effect of the above command, letting them attack again (this was run when they surrenderd the castle, so it seems to make sense)
+	MapRespawnGuildID "guildcastle.gat",GetCastleData(guildcastle.gat",1),7; // I think this negates the effect of the above command, letting them attack again (this was run when they surrendered the castle, so it seems to make sense)
 
 ---------------------------------------
 
@@ -2546,7 +2547,7 @@ Used for marrying 2 people together, this will join the 2 people so they can use
 
 Normally the name (SPOUSE) will be a text variable
 
-A seconed command has to be issused to then marry "SPOUSE" to the original user
+A second command has to be issued to then marry "SPOUSE" to the original user
 
 Just let me note this now, this is not how I would structure this command, if I had my way I would have it done this way
 
@@ -2958,7 +2959,7 @@ Will return a numerical value that represents the specified information
 
 *getsavepoint
 
-Will find the players save point, using differant numbers to find each piece
+Will find the players save point, using different numbers to find each piece
 
 	getsavepoint(#)	// See below for the numbers you can use
 
@@ -3000,7 +3001,7 @@ Will stop an NPC from moving, issuing a new "npcwalkto" command will counter act
 
 *getmapxy
 
-Thanks to Terminal Vertex and Z3R0, we now have a proper discription of this command
+Thanks to Terminal Vertex and Z3R0, we now have a proper description of this command
 
 This command will find a players/NPC's/Pet's[/Mob's)]current co-ordinates, and the map they are standing on
 
@@ -3093,7 +3094,7 @@ Good for logging important things into a log file
 
 	logmes "has just won 1 mill zeny";	// Would job the persons name that caused this logmes time place, then the message "has just won 1 mill zeny"
 
-Like my example says, if you make something that has a chance of giving out good prizes it is always a good idea to use "logmes" then you know who has won what and when, so you can scan for an expliot ect
+Like my example says, if you make something that has a chance of giving out good prizes it is always a good idea to use "logmes" then you know who has won what and when, so you can scan for an exploit etc
 
 It will only log if you have logs enabled
 
@@ -3133,7 +3134,7 @@ I dont see a point in having both "isday" and "isnight", you can just use "isnig
 
 Will check if a selection of equipment is one, used for finding out cards that are compounded, and are equiped
 
-	if(isequipped(card1[,card2][,card3][,card4][,ect])) ACTION;
+	if(isequipped(card1[,card2][,card3][,card4][,etc])) ACTION;
 // If all the cards are found it will return a 1, if not a 0, if used in an "if" command will run the action at the end 
 	if(isequipped(4001,4005,4033,4196)) goto L_AllEquiped
 // Will check if all the cards (Poring,Santa Poring,Poporing,Marin) if the player has all of them, they get sent to the label "L_AllEquiped"
@@ -3168,7 +3169,7 @@ Seems to work just like "getequiprefinerycnt" see that command
 
 Used for joining 3 people as a family, 2 married people, and 1 novice
 
-	adopt	partent1,partent2,novice;	// Will change "novice" into a baby and join them to the parents
+	adopt	parent1,parent2,novice;	// Will change "novice" into a baby and join them to the parents
 
 ---------------------------------------
 

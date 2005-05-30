@@ -64,6 +64,17 @@
 	* Moved the card-status listing from item_db.txt to this file [Skotlex]
 	* Added the new column to item_db: refineable to specify which items can be refined. [Skotlex]
 	* Fixed Novices able to wear all "Every class except Novice" headgears, thanks to duduc [DracoRPG]
+05/28
+	* Added emotion constants to const.txt	[Skotlex - R1853]
+	  The constants mirror their command counter part (ie: /meh -> e_meh),
+	  for the most part, except for the following:
+	  e_gasp (/!), e_what (/?), e_cash (/$), e_dots (/...), e_no (/??),
+	  e_hp (need HP), e_hlp (/hp, help emotion),
+	  e_scissors (ctrl+-), e_rock (ctrl+=), e_paper (ctrl+\)
+	  And the following flag-emotions are available:
+	  e_korea, e_indonesia, e_philippines, e_usa, e_brazil
+	  The whole point is being able to do in scripts "emotion e_wah;" instead
+	  of "emotion 16;"
 05/25
 	* Fixed Peach Tree card, thanks to Komurka
 05/20

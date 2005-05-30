@@ -29,15 +29,20 @@ TODO:
 Date		Added
 ======
 05/30
+	* Moved PvP from custom to other [DracoRPG]
+	* Changed swordsman -> swordman in the files names [DracoRPG]
 	* Optimised Job Quests by placing checkers into JFunc1-1 [massdriller]
 	- Acolyte, Archer, Mage, Merchant, Thief, Swordsman
 	* Optimised Job Quests by placing checkers into JFunc2-1 [massdriller]
-	- Assasin, Blacksmith, Hunter, Knight, Priest, Wizard
+	- Assassin, Blacksmith, Hunter, Knight, Priest, Wizard
 	* Optimised Job Quests by placing checkers into JFunc2-2 [massdriller]
 	- Monk, Sage, Rogue
 	- The rest can't be optimised as it is too integrated.
 05/29
+	* Fixed a typo in an NPC [Codemaster]
 	* Fixed many grammatical errors (mostly in Merchant job quest) thanks to the__android [DracoRPG]
+05/28
+	* Reorganized scripts (npc/) folder. [Ancyker]
 05/25
 	* Changed Ayothaya to Ayotaya. (In the scripts, iRO calls it Ayotaya.) [Mass Zero]
 	* Removed lots of unneccesary spaces from the Ayotaya poetry script. [Mass Zero]
