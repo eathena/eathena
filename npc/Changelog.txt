@@ -29,7 +29,7 @@ TODO:
 Date		Added
 ======
 05/30
-	* Moved PvP from custom to other [DracoRPG]
+	* Scripts reorganizing [DracoRPG]
 	* Changed swordsman -> swordman in the files names [DracoRPG]
 	* Optimised Job Quests by placing checkers into JFunc1-1 [massdriller]
 	- Acolyte, Archer, Mage, Merchant, Thief, Swordsman

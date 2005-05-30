@@ -329,7 +329,6 @@ int chrif_connectack(int fd)
 	chrif_connected=1;
 
 	chrif_sendmap(fd);
-	chrif_reqfamelist();
 
 	sprintf(tmp_output,"Event '"CL_WHITE"OnCharIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnCharIfInit"));
 	ShowStatus(tmp_output);
@@ -1254,7 +1253,7 @@ int chrif_parse(int fd)
 
 		switch(cmd) {
 		case 0x2af9: chrif_connectack(fd); break;
-		case 0x2afb: chrif_sendmapack(fd); break;
+		case 0x2afb: chrif_sendmapack(fd); chrif_reqfamelist(); break;
 		case 0x2afd: pc_authok(RFIFOL(fd,4), RFIFOL(fd,8), (time_t)RFIFOL(fd,12), (struct mmo_charstatus*)RFIFOP(fd,16)); break;
         case 0x2afe: pc_authfail(RFIFOL(fd,2)); break;
 		case 0x2b00: map_setusers(fd); break;
