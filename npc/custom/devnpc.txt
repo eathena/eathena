@@ -282,3 +282,51 @@ OnInit:
  	initnpctimer;
         break;
 }
+
+// Evera =========================================================>\\
+prontera.gat,156,183,5	script	Evera	769,{
+ 	npcspeed 50;
+	mes "[Evera]";
+	mes "Hi";
+	mes "I betcha you thoguht I was dead, right?";
+	next;
+	mes "Well, I'M (not really) BACK!";
+	mes "And I also enjoy long walks on the beach ^.^";
+	close;
+ OnTimer15000:
+	npcwalkto 150+rand(17),173+rand(16);
+	setnpctimer 0;
+
+doitagain:
+        set $lol,rand(5);
+	if($lol == 0) goto Lquote0;
+	if($lol == 1) goto Lquote1;
+	if($lol == 2) goto Lquote2;
+	if($lol == 3) goto Lquote3;
+	if($lol == 4) goto Lquote4;
+        goto doitagain;
+
+Lquote0:
+	npctalk "Does anyone actually remember who I am?";
+	setnpctimer 0;
+	break;
+Lquote1:
+	npctalk "O_o";
+	setnpctimer 0;
+	break;
+Lquote2:
+	npctalk "Hey, wanna go meet in a dark room and do something fun?";
+	setnpctimer 0;
+	break;
+Lquote3:
+	npctalk "Guild Wars is better than RO. Infact, none of the eAthena devs actually play RO";
+	setnpctimer 0;
+	break;
+Lquote4:
+	npctalk "I don't really do anything anymore...";
+	setnpctimer 0;
+	break;
+OnInit:
+ 	initnpctimer;
+        break;
+}
