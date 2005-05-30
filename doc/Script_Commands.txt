@@ -1111,7 +1111,7 @@ The biggest one is 400 x 503 (pixels), and the smallest 303 x 493 (pixels), this
 
 Others exist but these are the main ones, and the others cant really be used in any script
 
-If you want to use your own, you need to place you pictures into "\data\À¯ÀúÀÎÅÍÆäÀÌ½º\illust" this is kRO, not sure about the other RO's
+If you want to use your own, you need to place you pictures into "\data\A_A£AII’„AI«§\illust" this is kRO, not sure about the other RO's
 Then as above state the name of that file, no need for the .bmp at the end
 
 ---------------------------------------
@@ -1136,9 +1136,9 @@ Now we have the broken name it uses
 
 So the command would be
 
-	cutincard "Æ÷¸µÄ«µå",2; 			// This would display the poring card on the screen
+	cutincard "’ö,æ®æ†",2; 			// This would display the poring card on the screen
 
-	cutincard "Æ÷¸µÄ«µå",255 or cutincard "",255;	// Do the same job as "cutin" will remove the picture from the screen
+	cutincard "’ö,æ®æ†",255 or cutincard "",255;	// Do the same job as "cutin" will remove the picture from the screen
 
 ---------------------------------------
 
