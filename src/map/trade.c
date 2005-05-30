@@ -186,7 +186,10 @@ void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 				if (sd->deal_item_amount[trade_i] == 0) {
 					trade_weight += sd->inventory_data[index-2]->weight * amount;
 					level = pc_isGM(sd);
-					if (itemdb_isdropable(sd->inventory_data[index-2]->nameid) == 0 && pc_get_partner(sd) != target_sd && !level) {
+					if (!itemdb_cantrade(sd->inventory_data[index-2]->nameid) &&
+						(pc_get_partner(sd) != target_sd ||
+						 !itemdb_canpartnertrade(sd->inventory_data[index-2]->nameid)) &&
+						 !level) {
 						clif_displaymessage (sd->fd, msg_txt(260));
 						amount = 0;
 					} else if (target_sd->weight + trade_weight > target_sd->max_weight){

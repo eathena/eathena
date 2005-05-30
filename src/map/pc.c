@@ -5815,11 +5815,9 @@ int pc_setriding(struct map_session_data *sd)
 int pc_candrop(struct map_session_data *sd,int item_id)
 {
 	int level = pc_isGM(sd);
-	if (level > 0 && level < battle_config.gm_can_drop_lv)
-		return 1;
-	if (level == 0 && (item_id == 2634 || item_id == 2635))
-		return 1;
-	return (itemdb_isdropable(item_id) == 0);
+	if (level < battle_config.gm_can_drop_lv)
+		return 0;
+	return (itemdb_isdropable(item_id));
 }
 
 /*==========================================

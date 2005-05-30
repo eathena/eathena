@@ -81,6 +81,7 @@ int itemdb_searchrandomgroup(int groupid);
 #define itemdb_canguildstore(n) (!(itemdb_search(n)->flag.trade_restriction&32))
 #define itemdb_cantrade(n) (!(itemdb_search(n)->flag.trade_restriction&2))
 #define itemdb_canpartnertrade(n) (itemdb_search(n)->flag.trade_restriction&4 || !itemdb_search(n)->flag.trade_restriction&2)
+#define itemdb_gmoverride(n,lv) (itemdb_search(n)->gm_lv_trade_override >= lv)
 
 int itemdb_isequip(int);
 int itemdb_isequip2(struct item_data *);
