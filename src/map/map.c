@@ -1807,7 +1807,6 @@ void mob_cache_unload(struct mob_data *md)
 		&& !md->master_id ) //Remove spawned slave mobs
 	    return;	
 
-		md->master_id
 	mob_remove_map(md, 0);
 	map_deliddb(&md->bl);
 	aFree(md);
