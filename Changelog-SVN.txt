@@ -1,5 +1,8 @@
 Date	Added
 05/29
+	* Rewrote the vitality reduction equation in the new attack funcion [Skotlex]
+	  The new equation conforms to rodatazone's information here:
+	  http://rodatazone.simgaming.net/mechanics/substats.php#def
 	* Fixed item_db.txt to contain the new refinable column [Skotlex]
 	  (I accidentally commited the old item_db last time...)
 	  TXT users with custom items can update their custom db using gawk (*nix

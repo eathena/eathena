@@ -3779,8 +3779,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 		if (!flag.infdef && (!flag.idef || !flag.idef2))
 		{	//Defense reduction
 			short t_vit = status_get_vit(target);
-			short t_def, vitbonusmax;
-			short defense;
+			short vit_def = 0;
 
 			if(battle_config.vit_penalty_type)
 			{
@@ -3801,20 +3800,26 @@ static struct Damage battle_calc_weapon_attack_sub(
 				if(def2 < 1) def2 = 1;
 				if(t_vit < 1) t_vit = 1;
 			}
-			t_def = def2*8/10;
-			if(tsd &&
-				(battle_check_undead(s_race,status_get_elem_type(src)) || s_race==6) &&
-				(skill=pc_checkskill(tsd,AL_DP)) >0)
-				t_def += skill*(int)(3 +(tsd->status.base_level+1)*0.04);   // submitted by orn
-			vitbonusmax = (t_vit/20)*(t_vit/20)-1;
-
-			if(battle_config.player_defense_type) {
-				defense = -(def1*battle_config.player_defense_type) -t_def -(vitbonusmax<1)?0:rand()%(vitbonusmax+1);
-			} else {
-				defense = -t_def -(vitbonusmax<1)?0:rand()%(vitbonusmax+1);
-				ATK_RATE2(flag.idef?100:100-def1, flag.idef2?100:100-def1);
+			//Vitality reduction from rodatazone: http://rodatazone.simgaming.net/mechanics/substats.php#def	
+			if (tsd)	//Sd vit-eq
+			{	//[VIT*0.5] + rnd([VIT*0.3], max([VIT*0.3],[VIT^2/150]-1))
+				vit_def = t_vit*(t_vit-15)/150;
+				vit_def = t_vit/2 + (vit_def>0?rand()%vit_def:0);
+				
+				if((battle_check_undead(s_race,status_get_elem_type(src)) || s_race==6) &&
+					(skill=pc_checkskill(tsd,AL_DP)) >0)
+					vit_def += skill*(int)(3 +(tsd->status.base_level+1)*0.04);   // submitted by orn
+			} else { //Mob-Pet vit-eq
+				//VIT + rnd(0,[VIT/20]^2-1)
+				vit_def = (t_vit/20)*(t_vit/20);
+				vit_def = t_vit + (vit_def>0?rand()%vit_def:0);
 			}
-			ATK_ADD2(flag.idef?0:defense, flag.idef2?0:defense);
+			
+			if(battle_config.player_defense_type)
+				vit_def += def1*battle_config.player_defense_type;
+			else
+				ATK_RATE2(flag.idef?100:100-def1, flag.idef2?100:100-def1);
+			ATK_ADD2(flag.idef?0:-vit_def, flag.idef2?0:-vit_def);
 		}
 
 		//Post skill/vit reduction damage increases
