@@ -1802,9 +1802,10 @@ void map_spawnmobs(int m)
 void mob_cache_unload(struct mob_data *md)
 {
 	nullpo_retv(md);
-	
-	if (( md->spawndelay1 != 0 || md->deletetimer != 0 || ( md->hp != md->max_hp && !battle_config.mob_remove_damaged ))
-		&& !md->master_id ) //Remove spawned slave mobs
+	//use the old comparison until this is rethought. [Skotlex]	
+//	if (( md->spawndelay1 != 0 || md->deletetimer != 0 || ( md->hp != md->max_hp && !battle_config.mob_remove_damaged ))
+//		&& !md->master_id ) //Remove spawned slave mobs
+	if (md->hp != md->max_hp && !battle_config.mob_remove_damaged)
 	    return;	
 
 	mob_remove_map(md, 0);

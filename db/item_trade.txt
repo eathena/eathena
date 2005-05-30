@@ -1,0 +1,15 @@
+//Item Trading Restrictions File
+//Specify here special rules for item trading.
+//Item ID, TradeMask, GM-Level Override
+//Trading mask values:
+//1:Item can't be drop
+//2:Item can't be traded
+//4:Item can only be traded with wedded partner
+//8:Item can't be sold to npcs
+//16:Item can't be placed in the storage
+//32:Item can't be placed in the guild storage
+//Example:
+//1161,35,50 //Balmung: No drop, No trade, No Guild Store (1+2+32 =35), only
+//GMs of GM-level 50 and up can override the setting.
+2634,1,100
+2635,1,100

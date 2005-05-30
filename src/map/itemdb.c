@@ -243,24 +243,6 @@ int itemdb_isequip3(int nameid)
 }
 
 /*==========================================
- * 捨てられるアイテムは1、そうでないアイテムは0
- *------------------------------------------
- */
-int itemdb_isdropable(int nameid)
-{
-	//結婚指輪は捨てられない
-	switch(nameid){
-	case 2634: //結婚指輪
-	case 2635: //結婚指輪
-		return 0;
-	}
-
-	return 1;
-}
-
-// Removed item_value_db, don't re-add!
-
-/*==========================================
  * ランダムアイテム出現データの読み込み
  *------------------------------------------
  */
@@ -623,41 +605,51 @@ static int itemdb_read_noequip(void)
 	return 0;
 }
 
-/*================================================
- * Whether the item can be refined or not [Celest]
- *------------------------------------------------
+/*==========================================
+ * Reads item trade restrictions [Skotlex]
+ *------------------------------------------
  */
-/* Function no longer needed [Skotlex]
-static int itemdb_read_norefine(void)
+static int itemdb_read_itemtrade(void)
 {
-	int i, nameid;
+	FILE *fp;
+	int nameid, j, flag, gmlv, ln = 0;
+	char line[1024], *str[10], *p;
 	struct item_data *id;
-	// To-do: let it read from a text file later
-	int cant_refine[] = {
-		1243, 1530, 2110, 2112, 2201, 2202, 2203, 2204, 2205, 2210,
-		2212, 2218, 2219, 2237, 2238, 2239, 2240, 2241, 2242, 2243,
-		2250, 2253, 2260, 2262, 2263, 2264, 2265, 2266, 2267, 2268,
-		2269, 2270, 2271, 2276, 2278, 2279, 2281, 2282, 2286, 2288,
-		2289, 2290, 2291, 2292, 2293, 2295, 2296, 2297, 2298, 2352,
-		2410, 2413, 2414, 2509, 2510, 2601, 2602, 2603, 2604, 2605,
-		2607, 2608, 2609, 2610, 2611, 2612, 2613, 2614, 2615, 2616,
-		2617, 2618, 2619, 2620, 2621, 2622, 2623, 2624, 2625, 2626,
-		2627, 2628, 2629, 2630, 2631, 2634, 2635, 2636, 2637, 2638,
-		2639, 2640, 5004, 5005, 5006, 5008, 5014, 5015, 5037, 5039,
-		5040, 5043, 5046, 5049, 5050, 5051, 5053, 5054, 5055, 5058,
-		5068, 5074, 5085, 5086, 5087, 5088, 5089, 5090, 5096, 5098, 0
-	};
 
-	for (i=0; i < (int)(sizeof(cant_refine) / sizeof(cant_refine[0])); i++) {
-		nameid = cant_refine[i];
-		if(nameid<=0 || nameid>=20000 || !(id=itemdb_exists(nameid)))
-			continue;
-		id->flag.no_refine = 1;
+	if ((fp = fopen("db/item_trade.txt","r")) == NULL) {
+		printf("can't read db/item_trade.txt\n");
+		return -1;
 	}
 
-	return 1;
+	while (fgets(line, sizeof(line) - 1, fp)) {
+		if (line[0] == '/' && line[1] == '/')
+			continue;
+		memset(str, 0, sizeof(str));
+		for (j = 0, p = line; j < 3 && p; j++) {
+			str[j] = p;
+			p = strchr(p, ',');
+			if(p) *p++ = 0;
+		}
+
+		if (j < 3 || str[0] == NULL ||
+			(nameid = atoi(str[0])) < 0 || nameid >= 20000 || !(id = itemdb_exists(nameid)))
+			continue;
+
+		flag = atoi(str[1]);
+		gmlv = atoi(str[2]);
+		
+		if (flag > 0 && flag < 64 && gmlv > 0) { //Check range
+			id->flag.trade_restriction = flag;
+			id->gm_lv_trade_override = gmlv;
+			ln++;
+		}
+	}
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, "db/item_trade.txt");
+
+	return 0;
 }
-*/
+
 #ifndef TXT_ONLY
 
 /*======================================
@@ -934,7 +926,7 @@ static void itemdb_read(void)
 	itemdb_read_randomitem();
 	itemdb_read_itemavail();
 	itemdb_read_noequip();
-//	itemdb_read_norefine();
+	itemdb_read_itemtrade();
 	if (battle_config.cardillust_read_grffile)
 		itemdb_read_cardillustnametable();
 	if (battle_config.item_equip_override_grffile)

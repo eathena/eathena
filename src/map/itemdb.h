@@ -33,7 +33,9 @@ struct item_data {
 		unsigned no_use : 1;
 		unsigned no_refine : 1;	// [celest]
 		unsigned delay_consume : 1;	// Signifies items that are not consumed inmediately upon double-click [Skotlex]
+		unsigned trade_restriction : 6;	//Item restrictions mask [Skotlex]
 	} flag;
+	short gm_lv_trade_override;	//GM-level to override trade_restriction
 	int view_id;
 };
 
@@ -72,11 +74,17 @@ int itemdb_searchrandomgroup(int groupid);
 #define itemdb_value_notdc(n) itemdb_search(n)->flag.value_notdc
 #define itemdb_value_notoc(n) itemdb_search(n)->flag.value_notoc
 #define itemdb_canrefine(n) itemdb_search(n)->flag.no_refine
+//Item trade restrictions [Skotlex]
+#define itemdb_isdropable(n) (!(itemdb_search(n)->flag.trade_restriction&1))
+#define itemdb_cansell(n) (!(itemdb_search(n)->flag.trade_restriction&8))
+#define itemdb_canstore(n) (!(itemdb_search(n)->flag.trade_restriction&16))
+#define itemdb_canguildstore(n) (!(itemdb_search(n)->flag.trade_restriction&32))
+#define itemdb_cantrade(n) (!(itemdb_search(n)->flag.trade_restriction&2))
+#define itemdb_canpartnertrade(n) (itemdb_search(n)->flag.trade_restriction&4 || !itemdb_search(n)->flag.trade_restriction&2)
 
 int itemdb_isequip(int);
 int itemdb_isequip2(struct item_data *);
 int itemdb_isequip3(int);
-int itemdb_isdropable(int nameid);
 
 // itemdb_equipマクロとitemdb_equippointとの違いは
 // 前者が鯖側dbで定義された値そのものを返すのに対し

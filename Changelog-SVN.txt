@@ -1,5 +1,8 @@
 Date	Added
 05/30
+	* Reverted changes to dynamic mob removal, now all mobs are removed [Skotlex]
+	  mob_remove_damaged is still respected.
+	* Partial implementation of item_trade.txt, not quite finished yet [Skotlex]
 	* Fixed mob_remove_damaged [Skotlex]
 	* Added two new battle_athena options:	[Skotlex]
 	  show_hp_sp_drain (yes/no): displays drained hp/sp from attacks (ie:
