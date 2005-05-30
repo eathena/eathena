@@ -577,7 +577,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_ItemInfo,			"@ii",		1, atcommand_iteminfo }, // [Lupus]
 	{ AtCommand_MapFlag,			"@mapflag",		99, atcommand_mapflag }, // [Lupus]
 
-	{ AtCommand_Me,				"@me",			0, atcommand_me }, //added by massdriller, code by lordalfa
+	{ AtCommand_Me,				"@me",			20, atcommand_me }, //added by massdriller, code by lordalfa
 
 
 // add new commands before this line
