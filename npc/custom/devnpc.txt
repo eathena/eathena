@@ -469,3 +469,31 @@ OnInit:
  	initnpctimer;
         break;
 }
+aldebaran.gat,137,118,5	script	Fredzilla	4020,0,0,{
+ 	npcspeed 140;
+OnTouch:
+	mes "[Fredzilla]";
+	mes "I dont really know what I do";
+	mes "Well I have made some scripts, translated some scripts and corrected some scripts.";
+	next;
+	mes "[Fredzilla]";
+	mes "But other than that I do nothing.";
+	close;
+OnTimer25000:
+	npcwalkto 137+rand(5),118+rand(5);
+	setnpctimer 0;
+doitagain:
+        set $fred,rand(6);
+	if($fred == 0) npctalk "I have the most optimized Dev NPC";
+	if($fred == 1) npctalk "Yeah I am a Dev, what do you mean I'm just a member on the forum !!!";
+	if($fred == 2) npctalk "I probably the worst speller on the Dev team.";
+	if($fred == 3) npctalk "You didnt think I was a real player did you?!?";
+	if($fred == 4) npctalk "Golden, Ripe, Boneless Bananas, 39 Cents A Pound.";
+	if($fred == 5) npctalk "All those who believe in telekinesis, raise my hand.";
+	if($fred > 5 || $fred < 0) goto doitagain;
+	setnpctimer 0;
+	end;
+OnInit:
+ 	initnpctimer;
+        end;
+}
