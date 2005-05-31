@@ -372,6 +372,7 @@ Progress:	0%
 	- Damaged mobs get healed
 	- Stress on the servers if players are intentionally changing between the
 	  same maps over and over.
+	- Mobs that were dead and had a respawn timer set don't get removed.
 	The alternative fix was to not remove all mobs, but this lead to other
 	problems:
 	- There's no link between the previously spawned mobs and the new ones,
@@ -382,7 +383,7 @@ Progress:	0%
 	  remove all mobs. 
 	- Do not touch bosses (mode&0x20): don't remove them, don't respawn them.
 	The timer if long enough (60 secs?) would take care of most of the possible
-	exploits and complains, and pretty much the only mobs that really should be
+	exploits and complaints, and pretty much the only mobs that really should be
 	left loaded all the time could be bosses. This is the conclusion I've came
 	to, and I am planning on implementing it if noone else steps up to the task
 	or has a better implementation idea. I want to hear from the other devs,
