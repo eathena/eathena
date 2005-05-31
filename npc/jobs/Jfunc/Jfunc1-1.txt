@@ -125,7 +125,7 @@ function	script	Mag_check	{
 }
 
 //Merchant Check
-function	script	Mag_check	{
+function	script	Mer_check	{
 
      		if(BaseJob==5) goto L_JobMer;
 		if(BaseJob !=0) goto L_JobOther;
