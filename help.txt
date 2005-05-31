@@ -230,6 +230,9 @@ YOURSELF ONLY COMMANDS
                                          from the skill "Call Spirits" (If the
                                          number you use is > 1000, your server
                                          may become instable or crash)
+@me <action>				   = Displays Charname action. ie. "**Bob dances**"
+						     if character name is bob and command is
+						     @me dances.
 
 =================================================================================
 REMOTE CHAR COMMANDS
@@ -440,6 +443,5 @@ Use * for name to send to all players.
 
 @marry	<Char 1> <char 2>	= Makes 2 target characters married
 @divorce <Char 1> <Char 2>	= Divorces 2 characters 
-@rings	<Char>			= Gives the player the wedding ring
 @adopt <Char>			= Adopts a player
 

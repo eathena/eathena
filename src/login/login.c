@@ -27,7 +27,6 @@ void Gettimeofday(struct timeval *timenow)
 #endif
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <sys/stat.h> // for stat/lstat/fstat
 #include <signal.h>
 #include <fcntl.h>

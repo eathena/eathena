@@ -9611,23 +9611,29 @@ int atcommand_rates(
  *------------------------------------------
  */
 
-	int atcommand_me(
-		const int fd, struct map_session_data* sd,
-			const char* command, const char* message)
+int atcommand_me(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
 {
+	
 	nullpo_retr(-1, sd);
-   		char tempmes[200];
-		memset(tempmes, '\0', sizeof(tempmes));    
+	
+   	char tempmes[200];
+   	
+	memset(tempmes, '\0', sizeof(tempmes));    
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
 	if (!message || !*message) {
 		clif_displaymessage(fd, "Please, enter a message (usage: @me <message>).");
 		return -1;
-}
+	}
+	
 	sscanf(message, "%199[^\n]", tempmes);
-		sprintf(atcmd_output, "** %s %s **",sd->status.name,tempmes);
-     		clif_disp_overhead( sd,atcmd_output);
-		return 0;
+	sprintf(atcmd_output, "** %s %s **", sd->status.name, tempmes);
+    clif_disp_overhead(sd, atcmd_output);
+    
+	return 0;
+	
 }
 
 /*==========================================
