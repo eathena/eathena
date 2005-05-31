@@ -29,6 +29,7 @@ TODO:
 Date		Added
 ======
 05/31
+	* Fixed incorrect checkers for Jfunc2-1 [massdriller]
 	* Fixed a typo in Jfunc1-1 [massdriller]
 	* Added my own devnpc =P [Kevin]
 	* Optimised darkchild's MVP arena [massdriller]

@@ -132,8 +132,9 @@ L_JobMage:
 //<=========================================== Registrar and Examiner Catherine Medichi ==============================================>\\
 gef_tower.gat,111,37,4	script	Catherine Medichi	68,{
 	mes "[Catherine Medichi]";
-	callfunc "Wiz2_check";
 	if(BaseJob == Job_Mage) goto L_Mage;
+	callfunc "Wiz2_check";
+
 
 
 L_Mage:

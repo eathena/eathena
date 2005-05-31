@@ -22,8 +22,9 @@
 //*********************************************************************************************************************************************************************************\\
 prt_church.gat,16,41,4	script	Father Thomas	60,{
 	mes "[Father Thomas]";
-	callfunc "Pri_check";
 	if (BaseJob == Job_Acolyte) goto L_Start;
+	callfunc "Pri_check";
+
 
 L_Start:
 	if (PRIEST_Q == 1) goto L_Test1;
