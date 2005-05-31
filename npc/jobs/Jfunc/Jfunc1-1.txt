@@ -15,7 +15,6 @@
 //Acolyte Check
 
 function	script	Aco_check	{
-
 		if(BaseJob == Job_Acolyte) goto JobAco;
 		if(BaseJob != Job_Novice) goto NotNov;
 		if(JobLevel < 10) goto JobLess10;
@@ -199,10 +198,8 @@ function	script	Swo_check	{
 }
 //Thief Check
 function	script	Thi_check	{
-	if(BaseJob== Job_Thief) goto L_JobThief;
-	if(BaseJob!= Job_Thief) goto L_JobOther;
-
-L_JobOther:
+	if(BaseJob == Job_Thief) goto L_JobThief;
+	if(BaseJob == Job_Novice) return;
 	mes "[Thief Guide]";
 	if(BaseJob==1 || BaseJob==7 || BaseJob==14) goto L_Swordman;
 	if(BaseJob==2 || BaseJob==9 || BaseJob==16) goto L_Mage;

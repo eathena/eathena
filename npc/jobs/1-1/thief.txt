@@ -28,11 +28,6 @@ job_thief1.gat,0,0,0,0	monster	Spore	1014,30,0,0,0
 // -- Interviewer --
 moc_prydb1.gat,39,129,5	script	Thief Guide	69,{
 	callfunc "Thi_check";
-	if(BaseJob == Job_Novice) goto L_Start;
-
-
-
-L_Start:
 	if(job_thief_q==2) goto L_1;
 	if(job_thief_q==1) goto L_Back;
 
