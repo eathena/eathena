@@ -330,3 +330,70 @@ OnInit:
  	initnpctimer;
         break;
 }
+
+// Kevin =========================================================>\\
+prontera.gat,178,204,5	script	Kevin	774,{
+ 	npcspeed 50;
+	mes "[Kevin]";
+	mes "SUP?!?!?!?!";
+	mes "YOU JUST GOT PWNED!!!";
+	next;
+	mes "OUCH, ANOTHER PERSON PWNED BY KEVIN!";
+	close;
+ OnTimer15000:
+	npcwalkto 170+rand(17),200+rand(16);
+	setnpctimer 0;
+
+doitagain:
+        set $lol,rand(9);
+	if($lol == 0) goto Lquote0;
+	if($lol == 1) goto Lquote1;
+	if($lol == 2) goto Lquote2;
+	if($lol == 3) goto Lquote3;
+	if($lol == 4) goto Lquote4;
+	if($lol == 5) goto Lquote1;
+	if($lol == 6) goto Lquote2;
+	if($lol == 7) goto Lquote3;
+	if($lol == 8) goto Lquote4;
+        goto doitagain;
+
+Lquote0:
+	npctalk "OMFGLMFAO I HAVE PWNED SO MANY PEOPLE!";
+	setnpctimer 0;
+	break;
+Lquote1:
+	npctalk "GO EA DEVS!";
+	setnpctimer 0;
+	break;
+Lquote2:
+	npctalk "WATCH OUT FOR ME ON THE IRC CHANNEL! HAHAHA!";
+	setnpctimer 0;
+	break;
+Lquote3:
+	npctalk "WANNA SEE MY NEW MIRC SCRIPT?!?";
+	setnpctimer 0;
+	break;
+Lquote4:
+	npctalk "w00t! YOU ARE SUCH A N00B YOU... N00B";
+	setnpctimer 0;
+	break;
+Lquote5:
+	npctalk "d00d! i r l337!";
+	setnpctimer 0;
+	break;
+Lquote6:
+	npctalk "pssst: what do you think of my evil plot to take over the da irc network?";
+	setnpctimer 0;
+	break;
+Lquote7:
+	npctalk "ORANGE COUNTY LIBERATION FRONT!";
+	setnpctimer 0;
+	break;
+Lquote8:
+	npctalk "OMFG YOU ARE SO UGLY!";
+	setnpctimer 0;
+	break;
+OnInit:
+ 	initnpctimer;
+        break;
+}
