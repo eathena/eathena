@@ -1,5 +1,6 @@
 Date	Added
 05/31
+	* @marry auto-gives named rings, removed @rings as in-needed [Arutema]
 	* Fixed some compilation errors in BSD systems. [Kevin]
 	* Restored dynamic mob cleaning to what it was a couple of nights ago
 	  Should send the system back before all hell broke loose. [Skotlex]
