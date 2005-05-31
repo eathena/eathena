@@ -3271,7 +3271,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 				break;
 		}
 
-		hitrate = ((hitrate>95)?95: ((hitrate<5)?5:hitrate));
+		if (hitrate > battle_config.max_hitrate)
+			hitrate = battle_config.max_hitrate;
+		else if (hitrate < battle_config.min_hitrate)
+			hitrate = battle_config.min_hitrate;
 
 		if(rand()%100 >= hitrate)
 			wd.dmg_lv = ATK_FLEE;
@@ -5371,6 +5374,8 @@ static const struct battle_data_short {
 	{ "undead_detect_type",                &battle_config.undead_detect_type		},
 	{ "player_auto_counter_type",          &battle_config.pc_auto_counter_type		},
 	{ "monster_auto_counter_type",         &battle_config.monster_auto_counter_type},
+	{ "min_hitrate",                       &battle_config.min_hitrate	},
+	{ "max_hitrate",                       &battle_config.max_hitrate	},
 	{ "agi_penalty_type",                  &battle_config.agi_penalty_type			},
 	{ "agi_penalty_count",                 &battle_config.agi_penalty_count			},
 	{ "agi_penalty_num",                   &battle_config.agi_penalty_num			},
@@ -5684,6 +5689,8 @@ void battle_set_defaults() {
 	battle_config.undead_detect_type = 0;
 	battle_config.pc_auto_counter_type = 1;
 	battle_config.monster_auto_counter_type = 1;
+	battle_config.min_hitrate = 5;
+	battle_config.max_hitrate = 95;
 	battle_config.agi_penalty_type = 1;
 	battle_config.agi_penalty_count = 3;
 	battle_config.agi_penalty_num = 10;
@@ -5878,6 +5885,9 @@ void battle_validate_conf() {
 		battle_config.max_cart_weight = 100;
 	battle_config.max_cart_weight *= 10;
 
+	if(battle_config.min_hitrate > battle_config.max_hitrate)
+		battle_config.min_hitrate = battle_config.max_hitrate;
+		
 	if(battle_config.agi_penalty_count < 2)
 		battle_config.agi_penalty_count = 2;
 	if(battle_config.vit_penalty_count < 2)

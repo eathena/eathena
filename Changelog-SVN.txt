@@ -1,5 +1,7 @@
 Date	Added
 05/31
+	* Added battle_config options min_hitrate & max_hitrate	[Skotlex]
+	  These only affect the new attack function, and th defaults are 5%-95%
 	* Added client-messages for when an item can't be drop/stored [Skotlex]
 	* Finished implementing the "optimization" item_trade.txt [Skotlex]
 	* Optimised the long forgotten MVP arena [massdriller]
