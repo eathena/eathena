@@ -1,4 +1,7 @@
 Date	Added
+05/31
+	* Optimised the long forgotten MVP arena [massdriller]
+
 05/30
 	* Rewrote the trade-add-item function, it was hella messy [Skotlex]
 	* Updated item_trade.txt implementation [Skotlex]
