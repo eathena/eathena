@@ -9,6 +9,8 @@
 #include <windows.h>
 #endif
 
+#include <time.h>
+
 #define BASE_TICK 5
 
 #define TIMER_ONCE_AUTODEL 1
