@@ -3,6 +3,9 @@
 //===== By: ================================================== 
 //= Most NPCs by Aria
 //= MouseJstr NPC by MouseJstr
+//= Massdriller NPC by massdriller
+//= Evera NPC by Evera
+//= Kevin NPC by Kevin
 //===== Current Version: ===================================== 
 //= 0.5
 //===== Compatible With: ===================================== 
@@ -391,6 +394,75 @@ Lquote7:
 	break;
 Lquote8:
 	npctalk "OMFG YOU ARE SO UGLY!";
+	setnpctimer 0;
+	break;
+OnInit:
+ 	initnpctimer;
+        break;
+}
+
+
+// massdriller =========================================================>\\
+geffen.gat,122,63,5	script	massdriller	823,{
+ 	npcspeed 50;
+	mes "[massdriller]";
+	mes "Who am i? I am A nobody!";
+	mes "I like pwning people!";
+	next;
+	mes "[massdriller]";
+	mes "Main goal in life is to annoy and pwn Kevin";
+	close;
+ OnTimer15000:
+	npcwalkto 170+rand(17),200+rand(16);
+	setnpctimer 0;
+
+doitagain:
+        set $lol,rand(9);
+	if($lol == 0) goto Lquote0;
+	if($lol == 1) goto Lquote1;
+	if($lol == 2) goto Lquote2;
+	if($lol == 3) goto Lquote3;
+	if($lol == 4) goto Lquote4;
+	if($lol == 5) goto Lquote1;
+	if($lol == 6) goto Lquote2;
+	if($lol == 7) goto Lquote3;
+	if($lol == 8) goto Lquote4;
+        goto doitagain;
+
+Lquote0:
+	npctalk "Hmm....What script needs to be fixed...";
+	setnpctimer 0;
+	break;
+Lquote1:
+	npctalk "OMFG...you suck!";
+	setnpctimer 0;
+	break;
+Lquote2:
+	npctalk "The worst kind of noobs are the heal! zeny! items plz! type.";
+	setnpctimer 0;
+	break;
+Lquote3:
+	npctalk "What happens when you die of boredom?";
+	setnpctimer 0;
+	break;
+Lquote4:
+	npctalk "I'm such a kewl Person...";
+	setnpctimer 0;
+	break;
+Lquote5:
+	npctalk "OMFGWTFBBQ...I'm also known as MadDawg";
+	setnpctimer 0;
+	break;
+Lquote6:
+	npctalk "Gimme your items...I'll eat them and eat you...";
+	setnpctimer 0;
+	break;
+Lquote7:
+	npctalk "Aren't porings cute?";
+	setnpctimer 0;
+	break;
+Lquote8:
+	npctalk "Omfg..you are full of shit....";
 	setnpctimer 0;
 	break;
 OnInit:
