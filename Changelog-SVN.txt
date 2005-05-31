@@ -1,5 +1,6 @@
 Date	Added
 05/31
+	* Fixed NPC Typo [Codemaster]
 	* Updated help.txt, fixed a compile time warning on BSD systems. [Kevin]
 	* @marry auto-gives named rings, removed @rings as in-needed [Arutema]
 	* Fixed some compilation errors in BSD systems. [Kevin]

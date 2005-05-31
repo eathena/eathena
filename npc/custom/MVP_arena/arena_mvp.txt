@@ -398,7 +398,7 @@ pvp_n_7-2.gat,100,100,4	script	MVP-Protector	727,{
 	L_Next:
 		warp "pvp_n_8-2.gat",102,102;
 		close;
-
+}
 // --- Alpha-MVP #8
 pvp_n_8-2.gat,100,100,4	script	MVP-Protector	727,{
 	mes "[ ^0065DFMVP-Protector^000000 ]";
