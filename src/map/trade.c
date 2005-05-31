@@ -78,6 +78,19 @@ void trade_tradeack(struct map_session_data *sd, int type) {
 			target_sd->deal_locked = 0;
 			target_sd->trade_partner = 0;
 		}
+
+
+		if (type == 3) { //Initiate trade
+			memset(&sd->deal_item_index, 0, sizeof(sd->deal_item_index));
+			memset(&sd->deal_item_amount, 0, sizeof(sd->deal_item_index));
+			memset(&target_sd->deal_item_index, 0, sizeof(sd->deal_item_index));
+			memset(&target_sd->deal_item_amount, 0, sizeof(sd->deal_item_amount));
+			sd->deal_zeny = 0;
+			target_sd->deal_zeny = 0;
+			sd->deal_weight = 0;
+			target_sd->deal_weight = 0;
+		}
+		
 		if (sd->npc_id != 0)
 			npc_event_dequeue(sd);
 		if (target_sd->npc_id != 0)
@@ -123,7 +136,7 @@ int impossible_trade_check(struct map_session_data *sd) {
 //			printf("Negativ amount in trade, by hack!\n"); // normal client send cancel when we type negativ amount
 			return -1;
 		} else if (sd->deal_item_amount[i] > 0) {
-			index = sd->deal_item_index[i] - 2;
+			index = sd->deal_item_index[i];
 			inventory[index].amount -= sd->deal_item_amount[i]; // remove item from inventory
 //			printf("%d items left\n", inventory[index].amount);
 			if (inventory[index].amount < 0) { // if more than the player have -> hack
@@ -157,67 +170,83 @@ int impossible_trade_check(struct map_session_data *sd) {
 }
 
 /*==========================================
- * ƒAƒCƒeƒ€’Ç‰Á
+ * Adds an item/qty to the trade window [rewrite by Skotlex] 
  *------------------------------------------
  */
 void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 	struct map_session_data *target_sd;
-	int trade_i, trade_weight = 0;
-	int c, level;
+	int trade_i, trade_weight, nameid;
 
 	nullpo_retv(sd);
+	if ((target_sd = map_id2sd(sd->trade_partner)) == NULL || sd->deal_locked > 0)
+		return; //Can't add stuff.
 
-	if (((target_sd = map_id2sd(sd->trade_partner)) != NULL) && (sd->deal_locked < 1)){
-		if (index < 2 || index >= MAX_INVENTORY + 2) {
-			if (index == 0) {
-				if (amount > 0 && amount <= MAX_ZENY && amount <= sd->status.zeny && // check amount
-				    (target_sd->status.zeny + amount) <= MAX_ZENY) { // fix positiv overflow
-					sd->deal_zeny = amount;
-					clif_tradeadditem(sd, target_sd, 0, amount);
-				} else {
-					if (amount != 0) {
-						trade_tradecancel(sd);
-						return;
-					}
-				}
-			}
-		} else if (amount > 0 && amount <= sd->status.inventory[index-2].amount) {
-			for(trade_i = 0; trade_i < 10; trade_i++) {
-				if (sd->deal_item_amount[trade_i] == 0) {
-					trade_weight += sd->inventory_data[index-2]->weight * amount;
-					level = pc_isGM(sd);
-					if (!itemdb_cantrade(sd->inventory_data[index-2]->nameid) &&
-						(pc_get_partner(sd) != target_sd ||
-						 !itemdb_canpartnertrade(sd->inventory_data[index-2]->nameid)) &&
-						 !level) {
-						clif_displaymessage (sd->fd, msg_txt(260));
-						amount = 0;
-					} else if (target_sd->weight + trade_weight > target_sd->max_weight){
-						clif_tradeitemok(sd, index, 1); // fail to add item -- the player was over weighted.
-						amount = 0;
-					} else {
-						for(c = 0; c == trade_i - 1; c++) { // re-deal exploit protection [Valaris]
-							if (sd->deal_item_index[c] == index) {
-								trade_tradecancel(sd);
-								return;
-							}
-						}
-						sd->deal_item_index[trade_i] = index;
-						sd->deal_item_amount[trade_i] += amount;
-						if (impossible_trade_check(sd)) { // check exploit (trade more items that you have)
-							trade_tradecancel(sd);
-							return;
-						}
-						clif_tradeitemok(sd, index, 0); // success to add item
-						clif_tradeadditem(sd, target_sd, index, amount);
-					}
-					break;
-				} else {
-					trade_weight += sd->inventory_data[sd->deal_item_index[trade_i]-2]->weight * sd->deal_item_amount[trade_i];
-				}
-			}
-		}
+	if (index == 0)
+	{	//Adding Zeny
+		if (amount >= 0 && amount <= MAX_ZENY && amount <= sd->status.zeny && // check amount
+			(target_sd->status.zeny + amount) <= MAX_ZENY) // fix positiv overflow
+		{	//Check Ok
+			sd->deal_zeny = amount;
+			clif_tradeadditem(sd, target_sd, 0, amount);
+		} else //Cancel Transaction
+			trade_tradecancel(sd);
+		return;
 	}
+	//Add an Item
+	index = index -2; //Why the actual index used is -2?
+	//Item checks...
+	if (index < 0 || index > MAX_INVENTORY)
+		return;
+	if (amount < 0 || amount > sd->status.inventory[index].amount)
+		return;
+
+	nameid = sd->inventory_data[index]->nameid;
+	if (!itemdb_cantrade(nameid) &&	//Can't trade
+		(pc_get_partner(sd) != target_sd ||	!itemdb_canpartnertrade(nameid)) &&	//Can't partner-trade
+		(!itemdb_gmoverride(nameid, pc_isGM(sd))))	//Can't GM-bypass
+	{
+		clif_displaymessage (sd->fd, msg_txt(260));
+		return;
+	}
+
+	for(trade_i = 0; trade_i < 10; trade_i++)
+	{	//Locate a trade position
+		if (sd->deal_item_index[trade_i] == index ||
+			sd->deal_item_amount[trade_i] == 0)
+			break;
+	}
+	if (trade_i >= 10)	//No space left
+		return;
+
+	trade_weight = sd->inventory_data[index]->weight * amount;
+	if (target_sd->weight + sd->deal_weight + trade_weight > target_sd->max_weight)
+	{	//fail to add item -- the player was over weighted.
+		clif_tradeitemok(sd, index, 1);
+		return;
+	}
+
+	if (sd->deal_item_index[trade_i] == index)
+	{	//The same item as before is being readjusted.
+		if (sd->deal_item_amount[trade_i] + amount > sd->status.inventory[index].amount)
+		{	//packet deal exploit check
+			amount = sd->status.inventory[index].amount - sd->deal_item_amount[trade_i];
+			trade_weight = sd->inventory_data[index]->weight * amount;
+		}
+		sd->deal_item_amount[trade_i] += amount;
+	} else {	//New deal item
+		sd->deal_item_index[trade_i] = index;
+		sd->deal_item_amount[trade_i] = amount;
+	}
+	sd->deal_weight += trade_weight;
+
+	if (impossible_trade_check(sd))
+	{ // check exploit (trade more items that you have)
+		trade_tradecancel(sd);
+		return;
+	}
+
+	clif_tradeitemok(sd, index+2, 0); // Return the index as it was received
+	clif_tradeadditem(sd, target_sd, index, amount);
 }
 
 /*==========================================
@@ -232,8 +261,8 @@ void trade_tradeok(struct map_session_data *sd) {
 
 	// check items
 	for(trade_i = 0; trade_i < 10; trade_i++) {
-		if ((((sd->deal_item_index[trade_i]-2) >= 0) &&
-		    (sd->deal_item_amount[trade_i] > sd->status.inventory[sd->deal_item_index[trade_i]-2].amount)) ||
+		if ((((sd->deal_item_index[trade_i]) >= 0) &&
+		    (sd->deal_item_amount[trade_i] > sd->status.inventory[sd->deal_item_index[trade_i]].amount)) ||
 		    (sd->deal_item_amount[trade_i] < 0)) {
 			trade_tradecancel(sd);
 			return;
@@ -273,12 +302,12 @@ void trade_tradecancel(struct map_session_data *sd) {
 	if ((target_sd = map_id2sd(sd->trade_partner)) != NULL) {
 		for(trade_i = 0; trade_i < 10; trade_i++) { // give items back (only virtual)
 			if (sd->deal_item_amount[trade_i] != 0) {
-				clif_additem(sd, sd->deal_item_index[trade_i] - 2, sd->deal_item_amount[trade_i], 0);
+				clif_additem(sd, sd->deal_item_index[trade_i], sd->deal_item_amount[trade_i], 0);
 				sd->deal_item_index[trade_i] = 0;
 				sd->deal_item_amount[trade_i] = 0;
 			}
 			if (target_sd->deal_item_amount[trade_i] != 0) {
-				clif_additem(target_sd, target_sd->deal_item_index[trade_i] - 2, target_sd->deal_item_amount[trade_i], 0);
+				clif_additem(target_sd, target_sd->deal_item_index[trade_i], target_sd->deal_item_amount[trade_i], 0);
 				target_sd->deal_item_index[trade_i] = 0;
 				target_sd->deal_item_amount[trade_i] = 0;
 			}
@@ -336,7 +365,7 @@ void trade_tradecommit(struct map_session_data *sd) {
 					// trade is accepted
 					for(trade_i = 0; trade_i < 10; trade_i++) {
 						if (sd->deal_item_amount[trade_i] != 0) {
-							int n = sd->deal_item_index[trade_i] - 2;
+							int n = sd->deal_item_index[trade_i];
 
 							if (sd->status.inventory[n].amount < sd->deal_item_amount[trade_i])
 								sd->deal_item_amount[trade_i] = sd->status.inventory[n].amount;
@@ -352,7 +381,7 @@ void trade_tradecommit(struct map_session_data *sd) {
                                                         
 						}
 						if (target_sd->deal_item_amount[trade_i] != 0) {
-							int n = target_sd->deal_item_index[trade_i] - 2;
+							int n = target_sd->deal_item_index[trade_i];
 
 							if (target_sd->status.inventory[n].amount < target_sd->deal_item_amount[trade_i])
 								target_sd->deal_item_amount[trade_i] = target_sd->status.inventory[n].amount;

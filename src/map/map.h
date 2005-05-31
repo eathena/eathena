@@ -357,6 +357,7 @@ struct map_session_data {
 	int deal_item_index[10];
 	int deal_item_amount[10];
 	int deal_zeny;
+	int deal_weight;	//tracks deal weight [Skotlex]
 	short deal_locked;
 
 	int party_sended,party_invite,party_invite_account;
