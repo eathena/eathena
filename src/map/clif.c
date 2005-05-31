@@ -2435,7 +2435,7 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 		break;
 	case SP_HP:
 		WFIFOL(fd,4)=sd->status.hp;
-		if(battle_config.disp_hpmeter)
+		if(battle_config.disp_hpmeter <= pc_isGM(sd))
 			clif_hpmeter(sd);
 		break;
 	case SP_SP:

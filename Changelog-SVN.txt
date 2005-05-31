@@ -1,5 +1,8 @@
 Date	Added
-06/1	* Fixed a nasty pc.c bug thanks to komurka [massdriller]
+06/1
+	* Fixed a nasty pc.c bug thanks to komurka [massdriller]
+	* Added Sasuke's modification to allow certain gm levels to see the 
+	  hp bars [massdriller]
 
 05/31
 	* Added Einbroch mobs to dead branch DB [Arutema]
