@@ -29,8 +29,9 @@ TODO:
 Date		Added
 ======
 05/31
-	*Added my own devnpc =P [Kevin]
-	*Optimised darkchild's MVP arena [massdriller]
+	* Fixed a typo in Jfunc1-1 [massdriller]
+	* Added my own devnpc =P [Kevin]
+	* Optimised darkchild's MVP arena [massdriller]
 05/30
 	* Scripts reorganizing [DracoRPG]
 	* Changed swordsman -> swordman in the files names [DracoRPG]
