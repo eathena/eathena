@@ -1,5 +1,7 @@
 Date	Added
 05/31
+	* Restored dynamic mob cleaning to what it was a couple of nights ago
+	  Should send the system back before all hell broke loose. [Skotlex]
 	* Added battle_config options min_hitrate & max_hitrate	[Skotlex]
 	  These only affect the new attack function, and th defaults are 5%-95%
 	* Added client-messages for when an item can't be drop/stored [Skotlex]
