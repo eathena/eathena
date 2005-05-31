@@ -463,14 +463,15 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list *target,int x,in
  * type!=0 ならその種類のみ
  *------------------------------------------
  */
-void map_foreachinarea(int (*func)(struct block_list*,va_list),int m,int x0,int y0,int x1,int y1,int type,...) {
+int map_foreachinarea(int (*func)(struct block_list*,va_list),int m,int x0,int y0,int x1,int y1,int type,...) {
 	va_list ap;
 	int bx,by;
+	int returnCount =0;	//total sum of returned values of func() [Skotlex]
 	struct block_list *bl=NULL;
 	int blockcount=bl_list_count,i,c;
 
-	if(m < 0)
-		return;
+	if (m < 0)
+		return 0;
 	va_start(ap,type);
 	if (x0 < 0) x0 = 0;
 	if (y0 < 0) y0 = 0;
@@ -510,12 +511,13 @@ void map_foreachinarea(int (*func)(struct block_list*,va_list),int m,int x0,int 
 
 	for(i=blockcount;i<bl_list_count;i++)
 		if(bl_list[i]->prev)	// 有?かどうかチェック
-			func(bl_list[i],ap);
+			returnCount += func(bl_list[i],ap);
 
 	map_freeblock_unlock();	// 解放を許可する
 
 	va_end(ap);
 	bl_list_count = blockcount;
+	return returnCount;	//[Skotlex]
 }
 
 /*==========================================
@@ -526,8 +528,9 @@ void map_foreachinarea(int (*func)(struct block_list*,va_list),int m,int x0,int 
  * dx,dyは-1,0,1のみとする（どんな値でもいいっぽい？）
  *------------------------------------------
  */
-void map_foreachinmovearea(int (*func)(struct block_list*,va_list),int m,int x0,int y0,int x1,int y1,int dx,int dy,int type,...) {
+int map_foreachinmovearea(int (*func)(struct block_list*,va_list),int m,int x0,int y0,int x1,int y1,int dx,int dy,int type,...) {
 	int bx,by;
+	int returnCount =0;  //total sum of returned values of func() [Skotlex]
 	struct block_list *bl=NULL;
 	va_list ap;
 	int blockcount=bl_list_count,i,c;
@@ -622,21 +625,23 @@ void map_foreachinmovearea(int (*func)(struct block_list*,va_list),int m,int x0,
 			if (bl_list[i]->type == BL_PC
 			  && session[((struct map_session_data *) bl_list[i])->fd] == NULL)
 				continue;
-			func(bl_list[i],ap);
+			returnCount += func(bl_list[i],ap);
 		}
 
 	map_freeblock_unlock();	// 解放を許可する
 
 	va_end(ap);
 	bl_list_count = blockcount;
+	return returnCount;
 }
 
 // -- moonsoul	(added map_foreachincell which is a rework of map_foreachinarea but
 //			 which only checks the exact single x/y passed to it rather than an
 //			 area radius - may be more useful in some instances)
 //
-void map_foreachincell(int (*func)(struct block_list*,va_list),int m,int x,int y,int type,...) {
+int map_foreachincell(int (*func)(struct block_list*,va_list),int m,int x,int y,int type,...) {
 	int bx,by;
+	int returnCount =0;  //total sum of returned values of func() [Skotlex]
 	struct block_list *bl=NULL;
 	va_list ap;
 	int blockcount=bl_list_count,i,c;
@@ -679,20 +684,22 @@ void map_foreachincell(int (*func)(struct block_list*,va_list),int m,int x,int y
 
 	for(i=blockcount;i<bl_list_count;i++)
 		if(bl_list[i]->prev)	// 有?かどうかチェック
-			func(bl_list[i],ap);
+			returnCount += func(bl_list[i],ap);
 
 	map_freeblock_unlock();	// 解放を許可する
 
 	va_end(ap);
 	bl_list_count = blockcount;
+	return returnCount;
 }
 
 /*============================================================
 * For checking a path between two points (x0, y0) and (x1, y1)
 *------------------------------------------------------------
  */
-void map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y0,int x1,int y1,int range,int type,...)
+int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y0,int x1,int y1,int range,int type,...)
 {
+	int returnCount =0;  //total sum of returned values of func() [Skotlex]
 /*	va_list ap;
 	double deltax = 0.0;
 	double deltay = 0.0;
@@ -857,7 +864,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 	int bx,by,bx0,bx1,by0,by1;
 //////////////
 	// no map
-	if(m < 0) return;
+	if(m < 0) return 0;
 
 	// xy out of range
 	if (x0 < 0) x0 = 0;
@@ -875,7 +882,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 
 //printf("(%i,%i)(%i,%i) range: %i\n",x0,y0,x1,y1,range);
 
-	if(kfact==0) return; // shooting at the standing position should not happen
+	if(kfact==0) return 0; // shooting at the standing position should not happen
 	kfact = 1/kfact; // divide here and multiply in the loop
 
 	range *= range; // compare with range^2 so we can skip a sqrt and signs
@@ -992,7 +999,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 
 	for(i=blockcount;i<bl_list_count;i++)
 		if(bl_list[i]->prev)	// 有?かどうかチェック
-			func(bl_list[i],ap);
+			returnCount += func(bl_list[i],ap);
 
 	map_freeblock_unlock();	// 解放を許可する
 	va_end(ap);
@@ -1106,12 +1113,14 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 
 	for(i=blockcount;i<bl_list_count;i++)
 		if(bl_list[i]->prev)	// 有?かどうかチェック
-			func(bl_list[i],ap);
+			returnCount += func(bl_list[i],ap);
 
 	map_freeblock_unlock();	// 解放を許可する
 	va_end(ap);
 	
 	bl_list_count = blockcount;
+
+	return returnCount;
 }
 
 /*==========================================
@@ -1792,39 +1801,81 @@ struct mob_list* map_addmobtolist(unsigned short m)
 
 void map_spawnmobs(int m)
 {
-	int i;
-	
-	for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)
+	int i, k=0;
+	if (map[m].mob_delete_timer != -1)
+	{	//Mobs have not been removed yet [Skotlex]
+		delete_timer(map[m].mob_delete_timer, map_removemobs_timer);
+		map[m].mob_delete_timer = -1;
+		return;
+	}
+	for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)	
 		if(map[m].moblist[i]!=NULL)
+		{
+			k+=map[m].moblist[i]->num;
 			npc_parse_mob2(map[m].moblist[i]);
+		}
+	if (k > 0)
+	{
+		sprintf(tmp_output,"Map %s: Spawned '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[m].name, k);
+		ShowStatus(tmp_output);
+	}
 }
 
-void mob_cache_unload(struct mob_data *md)
-{
-	nullpo_retv(md);
-	//use the old comparison until this is rethought. [Skotlex]	
-//	if (( md->spawndelay1 != 0 || md->deletetimer != 0 || ( md->hp != md->max_hp && !battle_config.mob_remove_damaged ))
-//		&& !md->master_id ) //Remove spawned slave mobs
-	if ( md->spawndelay1 != 0 || ( md->hp != md->max_hp && !battle_config.mob_remove_damaged ) )
-	    return;	
+int mob_cache_cleanup_sub(struct block_list *bl, va_list ap) {
+	struct mob_data *md = (struct mob_data *)bl;
+	nullpo_retr(0, md);
+	
+	//When not to remove:
+	//1: Mob has spawn/respawn delay (mob is not in cache)
+	//2: Mob has a delete timer (summoned creatures)
+	//3: Mob is damaged (as long as it is not a slave)
+	if ( md->spawndelay1 != 0 || md->spawndelay2 != 0 || md->deletetimer != -1 )
+			return 0;
+	
+	if (!md->master_id && md->hp != md->max_hp && !battle_config.mob_remove_damaged )
+			return 0;
 
 	mob_remove_map(md, 0);
 	map_deliddb(&md->bl);
 	aFree(md);
 	md = NULL;
+
+	return 1;
 }
 
-int mob_cache_cleanup_sub(struct block_list *bl, va_list ap) {
-	nullpo_retr(0, bl);
-	
-	mob_cache_unload((struct mob_data *)bl);
-
-	return 0;
+int map_removemobs_timer(int tid, unsigned int tick, int id, int data)
+{
+	int k;
+	if (id < 0 || id >= MAX_MAP_PER_SERVER)
+	{	//Incorrect map id!
+		if (battle_config.error_log)
+			printf("map_removemobs_timer error: timer %d points to invalid map %d\n",tid, id);
+		return 0;
+	}
+	if (map[id].mob_delete_timer != tid)
+	{	//Incorrect timer call!
+		if (battle_config.error_log)
+			printf("map_removemobs_timer mismatch: %d != %d (map %s)\n",map[id].mob_delete_timer, tid, map[id].name);
+		return 0;
+	}
+	map[id].mob_delete_timer = -1;
+	if (map[id].users > 0) //Map not empty!
+		return 1;
+	k = map_foreachinarea(mob_cache_cleanup_sub, id, 0, 0, map[id].xs, map[id].ys, BL_MOB);
+	if (k > 0)
+	{
+		sprintf(tmp_output,"Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[id].name, k);
+		ShowStatus(tmp_output);
+	}
+	return 1;
 }
 
 void map_removemobs(int m)
 {
-	map_foreachinarea(mob_cache_cleanup_sub, m, 0, 0, map[m].xs, map[m].ys, BL_MOB);
+	if (map[m].mob_delete_timer != -1)
+		return; //Mobs are already scheduled for removal
+
+	map[m].mob_delete_timer = add_timer(gettick()+battle_config.mob_remove_delay, map_removemobs_timer, m, 0);
 }
 
 /*==========================================
@@ -1952,7 +2003,7 @@ int map_calc_dir( struct block_list *src,int x,int y) {
 
 int map_getcell(int m,int x,int y,cell_t cellchk)
 {
-	return (m < 0 || m > MAX_MAP_PER_SERVER) ? 0 : map_getcellp(&map[m],x,y,cellchk);
+	return (m < 0 || m >= MAX_MAP_PER_SERVER) ? 0 : map_getcellp(&map[m],x,y,cellchk);
 }
 
 int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
@@ -2716,6 +2767,7 @@ int map_readallmap(void) {
 
 	// 先に全部のャbプの存在を確認
 	for (i = 0; i < map_num; i++){		
+		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 #ifdef USE_AFM
 		char afm_name[256] = "";
 		// set it by default first
@@ -3481,6 +3533,7 @@ int do_init(int argc, char *argv[]) {
 
 	add_timer_func_list(map_freeblock_timer, "map_freeblock_timer");
 	add_timer_func_list(map_clearflooritem_timer, "map_clearflooritem_timer");
+	add_timer_func_list(map_removemobs_timer, "map_removemobs_timer");
 	add_timer_interval(gettick()+1000, map_freeblock_timer, 0, 0, 60*1000);
 
 	//Added by Mugendai for GUI support

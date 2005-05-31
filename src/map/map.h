@@ -676,6 +676,7 @@ struct map_data {
 		int drop_per;
 	} drop_list[MAX_DROP_PER_MAP];
 	struct mob_list *moblist[MAX_MOB_LIST_PER_MAP]; // [Wizputer]
+	int mob_delete_timer;	// [Skotlex]
 };
 
 struct map_data_other_server {
@@ -829,11 +830,11 @@ int map_freeblock_unlock(void);
 // block関連
 int map_addblock(struct block_list *);
 int map_delblock(struct block_list *);
-void map_foreachinarea(int (*)(struct block_list*,va_list),int,int,int,int,int,int,...);
+int map_foreachinarea(int (*)(struct block_list*,va_list),int,int,int,int,int,int,...);
 // -- moonsoul (added map_foreachincell)
-void map_foreachincell(int (*)(struct block_list*,va_list),int,int,int,int,...);
-void map_foreachinmovearea(int (*)(struct block_list*,va_list),int,int,int,int,int,int,int,int,...);
-void map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y0,int x1,int y1,int range,int type,...); // Celest
+int map_foreachincell(int (*)(struct block_list*,va_list),int,int,int,int,...);
+int map_foreachinmovearea(int (*)(struct block_list*,va_list),int,int,int,int,int,int,int,int,...);
+int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y0,int x1,int y1,int range,int type,...); // Celest
 int map_countnearpc(int,int,int);
 //block関連に追加
 int map_count_oncell(int m,int x,int y);
@@ -850,6 +851,7 @@ int map_addnpc(int,struct npc_data *);
 
 // 床アイテム関連
 int map_clearflooritem_timer(int,unsigned int,int,int);
+int map_removemobs_timer(int,unsigned int,int,int);
 #define map_clearflooritem(id) map_clearflooritem_timer(0,0,id,1)
 int map_addflooritem(struct item *,int,int,int,int,struct map_session_data *,struct map_session_data *,struct map_session_data *,int);
 int map_searchrandfreecell(int,int,int,int);

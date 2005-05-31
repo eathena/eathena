@@ -5535,6 +5535,7 @@ static const struct battle_data_int {
 	{ "item_rate_use",                     &battle_config.item_rate_use	},	// End
 	{ "day_duration",                      &battle_config.day_duration	}, // added by [Yor]
 	{ "night_duration",                    &battle_config.night_duration	}, // added by [Yor]
+	{ "mob_remove_delay",                  &battle_config.mob_remove_delay	},
 };
 
 int battle_set_value(char *w1, char *w2) {
@@ -5822,6 +5823,7 @@ void battle_set_defaults() {
 	battle_config.new_attack_function = 1; //This is for test/debug purposes [Skotlex]
 
 	battle_config.mob_remove_damaged = 1; // Dynamic Mobs - Remove mobs even if damaged [Wizputer]
+	battle_config.mob_remove_delay = 60000;
 
 	battle_config.show_hp_sp_drain = 0; //Display drained hp/sp from attacks
 	battle_config.show_hp_sp_gain = 1;	//Display gained hp/sp from mob-kills
@@ -5976,6 +5978,8 @@ void battle_validate_conf() {
 	if (battle_config.plant_spawn_delay < 0)
 		battle_config.plant_spawn_delay = 0;
 */	
+	if (battle_config.mob_remove_delay < 1000)	//Min 1 sec
+		battle_config.mob_remove_delay = 1000;
 }
 
 /*==========================================

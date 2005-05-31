@@ -1,5 +1,14 @@
 Date	Added
 06/1
+	* Added battle athena option mob_remove_delay [Skotlex]
+	  Now dynamic mobs are not removed inmediately, but after some time has
+	  passed. Default value is 60 secs
+	* Added debugging information about dynamic mobs [Skotlex]
+	  Helps keep track of how many mobs are being removed/spawned, use it to
+	  track any possible bugs! Should be removed after dynamic mobs are good
+	  enough.
+	* Some changes to dynamic mob unloading to avoid remove summoned mobs and
+	always remove mob slaves.	[Skotlex]
 	* Fixed a nasty pc.c bug thanks to komurka [massdriller]
 	* Added Sasuke's modification to allow certain gm levels to see the 
 	  hp bars [massdriller]
