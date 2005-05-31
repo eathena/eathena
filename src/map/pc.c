@@ -2497,9 +2497,14 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
 	if (sd->status.inventory[n].nameid <= 0 ||
 	    sd->status.inventory[n].amount < amount ||
 	    sd->trade_partner != 0 || sd->vender_id != 0 ||
-	    sd->status.inventory[n].amount <= 0 ||
-		!pc_candrop(sd,sd->status.inventory[n].nameid))
+	    sd->status.inventory[n].amount <= 0)
 		return 1;
+	
+	if (!pc_candrop(sd,sd->status.inventory[n].nameid))
+	{
+		clif_displaymessage (sd->fd, msg_txt(263));
+		return 1;
+	}
 
 	map_addflooritem(&sd->status.inventory[n], amount, sd->bl.m, sd->bl.x, sd->bl.y, NULL, NULL, NULL, 0);
 	pc_delitem(sd, n, amount, 0);
@@ -2744,7 +2749,10 @@ int pc_putitemtocart(struct map_session_data *sd,int idx,int amount) {
 	if (item_data->nameid==0 || item_data->amount<amount || sd->vender_id)
 		return 1;
 	if(!itemdb_cancartstore(sd->status.inventory[idx].nameid, pc_isGM(sd)))
+	{
+		clif_displaymessage (sd->fd, msg_txt(264));
 		return 1;
+	}
 	if (pc_cart_additem(sd,item_data,amount) == 0)
 		return pc_delitem(sd,idx,amount,0);
 
