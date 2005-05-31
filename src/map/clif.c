@@ -1702,8 +1702,9 @@ int clif_selllist(struct map_session_data *sd) {
 	WFIFOW(fd,0)=0xc7;
 	for(i=0;i<MAX_INVENTORY;i++) {
 		if(sd->status.inventory[i].nameid > 0 && sd->inventory_data[i]) {
-			if (!itemdb_cansell(sd->status.inventory[i].nameid))
+			if (!itemdb_cansell(sd->status.inventory[i].nameid, pc_isGM(sd)))
 				continue;
+
 			val=sd->inventory_data[i]->value_sell;
 			if (val < 0)
 				continue;
@@ -9755,13 +9756,8 @@ void clif_parse_MoveToKafra(int fd, struct map_session_data *sd) {
 	if (item_index < 0 || item_index >= MAX_INVENTORY)
 		return;
 
-	if (sd->state.storage_flag)
-	{
-		if(!itemdb_canguildstore(sd->status.inventory[item_index].nameid))
-			return;
-	} else
-		if(!itemdb_canstore(sd->status.inventory[item_index].nameid))
-			return;
+	if (!itemdb_canstore(sd->status.inventory[item_index].nameid, pc_isGM(sd), sd->state.storage_flag))
+		return;
 
 	if (sd->state.storage_flag)
 		storage_guild_storageadd(sd, item_index, item_amount);

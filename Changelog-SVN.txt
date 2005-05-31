@@ -1,5 +1,6 @@
 Date	Added
 05/31
+	* Finished implementing the "optimization" item_trade.txt [Skotlex]
 	* Optimised the long forgotten MVP arena [massdriller]
 
 05/30

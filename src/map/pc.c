@@ -2498,8 +2498,9 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
 	    sd->status.inventory[n].amount < amount ||
 	    sd->trade_partner != 0 || sd->vender_id != 0 ||
 	    sd->status.inventory[n].amount <= 0 ||
-		pc_candrop(sd,sd->status.inventory[n].nameid))
+		!pc_candrop(sd,sd->status.inventory[n].nameid))
 		return 1;
+
 	map_addflooritem(&sd->status.inventory[n], amount, sd->bl.m, sd->bl.x, sd->bl.y, NULL, NULL, NULL, 0);
 	pc_delitem(sd, n, amount, 0);
 
@@ -2740,9 +2741,9 @@ int pc_putitemtocart(struct map_session_data *sd,int idx,int amount) {
 	nullpo_retr(0, sd);
 	nullpo_retr(0, item_data = &sd->status.inventory[idx]);
 
-	if(pc_candrop(sd,sd->status.inventory[idx].nameid)==1)
-		return 1;
 	if (item_data->nameid==0 || item_data->amount<amount || sd->vender_id)
+		return 1;
+	if(!itemdb_cancartstore(sd->status.inventory[idx].nameid, pc_isGM(sd)))
 		return 1;
 	if (pc_cart_additem(sd,item_data,amount) == 0)
 		return pc_delitem(sd,idx,amount,0);
@@ -5815,9 +5816,9 @@ int pc_setriding(struct map_session_data *sd)
 int pc_candrop(struct map_session_data *sd,int item_id)
 {
 	int level = pc_isGM(sd);
-	if (level < battle_config.gm_can_drop_lv)
+	if (level > 0 && level < battle_config.gm_can_drop_lv)
 		return 0;
-	return (itemdb_isdropable(item_id));
+	return (itemdb_isdropable(item_id, level));
 }
 
 /*==========================================

@@ -33,7 +33,7 @@ struct item_data {
 		unsigned no_use : 1;
 		unsigned no_refine : 1;	// [celest]
 		unsigned delay_consume : 1;	// Signifies items that are not consumed inmediately upon double-click [Skotlex]
-		unsigned trade_restriction : 6;	//Item restrictions mask [Skotlex]
+		unsigned trade_restriction : 7;	//Item restrictions mask [Skotlex]
 	} flag;
 	short gm_lv_trade_override;	//GM-level to override trade_restriction
 	int view_id;
@@ -62,8 +62,8 @@ struct item_data* itemdb_exists(int nameid);
 #define itemdb_wlv(n) itemdb_search(n)->wlv
 #define itemdb_range(n) itemdb_search(n)->range
 #define itemdb_slot(n) itemdb_search(n)->slot
-#define	itemdb_available(n) (itemdb_exists(n) && itemdb_search(n)->flag.available)
-#define	itemdb_viewid(n) (itemdb_search(n)->view_id)
+#define itemdb_available(n) (itemdb_exists(n) && itemdb_search(n)->flag.available)
+#define itemdb_viewid(n) (itemdb_search(n)->view_id)
 int itemdb_group(int nameid);
 
 int itemdb_searchrandomid(int flags);
@@ -75,13 +75,12 @@ int itemdb_searchrandomgroup(int groupid);
 #define itemdb_value_notoc(n) itemdb_search(n)->flag.value_notoc
 #define itemdb_canrefine(n) itemdb_search(n)->flag.no_refine
 //Item trade restrictions [Skotlex]
-#define itemdb_isdropable(n) (!(itemdb_search(n)->flag.trade_restriction&1))
-#define itemdb_cansell(n) (!(itemdb_search(n)->flag.trade_restriction&8))
-#define itemdb_canstore(n) (!(itemdb_search(n)->flag.trade_restriction&16))
-#define itemdb_canguildstore(n) (!(itemdb_search(n)->flag.trade_restriction&32))
-#define itemdb_cantrade(n) (!(itemdb_search(n)->flag.trade_restriction&2))
-#define itemdb_canpartnertrade(n) (itemdb_search(n)->flag.trade_restriction&4 || !itemdb_search(n)->flag.trade_restriction&2)
-#define itemdb_gmoverride(n,lv) (itemdb_search(n)->gm_lv_trade_override >= lv)
+int itemdb_isdropable(int nameid, int gmlv);
+int itemdb_cantrade(int nameid, int gmlv);
+int itemdb_cansell(int nameid, int gmlv);
+int itemdb_canstore(int nameid, int gmlv, int guild_flag);
+int itemdb_cancartstore(int nameid, int gmlv);
+int itemdb_canpartnertrade(int nameid, int gmlv);
 
 int itemdb_isequip(int);
 int itemdb_isequip2(struct item_data *);

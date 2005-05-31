@@ -230,6 +230,47 @@ int itemdb_isequip2(struct item_data *data)
 	}
 	return 0;
 }
+
+/*==========================================
+ * Trade Restriction functions [Skotlex]
+ *------------------------------------------
+ */
+int itemdb_isdropable(int nameid, int gmlv)
+{
+	struct item_data* item = itemdb_exists(nameid);
+	return (item && (!(item->flag.trade_restriction&1) || gmlv >= item->gm_lv_trade_override));
+}
+
+int itemdb_cantrade(int nameid, int gmlv)
+{
+	struct item_data* item = itemdb_exists(nameid);
+	return (item && (!(item->flag.trade_restriction&2) || gmlv >= item->gm_lv_trade_override));
+}
+
+int itemdb_canpartnertrade(int nameid, int gmlv)
+{
+	struct item_data* item = itemdb_exists(nameid);
+	return (item && (!(item->flag.trade_restriction&(2|4)) || gmlv >= item->gm_lv_trade_override));
+}
+
+int itemdb_cansell(int nameid, int gmlv)
+{
+	struct item_data* item = itemdb_exists(nameid);
+	return (item && (!(item->flag.trade_restriction&8) || gmlv >= item->gm_lv_trade_override));
+}
+
+int itemdb_cancartstore(int nameid, int gmlv)
+{	
+	struct item_data* item = itemdb_exists(nameid);
+	return (item && (!(item->flag.trade_restriction&16) || gmlv >= item->gm_lv_trade_override));
+}
+
+int itemdb_canstore(int nameid, int gmlv, int guild_flag)
+{	
+	struct item_data* item = itemdb_exists(nameid);
+	return (item && (!(item->flag.trade_restriction&guild_flag?64:32) || gmlv >= item->gm_lv_trade_override));
+}
+
 /*==========================================
  *
  *------------------------------------------
@@ -638,7 +679,7 @@ static int itemdb_read_itemtrade(void)
 		flag = atoi(str[1]);
 		gmlv = atoi(str[2]);
 		
-		if (flag > 0 && flag < 64 && gmlv > 0) { //Check range
+		if (flag > 0 && flag < 128 && gmlv > 0) { //Check range
 			id->flag.trade_restriction = flag;
 			id->gm_lv_trade_override = gmlv;
 			ln++;
