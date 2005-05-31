@@ -1904,7 +1904,7 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		}
 		break;
 	case SP_ADDRACE2:
-		if (type2 > 0 && type2 < MAX_MOB_RACE_DB)
+		if (!(type2 > 0 && type2 < MAX_MOB_RACE_DB))
 			break;
 		if(sd->state.lr_flag != 2)
 			sd->right_weapon.addrace2[type2] += val;

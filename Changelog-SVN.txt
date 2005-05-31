@@ -1,4 +1,6 @@
 Date	Added
+06/1	* Fixed a nasty pc.c bug thanks to komurka [massdriller]
+
 05/31
 	* Added Einbroch mobs to dead branch DB [Arutema]
 	* Fixed NPC Typo [Codemaster]
