@@ -3523,8 +3523,7 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 		sd->walktimer = add_timer (tick+i, pc_walk, id, sd->walkpath.path_pos);
 	}
 
-	if(battle_config.disp_hpmeter <= pc_isGM(sd))
-		clif_hpmeter(sd);
+	clif_hpmeter(sd);
 
 	return 0;
 }

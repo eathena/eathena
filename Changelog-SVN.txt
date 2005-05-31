@@ -1,5 +1,6 @@
 Date	Added
 06/1
+	* Fixed disp_hpmeter, I think (can't test it, but the code looks ok) [Skotlex]
 	* Added battle athena option mob_remove_delay [Skotlex]
 	  Now dynamic mobs are not removed inmediately, but after some time has
 	  passed. Default value is 60 secs
