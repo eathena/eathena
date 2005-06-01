@@ -12,7 +12,6 @@ DracoRPG
 	* Towns Message Boards - They should come fast
 Massdriller
 	* Correcting & Bugfixing scripts
-	* Bard Job Quest - 0.5% Botting on MRO
 	* New Novice Grounds from MRO - 65% -(Not sure it should be stopped as DracoRPG 
 	  did it, but intending to add it as an alternative novice quest)
 	* Gonryunn Quests - 0% - Botting on official Servers
@@ -29,6 +28,7 @@ TODO:
 Date		Added
 ======
 05/31
+	* Added my own dev npc too [massdriller]
 	* Fixed incorrect checkers for Jfunc2-1 [massdriller]
 	* Fixed a typo in Jfunc1-1 [massdriller]
 	* Added my own devnpc =P [Kevin]
