@@ -123,6 +123,7 @@ int buildin_getelementofarray(struct script_state *st);
 int buildin_if(struct script_state *st);
 int buildin_getitem(struct script_state *st);
 int buildin_getitem2(struct script_state *st);
+int buildin_getnameditem(struct script_state *st);
 int buildin_makeitem(struct script_state *st);
 int buildin_delitem(struct script_state *st);
 int buildin_viewpoint(struct script_state *st);
@@ -369,6 +370,7 @@ struct {
 	{buildin_if,"if","i*"},
 	{buildin_getitem,"getitem","ii**"},
 	{buildin_getitem2,"getitem2","iiiiiiiii*"},
+	{buildin_getnameditem,"getnameditem","is"},
 	{buildin_makeitem,"makeitem","iisii"},
 	{buildin_delitem,"delitem","ii"},
 	{buildin_cutin,"cutin","si"},
@@ -2511,6 +2513,77 @@ int buildin_getitem2(struct script_state *st)
 
 	return 0;
 }
+
+/*==========================================
+ * gets an item with someone's name inscribed [Skotlex]
+ * getinscribeditem item_num, character_name
+ * Returned Qty is always 1, only works on equip-able
+ * equipment
+ *------------------------------------------
+ */
+int buildin_getnameditem(struct script_state *st)
+{
+	int nameid;
+	struct item item_tmp;
+	struct map_session_data *sd, *tsd;
+	struct script_data *data;
+
+	sd = script_rid2sd(st);
+	if (sd == NULL)
+	{	//Player not attached!
+		push_val(st->stack,C_INT,0);
+		return 0; 
+	}
+	
+	data=&(st->stack->stack_data[st->start+2]);
+	get_val(st,data);
+	if( data->type==C_STR || data->type==C_CONSTSTR ){
+		const char *name=conv_str(st,data);
+		struct item_data *item_data = itemdb_searchname(name);
+		if( item_data == NULL)
+		{	//Failed
+			push_val(st->stack,C_INT,0);
+			return 0;
+		}
+		nameid = item_data->nameid;
+	}else
+		nameid = conv_num(st,data);
+
+	if(!itemdb_exists(nameid) || !itemdb_isequip3(nameid))
+	{	//We don't allow non-equipable/stackable items to be named
+		//to avoid any qty exploits that could happen because of it.
+		push_val(st->stack,C_INT,0);
+		return 0;
+	}
+
+	data=&(st->stack->stack_data[st->start+3]);
+	get_val(st,data);
+	if( data->type==C_STR || data->type==C_CONSTSTR )	//Char Name
+		tsd=map_nick2sd(conv_str(st,data));
+	else	//Char Id was given
+		tsd=map_charid2sd(conv_num(st,data));
+	
+	if( tsd == NULL )
+	{	//Failed
+		push_val(st->stack,C_INT,0);
+		return 0;
+	}
+
+	memset(&item_tmp,0,sizeof(item_tmp));
+	item_tmp.nameid=nameid;
+	item_tmp.amount=1;
+	item_tmp.identify=1;
+	item_tmp.card[2]=tsd->status.char_id;
+	item_tmp.card[3]=tsd->status.char_id >> 16;
+	if(pc_additem(sd,&item_tmp,1)) {
+		push_val(st->stack,C_INT,0);
+		return 0;	//Failed to add item, we will not drop if they don't fit
+	}
+
+	push_val(st->stack,C_INT,1);
+	return 0;
+}
+
 /*==========================================
  *
  *------------------------------------------
@@ -5671,7 +5744,7 @@ int buildin_ispartneron(struct script_state *st)
 	struct map_session_data *p_sd=NULL;
 
 	if(sd==NULL || !pc_ismarried(sd) ||
-            ((p_sd=map_nick2sd(map_charid2nick(sd->status.partner_id))) == NULL)) {
+            (p_sd=map_charid2sd(sd->status.partner_id)) == NULL) {
 		push_val(st->stack,C_INT,0);
 		return 0;
 	}
@@ -5700,7 +5773,7 @@ int buildin_warppartner(struct script_state *st)
 	struct map_session_data *p_sd=NULL;
 
 	if(sd==NULL || !pc_ismarried(sd) ||
-            ((p_sd=map_nick2sd(map_charid2nick(sd->status.partner_id))) == NULL)) {
+            (p_sd=map_charid2sd(sd->status.partner_id)) == NULL) {
 		push_val(st->stack,C_INT,0);
 		return 0;
 	}

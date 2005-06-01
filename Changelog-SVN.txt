@@ -1,5 +1,12 @@
 Date	Added
 06/1
+	* Added script function getnameditem	[Skotlex]
+	  syntax: getnameditem itemid, inscribed char's name
+	  Needed at least for wedding scripts. Only works on equippable items,
+	  returns 1 on success, always makes only 1 item.
+	  (it should also be able to use char's id or item's name instead)
+	  Script function proof-read but not yet tested, so it might have a bug or
+	  two, use at your own risk for now.
 	* Fixed dynamic mobs removing Guardians [Skotlex]
 	* Changed doppelganger card aspd bonus to 10% as it should be. [massdriller]
 	* Fixed sql queries in logs giving an error. [Kevin]
