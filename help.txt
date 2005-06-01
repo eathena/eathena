@@ -38,6 +38,9 @@ ANNOUNCEMENT COMMANDS
 /nlb <message>                   = Send a message to everybody, with no GM name.
                                    (yellow text) (current map only)
 
+@me <message>			 = Creates a yellow "action" header on top of 
+				   all the characters around your character.
+
 =================================================================================
 INFORMATION COMMANDS
 =================================================================================
