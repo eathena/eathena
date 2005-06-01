@@ -1,5 +1,6 @@
 Date	Added
-06/1
+06/01
+	* Changed AspdRate and SpeedRate bonuses so they can stack [DracoRPG]
 	* Added script function getnameditem	[Skotlex]
 	  syntax: getnameditem itemid, inscribed char's name
 	  Needed at least for wedding scripts. Only works on equippable items,
@@ -8,14 +9,10 @@ Date	Added
 	  Script function proof-read but not yet tested, so it might have a bug or
 	  two, use at your own risk for now.
 	* Fixed dynamic mobs removing Guardians [Skotlex]
-	* Changed doppelganger card aspd bonus to 10% as it should be. [massdriller]
 	* Fixed sql queries in logs giving an error. [Kevin]
 	* Fixed @memo ignoring the nomemo map flag, thanks to Maeki. [Kevin]
 	* Enabled an account flood protection system defaulting to 1 account every 10 seconds. [Kevin]
 	* Corrected dynamic mob unloading to remove slaves. [Skotlex]
-	* Changed DoppelGanger card's attack speed increase to 30%. [Skotlex]
-	  This card current does not stacks. If anyone knows of a valid source that
-	  says otherwise, open a bug-report so it can be corrected.
 	* Added Maeki's fix for handling the sql connection to the log server [Skotlex]
 	* A reminder to people who seem to have a broken item_db (wrong item
 	  sprites, doing nothing on click, etc): there was an update to item_db
