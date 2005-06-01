@@ -1,5 +1,6 @@
 Date	Added
 06/1
+	* Changed doppelganger card aspd bonus to 10% as it should be. [massdriller]
 	* Fixed sql queries in logs giving an error. [Kevin]
 	* Fixed @memo ignoring the nomemo map flag, thanks to Maeki. [Kevin]
 	* Enabled an account flood protection system defaulting to 1 account every 10 seconds. [Kevin]
