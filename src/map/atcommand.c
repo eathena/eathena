@@ -3667,7 +3667,7 @@ int atcommand_memo(
 		atcommand_memo_sub(sd);
 	else {
 		if (position >= MIN_PORTAL_MEMO && position <= MAX_PORTAL_MEMO) {
-			if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+			if (sd->bl.m >= 0 && (map[sd->bl.m].flag.nowarpto || map[sd->bl.m].flag.nomemo) && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
 				clif_displaymessage(fd, msg_table[253]);
 				return -1;
 			}
