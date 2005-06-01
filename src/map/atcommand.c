@@ -9615,10 +9615,8 @@ int atcommand_me(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	
+	char tempmes[200];
 	nullpo_retr(-1, sd);
-	
-   	char tempmes[200];
    	
 	memset(tempmes, '\0', sizeof(tempmes));    
 	memset(atcmd_output, '\0', sizeof(atcmd_output));

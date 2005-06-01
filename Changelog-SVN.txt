@@ -1,5 +1,6 @@
 Date	Added
 06/1
+	* Corrected dynamic mob unloading to remove slaves. [Skotlex]
 	* Changed DoppelGanger card's attack speed increase to 30%. [Skotlex]
 	  This card current does not stacks. If anyone knows of a valid source that
 	  says otherwise, open a bug-report so it can be corrected.

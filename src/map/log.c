@@ -502,10 +502,10 @@ int log_npc(struct map_session_data *sd, const char *message)
 //ChatLogging
 int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, int x, int y, char *dst_charname, char *message){
 
+	FILE *logfp;
 	//Check ON/OFF
-	if(log_config.chat <= 0){
+	if(log_config.chat <= 0)
 		return 0; //Deactivated
-	}
 
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0){
@@ -522,9 +522,6 @@ int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, 
 #endif
 
 #ifdef TXT_ONLY
-
-	FILE *logfp;
-	
 	if((logfp = fopen(log_config.log_chat, "a+")) != NULL){
 		time(&curtime);
 		strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));

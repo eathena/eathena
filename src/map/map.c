@@ -1836,10 +1836,13 @@ int mob_cache_cleanup_sub(struct block_list *bl, va_list ap) {
 	//1: Mob has spawn/respawn delay (mob is not in cache)
 	//2: Mob has a delete timer (summoned creatures)
 	//3: Mob is damaged (as long as it is not a slave)
-	if ( md->spawndelay1 != 0 || md->spawndelay2 != 0 || md->deletetimer != -1 )
-			return 0;
+
+	//This handles all summoned mobs from players and mobs with spawn delay
+	if ( md->spawndelay1 > 0 || md->spawndelay2 > 0 || md->deletetimer != -1 )
+		return 0;
 	
-	if (!md->master_id && md->hp != md->max_hp && !battle_config.mob_remove_damaged )
+	//This handles slaves and hurt enemies	
+	if ( !md->master_id && md->hp != md->max_hp && !battle_config.mob_remove_damaged )
 			return 0;
 
 	mob_remove_map(md, 0);
