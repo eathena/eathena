@@ -78,6 +78,12 @@ int server_fd[MAX_SERVERS];
 
 int login_fd;
 
+//Account flood protection [Kevin]
+unsigned int new_reg_tick=0;
+int allowed_regs=1;
+int num_regs=0;
+int time_allowed=10000;
+
 //Added for Mugendai's I'm Alive mod
 int imalive_on=0;
 int imalive_time=60;
@@ -384,6 +390,15 @@ int mmo_auth( struct mmo_account* account , int fd){
 						printf("SQL error (_M/_F reg): %s", mysql_error(&mysql_handle));
 					}else{
 					sql_res = mysql_store_result(&mysql_handle);
+						
+						//only continue if amount in this time limit is allowed (account registration flood protection)[Kevin]
+						if(gettick() <= new_reg_tick && num_regs >= allowed_regs) {
+							printf("Notice: Account registration in disallowed time from: %s!", ip);
+							return 3;
+						} else {
+							num_regs=0;
+						}
+						
 						if(mysql_num_rows(sql_res) == 0){
 						//ok no existing acc,
 							printf("Adding a new account user: %s with passwd: %s sex: %c (ip: %s)\n", account->userid, account->passwd, account->userid[len+1], ip);
@@ -391,7 +406,15 @@ int mmo_auth( struct mmo_account* account , int fd){
 							if(mysql_query(&mysql_handle, tmp_sql)){
 								//Failed to insert new acc :/
 								printf("SQL Error (_M/_F reg) .. insert ..: %s", mysql_error(&mysql_handle));
-							}//sql query check to insert
+							} else {//sql query check to insert
+							
+								//restart ticker (account registration flood protection)[Kevin]
+								if(num_regs==0) {
+									new_reg_tick=gettick()+time_allowed*1000;
+								}
+								num_regs++;
+								
+							}
 						}//rownum check (0!)
 					mysql_free_result(sql_res);
 					}//sqlquery                              
@@ -1708,6 +1731,14 @@ int login_config_read(const char *cfgName){
         }
 		else if(strcmpi(w1, "register_users_online") == 0) {
 			register_users_online = config_switch(w2);
+		} else if (strcmpi(w1, "allowed_regs") == 0) { //account flood protection system [Kevin]
+	            
+			allowed_regs = atoi(w2);
+	            
+		} else if (strcmpi(w1, "time_allowed") == 0) {
+	            
+			time_allowed = atoi(w2);
+	            
 		}
  	}
 	fclose(fp);
