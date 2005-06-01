@@ -2497,8 +2497,8 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
 		return 1;
 	
 	if (!pc_candrop(sd,sd->status.inventory[n].nameid))
-	{
-		clif_displaymessage (sd->fd, msg_txt(263));
+	{	//Reports indicate that this clif message breaks the client o.O [Skotlex]
+//		clif_displaymessage (sd->fd, msg_txt(263));
 		return 1;
 	}
 
