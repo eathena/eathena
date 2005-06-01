@@ -11844,10 +11844,11 @@ int do_init_clif(void) {
 int clif_disp_overhead(struct map_session_data *sd, char* mes)
 {
 	unsigned char *buf;
+	int len_mes;
 
 nullpo_retr(-1, mes);
 
-	int len_mes = strlen(mes);
+	len_mes = strlen(mes);
 		buf = (unsigned char*)aCallocA(len_mes + 8, sizeof(unsigned char));
 			if (len_mes > 0) {
 	WBUFW(buf, 0) = 0x08e; //SelfSpeech
