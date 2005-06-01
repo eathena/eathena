@@ -537,7 +537,6 @@ int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, 
 #endif
 
 #ifdef TXT_ONLY
-	FILE *logfp;
 	if((logfp = fopen(log_config.log_chat, "a+")) != NULL){
 		time(&curtime);
 		strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
