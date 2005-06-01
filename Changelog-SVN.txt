@@ -1,5 +1,16 @@
 Date	Added
 06/1
+	* A reminder to people who seem to have a broken item_db (wrong item
+	  sprites, doing nothing on click, etc): there was an update to item_db
+	  some days ago, a new column which is used to determine refineable 
+	  items (which goes between eLv and View) The shipped item_db.txt is
+	  already updated, but if you have custom files, you can try updating
+	  them using the gawk line (further below this changelog) or this short
+	  sed command (from within the db directory):
+	  gsed -re 's/([^,]*,){16}/&,/' < item_db.txt > item_db.fix
+	  And then replace item_db.txt with the newly created file (if ya don't
+	  have gsed, try sed. All *nix should come with one or the other, and you
+	  can also get it with cygwin)
 	* Moved the dynamic mob spawns/deletes to map_addblock/map_delblock [Skotlex]
 	  This pretty much guarantees that mobs won't be spawned/deleted twice from
 	  the same map.

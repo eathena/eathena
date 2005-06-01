@@ -363,28 +363,9 @@ Progress:	0%
 
 Problem: Dynamic mobs needs fixing
 Assigned:	None
-Progress:	0%
-	The original idea of removing all maps as soon as the last pc leaves, and
-	loading them when one joins works, but it has some drawbacks:
-	- Summoned creatures get lost
-	- The delay between a mob's death and their respawn can be cancelled when
-	  reloading the mob
-	- Damaged mobs get healed
-	- Stress on the servers if players are intentionally changing between the
-	  same maps over and over.
-	- Mobs that were dead and had a respawn timer set don't get removed.
-	The alternative fix was to not remove all mobs, but this lead to other
-	problems:
-	- There's no link between the previously spawned mobs and the new ones,
-	  this can lead to mob flood.
-	We need to come up with an alternative implementation to address these
-	issues. My current idea on how to fix it is:
-	- Don't remove mobs directly, use a timer. After the timer expires, then
-	  remove all mobs. 
-	- Do not touch bosses (mode&0x20): don't remove them, don't respawn them.
-	The timer if long enough (60 secs?) would take care of most of the possible
-	exploits and complaints, and pretty much the only mobs that really should be
-	left loaded all the time could be bosses. This is the conclusion I've came
-	to, and I am planning on implementing it if noone else steps up to the task
-	or has a better implementation idea. I want to hear from the other devs,
-	people! [Skotlex]
+Progress:	90%
+	Changing the mob spawn/deletes to map_addblock/map_delblock seemed like the
+	best idea as that's where the number of users on the map goes up/down.
+	The code is in place to also remove spawned slaves, while not touching
+	summoned creatures. all which is left is to wait and see what bug reports
+	show up. [Skotlex]
