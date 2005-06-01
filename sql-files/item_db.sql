@@ -1131,7 +1131,7 @@ INSERT INTO `item_db` VALUES (4138,'Anubis_Card','Anubis Card',6,20,NULL,10,NULL
 INSERT INTO `item_db` VALUES (4139,'Joker_Card','Joker Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,136,NULL,NULL,NULL,NULL,'skill 50,1;');
 INSERT INTO `item_db` VALUES (4140,'Knight_Of_Abyss_Card','Knight Of Abyss Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus2 bAddRace,10,25;');
 INSERT INTO `item_db` VALUES (4141,'Evil_Druid_Card','Evil Druid Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,16,NULL,NULL,NULL,NULL,'bonus bDefEle,9; bonus bInt,1; bonus bDef,1;');
-INSERT INTO `item_db` VALUES (4142,'Doppelganger_Card','Doppelganger Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus bAspdRate,15;');
+INSERT INTO `item_db` VALUES (4142,'Doppelganger_Card','Doppelganger Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,NULL,NULL,NULL,'bonus bAspdRate,30;');
 INSERT INTO `item_db` VALUES (4143,'Orc_Hero_Card','Orc Hero Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,769,NULL,NULL,NULL,NULL,'bonus bVit,3; bonus2 bResEff,Eff_Stan,10000;');
 INSERT INTO `item_db` VALUES (4144,'Osiris_Card','Osiris Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,136,NULL,NULL,NULL,NULL,'bonus bRestartFullRecover,0;');
 INSERT INTO `item_db` VALUES (4145,'Berzebub_Card','Berzebub Card',6,20,NULL,10,NULL,NULL,NULL,NULL,NULL,NULL,136,NULL,NULL,NULL,NULL,'bonus bDelayrate,-30; bonus bMaxSPrate,-15; bonus bMaxHPrate,-5;');

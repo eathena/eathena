@@ -1,5 +1,8 @@
 Date	Added
 06/1
+	* Changed DoppelGanger card's attack speed increase to 30%. [Skotlex]
+	  This card current does not stacks. If anyone knows of a valid source that
+	  says otherwise, open a bug-report so it can be corrected.
 	* Added Maeki's fix for handling the sql connection to the log server [Skotlex]
 	* A reminder to people who seem to have a broken item_db (wrong item
 	  sprites, doing nothing on click, etc): there was an update to item_db
