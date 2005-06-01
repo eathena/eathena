@@ -2770,9 +2770,9 @@ int map_readallmap(void) {
 
 	// 先に全部のャbプの存在を確認
 	for (i = 0; i < map_num; i++){		
-		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 #ifdef USE_AFM
 		char afm_name[256] = "";
+		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 		// set it by default first
 		map[i].alias = NULL;
 
@@ -2818,6 +2818,7 @@ int map_readallmap(void) {
 				i--;
 			}
 		}
+		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 	}
 
 	aFree(waterlist);
