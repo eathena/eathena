@@ -28,6 +28,7 @@ TODO:
 Date		Added
 ======
 06/1
+	* Added Field update - Einbroch and Lhztargen thanks to sara [massdriller]
 	* Added New optimised jobchanger [Lunatikbunnie]
 05/31
 	* Added my own dev npc too [massdriller]
