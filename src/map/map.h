@@ -929,6 +929,10 @@ extern char tmp_lsql[65535];
 extern MYSQL_RES* lsql_res ;
 extern MYSQL_ROW	lsql_row ;
 
+extern MYSQL logmysql_handle;
+extern MYSQL_RES* logsql_res ;
+extern MYSQL_ROW logsql_row ;
+
 extern MYSQL mail_handle;
 extern MYSQL_RES* 	mail_res ;
 extern MYSQL_ROW	mail_row ;

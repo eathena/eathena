@@ -1,5 +1,6 @@
 Date	Added
 06/1
+	* Added Maeki's fix for handling the sql connection to the log server [Skotlex]
 	* A reminder to people who seem to have a broken item_db (wrong item
 	  sprites, doing nothing on click, etc): there was an update to item_db
 	  some days ago, a new column which is used to determine refineable 

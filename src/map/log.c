@@ -64,8 +64,8 @@ int log_branch(struct map_session_data *sd)
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`branch_date`, `account_id`, `char_id`, `char_name`, `map`) VALUES (NOW(), '%d', '%d', '%s', '%s')",
 			log_config.log_branch_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), sd->mapname);
-		if(mysql_query(&mmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&mmysql_handle));
+		if(mysql_query(&logmysql_handle, tmp_sql))
+			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_branch,"a+")) != NULL) {
@@ -97,8 +97,8 @@ int log_drop(struct map_session_data *sd, int monster_id, int *log_drop)
 	if(log_config.sql_logs > 0)
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`drop_date`, `kill_char_id`, `monster_id`, `item1`, `item2`, `item3`, `item4`, `item5`, `item6`, `item7`, `item8`, `item9`, `itemCard`, `map`) VALUES (NOW(), '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s') ", log_config.log_drop_db, sd->status.char_id, monster_id, log_drop[0], log_drop[1], log_drop[2], log_drop[3], log_drop[4], log_drop[5], log_drop[6], log_drop[7], log_drop[8], log_drop[9], sd->mapname);
-		if(mysql_query(&mmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&mmysql_handle));
+		if(mysql_query(&logmysql_handle, tmp_sql))
+			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_drop,"a+")) != NULL) {
@@ -127,8 +127,8 @@ int log_mvpdrop(struct map_session_data *sd, int monster_id, int *log_mvp)
 	if(log_config.sql_logs > 0)
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`mvp_date`, `kill_char_id`, `monster_id`, `prize`, `mvpexp`, `map`) VALUES (NOW(), '%d', '%d', '%d', '%d', '%s') ", log_config.log_mvpdrop_db, sd->status.char_id, monster_id, log_mvp[0], log_mvp[1], sd->mapname);
-		if(mysql_query(&mmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&mmysql_handle));
+		if(mysql_query(&logmysql_handle, tmp_sql))
+			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_mvpdrop,"a+")) != NULL) {
@@ -159,8 +159,8 @@ int log_present(struct map_session_data *sd, int source_type, int nameid)
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`present_date`, `src_id`, `account_id`, `char_id`, `char_name`, `nameid`, `map`) VALUES (NOW(), '%d', '%d', '%d', '%s', '%d', '%s') ",
 			log_config.log_present_db, source_type, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), nameid, sd->mapname);
-		if(mysql_query(&mmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&mmysql_handle));
+		if(mysql_query(&logmysql_handle, tmp_sql))
+			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_present,"a+")) != NULL) {
@@ -191,8 +191,8 @@ int log_produce(struct map_session_data *sd, int nameid, int slot1, int slot2, i
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`produce_date`, `account_id`, `char_id`, `char_name`, `nameid`, `slot1`, `slot2`, `slot3`, `map`, `success`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%s', '%d') ",
 			log_config.log_produce_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), nameid, slot1, slot2, slot3, sd->mapname, success);
-		if(mysql_query(&mmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&mmysql_handle));
+		if(mysql_query(&logmysql_handle, tmp_sql))
+			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_produce,"a+")) != NULL) {
@@ -235,8 +235,8 @@ int log_refine(struct map_session_data *sd, int n, int success)
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`refine_date`, `account_id`, `char_id`, `char_name`, `nameid`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `success`, `item_level`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d', '%d')",
 			log_config.log_refine_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), sd->status.inventory[n].nameid, sd->status.inventory[n].refine, log_card[0], log_card[1], log_card[2], log_card[3], sd->mapname, success, item_level);
-		if(mysql_query(&mmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&mmysql_handle));
+		if(mysql_query(&logmysql_handle, tmp_sql))
+			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_refine,"a+")) != NULL) {
@@ -344,8 +344,8 @@ int log_trade(struct map_session_data *sd, struct map_session_data *target_sd, i
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s')",
 			log_config.log_trade_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), target_sd->status.account_id, target_sd->status.char_id, jstrescapecpy(t_name2, target_sd->status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd->mapname);
-		if(mysql_query(&mmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&mmysql_handle));
+		if(mysql_query(&logmysql_handle, tmp_sql))
+			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_trade,"a+")) != NULL) {
@@ -389,8 +389,8 @@ int log_vend(struct map_session_data *sd,struct map_session_data *vsd,int n,int 
 	{
 			sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`vend_date`, `vend_account_id`, `vend_char_id`, `vend_char_name`, `buy_account_id`, `buy_char_id`, `buy_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `zeny`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d')",
 				log_config.log_vend_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), vsd->status.account_id, vsd->status.char_id, jstrescapecpy(t_name2, vsd->status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd->mapname, zeny);
-			if(mysql_query(&mmysql_handle, tmp_sql))
-				printf("DB server Error - %s\n",mysql_error(&mmysql_handle));
+			if(mysql_query(&logmysql_handle, tmp_sql))
+				printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_vend,"a+")) != NULL) {
@@ -420,8 +420,8 @@ int log_zeny(struct map_session_data *sd, struct map_session_data *target_sd,int
 	{
 		sprintf(tmp_sql,"INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `map`, `zeny`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%s', '%d')",
 			log_config.log_trade_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), target_sd->status.account_id, target_sd->status.char_id, jstrescapecpy(t_name2, target_sd->status.name), sd->mapname, sd->deal_zeny);
-		if(mysql_query(&mmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&mmysql_handle));
+		if(mysql_query(&logmysql_handle, tmp_sql))
+			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_trade,"a+")) != NULL) {
@@ -452,8 +452,8 @@ int log_atcommand(struct map_session_data *sd, const char *message)
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`atcommand_date`, `account_id`, `char_id`, `char_name`, `map`, `command`) VALUES(NOW(), '%d', '%d', '%s', '%s', '%s') ",
 			log_config.log_gm_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), sd->mapname, jstrescapecpy(t_msg, (char *)message));
-		if(mysql_query(&mmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&mmysql_handle));
+		if(mysql_query(&logmysql_handle, tmp_sql))
+			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_gm,"a+")) != NULL) {
@@ -483,8 +483,8 @@ int log_npc(struct map_session_data *sd, const char *message)
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`npc_date`, `account_id`, `char_id`, `char_name`, `map`, `mes`) VALUES(NOW(), '%d', '%d', '%s', '%s', '%s') ",
 			log_config.log_npc_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), sd->mapname, message);
-		if(mysql_query(&mmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&mmysql_handle));
+		if(mysql_query(&logmysql_handle, tmp_sql))
+			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_npc,"a+")) != NULL) {
@@ -512,8 +512,8 @@ int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, 
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_map_x`, `src_map_y`, `dst_charname`, `message`) VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s')", 
 		 	log_config.log_chat_db, type, type_id, src_charid, src_accid, map, x, y, dst_charname, message);
 	
-		if(mysql_query(&mmysql_handle, tmp_sql)){
-			printf("log_chat() -> SQL ERROR / FAIL: %s\n", mysql_error(&mmysql_handle));
+		if(mysql_query(&logmysql_handle, tmp_sql)){
+			printf("log_chat() -> SQL ERROR / FAIL: %s\n", mysql_error(&logmysql_handle));
 			return -1;	
 		}else{
 			return 0;

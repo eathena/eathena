@@ -60,6 +60,10 @@ MYSQL_RES* lsql_res ;
 MYSQL_ROW  lsql_row ;
 char tmp_lsql[65535]="";
 
+MYSQL logmysql_handle; //For the log database - fix by [Maeki]
+MYSQL_RES* logsql_res ;
+MYSQL_ROW  logsql_row ;
+
 MYSQL mail_handle; // mail system [Valaris]
 MYSQL_RES* 	mail_res ;
 MYSQL_ROW	mail_row ;
@@ -3227,19 +3231,27 @@ int map_sql_close(void){
 
 	mysql_close(&lmysql_handle);
 	printf("Close Login DB Connection....\n");
+
+	if (log_config.sql_logs && (log_config.branch || log_config.drop || log_config.mvpdrop ||
+		log_config.present || log_config.produce || log_config.refine || log_config.trade))
+	{
+		mysql_close(&logmysql_handle);
+		printf("Close Log DB Connection....\n");
+	}
+
 	return 0;
 }
 
 int log_sql_init(void){
 
-    mysql_init(&mmysql_handle);
+    mysql_init(&logmysql_handle);
 
 	//DB connection start
 	printf(""CL_WHITE"[SQL]"CL_RESET": Connecting to Log Database "CL_WHITE"%s"CL_RESET" At "CL_WHITE"%s"CL_RESET"...\n",log_db,log_db_ip);
-	if(!mysql_real_connect(&mmysql_handle, log_db_ip, log_db_id, log_db_pw,
+	if(!mysql_real_connect(&logmysql_handle, log_db_ip, log_db_id, log_db_pw,
 		log_db ,log_db_port, (char *)NULL, 0)) {
 			//pointer check
-			printf(""CL_WHITE"[SQL Error]"CL_RESET": %s\n",mysql_error(&mmysql_handle));
+			printf(""CL_WHITE"[SQL Error]"CL_RESET": %s\n",mysql_error(&logmysql_handle));
 			exit(1);
 	} else {
 		printf(""CL_WHITE"[SQL]"CL_RESET": Successfully '"CL_GREEN"connected"CL_RESET"' to Database '"CL_WHITE"%s"CL_RESET"'.\n", log_db);
