@@ -1843,8 +1843,12 @@ int mob_cache_cleanup_sub(struct block_list *bl, va_list ap) {
 	
 	//This handles slaves and hurt enemies	
 	if ( !md->master_id && md->hp != md->max_hp && !battle_config.mob_remove_damaged )
-			return 0;
-
+		return 0;
+	
+	//Guardians are not to be removed.
+	if ( md->class_ >= 1285 && md->class_ <= 1288 )
+		return 0;
+	
 	mob_remove_map(md, 0);
 	map_deliddb(&md->bl);
 	aFree(md);
