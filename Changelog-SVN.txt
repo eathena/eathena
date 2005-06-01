@@ -1,5 +1,11 @@
 Date	Added
 06/1
+	* Moved the dynamic mob spawns/deletes to map_addblock/map_delblock [Skotlex]
+	  This pretty much guarantees that mobs won't be spawned/deleted twice from
+	  the same map.
+	* Added random's battle_config flag for enabling/disabling dynamic mobs [Skotlex]
+	  Dynamic mobs is good for medium to small servers, but on large ones it
+	  gets to be somewhat pointless.
 	* Fixed disp_hpmeter, I think (can't test it, but the code looks ok) [Skotlex]
 	* Added battle athena option mob_remove_delay [Skotlex]
 	  Now dynamic mobs are not removed inmediately, but after some time has

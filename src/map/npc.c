@@ -2130,8 +2130,7 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 		memcpy(mob.mobname, mob_db[mob.class_].jname, 24);
 	else memcpy(mob.mobname, mobname, 24);
 
-	 
-	if( mob.delay1 || mob.delay2 ) {
+	if( !battle_config.dynamic_mobs || mob.delay1 || mob.delay2 ) {
 		npc_parse_mob2(&mob);
 		npc_delay_mob += mob.num;
 	} else {
@@ -2512,9 +2511,11 @@ int npc_reload (void)
 
 	for (m = 0; m < map_num; m++) {
 		map_foreachinarea(npc_cleanup_sub, m, 0, 0, map[m].xs, map[m].ys, 0);
-		for (i = 0; i < MAX_MOB_LIST_PER_MAP; i++)
-			if (map[m].moblist[i]) aFree(map[m].moblist[i]);
-		memset (map[m].moblist, 0, sizeof(map[m].moblist));
+		if(battle_config.dynamic_mobs) {	//dynamic check by [random]
+			for (i = 0; i < MAX_MOB_LIST_PER_MAP; i++)
+				if (map[m].moblist[i]) aFree(map[m].moblist[i]);
+			memset (map[m].moblist, 0, sizeof(map[m].moblist));
+		}
 		map[m].npc_num = 0;
 	}
 	if(ev_db)

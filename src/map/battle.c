@@ -5493,6 +5493,7 @@ static const struct battle_data_short {
 	{ "use_statpoint_table",               &battle_config.use_statpoint_table}, // [Skotlex]
 	{ "new_attack_function",               &battle_config.new_attack_function}, // [Skotlex]
 	{ "ignore_items_gender",               &battle_config.ignore_items_gender}, // [Lupus]
+	{ "dynamic_mobs",                      &battle_config.dynamic_mobs},
 	{ "mob_remove_damaged",                &battle_config.mob_remove_damaged},
 	{ "show_hp_sp_drain",                  &battle_config.show_hp_sp_drain}, // [Skotlex]
 	{ "show_hp_sp_gain",                   &battle_config.show_hp_sp_gain}, // [Skotlex]
@@ -5822,6 +5823,7 @@ void battle_set_defaults() {
 	battle_config.use_statpoint_table = 1;
 	battle_config.new_attack_function = 1; //This is for test/debug purposes [Skotlex]
 
+	battle_config.dynamic_mobs = 1; // use Dynamic Mobs [Wizputer]
 	battle_config.mob_remove_damaged = 1; // Dynamic Mobs - Remove mobs even if damaged [Wizputer]
 	battle_config.mob_remove_delay = 60000;
 

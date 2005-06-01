@@ -317,7 +317,8 @@ int map_addblock (struct block_list *bl)
 		map[m].block[pos] = bl;
 		map[m].block_count[pos]++;
 		if (bl->type == BL_PC)
-			map[m].users++;
+			if (map[m].users++ == 0 && battle_config.dynamic_mobs)	//Skotlex
+				map_spawnmobs(m);			
 	}
 
 	return 0;
@@ -346,7 +347,9 @@ int map_delblock (struct block_list *bl)
 	b = bl->x/BLOCK_SIZE+(bl->y/BLOCK_SIZE)*map[bl->m].bxs;
 
 	if (bl->type == BL_PC)
-		map[bl->m].users--;
+		if (--map[bl->m].users == 0 && battle_config.dynamic_mobs)	//[Skotlex]
+			map_removemobs(bl->m);
+
 	if (bl->next)
 		bl->next->prev = bl->prev;
 	if (bl->prev == &bl_head) {
@@ -3364,8 +3367,10 @@ void do_final(void) {
 		if(map[i].block_mob) aFree(map[i].block_mob);
 		if(map[i].block_count) aFree(map[i].block_count);
 		if(map[i].block_mob_count) aFree(map[i].block_mob_count);
-		for (j=0; j<MAX_MOB_LIST_PER_MAP; j++)
-			if (map[i].moblist[j]) aFree(map[i].moblist[j]);
+		if(battle_config.dynamic_mobs) { //Dynamic mobs flag by [random]
+			for (j=0; j<MAX_MOB_LIST_PER_MAP; j++)
+				if (map[i].moblist[j]) aFree(map[i].moblist[j]);
+		}
 	}
 
 	numdb_final(id_db, id_db_final);
