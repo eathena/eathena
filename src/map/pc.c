@@ -1293,7 +1293,7 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			sd->speed -= val;
 		break;
 	case SP_SPEED_RATE:
-		if(sd->state.lr_flag != 2) {
+		if(sd->state.lr_flag != 2)
 				sd->speed_rate -= val;
 		break;
 	case SP_SPEED_ADDRATE:
@@ -1305,7 +1305,7 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			sd->aspd -= val*10;
 		break;
 	case SP_ASPD_RATE:
-		if(sd->state.lr_flag != 2) {
+		if(sd->state.lr_flag != 2)
 				sd->aspd_rate -= val;
 		break;
 	case SP_ASPD_ADDRATE:
