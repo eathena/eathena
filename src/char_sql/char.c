@@ -3163,6 +3163,10 @@ int send_users_tologin(int tid, unsigned int tick, int id, int data) {
 
 int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 	if (login_fd <= 0 || session[login_fd] == NULL) {
+		struct char_session_data *sd;
+		int i, cc;
+		unsigned char buf[16];
+		
 		printf("Attempt to connect to login-server...\n");
 		login_fd = make_connection(login_ip, login_port);
 		session[login_fd]->func_parse = parse_tologin;
@@ -3190,9 +3194,6 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 		//so the bug is fixed, if'ure using more than one charservers (worlds)
 		//that the player'S got reejected from server after a 'world' crash^^
 		//2b1f AID.L B1
-		struct char_session_data *sd;
-		int i, cc;
-		unsigned char buf[16];
 		
 		sprintf(tmp_sql, "SELECT `account_id`, `online` FROM `%s` WHERE `online` = '1'", char_db);
 		if(mysql_query(&mysql_handle, tmp_sql)){

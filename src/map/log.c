@@ -514,6 +514,10 @@ int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, 
 #ifndef TXT_ONLY
 	char t_msg[100];
 #endif
+#ifdef TXT_ONLY
+	FILE *logfp;
+#endif
+	
 	//Check ON/OFF
 	if(log_config.chat <= 0)
 		return 0; //Deactivated

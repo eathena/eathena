@@ -1,5 +1,6 @@
 Date	Added
 06/01
+	* Fixed some compile time things in older versions of gcc. [Kevin]
 	* Removed the clif message when you can't drop items [Skotlex]
 	  Apparently this message breaks the clients and prevents further drops of
 	  items? Might need further testing.
