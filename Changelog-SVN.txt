@@ -1,5 +1,6 @@
 Date	Added
 06/02
+	* Fixed some compile time warnings.	[Kevin]
 	* Added GM chat kick protections, thanks to Valaris [massdriller]
 	* Added Password protection chat rooms access to gms, thanks to Valaris [massdriller]
 	* Fixed a couple of things in map.c, thanks to Valaris [massdriller]
