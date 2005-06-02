@@ -579,33 +579,43 @@ int party_send_hp_check(struct block_list *bl,va_list ap)
 	return 0;
 }
 
+
 // exp share and added zeny share [Valaris]
 int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 {
-	struct map_session_data *sd;
-	int i,c;
+nullpo_retr(0, p);
 
-	nullpo_retr(0, p);
-	
-	for (i=c=0; i < MAX_PARTY; i++)
-		if ((sd = p->member[i].sd) != NULL && p->member[i].online && sd->bl.m == map /*&& session[sd->fd] != NULL*/)	// should be done in socket.c
-			c++;
+struct map_session_data *sd=NULL;
+int i;
+short c,bonus=1; // modified [Valaris]
 
-	if(c == 0)
-		return 0;
-	for (i = 0; i < MAX_PARTY; i++)
-		if ((sd = p->member[i].sd) != NULL && p->member[i].online && sd->bl.m == map /*&& session[sd->fd] != NULL*/) {
-			if (battle_config.idle_no_share && (/* pc_issit(sd) || */ sd->chatID || (sd->idletime < (last_tick - 120))))
-				continue;
-		#ifdef TWILIGHT
-			pc_gainexp(sd,base_exp,job_exp);
-		#else
-			pc_gainexp(sd,(base_exp/c)+1,(job_exp/c)+1);
-		#endif
-			if (battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
-				pc_getzeny(sd,(zeny/c)+1);
-		}
-	return 0;
+for(i=c=0;i<MAX_PARTY;i++)
+if((sd=p->member[i].sd)!=NULL && sd->bl.m==map)
+c++;
+if(c<=0)
+return 0;
+switch( c ) {
+case 1: bonus=1; break;
+case 2: bonus=1.05; break;
+case 3: bonus=1.15; break;
+case 4: bonus=1.30; break;
+case 5: bonus=1.50; break;
+case 6: bonus=1.75; break;
+case 7: bonus=2.05; break;
+case 8: bonus=2.40; break;
+case 9: bonus=2.80; break;
+case 10: bonus=3.25; break;
+case 11: bonus=3.75; break;
+case 12: bonus=4; break;
+default: bonus=1; break;
+}
+for(i=0;i<MAX_PARTY;i++)
+if((sd=p->member[i].sd)!=NULL && sd->bl.m==map && session[sd->fd] != NULL) {
+pc_gainexp(sd,(bonus*base_exp)/c,(bonus*job_exp)/c);
+if(battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
+pc_getzeny(sd,(bonus*zeny)/c);
+}
+return 0;
 }
 
 // 同じマップのパーティメンバー全体に処理をかける

@@ -1,9 +1,10 @@
 Date	Added
 06/02
-	* Added GM chat kick protections, thanks to valaris [massdriller]
-	* Added Password protection chat rooms access to gms, thanks to valaris [massdriller]
-	* Fixed a couple of things in map.c, thanks to valaris [massdriller]
-	* Storages now saves upon closing, thanks to valaris [massdriller]
+	* Added GM chat kick protections, thanks to Valaris [massdriller]
+	* Added Password protection chat rooms access to gms, thanks to Valaris [massdriller]
+	* Fixed a couple of things in map.c, thanks to Valaris [massdriller]
+	* Storages now saves upon closing, thanks to Valaris [massdriller]
+	* exp share and added zeny share/party bonus exp thanks to Valaris [massdriller]
 
 
 06/01
