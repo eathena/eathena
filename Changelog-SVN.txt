@@ -1,5 +1,7 @@
 Date	Added
 06/01
+	* Fixed non-droppable items blocking the client from further droping 
+	  other items	[Skotlex]
 	* Changed the default of mob_remove_delay to 5 mins	[Skotlex]
 	* Changed the minimum mob_remove_delay to 15 secs since mobs with instant
 	  respawn actually take 5~10 secs to respawn	[Skotlex]
