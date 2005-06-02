@@ -3930,11 +3930,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 		if (dstsd) {
 			for (i=0;i<11;i++) {
-				if (dstsd->equip_index[i]>0) {
-					if (equip &EQP_WEAPON && (i == 8 || i == 9) && dstsd->inventory_data[dstsd->equip_index[i]]->type == 4 && !(dstsd->unstripable_equip &EQP_WEAPON) && !(tsc_data && tsc_data[SC_CP_WEAPON].timer != -1)) {
+				if (dstsd->equip_index[i]>=0 && dstsd->inventory_data[dstsd->equip_index[i]]) {
+					if (equip &EQP_WEAPON && (i == 9 || (i == 8 && dstsd->inventory_data[dstsd->equip_index[8]]->type == 4)) && !(dstsd->unstripable_equip &EQP_WEAPON) && !(tsc_data && tsc_data[SC_CP_WEAPON].timer != -1)) {
 				   		sclist[0] = SC_STRIPWEAPON; // Okay, we found a weapon to strip - It can be a right-hand, left-hand or two-handed weapon
 						pc_unequipitem(dstsd,dstsd->equip_index[i],3);
-					} else if (equip &EQP_SHIELD && i == 9 && dstsd->inventory_data[dstsd->equip_index[i]]->type == 5 && !(dstsd->unstripable_equip &EQP_SHIELD) && !(tsc_data && tsc_data[SC_CP_SHIELD].timer != -1)) {
+					} else if (equip &EQP_SHIELD && i == 8 && dstsd->inventory_data[dstsd->equip_index[8]]->type == 5 && !(dstsd->unstripable_equip &EQP_SHIELD) && !(tsc_data && tsc_data[SC_CP_SHIELD].timer != -1)) {
 						sclist[1] = SC_STRIPSHIELD; // Okay, we found a shield to strip - It is really a shield, not a two-handed weapon or a left-hand weapon
 						pc_unequipitem(dstsd,dstsd->equip_index[i],3);
 					} else if (equip &EQP_ARMOR && i == 7 && !(dstsd->unstripable_equip &EQP_ARMOR) && !(tsc_data && tsc_data[SC_CP_ARMOR].timer != -1)) {
