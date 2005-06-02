@@ -1,5 +1,6 @@
 Date	Added
 06/01
+	* Changed the default max_hitrate to 100% as specified in rodatazone [Skotlex]
 	* Removed the console messages printed when the script command getmapxy is
 	  invoked	[Skotlex]
 	* Fixed non-droppable items blocking the client from further droping 
