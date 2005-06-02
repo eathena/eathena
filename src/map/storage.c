@@ -316,24 +316,25 @@ int storage_storagegettocart(struct map_session_data *sd,int index,int amount)
 
 
 /*==========================================
- * ƒJƒvƒ‰‘qŒÉ‚ð•Â‚¶‚é
+ * Modified By Valaris to save upon closing [massdriller]
  *------------------------------------------
  */
 int storage_storageclose(struct map_session_data *sd)
 {
-	struct storage *stor;
+struct storage *stor=NULL;
 
-	nullpo_retr(0, sd);
-	nullpo_retr(0, stor=account2storage2(sd->status.account_id));
+nullpo_retr(0, sd);
+nullpo_retr(0, stor=account2storage2(sd->status.account_id));
 
-	stor->storage_status=0;
-	sd->state.storage_flag = 0;
-	clif_storageclose(sd);
+stor->storage_status=0;
+sd->state.storage_flag = 0;
+clif_storageclose(sd);
 
-	storage_storage_save(sd);
+chrif_save(sd);
+storage_storage_save(sd);
 
-	sortage_sortitem(stor);
-	return 0;
+sortage_sortitem(stor);
+return 0;
 }
 
 /*==========================================

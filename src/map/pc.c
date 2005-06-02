@@ -7220,6 +7220,7 @@ static int pc_autosave_sub(struct map_session_data *sd,va_list ap)
 			intif_save_petdata(sd->status.account_id,&sd->pet);
 		pc_makesavestatus(sd);
 		chrif_save(sd);
+		storage_storage_dirty(sd);
 		storage_storage_save(sd);
 		if(sd->state.storage_flag)
 			storage_guild_storagesave(sd);
