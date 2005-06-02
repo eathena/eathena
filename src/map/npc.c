@@ -2036,9 +2036,10 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
  * Parse Mob 1 - Parse mob list into each map
  * Parse Mob 2 - Actually Spawns Mob
  * [Wizputer]
+ * If cached =1, it is a dynamic cached mob
  *------------------------------------------
  */
-int npc_parse_mob2 (struct mob_list *mob)
+int npc_parse_mob2 (struct mob_list *mob, int cached)
 {
 	int i;
 	struct mob_data *md;
@@ -2074,6 +2075,7 @@ int npc_parse_mob2 (struct mob_list *mob)
 		md->spawndelay2 = mob->delay2;
 
 //		memset(&md->state,0,sizeof(md->state));
+		md->cached = cached;	//If cached, mob is dynamically removed
 		md->timer = -1;
 //		md->target_id=0;
 //		md->attacked_id=0;
@@ -2131,7 +2133,7 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 	else memcpy(mob.mobname, mobname, 24);
 
 	if( !battle_config.dynamic_mobs || mob.delay1 || mob.delay2 ) {
-		npc_parse_mob2(&mob);
+		npc_parse_mob2(&mob,0);
 		npc_delay_mob += mob.num;
 	} else {
 		struct mob_list *dynmob = map_addmobtolist(mob.m);
@@ -2141,13 +2143,13 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 			// (usually shouldn't occur when map server is just starting,
 			// but not the case when we do @reloadscript
 			if (map[mob.m].users > 0)
-				npc_parse_mob2(&mob);
+				npc_parse_mob2(&mob,1);
 			npc_cache_mob += mob.num;
 		} else {
 			// mobcache is full
 			// create them as delayed with one second
 			mob.delay1 = 1000;
-			npc_parse_mob2(&mob);
+			npc_parse_mob2(&mob,0);
 			npc_delay_mob += mob.num;
 		}
 	}

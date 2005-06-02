@@ -25,7 +25,7 @@ int npc_buysellsel(struct map_session_data *,int,int);
 int npc_buylist(struct map_session_data *,int,unsigned short *);
 int npc_selllist(struct map_session_data *,int,unsigned short *);
 int npc_parse_mob(char *w1,char *w2,char *w3,char *w4);
-int npc_parse_mob2 (struct mob_list *); // [Wizputer]
+int npc_parse_mob2 (struct mob_list *, int cached); // [Wizputer]
 int npc_parse_warp(char *w1,char *w2,char *w3,char *w4);
 int npc_globalmessage(const char *name,char *mes);
 

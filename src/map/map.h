@@ -525,6 +525,7 @@ struct mob_data {
 	short recall_flag;
 	int recallmob_count;
 	short recallcount;
+	unsigned char cached; //Cached mobs for dynamic mob unloading [Skotlex]
 };
 struct pet_data {
 	struct block_list bl;

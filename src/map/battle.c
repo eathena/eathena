@@ -5982,6 +5982,8 @@ void battle_validate_conf() {
 */	
 	if (battle_config.mob_remove_delay < 1000)	//Min 1 sec
 		battle_config.mob_remove_delay = 1000;
+	if (battle_config.dynamic_mobs > 1)
+		battle_config.dynamic_mobs = 1;	//The flag will be used in assignations
 }
 
 /*==========================================

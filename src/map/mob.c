@@ -3123,6 +3123,7 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int flag)
 			md->xs=0;
 			md->ys=0;
 			md->speed=md2->speed;
+			md->cached= battle_config.dynamic_mobs;	//[Skotlex]
 			md->spawndelay1=-1;	// 一度のみフラグ
 			md->spawndelay2=-1;	// 一度のみフラグ
 
