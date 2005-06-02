@@ -209,9 +209,6 @@ function	script	Pri_check	{
 
 	if (BaseJob == Job_Novice) goto L_Novice;
 	if (BaseJob == Job_Priest) goto L_Priest;
-	return;
-
-L_Other:
 	mes "May God bless you my child.";
 	next;
 	mes "[Father Thomas]";
@@ -219,7 +216,7 @@ L_Other:
 	next;
 	mes "[Father Thomas]";
 	mes "I hope God will bless you.";
-	close;
+	return;
 
 L_Novice:
 	mes "May God bless you, child.  This is the Prontera Church.  What are you here for?";
