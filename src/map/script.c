@@ -6898,7 +6898,6 @@ int buildin_getmapxy(struct script_state *st){
                     x=sd->bl.x;
                     y=sd->bl.y;
                     strncpy(mapname,sd->mapname,24);
-                    printf(">>>>%s %d %d\n",mapname,x,y);
                     break;
             case 1:                                             //Get NPC Position
                     if( st->end > st->start+6 )
@@ -6914,7 +6913,6 @@ int buildin_getmapxy(struct script_state *st){
                     x=nd->bl.x;
                     y=nd->bl.y;
                     strncpy(mapname,map[nd->bl.m].name,24);
-                    printf(">>>>%s %d %d\n",mapname,x,y);
                     break;
             case 2:                                             //Get Pet Position
                     if( st->end>st->start+6 )
@@ -6936,8 +6934,6 @@ int buildin_getmapxy(struct script_state *st){
                     x=pd->bl.x;
                     y=pd->bl.y;
                     strncpy(mapname,map[pd->bl.m].name,24);
-
-                    printf(">>>>%s %d %d\n",mapname,x,y);
                     break;
 
             case 3:                                             //Get Mob Position

@@ -1,5 +1,7 @@
 Date	Added
 06/01
+	* Removed the console messages printed when the script command getmapxy is
+	  invoked	[Skotlex]
 	* Fixed non-droppable items blocking the client from further droping 
 	  other items	[Skotlex]
 	* Changed the default of mob_remove_delay to 5 mins	[Skotlex]
