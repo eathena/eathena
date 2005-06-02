@@ -74,9 +74,9 @@ int chat_joinchat(struct map_session_data *sd,int chatid,char* pass)
 		clif_joinchatfail(sd,0);
 		return 0;
 	}
-	if(cd->pub==0 && strncmp(pass,(char *) cd->pass,8)){
-		clif_joinchatfail(sd,1);
-		return 0;
+	if(pc_isGM(sd) < 99 && cd->pub==0 && strncmp(pass,cd->pass,8)){ //Allows Gm access to protected room with any password they want by valaris
+	clif_joinchatfail(sd,1);
+	return 0;
 	}
 	if(chatid == (int)sd->chatID) //Double Chat fix by Alex14, thx CHaNGeTe 
 	{
@@ -237,8 +237,8 @@ int chat_kickchat(struct map_session_data *sd,char *kickusername)
 	nullpo_retr(1, sd);
 
 	cd=(struct chat_data*)map_id2bl(sd->chatID);
-	if(cd==NULL || (struct block_list *)sd!=(*cd->owner))
-		return 1;
+	if(cd==NULL || (pc_isGM(sd) < 99 && (struct block_list *)sd!=(*cd->owner)))//gm kick protection by valaris
+	return 1;
 
 	for(i = 0,kickuser=-1;i < cd->users;i++){
 		if(strcmp(cd->usersd[i]->status.name,kickusername)==0){
