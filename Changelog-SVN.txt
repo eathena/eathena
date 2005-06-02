@@ -1,5 +1,6 @@
 Date	Added
 06/01
+	* Added Esca's fixes to make eA properly compile under Sun-OS	[Skotlex]
 	* Tested and fixed script function getnameditem	[Skotlex]
 	  Now you can use getnameditem(item,char) to get inscribed equipment (only
 	  works with what you can equip, arrows excluded). The item description can

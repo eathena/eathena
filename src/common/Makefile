@@ -27,9 +27,9 @@ HAVESVN = $(shell which svnversion)
 
 ifeq ($(findstring /,$(HAVESVN)), /)
 svnversion.h: ../../Changelog-SVN.txt
-	echo -n "#define SVNVERSION " > svnversion.h
+	printf "#define SVNVERSION " > svnversion.h
 	svnversion . >> svnversion.h
 else
 svnversion.h:
-	echo -n "" > svnversion.h
+	printf "" > svnversion.h
 endif
