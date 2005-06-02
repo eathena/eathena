@@ -5980,8 +5980,8 @@ void battle_validate_conf() {
 	if (battle_config.plant_spawn_delay < 0)
 		battle_config.plant_spawn_delay = 0;
 */	
-	if (battle_config.mob_remove_delay < 1000)	//Min 1 sec
-		battle_config.mob_remove_delay = 1000;
+	if (battle_config.mob_remove_delay < 15000)	//Min 15 sec
+		battle_config.mob_remove_delay = 15000;
 	if (battle_config.dynamic_mobs > 1)
 		battle_config.dynamic_mobs = 1;	//The flag will be used in assignations
 }
