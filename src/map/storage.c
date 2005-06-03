@@ -7,7 +7,6 @@
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
 
-#include "storage.h"
 #include "chrif.h"
 #include "itemdb.h"
 #include "clif.h"
