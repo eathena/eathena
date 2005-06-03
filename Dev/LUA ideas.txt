@@ -1,9 +1,10 @@
-The idea is to use LUA (http://lua.org) as scripting language for NPCs etc, but not only this...
+<DracoRPG>
+The idea is to use Lua (http://lua.org) as scripting language for NPCs etc, but not only this...
 GM Commands would also be scripted this way, allowing server admins to create their own @commands!
 
 
 First, the header is read by eAthena. If needed (NPCs, area NPCs, GM Commands), the header points
-to a LUA function that can be defined anywhere inside a script file. Available headers would be :
+to a Lua function that can be defined anywhere inside a script file. Available headers would be:
 
 GM Command:
 	gmcmd	CommandName	triggered_lua_function_name
@@ -17,11 +18,12 @@ Warp:
 	warp	Warp Name	map1name.gat X1 Y1 map2name.gat X2 Y2 Xrange Yrange sprite
 (and maybe others ^^)
 
-Then, you can define as many LUA functions as you want, and they will be available for calls
+Then, you can define as many Lua functions as you want, and they will be available for calls
 from NPCs, GM Commands and others ^^ We will need to add every needed scripting command to
-available LUA functions, which won't be so hard since LUA is exactly done for this...
+available LUA functions, which won't be so hard since Lua is exactly done for this...
 
 Well, this is only the idea I got, you are free (and asked !) to give comments and feedback !
+</DracoRPG>
 
 <Skotlex>
 Say, why not change shops to be a special type of function in itself? I say,
@@ -33,8 +35,43 @@ And somehow within the function have a command that triggers a shop, like
 (using current script structure, it would mimic menu)
 	callshop itemid1:price1,itemid2:price2, ....
 Why? Two things:
-	1. you could multiply shops by invoking the same function (useful for tool	shops?)
+	1. you could multiply shops by invoking the same function (useful for tool shops?)
 	2. You could have npcs trigger a shop, how awesome is that?
 Don't know how easy that'd be, but it's one of the things I've wanted to be
 able to do with scripts since long ago...
 </Skotlex>
+
+<DracoRPG>
+Well, Skotlex, it is a very good idea, and would maybe make the things even more clear and easy
+
+I thought about the headers, and the problem is that it would require an eA-specific parser...
+This parser would have to be able to differentiate headers from Lua code, or headers and
+functions would have to be splitted into different files... It's why I had an idea that I think
+better: replace headers by Lua functions, too. Each script file should have a specific function
+named "script_init" for example, that would be called when eA loads the file. In this function
+we declare NPCs etc by using "addnpc", "addwarp", "addarea", "addgmcmd" etc functions ^^
+An example of this, with the Healer Dog once again:
+
+function script_init
+	addnpc("Healer Dog","prontera.gat",100,100,4,81,"npc_healer")
+	addnpc("Healer Dog","payon.gat",100,100,4,81,"npc_healer")
+	addnpc("Healer Dog","geffen.gat",100,100,4,81,"npc_healer")
+end
+
+function npc_healer
+	npcmes "[Healer Dog]"
+	npcmes "Hi! Wanna get a heal?"
+	next
+	heal()
+	npcmes "[Healer Dog]"
+	npcmes "Here you are!"
+	close
+end
+
+There are several advantages to this formula:
+- No more need of eA-side parser, Lua does everything!!
+- The script files contain only Lua code, no more headers or so : they will be .lua files
+- The "addnpc" etc functions can be used anywhere outside "script_init" to create NPCs at any
+  time, with the name, location, etc... that you want
+- It is so kiewl and easy to implement :p
+</DracoRPG>
