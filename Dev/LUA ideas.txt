@@ -166,3 +166,8 @@ PD2: Draco, in your examples, there is no command delimiter other than
 "enter", can LUA be configured to use semi-colons? I hope so or the multi-line scripts in
 the item_db are doomed.
 </Skotlex>
+
+<Kevin>
+lol I thought you mean lua was sad. And mouse, im going on this asuming that lua scripting
+is a tad more efficient then ea scripting. So you are right about performance, but if lua
+solves the efficiency problems then I think it would be a good idea o.O.
