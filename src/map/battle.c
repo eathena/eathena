@@ -5312,6 +5312,8 @@ static const struct battle_data_short {
 	{ "gm_all_skill_add_abra",	            &battle_config.gm_allskill_addabra		},
 	{ "gm_all_equipment",                  &battle_config.gm_allequip				},
 	{ "gm_skill_unconditional",            &battle_config.gm_skilluncond			},
+	{ "gm_join_chat",                      &battle_config.gm_join_chat				},
+	{ "gm_kick_chat",                      &battle_config.gm_kick_chat				},
 	{ "player_skillfree",                  &battle_config.skillfree				},
 	{ "player_skillup_limit",              &battle_config.skillup_limit			},
 	{ "weapon_produce_rate",               &battle_config.wp_rate					},
@@ -5622,6 +5624,8 @@ void battle_set_defaults() {
 	battle_config.gm_allskill=0;
 	battle_config.gm_allequip=0;
 	battle_config.gm_skilluncond=0;
+	battle_config.gm_join_chat=0;
+	battle_config.gm_kick_chat=0;
 	battle_config.guild_max_castles=0;
 	battle_config.skillfree = 0;
 	battle_config.skillup_limit = 0;

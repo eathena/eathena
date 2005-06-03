@@ -128,6 +128,8 @@ extern struct Battle_Config {
 	unsigned short gm_allskill_addabra;
 	unsigned short gm_allequip;
 	unsigned short gm_skilluncond;
+	unsigned short gm_join_chat;
+	unsigned short gm_kick_chat;
 	unsigned short skillfree;
 	unsigned short skillup_limit;
 	unsigned short wp_rate;

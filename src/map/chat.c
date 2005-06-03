@@ -4,6 +4,7 @@
 
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
+#include "battle.h"
 #include "chat.h"
 #include "map.h"
 #include "clif.h"
@@ -69,7 +70,7 @@ int chat_joinchat (struct map_session_data *sd, int chatid, char* pass)
 		return 0;
 	}
 	//Allows Gm access to protected room with any password they want by valaris
-	if ((cd->pub == 0 && strncmp(pass, (char *)cd->pass, 8) && pc_isGM(sd) < 99) ||
+	if ((cd->pub == 0 && strncmp(pass, (char *)cd->pass, 8) && (pc_isGM(sd) < battle_config.gm_join_chat || !battle_config.gm_join_chat)) ||
 		chatid == (int)sd->chatID) //Double Chat fix by Alex14, thx CHaNGeTe
 	{
 		clif_joinchatfail(sd,1);
@@ -228,7 +229,7 @@ int chat_kickchat(struct map_session_data *sd,char *kickusername)
 	nullpo_retr(1, sd);
 
 	cd = (struct chat_data *)map_id2bl(sd->chatID);
-	if (cd == NULL || ((struct block_list *)sd != (*cd->owner) && pc_isGM(sd) < 99))//gm kick protection by valaris
+	if (cd == NULL || ((struct block_list *)sd != (*cd->owner) && (pc_isGM(sd) > battle_config.gm_kick_chat && battle_config.gm_kick_chat)))//gm kick protection by valaris
 		return 1;
 
 	for(i = 0; i < cd->users; i++) {
