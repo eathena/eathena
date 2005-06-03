@@ -78,4 +78,28 @@ There are several advantages to this formula:
 
 <Kevin>
 Just wondering, what will this do to memory usage since npcs are the huge killer? o.O
+
+Also don't forget that mobs are spawned with eascript :X.
+
+So im guessing that would be like...
+addmob("Poring","prontera.gat",map_x,map_y,#,interval_in_seconds,trigger) or something like that. An important note on
+trigger, because if we implemented better triggers for mobs we could create easily scripted AI better then any
+other emu. So it may be something like this:
+
+addmob("Poring","prontera.gat",52,75,10,30,"poring_mob")
+
+And then something else somewhere in the mob folder:
+
+function poring_mob
+	OnCast:
+		attack_player()
+	OnAttack:
+		var i = rand(1,5)
+		if(i < 5)
+			attack_player()
+		if(i == 5)
+			run_away()
+end
+
+Now this would be pretty nifty o.O.
 </Kevin>
