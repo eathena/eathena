@@ -1346,7 +1346,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		return 0;
 	if(bl->type == BL_PC && pc_isdead((struct map_session_data *)bl)) //?象がPCですでに死んでいたら何もしない
 		return 0;
-	if(bl->type == BL_PC && skillnotok(skillid, (struct map_session_data *)bl))
+	if(src->type == BL_PC && skillnotok(skillid, (struct map_session_data *)bl))
 	        return 0; // [MouseJstr]
 	if(sc_data && sc_data[SC_HIDING].timer != -1) { //ハイディング?態で
 		if(skill_get_pl(skillid) != 2) //スキルの?性が地?性でなければ何もしない
