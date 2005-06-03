@@ -585,7 +585,7 @@ int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 {
 	struct map_session_data *sd;
 	int i;
-	short c, bonus =1; // modified [Valaris]
+	short c, bonus =100; // modified [Valaris]
 
 	nullpo_retr(0, p);
 
@@ -594,31 +594,16 @@ int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 			c++;
 	if (c <= 0)
 		return 0;
-	
-	switch( c ) {
-		case 1: bonus=1; break;
-		case 2: bonus=1.05; break;
-		case 3: bonus=1.15; break;
-		case 4: bonus=1.30; break;
-		case 5: bonus=1.50; break;
-		case 6: bonus=1.75; break;
-		case 7: bonus=2.05; break;
-		case 8: bonus=2.40; break;
-		case 9: bonus=2.80; break;
-		case 10: bonus=3.25; break;
-		case 11: bonus=3.75; break;
-		case 12: bonus=4; break;
-	}
-// the arithmetic for this bonus is
-// 1 + 0.05*c*(c-1)/2
-// but this would mean the case 12 should be 4.3 instead of 4 [Shinomori]
-
+	// the arithmetic for this bonus is
+	// 1 + 0.05*c*(c-1)/2 [Shinomori]
+	bonus += (5*c*(c-1)/2);	//Changed the switch to an equation [Skotlex]
+	//Bonus at Full party (12): +3.3 (430% exp/12 ~= 35% of total Mob's exp)
 
 	for (i = 0; i < MAX_PARTY; i++)
 		if ((sd = p->member[i].sd)!=NULL && sd->bl.m == map && session[sd->fd] != NULL) {
-			pc_gainexp(sd,(bonus*base_exp)/c,(bonus*job_exp)/c);
+			pc_gainexp(sd,bonus*base_exp/(c*100),bonus*job_exp/(c*100));
 			if (battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
-				pc_getzeny(sd,(bonus*zeny)/c);
+				pc_getzeny(sd,bonus*zeny/(c*100));
 		}
 
 	return 0;

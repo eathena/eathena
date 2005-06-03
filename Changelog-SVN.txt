@@ -1,5 +1,6 @@
 Date	Added
 06/03
+	* Fixed the party-even-share bonus for large parties. [Skotlex]
 	* Fixed gm chat kick protect.[Kevin]
 	* GM of higher or equal level can use @where on another GM.[Kevin]
 	* Fixed @fakename command.[Kevin]
