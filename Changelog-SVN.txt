@@ -1,9 +1,9 @@
 Date	Added
 06/02
 	* A few things: [Kevin]
-	  -Fixed valiris's gms can't be kicked function.
-	  -Added battle_config option for this function.
-	  -Added battle_config option for gms can join password protected chats.
+	  -Fixed valaris's gms can't be kicked function.
+	  -Added battle_config option for valaris's function.
+	  -Added battle_config option for gms can join password protected chats of valaris's .
 	* Moved "readme"'s and other non important files into doc/notes/ [massdriller]
 	* Cleanup in chat.c, party.c, storage.c [celest]
 	* Fixed an inconsistent message for log_chat in conf file reading [celest]
