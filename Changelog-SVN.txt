@@ -1,4 +1,6 @@
 Date	Added
+06/03
+	* fixed a bug with Abracadabra
 06/02
 	* fixed compile issues on older gcc, thanks to esca [Shinomori]
 	* Added @size and @fakename gm commands. [Kevin] 
