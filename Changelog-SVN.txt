@@ -1,5 +1,7 @@
 Date	Added
 06/03
+	* Modified Abracadabra code to make it work with Pet Skills	[Skotlex]
+	  (Warning: Not yet tested)
 	* fixed a bug with Abracadabra
 06/02
 	* fixed compile issues on older gcc, thanks to esca [Shinomori]

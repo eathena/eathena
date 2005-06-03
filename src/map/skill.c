@@ -3031,12 +3031,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case SA_ABRACADABRA:
 		{
 			int abra_skillid = 0, abra_skilllv;
-			//require 1 yellow gemstone even with mistress card or Into the Abyss
-			if ((i = pc_search_inventory(sd, 715)) < 0 ) { //bug fixed by Lupus (item pos can be 0, too!)
-				clif_skill_fail(sd,sd->skillid,0,0);
-				break;
+			if (sd)
+			{ //Crash-fix [Skotlex]
+				//require 1 yellow gemstone even with mistress card or Into the Abyss
+				if ((i = pc_search_inventory(sd, 715)) < 0 )
+				{ //bug fixed by Lupus (item pos can be 0, too!)
+					clif_skill_fail(sd,sd->skillid,0,0);
+					break;
+				}
+				pc_delitem(sd, i, 1, 0);
 			}
-			pc_delitem(sd, i, 1, 0);
 			do {
 				abra_skillid = rand() % 331;
 				if (skill_abra_db[abra_skillid].req_lv > skilllv ||
@@ -3047,10 +3051,22 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			} while (abra_skillid == 0);
 			abra_skilllv = skill_get_max(abra_skillid) >  skilllv ? skilllv : skill_get_max(abra_skillid);
 			clif_skill_nodamage (src, bl, skillid, skilllv, 1);
-			sd->skillitem = abra_skillid;
-			sd->skillitemlv = abra_skilllv;
-			sd->state.abra_flag = 1;
-			clif_item_skill (sd, abra_skillid, abra_skilllv, "Abracadabra");
+			if (sd)
+			{	//Crash-protection against Abracadabra casting pets
+				sd->skillitem = abra_skillid;
+				sd->skillitemlv = abra_skilllv;
+				sd->state.abra_flag = 1;
+				clif_item_skill (sd, abra_skillid, abra_skilllv, "Abracadabra");
+			} else if(src->type == BL_PET)
+			{	// [Skotlex]
+				struct pet_data *pd = (struct pet_data *)src;
+				int inf = skill_get_inf(abra_skillid);
+				if (inf&4 || inf&16) { //Self-Skills, Supportive skills
+					nullpo_retr(1,(struct map_session_data *)pd->msd);
+					petskill_use(pd, &pd->msd->bl, abra_skillid, abra_skilllv, tick); 
+				} else //Assume offensive skills
+					petskill_use(pd, bl, abra_skillid, abra_skilllv, tick); 
+			}
 		}
 		break;
 

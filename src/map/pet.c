@@ -216,7 +216,6 @@ static int pet_attack(struct pet_data *pd,unsigned int tick,int data)
 	return 0;
 }
 
-static int petskill_use(struct pet_data *pd, struct block_list *target, short skill_id, short skill_lv, unsigned int tick);
 static int petskill_castend(struct pet_data *pd,unsigned int tick,int data);
 static int petskill_castend2(struct pet_data *pd, struct block_list *target, short skill_id, short skill_lv, short skill_x, short skill_y, unsigned int tick);
 
@@ -266,7 +265,7 @@ struct castend_delay { //[Skotlex] For passing skill info after casting
  * Pet Skill Use [Skotlex]
  *------------------------------------------
  */
-static int petskill_use(struct pet_data *pd, struct block_list *target, short skill_id, short skill_lv, unsigned int tick)
+int petskill_use(struct pet_data *pd, struct block_list *target, short skill_id, short skill_lv, unsigned int tick)
 {
 	int casttime;
 	struct castend_delay *dat;
@@ -370,13 +369,16 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, sho
 		}
 	}
 
-	delaytime = skill_delayfix(&pd->bl,skill_get_delay(skill_id, skill_lv));
-	if (delaytime < MIN_PETTHINKTIME)
-		delaytime = status_get_adelay(&pd->bl);
-	pd->attackabletime = tick + delaytime; 
-	if (pd->target_id) //Resume attacking
-		pd->state.state=MS_ATTACK;
-	pd->timer=add_timer(pd->attackabletime,pet_timer,pd->bl.id,0);
+	if (pd->state.state==MS_IDLE && pd->state.casting_flag==0) //The above skill casting could had changed the state
+	{
+		delaytime = skill_delayfix(&pd->bl,skill_get_delay(skill_id, skill_lv));
+		if (delaytime < MIN_PETTHINKTIME)
+			delaytime = status_get_adelay(&pd->bl);
+		pd->attackabletime = tick + delaytime; 
+		if (pd->target_id) //Resume attacking
+			pd->state.state=MS_ATTACK;
+		pd->timer=add_timer(pd->attackabletime,pet_timer,pd->bl.id,0);
+	}
 	return 0;
 }
 
