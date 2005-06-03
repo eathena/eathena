@@ -5932,7 +5932,8 @@ int clif_hpmeter(struct map_session_data *sd)
 			if (sd2->bl.m != sd->bl.m || 
 				sd2->bl.x < x0 || sd2->bl.y < y0 ||
 				sd2->bl.x > x1 || sd2->bl.y > y1 ||
-				(level = pc_isGM(sd2)) < battle_config.disp_hpmeter || level < pc_isGM(sd))
+				(battle_config.disp_hpmeter &&
+				((level = pc_isGM(sd2)) < battle_config.disp_hpmeter || level < pc_isGM(sd))))
 				continue;
 			memcpy (WFIFOP(i,0), buf, packet_len_table[0x107]);
 			WFIFOSET (i, packet_len_table[0x107]);
@@ -5948,7 +5949,8 @@ int clif_hpmeter(struct map_session_data *sd)
 			if (sd2->bl.m != sd->bl.m || 
 				sd2->bl.x < x0 || sd2->bl.y < y0 ||
 				sd2->bl.x > x1 || sd2->bl.y > y1 ||
-				(level = pc_isGM(sd2)) < battle_config.disp_hpmeter || level < pc_isGM(sd))
+				(battle_config.disp_hpmeter &&
+				((level = pc_isGM(sd2)) < battle_config.disp_hpmeter || level < pc_isGM(sd))))
 				continue;
 			memcpy (WFIFOP(i,0), buf2, packet_len_table[0x106]);
 			WFIFOSET (i, packet_len_table[0x106]);

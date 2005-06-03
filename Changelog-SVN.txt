@@ -1,5 +1,7 @@
 Date	Added
 06/03
+	* Changed disp_hpmeter's behaviour so that you can disable it by setting it
+	to "no" or 0.	[Skotlex]
 	* Fixed gm chat kick protection.	[Skotlex]
 	* 'Tidied' a bit party_exp_share (more like restructured it).	[Skotlex]
 	* Re-added party_idle_no_share code. When was it removed? [Skotlex]
