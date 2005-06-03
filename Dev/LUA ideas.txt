@@ -75,3 +75,7 @@ There are several advantages to this formula:
   time, with the name, location, etc... that you want
 - It is so kiewl and easy to implement :p
 </DracoRPG>
+
+<Kevin>
+Just wondering, what will this do to memory usage since npcs are the huge killer? o.O
+</Kevin>
