@@ -1,12 +1,14 @@
 Date	Added
 06/02
+	* Fixed mob class changing not checking array bounds, by Shinomori
+	* Fixed mob summoning slaves not checking array bounds, by Shinomori
+	* Updated max packets in clif.c [celest]
 	* Fixed some compile time warnings.	[Kevin]
 	* Added GM chat kick protections, thanks to Valaris [massdriller]
 	* Added Password protection chat rooms access to gms, thanks to Valaris [massdriller]
 	* Fixed a couple of things in map.c, thanks to Valaris [massdriller]
 	* Storages now saves upon closing, thanks to Valaris [massdriller]
 	* exp share and added zeny share/party bonus exp thanks to Valaris [massdriller]
-
 
 06/01
 	* Fixed Divest Shield and Divest All not able to strip shields [DracoRPG]

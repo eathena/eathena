@@ -2828,37 +2828,49 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 }
 
 /*==========================================
- *
+ * Pick a random class for the mob
  *------------------------------------------
  */
-int mob_class_change(struct mob_data *md,int *value)
+int mob_random_class (int *value, size_t count)
 {
-	unsigned int tick = gettick();
-	int i,c,hp_rate,max_hp,class_,count = 0;
-
-	nullpo_retr(0, md);
 	nullpo_retr(0, value);
 
-	if(value[0]<=1000 || value[0]>MAX_MOB_DB)
+	// no count specified, look into the array manually, but take only max 5 elements
+	if (count == 0) {
+		while(count < 5 && value[count] > 1000 && value[count] <= MAX_MOB_DB) count++;
+		if(count < 1)	// nothing found
+			return 0;
+	} else {
+		// check if at least the first value is valid
+		if(value[0] <= 1000 || value[0] > MAX_MOB_DB)
+			return 0;
+	}
+	return value[rand()%count];
+}
+
+/*==========================================
+ * Change mob base class
+ *------------------------------------------
+ */
+int mob_class_change (struct mob_data *md, int class_)
+{
+	unsigned int tick = gettick();
+	int i, c, hp_rate, max_hp;
+
+	nullpo_retr(0, md);
+
+	if (md->bl.prev == NULL)
 		return 0;
-	if(md->bl.prev == NULL) return 0;
-
-	while(count < 5 && value[count] > 1000 && value[count] <= MAX_MOB_DB) count++;
-	if(count < 1) return 0;
-
-	class_ = value[rand()%count];
-	if(class_<=1000 || class_>MAX_MOB_DB) return 0;
 
 	max_hp = status_get_max_hp(&md->bl);
 	hp_rate = md->hp*100/max_hp;
 	clif_mob_class_change(md,class_);
 	md->class_ = class_;
 	max_hp = status_get_max_hp(&md->bl);
-	if(battle_config.monster_class_change_full_recover==1) {
+	if (battle_config.monster_class_change_full_recover) {
 		md->hp = max_hp;
-		memset(md->dmglog,0,sizeof(md->dmglog));
-	}
-	else
+		memset(md->dmglog, 0, sizeof(md->dmglog));
+	} else
 		md->hp = max_hp*hp_rate/100;
 	if(md->hp > max_hp) md->hp = max_hp;
 	else if(md->hp < 1) md->hp = 1;
@@ -3087,7 +3099,7 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int flag)
 
 	if(value[0]<=1000 || value[0]>MAX_MOB_DB)	// ’l‚ªˆÙí‚È‚ç¢Š«‚ğ~‚ß‚é
 		return 0;
-	while(count < 21 && value[count] > 1000 && value[count] <= 2000) count++;
+	while(count < 5 && value[count] > 1000 && value[count] <= 2000) count++;
 	if(count < 1) return 0;
 
 	for(k=0;k<count;k++) {

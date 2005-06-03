@@ -3091,17 +3091,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case SA_CLASSCHANGE:
 		{
 			//クラスチェンジ用ボスモンスタ?ID
-			int changeclass[]={1038,1039,1046,1059,1086,1087,1112,1115
+			static int changeclass[]={1038,1039,1046,1059,1086,1087,1112,1115
 				,1157,1159,1190,1272,1312,1373,1492};
+			int class_ = mob_random_class (changeclass,sizeof(changeclass)/sizeof(changeclass[0]));
+			//if (class_ == 0) break;	// skip checking in a hardcoded array
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(dstmd) mob_class_change(dstmd,changeclass);
+			if(dstmd) mob_class_change(dstmd,class_);
 		}
 		break;
 	case SA_MONOCELL:
 		{
-			int poringclass[]={1002};
+			static int poringclass[]={1002};
+			int class_ = mob_random_class (poringclass,sizeof(poringclass)/sizeof(poringclass[0]));
+			//if (class_ == 0) break;	// skip checking in a hardcoded array
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(dstmd) mob_class_change(dstmd,poringclass);
+			if(dstmd) mob_class_change(dstmd,class_);
 		}
 		break;
 	case SA_DEATH:
@@ -4360,8 +4364,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case NPC_TRANSFORMATION:
 	case NPC_METAMORPHOSIS:
-		if(md)
-			mob_class_change(md,mob_db[md->class_].skill[md->skillidx].val);
+		if(md) {
+			int class_ = mob_random_class (mob_db[md->class_].skill[md->skillidx].val,0);
+			if (class_ > 1000 && class_ < MAX_MOB_DB) mob_class_change(md, class_);
+		}
 		break;
 
 	case NPC_EMOTION:			/* エモ?ション */
