@@ -1,5 +1,6 @@
 Date	Added
 06/02
+	* Added valaris's getstrlen and charisalpha functions into the script parser. [Kevin]
 	* Added clif_guild_xy(_remove), rest needs to be added somewhere. [Kevin]
 	* Fixed items lost on shutdown/crash, by valaris. [Kevin]
 	  -Note: Was partially finished by massdriller =).

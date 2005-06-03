@@ -326,6 +326,8 @@ int buildin_jump_zero(struct script_state *st);
 int buildin_select(struct script_state *st);
 int buildin_getmapmobs(struct script_state *st); //jA addition end
 int buildin_unequip(struct script_state *st); // unequip [Spectre]
+int buildin_getstrlen(struct script_state *st); //strlen [valaris]
+int buildin_charisalpha(struct script_state *st);//isalpha [valaris]
 
 void push_val(struct script_stack *stack,int type,int val);
 int run_func(struct script_state *st);
@@ -586,6 +588,8 @@ struct {
 	{buildin_globalmes,"globalmes","s*"},
 	{buildin_getmapmobs,"getmapmobs","s"}, //end jA addition
 	{buildin_unequip,"unequip","i"}, // unequip command [Spectre]
+	{buildin_getstrlen,"getstrlen","s"}, //strlen [Valaris]
+	{buildin_charisalpha,"charisalpha","si"}, //isalpha [Valaris]
 	{NULL,NULL,NULL},
 };
 
@@ -7395,6 +7399,49 @@ int buildin_unequip(struct script_state *st)
 		pc_unequipitem(sd,i,2);
 		return 0;
 	}
+	return 0;
+}
+
+//=======================================================
+// strlen [Valaris]
+//-------------------------------------------------------
+int buildin_getstrlen(struct script_state *st) {
+	
+	struct map_session_data *sd=NULL;
+	sd=script_rid2sd(st);
+	
+	int len;
+	char *str=NULL;
+	
+	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
+
+	len=strlen(str);
+	push_val(st->stack,C_INT,len);
+	
+	return 0;
+	
+}
+
+//=======================================================
+// isalpha [Valaris]
+//-------------------------------------------------------
+int buildin_charisalpha(struct script_state *st) {
+	
+	struct map_session_data *sd=NULL;
+	sd=script_rid2sd(st);
+	
+	int pos=0;
+	char *str=NULL;
+	
+	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
+	pos=conv_num(st,& (st->stack->stack_data[st->start+3]));
+
+	if(str[pos] >= 'A' && str[pos] <= 'z') {
+		push_val(st->stack,C_INT,1);
+	} else {
+		push_val(st->stack,C_INT,0);
+	}
+
 	return 0;
 }
 
