@@ -1,0 +1,24 @@
+The idea is to use LUA (http://lua.org) as scripting language for NPCs etc, but not only this...
+GM Commands would also be scripted this way, allowing server admins to create their own @commands!
+
+
+First, the header is read by eAthena. If needed (NPCs, area NPCs, GM Commands), the header points
+to a LUA function that can be defined anywhere inside a script file. Available headers would be :
+
+GM Command:
+	gmcmd	CommandName	triggered_lua_function_name
+Usual NPC:
+	npc	NPC Name	mapname.gat X Y direction sprite triggered_lua_function_name
+Area script (e.g. for traps):
+	area	Area Name	mapname.gat X1 Y1 X2 Y2 triggered_lua_function_name
+Shop NPC:
+	shop	Shop Name	mapname.gat X Y direction sprite itemid1:price1,itemid2:price2,...
+Warp:
+	warp	Warp Name	map1name.gat X1 Y1 map2name.gat X2 Y2 Xrange Yrange sprite
+(and maybe others ^^)
+
+Then, you can define as many LUA functions as you want, and they will be available for calls
+from NPCs, GM Commands and others ^^ We will need to add every needed scripting command to
+available LUA functions, which won't be so hard since LUA is exactly done for this...
+
+Well, this is only the idea I got, you are free (and asked !) to give comments and feedback !
