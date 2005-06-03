@@ -1,3 +1,5 @@
+
+
 npc	Healer Dog	prontera.gat 100 100 4 81 npc_healer
 npc	Healer Dog	morroc.gat 100 100 4 81 npc_healer
 npc	Healer Dog	payon.gat 100 100 4 81 npc_healer
