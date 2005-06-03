@@ -1,0 +1,8 @@
+Date	Added
+06/03
+	* Cleared up the Files to make way for new Files [massdriller]
+	* Added ideas for LUA use [DracoRPG]
+	* Added Lua lib to makefile [celest]
+
+06/01
+	* Added Lua branch [MouseJstr]
