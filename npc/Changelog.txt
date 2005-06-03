@@ -27,10 +27,11 @@ TODO:
 
 Date		Added
 ======
-06/2
+06/03
+	* Fixed an error in the jobmaster script [DracoRPG]
+06/02
 	* Corrected error in Jfunc under priests [massdriller]
-
-06/1
+06/01
 	* Added Field update - Einbroch and Lhztargen thanks to sara [massdriller]
 	* Added New optimised jobchanger [Lunatikbunnie]
 05/31

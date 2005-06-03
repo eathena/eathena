@@ -184,7 +184,7 @@ prontera.gat,153,193,6	script	Job Master	123,{
 		mes "Do you want to reborn?";
 		next;
 		menu "Yes",-,"No",L_quit;
-		if ((BaseLevel < 99) && (JobLevel < 50)) goto L_cantCh;
+		if ((BaseLevel < 99) || (JobLevel < 50)) goto L_cantCh;
 		set lastJob, readparam(19);
 		jobchange 24;
 		resetlvl(1);
