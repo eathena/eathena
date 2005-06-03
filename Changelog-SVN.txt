@@ -1,5 +1,8 @@
 Date	Added
 06/03
+	* Fixed gm chat kick protect.[Kevin]
+	* GM of higher or equal level can use @where on another GM.[Kevin]
+	* Fixed @fakename command.[Kevin]
 	* Stopped the map-server from invoking "OnAgitStart" each time it connects
 	to the char server.	[Skotlex]
 	* Modified Abracadabra code to make it work with Pet Skills	[Skotlex]

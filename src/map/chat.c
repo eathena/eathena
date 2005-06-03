@@ -229,7 +229,7 @@ int chat_kickchat(struct map_session_data *sd,char *kickusername)
 	nullpo_retr(1, sd);
 
 	cd = (struct chat_data *)map_id2bl(sd->chatID);
-	if (cd == NULL || ((struct block_list *)sd != (*cd->owner) && (pc_isGM(sd) >= battle_config.gm_kick_chat && battle_config.gm_kick_chat)))//gm kick protection by valaris
+	if (pc_isGM(sd) >= battle_config.gm_kick_chat && battle_config.gm_kick_chat)//gm kick protection by valaris
 		return 1;
 
 	for(i = 0; i < cd->users; i++) {

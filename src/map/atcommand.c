@@ -1099,7 +1099,9 @@ int atcommand_where(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
-	int GM_level;
+	pl_sd = map_nick2sd(atcmd_player_name);
+	
+	int GM_level, pl_GM_level;
 
 	nullpo_retr(-1, sd);
 
@@ -1112,13 +1114,17 @@ int atcommand_where(
 		return -1;
 		
 	GM_level = pc_isGM(sd);//also hide gms depending on settings in battle_athena.conf, show if they are aid [Kevin]
+	pl_GM_level = pc_isGM(pl_sd);
+	
 	if (battle_config.hide_GM_session) {
-		if (!(battle_config.who_display_aid > 0 && pc_isGM(sd) >= battle_config.who_display_aid)) {
-			return -1;
+		if(!(GM_level >= pl_GM_level)) {
+			if (!(battle_config.who_display_aid > 0 && pc_isGM(sd) >= battle_config.who_display_aid)) {
+				return 1;
+			}
 		}
 	}
 
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) == NULL) {
+	if (pl_sd == NULL) {
 		snprintf(atcmd_output, sizeof atcmd_output, "%s %d %d",
 			sd->mapname, sd->bl.x, sd->bl.y);
 		clif_displaymessage(fd, atcmd_output);
@@ -9672,11 +9678,19 @@ int atcommand_size(
 
 	return 0;
 }
+
+/*==========================================
+ * @fakename
+ * => Gives your character a fake name.
+ *------------------------------------------
+ */
 int atcommand_fakename(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
+
+	char name[24];
 
 	if((!message || !*message) && strlen(sd->fakename) > 1) {
 		sd->fakename[0]='\0';
@@ -9684,8 +9698,25 @@ int atcommand_fakename(
 		clif_displaymessage(sd->fd,"Returned to real name.");
 	}
 
-	if (!message || !*message)
+	if (!message || !*message) {
 		clif_displaymessage(sd->fd,"You must enter a name.");
+		return 0;
+	}
+
+
+	if (sscanf(message, "%23[^\n]", name) < 1) {
+		return 0;
+	}
+	
+	if(strlen(name) < 2) {
+		clif_displaymessage(sd->fd,"Fake name must be at least two characters.");
+		return 0;
+	}
+	
+	strcpy(sd->fakename,name);
+	pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
+	clif_displaymessage(sd->fd,"Fake name enabled.");
+	
 	return 0;
 }
 /*==========================================
