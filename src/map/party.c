@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../common/db.h"
+#include "../common/timer.h"
+#include "../common/socket.h"
+#include "../common/nullpo.h"
+#include "../common/malloc.h"
 #include "party.h"
-#include "db.h"
-#include "timer.h"
-#include "socket.h"
-#include "nullpo.h"
-#include "malloc.h"
 #include "pc.h"
 #include "map.h"
 #include "battle.h"
@@ -579,43 +579,44 @@ int party_send_hp_check(struct block_list *bl,va_list ap)
 	return 0;
 }
 
-
 // exp share and added zeny share [Valaris]
 int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 {
-nullpo_retr(0, p);
+	nullpo_retr(0, p);
 
-struct map_session_data *sd=NULL;
-int i;
-short c,bonus=1; // modified [Valaris]
+	struct map_session_data *sd;
+	int i;
+	short c, bonus =1; // modified [Valaris]
 
-for(i=c=0;i<MAX_PARTY;i++)
-if((sd=p->member[i].sd)!=NULL && sd->bl.m==map)
-c++;
-if(c<=0)
-return 0;
-switch( c ) {
-case 1: bonus=1; break;
-case 2: bonus=1.05; break;
-case 3: bonus=1.15; break;
-case 4: bonus=1.30; break;
-case 5: bonus=1.50; break;
-case 6: bonus=1.75; break;
-case 7: bonus=2.05; break;
-case 8: bonus=2.40; break;
-case 9: bonus=2.80; break;
-case 10: bonus=3.25; break;
-case 11: bonus=3.75; break;
-case 12: bonus=4; break;
-default: bonus=1; break;
-}
-for(i=0;i<MAX_PARTY;i++)
-if((sd=p->member[i].sd)!=NULL && sd->bl.m==map && session[sd->fd] != NULL) {
-pc_gainexp(sd,(bonus*base_exp)/c,(bonus*job_exp)/c);
-if(battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
-pc_getzeny(sd,(bonus*zeny)/c);
-}
-return 0;
+	for (i = c = 0; i < MAX_PARTY; i++)
+		if ((sd = p->member[i].sd) != NULL && sd->bl.m == map)
+			c++;
+	if (c <= 0)
+		return 0;
+	
+	switch( c ) {
+		case 1: bonus=1; break;
+		case 2: bonus=1.05; break;
+		case 3: bonus=1.15; break;
+		case 4: bonus=1.30; break;
+		case 5: bonus=1.50; break;
+		case 6: bonus=1.75; break;
+		case 7: bonus=2.05; break;
+		case 8: bonus=2.40; break;
+		case 9: bonus=2.80; break;
+		case 10: bonus=3.25; break;
+		case 11: bonus=3.75; break;
+		case 12: bonus=4; break;
+	}
+
+	for (i = 0; i < MAX_PARTY; i++)
+		if ((sd = p->member[i].sd)!=NULL && sd->bl.m == map && session[sd->fd] != NULL) {
+			pc_gainexp(sd,(bonus*base_exp)/c,(bonus*job_exp)/c);
+			if (battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
+				pc_getzeny(sd,(bonus*zeny)/c);
+		}
+
+	return 0;
 }
 
 // 同じマップのパーティメンバー全体に処理をかける

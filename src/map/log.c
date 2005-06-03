@@ -744,8 +744,8 @@ int log_config_read(char *cfgName)
 				if(log_config.npc > 0 && log_config.sql_logs < 1)
 					printf("Logging NPC 'logmes' to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_chat_file") == 0) {
-				if(log_config.chat > 0 && log_config.sql_logs < 1)
-					strcpy(log_config.log_chat, w2);
+				strcpy(log_config.log_chat, w2);
+				if(log_config.chat > 0 && log_config.sql_logs < 1)					
 					printf("Logging CHAT to file `%s`.txt\n", w2);
 			//support the import command, just like any other config
 			} else if(strcmpi(w1,"import") == 0) {

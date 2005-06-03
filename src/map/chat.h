@@ -17,6 +17,4 @@ int chat_enableevent(struct chat_data *cd);
 int chat_disableevent(struct chat_data *cd);
 int chat_npckickall(struct chat_data *cd);
 
-int do_final_chat(void);
-
 #endif

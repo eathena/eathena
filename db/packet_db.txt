@@ -688,3 +688,4 @@ prefer_packet_db: yes
 
 // Add new packets here
 // packet_ver: 18
+0x0216,2

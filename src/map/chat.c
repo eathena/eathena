@@ -1,19 +1,16 @@
 // $Id: chat.c,v 1.2 2004/09/22 02:59:47 Akitasha Exp $
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include "db.h"
-#include "nullpo.h"
-#include "malloc.h"
+#include "../common/nullpo.h"
+#include "../common/malloc.h"
+#include "chat.h"
 #include "map.h"
 #include "clif.h"
 #include "pc.h"
-#include "chat.h"
 #include "npc.h"
 
 int chat_triggerevent(struct chat_data *cd);
-
 
 /*==========================================
  * チャットルーム作成
@@ -60,25 +57,20 @@ int chat_createchat(struct map_session_data *sd,int limit,int pub,char* pass,cha
  * 既存チャットルームに参加
  *------------------------------------------
  */
-int chat_joinchat(struct map_session_data *sd,int chatid,char* pass)
+int chat_joinchat (struct map_session_data *sd, int chatid, char* pass)
 {
 	struct chat_data *cd;
 
 	nullpo_retr(0, sd);
+	nullpo_retr(1, cd = (struct chat_data*)map_id2bl(chatid));
 
-	cd=(struct chat_data*)map_id2bl(chatid);
-	if(cd==NULL)
-		return 1;
-
-	if(cd->bl.m != sd->bl.m || cd->limit <= cd->users){
+	if (cd->bl.m != sd->bl.m || cd->limit <= cd->users) {
 		clif_joinchatfail(sd,0);
 		return 0;
 	}
-	if(pc_isGM(sd) < 99 && cd->pub==0 && strncmp(pass,cd->pass,8)){ //Allows Gm access to protected room with any password they want by valaris
-	clif_joinchatfail(sd,1);
-	return 0;
-	}
-	if(chatid == (int)sd->chatID) //Double Chat fix by Alex14, thx CHaNGeTe 
+	//Allows Gm access to protected room with any password they want by valaris
+	if ((cd->pub == 0 && strncmp(pass, (char *)cd->pass, 8) && pc_isGM(sd) < 99) ||
+		chatid == (int)sd->chatID) //Double Chat fix by Alex14, thx CHaNGeTe
 	{
 		clif_joinchatfail(sd,1);
 		return 0;
@@ -89,7 +81,6 @@ int chat_joinchat(struct map_session_data *sd,int chatid,char* pass)
 
 	pc_setchatid(sd,cd->bl.id);
 
-	
 	clif_joinchatok(sd,cd);	// 新たに参加した人には全員のリスト
 	clif_addchat(cd,sd);	// 既に中に居た人には追加した人の報告
 	clif_dispchat(cd,0);	// 周囲の人には人数変化報告
@@ -161,12 +152,12 @@ int chat_changechatowner(struct map_session_data *sd,char *nextownername)
 {
 	struct chat_data *cd;
 	struct map_session_data *tmp_sd;
-	int i,nextowner;
+	int i, nextowner;
 
 	nullpo_retr(1, sd);
 
-	cd=(struct chat_data*)map_id2bl(sd->chatID);
-	if(cd==NULL || (struct block_list *)sd!=(*cd->owner))
+	cd = (struct chat_data*)map_id2bl(sd->chatID);
+	if (cd == NULL || (struct block_list *)sd != (*cd->owner))
 		return 1;
 
 	for(i = 1,nextowner=-1;i < cd->users;i++){
@@ -209,7 +200,7 @@ int chat_changechatstatus(struct map_session_data *sd,int limit,int pub,char* pa
 	nullpo_retr(1, sd);
 
 	cd=(struct chat_data*)map_id2bl(sd->chatID);
-	if(cd==NULL || (struct block_list *)sd!=(*cd->owner))
+	if(cd==NULL || (struct block_list *)sd != (*cd->owner))
 		return 1;
 
 	cd->limit = limit;
@@ -232,26 +223,22 @@ int chat_changechatstatus(struct map_session_data *sd,int limit,int pub,char* pa
 int chat_kickchat(struct map_session_data *sd,char *kickusername)
 {
 	struct chat_data *cd;
-	int i,kickuser;
+	int i;
 
 	nullpo_retr(1, sd);
 
-	cd=(struct chat_data*)map_id2bl(sd->chatID);
-	if(cd==NULL || (pc_isGM(sd) < 99 && (struct block_list *)sd!=(*cd->owner)))//gm kick protection by valaris
-	return 1;
+	cd = (struct chat_data *)map_id2bl(sd->chatID);
+	if (cd == NULL || ((struct block_list *)sd != (*cd->owner) && pc_isGM(sd) < 99))//gm kick protection by valaris
+		return 1;
 
-	for(i = 0,kickuser=-1;i < cd->users;i++){
-		if(strcmp(cd->usersd[i]->status.name,kickusername)==0){
-			kickuser=i;
-			break;
+	for(i = 0; i < cd->users; i++) {
+		if (strcmp(cd->usersd[i]->status.name, kickusername) == 0) {
+			chat_leavechat(cd->usersd[i]);
+			return 0;
 		}
 	}
-	if(kickuser<0) // そんな人は居ない
-		return -1;
 
-	chat_leavechat(cd->usersd[kickuser]);
-
-	return 0;
+	return -1;
 }
 
 /*==========================================
@@ -361,14 +348,5 @@ int chat_npckickall(struct chat_data *cd)
 	while(cd->users>0){
 		chat_leavechat(cd->usersd[cd->users-1]);
 	}
-	return 0;
-}
-
-/*==========================================
- * 終了
- *------------------------------------------
- */
-int do_final_chat(void)
-{
 	return 0;
 }
