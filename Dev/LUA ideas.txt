@@ -117,3 +117,37 @@ I don't think its sad, but my approach isn't a replacement but an addition :X. B
 is nice and all, but doesn't really acheive AI that keeps things real. Because these are just simple triggers
 to create some simple more advanced AI. And how do you know its sad???
 </Kevin>
+
+<MouseJstr>
+
+I would be hesitant to replace skill/mob logic via the scripting
+language.  We have enough performance issues.  I do like the idea of
+doing game/item initialization via the scripting language
+
+Another thing you need to be very careful of with Lua is.. no calls
+can block since eA is single threaded.  For example, you cannot have
+something like
+
+    .
+    .
+    int a = popupDialogAndGetAnswer();
+    switch (a) {
+           case 1:
+           case 2:
+    } 
+    .
+    .
+
+Instead, we still must use callbacks
+
+   .
+   . 
+   popupDialog(choicemadeLbl);
+   return;
+choicemadeLbl:
+   int a = getDialogAnswer();
+   switch (a)
+
+No call can block... all calls must return
+
+</MouseJstr>
