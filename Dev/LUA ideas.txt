@@ -171,3 +171,4 @@ the item_db are doomed.
 lol I thought you mean lua was sad. And mouse, im going on this asuming that lua scripting
 is a tad more efficient then ea scripting. So you are right about performance, but if lua
 solves the efficiency problems then I think it would be a good idea o.O.
+</Kevin>
