@@ -22,3 +22,19 @@ from NPCs, GM Commands and others ^^ We will need to add every needed scripting 
 available LUA functions, which won't be so hard since LUA is exactly done for this...
 
 Well, this is only the idea I got, you are free (and asked !) to give comments and feedback !
+
+<Skotlex>
+Say, why not change shops to be a special type of function in itself? I say,
+  instead of:
+	shop	Shop Name	mapname.gat X Y direction sprite itemid1:price1,itemid2:price2,...
+We make them normal npcs:
+	npc  Shop Name   mapname.gat X Y direction sprite lua_function
+And somehow within the function have a command that triggers a shop, like
+(using current script structure, it would mimic menu)
+	callshop itemid1:price1,itemid2:price2, ....
+Why? Two things:
+	1. you could multiply shops by invoking the same function (useful for tool	shops?)
+	2. You could have npcs trigger a shop, how awesome is that?
+Don't know how easy that'd be, but it's one of the things I've wanted to be
+able to do with scripts since long ago...
+</Skotlex>
