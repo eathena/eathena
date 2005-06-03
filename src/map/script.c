@@ -7406,42 +7406,25 @@ int buildin_unequip(struct script_state *st)
 // strlen [Valaris]
 //-------------------------------------------------------
 int buildin_getstrlen(struct script_state *st) {
-	
-	struct map_session_data *sd=NULL;
-	sd=script_rid2sd(st);
-	
-	int len;
-	char *str=NULL;
-	
-	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 
-	len=strlen(str);
+	char *str = str=conv_str(st,& (st->stack->stack_data[st->start+2]));
+	int len = (str) ? strlen(str) : 0;
+
 	push_val(st->stack,C_INT,len);
-	
 	return 0;
-	
 }
 
 //=======================================================
 // isalpha [Valaris]
 //-------------------------------------------------------
 int buildin_charisalpha(struct script_state *st) {
-	
-	struct map_session_data *sd=NULL;
-	sd=script_rid2sd(st);
-	
-	int pos=0;
-	char *str=NULL;
-	
-	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
-	pos=conv_num(st,& (st->stack->stack_data[st->start+3]));
 
-	if(str[pos] >= 'A' && str[pos] <= 'z') {
-		push_val(st->stack,C_INT,1);
-	} else {
-		push_val(st->stack,C_INT,0);
-	}
+	char *str=conv_str(st,& (st->stack->stack_data[st->start+2]));
+	int pos=conv_num(st,& (st->stack->stack_data[st->start+3]));
 
+	int val = ( str && pos>0 && pos<strlen(str) ) ? isalpha( str[pos] ) : 0;
+
+	push_val(st->stack,C_INT,val);
 	return 0;
 }
 

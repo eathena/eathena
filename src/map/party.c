@@ -3,11 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../common/db.h"
-#include "../common/timer.h"
-#include "../common/socket.h"
-#include "../common/nullpo.h"
-#include "../common/malloc.h"
+#include "db.h"
+#include "timer.h"
+#include "socket.h"
+#include "nullpo.h"
+#include "malloc.h"
+
 #include "party.h"
 #include "pc.h"
 #include "map.h"
@@ -582,11 +583,11 @@ int party_send_hp_check(struct block_list *bl,va_list ap)
 // exp share and added zeny share [Valaris]
 int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 {
-	nullpo_retr(0, p);
-
 	struct map_session_data *sd;
 	int i;
 	short c, bonus =1; // modified [Valaris]
+
+	nullpo_retr(0, p);
 
 	for (i = c = 0; i < MAX_PARTY; i++)
 		if ((sd = p->member[i].sd) != NULL && sd->bl.m == map)
@@ -608,6 +609,10 @@ int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 		case 11: bonus=3.75; break;
 		case 12: bonus=4; break;
 	}
+// the arithmetic for this bonus is
+// 1 + 0.05*c*(c-1)/2
+// but this would mean the case 12 should be 4.3 instead of 4 [Shinomori]
+
 
 	for (i = 0; i < MAX_PARTY; i++)
 		if ((sd = p->member[i].sd)!=NULL && sd->bl.m == map && session[sd->fd] != NULL) {
