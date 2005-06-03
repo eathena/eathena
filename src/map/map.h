@@ -178,6 +178,8 @@ struct map_session_data {
 		unsigned event_death : 1;
 		unsigned event_kill : 1;
 		unsigned event_disconnect : 1;
+		// Abracadabra bugfix by Aru
+		unsigned abra_flag : 1;
 	} state;
 	struct {
 		unsigned killer : 1;

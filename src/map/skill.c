@@ -3049,6 +3049,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_nodamage (src, bl, skillid, skilllv, 1);
 			sd->skillitem = abra_skillid;
 			sd->skillitemlv = abra_skilllv;
+			sd->state.abra_flag = 1;
 			clif_item_skill (sd, abra_skillid, abra_skilllv, "Abracadabra");
 		}
 		break;
@@ -6681,6 +6682,13 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		clif_skill_fail(sd,sd->skillid,9,0);
 		sd->skillitem = sd->skillitemlv = -1;
 		return 0;
+	}
+
+	if (sd->state.abra_flag)
+	{
+		sd->skillitem = sd->skillitemlv = -1;
+		if(type&1) sd->state.abra_flag = 0;
+		return 1;
 	}
 
 	if (sd->state.produce_flag &&
