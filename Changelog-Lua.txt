@@ -1,7 +1,0 @@
-Date	Added
-06/03
-	* Added a file with my ideas ^^ [DracoRPG]
-	* Added Lua lib to makefile [celest]
-
-06/02
-	* Added Lua Branch [moustjstr]

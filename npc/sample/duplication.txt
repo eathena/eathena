@@ -1,0 +1,15 @@
+npc	Healer Dog	prontera.gat 100 100 4 81 npc_healer
+npc	Healer Dog	morroc.gat 100 100 4 81 npc_healer
+npc	Healer Dog	payon.gat 100 100 4 81 npc_healer
+
+and ANYWHERE ELSE, even in another file if you want, the "npc_healer" LUA function is defined
+
+function npc_healer
+	npcmes "[Healer Dog]"
+	npcmes "Hi! Wanna get a heal?"
+	next
+	heal()
+	npcmes "[Healer Dog]"
+	npcmes "Here you are!"
+	close
+end
