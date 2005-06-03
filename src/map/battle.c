@@ -338,6 +338,9 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	int class_;
 
 	nullpo_retr(0, bl);
+	
+	if(src->m != bl->m) // [ShAPoNe] Src and target same map check.
+		return 0;
 
 	class_ = status_get_class(bl);
 
@@ -4101,7 +4104,7 @@ struct Damage battle_calc_weapon_attack(
 	struct Damage wd;
 
 	//return‘O‚Ìˆ—‚ª‚ ‚é‚Ì‚Åî•ño—Í•”‚Ì‚Ý•ÏX
-	if (src == NULL || target == NULL) {
+	 if (src == NULL || target == NULL || (src->m != target->m)) {  // [ShAPoNe] Src and target same map check.
 		nullpo_info(NLP_MARK);
 		memset(&wd,0,sizeof(wd));
 		return wd;
