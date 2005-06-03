@@ -103,3 +103,10 @@ end
 
 Now this would be pretty nifty o.O.
 </Kevin>
+<Skotlex>
+But how good is Kevin's approach to defining mob skills versus what we already
+have? the mob_skill_db seems highly flexible as it is. Or the idea is send as
+much as the AI logic as possible to be done using LUA scripts? o.O
+I thought LUA was gonna be used only (mostly?) for scripts, since eA's parsing
+and scripting engine is pretty sad as it is.
+</Skotlex>
