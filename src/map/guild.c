@@ -1526,8 +1526,9 @@ int guild_castlealldataload(int len,struct guild_castle *gc)
 				guild_npc_request_info(c->guild_id, "::OnAgitInit");
 		}
 	}
-	if (ev == -1)
-		npc_event_doall("OnAgitInit");
+//What is this for? AgitStart already does this call, this seems to be redundant code from when WoE was not npc-controlled. [Skotlex]
+//	if (ev == -1)
+//		npc_event_doall("OnAgitInit");
 	return 0;
 }
 

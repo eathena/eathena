@@ -1,5 +1,7 @@
 Date	Added
 06/03
+	* Stopped the map-server from invoking "OnAgitStart" each time it connects
+	to the char server.	[Skotlex]
 	* Modified Abracadabra code to make it work with Pet Skills	[Skotlex]
 	  (Warning: Not yet tested)
 	* fixed a bug with Abracadabra
