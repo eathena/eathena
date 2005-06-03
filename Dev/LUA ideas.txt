@@ -151,3 +151,18 @@ choicemadeLbl:
 No call can block... all calls must return
 
 </MouseJstr>
+<Skotlex>
+How do I know eA's script engine is sad? I have written scripts for a long
+time... tried writing all sorts of complex scripts even. There's no 'else',
+there's no {} to group commands, you can't even do "if (something) return 5"!
+And my current bug that I can't quite fix... "menu "Hey
+"+callfunc("getJobName"), CONTINUE, "I am out of here",-;" causes a crash upon
+selecting an entry. eA's script engine ain't crap, but it certainly needs tons
+of work... but making a script engine is reinventing the wheel, so I am glad
+that something else can be used instead. Ask anyone that scripts, they all
+know that eA's scripting could be much better :P
+PD: Whatever happened to the other files inside Dev/? 
+PD2: Draco, in your examples, there is no command delimiter other than
+"enter", can LUA be configured to use semi-colons? I hope so or the multi-line scripts in
+the item_db are doomed.
+</Skotlex>
