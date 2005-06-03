@@ -1338,6 +1338,11 @@ int clif_spawnpc(struct map_session_data *sd) {
 	if (map[sd->bl.m].flag.rain)
 		clif_specialeffect(&sd->bl, 161, 1);
 
+	if(sd->viewsize==2) // tiny/big players [Valaris]
+		clif_specialeffect(&sd->bl,423,0);
+	else if(sd->viewsize==1)
+		clif_specialeffect(&sd->bl,421,0);
+		
 	return 0;
 }
 
@@ -3624,6 +3629,11 @@ void clif_getareachar_pc(struct map_session_data* sd,struct map_session_data* ds
 		clif_changelook(&dstsd->bl,LOOK_CLOTHES_COLOR,dstsd->status.clothes_color);
 	if(sd->status.manner < 0)
 		clif_changestatus(&sd->bl,SP_MANNER,sd->status.manner);
+		
+	if(sd->viewsize==2) // tiny/big players [Valaris]
+		clif_specialeffect(&sd->bl,423,0);
+	else if(sd->viewsize==1)
+		clif_specialeffect(&sd->bl,421,0);
 
 }
 
@@ -8043,7 +8053,13 @@ void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd) {
 
 		nullpo_retv(ssd);
 
-		memcpy(WFIFOP(fd,6), ssd->status.name, 24);
+		if(strlen(ssd->fakename)>1) {
+			memcpy(WFIFOP(fd,6), ssd->fakename, 24);
+			WFIFOSET(fd,packet_len_table[0x95]);
+			break;
+		} else {
+			memcpy(WFIFOP(fd,6), ssd->status.name, 24);
+		}
 		if (ssd->status.guild_id > 0 && (g = guild_search(ssd->status.guild_id)) != NULL &&
 		    (ssd->status.party_id == 0 || (p = party_search(ssd->status.party_id)) != NULL)) {
 			// ギルド所属ならパケット0195を返す

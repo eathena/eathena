@@ -393,6 +393,9 @@ struct map_session_data {
 	unsigned nodelay :1;
 	unsigned noexp :1;
 	unsigned detach :1;
+	
+	char fakename[24]; // fake names [Valaris]
+	short viewsize; // for tiny/large types
 
 #ifndef TXT_ONLY
 	int mail_counter;	// mail counter for mail system [Valaris]

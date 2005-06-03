@@ -277,6 +277,8 @@ ACMD_FUNC(rates); // by MouseJstr
 ACMD_FUNC(iteminfo); // Lupus
 ACMD_FUNC(mapflag); // Lupus
 ACMD_FUNC(me); //added by massdriller, code by lordalfa
+ACMD_FUNC(fakename); //[Valaris]
+ACMD_FUNC(size); //[Valaris]
 
 /*==========================================
  *AtCommandInfo atcommand_info[]\‘¢‘Ì‚Ì’è‹`
@@ -576,6 +578,8 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_MapFlag,			"@mapflag",		99, atcommand_mapflag }, // [Lupus]
 
 	{ AtCommand_Me,				"@me",			20, atcommand_me }, //added by massdriller, code by lordalfa
+	{ AtCommand_FakeName,				"@fakename",			20, atcommand_fakename },
+	{ AtCommand_Size,				"@size",			20, atcommand_size },
 
 
 // add new commands before this line
@@ -9634,6 +9638,56 @@ int atcommand_me(
 	
 }
 
+/*==========================================
+ * @size
+ * => ?
+ *------------------------------------------
+ */
+int atcommand_size(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	int size=0;
+
+	nullpo_retr(-1, sd);
+
+	if (!message || !*message)
+		return -1;
+
+	if (sscanf(message,"%d", &size) < 1)
+		return -1;
+
+	if(sd->viewsize) {
+		sd->viewsize=0;
+		pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
+	}
+
+	if(size==1) {
+		sd->viewsize=1;
+		clif_specialeffect(&sd->bl,420,0);
+	} else if(size==2) {
+		sd->viewsize=2;
+		clif_specialeffect(&sd->bl,422,0);
+	}
+
+	return 0;
+}
+int atcommand_fakename(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	nullpo_retr(-1, sd);
+
+	if((!message || !*message) && strlen(sd->fakename) > 1) {
+		sd->fakename[0]='\0';
+		pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
+		clif_displaymessage(sd->fd,"Returned to real name.");
+	}
+
+	if (!message || !*message)
+		clif_displaymessage(sd->fd,"You must enter a name.");
+	return 0;
+}
 /*==========================================
  * @mapflag [flagap name] [1|0|on|off] [map name] by Lupus
  * => Shows information about the map flags [map name]

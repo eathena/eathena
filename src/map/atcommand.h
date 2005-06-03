@@ -261,6 +261,8 @@ enum AtCommandType {
 
 	// end
 	AtCommand_Unknown,
+	AtCommand_FakeName, // [Valaris]
+	AtCommand_Size, // [Valaris]
 	AtCommand_MAX
 };
 
