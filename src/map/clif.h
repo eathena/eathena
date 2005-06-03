@@ -271,6 +271,8 @@ int clif_guild_allianceack(struct map_session_data *sd,int flag);
 int clif_guild_delalliance(struct map_session_data *sd,int guild_id,int flag);
 int clif_guild_oppositionack(struct map_session_data *sd,int flag);
 int clif_guild_broken(struct map_session_data *sd,int flag);
+int clif_guild_xy(struct map_session_data *sd);
+int clif_guild_xy_remove(struct map_session_data *sd);
 
 
 // atcommand

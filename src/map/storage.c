@@ -332,7 +332,7 @@ int storage_storageclose(struct map_session_data *sd)
 	clif_storageclose(sd);
 
 	chrif_save(sd);
-	//storage_storage_save(sd);	// called by chrif_save
+	storage_storage_save(sd);	//items lost on crash/shutdown, by valaris
 
 	sortage_sortitem(stor);
 	return 0;

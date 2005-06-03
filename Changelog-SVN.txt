@@ -1,5 +1,7 @@
 Date	Added
 06/02
+	* Fixed items lost on shutdown/crash, by valaris. [Kevin]
+	  -Note: Was partially finished by massdriller =).
 	* A few things: [Kevin]
 	  -Fixed valaris's gms can't be kicked function.
 	  -Added battle_config option for valaris's function.

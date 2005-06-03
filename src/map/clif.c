@@ -2370,6 +2370,38 @@ int clif_guildstorageequiplist(struct map_session_data *sd,struct guild_storage 
 	return 0;
 }
 
+// Guild XY locators [Valaris]
+int clif_guild_xy(struct map_session_data *sd)
+{
+unsigned char buf[10];
+
+nullpo_retr(0, sd);
+
+WBUFW(buf,0)=0x1eb;
+WBUFL(buf,2)=sd->status.account_id;
+WBUFW(buf,6)=sd->bl.x;
+WBUFW(buf,8)=sd->bl.y;
+clif_send(buf,packet_len_table[0x1eb],&sd->bl,GUILD_SAMEMAP_WOS);
+
+return 0;
+}
+
+// Guild XY locators [Valaris]
+int clif_guild_xy_remove(struct map_session_data *sd)
+{
+unsigned char buf[10];
+
+nullpo_retr(0, sd);
+
+WBUFW(buf,0)=0x1eb;
+WBUFL(buf,2)=sd->status.account_id;
+WBUFW(buf,6)=-1;
+WBUFW(buf,8)=-1;
+clif_send(buf,packet_len_table[0x1eb],&sd->bl,GUILD_SAMEMAP_WOS);
+
+return 0;
+}
+
 /*==========================================
  * ステータスを送りつける
  * 表示専用数字はこの中で計算して送る
