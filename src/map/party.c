@@ -583,34 +583,31 @@ int party_send_hp_check(struct block_list *bl,va_list ap)
 // exp share and added zeny share [Valaris]
 int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 {
-	struct map_session_data *sd;
+	struct map_session_data* sd[MAX_PARTY];
 	int i;
 	short c, bonus =100; // modified [Valaris]
 
 	nullpo_retr(0, p);
 
 	for (i = c = 0; i < MAX_PARTY; i++)
-		if ((sd = p->member[i].sd)!=NULL && sd->bl.m == map && session[sd->fd] != NULL) {
-			if (battle_config.idle_no_share && (pc_issit(sd) || sd->chatID || (sd->idletime < (last_tick - 120))))
+		if ((sd[c] = p->member[c].sd)!=NULL && sd[c]->bl.m == map && session[sd[c]->fd] != NULL) {
+			if (battle_config.idle_no_share && (pc_issit(sd[c]) || sd[c]->chatID || (sd[c]->idletime < (last_tick - 120))))
 				continue;
 			c++;
 		}
-	if (c <= 0)
+	if (c < 1)
 		return 0;
 	// the arithmetic for this bonus is
 	// 1 + 0.05*c*(c-1)/2 [Shinomori]
-	bonus += (5*c*(c-1)/2);	//Changed the switch to an equation [Skotlex]
+	bonus += (5*c*(c-1)/2);	//Changed Valaris's bonus switch to an equation [Skotlex]
 	//Bonus at Full party (12): +3.3 (430% exp/12 ~= 35% of total Mob's exp)
 
-	for (i = 0; i < MAX_PARTY; i++)
-		if ((sd = p->member[i].sd)!=NULL && sd->bl.m == map && session[sd->fd] != NULL) {
-			if (battle_config.idle_no_share && (pc_issit(sd) || sd->chatID || (sd->idletime < (last_tick - 120))))
-				continue;
-			pc_gainexp(sd,bonus*base_exp/(c*100),bonus*job_exp/(c*100));
-			if (battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
-				pc_getzeny(sd,bonus*zeny/(c*100));
-		}
-
+	for (i = 0; i < c; i++)
+	{
+		pc_gainexp(sd[i],bonus*base_exp/(c*100),bonus*job_exp/(c*100));
+		if (battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
+			pc_getzeny(sd[i],bonus*zeny/(c*100));
+	}
 	return 0;
 }
 

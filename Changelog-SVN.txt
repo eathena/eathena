@@ -1,5 +1,6 @@
 Date	Added
 06/03
+	* 'Tidied' a bit party_exp_share (more like restructured it).	[Skotlex]
 	* Re-added party_idle_no_share code. When was it removed? [Skotlex]
 	* Added skills going damanage when PVP isn't on fix. [Kevin]
 	* Fixed the party-even-share bonus for large parties. [Skotlex]
