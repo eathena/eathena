@@ -1,5 +1,6 @@
 Date	Added
 06/03
+	* Updated sql-files/item_db.sql to match with the current db/item_db.txt [Skotlex]
 	* Added some initialization code regarding dynamic mobs during map startup. [Skotlex]
 	* Fixed the typo on Thief's Sling Stone quest (Zargon->Garlet)	[Skotlex]
 	  Why noone fixed this before? o.O
