@@ -1,5 +1,6 @@
 Date	Added
 06/03
+	* Some optimizations to petskill_use	[Skotlex]
 	* Fixed the default max hair dye color count, it is 8, not 9 @.@	[Skotlex]
 	* Changed disp_hpmeter's behaviour so that you can disable it by setting it
 	to "no" or 0.	[Skotlex]
