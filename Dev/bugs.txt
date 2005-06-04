@@ -1,0 +1,371 @@
+Problem:	Stats nor skills don't downgrade when your level gets reverted due to exp loss.
+Assigned:	N/A
+Progess:	0%
+Note:		Lets make it reset completely when you do a leveldown.
+
+Problem:	Pre skill requirements for new skills are wrong it makes you use 49 skills points before you can get the newer skills.
+Assigned:	Celest
+Progess:	~90% (Notes: not sure if it causes problems, need more testing =p)
+
+Problem:	Joker card 4139 lets anyone to steal money / zeny. Just like he's a thief. It shoul;d be revised - success rates lowered and "steal item" disabled
+Assigned:	N/A
+Progess:	0%
+Note:		It DOES let people use Steal Level 1 like a thief. But nothing else apart from that.
+
+Problem:	Wierd login-server bug on sql, it displays that the server is full when map-server crashes, has something to do with anti double login feature?
+Assigned:	N/A
+Progress:	0%
+
+Problem:	MVP cast spells w/o showing "prepare cast line"
+Assigned:	N/A
+Progress:	jA's mob skill DB itself already has skills that have no cast time,
+                does the same problem happen in jA? Perhaps it should read right from
+                skill_cast_db instead? [celest]
+
+Problem:        Chars with ' in their name.. is legal.. and messes up sql
+Assigned:       Kevin
+Progress:       done
+Note:           I used a sql query instead of escaping the string, works better, causes less lag on the server, puts less stress on mysql.
+Information:	http://dev.mysql.com/doc/mysql/en/mysql_real_escape_string.html
+
+	DB server Error - You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'n' Sniff')' at line 1    Scratch 'n' Sniff
+
+Problem:	mob_aval clone bug crashes client
+Assigned:       N/A
+Progress:       0%
+
+                spawn mob 1600..
+
+                also
+
+                add a flag to the monsters defs
+                for example
+                1002,1039 // makes a poring a bapho
+                if it's like that nothing happens
+                but if you do this
+                1002,1039,1 // makes a poring a big bapho  
+                1002,1039,2 // makes a poring a small bapho
+                effect id or something
+
+Problem:	Storage BUGS! Items doubles/clones again any kinds of items! (due to "latest storage fix")
+Assigned:	Kevin
+Progress:	Done
+
+                Only happens during crashes.. 
+
+Problem:	status.weapon can be 16... which causes the accesses outside
+	        the bounds of the array
+Assigned:	N/A
+Progress:	0%
+
+	battle.c:549:Bounds error: array reference (16) outside bounds of the array.
+	battle.c:549:  Pointer value: 0x1ceda808
+	battle.c:549:  Object `calloc':
+	battle.c:549:    Address in memory:    0x1ceda7c8 .. 0x1ceda807
+	battle.c:549:    Size:                 64 bytes
+	battle.c:549:    Element size:         4 bytes
+	battle.c:549:    Number of elements:   16
+	battle.c:549:    Created at:           malloc.c, line 23
+	battle.c:549:    Storage class:        heap
+	battle.c:3078:Bounds error: array reference (16) outside bounds of the array.
+	battle.c:3078:  Pointer value: 0x1ceda848
+	battle.c:3078:  Object `calloc':
+	battle.c:3078:    Address in memory:    0x1ceda808 .. 0x1ceda847
+	battle.c:3078:    Size:                 64 bytes
+	battle.c:3078:    Element size:         4 bytes
+	battle.c:3078:    Number of elements:   16
+	battle.c:3078:    Created at:           malloc.c, line 23
+	battle.c:3078:    Storage class:        heap
+
+
+Problem:	This bug's appeared again: Permanent #Variables/Variables disappear.
+			Quests, Banks, etc wipe when you create a new character
+
+		We had no such a bug before, but Freya has it. Probably it soaked into eA with 
+		Freya optimizations code...
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Potion Pitcher skill should be able to target yourself.
+Assigned:	N/A
+Progress:	-
+Notes:          Gravity disabled that some time ago ;P
+
+Problem:	Exp Party Sharing Bug.
+		i.g. Hunter + Merchant are in the same party. M. is sitting. Hunter is killing some Seals. M. doesn't get EXP.
+		Then H. teleports to another map and hunts there. Now, M. kills a poring and get a huuuuuuuuuuuuuuuuge amount
+		of EXP (like it was collecting... all the time he was sitting next to H.)
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Guilds alliances
+		You can have any number of alliances entried in SQL db. Sometimes it glitches and you get > 4 alliances
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Disguise Stats Bonus bug.
+		try @disguise 1002 or 'bonus bDisguise,1002;' as a script in a wearable item. And then go in hide.
+		You'll get +255 os ro bonuses for all stats and would kill LOD in one kick.
+		It's a global bug.. comes from those times when WEDDING Class had such ++++bonuses
+		So Wedding Class has been fixed, but not the source of the bug.
+Assigned:	N/A
+Progress:	0%
+
+Problem:	You can put in Cart goods more than Cart Max Weight limit allows
+		(it's an old good bug about Named / Unnamed Stackable items)
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Fire Pillar doesn't consume GEMS!
+Assigned:	N/A
+Progress:	N/A
+Notes:	It isn't supposed to for level 1-5 ^^ [Celest]
+
+Problem:	[item exploit] Hunters can set traps not consuming the TRAPS ITEMS, when Bards
+		use their special support skill.
+		Then Hunters can collect these traps for free... And then sell, etc.
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Speed hack and other proxy-like hacks
+		they change/double selected packets for different exploits:
+			dupe, multiattack (destroy Emp in 1 minute.) etc...
+		We should check packets, should keep eye on frequency of users packets
+			and ban / kick / log funkers
+Assigned:	N/A
+Progress:	0%
+
+Problem:	If a char has been saved with non-existing map name
+		then the server crashes on entering the game.
+		the wrong names e.g. prontera.gat.gat
+		could be generated on times when map server is disconnected with char server.
+Assigned:	N/A
+Progress:	0%
+
+Problem:	[item exploit] Trade Window + Blacksmith's/Alchemyst's MAKE skills -> item exploit
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Wedding TELEPORT skills now work on maps where TELEPORT was disabled
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Guilds Skill - Emergency Call doesn't work in castles (it somehow useless)
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Guilds Skill - GD_DEVELOPMENT (Extend_Guild)
+		has different description in korean desc table (some numbersm etc)
+		so it's different from the current implementation (Celest, plz check)
+Assigned:	N/A
+Progress:	0%
+
+Problem:	'Adrenaline Rush' has to work with any weapon again (for whole party)
+		according to the kRO Sak patch on 21/12
+Assigned:	N/A
+Progress:	N/A
+Notes:          "Fixed Adrenaline Rush skill working for all weapon types again."
+                I think it was supposed to not work with all weapons ^^;
+
+Problem:	[Urgent!] Server doesn't save Variables (#global and global)
+		If you exit the client with Alt-F4 or lose connection to the server.
+Assigned:	N/A
+Progress:	0%
+
+Problem:	[Scripts] Mob spawn. If you set unexisting monster Id
+		then you have "novice" looking mobs with random EXP
+		for exapmple there was a mob with 1 HP and 22.000 Exp.
+Assigned:	N/A
+Progress:	0%
+
+Problem:	When 2 players try to pickup one dropped item at the same time
+		then both pickup the item, but 1st one gets ACTUAL item
+		and another one gets Apple - Unknown item (with random stats, random upgrade, etc)
+Assigned:	N/A
+Progress:	0%
+
+Problem:	[script.c] script command DOEVENT now doesn't work...
+		so Knight JOB Quest is unpassable now, Monks Job Quest is too easy (traps don't work)
+		probably more bugs...
+		I (Lupus) have script-wise solution. But it isn't good! 8((( DOEVENT used to work fine!
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Skill Delays Bug (Hunters)
+		When you use a skill then Equip Another kind of arrows,
+		you can immediately cast another SKILL. (Bind skills on hot keys and... u get a killing machine)
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Scripts prob
+		We can't use jA's new commands: FOR, WHILE, ELSE, etc
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Sniper
+		They have 2 skills to dismount traps: Emeny's and Our's.
+		So.. during GVG you can't use 1 of the skills at all
+		but the 2ns one dismounts BOTH types of traps: yours and enemies
+Assigned:	N/A
+Progress:	0%
+
+Problem:	WATERBALL
+		According to http://bbs.emperium.org/viewtopic.php?t=15566&highlight=waterball+faq
+		Waterballs power depends on the TYPE of water on the map:
+		Works with Sage's Deluge, although it drains the cells.
+		Also note, if you cast Waterball with less water
+		(some areas count as shallow water and do not give the full effects either) than required for the full effect, you will shoot out less Waterballs. This skill is chainable. 
+Assigned:	N/A
+Progress:	0%
+
+Problem:	ABRAKADABRA (HOCUS POCUS)
+		It misses half of its effects
+		According to http://bbs.emperium.org/viewtopic.php?t=15566&highlight=waterball+faq
+		This skill allows you to use any active skill from any class. However, skills that need you to have a weapon or item you cannot equip or posses will fail. So like Adrenaline Rush and Double Strafe will fail. Also, keep in mind the level of Hocus Pocus also equals the level of the skill you cast. So with Hocus Pocus level 10 you can cast Grand Cross level 10, etc. In addition to those skills you have a chance of casting any of these skills (not sure what the actual names of the skills are): 
+		Monster Chant- basically the same effect as a Dead Branch (not sure if it can be used in town or not). 
+		Reverse Orcish- the Sage's face becomes green like that of an...Orc... 
+		Suicide- the Sage dies. You lose experience as well. 
+		Full-Heal- you regenerate all SP and HP. 
+		Coma- the Sage's HP/SP fall to 1. 
+		Gravity - This skill was supposed to advertise Gravity but was disabled outside of kRO/jRO since other companies carry RO (not in iRO?). 
+		????- This skill will randomly become one of the following if cast on a target: 
+		1) Grim Reaper - the target will die. You won't gain any experience nor will the monster drop anything. Rumors say that you can instant-kill an MVP. This works in PvP. 
+		2) Mono Cell - Change target into a Poring. Only on monsters though. 
+		3) Class Change - Changes the target to an MVP boss monster. If cast on an Alchemist's Flora or Marine Sphere, the MVP will die after the set amount of time that monster would have died. 
+		4) Monster Tame - if you target a monster that is possible to have as a pet, you will see a slot machine pop up. Basically this is a free tame. 
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Arrows Dupe (or random amount change)
+		You should prepare/remove arrows while trade. And have both - names and unnamed arrows ^_-
+Assigned:	N/A
+Progress:	0%
+
+Problem:	ICE WALL
+		When you set a diagonal wall - in its middle sometimes a segment's dropped. So monsters can walk trough it.
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Party EXP share bug
+		1. Create a party
+		2. Invite a member
+		3. Kick him out the party
+		4. Invite him again.
+		Now he can get His 100% EXP + 100% Yours EXP (in the party window you look like you're off )
+			* SQL parties have been fixed in Freya (but the whole file int_party.c has been rewritten there)
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Character global VARS save with delay. (BTW Account #vars are fine!)
+			It cause multi exploits in all quests (you can leave the game - changing character
+			and you lose your vars saving. So you can complete the quest again, etc)
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Client Crash
+			When a wizard casts Energy coat then TELEPORTs
+Assigned:	N/A
+Progress:	0%
+
+Problem:	Charge Arrow bug
+			It can be casted w/o any BOW.. and with other weapon, or.. even with bare hands
+Assigned:	Celest
+Progress:	100%
+
+Problem:	Storm Gust, Lord of Vermilion and maybe others AoE skills (it worked fine before ~9 may 2005)
+			It works and casts as LEVEL 10, even if u cast it on lvl 1
+Assigned:	NA
+Progress:	0%
+
+Problem:	Bards songs do BLIND players...
+Assigned:	NA
+Progress:	0%
+Notes:	It's only the client-side visual effect, not an actual blind state
+
+Problem:	Wedding Teleport Skills
+			Somehow.. just married could RECALL players from Prison
+			(probably NOT all map flags are checked)
+Assigned:	NA
+Progress:	0%
+
+Problem:	Wedding Skills (thousand brides...)
+			The skills work even if PARTNER_ID of destination player doesn't coinside
+			to CALLER
+			in other words... if you aren't properly married.
+			I'd suggest to CLEAR bugged Patner_id automatically
+			And automatically remove wedding rings from not married players
+			when they enter the server
+Assigned:	NA
+Progress:	0%
+
+
+Problem:	New Guilds Active Skills Abuse.
+			You can re-enter the game and call guild skills again w/o delay since the delay is applied to the character
+Assigned:	na
+Progress:	0%
+
+Problem:	Baby Merchant + Cart = Client Crash (when other players see him)
+Assigned:	na
+Progress:	0%
+
+Problem:	Guilds Breaking
+		When you BREAK your guild and then someone re-creates another guild with the same Name
+		Then new GULD would have LEVEL, EXP, STATS of the broken guild
+			Probably it isn't being deleted from memory.
+Assigned:	N/A
+Progress:	0%
+
+
+Problem:	Plagiarizm
+			When you recieve ROGUIE SKILL - it could replace your own skill... then wipe it off the SQL
+			So u lose your own skills..
+Assigned:	na
+Progress:	0% ??? probably fixed?
+
+
+Problem:	Plagiarizm Client CRASH
+			When you get a plagiarized MONSTERS skill in your SKILL list - client crashes.
+Assigned:	na
+Progress:	0%
+
+Problem:	Disconnected from server
+			Some players recieve this note and can't re-connect the server till its reboot.
+Assigned:	na
+Progress:	0%
+
+Problem:	HP_ASSUMPTIO skill
+			When you cast it, then you lose all your SP.
+			And the affected people can't talk and use skills.
+
+			Note: Due to the patch change, this skill now affects people around you, and takes in less SP.
+				 It also shows different effect. 
+
+Assigned:	na
+Progress:	0%
+
+Problem:	Energu Coat, Cloaking, etc DON'T work at all
+Assigned:	na
+Progress:	0%
+
+Problem:	Maps with more than 32 monsters (like anthell01 has 90++) will not load
+		the rest of them because map[i].moblist is full
+			Sorry, i only checked a few NPC files, wasn't seeing more than 32
+Assigned:	na
+Progress:	100%
+
+Problem: (script related) Using callfunc/callsub inside a Menu crashes the server.
+Assigned:	None
+Progress:	0% 
+	Using callfunc/callsub within a menu will cause the server to crash after the
+	user has selected an entry (the menu does finish displaying correctly). I
+	speculate that the return of the function is messing up the script resume point
+	in these situations. [Skotlex]
+
+Problem: Dynamic mobs needs fixing
+Assigned:	None
+Progress:	90%
+	Changing the mob spawn/deletes to map_addblock/map_delblock seemed like the
+	best idea as that's where the number of users on the map goes up/down.
+	The code is in place to also remove spawned slaves, while not touching
+	summoned creatures. all which is left is to wait and see what bug reports
+	show up. [Skotlex]
