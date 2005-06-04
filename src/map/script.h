@@ -57,5 +57,8 @@ int do_final_script();
 
 extern char mapreg_txt[];
 
+// LUA functions [DracoRPG]
+int run_function(char *name);
+
 #endif
 

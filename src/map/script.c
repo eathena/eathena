@@ -7927,7 +7927,6 @@ int run_script(char *script,int pos,int rid,int oid)
 	return st.pos;
 }
 
-
 /*==========================================
  * マップ変数の変更
  *------------------------------------------
@@ -8239,5 +8238,24 @@ int do_init_script()
 
 	if (scriptlabel_db == NULL)
 	  scriptlabel_db=strdb_init(50);
+	return 0;
+}
+
+
+/*===================================================================
+ *
+ *                   LUA FUNCTIONS BEGIN HERE [DracoRPG]
+ *
+ *===================================================================
+ */
+
+int run_function(char *name)
+{
+	lua_getglobal(L,name);
+	if (lua_pcall(L,0,1,0)!=0){
+		ShowError("Cannot run function : %s\n",lua_tostring(L, -1));
+		return -1;
+	}
+	ShowInfo("Ran function : %s\n",name);
 	return 0;
 }

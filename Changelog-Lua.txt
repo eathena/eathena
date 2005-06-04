@@ -5,6 +5,8 @@ Date	Added
 	  - Deleted npc folder, we'll now use script instead
 	  - Now script_main.lua is loaded instead of old script_xx.conf files, script files will
 	    be loaded from script_main.lua via Lua's require() function
+	  - Added a primitive run_function() to run Lua functions, no support for args/result atm
+	  - Added @runlua atcommand for testing, try @runlua test and check map-server window ;)
 
 06/03
 	* Cleared up the Files to make way for new Files [massdriller]

@@ -43,8 +43,8 @@ static struct npc_src_list *npc_src_first=NULL;
 static struct npc_src_list *npc_src_last=NULL;
 static int npc_id=START_NPC_NUM;
 static int npc_warp=0;
-static int npc_shop=0;
-static int npc_script=0;
+//static int npc_shop=0;
+//static int npc_script=0;
 static int npc_mob=0;
 static int npc_delay_mob=0;
 static int npc_cache_mob=0;
@@ -2453,8 +2453,8 @@ int npc_reload (void)
 	ev_db = strdb_init(51);
 	npcname_db = strdb_init(24);
 	ev_db->release = ev_release;
-	npc_warp = npc_shop = npc_script = 0;
-	npc_mob = npc_cache_mob = npc_delay_mob = 0;
+/*	npc_warp = npc_shop = npc_script = 0;
+	npc_mob = npc_cache_mob = npc_delay_mob = 0;*/
 	
 	for (nsl = npc_src_first; nsl; nsl = nsl->next) {
 		npc_parsesrcfile(nsl->name);
@@ -2477,14 +2477,14 @@ int npc_reload (void)
 		fflush(stdout);
 	}
 	printf("\r");
-	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:%30s\n\t-'"
+/*	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:%30s\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Warps\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Shops\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Scripts\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Mobs\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Mobs Cached\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
-		npc_id - START_NPC_NUM, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
+		npc_id - START_NPC_NUM, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);*/
 
 	return 0;
 }
@@ -2587,7 +2587,7 @@ int do_init_npc(void)
 		CL_WHITE"%d"CL_RESET"' Mobs Cached\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
 		npc_id - START_NPC_NUM, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);*/
-	
+
 	add_timer_func_list(npc_walktimer,"npc_walktimer"); // [Valaris]
 	add_timer_func_list(npc_event_timer,"npc_event_timer");
 	add_timer_func_list(npc_event_do_clock,"npc_event_do_clock");
@@ -2595,4 +2595,3 @@ int do_init_npc(void)
 
 	return 0;
 }
-
