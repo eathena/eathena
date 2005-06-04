@@ -1537,11 +1537,12 @@ int clif_movechar(struct map_session_data *sd) {
 	} else
 		clif_send(buf, len, &sd->bl, AREA_WOS);
 
-	if(battle_config.save_clothcolor &&
-		sd->status.clothes_color > 0 &&
-		(sd->view_class != 22 || !battle_config.wedding_ignorepalette)
-		)
-		clif_changelook(&sd->bl, LOOK_CLOTHES_COLOR, sd->status.clothes_color);
+// Removed for now to see if it is really needed.	[Skotlex]
+//	if(battle_config.save_clothcolor &&
+//		sd->status.clothes_color > 0 &&
+//		(sd->view_class != 22 || !battle_config.wedding_ignorepalette)
+//		)
+//		clif_changelook(&sd->bl, LOOK_CLOTHES_COLOR, sd->status.clothes_color);
 
 	return 0;
 }

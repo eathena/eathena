@@ -321,7 +321,7 @@ L_Fling:
 	close;
 
 	L_NotRdy4:
-		mes "You need ^5555FF2 Scell and 2 Zargon^000000, and the ability to use ^5555FFFind Stone^000000 to learn Stone Fling.";
+		mes "You need ^5555FF2 Scell and 2 Garlet^000000, and the ability to use ^5555FFFind Stone^000000 to learn Stone Fling.";
 		close;
 	L_GotFling:
 		mes "So Stone Fling is comming in handy huh? Just make sure you don't hit the wrong moster.";

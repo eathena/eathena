@@ -1,5 +1,15 @@
 Date	Added
 06/03
+	* Fixed the typo on Thief's Sling Stone quest (Zargon->Garlet)	[Skotlex]
+	  Why noone fixed this before? o.O
+	* Removed a piece of code that updates your cloth's dye whenever you walk.
+	  I have been testing for a bit, and this piece of code seems unneeded, and
+	  not only that, it causes quite a bandwidth penalty by sending
+	  dye-changing packets every time every character walks!	[Skotlex]
+	  If you get reports that the characters are getting displayed their
+	  default color instead of their selected dye, report it so I add back that
+	  piece of code (but it would be best if we could do without it, it would
+	  save quite some bandwidth).
 	* Some compiler fixes in older versions of GCC, thanks to esca.
 	* Some optimizations to petskill_use	[Skotlex]
 	* Fixed the default max hair dye color count, it is 8, not 9 @.@	[Skotlex]
