@@ -9696,6 +9696,7 @@ int atcommand_fakename(
 		sd->fakename[0]='\0';
 		pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
 		clif_displaymessage(sd->fd,"Returned to real name.");
+		return 0;
 	}
 
 	if (!message || !*message) {
