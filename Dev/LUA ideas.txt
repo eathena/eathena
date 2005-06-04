@@ -82,9 +82,9 @@ Just wondering, what will this do to memory usage since npcs are the huge killer
 Also don't forget that mobs are spawned with eascript :X.
 
 So im guessing that would be like...
-addmob("Poring","prontera.gat",map_x,map_y,#,interval_in_seconds,trigger) or something like that. An important note on
-trigger, because if we implemented better triggers for mobs we could create easily scripted AI better then any
-other emu. So it may be something like this:
+addmob("Poring","prontera.gat",map_x,map_y,#,interval_in_seconds,trigger) or something like that
+An important note on trigger, because if we implemented better triggers for mobs we could create
+easily scripted AI better than any other emu. So it may be something like this:
 
 addmob("Poring","prontera.gat",52,75,10,30,"poring_mob")
 
@@ -113,9 +113,10 @@ and scripting engine is pretty sad as it is.
 </Skotlex>
 
 <Kevin>
-I don't think its sad, but my approach isn't a replacement but an addition :X. Because mob_skill_db
-is nice and all, but doesn't really acheive AI that keeps things real. Because these are just simple triggers
-to create some simple more advanced AI. And how do you know its sad???
+I don't think its sad, but my approach isn't a replacement but an addition :X.
+Because mob_skill_db is nice and all, but doesn't really acheive AI that keeps
+things real. Because these are just simple triggers to create some simple more
+advanced AI. And how do you know its sad???
 </Kevin>
 
 <MouseJstr>
@@ -151,6 +152,7 @@ choicemadeLbl:
 No call can block... all calls must return
 
 </MouseJstr>
+
 <Skotlex>
 How do I know eA's script engine is sad? I have written scripts for a long
 time... tried writing all sorts of complex scripts even. There's no 'else',
@@ -172,3 +174,11 @@ lol I thought you mean lua was sad. And mouse, im going on this asuming that lua
 is a tad more efficient then ea scripting. So you are right about performance, but if lua
 solves the efficiency problems then I think it would be a good idea o.O.
 </Kevin>
+
+<DracoRPG>
+I simply removed all other Dev\ files, because we are not going to work on the bugs they report
+in Lua branch ^^ This file is more visible without them ^^
+Lua does not need any command delimiter, not even "enter", but it's far better to use them ^^
+And for semicolons, you can use them but they are only optional, so you see, item_db won't be
+a problem :p
+</DracoRPG>
