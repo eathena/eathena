@@ -1836,21 +1836,6 @@ int mob_cache_cleanup_sub(struct block_list *bl, va_list ap) {
 	//Mob has the cached flag on 0
 	if (!md->cached)
 		return 0;
-	//1: Mob has spawn/respawn delay (mob is not in cache)
-	//2: Mob has a delete timer (summoned creatures)
-	//3: Mob is damaged (as long as it is not a slave)
-
-	//This handles all summoned mobs from players and mobs with spawn delay
-	//if ( md->spawndelay1 > 0 || md->spawndelay2 > 0 || md->deletetimer != -1 )
-	//	return 0;
-	
-	//This handles slaves and hurt enemies	
-	//if ( !md->master_id && md->hp != md->max_hp && !battle_config.mob_remove_damaged )
-	//	return 0;
-	
-	//Guardians are not to be removed.
-	//if ( md->class_ >= 1285 && md->class_ <= 1288 )
-	//	return 0;
 	
 	mob_remove_map(md, 0);
 	map_deliddb(&md->bl);
@@ -2783,10 +2768,9 @@ int map_readallmap(void) {
 	ShowStatus(tmp_output);
 
 	// 先に全部のャbプの存在を確認
-	for (i = 0; i < map_num; i++){		
+	for (i = 0; i < map_num; i++){
 #ifdef USE_AFM
 		char afm_name[256] = "";
-		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 		// set it by default first
 		map[i].alias = NULL;
 
@@ -2832,6 +2816,7 @@ int map_readallmap(void) {
 				i--;
 			}
 		}
+		memset (map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
 		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 	}
 

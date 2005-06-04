@@ -1,5 +1,6 @@
 Date	Added
 06/03
+	* Added some initialization code regarding dynamic mobs during map startup. [Skotlex]
 	* Fixed the typo on Thief's Sling Stone quest (Zargon->Garlet)	[Skotlex]
 	  Why noone fixed this before? o.O
 	* Removed a piece of code that updates your cloth's dye whenever you walk.
