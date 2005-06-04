@@ -1099,11 +1099,12 @@ int atcommand_where(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
-	pl_sd = map_nick2sd(atcmd_player_name);
 	
 	int GM_level, pl_GM_level;
 
+	pl_sd = map_nick2sd(atcmd_player_name);
 	nullpo_retr(-1, sd);
+	nullpo_retr(-1, pl_sd);
 
 	if (!message || !*message)
 		return -1;
@@ -9688,10 +9689,10 @@ int atcommand_fakename(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	nullpo_retr(-1, sd);
-
+	
 	char name[24];
-
+	nullpo_retr(-1, sd);
+	
 	if((!message || !*message) && strlen(sd->fakename) > 1) {
 		sd->fakename[0]='\0';
 		pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
