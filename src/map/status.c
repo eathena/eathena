@@ -1530,6 +1530,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 #else
 		clif_changelook(&sd->bl,LOOK_WEAPON,0);
 #endif
+	//Restoring cloth dye color after the view class changes. [Skotlex]
+	if(battle_config.save_clothcolor && sd->status.clothes_color > 0 &&
+		(sd->view_class != 22 || !battle_config.wedding_ignorepalette))
+			clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
 	}
 
 	if( memcmp(b_skill,sd->status.skill,sizeof(sd->status.skill)) || b_attackrange != sd->attackrange)

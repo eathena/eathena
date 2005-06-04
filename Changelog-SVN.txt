@@ -1,4 +1,7 @@
 Date	Added
+06/04
+	* Clothe dye is updated now on view_class change	[Skotlex]
+	  Most noticeable effect: Dye is not lost un unequipping a tuxedo/wedding dress.
 06/03
 	* Updated sql-files/item_db.sql to match with the current db/item_db.txt [Skotlex]
 	* Added some initialization code regarding dynamic mobs during map startup. [Skotlex]
