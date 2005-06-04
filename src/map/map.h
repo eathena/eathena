@@ -3,6 +3,9 @@
 #define _MAP_H_
 
 #include <stdarg.h>
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
 #include "mmo.h"
 
 #define MAX_PC_CLASS (1+6+6+1+6+1+1+1+1+4023)
@@ -434,7 +437,7 @@ struct npc_data {
 
 	union {
 		struct {
-			char *script;
+			char *script; // needs to be changed to lua_function_name
 			short xs,ys;
 			int guild_id;
 			int timer,timerid,timeramount,nexttimer,rid;
@@ -897,6 +900,8 @@ int map_delmap(char *mapname);
 struct mob_list* map_addmobtolist(unsigned short m);	// [Wizputer]
 void map_spawnmobs(int); // [Wizputer]
 void map_removemobs(int); // [Wizputer]
+
+extern lua_State *L; // [DracoRPG]
 
 extern char *INTER_CONF_NAME;
 extern char *LOG_CONF_NAME;

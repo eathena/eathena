@@ -5,6 +5,9 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
 
 #include "db.h"
 #include "timer.h"
@@ -47,6 +50,8 @@ static int npc_delay_mob=0;
 static int npc_cache_mob=0;
 char *current_file = NULL;
 int npc_get_new_npc_id(void){ return npc_id++; }
+
+lua_State *L; // [DracoRPG]
 
 static struct dbt *ev_db;
 static struct dbt *npcname_db;
@@ -1477,10 +1482,7 @@ void npc_delsrcfile (char *name)
 	}
 }
 
-/*==========================================
- * warp行解析
- *------------------------------------------
- */
+
 int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 {
 	int x, y, xs, ys, to_x, to_y, m;
@@ -1546,10 +1548,7 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 	return 0;
 }
 
-/*==========================================
- * shop行解析
- *------------------------------------------
- */
+/*
 static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 {
 	#define MAX_SHOPITEM 100
@@ -1626,10 +1625,6 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 	return 0;
 }
 
-/*==========================================
- * NPCのラベルデータコンバート
- *------------------------------------------
- */
 int npc_convertlabel_db (void *key, void *data, va_list ap)
 {
 	char *lname = (char *)key;
@@ -1667,10 +1662,6 @@ int npc_convertlabel_db (void *key, void *data, va_list ap)
 	return 0;
 }
 
-/*==========================================
- * script行解析
- *------------------------------------------
- */
 static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_line,FILE *fp,int *lines)
 {
 	int x, y, dir = 0, m, xs = 0, ys = 0, class_ = 0;	// [Valaris] thanks to fov
@@ -1870,7 +1861,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 		int pos = nd->u.scr.label_list[i].pos;
 
 		if ((lname[0] == 'O' || lname[0] == 'o') && (lname[1] == 'N' || lname[1] == 'n')) {
-/*
+
 I rearrange the code so this is just for commenting; remove it if you have enough if it [Shinomori]
 			struct event_data *ev;
 			char *buf;
@@ -1898,7 +1889,7 @@ you are sure reentering the same database key will overwrite the existing entry?
 anyway instead of removing data from the db and inserting a new one
 wouldn't it be easier just not to insert the new duplicate event, it is a duplicate anyway?
 			}	
-*/
+
 			// this check is useless here because the buffer is only 24 chars 
 			// and already overwritten if this is here is reached
 			// I leave the check anyway but place it correctly to npc_convertlabel_db
@@ -1970,10 +1961,6 @@ wouldn't it be easier just not to insert the new duplicate event, it is a duplic
 	return 0;
 }
 
-/*==========================================
- * function行解析
- *------------------------------------------
- */
 static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *first_line, FILE *fp, int *lines)
 {
 	char *srcbuf, *script, *p;
@@ -2030,15 +2017,8 @@ static int npc_parse_function (char *w1, char *w2, char *w3, char *w4, char *fir
 
 	return 0;
 }
+*/
 
-
-/*==========================================
- * Parse Mob 1 - Parse mob list into each map
- * Parse Mob 2 - Actually Spawns Mob
- * [Wizputer]
- * If cached =1, it is a dynamic cached mob
- *------------------------------------------
- */
 int npc_parse_mob2 (struct mob_list *mob, int cached)
 {
 	int i;
@@ -2159,10 +2139,7 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 	return 0;
 }
 
-/*==========================================
- * マップフラグ行の解析
- *------------------------------------------
- */
+/*
 static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 {
 	int m;
@@ -2332,10 +2309,6 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 	return 0;
 }
 
-/*==========================================
- * Setting up map cells
- *------------------------------------------
- */
 static int npc_parse_mapcell (char *w1, char *w2, char *w3, char *w4)
 {
 	int m, cell, x, y, x0, y0, x1, y1;
@@ -2367,12 +2340,10 @@ static int npc_parse_mapcell (char *w1, char *w2, char *w3, char *w4)
 
 	return 0;
 }
+*/
 
 void npc_parsesrcfile (char *name)
 {
-	int m, lines = 0;
-	char line[1024];
-
 	FILE *fp = fopen (name,"r");
 	if (fp == NULL) {
 		ShowError ("File not found : %s\n", name);
@@ -2380,59 +2351,11 @@ void npc_parsesrcfile (char *name)
 	}
 	current_file = name;
 
-	while (fgets(line, sizeof(line) - 1, fp)) {
-		char w1[1024], w2[1024], w3[1024], w4[1024], mapname[1024];
-		int i, j, w4pos, count;
-		lines++;
+	if (luaL_loadfile(L,name))
+		ShowError("Cannot load file: %s",lua_tostring(L, -1));
+	if (lua_pcall(L,0,0,0))
+		ShowError("Cannot run file: %s",lua_tostring(L, -1));
 
-		if (line[0] == '/' && line[1] == '/')
-			continue;
-		// 不要なスペースやタブの連続は詰める
-		for (i = j = 0; line[i]; i++) {
-			if (line[i]==' ') {
-				if (!((line[i+1] && (isspace(line[i+1]) || line[i+1]==',')) ||
-					 (j && line[j-1]==',')))
-					line[j++]=' ';
-			} else if (line[i]=='\t') {
-				if (!(j && line[j-1]=='\t'))
-					line[j++]='\t';
-			} else
-				line[j++]=line[i];
-		}
-		// 最初はタブ区切りでチェックしてみて、ダメならスペース区切りで確認
-		if ((count = sscanf(line,"%[^\t]\t%[^\t]\t%[^\t\r\n]\t%n%[^\t\r\n]", w1, w2, w3, &w4pos, w4)) < 3 &&
-		   (count = sscanf(line,"%s%s%s%n%s", w1, w2, w3, &w4pos, w4)) < 3) {
-			continue;
-		}
-		// マップの存在確認
-		if (strcmp(w1,"-") !=0 && strcmpi(w1,"function") != 0 ){
-			sscanf(w1,"%[^,]",mapname);
-			m = map_mapname2mapid(mapname);
-			if (strlen(mapname)>16 || m<0) {
-			// "mapname" is not assigned to this server
-				continue;
-			}
-		}
-		if (strcmpi(w2,"warp") == 0 && count > 3) {
-			npc_parse_warp(w1,w2,w3,w4);
-		} else if (strcmpi(w2,"shop") == 0 && count > 3) {
-			npc_parse_shop(w1,w2,w3,w4);
-		} else if (strcmpi(w2,"script") == 0 && count > 3) {
-			if (strcmpi(w1,"function") == 0) {
-				npc_parse_function(w1,w2,w3,w4,line+w4pos,fp,&lines);
-			} else {
-				npc_parse_script(w1,w2,w3,w4,line+w4pos,fp,&lines);
-			}
-		} else if ((i = 0, sscanf(w2,"duplicate%n",&i), (i > 0 && w2[i] == '(')) && count > 3) {
-			npc_parse_script(w1,w2,w3,w4,line+w4pos,fp,&lines);
-		} else if (strcmpi(w2,"monster") == 0 && count > 3) {
-			npc_parse_mob(w1,w2,w3,w4);
-		} else if (strcmpi(w2,"mapflag") == 0 && count >= 3) {
-			npc_parse_mapflag(w1,w2,w3,w4);
-		} else if (strcmpi(w2,"setcell") == 0 && count >= 3) {
-			npc_parse_mapcell(w1,w2,w3,w4);
-		}
-	}
 	fclose(fp);
 
 	return;
@@ -2599,6 +2522,8 @@ int do_final_npc(void)
 
 	npc_clearsrcfile();
 
+	lua_close(L); /* closes Lua */
+
 	return 0;
 }
 
@@ -2612,6 +2537,12 @@ int do_init_npc(void)
 	time_t last_time = time(0);
 	int busy = 0;
 	char c = '-';
+	L = lua_open();   /* opens Lua */
+	luaopen_base(L);             /* opens the basic library */
+	luaopen_table(L);            /* opens the table library */
+	luaopen_io(L);               /* opens the I/O library */
+	luaopen_string(L);           /* opens the string lib. */
+	luaopen_math(L);             /* opens the math lib. */
 
 	// indoorrswtable.txt and etcinfo.txt [Celest]
 	if (battle_config.indoors_override_grffile)
@@ -2648,14 +2579,14 @@ int do_init_npc(void)
 		fflush(stdout);
 	}
 	printf("\r");
-	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:%30s\n\t-'"
+/*	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:%30s\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Warps\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Shops\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Scripts\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Mobs\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Mobs Cached\n\t-'"
 		CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
-		npc_id - START_NPC_NUM, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
+		npc_id - START_NPC_NUM, "", npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);*/
 	
 	add_timer_func_list(npc_walktimer,"npc_walktimer"); // [Valaris]
 	add_timer_func_list(npc_event_timer,"npc_event_timer");
@@ -2664,3 +2595,4 @@ int do_init_npc(void)
 
 	return 0;
 }
+

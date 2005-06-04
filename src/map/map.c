@@ -3045,9 +3045,9 @@ int map_config_read(char *cfgName) {
 				map_addmap(w2);
 			} else if (strcmpi(w1, "delmap") == 0) {
 				map_delmap(w2);
-			} else if (strcmpi(w1, "npc") == 0) {
+			} else if (strcmpi(w1, "script") == 0) {
 				npc_addsrcfile(w2);
-			} else if (strcmpi(w1, "delnpc") == 0) {
+			} else if (strcmpi(w1, "delscript") == 0) {
 				npc_delsrcfile(w2);
 			} else if (strcmpi(w1, "autosave_time") == 0) {
 				autosave_interval = atoi(w2) * 1000;

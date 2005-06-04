@@ -7,11 +7,12 @@
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
 
+#include "storage.h"
+#include "chrif.h"
 #include "itemdb.h"
 #include "clif.h"
 #include "intif.h"
 #include "pc.h"
-#include "storage.h"
 #include "guild.h"
 #include "battle.h"
 #include "atcommand.h"
@@ -321,20 +322,20 @@ int storage_storagegettocart(struct map_session_data *sd,int index,int amount)
  */
 int storage_storageclose(struct map_session_data *sd)
 {
-struct storage *stor=NULL;
+	struct storage *stor;
 
-nullpo_retr(0, sd);
-nullpo_retr(0, stor=account2storage2(sd->status.account_id));
+	nullpo_retr(0, sd);
+	nullpo_retr(0, stor=account2storage2(sd->status.account_id));
 
-stor->storage_status=0;
-sd->state.storage_flag = 0;
-clif_storageclose(sd);
+	stor->storage_status=0;
+	sd->state.storage_flag = 0;
+	clif_storageclose(sd);
 
-chrif_save(sd);
-storage_storage_save(sd);
+	chrif_save(sd);
+	storage_storage_save(sd);	//items lost on crash/shutdown, by valaris
 
-sortage_sortitem(stor);
-return 0;
+	sortage_sortitem(stor);
+	return 0;
 }
 
 /*==========================================

@@ -13,7 +13,7 @@ CC = gcc -pipe
 GCLIB =
 # GCLIB = -ldmalloc
 
-LUALIB = -L/usr/local/lib -llua
+LUALIB = -L/usr/local/lib -llua -llualib
 
 PACKETDEF = -DPACKETVER=6 -DNEW_006b -DSO_REUSEPORT
 #PACKETDEF = -DPACKETVER=5 -DNEW_006b

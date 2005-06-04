@@ -1,4 +1,11 @@
 Date	Added
+06/04
+	* Began the real work [DracoRPG]
+	  - Added missing "-lualib" flag to Makefile, thanks again celest
+	  - Deleted npc folder, we'll now use script instead
+	  - Now script_main.lua is loaded instead of old script_xx.conf files, script files will
+	    be loaded from script_main.lua via Lua's require() function
+
 06/03
 	* Cleared up the Files to make way for new Files [massdriller]
 	* Added ideas for LUA use [DracoRPG]
