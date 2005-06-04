@@ -20,6 +20,7 @@ enum CharCommandType {
 	CharCommandZeny,
 	CharCommandShowDelay,
 	CharCommandShowExp,
+	CharCommandFakeName,
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */

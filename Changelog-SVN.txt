@@ -1,5 +1,6 @@
 Date	Added
 06/04
+	* Added #fakename, due to popular demand =)[Kevin]
 	* Clothe dye is updated now on view_class change	[Skotlex]
 	  Most noticeable effect: Dye is not lost un unequipping a tuxedo/wedding dress.
 06/03

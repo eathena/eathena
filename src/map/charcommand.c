@@ -53,6 +53,7 @@ CCMD_FUNC(warp);
 CCMD_FUNC(zeny);
 CCMD_FUNC(showexp);
 CCMD_FUNC(showdelay);
+CCMD_FUNC(fakename);
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */
@@ -92,6 +93,7 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandZeny,					"#zeny",					60, charcommand_zeny },
 	{ CharCommandShowExp,					"#showexp", 					0, charcommand_showexp},
 	{ CharCommandShowDelay,					"#showdelay",					0, charcommand_showdelay},
+	{ CharCommandFakeName,					"#fakename",					0, charcommand_fakename},
 
 
 #ifdef TXT_ONLY
@@ -1217,6 +1219,62 @@ int charcommand_zeny(
 		return -1;
 	}
 
+	return 0;
+}
+
+/*==========================================
+ * #fakename <fake name> <char name>
+ *------------------------------------------
+ */
+
+int charcommand_fakename(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	struct map_session_data *pl_sd;
+	char name[24];
+	char char_name[24];
+	
+	nullpo_retr(-1, sd);
+
+	if (!message || !*message) {
+		clif_displaymessage(sd->fd,"Usage: #fakename <fake name> <char name>.");
+		clif_displaymessage(sd->fd,"Or: #fakename <char name> to disable.");
+		return 0;
+	}
+	
+	if (sscanf(message, "%23[^\n] %23[^\n]", name, char_name) < 1 || strlen(name) > 23) {
+		return 0;
+	}
+	
+	if(strlen(char_name) < 1 ) {
+		if(!(pl_sd = map_nick2sd(name))) {
+			clif_displaymessage(sd->fd,"Character not found.");
+		}
+		if(strlen(pl_sd->fakename) > 1) {
+			pl_sd->fakename[0]='\0';
+			pc_setpos(pl_sd, pl_sd->mapname, pl_sd->bl.x, sd->bl.y, 3);
+			clif_displaymessage(sd->fd,"Returned to real name.");
+		} else {
+			clif_displaymessage(sd->fd,"Usage: #fakename <fake name> <char name>.");
+		}
+		return 0;
+	}
+
+	if(!(pl_sd = map_nick2sd(char_name))) {
+		clif_displaymessage(sd->fd,"Character not found.");
+		return -1;
+	}
+	
+	if(strlen(name) < 2) {
+		clif_displaymessage(sd->fd,"Fake name must be at least two characters.");
+		return 0;
+	}
+	
+	strcpy(pl_sd->fakename,name);
+	pc_setpos(pl_sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
+	clif_displaymessage(sd->fd,"Fake name enabled.");
+	
 	return 0;
 }
 
