@@ -590,7 +590,7 @@ int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 	nullpo_retr(0, p);
 
 	for (i = c = 0; i < MAX_PARTY; i++)
-		if ((sd[c] = p->member[c].sd)!=NULL && sd[c]->bl.m == map && session[sd[c]->fd] != NULL) {
+		if ((sd[c] = p->member[i].sd)!=NULL && sd[c]->bl.m == map && session[sd[c]->fd] != NULL) {
 			if (battle_config.idle_no_share && (pc_issit(sd[c]) || sd[c]->chatID || (sd[c]->idletime < (last_tick - 120))))
 				continue;
 			c++;
