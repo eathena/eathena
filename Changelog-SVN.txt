@@ -1,5 +1,6 @@
 Date	Added
 06/04
+	* Fixed a major security hole in the mail system, thanks to Valaris for the info =). [Kevin]
 	* Moved @charsk/stpoint to #sk/stpoint. [Kevin]
 	* Moved @charmodel to #model. [Kevin]
 	* Moved @charst/skreset to #st/skreset. [Kevin]

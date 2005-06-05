@@ -20,6 +20,18 @@
 #include "pc.h"
 #include "mail.h"
 
+#ifndef TXT_ONLY
+	#ifndef SQL_DEBUG
+
+		#define mysql_query(_x, _y) mysql_real_query(_x, _y, strlen(_y))
+
+	#else 
+
+		#define mysql_query(_x, _y) debug_mysql_query(__FILE__, __LINE__, _x, _y)
+
+	#endif
+#endif
+
 char mail_db[32] = "mail";
 
 int MAIL_CHECK_TIME = 120000;
