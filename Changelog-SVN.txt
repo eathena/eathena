@@ -1,5 +1,6 @@
 Date	Added
-06/06
+06/05
+	* Fixed Grandcross/DarkCross to do 3 hits instead of 4 [Skotlex]
 	* Fixed #fakename =). [Kevin]
 	* Tidied up and rearranged Makefile a bit [celest]
 	  - added 'make [common/map/login/char] options' -- only for txt though ^^;

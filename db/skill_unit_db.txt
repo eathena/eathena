@@ -44,7 +44,7 @@
 140,0x92,    , -1, 0,1000,enemy, 0x000	//AS_VENOMDUST#ベナムダスト
 220,0xb0,    ,  0, 0,  -1,all,   0x002	//RG_GRAFFITI#グラフィティ
 229,0xb1,    ,  0, 1,1000,enemy, 0x000	//AM_DEMONSTRATION#デモンストレーション
-254,0x86,    , -1, 0, 300,enemy, 0x000	//CR_GRANDCROSS#グランドクロス
+254,0x86,    , -1, 0, 400,enemy, 0x000	//CR_GRANDCROSS#グランドクロス
 285,0x9a,    ,  3, 0,  -1,all,   0x000	//SA_VOLCANO#ボルケーノ
 286,0x9b,    ,  3, 0,  -1,all,   0x000	//SA_DELUGE#デリュージ
 287,0x9c,    ,  3, 0,  -1,all,   0x000	//SA_VIOLENTGALE#バイオレントゲイル
@@ -68,7 +68,7 @@
 329,0xae,    ,  3, 0,  -1,friend,0x100	//DC_FORTUNEKISS#幸運のキス
 330,0xaf,    ,  3, 0,  -1,party, 0x100	//DC_SERVICEFORYOU#サービスフォーユー
 336,0xb2,    ,  0,-1,  -1,all,   0x000	//WE_CALLPARTNER#あなたに逢いたい
-339,0x86,    , -1, 0, 300,enemy, 0x000	//NPC_DARKGRANDCROSS#闇グランドクロス
+339,0x86,    , -1, 0, 400,enemy, 0x000	//NPC_DARKGRANDCROSS#闇グランドクロス
 362,0xb4,    ,  0, 3, 300,all,   0x000	//HP_BASILICA#バジリカ
 369,0xb3,    , -1, 0,10000,all,  0x000	//PA_GOSPEL#ゴスペル
 404,0xb6,    , -1, 0,  -1,all,   0x000	//PF_FOGWALL#フォグウォール

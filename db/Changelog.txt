@@ -24,6 +24,8 @@
 	4265,Li_Me_Mang_Ryang_Card
 
 06/05
+	* Changed Grandcross/DarkCross's Interval from 300ms to 400ms [Skotlex]
+	  This fixes GX doing 4 hits instead of 3.
 	* Added tons of new items, thanks to Landarma [DracoRPG]
 06/03
 	* Fixed 'Keeping' in the mob skill DB to be cast on self [celest]
