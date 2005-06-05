@@ -1,4 +1,10 @@
 Date	Added
+06/06
+	* Tidied up and rearranged Makefile a bit [celest]
+	  - added 'make [common/map/login/char] options' -- only for txt though ^^;
+	  - readded sse, mmx and o3 optimisation flags (disabled by default) -- you'll
+	    have to edit and enable them yourself
+
 06/04
 	* Moved @charchangesex to #changesec *still disabled*. [Kevin]
 	* Fixed a major security hole in the mail system, thanks to Valaris for the info =). [Kevin]

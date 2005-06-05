@@ -13,6 +13,10 @@ typedef unsigned int in_addr_t;
 
 #include "map.h"
 
+// protocol version
+#define PACKETVER			6
+
+// packet DB
 #define MAX_PACKET_DB		0x23a
 #define MAX_PACKET_VER		18
 

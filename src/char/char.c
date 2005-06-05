@@ -1475,17 +1475,18 @@ int count_users(void) {
 	return users;
 }
 
+#define NEW_006b
 //----------------------------------------
 // Function to send characters to a player
 //----------------------------------------
 int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	int i, j, found_num;
 	struct mmo_charstatus *p;
-#ifdef NEW_006b
+//#ifdef NEW_006b
 	const int offset = 24;
-#else
-	const int offset = 4;
-#endif
+//#else
+//	const int offset = 4;
+//#endif
 
 	set_char_online(99,sd->account_id);
 

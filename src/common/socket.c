@@ -44,7 +44,12 @@ time_t last_tick;
 time_t stall_time = 60;
 int ip_rules = 1;
 
-#if defined(CYGWIN) || defined(_WIN32)
+// reuse port
+#ifndef SO_REUSEPORT
+	#define SO_REUSEPORT 15
+#endif
+
+#if !defined(MINICORE) && (defined(CYGWIN) || defined(_WIN32))
 	#include "dll.h"
 	#define UPNP
 
@@ -76,7 +81,11 @@ static int (*default_func_parse)(int) = null_parse;
 
 static int null_console_parse(char *buf);
 static int (*default_console_parse)(char*) = null_console_parse;
+#ifndef MINICORE
 static int connect_check(unsigned int ip);
+#else
+	#define connect_check(n)	1
+#endif
 
 /*======================================
  *	CORE : Set function
@@ -726,7 +735,7 @@ int do_parsepacket(void)
 #endif
 
 /* DDoS 攻撃対策 */
-
+#ifndef MINICORE
 enum {
 	ACO_DENY_ALLOW=0,
 	ACO_ALLOW_DENY,
@@ -944,6 +953,7 @@ int access_ipmask(const char *str,struct _access_control* acc)
 	acc->mask = mask;
 	return 1;
 }
+#endif
 
 int socket_config_read(const char *cfgName) {
 	int i;
@@ -963,6 +973,7 @@ int socket_config_read(const char *cfgName) {
 			continue;
 		if(strcmpi(w1,"stall_time")==0){
 			stall_time = atoi(w2);
+	#ifndef MINICORE
 		} else if(strcmpi(w1,"enable_ip_rules")==0){
 			if(strcmpi(w2,"yes")==0)
 				ip_rules = 1;
@@ -996,6 +1007,7 @@ int socket_config_read(const char *cfgName) {
 			else if(strcmpi(w2,"no")==0)
 				access_debug = 0;
 			else access_debug = atoi(w2);
+	#endif
 	#ifdef UPNP
 		} else if(!strcmpi(w1,"release_mappings")){
 			if(strcmpi(w2,"yes")==0)
@@ -1076,11 +1088,8 @@ void upnp_init (void)
 void socket_final (void)
 {
 	int i;
+#ifndef MINICORE
 	struct _connect_history *hist , *hist2;
-	for (i = 1; i < fd_max; i++) {
-		if(session[i])
-			delete_session(i);
-	}
 	for(i = 0; i < 0x10000; i++) {
 		hist = connect_history[i];
 		while(hist) {
@@ -1093,6 +1102,12 @@ void socket_final (void)
 		aFree(access_allow);
 	if (access_deny)
 		aFree(access_deny);
+#endif
+
+	for (i = 1; i < fd_max; i++) {
+		if(session[i])
+			delete_session(i);
+	}
 
 	// session[0] のダミーデータを削除
 	aFree(session[0]->rdata);
@@ -1194,9 +1209,11 @@ void socket_init (void)
 	session[0]->max_rdata   = rfifo_size;
 	session[0]->max_wdata   = wfifo_size;
 
+#ifndef MINICORE
 	// とりあえず５分ごとに不要なデータを削除する
 	add_timer_func_list(connect_check_clear, "connect_check_clear");	
 	add_timer_interval(gettick()+1000,connect_check_clear,0,0,300*1000);
+#endif
 
 #ifdef UPNP
 	upnp_init();

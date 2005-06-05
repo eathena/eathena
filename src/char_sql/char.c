@@ -1387,6 +1387,7 @@ int count_users(void) {
 	return 0;
 }
 
+#define NEW_006b
 int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	int i, j, found_num = 0;
 	struct mmo_charstatus *p = NULL;
