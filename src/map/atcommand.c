@@ -122,8 +122,6 @@ ACMD_FUNC(lostskill);
 ACMD_FUNC(spiritball);
 ACMD_FUNC(party);
 ACMD_FUNC(guild);
-ACMD_FUNC(charstpoint);
-ACMD_FUNC(charskpoint);
 ACMD_FUNC(agitstart);
 ACMD_FUNC(agitend);
 ACMD_FUNC(reloaditemdb);
@@ -398,8 +396,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_ReloadBattleConf,	"@reloadbattleconf",99, atcommand_reloadbattleconf },
 	{ AtCommand_ReloadStatusDB,		"@reloadstatusdb",	99, atcommand_reloadstatusdb },
 	{ AtCommand_ReloadPcDB,			"@reloadpcdb",		99, atcommand_reloadpcdb },
-	{ AtCommand_CharSKPoint,		"@charskpoint",		60, atcommand_charskpoint },
-	{ AtCommand_CharSTPoint,		"@charstpoint",		60, atcommand_charstpoint },
 	{ AtCommand_MapInfo,			"@mapinfo",			99, atcommand_mapinfo },
 	{ AtCommand_Dye,				"@dye",				40, atcommand_dye }, // by fritz
 	{ AtCommand_Dye,				"@ccolor",			40, atcommand_dye }, // by fritz
@@ -5006,96 +5002,6 @@ int atcommand_idsearch(
 	}
 	sprintf(atcmd_output, msg_table[79], match); // It is %d affair above.
 	clif_displaymessage(fd, atcmd_output);
-
-	return 0;
-}
-
-/*==========================================
- * Character Skill Point (Rewritten by [Yor])
- *------------------------------------------
- */
-int atcommand_charskpoint(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
-{
-	struct map_session_data *pl_sd;
-	int new_skill_point;
-	int point = 0;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-
-	if (!message || !*message || sscanf(message, "%d %99[^\n]", &point, atcmd_player_name) < 2 || point == 0) {
-		clif_displaymessage(fd, "Please, enter a number and a player name (usage: @charskpoint <amount> <name>).");
-		return -1;
-	}
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		new_skill_point = (int)pl_sd->status.skill_point + point;
-		if (point > 0 && (point > 0x7FFF || new_skill_point > 0x7FFF)) // fix positiv overflow
-			new_skill_point = 0x7FFF;
-		else if (point < 0 && (point < -0x7FFF || new_skill_point < 0)) // fix negativ overflow
-			new_skill_point = 0;
-		if (new_skill_point != (int)pl_sd->status.skill_point) {
-			pl_sd->status.skill_point = new_skill_point;
-			clif_updatestatus(pl_sd, SP_SKILLPOINT);
-			clif_displaymessage(fd, msg_table[209]); // Character's number of skill points changed!
-		} else {
-			if (point < 0)
-				clif_displaymessage(fd, msg_table[41]); // Impossible to decrease the number/value.
-			else
-				clif_displaymessage(fd, msg_table[149]); // Impossible to increase the number/value.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_table[3]); // Character not found.
-		return -1;
-	}
-
-	return 0;
-}
-
-/*==========================================
- * Character Status Point (rewritten by [Yor])
- *------------------------------------------
- */
-int atcommand_charstpoint(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
-{
-	struct map_session_data *pl_sd;
-	int new_status_point;
-	int point = 0;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-
-	if (!message || !*message || sscanf(message, "%d %99[^\n]", &point, atcmd_player_name) < 2 || point == 0) {
-		clif_displaymessage(fd, "Please, enter a number and a player name (usage: @charstpoint <amount> <name>).");
-		return -1;
-	}
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		new_status_point = (int)pl_sd->status.status_point + point;
-		if (point > 0 && (point > 0x7FFF || new_status_point > 0x7FFF)) // fix positiv overflow
-			new_status_point = 0x7FFF;
-		else if (point < 0 && (point < -0x7FFF || new_status_point < 0)) // fix negativ overflow
-			new_status_point = 0;
-		if (new_status_point != (int)pl_sd->status.status_point) {
-			pl_sd->status.status_point = new_status_point;
-			clif_updatestatus(pl_sd, SP_STATUSPOINT);
-			clif_displaymessage(fd, msg_table[210]); // Character's number of status points changed!
-		} else {
-			if (point < 0)
-				clif_displaymessage(fd, msg_table[41]); // Impossible to decrease the number/value.
-			else
-				clif_displaymessage(fd, msg_table[149]); // Impossible to increase the number/value.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_table[3]); // Character not found.
-		return -1;
-	}
 
 	return 0;
 }

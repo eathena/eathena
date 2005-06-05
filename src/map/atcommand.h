@@ -100,10 +100,6 @@ enum AtCommandType {
 	AtCommand_AgitEnd,
 	AtCommand_MapExit,
 	AtCommand_IDSearch,
-	//by chbrules
-	AtCommand_CharSKPoint,
-	AtCommand_CharSTPoint,
-//	AtCommand_CharZeny, //now #zeny
 	AtCommand_RecallAll,
 	AtCommand_ReloadItemDB,
 	AtCommand_ReloadMobDB,
