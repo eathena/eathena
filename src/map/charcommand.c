@@ -51,9 +51,9 @@ CCMD_FUNC(storagelist);
 CCMD_FUNC(item);
 CCMD_FUNC(warp);
 CCMD_FUNC(zeny);
-CCMD_FUNC(showexp);
-CCMD_FUNC(showdelay);
 CCMD_FUNC(fakename);
+CCMD_FUNC(baselevel);
+CCMD_FUNC(joblevel);
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */
@@ -91,9 +91,15 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandWarp,					"#rura",					60, charcommand_warp },
 	{ CharCommandWarp,					"#rura+",					60, charcommand_warp },
 	{ CharCommandZeny,					"#zeny",					60, charcommand_zeny },
-	{ CharCommandShowExp,					"#showexp", 					0, charcommand_showexp},
-	{ CharCommandShowDelay,					"#showdelay",					0, charcommand_showdelay},
-	{ CharCommandFakeName,					"#fakename",					0, charcommand_fakename},
+	{ CharCommandFakeName,					"#fakename",					20, charcommand_fakename},
+	
+	//*********************************Recently added commands*********************************************
+	{ CharCommandBaseLevel,					"#baselvl",					20, charcommand_baselevel},
+	{ CharCommandBaseLevel,					"#blvl",					60, charcommand_baselevel},
+	{ CharCommandBaseLevel,					"#baselvlup",					60, charcommand_baselevel},
+	{ CharCommandJobLevel,					"#joblvl",					60, charcommand_joblevel},
+	{ CharCommandJobLevel,					"#jlvl",					60, charcommand_joblevel},
+	{ CharCommandJobLevel,					"#joblvlup",					60, charcommand_joblevel},
 
 
 #ifdef TXT_ONLY
@@ -1278,39 +1284,152 @@ int charcommand_fakename(
 	return 0;
 }
 
-/*===================================
- * Remove some messages
- *-----------------------------------
+/*==========================================
+ * #baselvl <#> <nickname> 
+ * Transferred by: Kevin
+ *------------------------------------------
+*/
+int charcommand_baselevel(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	struct map_session_data *pl_sd;
+	char player[24];
+	int level = 0, i;
+	nullpo_retr(-1, sd);
+
+	if (!message || !*message || sscanf(message, "%d %99[^\n]", &level, player) < 2 || level == 0) {
+		clif_displaymessage(fd, "Please, enter a level adjustement and a player name (usage: #baselvl <#> <nickname>).");
+		return -1;
+	}
+
+	if ((pl_sd = map_nick2sd(player)) != NULL) {
+		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can change base level only lower or same gm level
+
+			if (level > 0) {
+				if (pl_sd->status.base_level == battle_config.maximum_level) {	// check for max level by Valaris
+					clif_displaymessage(fd, msg_table[91]); // Character's base level can't go any higher.
+					return 0;
+				}	// End Addition
+				if ((unsigned int)level > battle_config.maximum_level || (unsigned int)level > (battle_config.maximum_level - pl_sd->status.base_level)) // fix positiv overflow
+					level = battle_config.maximum_level - pl_sd->status.base_level;
+				for (i = 1; i <= level; i++)
+					pl_sd->status.status_point += (pl_sd->status.base_level + i + 14) / 5;
+				pl_sd->status.base_level += level;
+				clif_updatestatus(pl_sd, SP_BASELEVEL);
+				clif_updatestatus(pl_sd, SP_NEXTBASEEXP);
+				clif_updatestatus(pl_sd, SP_STATUSPOINT);
+				status_calc_pc(pl_sd, 0);
+				pc_heal(pl_sd, pl_sd->status.max_hp, pl_sd->status.max_sp);
+				clif_misceffect(&pl_sd->bl, 0);
+				clif_displaymessage(fd, msg_table[65]); // Character's base level raised.
+			} else {
+				if (pl_sd->status.base_level == 1) {
+					clif_displaymessage(fd, msg_table[193]); // Character's base level can't go any lower.
+					return -1;
+				}
+				if (level < -(int)battle_config.maximum_level || level < (1 - (int)pl_sd->status.base_level)) // fix negativ overflow
+					level = 1 - pl_sd->status.base_level;
+				if (pl_sd->status.status_point > 0) {
+					for (i = 0; i > level; i--)
+						pl_sd->status.status_point -= (pl_sd->status.base_level + i + 14) / 5;
+					if (pl_sd->status.status_point < 0)
+						pl_sd->status.status_point = 0;
+					clif_updatestatus(pl_sd, SP_STATUSPOINT);
+				} // to add: remove status points from stats
+				pl_sd->status.base_level += level;
+				clif_updatestatus(pl_sd, SP_BASELEVEL);
+				clif_updatestatus(pl_sd, SP_NEXTBASEEXP);
+				status_calc_pc(pl_sd, 0);
+				clif_displaymessage(fd, msg_table[66]); // Character's base level lowered.
+			}
+		} else {
+			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
+			return -1;
+		}
+	} else {
+		clif_displaymessage(fd, msg_table[3]); // Character not found.
+		return -1;
+	}
+
+	return 0; //ê≥èÌèIóπ
+}
+
+/*==========================================
+ * #jlvl <#> <nickname> 
+ * Transferred by: Kevin
+ *------------------------------------------
  */
-int charcommand_showexp(
-       const int fd, struct map_session_data* sd,
-       const char* command, const char* message)
+int charcommand_joblevel(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
 {
-       if (sd->noexp) {
-               sd->noexp = 0;
-               clif_displaymessage(fd, "Gained exp is now shown");
-               return 0;
-       }
-       else {
-               sd->noexp = 1;
-               clif_displaymessage(fd, "Gained exp is now NOT shown");
-               return 0;
-       }
-}
+	struct map_session_data *pl_sd;
+	unsigned int max_level = 50;
+	char player[24];
+	int level = 0;
+	//ì]ê∂Ç‚ó{éqÇÃèÍçáÇÃå≥ÇÃêEã∆ÇéZèoÇ∑ÇÈ
+	struct pc_base_job pl_s_class;
+	nullpo_retr(-1, sd);
 
-int charcommand_showdelay(
-       const int fd, struct map_session_data* sd,
-       const char* command, const char* message)
-{
-       if (sd->nodelay) {
-               sd->nodelay = 0;
-               clif_displaymessage(fd, "Skill delay failure is now shown");
-               return 0;
-       }
-       else {
-               sd->nodelay = 1;
-               clif_displaymessage(fd, "Skill delay failure is NOT now shown");
-               return 0;
-       }
-}
+	if (!message || !*message || sscanf(message, "%d %23[^\n]", &level, player) < 2 || level == 0) {
+		clif_displaymessage(fd, "Please, enter a level adjustement and a player name (usage: #joblvl <#> <nickname>).");
+		return -1;
+	}
 
+	if ((pl_sd = map_nick2sd(player)) != NULL) {
+		pl_s_class = pc_calc_base_job(pl_sd->status.class_);
+		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can change job level only lower or same gm level
+			if (pl_s_class.job == 0)
+				max_level -= 40;
+			// super novices can go up to 99 [celest]
+			else if (pl_s_class.job == 23)
+				max_level += 49;
+			else if (pl_sd->status.class_ > 4007 && pl_sd->status.class_ < 4023)
+				max_level += 20;
+
+			if (level > 0) {
+				if (pl_sd->status.job_level == max_level) {
+					clif_displaymessage(fd, msg_table[67]); // Character's job level can't go any higher.
+					return -1;
+				}
+				if (pl_sd->status.job_level + level > max_level)
+					level = max_level - pl_sd->status.job_level;
+				pl_sd->status.job_level += level;
+				clif_updatestatus(pl_sd, SP_JOBLEVEL);
+				clif_updatestatus(pl_sd, SP_NEXTJOBEXP);
+				pl_sd->status.skill_point += level;
+				clif_updatestatus(pl_sd, SP_SKILLPOINT);
+				status_calc_pc(pl_sd, 0);
+				clif_misceffect(&pl_sd->bl, 1);
+				clif_displaymessage(fd, msg_table[68]); // character's job level raised.
+			} else {
+				if (pl_sd->status.job_level == 1) {
+					clif_displaymessage(fd, msg_table[194]); // Character's job level can't go any lower.
+					return -1;
+				}
+				if (pl_sd->status.job_level + level < 1)
+					level = 1 - pl_sd->status.job_level;
+				pl_sd->status.job_level += level;
+				clif_updatestatus(pl_sd, SP_JOBLEVEL);
+				clif_updatestatus(pl_sd, SP_NEXTJOBEXP);
+				if (pl_sd->status.skill_point > 0) {
+					pl_sd->status.skill_point += level;
+					if (pl_sd->status.skill_point < 0)
+						pl_sd->status.skill_point = 0;
+					clif_updatestatus(pl_sd, SP_SKILLPOINT);
+				} // to add: remove status points from skills
+				status_calc_pc(pl_sd, 0);
+				clif_displaymessage(fd, msg_table[69]); // Character's job level lowered.
+			}
+		} else {
+			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
+			return -1;
+		}
+	} else {
+		clif_displaymessage(fd, msg_table[3]); // Character not found.
+		return -1;
+	}
+
+	return 0;
+}

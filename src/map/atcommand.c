@@ -116,8 +116,6 @@ ACMD_FUNC(doom);
 ACMD_FUNC(doommap);
 ACMD_FUNC(raise);
 ACMD_FUNC(raisemap);
-ACMD_FUNC(character_baselevel);
-ACMD_FUNC(character_joblevel);
 ACMD_FUNC(kick);
 ACMD_FUNC(kickall);
 ACMD_FUNC(allskill);
@@ -279,6 +277,8 @@ ACMD_FUNC(mapflag); // Lupus
 ACMD_FUNC(me); //added by massdriller, code by lordalfa
 ACMD_FUNC(fakename); //[Valaris]
 ACMD_FUNC(size); //[Valaris]
+ACMD_FUNC(showexp); //moved from charcommand [Kevin]
+ACMD_FUNC(showdelay); //moved from charcommand [Kevin]
 
 /*==========================================
  *AtCommandInfo atcommand_info[]構造体の定義
@@ -378,8 +378,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_DoomMap,			"@doommap",			80, atcommand_doommap },
 	{ AtCommand_Raise,				"@raise",			80, atcommand_raise },
 	{ AtCommand_RaiseMap,			"@raisemap",		80, atcommand_raisemap },
-	{ AtCommand_CharacterBaseLevel,	"@charbaselvl",		60, atcommand_character_baselevel },
-	{ AtCommand_CharacterJobLevel,	"@charjlvl",		60, atcommand_character_joblevel },
 	{ AtCommand_Kick,				"@kick",			20, atcommand_kick }, // + right click menu for GM "(name) force to quit"
 	{ AtCommand_KickAll,			"@kickall",			99, atcommand_kickall },
 	{ AtCommand_AllSkill,			"@allskill",		60, atcommand_allskill },
@@ -580,6 +578,8 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Me,				"@me",			20, atcommand_me }, //added by massdriller, code by lordalfa
 	{ AtCommand_FakeName,				"@fakename",			20, atcommand_fakename },
 	{ AtCommand_Size,				"@size",			20, atcommand_size },
+	{ AtCommand_ShowExp,					"@showexp", 					0, atcommand_showexp},
+	{ AtCommand_ShowDelay,					"@showdelay",					0, atcommand_showdelay},
 
 
 // add new commands before this line
@@ -4671,156 +4671,6 @@ int atcommand_raisemap(
 			atcommand_raise_sub(pl_sd);
 	}
 	clif_displaymessage(fd, msg_table[64]); // Mercy has been granted.
-
-	return 0;
-}
-
-/*==========================================
- * atcommand_character_baselevel @charbaselvlで対象キャラのレベルを上げる
- *------------------------------------------
-*/
-int atcommand_character_baselevel(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
-{
-	struct map_session_data *pl_sd;
-	int level = 0, i;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-
-	if (!message || !*message || sscanf(message, "%d %99[^\n]", &level, atcmd_player_name) < 2 || level == 0) {
-		clif_displaymessage(fd, "Please, enter a level adjustement and a player name (usage: @charbaselvl <#> <nickname>).");
-		return -1;
-	}
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can change base level only lower or same gm level
-
-			if (level > 0) {
-				if (pl_sd->status.base_level == battle_config.maximum_level) {	// check for max level by Valaris
-					clif_displaymessage(fd, msg_table[91]); // Character's base level can't go any higher.
-					return 0;
-				}	// End Addition
-				if ((unsigned int)level > battle_config.maximum_level || (unsigned int)level > (battle_config.maximum_level - pl_sd->status.base_level)) // fix positiv overflow
-					level = battle_config.maximum_level - pl_sd->status.base_level;
-				for (i = 1; i <= level; i++)
-					pl_sd->status.status_point += (pl_sd->status.base_level + i + 14) / 5;
-				pl_sd->status.base_level += level;
-				clif_updatestatus(pl_sd, SP_BASELEVEL);
-				clif_updatestatus(pl_sd, SP_NEXTBASEEXP);
-				clif_updatestatus(pl_sd, SP_STATUSPOINT);
-				status_calc_pc(pl_sd, 0);
-				pc_heal(pl_sd, pl_sd->status.max_hp, pl_sd->status.max_sp);
-				clif_misceffect(&pl_sd->bl, 0);
-				clif_displaymessage(fd, msg_table[65]); // Character's base level raised.
-			} else {
-				if (pl_sd->status.base_level == 1) {
-					clif_displaymessage(fd, msg_table[193]); // Character's base level can't go any lower.
-					return -1;
-				}
-				if (level < -(int)battle_config.maximum_level || level < (1 - (int)pl_sd->status.base_level)) // fix negativ overflow
-					level = 1 - pl_sd->status.base_level;
-				if (pl_sd->status.status_point > 0) {
-					for (i = 0; i > level; i--)
-						pl_sd->status.status_point -= (pl_sd->status.base_level + i + 14) / 5;
-					if (pl_sd->status.status_point < 0)
-						pl_sd->status.status_point = 0;
-					clif_updatestatus(pl_sd, SP_STATUSPOINT);
-				} // to add: remove status points from stats
-				pl_sd->status.base_level += level;
-				clif_updatestatus(pl_sd, SP_BASELEVEL);
-				clif_updatestatus(pl_sd, SP_NEXTBASEEXP);
-				status_calc_pc(pl_sd, 0);
-				clif_displaymessage(fd, msg_table[66]); // Character's base level lowered.
-			}
-		} else {
-			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_table[3]); // Character not found.
-		return -1;
-	}
-
-	return 0; //正常終了
-}
-
-/*==========================================
- * atcommand_character_joblevel @charjoblvlで対象キャラのJobレベルを上げる
- *------------------------------------------
- */
-int atcommand_character_joblevel(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
-{
-	struct map_session_data *pl_sd;
-	unsigned int max_level = 50;
-	int level = 0;
-	//転生や養子の場合の元の職業を算出する
-	struct pc_base_job pl_s_class;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-
-	if (!message || !*message || sscanf(message, "%d %99[^\n]", &level, atcmd_player_name) < 2 || level == 0) {
-		clif_displaymessage(fd, "Please, enter a level adjustement and a player name (usage: @charjlvl <#> <nickname>).");
-		return -1;
-	}
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		pl_s_class = pc_calc_base_job(pl_sd->status.class_);
-		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can change job level only lower or same gm level
-			if (pl_s_class.job == 0)
-				max_level -= 40;
-			// super novices can go up to 99 [celest]
-			else if (pl_s_class.job == 23)
-				max_level += 49;
-			else if (pl_sd->status.class_ > 4007 && pl_sd->status.class_ < 4023)
-				max_level += 20;
-
-			if (level > 0) {
-				if (pl_sd->status.job_level == max_level) {
-					clif_displaymessage(fd, msg_table[67]); // Character's job level can't go any higher.
-					return -1;
-				}
-				if (pl_sd->status.job_level + level > max_level)
-					level = max_level - pl_sd->status.job_level;
-				pl_sd->status.job_level += level;
-				clif_updatestatus(pl_sd, SP_JOBLEVEL);
-				clif_updatestatus(pl_sd, SP_NEXTJOBEXP);
-				pl_sd->status.skill_point += level;
-				clif_updatestatus(pl_sd, SP_SKILLPOINT);
-				status_calc_pc(pl_sd, 0);
-				clif_misceffect(&pl_sd->bl, 1);
-				clif_displaymessage(fd, msg_table[68]); // character's job level raised.
-			} else {
-				if (pl_sd->status.job_level == 1) {
-					clif_displaymessage(fd, msg_table[194]); // Character's job level can't go any lower.
-					return -1;
-				}
-				if (pl_sd->status.job_level + level < 1)
-					level = 1 - pl_sd->status.job_level;
-				pl_sd->status.job_level += level;
-				clif_updatestatus(pl_sd, SP_JOBLEVEL);
-				clif_updatestatus(pl_sd, SP_NEXTJOBEXP);
-				if (pl_sd->status.skill_point > 0) {
-					pl_sd->status.skill_point += level;
-					if (pl_sd->status.skill_point < 0)
-						pl_sd->status.skill_point = 0;
-					clif_updatestatus(pl_sd, SP_SKILLPOINT);
-				} // to add: remove status points from skills
-				status_calc_pc(pl_sd, 0);
-				clif_displaymessage(fd, msg_table[69]); // Character's job level lowered.
-			}
-		} else {
-			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_table[3]); // Character not found.
-		return -1;
-	}
 
 	return 0;
 }
@@ -9733,4 +9583,40 @@ int atcommand_mapflag(
 {
 // WIP
 	return 0;
+}
+
+/*===================================
+ * Remove some messages
+ *-----------------------------------
+ */
+int atcommand_showexp(
+       const int fd, struct map_session_data* sd,
+       const char* command, const char* message)
+{
+       if (sd->noexp) {
+               sd->noexp = 0;
+               clif_displaymessage(fd, "Gained exp is now shown");
+               return 0;
+       }
+       else {
+               sd->noexp = 1;
+               clif_displaymessage(fd, "Gained exp is now NOT shown");
+               return 0;
+       }
+}
+
+int atcommand_showdelay(
+       const int fd, struct map_session_data* sd,
+       const char* command, const char* message)
+{
+       if (sd->nodelay) {
+               sd->nodelay = 0;
+               clif_displaymessage(fd, "Skill delay failure is now shown");
+               return 0;
+       }
+       else {
+               sd->nodelay = 1;
+               clif_displaymessage(fd, "Skill delay failure is NOT now shown");
+               return 0;
+       }
 }

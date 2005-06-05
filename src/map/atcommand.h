@@ -93,8 +93,6 @@ enum AtCommandType {
 	AtCommand_DoomMap,
 	AtCommand_Raise,
 	AtCommand_RaiseMap,
-	AtCommand_CharacterBaseLevel,
-	AtCommand_CharacterJobLevel,
 	AtCommand_Kick,
 	AtCommand_KickAll,
 	AtCommand_AllSkill,
@@ -263,6 +261,8 @@ enum AtCommandType {
 	AtCommand_Unknown,
 	AtCommand_FakeName, // [Valaris]
 	AtCommand_Size, // [Valaris]
+	AtCommand_ShowDelay,
+	AtCommand_ShowExp,
 	AtCommand_MAX
 };
 
