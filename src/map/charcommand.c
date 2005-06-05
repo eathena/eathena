@@ -55,7 +55,7 @@ CCMD_FUNC(fakename);
 CCMD_FUNC(baselevel);
 CCMD_FUNC(joblevel);
 CCMD_FUNC(questskill);
-CCMD_FUNC(charlostskill);
+CCMD_FUNC(lostskill);
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */
