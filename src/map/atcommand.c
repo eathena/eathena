@@ -108,8 +108,6 @@ ACMD_FUNC(petrename);
 ACMD_FUNC(recall);
 ACMD_FUNC(recallall);
 ACMD_FUNC(revive);
-//ACMD_FUNC(character_stats_all); //Not in atcommand anymore o.O
-//ACMD_FUNC(character_save);
 ACMD_FUNC(night);
 ACMD_FUNC(day);
 ACMD_FUNC(doom);
@@ -124,9 +122,6 @@ ACMD_FUNC(lostskill);
 ACMD_FUNC(spiritball);
 ACMD_FUNC(party);
 ACMD_FUNC(guild);
-ACMD_FUNC(charskreset);
-ACMD_FUNC(charstreset);
-ACMD_FUNC(charreset);
 ACMD_FUNC(charstpoint);
 ACMD_FUNC(charmodel);
 ACMD_FUNC(charskpoint);
@@ -395,8 +390,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Broadcast,			"@broadcast",		40, atcommand_broadcast }, // /b and /nb command
 	{ AtCommand_LocalBroadcast,		"@localbroadcast",	40, atcommand_localbroadcast }, // /lb and /nlb command
 	{ AtCommand_RecallAll,			"@recallall",		80, atcommand_recallall },
-	{ AtCommand_CharSkReset,		"@charskreset",		60, atcommand_charskreset },
-	{ AtCommand_CharStReset,		"@charstreset",		60, atcommand_charstreset },
 	{ AtCommand_ReloadItemDB,		"@reloaditemdb",	99, atcommand_reloaditemdb }, // admin command
 	{ AtCommand_ReloadMobDB,		"@reloadmobdb",		99, atcommand_reloadmobdb }, // admin command
 	{ AtCommand_ReloadSkillDB,		"@reloadskilldb",	99, atcommand_reloadskilldb }, // admin command
@@ -5015,78 +5008,6 @@ int atcommand_idsearch(
 	}
 	sprintf(atcmd_output, msg_table[79], match); // It is %d affair above.
 	clif_displaymessage(fd, atcmd_output);
-
-	return 0;
-}
-
-/*==========================================
- * Character Skill Reset
- *------------------------------------------
- */
-int atcommand_charskreset(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
-{
-	struct map_session_data *pl_sd;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
-
-	if (!message || !*message || sscanf(message, "%99[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, "Please, enter a player name (usage: @charskreset <charname>).");
-		return -1;
-	}
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can reset skill points only lower or same gm level
-			pc_resetskill(pl_sd);
-			sprintf(atcmd_output, msg_table[206], atcmd_player_name); // '%s' skill points reseted!
-			clif_displaymessage(fd, atcmd_output);
-		} else {
-			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_table[3]); // Character not found.
-		return -1;
-	}
-
-	return 0;
-}
-
-/*==========================================
- * Character Stat Reset
- *------------------------------------------
- */
-int atcommand_charstreset(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
-{
-	struct map_session_data *pl_sd;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
-
-	if (!message || !*message || sscanf(message, "%99[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, "Please, enter a player name (usage: @charstreset <charname>).");
-		return -1;
-	}
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can reset stats points only lower or same gm level
-			pc_resetstate(pl_sd);
-			sprintf(atcmd_output, msg_table[207], atcmd_player_name); // '%s' stats points reseted!
-			clif_displaymessage(fd, atcmd_output);
-		} else {
-			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_table[3]); // Character not found.
-		return -1;
-	}
 
 	return 0;
 }

@@ -23,6 +23,8 @@ enum CharCommandType {
 	CharCommandJobLevel,
 	CharCommandQuestSkill,
 	CharCommandLostSkill,
+	CharCommandSkReset,
+	CharCommandStReset,
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */

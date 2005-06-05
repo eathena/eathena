@@ -78,14 +78,9 @@ enum AtCommandType {
 	AtCommand_PetFriendly,
 	AtCommand_PetHungry,
 	AtCommand_PetRename,
-//	AtCommand_CharPetRename, // by Yor, Now #petrename
 	AtCommand_Recall,
-//	AtCommand_CharacterJob,  // Now #jobchange
 	AtCommand_Revive,
-//	AtCommand_CharacterStats, // Now #stats
 	AtCommand_CharacterStatsAll,
-//	AtCommand_CharacterOption, // Now #option
-//	AtCommand_CharacterSave, // Now #save
 	AtCommand_CharacterLoad,
 	AtCommand_Night,
 	AtCommand_Day,
@@ -105,8 +100,6 @@ enum AtCommandType {
 	AtCommand_AgitEnd,
 	AtCommand_MapExit,
 	AtCommand_IDSearch,
-	AtCommand_CharSkReset,
-	AtCommand_CharStReset,
 	//by chbrules
 	AtCommand_CharModel,
 	AtCommand_CharSKPoint,

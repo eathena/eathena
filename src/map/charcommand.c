@@ -56,6 +56,8 @@ CCMD_FUNC(baselevel);
 CCMD_FUNC(joblevel);
 CCMD_FUNC(questskill);
 CCMD_FUNC(lostskill);
+CCMD_FUNC(skreset);
+CCMD_FUNC(streset);
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */
@@ -103,7 +105,9 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandJobLevel,				"#jlvl",					60, charcommand_joblevel},
 	{ CharCommandJobLevel,				"#joblvlup",				60, charcommand_joblevel},
 	{ CharCommandQuestSkill,			"#questskill",				60, charcommand_questskill },
-	{ CharCommandLostSkill,				"#lostskill",			60, charcommand_lostskill },
+	{ CharCommandLostSkill,				"#lostskill",				60, charcommand_lostskill },
+	{ CharCommandSkReset,				"#skreset",					60, charcommand_skreset },
+	{ CharCommandStReset,				"#streset",					60, charcommand_streset },
 
 
 #ifdef TXT_ONLY
@@ -119,6 +123,8 @@ static CharCommandInfo charcommand_info[] = {
 // add new commands before this line
 	{ CharCommand_Unknown,             NULL,                1, NULL }
 };
+
+char chcmd_output[200];
 
 
 int get_charcommand_level(const CharCommandType type) {
@@ -1526,6 +1532,78 @@ int charcommand_lostskill(
 		}
 	} else {
 		clif_displaymessage(fd, msg_table[198]); // This skill number doesn't exist.
+		return -1;
+	}
+
+	return 0;
+}
+
+/*==========================================
+ * Character Skill Reset
+ *------------------------------------------
+ */
+int charcommand_skreset(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	struct map_session_data *pl_sd;
+	char player[24];
+	nullpo_retr(-1, sd);
+
+	memset(chcmd_output, '\0', sizeof(chcmd_output));
+
+	if (!message || !*message || sscanf(message, "%23[^\n]", player) < 1) {
+		clif_displaymessage(fd, "Please, enter a player name (usage: @charskreset <charname>).");
+		return -1;
+	}
+
+	if ((pl_sd = map_nick2sd(player)) != NULL) {
+		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can reset skill points only lower or same gm level
+			pc_resetskill(pl_sd);
+			sprintf(chcmd_output, msg_table[206], player); // '%s' skill points reseted!
+			clif_displaymessage(fd, chcmd_output);
+		} else {
+			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
+			return -1;
+		}
+	} else {
+		clif_displaymessage(fd, msg_table[3]); // Character not found.
+		return -1;
+	}
+
+	return 0;
+}
+
+/*==========================================
+ * Character Stat Reset
+ *------------------------------------------
+ */
+int charcommand_streset(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	struct map_session_data *pl_sd;
+	char player[24];
+	nullpo_retr(-1, sd);
+
+	memset(chcmd_output, '\0', sizeof(chcmd_output));
+
+	if (!message || !*message || sscanf(message, "%23[^\n]", player) < 1) {
+		clif_displaymessage(fd, "Please, enter a player name (usage: @charstreset <charname>).");
+		return -1;
+	}
+
+	if ((pl_sd = map_nick2sd(player)) != NULL) {
+		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can reset stats points only lower or same gm level
+			pc_resetstate(pl_sd);
+			sprintf(chcmd_output, msg_table[207], player); // '%s' stats points reseted!
+			clif_displaymessage(fd, chcmd_output);
+		} else {
+			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
+			return -1;
+		}
+	} else {
+		clif_displaymessage(fd, msg_table[3]); // Character not found.
 		return -1;
 	}
 

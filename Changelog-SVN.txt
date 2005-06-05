@@ -1,5 +1,6 @@
 Date	Added
 06/04
+	* Moved @charst/skreset to #st/skreset. [Kevin]
 	* Re-updated sql-files/item_db.sql to use price buy/sell NULL instead of 0	[Skotlex]
 	  The file is full of REPLACE instead of INSERT, so if you already have the
 	  structure of the table right, you can just delete the table definition
