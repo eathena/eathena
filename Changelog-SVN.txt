@@ -1,5 +1,9 @@
 Date	Added
 06/04
+	* Re-updated sql-files/item_db.sql to use price buy/sell NULL instead of 0	[Skotlex]
+	  The file is full of REPLACE instead of INSERT, so if you already have the
+	  structure of the table right, you can just delete the table definition
+	  and apply the file to update your item_db table.
 	* Commented out char_athena.conf. [Kevin]
 	* Moved @charlostskill to #lostskill. [Kevin]
 	* Moved @charquestskill to #questskill. [Kevin]
