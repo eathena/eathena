@@ -55,6 +55,7 @@ CCMD_FUNC(fakename);
 CCMD_FUNC(baselevel);
 CCMD_FUNC(joblevel);
 CCMD_FUNC(questskill);
+CCMD_FUNC(charlostskill);
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */
@@ -94,14 +95,15 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandZeny,					"#zeny",					60, charcommand_zeny },
 	{ CharCommandFakeName,				"#fakename",				20, charcommand_fakename},
 	
-		//*********************************Recently added commands*********************************************
-	{ CharCommandBaseLevel,			"#baselvl",						20, charcommand_baselevel},
-	{ CharCommandBaseLevel,			"#blvl",						60, charcommand_baselevel},
-	{ CharCommandBaseLevel,			"#baselvlup",					60, charcommand_baselevel},
-	{ CharCommandJobLevel,			"#joblvl",						60, charcommand_joblevel},
-	{ CharCommandJobLevel,			"#jlvl",						60, charcommand_joblevel},
-	{ CharCommandJobLevel,			"#joblvlup",					60, charcommand_joblevel},
-	{ CharCommandQuestSkill,		"#questskill",					60, charcommand_questskill },
+	//*********************************Recently added commands*********************************************
+	{ CharCommandBaseLevel,				"#baselvl",					20, charcommand_baselevel},
+	{ CharCommandBaseLevel,				"#blvl",					60, charcommand_baselevel},
+	{ CharCommandBaseLevel,				"#baselvlup",				60, charcommand_baselevel},
+	{ CharCommandJobLevel,				"#joblvl",					60, charcommand_joblevel},
+	{ CharCommandJobLevel,				"#jlvl",					60, charcommand_joblevel},
+	{ CharCommandJobLevel,				"#joblvlup",				60, charcommand_joblevel},
+	{ CharCommandQuestSkill,			"#questskill",				60, charcommand_questskill },
+	{ CharCommandLostSkill,				"#lostskill",			60, charcommand_lostskill },
 
 
 #ifdef TXT_ONLY
@@ -1438,7 +1440,7 @@ int charcommand_joblevel(
 
 
 /*==========================================
- * #questskill <skill_id> <nickname>
+ * #questskill <skill_#> <nickname>
  * Transferred by: Kevin
  *------------------------------------------
  */
@@ -1464,6 +1466,55 @@ int charcommand_questskill(
 					clif_displaymessage(fd, msg_table[199]); // This player has learned the skill.
 				} else {
 					clif_displaymessage(fd, msg_table[200]); // This player already has this quest skill.
+					return -1;
+				}
+			} else {
+				clif_displaymessage(fd, msg_table[3]); // Character not found.
+				return -1;
+			}
+		} else {
+			clif_displaymessage(fd, msg_table[197]); // This skill number doesn't exist or isn't a quest skill.
+			return -1;
+		}
+	} else {
+		clif_displaymessage(fd, msg_table[198]); // This skill number doesn't exist.
+		return -1;
+	}
+
+	return 0;
+}
+
+
+/*==========================================
+ * #lostskill <skill_#> <nickname>
+ * Transferred by: Kevin
+ *------------------------------------------
+ */
+int charcommand_lostskill(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	struct map_session_data *pl_sd;
+	int skill_id = 0;
+	nullpo_retr(-1, sd);
+
+	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
+
+	if (!message || !*message || sscanf(message, "%d %99[^\n]", &skill_id, atcmd_player_name) < 2 || skill_id < 0) {
+		clif_displaymessage(fd, "Please, enter a quest skill number and a player name (usage: @charlostskill <#:0+> <char_name>).");
+		return -1;
+	}
+
+	if (skill_id >= 0 && skill_id < MAX_SKILL) {
+		if (skill_get_inf2(skill_id) & 0x01) {
+			if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
+				if (pc_checkskill(pl_sd, skill_id) > 0) {
+					pl_sd->status.skill[skill_id].lv = 0;
+					pl_sd->status.skill[skill_id].flag = 0;
+					clif_skillinfoblock(pl_sd);
+					clif_displaymessage(fd, msg_table[202]); // This player has forgotten the skill.
+				} else {
+					clif_displaymessage(fd, msg_table[203]); // This player doesn't have this quest skill.
 					return -1;
 				}
 			} else {

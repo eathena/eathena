@@ -98,7 +98,6 @@ enum AtCommandType {
 	AtCommand_AllSkill,
 	AtCommand_QuestSkill,
 	AtCommand_LostSkill,
-	AtCommand_CharLostSkill,
 	AtCommand_SpiritBall,
 	AtCommand_Party,
 	AtCommand_Guild,
