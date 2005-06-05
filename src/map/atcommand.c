@@ -140,7 +140,6 @@ ACMD_FUNC(dye); //** by fritz
 ACMD_FUNC(hair_style); //** by fritz
 ACMD_FUNC(hair_color); //** by fritz
 ACMD_FUNC(stat_all); //** by fritz
-ACMD_FUNC(char_change_sex); // by Yor
 ACMD_FUNC(char_block); // by Yor
 ACMD_FUNC(char_ban); // by Yor
 ACMD_FUNC(char_unblock); // by Yor
@@ -407,7 +406,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_StatAll,			"@statsall",		60, atcommand_stat_all },
 	{ AtCommand_StatAll,			"@allstats",		60, atcommand_stat_all }, // by fritz
 	{ AtCommand_StatAll,			"@allstat",			60, atcommand_stat_all }, // by fritz
-//	{ AtCommand_CharChangeSex,		"@charchangesex",	60, atcommand_char_change_sex }, // by Yor
 	{ AtCommand_CharBlock,			"@block",			60, atcommand_char_block }, // by Yor
 	{ AtCommand_CharBlock,			"@charblock",		60, atcommand_char_block }, // by Yor
 	{ AtCommand_CharBan,			"@ban",				60, atcommand_char_ban }, // by Yor
@@ -4283,38 +4281,6 @@ int atcommand_revive(
 	} else {
 		clif_displaymessage(fd, msg_table[3]); // Character not found.
 		return -1;
-	}
-
-	return 0;
-}
-
-/*==========================================
- * charchangesex command (usage: charchangesex <player_name>)
- *------------------------------------------
- */
-int atcommand_char_change_sex(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
-{
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-
-	if (!message || !*message || sscanf(message, "%99[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, "Please, enter a player name (usage: @charchangesex <name>).");
-		return -1;
-	}
-
-	// check player name
-	if (strlen(atcmd_player_name) < 4) {
-		clif_displaymessage(fd, msg_table[86]); // Sorry, but a player name have at least 4 characters.
-		return -1;
-	} else if (strlen(atcmd_player_name) > 23) {
-		clif_displaymessage(fd, msg_table[87]); // Sorry, but a player name have 23 characters maximum.
-		return -1;
-	} else {
-		chrif_char_ask_name(sd->status.account_id, atcmd_player_name, 5, 0, 0, 0, 0, 0, 0); // type: 5 - changesex
-		clif_displaymessage(fd, msg_table[88]); // Character name sends to char-server to ask it.
 	}
 
 	return 0;

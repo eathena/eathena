@@ -115,7 +115,6 @@ enum AtCommandType {
 	AtCommand_Hstyle,
 	AtCommand_Hcolor,
 	AtCommand_StatAll,
-	AtCommand_CharChangeSex, // by Yor
 	AtCommand_CharBlock, // by Yor
 	AtCommand_CharBan, // by Yor
 	AtCommand_CharUnBlock, // by Yor

@@ -28,6 +28,7 @@ enum CharCommandType {
 	CharCommandModel,
 	CharCommandSKPoint,
 	CharCommandSTPoint,
+	CharCommandChangeSex,
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */

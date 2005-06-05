@@ -61,6 +61,7 @@ CCMD_FUNC(streset);
 CCMD_FUNC(model);
 CCMD_FUNC(stpoint);
 CCMD_FUNC(skpoint);
+CCMD_FUNC(changesex);
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */
@@ -114,6 +115,7 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandModel,					"#charmodel",				50, charcommand_model },
 	{ CharCommandSKPoint,				"#skpoint",					60, charcommand_skpoint },
 	{ CharCommandSTPoint,				"#stpoint",					60, charcommand_stpoint },
+//	{ CharCommandChangeSex,				"#charchangesex",			60, charcommand_changsex },
 
 
 #ifdef TXT_ONLY
@@ -1749,6 +1751,37 @@ int charcommand_stpoint(
 	} else {
 		clif_displaymessage(fd, msg_table[3]); // Character not found.
 		return -1;
+	}
+
+	return 0;
+}
+
+/*==========================================
+ * charchangesex command (usage: charchangesex <player_name>)
+ *------------------------------------------
+ */
+int atcommand_char_change_sex(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	char player[24];
+	nullpo_retr(-1, sd);
+
+	if (!message || !*message || sscanf(message, "%23[^\n]", player) < 1) {
+		clif_displaymessage(fd, "Please, enter a player name (usage: @charchangesex <name>).");
+		return -1;
+	}
+
+	// check player name
+	if (strlen(player) < 4) {
+		clif_displaymessage(fd, msg_table[86]); // Sorry, but a player name have at least 4 characters.
+		return -1;
+	} else if (strlen(player) > 23) {
+		clif_displaymessage(fd, msg_table[87]); // Sorry, but a player name have 23 characters maximum.
+		return -1;
+	} else {
+		chrif_char_ask_name(sd->status.account_id, player, 5, 0, 0, 0, 0, 0, 0); // type: 5 - changesex
+		clif_displaymessage(fd, msg_table[88]); // Character name sends to char-server to ask it.
 	}
 
 	return 0;
