@@ -23,6 +23,8 @@
 	4262,Taoist_Hermit_Card
 	4265,Li_Me_Mang_Ryang_Card
 
+06/05
+	* Added tons of new items, thanks to Landarma [DracoRPG]
 06/03
 	* Fixed 'Keeping' in the mob skill DB to be cast on self [celest]
 06/01
