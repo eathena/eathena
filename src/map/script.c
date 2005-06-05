@@ -8248,14 +8248,57 @@ int do_init_script()
  *
  *===================================================================
  */
+// Runs a Lua function that was previously loaded, passing a char ID as argument
+int script_run_function(char *name,int id)
+{
+	lua_getglobal(L,name);
+	lua_pushboolean(L,id);
+	if (lua_pcall(L,1,1,0)!=0){
+		ShowError("Cannot run function %s for character %d : %s\n",name,id,lua_tostring(L,-1));
+		return -1;
+	}
+	ShowInfo("Ran function %s for character %d\n",name,id);
 
-int run_function(char *name)
+	return (lua_toboolean(L,-1) ? lua_toboolean(L,-1) : 0);
+}
+
+// Runs a Lua function that was previously loaded, passing NO char ID as argument
+int script_run_function_nochar(char *name)
 {
 	lua_getglobal(L,name);
 	if (lua_pcall(L,0,1,0)!=0){
-		ShowError("Cannot run function : %s\n",lua_tostring(L, -1));
+		ShowError("Cannot run function %s : %s\n",name,lua_tostring(L, -1));
 		return -1;
 	}
-	ShowInfo("Ran function : %s\n",name);
+	ShowInfo("Ran function %s\n",name);
+
+	return (lua_toboolean(L,-1) ? lua_toboolean(L,-1) : 0);
+}
+
+/*
+// Runs a Lua chunk, passing a char ID as argument
+int script_run_chunk(char *chunk,int id)
+{
+	lua_pushvalue(L,chunk);
+	lua_pushboolean(L,id);
+	if (lua_pcall(L,0,1,0)!=0){
+		ShowError("Cannot run chunk %s for character %d : %s\n",chunk,id,lua_tostring(L, -1));
+		return -1;
+	}
+	ShowInfo("Ran chunk %s for character %d\n",chunk,id);
+
+	return (lua_toboolean(L,-1) ? lua_toboolean(L,-1) : 0);
+}
+
+// Runs a Lua chunk, passing NO char ID as argument
+int script_run_chunk_nochar(char *chunk)
+{
+	lua_pushvalue(L,chunk);
+	if (lua_pcall(L,0,1,0)!=0){
+		ShowError("Cannot run chunk %s : %s\n",chunk,lua_tostring(L, -1));
+		return -1;
+	}
+	ShowInfo("Ran chunk %s\n",name);
 	return 0;
 }
+*/

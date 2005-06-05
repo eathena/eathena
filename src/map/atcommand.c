@@ -9650,16 +9650,23 @@ int atcommand_mapflag(
 	return 0;
 }
 
+/*==========================================
+ * @runlua [function name] by DracoRPG
+ * => Runs the specified Lua function for the player
+ *------------------------------------------
+ */
+
 int atcommand_runlua(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
+
     if (!message || !*message) {
 		clif_displaymessage(fd, "Please, enter a lua function to run (usage: @runlua <function name>).");
 		return -1;
 	}
 	
 	sscanf(message,"%s",atcmd_output);
-	run_function(atcmd_output);
-	return 0;
+
+	return script_run_function(atcmd_output,sd->char_id);
 }

@@ -2352,9 +2352,9 @@ void npc_parsesrcfile (char *name)
 	current_file = name;
 
 	if (luaL_loadfile(L,name))
-		ShowError("Cannot load file: %s",lua_tostring(L, -1));
+		ShowError("Cannot load script file %s : %s",name,lua_tostring(L, -1));
 	if (lua_pcall(L,0,0,0))
-		ShowError("Cannot run file: %s",lua_tostring(L, -1));
+		ShowError("Cannot run script file %s : %s",name,lua_tostring(L, -1));
 
 	fclose(fp);
 
@@ -2537,6 +2537,7 @@ int do_init_npc(void)
 	time_t last_time = time(0);
 	int busy = 0;
 	char c = '-';
+
 	L = lua_open();   /* opens Lua */
 	luaopen_base(L);             /* opens the basic library */
 	luaopen_table(L);            /* opens the table library */

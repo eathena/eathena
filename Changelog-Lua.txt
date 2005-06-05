@@ -1,4 +1,6 @@
 Date	Added
+06/05
+	* Now there are script_run_function() and script_run_function_nochar available ^^ [DracoRPG]
 06/04
 	* Began the real work [DracoRPG]
 	  - Added missing "-lualib" flag to Makefile, thanks again celest
