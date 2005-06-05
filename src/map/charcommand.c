@@ -1495,19 +1495,18 @@ int charcommand_lostskill(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
+	char player[24];
 	int skill_id = 0;
 	nullpo_retr(-1, sd);
 
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-
-	if (!message || !*message || sscanf(message, "%d %99[^\n]", &skill_id, atcmd_player_name) < 2 || skill_id < 0) {
+	if (!message || !*message || sscanf(message, "%d %99[^\n]", &skill_id, player) < 2 || skill_id < 0) {
 		clif_displaymessage(fd, "Please, enter a quest skill number and a player name (usage: @charlostskill <#:0+> <char_name>).");
 		return -1;
 	}
 
 	if (skill_id >= 0 && skill_id < MAX_SKILL) {
 		if (skill_get_inf2(skill_id) & 0x01) {
-			if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
+			if ((pl_sd = map_nick2sd(player)) != NULL) {
 				if (pc_checkskill(pl_sd, skill_id) > 0) {
 					pl_sd->status.skill[skill_id].lv = 0;
 					pl_sd->status.skill[skill_id].flag = 0;
