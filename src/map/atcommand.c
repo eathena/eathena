@@ -120,7 +120,6 @@ ACMD_FUNC(kick);
 ACMD_FUNC(kickall);
 ACMD_FUNC(allskill);
 ACMD_FUNC(questskill);
-ACMD_FUNC(charquestskill);
 ACMD_FUNC(lostskill);
 ACMD_FUNC(charlostskill);
 ACMD_FUNC(spiritball);
@@ -385,7 +384,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_AllSkill,			"@skillall",		60, atcommand_allskill },
 	{ AtCommand_AllSkill,			"@skillsall",		60, atcommand_allskill },
 	{ AtCommand_QuestSkill,			"@questskill",		40, atcommand_questskill },
-	{ AtCommand_CharQuestSkill,		"@charquestskill",	60, atcommand_charquestskill },
 	{ AtCommand_LostSkill,			"@lostskill",		40, atcommand_lostskill },
 	{ AtCommand_CharLostSkill,		"@charlostskill",	60, atcommand_charlostskill },
 	{ AtCommand_SpiritBall,			"@spiritball",		40, atcommand_spiritball },
@@ -4773,51 +4771,6 @@ int atcommand_questskill(
 				clif_displaymessage(fd, msg_table[70]); // You have learned the skill.
 			} else {
 				clif_displaymessage(fd, msg_table[196]); // You already have this quest skill.
-				return -1;
-			}
-		} else {
-			clif_displaymessage(fd, msg_table[197]); // This skill number doesn't exist or isn't a quest skill.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_table[198]); // This skill number doesn't exist.
-		return -1;
-	}
-
-	return 0;
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-int atcommand_charquestskill(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
-{
-	struct map_session_data *pl_sd;
-	int skill_id = 0;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-
-	if (!message || !*message || sscanf(message, "%d %99[^\n]", &skill_id, atcmd_player_name) < 2 || skill_id < 0) {
-		clif_displaymessage(fd, "Please, enter a quest skill number and a player name (usage: @charquestskill <#:0+> <char_name>).");
-		return -1;
-	}
-
-	if (skill_id >= 0 && skill_id < MAX_SKILL_DB) {
-		if (skill_get_inf2(skill_id) & 0x01) {
-			if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-				if (pc_checkskill(pl_sd, skill_id) == 0) {
-					pc_skill(pl_sd, skill_id, 1, 0);
-					clif_displaymessage(fd, msg_table[199]); // This player has learned the skill.
-				} else {
-					clif_displaymessage(fd, msg_table[200]); // This player already has this quest skill.
-					return -1;
-				}
-			} else {
-				clif_displaymessage(fd, msg_table[3]); // Character not found.
 				return -1;
 			}
 		} else {

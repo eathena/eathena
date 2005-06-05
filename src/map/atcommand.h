@@ -97,7 +97,6 @@ enum AtCommandType {
 	AtCommand_KickAll,
 	AtCommand_AllSkill,
 	AtCommand_QuestSkill,
-	AtCommand_CharQuestSkill,
 	AtCommand_LostSkill,
 	AtCommand_CharLostSkill,
 	AtCommand_SpiritBall,
@@ -247,12 +246,12 @@ enum AtCommandType {
 	AtCommand_ChangeLook,
 	AtCommand_AutoLoot, //by Upa-Kun
 	AtCommand_MobInfo, //by Lupus
-        AtCommand_Adopt, // by Veider
-        AtCommand_Version, // by Ancyker
+	AtCommand_Adopt, // by Veider
+	AtCommand_Version, // by Ancyker
 
-        AtCommand_MuteArea, // MouseJstr
-        AtCommand_Shuffle, // MouseJstr
-        AtCommand_Rates, // MouseJstr
+	AtCommand_MuteArea, // MouseJstr
+	AtCommand_Shuffle, // MouseJstr
+	AtCommand_Rates, // MouseJstr
 
 	AtCommand_ItemInfo, // Lupus
 	AtCommand_MapFlag, // Lupus

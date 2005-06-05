@@ -21,6 +21,7 @@ enum CharCommandType {
 	CharCommandFakeName,
 	CharCommandBaseLevel,
 	CharCommandJobLevel,
+	CharCommandQuestSkill,
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */

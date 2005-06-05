@@ -1,5 +1,6 @@
 Date	Added
 06/04
+	* Moved @charquestskill to #questskill. [Kevin]
 	* status_change_start will halt silently instead of printing null_po messages
 	  when trying to apply  status effects on pets	[Skotlex]
 	  (Fixes null_po's from pets doing magnum break and who knows what other
