@@ -115,7 +115,7 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandModel,					"#charmodel",				50, charcommand_model },
 	{ CharCommandSKPoint,				"#skpoint",					60, charcommand_skpoint },
 	{ CharCommandSTPoint,				"#stpoint",					60, charcommand_stpoint },
-//	{ CharCommandChangeSex,				"#charchangesex",			60, charcommand_changsex },
+//	{ CharCommandChangeSex,				"#changesex",			60, charcommand_changsex },
 
 
 #ifdef TXT_ONLY
