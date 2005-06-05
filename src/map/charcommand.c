@@ -1267,7 +1267,7 @@ int charcommand_fakename(
 		return 0;
 	}
 	
-	if (sscanf(message, "%23[^\n] %23[^\n]", name, char_name) < 1 || strlen(name) > 23) {
+	if (sscanf(message, "%23s %23[^\n]", name, char_name) < 1 || strlen(name) > 23) {
 		return 0;
 	}
 	

@@ -1,5 +1,6 @@
 Date	Added
 06/06
+	* Fixed #fakename =). [Kevin]
 	* Tidied up and rearranged Makefile a bit [celest]
 	  - added 'make [common/map/login/char] options' -- only for txt though ^^;
 	  - readded sse, mmx and o3 optimisation flags (disabled by default) -- you'll
