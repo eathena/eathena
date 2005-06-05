@@ -27,6 +27,8 @@ TODO:
 
 Date		Added
 ======
+06/05
+	* Fixed another error [Lunatikbunnie]
 06/03
 	* Fixed an error in the jobmaster script [DracoRPG]
 06/02

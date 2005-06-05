@@ -20,6 +20,13 @@ prontera.gat,153,193,6	script	Job Master	123,{
 // Check Jobtype
 	if(SkillPoint != 0) goto L_skillUsed;
 	if(class ==0) goto L_novice;
+	if(JobLevel <10) goto L_notEn;
+	if((class ==4001) && ((lastJob ==7) || (lastJob ==14))) goto L_cHsword;
+	if((class ==4001) && ((lastJob ==9) || (lastJob ==16))) goto L_cHmage;
+	if((class ==4001) && ((lastJob ==11) || (lastJob ==14))) goto L_cHarcher;
+	if((class ==4001) && ((lastJob ==8) || (lastJob ==15))) goto L_cHacolyte;
+	if((class ==4001) && ((lastJob ==10) || (lastJob ==18))) goto L_cHmerchant;
+	if((class ==4001) && ((lastJob ==12) || (lastJob ==17))) goto L_cHthief;
 	if(JobLevel <@MinimumJB) goto L_notEn;
 	if(class ==1) goto L_iSword;
 	if(class ==2) goto L_iMage;
@@ -28,13 +35,6 @@ prontera.gat,153,193,6	script	Job Master	123,{
 	if(class ==5) goto L_iMerchant;
 	if(class ==6) goto L_iThief;
 	if(checkfalcon(0) == 1 || checkcart(0) == 1 || checkriding(0) == 1) goto L_remove;
-	if((class >=7) && (class <=20)) goto L_rebirth;
-	if((class ==24) && ((lastJob ==7) || (lastJob ==14))) goto L_cHsword;
-	if((class ==24) && ((lastJob ==9) || (lastJob ==16))) goto L_cHmage;
-	if((class ==24) && ((lastJob ==11) || (lastJob ==14))) goto L_cHarcher;
-	if((class ==24) && ((lastJob ==8) || (lastJob ==15))) goto L_cHacolyte;
-	if((class ==24) && ((lastJob ==10) || (lastJob ==18))) goto L_cHmerchant;
-	if((class ==24) && ((lastJob ==12) || (lastJob ==17))) goto L_cHthief;
 	if(lastJob ==7) goto L_iKnight;
 	if(lastJob ==8) goto L_iPriest;
 	if(lastJob ==9) goto L_iWizard;
@@ -48,6 +48,7 @@ prontera.gat,153,193,6	script	Job Master	123,{
 	if(lastJob ==18) goto L_iAlchemist;
 	if(lastJob ==19) goto L_iBard;
 	if(lastJob ==20) goto L_iDancer;
+	if((class >=7) && (class <=20)) goto L_rebirth;
 	close;
 // Novice
 	L_novice:
@@ -184,7 +185,7 @@ prontera.gat,153,193,6	script	Job Master	123,{
 		mes "Do you want to reborn?";
 		next;
 		menu "Yes",-,"No",L_quit;
-		if ((BaseLevel < 99) || (JobLevel < 50)) goto L_cantCh;
+		if ((BaseLevel < 99) && (JobLevel < 50)) goto L_cantCh;
 		set lastJob, readparam(19);
 		jobchange 24;
 		resetlvl(1);
