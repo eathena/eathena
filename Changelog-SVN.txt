@@ -1,5 +1,9 @@
 Date	Added
 06/04
+	* status_change_start will halt silently instead of printing null_po messages
+	  when trying to apply  status effects on pets	[Skotlex]
+	  (Fixes null_po's from pets doing magnum break and who knows what other
+	  skills)
 	* Moved #showexp and #showdelay to @showexp and @showdelay. [Kevin]
 	* Moved @charjoblvl and @charbaselvl to #joblvl and #baselvl. [Kevin]
 	* Readded the cloth dye packet upon-walk. Sorry about that [Skotlex]

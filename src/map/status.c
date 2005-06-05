@@ -3229,7 +3229,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		return 0;
 	if(bl->type == BL_MOB)
 		if (status_isdead(bl)) return 0;
-		
+	if(bl->type == BL_PET)	//Pets cannot have status effects
+		return 0;
 	// it's exactly the same thing as line 3231, so not needed ^^;
 	//if(!status_get_sc_data(bl)) //null pointer right here [Kevin]
 	//	return 0;
