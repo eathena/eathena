@@ -41,6 +41,12 @@ struct script_state {
 	int defsp,new_pos,new_defsp;
 };
 
+struct LuaCommandInfo {
+	int type;
+	const char *command;
+	lua_CFunction f;
+};
+
 char * parse_script(unsigned char *,int);
 int run_script(char *,int,int,int);
 
@@ -60,6 +66,9 @@ extern char mapreg_txt[];
 // LUA functions [DracoRPG]
 int script_run_function(char *name,int id);
 int script_run_function_nochar(char *name);
+
+//Build in lua commands XD [Kevin]
+void script_buildin_commands(lua_State *L);
 
 #endif
 

@@ -59,11 +59,56 @@ lua_State *L; // [DracoRPG]
 
 /*===================================================================
  *
+ *                  LUA BUILDIN COMMANDS GO HEAR [Kevin]
+ *
+ *===================================================================
+ */
+
+//return sum and average XD
+static int test(lua_State *L) {
+	int n = lua_gettop(L);
+	lua_Number sum = 0;
+	int i=0;
+	for(i=1; i <= n; i++) {
+		if(!lua_isnumber(L, i)) {
+			lua_pushstring(L, "Incorrect argument for function 'test'");
+			lua_error(L);
+		}
+		sum += lua_tonumber(L,i);
+	}
+	lua_pushnumber(L, sum/n);
+	lua_pushnumber(L, sum);
+	return 2;
+}
+
+
+ 
+//List of commands to build into lua
+static struct LuaCommandInfo commands[] = {
+	{0, "test", test},
+	{999, "DUMMY", NULL},
+};
+/*===================================================================
+ *
  *                   LUA FUNCTIONS BEGIN HERE [DracoRPG]
  *
  *===================================================================
  */
 
+void script_buildin_commands(lua_State *L) {
+	
+	int i=0;
+	
+	ShowInfo("Registering lua commands.\n",i);
+	while(commands[i].type != 999) {
+		lua_pushstring(L, commands[i].command);
+        lua_pushcfunction(L, commands[i].f);
+        lua_settable(L, LUA_GLOBALSINDEX);
+        i++;
+    }
+	ShowInfo("Successfully registered %d commands!!!!!\n",i);
+	
+}
 // Runs a Lua function that was previously loaded, passing a char ID as argument
 int script_run_function(char *name,int id)
 {
@@ -416,6 +461,9 @@ int do_init_script()
 	luaopen_io(L); // opens the I/O library
 	luaopen_string(L); // opens the string library
 	luaopen_math(L); // opens the math library
+	
+	//build in the lua commands XD
+	script_buildin_commands(L);
 
 	return 0;
 }

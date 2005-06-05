@@ -1,5 +1,8 @@
 Date	Added
 06/05
+	* Added script_buildin_commands, and a buildin system to add custom commands,
+	  registers commands, but not sure how to make the work with runlua, it succeeds with lua, but
+	  guessing its problem with @runlua or maybe my C function 'test' is just wrong ;-).
 	* PC[Login|Logout|Kill|Die]Event are now working with Lua functions, same should be for
 	  mobs' death events (untested though) [DracoRPG]
 	* Now there are script_run_function() and script_run_function_nochar available ^^ [DracoRPG]
