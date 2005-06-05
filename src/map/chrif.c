@@ -90,7 +90,7 @@ static int char_ip;
 static int char_port = 6121;
 static char userid[24], passwd[24];
 static int chrif_state = 0;
-static int char_init_done = 0;
+//static int char_init_done = 0;
 
 // ê›íËÉtÉ@ÉCÉãì«Ç›çûÇ›ä÷åW
 /*==========================================
@@ -330,7 +330,7 @@ int chrif_connectack(int fd)
 
 	chrif_sendmap(fd);
 
-	sprintf(tmp_output,"Event '"CL_WHITE"OnCharIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnCharIfInit"));
+/*	sprintf(tmp_output,"Event '"CL_WHITE"OnCharIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnCharIfInit"));
 	ShowStatus(tmp_output);
 	sprintf(tmp_output,"Event '"CL_WHITE"OnInterIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInit"));
 	ShowStatus(tmp_output);
@@ -338,10 +338,7 @@ int chrif_connectack(int fd)
 		char_init_done = 1;
 		sprintf(tmp_output,"Event '"CL_WHITE"OnInterIfInitOnce"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInitOnce"));
 		ShowStatus(tmp_output);
-	}
-
-	// <Agit> Run Event [AgitInit]
-//	printf("NPC_Event:[OnAgitInit] do (%d) events (Agit Initialize).\n", npc_event_doall("OnAgitInit"));
+	}*/
 
 	return 0;
 }

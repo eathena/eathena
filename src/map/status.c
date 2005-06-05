@@ -650,7 +650,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 						if(c>0){
 							if(i == 8 && sd->status.inventory[index].equip == 0x20)
 								sd->state.lr_flag = 1;
-							run_script(itemdb_equipscript(c),0,sd->bl.id,0);
+							// -- Here, run the equip_script --
 							sd->state.lr_flag = 0;
 						}
 					}
@@ -661,8 +661,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 					int j;
 					for(j=0;j<sd->inventory_data[index]->slot;j++){	// ƒJ?ƒh
 						int c=sd->status.inventory[index].card[j];
-						if(c>0)
-							run_script(itemdb_equipscript(c),0,sd->bl.id,0);
+						if(c>0){
+							// -- Here, run the equip_script --
+						}
 					}
 				}
 			}
@@ -715,7 +716,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 					}
 					sd->attackrange_ += sd->inventory_data[index]->range;
 					sd->state.lr_flag = 1;
-					run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);
+					// -- Here, run the equip_script --
 					sd->state.lr_flag = 0;
 				}
 				else {	// Right-hand weapon
@@ -732,13 +733,13 @@ int status_calc_pc(struct map_session_data* sd,int first)
 						sd->right_weapon.fameflag = pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,0);
 					}
 					sd->attackrange += sd->inventory_data[index]->range;
-					run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);
+					// -- Here, run the equip_script --
 				}
 			}
 			else if(sd->inventory_data[index]->type == 5) {
 				sd->right_weapon.watk += sd->inventory_data[index]->atk;
 				refinedef += sd->status.inventory[index].refine*refinebonus[0][0];
-				run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);
+				// -- Here, run the equip_script --
 			}
 		}
 	}
@@ -747,7 +748,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		index = sd->equip_index[10];
 		if(sd->inventory_data[index]){		// Arrows
 			sd->state.lr_flag = 2;
-			run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);
+			// -- Here, run the equip_script --
 			sd->state.lr_flag = 0;
 			sd->arrow_atk += sd->inventory_data[index]->atk;
 		}

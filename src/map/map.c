@@ -1472,16 +1472,9 @@ int map_quit(struct map_session_data *sd) {
 
 	if(!sd->state.waitingdisconnect) {
 		if (sd->state.event_disconnect) {
-			if (script_config.event_script_type == 0) {
-				struct npc_data *npc;
-				if ((npc = npc_name2id(script_config.logout_event_name))) {
-					run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLogoutNPC
-					sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.logout_event_name);
-					ShowStatus(tmp_output);
-				}
-			} else {
-				sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-					npc_event_doall_id(script_config.logout_event_name, sd->bl.id), script_config.logout_event_name);
+			if (script_config.login_event_name) {
+				script_run_function(script_config.login_event_name,sd->char_id);
+				sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.logout_event_name);
 				ShowStatus(tmp_output);
 			}
 		}
@@ -1755,10 +1748,6 @@ void map_removenpc(void) {
 				clif_clearchar_area(&map[m].npc[i]->bl,2);
 				map_delblock(&map[m].npc[i]->bl);
 				numdb_erase(id_db,map[m].npc[i]->bl.id);
-				if(map[m].npc[i]->bl.subtype==SCRIPT) {
-					aFree(map[m].npc[i]->u.scr.script);
-					aFree(map[m].npc[i]->u.scr.label_list);
-				}
 				aFree(map[m].npc[i]);
 				map[m].npc[i] = NULL;
 				n++;
@@ -3603,8 +3592,6 @@ int do_init(int argc, char *argv[]) {
 		log_sql_init();
 	}
 #endif /* not TXT_ONLY */
-
-	npc_event_do_oninit();	// npcのOnInitイベント?行
 
 	if ( console ) {
 		set_defaultconsoleparse(parse_console);

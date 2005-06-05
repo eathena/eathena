@@ -5739,10 +5739,8 @@ int atcommand_reloadscript(
 	atcommand_broadcast( fd, sd, "@broadcast", "Reloading NPCs..." );
 	flush_fifos();
 
-	//do_init_npc();
 	do_init_script();
 	npc_reload();
-	npc_event_do_oninit();
 
 	clif_displaymessage(fd, msg_table[100]); // Scripts reloaded.
 
@@ -7180,7 +7178,7 @@ int
 atcommand_addwarp(const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	char w1[64], w3[64], w4[64];
+/*	char w1[64], w3[64], w4[64];
 	int x,y,ret;
 	nullpo_retr(-1, sd);
 
@@ -7200,7 +7198,7 @@ atcommand_addwarp(const int fd, struct map_session_data* sd,
 
 	clif_displaymessage(fd, atcmd_output);
 
-	return ret;
+	return ret;*/ return 0;
 }
 
 /*==========================================

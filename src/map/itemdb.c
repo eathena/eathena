@@ -701,7 +701,7 @@ static int itemdb_read_sqldb(void)
 {
 	unsigned short nameid;
 	struct item_data *id;
-	char script[65535 + 2 + 1]; // Maximum length of MySQL TEXT type (65535) + 2 bytes for curly brackets + 1 byte for terminator
+//	char script[65535 + 2 + 1]; // Maximum length of MySQL TEXT type (65535) + 2 bytes for curly brackets + 1 byte for terminator
 	char *item_db_name[] = { item_db_db, item_db2_db };
 	long unsigned int ln = 0;
 	int i;	
@@ -786,23 +786,23 @@ static int itemdb_read_sqldb(void)
 
 					// ----------
 
-					if (sql_row[18] != NULL) {
+/*					if (sql_row[18] != NULL) {
 						if (sql_row[18][0] == '{')
 							id->use_script = parse_script((unsigned char *) sql_row[18], 0);
 						else {
 							sprintf(script, "{%s}", sql_row[18]);
 							id->use_script = parse_script((unsigned char *) script, 0);
 						}
-					} else id->use_script = NULL;
+					} else*/ id->use_script = NULL;
 
-					if (sql_row[19] != NULL) {
+/*					if (sql_row[19] != NULL) {
 						if (sql_row[19][0] == '{')
 							id->equip_script = parse_script((unsigned char *) sql_row[19], 0);
 						else {
 							sprintf(script, "{%s}", sql_row[19]);
 							id->equip_script = parse_script((unsigned char *) script, 0);
 						}
-					} else id->equip_script = NULL;
+					} else*/ id->equip_script = NULL;
 
 					// ----------
 
@@ -932,13 +932,6 @@ static int itemdb_readdb(void)
 
 			id->use_script=NULL;
 			id->equip_script=NULL;
-
-			if((p=strchr(np,'{'))==NULL)
-				continue;
-			id->use_script = parse_script((unsigned char *) p,lines);
-			if((p=strchr(p+1,'{'))==NULL)
-				continue;
-			id->equip_script = parse_script((unsigned char *) p,lines);
 		}
 		fclose(fp);
 		if (ln > 0) {

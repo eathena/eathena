@@ -997,7 +997,7 @@ int pet_data_init(struct map_session_data *sd)
 
 	pd->state.skillbonus = -1;
 	if (battle_config.pet_status_support) //Skotlex
-		run_script(pet_db[i].script,0,sd->bl.id,0);
+		// -- Here, run the pet_script --
 
 	if(sd->pet_hungry_timer != -1)
 		pet_hungry_timer_delete(sd);
@@ -1921,9 +1921,6 @@ int read_petdb()
 			pet_db[j].defence_attack_rate=atoi(str[18]);
 			pet_db[j].change_target_rate=atoi(str[19]);
 			pet_db[j].script = NULL;
-			if((np=strchr(p,'{'))==NULL)
-				continue;
-			pet_db[j].script = parse_script((unsigned char *) np,lines);
 			j++;
 		}
 		fclose(fp);

@@ -835,17 +835,9 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 		sprintf(tmp_output,"Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id);
 	ShowInfo(tmp_output);
 
-	if (script_config.event_script_type == 0) {
-		struct npc_data *npc;
-		//printf("pc: OnPCLogin event done. (%d events)\n", npc_event_doall("OnPCLogin") );
-		if ((npc = npc_name2id(script_config.login_event_name))) {
-			run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLoginNPC
-			sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.login_event_name);
-			ShowStatus(tmp_output);
-		}
-	} else {
-		sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-			npc_event_doall_id(script_config.login_event_name, sd->bl.id), script_config.login_event_name);
+	if (script_config.login_event_name) {
+		script_run_function(script_config.login_event_name,sd->char_id);
+		sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.login_event_name);
 		ShowStatus(tmp_output);
 	}
 
@@ -2646,7 +2638,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 		}
 		if(sd->status.inventory[n].card[0]==0x00ff && pc_istop10fame(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]),1))
 		    sd->state.potion_flag = 1; // Famous player's potions have 50% more efficiency
-		run_script(script,0,sd->bl.id,0);
+		// -- Here, run the use_script chunk --
 		sd->state.potion_flag = 0;
 	}
 
@@ -3498,10 +3490,10 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 			}
 		}
 
-		if (map_getcell(sd->bl.m,x,y,CELL_CHKNPC))
+/*		if (map_getcell(sd->bl.m,x,y,CELL_CHKNPC))
 			npc_touch_areanpc(sd,sd->bl.m,x,y);
 		else
-			sd->areanpc_id = 0;
+			sd->areanpc_id = 0;*/
 	}
 
 	if ((i = calc_next_walk_step(sd)) > 0) {
@@ -3691,10 +3683,10 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y)
 	if(sd->status.option&4)	// ƒNƒ?ƒLƒ“ƒO‚ÌÁ–Å?¸
 		skill_check_cloaking(&sd->bl);
 
-	if(map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKNPC))
+/*	if(map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKNPC))
 		npc_touch_areanpc(sd,sd->bl.m,sd->bl.x,sd->bl.y);
 	else
-		sd->areanpc_id=0;
+		sd->areanpc_id=0;*/
 	return 0;
 }
 
@@ -4871,16 +4863,9 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 			if (sd->state.event_death)
 				pc_setglobalreg(sd,"killerrid",(ssd->status.account_id));
 			if (ssd->state.event_kill) {
-				if (script_config.event_script_type == 0) {
-					struct npc_data *npc;
-					if ((npc = npc_name2id(script_config.kill_event_name))) {
-						run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCKillNPC
-						sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.kill_event_name);
-						ShowStatus(tmp_output);
-					}
-				} else {
-					sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-						npc_event_doall_id(script_config.kill_event_name, sd->bl.id), script_config.kill_event_name);
+				if (script_config.kill_event_name) {
+					script_run_function(script_config.kill_event_name,sd->char_id);
+					sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.kill_event_name);
 					ShowStatus(tmp_output);
 				}
 			}
@@ -4911,18 +4896,11 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 	}
 
 	if (sd->state.event_death) {
-		if (script_config.event_script_type == 0) {
-			struct npc_data *npc;
-			if ((npc = npc_name2id(script_config.die_event_name))) {
-				run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCDeathNPC
-				sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.die_event_name);
-				ShowStatus(tmp_output);
-			}
-		} else {
-			sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-				npc_event_doall_id(script_config.die_event_name, sd->bl.id), script_config.die_event_name);
+		if (script_config.die_event_name) {
+			script_run_function(script_config.die_event_name,sd->char_id);
+			sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.die_event_name);
 			ShowStatus(tmp_output);
-		}
+			}
 	}
 
 // PK/Karma system code (not enabled yet) [celest]
@@ -6102,7 +6080,7 @@ int pc_setaccountreg2(struct map_session_data *sd,char *reg,int val)
  */
 int pc_eventtimer(int tid,unsigned int tick,int id,int data)
 {
-	struct map_session_data *sd=map_id2sd(id);
+/*	struct map_session_data *sd=map_id2sd(id);
 	char *p = (char *)data;
 	int i;
 	if(sd==NULL)
@@ -6120,7 +6098,7 @@ int pc_eventtimer(int tid,unsigned int tick,int id,int data)
 		if(battle_config.error_log)
 			printf("pc_eventtimer: no such event timer\n");
 	}
-
+*/
 	return 0;
 }
 

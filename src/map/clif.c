@@ -1101,9 +1101,9 @@ static int clif_npc0078(struct npc_data *nd, unsigned char *buf) {
 
 	WBUFW(buf,0)=0x78;
 	WBUFL(buf,2)=nd->bl.id;
-	WBUFW(buf,6)=nd->speed;
+//	WBUFW(buf,6)=nd->speed;
 	WBUFW(buf,14)=nd->class_;
-	if ((nd->class_ == 722) && (nd->u.scr.guild_id > 0) && ((g=guild_search(nd->u.scr.guild_id)) != NULL)) {
+	if ((nd->class_ == 722) && (nd->u.npc.guild_id > 0) && ((g=guild_search(nd->u.npc.guild_id)) != NULL)) {
 		WBUFL(buf,22)=g->emblem_id;
 		WBUFL(buf,26)=g->guild_id;
 	}
@@ -1125,15 +1125,15 @@ static int clif_npc007b(struct npc_data *nd, unsigned char *buf) {
 
 	WBUFW(buf,0)=0x7b;
 	WBUFL(buf,2)=nd->bl.id;
-	WBUFW(buf,6)=nd->speed;
+//	WBUFW(buf,6)=nd->speed;
 	WBUFW(buf,14)=nd->class_;
-	if ((nd->class_ == 722) && (nd->u.scr.guild_id > 0) && ((g=guild_search(nd->u.scr.guild_id)) != NULL)) {
+	if ((nd->class_ == 722) && (nd->u.npc.guild_id > 0) && ((g=guild_search(nd->u.npc.guild_id)) != NULL)) {
 		WBUFL(buf,22)=g->emblem_id;
 		WBUFL(buf,26)=g->guild_id;
 	}
 
 	WBUFL(buf,22)=gettick();
-	WBUFPOS2(buf,50,nd->bl.x,nd->bl.y,nd->to_x,nd->to_y);
+//	WBUFPOS2(buf,50,nd->bl.x,nd->bl.y,nd->to_x,nd->to_y);
 	WBUFB(buf,56)=5;
 	WBUFB(buf,57)=5;
 
@@ -1359,7 +1359,7 @@ int clif_spawnnpc(struct npc_data *nd)
 
 	WBUFW(buf,0)=0x7c;
 	WBUFL(buf,2)=nd->bl.id;
-	WBUFW(buf,6)=nd->speed;
+//	WBUFW(buf,6)=nd->speed;
 	WBUFW(buf,20)=nd->class_;
 	WBUFPOS(buf,36,nd->bl.x,nd->bl.y);
 
@@ -1662,7 +1662,7 @@ int clif_npcbuysell(struct map_session_data* sd, int id) {
  *------------------------------------------
  */
 int clif_buylist(struct map_session_data *sd, struct npc_data *nd) {
-	struct item_data *id;
+/*	struct item_data *id;
 	int fd,i,val;
 
 	nullpo_retr(0, sd);
@@ -1685,7 +1685,7 @@ int clif_buylist(struct map_session_data *sd, struct npc_data *nd) {
 	}
 	WFIFOW(fd,2)=i*11+4;
 	WFIFOSET(fd,WFIFOW(fd,2));
-
+*/
 	return 0;
 }
 
@@ -8894,7 +8894,7 @@ void clif_parse_NpcBuySellSelected(int fd,struct map_session_data *sd)
  */
 void clif_parse_NpcBuyListSend(int fd,struct map_session_data *sd)
 {
-	int fail=0,n;
+/*	int fail=0,n;
 	unsigned short *item_list;
 
 	n = (RFIFOW(fd,2)-4) /4;
@@ -8904,7 +8904,7 @@ void clif_parse_NpcBuyListSend(int fd,struct map_session_data *sd)
 
 	WFIFOW(fd,0)=0xca;
 	WFIFOB(fd,2)=fail;
-	WFIFOSET(fd,packet_len_table[0xca]);
+	WFIFOSET(fd,packet_len_table[0xca]);*/
 }
 
 /*==========================================
@@ -9506,8 +9506,8 @@ void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 {
 	nullpo_retv(sd);
 
-	sd->npc_menu=RFIFOB(fd,6);
-	npc_scriptcont(sd,RFIFOL(fd,2));
+	/*sd->npc_menu=RFIFOB(fd,6);
+	npc_scriptcont(sd,RFIFOL(fd,2));*/
 }
 
 /*==========================================
@@ -9516,7 +9516,7 @@ void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
  */
 void clif_parse_NpcNextClicked(int fd,struct map_session_data *sd)
 {
-	npc_scriptcont(sd,RFIFOL(fd,2));
+	/*npc_scriptcont(sd,RFIFOL(fd,2));*/
 }
 
 /*==========================================
@@ -9526,14 +9526,14 @@ void clif_parse_NpcNextClicked(int fd,struct map_session_data *sd)
 void clif_parse_NpcAmountInput(int fd,struct map_session_data *sd)
 {
 	nullpo_retv(sd);
-
+/*
 #define RFIFOL_(fd,pos) (*(int*)(session[fd]->rdata+session[fd]->rdata_pos+(pos)))
 	//Input Value overflow Exploit FIX
 	sd->npc_amount=RFIFOL_(fd,6); //fixed by Lupus. npc_amount is (int) but was RFIFOL changing it to (unsigned int)
 
 #undef RFIFOL_
 
-	npc_scriptcont(sd,RFIFOL(fd,2));
+	npc_scriptcont(sd,RFIFOL(fd,2));*/
 }
 
 /*==========================================
@@ -9544,13 +9544,13 @@ void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)
 {
 	nullpo_retv(sd);
 
-	if(RFIFOW(fd,2)-7 >= sizeof(sd->npc_str)){
+/*	if(RFIFOW(fd,2)-7 >= sizeof(sd->npc_str)){
 		printf("clif: input string too long !\n");
 		memcpy(sd->npc_str,RFIFOP(fd,8),sizeof(sd->npc_str));
 		sd->npc_str[sizeof(sd->npc_str)-1]=0;
 	} else
 		strcpy(sd->npc_str,(char*)RFIFOP(fd,8));
-	npc_scriptcont(sd,RFIFOL(fd,4));
+	npc_scriptcont(sd,RFIFOL(fd,4));*/
 }
 
 /*==========================================
@@ -9559,7 +9559,7 @@ void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)
  */
 void clif_parse_NpcCloseClicked(int fd,struct map_session_data *sd)
 {
-	npc_scriptcont(sd,RFIFOL(fd,2));
+	/*npc_scriptcont(sd,RFIFOL(fd,2));*/
 }
 
 /*==========================================

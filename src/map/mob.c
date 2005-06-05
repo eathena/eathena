@@ -22,6 +22,7 @@
 #include "party.h"
 #include "npc.h"
 #include "log.h"
+#include "script.h"
 #include "showmsg.h"
 
 #define MIN_MOBTHINKTIME 100
@@ -2812,7 +2813,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			}
 		}
 		if(sd)
-			npc_event(sd,md->npc_event,0);
+			script_run_function(md->npc_event,sd->char_id);
 	}
 
 	clif_clearchar_area(&md->bl,1);

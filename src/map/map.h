@@ -403,31 +403,15 @@ struct map_session_data {
 
 };
 
-struct npc_timerevent_list {
-	int timer,pos;
-};
-struct npc_label_list {
-	char name[24];
-	int pos;
-};
-struct npc_item_list {
-	int nameid,value;
-};
 struct npc_data {
 	struct block_list bl;
 	short n;
-	short class_,dir;
-	short speed;
 	char name[24];
 	char exname[24];
+	short class_,dir; // Sprite and direction
 	int chat_id;
 	short opt1,opt2,opt3,option;
 	short flag;
-	int walktimer; // [Valaris]
-	short to_x,to_y; // [Valaris]
-	struct walkpath_data walkpath;
-	unsigned int next_walktime;
-	unsigned int canmove_tick;
 
 	struct { // [Valaris]
 		unsigned state : 8;
@@ -437,27 +421,22 @@ struct npc_data {
 
 	union {
 		struct {
-			char *script; // needs to be changed to lua_function_name
-			short xs,ys;
-			int guild_id;
-			int timer,timerid,timeramount,nexttimer,rid;
-			unsigned int timertick;
-			struct npc_timerevent_list *timer_event;
-			int label_list_num;
-			struct npc_label_list *label_list;
+			char function_name[50]; // Lua function to call when clicked
+			int guild_id; // Guild ID to display the emblem (for guild flags)
 			int src_id;
-		} scr;
-		struct npc_item_list shop_item[1];
+		} npc;
 		struct {
-			short xs,ys;
-			short x,y;
-			char name[16];
+			char function_name[50]; // Lua function to call when entered
+			short x1,y1,x2,y2; // 2 corners of the square trigger area
+			int src_id;
+		} area;
+		struct {
+			short xs,ys; // Radius
+			short destx,desty; // Destination coordinates
+			char destmap[16]; // Destination map
 		} warp;
 	} u;
-	// ‚±‚±‚Éƒƒ“ƒo‚ğ’Ç‰Á‚µ‚Ä‚Í‚È‚ç‚È‚¢(shop_item‚ª‰Â•Ï’·‚Ìˆ×)
 
-	char eventqueue[MAX_EVENTQUEUE][50];
-	int eventtimer[MAX_EVENTTIMER];
 	short arenaflag;
 
 	void *chatdb;

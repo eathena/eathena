@@ -11,6 +11,7 @@
 #include "pc.h"
 #include "chat.h"
 #include "npc.h"
+#include "script.h"
 
 int chat_triggerevent(struct chat_data *cd);
 
@@ -323,7 +324,7 @@ int chat_triggerevent(struct chat_data *cd)
 	nullpo_retr(0, cd);
 
 	if(cd->users>=cd->trigger && cd->npc_event[0])
-		npc_event_do(cd->npc_event);
+		script_run_function_nochar(cd->npc_event);
 	return 0;
 }
 

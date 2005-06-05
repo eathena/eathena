@@ -3986,7 +3986,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				sd->state.potion_flag = 1;
 				sd->potion_hp = sd->potion_sp = sd->potion_per_hp = sd->potion_per_sp = 0;
 				sd->skilltarget = bl->id;
-				run_script(sd->inventory_data[i]->use_script,0,sd->bl.id,0);
+                // -- Here, run the use_script --
 				pc_delitem(sd,i,skill_db[skillid].amount[x],0);
 				sd->state.potion_flag = 0;
 				if(sd->potion_per_hp > 0 || sd->potion_per_sp > 0) {
@@ -5440,7 +5440,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 				}
 				sd->state.potion_flag = 1;
 				sd->potion_hp = 0;
-				run_script(sd->inventory_data[j]->use_script,0,sd->bl.id,0);
+				// -- Here, run the use_script --
 				pc_delitem(sd,j,skill_db[skillid].amount[i],0);
 				sd->state.potion_flag = 0;
 				clif_skill_poseffect(src,skillid,skilllv,x,y,tick);

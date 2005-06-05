@@ -369,7 +369,7 @@ int guild_npc_request_info(int guild_id,const char *event)
 
 	if( guild_search(guild_id) ){
 		if(event && *event)
-			npc_event_do(event);
+			//npc_event_do(event);
 		return 0;
 	}
 
@@ -490,7 +490,7 @@ int guild_recv_info(struct guild *sg)
 	if( (ev=(struct eventlist *)numdb_search(guild_infoevent_db,sg->guild_id))!=NULL ){
 		numdb_erase(guild_infoevent_db,sg->guild_id);
 		while(ev){
-			npc_event_do(ev->name);
+			//npc_event_do(ev->name);
 			ev2=ev->next;
 			aFree(ev);
 			ev=ev2;
@@ -1442,7 +1442,7 @@ int guild_castledataloadack(int castle_id,int index,int value)
 	if( (ev=(struct eventlist *) numdb_search(guild_castleinfoevent_db,code))!=NULL ){
 		numdb_erase(guild_castleinfoevent_db,code);
 		while(ev){
-			npc_event_do(ev->name);
+			//npc_event_do(ev->name);
 			ev2=ev->next;
 			aFree(ev);
 			ev=ev2;
@@ -1526,15 +1526,15 @@ int guild_castlealldataload(int len,struct guild_castle *gc)
 				guild_npc_request_info(c->guild_id, "::OnAgitInit");
 		}
 	}
-	if (ev == -1)
-		npc_event_doall("OnAgitInit");
+/*	if (ev == -1)
+		npc_event_doall("OnAgitInit");*/
 	return 0;
 }
 
 int guild_agit_start(void)
 {	// Run All NPC_Event[OnAgitStart]
-	int c = npc_event_doall("OnAgitStart");
-	printf("NPC_Event:[OnAgitStart] Run (%d) Events by @AgitStart.\n",c);
+//	int c = npc_event_doall("OnAgitStart");
+//	printf("NPC_Event:[OnAgitStart] Run (%d) Events by @AgitStart.\n",c);
 	// Start auto saving
 	guild_save_timer = add_timer_interval (gettick() + GUILD_SAVE_INTERVAL, guild_save_sub, 0, 0, GUILD_SAVE_INTERVAL);
 	return 0;
@@ -1542,8 +1542,8 @@ int guild_agit_start(void)
 
 int guild_agit_end(void)
 {	// Run All NPC_Event[OnAgitEnd]
-	int c = npc_event_doall("OnAgitEnd");
-	printf("NPC_Event:[OnAgitEnd] Run (%d) Events by @AgitEnd.\n",c);
+//	int c = npc_event_doall("OnAgitEnd");
+//	printf("NPC_Event:[OnAgitEnd] Run (%d) Events by @AgitEnd.\n",c);
 	// Stop auto saving
 	delete_timer (guild_save_timer, guild_save_sub);
 	return 0;
@@ -1552,7 +1552,7 @@ int guild_agit_end(void)
 int guild_gvg_eliminate_timer(int tid,unsigned int tick,int id,int data)
 {	// Run One NPC_Event[OnAgitEliminate]
 	char *name = (char*)data;
-	size_t len = (name) ? strlen(name) : 0; 
+/*	size_t len = (name) ? strlen(name) : 0;
 	// the rest is dangerous, but let it crash,
 	// if this happens, it's ruined anyway
 	char *evname=(char*)aMalloc( (len + 4) * sizeof(char));
@@ -1564,7 +1564,7 @@ int guild_gvg_eliminate_timer(int tid,unsigned int tick,int id,int data)
 		strcpy(evname + len - 5,"Eliminate");
 		c = npc_event_do(evname);
 		printf("NPC_Event:[%s] Run (%d) Events.\n",evname,c);
-	}
+	}*/
 	if(name) aFree(name);
 	return 0;
 }

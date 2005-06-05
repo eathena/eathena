@@ -1,5 +1,7 @@
 Date	Added
 06/05
+	* PC[Login|Logout|Kill|Die]Event are now working with Lua functions, same should be for
+	  mobs' death events (untested though) [DracoRPG]
 	* Now there are script_run_function() and script_run_function_nochar available ^^ [DracoRPG]
 06/04
 	* Began the real work [DracoRPG]
