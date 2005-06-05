@@ -101,7 +101,6 @@ enum AtCommandType {
 	AtCommand_MapExit,
 	AtCommand_IDSearch,
 	//by chbrules
-	AtCommand_CharModel,
 	AtCommand_CharSKPoint,
 	AtCommand_CharSTPoint,
 //	AtCommand_CharZeny, //now #zeny

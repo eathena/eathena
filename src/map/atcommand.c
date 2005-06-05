@@ -123,7 +123,6 @@ ACMD_FUNC(spiritball);
 ACMD_FUNC(party);
 ACMD_FUNC(guild);
 ACMD_FUNC(charstpoint);
-ACMD_FUNC(charmodel);
 ACMD_FUNC(charskpoint);
 ACMD_FUNC(agitstart);
 ACMD_FUNC(agitend);
@@ -399,7 +398,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_ReloadBattleConf,	"@reloadbattleconf",99, atcommand_reloadbattleconf },
 	{ AtCommand_ReloadStatusDB,		"@reloadstatusdb",	99, atcommand_reloadstatusdb },
 	{ AtCommand_ReloadPcDB,			"@reloadpcdb",		99, atcommand_reloadpcdb },
-	{ AtCommand_CharModel,			"@charmodel",		50, atcommand_charmodel },
 	{ AtCommand_CharSKPoint,		"@charskpoint",		60, atcommand_charskpoint },
 	{ AtCommand_CharSTPoint,		"@charstpoint",		60, atcommand_charstpoint },
 	{ AtCommand_MapInfo,			"@mapinfo",			99, atcommand_mapinfo },
@@ -5008,56 +5006,6 @@ int atcommand_idsearch(
 	}
 	sprintf(atcmd_output, msg_table[79], match); // It is %d affair above.
 	clif_displaymessage(fd, atcmd_output);
-
-	return 0;
-}
-
-/*==========================================
- * Character Model by chbrules
- *------------------------------------------
- */
-int atcommand_charmodel(
-	const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
-{
-	int hair_style = 0, hair_color = 0, cloth_color = 0;
-	struct map_session_data *pl_sd;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
-
-	if (!message || !*message || sscanf(message, "%d %d %d %99[^\n]", &hair_style, &hair_color, &cloth_color, atcmd_player_name) < 4 || hair_style < 0 || hair_color < 0 || cloth_color < 0) {
-		sprintf(atcmd_output, "Please, enter a valid model and a player name (usage: @charmodel <hair ID: %d-%d> <hair color: %d-%d> <clothes color: %d-%d> <name>).",
-		        MIN_HAIR_STYLE, MAX_HAIR_STYLE, MIN_HAIR_COLOR, MAX_HAIR_COLOR, MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
-		clif_displaymessage(fd, atcmd_output);
-		return -1;
-	}
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (hair_style >= MIN_HAIR_STYLE && hair_style <= MAX_HAIR_STYLE &&
-		    hair_color >= MIN_HAIR_COLOR && hair_color <= MAX_HAIR_COLOR &&
-		    cloth_color >= MIN_CLOTH_COLOR && cloth_color <= MAX_CLOTH_COLOR) {
-
-			if (cloth_color != 0 &&
-			    pl_sd->status.sex == 1 &&
-			    (pl_sd->status.class_ == 12 ||  pl_sd->status.class_ == 17)) {
-				clif_displaymessage(fd, msg_table[35]); // You can't use this command with this class.
-				return -1;
-			} else {
-				pc_changelook(pl_sd, LOOK_HAIR, hair_style);
-				pc_changelook(pl_sd, LOOK_HAIR_COLOR, hair_color);
-				pc_changelook(pl_sd, LOOK_CLOTHES_COLOR, cloth_color);
-				clif_displaymessage(fd, msg_table[36]); // Appearence changed.
-			}
-		} else {
-			clif_displaymessage(fd, msg_table[37]); // An invalid number was specified.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_table[3]); // Character not found.
-		return -1;
-	}
 
 	return 0;
 }

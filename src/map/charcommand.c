@@ -58,6 +58,7 @@ CCMD_FUNC(questskill);
 CCMD_FUNC(lostskill);
 CCMD_FUNC(skreset);
 CCMD_FUNC(streset);
+CCMD_FUNC(model);
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */
@@ -108,6 +109,7 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandLostSkill,				"#lostskill",				60, charcommand_lostskill },
 	{ CharCommandSkReset,				"#skreset",					60, charcommand_skreset },
 	{ CharCommandStReset,				"#streset",					60, charcommand_streset },
+	{ CharCommandModel,					"#charmodel",				50, charcommand_model },
 
 
 #ifdef TXT_ONLY
@@ -1600,6 +1602,56 @@ int charcommand_streset(
 			clif_displaymessage(fd, chcmd_output);
 		} else {
 			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
+			return -1;
+		}
+	} else {
+		clif_displaymessage(fd, msg_table[3]); // Character not found.
+		return -1;
+	}
+
+	return 0;
+}
+
+/*==========================================
+ * Character Model by chbrules
+ *------------------------------------------
+ */
+int charcommand_model(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	int hair_style = 0, hair_color = 0, cloth_color = 0;
+	struct map_session_data *pl_sd;
+	char player[24];
+	nullpo_retr(-1, sd);
+
+	memset(chcmd_output, '\0', sizeof(chcmd_output));
+
+	if (!message || !*message || sscanf(message, "%d %d %d %99[^\n]", &hair_style, &hair_color, &cloth_color, player) < 4 || hair_style < 0 || hair_color < 0 || cloth_color < 0) {
+		sprintf(chcmd_output, "Please, enter a valid model and a player name (usage: @charmodel <hair ID: %d-%d> <hair color: %d-%d> <clothes color: %d-%d> <name>).",
+		        MIN_HAIR_STYLE, MAX_HAIR_STYLE, MIN_HAIR_COLOR, MAX_HAIR_COLOR, MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
+		clif_displaymessage(fd, chcmd_output);
+		return -1;
+	}
+
+	if ((pl_sd = map_nick2sd(player)) != NULL) {
+		if (hair_style >= MIN_HAIR_STYLE && hair_style <= MAX_HAIR_STYLE &&
+		    hair_color >= MIN_HAIR_COLOR && hair_color <= MAX_HAIR_COLOR &&
+		    cloth_color >= MIN_CLOTH_COLOR && cloth_color <= MAX_CLOTH_COLOR) {
+
+			if (cloth_color != 0 &&
+			    pl_sd->status.sex == 1 &&
+			    (pl_sd->status.class_ == 12 ||  pl_sd->status.class_ == 17)) {
+				clif_displaymessage(fd, msg_table[35]); // You can't use this command with this class.
+				return -1;
+			} else {
+				pc_changelook(pl_sd, LOOK_HAIR, hair_style);
+				pc_changelook(pl_sd, LOOK_HAIR_COLOR, hair_color);
+				pc_changelook(pl_sd, LOOK_CLOTHES_COLOR, cloth_color);
+				clif_displaymessage(fd, msg_table[36]); // Appearence changed.
+			}
+		} else {
+			clif_displaymessage(fd, msg_table[37]); // An invalid number was specified.
 			return -1;
 		}
 	} else {

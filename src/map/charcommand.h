@@ -25,6 +25,7 @@ enum CharCommandType {
 	CharCommandLostSkill,
 	CharCommandSkReset,
 	CharCommandStReset,
+	CharCommandModel,
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */
