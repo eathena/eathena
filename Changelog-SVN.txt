@@ -1,5 +1,7 @@
 Date	Added
 06/05
+	* prevent_logout is now overriden by dead characters.	There's no point in
+	  waiting 10 secs since you were killed to quit/change character. [Skotlex]
 	* Passive mobs will now unlock their target once it's dead/gone too
 	  far/in another map.	[Skotlex]
 	  Passive mobs are supposed to be defensive, not vengeful. Do report of any

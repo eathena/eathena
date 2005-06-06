@@ -8019,7 +8019,10 @@ void clif_parse_QuitGame(int fd, struct map_session_data *sd) {
 	}
 
 	/*	Rovert's prevent logout option fixed [Valaris]	*/
-	if ((battle_config.prevent_logout && (gettick() - sd->canlog_tick) >= 10000) || (!battle_config.prevent_logout)) {
+	if (!battle_config.prevent_logout ||
+		(gettick() - sd->canlog_tick) >= 10000 ||
+		pc_isdead(sd))	//Allow dead characters to logout [Skotlex]
+	{
 		clif_setwaitclose(fd);
 		WFIFOW(fd,2)=0;
 	} else {
@@ -8581,7 +8584,10 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
 			return;
 
 		/*	Rovert's Prevent logout option - Fixed [Valaris]	*/
-		if ((battle_config.prevent_logout && (gettick() - sd->canlog_tick) >= 10000) || (!battle_config.prevent_logout)) {
+		if (!battle_config.prevent_logout ||
+			(gettick() - sd->canlog_tick) >= 10000 ||
+			pc_isdead(sd))	//Allow dead characters to logout [Skotlex]
+		{
 			chrif_charselectreq(sd);
 		} else {
 			WFIFOW(fd,0)=0x18b;
