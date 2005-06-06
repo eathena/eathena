@@ -43,7 +43,7 @@
 #define OPTION_HIDE 0x40
 
 enum { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL , BL_PET };
-enum { WARP, SHOP, SCRIPT, MONS };
+enum { WARP, AREASCRIPT, NPC, MONS };
 
 struct block_list {
 	struct block_list *next,*prev;
@@ -405,13 +405,13 @@ struct map_session_data {
 
 struct npc_data {
 	struct block_list bl;
-	short n;
-	char name[24];
-	char exname[24];
+	short n; // Index of the NPC on the map
+	char name[24]; // Display name
+	char exname[24]; // Name postfix
 	short class_,dir; // Sprite and direction
-	int chat_id;
-	short opt1,opt2,opt3,option;
-	short flag;
+	short opt1,opt2,opt3,option; // Visual options
+	short flag; // Hidden flag
+	void *chatdb;
 
 	struct { // [Valaris]
 		unsigned state : 8;
@@ -421,26 +421,22 @@ struct npc_data {
 
 	union {
 		struct {
-			char function_name[50]; // Lua function to call when clicked
-			int guild_id; // Guild ID to display the emblem (for guild flags)
-			int src_id;
+			char function[50]; // Lua function to call when clicked
+			int guild_id; // Guild ID (for guild flags)
+			int chat_id; // Chatroom ID (for waiting room NPCs)
 		} npc;
 		struct {
-			char function_name[50]; // Lua function to call when entered
+			char function[50]; // Lua function to call when entered
 			short x1,y1,x2,y2; // 2 corners of the square trigger area
-			int src_id;
-		} area;
+		} areascript;
 		struct {
 			short xs,ys; // Radius
 			short destx,desty; // Destination coordinates
 			char destmap[16]; // Destination map
 		} warp;
-	} u;
-
-	short arenaflag;
-
-	void *chatdb;
+	} spec;
 };
+
 struct mob_data {
 	struct block_list bl;
 	short n;

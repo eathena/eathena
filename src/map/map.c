@@ -1472,8 +1472,8 @@ int map_quit(struct map_session_data *sd) {
 
 	if(!sd->state.waitingdisconnect) {
 		if (sd->state.event_disconnect) {
-			if (script_config.login_event_name) {
-				script_run_function(script_config.login_event_name,sd->char_id);
+			if (script_config.logout_event_name) {
+				script_run_function(script_config.logout_event_name,"i",sd->char_id);
 				sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.logout_event_name);
 				ShowStatus(tmp_output);
 			}

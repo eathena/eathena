@@ -43,17 +43,7 @@ void npc_delsrcfile(char *);
 void npc_parsesrcfile(char *);
 int do_final_npc(void);
 int do_init_npc(void);
-int npc_event_do_oninit(void);
-int npc_do_ontimer(int,int);
 
-int npc_event_doall(const char *name);
-int npc_event_do(const char *name);
-int npc_event_doall_id(const char *name, int id);
-
-int npc_timerevent_start(struct npc_data *nd, int rid);
-int npc_timerevent_stop(struct npc_data *nd);
-int npc_gettimerevent_tick(struct npc_data *nd);
-int npc_settimerevent_tick(struct npc_data *nd,int newtimer);
 int npc_remove_map(struct npc_data *nd);
 int npc_unload(struct npc_data *nd);
 int npc_reload(void);

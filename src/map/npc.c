@@ -896,7 +896,7 @@ int npc_click(struct map_session_data *sd,int id)
 		return 1;
 
 	sd->npc_id=id;
-	script_run_function(nd->u.npc.function_name,sd->char_id);
+	script_run_function(nd->spec.npc.function,"i",sd->char_id);
 
 	return 0;
 }
@@ -937,12 +937,12 @@ int npc_buysellsel(struct map_session_data *sd,int id,int type)
 		return 1;
 
 	nd=(struct npc_data *)map_id2bl(id);
-	if (nd->bl.subtype!=SHOP) {
+/*	if (nd->bl.subtype!=SHOP) {
 		if (battle_config.error_log)
 			printf("no such shop npc : %d\n",id);
 		sd->npc_id=0;
 		return 1;
-	}
+	}*/
 	if (nd->flag&1)	// –³Œø‰»‚³‚ê‚Ä‚¢‚é
 		return 1;
 
@@ -1333,7 +1333,7 @@ int npc_remove_map (struct npc_data *nd)
 	npc_chat_finalize(nd);
 #endif
 	clif_clearchar_area(&nd->bl,2);
-	strdb_erase(npcname_db, (nd->bl.subtype < SCRIPT) ? nd->name : nd->exname);
+	strdb_erase(npcname_db, (nd->bl.subtype < NPC) ? nd->name : nd->exname);
 	map_delblock(&nd->bl);
 	map_deliddb(&nd->bl);
 
@@ -1344,8 +1344,8 @@ int npc_unload (struct npc_data *nd)
 {
 	npc_remove_map (nd);
 
-	if (nd->chat_id) {
-		struct chat_data *cd = (struct chat_data*)map_id2bl(nd->chat_id);
+	if (nd->spec.npc.chat_id) {
+		struct chat_data *cd = (struct chat_data*)map_id2bl(nd->spec.npc.chat_id);
 		if (cd) aFree (cd);
 		cd = NULL;
 	}
@@ -2294,15 +2294,15 @@ void npc_parsesrcfile (char *name)
 {
 	FILE *fp = fopen (name,"r");
 	if (fp == NULL) {
-		ShowError ("File not found : %s\n", name);
+		ShowError("File not found : %s\n",name);
 		exit(1);
 	}
 	current_file = name;
 
 	if (luaL_loadfile(L,name))
-		ShowError("Cannot load script file %s : %s",name,lua_tostring(L, -1));
+		ShowError("Cannot load script file %s : %s",name,lua_tostring(L,-1));
 	if (lua_pcall(L,0,0,0))
-		ShowError("Cannot run script file %s : %s",name,lua_tostring(L, -1));
+		ShowError("Cannot run script file %s : %s",name,lua_tostring(L,-1));
 
 	fclose(fp);
 

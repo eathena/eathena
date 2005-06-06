@@ -20,55 +20,18 @@ extern struct Script_Config {
 	unsigned event_requires_trigger : 1;
 } script_config;
 
-struct script_data {
-	int type;
-	union {
-		int num;
-		char *str;
-	} u;
-};
-
-struct script_stack {
-	int sp,sp_max;
-	struct script_data *stack_data;
-};
-struct script_state {
-	struct script_stack *stack;
-	int start,end;
-	int pos,state;
-	int rid,oid;
-	char *script,*new_script;
-	int defsp,new_pos,new_defsp;
-};
-
 struct LuaCommandInfo {
-	int type;
 	const char *command;
 	lua_CFunction f;
 };
 
-char * parse_script(unsigned char *,int);
-int run_script(char *,int,int,int);
+extern char mapreg_txt[];
 
-int set_var(struct map_session_data *sd, char *name, void *val);
-int conv_num(struct script_state *st,struct script_data *data);
-char* conv_str(struct script_state *st,struct script_data *data);
-
-struct dbt* script_get_label_db();
-struct dbt* script_get_userfunc_db();
-
+void script_run_function(const char *name,const char *format,...); // [DracoRPG]
+void script_run_chunk(const char *chunk); // [DracoRPG]
+void script_buildin_commands(); // [Kevin]
 int script_config_read(char *cfgName);
 int do_init_script();
 int do_final_script();
 
-extern char mapreg_txt[];
-
-// LUA functions [DracoRPG]
-int script_run_function(char *name,int id);
-int script_run_function_nochar(char *name);
-
-//Build in lua commands XD [Kevin]
-void script_buildin_commands(lua_State *L);
-
 #endif
-

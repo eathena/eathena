@@ -259,7 +259,8 @@ enum AtCommandType {
 	AtCommand_ItemInfo, // Lupus
 	AtCommand_MapFlag, // Lupus
 
-	AtCommand_RunLua, // [DracoRPG]
+	AtCommand_RunLuaFunc, // [DracoRPG]
+	AtCommand_RunLuaChunk, // [DracoRPG]
 
 	// end
 	AtCommand_Unknown,

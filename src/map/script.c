@@ -59,19 +59,19 @@ lua_State *L; // [DracoRPG]
 
 /*===================================================================
  *
- *                  LUA BUILDIN COMMANDS GO HEAR [Kevin]
+ *                  LUA BUILDIN COMMANDS GO HERE [Kevin]
  *
  *===================================================================
  */
 
-//return sum and average XD
-static int test(lua_State *L) {
+static int somemath() // Return sum and average XD
+{
 	int n = lua_gettop(L);
 	lua_Number sum = 0;
 	int i=0;
 	for(i=1; i <= n; i++) {
 		if(!lua_isnumber(L, i)) {
-			lua_pushstring(L, "Incorrect argument for function 'test'");
+			lua_pushstring(L, "Incorrect argument for function 'somemath'");
 			lua_error(L);
 		}
 		sum += lua_tonumber(L,i);
@@ -81,13 +81,46 @@ static int test(lua_State *L) {
 	return 2;
 }
 
+static int addnpc()
+{
+	int m=map_mapname2mapid((char*)lua_tostring(L,-6));
+    struct npc_data *nd=(struct npc_data *)aCalloc(1, sizeof(struct npc_data));
 
- 
+	nd->bl.prev=nd->bl.next=NULL;
+	nd->bl.m=m;
+	nd->bl.x=lua_tonumber(L,-5);
+	nd->bl.y=lua_tonumber(L,-4);
+	nd->bl.id=npc_get_new_npc_id();
+	nd->bl.type=BL_NPC;
+	nd->bl.subtype=NPC;
+	memcpy(nd->name,lua_tostring(L,-7),24);
+	memcpy(nd->exname,lua_tostring(L,-7),24);
+	nd->dir=lua_tonumber(L,-3);
+	nd->class_=lua_tonumber(L,-2);
+	nd->flag=0;
+	nd->option=0;
+	nd->opt1=nd->opt2=nd->opt3=0;
+	memcpy(nd->spec.npc.function,lua_tostring(L,-1),50);
+	nd->spec.npc.guild_id = 0;
+	nd->spec.npc.chat_id = 0;
+
+	nd->n = map_addnpc(m,nd);
+	map_addblock(&nd->bl);
+
+	return nd->n;
+}
+
 //List of commands to build into lua
 static struct LuaCommandInfo commands[] = {
-	{0, "test", test},
-	{999, "DUMMY", NULL},
+	{"somemath", somemath},
+	{"addnpc", addnpc},
+/*	{"addareascript", addareascript},
+	{"addgmcommand", addgmcommand},
+	{"addtimer", addtimer},
+	{"addevent", addevent},*/
+	{"-End of list-", NULL},
 };
+
 /*===================================================================
  *
  *                   LUA FUNCTIONS BEGIN HERE [DracoRPG]
@@ -95,74 +128,63 @@ static struct LuaCommandInfo commands[] = {
  *===================================================================
  */
 
-void script_buildin_commands(lua_State *L) {
-	
+void script_buildin_commands()
+{
 	int i=0;
-	
-	ShowInfo("Registering lua commands.\n",i);
-	while(commands[i].type != 999) {
+
+	ShowInfo("Registering lua commands...\n",i);
+	while(commands[i].command != "-End of list-") {
 		lua_pushstring(L, commands[i].command);
         lua_pushcfunction(L, commands[i].f);
         lua_settable(L, LUA_GLOBALSINDEX);
         i++;
     }
 	ShowInfo("Successfully registered %d commands!!!!!\n",i);
-	
-}
-// Runs a Lua function that was previously loaded, passing a char ID as argument
-int script_run_function(char *name,int id)
-{
-	lua_getglobal(L,name);
-	lua_pushnumber(L,(double)id);
-	if (lua_pcall(L,1,1,0)!=0){
-		ShowError("Cannot run function %s for character %d : %s\n",name,id,lua_tostring(L,-1));
-		return -1;
-	}
-	ShowInfo("Ran function %s for character %d\n",name,id);
-
-	return ((int)lua_tonumber(L,-1) ? (int)lua_tonumber(L,-1) : 0);
 }
 
-// Runs a Lua function that was previously loaded, passing NO char ID as argument
-int script_run_function_nochar(char *name)
+// Runs a Lua function that was previously loaded, specifying the type of arguments with a "format" string
+void script_run_function(const char *name,const char *format,...)
 {
-	lua_getglobal(L,name);
-	if (lua_pcall(L,0,1,0)!=0){
-		ShowError("Cannot run function %s : %s\n",name,lua_tostring(L, -1));
-		return -1;
+	va_list arg;
+	int n=0;
+
+	lua_getglobal(L,name); // Pass function name to Lua
+	va_start(arg,format); // Initialize the argument list
+	while (*format) { // Pass arguments to Lua, according to the types defined by "format"
+        switch (*format++) {
+          case 'd': // d = Double
+            lua_pushnumber(L,va_arg(arg,double));
+            break;
+          case 'i': // i = Integer
+            lua_pushnumber(L,va_arg(arg,int));
+            break;
+          case 's': // s = String
+            lua_pushstring(L,va_arg(arg,char*));
+            break;
+          default: // Unknown code
+            ShowError("%c : Invalid argument type code, allowed codes are 'd'/'i'/'s'",*(format-1));
+        }
+        n++;
+        luaL_checkstack(L,1,"Too many arguments");
+      }
+	if (lua_pcall(L,n,0,0)!=0){ // Tell Lua to run the function
+		ShowError("Cannot run function %s : %s\n",name,lua_tostring(L,-1));
+		return;
 	}
 	ShowInfo("Ran function %s\n",name);
-
-	return ((int)lua_tonumber(L,-1) ? (int)lua_tonumber(L,-1) : 0);
+	va_end(arg);
 }
 
-/*
-// Runs a Lua chunk, passing a char ID as argument
-int script_run_chunk(char *chunk,int id)
+// Runs a Lua chunk
+void script_run_chunk(const char *chunk)
 {
-	lua_pushvalue(L,chunk);
-	lua_pushboolean(L,id);
-	if (lua_pcall(L,0,1,0)!=0){
-		ShowError("Cannot run chunk %s for character %d : %s\n",chunk,id,lua_tostring(L, -1));
-		return -1;
+	luaL_loadbuffer(L,chunk,strlen(chunk),"chunk"); // Pass chunk to Lua
+	if (lua_pcall(L,0,0,0)!=0){ // Tell Lua to run the chunk
+		ShowError("Cannot run chunk %s : %s\n",chunk,lua_tostring(L,-1));
+		return;
 	}
-	ShowInfo("Ran chunk %s for character %d\n",chunk,id);
-
-	return (lua_toboolean(L,-1) ? lua_toboolean(L,-1) : 0);
+	ShowInfo("Ran chunk %s\n",chunk);
 }
-
-// Runs a Lua chunk, passing NO char ID as argument
-int script_run_chunk_nochar(char *chunk)
-{
-	lua_pushvalue(L,chunk);
-	if (lua_pcall(L,0,1,0)!=0){
-		ShowError("Cannot run chunk %s : %s\n",chunk,lua_tostring(L, -1));
-		return -1;
-	}
-	ShowInfo("Ran chunk %s\n",name);
-	return 0;
-}
-*/
 
 /*===================================================================
  *
@@ -437,7 +459,7 @@ int do_final_script()
 	if (script_config.mapload_event_name)
 		aFree(script_config.mapload_event_name);
 
-	lua_close(L); // closes Lua
+	lua_close(L); // Close Lua
 
 	return 0;
 }
@@ -455,15 +477,14 @@ int do_init_script()
 	add_timer_interval(gettick()+MAPREG_AUTOSAVE_INTERVAL,
 		script_autosave_mapreg,0,0,MAPREG_AUTOSAVE_INTERVAL);*/
 
-	L = lua_open(); // opens Lua
-	luaopen_base(L); // opens the basic library
-	luaopen_table(L); // opens the table library
-	luaopen_io(L); // opens the I/O library
-	luaopen_string(L); // opens the string library
-	luaopen_math(L); // opens the math library
-	
-	//build in the lua commands XD
-	script_buildin_commands(L);
+	L = lua_open(); // Open Lua
+	luaopen_base(L); // Open the basic library
+	luaopen_table(L); // Open the table library
+	luaopen_io(L); // Open the I/O library
+	luaopen_string(L); // Open the string library
+	luaopen_math(L); // Open the math library
+
+	script_buildin_commands(); // Build in the lua commands XD
 
 	return 0;
 }

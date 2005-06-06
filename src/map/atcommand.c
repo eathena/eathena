@@ -277,7 +277,8 @@ ACMD_FUNC(rates); // by MouseJstr
 ACMD_FUNC(iteminfo); // Lupus
 ACMD_FUNC(mapflag); // Lupus
 ACMD_FUNC(me); //added by massdriller, code by lordalfa
-ACMD_FUNC(runlua); // [DracoRPG]
+ACMD_FUNC(runluafunc); // [DracoRPG]
+ACMD_FUNC(runluachunk); // [DracoRPG]
 
 /*==========================================
  *AtCommandInfo atcommand_info[]\‘¢‘Ì‚Ì’è‹`
@@ -577,7 +578,8 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_MapFlag,			"@mapflag",		99, atcommand_mapflag }, // [Lupus]
 
 	{ AtCommand_Me,					"@me",			20, atcommand_me }, //added by massdriller, code by lordalfa
-	{ AtCommand_RunLua,				"@runlua",			99, atcommand_runlua }, //[DracoRPG]
+	{ AtCommand_RunLuaFunc,			"@runluafunc",			99, atcommand_runluafunc }, //[DracoRPG]
+	{ AtCommand_RunLuaChunk,		"@runluachunk",			99, atcommand_runluachunk }, //[DracoRPG]
 
 
 // add new commands before this line
@@ -9649,22 +9651,44 @@ int atcommand_mapflag(
 }
 
 /*==========================================
- * @runlua [function name] by DracoRPG
- * => Runs the specified Lua function for the player
+ * @runluafunc [function name] [int argument] by DracoRPG
+ * => Runs the specified Lua function, passing 1 integer argument
  *------------------------------------------
  */
 
-int atcommand_runlua(
+int atcommand_runluafunc(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
+	char name[50];
+	int arg=0;
 
-    if (!message || !*message) {
-		clif_displaymessage(fd, "Please, enter a lua function to run (usage: @runlua <function name>).");
+   	if (!message || !*message || sscanf(message,"%s %i",name,&arg) < 1) {
+		clif_displaymessage(fd, "Please, enter a Lua function to run (usage: @runluafunction <function name> <integer argument>).");
 		return -1;
 	}
-	
-	sscanf(message,"%s",atcmd_output);
 
-	return script_run_function(atcmd_output,sd->char_id);
+	script_run_function(name,"i",arg);
+
+	return 0;
+}
+
+/*==========================================
+ * @runluafunc [function name] [int argument] by DracoRPG
+ * => Runs the specified Lua function, passing 1 integer argument
+ *------------------------------------------
+ */
+
+int atcommand_runluachunk(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+   	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter a Lua chunk to run (usage: @runluachunk <chunk>).");
+		return -1;
+	}
+
+	script_run_chunk(message);
+
+	return 0;
 }

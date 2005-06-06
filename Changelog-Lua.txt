@@ -1,11 +1,19 @@
 Date	Added
+06/06
+	* Added untested addnpc build-in function, rearranged code here and there [DracoRPG]
+	* Rewrote most of functions, now script_run_chunk works and script_run_function can take
+	  any number of arguments (types specified with a "format" string)... but beware, Lua
+	  API's stack is limited to 20 items! [DracoRPG]
+
 06/05
-	* Added script_buildin_commands, and a buildin system to add custom commands,
-	  registers commands, but not sure how to make the work with runlua, it succeeds with lua, but
-	  guessing its problem with @runlua or maybe my C function 'test' is just wrong ;-).
+	* Added script_buildin_commands, and a buildin system to add custom commands : registers
+	  commands, but not sure how to make the work with runlua, it succeeds with lua, but
+	  guessing it's problem with @runlua or maybe my C function 'test' is just wrong ;-)
+	  --> or maybe the function is already defined in Lua: check 'sample\test.lua' [DracoRPG]
 	* PC[Login|Logout|Kill|Die]Event are now working with Lua functions, same should be for
 	  mobs' death events (untested though) [DracoRPG]
-	* Now there are script_run_function() and script_run_function_nochar available ^^ [DracoRPG]
+	* Now there are script_run_function() and script_run_function_nochar available [DracoRPG]
+
 06/04
 	* Began the real work [DracoRPG]
 	  - Added missing "-lualib" flag to Makefile, thanks again celest

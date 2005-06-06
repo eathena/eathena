@@ -1103,7 +1103,7 @@ static int clif_npc0078(struct npc_data *nd, unsigned char *buf) {
 	WBUFL(buf,2)=nd->bl.id;
 //	WBUFW(buf,6)=nd->speed;
 	WBUFW(buf,14)=nd->class_;
-	if ((nd->class_ == 722) && (nd->u.npc.guild_id > 0) && ((g=guild_search(nd->u.npc.guild_id)) != NULL)) {
+	if ((nd->class_ == 722) && (nd->spec.npc.guild_id > 0) && ((g=guild_search(nd->spec.npc.guild_id)) != NULL)) {
 		WBUFL(buf,22)=g->emblem_id;
 		WBUFL(buf,26)=g->guild_id;
 	}
@@ -1127,7 +1127,7 @@ static int clif_npc007b(struct npc_data *nd, unsigned char *buf) {
 	WBUFL(buf,2)=nd->bl.id;
 //	WBUFW(buf,6)=nd->speed;
 	WBUFW(buf,14)=nd->class_;
-	if ((nd->class_ == 722) && (nd->u.npc.guild_id > 0) && ((g=guild_search(nd->u.npc.guild_id)) != NULL)) {
+	if ((nd->class_ == 722) && (nd->spec.npc.guild_id > 0) && ((g=guild_search(nd->spec.npc.guild_id)) != NULL)) {
 		WBUFL(buf,22)=g->emblem_id;
 		WBUFL(buf,26)=g->guild_id;
 	}
@@ -3614,8 +3614,8 @@ void clif_getareachar_npc(struct map_session_data* sd,struct npc_data* nd)
 	len = clif_npc0078(nd,WFIFOP(sd->fd,0));
 	WFIFOSET(sd->fd,len);
 	}
-	if(nd->chat_id){
-		clif_dispchat((struct chat_data*)map_id2bl(nd->chat_id),sd->fd);
+	if(nd->spec.npc.chat_id){
+		clif_dispchat((struct chat_data*)map_id2bl(nd->spec.npc.chat_id),sd->fd);
 	}
 }
 

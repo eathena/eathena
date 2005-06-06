@@ -2813,7 +2813,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			}
 		}
 		if(sd)
-			script_run_function(md->npc_event,sd->char_id);
+			script_run_function(md->npc_event,"i",sd->char_id);
 	}
 
 	clif_clearchar_area(&md->bl,1);
