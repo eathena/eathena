@@ -1,5 +1,9 @@
 Date	Added
 06/05
+	* Added a temporary string length check on trade-request.	[Skotlex]
+	  (reports seem to indicate that the map-server garbage text bug could be
+	  related to trading string length overflow, check the map-server output
+	  for "name too long" messages).
 	* Fixed a few Visual Studio compile errors and warnings - not completely fixed [Codemaster]
 	* prevent_logout is now overriden by dead characters.	There's no point in
 	  waiting 10 secs since you were killed to quit/change character. [Skotlex]

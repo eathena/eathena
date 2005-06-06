@@ -3255,7 +3255,19 @@ int clif_traderequest(struct map_session_data *sd,char *name)
 
 	fd=sd->fd;
 	WFIFOW(fd,0)=0xe5;
-	strcpy((char*)WFIFOP(fd,2),name);
+
+	if (strlen(name) > 23)
+	{	//temporary overflow check [Skotlex]
+		char charName[24];
+		strncpy(charName,name,23);
+		charName[23]='\0';
+		if (battle_config.error_log)
+			printf("Character %s's name too long!\n", charName);
+		strcpy((char*)WFIFOP(fd,2),charName);
+	}
+	else
+		strcpy((char*)WFIFOP(fd,2),name);
+	
 	WFIFOSET(fd,packet_len_table[0xe5]);
 
 	return 0;
