@@ -2925,23 +2925,22 @@ int parse_login(int fd) {
 			account.userid[23] = '\0';
 			remove_control_chars((unsigned char *)account.userid);
 			if (RFIFOW(fd,0) == 0x64) {
+				login_log("Request for connection (non encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip);
 				memcpy(account.passwd, RFIFOP(fd,30), 24);
 				account.passwd[24] = '\0';
+				remove_control_chars((unsigned char *)account.passwd);
 			} else {
-				memcpy(account.passwd, RFIFOP(fd,30), 32);
-				account.passwd[32] = '\0';
+				login_log("Request for connection (encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip);
+				 // If remove control characters from received password encrypted by md5,
+				// there would be a wrong result and failed to authentication. [End_of_exam]
+				memcpy(account.passwd, RFIFOP(fd,30), 16);
+				account.passwd[16] = '\0';
 			}
-			remove_control_chars((unsigned char *)account.passwd);
 #ifdef PASSWORDENC
 			account.passwdenc = (RFIFOW(fd,0) == 0x64) ? 0 : PASSWORDENC;
 #else
 			account.passwdenc = 0;
 #endif
-
-			if (RFIFOW(fd,0) == 0x64)
-				login_log("Request for connection (non encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip);
-			else
-				login_log("Request for connection (encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip);
 
 			if (!check_ip(session[fd]->client_addr.sin_addr.s_addr)) {
 				login_log("Connection refused: IP isn't authorised (deny/allow, ip: %s)." RETCODE, ip);

@@ -2804,9 +2804,7 @@ int pc_item_identify(struct map_session_data *sd,int idx)
 	nullpo_retr(0, sd);
 
 	// Celest
-	if (sd->skillid == BS_REPAIRWEAPON)
-		return pc_item_repair (sd, idx);
-	else if (sd->skillid == WS_WEAPONREFINE)
+	if (sd->skillid == WS_WEAPONREFINE)
 		return pc_item_refine (sd, idx);
 
 	if(idx >= 0 && idx < MAX_INVENTORY) {
@@ -2826,7 +2824,7 @@ int pc_item_identify(struct map_session_data *sd,int idx)
  * Weapon Repair [Celest]
  *------------------------------------------
  */
-int pc_item_repair(struct map_session_data *sd,int idx)
+int pc_item_repair(struct map_session_data *sd, int idx)
 {
 	int flag=1, material;
 	int materials[5] = { 0, 1002, 998, 999, 756 };
@@ -2852,9 +2850,8 @@ int pc_item_repair(struct map_session_data *sd,int idx)
 			//Temporary Weapon Repair code [DracoRPG]
 			pc_delitem(sd, pc_search_inventory(sd, material), 1, 0);
 			clif_equiplist(sd);
-			clif_produceeffect(sd, 0, item->nameid);
 			clif_misceffect(&sd->bl, 3);
-			clif_displaymessage(sd->fd,"Item has been repaired.");
+			clif_displaymessage(sd->fd, "Item has been repaired.");
 		}
 	}
 

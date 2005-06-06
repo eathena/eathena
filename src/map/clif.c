@@ -5158,29 +5158,63 @@ int clif_item_identified(struct map_session_data *sd,int idx,int flag)
 
 /*==========================================
  * 修理可能アイテムリスト送信
- * ※実際のパケットがわからないので動作しません
  *------------------------------------------
  */
-int clif_item_repair_list(struct map_session_data *sd)
+//int clif_item_repair_list (struct map_session_data *sd, struct map_session_data *dstsd)
+//temporarily cast on self -- need to find time to rearrange everything again ^^;
+int clif_item_repair_list (struct map_session_data *sd)
 {
-	int i,c;
-	int fd;
+	int i, c, fd;
+	int nameid;
 
 	nullpo_retr(0, sd);
+	//nullpo_retr(0, dstsd);
 
-	fd=sd->fd;
+	fd = sd->fd;
 
-	WFIFOW(fd,0)=0x177; // temporarily use same packet as clif_item_identify
-	for(i=c=0;i<MAX_INVENTORY;i++){
-		if(sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].attribute==1){
-			WFIFOW(fd,c*2+4)=i+2;
+	WFIFOW(fd,0) = 0x1fc;
+	for (i = c = 0; i < MAX_INVENTORY; i++) {
+		//if ((nameid = dstsd->status.inventory[i].nameid) > 0 && dstsd->status.inventory[i].attribute == 1){
+		if ((nameid = sd->status.inventory[i].nameid) > 0 && sd->status.inventory[i].attribute == 1){
+			WFIFOW(fd,c*13+4) = i;	// これが1fdで返ってくる･･･コレしか返ってこない！！
+			WFIFOW(fd,c*13+6) = nameid;
+			WFIFOL(fd,c*13+8) = sd->status.char_id;
+			//WFIFOL(fd,c*13+12)= dstsd->status.char_id;
+			WFIFOL(fd,c*13+12)= sd->status.char_id;
+			WFIFOB(fd,c*13+16)= c;
 			c++;
 		}
 	}
 	if(c > 0) {
-		WFIFOW(fd,2)=c*2+4;
+		WFIFOW(fd,2) = c*13+4;
 		WFIFOSET(fd,WFIFOW(fd,2));
-	}
+		sd->state.produce_flag = 1;
+		//sd->repair_target = dstsd;
+	} else
+		clif_skill_fail(sd,sd->skillid,0,0);
+
+	return 0;
+}
+int clif_item_repaireffect(struct map_session_data *sd, int flag, int nameid)
+{
+	int view, fd;
+
+	nullpo_retr(0, sd);
+	fd = sd->fd;
+
+	WFIFOW(fd, 0) = 0x1fe;
+	if((view = itemdb_viewid(nameid)) > 0)
+		WFIFOW(fd, 2) = view;
+	else
+		WFIFOW(fd, 2) = nameid;
+	WFIFOB(fd, 4) = flag;
+	WFIFOSET(fd, 5);
+
+	//if(sd->repair_target && sd != sd->repair_target && flag==0){	// 成功したら相手にも通知
+	//	clif_item_repaireffect(sd->repair_target,flag,nameid);
+	//	sd->repair_target=NULL;
+	//}
+
 	return 0;
 }
 
@@ -9548,6 +9582,21 @@ void clif_parse_ProduceMix(int fd,struct map_session_data *sd)
 	sd->state.produce_flag = 0;
 	skill_produce_mix(sd,RFIFOW(fd,2),RFIFOW(fd,4),RFIFOW(fd,6),RFIFOW(fd,8));
 }
+/*==========================================
+ * 武器修理
+ *------------------------------------------
+ */
+void clif_parse_RepairItem(int fd, struct map_session_data *sd)
+{
+	int i = RFIFOW(fd,2);
+	int itemid = 0;
+	nullpo_retv(sd);
+	sd->state.produce_flag = 0;
+	if (i != 0xFFFF && (itemid = pc_item_repair(sd,i)) > 0)
+		clif_item_repaireffect(sd,0,itemid);
+	else
+		clif_item_repaireffect(sd,1,itemid);
+}
 
 /*==========================================
  *
@@ -10998,7 +11047,7 @@ static void (*clif_parse_func_table[MAX_PACKET_DB])(int, struct map_session_data
 	clif_parse_CreateParty2, NULL, NULL, NULL, NULL, clif_parse_NoviceExplosionSpirits, NULL, NULL,
 	// 1f0
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,  NULL, clif_parse_ReqAdopt,
-	NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, clif_parse_RepairItem, NULL, NULL,
 
 	// 200
 	NULL, NULL, clif_parse_FriendsListAdd, clif_parse_FriendsListRemove, NULL, NULL, NULL, NULL,

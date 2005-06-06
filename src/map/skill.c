@@ -6708,7 +6708,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	}
 
 	if (sd->state.produce_flag &&
-		(sd->skillid == AM_PHARMACY || sd->skillid == ASC_CDP || sd->skillid == AC_MAKINGARROW))
+		(sd->skillid == AM_PHARMACY || sd->skillid == ASC_CDP || sd->skillid == AC_MAKINGARROW || sd->skillid == BS_REPAIRWEAPON))
 	{
 		sd->skillitem = sd->skillitemlv = -1;
 		return 0;

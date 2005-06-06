@@ -2610,6 +2610,15 @@ int parse_frommap(int fd) {
 //			printf("char: save_account_reg (from map)\n");
 			break;
 		}
+
+		// Recieve rates [Wizputer]
+		case 0x2b16:
+			if (RFIFOREST(fd) < 6 || RFIFOREST(fd) < RFIFOW(fd,8))
+				return 0;
+			// Txt doesn't need this packet, so just skip it
+			RFIFOSKIP(fd,RFIFOW(fd,8));
+			break;
+
 		// Character disconnected set online 0 [Wizputer]
 		case 0x2b17:
 			if (RFIFOREST(fd) < 6)

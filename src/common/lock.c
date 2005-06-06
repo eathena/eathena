@@ -18,7 +18,7 @@
 // could be speed up maybe?
 int exists(char *file) {
 	FILE *fp;
-	if ((fp = fopen(file,"r")) && fclose(fp)) return 1;
+	if ((fp = fopen(file,"r")) && fclose(fp) == 0) return 1;
 	return 0;
 }
 #endif

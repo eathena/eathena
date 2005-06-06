@@ -23,6 +23,6 @@
 // あんまり信用しないこと。
 // 鯖snapshotの時や、大きな変更があった場合は設定してほしいです。
 // C言語の仕様上、最初に0を付けると8進数になるので間違えないで下さい。
-#define ATHENA_MOD_VERSION	1052	// mod version (patch No.)
+#define ATHENA_MOD_VERSION	1159	// mod version (patch No.)
 
 #endif

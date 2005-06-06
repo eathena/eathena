@@ -1,5 +1,9 @@
 Date	Added
 06/05
+	* Updated Weapon Repair from jA 1228 [celest]
+	* Fixed TXT char disconnecting when sent a server packet from SQL map [celest]
+	* Fixed login failing with md5 encryption, thanks to End_of_exam
+	* Fixed lock_fclose() failing in Win32 builds, thanks to End_of_exam
 	* Updated sql-files/mob_db.sql to match with db/mob_db.txt	[Skotlex]
 	* Corrected Zherlthsh's and Alice's attack animation speed (mob_db.txt)	[Skotlex]
 	  sql-users can use upgrade_svn2068.sql to update table mob_db.
