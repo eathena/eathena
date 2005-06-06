@@ -1,5 +1,7 @@
 Date	Added
 06/05
+	* Corrected Zherlthsh's and Alice's attack animation speed (mob_db.txt)	[Skotlex]
+	  sql-users can use upgrade_svn2068.sql to update table mob_db.
 	* Re-fixed disp_hpmeter not getting disabled when set to 0/no	[Skotlex]
 	* Fixed Grandcross/DarkCross to do 3 hits instead of 4 [Skotlex]
 	* Fixed #fakename =). [Kevin]
