@@ -1124,7 +1124,7 @@ int pet_catch_process2(struct map_session_data *sd,int target_id)
 	}
 	
 	md=(struct mob_data*)map_id2bl(target_id);
-	if(!md){
+	if(!md || md->bl.type != BL_MOB || md->bl.prev == NULL){
 		clif_pet_rulet(sd,0);
 		sd->catch_target_class = -1;
 		return 1;
@@ -1135,7 +1135,8 @@ int pet_catch_process2(struct map_session_data *sd,int target_id)
 	//for now universal lures do not include bosses.
 	if (sd->catch_target_class == 0 && !(md->mode&0x20))
 		sd->catch_target_class = md->class_;
-	if(md == NULL || md->bl.type != BL_MOB || md->bl.prev == NULL || i < 0 || sd->catch_target_class != md->class_) {
+	if(i < 0 || sd->catch_target_class != md->class_) {
+		clif_emotion(&md->bl, 7);	//mob will do /ag if wrong lure is used on them.
 		clif_pet_rulet(sd,0);
 		sd->catch_target_class = -1;
 		return 1;
