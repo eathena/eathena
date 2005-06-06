@@ -1,5 +1,9 @@
 Date	Added
 06/05
+	* Passive mobs will now unlock their target once it's dead/gone too
+	  far/in another map.	[Skotlex]
+	  Passive mobs are supposed to be defensive, not vengeful. Do report of any
+	  abuses that might be possible from this to take proper measures.
 	* Fixed pet lures always failing (oops) [Skotlex]
 	* Corrected Various Jur's (id 1264) equip script to bonus2 [Skotlex]
 	* Fixed status_get_speed always returning 1000 when invoked on NPCs [Skotlex]

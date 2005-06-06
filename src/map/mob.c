@@ -590,6 +590,8 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	if(tsd){
 		if( pc_isdead(tsd) || tsd->invincible_timer != -1 ||  pc_isinvisible(tsd) || md->bl.m != tbl->m || tbl->prev == NULL || distance(md->bl.x,md->bl.y,tbl->x,tbl->y)>=13 ){
 			md->target_id=0;
+			if (md->mode&0x08) //Unlock passive pets. [Skotlex]
+				md->attacked_id = 0;
 			md->state.targettype = NONE_ATTACKABLE;
 			return 0;
 		}
@@ -597,6 +599,8 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	if(tmd){
 		if(md->bl.m != tbl->m || tbl->prev == NULL || distance(md->bl.x,md->bl.y,tbl->x,tbl->y)>=13){
 			md->target_id=0;
+			if (md->mode&0x08) //Unlock passive pets. [Skotlex]
+				md->attacked_id = 0;
 			md->state.targettype = NONE_ATTACKABLE;
 			return 0;
 		}
