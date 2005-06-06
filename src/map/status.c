@@ -1159,7 +1159,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	if( (skill=pc_checkskill(sd,TF_MISS))>0 ){	// ‰ñ”ð—¦?‰Á
 		sd->flee += skill*((sd->status.class_==12 || sd->status.class_==17 || sd->status.class_==4013 || sd->status.class_==4018) ? 4 : 3);
 		if((sd->status.class_==12 || sd->status.class_==4013) && (sd->sc_count && sd->sc_data[SC_CLOAKING].timer==-1))
-			sd->speed_rate -= skill*1.5;
+			sd->speed_rate -= (int)(skill*1.5);
 	}
 	if( (skill=pc_checkskill(sd,MO_DODGE))>0 )	// Œ©Ø‚è
 		sd->flee += (skill*3)>>1;
@@ -3663,7 +3663,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				calc_flag = 1;
 				tick = 10000;
 				if(!val2)
-					val2 = time(&timer);
+					val2 = (int)time(&timer);
 			}
 			break;
 		case SC_NOCHAT:	//ƒ`ƒƒƒbƒg‹ÖŽ~?‘Ô
@@ -3675,7 +3675,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 				tick = 60000;
 				if(!val2)
-					val2 = time(&timer);
+					val2 = (int)time(&timer);
 				updateflag = SP_MANNER;
 				save_flag = 1; // celest
 			}

@@ -101,7 +101,7 @@ int strncasecmp(const char *arg1, const char *arg2, int n)
 void str_upper(char *name)
 {
 
-  int len = strlen(name);
+  int len = (int)strlen(name);
   while (len--) {
 	if (*name >= 'a' && *name <= 'z')
     	*name -= ('a' - 'A');
@@ -111,7 +111,7 @@ void str_upper(char *name)
 
 void str_lower(char *name)
 {
-  int len = strlen(name);
+  int len = (int)strlen(name);
 
   while (len--) {
 	if (*name >= 'A' && *name <= 'Z')
@@ -151,11 +151,11 @@ int StringBuf_Printf(struct StringBuf *sbuf,const char *fmt,...)
 		/* If that worked, return the length. */
 		if (n > -1 && n < size) {
 			sbuf->ptr_ += n;
-			return sbuf->ptr_ - sbuf->buf_;
+			return (int)(sbuf->ptr_ - sbuf->buf_);
 		}
 		/* Else try again with more space. */
 		sbuf->max_ *= 2; // twice the old size
-		off = sbuf->ptr_ - sbuf->buf_;
+		off = (int)(sbuf->ptr_ - sbuf->buf_);
 		sbuf->buf_ = (char *) aRealloc(sbuf->buf_, sbuf->max_ + 1);
 		sbuf->ptr_ = sbuf->buf_ + off;
 	}
@@ -165,10 +165,10 @@ int StringBuf_Printf(struct StringBuf *sbuf,const char *fmt,...)
 int StringBuf_Append(struct StringBuf *buf1,const struct StringBuf *buf2) 
 {
 	int buf1_avail = buf1->max_ - (buf1->ptr_ - buf1->buf_);
-	int size2 = buf2->ptr_ - buf2->buf_;
+	int size2 = (int)(buf2->ptr_ - buf2->buf_);
 
 	if (size2 >= buf1_avail)  {
-		int off = buf1->ptr_ - buf1->buf_;
+		int off = (int)(buf1->ptr_ - buf1->buf_);
 		buf1->max_ += size2;
 		buf1->buf_ = (char *) aRealloc(buf1->buf_, buf1->max_ + 1);
 		buf1->ptr_ = buf1->buf_ + off;
@@ -176,7 +176,7 @@ int StringBuf_Append(struct StringBuf *buf1,const struct StringBuf *buf2)
 
 	memcpy(buf1->ptr_, buf2->buf_, size2);
 	buf1->ptr_ += size2;
-	return buf1->ptr_ - buf1->buf_;
+	return (int)(buf1->ptr_ - buf1->buf_);
 }
 
 // Destroy a StringBuf [MouseJstr]

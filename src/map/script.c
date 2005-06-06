@@ -684,7 +684,7 @@ static int add_str(const unsigned char *p)
 	str_data[str_num].func=NULL;
 	str_data[str_num].backpatch=-1;
 	str_data[str_num].label=-1;
-	str_pos+=strlen( (char *) p)+1;
+	str_pos+=(int)strlen( (char *) p)+1;
 	return str_num++;
 }
 
@@ -1760,7 +1760,7 @@ int buildin_menu(struct script_state *st)
 		sd->state.menu_or_input=1;
 		for(i=st->start+2,len=16;i<st->end;i+=2){
 			conv_str(st,& (st->stack->stack_data[i]));
-			len+=strlen(st->stack->stack_data[i].u.str)+1;
+			len+=(int)strlen(st->stack->stack_data[i].u.str)+1;
 		}
 		buf=(char *)aCallocA(len+1,sizeof(char));
 		buf[0]=0;
@@ -4207,9 +4207,9 @@ int buildin_announce(struct script_state *st)
 	if(flag&0x0f){
 		struct block_list *bl=(flag&0x08)? map_id2bl(st->oid) :
 			(struct block_list *)script_rid2sd(st);
-		clif_GMmessage(bl,str,strlen(str)+1,flag);
+		clif_GMmessage(bl,str,(int)strlen(str)+1,flag);
 	}else
-		intif_GMmessage(str,strlen(str)+1,flag);
+		intif_GMmessage(str,(int)strlen(str)+1,flag);
 	return 0;
 }
 /*==========================================
@@ -4714,7 +4714,7 @@ int buildin_waitingroom(struct script_state *st)
 			ev=conv_str(st,& (st->stack->stack_data[st->start+4]));
 	}
 	chat_createnpcchat( (struct npc_data *)map_id2bl(st->oid),
-		limit,pub,trigger,name,strlen(name)+1,ev);
+		limit,pub,trigger,name,(int)strlen(name)+1,ev);
 	return 0;
 }
 /*==========================================
@@ -6417,7 +6417,7 @@ int buildin_dispbottom(struct script_state *st)
 	char *message;
 	message=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	if(sd)
-		clif_disp_onlyself(sd,message,strlen(message));
+		clif_disp_onlyself(sd,message,(int)strlen(message));
 	return 0;
 }
 
@@ -6554,7 +6554,7 @@ int buildin_select(struct script_state *st)
 		sd->state.menu_or_input=1;
 		for(i=st->start+2,len=16;i<st->end;i++){
 			conv_str(st,& (st->stack->stack_data[i]));
-			len+=strlen(st->stack->stack_data[i].u.str)+1;
+			len+=(int)strlen(st->stack->stack_data[i].u.str)+1;
 		}
 		buf=(char *)aCalloc(len+1,sizeof(char));
 		buf[0]=0;
@@ -7408,7 +7408,7 @@ int buildin_unequip(struct script_state *st)
 int buildin_getstrlen(struct script_state *st) {
 
 	char *str = str=conv_str(st,& (st->stack->stack_data[st->start+2]));
-	int len = (str) ? strlen(str) : 0;
+	int len = (str) ? (int)strlen(str) : 0;
 
 	push_val(st->stack,C_INT,len);
 	return 0;

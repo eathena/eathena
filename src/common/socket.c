@@ -239,7 +239,7 @@ static int connect_client(int listen_fd)
 
 	len=sizeof(client_address);
 
-	fd = accept(listen_fd,(struct sockaddr*)&client_address,(socklen_t*)&len);
+	fd = (int)accept(listen_fd,(struct sockaddr*)&client_address,(socklen_t*)&len);
 	if(fd_max<=fd) fd_max=fd+1;
 
 	setsocketopts(fd);
@@ -266,8 +266,8 @@ static int connect_client(int listen_fd)
 	CREATE_A(session[fd]->rdata, unsigned char, rfifo_size);
 	CREATE_A(session[fd]->wdata, unsigned char, wfifo_size);
 
-	session[fd]->max_rdata   = rfifo_size;
-	session[fd]->max_wdata   = wfifo_size;
+	session[fd]->max_rdata   = (int)rfifo_size;
+	session[fd]->max_wdata   = (int)wfifo_size;
 	session[fd]->func_recv   = recv_to_fifo;
 	session[fd]->func_send   = send_from_fifo;
 	session[fd]->func_parse  = default_func_parse;
@@ -284,7 +284,7 @@ int make_listen_port(int port)
 	int fd;
 	int result;
 
-	fd = socket( AF_INET, SOCK_STREAM, 0 );
+	fd = (int)socket( AF_INET, SOCK_STREAM, 0 );
 	if(fd_max<=fd) fd_max=fd+1;
 
 #ifdef _WIN32
@@ -345,7 +345,7 @@ int make_listen_bind(long ip,int port)
 	int fd;
 	int result;
 
-	fd = socket( AF_INET, SOCK_STREAM, 0 );
+	fd = (int)socket( AF_INET, SOCK_STREAM, 0 );
 	if(fd_max<=fd) fd_max=fd+1;
 
 #ifdef _WIN32
@@ -453,7 +453,7 @@ int make_connection(long ip,int port)
 	int fd;
 	int result;
 
-	fd = socket( AF_INET, SOCK_STREAM, 0 );
+	fd = (int)socket( AF_INET, SOCK_STREAM, 0 );
 	if (fd_max <= fd)
 		fd_max = fd + 1;
 
@@ -489,8 +489,8 @@ int make_connection(long ip,int port)
 	CREATE_A(session[fd]->rdata, unsigned char, rfifo_size);
 	CREATE_A(session[fd]->wdata, unsigned char, wfifo_size);
 
-	session[fd]->max_rdata  = rfifo_size;
-	session[fd]->max_wdata  = wfifo_size;
+	session[fd]->max_rdata  = (int)rfifo_size;
+	session[fd]->max_wdata  = (int)wfifo_size;
 	session[fd]->func_recv  = recv_to_fifo;
 	session[fd]->func_send  = send_from_fifo;
 	session[fd]->func_parse = default_func_parse;
@@ -545,12 +545,12 @@ int realloc_writefifo(int fd, size_t addition)
 	if( !session_isValid(fd) ) // might not happen
 		return 0;
 
-	if( session[fd]->wdata_size + addition  > session[fd]->max_wdata )
+	if( session[fd]->wdata_size + (int)addition  > session[fd]->max_wdata )
 	{	// grow rule; grow in multiples of wfifo_size
 		newsize = wfifo_size;
 		while( session[fd]->wdata_size + addition > newsize ) newsize += newsize;
 	}
-	else if( session[fd]->max_wdata>wfifo_size && (session[fd]->wdata_size+addition)*4 < session[fd]->max_wdata )
+	else if( session[fd]->max_wdata>(int)wfifo_size && (session[fd]->wdata_size+(int)addition)*4 < session[fd]->max_wdata )
 	{	// shrink rule, shrink by 2 when ony a quater of the fifo is used, don't shrink below 4*addition
 		newsize = session[fd]->max_wdata/2;
 	}
@@ -558,7 +558,7 @@ int realloc_writefifo(int fd, size_t addition)
 		return 0;
 
 	RECREATE(session[fd]->wdata, unsigned char, newsize);
-	session[fd]->max_wdata  = newsize;
+	session[fd]->max_wdata  = (int)newsize;
 
 	return 0;
 }
@@ -1206,8 +1206,8 @@ void socket_init (void)
 	CREATE(session[0], struct socket_data, 1);
 	CREATE_A(session[0]->rdata, unsigned char, rfifo_size);
 	CREATE_A(session[0]->wdata, unsigned char, wfifo_size);
-	session[0]->max_rdata   = rfifo_size;
-	session[0]->max_wdata   = wfifo_size;
+	session[0]->max_rdata   = (int)rfifo_size;
+	session[0]->max_wdata   = (int)wfifo_size;
 
 #ifndef MINICORE
 	// とりあえず５分ごとに不要なデータを削除する
