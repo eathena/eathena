@@ -1,5 +1,15 @@
 Date	Added
 06/05
+	* Fixed a timer mismatch situation with pc_walk timers [Skotlex]
+	* Re-structured the pc_follow_timer code	[Skotlex]
+	* Updated the pet_heal_timer code to match behaviour with
+	pet_supportskill_timer's one	[Skotlex]
+	* Added support for universal lure. [Skotlex]
+	  Use use_script "pet 0;" to create an item that will catch any non-boss
+	  mob (will work as long as said mob has an entry in mob_db.txt, of course)
+	  From what I read in the code, mapping multiple entries in mob_db.txt to
+	  the same egg_id should work, so it should be possible to have all mobs as
+	  pets using a single egg_id item and this custom lure.
 	* Updated Weapon Repair from jA 1228 [celest]
 	* Fixed TXT char disconnecting when sent a server packet from SQL map [celest]
 	* Fixed login failing with md5 encryption, thanks to End_of_exam

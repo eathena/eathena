@@ -1245,6 +1245,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 			sd->walktimer = 1;
 			clif_walkok(sd);
 			clif_movechar(sd);
+			sd->walktimer = -1;  // set back so not to disturb future pc_stop_walking calls
 		}
 		else if(md) {
 			md->to_x=nx;

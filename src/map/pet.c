@@ -1115,6 +1115,7 @@ int pet_catch_process2(struct map_session_data *sd,int target_id)
 			)
 		{	//Something went wrong, items moved or they tried an exploit.
 			clif_pet_rulet(sd,0);
+			sd->catch_target_class = -1;
 			return 1;
 		}
 		//Delete the item
@@ -1125,12 +1126,18 @@ int pet_catch_process2(struct map_session_data *sd,int target_id)
 	md=(struct mob_data*)map_id2bl(target_id);
 	if(!md){
 		clif_pet_rulet(sd,0);
+		sd->catch_target_class = -1;
 		return 1;
 	}
 
 	i = search_petDB_index(md->class_,PET_CLASS);
+	//catch_target_class == 0 is used for universal lures. [Skotlex]
+	//for now universal lures do not include bosses.
+	if (sd->catch_target_class == 0 && !(md->mode&0x20))
+		sd->catch_target_class = md->class_;
 	if(md == NULL || md->bl.type != BL_MOB || md->bl.prev == NULL || i < 0 || sd->catch_target_class != md->class_) {
 		clif_pet_rulet(sd,0);
+		sd->catch_target_class = -1;
 		return 1;
 	}
 
@@ -1155,6 +1162,7 @@ int pet_catch_process2(struct map_session_data *sd,int target_id)
 	else
 		clif_pet_rulet(sd,0);
 
+	sd->catch_target_class = -1;
 	return 0;
 }
 
@@ -1170,6 +1178,8 @@ int pet_get_egg(int account_id,int pet_id,int flag)
 			return 1;
 
 		i = search_petDB_index(sd->catch_target_class,PET_CLASS);
+		sd->catch_target_class = -1;
+		
 		if(i >= 0) {
 			memset(&tmp_item,0,sizeof(tmp_item));
 			tmp_item.nameid = pet_db[i].EggID;
@@ -1759,6 +1769,7 @@ int pet_heal_timer(int tid,unsigned int tick,int id,int data)
 {
 	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
 	struct pet_data *pd;
+	short rate = 100;
 	
 	if(sd==NULL || sd->bl.type!=BL_PC || sd->pd == NULL)
 		return 1;
@@ -1777,12 +1788,12 @@ int pet_heal_timer(int tid,unsigned int tick,int id,int data)
 	}
 	
 	if(pc_isdead(sd) ||
-		pd->state.casting_flag || //Another skill is in effect
-		pd->state.state == MS_WALK || //Better wait until the pet stops moving
-		sd->status.hp > sd->status.max_hp * pd->s_skill->hp/100 ||
-		sd->status.sp > sd->status.max_sp * pd->s_skill->sp/100)
-	{	//Wait (how long? 30x Min PetThinkTime (3sec) is fair enough?)
-		pd->s_skill->timer=add_timer(gettick()+30*MIN_PETTHINKTIME,pet_heal_timer,sd->bl.id,0);
+		(rate = sd->status.sp*100/sd->status.max_sp) > pd->s_skill->sp ||
+		(rate = sd->status.hp*100/sd->status.max_hp) > pd->s_skill->hp ||
+		(rate = pd->state.casting_flag) || //Another skill is in effect
+		(rate = pd->state.state) == MS_WALK) //Better wait until the pet stops moving (MS_WALK is 2)
+	{  //Wait (how long? 1 sec for every 10% of remaining)
+		pd->s_skill->timer=add_timer(gettick()+(rate>10?rate:10)*100,pet_heal_timer,sd->bl.id,0);
 		return 0;
 	}
 

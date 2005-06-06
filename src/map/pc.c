@@ -3444,7 +3444,7 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 		x += dx;
 		y += dy;
 
-		sd->walktimer = -1;	// set back so not to disturb future pc_stopwalking calls
+		sd->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
 		skill_unit_move(&sd->bl,tick,0);
 		if (moveblock) map_delblock(&sd->bl);
 		sd->bl.x = x;
@@ -3456,7 +3456,7 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 		map_foreachinmovearea (clif_pcinsight, sd->bl.m,
 			x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE,
 			-dx, -dy, 0, sd);
-		sd->walktimer = -1;	// set back so not to disturb future pc_stopwalking calls
+		sd->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
 
 		if (sd->status.party_id > 0) {	// パ?ティのＨＰ情報通知?査
 			struct party *p = party_search(sd->status.party_id);
@@ -3553,9 +3553,8 @@ int pc_walktoxy (struct map_session_data *sd, int x, int y)
 	sd->to_y = y;
 	sd->idletime = last_tick;
 
-	if (sd->walktimer != -1 && sd->state.change_walk_target == 0) {
-		// 現在?いている最中の目的地?更なのでマス目の中心に?た暫ﾉ
-		// timer??からpc_walktoxy_subを呼ぶようにする
+	if (sd->walktimer != -1 /*&& sd->state.change_walk_target == 0*/)
+	{	//There was a timer-mismatch here. pc_walktoxy_sub does not clears previous pc_walk timers! [Skotlex]
 		sd->state.change_walk_target = 1;
 	} else {
 		pc_walktoxy_sub(sd);
@@ -4056,38 +4055,37 @@ int pc_follow_timer(int tid,unsigned int tick,int id,int data)
 
   sd=map_id2sd(id);
 
-  if(sd == NULL || sd->followtimer != tid || pc_isdead(sd))
-    return 0;
+  nullpo_retr(0, sd);
+    
+  if(sd->followtimer != tid){
+		if(battle_config.error_log)
+			printf("pc_follow_timer %d != %d\n",sd->followtimer,tid);
+		sd->followtimer = -1;
+		return 0;
+	}
 
-  sd->followtimer=-1;
+	sd->followtimer = -1;
+  
+	if (pc_isdead(sd))
+		return 0;
 
-  do {
-    if(sd->bl.prev == NULL)
-      break;
+	if(sd->bl.prev != NULL &&
+		(bl=(struct map_session_data *) map_id2bl(sd->followtarget)) != NULL &&
+		bl->bl.prev != NULL)
+	{
+		if(bl->bl.type == BL_PC && pc_isdead((struct map_session_data *)bl))
+			return 0;
 
-    bl=(struct map_session_data *) map_id2bl(sd->followtarget);
-
-    if(bl==NULL)
-      return 0;
-
-    if(bl->bl.prev == NULL)
-      break;
-
-    if(bl->bl.type == BL_PC && pc_isdead((struct map_session_data *)bl))
-      return 0;
-
-    if (sd->skilltimer == -1 && sd->attacktimer == -1 && sd->walktimer == -1) {
-      if((sd->bl.m == bl->bl.m) && pc_can_reach(sd,bl->bl.x,bl->bl.y)) {
-	if (distance(sd->bl.x,sd->bl.y,bl->bl.x,bl->bl.y) > 5)
-	  pc_walktoxy(sd,bl->bl.x,bl->bl.y);
-      } else
-	pc_setpos((struct map_session_data*)sd, bl->mapname, bl->bl.x, bl->bl.y, 3);
-    }
-  } while (0);
-
-  sd->followtimer=add_timer(tick + sd->aspd,pc_follow_timer,sd->bl.id,0);
-
-  return 0;
+		if (sd->skilltimer == -1 && sd->attacktimer == -1 && sd->walktimer == -1) {
+			if((sd->bl.m == bl->bl.m) && pc_can_reach(sd,bl->bl.x,bl->bl.y)) {
+				if (distance(sd->bl.x,sd->bl.y,bl->bl.x,bl->bl.y) > 5)
+					pc_walktoxy(sd,bl->bl.x,bl->bl.y);
+			} else
+				pc_setpos((struct map_session_data*)sd, bl->mapname, bl->bl.x, bl->bl.y, 3);
+		}
+		sd->followtimer=add_timer(tick + sd->aspd,pc_follow_timer,sd->bl.id,0);
+	}
+	return 0;
 }
 
 int pc_follow(struct map_session_data *sd,int target_id)
