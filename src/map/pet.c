@@ -1164,9 +1164,11 @@ int pet_catch_process2(struct map_session_data *sd,int target_id)
 			pet_db[i].EggID,0,pet_db[i].intimate,100,0,1,pet_db[i].jname);
 	}
 	else
+	{
+		sd->catch_target_class = -1;
 		clif_pet_rulet(sd,0);
+	}
 
-	sd->catch_target_class = -1;
 	return 0;
 }
 

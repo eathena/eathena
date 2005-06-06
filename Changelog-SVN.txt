@@ -1,5 +1,7 @@
 Date	Added
 06/05
+	* Fixed pet lures always failing (oops) [Skotlex]
+	* Corrected Various Jur's (id 1264) equip script to bonus2 [Skotlex]
 	* Fixed status_get_speed always returning 1000 when invoked on NPCs [Skotlex]
 	* Added battle_config option pet_support_min_friendly [Skotlex]
 	  Specifies minimum pet intimacy/friendly value needed before attacking.
