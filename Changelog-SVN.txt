@@ -1,5 +1,6 @@
 Date	Added
 06/05
+	* Re-fixed disp_hpmeter not getting disabled when set to 0/no	[Skotlex]
 	* Fixed Grandcross/DarkCross to do 3 hits instead of 4 [Skotlex]
 	* Fixed #fakename =). [Kevin]
 	* Tidied up and rearranged Makefile a bit [celest]
