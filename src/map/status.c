@@ -2693,9 +2693,11 @@ int status_get_speed(struct block_list *bl)
 			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				speed-=((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 		}
-		else if(bl->type==BL_PET && (struct pet_data *)bl)
+		else if(bl->type==BL_PET && (struct pet_data *)bl) {
 			speed = ((struct pet_data *)bl)->msd->petDB->speed;
-
+		} else if(bl->type==BL_NPC && (struct npc_data *)bl)	//Added BL_NPC (Skotlex)
+			speed = ((struct npc_data *)bl)->speed;
+		
 		if(sc_data) {
 			//‘¬“x‘‰Á‚Í25%Œ¸Z
 			if(sc_data[SC_INCREASEAGI].timer!=-1)
