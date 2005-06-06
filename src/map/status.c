@@ -382,6 +382,10 @@ int status_calc_pet(struct map_session_data *sd, int first)
 				clif_send_petstatus(sd);
 		}
 	}
+	//Support rate modifier (1000 = 100%)
+	pd->rate_fix = 1000*(sd->pet.intimate - battle_config.pet_support_min_friendly)/(1000- battle_config.pet_support_min_friendly) +500;
+	if(battle_config.pet_support_rate != 100)
+		pd->rate_fix = pd->rate_fix*battle_config.pet_support_rate/100;
 	return 0;
 }	
 

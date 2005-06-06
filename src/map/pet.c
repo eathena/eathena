@@ -464,45 +464,48 @@ int pet_target_check(struct map_session_data *sd,struct block_list *bl,int type)
 	int rate,mode,race;
 
 	nullpo_retr(0, sd);
-
 	pd = sd->pd;
-
+	nullpo_retr(0, pd);
+	md=(struct mob_data *)bl;
+	
 	Assert((pd->msd == 0) || (pd->msd->pd == pd));
 
-	if(bl && pd && bl->type == BL_MOB && sd->pet.intimate > 900 && sd->pet.hungry > 0 && pd->class_ != status_get_class(bl)
-		&& pd->state.state != MS_DELAY) {
-		mode=mob_db[pd->class_].mode;
-		race=mob_db[pd->class_].race;
-		md=(struct mob_data *)bl;
-		if(md->bl.type != BL_MOB || pd->bl.m != md->bl.m ||
-			md->bl.prev == NULL ||
-			distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13 || 
-			(md->class_ >= 1285 && md->class_ <= 1288)) // Cannot attack Guardians/Emperium
-			return 0;
-		if(mob_db[pd->class_].mexp <= 0 && !(mode&0x20) && (md->option & 0x06 && race!=4 && race!=6) )
-			return 0;
-		if(!type) {
-			rate = sd->petDB->attack_rate;
-			rate = rate * (150 - (sd->pet.intimate - 1000))/100;
-			if(battle_config.pet_support_rate != 100)
-				rate = rate*battle_config.pet_support_rate/100;
-			if(sd->petDB->attack_rate > 0 && rate <= 0)
-				rate = 1;
-		}
-		else {
-			rate = sd->petDB->defence_attack_rate;
-			rate = rate * (150 - (sd->pet.intimate - 1000))/100;
-			if(battle_config.pet_support_rate != 100)
-				rate = rate*battle_config.pet_support_rate/100;
-			if(sd->petDB->defence_attack_rate > 0 && rate <= 0)
-				rate = 1;
-		}
-		if(rand()%10000 < rate) 
-		{
-			if(pd->target_id == 0 || rand()%10000 < sd->petDB->change_target_rate)
-				pd->target_id = bl->id;
-		}
+	if(bl == NULL || bl->type != BL_MOB || md->bl.prev == NULL ||
+		sd->pet.intimate < battle_config.pet_support_min_friendly ||
+		sd->pet.hungry < 1 ||
+		pd->class_ == status_get_class(bl) ||
+		pd->state.state == MS_DELAY)
+		return 0;
+
+	mode=mob_db[pd->class_].mode;
+	race=mob_db[pd->class_].race;
+
+	if(pd->bl.m != md->bl.m ||
+		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13 || 
+		(md->class_ >= 1285 && md->class_ <= 1288)) // Cannot attack Guardians/Emperium
+		return 0;
+
+	//What is this check for? TODO: Re-check it later [Skotlex]
+	if(mob_db[pd->class_].mexp <= 0 && !(mode&0x20) && (md->option&0x06 && race!=4 && race!=6))
+		return 0;
+
+	if(!type) {
+		rate = sd->petDB->attack_rate;
+		rate = rate * pd->rate_fix/1000;
+		if(sd->petDB->attack_rate > 0 && rate <= 0)
+			rate = 1;
+	} else {
+		rate = sd->petDB->defence_attack_rate;
+		rate = rate * pd->rate_fix/1000;
+		if(sd->petDB->defence_attack_rate > 0 && rate <= 0)
+			rate = 1;
 	}
+	if(rand()%10000 < rate) 
+	{
+		if(pd->target_id == 0 || rand()%10000 < sd->petDB->change_target_rate)
+			pd->target_id = bl->id;
+	}
+
 	return 0;
 }
 /*==========================================
@@ -732,6 +735,7 @@ static int pet_hungry(int tid,unsigned int tick,int id,int data)
 					status_calc_pc(sd,2);
 			}
 		}
+		status_calc_pet(sd, 0);
 		clif_send_petdata(sd,1,sd->pet.intimate);
 	}
 	clif_send_petdata(sd,2,sd->pet.hungry);
@@ -978,11 +982,10 @@ int pet_data_init(struct map_session_data *sd)
 	map_addiddb(&pd->bl);
 
 	// initialise
-	if (battle_config.pet_lv_rate)
-	{ 	//Skotlex
+	if (battle_config.pet_lv_rate)	//[Skotlex]
 		pd->status = (struct pet_status *) aCalloc(1,sizeof(struct pet_status));
-		status_calc_pet(sd,1);
-	}
+
+	status_calc_pet(sd,1);
 
 	pd->state.skillbonus = -1;
 	if (battle_config.pet_status_support) //Skotlex
@@ -1371,6 +1374,7 @@ int pet_food(struct map_session_data *sd)
 	}
 	else if(sd->pet.intimate > 1000)
 		sd->pet.intimate = 1000;
+	status_calc_pet(sd, 0);
 	sd->pet.hungry += sd->petDB->fullness;
 	if(sd->pet.hungry > 100)
 		sd->pet.hungry = 100;

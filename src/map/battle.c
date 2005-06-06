@@ -5345,6 +5345,7 @@ static const struct battle_data_short {
 	{ "pet_status_support",                &battle_config.pet_status_support		},
 	{ "pet_attack_support",                &battle_config.pet_attack_support		},
 	{ "pet_damage_support",                &battle_config.pet_damage_support		},
+	{ "pet_support_min_friendly",          &battle_config.pet_support_min_friendly	},
 	{ "pet_support_rate",                  &battle_config.pet_support_rate			},
 	{ "pet_attack_exp_to_master",          &battle_config.pet_attack_exp_to_master	},
 	{ "pet_attack_exp_rate",               &battle_config.pet_attack_exp_rate	 },
@@ -5658,6 +5659,7 @@ void battle_set_defaults() {
 	battle_config.pet_status_support=0;
 	battle_config.pet_attack_support=0;
 	battle_config.pet_damage_support=0;
+	battle_config.pet_support_min_friendly=900;
 	battle_config.pet_support_rate=100;
 	battle_config.pet_attack_exp_to_master=0;
 	battle_config.pet_attack_exp_rate=100;
@@ -5913,6 +5915,9 @@ void battle_validate_conf() {
 /*	if(battle_config.guild_exp_limit < 0)
 		battle_config.guild_exp_limit = 0;*/
 
+	if(battle_config.pet_support_min_friendly > 950) //Capped to 950/1000 [Skotlex]
+		battle_config.pet_support_min_friendly = 950;
+	
 	if(battle_config.pet_max_atk1 > battle_config.pet_max_atk2)	//Skotlex
 		battle_config.pet_max_atk1 = battle_config.pet_max_atk2;
 	

@@ -1,5 +1,8 @@
 Date	Added
 06/05
+	* Added battle_config option pet_support_min_friendly [Skotlex]
+	  Specifies minimum pet intimacy/friendly value needed before attacking.
+	  Default 900, see battle_athena.conf for more information.
 	* Some reorganizing of pet-catching code	[Skotlex]
 	* Now mobs will do the /ag emotion when you use a lure on them and they
 	  can't be caught (wrong lure, or mob not in the mob_db.txt).	[Skotlex]

@@ -158,6 +158,7 @@ extern struct Battle_Config {
 	unsigned short pet_status_support;
 	unsigned short pet_attack_support;
 	unsigned short pet_damage_support;
+	unsigned short pet_support_min_friendly;	//[Skotlex]
 	unsigned short pet_support_rate;
 	unsigned short pet_attack_exp_to_master;
 	unsigned short pet_attack_exp_rate;

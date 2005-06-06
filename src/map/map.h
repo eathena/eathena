@@ -553,6 +553,7 @@ struct pet_data {
 	short target_lv;
 	int move_fail_count;
 	unsigned int attackabletime,next_walktime,last_thinktime;
+	short rate_fix;	//Support rate as modified by intimacy (1000 = 100%) [Skotlex]
 	struct pet_status { //Pet Status data
 		short level;
 		short atk1,atk2;
