@@ -598,6 +598,7 @@ int skill_frostjoke_scream(struct block_list *bl,va_list ap);
 int status_change_timer_sub(struct block_list *bl, va_list ap );
 int skill_attack_area(struct block_list *bl,va_list ap);
 int skill_clear_element_field(struct block_list *bl);
+int skill_graffitiremover(struct block_list *bl, va_list ap ); // [Valaris]
 int skill_landprotector(struct block_list *bl, va_list ap );
 int skill_ganbatein(struct block_list *bl, va_list ap );
 int skill_trap_splash(struct block_list *bl, va_list ap );
@@ -4741,15 +4742,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case RG_CLEANER:	//AppleGirl
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		{
-			struct skill_unit *su;
-			if ((bl->type == BL_SKILL) &&
-				(su=(struct skill_unit *)bl) && (su->group) &&
-				(su->group->src_id == src->id || map[bl->m].flag.pvp || map[bl->m].flag.gvg) &&
-				(su->group->unit_id == 0xb0)){ //?を取り返す
-				skill_delunitgroup(su->group);
-			}
-		}
 		break;
 
 	case ST_PRESERVE:
@@ -5342,13 +5334,16 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	case PF_FOGWALL:			/* フォグウォ?ル */
 	case HT_TALKIEBOX:			/* ト?キ?ボックス */
 		skill_unitsetting(src,skillid,skilllv,x,y,0);
-			break;
+		break;
 
 	case RG_GRAFFITI:			/* Graffiti [Valaris] */
 		skill_clear_unitgroup(src);
 		skill_unitsetting(src,skillid,skilllv,x,y,0);
-			break;
+		break;
 
+	case RG_CLEANER: // [Valaris]
+		map_foreachinarea(skill_graffitiremover,src->m,x-5,y-5,x+5,y+5,BL_SKILL);
+		break;
 	case SA_VOLCANO:		/* ボルケ?ノ */
 	case SA_DELUGE:			/* デリュ?ジ */
 	case SA_VIOLENTGALE:	/* バイオレントゲイル */
@@ -6507,6 +6502,7 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 	struct map_session_data *sd;
 	struct map_session_data *tsd;
 	struct pc_base_job s_class;
+	unsigned int tick = gettick();
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
@@ -6550,9 +6546,12 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 				if (((t_class.job == 19 && s_class.job == 20) ||
 						(t_class.job == 20 && s_class.job == 19)) &&
 						(skilllv = pc_checkskill(sd, skillid)) > 0 &&
+						sd->status.party_id && tsd->status.party_id &&
 						sd->status.party_id == tsd->status.party_id &&
-						!pc_issit(sd) &&
+						!pc_issit(sd) && !pc_isdead(sd) &&
 						(*c) == 0 &&
+						sd->skilltimer==-1 &&
+						sd->canmove_tick < tick && // added various missing ensemble checks [Valaris]
 						sd->sc_data[SC_DANCING].timer == -1)
 					(*c) = skilllv;
 			}
@@ -6574,6 +6573,7 @@ static int skill_check_condition_use_sub(struct block_list *bl,va_list ap)
 	struct pc_base_job s_class;
 	struct pc_base_job ss_class;
 	int skillid,skilllv;
+	unsigned int tick = gettick();
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
@@ -6619,9 +6619,14 @@ static int skill_check_condition_use_sub(struct block_list *bl,va_list ap)
 		   (ss_class.job==20 && s_class.job==19)) && //自分がダンサ?ならバ?ドで
 		   pc_checkskill(sd,skillid) > 0 && //スキルを持っていて
 		   (*c)==0 && //最初の一人で
+		   (sd->weapontype1==13 || sd->weapontype1==14) &&
+		   (ssd->weapontype1==13 || ssd->weapontype1==14) &&
+		   sd->status.party_id && ssd->status.party_id &&
 		   sd->status.party_id == ssd->status.party_id && //パ?ティ?が同じで
-		   !pc_issit(sd) && //座ってない
-		   sd->sc_data[SC_DANCING].timer==-1 //ダンス中じゃない
+		   !pc_issit(sd) && !pc_isdead(sd) && //座ってない
+		   sd->sc_data[SC_DANCING].timer==-1 &&
+		   sd->skilltimer==-1 &&
+		   sd->canmove_tick < tick // added various missing ensemble checks [Valaris]
 		  ){
 			ssd->sc_data[SC_DANCING].val4=bl->id;
 			clif_skill_nodamage(bl,src,skillid,skilllv,1);
@@ -8309,6 +8314,25 @@ int skill_clear_element_field(struct block_list *bl)
 	}
 	return 0;
 }
+
+// for graffiti cleaner [Valaris]
+int skill_graffitiremover(struct block_list *bl, va_list ap )
+{
+	struct skill_unit *unit=NULL;
+
+	nullpo_retr(0, bl);
+	nullpo_retr(0, ap);
+
+	if(bl->type!=BL_SKILL || (unit=(struct skill_unit *)bl) == NULL)
+		return 0;
+
+	if((unit->group) && (unit->group->unit_id == 0xb0)){
+		skill_delunit(unit);
+	}
+
+	return 0;
+}
+
 /*==========================================
  * ランドプロテクタ?チェック(foreachinarea)
  *------------------------------------------

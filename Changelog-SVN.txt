@@ -1,4 +1,12 @@
 Date	Added
+06/07	* Fixed crashes caused by Graffiti Cleaner. [Valaris]
+	* Added following missing checks to Ensembles:
+		-Partner's equipment is an instrument.
+		-Partner is alive.
+		-Partner is not casting another skill (This allowed dance floor panel duping).
+		-That both people are in a party (before if both partner's were in no party (party ID 0) 
+		 it would allow them to use an ensemble.
+
 06/06
 	* Fixed and updated sql-files/item_db.sql to match with the current
 	  db/item_db.txt	[Skotlex]
