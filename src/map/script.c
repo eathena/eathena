@@ -1375,7 +1375,7 @@ int get_val(struct script_state*st,struct script_data* data)
 		if(postfix=='$'){
 
 			data->type=C_CONSTSTR;
-			if( prefix=='@' || prefix=='l' ){
+			if( prefix=='@'/* || prefix=='l' */){
 				if(sd)
 				data->u.str = pc_readregstr(sd,data->u.num);
 			}else if(prefix=='$'){
@@ -1395,7 +1395,7 @@ int get_val(struct script_state*st,struct script_data* data)
 			}else if(str_data[data->u.num&0x00ffffff].type==C_PARAM){
 				if(sd)
 				data->u.num = pc_readparam(sd,str_data[data->u.num&0x00ffffff].val);
-			}else if(prefix=='@' || prefix=='l'){
+			}else if(prefix=='@'/* || prefix=='l'*/){	//How long has it been since using l for locals been obsoleted? [Skotlex]
 				if(sd)
 				data->u.num = pc_readreg(sd,data->u.num);
 			}else if(prefix=='$'){

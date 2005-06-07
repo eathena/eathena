@@ -1,5 +1,7 @@
 Date	Added
 06/06
+	* Removed variables with prefix "l" being treated as a temporary
+	  variables by the scripting engine.	[Skotlex]
 	* Updated description of idle_no_share battle_config option	[Skotlex]
 
 06/05
