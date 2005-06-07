@@ -830,7 +830,6 @@ static unsigned char *skip_word(unsigned char *p)
 	if(*p=='@') p++;	// 一時的変数用(like weiss)
 	if(*p=='#') p++;	// account変数用
 	if(*p=='#') p++;	// ワールドaccount変数用
-	if(*p=='l') p++;	// 一時的変数用(like weiss)
 
 	while(isalnum(*p)||*p=='_'|| *p>=0x81)
 		if(*p>=0x81 && p[1]){
@@ -949,15 +948,7 @@ unsigned char* parse_simpleexpr(unsigned char *p)
 		parse_cmd=l;	// warn_*_mismatch_paramnumのために必要
 		if(l== search_str((unsigned char *) "if"))	// warn_cmd_no_commaのために必要
 			parse_cmd_if++;
-/*
-		// 廃止予定のl14/l15,およびプレフィックスｌの警告
-		if(	strcmp(str_buf+str_data[l].str,"l14")==0 ||
-			strcmp(str_buf+str_data[l].str,"l15")==0 ){
-			disp_error_message("l14 and l15 is DEPRECATED. use @menu instead of l15.",p);
-		}else if(str_buf[str_data[l].str]=='l'){
-			disp_error_message("prefix 'l' is DEPRECATED. use prefix '@' instead.",p2);
-		}
-*/
+
 		*p2=c;	
 		p=(unsigned char *) p2;
 
@@ -1375,7 +1366,7 @@ int get_val(struct script_state*st,struct script_data* data)
 		if(postfix=='$'){
 
 			data->type=C_CONSTSTR;
-			if( prefix=='@'/* || prefix=='l' */){
+			if( prefix=='@'){
 				if(sd)
 				data->u.str = pc_readregstr(sd,data->u.num);
 			}else if(prefix=='$'){
@@ -1395,7 +1386,7 @@ int get_val(struct script_state*st,struct script_data* data)
 			}else if(str_data[data->u.num&0x00ffffff].type==C_PARAM){
 				if(sd)
 				data->u.num = pc_readparam(sd,str_data[data->u.num&0x00ffffff].val);
-			}else if(prefix=='@'/* || prefix=='l'*/){	//How long has it been since using l for locals been obsoleted? [Skotlex]
+			}else if(prefix=='@'){
 				if(sd)
 				data->u.num = pc_readreg(sd,data->u.num);
 			}else if(prefix=='$'){
@@ -1441,7 +1432,7 @@ static int set_reg(struct map_session_data *sd,int num,char *name,void *v)
 
 	if( postfix=='$' ){
 		char *str=(char*)v;
-		if( prefix=='@' || prefix=='l'){
+		if( prefix=='@'){
 			pc_setregstr(sd,num,str);
 		}else if(prefix=='$') {
 			mapreg_setregstr(num,str);
@@ -1453,7 +1444,7 @@ static int set_reg(struct map_session_data *sd,int num,char *name,void *v)
 		int val = (int)v;
 		if(str_data[num&0x00ffffff].type==C_PARAM){
 			pc_setparam(sd,str_data[num&0x00ffffff].val,val);
-		}else if(prefix=='@' || prefix=='l') {
+		}else if(prefix=='@') {
 			pc_setreg(sd,num,val);
 		}else if(prefix=='$') {
 			mapreg_setreg(num,val);
@@ -1775,7 +1766,7 @@ int buildin_menu(struct script_state *st)
 		st->state=END;
 	} else {	// goto動作
 		// ragemu互換のため
-		pc_setreg(sd,add_str((unsigned char *) "l15"),sd->npc_menu);
+//		pc_setreg(sd,add_str((unsigned char *) "l15"),sd->npc_menu);
 		pc_setreg(sd,add_str((unsigned char *) "@menu"),sd->npc_menu);
 		sd->state.menu_or_input=0;
 		if(sd->npc_menu>0 && sd->npc_menu<(st->end-st->start)/2){
@@ -6568,7 +6559,7 @@ int buildin_select(struct script_state *st)
 		sd->state.menu_or_input=0;
 		st->state=END;
 	} else {
-		pc_setreg(sd,add_str((unsigned char *) "l15"),sd->npc_menu);
+//		pc_setreg(sd,add_str((unsigned char *) "l15"),sd->npc_menu);
 		pc_setreg(sd,add_str((unsigned char *) "@menu"),sd->npc_menu);
 		sd->state.menu_or_input=0;
 		push_val(st->stack,C_INT,sd->npc_menu);

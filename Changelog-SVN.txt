@@ -1,5 +1,9 @@
 Date	Added
 06/07
+	* Re-fixed sql-files/item_db.sql [Skotlex]
+	* Plagiarism won't work if the skill to be copied killed you. [Skotlex]
+	* Removed use of 'l' as prefix for temporary variables. [Skotlex]
+	* Updated max hair styles in battle_conf to 23 [Skotlex]
 	* Updated map server to jA1159~1203 [celest]
 	  - Added imbueing weapons with random element (with bonus bAtkEle,10;)
 	  - Added Soul Strike do additional damage on undead

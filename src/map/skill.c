@@ -1585,7 +1585,10 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		if(rand()%100 < rate)
 			skill_addtimerskill(src,tick + 800,bl->id,0,0,skillid,skilllv,0,flag);
 	}
-	if(damage > 0 && dmg.flag&BF_SKILL && bl->type==BL_PC && pc_checkskill((struct map_session_data *)bl,RG_PLAGIARISM) && sc_data[SC_PRESERVE].timer == -1){
+	if(damage > 0 && dmg.flag&BF_SKILL && bl->type==BL_PC && 
+		pc_checkskill((struct map_session_data *)bl,RG_PLAGIARISM) &&
+		!pc_isdead((struct map_session_data *)bl) &&	//Updated to not be able to copy skills while dead. [Skotlex]
+		sc_data[SC_PRESERVE].timer == -1){
 		struct map_session_data *tsd = (struct map_session_data *)bl;
 		if (tsd && (!tsd->status.skill[skillid].id || tsd->status.skill[skillid].flag >= 13) &&
 			!((skillid > NPC_PIERCINGATT && skillid < NPC_SUMMONMONSTER) ||
