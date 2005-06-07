@@ -618,14 +618,11 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->setitem_hash = 0;
 
 	if(!sd->disguiseflag && sd->disguise) {
+		pc_stop_walking(sd,0);
+		clif_clearchar(&sd->bl, 0);
 		sd->disguise=0;
-		clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
-		clif_changelook(&sd->bl,LOOK_SHIELD,sd->status.shield);
-		clif_changelook(&sd->bl,LOOK_HEAD_BOTTOM,sd->status.head_bottom);
-		clif_changelook(&sd->bl,LOOK_HEAD_TOP,sd->status.head_top);
-		clif_changelook(&sd->bl,LOOK_HEAD_MID,sd->status.head_mid);
-		clif_clearchar(&sd->bl, 9);
-		pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
+		clif_changeoption(&sd->bl);
+		clif_spawnpc(sd);
 	}
 
 	if (sd->status.guild_id > 0) {

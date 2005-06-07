@@ -1,6 +1,14 @@
 Date	Added
-06/07	* Fixed crashes caused by Graffiti Cleaner. [Valaris]
-	* Added following missing checks to Ensembles:
+06/07	* Weather will now properly appear/disappear without having to refresh the client. [Valaris]
+	* Complete monster disguise re-code: [Valaris]
+	  -No more client crashes in PVP caused by disguises.
+	  -Can view own attack/hit/cast/sit/turn animations.
+	  -Monster sprite syncs up better than before.
+	  -Fixed stat dupe exploit with disguises.
+	  -Fixed crashes that prevented peco riders with disguises.
+	  -No more refreshing of the screen when equipping/unequipping disguises.
+	* Fixed crashes caused by Graffiti Cleaner. [Valaris]
+	* Added following missing checks to Ensembles: [Valaris]
 		-Partner's equipment is an instrument.
 		-Partner is alive.
 		-Partner is not casting another skill (This allowed dance floor panel duping).

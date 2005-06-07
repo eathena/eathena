@@ -7604,8 +7604,12 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 
 	if (casttime > 0 || forcecast) { /* ‰r¥‚ª•K—v */
 		struct mob_data *md;
-		clif_skillcasting(&sd->bl, sd->bl.id, target_id, 0,0, skill_num,casttime);
-
+		if(sd->disguise) { // [Valaris]
+			clif_skillcasting(&sd->bl,sd->bl.id, target_id, 0,0, skill_num,0);
+			clif_skillcasting(&sd->bl,-sd->bl.id, target_id, 0,0, skill_num,casttime);
+		}
+		else
+			clif_skillcasting(&sd->bl,sd->bl.id, target_id, 0,0, skill_num,casttime);
 		/* ‰r¥”½?ƒ‚ƒ“ƒXƒ^? */
 		if (bl->type == BL_MOB && (md = (struct mob_data *)bl) && mob_db[md->class_].mode & 0x10 &&
 			md->state.state != MS_ATTACK && sd->invincible_timer == -1){
@@ -7742,9 +7746,15 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 		if ((--sc_data[SC_MEMORIZE].val2)<=0)
 			status_change_end(&sd->bl, SC_MEMORIZE, -1);
 	}
-
-	if (casttime > 0)	/* ‰r¥‚ª•K—v */
-		clif_skillcasting(&sd->bl, sd->bl.id, 0, skill_x, skill_y, skill_num, casttime);
+	
+	if( casttime>0 ) {	/* ‰r¥‚ª•K—v */
+		if(sd->disguise) { // [Valaris]
+			clif_skillcasting(&sd->bl,sd->bl.id, 0, skill_x,skill_y, skill_num,0);
+			clif_skillcasting(&sd->bl,-sd->bl.id, 0, skill_x,skill_y, skill_num,casttime);
+		}
+		else
+			clif_skillcasting(&sd->bl,sd->bl.id, 0, skill_x,skill_y, skill_num,casttime);
+	}
 	
 	sd->skilltarget	= 0;
 	sd->canact_tick = tick + casttime + delay;

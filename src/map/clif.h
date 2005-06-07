@@ -305,6 +305,10 @@ int clif_pet_food(struct map_session_data *sd,int foodid,int fail);
 void clif_friendslist_send(struct map_session_data *sd);
 void clif_friendslist_reqack(struct map_session_data *sd, char *name, int type);
 
+// [Valaris]
+int clif_mob_hp(struct mob_data *md);
+int clif_weather2(int m, int type);
+int clif_clearweather(int m);
 int clif_specialeffect(struct block_list *bl,int type, int flag); // special effects [Valaris]
 int clif_message(struct block_list *bl, char* msg); // messages (from mobs/npcs) [Valaris]
 

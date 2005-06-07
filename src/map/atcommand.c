@@ -1937,20 +1937,17 @@ int atcommand_option(
 		}
 	} else {
 		if (pc_isriding(sd)) { // sd have the new value...
-			if (sd->disguise > 0) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris] (code added by [Yor])
+			if (sd->status.class_ == 7)
+				sd->status.class_ = sd->view_class = 13;
+			else if (sd->status.class_ == 14)
+				sd->status.class_ = sd->view_class = 21;
+			else if (sd->status.class_ == 4008)
+				sd->status.class_ = sd->view_class = 4014;
+			else if (sd->status.class_ == 4015)
+				sd->status.class_ = sd->view_class = 4022;
+			else
 				sd->status.option &= ~0x0020;
-			} else {
-				if (sd->status.class_ == 7)
-					sd->status.class_ = sd->view_class = 13;
-				else if (sd->status.class_ == 14)
-					sd->status.class_ = sd->view_class = 21;
-				else if (sd->status.class_ == 4008)
-					sd->status.class_ = sd->view_class = 4014;
-				else if (sd->status.class_ == 4015)
-					sd->status.class_ = sd->view_class = 4022;
-				else
-					sd->status.option &= ~0x0020;
-			}
+
 		}
 	}
 
@@ -5487,10 +5484,6 @@ int atcommand_mount_peco(
 	const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	if (sd->disguise > 0) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-		clif_displaymessage(fd, msg_table[212]); // Cannot mount a Peco while in disguise.
-		return -1;
-	}
 
 	if (!pc_isriding(sd)) { // if actually no peco
 		if (sd->status.class_ == 7 || sd->status.class_ == 14 || sd->status.class_ == 4008 || sd->status.class_ == 4015) {
@@ -5543,11 +5536,6 @@ int atcommand_char_mount_peco(
 	}
 
 	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (pl_sd->disguise > 0) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-			clif_displaymessage(fd, msg_table[215]); // This player cannot mount a Peco while in disguise.
-			return -1;
-		}
-
 		if (!pc_isriding(pl_sd)) { // if actually no peco
 			if (pl_sd->status.class_ == 7 || pl_sd->status.class_ == 14 || pl_sd->status.class_ == 4008 || pl_sd->status.class_ == 4015) {
 				if (pl_sd->status.class_ == 7)
@@ -6136,13 +6124,12 @@ int atcommand_disguise(
 	    (mob_id >= 721 && mob_id <= 755) || (mob_id >= 757 && mob_id <= 811) || // NPC
 	    (mob_id >= 813 && mob_id <= 858) || // NPC
 	    (mob_id > 1000 && mob_id < 1582)) { // monsters
-		if (pc_isriding(sd)) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-			clif_displaymessage(fd, msg_table[227]); // Cannot wear disguise while riding a Peco.
-			return -1;
-		}
-		sd->disguiseflag = 1; // set to override items with disguise script [Valaris]
+		pc_stop_walking(sd,0);
+		clif_clearchar(&sd->bl, 0);
 		sd->disguise = mob_id;
-		pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
+		sd->disguiseflag = 1; // set to override items with disguise script [Valaris]
+		clif_changeoption(&sd->bl);
+		clif_spawnpc(sd);
 		clif_displaymessage(fd, msg_table[122]); // Disguise applied.
 	} else {
 		clif_displaymessage(fd, msg_table[123]); // Monster/NPC name/id hasn't been found.
@@ -6179,13 +6166,12 @@ int atcommand_disguiseall(
 	    (mob_id > 1000 && mob_id < 1582)) { // monsters
 		for(i=0; i < fd_max; i++) {
 			if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
-				if(pc_isriding(pl_sd)) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-					clif_displaymessage(fd, msg_table[227]); // Cannot wear disguise while riding a Peco.
-				} else {
-					pl_sd->disguiseflag = 1; // set to override items with disguise script [Valaris]
-					pl_sd->disguise = mob_id;
-					pc_setpos(pl_sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
-				}
+				pc_stop_walking(pl_sd,0);
+				clif_clearchar(&pl_sd->bl, 0);
+				pl_sd->disguise = mob_id;
+				pl_sd->disguiseflag = 1; // set to override items with disguise script [Valaris]
+				clif_changeoption(&pl_sd->bl);
+				clif_spawnpc(pl_sd);
 			}
 		}
 		clif_displaymessage(fd, msg_table[122]); // Disguise applied.
@@ -6206,9 +6192,11 @@ int atcommand_undisguise(
 {
 	nullpo_retr(-1, sd);
 	if (sd->disguise) {
-		clif_clearchar(&sd->bl, 9);
+		pc_stop_walking(sd,0);
+		clif_clearchar(&sd->bl, 0);
 		sd->disguise = 0;
-		pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
+		clif_changeoption(&sd->bl);
+		clif_spawnpc(sd);
 		clif_displaymessage(fd, msg_table[124]); // Undisguise applied.
 	} else {
 		clif_displaymessage(fd, msg_table[125]); // You're not disguised.
@@ -6232,9 +6220,11 @@ int atcommand_undisguiseall(
 
 	for(i=0; i < fd_max; i++) {
 		if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth && pl_sd->disguise) {
-			clif_clearchar(&pl_sd->bl, 9);
-			pl_sd->disguise = 0;
-			pc_setpos(pl_sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
+				pc_stop_walking(pl_sd,0);
+				clif_clearchar(&pl_sd->bl, 0);
+				pl_sd->disguise = 0;
+				clif_changeoption(&pl_sd->bl);
+				clif_spawnpc(pl_sd);
 		}
 	}
 	clif_displaymessage(fd, msg_table[124]); // Undisguise applied.
@@ -6319,13 +6309,12 @@ int atcommand_chardisguise(
 			    (mob_id >= 721 && mob_id <= 755) || (mob_id >= 757 && mob_id <= 811) || // NPC
 			    (mob_id >= 813 && mob_id <= 834) || // NPC
 			    (mob_id > 1000 && mob_id < 1521)) { // monsters
-				if (pc_isriding(pl_sd)) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-					clif_displaymessage(fd, msg_table[228]); // Character cannot wear disguise while riding a Peco.
-					return -1;
-				}
-				pl_sd->disguiseflag = 1; // set to override items with disguise script [Valaris]
+				pc_stop_walking(pl_sd,0);
+				clif_clearchar(&pl_sd->bl, 0);
 				pl_sd->disguise = mob_id;
-				pc_setpos(pl_sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
+				pl_sd->disguiseflag = 1; // set to override items with disguise script [Valaris]
+				clif_changeoption(&pl_sd->bl);
+				clif_spawnpc(pl_sd);
 				clif_displaymessage(fd, msg_table[140]); // Character's disguise applied.
 			} else {
 				clif_displaymessage(fd, msg_table[123]); // Monster/NPC name/id hasn't been found.
@@ -6364,9 +6353,11 @@ int atcommand_charundisguise(
 	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can undisguise only lower or same level
 			if (pl_sd->disguise) {
-				clif_clearchar(&pl_sd->bl, 9);
+				pc_stop_walking(pl_sd,0);
+				clif_clearchar(&pl_sd->bl, 0);
 				pl_sd->disguise = 0;
-				pc_setpos(pl_sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
+				clif_changeoption(&pl_sd->bl);
+				clif_spawnpc(pl_sd);
 				clif_displaymessage(fd, msg_table[141]); // Character's undisguise applied.
 			} else {
 				clif_displaymessage(fd, msg_table[142]); // Character is not disguised.
@@ -7343,14 +7334,14 @@ atcommand_fog(
 	nullpo_retr(-1, sd);
 	if (map[sd->bl.m].flag.fog) {
 		map[sd->bl.m].flag.fog=0;
+		clif_clearweather(sd->bl.m);
 		clif_displaymessage(fd, "The fog has gone.");
 	} else {
 		map[sd->bl.m].flag.fog=1;
-		clif_specialeffect(&sd->bl,effno,2);
+		clif_weather2(sd->bl.m, effno);
 		clif_displaymessage(fd, "Fog hangs over.");
 	}
-
-	return 0;
+		return 0;
 }
 
 /*==========================================
@@ -7366,10 +7357,11 @@ atcommand_leaves(
 	nullpo_retr(-1, sd);
 	if (map[sd->bl.m].flag.leaves) {
 		map[sd->bl.m].flag.leaves=0;
+		clif_clearweather(sd->bl.m);
 		clif_displaymessage(fd, "Leaves no longer fall.");
 	} else {
 		map[sd->bl.m].flag.leaves=1;
-		clif_specialeffect(&sd->bl,effno,2);
+		clif_weather2(sd->bl.m, effno);
 		clif_displaymessage(fd, "Fallen leaves fall.");
 	}
 
@@ -7390,12 +7382,13 @@ atcommand_fireworks(
 	nullpo_retr(-1, sd);
 	if (map[sd->bl.m].flag.fireworks) {
 		map[sd->bl.m].flag.fireworks=0;
+		clif_clearweather(sd->bl.m);
 		clif_displaymessage(fd, "Fireworks are launched.");
 	} else {
 		map[sd->bl.m].flag.fireworks=1;
-		clif_specialeffect(&sd->bl,297,2);
-		clif_specialeffect(&sd->bl,299,2);
-		clif_specialeffect(&sd->bl,301,2);
+		clif_weather2(sd->bl.m, 297);
+		clif_weather2(sd->bl.m, 299);
+		clif_weather2(sd->bl.m, 301);
 		clif_displaymessage(fd, "Fireworks are launched.");
 	}
 
@@ -7419,7 +7412,8 @@ atcommand_clearweather(
 	map[sd->bl.m].flag.fog=0;
 	map[sd->bl.m].flag.fireworks=0;
 	map[sd->bl.m].flag.leaves=0;
-
+	clif_clearweather(sd->bl.m);
+	
 	return 0;
 }
 

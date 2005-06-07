@@ -1523,14 +1523,11 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		}
 		break;
 	case SP_DISGUISE: // Disguise script for items [Valaris]
-		if(sd->state.lr_flag!=2 && sd->disguiseflag==0) {
-			if(pc_isriding(sd)) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-				clif_displaymessage(sd->fd, "Cannot wear disguise when riding a Peco.");
-				break;
-			}
+		if(sd->state.lr_flag!=2 && !sd->disguiseflag && !pc_isriding(sd)) {
+			clif_clearchar(&sd->bl, 0);
 			sd->disguise=val;
-			clif_clearchar(&sd->bl, 9);
-			pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
+			clif_changeoption(&sd->bl);
+			clif_spawnpc(sd);
 		}
 		break;
 	case SP_UNBREAKABLE:
@@ -3061,7 +3058,7 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *bl)
 int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrtype)
 {
 	char mapname[24];
-	int i, m, disguise = 0;
+	int i, m;
 
 	nullpo_retr(0, sd);
 
@@ -3129,12 +3126,6 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 	if(sd->status.pet_id > 0 && sd->pd && sd->pet.intimate > 0) {
 		pet_stopattack(sd->pd);
 		pet_changestate(sd->pd,MS_IDLE,0);
-	}
-
-	if(sd->disguise) { // clear disguises when warping [Valaris]
-		clif_clearchar(&sd->bl, 9);
-		disguise=sd->disguise;
-		sd->disguise=0;
 	}
 
 	strncpy(mapname,mapname_org,sizeof(mapname));
@@ -3236,9 +3227,6 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		}
 		clif_changemap(sd,map[m].name,x,y); // [MouseJstr]
 	}
-	
-	if(disguise) // disguise teleport fix [Valaris]
-		sd->disguise=disguise;
 		
 	if (strcmp(sd->mapname,mapname)!=0) //minimap dot fix [Kevin]
 		party_send_dot_remove(sd);
@@ -5778,11 +5766,6 @@ int pc_setfalcon(struct map_session_data *sd)
  */
 int pc_setriding(struct map_session_data *sd)
 {
-	if(sd->disguise > 0) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-		clif_displaymessage(sd->fd, "Cannot mount a Peco while in disguise.");
-		return 0;
-	}
-
 	if((pc_checkskill(sd,KN_RIDING)>0)){ // ライディングスキル所持
 		pc_setoption(sd,sd->status.option|0x0020);
 

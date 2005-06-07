@@ -628,20 +628,16 @@ int charcommand_option(
 				}
 			} else {
 				if (pc_isriding(pl_sd)) { // pl_sd have the new value...
-					if (pl_sd->disguise > 0) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris] (code added by [Yor])
+					if (pl_sd->status.class_ == 7)
+						pl_sd->status.class_ = pl_sd->view_class = 13;
+					else if (pl_sd->status.class_ == 14)
+						pl_sd->status.class_ = pl_sd->view_class = 21;
+					else if (pl_sd->status.class_ == 4008)
+						pl_sd->status.class_ = pl_sd->view_class = 4014;
+					else if (pl_sd->status.class_ == 4015)
+						pl_sd->status.class_ = pl_sd->view_class = 4022;
+					else
 						pl_sd->status.option &= ~0x0020;
-					} else {
-						if (pl_sd->status.class_ == 7)
-							pl_sd->status.class_ = pl_sd->view_class = 13;
-						else if (pl_sd->status.class_ == 14)
-							pl_sd->status.class_ = pl_sd->view_class = 21;
-						else if (pl_sd->status.class_ == 4008)
-							pl_sd->status.class_ = pl_sd->view_class = 4014;
-						else if (pl_sd->status.class_ == 4015)
-							pl_sd->status.class_ = pl_sd->view_class = 4022;
-						else
-							pl_sd->status.option &= ~0x0020;
-					}
 				}
 			}
 			clif_changeoption(&pl_sd->bl);

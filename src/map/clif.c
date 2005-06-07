@@ -656,12 +656,12 @@ int clif_clearchar(struct block_list *bl, int type) {
 
 	WBUFW(buf,0) = 0x80;
 	WBUFL(buf,2) = bl->id;
-	if (type == 9) {
-		WBUFB(buf,6) = 0;
+	WBUFB(buf,6) = type;
+	clif_send(buf, packet_len_table[0x80], bl, type == 1 ? AREA : AREA_WOS);
+
+	if(bl->type==BL_PC && ((struct map_session_data *)bl)->disguise) {
+		WBUFL(buf,2) = -bl->id;
 		clif_send(buf, packet_len_table[0x80], bl, AREA);
-	} else {
-		WBUFB(buf,6) = type;
-		clif_send(buf, packet_len_table[0x80], bl, type == 1 ? AREA : AREA_WOS);
 	}
 
 	return 0;
@@ -708,40 +708,22 @@ int clif_clearchar_id(int id, int type, int fd) {
  *------------------------------------------
  */
 static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
-	int level;
 
 	nullpo_retr(0, sd);
 
-	if (sd->disguise > 23 && sd->disguise < 4001) { // mob disguises [Valaris]
-
-		WBUFW(buf,0) = 0x78;
-		WBUFL(buf,2) = sd->bl.id;
-		WBUFW(buf,6) = status_get_speed(&sd->bl);
-		WBUFW(buf,8) = sd->opt1;
-		WBUFW(buf,10) = sd->opt2;
-		WBUFW(buf,12) = sd->status.option;
-		WBUFW(buf,14) = sd->disguise;
-		WBUFW(buf,42) = 0;
-		WBUFB(buf,44) = 0;
-		WBUFPOS(buf, 46, sd->bl.x, sd->bl.y);
-		WBUFB(buf,48) |= sd->dir & 0x0f;
-		WBUFB(buf,49) = 5;
-		WBUFB(buf,50) = 5;
-		WBUFB(buf,51) = 0;
-		WBUFW(buf,52) = ((level = status_get_lv(&sd->bl)) > battle_config.max_lv) ? battle_config.max_lv : level;
-
-		return packet_len_table[0x78];
-	}
-
 #if PACKETVER < 4
-	WBUFW(buf,0)= 0x78;
-	WBUFL(buf,2)= sd->bl.id;
-	WBUFW(buf,6)= sd->speed;
-	WBUFW(buf,8)= sd->opt1;
-	WBUFW(buf,10)= sd->opt2;
-	WBUFW(buf,12)= sd->status.option;
-	WBUFW(buf,14)= sd->view_class;
-	WBUFW(buf,16)= sd->status.hair;
+	WBUFW(buf,0)=0x78;
+	WBUFL(buf,2)=sd->bl.id;
+	WBUFW(buf,6)=sd->speed;
+	WBUFW(buf,8)=sd->opt1;
+	WBUFW(buf,10)=sd->opt2;
+	if(sd->disguise) {
+		WBUFW(buf,12)=OPTION_HIDE;
+	} else {
+		WBUFW(buf,12)=sd->status.option;
+	}	
+	WBUFW(buf,14)=sd->view_class;
+	WBUFW(buf,16)=sd->status.hair;
 	if (sd->view_class != 22)
 		WBUFW(buf,18) = sd->status.weapon;
 	else
@@ -767,14 +749,18 @@ static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
 
 	return packet_len_table[0x78];
 #else
-	WBUFW(buf,0) = 0x1d8;
-	WBUFL(buf,2) = sd->bl.id;
-	WBUFW(buf,6) = sd->speed;
-	WBUFW(buf,8) = sd->opt1;
-	WBUFW(buf,10) = sd->opt2;
-	WBUFW(buf,12) = sd->status.option;
-	WBUFW(buf,14) = sd->view_class;
-	WBUFW(buf,16) = sd->status.hair;
+	WBUFW(buf,0)=0x1d8;
+	WBUFL(buf,2)=sd->bl.id;
+	WBUFW(buf,6)=sd->speed;
+	WBUFW(buf,8)=sd->opt1;
+	WBUFW(buf,10)=sd->opt2;
+	if(sd->disguise) {
+		WBUFW(buf,12)=OPTION_HIDE;
+	} else {
+		WBUFW(buf,12)=sd->status.option;
+	}
+	WBUFW(buf,14)=sd->view_class;
+	WBUFW(buf,16)=sd->status.hair;
 	if (sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]] && sd->view_class != 22) {
 		if (sd->inventory_data[sd->equip_index[9]]->view_id > 0)
 			WBUFW(buf,18) = sd->inventory_data[sd->equip_index[9]]->view_id;
@@ -789,27 +775,55 @@ static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
 			WBUFW(buf,20) = sd->status.inventory[sd->equip_index[8]].nameid;
 	} else
 		WBUFW(buf,20) = 0;
-	WBUFW(buf,22) = sd->status.head_bottom;
-	WBUFW(buf,24) = sd->status.head_top;
-	WBUFW(buf,26) = sd->status.head_mid;
-	WBUFW(buf,28) = sd->status.hair_color;
-	WBUFW(buf,30) = sd->status.clothes_color;
-	WBUFW(buf,32) = sd->head_dir;
-	WBUFL(buf,34) = sd->status.guild_id;
-	WBUFW(buf,38) = sd->guild_emblem_id;
-	WBUFW(buf,40) = sd->status.manner;
+	WBUFW(buf,22)=sd->status.head_bottom;
+	WBUFW(buf,24)=sd->status.head_top;
+	WBUFW(buf,26)=sd->status.head_mid;
+	WBUFW(buf,28)=sd->status.hair_color;
+	WBUFW(buf,30)=sd->status.clothes_color;
+	WBUFW(buf,32)=sd->head_dir;
+	WBUFL(buf,34)=sd->status.guild_id;
+	WBUFW(buf,38)=sd->guild_emblem_id;
+	WBUFW(buf,40)=sd->status.manner;
 	WBUFW(buf,42)=sd->opt3;
-	WBUFB(buf,44) = sd->status.karma;
-	WBUFB(buf,45) = sd->sex;
-	WBUFPOS(buf, 46, sd->bl.x, sd->bl.y);
-	WBUFB(buf,48) |= sd->dir & 0x0f;
-	WBUFB(buf,49) = 5;
-	WBUFB(buf,50) = 5;
-	WBUFB(buf,51) = sd->state.dead_sit;
-	WBUFW(buf,52) = ((level = status_get_lv(&sd->bl)) > battle_config.max_lv) ? battle_config.max_lv : level;
+	WBUFB(buf,44)=sd->status.karma;
+	WBUFB(buf,45)=sd->sex;
+	WBUFPOS(buf,46,sd->bl.x,sd->bl.y);
+	WBUFB(buf,48)|=sd->dir & 0x0f;
+	WBUFB(buf,49)=5;
+	WBUFB(buf,50)=5;
+	WBUFB(buf,51)=sd->state.dead_sit;
+	WBUFW(buf,52)=(sd->status.base_level>battle_config.max_lv)?battle_config.max_lv:sd->status.base_level;
 
 	return packet_len_table[0x1d8];
 #endif
+}
+
+// non-moving function for disguises [Valaris]
+static int clif_dis0078(struct map_session_data *sd, unsigned char *buf) {
+
+	nullpo_retr(0, sd);
+
+	memset(buf,0,packet_len_table[0x78]);
+
+	WBUFW(buf,0)=0x78;
+	WBUFL(buf,2)=-sd->bl.id;
+	WBUFW(buf,6)=sd->speed;
+	WBUFW(buf,8)=0;
+	WBUFW(buf,10)=0;
+	WBUFW(buf,12)=sd->status.option;
+	WBUFW(buf,14)=sd->disguise;
+	//WBUFL(buf,22)=sd->status.guild_id;
+	//WBUFL(buf,26)=sd->guild_emblem_id;
+	WBUFW(buf,42)=0;
+	WBUFB(buf,44)=0;
+	WBUFPOS(buf,46,sd->bl.x,sd->bl.y);
+	WBUFB(buf,48)|=sd->dir&0x0f;
+	WBUFB(buf,49)=5;
+	WBUFB(buf,50)=5;
+	WBUFB(buf,51)=sd->state.dead_sit;
+	WBUFW(buf,52)=0;
+
+	return packet_len_table[0x78];
 }
 
 /*==========================================
@@ -817,30 +831,8 @@ static int clif_set0078(struct map_session_data *sd, unsigned char *buf) {
  *------------------------------------------
  */
 static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
-	int level;
 
 	nullpo_retr(0, sd);
-
-	if (sd->disguise > 23 && sd->disguise < 4001) { // mob disguises [Valaris]
-
-		WBUFW(buf,0)=0x7b;
-		WBUFL(buf,2)=sd->bl.id;
-		WBUFW(buf,6)=status_get_speed(&sd->bl);
-		WBUFW(buf,8)=sd->opt1;
-		WBUFW(buf,10)=sd->opt2;
-		WBUFW(buf,12)=sd->status.option;
-		WBUFW(buf,14)=sd->disguise;
-		WBUFL(buf,22)=gettick();
-		WBUFW(buf,46)=0;
-		WBUFB(buf,48)=0;
-		WBUFPOS2(buf,50,sd->bl.x,sd->bl.y,sd->to_x,sd->to_y);
-		WBUFB(buf,55)=0;
-		WBUFB(buf,56)=5;
-		WBUFB(buf,57)=5;
-		WBUFW(buf,58)=((level = status_get_lv(&sd->bl))>battle_config.max_lv)? battle_config.max_lv:level;
-
-		return packet_len_table[0x7b];
-	}
 
 #if PACKETVER < 4
 	WBUFW(buf,0)=0x7b;
@@ -848,7 +840,11 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 	WBUFW(buf,6)=sd->speed;
 	WBUFW(buf,8)=sd->opt1;
 	WBUFW(buf,10)=sd->opt2;
-	WBUFW(buf,12)=sd->status.option;
+	if(sd->disguise) {
+		WBUFW(buf,12)=OPTION_HIDE;
+	} else {
+		WBUFW(buf,12)=sd->status.option;
+	}
 	WBUFW(buf,14)=sd->view_class;
 	WBUFW(buf,16)=sd->status.hair;
 	if(sd->view_class != 22)
@@ -881,7 +877,11 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 	WBUFW(buf,6)=sd->speed;
 	WBUFW(buf,8)=sd->opt1;
 	WBUFW(buf,10)=sd->opt2;
-	WBUFW(buf,12)=sd->status.option;
+	if(sd->disguise) {
+		WBUFW(buf,12)=OPTION_HIDE;
+	} else {
+		WBUFW(buf,12)=sd->status.option;
+	}
 	WBUFW(buf,14)=sd->view_class;
 	WBUFW(buf,16)=sd->status.hair;
 	if(sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]] && sd->view_class != 22) {
@@ -921,6 +921,32 @@ static int clif_set007b(struct map_session_data *sd,unsigned char *buf) {
 
 	return packet_len_table[0x1da];
 #endif
+}
+
+// moving function for disguises [Valaris]
+static int clif_dis007b(struct map_session_data *sd,unsigned char *buf) {
+
+	nullpo_retr(0, sd);
+
+	memset(buf,0,packet_len_table[0x7b]);
+
+	WBUFW(buf,0)=0x7b;
+	WBUFL(buf,2)=-sd->bl.id;
+	WBUFW(buf,6)=sd->speed;
+	WBUFW(buf,8)=0;
+	WBUFW(buf,10)=0;
+	WBUFW(buf,12)=sd->status.option;
+	WBUFW(buf,14)=sd->disguise;
+	WBUFL(buf,22)=gettick();
+	//WBUFL(buf,24)=sd->status.guild_id;
+	//WBUFL(buf,28)=sd->guild_emblem_id;
+	WBUFPOS2(buf,50,sd->bl.x,sd->bl.y,sd->to_x,sd->to_y);
+	WBUFB(buf,55)=0;
+	WBUFB(buf,56)=5;
+	WBUFB(buf,57)=5;
+	WBUFW(buf,58)=0;
+
+	return packet_len_table[0x7b];
 }
 
 /*==========================================
@@ -1254,6 +1280,79 @@ static int clif_set0192(int fd, int m, int x, int y, int type) {
 	return 0;
 }
 
+// new and improved weather display [Valaris]
+int clif_weather1(int fd, int type) {
+	WFIFOW(fd,0) = 0x1f3;
+	WFIFOL(fd,2) = -10;
+	WFIFOL(fd,6) = type;
+	WFIFOSET(fd,packet_len_table[0x1f3]);
+
+	return 0;
+}
+
+int clif_weather2(int m, int type) {
+	int i;	
+
+	struct map_session_data *sd=NULL;
+
+	for(i = 0; i < fd_max; i++) {
+		if (session[i] && (sd = session[i]->session_data) != NULL && sd->state.auth && sd->bl.m == m) {
+			WFIFOW(sd->fd,0) = 0x1f3;
+			WFIFOL(sd->fd,2) = -10;
+			WFIFOL(sd->fd,6) = type;
+			WFIFOSET(sd->fd,packet_len_table[0x1f3]);
+		}
+	}
+
+	return 0;
+}
+
+int clif_clearweather(int m) {
+	int i;
+
+	struct map_session_data *sd=NULL;
+
+	for(i = 0; i < fd_max; i++) {
+		if (session[i] && (sd = session[i]->session_data) != NULL && sd->state.auth && sd->bl.m == m) {
+			WFIFOW(sd->fd,0) = 0x80;
+			WFIFOL(sd->fd,2) = -10;
+			WFIFOB(sd->fd,6) = 0;
+			WFIFOSET(sd->fd,packet_len_table[0x80]);
+
+			WFIFOW(sd->fd,0)=0x7c;
+			WFIFOL(sd->fd,2)=-10;
+			WFIFOW(sd->fd,6)=0;
+			WFIFOW(sd->fd,8)=0;
+			WFIFOW(sd->fd,10)=0;
+			WFIFOW(sd->fd,12)=OPTION_HIDE;
+			WFIFOW(sd->fd,20)=100;
+			WFIFOPOS(sd->fd,36,sd->bl.x,sd->bl.y);
+			WFIFOSET(sd->fd,packet_len_table[0x7c]);
+
+			if (map[sd->bl.m].flag.snow)
+				clif_weather1(sd->fd, 162);
+			if (map[sd->bl.m].flag.clouds)
+				clif_weather1(sd->fd, 233);
+			if (map[sd->bl.m].flag.fog)
+				clif_weather1(sd->fd, 515);
+			if (map[sd->bl.m].flag.fireworks) {
+				clif_weather1(sd->fd, 297);
+				clif_weather1(sd->fd, 299);
+				clif_weather1(sd->fd, 301);
+			}
+			if (map[sd->bl.m].flag.sakura)
+				clif_weather1(sd->fd, 163);
+			if (map[sd->bl.m].flag.leaves)
+				clif_weather1(sd->fd, 333);
+			if (map[sd->bl.m].flag.rain)
+				clif_weather1(sd->fd, 161);
+		}
+	}
+
+	return 0;
+}
+
+
 /*==========================================
  *
  *------------------------------------------
@@ -1262,33 +1361,6 @@ int clif_spawnpc(struct map_session_data *sd) {
 	unsigned char buf[128];
 
 	nullpo_retr(0, sd);
-
-	if (sd->disguise > 23 && sd->disguise < 4001) { // mob disguises [Valaris]
-		clif_clearchar(&sd->bl, 9);
-
-		memset(buf, 0, packet_len_table[0x119]);
-
-		WBUFW(buf, 0) = 0x119;
-		WBUFL(buf, 2) = sd->bl.id;
-		WBUFW(buf, 6) = 0;
-		WBUFW(buf, 8) = 0;
-		WBUFW(buf,10) = 0x40;
-		WBUFB(buf,12) = 0;
-
-		clif_send(buf, packet_len_table[0x119], &sd->bl, SELF);
-
-		memset(buf, 0, packet_len_table[0x7c]);
-
-		WBUFW(buf, 0) = 0x7c;
-		WBUFL(buf, 2) = sd->bl.id;
-		WBUFW(buf, 6) = sd->speed;
-		WBUFW(buf, 8) = sd->opt1;
-		WBUFW(buf,10) = sd->opt2;
-		WBUFW(buf,12) = sd->status.option;
-		WBUFW(buf,20) = sd->disguise;
-		WBUFPOS(buf, 36, sd->bl.x, sd->bl.y);
-		clif_send(buf, packet_len_table[0x7c], &sd->bl, AREA);
-	}
 
 	clif_set0078(sd, buf);
 
@@ -1302,6 +1374,19 @@ int clif_spawnpc(struct map_session_data *sd) {
 	clif_send(buf, packet_len_table[0x1d9], &sd->bl, AREA_WOS);
 #endif
 
+	if(sd->disguise > 0) {
+		memset(buf,0,packet_len_table[0x7c]);
+		WBUFW(buf,0)=0x7c;
+		WBUFL(buf,2)=-sd->bl.id;
+		WBUFW(buf,6)=sd->speed;
+		WBUFW(buf,12)=sd->status.option;
+		WBUFW(buf,20)=sd->disguise;
+		WBUFPOS(buf,36,sd->bl.x,sd->bl.y);
+		clif_send(buf,packet_len_table[0x7c],&sd->bl,AREA);
+
+		int len = clif_dis0078(sd,buf);
+		clif_send(buf,len,&sd->bl,AREA);
+	}
 
 	if (sd->spiritball > 0)
 		clif_spiritball(sd);
@@ -1312,31 +1397,40 @@ int clif_spawnpc(struct map_session_data *sd) {
 			clif_guild_emblem(sd,g);
 	}	// end addition [Valaris]
 
-	if (sd->status.class_==13 || sd->status.class_==21 || sd->status.class_==4014 || sd->status.class_==4022)
+	if (!sd->disguise && (sd->status.class_==13 || sd->status.class_==21 || sd->status.class_==4014 || sd->status.class_==4022))
 		pc_setoption(sd,sd->status.option|0x0020); // [Valaris]
 
 	if ((pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0) && (sd->status.class_==7 ||
 	    sd->status.class_==14 || sd->status.class_==4008 || sd->status.class_==4015))
 		pc_setriding(sd); // update peco riders for people upgrading athena [Valaris]
 
+	WFIFOW(sd->fd,0)=0x7c;
+	WFIFOL(sd->fd,2)=-10;
+	WFIFOW(sd->fd,6)=0;
+	WFIFOW(sd->fd,8)=0;
+	WFIFOW(sd->fd,10)=0;
+	WFIFOW(sd->fd,12)=OPTION_HIDE;
+	WFIFOW(sd->fd,20)=100;
+	WFIFOPOS(sd->fd,36,sd->bl.x,sd->bl.y);
+	WFIFOSET(sd->fd,packet_len_table[0x7c]);
 
 	if (map[sd->bl.m].flag.snow)
-		clif_specialeffect(&sd->bl, 162, 1);
+		clif_weather1(sd->fd, 162);
 	if (map[sd->bl.m].flag.clouds)
-		clif_specialeffect(&sd->bl, 233, 1);
+		clif_weather1(sd->fd, 233);
 	if (map[sd->bl.m].flag.fog)
-		clif_specialeffect(&sd->bl, 515, 1);
+		clif_weather1(sd->fd, 515);
 	if (map[sd->bl.m].flag.fireworks) {
-		clif_specialeffect(&sd->bl, 297, 1);
-		clif_specialeffect(&sd->bl, 299, 1);
-		clif_specialeffect(&sd->bl, 301, 1);
+		clif_weather1(sd->fd, 297);
+		clif_weather1(sd->fd, 299);
+		clif_weather1(sd->fd, 301);
 	}
 	if (map[sd->bl.m].flag.sakura)
-		clif_specialeffect(&sd->bl, 163, 1);
+		clif_weather1(sd->fd, 163);
 	if (map[sd->bl.m].flag.leaves)
-		clif_specialeffect(&sd->bl, 333, 1);
+		clif_weather1(sd->fd, 333);
 	if (map[sd->bl.m].flag.rain)
-		clif_specialeffect(&sd->bl, 161, 1);
+		clif_weather1(sd->fd, 161);
 
 	if(sd->viewsize==2) // tiny/big players [Valaris]
 		clif_specialeffect(&sd->bl,423,0);
@@ -1524,18 +1618,35 @@ int clif_movechar(struct map_session_data *sd) {
 	int fd;
 	int len;
 	unsigned char buf[256];
+	unsigned char buf2[256];
+	unsigned char buf3[256];
 
 	nullpo_retr(0, sd);
 
 	fd = sd->fd;
 
 	len = clif_set007b(sd, buf);
+	clif_send(buf, len, &sd->bl, AREA_WOS);
 
-	if (sd->disguise > 23 && sd->disguise < 4001) {
-		clif_send(buf, len, &sd->bl, AREA);
+	memset(buf2,0,packet_len_table[0x7b]);
+	WBUFW(buf2,0)=0x7b;
+	WBUFL(buf2,2)=-10;
+	WBUFW(buf2,6)=sd->speed;
+	WBUFW(buf2,8)=0;
+	WBUFW(buf2,10)=0;
+	WBUFW(buf2,12)=OPTION_HIDE;
+	WBUFW(buf2,14)=100;
+	WBUFL(buf2,22)=gettick();
+	WBUFPOS2(buf2,50,sd->bl.x,sd->bl.y,sd->to_x,sd->to_y);
+	WBUFB(buf2,56)=5;
+	WBUFB(buf2,57)=5;
+	clif_send(buf2, len, &sd->bl, SELF);
+
+	if(sd->disguise) {
+		len = clif_dis007b(sd, buf3);
+		clif_send(buf3, len, &sd->bl, AREA);
 		return 0;
-	} else
-		clif_send(buf, len, &sd->bl, AREA_WOS);
+	}
 
 //Stupid client that needs this resent every time someone walks :X
 	if(battle_config.save_clothcolor &&
@@ -1543,6 +1654,11 @@ int clif_movechar(struct map_session_data *sd) {
 		(sd->view_class != 22 || !battle_config.wedding_ignorepalette)
 		)
 		clif_changelook(&sd->bl, LOOK_CLOTHES_COLOR, sd->status.clothes_color);
+
+	if(sd->viewsize==2) // tiny/big players [Valaris]
+		clif_specialeffect(&sd->bl,423,0);
+	else if(sd->viewsize==1)
+		clif_specialeffect(&sd->bl,421,0);
 
 	return 0;
 }
@@ -1603,9 +1719,6 @@ int clif_changemap(struct map_session_data *sd, char *mapname, int x, int y) {
 	WFIFOW(fd,20) = y;
 	WFIFOSET(fd, packet_len_table[0x91]);
 
-	if (sd->disguise > 23 && sd->disguise < 4001) // mob disguises [Valaris]
-		clif_spawnpc(sd);
-
 	return 0;
 }
 
@@ -1645,6 +1758,20 @@ int clif_fixpos(struct block_list *bl) {
 	WBUFW(buf,8)=bl->y;
 
 	clif_send(buf, packet_len_table[0x88], bl, AREA);
+
+	if(bl->type==BL_PC) {
+		WBUFL(buf,2)=-10;
+		WBUFW(buf,6)=bl->x;
+		WBUFW(buf,8)=bl->y;
+		clif_send(buf, packet_len_table[0x88], bl, SELF);
+		struct map_session_data *sd=(struct map_session_data *)bl;
+		if(sd->disguise) {
+			WBUFL(buf,2)=-bl->id;
+			WBUFW(buf,6)=bl->x;
+			WBUFW(buf,8)=bl->y;
+			clif_send(buf, packet_len_table[0x88], bl, AREA);
+		}
+	}
 
 	return 0;
 }
@@ -2660,9 +2787,6 @@ int clif_changelook(struct block_list *bl,int type,int val)
 	if(bl->type == BL_PC)
 		sd = (struct map_session_data *)bl;
 
-	if(sd && sd->disguise > 23 && sd->disguise < 4001) // mob disguises [Valaris]
-		return 0;
-
 #if PACKETVER < 4
 	if(sd && (type == LOOK_WEAPON || type == LOOK_SHIELD) && sd->view_class == 22)
 		val =0;
@@ -2971,21 +3095,27 @@ int clif_changeoption(struct block_list* bl)
 	sc_data = status_get_sc_data(bl);
 
 	WBUFW(buf,0) = 0x119;
-	WBUFL(buf,2) = bl->id;
-	WBUFW(buf,6) = *status_get_opt1(bl);
-	WBUFW(buf,8) = *status_get_opt2(bl);
-	WBUFW(buf,10) = option;
-	WBUFB(buf,12) = 0;	// ??
-
-	if(bl->type==BL_PC) { // disguises [Valaris]
-		struct map_session_data *sd=(struct map_session_data *)bl;
-		if(sd && sd->disguise > 23 && sd->disguise < 4001) {
-			clif_send(buf,packet_len_table[0x119],bl,AREA_WOS);
-			clif_spawnpc(sd);
-		} else
-			clif_send(buf,packet_len_table[0x119],bl,AREA);
-	} else
+	if(bl->type==BL_PC && ((struct map_session_data *)bl)->disguise) {
+		WBUFL(buf,2) = bl->id;
+		WBUFW(buf,6) = 0;
+		WBUFW(buf,8) = 0;
+		WBUFW(buf,10) = OPTION_HIDE;
+		WBUFB(buf,12) = 0;
 		clif_send(buf,packet_len_table[0x119],bl,AREA);
+		WBUFL(buf,2) = -bl->id;
+		WBUFW(buf,6) = 0;
+		WBUFW(buf,8) = 0;
+		WBUFW(buf,10) = option;
+		WBUFB(buf,12) = 0;
+		clif_send(buf,packet_len_table[0x119],bl,AREA);
+	} else {
+		WBUFL(buf,2) = bl->id;
+		WBUFW(buf,6) = *status_get_opt1(bl);
+		WBUFW(buf,8) = *status_get_opt2(bl);
+		WBUFW(buf,10) = option;
+		WBUFB(buf,12) = 0;	// ??
+		clif_send(buf,packet_len_table[0x119],bl,AREA);
+	}
 
 	// アイコンの表示
 	for(i=0;i<sizeof(omask)/sizeof(omask[0]);i++){
@@ -3620,9 +3750,17 @@ void clif_getareachar_pc(struct map_session_data* sd,struct map_session_data* ds
 	if(dstsd->walktimer != -1){
 		len = clif_set007b(dstsd,WFIFOP(sd->fd,0));
 		WFIFOSET(sd->fd,len);
+		if(dstsd->disguise) {
+			len = clif_dis007b(dstsd,WFIFOP(sd->fd,0));
+			WFIFOSET(sd->fd,len);
+		}
 	} else {
 		len = clif_set0078(dstsd,WFIFOP(sd->fd,0));
 		WFIFOSET(sd->fd,len);
+		if(dstsd->disguise) {
+			len = clif_dis0078(dstsd,WFIFOP(sd->fd,0));
+			WFIFOSET(sd->fd,len);
+		}
 	}
 
 	if(dstsd->chatID){
@@ -3816,8 +3954,14 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 	}
 
 	WBUFW(buf,0)=0x8a;
-	WBUFL(buf,2)=src->id;
-	WBUFL(buf,6)=dst->id;
+	if(src->type==BL_PC && ((struct map_session_data *)src)->disguise)
+		WBUFL(buf,2)=-src->id;
+	else 
+		WBUFL(buf,2)=src->id;
+	if(dst->type==BL_PC && ((struct map_session_data *)dst)->disguise)
+		WBUFL(buf,6)=-dst->id;
+	else
+		WBUFL(buf,6)=dst->id;
 	WBUFL(buf,10)=tick;
 	WBUFL(buf,14)=sdelay;
 	WBUFL(buf,18)=ddelay;
@@ -3826,6 +3970,30 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 	WBUFB(buf,26)=type;
 	WBUFW(buf,27)=damage2;
 	clif_send(buf,packet_len_table[0x8a],src,AREA);
+
+	if((src->type==BL_PC && ((struct map_session_data *)src)->disguise) || (dst->type==BL_PC && ((struct map_session_data *)dst)->disguise)) {
+		unsigned char buf2[256];
+		WBUFW(buf2,0)=0x8a;
+		if(src->type==BL_PC && ((struct map_session_data *)src)->disguise)
+			WBUFL(buf2,2)=src->id;
+		else 
+			WBUFL(buf2,2)=-src->id;
+		if(dst->type==BL_PC && ((struct map_session_data *)dst)->disguise)
+			WBUFL(buf2,6)=dst->id;
+		else 
+			WBUFL(buf2,2)=-dst->id;
+		WBUFL(buf2,10)=tick;
+		WBUFL(buf2,14)=sdelay;
+		WBUFL(buf2,18)=ddelay;
+		if(damage > 0)
+			WBUFW(buf2,22)=-1;
+		else
+			WBUFW(buf2,22)=0;
+		WBUFW(buf2,24)=div;
+		WBUFB(buf2,26)=type;
+		WBUFW(buf2,27)=0;
+		clif_send(buf2,packet_len_table[0x8a],src,AREA);
+	}
 
 	return 0;
 }
@@ -4076,6 +4244,10 @@ int clif_pcoutsight(struct block_list *bl,va_list ap)
 		if(sd != dstsd) {
 			clif_clearchar_id(dstsd->bl.id,0,sd->fd);
 			clif_clearchar_id(sd->bl.id,0,dstsd->fd);
+			if(dstsd->disguise || sd->disguise) {
+				clif_clearchar_id(-dstsd->bl.id,0,sd->fd);
+				clif_clearchar_id(-sd->bl.id,0,dstsd->fd);
+			}
 			if(dstsd->chatID){
 				struct chat_data *cd;
 				cd=(struct chat_data*)map_id2bl(dstsd->chatID);
@@ -4474,8 +4646,14 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 #if PACKETVER < 3
 	WBUFW(buf,0)=0x114;
 	WBUFW(buf,2)=skill_id;
-	WBUFL(buf,4)=src->id;
-	WBUFL(buf,8)=dst->id;
+	if(src->type==BL_PC && ((struct map_session_data *)src)->disguise)
+		WBUFL(buf,4)=-src->id;
+	else 
+		WBUFL(buf,4)=src->id;
+	if(dst->type==BL_PC && ((struct map_session_data *)dst)->disguise)
+		WBUFL(buf,8)=-dst->id;
+	else
+		WBUFL(buf,8)=dst->id;
 	WBUFL(buf,12)=tick;
 	WBUFL(buf,16)=sdelay;
 	WBUFL(buf,20)=ddelay;
@@ -4487,8 +4665,14 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 #else
 	WBUFW(buf,0)=0x1de;
 	WBUFW(buf,2)=skill_id;
-	WBUFL(buf,4)=src->id;
-	WBUFL(buf,8)=dst->id;
+	if(src->type==BL_PC && ((struct map_session_data *)src)->disguise)
+		WBUFL(buf,4)=-src->id;
+	else 
+		WBUFL(buf,4)=src->id;
+	if(dst->type==BL_PC && ((struct map_session_data *)dst)->disguise)
+		WBUFL(buf,8)=-dst->id;
+	else
+		WBUFL(buf,8)=dst->id;
 	WBUFL(buf,12)=tick;
 	WBUFL(buf,16)=sdelay;
 	WBUFL(buf,20)=ddelay;
@@ -4905,17 +5089,14 @@ int clif_resurrection(struct block_list *bl,int type)
 
 	nullpo_retr(0, bl);
 
-	if(bl->type==BL_PC) { // disguises [Valaris]
-		struct map_session_data *sd=((struct map_session_data *)bl);
-		if(sd && sd->disguise > 23 && sd->disguise < 4001)
-			clif_spawnpc(sd);
-	}
-
 	WBUFW(buf,0)=0x148;
 	WBUFL(buf,2)=bl->id;
 	WBUFW(buf,6)=type;
 
 	clif_send(buf,packet_len_table[0x148],bl,type==1 ? AREA : AREA_WOS);
+
+	if(bl->type==BL_PC && ((struct map_session_data *)bl)->disguise)
+		clif_spawnpc(((struct map_session_data *)bl));
 
 	return 0;
 }
@@ -7329,6 +7510,11 @@ void clif_sitting(struct map_session_data *sd)
 	WBUFL(buf, 2) = sd->bl.id;
 	WBUFB(buf,26) = 2;
 	clif_send(buf, packet_len_table[0x8a], &sd->bl, AREA);
+
+	if(sd->disguise) {
+		WBUFL(buf, 2) = -sd->bl.id;
+		clif_send(buf, packet_len_table[0x8a], &sd->bl, AREA);
+	}
 }
 
 /*==========================================
@@ -7510,7 +7696,10 @@ int clif_specialeffect(struct block_list *bl, int type, int flag)
 	memset(buf, 0, packet_len_table[0x1f3]);
 
 	WBUFW(buf,0) = 0x1f3;
-	WBUFL(buf,2) = bl->id;
+	if(bl->type==BL_PC && ((struct map_session_data *)bl)->disguise)
+		WBUFL(buf,2) = -bl->id;
+	else
+		WBUFL(buf,2) = bl->id;
 	WBUFL(buf,6) = type;
 
 	switch (flag) {
@@ -8342,10 +8531,15 @@ void clif_changed_dir(struct block_list *bl) {
 	if (sd)
 		WBUFW(buf,6) = sd->head_dir;
 	WBUFB(buf,8) = status_get_dir(bl);
-	if (sd && sd->disguise > 23 && sd->disguise < 4001) // mob disguises [Valaris]
-		clif_send(buf, packet_len_table[0x9c], &sd->bl, AREA);
-	else
-		clif_send(buf, packet_len_table[0x9c], bl, AREA_WOS);
+
+	clif_send(buf, packet_len_table[0x9c], bl, AREA_WOS);
+
+	if(sd && sd->disguise) {
+		WBUFL(buf,2) = -bl->id;
+		WBUFW(buf,6) = 0;
+		WBUFB(buf,8) = status_get_dir(bl);
+		clif_send(buf, packet_len_table[0x9c], bl, AREA);
+	}
 
 	return;
 }
@@ -8572,6 +8766,10 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		WBUFL(buf, 2) = sd->bl.id;
 		WBUFB(buf,26) = 3;
 		clif_send(buf, packet_len_table[0x8a], &sd->bl, AREA);
+		if(sd->disguise) {
+			WBUFL(buf, 2) = -sd->bl.id;
+			clif_send(buf, packet_len_table[0x8a], &sd->bl, AREA);
+		}
 		break;
 	}
 }
