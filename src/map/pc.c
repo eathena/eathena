@@ -628,8 +628,6 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	unsigned long tick = gettick();
 
 	sd = map_id2sd(id);
-	if (sd == NULL) //Temporary debug data for bug-seeking. [Skotlex]
-		printf("pc_authok error: Player of id %d not found. Max Connection Number is %d\n", id, fd_max);
 	nullpo_retr(1, sd);
 
 	// check if double login occured

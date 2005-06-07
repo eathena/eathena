@@ -1562,7 +1562,10 @@ void clif_quitsave(int fd,struct map_session_data *sd)
  */
 static int clif_waitclose(int tid, unsigned int tick, int id, int data) {
 	if (session[id])
+	{
 		session[id]->eof = 1;
+		printf("clif_waitclose timer: tid %d, session %d\n", tid, id);
+	}
 
 	close(id);
 	return 0;
@@ -11140,6 +11143,7 @@ static int clif_parse(int fd) {
 		case 0x7532: // Ú‘±‚ÌØ’f
 			close(fd);
 			session[fd]->eof=1;
+			printf("clif_parse: session #%d, packet 0x%x received -> disconnected.\n", fd, cmd);
 			break;
 		}
 		return 0;
@@ -11254,6 +11258,7 @@ static int clif_parse(int fd) {
 		if (packet_len < 4 || packet_len > 32768) {
 			close(fd);
 			session[fd]->eof =1;
+			printf("clif_parse: session #%d, packet 0x%x invalid packet_len (%d bytes received) -> disconnected.\n", fd, cmd, packet_len);
 			return 0;
 		}
 	}
