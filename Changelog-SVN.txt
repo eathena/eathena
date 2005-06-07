@@ -1,4 +1,7 @@
 Date	Added
+06/06
+	* Updated description of idle_no_share battle_config option	[Skotlex]
+
 06/05
 	* Added more debugging information to login-in characters to track down the
 	  authook nullpo problem.	[Skotlex]
