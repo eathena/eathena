@@ -1,5 +1,7 @@
 Date	Added
 06/05
+	* Added more debugging information to login-in characters to track down the
+	  authook nullpo problem.	[Skotlex]
 	* Added a temporary string length check on trade-request.	[Skotlex]
 	  (reports seem to indicate that the map-server garbage text bug could be
 	  related to trading string length overflow, check the map-server output

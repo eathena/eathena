@@ -86,6 +86,8 @@
 #define WEDDING_RING_M 2634
 #define WEDDING_RING_F 2635
 
+#define NAME_LENGTH 24	//For character names, title names, guilds, etc. Includes null-terminator.
+
 #define CHAR_CONF_NAME  "conf/char_athena.conf"
 
 struct item {
@@ -123,7 +125,7 @@ struct s_pet {
 	short equip;//pet equip name_id
 	short intimate;//pet friendly
 	short hungry;//pet hungry
-	char name[24];
+	char name[NAME_LENGTH];
 	char rename_flag;
 	char incuvate;
 };
@@ -149,7 +151,7 @@ struct mmo_charstatus {
 	short weapon,shield;
 	short head_top,head_mid,head_bottom;
 
-	char name[24];
+	char name[NAME_LENGTH];
 	unsigned int base_level,job_level;
 	short str,agi,vit,int_,dex,luk;
 	unsigned char char_num,sex;
@@ -169,7 +171,7 @@ struct mmo_charstatus {
 
 	// Friends list vars
 	int friend_id[20];
-	char friend_name[20][24];
+	char friend_name[20][NAME_LENGTH];
 };
 
 struct storage {
@@ -196,14 +198,14 @@ struct gm_account {
 
 struct party_member {
 	int account_id;
-	char name[24],map[24];
+	char name[NAME_LENGTH],map[24];
 	int leader,online,lv;
 	struct map_session_data *sd;
 };
 
 struct party {
 	int party_id;
-	char name[24];
+	char name[NAME_LENGTH];
 	int exp;
 	int item, itemc;
 	struct party_member member[MAX_PARTY];
@@ -215,12 +217,12 @@ struct guild_member {
 	int exp,exp_payper;
 	short online,position;
 	int rsv1,rsv2;
-	char name[24];
+	char name[NAME_LENGTH];
 	struct map_session_data *sd;
 };
 
 struct guild_position {
-	char name[24];
+	char name[NAME_LENGTH];
 	int mode;
 	int exp_mode;
 };
@@ -228,11 +230,11 @@ struct guild_position {
 struct guild_alliance {
 	int opposition;
 	int guild_id;
-	char name[24];
+	char name[NAME_LENGTH];
 };
 
 struct guild_explusion {
-	char name[24];
+	char name[NAME_LENGTH];
 	char mes[40];
 	char acc[40];
 	int account_id;
@@ -247,7 +249,7 @@ struct guild {
 	int guild_id;
 	short guild_lv, connect_member, max_member, average_lv;
 	int exp,next_exp,skill_point,castle_id;
-	char name[24],master[24];
+	char name[NAME_LENGTH],master[NAME_LENGTH];
 	struct guild_member member[MAX_GUILD];
 	struct guild_position position[MAX_GUILDPOSITION];
 	char mes1[60],mes2[120];

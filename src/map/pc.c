@@ -628,6 +628,8 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	unsigned long tick = gettick();
 
 	sd = map_id2sd(id);
+	if (sd == NULL) //Temporary debug data for bug-seeking. [Skotlex]
+		printf("pc_authok error: Player of id %d not found. Max Connection Number is %d\n", id, fd_max);
 	nullpo_retr(1, sd);
 
 	// check if double login occured
@@ -830,9 +832,9 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	status_calc_pc(sd,1);
 
 	if (pc_isGM(sd))
-		sprintf(tmp_output,"GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, pc_isGM(sd));
+		sprintf(tmp_output,"GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', Connection: '"CL_WHITE"%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->fd, sd->status.account_id, pc_isGM(sd));
 	else
-		sprintf(tmp_output,"Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id);
+		sprintf(tmp_output,"Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"', Connection: '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, sd->fd);
 	ShowInfo(tmp_output);
 
 	if (script_config.event_script_type == 0) {
