@@ -5414,7 +5414,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 			struct mob_data *md;
 
 			// Correct info, don't change any of this! [celest]
-			id = mob_once_spawn (sd, "this", x, y, "--ja--", summons[skilllv-1] ,1,"");
+			id = mob_once_spawn (sd, "this", x, y, sd->status.name, summons[skilllv-1] ,1,"");
 
 			if( (md=(struct mob_data *)map_id2bl(id)) !=NULL ){
 				md->master_id = sd->bl.id;
@@ -5435,7 +5435,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 			int id;
 			struct mob_data *md;
 
-			id = mob_once_spawn(sd, "this", x, y, "--ja--", 1142, 1, "");
+			id = mob_once_spawn(sd, "this", x, y, sd->status.name, 1142, 1, "");
 			if( (md=(struct mob_data *)map_id2bl(id)) !=NULL ){
 				md->master_id = sd->bl.id;
 				md->hp = 2000 + skilllv * 400;
@@ -7037,7 +7037,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		}
 		break;
 	case ST_CLOAKING:
-		if(!(sd->status.option&4)) {
+		if(!pc_iscloaking(sd)) {
 			clif_skill_fail(sd,skill,0,0);
 			return 0;
 		}
@@ -7312,9 +7312,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	if (sd->opt1 > 0)
 		return 0;
 	if (sc_data) {
-		// allow to use only Chasewalk [celest]
-		if ((sc_data[SC_CHASEWALK].timer != -1 && skill_num != ST_CHASEWALK) ||
-				(sc_data[SC_VOLCANO].timer != -1 && skill_num == WZ_ICEWALL) ||
+		if ((sc_data[SC_VOLCANO].timer != -1 && skill_num == WZ_ICEWALL) ||
 				(sc_data[SC_ROKISWEIL].timer != -1 && skill_num == BD_ADAPTATION) ||
 				(sc_data[SC_AUTOCOUNTER].timer != -1 && sd->skillid != KN_AUTOCOUNTER) ||
 				(sc_data[SC_MARIONETTE].timer != -1 && sd->skillid != CG_MARIONETTE) ||
@@ -7352,10 +7350,13 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		}		
 	}
 
-	if (sd->status.option & 4 && skill_num == TF_HIDING)
+	//チェイス、ハイド、クローキング時のスキル
+	if (pc_iscloaking(sd) && skill_num == TF_HIDING)
 		return 0;
 	if (sd->status.option & 2 && skill_num != TF_HIDING && skill_num != AS_GRIMTOOTH && skill_num != RG_BACKSTAP && skill_num != RG_RAID)
 		return 0;
+	if(pc_ischasewalk(sd) && skill_num != ST_CHASEWALK)
+	 	return 0;
 	if(skill_get_inf2(skill_num) & 0x200 && sd->bl.id == target_id)
 		return 0;
 

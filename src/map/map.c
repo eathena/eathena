@@ -1979,20 +1979,20 @@ int map_calc_dir( struct block_list *src,int x,int y) {
 		dir=0;	// 上
 	}else if( dx>=0 && dy>=0 ){	// 方向的に右上
 		dir=7;						// 右上
-		if( dx*3-1<dy ) dir=0;		// 上
-		if( dx>dy*3 ) dir=6;		// 右
+		if( dx*2-1<dy ) dir=0;		// 上
+		if( dx>dy*2 ) dir=6;		// 右
 	}else if( dx>=0 && dy<=0 ){	// 方向的に右下
 		dir=5;						// 右下
-		if( dx*3-1<-dy ) dir=4;		// 下
-		if( dx>-dy*3 ) dir=6;		// 右
+		if( dx*2-1<-dy ) dir=4;		// 下
+		if( dx>-dy*2 ) dir=6;		// 右
 	}else if( dx<=0 && dy<=0 ){ // 方向的に左下
 		dir=3;						// 左下
-		if( dx*3+1>dy ) dir=4;		// 下
-		if( dx<dy*3 ) dir=2;		// 左
+		if( dx*2+1>dy ) dir=4;		// 下
+		if( dx<dy*2 ) dir=2;		// 左
 	}else{						// 方向的に左上
 		dir=1;						// 左上
-		if( -dx*3-1<dy ) dir=0;		// 上
-		if( -dx>dy*3 ) dir=2;		// 左
+		if( -dx*2-1<dy ) dir=0;		// 上
+		if( -dx>dy*2 ) dir=2;		// 左
 	}
 	return dir;
 }
@@ -2281,7 +2281,6 @@ static int map_cache_open(char *fn)
 		if(
 			map_cache.head.sizeof_header == sizeof(struct map_cache_head) &&
 			map_cache.head.sizeof_map    == sizeof(struct map_cache_info) &&
-			map_cache.head.nmaps         == MAX_MAP_CACHE &&
 			map_cache.head.filesize      == ftell(map_cache.fp)
 		) {
 			// キャッシュ読み甲ﾝ成功
@@ -2345,7 +2344,7 @@ int map_cache_read(struct map_data *m)
 					return 1;
 				} else {
 					// なぜかファイル後半が欠けてるので読み直し
-					m->xs = 0; m->ys = 0; m->gat = NULL; aFree(m->gat);
+					m->xs = 0; m->ys = 0; aFree(m->gat); m->gat = NULL;
 					return 0;
 				}
 			} else if(map_cache.map[i].compressed == 1) {

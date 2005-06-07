@@ -18,6 +18,8 @@
 #define pc_setdir(sd,b,h) ((sd)->dir = (b) ,(sd)->head_dir = (h) )
 #define pc_setchatid(sd,n) ((sd)->chatID = n)
 #define pc_ishiding(sd) ((sd)->status.option&0x4006)
+#define pc_iscloaking(sd) (!((sd)->status.option&0x4000) && ((sd)->status.option&0x0004))
+#define pc_ischasewalk(sd) ((sd)->status.option&0x4000)
 #define pc_iscarton(sd) ((sd)->status.option&CART_MASK)
 #define pc_isfalcon(sd) ((sd)->status.option&0x0010)
 #define pc_isriding(sd) ((sd)->status.option&0x0020)

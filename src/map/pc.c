@@ -3118,9 +3118,9 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 
 	if(sd->status.option&2)
 		status_change_end(&sd->bl, SC_HIDING, -1);
-	if(sd->status.option&4)
+	if(pc_iscloaking(sd))
 		status_change_end(&sd->bl, SC_CLOAKING, -1);
-	if(sd->status.option&16384)
+	if(pc_ischasewalk(sd))
 		status_change_end(&sd->bl, SC_CHASEWALK, -1);
 
 	if(sd->status.pet_id > 0 && sd->pd && sd->pet.intimate > 0) {
@@ -3460,7 +3460,7 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 			}
 		}
 
-		if (sd->status.option & 4)	// クロ?キングの消滅?査
+		if (pc_iscloaking(sd))	// クロ?キングの消滅?査
 			skill_check_cloaking(&sd->bl);
 		/* ディボ?ション?査 */
 		for (i = 0; i < 5; i++)
@@ -3675,7 +3675,7 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y)
 		}
 	}
 
-	if(sd->status.option&4)	// クロ?キングの消滅?査
+	if (pc_iscloaking(sd)) // クロ?キングの消滅?査
 		skill_check_cloaking(&sd->bl);
 
 	if(map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKNPC))
@@ -3889,8 +3889,7 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 	if(sd->bl.m != bl->m || pc_isdead(sd))
 		return 0;
 
-	//if( sd->opt1>0 || sd->status.option&2 || sd->status.option&16388)	// 異常などで攻?できない
-	if( sd->opt1>0 || sd->status.option&2 || sd->status.option&16384)	// 異常などで攻?できない
+	if( sd->opt1>0 || sd->status.option&2 || pc_ischasewalk(sd))	// 異常などで攻?できない
 		return 0;
 
 	if (sd->sc_count) {
@@ -4809,9 +4808,9 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 		status_change_end(&sd->bl, SC_TRICKDEAD, -1);
 	if(sd->status.option&2)
 		status_change_end(&sd->bl, SC_HIDING, -1);
-	if(sd->status.option&4)
+	if(pc_iscloaking(sd))
 		status_change_end(&sd->bl, SC_CLOAKING, -1);
-	if(sd->status.option&16384)
+	if(pc_ischasewalk(sd))
 		status_change_end(&sd->bl, SC_CHASEWALK, -1);
 
 	if(sd->status.hp>0){

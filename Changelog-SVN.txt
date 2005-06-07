@@ -1,5 +1,17 @@
 Date	Added
-06/07	* Weather will now properly appear/disappear without having to refresh the client. [Valaris]
+06/07
+	* Updated map server to jA1159~1203 [celest]
+	  - Added imbueing weapons with random element (with bonus bAtkEle,10;)
+	  - Added Soul Strike do additional damage on undead
+	  - Added Grand cross will not damage self when cast by mobs
+	  - Added Cannibalize & Marine Sphere summoned mobs will use their owner's name
+	  - Added clean up player info when switching characters
+	  - Added reinitialise storage when char server disconnects
+	  - Changed some cloaking/chasewalk checks
+	  - Fixed memory leak when map cache reading has an error
+	  - Fixed a bug when receiving member info for an empty guild
+	  - Skip still connecting players in clif_foreachclient()
+	* Weather will now properly appear/disappear without having to refresh the client. [Valaris]
 	* Complete monster disguise re-code: [Valaris]
 	  -No more client crashes in PVP caused by disguises.
 	  -Can view own attack/hit/cast/sit/turn animations.

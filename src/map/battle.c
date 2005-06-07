@@ -313,8 +313,13 @@ int battle_attr_fix(int damage,int atk_elem,int def_elem)
 {
 	int def_type = def_elem % 10, def_lv = def_elem / 10 / 2;
 
-	if (atk_elem < 0 || atk_elem > 9 ||
-		def_type < 0 || def_type > 9 ||
+	if (atk_elem < 0 || atk_elem > 9)
+		atk_elem = rand()%9;	//武器属性ランダムで付加
+
+	//if (def_type < 0 || def_type > 9)
+		//def_type = rand()%9;	// change 装備属性? // celest
+
+	if (def_type < 0 || def_type > 9 ||
 		def_lv < 1 || def_lv > 4) {	// 属 性値がおかしいのでとりあえずそのまま返す
 		if (battle_config.error_log)
 			printf("battle_attr_fix: unknown attr type: atk=%d def_type=%d def_lv=%d\n",atk_elem,def_type,def_lv);
@@ -4283,6 +4288,14 @@ struct Damage battle_calc_magic_attack(
 					printf("battle_calc_magic_attack(): napam enemy count=0 !\n");
 			}
 			break;
+
+		case MG_SOULSTRIKE:			/* ソウルストライク （対アンデッドダメージ補正）*/
+			if (battle_check_undead(t_race,t_ele)) {
+				matk1 = matk1*(1+(skill_lv*0.05));//MATKに補正じゃ駄目ですかね？
+				matk2 = matk2*(1+(skill_lv*0.05));
+			}
+			break;
+
 		case MG_FIREBALL:	// ファイヤーボール
 			{
 				const int drate[]={100,90,70};
@@ -4292,6 +4305,7 @@ struct Damage battle_calc_magic_attack(
 					MATK_FIX( (95+skill_lv*5)*drate[flag] ,10000 );
 			}
 			break;
+
 		case MG_FIREWALL:	// ファイヤーウォール
 /*
 			if( (t_ele!=3 && !battle_check_undead(t_race,t_ele)) || target->type==BL_PC ) //PCは火属性でも飛ぶ？そもそもダメージ受ける？
@@ -4458,7 +4472,12 @@ struct Damage battle_calc_magic_attack(
 		wd=battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
 		damage = (damage + wd.damage) * (100 + 40*skill_lv)/100;
 		if(battle_config.gx_dupele) damage=battle_attr_fix(damage, ele, status_get_element(target) );	//属性2回かかる
-		if(bl==target) damage=damage/2;	//反動は半分
+		if(bl==target){
+			if(bl->type == BL_MOB)
+				damage = 0;		//MOBが使う場合は反動無し
+			else
+				damage=damage/2;	//反動は半分
+		}
 	}
 
 	div_=skill_get_num( skill_num,skill_lv );

@@ -231,7 +231,7 @@ int clif_foreachclient(int (*func)(struct map_session_data*, va_list),...) //rec
 	for(i = 0; i < fd_max; i++) {
 		if ( session[i] ) {
 			sd = (struct map_session_data*)session[i]->session_data;
-			if ( sd && sd->state.auth )
+			if ( sd && sd->state.auth && !sd->state.waitingdisconnect )
 				func(sd, ap);
 		}
 	}
@@ -8801,6 +8801,7 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
 			(gettick() - sd->canlog_tick) >= 10000 ||
 			pc_isdead(sd))	//Allow dead characters to logout [Skotlex]
 		{
+			map_quit(sd);
 			chrif_charselectreq(sd);
 		} else {
 			WFIFOW(fd,0)=0x18b;

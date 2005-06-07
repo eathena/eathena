@@ -339,13 +339,13 @@ int guild_created(int account_id,int guild_id)
 	if(sd==NULL)
 		return 0;
 	if(guild_id>0) {
-			struct guild *g;
+			//struct guild *g;
 			sd->status.guild_id=guild_id;
 			sd->guild_sended=0;
-			if((g=(struct guild *) numdb_search(guild_db,guild_id))!=NULL){
-				printf("guild: id already exists!\n");
-				exit(1);
-			}
+			//if((g=(struct guild *) numdb_search(guild_db,guild_id))!=NULL){
+			//	printf("guild: id already exists!\n");
+			//	exit(1);
+			//}
 			clif_guild_created(sd,0);
 			if(battle_config.guild_emperium_check)
 				pc_delitem(sd,pc_search_inventory(sd,714),1,0);	// エンペリウム消耗
@@ -770,7 +770,7 @@ int guild_send_memberinfoshort(struct map_session_data *sd,int online)
 // ギルドメンバのオンライン状態/Lv更新通知
 int guild_recv_memberinfoshort(int guild_id,int account_id,int char_id,int online,int lv,int class_)
 {
-	int i,alv,c,idx=0,om=0,oldonline=-1;
+	int i,alv,c,idx=-1,om=0,oldonline=-1;
 	struct guild *g=guild_search(guild_id);
 	if(g==NULL)
 		return 0;
@@ -790,7 +790,14 @@ int guild_recv_memberinfoshort(int guild_id,int account_id,int char_id,int onlin
 		if(m->online)
 			om++;
 	}
-	if(idx==g->max_member){
+	if(idx == -1 || c == 0) {
+		// ギルドのメンバー外なので追放扱いする
+		struct map_session_data *sd = map_id2sd(account_id);
+		if(sd && sd->char_id == char_id) {
+			sd->status.guild_id=0;
+			sd->guild_emblem_id=0;
+			sd->guild_sended=0;
+		}
 		if(battle_config.error_log)
 			printf("guild: not found member %d,%d on %d[%s]\n",	account_id,char_id,guild_id,g->name);
 		return 0;

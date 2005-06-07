@@ -1205,6 +1205,10 @@ int chrif_disconnect(int fd) {
 		chrif_connected = 0;
 		// 他のmap 鯖のデータを消す
 		map_eraseallipport();
+
+		// 倉庫キャッシュを消す
+		do_final_storage();
+		do_init_storage();
 	}
 	close(fd);
 	return 0;
