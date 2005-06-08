@@ -1,5 +1,13 @@
 Date	Added
 06/08
+	* Added Makefile caching [celest]
+	  'Makefile.cache' is created when you compile for the first time, and keeps
+	  all your makefile definitions so it can be read directly when you recompile,
+	  instead of redetecting things one-by-one.
+	  'Make [char_sql/login_sql/map_sql]' will now work properly too.
+	  NOTE: A cache file created by compiling txt is NOT compatible with SQL, but
+	  a cache created by SQL is compatible with TXT! Delete the cache file first
+	  and compile SQL before TXT if you have to.
 	* Skills will reset at level down. [davidsiaw]
 
 06/07

@@ -1,5 +1,4 @@
-all: char-converter login-converter
-sql: char-converter login-converter
+all sql: char-converter login-converter
 
 char-converter: char-converter.o ../common/obj/minicore.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/strlib.o
 	$(CC) -o ../../tools/$@ $^ $(LIB_S)

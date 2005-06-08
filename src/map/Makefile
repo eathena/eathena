@@ -1,6 +1,4 @@
-all: txt sql
-
-txt: txtobj map-server
+all txt: txtobj map-server
 
 sql: sqlobj map-server_sql
 

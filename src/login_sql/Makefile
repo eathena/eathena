@@ -1,5 +1,4 @@
-all: login-server_sql
-sql: login-server_sql
+all sql: login-server_sql
 
 shared_libs=all
 COMMON_OBJ = ../common/obj/core.o ../common/obj/socket.o ../common/obj/timer.o ../common/obj/db.o ../common/obj/dll.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/utils.o ../common/obj/strlib.o

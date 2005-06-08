@@ -1,4 +1,9 @@
 
+CACHED = $(shell ls | grep Makefile.cache)
+ifeq ($(findstring Makefile.cache,$(CACHED)), Makefile.cache)
+   MKDEF = $(shell cat Makefile.cache)
+else
+
 CC = gcc -pipe
 # CC = g++ --pipe
 
@@ -24,7 +29,6 @@ OPT += -Wall -Wno-sign-compare
 # OPT += -DDMALLOC -DDMALLOC_FUNC_CHECK
 # OPT += -DBCHECK
 
-LIBS = -lz -lm
 # LIBS += -lgc
 # LIBS += -ldmalloc
 # LIBS += -L/usr/local/lib -lpcre
@@ -72,19 +76,28 @@ ifdef SQLFLAG
    endif
 endif
 
+ifneq ($(findstring -lz,$(LIBS)), -lz)
+   LIBS += -lz
+endif
+ifneq ($(findstring -lm,$(LIBS)), -lm)
+   LIBS += -lm
+endif
+
 MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS)" LIB_S="$(LIBS)"
+
+endif
 
 .PHONY: txt sql common login login_sql char char_sql map map_sql ladmin converters addons tools webserver clean
 
 all: conf txt
 
-txt : src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile conf common login char map ladmin
+txt : Makefile.cache src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile conf common login char map ladmin
 
 ifdef SQLFLAG
-sql: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile conf common login_sql char_sql map_sql
+sql: Makefile.cache src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile conf common login_sql char_sql map_sql
 else
 sql:
-	$(MAKE) CC="$(CC)" OPT="$(OPT)" SQLFLAG=1 $@
+	$(MAKE) SQLFLAG=1 $@
 endif
 
 conf:
@@ -94,40 +107,32 @@ conf:
 	rm -rf save/.svn
 
 common:
-	$(MAKE) -C src/common $(MKDEF)
+	$(MAKE) -C src/$@ $(MKDEF)
 login:
-	$(MAKE) -C src/login $(MKDEF) txt
+	$(MAKE) -C src/$@ $(MKDEF) txt
 char:
-	$(MAKE) -C src/char $(MKDEF) txt
+	$(MAKE) -C src/$@ $(MKDEF) txt
 map:
-	$(MAKE) -C src/map $(MKDEF) txt
+	$(MAKE) -C src/$@ $(MKDEF) txt
 login_sql:
-	$(MAKE) -C src/login_sql $(MKDEF) sql
+	$(MAKE) -C src/$@ $(MKDEF) sql
 char_sql:
-	$(MAKE) -C src/char_sql $(MKDEF) sql
+	$(MAKE) -C src/$@ $(MKDEF) sql
 map_sql:
 	$(MAKE) -C src/map $(MKDEF) sql
 ladmin:
-	$(MAKE) -C src/ladmin $(MKDEF)
-
-ifdef SQLFLAG
-converters: src/common/GNUmakefile src/txt-converter/GNUmakefile
-	$(MAKE) -C src/common $(MKDEF) sql
-	$(MAKE) -C src/txt-converter $(MKDEF)
-else
-converters:
-	$(MAKE) CC="$(CC)" OPT="$(OPT)" SQLFLAG=1 $@
-endif
-
-addons:
-	$(MAKE) -C src/addons $(MKDEF)
+	$(MAKE) -C src/$@ $(MKDEF)
+addons: src/addons/GNUmakefile
+	$(MAKE) -C src/$@ $(MKDEF)
+webserver:
+	$(MAKE) -C src/$@ $(MKDEF)
 tools: 
 	$(MAKE) -C src/tool $(MKDEF)
-webserver:
-	$(MAKE) -C src/webserver $(MKDEF)
+converters: src/common/GNUmakefile src/txt-converter/GNUmakefile common
+	$(MAKE) -C src/txt-converter $(MKDEF)
 
-
-clean: src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/txt-converter/GNUmakefile
+clean: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile src/char/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/addons/GNUmakefile src/txt-converter/GNUmakefile
+	rm -f Makefile.cache
 	$(MAKE) -C src/common $@
 	$(MAKE) -C src/login $@
 	$(MAKE) -C src/login_sql $@
@@ -137,6 +142,9 @@ clean: src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map
 	$(MAKE) -C src/ladmin $@
 	$(MAKE) -C src/addons $@
 	$(MAKE) -C src/txt-converter $@
+
+Makefile.cache:
+	printf "$(subst ",\",$(MKDEF))" > Makefile.cache
 
 src/%/GNUmakefile: src/%/Makefile
 	sed -e 's/$$>/$$^/' $< > $@
