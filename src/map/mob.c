@@ -877,7 +877,8 @@ int mob_setdelayspawn(int id)
 			map_freeblock(md->lootitem);
 			md->lootitem = NULL;
 		}
-		map_freeblock(md);	// Instead of [ of free ]
+		//map_freeblock(md);	// Instead of [ of free ]
+		aFree(md);	//Temporary test to see if map_freeblock is bugged [Skotlex]
 		return 0;
 	}
 
