@@ -1,5 +1,8 @@
 Date	Added
 06/08
+	* Some db updates (see db/Changelog) [Skotlex]
+	* Fixed rude_attacked state not being reset after triggered, credits to
+	  Komurka [Skotlex]
 	* GM used Type 11 items will be exempt from the "GMs can do whatever they
 	  want" rule regarding skill_usage because otherwise the used item is never
 	  consumed.	[Skotlex]

@@ -1642,7 +1642,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			if (abl->type == BL_PC)
 				asd = (struct map_session_data *)abl;
 			if (asd == NULL || md->bl.m != abl->m || abl->prev == NULL ||
-				asd->invincible_timer != -1 || pc_isinvisible(asd) ||
+//invincible timer is unneeded, hidden gms shouldn't trigger this, thanks to Komurka [Skotlex]	
+//				asd->invincible_timer != -1 || pc_isinvisible(asd) || 
 				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) == 0 ||
 				!mob_can_reach(md, abl, distance(md->bl.x, md->bl.y, abl->x, abl->y))) //added
@@ -3730,7 +3731,9 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				case MSC_SKILLUSED:		// specificated skill used
 					flag = ((event & 0xffff) == MSC_SKILLUSED && ((event >> 16) == c2 || c2 == 0)); break;
 				case MSC_RUDEATTACKED:
-					flag = (!md->attacked_id && md->attacked_count > 0); break;
+					flag = (!md->attacked_id && md->attacked_count > 0);
+					if (flag) md->attacked_count = 0;	//Rude attacked count should be reset after the skill condition is met. Thanks to Komurka [Skotlex]
+					break;
 				case MSC_MASTERHPLTMAXRATE:
 					{
 						struct block_list *bl = mob_getmasterhpltmaxrate(md, ms[i].cond2);
