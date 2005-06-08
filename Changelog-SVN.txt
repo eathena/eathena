@@ -1,5 +1,6 @@
 Date	Added
 06/08
+	* Steal/Snatcher won't work on summoned creatures now. [Skotlex]
 	* Some db updates (see db/Changelog) [Skotlex]
 	* Fixed rude_attacked state not being reset after triggered, credits to
 	  Komurka [Skotlex]
