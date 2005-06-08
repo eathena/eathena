@@ -7865,6 +7865,7 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			clif_setwaitclose(sd->fd); // Set session to EOF
 	} else {
 		sd = (struct map_session_data*)aCalloc(1, sizeof(struct map_session_data));
+		memset(sd, 0, sizeof(struct map_session_data));	//This should save initializing time. [Skotlex]
 		session[fd]->session_data = sd;
 		sd->fd = fd;
 		sd->packet_ver = packet_ver;

@@ -1,5 +1,6 @@
 Date	Added
 06/07
+	* Fixed aFreed messages of double freeing sd->reg and sd->reg_str [Skotlex]
 	* Re-fixed sql-files/item_db.sql [Skotlex]
 	* Plagiarism won't work if the skill to be copied killed you. [Skotlex]
 	* Removed use of 'l' as prefix for temporary variables. [Skotlex]

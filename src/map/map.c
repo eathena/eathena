@@ -1586,10 +1586,18 @@ int map_quit(struct map_session_data *sd) {
 	numdb_erase(id_db,sd->bl.id);
 	
 	if(sd->reg)
+	{	//Double logout already freed pointer fix... [Skotlex]
 		aFree(sd->reg);
+		sd->reg = NULL;
+		sd->reg_num = 0;
+	}
 		
 	if(sd->regstr)
+	{
 		aFree(sd->regstr);
+		sd->regstr = NULL;
+		sd->regstr_num = 0;
+	}
 
 	return 0;
 }
