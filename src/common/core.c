@@ -187,7 +187,7 @@ int main (int argc, char **argv)
 
 	set_server_type();
 	display_title();
-	malloc_init(); // 一番最初に実行する必要がある
+	malloc_init(); /* 一番最初に実行する必要がある */
 	signals_init();
 
 	timer_init();
@@ -235,3 +235,4 @@ int main (int argc, char **argv)
 #ifdef BCHECK
 unsigned int __invalid_size_argument_for_IOC;
 #endif
+

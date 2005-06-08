@@ -1,7 +1,8 @@
 Problem:	Stats nor skills don't downgrade when your level gets reverted due to exp loss.
-Assigned:	N/A
-Progess:	0%
+Assigned:	davidsiaw
+Progess:	~90% (Bug prone)
 Note:		Lets make it reset completely when you do a leveldown.
+		I have no idea why we want this. Implemented anyway... for the GMs. (davidsiaw)
 
 Problem:	Pre skill requirements for new skills are wrong it makes you use 49 skills points before you can get the newer skills.
 Assigned:	Celest

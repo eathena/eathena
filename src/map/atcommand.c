@@ -2448,7 +2448,7 @@ int atcommand_itemcheck(
 }
 
 /*==========================================
- *
+ * Atcommand @lvlup
  *------------------------------------------
  */
 int atcommand_baselevelup(
@@ -2464,10 +2464,10 @@ int atcommand_baselevelup(
 	}
 
 	if (level > 0) {
-		if (sd->status.base_level == battle_config.maximum_level) {	// check for max level by Valaris
-			clif_displaymessage(fd, msg_table[47]); // Base level can't go any higher.
+		if (sd->status.base_level == battle_config.maximum_level) {	/* check for max level by Valaris */
+			clif_displaymessage(fd, msg_table[47]); /* Base level can't go any higher. */
 			return -1;
-		}	// End Addition
+		}	/* End Addition */
 		if ((unsigned int)level > battle_config.maximum_level || (unsigned int)level > (battle_config.maximum_level - sd->status.base_level)) // fix positiv overflow
 			level = battle_config.maximum_level - sd->status.base_level;
 		for (i = 1; i <= level; i++)
@@ -2479,13 +2479,13 @@ int atcommand_baselevelup(
 		status_calc_pc(sd, 0);
 		pc_heal(sd, sd->status.max_hp, sd->status.max_sp);
 		clif_misceffect(&sd->bl, 0);
-		clif_displaymessage(fd, msg_table[21]); // Base level raised.
+		clif_displaymessage(fd, msg_table[21]); /* Base level raised. */
 	} else {
 		if (sd->status.base_level == 1) {
-			clif_displaymessage(fd, msg_table[158]); // Base level can't go any lower.
+			clif_displaymessage(fd, msg_table[158]); /* Base level can't go any lower. */
 			return -1;
 		}
-		if (level < -(int)battle_config.maximum_level || level < (1 - (int)sd->status.base_level)) // fix negativ overflow
+		if (level < -(int)battle_config.maximum_level || level < (1 - (int)sd->status.base_level)) /* fix negativ overflow */
 			level = 1 - sd->status.base_level;
 		if (sd->status.status_point > 0) {
 			for (i = 0; i > level; i--)
@@ -2493,12 +2493,13 @@ int atcommand_baselevelup(
 			if (sd->status.status_point < 0)
 				sd->status.status_point = 0;
 			clif_updatestatus(sd, SP_STATUSPOINT);
-		} // to add: remove status points from stats
+		} /* to add: remove status points from stats */
 		sd->status.base_level += level;
 		clif_updatestatus(sd, SP_BASELEVEL);
 		clif_updatestatus(sd, SP_NEXTBASEEXP);
+		pc_resetskill(sd);	/* Skills are reset */
 		status_calc_pc(sd, 0);
-		clif_displaymessage(fd, msg_table[22]); // Base level lowered.
+		clif_displaymessage(fd, msg_table[22]); /* Base level lowered. */
 	}
 
 	return 0;

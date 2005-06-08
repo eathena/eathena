@@ -21,6 +21,7 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="src\common;src\map;src\zlib;C:\Program Files\MySQL\MySQL Server 4.1\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_WIN32;PACKETVER=6;NEW_006b;__WIN32;LOCALZLIB"
+				GeneratePreprocessedFile="1"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -80,9 +81,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalLibraryDirectories="C:\Program Files\MySQL\MySQL Server 4.1\lib\debug"
-				AdditionalDependencies="WSOCK32.lib  mysqlclient.lib"				OutputFile="..\login-server_sql.exe"
+				AdditionalDependencies="WSOCK32.lib  mysqlclient.lib"
+				OutputFile="..\login-server_sql.exe"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="C:\Program Files\MySQL\MySQL Server 4.1\lib\debug"
 				GenerateDebugInformation="TRUE"
 				SubSystem="1"
 				OptimizeReferences="2"

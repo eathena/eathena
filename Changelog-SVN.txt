@@ -1,4 +1,7 @@
 Date	Added
+06/08
+	* Skills will reset at level down. [davidsiaw]
+
 06/07
 	* Temporary change of the way mob memory is removed when they don't have a
 	  respawn time (check for memory leaks fixed after killing all summoned mobs)
