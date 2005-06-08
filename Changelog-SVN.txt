@@ -1,5 +1,10 @@
 Date	Added
 06/08
+	* GM used Type 11 items will be exempt from the "GMs can do whatever they
+	  want" rule regarding skill_usage because otherwise the used item is never
+	  consumed.	[Skotlex]
+	* Fixed Ice Falchion/Firebrand giving skills, they just cast the spell [Skotlex]
+	* Reduced Ice Falchion's freezing chance from 5% to 1% [Skotlex]
 	* Added Makefile caching [celest]
 	  'Makefile.cache' is created when you compile for the first time, and keeps
 	  all your makefile definitions so it can be read directly when you recompile,
