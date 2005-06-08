@@ -40,42 +40,9 @@ void findfile(const char *p, const char *pat, void (func)(const char*));
 // byte word dword access [Shinomori]
 //////////////////////////////////////////////////////////////////////////
 
-extern __inline unsigned char GetByte(unsigned long val, size_t num)
-{
-	switch(num)
-	{
-	case 0:
-		return (unsigned char)((val & 0x000000FF)      );
-	case 1:
-		return (unsigned char)((val & 0x0000FF00)>>0x08);
-	case 2:
-		return (unsigned char)((val & 0x00FF0000)>>0x10);
-	case 3:
-		return (unsigned char)((val & 0xFF000000)>>0x18);
-	default:
-		return 0;	//better throw something here
-	}
-}
-extern __inline unsigned short GetWord(unsigned long val, size_t num)
-{
-	switch(num)
-	{
-	case 0:
-		return (unsigned short)((val & 0x0000FFFF)      );
-	case 1:
-		return (unsigned short)((val & 0xFFFF0000)>>0x10);
-	default:
-		return 0;	//better throw something here
-	}
-}
-extern __inline unsigned short MakeWord(unsigned char byte0, unsigned char byte1)
-{
-	return byte0 | (byte1<<0x08);
-}
-extern __inline unsigned long MakeDWord(unsigned short word0, unsigned short word1)
-{
-	return 	  ((unsigned long)word0)
-			| ((unsigned long)word1<<0x10);
-}
+extern unsigned char GetByte(unsigned long val, size_t num);
+extern unsigned short GetWord(unsigned long val, size_t num);
+extern unsigned short MakeWord(unsigned char byte0, unsigned char byte1);
+extern unsigned long MakeDWord(unsigned short word0, unsigned short word1);
 
 #endif

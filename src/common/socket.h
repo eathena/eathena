@@ -100,15 +100,8 @@ typedef int bool;
 
 //////////////////////////////////
 // some checking on sockets
-extern __inline bool session_isValid(int fd)
-{
-	return ( (fd>=0) && (fd<FD_SETSIZE) && (NULL!=session[fd]) );
-}
-extern __inline bool session_isActive(int fd)
-{
-	return ( session_isValid(fd) && !session[fd]->eof );
-}	
-	
+extern bool session_isValid(int fd);
+extern bool session_isActive(int fd);
 //////////////////////////////////
 
 

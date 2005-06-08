@@ -1219,3 +1219,14 @@ void socket_init (void)
 	upnp_init();
 #endif
 }
+
+
+bool session_isValid(int fd)
+{
+	return ( (fd>=0) && (fd<FD_SETSIZE) && (NULL!=session[fd]) );
+}
+
+bool session_isActive(int fd)
+{
+	return ( session_isValid(fd) && !session[fd]->eof );
+}	
