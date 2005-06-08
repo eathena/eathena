@@ -87,11 +87,6 @@ Problem:	This bug's appeared again: Permanent #Variables/Variables disappear.
 Assigned:	N/A
 Progress:	0%
 
-Problem:	Potion Pitcher skill should be able to target yourself.
-Assigned:	N/A
-Progress:	-
-Notes:          Gravity disabled that some time ago ;P
-
 Problem:	Exp Party Sharing Bug.
 		i.g. Hunter + Merchant are in the same party. M. is sitting. Hunter is killing some Seals. M. doesn't get EXP.
 		Then H. teleports to another map and hunts there. Now, M. kills a poring and get a huuuuuuuuuuuuuuuuge amount
@@ -116,11 +111,6 @@ Problem:	You can put in Cart goods more than Cart Max Weight limit allows
 		(it's an old good bug about Named / Unnamed Stackable items)
 Assigned:	N/A
 Progress:	0%
-
-Problem:	Fire Pillar doesn't consume GEMS!
-Assigned:	N/A
-Progress:	N/A
-Notes:	It isn't supposed to for level 1-5 ^^ [Celest]
 
 Problem:	[item exploit] Hunters can set traps not consuming the TRAPS ITEMS, when Bards
 		use their special support skill.

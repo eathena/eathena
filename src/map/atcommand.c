@@ -2455,10 +2455,11 @@ int atcommand_baselevelup(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int level, i;
+	int level=0, i=0;
 	nullpo_retr(-1, sd);
+	level = atoi(message);
 
-	if (!message || !*message || (level = atoi(message)) == 0) {
+	if (!message || !*message || !level) {
 		clif_displaymessage(fd, "Please, enter a level adjustement (usage: @lvup/@blevel/@baselvlup <number of levels>).");
 		return -1;
 	}
@@ -2514,12 +2515,14 @@ int atcommand_joblevelup(
 	const char* command, const char* message)
 {
 	unsigned int up_level = 50;
-	int level;
+	int level=0;
 	struct pc_base_job s_class;
 	nullpo_retr(-1, sd);
 	s_class = pc_calc_base_job(sd->status.class_);
+	
+	level = atoi(message);
 
-	if (!message || !*message || (level = atoi(message)) == 0) {
+	if (!message || !*message || !level) {
 		clif_displaymessage(fd, "Please, enter a level adjustement (usage: @joblvup/@jlevel/@joblvlup <number of levels>).");
 		return -1;
 	}
@@ -2571,7 +2574,7 @@ int atcommand_joblevelup(
 }
 
 /*==========================================
- *
+ * @help
  *------------------------------------------
  */
 int atcommand_help(
@@ -2586,7 +2589,7 @@ int atcommand_help(
 	memset(buf, '\0', sizeof(buf));
 
 	if ((fp = fopen(help_txt, "r")) != NULL) {
-		clif_displaymessage(fd, msg_table[26]); // Help commands:
+		clif_displaymessage(fd, msg_table[26]); /* Help commands: */
 		gm_level = pc_isGM(sd);
 		while(fgets(buf, sizeof(buf) - 1, fp) != NULL) {
 			if (buf[0] == '/' && buf[1] == '/')
@@ -2604,7 +2607,7 @@ int atcommand_help(
 		}
 		fclose(fp);
 	} else {
-		clif_displaymessage(fd, msg_table[27]); // File help.txt not found.
+		clif_displaymessage(fd, msg_table[27]); /*  File help.txt not found. */
 		return -1;
 	}
 
@@ -2612,7 +2615,7 @@ int atcommand_help(
 }
 
 /*==========================================
- *
+ * @gm
  *------------------------------------------
  */
 int atcommand_gm(
@@ -2629,8 +2632,8 @@ int atcommand_gm(
 		return -1;
 	}
 
-	if (pc_isGM(sd)) { // a GM can not use this function. only a normal player (become gm is not for gm!)
-		clif_displaymessage(fd, msg_table[50]); // You already have some GM powers.
+	if (pc_isGM(sd)) { /* a GM can not use this function. only a normal player (become gm is not for gm!) */
+		clif_displaymessage(fd, msg_table[50]); /* You already have some GM powers. */
 		return -1;
 	} else
 		chrif_changegm(sd->status.account_id, password, strlen(password) + 1);

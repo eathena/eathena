@@ -4609,7 +4609,7 @@ int buildin_resetstatus(struct script_state *st)
 }
 
 /*==========================================
- * スキルリセット
+ * script command resetskill
  *------------------------------------------
  */
 int buildin_resetskill(struct script_state *st)
