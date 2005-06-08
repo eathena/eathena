@@ -1,5 +1,6 @@
 Date	Added
 06/07
+	* Fixed map_quit being called twice when a player requests to change char [Skotlex]
 	* Fixed compile issues on various versions of linux 
 	  (please avoid inline in include files until we offically go
 	   over to being a c++ app)  [MouseJstr]

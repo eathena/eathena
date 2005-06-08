@@ -8802,7 +8802,7 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
 			(gettick() - sd->canlog_tick) >= 10000 ||
 			pc_isdead(sd))	//Allow dead characters to logout [Skotlex]
 		{
-			map_quit(sd);
+			//map_quit(sd);	//A clif_quitsave is sent inmediately after this, so no need to quit yet. [Skotlex]
 			chrif_charselectreq(sd);
 		} else {
 			WFIFOW(fd,0)=0x18b;
