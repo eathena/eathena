@@ -1,3 +1,31 @@
+** PLEASE WRITE CLEARLY WHAT THE PROBLEM IS AND HOW TO DUPLICATE IT SO IT CAN BE FIX0RED. THANK YOU **
+
+Problem:	The // Set here which client version do you accept. part in battle_athena not working properly (not that its important, but some servers only want a certain packet range to come in)
+Assigned:
+Progess:
+Note:
+
+Problem:	The map server crashes when a session gets timed out. Like, a player suddenly dc's after doing something, then the session is removed. 
+Assigned:
+Progess:
+Note:I believe the map server thinks its still there and tries to access it and then it just faults.
+
+Problem:	Timer stack has PROBLEMS!!! wow!
+[Status]: Map pay_dun04.gat: Removed '121' mobs.
+delete_timer error : function mismatch 00453ee0(mob_delayspawn) != 00474250(skill_timerskill)
+delete_timer error : function mismatch 00453ee0(mob_delayspawn) != 00474250(skill_timerskill)
+delete_timer error : function mismatch 00402c90(map_clearflooritem_timer) != 00474250(skill_timerskill)
+delete_timer error : function mismatch 00000000(unknown timer function) != 00474250(skill_timerskill)
+delete_timer error : function mismatch 00000000(unknown timer function) != 00474250(skill_timerskill)
+delete_timer error : function mismatch 00000000(unknown timer function) != 00474250(skill_timerskill)
+delete_timer error : function mismatch 00453b50(mob_timer) != 00474250(skill_timerskill)
+delete_timer error : function mismatch 00000000(unknown timer function) != 00474250(skill_timerskill)
+delete_timer error : function mismatch 00453b50(mob_timer) != 00474250(skill_timerskill)
+delete_timer error : function mismatch 00453ee0(mob_delayspawn) != 00474250(skill_timerskill)
+Assigned:
+Progess:
+Note:		Possibly the function pointer was not assigned properly, causing an errorneous callback. If anyone messed with mob_spawn or any related function, please check back.
+
 Problem:	Stats nor skills don't downgrade when your level gets reverted due to exp loss.
 Assigned:	davidsiaw
 Progess:	~90% (Bug prone)
