@@ -1,5 +1,7 @@
 Date	Added
 06/08
+	* Added atcommands cleanmap, npctalk, pettalk to atcommand_athena.conf with their
+	  description.	[Skotlex]
 	* Fixed spawn delays for anthell eggs	[Skotlex]
 	* Removed equipment_breaking, use equipment_break_rate = 0 instead.
 	  [Skotlex]
