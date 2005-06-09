@@ -4174,8 +4174,7 @@ struct Damage battle_calc_weapon_attack(
 		if(rand() % 10000 < breakrate_[1] * battle_config.equipment_break_rate/100 || breakrate_[1] >= 10000) {
 			if (target->type == BL_PC) {
 				struct map_session_data *tsd = (struct map_session_data *)target;
-				if(tsd->status.weapon != 11)
-					pc_breakarmor(tsd);
+				pc_breakarmor(tsd);
 			} else
 				status_change_start(target,SC_STRIPSHIELD,1,75,0,0,breaktime,0);
 		}
