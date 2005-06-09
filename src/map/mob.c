@@ -3241,7 +3241,7 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 		if(bl->type != BL_SKILL && (dist == 0 || map_check_dir(dir,t_dir)))
 			return 0;
 	}
-	if( ( skill_get_inf(md->skillid) & INF_ATTACK_SKILL || skill_get_inf2(md->skillid)&4 ) &&	// 彼我敵対関係チェック
+	if( ( skill_get_inf(md->skillid) & INF_ATTACK_SKILL || md->skillid == MO_EXTREMITYFIST ) &&
 		battle_check_target(&md->bl,bl, BCT_ENEMY)<=0 )
 		return 0;
 	range = skill_get_range(md->skillid,md->skilllv);
@@ -3393,7 +3393,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 
 	if(map[md->bl.m].flag.gvg && skill_db[skill_id].nocast & 4)
 		return 0;
-	if(skill_get_inf2(skill_id)&0x200 && md->bl.id == target->id)
+	if(skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF && md->bl.id == target->id)
 		return 0;
 
 	// 射程と障害物チェック

@@ -4473,7 +4473,8 @@ int clif_skillinfo(struct map_session_data *sd,int skillid,int type,int range)
 	} else
 		WFIFOW(fd,12)= range;
 	memset(WFIFOP(fd,14),0,24);
-	if(!(skill_get_inf2(id)&0x01) || battle_config.quest_skill_learn == 1 || (battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill) )
+	if(!(skill_get_inf2(id)&INF2_QUEST_SKILL) || battle_config.quest_skill_learn ||
+		(battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill) )
 		//WFIFOB(fd,38)= (sd->status.skill[skillid].lv < skill_get_max(id) && sd->status.skill[skillid].flag ==0 )? 1:0;
 		WFIFOB(fd,38)= (sd->status.skill[skillid].lv < skill_tree_get_max(id, sd->status.class_) && sd->status.skill[skillid].flag ==0 )? 1:0;
 	else
@@ -4508,7 +4509,8 @@ int clif_skillinfoblock(struct map_session_data *sd)
 				range = status_get_range(&sd->bl) - (range + 1);
 			WFIFOW(fd,len+10)= range;
 			memset(WFIFOP(fd,len+12),0,24);
-			if(!(skill_get_inf2(id)&0x01) || battle_config.quest_skill_learn == 1 || (battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill) )
+			if(!(skill_get_inf2(id)&INF2_QUEST_SKILL) || battle_config.quest_skill_learn ||
+				(battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill) )
 				//WFIFOB(fd,len+36)= (sd->status.skill[i].lv < skill_get_max(id) && sd->status.skill[i].flag ==0 )? 1:0;
 				WFIFOB(fd,len+36)= (sd->status.skill[i].lv < skill_tree_get_max(id, sd->status.class_) && sd->status.skill[i].flag ==0 )? 1:0;
 			else

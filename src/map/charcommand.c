@@ -1469,7 +1469,7 @@ int charcommand_questskill(
 	}
 
 	if (skill_id >= 0 && skill_id < MAX_SKILL_DB) {
-		if (skill_get_inf2(skill_id) & 0x01) {
+		if (skill_get_inf2(skill_id) & INF2_QUEST_SKILL) {
 			if ((pl_sd = map_nick2sd(player)) != NULL) {
 				if (pc_checkskill(pl_sd, skill_id) == 0) {
 					pc_skill(pl_sd, skill_id, 1, 0);
@@ -1515,7 +1515,7 @@ int charcommand_lostskill(
 	}
 
 	if (skill_id >= 0 && skill_id < MAX_SKILL) {
-		if (skill_get_inf2(skill_id) & 0x01) {
+		if (skill_get_inf2(skill_id) & INF2_QUEST_SKILL) {
 			if ((pl_sd = map_nick2sd(player)) != NULL) {
 				if (pc_checkskill(pl_sd, skill_id) > 0) {
 					pl_sd->status.skill[skill_id].lv = 0;

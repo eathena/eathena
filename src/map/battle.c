@@ -5121,15 +5121,15 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				return -1;
 			if (ss->prev == NULL)
 				return -1;
-			if (inf2&0x80 &&
+			if (inf2&INF2_TRAP &&
 				(map[src->m].flag.pvp ||
 				(skillid >= 115 && skillid <= 125 && map[src->m].flag.gvg)) &&
 				!(target->type == BL_PC && pc_isinvisible(tsd)))
 					return 0;
 			if (ss == target) {
-				if (inf2&0x100)
+				if (inf2&INF2_NO_DAMAGE_SELF)
 					return 0;
-				if (inf2&0x200)
+				if (inf2&INF2_NO_TARGET_SELF)
 					return -1;
 			}
 		}

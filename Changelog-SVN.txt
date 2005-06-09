@@ -1,5 +1,9 @@
 Date	Added
 06/09
+	* Tidied up code relating to skill_get_inf2() [Skotlex]
+	* skill_db.txt updated. New inf2 values:	[Skotlex]
+	  16: Guild skill, 32 Song/Dance skill, 64: Encore skill
+	* Other misc arrangements to skill_db.txt (see db/Changelog) [Skotlex]
 	* Tidied up code relating to skill_get_nk()	[Skotlex]
 	* Readded the previously removed skills from item_db [Skotlex]
 	* getpetinfo(2) will return "null" on no pet. [Skotlex]

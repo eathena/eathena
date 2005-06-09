@@ -4721,7 +4721,7 @@ int atcommand_questskill(
 	}
 
 	if (skill_id >= 0 && skill_id < MAX_SKILL_DB) {
-		if (skill_get_inf2(skill_id) & 0x01) {
+		if (skill_get_inf2(skill_id) & INF2_QUEST_SKILL) {
 			if (pc_checkskill(sd, skill_id) == 0) {
 				pc_skill(sd, skill_id, 1, 0);
 				clif_displaymessage(fd, msg_table[70]); // You have learned the skill.
@@ -4758,7 +4758,7 @@ int atcommand_lostskill(
 	}
 
 	if (skill_id >= 0 && skill_id < MAX_SKILL) {
-		if (skill_get_inf2(skill_id) & 0x01) {
+		if (skill_get_inf2(skill_id) & INF2_QUEST_SKILL) {
 			if (pc_checkskill(sd, skill_id) > 0) {
 				sd->status.skill[skill_id].lv = 0;
 				sd->status.skill[skill_id].flag = 0;

@@ -930,7 +930,7 @@ static int pc_calc_skillpoint(struct map_session_data* sd)
 
 	for(i=1;i<MAX_SKILL;i++){
 		if( (skill = pc_checkskill(sd,i)) > 0) {
-			if(!(skill_get_inf2(i)&0x01) || battle_config.quest_skill_learn) {
+			if(!(skill_get_inf2(i)&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) {
 				if(!sd->status.skill[i].flag)
 					skill_point += skill;
 				else if(sd->status.skill[i].flag > 2 && sd->status.skill[i].flag != 13) {
@@ -964,7 +964,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 	c = pc_calc_skilltree_normalize_job(c, sd);
 
 	for(i=0;i<MAX_SKILL;i++){
-//                if(skill_get_inf2(i) & 0x01)
+//                if(skill_get_inf2(i)&INF2_QUEST_SKILL)
 //                        continue;
 		if (sd->status.skill[i].flag != 13)
 		        sd->status.skill[i].id=0;
@@ -4575,7 +4575,7 @@ int pc_allskillup(struct map_session_data *sd)
 	}
 	else {
 		for(i=0;(id=skill_tree[s][c][i].id)>0;i++){
-			if(sd->status.skill[id].id==0 && (!(skill_get_inf2(id)&0x01) || battle_config.quest_skill_learn) ) {
+			if(sd->status.skill[id].id==0 && (!(skill_get_inf2(id)&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) ) {
 				sd->status.skill[id].id = id;	// celest
 				// sd->status.skill[id].lv=skill_get_max(id);
 				sd->status.skill[id].lv = skill_tree_get_max(id, sd->status.class_);	// celest
@@ -4740,7 +4740,7 @@ int pc_resetskill(struct map_session_data* sd)
 
 	for (i = 1; i < MAX_SKILL; i++) {
 		if ((skill = sd->status.skill[i].lv) > 0) {
-			if (!(skill_get_inf2(i) & 0x01) || battle_config.quest_skill_learn) {
+			if (!(skill_get_inf2(i)&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) {
 				if (!sd->status.skill[i].flag)
 					sd->status.skill_point += skill;
 				else if (sd->status.skill[i].flag > 2 && sd->status.skill[i].flag != 13)

@@ -25,11 +25,23 @@
 
 
 06/09
+	* Removed inf2 of Extremity Fist, it is harcoded for now. Inf2 values 4 and
+	  8 are free for the taking. What should they be for? Partner/Baby skills? [Skotlex]
+	* Added inf2 values: 32 (Dance/Song skills) & 64 (Encore skills).
+	  (Encore skills don't need to be set as 96) [Skotlex]:
+	- Bard Skills set to inf2 32: BA_WHISTLE, BA_ASSASSINCROSS, BA_POEMBRAGI, BA_APPLEIDUN
+	- Dancer Skills set to inf2 32: DC_HUMMING, DC_DONTFORGETME,
+	  DC_SERVICEFORYOU, DC_UGLYDANCE
+	- Encore Skills set to inf2 64: BD_LULLABY, BD_RICHMANKIM,
+	  BD_DRUMBATTLEFIELD, BD_RINGNIBELUL, BD_INTOABYSS, BD_SIEGFRIED
+	- If I missed any skill, help me correct it, these inf2 values are not yet
+	  used in the code, but that'll change soon.
+	* Added inf2 value 16 for Guild Skills, set all guild skills to have inf2
 	* Readded skills to items Electric Guitar, Firebrand & Ice Falchion [Skotlex]
 	* Some corrections to the skill_db.txt's nk value. [Skotlex]
 	  - Storm Gust: 1->0
 	  - Blitz-Beat: 1->2
-
+	* Removed magnum break's inf2=16 since it ain't used anywhere. [Skotlex]
 	* Fixed Ayothaya monsters drops and names thx 2 MasterOfMuppets [Lupus]
 =======
 07/05

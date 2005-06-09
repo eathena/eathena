@@ -2185,7 +2185,7 @@ int skill_cleartimerskill(struct block_list *src)
 		if (sd->timerskill_count <= 0)
 			return 0;
 
-		for(i=0;i<MAX_SKILLTIMERSKILL;i++) {
+		for(i=0;i<MAX_SKILLTIMERSKILL && sd->timerskill_count > 0;i++) {
 			if(sd->skilltimerskill[i].timer != -1) {
 				delete_timer(sd->skilltimerskill[i].timer, skill_timerskill);
 				sd->skilltimerskill[i].timer = -1;
@@ -5070,19 +5070,20 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		}
 	}
 
-	inf2 = skill_get_inf2(sd->skillid);
-	if( ( skill_get_inf(sd->skillid) & INF_ATTACK_SKILL || inf2&4 ) &&	// 彼我敵??係チェック
+	if( ( skill_get_inf(sd->skillid) & INF_ATTACK_SKILL || sd->skillid == MO_EXTREMITYFIST ) &&	// 彼我敵??係チェック
 		battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0 ) {
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
 		sd->skillitem = sd->skillitemlv = -1;
 		return 0;
 	}
-	if(inf2 & 0xC00 && sd->bl.id != bl->id) {
+	
+	inf2 = skill_get_inf2(sd->skillid);
+	if(inf2 & (INF2_PARTY_ONLY|INF2_GUILD_ONLY) && sd->bl.id != bl->id) {
 		int fail_flag = 1;
-		if(inf2 & 0x400 && battle_check_target(&sd->bl,bl, BCT_PARTY) > 0)
+		if(inf2 & INF2_PARTY_ONLY && battle_check_target(&sd->bl,bl, BCT_PARTY) > 0)
 			fail_flag = 0;
-		if(inf2 & 0x800 && sd->status.guild_id > 0 && sd->status.guild_id == status_get_guild_id(bl))
+		if(inf2 & INF2_GUILD_ONLY && sd->status.guild_id > 0 && sd->status.guild_id == status_get_guild_id(bl))
 			fail_flag = 0;
 		if(fail_flag) {
 			clif_skill_fail(sd,sd->skillid,0,0);
@@ -7385,7 +7386,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		return 0;
 	if(pc_ischasewalk(sd) && skill_num != ST_CHASEWALK)
 	 	return 0;
-	if(skill_get_inf2(skill_num) & 0x200 && sd->bl.id == target_id)
+	if(skill_get_inf2(skill_num)&INF2_NO_TARGET_SELF && sd->bl.id == target_id)
 		return 0;
 
 	//直前のスキルが何か?える必要のあるスキル
@@ -7836,7 +7837,7 @@ int skill_castcancel (struct block_list *bl, int type)
 				if (skill_get_inf( sd->skillid ) & INF_GROUND_SKILL)
 					ret = delete_timer( sd->skilltimer, skill_castend_pos );
 				else
-					ret=delete_timer( sd->skilltimer, skill_castend_id );
+					ret = delete_timer( sd->skilltimer, skill_castend_id );
 				if (ret < 0)
 					printf("delete timer error : skillid : %d\n", sd->skillid);
 			} else {
