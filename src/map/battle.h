@@ -263,7 +263,7 @@ extern struct Battle_Config {
 	unsigned short maximum_level;
 	unsigned short drops_by_luk;
 	unsigned short monsters_ignore_gm;
-	unsigned short equipment_breaking;
+//	unsigned short equipment_breaking; //Removed, use equipment_break_rate = 0 instead [Skotlex]
 	unsigned short equipment_break_rate;
 	unsigned short pet_equip_required;
 	unsigned short multi_level_up;

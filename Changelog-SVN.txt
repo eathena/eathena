@@ -1,5 +1,9 @@
 Date	Added
 06/08
+	* Fixed spawn delays for anthell eggs	[Skotlex]
+	* Removed equipment_breaking, use equipment_break_rate = 0 instead.
+	  [Skotlex]
+	* Clarified some of the comments in battle_athena.conf [Skotlex]
 	* Steal/Snatcher won't work on summoned creatures now. [Skotlex]
 	* Some db updates (see db/Changelog) [Skotlex]
 	* Fixed rude_attacked state not being reset after triggered, credits to

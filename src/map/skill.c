@@ -2415,7 +2415,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 
 	case AM_ACIDTERROR:		/* アシッドテラ? */
 		skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, flag);
-		if (tsd && battle_config.equipment_breaking && rand()%100 < skill_get_time(skillid,skilllv)) {
+		if (tsd && battle_config.equipment_break_rate && rand()%100 < skill_get_time(skillid,skilllv)) {
 			pc_breakarmor(tsd);
 			clif_emotion(bl, 23);
 		}
@@ -3238,7 +3238,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if(skilllv < 5 && rand()%100 > (60+skilllv*10) ) { //fixed by Lupus (4 -> 5) or else it has 100% success even at lv4
 			if (sd) clif_skill_fail(sd,skillid,0,0);
 			clif_skill_nodamage(src,bl,skillid,skilllv,0);
-			if(dstsd && battle_config.equipment_breaking) {
+			if(dstsd && battle_config.equipment_break_rate) {
 				if(sd && sd != dstsd) clif_displaymessage(sd->fd,"You broke target's weapon");
 				pc_breakweapon(dstsd);
 			}
@@ -4408,25 +4408,25 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	// Equipment breaking monster skills [Celest]
 	case NPC_BREAKWEAPON:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if(dstsd && battle_config.equipment_breaking)
+		if(dstsd && battle_config.equipment_break_rate)
 			pc_breakweapon(dstsd);
 		break;
 
 	case NPC_BREAKARMOR:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if(dstsd && battle_config.equipment_breaking)
+		if(dstsd && battle_config.equipment_break_rate)
 			pc_breakarmor(dstsd);
 		break;
 
 	case NPC_BREAKHELM:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if(dstsd && battle_config.equipment_breaking)
+		if(dstsd && battle_config.equipment_break_rate)
 			pc_breakhelm(dstsd);
 		break;
 
 	case NPC_BREAKSHIELD:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if(dstsd && battle_config.equipment_breaking)
+		if(dstsd && battle_config.equipment_break_rate)
 			pc_breakshield(dstsd);
 		break;
 
@@ -6189,7 +6189,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	case 0xb1:	/* デモンストレ?ション */
 		skill_attack(BF_WEAPON, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
-		if (bl->type == BL_PC && rand()%100 < sg->skill_lv && battle_config.equipment_breaking)
+		if (bl->type == BL_PC && rand()%100 < sg->skill_lv && battle_config.equipment_break_rate)
 			pc_breakweapon((struct map_session_data *)bl);
 		break;
 
