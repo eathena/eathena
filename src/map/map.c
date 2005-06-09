@@ -1530,6 +1530,7 @@ int map_quit(struct map_session_data *sd) {
 		if (sd->state.auth) {
 			pc_stop_walking(sd,0);
 			pc_stopattack(sd);
+			pc_stop_following(sd);
 			pc_delinvincibletimer(sd);
 		}
 		pc_delspiritball(sd,sd->spiritball,1);

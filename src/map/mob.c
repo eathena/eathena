@@ -2433,9 +2433,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			md->target_dir=map_calc_dir(src,md->bl.x,md->bl.y)+1;
 	}
 
-	if(md->hp>0){
+	if(md->hp > 0){
 		if (battle_config.show_mob_hp)
-			clif_update_mobhp (md);
+			clif_charnameack (0, &md->bl);
 		return 0;
 	}
 
@@ -2945,7 +2945,7 @@ int mob_heal(struct mob_data *md,int heal)
 	}	// end addition [Valaris]
 
 	if (battle_config.show_mob_hp)
-		clif_update_mobhp(md);
+		clif_charnameack(0, &md->bl);
 
 	return 0;
 }

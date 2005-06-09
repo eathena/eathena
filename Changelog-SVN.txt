@@ -2,6 +2,15 @@ Date	Added
 06/09
 	* Added battle_config option to set if advanced job skills may be plagiarized
 	* Fixed ASC_BREAKER to ignore race/size/element cards like it should
+	* Changed @fakename so it no longer needs to teleport the client to work [celest]
+	* Removed the old day/night system that uses the blind effect [celest]
+	* Fixed day/night cycles with darkness_level on not refreshing properly [celest]
+	* Fixed pc_follow_timer cancels if the player or the target warps [celest]
+	* Added @follow on the same target for the 2nd time will stop following [celest]
+	* Added Memory manager will perform a hash check when freeing memory, by
+	  End_of_exam / jA 1213 -- fixes crashes when a pointer created by level 2 ALLOC
+	  is passed to level 1 aFree
+
 06/08
 	* Updated idle time considerations. [Skotlex]
 	  A character's idle time is reset upon: Walking, attacking (auto-attack

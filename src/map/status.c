@@ -4129,10 +4129,6 @@ int status_change_clear(struct block_list *bl,int type)
 	*opt3 = 0;
 	*option &= OPTION_MASK;
 
-	if (night_flag == 1 && type == BL_PC && !map[bl->m].flag.indoors && // by [Yor]
-		!map[bl->m].flag.indoors && battle_config.night_darkness_level <= 0) // [celest]
-		*opt2 |= STATE_BLIND;
-
 	if(!type || type&2)
 		clif_changeoption(bl);
 
@@ -4460,12 +4456,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 		case SC_ASSUMPTIO:		/* アスムプティオ */
 			*opt3 &= ~2048;
 			break;
-		}
-
-		if (night_flag == 1 && (*opt2 & STATE_BLIND) == 0 && bl->type == BL_PC && // by [Yor]
-			!map[bl->m].flag.indoors && battle_config.night_darkness_level <= 0) { // [celest]
-			*opt2 |= STATE_BLIND;
-			opt_flag = 1;
 		}
 
 		if(opt_flag)	/* optionの?更を?える */

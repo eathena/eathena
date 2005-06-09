@@ -5991,7 +5991,9 @@ void battle_validate_conf() {
 	if ((battle_config.packet_ver_flag & 255) == 0) // added by [Yor]
 		battle_config.packet_ver_flag = 255; // accept all clients
 
-	if (battle_config.night_darkness_level > 10) // Celest
+	if (battle_config.night_darkness_level <= 0)
+		battle_config.night_darkness_level = 9;
+	else if (battle_config.night_darkness_level > 10) // Celest
 		battle_config.night_darkness_level = 10;
 
 /*	if (battle_config.motd_type < 0)

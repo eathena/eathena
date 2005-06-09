@@ -17,7 +17,7 @@ typedef unsigned int in_addr_t;
 #define PACKETVER			6
 
 // packet DB
-#define MAX_PACKET_DB		0x23a
+#define MAX_PACKET_DB		0x23d
 #define MAX_PACKET_VER		18
 
 struct packet_db {
@@ -202,7 +202,7 @@ int clif_wis_message(int fd,char *nick,char *mes,int mes_len);
 int clif_wis_end(int fd,int flag);
 
 int clif_solved_charname(struct map_session_data *sd,int char_id);
-int clif_update_mobhp(struct mob_data *md);
+int clif_charnameack(int fd, struct block_list *bl);
 
 int clif_use_card(struct map_session_data *sd,int idx);
 int clif_insert_card(struct map_session_data *sd,int idx_equip,int idx_card,int flag);
@@ -307,6 +307,7 @@ void clif_friendslist_reqack(struct map_session_data *sd, char *name, int type);
 
 // [Valaris]
 int clif_mob_hp(struct mob_data *md);
+int clif_weather1(int fd, int type);
 int clif_weather2(int m, int type);
 int clif_clearweather(int m);
 int clif_specialeffect(struct block_list *bl,int type, int flag); // special effects [Valaris]

@@ -144,8 +144,8 @@ char* _bstrdup(const char *chr)
  *       ニットが、1024個集まって出来ていたり、64Byteのユニットが 512個集まって
  *       出来ていたりします。（padding,unit_head を除く）
  *
- *     ・ユニット同士はリンクリスト(block_prev,block_next) でつながり、同じサイ
- *       ズを持つユニット同士もリンクリスト(samesize_prev,samesize_nect) でつな
+ *     ・ブロック同士はリンクリスト(block_prev,block_next) でつながり、同じサイ
+ *       ズを持つブロック同士もリンクリスト(samesize_prev,samesize_nect) でつな
  *       がっています。それにより、不要となったメモリの再利用が効率的に行えます。
  */
 
@@ -166,8 +166,8 @@ struct block {
 	int    samesize_no;     /* 同じサイズの番号 */
 	struct block* samesize_prev;	/* 同じサイズの前の領域 */
 	struct block* samesize_next;	/* 同じサイズの次の領域 */
-	int    unit_size;		/* ユニットのバイト数 0=未使用 */
-	int    unit_hash;		/* ユニットのハッシュ */
+	size_t unit_size;		/* ユニットのバイト数 0=未使用 */
+	size_t unit_hash;		/* ユニットのハッシュ */
 	int    unit_count;		/* ユニットの数 */
 	int    unit_used;		/* 使用済みユニット */
 	char   data[BLOCK_DATA_SIZE];
@@ -175,9 +175,10 @@ struct block {
 
 struct unit_head {
 	struct block* block;
-	int    size;
+	size_t size;
 	const  char* file;
 	int    line;
+	unsigned int checksum;
 };
 
 static struct block* block_first  = NULL;
@@ -207,8 +208,7 @@ static FILE *log_fp;
 void* _mmalloc(size_t size, const char *file, int line, const char *func ) {
 	int i;
 	struct block *block;
-	int size_hash = (size+BLOCK_ALIGNMENT-1) / BLOCK_ALIGNMENT;
-	size = size_hash * BLOCK_ALIGNMENT; /* アライメントの倍数に切り上げ */
+	size_t size_hash = (size+BLOCK_ALIGNMENT-1) / BLOCK_ALIGNMENT;
 
 	if(size == 0) {
 		return NULL;
@@ -216,7 +216,7 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func ) {
 
 	/* ブロック長を超える領域の確保には、malloc() を用いる */
 	/* その際、unit_head.block に NULL を代入して区別する */
-	if(size > BLOCK_DATA_SIZE - sizeof(struct unit_head)) {
+	if(size_hash * BLOCK_ALIGNMENT > BLOCK_DATA_SIZE - sizeof(struct unit_head)) {
 #ifdef MEMWATCH
 		struct unit_head_large* p = (struct unit_head_large*)mwMalloc(sizeof(struct unit_head_large) + size,file,line);
 #else
@@ -237,7 +237,8 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func ) {
 				p->next = unit_head_large_first;
 				unit_head_large_first = p;
 			}
-			return (char *)p + sizeof(struct unit_head_large);
+			*(int*)((char*)p + sizeof(struct unit_head_large) - sizeof(int) + size) = 0xdeadbeaf;
+			return (char *)p + sizeof(struct unit_head_large) - sizeof(int);
 		} else {
 			ShowFatalError("Memory manager::memmgr_alloc failed.\n");
 			exit(1);
@@ -263,8 +264,8 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func ) {
 			unit_last[size_hash] = block;
 		}
 		unit_unfill[size_hash] = block;
-		block->unit_size  = size + sizeof(struct unit_head);
-		block->unit_count = BLOCK_DATA_SIZE / block->unit_size;
+		block->unit_size  = size_hash * BLOCK_ALIGNMENT + sizeof(struct unit_head);
+		block->unit_count = (int)(BLOCK_DATA_SIZE / block->unit_size);
 		block->unit_used  = 0;
 		block->unit_hash  = size_hash;
 		/* 未使用Flagを立てる */
@@ -294,7 +295,8 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func ) {
 			head->size  = size;
 			head->line  = line;
 			head->file  = file;
-			return (char *)head + sizeof(struct unit_head);
+			*(int*)((char*)head + sizeof(struct unit_head) - sizeof(int) + size) = 0xdeadbeaf;
+			return (char *)head + sizeof(struct unit_head) - sizeof(int);
 		}
 	}
 	// ここに来てはいけない。
@@ -316,7 +318,7 @@ void* _mrealloc(void *memblock, size_t size, const char *file, int line, const c
 		return _mmalloc(size,file,line,func);
 	}
 
-	old_size = ((struct unit_head *)((char *)memblock - sizeof(struct unit_head)))->size;
+	old_size = ((struct unit_head *)((char *)memblock - sizeof(struct unit_head) + sizeof(int)))->size;
 	if(old_size > size) {
 		// サイズ縮小 -> そのまま返す（手抜き）
 		return memblock;
@@ -335,7 +337,7 @@ char* _mstrdup(const char *p, const char *file, int line, const char *func ) {
 	if(p == NULL) {
 		return NULL;
 	} else {
-		int  len = strlen(p);
+		size_t len = strlen(p);
 		char *string  = (char *)_mmalloc(len + 1,file,line,func);
 		memcpy(string,p,len+1);
 		return string;
@@ -343,29 +345,47 @@ char* _mstrdup(const char *p, const char *file, int line, const char *func ) {
 }
 
 void _mfree(void *ptr, const char *file, int line, const char *func ) {
-	struct unit_head *head = (struct unit_head *)((char *)ptr - sizeof(struct unit_head));
-	if(ptr == NULL) {
-		return;
-	} else if(head->block == NULL && head->size > BLOCK_DATA_SIZE - sizeof(struct unit_head)) {
-		/* malloc() で直に確保された領域 */
-		struct unit_head_large *head_large = (struct unit_head_large *)((char *)ptr - sizeof(struct unit_head_large));
-		if(head_large->prev) {
-			head_large->prev->next = head_large->next;
+	struct unit_head *head;
+	size_t size_hash;
+
+	if (ptr == NULL)
+		return; 
+
+	head = (struct unit_head *)((char *)ptr - sizeof(struct unit_head) + sizeof(int));
+	size_hash = (head->size+BLOCK_ALIGNMENT-1) / BLOCK_ALIGNMENT;
+
+	if(head->block == NULL) {
+		if(size_hash * BLOCK_ALIGNMENT > BLOCK_DATA_SIZE - sizeof(struct unit_head)) {
+			/* malloc() で直に確保された領域 */
+			struct unit_head_large *head_large = (struct unit_head_large *)((char *)ptr - sizeof(struct unit_head_large) + sizeof(int));
+			if(
+				*(int*)((char*)head_large + sizeof(struct unit_head_large) - sizeof(int) + head->size)
+				!= 0xdeadbeaf)
+			{
+				ShowError("Memory manager: args of aFree is overflowed pointer %s line %d\n", file, line);
+			}
+			if(head_large->prev) {
+				head_large->prev->next = head_large->next;
+			} else {
+				unit_head_large_first  = head_large->next;
+			}
+			if(head_large->next) {
+				head_large->next->prev = head_large->prev;
+			}
+			head->block = NULL;
+			FREE (head_large);			
 		} else {
-			unit_head_large_first  = head_large->next;
+			ShowError("Memory manager: args of aFree is freed pointer %s line %d\n", file, line);
 		}
-		if(head_large->next) {
-			head_large->next->prev = head_large->prev;
-		}
-		FREE (head_large);
 		ptr = NULL;
 		return;
 	} else {
 		/* ユニット解放 */
 		struct block *block = head->block;
-		if(head->block == NULL) {
-			ShowError("Memory manager: args of aFree is freed pointer %s line %d\n", file, line);
-			return;
+		if((unsigned long)block % sizeof(struct block) != 0) {
+			ShowError("Memory manager: args of aFree is not valid pointer %s line %d\n", file, line);
+		} else if(*(int*)((char*)head + sizeof(struct unit_head) - sizeof(int) + head->size) != 0xdeadbeaf) {
+			ShowError("Memory manager: args of aFree is overflowed pointer %s line %d\n", file, line);
 		} else {
 			head->block = NULL;
 			if(--block->unit_used == 0) {
@@ -466,11 +486,16 @@ static struct block* block_malloc(void) {
 		/* ブロック用の領域を新たに確保する */
 		int i;
 		int block_no;
-		struct block* p = (struct block *) CALLOC (sizeof(struct block),BLOCK_ALLOC);
-		if(p == NULL) {
+		struct block* p;
+		char *pb = (char *) CALLOC (sizeof(struct block),BLOCK_ALLOC + 1);
+		if(pb == NULL) {
 			ShowFatalError("Memory manager::block_alloc failed.\n");
 			exit(1);
 		}
+		// ブロックのポインタの先頭をsizeof(block) アライメントに揃える
+		// このアドレスをfree() することはないので、直接ポインタを変更している。
+		pb += sizeof(struct block) - ((unsigned long)pb % sizeof(struct block));
+		p   = (struct block*)pb;
 		if(block_first == NULL) {
 			/* 初回確保 */
 			block_no     = 0;
@@ -526,7 +551,6 @@ static void memmgr_final (void)
 {
 	struct block *block, *block2;
 	struct unit_head_large *large = unit_head_large_first, *large2;
-	char *ptr;
 	int i;
 
 #ifdef LOG_MEMMGR
@@ -547,9 +571,8 @@ static void memmgr_final (void)
 						head->file, head->line, head->size);
 					memmgr_log (buf);
 				#endif
-					// get block pointer and free it
-					ptr = (char *)head + sizeof(struct unit_head);
-					_mfree (ptr, ALC_MARK);
+					// get block pointer and free it [celest]
+					_mfree ((char *)head + sizeof(struct unit_head) - sizeof(int), ALC_MARK);
 				}
 			}
 		}
@@ -571,15 +594,6 @@ static void memmgr_final (void)
 			large->unit_head.file, large->unit_head.line, large->unit_head.size);
 		memmgr_log (buf);
 	#endif
-		// we're already quitting, just skip tidying things up ^^
-		//if (large->prev) {
-		//	large->prev->next = large->next;
-		//} else {
-		//	unit_head_large_first  = large->next;
-		//}
-		//if (large->next) {
-		//	large->next->prev = large->prev;
-		//}
 		FREE (large);
 		large = large2;
 	}

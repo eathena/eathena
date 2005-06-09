@@ -113,8 +113,8 @@ static const int packet_len_table[MAX_PACKET_DB] = {
 //#0x200
    26, -1,  26, 10, 18, 26, 11, 34,  14, 36, 10, 0,  0, -1, 24, 10, // 0x20c change to 0 (was 19)
    22,  0,  26, 26, 42, -1, -1,  2,   2,282,282,10, 10, -1, -1, 66,
-   10, -1,  -1,  8, 10,  2,282, 18,  18, 15, 58, 57, 64, 5, 69,  0,
-   12,  0,   9, 11, -1, -1, 10,  2, 282, 11
+   10, -1,  -1,  8, 10,  2,282, 18,  18, 15, 58, 57, 64, 5, 69,  5,
+   12, 26,   9, 11, -1, -1, 10,  2, 282, 11,  4, 36, -1
 };
 
 // local define
@@ -6190,30 +6190,7 @@ int clif_hpmeter(struct map_session_data *sd)
 
 	return 0;
 }
-/*==================================================
- * Update monster hp view if it has changed [Celest]
- *--------------------------------------------------
- */
-int clif_update_mobhp(struct mob_data *md)
-{
-	unsigned char buf[102];
-	char mobhp[50];
 
-	nullpo_retr(0, md);
-
-	WBUFW(buf,0) = 0x95;
-	WBUFL(buf,2) = md->bl.id;
-
-	memcpy(WBUFP(buf,6), md->name, 24);
-	sprintf(mobhp, "hp: %d/%d", md->hp, mob_db[md->class_].max_hp);
-	WBUFW(buf, 0) = 0x195;
-	memcpy(WBUFP(buf,30), mobhp, 24);
-	WBUFL(buf,54) = 0;
-	WBUFL(buf,78) = 0;
-	clif_send(buf,packet_len_table[0x195],&md->bl,AREA);
-
-	return 0;
-}
 /*==========================================
  * パーティ場所移動（未使用）
  *------------------------------------------
@@ -7726,6 +7703,101 @@ int clif_refresh(struct map_session_data *sd) {
 	return 0;
 }
 
+// updates the object's (bl) name on client
+int clif_charnameack (int fd, struct block_list *bl)
+{
+	unsigned char buf[103];
+	int cmd = 0x95;
+
+	nullpo_retr(0, bl);
+
+	WBUFW(buf,0) = cmd;
+	WBUFL(buf,2) = bl->id;
+
+	switch(bl->type) {
+	case BL_PC:
+		{
+			struct map_session_data *ssd = (struct map_session_data *)bl;
+			struct party *p = NULL;
+			struct guild *g = NULL;
+
+			nullpo_retr(0, ssd);
+
+			if (strlen(ssd->fakename)>1) {
+				memcpy(WBUFP(buf,6), ssd->fakename, 24);
+				break;
+			}
+			memcpy(WBUFP(buf,6), ssd->status.name, 24);
+			if (ssd->status.guild_id > 0 && (g = guild_search(ssd->status.guild_id)) != NULL &&
+				(ssd->status.party_id == 0 || (p = party_search(ssd->status.party_id)) != NULL)) {
+				// ギルド所属ならパケット0195を返す
+				int i, ps = -1;
+				for(i = 0; i < g->max_member; i++) {
+					if (g->member[i].account_id == ssd->status.account_id &&
+						g->member[i].char_id == ssd->status.char_id )
+						ps = g->member[i].position;
+				}
+				if (ps >= 0 && ps < MAX_GUILDPOSITION) {
+					WBUFW(buf, 0) = cmd = 0x195;
+					if (p)
+						memcpy(WBUFP(buf,30), p->name, 24);
+					else
+						WBUFB(buf,30) = 0;
+					memcpy(WBUFP(buf,54), g->name,24);
+					memcpy(WBUFP(buf,78), g->position[ps].name, 24);
+					break;
+				}
+			}
+		}
+		break;
+	case BL_PET:
+		memcpy(WBUFP(buf,6), ((struct pet_data*)bl)->name, 24);
+		break;
+	case BL_NPC:
+		memcpy(WBUFP(buf,6), ((struct npc_data*)bl)->name, 24);
+		break;
+	case BL_MOB:
+		{
+			struct mob_data *md = (struct mob_data *)bl;
+			nullpo_retr(0, md);
+
+			memcpy(WBUFP(buf,6), md->name, 24);
+			if (md->class_ >= 1285 && md->class_ <= 1288 && md->guild_id) {
+				struct guild *g;
+				struct guild_castle *gc = guild_mapname2gc(map[md->bl.m].name);
+				if (gc && gc->guild_id > 0 && (g = guild_search(gc->guild_id)) != NULL) {
+					WBUFW(buf, 0) = cmd = 0x195;
+					WBUFB(buf,30) = 0;
+					memcpy(WBUFP(buf,54), g->name, 24);
+					memcpy(WBUFP(buf,78), gc->castle_name, 24);
+				}
+			} else if (battle_config.show_mob_hp == 1) {
+				char mobhp[50];
+				WBUFW(buf, 0) = cmd = 0x195;
+				sprintf(mobhp, "hp: %d/%d", md->hp, md->max_hp);
+				memcpy(WBUFP(buf,30), mobhp, 24);
+				WBUFB(buf,54) = 0;
+				WBUFB(buf,78) = 0;
+			}
+		}
+		break;
+	default:
+		if (battle_config.error_log)
+			printf("clif_parse_GetCharNameRequest : bad type %d(%d)\n", bl->type, bl->id);
+		return 0;
+	}
+
+	// if no receipient specified just update nearby clients
+	if (fd == 0)
+		clif_send(buf, packet_len_table[cmd], bl, AREA);
+	else {
+		memcpy(WFIFOP(fd, 0), buf, packet_len_table[cmd]);
+		WFIFOSET(fd, packet_len_table[cmd]);
+	}
+
+	return 0;
+}
+
 // ------------
 // clif_parse_*
 // ------------
@@ -7977,16 +8049,13 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 			clif_pet_emotion(sd->pd,(sd->pd->class_ - 100)*100 + 50 + pet_hungry_val(sd));
 
 /*						Stop players from spawning inside castles [Valaris]					*/
-
-                        {
+		{
 			struct guild_castle *gc=guild_mapname2gc(map[sd->bl.m].name);
 			if (gc)
 				pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,2);
-                        }
-
+			}
 /*						End Addition [Valaris]			*/
-
-		}
+	}
 
 	// view equipment item
 #if PACKETVER < 4
@@ -8013,19 +8082,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(battle_config.muting_players && sd->status.manner < 0)
 		status_change_start(&sd->bl,SC_NOCHAT,0,0,0,0,0,0);
 
-	if (night_flag) {
-		if (battle_config.night_darkness_level > 0 && !map[sd->bl.m].flag.indoors)
-			clif_specialeffect(&sd->bl, 474 + battle_config.night_darkness_level, 0);
-		else {
-			//clif_specialeffect(&sd->bl, 483, 0); // default darkness level
-			// night - when changing from indoors to outdoors - celest
-			if (!map[sd->bl.m].flag.indoors && sd->opt2 != STATE_BLIND)
-				sd->opt2 |= STATE_BLIND;
-			// changing from outdoors to indoors
-			else if (map[sd->bl.m].flag.indoors && sd->opt2 == STATE_BLIND)
-				sd->opt2 &= ~STATE_BLIND;
-		}
-	}
+	if (night_flag && !map[sd->bl.m].flag.indoors)
+		clif_weather1(sd->fd, 474 + battle_config.night_darkness_level);
 
 	// option
 	clif_changeoption(&sd->bl);
@@ -8246,7 +8304,6 @@ void clif_parse_QuitGame(int fd, struct map_session_data *sd) {
  *------------------------------------------
  */
 void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd) {
-	struct block_list *bl;
 	int account_id;
 
 	if (USE_PACKET_DB(sd)) {
@@ -8286,98 +8343,8 @@ void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd) {
 			break;
 		}
 	}
-	bl = map_id2bl(account_id);
-	if (bl == NULL)
-		return;
 
-	WFIFOW(fd,0) = 0x95;
-	WFIFOL(fd,2) = account_id;
-
-	switch(bl->type) {
-	case BL_PC:
-	  {
-		struct map_session_data *ssd = (struct map_session_data *)bl;
-		struct party *p = NULL;
-		struct guild *g = NULL;
-
-		nullpo_retv(ssd);
-
-		if(strlen(ssd->fakename)>1) {
-			memcpy(WFIFOP(fd,6), ssd->fakename, 24);
-			WFIFOSET(fd,packet_len_table[0x95]);
-			break;
-		} else {
-			memcpy(WFIFOP(fd,6), ssd->status.name, 24);
-		}
-		if (ssd->status.guild_id > 0 && (g = guild_search(ssd->status.guild_id)) != NULL &&
-		    (ssd->status.party_id == 0 || (p = party_search(ssd->status.party_id)) != NULL)) {
-			// ギルド所属ならパケット0195を返す
-			int i, ps = -1;
-			for(i = 0; i < g->max_member; i++) {
-				if (g->member[i].account_id == ssd->status.account_id &&
-				    g->member[i].char_id == ssd->status.char_id )
-					ps = g->member[i].position;
-			}
-			if (ps >= 0 && ps < MAX_GUILDPOSITION) {
-				WFIFOW(fd, 0) = 0x195;
-				if (p)
-					memcpy(WFIFOP(fd,30), p->name, 24);
-				else
-					WFIFOB(fd,30) = 0;
-				memcpy(WFIFOP(fd,54), g->name,24);
-				memcpy(WFIFOP(fd,78), g->position[ps].name, 24);
-				WFIFOSET(fd,packet_len_table[0x195]);
-				break;
-			}
-		}
-		WFIFOSET(fd,packet_len_table[0x95]);
-	  }
-		break;
-	case BL_PET:
-		memcpy(WFIFOP(fd,6), ((struct pet_data*)bl)->name, 24);
-		WFIFOSET(fd,packet_len_table[0x95]);
-		break;
-	case BL_NPC:
-		memcpy(WFIFOP(fd,6), ((struct npc_data*)bl)->name, 24);
-		WFIFOSET(fd,packet_len_table[0x95]);
-		break;
-	case BL_MOB:
-		{
-			struct mob_data *md = (struct mob_data *)bl;
-
-			nullpo_retv(md);
-
-			memcpy(WFIFOP(fd,6), md->name, 24);
-			if (md->class_ >= 1285 && md->class_ <= 1288 && md->guild_id) {
-				struct guild *g;
-				struct guild_castle *gc = guild_mapname2gc(map[md->bl.m].name);
-				if (gc && gc->guild_id > 0 && (g = guild_search(gc->guild_id)) != NULL) {
-					WFIFOW(fd, 0) = 0x195;
-					WFIFOB(fd,30) = 0;
-					memcpy(WFIFOP(fd,54), g->name, 24);
-					memcpy(WFIFOP(fd,78), gc->castle_name, 24);
-					WFIFOSET(fd,packet_len_table[0x195]);
-				} else {
-					WFIFOSET(fd,packet_len_table[0x95]);
-				}
-			} else if (battle_config.show_mob_hp == 1) {
-				char mobhp[50];
-				sprintf(mobhp, "hp: %d/%d", md->hp, md->max_hp);
-				WFIFOW(fd, 0) = 0x195;
-				memcpy(WFIFOP(fd,30), mobhp, 24);
-				WFIFOB(fd,54) = 0;
-				WFIFOB(fd,78) = 0;
-				WFIFOSET(fd,packet_len_table[0x195]);
-			} else {
-				WFIFOSET(fd,packet_len_table[0x95]);
-			}
-		}
-		break;
-	default:
-		if (battle_config.error_log)
-			printf("clif_parse_GetCharNameRequest : bad type %d(%d)\n", bl->type, account_id);
-		break;
-	}
+	clif_charnameack(fd, map_id2bl(account_id));
 }
 
 /*==========================================

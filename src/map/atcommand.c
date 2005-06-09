@@ -3753,6 +3753,10 @@ int atcommand_packet(
 		sd->status.skill[x].flag = 13;//cloneskill flag
 		clif_skillinfoblock(sd);
 		break;
+	case 2:
+		clif_skill_nodamage(&sd->bl,&sd->bl,x,y,1);
+	case 3:
+		clif_skill_poseffect(&sd->bl,x,y,sd->bl.x,sd->bl.y,gettick());
 	default:
 		break;
 		//added later
@@ -6741,11 +6745,15 @@ atcommand_follow(const int fd, struct map_session_data* sd,
 
 	if (!message || !*message)
 		return -1;
-	if((pl_sd=map_nick2sd((char *) message)) != NULL)
-		pc_follow(sd, pl_sd->bl.id);
-	else
-		return 1;
-	return 0;
+	if ((pl_sd = map_nick2sd((char *) message)) != NULL) {
+		if (sd->followtarget == pl_sd->bl.id)
+			pc_stop_following (sd);
+		else
+			pc_follow(sd, pl_sd->bl.id);
+		return 0;
+	}
+	
+	return 1;
 }
 
 
@@ -6765,7 +6773,7 @@ atcommand_dropall(const int fd, struct map_session_data* sd,
 	if (sd->status.inventory[i].amount) {
 		if(sd->status.inventory[i].equip != 0)
 			pc_unequipitem(sd, i, 3);
-		pc_dropitem(sd,  i, sd->status.inventory[i].amount);
+			pc_dropitem(sd,  i, sd->status.inventory[i].amount);
 		}
 	}
 	return 0;
@@ -9233,7 +9241,7 @@ int atcommand_fakename(
 	}
 	
 	strcpy(sd->fakename,name);
-	pc_setpos(sd, sd->mapname, sd->bl.x, sd->bl.y, 3);
+	clif_charnameack(0, &sd->bl);
 	clif_displaymessage(sd->fd,"Fake name enabled.");
 	
 	return 0;

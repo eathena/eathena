@@ -817,15 +817,11 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 		sd->state.event_disconnect = 1;
 	}
 
-	if (night_flag == 1 && !map[sd->bl.m].flag.indoors) {
+	if (night_flag && !map[sd->bl.m].flag.indoors) {
 		char tmpstr[1024];
 		strcpy(tmpstr, msg_txt(500)); // Actually, it's the night...
 		clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
-		if (battle_config.night_darkness_level > 0)
-			clif_specialeffect(&sd->bl, 474 + battle_config.night_darkness_level, 0);
-		else
-			//clif_specialeffect(&sd->bl, 483, 0); // default darkness level
-			sd->opt2 |= STATE_BLIND;
+		clif_weather1(sd->fd, 474 + battle_config.night_darkness_level);
 	}
 
 	// ステ?タス初期計算など
@@ -4041,13 +4037,12 @@ int pc_stopattack(struct map_session_data *sd)
 
 int pc_follow_timer(int tid,unsigned int tick,int id,int data)
 {
-  struct map_session_data *sd, *bl;
+	struct map_session_data *sd, *tsd;
 
-  sd=map_id2sd(id);
+	sd = map_id2sd(id);
+	nullpo_retr(0, sd);
 
-  nullpo_retr(0, sd);
-    
-  if(sd->followtimer != tid){
+	if (sd->followtimer != tid){
 		if(battle_config.error_log)
 			printf("pc_follow_timer %d != %d\n",sd->followtimer,tid);
 		sd->followtimer = -1;
@@ -4055,42 +4050,54 @@ int pc_follow_timer(int tid,unsigned int tick,int id,int data)
 	}
 
 	sd->followtimer = -1;
-  
 	if (pc_isdead(sd))
 		return 0;
 
-	if(sd->bl.prev != NULL &&
-		(bl=(struct map_session_data *) map_id2bl(sd->followtarget)) != NULL &&
-		bl->bl.prev != NULL)
+	if ((tsd = map_id2sd(sd->followtarget)) != NULL)
 	{
-		if(bl->bl.type == BL_PC && pc_isdead((struct map_session_data *)bl))
+		if (pc_isdead(tsd))
 			return 0;
 
-		if (sd->skilltimer == -1 && sd->attacktimer == -1 && sd->walktimer == -1) {
-			if((sd->bl.m == bl->bl.m) && pc_can_reach(sd,bl->bl.x,bl->bl.y)) {
-				if (distance(sd->bl.x,sd->bl.y,bl->bl.x,bl->bl.y) > 5)
-					pc_walktoxy(sd,bl->bl.x,bl->bl.y);
+		// either player or target is currently detached from map blocks (could be teleporting),
+		// but still connected to this map, so we'll just increment the timer and check back later
+		if (sd->bl.prev != NULL && tsd->bl.prev != NULL &&
+			sd->skilltimer == -1 && sd->attacktimer == -1 && sd->walktimer == -1)
+		{
+			if((sd->bl.m == tsd->bl.m) && pc_can_reach(sd,tsd->bl.x,tsd->bl.y)) {
+				if (distance(sd->bl.x,sd->bl.y,tsd->bl.x,tsd->bl.y) > 5)
+					pc_walktoxy(sd,tsd->bl.x,tsd->bl.y);
 			} else
-				pc_setpos((struct map_session_data*)sd, bl->mapname, bl->bl.x, bl->bl.y, 3);
+				pc_setpos(sd, tsd->mapname, tsd->bl.x, tsd->bl.y, 3);
 		}
-		sd->followtimer=add_timer(tick + sd->aspd,pc_follow_timer,sd->bl.id,0);
+		sd->followtimer = add_timer(
+			tick + sd->aspd + rand() % 1000,	// increase time a bit to loosen up map's load
+			pc_follow_timer, sd->bl.id, 0);
 	}
+	return 0;
+}
+
+int pc_stop_following (struct map_session_data *sd)
+{
+	nullpo_retr(0, sd);
+
+	if (sd->followtimer != -1) {
+		delete_timer(sd->followtimer,pc_follow_timer);
+		sd->followtimer = -1;
+	}
+	sd->followtarget = -1;
+
 	return 0;
 }
 
 int pc_follow(struct map_session_data *sd,int target_id)
 {
-	struct block_list *bl;
-
-	bl=map_id2bl(target_id);
-	if(bl==NULL)
+	struct block_list *bl = map_id2bl(target_id);
+	if (bl == NULL || bl->type != BL_PC)
 		return 1;
-	sd->followtarget=target_id;
-	if(sd->followtimer != -1) {
-	    delete_timer(sd->followtimer,pc_follow_timer);
-	    sd->followtimer = -1;
-        }
+	if (sd->followtimer != -1)
+		pc_stop_following(sd);
 
+	sd->followtarget = target_id;
 	pc_follow_timer(-1,gettick(),sd->bl.id,0);
 
 	return 0;
@@ -7278,26 +7285,17 @@ int pc_read_gm_account(int fd)
  */
 int map_day_timer(int tid, unsigned int tick, int id, int data)
 {
-	struct map_session_data *pl_sd;
-	
 	if (data == 0 && battle_config.day_duration <= 0)	// if we want a day
 		return 0;
 	
 	if (night_flag != 0) {
 		int i;
-		strcpy(tmp_output, (data == 0) ? msg_txt(502) : msg_txt(60)); // The day has arrived!
 		night_flag = 0; // 0=day, 1=night [Yor]
-		for(i = 0; i < fd_max; i++) {
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
-				if (battle_config.night_darkness_level > 0)
-					clif_refresh (pl_sd);
-				else {
-					pl_sd->opt2 &= ~STATE_BLIND;
-					clif_changeoption(&pl_sd->bl);
-				}
-				clif_wis_message(pl_sd->fd, wisp_server_name, tmp_output, strlen(tmp_output)+1);
-			}
-		}
+		for (i = 0; i < map_num; i++)
+			clif_clearweather(i);
+
+		strcpy(tmp_output, (data == 0) ? msg_txt(502) : msg_txt(60)); // The day has arrived!
+		intif_GMmessage(tmp_output, strlen(tmp_output) + 1, 0);
 	}
 
 	return 0;
@@ -7317,20 +7315,13 @@ int map_night_timer(int tid, unsigned int tick, int id, int data)
 	
 	if (night_flag == 0) {
 		int i;
-		strcpy(tmp_output, (data == 0) ? msg_txt(503) : msg_txt(59)); // The night has fallen...
 		night_flag = 1; // 0=day, 1=night [Yor]
 		for(i = 0; i < fd_max; i++) {
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth  && !map[pl_sd->bl.m].flag.indoors) {
-				if (battle_config.night_darkness_level > 0)
-					clif_specialeffect(&pl_sd->bl, 474 + battle_config.night_darkness_level, 0);
-				else {
-					//clif_specialeffect(&pl_sd->bl, 483, 0); // default darkness level
-					pl_sd->opt2 |= STATE_BLIND;
-					clif_changeoption(&pl_sd->bl);
-				}
-				clif_wis_message(pl_sd->fd, wisp_server_name, tmp_output, strlen(tmp_output)+1);
-			}
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth  && !map[pl_sd->bl.m].flag.indoors)
+				clif_weather1(i, 474 + battle_config.night_darkness_level);
 		}
+		strcpy(tmp_output, (data == 0) ? msg_txt(503) : msg_txt(59)); // The night has fallen...
+		intif_GMmessage(tmp_output, strlen(tmp_output) + 1, 0);
 	}
 
 	return 0;
