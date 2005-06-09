@@ -1,5 +1,7 @@
 Date	Added
 06/08
+	* Modified @disguise so that it will always work with Npc/Mob names and Mob
+	  Ids. Only npc by id is hardcoded for now.	[Skotlex]
 	* Added atcommands cleanmap, npctalk, pettalk to atcommand_athena.conf with their
 	  description.	[Skotlex]
 	* Fixed spawn delays for anthell eggs	[Skotlex]

@@ -6113,7 +6113,7 @@ int atcommand_disguise(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	int mob_id = 0;
+	int id = 0;
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message) {
@@ -6121,6 +6121,33 @@ int atcommand_disguise(
 		return -1;
 	}
 
+	if ((id = atoi(message)) > 0)
+	{	//Acquired an ID
+		if ((id = mobdb_checkid(id)) == 0)
+		{ //TODO: There's no numdb_search for npcs, so we use hard-coded seeks for now.
+			id = atoi(message);
+			if ((id >=  46 && id <= 125) || (id >= 700 && id <= 718) ||
+	   		 (id >= 721 && id <= 755) || (id >= 757 && id <= 811) ||
+			    (id >= 813 && id <= 858));	//Valid NPC numbers
+			else
+				id = 0;
+		}
+	}	else	{ //Acquired a Name
+		if ((id = mobdb_searchname(message)) == 0)
+		{
+			struct npc_data* nd = npc_name2id(message);
+			if (nd != NULL)
+				id = nd->n;
+		}
+	}
+
+	if (id == 0)
+	{	// Monster/NPC name/id hasn't been found.
+		clif_displaymessage(fd, msg_table[123]); 
+		return -1;
+	}
+
+	/* The previous way.... 
 	if ((mob_id = mobdb_searchname(message)) == 0) // check name first (to avoid possible name begining by a number)
 		mob_id = atoi(message);
 
@@ -6128,17 +6155,14 @@ int atcommand_disguise(
 	    (mob_id >= 721 && mob_id <= 755) || (mob_id >= 757 && mob_id <= 811) || // NPC
 	    (mob_id >= 813 && mob_id <= 858) || // NPC
 	    (mob_id > 1000 && mob_id < 1582)) { // monsters
-		pc_stop_walking(sd,0);
-		clif_clearchar(&sd->bl, 0);
-		sd->disguise = mob_id;
-		sd->disguiseflag = 1; // set to override items with disguise script [Valaris]
-		clif_changeoption(&sd->bl);
-		clif_spawnpc(sd);
-		clif_displaymessage(fd, msg_table[122]); // Disguise applied.
-	} else {
-		clif_displaymessage(fd, msg_table[123]); // Monster/NPC name/id hasn't been found.
-		return -1;
-	}
+	*/
+	pc_stop_walking(sd,0);
+	clif_clearchar(&sd->bl, 0);
+	sd->disguise = id;
+	sd->disguiseflag = 1; // set to override items with disguise script [Valaris]
+	clif_changeoption(&sd->bl);
+	clif_spawnpc(sd);
+	clif_displaymessage(fd, msg_table[122]); // Disguise applied.
 
 	return 0;
 }
