@@ -4133,31 +4133,21 @@ struct Damage battle_calc_weapon_attack(
 		else
 			memset(&wd,0,sizeof(wd));
 	}
-	if(battle_config.equipment_break_rate && src->type==BL_PC && (wd.damage > 0 || wd.damage2 > 0)) {
+	if ( src->type==BL_PC &&
+		( battle_config.equip_self_break_rate || battle_config.equip_skill_break_rate ) &&
+		(wd.damage > 0 || wd.damage2 > 0)) {
 		struct map_session_data *sd = (struct map_session_data *)src;
-		// weapon = 0, armor = 1
-		int breakrate = 1;	//0.01% default self weapon breaking chance [DracoRPG]
-		int breakrate_[2] = {0,0};	//enemy breaking chance [celest]
-		int breaktime = 5000;
-
-		breakrate_[0] += sd->break_weapon_rate;
-		breakrate_[1] += sd->break_armor_rate;
-
-		if (sd->sc_count) {
-			if (sd->sc_data[SC_MELTDOWN].timer!=-1) {
-				breakrate_[0] += 100*sd->sc_data[SC_MELTDOWN].val1;
-				breakrate_[1] = 70*sd->sc_data[SC_MELTDOWN].val1;
-				breaktime = skill_get_time2(WS_MELTDOWN,1);
+		if (battle_config.equip_self_break_rate && sd->status.weapon != 11)
+		{	//Self weapon breaking chance (Bows exempted)
+			int breakrate = 1;	//0.01% default self weapon breaking chance [DracoRPG]
+			if (sd->sc_count) {
+				if(sd->sc_data[SC_OVERTHRUST].timer!=-1)
+					breakrate += 10;
+				if(sd->sc_data[SC_MAXOVERTHRUST].timer!=-1)
+					breakrate += 10;				
 			}
-			if(sd->sc_data[SC_OVERTHRUST].timer!=-1)
-				breakrate += 10;
-			if(sd->sc_data[SC_MAXOVERTHRUST].timer!=-1)
-				breakrate += 10;				
-		}
-
-		if(sd->status.weapon && sd->status.weapon != 11) {
-			if(rand() % 10000 < breakrate * battle_config.equipment_break_rate / 100 || breakrate >= 10000)
-				if (pc_breakweapon(sd) == 1)
+			if(rand() % 10000 < breakrate * battle_config.equip_self_break_rate / 100 || breakrate >= 10000)
+				if (pc_breakweapon(sd))
 				{
 					if (battle_config.new_attack_function)
 						wd = battle_calc_weapon_attack_sub(src,target,skill_num,skill_lv,wflag);
@@ -4165,20 +4155,38 @@ struct Damage battle_calc_weapon_attack(
 						wd = battle_calc_pc_weapon_attack(src,target,skill_num,skill_lv,wflag);
 				}
 		}
-		if(rand() % 10000 < breakrate_[0] * battle_config.equipment_break_rate / 100 || breakrate_[0] >= 10000) {
-			if (target->type == BL_PC) {
-				struct map_session_data *tsd = (struct map_session_data *)target;
-				if(tsd->status.weapon != 11)
-					pc_breakweapon(tsd);
-			} else
-				status_change_start(target,SC_STRIPWEAPON,1,75,0,0,breaktime,0);
-		}
-		if(rand() % 10000 < breakrate_[1] * battle_config.equipment_break_rate/100 || breakrate_[1] >= 10000) {
-			if (target->type == BL_PC) {
-				struct map_session_data *tsd = (struct map_session_data *)target;
-				pc_breakarmor(tsd);
-			} else
-				status_change_start(target,SC_STRIPSHIELD,1,75,0,0,breaktime,0);
+		if (battle_config.equip_skill_break_rate)
+		{	//Target equipment breaking
+			// weapon = 0, armor = 1
+			int breakrate_[2] = {0,0};	//target breaking chance [celest]
+			int breaktime = 5000;
+
+			breakrate_[0] += sd->break_weapon_rate;
+			breakrate_[1] += sd->break_armor_rate;
+
+			if (sd->sc_count) {
+				if (sd->sc_data[SC_MELTDOWN].timer!=-1) {
+					breakrate_[0] += 100*sd->sc_data[SC_MELTDOWN].val1;
+					breakrate_[1] = 70*sd->sc_data[SC_MELTDOWN].val1;
+					breaktime = skill_get_time2(WS_MELTDOWN,1);
+				}
+			}
+			
+			if(rand() % 10000 < breakrate_[0] * battle_config.equip_skill_break_rate / 100 || breakrate_[0] >= 10000) {
+				if (target->type == BL_PC) {
+					struct map_session_data *tsd = (struct map_session_data *)target;
+					if(tsd->status.weapon != 11)
+						pc_breakweapon(tsd);
+				} else
+					status_change_start(target,SC_STRIPWEAPON,1,75,0,0,breaktime,0);
+			}
+			if(rand() % 10000 < breakrate_[1] * battle_config.equip_skill_break_rate/100 || breakrate_[1] >= 10000) {
+				if (target->type == BL_PC) {
+					struct map_session_data *tsd = (struct map_session_data *)target;
+					pc_breakarmor(tsd);
+				} else
+					status_change_start(target,SC_STRIPSHIELD,1,75,0,0,breaktime,0);
+			}
 		}
 	}
 
@@ -5481,8 +5489,8 @@ static const struct battle_data_short {
 	{ "maximum_level",                     &battle_config.maximum_level	},	// [Valaris]
 	{ "drops_by_luk",                      &battle_config.drops_by_luk	},	// [Valaris]
 	{ "monsters_ignore_gm",                &battle_config.monsters_ignore_gm	},	// [Valaris]
-//	{ "equipment_breaking",                &battle_config.equipment_breaking	},	// [Valaris]
-	{ "equipment_break_rate",              &battle_config.equipment_break_rate	}, 	// [Valaris]
+	{ "equip_self_break_rate",             &battle_config.equip_self_break_rate	},
+	{ "equip_skill_break_rate",            &battle_config.equip_skill_break_rate	},
 	{ "pk_mode",                           &battle_config.pk_mode			},  	// [Valaris]
 	{ "pet_equip_required",                &battle_config.pet_equip_required	},	// [Valaris]
 	{ "multi_level_up",                    &battle_config.multi_level_up		}, // [Valaris]
@@ -5812,8 +5820,8 @@ void battle_set_defaults() {
 	battle_config.prevent_logout = 1;	// Added by RoVeRT
 	battle_config.maximum_level = 255;	// Added by Valaris
 	battle_config.drops_by_luk = 0;	// [Valaris]
-//	battle_config.equipment_breaking = 0; // [Valaris]
-	battle_config.equipment_break_rate = 100; // [Valaris]
+	battle_config.equip_self_break_rate = 100; // [Valaris], adapted by [Skotlex]
+	battle_config.equip_skill_break_rate = 100; // [Valaris], adapted by [Skotlex]
 	battle_config.pk_mode = 0; // [Valaris]
 	battle_config.pet_equip_required = 0; // [Valaris]
 	battle_config.multi_level_up = 0; // [Valaris]

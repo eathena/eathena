@@ -1,5 +1,10 @@
 Date	Added
 06/09
+	* Added fist (bare hands) to the list of unbreakable equipment in
+	  pc_break_equipment	[Skotlex]
+	* Reestructured battle_config options for equipment breaking [Skotlex]
+	  Removed equipment_breaking and added equip_self_break_rate,
+	  equip_skill_break_rate. Read battle_athena.conf for more info.
 	* Fixed getpetinfo(2) crash. [Skotlex]
 	* Added a couple missing lines from my PSIBlade merge of disguises. Name, attacking 
 	  and such are fixed now with disguises. [Valaris]
