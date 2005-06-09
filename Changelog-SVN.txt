@@ -1,5 +1,11 @@
 Date	Added
 06/08
+	* Updated idle time considerations. [Skotlex]
+	  A character's idle time is reset upon: Walking, attacking (auto-attack
+	  counts too), using a skill or using a item.
+	* idle_no_share changed from a Yes/No setting to # of seconds before
+	  considering character idle (no/0 still disables). [Skotlex]
+	* Updated idle_no_share description in battle_athena.conf
 	* Modified @disguise so that it will always work with Npc/Mob names and Mob
 	  Ids. Only npc by id is hardcoded for now.	[Skotlex]
 	* Added atcommands cleanmap, npctalk, pettalk to atcommand_athena.conf with their

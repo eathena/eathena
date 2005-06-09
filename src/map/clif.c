@@ -8199,6 +8199,10 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 			break;
 		}
 	}
+
+	//Set last idle time... [Skotlex]
+	sd->idletime = last_tick;
+
 	pc_walktoxy(sd, x, y);
 
 }
@@ -8732,6 +8736,9 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		}
 	}
 
+	//Regardless of what they have to do, they have just requested an action, no longer idle. [Skotlex]
+	sd->idletime = last_tick;
+
 	switch(action_type) {
 	case 0x00: // once attack
 	case 0x07: // continuous attack
@@ -9062,6 +9069,9 @@ void clif_parse_UseItem(int fd, struct map_session_data *sd) {
 	if (sd->invincible_timer != -1)
 		pc_delinvincibletimer(sd);
 
+	//Whether the item is used or not is irrelevant, the char ain't idle. [Skotlex]
+	sd->idletime = last_tick;
+	
 	if (USE_PACKET_DB(sd)) {
 		pc_useitem(sd,RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0])-2);
 	} else {
@@ -9518,6 +9528,9 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 		}
 	}
 
+	//Whether skill fails or not is irrelevant, the char ain't idle. [Skotlex]
+	sd->idletime = last_tick;
+	
 	if (skillnotok(skillnum, sd))
 		return;
 
@@ -9711,6 +9724,9 @@ void clif_parse_UseSkillToPos(int fd, struct map_session_data *sd) {
 			break;
 		}
 	}
+
+	//Whether skill fails or not is irrelevant, the char ain't idle. [Skotlex]
+	sd->idletime = last_tick;
 
 	if (skillnotok(skillnum, sd))
 		return;

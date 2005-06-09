@@ -3544,7 +3544,6 @@ int pc_walktoxy (struct map_session_data *sd, int x, int y)
 
 	sd->to_x = x;
 	sd->to_y = y;
-	sd->idletime = last_tick;
 
 	if (sd->walktimer != -1 /*&& sd->state.change_walk_target == 0*/)
 	{	//There was a timer-mismatch here. pc_walktoxy_sub does not clears previous pc_walk timers! [Skotlex]
@@ -3864,6 +3863,7 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 	if(sd == NULL)
 		return 0;
 
+	//Should we disable this line? Ctrl+click and then going away "IS" idling... [Skotlex]
 	sd->idletime = last_tick;
 
 	if(sd->attacktimer != tid){
@@ -3996,8 +3996,6 @@ int pc_attack(struct map_session_data *sd,int target_id,int type)
 	bl=map_id2bl(target_id);
 	if(bl==NULL)
 		return 1;
-
-	sd->idletime = last_tick;
 
 	if(bl->type==BL_NPC) { // monster npcs [Valaris]
 		//npc_click(sd,RFIFOL(sd->fd,2));
