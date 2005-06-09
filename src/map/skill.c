@@ -3068,7 +3068,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				pc_delitem(sd, i, 1, 0);
 			}
 			do {
-				abra_skillid = rand() % 331;
+				abra_skillid = rand() % MAX_SKILL_ABRA_DB;
 				if (skill_abra_db[abra_skillid].req_lv > skilllv ||
 					rand()%10000 >= skill_abra_db[abra_skillid].per ||		//dbに基づくレベル?確率判定
 					(abra_skillid >= NPC_PIERCINGATT && abra_skillid <= NPC_SUMMONMONSTER) ||	//NPCスキルはダメ
@@ -3087,7 +3087,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			{	// [Skotlex]
 				struct pet_data *pd = (struct pet_data *)src;
 				int inf = skill_get_inf(abra_skillid);
-				if (inf&4 || inf&16) { //Self-Skills, Supportive skills
+				if (inf&INF_SELF_SKILL || inf&INF_SUPPORT_SKILL) { 
 					nullpo_retr(1,(struct map_session_data *)pd->msd);
 					petskill_use(pd, &pd->msd->bl, abra_skillid, abra_skilllv, tick); 
 				} else //Assume offensive skills
@@ -5071,7 +5071,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	}
 
 	inf2 = skill_get_inf2(sd->skillid);
-	if( ( (skill_get_inf(sd->skillid)&1) || inf2&4 ) &&	// 彼我敵??係チェック
+	if( ( skill_get_inf(sd->skillid) & INF_ATTACK_SKILL || inf2&4 ) &&	// 彼我敵??係チェック
 		battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0 ) {
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
@@ -7817,7 +7817,6 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
  */
 int skill_castcancel (struct block_list *bl, int type)
 {
-	int inf;
 	int ret = 0;
 
 	nullpo_retr(0, bl);
@@ -7834,14 +7833,14 @@ int skill_castcancel (struct block_list *bl, int type)
 				clif_updatestatus(sd,SP_SPEED);
 			}
 			if (!type) {
-				if ((inf = skill_get_inf( sd->skillid )) == 2 || inf == 32)
+				if (skill_get_inf( sd->skillid ) & INF_GROUND_SKILL)
 					ret = delete_timer( sd->skilltimer, skill_castend_pos );
 				else
 					ret=delete_timer( sd->skilltimer, skill_castend_id );
 				if (ret < 0)
 					printf("delete timer error : skillid : %d\n", sd->skillid);
 			} else {
-				if ((inf = skill_get_inf( sd->skillid_old )) == 2 || inf == 32)
+				if (skill_get_inf( sd->skillid_old ) & INF_GROUND_SKILL)
 					ret = delete_timer( sd->skilltimer, skill_castend_pos );
 				else
 					ret = delete_timer( sd->skilltimer, skill_castend_id );
@@ -7856,7 +7855,7 @@ int skill_castcancel (struct block_list *bl, int type)
 		struct mob_data *md = (struct mob_data *)bl;
 		nullpo_retr(0, md);
 		if (md->skilltimer != -1) {
-			if ((inf = skill_get_inf( md->skillid )) == 2 || inf == 32)
+			if (skill_get_inf( md->skillid ) & INF_GROUND_SKILL)
 				ret = delete_timer( md->skilltimer, mobskill_castend_pos );
 			else
 				ret = delete_timer( md->skilltimer, mobskill_castend_id );

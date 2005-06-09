@@ -1,5 +1,7 @@
 Date	Added
 06/09
+	* Tidied up code relating to skill_get_inf() [Skotlex]
+	* Some small fixes to @grind, @useskill [Skotlex]
 	* Added fist (bare hands) to the list of unbreakable equipment in
 	  pc_break_equipment	[Skotlex]
 	* Reestructured battle_config options for equipment breaking [Skotlex]

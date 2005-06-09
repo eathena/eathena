@@ -6920,7 +6920,6 @@ atcommand_useskill(const int fd, struct map_session_data* sd,
 	struct map_session_data *pl_sd = NULL;
 	int skillnum;
 	int skilllv;
-	int inf;
 	char target[255];
 	nullpo_retr(-1, sd);
 
@@ -6934,9 +6933,7 @@ atcommand_useskill(const int fd, struct map_session_data* sd,
 		return -1;
 	}
 
-	inf = skill_get_inf(skillnum);
-
-	if ((inf == 2) || (inf == 1))
+	if (skill_get_inf(skillnum) & INF_GROUND_SKILL)
 		skill_use_pos(sd, pl_sd->bl.x, pl_sd->bl.y, skillnum, skilllv);
 	else
 		skill_use_id(sd, pl_sd->bl.id, skillnum, skilllv);
@@ -7186,9 +7183,9 @@ atcommand_grind(const int fd, struct map_session_data* sd,
 
 		inf = skill_get_inf(skillnum);
 
-		if ((inf == 2) || (inf == 1))
+		if (inf & INF_GROUND_SKILL)
 			skill_use_pos(sd, pl_sd->bl.x+5, pl_sd->bl.y+5, skillnum, 1);
-		else
+		else if (!(inf & INF_SUPPORT_SKILL))
 			skill_use_id(sd, pl_sd->bl.id, skillnum, 1);
 	}
 

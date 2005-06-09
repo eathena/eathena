@@ -284,7 +284,7 @@ int petskill_use(struct pet_data *pd, struct block_list *target, short skill_id,
 
 		pd->state.state=MS_ATTACK;
 		pd->state.casting_flag = 1;
-		if (skill_get_inf(skill_id) & 2) //Area Skill
+		if (skill_get_inf(skill_id) & INF_GROUND_SKILL)
 			clif_skillcasting( &pd->bl, pd->bl.id, 0, dat->x, dat->y, skill_id,casttime);
 		else
 			clif_skillcasting( &pd->bl, pd->bl.id, dat->target, 0,0, skill_id,casttime);
@@ -327,12 +327,12 @@ static int petskill_castend2(struct pet_data *pd, struct block_list *target, sho
 
 	pd->state.state=MS_IDLE;
 	
-	if (skill_get_inf(skill_id) & 2)
+	if (skill_get_inf(skill_id) & INF_GROUND_SKILL)
 	{	//Area skill
 		skill_castend_pos2(&pd->bl, skill_x, skill_y, skill_id, skill_lv, tick,0);
 	} else { //Targeted Skill
 		//Skills with inf = 4 (cast on self) have view range (assumed party skills)
-		range = (skill_get_inf(skill_id) & 4?battle_config.area_size:skill_get_range(skill_id, skill_lv));
+		range = (skill_get_inf(skill_id) & INF_SELF_SKILL?battle_config.area_size:skill_get_range(skill_id, skill_lv));
 		if(range < 0)
 			range = status_get_range(&pd->bl) - (range + 1);
 		if(distance(pd->bl.x, pd->bl.y, target->x, target->y) > range)

@@ -3241,7 +3241,7 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 		if(bl->type != BL_SKILL && (dist == 0 || map_check_dir(dir,t_dir)))
 			return 0;
 	}
-	if( ( (skill_get_inf(md->skillid)&1) || (skill_get_inf2(md->skillid)&4) ) &&	// 彼我敵対関係チェック
+	if( ( skill_get_inf(md->skillid) & INF_ATTACK_SKILL || skill_get_inf2(md->skillid)&4 ) &&	// 彼我敵対関係チェック
 		battle_check_target(&md->bl,bl, BCT_ENEMY)<=0 )
 		return 0;
 	range = skill_get_range(md->skillid,md->skilllv);
@@ -3753,7 +3753,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 		// 確率判定
 		if (flag && rand() % 1000 < ms[i].permillage)
 		{
-			if (skill_get_inf(ms[i].skill_id) & 2) {
+			if (skill_get_inf(ms[i].skill_id) & INF_GROUND_SKILL) {
 				// 場所指定
 				struct block_list *bl = NULL;
 				int x = 0, y = 0;
@@ -3900,7 +3900,7 @@ int mobskill_deltimer(struct mob_data *md )
 	nullpo_retr(0, md);
 
 	if( md->skilltimer!=-1 ){
-		if( skill_get_inf( md->skillid )&2 )
+		if( skill_get_inf( md->skillid )& INF_GROUND_SKILL )
 			delete_timer( md->skilltimer, mobskill_castend_pos );
 		else
 			delete_timer( md->skilltimer, mobskill_castend_id );
