@@ -23,12 +23,15 @@
 	4262,Taoist_Hermit_Card
 	4265,Li_Me_Mang_Ryang_Card
 
+
+06/09
+	* Fixed Ayothaya monsters drops and names thx 2 MasterOfMuppets [Lupus]
+=======
 07/05
 	* Corrected Ice Falchion, Firebrand, Electric Guitar [Skotlex]
 	  These should not give you a skill-tree, only auto-cast the skill.
 	  Ice Falc also has a 1% chance of freezing yourself.
 	* Removed the 20% HP cost of casting GrandCross.
-
 06/05
 	* Changed Grandcross/DarkCross's Interval from 300ms to 400ms [Skotlex]
 	  This fixes GX doing 4 hits instead of 3.

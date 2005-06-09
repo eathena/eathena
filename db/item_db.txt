@@ -70,8 +70,8 @@
 564,Meat_Dumpling,Meat Dumpling,0,20,0,30,,,,,0,2,,,,,,{ itemheal rand(175,234),0; },{}
 565,Vita_500_Bottle,Vita 500,0,2000,0,30,,,,,10477567,2,,,,,,{ itemheal 500,0; },{}
 566,Tom_Yum_Goong,Tom Yum Goong,0,20,150,0,,,,,10477567,2,,,,,,{ itemheal rand(100,200),0; },{}
-567,Prawn,Prawn,0,20,0,20,,,,,10477567,2,,,,,,{ itemheal rand(50,100),0; },{}
-568,Lemon,Lemon,0,20,0,20,,,,,0,2,,,,,,{},{}
+567,Shrimp,Shrimp,0,20,0,20,,,,,10477567,2,,,,,,{ itemheal rand(50,100),0; },{}
+568,Lemon,Lemon,0,20,0,20,,,,,0,2,,,,,,{ itemheal 0,rand(20,30); },{}
 569,Novice's_Red_Potion,Novices Red Potion,0,50,0,70,,,,,10477567,2,,,,,,{ itemheal rand(45,64),0; },{}
 // St.Valentine's Day Items
 570,Fortune_Candy,Fortune Candy,0,10,0,30,,,,,10477567,2,,,,,,{ itemheal rand(45,64),0; },{}
@@ -1815,26 +1815,26 @@
 7283,Quiz_Participation_Certificate_4,4th Quiz Entry,3,20,0,10,,,,,,,,,,,,{},{}
 7284,Quiz_Participation_Certificate_5,5th Quiz Entry,3,20,0,10,,,,,,,,,,,,{},{}
 
-// 11/09(Ayothana) Items
-7285,Sacred_Wool_Charm,Sacred Siltarae,3,20,0,10,,,,,,,,,,,,{},{}
+// 11/09(Ayotaya) Items
+7285,Holy_Threads,Holy Threads,3,20,0,10,,,,,,,,,,,,{},{}
 7286,Red_Chili,Red Chili,3,20,0,10,,,,,,,,,,,,{},{}
-7287,Sacred_Wool_Charm_2,Sacred Siltarae 2,3,20,0,10,,,,,,,,,,,,{},{}
+7287,Holier_Threads,Holier Threads,3,20,0,10,,,,,,,,,,,,{},{}
 7288,Engagement_Ring,Engagement Ring,3,20,0,10,,,,,,,,,,,,{},{}
-7289,Olivite,Olivite,3,20,0,100,,,,,,,,,,,,{},{}
-7290,Gold_Mica,Gold Mica,3,20,0,100,,,,,,,,,,,,{},{}
+7289,Peridot,Peridot,3,20,0,100,,,,,,,,,,,,{},{}
+7290,Phlogopite,Phlogopite,3,20,0,100,,,,,,,,,,,,{},{}
 7291,Agate,Agate,3,20,0,100,,,,,,,,,,,,{},{}
-7292,White_Mica,White Mica,3,20,0,100,,,,,,,,,,,,{},{}
+7292,Muscovite,Muscovite,3,20,0,100,,,,,,,,,,,,{},{}
 7293,Rose_Quartz,Rose Quartz,3,20,0,100,,,,,,,,,,,,{},{}
 7294,Turquoise,Turquoise,3,20,0,100,,,,,,,,,,,,{},{}
 7295,Citrine,Citrine,3,20,0,100,,,,,,,,,,,,{},{}
-7296,Augite,Augite,3,20,0,100,,,,,,,,,,,,{},{}
-7297,Black_Mica,Black Mica,3,20,0,100,,,,,,,,,,,,{},{}
-7298,Leaf_Cloth,Leaf Cloth,3,20,0,10,,,,,,,,,,,,{},{}
-7299,Bamboo_Basket,Bamboo Basket,3,20,0,10,,,,,,,,,,,,{},{}
-7300,Jeweled_Ore,Jeweled Ore,3,20,0,10,,,,,,,,,,,,{},{}
-7301,Knife_Decoration,Knife Decoration,3,20,0,10,,,,,,,,,,,,{},{}
+7296,Pyroxene,Pyroxene,3,20,0,100,,,,,,,,,,,,{},{}
+7297,Biotite,Biotite,3,20,0,100,,,,,,,,,,,,{},{}
+7298,Fig_Leaf,Fig Leaf,3,20,0,10,,,,,,,,,,,,{},{}
+7299,Straw_Basket,Straw Basket,3,20,0,10,,,,,,,,,,,,{},{}
+7300,Gemstone,Gemstone,3,20,0,10,,,,,,,,,,,,{},{}
+7301,Tassel,Tassel,3,20,0,10,,,,,,,,,,,,{},{}
 7302,Krathong,Krathong,3,20,0,10,,,,,,,,,,,,{},{}
-7303,Rice_Bag,Rice Straw Bag,3,20,0,800,,,,,,,,,,,,{},{}
+7303,Straw_Rice_Bag,Straw Rice Bag,3,20,0,800,,,,,,,,,,,,{},{}
 
 // 2005
 7304,Witchs_Spellbook,Witch's Spellbook,3,20,0,10,0,0,0,0,0,0,0,0,0,,0,{},{}
