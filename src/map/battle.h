@@ -337,6 +337,8 @@ extern struct Battle_Config {
 
 	unsigned short ignore_items_gender; //[Lupus]
 
+	unsigned short copyskill_restrict; // [Aru]
+
 	unsigned short dynamic_mobs; // Dynamic Mobs [Wizputer] - battle_athena flag implemented by [random]
 	unsigned short mob_remove_damaged; // Dynamic Mobs - Remove mobs even if damaged [Wizputer]
 	int mob_remove_delay; // Dynamic Mobs - delay before removing mobs from a map [Skotlex]

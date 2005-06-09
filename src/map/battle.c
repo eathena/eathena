@@ -2386,6 +2386,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				// calculate physical part of damage
 				damage_rate += 100*skill_lv-100;
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
+				no_cardfix = 1;
 				break;
 			case PA_SHIELDCHAIN:
 				damage_rate += 30*skill_lv-100;
@@ -3676,6 +3677,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					break;
 				case ASC_BREAKER:
 					skillratio+= 100*skill_lv -100;
+					flag.cardfix = 0;
 					break;
 				case PA_SACRIFICE:
 					skillratio+= 10*skill_lv -10;
@@ -5520,6 +5522,7 @@ static const struct battle_data_short {
 	{ "use_statpoint_table",               &battle_config.use_statpoint_table}, // [Skotlex]
 	{ "new_attack_function",               &battle_config.new_attack_function}, // [Skotlex]
 	{ "ignore_items_gender",               &battle_config.ignore_items_gender}, // [Lupus]
+	{ "copyskill_restrict",		       &battle_config.copyskill_restrict}, // [Aru]
 	{ "dynamic_mobs",                      &battle_config.dynamic_mobs},
 	{ "mob_remove_damaged",                &battle_config.mob_remove_damaged},
 	{ "show_hp_sp_drain",                  &battle_config.show_hp_sp_drain}, // [Skotlex]

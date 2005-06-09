@@ -1,4 +1,7 @@
 Date	Added
+06/09
+	* Added battle_config option to set if advanced job skills may be plagiarized
+	* Fixed ASC_BREAKER to ignore race/size/element cards like it should
 06/08
 	* Updated idle time considerations. [Skotlex]
 	  A character's idle time is reset upon: Walking, attacking (auto-attack

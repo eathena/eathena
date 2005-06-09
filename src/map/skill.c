@@ -611,6 +611,29 @@ int skill_castend_delay (struct block_list* src, struct block_list *bl,int skill
 int enchant_eff[5] = { 10, 14, 17, 19, 20 };
 int deluge_eff[5] = { 5, 9, 12, 14, 15 };
 
+// Making plagirize check its own function [Aru]
+int can_copy(struct map_session_data *sd, int skillid)
+{
+	// NPC Skills, never ok to copy
+	if(skillid >= NPC_PIERCINGATT && skillid <= NPC_SUMMONMONSTER)
+		return 0;
+	if(skillid >= NPC_RANDOMMOVE && skillid <= NPC_RUN)
+		return 0;
+	if(skillid >= WE_BABY && skillid <= NPC_EMOTION_ON)
+		return 0;
+
+	// High-class skills
+	if(skillid >= LK_AURABLADE)
+	{
+		if(battle_config.copyskill_restrict == 2)
+			return 0;
+		else if(battle_config.copyskill_restrict)
+			return (sd->status.class_ == 4018);
+	}
+
+	return 1;
+}
+
 // [MouseJstr] - skill ok to cast? and when?
 int skillnotok(int skillid, struct map_session_data *sd)
 {	
@@ -1591,9 +1614,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		sc_data[SC_PRESERVE].timer == -1){
 		struct map_session_data *tsd = (struct map_session_data *)bl;
 		if (tsd && (!tsd->status.skill[skillid].id || tsd->status.skill[skillid].flag >= 13) &&
-			!((skillid > NPC_PIERCINGATT && skillid < NPC_SUMMONMONSTER) ||
-			(skillid > NPC_RANDOMMOVE && skillid < NPC_RUN) ||
-			(skillid > TK_RUN && skillid < NPC_EMOTION_ON)))
+			can_copy(tsd,skillid))	// Split all the check into their own function [Aru]
 		{
 			//?に?んでいるスキルがあれば該?スキルを消す
 			if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag == 13){
