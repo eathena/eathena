@@ -6466,7 +6466,7 @@ int buildin_getpetinfo(struct script_state *st)
 					push_str(st->stack,C_STR,(unsigned char *) buf);
 				}
 				else
-					push_val(st->stack,C_INT,0);
+					push_str(st->stack,C_CONSTSTR, (unsigned char *) "null");
 				break;
 			case 3:
 				//if(sd->pet.intimate)

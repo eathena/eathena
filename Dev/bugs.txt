@@ -374,17 +374,30 @@ Progress:	100%
 
 Problem: (script related) Using callfunc/callsub inside a Menu crashes the server.
 Assigned:	None
-Progress:	0% 
+Progress:	- 
 	Using callfunc/callsub within a menu will cause the server to crash after the
 	user has selected an entry (the menu does finish displaying correctly). I
 	speculate that the return of the function is messing up the script resume point
-	in these situations. [Skotlex]
+	in these situations.
+	This should be marked as "not going to solve" as Lua should fix all script
+	related concerns once it's in place. [Skotlex]
 
 Problem: Dynamic mobs needs fixing
-Assigned:	None
-Progress:	90%
+Assigned:	Skotlex
+Progress:	99%
 	Changing the mob spawn/deletes to map_addblock/map_delblock seemed like the
 	best idea as that's where the number of users on the map goes up/down.
-	The code is in place to also remove spawned slaves, while not touching
-	summoned creatures. all which is left is to wait and see what bug reports
-	show up. [Skotlex]
+	To only remove cached mobs, a mob.cached flag is used, guaranteeing correct
+	choice of mobs to delete. Mob Slaves are also marked as cached. [Skotlex]
+
+Problem: The skill_db.txt contents are under-utilized.
+Assigned:	Skotlex
+Progress:	5%
+Notes:	There are values which are under-utilized like NK, while others
+really need a rethought. The skill_db should control most of the logic of how
+skills behave, yet almost 100% of the logic is handled inside the code.
+Example: NK determines the nature of a target-oriented skill: 1: skill does no
+damage, 2: skill does splash damage. Yet nowhere are we using that 2 value
+other than to call skill_castend_damage_id! And don't get me started on
+brandish spear having nk 1, then doing some initial calculations on
+skill_castend_nodamage_id and then invoking skill_castend_damage_id o.O

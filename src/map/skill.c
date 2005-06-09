@@ -5138,15 +5138,15 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 
 	switch( skill_get_nk(sd->skillid) )
 	{
-	/* U?Œn/‚«”ò‚Î‚µŒn */
-	case 0:	case 2:
-		skill_castend_damage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
-		break;
-	case 1:/* Žx‰‡Œn */
+	case NK_NO_DAMAGE:
 		if( (sd->skillid==AL_HEAL || (sd->skillid==ALL_RESURRECTION && bl->type != BL_PC) || sd->skillid==PR_ASPERSIO) && battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
 			skill_castend_damage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
 		else
 			skill_castend_nodamage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
+		break;
+	case NK_SPLASH_DAMAGE:
+	default:
+		skill_castend_damage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
 		break;
 	}
 

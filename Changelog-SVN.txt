@@ -1,5 +1,8 @@
 Date	Added
 06/09
+	* Tidied up code relating to skill_get_nk()	[Skotlex]
+	* Readded the previously removed skills from item_db [Skotlex]
+	* getpetinfo(2) will return "null" on no pet. [Skotlex]
 	* Tidied up code relating to skill_get_inf() [Skotlex]
 	* Some small fixes to @grind, @useskill [Skotlex]
 	* Added fist (bare hands) to the list of unbreakable equipment in

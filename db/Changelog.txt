@@ -25,6 +25,11 @@
 
 
 06/09
+	* Readded skills to items Electric Guitar, Firebrand & Ice Falchion [Skotlex]
+	* Some corrections to the skill_db.txt's nk value. [Skotlex]
+	  - Storm Gust: 1->0
+	  - Blitz-Beat: 1->2
+
 	* Fixed Ayothaya monsters drops and names thx 2 MasterOfMuppets [Lupus]
 =======
 07/05

@@ -4870,14 +4870,15 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 					f = skill_castend_pos2(src, target->x, target->y, skillid, skilllv, tick, flag);
 				else {
 					switch(skill_get_nk(skillid)) {
-						case 0:	case 2:
-							f = skill_castend_damage_id(src, target, skillid, skilllv, tick, flag);
-							break;
-						case 1:/* Žx‰‡Œn */
+						case NK_NO_DAMAGE:/* Žx‰‡Œn */
 							if((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && !tsd)) && battle_check_undead(race,ele))
 								f = skill_castend_damage_id(src, target, skillid, skilllv, tick, flag);
 							else
 								f = skill_castend_nodamage_id(src, target, skillid, skilllv, tick, flag);
+							break;
+						case NK_SPLASH_DAMAGE:
+						default:
+							f = skill_castend_damage_id(src, target, skillid, skilllv, tick, flag);
 							break;
 					}
 				}
@@ -4903,15 +4904,17 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 						skill_castend_pos2(src, tbl->x, tbl->y, skillid, skilllv, tick, flag);
 					else {
 						switch (skill_get_nk(skillid)) {
-							case 0:	case 2:
-								skill_castend_damage_id(src, tbl, skillid, skilllv, tick, flag);
-								break;
-							case 1:/* Žx‰‡Œn */
+							case NK_NO_DAMAGE:/* Žx‰‡Œn */
 								if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) && battle_check_undead(race,ele))
 									skill_castend_damage_id(src, tbl, skillid, skilllv, tick, flag);
 								else
 									skill_castend_nodamage_id(src, tbl, skillid, skilllv, tick, flag);
 								break;
+							case NK_SPLASH_DAMAGE:
+							default:
+								skill_castend_damage_id(src, tbl, skillid, skilllv, tick, flag);
+								break;
+
 						}
 					}
 				} else break;
@@ -4968,16 +4971,17 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 						skill_castend_pos2(target, tbl->x, tbl->y, skillid, skilllv, tick, flag);
 					else {
 						switch (skill_get_nk(skillid)) {
-							case 0:	case 2:
-								skill_castend_damage_id(target, tbl, skillid, skilllv, tick, flag);
-								break;
-							case 1:/* Žx‰‡Œn */
+							case NK_NO_DAMAGE:/* Žx‰‡Œn */
 								if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
 									battle_check_undead(status_get_race(tbl), status_get_elem_type(tbl)))
 									skill_castend_damage_id(target, tbl, skillid, skilllv, tick, flag);
 								else
 									skill_castend_nodamage_id(target, tbl, skillid, skilllv, tick, flag);
-									break;
+								break;
+							case NK_SPLASH_DAMAGE:
+							default:
+								skill_castend_damage_id(target, tbl, skillid, skilllv, tick, flag);
+								break;
 						}
 					}
 				} else break;
