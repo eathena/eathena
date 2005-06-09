@@ -6455,10 +6455,7 @@ int buildin_getpetinfo(struct script_state *st)
 				push_val(st->stack,C_INT,sd->status.pet_id);
 				break;
 			case 1:
-				if(sd->pet.class_)
-					push_val(st->stack,C_INT,sd->pet.class_);
-				else
-					push_val(st->stack,C_INT,0);
+				push_val(st->stack,C_INT,sd->pet.class_);
 				break;
 			case 2:
 				if(sd->pet.name)
