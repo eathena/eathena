@@ -1,5 +1,7 @@
 Date	Added
 06/09
+	* Added a couple missing lines from my PSIBlade merge of disgusies. Name, attacking 
+	  and such are fixed now with disguises. [Valaris]
 	* Added battle_config option to set if advanced job skills may be plagiarized
 	* Fixed ASC_BREAKER to ignore race/size/element cards like it should
 	* Changed @fakename so it no longer needs to teleport the client to work [celest]

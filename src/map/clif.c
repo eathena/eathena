@@ -8344,6 +8344,9 @@ void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd) {
 		}
 	}
 
+	if(account_id<0) // for disguises [Valaris]
+		account_id-=account_id*2;
+
 	clif_charnameack(fd, map_id2bl(account_id));
 }
 
@@ -8702,10 +8705,13 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 			break;
 		}
 	}
-
+	
 	//Regardless of what they have to do, they have just requested an action, no longer idle. [Skotlex]
 	sd->idletime = last_tick;
 
+	if(target_id<0) // for disguises [Valaris]
+		target_id-=(target_id*2);
+		
 	switch(action_type) {
 	case 0x00: // once attack
 	case 0x07: // continuous attack
@@ -9523,6 +9529,10 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 		return;
 	if (sd->invincible_timer != -1)
 		pc_delinvincibletimer(sd);
+	
+	if(target_id<0) // for disguises [Valaris]
+		target_id-=target_id*2;
+		
 	if (sd->skillitem >= 0 && sd->skillitem == skillnum) {
 		if (skilllv != sd->skillitemlv)
 			skilllv = sd->skillitemlv;
