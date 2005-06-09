@@ -6462,7 +6462,12 @@ int buildin_getpetinfo(struct script_state *st)
 				break;
 			case 2:
 				if(sd->pet.name)
-					push_str(st->stack,C_STR,(unsigned char *) sd->pet.name);
+				{	//Shamelessly copied from strcharinfo() [Skotlex]
+					char *buf;
+					buf=(char *)aCallocA(24,sizeof(char));
+					strncpy(buf,sd->pet.name, 23);
+					push_str(st->stack,C_STR,(unsigned char *) buf);
+				}
 				else
 					push_val(st->stack,C_INT,0);
 				break;
