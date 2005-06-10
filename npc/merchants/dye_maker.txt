@@ -164,7 +164,7 @@ morocc_in.gat,146,99,2	script	Dye Maker JavaDullihan	122,{
 				delitem 511,20;
 				delitem 508,20;
 				delitem 973,1;
-				delitem 977,1;
+				delitem 974,1;
 				delitem 713,1;
 				set Zeny, Zeny - 5000;
 				getitem 979,1;
@@ -186,7 +186,7 @@ morocc_in.gat,146,99,2	script	Dye Maker JavaDullihan	122,{
 				delitem 507,20;
 				delitem 508,20;
 				delitem 973,1;
-				delitem 977,1;
+				delitem 974,1;
 				delitem 713,1;
 				set Zeny, Zeny - 5000;
 				getitem 980,1;

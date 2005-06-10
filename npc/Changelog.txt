@@ -27,6 +27,9 @@ TODO:
 
 Date		Added
 ======
+06/10
+	* Fixed small error in Dye_maker, was trying to del an non-existant item, instead on mixture 
+	  Thank you Terminal Vertex
 06/05
 	* Fixed another error [Lunatikbunnie]
 06/03
