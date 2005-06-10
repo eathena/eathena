@@ -1,5 +1,6 @@
 Date	Added
 06/09
+	* Fixed a possible null_po in clif.c:7714 caused by lagged clients [Skotlex]
 	* Fixed enemy damage_delay being modified by 400 instead of 100. [Skotlex]
 	* Changed behaviour of map_freeblock/map_freeblock_unlock as the previous
 	  way seems to cause memory leaks. [Skotlex]

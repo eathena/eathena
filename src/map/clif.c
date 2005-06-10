@@ -8307,7 +8307,8 @@ void clif_parse_QuitGame(int fd, struct map_session_data *sd) {
  */
 void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd) {
 	int account_id;
-
+	struct block_list* bl;
+	
 	if (USE_PACKET_DB(sd)) {
 		account_id = RFIFOL(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0]);
 	} else {
@@ -8349,7 +8350,9 @@ void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd) {
 	if(account_id<0) // for disguises [Valaris]
 		account_id-=account_id*2;
 
-	clif_charnameack(fd, map_id2bl(account_id));
+	//Is this possible? Lagged clients could request names of already gone mobs/players. [Skotlex]
+	if ((bl = map_id2bl(account_id)) != NULL)	
+		clif_charnameack(fd, bl);
 }
 
 /*==========================================
