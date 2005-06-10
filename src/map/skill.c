@@ -7714,7 +7714,8 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 				sc_data[SC_BERSERK].timer != -1  ||
 				sc_data[SC_MARIONETTE].timer != -1 ||
 				sc_data[SC_BLADESTOP].timer != -1 ||
-				sc_data[SC_HERMODE].timer != -1)
+				sc_data[SC_HERMODE].timer != -1 ||
+				sc_data[SC_CHASEWALK].timer != -1)
 			return 0;
 
 		if (sc_data[SC_BASILICA].timer != -1) {
