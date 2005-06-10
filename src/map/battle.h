@@ -173,6 +173,7 @@ extern struct Battle_Config {
 	unsigned short shop_exp;
 	unsigned short combo_delay_rate;
 	unsigned short item_check;
+	unsigned short item_use_interval;	//[Skotlex]
 	unsigned short wedding_modifydisplay;
 	unsigned short wedding_ignorepalette;	//[Skotlex]
 	int natural_healhp_interval;

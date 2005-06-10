@@ -4,10 +4,13 @@
 
 #include "map.h"
 
+//We won't use NAME_LENGTH because some items are getting really long names! [Skotlex]
+#define ITEM_NAME_LENGTH 24
+
 struct item_data {
 	int nameid;
-	char name[24],jname[24];
-	char prefix[24],suffix[24];
+	char name[ITEM_NAME_LENGTH],jname[ITEM_NAME_LENGTH];
+	char prefix[NAME_LENGTH],suffix[NAME_LENGTH];
 	char cardillustname[64];
 	int value_buy;
 	int value_sell;

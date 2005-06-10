@@ -7,7 +7,7 @@
 
 struct pet_db {
 	int	class_;
-	char name[24],jname[24];
+	char name[NAME_LENGTH],jname[NAME_LENGTH];
 	int itemID;
 	int EggID;
 	int AcceID;

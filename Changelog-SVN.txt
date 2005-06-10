@@ -1,5 +1,7 @@
 Date	Added
 06/10
+	* Added battle_config option item_use_interval with default 500ms [Skotlex]
+	* Started map server memory bounds checking for overflows (20%) [Skotlex]
 	* Small optimizations on ensemble skills [Skotlex]
 	* Fixed some compile warnings on char-sql server [Skotlex]
 	* Added script function getitemslots(item_id);	[Skotlex]

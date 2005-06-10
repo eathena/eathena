@@ -5392,6 +5392,7 @@ static const struct battle_data_short {
 	{ "shop_exp",                          &battle_config.shop_exp					},
 	{ "combo_delay_rate",                  &battle_config.combo_delay_rate			},
 	{ "item_check",                        &battle_config.item_check				},
+	{ "item_use_interval",                 &battle_config.item_use_interval	},
 	{ "wedding_modifydisplay",             &battle_config.wedding_modifydisplay	},
 	{ "wedding_ignorepalette",             &battle_config.wedding_ignorepalette	},	//[Skotlex]
 	{ "natural_heal_weight_rate",          &battle_config.natural_heal_weight_rate	},
@@ -5707,6 +5708,7 @@ void battle_set_defaults() {
 	battle_config.shop_exp=0;
 	battle_config.combo_delay_rate=100;
 	battle_config.item_check=1;
+	battle_config.item_use_interval=500;
 	battle_config.wedding_modifydisplay=0;
 	battle_config.wedding_ignorepalette=0;
 	battle_config.natural_healhp_interval=6000;

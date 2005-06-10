@@ -30,8 +30,7 @@
 #define INF2_NPC_SKILL 2
 //4, 8 are unused... 
 #define INF2_GUILD_SKILL 16
-//All Encore songs are a song/dance...
-#define INF2_SONG_DANCE (32|64)
+#define INF2_SONG_DANCE 32
 #define INF2_ENSEMBLE_SKILL 64
 #define INF2_TRAP 128
 //Refers to ground placed skills that won't hurt the caster (like Grandcross)

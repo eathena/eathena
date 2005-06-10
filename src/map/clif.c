@@ -154,7 +154,7 @@ static in_addr_t map_ip;
 static in_addr_t bind_ip = INADDR_ANY;
 static int map_port = 5121;
 int map_fd;
-char talkie_mes[80];
+char talkie_mes[MESSAGE_SIZE];
 
 /*==========================================
  * mapI‚Ìipİ’è
@@ -7944,6 +7944,9 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 	} else {
 		sd = (struct map_session_data*)aCalloc(1, sizeof(struct map_session_data));
 		memset(sd, 0, sizeof(struct map_session_data));	//This should save initializing time. [Skotlex]
+		//But strings should be initialized to \0 instead
+		memcpy (&sd->mapname, '\0', sizeof(sd->mapname));
+		memcpy (&sd->ignore, '\0', sizeof(sd->ignore));
 		session[fd]->session_data = sd;
 		sd->fd = fd;
 		sd->packet_ver = packet_ver;
@@ -9722,7 +9725,8 @@ void clif_parse_UseSkillToPos(int fd, struct map_session_data *sd) {
 			clif_skill_fail(sd, skillnum, 0, 0);
 			return;
 		}
-		memcpy(talkie_mes, RFIFOP(fd,skillmoreinfo), 80);
+		memcpy(talkie_mes, RFIFOP(fd,skillmoreinfo), MESSAGE_SIZE);
+		talkie_mes[MESSAGE_SIZE-1] = '\0'; //Overflow protection [Skotlex]
 	}
 
 	if (sd->skilltimer != -1)

@@ -2787,7 +2787,7 @@ char *buildin_getpartyname_sub(int party_id)
 
 	if(p!=NULL){
 		char *buf;
-		buf=(char *)aCallocA(24,sizeof(char));
+		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
 		strcpy(buf,p->name);
 		return buf;
 	}
@@ -2844,7 +2844,7 @@ char *buildin_getguildname_sub(int guild_id)
 
 	if(g!=NULL){
 		char *buf;
-		buf=(char *)aCallocA(24,sizeof(char));
+		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
 		strcpy(buf,g->name);
 		return buf;
 	}
@@ -2873,8 +2873,8 @@ char *buildin_getguildmaster_sub(int guild_id)
 
 	if(g!=NULL){
 		char *buf;
-		buf=(char *)aCallocA(24,sizeof(char));
-		strncpy(buf,g->master, 23);
+		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
+		strcpy(buf,g->master);
 		return buf;
 	}
 
@@ -2923,8 +2923,8 @@ int buildin_strcharinfo(struct script_state *st)
 	num=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	if(num==0){
 		char *buf;
-		buf=(char *)aCallocA(24,sizeof(char));
-		strncpy(buf,sd->status.name, 23);
+		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
+		strcpy(buf,sd->status.name);
 		push_str(st->stack,C_STR,(unsigned char *) buf);
 	}
 	if(num==1){
@@ -5338,8 +5338,8 @@ int buildin_getcastlename(struct script_state *st)
 	for(i=0;i<MAX_GUILDCASTLE;i++){
 		if( (gc=guild_castle_search(i)) != NULL ){
 			if(strcmp(mapname,gc->map_name)==0){
-				buf=(char *)aCallocA(24,sizeof(char));
-				strncpy(buf,gc->castle_name,24);
+				buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
+				strcpy(buf,gc->castle_name);
 				break;
 			}
 		}
@@ -5807,7 +5807,7 @@ int buildin_strmobinfo(struct script_state *st)
 	case 1:
 		{
 			char *buf;
-			buf=(char *) aCallocA(24, 1);
+			buf=(char *) aCallocA(NAME_LENGTH, sizeof(char));
 //			buf=mob_db[class_].name;
 // for string assignments you would need to go for c++ [Shinomori]
 			strcpy(buf,mob_db[class_].name);
@@ -5817,7 +5817,7 @@ int buildin_strmobinfo(struct script_state *st)
 	case 2:
 		{
 			char *buf;
-			buf=(char *) aCallocA(24, 1);
+			buf=(char *) aCallocA(NAME_LENGTH, sizeof(char));
 //			buf=mob_db[class_].jname;
 // for string assignments you would need to go for c++ [Shinomori]
 			strcpy(buf,mob_db[class_].jname);
@@ -5907,9 +5907,9 @@ int buildin_getitemname(struct script_state *st)
 		push_str(st->stack,C_CONSTSTR,(unsigned char *) "null");
 		return 0;
 	}
-	item_name=(char *)aCallocA(24,sizeof(char));
+	item_name=(char *)aCallocA(ITEM_NAME_LENGTH,sizeof(char));
 
-	strncpy(item_name,i_data->jname,23);
+	strcpy(item_name,i_data->jname);
 	push_str(st->stack,C_STR,(unsigned char *) item_name);
 	return 0;
 }
@@ -6490,8 +6490,8 @@ int buildin_getpetinfo(struct script_state *st)
 				if(sd->pet.name)
 				{	//Shamelessly copied from strcharinfo() [Skotlex]
 					char *buf;
-					buf=(char *)aCallocA(24,sizeof(char));
-					strncpy(buf,sd->pet.name, 23);
+					buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
+					strcpy(buf,sd->pet.name);
 					push_str(st->stack,C_STR,(unsigned char *) buf);
 				}
 				else
@@ -6837,11 +6837,11 @@ int buildin_getsavepoint(struct script_state *st)
         sd=script_rid2sd(st);
 
         type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-        mapname=(char *) aCallocA(24, 1);
+        mapname=(char *) aCallocA(NAME_LENGTH, sizeof(char));
 
         x=sd->status.save_point.x;
         y=sd->status.save_point.y;
-        strncpy(mapname,sd->status.save_point.map,24);
+        strcpy(mapname,sd->status.save_point.map);
         switch(type){
             case 0:
                 push_str(st->stack,C_STR,(unsigned char *) mapname);
@@ -6906,7 +6906,7 @@ int buildin_getmapxy(struct script_state *st){
 
 //??????????? >>>  Possible needly check function parameters on C_STR,C_INT,C_INT <<< ???????????//
 	type=conv_num(st,& (st->stack->stack_data[st->start+5]));
-	mapname=(char *) aCallocA(24, 1);
+	mapname=(char *) aCallocA(NAME_LENGTH, sizeof(char));
 
         switch (type){
             case 0:                                             //Get Character Position
@@ -6923,7 +6923,7 @@ int buildin_getmapxy(struct script_state *st){
 
                     x=sd->bl.x;
                     y=sd->bl.y;
-                    strncpy(mapname,sd->mapname,24);
+                    strcpy(mapname,sd->mapname);
                     break;
             case 1:                                             //Get NPC Position
                     if( st->end > st->start+6 )
@@ -6938,7 +6938,7 @@ int buildin_getmapxy(struct script_state *st){
 
                     x=nd->bl.x;
                     y=nd->bl.y;
-                    strncpy(mapname,map[nd->bl.m].name,24);
+                    strcpy(mapname,map[nd->bl.m].name);
                     break;
             case 2:                                             //Get Pet Position
                     if( st->end>st->start+6 )
@@ -6959,7 +6959,7 @@ int buildin_getmapxy(struct script_state *st){
                     }
                     x=pd->bl.x;
                     y=pd->bl.y;
-                    strncpy(mapname,map[pd->bl.m].name,24);
+                    strcpy(mapname,map[pd->bl.m].name);
                     break;
 
             case 3:                                             //Get Mob Position
@@ -8144,11 +8144,11 @@ int script_config_read(char *cfgName)
 	script_config.check_cmdcount = 65535;
 	script_config.check_gotocount = 2048;
 
-	script_config.die_event_name = (char *) aCallocA (24, sizeof(char));
-	script_config.kill_event_name = (char *) aCallocA (24, sizeof(char));
-	script_config.login_event_name = (char *) aCallocA (24, sizeof(char));
-	script_config.logout_event_name = (char *) aCallocA (24, sizeof(char));
-	script_config.mapload_event_name = (char *) aCallocA (24, sizeof(char));
+	script_config.die_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
+	script_config.kill_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
+	script_config.login_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
+	script_config.logout_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
+	script_config.mapload_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
 
 	script_config.event_script_type = 0;
 	script_config.event_requires_trigger = 1;

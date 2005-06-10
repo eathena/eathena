@@ -35,6 +35,9 @@
 #define MAX_IGNORE_LIST 80
 #define MAX_VENDING 12
 
+//Don't change this, as the client seems to always send/receive 80 characters as it currently is. [Skotlex]
+#define MESSAGE_SIZE 80
+
 #define DEFAULT_AUTOSAVE_INTERVAL 60*1000
 
 #define OPTION_HIDE 0x40
@@ -203,7 +206,7 @@ struct map_session_data {
 	unsigned short unbreakable;	// chance to prevent equipment breaking [celest]
 	int weight,max_weight;
 	int cart_weight,cart_max_weight,cart_num,cart_max_num;
-	char mapname[24];
+	char mapname[NAME_LENGTH];
 	int fd,new_fd;
 	short to_x,to_y;
 	short speed,prev_speed;
@@ -225,11 +228,12 @@ struct map_session_data {
 	unsigned long idletime;
 
 	struct{
-		char name[24];
+		char name[NAME_LENGTH];
 	} ignore[MAX_IGNORE_LIST];
 	int ignoreAll;
 
 	int attacktimer;
+	
 	int attacktarget;
 	short attacktarget_lv;
 	unsigned int attackabletime;
@@ -261,6 +265,7 @@ struct map_session_data {
 	unsigned int canmove_tick;
 	unsigned int canlog_tick;
 	unsigned int canregen_tick;
+	unsigned int canuseitem_tick;	// [Skotlex]
 	int hp_sub,sp_sub;
 	int inchealhptick,inchealsptick,inchealspirithptick,inchealspiritsptick;
 
@@ -372,7 +377,7 @@ struct map_session_data {
 
 	int vender_id;
 	int vend_num;
-	char message[80];
+	char message[MESSAGE_SIZE];
 	struct vending vending[MAX_VENDING];
 
 	int catch_target_class;
@@ -396,7 +401,7 @@ struct map_session_data {
 	unsigned noexp :1;
 	unsigned detach :1;
 	
-	char fakename[24]; // fake names [Valaris]
+	char fakename[NAME_LENGTH]; // fake names [Valaris]
 	short viewsize; // for tiny/large types
 
 #ifndef TXT_ONLY
@@ -409,7 +414,7 @@ struct npc_timerevent_list {
 	int timer,pos;
 };
 struct npc_label_list {
-	char name[24];
+	char name[NAME_LENGTH];
 	int pos;
 };
 struct npc_item_list {
@@ -420,8 +425,8 @@ struct npc_data {
 	short n;
 	short class_,dir;
 	short speed;
-	char name[24];
-	char exname[24];
+	char name[NAME_LENGTH];
+	char exname[NAME_LENGTH];
 	int chat_id;
 	short opt1,opt2,opt3,option;
 	short flag;
@@ -469,7 +474,7 @@ struct mob_data {
 	short n;
 	short base_class,class_,dir,mode,level;
 	short m,x0,y0,xs,ys;
-	char name[24];
+	char name[NAME_LENGTH];
 	int spawndelay1,spawndelay2;
 	struct {
 		unsigned state : 8;
@@ -623,11 +628,11 @@ enum {
 // Mob List Held in memory for Dynamic Mobs [Wizputer]
 struct mob_list {
     int m,x,y,xs,ys,class_,num,delay1,delay2,level;
-    char mobname[24],eventname[24];
+    char mobname[NAME_LENGTH],eventname[NAME_LENGTH];
 };
 
 struct map_data {
-	char name[24];
+	char name[NAME_LENGTH];
 	unsigned char *gat;	// NULL‚È‚ç‰º‚Ìmap_data_other_server‚Æ‚µ‚Äˆµ‚¤
 	char *alias; // [MouseJstr]
 	struct block_list **block;
@@ -688,7 +693,7 @@ struct map_data {
 };
 
 struct map_data_other_server {
-	char name[24];
+	char name[NAME_LENGTH];
 	unsigned char *gat;	// NULLŒÅ’è‚É‚µ‚Ä”»’f
 	unsigned long ip;
 	unsigned int port;

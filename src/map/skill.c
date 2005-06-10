@@ -5565,6 +5565,13 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 	if( skill_num != sd->skillid)	/* 不正パケットらしい */
 		return 0;
 
+	if (strlen(map) > NAME_LENGTH-1)
+	{	//Map_length check, as it is sent by the client and we shouldn't trust it [Skotlex]
+		if (battle_config.error_log)
+			//Is it safe to do this? Won't it overflow? [Skotlex]
+			printf("skill_castend_map: Received map name '%s' too long!\n", map);
+		return 0;
+	}
 	pc_stopattack(sd);
 
 	if(battle_config.pc_skill_log)
@@ -5624,8 +5631,10 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 				return 0;
 			if((group=skill_unitsetting(&sd->bl,sd->skillid,sd->skilllv,sd->skillx,sd->skilly,0))==NULL)
 				return 0;
-			group->valstr=(char *)aCallocA(24,sizeof(char));
-			memcpy(group->valstr,map,24);
+			group->valstr=(char *)aCallocA(NAME_LENGTH,sizeof(char));
+			//Is there a problem with using strcpy instead? [Skotlex]
+			strncpy(group->valstr, map, NAME_LENGTH);
+			//memcpy(group->valstr,map,NAME_LENGTH);
 			group->val2=(x<<16)|y;
 		}
 		break;
@@ -5791,12 +5800,12 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 	group->interval=interval;
 	if(skillid==HT_TALKIEBOX ||
 	   skillid==RG_GRAFFITI){
-		group->valstr=(char *) aCallocA(80, 1);
+		group->valstr=(char *) aCallocA(MESSAGE_SIZE, sizeof(char));
 		if(group->valstr==NULL){
 			printf("skill_castend_map: out of memory !\n");
 			exit(1);
 		}
-		memcpy(group->valstr,talkie_mes,80);
+		strncpy(group->valstr,talkie_mes,MESSAGE_SIZE);
 	}
 	for(i=0;i<layout->count;i++){
 		struct skill_unit *unit;
@@ -6448,12 +6457,14 @@ int skill_unit_onlimit(struct skill_unit *src,unsigned int tick)
 					src->bl.x,src->bl.y,1);
 			if(group == NULL)
 				return 0;
-			group->valstr=(char *) aCallocA(24, 1);
+			group->valstr=(char *) aCallocA(NAME_LENGTH, sizeof(char));
 			if(group->valstr==NULL){
 				printf("skill_unit_onlimit: out of memory !\n");
 				exit(1);
 			}
-			memcpy(group->valstr,sg->valstr,24);
+			//memcpy(group->valstr,sg->valstr,NAME_LENGTH);
+			//is there something wrong in using strncpy? [Skotlex]
+			strncpy(group->valstr,sg->valstr,NAME_LENGTH);
 			group->val2=sg->val2;
 		}
 		break;
@@ -8823,6 +8834,12 @@ int skill_delunitgroup(struct skill_unit_group *group)
 	}
 	if(group->valstr!=NULL){
 		//map_freeblock(group->valstr); Can't use map_freeblock anymore... [Skotlex]
+		//if valstr points to N bytes of allocated memory as a char* pointer,
+		//and the most part of valstr is filled with \0, Does aFree knows how
+		//much to free up? Won't it stop on the first \0?
+		//Small check on this possible leak. Anyone can confirm my fears? [Skotlex]
+		memset(group->valstr, 0, MESSAGE_SIZE);
+		group->valstr[MESSAGE_SIZE-1] = '\0';
 		aFree(group->valstr);
 		group->valstr=NULL;
 	}
