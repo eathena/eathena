@@ -31,7 +31,7 @@ int storage_tostr(char *str,struct pc_storage *p)
 
 	for(i=0;i<MAX_STORAGE;i++)
 		if( (p->storage[i].nameid) && (p->storage[i].amount) ){
-			str_p += sprintf(str_p,"%ld,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
+			str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
 				p->storage[i].id,p->storage[i].nameid,p->storage[i].amount,p->storage[i].equip,
 				p->storage[i].identify,p->storage[i].refine,p->storage[i].attribute,
 				p->storage[i].card[0],p->storage[i].card[1],p->storage[i].card[2],p->storage[i].card[3]);
@@ -114,7 +114,7 @@ int guild_storage_tostr(char *str,struct guild_storage *p)
 
 	for(i=0;i<MAX_GUILD_STORAGE;i++)
 		if( (p->storage[i].nameid) && (p->storage[i].amount) ){
-			str_p += sprintf(str_p,"%ld,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
+			str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
 				p->storage[i].id,p->storage[i].nameid,p->storage[i].amount,p->storage[i].equip,
 				p->storage[i].identify,p->storage[i].refine,p->storage[i].attribute,
 				p->storage[i].card[0],p->storage[i].card[1],p->storage[i].card[2],p->storage[i].card[3]);

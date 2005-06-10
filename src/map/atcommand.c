@@ -2633,7 +2633,7 @@ bool atcommand_model(int fd, struct map_session_data &sd, const char* command, c
 
 
 	if (!message || !*message || sscanf(message, "%d %d %d", &hair_style, &hair_color, &cloth_color) < 1) {
-		sprintf(output, "Please, enter at least a value (usage: @model <hair ID: %d-%d> <hair color: %d-%d> <clothes color: %d-%d>).",
+		sprintf(output, "Please, enter at least a value (usage: @model <hair ID: %ld-%ld> <hair color: %ld-%ld> <clothes color: %ld-%ld>).",
 		        MIN_HAIR_STYLE, MAX_HAIR_STYLE, MIN_HAIR_COLOR, MAX_HAIR_COLOR, MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
 		clif_displaymessage(fd, output);
 		return false;
@@ -2672,7 +2672,7 @@ bool atcommand_dye(int fd, struct map_session_data &sd, const char* command, con
 
 
 	if (!message || !*message || sscanf(message, "%d", &cloth_color) < 1) {
-		sprintf(output, "Please, enter a clothes color (usage: @dye/@ccolor <clothes color: %d-%d>).", MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
+		sprintf(output, "Please, enter a clothes color (usage: @dye/@ccolor <clothes color: %ld-%ld>).", MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
 		clif_displaymessage(fd, output);
 		return false;
 	}
@@ -2699,7 +2699,7 @@ bool atcommand_hair_style(int fd, struct map_session_data &sd, const char* comma
 
 
 	if (!message || !*message || sscanf(message, "%d", &hair_style) < 1) {
-		sprintf(output, "Please, enter a hair style (usage: @hairstyle/@hstyle <hair ID: %d-%d>).", MIN_HAIR_STYLE, MAX_HAIR_STYLE);
+		sprintf(output, "Please, enter a hair style (usage: @hairstyle/@hstyle <hair ID: %ld-%ld>).", MIN_HAIR_STYLE, MAX_HAIR_STYLE);
 		clif_displaymessage(fd, output);
 		return false;
 	}
@@ -2741,7 +2741,7 @@ bool atcommand_hair_color(int fd, struct map_session_data &sd, const char* comma
 
 
 	if (!message || !*message || sscanf(message, "%d", &hair_color) < 1) {
-		sprintf(output, "Please, enter a hair color (usage: @haircolor/@hcolor <hair color: %d-%d>).", MIN_HAIR_COLOR, MAX_HAIR_COLOR);
+		sprintf(output, "Please, enter a hair color (usage: @haircolor/@hcolor <hair color: %ld-%ld>).", MIN_HAIR_COLOR, MAX_HAIR_COLOR);
 		clif_displaymessage(fd, output);
 		return false;
 	}
@@ -5027,7 +5027,7 @@ bool atcommand_charmodel(int fd, struct map_session_data &sd, const char* comman
 
 
 	if(!message || !*message || sscanf(message, "%d %d %d %99[^\n]", &hair_style, &hair_color, &cloth_color, player_name) < 4 || hair_style < 0 || hair_color < 0 || cloth_color < 0) {
-		sprintf(output, "Please, enter a valid model and a player name (usage: @charmodel <hair ID: %d-%d> <hair color: %d-%d> <clothes color: %d-%d> <name>).",
+		sprintf(output, "Please, enter a valid model and a player name (usage: @charmodel <hair ID: %ld-%ld> <hair color: %ld-%ld> <clothes color: %ld-%ld> <name>).",
 		        MIN_HAIR_STYLE, MAX_HAIR_STYLE, MIN_HAIR_COLOR, MAX_HAIR_COLOR, MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
 		clif_displaymessage(fd, output);
 		return false;
@@ -8808,7 +8808,10 @@ bool atcommand_iteminfo(int fd, struct map_session_data &sd, const char* command
 		);
 		clif_displaymessage(fd, output);
 
-		sprintf(output, "NPC Buy:%dz%s, Sell:%dz%s | Weight: %d ", item_data->value_buy, item_data->flag.value_notdc ? "(No Discount!)":"", item_data->value_sell, item_data->flag.value_notoc ? "(No Overcharge!)":"", item_data->weight );
+		sprintf(output, "NPC Buy:%ldz%s, Sell:%ldz%s | Weight: %ld ", 
+			item_data->value_buy, item_data->flag.value_notdc ? "(No Discount!)":"", 
+			item_data->value_sell, item_data->flag.value_notoc ? "(No Overcharge!)":"", 
+			item_data->weight );
 		clif_displaymessage(fd, output);
 
 		return true;
@@ -8816,41 +8819,6 @@ bool atcommand_iteminfo(int fd, struct map_session_data &sd, const char* command
 
 	clif_displaymessage(fd, "Item not found.");
 	return false;
-/*
-struct item_data {
-	int nameid;
-	char name[24],jname[24];
-	char prefix[24],suffix[24];
-	char cardillustname[64];
-	int value_buy;
-	int value_sell;
-	int type;
-	int class_;
-	int sex;
-	int equip;
-	int weight;
-	int atk;
-	int def;
-	int range;
-	int slot;
-	int look;
-	int elv;
-	int wlv;
-	char *use_script;	// %ñ._'Æ'c'à'S."'+'Ì'+'Å'â'ë'¤'c'È'Æ
-	char *equip_script;	// _U_',-h_ä'Ì'R_<_Ý'è'à'+'Ì'+'Å%Â"\'c'È?
-	struct {
-		unsigned available : 1;
-		unsigned value_notdc : 1;
-		unsigned value_notoc : 1;
-		unsigned no_equip : 3;
-		unsigned no_use : 1;
-		unsigned no_refine : 1;	// [celest]
-		unsigned delay_consume : 1;	// Signifies items that are not consumed inmediately upon double-click [Skotlex]
-	} flag;
-	int view_id;
-};
-
-*/
 
 }
 
@@ -9007,7 +8975,7 @@ bool atcommand_rates(int fd, struct map_session_data &sd, const char* command, c
 {
   char buf[255];
 
-  sprintf(buf, "base_exp_rate: %d    job_exp_rate: %d", 
+  sprintf(buf, "base_exp_rate: %ld    job_exp_rate: %ld", 
     battle_config.base_exp_rate, battle_config.job_exp_rate);
 
   clif_displaymessage(fd, buf);

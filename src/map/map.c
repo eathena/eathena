@@ -3554,7 +3554,7 @@ void do_final(void)
 	chrif_char_reset_offline();
 	chrif_flush_fifo();
 
-		map_removenpc();
+	map_removenpc();
 	do_final_chrif(); // ‚±‚Ì“à•”‚ÅƒLƒƒƒ‰‚ğ‘S‚ÄØ’f‚·‚é
 	do_final_npc();
 	do_final_script();

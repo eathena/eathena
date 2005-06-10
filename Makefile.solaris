@@ -37,7 +37,7 @@ MYSQL_LIB     = -L../../../mysql/lib -lmysqlclient -lposix4 -lcrypt -lgen -lnsl 
 ifdef SQLFLAG
 MYSQLFLAG_CONFIG = $(shell which mysql_config)
 
-# 'which' does will not work system independend 
+# 'which' will not work system independend 
 # test for gnu-which or use different findstring params
 
 ifeq ($(findstring /mysql_config,$(MYSQLFLAG_CONFIG)), /mysql_config)

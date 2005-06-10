@@ -35,7 +35,7 @@ int inter_guild_tostr(char *str, struct guild *g) {
 	int i, c, len;
 
 	// 基本データ
-	len = sprintf(str, "%ld\t%s\t%s\t%d,%d,%ld,%d,%ld\t%s#\t%s#\t",
+	len = sprintf(str, "%ld\t%s\t%s\t%d,%d,%ld,%d,%d\t%s#\t%s#\t",
 	              g->guild_id, g->name, g->master,
 	              g->guild_lv, g->max_member, g->exp, g->skill_point, g->castle_id,
 	              g->mes1, g->mes2);
@@ -242,7 +242,7 @@ int inter_guild_fromstr(char *str, struct guild *g) {
 int inter_guildcastle_tostr(char *str, struct guild_castle *gc) {
 	int len;
 
-	len = sprintf(str, "%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld",	// added Guardian HP [Valaris]
+	len = sprintf(str, "%d,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld",	// added Guardian HP [Valaris]
 	              gc->castle_id, gc->guild_id, gc->economy, gc->defense, gc->triggerE,
 	              gc->triggerD, gc->nextTime, gc->payTime, gc->createTime, gc->visibleC,
 	              gc->visibleG0, gc->visibleG1, gc->visibleG2, gc->visibleG3, gc->visibleG4,

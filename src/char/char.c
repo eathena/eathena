@@ -327,7 +327,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
 
 	for(i = 0; i < MAX_INVENTORY; i++)
 		if (p->inventory[i].nameid) {
-			str_p += sprintf(str_p, "%ld,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
+			str_p += sprintf(str_p, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
 			         p->inventory[i].id, p->inventory[i].nameid, p->inventory[i].amount, p->inventory[i].equip,
 			         p->inventory[i].identify, p->inventory[i].refine, p->inventory[i].attribute,
 			         p->inventory[i].card[0], p->inventory[i].card[1], p->inventory[i].card[2], p->inventory[i].card[3]);
@@ -336,7 +336,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
 
 	for(i = 0; i < MAX_CART; i++)
 		if (p->cart[i].nameid) {
-			str_p += sprintf(str_p, "%ld,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
+			str_p += sprintf(str_p, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
 			         p->cart[i].id, p->cart[i].nameid, p->cart[i].amount, p->cart[i].equip,
 			         p->cart[i].identify, p->cart[i].refine, p->cart[i].attribute,
 			         p->cart[i].card[0], p->cart[i].card[1], p->cart[i].card[2], p->cart[i].card[3]);

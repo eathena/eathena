@@ -3,7 +3,6 @@ CC = g++ -pipe
 #CC = gcc -pipe -DDMALLOC -DDMALLOC_FUNC_CHECK
 #CC = /usr/local/bin/gcc -fbounds-checking -pipe -DBCHECK
 
-GCLIB = -ldl
 # GCLIB = -lgc
 # GCLIB = -ldmalloc
 
@@ -14,24 +13,32 @@ PACKETDEF = -DPACKETVER=6 -DNEW_006b
 #PACKETDEF = -DPACKETVER=2 -DNEW_006b
 #PACKETDEF = -DPACKETVER=1 -DNEW_006b
 
+OPT = -g -O6 -ffast-math
+
 PLATFORM = $(shell uname)
 
-ifeq ($(findstring FreeBSD,$(PLATFORM)), FreeBSD)
-MAKE = gmake
-else
-MAKE = make
+ifeq ($(findstring Linux,$(PLATFORM)), Linux)
+   LIBS += -ldl
 endif
 
-OPT = -g -O6 -ffast-math
-# OPT += -DDUMPSTACK -rdynamic
+ifeq ($(findstring SunOS,$(PLATFORM)), SunOS)
+   LIBS += -lsocket -lnsl -ldl
+endif
+
+ifeq ($(findstring FreeBSD,$(PLATFORM)), FreeBSD)
+   MAKE = gmake
+endif
+
+ifeq ($(findstring NetBSD,$(PLATFORM)), NetBSD)
+   MAKE = gmake
+   OS_TYPE = -D__NETBSD__
+endif
 
 ifeq ($(findstring CYGWIN,$(PLATFORM)), CYGWIN)
-OS_TYPE = -DCYGWIN
-CFLAGS =  $(OPT) -Wall -DFD_SETSIZE=4096 -I../common $(PACKETDEF) $(OS_TYPE)
-else
-OS_TYPE =
-CFLAGS =  $(OPT) -Wall -DFD_SETSIZE=4096 -I../common $(PACKETDEF) $(OS_TYPE)
+   OS_TYPE = -DCYGWIN
 endif
+
+CFLAGS = $(OPT) -I../common $(OS_TYPE)
 
 # my defaults for mysql libs
 MYSQL_INCLUDE = -I../../../mysql/include/ 
@@ -40,7 +47,7 @@ MYSQL_LIB     = -L../../../mysql/lib -lmysqlclient -lposix4 -lcrypt -lgen -lnsl 
 ifdef SQLFLAG
 MYSQLFLAG_CONFIG = $(shell which mysql_config)
 
-# 'which' does will not work system independend 
+# 'which' does not work system independend 
 # test for gnu-which or use different findstring params
 
 ifeq ($(findstring /mysql_config,$(MYSQLFLAG_CONFIG)), /mysql_config)
@@ -63,11 +70,11 @@ MYSQL_INCLUDE = $(shell $(MYSQLFLAG_CONFIG) $(MYSQLFLAG_CONFIG_ARGUMENT))
 MYSQL_LIB     = $(shell $(MYSQLFLAG_CONFIG) --libs)
 endif
 
-MYLIB = CC="$(CC)" CFLAGS="$(CFLAGS) $(MYSQL_INCLUDE)" LIB_S="$(MYSQL_LIB) $(GCLIB)"
+MYLIB = CC="$(CC)" CFLAGS="$(CFLAGS) $(MYSQL_INCLUDE)" LIB_S="$(MYSQL_LIB) $(LIBS) $(GCLIB)"
 
 endif
 
-MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS)" LIB_S="$(GCLIB)"
+MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS)" LIB_S="$(LIBS) $(GCLIB)"
 
 all: conf txt
 

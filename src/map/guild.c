@@ -1511,27 +1511,24 @@ int guild_castlealldataload(int len, unsigned char *buf)
 	// 城データ格納とギルド情報要求
 	for(i = 0; i < n; i++) {
 		struct guild_castle *c;
-//		struct guild_castle *c = guild_castle_search(gc->castle_id);
-//		memcpy(&gctmp,gc,sizeof(struct guild_castle));
+
 		guild_castle_frombuffer(gctmp, buf+i*sizeof(struct guild_castle));
 		c = guild_castle_search(gctmp.castle_id);
 		if (!c) {
 			ShowMessage("guild_castlealldataload ??\n");
 			continue;
 		}
-		// can copy here because no buffer affected
-		memcpy(&c->guild_id,&c->guild_id,
-			sizeof(struct guild_castle) - ((int)&c->guild_id - (int)c) );
-		if( c->guild_id ){
+		memcpy(c,&gctmp,sizeof(struct guild_castle) );
+		if( c->guild_id )
+		{
 			if(i!=ev)
 				guild_request_info(c->guild_id);
 			else
 				guild_npc_request_info(c->guild_id, "::OnAgitInit");
 		}
 	}
-//What is this for? AgitStart already does this call, this seems to be redundant code from when WoE was not npc-controlled. [Skotlex]
-//	if (ev == -1)
-//		npc_event_doall("OnAgitInit");
+	if (ev == -1)
+		npc_event_doall("OnAgitInit");
 	return 0;
 }
 

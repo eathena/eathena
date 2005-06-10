@@ -76,7 +76,7 @@ int inter_accreg_tostr(char *str, struct accreg *reg) {
 	size_t j;
 	char *p = str;
 
-	p += sprintf(p, "%d\t", reg->account_id);
+	p += sprintf(p, "%ld\t", reg->account_id);
 	for(j = 0; j < reg->reg_num; j++) {
 		p += sprintf(p,"%s,%ld ", reg->reg[j].str, reg->reg[j].value);
 	}
@@ -90,7 +90,7 @@ int inter_accreg_fromstr(const char *str, struct accreg *reg) {
 	char buf[128];
 	const char *p = str;
 
-	if (sscanf(p, "%d\t%n", &reg->account_id, &n ) != 1 || reg->account_id <= 0)
+	if (sscanf(p, "%ld\t%n", &reg->account_id, &n ) != 1 || reg->account_id <= 0)
 		return 1;
 
 	for(j = 0, p += n; j < ACCOUNT_REG_NUM; j++, p += n) {

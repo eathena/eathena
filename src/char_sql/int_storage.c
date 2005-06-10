@@ -57,7 +57,7 @@ int storage_fromsql(unsigned long account_id, struct pc_storage *p){
 	p->account_id = account_id;
 
 	// storage {`account_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3`}
-	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `account_id`='%d'",storage_db, account_id);
+	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `account_id`='%ld'",storage_db, account_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 			ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
@@ -177,7 +177,7 @@ void inter_storage_sql_final()
 // q?f[^?
 int inter_storage_delete(unsigned long account_id)
 {
-		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id`='%d'",storage_db, account_id);
+		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id`='%ld'",storage_db, account_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (delete `storage`)- %s\n", mysql_error(&mysql_handle) );
 	}
@@ -185,7 +185,7 @@ int inter_storage_delete(unsigned long account_id)
 }
 int inter_guild_storage_delete(unsigned long guild_id)
 {
-	sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%d'",guild_storage_db, guild_id);
+	sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_storage_db, guild_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (delete `guild_storage`)- %s\n", mysql_error(&mysql_handle) );
 	}
@@ -237,7 +237,7 @@ int mapif_load_guild_storage(int fd,unsigned long account_id,unsigned long guild
 
 	// Check if guild exists, I may write a function for this later, coz I use it several times.
 	//ShowMessage("- Check if guild %d exists\n",g->guild_id);
-	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id`='%d'",guild_db, guild_id);
+	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id`='%ld'",guild_db, guild_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (delete `guild`)- %s\n", mysql_error(&mysql_handle) );
 	}

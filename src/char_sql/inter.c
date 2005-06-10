@@ -105,7 +105,7 @@ int inter_accreg_tosql(unsigned long account_id,struct accreg *reg){
 	reg->account_id=account_id;
 
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
-	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%d'",reg_db, account_id);
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%ld'",reg_db, account_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (delete `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 	}
@@ -114,7 +114,7 @@ int inter_accreg_tosql(unsigned long account_id,struct accreg *reg){
 
 	for(j=0;j<reg->reg_num;j++){
 		if(reg->reg[j].str != NULL){
-			sprintf(tmp_sql,"INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES (2,'%d', '%s','%d')",
+			sprintf(tmp_sql,"INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES (2,'%ld', '%s','%ld')",
 				reg_db, reg->account_id, jstrescapecpy(temp_str,reg->reg[j].str), reg->reg[j].value);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (insert `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
@@ -133,7 +133,7 @@ int inter_accreg_fromsql(unsigned long account_id,struct accreg *reg)
 	reg->account_id=account_id;
 
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
-	sprintf (tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%d'",reg_db, reg->account_id);
+	sprintf (tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%ld'",reg_db, reg->account_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (select `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 	}

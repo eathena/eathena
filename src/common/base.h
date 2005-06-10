@@ -113,9 +113,10 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#include <net/if.h>
+
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <net/if.h>		// needs but does not include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -708,12 +709,12 @@ public:
 	{
 		if(e)
 		{	// c function will just fail on memory error
-			message = strdup( e );
+			this->message = strdup( e );
 		}
 	}
 
-    virtual ~exception()				{ free(message); }
-	operator const char *()				{ return message; }
+    virtual ~exception()				{ free(this->message); }
+	operator const char *()				{ return this->message; }
 };
 
 
@@ -793,7 +794,7 @@ private:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// access a c style array
-	operator T*()	{ return cField; }
+	operator T*()	{ return this->cField; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// write access to field elements
@@ -810,7 +811,7 @@ public:
 #endif
 		}
 #endif
-		return cField[inx];
+		return this->cField[inx];
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// read-only access to field elements
@@ -822,11 +823,11 @@ public:
 #ifdef CHECK_EXCEPTIONS
 			throw exception_bound("TBuffer out of bound");
 #else
-			return cField[0];
+			return this->cField[0];
 #endif
 		}
 #endif
-		return cField[inx];
+		return this->cField[inx];
 	}
 };
 
@@ -971,7 +972,7 @@ template <class T> class TArrayDST : public TArray<T>
 	// friends
 	friend class String;
 	friend class SubString;
-	virtual const T* array() const	{return cField;}
+	virtual const T* array() const	{return this->cField;}
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	// data elements
@@ -1000,15 +1001,15 @@ public:
 	{	
 		ScopeLock scopelock(*this);
 
-		if(  cSZ < newsize )
+		if(  this->cSZ < newsize )
 		{	// grow rule
 			size_t tarsize = newsize;
 			newsize = 32;
 			while( newsize < tarsize ) newsize *= 2;
 		}
-		else if( cSZ>32 && cCnt < cSZ/4 && newsize < cSZ/2)
+		else if( this->cSZ>32 && this->cCnt < this->cSZ/4 && newsize < this->cSZ/2)
 		{	// shrink rule
-			newsize = cSZ/2;
+			newsize = this->cSZ/2;
 		}
 		else // no change
 			return;
@@ -1018,13 +1019,13 @@ public:
 		if(newfield==NULL)
 			throw exception_memory("TArrayDST: memory allocation failed");
 
-		if(cField)
+		if(this->cField)
 		{
-			copy(newfield, cField, cCnt); // between read ptr and write ptr
-			delete[] cField;
+			copy(newfield, this->cField, this->cCnt); // between read ptr and write ptr
+			delete[] this->cField;
 		}
-		cSZ = newsize;
-		cField = newfield;
+		this->cSZ = newsize;
+		this->cField = newfield;
 
 	}
 public:
@@ -1049,10 +1050,10 @@ public:
 	virtual T& pop()
 	{
 		ScopeLock scopelock(*this);
-		if( cCnt > 0 )
+		if( this->cCnt > 0 )
 		{
-			cCnt--;
-			return cField[cCnt];
+			this->cCnt--;
+			return this->cField[this->cCnt];
 		}
 #ifdef CHECK_BOUNDS
 #ifdef CHECK_EXCEPTIONS
@@ -1062,7 +1063,7 @@ public:
 			return dummy;
 #endif
 #else
-			return cField[0];
+			return this->cField[0];
 #endif
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1070,10 +1071,10 @@ public:
 	virtual bool pop(T& elem)
 	{
 		ScopeLock scopelock(*this);
-		if( cCnt > 0 )
+		if( this->cCnt > 0 )
 		{
-			cCnt--;
-			elem = cField[cCnt];
+			this->cCnt--;
+			elem = this->cField[this->cCnt];
 			return true;
 		}
 		else
@@ -1092,7 +1093,7 @@ public:
 	{
 		ScopeLock scopelock(*this);
 #ifdef CHECK_BOUNDS
-		if( cCnt == 0 )
+		if( this->cCnt == 0 )
 		{
 #ifdef CHECK_EXCEPTIONS
 			throw exception_bound("TArrayDST underflow");
@@ -1102,16 +1103,16 @@ public:
 #endif
 		}
 #endif
-			return const_cast<T&>(cField[0]);
+			return const_cast<T&>(this->cField[0]);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// as above but with check if element exist
 	virtual bool top(T& elem) const
 	{
 		ScopeLock scopelock(*this);
-		if( cCnt > 0 )
+		if( this->cCnt > 0 )
 		{
-			elem = cField[0];
+			elem = this->cField[0];
 			return true;
 		}
 		return false;
@@ -1123,11 +1124,11 @@ public:
 	virtual const T* getreadbuffer(size_t &maxcnt) const
 	{
 		Mutex::lock();
-		if( cCnt >0 )
+		if( this->cCnt >0 )
 		{
-			maxcnt = cCnt;
+			maxcnt = this->cCnt;
 			// keep the mutex locked
-			return const_cast<T*>(cField);
+			return const_cast<T*>(this->cField);
 		}
 		maxcnt = 0;
 		Mutex::unlock();
@@ -1136,19 +1137,19 @@ public:
 	virtual T* getwritebuffer(size_t &maxcnt)
 	{
 		Mutex::lock();
-		if( cCnt+maxcnt > cSZ )
-			realloc( maxcnt+cCnt );
-		return const_cast<T*>(cField+cCnt);
+		if( this->cCnt+maxcnt > this->cSZ )
+			realloc( maxcnt+this->cCnt );
+		return const_cast<T*>(this->cField+this->cCnt);
 	}
 	virtual bool setreadsize(size_t cnt)
 	{
 		bool ret = false;
-		if( cnt <= cCnt)
+		if( cnt <= this->cCnt)
 		{
 			if( cnt >0 )
 			{
-				move(cField+0, cField+cnt,cCnt-cnt);
-				cCnt -= cnt;
+				move(this->cField+0, this->cField+cnt,this->cCnt-cnt);
+				this->cCnt -= cnt;
 			}
 			ret = true;
 		}
@@ -1158,9 +1159,9 @@ public:
 	virtual bool setwritesize(size_t cnt)
 	{
 		bool ret = false;
-		if( cCnt+cnt < cSZ )
+		if( this->cCnt+cnt < this->cSZ )
 		{
-			cCnt += cnt;
+			this->cCnt += cnt;
 			ret = true;
 		}
 		Mutex::unlock();
@@ -1173,8 +1174,8 @@ public:
 		ScopeLock scopelock(*this);
 		if(buf)
 		{
-			if(cnt>cCnt) cnt = cCnt;
-			copy(buf,cField,cnt);
+			if(cnt>this->cCnt) cnt = this->cCnt;
+			copy(buf,this->cField,cnt);
 			return cnt;
 		}
 		return 0;
@@ -1186,7 +1187,7 @@ public:
 		ScopeLock scopelock(*this);
 #ifdef CHECK_BOUNDS
 		// check for access to outside memory
-		if( inx >= cSZ )
+		if( inx >= this->cSZ )
 		{
 #ifdef CHECK_EXCEPTIONS
 			throw exception_bound("TArrayDST out of bound");
@@ -1196,14 +1197,14 @@ public:
 #endif
 		}
 #endif
-		return cField[inx];
+		return this->cField[inx];
 	}
 	virtual T &operator[](size_t inx)
 	{
 		ScopeLock scopelock(*this);
 #ifdef CHECK_BOUNDS
 		// check for access to outside memory
-		if( inx >= cSZ )
+		if( inx >= this->cSZ )
 		{
 #ifdef CHECK_EXCEPTIONS
 			throw exception_bound("TArrayDST out of bound");
@@ -1213,7 +1214,7 @@ public:
 #endif
 		}
 #endif
-		return cField[inx];
+		return this->cField[inx];
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// (re)allocates a list of cnt elements [0...cnt-1], 
@@ -1221,16 +1222,16 @@ public:
 	virtual bool resize(size_t cnt)			
 	{
 		ScopeLock scopelock(*this);
-		if(cCnt>cnt) cCnt = cnt;	// shrink
+		if(this->cCnt>cnt) this->cCnt = cnt;	// shrink
 		realloc(cnt);
-		cCnt = cnt;					// growing
+		this->cCnt = cnt;					// growing
 		return true;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 	// returns number of used elements
-	virtual size_t size() const				{ScopeLock scopelock(*this); return cCnt;}	
-	virtual size_t freesize() const			{ScopeLock scopelock(*this); return cSZ-cCnt;}	
+	virtual size_t size() const				{ScopeLock scopelock(*this); return this->cCnt;}	
+	virtual size_t freesize() const			{ScopeLock scopelock(*this); return this->cSZ-this->cCnt;}	
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -1238,9 +1239,9 @@ public:
 	virtual bool append(const T& elem, size_t cnt=1)
 	{
 		ScopeLock scopelock(*this);
-		if(cCnt+cnt > cSZ)
-			realloc(cCnt+cnt);
-		while(cnt--) cField[cCnt++] = elem;
+		if(this->cCnt+cnt > this->cSZ)
+			realloc(this->cCnt+cnt);
+		while(cnt--) this->cField[this->cCnt++] = elem;
 		return true;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1259,10 +1260,10 @@ public:
 		ScopeLock scopelock(*this);
 		if( elem )
 		{
-			if( cCnt+cnt > cSZ)
-				realloc( cCnt+cnt );
-			copy(cField+cCnt,elem,cnt);
-			cCnt += cnt;
+			if( this->cCnt+cnt > this->cSZ)
+				realloc( this->cCnt+cnt );
+			copy(this->cField+this->cCnt,elem,cnt);
+			this->cCnt += cnt;
 			return true;
 		}
 		return false;
@@ -1273,9 +1274,9 @@ public:
 	virtual bool remove(size_t cnt=1)
 	{
 		ScopeLock scopelock(*this);
-		if( cnt <= cCnt )
+		if( cnt <= this->cCnt )
 		{
-			cCnt -= cnt;
+			this->cCnt -= cnt;
 			return true;
 		}
 		return false;
@@ -1285,10 +1286,10 @@ public:
 	virtual bool removeindex(size_t inx)
 	{
 		ScopeLock scopelock(*this);
-		if(inx < cCnt)
+		if(inx < this->cCnt)
 		{
-			move(cField+inx,cField+inx+1,cCnt-inx-1);
-			cCnt--;
+			move(this->cField+inx,this->cField+inx+1,this->cCnt-inx-1);
+			this->cCnt--;
 			return true;
 		}
 		return false;
@@ -1298,11 +1299,11 @@ public:
 	virtual bool removeindex(size_t inx, size_t cnt)
 	{
 		ScopeLock scopelock(*this);
-		if(inx < cCnt)
+		if(inx < this->cCnt)
 		{
-			if(inx+cnt > cCnt)	cnt = cCnt-inx;
-			move(cField+inx,cField+inx+cnt,cCnt-inx-cnt);
-			cCnt -= cnt;
+			if(inx+cnt > this->cCnt)	cnt = this->cCnt-inx;
+			move(this->cField+inx,this->cField+inx+cnt,this->cCnt-inx-cnt);
+			this->cCnt -= cnt;
 			return true;
 		}
 		return false;
@@ -1312,7 +1313,7 @@ public:
 	virtual bool clear()
 	{
 		ScopeLock scopelock(*this);
-		cCnt = 0;
+		this->cCnt = 0;
 		return true;
 	}
 
@@ -1321,15 +1322,15 @@ public:
 	virtual bool insert(const T& elem, size_t cnt=1, size_t pos=~0)
 	{
 		ScopeLock scopelock(*this);
-		if( cCnt+cnt > cSZ )
-			realloc(cSZ+cnt);
+		if( this->cCnt+cnt > this->cSZ )
+			realloc(this->cSZ+cnt);
 
-		if(pos >= cCnt) 
-			pos = cCnt;
+		if(pos >= this->cCnt) 
+			pos = this->cCnt;
 		else
-			move(cField+pos+cnt, cField+pos, cCnt-pos);
-		while(cnt--) cField[pos+cnt] = elem;
-		cCnt+=cnt;
+			move(this->cField+pos+cnt, this->cField+pos, this->cCnt-pos);
+		while(cnt--) this->cField[pos+cnt] = elem;
+		this->cCnt+=cnt;
 		return true;
 
 	}
@@ -1340,15 +1341,15 @@ public:
 		ScopeLock scopelock(*this);
 		if( elem )
 		{	
-			if( cCnt+cnt > cSZ )
-				realloc(cCnt+cnt);
+			if( this->cCnt+cnt > this->cSZ )
+				realloc(this->cCnt+cnt);
 
-			if(pos >= cCnt) 
-				pos=cCnt;
+			if(pos >= this->cCnt) 
+				pos=this->cCnt;
 			else
-				move(cField+pos+cnt, cField+pos, cCnt-pos);
-			copy(cField+pos,elem,cnt);
-			cCnt += cnt;
+				move(this->cField+pos+cnt, this->cField+pos, this->cCnt-pos);
+			copy(this->cField+pos,elem,cnt);
+			this->cCnt += cnt;
 			return true;
 		}
 		return false;
@@ -1369,12 +1370,12 @@ public:
 		ScopeLock scopelock(*this);
 		if( elem )
 		{	
-			if(pos > cCnt) pos = cCnt;
+			if(pos > this->cCnt) pos = this->cCnt;
 
-			if( pos+cnt > cSZ )
+			if( pos+cnt > this->cSZ )
 				realloc(pos+cnt);
-			copy(cField+pos,elem,cnt);
-			cCnt = pos+cnt;
+			copy(this->cField+pos,elem,cnt);
+			this->cCnt = pos+cnt;
 			return true;
 		}
 		return false;
@@ -1393,11 +1394,11 @@ public:
 	virtual bool move(size_t tarpos, size_t srcpos)
 	{	
 		ScopeLock scopelock(*this);
-		if(srcpos>cCnt) srcpos=cCnt; 
-		if( cCnt+tarpos > cSZ+srcpos )
-			realloc(cCnt+tarpos-srcpos);
-		move(cField+tarpos,cField+srcpos,cCnt-srcpos);
-		cCnt += tarpos-srcpos;
+		if(srcpos>this->cCnt) srcpos=this->cCnt; 
+		if( this->cCnt+tarpos > this->cSZ+srcpos )
+			realloc(this->cCnt+tarpos-srcpos);
+		move(this->cField+tarpos,this->cField+srcpos,this->cCnt-srcpos);
+		this->cCnt += tarpos-srcpos;
 		return true;
 	}
 
@@ -1406,23 +1407,23 @@ public:
 	virtual bool replace(const T* elem, size_t cnt, size_t pos, size_t poscnt)
 	{
 		ScopeLock scopelock(*this);
-		if(pos > cCnt)
+		if(pos > this->cCnt)
 		{
-			pos = cCnt;
+			pos = this->cCnt;
 			poscnt = 0;
 		}
-		if(pos+poscnt > cCnt) 
+		if(pos+poscnt > this->cCnt) 
 		{
-			poscnt=cCnt-pos;
+			poscnt=this->cCnt-pos;
 		}
 		if( elem )
 		{
-			if( cCnt+cnt > cSZ+poscnt)
-				realloc(cCnt+cnt-poscnt);
+			if( this->cCnt+cnt > this->cSZ+poscnt)
+				realloc(this->cCnt+cnt-poscnt);
 
-			move(cField+pos+cnt, cField+pos+poscnt,cCnt-pos-poscnt);
-			copy(cField+pos,elem,cnt);
-			cCnt += cnt-poscnt;
+			move(this->cField+pos+cnt, this->cField+pos+poscnt,this->cCnt-pos-poscnt);
+			copy(this->cField+pos,elem,cnt);
+			this->cCnt += cnt-poscnt;
 			return true;
 		}
 		return false;
@@ -1441,9 +1442,9 @@ public:
 	virtual bool find(const T& elem, size_t startpos, size_t& pos) const
 	{
 		ScopeLock scopelock(*this);
-		for(size_t i=startpos; i<cCnt; i++)
+		for(size_t i=startpos; i<this->cCnt; i++)
 		{
-			if( elem == cField[i] )
+			if( elem == this->cField[i] )
 			{	pos = i;
 				return true;
 			}
@@ -1453,9 +1454,9 @@ public:
 	virtual int  find(const T& elem, size_t startpos=0) const
 	{
 		ScopeLock scopelock(*this);
-		for(size_t i=startpos; i<cCnt; i++)
+		for(size_t i=startpos; i<this->cCnt; i++)
 		{
-			if( elem == cField[i] )
+			if( elem == this->cField[i] )
 			{	
 				return i;
 			}
@@ -1481,11 +1482,11 @@ public:
 	virtual T& pop()
 	{
 		ScopeLock scopelock(*this);
-		if( cCnt > 0 )
+		if( this->cCnt > 0 )
 		{
-			static T elem = cField[0];
-			cCnt--;
-			move(cField+0, cField+1,cCnt);
+			static T elem = this->cField[0];
+			this->cCnt--;
+			move(this->cField+0, this->cField+1,this->cCnt);
 			return elem;
 		}
 #ifdef CHECK_BOUNDS
@@ -1496,7 +1497,7 @@ public:
 			return dummy;
 #endif
 #else
-			return cField[0];
+			return this->cField[0];
 #endif
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1504,11 +1505,11 @@ public:
 	virtual bool pop(T& elem)
 	{
 		ScopeLock scopelock(*this);
-		if( cCnt > 0 )
+		if( this->cCnt > 0 )
 		{
-			elem = cField[0];
-			cCnt--;
-			move(cField+0, cField+1,cCnt);
+			elem = this->cField[0];
+			this->cCnt--;
+			move(this->cField+0, this->cField+1,this->cCnt);
 			return true;
 		}
 		else
@@ -1543,7 +1544,7 @@ public:
 		ScopeLock scopelock(*this);
 #ifdef CHECK_BOUNDS
 		// check for access to outside memory
-		if( cCnt == 0 )
+		if( this->cCnt == 0 )
 		{
 #ifdef CHECK_EXCEPTIONS
 			throw exception_bound("TArrayDST underflow");
@@ -1553,16 +1554,16 @@ public:
 #endif
 		}
 #endif
-		return const_cast<T&>(cField[cCnt]);
+		return const_cast<T&>(this->cField[this->cCnt]);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// as above but with check if element exist
 	virtual bool top(T& elem) const
 	{
 		ScopeLock scopelock(*this);
-		if( cCnt > 0 )
+		if( this->cCnt > 0 )
 		{
-			elem = cField[cCnt];
+			elem = this->cField[this->cCnt];
 			return true;
 		}
 		else
@@ -1631,15 +1632,15 @@ public:
 		ScopeLock scopelock(*this);
 
 		// ignore position, insert sorted
-		if( cCnt >= cSZ )
-			realloc(cSZ+1);
+		if( this->cCnt >= this->cSZ )
+			realloc(this->cSZ+1);
 
 		bool f = find(elem, 0, pos);
 		if( !f || cAllowDup )
 		{
-			move(cField+pos+1, cField+pos, cCnt-pos);
-			cCnt++;
-			cField[pos] = elem;
+			move(this->cField+pos+1, this->cField+pos, this->cCnt-pos);
+			this->cCnt++;
+			this->cField[pos] = elem;
 			return true;
 		}
 		return false;
@@ -1649,8 +1650,8 @@ public:
 	virtual bool insert(const T* elem, size_t cnt, size_t pos=~0)
 	{
 		ScopeLock scopelock(*this);
-		if( cCnt+cnt>cSZ )
-			realloc(cCnt+cnt);
+		if( this->cCnt+cnt>this->cSZ )
+			realloc(this->cCnt+cnt);
 
 		for(size_t i=0; i<cnt; i++)
 		{	
@@ -1663,8 +1664,8 @@ public:
 	virtual bool insert(const TArray<T>& list, size_t pos=~0)
 	{
 		ScopeLock scopelock(*this);
-		if( cCnt+list.size()>cSZ )
-			realloc(cCnt+list.size());
+		if( this->cCnt+list.size()>this->cSZ )
+			realloc(this->cCnt+list.size());
 
 		for(size_t i=0; i<list.size(); i++)
 		{
@@ -1678,7 +1679,7 @@ public:
 	virtual bool copy(const TArray<T>& list)
 	{
 		ScopeLock scopelock(*this);
-		clear();
+		this->clear();
 		return insert(list);
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1686,7 +1687,7 @@ public:
 	virtual bool copy(const T* elem, size_t cnt)
 	{
 		ScopeLock scopelock(*this);
-		clear();
+		this->clear();
 		return insert(elem, cnt);
 	}
 
@@ -1695,7 +1696,7 @@ public:
 	virtual bool replace(const TArray<T>& list, size_t pos, size_t poscnt)
 	{
 		ScopeLock scopelock(*this);
-		removeindex(pos,poscnt);
+		this->removeindex(pos,poscnt);
 		return insert(list);
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1703,7 +1704,7 @@ public:
 	virtual bool replace(const T* elem, size_t cnt, size_t pos, size_t poscnt)
 	{
 		ScopeLock scopelock(*this);
-		removeindex(pos,poscnt);
+		this->removeindex(pos,poscnt);
 		return insert(elem, cnt);
 	}
 
@@ -1715,28 +1716,28 @@ public:
 		// do a binary search
 		// make some initial stuff
 		bool ret = false;
-		size_t a= (startpos>=cCnt) ? 0 : startpos;
-		size_t b=cCnt-1;
+		size_t a= (startpos>=this->cCnt) ? 0 : startpos;
+		size_t b=this->cCnt-1;
 		size_t c;
 		pos = 0;
 
-		if( NULL==cField || cCnt < 1)
+		if( NULL==this->cField || this->cCnt < 1)
 			ret = false;
-		else if( elem == cField[a] ) 
+		else if( elem == this->cField[a] ) 
 		{	pos=a;
 			ret = true;
 		}
-		else if( elem == cField[b] )
+		else if( elem == this->cField[b] )
 		{	pos = b;
 			ret = true;
 		}
 		else if( cAscending )
 		{	//smallest element first
-			if( elem < cField[a] )
+			if( elem < this->cField[a] )
 			{	pos = a;
 				ret = false; //less than lower
 			}
-			else if( elem > cField[b] )
+			else if( elem > this->cField[b] )
 			{	pos = b+1;
 				ret = false; //larger than upper
 			}
@@ -1745,12 +1746,12 @@ public:
 				do
 				{
 					c=(a+b)/2;
-					if( elem == cField[c] )
+					if( elem == this->cField[c] )
 					{	b=c;
 						ret = true;
 						break;
 					}
-					else if( elem < cField[c] )
+					else if( elem < this->cField[c] )
 						b=c;
 					else
 						a=c;
@@ -1760,11 +1761,11 @@ public:
 		}
 		else // descending
 		{	//smallest element last
-			if( elem > cField[a] )
+			if( elem > this->cField[a] )
 			{	pos = a;
 				ret = false; //larger than lower
 			}
-			else if( elem < cField[b] )	// v1
+			else if( elem < this->cField[b] )	// v1
 			{	pos = b+1;
 				ret = false; //less than upper
 			}
@@ -1773,12 +1774,12 @@ public:
 				do
 				{
 					c=(a+b)/2;
-					if( elem == cField[c] )
+					if( elem == this->cField[c] )
 					{	b=c;
 						ret = true;
 						break;
 					}
-					else if( elem > cField[c] )
+					else if( elem > this->cField[c] )
 						b=c;
 					else
 						a=c;

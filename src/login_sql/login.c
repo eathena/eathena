@@ -183,7 +183,7 @@ int isGM(unsigned long account_id) {
 	MYSQL_RES* 	sql_res;
 	MYSQL_ROW	sql_row;
 	level = 0;
-	sprintf(tmpsql,"SELECT `%s` FROM `%s` WHERE `%s`='%d'", login_db_level, login_db, login_db_account_id, account_id);
+	sprintf(tmpsql,"SELECT `%s` FROM `%s` WHERE `%s`='%ld'", login_db_level, login_db, login_db_account_id, account_id);
 	if (mysql_SendQuery(&mysql_handle, tmpsql)) {
 		ShowMessage("DB server Error (select GM Level to Memory)- %s\n", mysql_error(&mysql_handle));
 	}
@@ -768,7 +768,7 @@ int parse_fromchar(int fd){
 			time_t connect_until_time = 0;
 			char email[40] = "";
 			account_id=RFIFOL(fd,2);
-			sprintf(tmpsql,"SELECT `email`,`connect_until` FROM `%s` WHERE `%s`='%d'",login_db, login_db_account_id, account_id);
+			sprintf(tmpsql,"SELECT `email`,`connect_until` FROM `%s` WHERE `%s`='%ld'",login_db, login_db_account_id, account_id);
 			if(mysql_SendQuery(&mysql_handle, tmpsql)) {
 				ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
@@ -932,7 +932,7 @@ int parse_fromchar(int fd){
 						charif_sendallwos(-1, buf, 11);
 					}
 					ShowMessage("Account: %d Banned until: %ld\n", acc, timestamp);
-					sprintf(tmpsql, "UPDATE `%s` SET `ban_until` = '%ld', `state`='7' WHERE `%s` = '%d'", login_db, timestamp, login_db_account_id, acc);
+					sprintf(tmpsql, "UPDATE `%s` SET `ban_until` = '%ld', `state`='7' WHERE `%s` = '%d'", login_db, (unsigned long)timestamp, login_db_account_id, acc);
 					// query
 					if (mysql_SendQuery(&mysql_handle, tmpsql)) {
 						ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
@@ -1097,7 +1097,7 @@ int parse_login(int fd)
 	char ip_str[16];
 	unsigned long client_ip = session[fd]->client_ip;
 	unsigned char p[] = {(unsigned char)(client_ip>>24)&0xFF,(unsigned char)(client_ip>>16)&0xFF,(unsigned char)(client_ip>>8)&0xFF,(unsigned char)(client_ip)&0xFF};
-	sprintf(ip_str, "%ld.%ld.%ld.%ld", p[0], p[1], p[2], p[3]);
+	sprintf(ip_str, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
 
 	if (ipban > 0)
 	{	//ip ban

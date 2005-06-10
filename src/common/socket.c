@@ -85,7 +85,7 @@ class Cfd_set
 		if( cSZ >= pos )
 		{	// need to reallocate
 			size_t sz = cSZ;
-			while(sz >= pos) sz*2;
+			while(sz >= pos) sz *= 2;
 
 			unsigned long* temp= new unsigned long[sz];
 

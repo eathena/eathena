@@ -161,7 +161,7 @@ void set_char_online(unsigned long char_id, unsigned long account_id)
 		return;
 
     if ( char_id != 99 ) {
-        sprintf(tmp_sql, "UPDATE `%s` SET `online`='1' WHERE `char_id`='%d'",char_db,char_id);
+        sprintf(tmp_sql, "UPDATE `%s` SET `online`='1' WHERE `char_id`='%ld'",char_db,char_id);
 		if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
 			ShowMessage("DB server Error (set char online)- %s\n", mysql_error(&mysql_handle));
 		}
@@ -207,7 +207,7 @@ void set_char_offline(unsigned long char_id, unsigned long account_id)
     struct mmo_charstatus *cp;
 
     if ( char_id == 99 )
-        sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `account_id`='%d'", char_db, account_id);
+        sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `account_id`='%ld'", char_db, account_id);
 	else {
 		cp = (struct mmo_charstatus*)numdb_search(char_db_,char_id);
 		if (cp != NULL) {
@@ -215,7 +215,7 @@ void set_char_offline(unsigned long char_id, unsigned long account_id)
 			numdb_erase(char_db_,char_id);
 		}
 
-		sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `char_id`='%d'", char_db, char_id);
+		sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `char_id`='%ld'", char_db, char_id);
 
 		if (mysql_SendQuery(&mysql_handle, tmp_sql))
 		ShowMessage("DB server Error (set_char_offline)- %s\n", mysql_error(&mysql_handle));
@@ -419,7 +419,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 		(p->fame_points != cp->fame_points)) 
 	{	//check party_exist
 	party_exist=0;
-	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id` = '%d'",party_db, p->party_id); // TBR
+	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id` = '%ld'",party_db, p->party_id); // TBR
 	if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
 			ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
 	}
@@ -430,7 +430,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 
 	//check guild_exist
 	guild_exist=0;
-	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id` = '%d'",guild_db, p->guild_id); // TBR
+	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id` = '%ld'",guild_db, p->guild_id); // TBR
 	if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
 			ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
 	}
@@ -451,14 +451,14 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 	//`last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`)
 		//ShowMessage("- Save char data to MySQL!\n");
 	sprintf(tmp_sql ,"UPDATE `%s` SET `class`='%d', `base_level`='%d', `job_level`='%d',"
-		"`base_exp`='%d', `job_exp`='%d', `zeny`='%d',"
-		"`max_hp`='%d',`hp`='%d',`max_sp`='%d',`sp`='%d',`status_point`='%d',`skill_point`='%d',"
+		"`base_exp`='%ld', `job_exp`='%ld', `zeny`='%ld',"
+		"`max_hp`='%ld',`hp`='%ld',`max_sp`='%ld',`sp`='%ld',`status_point`='%d',`skill_point`='%d',"
 		"`str`='%d',`agi`='%d',`vit`='%d',`int`='%d',`dex`='%d',`luk`='%d',"
-		"`option`='%d',`karma`='%d',`manner`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',"
+		"`option`='%d',`karma`='%d',`manner`='%d',`party_id`='%ld',`guild_id`='%ld',`pet_id`='%ld',"
 		"`hair`='%d',`hair_color`='%d',`clothes_color`='%d',`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
 		"`last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d',"
-		"`partner_id`='%d', `father`='%d', `mother`='%d', `child`='%d', `fame`='%d'"
-		"WHERE  `account_id`='%d' AND `char_id` = '%d'",
+		"`partner_id`='%ld', `father`='%ld', `mother`='%ld', `child`='%ld', `fame`='%ld'"
+		"WHERE  `account_id`='%ld' AND `char_id` = '%ld'",
 		char_db, p->class_, p->base_level, p->job_level,
 		p->base_exp, p->job_exp, p->zeny,
 		p->max_hp, p->hp, p->max_sp, p->sp, p->status_point, p->skill_point,
@@ -467,10 +467,10 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 		p->hair, p->hair_color, p->clothes_color,
 		p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
 		p->last_point.map, p->last_point.x, p->last_point.y,
-			p->save_point.map, p->save_point.x, p->save_point.y, p->partner_id, 
-			p->father_id, p->mother_id, p->child_id, 
-			p->fame_points, 
-			p->account_id, p->char_id
+		p->save_point.map, p->save_point.x, p->save_point.y, p->partner_id,
+		p->father_id, p->mother_id, p->child_id,
+		p->fame_points,
+		p->account_id, p->char_id
 	);
 
 	if(mysql_SendQuery(&mysql_handle, tmp_sql)) {
@@ -491,7 +491,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 	if (diff) {
 	//ShowMessage("- Save memo data to MySQL!\n");
 	//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
-	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",memo_db, p->char_id);
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%ld'",memo_db, p->char_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql)) {
 			ShowMessage("DB server Error (delete `memo`)- %s\n", mysql_error(&mysql_handle));
 	}
@@ -499,7 +499,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 	//insert here.
 	for(i=0;i<10;i++){
 		if(p->memo_point[i].map[0]){
-			sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`,`map`,`x`,`y`) VALUES ('%d', '%s', '%d', '%d')",
+			sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`,`map`,`x`,`y`) VALUES ('%ld', '%s', '%d', '%d')",
 				memo_db, char_id, p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql))
 				ShowMessage("DB server Error (insert `memo`)- %s\n", mysql_error(&mysql_handle));
@@ -522,7 +522,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 	if (diff) {
 	//ShowMessage("- Save skill data to MySQL!\n");
 	//`skill` (`char_id`, `id`, `lv`)
-	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",skill_db, p->char_id);
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%ld'",skill_db, p->char_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql)) {
 			ShowMessage("DB server Error (delete `skill`)- %s\n", mysql_error(&mysql_handle));
 	}
@@ -531,7 +531,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 	for(i=0;i<MAX_SKILL;i++){
 		if(p->skill[i].id){
 			if (p->skill[i].id && p->skill[i].flag!=1) {
-				sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`, `id`, `lv`) VALUES ('%d', '%d','%d')",
+				sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`, `id`, `lv`) VALUES ('%ld', '%d','%d')",
 					skill_db, char_id, p->skill[i].id, (p->skill[i].flag==0)?p->skill[i].lv:p->skill[i].flag-2);
 				if(mysql_SendQuery(&mysql_handle, tmp_sql)) {
 					ShowMessage("DB server Error (insert `skill`)- %s\n", mysql_error(&mysql_handle));
@@ -556,7 +556,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 	if (diff) {
 	//ShowMessage("- Save global_reg_value data to MySQL!\n");
 	//`global_reg_value` (`char_id`, `str`, `value`)
-	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, p->char_id);
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=3 AND `char_id`='%ld'",reg_db, p->char_id);
 	if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
 			ShowMessage("DB server Error (delete `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
 	}
@@ -565,7 +565,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 	for(i=0;i<p->global_reg_num;i++){
 		if (p->global_reg[i].str) {
 			if(p->global_reg[i].value !=0){
-					sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`, `str`, `value`) VALUES ('%d', '%s','%d')",
+					sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`, `str`, `value`) VALUES ('%ld', '%s','%ld')",
 					         reg_db, char_id, jstrescapecpy(temp_str,p->global_reg[i].str), p->global_reg[i].value);
 					if(mysql_SendQuery(&mysql_handle, tmp_sql)) {
 						ShowMessage("DB server Error (insert `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
@@ -604,13 +604,13 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 			if (i>0)
 				tmp_p += sprintf(tmp_p, ", ");
 
-			tmp_p += sprintf(tmp_p, "`friend_id%d`='%d', `name%d`='%s'", i, p->friend_id[i], i, p->friend_name[i]);
+			tmp_p += sprintf(tmp_p, "`friend_id%d`='%ld', `name%d`='%s'", i, p->friend_id[i], i, p->friend_name[i]);
 
 			if ((p->friend_id[i] != cp->friend_id[i]) || strcmp(p->friend_name[i], cp->friend_name[i]))
 				diff = 1;
 		}
 
-		tmp_p += sprintf(tmp_p, " where account_id='%d';", char_id);
+		tmp_p += sprintf(tmp_p, " where account_id='%ld';", char_id);
 	#endif
 
 	if (diff)
@@ -1121,7 +1121,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	//check for charcount (maxchars) :)
 	if(char_per_account != 0)
 	{
-		sprintf(tmp_sql, "SELECT `account_id` FROM `%s` WHERE `account_id` = '%d'", char_db, sd->account_id);
+		sprintf(tmp_sql, "SELECT `account_id` FROM `%s` WHERE `account_id` = '%ld'", char_db, sd->account_id);
 		if(mysql_SendQuery(&mysql_handle, tmp_sql))
 		{
 			ShowMessage("fail, SQL Error: %s !!FAIL!!\n", tmp_sql);
@@ -1162,7 +1162,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 		if (log_char) {	
 			// char.log to charlog
 			sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
-				"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+				"VALUES (NOW(), '%s', '%ld', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
 				charlog_db,"make new char error", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 			//query
 			mysql_SendQuery(&mysql_handle, tmp_sql);		
@@ -1177,7 +1177,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 			if (log_char) {
 				// char.log to charlog
 				sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
-					"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+					"VALUES (NOW(), '%s', '%ld', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
 					charlog_db,"make new char error", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 				//query
 				mysql_SendQuery(&mysql_handle, tmp_sql);
@@ -1191,7 +1191,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 		if (log_char) {
 			// char.log to charlog
 			sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
-					"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+					"VALUES (NOW(), '%s', '%ld', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
 					charlog_db,"make new char error", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 			//query
 			mysql_SendQuery(&mysql_handle, tmp_sql);
@@ -1203,7 +1203,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	if (log_char) {
 		// char.log to charlog
 		sprintf(tmp_sql,"INSERT INTO `%s`(`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
-			"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+			"VALUES (NOW(), '%s', '%ld', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
 			charlog_db,"make new char", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 		//query
 		if (mysql_SendQuery(&mysql_handle, tmp_sql))
@@ -1235,7 +1235,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	}
 
 	// check char slot.
-	sprintf(tmp_sql, "SELECT `account_id`, `char_num` FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d'",char_db, sd->account_id, dat[30]);
+	sprintf(tmp_sql, "SELECT `account_id`, `char_num` FROM `%s` WHERE `account_id` = '%ld' AND `char_num` = '%d'",char_db, sd->account_id, dat[30]);
 	if (mysql_SendQuery(&mysql_handle, tmp_sql))
 	{
 		ShowMessage("fail (charslot check), SQL error: %s\n", mysql_error(&mysql_handle));
@@ -1247,7 +1247,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 		if (temp > 0)
 		{
 			mysql_free_result(sql_res);
-			ShowMessage("fail (aid: %d, slot: %d), slot already in use\n", sd->account_id, dat[30]);
+			ShowMessage("fail (aid: %ld, slot: %d), slot already in use\n", sd->account_id, dat[30]);
 			return -2;
 		}
 		mysql_free_result(sql_res);
@@ -1258,7 +1258,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	// make new char.
 		 /*
 	sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`account_id`,`char_num`,`name`,`zeny`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`max_hp`,`hp`,`max_sp`,`sp`,`hair`,`hair_color`)"
-		" VALUES ('%d', '%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d')",
+		" VALUES ('%ld', '%ld', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d')",
 		 char_db, char_id_count, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29],
 		(40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31]);
 	if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
@@ -1292,7 +1292,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	
 	//New Querys [Sirius]
 	//Insert the char to the 'chardb' ^^
-	sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", char_db, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.map, start_point.x, start_point.y, start_point.map, start_point.x, start_point.y);
+	sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%ld', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", char_db, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.map, start_point.x, start_point.y, start_point.map, start_point.x, start_point.y);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql))
 	{
 		ShowMessage("failed (insert in chardb), SQL error: %s\n", mysql_error(&mysql_handle));
@@ -1300,12 +1300,12 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	}
 
 	//Now we need the charid from sql!
-	sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id , dat[30] , t_name);
+	sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%ld' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id , dat[30] , t_name);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql))
 	{
 		ShowMessage("failed (get char_id), SQL error: %s\n", mysql_error(&mysql_handle));
 		//delete the char ..(no trash in DB!)
-		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
+		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%ld' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 		mysql_SendQuery(&mysql_handle, tmp_sql);
 		return -2; //XD end of the (World? :P) .. charcreate (denied)
 	}
@@ -1320,7 +1320,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 			if(char_id <= 0)
 			{
 				ShowMessage("failed (get char id..) CHARID wrong!\n");
-				sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
+				sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%ld' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 				mysql_SendQuery(&mysql_handle, tmp_sql);
 				return -2; //charcreate denied ..
 			}
@@ -1328,7 +1328,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 		else
 		{	//prevent to crash (if its false, and we want to free -> segfault :)
 			ShowMessage("failed (get char id.. res), SQL error: %s\n", mysql_error(&mysql_handle));
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%ld' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 			mysql_SendQuery(&mysql_handle, tmp_sql);
 			return -2; //end ...... -> charcreate failed :)
 		}
@@ -1340,7 +1340,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	if (mysql_SendQuery(&mysql_handle, tmp_sql))
 	{
 		ShowMessage("fail (insert in inventory  the 'knife'), SQL error: %s\n", mysql_error(&mysql_handle));
-		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
+		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%ld' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 		mysql_SendQuery(&mysql_handle, tmp_sql);
 		return -2;//end XD
 	}
@@ -1349,7 +1349,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	if (mysql_SendQuery(&mysql_handle, tmp_sql))
 	{
 		ShowMessage("fail (insert in inventroxy the 'cotton shirt'), SQL error: %s\n", mysql_error(&mysql_handle));
-		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
+		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%ld' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 		mysql_SendQuery(&mysql_handle, tmp_sql);
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
 		mysql_SendQuery(&mysql_handle, tmp_sql);
@@ -1425,7 +1425,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd)
     set_char_online(99,sd->account_id);
 
 	//search char.
-	sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%d'",char_db, sd->account_id);
+	sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%ld'",char_db, sd->account_id);
 	if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
 		ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
 	}
@@ -1690,7 +1690,7 @@ int parse_tologin(int fd)
 			sex = RFIFOB(fd,6);
 			RFIFOSKIP(fd, 7);
 			if (acc > 0) {
-				sprintf(tmp_sql, "SELECT `char_id`,`class`,`skill_point` FROM `%s` WHERE `account_id` = '%d'",char_db, acc);
+				sprintf(tmp_sql, "SELECT `char_id`,`class`,`skill_point` FROM `%s` WHERE `account_id` = '%ld'",char_db, acc);
 				if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
 						ShowMessage("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
 				}
@@ -2623,7 +2623,7 @@ int parse_char(int fd)
                         if (sd == NULL)
                           return 0;
 
-			sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'",char_db, sd->account_id, RFIFOB(fd, 2));
+			sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id`='%ld' AND `char_num`='%d'",char_db, sd->account_id, RFIFOB(fd, 2));
 			if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
 				ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
@@ -2640,7 +2640,7 @@ int parse_char(int fd)
 			}
 
 			if (log_char) {
-				sprintf(tmp_sql,"INSERT INTO `%s`(`time`, `account_id`,`char_num`,`name`) VALUES (NOW(), '%d', '%d', '%s')",
+				sprintf(tmp_sql,"INSERT INTO `%s`(`time`, `account_id`,`char_num`,`name`) VALUES (NOW(), '%ld', '%d', '%s')",
 					charlog_db, sd->account_id, RFIFOB(fd, 2), char_dat[0].name);
 				//query
 				if(mysql_SendQuery(&mysql_handle, tmp_sql)) {

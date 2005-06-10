@@ -6038,7 +6038,7 @@ int clif_update_mobhp(struct mob_data &md)
 	WBUFL(buf,2) = md.bl.id;
 
 	memcpy(WBUFP(buf,6), md.name, 24);
-	sprintf(mobhp, "hp: %d/%d", md.hp, mob_db[md.class_].max_hp);
+	sprintf(mobhp, "hp: %ld/%d", md.hp, mob_db[md.class_].max_hp);
 
 	WBUFW(buf, 0) = 0x195;
 	memcpy(WBUFP(buf,30), mobhp, 24);
@@ -7526,7 +7526,7 @@ int clif_charnameack(int fd, struct block_list &bl)
 		{
 			char mobhp[50];
 			cmd = 0x195;
-			sprintf(mobhp, "hp: %d/%d", md.hp, md.max_hp);
+			sprintf(mobhp, "hp: %ld/%ld", md.hp, md.max_hp);
 			memcpy(WBUFP(buf,30), mobhp, 24);
 			WBUFB(buf,54) = 0;
 			WBUFB(buf,78) = 0;
@@ -7535,7 +7535,7 @@ int clif_charnameack(int fd, struct block_list &bl)
 	}
 	default:
 		if (battle_config.error_log)
-			printf("clif_parse_GetCharNameRequest : bad type %d(%d)\n", bl.type, bl.id);
+			printf("clif_parse_GetCharNameRequest : bad type %d(%ld)\n", bl.type, bl.id);
 		return 0;
 	}
 
@@ -8194,7 +8194,7 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message);
 		// message about the ban
 		if (battle_config.ban_spoof_namer > 0)
-			sprintf(message, " This player has been banned for %d minute(s).", battle_config.ban_spoof_namer);
+			sprintf(message, " This player has been banned for %ld minute(s).", battle_config.ban_spoof_namer);
 		else
 			sprintf(message, " This player hasn't been banned (Ban option is disabled).");
 		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message);

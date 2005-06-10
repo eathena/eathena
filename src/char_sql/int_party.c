@@ -161,7 +161,7 @@ int inter_party_tosql(unsigned long party_id,struct party *p)
 	}
 	
 	// Check if party exists
-	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id`='%d'", party_db, party_id); // TBR
+	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id`='%ld'", party_db, party_id); // TBR
 	if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
 		ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle) );
 		return 0;
@@ -177,14 +177,14 @@ int inter_party_tosql(unsigned long party_id,struct party *p)
 			if (i < MAX_PARTY)
 				leader_id = p->member[i].account_id;
 			
-			sprintf(tmp_sql,"INSERT INTO `%s`  (`party_id`, `name`, `exp`, `item`, `leader_id`) VALUES ('%d', '%s', '%d', '%d', '%ld')",
+			sprintf(tmp_sql,"INSERT INTO `%s`  (`party_id`, `name`, `exp`, `item`, `leader_id`) VALUES ('%ld', '%s', '%d', '%d', '%ld')",
 				party_db, party_id, t_name, p->exp, p->item, leader_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (inset/update `party`)- %s\n", mysql_error(&mysql_handle) );
 				return 0;
 			}
 			
-			sprintf(tmp_sql,"UPDATE `%s` SET `party_id`='%d'  WHERE `account_id`='%ld' AND `name`='%s'",
+			sprintf(tmp_sql,"UPDATE `%s` SET `party_id`='%ld'  WHERE `account_id`='%ld' AND `name`='%s'",
 				char_db, party_id, leader_id, jstrescapecpy(t_member,p->member[i].name));
 			
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) )
@@ -197,7 +197,7 @@ int inter_party_tosql(unsigned long party_id,struct party *p)
 	
 	// Check members in party
 	if( !party_new ) {
-		sprintf(tmp_sql,"SELECT count(*) FROM `%s` WHERE `party_id`='%d'",char_db, party_id); // TBR
+		sprintf(tmp_sql,"SELECT count(*) FROM `%s` WHERE `party_id`='%ld'",char_db, party_id); // TBR
 		if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 			ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle) );
 			return 0;
@@ -210,7 +210,7 @@ int inter_party_tosql(unsigned long party_id,struct party *p)
 		party_member = atoi( sql_row[0] );
 		if( !party_member ) {
 			mysql_free_result(sql_res);
-			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `party_id`='%d'",party_db, party_id);
+			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `party_id`='%ld'",party_db, party_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) )
 				ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle) );
 			ShowMessage("No member in party %d, break it \n",party_id);
@@ -229,12 +229,12 @@ int inter_party_tosql(unsigned long party_id,struct party *p)
 				{	//Sasuke- Updates Char db for correct party_id
 					if (tmp_sql[0] == '\0')
 					{
-						tmp += sprintf(tmp_sql, "UPDATE `%s` SET `party_id`='%d' WHERE (`account_id` = '%d' AND `name` = '%s')",
+						tmp += sprintf(tmp_sql, "UPDATE `%s` SET `party_id`='%ld' WHERE (`account_id` = '%ld' AND `name` = '%s')",
 									char_db, party_id, p->member[i].account_id, jstrescapecpy(t_member, p->member[i].name));
 					}
 					else
 					{
-						tmp += sprintf(tmp, " OR (`account_id` = '%d' AND `name` = '%s')",
+						tmp += sprintf(tmp, " OR (`account_id` = '%ld' AND `name` = '%s')",
 							p->member[i].account_id, jstrescapecpy(t_member, p->member[i].name));
 					}
 				}
@@ -245,7 +245,7 @@ int inter_party_tosql(unsigned long party_id,struct party *p)
 			
 			//Sasuke- Updates Party db correct info
 			
-			sprintf(tmp_sql,"UPDATE `%s` SET `name`='%s', `exp`='%d', `item`='%d', `leader_id`=`leader_id` WHERE `party_id`='%d'",
+			sprintf(tmp_sql,"UPDATE `%s` SET `name`='%s', `exp`='%d', `item`='%d', `leader_id`=`leader_id` WHERE `party_id`='%ld'",
 				party_db, t_name,p->exp,p->item,party_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) )
 				ShowMessage("DB server Error (insert/update `party`)- %s\n", mysql_error(&mysql_handle) );
@@ -381,7 +381,7 @@ struct party* search_partyname(char *str)
 	mysql_free_result(sql_res);
 
 	// Load members
-	sprintf(tmp_sql,"SELECT `account_id`, `name`,`base_level`,`last_map`,`online` FROM `%s` WHERE `party_id`='%d'",char_db, p->party_id);
+	sprintf(tmp_sql,"SELECT `account_id`, `name`,`base_level`,`last_map`,`online` FROM `%s` WHERE `party_id`='%ld'",char_db, p->party_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (select `party`)- %s\n", mysql_error(&mysql_handle) );
 		return 0;
@@ -755,7 +755,7 @@ int mapif_parse_PartyLeave(int fd,unsigned long party_id,unsigned long account_i
 				mapif_party_leaved(party_id, account_id, p->member[i].name);
 
 				// Update char information, does the name need encoding?
-				sprintf (tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d' AND `name`='%s'",
+				sprintf (tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%ld' AND `name`='%s'",
 					char_db, party_id, jstrescapecpy(t_member,p->member[i].name));
 				if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 					ShowMessage("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
@@ -781,12 +781,12 @@ int mapif_parse_PartyLeave(int fd,unsigned long party_id,unsigned long account_i
 					}
 					// we'll skip name-checking and just reset everyone with the same party id [celest]
 					// -- if anything goes wrong just uncomment the section above ^^;
-					sprintf (tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d'", char_db, party_id);
+					sprintf (tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%ld'", char_db, party_id);
 					if (/*tmp_sql != '\0' &&*/ mysql_SendQuery(&mysql_handle, tmp_sql)) {
 						ShowError("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
 					}
 					// Delete the party, if has no member.
-					sprintf(tmp_sql, "DELETE FROM `%s` WHERE `party_id`='%d'", party_db, party_id);
+					sprintf(tmp_sql, "DELETE FROM `%s` WHERE `party_id`='%ld'", party_db, party_id);
 					if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 						ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle) );
 					}
@@ -803,7 +803,7 @@ int mapif_parse_PartyLeave(int fd,unsigned long party_id,unsigned long account_i
 		//else
 		//	inter_party_tosql(party_id,p);	// Break the party if no member
 	} else {
-		sprintf(tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d' AND `account_id`='%d' AND `online`='1'",
+		sprintf(tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%ld' AND `account_id`='%ld' AND `online`='1'",
 			char_db, party_id, account_id);
 		if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 			ShowMessage("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );

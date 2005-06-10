@@ -777,12 +777,12 @@ int mmo_auth_tostr(char *str, struct auth_dat *p) {
 	char *str_p = str;
 
 	str_p += sprintf(str_p, "%ld\t%s\t%s\t%s\t%c\t%ld\t%ld\t"
-	                 "%s\t%s\t%ld\t%s\t%s\t%ld\t",
-	                 p->account_id, p->userid, p->pass, p->lastlogin,
-	                 (p->sex == 2) ? 'S' : (p->sex ? 'M' : 'F'),
-	                 p->logincount, p->state,
-	                 p->email, p->error_message,
-	                 p->connect_until_time, p->last_ip, p->memo, p->ban_until_time);
+							"%s\t%s\t%ld\t%s\t%s\t%ld\t",
+							p->account_id, p->userid, p->pass, p->lastlogin,
+							(p->sex == 2) ? 'S' : (p->sex ? 'M' : 'F'),
+							p->logincount, p->state,
+							p->email, p->error_message, (unsigned long)p->connect_until_time,
+							p->last_ip, p->memo, (unsigned long)p->ban_until_time);
 
 	for(i = 0; i < p->account_reg2_num; i++)
 		if (p->account_reg2[i].str[0])
@@ -799,8 +799,8 @@ int mmo_auth_init(void) {
 	unsigned long account_id;
 	int logincount, state, n, i, j, v;
 	char line[2048], *p, userid[2048], pass[2048], lastlogin[2048], sex, email[2048], error_message[2048], last_ip[2048], memo[2048];
-	time_t ban_until_time;
-	time_t connect_until_time;
+	unsigned long ban_until_time;
+	unsigned long connect_until_time;
 	char str[2048];
 	int GM_count = 0;
 	int server_count = 0;

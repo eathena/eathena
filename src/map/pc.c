@@ -4235,7 +4235,7 @@ int pc_gainexp(struct map_session_data &sd,unsigned long base_exp,unsigned long 
 		if(nextj > 0)
 			nextjp = 100. * job_exp / nextj;
 
-		sprintf(output, "Experienced Gained Base:%d (%.2f%%) Job:%d (%.2f%%)",base_exp,nextbp,job_exp,nextjp);
+		sprintf(output, "Experienced Gained Base:%ld (%.2f%%) Job:%ld (%.2f%%)",base_exp,nextbp,job_exp,nextjp);
 		clif_disp_onlyself(sd,output);
 	}
 
