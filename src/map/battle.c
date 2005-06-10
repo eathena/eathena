@@ -20,6 +20,8 @@
 #include "pet.h"
 #include "guild.h"
 
+#define	is_boss(bl)	status_get_mexp(bl)	// Can refine later [Aru]
+
 int attr_fix_table[4][10][10];
 
 struct Battle_Config battle_config;
@@ -1181,7 +1183,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 	if(t_mode&0x40 && damage > 0)
 		damage = 1;
 
-	if(t_mode&0x20)
+	if(is_boss(target))
 		blewcount = 0;
 
 	if(skill_num != CR_GRANDCROSS)
@@ -1683,7 +1685,7 @@ static struct Damage battle_calc_mob_weapon_attack(
 		cardfix=cardfix*(100-tsd->subrace[s_race])/100;	// 種族によるダメージ耐性
 		cardfix=cardfix*(100-tsd->subsize[s_size])/100;
 		cardfix=cardfix*(100-tsd->subrace2[s_race2])/100;	// 種族によるダメージ耐性
-		if(mob_db[md->class_].mode & 0x20)
+		if(is_boss(src))
 			cardfix=cardfix*(100-tsd->subrace[10])/100;
 		else
 			cardfix=cardfix*(100-tsd->subrace[11])/100;
@@ -1762,7 +1764,7 @@ static struct Damage battle_calc_mob_weapon_attack(
 	if(t_mode&0x40 && damage > 0)
 		damage = 1;
 
-	if(t_mode&0x20)
+	if(is_boss(target))
 		blewcount = 0;
 
 	if( tsd && tsd->special_state.no_weapon_damage)
@@ -2048,7 +2050,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				damage2 = (damage2 * (def1 + def2))/100;
 				idef_flag_ = 1;
 			}
-			if(t_mode & 0x20) {
+			if(is_boss(target)) {
 				if(!idef_flag && sd->right_weapon.def_ratio_atk_race & (1<<10)) {
 					damage = (damage * (def1 + def2))/100;
 					idef_flag = 1;
@@ -2452,7 +2454,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			t_def = def2*8/10;
 			vitbonusmax = (t_vit/20)*(t_vit/20)-1;
 			if (tmd) {
-				if(t_mode & 0x20) {
+				if(is_boss(target)) {
 					if(sd->right_weapon.ignore_def_mob & 2)
 						idef_flag = 1;
 					if(sd->left_weapon.ignore_def_mob & 2)
@@ -2468,7 +2470,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				idef_flag = 1;
 			if(sd->left_weapon.ignore_def_ele & (1<<t_ele) || sd->left_weapon.ignore_def_race & (1<<t_race))
 				idef_flag_ = 1;
-			if(t_mode & 0x20) {
+			if(is_boss(target)) {
 				if(sd->right_weapon.ignore_def_race & (1<<10))
 					idef_flag = 1;
 				if(sd->left_weapon.ignore_def_race & (1<<10))
@@ -2632,7 +2634,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 		cardfix=cardfix*(100+sd->right_weapon.addsize[t_size]+sd->arrow_addsize[t_size])/100;	// サイズによるダメージ修正(弓矢による追加あり)
 		cardfix=cardfix*(100+sd->right_weapon.addrace2[t_race2])/100;
 	}
-	if(t_mode & 0x20) { //ボス
+	if(is_boss(target)) { //ボス
 		if(!sd->state.arrow_atk) { //弓矢攻撃以外なら
 			if(!battle_config.left_cardfix_to_right) //左手カード補正設定無し
 				cardfix=cardfix*(100+sd->right_weapon.addrace[10])/100; //ボスモンスターに追加ダメージ
@@ -2671,7 +2673,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 		cardfix=cardfix*(100+sd->left_weapon.addele[t_ele])/100;	// 属 性によるダメージ修正左手
 		cardfix=cardfix*(100+sd->left_weapon.addsize[t_size])/100;	// サイズによるダメージ修正左手
 		cardfix=cardfix*(100+sd->left_weapon.addrace2[t_race2])/100;
-		if(t_mode & 0x20) //ボス
+		if(is_boss(target)) //ボス
 			cardfix=cardfix*(100+sd->left_weapon.addrace[10])/100; //ボスモンスターに追加ダメージ左手
 		else
 			cardfix=cardfix*(100+sd->left_weapon.addrace[11])/100; //ボス以外モンスターに追加ダメージ左手
@@ -2695,7 +2697,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 		cardfix=cardfix*(100-tsd->subrace[s_race])/100;	// 種族によるダメージ耐性
 		cardfix=cardfix*(100-tsd->subele[s_ele])/100;	// 属性によるダメージ耐性
 		cardfix=cardfix*(100-tsd->subsize[s_size])/100;
-		if(status_get_mode(src) & 0x20)
+		if(is_boss(src))
 			cardfix=cardfix*(100-tsd->subrace[10])/100; //ボスからの攻撃はダメージ減少
 		else
 			cardfix=cardfix*(100-tsd->subrace[11])/100; //ボス以外からの攻撃はダメージ減少
@@ -2829,7 +2831,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			damage2 = 1;
 	}
 
-	if(t_mode&0x20)
+	if(is_boss(target))
 		blewcount = 0;
 
 	//bNoWeaponDamage(設定アイテム無し？)でグランドクロスじゃない場合はダメージが0
@@ -3047,7 +3049,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 		}
 	}
 
-	if(t_mode&0x20) //Bosses can't be knocked-back
+	if(is_boss(target)) //Bosses can't be knocked-back
 		wd.blewcount = 0;
 
 	if (sd)
@@ -3758,13 +3760,13 @@ static struct Damage battle_calc_weapon_attack_sub(
 				char raceele_flag=0, raceele_flag_=0;
 				if(sd->right_weapon.def_ratio_atk_ele & (1<<t_ele) ||
 					sd->right_weapon.def_ratio_atk_race & (1<<t_race) ||
-					sd->right_weapon.def_ratio_atk_race & (t_mode & 0x20?1<<10:1<<11)
+					sd->right_weapon.def_ratio_atk_race & (is_boss(target)?1<<10:1<<11)
 					)
 					raceele_flag = flag.idef = 1;
 				
 				if(sd->left_weapon.def_ratio_atk_ele & (1<<t_ele) ||
 					sd->left_weapon.def_ratio_atk_race & (1<<t_race) ||
-					sd->left_weapon.def_ratio_atk_race & (t_mode & 0x20?1<<10:1<<11)
+					sd->left_weapon.def_ratio_atk_race & (is_boss(target)?1<<10:1<<11)
 					)
 					raceele_flag_ = flag.idef2 = 1;
 				
@@ -3774,18 +3776,18 @@ static struct Damage battle_calc_weapon_attack_sub(
 
 			//Ignore Defense?
 			if (!flag.idef && (
-				(tmd && sd->right_weapon.ignore_def_mob & (t_mode & 0x20?2:1)) ||
+				(tmd && sd->right_weapon.ignore_def_mob & (is_boss(target)?2:1)) ||
 				sd->right_weapon.ignore_def_ele & (1<<t_ele) ||
 				sd->right_weapon.ignore_def_race & (1<<t_race) ||
-				sd->right_weapon.ignore_def_race & (t_mode & 0x20?1<<10:1<<11)
+				sd->right_weapon.ignore_def_race & (is_boss(target)?1<<10:1<<11)
 				))
 				flag.idef = 1;
 
 			if (!flag.idef2 && (
-				(tmd && sd->left_weapon.ignore_def_mob & (t_mode & 0x20?2:1)) ||
+				(tmd && sd->left_weapon.ignore_def_mob & (is_boss(target)?2:1)) ||
 				sd->left_weapon.ignore_def_ele & (1<<t_ele) ||
 				sd->left_weapon.ignore_def_race & (1<<t_race) ||
-				sd->left_weapon.ignore_def_race & (t_mode & 0x20?1<<10:1<<11)
+				sd->left_weapon.ignore_def_race & (is_boss(target)?1<<10:1<<11)
 				))
 				flag.idef2 = 1;
 		}
@@ -3906,7 +3908,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 				cardfix=cardfix*(100+sd->right_weapon.addele[t_ele]+sd->arrow_addele[t_ele])/100;
 				cardfix=cardfix*(100+sd->right_weapon.addsize[t_size]+sd->arrow_addsize[t_size])/100;
 				cardfix=cardfix*(100+sd->right_weapon.addrace2[t_race2])/100;
-				cardfix=cardfix*(100+sd->right_weapon.addrace[t_mode & 0x20?10:11]+sd->arrow_addrace[t_mode & 0x20?10:11])/100;
+				cardfix=cardfix*(100+sd->right_weapon.addrace[is_boss(target)?10:11]+sd->arrow_addrace[t_mode & 0x20?10:11])/100;
 			} else {	//Melee attack
 				if(!battle_config.left_cardfix_to_right)
 				{
@@ -3914,7 +3916,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					cardfix=cardfix*(100+sd->right_weapon.addele[t_ele])/100;
 					cardfix=cardfix*(100+sd->right_weapon.addsize[t_size])/100;
 					cardfix=cardfix*(100+sd->right_weapon.addrace2[t_race2])/100;
-					cardfix=cardfix*(100+sd->right_weapon.addrace[t_mode & 0x20?10:11])/100;
+					cardfix=cardfix*(100+sd->right_weapon.addrace[is_boss(target)?10:11])/100;
 
 					if (flag.lh)
 					{
@@ -3922,14 +3924,14 @@ static struct Damage battle_calc_weapon_attack_sub(
 						cardfix_=cardfix_*(100+sd->left_weapon.addele[t_ele])/100;
 						cardfix_=cardfix_*(100+sd->left_weapon.addsize[t_size])/100;
 						cardfix_=cardfix_*(100+sd->left_weapon.addrace2[t_race2])/100;
-						cardfix_=cardfix_*(100+sd->left_weapon.addrace[t_mode & 0x20?10:11])/100;
+						cardfix_=cardfix_*(100+sd->left_weapon.addrace[is_boss(target)?10:11])/100;
 					}
 				} else {
 					cardfix=cardfix*(100+sd->right_weapon.addrace[t_race]+sd->left_weapon.addrace[t_race])/100;
 					cardfix=cardfix*(100+sd->right_weapon.addele[t_ele]+sd->left_weapon.addele[t_ele])/100;
 					cardfix=cardfix*(100+sd->right_weapon.addsize[t_size]+sd->left_weapon.addsize[t_size])/100;
 					cardfix=cardfix*(100+sd->right_weapon.addrace2[t_race2]+sd->left_weapon.addrace2[t_race2])/100;
-					cardfix=cardfix*(100+sd->right_weapon.addrace[t_mode & 0x20?10:11]+sd->left_weapon.addrace[t_mode & 0x20?10:11])/100;
+					cardfix=cardfix*(100+sd->right_weapon.addrace[is_boss(target)?10:11]+sd->left_weapon.addrace[t_mode & 0x20?10:11])/100;
 				}
 			}
 
@@ -3969,7 +3971,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 		cardfix=cardfix*(100-tsd->subele[s_ele])/100;
 		cardfix=cardfix*(100-tsd->subsize[s_size])/100;
  		cardfix=cardfix*(100-tsd->subrace2[s_race2])/100;
-		cardfix=cardfix*(100-tsd->subrace[s_mode & 0x20?10:11])/100;
+		cardfix=cardfix*(100-tsd->subrace[is_boss(target)?10:11])/100;
 		
 		for(i=0;i<tsd->add_damage_class_count2;i++) {
 				if(tsd->add_damage_classid2[i] == s_class) {
@@ -4408,7 +4410,7 @@ struct Damage battle_calc_magic_attack(
 		if(sd) {
 			if(sd->ignore_mdef_ele & (1<<t_ele) || sd->ignore_mdef_race & (1<<t_race))
 				imdef_flag = 1;
-			if(t_mode & 0x20) {
+			if(is_boss(target)) {
 				if(sd->ignore_mdef_race & (1<<10))
 					imdef_flag = 1;
 			}
@@ -4434,7 +4436,7 @@ struct Damage battle_calc_magic_attack(
 		cardfix=100;
 		cardfix=cardfix*(100+sd->magic_addrace[t_race])/100;
 		cardfix=cardfix*(100+sd->magic_addele[t_ele])/100;
-		if(t_mode & 0x20)
+		if(is_boss(target))
 			cardfix=cardfix*(100+sd->magic_addrace[10])/100;
 		else
 			cardfix=cardfix*(100+sd->magic_addrace[11])/100;
@@ -4458,7 +4460,7 @@ struct Damage battle_calc_magic_attack(
 		cardfix=cardfix*(100-tsd->subsize[size])/100;
 		cardfix=cardfix*(100-tsd->magic_subrace[race])/100;
 		cardfix=cardfix*(100-tsd->subrace2[race2])/100;	// 種族によるダメージ耐性
-		if(status_get_mode(bl) & 0x20)
+		if(is_boss(bl))
 			cardfix=cardfix*(100-tsd->magic_subrace[10])/100;
 		else
 			cardfix=cardfix*(100-tsd->magic_subrace[11])/100;
@@ -4498,7 +4500,7 @@ struct Damage battle_calc_magic_attack(
 	if(t_mode&0x40 && damage > 0)
 		damage = 1;
 
-	if(t_mode&0x20)
+	if(is_boss(target))
 		blewcount = 0;
 
 	if (tsd && status_isimmune(target)) {
@@ -4678,7 +4680,7 @@ struct Damage  battle_calc_misc_attack(
 	if(t_mode&0x40 && damage>0)
 		damage = 1;
 
-	if(t_mode&0x20)
+	if(is_boss(target))
 		blewcount = 0;
 
 	damage=battle_calc_damage(bl,target,damage,div_,skill_num,skill_lv,aflag);	// 最終修正
@@ -4843,7 +4845,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 					battle_damage(src, target, hp, 1);
 				if (sd->weapon_coma_race[race] > 0 && rand()%10000 < sd->weapon_coma_race[race])
 					battle_damage(src, target, hp, 1);
-				if (status_get_mode(target) & 0x20) {
+				if (is_boss(target)) {
 					if(sd->weapon_coma_race[10] > 0 && rand()%10000 < sd->weapon_coma_race[10])
 						battle_damage(src, target, hp, 1);
 				} else {
@@ -5007,7 +5009,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				if (tsc_data[SC_POISONREACT].val2 <= 0)
 					status_change_end(target,SC_POISONREACT,-1);
 			}
-			if (tsc_data[SC_BLADESTOP_WAIT].timer != -1 && !(status_get_mode(src)&0x20)) { // ボスには無効
+			if (tsc_data[SC_BLADESTOP_WAIT].timer != -1 && !is_boss(src)) { // ボスには無効
 				int skilllv = tsc_data[SC_BLADESTOP_WAIT].val1;
 				status_change_end(target, SC_BLADESTOP_WAIT, -1);
 				status_change_start(src, SC_BLADESTOP, skilllv, 1, (int)src, (int)target, skill_get_time2(MO_BLADESTOP,skilllv), 0);

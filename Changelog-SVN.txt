@@ -1,5 +1,7 @@
 Date	Added
 06/10
+	* Fixed come confusion between MVPs (status_get_mexp) and 
+	  mini-bosses (mode & 0x20) in battle.c
 	* Added battle_config option item_use_interval with default 500ms [Skotlex]
 	* Started map server memory bounds checking for overflows (20%) [Skotlex]
 	* Small optimizations on ensemble skills [Skotlex]
