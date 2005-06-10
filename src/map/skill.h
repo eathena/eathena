@@ -10,6 +10,36 @@
 #define MAX_SKILL_ARROW_DB		150
 #define MAX_SKILL_ABRA_DB		350
 
+//Constants to identify the skill's inf value:
+#define INF_ATTACK_SKILL 1
+//For the time being, all trap-targetted skills ARE ground based:
+#define INF_GROUND_SKILL (2|32)
+// Skills casted on self where target is automatically chosen:
+#define INF_SELF_SKILL 4
+#define INF_SUPPORT_SKILL 16
+#define INF_TARGET_TRAP 32
+
+//Constants to identify a skill's nk value.
+//The NK value applies only to non INF_GROUND_SKILL skills.
+#define NK_NO_DAMAGE 1
+#define NK_SPLASH_DAMAGE 2
+
+//Constants to identify a skill's inf2 value.
+#define INF2_QUEST_SKILL 1
+//NPC skills are those that players can't have in their skill tree.
+#define INF2_NPC_SKILL 2
+//4, 8 are unused... 
+#define INF2_GUILD_SKILL 16
+//All Encore songs are a song/dance...
+#define INF2_SONG_DANCE (32|64)
+#define INF2_ENCORE_SKILL 64
+#define INF2_TRAP 128
+//Refers to ground placed skills that won't hurt the caster (like Grandcross)
+#define INF2_NO_DAMAGE_SELF 256
+#define INF2_NO_TARGET_SELF 512
+#define INF2_PARTY_ONLY 1024
+#define INF2_GUILD_ONLY 2048
+
 // スキルデ?タベ?ス
 struct skill_db {
 	int range[MAX_SKILL_LEVEL];

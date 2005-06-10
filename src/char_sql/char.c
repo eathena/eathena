@@ -718,8 +718,6 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 
 		//======================================DEBUG=================================================
 
-//		gettimeofday(&tv,NULL);
-//		strftime(tmpstr,24,"%Y-%m-%d %H:%M:%S",localtime(&(tv.tv_sec)));
 //		ShowMessage("\n\n");
 //		ShowMessage("Working Table Name : Not EQU %s,  Count : map %3d | db %3d \n",tablename ,noteqcount ,dbnoteqcount);
 //		ShowMessage("*********************************************************************************\n");
@@ -1651,7 +1649,7 @@ int parse_tologin(int fd)
 			auth_fifo[i].delflag = 2; // 0: auth_fifo canceled/void, 2: auth_fifo received from login/map server in memory, 1: connection authentified
 			auth_fifo[i].char_pos = 0;
 			auth_fifo[i].connect_until_time = 0; // unlimited/unknown time by default (not display in map-server)
-			auth_fifo[i].ip = RFIFOL(fd,14);
+			auth_fifo[i].ip = RFIFOLIP(fd,14);
 			//auth_fifo[i].map_auth = 0;
 			RFIFOSKIP(fd,18);
 			break;
@@ -1865,7 +1863,8 @@ int parse_tologin(int fd)
 
 
 
-int parse_frommap(int fd) {
+int parse_frommap(int fd)
+{
 	int i, j;
 	int id;
 
@@ -1876,7 +1875,7 @@ int parse_frommap(int fd) {
 	{
 		session_Remove(fd);
 		return 0;
-			}
+	}
 	// else it is the map server id
 	if( !session_isActive(fd) )
 	{
@@ -1912,7 +1911,7 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 60)
 				return 0;
 
-			server[id].lanip	= RFIFOLIP(fd,54);
+			server[id].lanip   = RFIFOLIP(fd,54);
 			server[id].lanport = RFIFOW(fd,58);
 
 			RFIFOSKIP(fd,60);
@@ -1930,13 +1929,11 @@ int parse_frommap(int fd) {
 				j++;
 			}
 
-			{
-				unsigned char *p = (unsigned char *)&server[id].lanip;
-				ShowMessage("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
-				       id, j, p[0], p[1], p[2], p[3], server[id].lanport);
-				ShowMessage("Map-server %d loading complete.\n", id);
-				set_all_offline();
-			}
+			ShowMessage("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
+			       id, j, (server[id].lanip>>24)&0xFF, (server[id].lanip>>16)&0xFF, (server[id].lanip>>8)&0xFF, (server[id].lanip)&0xFF, server[id].lanport);
+			ShowMessage("Map-server %d loading complete.\n", id);
+			set_all_offline();
+
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;
 			memcpy(WFIFOP(fd,3), wisp_server_name, 24); // name for wisp to player
@@ -2171,7 +2168,7 @@ int parse_frommap(int fd) {
 			RFIFOSKIP(fd,6);
 			break;
 
-/*		// I want become GM - fuck!
+
 		case 0x2b0a:
 			if(RFIFOREST(fd)<4)
 				return 0;
@@ -2183,7 +2180,6 @@ int parse_frommap(int fd) {
 //			ShowMessage("char : change gm -> login %d %s %d\n", (unsigned long)RFIFOL(fd, 4), RFIFOP(fd, 8), (unsigned short)RFIFOW(fd, 2));
 			RFIFOSKIP(fd, RFIFOW(fd, 2));
 			break;
-		*/
 
 		// account_reg•Û‘¶—v‹
 		case 0x2b10:
@@ -3063,7 +3059,7 @@ int parse_char(int fd)
 				session[fd]->func_parse = parse_frommap;
 				server[i].fd = fd;
 
-				server[i].lanip = RFIFOL(fd, 54);
+				server[i].lanip = RFIFOLIP(fd, 54);
 				server[i].lanport = RFIFOW(fd, 58);
 				server[i].users = 0;
 				memset(server[i].map, 0, sizeof(server[i].map));
@@ -3213,7 +3209,7 @@ int send_users_tologin(int tid, unsigned long tick, int id, int data) {
 }
 
 int check_connect_login_server(int tid, unsigned long tick, int id, int data) {
-	
+		
 	if ( !session_isActive(login_fd) ) 
 	{
 		ShowMessage("Attempt to connect to login-server...\n");
@@ -3228,7 +3224,7 @@ int check_connect_login_server(int tid, unsigned long tick, int id, int data) {
 		memset(WFIFOP(login_fd,26), 0, 24);
 		memcpy(WFIFOP(login_fd,26), passwd, strlen(passwd) < 24 ? strlen(passwd) : 24);
 		WFIFOL(login_fd,50) = 0;
-		WFIFOL(login_fd,54) = char_ip;
+		WFIFOLIP(login_fd,54) = char_ip;
 		WFIFOL(login_fd,58) = char_port;
 		memset(WFIFOP(login_fd,60), 0, 20);
 		memcpy(WFIFOP(login_fd,60), server_name, strlen(server_name) < 20 ? strlen(server_name) : 20);

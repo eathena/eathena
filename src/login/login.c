@@ -442,9 +442,12 @@ public:
 //------------------------------
 // Writing function of logs file
 //------------------------------
-int login_log(char *fmt, ...) {
-	if (log_login) {
+int login_log(char *fmt, ...)
+{
+	if (log_login)
+	{
 		va_list ap;
+		time_t unixtime;
 		struct timeval tv;
 		char tmpstr[2048];
 
@@ -457,8 +460,9 @@ int login_log(char *fmt, ...) {
 			else {
 				va_start(ap, fmt);
 				gettimeofday(&tv, NULL);
-				strftime(tmpstr, 24, date_format, localtime((const time_t*)&(tv.tv_sec)));
-				sprintf(tmpstr + strlen(tmpstr), ".%03d: %s", (int)tv.tv_usec / 1000, fmt);
+				unixtime = tv.tv_sec;
+				strftime(tmpstr, 24, date_format, localtime(&unixtime));
+				sprintf(tmpstr + strlen(tmpstr), ".%03ld: %s", tv.tv_usec / 1000, fmt);
 				vfprintf(log_fp, tmpstr, ap);
 				va_end(ap);
 			}
@@ -1342,6 +1346,7 @@ int mmo_auth(struct mmo_account* account, int fd)
 {
 	int i;
 	struct timeval tv;
+	time_t unixtime;
 	char tmpstr[256];
 	int len, newaccount = 0;
 #ifdef PASSWORDENC
@@ -1522,14 +1527,15 @@ int mmo_auth(struct mmo_account* account, int fd)
 			//restart ticker (account registration flood protection)[Kevin]
 			if(num_regs==0) {
 				new_reg_tick=gettick()+time_allowed*1000;
-		}
+			}
 			num_regs++;
-	}
+		}
 	}
 
 	gettimeofday(&tv, NULL);
-	strftime(tmpstr, 24, date_format, localtime((const time_t*)&(tv.tv_sec)));
-	sprintf(tmpstr + strlen(tmpstr), ".%03d", (int)tv.tv_usec / 1000);
+	unixtime=tv.tv_sec;
+	strftime(tmpstr, 24, date_format, localtime(&unixtime));
+	sprintf(tmpstr + strlen(tmpstr), ".%03ld", tv.tv_usec / 1000);
 
 	account->account_id = auth_dat[i].account_id;
 	account->login_id1 = rand();
@@ -1751,9 +1757,8 @@ int parse_fromchar(int fd) {
 							// if we can open the file to add the new GM
 							if ((fp = savefopen(GM_account_filename, "a")) != NULL) {
 								char tmpstr[24];
-								struct timeval tv;
-								gettimeofday(&tv, NULL);
-								strftime(tmpstr, 23, date_format, localtime((const time_t*)&(tv.tv_sec)));
+								time_t unixtime = time(NULL);
+								strftime(tmpstr, 23, date_format, localtime(&unixtime));
 								fprintf(fp, RETCODE "// %s: @GM command on account %ld" RETCODE "%ld %d" RETCODE, tmpstr, acc, acc, level_new_gm);
 								fclose(fp);
 								WBUFL(buf,6) = level_new_gm;
@@ -2093,11 +2098,13 @@ int parse_fromchar(int fd) {
 				FILE *logfp;
 				char tmpstr[24];
 				struct timeval tv;
+				time_t unixtime;
 				logfp = savefopen(login_log_unknown_packets_filename, "a");
 				if (logfp) {
 					gettimeofday(&tv, NULL);
-					strftime(tmpstr, 23, date_format, localtime((const time_t*)&(tv.tv_sec)));
-					fprintf(logfp, "%s.%03d: receiving of an unknown packet -> disconnection" RETCODE, tmpstr, (int)tv.tv_usec / 1000);
+					unixtime = tv.tv_sec;
+					strftime(tmpstr, 23, date_format, localtime(&unixtime));
+					fprintf(logfp, "%s.%03ld: receiving of an unknown packet -> disconnection" RETCODE, tmpstr, tv.tv_usec / 1000);
 					fprintf(logfp, "parse_fromchar: connection #%d (ip: %s), packet: 0x%x (with being read: %d)." RETCODE, fd, ip_str, (unsigned short)RFIFOW(fd,0), RFIFOREST(fd));
 					fprintf(logfp, "Detail (in hex):" RETCODE);
 					fprintf(logfp, "---- 00-01-02-03-04-05-06-07  08-09-0A-0B-0C-0D-0E-0F" RETCODE);
@@ -2543,11 +2550,10 @@ int parse_admin(int fd) {
 							int GM_account, GM_level;
 							int modify_flag;
 							char tmpstr[24];
-							struct timeval tv;
 							if ((fp2 = lock_fopen(GM_account_filename, &lock)) != NULL) {
 								if ((fp = savefopen(GM_account_filename, "r")) != NULL) {
-									gettimeofday(&tv, NULL);
-									strftime(tmpstr, 23, date_format, localtime((const time_t*)&(tv.tv_sec)));
+									time_t unixtime=time(NULL);
+									strftime(tmpstr, 23, date_format, localtime(&unixtime));
 									modify_flag = 0;
 									// read/write GM file
 									while(fgets(line, sizeof(line)-1, fp)) {
@@ -3061,11 +3067,13 @@ int parse_admin(int fd) {
 				FILE *logfp;
 				char tmpstr[24];
 				struct timeval tv;
+				time_t unixtime;
 				logfp = savefopen(login_log_unknown_packets_filename, "a");
 				if (logfp) {
 					gettimeofday(&tv, NULL);
-					strftime(tmpstr, 23, date_format, localtime((const time_t*)&(tv.tv_sec)));
-					fprintf(logfp, "%s.%03d: receiving of an unknown packet -> disconnection" RETCODE, tmpstr, (int)tv.tv_usec / 1000);
+					unixtime = tv.tv_sec;
+					strftime(tmpstr, 23, date_format, localtime(&unixtime));
+					fprintf(logfp, "%s.%03ld: receiving of an unknown packet -> disconnection" RETCODE, tmpstr, tv.tv_usec / 1000);
 					fprintf(logfp, "parse_admin: connection #%d (ip: %s), packet: 0x%x (with being read: %d)." RETCODE, fd, ip_str, (unsigned short)RFIFOW(fd,0), RFIFOREST(fd));
 					fprintf(logfp, "Detail (in hex):" RETCODE);
 					fprintf(logfp, "---- 00-01-02-03-04-05-06-07  08-09-0A-0B-0C-0D-0E-0F" RETCODE);
@@ -3171,23 +3179,22 @@ int parse_login(int fd) {
 			account.userid[23] = '\0';
 			remove_control_chars(account.userid);
 			if (RFIFOW(fd,0) == 0x64) {
+				login_log("Request for connection (non encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip_str);
 				memcpy(account.passwd, RFIFOP(fd,30), 24);
 				account.passwd[24] = '\0';
+				remove_control_chars(account.passwd);
 			} else {
-				memcpy(account.passwd, RFIFOP(fd,30), 32);
-				account.passwd[32] = '\0';
+				login_log("Request for connection (encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip_str);
+				 // If remove control characters from received password encrypted by md5,
+				// there would be a wrong result and failed to authentication. [End_of_exam]
+				memcpy(account.passwd, RFIFOP(fd,30), 16);
+				account.passwd[16] = '\0';
 			}
-			remove_control_chars(account.passwd);
 #ifdef PASSWORDENC
 			account.passwdenc = (RFIFOW(fd,0) == 0x64) ? 0 : PASSWORDENC;
 #else
 			account.passwdenc = 0;
 #endif
-
-			if (RFIFOW(fd,0) == 0x64)
-				login_log("Request for connection (non encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip_str);
-			else
-				login_log("Request for connection (encryption mode) of %s (ip: %s)." RETCODE, account.userid, ip_str);
 
 			if ( !check_ip(client_ip) ) {
 				login_log("Connection refused: IP isn't authorised (deny/allow, ip: %s)." RETCODE, ip_str);
@@ -3304,11 +3311,11 @@ int parse_login(int fd) {
 				ld->md5keylen = rand() % 4 + 12;
 				for(i = 0; i < ld->md5keylen; i++)
 					ld->md5key[i] = rand() % 255 + 1;
-				RFIFOSKIP(fd,2);
 				WFIFOW(fd,0) = 0x01dc;
 				WFIFOW(fd,2) = 4 + ld->md5keylen;
 				memcpy(WFIFOP(fd,4), ld->md5key, ld->md5keylen);
 				WFIFOSET(fd,WFIFOW(fd,2));
+				RFIFOSKIP(fd,2);
 			}
 			break;
 
@@ -3458,11 +3465,13 @@ int parse_login(int fd) {
 				FILE *logfp;
 				char tmpstr[24];
 				struct timeval tv;
+				time_t unixtime;
 				logfp = savefopen(login_log_unknown_packets_filename, "a");
 				if (logfp) {
 					gettimeofday(&tv, NULL);
-					strftime(tmpstr, 23, date_format, localtime((const time_t*)&(tv.tv_sec)));
-					fprintf(logfp, "%s.%03d: receiving of an unknown packet -> disconnection" RETCODE, tmpstr, (int)tv.tv_usec / 1000);
+					unixtime=tv.tv_sec;
+					strftime(tmpstr, 23, date_format, localtime(&unixtime));
+					fprintf(logfp, "%s.%03ld: receiving of an unknown packet -> disconnection" RETCODE, tmpstr, tv.tv_usec / 1000);
 					fprintf(logfp, "parse_login: connection #%d (ip: %s), packet: 0x%x (with being read: %d)." RETCODE, fd, ip_str, (unsigned short)RFIFOW(fd,0), RFIFOREST(fd));
 					fprintf(logfp, "Detail (in hex):" RETCODE);
 					fprintf(logfp, "---- 00-01-02-03-04-05-06-07  08-09-0A-0B-0C-0D-0E-0F" RETCODE);
@@ -3831,7 +3840,7 @@ int login_config_read(const char *cfgName) {
 	            
 	            time_allowed = atoi(w2);
 	            
-            }
+			}
 		}
 	}
 	fclose(fp);

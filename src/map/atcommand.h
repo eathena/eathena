@@ -246,12 +246,15 @@ enum AtCommandType {
 	AtCommand_ItemInfo, // Lupus
 	AtCommand_MapFlag, // Lupus
 
-	// end
-	AtCommand_Unknown,
 	AtCommand_FakeName, // [Valaris]
 	AtCommand_Size, // [Valaris]
 	AtCommand_ShowDelay,
 	AtCommand_ShowExp,
+
+
+
+	// End. No more commans after this line.
+	AtCommand_Unknown,
 	AtCommand_MAX
 };
 

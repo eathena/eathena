@@ -59,7 +59,7 @@
 //////////////////////////////
 #define WIN32_LEAN_AND_MEAN	// stuff
 #define _WINSOCKAPI_		// prevent inclusion of winsock.h
-#define _USE_32BIT_TIME_T	// use 32 bit time variables on 64bit windows
+//#define _USE_32BIT_TIME_T	// use 32 bit time variables on 64bit windows
 //#define __USE_W32_SOCKETS
 //////////////////////////////
 #endif
@@ -97,6 +97,8 @@
 #pragma warning(disable : 4706) // assignment within conditional
 #pragma warning(disable : 4127)	// constant assignment
 #pragma warning(disable : 4710)	// is no inline function
+#pragma warning(disable : 4511)	// no copy constructor
+#pragma warning(disable : 4512)	// no assign operator
 
 #include <windows.h>
 #include <winsock2.h>
@@ -281,15 +283,70 @@ extern inline int write(SOCKET fd, char*buf, int sz)
 
 
 // missing functions and helpers
-extern inline void gettimeofday(struct timeval *timenow, void *dummy)
+extern inline int gettimeofday(struct timeval *timenow, void *tz)
 {
-	time_t t;
-	t = clock();
-	timenow->tv_usec = (long)t;
-	timenow->tv_sec = (long)t / CLK_TCK;
-	return;
-}
+    if (timenow)
+    {
+		FILETIME	ft;
+		GetSystemTimeAsFileTime(&ft);
+		
+#if !(defined _M_X64) && !(defined _WIN64)  // not a naive 64bit platform
+		/////////////////////////////////////////////////////////////////////////////	
+		// Apparently Win32 has units of 1e-7 sec (100-nanosecond intervals)
+		// 4294967296 is 2^32, to shift high word over
+		// 11644473600 is the number of seconds between
+		// the Win32 epoch 1601-Jan-01 and the Unix epoch 1970-Jan-01
+		// Tests found floating point to be 10x faster than 64bit int math.
+		double timed = ((ft.dwHighDateTime * 4294967296e-7) - 11644473600.0) + (ft.dwLowDateTime  * 1e-7);
+		
+		timenow->tv_sec  = (long) timed;
+		timenow->tv_usec = (long) ((timed - timenow->tv_sec) * 1e6);
+#else
+		/////////////////////////////////////////////////////////////////////////////	
+		// and the same with 64bit math
+		// which might be faster on a real 64bit platform
+		LARGE_INTEGER   li;
+		__int64         t;
+		static const __i64 EPOCHFILETIME = (116444736000000000i64)
+        li.LowPart  = ft.dwLowDateTime;
+        li.HighPart = ft.dwHighDateTime;
+        t  = li.QuadPart;       // time in 100-nanosecond intervals
+        t -= EPOCHFILETIME;     // offset to the epoch time
+        t /= 10;                // time in microseconds
 
+        timenow->tv_sec  = (long)(t / 1000000);
+        timenow->tv_usec = (long)(t % 1000000);
+#endif
+    }
+	/////////////////////////////////////////////////////////////////////////////////
+	/*
+	void*tz should be struct timezone *tz
+		with
+	struct timezone {
+		int     tz_minuteswest; // minutes W of Greenwich
+		int     tz_dsttime;     // type of dst correction
+	};
+	but has never been used, because the daylight saving could not be defined by an algorithm
+
+	the code to actually use this structures would be:
+    if (tz)
+    {
+		static int      tzflag=0;
+        if (!tzflag)
+        {	// run tzset once in application livetime
+			// to set _timezone and _daylight according to system specification
+            _tzset();
+            tzflag++;
+        }
+		// copy the global values out
+        tz->tz_minuteswest = _timezone / 60;
+        tz->tz_dsttime = _daylight;
+    }
+	*/
+	/////////////////////////////////////////////////////////////////////////////////
+
+	return 0;
+}
 
 //////////////////////////////
 #else/////////////////////////
@@ -325,10 +382,12 @@ extern inline int ioctlsocket(SOCKET fd, long cmd, unsigned long *arg)
 
 // missing functions and helpers
 
-extern inline unsigned long GetTickCount() {
-	 struct timeval tv;
-	 gettimeofday( &tv, NULL );
-	 return (unsigned long)(tv.tv_sec * 1000 + tv.tv_usec / 1000);
+// missing TickCount on Unix
+extern inline unsigned long GetTickCount()
+{
+	struct timeval tval;
+	gettimeofday(&tval, NULL);
+	return tval.tv_sec * 1000 + tval.tv_usec / 1000;
 }
 
 extern inline unsigned long GetCurrentProcessId()
@@ -382,6 +441,62 @@ extern inline unsigned long GetCurrentProcessId()
 #ifndef SEEK_END
 #define SEEK_END 2
 #endif
+
+//////////////////////////////////////////////////////////////////////////
+// wrappers for Character Classification Routines  
+//////////////////////////////////////////////////////////////////////////
+#ifdef isalpha	// get the function form, not the macro
+#undef isalpha
+#endif
+extern inline char isalpha(char val)	{ return isalpha((int)((unsigned char)val)); }
+#ifdef isupper	// get the function form, not the macro
+#undef isupper
+#endif
+extern inline char isupper(char val)	{ return isupper((int)((unsigned char)val)); }
+#ifdef islower	// get the function form, not the macro
+#undef islower
+#endif
+extern inline char islower(char val)	{ return islower((int)((unsigned char)val)); }
+#ifdef isdigit	// get the function form, not the macro
+#undef isdigit
+#endif
+extern inline char isdigit(char val)	{ return isdigit((int)((unsigned char)val)); }
+#ifdef isxdigit	// get the function form, not the macro
+#undef isxdigit
+#endif
+extern inline char isxdigit(char val)	{ return isxdigit((int)((unsigned char)val)); }
+#ifdef isspace	// get the function form, not the macro
+#undef isspace
+#endif
+extern inline char isspace(char val)	{ return isspace((int)((unsigned char)val)); }
+#ifdef ispunct	// get the function form, not the macro
+#undef ispunct
+#endif
+extern inline char ispunct(char val)	{ return ispunct((int)((unsigned char)val)); }
+#ifdef isalnum	// get the function form, not the macro
+#undef isalnum
+#endif
+extern inline char isalnum(char val)	{ return isalnum((int)((unsigned char)val)); }
+#ifdef isprint	// get the function form, not the macro
+#undef isprint
+#endif
+extern inline char isprint(char val)	{ return isprint((int)((unsigned char)val)); }
+#ifdef isgraph	// get the function form, not the macro
+#undef isgraph
+#endif
+extern inline char isgraph(char val)	{ return isgraph((int)((unsigned char)val)); }
+#ifdef iscntrl	// get the function form, not the macro
+#undef iscntrl
+#endif
+extern inline char iscntrl(char val)	{ return iscntrl((int)((unsigned char)val)); }
+#ifdef toupper	// get the function form, not the macro
+#undef toupper
+#endif
+extern inline char toupper(char val)	{ return toupper((int)((unsigned char)val)); }
+#ifdef tolower	// get the function form, not the macro
+#undef tolower
+#endif
+extern inline char tolower(char val)	{ return tolower((int)((unsigned char)val)); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -537,6 +652,9 @@ extern inline unsigned long pow2(unsigned long v)
 //////////////////////////////////////////////////////////////////////////
 class noncopyable
 {
+
+	noncopyable(const noncopyable&);					// no copy
+	const noncopyable& operator=(const noncopyable&);	// no assign
 public:
 	noncopyable()	{}
 };
@@ -545,12 +663,6 @@ class global
 public:
 	global()	{}
 };
-
-
-
-
-
-
 
 
 

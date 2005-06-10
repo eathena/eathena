@@ -164,8 +164,6 @@ int inter_storage_sql_init(){
 	ShowMessage("interserver storage memory initialize....(%d byte)\n",sizeof(struct pc_storage));
 	storage_pt = (struct pc_storage*)aCalloc(sizeof(struct pc_storage), 1);
 	guild_storage_pt = (struct guild_storage*)aCalloc(sizeof(struct guild_storage), 1);
-	memset(storage_pt,0,sizeof(struct pc_storage));
-	memset(guild_storage_pt,0,sizeof(struct guild_storage));
 
 	return 1;
 }

@@ -3,7 +3,7 @@ CC = g++ -pipe
 #CC = gcc -pipe -DDMALLOC -DDMALLOC_FUNC_CHECK
 #CC = /usr/local/bin/gcc -fbounds-checking -pipe -DBCHECK
 
-GCLIB = -lsocket -lnsl -ldl
+GCLIB = -ldl
 # GCLIB = -lgc
 # GCLIB = -ldmalloc
 

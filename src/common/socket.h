@@ -1433,9 +1433,8 @@ public:
 #define WBUFL(p,pos) (objL((p),(pos)))
 #define WBUFLIP(p,pos) (objLIP((p),(pos)))
 
-
-
-#ifdef __INTERIX
+#if defined(__INTERIX) || defined(CYGWIN) || defined(_WIN32)
+	#undef FD_SETSIZE
 #define FD_SETSIZE 4096
 #endif	// __INTERIX
 
@@ -1473,11 +1472,6 @@ struct socket_data{
 
 // Data prototype declaration
 
-#ifdef WIN32
-		#undef FD_SETSIZE
-		#define FD_SETSIZE 4096
-#endif
-
 extern struct socket_data *session[FD_SETSIZE];
 extern size_t fd_max;
 
@@ -1490,8 +1484,8 @@ extern inline bool session_isValid(int fd)
 extern inline bool session_isActive(int fd)
 {
 	return ( session_isValid(fd) && session[fd]->flag.connected );
-}
-
+}	
+	
 extern inline bool session_isRemoved(int fd)
 {
 	return ( session_isValid(fd) && session[fd]->flag.remove );
@@ -1540,7 +1534,7 @@ void set_defaultparse(int (*defaultparse)(int));
 void set_defaultconsoleparse(int (*defaultparse)(char*));
 
 extern unsigned long addr_[16];	// ip addresses of local host (host byte order)
-extern unsigned int naddr_;		// # of ip addresses
+extern unsigned int naddr_;   // # of ip addresses
 
 
 #endif	// _SOCKET_H_

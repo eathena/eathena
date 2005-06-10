@@ -244,18 +244,22 @@ int ladmin_log(char *fmt, ...) {
 	FILE *logfp;
 	va_list ap;
 	struct timeval tv;
+	time_t unixtime;
 	char tmpstr[2048];
 
 	va_start(ap, fmt);
 
 	logfp = savefopen(ladmin_log_filename, "a");
-	if (logfp) {
+	if (logfp)
+	{
 		if (fmt[0] == '\0') // jump a line if no message
 			fprintf(logfp, RETCODE);
-		else {
+		else
+		{
 			gettimeofday(&tv, NULL);
-			strftime(tmpstr, 24, date_format, localtime((const time_t*)&(tv.tv_sec)));
-			sprintf(tmpstr + strlen(tmpstr), ".%03d: %s", (int)tv.tv_usec / 1000, fmt);
+			unixtime=tv.tv_sec;
+			strftime(tmpstr, 24, date_format, localtime(&unixtime));
+			sprintf(tmpstr + strlen(tmpstr), ".%03ld: %s", tv.tv_usec / 1000, fmt);
 			vfprintf(logfp, tmpstr, ap);
 		}
 		fclose(logfp);

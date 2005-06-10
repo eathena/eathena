@@ -167,23 +167,13 @@ struct item_data* itemdb_search(unsigned short nameid)
 	id=(struct item_data *)aCalloc(1,sizeof(struct item_data));
 	numdb_insert(item_db,nameid,id);
 
-	memset (id, 0, sizeof(struct item_data)); //Isn't this quicker? [Skotlex]
 	id->nameid=nameid;
 	id->value_buy=10;
 	id->value_sell=id->value_buy/2;
 	id->weight=10;
 	id->flag.sex=2;
-//	id->elv=0;
 	id->class_=0xffff;
-/*	
-	id->flag.available=0;
-	id->flag.value_notdc=0;  //ˆê‰žEEE
-	id->flag.value_notoc=0;
-	id->flag.no_equip=0;
-	id->flag.no_refine=0;
-	id->flag.delay_consume=0;
-	id->view_id=0;
-*/
+
 	if(nameid>500 && nameid<600)
 		id->type=0;   //heal item
 	else if(nameid>600 && nameid<700)

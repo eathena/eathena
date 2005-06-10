@@ -145,11 +145,11 @@ int npc_enable(const char *name,int flag)
 	}else if (flag&2){
 		nd->flag&=~1;
 		nd->option = 0x0000;
-		clif_changeoption(&nd->bl);
+		clif_changeoption(nd->bl);
 	}else if (flag&4){
 		nd->flag|=1;
 		nd->option = 0x0002;
-		clif_changeoption(&nd->bl);
+		clif_changeoption(nd->bl);
 	}else{		// –³Œø‰»
 		nd->flag|=1;
 		clif_clearchar(nd->bl,0);
@@ -808,7 +808,7 @@ int npc_globalmessage(const char *name,const char *mes)
 	struct npc_data *nd=(struct npc_data *) strdb_search(npcname_db,name);
 	char temp[100];
 	char ntemp[50];
-	char *ltemp;
+	const char *ltemp;
 
 	if(nd==NULL) return 0;
 	if(name==NULL) return 0;
@@ -820,7 +820,7 @@ int npc_globalmessage(const char *name,const char *mes)
 	}
 
 	snprintf(temp, sizeof temp ,"%s : %s",ntemp,mes);
-	clif_GlobalMessage(&nd->bl,temp);
+	clif_GlobalMessage(nd->bl,temp);
 
 	return 0;
 }
@@ -1510,7 +1510,7 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 static int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 {
 	#define MAX_SHOPITEM 100
-	char *p;
+	const char *p;
 	int x, y, dir, m, pos = 0;
 	char mapname[24];
 	struct npc_data *nd;
@@ -1644,7 +1644,7 @@ static int npc_parse_script(const char *w1,const char *w2,const char *w3,const c
 	int i;
 	struct npc_data *nd;
 	int evflag = 0;
-	char *p;
+	const char *p;
 	struct npc_reference *ref=NULL;
 
 	if(strcmp(w1,"-")==0)
@@ -1787,10 +1787,11 @@ static int npc_parse_script(const char *w1,const char *w2,const char *w3,const c
 		if (p[1] == ':') break;
 	}
 	if (p) 
-	{
-		*p = 0;
-		memcpy(nd->name, w3, 24);
-		memcpy(nd->exname, p+2, 24);
+	{	
+		size_t len = p-w3;
+		memcpy(nd->name, w3, p-w3);
+		nd->name[len]=0;
+		memcpy(nd->exname, p+2, 1+strlen(p+2));
 	}
 	else
 	{
@@ -2347,6 +2348,9 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 {
 	int m, lines = 0;
 	char line[1024];
+	char w1[1024], w2[1024], w3[1024], w4[1024], mapname[1024];
+	size_t i, j;
+	int count, w4pos;
 	FILE *fp;
 
 	fp = savefopen(filename,"r");
@@ -2359,10 +2363,7 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 		ShowMessage("\rLoading NPCs [%d]: %s"CL_CLL,npc_id-START_NPC_NUM,filename);
 		while( fgets(line, sizeof(line) - 4, fp) )
 		{
-		char w1[1024], w2[1024], w3[1024], w4[1024], mapname[1024];
-			size_t i, j;
-			int count, w4pos;
-		lines++;
+			lines++;
 			if( !skip_empty_line(line) )
 				continue;
 
@@ -2630,7 +2631,7 @@ int npc_remove_map (struct npc_data *nd)
 	map_deliddb(nd->bl);
 
     return 0;
-			}
+}
 
 int npc_unload(struct npc_data *nd)
 {
@@ -2643,7 +2644,7 @@ int npc_unload(struct npc_data *nd)
 	{
 		struct chat_data *cd=(struct chat_data*)map_id2bl(nd->chat_id);
 		if(cd) aFree (cd);
-		}
+	}
 	if (nd->bl.subtype == SCRIPT)
 	{
 		if (nd->u.scr.timer_event)

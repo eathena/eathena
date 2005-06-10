@@ -70,27 +70,27 @@ CCMD_FUNC(showdelay);
 // First char of commands is configured in charcommand_athena.conf. Leave @ in this list for default value.
 // to set default level, read charcommand_athena.conf first please.
 static CharCommandInfo charcommand_info[] = {
-	{ CharCommandJobChange,		"#job",				60,	charcommand_jobchange },
-	{ CharCommandJobChange,		"#jobchange",		60,	charcommand_jobchange },
-	{ CharCommandPetRename,		"#petrename",		50, charcommand_petrename },
-	{ CharCommandPetFriendly,	"#petfriendly",		50, charcommand_petfriendly },
-	{ CharCommandStats,			"#stats",			40, charcommand_stats },
-	{ CharCommandOption,		"#option",			60, charcommand_option },
-	{ CharCommandReset,			"#reset",			60, charcommand_reset },
-	{ CharCommandSave,			"#save",			60, charcommand_save },
-	{ CharCommandStatsAll,		"#statsall",		40, charcommand_stats_all },
-	{ CharCommandSpiritball,	"#spiritball",		40, charcommand_spiritball },
-	{ CharCommandItemList,		"#itemlist",		40,	charcommand_itemlist },
-	{ CharCommandEffect,		"#effect",			40, charcommand_effect },
-	{ CharCommandStorageList,	"#storagelist",		40, charcommand_storagelist },
-	{ CharCommandItem,			"#item",			60, charcommand_item },
-	{ CharCommandWarp,			"#warp",			60, charcommand_warp },
-	{ CharCommandWarp,			"#rura",			60, charcommand_warp },
-	{ CharCommandWarp,			"#rura+",			60, charcommand_warp },
-	{ CharCommandZeny,			"#zeny",			60, charcommand_zeny },
+	{ CharCommandJobChange,				"#job",						60,	charcommand_jobchange },
+	{ CharCommandJobChange,				"#jobchange",				60,	charcommand_jobchange },
+	{ CharCommandPetRename,				"#petrename",				50, charcommand_petrename },
+	{ CharCommandPetFriendly,			"#petfriendly",				50, charcommand_petfriendly },
+	{ CharCommandStats,					"#stats",					40, charcommand_stats },
+	{ CharCommandOption,				"#option",					60, charcommand_option },
+	{ CharCommandReset,					"#reset",					60, charcommand_reset },
+	{ CharCommandSave,					"#save",					60, charcommand_save },
+	{ CharCommandStatsAll,				"#statsall",				40, charcommand_stats_all },
+	{ CharCommandSpiritball,			"#spiritball",				40, charcommand_spiritball },
+	{ CharCommandItemList,				"#itemlist",				40,	charcommand_itemlist },
+	{ CharCommandEffect,				"#effect",					40, charcommand_effect },
+	{ CharCommandStorageList,			"#storagelist",				40, charcommand_storagelist },
+	{ CharCommandItem,					"#item",					60, charcommand_item },
+	{ CharCommandWarp,					"#warp",					60, charcommand_warp },
+	{ CharCommandWarp,					"#rura",					60, charcommand_warp },
+	{ CharCommandWarp,					"#rura+",					60, charcommand_warp },
+	{ CharCommandZeny,					"#zeny",					60, charcommand_zeny },
 	{ CharCommandShowExp,		"#showexp", 		 0, charcommand_showexp},
 	{ CharCommandShowDelay,		"#showdelay",		 0, charcommand_showdelay},
-
+	
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */
@@ -221,7 +221,7 @@ CharCommandType charcommand(struct CharCommandInfo &info, const char* message, u
  */
 CharCommandType is_charcommand(int fd, struct map_session_data &sd, const char* message, unsigned char gmlvl)
 {
-	const char *str = message;
+	const char* str = message;
 	int s_flag = 0;
 	CharCommandInfo info;
 	CharCommandType type;
@@ -263,7 +263,7 @@ CharCommandType is_charcommand(int fd, struct map_session_data &sd, const char* 
 
 		if (type == CharCommand_Unknown || info.proc == NULL)
 		{
-			snprintf(output, sizeof(output), msg_txt(153), command); // %s is Unknown Command.
+			snprintf(output, sizeof(output),msg_txt(153), command); // %s is Unknown Command.
 			clif_displaymessage(fd, output);
 		}
 		else
@@ -329,7 +329,7 @@ bool charcommand_jobchange(int fd, struct map_session_data &sd,const char *comma
 						if (pl_sd->status.class_ == 4022)
 							pl_sd->status.class_ = pl_sd->view_class = 4015;
 						pl_sd->status.option &= ~0x0020;
-						clif_changeoption(&pl_sd->bl);
+						clif_changeoption(pl_sd->bl);
 						status_calc_pc(*pl_sd, 0);
 					}
 				} else {
@@ -596,9 +596,6 @@ bool charcommand_option(int fd, struct map_session_data &sd,const char *command,
 				}
 			} else {
 				if (pc_isriding(*pl_sd)) { // pl_sd have the new value...
-					if (pl_sd->disguise_id > 0) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris] (code added by [Yor])
-						pl_sd->status.option &= ~0x0020;
-					} else {
 						if (pl_sd->status.class_ == 7)
 							pl_sd->status.class_ = pl_sd->view_class = 13;
 						else if (pl_sd->status.class_ == 14)
@@ -611,8 +608,7 @@ bool charcommand_option(int fd, struct map_session_data &sd,const char *command,
 							pl_sd->status.option &= ~0x0020;
 					}
 				}
-			}
-			clif_changeoption(&pl_sd->bl);
+			clif_changeoption(pl_sd->bl);
 			status_calc_pc(*pl_sd, 0);
 			clif_displaymessage(fd, msg_txt(58)); // Character's options changed.
 		} else {
@@ -692,7 +688,7 @@ bool charcommand_stats_all(int fd, struct map_session_data &sd,const char *comma
 
 	count = 0;
 	for(i = 0; i < fd_max; i++) {
-		if (session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) && pl_sd->state.auth) {
+		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
 
 			if (pc_isGM(*pl_sd) > 0)
 				sprintf(gmlevel, "| GM Lvl: %d", pc_isGM(*pl_sd));
@@ -788,7 +784,7 @@ bool charcommand_itemlist(int fd, struct map_session_data &sd,const char *comman
 			counter = 0;
 			count = 0;
 			for (i = 0; i < MAX_INVENTORY; i++) {
-				if (pl_sd->status.inventory[i].nameid > 0 && (item_data = itemdb_search(pl_sd->status.inventory[i].nameid)) != NULL) {
+				if (pl_sd->status.inventory[i].nameid > 0 && (item_data = itemdb_exists(pl_sd->status.inventory[i].nameid)) != NULL) {
 					counter = counter + pl_sd->status.inventory[i].amount;
 					count++;
 					if (count == 1) {
@@ -838,7 +834,7 @@ bool charcommand_itemlist(int fd, struct map_session_data &sd,const char *comman
 					counter2 = 0;
 					for (j = 0; j < item_data->flag.slot; j++) {
 						if (pl_sd->status.inventory[i].card[j]) {
-							if ((item_temp = itemdb_search(pl_sd->status.inventory[i].card[j])) != NULL) {
+							if ((item_temp = itemdb_exists(pl_sd->status.inventory[i].card[j])) != NULL) {
 								if (output[0] == '\0')
 									sprintf(outputtmp, " -> (card(s): #%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
 								else
@@ -925,7 +921,7 @@ bool charcommand_storagelist(int fd, struct map_session_data &sd,const char *com
 				counter = 0;
 				count = 0;
 				for (i = 0; i < MAX_STORAGE; i++) {
-					if (stor->storage[i].nameid > 0 && (item_data = itemdb_search(stor->storage[i].nameid)) != NULL) {
+					if (stor->storage[i].nameid > 0 && (item_data = itemdb_exists(stor->storage[i].nameid)) != NULL) {
 						counter = counter + stor->storage[i].amount;
 						count++;
 						if (count == 1) {
@@ -941,7 +937,7 @@ bool charcommand_storagelist(int fd, struct map_session_data &sd,const char *com
 						counter2 = 0;
 						for (j = 0; j < item_data->flag.slot; j++) {
 							if (stor->storage[i].card[j]) {
-								if ((item_temp = itemdb_search(stor->storage[i].card[j])) != NULL) {
+								if ((item_temp = itemdb_exists(stor->storage[i].card[j])) != NULL) {
 									if (output[0] == '\0')
 										sprintf(outputtmp, " -> (card(s): #%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
 									else
@@ -988,18 +984,18 @@ charcommand_giveitem_sub(struct map_session_data &sd,struct item_data &item_data
 
 	if (item_data.type == 4 || item_data.type == 5 ||
 		item_data.type == 7 || item_data.type == 8) {
-		loop = number;
-		get_count = 1;
-	}
-	for (i = 0; i < loop; i++) {
-		memset(&item_tmp, 0, sizeof(item_tmp));
+			loop = number;
+			get_count = 1;
+		}
+		for (i = 0; i < loop; i++) {
+			memset(&item_tmp, 0, sizeof(item_tmp));
 		item_tmp.nameid = item_data.nameid;
-		item_tmp.identify = 1;
+			item_tmp.identify = 1;
 		if( (flag = pc_additem(sd, item_tmp, get_count)) )
 			clif_additem(sd, 0, 0, flag);
-	}
+		}
 
-}
+	}
 /*==========================================
  * #item command (usage: #item <name/id_of_item> <quantity> <player>)
  * by MC Cameri
@@ -1068,7 +1064,7 @@ bool charcommand_item(int fd, struct map_session_data &sd,const char *command, c
 		} else if(/* from jA's @giveitem */strcasecmp(character,"all")==0 || strcasecmp(character,"everyone")==0){
 			char buf[256];
 			for (i = 0; i < fd_max; i++) {
-				if (session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data)){
+				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data)){
 					charcommand_giveitem_sub( *pl_sd, *item_data, number);
 					snprintf(buf, sizeof(buf), "You got %s %d.", item_name, number);
 					clif_displaymessage(pl_sd->fd, buf);
@@ -1119,7 +1115,7 @@ bool charcommand_warp(int fd, struct map_session_data &sd,const char *command, c
 		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can rura+ only lower or same GM level
 			if (x > 0 && x < 400 && y > 0 && y < 400) {
 				m = map_mapname2mapid(map_name);
-				if(m >= 0 && map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+				if (m >= 0 && map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
 					clif_displaymessage(fd, "You are not authorised to warp someone to this map.");
 					return false;
 				}
@@ -1131,32 +1127,32 @@ bool charcommand_warp(int fd, struct map_session_data &sd,const char *command, c
 					clif_displaymessage(pl_sd->fd, msg_txt(0)); // Warped.
 					clif_displaymessage(fd, msg_txt(15)); // Player warped (message sends to player too).
 				}
-				else
-				{
+			else
+{
 					clif_displaymessage(fd, msg_txt(1)); // Map not found.
 					return false;
-				}
-			}
+	}
+	}
 			else
-			{
+{
 				clif_displaymessage(fd, msg_txt(2)); // Coordinates out of range.
 				return false;
-			}
-		}
+	}
+				}
 		else
-		{
+{
 			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
 			return false;
-		}
 	}
+				}
 	else
-	{
+{
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return false;
 	}
 
 	return true;
-}
+				}
 
 /*==========================================
  * #zeny <charname>
@@ -1175,7 +1171,7 @@ bool charcommand_zeny(int fd, struct map_session_data &sd,const char *command, c
 	}
 
 	if ((pl_sd = map_nick2sd(character)) != NULL)
-	{
+{
 		new_zeny = sd.status.zeny + zeny;
 		if( zeny>0 && (new_zeny<sd.status.zeny || new_zeny>MAX_ZENY) ) // pos overflow & max
 			new_zeny = MAX_ZENY;
@@ -1187,23 +1183,23 @@ bool charcommand_zeny(int fd, struct map_session_data &sd,const char *command, c
 			pl_sd->status.zeny = new_zeny;
 			clif_updatestatus(*pl_sd, SP_ZENY);
 			clif_displaymessage(fd, msg_txt(211)); // Character's number of zenys changed!
-		}
+	}
 		else
-		{
+{
 			if (zeny < 0)
 				clif_displaymessage(fd, msg_txt(41)); // Impossible to decrease the number/value.
 			else
 				clif_displaymessage(fd, msg_txt(149)); // Impossible to increase the number/value.
 			return false;
-		}
 	}
+		}
 	else
-	{
+{
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return false;
 	}
 	return true;
-}
+			}
 
 bool charcommand_showexp(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
@@ -1212,14 +1208,14 @@ bool charcommand_showexp(int fd, struct map_session_data &sd,const char *command
 		sd.state.noexp = 0;
 		clif_displaymessage(fd, "Gained exp is now shown");
 	}
-	else
+			else
 	{
 		sd.state.noexp = 1;
 		clif_displaymessage(fd, "Gained exp is now NOT shown");
 		return true;
-	}
+		}
 	return true;
-}
+	}
 
 bool charcommand_showdelay(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
@@ -1228,11 +1224,11 @@ bool charcommand_showdelay(int fd, struct map_session_data &sd,const char *comma
 		sd.state.nodelay = 0;
 		clif_displaymessage(fd, "Skill delay failure is now shown");
 	}
-	else
-	{
+			else
+{
 		sd.state.nodelay = 1;
 		clif_displaymessage(fd, "Skill delay failure is NOT now shown");
 	}
 	return true;
-}
+	}
 

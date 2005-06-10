@@ -270,7 +270,7 @@ int petskill_use(struct pet_data &pd, struct block_list &target, short skill_id,
 
 		pd.state.state=MS_ATTACK;
 		pd.state.casting_flag = 1;
-		if (skill_get_inf(skill_id) & 2) //Area Skill
+		if (skill_get_inf(skill_id) & INF_GROUND_SKILL)
 			clif_skillcasting( &pd.bl, pd.bl.id, 0, dat->x, dat->y, skill_id, casttime);
 		else
 			clif_skillcasting( &pd.bl, pd.bl.id, dat->target_id, 0,0, skill_id,casttime);
@@ -311,23 +311,19 @@ static int petskill_castend2(struct pet_data &pd, struct block_list &target, sho
 
 	pd.state.state=MS_IDLE;
 	
-	if (skill_get_inf(skill_id) & 2)
+	if (skill_get_inf(skill_id) & INF_GROUND_SKILL)
 	{	//Area skill
 		skill_castend_pos2(&pd.bl, skill_x, skill_y, skill_id, skill_lv, tick,0);
 	} else { //Targeted Skill
 		//Skills with inf = 4 (cast on self) have view range (assumed party skills)
-		range = (skill_get_inf(skill_id) & 4?battle_config.area_size:skill_get_range(skill_id, skill_lv));
+		range = (skill_get_inf(skill_id) & INF_SELF_SKILL?battle_config.area_size:skill_get_range(skill_id, skill_lv));
 		if(range < 0)
 			range = status_get_range(&pd.bl) - (range + 1);
 		if(distance(pd.bl.x, pd.bl.y, target.x, target.y) > range)
 			return 0; 
 		switch( skill_get_nk(skill_id) )
 		{
-			case 0:
-			case 2: //Damage Attack Skill
-				skill_castend_damage_id(&pd.bl,&target,skill_id,skill_lv,tick,0);
-				break;
-			case 1: //Non Damage Attack Skill
+			case NK_NO_DAMAGE:
 				if(
 				(skill_id==AL_HEAL || skill_id==ALL_RESURRECTION) && battle_check_undead(status_get_race(&target),status_get_elem_type(&target)) )
 					skill_castend_damage_id(&pd.bl, &target, skill_id, skill_lv, tick, 0);
@@ -335,6 +331,10 @@ static int petskill_castend2(struct pet_data &pd, struct block_list &target, sho
 				{
 				  skill_castend_nodamage_id(&pd.bl,&target, skill_id, skill_lv,tick, 0);
 				}
+				break;
+			case NK_SPLASH_DAMAGE:
+			default:
+				skill_castend_damage_id(&pd.bl,&target,skill_id,skill_lv,tick,0);
 				break;
 		}
 	}
@@ -440,36 +440,38 @@ int pet_target_check(struct map_session_data &sd,struct block_list *bl,int type)
 	int rate,mode,race;
 
 	pd = sd.pd;
+	if( bl && pd && bl->type == BL_MOB && 
+		sd.pet.intimate >= (short)battle_config.pet_support_min_friendly &&
+		sd.pet.hungry >= 1 &&
+		pd->class_ != status_get_class(bl) &&
+		pd->state.state != MS_DELAY )
+	{
+		mode = mob_db[pd->class_].mode;
+		race = mob_db[pd->class_].race;
 
-	if(bl && pd && bl->type == BL_MOB && sd.pet.intimate > 900 && sd.pet.hungry > 0 && pd->class_ != status_get_class(bl)
-		&& pd->state.state != MS_DELAY) {
-		mode=mob_db[pd->class_].mode;
-		race=mob_db[pd->class_].race;
 		md=(struct mob_data *)bl;
-		if(md->bl.type != BL_MOB || pd->bl.m != md->bl.m ||
-			md->bl.prev == NULL ||
+
+		if(pd->bl.m != md->bl.m ||
 			distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13 || 
 			(md->class_ >= 1285 && md->class_ <= 1288)) // Cannot attack Guardians/Emperium
 			return 0;
+
 		if(mob_db[pd->class_].mexp <= 0 && !(mode&0x20) && (md->option & 0x06 && race!=4 && race!=6) )
 			return 0;
-		if(!type) {
+		
+		if(!type)
+		{
 			rate = sd.petDB->attack_rate;
-			rate = rate * (150 - (sd.pet.intimate - 1000))/100;
-			if(battle_config.pet_support_rate != 100)
-				rate = rate*battle_config.pet_support_rate/100;
+			rate = rate * pd->rate_fix/1000;
 			if(sd.petDB->attack_rate > 0 && rate <= 0)
 				rate = 1;
-		}
-		else {
+		} else {
 			rate = sd.petDB->defence_attack_rate;
-			rate = rate * (150 - (sd.pet.intimate - 1000))/100;
-			if(battle_config.pet_support_rate != 100)
-				rate = rate*battle_config.pet_support_rate/100;
+			rate = rate * pd->rate_fix/1000;
 			if(sd.petDB->defence_attack_rate > 0 && rate <= 0)
 				rate = 1;
 		}
-		if(rand()%10000 < rate) 
+		if(rand()%10000 < rate)
 		{
 			if(pd->target_id == 0 || rand()%10000 < sd.petDB->change_target_rate)
 				pd->target_id = bl->id;
@@ -512,7 +514,7 @@ int pet_changestate(struct pet_data &pd,int state,int type)
 	if( pd.state.casting_flag )
 	{//Skotlex: Cancel casting
 		pd.state.casting_flag = 0;
-		clif_skillcastcancel(&pd.bl);
+		clif_skillcastcancel(pd.bl);
 	}
 	switch(state)
 	{
@@ -682,6 +684,7 @@ static int pet_hungry(int tid,unsigned long tick,int id,int data)
 					status_calc_pc(*sd,2);
 			}
 		}
+		status_calc_pet(*sd, 0);
 		clif_send_petdata(*sd,1,sd->pet.intimate);
 	}
 	clif_send_petdata(*sd,2,sd->pet.hungry);
@@ -902,11 +905,10 @@ int pet_data_init(struct map_session_data &sd)
 	map_addiddb(pd->bl);
 
 	// initialise
-	if (battle_config.pet_lv_rate)
-	{ 	//Skotlex
+	if (battle_config.pet_lv_rate)	//[Skotlex]
 		pd->status = (struct pet_data::pet_status *) aCalloc(1,sizeof(struct pet_data::pet_status));
-		status_calc_pet(sd,true);
-	}
+
+	status_calc_pet(sd,1);
 
 	pd->state.skillbonus = -1;
 	if (battle_config.pet_status_support) //Skotlex
@@ -1034,6 +1036,7 @@ int pet_catch_process2(struct map_session_data &sd,int target_id)
 			)
 		{	//Something went wrong, items moved or they tried an exploit.
 			clif_pet_rulet(sd,0);
+			sd.catch_target_class = -1;
 			return 1;
 		}
 		//Delete the item
@@ -1042,14 +1045,21 @@ int pet_catch_process2(struct map_session_data &sd,int target_id)
 	}
 	
 	md=(struct mob_data*)map_id2bl(target_id);
-	if(!md){
+	if(!md || md->bl.type != BL_MOB || md->bl.prev == NULL){
 		clif_pet_rulet(sd,0);
+		sd.catch_target_class = -1;
 		return 1;
 	}
 
 	i = search_petDB_index(md->class_,PET_CLASS);
-	if(md == NULL || md->bl.type != BL_MOB || md->bl.prev == NULL || i < 0 || sd.catch_target_class != md->class_) {
+	//catch_target_class == 0 is used for universal lures. [Skotlex]
+	//for now universal lures do not include bosses.
+	if (sd.catch_target_class == 0 && !(md->mode&0x20))
+		sd.catch_target_class = md->class_;
+	if(i < 0 || sd.catch_target_class != md->class_) {
+		clif_emotion(md->bl, 7);	//mob will do /ag if wrong lure is used on them.
 		clif_pet_rulet(sd,0);
+		sd.catch_target_class = -1;
 		return 1;
 	}
 
@@ -1077,7 +1087,10 @@ int pet_catch_process2(struct map_session_data &sd,int target_id)
 			pet_db[i].jname);
 	}
 	else
+	{
+		sd.catch_target_class = -1;
 		clif_pet_rulet(sd,0);
+	}
 
 	return 0;
 }
@@ -1094,6 +1107,8 @@ int pet_get_egg(unsigned long account_id,unsigned long pet_id,int flag)
 			return 1;
 
 		i = search_petDB_index(sd->catch_target_class,PET_CLASS);
+		sd->catch_target_class = -1;
+		
 		if(i >= 0) {
 			memset(&tmp_item,0,sizeof(tmp_item));
 			tmp_item.nameid = pet_db[i].EggID;
@@ -1276,6 +1291,7 @@ int pet_food(struct map_session_data &sd)
 	}
 	else if(sd.pet.intimate > 1000)
 		sd.pet.intimate = 1000;
+	status_calc_pet(sd, 0);
 	sd.pet.hungry += sd.petDB->fullness;
 	if(sd.pet.hungry > 100)
 		sd.pet.hungry = 100;
@@ -1676,6 +1692,7 @@ int pet_heal_timer(int tid,unsigned long tick,int id,int data)
 {
 	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
 	struct pet_data *pd;
+	short rate = 100;
 	
 	if(sd==NULL || sd->bl.type!=BL_PC || sd->pd == NULL)
 		return 1;
@@ -1694,12 +1711,12 @@ int pet_heal_timer(int tid,unsigned long tick,int id,int data)
 	}
 	
 	if(pc_isdead(*sd) ||
-		pd->state.casting_flag || //Another skill is in effect
-		pd->state.state == MS_WALK || //Better wait until the pet stops moving
-		sd->status.hp > sd->status.max_hp * pd->s_skill->hp/100 ||
-		sd->status.sp > sd->status.max_sp * pd->s_skill->sp/100)
-	{	//Wait (how long? 30x Min PetThinkTime (3sec) is fair enough?)
-		pd->s_skill->timer=add_timer(gettick()+30*MIN_PETTHINKTIME,pet_heal_timer,sd->bl.id,0);
+		(rate = sd->status.sp*100/sd->status.max_sp) > pd->s_skill->sp ||
+		(rate = sd->status.hp*100/sd->status.max_hp) > pd->s_skill->hp ||
+		(rate = pd->state.casting_flag) || //Another skill is in effect
+		(rate = pd->state.state) == MS_WALK) //Better wait until the pet stops moving (MS_WALK is 2)
+	{  //Wait (how long? 1 sec for every 10% of remaining)
+		pd->s_skill->timer=add_timer(gettick()+(rate>10?rate:10)*100,pet_heal_timer,sd->bl.id,0);
 		return 0;
 	}
 

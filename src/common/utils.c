@@ -153,7 +153,7 @@ bool remove_control_chars(char *str)
 //------------------------------------------------------------
 bool e_mail_check(const char *email) {
 	char ch;
-	char* last_arobas;
+	const char* last_arobas;
 
 	// athena limits
 	if (!email || strlen(email) < 3 || strlen(email) > 39)

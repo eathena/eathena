@@ -692,8 +692,10 @@ bool msg_config_read(const char *cfgName)
 	{
 		if( !skip_empty_line(line) )
 			continue;
-		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2) {
-			if(strcasecmp(w1, "import") == 0) {
+		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2)
+		{
+			if(strcasecmp(w1, "import") == 0)
+			{
 				msg_config_read(w2);
 	}
 			else
@@ -1053,7 +1055,7 @@ bool atcommand_where(int fd, struct map_session_data &sd, const char* command, c
 	struct map_session_data *pl_sd = NULL;
 	char player_name[128]="";
 	char output[128]="";
-
+	
 	if (!message || !*message)
 		return false;
 		
@@ -1061,13 +1063,13 @@ bool atcommand_where(int fd, struct map_session_data &sd, const char* command, c
 		return false;
 	if(strncmp(sd.status.name,player_name,24)==0)
 		return false;
-		
+	
 	if (battle_config.hide_GM_session) {
 		if (!(battle_config.who_display_aid > 0 && pc_isGM(sd) >= battle_config.who_display_aid))
 		{
 			return false;
+			}
 		}
-	}
 
 	if((pl_sd = map_nick2sd(player_name)) == NULL) {
 		snprintf(output, sizeof(output), "%s %d %d",
@@ -1827,9 +1829,6 @@ bool atcommand_option(int fd, struct map_session_data &sd, const char* command, 
 		}
 	} else {
 		if (pc_isriding(sd)) { // sd have the new value...
-			if(sd.disguise_id > 0) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris] (code added by [Yor])
-				sd.status.option &= ~0x0020;
-			} else {
 				if (sd.status.class_ == 7)
 					sd.status.class_ = sd.view_class = 13;
 				else if (sd.status.class_ == 14)
@@ -1840,11 +1839,11 @@ bool atcommand_option(int fd, struct map_session_data &sd, const char* command, 
 					sd.status.class_ = sd.view_class = 4022;
 				else
 					sd.status.option &= ~0x0020;
+
 			}
 		}
-	}
 
-	clif_changeoption(&sd.bl);
+	clif_changeoption(sd.bl);
 	status_calc_pc(sd, 0);
 	clif_displaymessage(fd, msg_table[9]); // Options changed.
 
@@ -1865,7 +1864,7 @@ bool atcommand_hide(int fd, struct map_session_data &sd, const char* command, co
 		sd.status.option |= OPTION_HIDE;
 		clif_displaymessage(fd, msg_table[11]); // Invisible: On
 	}
-	clif_changeoption(&sd.bl);
+	clif_changeoption(sd.bl);
 
 	return true;
 }
@@ -1984,7 +1983,7 @@ bool atcommand_jobchange(int fd, struct map_session_data &sd, const char* comman
 				if (sd.status.class_ == 4022)
 					sd.status.class_ = sd.view_class = 4015;
 				sd.status.option &= ~0x0020;
-				clif_changeoption(&sd.bl);
+				clif_changeoption(sd.bl);
 				status_calc_pc(sd, 0);
 			}
 		} else {
@@ -3088,17 +3087,20 @@ bool atcommand_spawn(int fd, struct map_session_data &sd, const char* command, c
 	}
 
 	if (count != 0)
+	{
 		if (number == count)
 			clif_displaymessage(fd, msg_table[39]); // All monster summoned!
-		else {
+		else
+		{
 			sprintf(output, msg_table[240], count); // %d monster(s) summoned!
 			clif_displaymessage(fd, output);
 		}
-	else {
+	}
+	else
+	{
 		clif_displaymessage(fd, msg_table[40]); // Invalid monster ID or name.
 		return false;
 	}
-
 	return true;
 }
 // small monster spawning [Valaris]
@@ -3272,11 +3274,13 @@ bool atcommand_killmonster_sub(int fd, struct map_session_data &sd, const char* 
 			map_id = sd.bl.m;
 	}
 
+	if(map_id>0 && map_id<(int)map_num)
+	{
 	map_foreachinarea(atkillmonster_sub, map_id, 0, 0, map[map_id].xs, map[map_id].ys, BL_MOB, drop);
-
 	clif_displaymessage(fd, msg_table[165]); // All monsters killed!
-
-	return true;
+		return true;
+}
+	return false;
 }
 
 /*==========================================
@@ -4051,7 +4055,7 @@ bool atcommand_revive(int fd, struct map_session_data &sd, const char* command, 
 		clif_displaymessage(fd, msg_table[3]); // Character not found.
 
 	return false;
-}
+	}
 
 /*==========================================
  * charchangesex command (usage: charchangesex <player_name>)
@@ -4065,7 +4069,7 @@ bool atcommand_char_change_sex(int fd, struct map_session_data &sd, const char* 
 	if(!message || !*message || sscanf(message, "%99[^\n]", player_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charchangesex <name>).");
 		return false;
-	}
+}
 
 	// check player name
 	if(strlen(player_name) < 4) {
@@ -4433,7 +4437,7 @@ bool atcommand_character_baselevel(int fd, struct map_session_data &sd, const ch
 				if (pl_sd->status.base_level == 1) {
 					clif_displaymessage(fd, msg_table[193]); // Character's base level can't go any lower.
 					return false;
-				}
+}
 				if( battle_config.maximum_level < (size_t)(-level) || pl_sd->status.base_level < (size_t)(1 - level)) // fix negativ overflow
 					level = 1 - pl_sd->status.base_level;
 				if (pl_sd->status.status_point > 0)
@@ -5619,10 +5623,6 @@ bool atcommand_mapinfo(int fd, struct map_session_data &sd, const char* command,
 bool atcommand_mount_peco(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
-	if(sd.disguise_id > 0) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-		clif_displaymessage(fd, msg_table[212]); // Cannot mount a Peco while in disguise.
-		return false;
-	}
 
 	if (!pc_isriding(sd)) { // if actually no peco
 		if (sd.status.class_ == 7 || sd.status.class_ == 14 || sd.status.class_ == 4008 || sd.status.class_ == 4015) {
@@ -5672,11 +5672,6 @@ bool atcommand_char_mount_peco(int fd, struct map_session_data &sd, const char* 
 	}
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if(pl_sd->disguise_id > 0) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-			clif_displaymessage(fd, msg_table[215]); // This player cannot mount a Peco while in disguise.
-			return false;
-		}
-
 		if (!pc_isriding(*pl_sd)) { // if actually no peco
 			if (pl_sd->status.class_ == 7 || pl_sd->status.class_ == 14 || pl_sd->status.class_ == 4008 || pl_sd->status.class_ == 4015) {
 				if (pl_sd->status.class_ == 7)
@@ -6223,27 +6218,27 @@ bool atcommand_unjail(int fd, struct map_session_data &sd, const char* command, 
  */
 bool atcommand_disguise(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	int mob_id = 0;
-
-
-	if (!message || !*message) {
+	unsigned short mob_id = 0;
+	
+	if (!message || !*message)
+	{
 		clif_displaymessage(fd, "Please, enter a Monster/NPC name/id (usage: @disguise <monster_name_or_monster_ID>).");
 		return false;
 	}
 
-	if ((mob_id = mobdb_searchname(message)) == 0) // check name first (to avoid possible name begining by a number)
+	mob_id = mobdb_searchname(message);
+	if( mob_id == 0 ) // check name first (to avoid possible name begining by a number)
 		mob_id = atoi(message);
 
-	if ((mob_id >=  46 && mob_id <= 125) || (mob_id >= 700 && mob_id <= 718) || // NPC
+	if( (mob_id >=  46 && mob_id <= 125) || (mob_id >= 700 && mob_id <= 718) || // NPC
 	    (mob_id >= 721 && mob_id <= 755) || (mob_id >= 757 && mob_id <= 811) || // NPC
 	    (mob_id >= 813 && mob_id <= 858) || // NPC
 	    (mob_id > 1000 && mob_id < 1582)) { // monsters
-		if (pc_isriding(sd)) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-			clif_displaymessage(fd, msg_table[227]); // Cannot wear disguise while riding a Peco.
-			return false;
-		}
+		pc_stop_walking(sd,0);
+		clif_clearchar(sd.bl, 0);
 		sd.disguise_id = mob_id;
-		pc_setpos(sd, sd.mapname, sd.bl.x, sd.bl.y, 3);
+		clif_changeoption(sd.bl);
+		clif_spawnpc(sd);
 		clif_displaymessage(fd, msg_table[122]); // Disguise applied.
 	} else {
 		clif_displaymessage(fd, msg_table[123]); // Monster/NPC name/id hasn't been found.
@@ -6279,14 +6274,13 @@ bool atcommand_disguiseall(int fd, struct map_session_data &sd, const char* comm
 	    (mob_id > 1000 && mob_id < 1582)) { // monsters
 		for(i=0; i < fd_max; i++) {
 			if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
-				if(pc_isriding(*pl_sd)) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-					clif_displaymessage(fd, msg_table[227]); // Cannot wear disguise while riding a Peco.
-				} else {
-					pl_sd->disguise_id = mob_id;
-					pc_setpos(*pl_sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
+				pc_stop_walking(*pl_sd,0);
+				clif_clearchar(pl_sd->bl, 0);
+				pl_sd->disguise_id = mob_id;
+				clif_changeoption(pl_sd->bl);
+				clif_spawnpc(*pl_sd);
 				}
 			}
-		}
 		clif_displaymessage(fd, msg_table[122]); // Disguise applied.
 	} else {
 		return false;
@@ -6302,24 +6296,18 @@ bool atcommand_disguiseall(int fd, struct map_session_data &sd, const char* comm
 bool atcommand_undisguise(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	
-	if(sd.disguise_id) {
-		clif_clearchar(sd.bl, 9);
+	if(sd.disguise_id)
+	{
+		pc_stop_walking(sd,0);
+		clif_clearchar(sd.bl, 0);
 		sd.disguise_id = 0;
-
-		clif_changelook(&sd.bl,LOOK_WEAPON,sd.status.weapon);
-		clif_changelook(&sd.bl,LOOK_SHIELD,sd.status.shield);
-		clif_changelook(&sd.bl,LOOK_HEAD_BOTTOM,sd.status.head_bottom);
-		clif_changelook(&sd.bl,LOOK_HEAD_TOP,sd.status.head_top);
-		clif_changelook(&sd.bl,LOOK_HEAD_MID,sd.status.head_mid);
-		clif_clearchar(sd.bl, 9);
-		pc_setpos(sd, sd.mapname, sd.bl.x, sd.bl.y, 3);
-
+		clif_changeoption(sd.bl);
+		clif_spawnpc(sd);
 		clif_displaymessage(fd, msg_table[124]); // Undisguise applied.
 	} else {
 		clif_displaymessage(fd, msg_table[125]); // You're not disguised.
 		return false;
 	}
-
 	return true;
 }
 
@@ -6331,20 +6319,15 @@ bool atcommand_undisguiseall(int fd, struct map_session_data &sd, const char* co
 {
 	struct map_session_data *pl_sd;
 	size_t i;
-
-
-	for(i=0; i < fd_max; i++) {
-		if(session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) && pl_sd->state.auth && pl_sd->disguise_id) {
-			clif_clearchar(pl_sd->bl, 9);
+	for(i=0; i < fd_max; i++)
+	{
+		if(session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) && pl_sd->state.auth && pl_sd->disguise_id)
+		{
+			pc_stop_walking(*pl_sd,0);
+			clif_clearchar(pl_sd->bl, 0);
 			pl_sd->disguise_id = 0;
-			clif_changelook(&pl_sd->bl,LOOK_WEAPON,sd.status.weapon);
-			clif_changelook(&pl_sd->bl,LOOK_SHIELD,sd.status.shield);
-			clif_changelook(&pl_sd->bl,LOOK_HEAD_BOTTOM,sd.status.head_bottom);
-			clif_changelook(&pl_sd->bl,LOOK_HEAD_TOP,sd.status.head_top);
-			clif_changelook(&pl_sd->bl,LOOK_HEAD_MID,sd.status.head_mid);
-			clif_clearchar(pl_sd->bl, 9);
-
-			pc_setpos(*pl_sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
+			clif_changeoption(pl_sd->bl);
+			clif_spawnpc(*pl_sd);
 		}
 	}
 	clif_displaymessage(fd, msg_table[124]); // Undisguise applied.
@@ -6399,7 +6382,7 @@ bool atcommand_localbroadcast(int fd, struct map_session_data &sd, const char* c
  */
 bool atcommand_chardisguise(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	int mob_id;
+	unsigned short mob_id;
 	char player_name[128]="";
 	char mob_name[128]="";
 	struct map_session_data* pl_sd;
@@ -6414,18 +6397,20 @@ bool atcommand_chardisguise(int fd, struct map_session_data &sd, const char* com
 	if ((mob_id = mobdb_searchname(mob_name)) == 0) // check name first (to avoid possible name begining by a number)
 		mob_id = atoi(mob_name);
 
-	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can disguise only lower or same level
+	if((pl_sd = map_nick2sd(player_name)) != NULL)
+	{
+		if (pc_isGM(sd) >= pc_isGM(*pl_sd))
+		{	// you can disguise only lower or same level
 			if ((mob_id >=  46 && mob_id <= 125) || (mob_id >= 700 && mob_id <= 718) || // NPC
 			    (mob_id >= 721 && mob_id <= 755) || (mob_id >= 757 && mob_id <= 811) || // NPC
 			    (mob_id >= 813 && mob_id <= 834) || // NPC
-			    (mob_id > 1000 && mob_id < 1521)) { // monsters
-				if (pc_isriding(*pl_sd)) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-					clif_displaymessage(fd, msg_table[228]); // Character cannot wear disguise while riding a Peco.
-					return false;
-				}
+			    (mob_id > 1000 && mob_id < 1521))
+			{	// monsters
+				pc_stop_walking(*pl_sd,0);
+				clif_clearchar(pl_sd->bl, 0);
 				pl_sd->disguise_id = mob_id;
-				pc_setpos(*pl_sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
+				clif_changeoption(pl_sd->bl);
+				clif_spawnpc(*pl_sd);
 				clif_displaymessage(fd, msg_table[140]); // Character's disguise applied.
 			} else {
 				clif_displaymessage(fd, msg_table[123]); // Monster/NPC name/id hasn't been found.
@@ -6459,28 +6444,33 @@ bool atcommand_charundisguise(int fd, struct map_session_data &sd, const char* c
 		return false;
 	}
 
-	if((pl_sd = map_nick2sd(player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(*pl_sd)) { // you can undisguise only lower or same level
-			if(pl_sd->disguise_id) {
-				clif_clearchar(pl_sd->bl, 9);
+	if((pl_sd = map_nick2sd(player_name)) != NULL)
+	{
+		if (pc_isGM(sd) >= pc_isGM(*pl_sd))
+		{ // you can undisguise only lower or same level
+			if(pl_sd->disguise_id)
+			{
+				pc_stop_walking(*pl_sd,0);
+				clif_clearchar(pl_sd->bl, 0);
 				pl_sd->disguise_id = 0;
-				clif_changelook(&pl_sd->bl,LOOK_WEAPON,sd.status.weapon);
-				clif_changelook(&pl_sd->bl,LOOK_SHIELD,sd.status.shield);
-				clif_changelook(&pl_sd->bl,LOOK_HEAD_BOTTOM,sd.status.head_bottom);
-				clif_changelook(&pl_sd->bl,LOOK_HEAD_TOP,sd.status.head_top);
-				clif_changelook(&pl_sd->bl,LOOK_HEAD_MID,sd.status.head_mid);
-				clif_clearchar(pl_sd->bl, 9);
-				pc_setpos(*pl_sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
+				clif_changeoption(pl_sd->bl);
+				clif_spawnpc(*pl_sd);
 				clif_displaymessage(fd, msg_table[141]); // Character's undisguise applied.
-			} else {
+			}
+			else
+			{
 				clif_displaymessage(fd, msg_table[142]); // Character is not disguised.
 				return false;
 			}
-		} else {
+		}
+		else
+		{
 			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
 			return false;
 		}
-	} else {
+	}
+	else
+	{
 		clif_displaymessage(fd, msg_table[3]); // Character not found.
 		return false;
 	}
@@ -6583,7 +6573,7 @@ bool atcommand_character_storage_list(int fd, struct map_session_data &sd, const
 				counter = 0;
 				count = 0;
 				for (i = 0; i < MAX_STORAGE; i++) {
-					if(stor->storage[i].nameid > 0 && (item_data = itemdb_search(stor->storage[i].nameid)) != NULL) {
+					if(stor->storage[i].nameid > 0 && (item_data = itemdb_exists(stor->storage[i].nameid)) != NULL) {
 						counter = counter + stor->storage[i].amount;
 						count++;
 						if(count == 1) {
@@ -6599,7 +6589,7 @@ bool atcommand_character_storage_list(int fd, struct map_session_data &sd, const
 						counter2 = 0;
 						for (j = 0; j < item_data->flag.slot; j++) {
 							if(stor->storage[i].card[j]) {
-								if((item_temp = itemdb_search(stor->storage[i].card[j])) != NULL) {
+								if((item_temp = itemdb_exists(stor->storage[i].card[j])) != NULL) {
 									if( output[0] == '\0')
 										sprintf(outputtmp, " -> (card(s): #%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
 									else
@@ -6663,7 +6653,7 @@ bool atcommand_character_cart_list(int fd, struct map_session_data &sd, const ch
 			counter = 0;
 			count = 0;
 			for (i = 0; i < MAX_CART; i++) {
-				if (pl_sd->status.cart[i].nameid > 0 && (item_data = itemdb_search(pl_sd->status.cart[i].nameid)) != NULL) {
+				if (pl_sd->status.cart[i].nameid > 0 && (item_data = itemdb_exists(pl_sd->status.cart[i].nameid)) != NULL) {
 					counter = counter + pl_sd->status.cart[i].amount;
 					count++;
 					if (count == 1) {
@@ -6679,7 +6669,7 @@ bool atcommand_character_cart_list(int fd, struct map_session_data &sd, const ch
 					counter2 = 0;
 					for (j = 0; j < item_data->flag.slot; j++) {
 						if (pl_sd->status.cart[i].card[j]) {
-							if ( (item_temp = itemdb_search(pl_sd->status.cart[i].card[j])) != NULL) {
+							if ( (item_temp = itemdb_exists(pl_sd->status.cart[i].card[j])) != NULL) {
 								if(output[0] == '\0')
 									sprintf(outputtmp, " -> (card(s): #%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
 								else
@@ -6878,14 +6868,20 @@ bool atcommand_follow(int fd, struct map_session_data &sd, const char* command, 
 {
 	struct map_session_data *pl_sd = NULL;
 
-
 	if (!message || !*message)
 		return false;
-	if((pl_sd=map_nick2sd((char *) message)) != NULL)
-		pc_follow(sd, pl_sd->bl.id);
-	else
-		return 1;
-	return true;
+
+	pl_sd = map_nick2sd(message);
+	if(pl_sd != NULL)
+	{
+		if (sd.followtarget == pl_sd->bl.id)
+			pc_stop_following(sd);
+		else
+			pc_follow(sd, pl_sd->bl.id);
+		return 0;
+	}
+	
+	return 1;
 }
 
 
@@ -7375,14 +7371,12 @@ bool atcommand_autoloot(int fd, struct map_session_data &sd, const char* command
  */
 bool atcommand_rain(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	int effno = 161;
-	
 	if (map[sd.bl.m].flag.rain) {
 		map[sd.bl.m].flag.rain=0;
 		clif_displaymessage(fd, "The rain has stopped.");
 	} else {
 		map[sd.bl.m].flag.rain=1;
-		clif_specialeffect(sd.bl,effno,2);
+		clif_specialeffect(sd.bl,EFFECT_RAIN,2);
 		clif_displaymessage(fd, "It is made to rain.");
 	}
 	return true;
@@ -7393,14 +7387,13 @@ bool atcommand_rain(int fd, struct map_session_data &sd, const char* command, co
  */
 bool atcommand_snow(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	int effno = 162;
-	
+
 	if (map[sd.bl.m].flag.snow) {
 		map[sd.bl.m].flag.snow=0;
 		clif_displaymessage(fd, "Snow has stopped falling.");
 	} else {
 		map[sd.bl.m].flag.snow=1;
-		clif_specialeffect(sd.bl,effno,2);
+		clif_specialeffect(sd.bl,EFFECT_SNOW,2);
 		clif_displaymessage(fd, "It is made to snow.");
 	}
 
@@ -7413,14 +7406,12 @@ bool atcommand_snow(int fd, struct map_session_data &sd, const char* command, co
  */
 bool atcommand_sakura(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	int effno = 163;
-	
 	if (map[sd.bl.m].flag.sakura) {
 		map[sd.bl.m].flag.sakura=0;
 		clif_displaymessage(fd, "Cherry tree leaves is made to fall.");
 	} else {
 		map[sd.bl.m].flag.sakura=1;
-		clif_specialeffect(sd.bl,effno,2);
+		clif_specialeffect(sd.bl,EFFECT_SAKURA,2);
 		clif_displaymessage(fd, "Cherry tree leaves is made to fall.");
 	}
 	return true;
@@ -7432,14 +7423,12 @@ bool atcommand_sakura(int fd, struct map_session_data &sd, const char* command, 
  */
 bool atcommand_clouds(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	int effno = 233;
-	
 	if (map[sd.bl.m].flag.clouds) {
 		map[sd.bl.m].flag.clouds=0;
 		clif_displaymessage(fd, "The clouds has gone.");
 	} else {
 		map[sd.bl.m].flag.clouds=1;
-		clif_specialeffect(sd.bl,effno,2);
+		clif_specialeffect(sd.bl,EFFECT_CLOUDS,2);
 		clif_displaymessage(fd, "Clouds appear.");
 	}
 
@@ -7452,17 +7441,15 @@ bool atcommand_clouds(int fd, struct map_session_data &sd, const char* command, 
  */
 bool atcommand_fog(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	int effno = 515;
-	
 	if (map[sd.bl.m].flag.fog) {
 		map[sd.bl.m].flag.fog=0;
+		clif_clearweather(sd.bl.m);
 		clif_displaymessage(fd, "The fog has gone.");
 	} else {
 		map[sd.bl.m].flag.fog=1;
-		clif_specialeffect(sd.bl,effno,2);
+		clif_weather2(sd.bl.m, EFFECT_FOG);
 		clif_displaymessage(fd, "Fog hangs over.");
 	}
-
 	return true;
 }
 
@@ -7472,17 +7459,16 @@ bool atcommand_fog(int fd, struct map_session_data &sd, const char* command, con
  */
 bool atcommand_leaves(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	int effno = 333;
-	
+
 	if (map[sd.bl.m].flag.leaves) {
 		map[sd.bl.m].flag.leaves=0;
+		clif_clearweather(sd.bl.m);
 		clif_displaymessage(fd, "Leaves no longer fall.");
 	} else {
 		map[sd.bl.m].flag.leaves=1;
-		clif_specialeffect(sd.bl,effno,2);
+		clif_weather2(sd.bl.m, EFFECT_LEAVES);
 		clif_displaymessage(fd, "Fallen leaves fall.");
 	}
-
 	return true;
 }
 
@@ -7492,17 +7478,15 @@ bool atcommand_leaves(int fd, struct map_session_data &sd, const char* command, 
  */
 bool atcommand_fireworks(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	//int effno = 0;
-	//effno = 233;
-	
 	if (map[sd.bl.m].flag.fireworks) {
 		map[sd.bl.m].flag.fireworks=0;
-		clif_displaymessage(fd, "Fireworks are launched.");
+		clif_clearweather(sd.bl.m);
+		clif_displaymessage(fd, "Fireworks have burned down.");
 	} else {
 		map[sd.bl.m].flag.fireworks=1;
-		clif_specialeffect(sd.bl,297,2);
-		clif_specialeffect(sd.bl,299,2);
-		clif_specialeffect(sd.bl,301,2);
+		clif_weather2(sd.bl.m, EFFECT_FIRE1);
+		clif_weather2(sd.bl.m, EFFECT_FIRE2);
+		clif_weather2(sd.bl.m, EFFECT_FIRE3);
 		clif_displaymessage(fd, "Fireworks are launched.");
 	}
 
@@ -7522,6 +7506,7 @@ bool atcommand_clearweather(int fd, struct map_session_data &sd, const char* com
 	map[sd.bl.m].flag.fog=0;
 	map[sd.bl.m].flag.fireworks=0;
 	map[sd.bl.m].flag.leaves=0;
+	clif_clearweather(sd.bl.m);
 	return true;
 }
 
@@ -7762,7 +7747,7 @@ bool atcommand_summon(int fd, struct map_session_data &sd, const char* command, 
 		md->deletetimer=add_timer(tick+60000,mob_timer_delete,id,0);
 		clif_misceffect2(md->bl,344);
 	}
-	clif_skill_poseffect(&sd.bl,AM_CALLHOMUN,1,x,y,tick);
+	clif_skill_poseffect(sd.bl,AM_CALLHOMUN,1,x,y,tick);
 
 	return true;
 }
@@ -8750,7 +8735,7 @@ bool atcommand_mobinfo(int fd, struct map_session_data &sd, const char* command,
 	strcpy(output, " ");
 	j = 0;
 	for (i = 0; i < 10; i++) {
-		if (mob->dropitem[i].nameid <= 0 || (item_data = itemdb_search(mob->dropitem[i].nameid)) == NULL)
+		if (mob->dropitem[i].nameid <= 0 || (item_data = itemdb_exists(mob->dropitem[i].nameid)) == NULL)
 			continue;
 		if (mob->dropitem[i].p > 0) {
 			sprintf(output2, " - %s  %02.02f%%", item_data->name, (float)mob->dropitem[i].p / 100);
@@ -8772,7 +8757,7 @@ bool atcommand_mobinfo(int fd, struct map_session_data &sd, const char* command,
 		strcpy(output, " MVP Items:");
 		j = 0;
 		for (i = 0; i < 3; i++) {
-			if (mob->mvpitem[i].nameid <= 0 || (item_data = itemdb_search(mob->mvpitem[i].nameid)) == NULL)
+			if (mob->mvpitem[i].nameid <= 0 || (item_data = itemdb_exists(mob->mvpitem[i].nameid)) == NULL)
 				continue;
 			if (mob->mvpitem[i].p > 0) {
 				j++;
@@ -9127,7 +9112,7 @@ bool atcommand_fakename(int fd, struct map_session_data &sd, const char* command
 	}
 	
 	strcpy(sd.fakename,name);
-	pc_setpos(sd, sd.mapname, sd.bl.x, sd.bl.y, 3);
+	clif_charnameack(0, sd.bl);
 	clif_displaymessage(sd.fd,"Fake name enabled.");
 	
 	return true;

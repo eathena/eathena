@@ -1578,7 +1578,7 @@ int map_reqchariddb(struct map_session_data &sd, unsigned long charid)
 	struct charid2nick *p= (struct charid2nick*)numdb_search(charid_db,charid);
 	if(p==NULL)
 	{	// not in database -> create new
-	p = (struct charid2nick *)aCalloc(1,sizeof(struct charid2nick));
+		p = (struct charid2nick *)aCalloc(1,sizeof(struct charid2nick));
 		p->req_id=sd.bl.id;
 	numdb_insert(charid_db,charid,p);
 	}
@@ -1629,94 +1629,94 @@ int map_quit(struct map_session_data &sd)
 			{
 				run_script(npc->u.scr.ref->script,0,sd.bl.id,npc->bl.id); // PCLogoutNPC
 				ShowStatus ("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.logout_event_name);
+				}
 			}
-		}
 		else
 		{
 			ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
 				npc_event_doall_id(script_config.logout_event_name, sd.bl.id), script_config.logout_event_name);
 		}
 	}
-	
+
 	if(sd.chatID)	// チャットから出る
-		chat_leavechat(sd);
+			chat_leavechat(sd);
 	if(sd.trade_partner)	// 取引を中?する
-		trade_tradecancel(sd);
+			trade_tradecancel(sd);
 	if(sd.party_invite>0)	// パ?ティ?誘を拒否する
 		party_reply_invite(sd,sd.party_invite_account,0);
 	if(sd.guild_invite>0)	// ギルド?誘を拒否する
 		guild_reply_invite(sd,sd.guild_invite,0);
 	if(sd.guild_alliance>0)	// ギルド同盟?誘を拒否する
 		guild_reply_reqalliance(sd,sd.guild_alliance_account,0);
-	
-	party_send_logout(sd);	// パ?ティのログアウトメッセ?ジ送信
-	party_send_dot_remove(sd);//minimap dot fix [Kevin]
-	guild_send_memberinfoshort(sd,0);	// ギルドのログアウトメッセ?ジ送信
 
-	pc_cleareventtimer(sd);	// イベントタイマを破棄する
+		party_send_logout(sd);	// パ?ティのログアウトメッセ?ジ送信
+		party_send_dot_remove(sd);//minimap dot fix [Kevin]
+		guild_send_memberinfoshort(sd,0);	// ギルドのログアウトメッセ?ジ送信
+
+		pc_cleareventtimer(sd);	// イベントタイマを破棄する
 	if(sd.state.storage_flag)
-		storage_guild_storage_quit(sd,0);
-	else
-		storage_storage_quit(sd);	// 倉庫を開いてるなら保存する
-	
-	// check if we've been authenticated [celest]
+			storage_guild_storage_quit(sd,0);
+		else
+			storage_storage_quit(sd);	// 倉庫を開いてるなら保存する
+
+		// check if we've been authenticated [celest]
 	if (sd.state.auth)
 		skill_castcancel(&sd.bl,0);	// 詠唱を中?する
-	
+
 	skill_stop_dancing(&sd.bl,1);// ダンス/演奏中?
 	if(sd.sc_data && sd.sc_data[SC_BERSERK].timer!=-1) //バ?サ?ク中の終了はHPを100に
 		sd.status.hp = 100;
-	
+
 	status_change_clear(&sd.bl,1);	// ステ?タス異常を解除する
 	skill_clear_unitgroup(&sd.bl);	// スキルユニットグル?プの削除
 	skill_cleartimerskill(&sd.bl);
 
-	pc_stop_walking(sd,0);
-	pc_stopattack(sd);
-	pc_delinvincibletimer(sd);
+			pc_stop_walking(sd,0);
+			pc_stopattack(sd);
+			pc_delinvincibletimer(sd);
 
 	pc_delspiritball(sd,sd.spiritball,1);
 	skill_gangsterparadise(&sd,0);
 	skill_unit_move(sd.bl,gettick(),0);
 	
 	if( sd.state.auth )
-		status_calc_pc(sd,4);
-	
+			status_calc_pc(sd,4);
+
 	if( !(sd.status.option & OPTION_HIDE) )
 		clif_clearchar_area(sd.bl,2);
 
 	if( sd.status.pet_id && sd.pd )
 	{
 		pet_lootitem_drop(*(sd.pd),&sd);
-		pet_remove_map(sd);
+			pet_remove_map(sd);
 		if(sd.pet.intimate <= 0)
 		{
 			intif_delete_petdata(sd.status.pet_id);
 			sd.status.pet_id = 0;
 			sd.pd = NULL;
 			sd.petDB = NULL;
-		}
-		else
+			}
+			else
 			intif_save_petdata(sd.status.account_id,sd.pet);
-	}
-	if(pc_isdead(sd))
-		pc_setrestartvalue(sd,2);
-	
-	pc_clean_skilltree(sd);
-	pc_makesavestatus(sd);
-	chrif_save(sd);
-	storage_storage_dirty(sd);
-	storage_storage_save(sd);
+		}
+		if(pc_isdead(sd))
+			pc_setrestartvalue(sd,2);
+
+		pc_clean_skilltree(sd);
+		pc_makesavestatus(sd);
+		chrif_save(sd);
+		storage_storage_dirty(sd);
+		storage_storage_save(sd);
 	map_delblock(sd.bl);
-	
+
 	if( sd.npc_stackbuf != NULL)
 	{
 		aFree( sd.npc_stackbuf );
 		sd.npc_stackbuf = NULL;
 	}
-	
+
 	chrif_char_offline(sd);
-	
+
 	{
 		struct charid2nick *p = (struct charid2nick *)numdb_search(charid_db,sd.status.char_id);
 		if(p) {
@@ -2145,20 +2145,20 @@ int map_calc_dir( struct block_list &src,int x,int y)
 		dir=0;	// 上
 	}else if( dx>=0 && dy>=0 ){	// 方向的に右上
 		dir=7;						// 右上
-		if( dx*3-1<dy ) dir=0;		// 上
-		if( dx>dy*3 ) dir=6;		// 右
+		if( dx*2-1<dy ) dir=0;		// 上
+		if( dx>dy*2 ) dir=6;		// 右
 	}else if( dx>=0 && dy<=0 ){	// 方向的に右下
 		dir=5;						// 右下
-		if( dx*3-1<-dy ) dir=4;		// 下
-		if( dx>-dy*3 ) dir=6;		// 右
+		if( dx*2-1<-dy ) dir=4;		// 下
+		if( dx>-dy*2 ) dir=6;		// 右
 	}else if( dx<=0 && dy<=0 ){ // 方向的に左下
 		dir=3;						// 左下
-		if( dx*3+1>dy ) dir=4;		// 下
-		if( dx<dy*3 ) dir=2;		// 左
+		if( dx*2+1>dy ) dir=4;		// 下
+		if( dx<dy*2 ) dir=2;		// 左
 	}else{						// 方向的に左上
 		dir=1;						// 左上
-		if( -dx*3-1<dy ) dir=0;		// 上
-		if( -dx>dy*3 ) dir=2;		// 左
+		if( -dx*2-1<dy ) dir=0;		// 上
+		if( -dx>dy*2 ) dir=2;		// 左
 	}
 	return dir;
 }
@@ -2489,7 +2489,6 @@ bool map_cache_open(const char *fn)
 		if(
 			map_cache.head.sizeof_header == sizeof(struct map_cache_head) &&
 			map_cache.head.sizeof_map    == sizeof(struct map_cache_info) &&
-			map_cache.head.nmaps         == MAX_MAP_CACHE &&
 			map_cache.head.filesize      == ftell(map_cache.fp) )
 		{
 			// キャッシュ読み甲ﾝ成功
@@ -2898,14 +2897,14 @@ static int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap) 
 				SwapFourBytes(((char*)(&pp)) + sizeof(long)*2);
 				SwapFourBytes(((char*)(&pp)) + sizeof(long)*3);
 				SwapFourBytes(((char*)(&pp)) + sizeof(long)*4);
-		}
+			}
 
 			if(wh!=NO_WATER && pp.type==0)
 			{	// ﾉ倏揮ｩﾆ
 				// no direct access
 				//map[m].gat[x+y*map[m].xs].type=(pp.high[0]>wh || pp.high[1]>wh || pp.high[2]>wh || pp.high[3]>wh) ? 3 : 0;
 				map_setcell(m,x,y,(pp.high[0]>wh || pp.high[1]>wh || pp.high[2]>wh || pp.high[3]>wh) ? 3 : 0);
-				}
+			}
 			else
 			{	// no direct access
 				//map[m].gat[x+y*map[m].xs].type=() & CELL_MASK;
@@ -2932,8 +2931,8 @@ static int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap) 
 	map[m].block_mob_count=(int *)aCalloc(size, sizeof(int));
 
 	if (alias)
-           strdb_insert(map_db,alias,&map[m]);
-        else
+		strdb_insert(map_db,alias,&map[m]);
+	else
 		strdb_insert(map_db,map[m].mapname,&map[m]);
 
 	return 0;
@@ -3008,17 +3007,17 @@ int map_readallmap(void)
 			map[i].alias = p;
 		}
 		else
-				map[i].alias = NULL;
+			map[i].alias = NULL;
 
 		// have windows backslash as path seperator here
 		sprintf(fn,"data\\%s",map[i].mapname);
 		if(map_readmap(i,fn, p, &map_cache, map_num) == -1)
 		{
 			map_delmap(map[i].mapname);
-				maps_removed++;
-				i--;
-			}
-		memset (map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
+			maps_removed++;
+			i--;
+		}
+		memset(map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
 		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 	}
 

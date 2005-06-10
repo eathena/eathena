@@ -315,8 +315,13 @@ int battle_attr_fix(int damage,int atk_elem,int def_elem)
 {
 	int def_type = def_elem % 10, def_lv = def_elem / 10 / 2;
 
-	if (atk_elem < 0 || atk_elem > 9 ||
-		def_type < 0 || def_type > 9 ||
+	if (atk_elem < 0 || atk_elem > 9)
+		atk_elem = rand()%9;	//武器属性ランダムで付加
+
+	//if (def_type < 0 || def_type > 9)
+		//def_type = rand()%9;	// change 装備属性? // celest
+
+	if (def_type < 0 || def_type > 9 ||
 		def_lv < 1 || def_lv > 4) {	// 属 性値がおかしいのでとりあえずそのまま返す
 		if (battle_config.error_log)
 			ShowMessage("battle_attr_fix: unknown attr type: atk=%d def_type=%d def_lv=%d\n",atk_elem,def_type,def_lv);
@@ -4276,6 +4281,14 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 					ShowMessage("battle_calc_magic_attack(): napam enemy count=0 !\n");
 			}
 			break;
+
+		case MG_SOULSTRIKE:			/* ソウルストライク （対アンデッドダメージ補正）*/
+			if (battle_check_undead(t_race,t_ele)) {
+				matk1 += matk1*skill_lv/20;//MATKに補正じゃ駄目ですかね？
+				matk2 += matk2*skill_lv/20;
+			}
+			break;
+
 		case MG_FIREBALL:	// ファイヤーボール
 			{
 				const int drate[]={100,90,70};
@@ -4285,6 +4298,7 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 					MATK_FIX( (95+skill_lv*5)*drate[flag] ,10000 );
 			}
 			break;
+
 		case MG_FIREWALL:	// ファイヤーウォール
 /*
 			if( (t_ele!=3 && !battle_check_undead(t_race,t_ele)) || target->type==BL_PC ) //PCは火属性でも飛ぶ？そもそもダメージ受ける？
@@ -4451,7 +4465,12 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 		wd=battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
 		damage = (damage + wd.damage) * (100 + 40*skill_lv)/100;
 		if(battle_config.gx_dupele) damage=battle_attr_fix(damage, ele, status_get_element(target) );	//属性2回かかる
-		if(bl==target) damage=damage/2;	//反動は半分
+		if(bl==target){
+			if(bl->type == BL_MOB)
+				damage = 0;		//MOBが使う場合は反動無し
+			else
+				damage=damage/2;	//反動は半分
+		}
 	}
 
 	div_=skill_get_num( skill_num,skill_lv );
@@ -4692,7 +4711,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 	struct status_change *sc_data;
 	struct status_change *tsc_data;
 	int race, ele, damage, rdamage = 0;
-	struct Damage wd;
+	struct Damage wd = {0,0,0,0,0,0,0,0,0};
 	short *opt1;
 
 	nullpo_retr(0, src);
@@ -4804,7 +4823,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 			}
 			sd->attackabletime = sd->canmove_tick = tick + delay;
 			clif_combo_delay(*src, delay);
-			clif_skill_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, 3,
+			clif_skill_damage(*src, *target, tick, wd.amotion, wd.dmotion, wd.damage, 3,
 				MO_TRIPLEATTACK, pc_checkskill(*sd,MO_TRIPLEATTACK), -1);
 		}
 		else
@@ -4859,19 +4878,17 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 			{
 				if ((i = skill_get_inf(skillid) == 2) || i == 32)
 					f = skill_castend_pos2(src, target->x, target->y, skillid, skilllv, tick, flag);
-				else
-				{
-					switch(skill_get_nk(skillid))
-					{
-					case 0:
-					case 2:
-							f = skill_castend_damage_id(src, target, skillid, skilllv, tick, flag);
-							break;
-						case 1:/* 支援系 */
+				else {
+					switch(skill_get_nk(skillid)) {
+						case NK_NO_DAMAGE:/* 支援系 */
 							if((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && !tsd)) && battle_check_undead(race,ele))
 								f = skill_castend_damage_id(src, target, skillid, skilllv, tick, flag);
 							else
 								f = skill_castend_nodamage_id(src, target, skillid, skilllv, tick, flag);
+							break;
+						case NK_SPLASH_DAMAGE:
+						default:
+							f = skill_castend_damage_id(src, target, skillid, skilllv, tick, flag);
 							break;
 					}
 				}
@@ -4902,20 +4919,19 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 					
 					if ((j = skill_get_inf(skillid) == 2) || j == 32)
 						skill_castend_pos2(src, tbl->x, tbl->y, skillid, skilllv, tick, flag);
-					else
-					{
-						switch( skill_get_nk(skillid) )
-						{
-						case 0:
-						case 2:
-								skill_castend_damage_id(src, tbl, skillid, skilllv, tick, flag);
-								break;
-							case 1:/* 支援系 */
+					else {
+						switch (skill_get_nk(skillid)) {
+							case NK_NO_DAMAGE:/* 支援系 */
 								if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) && battle_check_undead(race,ele))
 									skill_castend_damage_id(src, tbl, skillid, skilllv, tick, flag);
 								else
 									skill_castend_nodamage_id(src, tbl, skillid, skilllv, tick, flag);
 								break;
+							case NK_SPLASH_DAMAGE:
+							default:
+								skill_castend_damage_id(src, tbl, skillid, skilllv, tick, flag);
+								break;
+
 						}
 					}
 				} else break;
@@ -4979,21 +4995,19 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 						tbl = src;
 					if ((j = skill_get_inf(skillid) == 2) || j == 32)
 						skill_castend_pos2(target, tbl->x, tbl->y, skillid, skilllv, tick, flag);
-					else
-					{
-						switch( skill_get_nk(skillid) )
-						{
-						case 0:
-						case 2:
-								skill_castend_damage_id(target, tbl, skillid, skilllv, tick, flag);
-								break;
-							case 1:/* 支援系 */
+					else {
+						switch (skill_get_nk(skillid)) {
+							case NK_NO_DAMAGE:/* 支援系 */
 								if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
 									battle_check_undead(status_get_race(tbl), status_get_elem_type(tbl)))
 									skill_castend_damage_id(target, tbl, skillid, skilllv, tick, flag);
 								else
 									skill_castend_nodamage_id(target, tbl, skillid, skilllv, tick, flag);
-									break;
+								break;
+							case NK_SPLASH_DAMAGE:
+							default:
+								skill_castend_damage_id(target, tbl, skillid, skilllv, tick, flag);
+								break;
 						}
 					}
 				} else break;
@@ -5395,6 +5409,7 @@ static struct {
 	{ "pet_status_support",                &battle_config.pet_status_support		},
 	{ "pet_attack_support",                &battle_config.pet_attack_support		},
 	{ "pet_damage_support",                &battle_config.pet_damage_support		},
+	{ "pet_support_min_friendly",          &battle_config.pet_support_min_friendly	},
 	{ "pet_support_rate",                  &battle_config.pet_support_rate			},
 	{ "pet_attack_exp_to_master",          &battle_config.pet_attack_exp_to_master	},
 	{ "pet_attack_exp_rate",               &battle_config.pet_attack_exp_rate	 },
@@ -5673,6 +5688,7 @@ void battle_set_defaults() {
 	battle_config.pet_status_support=0;
 	battle_config.pet_attack_support=0;
 	battle_config.pet_damage_support=0;
+	battle_config.pet_support_min_friendly=900;
 	battle_config.pet_support_rate=100;
 	battle_config.pet_attack_exp_to_master=0;
 	battle_config.pet_attack_exp_rate=100;
@@ -5921,6 +5937,9 @@ void battle_validate_conf() {
 /*	if(battle_config.guild_exp_limit < 0)
 		battle_config.guild_exp_limit = 0;*/
 
+	if(battle_config.pet_support_min_friendly > 950) //Capped to 950/1000 [Skotlex]
+		battle_config.pet_support_min_friendly = 950;
+	
 	if(battle_config.pet_max_atk1 > battle_config.pet_max_atk2)	//Skotlex
 		battle_config.pet_max_atk1 = battle_config.pet_max_atk2;
 	

@@ -5,12 +5,14 @@
 #include <stdarg.h>
 #include "mmo.h"
 
+
+
 #define MAX_PC_CLASS (1+6+6+1+6+1+1+1+1+4023)
 #define PC_CLASS_BASE 0
 #define PC_CLASS_BASE2 (PC_CLASS_BASE + 4001)
 #define PC_CLASS_BASE3 (PC_CLASS_BASE2 + 22)
 #define MAX_NPC_PER_MAP 512
-#define BLOCK_SIZE 8 // Never zero
+#define BLOCK_SIZE 8
 #define AREA_SIZE battle_config.area_size
 #define LOCAL_REG_NUM 16
 #define LIFETIME_FLOORITEM 60
@@ -35,6 +37,36 @@
 #define MAX_IGNORE_LIST 80
 #define MAX_VENDING 12
 #define MAX_TRADING 10
+
+
+
+
+#define OPTION_MASK 0xd7b8
+#define CART_MASK 0x788
+#define STATE_BLIND 0x10
+#define MAX_SKILL_TREE 51
+
+
+
+#define EFFECT_FOG		515
+#define EFFECT_SNOW		162
+#define EFFECT_LEAVES	333
+#define EFFECT_CLOUDS	233
+#define EFFECT_SAKURA	163
+#define EFFECT_RAIN		161
+#define EFFECT_FIRE1	297
+#define EFFECT_FIRE2	299
+#define EFFECT_FIRE3	301
+
+#define EFFECT_BIG		423
+#define EFFECT_TINY		421
+
+
+
+
+#define FLAG_DISGUISE	0x80000000 // set the msb of the acount_id to signal a disguise
+
+
 
 
 #define DEFAULT_AUTOSAVE_INTERVAL 60*1000
@@ -226,9 +258,8 @@ struct map_session_data
 		unsigned detach :1;							// 42
 		unsigned potion_flag : 2;					// 43,44
 		unsigned viewsize : 2;						// 45,46
-		unsigned _unused : 1;						// 1 bit left
-		// Abracadabra bugfix by Aru
-		unsigned abra_flag : 1;
+		unsigned abra_flag : 1;						// 47  - byte 6
+													// 0 bits left
 	} state;
 
 	struct mmo_charstatus status;
@@ -804,6 +835,7 @@ struct pet_data {
 	unsigned int next_walktime;
 	unsigned int last_thinktime;
 
+	short rate_fix;	//Support rate as modified by intimacy (1000 = 100%) [Skotlex]
 	struct pet_status { //Pet Status data
 		unsigned short level;
 		unsigned short atk1;
@@ -1124,7 +1156,7 @@ extern char wisp_server_name[];
 void map_setusers(int fd);
 int map_getusers(void);
 // blockçÌèúä÷òA
-int map_freeblock( void *bl );
+int map_freeblock(void *bl);
 int map_freeblock_lock(void);
 int map_freeblock_unlock(void);
 // blockä÷òA

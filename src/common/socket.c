@@ -6,8 +6,6 @@
 #include "utils.h"
 #include "showmsg.h"
 
-
-
 //#define SOCKET_DEBUG_PRINT
 
 #ifdef __cplusplus
@@ -43,7 +41,7 @@
 #ifndef WIN32
 // defines for direct access of fd_set data on unix
 //
-// it seams on linux you need to compile with __BSD_VISIBLE 
+// it seams on linux you need to compile with __BSD_VISIBLE, _GNU_SOURCE or __USE_XOPEN
 // defined to get the internal structures visible.
 // anyway, since I can only test on solaris, 
 // i cannot tell what other machines would need
@@ -66,18 +64,205 @@
 #define	howmany(x, y)	(((x) + ((y) - 1)) / (y))
 #endif  
 #ifndef NFDBITS
-#define	NFDBITS	(sizeof (unsigned long) * NBBY)	/* bits per mask */
+#define	NFDBITS	(sizeof (unsigned long) * NBBY)	// bits per mask
 #endif
-#ifndef fds_bits
-  #if defined (__fds_bits)
-    #define	fds_bits	__fds_bits
-  #elif defined (_fds_bits)
-    #define	fds_bits	_fds_bits
-  #endif
+#ifndef __FDS_BITS
+# define __FDS_BITS(set) ((set)->fds_bits)
 #endif
+
+///////////////////////////////////////////////////////////////////////////////
+// dynamic size, unix system independend fd_set replacement
+class Cfd_set
+{
+	///////////////////////////////////////////////////////////////////////////
+	// class data
+	unsigned long*	cArray;
+	unsigned long	cSZ;
+	///////////////////////////////////////////////////////////////////////////
+	// resize the array; only grow, no shrink
+	void checksize(size_t pos)
+	{
+		if( cSZ >= pos )
+		{	// need to reallocate
+			size_t sz = cSZ;
+			while(sz >= pos) sz*2;
+
+			unsigned long* temp= new unsigned long[sz];
+
+			// copy over the old array
+			if(cArray)
+			{
+				memcpy(temp, cArray, cSZ*sizeof(unsigned long));
+				delete[] cArray;
+			}
+			// and clear the rest
+			memset(temp+cSZ,0,(sz-cSZ)*sizeof(unsigned long));
+
+			// take it over
+			cArray = temp;
+			cSZ = sz;
+		}
+	}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// Construct/Destruct
+
+	Cfd_set() : cArray(new unsigned long[FD_SETSIZE/NBBY/sizeof(unsigned long)]),cSZ(FD_SETSIZE/NBBY/sizeof(unsigned long))	{}
+	~Cfd_set()	{ if(cArray) delete [] cArray; }
+	///////////////////////////////////////////////////////////////////////////
+	// clear everything
+	void clear()
+	{
+		if(cArray) memset (cArray,0, cSZ*sizeof(unsigned long));
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// set a bit
+	void set_bit(int fd)
+	{
+		if(fd>0)
+		{
+			size_t pos = fd/32;
+			size_t bit = fd%32;
+
+			checksize(pos);
+
+			cArray[pos] |= (1<<bit);
+		}
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// Clear a bit
+	void clear_bit(int fd)
+	{
+		if(fd>0)
+		{
+			size_t pos = fd/32;
+			size_t bit = fd%32;
+
+			checksize(pos);
+
+			cArray[pos] &= ~(1<<bit);
+		}
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// Clear a bit
+	bool isSet(int fd)
+	{
+		if(fd>0)
+		{
+			size_t pos = fd/32;
+			size_t bit = fd%32;
+
+			checksize(pos);
+
+			return 0!=(cArray[pos] & (1<<bit));
+		}
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// Call a function with each set bit
+	// version 1 (using log2)
+	size_t foreach1( void(*func)(size_t), size_t max)
+	{
+		size_t c = 0;
+		if(func)
+		{
+			size_t fd;
+			SOCKET sock;
+			unsigned long	val;
+			unsigned long	bits;
+			unsigned long	nfd=0;
+			max = howmany(max, NFDBITS);
+			
+			while( nfd <  max )
+			{	// while something is set in the ulong at position nfd
+				bits = cArray[nfd];
+				while( bits )
+				{	// method 1
+					// calc the highest bit with log2 and clear it from the field
+					// this method is especially fast 
+					// when only a few bits are set in the field
+					// which usually happens on read events
+					val = log2( bits );
+					bits ^= (1<<val);	
+					// build the socket number
+					sock = nfd*NFDBITS + val;
+
+					///////////////////////////////////////////////////
+					// call the user function
+					func(fd);
+					c++;
+				}
+				// go to next field position
+				nfd++;
+			}
+		}
+		return c;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// Call a function with each set bit
+	// version 2 (using shifts)
+	size_t foreach2( void(*func)(size_t), size_t max )
+	{
+		size_t c=0;
+		if(func)
+		{
+			size_t fd;
+			SOCKET sock;
+			unsigned long	val;
+			unsigned long	bits;
+			unsigned long	nfd=0;
+			max = howmany(fd_max, NFDBITS);
+
+			while( nfd <  max )
+			{	// while something is set in the ulong at position nfd
+				bits = cArray[nfd];
+				val = 0;
+				while( bits )
+				{	// method 2
+					// calc the next set bit with shift/add
+					// therefore copy the value from fds_bits 
+					// array to an unsigned type (fd_bits is an field of long)
+					// otherwise it would not shift the MSB
+					// the shift add method is faster if many bits are set in the field
+					// which is usually valid for write operations on large fields
+					while( !(bits & 1) )
+					{
+						bits >>= 1;
+						val ++;
+					}
+					//calculate the socket number
+					sock = nfd*NFDBITS + val;
+					// shift one more for the next loop entrance
+					bits >>= 1;
+					val ++;
+
+					///////////////////////////////////////////////////
+					// call the user function
+					func(fd);
+					c++;
+				}
+				// go to next field position
+				nfd++;
+			}
+		}
+		return c; // number of processed sockets
+	}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// pretending to be an fd_set structure
+	operator struct fd_set*()	{ return (struct fd_set*)cArray; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// size
+	int Size()	{ return cSZ * NFDBITS; }
+};
 
 #endif
 ///////////////////////////////////////////////////////////////////////////////
+
+
 
 
 
@@ -142,7 +327,7 @@ SOCKET	socket_pos[FD_SETSIZE];
 // at the expence of some extra code
 // runtime behaviour much faster if often called for outside data
 ///////////////////////////////////////////////////////////////////////////////
-bool SessionBinarySearch(const SOCKET elem, size_t *retpos)
+bool SessionBinarySearch(const SOCKET elem, size_t &retpos)
 {	// do a binary search with smallest first
 	// make some initial stuff
 	bool ret = false;
@@ -194,17 +379,15 @@ bool SessionBinarySearch(const SOCKET elem, size_t *retpos)
 		// return the next larger element to the given 
 		// or the found element so we can insert a new element there
 	}
-	// just make sure we call this with a pointer,
-	// on c++ it would be a reference an you could live without NULL check...
-	if(retpos) *retpos = pos;
+	retpos = pos;
 	return ret;
 }
-bool SessionFindSocket(const SOCKET elem, size_t *retpos)
+bool SessionFindSocket(const SOCKET elem, size_t &retpos)
 {
 	size_t pos;
-	if( SessionBinarySearch(elem, &pos) )
+	if( SessionBinarySearch(elem, pos) )
 	{
-		if(retpos) *retpos = session_pos[pos];
+		retpos = session_pos[pos];
 		return true;
 	}
 	return false;
@@ -214,7 +397,7 @@ int SessionInsertSocket(const SOCKET elem)
 {
 	size_t pos,fd;
 	if(fd_max<FD_SETSIZE) // max number of allowed sockets
-	if( !SessionBinarySearch(elem, &pos) )
+	if( !SessionBinarySearch(elem, pos) )
 	{
 		if((size_t)fd_max!=pos)
 		{
@@ -244,7 +427,7 @@ int SessionInsertSocket(const SOCKET elem)
 bool SessionRemoveSocket(const SOCKET elem)
 {
 	size_t pos;
-	if( SessionBinarySearch(elem, &pos) )
+	if( SessionBinarySearch(elem, pos) )
 	{
 		// be sure to clear session[]
 		// we do not care for that here
@@ -276,11 +459,11 @@ SOCKET SessionGetSocket(const size_t fd)
 ///////////////////////////////////////////////////////////////////////////////
 #else//! WIN32
 ///////////////////////////////////////////////////////////////////////////////
-bool SessionFindSocket(const SOCKET elem, size_t *retpos)
+bool SessionFindSocket(const SOCKET elem, size_t &retpos)
 {	// socket and position are identical
 	if(elem < FD_SETSIZE)
 	{
-		if(retpos) *retpos = (size_t)elem;
+		retpos = (size_t)elem;
 		return true;
 	}
 	return false;
@@ -1378,7 +1561,7 @@ size_t process_fdset(fd_set* fds, void(*func)(size_t) )
 	if(func)
 	for(i=0;i<fds->fd_count;i++)
 	{
-		if( SessionFindSocket( fds->fd_array[i], &fd ) )
+		if( SessionFindSocket( fds->fd_array[i], fd ) )
 		{
 			func(fd);
 		}
@@ -1414,7 +1597,7 @@ size_t process_fdset(fd_set* fds, void(*func)(size_t) )
 	if(func)
 	while( nfd <  max )
 	{	// while something is set in the ulong at position nfd
-		bits = fds->fds_bits[nfd];
+		bits = __FDS_BITS(fds)[nfd];
 		while( bits )
 		{	// method 1
 			// calc the highest bit with log2 and clear it from the field
@@ -1451,7 +1634,7 @@ size_t process_fdset2(fd_set* fds, void(*func)(size_t) )
 	if(func)
 	while( nfd <  max )
 	{	// while something is set in the ulong at position nfd
-		bits = fds->fds_bits[nfd];
+		bits = __FDS_BITS(fds)[nfd];
 		val = 0;
 		while( bits )
 		{	// method 2
@@ -1498,7 +1681,7 @@ int do_sendrecv(int next)
 	size_t cnt=0;
 
 	// update global tick_timer
-	last_tick = time(0);
+	last_tick = time(NULL);
 
 	FD_ZERO(&wfd);
 	FD_ZERO(&rfd);

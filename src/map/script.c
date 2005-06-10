@@ -564,10 +564,10 @@ struct {
 	{buildin_adopt,"adopt","sss"}, // allows 2 parents to adopt a child
 	{buildin_night,"night",""}, // sets the server to night time
 	{buildin_day,"day",""}, // sets the server to day time
-	{buildin_defpattern, "defpattern", "iss"}, // Define pattern to listen for [MouseJstr]
-	{buildin_activatepset, "activatepset", "i"}, // Activate a pattern set [MouseJstr]
-	{buildin_deactivatepset, "deactivatepset", "i"}, // Deactive a pattern set [MouseJstr]
-	{buildin_deletepset, "deletepset", "i"}, // Delete a pattern set [MouseJstr]
+        {buildin_defpattern, "defpattern", "iss"}, // Define pattern to listen for [MouseJstr]
+        {buildin_activatepset, "activatepset", "i"}, // Activate a pattern set [MouseJstr]
+        {buildin_deactivatepset, "deactivatepset", "i"}, // Deactive a pattern set [MouseJstr]
+        {buildin_deletepset, "deletepset", "i"}, // Delete a pattern set [MouseJstr]
 	{buildin_dispbottom,"dispbottom","s"}, //added from jA [Lupus]
 	{buildin_getusersname,"getusersname","*"},
 	{buildin_recovery,"recovery",""},
@@ -683,7 +683,7 @@ static int add_str(const char *p)
 	str_data[str_num].func=NULL;
 	str_data[str_num].backpatch=-1;
 	str_data[str_num].label=-1;
-	str_pos+=strlen( (char *) p)+1;
+	str_pos+=(int)strlen( (char *) p)+1;
 	return str_num++;
 }
 
@@ -1390,7 +1390,7 @@ int get_val(struct script_state &st, struct script_data &data)
 		if(postfix=='$'){
 
 			data.type=C_CONSTSTR;
-			if( prefix=='@' || prefix=='l' ){
+			if( prefix=='@'/* || prefix=='l' */){
 				if(sd)
 				data.u.str = pc_readregstr(*sd,data.u.num);
 			}else if(prefix=='$'){
@@ -1410,7 +1410,7 @@ int get_val(struct script_state &st, struct script_data &data)
 			}else if(str_data[data.u.num&0x00ffffff].type==C_PARAM){
 				if(sd)
 				data.u.num = pc_readparam(*sd,str_data[data.u.num&0x00ffffff].val);
-			}else if(prefix=='@' || prefix=='l'){
+			}else if(prefix=='@'/* || prefix=='l'*/){	//How long has it been since using l for locals been obsoleted? [Skotlex]
 				if(sd)
 				data.u.num = pc_readreg(*sd,data.u.num);
 			}else if(prefix=='$'){
@@ -2317,12 +2317,12 @@ int buildin_cutin(struct script_state &st)
  */
 int buildin_cutincard(struct script_state &st)
 {
-	int itemid;
-
-	itemid=conv_num(st, (st.stack.stack_data[st.start+2]));
-
+	int itemid =conv_num(st, (st.stack.stack_data[st.start+2]));
 	map_session_data *sd = script_rid2sd(st);
-	if(sd) clif_cutin(*sd,itemdb_search(itemid)->cardillustname,4);
+	if(sd)
+	{	struct item_data* idata = itemdb_exists(itemid);
+		if(idata) clif_cutin(*sd,idata->cardillustname,4);
+	}
 
 	return 0;
 }
@@ -5999,17 +5999,18 @@ int buildin_guardianinfo(struct script_state &st)
  */
 int buildin_getitemname(struct script_state &st)
 {
-	int item_id;
-	struct item_data *i_data;
-	char *item_name;
-
-	item_id=conv_num(st, (st.stack.stack_data[st.start+2]));
-
-	i_data = NULL;
-	i_data = itemdb_search(item_id);
-	item_name=(char *)aMalloc(24*sizeof(char));
-	memcpy(item_name,i_data->jname,24);//EOS included
-	push_str(st.stack,C_STR, item_name);
+	int item_id=conv_num(st, (st.stack.stack_data[st.start+2]));
+	struct item_data *i_data = itemdb_exists(item_id);
+	
+	if(i_data)
+	{
+		char *item_name;
+		item_name=(char *)aMalloc(24*sizeof(char));
+		memcpy(item_name,i_data->jname,24);//EOS included
+		push_str(st.stack,C_STR, item_name);
+	}
+	else
+		push_str(st.stack,C_CONSTSTR, "unknown");
 	return 0;
 }
 
@@ -6157,11 +6158,12 @@ int buildin_classchange(struct script_state &st)
 	int class_,type;
 	struct block_list *bl=map_id2bl(st.oid);
 
-	if(bl==NULL) return 0;
-
-	class_=conv_num(st, (st.stack.stack_data[st.start+2]));
-	type=conv_num(st, (st.stack.stack_data[st.start+3]));
-	clif_class_change(bl,class_,type);
+	if(bl)
+	{
+		class_=conv_num(st, (st.stack.stack_data[st.start+2]));
+		type=conv_num(st, (st.stack.stack_data[st.start+3]));
+		clif_class_change(*bl,class_,type);
+	}
 	return 0;
 }
 
@@ -6433,7 +6435,7 @@ int buildin_npcskilleffect(struct script_state &st)
 	int x=conv_num(st, (st.stack.stack_data[st.start+4]));
 	int y=conv_num(st, (st.stack.stack_data[st.start+5]));
 
-	clif_skill_poseffect(&nd->bl,skillid,skilllv,x,y,gettick());
+	clif_skill_poseffect(nd->bl,skillid,skilllv,x,y,gettick());
 
 	return 0;
 }
@@ -6563,9 +6565,13 @@ int buildin_getpetinfo(struct script_state &st)
 				break;
 			case 2:
 				if(sd->pet.name)
-					push_str(st.stack,C_STR, sd->pet.name);
+				{	
+					char *buf=(char *)aMalloc(24*sizeof(char));
+					memcpy(buf,sd->pet.name, 24);//EOS included
+					push_str(st.stack,C_STR, buf);
+				}
 				else
-					push_val(st.stack,C_INT,0);
+					push_str(st.stack,C_CONSTSTR, "");
 				break;
 			case 3:
 				//if(sd->pet.intimate)
@@ -7131,7 +7137,7 @@ int buildin_summon(struct script_state &st)
 			md->deletetimer=add_timer(tick+60000,mob_timer_delete,id,0);
 			clif_misceffect2(md->bl,344);
 		}
-		clif_skill_poseffect(&sd->bl,AM_CALLHOMUN,1,sd->bl.x,sd->bl.y,tick);
+		clif_skill_poseffect(sd->bl,AM_CALLHOMUN,1,sd->bl.x,sd->bl.y,tick);
 	}
 
 	return 0;
@@ -7342,13 +7348,13 @@ int buildin_isequipped(struct script_state &st)
 						// We can support up to 8 slots each, just in case
 							else if (sd->inventory_data[index]->type == 4)
 							{
-								if (sd->inventory_data[index]->equip & 2)	// right hand
+							if (sd->inventory_data[index]->equip & 2)	// right hand
 									hash = 0x00010000 * (1<<k);	// pow(2,k) x slot number
-								else if (sd->inventory_data[index]->equip & 32)	// left hand
+							else if (sd->inventory_data[index]->equip & 32)	// left hand
 									hash = 0x01000000 * (1<<k);	// pow(2,k) x slot number
 							}
 							else
-								continue;	// slotted item not armour nor weapon? we're not going to support it
+							continue;	// slotted item not armour nor weapon? we're not going to support it
 
 						if (sd->setitem_hash & hash)	// check if card is already used by another set
 							continue;	// this item is used, move on to next card
@@ -7557,7 +7563,7 @@ int buildin_pcstrcharinfo(struct script_state &st)
 int buildin_getstrlen(struct script_state &st)
 {
 	const char *str=conv_str(st, (st.stack.stack_data[st.start+2]));
-	int len = (str) ? strlen(str) : 0;
+	int len = (str) ? (int)strlen(str) : 0;
 	push_val(st.stack,C_INT,len);
 	return 0;
 }
@@ -7570,7 +7576,7 @@ int buildin_charisalpha(struct script_state &st)
 	const char *str=conv_str(st, (st.stack.stack_data[st.start+2]));
 	size_t pos =conv_num(st, (st.stack.stack_data[st.start+3]));
 
-	int val = (str && pos>0 && pos<strlen(str)) ? isalpha(str[pos]) : 0;
+	int val = ( str && pos>0 && pos<strlen(str) ) ? isalpha( str[pos] ) : 0;
 	push_val(st.stack,C_INT, val);
 	return 0;
 }
@@ -8059,7 +8065,7 @@ printf("(%d) - %s\n", last, script+st.pos-4);
 	}
 
 	return (st.state!=END);
-}
+		}
 
 /*==========================================
  * スクリプトの実行
@@ -8258,20 +8264,22 @@ static int script_autosave_mapreg(int tid,unsigned long tick,int id,int data)
  */
 static int set_posword(const char *p)
 {
-	const char* str[15];
-	char* np;
-	int i=0;
-	for(i=0;i<MAX_EQUIP;i++) {
-		if((np=strchr(p,','))!=NULL) {
-			str[i]=p;
-			*np=0;
+	const char* np;
+	int i;
+	if(p)
+	for(i=0;i<MAX_EQUIP;i++)
+	{
+		if((np=strchr(p,','))!=NULL)
+		{	// copy up to the comma
+			memcpy(pos[i],p,np-p);
+			pos[i][np-p]=0; // set the eos explicitly
 			p=np+1;
-		} else {
-			str[i]=p;
+		}
+		else
+		{	//copy the rest including the eos
+			memcpy(pos[i],p,1+strlen(p));
 			p+=strlen(p);
 		}
-		if(str[i])
-			strcpy(pos[i],str[i]);
 	}
 	return 0;
 }

@@ -372,6 +372,10 @@ int status_calc_pet(struct map_session_data &sd, bool first)
 				clif_send_petstatus(sd);
 		}
 	}
+	//Support rate modifier (1000 = 100%)
+	pd->rate_fix = 1000*(sd.pet.intimate - battle_config.pet_support_min_friendly)/(1000- battle_config.pet_support_min_friendly) +500;
+	if(battle_config.pet_support_rate != 100)
+		pd->rate_fix = pd->rate_fix*battle_config.pet_support_rate/100;
 	return 0;
 }	
 
@@ -610,12 +614,14 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	memset(sd.sp_gain_race,0,sizeof(sd.sp_gain_race));
 	sd.setitem_hash = 0;
 
+
 	if (sd.status.guild_id > 0) {
 		struct guild *g = guild_search(sd.status.guild_id);
 		if (g && strcmp(sd.status.name,g->master)==0)
 			sd.gmaster_flag = g;
 	}
-
+	
+	
 	for(i=0;i<10;i++) {
 		current_equip_item_index = index = sd.equip_index[i]; //We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
 		if(index < 0)
@@ -2684,8 +2690,10 @@ int status_get_speed(struct block_list *bl)
 			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				speed-=((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
 		}
-		else if(bl->type==BL_PET && (struct pet_data *)bl)
+		else if(bl->type==BL_PET && (struct pet_data *)bl) {
 			speed = ((struct pet_data *)bl)->msd->petDB->speed;
+		} else if(bl->type==BL_NPC && (struct npc_data *)bl)	//Added BL_NPC (Skotlex)
+			speed = ((struct npc_data *)bl)->speed;
 
 		if(sc_data) {
 			//速度増加時は25%減算
@@ -2870,7 +2878,7 @@ int status_get_dmotion(struct block_list *bl)
 	if(bl->type==BL_MOB && (struct mob_data *)bl){
 		ret=mob_db[((struct mob_data *)bl)->class_].dmotion;
 		if(battle_config.monster_damage_delay_rate != 100)
-			ret = ret*battle_config.monster_damage_delay_rate/400;
+			ret = ret*battle_config.monster_damage_delay_rate/100;
 	}
 	else if(bl->type==BL_PC && (struct map_session_data *)bl){
 		ret=((struct map_session_data *)bl)->dmotion;
@@ -3647,7 +3655,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				calc_flag = 1;
 				tick = 10000;
 				if(!val2)
-					val2 = time(&timer);
+					val2 = (int)time(&timer);
 			}
 			break;
 		case SC_NOCHAT:	//チャット禁止?態
@@ -3659,7 +3667,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 				tick = 60000;
 				if(!val2)
-					val2 = time(&timer);
+					val2 = (int)time(&timer);
 				updateflag = SP_MANNER;
 				save_flag = 1; // celest
 			}
@@ -4061,7 +4069,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	}
 
 	if(opt_flag)	/* optionの?更 */
-		clif_changeoption(bl);
+		clif_changeoption(*bl);
 
 	sc_data[type].val1 = val1;
 	sc_data[type].val2 = val2;
@@ -4111,12 +4119,8 @@ int status_change_clear(struct block_list *bl,int type)
 	*opt3 = 0;
 	*option &= OPTION_MASK;
 
-	if (night_flag == 1 && type == BL_PC && !map[bl->m].flag.indoors && // by [Yor]
-		!map[bl->m].flag.indoors && battle_config.night_darkness_level <= 0) // [celest]
-		*opt2 |= STATE_BLIND;
-
 	if(!type || type&2)
-		clif_changeoption(bl);
+		clif_changeoption(*bl);
 
 	return 0;
 }
@@ -4449,14 +4453,8 @@ printf("SC_SELFDESTRUCTION negative skill trap 1\n");
 			break;
 		}
 
-		if (night_flag == 1 && (*opt2 & STATE_BLIND) == 0 && bl->type == BL_PC && // by [Yor]
-			!map[bl->m].flag.indoors && battle_config.night_darkness_level <= 0) { // [celest]
-			*opt2 |= STATE_BLIND;
-			opt_flag = 1;
-		}
-
 		if(opt_flag)	/* optionの?更を?える */
-			clif_changeoption(bl);
+			clif_changeoption(*bl);
 
 		if (bl->type == BL_PC && calc_flag)
 			status_calc_pc(*((struct map_session_data *)bl),0);	/* ステ?タス再計算 */
@@ -4600,7 +4598,7 @@ int status_change_timer(int tid,unsigned long tick,int id,int data)
 			battle_stopwalking(bl,1);
 			if(opt1) {
 				*opt1 = 1;
-				clif_changeoption(bl);
+				clif_changeoption(*bl);
 			}
 			sc_data[type].timer=add_timer(1000+tick,status_change_timer, bl->id, data );
 			return 0;

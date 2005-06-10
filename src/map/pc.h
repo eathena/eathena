@@ -5,11 +5,6 @@
 
 #include "map.h"
 
-#define OPTION_MASK 0xd7b8
-#define CART_MASK 0x788
-#define STATE_BLIND 0x10
-
-#define MAX_SKILL_TREE 51
 
 extern inline void pc_setdead(struct map_session_data &sd)	{ sd.state.dead_sit = 1; }
 extern inline bool pc_isdead(struct map_session_data &sd)	{ return sd.state.dead_sit == 1; }
@@ -18,6 +13,8 @@ extern inline bool pc_issit(struct map_session_data &sd)	{ return sd.state.dead_
 extern inline void pc_setdir(struct map_session_data &sd, unsigned char b, unsigned char h) { sd.dir = b; sd.head_dir = h; }
 extern inline void pc_setchatid(struct map_session_data &sd, unsigned int chatid)	{ sd.chatID = chatid; }
 extern inline bool pc_ishiding(struct map_session_data &sd) { return 0 != (sd.status.option&0x4006); }
+extern inline bool pc_iscloaking(struct map_session_data &sd) { return 0==(sd.status.option&0x4000) && 0!=(sd.status.option&0x0004); }
+extern inline bool pc_ischasewalk(struct map_session_data &sd) { return 0 != (sd.status.option&0x4000); }
 extern inline bool pc_iscarton(struct map_session_data &sd) { return 0 != (sd.status.option&CART_MASK); }
 extern inline bool pc_isfalcon(struct map_session_data &sd) { return 0 != (sd.status.option&0x0010); }
 extern inline bool pc_isriding(struct map_session_data &sd) { return 0 != (sd.status.option&0x0020); }
@@ -108,6 +105,7 @@ int pc_attack(struct map_session_data &sd,unsigned long target_id,int type);
 int pc_stopattack(struct map_session_data &sd);
 
 int pc_follow(struct map_session_data &sd, unsigned long target_id); // [MouseJstr]
+int pc_stop_following(struct map_session_data &sd);
 
 int pc_checkbaselevelup(struct map_session_data &sd);
 int pc_checkjoblevelup(struct map_session_data &sd);

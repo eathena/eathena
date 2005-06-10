@@ -116,11 +116,11 @@ static int guild_read_castledb(void)
 		{
 			gc=(struct guild_castle *)aCalloc(1,sizeof(struct guild_castle));
 			// would be not necessary, calloc has cleared the memory already
-		gc->guild_id=0; // <Agit> Clear Data for Initialize
-		gc->economy=0; gc->defense=0; gc->triggerE=0; gc->triggerD=0; gc->nextTime=0; gc->payTime=0;
-		gc->createTime=0; gc->visibleC=0; gc->visibleG0=0; gc->visibleG1=0; gc->visibleG2=0;
-		gc->visibleG3=0; gc->visibleG4=0; gc->visibleG5=0; gc->visibleG6=0; gc->visibleG7=0;
-		gc->Ghp0=0; gc->Ghp1=0; gc->Ghp2=0; gc->Ghp3=0; gc->Ghp4=0; gc->Ghp5=0; gc->Ghp6=0; gc->Ghp7=0; // guardian HP [Valaris]
+			gc->guild_id=0; // <Agit> Clear Data for Initialize
+			gc->economy=0; gc->defense=0; gc->triggerE=0; gc->triggerD=0; gc->nextTime=0; gc->payTime=0;
+			gc->createTime=0; gc->visibleC=0; gc->visibleG0=0; gc->visibleG1=0; gc->visibleG2=0;
+			gc->visibleG3=0; gc->visibleG4=0; gc->visibleG5=0; gc->visibleG6=0; gc->visibleG7=0;
+			gc->Ghp0=0; gc->Ghp1=0; gc->Ghp2=0; gc->Ghp3=0; gc->Ghp4=0; gc->Ghp5=0; gc->Ghp6=0; gc->Ghp7=0; // guardian HP [Valaris]
 
 			if(str[0]) gc->castle_id=atoi(str[0]);
 			if(str[1]) memcpy(gc->map_name,str[1],24); 
@@ -771,7 +771,7 @@ int guild_send_memberinfoshort(struct map_session_data &sd,int online)
 // ギルドメンバのオンライン状態/Lv更新通知
 int guild_recv_memberinfoshort(unsigned long guild_id,unsigned long account_id,unsigned long char_id,int online,int lv,int class_)
 {
-	int i,alv,c,idx=0,om=0,oldonline=-1;
+	int i,alv,c,idx=-1,om=0,oldonline=-1;
 	struct guild *g=guild_search(guild_id);
 	if(g==NULL)
 		return 0;
@@ -791,7 +791,14 @@ int guild_recv_memberinfoshort(unsigned long guild_id,unsigned long account_id,u
 		if(m->online)
 			om++;
 	}
-	if(idx==g->max_member){
+	if(idx == -1 || c == 0) {
+		// ギルドのメンバー外なので追放扱いする
+		struct map_session_data *sd = map_id2sd(account_id);
+		if(sd && sd->status.char_id == char_id) {
+			sd->status.guild_id=0;
+			sd->guild_emblem_id=0;
+			sd->guild_sended=0;
+		}
 		if(battle_config.error_log)
 			ShowMessage("guild: not found member %d,%d on %d[%s]\n",	account_id,char_id,guild_id,g->name);
 		return 0;

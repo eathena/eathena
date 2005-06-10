@@ -552,14 +552,13 @@ bool pc_break_equip(struct map_session_data &sd, unsigned short where)
 {
 	size_t i, j;
 
-	if(sd.unbreakable_equip & where)
-		return true;
+	if (sd.unbreakable_equip & where)
+		return 0;
 	if (sd.unbreakable >= rand()%100)
-		return true;
-	if (where == EQP_WEAPON && (sd.status.weapon == 6 || sd.status.weapon == 7 || sd.status.weapon == 8)) // Axes and Maces can't be broken [DracoRPG]
-		return true;
-	switch (where)
-	{
+		return 0;
+	if (where == EQP_WEAPON && (sd.status.weapon == 0 || sd.status.weapon == 6 || sd.status.weapon == 7 || sd.status.weapon == 8)) // Axes and Maces can't be broken [DracoRPG] Added bare fists to the list [Skotlex]
+		return 0;
+	switch (where) {
 		case EQP_WEAPON:
 			i = SC_CP_WEAPON;
 			break;
@@ -807,20 +806,17 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 		char tmpstr[1024];
 		strcpy(tmpstr, msg_txt(500)); // Actually, it's the night...
 		clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
-		if (battle_config.night_darkness_level > 0)
-			clif_specialeffect(sd->bl, 474 + battle_config.night_darkness_level, 0);
-		else
-			//clif_specialeffect(&sd->bl, 483, 0); // default darkness level
-			sd->opt2 |= STATE_BLIND;
+		clif_weather1(sd->fd, 474 + battle_config.night_darkness_level);
 	}
 
 	// ステ?タス初期計算など
 	status_calc_pc(*sd,1);
-
-	if (pc_isGM(*sd))
-		ShowInfo("GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, pc_isGM(*sd));
-	else
-		ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id);
+	{
+		if (pc_isGM(*sd))
+			ShowInfo("GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, pc_isGM(*sd));
+		else
+			ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id);
+	}
 
 	if (script_config.event_script_type == 0) {
 		struct npc_data *npc;
@@ -1522,14 +1518,11 @@ int pc_bonus(struct map_session_data &sd,int type,int val)
 		}
 		break;
 	case SP_DISGUISE: // Disguise script for items [Valaris]
-		if(sd.state.lr_flag!=2 && sd.disguise_id==0) {
-			if(pc_isriding(sd)) { // temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-				clif_displaymessage(sd.fd, "Cannot wear disguise when riding a Peco.");
-				break;
-			}
+		if(sd.state.lr_flag!=2 && !sd.disguise_id && !pc_isriding(sd)) {
+			clif_clearchar(sd.bl, 0);
 			sd.disguise_id=val;
-			clif_clearchar(sd.bl, 9);
-			pc_setpos(sd, sd.mapname, sd.bl.x, sd.bl.y, 3);
+			clif_changeoption(sd.bl);
+			clif_spawnpc(sd);
 		}
 		break;
 	case SP_UNBREAKABLE:
@@ -2379,7 +2372,7 @@ int pc_additem(struct map_session_data &sd,struct item &item_data,size_t amount)
 
 	if(item_data.nameid <= 0 || amount <= 0)
 		return 1;
-	data = itemdb_search(item_data.nameid);
+	data = itemdb_exists(item_data.nameid);
 	if(!data || (w = data->weight*amount)+ sd.weight > sd.max_weight)
 		return 2;
 
@@ -2641,7 +2634,7 @@ int pc_cart_additem(struct map_session_data &sd, struct item &item_data, size_t 
 
 	if(item_data.nameid <= 0 || amount <= 0)
 		return 1;
-	data = itemdb_search(item_data.nameid);
+	data = itemdb_exists(item_data.nameid);
 
 	if(!data || (w=data->weight*amount) + sd.cart_weight > sd.cart_max_weight)
 		return 1;
@@ -2835,7 +2828,6 @@ int pc_item_repair(struct map_session_data &sd, unsigned short idx)
 			//Temporary Weapon Repair code [DracoRPG]
 			pc_delitem(sd, pc_search_inventory(sd, material), 1, 0);
 			clif_equiplist(sd);
-			clif_produceeffect(sd, 0, item.nameid);
 			clif_misceffect(sd.bl, 3);
 			clif_displaymessage(sd.fd,"Item has been repaired.");
 		}
@@ -2958,7 +2950,7 @@ int pc_show_steal(struct block_list &bl,va_list ap)
 int pc_steal_item(struct map_session_data &sd,struct block_list *bl)
 {
 	if(bl != NULL && bl->type == BL_MOB)
-		{
+	{
 		unsigned short itemid;
 		int flag, skill;
 		size_t i, count;
@@ -2967,6 +2959,7 @@ int pc_steal_item(struct map_session_data &sd,struct block_list *bl)
 		if( !md->state.steal_flag && 
 			mob_db[md->class_].mexp <= 0 && 
 			!(mob_db[md->class_].mode&0x20) &&
+			md->cache &&							// prevent stealing from summoned creatures. [Skotlex]
 			!(md->class_>1324 && md->class_<1364) ) // prevent stealing from treasure boxes [Valaris]
 		{
 			if (md->sc_data && (md->sc_data[SC_STONE].timer != -1 || md->sc_data[SC_FREEZE].timer != -1))
@@ -3050,7 +3043,6 @@ bool pc_setpos(struct map_session_data &sd,const char *mapname_org,unsigned shor
 {
 	char mapname[24];
 	int m=0;
-	unsigned short disguise_id=0;
 	size_t i;
 
 	nullpo_retr(false, mapname_org);
@@ -3114,6 +3106,12 @@ bool pc_setpos(struct map_session_data &sd,const char *mapname_org,unsigned shor
 	if (sd.sc_data[SC_DEVOTION].timer!=-1)
 		status_change_end(&sd.bl,SC_DEVOTION,-1);
 
+	if(sd.status.option&2)
+		status_change_end(&sd.bl, SC_HIDING, -1);
+	if(pc_iscloaking(sd))
+		status_change_end(&sd.bl, SC_CLOAKING, -1);
+	if(pc_ischasewalk(sd))
+		status_change_end(&sd.bl, SC_CHASEWALK, -1);
 
 	if(sd.status.option&2)
 		status_change_end(&sd.bl, SC_HIDING, -1);
@@ -3125,12 +3123,6 @@ bool pc_setpos(struct map_session_data &sd,const char *mapname_org,unsigned shor
 	if(sd.status.pet_id > 0 && sd.pd && sd.pet.intimate > 0) {
 		pet_stopattack(*(sd.pd));
 		pet_changestate(*(sd.pd),MS_IDLE,0);
-	}
-
-	if(sd.disguise_id) { // clear disguises when warping [Valaris]
-		clif_clearchar(sd.bl, 9);
-		disguise_id=sd.disguise_id;
-		sd.disguise_id=0;
 	}
 
 	memcpy(mapname,mapname_org, sizeof(mapname));
@@ -3260,9 +3252,6 @@ bool pc_setpos(struct map_session_data &sd,const char *mapname_org,unsigned shor
 		clif_changemap(sd,map[m].mapname,x,y); // [MouseJstr]
 	}
 	
-	if(disguise_id) // disguise teleport fix [Valaris]
-		sd.disguise_id=disguise_id;
-		
 	if (strcmp(sd.mapname,mapname)!=0) //minimap dot fix [Kevin]
 		party_send_dot_remove(sd);
 
@@ -3463,7 +3452,7 @@ static int pc_walk(int tid,unsigned long tick,int id,int data)
 		x += dx;
 		y += dy;
 
-		sd->walktimer = -1;	// set back so not to disturb future pc_stopwalking calls
+		sd->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
 		skill_unit_move(sd->bl,tick,0);
 		if(moveblock) map_delblock(sd->bl);
 		sd->bl.x = x;
@@ -3473,7 +3462,7 @@ static int pc_walk(int tid,unsigned long tick,int id,int data)
 
 		sd->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
 		map_foreachinmovearea(clif_pcinsight,sd->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,0,sd);
-		sd->walktimer = -1;	// set back so not to disturb future pc_stopwalking calls
+		sd->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
 
 		if (sd->status.party_id > 0) {	// パ?ティのＨＰ情報通知?査
 			struct party *p = party_search(sd->status.party_id);
@@ -3487,7 +3476,7 @@ static int pc_walk(int tid,unsigned long tick,int id,int data)
 			}
 		}
 
-		if (sd->status.option & 4)	// クロ?キングの消滅?査
+		if (pc_iscloaking(*sd))	// クロ?キングの消滅?査
 			skill_check_cloaking(&sd->bl);
 		/* ディボ?ション?査 */
 		for (i = 0; i < 5; i++)
@@ -3523,7 +3512,9 @@ static int pc_walk(int tid,unsigned long tick,int id,int data)
 		sd->walktimer = add_timer (tick+i, pc_walk, id, sd->walkpath.path_pos);
 	}
 
-	clif_hpmeter(*sd);
+	if (battle_config.disp_hpmeter)
+		clif_hpmeter(*sd);
+
 	return 0;
 }
 
@@ -3708,7 +3699,7 @@ int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y)
 		}
 	}
 
-	if(sd.status.option&4)	// クロ?キングの消滅?査
+	if (pc_iscloaking(sd)) // クロ?キングの消滅?査
 		skill_check_cloaking(&sd.bl);
 
 	if( map_getcell(sd.bl.m,sd.bl.x,sd.bl.y,CELL_CHKNPC)>0 )
@@ -3916,8 +3907,7 @@ int pc_attack_timer(int tid,unsigned long tick,int id,int data)
 	if(sd->bl.m != bl->m || pc_isdead(*sd))
 		return 0;
 
-	//if( sd->opt1>0 || sd->status.option&2 || sd->status.option&0x4004)	// 異常などで攻?できない
-	if( sd->opt1>0 || sd->status.option&2 || sd->status.option&0x4000)	// 異常などで攻?できない
+	if( sd->opt1>0 || sd->status.option&2 || pc_ischasewalk(*sd))	// 異常などで攻?できない
 		return 0;
 
 //!!	if(sd->sc_count) 
@@ -4063,42 +4053,46 @@ int pc_stopattack(struct map_session_data &sd)
 
 int pc_follow_timer(int tid,unsigned long tick,int id,int data)
 {
-  struct map_session_data *sd, *bl;
+	struct map_session_data *sd;
+	struct block_list *bl;
+	
+	sd=map_id2sd(id);
+	if(sd == NULL || sd->followtimer != tid)
+		return 0;
 
-  sd=map_id2sd(id);
+	sd->followtimer=-1;
 
-  if(sd == NULL || sd->followtimer != tid || pc_isdead(*sd))
-    return 0;
+	bl = map_id2bl(sd->followtarget);
+	
+	if( bl && sd->bl.prev && bl->prev && !pc_isdead(*sd) )
+	{
+		if( bl->type == BL_PC && pc_isdead( *((struct map_session_data *)bl)) )
+			return 0;
 
-  sd->followtimer=-1;
+		if( sd->skilltimer == -1 && sd->attacktimer == -1 && sd->walktimer == -1 && sd->bl.m == bl->m)
+		{
+			if( pc_can_reach(*sd,bl->x,bl->y) )
+			{
+				if( distance(sd->bl.x,sd->bl.y,bl->x,bl->y) > 5 )
+					pc_walktoxy(*sd,bl->x,bl->y);
+			}
+			else
+				pc_setpos(*sd, map[bl->m].mapname, bl->x, bl->y, 3);
+		}
+		sd->followtimer=add_timer(tick + sd->aspd,pc_follow_timer,sd->bl.id,0);
+	}
+	return 0;
+}
 
-  do {
-    if(sd->bl.prev == NULL)
-      break;
-
-    bl=(struct map_session_data *) map_id2bl(sd->followtarget);
-
-    if(bl==NULL)
-      return 0;
-
-    if(bl->bl.prev == NULL)
-      break;
-
-    if(bl->bl.type == BL_PC && pc_isdead(*((struct map_session_data *)bl)))
-      return 0;
-
-    if (sd->skilltimer == -1 && sd->attacktimer == -1 && sd->walktimer == -1) {
-      if((sd->bl.m == bl->bl.m) && pc_can_reach(*sd,bl->bl.x,bl->bl.y)) {
-	if (distance(sd->bl.x,sd->bl.y,bl->bl.x,bl->bl.y) > 5)
-	  pc_walktoxy(*sd,bl->bl.x,bl->bl.y);
-      } else
-	pc_setpos(*sd, bl->mapname, bl->bl.x, bl->bl.y, 3);
-    }
-  } while (0);
-
-  sd->followtimer=add_timer(tick + sd->aspd,pc_follow_timer,sd->bl.id,0);
-
-  return 0;
+int pc_stop_following (struct map_session_data &sd)
+{
+	if (sd.followtimer != -1)
+	{
+		delete_timer(sd.followtimer,pc_follow_timer);
+		sd.followtimer = -1;
+	}
+	sd.followtarget = 0xFFFFFFFF;
+	return 0;
 }
 
 int pc_follow(struct map_session_data &sd, unsigned long target_id)
@@ -4112,7 +4106,7 @@ int pc_follow(struct map_session_data &sd, unsigned long target_id)
 	{
 		delete_timer(sd.followtimer,pc_follow_timer);
 		sd.followtimer = -1;
-        }
+	}
 	pc_follow_timer(-1,gettick(),sd.bl.id,0);
 
 	return 0;
@@ -4814,9 +4808,9 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 		status_change_end(&sd.bl, SC_TRICKDEAD, -1);
 	if(sd.status.option&2)
 		status_change_end(&sd.bl, SC_HIDING, -1);
-	if(sd.status.option&4)
+	if(pc_iscloaking(sd))
 		status_change_end(&sd.bl, SC_CLOAKING, -1);
-	if(sd.status.option&16384)
+	if(pc_ischasewalk(sd))
 		status_change_end(&sd.bl, SC_CHASEWALK, -1);
 
 	if(sd.status.hp>0)
@@ -5707,7 +5701,7 @@ int pc_changelook(struct map_session_data &sd,int type,unsigned short val)
 int pc_setoption(struct map_session_data &sd,int type)
 {
 	sd.status.option=type;
-	clif_changeoption(&sd.bl);
+	clif_changeoption(sd.bl);
 	status_calc_pc(sd,0);
 	return 0;
 }
@@ -5757,12 +5751,6 @@ int pc_setfalcon(struct map_session_data &sd)
  */
 int pc_setriding(struct map_session_data &sd)
 {
-	if(sd.disguise_id > 0)
-	{	// temporary prevention of crash caused by peco + disguise, will look into a better solution [Valaris]
-		clif_displaymessage(sd.fd, "Cannot mount a Peco while in disguise.");
-		return 0;
-	}
-
 	if((pc_checkskill(sd,KN_RIDING)>0)){ // ライディングスキル所持
 		pc_setoption(sd,sd.status.option|0x0020);
 
@@ -7265,7 +7253,7 @@ int map_day_timer(int tid, unsigned long tick, int id, int data) { // by [yor]
 				else
 				{
 					pl_sd->opt2 &= ~STATE_BLIND;
-					clif_changeoption(&pl_sd->bl);
+					clif_changeoption(pl_sd->bl);
 				}
 				clif_wis_message(pl_sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
 			}
@@ -7291,19 +7279,9 @@ int map_night_timer(int tid, unsigned long tick, int id, int data) { // by [yor]
 		size_t i;
 		strcpy(tmpstr, (data == 0) ? msg_txt(503) : msg_txt(59)); // The night has fallen...
 		night_flag = 1; // 0=day, 1=night [Yor]
-		for(i = 0; i < fd_max; i++)
-		{
-			if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth  && !map[pl_sd->bl.m].flag.indoors)
-			{
-				if (battle_config.night_darkness_level > 0)
-					clif_specialeffect(pl_sd->bl, 474 + battle_config.night_darkness_level, 0);
-				else {
-					//clif_specialeffect(&pl_sd->bl, 483, 0); // default darkness level
-					pl_sd->opt2 |= STATE_BLIND;
-					clif_changeoption(&pl_sd->bl);
-				}
-				clif_wis_message(pl_sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
-			}
+		for(i = 0; i < fd_max; i++) {
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth  && !map[pl_sd->bl.m].flag.indoors)
+				clif_weather1(i, 474 + battle_config.night_darkness_level);
 		}
 	}
 	return 0;

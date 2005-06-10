@@ -349,6 +349,8 @@ struct Battle_Config
 	ulong show_hp_sp_drain;
 	ulong show_hp_sp_gain;
 
+	ulong pet_support_min_friendly;
+
 
 	ulong party_bonus;
 };

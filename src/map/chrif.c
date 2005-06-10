@@ -1226,6 +1226,10 @@ int chrif_disconnect(int fd)
 		session_Remove(fd);
 		// 他のmap 鯖のデータを消す
 		map_eraseallipport();
+
+		// 倉庫キャッシュを消す
+		do_final_storage();
+		do_init_storage();
 	}
 	return 0;
 }
@@ -1271,6 +1275,7 @@ int chrif_parse(int fd)
 			if (r == 2) return 0;	// intifで処理したが、データが足りない
 
 			session_Remove(fd);
+			printf("chrif_parse: session #%d, intif_parse failed -> disconnected.\n", fd);
 			return 0;
 		}
 		packet_len = packet_len_table[cmd-0x2af8];

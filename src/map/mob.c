@@ -120,7 +120,8 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 	if (m < 0 || amount <= 0 || (class_ >= 0 && class_ <= 1000) || class_ > MAX_MOB_DB + 4000)	// ’l‚ªˆÙí‚È‚ç¢Š«‚ğ~‚ß‚é
 		return 0;
 
-	if (class_ < 0) {	// ƒ‰ƒ“ƒ_ƒ€‚É¢Š«
+	if (class_ < 0)
+	{	// ƒ‰ƒ“ƒ_ƒ€‚É¢Š«
 		int k;
 		i = 0;
 		j = -class_-1;
@@ -137,7 +138,8 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 //		if(battle_config.etc_log)
 //			ShowMessage("mobclass=%d try=%d\n",class_,i);
 	}
-	if (sd) { //even if the coords were wrong, spawn mob anyways (but look for most suitable coords first) Got from Freya [Lupus]
+	if(sd)
+	{	//even if the coords were wrong, spawn mob anyways (but look for most suitable coords first) Got from Freya [Lupus]
 		if (x <= 0 || y <= 0) {
 			if (x <= 0) x = sd->bl.x + rand() % 3 - 1;
 			if (y <= 0) y = sd->bl.y + rand() % 3 - 1;
@@ -146,7 +148,9 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 				y = sd->bl.y;
 			}
 		}
-	} else if (x <= 0 || y <= 0) {
+	}
+	else if (x <= 0 || y <= 0)
+	{
 		i = j = 0;
 		ShowMessage("mob_once_spawn: ?? %i %i %p (%s,%s)\n", x,y,sd,mapname,event);
 		do {
@@ -159,13 +163,17 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 		}
 	}
 
-	for (count = 0; count < amount; count++) {
+	for (count = 0; count < amount; count++)
+	{
 		md = (struct mob_data *)aCalloc(1,sizeof(struct mob_data));
 
-		if (class_ > MAX_MOB_DB + 2000) { // large/tiny mobs [Valaris]
+		if (class_ > MAX_MOB_DB + 2000)
+		{	// large/tiny mobs [Valaris]
 			md->size = 2;
 			class_ -= (MAX_MOB_DB + 2000);
-		} else if (class_ > MAX_MOB_DB) {
+		}
+		else if (class_ > MAX_MOB_DB)
+		{
 			md->size = 1;
 			class_ -= MAX_MOB_DB;
 		}
@@ -179,6 +187,7 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 		md->bl.m = m;
 		md->bl.x = x;
 		md->bl.y = y;
+		
 		if (class_ < 0 && battle_config.dead_branch_active)
 			md->mode = 0x1 + 0x4 + 0x80; //ˆÚ“®‚µ‚ÄƒAƒNƒeƒBƒu‚Å”½Œ‚‚·‚é
 
@@ -188,9 +197,11 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 		map_addiddb (md->bl);
 		mob_spawn (md->bl.id);
 
-		if(class_ == 1288) {	// emperium hp based on defense level [Valaris]
+		if(class_ == 1288)
+		{	// emperium hp based on defense level [Valaris]
 			struct guild_castle *gc = guild_mapname2gc(map[md->bl.m].mapname);
-			if(gc)	{
+			if(gc)
+			{
 				md->max_hp += 2000 * gc->defense;
 				md->hp = md->max_hp;
 			}
@@ -558,6 +569,8 @@ static int mob_attack(struct mob_data &md,unsigned long tick,int data)
 	if(tsd){
 		if( pc_isdead(*tsd) || tsd->invincible_timer != -1 ||  pc_isinvisible(*tsd) || md.bl.m != tbl->m || tbl->prev == NULL || distance(md.bl.x,md.bl.y,tbl->x,tbl->y)>=13 ){
 			md.target_id=0;
+			if (md.mode&0x08) //Unlock passive pets. [Skotlex]
+				md.attacked_id = 0;
 			md.state.targettype = NONE_ATTACKABLE;
 			return 0;
 		}
@@ -565,6 +578,8 @@ static int mob_attack(struct mob_data &md,unsigned long tick,int data)
 	if(tmd){
 		if(md.bl.m != tbl->m || tbl->prev == NULL || distance(md.bl.x,md.bl.y,tbl->x,tbl->y)>=13){
 			md.target_id=0;
+			if (md.mode&0x08) //Unlock passive pets. [Skotlex]
+				md.attacked_id = 0;
 			md.state.targettype = NONE_ATTACKABLE;
 			return 0;
 		}
@@ -819,19 +834,18 @@ int mob_setdelayspawn(unsigned long id)
 {
 	unsigned long spawntime,spawntime1,spawntime2,spawntime3;
 	unsigned short mode, delayrate = 100; //for battle config delays
-	struct mob_data *md;
-	struct block_list *bl;
+	struct block_list *bl = map_id2bl(id);
+	struct mob_data *md = (struct mob_data *)bl;
 
-	if ((bl = map_id2bl(id)) == NULL || bl->type != BL_MOB)
+	if( bl == NULL || bl->type != BL_MOB )
 		return -1;
-	nullpo_retr(-1, md = (struct mob_data*)bl);
 
 	// Processing of MOB which is not revitalized
 	if( !md->cache )
 	{
 		map_deliddb(md->bl);
 		if (md->lootitem) {
-			map_freeblock(md->lootitem);
+			aFree(md->lootitem);
 			md->lootitem = NULL;
 		}
 		map_freeblock(md);	// Instead of aFree
@@ -896,7 +910,12 @@ int mob_spawn(unsigned long id)
 
 	do
 	{
-		if( !md->cache || (md->cache->x0==0 && md->cache->y0==0) )
+		if(!md->cache)
+		{
+			x=md->bl.x;
+			y=md->bl.y;
+		}
+		else if( md->cache->x0==0 && md->cache->y0==0 )
 		{
 			x = rand()%(map[md->bl.m].xs-2)+1;
 			y = rand()%(map[md->bl.m].ys-2)+1;
@@ -2637,7 +2656,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		}
 
 		// Ore Discovery [Celest]
-		if( sd == mvp_sd && map[md.bl.m].flag.nomobloot==0 && pc_checkskill(*sd,BS_FINDINGORE)>0 && battle_config.finding_ore_rate/100 >= (unsigned long)(rand()%1000))
+		if(sd && sd == mvp_sd && map[md.bl.m].flag.nomobloot==0 && pc_checkskill(*sd,BS_FINDINGORE)>0 && battle_config.finding_ore_rate/100 >= (unsigned long)(rand()%1000))
 		{
 			struct delay_item_drop *ditem;
 			ditem=(struct delay_item_drop *)aCalloc(1,sizeof(struct delay_item_drop));
@@ -2825,8 +2844,8 @@ int mob_class_change(struct mob_data &md, int value[], size_t count)
 	}
 	else
 	{	// check if at least the first value is valid
-	if(value[0]<=1000 || value[0]>MAX_MOB_DB)
-		return 0;
+		if(value[0] <= 1000 || value[0] > MAX_MOB_DB)
+			return 0;
 	}
 
 	class_ = value[rand()%count];
@@ -3073,7 +3092,6 @@ int mob_summonslave(struct mob_data &md2,int *value,int amount,int flag)
 		{
 			int x=0,y=0,t=0;
 			md=(struct mob_data *)aCalloc(1,sizeof(struct mob_data));
-			memset (md, '\0', sizeof *md);	//Doing an aCalloc, and not zero-ing the data? Ain't that bad? [Skotlex]
 			if(mob_db[class_].mode&0x02)
 				md->lootitem=(struct item *)aCalloc(LOOTITEM_SIZE,sizeof(struct item));
 			else
@@ -3212,17 +3230,17 @@ printf("mobskill_castend_id negative skill trap 1\n");
 
 	switch( skill_get_nk(md->skillid) )
 	{
-	// UŒ‚Œn/‚«”ò‚Î‚µŒn
-	case 0:	
-	case 2:
-		skill_castend_damage_id(&md->bl,bl,md->skillid,md->skilllv,tick,0);
-		break;
-	case 1:// x‰‡Œn
+	case NK_NO_DAMAGE:// x‰‡Œn
 		if(!mob_db[md->class_].skill[md->skillidx].val[0] &&
 			(md->skillid==AL_HEAL || (md->skillid==ALL_RESURRECTION && bl->type != BL_PC)) && battle_check_undead(status_get_race(bl),status_get_elem_type(bl)) )
 			skill_castend_damage_id(&md->bl,bl,md->skillid,md->skilllv,tick,0);
 		else
 			skill_castend_nodamage_id(&md->bl,bl,md->skillid,md->skilllv,tick,0);
+		break;
+	// UŒ‚Œn/‚«”ò‚Î‚µŒn
+	case NK_SPLASH_DAMAGE:
+	default:
+		skill_castend_damage_id(&md->bl,bl,md->skillid,md->skilllv,tick,0);
 		break;
 	}
 
@@ -3347,7 +3365,7 @@ int mobskill_use_id(struct mob_data &md,struct block_list *target,unsigned short
 
 	if(map[md.bl.m].flag.gvg && skill_db[skill_id].nocast & 4)
 		return 0;
-	if(skill_get_inf2(skill_id)&0x200 && md.bl.id == target->id)
+	if(skill_get_inf2(skill_id)&INF2_NO_TARGET_SELF && md.bl.id == target->id)
 		return 0;
 
 	// Ë’ö‚ÆáŠQ•¨ƒ`ƒFƒbƒN
@@ -3681,26 +3699,28 @@ int mobskill_use(struct mob_data &md,unsigned long tick,int event)
 					flag = ((event & 0xffff) == MSC_SKILLUSED && ((event >> 16) == c2 || c2 == 0)); break;
 				case MSC_RUDEATTACKED:
 					flag = (!md.attacked_id && md.attacked_count > 0); break;
+					if (flag) md.attacked_count = 0;	//Rude attacked count should be reset after the skill condition is met. Thanks to Komurka [Skotlex]
+					break;
 				case MSC_MASTERHPLTMAXRATE:
-				{
-					struct block_list *bl = mob_getmasterhpltmaxrate(md, ms[i].cond2);
-					if (bl) {
-						if (bl->type == BL_MOB)
-							fmd=(struct mob_data *)bl;
-						else if (bl->type == BL_PC)
-							fsd=(struct map_session_data *)bl;
-					}
+					{
+						struct block_list *bl = mob_getmasterhpltmaxrate(md, ms[i].cond2);
+						if (bl) {
+							if (bl->type == BL_MOB)
+								fmd=(struct mob_data *)bl;
+							else if (bl->type == BL_PC)
+								fsd=(struct map_session_data *)bl;
+						}
 					flag = (fmd || fsd);
 					break;
-				}
+					}
 				case MSC_MASTERATTACKED:
 				{
 					block_list * bl = map_id2bl(md.master_id);
 
 					flag = (md.master_id>0 && bl && battle_counttargeted(*bl, NULL, 0) > 0);
 					break;
-				}
 			}
+		}
 		}
 
 		// Šm—¦”»’è
@@ -3847,7 +3867,7 @@ int mob_gvmobcheck(struct map_session_data &sd, struct block_list *bl)
 int mobskill_deltimer(struct mob_data &md )
 {
 	if( md.skilltimer!=-1 ){
-		if( skill_get_inf( md.skillid )&2 )
+		if( skill_get_inf( md.skillid )& INF_GROUND_SKILL )
 			delete_timer( md.skilltimer, mobskill_castend_pos );
 		else
 			delete_timer( md.skilltimer, mobskill_castend_id );

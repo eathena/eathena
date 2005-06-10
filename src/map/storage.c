@@ -156,7 +156,7 @@ int storage_additem(struct map_session_data &sd, struct pc_storage &stor, struct
 
 	if(item_data.nameid <= 0 || amount <= 0)
 		return 1;
-	nullpo_retr(1, data = itemdb_search(item_data.nameid));
+	nullpo_retr(1, data = itemdb_exists(item_data.nameid));
 
 	i=MAX_STORAGE;
 	if( !itemdb_isequip2(*data) )
@@ -437,7 +437,7 @@ int guild_storage_additem(struct map_session_data &sd,struct guild_storage &stor
 	struct item_data *data;
 	size_t i;
 
-	nullpo_retr(1, data = itemdb_search(item_data.nameid));
+	nullpo_retr(1, data = itemdb_exists(item_data.nameid));
 
 	if(item_data.nameid <= 0 || amount <= 0)
 		return 1;

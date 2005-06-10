@@ -5,6 +5,10 @@
 #include "base.h"
 #include "map.h"
 
+// protocol version
+#define PACKETVER			6
+
+// packet DB
 #define MAX_PACKET_DB		0x23a
 #define MAX_PACKET_VER		18
 
@@ -35,8 +39,8 @@ int clif_charselectok(unsigned long id);
 int clif_dropflooritem(struct flooritem_data &fitem);
 int clif_clearflooritem(struct flooritem_data &fitem, int fd=0);
 int clif_clearchar(struct block_list &bl, unsigned char type);
+extern inline int clif_clearchar_area(struct block_list &bl, unsigned char type)	{ return clif_clearchar(bl,type); }
 int clif_clearchar_delay(unsigned long tick, struct block_list &bl, int type);
-#define clif_clearchar_area(bl,type) clif_clearchar(bl,type)
 int clif_clearchar_id(int fd, unsigned long id, unsigned char type);
 int clif_spawnpc(struct map_session_data &sd);	//area
 int clif_spawnnpc(struct npc_data &nd);	// area
@@ -80,9 +84,9 @@ int clif_equipitemack(struct map_session_data &sd,unsigned short n,unsigned shor
 int clif_unequipitemack(struct map_session_data &sd,unsigned short n,unsigned short pos,unsigned char ok);	// self
 int clif_misceffect(struct block_list &bl, unsigned long type);	// area
 int clif_misceffect2(struct block_list &bl, unsigned long type);
-int clif_changeoption(struct block_list*);	// area
+int clif_changeoption(struct block_list&bl);	// area
 int clif_useitemack(struct map_session_data &sd,unsigned short index,unsigned short amount,unsigned char ok);	// self
-int clif_GlobalMessage(struct block_list *bl,const char *message);
+int clif_GlobalMessage(struct block_list &bl,const char *message);
 int clif_createchat(struct map_session_data &sd,unsigned char fail);	// self
 int clif_dispchat(struct chat_data &cd,int fd);	// area or fd
 int clif_joinchatfail(struct map_session_data &sd,unsigned char fail);	// self
@@ -93,6 +97,7 @@ int clif_clearchat(struct chat_data &cd,int fd);	// area or fd
 int clif_leavechat(struct chat_data&,struct map_session_data&);	// chat
 int clif_changechatstatus(struct chat_data&);	// chat
 int clif_refresh(struct map_session_data&);	// self
+int clif_charnameack(int fd, struct block_list &bl);
 
 int clif_fame_blacksmith(struct map_session_data &sd, unsigned long points);
 int clif_fame_alchemist(struct map_session_data &sd, unsigned long points);
@@ -102,7 +107,6 @@ int clif_talkiebox(struct block_list &bl,const char* talkie);
 int clif_wedding_effect(struct block_list &bl);
 int clif_divorced(struct map_session_data &sd, const char *name);
 
-//int clif_callpartner(struct map_session_data &sd);
 int clif_adopt_process(struct map_session_data &sd);
 int clif_sitting(struct map_session_data &sd);
 int clif_soundeffect(struct map_session_data &sd,struct block_list &bl,const char *name,unsigned char type);
@@ -139,7 +143,7 @@ int clif_petinsight(struct block_list &bl,va_list ap);
 int clif_npcoutsight(struct block_list &bl,va_list ap);
 int clif_npcinsight(struct block_list &bl,va_list ap);
 
-int clif_class_change(struct block_list *bl,unsigned short class_,unsigned char type);
+int clif_class_change(struct block_list &bl,unsigned short class_,unsigned char type);
 int clif_mob_class_change(struct mob_data &md,unsigned short class_);
 int clif_mob_equip(struct mob_data &md,unsigned short nameid); // [Valaris]
 
@@ -148,13 +152,13 @@ int clif_skillinfoblock(struct map_session_data &sd);
 int clif_skillup(struct map_session_data &sd,unsigned short skill_num);
 
 int clif_skillcasting(struct block_list* bl,unsigned long src_id,unsigned long dst_id,unsigned short dst_x,unsigned short dst_y,unsigned short skill_id,unsigned long casttime);
-int clif_skillcastcancel(struct block_list* bl);
+int clif_skillcastcancel(struct block_list &bl);
 int clif_skill_fail(struct map_session_data &sd,unsigned short skill_id,unsigned char type,unsigned short btype);
-int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned long tick,unsigned long sdelay,unsigned long ddelay,unsigned long damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type);
-int clif_skill_damage2(struct block_list *src,struct block_list *dst,unsigned long tick,unsigned long sdelay,unsigned long ddelay,unsigned long damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type);
+int clif_skill_damage(struct block_list &src,struct block_list &dst,unsigned long tick,unsigned long sdelay,unsigned long ddelay,unsigned long damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type);
+int clif_skill_damage2(struct block_list &src,struct block_list &dst,unsigned long tick,unsigned long sdelay,unsigned long ddelay,unsigned long damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type);
 int clif_skill_nodamage(struct block_list *src,struct block_list *dst,unsigned short skill_id,unsigned short heal,unsigned char fail);
-int clif_skill_poseffect(struct block_list *src,unsigned short skill_id,unsigned short val,unsigned short x,unsigned short y,unsigned long tick);
-int clif_skill_estimation(struct map_session_data &sd,struct block_list *dst);
+int clif_skill_poseffect(struct block_list &src,unsigned short skill_id,unsigned short val,unsigned short x,unsigned short y,unsigned long tick);
+int clif_skill_estimation(struct map_session_data &sd,struct block_list &dst);
 int clif_skill_warppoint(struct map_session_data &sd,unsigned short skill_id,const char *map1,const char *map2,const char *map3,const char *map4);
 int clif_skill_memo(struct map_session_data &sd,unsigned char flag);
 int clif_skill_teleportmessage(struct map_session_data &sd,unsigned short flag);
@@ -226,6 +230,7 @@ int clif_party_leaved(struct party &p,struct map_session_data *sd,unsigned long 
 int clif_party_message(struct party &p,unsigned long account_id,const char *mes,size_t len);
 int clif_party_move(struct party &p,struct map_session_data &sd,unsigned char online);
 int clif_party_xy(struct party &p,struct map_session_data &sd);
+int clif_party_xy_remove(struct map_session_data &sd);
 int clif_party_hp(struct party &p,struct map_session_data &sd);
 int clif_hpmeter(struct map_session_data &sd);
 
@@ -282,6 +287,11 @@ int clif_pet_food(struct map_session_data &sd,unsigned short foodid,unsigned cha
 int clif_friendslist_send(struct map_session_data &sd);
 int clif_friendslist_reqack(struct map_session_data &sd, const char *name, unsigned short type);
 
+
+int clif_clearweather(unsigned short m);
+int clif_weather2(unsigned short m, int type);
+int clif_weather1(int fd, int type);
+
 int clif_specialeffect(struct block_list &bl,unsigned long type, int flag); // special effects [Valaris]
 int clif_message(struct block_list &bl, const char* msg); // messages (from mobs/npcs) [Valaris]
 
@@ -299,8 +309,6 @@ int clif_terminate(int fd);
 int do_final_clif(void);
 int do_init_clif(void);
 
-//Fix for minimap [Kevin]
-int clif_party_xy_remove(struct map_session_data &sd);
 
 #endif
 
