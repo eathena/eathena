@@ -8828,11 +8828,12 @@ int skill_delunitgroup(struct skill_unit_group *group)
 				skill_delunit(&group->unit[i]);
 	}
 	if(group->valstr!=NULL){
-		map_freeblock(group->valstr);
+		//map_freeblock(group->valstr); Can't use map_freeblock anymore... [Skotlex]
+		aFree(group->valstr);
 		group->valstr=NULL;
 	}
 
-	map_freeblock(group->unit);	/* aFree()‚Ì‘Ö‚í‚è */
+	map_freeblock((struct block_list*)group->unit);	/* aFree()‚Ì‘Ö‚í‚è */
 	group->unit=NULL;
 	group->src_id=0;
 	group->group_id=0;

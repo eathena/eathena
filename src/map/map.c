@@ -134,7 +134,7 @@ static struct block_list *objects[MAX_FLOORITEM];
 static int first_free_object_id=0,last_object_id=0;
 
 #define block_free_max 1048576
-static void *block_free[block_free_max];
+struct block_list *block_free[block_free_max];
 static int block_free_count = 0, block_free_lock = 0;
 
 #define BL_LIST_MAX 1048576
@@ -206,18 +206,43 @@ int map_getusers(void) {
  * ロックされているときはバッファにためる
  *------------------------------------------
  */
-int map_freeblock (void *bl)
+int map_freeblock (struct block_list *bl)
 {
-	if (block_free_lock == 0) {
-		aFree(bl);
+	if (block_free_lock == 0 || block_free_count >= block_free_max)
+	{
+		switch (bl->type)
+		{ //Apparently doing a direct aFree(bl) causes a memory leak [Skotlex]
+			case BL_PC:
+				aFree((struct map_session_data *)bl);
+				break;
+			case BL_MOB:
+				aFree((struct mob_data *)bl);
+				break;
+			case BL_PET:
+				aFree((struct pet_data *)bl);
+				break;
+			case BL_NPC:
+				aFree((struct npc_data *)bl);
+				break;
+			case BL_SKILL:
+				aFree((struct skill_unit *)bl);
+				break;
+			case BL_ITEM:
+				aFree((struct flooritem_data *)bl);
+				break;
+			case BL_CHAT:
+				aFree((struct chat_data *)bl);
+				break;
+			default:	//This reports a memory leak....? [Skotlex]
+				aFree(bl);
+		}
 		bl = NULL;
-	} else{
-		if (block_free_count >= block_free_max) {
+		if (block_free_count >= block_free_max)
 			if (battle_config.error_log)
 				ShowWarning("map_freeblock: too many free block! %d %d\n",
 					block_free_count, block_free_lock);
-		} else block_free[block_free_count++] = bl;
-	}
+	} else
+		block_free[block_free_count++] = bl;
 
 	return block_free_lock;
 }
@@ -241,7 +266,32 @@ int map_freeblock_unlock (void)
 	if ((--block_free_lock) == 0) {
 		int i;
 		for (i = 0; i < block_free_count; i++) {
-			aFree(block_free[i]);
+			switch (block_free[i]->type)
+			{
+				case BL_PC:
+					aFree((struct map_session_data *)block_free[i]);
+					break;
+				case BL_MOB:
+					aFree((struct mob_data *)block_free[i]);
+					break;
+				case BL_PET:
+					aFree((struct pet_data *)block_free[i]);
+					break;
+				case BL_NPC:
+					aFree((struct npc_data *)block_free[i]);
+					break;
+				case BL_SKILL:
+					aFree((struct skill_unit *)block_free[i]);
+					break;
+				case BL_ITEM:
+					aFree((struct flooritem_data *)block_free[i]);
+					break;
+				case BL_CHAT:
+					aFree((struct chat_data *)block_free[i]);
+					break;
+				default:	//This reports a memory leak....? [Skotlex]
+					aFree(block_free[i]);
+			}
 			block_free[i] = NULL;
 		}
 		block_free_count = 0;
@@ -1172,7 +1222,6 @@ int map_delobjectnofree(int id) {
 
 	map_delblock(objects[id]);
 	numdb_erase(id_db,id);
-//	map_freeblock(objects[id]);
 	objects[id]=NULL;
 
 	if(first_free_object_id>id)

@@ -831,7 +831,7 @@ extern char wisp_server_name[];
 void map_setusers(int);
 int map_getusers(void);
 // blockíœŠÖ˜A
-int map_freeblock( void *bl );
+int map_freeblock(struct block_list *bl);
 int map_freeblock_lock(void);
 int map_freeblock_unlock(void);
 // blockŠÖ˜A

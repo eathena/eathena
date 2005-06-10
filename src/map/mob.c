@@ -874,11 +874,11 @@ int mob_setdelayspawn(int id)
 	if (md->spawndelay1 == -1 && md->spawndelay2 == -1 && md->n == 0) {
 		map_deliddb(&md->bl);
 		if (md->lootitem) {
-			map_freeblock(md->lootitem);
+			//map_freeblock(md->lootitem); //Can't use map_freeblock anymore... [Skotlex]
+			aFree(md->lootitem);
 			md->lootitem = NULL;
 		}
-		//map_freeblock(md);	// Instead of [ of free ]
-		aFree(md);	//Temporary test to see if map_freeblock is bugged [Skotlex]
+		map_freeblock(bl);
 		return 0;
 	}
 
@@ -2135,8 +2135,9 @@ void mob_unload(struct mob_data *md)
 	nullpo_retv(md);
 	mob_remove_map(md, 0);
 	map_deliddb(&md->bl);
-	map_freeblock(md);
+	map_freeblock((struct block_list*)md);
 }
+
 int mob_remove_map(struct mob_data *md, int type)
 {
 	nullpo_retr(1, md);

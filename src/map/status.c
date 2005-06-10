@@ -2877,7 +2877,7 @@ int status_get_dmotion(struct block_list *bl)
 	if(bl->type==BL_MOB && (struct mob_data *)bl){
 		ret=mob_db[((struct mob_data *)bl)->class_].dmotion;
 		if(battle_config.monster_damage_delay_rate != 100)
-			ret = ret*battle_config.monster_damage_delay_rate/400;
+			ret = ret*battle_config.monster_damage_delay_rate/100;
 	}
 	else if(bl->type==BL_PC && (struct map_session_data *)bl){
 		ret=((struct map_session_data *)bl)->dmotion;
