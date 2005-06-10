@@ -968,7 +968,7 @@ int pet_data_init(struct map_session_data *sd)
 	pd->bl.x = pd->to_x;
 	pd->bl.y = pd->to_y;
 	pd->bl.id = npc_get_new_npc_id();
-	memcpy(pd->name,sd->pet.name,24);
+	memcpy(pd->name, sd->pet.name, NAME_LENGTH);
 	pd->class_ = sd->pet.class_;
 	pd->equip = sd->pet.equip;
 	pd->dir = sd->dir;
@@ -1248,10 +1248,9 @@ int pet_change_name(struct map_session_data *sd,char *name)
 	}
 
 	pet_stop_walking(sd->pd,1);
-
 	
-	memcpy(sd->pet.name,name,NAME_LENGTH);
-	memcpy(sd->pd->name,name,NAME_LENGTH);
+	memcpy(sd->pet.name, name, NAME_LENGTH);
+	memcpy(sd->pd->name, name, NAME_LENGTH);
 	
 	clif_clearchar_area(&sd->pd->bl,0);
 	clif_spawnpet(sd->pd);

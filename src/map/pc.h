@@ -213,7 +213,7 @@ int pc_eventtimer(int tid,unsigned int tick,int id,int data); // for npc_dequeue
 struct fame_list {
 	int id;
 	int fame;
-	char name[24];
+	char name[NAME_LENGTH];
 };
 extern struct fame_list smith_fame_list[10];
 extern struct fame_list chemist_fame_list[10];

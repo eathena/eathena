@@ -165,7 +165,7 @@ void vending_openvending(struct map_session_data *sd,int len,char *message,int f
 		}
 		sd->vender_id = sd->bl.id;
 		sd->vend_num = i;
-		strncpy(sd->message,message, MESSAGE_SIZE);
+		memcpy(sd->message,message, MESSAGE_SIZE);
 		//We should not trust the client on this. [Skotlex]
 		sd->message[MESSAGE_SIZE-1] = '\0';
 		if (clif_openvending(sd,sd->vender_id,sd->vending) > 0)

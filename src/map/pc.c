@@ -365,7 +365,7 @@ int pc_makesavestatus(struct map_session_data *sd)
 			pc_setrestartvalue(sd,0);
 			memcpy(&sd->status.last_point,&sd->status.save_point,sizeof(sd->status.last_point));
 		} else {
-			memcpy(sd->status.last_point.map,sd->mapname,24);
+			memcpy(sd->status.last_point.map, sd->mapname, NAME_LENGTH);
 			sd->status.last_point.x = sd->bl.x;
 			sd->status.last_point.y = sd->bl.y;
 		}
@@ -3129,9 +3129,9 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		pet_changestate(sd->pd,MS_IDLE,0);
 	}
 
-	strncpy(mapname,mapname_org,sizeof(mapname));
-	mapname[16]=0;
-	if(strstr(mapname,".gat")==NULL && strstr(mapname,".afm")==NULL && strlen(mapname)<16){
+	memcpy(mapname, mapname_org, NAME_LENGTH);
+	mapname[NAME_LENGTH-1]= '\0';
+	if(strstr(mapname,".gat")==NULL && strstr(mapname,".afm")==NULL && strlen(mapname)<NAME_LENGTH-4){	//It has to be -4 for a .gat to fit! [Skotlex]
 		strcat(mapname,".gat");
 	}
 
@@ -3163,7 +3163,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 						map_delblock(&sd->pd->bl);
 					}
 				}
-				memcpy(sd->mapname,mapname,24);
+				memcpy(sd->mapname, mapname, NAME_LENGTH);
 				sd->bl.x=x;
 				sd->bl.y=y;
 				sd->state.waitingdisconnect=1;
@@ -3232,7 +3232,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 	if (strcmp(sd->mapname,mapname)!=0) //minimap dot fix [Kevin]
 		party_send_dot_remove(sd);
 
-	memcpy(sd->mapname,mapname,24);
+	memcpy(sd->mapname, mapname, NAME_LENGTH);
 	sd->bl.m = m;
 	sd->to_x = x;
 	sd->to_y = y;
@@ -3323,7 +3323,7 @@ int pc_memo(struct map_session_data *sd, int i) {
 		}
 		i = 0;
 	}
-	memcpy(sd->status.memo_point[i].map, map[sd->bl.m].name, 24);
+	memcpy(sd->status.memo_point[i].map, map[sd->bl.m].name, NAME_LENGTH);
 	sd->status.memo_point[i].x = sd->bl.x;
 	sd->status.memo_point[i].y = sd->bl.y;
 
@@ -7183,7 +7183,7 @@ int pc_setsavepoint(struct map_session_data *sd,char *mapname,int x,int y)
 {
 	nullpo_retr(0, sd);
 
-	strncpy(sd->status.save_point.map,mapname,24);
+	memcpy(sd->status.save_point.map, mapname, NAME_LENGTH);
 	sd->status.save_point.x = x;
 	sd->status.save_point.y = y;
 

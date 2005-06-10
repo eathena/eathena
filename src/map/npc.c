@@ -85,7 +85,7 @@ int npc_enable_sub( struct block_list *bl, va_list ap )
 			return 1;
 		sd->areanpc_id=nd->bl.id;
 
-		sprintf(name,"%s::OnTouch", nd->name);
+		snprintf(name, 50, "%s::OnTouch", nd->name);
 		npc_event(sd,name,0);
 	}
 	//aFree(name);
@@ -285,7 +285,7 @@ int npc_event_export(void *key,void *data,va_list ap)
 		if (ev==NULL || buf==NULL) {
 			printf("npc_event_export: out of memory !\n");
 			exit(1);
-		}else if (p==NULL || (p-lname)>24) {
+		}else if (p==NULL || (p-lname)>NAME_LENGTH) {
 			printf("npc_event_export: label name error !\n");
 			exit(1);
 		}else{
@@ -449,11 +449,11 @@ int npc_addeventtimer(struct npc_data *nd,int tick,const char *name)
 		if( nd->eventtimer[i]==-1 )
 			break;
 	if(i<MAX_EVENTTIMER){
-		char *evname=(char *) aMallocA(24);
+		char *evname=(char *) aMallocA(NAME_LENGTH);
 		if(evname==NULL){
 			printf("npc_addeventtimer: out of memory !\n");exit(1);
 		}
-		memcpy(evname,name,24);
+		memcpy(evname,name,NAME_LENGTH);
 		nd->eventtimer[i]=add_timer(gettick()+tick,
 			npc_event_timer,nd->bl.id,(int)evname);
 	}else
@@ -1485,7 +1485,7 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 {
 	int x, y, xs, ys, to_x, to_y, m;
 	int i, j;
-	char mapname[24], to_mapname[24];
+	char mapname[NAME_LENGTH], to_mapname[NAME_LENGTH];
 	struct npc_data *nd;
 
 	// 引数の個数チェック
@@ -1494,32 +1494,45 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 		ShowError("bad warp line : %s\n", w3);
 		return 1;
 	}
+	if (strlen(to_mapname) > NAME_LENGTH-1)
+	{
+		ShowError("warp line's to-map too long : %s\n", w4);
+		return 1;
+	}
 
 	m = map_mapname2mapid(mapname);
 
 	nd = (struct npc_data *) aCalloc (1, sizeof(struct npc_data));
+	memset (nd, 0, sizeof(struct npc_data)); //Why don't you guys ever initialize...? [Skotlex]
+	
 	nd->bl.id = npc_get_new_npc_id();
 	nd->n = map_addnpc(m, nd);
 	nd->bl.prev = nd->bl.next = NULL;
 	nd->bl.m = m;
 	nd->bl.x = x;
 	nd->bl.y = y;
+/*
 	nd->dir = 0;
 	nd->flag = 0;
-	memcpy(nd->name, w3, 24);
-	memcpy(nd->exname, w3, 24);
-
-	nd->chat_id = 0;
+*/
+	memcpy(nd->name, w3, NAME_LENGTH);
+	memcpy(nd->exname, w3, NAME_LENGTH);
+	nd->name[NAME_LENGTH-1]= '\0';
+	nd->exname[NAME_LENGTH-1]= '\0';
+	
+//	nd->chat_id = 0;
 	if (!battle_config.warp_point_debug)
 		nd->class_ = WARP_CLASS;
 	else
 		nd->class_ = WARP_DEBUG_CLASS;
 	nd->speed = 200;
+/*
 	nd->option = 0;
 	nd->opt1 = 0;
 	nd->opt2 = 0;
 	nd->opt3 = 0;
-	memcpy(nd->u.warp.name, to_mapname, 16);
+*/
+	memcpy(nd->u.warp.name, to_mapname, NAME_LENGTH);
 	xs += 2;
 	ys += 2;
 	nd->u.warp.x = to_x;
@@ -1535,7 +1548,6 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 		}
 	}
 
-//	printf("warp npc %s %d read done\n",mapname,nd->bl.id);
 	npc_warp++;
 	nd->bl.type = BL_NPC;
 	nd->bl.subtype = WARP;
@@ -1555,7 +1567,7 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 	#define MAX_SHOPITEM 100
 	char *p;
 	int x, y, dir, m, pos = 0;
-	char mapname[24];
+	char mapname[NAME_LENGTH];
 	struct npc_data *nd;
 
 	// 引数の個数チェック
@@ -1602,7 +1614,8 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 	nd->bl.id = npc_get_new_npc_id();
 	nd->dir = dir;
 	nd->flag = 0;
-	memcpy(nd->name, w3, 24);
+	memcpy(nd->name, w3, NAME_LENGTH);
+	nd->name[NAME_LENGTH-1] = '\0';
 	nd->class_ = atoi(w4);
 	nd->speed = 200;
 	nd->chat_id = 0;
@@ -1614,7 +1627,6 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 	nd = (struct npc_data *)aRealloc(nd,
 		sizeof(struct npc_data) + sizeof(nd->u.shop_item[0]) * pos);
 
-	//printf("shop npc %s %d read done\n",mapname,nd->bl.id);
 	npc_shop++;
 	nd->bl.type = BL_NPC;
 	nd->bl.subtype = SHOP;
@@ -1674,7 +1686,7 @@ int npc_convertlabel_db (void *key, void *data, va_list ap)
 static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_line,FILE *fp,int *lines)
 {
 	int x, y, dir = 0, m, xs = 0, ys = 0, class_ = 0;	// [Valaris] thanks to fov
-	char mapname[24];
+	char mapname[NAME_LENGTH];
 	unsigned char *srcbuf = NULL, *script;
 	int srcsize = 65536;
 	int startline = 0;
@@ -1756,6 +1768,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 	}// end of スクリプト解析
 
 	nd = (struct npc_data *)aCalloc(1, sizeof(struct npc_data));
+	memset (nd, 0, sizeof(struct npc_data));	//As usual, is best to clean up here [Skotlex]
 
 	if (m == -1){
 		// スクリプトコピー用のダミーNPC
@@ -1793,12 +1806,15 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 	}
 	if (p) {
 		*p = 0;
-		memcpy(nd->name, w3, 24);
-		memcpy(nd->exname, p+2, 24);
+		memcpy(nd->name, w3, NAME_LENGTH);
+		memcpy(nd->exname, p+2, NAME_LENGTH);
 	} else {
-		memcpy(nd->name, w3, 24);
-		memcpy(nd->exname, w3, 24);
+		memcpy(nd->name, w3, NAME_LENGTH);
+		memcpy(nd->exname, w3, NAME_LENGTH);
 	}
+	//Guaranteeing null-terminators [Skotlex]
+	nd->name[NAME_LENGTH-1]='\0';
+	nd->exname[NAME_LENGTH-1]='\0';
 
 	nd->bl.prev = nd->bl.next = NULL;
 	nd->bl.m = m;
@@ -1811,23 +1827,22 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 	nd->speed = 200;
 	nd->u.scr.script = (char *) script;
 	nd->u.scr.src_id = src_id;
+/* Cleaned up above with memset...
 	nd->chat_id = 0;
 	nd->option = 0;
 	nd->opt1 = 0;
 	nd->opt2 = 0;
 	nd->opt3 = 0;
+*/
 	nd->walktimer = -1;
 
-	//printf("script npc %s %d %d read done\n",mapname,nd->bl.id,nd->class_);
 	npc_script++;
 	nd->bl.type = BL_NPC;
 	nd->bl.subtype = SCRIPT;
-
-	// clear event timers upon initialise
-	memset (nd->eventqueue, 0, sizeof(nd->eventqueue));
+//	Cleaned up above...
+//	memset (nd->eventqueue, 0, sizeof(nd->eventqueue));
 	for (i = 0; i < MAX_EVENTTIMER; i++)
 		nd->eventtimer[i] = -1;
-
 	if (m >= 0) {
 		nd->n = map_addnpc(m, nd);
 		map_addblock(&nd->bl);
@@ -2062,7 +2077,7 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 		md->bl.x = mob->x;
 		md->bl.y = mob->y;
 		md->level = mob->level;
-		memcpy(md->name, mob->mobname, 24);
+		memcpy(md->name, mob->mobname, NAME_LENGTH);
 		md->n = i;
 		md->base_class = md->class_ = mob->class_;
 		md->bl.id = npc_get_new_npc_id();
@@ -2087,9 +2102,9 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 			md->lootitem = NULL;
 
 		if (strlen(mob->eventname) >= 4) {
-			memcpy(md->npc_event, mob->eventname, 24);
+			memcpy(md->npc_event, mob->eventname, NAME_LENGTH);
 		} else
-			memset(md->npc_event, 0, 24);
+			memset(md->npc_event, 0, NAME_LENGTH);
 
 		md->bl.type = BL_MOB;
 		map_addiddb(&md->bl);
@@ -2102,8 +2117,8 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 {
 	int level;
-	char mapname[24];
-	char mobname[24];
+	char mapname[NAME_LENGTH];
+	char mobname[NAME_LENGTH];
 	struct mob_list mob;
 
 	memset(&mob, 0, sizeof(struct mob_list));
@@ -2114,7 +2129,6 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 		ShowError("bad monster line : %s\n", w3);
 		return 1;
 	}
-
 	mob.m = map_mapname2mapid(mapname);
 	if (mob.m < 0)
 		return 1;
@@ -2126,11 +2140,16 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 	
 	if (sscanf(w3, "%[^,],%d", mobname, &level) > 1)
 		mob.level = level;
+	if (strlen(mobname) > NAME_LENGTH -1)
+	{	//As before, we already overflowed for using sscanf. [Skotlex]
+		ShowError("Monster's name too long! Line: %s\n", w3);
+		return 1;
+	}
 	if (strcmp(mobname, "--en--") == 0)
-		memcpy(mob.mobname, mob_db[mob.class_].name, 24);
+		memcpy(mob.mobname, mob_db[mob.class_].name, NAME_LENGTH);
 	else if (strcmp(mobname, "--ja--") == 0)
-		memcpy(mob.mobname, mob_db[mob.class_].jname, 24);
-	else memcpy(mob.mobname, mobname, 24);
+		memcpy(mob.mobname, mob_db[mob.class_].jname, NAME_LENGTH);
+	else memcpy(mob.mobname, mobname, NAME_LENGTH);
 
 	if( !battle_config.dynamic_mobs || mob.delay1 || mob.delay2 ) {
 		npc_parse_mob2(&mob,0);
@@ -2166,26 +2185,31 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 {
 	int m;
-	char mapname[24];
+	char mapname[NAME_LENGTH];
 
 	// 引数の個数チェック
 	if (sscanf(w1, "%[^,]",mapname) != 1)
 		return 1;
-
+	
 	m = map_mapname2mapid(mapname);
 	if (m < 0)
 		return 1;
 
 //マップフラグ
 	if (strcmpi(w3, "nosave") == 0) {
-		char savemap[16];
+		char savemap[NAME_LENGTH];
 		int savex, savey;
 		if (strcmp(w4, "SavePoint") == 0) {
 			memcpy(map[m].save.map, "SavePoint", 10);
 			map[m].save.x = -1;
 			map[m].save.y = -1;
 		} else if (sscanf(w4, "%[^,],%d,%d", savemap, &savex, &savey) == 3) {
-			memcpy(map[m].save.map, savemap, 16);
+			if (strlen(savemap) > NAME_LENGTH-1)
+			{	//Mover overflow possibilities...
+				ShowError("Save Map's name too long: %s\n", w4);
+				return 1;
+			}
+			memcpy(map[m].save.map, savemap, NAME_LENGTH);
 			map[m].save.x = savex;
 			map[m].save.y = savey;
 		}
@@ -2339,7 +2363,7 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 static int npc_parse_mapcell (char *w1, char *w2, char *w3, char *w4)
 {
 	int m, cell, x, y, x0, y0, x1, y1;
-	char type[24], mapname[24];
+	char type[24], mapname[NAME_LENGTH];
 
 	if (sscanf(w1, "%[^,]", mapname) != 1)
 		return 1;
@@ -2407,11 +2431,10 @@ void npc_parsesrcfile (char *name)
 		// マップの存在確認
 		if (strcmp(w1,"-") !=0 && strcmpi(w1,"function") != 0 ){
 			sscanf(w1,"%[^,]",mapname);
-			m = map_mapname2mapid(mapname);
-			if (strlen(mapname)>16 || m<0) {
+			if (strlen(mapname)>NAME_LENGTH-1 || 
+				(m = map_mapname2mapid(mapname)) < 0)
 			// "mapname" is not assigned to this server
 				continue;
-			}
 		}
 		if (strcmpi(w2,"warp") == 0 && count > 3) {
 			npc_parse_warp(w1,w2,w3,w4);
@@ -2528,7 +2551,7 @@ int npc_reload (void)
 	// anything else we should cleanup?
 	// Reloading npc's now
 	ev_db = strdb_init(51);
-	npcname_db = strdb_init(24);
+	npcname_db = strdb_init(NAME_LENGTH);
 	ev_db->release = ev_release;
 	npc_warp = npc_shop = npc_script = 0;
 	npc_mob = npc_cache_mob = npc_delay_mob = 0;
@@ -2621,7 +2644,7 @@ int do_init_npc(void)
 	// will cause "duplicated" labels where actually no dup is...
 	//ev_db=strdb_init(24); 
 	ev_db = strdb_init(51);
-	npcname_db = strdb_init(24);
+	npcname_db = strdb_init(NAME_LENGTH);
 	ev_db->release = ev_release;
 
 	memset(&ev_tm_b, -1, sizeof(ev_tm_b));

@@ -95,7 +95,8 @@ int party_created(int account_id,int fail,int party_id,char *name)
 		}
 		p=(struct party *)aCalloc(1,sizeof(struct party));
 		p->party_id=party_id;
-		memcpy(p->name,name,24);
+		memcpy(p->name, name, NAME_LENGTH);
+		p->name[NAME_LENGTH-1] = '\0'; //Can't trust the client [Skotlex]
 		numdb_insert(party_db,party_id,p);
 		clif_party_created(sd,0);
 	}else{
@@ -403,7 +404,10 @@ int party_recv_movemap(int party_id,int account_id,char *map,int online,int lv)
 			return 0;
 		}
 		if(m->account_id==account_id){
-			memcpy(m->map,map,16);
+			memcpy(m->map,map,NAME_LENGTH);
+			//Rule #1 of game servers: never trust the client..
+			//even if it's the char-server [Skotlex]
+			m->map[NAME_LENGTH-1] = '\0';
 			m->online=online;
 			m->lv=lv;
 			break;

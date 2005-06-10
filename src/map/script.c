@@ -1476,8 +1476,8 @@ char* conv_str(struct script_state *st,struct script_data *data)
 	get_val(st,data);
 	if(data->type==C_INT){
 		char *buf;
-		buf=(char *)aCallocA(16,sizeof(char));
-		sprintf(buf,"%d",data->u.num);
+		buf=(char *)aCallocA(ITEM_NAME_LENGTH,sizeof(char));
+		snprintf(buf,ITEM_NAME_LENGTH, "%d",data->u.num);
 		data->type=C_STR;
 		data->u.str=buf;
 #if 1
@@ -2788,7 +2788,7 @@ char *buildin_getpartyname_sub(int party_id)
 	if(p!=NULL){
 		char *buf;
 		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-		strcpy(buf,p->name);
+		memcpy(buf, p->name, NAME_LENGTH);
 		return buf;
 	}
 
@@ -2845,7 +2845,7 @@ char *buildin_getguildname_sub(int guild_id)
 	if(g!=NULL){
 		char *buf;
 		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-		strcpy(buf,g->name);
+		memcpy(buf, g->name, NAME_LENGTH);
 		return buf;
 	}
 	return 0;
@@ -2874,7 +2874,7 @@ char *buildin_getguildmaster_sub(int guild_id)
 	if(g!=NULL){
 		char *buf;
 		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-		strcpy(buf,g->master);
+		memcpy(buf, g->master, NAME_LENGTH);
 		return buf;
 	}
 
@@ -2924,7 +2924,7 @@ int buildin_strcharinfo(struct script_state *st)
 	if(num==0){
 		char *buf;
 		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-		strcpy(buf,sd->status.name);
+		memcpy(buf, sd->status.name, NAME_LENGTH);
 		push_str(st->stack,C_STR,(unsigned char *) buf);
 	}
 	if(num==1){
@@ -4945,7 +4945,7 @@ int buildin_setmapflagnosave(struct script_state *st)
 	m = map_mapname2mapid(str);
 	if(m >= 0) {
 		map[m].flag.nosave=1;
-		memcpy(map[m].save.map,str2,16);
+		memcpy(map[m].save.map, str2, NAME_LENGTH);
 		map[m].save.x=x;
 		map[m].save.y=y;
 	}
@@ -5339,7 +5339,7 @@ int buildin_getcastlename(struct script_state *st)
 		if( (gc=guild_castle_search(i)) != NULL ){
 			if(strcmp(mapname,gc->map_name)==0){
 				buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-				strcpy(buf,gc->castle_name);
+				memcpy(buf, gc->castle_name, NAME_LENGTH);
 				break;
 			}
 		}
@@ -5810,7 +5810,7 @@ int buildin_strmobinfo(struct script_state *st)
 			buf=(char *) aCallocA(NAME_LENGTH, sizeof(char));
 //			buf=mob_db[class_].name;
 // for string assignments you would need to go for c++ [Shinomori]
-			strcpy(buf,mob_db[class_].name);
+			memcpy(buf, mob_db[class_].name, NAME_LENGTH);
 			push_str(st->stack,C_STR,(unsigned char *) buf);
 			break;
 		}
@@ -5820,7 +5820,7 @@ int buildin_strmobinfo(struct script_state *st)
 			buf=(char *) aCallocA(NAME_LENGTH, sizeof(char));
 //			buf=mob_db[class_].jname;
 // for string assignments you would need to go for c++ [Shinomori]
-			strcpy(buf,mob_db[class_].jname);
+			memcpy(buf,mob_db[class_].jname, NAME_LENGTH);
 			push_str(st->stack,C_STR,(unsigned char *) buf);
 			break;
 		}
@@ -5909,7 +5909,7 @@ int buildin_getitemname(struct script_state *st)
 	}
 	item_name=(char *)aCallocA(ITEM_NAME_LENGTH,sizeof(char));
 
-	strcpy(item_name,i_data->jname);
+	memcpy(item_name, i_data->jname, NAME_LENGTH);
 	push_str(st->stack,C_STR,(unsigned char *) item_name);
 	return 0;
 }
@@ -6491,7 +6491,7 @@ int buildin_getpetinfo(struct script_state *st)
 				{	//Shamelessly copied from strcharinfo() [Skotlex]
 					char *buf;
 					buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-					strcpy(buf,sd->pet.name);
+					memcpy(buf, sd->pet.name, NAME_LENGTH);
 					push_str(st->stack,C_STR,(unsigned char *) buf);
 				}
 				else
@@ -6703,9 +6703,9 @@ int buildin_npctalk(struct script_state *st)
 	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 
 	if(nd) {
-		memcpy(message,nd->name,24);
+		memcpy(message, nd->name, NAME_LENGTH);
 		strcat(message," : ");
-		strcat(message,str);
+		strncat(message,str, 254); //Prevent overflow possibility. [Skotlex]
 		clif_message(&(nd->bl), message);
 	}
 
@@ -6841,7 +6841,7 @@ int buildin_getsavepoint(struct script_state *st)
 
         x=sd->status.save_point.x;
         y=sd->status.save_point.y;
-        strcpy(mapname,sd->status.save_point.map);
+        memcpy(mapname, sd->status.save_point.map, NAME_LENGTH);
         switch(type){
             case 0:
                 push_str(st->stack,C_STR,(unsigned char *) mapname);
@@ -6923,7 +6923,7 @@ int buildin_getmapxy(struct script_state *st){
 
                     x=sd->bl.x;
                     y=sd->bl.y;
-                    strcpy(mapname,sd->mapname);
+                    memcpy(mapname,sd->mapname, NAME_LENGTH);
                     break;
             case 1:                                             //Get NPC Position
                     if( st->end > st->start+6 )
@@ -6938,7 +6938,7 @@ int buildin_getmapxy(struct script_state *st){
 
                     x=nd->bl.x;
                     y=nd->bl.y;
-                    strcpy(mapname,map[nd->bl.m].name);
+                    memcpy(mapname, map[nd->bl.m].name, NAME_LENGTH);
                     break;
             case 2:                                             //Get Pet Position
                     if( st->end>st->start+6 )
@@ -6959,7 +6959,7 @@ int buildin_getmapxy(struct script_state *st){
                     }
                     x=pd->bl.x;
                     y=pd->bl.y;
-                    strcpy(mapname,map[pd->bl.m].name);
+                    memcpy(mapname, map[pd->bl.m].name, NAME_LENGTH);
                     break;
 
             case 3:                                             //Get Mob Position
