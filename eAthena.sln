@@ -56,6 +56,10 @@ Global
 		{D356871D-58E1-450B-967A-E6E9646175AF}.Debug.Build.0 = Debug|Win32
 		{D356871D-58E1-450B-967A-E6E9646175AF}.Release.ActiveCfg = Release|Win32
 	EndGlobalSection
+	GlobalSection(SolutionItems) = postSolution
+		Changelog-SVN.txt = Changelog-SVN.txt
+		README.txt = README.txt
+	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
 	GlobalSection(ExtensibilityAddIns) = postSolution

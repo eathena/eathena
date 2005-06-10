@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="src\common;src\map;src\zlib"
+				AdditionalIncludeDirectories="..\src\common;.;..\src\zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_WIN32;PACKETVER=6;TXT_ONLY;NEW_006b;__WIN32;LOCALZLIB"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
@@ -28,16 +28,16 @@
 				BufferSecurityCheck="TRUE"
 				EnableFunctionLevelLinking="TRUE"
 				DisableLanguageExtensions="FALSE"
-				DefaultCharIsUnsigned="TRUE"
-				TreatWChar_tAsBuiltInType="TRUE"
-				ForceConformanceInForLoopScope="TRUE"
-				RuntimeTypeInfo="TRUE"
+				DefaultCharIsUnsigned="FALSE"
+				TreatWChar_tAsBuiltInType="FALSE"
+				ForceConformanceInForLoopScope="FALSE"
+				RuntimeTypeInfo="FALSE"
 				UsePrecompiledHeader="0"
-				WarningLevel="4"
-				WarnAsError="TRUE"
+				WarningLevel="3"
+				WarnAsError="FALSE"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="4"
-				CompileAs="0"/>
+				CompileAs="2"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -134,6 +134,9 @@
 				RelativePath="..\src\common\db.c">
 			</File>
 			<File
+				RelativePath="..\src\common\dll.c">
+			</File>
+			<File
 				RelativePath="..\src\common\lock.c">
 			</File>
 			<File
@@ -143,7 +146,19 @@
 				RelativePath="..\src\common\malloc.c">
 			</File>
 			<File
-				RelativePath="..\src\login\md5calc.c">
+				RelativePath="..\src\common\md5calc.c">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\common\nullpo.c">

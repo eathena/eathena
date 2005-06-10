@@ -19,16 +19,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\common;;src\zlib"
+				AdditionalIncludeDirectories="..\src\common;.;..\src\zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_WIN32;PACKETVER=6;TXT_ONLY;NEW_006b;__WIN32;LOCALZLIB"
-				GeneratePreprocessedFile="1"
+				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				DebugInformationFormat="4"
+				CompileAs="2"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -125,6 +126,9 @@
 			</File>
 			<File
 				RelativePath="..\src\common\db.c">
+			</File>
+			<File
+				RelativePath="..\src\common\dll.c">
 			</File>
 			<File
 				RelativePath="..\src\char\int_guild.c">

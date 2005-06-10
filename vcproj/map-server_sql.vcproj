@@ -19,16 +19,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\common;..\src\map;..\src\zlib;C:\Program Files\MySQL\MySQL Server 4.1\include"
+				AdditionalIncludeDirectories="..\src\common;..\src\map;..\src\zlib;C:\mysql\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_WIN32;PACKETVER=6;NEW_006b;__WIN32;LOCALZLIB"
-				GeneratePreprocessedFile="1"
+				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				DebugInformationFormat="4"
+				CompileAs="2"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -36,7 +37,7 @@
 				AdditionalDependencies="WSOCK32.lib mysqlclient.lib"
 				OutputFile="..\map-server_sql.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\Program Files\MySQL\MySQL Server 4.1\lib\debug"
+				AdditionalLibraryDirectories="&quot;C:\Program Files\MySQL\MySQL Server 4.1\lib\debug&quot;;C:\mysql\lib\debug"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="..\map-server_sql.pdb"
@@ -121,9 +122,6 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
-				RelativePath="..\src\zlib\adler32.c">
-			</File>
-			<File
 				RelativePath="..\src\map\atcommand.c">
 			</File>
 			<File
@@ -142,34 +140,19 @@
 				RelativePath="..\src\map\clif.c">
 			</File>
 			<File
-				RelativePath="..\src\zlib\compress.c">
-			</File>
-			<File
 				RelativePath="..\src\common\core.c">
-			</File>
-			<File
-				RelativePath="..\src\zlib\crc32.c">
 			</File>
 			<File
 				RelativePath="..\src\common\db.c">
 			</File>
 			<File
-				RelativePath="..\src\zlib\deflate.c">
+				RelativePath="..\src\common\dll.c">
 			</File>
 			<File
-				RelativePath="..\src\map\grfio.c">
+				RelativePath="..\src\common\grfio.c">
 			</File>
 			<File
 				RelativePath="..\src\map\guild.c">
-			</File>
-			<File
-				RelativePath="..\src\zlib\inffast.c">
-			</File>
-			<File
-				RelativePath="..\src\zlib\inflate.c">
-			</File>
-			<File
-				RelativePath="..\src\zlib\inftrees.c">
 			</File>
 			<File
 				RelativePath="..\src\map\intif.c">
@@ -244,16 +227,10 @@
 				RelativePath="..\src\map\trade.c">
 			</File>
 			<File
-				RelativePath="..\src\zlib\trees.c">
-			</File>
-			<File
 				RelativePath="..\src\common\utils.c">
 			</File>
 			<File
 				RelativePath="..\src\map\vending.c">
-			</File>
-			<File
-				RelativePath="..\src\zlib\zutil.c">
 			</File>
 		</Filter>
 		<Filter
