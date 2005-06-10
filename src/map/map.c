@@ -1711,7 +1711,7 @@ int map_foreachiddb(int (*func)(void*,void*,va_list),...) {
 }
 
 /*==========================================
- * map.npcÇ÷í«â¡ (warpìôÇÃóÃàÊéùÇøÇÃÇ›)
+ * Add an NPC to a map
  *------------------------------------------
  */
 int map_addnpc(int m,struct npc_data *nd) {
@@ -1757,6 +1757,64 @@ void map_removenpc(void) {
 
 	sprintf(tmp_output,"Successfully removed and freed from memory '"CL_WHITE"%d"CL_RESET"' NPCs.\n",n);
 	ShowStatus(tmp_output);
+}
+
+/*==========================================
+ * Add an area script to a map
+ *------------------------------------------
+ */
+int map_addareascript(int m,struct areascript_data *ad) {
+	int i;
+	if(m<0 || m>=map_num)
+		return -1;
+	for(i=0;i<map[m].areascript_num && i<MAX_AREASCRIPT_PER_MAP;i++)
+		if(map[m].areascript[i]==NULL)
+			break;
+	if(i==MAX_AREASCRIPT_PER_MAP){
+		if(battle_config.error_log)
+			printf("too many area scripts in one map %s\n",map[m].name);
+		return -1;
+	}
+	if(i==map[m].areascript_num){
+		map[m].areascript_num++;
+	}
+
+	nullpo_retr(0, ad);
+
+	map[m].areascript[i]=ad;
+	ad->n = i;
+	numdb_insert(id_db,ad->bl.id,ad);
+
+	return i;
+}
+
+/*==========================================
+ * Add a warp to a map
+ *------------------------------------------
+ */
+int map_addwarp(int m,struct warp_data *wd) {
+	int i;
+	if(m<0 || m>=map_num)
+		return -1;
+	for(i=0;i<map[m].warp_num && i<MAX_WARP_PER_MAP;i++)
+		if(map[m].warp[i]==NULL)
+			break;
+	if(i==MAX_WARP_PER_MAP){
+		if(battle_config.error_log)
+			printf("too many warps in one map %s\n",map[m].name);
+		return -1;
+	}
+	if(i==map[m].warp_num){
+		map[m].warp_num++;
+	}
+
+	nullpo_retr(0, wd);
+
+	map[m].warp[i]=wd;
+	wd->n = i;
+	numdb_insert(id_db,wd->bl.id,wd);
+
+	return i;
 }
 
 /*=========================================
@@ -2040,8 +2098,10 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 			return (type==5);
 		case CELL_GETTYPE:
 			return type;
-		case CELL_CHKNPC:
-			return (type&CELL_NPC);
+		case CELL_CHKSCRIPT:
+			return (type&CELL_SCRIPT);
+		case CELL_CHKWARP:
+			return (type&CELL_WARP);
 		case CELL_CHKBASILICA:
 			return (type&CELL_BASILICA);
 		case CELL_CHKREGEN:
@@ -2063,8 +2123,11 @@ void map_setcell(int m,int x,int y,int cell)
 	j=x+y*map[m].xs;
 
 	switch (cell) {
-		case CELL_SETNPC:
-			map[m].gat[j] |= CELL_NPC;
+		case CELL_SETSCRIPT:
+			map[m].gat[j] |= CELL_SCRIPT;
+			break;
+		case CELL_SETWARP:
+			map[m].gat[j] |= CELL_WARP;
 			break;
 		case CELL_SETBASILICA:
 			map[m].gat[j] |= CELL_BASILICA;
@@ -3324,6 +3387,12 @@ int cleanup_sub(struct block_list *bl, va_list ap) {
 			break;
 		case BL_NPC:
 			npc_unload((struct npc_data *)bl);
+			break;
+		case BL_WARP:
+			warp_unload((struct warp_data *)bl);
+			break;
+		case BL_AREASCRIPT:
+			areascript_unload((struct areascript_data *)bl);
 			break;
 		case BL_MOB:
 			mob_unload((struct mob_data *)bl);

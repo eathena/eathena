@@ -1,4 +1,10 @@
 Date	Added
+06/10
+	* Major modifications [DracoRPG]
+	  - Entirely rewrote how NPCs/area scripts/warps are managed, now they are really
+	  different objects (different data struct, different block list types, etc)
+	  - Added buildin functions addnpc, addareascript and addwarp
+	  - It compiles with warnings, and those functions crash the map-server, I know! :p
 06/06
 	* Added untested addnpc build-in function, rearranged code here and there [DracoRPG]
 	* Rewrote most of functions, now script_run_chunk works and script_run_function can take

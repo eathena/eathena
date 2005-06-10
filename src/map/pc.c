@@ -3490,10 +3490,12 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 			}
 		}
 
-/*		if (map_getcell(sd->bl.m,x,y,CELL_CHKNPC))
-			npc_touch_areanpc(sd,sd->bl.m,x,y);
-		else
-			sd->areanpc_id = 0;*/
+	if(map_getcell(sd->bl.m,x,y,CELL_CHKSCRIPT))
+		npc_touch_areascript(sd,sd->bl.m,x,y);
+	else
+		sd->areanpc_id=0;
+	if(map_getcell(sd->bl.m,x,y,CELL_CHKWARP))
+		npc_touch_warp(sd,sd->bl.m,x,y);
 	}
 
 	if ((i = calc_next_walk_step(sd)) > 0) {
@@ -3683,10 +3685,12 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y)
 	if(sd->status.option&4)	// ƒNƒ?ƒLƒ“ƒO‚ÌÁ–Å?¸
 		skill_check_cloaking(&sd->bl);
 
-/*	if(map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKNPC))
-		npc_touch_areanpc(sd,sd->bl.m,sd->bl.x,sd->bl.y);
+	if(map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKSCRIPT))
+		npc_touch_areascript(sd,sd->bl.m,sd->bl.x,sd->bl.y);
 	else
-		sd->areanpc_id=0;*/
+		sd->areanpc_id=0;
+	if(map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKWARP))
+		npc_touch_warp(sd,sd->bl.m,sd->bl.x,sd->bl.y);
 	return 0;
 }
 

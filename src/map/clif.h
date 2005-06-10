@@ -50,6 +50,7 @@ int clif_clearchar_delay(unsigned int,struct block_list *,int);
 int clif_clearchar_id(int,int,int);
 int clif_spawnpc(struct map_session_data*);	//area
 int clif_spawnnpc(struct npc_data*);	// area
+int clif_spawnwarp(struct warp_data*);	// area
 int clif_spawnmob(struct mob_data*);	// area
 int clif_spawnpet(struct pet_data*);	// area
 int clif_walkok(struct map_session_data*);	// self

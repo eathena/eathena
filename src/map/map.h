@@ -13,6 +13,8 @@
 #define PC_CLASS_BASE2 (PC_CLASS_BASE + 4001)
 #define PC_CLASS_BASE3 (PC_CLASS_BASE2 + 22)
 #define MAX_NPC_PER_MAP 512
+#define MAX_WARP_PER_MAP 512
+#define MAX_AREASCRIPT_PER_MAP 512
 #define BLOCK_SIZE 8 // Never zero
 #define AREA_SIZE battle_config.area_size
 #define LOCAL_REG_NUM 16
@@ -42,8 +44,8 @@
 
 #define OPTION_HIDE 0x40
 
-enum { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL , BL_PET };
-enum { WARP, AREASCRIPT, NPC, MONS };
+enum { BL_NUL, BL_PC, BL_NPC, BL_WARP, BL_AREASCRIPT, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL , BL_PET };
+enum { MONS };
 
 struct block_list {
 	struct block_list *next,*prev;
@@ -151,7 +153,6 @@ struct skill_timerskill {
 	int flag;
 };
 
-struct npc_data;
 struct pet_db;
 struct item_data;
 struct square;
@@ -407,10 +408,14 @@ struct npc_data {
 	struct block_list bl;
 	short n; // Index of the NPC on the map
 	char name[24]; // Display name
-	char exname[24]; // Name postfix
+	char exname[24]; // Undisplayed name postfix
+	short flag; // Hidden/disabled flag
+	char function[50]; // Lua function to call when clicked
 	short class_,dir; // Sprite and direction
 	short opt1,opt2,opt3,option; // Visual options
-	short flag; // Hidden flag
+	int guild_id; // Guild ID (for guild flags)
+	int chat_id; // Chatroom ID (for waiting room NPCs)
+	short speed;
 	void *chatdb;
 
 	struct { // [Valaris]
@@ -418,23 +423,25 @@ struct npc_data {
 		unsigned change_walk_target : 1;
 		unsigned walk_easy : 1;
 	} state;
+};
 
-	union {
-		struct {
-			char function[50]; // Lua function to call when clicked
-			int guild_id; // Guild ID (for guild flags)
-			int chat_id; // Chatroom ID (for waiting room NPCs)
-		} npc;
-		struct {
-			char function[50]; // Lua function to call when entered
-			short x1,y1,x2,y2; // 2 corners of the square trigger area
-		} areascript;
-		struct {
-			short xs,ys; // Radius
-			short destx,desty; // Destination coordinates
-			char destmap[16]; // Destination map
-		} warp;
-	} spec;
+struct areascript_data {
+	struct block_list bl;
+	short n; // Index of the NPC on the map
+	char name[24]; // Name
+	short flag; // Hidden/disabled flag
+	char function[50]; // Lua function to call when entered
+	short x1,y1,x2,y2; // 2 corners of the square trigger area
+};
+
+struct warp_data {
+	struct block_list bl;
+	short n; // Index of the NPC on the map
+	char name[24]; // Name
+	short flag; // Hidden/disabled flag
+	char destmap[16]; // Destination map
+	short destx,desty; // Destination coordinates
+	short xs,ys; // Radius
 };
 
 struct mob_data {
@@ -607,8 +614,14 @@ struct map_data {
 	int m;
 	short xs,ys;
 	short bxs,bys;
-	int npc_num;
 	int users;
+	int npc_num;
+	int warp_num;
+	int areascript_num;
+	struct point save;
+	struct npc_data *npc[MAX_NPC_PER_MAP];
+	struct warp_data *warp[MAX_WARP_PER_MAP];
+	struct areascript_data *areascript[MAX_AREASCRIPT_PER_MAP];
 	struct {
 		unsigned alias : 1;
 		unsigned nomemo : 1;
@@ -647,8 +660,6 @@ struct map_data {
 		unsigned nomobloot	: 1; // [Lorky]
 		unsigned nomvploot	: 1; // [Lorky]
 	} flag;
-	struct point save;
-	struct npc_data *npc[MAX_NPC_PER_MAP];
 	struct {
 		int drop_id;
 		int drop_type;
@@ -733,9 +744,10 @@ enum {
 
 // CELL
 #define CELL_MASK		0x0f
-#define CELL_NPC		0x80	// NPCセル
-#define CELL_BASILICA	0x40	// BASILICAセル
-#define CELL_REGEN		0x20
+#define CELL_SCRIPT		0x80	// Area script cell
+#define CELL_WARP		0x40	// Warp cell
+#define CELL_BASILICA	0x20	// Basilica cell
+#define CELL_REGEN		0x10    // Improved regeneration cell
 #define CELL_PEACE
 #define CELL_PCONLY
 /*
@@ -748,13 +760,15 @@ typedef enum {
 	CELL_CHKPASS,		// 通過可能(セルタイプ1,5以外)
 	CELL_CHKNOPASS,		// 通過不可(セルタイプ1,5)
 	CELL_GETTYPE,		// セルタイプを返す
-	CELL_CHKNPC=0x10,	// タッチタイプのNPC(セルタイプ0x80フラグ)
+	CELL_CHKSCRIPT=0x10,	// cells that activate area scripts
+	CELL_CHKWARP,		// cells that contain warps
 	CELL_CHKBASILICA,	// バジリカ(セルタイプ0x40フラグ)
 	CELL_CHKREGEN,		// cells that improve regeneration
 } cell_t;
 // map_setcell()で使用されるフラグ
 enum {
-	CELL_SETNPC=0x10,	// タッチタイプのNPCをセット
+	CELL_SETSCRIPT=0x10,	// cells that activate area scripts
+	CELL_SETWARP,		// cells that contain warps
 	CELL_SETBASILICA,	// バジリカをセット
 	CELL_CLRBASILICA,	// バジリカをクリア
 	CELL_SETREGEN,		// set regen cell
@@ -827,6 +841,8 @@ void map_foreachobject(int (*)(struct block_list*,va_list),int,...);
 int map_quit(struct map_session_data *);
 // npc
 int map_addnpc(int,struct npc_data *);
+int map_addareascript(int,struct areascript_data *);
+int map_addwarp(int,struct warp_data *);
 
 // 床アイテム関連
 int map_clearflooritem_timer(int,unsigned int,int,int);

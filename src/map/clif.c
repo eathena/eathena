@@ -1089,7 +1089,7 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 }
 
 /*==========================================
- *
+ * NPC display
  *------------------------------------------
  */
 static int clif_npc0078(struct npc_data *nd, unsigned char *buf) {
@@ -1101,9 +1101,9 @@ static int clif_npc0078(struct npc_data *nd, unsigned char *buf) {
 
 	WBUFW(buf,0)=0x78;
 	WBUFL(buf,2)=nd->bl.id;
-//	WBUFW(buf,6)=nd->speed;
+	WBUFW(buf,6)=nd->speed;
 	WBUFW(buf,14)=nd->class_;
-	if ((nd->class_ == 722) && (nd->spec.npc.guild_id > 0) && ((g=guild_search(nd->spec.npc.guild_id)) != NULL)) {
+	if ((nd->class_ == 722) && (nd->guild_id > 0) && ((g=guild_search(nd->guild_id)) != NULL)) {
 		WBUFL(buf,22)=g->emblem_id;
 		WBUFL(buf,26)=g->guild_id;
 	}
@@ -1125,13 +1125,12 @@ static int clif_npc007b(struct npc_data *nd, unsigned char *buf) {
 
 	WBUFW(buf,0)=0x7b;
 	WBUFL(buf,2)=nd->bl.id;
-//	WBUFW(buf,6)=nd->speed;
+	WBUFW(buf,6)=nd->speed;
 	WBUFW(buf,14)=nd->class_;
-	if ((nd->class_ == 722) && (nd->spec.npc.guild_id > 0) && ((g=guild_search(nd->spec.npc.guild_id)) != NULL)) {
+	if ((nd->class_ == 722) && (nd->guild_id > 0) && ((g=guild_search(nd->guild_id)) != NULL)) {
 		WBUFL(buf,22)=g->emblem_id;
 		WBUFL(buf,26)=g->guild_id;
 	}
-
 	WBUFL(buf,22)=gettick();
 //	WBUFPOS2(buf,50,nd->bl.x,nd->bl.y,nd->to_x,nd->to_y);
 	WBUFB(buf,56)=5;
@@ -1141,7 +1140,29 @@ static int clif_npc007b(struct npc_data *nd, unsigned char *buf) {
 }
 
 /*==========================================
- *
+ * Warp display
+ *------------------------------------------
+ */
+static int clif_warp0078(struct warp_data *wd, unsigned char *buf) {
+
+	nullpo_retr(0, wd);
+
+	memset(buf,0,packet_len_table[0x78]);
+
+	WBUFW(buf,0)=0x78;
+	WBUFL(buf,2)=wd->bl.id;
+	WBUFW(buf,6)=DEFAULT_WALK_SPEED;
+	WBUFW(buf,14)=battle_config.warp_point_debug?WARP_DEBUG_CLASS:WARP_CLASS;
+	WBUFPOS(buf,46,wd->bl.x,wd->bl.y);
+	WBUFB(buf,48)|=0;
+	WBUFB(buf,49)=5;
+	WBUFB(buf,50)=5;
+
+	return packet_len_table[0x78];
+}
+
+/*==========================================
+ * Pet display
  *------------------------------------------
  */
 static int clif_pet0078(struct pet_data *pd, unsigned char *buf) {
@@ -1342,7 +1363,7 @@ int clif_spawnpc(struct map_session_data *sd) {
 }
 
 /*==========================================
- *
+ * NPC display
  *------------------------------------------
  */
 int clif_spawnnpc(struct npc_data *nd)
@@ -1352,14 +1373,14 @@ int clif_spawnnpc(struct npc_data *nd)
 
 	nullpo_retr(0, nd);
 
-	if(nd->class_ < 0 || nd->flag&1 || nd->class_ == INVISIBLE_CLASS)
-		return 0;
+	if(nd->flag&1 || nd->class_ < 0 || nd->class_ == INVISIBLE_CLASS)
+		return 0; // Don't display hidden/disabled/invisible NPCs to client
 
 	memset(buf,0,packet_len_table[0x7c]);
 
 	WBUFW(buf,0)=0x7c;
 	WBUFL(buf,2)=nd->bl.id;
-//	WBUFW(buf,6)=nd->speed;
+	WBUFW(buf,6)=nd->speed;
 	WBUFW(buf,20)=nd->class_;
 	WBUFPOS(buf,36,nd->bl.x,nd->bl.y);
 
@@ -1367,6 +1388,33 @@ int clif_spawnnpc(struct npc_data *nd)
 
 	len = clif_npc0078(nd,buf);
 	clif_send(buf,len,&nd->bl,AREA);
+
+	return 0;
+}
+
+/*==========================================
+ * Warp display
+ *------------------------------------------
+ */
+int clif_spawnwarp(struct warp_data *wd)
+{
+	unsigned char buf[64];
+	int len;
+
+	nullpo_retr(0, wd);
+
+	memset(buf,0,packet_len_table[0x7c]);
+
+	WBUFW(buf,0)=0x7c;
+	WBUFL(buf,2)=wd->bl.id;
+	WBUFW(buf,6)=DEFAULT_WALK_SPEED;
+	WBUFW(buf,20)=battle_config.warp_point_debug?WARP_DEBUG_CLASS:WARP_CLASS;
+	WBUFPOS(buf,36,wd->bl.x,wd->bl.y);
+
+	clif_send(buf,packet_len_table[0x7c],&wd->bl,AREA);
+
+	len = clif_warp0078(wd,buf);
+	clif_send(buf,len,&wd->bl,AREA);
 
 	return 0;
 }
@@ -1409,8 +1457,6 @@ int clif_spawnmob(struct mob_data *md)
 
 	return 0;
 }
-
-// pet
 
 /*==========================================
  *
@@ -3605,8 +3651,9 @@ void clif_getareachar_npc(struct map_session_data* sd,struct npc_data* nd)
 	int len;
 	nullpo_retv(sd);
 	nullpo_retv(nd);
-	if(nd->class_ < 0 || nd->flag&1 || nd->class_ == INVISIBLE_CLASS)
-		return;
+	if(nd->flag&1 || nd->class_ < 0 || nd->class_ == INVISIBLE_CLASS)
+		return; // Don't display hidden/disabled/invisible NPCs to client
+
 	if(nd->state.state == MS_WALK){
 		len = clif_npc007b(nd,WFIFOP(sd->fd,0));
 		WFIFOSET(sd->fd,len);
@@ -3614,9 +3661,23 @@ void clif_getareachar_npc(struct map_session_data* sd,struct npc_data* nd)
 	len = clif_npc0078(nd,WFIFOP(sd->fd,0));
 	WFIFOSET(sd->fd,len);
 	}
-	if(nd->spec.npc.chat_id){
-		clif_dispchat((struct chat_data*)map_id2bl(nd->spec.npc.chat_id),sd->fd);
+	if(nd->chat_id){
+		clif_dispchat((struct chat_data*)map_id2bl(nd->chat_id),sd->fd);
 	}
+}
+
+/*==========================================
+ * Warp display
+ *------------------------------------------
+ */
+void clif_getareachar_warp(struct map_session_data* sd,struct warp_data* nd)
+{
+	int len;
+	nullpo_retv(sd);
+	nullpo_retv(nd);
+
+	len = clif_warp0078(nd,WFIFOP(sd->fd,0));
+	WFIFOSET(sd->fd,len);
 }
 
 /*==========================================
@@ -3980,6 +4041,11 @@ int clif_01ac(struct block_list *bl)
 	case BL_NPC:
 		clif_getareachar_npc(sd,(struct npc_data*) bl);
 		break;
+	case BL_WARP:
+		clif_getareachar_warp(sd,(struct warp_data*) bl);
+		break;
+	case BL_AREASCRIPT:
+		break;
 	case BL_MOB:
 		clif_getareachar_mob(sd,(struct mob_data*) bl);
 		break;
@@ -4030,9 +4096,12 @@ int clif_pcoutsight(struct block_list *bl,va_list ap)
 		}
 		break;
 	case BL_NPC:
-		if( ((struct npc_data *)bl)->class_ != INVISIBLE_CLASS )
+        	if(!((struct npc_data *)bl)->flag&1 && ((struct npc_data *)bl)->class_ >= 0 && ((struct npc_data *)bl)->class_ != INVISIBLE_CLASS)
 			clif_clearchar_id(bl->id,0,sd->fd);
 		break;
+    case BL_AREASCRIPT:
+		break;
+	case BL_WARP:
 	case BL_MOB:
 	case BL_PET:
 		clif_clearchar_id(bl->id,0,sd->fd);
@@ -4069,6 +4138,11 @@ int clif_pcinsight(struct block_list *bl,va_list ap)
 		break;
 	case BL_NPC:
 		clif_getareachar_npc(sd,(struct npc_data*)bl);
+		break;
+	case BL_WARP:
+		clif_getareachar_warp(sd,(struct warp_data*) bl);
+		break;
+	case BL_AREASCRIPT:
 		break;
 	case BL_MOB:
 		clif_getareachar_mob(sd,(struct mob_data*)bl);
@@ -7613,7 +7687,6 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 
 	// Ú‘±okŽž
 	//clif_authok();
-	if(sd->npc_id) npc_event_dequeue(sd);
 	clif_skillinfoblock(sd);
 	pc_checkitem(sd);
 	//guild_info();
@@ -9977,8 +10050,6 @@ void clif_parse_VendingListReq(int fd, struct map_session_data *sd) {
 	nullpo_retv(sd);
 
 	vending_vendinglistreq(sd,RFIFOL(fd,2));
-	if(sd->npc_id)
-		npc_event_dequeue(sd);
 }
 
 /*==========================================

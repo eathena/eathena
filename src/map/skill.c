@@ -6635,14 +6635,12 @@ static int skill_check_condition_mob_master_sub(struct block_list *bl,va_list ap
 static int skill_check_condition_hermod_sub(struct block_list *bl,va_list ap)
 {
 	int *c;
-	struct npc_data *nd;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
-	nullpo_retr(0, nd=(struct npc_data*)bl);
 	nullpo_retr(0, c=va_arg(ap,int *));
 
-	if (nd->bl.subtype == WARP)
+	if (bl->type == BL_WARP)
 		(*c)++;
 	return 0;
 }
@@ -6961,7 +6959,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		{
 			int c = 0;
 			map_foreachinarea (skill_check_condition_hermod_sub, sd->bl.m,
-				sd->bl.x-3, sd->bl.y-3, sd->bl.x+3, sd->bl.y+3, BL_NPC, &c);
+				sd->bl.x-3, sd->bl.y-3, sd->bl.x+3, sd->bl.y+3, BL_WARP, &c);
 			if (c < 1) {
 				clif_skill_fail(sd,skill,0,0);
 				return 0;

@@ -90,11 +90,6 @@ void trade_tradeack(struct map_session_data *sd, int type) {
 			sd->deal_weight = 0;
 			target_sd->deal_weight = 0;
 		}
-		
-		if (sd->npc_id != 0)
-			npc_event_dequeue(sd);
-		if (target_sd->npc_id != 0)
-			npc_event_dequeue(target_sd);
 
 		//close STORAGE window if it's open. It protects from spooffing packets [Lupus]
 		stor=account2storage2(sd->status.account_id);

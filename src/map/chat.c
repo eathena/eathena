@@ -290,7 +290,7 @@ int chat_createnpcchat(struct npc_data *nd,int limit,int pub,int trigger,char* t
 		aFree(cd);
 		return 0;
 	}
-	nd->spec.npc.chat_id=cd->bl.id;
+	nd->chat_id=cd->bl.id;
 
 	clif_dispchat(cd,0);
 
@@ -305,12 +305,12 @@ int chat_deletenpcchat(struct npc_data *nd)
 	struct chat_data *cd;
 
 	nullpo_retr(0, nd);
-	nullpo_retr(0, cd=(struct chat_data*)map_id2bl(nd->spec.npc.chat_id));
+	nullpo_retr(0, cd=(struct chat_data*)map_id2bl(nd->chat_id));
 
 	chat_npckickall(cd);
 	clif_clearchat(cd,0);
 	map_delobject(cd->bl.id);	// free‚Ü‚Å‚µ‚Ä‚­‚ê‚é
-	nd->spec.npc.chat_id=0;
+	nd->chat_id=0;
 
 	return 0;
 }

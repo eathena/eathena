@@ -12,13 +12,9 @@
 void npc_chat_finalize(struct npc_data *nd);
 #endif
 int npc_chat_sub(struct block_list *bl, va_list ap);
-int npc_event_dequeue(struct map_session_data *sd);
-int npc_event_timer(int tid,unsigned int tick,int id,int data);
-int npc_event(struct map_session_data *sd,const char *npcname,int);
-int npc_timer_event(const char *eventname);				// Added by RoVeRT
-int npc_command(struct map_session_data *sd,char *npcname,char *command);
-int npc_touch_areanpc(struct map_session_data *,int,int,int);
 int npc_click(struct map_session_data *,int);
+int npc_touch_areascript(struct map_session_data *,int,int,int);
+int npc_touch_warp(struct map_session_data *,int,int,int);
 int npc_scriptcont(struct map_session_data *,int);
 int npc_checknear(struct map_session_data *,int);
 int npc_buysellsel(struct map_session_data *,int,int);
@@ -26,7 +22,6 @@ int npc_buylist(struct map_session_data *,int,unsigned short *);
 int npc_selllist(struct map_session_data *,int,unsigned short *);
 int npc_parse_mob(char *w1,char *w2,char *w3,char *w4);
 int npc_parse_mob2 (struct mob_list *, int cached); // [Wizputer]
-int npc_parse_warp(char *w1,char *w2,char *w3,char *w4);
 int npc_globalmessage(const char *name,char *mes);
 
 int npc_enable(const char *name,int flag);
@@ -44,8 +39,12 @@ void npc_parsesrcfile(char *);
 int do_final_npc(void);
 int do_init_npc(void);
 
-int npc_remove_map(struct npc_data *nd);
+int npc_add(char *,char *,short,short,short,short,short,char *);
+int areascript_add (char *,short,short,short,short,short,char *);
+int warp_add (char *,short,short,short,char *,short,short,short,short);
 int npc_unload(struct npc_data *nd);
+int warp_unload(struct warp_data *wd);
+int areascript_unload(struct areascript_data *ad);
 int npc_reload(void);
 
 extern char *current_file;

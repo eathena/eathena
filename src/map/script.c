@@ -63,8 +63,9 @@ lua_State *L; // [DracoRPG]
  *
  *===================================================================
  */
-
-static int somemath() // Return sum and average XD
+ 
+// Return sum and average XD
+static int somemath()
 {
 	int n = lua_gettop(L);
 	lua_Number sum = 0;
@@ -81,43 +82,86 @@ static int somemath() // Return sum and average XD
 	return 2;
 }
 
+// addnpc("NPC name","name postfix","map.gat",x,y,dir,sprite,"function")
+// Add an standard NPC that triggers a function when clicked
 static int addnpc()
 {
-	int m=map_mapname2mapid((char*)lua_tostring(L,-6));
-    struct npc_data *nd=(struct npc_data *)aCalloc(1, sizeof(struct npc_data));
+	char *name,*exname,*map;
+	short m,x,y,dir,class_;
+	char *function;
+	
+	name=lua_tostring(L,1);
+	exname=lua_tostring(L,2);
+	map=lua_tostring(L,3);
+	m=map_mapname2mapid(map);
+	x=lua_tonumber(L,4);
+	y=lua_tonumber(L,5);
+	dir=lua_tonumber(L,6);
+	class_=lua_tonumber(L,7);
+	function=lua_tostring(L,8);
 
-	nd->bl.prev=nd->bl.next=NULL;
-	nd->bl.m=m;
-	nd->bl.x=lua_tonumber(L,-5);
-	nd->bl.y=lua_tonumber(L,-4);
-	nd->bl.id=npc_get_new_npc_id();
-	nd->bl.type=BL_NPC;
-	nd->bl.subtype=NPC;
-	memcpy(nd->name,lua_tostring(L,-7),24);
-	memcpy(nd->exname,lua_tostring(L,-7),24);
-	nd->dir=lua_tonumber(L,-3);
-	nd->class_=lua_tonumber(L,-2);
-	nd->flag=0;
-	nd->option=0;
-	nd->opt1=nd->opt2=nd->opt3=0;
-	memcpy(nd->spec.npc.function,lua_tostring(L,-1),50);
-	nd->spec.npc.guild_id = 0;
-	nd->spec.npc.chat_id = 0;
+	npc_add(name,exname,m,x,y,dir,class_,function);
 
-	nd->n = map_addnpc(m,nd);
-	map_addblock(&nd->bl);
+	return 0;
+}
 
-	return nd->n;
+// addareascript("Area script name","map.gat",x1,y1,x2,y2,"function")
+// Add an invisible area that triggers a function when entered
+static int addareascript()
+{
+    char *name,*map;
+	short m,x1,y1,x2,y2;
+	char *function;
+
+	name=lua_tostring(L,1);
+	map=lua_tostring(L,2);
+	m=map_mapname2mapid(map);
+	x1=(lua_tonumber(L,5)>lua_tonumber(L,3))?lua_tonumber(L,3):lua_tonumber(L,5);
+	y1=(lua_tonumber(L,6)>lua_tonumber(L,4))?lua_tonumber(L,4):lua_tonumber(L,6);
+	x2=(lua_tonumber(L,5)>lua_tonumber(L,3))?lua_tonumber(L,5):lua_tonumber(L,3);
+	y2=(lua_tonumber(L,6)>lua_tonumber(L,4))?lua_tonumber(L,6):lua_tonumber(L,4);
+	function=lua_tostring(L,7);
+
+	areascript_add(name,m,x1,y1,x2,y2,function);
+
+	return 0;
+}
+
+// addwarp("Warp name","map.gat",x,y,"destmap.gat",destx,desty,xradius,yradius)
+// Add a warp that moves players to somewhere else when entered
+static int addwarp()
+{
+	char *name,*map;
+	short m,x,y;
+	char *destmap;
+	short destx,desty,xs,ys;
+	
+	name=lua_tostring(L,1);
+	map=lua_tostring(L,2);
+	m=map_mapname2mapid(map);
+	x=lua_tonumber(L,3);
+	y=lua_tonumber(L,4);
+	destmap=lua_tostring(L,5);
+	destx=lua_tonumber(L,6);
+	desty=lua_tonumber(L,7);
+	xs=lua_tonumber(L,8);
+	ys=lua_tonumber(L,9);
+
+	warp_add(name,m,x,y,destmap,destx,desty,xs,ys);
+
+	return 0;
 }
 
 //List of commands to build into lua
 static struct LuaCommandInfo commands[] = {
 	{"somemath", somemath},
 	{"addnpc", addnpc},
-/*	{"addareascript", addareascript},
-	{"addgmcommand", addgmcommand},
+	{"addareascript", addareascript},
+	{"addwarp", addwarp},
+/*	{"addgmcommand", addgmcommand},
 	{"addtimer", addtimer},
-	{"addevent", addevent},*/
+	{"addevent", addevent},
+	{"addmapflag", addmapflag},*/
 	{"-End of list-", NULL},
 };
 
@@ -132,14 +176,14 @@ void script_buildin_commands()
 {
 	int i=0;
 
-	ShowInfo("Registering lua commands...\n",i);
+	ShowInfo("Registering Lua commands...\n",i);
 	while(commands[i].command != "-End of list-") {
 		lua_pushstring(L, commands[i].command);
         lua_pushcfunction(L, commands[i].f);
         lua_settable(L, LUA_GLOBALSINDEX);
         i++;
     }
-	ShowInfo("Successfully registered %d commands!!!!!\n",i);
+	ShowInfo("Successfully registered %d commands.\n",i);
 }
 
 // Runs a Lua function that was previously loaded, specifying the type of arguments with a "format" string
