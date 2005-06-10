@@ -1,9 +1,14 @@
 Date	Added
 06/10
 	* Completely overhauled SQL guild code to use innodb type tables
-	  unfortunately, old guild tables are not compatible, you will 
-	  wipe your current guild tables and run 
-	  guild_tables.sql to create new guild tables. [Aru and CuteBoi]
+	  unfortunately, old guild tables are not compatible.
+	  If you don't mind the data loss, wipe your current guild 
+	  tables and run guild_tables.sql to create new guild tables. 
+	  [Aru and CuteBoi]
+	* If you want to manually convert your old guild tables, you'll
+	  need to add the foreign keys from guild_tables.sql to the 
+	  databases. And add the `char_id` field to the guild table.
+	  Its value needs to be the char_id of the guildmaster [Aru]
 06/09
 	* Fixed a possible null_po in clif.c:7714 caused by lagged clients [Skotlex]
 	* Fixed enemy damage_delay being modified by 400 instead of 100. [Skotlex]
