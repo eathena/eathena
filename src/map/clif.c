@@ -7714,7 +7714,11 @@ int clif_charnameack (int fd, struct block_list *bl)
 	nullpo_retr(0, bl);
 
 	WBUFW(buf,0) = cmd;
-	WBUFL(buf,2) = bl->id;
+
+	if(bl->type==BL_PC && ((struct map_session_data *)bl)->disguise)
+		WBUFL(buf,2) = -bl->id;
+	else
+		WBUFL(buf,2) = bl->id;
 
 	switch(bl->type) {
 	case BL_PC:

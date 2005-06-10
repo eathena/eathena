@@ -1,5 +1,6 @@
 Date	Added
 06/10
+	* Fixed names with disguises (I tested it. It works. No more bitching. :P). [Valaris]
 	* Completely overhauled SQL guild code to use innodb type tables
 	  unfortunately, old guild tables are not compatible.
 	  If you don't mind the data loss, wipe your current guild 
