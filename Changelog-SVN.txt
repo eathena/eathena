@@ -1,4 +1,6 @@
 Date	Added
+06/10
+	* Login_sql will now compile on VC.net 2003. Just prepare the appropriate conf files and run. [davidsiaw]
 06/08
 	* Updated idle time considerations. [Skotlex]
 	  A character's idle time is reset upon: Walking, attacking (auto-attack
