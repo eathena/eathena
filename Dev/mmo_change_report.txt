@@ -12,4 +12,8 @@ Thx Sirius
 
 
 Date / Changed(Added)
-
+10/June: Use NAME_LENGTH instead of 24 if you are gonna use any name-length
+checking. Also, that number 24... actually means 23 characters + null
+terminator. I believe RO actually allows for 24 characters in their names, so
+it needs to be changed to 25 (and will do so after I update all the code all
+over the place to use NAME_LENGTH instead of hard-coded 23/24's)

@@ -6525,14 +6525,15 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 	nullpo_retr(0, tsd=(struct map_session_data*)src);
 	nullpo_retr(0, c=va_arg(ap,int *));
 	skillid = va_arg(ap,int);
-
+	
 	s_class = pc_calc_base_job(sd->status.class_);
 	//チェックしない設定ならcにありえない大きな?字を返して終了
+	/* This check is done before even calling the function. [Skotlex]
 	if (!battle_config.player_skill_partner_check) {	//本?はforeachの前にやりたいけど設定適用箇所をまとめるためにここへ
 		(*c) = 99;
 		return 0;
 	}
-
+	*/
 	if (bl == src)
 		return 0;
 
@@ -6599,11 +6600,12 @@ static int skill_check_condition_use_sub(struct block_list *bl,va_list ap)
 	s_class = pc_calc_base_job(sd->status.class_);
 
 	//チェックしない設定ならcにありえない大きな?字を返して終了
+	/* Unneeded here, check is done before calling function [Skotlex]
 	if(!battle_config.player_skill_partner_check){	//本?はforeachの前にやりたいけど設定適用箇所をまとめるためにここへ
 		(*c)=99;
 		return 0;
 	}
-
+	*/
 	ss_class = pc_calc_base_job(ssd->status.class_);
 	skillid=ssd->skillid;
 	skilllv=ssd->skilllv;
@@ -6900,18 +6902,21 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		{
 			int range = 1;
 			int c = 0;
+			if (!battle_config.player_skill_partner_check)
+				break; //No need to do any partner checking [Skotlex]
+			
 			if  (!(type & 1)) {
 				map_foreachinarea(skill_check_condition_char_sub, sd->bl.m,
-					sd->bl.x-range, sd->bl.y-range,
-					sd->bl.x+range, sd->bl.y+range, BL_PC, &sd->bl, &c, skill);
+					sd->bl.x-range, sd->bl.y-range, sd->bl.x+range,
+					sd->bl.y+range, BL_PC, &sd->bl, &c, skill);
 				if (c < 2) {
 					clif_skill_fail(sd,skill,0,0);
 					return 0;
 				}
 			} else {
 				map_foreachinarea (skill_check_condition_use_sub, sd->bl.m,
-					sd->bl.x-range, sd->bl.y-range,
-					sd->bl.x+range, sd->bl.y+range, BL_PC, &sd->bl, &c);
+					sd->bl.x-range, sd->bl.y-range, sd->bl.x+range,
+					sd->bl.y+range, BL_PC, &sd->bl, &c);
 			}
 		}
 		break;
@@ -7423,21 +7428,21 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	case BD_RAGNAROK:				/* 神?の?昏 */
 	case CG_MOONLIT:				/* 月明りの泉に落ちる花びら */
 		{
-			int range = 1;
-			int c = 0;
-			map_foreachinarea (skill_check_condition_char_sub, sd->bl.m,
-				sd->bl.x-range, sd->bl.y-range,
-				sd->bl.x+range, sd->bl.y+range, BL_PC, &sd->bl, &c, skill_num);
-			if (c < 1) {
-				clif_skill_fail(sd,skill_num,0,0);
-				return 0;
-			} else if (c == 99) { //相方不要設定だった
-				;
-			} else {
-				sd->skilllv = (c + skill_lv)/2;
+			if (battle_config.player_skill_partner_check)
+			{
+				int range = 1;
+				int c = 0;
+				map_foreachinarea (skill_check_condition_char_sub, sd->bl.m,
+					sd->bl.x-range, sd->bl.y-range, sd->bl.x+range,
+					sd->bl.y+range, BL_PC, &sd->bl, &c, skill_num);
+				if (c < 1) {
+					clif_skill_fail(sd,skill_num,0,0);
+					return 0;
+				} else
+					sd->skilllv = (c + skill_lv)/2;
 			}
+			break;
 		}
-		break;
 	}
 
 	sd->skillid = skill_num;
@@ -8775,7 +8780,8 @@ struct skill_unit_group *skill_initunitgroup(struct block_list *src,
 		}
 		status_change_start(src,SC_DANCING,skillid,(int)group,0,0,skill_get_time(skillid,skilllv)+1000,0);
 		//合奏スキルは相方をダンス状態にする
-		if (sd && skill_get_unit_flag(skillid)&UF_ENSEMBLE) {
+		if (sd && skill_get_unit_flag(skillid)&UF_ENSEMBLE &&
+			battle_config.player_skill_partner_check) {
 			int c=0;
 			map_foreachinarea(skill_check_condition_use_sub,sd->bl.m,
 				sd->bl.x-1,sd->bl.y-1,sd->bl.x+1,sd->bl.y+1,BL_PC,&sd->bl,&c);

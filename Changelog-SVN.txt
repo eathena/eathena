@@ -1,5 +1,7 @@
 Date	Added
 06/10
+	* Small optimizations on ensemble skills [Skotlex]
+	* Fixed some compile warnings on char-sql server [Skotlex]
 	* Added script function getitemslots(item_id);	[Skotlex]
 	* Fixed a bunch of script functions generating a new dummy item instead of
 	  failing when the item was not found.	[Skotlex]

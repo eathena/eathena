@@ -538,7 +538,7 @@ struct pet_data {
 	short n;
 	short class_,dir;
 	short speed;
-	char name[24];
+	char name[NAME_LENGTH];
 	struct {
 		unsigned state : 8 ;
 		unsigned skillstate : 8 ;

@@ -25,6 +25,9 @@
 
 
 06/09
+	* Added inf2=64 to Benedictio. 64 now actually stands for "skill needs
+	  other nearby support characters", or as the battle_config calls it
+	  "ensemble skills". [Skotlex]
 	* Removed inf2 of Extremity Fist, it is harcoded for now. Inf2 values 4 and
 	  8 are free for the taking. What should they be for? Partner/Baby skills? [Skotlex]
 	* Added inf2 values: 32 (Dance/Song skills) & 64 (Encore skills).

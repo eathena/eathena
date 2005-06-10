@@ -68,7 +68,7 @@
 66,8,6,16,0,1,5,1,yes,0,0,0,magic,0	//PR_IMPOSITIO#イ??シティオ?ヌス#	
 67,8,6,16,0,1,3,1,yes,0,512,0,magic,0	//PR_SUFFRAGIUM#サフラギウ?#
 68,8,6,16,6,1,5,1,yes,0,0,0,magic,0	//PR_ASPERSIO#アスペルシオ#
-69,1,6,2,0,1,5,1,yes,0,0,0,magic,0	//PR_BENEDICTIO#聖体?福#
+69,1,6,2,0,1,5,1,yes,0,64,0,magic,0	//PR_BENEDICTIO#聖体?福#
 70,8,6,2,6,1,10,1,yes,0,0,0,magic,2	//PR_SANCTUARY#サンク?ュアリ#
 71,8,6,16,0,1,4,1,yes,0,0,0,magic,0	//PR_SLOWPOISON#スロ??イズン#
 72,8,6,16,0,1,1,1,yes,0,0,0,magic,0	//PR_STRECOVERY#リカバリ?#

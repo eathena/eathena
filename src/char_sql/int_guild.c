@@ -42,6 +42,8 @@ int inter_guild_tosql(struct guild *g,int flag);
 
 #define mysql_query(_x, _y)  debug_mysql_query(__FILE__, __LINE__, _x, _y)
 
+//Currently not used. Should it be deleted? [Skotlex]
+#if 0
 static int _erase_guild(void *key, void *data, va_list ap) {
     int guild = va_arg(ap, int);
     struct guild_castle * castle = (struct guild_castle *) data;
@@ -52,6 +54,7 @@ static int _erase_guild(void *key, void *data, va_list ap) {
 
     return 0;
 }
+#endif
 
 static int guild_save_timer(int tid,unsigned int tick,int id,int data) {
 	struct guild *g;
@@ -102,7 +105,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 	char t_ename[24],t_emes[40];
 	char emblem_data[4096];
 	int i=0;
-	int guild_exist=0,guild_member=0,guild_online_member=0;
+	int guild_member=0,guild_online_member=0;
 
 	if (g->guild_id<=0) return -1;
 #ifdef NOISY
@@ -506,7 +509,8 @@ struct guild * inter_guild_fromsql(int guild_id)
 	return g;
 }
 
-#if 1
+//Changed to 0, it isn't currently used [Skotlex]
+#if 0
 static int _set_guild_castle(void *key, void *data, va_list ap) {
     int castle_id = va_arg(ap, int);
     int guild_id = va_arg(ap, int);

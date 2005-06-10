@@ -86,7 +86,8 @@
 #define WEDDING_RING_M 2634
 #define WEDDING_RING_F 2635
 
-#define NAME_LENGTH 24	//For character names, title names, guilds, etc. Includes null-terminator.
+//For character names, title names, guilds, etc. Includes null-terminator.
+#define NAME_LENGTH 24
 
 #define CHAR_CONF_NAME  "conf/char_athena.conf"
 

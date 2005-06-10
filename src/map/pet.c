@@ -1242,14 +1242,17 @@ int pet_change_name(struct map_session_data *sd,char *name)
 	if((sd->pd == NULL) || (sd->pet.rename_flag == 1 && battle_config.pet_rename == 0))
 		return 1;
 
-	for(i=0;i<24 && name[i];i++){
+	for(i=0;i<NAME_LENGTH && name[i];i++){
 		if( !(name[i]&0xe0) || name[i]==0x7f)
 			return 1;
 	}
 
 	pet_stop_walking(sd->pd,1);
-	memcpy(sd->pet.name,name,24);
-	memcpy(sd->pd->name,name,24);
+
+	
+	memcpy(sd->pet.name,name,NAME_LENGTH);
+	memcpy(sd->pd->name,name,NAME_LENGTH);
+	
 	clif_clearchar_area(&sd->pd->bl,0);
 	clif_spawnpet(sd->pd);
 	clif_send_petdata(sd,0,0);
@@ -1907,8 +1910,8 @@ int read_petdb()
 		
 			//MobID,Name,JName,ItemID,EggID,AcceID,FoodID,"Fullness (1回の餌での満腹度増加率%)","HungryDeray (/min)","R_Hungry (空腹時餌やり親密度増加率%)","R_Full (とても満腹時餌やり親密度減少率%)","Intimate (捕獲時親密度%)","Die (死亡時親密度減少率%)","Capture (捕獲率%)",(Name)
 			pet_db[j].class_ = nameid;
-			memcpy(pet_db[j].name,str[1],24);
-			memcpy(pet_db[j].jname,str[2],24);
+			memcpy(pet_db[j].name,str[1],NAME_LENGTH);
+			memcpy(pet_db[j].jname,str[2],NAME_LENGTH);
 			pet_db[j].itemID=atoi(str[3]);
 			pet_db[j].EggID=atoi(str[4]);
 			pet_db[j].AcceID=atoi(str[5]);
