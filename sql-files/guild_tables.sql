@@ -23,8 +23,8 @@ CREATE TABLE guild (
   PRIMARY KEY  (guild_id,char_id),
   KEY char_id (char_id),
   KEY guild_id (guild_id),
-  CONSTRAINT `guild_ibfk_1` FOREIGN KEY (`char_id`) REFERENCES `lege_char` (`char_id`) ON DELETE CASCADE
-) TYPE=InnoDB COMMENT='InnoDB free: 390144 kB; (`char_id`) REFER `lightside/lege_ch';
+  CONSTRAINT `guild_ibfk_1` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `guild`
@@ -155,7 +155,7 @@ CREATE TABLE guild_position (
   exp_mode int(11) NOT NULL default '0',
   PRIMARY KEY  (guild_id,position),
   KEY guild_id (guild_id)
-) TYPE=InnoDB COMMENT='InnoDB free: 7168 kB; (`guild_id`) REFER `lightside/lege_gui';
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `guild_position`
