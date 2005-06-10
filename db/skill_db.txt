@@ -175,7 +175,7 @@
 170,-1,6,1,0,0,10,1,no,0,2,0,weapon,0	//NPC_CRITICALSLASH#ñhå‰ñ≥éãçUåÇ#
 171,-1,8,1,0,0,10,2:3:4:5:6:7:8:9:10:11,no,0,2,0,weapon,0	//NPC_COMBOATTACK#ëΩíiçUåÇ#
 172,-1,6,1,0,0,10,1,no,0,2,0,weapon,0	//NPC_GUIDEATTACK#ïKíÜçUåÇ#
-173,1,6,4,3,1,10,1,no,0,2,0,misc,3	//NPC_SELFDESTRUCTION#é©îö#
+173,1,6,4,3,0,10,1,no,0,2,0,misc,3	//NPC_SELFDESTRUCTION#é©îö#
 174,-1,6,1,0,0,10,1,no,0,2,0,weapon,0	//NPC_SPLASHATTACK#îÕàÕçUåÇ#
 175,0,0,4,0,1,10,1,no,0,2,0,misc,0	//NPC_SUICIDE#é©åà#
 176,-1,6,1,0,0,10,1,no,0,2,0,weapon,0	//NPC_POISON#ì≈çUåÇ#
@@ -482,8 +482,7 @@
 471,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SKE##
 472,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SKA##
 
-//473,0,0,0,0,0,0,0,no,0,0,0,none,0	//SM_SELFPROVOKE##
-473,1,6,4,3,1,10,1,no,0,2,0,misc,3	//NPC_SELFDESTRUCTION2#é©îö2#
+473,0,0,0,0,0,0,0,no,0,0,0,none,0	//SM_SELFPROVOKE##
 474,0,0,4,0,1,10,1,no,0,2,0,none,0	//NPC_EMOTION_ON##
 475,0,0,4,0,1,1,1,yes,0,0,0,magic,0	//ST_PRESERVE##
 476,1,6,1,0,1,5,1,yes,0,0,0,weapon,0	//ST_FULLSTRIP##

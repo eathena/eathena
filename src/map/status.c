@@ -118,9 +118,7 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	-1,-1,
 /* 160- */
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-	-1,-1,-1,
-	SC_SELFDESTRUCTION,
-	-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 	-1,
@@ -208,8 +206,7 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	SC_FORTUNE,
 /* 330- */
 	SC_SERVICE4U,
-	SC_SELFDESTRUCTION,
-	-1,-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,
 /* 340- */
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 /* 350- */
@@ -3677,11 +3674,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				save_flag = 1; // celest
 			}
 			break;
-		case SC_SELFDESTRUCTION: //自爆
-			clif_skillcasting(bl,bl->id, bl->id,0,0,331,skill_get_time(val2,val1));
-			val3 = tick / 1000;
-			tick = 1000;
-			break;
 
 		/* option1 */
 		case SC_STONE:				/* 石化 */
@@ -4301,14 +4293,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 					}
 				}
 				break;
-			case SC_SELFDESTRUCTION:		/* 自爆 */
-				{
-					//自分のダメ?ジは0にして
-					struct mob_data *md=NULL;
-					if(bl->type == BL_MOB && (md=(struct mob_data*)bl))
-						skill_castend_damage_id(bl, bl,sc_data[type].val2,sc_data[type].val1,gettick(),0 );
-				}
-				break;
 		/* option1 */
 			case SC_FREEZE:
 				sc_data[type].val3 = 0;
@@ -4810,19 +4794,6 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 					bl->id, data);
 				return 0;
 			}
-		}
-		break;
-	case SC_SELFDESTRUCTION:		/* 自爆 */
-		if(--sc_data[type].val3>0){
-			struct mob_data *md;
-			if(bl->type==BL_MOB && (md=(struct mob_data *)bl) && md->speed > 250){
-				md->speed -= 250;
-				md->next_walktime=tick;
-			}
-			sc_data[type].timer=add_timer(	/* タイマ?再設定 */
-				1000+tick, status_change_timer,
-				bl->id, data);
-				return 0;
 		}
 		break;
 

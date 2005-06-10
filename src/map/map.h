@@ -484,6 +484,7 @@ struct mob_data {
 		unsigned special_mob_ai : 3;
 		unsigned soul_change_flag : 1; // Celest
 		int provoke_flag; // Celest
+		unsigned alchemist: 1;
 	} state;
 	int timer;
 	short to_x,to_y;

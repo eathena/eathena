@@ -313,7 +313,6 @@ const struct skill_name_db skill_names[] = {
  { NPC_RANGEATTACK, "RANGEATTACK", "NPC_RANGEATTACK" } ,
  { NPC_REBIRTH, "REBIRTH", "NPC_REBIRTH" } ,
  { NPC_SELFDESTRUCTION, "SELFDESTRUCTION", "Kabooooom!" } ,
- { NPC_SELFDESTRUCTION2, "SELFDESTRUCTION2", "NPC_SELFDESTRUCTION2" } ,
  { NPC_SILENCEATTACK, "SILENCEATTACK", "NPC_SILENCEATTACK" } ,
  { NPC_SLEEPATTACK, "SLEEPATTACK", "NPC_SLEEPATTACK" } ,
  { NPC_SMOKING, "SMOKING", "NPC_SMOKING" } ,
@@ -1574,7 +1573,6 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		}
 		break;
 	case NPC_SELFDESTRUCTION:
-	case NPC_SELFDESTRUCTION2:
 		break;
 	case SN_SHARPSHOOTING:
 		clif_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,0,0,0);
@@ -2816,7 +2814,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		break;
 
 	case NPC_SELFDESTRUCTION:	/* Ž©”š */
-	case NPC_SELFDESTRUCTION2:	/* Ž©”š2 */
 			if (flag & 1) {
 				/* ŒÂ•Ê‚Éƒ_ƒ[ƒW‚ð—^‚¦‚é */
 				if (bl->id != skill_area_temp[1])
@@ -4304,11 +4301,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
-	case NPC_SELFDESTRUCTION:	/* Ž©”š */
-	case NPC_SELFDESTRUCTION2:	/* Ž©”š2 */
-		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,skillid,0,0,skill_get_time(skillid,skilllv),0);
-		break;
-
 	case NPC_LICK:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		if (dstsd) {
@@ -4350,12 +4342,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case NPC_RANDOMMOVE:
-		if (md && mob_db[md->class_].mode & 1 && mob_can_move(md) &&
-			(md->master_id == 0 || md->state.special_mob_ai || md->master_dist > 10) &&
-			(DIFF_TICK(md->next_walktime, tick) > 7000 &&
-			(md->walkpath.path_len == 0 || md->walkpath.path_pos >= md->walkpath.path_len)))
-		{
-			md->next_walktime = tick + 3000 * rand() % 2000;
+		if (md) {
+			md->next_walktime = tick - 1;
 			mob_randomwalk(md,tick);
 		}
 		break;

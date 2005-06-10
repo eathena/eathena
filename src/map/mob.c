@@ -2421,17 +2421,12 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	if(md->option&4 )
 		status_change_end(&md->bl, SC_CLOAKING, -1);
 
-	if(md->state.special_mob_ai == 2){//スフィアーマイン
-		int skillidx=0;
-
-		if((skillidx=mob_skillid2skillidx(md->class_,NPC_SELFDESTRUCTION2))>=0){
-			md->mode |= 0x1;
-			md->next_walktime=tick;
-			mobskill_use_id(md,&md->bl,skillidx);//自爆詠唱開始
-			md->state.special_mob_ai++;
-		}
-		if (src && md->master_id==src->id)
-			md->target_dir=map_calc_dir(src,md->bl.x,md->bl.y)+1;
+	if(md->state.special_mob_ai == 2 &&	//スフィアーマイン
+		src && md->master_id == src->id)
+	{
+		md->state.alchemist = 1;
+		md->target_dir = map_calc_dir(src,md->bl.x,md->bl.y)+1;
+		mobskill_use(md, tick, MSC_ALCHEMIST);
 	}
 
 	if(md->hp > 0){
@@ -3358,6 +3353,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 	int casttime,range;
 	struct mob_skill *ms;
 	int skill_id, skill_lv, forcecast = 0;
+	int selfdestruct_flag = 0;
 
 	nullpo_retr(0, md);
 	nullpo_retr(0, ms=&mob_db[md->class_].skill[skill_idx]);
@@ -3427,29 +3423,25 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 		if(md->master_id!=0)
 			return 0;
 		break;
+	case NPC_SELFDESTRUCTION:
+		if (casttime == 0 && md->state.special_mob_ai == 2) {
+			casttime = skill_get_time(skill_id,skill_lv);
+			selfdestruct_flag =  1;
+		}
+		break;
 	}
 
 	if(battle_config.mob_skill_log)
 		printf("MOB skill use target_id=%d skill=%d lv=%d cast=%d, class = %d\n",target->id,skill_id,skill_lv,casttime,md->class_);
 
-	if(casttime>0 || forcecast){ 	// 詠唱が必要
-//		struct mob_data *md2;
-		mob_stop_walking(md,0);		// 歩行停止
-		clif_skillcasting( &md->bl,
-			md->bl.id, target->id, 0,0, skill_id,casttime);
-
-		// 詠唱反応モンスター
-		// future homunculus support?
-/*		if(md->master_id && target->type==BL_MOB && (md2=(struct mob_data *)target) &&
-			mob_db[md2->class_].mode&0x10 && md2->state.state!=MS_ATTACK){
-				md2->target_id=md->bl.id;
-				md->state.targettype = ATTACKABLE;
-				md2->min_chase=13;
-		}*/
+	if (casttime || forcecast) { 	// 詠唱が必要
+		if (!selfdestruct_flag)
+			mob_stop_walking(md,0);		// 歩行停止
+		clif_skillcasting(&md->bl, md->bl.id, target->id, 0,0, skill_id, casttime);
 	}
 
-	if( casttime<=0 )	// 詠唱の無いものはキャンセルされない
-		md->state.skillcastcancel=0;
+	if (casttime <= 0)	// 詠唱の無いものはキャンセルされない
+		md->state.skillcastcancel = 0;
 
 	md->skilltarget	= target->id;
 	md->skillx		= 0;
@@ -3675,10 +3667,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 	nullpo_retr (0, md);
 	nullpo_retr (0, ms = mob_db[md->class_].skill);
 
-	if (battle_config.mob_skill_rate == 0 ||
-		md->skilltimer != -1 ||
-		(md->state.special_mob_ai > 0 && md->state.special_mob_ai != 1) ||
-		(md->sc_data && md->sc_data[SC_SELFDESTRUCTION].timer != -1))	//自爆中はスキルを使わない
+	if (battle_config.mob_skill_rate == 0 || md->skilltimer != -1)
 		return 0;
 
 	for (i = 0; i < mob_db[md->class_].maxskill; i++) {
@@ -3749,6 +3738,8 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					}
 				case MSC_MASTERATTACKED:
 					flag = (md->master_id > 0 && battle_counttargeted(map_id2bl(md->master_id), NULL, 0) > 0); break;
+				case MSC_ALCHEMIST:
+					flag = (md->state.alchemist); break;
 			}
 		}
 
@@ -4271,6 +4262,7 @@ static int mob_readskilldb(void)
 		{	"rudeattacked",		MSC_RUDEATTACKED		},
 		{	"masterhpltmaxrate",MSC_MASTERHPLTMAXRATE	},
 		{	"masterattacked",	MSC_MASTERATTACKED		},
+		{	"alchemist",		MSC_ALCHEMIST			},
 	}, cond2[] ={
 		{	"anybad",		-1				},
 		{	"stone",		SC_STONE		},

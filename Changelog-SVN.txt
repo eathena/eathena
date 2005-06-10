@@ -9,6 +9,9 @@ Date	Added
 	  need to add the foreign keys from guild_tables.sql to the 
 	  databases. And add the `char_id` field to the guild table.
 	  Its value needs to be the char_id of the guildmaster [Aru]
+	* Added 'alchemist' mob skill condition [celest]
+	* Rewrote most of the old jA Self Destruction code [celest]
+
 06/09
 	* Fixed a possible null_po in clif.c:7714 caused by lagged clients [Skotlex]
 	* Fixed enemy damage_delay being modified by 400 instead of 100. [Skotlex]
