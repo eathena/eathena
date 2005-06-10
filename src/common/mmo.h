@@ -260,6 +260,7 @@ struct guild {
 	struct guild_skill skill[MAX_GUILDSKILL];
 #ifndef TXT_ONLY
 	unsigned char save_flag;
+	int save_timer;
 #endif
 };
 
