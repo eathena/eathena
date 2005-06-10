@@ -258,6 +258,9 @@ struct guild {
 	struct guild_alliance alliance[MAX_GUILDALLIANCE];
 	struct guild_explusion explusion[MAX_GUILDEXPLUSION];
 	struct guild_skill skill[MAX_GUILDSKILL];
+#ifndef TXT_ONLY
+	unsigned char save_flag;
+#endif
 };
 
 struct guild_castle {
