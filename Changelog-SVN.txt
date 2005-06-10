@@ -1,5 +1,6 @@
 Date	Added
 06/10
+	* Fixed mobhp display so that it will be displayed no matter which /showname option a player is using. [Valaris]
 	* Fixed names with disguises (I tested it. It works. No more bitching. :P). [Valaris]
 	* Completely overhauled SQL guild code to use innodb type tables
 	  unfortunately, old guild tables are not compatible.

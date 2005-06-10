@@ -7783,7 +7783,7 @@ int clif_charnameack (int fd, struct block_list *bl)
 				sprintf(mobhp, "hp: %d/%d", md->hp, md->max_hp);
 				memcpy(WBUFP(buf,30), mobhp, 24);
 				WBUFB(buf,54) = 0;
-				WBUFB(buf,78) = 0;
+				memcpy(WBUFP(buf,78), mobhp, 24);
 			}
 		}
 		break;
