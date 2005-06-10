@@ -1,5 +1,8 @@
 Date	Added
 06/10
+	* Added script function getitemslots(item_id);	[Skotlex]
+	* Fixed a bunch of script functions generating a new dummy item instead of
+	  failing when the item was not found.	[Skotlex]
 	* Fixed mobhp display so that it will be displayed no matter which /showname option a player is using. [Valaris]
 	* Fixed names with disguises (I tested it. It works. No more bitching. :P). [Valaris]
 	* Completely overhauled SQL guild code to use innodb type tables

@@ -258,6 +258,7 @@ int buildin_ispartneron(struct script_state *st); // MouseJstr
 int buildin_getpartnerid(struct script_state *st); // MouseJstr
 int buildin_warppartner(struct script_state *st); // MouseJstr
 int buildin_getitemname(struct script_state *st);
+int buildin_getitemslots(struct script_state *st);
 int buildin_makepet(struct script_state *st);
 int buildin_getexp(struct script_state *st);
 int buildin_getinventorylist(struct script_state *st);
@@ -514,6 +515,7 @@ struct {
 	{buildin_getpartnerid,"getpartnerid","*"},
 	{buildin_warppartner,"warppartner","sii"},
 	{buildin_getitemname,"getitemname","i"},
+	{buildin_getitemslots,"getitemslots","i"},
 	{buildin_makepet,"makepet","i"},
 	{buildin_getexp,"getexp","ii"},
 	{buildin_getinventorylist,"getinventorylist",""},
@@ -2271,11 +2273,13 @@ int buildin_cutin(struct script_state *st)
 int buildin_cutincard(struct script_state *st)
 {
 	int itemid;
+	struct item_data *i_data;
 
 	itemid=conv_num(st,& (st->stack->stack_data[st->start+2]));
-
-	clif_cutin(script_rid2sd(st),itemdb_search(itemid)->cardillustname,4);
-
+	
+	i_data = itemdb_exists(itemid);
+	if (i_data)
+		clif_cutin(script_rid2sd(st),i_data->cardillustname,4);
 	return 0;
 }
 
@@ -2476,7 +2480,9 @@ int buildin_getitem2(struct script_state *st)
 
 	if(nameid > 0) {
 		memset(&item_tmp,0,sizeof(item_tmp));
-		item_data=itemdb_search(nameid);
+		item_data=itemdb_exists(nameid);
+		if (item_data == NULL)
+			return -1;
 		if(item_data->type==4 || item_data->type==5){
 			if(ref > 10) ref = 10;
 		}
@@ -5895,12 +5901,35 @@ int buildin_getitemname(struct script_state *st)
 
 	item_id=conv_num(st,& (st->stack->stack_data[st->start+2]));
 
-	i_data = NULL;
-	i_data = itemdb_search(item_id);
+	i_data = itemdb_exists(item_id);
+	if (i_data == NULL)
+	{
+		push_str(st->stack,C_CONSTSTR,(unsigned char *) "null");
+		return 0;
+	}
 	item_name=(char *)aCallocA(24,sizeof(char));
 
 	strncpy(item_name,i_data->jname,23);
 	push_str(st->stack,C_STR,(unsigned char *) item_name);
+	return 0;
+}
+/*==========================================
+ * Returns number of slots an item has. [Skotlex]
+ *------------------------------------------
+ */
+int buildin_getitemslots(struct script_state *st)
+{
+	int item_id;
+	struct item_data *i_data;
+
+	item_id=conv_num(st,& (st->stack->stack_data[st->start+2]));
+
+	i_data = itemdb_exists(item_id);
+
+	if (i_data)
+		push_val(st->stack,C_INT,i_data->slot);
+	else
+		push_val(st->stack,C_INT,-1);
 	return 0;
 }
 
