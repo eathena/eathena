@@ -92,7 +92,6 @@ struct storage *account2storage(int account_id)
 			printf("storage: out of memory!\n");
 			exit(0);
 		}
-		memset(stor,0,sizeof(struct storage));
 		stor->account_id=account_id;
 		numdb_insert(storage_db,stor->account_id,stor);
 	}

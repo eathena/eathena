@@ -1,5 +1,6 @@
 Date	Added
 06/10
+	* More map server memory cleanups...  (45%) [Skotlex]
 	* More map server memory bound cleanups and checks (35%) [Skotlex]
 	* Fixed Stalkers being able to use (plagiarized) ground-target
 	  skills from Chase Walk

@@ -960,7 +960,6 @@ int pet_data_init(struct map_session_data *sd)
 	}
 	sd->petDB = &pet_db[i];
 	sd->pd = pd = (struct pet_data *)aCalloc(1,sizeof(struct pet_data));
-	memset(pd,0,sizeof(struct pet_data)); //Skotlex: I suggest to zero up this...
 	pd->bl.m = sd->bl.m;
 	pd->bl.x = pd->to_x = sd->bl.x;
 	pd->bl.y = pd->to_y = sd->bl.y;
@@ -968,7 +967,7 @@ int pet_data_init(struct map_session_data *sd)
 	pd->bl.x = pd->to_x;
 	pd->bl.y = pd->to_y;
 	pd->bl.id = npc_get_new_npc_id();
-	memcpy(pd->name, sd->pet.name, NAME_LENGTH);
+	memcpy(pd->name, sd->pet.name, NAME_LENGTH-1);
 	pd->class_ = sd->pet.class_;
 	pd->equip = sd->pet.equip;
 	pd->dir = sd->dir;
@@ -1249,8 +1248,8 @@ int pet_change_name(struct map_session_data *sd,char *name)
 
 	pet_stop_walking(sd->pd,1);
 	
-	memcpy(sd->pet.name, name, NAME_LENGTH);
-	memcpy(sd->pd->name, name, NAME_LENGTH);
+	memcpy(sd->pet.name, name, NAME_LENGTH-1);
+	memcpy(sd->pd->name, name, NAME_LENGTH-1);
 	
 	clif_clearchar_area(&sd->pd->bl,0);
 	clif_spawnpet(sd->pd);
@@ -1909,8 +1908,8 @@ int read_petdb()
 		
 			//MobID,Name,JName,ItemID,EggID,AcceID,FoodID,"Fullness (1回の餌での満腹度増加率%)","HungryDeray (/min)","R_Hungry (空腹時餌やり親密度増加率%)","R_Full (とても満腹時餌やり親密度減少率%)","Intimate (捕獲時親密度%)","Die (死亡時親密度減少率%)","Capture (捕獲率%)",(Name)
 			pet_db[j].class_ = nameid;
-			memcpy(pet_db[j].name,str[1],NAME_LENGTH);
-			memcpy(pet_db[j].jname,str[2],NAME_LENGTH);
+			memcpy(pet_db[j].name,str[1],NAME_LENGTH-1);
+			memcpy(pet_db[j].jname,str[2],NAME_LENGTH-1);
 			pet_db[j].itemID=atoi(str[3]);
 			pet_db[j].EggID=atoi(str[4]);
 			pet_db[j].AcceID=atoi(str[5]);

@@ -160,7 +160,7 @@ int flush_on=1;
 int flush_time=100;
 
 struct charid2nick {
-	char nick[24];
+	char nick[NAME_LENGTH];
 	int req_id;
 };
 
@@ -1387,13 +1387,14 @@ int map_addflooritem(struct item *item_data,int amount,int m,int x,int y,struct 
 	fitem->bl.m=m;
 	fitem->bl.x=xy&0xffff;
 	fitem->bl.y=(xy>>16)&0xffff;
+/* Unneeded because of aCalloc [Skotlex]
 	fitem->first_get_id = 0;
 	fitem->first_get_tick = 0;
 	fitem->second_get_id = 0;
 	fitem->second_get_tick = 0;
 	fitem->third_get_id = 0;
 	fitem->third_get_tick = 0;
-
+*/
 	fitem->bl.id = map_addobject(&fitem->bl);
 	if(fitem->bl.id==0){
 		aFree(fitem);
@@ -1452,7 +1453,7 @@ void map_addchariddb(int charid, char *name) {
 	}
 
 	p->req_id = 0;
-	memcpy(p->nick, name, 24);
+	memcpy(p->nick, name, NAME_LENGTH-1);
 	numdb_insert(charid_db, charid, p);
 
 	if (req) {	// 返信待ちがあれば返信
@@ -2146,18 +2147,18 @@ int map_setipport(char *name,unsigned long ip,int port) {
 	md = (struct map_data*)strdb_search(map_db,name);
 	if(md==NULL){ // not exist -> add new data
 		mdos=(struct map_data_other_server *)aCalloc(1,sizeof(struct map_data_other_server));
-		memcpy(mdos->name,name,24);
-		mdos->gat  = NULL;
+		memcpy(mdos->name, name, NAME_LENGTH-1);
+//		mdos->gat  = NULL;
 		mdos->ip   = ip;
 		mdos->port = port;
-		mdos->map  = NULL;
+//		mdos->map  = NULL;
 		strdb_insert(map_db,mdos->name,mdos);
 	} else if(md->gat){
 		if(ip!=clif_getip() || port!=clif_getport()){
 			// 読み甲ﾅいたけど、担当外になったマップ
 			mdos=(struct map_data_other_server *)aCalloc(1,sizeof(struct map_data_other_server));
-			memcpy(mdos->name,name,24);
-			mdos->gat  = NULL;
+			memcpy(mdos->name, name, 24);
+//			mdos->gat  = NULL;
 			mdos->ip   = ip;
 			mdos->port = port;
 			mdos->map  = md;
@@ -2246,7 +2247,7 @@ int map_eraseipport(char *name,unsigned long ip,int port)
  *------------------------------------------
  */
 static struct waterlist_ {
-	char mapname[24];
+	char mapname[NAME_LENGTH];
 	int waterheight;
 } *waterlist=NULL;
 
@@ -2281,7 +2282,7 @@ static void map_readwater(char *watertxt) {
 		if((count=sscanf(line,"%s%d",w1,&wh)) < 1){
 			continue;
 		}
-		strcpy(waterlist[n].mapname,w1);
+		memcpy(waterlist[n].mapname,w1, NAME_LENGTH-1);
 		if(count >= 2)
 			waterlist[n].waterheight = wh;
 		else
@@ -2910,7 +2911,7 @@ int map_addmap(char *mapname) {
 		ShowError(tmp_output);
 		return 1;
 	}
-	memcpy(map[map_num].name, mapname, 24);
+	memcpy(map[map_num].name, mapname, NAME_LENGTH-1);
 	map_num++;
 	return 0;
 }

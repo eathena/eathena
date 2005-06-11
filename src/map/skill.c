@@ -5632,7 +5632,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 			if((group=skill_unitsetting(&sd->bl,sd->skillid,sd->skilllv,sd->skillx,sd->skilly,0))==NULL)
 				return 0;
 			group->valstr=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-			memcpy(group->valstr,map,NAME_LENGTH);
+			memcpy(group->valstr,map,NAME_LENGTH-1);
 			group->val2=(x<<16)|y;
 		}
 		break;
@@ -5803,7 +5803,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 			printf("skill_castend_map: out of memory !\n");
 			exit(1);
 		}
-		memcpy(group->valstr,talkie_mes,MESSAGE_SIZE);
+		memcpy(group->valstr,talkie_mes,MESSAGE_SIZE-1);
 	}
 	for(i=0;i<layout->count;i++){
 		struct skill_unit *unit;
@@ -6460,7 +6460,7 @@ int skill_unit_onlimit(struct skill_unit *src,unsigned int tick)
 				printf("skill_unit_onlimit: out of memory !\n");
 				exit(1);
 			}
-			memcpy(group->valstr,sg->valstr,MESSAGE_SIZE);
+			memcpy(group->valstr,sg->valstr,MESSAGE_SIZE-1);
 			group->val2=sg->val2;
 		}
 		break;

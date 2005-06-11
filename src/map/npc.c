@@ -449,11 +449,11 @@ int npc_addeventtimer(struct npc_data *nd,int tick,const char *name)
 		if( nd->eventtimer[i]==-1 )
 			break;
 	if(i<MAX_EVENTTIMER){
-		char *evname=(char *) aMallocA(NAME_LENGTH);
+		char *evname=(char *) aCallocA(NAME_LENGTH, sizeof(char));
 		if(evname==NULL){
 			printf("npc_addeventtimer: out of memory !\n");exit(1);
 		}
-		memcpy(evname,name,NAME_LENGTH);
+		memcpy(evname,name,NAME_LENGTH-1);
 		nd->eventtimer[i]=add_timer(gettick()+tick,
 			npc_event_timer,nd->bl.id,(int)evname);
 	}else
@@ -1503,7 +1503,6 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 	m = map_mapname2mapid(mapname);
 
 	nd = (struct npc_data *) aCalloc (1, sizeof(struct npc_data));
-	memset (nd, 0, sizeof(struct npc_data)); //Why don't you guys ever initialize...? [Skotlex]
 	
 	nd->bl.id = npc_get_new_npc_id();
 	nd->n = map_addnpc(m, nd);
@@ -1515,10 +1514,8 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 	nd->dir = 0;
 	nd->flag = 0;
 */
-	memcpy(nd->name, w3, NAME_LENGTH);
-	memcpy(nd->exname, w3, NAME_LENGTH);
-	nd->name[NAME_LENGTH-1]= '\0';
-	nd->exname[NAME_LENGTH-1]= '\0';
+	memcpy(nd->name, w3, NAME_LENGTH-1);
+	memcpy(nd->exname, w3, NAME_LENGTH-1);
 	
 //	nd->chat_id = 0;
 	if (!battle_config.warp_point_debug)
@@ -1532,7 +1529,7 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 	nd->opt2 = 0;
 	nd->opt3 = 0;
 */
-	memcpy(nd->u.warp.name, to_mapname, NAME_LENGTH);
+	memcpy(nd->u.warp.name, to_mapname, NAME_LENGTH-1);
 	xs += 2;
 	ys += 2;
 	nd->u.warp.x = to_x;
@@ -1614,16 +1611,17 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 	nd->bl.id = npc_get_new_npc_id();
 	nd->dir = dir;
 	nd->flag = 0;
-	memcpy(nd->name, w3, NAME_LENGTH);
+	memcpy(nd->name, w3, NAME_LENGTH-1);
 	nd->name[NAME_LENGTH-1] = '\0';
 	nd->class_ = atoi(w4);
 	nd->speed = 200;
+/* Already initialized
 	nd->chat_id = 0;
 	nd->option = 0;
 	nd->opt1 = 0;
 	nd->opt2 = 0;
 	nd->opt3 = 0;
-
+*/
 	nd = (struct npc_data *)aRealloc(nd,
 		sizeof(struct npc_data) + sizeof(nd->u.shop_item[0]) * pos);
 
@@ -1768,7 +1766,6 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 	}// end of スクリプト解析
 
 	nd = (struct npc_data *)aCalloc(1, sizeof(struct npc_data));
-	memset (nd, 0, sizeof(struct npc_data));	//As usual, is best to clean up here [Skotlex]
 
 	if (m == -1){
 		// スクリプトコピー用のダミーNPC
@@ -1806,15 +1803,12 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 	}
 	if (p) {
 		*p = 0;
-		memcpy(nd->name, w3, NAME_LENGTH);
-		memcpy(nd->exname, p+2, NAME_LENGTH);
+		memcpy(nd->name, w3, NAME_LENGTH-1);
+		memcpy(nd->exname, p+2, NAME_LENGTH-1);
 	} else {
-		memcpy(nd->name, w3, NAME_LENGTH);
-		memcpy(nd->exname, w3, NAME_LENGTH);
+		memcpy(nd->name, w3, NAME_LENGTH-1);
+		memcpy(nd->exname, w3, NAME_LENGTH-1);
 	}
-	//Guaranteeing null-terminators [Skotlex]
-	nd->name[NAME_LENGTH-1]='\0';
-	nd->exname[NAME_LENGTH-1]='\0';
 
 	nd->bl.prev = nd->bl.next = NULL;
 	nd->bl.m = m;
@@ -1822,7 +1816,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 	nd->bl.y = y;
 	nd->bl.id = npc_get_new_npc_id();
 	nd->dir = dir;
-	nd->flag = 0;
+//	nd->flag = 0;
 	nd->class_ = class_;
 	nd->speed = 200;
 	nd->u.scr.script = (char *) script;
@@ -1917,8 +1911,8 @@ wouldn't it be easier just not to insert the new duplicate event, it is a duplic
 			// this check is useless here because the buffer is only 24 chars 
 			// and already overwritten if this is here is reached
 			// I leave the check anyway but place it correctly to npc_convertlabel_db
-			if (strlen(lname)>23) { 
-				ShowError("npc_parse_script: label name longer than 23 chars! '%s' (%s)\n", lname, current_file);
+			if (strlen(lname)>NAME_LENGTH-1) { 
+				ShowError("npc_parse_script: label name longer than %d chars! '%s' (%s)\n", NAME_LENGTH-1, lname, current_file);
 				exit(1);
 			} else {
 				struct event_data *ev;
@@ -2061,7 +2055,6 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 
 	for (i = 0; i < mob->num; i++) {
 		md = (struct mob_data *) aCalloc (1, sizeof(struct mob_data));
-		memset(md, 0, sizeof(struct mob_data));	//Why not 0 up the structure?	[Skotlex]
 
 		if (mob->class_ > 4000) { // large/tiny mobs [Valaris]
 			md->size = 2;
@@ -2077,7 +2070,7 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 		md->bl.x = mob->x;
 		md->bl.y = mob->y;
 		md->level = mob->level;
-		memcpy(md->name, mob->mobname, NAME_LENGTH);
+		memcpy(md->name, mob->mobname, NAME_LENGTH-1);
 		md->n = i;
 		md->base_class = md->class_ = mob->class_;
 		md->bl.id = npc_get_new_npc_id();
@@ -2102,9 +2095,9 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 			md->lootitem = NULL;
 
 		if (strlen(mob->eventname) >= 4) {
-			memcpy(md->npc_event, mob->eventname, NAME_LENGTH);
-		} else
-			memset(md->npc_event, 0, NAME_LENGTH);
+			memcpy(md->npc_event, mob->eventname, NAME_LENGTH-1);
+		}// else  // Err, ain't md->npc_event already 0 from the aCalloc? [Skotlex]
+//			memset(md->npc_event, 0, NAME_LENGTH);
 
 		md->bl.type = BL_MOB;
 		map_addiddb(&md->bl);
@@ -2146,10 +2139,10 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 		return 1;
 	}
 	if (strcmp(mobname, "--en--") == 0)
-		memcpy(mob.mobname, mob_db[mob.class_].name, NAME_LENGTH);
+		memcpy(mob.mobname, mob_db[mob.class_].name, NAME_LENGTH-1);
 	else if (strcmp(mobname, "--ja--") == 0)
-		memcpy(mob.mobname, mob_db[mob.class_].jname, NAME_LENGTH);
-	else memcpy(mob.mobname, mobname, NAME_LENGTH);
+		memcpy(mob.mobname, mob_db[mob.class_].jname, NAME_LENGTH-1);
+	else memcpy(mob.mobname, mobname, NAME_LENGTH-1);
 
 	if( !battle_config.dynamic_mobs || mob.delay1 || mob.delay2 ) {
 		npc_parse_mob2(&mob,0);
@@ -2209,7 +2202,7 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 				ShowError("Save Map's name too long: %s\n", w4);
 				return 1;
 			}
-			memcpy(map[m].save.map, savemap, NAME_LENGTH);
+			memcpy(map[m].save.map, savemap, NAME_LENGTH-1);
 			map[m].save.x = savex;
 			map[m].save.y = savey;
 		}

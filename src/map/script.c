@@ -2788,7 +2788,7 @@ char *buildin_getpartyname_sub(int party_id)
 	if(p!=NULL){
 		char *buf;
 		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-		memcpy(buf, p->name, NAME_LENGTH);
+		memcpy(buf, p->name, NAME_LENGTH-1);
 		return buf;
 	}
 
@@ -2845,7 +2845,7 @@ char *buildin_getguildname_sub(int guild_id)
 	if(g!=NULL){
 		char *buf;
 		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-		memcpy(buf, g->name, NAME_LENGTH);
+		memcpy(buf, g->name, NAME_LENGTH-1);
 		return buf;
 	}
 	return 0;
@@ -2874,7 +2874,7 @@ char *buildin_getguildmaster_sub(int guild_id)
 	if(g!=NULL){
 		char *buf;
 		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-		memcpy(buf, g->master, NAME_LENGTH);
+		memcpy(buf, g->master, NAME_LENGTH-1);
 		return buf;
 	}
 
@@ -2924,7 +2924,7 @@ int buildin_strcharinfo(struct script_state *st)
 	if(num==0){
 		char *buf;
 		buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-		memcpy(buf, sd->status.name, NAME_LENGTH);
+		memcpy(buf, sd->status.name, NAME_LENGTH-1);
 		push_str(st->stack,C_STR,(unsigned char *) buf);
 	}
 	if(num==1){
@@ -4945,7 +4945,7 @@ int buildin_setmapflagnosave(struct script_state *st)
 	m = map_mapname2mapid(str);
 	if(m >= 0) {
 		map[m].flag.nosave=1;
-		memcpy(map[m].save.map, str2, NAME_LENGTH);
+		memcpy(map[m].save.map, str2, NAME_LENGTH-1);
 		map[m].save.x=x;
 		map[m].save.y=y;
 	}
@@ -5339,7 +5339,7 @@ int buildin_getcastlename(struct script_state *st)
 		if( (gc=guild_castle_search(i)) != NULL ){
 			if(strcmp(mapname,gc->map_name)==0){
 				buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-				memcpy(buf, gc->castle_name, NAME_LENGTH);
+				memcpy(buf, gc->castle_name, NAME_LENGTH-1);
 				break;
 			}
 		}
@@ -5810,7 +5810,7 @@ int buildin_strmobinfo(struct script_state *st)
 			buf=(char *) aCallocA(NAME_LENGTH, sizeof(char));
 //			buf=mob_db[class_].name;
 // for string assignments you would need to go for c++ [Shinomori]
-			memcpy(buf, mob_db[class_].name, NAME_LENGTH);
+			memcpy(buf, mob_db[class_].name, NAME_LENGTH-1);
 			push_str(st->stack,C_STR,(unsigned char *) buf);
 			break;
 		}
@@ -5820,7 +5820,7 @@ int buildin_strmobinfo(struct script_state *st)
 			buf=(char *) aCallocA(NAME_LENGTH, sizeof(char));
 //			buf=mob_db[class_].jname;
 // for string assignments you would need to go for c++ [Shinomori]
-			memcpy(buf,mob_db[class_].jname, NAME_LENGTH);
+			memcpy(buf,mob_db[class_].jname, NAME_LENGTH-1);
 			push_str(st->stack,C_STR,(unsigned char *) buf);
 			break;
 		}
@@ -5909,7 +5909,7 @@ int buildin_getitemname(struct script_state *st)
 	}
 	item_name=(char *)aCallocA(ITEM_NAME_LENGTH,sizeof(char));
 
-	memcpy(item_name, i_data->jname, NAME_LENGTH);
+	memcpy(item_name, i_data->jname, ITEM_NAME_LENGTH-1);
 	push_str(st->stack,C_STR,(unsigned char *) item_name);
 	return 0;
 }
@@ -6491,7 +6491,7 @@ int buildin_getpetinfo(struct script_state *st)
 				{	//Shamelessly copied from strcharinfo() [Skotlex]
 					char *buf;
 					buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-					memcpy(buf, sd->pet.name, NAME_LENGTH);
+					memcpy(buf, sd->pet.name, NAME_LENGTH-1);
 					push_str(st->stack,C_STR,(unsigned char *) buf);
 				}
 				else
@@ -6923,7 +6923,7 @@ int buildin_getmapxy(struct script_state *st){
 
                     x=sd->bl.x;
                     y=sd->bl.y;
-                    memcpy(mapname,sd->mapname, NAME_LENGTH);
+                    memcpy(mapname,sd->mapname, NAME_LENGTH-1);
                     break;
             case 1:                                             //Get NPC Position
                     if( st->end > st->start+6 )
@@ -6938,7 +6938,7 @@ int buildin_getmapxy(struct script_state *st){
 
                     x=nd->bl.x;
                     y=nd->bl.y;
-                    memcpy(mapname, map[nd->bl.m].name, NAME_LENGTH);
+                    memcpy(mapname, map[nd->bl.m].name, NAME_LENGTH-1);
                     break;
             case 2:                                             //Get Pet Position
                     if( st->end>st->start+6 )
@@ -6959,7 +6959,7 @@ int buildin_getmapxy(struct script_state *st){
                     }
                     x=pd->bl.x;
                     y=pd->bl.y;
-                    memcpy(mapname, map[pd->bl.m].name, NAME_LENGTH);
+                    memcpy(mapname, map[pd->bl.m].name, NAME_LENGTH-1);
                     break;
 
             case 3:                                             //Get Mob Position

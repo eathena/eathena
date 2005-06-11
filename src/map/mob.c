@@ -55,7 +55,7 @@ int mobdb_searchname(const char *str)
 
 	for(i=0;i<sizeof(mob_db)/sizeof(mob_db[0]);i++){
 		if( strcmpi(mob_db[i].name,str)==0 || strcmp(mob_db[i].jname,str)==0 ||
-			memcmp(mob_db[i].name,str,24)==0 || memcmp(mob_db[i].jname,str,24)==0)
+			memcmp(mob_db[i].name,str,NAME_LENGTH)==0 || memcmp(mob_db[i].jname,str,NAME_LENGTH)==0)
 			return i;
 	}
 
@@ -85,11 +85,11 @@ int mob_spawn_dataset(struct mob_data *md,const char *mobname,int class_)
 	md->bl.prev=NULL;
 	md->bl.next=NULL;
 	if(strcmp(mobname,"--en--")==0)
-		memcpy(md->name,mob_db[class_].name,24);
+		memcpy(md->name,mob_db[class_].name,NAME_LENGTH-1);
 	else if(strcmp(mobname,"--ja--")==0)
-		memcpy(md->name,mob_db[class_].jname,24);
+		memcpy(md->name,mob_db[class_].jname,NAME_LENGTH-1);
 	else
-		memcpy(md->name,mobname,24);
+		memcpy(md->name,mobname,NAME_LENGTH-1);
 
 	md->n = 0;
 	md->base_class = md->class_ = class_;
@@ -168,7 +168,6 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 
 	for (count = 0; count < amount; count++) {
 		md = (struct mob_data *)aCalloc(1,sizeof(struct mob_data));
-		memset (md, '\0', sizeof *md);
 
 		if (class_ > MAX_MOB_DB + 2000) { // large/tiny mobs [Valaris]
 			md->size = 2;
@@ -180,8 +179,8 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 
 		if(mob_db[class_].mode & 0x02)
 			md->lootitem = (struct item *)aCalloc(LOOTITEM_SIZE,sizeof(struct item));
-		else
-			md->lootitem = NULL;
+//		else	//Already null from the aCalloc [Skotlex]
+//			md->lootitem = NULL;
 
 		mob_spawn_dataset (md, mobname, class_);
 		md->bl.m = m;
@@ -197,7 +196,9 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 		md->spawndelay1 = -1;	// 一度のみフラグ
 		md->spawndelay2 = -1;	// 一度のみフラグ
 
-		memcpy(md->npc_event, event, strlen(event));
+		//better safe than sorry, current md->npc_event has a size of 50
+		if (strlen(event) < 50)
+			memcpy(md->npc_event, event, strlen(event));
 
 		md->bl.type = BL_MOB;
 		map_addiddb (&md->bl);
@@ -293,7 +294,6 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
 	for(count=0;count<amount;count++){
 		struct guild_castle *gc;
 		md=(struct mob_data *) aCalloc(sizeof(struct mob_data), 1);
-		memset(md, '\0', sizeof *md);
 
 		mob_spawn_dataset(md,mobname,class_);
 		md->bl.m=m;
@@ -307,7 +307,9 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
 		md->spawndelay1=-1;	// Only once is a flag.
 		md->spawndelay2=-1;	// Only once is a flag.
 
-		memcpy(md->npc_event,event,sizeof(md->npc_event));
+		//better safe than sorry, current md->npc_event has a size of 50 [Skotlex]
+		if (strlen(event) < 50)
+			memcpy(md->npc_event, event, strlen(event));
 
 		md->bl.type=BL_MOB;
 		map_addiddb(&md->bl);
@@ -2877,7 +2879,7 @@ int mob_class_change (struct mob_data *md, int class_)
 	if(md->hp > max_hp) md->hp = max_hp;
 	else if(md->hp < 1) md->hp = 1;
 
-	memcpy(md->name,mob_db[class_].jname,24);
+	memcpy(md->name,mob_db[class_].jname,NAME_LENGTH-1);
 	memset(&md->state,0,sizeof(md->state));
 	md->attacked_id = 0;
 	md->target_id = 0;
@@ -3111,11 +3113,10 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int flag)
 		for(;amount>0;amount--){
 			int x=0,y=0,i=0;
 			md=(struct mob_data *)aCalloc(1,sizeof(struct mob_data));
-			memset (md, '\0', sizeof *md);	//Doing an aCalloc, and not zero-ing the data? Ain't that bad? [Skotlex]
 			if(mob_db[class_].mode&0x02)
 				md->lootitem=(struct item *)aCalloc(LOOTITEM_SIZE,sizeof(struct item));
-			else
-				md->lootitem=NULL;
+//			else	Already NULL from the aCalloc! [Skotlex]
+//				md->lootitem=NULL;
 
 			while((x<=0 || y<=0 || map_getcell(m,x,y,CELL_CHKNOPASS)) && (i++)<100){
 				x=rand()%9-4+bx;
@@ -4001,8 +4002,8 @@ static int mob_readdb(void)
 				continue;
 
 			mob_db[class_].view_class = class_;
-			memcpy(mob_db[class_].name, str[1], 24);
-			memcpy(mob_db[class_].jname, str[2], 24);
+			memcpy(mob_db[class_].name, str[1], NAME_LENGTH-1);
+			memcpy(mob_db[class_].jname, str[2], NAME_LENGTH-1);
 			mob_db[class_].lv = atoi(str[3]);
 			mob_db[class_].max_hp = atoi(str[4]);
 			mob_db[class_].max_sp = atoi(str[5]);
@@ -4503,8 +4504,8 @@ static int mob_read_sqldb(void)
 				ln++;
 
 				mob_db[class_].view_class = class_;
-				memcpy(mob_db[class_].name, str[1], 24);
-				memcpy(mob_db[class_].jname, str[2], 24);
+				memcpy(mob_db[class_].name, str[1], NAME_LENGTH-1);
+				memcpy(mob_db[class_].jname, str[2], NAME_LENGTH-1);
 				mob_db[class_].lv = atoi(str[3]);
 				mob_db[class_].max_hp = atoi(str[4]);
 				mob_db[class_].max_sp = atoi(str[5]);
