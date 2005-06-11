@@ -1,5 +1,6 @@
 Date	Added
 06/11
+	* Capped walkspeed at 4x default [Aru]
 	* Added Maeki's awesome convert_guild_tables.sql
 	  You must still manually add the `char_id` field to the `guild`
 	  table and fill it with the guildmasters' char_ids BEFORE
