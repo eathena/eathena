@@ -1,4 +1,9 @@
 Date	Added
+06/11
+	* Added Maeki's awesome convert_guild_tables.sql
+	  You must still manually add the `char_id` field to the `guild`
+	  table and fill it with the guildmasters' char_ids BEFORE
+	  running it. [Aru]
 06/10
 	* Updated the default pet_db.txt support values	[Skotlex]
 	  We don't have an official list of the support rates, but 1% as default
