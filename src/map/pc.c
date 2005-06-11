@@ -1288,27 +1288,27 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		else if(sd->state.lr_flag == 2)
 			sd->arrow_range += val;
 		break;
-	case SP_ADD_SPEED:
+	case SP_ADD_SPEED:	//Raw increase
 		if(sd->state.lr_flag != 2)
 			sd->speed -= val;
 		break;
-	case SP_SPEED_RATE:
-		if(sd->state.lr_flag != 2)
-				sd->speed_rate -= val;
+	case SP_SPEED_RATE:	//Non stackable increase
+		if(sd->state.lr_flag != 2 && sd->speed_rate > 100-val)
+			sd->speed_rate = 100-val;
 		break;
-	case SP_SPEED_ADDRATE:
+	case SP_SPEED_ADDRATE:	//Stackable increase
 		if(sd->state.lr_flag != 2)
 			sd->speed_add_rate = sd->speed_add_rate * (100-val)/100;
 		break;
-	case SP_ASPD:
+	case SP_ASPD:	//Raw increase
 		if(sd->state.lr_flag != 2)
 			sd->aspd -= val*10;
 		break;
-	case SP_ASPD_RATE:
-		if(sd->state.lr_flag != 2)
-				sd->aspd_rate -= val;
+	case SP_ASPD_RATE:	//Non stackable increase
+		if(sd->state.lr_flag != 2 && sd->aspd_rate > 100-val)
+			sd->aspd_rate = 100-val;
 		break;
-	case SP_ASPD_ADDRATE:
+	case SP_ASPD_ADDRATE:	//Stackable increase
 		if(sd->state.lr_flag != 2)
 			sd->aspd_add_rate = sd->aspd_add_rate * (100-val)/100;
 		break;
