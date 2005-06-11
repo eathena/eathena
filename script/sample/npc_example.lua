@@ -1,20 +1,10 @@
-addnpc("Healer Dog","prontera.gat",100,100,4,81,"npc_healer")
-addnpc("Healer Dog","payon.gat",100,100,4,81,"npc_healer")
-addnpc("Merchant Dog","prontera.gat",101,100,4,81,"npc_merchant")
-addnpc("Merchant Dog","payon.gat",101,100,4,81,"npc_merchant")
+addnpc("Healer Dog","","prontera.gat",100,100,4,81,"npc_healer")
 
-
---[[
-function npc_healer()
-	npcmes "[Healer Dog]"
-	heal()
-	npcmes "Here you are!"
-	close()
+function npc_healer(id)
+	npcmes(id,"[Healer Dog]")
+	heal(id, 25, 25)
+	npcmes(id,"Here you are!")
+	close(id)
 end
-
-function npc_merchant()
-	npcshop(501,-1,502,-1)
-end
---]]
 
 print "NPC example successfully loaded !"

@@ -254,6 +254,22 @@ int npc_click(struct map_session_data *sd,int id)
  *
  *------------------------------------------
  */
+int npc_scriptend(struct map_session_data *sd,int id)
+{
+
+	nullpo_retr(1, sd);
+	
+	if(sd->npc_id > 0)
+		sd->npc_id = 0;
+		
+	return 0;
+	
+}
+
+/*==========================================
+ *
+ *------------------------------------------
+ */
 int npc_buysellsel(struct map_session_data *sd,int id,int type)
 {
 	struct npc_data *nd;
@@ -677,6 +693,7 @@ int npc_add (char *name,char *exname,short m,short x,short y,short dir,short cla
 int areascript_add (char *name,short m,short x1,short y1,short x2,short y2,char *function)
 {
 	int i,j;
+	
 	struct areascript_data *ad=(struct areascript_data *)aCalloc(1, sizeof(struct areascript_data));
 
 	ad->bl.prev=ad->bl.next=NULL;

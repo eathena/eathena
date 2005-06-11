@@ -64,7 +64,8 @@ lua_State *L; // [DracoRPG]
  *===================================================================
  */
  
-// Return sum and average XD
+// EXAMPLE: Returns the sum and average:
+/*
 static int somemath()
 {
 	int n = lua_gettop(L);
@@ -81,26 +82,26 @@ static int somemath()
 	lua_pushnumber(L, sum);
 	return 2;
 }
+*/
 
 // addnpc("NPC name","name postfix","map.gat",x,y,dir,sprite,"function")
 // Add an standard NPC that triggers a function when clicked
 static int addnpc()
 {
-	char *name,*exname,*map;
+	char m_name[24], m_exname[24], m_map[100], m_function[512];
 	short m,x,y,dir,class_;
-	char *function;
 	
-	name=lua_tostring(L,1);
-	exname=lua_tostring(L,2);
-	map=lua_tostring(L,3);
-	m=map_mapname2mapid(map);
+	sprintf(m_name, "%s", lua_tostring(L,1));
+	sprintf(m_exname, "%s", lua_tostring(L,2));
+	sprintf(m_map, "%s", lua_tostring(L,3));
+	m=map_mapname2mapid(m_map);
 	x=lua_tonumber(L,4);
 	y=lua_tonumber(L,5);
 	dir=lua_tonumber(L,6);
 	class_=lua_tonumber(L,7);
-	function=lua_tostring(L,8);
-
-	npc_add(name,exname,m,x,y,dir,class_,function);
+	sprintf(m_function, "%s", lua_tostring(L,8));
+	
+	npc_add(m_name,m_exname,m,x,y,dir,class_,m_function);
 
 	return 0;
 }
@@ -109,18 +110,17 @@ static int addnpc()
 // Add an invisible area that triggers a function when entered
 static int addareascript()
 {
-    char *name,*map;
+	char name[24], map[100], function[512];
 	short m,x1,y1,x2,y2;
-	char *function;
 
-	name=lua_tostring(L,1);
-	map=lua_tostring(L,2);
+	sprintf(name,"%s",lua_tostring(L,1));
+	sprintf(map,"%s",lua_tostring(L,2));
 	m=map_mapname2mapid(map);
 	x1=(lua_tonumber(L,5)>lua_tonumber(L,3))?lua_tonumber(L,3):lua_tonumber(L,5);
 	y1=(lua_tonumber(L,6)>lua_tonumber(L,4))?lua_tonumber(L,4):lua_tonumber(L,6);
 	x2=(lua_tonumber(L,5)>lua_tonumber(L,3))?lua_tonumber(L,5):lua_tonumber(L,3);
 	y2=(lua_tonumber(L,6)>lua_tonumber(L,4))?lua_tonumber(L,6):lua_tonumber(L,4);
-	function=lua_tostring(L,7);
+	sprintf(function,"%s",lua_tostring(L,7));
 
 	areascript_add(name,m,x1,y1,x2,y2,function);
 
@@ -131,17 +131,16 @@ static int addareascript()
 // Add a warp that moves players to somewhere else when entered
 static int addwarp()
 {
-	char *name,*map;
+	char name[24], map[100], destmap[100];
 	short m,x,y;
-	char *destmap;
 	short destx,desty,xs,ys;
 	
-	name=lua_tostring(L,1);
-	map=lua_tostring(L,2);
+	sprintf(name,"%s",lua_tostring(L,1));
+	sprintf(map,"%s",lua_tostring(L,2));
 	m=map_mapname2mapid(map);
 	x=lua_tonumber(L,3);
 	y=lua_tonumber(L,4);
-	destmap=lua_tostring(L,5);
+	sprintf(destmap,"%s",lua_tostring(L,5));
 	destx=lua_tonumber(L,6);
 	desty=lua_tonumber(L,7);
 	xs=lua_tonumber(L,8);
@@ -152,12 +151,76 @@ static int addwarp()
 	return 0;
 }
 
+//npcmes(id,"a bunch of silly text")
+//Print the silly text to the npc screen
+static int npcmes() {
+	
+	struct map_session_data *sd = NULL;
+	char mes[512];
+	int charid, npcid;
+	
+	charid=lua_tonumber(L, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	npcid = sd->npc_id;
+	sprintf(mes,"%s",lua_tostring(L, 2)); 
+	
+	clif_scriptmes(sd, npcid, mes);
+	
+	return 0;
+	
+}
+
+//heal(id,hp,sp)
+//Heal the character
+static int heal() {
+	
+	struct map_session_data *sd = NULL;
+	int charid, npcid, hp, sp;
+	
+	charid=lua_tonumber(L, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	npcid = sd->npc_id;
+	hp = lua_tonumber(L, 2);
+	sp = lua_tonumber(L, 3);
+	
+	pc_heal(sd, hp, sp);
+	
+	return 0;
+	
+}
+
+static int close() {
+	
+	struct map_session_data *sd = NULL;
+	int charid, npcid;
+	
+	charid=lua_tonumber(L, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	npcid = sd->npc_id;
+	
+	clif_scriptclose(sd,npcid);
+	
+	return 0;
+}
+
 //List of commands to build into lua
 static struct LuaCommandInfo commands[] = {
-	{"somemath", somemath},
+/*	{"somemath", somemath}, */ //EXAMPLE: global name to register and C function to point to
 	{"addnpc", addnpc},
 	{"addareascript", addareascript},
 	{"addwarp", addwarp},
+	{"npcmes", npcmes},
+	{"heal", heal},
+	{"close", close},
 /*	{"addgmcommand", addgmcommand},
 	{"addtimer", addtimer},
 	{"addevent", addevent},

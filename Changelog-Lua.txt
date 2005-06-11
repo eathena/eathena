@@ -1,5 +1,7 @@
 Date	Added
 06/10
+	* Added npcmes and fixed some compile errors, there is some kind of status access
+	 violation error in the map server, needs fixin =)[Kevin]
 	* Major modifications [DracoRPG]
 	  - Entirely rewrote how NPCs/area scripts/warps are managed, now they are really
 	  different objects (different data struct, different block list types, etc)
