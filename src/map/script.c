@@ -162,8 +162,53 @@ static int npcclose()
 		return -1;
 	}
 	npcid = sd->npc_id;
+	script_state = HALT;
 	
 	clif_scriptclose(sd,npcid);
+	
+	return 0;
+}
+
+// npcclose2(id)
+// Display a [Close] button in the NPC dialog window of the player but keep the script running
+static int npcclose2()
+{
+	struct map_session_data *sd = NULL;
+	int charid, npcid;
+	
+	charid=lua_tonumber(L, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	npcid = sd->npc_id;
+	script_state = STOP;
+	
+	clif_scriptclose(sd,npcid);
+	
+	return 0;
+}
+
+// npcend(id)
+// End a script that is uses close2
+static int npcend()
+{
+	struct map_session_data *sd = NULL;
+	int charid;
+	
+	charid=lua_tonumber(L, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	
+	if(script_state != STOP) {
+		lua_pushstring(L, "Script state must be stoped before using npcend, please use npcclose2!");
+		lua_error(L);
+		return -1;
+	}
+	sd->npc_id=0;
+	script_state = NRUN;
 	
 	return 0;
 }
@@ -268,6 +313,8 @@ static struct LuaCommandInfo commands[] = {
 	/* NPC dialog window functions */
 	{"npcmes", npcmes},
 	{"npcclose", npcclose},
+	{"npcclose2", npcclose2},
+	{"npcend", npcend},
 	{"npcnext", npcnext},
 	{"npcinput", npcinput},
 	/* Player related functions */
