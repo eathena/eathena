@@ -1,5 +1,10 @@
 Date	Added
 06/11
+	* Reverted the previous stacking type for aspd as per rodatazone
+	  information [Skotlex]
+	  Speed modifiers, however, still stack on the new way as there's been
+	  complains of characters reaching impossibly high walk speeds.
+	* Modified bAspdAddRate code so that it stacks linearly. [Skotlex]
 	* Changed default stacking type for skill modifiers [Skotlex]
 	  If you have +50 aspd and +50aspd you won't get 100% aspd, instead now you
 	  get 50% of the 50%, that is 75% aspd bonus. Changed meant to protect

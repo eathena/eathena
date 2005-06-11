@@ -1308,9 +1308,9 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		if(sd->state.lr_flag != 2 && sd->aspd_rate > 100-val)
 			sd->aspd_rate = 100-val;
 		break;
-	case SP_ASPD_ADDRATE:	//Stackable increase
+	case SP_ASPD_ADDRATE:	//Stackable increase - Made it linear as per rodatazone
 		if(sd->state.lr_flag != 2)
-			sd->aspd_add_rate = sd->aspd_add_rate * (100-val)/100;
+			sd->aspd_add_rate -= val;
 		break;
 	case SP_HP_RECOV_RATE:
 		if(sd->state.lr_flag != 2)

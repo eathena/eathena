@@ -774,10 +774,13 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->perfect_hit += sd->perfect_hit_add;
 	sd->get_zeny_num += sd->get_zeny_add_num;
 	sd->splash_range += sd->splash_add_range;
-//Trying out new stacking functions... [Skotlex]
-#define ADD_RATE(a, b) { a = a*(100-b)/100; }
-//The old one would be like this...
-//#define ADD_RATE(a, b) { a+=b }
+//The stacking functions are defined here. [Skotlex]
+//ASPD stacks linearly, according to rodatazone
+#define ASPD_ADD_RATE(a) { aspd_rate -= a; }
+//There is no info about SPEED, but there are complains on acquiring 
+//very high speeds, so the stacking is a multiplier.
+#define SPEED_ADD_RATE(a) { sd->speed_rate = sd->speed_rate*(100-(a))/100; }
+
 	if(sd->speed_add_rate != 100)	
 		sd->speed_rate = sd->speed_rate*sd->speed_add_rate/100;
 	if(sd->aspd_add_rate != 100)
@@ -835,11 +838,11 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		}
 		if(sd->sc_data[SC_INCREASEAGI].timer!=-1){	// 速度?加
 			sd->paramb[1]+= 2 + sd->sc_data[SC_INCREASEAGI].val1;
-			ADD_RATE(sd->speed_rate, 25);
+			SPEED_ADD_RATE(25);
 		}
 		if(sd->sc_data[SC_DECREASEAGI].timer!=-1) {	// 速度減少(agiはbattle.cで)
 			sd->paramb[1] -= 2 + sd->sc_data[SC_DECREASEAGI].val1;	// reduce agility [celest]
-			ADD_RATE(sd->speed_rate, -25);
+			SPEED_ADD_RATE(-25);
 		}
 		if(sd->sc_data[SC_CLOAKING].timer!=-1) {
 			sd->critical_rate += 100; // critical increases
@@ -848,9 +851,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(sd->sc_data[SC_CHASEWALK].timer!=-1)
 			sd->speed = sd->speed * sd->sc_data[SC_CHASEWALK].val3 /100; // slow down by chasewalk
 		if(sd->sc_data[SC_SLOWDOWN].timer!=-1)
-			ADD_RATE(sd->speed_rate, -50);
+			SPEED_ADD_RATE(-50);
 		if(sd->sc_data[SC_SPEEDUP0].timer!=-1 && sd->sc_data[SC_INCREASEAGI].timer==-1)
-			ADD_RATE(sd->speed_rate, 25);
+			SPEED_ADD_RATE(25);
 		if(sd->sc_data[SC_BLESSING].timer!=-1){	// ブレッシング
 			sd->paramb[0]+= sd->sc_data[SC_BLESSING].val1;
 			sd->paramb[3]+= sd->sc_data[SC_BLESSING].val1;
@@ -863,7 +866,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(sd->sc_data[SC_QUAGMIRE].timer!=-1){	// クァグマイア
 			sd->paramb[1]-= sd->sc_data[SC_QUAGMIRE].val1*5;
 			sd->paramb[4]-= sd->sc_data[SC_QUAGMIRE].val1*5;
-			ADD_RATE(sd->speed_rate, -50);
+			SPEED_ADD_RATE(-50);
 		}
 		if(sd->sc_data[SC_TRUESIGHT].timer!=-1){	// トゥル?サイト
 			sd->paramb[0]+= 5;
@@ -1033,11 +1036,11 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	if( (skill=pc_checkskill(sd,BS_WEAPONRESEARCH))>0)	// 武器?究の命中率?加
 		sd->hit += skill*2;
 	if(sd->status.option&2 && (skill = pc_checkskill(sd,RG_TUNNELDRIVE))>0 )	// トンネルドライブ	// トンネルドライブ
-		ADD_RATE(sd->speed_rate, (16*skill-100));;
+		SPEED_ADD_RATE(16*skill-100);
 	if (pc_iscarton(sd) && (skill=pc_checkskill(sd,MC_PUSHCART))>0)	// カ?トによる速度低下
-		ADD_RATE(sd->speed_rate, (10*skill-100));
+		SPEED_ADD_RATE(10*skill-100);
 	if (pc_isriding(sd)) {	// ペコペコ?りによる速度?加
-		ADD_RATE(sd->speed_rate, 25);
+		SPEED_ADD_RATE(25);
 		sd->max_weight += 10000;
 	}
 	if((skill=pc_checkskill(sd,CR_TRUST))>0) { // フェイス
@@ -1049,7 +1052,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->subele[3] += skill*5;
 	}
 	if((skill=pc_checkskill(sd,SA_ADVANCEDBOOK))>0 )
-		ADD_RATE( aspd_rate, (int)(skill*0.5) );
+		ASPD_ADD_RATE( (int)(skill*0.5) );
 
 	bl = sd->status.base_level;
 	sd->status.max_hp += (3500 + bl*hp_coefficient2[s_class.job] +
@@ -1157,7 +1160,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	if( (skill=pc_checkskill(sd,TF_MISS))>0 ){	// 回避率?加
 		sd->flee += skill*((sd->status.class_==12 || sd->status.class_==17 || sd->status.class_==4013 || sd->status.class_==4018) ? 4 : 3);
 		if((sd->status.class_==12 || sd->status.class_==4013) && (sd->sc_count && sd->sc_data[SC_CLOAKING].timer==-1))
-			ADD_RATE(sd->speed_rate, (int)(skill*1.5));
+			SPEED_ADD_RATE((int)(skill*1.5));
 	}
 	if( (skill=pc_checkskill(sd,MO_DODGE))>0 )	// 見切り
 		sd->flee += (skill*3)>>1;
@@ -1253,40 +1256,40 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 		// ASPD/移動速度?化系
 		if(sd->sc_data[SC_TWOHANDQUICKEN].timer != -1 && sd->sc_data[SC_QUAGMIRE].timer == -1 && sd->sc_data[SC_DONTFORGETME].timer == -1)	// 2HQ
-			ADD_RATE(aspd_rate, 30);
+			ASPD_ADD_RATE(30);
 		if(sd->sc_data[SC_ADRENALINE].timer != -1 && sd->sc_data[SC_TWOHANDQUICKEN].timer == -1 &&
 			sd->sc_data[SC_QUAGMIRE].timer == -1 && sd->sc_data[SC_DONTFORGETME].timer == -1) {	// アドレナリンラッシュ
 			if(sd->sc_data[SC_ADRENALINE].val2 || !battle_config.party_skill_penalty) {
-				ADD_RATE(aspd_rate, 30);
+				ASPD_ADD_RATE(30);
 			} else
-				ADD_RATE(aspd_rate, 25);
+				ASPD_ADD_RATE(25);
 		}
 		if(sd->sc_data[SC_SPEARSQUICKEN].timer != -1 && sd->sc_data[SC_ADRENALINE].timer == -1 &&
 			sd->sc_data[SC_TWOHANDQUICKEN].timer == -1 && sd->sc_data[SC_QUAGMIRE].timer == -1 && sd->sc_data[SC_DONTFORGETME].timer == -1)	// スピアクィッケン
-			ADD_RATE(aspd_rate, sd->sc_data[SC_SPEARSQUICKEN].val2);
+			ASPD_ADD_RATE(sd->sc_data[SC_SPEARSQUICKEN].val2);
 		if(sd->sc_data[SC_ASSNCROS].timer!=-1 && // 夕陽のアサシンクロス
 			sd->sc_data[SC_TWOHANDQUICKEN].timer==-1 && sd->sc_data[SC_ADRENALINE].timer==-1 && sd->sc_data[SC_SPEARSQUICKEN].timer==-1 &&
 			sd->sc_data[SC_DONTFORGETME].timer == -1)
-				ADD_RATE(aspd_rate, (5+sd->sc_data[SC_ASSNCROS].val1+sd->sc_data[SC_ASSNCROS].val2+sd->sc_data[SC_ASSNCROS].val3));
+				ASPD_ADD_RATE(5+sd->sc_data[SC_ASSNCROS].val1+sd->sc_data[SC_ASSNCROS].val2+sd->sc_data[SC_ASSNCROS].val3);
 		if(sd->sc_data[SC_DONTFORGETME].timer!=-1){		// 私を忘れないで
-			ADD_RATE(aspd_rate, -(sd->sc_data[SC_DONTFORGETME].val1*3 + sd->sc_data[SC_DONTFORGETME].val2 + (sd->sc_data[SC_DONTFORGETME].val3>>16)));
-			ADD_RATE(sd->speed_rate, -(sd->sc_data[SC_DONTFORGETME].val1*2 + sd->sc_data[SC_DONTFORGETME].val2 + (sd->sc_data[SC_DONTFORGETME].val3&0xffff)));
+			ASPD_ADD_RATE(-(sd->sc_data[SC_DONTFORGETME].val1*3 + sd->sc_data[SC_DONTFORGETME].val2 + (sd->sc_data[SC_DONTFORGETME].val3>>16)));
+			SPEED_ADD_RATE(-(sd->sc_data[SC_DONTFORGETME].val1*2 + sd->sc_data[SC_DONTFORGETME].val2 + (sd->sc_data[SC_DONTFORGETME].val3&0xffff)));
 		}
 		if(sd->sc_data[i=SC_SPEEDPOTION3].timer!=-1 ||
 			sd->sc_data[i=SC_SPEEDPOTION2].timer!=-1 ||
 			sd->sc_data[i=SC_SPEEDPOTION1].timer!=-1 ||
 			sd->sc_data[i=SC_SPEEDPOTION0].timer!=-1)	// ? 速ポ?ション
-			ADD_RATE(aspd_rate, sd->sc_data[i].val2);
+			ASPD_ADD_RATE(sd->sc_data[i].val2);
 		if(sd->sc_data[SC_GRAVITATION].timer!=-1)
-			ADD_RATE(aspd_rate, -sd->sc_data[SC_GRAVITATION].val2);
+			ASPD_ADD_RATE(-sd->sc_data[SC_GRAVITATION].val2);
 		if(sd->sc_data[SC_WINDWALK].timer!=-1 && sd->sc_data[SC_INCREASEAGI].timer==-1)	//ウィンドウォ?ク暫ﾍLv*2%減算
-			ADD_RATE(sd->speed_rate, sd->sc_data[SC_WINDWALK].val1*2);
+			SPEED_ADD_RATE(sd->sc_data[SC_WINDWALK].val1*2);
 		if(sd->sc_data[SC_CARTBOOST].timer!=-1)	// カ?トブ?スト
-			ADD_RATE(sd->speed_rate, 20);
+			SPEED_ADD_RATE(20);
 		if(sd->sc_data[SC_BERSERK].timer!=-1)	//バ?サ?ク中はIAと同じぐらい速い？
-			ADD_RATE(sd->speed_rate, 25);
+			SPEED_ADD_RATE(25);
 		if(sd->sc_data[SC_WEDDING].timer!=-1)	//結婚中は?くのが?い
-			ADD_RATE(sd->speed_rate, -100);
+			SPEED_ADD_RATE(-100);
 
 		// HIT/FLEE?化系
 		if(sd->sc_data[SC_WHISTLE].timer!=-1){  // 口笛
@@ -1369,12 +1372,12 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(sd->sc_data[SC_STEELBODY].timer!=-1){	// 金剛
 			sd->def = 90;
 			sd->mdef = 90;
-			ADD_RATE(aspd_rate, -25);
-			ADD_RATE(sd->speed_rate, -25);
+			ASPD_ADD_RATE(-25);
+			SPEED_ADD_RATE(-25);
 		}
 		if(sd->sc_data[SC_DEFENDER].timer != -1) {
-			ADD_RATE(aspd_rate, (sd->sc_data[SC_DEFENDER].val1*5-25));
-			ADD_RATE(sd->speed, (sd->sc_data[SC_DEFENDER].val1*5-55));
+			ASPD_ADD_RATE(sd->sc_data[SC_DEFENDER].val1*5-25);
+			SPEED_ADD_RATE(sd->sc_data[SC_DEFENDER].val1*5-55);
 		}
 		if(sd->sc_data[SC_ENCPOISON].timer != -1)
 			sd->addeff[4] += sd->sc_data[SC_ENCPOISON].val2;
@@ -1383,7 +1386,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			int s_rate = 500 - 40 * pc_checkskill(sd,((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
 			if (sd->sc_data[SC_LONGING].timer != -1)
 				s_rate -= 20 * sd->sc_data[SC_LONGING].val1;
-			ADD_RATE(sd->speed, -s_rate);
+			SPEED_ADD_RATE(-s_rate);
 			// is attack speed affected?
 			//aspd_rate = 600 - 40 * pc_checkskill(sd, ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
 			//if (sd->sc_data[SC_LONGING].timer != -1)
@@ -1403,7 +1406,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->def = sd->def2 = 0;
 			sd->mdef = sd->mdef2 = 0;
 			sd->flee -= sd->flee*50/100;
-			ADD_RATE(aspd_rate, 30);
+			ASPD_ADD_RATE(30);
 		}
 		if(sd->sc_data[SC_INCDEF2].timer!=-1)
 			sd->def += sd->def * sd->sc_data[SC_INCDEF2].val1/100;
@@ -1415,14 +1418,14 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(sd->sc_data[SC_JOINTBEAT].timer!=-1) { // Random break [DracoRPG]
 			switch(sd->sc_data[SC_JOINTBEAT].val2) {
 			case 0: //Ankle break
-				ADD_RATE(sd->speed_rate, -50);
+				SPEED_ADD_RATE(-50);
 				break;
 			case 1:	//Wrist	break
-				ADD_RATE(sd->aspd_rate, -25);
+				ASPD_ADD_RATE(-25);
 				break;
 			case 2:	//Knee break
-				ADD_RATE(sd->speed_rate, -30);
-				ADD_RATE(sd->aspd_rate, -10);
+				SPEED_ADD_RATE(-30);
+				ASPD_ADD_RATE(-10);
 				break;
 			case 3:	//Shoulder break
 				sd->def2 -= sd->def2*50/100;
@@ -1478,8 +1481,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 						sd->flee = 0;
 						break;
 					case 8:
-						ADD_RATE(sd->speed_rate, -75);
-						ADD_RATE(aspd_rate, -75);
+						SPEED_ADD_RATE(-75);
+						ASPD_ADD_RATE(-75);
 						break;
 				}
 			}
@@ -1493,7 +1496,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	if(sd->speed < DEFAULT_WALK_SPEED/4)
 		sd->speed = DEFAULT_WALK_SPEED/4;
 	if(pc_isriding(sd))
-		ADD_RATE(aspd_rate, (10*pc_checkskill(sd,KN_CAVALIERMASTERY)-50));
+		ASPD_ADD_RATE(10*pc_checkskill(sd,KN_CAVALIERMASTERY)-50);
 	if(aspd_rate != 100)
 		sd->aspd = sd->aspd*aspd_rate/100;
 	if(sd->aspd < battle_config.max_aspd) sd->aspd = battle_config.max_aspd;
