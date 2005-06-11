@@ -2801,7 +2801,7 @@ int buildin_getpartyname(struct script_state *st)
 
 	party_id=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	name=buildin_getpartyname_sub(party_id);
-	if(name!=0)
+	if(name != NULL)
 		push_str(st->stack,C_STR,(unsigned char *)name);
 	else
 		push_str(st->stack,C_CONSTSTR, (unsigned char *) "null");
@@ -2855,7 +2855,7 @@ int buildin_getguildname(struct script_state *st)
 	char *name;
 	int guild_id=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	name=buildin_getguildname_sub(guild_id);
-	if(name!=0)
+	if(name != NULL)
 		push_str(st->stack,C_STR,(unsigned char *) name);
 	else
 		push_str(st->stack,C_CONSTSTR,(unsigned char *) "null");
@@ -2938,7 +2938,7 @@ int buildin_strcharinfo(struct script_state *st)
 	if(num==2){
 		char *buf;
 		buf=buildin_getguildname_sub(sd->status.guild_id);
-		if(buf!=0)
+		if(buf != NULL)
 			push_str(st->stack,C_STR,(unsigned char *) buf);
 		else
 			push_str(st->stack,C_CONSTSTR,(unsigned char *) "");

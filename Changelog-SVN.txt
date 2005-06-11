@@ -1,5 +1,8 @@
 Date	Added
 06/10
+	* Updated the default pet_db.txt support values	[Skotlex]
+	  We don't have an official list of the support rates, but 1% as default
+	  (1.5% if they have max intimacy) is just ridiculous.
 	* More map server memory cleanups... (70%) [Skotlex]
 	* Fixed that crash upon login.... 	[Skotlex]
 	* More map server memory cleanups...  (45%) [Skotlex]
