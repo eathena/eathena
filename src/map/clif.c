@@ -7944,9 +7944,6 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 	} else {
 		sd = (struct map_session_data*)aCalloc(1, sizeof(struct map_session_data));
 		memset(sd, 0, sizeof(struct map_session_data));	//This should save initializing time. [Skotlex]
-		//But strings should be initialized to \0 instead
-		memcpy (&sd->mapname, '\0', sizeof(sd->mapname));
-		memcpy (&sd->ignore, '\0', sizeof(sd->ignore));
 		session[fd]->session_data = sd;
 		sd->fd = fd;
 		sd->packet_ver = packet_ver;
