@@ -39,8 +39,6 @@ int itemdb_searchname_sub(void *key,void *data,va_list ap)
 	char *str;
 	str=va_arg(ap,char *);
 	dst=va_arg(ap,struct item_data **);
-//	if( strcmpi(item->name,str)==0 || strcmp(item->jname,str)==0 ||
-//		memcmp(item->name,str,24)==0 || memcmp(item->jname,str,24)==0 )
 	if( strcmpi(item->name,str)==0 ) //by lupus
 		*dst=item;
 	return 0;
@@ -163,7 +161,6 @@ struct item_data* itemdb_search(int nameid)
 	id=(struct item_data *)aCalloc(1,sizeof(struct item_data));
 	numdb_insert(item_db,nameid,id);
 
-	memset (id, 0, sizeof(struct item_data)); //Isn't this quicker? [Skotlex]
 	id->nameid=nameid;
 	id->value_buy=10;
 	id->value_sell=id->value_buy/2;
@@ -484,7 +481,7 @@ static int itemdb_read_itemnametable(void)
 			}
 #endif
 
-			memcpy(itemdb_search(nameid)->jname,buf2,24);
+			memcpy(itemdb_search(nameid)->jname,buf2,ITEM_NAME_LENGTH-1);
 		}
 
 		p=strchr(p,10);
@@ -520,7 +517,6 @@ static int itemdb_read_cardillustnametable(void)
 		if(	sscanf(p,"%d#%[^#]#",&nameid,buf2)==2 ){
 			strcat(buf2,".bmp");
 			memcpy(itemdb_search(nameid)->cardillustname,buf2,64);
-//			printf("%d %s\n",nameid,itemdb_search(nameid)->cardillustname);
 		}
 		
 		p=strchr(p,10);
@@ -737,8 +733,8 @@ static int itemdb_read_sqldb(void)
 					// ----------
 					id = itemdb_search(nameid);
 					
-					memcpy(id->name, sql_row[1], 25);
-					memcpy(id->jname, sql_row[2], 25);
+					memcpy(id->name, sql_row[1], ITEM_NAME_LENGTH-1);
+					memcpy(id->jname, sql_row[2], ITEM_NAME_LENGTH-1);
 
 					id->type = atoi(sql_row[3]);
 					if (id->type == 11)
@@ -877,8 +873,8 @@ static int itemdb_readdb(void)
 
 			//ID,Name,Jname,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Gender,Loc,wLV,eLV,refineable,View
 			id=itemdb_search(nameid);
-			memcpy(id->name,str[1],24);
-			memcpy(id->jname,str[2],24);
+			memcpy(id->name, str[1], NAME_LENGTH-1);
+			memcpy(id->jname, str[2], NAME_LENGTH-1);
 			id->type=atoi(str[3]);
 			if (id->type == 11)
 			{	//Items that are consumed upon target confirmation

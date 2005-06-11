@@ -110,17 +110,17 @@ static int guild_read_castledb(void)
 			p=strchr(p,',');
 			if(p) *p++=0;
 		}
-
+/*		Ahem... aCalloc already sets everything to 0! [Skotlex]
 		gc->guild_id=0; // <Agit> Clear Data for Initialize
 		gc->economy=0; gc->defense=0; gc->triggerE=0; gc->triggerD=0; gc->nextTime=0; gc->payTime=0;
 		gc->createTime=0; gc->visibleC=0; gc->visibleG0=0; gc->visibleG1=0; gc->visibleG2=0;
 		gc->visibleG3=0; gc->visibleG4=0; gc->visibleG5=0; gc->visibleG6=0; gc->visibleG7=0;
 		gc->Ghp0=0; gc->Ghp1=0; gc->Ghp2=0; gc->Ghp3=0; gc->Ghp4=0; gc->Ghp5=0; gc->Ghp6=0; gc->Ghp7=0; // guardian HP [Valaris]
-
+*/
 		gc->castle_id=atoi(str[0]);
-		memcpy(gc->map_name,str[1],24);
-		memcpy(gc->castle_name,str[2],24);
-		memcpy(gc->castle_event,str[3],24);
+		memcpy(gc->map_name,str[1],NAME_LENGTH-1);
+		memcpy(gc->castle_name,str[2],NAME_LENGTH-1);
+		memcpy(gc->castle_event,str[3],NAME_LENGTH-1);
 
 		numdb_insert(castle_db,gc->castle_id,gc);
 
@@ -246,11 +246,11 @@ void guild_makemember(struct guild_member *m,struct map_session_data *sd)
 	m->gender		=sd->sex;
 	m->class_		=sd->status.class_;
 	m->lv			=sd->status.base_level;
-	m->exp			=0;
-	m->exp_payper	=0;
+//	m->exp			=0;
+//	m->exp_payper	=0;
 	m->online		=1;
 	m->position		=MAX_GUILDPOSITION-1;
-	memcpy(m->name,sd->status.name,24);
+	memcpy(m->name,sd->status.name,NAME_LENGTH-1);
 	return;
 }
 // ギルド競合確認
@@ -874,7 +874,8 @@ int guild_change_position(struct map_session_data *sd,int idx,
 	if(exp_mode<0)exp_mode=0;
 	p.mode=mode;
 	p.exp_mode=exp_mode;
-	memcpy(p.name,name,24);
+	memcpy(p.name,name,NAME_LENGTH-1);
+	p.name[NAME_LENGTH-1] = '\0'; //Security check... [Skotlex]
 	return intif_guild_position(sd->status.guild_id,idx,&p);
 }
 // ギルド役職変更通知
@@ -1274,7 +1275,7 @@ int guild_allianceack(int guild_id1,int guild_id2,int account_id1,int account_id
 				for(j=0;j<MAX_GUILDALLIANCE;j++)
 					if(g[i]->alliance[j].guild_id==0){
 						g[i]->alliance[j].guild_id=guild_id[1-i];
-						memcpy(g[i]->alliance[j].name,guild_name[1-i],24);
+						memcpy(g[i]->alliance[j].name,guild_name[1-i],NAME_LENGTH-1);
 						g[i]->alliance[j].opposition=flag&1;
 						break;
 					}

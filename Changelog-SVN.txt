@@ -1,5 +1,6 @@
 Date	Added
 06/10
+	* More map server memory cleanups... (70%) [Skotlex]
 	* Fixed that crash upon login.... 	[Skotlex]
 	* More map server memory cleanups...  (45%) [Skotlex]
 	* More map server memory bound cleanups and checks (35%) [Skotlex]

@@ -72,8 +72,8 @@ int intif_create_pet(int account_id,int char_id,short pet_class,short pet_lv,sho
 	WFIFOW(inter_fd,20) = hungry;
 	WFIFOB(inter_fd,22) = rename_flag;
 	WFIFOB(inter_fd,23) = incuvate;
-	memcpy(WFIFOP(inter_fd,24),pet_name,24);
-	WFIFOSET(inter_fd,48);
+	memcpy(WFIFOP(inter_fd,24),pet_name,NAME_LENGTH);
+	WFIFOSET(inter_fd,24+NAME_LENGTH);
 
 	return 0;
 }
@@ -141,9 +141,9 @@ int intif_wis_message(struct map_session_data *sd, char *nick, char *mes, int me
 
 	WFIFOW(inter_fd,0) = 0x3001;
 	WFIFOW(inter_fd,2) = mes_len + 52;
-	memcpy(WFIFOP(inter_fd,4), sd->status.name, 24);
-	memcpy(WFIFOP(inter_fd,28), nick, 24);
-	memcpy(WFIFOP(inter_fd,52), mes, mes_len);
+	memcpy(WFIFOP(inter_fd,4), sd->status.name, NAME_LENGTH);
+	memcpy(WFIFOP(inter_fd,4+NAME_LENGTH), nick, NAME_LENGTH);
+	memcpy(WFIFOP(inter_fd,4+2*NAME_LENGTH), mes, mes_len);
 	WFIFOSET(inter_fd, WFIFOW(inter_fd,2));
 
 	if (battle_config.etc_log)
@@ -175,9 +175,9 @@ int intif_wis_message_to_gm(char *Wisp_name, int min_gm_level, char *mes) {
 	mes_len = strlen(mes) + 1; // + null
 	WFIFOW(inter_fd,0) = 0x3003;
 	WFIFOW(inter_fd,2) = mes_len + 30;
-	memcpy(WFIFOP(inter_fd,4), Wisp_name, 24);
-	WFIFOW(inter_fd,28) = (short)min_gm_level;
-	memcpy(WFIFOP(inter_fd,30), mes, mes_len);
+	memcpy(WFIFOP(inter_fd,4), Wisp_name, NAME_LENGTH);
+	WFIFOW(inter_fd,4+NAME_LENGTH) = (short)min_gm_level;
+	memcpy(WFIFOP(inter_fd,6+NAME_LENGTH), mes, mes_len);
 	WFIFOSET(inter_fd, WFIFOW(inter_fd,2));
 
 	if (battle_config.etc_log)
@@ -279,13 +279,13 @@ int intif_create_party(struct map_session_data *sd,char *name,int item,int item2
 
 	WFIFOW(inter_fd,0) = 0x3020;
 	WFIFOL(inter_fd,2) = sd->status.account_id;
-	memcpy(WFIFOP(inter_fd, 6),name,24);
-	memcpy(WFIFOP(inter_fd,30),sd->status.name,24);
-	memcpy(WFIFOP(inter_fd,54),map[sd->bl.m].name,16);
-	WFIFOW(inter_fd,70)= sd->status.base_level;
-	WFIFOB(inter_fd,72)= item;
-	WFIFOB(inter_fd,73)= item2;
-	WFIFOSET(inter_fd,74);
+	memcpy(WFIFOP(inter_fd,6),name,	NAME_LENGTH);
+	memcpy(WFIFOP(inter_fd,6+NAME_LENGTH),sd->status.name,NAME_LENGTH);
+	memcpy(WFIFOP(inter_fd,6+2*NAME_LENGTH),map[sd->bl.m].name,16); //What? 16? But a map's name is up to 24 currently!? [Skotlex]
+	WFIFOW(inter_fd,22+2*NAME_LENGTH)= sd->status.base_level;
+	WFIFOB(inter_fd,24+2*NAME_LENGTH)= item;
+	WFIFOB(inter_fd,25+2*NAME_LENGTH)= item2;
+	WFIFOSET(inter_fd,26+2*NAME_LENGTH);
 //	if(battle_config.etc_log)
 //		printf("intif: create party\n");
 	return 0;
@@ -315,10 +315,10 @@ int intif_party_addmember(int party_id,int account_id)
 		WFIFOW(inter_fd,0)=0x3022;
 		WFIFOL(inter_fd,2)=party_id;
 		WFIFOL(inter_fd,6)=account_id;
-		memcpy(WFIFOP(inter_fd,10),sd->status.name,24);
-		memcpy(WFIFOP(inter_fd,34),map[sd->bl.m].name,16);
-		WFIFOW(inter_fd,50)=sd->status.base_level;
-		WFIFOSET(inter_fd,52);
+		memcpy(WFIFOP(inter_fd,10),sd->status.name,NAME_LENGTH);
+		memcpy(WFIFOP(inter_fd,10+NAME_LENGTH),map[sd->bl.m].name,16);
+		WFIFOW(inter_fd,26+NAME_LENGTH)=sd->status.base_level;
+		WFIFOSET(inter_fd,28+NAME_LENGTH);
 	}
 	return 0;
 }
@@ -399,8 +399,8 @@ int intif_party_checkconflict(int party_id,int account_id,char *nick)
 	WFIFOW(inter_fd,0)=0x3028;
 	WFIFOL(inter_fd,2)=party_id;
 	WFIFOL(inter_fd,6)=account_id;
-	memcpy(WFIFOP(inter_fd,10),nick,24);
-	WFIFOSET(inter_fd,34);
+	memcpy(WFIFOP(inter_fd,10),nick,NAME_LENGTH);
+	WFIFOSET(inter_fd,10+NAME_LENGTH);
 	return 0;
 }
 
@@ -414,8 +414,8 @@ int intif_guild_create(const char *name,const struct guild_member *master)
 	WFIFOW(inter_fd,0)=0x3030;
 	WFIFOW(inter_fd,2)=sizeof(struct guild_member)+32;
 	WFIFOL(inter_fd,4)=master->account_id;
-	memcpy(WFIFOP(inter_fd,8),name,24);
-	memcpy(WFIFOP(inter_fd,32),master,sizeof(struct guild_member));
+	memcpy(WFIFOP(inter_fd,8),name,NAME_LENGTH);
+	memcpy(WFIFOP(inter_fd,8+NAME_LENGTH),master,sizeof(struct guild_member));
 	WFIFOSET(inter_fd,WFIFOW(inter_fd,2));
 	return 0;
 }
@@ -701,8 +701,8 @@ int mapif_parse_WisToGM(int fd) { // 0x3003/0x3803 <packet_len>.w <wispname>.24B
 	char *message = (char *) (((RFIFOW(fd,2) - 30) >= sizeof(mbuf)) ? (char *) aMallocA((RFIFOW(fd,2) - 30)) : mbuf);
 
 	min_gm_level = (int)RFIFOW(fd,28);
-	memcpy(Wisp_name, RFIFOP(fd,4), 24);
-	Wisp_name[23] = '\0';
+	memcpy(Wisp_name, RFIFOP(fd,4), NAME_LENGTH);
+	Wisp_name[NAME_LENGTH-1] = '\0';
 	memcpy(message, RFIFOP(fd,30), RFIFOW(fd,2) - 30);
 	message[sizeof(message) - 1] = '\0';
 	// information is sended to all online GM
