@@ -2073,7 +2073,7 @@ bool atcommand_alive(int fd, struct map_session_data &sd, const char* command, c
 	{
 		sd.status.hp = sd.status.max_hp;
 		sd.status.sp = sd.status.max_sp;
-		clif_skill_nodamage(&sd.bl,&sd.bl,ALL_RESURRECTION,4,1);
+		clif_skill_nodamage(sd.bl,sd.bl,ALL_RESURRECTION,4,1);
 	pc_setstand(sd);
 	if (battle_config.pc_invincible_time > 0)
 		pc_setinvincibletimer(sd, battle_config.pc_invincible_time);
@@ -2134,7 +2134,7 @@ bool atcommand_heal(int fd, struct map_session_data &sd, const char* command, co
 	if (hp > 0) // display like heal
 		clif_heal(fd, SP_HP, hp);
 	else if (hp < 0) // display like damage
-		clif_damage(&sd.bl,&sd.bl, gettick(), 0, 0, -hp, 0 , 4, 0);
+		clif_damage(sd.bl,sd.bl, gettick(), 0, 0, -hp, 0 , 4, 0);
 	if (sp > 0) // no display when we lost SP
 		clif_heal(fd, SP_SP, sp);
 
@@ -4040,7 +4040,7 @@ bool atcommand_revive(int fd, struct map_session_data &sd, const char* command, 
 		if (pc_isdead(*pl_sd))
 		{
 			pl_sd->status.hp = pl_sd->status.max_hp;
-			clif_skill_nodamage(&sd.bl,&sd.bl,ALL_RESURRECTION,4,1);
+			clif_skill_nodamage(sd.bl,sd.bl,ALL_RESURRECTION,4,1);
 			pc_setstand(*pl_sd);
 			if (battle_config.pc_invincible_time > 0)
 				pc_setinvincibletimer(*pl_sd, battle_config.pc_invincible_time);
@@ -4349,7 +4349,7 @@ static void atcommand_raise_sub(struct map_session_data& sd)
 {
 	if(sd.state.auth && pc_isdead(sd))
 	{
-		clif_skill_nodamage(&sd.bl,&sd.bl,ALL_RESURRECTION,4,1);
+		clif_skill_nodamage(sd.bl,sd.bl,ALL_RESURRECTION,4,1);
 		sd.status.hp = sd.status.max_hp;
 		sd.status.sp = sd.status.max_sp;
 		pc_setstand(sd);
@@ -7338,7 +7338,7 @@ bool atcommand_changelook(int fd, struct map_session_data &sd, const char* comma
 		j = LOOK_HEAD_TOP;
 	}
 
-	clif_changelook(&sd.bl,j,k);
+	clif_changelook(sd.bl,j,k);
 
 	return true;
 }

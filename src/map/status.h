@@ -107,7 +107,7 @@ enum {	// struct map_session_data ‚Ì status_change‚Ì”Ô?ƒe?ƒuƒ‹
 	SC_VIOLENTGALE		= 96,
 // <-- 97 = gloria
 	SC_LANDPROTECTOR	= 98,
-	SC_SELFDESTRUCTION	= 99,	/* Ž©”š */
+// 99
 	SC_NOCHAT			= 100,	//ÔƒGƒ‚?‘Ô
 	SC_BABY				= 101,
 // <-- 102 = gloria

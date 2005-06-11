@@ -89,7 +89,7 @@ int party_created(unsigned long account_id,int fail,unsigned long party_id,const
 		}
 		p=(struct party *)aCalloc(1,sizeof(struct party));
 		p->party_id=party_id;
-		memcpy(p->name,name,24);
+		memcpy(p->name, name, NAME_LENGTH-1);
 		numdb_insert(party_db,party_id,p);
 		clif_party_created(*sd,0);
 	}else{
@@ -390,7 +390,7 @@ int party_recv_movemap(unsigned long party_id,unsigned long account_id,const cha
 			return 0;
 		}
 		if(m->account_id==account_id){
-			memcpy(m->map,map,16);
+			memcpy(m->map,map,NAME_LENGTH-1);
 			m->online=online;
 			m->lv=lv;
 			break;

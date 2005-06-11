@@ -1643,46 +1643,44 @@ int guild_agit_break(struct mob_data &md)
 
 // [MouseJstr]
 //   How many castles does this guild have?
-unsigned int guild_checkcastles(struct guild *g)
+unsigned int guild_checkcastles(struct guild &g)
 {
-	unsigned int i,nb_cas=0;
-	unsigned long id,cas_id=0;
+	size_t i, nb_cas=0;
+
 	struct guild_castle *gc;
-		id=g->guild_id;
+		
 	for(i=0;i<MAX_GUILDCASTLE;i++)
 	{
 		gc=guild_castle_search(i);
-		cas_id=gc->guild_id;
-		if(g->guild_id==cas_id)
-			nb_cas=nb_cas+1;
-		} //end for
+		if(gc && gc->guild_id == g.guild_id)
+			nb_cas=nb_cas+1;	
+	} //end for
 	return nb_cas;
 }
 
 // [MouseJstr]
 //    is this guild allied with this castle?
-int guild_isallied(struct guild *g, struct guild_castle *gc)
+bool guild_isallied(struct guild &g, struct guild_castle &gc)
 {
-	int i;
+	size_t i;
 
-	nullpo_retr(0, g);
+	if(gc.guild_id == 0 || g.guild_id == 0)
+		return false;
 
-	if(g->guild_id == gc->guild_id)
-		return 1;
-
-	if (gc->guild_id == 0)
-		return 0;
-
+	if(g.guild_id == gc.guild_id)
+		return true;
 
 	for(i=0;i<MAX_GUILDALLIANCE;i++)
-		if(g->alliance[i].guild_id == gc->guild_id) {
-			if(g->alliance[i].opposition == 0)
-				return 1;
+	{
+		if(g.alliance[i].guild_id == gc.guild_id)
+		{
+			if(g.alliance[i].opposition == 0)
+				return true;
 			else
-				return 0;
+				return false;
 		}
-
-	return 0;
+	}
+	return false;
 }
 
 static int guild_db_final(void *key,void *data,va_list ap)

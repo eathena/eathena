@@ -13,7 +13,7 @@ PACKETDEF = -DPACKETVER=6 -DNEW_006b
 #PACKETDEF = -DPACKETVER=2 -DNEW_006b
 #PACKETDEF = -DPACKETVER=1 -DNEW_006b
 
-OPT = -g -O6 -ffast-math
+OPT = -g -O3 -ffast-math
 
 PLATFORM = $(shell uname)
 

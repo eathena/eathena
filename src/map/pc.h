@@ -32,8 +32,8 @@ int pc_setnewpc(int fd, struct map_session_data &sd, unsigned long account_id, u
 int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_time, unsigned char *buf);
 int pc_authfail(int fd);
 
-bool pc_isequip(struct map_session_data &sd,int n);
-int pc_equippoint(struct map_session_data &sd,int n);
+bool pc_isequipable(struct map_session_data &sd, unsigned short inx);
+unsigned short pc_equippoint(struct map_session_data &sd, unsigned short inx);
 
 bool pc_break_equip(struct map_session_data &sd, unsigned short idx);
 extern inline bool pc_breakweapon(struct map_session_data &sd)	{ return pc_break_equip(sd, EQP_WEAPON); }
@@ -206,7 +206,7 @@ int pc_eventtimer(int tid,unsigned long tick,int id,int data);
 struct fame_list {
 	unsigned long id;
 	unsigned long fame;
-	char name[24];
+	char name[NAME_LENGTH];
 };
 extern struct fame_list smith_fame_list[MAX_FAMELIST];
 extern struct fame_list chemist_fame_list[MAX_FAMELIST];

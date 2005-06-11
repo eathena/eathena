@@ -402,7 +402,7 @@ int pc_setnewpc(int fd, struct map_session_data &sd, unsigned long account_id, u
 	return 0;
 }
 
-int pc_equippoint(struct map_session_data &sd,int n)
+unsigned short pc_equippoint(struct map_session_data &sd, unsigned short inx)
 {
 	int ep = 0;
 	//?¶‚â—{q‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ğZo‚·‚é
@@ -410,9 +410,11 @@ int pc_equippoint(struct map_session_data &sd,int n)
 
 	s_class = pc_calc_base_job(sd.status.class_);
 
-	if(sd.inventory_data[n]) {
-		ep = sd.inventory_data[n]->equip;
-		if(sd.inventory_data[n]->look == 1 || sd.inventory_data[n]->look == 2 || sd.inventory_data[n]->look == 6) {
+	if( inx<MAX_INVENTORY && sd.inventory_data[inx] )
+	{
+		ep = sd.inventory_data[inx]->equip;
+		if(sd.inventory_data[inx]->look == 1 || sd.inventory_data[inx]->look == 2 || sd.inventory_data[inx]->look == 6)
+		{
 			if(ep == 2 && (pc_checkskill(sd,AS_LEFT) > 0 || s_class.job == 12))
 				return 34;
 		}
@@ -501,13 +503,13 @@ int pc_setequipindex(struct map_session_data &sd)
 	return 0;
 }
 
-bool pc_isequip(struct map_session_data &sd, int n)
+bool pc_isequipable(struct map_session_data &sd, unsigned short inx)
 {
 	struct item_data *item;
 	struct status_change *sc_data;
 	//?¶‚â—{q‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ğZo‚·‚é
 
-	item = sd.inventory_data[n];
+	item = sd.inventory_data[inx];
 	sc_data = status_get_sc_data(&sd.bl);
 
 	if( battle_config.gm_allequip>0 && pc_isGM(sd)>=battle_config.gm_allequip )
@@ -579,7 +581,7 @@ bool pc_break_equip(struct map_session_data &sd, unsigned short where)
 
 	for (i=0;i<MAX_EQUIP;i++)
 	{
-		if( (j = sd.equip_index[i]) > 0 && sd.status.inventory[j].attribute != 1 &&
+		if( (j = sd.equip_index[i]) <MAX_INVENTORY && sd.status.inventory[j].attribute != 1 &&
 			((where == EQP_HELM && i == 6) ||
 			(where == EQP_ARMOR && i == 7) ||
 			 (where == EQP_WEAPON && (i == 8 || i == 9) && sd.inventory_data[j]->type == 4) ||
@@ -1305,10 +1307,9 @@ int pc_bonus(struct map_session_data &sd,int type,int val)
 			else
 				sd.aspd_rate = 0;
 		break;
-	case SP_ASPD_ADDRATE:
+	case SP_ASPD_ADDRATE:	//Stackable increase - Made it linear as per rodatazone
 		if(sd.state.lr_flag != 2)
-			sd.aspd_add_rate = sd.aspd_add_rate * (100-val)/100;
-		break;
+			sd.aspd_add_rate -= val;
 	case SP_HP_RECOV_RATE:
 		if(sd.state.lr_flag != 2)
 			sd.hprecov_rate += val;
@@ -2528,7 +2529,7 @@ int pc_takeitem(struct map_session_data &sd,struct flooritem_data &fitem)
 		/* æ“¾¬Œ÷ */
 		if(sd.attacktimer != -1)
 			pc_stopattack(sd);
-		clif_takeitem(&sd.bl,&fitem.bl);
+		clif_takeitem(sd.bl,fitem.bl);
 		map_clearflooritem(fitem.bl.id);
 	}
 	return 0;
@@ -2588,6 +2589,7 @@ int pc_useitem(struct map_session_data &sd,unsigned short inx)
 		amount = sd.status.inventory[inx].amount;
 		if( sd.status.inventory[inx].nameid <= 0 ||
 			sd.status.inventory[inx].amount <= 0 ||
+			gettick() < sd.canuseitem_tick || //Prevent mass item usage. [Skotlex]
 			sd.sc_data[SC_BERSERK].timer!=-1 ||
 			sd.sc_data[SC_MARIONETTE].timer!=-1 ||
 			sd.sc_data[SC_GRAVITATION].timer!=-1 ||
@@ -4648,7 +4650,7 @@ int pc_resetlvl(struct map_session_data &sd,int type)
 	for(i=0;i<MAX_EQUIP;i++)
 	{	// unequip items that can't be equipped by base 1 [Valaris]
 		if(sd.equip_index[i] >= 0)
-			if(!pc_isequip(sd,sd.equip_index[i]))
+			if(!pc_isequipable(sd,sd.equip_index[i]))
 				pc_unequipitem(sd,sd.equip_index[i],2);
 	}
 	clif_skillinfoblock(sd);
@@ -5594,17 +5596,17 @@ int pc_jobchange(struct map_session_data &sd,int job, int upper)
 
 	for(i=0;i<MAX_EQUIP;i++) {
 		if(sd.equip_index[i] >= 0)
-			if(!pc_isequip(sd,sd.equip_index[i]))
+			if(!pc_isequipable(sd,sd.equip_index[i]))
 				pc_unequipitem(sd,sd.equip_index[i],2);	// ?”õŠO‚µ
 	}
 
-	clif_changelook(&sd.bl,LOOK_BASE,sd.view_class); // move sprite update to prevent client crashes with incompatible equipment [Valaris]
+	clif_changelook(sd.bl,LOOK_BASE,sd.view_class); // move sprite update to prevent client crashes with incompatible equipment [Valaris]
 
 	if(battle_config.save_clothcolor &&
 		sd.status.clothes_color > 0 &&
 		(sd.view_class != 22 || !battle_config.wedding_ignorepalette)
 		)
-		clif_changelook(&sd.bl,LOOK_CLOTHES_COLOR,sd.status.clothes_color);
+		clif_changelook(sd.bl,LOOK_CLOTHES_COLOR,sd.status.clothes_color);
 	if(battle_config.muting_players && sd.status.manner < 0)
 		clif_changestatus(sd.bl,SP_MANNER,sd.status.manner);
 
@@ -5630,15 +5632,15 @@ int pc_jobchange(struct map_session_data &sd,int job, int upper)
 int pc_equiplookall(struct map_session_data &sd)
 {
 #if PACKETVER < 4
-	clif_changelook(&sd.bl,LOOK_WEAPON,sd.status.weapon);
-	clif_changelook(&sd.bl,LOOK_SHIELD,sd.status.shield);
+	clif_changelook(sd.bl,LOOK_WEAPON,sd.status.weapon);
+	clif_changelook(sd.bl,LOOK_SHIELD,sd.status.shield);
 #else
-	clif_changelook(&sd.bl,LOOK_WEAPON,0);
-	clif_changelook(&sd.bl,LOOK_SHOES,0);
+	clif_changelook(sd.bl,LOOK_WEAPON,0);
+	clif_changelook(sd.bl,LOOK_SHOES,0);
 #endif
-	clif_changelook(&sd.bl,LOOK_HEAD_BOTTOM,sd.status.head_bottom);
-	clif_changelook(&sd.bl,LOOK_HEAD_TOP,sd.status.head_top);
-	clif_changelook(&sd.bl,LOOK_HEAD_MID,sd.status.head_mid);
+	clif_changelook(sd.bl,LOOK_HEAD_BOTTOM,sd.status.head_bottom);
+	clif_changelook(sd.bl,LOOK_HEAD_TOP,sd.status.head_top);
+	clif_changelook(sd.bl,LOOK_HEAD_MID,sd.status.head_mid);
 
 	return 0;
 }
@@ -5689,7 +5691,7 @@ int pc_changelook(struct map_session_data &sd,int type,unsigned short val)
 	case LOOK_SHOES:
 		break;
 	}
-	clif_changelook(&sd.bl,type,val);
+	clif_changelook(sd.bl,type,val);
 
 	return 0;
 }
@@ -6165,8 +6167,9 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 	struct item_data *id;
 	//?¶‚â—{q‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ğZo‚·‚é
 
-	if( inx >= MAX_INVENTORY || pos >= MAX_EQUIP )
+	if( inx >= MAX_INVENTORY )
 	{
+printf("equipment checking failure inx = %i\n", inx);
 		clif_equipitemack(sd,inx,0,0);	// fail
 		return 0;
 	}
@@ -6176,11 +6179,11 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 	pos = pc_equippoint(sd,inx);
 	if(battle_config.battle_log)
 		ShowMessage("(char %i) equip %d(%d) %x:%x\n",sd.status.char_id, nameid, inx, id->equip, pos);
-	if( !pc_isequip(sd,inx) || !pos || 
+	if( !pc_isequipable(sd,inx) || !pos || 
 		sd.status.inventory[inx].attribute==1 ||
-		sd.sc_data[SC_BERSERK].timer!=-1	// -- moonsoul (if player is berserk then cannot equip)
-		)
+		sd.sc_data[SC_BERSERK].timer!=-1 )	// -- moonsoul (if player is berserk then cannot equip)
 	{	// [Valaris]
+printf("equipment checking failure %i, %i\n", pos, pc_isequipable(sd,inx));
 		clif_equipitemack(sd,inx,0,0);	// fail
 		return 0;
 	}
@@ -6206,7 +6209,7 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 		if(sd.equip_index[9] >= 0)
 			tpos |= sd.status.inventory[sd.equip_index[9]].equip;
 		tpos &= 0x02;
-		pos = tpos == 0x02 ? 0x20 : 0x02;
+		pos = (tpos==0x02) ? 0x20 : 0x02;
 	}
 
 	arrow=pc_search_inventory(sd,pc_checkequip(sd,9));	// Added by RoVeRT
@@ -6214,7 +6217,7 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 	{
 		if(sd.equip_index[i] >= 0 && sd.status.inventory[sd.equip_index[i]].equip&pos)
 			pc_unequipitem(sd,sd.equip_index[i],2);
-		}
+	}
 	// ‹|–î?”õ
 	if(pos==0x8000)
 	{
@@ -6236,7 +6239,7 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 		else
 			sd.weapontype1 = 0;
 		pc_calcweapontype(sd);
-		clif_changelook(&sd.bl,LOOK_WEAPON,sd.status.weapon);
+		clif_changelook(sd.bl,LOOK_WEAPON,sd.status.weapon);
 	}
 	if(sd.status.inventory[inx].equip & 0x0020) {
 		if(sd.inventory_data[inx]) {
@@ -6255,31 +6258,31 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 		else
 			sd.status.shield = sd.weapontype2 = 0;
 		pc_calcweapontype(sd);
-		clif_changelook(&sd.bl,LOOK_SHIELD,sd.status.shield);
+		clif_changelook(sd.bl,LOOK_SHIELD,sd.status.shield);
 	}
 	if(sd.status.inventory[inx].equip & 0x0001) {
 		if(sd.inventory_data[inx])
 			sd.status.head_bottom = sd.inventory_data[inx]->look;
 		else
 			sd.status.head_bottom = 0;
-		clif_changelook(&sd.bl,LOOK_HEAD_BOTTOM,sd.status.head_bottom);
+		clif_changelook(sd.bl,LOOK_HEAD_BOTTOM,sd.status.head_bottom);
 	}
 	if(sd.status.inventory[inx].equip & 0x0100) {
 		if(sd.inventory_data[inx])
 			sd.status.head_top = sd.inventory_data[inx]->look;
 		else
 			sd.status.head_top = 0;
-		clif_changelook(&sd.bl,LOOK_HEAD_TOP,sd.status.head_top);
+		clif_changelook(sd.bl,LOOK_HEAD_TOP,sd.status.head_top);
 	}
 	if(sd.status.inventory[inx].equip & 0x0200) {
 		if(sd.inventory_data[inx])
 			sd.status.head_mid = sd.inventory_data[inx]->look;
 		else
 			sd.status.head_mid = 0;
-		clif_changelook(&sd.bl,LOOK_HEAD_MID,sd.status.head_mid);
+		clif_changelook(sd.bl,LOOK_HEAD_MID,sd.status.head_mid);
 	}
 	if(sd.status.inventory[inx].equip & 0x0040)
-		clif_changelook(&sd.bl,LOOK_SHOES,0);
+		clif_changelook(sd.bl,LOOK_SHOES,0);
 
 	pc_checkallowskill(sd);	// ?”õ•i‚ÅƒXƒLƒ‹‚©‰ğœ‚³‚ê‚é‚©ƒ`ƒFƒbƒN
 	if( itemdb_look(sd.status.inventory[inx].nameid) == 11 && (arrow < MAX_INVENTORY) )
@@ -6293,19 +6296,15 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 		if(sd.sc_data[SC_ENDURE].timer == -1)
 			status_change_start(&sd.bl,SC_ENDURE,10,1,0,0,0,0);
 	}
-	else {
-		if(
-			sd.sc_data[SC_ENDURE].timer != -1 && sd.sc_data[SC_ENDURE].val2)
+	else
+	{
+		if(	sd.sc_data[SC_ENDURE].timer != -1 && sd.sc_data[SC_ENDURE].val2)
 			status_change_end(&sd.bl,SC_ENDURE,-1);
 	}
-
-
-	{
-		if (sd.sc_data[SC_SIGNUMCRUCIS].timer != -1 && !battle_check_undead(7,sd.def_ele))
-			status_change_end(&sd.bl,SC_SIGNUMCRUCIS,-1);
-		if(sd.sc_data[SC_DANCING].timer!=-1 && (sd.status.weapon != 13 && sd.status.weapon !=14))
-			skill_stop_dancing(&sd.bl,0);
-	}
+	if (sd.sc_data[SC_SIGNUMCRUCIS].timer != -1 && !battle_check_undead(7,sd.def_ele))
+		status_change_end(&sd.bl,SC_SIGNUMCRUCIS,-1);
+	if(sd.sc_data[SC_DANCING].timer!=-1 && (sd.status.weapon != 13 && sd.status.weapon !=14))
+		skill_stop_dancing(&sd.bl,0);
 
 	return 0;
 }
@@ -6354,31 +6353,31 @@ int pc_unequipitem(struct map_session_data &sd,unsigned short inx, int flag)
 			sd.weapontype1 = 0;
 			sd.status.weapon = sd.weapontype2;
 			pc_calcweapontype(sd);
-			clif_changelook(&sd.bl,LOOK_WEAPON,sd.status.weapon);
+			clif_changelook(sd.bl,LOOK_WEAPON,sd.status.weapon);
 		}
 		if(sd.status.inventory[inx].equip & 0x0020)
 		{
 			sd.status.shield = sd.weapontype2 = 0;
 			pc_calcweapontype(sd);
-			clif_changelook(&sd.bl,LOOK_SHIELD,sd.status.shield);
+			clif_changelook(sd.bl,LOOK_SHIELD,sd.status.shield);
 		}
 		if(sd.status.inventory[inx].equip & 0x0001)
 		{
 			sd.status.head_bottom = 0;
-			clif_changelook(&sd.bl,LOOK_HEAD_BOTTOM,sd.status.head_bottom);
+			clif_changelook(sd.bl,LOOK_HEAD_BOTTOM,sd.status.head_bottom);
 		}
 		if(sd.status.inventory[inx].equip & 0x0100)
 		{
 			sd.status.head_top = 0;
-			clif_changelook(&sd.bl,LOOK_HEAD_TOP,sd.status.head_top);
+			clif_changelook(sd.bl,LOOK_HEAD_TOP,sd.status.head_top);
 		}
 		if(sd.status.inventory[inx].equip & 0x0200)
 		{
 			sd.status.head_mid = 0;
-			clif_changelook(&sd.bl,LOOK_HEAD_MID,sd.status.head_mid);
+			clif_changelook(sd.bl,LOOK_HEAD_MID,sd.status.head_mid);
 		}
 		if(sd.status.inventory[inx].equip & 0x0040)
-			clif_changelook(&sd.bl,LOOK_SHOES,0);
+			clif_changelook(sd.bl,LOOK_SHOES,0);
 		{
 			if (sd.sc_data[SC_BROKNWEAPON].timer != -1 && 
 				sd.status.inventory[inx].equip & 0x0002 &&

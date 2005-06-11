@@ -600,6 +600,7 @@ struct map_session_data
 
 	unsigned short change_level;	// [celest]
 
+	unsigned long canuseitem_tick;
 
 	char fakename[24];
 
@@ -714,11 +715,11 @@ struct mob_list
 
 struct mob_data {
 	struct block_list bl;
-	short base_class;
-	short class_;
-	short dir;
-	short mode;
-	short level;
+	unsigned short base_class;
+	unsigned short class_;
+	unsigned short mode;
+	unsigned short level;
+	unsigned char dir;
 	char name[24];
 
 
@@ -738,37 +739,43 @@ struct mob_data {
 		unsigned soul_change_flag : 1;			//b3
 		unsigned special_mob_ai : 2;			//	takes values 0,1,2,3
 		unsigned is_master : 1;					//	set if mob is a master with spawns
-		unsigned _unused : 5;
+		unsigned alchemist: 1;
+		unsigned size : 2;
+		unsigned recall_flag :1;
+		unsigned _unused : 1;
 	} state;
 
 	int timer;
-	short to_x;
-	short to_y;
-	short target_dir;
-	short speed;
-
 	long hp;
 	long max_hp;
+
+	unsigned short to_x;
+	unsigned short to_y;
+
+	unsigned short target_dir;
+	unsigned short speed;
+	unsigned short attacked_count;
+	unsigned short target_lv;
 
 	unsigned long provoke_id; // Celest
 	unsigned long target_id;
 	unsigned long attacked_id;
-	short attacked_count;
-	short target_lv;
 	struct walkpath_data walkpath;
+
 	unsigned long next_walktime;
 	unsigned long attackabletime;
 	unsigned long last_deadtime;
 	unsigned long last_spawntime;
 	unsigned long last_thinktime;
 	unsigned long canmove_tick;
-	short move_fail_count;
+	
 	struct mob_damage
 	{
 		unsigned long fromid;
 		long dmg;
 	} dmglog[DAMAGELOG_SIZE];
 	struct item *lootitem;
+	short move_fail_count;
 	short lootitem_count;
 
 	struct status_change sc_data[MAX_STATUSCHANGE];
@@ -777,39 +784,36 @@ struct mob_data {
 	short opt3;
 	short option;
 	short min_chase;
-	int guild_id;
 	int deletetimer;
 
+	unsigned long guild_id; // for guardians
+
 	int skilltimer;
-	int skilltarget;
-	short skillx;
-	short skilly;
-	short skillid;
-	short skilllv;
-	short skillidx;
-	unsigned int skilldelay[MAX_MOBSKILL];
+	unsigned long skilltarget;
+	unsigned short skillx;
+	unsigned short skilly;
+	unsigned short skillid;
+	unsigned short skilllv;
+	unsigned short skillidx;
+	unsigned long skilldelay[MAX_MOBSKILL];
 	int def_ele;
 	unsigned long master_id;
 	int master_dist;
 	unsigned long exclusion_src;
 	unsigned long exclusion_party;
-	unsigned long  exclusion_guild;
+	unsigned long exclusion_guild;
 	struct skill_timerskill skilltimerskill[MAX_MOBSKILLTIMERSKILL];
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP];
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET];
 	char npc_event[50];
-	unsigned char size;
-	short recall_flag;
-	int recallmob_count;
-	short recallcount;
+
+	unsigned short recallmob_count;
+	unsigned short recallcount;
 };
 
 struct pet_data {
 	struct block_list bl;
-	short n;
-	short class_;
-	short dir;
-	short speed;
+
 	//char name[24];
 	char *namep;
 	struct {
@@ -824,18 +828,23 @@ struct pet_data {
 
 	int timer;
 
+	unsigned short class_;
+	unsigned short dir;
+	unsigned short speed;
+	unsigned short equip_id;
+
+	unsigned long target_id;
+	unsigned short target_lv;
 	unsigned short to_x;
 	unsigned short to_y;
-	unsigned short equip_id;
+	short rate_fix;	//Support rate as modified by intimacy (1000 = 100%) [Skotlex]
 	struct walkpath_data walkpath;
-	unsigned long target_id;
-	short target_lv;
 	int move_fail_count;
 	unsigned int attackabletime;
 	unsigned int next_walktime;
 	unsigned int last_thinktime;
 
-	short rate_fix;	//Support rate as modified by intimacy (1000 = 100%) [Skotlex]
+	
 	struct pet_status { //Pet Status data
 		unsigned short level;
 		unsigned short atk1;

@@ -28,6 +28,7 @@ extern inline const char *tolower(char *str)
 	while(*p) *p++ = tolower(*p);
 	return str;
 }
+
 extern inline const char *strcpytolower(char *tar, const char *str)
 {
 	char *p=tar;

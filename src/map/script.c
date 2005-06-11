@@ -2852,7 +2852,7 @@ char *buildin_getpartyname_sub(unsigned long party_id)
 	if(p!=NULL){
 		char *buf;
 		buf=(char *)aMalloc(24*sizeof(char));
-		strcpy(buf,p->name);
+		memcpy(buf, p->name, NAME_LENGTH-1);
 		return buf;
 	}
 
@@ -2909,7 +2909,7 @@ char *buildin_getguildname_sub(int guild_id)
 	if(g!=NULL){
 		char *buf;
 		buf=(char *)aMalloc(24*sizeof(char));
-		strcpy(buf,g->name);
+		memcpy(buf, g->name, NAME_LENGTH-1);
 		return buf;
 	}
 	return 0;
@@ -6417,7 +6417,7 @@ int buildin_skilleffect(struct script_state &st)
 	int skilllv=conv_num(st, (st.stack.stack_data[st.start+3]));
 	sd=script_rid2sd(st);
 
-	clif_skill_nodamage(&sd->bl,&sd->bl,skillid,skilllv,1);
+	clif_skill_nodamage(sd->bl,sd->bl,skillid,skilllv,1);
 
 	return 0;
 }

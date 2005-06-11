@@ -39,8 +39,6 @@ int itemdb_searchname_sub(void *key,void *data,va_list ap)
 	char *str;
 	str=va_arg(ap,char *);
 	dst=va_arg(ap,struct item_data **);
-//	if( strcasecmp(item->name,str)==0 || strcmp(item->jname,str)==0 ||
-//		memcmp(item->name,str,24)==0 || memcmp(item->jname,str,24)==0 )
 	if( strcasecmp(item->name,str)==0 ) //by lupus
 		*dst=item;
 	return 0;
@@ -717,8 +715,8 @@ static int itemdb_read_sqldb(void)
 					// ----------
 					id = itemdb_search(nameid);
 					
-					memcpy(id->name, sql_row[1], 25);
-					memcpy(id->jname, sql_row[2], 25);
+					memcpy(id->name, sql_row[1], 24);
+					memcpy(id->jname, sql_row[2], 24);
 
 					id->type = atoi(sql_row[3]);
 					if (id->type == 11)

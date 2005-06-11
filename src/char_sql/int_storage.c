@@ -229,12 +229,13 @@ int mapif_save_storage_ack(int fd,unsigned long account_id)
 
 int mapif_load_guild_storage(int fd,unsigned long account_id,unsigned long guild_id)
 {
-	int guild_exist=0;
+	int guild_exist=1;
 	if( !session_isActive(fd) )
 		return 0;
 
 	WFIFOW(fd,0)=0x3818;
 
+#if 0	// innodb guilds should render this check unnecessary [Aru]
 	// Check if guild exists, I may write a function for this later, coz I use it several times.
 	//ShowMessage("- Check if guild %d exists\n",g->guild_id);
 	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id`='%ld'",guild_db, guild_id);
@@ -248,7 +249,7 @@ int mapif_load_guild_storage(int fd,unsigned long account_id,unsigned long guild
 		//ShowMessage("- Check if guild %d exists : %s\n",g->guild_id,((guild_exist==0)?"No":"Yes"));
 	}
 	mysql_free_result(sql_res) ; //resource free
-
+#endif
 	if(guild_exist==1) {
 		guild_storage_fromsql(guild_id,guild_storage_pt);
 		if(guild_storage_pt)

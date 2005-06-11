@@ -73,9 +73,9 @@ int clif_additem(struct map_session_data &sd, unsigned short n, unsigned short a
 int clif_delitem(struct map_session_data &sd,unsigned short n,unsigned short amount);	//self
 int clif_updatestatus(struct map_session_data &sd,unsigned short type);	//self
 int clif_changestatus(struct block_list &bl,unsigned short type,unsigned long val);	//area
-int clif_damage(struct block_list *src,struct block_list *dst,unsigned long tick,unsigned long sdelay,unsigned long ddelay,unsigned short damage,unsigned short div,unsigned char type,unsigned short damage2);	// area
+int clif_damage(struct block_list &src,struct block_list &dst,unsigned long tick,unsigned long sdelay,unsigned long ddelay,unsigned short damage,unsigned short div,unsigned char type,unsigned short damage2);	// area
 #define clif_takeitem(src,dst) clif_damage(src,dst,0,0,0,0,0,1,0)
-int clif_changelook(struct block_list *bl,unsigned char type, unsigned short val);	// area
+int clif_changelook(struct block_list &bl,unsigned char type, unsigned short val);	// area
 int clif_arrowequip(struct map_session_data &sd,unsigned short val); //self
 int clif_arrow_fail(struct map_session_data &sd,unsigned short type); //self
 int clif_arrow_create_list(struct map_session_data &sd);	//self
@@ -151,12 +151,12 @@ int clif_skillinfo(struct map_session_data &sd,unsigned short skillid, short typ
 int clif_skillinfoblock(struct map_session_data &sd);
 int clif_skillup(struct map_session_data &sd,unsigned short skill_num);
 
-int clif_skillcasting(struct block_list* bl,unsigned long src_id,unsigned long dst_id,unsigned short dst_x,unsigned short dst_y,unsigned short skill_id,unsigned long casttime);
+int clif_skillcasting(struct block_list &bl,unsigned long src_id,unsigned long dst_id,unsigned short dst_x,unsigned short dst_y,unsigned short skill_id,unsigned long casttime);
 int clif_skillcastcancel(struct block_list &bl);
 int clif_skill_fail(struct map_session_data &sd,unsigned short skill_id,unsigned char type,unsigned short btype);
 int clif_skill_damage(struct block_list &src,struct block_list &dst,unsigned long tick,unsigned long sdelay,unsigned long ddelay,unsigned long damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type);
 int clif_skill_damage2(struct block_list &src,struct block_list &dst,unsigned long tick,unsigned long sdelay,unsigned long ddelay,unsigned long damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type);
-int clif_skill_nodamage(struct block_list *src,struct block_list *dst,unsigned short skill_id,unsigned short heal,unsigned char fail);
+int clif_skill_nodamage(struct block_list &src,struct block_list &dst,unsigned short skill_id,unsigned short heal,unsigned char fail);
 int clif_skill_poseffect(struct block_list &src,unsigned short skill_id,unsigned short val,unsigned short x,unsigned short y,unsigned long tick);
 int clif_skill_estimation(struct map_session_data &sd,struct block_list &dst);
 int clif_skill_warppoint(struct map_session_data &sd,unsigned short skill_id,const char *map1,const char *map2,const char *map3,const char *map4);
@@ -166,8 +166,8 @@ int clif_skill_produce_mix_list(struct map_session_data &sd,int trigger);
 
 int clif_produceeffect(struct map_session_data &sd,unsigned short flag,unsigned short nameid);
 
-int clif_skill_setunit(struct skill_unit *unit);
-int clif_skill_delunit(struct skill_unit *unit);
+int clif_skill_setunit(struct skill_unit &unit);
+int clif_skill_delunit(struct skill_unit &unit);
 
 int clif_01ac(struct block_list &bl);
 
@@ -186,7 +186,7 @@ int clif_wis_end(int fd, unsigned short flag);
 int clif_solved_charname(struct map_session_data &sd, unsigned long char_id);
 int clif_update_mobhp(struct mob_data &md);
 
-int clif_use_card(struct map_session_data &sd, size_t idx);
+int clif_use_card(struct map_session_data &sd, unsigned short idx);
 int clif_insert_card(struct map_session_data &sd,unsigned short idx_equip,unsigned short idx_card,unsigned char flag);
 
 int clif_itemlist(struct map_session_data &sd);
@@ -215,7 +215,7 @@ int clif_showvendingboard(struct block_list &bl,const char *message,int fd);
 int clif_closevendingboard(struct block_list &bl,int fd);
 int clif_vendinglist(struct map_session_data &sd,unsigned long id,struct vending vending[]);
 int clif_buyvending(struct map_session_data &sd,unsigned short index,unsigned short amount,unsigned char fail);
-int clif_openvending(struct map_session_data &sd,unsigned long id,struct vending *vending);
+int clif_openvending(struct map_session_data &sd,unsigned long id,struct vending vending[]);
 int clif_vendingreport(struct map_session_data &sd,unsigned short index,unsigned short amount);
 
 int clif_movetoattack(struct map_session_data &sd,struct block_list &bl);

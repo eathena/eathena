@@ -353,6 +353,7 @@ struct Battle_Config
 
 
 	ulong party_bonus;
+	ulong item_use_interval;
 };
 
 extern struct Battle_Config battle_config;

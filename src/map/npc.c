@@ -2014,12 +2014,12 @@ int npc_parse_mob2(struct mob_list &mob)
 
 		if(mob.class_ > MAX_MOB_DB + 2000)
 		{	// large/tiny mobs [Valaris]
-			md->size = 2;
+			md->state.size = 2;
 			mob.class_ -= (MAX_MOB_DB + 2000);
 		}
 		else if (mob.class_ > MAX_MOB_DB)
 		{
-			md->size = 1;
+			md->state.size = 1;
 			mob.class_ -= MAX_MOB_DB;
 		}
 

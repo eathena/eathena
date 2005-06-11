@@ -15,8 +15,8 @@ int guild_skill_get_range(unsigned short id);
 int guild_skill_get_max(unsigned short id);
 
 int guild_checkskill(struct guild &g,unsigned short id);
-unsigned int guild_checkcastles(struct guild *g); // [MouseJstr]
-int guild_isallied(struct guild *g, struct guild_castle *gc);
+unsigned int guild_checkcastles(struct guild &g); // [MouseJstr]
+bool guild_isallied(struct guild &g, struct guild_castle &gc);
 
 void do_init_guild(void);
 struct guild *guild_search(unsigned long guild_id);

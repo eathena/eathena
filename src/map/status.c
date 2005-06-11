@@ -19,6 +19,7 @@
 #include "showmsg.h"
 #include "utils.h"
 
+
 /* スキル番?＝＞ステ?タス異常番??換テ?ブル */
 int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 /* 0- */
@@ -113,9 +114,7 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	-1,-1,
 /* 160- */
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-	-1,-1,-1,
-	SC_SELFDESTRUCTION,
-	-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 	-1,
@@ -203,8 +202,7 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	SC_FORTUNE,
 /* 330- */
 	SC_SERVICE4U,
-	SC_SELFDESTRUCTION,
-	-1,-1,-1,-1,-1,-1,-1,-1,
+	-1,-1,-1,-1,-1,-1,-1,-1,-1,
 /* 340- */
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 /* 350- */
@@ -768,10 +766,10 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	sd.perfect_hit += sd.perfect_hit_add;
 	sd.get_zeny_num += sd.get_zeny_add_num;
 	sd.splash_range += sd.splash_add_range;
-	if(sd.speed_add_rate != 100)
-		sd.speed_rate += sd.speed_add_rate - 100;
+	if(sd.speed_add_rate != 100)	
+		sd.speed_rate = sd.speed_rate*sd.speed_add_rate/100;
 	if(sd.aspd_add_rate != 100)
-		sd.aspd_rate += sd.aspd_add_rate - 100;
+		sd.aspd_rate = sd.aspd_rate*sd.aspd_add_rate/100;
 
 	// 武器ATKサイズ補正 (右手)
 	sd.right_weapon.atkmods[0] = atkmods[0][sd.weapontype1];
@@ -830,7 +828,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		}
 		if(sd.sc_data[SC_DECREASEAGI].timer!=-1) {	// 速度減少(agiはbattle.cで)
 			sd.paramb[1] -= 2 + sd.sc_data[SC_DECREASEAGI].val1;	// reduce agility [celest]
-            sd.speed_rate += 25;
+			sd.speed_rate += 25;
 		}
 		if(sd.sc_data[SC_CLOAKING].timer!=-1) {
 			sd.critical_rate += 100; // critical increases
@@ -1409,7 +1407,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 				sd.speed_rate += 50;
 				break;
 			case 1:	//Wrist	break
-				sd.aspd_rate += 25;
+				sd.speed_rate += 25;
 				break;
 			case 2:	//Knee break
 				sd.speed_rate += 30;
@@ -1481,7 +1479,10 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		sd.speed_rate = 1;
 	if(sd.speed_rate != 100)
 		sd.speed = sd.speed*sd.speed_rate/100;
-	if(sd.speed < 1) sd.speed = 1;
+	if(sd.speed < DEFAULT_WALK_SPEED/4)
+		sd.speed = DEFAULT_WALK_SPEED/4;
+	if(pc_isriding(sd))
+		sd.aspd += sd.aspd * 10*(5 - pc_checkskill(sd,KN_CAVALIERMASTERY))/100;
 	if(aspd_rate != 100)
 		sd.aspd = sd.aspd*aspd_rate/100;
 	if(pc_isriding(sd))							// 騎兵修練
@@ -1516,17 +1517,17 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	}
 
 	if(b_class != sd.view_class) {
-		clif_changelook(&sd.bl,LOOK_BASE,sd.view_class);
+		clif_changelook(sd.bl,LOOK_BASE,sd.view_class);
 #if PACKETVER < 4
-		clif_changelook(&sd.bl,LOOK_WEAPON,sd.status.weapon);
-		clif_changelook(&sd.bl,LOOK_SHIELD,sd.status.shield);
+		clif_changelook(sd.bl,LOOK_WEAPON,sd.status.weapon);
+		clif_changelook(sd.bl,LOOK_SHIELD,sd.status.shield);
 #else
-		clif_changelook(&sd.bl,LOOK_WEAPON,0);
+		clif_changelook(sd.bl,LOOK_WEAPON,0);
 #endif
 	//Restoring cloth dye color after the view class changes. [Skotlex]
 	if(battle_config.save_clothcolor && sd.status.clothes_color > 0 &&
 		(sd.view_class != 22 || !battle_config.wedding_ignorepalette))
-			clif_changelook(&sd.bl,LOOK_CLOTHES_COLOR,sd.status.clothes_color);
+			clif_changelook(sd.bl,LOOK_CLOTHES_COLOR,sd.status.clothes_color);
 	}
 
 	if( memcmp(b_skill,sd.status.skill,sizeof(sd.status.skill)) || b_attackrange != sd.attackrange)
@@ -1667,7 +1668,8 @@ int status_calc_speed (struct map_session_data &sd)
 
 	if(sd.speed_rate != 100)
 		sd.speed = sd.speed*sd.speed_rate/100;
-	if(sd.speed < 1) sd.speed = 1;
+	if(sd.speed < DEFAULT_WALK_SPEED/4)
+		sd.speed = DEFAULT_WALK_SPEED/4;
 
 	if(sd.skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0) {
 		sd.prev_speed = sd.speed;
@@ -3672,11 +3674,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				save_flag = 1; // celest
 			}
 			break;
-		case SC_SELFDESTRUCTION: //自爆
-			clif_skillcasting(bl,bl->id, bl->id,0,0,331,skill_get_time(val2,val1));
-			val3 = tick / 1000;
-			tick = 1000;
-			break;
 
 		/* option1 */
 		case SC_STONE:				/* 石化 */
@@ -4293,17 +4290,7 @@ printf("SC_SPLASHER negative skill trap 1\n");
 					}
 				}
 				break;
-			case SC_SELFDESTRUCTION:		/* 自爆 */
-				{
-					//自分のダメ?ジは0にして
-					struct mob_data *md=NULL;
-if(sc_data[type].val2<0)
-printf("SC_SELFDESTRUCTION negative skill trap 1\n");
 
-					if(bl->type == BL_MOB && (md=(struct mob_data*)bl))
-						skill_castend_damage_id(bl, bl,(unsigned short)sc_data[type].val2,(unsigned short)sc_data[type].val1,gettick(),0 );
-				}
-				break;
 		/* option1 */
 			case SC_FREEZE:
 				sc_data[type].val3 = 0;
@@ -4779,17 +4766,6 @@ int status_change_timer(int tid,unsigned long tick,int id,int data)
 			}
 		}
 		break;
-	case SC_SELFDESTRUCTION:		/* 自爆 */
-		if(--sc_data[type].val3>0){
-			if(md && md->speed > 250){
-				md->speed -= 250;
-				md->next_walktime=tick;
-			}
-			/* タイマ?再設定 */
-			sc_data[type].timer=add_timer(1000+tick, status_change_timer,bl->id, data);
-				return 0;
-		}
-		break;
 
 	case SC_SPLASHER:
 		if (sc_data[type].val4 % 1000 == 0) {
@@ -4872,7 +4848,7 @@ int status_change_timer(int tid,unsigned long tick,int id,int data)
 						tbl.m = bl->m;
 						tbl.x = bl->x;
 						tbl.y = bl->y;
-						clif_skill_nodamage(&tbl,bl,AL_HEAL,heal,1);
+						clif_skill_nodamage(tbl,*bl,AL_HEAL,heal,1);
 						battle_heal(NULL,bl,heal,0,0);
 					}
 					break;
@@ -4899,7 +4875,7 @@ int status_change_timer(int tid,unsigned long tick,int id,int data)
 						tbl.m = bl->m;
 						tbl.x = bl->x;
 						tbl.y = bl->y;
-						clif_skill_nodamage(&tbl,bl,AL_BLESSING,5,1);
+						clif_skill_nodamage(tbl,*bl,AL_BLESSING,5,1);
 						status_change_start(bl,SkillStatusChangeTable[AL_BLESSING],5,0,0,0,10000,0 );
 					}
 					break;
@@ -4910,7 +4886,7 @@ int status_change_timer(int tid,unsigned long tick,int id,int data)
 						tbl.m = bl->m;
 						tbl.x = bl->x;
 						tbl.y = bl->y;
-						clif_skill_nodamage(&tbl,bl,AL_INCAGI,5,1);
+						clif_skill_nodamage(tbl,*bl,AL_INCAGI,5,1);
 						status_change_start(bl,SkillStatusChangeTable[AL_INCAGI],5,0,0,0,10000,0 );
 					}
 					break;
@@ -4921,7 +4897,7 @@ int status_change_timer(int tid,unsigned long tick,int id,int data)
 						tbl.m = bl->m;
 						tbl.x = bl->x;
 						tbl.y = bl->y;
-						clif_skill_nodamage(&tbl,bl,PR_ASPERSIO,1,1);
+						clif_skill_nodamage(tbl,*bl,PR_ASPERSIO,1,1);
 						status_change_start(bl,SkillStatusChangeTable[PR_ASPERSIO],1,0,0,0,10000,0 );
 					}
 					break;
@@ -4932,7 +4908,7 @@ int status_change_timer(int tid,unsigned long tick,int id,int data)
 						tbl.m = bl->m;
 						tbl.x = bl->x;
 						tbl.y = bl->y;
-						clif_skill_nodamage(&tbl,bl,PR_BENEDICTIO,1,1);
+						clif_skill_nodamage(tbl,*bl,PR_BENEDICTIO,1,1);
 						status_change_start(bl,SkillStatusChangeTable[PR_BENEDICTIO],1,0,0,0,10000,0 );
 					}
 					break;
@@ -4962,7 +4938,7 @@ int status_change_timer(int tid,unsigned long tick,int id,int data)
 						tbl.m = bl->m;
 						tbl.x = bl->x;
 						tbl.y = bl->y;
-						clif_skill_nodamage(&tbl,bl,SM_PROVOKE,1,1);
+						clif_skill_nodamage(tbl,*bl,SM_PROVOKE,1,1);
 						status_change_start(bl,SkillStatusChangeTable[SM_PROVOKE],10,0,0,0,10000,0 );
 					}
 					break;

@@ -271,9 +271,9 @@ int petskill_use(struct pet_data &pd, struct block_list &target, short skill_id,
 		pd.state.state=MS_ATTACK;
 		pd.state.casting_flag = 1;
 		if (skill_get_inf(skill_id) & INF_GROUND_SKILL)
-			clif_skillcasting( &pd.bl, pd.bl.id, 0, dat->x, dat->y, skill_id, casttime);
+			clif_skillcasting(pd.bl, pd.bl.id, 0, dat->x, dat->y, skill_id, casttime);
 		else
-			clif_skillcasting( &pd.bl, pd.bl.id, dat->target_id, 0,0, skill_id,casttime);
+			clif_skillcasting(pd.bl, pd.bl.id, dat->target_id, 0,0, skill_id,casttime);
 		
 		pd.timer = add_timer(pd.attackabletime,pet_timer,pd.bl.id,(int)dat);
 	} else {
@@ -1722,7 +1722,7 @@ int pet_heal_timer(int tid,unsigned long tick,int id,int data)
 
 	if (pd->state.state == MS_ATTACK)
 			pet_stopattack(*pd);
-	clif_skill_nodamage(&pd->bl,&sd->bl,AL_HEAL,pd->s_skill->lv,1);
+	clif_skill_nodamage(pd->bl,sd->bl,AL_HEAL,pd->s_skill->lv,1);
 	pc_heal(*sd,pd->s_skill->lv,0);
 	
 	pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000,pet_heal_timer,sd->bl.id,0);

@@ -104,12 +104,46 @@ class Cfd_set
 		}
 	}
 
+	void copy(const Cfd_set& cfd)
+	{
+		if(this != &cfd)
+		{
+			if( cfd.cSZ > this->cSZ )
+			{	// not enough space, need to realloc
+				if(cArray) delete [] cArray;
+				cSZ = cfd.cSZ;
+				cArray = new unsigned long[cSZ];
+			}
+			else
+			{	// current array is larger, just clear the uncopied range
+				memset(cArray+cfd.cSZ,0, (cSZ-cfd.cSZ)*sizeof(unsigned long));
+			}
+			// and copy the given array if it exists
+			if(cfd.Array)
+				memcpy(cArray, cfd.Array, cfd.cSZ*sizeof(unsigned long));
+		}
+	}
+
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// Construct/Destruct
 
 	Cfd_set() : cArray(new unsigned long[FD_SETSIZE/NBBY/sizeof(unsigned long)]),cSZ(FD_SETSIZE/NBBY/sizeof(unsigned long))	{}
 	~Cfd_set()	{ if(cArray) delete [] cArray; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// Copy/Assign
+	Cfd_set(const Cfd_set& cfd) : cArray(NULL),cSZ(0)
+	{
+		copy(cfd);
+	}
+
+	const Cfd_set& operator =(const Cfd_set& cfd)
+	{
+		copy(cfd);
+		return *this;
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 	// clear everything
 	void clear()
@@ -252,11 +286,11 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// pretending to be an fd_set structure
-	operator struct fd_set*()	{ return (struct fd_set*)cArray; }
+	operator fd_set*()	{ return (fd_set*)cArray; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// size
-	int Size()	{ return cSZ * NFDBITS; }
+	int Count()	{ return cSZ * NFDBITS; }
 };
 
 #endif
