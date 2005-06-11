@@ -1,8 +1,4 @@
 // $Id: script.c 148 2004-09-30 14:05:37Z MouseJstr $
-//#define DEBUG_FUNCIN
-//#define DEBUG_DISP
-//#define DEBUG_RUN
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,45 +59,25 @@ lua_State *L; // [DracoRPG]
  *
  *===================================================================
  */
- 
-// EXAMPLE: Returns the sum and average:
-/*
-static int somemath()
-{
-	int n = lua_gettop(L);
-	lua_Number sum = 0;
-	int i=0;
-	for(i=1; i <= n; i++) {
-		if(!lua_isnumber(L, i)) {
-			lua_pushstring(L, "Incorrect argument for function 'somemath'");
-			lua_error(L);
-		}
-		sum += lua_tonumber(L,i);
-	}
-	lua_pushnumber(L, sum/n);
-	lua_pushnumber(L, sum);
-	return 2;
-}
-*/
 
 // addnpc("NPC name","name postfix","map.gat",x,y,dir,sprite,"function")
 // Add an standard NPC that triggers a function when clicked
 static int addnpc()
 {
-	char m_name[24], m_exname[24], m_map[100], m_function[512];
+	char name[24], exname[24], map[16], function[512];
 	short m,x,y,dir,class_;
 	
-	sprintf(m_name, "%s", lua_tostring(L,1));
-	sprintf(m_exname, "%s", lua_tostring(L,2));
-	sprintf(m_map, "%s", lua_tostring(L,3));
-	m=map_mapname2mapid(m_map);
+	sprintf(name, "%s", lua_tostring(L,1));
+	sprintf(exname, "%s", lua_tostring(L,2));
+	sprintf(map, "%s", lua_tostring(L,3));
+	m=map_mapname2mapid(map);
 	x=lua_tonumber(L,4);
 	y=lua_tonumber(L,5);
 	dir=lua_tonumber(L,6);
 	class_=lua_tonumber(L,7);
-	sprintf(m_function, "%s", lua_tostring(L,8));
+	sprintf(function, "%s", lua_tostring(L,8));
 	
-	npc_add(m_name,m_exname,m,x,y,dir,class_,m_function);
+	npc_add(name,exname,m,x,y,dir,class_,function);
 
 	return 0;
 }
@@ -110,7 +86,7 @@ static int addnpc()
 // Add an invisible area that triggers a function when entered
 static int addareascript()
 {
-	char name[24], map[100], function[512];
+	char name[24], map[16], function[512];
 	short m,x1,y1,x2,y2;
 
 	sprintf(name,"%s",lua_tostring(L,1));
@@ -124,6 +100,7 @@ static int addareascript()
 
 	areascript_add(name,m,x1,y1,x2,y2,function);
 
+
 	return 0;
 }
 
@@ -131,7 +108,7 @@ static int addareascript()
 // Add a warp that moves players to somewhere else when entered
 static int addwarp()
 {
-	char name[24], map[100], destmap[100];
+	char name[24], map[16], destmap[100];
 	short m,x,y;
 	short destx,desty,xs,ys;
 	
@@ -151,14 +128,14 @@ static int addwarp()
 	return 0;
 }
 
-//npcmes(id,"a bunch of silly text")
-//Print the silly text to the npc screen
-static int npcmes() {
-	
+// npcmes(id,"A bunch of silly text")
+// Print the silly text to the NPC dialog window of the player
+static int npcmes()
+{
 	struct map_session_data *sd = NULL;
 	char mes[512];
 	int charid, npcid;
-	
+
 	charid=lua_tonumber(L, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
@@ -166,37 +143,16 @@ static int npcmes() {
 	}
 	npcid = sd->npc_id;
 	sprintf(mes,"%s",lua_tostring(L, 2)); 
-	
+
 	clif_scriptmes(sd, npcid, mes);
-	
+
 	return 0;
-	
 }
 
-//heal(id,hp,sp)
-//Heal the character
-static int heal() {
-	
-	struct map_session_data *sd = NULL;
-	int charid, npcid, hp, sp;
-	
-	charid=lua_tonumber(L, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script");
-		return -1;
-	}
-	npcid = sd->npc_id;
-	hp = lua_tonumber(L, 2);
-	sp = lua_tonumber(L, 3);
-	
-	pc_heal(sd, hp, sp);
-	
-	return 0;
-	
-}
-
-static int close() {
-	
+// npcclose(id)
+// Display a [Close] button in the NPC dialog window of the player
+static int npcclose()
+{
 	struct map_session_data *sd = NULL;
 	int charid, npcid;
 	
@@ -212,19 +168,112 @@ static int close() {
 	return 0;
 }
 
+// npcnext(id)
+// Display a [Next] button in the NPC dialog window of the player and pause the script until the button is clicked
+static int npcnext()
+{
+
+	struct map_session_data *sd = NULL;
+	int charid, npcid;
+
+	charid=lua_tonumber(L, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	npcid = sd->npc_id;
+
+	clif_scriptnext(sd,npcid);
+
+	return 0;
+}
+
+// npcinput(id,type)
+// Display an NPC input window asking the player for a value
+static int npcinput()
+{
+	struct map_session_data *sd = NULL;
+	int charid, npcid;
+
+	charid=lua_tonumber(L, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	npcid = sd->npc_id;
+
+	switch((int)lua_tonumber(L, 2)){
+		case 0:
+			clif_scriptinput(sd,npcid);
+			break;
+		case 1:
+			clif_scriptinputstr(sd,npcid);
+			break;
+	}
+
+	return 0;
+}
+
+// heal(id,hp,sp)
+// Heal the character by a set amount of HP and SP
+static int heal()
+{
+	struct map_session_data *sd = NULL;
+	int charid, hp, sp;
+
+	charid=lua_tonumber(L, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	hp = lua_tonumber(L, 2);
+	sp = lua_tonumber(L, 3);
+
+	pc_heal(sd, hp, sp);
+
+	return 0;
+}
+
+// percentheal(id,hp,sp)
+// Heal the character by a percentage of MaxHP and MaxSP
+static int percentheal()
+{
+	struct map_session_data *sd = NULL;
+	int charid, hp, sp;
+
+	charid=lua_tonumber(L, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	hp = lua_tonumber(L, 2);
+	sp = lua_tonumber(L, 3);
+
+	pc_percentheal(sd, hp, sp);
+
+	return 0;
+}
+
 //List of commands to build into lua
 static struct LuaCommandInfo commands[] = {
-/*	{"somemath", somemath}, */ //EXAMPLE: global name to register and C function to point to
+	/* Object creation functions */
 	{"addnpc", addnpc},
 	{"addareascript", addareascript},
 	{"addwarp", addwarp},
+//  {"addspawn", addspawn},
+//	{"addgmcommand", addgmcommand},
+//	{"addtimer", addtimer},
+//	{"addevent", addevent},
+//	{"addmapflag", addmapflag},
+	/* NPC dialog window functions */
 	{"npcmes", npcmes},
+	{"npcclose", npcclose},
+	{"npcnext", npcnext},
+	{"npcinput", npcinput},
+	/* Player related functions */
 	{"heal", heal},
-	{"close", close},
-/*	{"addgmcommand", addgmcommand},
-	{"addtimer", addtimer},
-	{"addevent", addevent},
-	{"addmapflag", addmapflag},*/
+	{"percentheal", percentheal},
+	/* End of build-in functions list */
 	{"-End of list-", NULL},
 };
 
@@ -235,21 +284,21 @@ static struct LuaCommandInfo commands[] = {
  *===================================================================
  */
 
+// Register build-in commands specified above
 void script_buildin_commands()
 {
 	int i=0;
 
-	ShowInfo("Registering Lua commands...\n",i);
 	while(commands[i].command != "-End of list-") {
 		lua_pushstring(L, commands[i].command);
         lua_pushcfunction(L, commands[i].f);
         lua_settable(L, LUA_GLOBALSINDEX);
         i++;
     }
-	ShowInfo("Successfully registered %d commands.\n",i);
+	ShowStatus("Done registering '"CL_WHITE"%d"CL_RESET"' script build-in commands.\n",i);
 }
 
-// Runs a Lua function that was previously loaded, specifying the type of arguments with a "format" string
+// Run a Lua function that was previously loaded, specifying the type of arguments with a "format" string
 void script_run_function(const char *name,const char *format,...)
 {
 	va_list arg;
@@ -282,7 +331,7 @@ void script_run_function(const char *name,const char *format,...)
 	va_end(arg);
 }
 
-// Runs a Lua chunk
+// Run a Lua chunk
 void script_run_chunk(const char *chunk)
 {
 	luaL_loadbuffer(L,chunk,strlen(chunk),"chunk"); // Pass chunk to Lua

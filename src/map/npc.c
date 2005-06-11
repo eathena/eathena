@@ -41,23 +41,14 @@ static struct dbt *areascriptname_db;
 static struct npc_src_list *npc_src_first=NULL;
 static struct npc_src_list *npc_src_last=NULL;
 static int npc_id=START_NPC_NUM;
-static int npc_mob=0;
+static int npc_num=0;
+static int areascript_num=0;
+static int warp_num=0;
+static int mob_num=0;
 static int npc_delay_mob=0;
 static int npc_cache_mob=0;
 char *current_file = NULL;
 int npc_get_new_npc_id(void){ return npc_id++; }
-
-/*	while ((p = strchr(w3,':'))) {
-		if (p[1] == ':') break;
-	}
-	if (p) {
-		*p = 0;
-		memcpy(nd->name, w3, 24);
-		memcpy(nd->exname, p+2, 24);
-	} else {
-		memcpy(nd->name, w3, 24);
-		memcpy(nd->exname, w3, 24);
-	}*/
 
 int npc_enable(const char *name,int flag)
 {
@@ -109,7 +100,7 @@ int npc_touch_areascript(struct map_session_data *sd,int m,int x,int y)
 		if (!map[m].areascript[i]->flag&1 && // Ignore hidden/disabled scripts
 			x >= map[m].areascript[i]->x1 && x <= map[m].areascript[i]->x2 &&
 			y >= map[m].areascript[i]->y1 && x <= map[m].areascript[i]->y2) {
-			script_run_function(map[m].npc[i]->function,"i",sd->char_id);
+			script_run_function(map[m].areascript[i]->function,"i",sd->char_id);
 		}
 	}
 	return 1;
@@ -686,6 +677,7 @@ int npc_add (char *name,char *exname,short m,short x,short y,short dir,short cla
 	map_addblock(&nd->bl);
 	clif_spawnnpc(nd);
 	strdb_insert(npcname_db,nd->exname,nd);
+	npc_num++;
 
 	return nd->bl.id;
 }
@@ -719,6 +711,7 @@ int areascript_add (char *name,short m,short x1,short y1,short x2,short y2,char 
 		}
 	}
 	strdb_insert(areascriptname_db,ad->name,ad);
+	areascript_num++;
 
 	return ad->bl.id;
 }
@@ -752,6 +745,7 @@ int warp_add (char *name,short m,short x,short y,char *destmap,short destx,short
 	}
 	clif_spawnwarp(wd);
 	strdb_insert(warpname_db,wd->name,wd);
+	warp_num++;
 
 	return wd->bl.id;
 }
@@ -781,6 +775,21 @@ int npc_unload (struct npc_data *nd)
 	return 0;
 }
 
+int areascript_unload (struct areascript_data *ad)
+{
+	nullpo_retr(1, ad);
+
+	if(ad->bl.prev == NULL)
+		return 1;
+
+	strdb_erase(areascriptname_db, ad->name);
+	map_delblock(&ad->bl);
+	map_deliddb(&ad->bl);
+	aFree(ad);
+
+	return 0;
+}
+
 int warp_unload (struct warp_data *wd)
 {
 	nullpo_retr(1, wd);
@@ -789,25 +798,10 @@ int warp_unload (struct warp_data *wd)
 		return 1;
 
 	clif_clearchar_area(&wd->bl,2);
-	strdb_erase(npcname_db, wd->name);
+	strdb_erase(warpname_db, wd->name);
 	map_delblock(&wd->bl);
 	map_deliddb(&wd->bl);
 	aFree(wd);
-
-	return 0;
-}
-
-int areascript_unload (struct areascript_data *ad)
-{
-	nullpo_retr(1, ad);
-
-	if(ad->bl.prev == NULL)
-		return 1;
-
-	strdb_erase(npcname_db, ad->name);
-	map_delblock(&ad->bl);
-	map_deliddb(&ad->bl);
-	aFree(ad);
 
 	return 0;
 }
@@ -1002,7 +996,7 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 		}
 	}
 
-	npc_mob++;
+	mob_num++;
 
 	return 0;
 }
@@ -1189,6 +1183,8 @@ int do_init_npc(void)
 		npc_read_indoors();
 
 	npcname_db = strdb_init(24);
+	areascriptname_db = strdb_init(24);
+	warpname_db = strdb_init(24);
 
 	for (nsl = npc_src_first; nsl; nsl = nsl->next) {
 		npc_parsesrcfile(nsl->name);
