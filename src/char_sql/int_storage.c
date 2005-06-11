@@ -228,9 +228,10 @@ int mapif_save_storage_ack(int fd,int account_id){
 
 int mapif_load_guild_storage(int fd,int account_id,int guild_id)
 {
-	int guild_exist=0;
+	int guild_exist=1;
 	WFIFOW(fd,0)=0x3818;
 
+#if 0	// innodb guilds should render this check unnecessary [Aru]
 	// Check if guild exists, I may write a function for this later, coz I use it several times.
 	//printf("- Check if guild %d exists\n",g->guild_id);
 	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id`='%d'",guild_db, guild_id);
@@ -244,7 +245,7 @@ int mapif_load_guild_storage(int fd,int account_id,int guild_id)
 		//printf("- Check if guild %d exists : %s\n",g->guild_id,((guild_exist==0)?"No":"Yes"));
 	}
 	mysql_free_result(sql_res) ; //resource free
-
+#endif
 	if(guild_exist==1) {
 		guild_storage_fromsql(guild_id,guild_storage_pt);
 		WFIFOW(fd,2)=sizeof(struct guild_storage)+12;
