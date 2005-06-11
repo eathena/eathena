@@ -108,7 +108,7 @@ Q4:
 	mes "I'll make your Orc Hero Helm to prove your strength and valour!";
 	next;
 	mes "[Orc Warrior]";
-	getitem 5094,1;
+	getnameditem 5094,strcharinfo(0);
 	delitem 968,100;
 	delitem 2299,1;
 	set ORC_HERO_HELM_Q,0;

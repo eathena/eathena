@@ -23,7 +23,9 @@
 	4262,Taoist_Hermit_Card
 	4265,Li_Me_Mang_Ryang_Card
 
-
+06/11
+	* Changed Dark Illusion Card's bonus bDelayrate -> bonus bCastrate [DracoRPG]
+	* Added the new headgears and garments [DracoRPG]
 06/09
 	* Added inf2=64 to Benedictio. 64 now actually stands for "skill needs
 	  other nearby support characters", or as the battle_config calls it
@@ -46,8 +48,7 @@
 	  - Blitz-Beat: 1->2
 	* Removed magnum break's inf2=16 since it ain't used anywhere. [Skotlex]
 	* Fixed Ayothaya monsters drops and names thx 2 MasterOfMuppets [Lupus]
-=======
-07/05
+06/06
 	* Corrected Ice Falchion, Firebrand, Electric Guitar [Skotlex]
 	  These should not give you a skill-tree, only auto-cast the skill.
 	  Ice Falc also has a 1% chance of freezing yourself.
