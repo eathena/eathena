@@ -231,37 +231,37 @@ bool itemdb_isequip3(unsigned short nameid)
 bool itemdb_isdropable(unsigned short nameid, unsigned char gmlv)
 {
 	struct item_data* item = itemdb_exists(nameid);
-	return (item && (!(item->flag.trade_restriction&1) || gmlv >= item->gm_lv_trade_override));
+	return (item && (item->flag.trade_restriction&1)==0) || gmlv >= item->gm_lv_trade_override;
 }
 
 bool itemdb_cantrade(unsigned short nameid, unsigned char gmlv)
 {
 	struct item_data* item = itemdb_exists(nameid);
-	return (item && (!(item->flag.trade_restriction&2) || gmlv >= item->gm_lv_trade_override));
+	return (item && (item->flag.trade_restriction&2)==0) || gmlv >= item->gm_lv_trade_override;
 }
 
 bool itemdb_canpartnertrade(unsigned short nameid, unsigned char gmlv)
 {
 	struct item_data* item = itemdb_exists(nameid);
-	return (item && (!(item->flag.trade_restriction&(2|4)) || gmlv >= item->gm_lv_trade_override));
+	return (item && (item->flag.trade_restriction&(2|4))==0) || gmlv >= item->gm_lv_trade_override;
 }
 
 bool itemdb_cansell(unsigned short nameid, unsigned char gmlv)
 {
 	struct item_data* item = itemdb_exists(nameid);
-	return (item && (!(item->flag.trade_restriction&8) || gmlv >= item->gm_lv_trade_override));
+	return (item && (item->flag.trade_restriction&8)==0) || gmlv >= item->gm_lv_trade_override;
 }
 
 bool itemdb_cancartstore(unsigned short nameid, unsigned char gmlv)
 {	
 	struct item_data* item = itemdb_exists(nameid);
-	return (item && (!(item->flag.trade_restriction&16) || gmlv >= item->gm_lv_trade_override));
+	return (item && (item->flag.trade_restriction&16)==0) || gmlv >= item->gm_lv_trade_override;
 }
 
 bool itemdb_canstore(unsigned short nameid, unsigned char gmlv, int guild_flag)
 {	
 	struct item_data* item = itemdb_exists(nameid);
-	return (item && (!(item->flag.trade_restriction&(guild_flag?64:32)) || gmlv >= item->gm_lv_trade_override));
+	return (item && (item->flag.trade_restriction&(guild_flag?64:32))==0) || gmlv >= item->gm_lv_trade_override;
 }
 
 
@@ -655,11 +655,12 @@ static int itemdb_read_itemtrade(void)
 		flag = atoi(str[1]);
 		gmlv = atoi(str[2]);
 		
-		if (flag > 0 && flag < 128 && gmlv > 0) { //Check range
+		if (flag > 0 && flag < 128 && gmlv > 0)
+		{	//Check range
 			id->flag.trade_restriction = flag;
 			id->gm_lv_trade_override = gmlv;
 			ln++;
-}
+		}
 	}
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, "db/item_trade.txt");

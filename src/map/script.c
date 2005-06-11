@@ -804,7 +804,7 @@ void set_label(int l,int pos)
 static char *skip_space(const char *p)
 {
 	while(1){
-		while(isspace(*p))
+		while( *p==0x20 || (*p>=0x09 && *p<=0x0D) )
 			p++;
 		if(p[0]=='/' && p[1]=='/'){
 			while(*p && *p!='\n')
@@ -1451,63 +1451,66 @@ void* get_val2(struct script_state &st,int num)
  * 変数設定用
  *------------------------------------------
  */
-static int set_reg(struct map_session_data &sd,int num,const char *name, void *v)
+static int set_reg(struct map_session_data *sd,int num,const char *name, void *v)
 {
 	if(name)
 	{
 		char prefix =name[0];
-	char postfix=name[strlen(name)-1];
+		char postfix=name[strlen(name)-1];
 
 		if( postfix=='$' )
 		{	// string variable
-		char *str=(char*)v;
+			char *str=(char*)v;
 			if( prefix=='@' || prefix=='l')
 			{
-			pc_setregstr(sd,num,str);
+				if(sd) pc_setregstr(*sd,num,str);
 			}
 			else if(prefix=='$')
 			{
-			mapreg_setregstr(num,str);
-		}
+				mapreg_setregstr(num,str);
+			}
 			else
 			{
 				ShowError("script: set_reg: illegal scope string variable !");
 			}
 		}
-		else
+		else 
 		{	// 数値
-		int val = (int)v;
+			int val = (int)v;
 			if(str_data[num&0x00ffffff].type==C_PARAM)
 			{
-			pc_setparam(sd,str_data[num&0x00ffffff].val,val);
+				if(sd) pc_setparam(*sd,str_data[num&0x00ffffff].val,val);
 			}
 			else if(prefix=='@' || prefix=='l')
 			{
-			pc_setreg(sd,num,val);
+				if(sd) pc_setreg(*sd,num,val);
 			}
 			else if(prefix=='$')
 			{
-			mapreg_setreg(num,val);
+				mapreg_setreg(num,val);
 			}
 			else if(prefix=='#')
 			{
-			if( name[1]=='#' )
-				pc_setaccountreg2(sd,name,val);
-			else
-				pc_setaccountreg(sd,name,val);
+				if(sd)
+				{
+					if( name[1]=='#' )
+						pc_setaccountreg2(*sd,name,val);
+					else
+						pc_setaccountreg(*sd,name,val);
+				}
 			}
 			else
 			{
-			pc_setglobalreg(sd,name,val);
+				if(sd) pc_setglobalreg(*sd,name,val);
+			}
 		}
-	}
 	}
 	return 0;
 }
 
 int set_var(struct map_session_data &sd, const char *name, void *val)
 {
-    return set_reg(sd, add_str(name), name, val);
+    return set_reg(&sd, add_str(name), name, val);
 }
 
 /*==========================================
@@ -2011,30 +2014,32 @@ int buildin_input(struct script_state &st)
 	sd=script_rid2sd(st);
 	if(sd)
 	{
-	if(sd->state.menu_or_input){
-		sd->state.menu_or_input=0;
-		if( postfix=='$' ){
-			// 文字列
-				if(st.end>st.start+2){ // 引数1個
-					set_reg(*sd,num,name,(void*)sd->npc_str);
+		if(sd->state.menu_or_input)
+		{
+			sd->state.menu_or_input=0;
+			if( postfix=='$' )
+			{
+				// 文字列
+					if(st.end>st.start+2){ // 引数1個
+						set_reg(sd,num,name,(void*)sd->npc_str);
+				}else{
+						ShowError("buildin_input: string discarded !!\n");
+				}
 			}else{
-					ShowError("buildin_input: string discarded !!\n");
+				// 数値
+					if(st.end>st.start+2){ // 引数1個
+						set_reg(sd,num,name,(void*)sd->npc_amount);
+				} else {
+					// ragemu互換のため
+						pc_setreg(*sd,add_str( "l14"),sd->npc_amount);
+				}
 			}
-		}else{
-			// 数値
-				if(st.end>st.start+2){ // 引数1個
-					set_reg(*sd,num,name,(void*)sd->npc_amount);
-			} else {
-				// ragemu互換のため
-					pc_setreg(*sd,add_str( "l14"),sd->npc_amount);
-			}
+		} else {
+				st.state=RERUNLINE;
+				if(postfix=='$')clif_scriptinputstr(*sd,st.oid);
+				else			clif_scriptinput(*sd,st.oid);
+			sd->state.menu_or_input=1;
 		}
-	} else {
-			st.state=RERUNLINE;
-			if(postfix=='$')clif_scriptinputstr(*sd,st.oid);
-			else			clif_scriptinput(*sd,st.oid);
-		sd->state.menu_or_input=1;
-	}
 	}
 	return 0;
 }
@@ -2088,11 +2093,11 @@ int buildin_set(struct script_state &st)
 	if( postfix=='$' ){
 		// 文字列
 		const char *str = conv_str(st,(st.stack.stack_data[st.start+3]));
-		set_reg(*sd,num,name,(void*)str);
+		set_reg(sd,num,name,(void*)str);
 	}else{
 		// 数値
 		int val = conv_num(st, (st.stack.stack_data[st.start+3]));
-		set_reg(*sd,num,name,(void*)val);
+		set_reg(sd,num,name,(void*)val);
 	}
 
 	return 0;
@@ -2123,7 +2128,7 @@ int buildin_setarray(struct script_state &st)
 			v=(void*)conv_str(st,(st.stack.stack_data[i]));
 		else
 			v=(void*)conv_num(st, (st.stack.stack_data[i]));
-		set_reg(*sd, num+(j<<24), name, v);
+		set_reg(sd, num+(j<<24), name, v);
 	}
 	return 0;
 }
@@ -2155,7 +2160,7 @@ int buildin_cleararray(struct script_state &st)
 		v=(void*)conv_num(st, (st.stack.stack_data[st.start+3]));
 
 	for(i=0;i<sz;i++)
-		set_reg(*sd,num+(i<<24),name,v);
+		set_reg(sd,num+(i<<24),name,v);
 	return 0;
 }
 /*==========================================
@@ -2189,7 +2194,7 @@ int buildin_copyarray(struct script_state &st)
 
 
 	for(i=0;i<sz;i++)
-		set_reg(*sd,num+(i<<24),name, get_val2(st,num2+(i<<24)) );
+		set_reg(sd,num+(i<<24),name, get_val2(st,num2+(i<<24)) );
 	return 0;
 }
 /*==========================================
@@ -2247,11 +2252,11 @@ int buildin_deletearray(struct script_state &st)
 		sd=script_rid2sd(st);
 
 	for(i=0;i<sz;i++){
-		set_reg(*sd,num+(i<<24),name, get_val2(st,num+((i+count)<<24) ) );
+		set_reg(sd,num+(i<<24),name, get_val2(st,num+((i+count)<<24) ) );
 	}
 	for(;i<(128-(num>>24));i++){
-		if( postfix!='$' ) set_reg(*sd,num+(i<<24),name, 0);
-		if( postfix=='$' ) set_reg(*sd,num+(i<<24),name, (void *) "");
+		if( postfix!='$' ) set_reg(sd,num+(i<<24),name, 0);
+		if( postfix=='$' ) set_reg(sd,num+(i<<24),name, (void *) "");
 	}
 	return 0;
 }
@@ -2477,7 +2482,7 @@ int buildin_getitem(struct script_state &st)
 			return 0;
 		if((flag = pc_additem(*sd,item_tmp,amount))) {
 			clif_additem(*sd,0,0,flag);
-			if( pc_candrop(*sd,nameid) )
+			if( !pc_candrop(*sd,nameid) )
 				map_addflooritem(item_tmp,amount,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
 		}
 	}
@@ -7049,17 +7054,17 @@ int buildin_getmapxy(struct script_state &st)
      //Set MapName$
 		num=st.stack.stack_data[st.start+2].u.num;
         name=(char *)(str_buf+str_data[num&0x00ffffff].str);
-		set_reg(*sd,num,name,mapname);
+		set_reg(sd,num,name,mapname);
 
      //Set MapX
 		num=st.stack.stack_data[st.start+3].u.num;
         name=(char *)(str_buf+str_data[num&0x00ffffff].str);
-		set_reg(*sd,num,name,(void*)x);
+		set_reg(sd,num,name,(void*)x);
 
      //Set MapY
 		num=st.stack.stack_data[st.start+4].u.num;
         name=(char *)(str_buf+str_data[num&0x00ffffff].str);
-		set_reg(*sd,num,name,(void*)y);
+		set_reg(sd,num,name,(void*)y);
 
      //Return Success value
 		push_val(st.stack,C_INT,0);

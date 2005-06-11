@@ -5101,8 +5101,6 @@ int clif_use_card(struct map_session_data &sd,unsigned short idx)
 	if( !session_isActive(fd) )
 		return 0;
 
-printf("clif_use_card %i\n", idx);
-
 	if( idx<MAX_INVENTORY && sd.inventory_data[idx])
 	{
 		size_t i,j;
@@ -11534,132 +11532,132 @@ static int clif_parse(int fd)
 
 	while(RFIFOREST(fd) >= 2)
 	{
-	cmd = RFIFOW(fd,0);
-		//ShowMessage("clif_parse: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, cmd, RFIFOREST(fd));
-	// 管理用パケット処理
-	if (cmd >= 30000) {
-		switch(cmd) {
-		case 0x7530: // Athena情報所得
-			WFIFOW(fd,0) = 0x7531;
-			WFIFOB(fd,2) = ATHENA_MAJOR_VERSION;
-			WFIFOB(fd,3) = ATHENA_MINOR_VERSION;
-			WFIFOB(fd,4) = ATHENA_REVISION;
-			WFIFOB(fd,5) = ATHENA_RELEASE_FLAG;
-			WFIFOB(fd,6) = ATHENA_OFFICIAL_FLAG;
-			WFIFOB(fd,7) = ATHENA_SERVER_MAP;
-			WFIFOW(fd,8) = ATHENA_MOD_VERSION;
-			WFIFOSET(fd,10);
-			RFIFOSKIP(fd,2);
-			break;
-		case 0x7532: // 接続の切断
-						session_Remove(fd);
-			printf("clif_parse: session #%d, packet 0x%x received -> disconnected.\n", fd, cmd);
-			break;
+		cmd = RFIFOW(fd,0);
+		//ShowMessage("clif_parse: connection #%d, packet: 0x%x (with being read: %d bytes(&i)).\n", fd, cmd, RFIFOREST(fd), RFIFOW(fd,2));
+		// 管理用パケット処理
+		if (cmd >= 30000) {
+			switch(cmd) {
+			case 0x7530: // Athena情報所得
+				WFIFOW(fd,0) = 0x7531;
+				WFIFOB(fd,2) = ATHENA_MAJOR_VERSION;
+				WFIFOB(fd,3) = ATHENA_MINOR_VERSION;
+				WFIFOB(fd,4) = ATHENA_REVISION;
+				WFIFOB(fd,5) = ATHENA_RELEASE_FLAG;
+				WFIFOB(fd,6) = ATHENA_OFFICIAL_FLAG;
+				WFIFOB(fd,7) = ATHENA_SERVER_MAP;
+				WFIFOW(fd,8) = ATHENA_MOD_VERSION;
+				WFIFOSET(fd,10);
+				RFIFOSKIP(fd,2);
+				break;
+			case 0x7532: // 接続の切断
+							session_Remove(fd);
+				printf("clif_parse: session #%d, packet 0x%x received -> disconnected.\n", fd, cmd);
+				break;
+			}
+			return 0;
 		}
-		return 0;
-	}
 
 		if(sd)
 			packet_ver = sd->packet_ver;
 		else
 		{	// check authentification packet to know packet version
-	// get packet version before to parse
-	packet_ver = 0;
-		// packet DB
-		if (IS_PACKET_DB_VER (cmd) && 
-			RFIFOREST(fd) >= packet_db[clif_config.packet_db_ver][cmd].len &&
-			(RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[4]) == 0 ||	// 01 = Male
-			RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[4]) == 1))		// 00 = Female
-		{
-			packet_ver = clif_config.packet_db_ver;
-			}
-		// 0x72
-			else if (cmd == 0x72)
+			// get packet version before to parse
+			packet_ver = 0;
+			// packet DB
+			if (IS_PACKET_DB_VER (cmd) && 
+				RFIFOREST(fd) >= packet_db[clif_config.packet_db_ver][cmd].len &&
+				(RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[4]) == 0 ||	// 01 = Male
+				RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[4]) == 1))		// 00 = Female
 			{
-			if (RFIFOREST(fd) >= 39 && (RFIFOB(fd,38) == 0 || RFIFOB(fd,38) == 1)) // 00 = Female, 01 = Male
-				packet_ver = 7; // 7: 13july04
-			else if (RFIFOREST(fd) >= 22 && (RFIFOB(fd,21) == 0 || RFIFOB(fd,21) == 1)) // 00 = Female, 01 = Male
-				packet_ver = 6; // 6: 7july04
-			else if (RFIFOREST(fd) >= 19 && (RFIFOB(fd,18) == 0 || RFIFOB(fd,18) == 1)) // 00 = Female, 01 = Male
-				packet_ver = 5; // 5: old
-			// else probably incomplete packet
-			else if (RFIFOREST(fd) < 19)
-				return 0;
+				packet_ver = clif_config.packet_db_ver;
+				}
+			// 0x72
+				else if (cmd == 0x72)
+				{
+				if (RFIFOREST(fd) >= 39 && (RFIFOB(fd,38) == 0 || RFIFOB(fd,38) == 1)) // 00 = Female, 01 = Male
+					packet_ver = 7; // 7: 13july04
+				else if (RFIFOREST(fd) >= 22 && (RFIFOB(fd,21) == 0 || RFIFOB(fd,21) == 1)) // 00 = Female, 01 = Male
+					packet_ver = 6; // 6: 7july04
+				else if (RFIFOREST(fd) >= 19 && (RFIFOB(fd,18) == 0 || RFIFOB(fd,18) == 1)) // 00 = Female, 01 = Male
+					packet_ver = 5; // 5: old
+				// else probably incomplete packet
+				else if (RFIFOREST(fd) < 19)
+					return 0;
+				}
+			// 0x7E
+				else if (cmd == 0x7E)
+				{
+				if (RFIFOREST(fd) >= 37 && (RFIFOB(fd,36) == 0 || RFIFOB(fd,36) == 1)) // 00 = Female, 01 = Male
+					packet_ver = 9; // 9: 9aug04/16aug04/17aug04
+				else if (RFIFOREST(fd) >= 33 && (RFIFOB(fd,32) == 0 || RFIFOB(fd,32) == 1)) // 00 = Female, 01 = Male
+					packet_ver = 8; // 8: 26july04
+				// else probably incomplete packet
+				else if (RFIFOREST(fd) < 33)
+					return 0;
+				}
+			// 0xF5
+				else if (cmd == 0xF5)
+				{
+				if (RFIFOREST(fd) >= 34 && (RFIFOB(fd,33) == 0 || RFIFOB(fd,33) == 1)) // 00 = Female, 01 = Male
+					packet_ver = 10; // 10: 6sept04
+				else if (RFIFOREST(fd) >= 33 && (RFIFOB(fd,32) == 0 || RFIFOB(fd,32) == 1)) // 00 = Female, 01 = Male
+					packet_ver = 12; // 12: 18oct04
+				else if (RFIFOREST(fd) >= 32 && (RFIFOB(fd,31) == 0 || RFIFOB(fd,31) == 1)) // 00 = Female, 01 = Male
+					packet_ver = 11; // 11: 21sept04
+				else if (RFIFOREST(fd) >= 29 && (RFIFOB(fd,28) == 0 || RFIFOB(fd,28) == 1)) {	// 00 = Female, 01 = Male
+					if (RFIFOL(fd,3) > 700000 && RFIFOL(fd,10) >= 150000 && RFIFOL(fd,10) < 5000000) // account id / char id (more than 5.000.000 characters?) [Yor]
+						packet_ver = 15;	// 14: 6dec04
+					else
+						packet_ver = 13; // 13: 25oct04 (by [Yor])
+				}
+				// else probably incomplete packet
+				else if (RFIFOREST(fd) < 29)
+					return 0;
+				}
+			// 0x9B
+				else if (cmd == 0x9B)
+				{
+				if (RFIFOREST(fd) >= 32 && (RFIFOB(fd,31) == 0 || RFIFOB(fd,31) == 1))	// 00 = Female, 01 = Male
+					packet_ver = 16; // 16: 10jan05
+				else if (RFIFOREST(fd) >= 26 && (RFIFOB(fd,25) == 0 || RFIFOB(fd,25) == 1))	// 00 = Female, 01 = Male
+					packet_ver = 17; // 17: 10may05
+				else if (RFIFOREST(fd) < 32)
+					return 0;
 			}
-		// 0x7E
-			else if (cmd == 0x7E)
-			{
-			if (RFIFOREST(fd) >= 37 && (RFIFOB(fd,36) == 0 || RFIFOB(fd,36) == 1)) // 00 = Female, 01 = Male
-				packet_ver = 9; // 9: 9aug04/16aug04/17aug04
-			else if (RFIFOREST(fd) >= 33 && (RFIFOB(fd,32) == 0 || RFIFOB(fd,32) == 1)) // 00 = Female, 01 = Male
-				packet_ver = 8; // 8: 26july04
-			// else probably incomplete packet
-			else if (RFIFOREST(fd) < 33)
-				return 0;
-			}
-		// 0xF5
-			else if (cmd == 0xF5)
-			{
-			if (RFIFOREST(fd) >= 34 && (RFIFOB(fd,33) == 0 || RFIFOB(fd,33) == 1)) // 00 = Female, 01 = Male
-				packet_ver = 10; // 10: 6sept04
-			else if (RFIFOREST(fd) >= 33 && (RFIFOB(fd,32) == 0 || RFIFOB(fd,32) == 1)) // 00 = Female, 01 = Male
-				packet_ver = 12; // 12: 18oct04
-			else if (RFIFOREST(fd) >= 32 && (RFIFOB(fd,31) == 0 || RFIFOB(fd,31) == 1)) // 00 = Female, 01 = Male
-				packet_ver = 11; // 11: 21sept04
-			else if (RFIFOREST(fd) >= 29 && (RFIFOB(fd,28) == 0 || RFIFOB(fd,28) == 1)) {	// 00 = Female, 01 = Male
-				if (RFIFOL(fd,3) > 700000 && RFIFOL(fd,10) >= 150000 && RFIFOL(fd,10) < 5000000) // account id / char id (more than 5.000.000 characters?) [Yor]
-					packet_ver = 15;	// 14: 6dec04
-				else
-					packet_ver = 13; // 13: 25oct04 (by [Yor])
-			}
-			// else probably incomplete packet
-			else if (RFIFOREST(fd) < 29)
-				return 0;
-			}
-		// 0x9B
-			else if (cmd == 0x9B)
-			{
-			if (RFIFOREST(fd) >= 32 && (RFIFOB(fd,31) == 0 || RFIFOB(fd,31) == 1))	// 00 = Female, 01 = Male
-				packet_ver = 16; // 16: 10jan05
-			else if (RFIFOREST(fd) >= 26 && (RFIFOB(fd,25) == 0 || RFIFOB(fd,25) == 1))	// 00 = Female, 01 = Male
-				packet_ver = 17; // 17: 10may05
-			else if (RFIFOREST(fd) < 32)
-				return 0;
-		}
 			else
 			{	// unknown client? leave packet ver as 0 so it'll disconnect anyway
 			}
 
-		// check if version is accepted
-		if (packet_ver < 5 ||	// reject really old client versions
-			(packet_ver <= 9 && (battle_config.packet_ver_flag &	1) == 0) ||	// older than 6sept04
-			(packet_ver == 10 && (battle_config.packet_ver_flag &	2) == 0) ||
-			(packet_ver == 11 && (battle_config.packet_ver_flag &	4) == 0) ||
-			(packet_ver == 12 && (battle_config.packet_ver_flag &	8) == 0) ||
-			(packet_ver == 13 && (battle_config.packet_ver_flag &	16) == 0) ||
-			(packet_ver == 14 && (battle_config.packet_ver_flag &	32) == 0) ||
-			(packet_ver == 15 && (battle_config.packet_ver_flag &	64) == 0) ||
-			(packet_ver == 16 && (battle_config.packet_ver_flag &	128) == 0) ||
-			(packet_ver == 17 && (battle_config.packet_ver_flag &	256) == 0) ||
-			packet_ver > MAX_PACKET_VER ||	// no packet version support yet
-			// identified version, but unknown client?
-				(!sd && packet_db[packet_ver][cmd].func != clif_parse_WantToConnection) )
-			{
-			WFIFOW(fd,0) = 0x6a;
-			WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
-			WFIFOSET(fd,23);
-				session_SetWaitClose(fd, 5000);
+			// check if version is accepted
+			if (packet_ver < 5 ||	// reject really old client versions
+				(packet_ver <= 9 && (battle_config.packet_ver_flag &	1) == 0) ||	// older than 6sept04
+				(packet_ver == 10 && (battle_config.packet_ver_flag &	2) == 0) ||
+				(packet_ver == 11 && (battle_config.packet_ver_flag &	4) == 0) ||
+				(packet_ver == 12 && (battle_config.packet_ver_flag &	8) == 0) ||
+				(packet_ver == 13 && (battle_config.packet_ver_flag &	16) == 0) ||
+				(packet_ver == 14 && (battle_config.packet_ver_flag &	32) == 0) ||
+				(packet_ver == 15 && (battle_config.packet_ver_flag &	64) == 0) ||
+				(packet_ver == 16 && (battle_config.packet_ver_flag &	128) == 0) ||
+				(packet_ver == 17 && (battle_config.packet_ver_flag &	256) == 0) ||
+				packet_ver > MAX_PACKET_VER ||	// no packet version support yet
+				// identified version, but unknown client?
+					(!sd && packet_db[packet_ver][cmd].func != clif_parse_WantToConnection) )
+				{
+				WFIFOW(fd,0) = 0x6a;
+				WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
+				WFIFOSET(fd,23);
+					session_SetWaitClose(fd, 5000);
+				return 0;
+			}
+		}
+
+		// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する
+		if(cmd >= MAX_PACKET_DB || packet_db[packet_ver][cmd].len == 0) 
+		{	// packet is not inside these values: session is incorrect?? or auth packet is unknown
+			ShowMessage("clif_parse: session #%d, packet 0x%x (%d bytes received) -> disconnected.\n", fd, cmd, RFIFOREST(fd));
+			session_Remove(fd);
 			return 0;
 		}
-	}
-
-	// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する
-	if(cmd >= MAX_PACKET_DB || packet_db[packet_ver][cmd].len == 0) 
-	{	// packet is not inside these values: session is incorrect?? or auth packet is unknown
-		ShowMessage("clif_parse: session #%d, packet 0x%x (%d bytes received) -> disconnected.\n", fd, cmd, RFIFOREST(fd));
-		session_Remove(fd);
-		return 0;
-	}
 
 		// パケット長を計算
 		packet_len = packet_db[packet_ver][cmd].len;
@@ -11714,7 +11712,7 @@ static int clif_parse(int fd)
 			}
 			else
 			{
-					time(&now);
+				time(&now);
 				if (sd && sd->state.auth)
 				{
 						if (sd->status.name != NULL)
@@ -11728,17 +11726,17 @@ static int clif_parse(int fd)
 					fprintf(fp, "%sPlayer with account ID %ld sent wrong packet:\n", 
 						asctime(localtime(&now)), sd->bl.id);
 
-					fprintf(fp, "\t---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
+				fprintf(fp, "\t---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
 				for(i = 0; i < packet_len; i++)
 				{
-						if ((i & 15) == 0)
-							fprintf(fp, "\n\t%04X ", i);
-						fprintf(fp, "%02X ", RFIFOB(fd,i));
-					}
-					fprintf(fp, "\n\n");
-					fclose(fp);
+					if ((i & 15) == 0)
+						fprintf(fp, "\n\t%04X ", i);
+					fprintf(fp, "%02X ", RFIFOB(fd,i));
 				}
+				fprintf(fp, "\n\n");
+				fclose(fp);
 			}
+		}
 #endif
 #if DUMP_ALL_PACKETS == 1
 		{
@@ -11750,20 +11748,20 @@ static int clif_parse(int fd)
 			if ((i & 15) == 0)
 					ShowMessage("\n%04X ",i);
 				ShowMessage("%02X ", RFIFOB(fd,i));
-		}
+			}
 			if (sd && sd->state.auth)
 			{
 			if (sd->status.name != NULL)
 					ShowMessage("\nAccount ID %d, character ID %d, player name %s.\n",
-			       sd->status.account_id, sd->status.char_id, sd->status.name);
+				   sd->status.account_id, sd->status.char_id, sd->status.name);
 			else
 					ShowMessage("\nAccount ID %d.\n", sd->bl.id);
-	}
+			}
 			else if (sd) // not authentified! (refused by char-server or disconnect before to be authentified)
 				ShowMessage("\nAccount ID %d.\n", sd->bl.id);
 		}
 #endif
-	RFIFOSKIP(fd, packet_len);
+		RFIFOSKIP(fd, packet_len);
 	}// end while
 	return 0;
 }

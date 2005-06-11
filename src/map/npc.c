@@ -1679,7 +1679,7 @@ static int npc_parse_script(const char *w1,const char *w2,const char *w3,const c
 
 		while(1) 
 		{
-			for(i=strlen((char*)srcbuf)-1; i>=0 && isspace(srcbuf[i]); i--);
+			for(i=strlen((char*)srcbuf)-1; i>=0 && isspace((int)((unsigned char)srcbuf[i])); i--);
 			
 			if (i >= 0 && srcbuf[i] == '}')
 				break;
@@ -1956,7 +1956,7 @@ static int npc_parse_function(const char *w1,const char *w2,const char *w3,const
 		srcbuf[0] = 0;
 
 	while (1) {
-		for(i=strlen(srcbuf)-1;i>=0 && isspace((int)(srcbuf[i]));i--);
+		for(i=strlen(srcbuf)-1;i>=0 && isspace((int)((unsigned char)srcbuf[i]));i--);
 		if (i >= 0 && srcbuf[i] == '}')
 			break;
 		fgets(line, sizeof(line) - 1, fp);
@@ -2372,7 +2372,7 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 			{
 				if (line[i]==' ')
 				{
-					if(!((line[i+1] && (isspace((int)(line[i+1])) || line[i+1]==',')) ||
+					if(!((line[i+1] && (isspace((int)((unsigned char)line[i+1])) || line[i+1]==',')) ||
 					 (j && line[j-1]==',')))
 					line[j++]=' ';
 				}

@@ -232,7 +232,7 @@ CharCommandType is_charcommand(int fd, struct map_session_data &sd, const char* 
 		return CharCommand_None;
 
 	str += strlen(sd.status.name);
-	while (*str && (isspace(*str) || (s_flag == 0 && *str == ':'))) {
+	while (*str && (isspace((int)((unsigned char)*str)) || (s_flag == 0 && *str == ':'))) {
 		if (*str == ':')
 			s_flag = 1;
 		str++;
@@ -250,7 +250,7 @@ CharCommandType is_charcommand(int fd, struct map_session_data &sd, const char* 
 		memset(command, '\0', sizeof(command));
 		memset(output, '\0', sizeof(output));
 
-		while (*p && !isspace((int)(*p)))
+		while (*p && !isspace((int)((unsigned char)*p)))
 			p++;
 
 		if( p >= str+sizeof(command) ) // too long
@@ -258,7 +258,7 @@ CharCommandType is_charcommand(int fd, struct map_session_data &sd, const char* 
 
 		memcpy(command, str, p - str);
 
-		while (isspace((int)(*p)))
+		while (isspace((int)((unsigned char)*p)))
 			p++;
 
 		if (type == CharCommand_Unknown || info.proc == NULL)
@@ -1171,11 +1171,11 @@ bool charcommand_zeny(int fd, struct map_session_data &sd,const char *command, c
 	}
 
 	if ((pl_sd = map_nick2sd(character)) != NULL)
-{
+	{
 		new_zeny = sd.status.zeny + zeny;
 		if( zeny>0 && (new_zeny<sd.status.zeny || new_zeny>MAX_ZENY) ) // pos overflow & max
 			new_zeny = MAX_ZENY;
-		else if( new_zeny>sd.status.zeny ) // neg overflow
+		else if( zeny<0 && new_zeny>sd.status.zeny ) // neg overflow
 			new_zeny = 0;
 
 		if (new_zeny != pl_sd->status.zeny)
@@ -1183,23 +1183,23 @@ bool charcommand_zeny(int fd, struct map_session_data &sd,const char *command, c
 			pl_sd->status.zeny = new_zeny;
 			clif_updatestatus(*pl_sd, SP_ZENY);
 			clif_displaymessage(fd, msg_txt(211)); // Character's number of zenys changed!
-	}
+		}
 		else
-{
+		{
 			if (zeny < 0)
 				clif_displaymessage(fd, msg_txt(41)); // Impossible to decrease the number/value.
 			else
 				clif_displaymessage(fd, msg_txt(149)); // Impossible to increase the number/value.
 			return false;
-	}
 		}
+	}
 	else
-{
+	{
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return false;
 	}
 	return true;
-			}
+}
 
 bool charcommand_showexp(int fd, struct map_session_data &sd,const char *command, const char *message)
 {

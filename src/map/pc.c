@@ -2395,7 +2395,7 @@ int pc_additem(struct map_session_data &sd,struct item &item_data,size_t amount)
 				clif_additem(sd,i,amount,0);
 				break;
 			}
-	}
+		}
 	}
 	if (i >= MAX_INVENTORY)
 	{	// ‘• ”õ•i‚©–¢Š—L•i‚¾‚Á‚½‚Ì‚Å‹ó‚«—“‚Ö’Ç‰Á
@@ -2458,18 +2458,18 @@ int pc_dropitem(struct map_session_data &sd,unsigned short inx, size_t amount)
 	    sd.status.inventory[inx].amount < amount ||
 	    sd.trade_partner != 0 || 
 		sd.vender_id != 0 ||
-	    sd.status.inventory[inx].amount <= 0 ||
-		pc_candrop(sd,sd.status.inventory[inx].nameid) )
+	    sd.status.inventory[inx].amount <= 0 )
 		return 1;
 
-	map_addflooritem(sd.status.inventory[inx], amount, sd.bl.m, sd.bl.x, sd.bl.y, NULL, NULL, NULL, 0);
-	pc_delitem(sd, inx, amount, 0);
-	if (!pc_candrop(sd,sd.status.inventory[inx].nameid))
+	if( !pc_candrop(sd,sd.status.inventory[inx].nameid) )
 	{	//The client does not likes being silently ignored, so we send it a del of 0 qty
 		clif_delitem(sd,inx,0);
 		clif_displaymessage (sd.fd, msg_txt(263));
 		return 1;
 	}
+
+	map_addflooritem(sd.status.inventory[inx], amount, sd.bl.m, sd.bl.x, sd.bl.y, NULL, NULL, NULL, 0);
+	pc_delitem(sd, inx, amount, 0);
 	return 0;
 }
 
@@ -2726,7 +2726,7 @@ int pc_putitemtocart(struct map_session_data &sd,unsigned short idx, size_t amou
 {
 	if( idx >= MAX_INVENTORY ) return 0;
 
-	if( pc_candrop(sd, sd.status.inventory[idx].nameid) )
+	if( !pc_candrop(sd, sd.status.inventory[idx].nameid) )
 		return 1;
 	if( sd.status.inventory[idx].nameid==0 || sd.status.inventory[idx].amount<amount || sd.vender_id)
 		return 1;
@@ -6169,7 +6169,6 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 
 	if( inx >= MAX_INVENTORY )
 	{
-printf("equipment checking failure inx = %i\n", inx);
 		clif_equipitemack(sd,inx,0,0);	// fail
 		return 0;
 	}
@@ -6183,7 +6182,6 @@ printf("equipment checking failure inx = %i\n", inx);
 		sd.status.inventory[inx].attribute==1 ||
 		sd.sc_data[SC_BERSERK].timer!=-1 )	// -- moonsoul (if player is berserk then cannot equip)
 	{	// [Valaris]
-printf("equipment checking failure %i, %i\n", pos, pc_isequipable(sd,inx));
 		clif_equipitemack(sd,inx,0,0);	// fail
 		return 0;
 	}

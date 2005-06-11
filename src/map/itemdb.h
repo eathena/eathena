@@ -36,12 +36,12 @@ struct item_data
 		unsigned value_notoc : 1;		// 2
 		unsigned no_use : 1;			// 3
 		unsigned sex : 2;				// 4,5 // male=0, female=1, all=2
-		unsigned slot : 2;				// 6,7
-		unsigned no_refine : 1;			// 8 [celest]
-		unsigned no_equip : 3;			// 9,10,11
-		unsigned delay_consume : 1;		// 12 Signifies items that are not consumed inmediately upon double-click [Skotlex]
-		unsigned trade_restriction : 7;	// 13-19 Item restrictions mask [Skotlex]
-		unsigned _unused : 4;			// 20-23
+		unsigned slot : 3;				// 6,7,8 (0,1,2,3,4 [5..7 unused]
+		unsigned no_refine : 1;			// 9 [celest]
+		unsigned no_equip : 3;			// 10,11,12
+		unsigned delay_consume : 1;		// 13 Signifies items that are not consumed inmediately upon double-click [Skotlex]
+		unsigned trade_restriction : 7;	// 14-20 Item restrictions mask [Skotlex]
+		unsigned _unused : 3;			// 21-23
 	} flag;
 
 	char *use_script;	// ‰ñ•œ‚Æ‚©‚à‘S•”‚±‚Ì’†‚Å‚â‚ë‚¤‚©‚È‚Æ

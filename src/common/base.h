@@ -443,6 +443,8 @@ extern inline unsigned long GetCurrentProcessId()
 #define SEEK_END 2
 #endif
 
+namespace eapp
+{
 //////////////////////////////////////////////////////////////////////////
 // wrappers for Character Classification Routines  
 //////////////////////////////////////////////////////////////////////////
@@ -499,6 +501,7 @@ extern inline char toupper(char val)	{ return toupper((int)((unsigned char)val))
 #endif
 extern inline char tolower(char val)	{ return tolower((int)((unsigned char)val)); }
 
+}
 
 //////////////////////////////////////////////////////////////////////////
 // byte word dword access

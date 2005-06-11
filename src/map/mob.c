@@ -3221,9 +3221,6 @@ int mobskill_castend_id( int tid, unsigned long tick, int id,int data )
 		ShowMessage("MOB skill castend skill=%d, class_ = %d\n",md->skillid,md->class_);
 //	mob_stop_walking(*md,0);
 
-if(md->skillid<0)
-printf("mobskill_castend_id negative skill trap 1\n");
-
 	switch( skill_get_nk(md->skillid) )
 	{
 	case NK_NO_DAMAGE:// Žx‰‡Œn

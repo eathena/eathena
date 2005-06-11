@@ -876,7 +876,7 @@ AtCommandType is_atcommand(const int fd, struct map_session_data &sd, const char
 
 	memset(&info, 0, sizeof(info));
 	str += strlen(sd.status.name);
-	while (*str && (isspace((int)(*str)) || (s_flag == 0 && *str == ':'))) {
+	while (*str && (isspace((int)((unsigned char)*str)) || (s_flag == 0 && *str == ':'))) {
 		if (*str == ':')
 			s_flag = 1;
 		str++;
@@ -891,13 +891,13 @@ AtCommandType is_atcommand(const int fd, struct map_session_data &sd, const char
 		char output[128]="";
 		const char* p = str;
 
-		while (*p && !isspace(*p))
+		while (*p && !isspace((int)((unsigned char)*p)))
 			p++;
 		if( p >= str+sizeof(command)) // too long
 			return AtCommand_Unknown;
 		memcpy(command, str, p - str);
 		command[p-str]=0;
-		while (isspace(*p))
+		while (isspace((int)((unsigned char)*p)))
 			p++;
 
 		if(type == AtCommand_Unknown || info.proc == NULL)
@@ -3640,7 +3640,7 @@ bool atcommand_zeny(int fd, struct map_session_data &sd, const char* command, co
 	new_zeny = sd.status.zeny + zeny;
 	if( zeny>0 && (new_zeny<sd.status.zeny || new_zeny>MAX_ZENY) ) // pos overflow & max
 		new_zeny = MAX_ZENY;
-	else if( new_zeny>sd.status.zeny ) // neg overflow
+	else if( zeny<0 && new_zeny>sd.status.zeny ) // neg overflow
 		new_zeny = 0;
 
 	if (new_zeny != sd.status.zeny)

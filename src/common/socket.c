@@ -119,8 +119,8 @@ class Cfd_set
 				memset(cArray+cfd.cSZ,0, (cSZ-cfd.cSZ)*sizeof(unsigned long));
 			}
 			// and copy the given array if it exists
-			if(cfd.Array)
-				memcpy(cArray, cfd.Array, cfd.cSZ*sizeof(unsigned long));
+			if(cfd.cArray)
+				memcpy(cArray, cfd.cArray, cfd.cSZ*sizeof(unsigned long));
 		}
 	}
 
