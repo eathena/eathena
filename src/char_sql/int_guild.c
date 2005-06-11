@@ -9,10 +9,9 @@
 
 #include "char.h"
 #include "../common/strlib.h"
-#include "int_storage.h"
+// #include "int_storage.h"
 #include "inter.h"
 #include "int_guild.h"
-#include "int_storage.h"
 #include "mmo.h"
 #include "socket.h"
 #include "db.h"
@@ -122,13 +121,6 @@ int inter_guild_tosql(struct guild *g,int flag)
 	while (i<g->max_member) {
 		if (g->member[i].account_id>0) guild_online_member++;
 		i++;
-	}
-
-	// No member in guild , no need to create it in sql
-	if (guild_member <= 0 && guild_online_member <=0) {
-		inter_guild_storage_delete(g->guild_id);
-		printf("No member in guild %d , break it! \n",g->guild_id);
-		return -2;
 	}
 
 	// Insert new guild to sqlserver
@@ -759,7 +751,6 @@ int guild_check_empty(struct guild *g)
 
 	// ’N‚à‚¢‚È‚¢‚Ì‚Å‰ðŽU
 	mapif_guild_broken(g->guild_id,0);
-	inter_guild_storage_delete(g->guild_id);
 //	inter_guild_tosql(g,255);
 	add_guild_save_timer(g,255);
 	g->save_flag=255;
@@ -1380,7 +1371,6 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 		printf("DB server Error (delete `guild_position`)- %s\n", mysql_error(&mysql_handle) );
 	}
 
-	inter_guild_storage_delete(guild_id);
 	mapif_guild_broken(guild_id,0);
 
 	if(log_inter)
