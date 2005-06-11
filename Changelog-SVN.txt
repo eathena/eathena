@@ -1,5 +1,9 @@
 Date	Added
 06/11
+	* Lord Knight's Beserk now cancels all the caster's other 
+	  self-buffs when used. It also cannot be re-used during the
+	  no-SP-recovery penalty period after it expires. (This penalty 
+	  will now cancel on your death however.) [Aru]
 	* Reverted the previous stacking type for aspd as per rodatazone
 	  information [Skotlex]
 	  Speed modifiers, however, still stack on the new way as there's been

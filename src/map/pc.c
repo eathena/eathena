@@ -4980,6 +4980,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 	status_change_clear(&sd->bl,0);	// ステ?タス異常を解除する
 	clif_updatestatus(sd,SP_HP);
 	status_calc_pc(sd,0);
+	sd->canregen_tick = gettick();
 
 	if(battle_config.death_penalty_type>0) { // changed penalty options, added death by player if pk_mode [Valaris]
 		if(sd->status.class_ != 0 && !map[sd->bl.m].flag.nopenalty && !map[sd->bl.m].flag.gvg &&	// only novices will recieve no penalty

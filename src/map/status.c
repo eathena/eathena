@@ -4780,6 +4780,8 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 					bl->id, data);
 				return 0;
 			}
+			else
+				sd->canregen_tick = gettick() + 300000;
 		}
 		break;
 	case SC_WEDDING:	//Œ‹¥—p(Œ‹¥ˆßÖ‚É‚È‚Á‚Ä?‚­‚Ì‚ª?‚¢‚Æ‚©)

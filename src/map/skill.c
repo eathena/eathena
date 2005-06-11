@@ -668,6 +668,9 @@ int skillnotok(int skillid, struct map_session_data *sd)
 		return 1;
 	if (battle_config.pk_mode && !map[sd->bl.m].flag.nopvp && skill_get_nocast (skillid) & 16)
 		return 1;
+
+	if(skillid == LK_BERSERK && sd->canregen_tick>gettick())
+		return 1;
 	
 	switch (skillid) {
 		case AL_WARP:
@@ -3281,6 +3284,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
 
+	case LK_BERSERK:		/* バ?サ?ク */
+		status_change_end(bl,SC_TWOHANDQUICKEN,-1);
+		status_change_end(bl,SC_CONCENTRATION,-1);
+		status_change_end(bl,SC_PARRYING,-1);
+		status_change_end(bl,SC_ENDURE,-1);
+		status_change_end(bl,SC_AURABLADE,-1);
 	case KN_AUTOCOUNTER:		/* オ?トカウンタ? */
 	case KN_TWOHANDQUICKEN:	/* ツ?ハンドクイッケン */
 	case CR_SPEARQUICKEN:	/* スピアクイッケン */
@@ -3295,7 +3304,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case LK_AURABLADE:		/* オ?ラブレ?ド */
 	case LK_PARRYING:		/* パリイング */
 	case LK_CONCENTRATION:	/* コンセントレ?ション */
-	case LK_BERSERK:		/* バ?サ?ク */
 	case HP_ASSUMPTIO:		/*  */
 	case WS_CARTBOOST:		/* カ?トブ?スト */
 	case SN_SIGHT:			/* トゥル?サイト */
