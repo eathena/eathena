@@ -5406,6 +5406,7 @@ static const struct battle_data_short {
 	{ "cardillust_read_grffile",           &battle_config.cardillust_read_grffile},	// [Celest]
 	{ "arrow_decrement",                   &battle_config.arrow_decrement			},
 	{ "max_aspd",                          &battle_config.max_aspd					},
+	{ "max_walk_speed",                    &battle_config.max_walk_speed			},
 	{ "max_lv",                            &battle_config.max_lv					},
 	{ "max_parameter",                     &battle_config.max_parameter			},
 	{ "player_skill_log",                  &battle_config.pc_skill_log				},
@@ -5725,6 +5726,7 @@ void battle_set_defaults() {
 	battle_config.cardillust_read_grffile=0;	// [Celest]
 	battle_config.arrow_decrement=1;
 	battle_config.max_aspd = 199;
+	battle_config.max_walk_speed = 300;
 	battle_config.max_hp = 32500;
 	battle_config.max_sp = 32500;
 	battle_config.max_lv = 99; // [MouseJstr]
@@ -5917,6 +5919,13 @@ void battle_validate_conf() {
 		battle_config.max_aspd = 10;
 	if(battle_config.max_aspd > 1000)
 		battle_config.max_aspd = 1000;
+	
+	if (battle_config.max_walk_speed < 100)
+		battle_config.max_walk_speed = 100;
+	battle_config.max_walk_speed = 100*DEFAULT_WALK_SPEED/battle_config.max_walk_speed;
+	if (battle_config.max_walk_speed < 1)
+		battle_config.max_walk_speed = 1;
+	
 	if(battle_config.hp_rate < 1)
 		battle_config.hp_rate = 1;
 	if(battle_config.sp_rate < 1)

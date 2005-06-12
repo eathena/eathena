@@ -8935,6 +8935,7 @@ void clif_parse_TakeItem(int fd, struct map_session_data *sd) {
 	}
 
 	if( sd->npc_id!=0 || sd->vender_id != 0 || sd->opt1 > 0 ||
+		pc_iscloaking(sd) || //Disable cloaking characters from looting [Skotlex]
 		(sd->sc_data && (sd->sc_data[SC_TRICKDEAD].timer != -1 || //死んだふり
 		sd->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
 		sd->sc_data[SC_BERSERK].timer!=-1 ||	//バーサーク

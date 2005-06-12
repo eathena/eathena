@@ -5639,7 +5639,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 				return 0;
 			if((group=skill_unitsetting(&sd->bl,sd->skillid,sd->skilllv,sd->skillx,sd->skilly,0))==NULL)
 				return 0;
-			group->valstr=(char *)aCallocA(NAME_LENGTH,sizeof(char));
+			group->valstr=(char *)aCallocA(MESSAGE_SIZE,sizeof(char));
 			memcpy(group->valstr,map,NAME_LENGTH-1);
 			group->val2=(x<<16)|y;
 		}
@@ -6463,7 +6463,7 @@ int skill_unit_onlimit(struct skill_unit *src,unsigned int tick)
 					src->bl.x,src->bl.y,1);
 			if(group == NULL)
 				return 0;
-			group->valstr=(char *) aCallocA(NAME_LENGTH, sizeof(char));
+			group->valstr=(char *) aCallocA(MESSAGE_SIZE, sizeof(char));
 			if(group->valstr==NULL){
 				printf("skill_unit_onlimit: out of memory !\n");
 				exit(1);
@@ -8843,7 +8843,7 @@ int skill_delunitgroup(struct skill_unit_group *group)
 		//and the most part of valstr is filled with \0, Does aFree knows how
 		//much to free up? Won't it stop on the first \0?
 		//Small check on this possible leak. Anyone can confirm my fears? [Skotlex]
-		memset(group->valstr, 0, MESSAGE_SIZE);
+		memset(group->valstr, 1, MESSAGE_SIZE-1);
 		group->valstr[MESSAGE_SIZE-1] = '\0';
 		aFree(group->valstr);
 		group->valstr=NULL;

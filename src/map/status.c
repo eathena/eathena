@@ -1493,8 +1493,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->speed_rate = 1;
 	if(sd->speed_rate != 100)
 		sd->speed = sd->speed*sd->speed_rate/100;
-	if(sd->speed < DEFAULT_WALK_SPEED/4)
-		sd->speed = DEFAULT_WALK_SPEED/4;
+	if(sd->speed < battle_config.max_walk_speed)
+		sd->speed = battle_config.max_walk_speed;
 	if(pc_isriding(sd))
 		ASPD_ADD_RATE(10*pc_checkskill(sd,KN_CAVALIERMASTERY)-50);
 	if(aspd_rate != 100)
@@ -3390,6 +3390,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				status_change_end(bl,SC_SPEARSQUICKEN,-1);
 			if(sc_data[SC_TWOHANDQUICKEN].timer!=-1 )
 				status_change_end(bl,SC_TWOHANDQUICKEN,-1);
+			if(sc_data[SC_CARTBOOST].timer!=-1 )
+				status_change_end(bl,SC_CARTBOOST,-1);
 			break;
 		case SC_SIGNUMCRUCIS:		/* シグナムクルシス */
 			calc_flag = 1;
@@ -3946,6 +3948,12 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			tick = 1000;
 			break;
 
+		case SC_CARTBOOST:		/* カ?トブ?スト */
+			if(sc_data[SC_DECREASEAGI].timer!=-1 )
+			{	//Cancel Decrease Agi, but take no further effect [Skotlex]
+				status_change_end(bl,SC_DECREASEAGI,-1);
+				return 0;
+			}
 		case SC_CONCENTRATE:		/* 集中力向上 */
 		case SC_BLESSING:			/* ブレッシング */
 		case SC_ANGELUS:			/* アンゼルス */
@@ -3956,7 +3964,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_KEEPING:
 		case SC_BARRIER:
 		case SC_MELTDOWN:		/* メルトダウン */
-		case SC_CARTBOOST:		/* カ?トブ?スト */
 		case SC_TRUESIGHT:		/* トゥル?サイト */
 		case SC_SPIDERWEB:		/* スパイダ?ウェッブ */
 		case SC_SLOWDOWN:

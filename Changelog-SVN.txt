@@ -1,4 +1,9 @@
 Date	Added
+06/12
+	* Dec Agi now cancels Cart-Boost and viceversa as explained by Ishizu [Skotlex]
+	* Cloaked characters now can't pick items. [Skotlex]
+	* Made the max speed rate a battle_config option, default 300% [Skotlex]
+	* Fixed the overflowed valstr free on skill.c:8840 [Skotlex]
 06/11
 	* Lord Knight's Beserk now cancels all the caster's other 
 	  self-buffs when used. It also cannot be re-used during the

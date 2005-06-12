@@ -188,6 +188,7 @@ extern struct Battle_Config {
 	unsigned short item_slots_override_grffile;
 	unsigned short arrow_decrement;
 	unsigned short max_aspd;
+	unsigned short max_walk_speed;	//Maximum walking speed after buffs [Skotlex]
 	int max_hp;
 	int max_sp;
 	unsigned short max_lv;
