@@ -3095,9 +3095,9 @@ static struct Damage battle_calc_weapon_attack_sub(
 	{	//Check for conditions that convert an attack to a skill
 		char da=0;
 		skill = 0;
-		if((sd->weapontype1 == 0x01 && (skill = pc_checkskill(sd,TF_DOUBLE)) > 0) ||
-			sd->double_rate > 0) //success rate from Double Attack is counted in
-			da = (rand()%100 <  sd->double_rate + 5*skill) ? 1:0;
+		if(( (skill = 5*pc_checkskill(sd,TF_DOUBLE)) > 0 && sd->weapontype1 == 0x01) ||
+			sd->double_rate > 0) //Success chance is not added, the higher one is used? [Skotlex]
+			da = (rand()%100 < (skill>sd->double_rate?skill:sd->double_rate)) ? 1:0;
 		if((skill = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16) // triple blow works with bows ^^ [celest]
 			da = (rand()%100 < (30 - skill)) ? 2:da;
 		
@@ -5536,7 +5536,7 @@ static const struct battle_data_short {
 	{ "who_display_aid",	                  &battle_config.who_display_aid}, // [Ancyker], for a feature by...?
 	{ "display_hallucination",             &battle_config.display_hallucination}, // [Skotlex]
 	{ "use_statpoint_table",               &battle_config.use_statpoint_table}, // [Skotlex]
-	{ "new_attack_function",               &battle_config.new_attack_function}, // [Skotlex]
+//	{ "new_attack_function",               &battle_config.new_attack_function}, // Unchangeable default now... we need to move to this already! [Skotlex]
 	{ "ignore_items_gender",               &battle_config.ignore_items_gender}, // [Lupus]
 	{ "copyskill_restrict",		       &battle_config.copyskill_restrict}, // [Aru]
 	{ "dynamic_mobs",                      &battle_config.dynamic_mobs},
