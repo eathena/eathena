@@ -214,7 +214,7 @@ int npc_click(struct map_session_data *sd,int id)
 		return 1;
 
 	sd->npc_id=id;
-	script_state=RUNNING;
+	script_setstate(RUNNING);
 	script_run_function(nd->function,"i",sd->char_id);
 
 	return 0;
@@ -251,10 +251,10 @@ int npc_scriptend(struct map_session_data *sd,int id)
 
 	nullpo_retr(1, sd);
 	
-	if(script_state == HALT) {
+	if(script_getstate() == HALT) {
 		if(sd->npc_id > 0) {
 			sd->npc_id = 0;
-			script_state = NRUN;
+			script_setstate(NRUN);
 		}
 	}
 		

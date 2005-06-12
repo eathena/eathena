@@ -48,6 +48,7 @@
 char mapreg_txt[256]="save/mapreg.txt";
 //#define MAPREG_AUTOSAVE_INTERVAL	(10*1000)
 
+int npc_script_state;
 struct Script_Config script_config;
 static char pos[11][100] = {"Head","Body","Left hand","Right hand","Robe","Shoes","Accessory 1","Accessory 2","Head 2","Head 3","Not Equipped"};
 
@@ -162,7 +163,7 @@ static int npcclose()
 		return -1;
 	}
 	npcid = sd->npc_id;
-	script_state = HALT;
+	npc_script_state = HALT;
 	
 	clif_scriptclose(sd,npcid);
 	
@@ -182,7 +183,7 @@ static int npcclose2()
 		return -1;
 	}
 	npcid = sd->npc_id;
-	script_state = STOP;
+	npc_script_state = STOP;
 	
 	clif_scriptclose(sd,npcid);
 	
@@ -202,13 +203,12 @@ static int npcend()
 		return -1;
 	}
 	
-	if(script_state != STOP) {
+	if(npc_script_state != STOP) {
 		lua_pushstring(L, "Script state must be stoped before using npcend, please use npcclose2!");
 		lua_error(L);
 		return -1;
 	}
-	sd->npc_id=0;
-	script_state = NRUN;
+	npc_script_state = NRUN;
 	
 	return 0;
 }
@@ -343,6 +343,15 @@ void script_buildin_commands()
         i++;
     }
 	ShowStatus("Done registering '"CL_WHITE"%d"CL_RESET"' script build-in commands.\n",i);
+}
+
+
+void script_setstate(int state) {
+	npc_script_state = state;
+}
+
+int script_getstate(void) {
+	return npc_script_state;
 }
 
 // Run a Lua function that was previously loaded, specifying the type of arguments with a "format" string

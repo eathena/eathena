@@ -25,20 +25,19 @@ struct LuaCommandInfo {
 	lua_CFunction f;
 };
 
-enum state {
+enum {
 	RUNNING,
 	HALT,
 	STOP,
-	NRUN
+	NRUN,
 };
-
-state script_state=NRUN;
 
 extern char mapreg_txt[];
 
 void script_run_function(const char *name,const char *format,...); // [DracoRPG]
 void script_run_chunk(const char *chunk); // [DracoRPG]
 void script_buildin_commands(); // [Kevin]
+void script_setstate(int state); // [Kevin]
 int script_config_read(char *cfgName);
 int do_init_script();
 int do_final_script();
