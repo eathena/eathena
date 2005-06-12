@@ -11521,7 +11521,7 @@ static int clif_parse(int fd)
 	{ 
 		// wait some time (10sec) before removing the pc after a forced logout
 		// other disconnections got a different WaitClose time before comming here
-		if( session_isMarked(fd) || sd->state.waitingdisconnect )
+		if( session_isMarked(fd) || !sd  || sd->state.waitingdisconnect )
 			// removing marked sessons now might be no thread 
 			// even if the timer is not removed and called on an empty or reused session
 			session_Remove(fd); 
