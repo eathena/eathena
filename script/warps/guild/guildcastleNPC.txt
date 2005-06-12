@@ -1,0 +1,11 @@
+aldeg_cas04.gat,132,231,4	script	aldg408r	45,1,1,{
+	set l0,rand(4);
+	if(l0==0) goto w1;
+	if(l0==1) goto w2;
+	if(l0==2) goto w3;
+	if(l0==3) goto w4;
+w1:	warp "aldeg_cas04.gat",170,100; break;
+w2:	warp "aldeg_cas04.gat",186,88; break;
+w3:	warp "aldeg_cas04.gat",129,212; break;
+w4:	warp "aldeg_cas04.gat",132,209; break;
+}

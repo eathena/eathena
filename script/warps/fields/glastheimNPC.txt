@@ -1,0 +1,7 @@
+gl_prison.gat,10,70,4	script	gl18-2	45,1,1,{
+set @r,rand(2);
+if(@r==0) goto w1;
+if(@r==1) goto w2;
+w1: warp "gl_cas01",236,192; end;
+w2: warp "gl_cas01",164,191; end;
+}

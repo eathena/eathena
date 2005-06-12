@@ -1,4 +1,6 @@
 Date	Added
+06/12
+	* Added all warps currently possible [Fredzilla]
 06/10
 	* Added vary simple script state, and added npcclose2 and npcend. [Kevin]
 	* Added a functional Niflheim variant of the Healer Dog, using areascript... try to get

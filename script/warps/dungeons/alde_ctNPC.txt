@@ -1,0 +1,166 @@
+
+//============================================================
+//= Level 2 ==================================================
+//= Random 2-1 ===============================================
+c_tower2.gat,13,288,4	script	clt006r	45,1,1,{
+	set @r,rand(3);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	if(@r==2) goto w3;
+	w1:	warp "c_tower2.gat",13,282; break;
+	w2:	warp "alde_dun03.gat",175,131; break;
+	w3:	warp "c_tower3.gat",235,7; break;
+}
+//============================================================
+//= Random 2-2 ===============================================
+c_tower2.gat,223,267,4	script	clt007r	45,1,1,{
+	set @r,rand(3);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	if(@r==2) goto w3;
+	w1:	warp "c_tower2.gat",288,267; break;
+	w2:	warp "alde_dun03.gat",130,130; break;
+	w3:	warp "c_tower3.gat",252,29; break;
+}
+//============================================================
+//= Random 3-1 ===============================================
+c_tower3.gat,163,252,4	script	clt014r	45,1,1,{
+	set @r,rand(2);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	w1:	warp "c_tower3.gat",168,252; break;
+	w2:	warp "alde_dun02.gat",262,41; break;
+}
+//============================================================
+//= Random 3-2 ===============================================
+c_tower3.gat,240,7,4	script	clt015r	45,1,1,{
+	set @r,rand(3);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	if(@r==2) goto w3;
+	w1:	warp "c_tower2.gat",13,282; break;
+	w2:	warp "alde_dun03.gat",175,131; break;
+	w3:	warp "c_tower3.gat",235,7; break;
+}
+//============================================================
+//= Random 3-3 ===============================================
+c_tower3.gat,252,24,4	script	clt016r	45,1,1,{
+	set @r,rand(3);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	if(@r==2) goto w3;
+	w1:	warp "c_tower2.gat",228,267; break;
+	w2:	warp "alde_dun03.gat",130,130; break;
+	w3:	warp "c_tower3.gat",252,29; break;
+}
+//============================================================
+//= Random 4-1 ===============================================
+c_tower4.gat,75,156,4	script	clt027r	45,0,0,{
+	set @r,rand(4);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	if(@r==2) goto w3;
+	if(@r==3) goto w4;
+	w1:	warp "c_tower3.gat",168,252; break;
+	w2:	warp "alde_dun02.gat",262,41; break;
+	w3:	warp "c_tower4.gat",73,154; break;
+	w4:	warp "c_tower4.gat",140,149; break;
+}
+//============================================================
+//= Random 4-2 ===============================================
+c_tower4.gat,68,79,4	script	clt028r	45,0,0,{
+	set @r,rand(4);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	if(@r==2) goto w3;
+	if(@r==3) goto w4;
+	w1:	warp "c_tower2.gat",13,282; break;
+	w2:	warp "alde_dun03.gat",175,131; break;
+	w3:	warp "c_tower3.gat",235,7; break;
+	w4:	warp "c_tower4.gat",65,77; break;
+}
+//============================================================
+//= Random 4-3 ===============================================
+c_tower4.gat,142,151,4	script	clt029r	45,0,0,{
+	set @r,rand(4);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	if(@r==2) goto w3;
+	if(@r==3) goto w4;
+	w1:	warp "c_tower3.gat",168,252; break;
+	w2:	warp "alde_dun02.gat",262,41; break;
+	w3:	warp "c_tower4.gat",73,154; break;
+	w4: warp "c_tower4.gat",140,149; break;
+}
+//============================================================
+//= Random 4-4 ===============================================
+c_tower4.gat,151,96,4	script	clt030r	45,0,0,{
+	set @r,rand(4);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	if(@r==2) goto w3;
+	if(@r==3) goto w4;
+	w1:	warp "c_tower2.gat",228,267; break;
+	w2:	warp "alde_dun03.gat",130,130; break;
+	w3:	warp "c_tower3.gat",252,29; break;
+	w4:	warp "c_tower4.gat",152,95; break;
+}
+//============================================================
+//= Random 4-5 ===============================================
+c_tower4.gat,189,40,4	script	clt031r	45,2,2,{
+	set @r,rand(4);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	if(@r==2) goto w3;
+	if(@r==3) goto w4;
+	w1:	warp "c_tower2.gat",228,267; break;
+	w2:	warp "alde_dun03.gat",130,130; break;
+	w3:	warp "c_tower3.gat",252,29; break;
+	w4:	warp "c_tower4.gat",152,95; break;
+}
+//= Random B2 ================================================
+alde_dun02.gat,267,41,4	script	clt008r	45,1,1,{
+	set @r,rand(2);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	w1:	warp "c_tower3.gat",168,252; break;
+	w2:	warp "alde_dun02.gat",262,141; break;
+}
+alde_dun03.gat,12,267,0	warp	aldd09	2,2,alde_dun02.gat,273,250
+alde_dun03.gat,277,183,0	warp	ald010	2,2,c_tower2.gat,27,27
+alde_dun03.gat,191,31,0	warp	ald011	2,2,c_tower3.gat,217,159
+alde_dun03.gat,276,48,0	warp	ald012	2,2,c_tower1.gat,235,223
+//============================================================
+//7(npc)
+//= Random B3-1 ================================================
+alde_dun03.gat,130,125,4	script	clt014r	45,1,1,{
+	set @r,rand(3);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	if(@r==2) goto w3;
+	w1:	warp "c_tower2.gat",228,267; break;
+	w2:	warp "alde_dun03.gat",130,130; break;
+	w3:	warp "c_tower3.gat",252,29; break;
+}
+//============================================================
+//= Random 3-2 ===============================================
+alde_dun03.gat,171,127,4	script	clt015r	45,1,1,{
+	set @r,rand(4);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	if(@r==2) goto w3;
+	w1:	warp "c_tower2.gat",13,282; break;
+	w2:	warp "alde_dun03.gat",175,131; break;
+	w3:	warp "c_tower3.gat",235,7; break;
+}
+alde_dun04.gat,80,34,4	script	clt022r	45,1,1,{
+	set @r,rand(4);
+	if(@r==0) goto w1;
+	if(@r==1) goto w2;
+	if(@r==2) goto w3;
+	if(@r==3) goto w4;
+	w1:	warp "c_tower2.gat",13,282; break;
+	w2:	warp "alde_dun03.gat",175,131; break;
+	w3:	warp "c_tower3.gat",235,7; break;
+	w4:	warp "alde_dun04.gat",84,36; break;
+}
