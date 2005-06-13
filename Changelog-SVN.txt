@@ -1,5 +1,8 @@
 Date	Added
 06/13
+	* Removed battle option "enemy_critical" [Skotlex]
+	  Use enemy_critical_rate=0 instead.
+	* Changed the default of enemy_critical_rate to 0 [Skotlex]
 	* Ported oA's imalive and flushtimer system to eAthena plugin 'gui' [celest]
 	  - You will only need the plugin if you are using a gui program like wxOAGUI
 	    to run Athena

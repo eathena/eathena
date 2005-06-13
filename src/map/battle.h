@@ -86,7 +86,6 @@ int battle_config_switch(const char *str); // [Valaris]
 
 extern struct Battle_Config {
 	unsigned short warp_point_debug;
-	unsigned short enemy_critical;
 	unsigned short enemy_critical_rate;
 	unsigned short enemy_str;
 	unsigned short enemy_perfect_flee;

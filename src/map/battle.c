@@ -835,7 +835,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 			cri = 1000;
 	}
 
-	if(skill_num == 0 && battle_config.enemy_critical && (rand() % 1000) < cri)
+	if(skill_num == 0 && battle_config.enemy_critical_rate && (rand() % 1000) < cri)
 	{
 		damage += atkmax;
 		type = 0x0a;
@@ -1348,7 +1348,7 @@ static struct Damage battle_calc_mob_weapon_attack(
 	if(tsd && tsd->critical_def)
 		cri = cri * (100 - tsd->critical_def) / 100;
 
-	if((skill_num == 0 || skill_num == KN_AUTOCOUNTER) && skill_lv >= 0 && battle_config.enemy_critical && (rand() % 1000) < cri)	// 判定（スキルの場合は無視）
+	if((skill_num == 0 || skill_num == KN_AUTOCOUNTER) && skill_lv >= 0 && battle_config.enemy_critical_rate && (rand() % 1000) < cri)	// 判定（スキルの場合は無視）
 			// 敵の判定
 	{
 		damage += atkmax;
@@ -3161,7 +3161,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 
 	//Check for critical
 	if(!flag.cri &&
-		(sd || battle_config.enemy_critical) &&
+		(sd || battle_config.enemy_critical_rate) &&
 		(!skill_num || skill_num == KN_AUTOCOUNTER || skill_num == SN_SHARPSHOOTING))
 	{
 		short cri = status_get_critical(src);
@@ -5310,7 +5310,6 @@ static const struct battle_data_short {
 	unsigned short *val;
 } battle_data_short[] = {	//List here battle_athena options which are type unsigned short!
 	{ "warp_point_debug",                  &battle_config.warp_point_debug			},
-	{ "enemy_critical",                    &battle_config.enemy_critical			},
 	{ "enemy_critical_rate",               &battle_config.enemy_critical_rate		},
 	{ "enemy_str",                         &battle_config.enemy_str				},
 	{ "enemy_perfect_flee",                &battle_config.enemy_perfect_flee		},
@@ -5618,8 +5617,7 @@ int battle_set_value(char *w1, char *w2) {
 
 void battle_set_defaults() {
 	battle_config.warp_point_debug=0;
-	battle_config.enemy_critical=0;
-	battle_config.enemy_critical_rate=100;
+	battle_config.enemy_critical_rate=0;
 	battle_config.enemy_str=1;
 	battle_config.enemy_perfect_flee=0;
 	battle_config.cast_rate=100;
