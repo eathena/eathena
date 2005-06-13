@@ -85,7 +85,7 @@ static const int packet_len_table[0x3d] = {
 int chrif_connected;
 int char_fd = -1;
 int srvinfo;
-static char char_ip_str[NAME_LENGTH];
+static char char_ip_str[16];
 static int char_ip;
 static int char_port = 6121;
 static char userid[NAME_LENGTH], passwd[NAME_LENGTH];
@@ -99,7 +99,7 @@ static int char_init_done = 0;
  */
 void chrif_setuserid(char *id)
 {
-	memcpy(userid, id, NAME_LENGTH-1);
+	memcpy(&userid, id, NAME_LENGTH-1);
 }
 
 /*==========================================
@@ -108,7 +108,7 @@ void chrif_setuserid(char *id)
  */
 void chrif_setpasswd(char *pwd)
 {
-	memcpy(passwd, pwd, NAME_LENGTH-1);
+	memcpy(&passwd, pwd, NAME_LENGTH-1);
 }
 
 /*==========================================
@@ -117,7 +117,7 @@ void chrif_setpasswd(char *pwd)
  */
 void chrif_setip(char *ip)
 {
-	memcpy(char_ip_str, ip, NAME_LENGTH-1);
+	memcpy(&char_ip_str, ip, 16);
 	char_ip = inet_addr(char_ip_str);
 }
 
@@ -279,7 +279,7 @@ int chrif_changemapserver(struct map_session_data *sd, char *name, int x, int y,
 	WFIFOL(char_fd, 6) = sd->login_id1;
 	WFIFOL(char_fd,10) = sd->login_id2;
 	WFIFOL(char_fd,14) = sd->status.char_id;
-	memcpy(WFIFOP(char_fd,18), name, NAME_LENGTH);
+	memcpy(WFIFOP(char_fd,18), name, 16);
 	WFIFOW(char_fd,34) = x;
 	WFIFOW(char_fd,36) = y;
 	WFIFOL(char_fd,38) = ip;
@@ -563,7 +563,7 @@ int chrif_char_ask_name_answer(int fd)
 	acc = RFIFOL(fd,2); // account_id of who has asked (-1 if nobody)
 	memcpy(player_name, RFIFOP(fd,6), NAME_LENGTH-1);
 	player_name[NAME_LENGTH-1] = '\0';
-		
+
 	sd = map_id2sd(acc);
 	if (acc >= 0 && sd != NULL) {
 		if (RFIFOW(fd, 32) == 1) // player not found
@@ -1364,10 +1364,9 @@ int do_final_chrif(void)
  */
 int do_init_chrif(void)
 {
-	//Initialize name arrays [Skotlex]
-	memset(&char_ip_str, 0, NAME_LENGTH);
-	memset(&userid, 0, NAME_LENGTH);
-	memset(&passwd, 0, NAME_LENGTH);
+	//Initialize arrays [Skotlex]
+	userid[NAME_LENGTH-1]='\0';
+	passwd[NAME_LENGTH-1]='\0';
 
 	add_timer_func_list(check_connect_char_server, "check_connect_char_server");
 	add_timer_func_list(send_users_tochar, "send_users_tochar");

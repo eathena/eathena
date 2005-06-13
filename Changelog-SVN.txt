@@ -1,5 +1,6 @@
 Date	Added
 06/13
+	* Fixed map server failing to connect to char server... [Skotlex]
 	* Char-Sql server	revision [Skotlex]
 	  Miscellanous memory bounds/overflows checks/fixes.
 	* Fixed options start_armor/start_weapon (char sql)	[Skotlex]
