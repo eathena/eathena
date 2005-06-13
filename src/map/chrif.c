@@ -279,7 +279,7 @@ int chrif_changemapserver(struct map_session_data *sd, char *name, int x, int y,
 	WFIFOL(char_fd, 6) = sd->login_id1;
 	WFIFOL(char_fd,10) = sd->login_id2;
 	WFIFOL(char_fd,14) = sd->status.char_id;
-	memcpy(WFIFOP(char_fd,18), name, 16);
+	memcpy(WFIFOP(char_fd,18), name, NAME_LENGTH);
 	WFIFOW(char_fd,34) = x;
 	WFIFOW(char_fd,36) = y;
 	WFIFOL(char_fd,38) = ip;

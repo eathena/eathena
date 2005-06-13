@@ -1,5 +1,11 @@
 Date	Added
 06/13
+	* Some more map server memory checks and cleanup (90%) [Skotlex]
+	* Fixed cloaking re-cloaking you instead of cancelling cloak. [Skotlex]
+	* Double Damage multiplier applied after vit/def reductions until further
+	  information is available. [Skotlex]
+	* Restored previous speed stacking type until a fix for the new method can
+	  be devised. [Skotlex]
 	* Removed MVP status from @summon'd monsters. [Valaris]
 	* Had the "monster target reset to none" code inside of check for the monster level up code, moved it out. [Valaris]
 	* Added update of mob hp display on monster level up if mob hp display and monster leveling are on. [Valaris]

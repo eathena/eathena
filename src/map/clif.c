@@ -149,7 +149,7 @@ enum {
 #define WFIFOPOS(fd,pos,x,y) { WBUFPOS (WFIFOP(fd,pos),0,x,y); }
 #define WFIFOPOS2(fd,pos,x0,y0,x1,y1) { WBUFPOS2(WFIFOP(fd,pos),0,x0,y0,x1,y1); }
 
-static char map_ip_str[16];
+static char map_ip_str[NAME_LENGTH];
 static in_addr_t map_ip;
 static in_addr_t bind_ip = INADDR_ANY;
 static int map_port = 5121;
@@ -162,7 +162,7 @@ char talkie_mes[MESSAGE_SIZE];
  */
 void clif_setip(char *ip)
 {
-	memcpy(map_ip_str, ip, 16);
+	memcpy(map_ip_str, ip, NAME_LENGTH-1);
 	map_ip = inet_addr(map_ip_str);
 }
 
@@ -1714,7 +1714,10 @@ int clif_changemap(struct map_session_data *sd, char *mapname, int x, int y) {
 	fd = sd->fd;
 
 	WFIFOW(fd,0) = 0x91;
-	memcpy(WFIFOP(fd,2), mapname, 16);
+	//Why 16? Sometimes this is called with sd->mapname[NAME_LENGTH]
+	//Add a null-terminator in case... [Skotlex]
+	memcpy(WFIFOP(fd,2), mapname, 15);
+	memcpy(WFIFOP(fd,17), '\0', 1);
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
 	WFIFOSET(fd, packet_len_table[0x91]);
@@ -1733,7 +1736,9 @@ int clif_changemapserver(struct map_session_data *sd, char *mapname, int x, int 
 
 	fd = sd->fd;
 	WFIFOW(fd,0) = 0x92;
-	memcpy(WFIFOP(fd,2), mapname, 16);
+	//Better not trust the null-terminator is there. [Skotlex]
+	memcpy(WFIFOP(fd,2), mapname, 15);
+	memcpy(WFIFOP(fd,17), '\0', 1);
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
 	WFIFOL(fd,22) = ip;
@@ -1997,7 +2002,9 @@ int clif_cutin(struct map_session_data *sd, char *image, int type) {
 
 	fd=sd->fd;
 	WFIFOW(fd,0)=0x1b3;
-	strncpy((char*)WFIFOP(fd,2),image,64);
+	//Guarantee a null-terminator [Skotlex]
+	strncpy((char*)WFIFOP(fd,2),image,63);
+	strncpy((char*)WFIFOP(fd,65),'\0',1);
 	WFIFOB(fd,66)=type;
 	WFIFOSET(fd,packet_len_table[0x1b3]);
 
@@ -8472,11 +8479,6 @@ void clif_parse_MapMove(int fd, struct map_session_data *sd) {
 
 	nullpo_retv(sd);
 
-//	not needed at all as far as sprintf is used	// [Ilpalazzo-sama]
-//	memset(output, '\0', sizeof(output));
-//	not needed -- map_name[16]='\0'; will do
-//	memset(map_name, '\0', sizeof(map_name));
-
 	if ((battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 	    (pc_isGM(sd) >= get_atcommand_level(AtCommand_MapMove))) {
 		memcpy(map_name, RFIFOP(fd,2), 16);
@@ -11795,6 +11797,9 @@ int do_init_clif(void) {
 	clif_config.prefer_packet_db = 1; // whether the packet version takes precedence
 	clif_config.connect_cmd = 0xF5;	// the default packet used for connecting to the server
 
+	//Init strings [Skotlex]
+	memset(map_ip_str, 0, NAME_LENGTH);
+	
 	memset(packet_db,0,sizeof(packet_db));
 
 	// size of packet version 5 (old)

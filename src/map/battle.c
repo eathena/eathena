@@ -3516,7 +3516,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					flag.idef= flag.idef2= 1;
 					break;
 				case TF_DOUBLE:
-					skillratio += 100;
+					//skillratio += 100;	//Double Attack is double damage after all reductions? [Skotlex]
 					break;
 				case AS_GRIMTOOTH:
 					skillratio+= 20*skill_lv;
@@ -3711,8 +3711,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 				//unfortunately this way ignores a skill's constant modifiers...
 				skillratio += sd->skillatk[1];
 
-			//Double attack does not applies to left hand
-			ATK_RATE2(skillratio, skillratio - (skill_num==TF_DOUBLE?100:0));
+			ATK_RATE(skillratio);
 
 			//Constant/misc additions from skills
 			if (skill_num == MO_EXTREMITYFIST)
@@ -3838,6 +3837,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 			ATK_ADD2(flag.idef?0:-vit_def, flag.idef2?0:-vit_def);
 		}
 
+		//Double damage placed here until I find better info on how it works. [Skotlex]
+		if (skill_num == TF_DOUBLE)
+			wd.damage *=2;
+		
 		//Post skill/vit reduction damage increases
 		if (sc_data)
 		{	//SC skill damages

@@ -7406,7 +7406,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	if(skill_get_inf2(skill_num)&INF2_NO_TARGET_SELF && sd->bl.id == target_id)
 		return 0;
 	//At this point, we are ready to attempt the skill, so... uncloak. [Skotlex]
-	if(pc_iscloaking(sd))
+	if(pc_iscloaking(sd) && skill_num != AS_CLOAKING)	//Except when asking to unloak :X
 		status_change_end(&sd->bl, SC_CLOAKING, -1);
 	
 	//直前のスキルが何か?える必要のあるスキル

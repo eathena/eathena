@@ -780,7 +780,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 #define ASPD_ADD_RATE(a) { aspd_rate -= a; }
 //There is no info about SPEED, but there are complains on acquiring 
 //very high speeds, so the stacking is a multiplier.
-#define SPEED_ADD_RATE(a) { sd->speed_rate = sd->speed_rate*(100-(a))/100; }
+//#define SPEED_ADD_RATE(a) { sd->speed_rate = sd->speed_rate*(100-(a))/100; }
+//Restored for a bit until I figure out what the heck is wrong with the previous one.
+#define SPEED_ADD_RATE(a) { sd->speed_rate -= a; }
+	
 	if(sd->aspd_add_rate != 100)	
 		sd->aspd_rate += sd->aspd_add_rate-100;
 	if(sd->speed_add_rate != 100)	
