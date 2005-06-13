@@ -1,7 +1,13 @@
 # This one is also necessary, since foreign keys may only reference
 # InnoDB tables.
 
-ALTER TABLE char TYPE=InnoDB;
+ALTER TABLE `char` TYPE=InnoDB;
+
+# Add the new guild column char_id and populate it with Guild Master ids
+# Note that the auto-fill is case sensitive!
+
+ALTER TABLE guild ADD COLUMN char_id int(11) NOT NULL default '10000' after name;
+UPDATE guild,`char` SET guild.char_id=`char`.char_id WHERE guild.master = `char`.name;
 
 # Now we go on altering stuff - dropping old keys (just in case),
 # converting table types, and then creating new keys.
@@ -36,9 +42,9 @@ ALTER TABLE guild_expulsion
  ADD CONSTRAINT `guild_expulsion_ibfk_1` FOREIGN KEY (`guild_id`) 
 REFERENCES `guild` (`guild_id`) ON DELETE CASCADE;
 
-ALTER TABLE guild_member DROP INDEX `guild_id`, DROP INDEX `account_id`, 
+ALTER TABLE guild_member DROP INDEX `guild_id`, DROP INDEX `account_id`; 
 ALTER TABLE guild_member TYPE=InnoDB;
-DROP INDEX `char_id`;
+ALTER TABLE guild_member DROP INDEX `char_id`;
 ALTER TABLE guild_member
  ADD  PRIMARY KEY  (guild_id,char_id),
  ADD  KEY char_id (char_id),

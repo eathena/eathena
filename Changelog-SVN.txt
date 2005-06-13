@@ -1,5 +1,10 @@
 Date	Added
 06/12
+	* Removed the dynamic mob messages (mobs spawned/removed) from default output [Skotlex]
+	  (Use battle_config etc_log to enable them again)
+	* Fixed sql-files/convert_guild_tables.sql so that it actually works	[Skotlex]
+	  (works only on non-modified guild tables previous the new guild system)
+	* Small nullpo fix on @where. 
 	* Fixed new account flood protection blocking _M/_F registration (txt/sql) [Skotlex]
 	  The bug? The default disallowed time was 1 registration every 10K secs.
 	* Found & fixed the bug that was causing server instability on clif.c [Skotlex]

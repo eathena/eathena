@@ -1085,7 +1085,14 @@ int atcommand_where(
 
 	pl_sd = map_nick2sd(atcmd_player_name);
 	nullpo_retr(-1, sd);
-	nullpo_retr(-1, pl_sd);
+//	nullpo_retr(-1, pl_sd);
+
+	if (pl_sd == NULL) {
+		snprintf(atcmd_output, sizeof atcmd_output, "%s %d %d",
+			sd->mapname, sd->bl.x, sd->bl.y);
+		clif_displaymessage(fd, atcmd_output);
+		return -1;
+	}
 
 	if (!message || !*message)
 		return -1;
@@ -1106,12 +1113,6 @@ int atcommand_where(
 		}
 	}
 
-	if (pl_sd == NULL) {
-		snprintf(atcmd_output, sizeof atcmd_output, "%s %d %d",
-			sd->mapname, sd->bl.x, sd->bl.y);
-		clif_displaymessage(fd, atcmd_output);
-		return -1;
-	}
 	snprintf(atcmd_output, sizeof atcmd_output, "%s %s %d %d",
 		atcmd_player_name, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
 	clif_displaymessage(fd, atcmd_output);
