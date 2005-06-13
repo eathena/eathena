@@ -27,8 +27,8 @@ TODO:
 
 Date		Added
 ======
-06/12
-	* Uncommented styliste.txt from scripts_custom.conf, who put it there? o_O; [Mass Zero]
+06/13
+	* Fixed Heart of Ymir location/sprite, thanks to Poki#3 [DracoRPG]
 06/10
 	* Fixed small error in Dye_maker, was trying to del an non-existant item, instead on mixture 
 	  Thank you Terminal Vertex
