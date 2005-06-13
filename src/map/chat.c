@@ -29,6 +29,7 @@ int chat_createchat(struct map_session_data *sd,int limit,int pub,char* pass,cha
 	cd->pub = pub;
 	cd->users = 1;
 	memcpy(cd->pass,pass,8);
+	cd->pass[7]= '\0'; //Overflow check... [Skotlex]
 	if(titlelen>=sizeof(cd->title)-1) titlelen=sizeof(cd->title)-1;
 	memcpy(cd->title,title,titlelen);
 	cd->title[titlelen]=0;
@@ -207,6 +208,7 @@ int chat_changechatstatus(struct map_session_data *sd,int limit,int pub,char* pa
 	cd->limit = limit;
 	cd->pub = pub;
 	memcpy(cd->pass,pass,8);
+	cd->pass[7]= '\0'; //Overflow check... [Skotlex]
 	if(titlelen>=sizeof(cd->title)-1) titlelen=sizeof(cd->title)-1;
 	memcpy(cd->title,title,titlelen);
 	cd->title[titlelen]=0;
@@ -272,7 +274,12 @@ int chat_createnpcchat(struct npc_data *nd,int limit,int pub,int trigger,char* t
 	cd->bl.type = BL_CHAT;
 	cd->owner_ = (struct block_list *)nd;
 	cd->owner = &cd->owner_;
-	memcpy(cd->npc_event,ev,strlen(ev));
+	if (strlen(ev) > 49)
+	{	//npc_event is a char[50]	[Skotlex]
+		memcpy(cd->npc_event,ev,49);
+		cd->npc_event[49] = '\0';
+	} else
+		memcpy(cd->npc_event,ev,strlen(ev));
 
 	cd->bl.id = map_addobject(&cd->bl);	
 	if(cd->bl.id==0){

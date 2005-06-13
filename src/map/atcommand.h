@@ -241,13 +241,12 @@ enum AtCommandType {
 
 	AtCommand_ItemInfo, // Lupus
 	AtCommand_MapFlag, // Lupus
-
-	// end
-	AtCommand_Unknown,
 	AtCommand_FakeName, // [Valaris]
 	AtCommand_Size, // [Valaris]
 	AtCommand_ShowDelay,
 	AtCommand_ShowExp,
+	// end <- Ahem, guys, don't place AtCommands after AtCommand_Unknown! [Skotlex]
+	AtCommand_Unknown,
 	AtCommand_MAX
 };
 

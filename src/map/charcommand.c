@@ -1252,8 +1252,8 @@ int charcommand_fakename(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
-	char name[24];
-	char char_name[24];
+	char name[NAME_LENGTH];
+	char char_name[NAME_LENGTH];
 	
 	nullpo_retr(-1, sd);
 
@@ -1263,7 +1263,7 @@ int charcommand_fakename(
 		return 0;
 	}
 	
-	if (sscanf(message, "%23s %23[^\n]", name, char_name) < 1 || strlen(name) > 23) {
+	if (sscanf(message, "%23s %23[^\n]", name, char_name) < 1 || strlen(name) > NAME_LENGTH-1) {
 		return 0;
 	}
 	
@@ -1291,7 +1291,7 @@ int charcommand_fakename(
 		return 0;
 	}
 	
-	strcpy(pl_sd->fakename,name);
+	memcpy(pl_sd->fakename,name, NAME_LENGTH-1);
 	pc_setpos(pl_sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
 	clif_displaymessage(sd->fd,"Fake name enabled.");
 	

@@ -108,7 +108,7 @@ extern struct Battle_Config {
 	int mvp_item_first_get_time;
 	int mvp_item_second_get_time;
 	int mvp_item_third_get_time;
-	int /*item_rate,*/base_exp_rate,job_exp_rate; // removed item rate, no longer used anywhere in the code
+	int base_exp_rate,job_exp_rate;
 	unsigned short drop_rate0item;
 	unsigned short death_penalty_type;
 	unsigned short death_penalty_base,death_penalty_job;
@@ -136,7 +136,6 @@ extern struct Battle_Config {
 	unsigned short monster_active_enable;
 	unsigned short monster_damage_delay_rate;
 	unsigned short monster_loot_type;
-//	unsigned short mob_skill_use;	// Deprecated by mob_skill)_rate
 	unsigned short mob_skill_rate;	//[Skotlex]
 	unsigned short mob_skill_delay;	//[Skotlex]
 	unsigned short mob_count_rate;
@@ -243,8 +242,6 @@ extern struct Battle_Config {
 	unsigned short mob_warpportal;
 	unsigned short dead_branch_active;
 	int vending_max_value;
-//	unsigned short pet_lootitem; // removed [Valaris]
-//	unsigned short pet_weight; // removed [Valaris]
 	unsigned short show_steal_in_same_party;
 	unsigned short pet_attack_attr_none;
 	unsigned short mob_attack_attr_none;

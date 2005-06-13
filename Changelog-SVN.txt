@@ -1,5 +1,6 @@
 Date	Added
 06/13
+	* Map server memory cleanups... (85%) [Skotlex]
 	* Removed battle option "enemy_critical" [Skotlex]
 	  Use enemy_critical_rate=0 instead.
 	* Changed the default of enemy_critical_rate to 0 [Skotlex]

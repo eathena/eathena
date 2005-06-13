@@ -1672,7 +1672,7 @@ int atcommand_whozeny(
 	struct map_session_data *pl_sd;
 	int i, j, count,c;
 	char match_text[100];
-	char player_name[24];
+	char player_name[NAME_LENGTH];
 	//int zeny[clif_countusers()];
 	//int counted[clif_countusers()];
 	int *zeny = (int *)aCallocA(clif_countusers(), sizeof(int));
@@ -1692,7 +1692,7 @@ int atcommand_whozeny(
 	count = 0;
 	for (i = 0; i < fd_max; i++) {
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
-				memcpy(player_name, pl_sd->status.name, 24);
+				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
 				for (j = 0; player_name[j]; j++)
 					player_name[j] = tolower(player_name[j]);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
@@ -9238,7 +9238,7 @@ int atcommand_fakename(
 		return 0;
 	}
 	
-	strcpy(sd->fakename,name);
+	memcpy(sd->fakename,name,NAME_LENGTH-1);
 	clif_charnameack(0, &sd->bl);
 	clif_displaymessage(sd->fd,"Fake name enabled.");
 	

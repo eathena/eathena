@@ -85,10 +85,10 @@ static const int packet_len_table[0x3d] = {
 int chrif_connected;
 int char_fd = -1;
 int srvinfo;
-static char char_ip_str[16];
+static char char_ip_str[NAME_LENGTH];
 static int char_ip;
 static int char_port = 6121;
-static char userid[24], passwd[24];
+static char userid[NAME_LENGTH], passwd[NAME_LENGTH];
 static int chrif_state = 0;
 static int char_init_done = 0;
 
@@ -99,7 +99,7 @@ static int char_init_done = 0;
  */
 void chrif_setuserid(char *id)
 {
-	strncpy(userid, id, 24);
+	memcpy(userid, id, NAME_LENGTH-1);
 }
 
 /*==========================================
@@ -108,7 +108,7 @@ void chrif_setuserid(char *id)
  */
 void chrif_setpasswd(char *pwd)
 {
-	strncpy(passwd, pwd, 24);
+	memcpy(passwd, pwd, NAME_LENGTH-1);
 }
 
 /*==========================================
@@ -117,7 +117,7 @@ void chrif_setpasswd(char *pwd)
  */
 void chrif_setip(char *ip)
 {
-	strncpy(char_ip_str, ip, 16);
+	memcpy(char_ip_str, ip, NAME_LENGTH-1);
 	char_ip = inet_addr(char_ip_str);
 }
 
@@ -171,8 +171,8 @@ int chrif_save(struct map_session_data *sd)
 int chrif_connect(int fd)
 {
 	WFIFOW(fd,0) = 0x2af8;
-	memcpy(WFIFOP(fd,2), userid, 24);
-	memcpy(WFIFOP(fd,26), passwd, 24);
+	memcpy(WFIFOP(fd,2), userid, NAME_LENGTH);
+	memcpy(WFIFOP(fd,26), passwd, NAME_LENGTH);
 	WFIFOL(fd,50) = 0;
 	WFIFOL(fd,54) = clif_getip();
 	WFIFOW(fd,58) = clif_getport();	// [Valaris] thanks to fov
@@ -357,7 +357,7 @@ int chrif_sendmapack(int fd)
 		exit(1);
 	}
 
-	memcpy(wisp_server_name, RFIFOP(fd,3), 24);
+	memcpy(wisp_server_name, RFIFOP(fd,3), NAME_LENGTH);
 	
 	chrif_state = 2;
 
@@ -504,7 +504,7 @@ int chrif_char_ask_name(int id, char * character_name, short operation_type, int
 
 	WFIFOW(char_fd, 0) = 0x2b0e;
 	WFIFOL(char_fd, 2) = id; // account_id of who ask (for answer) -1 if nobody
-	memcpy(WFIFOP(char_fd,6), character_name, 24);
+	memcpy(WFIFOP(char_fd,6), character_name, NAME_LENGTH);
 	WFIFOW(char_fd, 30) = operation_type; // type of operation
 	if (operation_type == 2) {
 		WFIFOW(char_fd, 32) = year;
@@ -558,12 +558,12 @@ int chrif_char_ask_name_answer(int fd)
 	int acc;
 	struct map_session_data *sd;
 	char output[256];
-	char player_name[24];
+	char player_name[NAME_LENGTH];
 
 	acc = RFIFOL(fd,2); // account_id of who has asked (-1 if nobody)
-	memcpy(player_name, RFIFOP(fd,6), sizeof(player_name));
-	player_name[sizeof(player_name)-1] = '\0';
-
+	memcpy(player_name, RFIFOP(fd,6), NAME_LENGTH-1);
+	player_name[NAME_LENGTH-1] = '\0';
+		
 	sd = map_id2sd(acc);
 	if (acc >= 0 && sd != NULL) {
 		if (RFIFOW(fd, 32) == 1) // player not found
@@ -1044,9 +1044,9 @@ int chrif_recvfamelist(int fd)
 			smith_fame_list[num].fame = fame;
 			name = map_charid2nick(id);
 			if (name != NULL)
-				memcpy(smith_fame_list[num].name, name, 24);
+				memcpy(smith_fame_list[num].name, name, NAME_LENGTH-1);
 			else {
-				memcpy(smith_fame_list[num].name, "Unknown", 24);
+				memcpy(smith_fame_list[num].name, "Unknown", NAME_LENGTH-1);
 				chrif_searchcharid(id);
 			}
 			//printf("received : %s (id:%d) fame:%d\n", name, id, fame);
@@ -1064,9 +1064,9 @@ int chrif_recvfamelist(int fd)
 			chemist_fame_list[num].fame = fame;
 			name = map_charid2nick(id);
 			if (name != NULL)
-				memcpy(chemist_fame_list[num].name, name, 24);
+				memcpy(chemist_fame_list[num].name, name, NAME_LENGTH-1);
 			else {
-				memcpy(chemist_fame_list[num].name, "Unknown", 24);
+				memcpy(chemist_fame_list[num].name, "Unknown", NAME_LENGTH-1);
 				chrif_searchcharid(id);
 			}
 			//printf("received : %s (id:%d) fame:%d\n", name, id, fame);
@@ -1364,6 +1364,11 @@ int do_final_chrif(void)
  */
 int do_init_chrif(void)
 {
+	//Initialize name arrays [Skotlex]
+	memset(&char_ip_str, 0, NAME_LENGTH);
+	memset(&userid, 0, NAME_LENGTH);
+	memset(&passwd, 0, NAME_LENGTH);
+
 	add_timer_func_list(check_connect_char_server, "check_connect_char_server");
 	add_timer_func_list(send_users_tochar, "send_users_tochar");
 	add_timer_interval(gettick() + 1000, check_connect_char_server, 0, 0, 10 * 1000);
