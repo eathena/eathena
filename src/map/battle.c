@@ -5930,12 +5930,12 @@ void battle_validate_conf() {
 		battle_config.hp_rate = 1;
 	if(battle_config.sp_rate < 1)
 		battle_config.sp_rate = 1;
-	if(battle_config.max_hp > 1000000)
-		battle_config.max_hp = 1000000;
+	if(battle_config.max_hp > 1000000000)
+		battle_config.max_hp = 1000000000;
 	if(battle_config.max_hp < 100)
 		battle_config.max_hp = 100;
-	if(battle_config.max_sp > 1000000)
-		battle_config.max_sp = 1000000;
+	if(battle_config.max_sp > 1000000000)
+		battle_config.max_sp = 1000000000;
 	if(battle_config.max_sp < 100)
 		battle_config.max_sp = 100;
 	if(battle_config.max_parameter < 10)
