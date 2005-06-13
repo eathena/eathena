@@ -5604,6 +5604,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 			struct skill_unit_group *group;
 			int i;
 			int maxcount=0;
+			unsigned int tick=gettick();
 			p[0] = &sd->status.save_point;
 			p[1] = &sd->status.memo_point[0];
 			p[2] = &sd->status.memo_point[1];
@@ -5637,6 +5638,14 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 
 			if(!skill_check_condition(sd,3))
 				return 0;
+
+			if(skill_check_unit_range2(&sd->bl,sd->bl.m,sd->skillx,sd->skilly,sd->skillid,sd->skilllv) > 0) {
+				clif_skill_fail(sd,0,0,0);
+				sd->canact_tick = tick;
+				sd->canmove_tick = tick;
+				sd->skillitem = sd->skillitemlv = -1;
+				return 0;
+			}
 			if((group=skill_unitsetting(&sd->bl,sd->skillid,sd->skilllv,sd->skillx,sd->skilly,0))==NULL)
 				return 0;
 			group->valstr=(char *)aCallocA(MESSAGE_SIZE,sizeof(char));

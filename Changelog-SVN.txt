@@ -1,5 +1,6 @@
 Date	Added
 06/13
+	* Fixed bug allowing players to cast warp portal under players and other various invalid blocks.
 	* Removed talk conversion of Zherlthsh and Alice pets since clients now support them.  Thanks to Kholdstare for pointing it out. [Valaris]
 	* Added "ORDER BY" statement to char-server SQL's reading of the memo db, fixing problems with people's memo lists
 	  screwing up when they log back in.  Not sure if this problem exists in TXT char-server as well. [Valaris]
