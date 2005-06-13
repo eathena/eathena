@@ -1,9 +1,10 @@
-// $Id: dump.c 1 2005-3-10 3:17:17 PM Celestia $
+// $Id: sig.c 1 2005-6-13 3:17:17 PM Celestia $
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
+#include <time.h>
 #if !defined(CYGWIN) && !defined(_WIN32) && !defined(__NETBSD__)	// HAVE_EXECINFO_H
 	#include <execinfo.h>
 #endif
@@ -12,24 +13,29 @@
 #include "../common/showmsg.h"
 
 ADDON_INFO = {
-	"StackDump",
+	"Signals",
 	ADDON_CORE,
-	"1.0",
+	"1.1",
 	DLL_VERSION,
-	"Creates a stack dump upon crash"
+	"Handles program signals"
 };
 
 ADDON_EVENTS_TABLE = {
 	{ "sig_init", "DLL_Init" },
+	{ "sig_final", "DLL_Final" },
 	{ NULL, NULL }
 };
 
 //////////////////////////////////////
 
 ADDON_CALL_TABLE = NULL;
-extern const char *strsignal(int);
 const char* (*getrevision)();
-char *argp;
+unsigned long (*getuptime)();
+char *server_name;
+int crash_flag = 0;
+
+extern const char *strsignal(int);
+int sig_final ();
 
 // by Gabuzomeu
 // This is an implementation of signal() using sigaction() for portability.
@@ -72,14 +78,15 @@ sigfunc *compat_signal(int signo, sigfunc *func)
 	#define FOPEN_(fn,m,s) fopen(fn,m)
 #endif
 void sig_dump(int sn)
-{	
+{
 	FILE *fp;
 	char file[256];
 	int no = 0;
-	
+
+	crash_flag = 1;	
 	// search for a usable filename
 	do {
-		sprintf (file, "log/%s%04d.stackdump", argp, ++no);
+		sprintf (file, "log/%s%04d.stackdump", server_name, ++no);
 	} while((fp = fopen(file,"r")) && (fclose(fp), no < 9999));
 	// dump the trace into the file
 
@@ -116,9 +123,46 @@ void sig_dump(int sn)
 		fflush(stdout);
 		fclose(fp);
 	}
+
+	sig_final();	// Log our uptime
 	// Pass the signal to the system's default handler
 	compat_signal(sn, SIG_DFL);
 	raise(sn);
+}
+
+/*=========================================
+ *	Shutting down (Program did not crash ^^)
+ *	- Log our current up time
+ *-----------------------------------------
+ */
+int sig_final ()
+{
+	time_t curtime;
+	char curtime2[24];	
+	FILE *fp;
+	long seconds = 0, day = 24*60*60, hour = 60*60,
+		minute = 60, days = 0, hours = 0, minutes = 0;
+
+	fp = fopen("log/uptime.log","a");
+	if (fp) {
+		time(&curtime);
+		strftime(curtime2, 24, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+
+		seconds = getuptime();
+		days = seconds/day;
+		seconds -= (seconds/day>0)?(seconds/day)*day:0;
+		hours = seconds/hour;
+		seconds -= (seconds/hour>0)?(seconds/hour)*hour:0;
+		minutes = seconds/minute;
+		seconds -= (seconds/minute>0)?(seconds/minute)*minute:0;
+
+		fprintf(fp, "%s: %s %s - %ld days, %ld hours, %ld minutes, %ld seconds.\n",
+			curtime2, server_name, (crash_flag ? "crashed" : "uptime"),
+			days, hours, minutes, seconds);
+		fclose(fp);
+	}
+
+	return 1;
 }
 
 /*=========================================
@@ -134,8 +178,9 @@ int sig_init ()
 		func = SIG_DFL;
 #endif
 
-	IMPORT_SYMBOL(argp, 1);
-	IMPORT_SYMBOL(getrevision, 3);
+	IMPORT_SYMBOL(server_name, 1);
+	IMPORT_SYMBOL(getrevision, 6);
+	IMPORT_SYMBOL(getuptime, 11);
 
 	compat_signal(SIGSEGV, func);
 	compat_signal(SIGFPE, func);

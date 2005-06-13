@@ -312,14 +312,18 @@ void dll_init (void)
 	register_addon_func("Athena_Init");
 	register_addon_func("Athena_Final");
 
-	export_symbol (delete_timer, 7);
-	export_symbol (add_timer_func_list, 6);
-	export_symbol (add_timer_interval, 5);
-	export_symbol (add_timer, 4);
-	export_symbol (get_svn_revision, 3);
-	export_symbol (gettick, 2);
-	export_symbol (argp, 1);
-	export_symbol (&SERVER_TYPE, 0);
+	export_symbol (get_uptime,			11);
+	export_symbol (delete_timer,		10);
+	export_symbol (add_timer_func_list,	9);
+	export_symbol (add_timer_interval,	8);
+	export_symbol (add_timer,			7);
+	export_symbol (get_svn_revision,	6);
+	export_symbol (gettick,				5);
+	export_symbol (&runflag,			4);
+	export_symbol (arg_v,				3);
+	export_symbol (&arg_c,				2);
+	export_symbol (SERVER_NAME,			1);
+	export_symbol (&SERVER_TYPE,		0);
 
 	load_priority = 1;
 	dll_config_read (DLL_CONF_FILENAME);

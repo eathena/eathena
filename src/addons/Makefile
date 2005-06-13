@@ -1,20 +1,31 @@
-txt sql all: sample uptime dump pid gui
 
-COMMON_H = ../common/dll.h
+OBJECTS = sample.dll sig.dll pid.dll gui.dll
+
 ifdef CYGWIN
-	EXT = dll
+   EXT = dll
 else
-	EXT = so
+   EXT = so
 endif
 
-%: %.c
-	$(CC) $(CFLAGS) -shared -o ../../addons/$@.$(EXT) $<
+ADDONS = $(OBJECTS:%.dll=%.$(EXT))
+COMMON_H = ../common/dll.h
 
-sample: sample.c $(COMMON_H)
-uptime: uptime.c $(COMMON_H)
-dump: dump.c $(COMMON_H)
-pid: pid.c $(COMMON_H)
-gui: gui.c $(COMMON_H)
+
+txt sql all: $(ADDONS)
+
+%.$(EXT): %.c
+	$(CC) $(CFLAGS) -shared -o ../../addons/$@ $<
+	@touch $@
+
+sample.$(EXT): sample.c $(COMMON_H)
+sig.$(EXT): sig.c $(COMMON_H)
+pid.$(EXT): pid.c $(COMMON_H)
+gui.$(EXT): ../../addons/gui.conf gui.c $(COMMON_H)
+
+../../addons/%.conf: %.txt
+	cp -r $< $@
+
+../../addons/gui.conf: gui.txt
 
 clean:
-	rm -rf *.o
+	rm -r *.$(EXT)

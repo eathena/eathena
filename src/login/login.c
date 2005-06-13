@@ -86,13 +86,6 @@ int allowed_regs=1;
 int num_regs=0;
 int time_allowed=10; //Init this to 10 seconds. [Skotlex]
 
-//Added for Mugendai's I'm Alive mod
-int imalive_on=0;
-int imalive_time=60;
-//Added by Mugendai for GUI
-int flush_on=1;
-int flush_time=100;
-
 enum {
 	ACO_DENY_ALLOW = 0,
 	ACO_ALLOW_DENY,
@@ -3588,14 +3581,6 @@ int login_config_read(const char *cfgName) {
 				dynamic_pass_failure_ban_how_long = atoi(w2);
 			} else if (strcmpi(w1, "import") == 0) {
 				login_config_read(w2);
-			} else if(strcmpi(w1,"imalive_on")==0) {	//Added by Mugendai for I'm Alive mod
-				imalive_on = atoi(w2);			//Added by Mugendai for I'm Alive mod
-			} else if(strcmpi(w1,"imalive_time")==0) {	//Added by Mugendai for I'm Alive mod
-				imalive_time = atoi(w2);		//Added by Mugendai for I'm Alive mod
-			} else if(strcmpi(w1,"flush_on")==0) {		//Added by Mugendai for GUI
-				flush_on = atoi(w2);			//Added by Mugendai for GUI
-			} else if(strcmpi(w1,"flush_time")==0) {	//Added by Mugendai for GUI
-				flush_time = atoi(w2);			//Added by Mugendai for GUI
 			} else if(strcmpi(w1, "check_client_version") == 0){		//Added by Sirius for client version check
 				if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 ){
 					check_client_version = 1;
@@ -3922,25 +3907,6 @@ void save_config_in_log(void) {
 	}
 }
 
-//-----------------------------------------------------
-//I'm Alive Alert
-//Used to output 'I'm Alive' every few seconds
-//Intended to let frontends know if the app froze
-//-----------------------------------------------------
-int imalive_timer(int tid, unsigned int tick, int id, int data){
-	printf("I'm Alive\n");
-	return 0;
-}
-
-//-----------------------------------------------------
-//Flush stdout
-//stdout buffer needs flushed to be seen in GUI
-//-----------------------------------------------------
-int flush_timer(int tid, unsigned int tick, int id, int data){
-	fflush(stdout);
-	return 0;
-}
-
 //--------------------------------------
 // Function called at exit of the server
 //--------------------------------------
@@ -4022,18 +3988,6 @@ int do_init(int argc, char **argv) {
 	j = gm_account_filename_check_timer;
 	if (j == 0) // if we would not to check, we check every 60 sec, just to have timer (if we change timer, is was not necessary to check if timer already exists)
 		j = 60;
-
-	//Added for Mugendais I'm Alive mod
-	if(imalive_on) {
-		add_timer_func_list(imalive_timer, "imalive_timer");
-		add_timer_interval(gettick()+10, imalive_timer,0,0,imalive_time*1000);
-	}
-
-	//Added by Mugendai for GUI support
-	if(flush_on) {
-		add_timer_func_list(flush_timer, "flush_timer");
-		add_timer_interval(gettick()+10, flush_timer,0,0,flush_time);
-	}
 
 	add_timer_func_list(check_GM_file, "check_GM_file");
 	i = add_timer_interval(gettick() + j * 1000, check_GM_file, 0, 0, j * 1000); // every x sec we check if gm file has been changed

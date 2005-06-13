@@ -9,8 +9,6 @@
 #include <windows.h>
 #endif
 
-#include <time.h>
-
 #define BASE_TICK 5
 
 #define TIMER_ONCE_AUTODEL 1
@@ -18,8 +16,6 @@
 #define TIMER_REMOVE_HEAP 16
 
 #define DIFF_TICK(a,b) ((int)((a)-(b)))
-
-extern time_t start_time;
 
 // Struct declaration
 
@@ -53,6 +49,8 @@ int do_timer(unsigned int tick);
 
 int add_timer_func_list(int (*)(int,unsigned int,int,int),char*);
 char* search_timer_func_list(int (*)(int,unsigned int,int,int));
+
+unsigned long get_uptime(void);
 
 void timer_init();
 void timer_final();

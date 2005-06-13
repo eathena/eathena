@@ -35,14 +35,14 @@ ADDON_EVENTS_TABLE = {
 ///// Import tables and variables /////
 ADDON_CALL_TABLE = NULL;
 char *server_type;
-char *argp;
+char *server_name;
 
 //////// Plugin functions //////////
 int do_init ()
 {
 	// import symbols from the server
 	IMPORT_SYMBOL(server_type, 0);
-	IMPORT_SYMBOL(argp, 1);
+	IMPORT_SYMBOL(server_name, 1);
 
 	printf ("Server type is ");
 	switch (*server_type) {
@@ -50,7 +50,7 @@ int do_init ()
 		case ADDON_CHAR: printf ("Char\n"); break;
 		case ADDON_MAP: printf ("Map\n"); break;
 	}
-	printf ("Filename is %s\n", argp);
+	printf ("Filename is %s\n", server_name);
 
 	return 1;
 }

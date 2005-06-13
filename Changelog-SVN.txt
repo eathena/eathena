@@ -1,8 +1,18 @@
 Date	Added
 06/13
+	* Ported oA's imalive and flushtimer system to eAthena plugin 'gui' [celest]
+	  - You will only need the plugin if you are using a gui program like wxOAGUI
+	    to run Athena
+	  - To configure it check addons/gui.conf
+	  - Passing "--gui" as a parameter, i.e "./map-server --gui" will activate it
+	    as well (GUI program creators, you should handle this transparently)
+	* Added get_uptime to timer.c -- used by @uptime and the 'sig' plugin [celest]
+	* Merged the 'uptime' plugin into 'dump' and renamed to 'sig' -- it'll now
+	  handle both crash and uptime logging [celest]
 	* Guild SQL updated again, `exp` and `next_exp` to BIGINT UNSIGNED [CLOWNISIUS]
 	* Updated the guild_upgrade made sure UNIQUE KEY guild_id is implemented [CLOWNISIUS]
 	* Pets no longer lose intimacy when you die on a nopenalty map [Aru]
+
 06/12
 	* Removed the dynamic mob messages (mobs spawned/removed) from default output [Skotlex]
 	  (Use battle_config etc_log to enable them again)

@@ -107,13 +107,6 @@ int subnetmaski[4]; // Subnetmask added by kashy
 char unknown_char_name[1024] = "Unknown";
 char db_path[1024]="db";
 
-//Added for Mugendai's I'm Alive mod
-int imalive_on=0;
-int imalive_time=60;
-//Added by Mugendai for GUI
-int flush_on=1;
-int flush_time=100;
-
 struct char_session_data{
 	int account_id,login_id1,login_id2,sex;
 	int found_char[9];
@@ -3542,14 +3535,6 @@ int char_config_read(const char *cfgName) {
 			start_armor = atoi(w2);
 			if (start_armor < 0)
 				start_armor = 0;
-		} else if(strcmpi(w1,"imalive_on")==0){		//Added by Mugendai for I'm Alive mod
-			imalive_on = atoi(w2);			//Added by Mugendai for I'm Alive mod
-		} else if(strcmpi(w1,"imalive_time")==0){	//Added by Mugendai for I'm Alive mod
-			imalive_time = atoi(w2);		//Added by Mugendai for I'm Alive mod
-		} else if(strcmpi(w1,"flush_on")==0){		//Added by Mugendai for GUI
-			flush_on = atoi(w2);			//Added by Mugendai for GUI
-		} else if(strcmpi(w1,"flush_time")==0){		//Added by Mugendai for GUI
-			flush_time = atoi(w2);			//Added by Mugendai for GUI
 		} else if(strcmpi(w1,"log_char")==0){		//log char or not [devil]
 			log_char = atoi(w2);
 		} else if (strcmpi(w1, "unknown_char_name") == 0) {
@@ -3574,25 +3559,6 @@ int char_config_read(const char *cfgName) {
 	}
 	fclose(fp);
 
-	return 0;
-}
-
-//-----------------------------------------------------
-//I'm Alive Alert
-//Used to output 'I'm Alive' every few seconds
-//Intended to let frontends know if the app froze
-//-----------------------------------------------------
-int imalive_timer(int tid, unsigned int tick, int id, int data){
-	printf("I'm Alive\n");
-	return 0;
-}
-
-//-----------------------------------------------------
-//Flush stdout
-//stdout buffer needs flushed to be seen in GUI
-//-----------------------------------------------------
-int flush_timer(int tid, unsigned int tick, int id, int data){
-	fflush(stdout);
 	return 0;
 }
 
@@ -3672,18 +3638,6 @@ int do_init(int argc, char **argv){
 	//no need to set sync timer on SQL version.
 	//printf("add interval tic (mmo_char_sync_timer)....\n");
 	//i = add_timer_interval(gettick() + 10, mmo_char_sync_timer, 0, 0, autosave_interval);
-
-	//Added for Mugendais I'm Alive mod
-	if(imalive_on) {
-		add_timer_func_list(imalive_timer, "imalive_timer");
-		add_timer_interval(gettick()+10, imalive_timer,0,0,imalive_time*1000);
-	}
-
-	//Added by Mugendai for GUI support
-	if(flush_on) {
-		add_timer_func_list(flush_timer, "flush_timer");
-		add_timer_interval(gettick()+10, flush_timer,0,0,flush_time);
-	}
 
 	read_gm_account();
 

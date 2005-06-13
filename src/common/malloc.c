@@ -611,7 +611,7 @@ static void memmgr_final (void)
 static void memmgr_init (void)
 {
 	#ifdef LOG_MEMMGR
-		sprintf(memmer_logfile, "log/%s.leaks", argp);
+		sprintf(memmer_logfile, "log/%s.leaks", SERVER_NAME);
 		ShowStatus("Memory manager initialised: "CL_WHITE"%s"CL_RESET"\n", memmer_logfile);
 	#endif
 	return;

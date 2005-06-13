@@ -152,13 +152,6 @@ int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 int agit_flag = 0;
 int night_flag = 0; // 0=day, 1=night [Yor]
 
-//Added for Mugendai's I'm Alive mod
-int imalive_on=0;
-int imalive_time=60;
-//Added by Mugendai for GUI
-int flush_on=1;
-int flush_time=100;
-
 struct charid2nick {
 	char nick[NAME_LENGTH];
 	int req_id;
@@ -3073,16 +3066,7 @@ int map_config_read(char *cfgName) {
 			        console = 1;
 					ShowNotice("Console Commands is enabled.\n");
 				}
-            } else if(strcmpi(w1,"imalive_on")==0){		//Added by Mugendai for I'm Alive mod
-				imalive_on = atoi(w2);					//Added by Mugendai for I'm Alive mod
-			} else if(strcmpi(w1,"imalive_time")==0){	//Added by Mugendai for I'm Alive mod
-				imalive_time = atoi(w2);				//Added by Mugendai for I'm Alive mod
-			} else if(strcmpi(w1,"flush_on")==0){		//Added by Mugendai for GUI
-				flush_on = atoi(w2);					//Added by Mugendai for GUI
-			} else if(strcmpi(w1,"flush_time")==0){		//Added by Mugendai for GUI
-				flush_time = atoi(w2);					//Added by Mugendai for GUI
-			}
-
+            }
 		}
 	}
 	fclose(fp);
@@ -3286,26 +3270,6 @@ int online_timer (int tid,unsigned int tick,int id,int data)
 	char_online_check();
 	return 0;
 }
-
-//-----------------------------------------------------
-//I'm Alive Alert
-//Used to output 'I'm Alive' every few seconds
-//Intended to let frontends know if the app froze
-//-----------------------------------------------------
-int imalive_timer(int tid, unsigned int tick, int id, int data){
-	printf("I'm Alive\n");
-	return 0;
-}
-
-//-----------------------------------------------------
-//Flush stdout
-//stdout buffer needs flushed to be seen in GUI
-//-----------------------------------------------------
-int flush_timer(int tid, unsigned int tick, int id, int data){
-	fflush(stdout);
-	return 0;
-}
-
 
 int id_db_final(void *k,void *d,va_list ap) { return 0; }
 int map_db_final(void *k,void *d,va_list ap) { return 0; }
@@ -3559,17 +3523,6 @@ int do_init(int argc, char *argv[]) {
 	add_timer_func_list(map_clearflooritem_timer, "map_clearflooritem_timer");
 	add_timer_func_list(map_removemobs_timer, "map_removemobs_timer");
 	add_timer_interval(gettick()+1000, map_freeblock_timer, 0, 0, 60*1000);
-
-	//Added by Mugendai for GUI support
-	if (flush_on) {
-		add_timer_func_list(flush_timer, "flush_timer");
-		add_timer_interval(gettick()+10, flush_timer,0,0,flush_time);
-	}
-	//Added for Mugendais I'm Alive mod
-	if (imalive_on) {
-		add_timer_func_list(imalive_timer, "imalive_timer");
-		add_timer_interval(gettick()+10, imalive_timer,0,0,imalive_time*1000);
-	}
 
 	// online status timer, checks every hour [Valaris]
 	add_timer_func_list(online_timer, "online_timer");

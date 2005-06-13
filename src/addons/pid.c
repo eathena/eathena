@@ -22,16 +22,16 @@ ADDON_EVENTS_TABLE = {
 
 ADDON_CALL_TABLE = NULL;
 char pid_file[256];
-char *argp;
+char *server_name;
 
 void pid_create ()
 {
 	FILE *fp;
 	int len;
 	
-	IMPORT_SYMBOL(argp, 1);
-	len = strlen(argp);
-	strcpy(pid_file, argp);
+	IMPORT_SYMBOL(server_name, 1);
+	len = strlen(server_name);
+	strcpy(pid_file, server_name);
 	if(len > 4 && pid_file[len - 4] == '.') {
 		pid_file[len - 4] = 0;
 	}

@@ -7867,7 +7867,7 @@ atcommand_uptime(
 		minute = 60, days = 0, hours = 0, minutes = 0;
 	nullpo_retr(-1, sd);
 
-	seconds = (unsigned long) difftime (time(NULL), start_time);
+	seconds = get_uptime();
 	days = seconds/day;
 	seconds -= (seconds/day>0)?(seconds/day)*day:0;
 	hours = seconds/hour;

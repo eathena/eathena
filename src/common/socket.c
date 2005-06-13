@@ -29,11 +29,11 @@ typedef int socklen_t;
 #include <fcntl.h>
 #include <string.h>
 
-#include "socket.h"
-#include "mmo.h"	// [Valaris] thanks to fov
-#include "timer.h"
-#include "malloc.h"
-#include "showmsg.h"
+#include "../common/socket.h"
+#include "../common/mmo.h"	// [Valaris] thanks to fov
+#include "../common/timer.h"
+#include "../common/malloc.h"
+#include "../common/showmsg.h"
 
 fd_set readfds;
 #ifdef TURBO
@@ -50,13 +50,13 @@ int ip_rules = 1;
 #endif
 
 #if !defined(MINICORE) && (defined(CYGWIN) || defined(_WIN32))
-	#include "dll.h"
+	#include "../common/core.h"
+	#include "../common/dll.h"
 	#define UPNP
 
 	Addon *upnp;
 	int (*firewall_addport)(char *desc, int port);
 	int	(*upnp_addport)(char *desc, unsigned char *ip, int port);
-	extern char *argp;
 
 	int release_mappings = 1;
 	int close_ports = 1;
@@ -309,10 +309,10 @@ int make_listen_port(int port)
 		char buf[16];
 		sprintf(buf, "%d.%d.%d.%d", natip[0], natip[1], natip[2], natip[3]);
 		//ShowMessage("natip=%d.%d.%d.%d\n", natip[0], natip[1], natip[2], natip[3]);
-		if (firewall_addport(argp, port))
+		if (firewall_addport(SERVER_NAME, port))
 			ShowInfo ("Firewall port %d successfully opened\n", port);
 		if (natip[0] == 192 && natip[1] == 168) {
-			if (upnp_addport(argp, natip, port))
+			if (upnp_addport(SERVER_NAME, natip, port))
 				ShowInfo ("UPnP mappings successfull\n");
 		}
 	}
@@ -370,10 +370,10 @@ int make_listen_bind(long ip,int port)
 		char buf[16];
 		sprintf(buf, "%d.%d.%d.%d", natip[0], natip[1], natip[2], natip[3]);
 		//ShowMessage("natip=%d.%d.%d.%d\n", natip[0], natip[1], natip[2], natip[3]);
-		if (firewall_addport(argp, port))
+		if (firewall_addport(SERVER_NAME, port))
 			ShowInfo ("Firewall port %d successfully opened\n", port);
 		if (natip[0] == 192 && natip[1] == 168) {
-			if (upnp_addport(argp, natip, port))
+			if (upnp_addport(SERVER_NAME, natip, port))
 				ShowInfo ("UPnP mappings successfull\n");
 		}
 	}

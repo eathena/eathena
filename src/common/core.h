@@ -5,8 +5,11 @@
 
 //#define SQL_DEBUG //uncomment for debug_mysql_query instead of mysql_real_query
 
-extern char *argp;
+extern int arg_c;
+extern char **arg_v;
+
 extern int runflag;
+extern char *SERVER_NAME;
 extern char SERVER_TYPE;
 
 extern const char *get_svn_revision();

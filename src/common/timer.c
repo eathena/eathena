@@ -334,6 +334,11 @@ int do_timer(unsigned int tick)
 	return nextmin;
 }
 
+unsigned long get_uptime (void)
+{
+	return (unsigned long) difftime (time(NULL), start_time);
+}
+
 void timer_init()
 {
 	time(&start_time);

@@ -20,8 +20,11 @@
 #include "../common/showmsg.h"
 #include "svnversion.h"
 
-char *argp;
 int runflag = 1;
+int arg_c = 0;
+char **arg_v = NULL;
+
+char *SERVER_NAME = NULL;
 char SERVER_TYPE = ATHENA_SERVER_NONE;
 static void (*term_func)(void) = NULL;
 
@@ -179,10 +182,13 @@ int main (int argc, char **argv)
 {
 	int next;
 
+	// initialise program arguments
 	{
-		char *p = argp = argv[0];
+		char *p = SERVER_NAME = argv[0];
 		while ((p = strchr(p, '/')) != NULL)
-			argp = ++p;
+			SERVER_NAME = ++p;
+		arg_c = argc;
+		arg_v = argv;
 	}
 
 	set_server_type();
@@ -219,10 +225,13 @@ int main (int argc, char **argv)
 #else
 int main (int argc, char **argv)
 {
+	// initialise program arguments
 	{
-		char *p = argp = argv[0];
+		char *p = SERVER_NAME = argv[0];
 		while ((p = strchr(p, '/')) != NULL)
-			argp = ++p;
+			SERVER_NAME = ++p;
+		arg_c = argc;
+		arg_v = argv;
 	}
 	display_title();
 	do_init(argc,argv);

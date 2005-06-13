@@ -84,13 +84,6 @@ int allowed_regs=1;
 int num_regs=0;
 int time_allowed=10; //Init this to 10 secs, not 10K secs [Skotlex]
 
-//Added for Mugendai's I'm Alive mod
-int imalive_on=0;
-int imalive_time=60;
-//Added by Mugendai for GUI
-int flush_on=1;
-int flush_time=100;
-
 char date_format[32] = "%Y-%m-%d %H:%M:%S";
 int auth_num = 0, auth_max = 0;
 
@@ -1670,14 +1663,6 @@ int login_config_read(const char *cfgName){
 		}		
 		else if (strcmpi(w1, "import") == 0) {
 			login_config_read(w2);
-		} else if(strcmpi(w1,"imalive_on")==0) {		//Added by Mugendai for I'm Alive mod
-			imalive_on = atoi(w2);			//Added by Mugendai for I'm Alive mod
-		} else if(strcmpi(w1,"imalive_time")==0) {	//Added by Mugendai for I'm Alive mod
-			imalive_time = atoi(w2);		//Added by Mugendai for I'm Alive mod
-		} else if(strcmpi(w1,"flush_on")==0) {		//Added by Mugendai for GUI
-			flush_on = atoi(w2);			//Added by Mugendai for GUI
-		} else if(strcmpi(w1,"flush_time")==0) {	//Added by Mugendai for GUI
-			flush_time = atoi(w2);			//Added by Mugendai for GUI
 		} else if(strcmpi(w1, "new_account") == 0){ 	//Added by Sirius for new account _M/_F
 			new_account_flag = atoi(w2);		//Added by Sirius for new account _M/_F		
 		} else if(strcmpi(w1, "check_client_version") == 0){ 		//Added by Sirius for client version check
@@ -1811,26 +1796,6 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 	printf("reading configure done.....\n");
 }
 
-
-//-----------------------------------------------------
-//I'm Alive Alert
-//Used to output 'I'm Alive' every few seconds
-//Intended to let frontends know if the app froze
-//-----------------------------------------------------
-int imalive_timer(int tid, unsigned int tick, int id, int data){
-	printf("I'm Alive\n");
-	return 0;
-}
-
-//-----------------------------------------------------
-//Flush stdout
-//stdout buffer needs flushed to be seen in GUI
-//-----------------------------------------------------
-int flush_timer(int tid, unsigned int tick, int id, int data){
-	fflush(stdout);
-	return 0;
-}
-
 //--------------------------------------
 // Function called at exit of the server
 //--------------------------------------
@@ -1898,18 +1863,6 @@ int do_init(int argc,char **argv){
 
 	//set default parser as parse_login function
 	set_defaultparse(parse_login);
-
-	//Added for Mugendais I'm Alive mod
-	if(imalive_on) {
-		add_timer_func_list(imalive_timer,"imalive_timer");
-		add_timer_interval(gettick()+10, imalive_timer,0,0,imalive_time*1000);
-	}
-
-	//Added by Mugendai for GUI support
-	if(flush_on) {
-		add_timer_func_list(flush_timer,"flush_timer");
-		add_timer_interval(gettick()+10, flush_timer,0,0,flush_time);
-	}
 
 	// ban deleter timer - 1 minute term
 	printf("add interval tic (ip_ban_check)....\n");
