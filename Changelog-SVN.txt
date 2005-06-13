@@ -1,5 +1,7 @@
 Date	Added
 06/13
+	* Added "ORDER BY" statement to char-server SQL's reading of the memo db, fixing problems with people's memo lists
+	  screwing up when they log back in.  Not sure if this problem exists in TXT char-server as well. [Valaris]
 	* Map server memory cleanups... (85%) [Skotlex]
 	* Removed battle option "enemy_critical" [Skotlex]
 	  Use enemy_critical_rate=0 instead.
