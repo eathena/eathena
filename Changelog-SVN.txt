@@ -1,5 +1,7 @@
 Date	Added
 06/13
+	* Guild SQL updated again, `exp` and `next_exp` to BIGINT UNSIGNED [CLOWNISIUS]
+	* Updated the guild_upgrade made sure UNIQUE KEY guild_id is implemented [CLOWNISIUS]
 	* Pets no longer lose intimacy when you die on a nopenalty map [Aru]
 06/12
 	* Removed the dynamic mob messages (mobs spawned/removed) from default output [Skotlex]

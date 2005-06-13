@@ -3,7 +3,7 @@
 --
 
 CREATE TABLE guild (
-  guild_id int(11) NOT NULL default '10000',
+  guild_id int(11) NOT NULL auto_increment,
   name varchar(24) NOT NULL default '',
   char_id int(11) NOT NULL default '10000',
   master varchar(24) NOT NULL default '',
@@ -11,8 +11,8 @@ CREATE TABLE guild (
   connect_member smallint(6) NOT NULL default '0',
   max_member smallint(6) NOT NULL default '0',
   average_lv smallint(6) NOT NULL default '0',
-  exp int(11) NOT NULL default '0',
-  next_exp int(11) NOT NULL default '0',
+  exp bigint(20) unsigned NOT NULL default '0',
+  next_exp bigint(20) unsigned NOT NULL default '0',
   skill_point int(11) NOT NULL default '0',
   castle_id int(11) NOT NULL default '-1',
   mes1 varchar(60) NOT NULL default '',
@@ -21,8 +21,8 @@ CREATE TABLE guild (
   emblem_id int(11) NOT NULL default '0',
   emblem_data blob NOT NULL,
   PRIMARY KEY  (guild_id,char_id),
+  UNIQUE KEY guild_id (guild_id),
   KEY char_id (char_id),
-  KEY guild_id (guild_id),
   CONSTRAINT `guild_ibfk_1` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
 ) TYPE=InnoDB;
 

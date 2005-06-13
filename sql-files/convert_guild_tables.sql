@@ -1,22 +1,27 @@
+###################################################################################################
 # This one is also necessary, since foreign keys may only reference
 # InnoDB tables.
 
 ALTER TABLE `char` TYPE=InnoDB;
 
+###################################################################################################
 # Add the new guild column char_id and populate it with Guild Master ids
 # Note that the auto-fill is case sensitive!
 
-ALTER TABLE guild ADD COLUMN char_id int(11) NOT NULL default '10000' after name;
-UPDATE guild,`char` SET guild.char_id=`char`.char_id WHERE guild.master = `char`.name;
+ALTER TABLE `guild` ADD COLUMN `char_id` int(11) NOT NULL DEFAULT '10000' AFTER `name`;
+UPDATE `guild`,`char` SET `guild`.`char_id`=`char`.`char_id` WHERE `guild`.`master` = `char`.`name`;
 
+###################################################################################################
 # Now we go on altering stuff - dropping old keys (just in case),
 # converting table types, and then creating new keys.
 
 ALTER TABLE guild DROP PRIMARY KEY;
 ALTER TABLE guild TYPE=InnoDB;
-ALTER TABLE guild ADD PRIMARY KEY  (guild_id,char_id),
+ALTER TABLE guild 
+ ADD PRIMARY KEY  (guild_id,char_id),
+ MODIFY COLUMN `guild_id` INTEGER NOT NULL AUTO_INCREMENT, AUTO_INCREMENT = 10000;
  ADD KEY char_id (char_id),
- ADD KEY guild_id (guild_id),
+ ADD UNIQUE KEY guild_id (guild_id),
  ADD CONSTRAINT `guild_ibfk_1` FOREIGN KEY (`char_id`) REFERENCES `char` 
 (`char_id`) ON DELETE CASCADE;
 
