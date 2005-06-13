@@ -1,5 +1,6 @@
 Date	Added
 06/13
+	* Removed MVP status from @summon'd monsters. [Valaris]
 	* Had the "monster target reset to none" code inside of check for the monster level up code, moved it out. [Valaris]
 	* Added update of mob hp display on monster level up if mob hp display and monster leveling are on. [Valaris]
 	* Added mob_clear_delay option to battle_athena.conf.

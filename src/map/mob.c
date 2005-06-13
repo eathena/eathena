@@ -2732,7 +2732,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	}
 
 	// mvpˆ—
-	if(mvp_sd && mob_db[md->class_].mexp > 0 ){
+	if(mvp_sd && mob_db[md->class_].mexp > 0 && !md->state.special_mob_ai){
 		int log_mvp[2] = {0};
 		int j;
 		int mexp;
