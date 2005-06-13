@@ -62,7 +62,7 @@ int should_log_item(int filter, int nameid) {
 int log_branch(struct map_session_data *sd)
 {
 #ifndef TXT_ONLY
-		char t_name[100];
+		char t_name[NAME_LENGTH*2];
 #endif
 	FILE *logfp;
 
@@ -157,7 +157,7 @@ int log_present(struct map_session_data *sd, int source_type, int nameid)
 {
 	FILE *logfp;
 #ifndef TXT_ONLY
-		char t_name[100];
+		char t_name[NAME_LENGTH*2];
 #endif
 
 	if(log_config.enable_logs <= 0)
@@ -189,7 +189,7 @@ int log_produce(struct map_session_data *sd, int nameid, int slot1, int slot2, i
 {
 	FILE *logfp;
 #ifndef TXT_ONLY
-		char t_name[100];
+		char t_name[NAME_LENGTH*2];
 #endif
 
 	if(log_config.enable_logs <= 0)
@@ -224,7 +224,7 @@ int log_refine(struct map_session_data *sd, int n, int success)
 	int item_level;
 	int i;
 #ifndef TXT_ONLY
-		char t_name[100];
+		char t_name[NAME_LENGTH*2];
 #endif
 
 	if(log_config.enable_logs <= 0)
@@ -328,7 +328,7 @@ int log_trade(struct map_session_data *sd, struct map_session_data *target_sd, i
 	int log_nameid, log_amount, log_refine, log_card[4];
 	int i;
 #ifndef TXT_ONLY
-		char t_name[100],t_name2[100];
+		char t_name[NAME_LENGTH*2],t_name2[NAME_LENGTH*2];
 #endif
 
 	if(log_config.enable_logs <= 0)
@@ -376,7 +376,7 @@ int log_vend(struct map_session_data *sd,struct map_session_data *vsd,int n,int 
 	int log_nameid, log_amount, log_refine, log_card[4];
 	int i;
 #ifndef TXT_ONLY
-		char t_name[100],t_name2[100];
+		char t_name[NAME_LENGTH*2],t_name2[NAME_LENGTH*2];
 #endif
 
 	if(log_config.enable_logs <= 0)
@@ -419,7 +419,7 @@ int log_zeny(struct map_session_data *sd, struct map_session_data *target_sd,int
 {
 	FILE *logfp;
 #ifndef TXT_ONLY
-		char t_name[100],t_name2[100];
+		char t_name[NAME_LENGTH*2],t_name2[NAME_LENGTH*2];
 #endif
 
 	if(log_config.enable_logs <= 0)
@@ -450,8 +450,8 @@ int log_atcommand(struct map_session_data *sd, const char *message)
 {
 	FILE *logfp;
 #ifndef TXT_ONLY
-		char t_name[100];
-		char t_msg[100];
+		char t_name[NAME_LENGTH*2];
+		char t_msg[100]; //These are the contents of an @ call, so there shouldn't be overflow danger here?
 #endif
 
 	if(log_config.enable_logs <= 0)
@@ -482,7 +482,7 @@ int log_npc(struct map_session_data *sd, const char *message)
 {	//[Lupus]
 	FILE *logfp;
 	#ifndef TXT_ONLY
-		char t_name[100];
+		char t_name[NAME_LENGTH*2];
 	#endif
 
 	if(log_config.enable_logs <= 0)
@@ -512,7 +512,7 @@ int log_npc(struct map_session_data *sd, const char *message)
 //ChatLogging
 int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, int x, int y, char *dst_charname, char *message){
 #ifndef TXT_ONLY
-	char t_msg[100];
+	char t_msg[100]; //The chat line, 100 should be high enough above overflow...
 #endif
 #ifdef TXT_ONLY
 	FILE *logfp;
