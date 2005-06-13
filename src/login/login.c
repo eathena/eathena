@@ -84,7 +84,7 @@ int login_fd;
 unsigned int new_reg_tick=0;
 int allowed_regs=1;
 int num_regs=0;
-int time_allowed=10000;
+int time_allowed=10; //Init this to 10 seconds. [Skotlex]
 
 //Added for Mugendai's I'm Alive mod
 int imalive_on=0;
@@ -1135,15 +1135,14 @@ int mmo_auth(struct mmo_account* account, int fd) {
 						
 		//only continue if amount in this time limit is allowed (account registration flood protection)[Kevin]
 		if(gettick() <= new_reg_tick && num_regs >= allowed_regs) {
-			printf("Notice: Account registration in disallowed time from: %s!", ip);
-			login_log("Notice: Account registration in disallowed time from: %s!", ip);
+			printf("Notice: Account registration denied (registration limit exceeded) to %s!\n", ip);
+			login_log("Notice: Account registration denied (registration limit exceeded) to %s!", ip);
 			return 3;
 		} else {
 			num_regs=0;
 		}
 		
-		if (new_account_flag == 1)
-			newaccount = 1;
+		newaccount = 1;
 		account->userid[len] = '\0';
 	}
 	

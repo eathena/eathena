@@ -774,18 +774,21 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->perfect_hit += sd->perfect_hit_add;
 	sd->get_zeny_num += sd->get_zeny_add_num;
 	sd->splash_range += sd->splash_add_range;
+
 //The stacking functions are defined here. [Skotlex]
 //ASPD stacks linearly, according to rodatazone
 #define ASPD_ADD_RATE(a) { aspd_rate -= a; }
 //There is no info about SPEED, but there are complains on acquiring 
 //very high speeds, so the stacking is a multiplier.
 #define SPEED_ADD_RATE(a) { sd->speed_rate = sd->speed_rate*(100-(a))/100; }
-
+	if(sd->aspd_add_rate != 100)	
+		sd->aspd_rate += sd->aspd_add_rate-100;
 	if(sd->speed_add_rate != 100)	
-		sd->speed_rate = sd->speed_rate*sd->speed_add_rate/100;
-	if(sd->aspd_add_rate != 100)
-		sd->aspd_rate = sd->aspd_rate*sd->aspd_add_rate/100;
+		sd->speed_rate += sd->speed_add_rate-100;
 
+	//All ASPD bonuses are supposed to stack on a linear fashion. [Skotlex]
+	aspd_rate = sd->aspd_rate + (sd->aspd_add_rate-100);
+	
 	// 武器ATKサイズ補正 (右手)
 	sd->right_weapon.atkmods[0] = atkmods[0][sd->weapontype1];
 	sd->right_weapon.atkmods[1] = atkmods[1][sd->weapontype1];
@@ -1022,8 +1025,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			(aspd_base[s_class.job][sd->weapontype1]-(sd->paramc[1]*4+sd->paramc[4])*aspd_base[s_class.job][sd->weapontype1]/1000) +
 			(aspd_base[s_class.job][sd->weapontype2]-(sd->paramc[1]*4+sd->paramc[4])*aspd_base[s_class.job][sd->weapontype2]/1000)
 			) * 140 / 200;
-
-	aspd_rate = sd->aspd_rate;
 
 	//攻?速度?加
 

@@ -7396,7 +7396,10 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	 	return 0;
 	if(skill_get_inf2(skill_num)&INF2_NO_TARGET_SELF && sd->bl.id == target_id)
 		return 0;
-
+	//At this point, we are ready to attempt the skill, so... uncloak. [Skotlex]
+	if(pc_iscloaking(sd))
+		status_change_end(&sd->bl, SC_CLOAKING, -1);
+	
 	//直前のスキルが何か?える必要のあるスキル
 	switch (skill_num) {
 	case SA_CASTCANCEL:
@@ -7704,6 +7707,9 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 		clif_skill_fail(sd,sd->skillid,0,0);
 		return 0;
 	}
+	//At this point, we are ready to attempt the skill, so... uncloak. [Skotlex]
+	if(pc_iscloaking(sd))
+		status_change_end(&sd->bl, SC_CLOAKING, -1);
 
 	sc_data = sd->sc_data;
 
@@ -8838,13 +8844,7 @@ int skill_delunitgroup(struct skill_unit_group *group)
 				skill_delunit(&group->unit[i]);
 	}
 	if(group->valstr!=NULL){
-		//map_freeblock(group->valstr); Can't use map_freeblock anymore... [Skotlex]
-		//if valstr points to N bytes of allocated memory as a char* pointer,
-		//and the most part of valstr is filled with \0, Does aFree knows how
-		//much to free up? Won't it stop on the first \0?
-		//Small check on this possible leak. Anyone can confirm my fears? [Skotlex]
-		memset(group->valstr, 1, MESSAGE_SIZE-1);
-		group->valstr[MESSAGE_SIZE-1] = '\0';
+		//Supposedly Free remembers the size of the original Calloc/Malloc, so this should be safe [Skotlex]
 		aFree(group->valstr);
 		group->valstr=NULL;
 	}

@@ -209,33 +209,8 @@ int map_getusers(void) {
 int map_freeblock (struct block_list *bl)
 {
 	if (block_free_lock == 0 || block_free_count >= block_free_max)
-	{
-		switch (bl->type)
-		{ //Apparently doing a direct aFree(bl) causes a memory leak [Skotlex]
-			case BL_PC:
-				aFree((struct map_session_data *)bl);
-				break;
-			case BL_MOB:
-				aFree((struct mob_data *)bl);
-				break;
-			case BL_PET:
-				aFree((struct pet_data *)bl);
-				break;
-			case BL_NPC:
-				aFree((struct npc_data *)bl);
-				break;
-			case BL_SKILL:
-				aFree((struct skill_unit *)bl);
-				break;
-			case BL_ITEM:
-				aFree((struct flooritem_data *)bl);
-				break;
-			case BL_CHAT:
-				aFree((struct chat_data *)bl);
-				break;
-			default:	//This reports a memory leak....? [Skotlex]
-				aFree(bl);
-		}
+	{	//Directly calling aFree shouldn't be a leak, as Free remembers the size the original pointed to memory was allocated with? [Skotlex]
+		aFree(bl);
 		bl = NULL;
 		if (block_free_count >= block_free_max)
 			if (battle_config.error_log)
@@ -265,33 +240,9 @@ int map_freeblock_unlock (void)
 {
 	if ((--block_free_lock) == 0) {
 		int i;
-		for (i = 0; i < block_free_count; i++) {
-			switch (block_free[i]->type)
-			{
-				case BL_PC:
-					aFree((struct map_session_data *)block_free[i]);
-					break;
-				case BL_MOB:
-					aFree((struct mob_data *)block_free[i]);
-					break;
-				case BL_PET:
-					aFree((struct pet_data *)block_free[i]);
-					break;
-				case BL_NPC:
-					aFree((struct npc_data *)block_free[i]);
-					break;
-				case BL_SKILL:
-					aFree((struct skill_unit *)block_free[i]);
-					break;
-				case BL_ITEM:
-					aFree((struct flooritem_data *)block_free[i]);
-					break;
-				case BL_CHAT:
-					aFree((struct chat_data *)block_free[i]);
-					break;
-				default:	//This reports a memory leak....? [Skotlex]
-					aFree(block_free[i]);
-			}
+		for (i = 0; i < block_free_count; i++)
+		{	//Directly calling aFree shouldn't be a leak, as Free remembers the size the original pointed to memory was allocated with? [Skotlex]
+			aFree(block_free[i]);
 			block_free[i] = NULL;
 		}
 		block_free_count = 0;

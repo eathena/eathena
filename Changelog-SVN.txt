@@ -1,5 +1,12 @@
 Date	Added
 06/12
+	* Fixed new account flood protection blocking _M/_F registration (txt/sql) [Skotlex]
+	  The bug? The default disallowed time was 1 registration every 10K secs.
+	* Found & fixed the bug that was causing server instability on clif.c [Skotlex]
+	* Cloaked characters will uncloak on attack/skill-use [Skotlex]
+	* Fix on aspd_rate affecting skills not working [Skotlex]
+	* Miscellanous small fixes in map server.	[Skotlex]
+	
 	* The new attack function is now the unchangeable default. [Skotlex]
 	* Updated double_rate (side-winder) behaviour.	[Skotlex]
 	  It no longer adds to double attack's skill rate, instead the higher of

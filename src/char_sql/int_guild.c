@@ -104,7 +104,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 	char t_ename[24],t_emes[40];
 	char emblem_data[4096];
 	int i=0;
-	int guild_member=0,guild_online_member=0;
+	int guild_online_member=0;
 
 	if (g->guild_id<=0) return -1;
 #ifdef NOISY
