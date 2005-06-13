@@ -2056,14 +2056,6 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 	for (i = 0; i < mob->num; i++) {
 		md = (struct mob_data *) aCalloc (1, sizeof(struct mob_data));
 
-		if (mob->class_ > 4000) { // large/tiny mobs [Valaris]
-			md->size = 2;
-			mob->class_ -= 4000;
-		} else if (mob->class_ > 2000) {
-			md->size = 1;
-			mob->class_ -= 2000;
-		}
-
 		md->bl.prev = NULL;
 		md->bl.next = NULL;
 		md->bl.m = mob->m;
@@ -2072,7 +2064,14 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 		md->level = mob->level;
 		memcpy(md->name, mob->mobname, NAME_LENGTH-1);
 		md->n = i;
-		md->base_class = md->class_ = mob->class_;
+		if(mob->class_ > 4000){ // large/tiny mobs [Valaris]
+			md->size=2;
+			md->base_class = md->class_ = mob->class_-4000;
+		} else if (mob->class_ > 2000) {
+			md->size=1;
+			md->base_class = md->class_ = mob->class_-2000;
+		} else
+			md->base_class = md->class_ = mob->class_;
 		md->bl.id = npc_get_new_npc_id();
 		md->m = mob->m;
 		md->x0 = mob->x;

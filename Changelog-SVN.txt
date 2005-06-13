@@ -1,5 +1,6 @@
 Date	Added
 06/13
+	* Fixed spawning multiple sized monsters via scripts. [Valaris]
 	* Added LittleWolf's mode 256 (0x100 internally) for monsters (adds detect hidden to a monster, doesn't have to be an MVP, demon or insect). [Valaris]
 	* Fixed bug allowing players to cast warp portal under players and other various invalid blocks. [Valaris]
 	* Removed talk conversion of Zherlthsh and Alice pets since clients now support them.  Thanks to Kholdstare for pointing it out. [Valaris]
