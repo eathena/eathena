@@ -1,5 +1,8 @@
 Date	Added
 06/13
+	* Added mob_clear_delay option to battle_athena.conf.
+	  Can add a delay before sending monster death packet (time is in milliseconds and default 0 is off).
+	  Increasing this can fix the problem with monster sprites still appearing after it died.  Recommended value: 10. [Valaris]
 	* Fixed spawning multiple sized monsters via scripts. [Valaris]
 	* Added LittleWolf's mode 256 (0x100 internally) for monsters (adds detect hidden to a monster, doesn't have to be an MVP, demon or insect). [Valaris]
 	* Fixed bug allowing players to cast warp portal under players and other various invalid blocks. [Valaris]

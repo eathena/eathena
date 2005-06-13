@@ -343,6 +343,8 @@ extern struct Battle_Config {
 
 	unsigned short show_hp_sp_drain, show_hp_sp_gain;	//[Skotlex]
 
+	unsigned short mob_clear_delay; // [Valaris]
+
 #ifndef TXT_ONLY /* SQL-only options */
 	unsigned short mail_system; // [Valaris]
 #endif

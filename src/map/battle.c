@@ -5542,6 +5542,7 @@ static const struct battle_data_short {
 	{ "mob_remove_damaged",                &battle_config.mob_remove_damaged},
 	{ "show_hp_sp_drain",                  &battle_config.show_hp_sp_drain}, // [Skotlex]
 	{ "show_hp_sp_gain",                   &battle_config.show_hp_sp_gain}, // [Skotlex]
+	{ "mob_clear_delay",                   &battle_config.mob_clear_delay	}, // [Valaris]
 
 //SQL-only options start
 #ifndef TXT_ONLY
@@ -5879,6 +5880,8 @@ void battle_set_defaults() {
 	battle_config.show_hp_sp_drain = 0; //Display drained hp/sp from attacks
 	battle_config.show_hp_sp_gain = 1;	//Display gained hp/sp from mob-kills
 	
+	battle_config.mob_clear_delay = 0;
+
 //SQL-only options start
 #ifndef TXT_ONLY
 	battle_config.mail_system = 0;

@@ -2818,8 +2818,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		if(sd)
 			npc_event(sd,md->npc_event,0);
 	}
-
-	clif_clearchar_area(&md->bl,1);
+	(battle_config.mob_clear_delay) ? clif_clearchar_delay(tick+battle_config.mob_clear_delay,&md->bl,1) : clif_clearchar_area(&md->bl,1);
 	if(md->level) md->level=0;
 	map_delblock(&md->bl);
 	if(mob_get_viewclass(md->class_) <= 1000)
