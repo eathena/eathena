@@ -100,8 +100,17 @@ int inter_guild_tosql(struct guild *g,int flag)
 	// 16 `guild_expulsion` (`guild_id`,`name`,`mes`,`acc`,`account_id`,`rsv1`,`rsv2`,`rsv3`)
 	// 32 `guild_skill` (`guild_id`,`id`,`lv`)
 
-	char t_name[100],t_master[24],t_mes1[60],t_mes2[240],t_member[24],t_position[24],t_alliance[24];  // temporay storage for str convertion;
-	char t_ename[24],t_emes[40];
+	// temporary storage for str convertion. They must be twice the size of the
+	// original string to ensure no overflows will occur. [Skotlex]
+	char t_name[NAME_LENGTH*2],
+		t_master[NAME_LENGTH*2],
+		t_mes1[120],
+		t_mes2[240],
+		t_member[NAME_LENGTH*2],
+		t_position[NAME_LENGTH*2],
+		t_alliance[NAME_LENGTH*2],
+		t_ename[NAME_LENGTH*2],
+		t_emes[80];
 	char emblem_data[4096];
 	int i=0;
 	int guild_online_member=0;
@@ -321,8 +330,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 	}
 	
 
-	g = (struct guild*)aMalloc(sizeof(struct guild));
-	memset(g,0,sizeof(struct guild));
+	g = (struct guild*)aCalloc(sizeof(struct guild), 1);
 
 //	printf("Retrieve guild information from sql ......\n");
 //	printf("- Read guild %d from sql \n",guild_id);
@@ -346,8 +354,8 @@ struct guild * inter_guild_fromsql(int guild_id)
 		}
 
 		g->guild_id=atoi(sql_row[0]);
-		strncpy(g->name,sql_row[1],24);
-		strncpy(g->master,sql_row[2],24);
+		strncpy(g->name,sql_row[1],NAME_LENGTH-1);
+		strncpy(g->master,sql_row[2],NAME_LENGTH-1);
 		g->guild_lv=atoi(sql_row[3]);
 		g->connect_member=atoi(sql_row[4]);
                 if (atoi(sql_row[5]) > MAX_GUILD) // Fix reduction of MAX_GUILD [PoW]
@@ -359,8 +367,9 @@ struct guild * inter_guild_fromsql(int guild_id)
 		g->next_exp=atoi(sql_row[8]);
 		g->skill_point=atoi(sql_row[9]);
 		g->castle_id=atoi(sql_row[10]);
-		strncpy(g->mes1,sql_row[11],60);
-		strncpy(g->mes2,sql_row[12],120);
+		//There shouldn't be a need to copy the very last char, as it's the \0 [Skotlex]
+		strncpy(g->mes1,sql_row[11],59);
+		strncpy(g->mes2,sql_row[12],119);
 		g->emblem_len=atoi(sql_row[13]);
 		g->emblem_id=atoi(sql_row[14]);
 		strncpy(emblem_data,sql_row[15],4096);
@@ -401,13 +410,13 @@ struct guild * inter_guild_fromsql(int guild_id)
 			m->lv=atoi(sql_row[7]);
 			m->exp=atoi(sql_row[8]);
 			m->exp_payper=atoi(sql_row[9]);
-                        m->online=atoi(sql_row[10]);
-                        if (atoi(sql_row[11]) >= MAX_GUILDPOSITION) // Fix reduction of MAX_GUILDPOSITION [PoW]
-                                m->position = MAX_GUILDPOSITION - 1;
-                        else
-                                m->position = atoi(sql_row[11]);
+			m->online=atoi(sql_row[10]);
+			if (atoi(sql_row[11]) >= MAX_GUILDPOSITION) // Fix reduction of MAX_GUILDPOSITION [PoW]
+				m->position = MAX_GUILDPOSITION - 1;
+			else
+				m->position = atoi(sql_row[11]);
 
-			strncpy(m->name,sql_row[14],24);
+			strncpy(m->name,sql_row[14],NAME_LENGTH-1);
 		}
 	}
 	mysql_free_result(sql_res);
@@ -426,7 +435,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 		for(i=0;((sql_row = mysql_fetch_row(sql_res))&&i<MAX_GUILDPOSITION);i++){
 			int position = atoi(sql_row[1]);
 			struct guild_position *p = &g->position[position];
-			strncpy(p->name,sql_row[2],24);
+			strncpy(p->name,sql_row[2],NAME_LENGTH-1);
 			p->mode=atoi(sql_row[3]);
 			p->exp_mode=atoi(sql_row[4]);
 		}
@@ -447,7 +456,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 			struct guild_alliance *a = &g->alliance[i];
 			a->opposition=atoi(sql_row[1]);
 			a->guild_id=atoi(sql_row[2]);
-			strncpy(a->name,sql_row[3],24);
+			strncpy(a->name,sql_row[3],NAME_LENGTH-1);
 		}
 	}
 	mysql_free_result(sql_res);
@@ -465,14 +474,14 @@ struct guild * inter_guild_fromsql(int guild_id)
 		for(i=0;((sql_row = mysql_fetch_row(sql_res))&&i<MAX_GUILDEXPLUSION);i++){
 			struct guild_explusion *e = &g->explusion[i];
 
-			strncpy(e->name,sql_row[1],24);
-			strncpy(e->mes,sql_row[2],40);
-			strncpy(e->acc,sql_row[3],24);
+			strncpy(e->name,sql_row[1],NAME_LENGTH-1);
+			//No need to copy char 40, the null terminator. [Skotlex]
+			strncpy(e->mes,sql_row[2],39);
+			strncpy(e->acc,sql_row[3],39);
 			e->account_id=atoi(sql_row[4]);
 			e->rsv1=atoi(sql_row[5]);
 			e->rsv2=atoi(sql_row[6]);
 			e->rsv3=atoi(sql_row[7]);
-
 		}
 	}
 	mysql_free_result(sql_res);
@@ -723,9 +732,11 @@ void inter_guild_sql_final()
 // Get guild by its name
 struct guild* search_guildname(char *str)
 {
-	char t_name[24];
+	char t_name[NAME_LENGTH*2];
 	int guild_id=0;
 	printf("search_guildname\n");
+	if (strlen(str) > NAME_LENGTH-1) //overflow check [Skotlex]
+		str[NAME_LENGTH-1] = '\0';
 	sprintf (tmp_sql , "SELECT `guild_id` FROM `%s` WHERE `name`='%s'",guild_db, jstrescapecpy(t_name,str));
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		printf("DB server Error (select from guild_db) - %s\n", mysql_error(&mysql_handle) );
@@ -899,7 +910,7 @@ int mapif_guild_leaved(int guild_id,int account_id,int char_id,int flag,
 	WBUFL(buf,10)=char_id;
 	WBUFB(buf,14)=flag;
 	memcpy(WBUFP(buf,15),mes,40);
-	memcpy(WBUFP(buf,55),name,24);
+	memcpy(WBUFP(buf,55),name,NAME_LENGTH);
 	mapif_sendall(buf,79);
 	printf("int_guild: guild leaved %d %d %s %s\n",guild_id,account_id,name,mes);
 	return 0;
@@ -994,8 +1005,8 @@ int mapif_guild_alliance(int guild_id1,int guild_id2,int account_id1,int account
 	WBUFL(buf,10)=account_id1;
 	WBUFL(buf,14)=account_id2;
 	WBUFB(buf,18)=flag;
-	memcpy(WBUFP(buf,19),name1,24);
-	memcpy(WBUFP(buf,43),name2,24);
+	memcpy(WBUFP(buf,19),name1,NAME_LENGTH);
+	memcpy(WBUFP(buf,43),name2,NAME_LENGTH);
 	mapif_sendall(buf,67);
 	return 0;
 }
@@ -1131,8 +1142,8 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	g=guild_pt;
 	memset(g,0,sizeof(struct guild));
 	g->guild_id=guild_newid++;
-	memcpy(g->name,name,24);
-	memcpy(g->master,master->name,24);
+	memcpy(g->name,name,NAME_LENGTH-1);
+	memcpy(g->master,master->name,NAME_LENGTH-1);
 	memcpy(&g->member[0],master,sizeof(struct guild_member));
 
 	g->position[0].mode=0x11;
@@ -1232,8 +1243,8 @@ int mapif_parse_GuildLeave(int fd,int guild_id,int account_id,int char_id,int fl
 						j=MAX_GUILDEXPLUSION-1;
 					}
 					g->explusion[j].account_id=account_id;
-					memcpy(g->explusion[j].acc,"dummy",24);
-					memcpy(g->explusion[j].name,g->member[i].name,24);
+					memcpy(g->explusion[j].acc,"dummy",NAME_LENGTH);
+					memcpy(g->explusion[j].name,g->member[i].name,NAME_LENGTH);
 					memcpy(g->explusion[j].mes,mes,40);
 				}
 

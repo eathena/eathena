@@ -1,5 +1,8 @@
 Date	Added
 06/13
+	* Char-Sql server	revision [Skotlex]
+	  Miscellanous memory bounds/overflows checks/fixes.
+	* Fixed options start_armor/start_weapon (char sql)	[Skotlex]
 	* Some more map server memory checks and cleanup (90%) [Skotlex]
 	* Fixed cloaking re-cloaking you instead of cancelling cloak. [Skotlex]
 	* Double Damage multiplier applied after vit/def reductions until further

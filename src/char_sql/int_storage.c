@@ -14,8 +14,6 @@
 struct storage *storage_pt=NULL;
 struct guild_storage *guild_storage_pt=NULL;
 
-
-
 #ifndef SQL_DEBUG
 
 #define mysql_query(_x, _y) mysql_real_query(_x, _y, strlen(_y)) //supports ' in names and runs faster [Kevin]
@@ -173,8 +171,8 @@ int inter_storage_sql_init(){
 	printf("interserver storage memory initialize....(%d byte)\n",sizeof(struct storage));
 	storage_pt = (struct storage*)aCalloc(sizeof(struct storage), 1);
 	guild_storage_pt = (struct guild_storage*)aCalloc(sizeof(struct guild_storage), 1);
-	memset(storage_pt,0,sizeof(struct storage));
-	memset(guild_storage_pt,0,sizeof(struct guild_storage));
+//	memset(storage_pt,0,sizeof(struct storage)); //Calloc sets stuff to 0 already. [Skotlex]
+//	memset(guild_storage_pt,0,sizeof(struct guild_storage));
 
 	return 1;
 }

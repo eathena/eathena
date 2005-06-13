@@ -873,8 +873,8 @@ static int itemdb_readdb(void)
 
 			//ID,Name,Jname,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Gender,Loc,wLV,eLV,refineable,View
 			id=itemdb_search(nameid);
-			memcpy(id->name, str[1], NAME_LENGTH-1);
-			memcpy(id->jname, str[2], NAME_LENGTH-1);
+			memcpy(id->name, str[1], ITEM_NAME_LENGTH-1);
+			memcpy(id->jname, str[2], ITEM_NAME_LENGTH-1);
 			id->type=atoi(str[3]);
 			if (id->type == 11)
 			{	//Items that are consumed upon target confirmation

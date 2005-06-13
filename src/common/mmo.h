@@ -89,6 +89,8 @@
 //For character names, title names, guilds, maps, etc.
 //Includes null-terminator as it is the length of the array.
 #define NAME_LENGTH 24
+//For item names, which tend to have much longer names.
+#define ITEM_NAME_LENGTH 24
 
 #define CHAR_CONF_NAME  "conf/char_athena.conf"
 
@@ -104,7 +106,7 @@ struct item {
 };
 
 struct point{
-	char map[24];
+	char map[NAME_LENGTH];
 	short x,y;
 };
 
@@ -200,7 +202,7 @@ struct gm_account {
 
 struct party_member {
 	int account_id;
-	char name[NAME_LENGTH],map[24];
+	char name[NAME_LENGTH],map[NAME_LENGTH];
 	int leader,online,lv;
 	struct map_session_data *sd;
 };
@@ -268,9 +270,9 @@ struct guild {
 
 struct guild_castle {
 	int castle_id;
-	char map_name[24];
-	char castle_name[24];
-	char castle_event[24];
+	char map_name[NAME_LENGTH];
+	char castle_name[NAME_LENGTH];
+	char castle_event[NAME_LENGTH];
 	int guild_id;
 	int economy;
 	int defense;

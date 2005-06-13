@@ -104,7 +104,7 @@ int log_inter = 1;	// loggin inter or not [devil]
 
 char lan_map_ip[128]; // Lan map ip added by kashy
 int subnetmaski[4]; // Subnetmask added by kashy
-char unknown_char_name[1024] = "Unknown";
+char unknown_char_name[NAME_LENGTH] = "Unknown";
 char db_path[1024]="db";
 
 struct char_session_data{
@@ -312,7 +312,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 //	int noteqcount=1;
 	int count = 0;
 	int diff = 0;
-	char temp_str[1024];
+	char temp_str[64]; //2x the value of the string before jstrescapecpy [Skotlex]
 	char *tmp_p = tmp_sql;
 	struct mmo_charstatus *cp;
 	struct itemtmp mapitem[MAX_GUILD_STORAGE];	
@@ -1102,10 +1102,12 @@ int mmo_char_sql_init(void) {
 
 int make_new_char_sql(int fd, unsigned char *dat) {
 	struct char_session_data *sd;
-	char t_name[100];
+	char t_name[NAME_LENGTH*2];
 	int i, char_id, temp;
 
-	//aphostropy error check! - fixed!
+	//Check for char name length overflows [Skotlex]
+	if (strlen(dat) > NAME_LENGTH-1)
+		dat[NAME_LENGTH-1] = '\0';
 	jstrescapecpy(t_name, (char*)dat);
 
 	// disabled until fixed >.>
@@ -1255,18 +1257,6 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		printf("DB server Error (insert `char`)- %s\n", mysql_error(&mysql_handle));
 	}
 
-	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
-	sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')",
-		inventory_db, char_id_count, 1201,1,0x02,1); //add Knife
-	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (insert `inventory`)- %s\n", mysql_error(&mysql_handle));
-	}
-
-	sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')",
-		inventory_db, char_id_count, 2301,1,0x10,1); //add Cotton Shirt
-	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (insert `inventory`)- %s\n", mysql_error(&mysql_handle));
-	}
 	// respawn map and start point set
 	sprintf(tmp_sql,"UPDATE `%s` SET `last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d'  WHERE  `char_id` = '%d'",
 		char_db, start_point.map,start_point.x,start_point.y, start_point.map,start_point.x,start_point.y, char_id_count);
@@ -1318,25 +1308,27 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	}
 
 	//Give the char the default items
-	//knife
-	sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, 1201,1,0x02,1); //add Knife
-	if (mysql_query(&mysql_handle, tmp_sql)){
-		printf("fail (insert in inventory  the 'knife'), SQL error: %s\n", mysql_error(&mysql_handle));
-		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-		mysql_query(&mysql_handle, tmp_sql);
-		return -2;//end XD
+	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
+	if (start_weapon > 0) { //add Start Weapon (Knife?)
+		sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, start_weapon,1,0x02,1);
+		if (mysql_query(&mysql_handle, tmp_sql)){
+			printf("fail (insert in inventory  the 'knife'), SQL error: %s\n", mysql_error(&mysql_handle));
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
+			mysql_query(&mysql_handle, tmp_sql);
+			return -2;//end XD
+		}
 	}
-	//cotton shirt
-	sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, 2301,1,0x10,1); //add Cotton Shirt
-	if (mysql_query(&mysql_handle, tmp_sql)){
-		printf("fail (insert in inventroxy the 'cotton shirt'), SQL error: %s\n", mysql_error(&mysql_handle));
-		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
-		mysql_query(&mysql_handle, tmp_sql);
-		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
-		mysql_query(&mysql_handle, tmp_sql);
-		return -2; //end....
+	if (start_armor > 0) { //Add default armor (cotton shirt?)
+		sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, start_armor,1,0x10,1);
+		if (mysql_query(&mysql_handle, tmp_sql)){
+			printf("fail (insert in inventory the 'cotton shirt'), SQL error: %s\n", mysql_error(&mysql_handle));
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
+			mysql_query(&mysql_handle, tmp_sql);
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
+			mysql_query(&mysql_handle, tmp_sql);
+			return -2; //end....
+		}
 	}
-
 	if(!insert_friends(char_id)){
 		printf("fail (friendlist entrys..)\n");
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", char_db, char_id);
@@ -1469,7 +1461,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 		WFIFOW(fd,j+70) = p->hair_color;
 		WFIFOW(fd,j+72) = p->clothes_color;
 
-		memcpy(WFIFOP(fd,j+74), p->name, 24);
+		memcpy(WFIFOP(fd,j+74), p->name, NAME_LENGTH);
 
 		WFIFOB(fd,j+98) = (p->str > 255) ? 255 : p->str;
 		WFIFOB(fd,j+99) = (p->agi > 255) ? 255 : p->agi;
@@ -1506,7 +1498,7 @@ int parse_tologin(int fd) {
 
 	sd = (struct char_session_data*)session[fd]->session_data;
 
-	// hehe. no need to set user limite on SQL version. :P
+	// hehe. no need to set user limit on SQL version. :P
 	// but char limitation is good way to maintain server. :D
 	while(RFIFOREST(fd) >= 2) {
 //		printf("parse_tologin : %d %d %x\n", fd, RFIFOREST(fd), RFIFOW(fd, 0));
@@ -1898,7 +1890,7 @@ int parse_frommap(int fd) {
 			}
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;
-			memcpy(WFIFOP(fd,3), wisp_server_name, 24); // name for wisp to player
+			memcpy(WFIFOP(fd,3), wisp_server_name, NAME_LENGTH); // name for wisp to player
 			WFIFOSET(fd,27);
 			{
 				unsigned char buf[16384];
@@ -2117,9 +2109,9 @@ int parse_frommap(int fd) {
 			WFIFOL(fd,2) = RFIFOL(fd,2);
 
 			if (sql_row)
-				memcpy(WFIFOP(fd,6), sql_row[0], 24);
+				memcpy(WFIFOP(fd,6), sql_row[0], NAME_LENGTH);
 			else
-				memcpy(WFIFOP(fd,6), unknown_char_name, 24);
+				memcpy(WFIFOP(fd,6), unknown_char_name, NAME_LENGTH);
 			mysql_free_result(sql_res);
 
 			WFIFOSET(fd,30);
@@ -2279,7 +2271,7 @@ int parse_frommap(int fd) {
 					}
 				} else {
 					// character name not found
-					memcpy(WFIFOP(fd,6), character_name, 24);
+					memcpy(WFIFOP(fd,6), character_name, NAME_LENGTH);
 					WFIFOW(fd,32) = 1; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
 				}
 				// send answer if a player ask, not if the server ask
@@ -2835,7 +2827,6 @@ int parse_char(int fd) {
 					break;
 				}			
 			}
-
 
 			sprintf(tmp_sql, "SELECT `name`,`partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, RFIFOL(fd,2));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
@@ -3454,9 +3445,9 @@ int char_config_read(const char *cfgName) {
 		remove_control_chars((unsigned char *) w1);
 		remove_control_chars((unsigned char *) w2);
 		if (strcmpi(w1, "userid") == 0) {
-			memcpy(userid, w2, 24);
+			memcpy(userid, w2, NAME_LENGTH);
 		} else if (strcmpi(w1, "passwd") == 0) {
-			memcpy(passwd, w2, 24);
+			memcpy(passwd, w2, NAME_LENGTH);
 		} else if (strcmpi(w1, "server_name") == 0) {
 			memcpy(server_name, w2, 16);
 			printf("%s server has been initialized\n", w2);
@@ -3539,7 +3530,7 @@ int char_config_read(const char *cfgName) {
 			log_char = atoi(w2);
 		} else if (strcmpi(w1, "unknown_char_name") == 0) {
 			strcpy(unknown_char_name, w2);
-			unknown_char_name[24] = 0;
+			unknown_char_name[NAME_LENGTH-1] = 0;
 		} else if (strcmpi(w1, "name_ignoring_case") == 0) {
 			name_ignoring_case = config_switch(w2);
 		} else if (strcmpi(w1, "char_name_option") == 0) {

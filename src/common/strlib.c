@@ -38,6 +38,8 @@ char* jstrescape (char* pt) {
 
 char* jstrescapecpy (char* pt,char* spt) {
 	//copy from here
+	//WARNING: Target string pt should be able to hold strlen(spt)*2, as each time
+	//a escape character is found, the target's final length increases! [Skotlex]
 	int i =0, j=0;
 
 	while (spt[i] != '\0') {

@@ -98,7 +98,7 @@ static int itemdb_readdb(void)
 	char line[1024];
 	int ln=0;
 	int nameid,j;
-	char *str[32],*p,*np;
+	char *str[ITEM_NAME_LENGTH],*p,*np;
 	struct item_data *id;
 
 	fp=fopen("db/item_db.txt","r");
@@ -125,8 +125,8 @@ static int itemdb_readdb(void)
 
 		//ID,Name,Jname,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Gender,Loc,wLV,eLV,View
 		id=itemdb_search(nameid);
-		memcpy(id->name,str[1],24);
-		memcpy(id->jname,str[2],24);
+		memcpy(id->name,str[1],ITEM_NAME_LENGTH);
+		memcpy(id->jname,str[2],ITEM_NAME_LENGTH);
 		id->type=atoi(str[3]);
 
 	}
@@ -166,24 +166,11 @@ static int itemdb_read_sqldb(void) // sql item_db read, shortened version of map
 
 			// ----------
 
-			// Insert a new row into the item database
-/*
-			id = aCalloc(sizeof(struct item_data), 1);
+			// Update/Insert row into the item database
+         id=itemdb_search(nameid);
 
-			if (id == NULL) {
-				printf("out of memory : itemdb_read_sqldb\n");
-				exit(1);
-			}
-
-			memset(id, 0, sizeof(struct item_data));
-			numdb_insert(item_db, nameid, id);
-
-			// ----------
-*/
-            id=itemdb_search(nameid);
-
-			memcpy(id->name, sql_row[1], 24);
-			memcpy(id->jname, sql_row[2], 24);
+			memcpy(id->name, sql_row[1], ITEM_NAME_LENGTH-1);
+			memcpy(id->jname, sql_row[2], ITEM_NAME_LENGTH-1);
 
 			id->type = atoi(sql_row[3]);
 		}
@@ -240,4 +227,3 @@ int do_init_itemdb(void)
 	itemdb_readdb();
 	return 0;
 }
-

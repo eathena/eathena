@@ -4,9 +4,6 @@
 
 #include "map.h"
 
-//We won't use NAME_LENGTH because some items are getting really long names! [Skotlex]
-#define ITEM_NAME_LENGTH 24
-
 struct item_data {
 	int nameid;
 	char name[ITEM_NAME_LENGTH],jname[ITEM_NAME_LENGTH];

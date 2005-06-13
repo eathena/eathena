@@ -27,7 +27,7 @@ static int pet_newid = 100;
 //---------------------------------------------------------
 int inter_pet_tosql(int pet_id, struct s_pet *p) {
 	//`pet` (`pet_id`, `class`,`name`,`account_id`,`char_id`,`level`,`egg_id`,`equip`,`intimate`,`hungry`,`rename_flag`,`incuvate`)
-	char t_name[100];
+	char t_name[NAME_LENGTH*2];
 
 	printf("request save pet: %d.......\n",pet_id);
 
@@ -83,7 +83,7 @@ int inter_pet_fromsql(int pet_id, struct s_pet *p){
 
 		p->pet_id = pet_id;
 		p->class_ = atoi(sql_row[1]);
-		memcpy(p->name, sql_row[2],24);
+		memcpy(p->name, sql_row[2],NAME_LENGTH-1);
 		p->account_id = atoi(sql_row[3]);
 		p->char_id = atoi(sql_row[4]);
 		p->level = atoi(sql_row[5]);
@@ -222,7 +222,7 @@ int mapif_create_pet(int fd, int account_id, int char_id, short pet_class, short
 
 	memset(pet_pt, 0, sizeof(struct s_pet));
 	pet_pt->pet_id = pet_newid++;
-	memcpy(pet_pt->name, pet_name, 24);
+	memcpy(pet_pt->name, pet_name, NAME_LENGTH-1);
 	if(incuvate == 1)
 		pet_pt->account_id = pet_pt->char_id = 0;
 	else {

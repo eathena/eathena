@@ -91,7 +91,7 @@ int inter_sql_test (void);
 int inter_accreg_tosql(int account_id,struct accreg *reg){
 
 	int j;
-	char temp_str[32];
+	char temp_str[64]; //Needs be twice the source to ensure it fits [Skotlex]
 	if (account_id<=0) return 0;
 	reg->account_id=account_id;
 
@@ -238,7 +238,7 @@ int inter_config_read(const char *cfgName) {
 int inter_log(char *fmt,...)
 {
 	char str[255];
-	char temp_str[255];
+	char temp_str[510]; //Needs be twice as long as str[] //Skotlex
 	va_list ap;
 	va_start(ap,fmt);
 
@@ -499,7 +499,7 @@ int mapif_parse_GMmessage(int fd)
 int mapif_parse_WisRequest(int fd) {
 	struct WisData* wd;
 	static int wisid = 0;
-	char t_name[32];
+	char t_name[NAME_LENGTH*2]; //Needs space to allocate names with escaped chars [Skotlex]
 
 	if (RFIFOW(fd,2)-52 >= sizeof(wd->msg)) {
 		printf("inter: Wis message size too long.\n");
