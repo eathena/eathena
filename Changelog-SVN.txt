@@ -1,4 +1,6 @@
 Date	Added
+06/13
+	* Pets no longer lose intimacy when you die on a nopenalty map [Aru]
 06/12
 	* Removed the dynamic mob messages (mobs spawned/removed) from default output [Skotlex]
 	  (Use battle_config etc_log to enable them again)

@@ -4850,7 +4850,8 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 	if(sd->vender_id)
 		vending_closevending(sd);
 
-	if(sd->status.pet_id > 0 && sd->pd) {
+	if(sd->status.pet_id > 0 && sd->pd && 
+		!map[sd->bl.m].flag.nopenalty) {
 		if(sd->petDB) {
 			sd->pet.intimate -= sd->petDB->die;
 			if(sd->pet.intimate < 0)
