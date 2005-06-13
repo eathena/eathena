@@ -5018,17 +5018,18 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 			clif_updatestatus(sd,SP_JOBEXP);
 		}
 	}
-	// monster level up [Valaris]
-	if(battle_config.mobs_level_up && src && src->type==BL_MOB) {
+	if(src && src->type==BL_MOB) {
 		struct mob_data *md=(struct mob_data *)src;
 		if(md && md->target_id != 0 && md->target_id==sd->bl.id) { // reset target id when player dies
 			md->target_id=0;
 			mob_changestate(md,MS_WALK,0);
 		}
-		if(md && md->state.state!=MS_DEAD && md->level < 99) {
+		if(battle_config.mobs_level_up && md && md->state.state!=MS_DEAD && md->level < 99) { 	// monster level up [Valaris]
 			clif_misceffect(&md->bl,0);
 			md->level++;
 			md->hp+=(int) (sd->status.max_hp*.1);
+			if (battle_config.show_mob_hp)
+				clif_charnameack (0, &md->bl);
 		}
 	}
 

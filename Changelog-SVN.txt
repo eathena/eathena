@@ -1,5 +1,7 @@
 Date	Added
 06/13
+	* Had the "monster target reset to none" code inside of check for the monster level up code, moved it out. [Valaris]
+	* Added update of mob hp display on monster level up if mob hp display and monster leveling are on. [Valaris]
 	* Added mob_clear_delay option to battle_athena.conf.
 	  Can add a delay before sending monster death packet (time is in milliseconds and default 0 is off).
 	  Increasing this can fix the problem with monster sprites still appearing after it died.  Recommended value: 10. [Valaris]
