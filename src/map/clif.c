@@ -1717,7 +1717,7 @@ int clif_changemap(struct map_session_data *sd, char *mapname, int x, int y) {
 	//Why 16? Sometimes this is called with sd->mapname[NAME_LENGTH]
 	//Add a null-terminator in case... [Skotlex]
 	memcpy(WFIFOP(fd,2), mapname, 15);
-	memcpy(WFIFOP(fd,17), '\0', 1);
+	WFIFOB(fd,17) = 0;	//Null terminator for mapname
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
 	WFIFOSET(fd, packet_len_table[0x91]);
@@ -1738,7 +1738,7 @@ int clif_changemapserver(struct map_session_data *sd, char *mapname, int x, int 
 	WFIFOW(fd,0) = 0x92;
 	//Better not trust the null-terminator is there. [Skotlex]
 	memcpy(WFIFOP(fd,2), mapname, 15);
-	memcpy(WFIFOP(fd,17), '\0', 1);
+	WFIFOB(fd,17) = 0;	//Null terminator for mapname
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
 	WFIFOL(fd,22) = ip;
@@ -2002,9 +2002,7 @@ int clif_cutin(struct map_session_data *sd, char *image, int type) {
 
 	fd=sd->fd;
 	WFIFOW(fd,0)=0x1b3;
-	//Guarantee a null-terminator [Skotlex]
-	strncpy((char*)WFIFOP(fd,2),image,63);
-	strncpy((char*)WFIFOP(fd,65),'\0',1);
+	strncpy((char*)WFIFOP(fd,2),image,64);
 	WFIFOB(fd,66)=type;
 	WFIFOSET(fd,packet_len_table[0x1b3]);
 
