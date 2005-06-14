@@ -4144,7 +4144,7 @@ struct Damage battle_calc_weapon_attack(
 		struct map_session_data *sd = (struct map_session_data *)src;
 		if (battle_config.equip_self_break_rate && sd->status.weapon != 11)
 		{	//Self weapon breaking chance (Bows exempted)
-			int breakrate = 1;	//0.01% default self weapon breaking chance [DracoRPG]
+			int breakrate = battle_config.equip_natural_break_rate;	//default self weapon breaking chance [DracoRPG]
 			if (sd->sc_count) {
 				if(sd->sc_data[SC_OVERTHRUST].timer!=-1)
 					breakrate += 10;
@@ -5499,6 +5499,7 @@ static const struct battle_data_short {
 	{ "maximum_level",                     &battle_config.maximum_level	},	// [Valaris]
 	{ "drops_by_luk",                      &battle_config.drops_by_luk	},	// [Valaris]
 	{ "monsters_ignore_gm",                &battle_config.monsters_ignore_gm	},	// [Valaris]
+	{ "equip_natural_break_rate",          &battle_config.equip_natural_break_rate	},
 	{ "equip_self_break_rate",             &battle_config.equip_self_break_rate	},
 	{ "equip_skill_break_rate",            &battle_config.equip_skill_break_rate	},
 	{ "pk_mode",                           &battle_config.pk_mode			},  	// [Valaris]
@@ -5832,6 +5833,7 @@ void battle_set_defaults() {
 	battle_config.prevent_logout = 1;	// Added by RoVeRT
 	battle_config.maximum_level = 255;	// Added by Valaris
 	battle_config.drops_by_luk = 0;	// [Valaris]
+	battle_config.equip_natural_break_rate = 1;
 	battle_config.equip_self_break_rate = 100; // [Valaris], adapted by [Skotlex]
 	battle_config.equip_skill_break_rate = 100; // [Valaris], adapted by [Skotlex]
 	battle_config.pk_mode = 0; // [Valaris]

@@ -24,6 +24,7 @@
 	4265,Li_Me_Mang_Ryang_Card
 
 06/11
+	* Changed Sprinkle's Sand range from 8 to 1 (8??? o.O) [Skotlex]
 	* Changed Dark Illusion Card's bonus bDelayrate -> bonus bCastrate [DracoRPG]
 	* Added the new headgears and garments [DracoRPG]
 06/09

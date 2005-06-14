@@ -1,5 +1,8 @@
 Date	Added
 06/13
+	* Added battle_config option equip_natural_break_rate. [Skotlex]
+	  Default is 1 (0.01% chance).
+	* Changed sprinkle sand's range from 8 to 1.	[Skotlex]
 	* Fixed map server failing to connect to char server... [Skotlex]
 	* Char-Sql server	revision [Skotlex]
 	  Miscellanous memory bounds/overflows checks/fixes.

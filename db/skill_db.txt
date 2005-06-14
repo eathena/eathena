@@ -148,7 +148,7 @@
 146,0,6,4,0,1,1,1,no,0,1,0,weapon,0	//SM_AUTOBERSERK#オ?トバ?サ?ク#
 147,0,0,4,0,1,1,0,no,0,1,0,weapon,0	//AC_MAKINGARROW#矢作成#
 148,-3,6,1,0,2,1,1,no,0,1,0,weapon,6	//AC_CHARGEARROW#?ャ?ジアロ?#
-149,8,6,1,2,0,1,1,no,0,1,0,weapon,0	//TF_SPRINKLESAND#砂まき#
+149,1,6,1,2,0,1,1,no,0,1,0,weapon,0	//TF_SPRINKLESAND#砂まき#
 150,0,6,4,0,1,1,1,no,0,1,0,weapon,5	//TF_BACKSLIDING#バックステップ#
 151,0,6,4,0,1,1,1,no,0,1,0,none,0	//TF_PICKSTONE#石拾い#
 152,8,6,1,0,0,1,1,no,0,1,0,weapon,0	//TF_THROWSTONE#石投げ#
