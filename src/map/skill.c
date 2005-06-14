@@ -3285,11 +3285,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case LK_BERSERK:		/* バ?サ?ク */
-		status_change_end(bl,SC_TWOHANDQUICKEN,-1);
-		status_change_end(bl,SC_CONCENTRATION,-1);
-		status_change_end(bl,SC_PARRYING,-1);
-		status_change_end(bl,SC_ENDURE,-1);
-		status_change_end(bl,SC_AURABLADE,-1);
+		if(battle_config.berserk_cancels_buffs)
+		{
+			status_change_end(bl,SC_TWOHANDQUICKEN,-1);
+			status_change_end(bl,SC_CONCENTRATION,-1);
+			status_change_end(bl,SC_PARRYING,-1);
+			status_change_end(bl,SC_ENDURE,-1);
+			status_change_end(bl,SC_AURABLADE,-1);
+		}
 	case KN_AUTOCOUNTER:		/* オ?トカウンタ? */
 	case KN_TWOHANDQUICKEN:	/* ツ?ハンドクイッケン */
 	case CR_SPEARQUICKEN:	/* スピアクイッケン */

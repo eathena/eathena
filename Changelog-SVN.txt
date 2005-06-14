@@ -1,5 +1,7 @@
 Date	Added
 06/13
+	* Made berserk-cancels-users-other-self-buffs a battle_config 
+	  option, default: off [Aru]
 	* Some compiler warnings fixes	[Skotlex]
 	* Added battle_config option equip_natural_break_rate. [Skotlex]
 	  Default is 1 (0.01% chance).

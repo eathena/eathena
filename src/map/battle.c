@@ -5542,6 +5542,7 @@ static const struct battle_data_short {
 //	{ "new_attack_function",               &battle_config.new_attack_function}, // Unchangeable default now... we need to move to this already! [Skotlex]
 	{ "ignore_items_gender",               &battle_config.ignore_items_gender}, // [Lupus]
 	{ "copyskill_restrict",		       &battle_config.copyskill_restrict}, // [Aru]
+	{ "berserk_candels_buffs",		&battle_config.berserk_cancels_buffs}, // [Aru]
 	{ "dynamic_mobs",                      &battle_config.dynamic_mobs},
 	{ "mob_remove_damaged",                &battle_config.mob_remove_damaged},
 	{ "show_hp_sp_drain",                  &battle_config.show_hp_sp_drain}, // [Skotlex]
