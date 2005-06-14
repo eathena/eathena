@@ -1,4 +1,18 @@
+--===== Athena Script ========================================
+--= Geffen Warp Script
+--===== By: ==================================================
+--= Nana (1.0)
+--===== Current Version: =====================================
+--= 1.0
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Geffen Tower
+--===== Additional Comments: =================================
+--= No comment!
+--============================================================
 
+--= Geffen Tower =============================================
 addwarp("geft01","gef_tower.gat",106,115,"gef_tower.gat",106,72,1,1)
 addwarp("geft01-1","gef_tower.gat",106,69,"gef_tower.gat",106,112,1,1)
 addwarp("geft02","gef_tower.gat",44,36,"gef_tower.gat",106,162,1,1)
@@ -21,6 +35,7 @@ addwarp("gef006","gef_tower.gat",52,181,"geffen.gat",120,110,4,1)
 addwarp("geft09","gef_tower.gat",60,32,"gef_tower.gat",62,90,1,1)
 addwarp("geft09-1","gef_tower.gat",62,87,"gef_tower.gat",60,30,1,1)
 
+--= Geffen Dungeon =============================================
 addwarp("gef024","gef_dun00.gat",104,103,"gef_tower.gat",153,31,3,3)
 addwarp("gefd01","gef_dun00.gat",107,169,"gef_dun01.gat",115,236,2,1)
 addwarp("gefd01-1","gef_dun01.gat",115,240,"gef_dun00.gat",107,165,2,2)

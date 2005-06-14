@@ -1,4 +1,18 @@
+--===== Athena Script ========================================
+--= Gonryun Dungeon Warp Script
+--===== By: ==================================================
+--= Nana (1.0)
+--===== Current Version: =====================================
+--= 1.0
+--===== Compatible With: =====================================
+--= Any Athena Version; RO Episode 5+
+--===== Description: =========================================
+--= Warp Points for Gonryun
+--===== Additional Comments: =================================
+--= No comment!
+--============================================================
 
+--= Gonryun Dungeon ==========================================
 addwarp("gon20","gon_dun01.gat",153,45,"gonryun.gat",159,198,1,1)
 addwarp("gon21","gon_dun01.gat",162,273,"gon_dun02.gat",17,113,1,1)
 addwarp("gon22","gon_dun02.gat",14,113,"gon_dun01.gat",162,270,1,1)

@@ -1,4 +1,18 @@
+--===== Athena Script ========================================
+--= Gonryun Town Warp Script
+--===== By: ==================================================
+--= Nana (1.0)
+--===== Current Version: =====================================
+--= 1.0
+--===== Compatible With: =====================================
+--= Any Athena Version; RO Episode 5+
+--===== Description: =========================================
+--= Warp Points for Gonryun
+--===== Additional Comments: =================================
+--= No comment!
+--============================================================
 
+--= Gonryun ==================================================
 addwarp("gon02","gonryun.gat",161,8,"gon_fild01.gat",191,261,1,1)
 addwarp("gon03","gonryun.gat",195,93,"gon_in.gat",95,23,1,1)
 addwarp("gon15","gonryun.gat",109,131,"gon_in.gat",44,24,1,1)

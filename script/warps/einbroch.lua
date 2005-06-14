@@ -1,3 +1,6 @@
+--Einbroch and Einbech warps by Sara - Semi-final 2
+--Einbroch Field <-> Juno Field
+-- fixed ein005a thx 2Exyle
 
 addwarp("ein001","yuno_fild04.gat",251,21,"ein_fild06.gat",252,363,1,1)
 addwarp("ein001a","ein_fild06.gat",252,365,"yuno_fild04.gat",251,23,1,1)
@@ -8,6 +11,7 @@ addwarp("ein003a","ein_fild06.gat",356,94,"yuno_fild07.gat",58,76,1,1)
 addwarp("ein004","yuno_fild11.gat",28,266,"ein_fild07.gat",380,263,1,1)
 addwarp("ein004a","ein_fild07.gat",382,263,"yuno_fild11.gat",30,266,1,1)
 
+--Einbroch Field
 addwarp("ein005","ein_fild06.gat",135,35,"ein_fild07.gat",147,360,1,1)
 addwarp("ein005a","ein_fild07.gat",145,362,"ein_fild06.gat",135,37,1,1)
 addwarp("ein006","ein_fild07.gat",191,42,"ein_fild10.gat",194,370,1,1)
@@ -17,16 +21,19 @@ addwarp("ein007a","ein_fild09.gat",329,346,"ein_fild10.gat",26,331,1,1)
 addwarp("ein008","ein_fild09.gat",34,132,"ein_fild08.gat",361,128,1,1)
 addwarp("ein008a","ein_fild08.gat",363,128,"ein_fild09.gat",36,132,1,1)
 
+--Einbroch Field <-> Einbroch and Einbech
 addwarp("ein009","ein_fild08.gat",164,381,"einbroch.gat",150,26,1,1)
 addwarp("ein009a","einbroch.gat",150,24,"ein_fild08.gat",164,379,1,1)
 addwarp("ein010","ein_fild09.gat",70,353,"einbech.gat",62,31,1,1)
 addwarp("ein010a","einbech.gat",62,29,"ein_fild09.gat",72,353,1,1)
 
+--Dungeon Warps
 addwarp("ein011","einbech.gat",139,253,"ein_dun01.gat",22,17,1,1)
 addwarp("ein011a","ein_dun01.gat",22,15,"einbech.gat",139,251,1,1)
 addwarp("ein012","ein_dun01.gat",262,256,"ein_dun02.gat",292,290,1,1)
 addwarp("ein012a","ein_dun02.gat",292,292,"ein_dun01.gat",262,258,1,1)
 
+--Inside Warps
 addwarp("ein013","ein_in01.gat",13,213,"einbroch.gat",131,80,1,1)
 addwarp("ein013a","einbroch.gat",133,80,"ein_in01.gat",15,213,1,1)
 addwarp("ein014","ein_in01.gat",110,267,"einbroch.gat",204,120,1,1)
@@ -52,6 +59,7 @@ addwarp("ein023a","ein_in01.gat",264,203,"ein_in01.gat",232,174,1,1)
 addwarp("ein024","ein_in01.gat",274,176,"ein_in01.gat",274,205,1,1)
 addwarp("ein024a","ein_in01.gat",274,203,"ein_in01.gat",274,174,1,1)
 
+--House with couches
 addwarp("ein027","ein_in01.gat",145,152,"einbech.gat",253,110,1,1)
 addwarp("ein027a","einbech.gat",255,110,"ein_in01.gat",147,152,1,1)
 addwarp("ein028","ein_in01.gat",39,85,"ein_in01.gat",37,36,1,1)
@@ -59,9 +67,11 @@ addwarp("ein028a","ein_in01.gat",39,36,"ein_in01.gat",37,85,1,1)
 addwarp("ein029","ein_in01.gat",14,13,"einbroch.gat",255,109,1,1)
 addwarp("ein029a","einbroch.gat",255,107,"ein_in01.gat",14,15,1,1)
 
+--2 floor laboratory-ish house
 addwarp("ein032","ein_in01.gat",126,88,"ein_in01.gat",100,140,1,1)
 addwarp("ein032a","ein_in01.gat",100,142,"ein_in01.gat",126,86,1,1)
 
+--House
 addwarp("ein035","ein_in01.gat",265,105,"einbech.gat",143,112,1,1)
 addwarp("ein035a","einbech.gat",145,112,"ein_in01.gat",267,105,1,1)
 addwarp("ein036","ein_in01.gat",288,89,"einbech.gat",155,106,1,1)

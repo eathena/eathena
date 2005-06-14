@@ -1,6 +1,22 @@
+--===== Athena Script ========================================
+--= Izlude Dungeon Warp Script
+--===== By: ==================================================
+--= Athena (1.0)
+--= Nana (1.1)
+--===== Current Version: =====================================
+--= 1.1
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Bibilyn Island & Undersea Cave
+--===== Additional Comments: =================================
+--= No comment!
+--============================================================
 
+--= Bibilyn Island ===========================================
 addwarp("izd01","izlu2dun.gat",108,83,"iz_dun00.gat",168,168,3,2)
 
+--= Undersea Cave ============================================
 addwarp("izd01-1","iz_dun00.gat",168,173,"izlu2dun.gat",108,88,3,3)
 addwarp("izd02","iz_dun00.gat",352,342,"iz_dun01.gat",253,252,5,2)
 addwarp("izd03","iz_dun00.gat",39,41,"iz_dun01.gat",41,37,5,2)

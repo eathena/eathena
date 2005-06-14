@@ -1,4 +1,18 @@
-
+--===== Athena Script ========================================
+--= Gefenia Warp Script
+--===== By: ==================================================
+--= Muad Dib (1.0)
+--= Darkchild (1.1)
+--= Nana (1.2)
+--===== Current Version: =====================================
+--= 1.3
+--===== Compatible With: =====================================
+--= Any Athena Version; RO Episode 6+
+--===== Description: =========================================
+--= Warp Points for Gefenia
+--===== Additional Comments: =================================
+--= 1.3 fixed gefenia03.gat,28,26 -> gefenia03.gat,58,26
+--============================================================
 addwarp("gefeniawarp014","gefenia01.gat",37,103,"gefenia04.gat",283,95,1,1)
 addwarp("gefeniawarp001","gefenia01.gat",199,269,"gefenia02.gat",203,34,1,1)
 addwarp("gefeniawarp003","gefenia01.gat",220,256,"gefenia02.gat",240,23,1,1)

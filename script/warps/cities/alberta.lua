@@ -1,3 +1,19 @@
+--===== Athena Script ========================================
+--= Alberta Warp Script
+--===== By: ==================================================
+--= Athena (1.0)
+--= Nana (1.1)
+--===== Current Version: =====================================
+--= 1.1
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Alberta, Treasure Island & Turtle Island
+--===== Additional Comments: =================================
+--= No comment!
+--============================================================
+
+--Alberta City
 addwarp("alb001","alberta.gat",15,234,"pay_fild03.gat",388,63,2,5)
 addwarp("alb01","alberta.gat",117,38,"alberta_in.gat",180,30,2,2)
 addwarp("alb02","alberta.gat",134,38,"alberta_in.gat",70,141,1,1)

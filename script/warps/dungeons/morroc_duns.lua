@@ -1,4 +1,18 @@
+--===== Athena Script ========================================
+--= Morroc Dungeons Warp Script
+--===== By: ==================================================
+--= Nana (1.0)
+--===== Current Version: =====================================
+--= 1.0
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Morroc Dungeons
+--===== Additional Comments: =================================
+--= No Comment!
+--============================================================
 
+--= Morroc Sphinx ============================================
 addwarp("sphx001","in_sphinx1.gat",288,6,"moc_fild19.gat",100,99,5,1)
 addwarp("sphx01","in_sphinx1.gat",80,191,"in_sphinx2.gat",149,81,2,1)
 addwarp("sphx01-1","in_sphinx2.gat",149,77,"in_sphinx1.gat",80,189,3,2)
@@ -21,6 +35,7 @@ addwarp("sphx08-4","in_sphinx5.gat",183,10,"in_sphinx5.gat",18,188,1,3)
 addwarp("sphx08-5","in_sphinx5.gat",183,188,"in_sphinx5.gat",18,10,1,3)
 addwarp("sphx08-6","in_sphinx5.gat",189,183,"in_sphinx5.gat",189,18,3,1)
 
+--= Morroc Pyramid ===========================================
 addwarp("mocp01","moc_pryd01.gat",10,195,"moc_pryd02.gat",10,192,5,2)
 addwarp("mocp001","moc_pryd01.gat",195,9,"moc_ruins.gat",60,161,2,5)
 addwarp("mocp02","moc_pryd01.gat",90,109,"moc_prydb1.gat",100,185,1,2)

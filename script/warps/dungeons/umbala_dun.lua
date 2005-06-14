@@ -1,8 +1,23 @@
+--===== Athena Script ========================================
+--= Umbala Dungeon (Yggdrasil Cave) Warp Script
+--===== By: ==================================================
+--= Darkchild (1.0vA); Athena (1.0vB)
+--===== Current Version: =====================================
+--= 1.1 (Akaru)
+--===== Compatible With: =====================================
+--= Any Athena Version; RO Episode 6+
+--===== Description: =========================================
+--= Warp Points for Umbala Dungeon (Yggdrasil Cave)
+--===== Additional Comments: =================================
+--= No comment!
+--============================================================
 
+--= Dungeon Level 1 ==========================================
 addwarp("umba0011","umbala.gat",106,286,"um_dun01.gat",42,31,1,1)
 addwarp("umba0013","um_dun01.gat",150,198,"um_dun02.gat",48,30,1,1)
 addwarp("umba0012","um_dun01.gat",42,26,"umbala.gat",111,283,1,1)
 
+--= Dungeon Level 2 ==========================================
 addwarp("umba0020","um_dun02.gat",103,208,"um_dun02.gat",116,208,1,1)
 addwarp("umba0019","um_dun02.gat",113,208,"um_dun02.gat",100,208,1,1)
 addwarp("umba0025","um_dun02.gat",169,38,"um_dun02.gat",180,38,1,1)

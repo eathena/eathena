@@ -1,4 +1,18 @@
+--===== Athena Script ========================================
+--= Glastheim Warp Script
+--===== By: ==================================================
+--= Athena (1.0)
+--===== Current Version: =====================================
+--= 1.1
+--===== Compatible With: =====================================
+--= Any Athena Version; RO Episode 2.x
+--===== Description: =========================================
+--= Warp Points for Glastheim
+--===== Additional Comments: =================================
+--= Split off npc_warp.txt, 1.1 added gl18-2 [Lupus]
+--============================================================
 
+--Glastheim
 addwarp("gef027","gef_fild06.gat",20,304,"glast_01.gat",375,304,3,3)
 addwarp("gl01","gl_cas01.gat",135,40,"gl_cas01.gat",144,314,1,1)
 addwarp("gl02","gl_cas01.gat",149,314,"gl_prison.gat",14,70,1,1)
@@ -36,7 +50,6 @@ addwarp("gl14-1","gl_knt02.gat",10,138,"gl_knt01.gat",7,148,1,1)
 addwarp("gl16-1","gl_knt02.gat",157,292,"gl_knt01.gat",150,286,1,1)
 addwarp("gl17-1","gl_knt02.gat",289,138,"gl_knt01.gat",292,144,1,1)
 addwarp("gl18-1","gl_prison.gat",149,183,"gl_prison1.gat",150,14,1,1)
-
 addwarp("gl18","gl_prison1.gat",150,10,"gl_prison.gat",149,178,1,1)
 addwarp("gl10","gl_prison1.gat",62,187,"gl_sew01.gat",258,255,1,1)
 addwarp("gl19","gl_sew01.gat",19,21,"gl_sew02.gat",108,291,1,1)

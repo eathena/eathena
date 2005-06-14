@@ -1,4 +1,19 @@
+--===== Athena Script ========================================
+--= Morroc Warp Script
+--===== By: ==================================================
+--= Athena (1.0)
+--= Nana (1.2)
+--===== Current Version: =====================================
+--= 1.2
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Morroc and Assassin Guild
+--===== Additional Comments: =================================
+--= No Comment
+--============================================================
 
+--= Morroc City ==============================================
 addwarp("moc001","morocc.gat",160,17,"moc_fild12.gat",159,378,2,2)
 addwarp("moc002","morocc.gat",160,183,"moc_castle.gat",94,181,2,1)
 addwarp("moc003","morocc.gat",160,297,"moc_fild07.gat",198,25,2,2)
@@ -51,11 +66,13 @@ addwarp("moc23-1","morocc_in.gat",86,117,"morocc_in.gat",86,98,3,1)
 addwarp("moc11","morocc_in.gat",93,123,"morocc_in.gat",109,123,1,3)
 addwarp("moc10","morocc_in.gat",93,95,"morocc_in.gat",109,95,1,3)
 
+--= Morroc Ruins ============================================
 addwarp("moc02-2","moc_ruins.gat",161,40,"morocc.gat",26,293,2,4)
 addwarp("moc02-3","moc_ruins.gat",157,37,"morocc.gat",26,293,5,2)
 addwarp("moc006","moc_ruins.gat",54,161,"moc_pryd01.gat",192,9,2,3)
 addwarp("moc007","moc_ruins.gat",71,16,"moc_fild19.gat",71,167,8,2)
 
+--= Morroc Castle ===========================================
 addwarp("mocc001","moc_castle.gat",94,183,"morocc.gat",160,185,2,1)
 addwarp("mocc01","moc_castle.gat",107,163,"moc_castle.gat",124,163,2,3)
 addwarp("mocc01-1","moc_castle.gat",120,163,"moc_castle.gat",103,163,2,3)

@@ -1,7 +1,25 @@
+--===== Athena Script ========================================
+--= Guild Castles Warp Script
+--===== By: ==================================================
+--= Athena (1.0)
+--===== Current Version: =====================================
+--= 1.1
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Al de Baran, Payon, Prontera & Geffen
+--= Guild Castles
+--===== Additional Comments: =================================
+--= Split off npc_warp.txt
+--= fixed aldg504-1 warp [Lupus]
+--============================================================
 
+
+--Al de Baran Guild Castles Map Connection
 addwarp("aldg001","aldebaran.gat",35,140,"alde_gld.gat",280,160,1,1)
 addwarp("aldg002","alde_gld.gat",284,160,"aldebaran.gat",39,140,1,1)
 
+--Al de Baran Guild Castles Map
 addwarp("aldg01","alde_gld.gat",48,79,"aldeg_cas01.gat",34,248,1,1)
 addwarp("aldg01-1","aldeg_cas01.gat",34,252,"alde_gld.gat",48,83,1,1)
 addwarp("aldg02","alde_gld.gat",95,253,"aldeg_cas02.gat",88,163,1,1)
@@ -13,6 +31,7 @@ addwarp("aldg04-1","aldeg_cas04.gat",145,17,"alde_gld.gat",239,242,1,1)
 addwarp("aldg05","alde_gld.gat",259,90,"aldeg_cas05.gat",216,103,1,1)
 addwarp("aldg05-1","aldeg_cas05.gat",216,107,"alde_gld.gat",264,90,1,1)
 
+--Al de Baran Guild Castles
 addwarp("aldg101","aldeg_cas01.gat",50,222,"aldeg_cas01.gat",104,108,1,1)
 addwarp("aldg101-1","aldeg_cas01.gat",104,112,"aldeg_cas01.gat",45,224,1,1)
 addwarp("aldg102","aldeg_cas01.gat",66,191,"aldeg_cas01.gat",122,61,1,1)
@@ -71,7 +90,6 @@ addwarp("aldg406","aldeg_cas04.gat",21,123,"aldeg_cas04.gat",125,168,1,1)
 addwarp("aldg406-1","aldeg_cas04.gat",121,168,"aldeg_cas04.gat",25,123,1,1)
 addwarp("aldg407","aldeg_cas04.gat",132,209,"aldeg_cas04.gat",14,196,1,1)
 addwarp("aldg407-1","aldeg_cas04.gat",17,196,"aldeg_cas04.gat",132,228,1,1)
-
 addwarp("aldg501","aldeg_cas05.gat",194,71,"aldeg_cas05.gat",129,194,1,1)
 addwarp("aldg501-1","aldeg_cas05.gat",125,194,"aldeg_cas05.gat",199,70,1,1)
 addwarp("aldg502","aldeg_cas05.gat",164,86,"aldeg_cas05.gat",66,189,1,1)
@@ -87,6 +105,7 @@ addwarp("aldg506-1","aldeg_cas05.gat",166,194,"aldeg_cas05.gat",13,179,1,1)
 addwarp("aldg507","aldeg_cas05.gat",156,231,"aldeg_cas05.gat",18,88,1,1)
 addwarp("aldg507-1","aldeg_cas05.gat",14,88,"aldeg_cas05.gat",156,227,1,1)
 
+-- Geffen Castles Map	
 addwarp("gefg05","gef_fild13.gat",112,269,"gefg_cas03.gat",100,280,1,1)
 addwarp("gefg06","gef_fild13.gat",139,240,"gefg_cas03.gat",125,250,1,1)
 addwarp("gefg01","gef_fild13.gat",150,54,"gefg_cas01.gat",34,140,1,1)
@@ -98,6 +117,7 @@ addwarp("gefg03","gef_fild13.gat",308,244,"gefg_cas02.gat",70,143,1,1)
 addwarp("gefg04","gef_fild13.gat",77,284,"gefg_cas03.gat",60,286,1,1)
 addwarp("gefg07","gef_fild13.gat",83,185,"gefg_cas03.gat",89,159,1,1)
 
+--Geffen Guild Castles
 addwarp("gefg106-1","gefg_cas01.gat",170,14,"gefg_cas01.gat",50,84,1,1)
 addwarp("gefg105-1","gefg_cas01.gat",170,34,"gefg_cas01.gat",30,167,1,1)
 addwarp("gefg107","gefg_cas01.gat",181,52,"gefg_cas01.gat",198,160,1,1)
@@ -200,9 +220,11 @@ addwarp("gefg502-1","gefg_cas05.gat",88,62,"gefg_cas05.gat",83,165,1,1)
 addwarp("gefg507","gefg_cas05.gat",93,16,"gefg_cas05.gat",202,44,1,1)
 addwarp("gefg10-1","gefg_cas05.gat",99,204,"gef_fild13.gat",305,87,1,1)
 
+--Payon Guild Castles Map Connection
 addwarp("payg002","moc_fild02.gat",378,272,"pay_gld.gat",20,276,1,1)
 addwarp("payg002-1","pay_gld.gat",16,276,"moc_fild02.gat",374,272,1,1)
 
+--Payon Guild Castles Map
 addwarp("payg01","pay_gld.gat",121,238,"payg_cas01.gat",214,48,1,1)
 addwarp("payg01-1","payg_cas01.gat",214,44,"pay_gld.gat",121,233,1,1)
 addwarp("payg02","pay_gld.gat",291,116,"payg_cas02.gat",272,57,1,1)
@@ -214,6 +236,7 @@ addwarp("payg04-1","payg_cas04.gat",252,275,"pay_gld.gat",140,160,1,1)
 addwarp("payg05","pay_gld.gat",204,270,"payg_cas05.gat",62,227,1,1)
 addwarp("payg05-1","payg_cas05.gat",62,223,"pay_gld.gat",198,264,1,1)
 
+--Payon Guild Castles
 addwarp("payg101","payg_cas01.gat",201,126,"payg_cas01.gat",102,21,1,1)
 addwarp("payg101-1","payg_cas01.gat",102,17,"payg_cas01.gat",201,121,1,1)
 addwarp("payg102","payg_cas01.gat",222,130,"payg_cas01.gat",130,43,1,1)
@@ -272,6 +295,7 @@ addwarp("payg504-1","payg_cas05.gat",290,43,"payg_cas05.gat",287,256,1,1)
 addwarp("payg505","payg_cas05.gat",242,41,"payg_cas05.gat",18,18,1,1)
 addwarp("payg505-1","payg_cas05.gat",14,14,"payg_cas05.gat",246,41,1,1)
 
+--Prontera Castles Map
 addwarp("prtg04-1","prt_gld.gat",107,240,"prtg_cas04.gat",86,13,1,1)
 addwarp("prtg01","prt_gld.gat",129,65,"prtg_cas01.gat",99,32,1,1)
 addwarp("prtg03-1","prt_gld.gat",153,141,"prtg_cas03.gat",168,12,1,1)
@@ -280,6 +304,7 @@ addwarp("prtg001","prt_gld.gat",159,298,"prt_fild01.gat",199,30,1,1)
 addwarp("prtg05-1","prt_gld.gat",212,240,"prtg_cas05.gat",17,235,1,1)
 addwarp("prtg02-1","prt_gld.gat",240,124,"prtg_cas02.gat",43,229,1,1)
 
+--Prontera Guild Castles
 addwarp("prtg01-1","prtg_cas01.gat",103,32,"prt_gld.gat",134,65,1,1)
 addwarp("prtg107","prtg_cas01.gat",109,163,"prtg_cas01.gat",202,183,1,1)
 addwarp("prtg106","prtg_cas01.gat",147,120,"prtg_cas01.gat",75,187,1,1)
@@ -352,6 +377,7 @@ addwarp("prtg506","prtg_cas05.gat",58,7,"prtg_cas05.gat",253,290,1,1)
 addwarp("prtg503","prtg_cas05.gat",66,225,"prtg_cas05.gat",260,92,1,1)
 addwarp("prtg502","prtg_cas05.gat",76,242,"prtg_cas05.gat",288,13,1,1)
 
+--Guild Dungeons
 addwarp("gldd_001","gld_dun01.gat",119,14,"pay_gld.gat",53,141,1,1)
 addwarp("gldd_002","gld_dun02.gat",180,112,"alde_gld.gat",242,121,1,1)
 addwarp("gldd_003","gld_dun02.gat",20,160,"alde_gld.gat",229,185,1,1)

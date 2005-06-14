@@ -1,4 +1,18 @@
+--===== Athena Script ========================================
+--= Geffen Warp Script
+--===== By: ==================================================
+--= Nana (1.0)
+--===== Current Version: =====================================
+--= 1.0
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Geffen Field's
+--===== Additional Comments: =================================
+--= No comment!
+--============================================================
 
+--= Geffen Field Warps =======================================
 addwarp("gef007","gef_fild00.gat",267,382,"mjolnir_06.gat",265,32,4,2)
 addwarp("gef008","gef_fild00.gat",381,137,"prt_fild00.gat",24,125,3,9)
 addwarp("gef009","gef_fild00.gat",40,199,"geffen.gat",213,119,2,7)

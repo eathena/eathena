@@ -1,3 +1,19 @@
+--===== Athena Script ========================================
+--= Al de Baran Warp Script
+--===== By: ==================================================
+--= Athena (1.0)
+--= Nana (1.1)
+--===== Current Version: =====================================
+--= 1.1
+--===== Compatible With: =====================================
+--= Any Athena Version; RO Episode 2+
+--===== Description: =========================================
+--= Warp Points for Al de Baran
+--===== Additional Comments: =================================
+--= No comment!
+--============================================================
+
+--===== Al De Baran Warps =====================================
 addwarp("ald01","aldebaran.gat",118,63,"aldeba_in.gat",211,117,1,1)
 addwarp("ald001","aldebaran.gat",139,34,"mjolnir_12.gat",199,375,3,2)
 addwarp("ald02","aldebaran.gat",197,70,"aldeba_in.gat",94,41,1,1)

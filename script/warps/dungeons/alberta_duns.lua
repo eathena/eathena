@@ -1,4 +1,18 @@
+--==== Athena Script ========================================
+--= Alberta Field's Script
+--===== By: ==================================================
+--= Nana (1.0)
+--===== Current Version: =====================================
+--= 1.0
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Treasure Island & Turtle Island
+--===== Additional Comments: =================================
+--= Split of Alberta.txt
+--============================================================
 
+--Treasure Island Warp's
 addwarp("tre01","treasure01.gat",112,164,"treasure01.gat",97,164,1,4)
 addwarp("tre02","treasure01.gat",125,161,"treasure01.gat",144,161,1,3)
 addwarp("tre02-1","treasure01.gat",142,161,"treasure01.gat",123,161,1,3)
@@ -33,6 +47,7 @@ addwarp("tre14","treasure02.gat",49,128,"treasure02.gat",49,97,1,1)
 addwarp("tre15","treasure02.gat",65,72,"treasure02.gat",82,72,1,4)
 addwarp("tre15-1","treasure02.gat",80,72,"treasure02.gat",63,72,1,4)
 
+--Turtle Island Warp's
 addwarp("ttl01","tur_dun01.gat",154,241,"tur_dun02.gat",148,264,1,1)
 addwarp("ttl01-1","tur_dun02.gat",148,268,"tur_dun01.gat",154,237,1,1)
 addwarp("ttl02","tur_dun02.gat",167,19,"tur_dun03.gat",132,189,1,1)

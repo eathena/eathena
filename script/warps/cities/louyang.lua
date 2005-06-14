@@ -1,4 +1,19 @@
+--===== Athena Script ========================================
+--= Lou Yang Warp Script
+--===== By: ==================================================
+--= Nana (1.0)
+--===== Current Version: =====================================
+--= 1.1
+--===== Compatible With: =====================================
+--= Any Athena Version 6.0+
+--===== Description: =========================================
+--= Warp Points for Lou Yang
+--===== Additional Comments: =================================
+--= 1.1 Added 2 escapes from 2 mountains 018,019 [Lupus]
+--=     Some players used to stuck there after warps
+--============================================================
 
+--= Lou Yang Town ============================================
 addwarp("louwarp001","louyang.gat",217,22,"lou_fild01.gat",232,353,3,3)
 addwarp("louwarp002","louyang.gat",37,270,"lou_dun01.gat",218,196,3,3)
 addwarp("louwarp005","louyang.gat",218,253,"lou_in01.gat",101,122,3,3)

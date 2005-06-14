@@ -1,3 +1,19 @@
+--===== Athena Script ========================================
+--= Prontera Warp Script
+--===== By: ==================================================
+--= Athena (1.0)
+--= Nana (1.2)
+--===== Current Version: =====================================
+--= 1.3
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Prontera
+--===== Additional Comments: =================================
+--= 1.3 prt19 warp fix [shadow]
+--============================================================
+
+--= Prontera City ============================================
 addwarp("prt01","prontera.gat",107,215,"prt_in.gat",240,139,2,2)
 addwarp("prt02","prontera.gat",120,267,"prt_in.gat",180,97,2,2)
 addwarp("prt03","prontera.gat",133,183,"prt_in.gat",50,105,2,2)
@@ -48,12 +64,14 @@ addwarp("prt20-1","prt_in.gat",70,162,"prt_in.gat",70,140,2,1)
 addwarp("prt11-1","prt_in.gat",80,113,"prontera.gat",48,343,2,1)
 addwarp("prt19","prt_in.gat",82,65,"prt_in.gat",66,65,1,3)
 
+--= Prontera Church ==========================================
 addwarp("prtch001","prt_church.gat",100,56,"prontera.gat",234,314,7,1)
 addwarp("prtch01","prt_church.gat",109,81,"prt_church.gat",172,19,1,2)
 addwarp("prtch01-1","prt_church.gat",168,19,"prt_church.gat",105,81,1,2)
 addwarp("prtch02","prt_church.gat",31,19,"prt_church.gat",94,81,1,2)
 addwarp("prtch02-1","prt_church.gat",90,81,"prt_church.gat",27,19,1,2)
 
+--= Prontera Castle ===========================================
 addwarp("prtca01","prt_castle.gat",102,129,"prt_castle.gat",102,143,3,2)
 addwarp("prtca01-1","prt_castle.gat",102,140,"prt_castle.gat",102,126,3,2)
 addwarp("prtca001","prt_castle.gat",102,16,"prontera.gat",156,356,6,2)

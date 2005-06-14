@@ -1,4 +1,18 @@
+--===== Athena Script ========================================
+--= Comodo Warp Script
+--===== By: ==================================================
+--= Nana
+--===== Current Version: =====================================
+--= 1.0
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points Comodo Fields
+--===== Additional Comments: =================================
+--= No comment!
+--============================================================
 
+--= Comodo Fields ============================================
 addwarp("cmdf01","cmd_fild01.gat",222,24,"cmd_fild02.gat",222,372,1,1)
 addwarp("cmdf001","cmd_fild01.gat",26,318,"beach_dun3.gat",281,56,1,1)
 addwarp("cmdf03","cmd_fild01.gat",362,263,"cmd_fild03.gat",27,269,1,1)
@@ -33,6 +47,7 @@ addwarp("cmdf14-2","cmd_fild09.gat",12,170,"cmd_fild07.gat",382,184,1,4)
 addwarp("cmdf16-1","cmd_fild09.gat",309,381,"cmd_fild08.gat",309,60,2,1)
 addwarp("cmdf15-1","cmd_fild09.gat",75,382,"cmd_fild08.gat",75,42,2,1)
 
+--Others =======================
 addwarp("cmd008","cmd_fild08.gat",354,324,"moc_fild12.gat",26,305,1,1)
 addwarp("cmd009","cmd_fild09.gat",369,164,"moc_fild18.gat",55,170,2,2)
 addwarp("cmd010","moc_fild18.gat",51,170,"cmd_fild09.gat",363,164,1,3)

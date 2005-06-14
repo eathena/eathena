@@ -1,4 +1,18 @@
+--===== Athena Script ========================================
+--= Prontera Dungeon's Warp Script
+--===== By: ==================================================
+--= Nana (1.0)
+--===== Current Version: =====================================
+--= 1.0
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Prontera Dungeon's
+--===== Additional Comments: =================================
+--= No Comment!
+--============================================================
 
+--= Hidden Temple ============================================
 addwarp("prm101","prt_maze01.gat",100,35,"prt_maze01.gat",139,47,5,2)
 addwarp("prm102","prt_maze01.gat",102,165,"prt_maze01.gat",98,151,5,2)
 addwarp("prm103","prt_maze01.gat",105,115,"prt_maze01.gat",175,168,5,2)
@@ -126,6 +140,7 @@ addwarp("prm323-1","prt_maze03.gat",84,96,"prt_maze03.gat",191,54,2,3)
 addwarp("prm312-1","prt_maze03.gat",97,44,"prt_maze03.gat",140,71,3,2)
 addwarp("prm325-1","prt_maze03.gat",98,155,"prt_maze03.gat",23,128,3,2)
 
+--= Prontera Sewers ==============================================
 addwarp("prts001","prt_sewb1.gat",135,248,"prt_fild05.gat",274,208,2,2)
 addwarp("prts01","prt_sewb1.gat",188,247,"prt_sewb2.gat",19,19,1,3)
 addwarp("prts02","prt_sewb2.gat",100,176,"prt_sewb2.gat",140,28,4,2)

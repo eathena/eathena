@@ -1,4 +1,19 @@
+--===== Athena Script ========================================
+--= Geffen Warp Script
+--===== By: ==================================================
+--= Athena (1.0)
+--= Nana (1.1)
+--===== Current Version: =====================================
+--= 1.1
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Geffen
+--===== Additional Comments: =================================
+--= No Comment!
+--============================================================
 
+--Geffen City
 addwarp("gef001","geffen.gat",119,213,"gef_fild04.gat",187,42,3,2)
 addwarp("gef002","geffen.gat",120,114,"gef_tower.gat",52,177,3,1)
 addwarp("gef003","geffen.gat",217,119,"gef_fild00.gat",46,199,2,4)

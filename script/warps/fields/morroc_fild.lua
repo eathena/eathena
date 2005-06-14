@@ -1,3 +1,18 @@
+--===== Athena Script ========================================
+--= Morroc Field Warp Script
+--===== By: ==================================================
+--= Nana (1.0)
+--===== Current Version: =====================================
+--= 1.0
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Morroc Fields
+--===== Additional Comments: =================================
+--= No Comment!
+--============================================================
+
+--= Sograt Dessert ===========================================
 addwarp("mocf01-1","moc_fild01.gat",101,16,"moc_fild04.gat",317,376,15,3)
 addwarp("mocf005","moc_fild01.gat",22,242,"prt_fild09.gat",380,237,2,2)
 addwarp("mocf006","moc_fild01.gat",239,382,"prt_fild08.gat",233,20,12,1)

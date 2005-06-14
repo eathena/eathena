@@ -1,3 +1,17 @@
+--===== Athena Script ========================================
+--= Jawaii Warp Script
+--===== By: ==================================================
+--= Muad Dib (1.0)
+--= Darkchild (1.1)
+--===== Current Version: =====================================
+--= 1.1
+--===== Compatible With: =====================================
+--= Any Athena Version; RO Episode 6+
+--===== Description: =========================================
+--= Warp Points for Jawaii
+--===== Additional Comments: =================================
+--= Split off npc_warp.txt
+--============================================================
 addwarp("jawaiiwarp009","jawaii.gat",115,172,"jawaii_in.gat",129,110,1,1)
 addwarp("jawaiiwarp007","jawaii.gat",109,186,"jawaii_in.gat",85,117,1,1)
 addwarp("jawaiiwarp003","jawaii.gat",111,199,"jawaii_in.gat",87,75,1,1)

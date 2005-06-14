@@ -1,4 +1,18 @@
+--===== Athena Script ========================================
+--= Prontera Arena & PvP Warp Script
+--===== By: ==================================================
+--= Athena (1.0)
+--===== Current Version: =====================================
+--= 1.0
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Prontera Arena and PvP Maps
+--===== Additional Comments: =================================
+--= Split off npc_warp.txt
+--============================================================
 
+--Prontera Arena
 addwarp("warp1082","prt_are_in.gat",127,82,"prt_are_in.gat",156,82,1,1)
 addwarp("warp1083","prt_are_in.gat",152,82,"prt_are_in.gat",123,82,1,1)
 addwarp("warp1084","prt_are_in.gat",169,122,"prt_are_in.gat",169,92,1,1)
@@ -9,6 +23,7 @@ addwarp("warp1079","prt_are_in.gat",99,24,"izlude.gat",127,221,1,1)
 addwarp("warp1080","prt_are_in.gat",99,47,"prt_are_in.gat",99,76,1,1)
 addwarp("warp1081","prt_are_in.gat",99,72,"prt_are_in.gat",99,43,1,1)
 
+--Time Limit Mode
 addwarp("fc101","force_1-1.gat",25,44,"force_1-1.gat",25,69,1,1)
 addwarp("fc101-1","force_1-1.gat",25,65,"force_1-1.gat",25,40,1,1)
 addwarp("fc102","force_1-1.gat",25,134,"force_1-1.gat",25,159,1,1)
@@ -88,6 +103,7 @@ addwarp("fc318-1","force_1-3.gat",179,50,"force_1-3.gat",179,25,1,1)
 addwarp("fc319","force_1-3.gat",179,109,"force_1-3.gat",179,132,1,1)
 addwarp("fc319-1","force_1-3.gat",179,128,"force_1-3.gat",179,105,1,1)
 
+--Battle Ordeal Mode
 addwarp("ord11","ordeal_1-1.gat",100,150,"ordeal_1-1.gat",128,150,1,1)
 addwarp("ord11-1","ordeal_1-1.gat",123,150,"ordeal_1-1.gat",95,150,1,1)
 addwarp("ord12","ordeal_1-1.gat",114,183,"ordeal_1-1.gat",135,163,1,1)

@@ -126,10 +126,6 @@ alde_dun02.gat,267,41,4	script	clt008r	45,1,1,{
 	w1:	warp "c_tower3.gat",168,252; break;
 	w2:	warp "alde_dun02.gat",262,141; break;
 }
-alde_dun03.gat,12,267,0	warp	aldd09	2,2,alde_dun02.gat,273,250
-alde_dun03.gat,277,183,0	warp	ald010	2,2,c_tower2.gat,27,27
-alde_dun03.gat,191,31,0	warp	ald011	2,2,c_tower3.gat,217,159
-alde_dun03.gat,276,48,0	warp	ald012	2,2,c_tower1.gat,235,223
 //============================================================
 //7(npc)
 //= Random B3-1 ================================================

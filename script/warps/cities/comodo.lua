@@ -1,4 +1,20 @@
+--===== Athena Script ========================================
+--= Comodo Warp Script
+--===== By: ==================================================
+--= eAthena dev team
+--===== Current Version: =====================================
+--= 1.2
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points Comodo city
+--= Rogue guild
+--===== Additional Comments: =================================
+--= No comment!
+--============================================================
 
+
+--Comodo City =====================================================
 addwarp("cmd09","comodo.gat",115,291,"cmd_in02.gat",67,132,1,1)
 addwarp("cmd02","comodo.gat",126,98,"cmd_in02.gat",144,97,1,1)
 addwarp("cmd05","comodo.gat",130,195,"cmd_in02.gat",143,173,1,1)

@@ -1,4 +1,18 @@
+--===== Athena Script ========================================
+--= Prontera Field Warp Script
+--===== By: ==================================================
+--= Nana (1.0)
+--===== Current Version: =====================================
+--= 1.0
+--===== Compatible With: =====================================
+--= Any Athena Version
+--===== Description: =========================================
+--= Warp Points for Prontera Field
+--===== Additional Comments: =================================
+--= No Comment!
+--============================================================
 
+--= Prontera Fields ==========================================
 addwarp("prtf007","prt_fild00.gat",159,383,"mjolnir_07.gat",156,19,4,2)
 addwarp("prtf01","prt_fild00.gat",165,18,"prt_fild04.gat",158,384,9,3)
 addwarp("prtf015","prt_fild00.gat",18,129,"gef_fild00.gat",376,140,2,6)
@@ -69,6 +83,7 @@ addwarp("prtf022","prt_fild11.gat",302,301,"gef_fild03.gat",312,19,5,2)
 addwarp("prtf20-1","prt_fild11.gat",361,184,"prt_fild10.gat",23,196,2,5)
 addwarp("prtf19-1","prt_fild11.gat",362,111,"prt_fild10.gat",23,122,2,6)
 
+--= St. Capitolina Abbey =====================================
 addwarp("monk03","monk_in.gat",128,46,"monk_in.gat",161,38,1,3)
 addwarp("monk04","monk_in.gat",128,84,"monk_in.gat",161,90,1,3)
 addwarp("monk03-1","monk_in.gat",159,38,"monk_in.gat",126,46,1,3)
