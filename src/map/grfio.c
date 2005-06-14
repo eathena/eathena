@@ -44,7 +44,7 @@
 	#else
 		#include "../zlib/zlib.h"
 		#include "../common/dll.h"
-		Addon *zlib_dll;
+		Plugin *zlib_dll;
 		#define zlib_inflateInit(strm) zlib_inflateInit_((strm), ZLIB_VERSION, sizeof(z_stream))
 		#define zlib_deflateInit(strm, level) zlib_deflateInit_((strm), (level), ZLIB_VERSION, sizeof(z_stream))
 
@@ -1054,7 +1054,7 @@ void grfio_init(char *fname)
 
 #ifdef _WIN32
 	#ifndef LOCALZLIB
-		zlib_dll = dll_open ("zlib.dll");
+		zlib_dll = plugin_open ("zlib.dll");
 		if (zlib_dll == NULL) {
 			ShowFatalError("Can't load zlib.dll\n");
 			exit(1);

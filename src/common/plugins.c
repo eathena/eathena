@@ -6,7 +6,8 @@
 #include <unistd.h>
 #endif
 
-#include "dll.h"
+#include "plugin.h"
+#include "plugins.h"
 #include "../common/mmo.h"
 #include "../common/core.h"
 #include "../common/timer.h"
@@ -17,35 +18,34 @@
 
 //////////////////////////////////////////////
 
-typedef struct _Addon_Event {
+typedef struct _Plugin_Event {
 	void (*func)();
-	struct _Addon_Event *next;
-} Addon_Event;
+	struct _Plugin_Event *next;
+} Plugin_Event;
 
-typedef struct _Addon_Event_List {
+typedef struct _Plugin_Event_List {
 	char *name;
-	struct _Addon_Event_List *next;
-	struct _Addon_Event *events;
-} Addon_Event_List;
+	struct _Plugin_Event_List *next;
+	struct _Plugin_Event *events;
+} Plugin_Event_List;
 
 static int auto_search = 1;
 static int load_priority = 0;
-Addon_Event_List *event_head = NULL;
-Addon *addon_head = NULL;
+Plugin_Event_List *event_head = NULL;
+Plugin *plugin_head = NULL;
 
-Addon_Info default_info = { "Unknown", ADDON_ALL, "0", DLL_VERSION, "Unknown" };
+Plugin_Info default_info = { "Unknown", PLUGIN_ALL, "0", PLUGIN_VERSION, "Unknown" };
 
-void **call_table = NULL;
 static size_t call_table_size	= 0;
 static size_t max_call_table	= 0;
 
 ////// Plugin Events Functions //////////////////
 
-int register_addon_func (char *name)
+int register_plugin_func (char *name)
 {
-	Addon_Event_List *evl;
+	Plugin_Event_List *evl;
 	if (name) {
-		evl = (Addon_Event_List *) aMalloc(sizeof(Addon_Event_List));
+		evl = (Plugin_Event_List *) aMalloc(sizeof(Plugin_Event_List));
 		evl->name = (char *) aMalloc (strlen(name) + 1);
 
 		evl->next = event_head;
@@ -56,9 +56,9 @@ int register_addon_func (char *name)
 	return 0;
 }
 
-Addon_Event_List *search_addon_func (char *name)
+Plugin_Event_List *search_plugin_func (char *name)
 {
-	Addon_Event_List *evl = event_head;
+	Plugin_Event_List *evl = event_head;
 	while (evl) {
 		if (strcmpi(evl->name, name) == 0)
 			return evl;
@@ -67,26 +67,26 @@ Addon_Event_List *search_addon_func (char *name)
 	return NULL;
 }
 
-int register_addon_event (void (*func)(), char* name)
+int register_plugin_event (void (*func)(), char* name)
 {
-	Addon_Event_List *evl = search_addon_func(name);
+	Plugin_Event_List *evl = search_plugin_func(name);
 	if (!evl) {
 		// register event if it doesn't exist already
-		register_addon_func(name);
+		register_plugin_func(name);
 		// relocate the new event list
-		evl = search_addon_func(name);
+		evl = search_plugin_func(name);
 	}
 	if (evl) {
-		Addon_Event *ev;
+		Plugin_Event *ev;
 
-		ev = (Addon_Event *) aMalloc(sizeof(Addon_Event));
+		ev = (Plugin_Event *) aMalloc(sizeof(Plugin_Event));
 		ev->func = func;
 		ev->next = NULL;
 
 		if (evl->events == NULL)
 			evl->events = ev;
 		else {
-			Addon_Event *ev2 = evl->events;
+			Plugin_Event *ev2 = evl->events;
 			while (ev2) {
 				if (ev2->next == NULL) {
 					ev2->next = ev;
@@ -99,12 +99,12 @@ int register_addon_event (void (*func)(), char* name)
 	return 0;
 }
 
-int addon_event_trigger (char *name)
+int plugin_event_trigger (char *name)
 {
 	int c = 0;
-	Addon_Event_List *evl = search_addon_func(name);
+	Plugin_Event_List *evl = search_plugin_func(name);
 	if (evl) {
-		Addon_Event *ev = evl->events;
+		Plugin_Event *ev = evl->events;
 		while (ev) {
 			ev->func();
 			ev = ev->next;
@@ -127,10 +127,10 @@ int export_symbol (void *var, int offset)
 	// realloc if not large enough  
 	if ((size_t)offset >= max_call_table) {
 		max_call_table = 1 + offset;
-		call_table = (void**)aRealloc(call_table, max_call_table*sizeof(void*));
+		plugin_call_table = (void**)aRealloc(plugin_call_table, max_call_table*sizeof(void*));
 		
 		// clear the new alloced block
-		memset(call_table + call_table_size, 0, (max_call_table-call_table_size)*sizeof(void*));
+		memset(plugin_call_table + call_table_size, 0, (max_call_table-call_table_size)*sizeof(void*));
 	}
 
 	// the new table size is delimited by the new element at the end
@@ -138,74 +138,74 @@ int export_symbol (void *var, int offset)
 		call_table_size = offset+1;
 	
 	// put the pointer at the selected place
-	call_table[offset] = var;
+	plugin_call_table[offset] = var;
 	return 0;
 }
 
 ////// Plugins Core /////////////////////////
 
-Addon *dll_open (const char *filename)
+Plugin *plugin_open (const char *filename)
 {
-	Addon *addon;
-	Addon_Info *info;
-	Addon_Event_Table *events;
+	Plugin *plugin;
+	Plugin_Info *info;
+	Plugin_Event_Table *events;
 	void **procs;
 	int init_flag = 1;
 
 	//printf ("loading %s\n", filename);
 	
 	// Check if the plugin has been loaded before
-	addon = addon_head;
-	while (addon) {
+	plugin = plugin_head;
+	while (plugin) {
 		// returns handle to the already loaded plugin
-		if (addon->state && strcmpi(addon->filename, filename) == 0) {
+		if (plugin->state && strcmpi(plugin->filename, filename) == 0) {
 			//printf ("not loaded (duplicate) : %s\n", filename);
-			return addon;
+			return plugin;
 		}
-		addon = addon->next;
+		plugin = plugin->next;
 	}
 
-	addon = (Addon *)aMallocA(sizeof(Addon));
-	addon->state = -1;	// not loaded
+	plugin = (Plugin *)aMallocA(sizeof(Plugin));
+	plugin->state = -1;	// not loaded
 
-	addon->dll = DLL_OPEN(filename);
-	if (!addon->dll) {
+	plugin->dll = DLL_OPEN(filename);
+	if (!plugin->dll) {
 		//printf ("not loaded (invalid file) : %s\n", filename);
-		dll_unload(addon);
+		plugin_unload(plugin);
 		return NULL;
 	}
 	
 	// Retrieve plugin information
-	addon->state = 0;	// initialising
-	DLL_SYM (info, addon->dll, "addon_info");
+	plugin->state = 0;	// initialising
+	DLL_SYM (info, plugin->dll, "plugin_info");
 	// For high priority plugins (those that are explicitly loaded from the conf file)
 	// we'll ignore them even (could be a 3rd party dll file)
 	if ((!info && load_priority == 0) ||
-		(info && ((atof(info->req_version) < atof(DLL_VERSION)) ||	// plugin is based on older code
-		(info->type != ADDON_ALL && info->type != ADDON_CORE && info->type != SERVER_TYPE) ||	// plugin is not for this server
-		(info->type == ADDON_CORE && SERVER_TYPE != ADDON_LOGIN && SERVER_TYPE != ADDON_CHAR && SERVER_TYPE != ADDON_MAP))))
+		(info && ((atof(info->req_version) < atof(PLUGIN_VERSION)) ||	// plugin is based on older code
+		(info->type != PLUGIN_ALL && info->type != PLUGIN_CORE && info->type != SERVER_TYPE) ||	// plugin is not for this server
+		(info->type == PLUGIN_CORE && SERVER_TYPE != PLUGIN_LOGIN && SERVER_TYPE != PLUGIN_CHAR && SERVER_TYPE != PLUGIN_MAP))))
 	{
 		//printf ("not loaded (incompatible) : %s\n", filename);
-		dll_unload(addon);
+		plugin_unload(plugin);
 		return NULL;
 	}
-	addon->info = (info) ? info : &default_info;
+	plugin->info = (info) ? info : &default_info;
 
-	addon->filename = (char *) aMalloc (strlen(filename) + 1);
-	strcpy(addon->filename, filename);
+	plugin->filename = (char *) aMalloc (strlen(filename) + 1);
+	strcpy(plugin->filename, filename);
 
 	// Initialise plugin call table (For exporting procedures)
-	DLL_SYM (procs, addon->dll, "addon_call_table");
-	if (procs) *procs = call_table;
+	DLL_SYM (procs, plugin->dll, "plugin_call_table");
+	if (procs) *procs = plugin_call_table;
 	
 	// Register plugin events
-	DLL_SYM (events, addon->dll, "addon_event_table");
+	DLL_SYM (events, plugin->dll, "plugin_event_table");
 	if (events) {
 		int i = 0;
 		while (events[i].func_name) {
-			if (strcmpi(events[i].event_name, "DLL_Test") == 0) {
+			if (strcmpi(events[i].event_name, "Plugin_Test") == 0) {
 				int (*test_func)(void);
-				DLL_SYM (test_func, addon->dll, events[i].func_name);
+				DLL_SYM (test_func, plugin->dll, events[i].func_name);
 				if (test_func && test_func() == 0) {
 					// plugin has failed test, disabling
 					//printf ("disabled (failed test) : %s\n", filename);
@@ -213,50 +213,34 @@ Addon *dll_open (const char *filename)
 				}
 			} else {
 				void (*func)(void);
-				DLL_SYM (func, addon->dll, events[i].func_name);
-				if (func) register_addon_event (func, events[i].event_name);
+				DLL_SYM (func, plugin->dll, events[i].func_name);
+				if (func) register_plugin_event (func, events[i].event_name);
 			}
 			i++;
 		}
 	}
 
-	addon->next = addon_head;
-	addon_head = addon;
+	plugin->next = plugin_head;
+	plugin_head = plugin;
 
-	addon->state = init_flag;	// fully loaded
-	ShowStatus ("Done loading plugin '"CL_WHITE"%s"CL_RESET"'\n", (info) ? addon->info->name : filename);
+	plugin->state = init_flag;	// fully loaded
+	ShowStatus ("Done loading plugin '"CL_WHITE"%s"CL_RESET"'\n", (info) ? plugin->info->name : filename);
 
-	return addon;
+	return plugin;
 }
 
-void dll_load (const char *filename)
+void plugin_load (const char *filename)
 {
-	dll_open(filename);
+	plugin_open(filename);
 }
 
-void dll_unload (Addon *addon)
+void plugin_unload (Plugin *plugin)
 {
-	if (addon == NULL)
+	if (plugin == NULL)
 		return;
-	if (addon->filename) aFree(addon->filename);
-	if (addon->dll)	DLL_CLOSE(addon->dll);
-	aFree(addon);
-}
-
-// Find a previously loaded plugin
-Addon *dll_findloaded (const char *name)
-{
-	char path[256];
-	Addon *addon = addon_head;
-	sprintf (path, "addons/%s%s", name, DLL_EXT);
-
-	while (addon) {
-		if (addon->state && strcmpi(addon->filename, path) == 0)
-			return addon;
-		addon = addon->next;
-	}
-
-	return NULL;
+	if (plugin->filename) aFree(plugin->filename);
+	if (plugin->dll) DLL_CLOSE(plugin->dll);
+	aFree(plugin);
 }
 
 #ifdef _WIN32
@@ -271,7 +255,7 @@ char *DLL_ERROR(void)
 
 ////// Initialize/Finalize ////////////////////
 
-int dll_config_read(const char *cfgName)
+int plugins_config_read(const char *cfgName)
 {
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
@@ -293,25 +277,26 @@ int dll_config_read(const char *cfgName)
 			else if(strcmpi(w2, "no")==0)
 				auto_search = 0;
 			else auto_search = atoi(w2);
-		} else if (strcmpi(w1, "addon") == 0) {
+		} else if (strcmpi(w1, "plugin") == 0) {
 			char filename[128];
-			sprintf (filename, "addons/%s%s", w2, DLL_EXT);
-			dll_load(filename);
+			sprintf (filename, "plugins/%s%s", w2, DLL_EXT);
+			plugin_load(filename);
 		} else if (strcmpi(w1, "import") == 0)
-			dll_config_read(w2);
+			plugins_config_read(w2);
 	}
 	fclose(fp);
 	return 0;
 }
 
-void dll_init (void)
+void plugins_init (void)
 {
-	char *DLL_CONF_FILENAME = "conf/addon_athena.conf";
-	register_addon_func("DLL_Init");
-	register_addon_func("DLL_Final");
-	register_addon_func("Athena_Init");
-	register_addon_func("Athena_Final");
+	char *PLUGIN_CONF_FILENAME = "conf/plugin_athena.conf";
+	register_plugin_func("Plugin_Init");
+	register_plugin_func("Plugin_Final");
+	register_plugin_func("Athena_Init");
+	register_plugin_func("Athena_Final");
 
+	plugin_call_table = NULL;
 	// &addr_ = 12
 	export_symbol (get_uptime,			11);
 	export_symbol (delete_timer,		10);
@@ -327,29 +312,29 @@ void dll_init (void)
 	export_symbol (&SERVER_TYPE,		0);
 
 	load_priority = 1;
-	dll_config_read (DLL_CONF_FILENAME);
+	plugins_config_read (PLUGIN_CONF_FILENAME);
 	load_priority = 0;
 
 	if (auto_search)
-		findfile("addons", DLL_EXT, dll_load);
+		findfile("plugins", DLL_EXT, plugin_load);
 
-	addon_event_trigger("DLL_Init");
+	plugin_event_trigger("Plugin_Init");
 
 	return;
 }
 
-void dll_final (void)
+void plugins_final (void)
 {
-	Addon *addon = addon_head, *addon2;
-	Addon_Event_List *evl = event_head, *evl2;
-	Addon_Event *ev, *ev2;
+	Plugin *plugin = plugin_head, *plugin2;
+	Plugin_Event_List *evl = event_head, *evl2;
+	Plugin_Event *ev, *ev2;
 
-	addon_event_trigger("DLL_Final");
+	plugin_event_trigger("Plugin_Final");
 
-	while (addon) {
-		addon2 = addon->next;
-		dll_unload(addon);
-		addon = addon2;
+	while (plugin) {
+		plugin2 = plugin->next;
+		plugin_unload(plugin);
+		plugin = plugin2;
 	}
 
 	while (evl) {
@@ -365,7 +350,7 @@ void dll_final (void)
 		evl = evl2;
 	}
 
-	aFree(call_table);
+	aFree(plugin_call_table);
 
 	return;
 }

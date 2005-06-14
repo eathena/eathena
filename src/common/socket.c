@@ -35,7 +35,7 @@ typedef int socklen_t;
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
 #ifndef MINICORE
-	#include "../common/dll.h"
+	#include "../common/plugins.h"
 #endif
 
 fd_set readfds;

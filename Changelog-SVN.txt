@@ -1,9 +1,13 @@
 Date	Added
 06/14
-	* Updated UPnP plugin to 1.0.3 [celest]
+	* Split used-by-plugins-only code to plugin.h [celest]
+	* Standardised plugin functions and names -- dll.c is now plugins.c, addon_athena
+	  is now plugin_athena.conf and so on [celest]
+	* Updated UPnP plugin to 1.0.3.1 [celest]
 	  - moved code in socket.c back into the plugin
 	  - added configuration file support (addon/upnp.conf) -- you'll need to do
 	    'make addons' to install it
+	* Added 'make zlib' for compiling a zlib.dll [celest]
 
 06/13
 	* Fixed Asura Strike possibly doing minimal damage when it should do very

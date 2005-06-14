@@ -87,7 +87,7 @@ MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS)" LIB_S="$(LIBS)"
 
 endif
 
-.PHONY: txt sql common login login_sql char char_sql map map_sql ladmin converters addons tools webserver clean
+.PHONY: txt sql common login login_sql char char_sql map map_sql ladmin converters plugins tools webserver clean zlib
 
 all: conf txt
 
@@ -122,7 +122,7 @@ map_sql:
 	$(MAKE) -C src/map $(MKDEF) sql
 ladmin:
 	$(MAKE) -C src/$@ $(MKDEF)
-addons: src/addons/GNUmakefile
+plugins: src/plugins/GNUmakefile
 	$(MAKE) -C src/$@ $(MKDEF)
 webserver:
 	$(MAKE) -C src/$@ $(MKDEF)
@@ -130,6 +130,8 @@ tools:
 	$(MAKE) -C src/tool $(MKDEF)
 converters: src/common/GNUmakefile src/txt-converter/GNUmakefile common
 	$(MAKE) -C src/txt-converter $(MKDEF)
+zlib:
+	$(MAKE) -C src/$@ $(MKDEF)	
 
 clean: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile src/char/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/addons/GNUmakefile src/txt-converter/GNUmakefile
 	rm -f Makefile.cache
@@ -140,7 +142,7 @@ clean: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile sr
 	$(MAKE) -C src/char_sql $@
 	$(MAKE) -C src/map $@
 	$(MAKE) -C src/ladmin $@
-	$(MAKE) -C src/addons $@
+	$(MAKE) -C src/plugins $@
 	$(MAKE) -C src/txt-converter $@
 
 Makefile.cache:
@@ -155,6 +157,6 @@ src/login_sql/GNUmakefile: src/login_sql/Makefile
 src/char/GNUmakefile: src/char/Makefile
 src/char_sql/GNUmakefile: src/char_sql/Makefile
 src/map/GNUmakefile: src/map/Makefile
-src/addons/GNUmakefile: src/addons/Makefile
+src/plugins/GNUmakefile: src/plugins/Makefile
 src/ladmin/GNUmakefile: src/ladmin/Makefile
 src/txt-converter/GNUmakefile: src/txt-converter/Makefile

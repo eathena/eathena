@@ -1,7 +1,7 @@
 all txt: char-server
 
-COMMON_OBJ = ../common/obj/core.o ../common/obj/socket.o ../common/obj/timer.o ../common/obj/db.o ../common/obj/dll.o ../common/obj/lock.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/utils.o ../common/obj/strlib.o
-COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/mmo.h ../common/db.h ../common/dll.h ../common/lock.h ../common/timer.h ../common/malloc.h ../common/showmsg.h ../common/utils.h ../common/strlib.h
+COMMON_OBJ = ../common/obj/core.o ../common/obj/socket.o ../common/obj/timer.o ../common/obj/db.o ../common/obj/plugins.o ../common/obj/lock.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/utils.o ../common/obj/strlib.o
+COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/mmo.h ../common/db.h ../common/plugins.h ../common/lock.h ../common/timer.h ../common/malloc.h ../common/showmsg.h ../common/utils.h ../common/strlib.h
 char-server: char.o inter.o int_party.o int_guild.o int_storage.o int_pet.o $(COMMON_OBJ)
 	$(CC) -o ../../$@ $> $(LIB_S)
 

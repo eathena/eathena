@@ -11,11 +11,11 @@
 
 #include "core.h"
 #include "../common/db.h"
-#include "../common/dll.h"
 #include "../common/mmo.h"
 #include "../common/malloc.h"
 #include "../common/socket.h"
 #include "../common/timer.h"
+#include "../common/plugins.h"
 #include "../common/version.h"
 #include "../common/showmsg.h"
 #include "svnversion.h"
@@ -197,11 +197,11 @@ int main (int argc, char **argv)
 	signals_init();
 
 	timer_init();
-	dll_init();
+	plugins_init();
 	socket_init();
 
 	do_init(argc,argv);
-	addon_event_trigger("Athena_Init");
+	plugin_event_trigger("Athena_Init");
 
 	while (runflag) {
 		next = do_timer(gettick_nocache());
@@ -211,12 +211,12 @@ int main (int argc, char **argv)
 #endif
 	}
 
-	addon_event_trigger("Athena_Final");
+	plugin_event_trigger("Athena_Final");
 	do_final();
 
 	exit_dbn();
 	timer_final();
-	dll_final();
+	plugins_final();
 	socket_final();
 	malloc_final();
 
