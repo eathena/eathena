@@ -469,13 +469,13 @@ static int itemdb_read_itemnametable(void)
 	buf[s]=0;
 	for(p=buf;p-buf<s;){
 		int nameid;
-		char buf2[64];
+		char buf2[64]; //Why 64? What's this for, other than holding an item's name? [Skotlex]
 
 		if(	sscanf(p,"%d#%[^#]#",&nameid,buf2)==2 ){
 
 #ifdef ITEMDB_OVERRIDE_NAME_VERBOSE
 			if( itemdb_exists(nameid) &&
-				strncmp(itemdb_search(nameid)->jname,buf2,24)!=0 ){
+				strncmp(itemdb_search(nameid)->jname,buf2,ITEM_NAME_LENGTH)!=0 ){
 				printf("[override] %d %s => %s\n",nameid
 					,itemdb_search(nameid)->jname,buf2);
 			}

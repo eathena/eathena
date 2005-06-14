@@ -118,7 +118,7 @@ static int guild_read_castledb(void)
 		gc->Ghp0=0; gc->Ghp1=0; gc->Ghp2=0; gc->Ghp3=0; gc->Ghp4=0; gc->Ghp5=0; gc->Ghp6=0; gc->Ghp7=0; // guardian HP [Valaris]
 */
 		gc->castle_id=atoi(str[0]);
-		memcpy(gc->map_name,str[1],NAME_LENGTH-1);
+		memcpy(gc->map_name,str[1],MAP_NAME_LENGTH-1);
 		memcpy(gc->castle_name,str[2],NAME_LENGTH-1);
 		memcpy(gc->castle_event,str[3],NAME_LENGTH-1);
 

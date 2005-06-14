@@ -439,7 +439,7 @@ int mapif_parse_WisRequest(int fd) {
 	} else {
 		// to be sure of the correct name, rewrite it
 		memset(RFIFOP(fd,28), 0, 24);
-		strncpy((char*)RFIFOP(fd,28), search_character_name(index), 24);
+		strncpy((char*)RFIFOP(fd,28), search_character_name(index), NAME_LENGTH);
 		// if source is destination, don't ask other servers.
 		if (strcmp((char*)RFIFOP(fd,4),(char*)RFIFOP(fd,28)) == 0) {
 			unsigned char buf[27];

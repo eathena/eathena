@@ -43,11 +43,11 @@ int inter_party_fromstr(char *str, struct party *p) {
 	memset(p, 0, sizeof(struct party));
 
 //	printf("sscanf party main info\n");
-	if (sscanf(str, "%d\t%[^\t]\t%d,%d\t", &tmp_int[0], tmp_str, &tmp_int[1], &tmp_int[2]) != 4)
+	if (sscanf(str, "%d\t%255[^\t]\t%d,%d\t", &tmp_int[0], tmp_str, &tmp_int[1], &tmp_int[2]) != 4)
 		return 1;
 
 	p->party_id = tmp_int[0];
-	strcpy(p->name, tmp_str);
+	memcpy(p->name, tmp_str, NAME_LENGTH-1);
 	p->exp = tmp_int[1];
 	p->item = tmp_int[2];
 //	printf("%d [%s] %d %d\n", tmp_int[0], tmp_str[0], tmp_int[1], tmp_int[2]);
@@ -61,12 +61,12 @@ int inter_party_fromstr(char *str, struct party *p) {
 			return 1;
 //		printf("sscanf party member info %d\n", i);
 
-		if (sscanf(str + 1, "%d,%d\t%[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str) != 3)
+		if (sscanf(str + 1, "%d,%d\t%255[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str) != 3)
 			return 1;
 
 		m->account_id = tmp_int[0];
 		m->leader = tmp_int[1];
-		strncpy(m->name, tmp_str, sizeof(m->name));
+		memcpy(m->name, tmp_str, NAME_LENGTH-1);
 //		printf(" %d %d [%s]\n", tmp_int[0], tmp_int[1], tmp_str);
 
 		for(j = 0; j < 2 && str != NULL; j++)
@@ -272,14 +272,15 @@ int mapif_party_created(int fd,int account_id, struct party *p) {
 	if (p != NULL) {
 		WFIFOB(fd,6) = 0;
 		WFIFOL(fd,7) = p->party_id;
-		memcpy(WFIFOP(fd,11), p->name, 24);
+		memcpy(WFIFOP(fd,11), p->name, NAME_LENGTH);
 		printf("int_party: created! %d %s\n", p->party_id, p->name);
 	} else {
 		WFIFOB(fd,6) = 1;
 		WFIFOL(fd,7) = 0;
-		memcpy(WFIFOP(fd,11), "error", 24);
+		memcpy(WFIFOP(fd,11), "error", NAME_LENGTH);
 	}
-	WFIFOSET(fd,35);
+	WFIFOSET(fd,11+NAME_LENGTH);
+//	WFIFOSET(fd,35);
 
 	return 0;
 }
@@ -348,8 +349,9 @@ int mapif_party_leaved(int party_id,int account_id, char *name) {
 	WBUFW(buf,0) = 0x3824;
 	WBUFL(buf,2) = party_id;
 	WBUFL(buf,6) = account_id;
-	memcpy(WBUFP(buf,10), name, 24);
-	mapif_sendall(buf, 34);
+	memcpy(WBUFP(buf,10), name, NAME_LENGTH);
+	mapif_sendall(buf, 10+NAME_LENGTH);
+//	mapif_sendall(buf, 34);
 	printf("int_party: party leaved %d %d %s\n", party_id, account_id, name);
 
 	return 0;
@@ -362,11 +364,16 @@ int mapif_party_membermoved(struct party *p, int idx) {
 	WBUFW(buf,0) = 0x3825;
 	WBUFL(buf,2) = p->party_id;
 	WBUFL(buf,6) = p->member[idx].account_id;
-	memcpy(WBUFP(buf,10), p->member[idx].map, 16);
+	memcpy(WBUFP(buf,10), p->member[idx].map, MAP_NAME_LENGTH);
+
+	WBUFB(buf,10+MAP_NAME_LENGTH) = p->member[idx].online;
+	WBUFW(buf,11+MAP_NAME_LENGTH) = p->member[idx].lv;
+	mapif_sendall(buf, 13+MAP_NAME_LENGTH);
+/*
 	WBUFB(buf,26) = p->member[idx].online;
 	WBUFW(buf,27) = p->member[idx].lv;
 	mapif_sendall(buf, 29);
-
+*/
 	return 0;
 }
 
@@ -405,7 +412,7 @@ int mapif_parse_CreateParty(int fd, int account_id, char *name, char *nick, char
 	struct party *p;
 	int i;
 
-	for(i = 0; i < 24 && name[i]; i++) {
+	for(i = 0; i < NAME_LENGTH && name[i]; i++) {
 		if (!(name[i] & 0xe0) || name[i] == 0x7f) {
 			printf("int_party: illegal party name [%s]\n", name);
 			mapif_party_created(fd, account_id, NULL);
@@ -424,9 +431,9 @@ int mapif_parse_CreateParty(int fd, int account_id, char *name, char *nick, char
 		mapif_party_created(fd,account_id,NULL);
 		return 0;
 	}
-	memset(p, 0, sizeof(struct party));
+//	memset(p, 0, sizeof(struct party));	Not needed...
 	p->party_id = party_newid++;
-	memcpy(p->name, name, 24);
+	memcpy(p->name, name, NAME_LENGTH-1);
 	p->exp = 0;
 	p->item = item;
 	//<item1>アイテム?集方法。0で個人別、1でパ?ティ公有
@@ -435,8 +442,8 @@ int mapif_parse_CreateParty(int fd, int account_id, char *name, char *nick, char
 	p->itemc = 0;
 
 	p->member[0].account_id = account_id;
-	memcpy(p->member[0].name, nick, 24);
-	memcpy(p->member[0].map, map, 16);
+	memcpy(p->member[0].name, nick, NAME_LENGTH-1);
+	memcpy(p->member[0].map, map, MAP_NAME_LENGTH-1);
 	p->member[0].leader = 1;
 	p->member[0].online = 1;
 	p->member[0].lv = lv;
@@ -478,8 +485,8 @@ int mapif_parse_PartyAddMember(int fd, int party_id, int account_id, char *nick,
 			int flag = 0;
 
 			p->member[i].account_id = account_id;
-			memcpy(p->member[i].name, nick, 24);
-			memcpy(p->member[i].map, map, 16);
+			memcpy(p->member[i].name, nick, NAME_LENGTH-1);
+			memcpy(p->member[i].map, map, MAP_NAME_LENGTH-1);
 			p->member[i].leader = 0;
 			p->member[i].online = 1;
 			p->member[i].lv = lv;
@@ -556,7 +563,7 @@ int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, char *map, 
 		if (p->member[i].account_id == account_id) {
 			int flag = 0;
 
-			memcpy(p->member[i].map, map, 16);
+			memcpy(p->member[i].map, map, MAP_NAME_LENGTH-1);
 			p->member[i].online = online;
 			p->member[i].lv = lv;
 			mapif_party_membermoved(p, i);

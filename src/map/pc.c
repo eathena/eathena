@@ -365,7 +365,7 @@ int pc_makesavestatus(struct map_session_data *sd)
 			pc_setrestartvalue(sd,0);
 			memcpy(&sd->status.last_point,&sd->status.save_point,sizeof(sd->status.last_point));
 		} else {
-			memcpy(sd->status.last_point.map, sd->mapname, NAME_LENGTH-1);
+			memcpy(sd->status.last_point.map, sd->mapname, MAP_NAME_LENGTH-1);
 			sd->status.last_point.x = sd->bl.x;
 			sd->status.last_point.y = sd->bl.y;
 		}
@@ -3058,7 +3058,7 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *bl)
  */
 int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrtype)
 {
-	char mapname[NAME_LENGTH];
+	char mapname[MAP_NAME_LENGTH];
 	int i, m;
 
 	nullpo_retr(0, sd);
@@ -3129,9 +3129,9 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		pet_changestate(sd->pd,MS_IDLE,0);
 	}
 
-	memcpy(mapname, mapname_org, NAME_LENGTH-1);
-	mapname[NAME_LENGTH-1]= '\0';
-	if(strstr(mapname,".gat")==NULL && strstr(mapname,".afm")==NULL && strlen(mapname)<NAME_LENGTH-4){	//It has to be -4 for a .gat to fit! [Skotlex]
+	memcpy(mapname, mapname_org, MAP_NAME_LENGTH-1);
+	mapname[MAP_NAME_LENGTH-1]= '\0';
+	if(strstr(mapname,".gat")==NULL && strstr(mapname,".afm")==NULL && strlen(mapname)<MAP_NAME_LENGTH-5){	//It has to be -5 for a .gat to fit!(5th is \0) [Skotlex]
 		strcat(mapname,".gat");
 	}
 
@@ -3163,7 +3163,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 						map_delblock(&sd->pd->bl);
 					}
 				}
-				memcpy(sd->mapname, mapname, NAME_LENGTH-1);
+				memcpy(sd->mapname, mapname, MAP_NAME_LENGTH-1);
 				sd->bl.x=x;
 				sd->bl.y=y;
 				sd->state.waitingdisconnect=1;
@@ -3232,7 +3232,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 	if (strcmp(sd->mapname,mapname)!=0) //minimap dot fix [Kevin]
 		party_send_dot_remove(sd);
 
-	memcpy(sd->mapname, mapname, NAME_LENGTH-1);
+	memcpy(sd->mapname, mapname, MAP_NAME_LENGTH-1);
 	sd->bl.m = m;
 	sd->to_x = x;
 	sd->to_y = y;
@@ -3323,7 +3323,7 @@ int pc_memo(struct map_session_data *sd, int i) {
 		}
 		i = 0;
 	}
-	memcpy(sd->status.memo_point[i].map, map[sd->bl.m].name, NAME_LENGTH-1);
+	memcpy(sd->status.memo_point[i].map, map[sd->bl.m].name, MAP_NAME_LENGTH-1);
 	sd->status.memo_point[i].x = sd->bl.x;
 	sd->status.memo_point[i].y = sd->bl.y;
 
@@ -7189,7 +7189,7 @@ int pc_setsavepoint(struct map_session_data *sd,char *mapname,int x,int y)
 {
 	nullpo_retr(0, sd);
 
-	memcpy(sd->status.save_point.map, mapname, NAME_LENGTH-1);
+	memcpy(sd->status.save_point.map, mapname, MAP_NAME_LENGTH-1);
 	sd->status.save_point.x = x;
 	sd->status.save_point.y = y;
 

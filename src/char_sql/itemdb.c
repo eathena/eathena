@@ -98,7 +98,7 @@ static int itemdb_readdb(void)
 	char line[1024];
 	int ln=0;
 	int nameid,j;
-	char *str[ITEM_NAME_LENGTH],*p,*np;
+	char *str[128],*p,*np;
 	struct item_data *id;
 
 	fp=fopen("db/item_db.txt","r");
@@ -125,8 +125,8 @@ static int itemdb_readdb(void)
 
 		//ID,Name,Jname,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Gender,Loc,wLV,eLV,View
 		id=itemdb_search(nameid);
-		memcpy(id->name,str[1],ITEM_NAME_LENGTH);
-		memcpy(id->jname,str[2],ITEM_NAME_LENGTH);
+		memcpy(id->name,str[1],ITEM_NAME_LENGTH-1);
+		memcpy(id->jname,str[2],ITEM_NAME_LENGTH-1);
 		id->type=atoi(str[3]);
 
 	}

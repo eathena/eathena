@@ -49,7 +49,7 @@ int login_fd, char_fd;
 char userid[24];
 char passwd[24];
 char server_name[20];
-char wisp_server_name[24] = "Server";
+char wisp_server_name[NAME_LENGTH] = "Server";
 int login_ip_set_ = 0;
 char login_ip_str[16];
 in_addr_t login_ip;
@@ -277,7 +277,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
 
 	// on multi-map server, sometimes it's posssible that last_point become void. (reason???) We check that to not lost character at restart.
 	if (p->last_point.map[0] == '\0') {
-		memcpy(p->last_point.map, "prontera.gat", 16);
+		memcpy(p->last_point.map, "prontera.gat", MAP_NAME_LENGTH-1);
 		p->last_point.x = 273;
 		p->last_point.y = 354;
 	}
@@ -341,6 +341,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
 // Function to set the character from the line (at read of characters file)
 //-------------------------------------------------------------------------
 int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
+	char tmp_str[3][128]; //To avoid deleting chars with too long names.
 	int tmp_int[256];
 	int set, next, len, i;
 
@@ -348,10 +349,10 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	memset(p, '\0', sizeof(struct mmo_charstatus));
 	
 	// If it's not char structure of version 1488 and after
-	if ((set = sscanf(str, "%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+	if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-		"\t%[^,],%d,%d\t%[^,],%d,%d,%d,%d,%d,%d,%d%n",
-		&tmp_int[0], &tmp_int[1], &tmp_int[2], p->name, //
+		"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d,%d,%d,%d,%d%n",
+		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0],
 		&tmp_int[3], &tmp_int[4], &tmp_int[5],
 		&tmp_int[6], &tmp_int[7], &tmp_int[8],
 		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
@@ -361,16 +362,16 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 		&tmp_int[24], &tmp_int[25], &tmp_int[26],
 		&tmp_int[27], &tmp_int[28], &tmp_int[29],
 		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-		p->last_point.map, &tmp_int[35], &tmp_int[36], //
-		p->save_point.map, &tmp_int[37], &tmp_int[38], &tmp_int[39], 
+		tmp_str[1], &tmp_int[35], &tmp_int[36],
+		tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
 		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next)) != 47)
 	{
 		tmp_int[43] = 0;	
 		// If it's not char structure of version 1363 and after
-		if ((set = sscanf(str, "%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+		if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 			"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-			"\t%[^,],%d,%d\t%[^,],%d,%d,%d,%d,%d,%d%n",
-			&tmp_int[0], &tmp_int[1], &tmp_int[2], p->name, //
+			"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d,%d,%d,%d%n",
+			&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
 			&tmp_int[3], &tmp_int[4], &tmp_int[5],
 			&tmp_int[6], &tmp_int[7], &tmp_int[8],
 			&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
@@ -380,18 +381,18 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 			&tmp_int[24], &tmp_int[25], &tmp_int[26],
 			&tmp_int[27], &tmp_int[28], &tmp_int[29],
 			&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-			p->last_point.map, &tmp_int[35], &tmp_int[36], //
-			p->save_point.map, &tmp_int[37], &tmp_int[38], &tmp_int[39], 
+			tmp_str[1], &tmp_int[35], &tmp_int[36], //
+			tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
 			&tmp_int[40], &tmp_int[41], &tmp_int[42], &next)) != 46)
 		{
 			tmp_int[40] = 0; // father
 			tmp_int[41] = 0; // mother
 			tmp_int[42] = 0; // child
 			// If it's not char structure of version 1008 and before 1363
-			if ((set = sscanf(str, "%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+			if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 				"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-				"\t%[^,],%d,%d\t%[^,],%d,%d,%d%n",
-				&tmp_int[0], &tmp_int[1], &tmp_int[2], p->name, //
+				"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d%n",
+				&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
 				&tmp_int[3], &tmp_int[4], &tmp_int[5],
 				&tmp_int[6], &tmp_int[7], &tmp_int[8],
 				&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
@@ -401,15 +402,15 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 				&tmp_int[24], &tmp_int[25], &tmp_int[26],
 				&tmp_int[27], &tmp_int[28], &tmp_int[29],
 				&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-				p->last_point.map, &tmp_int[35], &tmp_int[36], //
-				p->save_point.map, &tmp_int[37], &tmp_int[38], &tmp_int[39], &next)) != 43)
+				tmp_str[1], &tmp_int[35], &tmp_int[36], //
+				tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], &next)) != 43)
 			{
 				tmp_int[39] = 0; // partner id
 				// If not char structure from version 384 to 1007
-				if ((set = sscanf(str, "%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+				if ((set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 					"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-					"\t%[^,],%d,%d\t%[^,],%d,%d%n",
-					&tmp_int[0], &tmp_int[1], &tmp_int[2], p->name, //
+					"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
+					&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
 					&tmp_int[3], &tmp_int[4], &tmp_int[5],
 					&tmp_int[6], &tmp_int[7], &tmp_int[8],
 					&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
@@ -419,15 +420,15 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 					&tmp_int[24], &tmp_int[25], &tmp_int[26],
 					&tmp_int[27], &tmp_int[28], &tmp_int[29],
 					&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-					p->last_point.map, &tmp_int[35], &tmp_int[36], //
-					p->save_point.map, &tmp_int[37], &tmp_int[38], &next)) != 42)
+					tmp_str[1], &tmp_int[35], &tmp_int[36], //
+					tmp_str[2], &tmp_int[37], &tmp_int[38], &next)) != 42)
 				{
 					// It's char structure of a version before 384
 					tmp_int[26] = 0; // pet id
-					set = sscanf(str, "%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+					set = sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 					"\t%d,%d,%d\t%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-					"\t%[^,],%d,%d\t%[^,],%d,%d%n",
-					&tmp_int[0], &tmp_int[1], &tmp_int[2], p->name, //
+					"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
+					&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
 					&tmp_int[3], &tmp_int[4], &tmp_int[5],
 					&tmp_int[6], &tmp_int[7], &tmp_int[8],
 					&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
@@ -437,8 +438,8 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 					&tmp_int[24], &tmp_int[25], //
 					&tmp_int[27], &tmp_int[28], &tmp_int[29],
 					&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-					p->last_point.map, &tmp_int[35], &tmp_int[36], //
-					p->save_point.map, &tmp_int[37], &tmp_int[38], &next);
+					tmp_str[1], &tmp_int[35], &tmp_int[36], //
+					tmp_str[2], &tmp_int[37], &tmp_int[38], &next);
 					set += 2;
 					//printf("char: old char data ver.1\n");
 				// Char structure of version 1007 or older
@@ -456,13 +457,14 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 			set++;
 			//printf("char: new char data ver.4\n");
 		}
-	// Char structture of version 1488+
+	// Char structure of version 1488+
 	} else {
 		//printf("char: new char data ver.5\n");
 	}
 	if (set != 47)
 		return 0;
 
+	memcpy(p->name, tmp_str[0], NAME_LENGTH-1); //Overflow protection [Skotlex]
 	p->char_id = tmp_int[0];
 	p->account_id = tmp_int[1];
 	p->char_num = tmp_int[2];
@@ -498,8 +500,10 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	p->head_top = tmp_int[32];
 	p->head_mid = tmp_int[33];
 	p->head_bottom = tmp_int[34];
+	memcpy(p->last_point.map, tmp_str[1], MAP_NAME_LENGTH-1);	//Checks to prevent overflows [Skotlex]
 	p->last_point.x = tmp_int[35];
 	p->last_point.y = tmp_int[36];
+	memcpy(p->save_point.map, tmp_str[2], MAP_NAME_LENGTH-1);
 	p->save_point.x = tmp_int[37];
 	p->save_point.y = tmp_int[38];
 	p->partner_id = tmp_int[39];
@@ -517,7 +521,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 			return -1;
 		} else if (strcmp(char_dat[i].name, p->name) == 0) {
 			printf("\033[1;31mmmo_auth_init: ******Error: character name already exists.\n");
-			printf("               character name '%s' -> new character not readed.\n", p->name);
+			printf("               character name '%s' -> new character not read.\n", p->name);
 			printf("               Character saved in log file.\033[0m\n");
 			return -2;
 		}
@@ -659,8 +663,8 @@ int parse_friend_txt(struct mmo_charstatus *p)
 
 		if(line[0] == '/' && line[1] == '/')
 			continue;
-
-		sscanf(line, "%d,%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%[^,],%d,%s",&cid,
+//Character names must not exceed the 23+\0 limit. [Skotlex]
+		sscanf(line, "%d,%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23s",&cid,
 		&temp[0],p->friend_name[0],
 		&temp[1],p->friend_name[1],
 		&temp[2],p->friend_name[2],
@@ -923,7 +927,7 @@ int make_new_char(int fd, unsigned char *dat) {
 	sd = (struct char_session_data*)session[fd]->session_data;
 
 	// remove control characters from the name
-	dat[23] = '\0';
+	dat[NAME_LENGTH-1] = '\0'; //Trunc name to max possible value (23)
 	if (remove_control_chars((unsigned char *)(char*)dat)) {
 		char_log("Make new char error (control char received in the name): (connection #%d, account: %d)." RETCODE,
 		         fd, sd->account_id);
@@ -1028,7 +1032,7 @@ int make_new_char(int fd, unsigned char *dat) {
 	char_dat[i].char_id = char_id_count++;
 	char_dat[i].account_id = sd->account_id;
 	char_dat[i].char_num = dat[30];
-	strcpy(char_dat[i].name, (const char*)dat);
+	strcpy(char_dat[i].name, (const char*)dat); //Length was previously checked, so no danger of overflow. [Skotlex]
 	char_dat[i].class_ = 0;
 	char_dat[i].base_level = 1;
 	char_dat[i].job_level = 1;
@@ -1399,8 +1403,8 @@ void create_online_files(void) {
 				// displaying of the map
 				if (online_display_option & 24) { // 8 or 16
 					// prepare map name
-					memset(temp, 0, 17);
-					strncpy(temp, char_dat[j].last_point.map, 16);
+					memset(temp, 0, 17); //There should be no need of this, last_point.map does contains the \0. But I leave it here just in case... [Skotlex]
+					strncpy(temp, char_dat[j].last_point.map, MAP_NAME_LENGTH);
 					if (strstr(temp, ".gat") != NULL) {
 						temp[strstr(temp, ".gat") - temp] = 0; // suppress the '.gat'
 					}
@@ -1540,7 +1544,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 		WFIFOW(fd,j+70) = p->hair_color;
 		WFIFOW(fd,j+72) = p->clothes_color;
 
-		memcpy(WFIFOP(fd,j+74), p->name, 24);
+		memcpy(WFIFOP(fd,j+74), p->name, NAME_LENGTH);
 
 		WFIFOB(fd,j+98) = (p->str > 255) ? 255 : p->str;
 		WFIFOB(fd,j+99) = (p->agi > 255) ? 255 : p->agi;
@@ -2214,8 +2218,8 @@ int parse_frommap(int fd) {
 				return 0;
 			memset(server[id].map, 0, sizeof(server[id].map));
 			j = 0;
-			for(i = 4; i < RFIFOW(fd,2); i += 16) {
-				memcpy(server[id].map[j], RFIFOP(fd,i), 16);
+			for(i = 4; i < RFIFOW(fd,2); i += MAP_NAME_LENGTH) {
+				memcpy(server[id].map[j], RFIFOP(fd,i), MAP_NAME_LENGTH);
 //				printf("set map %d.%d : %s\n", id, j, server[id].map[j]);
 				j++;
 			}
@@ -2230,8 +2234,9 @@ int parse_frommap(int fd) {
 			}
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;
-			memcpy(WFIFOP(fd,3), wisp_server_name, 24); // name for wisp to player
-			WFIFOSET(fd,27);
+			memcpy(WFIFOP(fd,3), wisp_server_name, NAME_LENGTH); // name for wisp to player
+			WFIFOSET(fd,3+NAME_LENGTH);
+			//WFIFOSET(fd,27);
 			{
 				unsigned char buf[16384];
 				int x;
@@ -2256,7 +2261,7 @@ int parse_frommap(int fd) {
 						j = 0;
 						for(i = 0; i < MAX_MAP_PER_SERVER; i++)
 							if (server[x].map[i][0])
-								memcpy(WFIFOP(fd,10+(j++)*16), server[x].map[i], 16);
+								memcpy(WFIFOP(fd,10+(j++)*MAP_NAME_LENGTH), server[x].map[i], MAP_NAME_LENGTH);
 						if (j > 0) {
 							WFIFOW(fd,2) = j * 16 + 10;
 							WFIFOSET(fd,WFIFOW(fd,2));
@@ -2435,10 +2440,11 @@ int parse_frommap(int fd) {
 			WFIFOW(fd,0) = 0x2b09;
 			WFIFOL(fd,2) = RFIFOL(fd,2);
 			if (i != char_num)
-				memcpy(WFIFOP(fd,6), char_dat[i].name, 24);
+				memcpy(WFIFOP(fd,6), char_dat[i].name, NAME_LENGTH);
 			else
-				memcpy(WFIFOP(fd,6), unknown_char_name, 24);
-			WFIFOSET(fd,30);
+				memcpy(WFIFOP(fd,6), unknown_char_name, NAME_LENGTH);
+			WFIFOSET(fd,6+NAME_LENGTH);
+			//WFIFOSET(fd,30);
 			RFIFOSKIP(fd,6);
 			break;
 
@@ -2477,10 +2483,10 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 44)
 				return 0;
 		  {
-			char character_name[24];
+			char character_name[NAME_LENGTH];
 			int acc = RFIFOL(fd,2); // account_id of who ask (-1 if nobody)
-			memcpy(character_name, RFIFOP(fd,6), 24);
-			character_name[sizeof(character_name) -1] = '\0';
+			memcpy(character_name, RFIFOP(fd,6), NAME_LENGTH-1);
+			character_name[NAME_LENGTH -1] = '\0';
 			// prepare answer
 			WFIFOW(fd,0) = 0x2b0f; // answer
 			WFIFOL(fd,2) = acc; // who want do operation
@@ -2488,8 +2494,9 @@ int parse_frommap(int fd) {
 			// search character
 			i = search_character_index(character_name);
 			if (i >= 0) {
-				memcpy(WFIFOP(fd,6), search_character_name(i), 24); // put correct name if found
-				WFIFOW(fd,32) = 0; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
+				memcpy(WFIFOP(fd,6), search_character_name(i), NAME_LENGTH); // put correct name if found
+				WFIFOW(fd,6+NAME_LENGTH) = 0; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
+				//WFIFOW(fd,32) = 0; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
 				switch(RFIFOW(fd, 30)) {
 				case 1: // block
 					if (acc == -1 || isGM(acc) >= isGM(char_dat[i].account_id)) {
@@ -2563,12 +2570,14 @@ int parse_frommap(int fd) {
 				}
 			} else {
 				// character name not found
-				memcpy(WFIFOP(fd,6), character_name, 24);
-				WFIFOW(fd,32) = 1; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
+				memcpy(WFIFOP(fd,6), character_name, NAME_LENGTH);
+				WFIFOW(fd,8+NAME_LENGTH) = 1; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
+				//WFIFOW(fd,32) = 1; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
 			}
 			// send answer if a player ask, not if the server ask
 			if (acc != -1) {
-				WFIFOSET(fd, 34);
+				//WFIFOSET(fd, 34);
+				WFIFOSET(fd, 10+NAME_LENGTH);
 			}
 			RFIFOSKIP(fd, 44);
 			break;
@@ -2730,12 +2739,12 @@ int parse_frommap(int fd) {
 
 int search_mapserver(char *map) {
 	int i, j;
-	char temp_map[16];
+	char temp_map[MAP_NAME_LENGTH];
 	int temp_map_len;
 
 //	printf("Searching the map-server for map '%s'... ", map);
-	strncpy(temp_map, map, sizeof(temp_map));
-	temp_map[sizeof(temp_map)-1] = '\0';
+	memcpy(temp_map, map, MAP_NAME_LENGTH-1);
+	temp_map[MAP_NAME_LENGTH-1] = '\0';
 	if (strchr(temp_map, '.') != NULL)
 		temp_map[strchr(temp_map, '.') - temp_map + 1] = '\0'; // suppress the '.gat', but conserve the '.' to be sure of the name of the map
 
@@ -2843,7 +2852,7 @@ int parse_char(int fd) {
 				sd = (struct char_session_data*)aCalloc(sizeof(struct char_session_data), 1);
 				session[fd]->session_data = sd;
 
-				memset(sd, 0, sizeof(struct char_session_data));
+//				memset(sd, 0, sizeof(struct char_session_data)); aCalloc does this [Skotlex]
 				strncpy(sd->email, "no mail", 40); // put here a mail without '@' to refuse deletion if we don't receive the e-mail
 				sd->connect_until_time = 0; // unknow or illimited (not displaying on map-server)
 			}
@@ -2926,27 +2935,27 @@ int parse_char(int fd) {
 					// if map is not found, we check major cities
 					if (i < 0) {
 						if ((i = search_mapserver("prontera.gat")) >= 0) { // check is done without 'gat'.
-							memcpy(char_dat[sd->found_char[ch]].last_point.map, "prontera.gat", 16);
+							memcpy(char_dat[sd->found_char[ch]].last_point.map, "prontera.gat", MAP_NAME_LENGTH-1);
 							char_dat[sd->found_char[ch]].last_point.x = 273; // savepoint coordonates
 							char_dat[sd->found_char[ch]].last_point.y = 354;
 						} else if ((i = search_mapserver("geffen.gat")) >= 0) { // check is done without 'gat'.
-							memcpy(char_dat[sd->found_char[ch]].last_point.map, "geffen.gat", 16);
+							memcpy(char_dat[sd->found_char[ch]].last_point.map, "geffen.gat", MAP_NAME_LENGTH-1);
 							char_dat[sd->found_char[ch]].last_point.x = 120; // savepoint coordonates
 							char_dat[sd->found_char[ch]].last_point.y = 100;
 						} else if ((i = search_mapserver("morocc.gat")) >= 0) { // check is done without 'gat'.
-							memcpy(char_dat[sd->found_char[ch]].last_point.map, "morocc.gat", 16);
+							memcpy(char_dat[sd->found_char[ch]].last_point.map, "morocc.gat", MAP_NAME_LENGTH-1);
 							char_dat[sd->found_char[ch]].last_point.x = 160; // savepoint coordonates
 							char_dat[sd->found_char[ch]].last_point.y = 94;
 						} else if ((i = search_mapserver("alberta.gat")) >= 0) { // check is done without 'gat'.
-							memcpy(char_dat[sd->found_char[ch]].last_point.map, "alberta.gat", 16);
+							memcpy(char_dat[sd->found_char[ch]].last_point.map, "alberta.gat", MAP_NAME_LENGTH-1);
 							char_dat[sd->found_char[ch]].last_point.x = 116; // savepoint coordonates
 							char_dat[sd->found_char[ch]].last_point.y = 57;
 						} else if ((i = search_mapserver("payon.gat")) >= 0) { // check is done without 'gat'.
-							memcpy(char_dat[sd->found_char[ch]].last_point.map, "payon.gat", 16);
+							memcpy(char_dat[sd->found_char[ch]].last_point.map, "payon.gat", MAP_NAME_LENGTH-1);
 							char_dat[sd->found_char[ch]].last_point.x = 87; // savepoint coordonates
 							char_dat[sd->found_char[ch]].last_point.y = 117;
 						} else if ((i = search_mapserver("izlude.gat")) >= 0) { // check is done without 'gat'.
-							memcpy(char_dat[sd->found_char[ch]].last_point.map, "izlude.gat", 16);
+							memcpy(char_dat[sd->found_char[ch]].last_point.map, "izlude.gat", MAP_NAME_LENGTH-1);
 							char_dat[sd->found_char[ch]].last_point.x = 94; // savepoint coordonates
 							char_dat[sd->found_char[ch]].last_point.y = 103;
 						} else {
@@ -2956,7 +2965,7 @@ int parse_char(int fd) {
 							for(j = 0; j < MAX_MAP_SERVERS; j++)
 								if (server_fd[j] >= 0 && server[j].map[0][0]) { // change save point to one of map found on the server (the first)
 									i = j;
-									memcpy(char_dat[sd->found_char[ch]].last_point.map, server[j].map[0], 16);
+									memcpy(char_dat[sd->found_char[ch]].last_point.map, server[j].map[0], MAP_NAME_LENGTH-1);
 									printf("Map-server #%d found with a map: '%s'.\n", j, server[j].map[0]);
 									// coordonates are unknown
 									break;
@@ -2973,7 +2982,7 @@ int parse_char(int fd) {
 					}
 					WFIFOW(fd,0) = 0x71;
 					WFIFOL(fd,2) = char_dat[sd->found_char[ch]].char_id;
-					memcpy(WFIFOP(fd,6), char_dat[sd->found_char[ch]].last_point.map, 16);
+					memcpy(WFIFOP(fd,6), char_dat[sd->found_char[ch]].last_point.map, MAP_NAME_LENGTH);
 					printf("Character selection '%s' (account: %d, slot: %d).\n", char_dat[sd->found_char[ch]].name, sd->account_id, ch);
 					printf("--Send IP of map-server. ");
 					if (lan_ip_check(p))
@@ -3061,7 +3070,7 @@ int parse_char(int fd) {
 			WFIFOW(fd,2+68) = char_dat[i].head_mid;
 			WFIFOW(fd,2+70) = char_dat[i].hair_color;
 
-			memcpy(WFIFOP(fd,2+74), char_dat[i].name, 24);
+			memcpy(WFIFOP(fd,2+74), char_dat[i].name, NAME_LENGTH);
 
 			WFIFOB(fd,2+98) = (char_dat[i].str > 255) ? 255 : char_dat[i].str;
 			WFIFOB(fd,2+99) = (char_dat[i].agi > 255) ? 255 : char_dat[i].agi;
@@ -3252,11 +3261,11 @@ int parse_char(int fd) {
 int parse_console(char *buf) {
     char *type,*command;
 
-    type = (char *)aMalloc(64);
-    command = (char *)aMalloc(64);
+	type = (char *)aCalloc(64,1);
+	command = (char *)aCalloc(64,1);
 
-    memset(type,0,64);
-    memset(command,0,64);
+//	memset(type,0,64);
+//	memset(command,0,64);
 
     printf("Console: %s\n",buf);
 
@@ -3562,7 +3571,7 @@ int char_config_read(const char *cfgName) {
 			if (sscanf(w2, "%[^,],%d,%d", map, &x, &y) < 3)
 				continue;
 			if (strstr(map, ".gat") != NULL) { // Verify at least if '.gat' is in the map name
-				memcpy(start_point.map, map, 16);
+				memcpy(start_point.map, map, MAP_NAME_LENGTH);
 				start_point.x = x;
 				start_point.y = y;
 			}
@@ -3582,7 +3591,7 @@ int char_config_read(const char *cfgName) {
 				start_armor = 0;
 		} else if (strcmpi(w1, "unknown_char_name") == 0) {
 			strcpy(unknown_char_name, w2);
-			unknown_char_name[24] = 0;
+			unknown_char_name[NAME_LENGTH-1] = '\0';
 		} else if (strcmpi(w1, "char_log_filename") == 0) {
 			strcpy(char_log_filename, w2);
 		} else if (strcmpi(w1, "name_ignoring_case") == 0) {

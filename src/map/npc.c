@@ -1485,18 +1485,13 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 {
 	int x, y, xs, ys, to_x, to_y, m;
 	int i, j;
-	char mapname[NAME_LENGTH], to_mapname[NAME_LENGTH];
+	char mapname[MAP_NAME_LENGTH], to_mapname[MAP_NAME_LENGTH];
 	struct npc_data *nd;
 
 	// 引数の個数チェック
-	if (sscanf(w1, "%[^,],%d,%d", mapname, &x, &y) != 3 ||
-	   sscanf(w4, "%d,%d,%[^,],%d,%d", &xs, &ys, to_mapname, &to_x, &to_y) != 5) {
+	if (sscanf(w1, "%15[^,],%d,%d", mapname, &x, &y) != 3 ||
+	   sscanf(w4, "%d,%d,%15[^,],%d,%d", &xs, &ys, to_mapname, &to_x, &to_y) != 5) {
 		ShowError("bad warp line : %s\n", w3);
-		return 1;
-	}
-	if (strlen(to_mapname) > NAME_LENGTH-1)
-	{
-		ShowError("warp line's to-map too long : %s\n", w4);
 		return 1;
 	}
 
@@ -1529,7 +1524,7 @@ int npc_parse_warp (char *w1,char *w2,char *w3,char *w4)
 	nd->opt2 = 0;
 	nd->opt3 = 0;
 */
-	memcpy(nd->u.warp.name, to_mapname, NAME_LENGTH-1);
+	memcpy(nd->u.warp.name, to_mapname, MAP_NAME_LENGTH-1);
 	xs += 2;
 	ys += 2;
 	nd->u.warp.x = to_x;
@@ -1564,11 +1559,11 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 	#define MAX_SHOPITEM 100
 	char *p;
 	int x, y, dir, m, pos = 0;
-	char mapname[NAME_LENGTH];
+	char mapname[MAP_NAME_LENGTH];
 	struct npc_data *nd;
 
 	// 引数の個数チェック
-	if (sscanf(w1, "%[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
+	if (sscanf(w1, "%15[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
 	    strchr(w4, ',') == NULL) {
 		ShowError("bad shop line : %s\n", w3);
 		return 1;
@@ -1684,7 +1679,7 @@ int npc_convertlabel_db (void *key, void *data, va_list ap)
 static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_line,FILE *fp,int *lines)
 {
 	int x, y, dir = 0, m, xs = 0, ys = 0, class_ = 0;	// [Valaris] thanks to fov
-	char mapname[NAME_LENGTH];
+	char mapname[MAP_NAME_LENGTH];
 	unsigned char *srcbuf = NULL, *script;
 	int srcsize = 65536;
 	int startline = 0;
@@ -1702,7 +1697,7 @@ static int npc_parse_script (char *w1,char *w2,char *w3,char *w4,char *first_lin
 		x = 0; y = 0; m = -1;
 	} else {
 		// 引数の個数チェック
-		if (sscanf(w1, "%[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
+		if (sscanf(w1, "%15[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 ||
 			(strcmp(w2, "script") == 0 && strchr(w4,',') == NULL)) {
 			ShowError("bad script line : %s\n", w3);
 			return 1;
@@ -2109,15 +2104,15 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 {
 	int level;
-	char mapname[NAME_LENGTH];
+	char mapname[MAP_NAME_LENGTH];
 	char mobname[NAME_LENGTH];
 	struct mob_list mob;
 
 	memset(&mob, 0, sizeof(struct mob_list));
 	
 	// 引数の個数チェック
-	if (sscanf(w1, "%[^,],%d,%d,%d,%d", mapname, &mob.x, &mob.y, &mob.xs, &mob.ys) < 3 ||
-		sscanf(w4, "%d,%d,%d,%d,%s", &mob.class_, &mob.num, &mob.delay1, &mob.delay2, mob.eventname) < 2 ) {
+	if (sscanf(w1, "%15[^,],%d,%d,%d,%d", mapname, &mob.x, &mob.y, &mob.xs, &mob.ys) < 3 ||
+		sscanf(w4, "%d,%d,%d,%d,%23s", &mob.class_, &mob.num, &mob.delay1, &mob.delay2, mob.eventname) < 2 ) {
 		ShowError("bad monster line : %s\n", w3);
 		return 1;
 	}
@@ -2130,13 +2125,9 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 			mob.num = 1;
 	}
 	
-	if (sscanf(w3, "%[^,],%d", mobname, &level) > 1)
+	if (sscanf(w3, "%23[^,],%d", mobname, &level) > 1)
 		mob.level = level;
-	if (strlen(mobname) > NAME_LENGTH -1)
-	{	//As before, we already overflowed for using sscanf. [Skotlex]
-		ShowError("Monster's name too long! Line: %s\n", w3);
-		return 1;
-	}
+	
 	if (strcmp(mobname, "--en--") == 0)
 		memcpy(mob.mobname, mob_db[mob.class_].name, NAME_LENGTH-1);
 	else if (strcmp(mobname, "--ja--") == 0)
@@ -2177,10 +2168,10 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 {
 	int m;
-	char mapname[NAME_LENGTH];
+	char mapname[MAP_NAME_LENGTH];
 
 	// 引数の個数チェック
-	if (sscanf(w1, "%[^,]",mapname) != 1)
+	if (sscanf(w1, "%15[^,]",mapname) != 1)
 		return 1;
 	
 	m = map_mapname2mapid(mapname);
@@ -2189,19 +2180,14 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 
 //マップフラグ
 	if (strcmpi(w3, "nosave") == 0) {
-		char savemap[NAME_LENGTH];
+		char savemap[MAP_NAME_LENGTH];
 		int savex, savey;
 		if (strcmp(w4, "SavePoint") == 0) {
 			memcpy(map[m].save.map, "SavePoint", 10);
 			map[m].save.x = -1;
 			map[m].save.y = -1;
-		} else if (sscanf(w4, "%[^,],%d,%d", savemap, &savex, &savey) == 3) {
-			if (strlen(savemap) > NAME_LENGTH-1)
-			{	//Mover overflow possibilities...
-				ShowError("Save Map's name too long: %s\n", w4);
-				return 1;
-			}
-			memcpy(map[m].save.map, savemap, NAME_LENGTH-1);
+		} else if (sscanf(w4, "%15[^,],%d,%d", savemap, &savex, &savey) == 3) {
+			memcpy(map[m].save.map, savemap, MAP_NAME_LENGTH-1);
 			map[m].save.x = savex;
 			map[m].save.y = savey;
 		}
@@ -2355,16 +2341,16 @@ static int npc_parse_mapflag (char *w1, char *w2, char *w3, char *w4)
 static int npc_parse_mapcell (char *w1, char *w2, char *w3, char *w4)
 {
 	int m, cell, x, y, x0, y0, x1, y1;
-	char type[24], mapname[NAME_LENGTH];
+	char type[24], mapname[MAP_NAME_LENGTH];
 
-	if (sscanf(w1, "%[^,]", mapname) != 1)
+	if (sscanf(w1, "%15[^,]", mapname) != 1)
 		return 1;
 
 	m = map_mapname2mapid(mapname);
 	if (m < 0)
 		return 1;
 
-	if (sscanf(w3, "%[^,],%d,%d,%d,%d", type, &x0, &y0, &x1, &y1) < 4) {
+	if (sscanf(w3, "%23[^,],%d,%d,%d,%d", type, &x0, &y0, &x1, &y1) < 4) {
 		ShowError("Bad setcell line : %s\n",w3);
 		return 1;
 	}
@@ -2423,7 +2409,7 @@ void npc_parsesrcfile (char *name)
 		// マップの存在確認
 		if (strcmp(w1,"-") !=0 && strcmpi(w1,"function") != 0 ){
 			sscanf(w1,"%[^,]",mapname);
-			if (strlen(mapname)>NAME_LENGTH-1 || 
+			if (strlen(mapname)>MAP_NAME_LENGTH-1 || 
 				(m = map_mapname2mapid(mapname)) < 0)
 			// "mapname" is not assigned to this server
 				continue;
@@ -2465,7 +2451,7 @@ static int npc_read_indoors (void)
 
 	for (p = buf; p - buf < s; ) {
 		char map_name[64];
-		if (sscanf(p, "%[^#]#", map_name) == 1) {
+		if (sscanf(p, "%15[^#]#", map_name) == 1) {
 			size_t pos = strlen(map_name) - 4;	// replace '.xxx' extension
 			memcpy(map_name+pos,".gat",4);		// with '.gat'
 			if ((m = map_mapname2mapid(map_name)) >= 0)

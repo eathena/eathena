@@ -149,7 +149,7 @@ enum {
 #define WFIFOPOS(fd,pos,x,y) { WBUFPOS (WFIFOP(fd,pos),0,x,y); }
 #define WFIFOPOS2(fd,pos,x0,y0,x1,y1) { WBUFPOS2(WFIFOP(fd,pos),0,x0,y0,x1,y1); }
 
-static char map_ip_str[NAME_LENGTH];
+static char map_ip_str[16];
 static in_addr_t map_ip;
 static in_addr_t bind_ip = INADDR_ANY;
 static int map_port = 5121;
@@ -162,7 +162,7 @@ char talkie_mes[MESSAGE_SIZE];
  */
 void clif_setip(char *ip)
 {
-	memcpy(map_ip_str, ip, NAME_LENGTH-1);
+	memcpy(map_ip_str, ip, 16);
 	map_ip = inet_addr(map_ip_str);
 }
 
@@ -1274,7 +1274,7 @@ static int clif_set0192(int fd, int m, int x, int y, int type) {
 	WFIFOW(fd,2) = x;
 	WFIFOW(fd,4) = y;
 	WFIFOW(fd,6) = type;
-	memcpy(WFIFOP(fd,8),map[m].name,16);
+	memcpy(WFIFOP(fd,8),map[m].name,MAP_NAME_LENGTH);
 	WFIFOSET(fd,packet_len_table[0x192]);
 
 	return 0;
@@ -1714,10 +1714,7 @@ int clif_changemap(struct map_session_data *sd, char *mapname, int x, int y) {
 	fd = sd->fd;
 
 	WFIFOW(fd,0) = 0x91;
-	//Why 16? Sometimes this is called with sd->mapname[NAME_LENGTH]
-	//Add a null-terminator in case... [Skotlex]
-	memcpy(WFIFOP(fd,2), mapname, 15);
-	WFIFOB(fd,17) = 0;	//Null terminator for mapname
+	memcpy(WFIFOP(fd,2), mapname, MAP_NAME_LENGTH);
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
 	WFIFOSET(fd, packet_len_table[0x91]);
@@ -4865,10 +4862,10 @@ int clif_skill_warppoint(struct map_session_data *sd,int skill_num,
 	fd=sd->fd;
 	WFIFOW(fd,0)=0x11c;
 	WFIFOW(fd,2)=skill_num;
-	strncpy((char*)WFIFOP(fd, 4),map1,16);
-	strncpy((char*)WFIFOP(fd,20),map2,16);
-	strncpy((char*)WFIFOP(fd,36),map3,16);
-	strncpy((char*)WFIFOP(fd,52),map4,16);
+	strncpy((char*)WFIFOP(fd, 4),map1,MAP_NAME_LENGTH);
+	strncpy((char*)WFIFOP(fd,20),map2,MAP_NAME_LENGTH);
+	strncpy((char*)WFIFOP(fd,36),map3,MAP_NAME_LENGTH);
+	strncpy((char*)WFIFOP(fd,52),map4,MAP_NAME_LENGTH);
 	WFIFOSET(fd,packet_len_table[0x11c]);
 	return 0;
 }
@@ -5194,7 +5191,7 @@ int clif_wis_message(int fd, char *nick, char *mes, int mes_len) // R 0097 <len>
 
 	WFIFOW(fd,0) = 0x97;
 	WFIFOW(fd,2) = mes_len + 24 + 4;
-	memcpy(WFIFOP(fd,4), nick, 24);
+	memcpy(WFIFOP(fd,4), nick, NAME_LENGTH);
 	memcpy(WFIFOP(fd,28), mes, mes_len);
 	WFIFOSET(fd,WFIFOW(fd,2));
 	return 0;
@@ -5459,7 +5456,7 @@ int clif_item_skill(struct map_session_data *sd,int skillid,int skilllv,const ch
 	if(range < 0)
 		range = status_get_range(&sd->bl) - (range + 1);
 	WFIFOW(fd,12)=range;
-	strncpy((char*)WFIFOP(fd,14),name,24);
+	strncpy((char*)WFIFOP(fd,14),name,NAME_LENGTH);
 	WFIFOB(fd,38)=0;
 	WFIFOSET(fd,packet_len_table[0x147]);
 	return 0;
@@ -5946,7 +5943,7 @@ int clif_party_info(struct party *p,int fd)
 			if(sd==NULL) sd=m->sd;
 			WBUFL(buf,28+c*46)=m->account_id;
 			memcpy(WBUFP(buf,28+c*46+ 4),m->name,NAME_LENGTH);
-			memcpy(WBUFP(buf,28+c*46+28),m->map,16);
+			memcpy(WBUFP(buf,28+c*46+28),m->map,MAP_NAME_LENGTH);
 			WBUFB(buf,28+c*46+44)=(m->leader)?0:1;
 			WBUFB(buf,28+c*46+45)=(m->online)?0:1;
 			c++;
@@ -6207,7 +6204,7 @@ int clif_party_move(struct party *p,struct map_session_data *sd,int online)
 	WBUFB(buf,14)=!online;
 	memcpy(WBUFP(buf,15),p->name, NAME_LENGTH);
 	memcpy(WBUFP(buf,39),sd->status.name, NAME_LENGTH);
-	memcpy(WBUFP(buf,63),map[sd->bl.m].name,16);
+	memcpy(WBUFP(buf,63),map[sd->bl.m].name, MAP_NAME_LENGTH);
 	clif_send(buf,packet_len_table[0x104],&sd->bl,PARTY);
 	return 0;
 }
@@ -6579,7 +6576,7 @@ int clif_changemapcell(int m,int x,int y,int cell_type,int type)
 	WBUFW(buf,2) = x;
 	WBUFW(buf,4) = y;
 	WBUFW(buf,6) = cell_type;
-	memcpy(WBUFP(buf,8),map[m].name,16);
+	memcpy(WBUFP(buf,8),map[m].name,MAP_NAME_LENGTH);
 	if(!type)
 		clif_send(buf,packet_len_table[0x192],&bl,AREA);
 	else
@@ -7312,7 +7309,7 @@ int clif_guild_oppositionack(struct map_session_data *sd,int flag)
 	WBUFW(fd,0)=0x185;
 	WBUFL(fd,2)=g->alliance[idx].opposition;
 	WBUFL(fd,6)=g->alliance[idx].guild_id;
-	memcpy(WBUFP(fd,10),g->alliance[idx].name,24);
+	memcpy(WBUFP(fd,10),g->alliance[idx].name,NAME_LENGTH);
 	clif_send(buf,packet_len_table[0x185],guild_getavailablesd(g),GUILD);
 	return 0;
 }*/
@@ -7394,7 +7391,7 @@ void clif_callpartner(struct map_session_data *sd)
 		WBUFW(buf,0)=0x1e6;
 		p = map_charid2nick(sd->status.partner_id);
 		if(p){
-			memcpy(WBUFP(buf,2),p,24);
+			memcpy(WBUFP(buf,2),p,NAME_LENGTH);
 		}else{
 			map_reqchariddb(sd,sd->status.partner_id);
 			chrif_searchcharid(sd->status.partner_id);
@@ -7776,9 +7773,11 @@ int clif_charnameack (int fd, struct block_list *bl)
 				char mobhp[50];
 				WBUFW(buf, 0) = cmd = 0x195;
 				sprintf(mobhp, "hp: %d/%d", md->hp, md->max_hp);
-				memcpy(WBUFP(buf,30), mobhp, 24);
+				//Even thought mobhp ain't a name, we send it as one so the client
+				//can parse it. [Skotlex]
+				memcpy(WBUFP(buf,30), mobhp, NAME_LENGTH);
 				WBUFB(buf,54) = 0;
-				memcpy(WBUFP(buf,78), mobhp, 24);
+				memcpy(WBUFP(buf,78), mobhp, NAME_LENGTH);
 			}
 		}
 		break;
@@ -8473,14 +8472,14 @@ int clif_message(struct block_list *bl, char* msg)
 void clif_parse_MapMove(int fd, struct map_session_data *sd) {
 // /m /mapmove (as @rura GM command)
 	char output[30]; // 17+4+4=26, 30 max.
-	char map_name[17];
+	char map_name[MAP_NAME_LENGTH]; //Err... map names are 15+'\0' in size, not 16+'\0' [Skotlex]
 
 	nullpo_retv(sd);
 
 	if ((battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 	    (pc_isGM(sd) >= get_atcommand_level(AtCommand_MapMove))) {
-		memcpy(map_name, RFIFOP(fd,2), 16);
-		map_name[16]='\0';
+		memcpy(map_name, RFIFOP(fd,2), MAP_NAME_LENGTH-1);
+		map_name[MAP_NAME_LENGTH-1]='\0';
 		sprintf(output, "%s %d %d", map_name, RFIFOW(fd,18), RFIFOW(fd,20));
 		atcommand_rura(fd, sd, "@rura", output);
 	}
@@ -10700,8 +10699,7 @@ void clif_parse_PMIgnore(int fd, struct map_session_data *sd) {	// Rewritten by 
 	memset(output, '\0', sizeof(output));
 
 	nick = (char*)RFIFOP(fd,2); // speed up
-	//How does setting [25] (NAME_LENGTH+1) to \0 a guarantee that the nick length is max 23?? [Skotlex]
-	RFIFOB(fd,NAME_LENGTH+1) = '\0'; // to be sure that the player name have at maximum 23 characters
+	RFIFOB(fd,NAME_LENGTH+1) = '\0'; // to be sure that the player name have at maximum 23 characters (nick range: [2]->[26])
 	//printf("Ignore: char '%s' state: %d\n", nick, RFIFOB(fd,26));
 
 	WFIFOW(fd,0) = 0x0d1; // R 00d1 <type>.B <fail>.B: type: 0: deny, 1: allow, fail: 0: success, 1: fail
@@ -10829,7 +10827,7 @@ void clif_parse_PMIgnoreList(int fd,struct map_session_data *sd)
 			count++;
 	}
 	WFIFOW(fd,0) = 0xd4;
-	WFIFOW(fd,2) = 4 + (24 * count);
+	WFIFOW(fd,2) = 4 + (NAME_LENGTH * count);
 	for(i = 0; i < MAX_IGNORE_LIST; i++){
 		if(sd->ignore[i].name[0] != 0){
 			memcpy(WFIFOP(fd, 4 + j * 24),sd->ignore[i].name, NAME_LENGTH);
@@ -10894,7 +10892,7 @@ void clif_friendslist_send(struct map_session_data *sd) {
 			//WFIFOB(sd->fd, 4 + 32 * n + 5) = (online[n]) ? 0 : 1; // <- We don't know this yet. I'd reckon its 5 but... i could be wrong.
 			WFIFOL(sd->fd, 4 + 32 * n + 0) = (map_charid2sd(sd->status.friend_id[i]) != NULL);
 			WFIFOL(sd->fd, 4 + 32 * n + 4) = sd->status.friend_id[i];
-			memcpy(WFIFOP(sd->fd, 4 + 32 * n + 8), &sd->status.friend_name[i], NAME_LENGTH-1);
+			memcpy(WFIFOP(sd->fd, 4 + 32 * n + 8), &sd->status.friend_name[i], NAME_LENGTH-1); //Why we omit the '\0'?
 			n++;
 		}
 	WFIFOW(sd->fd,2) = 4 + 32 * n;
@@ -11795,9 +11793,6 @@ int do_init_clif(void) {
 	clif_config.prefer_packet_db = 1; // whether the packet version takes precedence
 	clif_config.connect_cmd = 0xF5;	// the default packet used for connecting to the server
 
-	//Init strings [Skotlex]
-	memset(map_ip_str, 0, NAME_LENGTH);
-	
 	memset(packet_db,0,sizeof(packet_db));
 
 	// size of packet version 5 (old)

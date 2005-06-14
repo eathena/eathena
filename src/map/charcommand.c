@@ -400,12 +400,12 @@ int charcommand_petrename(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	char character[100];
+	char character[NAME_LENGTH];
 	struct map_session_data *pl_sd;
 
 	memset(character, '\0', sizeof(character));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", character) < 1) {
+	if (!message || !*message || sscanf(message, "%23[^\n]", character) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: #petrename <char name>).");
 		return -1;
 	}
@@ -444,11 +444,11 @@ int charcommand_petfriendly(
 {
 	int friendly = 0;
 	int t = 0;
-	char character[100];
+	char character[NAME_LENGTH];
 	struct map_session_data *pl_sd;
 
 	memset(character, '\0', sizeof(character));
-	if (!message || !*message || sscanf(message,"%d %s",&friendly,character) < 2) {
+	if (!message || !*message || sscanf(message,"%d %23s",&friendly,character) < 2) {
 		clif_displaymessage(fd, "Please, enter a valid value (usage: "
 			"#petfriendly <0-1000> <player>).");
 		return -1;
@@ -500,7 +500,7 @@ int charcommand_stats(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	char character[100];
+	char character[NAME_LENGTH];
 	char job_jobname[100];
 	char output[200];
 	struct map_session_data *pl_sd;
@@ -510,7 +510,7 @@ int charcommand_stats(
 	memset(job_jobname, '\0', sizeof(job_jobname));
 	memset(output, '\0', sizeof(output));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", character) < 1) {
+	if (!message || !*message || sscanf(message, "%23[^\n]", character) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: #stats <char name>).");
 		return -1;
 	}
@@ -558,14 +558,14 @@ int charcommand_reset(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	char character[100];
+	char character[NAME_LENGTH];
 	char output[200];
 	struct map_session_data *pl_sd;
 
 	memset(character, '\0', sizeof(character));
 	memset(output, '\0', sizeof(output));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", character) < 1) {
+	if (!message || !*message || sscanf(message, "%23[^\n]", character) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: #reset <charname>).");
 		return -1;
 	}
@@ -596,14 +596,14 @@ int charcommand_option(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	char character[100];
+	char character[NAME_LENGTH];
 	int opt1 = 0, opt2 = 0, opt3 = 0;
 	struct map_session_data* pl_sd;
 
 	memset(character, '\0', sizeof(character));
 
 	if (!message || !*message ||
-		sscanf(message, "%d %d %d %99[^\n]", &opt1, &opt2, &opt3, character) < 4 ||
+		sscanf(message, "%d %d %d %23[^\n]", &opt1, &opt2, &opt3, character) < 4 ||
 		opt1 < 0 || opt2 < 0 || opt3 < 0) {
 		clif_displaymessage(fd, "Please, enter valid options and a player name (usage: #option <param1> <param2> <param3> <charname>).");
 		return -1;
@@ -663,8 +663,8 @@ int charcommand_save(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	char map_name[100];
-	char character[100];
+	char map_name[MAP_NAME_LENGTH];
+	char character[NAME_LENGTH];
 	struct map_session_data* pl_sd;
 	int x = 0, y = 0;
 	int m;
@@ -672,12 +672,12 @@ int charcommand_save(
 	memset(map_name, '\0', sizeof(map_name));
 	memset(character, '\0', sizeof(character));
 
-	if (!message || !*message || sscanf(message, "%99s %d %d %99[^\n]", map_name, &x, &y, character) < 4 || x < 0 || y < 0) {
+	if (!message || !*message || sscanf(message, "%15s %d %d %23[^\n]", map_name, &x, &y, character) < 4 || x < 0 || y < 0) {
 		clif_displaymessage(fd, "Please, enter a valid save point and a player name (usage: #save <map> <x> <y> <charname>).");
 		return -1;
 	}
 
-	if (strstr(map_name, ".gat") == NULL && strstr(map_name, ".afm") == NULL && strlen(map_name) < 13) // 16 - 4 (.gat)
+	if (strstr(map_name, ".gat") == NULL && strstr(map_name, ".afm") == NULL && strlen(map_name) < MAP_NAME_LENGTH-5) // 16 - 4 (.gat)
 		strcat(map_name, ".gat");
 
 	if ((pl_sd = map_nick2sd(character)) != NULL) {
@@ -758,12 +758,12 @@ int charcommand_stats_all(const int fd, struct map_session_data* sd, const char*
 int charcommand_spiritball(const int fd, struct map_session_data* sd,const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
-	char character[100];
+	char character[NAME_LENGTH];
 	int spirit = 0;
 
 	memset(character, '\0', sizeof(character));
 
-	if(!message || !*message || sscanf(message, "%d %99[^\n]", &spirit, character) < 2 || spirit < 0 || spirit > 1000) {
+	if(!message || !*message || sscanf(message, "%d %23[^\n]", &spirit, character) < 2 || spirit < 0 || spirit > 1000) {
 		clif_displaymessage(fd, "Usage: @spiritball <number: 0-1000>) <CHARACTER_NAME>.");
 		return -1;
 	}
@@ -805,7 +805,7 @@ charcommand_itemlist(
 	struct map_session_data *pl_sd;
 	struct item_data *item_data, *item_temp;
 	int i, j, equip, count, counter, counter2;
-	char character[100], output[200], equipstr[100], outputtmp[200];
+	char character[NAME_LENGTH], output[200], equipstr[100], outputtmp[200];
 	nullpo_retr(-1, sd);
 
 	memset(character, '\0', sizeof(character));
@@ -813,7 +813,7 @@ charcommand_itemlist(
 	memset(equipstr, '\0', sizeof(equipstr));
 	memset(outputtmp, '\0', sizeof(outputtmp));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", character) < 1) {
+	if (!message || !*message || sscanf(message, "%23[^\n]", character) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: #itemlist <char name>).");
 		return -1;
 	}
@@ -949,14 +949,14 @@ charcommand_storagelist(
 	struct map_session_data *pl_sd;
 	struct item_data *item_data, *item_temp;
 	int i, j, count, counter, counter2;
-	char character[100], output[200], outputtmp[200];
+	char character[NAME_LENGTH], output[200], outputtmp[200];
 	nullpo_retr(-1, sd);
 
 	memset(character, '\0', sizeof(character));
 	memset(output, '\0', sizeof(output));
 	memset(outputtmp, '\0', sizeof(outputtmp));
 
-	if (!message || !*message || sscanf(message, "%99[^\n]", character) < 1) {
+	if (!message || !*message || sscanf(message, "%23[^\n]", character) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: #itemlist <char name>).");
 		return -1;
 	}
@@ -1054,7 +1054,7 @@ int charcommand_item(
 	const char* command, const char* message)
 {
 	char item_name[100];
-	char character[100];
+	char character[NAME_LENGTH];
 	struct map_session_data *pl_sd;
 	int number = 0, item_id, flag;
 	struct item item_tmp;
@@ -1064,7 +1064,7 @@ int charcommand_item(
 
 	memset(item_name, '\0', sizeof(item_name));
 
-	if (!message || !*message || sscanf(message, "%99s %d %99[^\n]", item_name, &number, character) < 3) {
+	if (!message || !*message || sscanf(message, "%99s %d %23[^\n]", item_name, &number, character) < 3) {
 		clif_displaymessage(fd, "Please, enter an item name/id (usage: #item <item name or ID> <quantity> <char name>).");
 		return -1;
 	}
@@ -1139,8 +1139,8 @@ int charcommand_warp(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	char map_name[100];
-	char character[100];
+	char map_name[MAP_NAME_LENGTH];
+	char character[NAME_LENGTH];
 	int x = 0, y = 0;
 	struct map_session_data *pl_sd;
 	int m;
@@ -1150,7 +1150,7 @@ int charcommand_warp(
 	memset(map_name, '\0', sizeof(map_name));
 	memset(character, '\0', sizeof(character));
 
-	if (!message || !*message || sscanf(message, "%99s %d %d %99[^\n]", map_name, &x, &y, character) < 4) {
+	if (!message || !*message || sscanf(message, "%15s %d %d %23[^\n]", map_name, &x, &y, character) < 4) {
 		clif_displaymessage(fd, "Usage: #warp/#rura/#rura+ <mapname> <x> <y> <char name>");
 		return -1;
 	}
@@ -1159,7 +1159,7 @@ int charcommand_warp(
 		x = rand() % 399 + 1;
 	if (y <= 0)
 		y = rand() % 399 + 1;
-	if (strstr(map_name, ".gat") == NULL && strstr(map_name, ".afm") == NULL && strlen(map_name) < 13) // 16 - 4 (.gat)
+	if (strstr(map_name, ".gat") == NULL && strstr(map_name, ".afm") == NULL && strlen(map_name) < MAP_NAME_LENGTH-5) // 16 - 4 (.gat)
 		strcat(map_name, ".gat");
 
 	if ((pl_sd = map_nick2sd(character)) != NULL) {
@@ -1206,13 +1206,13 @@ int charcommand_zeny(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
-	char character[100];
+	char character[NAME_LENGTH];
 	int zeny = 0, new_zeny;
 	nullpo_retr(-1, sd);
 
 	memset(character, '\0', sizeof(character));
 
-	if (!message || !*message || sscanf(message, "%d %99[^\n]", &zeny, character) < 2 || zeny == 0) {
+	if (!message || !*message || sscanf(message, "%d %23[^\n]", &zeny, character) < 2 || zeny == 0) {
 		clif_displaymessage(fd, "Please, enter a number and a player name (usage: #zeny <zeny> <name>).");
 		return -1;
 	}
@@ -1263,7 +1263,7 @@ int charcommand_fakename(
 		return 0;
 	}
 	
-	if (sscanf(message, "%23s %23[^\n]", name, char_name) < 1 || strlen(name) > NAME_LENGTH-1) {
+	if (sscanf(message, "%23s %23[^\n]", name, char_name) < 1) {
 		return 0;
 	}
 	
@@ -1308,7 +1308,7 @@ int charcommand_baselevel(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
-	char player[24];
+	char player[NAME_LENGTH];
 	int level = 0, i;
 	nullpo_retr(-1, sd);
 
@@ -1380,7 +1380,7 @@ int charcommand_joblevel(
 {
 	struct map_session_data *pl_sd;
 	unsigned int max_level = 50;
-	char player[24];
+	char player[NAME_LENGTH];
 	int level = 0;
 	//“]¶‚â—{Žq‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ðŽZo‚·‚é
 	struct pc_base_job pl_s_class;
@@ -1459,7 +1459,7 @@ int charcommand_questskill(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
-	char player[24];
+	char player[NAME_LENGTH];
 	int skill_id = 0;
 	nullpo_retr(-1, sd);
 
@@ -1505,11 +1505,11 @@ int charcommand_lostskill(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
-	char player[24];
+	char player[NAME_LENGTH];
 	int skill_id = 0;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%d %99[^\n]", &skill_id, player) < 2 || skill_id < 0) {
+	if (!message || !*message || sscanf(message, "%d %23[^\n]", &skill_id, player) < 2 || skill_id < 0) {
 		clif_displaymessage(fd, "Please, enter a quest skill number and a player name (usage: @charlostskill <#:0+> <char_name>).");
 		return -1;
 	}
@@ -1551,7 +1551,7 @@ int charcommand_skreset(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
-	char player[24];
+	char player[NAME_LENGTH];
 	nullpo_retr(-1, sd);
 
 	memset(chcmd_output, '\0', sizeof(chcmd_output));
@@ -1587,7 +1587,7 @@ int charcommand_streset(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
-	char player[24];
+	char player[NAME_LENGTH];
 	nullpo_retr(-1, sd);
 
 	memset(chcmd_output, '\0', sizeof(chcmd_output));
@@ -1624,7 +1624,7 @@ int charcommand_model(
 {
 	int hair_style = 0, hair_color = 0, cloth_color = 0;
 	struct map_session_data *pl_sd;
-	char player[24];
+	char player[NAME_LENGTH];
 	nullpo_retr(-1, sd);
 
 	memset(chcmd_output, '\0', sizeof(chcmd_output));
@@ -1673,7 +1673,7 @@ int charcommand_skpoint(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
-	char player[24];
+	char player[NAME_LENGTH];
 	int new_skill_point;
 	int point = 0;
 	nullpo_retr(-1, sd);
@@ -1717,7 +1717,7 @@ int charcommand_stpoint(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
-	char player[24];
+	char player[NAME_LENGTH];
 	int new_status_point;
 	int point = 0;
 	nullpo_retr(-1, sd);
@@ -1760,7 +1760,7 @@ int atcommand_char_change_sex(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	char player[24];
+	char player[NAME_LENGTH];
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", player) < 1) {

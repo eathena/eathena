@@ -3681,7 +3681,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			else
 				/* 付加する */
 				status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-			//skill_check_cloaking(bl);
 		}
 		break;
 
@@ -5576,10 +5575,9 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 	if( skill_num != sd->skillid)	/* 不正パケットらしい */
 		return 0;
 
-	if (strlen(map) > NAME_LENGTH-1)
+	if (strlen(map) > MAP_NAME_LENGTH-1)
 	{	//Map_length check, as it is sent by the client and we shouldn't trust it [Skotlex]
 		if (battle_config.error_log)
-			//Is it safe to do this? Won't it overflow? [Skotlex]
 			printf("skill_castend_map: Received map name '%s' too long!\n", map);
 		return 0;
 	}
@@ -5651,8 +5649,8 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 			}
 			if((group=skill_unitsetting(&sd->bl,sd->skillid,sd->skilllv,sd->skillx,sd->skilly,0))==NULL)
 				return 0;
-			group->valstr=(char *)aCallocA(MESSAGE_SIZE,sizeof(char));
-			memcpy(group->valstr,map,NAME_LENGTH-1);
+			group->valstr=(char *)aCallocA(MAP_NAME_LENGTH,sizeof(char));
+			memcpy(group->valstr,map,MAP_NAME_LENGTH-1);
 			group->val2=(x<<16)|y;
 		}
 		break;
@@ -7408,9 +7406,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	 	return 0;
 	if(skill_get_inf2(skill_num)&INF2_NO_TARGET_SELF && sd->bl.id == target_id)
 		return 0;
-	//At this point, we are ready to attempt the skill, so... uncloak. [Skotlex]
-	if(pc_iscloaking(sd) && skill_num != AS_CLOAKING)	//Except when asking to unloak :X
-		status_change_end(&sd->bl, SC_CLOAKING, -1);
 	
 	//直前のスキルが何か?える必要のあるスキル
 	switch (skill_num) {
@@ -7678,7 +7673,8 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	sd->canact_tick = tick + casttime + delay;
 	sd->canmove_tick = tick;
 
-	if (!(battle_config.pc_cloak_check_type & 2) && sc_data && sc_data[SC_CLOAKING].timer != -1 && sd->skillid != AS_CLOAKING)
+/*	if (!(battle_config.pc_cloak_check_type & 2) &&*/ //Why non-type 2 will not be uncloaked by skills? [Skotlex]
+	if (sc_data && sc_data[SC_CLOAKING].timer != -1 && sd->skillid != AS_CLOAKING)
 		status_change_end(&sd->bl,SC_CLOAKING,-1);
 	if (casttime > 0) {
 		sd->skilltimer = add_timer (tick + casttime, skill_castend_id, sd->bl.id, 0);
@@ -8579,7 +8575,8 @@ int skill_check_cloaking(struct block_list *bl)
 
 	if (bl->type == BL_PC) {
 		nullpo_retr(1, sd = (struct map_session_data *)bl);
-		if (!battle_config.pc_cloak_check_type) // If it's No it shouldn't be checked
+		if (!battle_config.pc_cloak_check_type
+			|| battle_config.pc_cloak_check_type == 2) // If it's No it shouldn't be checked
 			return 0;
 	} else if (bl->type == BL_MOB && !battle_config.monster_cloak_check_type)
 		return 0;

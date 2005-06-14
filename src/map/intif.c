@@ -279,13 +279,13 @@ int intif_create_party(struct map_session_data *sd,char *name,int item,int item2
 
 	WFIFOW(inter_fd,0) = 0x3020;
 	WFIFOL(inter_fd,2) = sd->status.account_id;
-	memcpy(WFIFOP(inter_fd,6),name,	NAME_LENGTH);
+	memcpy(WFIFOP(inter_fd,6),name, NAME_LENGTH);
 	memcpy(WFIFOP(inter_fd,6+NAME_LENGTH),sd->status.name,NAME_LENGTH);
-	memcpy(WFIFOP(inter_fd,6+2*NAME_LENGTH),map[sd->bl.m].name,16); //What? 16? But a map's name is up to 24 currently!? [Skotlex]
-	WFIFOW(inter_fd,22+2*NAME_LENGTH)= sd->status.base_level;
-	WFIFOB(inter_fd,24+2*NAME_LENGTH)= item;
-	WFIFOB(inter_fd,25+2*NAME_LENGTH)= item2;
-	WFIFOSET(inter_fd,26+2*NAME_LENGTH);
+	memcpy(WFIFOP(inter_fd,6+2*NAME_LENGTH),map[sd->bl.m].name,MAP_NAME_LENGTH);
+	WFIFOW(inter_fd,6+2*NAME_LENGTH+MAP_NAME_LENGTH)= sd->status.base_level;
+	WFIFOB(inter_fd,8+2*NAME_LENGTH+MAP_NAME_LENGTH)= item;
+	WFIFOB(inter_fd,9+2*NAME_LENGTH+MAP_NAME_LENGTH)= item2;
+	WFIFOSET(inter_fd,10+2*NAME_LENGTH+MAP_NAME_LENGTH);
 //	if(battle_config.etc_log)
 //		printf("intif: create party\n");
 	return 0;
@@ -316,9 +316,9 @@ int intif_party_addmember(int party_id,int account_id)
 		WFIFOL(inter_fd,2)=party_id;
 		WFIFOL(inter_fd,6)=account_id;
 		memcpy(WFIFOP(inter_fd,10),sd->status.name,NAME_LENGTH);
-		memcpy(WFIFOP(inter_fd,10+NAME_LENGTH),map[sd->bl.m].name,16);
-		WFIFOW(inter_fd,26+NAME_LENGTH)=sd->status.base_level;
-		WFIFOSET(inter_fd,28+NAME_LENGTH);
+		memcpy(WFIFOP(inter_fd,10+NAME_LENGTH),map[sd->bl.m].name,MAP_NAME_LENGTH);
+		WFIFOW(inter_fd,10+NAME_LENGTH+MAP_NAME_LENGTH)=sd->status.base_level;
+		WFIFOSET(inter_fd,12+NAME_LENGTH+MAP_NAME_LENGTH);
 	}
 	return 0;
 }
@@ -357,10 +357,10 @@ int intif_party_changemap(struct map_session_data *sd,int online)
 	    WFIFOW(inter_fd,0)=0x3025;
 	    WFIFOL(inter_fd,2)=sd->status.party_id;
 	    WFIFOL(inter_fd,6)=sd->status.account_id;
-	    memcpy(WFIFOP(inter_fd,10),map[sd->bl.m].name,16);
-	    WFIFOB(inter_fd,26)=online;
-	    WFIFOW(inter_fd,27)=sd->status.base_level;
-	    WFIFOSET(inter_fd,29);
+	    memcpy(WFIFOP(inter_fd,10),map[sd->bl.m].name,MAP_NAME_LENGTH);
+	    WFIFOB(inter_fd,10+MAP_NAME_LENGTH)=online;
+	    WFIFOW(inter_fd,11+MAP_NAME_LENGTH)=sd->status.base_level;
+	    WFIFOSET(inter_fd,13+MAP_NAME_LENGTH);
 	}
 //	if(battle_config.etc_log)
 //		printf("party: change map\n");
@@ -412,7 +412,7 @@ int intif_guild_create(const char *name,const struct guild_member *master)
 	nullpo_retr(0, master);
 
 	WFIFOW(inter_fd,0)=0x3030;
-	WFIFOW(inter_fd,2)=sizeof(struct guild_member)+32;
+	WFIFOW(inter_fd,2)=sizeof(struct guild_member)+(8+NAME_LENGTH);
 	WFIFOL(inter_fd,4)=master->account_id;
 	memcpy(WFIFOP(inter_fd,8),name,NAME_LENGTH);
 	memcpy(WFIFOP(inter_fd,8+NAME_LENGTH),master,sizeof(struct guild_member));
@@ -696,7 +696,7 @@ int intif_parse_WisEnd(int fd) {
 int mapif_parse_WisToGM(int fd) { // 0x3003/0x3803 <packet_len>.w <wispname>.24B <min_gm_level>.w <message>.?B
 	int i, min_gm_level;
 	struct map_session_data *pl_sd;
-	char Wisp_name[24];
+	char Wisp_name[NAME_LENGTH];
         char mbuf[255];
 	char *message = (char *) (((RFIFOW(fd,2) - 30) >= sizeof(mbuf)) ? (char *) aMallocA((RFIFOW(fd,2) - 30)) : mbuf);
 

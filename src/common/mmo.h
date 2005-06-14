@@ -91,6 +91,8 @@
 #define NAME_LENGTH 24
 //For item names, which tend to have much longer names.
 #define ITEM_NAME_LENGTH 24
+//For Map Names, which the client considers to be 16 in length
+#define MAP_NAME_LENGTH 16
 
 #define CHAR_CONF_NAME  "conf/char_athena.conf"
 
@@ -106,7 +108,7 @@ struct item {
 };
 
 struct point{
-	char map[NAME_LENGTH];
+	char map[MAP_NAME_LENGTH];
 	short x,y;
 };
 
@@ -202,7 +204,7 @@ struct gm_account {
 
 struct party_member {
 	int account_id;
-	char name[NAME_LENGTH],map[NAME_LENGTH];
+	char name[NAME_LENGTH],map[MAP_NAME_LENGTH];
 	int leader,online,lv;
 	struct map_session_data *sd;
 };
@@ -270,7 +272,7 @@ struct guild {
 
 struct guild_castle {
 	int castle_id;
-	char map_name[NAME_LENGTH];
+	char map_name[MAP_NAME_LENGTH];
 	char castle_name[NAME_LENGTH];
 	char castle_event[NAME_LENGTH];
 	int guild_id;
@@ -298,7 +300,7 @@ struct guild_castle {
 	int Ghp5;
 	int Ghp6;
 	int Ghp7;	
-	int GID0;	
+	int GID0;
 	int GID1;
 	int GID2;
 	int GID3;

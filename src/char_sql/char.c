@@ -79,7 +79,7 @@ int login_fd, char_fd;
 char userid[24];
 char passwd[24];
 char server_name[20];
-char wisp_server_name[24] = "Server";
+char wisp_server_name[NAME_LENGTH] = "Server";
 int login_ip_set_ = 0;
 char login_ip_str[128];
 in_addr_t login_ip;
@@ -1875,8 +1875,8 @@ int parse_frommap(int fd) {
 				return 0;
 			memset(server[id].map, 0, sizeof(server[id].map));
 			j = 0;
-			for(i = 4; i < RFIFOW(fd,2); i += 16) {
-				memcpy(server[id].map[j], RFIFOP(fd,i), 16);
+			for(i = 4; i < RFIFOW(fd,2); i += MAP_NAME_LENGTH) {
+				memcpy(server[id].map[j], RFIFOP(fd,i), MAP_NAME_LENGTH);
 //				printf("set map %d.%d : %s\n", id, j, server[id].map[j]);
 				j++;
 			}
@@ -1891,7 +1891,8 @@ int parse_frommap(int fd) {
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;
 			memcpy(WFIFOP(fd,3), wisp_server_name, NAME_LENGTH); // name for wisp to player
-			WFIFOSET(fd,27);
+			WFIFOSET(fd,3+NAME_LENGTH);
+			//WFIFOSET(fd,27);
 			{
 				unsigned char buf[16384];
 				int x;
@@ -2178,10 +2179,10 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 44)
 				return 0;
 		  {
-			char character_name[24];
+			char character_name[NAME_LENGTH];
 			int acc = RFIFOL(fd,2); // account_id of who ask (-1 if nobody)
-			memcpy(character_name, RFIFOP(fd,6), 24);
-			character_name[sizeof(character_name) -1] = '\0';
+			memcpy(character_name, RFIFOP(fd,6), NAME_LENGTH);
+			character_name[NAME_LENGTH-1] = '\0';
 			// prepare answer
 			WFIFOW(fd,0) = 0x2b0f; // answer
 			WFIFOL(fd,2) = acc; // who want do operation
@@ -2196,7 +2197,7 @@ int parse_frommap(int fd) {
 			if (sql_res) {
 				if (mysql_num_rows(sql_res)) {
 					sql_row = mysql_fetch_row(sql_res);
-					memcpy(WFIFOP(fd,6), sql_row[1], 24); // put correct name if found
+					memcpy(WFIFOP(fd,6), sql_row[1], NAME_LENGTH); // put correct name if found
 					WFIFOW(fd,32) = 0; // answer: 0-login-server resquest done, 1-player not found, 2-gm level too low, 3-login-server offline
 					switch(RFIFOW(fd, 30)) {
 					case 1: // block
@@ -2388,12 +2389,12 @@ int parse_frommap(int fd) {
 
 int search_mapserver(char *map) {
 	int i, j;
-	char temp_map[16];
+	char temp_map[MAP_NAME_LENGTH];
 	int temp_map_len;
 
 //	printf("Searching the map-server for map '%s'... ", map);
-	strncpy(temp_map, map, sizeof(temp_map));
-	temp_map[sizeof(temp_map)-1] = '\0';
+	strncpy(temp_map, map, MAP_NAME_LENGTH-1);
+	temp_map[MAP_NAME_LENGTH-1] = '\0';
 	if (strchr(temp_map, '.') != NULL)
 		temp_map[strchr(temp_map, '.') - temp_map + 1] = '\0'; // suppress the '.gat', but conserve the '.' to be sure of the name of the map
 
@@ -2603,27 +2604,27 @@ int parse_char(int fd) {
 			// if map is not found, we check major cities
 			if (i < 0) {
 				if ((i = search_mapserver("prontera.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "prontera.gat", 16);
+					memcpy(char_dat[0].last_point.map, "prontera.gat", MAP_NAME_LENGTH);
 					char_dat[0].last_point.x = 273; // savepoint coordonates
 					char_dat[0].last_point.y = 354;
 				} else if ((i = search_mapserver("geffen.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "geffen.gat", 16);
+					memcpy(char_dat[0].last_point.map, "geffen.gat", MAP_NAME_LENGTH);
 					char_dat[0].last_point.x = 120; // savepoint coordonates
 					char_dat[0].last_point.y = 100;
 				} else if ((i = search_mapserver("morocc.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "morocc.gat", 16);
+					memcpy(char_dat[0].last_point.map, "morocc.gat", MAP_NAME_LENGTH);
 					char_dat[0].last_point.x = 160; // savepoint coordonates
 					char_dat[0].last_point.y = 94;
 				} else if ((i = search_mapserver("alberta.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "alberta.gat", 16);
+					memcpy(char_dat[0].last_point.map, "alberta.gat", MAP_NAME_LENGTH);
 					char_dat[0].last_point.x = 116; // savepoint coordonates
 					char_dat[0].last_point.y = 57;
 				} else if ((i = search_mapserver("payon.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "payon.gat", 16);
+					memcpy(char_dat[0].last_point.map, "payon.gat", MAP_NAME_LENGTH);
 					char_dat[0].last_point.x = 87; // savepoint coordonates
 					char_dat[0].last_point.y = 117;
 				} else if ((i = search_mapserver("izlude.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "izlude.gat", 16);
+					memcpy(char_dat[0].last_point.map, "izlude.gat", MAP_NAME_LENGTH);
 					char_dat[0].last_point.x = 94; // savepoint coordonates
 					char_dat[0].last_point.y = 103;
 				} else {
@@ -2648,15 +2649,22 @@ int parse_char(int fd) {
 			}
 			WFIFOW(fd, 0) =0x71;
 			WFIFOL(fd, 2) =char_dat[0].char_id;
-			memcpy(WFIFOP(fd, 6), char_dat[0].last_point.map, 16);
+			memcpy(WFIFOP(fd, 6), char_dat[0].last_point.map, MAP_NAME_LENGTH);
 			//Lan check added by Kashy
+			if (lan_ip_check(p))
+				WFIFOL(fd, 6+MAP_NAME_LENGTH) = inet_addr(lan_map_ip);
+			else
+				WFIFOL(fd, 6+MAP_NAME_LENGTH) = server[i].ip;
+			WFIFOW(fd, 10+MAP_NAME_LENGTH) = server[i].port;
+			WFIFOSET(fd, 12+MAP_NAME_LENGTH);
+/*
 			if (lan_ip_check(p))
 				WFIFOL(fd, 22) = inet_addr(lan_map_ip);
 			else
 				WFIFOL(fd, 22) = server[i].ip;
 			WFIFOW(fd, 26) = server[i].port;
 			WFIFOSET(fd, 28);
-
+*/
 			if (auth_fifo_pos >= AUTH_FIFO_SIZE) {
 				auth_fifo_pos = 0;
 			}
@@ -2749,7 +2757,7 @@ int parse_char(int fd) {
 			WFIFOW(fd,2+68) = char_dat[i].head_mid;
 			WFIFOW(fd,2+70) = char_dat[i].hair_color;
 
-			memcpy(WFIFOP(fd,2+74), char_dat[i].name, 24);
+			memcpy(WFIFOP(fd,2+74), char_dat[i].name, NAME_LENGTH);
 
 			WFIFOB(fd,2+98) = char_dat[i].str;
 			WFIFOB(fd,2+99) = char_dat[i].agi;
@@ -3445,11 +3453,11 @@ int char_config_read(const char *cfgName) {
 		remove_control_chars((unsigned char *) w1);
 		remove_control_chars((unsigned char *) w2);
 		if (strcmpi(w1, "userid") == 0) {
-			memcpy(userid, w2, NAME_LENGTH);
+			memcpy(userid, w2, 24);
 		} else if (strcmpi(w1, "passwd") == 0) {
-			memcpy(passwd, w2, NAME_LENGTH);
+			memcpy(passwd, w2, 24);
 		} else if (strcmpi(w1, "server_name") == 0) {
-			memcpy(server_name, w2, 16);
+			memcpy(server_name, w2, 20);
 			printf("%s server has been initialized\n", w2);
 		} else if (strcmpi(w1, "wisp_server_name") == 0) {
 			if (strlen(w2) >= 4) {
@@ -3505,12 +3513,12 @@ int char_config_read(const char *cfgName) {
 			if (autosave_interval <= 0)
 				autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 		} else if (strcmpi(w1, "start_point") == 0) {
-			char map[32];
+			char map[MAP_NAME_LENGTH];
 			int x, y;
-			if (sscanf(w2,"%[^,],%d,%d", map, &x, &y) < 3)
+			if (sscanf(w2,"%15[^,],%d,%d", map, &x, &y) < 3)
 				continue;
 			if (strstr(map, ".gat") != NULL) { // Verify at least if '.gat' is in the map name
-				memcpy(start_point.map, map, 16);
+				memcpy(start_point.map, map, MAP_NAME_LENGTH);
 				start_point.x = x;
 				start_point.y = y;
 			}

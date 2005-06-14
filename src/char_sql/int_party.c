@@ -196,7 +196,7 @@ int inter_party_fromsql(int party_id, struct party *p)
 				m->leader = 0;
 			memcpy(m->name, sql_row[1], NAME_LENGTH-1);
 			m->lv = atoi(sql_row[2]);
-			memcpy(m->map, sql_row[3], NAME_LENGTH-1);
+			memcpy(m->map, sql_row[3], MAP_NAME_LENGTH-1);
 			m->online = atoi(sql_row[4]);
 		}
 	//	printf("- %d members found in party %d \n",i,party_id);
@@ -266,7 +266,6 @@ struct party* search_partyname(char *str)
 	p = party_pt;
 	p->party_id = atoi(sql_row[0]);
 	memcpy(p->name, sql_row[1], NAME_LENGTH-1);
-	p->name[NAME_LENGTH-1] = '\0';
 	p->exp = atoi(sql_row[2]);
 	p->item = atoi(sql_row[3]);
 	leader_id = atoi(sql_row[4]);
@@ -287,7 +286,7 @@ struct party* search_partyname(char *str)
 			if (m->account_id == leader_id) m->leader = 1; else m->leader = 0;
 			memcpy(m->name,sql_row[1],NAME_LENGTH-1);
 			m->lv = atoi(sql_row[2]);
-			strncpy(m->map,sql_row[3],NAME_LENGTH-1);
+			strncpy(m->map,sql_row[3],MAP_NAME_LENGTH-1);
 			m->online = atoi(sql_row[4]);
 		}
 		printf("- %d members found in party %d \n",i,p->party_id);
@@ -370,7 +369,9 @@ int mapif_party_created(int fd,int account_id,struct party *p)
 		WFIFOL(fd,7)=0;
 		memcpy(WFIFOP(fd,11),"error",NAME_LENGTH);
 	}
-	WFIFOSET(fd,35);
+//	WFIFOSET(fd,35);
+	WFIFOSET(fd,11+NAME_LENGTH);
+
 	return 0;
 }
 
@@ -433,8 +434,10 @@ int mapif_party_leaved(int party_id,int account_id,char *name)
 	WBUFL(buf,2)=party_id;
 	WBUFL(buf,6)=account_id;
 	memcpy(WBUFP(buf,10),name,NAME_LENGTH-1);
-	WBUFB(buf,33)= '\0';	//Guaranteeing a null terminator [Skotlex]
-	mapif_sendall(buf,34);
+	WBUFB(buf,9+NAME_LENGTH)= '\0';	//Guaranteeing a null terminator [Skotlex]
+	mapif_sendall(buf,10+NAME_LENGTH);
+//	WBUFB(buf,33)= '\0';	//Guaranteeing a null terminator [Skotlex]
+//	mapif_sendall(buf,34);
 	//printf("int_party: party leaved %d %d %s\n",party_id,account_id,name);
 	return 0;
 }
@@ -445,11 +448,16 @@ int mapif_party_membermoved(struct party *p,int idx)
 	WBUFW(buf,0)=0x3825;
 	WBUFL(buf,2)=p->party_id;
 	WBUFL(buf,6)=p->member[idx].account_id;
-	memcpy(WBUFP(buf,10),p->member[idx].map,15);
-	WBUFB(buf,25)='\0';	//.map is stored as NAME_LENGTH, gotta check the \0 [Skotlex]
+	memcpy(WBUFP(buf,10),p->member[idx].map,MAP_NAME_LENGTH);
+	WBUFB(buf,10+MAP_NAME_LENGTH)=p->member[idx].online;
+	WBUFW(buf,11+MAP_NAME_LENGTH)=p->member[idx].lv;
+	mapif_sendall(buf,13+MAP_NAME_LENGTH);
+/*
+	WBUFB(buf,25)='\0';
 	WBUFB(buf,26)=p->member[idx].online;
 	WBUFW(buf,27)=p->member[idx].lv;
 	mapif_sendall(buf,29);
+*/
 	return 0;
 }
 // パーティ解散通知
@@ -507,7 +515,7 @@ int mapif_parse_CreateParty(int fd,int account_id,char *name,char *nick,char *ma
 
 	p->member[0].account_id=account_id;
 	memcpy(p->member[0].name,nick,NAME_LENGTH-1);
-	memcpy(p->member[0].map,map,16); //.map is NAME_LENGTH, so no need for \0 hcheck [Skotlex]
+	memcpy(p->member[0].map,map,MAP_NAME_LENGTH-1);
 	p->member[0].leader=1;
 	p->member[0].online=1;
 	p->member[0].lv=lv;
@@ -559,7 +567,7 @@ int mapif_parse_PartyAddMember(int fd,int party_id,int account_id,char *nick,cha
 
 			p->member[i].account_id=account_id;
 			memcpy(p->member[i].name,nick,NAME_LENGTH-1);
-			memcpy(p->member[i].map,map,16);
+			memcpy(p->member[i].map,map,MAP_NAME_LENGTH-1);
 			p->member[i].leader=0;
 			p->member[i].online=1;
 			p->member[i].lv=lv;
@@ -706,7 +714,7 @@ int mapif_parse_PartyChangeMap(int fd,int party_id,int account_id,char *map,int 
 		if(p->member[i].account_id==account_id){
 			int flag=0;
 
-			memcpy(p->member[i].map,map,16); //the hell.. .map is 24, not 16 o.O [Skotlex]
+			memcpy(p->member[i].map,map,MAP_NAME_LENGTH-1);
 			p->member[i].online=online;
 			p->member[i].lv=lv;
 			mapif_party_membermoved(p,i);

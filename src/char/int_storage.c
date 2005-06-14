@@ -216,7 +216,7 @@ struct guild_storage *guild2storage(int guild_id)
 				printf("int_storage: out of memory!\n");
 				exit(0);
 			}
-			memset(gs,0,sizeof(struct guild_storage));
+//			memset(gs,0,sizeof(struct guild_storage)); aCalloc does this! [Skotlex]
 			gs->guild_id=guild_id;
 			numdb_insert(guild_storage_db,gs->guild_id,gs);
 		}
@@ -248,7 +248,7 @@ int inter_storage_init()
 			printf("int_storage: out of memory!\n");
 			exit(0);
 		}
-		memset(s,0,sizeof(struct storage));
+//		memset(s,0,sizeof(struct storage)); aCalloc does this...
 		s->account_id=tmp_int;
 		if(s->account_id > 0 && storage_fromstr(line,s) == 0) {
 			numdb_insert(storage_db,s->account_id,s);
@@ -276,7 +276,7 @@ int inter_storage_init()
 			printf("int_storage: out of memory!\n");
 			exit(0);
 		}
-		memset(gs,0,sizeof(struct guild_storage));
+//		memset(gs,0,sizeof(struct guild_storage)); aCalloc...
 		gs->guild_id=tmp_int;
 		if(gs->guild_id > 0 && guild_storage_fromstr(line,gs) == 0) {
 			numdb_insert(guild_storage_db,gs->guild_id,gs);

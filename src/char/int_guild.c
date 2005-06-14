@@ -115,8 +115,8 @@ int inter_guild_fromstr(char *str, struct guild *g) {
 	g->exp = tmp_int[3];
 	g->skill_point = tmp_int[4];
 	g->castle_id = tmp_int[5];
-	memcpy(g->name, tmp_str[0], 24);
-	memcpy(g->master, tmp_str[1], 24);
+	memcpy(g->name, tmp_str[0], NAME_LENGTH-1);
+	memcpy(g->master, tmp_str[1], NAME_LENGTH-1);
 	memcpy(g->mes1, tmp_str[2], 60);
 	memcpy(g->mes2, tmp_str[3], 120);
 	g->mes1[strlen(g->mes1)-1] = 0;
@@ -144,7 +144,7 @@ int inter_guild_fromstr(char *str, struct guild *g) {
 		m->exp = tmp_int[7];
 		m->exp_payper = tmp_int[8];
 		m->position = tmp_int[9];
-		memcpy(m->name, tmp_str[0], 24);
+		memcpy(m->name, tmp_str[0], NAME_LENGTH-1);
 
 		for(j = 0; j < 2 && str != NULL; j++)	// 位置スキップ
 			str = strchr(str + 1, '\t');
@@ -159,7 +159,7 @@ int inter_guild_fromstr(char *str, struct guild *g) {
 		p->mode = tmp_int[0];
 		p->exp_mode = tmp_int[1];
 		tmp_str[0][strlen(tmp_str[0])-1] = 0;
-		memcpy(p->name, tmp_str[0], 24);
+		memcpy(p->name, tmp_str[0], NAME_LENGTH-1);
 
 		for(j = 0; j < 2 && str != NULL; j++)	// 位置スキップ
 			str = strchr(str+1, '\t');
@@ -196,7 +196,7 @@ int inter_guild_fromstr(char *str, struct guild *g) {
 			return 1;
 		a->guild_id = tmp_int[0];
 		a->opposition = tmp_int[1];
-		memcpy(a->name, tmp_str[0], 24);
+		memcpy(a->name, tmp_str[0], NAME_LENGTH-1);
 
 		for(j = 0; j < 2 && str != NULL; j++)	// 位置スキップ
 			str = strchr(str + 1, '\t');
@@ -216,7 +216,7 @@ int inter_guild_fromstr(char *str, struct guild *g) {
 		e->rsv1 = tmp_int[1];
 		e->rsv2 = tmp_int[2];
 		e->rsv3 = tmp_int[3];
-		memcpy(e->name, tmp_str[0], 24);
+		memcpy(e->name, tmp_str[0], NAME_LENGTH-1);
 		memcpy(e->acc, tmp_str[1], 24);
 		tmp_str[2][strlen(tmp_str[2])-1] = 0;
 		memcpy(e->mes, tmp_str[2], 40);
@@ -404,7 +404,7 @@ int inter_guild_init() {
 			printf("int_guild: out of memory!\n");
 			exit(0);
 		}
-		memset(g, 0, sizeof(struct guild));
+//		memset(g, 0, sizeof(struct guild)); not needed...
 		if (inter_guild_fromstr(line, g) == 0 && g->guild_id > 0) {
 			if (g->guild_id >= guild_newid)
 				guild_newid = g->guild_id + 1;
@@ -432,7 +432,7 @@ int inter_guild_init() {
 			printf("int_guild: out of memory!\n");
 			exit(0);
 		}
-		memset(gc, 0, sizeof(struct guild_castle));
+//		memset(gc, 0, sizeof(struct guild_castle)); No need...
 		if (inter_guildcastle_fromstr(line, gc) == 0) {
 			numdb_insert(castle_db, gc->castle_id, gc);
 		} else {
@@ -451,8 +451,9 @@ int inter_guild_init() {
 				printf("int_guild: out of memory!\n");
 				exit(0);
 			}
-			memset(gc, 0, sizeof(struct guild_castle));
+//			memset(gc, 0, sizeof(struct guild_castle)); unneeded...
 			gc->castle_id = i;
+/* Ridiculous...
 			gc->guild_id = 0;
 			gc->economy = 0;
 			gc->defense = 0;
@@ -478,6 +479,7 @@ int inter_guild_init() {
 			gc->Ghp5 = 0;
 			gc->Ghp6 = 0;
 			gc->Ghp7 = 0;	// end additions [Valaris]
+*/
 			numdb_insert(castle_db, gc->castle_id, gc);
 		}
 		printf(" %s - making done\n",castle_txt);
@@ -769,8 +771,9 @@ int mapif_guild_leaved(int guild_id, int account_id, int char_id, int flag, cons
 	WBUFL(buf,10) = char_id;
 	WBUFB(buf,14) = flag;
 	memcpy(WBUFP(buf,15), mes, 40);
-	memcpy(WBUFP(buf,55), name, 24);
-	mapif_sendall(buf, 79);
+	memcpy(WBUFP(buf,55), name, NAME_LENGTH);
+	mapif_sendall(buf, 55+NAME_LENGTH);
+//	mapif_sendall(buf, 79);
 	printf("int_guild: guild leaved %d %d %s %s\n", guild_id, account_id, name, mes);
 
 	return 0;
@@ -870,10 +873,13 @@ int mapif_guild_alliance(int guild_id1, int guild_id2, int account_id1, int acco
 	WBUFL(buf,10) = account_id1;
 	WBUFL(buf,14) = account_id2;
 	WBUFB(buf,18) = flag;
-	memcpy(WBUFP(buf,19), name1, 24);
-	memcpy(WBUFP(buf,43), name2, 24);
+	memcpy(WBUFP(buf,19), name1, NAME_LENGTH);
+	memcpy(WBUFP(buf,19+NAME_LENGTH), name2, NAME_LENGTH);
+	mapif_sendall(buf,19+2*NAME_LENGTH);
+/*
+	memcpy(WBUFP(buf,43), name2, NAME_LENGTH);
 	mapif_sendall(buf, 67);
-
+*/
 	return 0;
 }
 
@@ -971,7 +977,7 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 	struct guild *g;
 	int i;
 
-	for(i = 0; i < 24 && name[i]; i++) {
+	for(i = 0; i < NAME_LENGTH && name[i]; i++) {
 		if (!(name[i] & 0xe0) || name[i] == 0x7f) {
 			printf("int_guild: illeagal guild name [%s]\n", name);
 			mapif_guild_created(fd, account_id, NULL);
@@ -990,10 +996,10 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 		mapif_guild_created(fd, account_id, NULL);
 		exit(0);
 	}
-	memset(g, 0, sizeof(struct guild));
+//	memset(g, 0, sizeof(struct guild)); Meh...
 	g->guild_id = guild_newid++;
-	memcpy(g->name, name, 24);
-	memcpy(g->master, master->name, 24);
+	memcpy(g->name, name, NAME_LENGTH-1);
+	memcpy(g->master, master->name, NAME_LENGTH-1);
 	memcpy(&g->member[0], master, sizeof(struct guild_member));
 
 	g->position[0].mode = 0x11;
@@ -1083,8 +1089,8 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 						j = MAX_GUILDEXPLUSION - 1;
 					}
 					g->explusion[j].account_id = account_id;
-					memcpy(g->explusion[j].acc, "dummy", 24);
-					memcpy(g->explusion[j].name, g->member[i].name, 24);
+					memcpy(g->explusion[j].acc, "dummy", NAME_LENGTH-1);
+					memcpy(g->explusion[j].name, g->member[i].name, NAME_LENGTH-1);
 					memcpy(g->explusion[j].mes, mes, 40);
 				}
 
@@ -1290,7 +1296,7 @@ int mapif_parse_GuildAlliance(int fd, int guild_id1, int guild_id2, int account_
 			for(j = 0; j < MAX_GUILDALLIANCE; j++)
 				if (g[i]->alliance[j].guild_id == 0) {
 					g[i]->alliance[j].guild_id = g[1-i]->guild_id;
-					memcpy(g[i]->alliance[j].name, g[1-i]->name, 24);
+					memcpy(g[i]->alliance[j].name, g[1-i]->name, NAME_LENGTH-1);
 					g[i]->alliance[j].opposition = flag & 1;
 					break;
 				}

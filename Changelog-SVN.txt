@@ -1,5 +1,11 @@
 Date	Added
 06/14
+	* Changed map names length from 24 to 16 all over the char(txt/sq) and map
+	  servers, this could fix the "matrix" bug (if done right...).	[Skotlex]
+	* General cleanup and memory checks on char server (txt)	[Skotlex]
+	* Miscellanous memory checks around charcommand.c and atcommand.c [Skotlex]
+	* Added Maeki's fix to Maeki's fix of SQL Char Server Guild Saving.
+	* Fixed characters not being able to uncloak
 	* Split used-by-plugins-only code to plugin.h [celest]
 	* Standardised plugin functions and names -- dll.c is now plugins.c, addon_athena
 	  is now plugin_athena.conf and so on [celest]

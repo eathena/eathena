@@ -206,7 +206,7 @@ struct map_session_data {
 	unsigned short unbreakable;	// chance to prevent equipment breaking [celest]
 	int weight,max_weight;
 	int cart_weight,cart_max_weight,cart_num,cart_max_num;
-	char mapname[NAME_LENGTH];
+	char mapname[MAP_NAME_LENGTH];
 	int fd,new_fd;
 	short to_x,to_y;
 	short speed,prev_speed;
@@ -458,7 +458,7 @@ struct npc_data {
 		struct {
 			short xs,ys;
 			short x,y;
-			char name[16];
+			char name[MAP_NAME_LENGTH];
 		} warp;
 	} u;
 	// ‚±‚±‚Éƒƒ“ƒo‚ğ’Ç‰Á‚µ‚Ä‚Í‚È‚ç‚È‚¢(shop_item‚ª‰Â•Ï’·‚Ìˆ×)
@@ -632,7 +632,7 @@ struct mob_list {
 };
 
 struct map_data {
-	char name[NAME_LENGTH];
+	char name[MAP_NAME_LENGTH];
 	unsigned char *gat;	// NULL‚È‚ç‰º‚Ìmap_data_other_server‚Æ‚µ‚Äˆµ‚¤
 	char *alias; // [MouseJstr]
 	struct block_list **block;

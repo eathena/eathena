@@ -54,7 +54,7 @@ int inter_pet_fromstr(char *str,struct s_pet *p)
 
 	p->pet_id = tmp_int[0];
 	p->class_ = tmp_int[1];
-	memcpy(p->name,tmp_str,24);
+	memcpy(p->name,tmp_str,NAME_LENGTH-1);
 	p->account_id = tmp_int[2];
 	p->char_id = tmp_int[3];
 	p->level = tmp_int[4];
@@ -222,15 +222,15 @@ int mapif_create_pet(int fd,int account_id,int char_id,short pet_class,short pet
 	short pet_equip,short intimate,short hungry,char rename_flag,char incuvate,char *pet_name)
 {
 	struct s_pet *p;
-	p= (struct s_pet *) aMalloc(sizeof(struct s_pet));
+	p= (struct s_pet *) aCalloc(sizeof(struct s_pet), 1);
 	if(p==NULL){
 		printf("int_pet: out of memory !\n");
 		mapif_pet_created(fd,account_id,NULL);
 		return 0;
 	}
-	memset(p,0,sizeof(struct s_pet));
+//	memset(p,0,sizeof(struct s_pet)); unnecessary after aCalloc [Skotlex]
 	p->pet_id = pet_newid++;
-	memcpy(p->name,pet_name,24);
+	memcpy(p->name,pet_name,NAME_LENGTH-1);
 	if(incuvate == 1)
 		p->account_id = p->char_id = 0;
 	else {
@@ -294,13 +294,13 @@ int mapif_save_pet(int fd,int account_id,struct s_pet *data)
 		pet_id = data->pet_id;
 		p=(struct s_pet *)numdb_search(pet_db,pet_id);
 		if(p == NULL) {
-			p=(struct s_pet *)aMalloc(sizeof(struct s_pet));
+			p=(struct s_pet *)aCalloc(sizeof(struct s_pet),1);
 			if(p==NULL){
 				printf("int_pet: out of memory !\n");
 				mapif_save_pet_ack(fd,account_id,1);
 				return 0;
 			}
-			memset(p,0,sizeof(struct s_pet));
+//			memset(p,0,sizeof(struct s_pet)); Unneeded...
 			p->pet_id = data->pet_id;
 			if(p->pet_id == 0)
 				data->pet_id = p->pet_id = pet_newid++;

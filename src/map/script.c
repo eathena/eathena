@@ -4945,7 +4945,7 @@ int buildin_setmapflagnosave(struct script_state *st)
 	m = map_mapname2mapid(str);
 	if(m >= 0) {
 		map[m].flag.nosave=1;
-		memcpy(map[m].save.map, str2, NAME_LENGTH-1);
+		memcpy(map[m].save.map, str2, MAP_NAME_LENGTH-1);
 		map[m].save.x=x;
 		map[m].save.y=y;
 	}
@@ -5338,8 +5338,8 @@ int buildin_getcastlename(struct script_state *st)
 	for(i=0;i<MAX_GUILDCASTLE;i++){
 		if( (gc=guild_castle_search(i)) != NULL ){
 			if(strcmp(mapname,gc->map_name)==0){
-				buf=(char *)aCallocA(NAME_LENGTH,sizeof(char));
-				memcpy(buf, gc->castle_name, NAME_LENGTH-1);
+				buf=(char *)aCallocA(MAP_NAME_LENGTH,sizeof(char));
+				memcpy(buf, gc->castle_name, MAP_NAME_LENGTH-1);
 				break;
 			}
 		}
@@ -6837,11 +6837,11 @@ int buildin_getsavepoint(struct script_state *st)
         sd=script_rid2sd(st);
 
         type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-        mapname=(char *) aCallocA(NAME_LENGTH, sizeof(char));
+        mapname=(char *) aCallocA(MAP_NAME_LENGTH, sizeof(char));
 
         x=sd->status.save_point.x;
         y=sd->status.save_point.y;
-        memcpy(mapname, sd->status.save_point.map, NAME_LENGTH);
+        memcpy(mapname, sd->status.save_point.map, MAP_NAME_LENGTH-1);
         switch(type){
             case 0:
                 push_str(st->stack,C_STR,(unsigned char *) mapname);
@@ -6906,7 +6906,7 @@ int buildin_getmapxy(struct script_state *st){
 
 //??????????? >>>  Possible needly check function parameters on C_STR,C_INT,C_INT <<< ???????????//
 	type=conv_num(st,& (st->stack->stack_data[st->start+5]));
-	mapname=(char *) aCallocA(NAME_LENGTH, sizeof(char));
+	mapname=(char *) aCallocA(MAP_NAME_LENGTH, sizeof(char));
 
         switch (type){
             case 0:                                             //Get Character Position
@@ -6923,7 +6923,7 @@ int buildin_getmapxy(struct script_state *st){
 
                     x=sd->bl.x;
                     y=sd->bl.y;
-                    memcpy(mapname,sd->mapname, NAME_LENGTH-1);
+                    memcpy(mapname,sd->mapname, MAP_NAME_LENGTH-1);
                     break;
             case 1:                                             //Get NPC Position
                     if( st->end > st->start+6 )
@@ -6938,7 +6938,7 @@ int buildin_getmapxy(struct script_state *st){
 
                     x=nd->bl.x;
                     y=nd->bl.y;
-                    memcpy(mapname, map[nd->bl.m].name, NAME_LENGTH-1);
+                    memcpy(mapname, map[nd->bl.m].name, MAP_NAME_LENGTH-1);
                     break;
             case 2:                                             //Get Pet Position
                     if( st->end>st->start+6 )
@@ -6953,13 +6953,13 @@ int buildin_getmapxy(struct script_state *st){
 
                     pd=sd->pd;
 
-                    if(pd==NULL){                       //ped data not found
+                    if(pd==NULL){                       //pet data not found
                         push_val(st->stack,C_INT,-1);
                         return 0;
                     }
                     x=pd->bl.x;
                     y=pd->bl.y;
-                    memcpy(mapname, map[pd->bl.m].name, NAME_LENGTH-1);
+                    memcpy(mapname, map[pd->bl.m].name, MAP_NAME_LENGTH-1);
                     break;
 
             case 3:                                             //Get Mob Position

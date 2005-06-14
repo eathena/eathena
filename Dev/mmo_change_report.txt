@@ -17,3 +17,7 @@ checking. Also, that number 24... actually means 23 characters + null
 terminator. I believe RO actually allows for 24 characters in their names, so
 it needs to be changed to 25 (and will do so after I update all the code all
 over the place to use NAME_LENGTH instead of hard-coded 23/24's)
+14/June: Use MAP_NAME_LENGTH for map names. There was an inconsistency on this
+length on the map server: at times it is 24, at others it is 16 in length. I
+am going to standarize it to 16 (but just check for the value of the constant)
+[Skotlex]

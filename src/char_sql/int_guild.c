@@ -138,7 +138,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 		char updateflag=1;
 		
 		// Check if the guild exists.
-		sprintf(tmp_sql,"SELECT guild_id FROM `%s` WHERE id='%d'",guild_db, g->guild_id);
+		sprintf(tmp_sql,"SELECT guild_id FROM `%s` WHERE guild_id='%d'",guild_db, g->guild_id);
 		if(mysql_query(&mysql_handle, tmp_sql) ) {
 			printf("DB server Error (insert `guild`)- %s\n", mysql_error(&mysql_handle) );
 			updateflag = 0; //Assume insert?
@@ -938,7 +938,8 @@ int mapif_guild_leaved(int guild_id,int account_id,int char_id,int flag,
 	WBUFB(buf,14)=flag;
 	memcpy(WBUFP(buf,15),mes,40);
 	memcpy(WBUFP(buf,55),name,NAME_LENGTH);
-	mapif_sendall(buf,79);
+	mapif_sendall(buf,55+NAME_LENGTH);
+//	mapif_sendall(buf,79);
 	printf("int_guild: guild leaved %d %d %s %s\n",guild_id,account_id,name,mes);
 	return 0;
 }
@@ -1033,8 +1034,10 @@ int mapif_guild_alliance(int guild_id1,int guild_id2,int account_id1,int account
 	WBUFL(buf,14)=account_id2;
 	WBUFB(buf,18)=flag;
 	memcpy(WBUFP(buf,19),name1,NAME_LENGTH);
-	memcpy(WBUFP(buf,43),name2,NAME_LENGTH);
-	mapif_sendall(buf,67);
+	memcpy(WBUFP(buf,19+NAME_LENGTH),name2,NAME_LENGTH);
+	mapif_sendall(buf,19+2*NAME_LENGTH);
+//	memcpy(WBUFP(buf,43),name2,NAME_LENGTH);
+//	mapif_sendall(buf,67);
 	return 0;
 }
 
@@ -1270,8 +1273,8 @@ int mapif_parse_GuildLeave(int fd,int guild_id,int account_id,int char_id,int fl
 						j=MAX_GUILDEXPLUSION-1;
 					}
 					g->explusion[j].account_id=account_id;
-					memcpy(g->explusion[j].acc,"dummy",NAME_LENGTH);
-					memcpy(g->explusion[j].name,g->member[i].name,NAME_LENGTH);
+					memcpy(g->explusion[j].acc,"dummy",NAME_LENGTH-1);
+					memcpy(g->explusion[j].name,g->member[i].name,NAME_LENGTH-1);
 					memcpy(g->explusion[j].mes,mes,40);
 				}
 
@@ -1572,7 +1575,7 @@ int mapif_parse_GuildAlliance(int fd,int guild_id1,int guild_id2,
 			for(j=0;j<MAX_GUILDALLIANCE;j++)
 				if(g[i]->alliance[j].guild_id==0){
 					g[i]->alliance[j].guild_id=g[1-i]->guild_id;
-					memcpy(g[i]->alliance[j].name,g[1-i]->name,24);
+					memcpy(g[i]->alliance[j].name,g[1-i]->name,NAME_LENGTH-1);
 					g[i]->alliance[j].opposition=flag&1;
 					break;
 				}

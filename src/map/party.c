@@ -403,7 +403,7 @@ int party_recv_movemap(int party_id,int account_id,char *map,int online,int lv)
 			return 0;
 		}
 		if(m->account_id==account_id){
-			memcpy(m->map,map,NAME_LENGTH-1);
+			memcpy(m->map,map,MAP_NAME_LENGTH-1);
 			m->online=online;
 			m->lv=lv;
 			break;

@@ -165,7 +165,7 @@ char map_cache_file[256]="db/map.info"; // ｫﾞｫﾃｫﾗｫｭｫ罩ﾃｫｷｫ雖ﾕｫ｡ｫ､ｫ・｣
 char motd_txt[256] = "conf/motd.txt";
 char help_txt[256] = "conf/help.txt";
 
-char wisp_server_name[24] = "Server"; // can be modified in char-server configuration file
+char wisp_server_name[NAME_LENGTH] = "Server"; // can be modified in char-server configuration file
 
 int console = 0;
 
@@ -2103,7 +2103,7 @@ int map_setipport(char *name,unsigned long ip,int port) {
 		if(ip!=clif_getip() || port!=clif_getport()){
 			// 読み甲ﾅいたけど、担当外になったマップ
 			mdos=(struct map_data_other_server *)aCalloc(1,sizeof(struct map_data_other_server));
-			memcpy(mdos->name, name, 24);
+			memcpy(mdos->name, name, NAME_LENGTH-1);
 //			mdos->gat  = NULL;
 			mdos->ip   = ip;
 			mdos->port = port;
@@ -2193,7 +2193,7 @@ int map_eraseipport(char *name,unsigned long ip,int port)
  *------------------------------------------
  */
 static struct waterlist_ {
-	char mapname[NAME_LENGTH];
+	char mapname[MAP_NAME_LENGTH];
 	int waterheight;
 } *waterlist=NULL;
 
@@ -2228,7 +2228,7 @@ static void map_readwater(char *watertxt) {
 		if((count=sscanf(line,"%s%d",w1,&wh)) < 1){
 			continue;
 		}
-		memcpy(waterlist[n].mapname,w1, NAME_LENGTH-1);
+		memcpy(waterlist[n].mapname,w1, MAP_NAME_LENGTH-1);
 		if(count >= 2)
 			waterlist[n].waterheight = wh;
 		else
@@ -2857,7 +2857,7 @@ int map_addmap(char *mapname) {
 		ShowError(tmp_output);
 		return 1;
 	}
-	memcpy(map[map_num].name, mapname, NAME_LENGTH-1);
+	memcpy(map[map_num].name, mapname, MAP_NAME_LENGTH-1);
 	map_num++;
 	return 0;
 }
@@ -3508,8 +3508,8 @@ int do_init(int argc, char *argv[]) {
 	log_config_read(LOG_CONF_NAME);
 
 	id_db = numdb_init();
-	map_db = strdb_init(16);
-	nick_db = strdb_init(24);
+	map_db = strdb_init(MAP_NAME_LENGTH);
+	nick_db = strdb_init(NAME_LENGTH);
 	charid_db = numdb_init();
 #ifndef TXT_ONLY
 	map_sql_init();

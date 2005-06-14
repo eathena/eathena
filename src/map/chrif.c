@@ -192,9 +192,9 @@ int chrif_sendmap(int fd)
 	WFIFOW(fd,0) = 0x2afa;
 	for(i = 0; i < map_num; i++)
                 if (map[i].alias != '\0') // [MouseJstr] map aliasing
-		    memcpy(WFIFOP(fd,4+i*16), map[i].alias, 16);
+		    memcpy(WFIFOP(fd,4+i*16), map[i].alias, MAP_NAME_LENGTH);
 		else
-		    memcpy(WFIFOP(fd,4+i*16), map[i].name, 16);
+		    memcpy(WFIFOP(fd,4+i*16), map[i].name, MAP_NAME_LENGTH);
 	WFIFOW(fd,2) = 4 + i * 16;
 	WFIFOSET(fd,WFIFOW(fd,2));
 
@@ -279,7 +279,7 @@ int chrif_changemapserver(struct map_session_data *sd, char *name, int x, int y,
 	WFIFOL(char_fd, 6) = sd->login_id1;
 	WFIFOL(char_fd,10) = sd->login_id2;
 	WFIFOL(char_fd,14) = sd->status.char_id;
-	memcpy(WFIFOP(char_fd,18), name, 16);
+	memcpy(WFIFOP(char_fd,18), name, MAP_NAME_LENGTH);
 	WFIFOW(char_fd,34) = x;
 	WFIFOW(char_fd,36) = y;
 	WFIFOL(char_fd,38) = ip;
