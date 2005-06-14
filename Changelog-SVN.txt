@@ -1,5 +1,6 @@
 Date	Added
 06/13
+	* Fixed another possible crash on chrif... [Skotlex]
 	* Applied Maeki's fix for Guild Sql Char server	[Skotlex]
 	  if it breaks, go stone him :X (I already got enough rocks to watch
 	  out for...)

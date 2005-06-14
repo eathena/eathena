@@ -99,7 +99,7 @@ static int char_init_done = 0;
  */
 void chrif_setuserid(char *id)
 {
-	memcpy(&userid, id, NAME_LENGTH-1);
+	memcpy(userid, id, NAME_LENGTH);
 }
 
 /*==========================================
@@ -108,7 +108,7 @@ void chrif_setuserid(char *id)
  */
 void chrif_setpasswd(char *pwd)
 {
-	memcpy(&passwd, pwd, NAME_LENGTH-1);
+	memcpy(passwd, pwd, NAME_LENGTH);
 }
 
 /*==========================================
@@ -1364,10 +1364,6 @@ int do_final_chrif(void)
  */
 int do_init_chrif(void)
 {
-	//Initialize arrays [Skotlex]
-	userid[NAME_LENGTH-1]='\0';
-	passwd[NAME_LENGTH-1]='\0';
-
 	add_timer_func_list(check_connect_char_server, "check_connect_char_server");
 	add_timer_func_list(send_users_tochar, "send_users_tochar");
 	add_timer_interval(gettick() + 1000, check_connect_char_server, 0, 0, 10 * 1000);
