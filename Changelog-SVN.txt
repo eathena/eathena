@@ -1,4 +1,10 @@
 Date	Added
+06/14
+	* Updated UPnP plugin to 1.0.3 [celest]
+	  - moved code in socket.c back into the plugin
+	  - added configuration file support (addon/upnp.conf) -- you'll need to do
+	    'make addons' to install it
+
 06/13
 	* Fixed Asura Strike possibly doing minimal damage when it should do very
 	  large damage instead.	[Skotlex]

@@ -312,6 +312,7 @@ void dll_init (void)
 	register_addon_func("Athena_Init");
 	register_addon_func("Athena_Final");
 
+	// &addr_ = 12
 	export_symbol (get_uptime,			11);
 	export_symbol (delete_timer,		10);
 	export_symbol (add_timer_func_list,	9);

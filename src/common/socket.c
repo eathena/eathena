@@ -34,6 +34,9 @@ typedef int socklen_t;
 #include "../common/timer.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
+#ifndef MINICORE
+	#include "../common/dll.h"
+#endif
 
 fd_set readfds;
 #ifdef TURBO
@@ -47,19 +50,6 @@ int ip_rules = 1;
 // reuse port
 #ifndef SO_REUSEPORT
 	#define SO_REUSEPORT 15
-#endif
-
-#if !defined(MINICORE) && (defined(CYGWIN) || defined(_WIN32))
-	#include "../common/core.h"
-	#include "../common/dll.h"
-	#define UPNP
-
-	Addon *upnp;
-	int (*firewall_addport)(char *desc, int port);
-	int	(*upnp_addport)(char *desc, unsigned char *ip, int port);
-
-	int release_mappings = 1;
-	int close_ports = 1;
 #endif
 
 // values derived from freya
@@ -302,22 +292,6 @@ int make_listen_port(int port)
 	server_address.sin_addr.s_addr = htonl( INADDR_ANY );
 	server_address.sin_port        = htons((unsigned short)port);
 
-#ifdef UPNP
-	if (upnp && upnp->state) {
-		int localaddr = ntohl(addr_[0]);
-		unsigned char *natip = (unsigned char *)&localaddr;
-		char buf[16];
-		sprintf(buf, "%d.%d.%d.%d", natip[0], natip[1], natip[2], natip[3]);
-		//ShowMessage("natip=%d.%d.%d.%d\n", natip[0], natip[1], natip[2], natip[3]);
-		if (firewall_addport(SERVER_NAME, port))
-			ShowInfo ("Firewall port %d successfully opened\n", port);
-		if (natip[0] == 192 && natip[1] == 168) {
-			if (upnp_addport(SERVER_NAME, natip, port))
-				ShowInfo ("UPnP mappings successfull\n");
-		}
-	}
-#endif
-
 	result = bind(fd, (struct sockaddr*)&server_address, sizeof(server_address));
 	if( result == -1 ) {
 		perror("bind");
@@ -362,22 +336,6 @@ int make_listen_bind(long ip,int port)
 	server_address.sin_family      = AF_INET;
 	server_address.sin_addr.s_addr = ip;
 	server_address.sin_port        = htons((unsigned short)port);
-
-#ifdef UPNP
-	if (upnp && upnp->state) {
-		int localaddr = ntohl(addr_[0]);
-		unsigned char *natip = (unsigned char *)&localaddr;
-		char buf[16];
-		sprintf(buf, "%d.%d.%d.%d", natip[0], natip[1], natip[2], natip[3]);
-		//ShowMessage("natip=%d.%d.%d.%d\n", natip[0], natip[1], natip[2], natip[3]);
-		if (firewall_addport(SERVER_NAME, port))
-			ShowInfo ("Firewall port %d successfully opened\n", port);
-		if (natip[0] == 192 && natip[1] == 168) {
-			if (upnp_addport(SERVER_NAME, natip, port))
-				ShowInfo ("UPnP mappings successfull\n");
-		}
-	}
-#endif
 
 	result = bind(fd, (struct sockaddr*)&server_address, sizeof(server_address));
 	if( result == -1 ) {
@@ -1008,20 +966,6 @@ int socket_config_read(const char *cfgName) {
 				access_debug = 0;
 			else access_debug = atoi(w2);
 	#endif
-	#ifdef UPNP
-		} else if(!strcmpi(w1,"release_mappings")){
-			if(strcmpi(w2,"yes")==0)
-				release_mappings = 1;
-			else if(strcmpi(w2,"no")==0)
-				release_mappings = 0;
-			else release_mappings = atoi(w2);
-		} else if(!strcmpi(w1,"close_ports")){
-			if(strcmpi(w2,"yes")==0)
-				close_ports = 1;
-			else if(strcmpi(w2,"no")==0)
-				close_ports = 0;
-			else close_ports = atoi(w2);
-	#endif
 		} else if (strcmpi(w1, "import") == 0)
 			socket_config_read(w2);
 	}
@@ -1051,39 +995,6 @@ int RFIFOSKIP(int fd,int len)
 
 unsigned int addr_[16];   // ip addresses of local host (host byte order)
 unsigned int naddr_ = 0;   // # of ip addresses
-
-#ifdef UPNP
-void upnp_init (void)
-{
-	int (*upnp_init)();
-	int *_release_mappings;
-	int *_close_ports;
-
-	upnp = dll_open ("addons/upnp.dll");
-	if (!upnp)
-		return;
-	DLL_SYM (upnp_init, upnp->dll, "do_init");
-	DLL_SYM (firewall_addport, upnp->dll, "Firewall_AddPort");
-	DLL_SYM (upnp_addport, upnp->dll, "UPNP_AddPort");
-	if (!upnp_init || !firewall_addport || !upnp_addport) {
-		ShowInfo ("Unable to load UPnP: %s\n", DLL_ERROR());
-		upnp->state = 0;
-		return;
-	}
-
-	DLL_SYM (_release_mappings, upnp->dll, "release_mappings");
-	DLL_SYM (_close_ports, upnp->dll, "close_ports");
-	if (_release_mappings)
-		*_release_mappings = release_mappings;
-	if (_close_ports)
-		*_close_ports = close_ports;
-	
-	if (upnp_init() == 0)
-		upnp->state = 0;
-
-	return;
-}
-#endif
 
 void socket_final (void)
 {
@@ -1213,10 +1124,8 @@ void socket_init (void)
 	// とりあえず５分ごとに不要なデータを削除する
 	add_timer_func_list(connect_check_clear, "connect_check_clear");	
 	add_timer_interval(gettick()+1000,connect_check_clear,0,0,300*1000);
-#endif
 
-#ifdef UPNP
-	upnp_init();
+	export_symbol (addr_, 12);
 #endif
 }
 
