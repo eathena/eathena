@@ -1,5 +1,8 @@
 Date	Added
 06/13
+	* Applied Maeki's fix for Guild Sql Char server	[Skotlex]
+	  if it breaks, go stone him :X (I already got enough rocks to watch
+	  out for...)
 	* Made berserk-cancels-users-other-self-buffs a battle_config 
 	  option, default: off [Aru]
 	* Some compiler warnings fixes	[Skotlex]

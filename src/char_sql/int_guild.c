@@ -135,21 +135,50 @@ int inter_guild_tosql(struct guild *g,int flag)
 	// Insert new guild to sqlserver
 	if (flag&1){
 		int len=0;
+		char updateflag=1;
+		
+		// Check if the guild exists.
+		sprintf(tmp_sql,"SELECT guild_id FROM `%s` WHERE id='%d'",guild_db, g->guild_id);
+		if(mysql_query(&mysql_handle, tmp_sql) ) {
+			printf("DB server Error (insert `guild`)- %s\n", mysql_error(&mysql_handle) );
+			updateflag = 0; //Assume insert?
+		} else {
+			sql_res = mysql_store_result(&mysql_handle) ;
+		   if (sql_res==NULL || mysql_num_rows(sql_res)<=0) { //Guild does not exists
+				updateflag = 0;
+			}
+			mysql_free_result(sql_res);	//Don't need it anymore...
+		}
+			
 		//printf("- Insert guild %d to guild\n",g->guild_id);
 		for(i=0;i<g->emblem_len;i++){
 			len+=sprintf(emblem_data+len,"%02x",(unsigned char)(g->emblem_data[i]));
 			//printf("%02x",(unsigned char)(g->emblem_data[i]));
 		}
-                emblem_data[len] = '\0';
+		emblem_data[len] = '\0';
 		//printf("- emblem_len = %d \n",g->emblem_len);
-		sprintf(tmp_sql,"REPLACE INTO `%s` "
-			"(`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`,`char_id`) "
-			"VALUES ('%d', '%s', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%s', '%d', '%d', '%s', '%d')",
-			guild_db, g->guild_id,t_name,jstrescapecpy(t_master,g->master),
-			g->guild_lv,g->connect_member,g->max_member,g->average_lv,g->exp,g->next_exp,g->skill_point,g->castle_id,
-			jstrescapecpy(t_mes1,g->mes1),jstrescapecpy(t_mes2,g->mes2),g->emblem_len,g->emblem_id,emblem_data,
-			g->member[0].char_id);
-		//printf(" %s\n",tmp_sql);
+		if (updateflag) {
+			sprintf(tmp_sql,"UPDATE `%s` SET"
+				" `guild_id`=%d, `name`='%s', `master`='%s',`guild_lv`=%d, `connect_member`=%d,`max_member`=%d, "
+				"`average_lv`=%d,`exp`=%d,`next_exp`=%d,`skill_point`=%d,`castle_id`=%d,`mes1`='%s',`mes2`='%s',"
+				"`emblem_len`=%d,`emblem_id`=%d,`emblem_data`='%s',`char_id`=%d WHERE `guild_id`=%d",
+				guild_db, g->guild_id,t_name,jstrescapecpy(t_master,g->master),
+				g->guild_lv,g->connect_member,g->max_member,g->average_lv,g->exp,g->next_exp,g->skill_point,g->castle_id,
+				jstrescapecpy(t_mes1,g->mes1),jstrescapecpy(t_mes2,g->mes2),g->emblem_len,g->emblem_id,emblem_data,
+				g->member[0].char_id, g->guild_id);
+				//printf(" %s\n",tmp_sql);
+				
+		} else {
+			sprintf(tmp_sql,"INSERT INTO `%s` "
+				"(`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`,`char_id`) "
+				"VALUES ('%d', '%s', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%s', '%d', '%d', '%s', '%d')",
+				guild_db, g->guild_id,t_name,jstrescapecpy(t_master,g->master),
+				g->guild_lv,g->connect_member,g->max_member,g->average_lv,g->exp,g->next_exp,g->skill_point,g->castle_id,
+				jstrescapecpy(t_mes1,g->mes1),jstrescapecpy(t_mes2,g->mes2),g->emblem_len,g->emblem_id,emblem_data,
+				g->member[0].char_id);
+				//printf(" %s\n",tmp_sql);
+						
+		}
 		if(mysql_query(&mysql_handle, tmp_sql) ) {
 			printf("DB server Error (insert `guild`)- %s\n", mysql_error(&mysql_handle) );
 		}
@@ -169,7 +198,8 @@ int inter_guild_tosql(struct guild *g,int flag)
 		for(i=0;i<g->max_member;i++){
 			m = &g->member[i];
 			if(m->account_id) {
-				sprintf(tmp_sql,"INSERT into `%s` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`name`) "
+				//Since nothing references guild member table as foreign keys, it's safe to use REPLACE INTO
+				sprintf(tmp_sql,"REPLACE INTO `%s` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`name`) "
 					"VALUES ('%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%s')",
 				       guild_member_db, g->guild_id, m->account_id,m->char_id,
 				       m->hair,m->hair_color,m->gender,
@@ -183,9 +213,6 @@ int inter_guild_tosql(struct guild *g,int flag)
 					printf("DB server Error(%s) - %s\n", tmp_sql, mysql_error(&mysql_handle) );
 			}
 		}
-
-
-			
 
 #if 0
 	  struct StringBuf sbuf;
