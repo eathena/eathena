@@ -4488,7 +4488,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 // security system to prevent forgetting timer removal
 	int temp_timerid;
 
-        bl=map_id2bl(id);
+	bl=map_id2bl(id);
 #ifndef _WIN32
 	nullpo_retr_f(0, bl, "id=%d data=%d",id,data);
 #endif

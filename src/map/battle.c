@@ -2916,7 +2916,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 	struct pet_data *pd=NULL;//, *tpd=NULL; (Noone can target pets)
 	struct Damage wd;
 	short skill=0;
-	unsigned short skillratio = 100;	//Skill dmg modifiers
+	int skillratio = 100;	//Skill dmg modifiers. Not an unsigned short as Asura can overflow it!
 
 	short i;
 	short t_mode = status_get_mode(target), t_size = status_get_size(target);

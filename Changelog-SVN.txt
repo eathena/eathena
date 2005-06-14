@@ -1,5 +1,7 @@
 Date	Added
 06/13
+	* Fixed Asura Strike possibly doing minimal damage when it should do very
+	  large damage instead.	[Skotlex]
 	* Fixed another possible crash on chrif... [Skotlex]
 	* Applied Maeki's fix for Guild Sql Char server	[Skotlex]
 	  if it breaks, go stone him :X (I already got enough rocks to watch
