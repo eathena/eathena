@@ -292,7 +292,7 @@ int status_calc_pet(struct map_session_data* sd, int first); // [Skotlex]
 // ステータス計算 pc.c から分離
 // pc_calcstatus
 int status_calc_pc(struct map_session_data* sd,int first);
-int status_calc_speed(struct map_session_data*); // [Celest]
+int status_calc_speed(struct map_session_data*, int, int, char); // [Celest] - modified by [Skotlex]
 // int status_calc_skilltree(struct map_session_data *sd);
 int status_getrefinebonus(int lv,int type);
 int status_percentrefinery(struct map_session_data *sd,struct item *item);

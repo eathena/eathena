@@ -1,5 +1,11 @@
 Date	Added
 06/14
+	* Small fix to the sql-files/convert_guild_tables.sql script.	[Skotlex]
+	* Modified function status_calc_speed to be faster since it's only used for
+	  cloaking and freedom of casting.	[Skotlex]
+	* Changed the stacking type from speed-bonuses to make it harder to reach max
+	  walk speed.	[Skotlex]
+	* Fixed a bug on the way aspd bonuses stack.	[Skotlex]
 	* Changed map names length from 24 to 16 all over the char(txt/sq) and map
 	  servers, this could fix the "matrix" bug (if done right...).	[Skotlex]
 	* General cleanup and memory checks on char server (txt)	[Skotlex]

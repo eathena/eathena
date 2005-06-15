@@ -780,17 +780,15 @@ int status_calc_pc(struct map_session_data* sd,int first)
 #define ASPD_ADD_RATE(a) { aspd_rate -= a; }
 //There is no info about SPEED, but there are complains on acquiring 
 //very high speeds, so the stacking is a multiplier.
-//#define SPEED_ADD_RATE(a) { sd->speed_rate = sd->speed_rate*(100-(a))/100; }
-//Restored for a bit until I figure out what the heck is wrong with the previous one.
-#define SPEED_ADD_RATE(a) { sd->speed_rate -= a; }
-	
+#define SPEED_ADD_RATE(a) { sd->speed_rate = sd->speed_rate*(100-(a))/100; }
+//If you prefer a linear stack, use the following:
+//#define SPEED_ADD_RATE(a) { sd->speed_rate -= a; }
 	if(sd->aspd_add_rate != 100)	
 		sd->aspd_rate += sd->aspd_add_rate-100;
 	if(sd->speed_add_rate != 100)	
 		sd->speed_rate += sd->speed_add_rate-100;
 
-	//All ASPD bonuses are supposed to stack on a linear fashion. [Skotlex]
-	aspd_rate = sd->aspd_rate + (sd->aspd_add_rate-100);
+	aspd_rate = sd->aspd_rate;
 	
 	// 武器ATKサイズ補正 (右手)
 	sd->right_weapon.atkmods[0] = atkmods[0][sd->weapontype1];
@@ -855,7 +853,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->speed = sd->speed * (sd->sc_data[SC_CLOAKING].val3-sd->sc_data[SC_CLOAKING].val1*3) /100;
 		}
 		if(sd->sc_data[SC_CHASEWALK].timer!=-1)
-			sd->speed = sd->speed * sd->sc_data[SC_CHASEWALK].val3 /100; // slow down by chasewalk
+			sd->speed = sd->speed * sd->sc_data[SC_CHASEWALK].val3 /100;
 		if(sd->sc_data[SC_SLOWDOWN].timer!=-1)
 			SPEED_ADD_RATE(-50);
 		if(sd->sc_data[SC_SPEEDUP0].timer!=-1 && sd->sc_data[SC_INCREASEAGI].timer==-1)
@@ -1607,92 +1605,49 @@ int status_calc_pc(struct map_session_data* sd,int first)
 }
 
 /*==========================================
- * For quick calculating [Celest]
+ * For quick calculating [Celest] Adapted by [Skotlex]
  *------------------------------------------
  */
-int status_calc_speed (struct map_session_data *sd)
+int status_calc_speed (struct map_session_data *sd, int skill_num, int skill_lv, char start)
 {
-	int b_speed, skill;
-	struct pc_base_job s_class;
-
-	nullpo_retr(0, sd);
-
-	s_class = pc_calc_base_job(sd->status.class_);
-
+	/*	[Skotlex]
+	This function individually changes a character's speed upon a skill change and restores it upon it's ending.
+	Should only be used on non-inclusive skills to avoid exploits.
+	Currently used for freedom of cast
+	and when cloaking changes it's val3 (in which case the new val3 value comes in the level.
+	*/
+	
+	int b_speed;
+	
 	b_speed = sd->speed;
-	sd->speed = DEFAULT_WALK_SPEED ;
-
-	if(sd->sc_count){
-		if(sd->sc_data[SC_INCREASEAGI].timer!=-1 && sd->sc_data[SC_QUAGMIRE].timer == -1 && sd->sc_data[SC_DONTFORGETME].timer == -1){	// 速度?加
-			sd->speed -= sd->speed *25/100;
-		}
-		if(sd->sc_data[SC_DECREASEAGI].timer!=-1) {
-			sd->speed = sd->speed *125/100;
-		}
-		if(sd->sc_data[SC_CLOAKING].timer!=-1) {
-			sd->speed = sd->speed * (sd->sc_data[SC_CLOAKING].val3-sd->sc_data[SC_CLOAKING].val1*3) /100;
-		}
-		if(sd->sc_data[SC_CHASEWALK].timer!=-1) {
-			sd->speed = sd->speed * sd->sc_data[SC_CHASEWALK].val3 /100;
-		}
-		if(sd->sc_data[SC_QUAGMIRE].timer!=-1){
-			sd->speed = sd->speed*3/2;
-		}
-		if(sd->sc_data[SC_WINDWALK].timer!=-1 && sd->sc_data[SC_INCREASEAGI].timer==-1) {
-			sd->speed -= sd->speed *(sd->sc_data[SC_WINDWALK].val1*2)/100;
-		}
-		if(sd->sc_data[SC_CARTBOOST].timer!=-1) {
-			sd->speed -= (DEFAULT_WALK_SPEED * 20)/100;
-		}
-		if(sd->sc_data[SC_BERSERK].timer!=-1) {
-			sd->speed -= sd->speed *25/100;
-		}
-		if(sd->sc_data[SC_WEDDING].timer!=-1) {
-			sd->speed = 2*DEFAULT_WALK_SPEED;
-		}
-		if(sd->sc_data[SC_DONTFORGETME].timer!=-1){
-			sd->speed= sd->speed*(100+sd->sc_data[SC_DONTFORGETME].val1*2 + sd->sc_data[SC_DONTFORGETME].val2 + (sd->sc_data[SC_DONTFORGETME].val3&0xffff))/100;
-		}
-		if(sd->sc_data[SC_STEELBODY].timer!=-1){
-			sd->speed = (sd->speed * 125) / 100;
-		}
-		if(sd->sc_data[SC_DEFENDER].timer != -1) {
-			sd->speed = (sd->speed * (155 - sd->sc_data[SC_DEFENDER].val1*5)) / 100;
-		}
-		if( sd->sc_data[SC_DANCING].timer!=-1 ){
-			int s_rate = 600 - 40 * pc_checkskill(sd, ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
-			if (sd->sc_data[SC_LONGING].timer != -1)
-				s_rate -= 20 * sd->sc_data[SC_LONGING].val1;
-			sd->speed = sd->speed * s_rate / 100;			
-		}
-		if(sd->sc_data[SC_CURSE].timer!=-1)
-			sd->speed += 450;
-		if(sd->sc_data[SC_SLOWDOWN].timer!=-1)
-			sd->speed = sd->speed*150/100;
-		if(sd->sc_data[SC_SPEEDUP0].timer!=-1)
-			sd->speed -= sd->speed*25/100;
+	
+	switch (skill_num)
+	{
+		case SA_FREECAST:
+			if (start)
+			{
+				sd->prev_speed = sd->speed;
+				sd->speed = sd->speed*(175 - skill_lv*5)/100;
+			}
+			else
+				sd->speed = sd->prev_speed;
+			break;
+		case AS_CLOAKING:
+			if (start && sd->sc_data[SC_CLOAKING].timer != -1)
+			{	//There shouldn't be an "stop" case here.
+				//If the previous upgrade was 
+				//SPEED_ADD_RATE(3*sd->sc_data[SC_CLOAKING].val1 -sd->sc_data[SC_CLOAKING].val3);
+				//Then just changing val3 should be a net difference of....
+				if (3*sd->sc_data[SC_CLOAKING].val1 != sd->sc_data[SC_CLOAKING].val3)	//This reverts the previous value.
+					sd->speed = sd->speed * 100 /(sd->sc_data[SC_CLOAKING].val3-3*sd->sc_data[SC_CLOAKING].val1);
+				sd->sc_data[SC_CLOAKING].val3 = skill_lv;
+					sd->speed = sd->speed * (sd->sc_data[SC_CLOAKING].val3-sd->sc_data[SC_CLOAKING].val1*3) /100;
+			}
+			break;
 	}
 
-	if(sd->status.option&2 && (skill = pc_checkskill(sd,RG_TUNNELDRIVE))>0 )
-		sd->speed += (100-16*skill)*DEFAULT_WALK_SPEED/100;
-	if (pc_iscarton(sd) && (skill=pc_checkskill(sd,MC_PUSHCART))>0)
-		sd->speed += (short) ((10-skill) * (DEFAULT_WALK_SPEED * 0.1));
-	else if (pc_isriding(sd)) {
-		sd->speed -= (short) ((0.25 * DEFAULT_WALK_SPEED));
-	}
-	if((skill=pc_checkskill(sd,TF_MISS))>0)
-		if(s_class.job==12)
-			sd->speed -= (short) (sd->speed *(skill*1.5)/100);
-
-	if(sd->speed_rate != 100)
-		sd->speed = sd->speed*sd->speed_rate/100;
-	if(sd->speed < DEFAULT_WALK_SPEED/4)
-		sd->speed = DEFAULT_WALK_SPEED/4;
-
-	if(sd->skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0) {
-		sd->prev_speed = sd->speed;
-		sd->speed = sd->speed*(175 - skill*5)/100;
-	}
+	if(sd->speed < battle_config.max_walk_speed)
+		sd->speed = battle_config.max_walk_speed;
 
 	if(b_speed != sd->speed)
 		clif_updatestatus(sd,SP_SPEED);

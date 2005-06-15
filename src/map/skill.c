@@ -5026,10 +5026,9 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		return 0;
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != tid )	/* タイマIDの確認 */
 		return 0;
-	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && pc_checkskill(sd,SA_FREECAST) > 0) {
-		sd->speed = sd->prev_speed;
-		clif_updatestatus(sd,SP_SPEED);
-	}
+	if(/*sd->skillid != SA_CASTCANCEL &&*/ sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
+		status_calc_speed(sd, SA_FREECAST, range, 0); 
+
 	if(sd->skillid != SA_CASTCANCEL)
 		sd->skilltimer=-1;
 
@@ -5171,10 +5170,9 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 		return 0;
 	if (sd->skillid == -1 || sd->skilllv == -1)	// skill has failed after starting casting
 		return 0;
-	if(sd->skilltimer != -1 && pc_checkskill(sd,SA_FREECAST) > 0) {
-		sd->speed = sd->prev_speed;
-		clif_updatestatus(sd,SP_SPEED);
-	}
+	if(/*sd->skillid != SA_CASTCANCEL &&*/ sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
+		status_calc_speed(sd, SA_FREECAST, range, 0); 
+
 	sd->skilltimer=-1;
 	if(pc_isdead(sd)) {
 		sd->canact_tick = tick;
@@ -7678,10 +7676,8 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		status_change_end(&sd->bl,SC_CLOAKING,-1);
 	if (casttime > 0) {
 		sd->skilltimer = add_timer (tick + casttime, skill_castend_id, sd->bl.id, 0);
-		if ((skill = pc_checkskill(sd,SA_FREECAST)) > 0) {
-			sd->prev_speed = sd->speed;
-			status_calc_speed (sd);
-		}
+		if ((skill = pc_checkskill(sd,SA_FREECAST)) > 0)
+			status_calc_speed (sd, SA_FREECAST, skill, 1);
 		else
 			pc_stop_walking(sd,0);
 	} else {
@@ -7715,9 +7711,6 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 		clif_skill_fail(sd,sd->skillid,0,0);
 		return 0;
 	}
-	//At this point, we are ready to attempt the skill, so... uncloak. [Skotlex]
-	if(pc_iscloaking(sd))
-		status_change_end(&sd->bl, SC_CLOAKING, -1);
 
 	sc_data = sd->sc_data;
 
@@ -7812,14 +7805,14 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 	sd->skilltarget	= 0;
 	sd->canact_tick = tick + casttime + delay;
 	sd->canmove_tick = tick;
-	if (!(battle_config.pc_cloak_check_type&2) && sc_data && sc_data[SC_CLOAKING].timer != -1)
+	/*if (!(battle_config.pc_cloak_check_type&2) &&*/
+	if (sc_data && sc_data[SC_CLOAKING].timer != -1)
 		status_change_end(&sd->bl,SC_CLOAKING,-1);
+
 	if (casttime > 0) {
 		sd->skilltimer = add_timer(tick + casttime, skill_castend_pos, sd->bl.id, 0);
-		if ((skill = pc_checkskill(sd,SA_FREECAST)) > 0) {
-			sd->prev_speed = sd->speed;
-			status_calc_speed (sd);
-		}
+		if ((skill = pc_checkskill(sd,SA_FREECAST)) > 0)
+			status_calc_speed (sd, SA_FREECAST, skill, 1);
 		else
 			pc_stop_walking(sd,0);
 	} else {
@@ -8592,14 +8585,12 @@ int skill_check_cloaking(struct block_list *bl)
 			status_change_end(bl, SC_CLOAKING, -1);
 		}
 		else if (sd && sd->sc_data[SC_CLOAKING].val3 != 130) {
-			sd->sc_data[SC_CLOAKING].val3 = 130;
-			status_calc_speed (sd);
+			status_calc_speed (sd, AS_CLOAKING, 130, 1);
 		}
 	}
 	else {
 		if (sd && sd->sc_data[SC_CLOAKING].val3 != 103) {
-			sd->sc_data[SC_CLOAKING].val3 = 103;
-			status_calc_speed (sd);
+			status_calc_speed (sd, AS_CLOAKING, 103, 1);
 		}
 	}
 
