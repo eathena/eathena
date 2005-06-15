@@ -1,5 +1,6 @@
 Date	Added
 06/15
+	* SQL Logs crash likely fixed. [Skotlex]
 	* Added Stone-Curse to the list of status effects undead chars are inmune
 	  to. So far undead chars are inmune to Freeze and Stone Curse. [Skotlex]
 	* Fixed disp_hpmeter not working properly when set to 0/no [Skotlex]
