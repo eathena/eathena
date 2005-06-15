@@ -1,5 +1,6 @@
 Date	Added
 06/15
+	* Small fix regarding speed updating for Cast Cancel + Freedom of Cast [Skotlex]
 	* Added 'make depend' for resetting Makefile dependencies [celest]
 	* Readded 'make addons' (works the same as 'make plugins') [celest]
 	* Split zlib dll opening from grf opening in grfio.c [celest]

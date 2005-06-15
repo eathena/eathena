@@ -5033,7 +5033,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		return 0;
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != tid )	/* タイマIDの確認 */
 		return 0;
-	if(/*sd->skillid != SA_CASTCANCEL &&*/ sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
+	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
 		status_calc_speed(sd, SA_FREECAST, range, 0); 
 
 	if(sd->skillid != SA_CASTCANCEL)
@@ -5177,7 +5177,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 		return 0;
 	if (sd->skillid == -1 || sd->skilllv == -1)	// skill has failed after starting casting
 		return 0;
-	if(/*sd->skillid != SA_CASTCANCEL &&*/ sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
+	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
 		status_calc_speed(sd, SA_FREECAST, range, 0); 
 
 	sd->skilltimer=-1;
@@ -7852,9 +7852,10 @@ int skill_castcancel (struct block_list *bl, int type)
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
 		if (sd->skilltimer != -1) {
-			if (pc_checkskill(sd,SA_FREECAST) > 0) {
-				sd->speed = sd->prev_speed;
-				clif_updatestatus(sd,SP_SPEED);
+			if ((ret = pc_checkskill(sd,SA_FREECAST)) > 0) {
+				status_calc_speed(sd, SA_FREECAST, ret, 0);	//Updated to use calc_speed [Skotlex] 
+			//	sd->speed = sd->prev_speed;
+			//	clif_updatestatus(sd,SP_SPEED);
 			}
 			if (!type) {
 				if (skill_get_inf( sd->skillid ) & INF_GROUND_SKILL)
