@@ -3210,7 +3210,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	nullpo_retr(0, opt2=status_get_opt2(bl));
 	nullpo_retr(0, opt3=status_get_opt3(bl));
 
-
 	race=status_get_race(bl);
 	mode=status_get_mode(bl);
 	elem=status_get_elem_type(bl);
@@ -3265,9 +3264,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		return 0;
 	}
 
-	if(type==SC_FREEZE && undead_flag && !(flag&1))
+	if((type==SC_FREEZE || type==SC_STONE) && undead_flag && !(flag&1))
+	//I've been informed that undead chars are inmune to stone curse too. [Skotlex]
 		return 0;
-
+	
+	
 	if (type==SC_BLESSING && (bl->type==BL_PC || (!undead_flag && race!=6))) {
 		if (sc_data[SC_CURSE].timer!=-1)
 			status_change_end(bl,SC_CURSE,-1);
