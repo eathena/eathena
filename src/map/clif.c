@@ -10068,12 +10068,6 @@ void clif_parse_MoveToKafra(int fd, struct map_session_data *sd) {
 	if (item_index < 0 || item_index >= MAX_INVENTORY)
 		return;
 
-	if (!itemdb_canstore(sd->status.inventory[item_index].nameid, pc_isGM(sd), sd->state.storage_flag))
-	{
-		clif_displaymessage (sd->fd, msg_txt(264));
-		return;
-	}
-
 	if (sd->state.storage_flag)
 		storage_guild_storageadd(sd, item_index, item_amount);
 	else
@@ -10156,6 +10150,7 @@ void clif_parse_MoveToKafraFromCart(int fd, struct map_session_data *sd) {
 
 	if (sd->npc_id != 0 || sd->vender_id != 0 || sd->trade_partner != 0)
 		return;
+
 	if (sd->state.storage_flag)
 		storage_guild_storageaddfromcart(sd, RFIFOW(fd,2) - 2, RFIFOL(fd,4));
 	else

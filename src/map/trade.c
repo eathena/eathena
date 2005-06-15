@@ -175,7 +175,7 @@ int impossible_trade_check(struct map_session_data *sd) {
  */
 void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 	struct map_session_data *target_sd;
-	int trade_i, trade_weight, nameid, level;
+	int trade_i, trade_weight, nameid;
 
 	nullpo_retv(sd);
 	if ((target_sd = map_id2sd(sd->trade_partner)) == NULL || sd->deal_locked > 0)
@@ -201,9 +201,9 @@ void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 		return;
 
 	nameid = sd->inventory_data[index]->nameid;
-	level = pc_isGM(sd);
-	if (!itemdb_cantrade(nameid, level) &&	//Can't trade
-		(pc_get_partner(sd) != target_sd || !itemdb_canpartnertrade(nameid, level)))	//Can't partner-trade
+
+	if (!itemdb_cantrade(nameid, pc_isGM(sd), pc_isGM(target_sd)) &&	//Can't trade
+		(pc_get_partner(sd) != target_sd || !itemdb_canpartnertrade(nameid, pc_isGM(sd), pc_isGM(target_sd))))	//Can't partner-trade
 	{
 		clif_displaymessage (sd->fd, msg_txt(260));
 		return;

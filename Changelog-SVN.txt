@@ -1,5 +1,11 @@
 Date	Added
 06/14
+	* Various item_trade restriction fixes:	[Skotlex]
+	  - Fixed guild/normal storage flags not working right.
+	  - Fixed a bug which allowed players to store items regardless of
+	    restrictions.
+	  - Modified the gm override level behaviour on trades so a high level gm
+	    can both give and receive the otherwise untradeable item.
 	* Small fix to the sql-files/convert_guild_tables.sql script.	[Skotlex]
 	* Modified function status_calc_speed to be faster since it's only used for
 	  cloaking and freedom of casting.	[Skotlex]

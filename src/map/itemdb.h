@@ -76,11 +76,12 @@ int itemdb_searchrandomgroup(int groupid);
 #define itemdb_canrefine(n) itemdb_search(n)->flag.no_refine
 //Item trade restrictions [Skotlex]
 int itemdb_isdropable(int nameid, int gmlv);
-int itemdb_cantrade(int nameid, int gmlv);
+int itemdb_cantrade(int nameid, int gmlv, int gmlv2);
 int itemdb_cansell(int nameid, int gmlv);
-int itemdb_canstore(int nameid, int gmlv, int guild_flag);
+int itemdb_canstore(int nameid, int gmlv);
+int itemdb_canguildstore(int nameid, int gmlv);
 int itemdb_cancartstore(int nameid, int gmlv);
-int itemdb_canpartnertrade(int nameid, int gmlv);
+int itemdb_canpartnertrade(int nameid, int gmlv, int gmlv2);
 
 int itemdb_isequip(int);
 int itemdb_isequip2(struct item_data *);

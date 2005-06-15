@@ -238,16 +238,16 @@ int itemdb_isdropable(int nameid, int gmlv)
 	return (item && (!(item->flag.trade_restriction&1) || gmlv >= item->gm_lv_trade_override));
 }
 
-int itemdb_cantrade(int nameid, int gmlv)
+int itemdb_cantrade(int nameid, int gmlv, int gmlv2)
 {
 	struct item_data* item = itemdb_exists(nameid);
-	return (item && (!(item->flag.trade_restriction&2) || gmlv >= item->gm_lv_trade_override));
+	return (item && (!(item->flag.trade_restriction&2) || gmlv >= item->gm_lv_trade_override || gmlv2 >= item->gm_lv_trade_override));
 }
 
-int itemdb_canpartnertrade(int nameid, int gmlv)
+int itemdb_canpartnertrade(int nameid, int gmlv, int gmlv2)
 {
 	struct item_data* item = itemdb_exists(nameid);
-	return (item && (!(item->flag.trade_restriction&(2|4)) || gmlv >= item->gm_lv_trade_override));
+	return (item && (!(item->flag.trade_restriction&(2|4)) || gmlv >= item->gm_lv_trade_override || gmlv2 >= item->gm_lv_trade_override));
 }
 
 int itemdb_cansell(int nameid, int gmlv)
@@ -262,10 +262,16 @@ int itemdb_cancartstore(int nameid, int gmlv)
 	return (item && (!(item->flag.trade_restriction&16) || gmlv >= item->gm_lv_trade_override));
 }
 
-int itemdb_canstore(int nameid, int gmlv, int guild_flag)
+int itemdb_canstore(int nameid, int gmlv)
 {	
 	struct item_data* item = itemdb_exists(nameid);
-	return (item && (!(item->flag.trade_restriction&guild_flag?64:32) || gmlv >= item->gm_lv_trade_override));
+	return (item && (!(item->flag.trade_restriction&32) || gmlv >= item->gm_lv_trade_override));
+}
+
+int itemdb_canguildstore(int nameid, int gmlv)
+{	
+	struct item_data* item = itemdb_exists(nameid);
+	return (item && (!(item->flag.trade_restriction&64) || gmlv >= item->gm_lv_trade_override));
 }
 
 /*==========================================
