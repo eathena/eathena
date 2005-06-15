@@ -1,5 +1,9 @@
 Date	Added
 06/15
+	* Added 'make depend' for resetting Makefile dependencies [celest]
+	* Readded 'make addons' (works the same as 'make plugins') [celest]
+	* Split zlib dll opening from grf opening in grfio.c [celest]
+	* Moved grfio.c back to /common, it'll be needed by the core later [celest]
 	* SQL Logs crash likely fixed. [Skotlex]
 	* Added Stone-Curse to the list of status effects undead chars are inmune
 	  to. So far undead chars are inmune to Freeze and Stone Curse. [Skotlex]

@@ -87,14 +87,15 @@ MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS)" LIB_S="$(LIBS)"
 
 endif
 
-.PHONY: txt sql common login login_sql char char_sql map map_sql ladmin converters plugins tools webserver clean zlib
+.PHONY: txt sql common login login_sql char char_sql map map_sql ladmin converters \
+	addons plugins tools webserver clean zlib depend
 
-all: conf txt
+all: txt
 
-txt : Makefile.cache src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile conf common login char map ladmin
+txt : Makefile.cache conf common login char map ladmin
 
 ifdef SQLFLAG
-sql: Makefile.cache src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile conf common login_sql char_sql map_sql
+sql: Makefile.cache conf common login_sql char_sql map_sql
 else
 sql:
 	$(MAKE) SQLFLAG=1 $@
@@ -106,34 +107,48 @@ conf:
 	cp -r save-tmpl save
 	rm -rf save/.svn
 
-common:
+common: src/common/GNUmakefile
 	$(MAKE) -C src/$@ $(MKDEF)
-login:
+
+login: src/login/GNUmakefile common
 	$(MAKE) -C src/$@ $(MKDEF) txt
-char:
+
+char: src/char/GNUmakefile common
 	$(MAKE) -C src/$@ $(MKDEF) txt
-map:
+
+map: src/map/GNUmakefile common
 	$(MAKE) -C src/$@ $(MKDEF) txt
-login_sql:
+
+login_sql: src/login_sql/GNUmakefile common
 	$(MAKE) -C src/$@ $(MKDEF) sql
-char_sql:
+
+char_sql: src/char_sql/GNUmakefile common
 	$(MAKE) -C src/$@ $(MKDEF) sql
-map_sql:
+
+map_sql: src/map/GNUmakefile common
 	$(MAKE) -C src/map $(MKDEF) sql
-ladmin:
+
+ladmin: src/ladmin/GNUmakefile common
 	$(MAKE) -C src/$@ $(MKDEF)
-plugins: src/plugins/GNUmakefile
-	$(MAKE) -C src/$@ $(MKDEF)
+
+plugins addons: src/plugins/GNUmakefile
+	$(MAKE) -C src/plugins $(MKDEF)
+
 webserver:
 	$(MAKE) -C src/$@ $(MKDEF)
-tools: 
+
+tools:
 	$(MAKE) -C src/tool $(MKDEF)
-converters: src/common/GNUmakefile src/txt-converter/GNUmakefile common
+
+converters: src/txt-converter/GNUmakefile common
 	$(MAKE) -C src/txt-converter $(MKDEF)
+
 zlib:
 	$(MAKE) -C src/$@ $(MKDEF)	
 
-clean: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile src/char/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/addons/GNUmakefile src/txt-converter/GNUmakefile
+clean: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \
+	src/char/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile \
+	src/ladmin/GNUmakefile src/plugins/GNUmakefile src/txt-converter/GNUmakefile
 	rm -f Makefile.cache
 	$(MAKE) -C src/common $@
 	$(MAKE) -C src/login $@
@@ -144,6 +159,20 @@ clean: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile sr
 	$(MAKE) -C src/ladmin $@
 	$(MAKE) -C src/plugins $@
 	$(MAKE) -C src/txt-converter $@
+
+depend: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \
+	src/char/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile \
+	src/ladmin/GNUmakefile src/plugins/GNUmakefile src/txt-converter/GNUmakefile
+	cd src/common; makedepend -fGNUmakefile -pobj/ -Y. *.c; cd ../..;
+	cd src/login; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
+	cd src/login_sql; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
+	cd src/char; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
+	cd src/char_sql; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
+	cd src/map; makedepend -DTXT_ONLY -fGNUmakefile -ptxtobj/ -Y. -Y../common *.c; cd ../..;
+	cd src/map; makedepend -fGNUmakefile -a -psqlobj/ -Y. -Y../common *.c; cd ../..;
+	cd src/ladmin; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
+	cd src/txt-converter; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
+	$(MAKE) -C src/plugins $@
 
 Makefile.cache:
 	printf "$(subst ",\",$(MKDEF))" > Makefile.cache

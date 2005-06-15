@@ -15,6 +15,7 @@
 #include "../common/malloc.h"
 #include "../common/socket.h"
 #include "../common/timer.h"
+#include "../common/grfio.h"
 #include "../common/plugins.h"
 #include "../common/version.h"
 #include "../common/showmsg.h"
@@ -197,6 +198,7 @@ int main (int argc, char **argv)
 	signals_init();
 
 	timer_init();
+	zlib_init();
 	plugins_init();
 	socket_init();
 

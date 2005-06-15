@@ -14,7 +14,9 @@
 #include "../common/core.h"
 #include "../common/timer.h"
 #include "../common/db.h"
+#include "../common/grfio.h"
 #include "../common/malloc.h"
+#include "../common/socket.h"
 #include "../common/showmsg.h"
 #include "../common/version.h"
 #include "../common/nullpo.h"
@@ -25,7 +27,6 @@
 #include "intif.h"
 #include "npc.h"
 #include "pc.h"
-#include "grfio.h"
 #include "status.h"
 #include "mob.h"
 #include "chat.h"
@@ -40,7 +41,7 @@
 #include "pet.h"
 #include "atcommand.h"
 #include "charcommand.h"
-#include "socket.h"
+
 #include "log.h"
 
 // maybe put basic macros to somewhere else

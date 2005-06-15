@@ -2,27 +2,22 @@
 OBJECTS = sample.dll sig.dll pid.dll gui.dll upnp.dll
 
 ifdef CYGWIN
-   EXT = dll
+   PLUGINEXT = dll
 else
-   EXT = so
+   PLUGINEXT = so
 endif
 
-PLUGINS = $(OBJECTS:%.dll=%.$(EXT))
+PLUGINS = $(OBJECTS:%.dll=%.$(PLUGINEXT))
 COMMON_H = ../common/plugin.h
 
 txt sql all: $(PLUGINS)
 
-
-%.$(EXT): %.c
+%.$(PLUGINEXT): %.c
 	$(CC) $(CFLAGS) -shared -o ../../plugins/$@ $<
 	@touch $@
 
-sample.$(EXT): sample.c $(COMMON_H)
-sig.$(EXT): sig.c $(COMMON_H)
-pid.$(EXT): pid.c $(COMMON_H)
-gui.$(EXT): ../../plugins/gui.conf gui.c $(COMMON_H)
-upnp.$(EXT): ../../plugins/upnp.conf
-
+gui.$(PLUGINEXT): ../../plugins/gui.conf
+upnp.$(PLUGINEXT): ../../plugins/upnp.conf
 
 ../../plugins/%.conf: %.txt
 	cp -r $< $@
@@ -30,5 +25,15 @@ upnp.$(EXT): ../../plugins/upnp.conf
 ../../plugins/gui.conf: gui.txt
 ../../plugins/upnp.conf: upnp.txt
 
+
+depend:
+	makedepend -fGNUmakefile -o.$(PLUGINEXT) -Y. -Y../common *.c
 clean:
 	rm -rf $(PLUGINS)
+
+# DO NOT DELETE
+
+sample.$(PLUGINEXT): sample.c $(COMMON_H)
+sig.$(PLUGINEXT): sig.c $(COMMON_H)
+pid.$(PLUGINEXT): pid.c $(COMMON_H)
+gui.$(PLUGINEXT): ../../plugins/gui.conf gui.c $(COMMON_H)

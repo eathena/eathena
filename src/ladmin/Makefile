@@ -5,8 +5,6 @@ COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/mmo.h
 
 ladmin: ladmin.o md5calc.o $(COMMON_OBJ)
 	$(CC) -o ../../$@ ladmin.o md5calc.o $(COMMON_OBJ) $(LIB_S)
-ladmin.o: ladmin.c ladmin.h md5calc.h $(COMMON_H)
-md5calc.o: md5calc.c md5calc.h
 
 ../common/obj/mini%.o: ../common/%.c
 	$(COMPILE.c) -DMINICORE $(OUTPUT_OPTION) $<
@@ -16,3 +14,8 @@ md5calc.o: md5calc.c md5calc.h
 
 clean:
 	rm -f *.o ../../ladmin
+
+# DO NOT DELETE
+
+ladmin.o: ladmin.c ladmin.h md5calc.h $(COMMON_H)
+md5calc.o: md5calc.c md5calc.h
