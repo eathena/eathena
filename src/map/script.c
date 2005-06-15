@@ -40,6 +40,7 @@
 #include "party.h"
 #include "guild.h"
 #include "atcommand.h"
+#include "charcommand.h"
 #include "log.h"
 #include "showmsg.h"
 
@@ -290,7 +291,8 @@ int buildin_npcskilleffect(struct script_state *st); // skill effects for npcs [
 int buildin_specialeffect(struct script_state *st); // special effect script [Valaris]
 int buildin_specialeffect2(struct script_state *st); // special effect script [Valaris]
 int buildin_nude(struct script_state *st); // nude [Valaris]
-int buildin_gmcommand(struct script_state *st); // [MouseJstr]
+int buildin_atcommand(struct script_state *st); // [MouseJstr]
+int buildin_charcommand(struct script_state *st); // [MouseJstr]
 int buildin_movenpc(struct script_state *st); // [MouseJstr]
 int buildin_message(struct script_state *st); // [MouseJstr]
 int buildin_npctalk(struct script_state *st); // [Valaris]
@@ -545,7 +547,8 @@ struct {
 	{buildin_inittimer,"inittimer",""},
 	{buildin_stoptimer,"stoptimer",""},
 	{buildin_cmdothernpc,"cmdothernpc","ss"},
-	{buildin_gmcommand,"gmcommand","*"}, // [MouseJstr]
+	{buildin_atcommand,"atcommand","*"}, // [MouseJstr]
+	{buildin_charcommand,"charcommand","*"}, // [MouseJstr]
 //	{buildin_movenpc,"movenpc","siis"}, // [MouseJstr]
 	{buildin_message,"message","s*"}, // [MouseJstr]
 	{buildin_npctalk,"npctalk","*"}, // [Valaris]
@@ -6410,10 +6413,11 @@ int buildin_nude(struct script_state *st)
  * gmcommand [MouseJstr]
  *
  * suggested on the forums...
+ * splitted into atcommand & charcommand by [Skotlex]
  *------------------------------------------
  */
 
-int buildin_gmcommand(struct script_state *st)
+int buildin_atcommand(struct script_state *st)
 {
 	struct map_session_data *sd;
 	char *cmd;
@@ -6426,6 +6430,21 @@ int buildin_gmcommand(struct script_state *st)
 
 	return 0;
 }
+
+int buildin_charcommand(struct script_state *st)
+{
+	struct map_session_data *sd;
+	char *cmd;
+
+	sd = script_rid2sd(st);
+	if (!sd)
+		return 0;
+	cmd = conv_str(st,& (st->stack->stack_data[st->start+2]));
+	is_charcommand(sd->fd, sd, cmd, 99);
+
+	return 0;
+}
+
 
 /*==========================================
  * Displays a message for the player only (like system messages like "you got an apple" )

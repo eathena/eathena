@@ -4,6 +4,8 @@ Date	Added
 	  missing function (zlib_init, called from core.c) so you might have missed
 	  more files. Go add them and delete this entry once it's fixed. >.<
 	  [Skotlex]
+	* Removed script command gmcommand and replaced it with atcommand &
+	  charcommand. [Skotlex]
 	* Small fix regarding speed updating for Cast Cancel + Freedom of Cast [Skotlex]
 	* Added 'make depend' for resetting Makefile dependencies [celest]
 	* Readded 'make addons' (works the same as 'make plugins') [celest]
