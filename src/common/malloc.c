@@ -201,6 +201,7 @@ static struct unit_head_large *unit_head_large_first = NULL;
 static struct block* block_malloc(void);
 static void   block_free(struct block* p);
 static void memmgr_info(void);
+static unsigned int memmgr_usage_bytes = 0;
 
 static char memmer_logfile[128];
 static FILE *log_fp;
@@ -213,6 +214,7 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func ) {
 	if(size == 0) {
 		return NULL;
 	}
+	memmgr_usage_bytes += size;
 
 	/* ブロック長を超える領域の確保には、malloc() を用いる */
 	/* その際、unit_head.block に NULL を代入して区別する */
@@ -373,6 +375,7 @@ void _mfree(void *ptr, const char *file, int line, const char *func ) {
 				head_large->next->prev = head_large->prev;
 			}
 			head->block = NULL;
+			memmgr_usage_bytes -= head->size;
 			FREE (head_large);			
 		} else {
 			ShowError("Memory manager: args of aFree is freed pointer %s line %d\n", file, line);
@@ -388,6 +391,7 @@ void _mfree(void *ptr, const char *file, int line, const char *func ) {
 			ShowError("Memory manager: args of aFree is overflowed pointer %s line %d\n", file, line);
 		} else {
 			head->block = NULL;
+			memmgr_usage_bytes -= head->size;
 			if(--block->unit_used == 0) {
 				/* ブロックの解放 */
 				if(unit_unfill[block->unit_hash] == block) {
@@ -535,6 +539,11 @@ static void block_free(struct block* p) {
 	}
 }
 
+unsigned int memmgr_usage (void)
+{
+	return memmgr_usage_bytes / 1024;
+}
+
 static void memmgr_log (char *buf)
 {
 	if (!log_fp)
@@ -623,6 +632,16 @@ static void memmgr_init (void)
  * Initialise
  *--------------------------------------
  */
+
+unsigned int malloc_usage (void)
+{
+#ifdef USE_MEMMGR
+	return memmgr_usage ();
+#else
+	return 0;
+#endif
+}
+
 void malloc_final (void)
 {
 #ifdef USE_MEMMGR

@@ -144,6 +144,7 @@
 
 ////////////////////////////////////////////////
 
+unsigned int malloc_usage (void);
 void malloc_init (void);
 void malloc_final (void);
 

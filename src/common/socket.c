@@ -262,7 +262,8 @@ static int connect_client(int listen_fd)
 	session[fd]->func_send   = send_from_fifo;
 	session[fd]->func_parse  = default_func_parse;
 	session[fd]->client_addr = client_address;
-	session[fd]->rdata_tick = last_tick;
+	session[fd]->rdata_tick  = last_tick;
+	session[fd]->type        = SESSION_UNKNOWN;	// undefined type
 
   //ShowMessage("new_session : %d %d\n",fd,session[fd]->eof);
 	return fd;
@@ -388,6 +389,31 @@ static int null_console_parse(char *buf)
 {
 	ShowMessage("null_console_parse : %s\n",buf);
 	return 0;
+}
+
+// function parse table
+// To-do: -- use dynamic arrays
+//        -- add a register_parse_func();
+struct func_parse_table func_parse_table[SESSION_MAX];
+
+int default_func_check (struct socket_data *sd) { return 1; }
+
+void func_parse_check (struct socket_data *sd)
+{
+	int i;
+	for (i = SESSION_HTTP; i < SESSION_MAX; i++) {
+		if (func_parse_table[i].func &&
+			func_parse_table[i].check &&
+			func_parse_table[i].check(sd) != 0)
+		{
+			sd->type = i;
+			sd->func_parse = func_parse_table[i].func;
+			return;
+		}
+	}
+
+	// undefined -- treat as raw socket (using default parse)
+	sd->type = SESSION_RAW;
 }
 
 // Console Input [Wizputer]
@@ -672,17 +698,22 @@ int do_sendrecv(int next)
 int do_parsepacket(void)
 {
 	int i;
+	struct socket_data *sd;
 	for(i = 0; i < fd_max; i++){
-		if(!session[i])
+		sd = session[i];
+		if(!sd)
 			continue;
-		if ((session[i]->rdata_tick != 0) && DIFF_TICK(last_tick, session[i]->rdata_tick) > stall_time) {
+		if ((sd->rdata_tick != 0) && DIFF_TICK(last_tick,sd->rdata_tick) > stall_time) {
 			ShowInfo ("Session #%d timed out\n", i);
-			session[i]->eof = 1;
+			sd->eof = 1;
 		}
-		if(session[i]->rdata_size == 0 && session[i]->eof == 0)
+		if(sd->rdata_size == 0 && sd->eof == 0)
 			continue;
-		if(session[i]->func_parse){
-			session[i]->func_parse(i);
+		if(sd->func_parse){
+			if(sd->type == SESSION_UNKNOWN)
+				func_parse_check(sd);
+			if(sd->type != SESSION_UNKNOWN)
+				sd->func_parse(i);
 			if(!session[i])
 				continue;
 		}
@@ -1119,6 +1150,10 @@ void socket_init (void)
 	CREATE_A(session[0]->wdata, unsigned char, wfifo_size);
 	session[0]->max_rdata   = (int)rfifo_size;
 	session[0]->max_wdata   = (int)wfifo_size;
+
+	memset (func_parse_table, 0, sizeof(func_parse_table));
+	func_parse_table[SESSION_RAW].check = default_func_check;
+	func_parse_table[SESSION_RAW].func = default_func_parse;
 
 #ifndef MINICORE
 	// とりあえず５分ごとに不要なデータを削除する

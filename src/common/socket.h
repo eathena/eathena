@@ -55,22 +55,40 @@ extern time_t stall_time;
 
 /* Removed Cygwin FD_SETSIZE declarations, now are directly passed on to the compiler through Makefile [Valaris] */
 
+// Session type
+enum SessionType {
+	SESSION_UNKNOWN	= -1,
+	SESSION_RAW		= 0,
+	SESSION_HTTP	= 1,
+//-----------------
+	SESSION_MAX		= 2
+};
+
 // Struct declaration
 
 struct socket_data{
 	int eof;
-	unsigned char *rdata,*wdata;
-	int max_rdata,max_wdata;
-	int rdata_size,wdata_size;
-	time_t rdata_tick;
+	unsigned char *rdata, *wdata;
+	int max_rdata, max_wdata;
+	int rdata_size, wdata_size;
 	int rdata_pos;
+	time_t rdata_tick;
 	struct sockaddr_in client_addr;
 	int (*func_recv)(int);
 	int (*func_send)(int);
 	int (*func_parse)(int);
 	int (*func_console)(char*);
 	void* session_data;
+	enum SessionType type;
 };
+
+// Parse functions table
+struct func_parse_table {
+	int (*func)(int);
+	int (*check)(struct socket_data *);
+};
+extern struct func_parse_table func_parse_table[SESSION_MAX];
+
 
 // Data prototype declaration
 

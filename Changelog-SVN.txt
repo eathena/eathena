@@ -1,5 +1,9 @@
 Date	Added
 06/15
+	* Added malloc_usage() for checking total memory used [celest]
+	* Added func_parse_table to assign a parse function according to SessionType
+	  -- still not used anywhere yet [celest]
+	* Added 'SessionType' to session_data [celest]
 	* Some tidying up in charcommand.c [celest]
 	* Added temporary code for Shinobi's Rebirth skill [celest]
 	* Added guild exp overflow fix for TXT char [celest]
