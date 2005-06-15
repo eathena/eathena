@@ -1,5 +1,9 @@
 Date	Added
 06/15
+	* BROKEN. Celest! grfio.* are NOT inside common/, and there's also a
+	  missing function (zlib_init, called from core.c) so you might have missed
+	  more files. Go add them and delete this entry once it's fixed. >.<
+	  [Skotlex]
 	* Small fix regarding speed updating for Cast Cancel + Freedom of Cast [Skotlex]
 	* Added 'make depend' for resetting Makefile dependencies [celest]
 	* Readded 'make addons' (works the same as 'make plugins') [celest]
