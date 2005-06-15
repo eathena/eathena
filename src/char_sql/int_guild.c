@@ -799,7 +799,9 @@ int guild_check_empty(struct guild *g)
 
 int guild_nextexp(int level)
 {
-	if(level < 100 && level >0) // Change by hack
+	if (level == 0)
+		return 1;
+	if (level < 100 && level > 0) // Change by hack
 		return guild_exp[level-1];
 
 	return 0;

@@ -46,14 +46,7 @@ enum CharCommandType {
 };
 
 typedef enum CharCommandType CharCommandType;
-
-typedef struct CharCommandInfo {
-	CharCommandType type;
-	const char* command;
-	int level;
-	int (*proc)(const int, struct map_session_data*,
-		const char* command, const char* message);
-} CharCommandInfo;
+typedef struct AtCommandInfo CharCommandInfo;
 
 CharCommandType
 is_charcommand(const int fd, struct map_session_data* sd, const char* message, int gmlvl);

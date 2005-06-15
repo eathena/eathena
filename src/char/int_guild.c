@@ -632,8 +632,11 @@ int guild_check_conflict(int guild_id, int account_id, int char_id) {
 	return 0;
 }
 
-int guild_nextexp(int level) {
-	if (level < 100)
+int guild_nextexp (int level)
+{
+	if (level == 0)
+		return 1;
+	if (level > 0 && level < 100)
 		return guild_exp[level-1];
 
 	return 0;

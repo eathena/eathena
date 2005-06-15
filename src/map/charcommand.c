@@ -20,14 +20,8 @@
 #include "mob.h"
 #include "pet.h"
 #include "battle.h"
-#include "party.h"
-#include "guild.h"
 #include "charcommand.h"
 #include "atcommand.h"
-#include "script.h"
-#include "npc.h"
-#include "trade.h"
-#include "core.h"
 #include "showmsg.h"
 
 static char command_symbol = '#';
@@ -35,7 +29,6 @@ static char command_symbol = '#';
 extern char *msg_table[1000]; // Server messages (0-499 reserved for GM commands, 500-999 reserved for others)
 
 #define CCMD_FUNC(x) int charcommand_ ## x (const int fd, struct map_session_data* sd, const char* command, const char* message)
-
 CCMD_FUNC(jobchange);
 CCMD_FUNC(petrename);
 CCMD_FUNC(petfriendly);
@@ -63,22 +56,12 @@ CCMD_FUNC(stpoint);
 CCMD_FUNC(skpoint);
 CCMD_FUNC(changesex);
 
-#ifdef TXT_ONLY
-/* TXT_ONLY */
-
-/* TXT_ONLY */
-#else
-/* SQL-only */
-
-/* SQL Only */
-#endif
-
 /*==========================================
  *CharCommandInfo charcommand_info[]\‘¢‘Ì‚Ì’è‹`
  *------------------------------------------
  */
 
-// First char of commands is configured in charcommand_athena.conf. Leave @ in this list for default value.
+// First char of commands is configured in charcommand_athena.conf. Leave # in this list for default value.
 // to set default level, read charcommand_athena.conf first please.
 static CharCommandInfo charcommand_info[] = {
 	{ CharCommandJobChange,				"#job",						60,	charcommand_jobchange },
@@ -117,23 +100,9 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandSTPoint,				"#stpoint",					60, charcommand_stpoint },
 //	{ CharCommandChangeSex,				"#changesex",			60, charcommand_changsex },
 
-
-#ifdef TXT_ONLY
-/* TXT_ONLY */
-
-/* TXT_ONLY */
-#else
-/* SQL-only */
-
-/* SQL Only */
-#endif
-
 // add new commands before this line
 	{ CharCommand_Unknown,             NULL,                1, NULL }
 };
-
-char chcmd_output[200];
-
 
 int get_charcommand_level(const CharCommandType type) {
 	int i;
@@ -207,7 +176,7 @@ is_charcommand(const int fd, struct map_session_data* sd, const char* message, i
  *
  *------------------------------------------
  */
-CharCommandType charcommand(const int level, const char* message, struct CharCommandInfo* info) {
+CharCommandType charcommand(const int level, const char* message, CharCommandInfo* info) {
 	char* p = (char *)message; 
 
 	if (!info)
@@ -464,7 +433,7 @@ int charcommand_petfriendly(
 					clif_pet_emotion(pl_sd->pd,0);
 					if (battle_config.pet_status_support) {
 						if ((pl_sd->pet.intimate > 0 && t <= 0) ||
-						    (pl_sd->pet.intimate <= 0 && t > 0)) {
+							(pl_sd->pet.intimate <= 0 && t > 0)) {
 							if (pl_sd->bl.prev != NULL)
 								status_calc_pc(pl_sd, 0);
 							else
@@ -1074,7 +1043,7 @@ int charcommand_item(
 
 	item_id = 0;
 	if ((item_data = itemdb_searchname(item_name)) != NULL ||
-	    (item_data = itemdb_exists(atoi(item_name))) != NULL)
+		(item_data = itemdb_exists(atoi(item_name))) != NULL)
 		item_id = item_data->nameid;
 
 	if (item_id >= 500) {
@@ -1092,9 +1061,9 @@ int charcommand_item(
 					if (pet_id >= 0) {
 						pl_sd->catch_target_class = pet_db[pet_id].class_;
 						intif_create_pet(pl_sd->status.account_id, pl_sd->status.char_id,
-						                 (short)pet_db[pet_id].class_, (short)mob_db[pet_db[pet_id].class_].lv,
-						                 (short)pet_db[pet_id].EggID, 0, (short)pet_db[pet_id].intimate,
-						                 100, 0, 1, pet_db[pet_id].jname);
+										 (short)pet_db[pet_id].class_, (short)mob_db[pet_db[pet_id].class_].lv,
+										 (short)pet_db[pet_id].EggID, 0, (short)pet_db[pet_id].intimate,
+										 100, 0, 1, pet_db[pet_id].jname);
 					// if not pet egg
 					} else {
 						memset(&item_tmp, 0, sizeof(item_tmp));
@@ -1554,7 +1523,7 @@ int charcommand_skreset(
 	char player[NAME_LENGTH];
 	nullpo_retr(-1, sd);
 
-	memset(chcmd_output, '\0', sizeof(chcmd_output));
+	memset(tmp_output, '\0', sizeof(tmp_output));
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", player) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charskreset <charname>).");
@@ -1564,8 +1533,8 @@ int charcommand_skreset(
 	if ((pl_sd = map_nick2sd(player)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can reset skill points only lower or same gm level
 			pc_resetskill(pl_sd);
-			sprintf(chcmd_output, msg_table[206], player); // '%s' skill points reseted!
-			clif_displaymessage(fd, chcmd_output);
+			sprintf(tmp_output, msg_table[206], player); // '%s' skill points reseted!
+			clif_displaymessage(fd, tmp_output);
 		} else {
 			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
 			return -1;
@@ -1590,7 +1559,7 @@ int charcommand_streset(
 	char player[NAME_LENGTH];
 	nullpo_retr(-1, sd);
 
-	memset(chcmd_output, '\0', sizeof(chcmd_output));
+	memset(tmp_output, '\0', sizeof(tmp_output));
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", player) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charstreset <charname>).");
@@ -1600,8 +1569,8 @@ int charcommand_streset(
 	if ((pl_sd = map_nick2sd(player)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can reset stats points only lower or same gm level
 			pc_resetstate(pl_sd);
-			sprintf(chcmd_output, msg_table[207], player); // '%s' stats points reseted!
-			clif_displaymessage(fd, chcmd_output);
+			sprintf(tmp_output, msg_table[207], player); // '%s' stats points reseted!
+			clif_displaymessage(fd, tmp_output);
 		} else {
 			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
 			return -1;
@@ -1627,23 +1596,23 @@ int charcommand_model(
 	char player[NAME_LENGTH];
 	nullpo_retr(-1, sd);
 
-	memset(chcmd_output, '\0', sizeof(chcmd_output));
+	memset(tmp_output, '\0', sizeof(tmp_output));
 
 	if (!message || !*message || sscanf(message, "%d %d %d %23[^\n]", &hair_style, &hair_color, &cloth_color, player) < 4 || hair_style < 0 || hair_color < 0 || cloth_color < 0) {
-		sprintf(chcmd_output, "Please, enter a valid model and a player name (usage: @charmodel <hair ID: %d-%d> <hair color: %d-%d> <clothes color: %d-%d> <name>).",
-		        MIN_HAIR_STYLE, MAX_HAIR_STYLE, MIN_HAIR_COLOR, MAX_HAIR_COLOR, MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
-		clif_displaymessage(fd, chcmd_output);
+		sprintf(tmp_output, "Please, enter a valid model and a player name (usage: @charmodel <hair ID: %d-%d> <hair color: %d-%d> <clothes color: %d-%d> <name>).",
+				MIN_HAIR_STYLE, MAX_HAIR_STYLE, MIN_HAIR_COLOR, MAX_HAIR_COLOR, MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
+		clif_displaymessage(fd, tmp_output);
 		return -1;
 	}
 
 	if ((pl_sd = map_nick2sd(player)) != NULL) {
 		if (hair_style >= MIN_HAIR_STYLE && hair_style <= MAX_HAIR_STYLE &&
-		    hair_color >= MIN_HAIR_COLOR && hair_color <= MAX_HAIR_COLOR &&
-		    cloth_color >= MIN_CLOTH_COLOR && cloth_color <= MAX_CLOTH_COLOR) {
+			hair_color >= MIN_HAIR_COLOR && hair_color <= MAX_HAIR_COLOR &&
+			cloth_color >= MIN_CLOTH_COLOR && cloth_color <= MAX_CLOTH_COLOR) {
 
 			if (cloth_color != 0 &&
-			    pl_sd->status.sex == 1 &&
-			    (pl_sd->status.class_ == 12 ||  pl_sd->status.class_ == 17)) {
+				pl_sd->status.sex == 1 &&
+				(pl_sd->status.class_ == 12 ||  pl_sd->status.class_ == 17)) {
 				clif_displaymessage(fd, msg_table[35]); // You can't use this command with this class.
 				return -1;
 			} else {

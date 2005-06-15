@@ -4292,6 +4292,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
+	case NPC_REBIRTH:
+		//printf ("%d %d\n", md && md->bl.prev, md && md->bl.prev && md->state.state == MS_DEAD);
+		if (md && md->state.state == MS_DEAD) {
+			mob_setdelayspawn (md->bl.id);
+		}
+		break;
+
 	case NPC_DARKBLESSING:
 		{
 			int sc_def = 100 - status_get_mdef(bl);

@@ -1,4 +1,9 @@
 Date	Added
+06/15
+	* Some tidying up in charcommand.c [celest]
+	* Added temporary code for Shinobi's Rebirth skill [celest]
+	* Added guild exp overflow fix for TXT char [celest]
+
 06/14
 	* Various item_trade restriction fixes:	[Skotlex]
 	  - Fixed guild/normal storage flags not working right.
@@ -23,8 +28,8 @@ Date	Added
 	  is now plugin_athena.conf and so on [celest]
 	* Updated UPnP plugin to 1.0.3.1 [celest]
 	  - moved code in socket.c back into the plugin
-	  - added configuration file support (addon/upnp.conf) -- you'll need to do
-	    'make addons' to install it
+	  - added configuration file support (plugins/upnp.conf) -- you'll need to do
+	    'make plugins' to install it
 	* Added 'make zlib' for compiling a zlib.dll [celest]
 
 06/13

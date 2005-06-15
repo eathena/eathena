@@ -2894,84 +2894,84 @@ static int char_ip_set_ = 0;
  *------------------------------------------
  */
 int parse_console(char *buf) {
-    char *type,*command,*map, *buf2;
-    int x = 0, y = 0;
-    int m, n;
-    struct map_session_data *sd;
+	char *type,*command,*map, *buf2;
+	int x = 0, y = 0;
+	int m, n;
+	struct map_session_data *sd;
 
-    sd = (struct map_session_data*)aCalloc(sizeof(*sd), 1);
+	sd = (struct map_session_data*)aCalloc(sizeof(*sd), 1);
 
-    sd->fd = 0;
-    strcpy( sd->status.name , "console");
+	sd->fd = 0;
+	strcpy( sd->status.name , "console");
 
-    type = (char *)aMallocA(64);
-    command = (char *)aMallocA(64);
-    map = (char *)aMallocA(64);
-    buf2 = (char *)aMallocA(72);
+	type = (char *)aMallocA(64);
+	command = (char *)aMallocA(64);
+	map = (char *)aMallocA(64);
+	buf2 = (char *)aMallocA(72);
 
-    memset(type,0,64);
-    memset(command,0,64);
-    memset(map,0,64);
-    memset(buf2,0,72);
+	memset(type,0,64);
+	memset(command,0,64);
+	memset(map,0,64);
+	memset(buf2,0,72);
 
-    if ( ( n = sscanf(buf, "%[^:]:%[^:]:%99s %d %d[^\n]", type , command , map , &x , &y )) < 5 )
-        if ( ( n = sscanf(buf, "%[^:]:%[^\n]", type , command )) < 2 )
-            n = sscanf(buf,"%[^\n]",type);
+	if ( ( n = sscanf(buf, "%[^:]:%[^:]:%99s %d %d[^\n]", type , command , map , &x , &y )) < 5 )
+		if ( ( n = sscanf(buf, "%[^:]:%[^\n]", type , command )) < 2 )
+			n = sscanf(buf,"%[^\n]",type);
 
-    if ( n == 5 ) {
-        if (x <= 0) {
-            x = rand() % 399 + 1;
-            sd->bl.x = x;
-        } else {
-            sd->bl.x = x;
-        }
+	if ( n == 5 ) {
+		if (x <= 0) {
+			x = rand() % 399 + 1;
+			sd->bl.x = x;
+		} else {
+			sd->bl.x = x;
+		}
 
-        if (y <= 0) {
-            y = rand() % 399 + 1;
-            sd->bl.y = y;
-        } else {
-            sd->bl.y = y;
-        }
+		if (y <= 0) {
+			y = rand() % 399 + 1;
+			sd->bl.y = y;
+		} else {
+			sd->bl.y = y;
+		}
 
-        m = map_mapname2mapid(map);
-        if ( m >= 0 )
-            sd->bl.m = m;
-        else {
-            printf("Console: Unknown map\n");
-            goto end;
-        }
-    }
+		m = map_mapname2mapid(map);
+		if ( m >= 0 )
+			sd->bl.m = m;
+		else {
+			printf("Console: Unknown map\n");
+			goto end;
+		}
+	}
 
-    printf("Type of command: %s || Command: %s || Map: %s Coords: %d %d\n",type,command,map,x,y);
+	printf("Type of command: %s || Command: %s || Map: %s Coords: %d %d\n",type,command,map,x,y);
 
-    if ( strcmpi("admin",type) == 0 && n == 5 ) {
-        sprintf(buf2,"console: %s",command);
-        if( is_atcommand(sd->fd,sd,buf2,99) == AtCommand_None )
-            printf("Console: not atcommand\n");
-    } else if ( strcmpi("server",type) == 0 && n == 2 ) {
-        if ( strcmpi("shutdown", command) == 0 || strcmpi("exit",command) == 0 || strcmpi("quit",command) == 0 ) {
-            runflag = 0;
-        }
-    } else if ( strcmpi("help",type) == 0 ) {
-        printf("To use GM commands:\n");
-        printf("admin:<gm command>:<map of \"gm\"> <x> <y>\n");
-        printf("You can use any GM command that doesn't require the GM.\n");
-        printf("No using @item or @warp however you can use @charwarp\n");
-        printf("The <map of \"gm\"> <x> <y> is for commands that need coords of the GM\n");
-        printf("IE: @spawn\n");
-        printf("To shutdown the server:\n");
-        printf("server:shutdown\n");
-    }
+	if ( strcmpi("admin",type) == 0 && n == 5 ) {
+		sprintf(buf2,"console: %s",command);
+		if( is_atcommand(sd->fd,sd,buf2,99) == AtCommand_None )
+			printf("Console: not atcommand\n");
+	} else if ( strcmpi("server",type) == 0 && n == 2 ) {
+		if ( strcmpi("shutdown", command) == 0 || strcmpi("exit",command) == 0 || strcmpi("quit",command) == 0 ) {
+			runflag = 0;
+		}
+	} else if ( strcmpi("help",type) == 0 ) {
+		printf("To use GM commands:\n");
+		printf("admin:<gm command>:<map of \"gm\"> <x> <y>\n");
+		printf("You can use any GM command that doesn't require the GM.\n");
+		printf("No using @item or @warp however you can use @charwarp\n");
+		printf("The <map of \"gm\"> <x> <y> is for commands that need coords of the GM\n");
+		printf("IE: @spawn\n");
+		printf("To shutdown the server:\n");
+		printf("server:shutdown\n");
+	}
 
-    end:
-    aFree(buf);
-    aFree(type);
-    aFree(command);
-    aFree(map);
-    aFree(buf2);
-    aFree(sd);
+	end:
+	aFree(buf);
+	aFree(type);
+	aFree(command);
+	aFree(map);
+	aFree(buf2);
+	aFree(sd);
 
-    return 0;
+	return 0;
 }
 
 /*==========================================
