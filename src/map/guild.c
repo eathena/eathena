@@ -547,7 +547,19 @@ int guild_reply_invite(struct map_session_data *sd,int guild_id,int flag)
 	struct map_session_data *tsd;
 
 	nullpo_retr(0, sd);
-	nullpo_retr(0, tsd= map_id2sd( sd->guild_invite_account ));
+	
+	//nullpo_retr(0, tsd= map_id2sd( sd->guild_invite_account ));
+	//I checked the code, and there's no "check" for the case where the guy
+	//that invites another to a guild quits the map-server before being replied.
+	//Hence that's a valid null pointer scenario. :) [Skotlex]
+	if ((tsd= map_id2sd( sd->guild_invite_account )) == NULL);
+	{	//Do we send a "invitation failed" msg or something to the player?
+		//Or should we accept the invitation and add it to the guild anyway?
+		//afterall, guild_invite holds the guild id that the player was invited to.
+		sd->guild_invite=0;
+		sd->guild_invite_account=0;
+		return 0;
+	}
 
 	if(sd->guild_invite!=guild_id)	// Š©—U‚ÆƒMƒ‹ƒhID‚ªˆá‚¤
 		return 0;
@@ -581,8 +593,6 @@ int guild_reply_invite(struct map_session_data *sd,int guild_id,int flag)
 	}else{		// ‹‘”Û
 		sd->guild_invite=0;
 		sd->guild_invite_account=0;
-		if(tsd==NULL)
-			return 0;
 		clif_guild_inviteack(tsd,1);
 	}
 	return 0;

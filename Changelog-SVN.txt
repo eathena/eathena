@@ -6,6 +6,8 @@ Date	Added
 	  I readded the grfio.* files from the last revision before they were
 	  deleted (added them to common/) and commented zlib_init to make the
 	  current revision compilable until ya can step in. [Skotlex]
+	* nullpo fix (guild.c:550), it was an actual possible scenario when you
+	  invite someone to a guild and quit before they reply. [Skotlex]
 	* Removed script command gmcommand and replaced it with atcommand &
 	  charcommand. [Skotlex]
 	* Small fix regarding speed updating for Cast Cancel + Freedom of Cast [Skotlex]
