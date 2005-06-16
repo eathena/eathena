@@ -34,9 +34,6 @@ typedef int socklen_t;
 #include "../common/timer.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
-#ifndef MINICORE
-	#include "../common/plugins.h"
-#endif
 
 fd_set readfds;
 #ifdef TURBO
@@ -1159,8 +1156,6 @@ void socket_init (void)
 	// とりあえず５分ごとに不要なデータを削除する
 	add_timer_func_list(connect_check_clear, "connect_check_clear");	
 	add_timer_interval(gettick()+1000,connect_check_clear,0,0,300*1000);
-
-	export_symbol (addr_, 12);
 #endif
 }
 

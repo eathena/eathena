@@ -200,8 +200,8 @@ int main (int argc, char **argv)
 	timer_init();
 	zlib_init(); //Where art thou, Celest?
 	// Corrected ^^;
-	plugins_init();
 	socket_init();
+	plugins_init();
 
 	do_init(argc,argv);
 	plugin_event_trigger("Athena_Init");

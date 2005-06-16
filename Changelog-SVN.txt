@@ -5,6 +5,7 @@ Date	Added
 	  It's currently set at +/-5%, not tested to know if that's enough or not,
 	  feedback appreciated.
 	* Updated missing grfio.c, sorry ^^; and thanks Skotlex! [celest]
+	* Fixed crash in exporting ip address to plugins [celest]
 
 06/15
 	* Small mod on the new attack function to prevent Asura Strike from

@@ -12,6 +12,7 @@
 #include "../common/core.h"
 #include "../common/timer.h"
 #include "../common/utils.h"
+#include "../common/socket.h"
 #include "../common/malloc.h"
 #include "../common/version.h"
 #include "../common/showmsg.h"
@@ -296,8 +297,7 @@ void plugins_init (void)
 	register_plugin_func("Athena_Init");
 	register_plugin_func("Athena_Final");
 
-	plugin_call_table = NULL;
-	// &addr_ = 12
+	export_symbol (addr_,				12);
 	export_symbol (get_uptime,			11);
 	export_symbol (delete_timer,		10);
 	export_symbol (add_timer_func_list,	9);
