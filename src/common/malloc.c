@@ -5,6 +5,10 @@
 #include "../common/core.h"
 #include "../common/showmsg.h"
 
+#ifdef MINICORE
+	#undef LOG_MEMMGR
+#endif
+
 void* aMalloc_ (size_t size, const char *file, int line, const char *func)
 {
 #ifndef MEMWATCH
@@ -202,9 +206,6 @@ static struct block* block_malloc(void);
 static void   block_free(struct block* p);
 static void memmgr_info(void);
 static unsigned int memmgr_usage_bytes = 0;
-
-static char memmer_logfile[128];
-static FILE *log_fp;
 
 void* _mmalloc(size_t size, const char *file, int line, const char *func ) {
 	int i;
@@ -544,10 +545,13 @@ unsigned int memmgr_usage (void)
 	return memmgr_usage_bytes / 1024;
 }
 
+#ifdef LOG_MEMMGR
+static char memmer_logfile[128];
+static FILE *log_fp;
+
 static void memmgr_log (char *buf)
 {
-	if (!log_fp)
-	{
+	if (!log_fp) {
 		log_fp = fopen(memmer_logfile,"w");
 		if (!log_fp) log_fp = stdout;
 		fprintf(log_fp, "Memory manager: Memory leaks found.\n");
@@ -555,6 +559,7 @@ static void memmgr_log (char *buf)
 	fprintf(log_fp, buf);
 	return;
 }
+#endif
 
 static void memmgr_final (void)
 {

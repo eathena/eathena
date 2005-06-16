@@ -131,7 +131,7 @@ map_sql: src/map/GNUmakefile common
 ladmin: src/ladmin/GNUmakefile common
 	$(MAKE) -C src/$@ $(MKDEF)
 
-plugins addons: src/plugins/GNUmakefile
+plugins addons: src/plugins/GNUmakefile common
 	$(MAKE) -C src/plugins $(MKDEF)
 
 webserver:

@@ -5,14 +5,17 @@ obj:
 
 common: obj/core.o obj/socket.o obj/timer.o obj/db.o obj/plugins.o obj/lock.o \
 	obj/nullpo.o obj/malloc.o obj/showmsg.o  obj/strlib.o obj/utils.o \
-	obj/grfio.o
+	obj/grfio.o obj/minicore.o obj/minisocket.o obj/minimalloc.o
 
 obj/%.o: %.c
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
+obj/mini%.o: %.c
+	$(COMPILE.c) -DMINICORE $(OUTPUT_OPTION) $<
+
+
 clean:
 	rm -rf *.o obj
-
 
 HAVESVN = $(shell which svnversion)
 
@@ -25,6 +28,9 @@ svnversion.h:
 	@printf "" > svnversion.h
 endif
 
+obj/minicore.o: core.c core.h
+obj/minisocket.o: socket.c socket.h
+obj/minimalloc.o: malloc.c malloc.h
 
 # DO NOT DELETE
 
