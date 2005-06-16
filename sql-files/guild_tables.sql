@@ -135,7 +135,7 @@ CREATE TABLE guild_member (
   PRIMARY KEY  (guild_id,char_id),
   KEY char_id (char_id),
   CONSTRAINT `guild_member_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE,
-  CONSTRAINT `guild_member_ibfk_2` FOREIGN KEY (`char_id`) REFERENCES `lege_char` (`char_id`) ON DELETE CASCADE
+  CONSTRAINT `guild_member_ibfk_2` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
 ) TYPE=InnoDB;
 
 --
