@@ -2916,7 +2916,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 	struct pet_data *pd=NULL;//, *tpd=NULL; (Noone can target pets)
 	struct Damage wd;
 	short skill=0;
-	int skillratio = 100;	//Skill dmg modifiers. Not an unsigned short as Asura can overflow it!
+	unsigned short skillratio = 100;	//Skill dmg modifiers.
 
 	short i;
 	short t_mode = status_get_mode(target), t_size = status_get_size(target);
@@ -3616,8 +3616,11 @@ static struct Damage battle_calc_weapon_attack_sub(
 					break;
 				case MO_EXTREMITYFIST:
 					if (sd)
-					{
-						skillratio+= 100*(8 + ((sd->status.sp)/10));
+					{	//Overflow check. [Skotlex]
+						int ratio = skillratio + 100*(8 + ((sd->status.sp)/10));
+						//You'd need something like 6K SP to reach this max, so should be fine for most purposes.
+						if (ratio > 60000) ratio = 60000; //We leave some room here in case skill_ratio gets further increased.
+						skillratio = ratio;
 						sd->status.sp = 0;
 						clif_updatestatus(sd,SP_SP);
 					}
