@@ -1478,10 +1478,11 @@ int clif_spawnmob(struct mob_data *md)
 {
 	unsigned char buf[64];
 	int len;
+	int viewclass = mob_get_viewclass(md->class_);
 
 	nullpo_retr(0, md);
 
-	if (mob_get_viewclass(md->class_) > 23) {
+	if (viewclass > 23 && viewclass < 4000) {
 		memset(buf,0,packet_len_table[0x7c]);
 
 		WBUFW(buf,0)=0x7c;
@@ -1490,7 +1491,7 @@ int clif_spawnmob(struct mob_data *md)
 		WBUFW(buf,8)=md->opt1;
 		WBUFW(buf,10)=md->opt2;
 		WBUFW(buf,12)=md->option;
-		WBUFW(buf,20)=mob_get_viewclass(md->class_);
+		WBUFW(buf,20)=viewclass;
 		WBUFPOS(buf,36,md->bl.x,md->bl.y);
 		clif_send(buf,packet_len_table[0x7c],&md->bl,AREA);
 	}

@@ -1,5 +1,6 @@
 Date	Added
 06/16
+	* Fixed a client crash when using Advanced/Baby job sprites for mobs [Aru]
 	* Added a random modifier to returned damage modifiers to prevent stun-lock
 	  abusers. [Skotlex]
 	  It's currently set at +/-5%, not tested to know if that's enough or not,
