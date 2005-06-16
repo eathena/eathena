@@ -98,7 +98,7 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandModel,					"#charmodel",				50, charcommand_model },
 	{ CharCommandSKPoint,				"#skpoint",					60, charcommand_skpoint },
 	{ CharCommandSTPoint,				"#stpoint",					60, charcommand_stpoint },
-//	{ CharCommandChangeSex,				"#changesex",			60, charcommand_changsex },
+	{ CharCommandChangeSex,				"#changesex",			60, charcommand_changesex },
 
 // add new commands before this line
 	{ CharCommand_Unknown,             NULL,                1, NULL }
@@ -1725,7 +1725,7 @@ int charcommand_stpoint(
  * charchangesex command (usage: charchangesex <player_name>)
  *------------------------------------------
  */
-int atcommand_char_change_sex(
+int charcommand_changesex(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {

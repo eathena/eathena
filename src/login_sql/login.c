@@ -974,7 +974,7 @@ int parse_fromchar(int fd){
 		  {
 				int acc,sex;
 				unsigned char buf[16];
-				acc=RFIFOL(fd,4);
+				acc=RFIFOL(fd,2);
 				sprintf(tmpsql,"SELECT `sex` FROM `%s` WHERE `%s` = '%d'",login_db,login_db_account_id,acc);
 
 	        if(mysql_query(&mysql_handle, tmpsql)) {
