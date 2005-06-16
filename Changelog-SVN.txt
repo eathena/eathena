@@ -1,14 +1,12 @@
 Date	Added
 06/16
+	* Added a random modifier to returned damage modifiers to prevent stun-lock
+	  abusers. [Skotlex]
+	  It's currently set at +/-5%, not tested to know if that's enough or not,
+	  feedback appreciated.
 	* Updated missing grfio.c, sorry ^^; and thanks Skotlex! [celest]
 
 06/15
-	* BROKEN. Celest! grfio.* are NOT inside common/, and there's also a
-	  missing function (zlib_init, called from core.c) so you might have missed
-	  more files. Go add them and delete this entry once it's fixed. >.<
-	  I readded the grfio.* files from the last revision before they were
-	  deleted (added them to common/) and commented zlib_init to make the
-	  current revision compilable until ya can step in. [Skotlex]
 	* Small mod on the new attack function to prevent Asura Strike from
 	  overflowing and doing minimal damage instead of insane damage. [Skotlex]
 	* Merged Iro's patch to get #changesex working. Try it out. [Skotlex]
