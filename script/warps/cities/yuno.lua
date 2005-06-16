@@ -90,3 +90,11 @@ addwarp("yun73","yuno_in05.gat",50,87,"yuno_in02.gat",85,14,1,1)
 addwarp("yun74","yuno_in01.gat",88,36,"yuno_in01.gat",173,34,1,1)
 addwarp("yun75","yuno_in01.gat",176,34,"yuno_in01.gat",91,36,1,1)
 addwarp("yun76","yuno_in05.gat",197,102,"yuno_in05.gat",168,103,1,1)
+
+--= Juno Airport ================================================
+addwarp("jairp1","y_airport.gat",125,14,"y_airport.gat",19,20,1,1)
+addwarp("jairp1a","y_airport.gat",19,18,"y_airport.gat",123,14,1,1)
+addwarp("jairp2","y_airport.gat",160,14,"y_airport.gat",48,20,1,1)
+addwarp("jairp2a","y_airport.gat",48,18,"y_airport.gat",162,14,1,1)
+addwarp("jairp3","yuno.gat",54,217,"y_airport.gat",143,15,1,1)
+addwarp("jairp3a","y_airport.gat",143,13,"yuno.gat",54,215,1,1)
