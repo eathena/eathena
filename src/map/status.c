@@ -1594,7 +1594,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
  * For quick calculating [Celest]
  *------------------------------------------
  */
-int status_calc_speed (struct map_session_data &sd)
+int status_calc_speed_old (struct map_session_data &sd)
 {
 	int b_speed, skill;
 	struct pc_base_job s_class;
@@ -1681,7 +1681,55 @@ int status_calc_speed (struct map_session_data &sd)
 
 	return 0;
 }
+/*==========================================
+ * For quick calculating [Celest] Adapted by [Skotlex]
+ *------------------------------------------
+ */
+int status_calc_speed(struct map_session_data &sd, unsigned short skill_num, unsigned short skill_lv, bool start)
+{
+	// [Skotlex]
+	// This function individually changes a character's speed upon a skill change and restores it upon it's ending.
+	// Should only be used on non-inclusive skills to avoid exploits.
+	// Currently used for freedom of cast
+	// and when cloaking changes it's val3 (in which case the new val3 value comes in the level.
+	
+	int b_speed;
+	
+	b_speed = sd.speed;
+	
+	switch (skill_num)
+	{
+	case SA_FREECAST:
+		if (start)
+		{
+			sd.prev_speed = sd.speed;
+			sd.speed = sd.speed*(175 - skill_lv*5)/100;
+		}
+		else
+			sd.speed = sd.prev_speed;
+		break;
+	case AS_CLOAKING:
+		if (start && sd.sc_data[SC_CLOAKING].timer != -1)
+		{	//There shouldn't be an "stop" case here.
+			//If the previous upgrade was 
+			//SPEED_ADD_RATE(3*sd->sc_data[SC_CLOAKING].val1 -sd->sc_data[SC_CLOAKING].val3);
+			//Then just changing val3 should be a net difference of....
+			if (3*sd.sc_data[SC_CLOAKING].val1 != sd.sc_data[SC_CLOAKING].val3)	//This reverts the previous value.
+				sd.speed = sd.speed * 100 /(sd.sc_data[SC_CLOAKING].val3-3*sd.sc_data[SC_CLOAKING].val1);
+			sd.sc_data[SC_CLOAKING].val3 = skill_lv;
+				sd.speed = sd.speed * (sd.sc_data[SC_CLOAKING].val3-sd.sc_data[SC_CLOAKING].val1*3) /100;
+		}
+		break;
+	}
 
+	if(sd.speed < battle_config.max_walk_speed)
+		sd.speed = battle_config.max_walk_speed;
+
+	if(b_speed != sd.speed)
+		clif_updatestatus(sd,SP_SPEED);
+
+	return 0;
+}
 /*==========================================
  * 対象のClassを返す(汎用)
  * 戻りは整数で0以上
@@ -2896,6 +2944,8 @@ int status_get_dmotion(struct block_list *bl)
 		(bl->type == BL_PC && ((struct map_session_data *)bl)->state.infinite_endure))
 		ret=0;
 
+	//Let's apply a random damage modifier to prevent 'stun-lock' abusers. [Skotlex]
+	ret = ret*(95+rand()%10)/100;	//Currently: +/- 5%
 	return ret;
 }
 
@@ -3242,7 +3292,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	nullpo_retr(0, opt2=status_get_opt2(bl));
 	nullpo_retr(0, opt3=status_get_opt3(bl));
 
-
 	race=status_get_race(bl);
 	mode=status_get_mode(bl);
 	elem=status_get_elem_type(bl);
@@ -3297,9 +3346,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		return 0;
 	}
 
-	if(type==SC_FREEZE && undead_flag && !(flag&1))
+	if((type==SC_FREEZE || type==SC_STONE) && undead_flag && !(flag&1))
+	//I've been informed that undead chars are inmune to stone curse too. [Skotlex]
 		return 0;
-
+	
+	
 	if (type==SC_BLESSING && (bl->type==BL_PC || (!undead_flag && race!=6))) {
 		if (sc_data[SC_CURSE].timer!=-1)
 			status_change_end(bl,SC_CURSE,-1);
@@ -4126,7 +4177,7 @@ int status_change_clear(struct block_list *bl,int type)
  * ステータス異常終了
  *------------------------------------------
  */
-int status_change_end( struct block_list* bl , int type,int tid )
+int status_change_end( struct block_list* bl, int type, int tid )
 {
 	struct status_change* sc_data;
 	int opt_flag=0, calc_flag = 0;
@@ -4148,9 +4199,10 @@ int status_change_end( struct block_list* bl , int type,int tid )
 	if( sc_data[type].timer != -1 && (sc_data[type].timer == tid || tid == -1))
 	{
 		if (tid == -1)	// タイマから呼ばれていないならタイマ削除をする
+		{
 			delete_timer(sc_data[type].timer,status_change_timer);
-
-		/* 該?の異常を正常に?す */
+		}
+		// 該?の異常を正常に?す 
 		sc_data[type].timer=-1;
 
 		switch(type){	/* 異常の種類ごとの?理 */
@@ -4472,11 +4524,6 @@ int status_change_timer(int tid,unsigned long tick,int id,int data)
 
 	nullpo_retr(0, sc_data=status_get_sc_data(bl));
 
-	if(bl->type==BL_PC)
-		sd=(struct map_session_data *)bl;
-	else if(bl->type==BL_MOB)
-		md=(struct mob_data *)bl;
-
 	if(sc_data[type].timer != tid) {
 		if(battle_config.error_log)
 			ShowMessage("status_change_timer %d != %d\n",tid,sc_data[type].timer);
@@ -4486,6 +4533,11 @@ int status_change_timer(int tid,unsigned long tick,int id,int data)
 	int temp_timerid = sc_data[type].timer;
 	sc_data[type].timer = -1;
 
+
+	if(bl->type==BL_PC)
+		sd=(struct map_session_data *)bl;
+	else if(bl->type==BL_MOB)
+		md=(struct mob_data *)bl;
 
 	switch(type){	/* 特殊な?理になる場合 */
 	case SC_MAXIMIZEPOWER:	/* マキシマイズパワ? */

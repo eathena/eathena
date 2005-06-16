@@ -258,10 +258,16 @@ bool itemdb_cancartstore(unsigned short nameid, unsigned char gmlv)
 	return (item && (item->flag.trade_restriction&16)==0) || gmlv >= item->gm_lv_trade_override;
 }
 
-bool itemdb_canstore(unsigned short nameid, unsigned char gmlv, int guild_flag)
+bool itemdb_canstore(unsigned short nameid, unsigned char gmlv)
 {	
 	struct item_data* item = itemdb_exists(nameid);
-	return (item && (item->flag.trade_restriction&(guild_flag?64:32))==0) || gmlv >= item->gm_lv_trade_override;
+	return (item && (item->flag.trade_restriction&32)==0) || gmlv >= item->gm_lv_trade_override;
+}
+
+bool itemdb_canguildstore(unsigned short nameid, unsigned char gmlv)
+{	
+	struct item_data* item = itemdb_exists(nameid);
+	return (item && (item->flag.trade_restriction&64)==0) || gmlv >= item->gm_lv_trade_override;
 }
 
 
@@ -292,14 +298,15 @@ int itemdb_read_randomitem()
 		{"db/item_findingore.txt",	finding_ore,&finding_ore_count, &finding_ore_default	},
 	};
 
-	for(i=0;i<sizeof(data)/sizeof(data[0]);i++){
+	for(i=0;i<sizeof(data)/sizeof(data[0]);i++)
+	{
 		struct random_item_data *pd=data[i].pdata;
 		int *pc=data[i].pcount;
 		int *pdefault=data[i].pdefault;
 		char *fn=(char *) data[i].filename;
-
 		*pdefault = 0;
-		if( (fp=savefopen(fn,"r"))==NULL ){
+		if( (fp=savefopen(fn,"r"))==NULL )
+		{
 			ShowMessage("can't read %s\n",fn);
 			continue;
 		}

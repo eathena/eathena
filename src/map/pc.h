@@ -206,7 +206,7 @@ int pc_eventtimer(int tid,unsigned long tick,int id,int data);
 struct fame_list {
 	unsigned long id;
 	unsigned long fame;
-	char name[NAME_LENGTH];
+	char name[24];
 };
 extern struct fame_list smith_fame_list[MAX_FAMELIST];
 extern struct fame_list chemist_fame_list[MAX_FAMELIST];

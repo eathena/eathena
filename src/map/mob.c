@@ -191,7 +191,7 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 		if (class_ < 0 && battle_config.dead_branch_active)
 			md->mode = 0x1 + 0x4 + 0x80; //ˆÚ“®‚µ‚ÄƒAƒNƒeƒBƒu‚Å”½Œ‚‚·‚é
 
-		memcpy(md->npc_event, event, strlen(event));
+			memcpy(md->npc_event, event, strlen(event));
 
 		md->bl.type = BL_MOB;
 		map_addiddb (md->bl);
@@ -599,7 +599,7 @@ static int mob_attack(struct mob_data &md,unsigned long tick,int data)
 		return 0;
 	}
 	if(tsd && !(mode&0x20) && (tsd->sc_data[SC_TRICKDEAD].timer != -1 || tsd->sc_data[SC_BASILICA].timer != -1 ||
-		 ((pc_ishiding(*tsd) || tsd->state.gangsterparadise) && !((race == 4 || race == 6) && !tsd->perfect_hiding) ) ) ) {
+		 ((pc_ishiding(*tsd) || tsd->state.gangsterparadise) && !((race == 4 || race == 6 || mode&0x100) && !tsd->perfect_hiding) ) ) ) {
 		md.target_id=0;
 		md.state.targettype = NONE_ATTACKABLE;
 		return 0;
@@ -1185,12 +1185,12 @@ int mob_target(struct mob_data &md,struct block_list *bl,int dist)
 
 	if(mode&0x20 ||	// Coercion is exerted if it is MVPMOB.
 		(sc_data && sc_data[SC_TRICKDEAD].timer == -1 && sc_data[SC_BASILICA].timer == -1 &&
-		 ( (option && !(*option&0x06) ) || race==4 || race==6) ) ) {
+		 ( (option && !(*option&0x06) ) || race==4 || race==6 || mode&0x100 ) ) ) {
 		if(bl->type == BL_PC) {
 			nullpo_retr(0, sd = (struct map_session_data *)bl);
 			if(sd->invincible_timer != -1 || pc_isinvisible(*sd))
 				return 0;
-			if(!(mode&0x20) && race!=4 && race!=6 && sd->state.gangsterparadise)
+			if(!(mode&0x20) && race!=4 && race!=6 && !(mode&0x100) && sd->state.gangsterparadise)
 				return 0;
 		}
 
@@ -1251,7 +1251,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list ap)
 		{
 			if(mode&0x20 ||
 					(tsd.sc_data[SC_TRICKDEAD].timer == -1 && tsd.sc_data[SC_BASILICA].timer == -1 &&
-					((!pc_ishiding(tsd) && !tsd.state.gangsterparadise) || ((race == 4 || race == 6) && !tsd.perfect_hiding) ))){	// –WŠQ‚ª‚È‚¢‚©”»’è
+				((!pc_ishiding(tsd) && !tsd.state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) && !tsd.perfect_hiding) ))){	// –WŠQ‚ª‚È‚¢‚©”»’è
 					if( mob_can_reach(*smd,bl,12) && 	// “’B‰Â”\«”»’è
 						rand()%1000<1000/(++(*pcc)) )	// ”ÍˆÍ“àPC‚Å“™Šm—¦‚É‚·‚é
 					{
@@ -1443,7 +1443,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned long tick)
 			race=mob_db[md->class_].race;
 			if(mode&0x20 ||
 				(sd->sc_data[SC_TRICKDEAD].timer == -1 && sd->sc_data[SC_BASILICA].timer == -1 &&
-				( (!pc_ishiding(*sd) && !sd->state.gangsterparadise) || ((race == 4 || race == 6) && !sd->perfect_hiding) ) ) ){	// –WŠQ‚ª‚È‚¢‚©”»’è
+				( (!pc_ishiding(*sd) && !sd->state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) && !sd->perfect_hiding) ) ) ){	// –WŠQ‚ª‚È‚¢‚©”»’è
 
 				md->target_id=sd->bl.id;
 				md->state.targettype = ATTACKABLE;
@@ -2005,7 +2005,7 @@ static int mob_delay_item_drop(int tid,unsigned long tick,int id,int data)
 
 	if(ditem->first_sd)
 	{
-		#if 0
+#if 0
 		if (ditem->first_sd->status.party_id > 0)
 		{
 			struct party *p;
@@ -2032,7 +2032,7 @@ static int mob_delay_item_drop(int tid,unsigned long tick,int id,int data)
 			}
 		}
 		else
-		#endif
+#endif
 		if(battle_config.item_auto_get || ditem->first_sd->state.autoloot)
 		{	//Autoloot added by Upa-Kun
 			drop_flag = 0;
@@ -2041,16 +2041,12 @@ static int mob_delay_item_drop(int tid,unsigned long tick,int id,int data)
 				clif_additem(*ditem->first_sd,0,0,flag);
 				drop_flag = 1;
 			}
-			aFree(ditem);
-			return 0;
 		}
 	}
-
 	if (drop_flag)
 	{
 		map_addflooritem(temp_item,1,ditem->m,ditem->x,ditem->y,ditem->first_sd,ditem->second_sd,ditem->third_sd,0);
 	}
-
 	aFree(ditem);
 	return 0;
 }
@@ -2722,7 +2718,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 	}
 
 	// mvpˆ—
-	if(mvp_sd && mob_db[md.class_].mexp > 0 ){
+	if(mvp_sd && mob_db[md.class_].mexp > 0 && !md.state.special_mob_ai){
 		int log_mvp[2] = {0};
 		int j;
 		int mexp;
@@ -2808,8 +2804,11 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		if(sd)
 			npc_event(*sd,md.npc_event,0);
 	}
-
-	clif_clearchar_area(md.bl,1);
+	if(battle_config.mob_clear_delay)
+		clif_clearchar_delay(tick+battle_config.mob_clear_delay,md.bl,1);
+	else
+		clif_clearchar_area(md.bl,1);
+	
 	if(md.level) md.level=0;
 	map_delblock(md.bl);
 	if(mob_get_viewclass(md.class_) <= 1000)
@@ -3411,7 +3410,7 @@ int mobskill_use_id(struct mob_data &md,struct block_list *target,unsigned short
 		clif_skillcasting(md.bl, md.bl.id, target->id, 0,0, skill_id, casttime);
 	}
 
-	if( casttime<=0 )	// ‰r¥‚Ì–³‚¢‚à‚Ì‚ÍƒLƒƒƒ“ƒZƒ‹‚³‚ê‚È‚¢
+	if (casttime <= 0)	// ‰r¥‚Ì–³‚¢‚à‚Ì‚ÍƒLƒƒƒ“ƒZƒ‹‚³‚ê‚È‚¢
 		md.state.skillcastcancel=0;
 
 	md.skilltarget	= target->id;

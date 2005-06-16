@@ -100,7 +100,7 @@ int inter_sql_test (void);
 int inter_accreg_tosql(unsigned long account_id,struct accreg *reg){
 
 	size_t j;
-	char temp_str[32];
+	char temp_str[64]; //Needs be twice the source to ensure it fits [Skotlex]
 	if (account_id<=0) return 0;
 	reg->account_id=account_id;
 
@@ -247,7 +247,7 @@ int inter_config_read(const char *cfgName) {
 int inter_log(char *fmt,...)
 {
 	char str[255];
-	char temp_str[255];
+	char temp_str[510]; //Needs be twice as long as str[] //Skotlex
 	va_list ap;
 	va_start(ap,fmt);
 
@@ -519,7 +519,8 @@ int mapif_parse_WisRequest(int fd)
 {
 	struct WisData* wd;
 	static int wisid = 0;
-	char t_name[32];
+	char t_name[64];
+
 	if( !session_isActive(fd) )
 		return 0;
 

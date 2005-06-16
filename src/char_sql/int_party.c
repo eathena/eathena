@@ -27,7 +27,7 @@ int mapif_parse_PartyLeave(int fd,unsigned long party_id,unsigned long account_i
 int inter_party_tosql(unsigned long party_id,struct party *p)
 {
 	// 'party' ('party_id','name','exp','item','leader')
-	char t_name[100], t_member[24];
+	char t_name[NAME_LENGTH*2], t_member[64]; //Required for jstrescapecpy [Skotlex]
 	int party_member = 0;
 	int party_online_member = 0;
 	int party_exist = 0;
@@ -275,7 +275,7 @@ int inter_party_fromsql(int party_id, struct party *p)
 		sql_row = mysql_fetch_row(sql_res);
 	//	ShowMessage("- Read party %d from MySQL\n",party_id);
 		p->party_id = party_id;
-		strcpy(p->name, sql_row[1]);
+		memcpy(p->name, sql_row[1], 24);
 		p->exp = atoi(sql_row[2]);
 		p->item = atoi(sql_row[3]);
 		leader_id = atoi(sql_row[4]);
@@ -303,9 +303,9 @@ int inter_party_fromsql(int party_id, struct party *p)
 				m->leader = 1;
 			else
 				m->leader = 0;
-			strncpy(m->name, sql_row[1], sizeof(m->name));
+			memcpy(m->name, sql_row[1], 24);
 			m->lv = atoi(sql_row[2]);
-			strncpy(m->map, sql_row[3], sizeof(m->map));
+			memcpy(m->map, sql_row[3], 24);
 			m->online = atoi(sql_row[4]);
 		}
 	//	ShowMessage("- %d members found in party %d \n",i,party_id);
@@ -363,7 +363,7 @@ struct party* search_partyname(char *str)
 {
 	struct party *p=NULL;
 	unsigned long leader_id = 0;
-	char t_name[24];
+	char t_name[64];
 
 	sprintf(tmp_sql,"SELECT `party_id`, `name`,`exp`,`item`,`leader_id` FROM `%s` WHERE `name`='%s'",party_db, jstrescapecpy(t_name,str));
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
@@ -374,7 +374,7 @@ struct party* search_partyname(char *str)
 	sql_row = mysql_fetch_row(sql_res);
 	p = party_pt;
 	p->party_id = atoi(sql_row[0]);
-	strcpy(p->name, sql_row[1]);
+	memcpy(p->name, sql_row[1], 24);
 	p->exp = atoi(sql_row[2]);
 	p->item = atoi(sql_row[3]);
 	leader_id = atoi(sql_row[4]);
@@ -393,9 +393,9 @@ struct party* search_partyname(char *str)
 			struct party_member *m = &p->member[i];
 			m->account_id = atoi(sql_row[0]);
 			if (m->account_id == leader_id) m->leader = 1; else m->leader = 0;
-			strncpy(m->name,sql_row[1],sizeof(m->name));
+			memcpy(m->name,sql_row[1],24);
 			m->lv = atoi(sql_row[2]);
-			strncpy(m->map,sql_row[3],sizeof(m->map));
+			strncpy(m->map,sql_row[3],24);
 			m->online = atoi(sql_row[4]);
 		}
 		ShowMessage("- %d members found in party %d \n",i,p->party_id);
@@ -489,6 +489,7 @@ int mapif_party_created(int fd,unsigned long account_id,struct party *p)
 		memcpy(WFIFOP(fd,11),"error",24);
 	}
 	WFIFOSET(fd,35);
+
 	return 0;
 }
 
@@ -560,6 +561,7 @@ int mapif_party_leaved(unsigned long party_id,unsigned long account_id,char *nam
 	WBUFL(buf,2)=party_id;
 	WBUFL(buf,6)=account_id;
 	memcpy(WBUFP(buf,10),name,24);
+	WBUFB(buf,33)= '\0';	//Guaranteeing a null terminator [Skotlex]
 	mapif_sendall(buf,34);
 	//ShowMessage("int_party: party leaved %d %d %s\n",party_id,account_id,name);
 	return 0;
@@ -568,13 +570,14 @@ int mapif_party_leaved(unsigned long party_id,unsigned long account_id,char *nam
 int mapif_party_membermoved(struct party *p,int idx)
 {
 	unsigned char buf[32];
-	WBUFW(buf,0)=0x3825;
-	WBUFL(buf,2)=p->party_id;
-	WBUFL(buf,6)=p->member[idx].account_id;
-	memcpy(WBUFP(buf,10),p->member[idx].map,16);
-	WBUFB(buf,26)=p->member[idx].online;
-	WBUFW(buf,27)=p->member[idx].lv;
-	mapif_sendall(buf,29);
+	WBUFW(buf,0) = 0x3825;
+	WBUFL(buf,2) = p->party_id;
+	WBUFL(buf,6) = p->member[idx].account_id;
+	memcpy(WBUFP(buf,10), p->member[idx].map, 16);
+	WBUFB(buf,26) = p->member[idx].online;
+	WBUFW(buf,27) = p->member[idx].lv;
+	mapif_sendall(buf, 29);
+
 	return 0;
 }
 // パーティ解散通知
@@ -632,7 +635,7 @@ int mapif_parse_CreateParty(int fd,unsigned long account_id,char *name,char *nic
 
 	p->member[0].account_id=account_id;
 	memcpy(p->member[0].name,nick,24);
-	memcpy(p->member[0].map,map,16);
+	memcpy(p->member[0].map,map,24);
 	p->member[0].leader=1;
 	p->member[0].online=1;
 	p->member[0].lv=lv;
@@ -684,7 +687,7 @@ int mapif_parse_PartyAddMember(int fd,unsigned long party_id,unsigned long accou
 
 			p->member[i].account_id=account_id;
 			memcpy(p->member[i].name,nick,24);
-			memcpy(p->member[i].map,map,16);
+			memcpy(p->member[i].map,map,24);
 			p->member[i].leader=0;
 			p->member[i].online=1;
 			p->member[i].lv=lv;
@@ -739,7 +742,7 @@ int mapif_parse_PartyChangeOption(int fd,unsigned long party_id,unsigned long ac
 // パーティ脱退要求
 int mapif_parse_PartyLeave(int fd,unsigned long party_id,unsigned long account_id)
 {
-	char t_member[24];
+	char t_member[64];
 	struct party *p = party_pt;
 	if (p == NULL) {
 		ShowMessage("int_party: out of memory !\n");
@@ -831,7 +834,7 @@ int mapif_parse_PartyChangeMap(int fd,unsigned long party_id,unsigned long accou
 		if(p->member[i].account_id==account_id){
 			int flag=0;
 
-			memcpy(p->member[i].map,map,16);
+			memcpy(p->member[i].map,map,24);
 			p->member[i].online=online;
 			p->member[i].lv=lv;
 			mapif_party_membermoved(p,i);

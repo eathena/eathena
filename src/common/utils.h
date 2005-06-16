@@ -25,7 +25,11 @@ extern inline const char *tolower(char *str)
 {
 	char *p=str;
 	if(p)
-	while(*p) *p++ = tolower(*p);
+	while(*p)
+	{
+		*p = tolower( (int)((unsigned char)*p) );
+		p++;
+	}
 	return str;
 }
 
@@ -33,7 +37,7 @@ extern inline const char *strcpytolower(char *tar, const char *str)
 {
 	char *p=tar;
 	if(str && p)
-	while(*str) *p++ = tolower(*str++);
+	while(*str) *p++ = tolower( (int)((unsigned char)*str++) );
 	*p=0;
 	return tar;
 }

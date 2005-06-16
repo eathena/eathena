@@ -171,19 +171,19 @@ struct block {
 	size_t	samesize_no;     /* 同じサイズの番号 */
 	struct block* samesize_prev;	/* 同じサイズの前の領域 */
 	struct block* samesize_next;	/* 同じサイズの次の領域 */
-	size_t	unit_size;		/* ユニットのバイト数 0=未使用 */
-	size_t	unit_hash;		/* ユニットのハッシュ */
+	size_t unit_size;		/* ユニットのバイト数 0=未使用 */
+	size_t unit_hash;		/* ユニットのハッシュ */
 	size_t	unit_count;		/* ユニットの数 */
 	size_t	unit_used;		/* 使用済みユニット */
-	char	data[BLOCK_DATA_SIZE];
+	char   data[BLOCK_DATA_SIZE];
 };
 
 struct unit_head 
 {
-	struct block*	block;
-	size_t			size;
-	const char*		file;
-	int				line;
+	struct block* block;
+	size_t size;
+	const  char* file;
+	int    line;
 };
 
 static struct block* block_first  = NULL;
@@ -210,6 +210,8 @@ static void memmgr_info(void);
 static char memmer_logfile[128];
 static FILE *log_fp=NULL;
 
+static size_t memmgr_usage_bytes = 0;
+
 
 
 void* _mmalloc(size_t size, const char *file, int line, const char *func )
@@ -222,6 +224,8 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 	if(size == 0)
 		return NULL;
 
+	memmgr_usage_bytes += size;
+
 	/* ブロック長を超える領域の確保には、malloc() を用いる */
 	/* その際、unit_head.block に NULL を代入して区別する */
 	if( size+sizeof(struct unit_head) > BLOCK_DATA_SIZE )
@@ -233,6 +237,7 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 #endif
 		if(p != NULL)
 		{
+			memset(p,0,sizeof(struct unit_head_large)+size);
 			p->unit_head.block = NULL;
 			p->unit_head.size  = size;
 			p->unit_head.file  = file;
@@ -374,9 +379,9 @@ char* _mstrdup(const char *p, const char *file, int line, const char *func )
 void _mfree(void *ptr, const char *file, int line, const char *func )
 {
 	struct unit_head *head = (struct unit_head *)((char *)ptr - sizeof(struct unit_head));
-	if(ptr == NULL)
+	if (ptr == NULL)
 	{
-		return;
+		return; 
 	}
 	else if( head->block == NULL && head->size > BLOCK_DATA_SIZE - sizeof(struct unit_head))
 	{	/* malloc() で直に確保された領域 */
@@ -387,6 +392,7 @@ void _mfree(void *ptr, const char *file, int line, const char *func )
 			unit_head_large_first  = head_large->next;
 		if(head_large->next)
 			head_large->next->prev = head_large->prev;
+		memmgr_usage_bytes -= head->size;
 		FREE (head_large);
 		return;
 	}
@@ -402,14 +408,14 @@ void _mfree(void *ptr, const char *file, int line, const char *func )
 		else
 		{
 			head->block = NULL;
-			if(--block->unit_used == 0)
-			{	/* ブロックの解放 */
-				if(unit_unfill[block->unit_hash] == block)
-				{	/* 空きユニットに指定されている */
-					do 
-					{
+			memmgr_usage_bytes -= head->size;
+			if(--block->unit_used == 0) {
+				/* ブロックの解放 */
+				if(unit_unfill[block->unit_hash] == block) {
+					/* 空きユニットに指定されている */
+					do {
 						unit_unfill[block->unit_hash] = unit_unfill[block->unit_hash]->samesize_next;
-					}while(
+					} while(
 						unit_unfill[block->unit_hash] != NULL &&
 						unit_unfill[block->unit_hash]->unit_count == unit_unfill[block->unit_hash]->unit_used
 					);
@@ -553,7 +559,13 @@ static void block_free(struct block* p)
 		block_unused = p;
 	else if(block_unused->block_no > p->block_no)
 		block_unused = p;
+	}
+
+size_t memmgr_usage (void)
+{
+	return memmgr_usage_bytes / 1024;
 }
+
 
 #ifdef LOG_MEMMGR
 static void memmgr_log (char *buf)
@@ -591,12 +603,12 @@ static void memmer_exit(void)
 				struct unit_head *head = (struct unit_head*)(&block->data[block->unit_size * i]);
 				if(head->block != NULL)
 				{
-#ifdef LOG_MEMMGR
+				#ifdef LOG_MEMMGR
 					sprintf (buf,
 						"%04d : %s line %d size %d\n", ++count,
 						head->file, head->line, head->size);
-					memmgr_log(buf);
-#endif
+					memmgr_log (buf);
+				#endif
 					// get block pointer and free it
 					ptr = (char *)head + sizeof(struct unit_head);
 #ifdef MEMTRACE
@@ -606,7 +618,7 @@ static void memmer_exit(void)
 				}
 			}
 		}
-		block = block->block_next;
+			block = block->block_next;
 
 		if( !block || (block >= bltmp+BLOCK_ALLOC) || (block < bltmp) )
 		{	// reached a new block array
@@ -619,12 +631,12 @@ static void memmer_exit(void)
 	large = unit_head_large_first;
 	while(large)
 	{
-#ifdef LOG_MEMMGR
+	#ifdef LOG_MEMMGR
 		sprintf (buf,
 			"%04d : %s line %d size %d\n", ++count,
 			large->unit_head.file, large->unit_head.line, large->unit_head.size);
 		memmgr_log (buf);
-#endif
+	#endif
 		
 		// we're already quitting, just skip tidying things up ^^
 		//if (large->prev) {
@@ -659,10 +671,10 @@ static void memmer_exit(void)
 
 int memmgr_init(const char* file)
 {
-#ifdef LOG_MEMMGR
+	#ifdef LOG_MEMMGR
 	sprintf(memmer_logfile, "log/%s.leaks", file);
-	ShowStatus("Memory manager initialised: "CL_WHITE"%s"CL_RESET"\n", memmer_logfile);
-#endif
+		ShowStatus("Memory manager initialised: "CL_WHITE"%s"CL_RESET"\n", memmer_logfile);
+	#endif
   return 0;
 }
 

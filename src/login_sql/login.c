@@ -60,14 +60,7 @@ int login_fd=-1;
 unsigned int new_reg_tick=0;
 int allowed_regs=1;
 int num_regs=0;
-int time_allowed=10000;
-
-//Added for Mugendai's I'm Alive mod
-int imalive_on=0;
-int imalive_time=60;
-//Added by Mugendai for GUI
-int flush_on=1;
-int flush_time=100;
+int time_allowed=10; //Init this to 10 secs, not 10K secs [Skotlex]
 
 char date_format[32] = "%Y-%m-%d %H:%M:%S";
 int auth_num = 0, auth_max = 0;
@@ -326,14 +319,14 @@ int mmo_auth( struct mmo_account* account , int fd)
 
 
 	ShowMessage ("auth start...\n");
-
+	
 	//accountreg with _M/_F .. [Sirius]
 	len = strlen(account->userid) -2;
 	if( (account->passwdenc == 0 && account->userid[len] == '_') &&
 		(account->userid[len+1] == 'F' || account->userid[len+1] == 'M') && new_account_flag == 1 &&
 		(account_id_count <= END_ACCOUNT_NUM) && (len >= 4) && (strlen(account->passwd) >= 4) )
 	{
-		if (new_account_flag == 1)
+		if (new_account_flag == 1) 
 			account->userid[len] = '\0';
 		sprintf(tmp_sql, "SELECT `%s` FROM `%s` WHERE `userid` = '%s'", login_db_userid, login_db, account->userid);
 		if(mysql_SendQuery(&mysql_handle, tmp_sql))
@@ -347,35 +340,35 @@ int mmo_auth( struct mmo_account* account , int fd)
 			if(gettick() <= new_reg_tick && num_regs >= allowed_regs)
 			{
 				ShowMessage("Notice: Account registration in disallowed time from: %s!", ip_str);
-				return 3;
+							return 3;
 			}
 			else
 			{
-				num_regs=0;
-			}
+							num_regs=0;
+						}
 			if(mysql_num_rows(sql_res) == 0)
 			{	//ok no existing acc,
 				ShowMessage("Adding a new account user: %s with passwd: %s sex: %c (ip: %s)\n", account->userid, account->passwd, account->userid[len+1], ip_str);
-				sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, account->passwd, account->userid[len+1], "a@a.com");
+							sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, account->passwd, account->userid[len+1], "a@a.com");
 				if(mysql_SendQuery(&mysql_handle, tmp_sql))
 				{	//Failed to insert new acc :/
 					ShowMessage("SQL Error (_M/_F reg) .. insert ..: %s", mysql_error(&mysql_handle));
 				}
 				else
 				{	//sql query check to insert
-					//restart ticker (account registration flood protection)[Kevin]
+								//restart ticker (account registration flood protection)[Kevin]
 					if(num_regs==0)
 					{
-						new_reg_tick=gettick()+time_allowed*1000;
-					}
-					num_regs++;
-				}
-			}//rownum check (0!)
-			mysql_free_result(sql_res);
-		}//sqlquery
-	}//all values for NEWaccount ok ?
-	
-	// auth start : time seed
+									new_reg_tick=gettick()+time_allowed*1000;
+								}
+								num_regs++;
+							}
+						}//rownum check (0!)
+					mysql_free_result(sql_res);
+					}//sqlquery                              
+	     }//all values for NEWaccount ok ?
+                                                                                                               
+ 	// auth start : time seed
 	gettimeofday(&tv, NULL);
 	unixtime = tv.tv_sec;
 	strftime(tmpstr, 24, "%Y-%m-%d %H:%M:%S",localtime(&unixtime));
@@ -950,7 +943,7 @@ int parse_fromchar(int fd){
 		  {
 				int acc,sex;
 				unsigned char buf[16];
-				acc=RFIFOL(fd,4);
+				acc=RFIFOL(fd,2);
 				sprintf(tmpsql,"SELECT `sex` FROM `%s` WHERE `%s` = '%d'",login_db,login_db_account_id,acc);
 
 				if(mysql_SendQuery(&mysql_handle, tmpsql)) 
@@ -1104,21 +1097,21 @@ int parse_login(int fd)
 		//p[0], p[1], p[2], p[3]
 		//request DB connection
 		sprintf(tmpsql, "SELECT count(*) FROM `ipbanlist` WHERE `list` = '%d.*.*.*' OR `list` = '%d.%d.*.*' OR `list` = '%d.%d.%d.*' OR `list` = '%d.%d.%d.%d'",
-			p[0], p[0], p[1], p[0], p[1], p[2], p[0], p[1], p[2], p[3]);
+		  p[0], p[0], p[1], p[0], p[1], p[2], p[0], p[1], p[2], p[3]);
 		if (mysql_SendQuery(&mysql_handle, tmpsql))
 			ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
-		
-		sql_res = mysql_store_result(&mysql_handle);
+
+		sql_res = mysql_store_result(&mysql_handle) ;
 		sql_row = mysql_fetch_row(sql_res);	//row fetching
 		if (atoi(sql_row[0]) >0)
 		{	// ip ban ok.
 			ShowMessage ("packet from banned ip : %d.%d.%d.%d" RETCODE, p[0], p[1], p[2], p[3]);
 			sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', 'unknown','-3', 'ip banned')", loginlog_db, p[0], p[1], p[2], p[3]);
-			
+
 			// query
 			if(mysql_SendQuery(&mysql_handle, tmpsql))
 				ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
-			
+
 			ShowMessage ("close session connection...\n");
 			// close connection
 			session_Remove(fd);
@@ -1173,7 +1166,7 @@ int parse_login(int fd)
 #endif
 			result=mmo_auth(&account, fd);
 			
-			jstrescapecpy(t_uid,(char*)RFIFOP(fd, 6));
+		jstrescapecpy(t_uid,(char*)RFIFOP(fd, 6));
 			if(result==-1)
 			{
 		    int gm_level = isGM(account.account_id);
@@ -1241,162 +1234,162 @@ int parse_login(int fd)
                         WFIFOL(fd,2) = 1; // 01 = Server closed
                         WFIFOSET(fd,3);
                     }
-				}
+            }
 			}
 			else
 			{
-				char tmp_sql[512];
-				char error[64];
-				sprintf(tmp_sql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s', '%d','login failed : %%s')", loginlog_db, p[0], p[1], p[2], p[3], t_uid, result);
-				switch((result + 1)) {
-				case -2:  //-3 = Account Banned
-					sprintf(tmpsql,tmp_sql,"Account banned.");
-					sprintf(error,"Account banned.");
-				break;
-				case -1:  //-2 = Dynamic Ban
-					sprintf(tmpsql,tmp_sql,"dynamic ban (ip and account).");
-					sprintf(error,"dynamic ban (ip and account).");
-				break;
-				case 1:   // 0 = Unregistered ID
-					sprintf(tmpsql,tmp_sql,"Unregisterd ID.");
-					sprintf(error,"Unregisterd ID.");
-				break;
-				case 2:   // 1 = Incorrect Password
-					sprintf(tmpsql,tmp_sql,"Incorrect Password.");
-					sprintf(error,"Incorrect Password.");
-				break;
-				case 3:   // 2 = This ID is expired
-					sprintf(tmpsql,tmp_sql,"Account Expired.");
-					sprintf(error,"Account Expired.");
-				break;
-				case 4:   // 3 = Rejected from Server
-					sprintf(tmpsql,tmp_sql,"Rejected from server.");
-					sprintf(error,"Rejected from server.");
-				break;
-				case 5:   // 4 = You have been blocked by the GM Team
-					sprintf(tmpsql,tmp_sql,"Blocked by GM.");
-					sprintf(error,"Blocked by GM.");
-				break;
-				case 6:   // 5 = Your Game's EXE file is not the latest version
-					sprintf(tmpsql,tmp_sql,"Not latest game EXE.");
-					sprintf(error,"Not latest game EXE.");
-				break;
-				case 7:   // 6 = Your are Prohibited to log in until %s
-					sprintf(tmpsql,tmp_sql,"Banned.");
-					sprintf(error,"Banned.");
-				break;
-				case 8:   // 7 = Server is jammed due to over populated
-					sprintf(tmpsql,tmp_sql,"Server Over-population.");
-					sprintf(error,"Server Over-population.");
-				break;
-				case 9:   // 8 = No MSG (actually, all states after 9 except 99 are No MSG, use only this)
-					sprintf(tmpsql,tmp_sql," ");
-					sprintf(error," ");
-				break;
-				case 100: // 99 = This ID has been totally erased
-					sprintf(tmpsql,tmp_sql,"Account gone.");
-					sprintf(error,"Account gone.");
-				break;
-				default:
-					sprintf(tmpsql,tmp_sql,"Uknown Error.");
-					sprintf(error,"Uknown Error.");
-				break;
-				}
-				//query
+		char tmp_sql[512];
+		char error[64];
+		sprintf(tmp_sql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s', '%d','login failed : %%s')", loginlog_db, p[0], p[1], p[2], p[3], t_uid, result);
+		switch((result + 1)) {
+		case -2:  //-3 = Account Banned
+			sprintf(tmpsql,tmp_sql,"Account banned.");
+			sprintf(error,"Account banned.");
+		break;
+		case -1:  //-2 = Dynamic Ban
+			sprintf(tmpsql,tmp_sql,"dynamic ban (ip and account).");
+			sprintf(error,"dynamic ban (ip and account).");
+		break;
+		case 1:   // 0 = Unregistered ID
+			sprintf(tmpsql,tmp_sql,"Unregisterd ID.");
+			sprintf(error,"Unregisterd ID.");
+		break;
+		case 2:   // 1 = Incorrect Password
+			sprintf(tmpsql,tmp_sql,"Incorrect Password.");
+			sprintf(error,"Incorrect Password.");
+		break;
+		case 3:   // 2 = This ID is expired
+			sprintf(tmpsql,tmp_sql,"Account Expired.");
+			sprintf(error,"Account Expired.");
+		break;
+		case 4:   // 3 = Rejected from Server
+			sprintf(tmpsql,tmp_sql,"Rejected from server.");
+			sprintf(error,"Rejected from server.");
+		break;
+		case 5:   // 4 = You have been blocked by the GM Team
+			sprintf(tmpsql,tmp_sql,"Blocked by GM.");
+			sprintf(error,"Blocked by GM.");
+		break;
+		case 6:   // 5 = Your Game's EXE file is not the latest version
+			sprintf(tmpsql,tmp_sql,"Not latest game EXE.");
+			sprintf(error,"Not latest game EXE.");
+		break;
+		case 7:   // 6 = Your are Prohibited to log in until %s
+			sprintf(tmpsql,tmp_sql,"Banned.");
+			sprintf(error,"Banned.");
+		break;
+		case 8:   // 7 = Server is jammed due to over populated
+			sprintf(tmpsql,tmp_sql,"Server Over-population.");
+			sprintf(error,"Server Over-population.");
+		break;
+		case 9:   // 8 = No MSG (actually, all states after 9 except 99 are No MSG, use only this)
+			sprintf(tmpsql,tmp_sql," ");
+			sprintf(error," ");
+		break;
+		case 100: // 99 = This ID has been totally erased
+			sprintf(tmpsql,tmp_sql,"Account gone.");
+			sprintf(error,"Account gone.");
+		break;
+		default:
+			sprintf(tmpsql,tmp_sql,"Uknown Error.");
+			sprintf(error,"Uknown Error.");
+		break;
+			}
+			//query
 				if(mysql_SendQuery(&mysql_handle, tmpsql))
 				{
 					ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}
+			}
 				if ((result == 1) && (dynamic_pass_failure_ban != 0))
 				{	// failed password
-					sprintf(tmpsql,"SELECT count(*) FROM `%s` WHERE `ip` = '%d.%d.%d.%d' AND `rcode` = '1' AND `time` > NOW() - INTERVAL %d MINUTE",
-						loginlog_db, p[0], p[1], p[2], p[3], dynamic_pass_failure_ban_time);	//how many times filed account? in one ip.
+				sprintf(tmpsql,"SELECT count(*) FROM `%s` WHERE `ip` = '%d.%d.%d.%d' AND `rcode` = '1' AND `time` > NOW() - INTERVAL %d MINUTE",
+				  loginlog_db, p[0], p[1], p[2], p[3], dynamic_pass_failure_ban_time);	//how many times filed account? in one ip.
 					if(mysql_SendQuery(&mysql_handle, tmpsql))
 					{
 						ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
-					}
-					//check query result
-					sql_res = mysql_store_result(&mysql_handle) ;
-					sql_row = mysql_fetch_row(sql_res);	//row fetching
+				}
+				//check query result
+				sql_res = mysql_store_result(&mysql_handle) ;
+				sql_row = mysql_fetch_row(sql_res);	//row fetching
 
 					if (atoi(sql_row[0]) >= dynamic_pass_failure_ban_how_many )
 					{
-						sprintf(tmpsql,"INSERT INTO `ipbanlist`(`list`,`btime`,`rtime`,`reason`) VALUES ('%d.%d.%d.*', NOW() , NOW() +  INTERVAL %d MINUTE ,'Password error ban: %s')", p[0], p[1], p[2], dynamic_pass_failure_ban_how_long, t_uid);
+					sprintf(tmpsql,"INSERT INTO `ipbanlist`(`list`,`btime`,`rtime`,`reason`) VALUES ('%d.%d.%d.*', NOW() , NOW() +  INTERVAL %d MINUTE ,'Password error ban: %s')", p[0], p[1], p[2], dynamic_pass_failure_ban_how_long, t_uid);
 						if(mysql_SendQuery(&mysql_handle, tmpsql))
 						{
 							ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
-						}
 					}
-					mysql_free_result(sql_res);
 				}
+				mysql_free_result(sql_res);
+			}
 				else if (result == -2)
 				{	//dynamic banned - add ip to ban list.
-					sprintf(tmpsql,"INSERT INTO `ipbanlist`(`list`,`btime`,`rtime`,`reason`) VALUES ('%d.%d.%d.*', NOW() , NOW() +  INTERVAL 1 MONTH ,'Dynamic banned user id : %s')", p[0], p[1], p[2], t_uid);
+				sprintf(tmpsql,"INSERT INTO `ipbanlist`(`list`,`btime`,`rtime`,`reason`) VALUES ('%d.%d.%d.*', NOW() , NOW() +  INTERVAL 1 MONTH ,'Dynamic banned user id : %s')", p[0], p[1], p[2], t_uid);
 					if(mysql_SendQuery(&mysql_handle, tmpsql))
 					{
 						ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
-					}
-					result = -3;
+				}
+				result = -3;
 				}
 				else if(result == 6)
 				{	//not lastet version ..
-					//result = 5;
-				}
+				//result = 5;
+			}
 
-				sprintf(tmpsql,"SELECT `ban_until` FROM `%s` WHERE %s `%s` = '%s'",login_db, case_sensitive ? "BINARY" : "",login_db_userid, t_uid);
+			sprintf(tmpsql,"SELECT `ban_until` FROM `%s` WHERE %s `%s` = '%s'",login_db, case_sensitive ? "BINARY" : "",login_db_userid, t_uid);
 				if(mysql_SendQuery(&mysql_handle, tmpsql))
 				{
 					ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}
-				sql_res = mysql_store_result(&mysql_handle) ;
+            }
+            sql_res = mysql_store_result(&mysql_handle) ;
 				if (sql_res)
 				{
-					sql_row = mysql_fetch_row(sql_res);	//row fetching
-				}
-				//cannot connect login failed
-				memset(WFIFOP(fd,0),'\0',23);
-				WFIFOW(fd,0)=0x6a;
-				WFIFOB(fd,2)=result;
+                sql_row = mysql_fetch_row(sql_res);	//row fetching
+            }
+			//cannot connect login failed
+			memset(WFIFOP(fd,0),'\0',23);
+			WFIFOW(fd,0)=0x6a;
+			WFIFOB(fd,2)=result;
 
 				if(result == 6)
 				{	// 6 = Your are Prohibited to log in until %s
 					if (atol(sql_row[0]) != 0)
 					{	// if account is banned, we send ban timestamp
-						char tmpstr[256];
-						time_t ban_until_time;
-						ban_until_time = atol(sql_row[0]);
-						strftime(tmpstr, 20, date_format, localtime(&ban_until_time));
-						tmpstr[19] = '\0';
-						memcpy(WFIFOP(fd,3), tmpstr, 20);
+					char tmpstr[256];
+					time_t ban_until_time;
+					ban_until_time = atol(sql_row[0]);
+					strftime(tmpstr, 20, date_format, localtime(&ban_until_time));
+					tmpstr[19] = '\0';
+					memcpy(WFIFOP(fd,3), tmpstr, 20);
 					}
 					else
 					{	// we send error message
-						memcpy(WFIFOP(fd,3), error, 20);
-					}
+					memcpy(WFIFOP(fd,3), error, 20);
 				}
-				WFIFOSET(fd,23);
 			}
-			RFIFOSKIP(fd,(RFIFOW(fd,0)==0x64)?55:47);
-			break;
-		case 0x01db:	// request password key
-			if (session[fd]->session_data) {
+			WFIFOSET(fd,23);
+		}
+		RFIFOSKIP(fd,(RFIFOW(fd,0)==0x64)?55:47);
+		break;
+	case 0x01db:	// request password key
+		if (session[fd]->session_data) {
 					ShowMessage("login: abnormal request of MD5 key (already opened session).\n");
 					session_Remove(fd);
-				return 0;
-			}
+			return 0;
+		}
 					ShowMessage("Request Password key -%s\n",md5key);
-			RFIFOSKIP(fd,2);
-			WFIFOW(fd,0)=0x01dc;
-			WFIFOW(fd,2)=4+md5keylen;
-			memcpy(WFIFOP(fd,4),md5key,md5keylen);
-			WFIFOSET(fd,WFIFOW(fd,2));
-			break;
+		RFIFOSKIP(fd,2);
+		WFIFOW(fd,0)=0x01dc;
+		WFIFOW(fd,2)=4+md5keylen;
+		memcpy(WFIFOP(fd,4),md5key,md5keylen);
+		WFIFOSET(fd,WFIFOW(fd,2));
+		break;
 
-		case 0x2710:	// request Char-server connection
-			if(RFIFOREST(fd)<86)
-				return 0;
-			{
-			unsigned char* server_name;
+	case 0x2710:	// request Char-server connection
+				if(RFIFOREST(fd)<86)
+					return 0;
+				{
+				unsigned char* server_name;
 			sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s@%s','100', 'charserver - %s@%d.%d.%d.%d:%d')", loginlog_db, p[0], p[1], p[2], p[3], RFIFOP(fd, 2),RFIFOP(fd, 60),RFIFOP(fd, 60), RFIFOB(fd, 54), RFIFOB(fd, 55), RFIFOB(fd, 56), RFIFOB(fd, 57), (unsigned short)RFIFOW(fd, 58));
 					//query
 			if(mysql_SendQuery(&mysql_handle, tmpsql))
@@ -1453,8 +1446,8 @@ int parse_login(int fd)
 					WFIFOB(fd, 2)=3;
 					WFIFOSET(fd, 3);
 				}
-			}
-			RFIFOSKIP(fd, 86);
+	  }
+				RFIFOSKIP(fd, 86);
 			break;
 		case 0x7530:	// request Athena information
 			WFIFOW(fd,0)=0x7531;
@@ -1632,14 +1625,6 @@ int login_config_read(const char *cfgName){
 		}		
 		else if (strcasecmp(w1, "import") == 0) {
 			login_config_read(w2);
-		} else if(strcasecmp(w1,"imalive_on")==0) {		//Added by Mugendai for I'm Alive mod
-			imalive_on = atoi(w2);			//Added by Mugendai for I'm Alive mod
-		} else if(strcasecmp(w1,"imalive_time")==0) {	//Added by Mugendai for I'm Alive mod
-			imalive_time = atoi(w2);		//Added by Mugendai for I'm Alive mod
-		} else if(strcasecmp(w1,"flush_on")==0) {		//Added by Mugendai for GUI
-			flush_on = atoi(w2);			//Added by Mugendai for GUI
-		} else if(strcasecmp(w1,"flush_time")==0) {	//Added by Mugendai for GUI
-			flush_time = atoi(w2);			//Added by Mugendai for GUI
 		} else if(strcasecmp(w1, "new_account") == 0){ 	//Added by Sirius for new account _M/_F
 			new_account_flag = atoi(w2);		//Added by Sirius for new account _M/_F		
 		} else if(strcasecmp(w1, "check_client_version") == 0) {
@@ -1760,26 +1745,6 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 	ShowMessage("reading configure done.....\n");
 }
 
-
-//-----------------------------------------------------
-//I'm Alive Alert
-//Used to output 'I'm Alive' every few seconds
-//Intended to let frontends know if the app froze
-//-----------------------------------------------------
-int imalive_timer(int tid, unsigned long tick, int id, int data){
-	ShowMessage("I'm Alive\n");
-	return 0;
-}
-
-//-----------------------------------------------------
-//Flush stdout
-//stdout buffer needs flushed to be seen in GUI
-//-----------------------------------------------------
-int flush_timer(int tid, unsigned long tick, int id, int data){
-	fflush(stdout);
-	return 0;
-}
-
 //--------------------------------------
 // Function called at exit of the server
 //--------------------------------------
@@ -1838,18 +1803,6 @@ int do_init(int argc,char **argv){
 
 	//set default parser as parse_login function
 	set_defaultparse(parse_login);
-
-	//Added for Mugendais I'm Alive mod
-	if(imalive_on) {
-		add_timer_func_list(imalive_timer,"imalive_timer");
-		add_timer_interval(gettick()+10, imalive_time*1000, imalive_timer,0,0);
-	}
-
-	//Added by Mugendai for GUI support
-	if(flush_on) {
-		add_timer_func_list(flush_timer,"flush_timer");
-		add_timer_interval(gettick()+10,flush_time, flush_timer,0,0);
-	}
 
 	// ban deleter timer - 1 minute term
 	ShowMessage("add interval tic (ip_ban_check)....\n");

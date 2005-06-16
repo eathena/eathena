@@ -911,10 +911,10 @@ AtCommandType is_atcommand(const int fd, struct map_session_data &sd, const char
 			{	// Command can not be executed
 				sprintf(output, msg_table[154], command); // %s failed.
 				clif_displaymessage(fd, output);
+			}
 		}
-	}
 		return info.type;
-}
+	}
 	return AtCommand_None;
 }
 
@@ -1182,8 +1182,7 @@ bool atcommand_who(int fd, struct map_session_data &sd, const char* command, con
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
 			pl_GM_level = pc_isGM(*pl_sd);
 			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
-				memcpy(player_name, pl_sd->status.name, 24);
-				tolower(player_name);
+				strcpytolower(player_name,pl_sd->status.name);
 				if(strstr(player_name, match_text) != NULL)
 				{	// search with no case sensitive
 					if (battle_config.who_display_aid > 0 && pc_isGM(sd) >= battle_config.who_display_aid) {
@@ -1242,8 +1241,7 @@ bool atcommand_who2(int fd, struct map_session_data &sd, const char* command, co
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
 			pl_GM_level = pc_isGM(*pl_sd);
 			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
-				memcpy(player_name, pl_sd->status.name, 24);
-				tolower(player_name);
+				strcpytolower(player_name,pl_sd->status.name);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 					if (pl_GM_level > 0)
 						sprintf(output, "Name: %s (GM:%d) | BLvl: %d | Job: %s (Lvl: %d)", pl_sd->status.name, pl_GM_level, pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level);
@@ -1277,7 +1275,7 @@ bool atcommand_who3(int fd, struct map_session_data &sd, const char* command, co
 	char temp0[128];
 	char temp1[128];
 	struct map_session_data *pl_sd;
-	size_t i, j, count;
+	size_t i, count;
 	int pl_GM_level, GM_level;
 	char match_text[128]="";
 	char output[128];
@@ -1297,9 +1295,7 @@ bool atcommand_who3(int fd, struct map_session_data &sd, const char* command, co
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
 			pl_GM_level = pc_isGM(*pl_sd);
 			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
-				memcpy(player_name, pl_sd->status.name, 24);
-				for (j = 0; player_name[j]; j++)
-					player_name[j] = tolower(player_name[j]);
+				strcpytolower(player_name,pl_sd->status.name);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 					g = guild_search(pl_sd->status.guild_id);
 					if (g == NULL)
@@ -1543,8 +1539,7 @@ bool atcommand_whogm(int fd, struct map_session_data &sd, const char* command, c
 			pl_GM_level = pc_isGM(*pl_sd);
 			if (pl_GM_level > 0) {
 				if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
-					memcpy(player_name, pl_sd->status.name, 24);
-					tolower(player_name);
+					strcpytolower(player_name, pl_sd->status.name);
 					if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 						sprintf(output, "Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
 						clif_displaymessage(fd, output);
@@ -1599,8 +1594,7 @@ bool atcommand_whozeny(int fd, struct map_session_data &sd, const char* command,
 	{
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth)
 		{
-				memcpy(player_name, pl_sd->status.name, 24);
-			tolower(player_name);
+			strcpytolower(player_name, pl_sd->status.name);
 			
 			if( NULL!= strstr(player_name, match_text) )
 			{	// search with no case sensitive

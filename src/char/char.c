@@ -3612,14 +3612,6 @@ int char_config_read(const char *cfgName) {
 				start_point.x = x;
 				start_point.y = y;
 			}
-		} else if(strcasecmp(w1,"imalive_on")==0) {	//Added by Mugendai for I'm Alive mod
-			imalive_on = atoi(w2);			//Added by Mugendai for I'm Alive mod
-		} else if(strcasecmp(w1,"imalive_time")==0) {	//Added by Mugendai for I'm Alive mod
-			imalive_time = atoi(w2);		//Added by Mugendai for I'm Alive mod
-		} else if(strcasecmp(w1,"flush_on")==0) {		//Added by Mugendai for GUI
-			flush_on = atoi(w2);			//Added by Mugendai for GUI
-		} else if(strcasecmp(w1,"flush_time")==0) {	//Added by Mugendai for GUI
-			flush_time = atoi(w2);			//Added by Mugendai for GUI
 		} else if(strcasecmp(w1,"log_char")==0) {		//log char or not [devil]
 			log_char = atoi(w2);
 		} else if(strcasecmp(w1, "start_zeny") == 0) {
@@ -3672,25 +3664,6 @@ int char_config_read(const char *cfgName) {
 	}
 	fclose(fp);
 
-	return 0;
-}
-
-//-----------------------------------------------------
-//I'm Alive Alert
-//Used to output 'I'm Alive' every few seconds
-//Intended to let frontends know if the app froze
-//-----------------------------------------------------
-int imalive_timer(int tid, unsigned long tick, int id, int data){
-	ShowMessage("I'm Alive\n");
-	return 0;
-}
-
-//-----------------------------------------------------
-//Flush stdout
-//stdout buffer needs flushed to be seen in GUI
-//-----------------------------------------------------
-int flush_timer(int tid, unsigned long tick, int id, int data){
-	fflush(stdout);
 	return 0;
 }
 
@@ -3799,18 +3772,6 @@ int do_init(int argc, char **argv) {
 	add_timer_interval(gettick() + 1000, 10 * 1000, check_connect_login_server, 0, 0);
 	add_timer_interval(gettick() + 1000, 5 * 1000, send_users_tologin, 0, 0);
 	add_timer_interval(gettick() + autosave_interval, autosave_interval, mmo_char_sync_timer, 0, 0);
-
-	//Added for Mugendais I'm Alive mod
-	if (imalive_on) {
-		add_timer_func_list(imalive_timer, "imalive_timer");
-		add_timer_interval(gettick()+10,imalive_time*1000, imalive_timer,0,0);
-	}
-
-	//Added by Mugendai for GUI support
-	if (flush_on) {
-		add_timer_func_list(flush_timer, "flush_timer");
-		add_timer_interval(gettick()+10,flush_time, flush_timer,0,0);
-	}
 
 
 	if(console) {

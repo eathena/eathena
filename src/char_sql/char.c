@@ -91,15 +91,8 @@ int char_per_account = 0; //Maximum charas per account (default unlimited) [Siri
 int log_char = 1;	// loggin char or not [devil]
 int log_inter = 1;	// loggin inter or not [devil]
 
-char unknown_char_name[1024] = "Unknown";
+char unknown_char_name[24] = "Unknown";
 char db_path[1024]="db";
-
-//Added for Mugendai's I'm Alive mod
-int imalive_on=0;
-int imalive_time=60;
-//Added by Mugendai for GUI
-int flush_on=1;
-int flush_time=100;
 
 struct char_session_data{
 	unsigned long account_id;
@@ -314,7 +307,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 //	int noteqcount=1;
 	int count = 0;
 	int diff = 0;
-	char temp_str[1024];
+	char temp_str[64]; //2x the value of the string before jstrescapecpy [Skotlex]
 	char *tmp_p = tmp_sql;
 	struct mmo_charstatus *cp;
 	struct itemtmp mapitem[MAX_GUILD_STORAGE];	
@@ -841,7 +834,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 
 	//read memo data
 	//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
-	sprintf(tmp_sql, "SELECT `map`,`x`,`y` FROM `%s` WHERE `char_id`='%d'",memo_db, char_id); // TBR
+	sprintf(tmp_sql, "SELECT `map`,`x`,`y` FROM `%s` WHERE `char_id`='%d' ORDER by `memo_id`",memo_db, char_id); // TBR
 	if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
 		ShowMessage("DB server Error (select `memo`)- %s\n", mysql_error(&mysql_handle));
 	}
@@ -1105,14 +1098,14 @@ int mmo_char_sql_init(void) {
 int make_new_char_sql(int fd, unsigned char *dat)
 {
 	struct char_session_data *sd;
-	char t_name[100];
+	char t_name[64];
 	size_t i;
 	int char_id, temp;
 
-	//aphostropy error check! - fixed!
 	jstrescapecpy(t_name, (char*)dat);
 	// disabled until fixed >.>
 	// Note: escape characters should be added to jstrescape()!
+	t_name[24-1] = '\0';
 
 	if (!session_isValid(fd) || !(sd = (struct char_session_data*)session[fd]->session_data))
 		return -2;
@@ -1335,8 +1328,9 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	}
 
 	//Give the char the default items
-	//knife
-	sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, 1201,1,0x02,1); //add Knife
+	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
+	if (start_weapon > 0) { //add Start Weapon (Knife?)
+		sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, start_weapon,1,0x02,1);
 	if (mysql_SendQuery(&mysql_handle, tmp_sql))
 	{
 		ShowMessage("fail (insert in inventory  the 'knife'), SQL error: %s\n", mysql_error(&mysql_handle));
@@ -1344,8 +1338,9 @@ int make_new_char_sql(int fd, unsigned char *dat)
 		mysql_SendQuery(&mysql_handle, tmp_sql);
 		return -2;//end XD
 	}
-	//cotton shirt
-	sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, 2301,1,0x10,1); //add Cotton Shirt
+	}
+	if (start_armor > 0) { //Add default armor (cotton shirt?)
+		sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, start_armor,1,0x10,1);
 	if (mysql_SendQuery(&mysql_handle, tmp_sql))
 	{
 		ShowMessage("fail (insert in inventroxy the 'cotton shirt'), SQL error: %s\n", mysql_error(&mysql_handle));
@@ -1355,7 +1350,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 		mysql_SendQuery(&mysql_handle, tmp_sql);
 		return -2; //end....
 	}
-
+	}
 	if(!insert_friends(char_id))
 	{
 		ShowMessage("fail (friendlist entrys..)\n");
@@ -1535,7 +1530,7 @@ int parse_tologin(int fd)
 
 	sd = (struct char_session_data*)session[fd]->session_data;
 
-	// hehe. no need to set user limite on SQL version. :P
+	// hehe. no need to set user limit on SQL version. :P
 	// but char limitation is good way to maintain server. :D
 	while(RFIFOREST(fd) >= 2) {
 //		ShowMessage("parse_tologin : %d %d %x\n", fd, RFIFOREST(fd), (unsigned short)RFIFOW(fd, 0));
@@ -1875,7 +1870,7 @@ int parse_frommap(int fd)
 	{
 		session_Remove(fd);
 		return 0;
-	}
+			}
 	// else it is the map server id
 	if( !session_isActive(fd) )
 	{
@@ -1923,8 +1918,8 @@ int parse_frommap(int fd)
 				return 0;
 			memset(server[id].map, 0, sizeof(server[id].map));
 			j = 0;
-			for(i = 4; i < RFIFOW(fd,2); i += 16) {
-				memcpy(server[id].map[j], RFIFOP(fd,i), 16);
+			for(i = 4; i < RFIFOW(fd,2); i += 24) {
+				memcpy(server[id].map[j], RFIFOP(fd,i), 24);
 //				ShowMessage("set map %d.%d : %s\n", id, j, server[id].map[j]);
 				j++;
 			}
@@ -1932,12 +1927,13 @@ int parse_frommap(int fd)
 			ShowMessage("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
 			       id, j, (server[id].lanip>>24)&0xFF, (server[id].lanip>>16)&0xFF, (server[id].lanip>>8)&0xFF, (server[id].lanip)&0xFF, server[id].lanport);
 			ShowMessage("Map-server %d loading complete.\n", id);
-			set_all_offline();
+				set_all_offline();
 
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;
 			memcpy(WFIFOP(fd,3), wisp_server_name, 24); // name for wisp to player
-			WFIFOSET(fd,27);
+			WFIFOSET(fd,3+24);
+			//WFIFOSET(fd,27);
 			{
 				unsigned char buf[16384];
 				int x;
@@ -2231,7 +2227,7 @@ int parse_frommap(int fd)
 			char character_name[24];
 			int acc = RFIFOL(fd,2); // account_id of who ask (-1 if nobody)
 			memcpy(character_name, RFIFOP(fd,6), 24);
-			character_name[sizeof(character_name) -1] = '\0';
+			character_name[23] = '\0';
 			// prepare answer
 			WFIFOW(fd,0) = 0x2b0f; // answer
 			WFIFOL(fd,2) = acc; // who want do operation
@@ -2443,12 +2439,12 @@ int parse_frommap(int fd)
 
 int search_mapserver(char *map) {
 	int i, j;
-	char temp_map[16];
+	char temp_map[64];
 	int temp_map_len;
 
 //	ShowMessage("Searching the map-server for map '%s'... ", map);
-	strncpy(temp_map, map, sizeof(temp_map));
-	temp_map[sizeof(temp_map)-1] = '\0';
+	memcpy(temp_map, map, 24);
+	temp_map[23] = '\0';
 	if (strchr(temp_map, '.') != NULL)
 		temp_map[strchr(temp_map, '.') - temp_map + 1] = '\0'; // suppress the '.gat', but conserve the '.' to be sure of the name of the map
 
@@ -2619,9 +2615,12 @@ int parse_char(int fd)
 //			ShowMessage("0x66> request connect - account_id:%d/char_num:%d\n",sd->account_id,RFIFOB(fd, 2));
 			if (RFIFOREST(fd) < 3)
 				return 0;
-
-                        if (sd == NULL)
-                          return 0;
+			
+			if(!sd)
+			{
+				RFIFOSKIP(fd, 3);
+				break;
+			}
 
 			sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id`='%ld' AND `char_num`='%d'",char_db, sd->account_id, RFIFOB(fd, 2));
 			if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
@@ -2633,7 +2632,8 @@ int parse_char(int fd)
 
 			if (sql_row)
 				mmo_char_fromsql(atoi(sql_row[0]), char_dat, 1);
-			else {
+			else
+			{
 				mysql_free_result(sql_res);
 				RFIFOSKIP(fd, 3);
 				break;
@@ -2654,27 +2654,27 @@ int parse_char(int fd)
 			// if map is not found, we check major cities
 			if (i < 0) {
 				if ((i = search_mapserver("prontera.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "prontera.gat", 16);
+					memcpy(char_dat[0].last_point.map, "prontera.gat", 24);
 					char_dat[0].last_point.x = 273; // savepoint coordonates
 					char_dat[0].last_point.y = 354;
 				} else if ((i = search_mapserver("geffen.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "geffen.gat", 16);
+					memcpy(char_dat[0].last_point.map, "geffen.gat", 24);
 					char_dat[0].last_point.x = 120; // savepoint coordonates
 					char_dat[0].last_point.y = 100;
 				} else if ((i = search_mapserver("morocc.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "morocc.gat", 16);
+					memcpy(char_dat[0].last_point.map, "morocc.gat", 24);
 					char_dat[0].last_point.x = 160; // savepoint coordonates
 					char_dat[0].last_point.y = 94;
 				} else if ((i = search_mapserver("alberta.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "alberta.gat", 16);
+					memcpy(char_dat[0].last_point.map, "alberta.gat", 24);
 					char_dat[0].last_point.x = 116; // savepoint coordonates
 					char_dat[0].last_point.y = 57;
 				} else if ((i = search_mapserver("payon.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "payon.gat", 16);
+					memcpy(char_dat[0].last_point.map, "payon.gat", 24);
 					char_dat[0].last_point.x = 87; // savepoint coordonates
 					char_dat[0].last_point.y = 117;
 				} else if ((i = search_mapserver("izlude.gat")) >= 0) { // check is done without 'gat'.
-					memcpy(char_dat[0].last_point.map, "izlude.gat", 16);
+					memcpy(char_dat[0].last_point.map, "izlude.gat", 24);
 					char_dat[0].last_point.x = 94; // savepoint coordonates
 					char_dat[0].last_point.y = 103;
 				} else {
@@ -2701,7 +2701,7 @@ int parse_char(int fd)
 			}
 			WFIFOW(fd, 0) =0x71;
 			WFIFOL(fd, 2) =char_dat[0].char_id;
-			memcpy(WFIFOP(fd, 6), char_dat[0].last_point.map, 16);
+			memcpy(WFIFOP(fd, 6), char_dat[0].last_point.map, 24);
 			//Lan check added by Kashy
 			if (lan_ip_check(client_ip))
 				WFIFOLIP(fd, 22) = lan_map_ip;
@@ -2749,27 +2749,27 @@ int parse_char(int fd)
 			//Changed that we can support 'Charname already exists' (-1) amd 'Char creation denied' (-2)
 			//And 'You are underaged' (-3) (XD) [Sirius]
 			if(i == -1){
-                            //already exists
-                            WFIFOW(fd, 0) = 0x6e;
-                            WFIFOB(fd, 2) = 0x00;
-                            WFIFOSET(fd, 3);
-                            RFIFOSKIP(fd, 37);
-                            break;
-                        }else if(i == -2){
-                            //denied
-                            WFIFOW(fd, 0) = 0x6e;
-                            WFIFOB(fd, 2) = 0x02;
-                            WFIFOSET(fd, 3); 
-                            RFIFOSKIP(fd, 37);                           
-                            break;
-                        }else if(i == -3){
-                            //underaged XD
-                            WFIFOW(fd, 0) = 0x6e;
-                            WFIFOB(fd, 2) = 0x01;
-                            WFIFOSET(fd, 3);
-                            RFIFOSKIP(fd, 37);
-                            break;
-                        }
+                //already exists
+                WFIFOW(fd, 0) = 0x6e;
+                WFIFOB(fd, 2) = 0x00;
+                WFIFOSET(fd, 3);
+                RFIFOSKIP(fd, 37);
+                break;
+            }else if(i == -2){
+                //denied
+                WFIFOW(fd, 0) = 0x6e;
+                WFIFOB(fd, 2) = 0x02;
+                WFIFOSET(fd, 3); 
+                RFIFOSKIP(fd, 37);                           
+                break;
+            }else if(i == -3){
+                //underaged XD
+                WFIFOW(fd, 0) = 0x6e;
+                WFIFOB(fd, 2) = 0x01;
+                WFIFOSET(fd, 3);
+                RFIFOSKIP(fd, 37);
+                break;
+            }
 
 			WFIFOW(fd, 0) = 0x6d;
 			memset(WFIFOP(fd, 2), 0x00, 106);
@@ -2880,7 +2880,6 @@ int parse_char(int fd)
 					break;
 				}			
 			}
-
 
 			sprintf(tmp_sql, "SELECT `name`,`partner_id` FROM `%s` WHERE `char_id`='%ld'",char_db, (unsigned long)RFIFOL(fd,2));
 			if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
@@ -3518,7 +3517,7 @@ int char_config_read(const char *cfgName) {
 		} else if (strcasecmp(w1, "passwd") == 0) {
 			memcpy(passwd, w2, 24);
 		} else if (strcasecmp(w1, "server_name") == 0) {
-			memcpy(server_name, w2, 16);
+			memcpy(server_name, w2, 20);
 			ShowMessage("%s server has been initialized\n", w2);
 		} else if (strcasecmp(w1, "wisp_server_name") == 0) {
 			if (strlen(w2) >= 4) {
@@ -3580,12 +3579,12 @@ int char_config_read(const char *cfgName) {
 			if (autosave_interval <= 0)
 				autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 		} else if (strcasecmp(w1, "start_point") == 0) {
-			char map[32];
+			char map[64];
 			int x, y;
-			if (sscanf(w2,"%[^,],%d,%d", map, &x, &y) < 3)
+			if (sscanf(w2,"%15[^,],%d,%d", map, &x, &y) < 3)
 				continue;
 			if (strstr(map, ".gat") != NULL) { // Verify at least if '.gat' is in the map name
-				memcpy(start_point.map, map, 16);
+				memcpy(start_point.map, map, 24);
 				start_point.x = x;
 				start_point.y = y;
 			}
@@ -3601,19 +3600,11 @@ int char_config_read(const char *cfgName) {
 			start_armor = atoi(w2);
 			if (start_armor < 0)
 				start_armor = 0;
-		} else if(strcasecmp(w1,"imalive_on")==0){		//Added by Mugendai for I'm Alive mod
-			imalive_on = atoi(w2);			//Added by Mugendai for I'm Alive mod
-		} else if(strcasecmp(w1,"imalive_time")==0){	//Added by Mugendai for I'm Alive mod
-			imalive_time = atoi(w2);		//Added by Mugendai for I'm Alive mod
-		} else if(strcasecmp(w1,"flush_on")==0){		//Added by Mugendai for GUI
-			flush_on = atoi(w2);			//Added by Mugendai for GUI
-		} else if(strcasecmp(w1,"flush_time")==0){		//Added by Mugendai for GUI
-			flush_time = atoi(w2);			//Added by Mugendai for GUI
 		} else if(strcasecmp(w1,"log_char")==0){		//log char or not [devil]
 			log_char = atoi(w2);
 		} else if (strcasecmp(w1, "unknown_char_name") == 0) {
 			strcpy(unknown_char_name, w2);
-			unknown_char_name[24] = 0;
+			unknown_char_name[23] = 0;
 		} else if (strcasecmp(w1, "name_ignoring_case") == 0) {
 			name_ignoring_case = config_switch(w2);
 		} else if (strcasecmp(w1, "char_name_option") == 0) {
@@ -3632,25 +3623,6 @@ int char_config_read(const char *cfgName) {
 	}
 	fclose(fp);
 
-	return 0;
-}
-
-//-----------------------------------------------------
-//I'm Alive Alert
-//Used to output 'I'm Alive' every few seconds
-//Intended to let frontends know if the app froze
-//-----------------------------------------------------
-int imalive_timer(int tid, unsigned long tick, int id, int data){
-	ShowMessage("I'm Alive\n");
-	return 0;
-}
-
-//-----------------------------------------------------
-//Flush stdout
-//stdout buffer needs flushed to be seen in GUI
-//-----------------------------------------------------
-int flush_timer(int tid, unsigned long tick, int id, int data){
-	fflush(stdout);
 	return 0;
 }
 
@@ -3724,18 +3696,6 @@ int do_init(int argc, char **argv){
 	//no need to set sync timer on SQL version.
 	//ShowMessage("add interval tic (mmo_char_sync_timer)....\n");
 	//add_timer_interval(gettick() + 10, mmo_char_sync_timer, 0, 0, autosave_interval);
-
-	//Added for Mugendais I'm Alive mod
-	if(imalive_on) {
-		add_timer_func_list(imalive_timer, "imalive_timer");
-		add_timer_interval(gettick()+10, imalive_time*1000, imalive_timer,0,0);
-	}
-
-	//Added by Mugendai for GUI support
-	if(flush_on) {
-		add_timer_func_list(flush_timer, "flush_timer");
-		add_timer_interval(gettick()+10, flush_time, flush_timer,0,0);
-	}
 
 
 	read_gm_account();

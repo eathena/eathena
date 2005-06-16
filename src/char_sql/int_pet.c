@@ -19,7 +19,7 @@ static int pet_newid = 100;
 //---------------------------------------------------------
 int inter_pet_tosql(int pet_id, struct s_pet *p)
 {	//`pet` (`pet_id`, `class`,`name`,`account_id`,`char_id`,`level`,`egg_id`,`equip`,`intimate`,`hungry`,`rename_flag`,`incuvate`)
-	char t_name[100];
+	char t_name[64];
 
 	ShowMessage("request save pet: %d.......\n",pet_id);
 

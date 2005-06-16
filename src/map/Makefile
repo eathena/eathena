@@ -10,9 +10,9 @@ txtobj:
 sqlobj:
 	mkdir sqlobj
 
-COMMON_OBJ = ../common/core.o ../common/db.o ../common/dll.o ../common/grfio.o ../common/lock.o ../common/malloc.o ../common/md5calc.o ../common/mmo.o ../common/nullpo.o ../common/showmsg.o ../common/socket.o ../common/strlib.o ../common/timer.o ../common/utils.o
+COMMON_OBJ = ../common/core.o ../common/db.o ../common/plugins.o ../common/grfio.o ../common/lock.o ../common/malloc.o ../common/md5calc.o ../common/mmo.o ../common/nullpo.o ../common/showmsg.o ../common/socket.o ../common/strlib.o ../common/timer.o ../common/utils.o
 
-COMMON_H = ../common/base.h ../common/core.h ../common/db.h ../common/dll.h ../common/grfio.h ../common/lock.h ../common/malloc.h ../common/md5calc.h ../common/mmo.h ../common/nullpo.h ../common/showmsg.h ../common/socket.h ../common/strlib.h ../common/timer.h ../common/utils.h ../common/version.h
+COMMON_H = ../common/base.h ../common/core.h ../common/db.h ../common/plugins.h ../common/grfio.h ../common/lock.h ../common/malloc.h ../common/md5calc.h ../common/mmo.h ../common/nullpo.h ../common/showmsg.h ../common/socket.h ../common/strlib.h ../common/timer.h ../common/utils.h ../common/version.h
 LIBS = -lz -lm
 
 map-server: txtobj/map.o txtobj/chrif.o txtobj/clif.o txtobj/pc.o txtobj/npc.o txtobj/chat.o txtobj/path.o txtobj/itemdb.o txtobj/mob.o txtobj/script.o txtobj/storage.o txtobj/skill.o txtobj/atcommand.o txtobj/charcommand.o txtobj/battle.o txtobj/intif.o txtobj/trade.o txtobj/party.o txtobj/vending.o txtobj/guild.o txtobj/pet.o txtobj/log.o txtobj/status.o txtobj/mail.o txtobj/npc_chat.o txtobj/mercenary.o $(COMMON_OBJ)

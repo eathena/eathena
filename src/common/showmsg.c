@@ -159,7 +159,7 @@ int	VPRINTF(const char *fmt, va_list argptr)
 				GetConsoleScreenBufferInfo(handle, &info);
 				while(1)
 				{
-					if( !isdigit((int)(*q)) ) 
+					if( !isdigit((int)((unsigned char)*q)) ) 
 					{	// no number
 						// something is fishy, we break
 						p=q;
@@ -182,7 +182,7 @@ int	VPRINTF(const char *fmt, va_list argptr)
 											BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE;
 						break;
 					case '3':
-						if( isdigit((int)(q[1])) ) // a two digit number
+						if( isdigit((int)((unsigned char)q[1])) ) // a two digit number
 						{	// foreground
 							int num = q[1]-'0';
 							if(num==9) info.wAttributes |= FOREGROUND_INTENSITY;
@@ -199,7 +199,7 @@ int	VPRINTF(const char *fmt, va_list argptr)
 						// which is not implemented
 						break;
 					case '4':
-						if( isdigit((int)(q[1])) ) // a two digit number
+						if( isdigit((int)((unsigned char)q[1])) ) // a two digit number
 						{	// background
 							int num = q[1]-'0';
 							if(num==9) info.wAttributes |= BACKGROUND_INTENSITY;
@@ -223,7 +223,7 @@ int	VPRINTF(const char *fmt, va_list argptr)
 						break;
 					}//end case
 
-					if( isdigit((int)(q[1])) ) // skip any one or two digit numbers
+					if( isdigit((int)((unsigned char)q[1])) ) // skip any one or two digit numbers
 						q++;
 					q++;
 

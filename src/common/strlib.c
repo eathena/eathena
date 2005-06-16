@@ -17,7 +17,7 @@ char* jstrescape (char* pt) {
 	//copy string to temporary
 	CREATE(spt, char, strlen(pt)+1);
 	strcpy (spt,pt);
-	
+
 	sp=spt;
 	while (*sp) {
 		switch (*sp) {
@@ -69,7 +69,7 @@ size_t jmemescapecpy (char* pt, const char* spt, int size) {
 	char *p  =pt;
 	const char *sp =spt;
 	if( (NULL==pt) || (NULL==spt) ) return 0;
-	
+
 	while ( (sp < spt+size) && *sp) {
 		switch (*sp) {
 			case '\'':

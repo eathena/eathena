@@ -43,11 +43,11 @@ int inter_party_fromstr(char *str, struct party *p) {
 	memset(p, 0, sizeof(struct party));
 
 //	ShowMessage("sscanf party main info\n");
-	if (sscanf(str, "%d\t%[^\t]\t%d,%d\t", &tmp_int[0], tmp_str, &tmp_int[1], &tmp_int[2]) != 4)
+	if (sscanf(str, "%d\t%255[^\t]\t%d,%d\t", &tmp_int[0], tmp_str, &tmp_int[1], &tmp_int[2]) != 4)
 		return 1;
 
 	p->party_id = tmp_int[0];
-	strcpy(p->name, tmp_str);
+	memcpy(p->name, tmp_str, 24);
 	p->exp = tmp_int[1];
 	p->item = tmp_int[2];
 //	ShowMessage("%d [%s] %d %d\n", tmp_int[0], tmp_str[0], tmp_int[1], tmp_int[2]);
@@ -61,12 +61,12 @@ int inter_party_fromstr(char *str, struct party *p) {
 			return 1;
 //		ShowMessage("sscanf party member info %d\n", i);
 
-		if (sscanf(str + 1, "%d,%d\t%[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str) != 3)
+		if (sscanf(str + 1, "%d,%d\t%255[^\t]\t", &tmp_int[0], &tmp_int[1], tmp_str) != 3)
 			return 1;
 
 		m->account_id = tmp_int[0];
 		m->leader = tmp_int[1];
-		strncpy(m->name, tmp_str, sizeof(m->name));
+		memcpy(m->name, tmp_str, 24);
 //		ShowMessage(" %d %d [%s]\n", tmp_int[0], tmp_int[1], tmp_str);
 
 		for(j = 0; j < 2 && str != NULL; j++)
@@ -115,7 +115,7 @@ int inter_party_init() {
 }
 
 int party_db_final (void *k, void *data, va_list ap) {
-	struct party *p = (struct party *)data;
+	struct party *p = (struct party *) data;
 	if (p) aFree(p);
 	return 0;
 }
@@ -181,7 +181,7 @@ bool party_check_exp_share(struct party *p)
 	size_t i, cnt_lo=0, cnt_hi=0;
 	size_t pl1=0,pl2=0,pl3=0;
 	unsigned short maxlv = 0, minlv = 0xFFFF;
-	
+
 	for(i = 0; i < MAX_PARTY; i++)
 	{
 		unsigned short lv = p->member[i].lv;
@@ -198,17 +198,17 @@ bool party_check_exp_share(struct party *p)
 		(!strcmp(p->member[0].map,p->member[1].map)) &&
 		(!strcmp(p->member[1].map,p->member[2].map)) )
 	{
-		pl1=search_character_index(p->member[0].name);
-		pl2=search_character_index(p->member[1].name);
-		pl3=search_character_index(p->member[2].name);
+                pl1=search_character_index(p->member[0].name);
+                pl2=search_character_index(p->member[1].name);
+                pl3=search_character_index(p->member[2].name);
 		ShowMessage("PARTY: group of 3 Id1 %d lv %d name %s Id2 %d lv %d name %s Id3 %d lv %d name %s\n",pl1,p->member[0].lv,p->member[0].name,pl2,p->member[1].lv,p->member[1].name,pl3,p->member[2].lv,p->member[2].name);
-		if( char_married(pl1,pl2) && char_child(pl1,pl3) )
+                if (char_married(pl1,pl2) && char_child(pl1,pl3))
 			return true;
-		if( char_married(pl1,pl3) && char_child(pl1,pl2) )
+                if (char_married(pl1,pl3) && char_child(pl1,pl2))
 			return true;
-		if( char_married(pl2,pl3) && char_child(pl2,pl1) )
+                if (char_married(pl2,pl3) && char_child(pl2,pl1))
 			return true;
-	}
+        }
 	return (maxlv==0 || maxlv<=minlv+party_share_level);
 }
 
@@ -224,7 +224,7 @@ int party_check_empty(struct party *p)
 			return 0;
 		}
 	}
-	// 誰もいないので解散
+		// 誰もいないので解散
 	mapif_party_broken(p->party_id, 0);
 	numdb_erase(party_db, p->party_id);
 	aFree(p);
@@ -312,15 +312,15 @@ int mapif_party_info(int fd, struct party *pparty) {
 
 	if(pparty)
 	{
-		WBUFW(buf,0) = 0x3821;
-		WBUFW(buf,2) = 4 + sizeof(struct party);
+	WBUFW(buf,0) = 0x3821;
+	WBUFW(buf,2) = 4 + sizeof(struct party);
 		//memcpy(buf + 4, pparty, sizeof(struct party));
 		party_tobuffer(*pparty, buf+4);
 
 		if( !session_isActive(fd) )
-			mapif_sendall(buf, WBUFW(buf,2));
-		else
-			mapif_send(fd, buf, WBUFW(buf,2));
+		mapif_sendall(buf, WBUFW(buf,2));
+	else
+		mapif_send(fd, buf, WBUFW(buf,2));
 		//ShowMessage("int_party: info %d %s\n", p->party_id, p->name);
 	}
 
@@ -425,10 +425,12 @@ int mapif_party_message(unsigned long party_id, unsigned long account_id, char *
 // パーティ
 int mapif_parse_CreateParty(int fd, unsigned long account_id, char *name, char *nick, char *map, int lv) {
 	struct party *p;
-	int i;
+	char *ip;
 
-	for(i = 0; i < 24 && name[i]; i++) {
-		if (!(name[i] & 0xe0) || name[i] == 0x7f) {
+	if(NULL==name)
+		return 0;
+	for(ip=name; *ip; ip++) {
+		if ( *((unsigned char*)ip)==0xe0 || *ip== 0x7f) {
 			ShowMessage("int_party: illegal party name [%s]\n", name);
 			mapif_party_created(fd, account_id, NULL);
 			return 0;
@@ -447,7 +449,7 @@ int mapif_parse_CreateParty(int fd, unsigned long account_id, char *name, char *
 	p->item = 0;
 	p->member[0].account_id = account_id;
 	memcpy(p->member[0].name, nick, 24);
-	memcpy(p->member[0].map, map, 16);
+	memcpy(p->member[0].map, map, 24);
 	p->member[0].leader = 1;
 	p->member[0].online = 1;
 	p->member[0].lv = lv;
@@ -464,7 +466,7 @@ int mapif_parse_CreateParty(int fd, unsigned long account_id, char *name, char *
 int mapif_parse_PartyInfo(int fd, int party_id) {
 	struct party *p;
 
-	p = (struct party *)numdb_search(party_db, party_id);
+	p = (struct party *) numdb_search(party_db, party_id);
 	if (p != NULL)
 		mapif_party_info(fd, p);
 	else
@@ -478,7 +480,7 @@ int mapif_parse_PartyAddMember(int fd, unsigned long party_id, unsigned long acc
 	struct party *p;
 	int i;
 
-	p = (struct party *)numdb_search(party_db, party_id);
+	p = (struct party *) numdb_search(party_db, party_id);
 	if (p == NULL) {
 		mapif_party_memberadded(fd, party_id, account_id, 1);
 		return 0;
@@ -490,7 +492,7 @@ int mapif_parse_PartyAddMember(int fd, unsigned long party_id, unsigned long acc
 
 			p->member[i].account_id = account_id;
 			memcpy(p->member[i].name, nick, 24);
-			memcpy(p->member[i].map, map, 16);
+			memcpy(p->member[i].map, map, 24);
 			p->member[i].leader = 0;
 			p->member[i].online = 1;
 			p->member[i].lv = lv;
@@ -516,7 +518,7 @@ int mapif_parse_PartyChangeOption(int fd, unsigned long party_id, unsigned long 
 	struct party *p;
 	int flag = 0;
 
-	p = (struct party *)numdb_search(party_db, party_id);
+	p = (struct party *) numdb_search(party_db, party_id);
 	if (p == NULL)
 		return 0;
 
@@ -537,7 +539,7 @@ int mapif_parse_PartyLeave(int fd, unsigned long party_id, unsigned long account
 	struct party *p;
 	int i;
 
-	p = (struct party *)numdb_search(party_db, party_id);
+	p = (struct party *) numdb_search(party_db, party_id);
 	if (p != NULL) {
 		for(i = 0; i < MAX_PARTY; i++) {
 			if (p->member[i].account_id == account_id) {
@@ -558,7 +560,7 @@ int mapif_parse_PartyChangeMap(int fd, unsigned long party_id, unsigned long acc
 	struct party *p;
 	int i;
 
-	p = (struct party *)numdb_search(party_db, party_id);
+	p = (struct party *) numdb_search(party_db, party_id);
 	if (p == NULL)
 		return 0;
 
@@ -566,7 +568,7 @@ int mapif_parse_PartyChangeMap(int fd, unsigned long party_id, unsigned long acc
 		if (p->member[i].account_id == account_id) {
 			int flag = 0;
 
-			memcpy(p->member[i].map, map, 16);
+			memcpy(p->member[i].map, map, 24);
 			p->member[i].online = online;
 			p->member[i].lv = lv;
 			mapif_party_membermoved(p, i);
@@ -588,7 +590,7 @@ int mapif_parse_PartyChangeMap(int fd, unsigned long party_id, unsigned long acc
 int mapif_parse_BreakParty(int fd, int party_id) {
 	struct party *p;
 
-	p = (struct party *)numdb_search(party_db, party_id);
+	p = (struct party *) numdb_search(party_db, party_id);
 	if (p == NULL)
 		return 0;
 

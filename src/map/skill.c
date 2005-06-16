@@ -604,6 +604,37 @@ int skill_castend_delay (struct block_list* src, struct block_list *bl,int skill
 int enchant_eff[5] = { 10, 14, 17, 19, 20 };
 int deluge_eff[5] = { 5, 9, 12, 14, 15 };
 
+
+
+
+
+
+
+
+
+// Making plagirize check its own function [Aru]
+bool skill_can_copy(struct map_session_data &sd, unsigned short skillid)
+{
+	// NPC Skills, never ok to copy
+	if(skillid >= NPC_PIERCINGATT && skillid <= NPC_SUMMONMONSTER)
+		return false;
+	if(skillid >= NPC_RANDOMMOVE && skillid <= NPC_RUN)
+		return false;
+	if(skillid >= WE_BABY && skillid <= NPC_EMOTION_ON)
+		return false;
+
+	// High-class skills
+	if(skillid >= LK_AURABLADE)
+	{
+		if(battle_config.copyskill_restrict == 2)
+			return false;
+		else if(battle_config.copyskill_restrict)
+			return (sd.status.class_ == 4018);
+	}
+	return true;
+}
+
+
 // [MouseJstr] - skill ok to cast? and when?
 int skillnotok(int skillid, struct map_session_data &sd)
 {	
@@ -632,6 +663,9 @@ int skillnotok(int skillid, struct map_session_data &sd)
 	if (agit_flag && skill_get_nocast (skillid) & 8)
 		return 1;
 	if (battle_config.pk_mode && !map[sd.bl.m].flag.nopvp && skill_get_nocast (skillid) & 16)
+		return 1;
+
+	if(skillid == LK_BERSERK && sd.canregen_tick>gettick())
 		return 1;
 	
 	switch (skillid) {
@@ -1585,12 +1619,11 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	if(damage > 0 && dmg.flag&BF_SKILL && bl->type==BL_PC && pc_checkskill(*((struct map_session_data *)bl),RG_PLAGIARISM) && sc_data[SC_PRESERVE].timer == -1){
 		struct map_session_data *tsd = (struct map_session_data *)bl;
 		if (tsd && (!tsd->status.skill[skillid].id || tsd->status.skill[skillid].flag >= 13) &&
-			!((skillid > NPC_PIERCINGATT && skillid < NPC_SUMMONMONSTER) ||
-			(skillid > NPC_RANDOMMOVE && skillid < NPC_RUN) ||
-			(skillid > TK_RUN && skillid < NPC_EMOTION_ON)))
+			skill_can_copy(*tsd,skillid) )
 		{
 			//?に?んでいるスキルがあれば該?スキルを消す
 			if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag == 13){
+
 				tsd->status.skill[tsd->cloneskill_id].id = 0;
 				tsd->status.skill[tsd->cloneskill_id].lv = 0;
 				tsd->status.skill[tsd->cloneskill_id].flag = 0;
@@ -1603,6 +1636,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			tsd->status.skill[skillid].flag = 13;//cloneskill flag
 			pc_setglobalreg(*tsd, "CLONE_SKILL", tsd->cloneskill_id);
 			clif_skillinfoblock(*tsd);
+
 		}
 	}
 	/* ダメ?ジがあるなら追加?果判定 */
@@ -2408,7 +2442,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl,unsig
 
 	case AM_ACIDTERROR:		/* アシッドテラ? */
 		skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, flag);
-		if (tsd && battle_config.equipment_breaking && rand()%100 < skill_get_time(skillid,skilllv)) {
+		if (tsd && (size_t)rand()%100 < skill_get_time(skillid,skilllv) * battle_config.equip_skill_break_rate) {
 			pc_breakarmor(*tsd);
 			clif_emotion(*bl, 23);
 		}
@@ -3224,7 +3258,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		if(skilllv < 5 && rand()%100 > (60+skilllv*10) ) { //fixed by Lupus (4 -> 5) or else it has 100% success even at lv4
 			if (sd) clif_skill_fail(*sd,skillid,0,0);
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,0);
-			if(dstsd && battle_config.equipment_breaking) {
+			if(dstsd && battle_config.equip_self_break_rate) {
 				if(sd && sd != dstsd) clif_displaymessage(sd->fd,"You broke target's weapon");
 				pc_breakweapon(*dstsd);
 			}
@@ -3249,6 +3283,15 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
 
+	case LK_BERSERK:		/* バ?サ?ク */
+		if(battle_config.berserk_cancels_buffs)
+		{
+			status_change_end(bl,SC_TWOHANDQUICKEN,-1);
+			status_change_end(bl,SC_CONCENTRATION,-1);
+			status_change_end(bl,SC_PARRYING,-1);
+			status_change_end(bl,SC_ENDURE,-1);
+			status_change_end(bl,SC_AURABLADE,-1);
+		}
 	case KN_AUTOCOUNTER:		/* オ?トカウンタ? */
 	case KN_TWOHANDQUICKEN:	/* ツ?ハンドクイッケン */
 	case CR_SPEARQUICKEN:	/* スピアクイッケン */
@@ -3263,7 +3306,6 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 	case LK_AURABLADE:		/* オ?ラブレ?ド */
 	case LK_PARRYING:		/* パリイング */
 	case LK_CONCENTRATION:	/* コンセントレ?ション */
-	case LK_BERSERK:		/* バ?サ?ク */
 	case HP_ASSUMPTIO:		/*  */
 	case WS_CARTBOOST:		/* カ?トブ?スト */
 	case SN_SIGHT:			/* トゥル?サイト */
@@ -3636,7 +3678,6 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 			else
 				/* 付加する */
 				status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
-			//skill_check_cloaking(bl);
 		}
 		break;
 
@@ -3723,7 +3764,8 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		break;
 
 	case RG_STEALCOIN:		// スティ?ルコイン
-		if(sd) {
+		if(sd)
+		{
 			if(pc_steal_coin(*sd,bl)) {
 				int range = skill_get_range(skillid,skilllv);
 				if(range < 0)
@@ -3742,7 +3784,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 			// Level 6-10 doesn't consume a red gem if it fails [celest]
 			int i, gem_flag = 1, fail_flag = 0;
 			if (dstmd && status_get_mode(bl)&0x20) {
-				clif_skill_fail(*sd,sd->skillid,0,0);
+				if(sd) clif_skill_fail(*sd,sd->skillid,0,0);
 				break;
 			}
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
@@ -3836,7 +3878,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 
 	case BS_REPAIRWEAPON:			/* 武器修理 */
 		if(sd) {
-			//動作しないのでとりあえずコメントアウト
+//動作しないのでとりあえずコメントアウト
 			clif_item_repair_list(*sd);
 		}
 		break;
@@ -4252,6 +4294,13 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		}
 		break;
 
+	case NPC_REBIRTH:
+		//printf ("%d %d\n", md && md->bl.prev, md && md->bl.prev && md->state.state == MS_DEAD);
+		if (md && md->state.state == MS_DEAD) {
+			mob_setdelayspawn (md->bl.id);
+		}
+		break;
+
 	case NPC_DARKBLESSING:
 		{
 			int sc_def = 100 - status_get_mdef(bl);
@@ -4389,25 +4438,25 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 	// Equipment breaking monster skills [Celest]
 	case NPC_BREAKWEAPON:
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-		if(dstsd && battle_config.equipment_breaking)
+		if(dstsd && battle_config.equip_skill_break_rate)
 			pc_breakweapon(*dstsd);
 		break;
 
 	case NPC_BREAKARMOR:
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-		if(dstsd && battle_config.equipment_breaking)
+		if(dstsd && battle_config.equip_skill_break_rate)
 			pc_breakarmor(*dstsd);
 		break;
 
 	case NPC_BREAKHELM:
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-		if(dstsd && battle_config.equipment_breaking)
+		if(dstsd && battle_config.equip_skill_break_rate)
 			pc_breakhelm(*dstsd);
 		break;
 
 	case NPC_BREAKSHIELD:
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-		if(dstsd && battle_config.equipment_breaking)
+		if(dstsd && battle_config.equip_skill_break_rate)
 			pc_breakshield(*dstsd);
 		break;
 
@@ -4991,10 +5040,9 @@ int skill_castend_id(int tid,unsigned long tick,int id,int data)
 		return 0;
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != tid )	/* タイマIDの確認 */
 		return 0;
-	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && pc_checkskill(*sd,SA_FREECAST) > 0) {
-		sd->speed = sd->prev_speed;
-		clif_updatestatus(*sd,SP_SPEED);
-	}
+	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(*sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
+		status_calc_speed(*sd, SA_FREECAST, range, 0); 
+
 	if(sd->skillid != SA_CASTCANCEL)
 		sd->skilltimer=-1;
 
@@ -5137,10 +5185,9 @@ int skill_castend_pos( int tid, unsigned long tick, int id,int data )
 		return 0;
 	if(sd->skillid == 0xFFFF || sd->skilllv == 0xFFFF)	// skill has failed after starting casting
 		return 0;
-	if(sd->skilltimer != -1 && pc_checkskill(*sd,SA_FREECAST) > 0) {
-		sd->speed = sd->prev_speed;
-		clif_updatestatus(*sd,SP_SPEED);
-	}
+	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(*sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
+		status_calc_speed(*sd, SA_FREECAST, range, 0); 
+
 	sd->skilltimer=-1;
 	if(pc_isdead(*sd)) {
 		sd->canact_tick = tick;
@@ -5327,12 +5374,12 @@ int skill_castend_pos2(struct block_list *src, int x,int y,unsigned short skilli
 	case PF_FOGWALL:			/* フォグウォ?ル */
 	case HT_TALKIEBOX:			/* ト?キ?ボックス */
 		skill_unitsetting(src,skillid,skilllv,x,y,0);
-			break;
+		break;
 
 	case RG_GRAFFITI:			/* Graffiti [Valaris] */
 		skill_clear_unitgroup(src);
 		skill_unitsetting(src,skillid,skilllv,x,y,0);
-			break;
+		break;
 
 	case RG_CLEANER: // [Valaris]
 		map_foreachinarea(skill_graffitiremover,src->m,x-5,y-5,x+5,y+5,BL_SKILL);
@@ -5569,6 +5616,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 			struct skill_unit_group *group;
 			int i;
 			int maxcount=0;
+			unsigned int tick=gettick();
 			p[0] = &sd->status.save_point;
 			p[1] = &sd->status.memo_point[0];
 			p[2] = &sd->status.memo_point[1];
@@ -5602,6 +5650,14 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 
 			if(!skill_check_condition(sd,3))
 				return 0;
+
+			if(skill_check_unit_range2(sd->bl.m,sd->skillx,sd->skilly,sd->skillid,sd->skilllv,sd->bl.type) > 0) {
+				clif_skill_fail(*sd,0,0,0);
+				sd->canact_tick = tick;
+				sd->canmove_tick = tick;
+				sd->skillitem = sd->skillitemlv = 0xFFFF;
+				return 0;
+			}
 			if((group=skill_unitsetting(&sd->bl,sd->skillid,sd->skilllv,sd->skillx,sd->skilly,0))==NULL)
 				return 0;
 			group->valstr=(char *)aMalloc(24*sizeof(char));
@@ -6186,7 +6242,9 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	case 0xb1:	/* デモンストレ?ション */
 		skill_attack(BF_WEAPON, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
-		if (bl->type == BL_PC && rand()%100 < sg->skill_lv && battle_config.equipment_breaking)
+		if (bl->type == BL_PC &&
+			rand()%100 * battle_config.equip_skill_break_rate/100 < sg->skill_lv )
+
 			pc_breakweapon(*((struct map_session_data *)bl));
 		break;
 
@@ -6507,7 +6565,7 @@ static int skill_check_condition_char_sub (struct block_list &blx, va_list ap)
 	nullpo_retr(0, tsd=(struct map_session_data*)src);
 	nullpo_retr(0, c=va_arg(ap,int *));
 	skillid = va_arg(ap,int);
-
+	
 	s_class = pc_calc_base_job(sd->status.class_);
 	//チェックしない設定ならcにありえない大きな?字を返して終了
 	if (!battle_config.player_skill_partner_check) {	//本?はforeachの前にやりたいけど設定適用箇所をまとめるためにここへ
@@ -6536,24 +6594,24 @@ static int skill_check_condition_char_sub (struct block_list &blx, va_list ap)
 		case BD_SIEGFRIED:				/* 不死身のジ?クフリ?ド */
 		case BD_RAGNAROK:				/* 神?の?昏 */
 		case CG_MOONLIT:				/* 月明りの泉に落ちる花びら */
-		{
-			struct pc_base_job t_class = pc_calc_base_job(tsd->status.class_);
-			int skilllv;
-			if( ((t_class.job == 19 && s_class.job == 20) ||
-				(t_class.job == 20 && s_class.job == 19)) &&
-				(skilllv = pc_checkskill(*sd, skillid)) > 0 &&
-				sd->status.party_id && tsd->status.party_id &&
-				sd->status.party_id == tsd->status.party_id &&
-				!pc_issit(*sd) && !pc_isdead(*sd) &&
-				(*c) == 0 &&
-				sd->skilltimer==-1 &&
-				sd->canmove_tick < tick && // added various missing ensemble checks [Valaris]
-				sd->sc_data[SC_DANCING].timer == -1 )
 			{
-				(*c) = skilllv;
+				struct pc_base_job t_class = pc_calc_base_job(tsd->status.class_);
+				int skilllv;
+				if (((t_class.job == 19 && s_class.job == 20) ||
+						(t_class.job == 20 && s_class.job == 19)) &&
+				(skilllv = pc_checkskill(*sd, skillid)) > 0 &&
+						sd->status.party_id && tsd->status.party_id &&
+						sd->status.party_id == tsd->status.party_id &&
+				!pc_issit(*sd) && !pc_isdead(*sd) &&
+						(*c) == 0 &&
+						sd->skilltimer==-1 &&
+						sd->canmove_tick < tick && // added various missing ensemble checks [Valaris]
+						sd->sc_data[SC_DANCING].timer == -1)
+			{
+					(*c) = skilllv;
 			}
 			break;
-		}
+	}
 	}
 	return 0;
 }
@@ -6611,19 +6669,19 @@ static int skill_check_condition_use_sub(struct block_list &bl,va_list ap)
 	case BD_SIEGFRIED:				/* 不死身のジ?クフリ?ド */
 	case BD_RAGNAROK:				/* 神?の?昏 */
 	case CG_MOONLIT:				/* 月明りの泉に落ちる花びら */
-		if( sd != ssd && //本人以外で
-			((ss_class.job==19 && s_class.job==20) || //自分がバ?ドならダンサ?で
-			(ss_class.job==20 && s_class.job==19)) && //自分がダンサ?ならバ?ドで
+		if(sd != ssd && //本人以外で
+		  ((ss_class.job==19 && s_class.job==20) || //自分がバ?ドならダンサ?で
+		   (ss_class.job==20 && s_class.job==19)) && //自分がダンサ?ならバ?ドで
 			pc_checkskill(*sd,skillid) > 0 && //スキルを持っていて
-			(*c)==0 && //最初の一人で
-			(sd->weapontype1==13 || sd->weapontype1==14) &&
-			(ssd->weapontype1==13 || ssd->weapontype1==14) &&
-			sd->status.party_id && ssd->status.party_id &&
-			sd->status.party_id == ssd->status.party_id && //パ?ティ?が同じで
+		   (*c)==0 && //最初の一人で
+		   (sd->weapontype1==13 || sd->weapontype1==14) &&
+		   (ssd->weapontype1==13 || ssd->weapontype1==14) &&
+		   sd->status.party_id && ssd->status.party_id &&
+		   sd->status.party_id == ssd->status.party_id && //パ?ティ?が同じで
 			!pc_issit(*sd) && !pc_isdead(*sd) && //座ってない
 			sd->sc_data[SC_DANCING].timer==-1 && //ダンス中じゃない
-			sd->skilltimer==-1 &&
-			sd->canmove_tick < tick // added various missing ensemble checks [Valaris]
+		   sd->skilltimer==-1 &&
+		   sd->canmove_tick < tick // added various missing ensemble checks [Valaris]
 			)
 		{
 			ssd->sc_data[SC_DANCING].val4=bl.id;
@@ -7298,7 +7356,7 @@ int skill_use_id(struct map_session_data *sd, unsigned long target_id,unsigned s
 {
 	int casttime = 0, delay = 0, skill, range;
 	struct map_session_data* target_sd=NULL;
-	int forcecast=0;
+	int forcecast = 0;	
 	struct block_list *bl;
 	struct status_change *sc_data;
 	unsigned long tick = gettick();
@@ -7380,7 +7438,7 @@ int skill_use_id(struct map_session_data *sd, unsigned long target_id,unsigned s
 	 	return 0;
 	if(skill_get_inf2(skill_num) & 0x200 && sd->bl.id == target_id)
 		return 0;
-
+	
 	//直前のスキルが何か?える必要のあるスキル
 	switch (skill_num)
 	{
@@ -7430,15 +7488,15 @@ int skill_use_id(struct map_session_data *sd, unsigned long target_id,unsigned s
 	case BD_RAGNAROK:				/* 神?の?昏 */
 	case CG_MOONLIT:				/* 月明りの泉に落ちる花びら */
 		{
-			int range = 1;
-			int c = 0;
-			map_foreachinarea (skill_check_condition_char_sub, sd->bl.m,
+				int range = 1;
+				int c = 0;
+				map_foreachinarea (skill_check_condition_char_sub, sd->bl.m,
 				sd->bl.x-range, sd->bl.y-range,
 				sd->bl.x+range, sd->bl.y+range, BL_PC, &sd->bl, &c, skill_num);
 			if(c < 1)
 			{
 				clif_skill_fail(*sd,skill_num,0,0);
-				return 0;
+					return 0;
 			}
 			else if(c == 99)
 			{	//相方不要設定だった
@@ -7446,11 +7504,11 @@ int skill_use_id(struct map_session_data *sd, unsigned long target_id,unsigned s
 			}
 			else
 			{
-				sd->skilllv = (c + skill_lv)/2;
+					sd->skilllv = (c + skill_lv)/2;
 			}
 		}
-		break;
-	}
+			break;
+		}
 
 	sd->skillid = skill_num;
 	sd->skilllv = skill_lv;
@@ -7660,14 +7718,13 @@ int skill_use_id(struct map_session_data *sd, unsigned long target_id,unsigned s
 	sd->canact_tick = tick + casttime + delay;
 	sd->canmove_tick = tick;
 
-	if (!(battle_config.pc_cloak_check_type & 2) && sc_data && sc_data[SC_CLOAKING].timer != -1 && sd->skillid != AS_CLOAKING)
+/*	if (!(battle_config.pc_cloak_check_type & 2) &&*/ //Why non-type 2 will not be uncloaked by skills? [Skotlex]
+	if (sc_data && sc_data[SC_CLOAKING].timer != -1 && sd->skillid != AS_CLOAKING)
 		status_change_end(&sd->bl,SC_CLOAKING,-1);
 	if (casttime > 0) {
 		sd->skilltimer = add_timer (tick + casttime, skill_castend_id, sd->bl.id, 0);
-		if ((skill = pc_checkskill(*sd,SA_FREECAST)) > 0) {
-			sd->prev_speed = sd->speed;
-			status_calc_speed (*sd);
-		}
+		if ((skill = pc_checkskill(*sd,SA_FREECAST)) > 0)
+			status_calc_speed (*sd, SA_FREECAST, skill, 1);
 		else
 			pc_stop_walking(*sd,0);
 	} else {
@@ -7780,7 +7837,7 @@ int skill_use_pos( struct map_session_data *sd, int skill_x, int skill_y, unsign
 		if ((--sc_data[SC_MEMORIZE].val2)<=0)
 			status_change_end(&sd->bl, SC_MEMORIZE, -1);
 	}
-
+	
 	if( casttime>0 ) {	/* 詠唱が必要 */
 		if(sd->disguise_id)
 		{	// [Valaris]
@@ -7794,14 +7851,14 @@ int skill_use_pos( struct map_session_data *sd, int skill_x, int skill_y, unsign
 	sd->skilltarget	= 0;
 	sd->canact_tick = tick + casttime + delay;
 	sd->canmove_tick = tick;
-	if (!(battle_config.pc_cloak_check_type&2) && sc_data && sc_data[SC_CLOAKING].timer != -1)
+	/*if (!(battle_config.pc_cloak_check_type&2) &&*/
+	if (sc_data && sc_data[SC_CLOAKING].timer != -1)
 		status_change_end(&sd->bl,SC_CLOAKING,-1);
+
 	if (casttime > 0) {
 		sd->skilltimer = add_timer(tick + casttime, skill_castend_pos, sd->bl.id, 0);
-		if ((skill = pc_checkskill(*sd,SA_FREECAST)) > 0) {
-			sd->prev_speed = sd->speed;
-			status_calc_speed (*sd);
-		}
+		if ((skill = pc_checkskill(*sd,SA_FREECAST)) > 0)
+			status_calc_speed (*sd, SA_FREECAST, skill, 1);
 		else
 			pc_stop_walking(*sd,0);
 	} else {
@@ -7843,7 +7900,7 @@ int skill_castcancel (struct block_list *bl, int type)
 				if ((inf = skill_get_inf( sd->skillid )) == 2 || inf == 32)
 					ret = delete_timer( sd->skilltimer, skill_castend_pos );
 				else
-					ret=delete_timer( sd->skilltimer, skill_castend_id );
+					ret = delete_timer( sd->skilltimer, skill_castend_id );
 				if (ret < 0)
 					ShowMessage("delete timer error : skillid : %d\n",sd->skillid);
 			}
@@ -8370,7 +8427,7 @@ int skill_graffitiremover(struct block_list &bl, va_list ap )
 		if((unit.group) && (unit.group->unit_id == 0xb0))
 		{
 			skill_delunit(&unit);
-		}
+	}
 	}
 	return 0;
 }
@@ -8550,7 +8607,8 @@ int skill_check_cloaking(struct block_list *bl)
 
 	if (bl->type == BL_PC) {
 		nullpo_retr(1, sd = (struct map_session_data *)bl);
-		if (!battle_config.pc_cloak_check_type) // If it's No it shouldn't be checked
+		if (!battle_config.pc_cloak_check_type
+			|| battle_config.pc_cloak_check_type == 2) // If it's No it shouldn't be checked
 			return 0;
 	} else if (bl->type == BL_MOB && !battle_config.monster_cloak_check_type)
 		return 0;
@@ -8566,14 +8624,12 @@ int skill_check_cloaking(struct block_list *bl)
 			status_change_end(bl, SC_CLOAKING, -1);
 		}
 		else if (sd && sd->sc_data[SC_CLOAKING].val3 != 130) {
-			sd->sc_data[SC_CLOAKING].val3 = 130;
-			status_calc_speed (*sd);
+			status_calc_speed (*sd, AS_CLOAKING, 130, 1);
 		}
 	}
 	else {
 		if (sd && sd->sc_data[SC_CLOAKING].val3 != 103) {
-			sd->sc_data[SC_CLOAKING].val3 = 103;
-			status_calc_speed (*sd);
+			status_calc_speed (*sd, AS_CLOAKING, 103, 1);
 		}
 	}
 

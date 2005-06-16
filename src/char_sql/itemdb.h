@@ -1,5 +1,6 @@
 #ifndef _ITEMDB_H_
 #define _ITEMDB_H_
+#include "mmo.h"
 
 struct item_data {
 	unsigned short nameid;

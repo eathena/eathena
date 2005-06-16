@@ -79,7 +79,7 @@ bool itemdb_isequip2(struct item_data &data)
 {
 	int type=data.type;
 	return (type!=0 && type!=2 && type!=3 && type!=6 && type!=10);
-}
+	}
 
 
 
@@ -94,7 +94,7 @@ int itemdb_readdb(void)
 	int ln=0;
 	unsigned short nameid;
 	size_t j;
-	char *str[32],*p,*np;
+	char *str[128],*p,*np;
 	struct item_data *id;
 
 	fp=savefopen("db/item_db.txt","r");
@@ -162,20 +162,7 @@ int itemdb_read_sqldb(void) // sql item_db read, shortened version of map-server
 
 			// ----------
 
-			// Insert a new row into the item database
-/*
-			id = aCalloc(sizeof(struct item_data), 1);
-
-			if (id == NULL) {
-				ShowMessage("out of memory : itemdb_read_sqldb\n");
-				exit(1);
-			}
-
-			memset(id, 0, sizeof(struct item_data));
-			numdb_insert(item_db, nameid, id);
-
-			// ----------
-*/
+			// Update/Insert row into the item database
             id=itemdb_search(nameid);
 
 			memcpy(id->name, sql_row[1], 24);
@@ -236,4 +223,3 @@ int do_init_itemdb(void)
 	itemdb_readdb();
 	return 0;
 }
-

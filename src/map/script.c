@@ -34,6 +34,7 @@
 #include "party.h"
 #include "guild.h"
 #include "atcommand.h"
+#include "charcommand.h"
 
 #define SCRIPT_BLOCK_SIZE 256
 
@@ -279,6 +280,8 @@ int buildin_specialeffect(struct script_state &st); // special effect script [Va
 int buildin_specialeffect2(struct script_state &st); // special effect script [Valaris]
 int buildin_nude(struct script_state &st); // nude [Valaris]
 int buildin_gmcommand(struct script_state &st); // [MouseJstr]
+int buildin_atcommand(struct script_state &st); // [MouseJstr]
+int buildin_charcommand(struct script_state &st); // [MouseJstr]
 int buildin_movenpc(struct script_state &st); // [MouseJstr]
 int buildin_message(struct script_state &st); // [MouseJstr]
 int buildin_npctalk(struct script_state &st); // [Valaris]
@@ -535,7 +538,8 @@ struct {
 	{buildin_inittimer,"inittimer",""},
 	{buildin_stoptimer,"stoptimer",""},
 	{buildin_cmdothernpc,"cmdothernpc","ss"},
-	{buildin_gmcommand,"gmcommand","*"}, // [MouseJstr]
+	{buildin_atcommand,"atcommand","*"}, // [MouseJstr]
+	{buildin_charcommand,"charcommand","*"}, // [MouseJstr]
 	{buildin_movenpc,"movenpc","siis"}, // [MouseJstr]
 	{buildin_message,"message","s*"}, // [MouseJstr]
 	{buildin_npctalk,"npctalk","*"}, // [Valaris]
@@ -647,6 +651,7 @@ static int add_str(const char *p)
 	strcpytolower(lowcase, p);
 	i=search_str(lowcase);
 		aFree(lowcase);
+
 	if(i >= 0)
 		return i;
 
@@ -676,14 +681,14 @@ static int add_str(const char *p)
 		memset(str_buf + (str_size - 256), 0, 256*sizeof(char));
 	}
 
-	memcpy(str_buf+str_pos,(char*)p,strlen((char*)p)+1);
+	memcpy(str_buf+str_pos,p,strlen(p)+1);
 	str_data[str_num].type=C_NOP;
 	str_data[str_num].str=str_pos;
 	str_data[str_num].next=0;
 	str_data[str_num].func=NULL;
 	str_data[str_num].backpatch=-1;
 	str_data[str_num].label=-1;
-	str_pos+=(int)strlen( (char *) p)+1;
+	str_pos += (int)strlen(p)+1;
 	return str_num++;
 }
 
@@ -836,15 +841,15 @@ static char *skip_word(const char *str)
 	if(*p=='#') p++;	// ワールドaccount変数用
 	if(*p=='l') p++;	// 一時的変数用(like weiss)
 
-		// this is for skipping multibyte characters
-		// I do not modify here but just set the string pointer back to unsigned
-	while(isalnum(*p)||*p=='_'|| *p>=0x81)
-		{
-			if(*p>=0x81 && p[1])
+	// this is for skipping multibyte characters
+	// I do not modify here but just set the string pointer back to unsigned
+	while(isalnum((int)((unsigned char)*p))||*p=='_'|| *p>=0x81)
+	{
+		if(*p>=0x81 && p[1])
 			p+=2;
-			else
+		else
 			p++;
-		}
+	}
 
 	// postfix
 	if(*p=='$') p++;	// 文字列変数
@@ -913,7 +918,7 @@ char* parse_simpleexpr(char *p)
 			disp_error_message("unmatch ')'",p);
 			exit(1);
 		}
-	} else if(isdigit(*p) || ((*p=='-' || *p=='+') && isdigit(p[1]))){
+	} else if(isdigit((int)((unsigned char)*p)) || ((*p=='-' || *p=='+') && eapp::isdigit((int)((unsigned char)p[1])))){
 		char *np;
 		int i=strtoul(p,&np,0);
 		add_scripti(i);
@@ -1363,9 +1368,8 @@ enum {STOP=1,END,RERUNLINE,GOTO,RETFUNC};
 struct map_session_data *script_rid2sd(struct script_state &st)
 {
 	struct map_session_data *sd=map_id2sd(st.rid);
-	if(!sd){
+	if(!sd)
 		ShowError("script_rid2sd: fatal error ! player not attached!\n");
-	}
 	return sd;
 }
 
@@ -1376,56 +1380,70 @@ struct map_session_data *script_rid2sd(struct script_state &st)
  */
 int get_val(struct script_state &st, struct script_data &data)
 {
-	struct map_session_data *sd=NULL;
 	if(data.type==C_NAME)
 	{
 		char *name=str_buf+str_data[data.u.num&0x00ffffff].str;
 		char prefix=*name;
 		char postfix=name[strlen(name)-1];
 
-		if(prefix!='$'){
-			if((sd=script_rid2sd(st))==NULL)
-				ShowError("get_val error name?:%s\n",name);
-		}
 		if(postfix=='$'){
 
 			data.type=C_CONSTSTR;
-			if( prefix=='@'/* || prefix=='l' */){
-				if(sd)
-				data.u.str = pc_readregstr(*sd,data.u.num);
-			}else if(prefix=='$'){
+			if( prefix=='@'/* || prefix=='l' */)
+			{
+				struct map_session_data *sd=script_rid2sd(st);
+				if(sd!=NULL)
+					data.u.str = pc_readregstr(*sd,data.u.num);
+			}
+			else if(prefix=='$')
+			{
 				data.u.str = (char *)numdb_search(mapregstr_db,data.u.num);
-			}else{
+				}
+			else
+			{
 				ShowError("script: get_val: illegal scope string variable.\n");
 				data.u.str = "!!ERROR!!";
 			}
 			if( data.u.str == NULL )
-				data.u.str ="";
-
-		}else{
-
+				data.u.str = "";
+		}
+		else
+		{
 			data.type=C_INT;
-			if(str_data[data.u.num&0x00ffffff].type==C_INT){
+			data.u.num = 0;
+			if(str_data[data.u.num&0x00ffffff].type==C_INT)
+			{
 				data.u.num = str_data[data.u.num&0x00ffffff].val;
-			}else if(str_data[data.u.num&0x00ffffff].type==C_PARAM){
-				if(sd)
-				data.u.num = pc_readparam(*sd,str_data[data.u.num&0x00ffffff].val);
-			}else if(prefix=='@'/* || prefix=='l'*/){	//How long has it been since using l for locals been obsoleted? [Skotlex]
-				if(sd)
-				data.u.num = pc_readreg(*sd,data.u.num);
-			}else if(prefix=='$'){
+	}
+			else if(str_data[data.u.num&0x00ffffff].type==C_PARAM)
+			{
+				struct map_session_data *sd=script_rid2sd(st);
+				if(sd!=NULL)
+					data.u.num = pc_readparam(*sd,str_data[data.u.num&0x00ffffff].val);
+			}else if(prefix=='@'/* || prefix=='l'*/)
+			{	struct map_session_data *sd=script_rid2sd(st);
+				if(sd!=NULL)
+					data.u.num = pc_readreg(*sd,data.u.num);
+			}else if(prefix=='$')
+			{
 				data.u.num = (int)numdb_search(mapreg_db,data.u.num);
-			}else if(prefix=='#'){
-				if( name[1]=='#'){
-					if(sd)
-					data.u.num = pc_readaccountreg2(*sd,name);
-				}else{
-					if(sd)
-					data.u.num = pc_readaccountreg(*sd,name);
+			}
+			else if(prefix=='#')
+			{
+				struct map_session_data *sd=script_rid2sd(st);
+				if(sd!=NULL)
+				{
+					if( name[1]=='#')
+						data.u.num = pc_readaccountreg2(*sd,name);
+					else
+						data.u.num = pc_readaccountreg(*sd,name);
 				}
-			}else{
-				if(sd)
-				data.u.num = pc_readglobalreg(*sd,name);
+			}
+			else
+			{
+				struct map_session_data *sd=script_rid2sd(st);
+				if(sd!=NULL)
+					data.u.num = pc_readglobalreg(*sd,name);
 			}
 		}
 	}
@@ -1451,24 +1469,57 @@ void* get_val2(struct script_state &st,int num)
  * 変数設定用
  *------------------------------------------
  */
-static int set_reg(struct map_session_data *sd,int num,const char *name, void *v)
+
+int set_var(const char *name, void *v)
 {
 	if(name)
 	{
+		int num = add_str(name);
+		char prefix =name[0];
+	char postfix=name[strlen(name)-1];
+		if(prefix=='$')
+		{
+			if( postfix=='$' )
+			{
+				mapreg_setregstr(num,(char*)v);
+			}
+			else
+			{
+				mapreg_setreg(num,(int)v);
+			}
+		}
+		else
+		{
+			ShowError("script: set_var: illegal scope string variable !");
+		}
+	}
+    return 0;
+}
+
+
+int set_reg(struct script_state &st,int num,const char *name, void *v)
+{
+	if(name)
+	{
+		struct map_session_data *sd = NULL;
 		char prefix =name[0];
 		char postfix=name[strlen(name)-1];
 
 		if( postfix=='$' )
 		{	// string variable
-			char *str=(char*)v;
+		char *str=(char*)v;
 			if( prefix=='@' || prefix=='l')
 			{
-				if(sd) pc_setregstr(*sd,num,str);
+				sd = script_rid2sd(st);
+				if(sd==NULL)
+					ShowError("set_reg error name?:%s\n",name);
+				else
+					pc_setregstr(*sd,num,str);
 			}
 			else if(prefix=='$')
 			{
-				mapreg_setregstr(num,str);
-			}
+			mapreg_setregstr(num,str);
+		}
 			else
 			{
 				ShowError("script: set_reg: illegal scope string variable !");
@@ -1476,42 +1527,49 @@ static int set_reg(struct map_session_data *sd,int num,const char *name, void *v
 		}
 		else 
 		{	// 数値
-			int val = (int)v;
+		int val = (int)v;
 			if(str_data[num&0x00ffffff].type==C_PARAM)
 			{
 				if(sd) pc_setparam(*sd,str_data[num&0x00ffffff].val,val);
 			}
 			else if(prefix=='@' || prefix=='l')
 			{
-				if(sd) pc_setreg(*sd,num,val);
+				sd=script_rid2sd(st);
+				if(sd==NULL)
+					ShowError("set_reg error name?:%s\n",name);
+				else
+					pc_setreg(*sd,num,val);
 			}
 			else if(prefix=='$')
 			{
-				mapreg_setreg(num,val);
+			mapreg_setreg(num,val);
 			}
 			else if(prefix=='#')
 			{
-				if(sd)
+				sd=script_rid2sd(st);
+				if(sd==NULL)
+					ShowError("set_reg error name?:%s\n",name);
+				else
 				{
-					if( name[1]=='#' )
+			if( name[1]=='#' )
 						pc_setaccountreg2(*sd,name,val);
-					else
+			else
 						pc_setaccountreg(*sd,name,val);
-				}
-			}
+		}
+	}
 			else
 			{
-				if(sd) pc_setglobalreg(*sd,name,val);
+				sd=script_rid2sd(st);
+				if(sd==NULL)
+					ShowError("set_reg error name?:%s\n",name);
+				else
+					pc_setglobalreg(*sd,name,val);
 			}
 		}
 	}
 	return 0;
 }
 
-int set_var(struct map_session_data &sd, const char *name, void *val)
-{
-    return set_reg(&sd, add_str(name), name, val);
-}
 
 /*==========================================
  * 文字列への変換
@@ -1791,11 +1849,13 @@ int buildin_menu(struct script_state &st)
 {
 	char *buf;
 	size_t len,i;
-	struct map_session_data *sd;
+	struct map_session_data *sd=script_rid2sd(st);
 
-	sd=script_rid2sd(st);
+	if(!sd)
+		return 0;
 
-	if(sd->state.menu_or_input==0){
+	if(sd->state.menu_or_input==0)
+	{
 		st.state=RERUNLINE;
 		sd->state.menu_or_input=1;
 		for(i=st.start+2,len=16;i<st.end;i+=2){
@@ -1808,13 +1868,16 @@ int buildin_menu(struct script_state &st)
 			strcat(buf,st.stack.stack_data[i].u.str);
 			strcat(buf,":");
 		}
-		map_session_data *sd = script_rid2sd(st);
 		if(sd) clif_scriptmenu(*sd,st.oid,buf);
 		aFree(buf);
-	} else if(sd->npc_menu==0xff){	// cansel
+	}
+	else if(sd->npc_menu==0xff)
+	{	// cansel
 		sd->state.menu_or_input=0;
 		st.state=END;
-	} else {	// goto動作
+	}
+	else
+	{	// goto動作
 		// ragemu互換のため
 		pc_setreg(*sd,add_str("l15"),sd->npc_menu);
 		pc_setreg(*sd,add_str("@menu"),sd->npc_menu);
@@ -1876,7 +1939,7 @@ int buildin_warp(struct script_state &st)
 	x=conv_num(st, (st.stack.stack_data[st.start+3]));
 	y=conv_num(st, (st.stack.stack_data[st.start+4]));
 
-	if(str==NULL)
+	if(sd==NULL || str==NULL)
 		return 0;
 
 	if(strcmp(str,"Random")==0)
@@ -2005,41 +2068,39 @@ int buildin_jobchange(struct script_state &st)
  */
 int buildin_input(struct script_state &st)
 {
-	struct map_session_data *sd=NULL;
 	int num=(st.end>st.start+2)?st.stack.stack_data[st.start+2].u.num:0;
 	char *name=(st.end>st.start+2)?str_buf+str_data[num&0x00ffffff].str:(char*)"";
 //	char prefix=*name;
 	char postfix=name[strlen(name)-1];
-
-	sd=script_rid2sd(st);
+	struct map_session_data *sd=script_rid2sd(st);
 	if(sd)
 	{
 		if(sd->state.menu_or_input)
 		{
-			sd->state.menu_or_input=0;
+		sd->state.menu_or_input=0;
 			if( postfix=='$' )
 			{
-				// 文字列
-					if(st.end>st.start+2){ // 引数1個
-						set_reg(sd,num,name,(void*)sd->npc_str);
-				}else{
-						ShowError("buildin_input: string discarded !!\n");
-				}
+			// 文字列
+				if(st.end>st.start+2){ // 引数1個
+					set_reg(st,num,name,(void*)sd->npc_str);
 			}else{
-				// 数値
-					if(st.end>st.start+2){ // 引数1個
-						set_reg(sd,num,name,(void*)sd->npc_amount);
-				} else {
-					// ragemu互換のため
-						pc_setreg(*sd,add_str( "l14"),sd->npc_amount);
-				}
+					ShowError("buildin_input: string discarded !!\n");
 			}
-		} else {
-				st.state=RERUNLINE;
-				if(postfix=='$')clif_scriptinputstr(*sd,st.oid);
-				else			clif_scriptinput(*sd,st.oid);
-			sd->state.menu_or_input=1;
+		}else{
+			// 数値
+				if(st.end>st.start+2){ // 引数1個
+					set_reg(st,num,name,(void*)sd->npc_amount);
+			} else {
+				// ragemu互換のため
+					pc_setreg(*sd,add_str( "l14"),sd->npc_amount);
+			}
 		}
+	} else {
+			st.state=RERUNLINE;
+			if(postfix=='$')clif_scriptinputstr(*sd,st.oid);
+			else			clif_scriptinput(*sd,st.oid);
+		sd->state.menu_or_input=1;
+	}
 	}
 	return 0;
 }
@@ -2076,10 +2137,8 @@ int buildin_if(struct script_state &st)
  */
 int buildin_set(struct script_state &st)
 {
-	struct map_session_data *sd=NULL;
 	int num=st.stack.stack_data[st.start+2].u.num;
 	char *name=str_buf+str_data[num&0x00ffffff].str;
-	char prefix=*name;
 	char postfix=name[strlen(name)-1];
 
 	if( st.stack.stack_data[st.start+2].type!=C_NAME ){
@@ -2087,17 +2146,14 @@ int buildin_set(struct script_state &st)
 		return 0;
 	}
 
-	if( prefix!='$' )
-		sd=script_rid2sd(st);
-
 	if( postfix=='$' ){
 		// 文字列
 		const char *str = conv_str(st,(st.stack.stack_data[st.start+3]));
-		set_reg(sd,num,name,(void*)str);
+		set_reg(st,num,name,(void*)str);
 	}else{
 		// 数値
 		int val = conv_num(st, (st.stack.stack_data[st.start+3]));
-		set_reg(sd,num,name,(void*)val);
+		set_reg(st,num,name,(void*)val);
 	}
 
 	return 0;
@@ -2108,7 +2164,6 @@ int buildin_set(struct script_state &st)
  */
 int buildin_setarray(struct script_state &st)
 {
-	struct map_session_data *sd=NULL;
 	int num=st.stack.stack_data[st.start+2].u.num;
 	char *name=str_buf+str_data[num&0x00ffffff].str;
 	char prefix=*name;
@@ -2119,8 +2174,6 @@ int buildin_setarray(struct script_state &st)
 		ShowMessage("buildin_setarray: illegal scope !\n");
 		return 0;
 	}
-	if( prefix!='$' )
-		sd=script_rid2sd(st);
 
 	for(j=0,i=st.start+3; i<st.end && j<128;i++,j++){
 		void *v;
@@ -2128,7 +2181,7 @@ int buildin_setarray(struct script_state &st)
 			v=(void*)conv_str(st,(st.stack.stack_data[i]));
 		else
 			v=(void*)conv_num(st, (st.stack.stack_data[i]));
-		set_reg(sd, num+(j<<24), name, v);
+		set_reg(st, num+(j<<24), name, v);
 	}
 	return 0;
 }
@@ -2138,7 +2191,6 @@ int buildin_setarray(struct script_state &st)
  */
 int buildin_cleararray(struct script_state &st)
 {
-	struct map_session_data *sd=NULL;
 	int num=st.stack.stack_data[st.start+2].u.num;
 	char *name=str_buf+str_data[num&0x00ffffff].str;
 	char prefix=*name;
@@ -2151,8 +2203,6 @@ int buildin_cleararray(struct script_state &st)
 		ShowMessage("buildin_cleararray: illegal scope !\n");
 		return 0;
 	}
-	if( prefix!='$' )
-		sd=script_rid2sd(st);
 
 	if( postfix=='$' )
 		v=(void*)conv_str(st,(st.stack.stack_data[st.start+3]));
@@ -2160,7 +2210,7 @@ int buildin_cleararray(struct script_state &st)
 		v=(void*)conv_num(st, (st.stack.stack_data[st.start+3]));
 
 	for(i=0;i<sz;i++)
-		set_reg(sd,num+(i<<24),name,v);
+		set_reg(st,num+(i<<24),name,v);
 	return 0;
 }
 /*==========================================
@@ -2169,7 +2219,6 @@ int buildin_cleararray(struct script_state &st)
  */
 int buildin_copyarray(struct script_state &st)
 {
-	struct map_session_data *sd=NULL;
 	int num=st.stack.stack_data[st.start+2].u.num;
 	char *name=str_buf+str_data[num&0x00ffffff].str;
 	char prefix=*name;
@@ -2189,12 +2238,9 @@ int buildin_copyarray(struct script_state &st)
 		ShowMessage("buildin_copyarray: type mismatch !\n");
 		return 0;
 	}
-	if( prefix!='$' || prefix2!='$' )
-		sd=script_rid2sd(st);
-
 
 	for(i=0;i<sz;i++)
-		set_reg(sd,num+(i<<24),name, get_val2(st,num2+(i<<24)) );
+		set_reg(st,num+(i<<24),name, get_val2(st,num2+(i<<24)) );
 	return 0;
 }
 /*==========================================
@@ -2232,7 +2278,6 @@ int buildin_getarraysize(struct script_state &st)
  */
 int buildin_deletearray(struct script_state &st)
 {
-	struct map_session_data *sd=NULL;
 	int num=st.stack.stack_data[st.start+2].u.num;
 	char *name=str_buf+str_data[num&0x00ffffff].str;
 	char prefix=*name;
@@ -2248,15 +2293,13 @@ int buildin_deletearray(struct script_state &st)
 		ShowMessage("buildin_deletearray: illegal scope !\n");
 		return 0;
 	}
-	if( prefix!='$' )
-		sd=script_rid2sd(st);
 
 	for(i=0;i<sz;i++){
-		set_reg(sd,num+(i<<24),name, get_val2(st,num+((i+count)<<24) ) );
+		set_reg(st,num+(i<<24),name, get_val2(st,num+((i+count)<<24) ) );
 	}
 	for(;i<(128-(num>>24));i++){
-		if( postfix!='$' ) set_reg(sd,num+(i<<24),name, 0);
-		if( postfix=='$' ) set_reg(sd,num+(i<<24),name, (void *) "");
+		if( postfix!='$' ) set_reg(st,num+(i<<24),name, 0);
+		if( postfix=='$' ) set_reg(st,num+(i<<24),name, (void *) "");
 	}
 	return 0;
 }
@@ -2360,31 +2403,34 @@ int buildin_countitem(struct script_state &st)
 {
 	unsigned short nameid=0;
 	size_t count=0,i;
-	struct map_session_data *sd;
-
-	sd = script_rid2sd(st);
+	struct map_session_data *sd = script_rid2sd(st);
+	if(sd)
+	{
 	struct script_data *data;
+		data=&(st.stack.stack_data[st.start+2]);
 
-	data=&(st.stack.stack_data[st.start+2]);
-
-
-	get_val(st,*data);
-	if( data->type==C_STR || data->type==C_CONSTSTR ){
-		const char *name=conv_str(st,*data);
+		get_val(st,*data);
+		if( data->type==C_STR || data->type==C_CONSTSTR )
+		{
+			const char *name=conv_str(st,*data);
 		struct item_data *item_data;
 		if( (item_data = itemdb_searchname(name)) != NULL)
 			nameid=item_data->nameid;
-	}else
-		nameid=conv_num(st,*data);
+		}
+		else
+			nameid=conv_num(st,*data);
 
 	if (nameid>=500) //if no such ID then skip this iteration
-		for(i=0;i<MAX_INVENTORY;i++){
+			for(i=0;i<MAX_INVENTORY;i++)
+			{
 			if(sd->status.inventory[i].nameid==nameid)
 				count+=sd->status.inventory[i].amount;
 		}
-	else{
+		else
+		{
 		if(battle_config.error_log)
-			ShowMessage("wrong item ID : countitem(%i)\n",nameid);
+				ShowMessage("wrong item ID : countitem(%i)\n",nameid);
+	}
 	}
 	push_val(st.stack,C_INT,count);
 
@@ -2397,34 +2443,34 @@ int buildin_countitem(struct script_state &st)
  */
 int buildin_checkweight(struct script_state &st)
 {
+	int val = 0;
 	unsigned short nameid=0,amount;
 	struct script_data &data=(st.stack.stack_data[st.start+2]);
 	struct map_session_data *sd = script_rid2sd(st);
 
+	if(sd)
+	{
 	get_val(st,data);
-	if( data.type==C_STR || data.type==C_CONSTSTR ){
+		if( data.type==C_STR || data.type==C_CONSTSTR )
+		{
 		const char *name=conv_str(st,data);
 		struct item_data *item_data = itemdb_searchname(name);
 		if( item_data )
 			nameid=item_data->nameid;
-	}else
+		}
+		else
 		nameid=conv_num(st,data);
 
-	amount=conv_num(st, (st.stack.stack_data[st.start+3]));
-	if( amount>MAX_AMOUNT || nameid<500 || nameid>MAX_ITEMS)
-	{	//if get wrong item ID or amount<=0, don't count weight of non existing items
-		push_val(st.stack,C_INT,0);
-	}
-	else
-	{
-	sd=script_rid2sd(st);
-	if(itemdb_weight(nameid)*amount + sd->weight > sd->max_weight){
-		push_val(st.stack,C_INT,0);
-	} else {
-		push_val(st.stack,C_INT,1);
+		amount=conv_num(st, (st.stack.stack_data[st.start+3]));
+		if( amount<MAX_AMOUNT && nameid>=500 && nameid<MAX_ITEMS)
+		{
+			if( itemdb_weight(nameid)*amount + sd->weight <= sd->max_weight )
+			{
+				val = 1;
 	}
 	}
-
+	}
+	push_val(st.stack,C_INT,val);
 	return 0;
 }
 
@@ -2438,10 +2484,8 @@ int buildin_getitem(struct script_state &st)
 	short nameid,nameidsrc,amount;
 	int flag = 0;
 	struct item item_tmp;
-	struct map_session_data *sd;
 	struct script_data *data;
-
-	sd = script_rid2sd(st);
+	struct map_session_data *sd = script_rid2sd(st);
 
 	data=&(st.stack.stack_data[st.start+2]);
 	get_val(st,*data);
@@ -2502,10 +2546,8 @@ int buildin_getitem2(struct script_state &st)
 	int iden,ref,attr,c1,c2,c3,c4;
 	struct item_data *item_data;
 	struct item item_tmp;
-	struct map_session_data *sd;
 	struct script_data *data;
-
-	sd = script_rid2sd(st);
+	struct map_session_data *sd = script_rid2sd(st);
 
 	data=&(st.stack.stack_data[st.start+2]);
 	get_val(st,*data);
@@ -2584,6 +2626,7 @@ int buildin_getnameditem(struct script_state &st)
 	struct item item_tmp;
 	struct map_session_data *sd, *tsd;
 	struct script_data &data = st.stack.stack_data[st.start+2];
+
 
 	sd = script_rid2sd(st);
 	if (sd == NULL)
@@ -2857,7 +2900,7 @@ char *buildin_getpartyname_sub(unsigned long party_id)
 	if(p!=NULL){
 		char *buf;
 		buf=(char *)aMalloc(24*sizeof(char));
-		memcpy(buf, p->name, NAME_LENGTH-1);
+		memcpy(buf, p->name, 24);
 		return buf;
 	}
 
@@ -2914,7 +2957,7 @@ char *buildin_getguildname_sub(int guild_id)
 	if(g!=NULL){
 		char *buf;
 		buf=(char *)aMalloc(24*sizeof(char));
-		memcpy(buf, g->name, NAME_LENGTH-1);
+		memcpy(buf, g->name, 24);
 		return buf;
 	}
 	return 0;
@@ -6006,7 +6049,7 @@ int buildin_getitemname(struct script_state &st)
 {
 	int item_id=conv_num(st, (st.stack.stack_data[st.start+2]));
 	struct item_data *i_data = itemdb_exists(item_id);
-	
+
 	if(i_data)
 	{
 		char *item_name;
@@ -6490,9 +6533,9 @@ int buildin_nude(struct script_state &st)
  * gmcommand [MouseJstr]
  *
  * suggested on the forums...
+ * splitted into atcommand & charcommand by [Skotlex]
  *------------------------------------------
  */
-
 int buildin_gmcommand(struct script_state &st)
 {
 	struct map_session_data *sd;
@@ -6505,6 +6548,34 @@ int buildin_gmcommand(struct script_state &st)
 	is_atcommand(sd->fd, *sd, cmd, 99);
 	return 0;
 }
+
+int buildin_atcommand(struct script_state &st)
+{
+	struct map_session_data *sd;
+	const char *cmd;
+
+	sd = script_rid2sd(st);
+	if (!sd)
+		return 0;
+	cmd = conv_str(st, (st.stack.stack_data[st.start+2]));
+	is_atcommand(sd->fd, *sd, cmd, 99);
+	return 0;
+}
+
+int buildin_charcommand(struct script_state &st)
+{
+	struct map_session_data *sd;
+	const char *cmd;
+
+	sd = script_rid2sd(st);
+	if (!sd)
+		return 0;
+	cmd = conv_str(st, (st.stack.stack_data[st.start+2]));
+	is_charcommand(sd->fd, *sd, cmd, 99);
+
+	return 0;
+}
+
 
 /*==========================================
  * Displays a message for the player only (like system messages like "you got an apple" )
@@ -7054,17 +7125,17 @@ int buildin_getmapxy(struct script_state &st)
      //Set MapName$
 		num=st.stack.stack_data[st.start+2].u.num;
         name=(char *)(str_buf+str_data[num&0x00ffffff].str);
-		set_reg(sd,num,name,mapname);
+		set_reg(st,num,name,mapname);
 
      //Set MapX
 		num=st.stack.stack_data[st.start+3].u.num;
         name=(char *)(str_buf+str_data[num&0x00ffffff].str);
-		set_reg(sd,num,name,(void*)x);
+		set_reg(st,num,name,(void*)x);
 
      //Set MapY
 		num=st.stack.stack_data[st.start+4].u.num;
         name=(char *)(str_buf+str_data[num&0x00ffffff].str);
-		set_reg(sd,num,name,(void*)y);
+		set_reg(st,num,name,(void*)y);
 
      //Return Success value
 		push_val(st.stack,C_INT,0);
@@ -7581,7 +7652,7 @@ int buildin_charisalpha(struct script_state &st)
 	const char *str=conv_str(st, (st.stack.stack_data[st.start+2]));
 	size_t pos =conv_num(st, (st.stack.stack_data[st.start+3]));
 
-	int val = ( str && pos>0 && pos<strlen(str) ) ? isalpha( str[pos] ) : 0;
+	int val = ( str && pos>0 && pos<strlen(str) ) ? isalpha( (int)((unsigned char)str[pos]) ) : 0;
 	push_val(st.stack,C_INT, val);
 	return 0;
 }

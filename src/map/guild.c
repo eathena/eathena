@@ -116,11 +116,11 @@ static int guild_read_castledb(void)
 		{
 			gc=(struct guild_castle *)aCalloc(1,sizeof(struct guild_castle));
 			// would be not necessary, calloc has cleared the memory already
-			gc->guild_id=0; // <Agit> Clear Data for Initialize
-			gc->economy=0; gc->defense=0; gc->triggerE=0; gc->triggerD=0; gc->nextTime=0; gc->payTime=0;
-			gc->createTime=0; gc->visibleC=0; gc->visibleG0=0; gc->visibleG1=0; gc->visibleG2=0;
-			gc->visibleG3=0; gc->visibleG4=0; gc->visibleG5=0; gc->visibleG6=0; gc->visibleG7=0;
-			gc->Ghp0=0; gc->Ghp1=0; gc->Ghp2=0; gc->Ghp3=0; gc->Ghp4=0; gc->Ghp5=0; gc->Ghp6=0; gc->Ghp7=0; // guardian HP [Valaris]
+		gc->guild_id=0; // <Agit> Clear Data for Initialize
+		gc->economy=0; gc->defense=0; gc->triggerE=0; gc->triggerD=0; gc->nextTime=0; gc->payTime=0;
+		gc->createTime=0; gc->visibleC=0; gc->visibleG0=0; gc->visibleG1=0; gc->visibleG2=0;
+		gc->visibleG3=0; gc->visibleG4=0; gc->visibleG5=0; gc->visibleG6=0; gc->visibleG7=0;
+		gc->Ghp0=0; gc->Ghp1=0; gc->Ghp2=0; gc->Ghp3=0; gc->Ghp4=0; gc->Ghp5=0; gc->Ghp6=0; gc->Ghp7=0; // guardian HP [Valaris]
 
 			if(str[0]) gc->castle_id=atoi(str[0]);
 			if(str[1]) memcpy(gc->map_name,str[1],24); 
@@ -1653,8 +1653,8 @@ unsigned int guild_checkcastles(struct guild &g)
 	{
 		gc=guild_castle_search(i);
 		if(gc && gc->guild_id == g.guild_id)
-			nb_cas=nb_cas+1;	
-	} //end for
+			nb_cas=nb_cas+1;
+		} //end for
 	return nb_cas;
 }
 
@@ -1679,7 +1679,7 @@ bool guild_isallied(struct guild &g, struct guild_castle &gc)
 			else
 				return false;
 		}
-	}
+}
 	return false;
 }
 

@@ -14,16 +14,16 @@ struct item_data
 	char cardillustname[64];
 	long value_buy;
 	long value_sell;
-	unsigned char type;
-	unsigned char gm_lv_trade_override;
-
-	unsigned short class_;
-	unsigned short equip;
 
 	unsigned long weight;
 	unsigned long atk;
 	unsigned long def;
 
+	unsigned char type;
+	unsigned char gm_lv_trade_override;
+
+	unsigned short class_;
+	unsigned short equip;
 	unsigned short range;
 	unsigned short look;
 	unsigned short elv;
@@ -88,7 +88,8 @@ int itemdb_searchrandomgroup(unsigned short groupid);
 bool itemdb_isdropable(unsigned short nameid, unsigned char gmlv);
 bool itemdb_cantrade(unsigned short nameid, unsigned char gmlv);
 bool itemdb_cansell(unsigned short nameid, unsigned char gmlv);
-bool itemdb_canstore(unsigned short nameid, unsigned char gmlv, int guild_flag);
+bool itemdb_canstore(unsigned short nameid, unsigned char gmlv);
+bool itemdb_canguildstore(unsigned short nameid, unsigned char gmlv);
 bool itemdb_cancartstore(unsigned short nameid, unsigned char gmlv);
 bool itemdb_canpartnertrade(unsigned short nameid, unsigned char gmlv);
 

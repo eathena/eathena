@@ -185,7 +185,7 @@ void trade_tradeadditem(struct map_session_data &sd, unsigned short index, unsig
 		if(index < 2 || index >= MAX_INVENTORY + 2)
 		{	// not inventory
 			if (index == 0)
-			{
+			{	// adding zeny
 				if(amount > 0 && amount <= MAX_ZENY && amount <= sd.status.zeny &&
 				    (target_sd->status.zeny + amount) <= MAX_ZENY)
 				{	// fix positiv overflow
@@ -200,12 +200,13 @@ void trade_tradeadditem(struct map_session_data &sd, unsigned short index, unsig
 		}
 		else if (amount > 0 && amount <= sd.status.inventory[index-2].amount)
 		{
+
+			level = max( pc_isGM(sd), pc_isGM(*target_sd));
 			for(trade_i = 0; trade_i < MAX_TRADING; trade_i++)
 			{
 				if (sd.deal_item_amount[trade_i] == 0)
 				{
 					trade_weight += sd.inventory_data[index-2]->weight * amount;
-					level = pc_isGM(sd);
 					if( !itemdb_isdropable(sd.inventory_data[index-2]->nameid,level) && pc_get_partner(sd) != target_sd )
 					{
 						clif_displaymessage (sd.fd, msg_txt(260));

@@ -1566,28 +1566,27 @@ int pet_lootitem_drop(struct pet_data &pd,struct map_session_data *sd)
 	{
 		for(i=0;i<pd.loot->count;i++)
 		{
-				struct delay_item_drop2 *ditem;
-
-				ditem=(struct delay_item_drop2 *)aCalloc(1,sizeof(struct delay_item_drop2));
+			struct delay_item_drop2 *ditem;
+			ditem=(struct delay_item_drop2 *)aCalloc(1,sizeof(struct delay_item_drop2));
 			memcpy(&ditem->item_data,&pd.loot->item[i],sizeof(struct item));
 			ditem->m = pd.bl.m;
 			ditem->x = pd.bl.x;
 			ditem->y = pd.bl.y;
-				ditem->first_sd = 0;
-				ditem->second_sd = 0;
-				ditem->third_sd = 0;
-				// —Ž‚Æ‚³‚È‚¢‚Å’¼ÚPC‚ÌItem—“‚Ö
-				if(sd){
+			ditem->first_sd = NULL;
+			ditem->second_sd = NULL;
+			ditem->third_sd = NULL;
+			// —Ž‚Æ‚³‚È‚¢‚Å’¼ÚPC‚ÌItem—“‚Ö
+			if(sd){
 				if((flag = pc_additem(*sd,ditem->item_data,ditem->item_data.amount))){
 					clif_additem(*sd,0,0,flag);
 					map_addflooritem(ditem->item_data,ditem->item_data.amount,ditem->m,ditem->x,ditem->y,ditem->first_sd,ditem->second_sd,ditem->third_sd,0);
-					}
-					aFree(ditem);
 				}
-				else
-					add_timer(gettick()+540+i,pet_delay_item_drop2,(int)ditem,0);
+				aFree(ditem);
 			}
-			//The smart thing to do is use pd->loot->max (thanks for pointing it out, Shinomori)
+			else
+				add_timer(gettick()+540+i,pet_delay_item_drop2,(int)ditem,0);
+		}
+		//The smart thing to do is use pd->loot->max (thanks for pointing it out, Shinomori)
 		memset(pd.loot->item,0,pd.loot->max * sizeof(struct item));
 		pd.loot->count = 0;
 		pd.loot->weight = 0;

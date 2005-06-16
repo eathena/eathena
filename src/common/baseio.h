@@ -47,7 +47,7 @@ public:
 
 			// skip leading spaces
 			ip = line;
-			while( isspace(*ip) ) ip++; 
+			while( isspace((int)((unsigned char)*ip) ) ) ip++; 
 
 			// skipping comment lines
 			if( ip[0] == '/' && ip[1] == '/')

@@ -28,7 +28,6 @@
 #define INF2_QUEST_SKILL 1
 //NPC skills are those that players can't have in their skill tree.
 #define INF2_NPC_SKILL 2
-//4, 8 are unused... 
 #define INF2_GUILD_SKILL 16
 #define INF2_SONG_DANCE 32
 #define INF2_ENSEMBLE_SKILL 64

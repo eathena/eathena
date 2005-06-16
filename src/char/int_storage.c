@@ -58,7 +58,7 @@ int storage_fromstr(char *str,struct pc_storage *p)
 	if(set!=2)
 		return 1;
 	if(str[next]=='\n' || str[next]=='\r')
-		return 0;	
+		return 0;
 	next++;
 	for(i=0;str[next] && str[next]!='\t';i++){
 		if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
@@ -78,7 +78,7 @@ int storage_fromstr(char *str,struct pc_storage *p)
 			p->storage[i].card[3] = tmp_int[10];
 			next += len;
 			if (str[next] == ' ')
-				next++;	
+				next++;
 		}
 
 		else if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
@@ -98,9 +98,9 @@ int storage_fromstr(char *str,struct pc_storage *p)
 			p->storage[i].card[3] = tmp_int[10];
 			next += len;
 			if (str[next] == ' ')
-				next++;	
+				next++;
 		}
-		
+
 		else return 1;
 	}
 	return 0;
@@ -140,7 +140,7 @@ int guild_storage_fromstr(char *str,struct guild_storage *p)
 	if(set!=2)
 		return 1;
 	if(str[next]=='\n' || str[next]=='\r')
-		return 0;	
+		return 0;
 	next++;
 	for(i=0;str[next] && str[next]!='\t';i++){
 	if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
@@ -160,7 +160,7 @@ int guild_storage_fromstr(char *str,struct guild_storage *p)
 			p->storage[i].card[3] = tmp_int[10];
 			next += len;
 			if (str[next] == ' ')
-				next++;	
+				next++;
 		}
 
 		else if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
@@ -180,9 +180,9 @@ int guild_storage_fromstr(char *str,struct guild_storage *p)
 			p->storage[i].card[3] = tmp_int[10];
 			next += len;
 			if (str[next] == ' ')
-				next++;	
+				next++;
 		}
-		
+
 		else return 1;
 	}
 	return 0;
@@ -205,7 +205,7 @@ struct guild_storage *guild2storage(int guild_id)
 {
 	struct guild_storage *gs = NULL;
 	if(inter_guild_search(guild_id) != NULL) {
-		gs = (struct guild_storage *)numdb_search(guild_storage_db,guild_id);
+		gs= (struct guild_storage *) numdb_search(guild_storage_db,guild_id);
 		if(gs == NULL) {
 			gs = (struct guild_storage *)aCalloc(1,sizeof(struct guild_storage));
 			gs->guild_id=guild_id;
@@ -279,7 +279,7 @@ int storage_db_final (void *k, void *data, va_list ap) {
 	return 0;
 }
 int guild_storage_db_final (void *k, void *data, va_list ap) {
-	struct guild_storage *p = (struct guild_storage *)data;
+	struct guild_storage *p = (struct guild_storage *) data;
 	if (p) aFree(p);
 	return 0;
 }
@@ -362,7 +362,7 @@ int inter_storage_delete(unsigned long account_id)
 // ギルド倉庫データ削除
 int inter_guild_storage_delete(unsigned long guild_id)
 {
-	struct guild_storage *gs = (struct guild_storage *)numdb_search(guild_storage_db,guild_id);
+	struct guild_storage *gs = (struct guild_storage *) numdb_search(guild_storage_db,guild_id);
 	if(gs) {
 		int i;
 		for(i=0;i<gs->storage_amount;i++){
@@ -388,13 +388,13 @@ int mapif_load_storage(int fd,unsigned long account_id)
 
 	if(stor)
 	{
-		WFIFOW(fd,0)=0x3810;
+	WFIFOW(fd,0)=0x3810;
 		WFIFOW(fd,2)=sizeof(struct pc_storage)+8;
-		WFIFOL(fd,4)=account_id;
+	WFIFOL(fd,4)=account_id;
 
 		//memcpy(WFIFOP(fd,8),stor,sizeof(struct pc_storage));
 		pc_storage_tobuffer(*stor, WFIFOP(fd,8));
-		WFIFOSET(fd,WFIFOW(fd,2));
+	WFIFOSET(fd,WFIFOW(fd,2));
 	}
 	return 0;
 }
@@ -477,8 +477,8 @@ int mapif_parse_SaveStorage(int fd)
 		if(stor)
 		{
 			pc_storage_frombuffer(*stor, RFIFOP(fd,8));
-			mapif_save_storage_ack(fd,account_id);
-		}
+		mapif_save_storage_ack(fd,account_id);
+	}
 	}
 	return 0;
 }

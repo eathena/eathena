@@ -59,14 +59,7 @@ int login_fd;
 unsigned int new_reg_tick=0;
 int allowed_regs=1;
 int num_regs=0;
-int time_allowed=10000;
-
-//Added for Mugendai's I'm Alive mod
-int imalive_on=0;
-int imalive_time=60;
-//Added by Mugendai for GUI
-int flush_on=1;
-int flush_time=100;
+int time_allowed=10; //Init this to 10 seconds. [Skotlex]
 
 enum {
 	ACO_DENY_ALLOW = 0,
@@ -777,10 +770,10 @@ int mmo_auth_tostr(char *str, struct auth_dat *p) {
 	char *str_p = str;
 
 	str_p += sprintf(str_p, "%ld\t%s\t%s\t%s\t%c\t%ld\t%ld\t"
-							"%s\t%s\t%ld\t%s\t%s\t%ld\t",
-							p->account_id, p->userid, p->pass, p->lastlogin,
-							(p->sex == 2) ? 'S' : (p->sex ? 'M' : 'F'),
-							p->logincount, p->state,
+	                 "%s\t%s\t%ld\t%s\t%s\t%ld\t",
+	                 p->account_id, p->userid, p->pass, p->lastlogin,
+	                 (p->sex == 2) ? 'S' : (p->sex ? 'M' : 'F'),
+	                 p->logincount, p->state,
 							p->email, p->error_message, (unsigned long)p->connect_until_time,
 							p->last_ip, p->memo, (unsigned long)p->ban_until_time);
 
@@ -1383,7 +1376,6 @@ int mmo_auth(struct mmo_account* account, int fd)
 			num_regs=0;
 		}
 		
-		if (new_account_flag == 1)
 			newaccount = 1;
 		account->userid[len] = '\0';
 	}
@@ -3818,14 +3810,6 @@ int login_config_read(const char *cfgName) {
 				dynamic_pass_failure_ban_how_long = atoi(w2);
 			} else if (strcasecmp(w1, "import") == 0) {
 				login_config_read(w2);
-			} else if(strcasecmp(w1,"imalive_on")==0) {	//Added by Mugendai for I'm Alive mod
-				imalive_on = atoi(w2);			//Added by Mugendai for I'm Alive mod
-			} else if(strcasecmp(w1,"imalive_time")==0) {	//Added by Mugendai for I'm Alive mod
-				imalive_time = atoi(w2);		//Added by Mugendai for I'm Alive mod
-			} else if(strcasecmp(w1,"flush_on")==0) {		//Added by Mugendai for GUI
-				flush_on = atoi(w2);			//Added by Mugendai for GUI
-			} else if(strcasecmp(w1,"flush_time")==0) {	//Added by Mugendai for GUI
-				flush_time = atoi(w2);			//Added by Mugendai for GUI
 			} else if(strcasecmp(w1, "check_client_version") == 0){		//Added by Sirius for client version check
 				check_client_version = config_switch(w2);
 			}else if(strcasecmp(w1, "client_version_to_connect") == 0){	//Added by Sirius for client version check
@@ -4146,25 +4130,6 @@ void save_config_in_log(void) {
 	}
 }
 
-//-----------------------------------------------------
-//I'm Alive Alert
-//Used to output 'I'm Alive' every few seconds
-//Intended to let frontends know if the app froze
-//-----------------------------------------------------
-int imalive_timer(int tid, unsigned long tick, int id, int data){
-	ShowMessage("I'm Alive\n");
-	return 0;
-}
-
-//-----------------------------------------------------
-//Flush stdout
-//stdout buffer needs flushed to be seen in GUI
-//-----------------------------------------------------
-int flush_timer(int tid, unsigned long tick, int id, int data){
-	fflush(stdout);
-	return 0;
-}
-
 //--------------------------------------
 // Function called at exit of the server
 //--------------------------------------
@@ -4238,18 +4203,6 @@ int do_init(int argc, char **argv) {
 	add_timer_func_list(check_auth_sync, "check_auth_sync");
 	add_timer_interval(gettick() + 60000, 60000, check_auth_sync, 0, 0); // every 60 sec we check if we must save accounts file (only if necessary to save)
 
-
-	//Added for Mugendais I'm Alive mod
-	if(imalive_on) {
-		add_timer_func_list(imalive_timer, "imalive_timer");
-		add_timer_interval(gettick()+10,imalive_time*1000, imalive_timer,0,0);
-	}
-
-	//Added by Mugendai for GUI support
-	if(flush_on) {
-		add_timer_func_list(flush_timer, "flush_timer");
-		add_timer_interval(gettick()+10,flush_time, flush_timer,0,0);
-	}
 
 
 	// add timer to check GM accounts file modification

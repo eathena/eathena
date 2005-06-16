@@ -27,6 +27,7 @@ class uptime
 public:
 	static const char *getstring(char *buffer=NULL);
 	static void getvalues(unsigned long& days,unsigned long& hours,unsigned long& minutes,unsigned long& seconds);
+	double gettime()	{ return difftime(time(NULL),starttime); }
 };
 
 

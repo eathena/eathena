@@ -9,7 +9,7 @@
 #include "malloc.h"
 #include "core.h"
 #include "db.h"
-#include "dll.h"
+#include "plugins.h"
 #include "socket.h"
 #include "timer.h"
 #include "version.h"
@@ -271,7 +271,7 @@ int main (int argc, char **argv)
 	memmgr_init(argv0); // àÍî‘ç≈èâÇ…é¿çsÇ∑ÇÈïKóvÇ™Ç†ÇÈ
 	timer_init();
 	socket_init();
-	dll_init();
+	plugin_init();
 
 	///////////////////////////////////////////////////////////////////////////
 	// user module initialisation
@@ -279,7 +279,7 @@ int main (int argc, char **argv)
 
 	///////////////////////////////////////////////////////////////////////////
 	// addon
-	addon_event_trigger("Athena_Init");
+	plugin_event_trigger("Athena_Init");
 
 	///////////////////////////////////////////////////////////////////////////
 	// run loop
@@ -293,7 +293,7 @@ int main (int argc, char **argv)
 
 	///////////////////////////////////////////////////////////////////////////
 	// addon
-	addon_event_trigger("Athena_Final");
+	plugin_event_trigger("Athena_Final");
 
 	///////////////////////////////////////////////////////////////////////////
 	// user module termination
@@ -302,7 +302,7 @@ int main (int argc, char **argv)
 	///////////////////////////////////////////////////////////////////////////
 	// core module termination
 	exit_dbn();
-	dll_final();
+	plugin_final();
 	socket_final();
 	timer_final();
 	memmgr_final();

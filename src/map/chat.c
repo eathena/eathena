@@ -43,7 +43,7 @@ int chat_createchat(struct map_session_data &sd,unsigned short limit,unsigned ch
 	cd->pub = pub;
 	cd->users = 1;
 
-	memcpy(cd->pass,pass,sizeof(pass));
+	memcpy(cd->pass,pass,sizeof(pass)-1);
 	pass[sizeof(pass)-1]=0;
 
 	if( titlelen+1>=sizeof(cd->title)) titlelen=sizeof(cd->title)-1;
@@ -205,7 +205,9 @@ int chat_changechatstatus(struct map_session_data &sd,unsigned short limit,unsig
 
 	cd->limit = limit;
 	cd->pub = pub;
-	memcpy(cd->pass,pass,8);
+	memcpy(cd->pass,pass,sizeof(pass)-1);
+	cd->pass[sizeof(pass)-1]=0;
+
 	if(titlelen+1>=sizeof(cd->title)) titlelen=sizeof(cd->title)-1;
 	memcpy(cd->title,title,titlelen);
 	cd->title[titlelen]=0;

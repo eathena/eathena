@@ -292,8 +292,10 @@ int status_change_clear_debuffs(struct block_list *bl);
 int status_calc_pet(struct map_session_data &sd, bool first); // [Skotlex]
 // ステータス計算 pc.c から分離
 // pc_calcstatus
+
 int status_calc_pc(struct map_session_data &sd,int first);
-int status_calc_speed(struct map_session_data &sd); // [Celest]
+int status_calc_speed(struct map_session_data &sd, unsigned short skill_num, unsigned short skill_lv, bool start);
+int status_calc_speed_old(struct map_session_data &sd); // [Celest]
 // int status_calc_skilltree(struct map_session_data *sd);
 int status_getrefinebonus(int lv,int type);
 int status_percentrefinery(struct map_session_data &sd,struct item &item);

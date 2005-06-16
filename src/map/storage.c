@@ -158,6 +158,12 @@ int storage_additem(struct map_session_data &sd, struct pc_storage &stor, struct
 		return 1;
 	nullpo_retr(1, data = itemdb_exists(item_data.nameid));
 
+	if( !itemdb_canstore(item_data.nameid, pc_isGM(sd)) )
+	{	//Check if item is storable. [Skotlex]
+		clif_displaymessage (sd.fd, msg_txt(264));
+		return 1;
+	}
+	
 	i=MAX_STORAGE;
 	if( !itemdb_isequip2(*data) )
 	{	// 装備品ではないので、既所有品なら個数のみ変化させる
@@ -441,6 +447,12 @@ int guild_storage_additem(struct map_session_data &sd,struct guild_storage &stor
 
 	if(item_data.nameid <= 0 || amount <= 0)
 		return 1;
+
+	if( !itemdb_canguildstore(item_data.nameid, pc_isGM(sd)) )
+	{	//Check if item is storable. [Skotlex]
+		clif_displaymessage (sd.fd, msg_txt(264));
+		return 1;
+	}
 
 	i=MAX_GUILD_STORAGE;
 	if( !itemdb_isequip2(*data) )

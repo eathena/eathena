@@ -339,6 +339,7 @@ int mapif_parse_SaveGuildStorage(int fd)
 		ShowMessage("inter storage: data size error %d %d\n",sizeof(struct guild_storage),len-12);
 	}
 	else {
+#if 0	// Again, innodb key checks make the check pointless
 		// Check if guild exists, I may write a function for this later, coz I use it several times.
 		//ShowMessage("- Check if guild %d exists\n",g->guild_id);
 		sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id`='%d'",guild_db, guild_id);
@@ -352,7 +353,7 @@ int mapif_parse_SaveGuildStorage(int fd)
 			//ShowMessage("- Check if guild %d exists : %s\n",g->guild_id,((guild_exist==0)?"No":"Yes"));
 		}
 		mysql_free_result(sql_res) ; //resource free
-
+#endif
 		if(guild_exist==1 && guild_storage_pt)
 		{
 			//memcpy(guild_storage_pt,RFIFOP(fd,12),sizeof(struct guild_storage));

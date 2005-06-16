@@ -46,9 +46,6 @@
 #define MAX_GUILDLEVEL 50
 #define MAX_FRIENDLIST 20
 
-#define NAME_LENGTH 24
-
-
 #define MIN_HAIR_STYLE battle_config.min_hair_style
 #define MAX_HAIR_STYLE battle_config.max_hair_style
 #define MIN_HAIR_COLOR battle_config.min_hair_color

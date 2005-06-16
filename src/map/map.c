@@ -18,7 +18,6 @@
 #include "intif.h"
 #include "npc.h"
 #include "pc.h"
-#include "grfio.h"
 #include "status.h"
 #include "mob.h"
 #include "chat.h"
@@ -1578,7 +1577,7 @@ int map_reqchariddb(struct map_session_data &sd, unsigned long charid)
 	struct charid2nick *p= (struct charid2nick*)numdb_search(charid_db,charid);
 	if(p==NULL)
 	{	// not in database -> create new
-		p = (struct charid2nick *)aCalloc(1,sizeof(struct charid2nick));
+	p = (struct charid2nick *)aCalloc(1,sizeof(struct charid2nick));
 		p->req_id=sd.bl.id;
 	numdb_insert(charid_db,charid,p);
 	}
@@ -1734,7 +1733,7 @@ int map_quit(struct map_session_data &sd)
 		aFree(sd.reg);
 		sd.reg=NULL;
 	}
-
+		
 	if(sd.regstr)
 	{
 		aFree(sd.regstr);
@@ -1977,7 +1976,7 @@ void map_spawnmobs(unsigned short m)
 			npc_parse_mob2(*map[m].moblist[i]);
 		}
 	}
-	if (k > 0)
+	if (battle_config.etc_log && k > 0)
 		ShowStatus("Map %s: Spawned '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[m].mapname, k);
 	}
 
@@ -2032,7 +2031,7 @@ int map_removemobs_timer(int tid,unsigned long tick,int id,int data)
 		return 1;
 	
 	k = map_foreachinarea(mob_cache_cleanup_sub, id, 0, 0, map[id].xs, map[id].ys, BL_MOB);
-	if (k > 0)
+	if (battle_config.etc_log && k > 0)
 		ShowStatus("Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[id].mapname, k);
 	return 1;
 }
@@ -2427,7 +2426,9 @@ void map_readwater(const char *watertxt) {
 		if((count=sscanf(line,"%s%d",w1,&wh)) < 1){
 			continue;
 		}
-		strcpy(waterlist[n].mapname,w1);
+		memcpy(waterlist[n].mapname,w1, 24);
+		waterlist[n].mapname[23]=0;
+
 		if(count >= 2)
 			waterlist[n].waterheight = wh;
 		else
@@ -2897,14 +2898,14 @@ static int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap) 
 				SwapFourBytes(((char*)(&pp)) + sizeof(long)*2);
 				SwapFourBytes(((char*)(&pp)) + sizeof(long)*3);
 				SwapFourBytes(((char*)(&pp)) + sizeof(long)*4);
-			}
+		}
 
 			if(wh!=NO_WATER && pp.type==0)
 			{	// ÉàÅŠö©Æ
 				// no direct access
 				//map[m].gat[x+y*map[m].xs].type=(pp.high[0]>wh || pp.high[1]>wh || pp.high[2]>wh || pp.high[3]>wh) ? 3 : 0;
 				map_setcell(m,x,y,(pp.high[0]>wh || pp.high[1]>wh || pp.high[2]>wh || pp.high[3]>wh) ? 3 : 0);
-			}
+				}
 			else
 			{	// no direct access
 				//map[m].gat[x+y*map[m].xs].type=() & CELL_MASK;
@@ -2931,8 +2932,8 @@ static int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap) 
 	map[m].block_mob_count=(int *)aCalloc(size, sizeof(int));
 
 	if (alias)
-		strdb_insert(map_db,alias,&map[m]);
-	else
+           strdb_insert(map_db,alias,&map[m]);
+        else
 		strdb_insert(map_db,map[m].mapname,&map[m]);
 
 	return 0;
@@ -3007,17 +3008,17 @@ int map_readallmap(void)
 			map[i].alias = p;
 		}
 		else
-			map[i].alias = NULL;
+				map[i].alias = NULL;
 
 		// have windows backslash as path seperator here
 		sprintf(fn,"data\\%s",map[i].mapname);
 		if(map_readmap(i,fn, p, &map_cache, map_num) == -1)
 		{
 			map_delmap(map[i].mapname);
-			maps_removed++;
-			i--;
-		}
-		memset(map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
+				maps_removed++;
+				i--;
+			}
+		memset (map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
 		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 	}
 
@@ -3084,59 +3085,59 @@ int map_delmap(const char *mapname)
  */
 int parse_console(char *buf)
 {
-    char *type,*command,*map, *buf2;
-    int x = 0, y = 0;
-    int m, n;
-    struct map_session_data *sd;
+	char *type,*command,*map, *buf2;
+	int x = 0, y = 0;
+	int m, n;
+	struct map_session_data *sd;
 
     sd = (struct map_session_data *)aCalloc(1,sizeof(struct map_session_data));
 
-    sd->fd = 0;
-    strcpy( sd->status.name , "console");
+	sd->fd = 0;
+	strcpy( sd->status.name , "console");
 
     type	= (char *)aCalloc(64, sizeof(char));
     command	= (char *)aCalloc(64, sizeof(char));
     map		= (char *)aCalloc(64, sizeof(char));
     buf2	= (char *)aCalloc(72, sizeof(char));
 
-    if ( ( n = sscanf(buf, "%[^:]:%[^:]:%99s %d %d[^\n]", type , command , map , &x , &y )) < 5 )
-        if ( ( n = sscanf(buf, "%[^:]:%[^\n]", type , command )) < 2 )
-            n = sscanf(buf,"%[^\n]",type);
+	if ( ( n = sscanf(buf, "%[^:]:%[^:]:%99s %d %d[^\n]", type , command , map , &x , &y )) < 5 )
+		if ( ( n = sscanf(buf, "%[^:]:%[^\n]", type , command )) < 2 )
+			n = sscanf(buf,"%[^\n]",type);
 
-    if ( n == 5 ) {
-        if (x <= 0) {
-            x = rand() % 399 + 1;
-            sd->bl.x = x;
-        } else {
-            sd->bl.x = x;
-        }
+	if ( n == 5 ) {
+		if (x <= 0) {
+			x = rand() % 399 + 1;
+			sd->bl.x = x;
+		} else {
+			sd->bl.x = x;
+		}
 
-        if (y <= 0) {
-            y = rand() % 399 + 1;
-            sd->bl.y = y;
-        } else {
-            sd->bl.y = y;
-        }
+		if (y <= 0) {
+			y = rand() % 399 + 1;
+			sd->bl.y = y;
+		} else {
+			sd->bl.y = y;
+		}
 
-        m = map_mapname2mapid(map);
-        if ( m >= 0 )
-            sd->bl.m = m;
-        else {
+		m = map_mapname2mapid(map);
+		if ( m >= 0 )
+			sd->bl.m = m;
+		else {
 			ShowConsole(CL_BOLD"Unknown map\n"CL_NORM);
-            goto end;
-        }
-    }
+			goto end;
+		}
+	}
 
     ShowMessage("Type of command: %s || Command: %s || Map: %s Coords: %d %d\n",type,command,map,x,y);
 
     if ( strcasecmp("admin",type) == 0 && n == 5 ) {
-        sprintf(buf2,"console: %s",command);
+		sprintf(buf2,"console: %s",command);
         if( is_atcommand(sd->fd,*sd,buf2,99) == AtCommand_None )
 			ShowConsole(CL_BOLD"no valid atcommand\n"CL_NORM);
     } else if ( strcasecmp("server",type) == 0 && n == 2 ) {
         if ( strcasecmp("shutdown", command) == 0 || strcasecmp("exit",command) == 0 || strcasecmp("quit",command) == 0 ) {
             core_stoprunning();
-        }
+		}
     } else if ( strcasecmp("help",type) == 0 ) {
         ShowMessage("To use GM commands:\n");
         ShowMessage("admin:<gm command>:<map of \"gm\"> <x> <y>\n");
@@ -3146,17 +3147,17 @@ int parse_console(char *buf)
         ShowMessage("IE: @spawn\n");
         ShowMessage("To shutdown the server:\n");
         ShowMessage("server:shutdown\n");
-    }
+	}
 
-    end:
-    aFree(buf);
-    aFree(type);
-    aFree(command);
-    aFree(map);
-    aFree(buf2);
-    aFree(sd);
+	end:
+	aFree(buf);
+	aFree(type);
+	aFree(command);
+	aFree(map);
+	aFree(buf2);
+	aFree(sd);
 
-    return 0;
+	return 0;
 }
 
 /*==========================================
@@ -3242,17 +3243,9 @@ int map_config_read(const char *cfgName)
 				map_config_read(w2);
 			} else if (strcasecmp(w1, "console") == 0) {
 				console = config_switch(w2);
-            } else if(strcasecmp(w1,"imalive_on")==0){		//Added by Mugendai for I'm Alive mod
-				imalive_on = atoi(w2);					//Added by Mugendai for I'm Alive mod
-			} else if(strcasecmp(w1,"imalive_time")==0){	//Added by Mugendai for I'm Alive mod
-				imalive_time = atoi(w2);				//Added by Mugendai for I'm Alive mod
-			} else if(strcasecmp(w1,"flush_on")==0){		//Added by Mugendai for GUI
-				flush_on = atoi(w2);					//Added by Mugendai for GUI
-			} else if(strcasecmp(w1,"flush_time")==0){		//Added by Mugendai for GUI
-				flush_time = atoi(w2);					//Added by Mugendai for GUI
-			}
+				}
+            }
 		}
-	}
 	fclose(fp);
 
 
@@ -3409,8 +3402,10 @@ int map_sql_close(void)
 	mysql_close(&lmysql_handle);
 	ShowMessage("Close Login DB Connection....\n");
 
-	if (log_config.sql_logs && (log_config.branch || log_config.drop || log_config.mvpdrop ||
-		log_config.present || log_config.produce || log_config.refine || log_config.trade))
+	if (log_config.sql_logs)
+//Updating this if each time there's a log_config addition is too much of a hassle.	[Skotlex]
+		/*&& (log_config.branch || log_config.drop || log_config.mvpdrop ||
+		log_config.present || log_config.produce || log_config.refine || log_config.trade))*/
 	{
 		mysql_close(&logmysql_handle);
 		ShowMessage("Close Log DB Connection....\n");
@@ -3467,27 +3462,6 @@ int online_timer(int tid,unsigned long tick,int id,int data)
 }
 
 
-
-//-----------------------------------------------------
-//I'm Alive Alert
-//Used to output 'I'm Alive' every few seconds
-//Intended to let frontends know if the app froze
-//-----------------------------------------------------
-int imalive_timer(int tid, unsigned long tick, int id, int data)
-{
-	ShowMessage("I'm Alive\n");
-	return 0;
-}
-
-//-----------------------------------------------------
-//Flush stdout
-//stdout buffer needs flushed to be seen in GUI
-//-----------------------------------------------------
-int flush_timer(int tid, unsigned long tick, int id, int data)
-{
-	fflush(stdout);
-	return 0;
-}
 
 int id_db_final(void *k,void *d,va_list ap) 
 {
@@ -3743,17 +3717,6 @@ int do_init(int argc, char *argv[]) {
 	add_timer_func_list(map_clearflooritem_timer, "map_clearflooritem_timer");
 	add_timer_func_list(map_removemobs_timer, "map_removemobs_timer");
 	add_timer_interval(gettick()+1000, 60*1000, map_freeblock_timer, 0, 0);
-
-	//Added by Mugendai for GUI support
-	if (flush_on) {
-		add_timer_func_list(flush_timer, "flush_timer");
-		add_timer_interval(gettick()+10,flush_time, flush_timer,0,0);
-	}
-	//Added for Mugendais I'm Alive mod
-	if (imalive_on) {
-		add_timer_func_list(imalive_timer, "imalive_timer");
-		add_timer_interval(gettick()+10, imalive_time*1000, imalive_timer,0,0);
-	}
 
 	// online status timer, checks every hour [Valaris]
 	add_timer_func_list(online_timer, "online_timer");

@@ -85,275 +85,274 @@ bool battle_check_range(struct block_list *src,struct block_list *bl,unsigned in
 // ê›íË
 struct Battle_Config
 {
-	ulong warp_point_debug;
-	ulong enemy_critical;
-	ulong enemy_critical_rate;
-	ulong enemy_str;
-	ulong enemy_perfect_flee;
-	ulong cast_rate;
-	ulong delay_rate;
-	ulong delay_dependon_dex;
-	ulong sdelay_attack_enable;
-	ulong left_cardfix_to_right;
-	ulong pc_skill_add_range;
-	ulong skill_out_range_consume;
-	ulong mob_skill_add_range;
-	ulong pc_damage_delay;
-	ulong pc_damage_delay_rate;
-	ulong defnotenemy;
-	ulong random_monster_checklv;
-	ulong attr_recover;
-	ulong flooritem_lifetime;
-	ulong item_auto_get;
-	ulong item_first_get_time;
-	ulong item_second_get_time;
-	ulong item_third_get_time;
-	ulong mvp_item_first_get_time;
-	ulong mvp_item_second_get_time;
-	ulong mvp_item_third_get_time;
-	ulong base_exp_rate;
-	ulong job_exp_rate;
-	ulong drop_rate0item;
-	ulong death_penalty_type;
-	ulong death_penalty_base;
-	ulong death_penalty_job;
-	ulong pvp_exp;  // [MouseJstr]
-	ulong gtb_pvp_only;  // [MouseJstr]
-	ulong zeny_penalty;
-	ulong restart_hp_rate;
-	ulong restart_sp_rate;
-	ulong mvp_item_rate;
-	ulong mvp_exp_rate;
-	ulong mvp_hp_rate;
-	ulong monster_hp_rate;
-	ulong monster_max_aspd;
+	ulong agi_penalty_count;
+	ulong agi_penalty_count_lv;
+	ulong agi_penalty_num;
+	ulong agi_penalty_type;
+	ulong alchemist_summon_reward;
+	ulong allow_atcommand_when_mute; // [celest]
+	ulong any_warp_GM_min_level; // added by [Yor]
+	ulong area_size; // added by [MouseJstr]
+	ulong arrow_decrement;
 	ulong atc_gmonly;
 	ulong atc_spawn_quantity_limit;
+	ulong attr_recover;
+	ulong backstab_bow_penalty;
+	ulong ban_hack_trade; // added by [Yor]
+	ulong ban_spoof_namer; // added by [Yor]
+	ulong base_exp_rate;
+	ulong basic_skill_check;
+	ulong battle_log;
+	ulong berserk_cancels_buffs;
+	ulong bone_drop;
+	ulong boss_spawn_delay;
+	ulong cardillust_read_grffile;
+	ulong cast_rate;
+	ulong castle_defense_rate;
+	ulong castrate_dex_scale; // added by [MouseJstr]
+	ulong chat_warpportal;
+	ulong combo_delay_rate;
+	ulong copyskill_restrict;
+	ulong day_duration; // added by [Yor]
+	ulong dead_branch_active;
+	ulong death_penalty_base;
+	ulong death_penalty_job;
+	ulong death_penalty_type;
+	ulong defnotenemy;
+	ulong delay_battle_damage;
+	ulong delay_dependon_dex;
+	ulong delay_rate;
+	ulong devotion_level_difference;
+	ulong disp_experience;
+	ulong disp_hpmeter;
+	ulong display_delay_skill_fail;
+	ulong display_hallucination;
+	ulong display_snatcher_skill_fail;
+	ulong display_version;
+	ulong drop_rate0item;
+	ulong drops_by_luk;
+	ulong dynamic_mobs;
+	ulong enemy_critical;
+	ulong enemy_critical_rate;
+	ulong enemy_perfect_flee;
+	ulong enemy_str;
+	ulong equip_natural_break_rate;
+	ulong equip_self_break_rate;
+	ulong equip_skill_break_rate;
+	ulong error_log;
+	ulong etc_log;
+	ulong exp_calc_type;
+	ulong finding_ore_rate; // orn
+	ulong finger_offensive_type;
+	ulong flooritem_lifetime;
+	ulong gm_allequip;
 	ulong gm_allskill;
 	ulong gm_allskill_addabra;
-	ulong gm_allequip;
-	ulong gm_skilluncond;
+	ulong gm_can_drop_lv;
 	ulong gm_join_chat;
 	ulong gm_kick_chat;
-	ulong skillfree;
-	ulong skillup_limit;
-	ulong wp_rate;
-	ulong pp_rate;
-	ulong monster_active_enable;
-	ulong monster_damage_delay_rate;
-	ulong monster_loot_type;
-	ulong mob_skill_rate;
-	ulong mob_skill_delay;
-	ulong mob_count_rate;
-	ulong mob_spawn_delay;
-	ulong plant_spawn_delay;
-	ulong boss_spawn_delay;	// [Skotlex]
-	ulong quest_skill_learn;
-	ulong quest_skill_reset;
-	ulong basic_skill_check;
+	ulong gm_skilluncond;
+	ulong gtb_pvp_only;  // [MouseJstr]
 	ulong guild_emperium_check;
 	ulong guild_exp_limit;
 	ulong guild_max_castles;
-	ulong pc_invincible_time;
-	ulong pet_catch_rate;
-	ulong pet_rename;
-	ulong pet_friendly_rate;
-	ulong pet_hungry_delay_rate;
-	ulong pet_hungry_friendly_decrease;
-	ulong pet_str;
-	ulong pet_status_support;
-	ulong pet_attack_support;
-	ulong pet_damage_support;
-	ulong pet_support_rate;
-	ulong pet_attack_exp_to_master;
-	ulong pet_attack_exp_rate;
-	ulong pet_lv_rate; //[Skotlex]
-	ulong pet_max_stats; //[Skotlex]
-	ulong pet_max_atk1; //[Skotlex]
-	ulong pet_max_atk2; //[Skotlex]
-	ulong skill_min_damage;
-	ulong finger_offensive_type;
-	ulong heal_exp;
-	ulong resurrection_exp;
-	ulong shop_exp;
-	ulong combo_delay_rate;
-	ulong item_check;
-	ulong wedding_modifydisplay;
-	ulong wedding_ignorepalette;	//[Skotlex]
-	ulong natural_healhp_interval;
-	ulong natural_healsp_interval;
-	ulong natural_heal_skill_interval;
-	ulong natural_heal_weight_rate;
-	ulong item_name_override_grffile;
-	ulong indoors_override_grffile;	// [Celest]
-	ulong skill_sp_override_grffile;	// [Celest]
-	ulong cardillust_read_grffile;
-	ulong item_equip_override_grffile;
-	ulong item_slots_override_grffile;
-	ulong arrow_decrement;
-	ulong max_aspd;
-	ulong max_hp;
-	ulong max_sp;
-	ulong max_lv;
-	ulong max_parameter;
-	ulong max_cart_weight;
-	ulong pc_skill_log;
-	ulong mob_skill_log;
-	ulong battle_log;
-	ulong save_log;
-	ulong error_log;
-	ulong etc_log;
-	ulong save_clothcolor;
-	ulong undead_detect_type;
-	ulong pc_auto_counter_type;
-	ulong monster_auto_counter_type;
-	ulong agi_penalty_type;
-	ulong agi_penalty_count;
-	ulong agi_penalty_num;
-	ulong vit_penalty_type;
-	ulong vit_penalty_count;
-	ulong vit_penalty_num;
-	ulong player_defense_type;
-	ulong monster_defense_type;
-	ulong pet_defense_type;
-	ulong magic_defense_type;
-	ulong pc_skill_reiteration;
-	ulong monster_skill_reiteration;
-	ulong pc_skill_nofootset;
-	ulong monster_skill_nofootset;
-	ulong pc_cloak_check_type;
-	ulong monster_cloak_check_type;
-	ulong gvg_short_damage_rate;
+	ulong gvg_eliminate_time;
 	ulong gvg_long_damage_rate;
 	ulong gvg_magic_damage_rate;
 	ulong gvg_misc_damage_rate;
-	ulong gvg_eliminate_time;
-	ulong mob_changetarget_byskill;
-	ulong pc_attack_direction_change;
-	ulong monster_attack_direction_change;
-	ulong pc_land_skill_limit;
-	ulong monster_land_skill_limit;
-	ulong party_skill_penalty;
-	ulong monster_class_change_full_recover;
-	ulong produce_item_name_input;
-	ulong produce_potion_name_input;
-	ulong making_arrow_name_input;
-	ulong holywater_name_input;
-	ulong display_delay_skill_fail;
-	ulong display_snatcher_skill_fail;
-	ulong chat_warpportal;
-	ulong mob_warpportal;
-	ulong dead_branch_active;
-	ulong vending_max_value;
-	ulong show_steal_in_same_party;
-	ulong pet_attack_attr_none;
-	ulong mob_attack_attr_none;
-	ulong mob_ghostring_fix;
-	ulong pc_attack_attr_none;
-	ulong item_rate_common;
-	ulong item_rate_card;
-	ulong item_rate_equip;
-	ulong item_rate_heal;
-	ulong item_rate_use;	// Added by RoVeRT, Additional Heal and Usable item rate by Val
-	ulong item_drop_common_min;
-	ulong item_drop_common_max;	// Added by TyrNemesis^
-	ulong item_drop_card_min;
-	ulong item_drop_card_max;
-	ulong item_drop_equip_min;
-	ulong item_drop_equip_max;
-	ulong item_drop_mvp_min;
-	ulong item_drop_mvp_max;	// End Addition
-	ulong item_drop_heal_min;
-	ulong item_drop_heal_max;	// Added by Valatris
-	ulong item_drop_use_min;
-	ulong item_drop_use_max;	//End
-	ulong prevent_logout;	// Added by RoVeRT
-	ulong alchemist_summon_reward;	// [Valaris]
-	ulong maximum_level;
-	ulong drops_by_luk;
-	ulong monsters_ignore_gm;
-	ulong equipment_breaking;
-	ulong equipment_break_rate;
-	ulong pet_equip_required;
-	ulong multi_level_up;
-	ulong pk_mode;
-	ulong show_mob_hp;  // end additions [Valaris]
-	ulong agi_penalty_count_lv;
-	ulong vit_penalty_count_lv;
+	ulong gvg_short_damage_rate;
 	ulong gx_allhit;
 	ulong gx_cardfix;
-	ulong gx_dupele;
 	ulong gx_disptype;
-	ulong devotion_level_difference;
-	ulong player_skill_partner_check;
-	ulong hide_GM_session;
-	ulong unit_movement_type;
-	ulong invite_request_check;
-	ulong skill_removetrap_type;
-	ulong disp_experience;
-	ulong castle_defense_rate;
-	ulong backstab_bow_penalty;
-	ulong hp_rate;
-	ulong sp_rate;
-	ulong gm_can_drop_lv;
-	ulong disp_hpmeter;
-	ulong bone_drop;
-	ulong monster_damage_delay;
-// eAthena additions
-	ulong night_at_start; // added by [Yor]
-	ulong day_duration; // added by [Yor]
-	ulong night_duration; // added by [Yor]
-	ulong ban_spoof_namer; // added by [Yor]
-	ulong ban_hack_trade; // added by [Yor]
+	ulong gx_dupele;
 	ulong hack_info_GM_level; // added by [Yor]
-	ulong any_warp_GM_min_level; // added by [Yor]
-	ulong packet_ver_flag; // added by [Yor]
-	ulong muting_players; // added by [PoW]
-	ulong min_hair_style; // added by [MouseJstr]
-	ulong max_hair_style; // added by [MouseJstr]
-	ulong min_hair_color; // added by [MouseJstr]
-	ulong max_hair_color; // added by [MouseJstr]
-	ulong min_cloth_color; // added by [MouseJstr]
-	ulong max_cloth_color; // added by [MouseJstr]
-	ulong castrate_dex_scale; // added by [MouseJstr]
-	ulong area_size; // added by [MouseJstr]
-	ulong zeny_from_mobs; // [Valaris]
-	ulong mobs_level_up; // [Valaris]
-	ulong pk_min_level; // [celest]
-	ulong skill_steal_type; // [celest]
-	ulong skill_steal_rate; // [celest]
-	ulong night_darkness_level; // [celest]
-	ulong motd_type; // [celest]
-	ulong allow_atcommand_when_mute; // [celest]
-	ulong finding_ore_rate; // orn
-	ulong exp_calc_type;
-	ulong min_skill_delay_limit;
-	ulong require_glory_guild;
+	ulong heal_exp;
+	ulong hide_GM_session;
+	ulong holywater_name_input;
+	ulong hp_rate;
 	ulong idle_no_share;
-	ulong delay_battle_damage;
-	ulong display_version;
-	ulong who_display_aid;
-	ulong rainy_waterball;
-	ulong display_hallucination;	// [Skotlex]
-	ulong use_statpoint_table;	// [Skotlex]
-	ulong mail_system; // [Valaris]
-	ulong new_attack_function; //For testing purposes [Skotlex]
 	ulong ignore_items_gender; //[Lupus]
-	ulong dynamic_mobs;
+	ulong indoors_override_grffile;
+	ulong invite_request_check;
+	ulong item_auto_get;
+	ulong item_check;
+	ulong item_drop_card_max;
+	ulong item_drop_card_min;
+	ulong item_drop_common_max;
+	ulong item_drop_common_min;
+	ulong item_drop_equip_max;
+	ulong item_drop_equip_min;
+	ulong item_drop_heal_max;
+	ulong item_drop_heal_min;
+	ulong item_drop_mvp_max;
+	ulong item_drop_mvp_min;
+	ulong item_drop_use_max;
+	ulong item_drop_use_min;
+	ulong item_equip_override_grffile;
+	ulong item_first_get_time;
+	ulong item_name_override_grffile;
+	ulong item_rate_card;
+	ulong item_rate_common;
+	ulong item_rate_equip;
+	ulong item_rate_heal;
+	ulong item_rate_use;
+	ulong item_second_get_time;
+	ulong item_slots_override_grffile;
+	ulong item_third_get_time;
+	ulong item_use_interval;
+	ulong job_exp_rate;
+	ulong left_cardfix_to_right;
+	ulong magic_defense_type;
+	ulong mail_system; // [Valaris]
+	ulong making_arrow_name_input;
+	ulong max_aspd;
+	ulong max_cart_weight;
+	ulong max_cloth_color; // added by [MouseJstr]
+	ulong max_hair_color; // added by [MouseJstr]
+	ulong max_hair_style; // added by [MouseJstr]
+	ulong max_hitrate;
+	ulong max_hp;
+	ulong max_lv;
+	ulong max_parameter;
+	ulong max_sp;
+	ulong max_walk_speed;
+	ulong maximum_level;
+	ulong min_cloth_color; // added by [MouseJstr]
+	ulong min_hair_color; // added by [MouseJstr]
+	ulong min_hair_style; // added by [MouseJstr]
+	ulong min_hitrate;
+	ulong min_skill_delay_limit;
+	ulong mob_attack_attr_none;
+	ulong mob_changetarget_byskill;
+	ulong mob_clear_delay;
+	ulong mob_count_rate;
+	ulong mob_ghostring_fix;
 	ulong mob_remove_damaged;
 	ulong mob_remove_delay;
-	
-	ulong max_hitrate;
-	ulong min_hitrate;
-
+	ulong mob_skill_add_range;
+	ulong mob_skill_delay;
+	ulong mob_skill_log;
+	ulong mob_skill_rate;
+	ulong mob_spawn_delay;
+	ulong mob_warpportal;
+	ulong mobs_level_up; // [Valaris]
+	ulong monster_active_enable;
+	ulong monster_attack_direction_change;
+	ulong monster_auto_counter_type;
+	ulong monster_class_change_full_recover;
+	ulong monster_cloak_check_type;
+	ulong monster_damage_delay;
+	ulong monster_damage_delay_rate;
+	ulong monster_defense_type;
+	ulong monster_hp_rate;
+	ulong monster_land_skill_limit;
+	ulong monster_loot_type;
+	ulong monster_max_aspd;
+	ulong monster_skill_nofootset;
+	ulong monster_skill_reiteration;
+	ulong monsters_ignore_gm;
+	ulong motd_type; // [celest]
+	ulong multi_level_up;
+	ulong muting_players; // added by [PoW]
+	ulong mvp_exp_rate;
+	ulong mvp_hp_rate;
+	ulong mvp_item_first_get_time;
+	ulong mvp_item_rate;
+	ulong mvp_item_second_get_time;
+	ulong mvp_item_third_get_time;
+	ulong natural_heal_skill_interval;
+	ulong natural_heal_weight_rate;
+	ulong natural_healhp_interval;
+	ulong natural_healsp_interval;
+	ulong new_attack_function; //For testing purposes [Skotlex]
+	ulong night_at_start; // added by [Yor]
+	ulong night_darkness_level; // [celest]
+	ulong night_duration; // added by [Yor]
+	ulong packet_ver_flag; // added by [Yor]
+	ulong party_bonus;
+	ulong party_skill_penalty;
+	ulong pc_attack_attr_none;
+	ulong pc_attack_direction_change;
+	ulong pc_auto_counter_type;
+	ulong pc_cloak_check_type;
+	ulong pc_damage_delay;
+	ulong pc_damage_delay_rate;
+	ulong pc_invincible_time;
+	ulong pc_land_skill_limit;
+	ulong pc_skill_add_range;
+	ulong pc_skill_log;
+	ulong pc_skill_nofootset;
+	ulong pc_skill_reiteration;
+	ulong pet_attack_attr_none;
+	ulong pet_attack_exp_rate;
+	ulong pet_attack_exp_to_master;
+	ulong pet_attack_support;
+	ulong pet_catch_rate;
+	ulong pet_damage_support;
+	ulong pet_defense_type;
+	ulong pet_equip_required;
+	ulong pet_friendly_rate;
+	ulong pet_hungry_delay_rate;
+	ulong pet_hungry_friendly_decrease;
+	ulong pet_lv_rate; //[Skotlex]
+	ulong pet_max_atk1; //[Skotlex]
+	ulong pet_max_atk2; //[Skotlex]
+	ulong pet_max_stats; //[Skotlex]
+	ulong pet_rename;
+	ulong pet_status_support;
+	ulong pet_str;
+	ulong pet_support_min_friendly;
+	ulong pet_support_rate;
+	ulong pk_min_level; // [celest]
+	ulong pk_mode;
+	ulong plant_spawn_delay;
+	ulong player_defense_type;
+	ulong player_skill_partner_check;
+	ulong pp_rate;
+	ulong prevent_logout;
+	ulong produce_item_name_input;
+	ulong produce_potion_name_input;
+	ulong pvp_exp;  // [MouseJstr]
+	ulong quest_skill_learn;
+	ulong quest_skill_reset;
+	ulong rainy_waterball;
+	ulong random_monster_checklv;
+	ulong require_glory_guild;
+	ulong restart_hp_rate;
+	ulong restart_sp_rate;
+	ulong resurrection_exp;
+	ulong save_clothcolor;
+	ulong save_log;
+	ulong sdelay_attack_enable;
+	ulong shop_exp;
 	ulong show_hp_sp_drain;
 	ulong show_hp_sp_gain;
-
-	ulong pet_support_min_friendly;
-
-
-	ulong party_bonus;
-	ulong item_use_interval;
+	ulong show_mob_hp;  // end additions [Valaris]
+	ulong show_steal_in_same_party;
+	ulong skill_min_damage;
+	ulong skill_out_range_consume;
+	ulong skill_removetrap_type;
+	ulong skill_sp_override_grffile;
+	ulong skill_steal_rate; // [celest]
+	ulong skill_steal_type; // [celest]
+	ulong skillfree;
+	ulong skillup_limit;
+	ulong sp_rate;
+	ulong undead_detect_type;
+	ulong unit_movement_type;
+	ulong use_statpoint_table;
+	ulong vending_max_value;
+	ulong vit_penalty_count;
+	ulong vit_penalty_count_lv;
+	ulong vit_penalty_num;
+	ulong vit_penalty_type;
+	ulong warp_point_debug;
+	ulong wedding_ignorepalette;
+	ulong wedding_modifydisplay;
+	ulong who_display_aid;
+	ulong wp_rate;
+	ulong zeny_from_mobs; // [Valaris]
+	ulong zeny_penalty;
 };
 
 extern struct Battle_Config battle_config;

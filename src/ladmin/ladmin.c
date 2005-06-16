@@ -1127,7 +1127,7 @@ int addaccount(char* param, int emailflag)
 		}
 	}*/
 
-	sex[0] = toupper(sex[0]);
+	sex[0] = toupper( (int)((unsigned char)sex[0]) );
 	if (strchr("MF", sex[0]) == NULL) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Sexe incorrect [%s]. Entrez M ou F svp.\n", sex);
@@ -2034,7 +2034,7 @@ int changelanguage(char* language) {
 		return 136;
 	}
 
-	language[0] = toupper(language[0]);
+	language[0] = toupper( (int)((unsigned char)language[0]) );
 	if (language[0] == 'F' || language[0] == 'E') {
 		defaultlanguage = language[0];
 		if (defaultlanguage == 'F') {
@@ -2306,7 +2306,7 @@ int changesex(char* param) {
 		return 102;
 	}
 
-	sex[0] = toupper(sex[0]);
+	sex[0] = toupper( (int)((unsigned char)sex[0]) );
 	if (strchr("MF", sex[0]) == NULL) {
 		if (defaultlanguage == 'F') {
 			ShowMessage("Sexe incorrect [%s]. Entrez M ou F svp.\n", sex);
@@ -3019,8 +3019,7 @@ int prompt() {
 		parameters[1023] = '\0';
 
 		// lowercase for command line
-		for (i = 0; command[i]; i++)
-			command[i] = tolower(command[i]);
+		tolower(command);
 
 		if (command[0] == '?' || strlen(command) == 0) {
 			if (defaultlanguage == 'F') {

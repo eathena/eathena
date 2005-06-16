@@ -264,12 +264,12 @@ int inter_init(const char *file) {
 
 // finalize
 int accreg_db_final (void *k, void *data, va_list ap) {	
-	struct accreg *p = (struct accreg *)data;
+	struct accreg *p = (struct accreg *) data;
 	if (p) aFree(p);
 	return 0;
 }
 int wis_db_final (void *k, void *data, va_list ap) {
-	struct WisData *p = (struct WisData *)data;
+	struct WisData *p = (struct WisData *) data;
 	if (p) aFree(p);
 	return 0;
 }
@@ -351,7 +351,7 @@ int mapif_account_reg(int fd, unsigned char *src) {
 
 // アカウント変数要求返信
 int mapif_account_reg_reply(int fd, unsigned long account_id) {
-	struct accreg *reg = (struct accreg *)numdb_search(accreg_db,account_id);
+	struct accreg *reg = (struct accreg*)numdb_search(accreg_db,account_id);
 	if( !session_isActive(fd) )
 		return 0;
 
@@ -395,7 +395,7 @@ int check_ttl_wisdata(void) {
 		wis_delnum = 0;
 		numdb_foreach(wis_db, check_ttl_wisdata_sub, tick);
 		for(i = 0; i < wis_delnum; i++) {
-			struct WisData *wd = (struct WisData *)numdb_search(wis_db, wis_dellist[i]);
+			struct WisData *wd = (struct WisData*)numdb_search(wis_db, wis_dellist[i]);
 			ShowMessage("inter: wis data id=%d time out : from %s to %s\n", wd->id, wd->src, wd->dst);
 			// removed. not send information after a timeout. Just no answer for the player
 			//mapif_wis_end(wd, 1); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
@@ -436,7 +436,7 @@ int mapif_parse_WisRequest(int fd) {
 	}
 
 	// search if character exists before to ask all map-servers
-	if ((index = search_character_index((char *)RFIFOP(fd,28))) == -1) {
+	if ((index = search_character_index((char*)RFIFOP(fd,28))) == -1) {
 		unsigned char buf[27];
 		WBUFW(buf, 0) = 0x3802;
 		memcpy(WBUFP(buf, 2), RFIFOP(fd, 4), 24);
@@ -445,10 +445,9 @@ int mapif_parse_WisRequest(int fd) {
 	// Character exists. So, ask all map-servers
 	} else {
 		// to be sure of the correct name, rewrite it
-		memset(RFIFOP(fd,28), 0, 24);
-		strncpy((char *)RFIFOP(fd,28), search_character_name(index), 24);
+		memcpy((char*)RFIFOP(fd,28), search_character_name(index), 24);
 		// if source is destination, don't ask other servers.
-		if (strcmp((char *)RFIFOP(fd,4),(char *)RFIFOP(fd,28)) == 0) {
+		if (strcmp((char*)RFIFOP(fd,4),(char*)RFIFOP(fd,28)) == 0) {
 			unsigned char buf[27];
 			WBUFW(buf, 0) = 0x3802;
 			memcpy(WBUFP(buf, 2), RFIFOP(fd, 4), 24);
@@ -484,7 +483,7 @@ int mapif_parse_WisReply(int fd)
 
 	int id = RFIFOL(fd,2);
 	int flag = RFIFOB(fd,6);
-	struct WisData *wd = (struct WisData *)numdb_search(wis_db, id);
+	struct WisData *wd = (struct WisData*)numdb_search(wis_db, id);
 
 	if (wd == NULL)
 		return 0;	// This wisp was probably suppress before, because it was timeout of because of target was found on another map-server

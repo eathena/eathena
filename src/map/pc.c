@@ -2638,7 +2638,13 @@ int pc_cart_additem(struct map_session_data &sd, struct item &item_data, size_t 
 		return 1;
 	data = itemdb_exists(item_data.nameid);
 
-	if(!data || (w=data->weight*amount) + sd.cart_weight > sd.cart_max_weight)
+	if(!itemdb_cancartstore(item_data.nameid, pc_isGM(sd)))
+	{	//Check item trade restrictions	[Skotlex]
+		clif_displaymessage (sd.fd, msg_txt(264));
+		return 1;
+	}
+
+	if((w=data->weight*amount) + sd.cart_weight > sd.cart_max_weight)
 		return 1;
 
 	i=MAX_CART;
@@ -2730,11 +2736,6 @@ int pc_putitemtocart(struct map_session_data &sd,unsigned short idx, size_t amou
 		return 1;
 	if( sd.status.inventory[idx].nameid==0 || sd.status.inventory[idx].amount<amount || sd.vender_id)
 		return 1;
-	if(!itemdb_cancartstore(sd.status.inventory[idx].nameid, pc_isGM(sd)))
-	{
-		clif_displaymessage (sd.fd, msg_txt(264));
-		return 1;
-	}
 	if(pc_cart_additem(sd,sd.status.inventory[idx],amount) == 0)
 		return pc_delitem(sd,idx,amount,0);
 
