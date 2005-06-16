@@ -1216,6 +1216,10 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		if(sd->state.lr_flag != 2)
 			sd->def+=val;
 		break;
+	case SP_DEF2:
+		if(sd->state.lr_flag != 2)
+			sd->def2+=val;
+		break;
 	case SP_MDEF1:
 		if(sd->state.lr_flag != 2)
 			sd->mdef+=val;

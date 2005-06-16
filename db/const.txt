@@ -137,6 +137,7 @@ bAtk2		42
 bMatk1		43
 bMatk2		44
 bDef		45
+bDef2		46
 bMdef		47
 bMdef2		48
 bHit		49

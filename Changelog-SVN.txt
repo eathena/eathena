@@ -1,5 +1,6 @@
 Date	Added
 06/16
+	* Added left-out bonus bDef2 [celest]
 	* Moved minicore .o files compiling to under 'common' [celest]
 	* Fixed a client crash when using Advanced/Baby job sprites for mobs [Aru]
 	* Added a random modifier to returned damage modifiers to prevent stun-lock

@@ -1,6 +1,6 @@
 //eAthena Items Scripting Manual
 
-skill i,n;					Gives skill #i at level n
+skill i,n;				Gives skill #i at level n
 
 bonus bStr,n;				STR + n
 bonus bAgi,n;				AGI + n
@@ -16,19 +16,20 @@ bonus bMaxSPrate,n;			MaxSP + n%
 bonus bAtk,n;				ATK + n
 bonus bAtk2,n;				ATK2 + n
 bonus bAtkRate				Attack power + n%
-bonus bBaseAtk,n;				Basic attack power + n
+bonus bBaseAtk,n;			Basic attack power + n
 bonus bMatk,n;				Magical attack power 1 + n and magical attack power 2 + n
 bonus bMatk1,n;				Magical attack power 1 + n
 bonus bMatk2,n;				Magical attack power 2 + n
 bonus bMatkRate,n;			Magical attack power + n%
 bonus bDef,n;				Equipment DEF + n
-bonus bDefRate,n;				Equipment DEF + n%
+bonus bDef2,n;				VIT DEF + n
+bonus bDefRate,n;			Equipment DEF + n%
 bonus bDef2Rate,n;			VIT DEF + n%
 bonus bMdef,n;				Equipment MDEF + n
 bonus bMdefRate,n;			Equipment MDEF + n%
 bonus bMdef2Rate,n;			INT MDEF + n%
 bonus bHit,n;				Hit + n
-bonus bHitRate,n;				Hit + n%
+bonus bHitRate,n;			Hit + n%
 bonus bCritical,n;			Critical + n
 bonus bCriticalRate,n;			Critical + n%
 bonus bFlee,n;				Flee + n

@@ -1,0 +1,18 @@
+//===== Athena Script ========================================
+//= Lighthalzen Field Warp Script
+//===== By: ==================================================
+//= Sara-chan (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version; RO Episode 8+
+//===== Description: =========================================
+//= Warp Points for Lighthalzen Field
+//===== Additional Comments: =================================
+//= None
+//============================================================
+
+lhz_fild02.gat,25,214,0	warp	lhz001	1,1,lhz_fild01.gat,365,225
+lhz_fild01.gat,367,225,0	warp	lhz001a	1,1,lhz_fild02.gat,27,214
+lhz_fild01.gat,210,16,0	warp	lhz002	1,1,lighthalzen.gat,214,327
+lighthalzen.gat,214,329,0	warp	lhz002a	1,1,lhz_fild01.gat,210,18

@@ -27,6 +27,8 @@ TODO:
 
 Date		Added
 ======
+06/16
+	* Added Sara-chan's Lightharzen warps [celest]
 06/13
 	* Fixed Heart of Ymir location/sprite, thanks to Poki#3 [DracoRPG]
 06/10
