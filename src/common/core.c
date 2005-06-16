@@ -198,7 +198,8 @@ int main (int argc, char **argv)
 	signals_init();
 
 	timer_init();
-//	zlib_init(); //Where art thou, Celest?
+	zlib_init(); //Where art thou, Celest?
+	// Corrected ^^;
 	plugins_init();
 	socket_init();
 

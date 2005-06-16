@@ -1042,21 +1042,22 @@ void grfio_final(void)
 	if (localresname) aFree(localresname);
 }
 
-/*==========================================
- * Grfio : Initialize
- *------------------------------------------
- */
-void grfio_init(char *fname)
+void zlib_init (void)
 {
-	FILE *data_conf;
-	char line[1024], w1[1024], w2[1024];
-	int result = 0;
-
 #ifdef _WIN32
 	#ifndef LOCALZLIB
-		zlib_dll = plugin_open ("zlib.dll");
+		const char *zlib_path[] = { "zlib1.dll", "zlib.dll", NULL };
+		int i = 0;
+		while (zlib_path[i]) {
+			zlib_dll = plugin_open ("zlib.dll");
+			if (zlib_dll == NULL) {
+				i++;
+				continue;
+			}
+			break;
+		}
 		if (zlib_dll == NULL) {
-			ShowFatalError("Can't load zlib.dll\n");
+			ShowFatalError("Can't load zlib DLL\n");
 			exit(1);
 		}
 		DLL_SYM (zlib_inflateInit_,	zlib_dll,	"inflateInit_");
@@ -1067,6 +1068,17 @@ void grfio_init(char *fname)
 		DLL_SYM (zlib_deflateEnd,	zlib_dll,	"deflateEnd");
 	#endif
 #endif
+}
+
+/*==========================================
+ * Grfio : Initialize
+ *------------------------------------------
+ */
+void grfio_init(char *fname)
+{
+	FILE *data_conf;
+	char line[1024], w1[1024], w2[1024];
+	int result = 0;
 
 	hashinit();	// hash table initialization
 
