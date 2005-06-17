@@ -5,8 +5,11 @@ addnpc("Healer Dog","healer_prt","prontera.gat",155,190,4,81,"npc_healer")
 
 function npc_healer(id)
 	npcmes(id,"[Healer Dog]")
+	npcmes(id,"Yep! You look nice! I think I'll heal you!")
+	npcnext(id)
 	percentheal(id, 50, 50)
-	npcmes(id,"Here you are!")
+	npcmes(id,"[Healer Dog")
+	npcmes(id,"Hear you go!")
 	npcclose(id)
 end
 

@@ -16,6 +16,7 @@ int npc_click(struct map_session_data *,int);
 int npc_touch_areascript(struct map_session_data *,int,int,int);
 int npc_touch_warp(struct map_session_data *,int,int,int);
 int npc_scriptend(struct map_session_data *,int);
+int npc_scriptnext(struct map_session_data *,int);
 int npc_checknear(struct map_session_data *,int);
 int npc_buysellsel(struct map_session_data *,int,int);
 int npc_buylist(struct map_session_data *,int,unsigned short *);

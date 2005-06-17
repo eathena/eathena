@@ -9589,7 +9589,7 @@ void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
  */
 void clif_parse_NpcNextClicked(int fd,struct map_session_data *sd)
 {
-	/*npc_scriptcont(sd,RFIFOL(fd,2));*/
+	npc_scriptnext(sd,RFIFOL(fd,2));
 }
 
 /*==========================================

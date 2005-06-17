@@ -223,6 +223,8 @@ struct map_session_data {
 	char *npc_script,*npc_scriptroot;
 	char *npc_stackbuf;
 	char npc_str[256];
+	int npc_script_state;
+	lua_State *NL;
 	unsigned int chatID;
 	unsigned long idletime;
 
@@ -402,6 +404,14 @@ struct map_session_data {
 	int mail_counter;	// mail counter for mail system [Valaris]
 #endif
 
+};
+
+enum {
+	RUNNING,
+	HALT,
+	STOP,
+	NRUN,
+	PAUSE,
 };
 
 struct npc_data {

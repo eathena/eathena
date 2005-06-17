@@ -1,5 +1,7 @@
 Date	Added
 06/12
+	* Added advanced script state system, lua branch should now be functional, just needs [Kevin]
+	 commands and scripts in terms of NPCs, not sure about mob spawns or chunks.
 	* Added all warps currently possible [Fredzilla]
 06/10
 	* Added vary simple script state, and added npcclose2 and npcend. [Kevin]

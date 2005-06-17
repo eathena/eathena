@@ -214,8 +214,9 @@ int npc_click(struct map_session_data *sd,int id)
 		return 1;
 
 	sd->npc_id=id;
-	script_setstate(RUNNING);
-	script_run_function(nd->function,"i",sd->char_id);
+	sd->NL = lua_newthread(script_getluastate());
+	script_setstate(sd, RUNNING);
+	script_run_script(nd->function,sd->char_id);
 
 	return 0;
 }
@@ -251,16 +252,36 @@ int npc_scriptend(struct map_session_data *sd,int id)
 
 	nullpo_retr(1, sd);
 	
-	if(script_getstate() == HALT) {
+	if(script_getstate(sd) == HALT) {
 		if(sd->npc_id > 0) {
 			sd->npc_id = 0;
-			script_setstate(NRUN);
+			script_setstate(sd, NRUN);
 		}
+	} else {
+		sd->npc_script_state=RUNNING;
+		script_resume(sd); //close2
 	}
 		
 	return 0;
 	
 }
+
+/*==========================================
+ *
+ *------------------------------------------
+ */
+int npc_scriptnext(struct map_session_data *sd,int id)
+{
+
+	nullpo_retr(1, sd);
+	
+	sd->npc_script_state=RUNNING;
+	script_resume(sd);
+		
+	return 0;
+	
+}
+
 
 /*==========================================
  *

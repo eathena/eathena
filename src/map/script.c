@@ -48,11 +48,11 @@
 char mapreg_txt[256]="save/mapreg.txt";
 //#define MAPREG_AUTOSAVE_INTERVAL	(10*1000)
 
-int npc_script_state;
 struct Script_Config script_config;
 static char pos[11][100] = {"Head","Body","Left hand","Right hand","Robe","Shoes","Accessory 1","Accessory 2","Head 2","Head 3","Not Equipped"};
 
 lua_State *L; // [DracoRPG]
+
 
 /*===================================================================
  *
@@ -131,19 +131,19 @@ static int addwarp()
 
 // npcmes(id,"A bunch of silly text")
 // Print the silly text to the NPC dialog window of the player
-static int npcmes()
+static int npcmes(lua_State *NL)
 {
 	struct map_session_data *sd = NULL;
 	char mes[512];
 	int charid, npcid;
 
-	charid=lua_tonumber(L, 1);
+	charid=lua_tonumber(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
 	}
 	npcid = sd->npc_id;
-	sprintf(mes,"%s",lua_tostring(L, 2)); 
+	sprintf(mes,"%s",lua_tostring(NL, 2)); 
 
 	clif_scriptmes(sd, npcid, mes);
 
@@ -152,102 +152,106 @@ static int npcmes()
 
 // npcclose(id)
 // Display a [Close] button in the NPC dialog window of the player
-static int npcclose()
+static int npcclose(lua_State *NL)
 {
 	struct map_session_data *sd = NULL;
 	int charid, npcid;
 	
-	charid=lua_tonumber(L, 1);
+	charid=lua_tonumber(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
 	}
 	npcid = sd->npc_id;
-	npc_script_state = HALT;
+	sd->npc_script_state = HALT;
 	
 	clif_scriptclose(sd,npcid);
 	
-	return 0;
+	return lua_yield(NL, 0);
 }
 
 // npcclose2(id)
 // Display a [Close] button in the NPC dialog window of the player but keep the script running
-static int npcclose2()
+static int npcclose2(lua_State *NL)
 {
 	struct map_session_data *sd = NULL;
 	int charid, npcid;
 	
-	charid=lua_tonumber(L, 1);
+	charid=lua_tonumber(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
 	}
 	npcid = sd->npc_id;
-	npc_script_state = STOP;
+	sd->npc_script_state = STOP;
 	
 	clif_scriptclose(sd,npcid);
 	
-	return 0;
+	return lua_yield(NL, 0);
 }
 
 // npcend(id)
 // End a script that is uses close2
-static int npcend()
+static int npcend(lua_State *NL)
 {
 	struct map_session_data *sd = NULL;
 	int charid;
 	
-	charid=lua_tonumber(L, 1);
+	charid=lua_tonumber(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
 	}
 	
-	if(npc_script_state != STOP) {
-		lua_pushstring(L, "Script state must be stoped before using npcend, please use npcclose2!");
-		lua_error(L);
+	if(sd->npc_script_state != STOP) {
+		lua_pushstring(NL, "Script state must be stoped before using npcend, please use npcclose2!");
+		lua_error(NL);
 		return -1;
 	}
-	npc_script_state = NRUN;
+	sd->npc_script_state = NRUN;
+	sd->npc_id = 0;
 	
 	return 0;
 }
 
 // npcnext(id)
 // Display a [Next] button in the NPC dialog window of the player and pause the script until the button is clicked
-static int npcnext()
+static int npcnext(lua_State *NL)
 {
 
 	struct map_session_data *sd = NULL;
 	int charid, npcid;
 
-	charid=lua_tonumber(L, 1);
+	charid=lua_tonumber(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
 	}
 	npcid = sd->npc_id;
-
+	
 	clif_scriptnext(sd,npcid);
+	
+	sd->npc_script_state = PAUSE;
 
-	return 0;
+	return lua_yield(NL, 0);
 }
 
 // npcinput(id,type)
 // Display an NPC input window asking the player for a value
-static int npcinput()
+static int npcinput(lua_State *NL)
 {
 	struct map_session_data *sd = NULL;
 	int charid, npcid;
 
-	charid=lua_tonumber(L, 1);
+	charid=lua_tonumber(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
 	}
 	npcid = sd->npc_id;
+	sd->npc_script_state = PAUSE;
 
-	switch((int)lua_tonumber(L, 2)){
+	switch((int)lua_tonumber(NL, 2)){
 		case 0:
 			clif_scriptinput(sd,npcid);
 			break;
@@ -256,23 +260,64 @@ static int npcinput()
 			break;
 	}
 
+	return lua_yield(NL, 0);;
+}
+
+// npcmenu(id,"menu_name", return_value)
+// Display an NPC input window asking the player for a value
+static int npcmenu(lua_State *NL)
+{
+	struct map_session_data *sd = NULL;
+	int charid, npcid;
+	int n, i, len=0;
+	char *buf;
+		
+	n = lua_gettop(NL);
+	for(i=1; i<n; i+=2) {
+		len+=strlen((char *)lua_tostring(L, i));
+	}
+	
+	buf=(char *)aCallocA(len+1,sizeof(char));
+	buf[0]=0;
+
+	charid=lua_tonumber(NL, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	npcid = sd->npc_id;
+
+	if(n%2 == 0) {
+		lua_pushstring(NL, "Incorrect number of arguments for function 'menu'");
+		lua_error(NL);
+		return -1;
+	}
+	
+	for(i=1; i<n; i+=2) {
+		strcat(buf,(char *)lua_tostring(NL, i));
+		strcat(buf,":");
+	}
+	
+	clif_scriptmenu(sd,npcid,buf);
+	aFree(buf);
+
 	return 0;
 }
 
 // heal(id,hp,sp)
 // Heal the character by a set amount of HP and SP
-static int heal()
+static int heal(lua_State *NL)
 {
 	struct map_session_data *sd = NULL;
 	int charid, hp, sp;
 
-	charid=lua_tonumber(L, 1);
+	charid=lua_tonumber(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
 	}
-	hp = lua_tonumber(L, 2);
-	sp = lua_tonumber(L, 3);
+	hp = lua_tonumber(NL, 2);
+	sp = lua_tonumber(NL, 3);
 
 	pc_heal(sd, hp, sp);
 
@@ -281,18 +326,18 @@ static int heal()
 
 // percentheal(id,hp,sp)
 // Heal the character by a percentage of MaxHP and MaxSP
-static int percentheal()
+static int percentheal(lua_State *NL)
 {
 	struct map_session_data *sd = NULL;
 	int charid, hp, sp;
 
-	charid=lua_tonumber(L, 1);
+	charid=lua_tonumber(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
 	}
-	hp = lua_tonumber(L, 2);
-	sp = lua_tonumber(L, 3);
+	hp = lua_tonumber(NL, 2);
+	sp = lua_tonumber(NL, 3);
 
 	pc_percentheal(sd, hp, sp);
 
@@ -317,6 +362,7 @@ static struct LuaCommandInfo commands[] = {
 	{"npcend", npcend},
 	{"npcnext", npcnext},
 	{"npcinput", npcinput},
+	{"npcmenu", npcmenu},
 	/* Player related functions */
 	{"heal", heal},
 	{"percentheal", percentheal},
@@ -343,15 +389,30 @@ void script_buildin_commands()
         i++;
     }
 	ShowStatus("Done registering '"CL_WHITE"%d"CL_RESET"' script build-in commands.\n",i);
+	
 }
 
-
-void script_setstate(int state) {
-	npc_script_state = state;
+//Set the current state for another character
+void script_setstate(struct map_session_data *sd, int state) {
+	sd->npc_script_state = state;
 }
 
-int script_getstate(void) {
-	return npc_script_state;
+//Return the current state for another character
+int script_getstate(struct map_session_data *sd) {
+	return sd->npc_script_state;
+}
+
+//Resume an already paused script
+int script_resume(struct map_session_data *sd) {
+	if(lua_resume(sd->NL, 0)) {
+		ShowError("CAN NOT RESUME SCRIPT!");
+	}
+	return 0;
+}
+
+//Access function for other files to get the global lua state
+lua_State *script_getluastate(void) {
+	return L;
 }
 
 // Run a Lua function that was previously loaded, specifying the type of arguments with a "format" string
@@ -385,6 +446,24 @@ void script_run_function(const char *name,const char *format,...)
 	}
 	ShowInfo("Ran function %s\n",name);
 	va_end(arg);
+}
+
+// Added this function because we needed to get a sperate lua state from the map_session_data, and need to have a set number of args
+void script_run_script(const char *name, int char_id)
+{
+
+	struct map_session_data *sd = map_charid2sd(char_id);
+	
+	lua_State *NL = sd->NL;
+	
+	lua_getglobal(NL,name); // Pass function name to Lua
+    lua_pushnumber(NL,char_id);//Send char_id to function
+	if (lua_resume(NL,1)!=0){ // Tell Lua to run the function
+		ShowError("Cannot run function %s : %s\n",name,lua_tostring(L,-1));
+		return;
+	}
+	ShowInfo("Ran function %s\n",name);
+	
 }
 
 // Run a Lua chunk
