@@ -232,7 +232,7 @@ struct map_session_data {
 	int ignoreAll;
 
 	int attacktimer;
-	
+
 	int attacktarget;
 	short attacktarget_lv;
 	unsigned int attackabletime;
@@ -253,7 +253,7 @@ struct map_session_data {
 	struct skill_unit_group skillunit[MAX_SKILLUNITGROUP];
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET];
 	struct skill_timerskill skilltimerskill[MAX_SKILLTIMERSKILL];
-	char blockskill[MAX_SKILL];	// [celest]	
+	char blockskill[MAX_SKILL];	// [celest]
 	//unsigned int skillstatictimer[MAX_SKILL];
 	unsigned short timerskill_count; // [celest]
 	int cloneskill_id;
@@ -345,7 +345,7 @@ struct map_session_data {
 	int random_attack_increase_add,random_attack_increase_per; // [Valaris]
 	int perfect_hiding; // [Valaris]
 	int classchange; // [Valaris]
-	
+
 	int die_counter;
 	short doridori_counter;
 	char potion_success_counter;
@@ -399,7 +399,7 @@ struct map_session_data {
 	unsigned nodelay :1;
 	unsigned noexp :1;
 	unsigned detach :1;
-	
+
 	char fakename[NAME_LENGTH]; // fake names [Valaris]
 	short viewsize; // for tiny/large types
 
@@ -570,7 +570,7 @@ struct pet_data {
 		unsigned short delay; //How long before curing (secs).
 		int timer;
 	} *recovery; //[Valaris] / Reimplemented by [Skotlex]
-	
+
 	struct pet_bonus {
 		unsigned short type; //bStr, bVit?
 		unsigned short val;	//Qty
@@ -578,7 +578,7 @@ struct pet_data {
 		unsigned short delay;	//Time before recasting (secs)
 		int timer;
 	} *bonus; //[Valaris] / Reimplemented by [Skotlex]
-	
+
 	struct pet_skill_attack { //Attack Skill
 		unsigned short id;
 		unsigned short lv;
@@ -586,7 +586,7 @@ struct pet_data {
 		unsigned short rate; //Base chance of skill ocurrance (10 = 10% of attacks)
 		unsigned short bonusrate; //How being 100% loyal affects cast rate (10 = At 1000 intimacy->rate+10%
 	} *a_skill;	//[Skotlex]
-	
+
 	struct pet_skill_support { //Support Skill
 		unsigned short id;
 		unsigned short lv;
@@ -603,7 +603,7 @@ struct pet_data {
 		unsigned short max;
 		int timer;
 	} *loot; //[Valaris] / Rewritten by [Skotlex]
-	
+
 	struct skill_timerskill skilltimerskill[MAX_MOBSKILLTIMERSKILL]; // [Valaris]
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP]; // [Valaris]
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET]; // [Valaris]
@@ -746,7 +746,7 @@ enum {
 	SP_HP_DRAIN_VALUE,SP_SP_DRAIN_VALUE, // 1079-1080
 	SP_WEAPON_ATK,SP_WEAPON_ATK_RATE, // 1081-1082
 	SP_DELAYRATE,	// 1083
-	
+
 	SP_RESTART_FULL_RECORVER=2000,SP_NO_CASTCANCEL,SP_NO_SIZEFIX,SP_NO_MAGIC_DAMAGE,SP_NO_WEAPON_DAMAGE,SP_NO_GEMSTONE, // 2000-2005
 	SP_NO_CASTCANCEL2,SP_INFINITE_ENDURE,SP_UNBREAKABLE_WEAPON,SP_UNBREAKABLE_ARMOR, SP_UNBREAKABLE_HELM, // 2006-2010
 	SP_UNBREAKABLE_SHIELD, SP_LONG_ATK_RATE, // 2011-2012
@@ -774,7 +774,7 @@ enum {
 /*
  * map_getcell()で使用されるフラグ
  */
-typedef enum { 
+typedef enum {
 	CELL_CHKWALL=0,		// 壁(セルタイプ1)
 	CELL_CHKWATER,		// 水場(セルタイプ3)
 	CELL_CHKGROUND,		// 地面障害物(セルタイプ5)
@@ -909,6 +909,9 @@ struct mob_list* map_addmobtolist(unsigned short m);	// [Wizputer]
 void map_spawnmobs(int); // [Wizputer]
 void map_removemobs(int); // [Wizputer]
 
+//Added for own save method
+int charsql_db_init(int method);
+
 extern char *INTER_CONF_NAME;
 extern char *LOG_CONF_NAME;
 extern char *MAP_CONF_NAME;
@@ -967,6 +970,13 @@ extern char gm_db_account_id[32];
 
 extern int lowest_gm_level;
 extern int read_gm_interval;
+
+//Own saving
+extern MYSQL charsql_handle;
+extern MYSQL_RES* charsql_res;
+extern MYSQL_ROW charsql_row;
+extern char charsql_tmpsql[65335];
+
 
 extern char char_db[32];
 #endif /* not TXT_ONLY */

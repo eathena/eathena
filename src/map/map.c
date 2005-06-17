@@ -106,6 +106,18 @@ int read_gm_interval = 600000;
 
 char char_db[32] = "char";
 
+char charsql_host[40] = "localhost";
+int charsql_port = 3306;
+char charsql_user[32] = "ragnarok";
+char charsql_pass[32] = "eAthena";
+char charsql_db[40] = "ragnarok";
+MYSQL charsql_handle;
+MYSQL_RES* charsql_res;
+MYSQL_ROW charsql_row;
+char charsql_tmpsql[65335];
+
+
+
 #endif /* not TXT_ONLY */
 
 static int online_timer(int,unsigned int,int,int);
@@ -150,6 +162,7 @@ int map_num = 0;
 int map_port=0;
 
 int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
+int charsave_method = 0; //Default 'OLD' Save method (SQL ONLY!) [Sirius]
 int agit_flag = 0;
 int night_flag = 0; // 0=day, 1=night [Yor]
 
@@ -175,7 +188,7 @@ int console = 0;
  * (char鯖から送られてくる)
  *------------------------------------------
  */
-void map_setusers(int fd) 
+void map_setusers(int fd)
 {
 	users = RFIFOL(fd,2);
 	// send some anser
@@ -317,7 +330,7 @@ int map_addblock (struct block_list *bl)
 		map[m].block_count[pos]++;
 		if (bl->type == BL_PC)
 			if (map[m].users++ == 0 && battle_config.dynamic_mobs)	//Skotlex
-				map_spawnmobs(m);			
+				map_spawnmobs(m);
 	}
 
 	return 0;
@@ -709,7 +722,7 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 	int *xs, *ys;
 	int blockcount = bl_list_count, i, c;
 	struct block_list *bl = NULL;
-	
+
 	if(m < 0)
 		return;
 	va_start(ap,type);
@@ -744,18 +757,18 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 	{
 		int x = (int)floor(deltax * (double)t +0.5)+x0;
 		int y = (int)floor(deltay * (double)t +0.5)+y0;
-		// the xy pairs of points in line between x0y0 and x1y1 
+		// the xy pairs of points in line between x0y0 and x1y1
 		// including start and end point
 		xs[t] = x;
-		ys[t] = y;		
+		ys[t] = y;
 	}
 
 	if (type == 0 || type != BL_MOB)
 
 
-this here is  wrong, 
-there is no check if x0<x1 and y0<y1 
-but this is not valid in 3 of 4 cases, 
+this here is  wrong,
+there is no check if x0<x1 and y0<y1
+but this is not valid in 3 of 4 cases,
 so in this case here you check only blocks when shooting to a positive direction
 shooting in other directions just do nothing like the skill has failed
 if you want to keep this that way then check and swap x0,y0 with x1,y1
@@ -806,7 +819,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 	bl_list_count = blockcount;
 	aFree (xs);
 	aFree (ys);
- 	va_end(ap);	
+ 	va_end(ap);
 
 */
 
@@ -816,7 +829,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 // sharp shooting 1
 //
 //////////////////////////////////////////////////////////////
-// problem: 
+// problem:
 // finding targets standing on and within some range of a line
 // (t1,t2 t3 and t4 get hit)
 //
@@ -830,13 +843,13 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 // solution 1 (straight forward, but a bit calculation expensive)
 // calculating perpendiculars from quesionable mobs to the straight line
 // if the mob is hit then depends on the distance to the line
-// 
+//
 // solution 2 (complex, need to handle many cases, but maybe faster)
 // make a formula to deside if a given (x,y) is within a shooting area
 // the shape can be ie. rectangular or triangular
 // if the mob is hit then depends on if the mob is inside or outside the area
 // I'm not going to implement this, but if somebody is interested
-// in vector algebra, it might be some fun 
+// in vector algebra, it might be some fun
 
 //////////////////////////////////////////////////////////////
 // possible shooting ranges (I prefer the second one)
@@ -875,7 +888,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 	if (y1 >= map[m].ys) y1 = map[m].ys-1;
 
 	///////////////////////////////
-	// stuff for a linear equation in xy coord to calculate 
+	// stuff for a linear equation in xy coord to calculate
 	// the perpendicular from a block xy to the straight line
 	deltax = (x1-x0);
 	deltay = (y1-y0);
@@ -914,7 +927,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 	// enlarge the block area by a range value and 1
 	// so we can be sure to process all blocks that might touch the shooting area
 	// in this case here with BLOCK_SIZE=8 and range=2 it will be only enlarged by 1
-	// but I implement it anyway just in case that ranges will be larger 
+	// but I implement it anyway just in case that ranges will be larger
 	// or BLOCK_SIZE smaller in future
 	i = (range/BLOCK_SIZE+1);//temp value
 	if(bx0>i)				bx0 -=i; else bx0=0;
@@ -933,10 +946,10 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 
 //printf("block(%i,%i) %i %i\n",bx,by,c1,c2);fflush(stdout);
 		// test if the mid-point of the block is too far away
-		// so we could skip the whole block in this case 
+		// so we could skip the whole block in this case
 		v1 = (bx*BLOCK_SIZE+BLOCK_SIZE/2-xm)*(bx*BLOCK_SIZE+BLOCK_SIZE/2-xm)
 			+(by*BLOCK_SIZE+BLOCK_SIZE/2-ym)*(by*BLOCK_SIZE+BLOCK_SIZE/2-ym);
-//printf("block(%i,%i) v1=%f rd=%f\n",bx,by,v1,rd);fflush(stdout);		
+//printf("block(%i,%i) v1=%f rd=%f\n",bx,by,v1,rd);fflush(stdout);
 		// check for the worst case scenario
 		if(v1 > rd)	continue;
 
@@ -1005,7 +1018,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 
 	map_freeblock_unlock();	// 解放を許可する
 	va_end(ap);
-	
+
 	bl_list_count = blockcount;
 
 */
@@ -1016,7 +1029,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 // sharp shooting 2
 //
 //////////////////////////////////////////////////////////////
-// problem: 
+// problem:
 // finding targets standing exactly on a line
 // (only t1 and t2 get hit)
 //
@@ -1047,7 +1060,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 	///////////////////////////////
 	// find maximum runindex
 	int tmax = abs(y1-y0);
-	if(tmax  < abs(x1-x0))	
+	if(tmax  < abs(x1-x0))
 		tmax = abs(x1-x0);
 	// pre-calculate delta values for x and y destination
 	// should speed up cause you don't need to divide in the loop
@@ -1078,7 +1091,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 				bl = map[m].block[bx+by*map[m].bxs];		// a block with the elements
 				for(i=0;i<c1 && bl;i++,bl=bl->next){		// go through all elements
 					if( bl && ( !type || bl->type==type ) && bl_list_count<BL_LIST_MAX )
-					{	
+					{
 						// check if block xy is on the line
 						if( (bl->x-x0)*(y1-y0) == (bl->y-y0)*(x1-x0) )
 						// and if it is within start and end point
@@ -1101,7 +1114,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 							bl_list[bl_list_count++]=bl;
 					}
 				}//end for mobs
-			}	
+			}
 		}
 	}//end for index
 
@@ -1119,7 +1132,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 
 	map_freeblock_unlock();	// 解放を許可する
 	va_end(ap);
-	
+
 	bl_list_count = blockcount;
 
 	return returnCount;
@@ -1391,7 +1404,7 @@ void map_addchariddb(int charid, char *name) {
 
 	p = (struct charid2nick*)numdb_search(charid_db,charid);
 	if (p == NULL){	// デ?タベ?スにない
-		p = (struct charid2nick *)aCallocA(1, sizeof(struct charid2nick));		
+		p = (struct charid2nick *)aCallocA(1, sizeof(struct charid2nick));
 	} else {
 		numdb_erase(charid_db, charid);
 		req = p->req_id;
@@ -1496,7 +1509,7 @@ int map_quit(struct map_session_data *sd) {
 			guild_reply_reqalliance(sd,sd->guild_alliance_account,0);
 
 		party_send_logout(sd);	// パ?ティのログアウトメッセ?ジ送信
-		
+
 		party_send_dot_remove(sd);//minimap dot fix [Kevin]
 
 		guild_send_memberinfoshort(sd,0);	// ギルドのログアウトメッセ?ジ送信
@@ -1581,14 +1594,14 @@ int map_quit(struct map_session_data *sd) {
 	strdb_erase(nick_db,sd->status.name);
 	numdb_erase(charid_db,sd->status.char_id);
 	numdb_erase(id_db,sd->bl.id);
-	
+
 	if(sd->reg)
 	{	//Double logout already freed pointer fix... [Skotlex]
 		aFree(sd->reg);
 		sd->reg = NULL;
 		sd->reg_num = 0;
 	}
-		
+
 	if(sd->regstr)
 	{
 		aFree(sd->regstr);
@@ -1820,7 +1833,7 @@ void map_spawnmobs(int m)
 		map[m].mob_delete_timer = -1;
 		return;
 	}
-	for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)	
+	for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)
 		if(map[m].moblist[i]!=NULL)
 		{
 			k+=map[m].moblist[i]->num;
@@ -1837,12 +1850,12 @@ void map_spawnmobs(int m)
 int mob_cache_cleanup_sub(struct block_list *bl, va_list ap) {
 	struct mob_data *md = (struct mob_data *)bl;
 	nullpo_retr(0, md);
-	
+
 	//When not to remove:
 	//Mob has the cached flag on 0
 	if (!md->cached)
 		return 0;
-	
+
 	mob_remove_map(md, 0);
 	map_deliddb(&md->bl);
 	aFree(md);
@@ -1870,7 +1883,7 @@ int map_removemobs_timer(int tid, unsigned int tick, int id, int data)
 	if (map[id].users > 0) //Map not empty!
 		return 1;
 	k = map_foreachinarea(mob_cache_cleanup_sub, id, 0, 0, map[id].xs, map[id].ys, BL_MOB);
-	
+
 	if (battle_config.etc_log && k > 0)
 	{
 		sprintf(tmp_output,"Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[id].name, k);
@@ -2792,7 +2805,7 @@ int map_readallmap(void) {
 		afm_file = fopen(fn, "r");
 		if (afm_file != NULL) {
 			fclose(afm_file);
-			map_readafm(i,fn);			
+			map_readafm(i,fn);
 			continue;
 		}
 
@@ -3149,7 +3162,17 @@ int inter_config_read(char *cfgName)
 			lowest_gm_level = atoi(w2);
 		} else if(strcmpi(w1,"read_gm_interval")==0){
 			read_gm_interval = ( atoi(w2) * 60 * 1000 ); // Minutes multiplied by 60 secs per min by 1000 milliseconds per second
-		} else if(strcmpi(w1,"log_db")==0) {
+                 }else if(strcmpi(w1, "char_server_ip") == 0){
+                 	strcpy(charsql_host, w2);
+                 }else if(strcmpi(w1, "char_server_port") == 0){
+                 	charsql_port = atoi(w2);
+                 }else if(strcmpi(w1, "char_server_id") == 0){
+                 	strcpy(charsql_user, w2);
+                 }else if(strcmpi(w1, "char_server_pw") == 0){
+                 	strcpy(charsql_pass, w2);
+                 }else if(strcmpi(w1, "char_server_db") == 0){
+                 	strcpy(charsql_db, w2);
+                 } else if(strcmpi(w1,"log_db")==0) {
 			strcpy(log_db, w2);
 		} else if(strcmpi(w1,"log_db_ip")==0) {
 			strcpy(log_db_ip, w2);
@@ -3369,6 +3392,9 @@ void do_final(void) {
 
 #ifndef TXT_ONLY
     map_sql_close();
+    if(charsave_method == 1){
+        	charsql_db_init(0); //Connecting to chardb
+    }
 #endif /* not TXT_ONLY */
 	ShowStatus("Successfully terminated.\n");
 }
@@ -3517,6 +3543,9 @@ int do_init(int argc, char *argv[]) {
 	charid_db = numdb_init();
 #ifndef TXT_ONLY
 	map_sql_init();
+         if(charsave_method == 1){
+         	charsql_db_init(1); //Connecting to chardb
+         }
 #endif /* not TXT_ONLY */
 
 	grfio_init(GRF_PATH_FILENAME);
@@ -3530,7 +3559,7 @@ int do_init(int argc, char *argv[]) {
 
 	// online status timer, checks every hour [Valaris]
 	add_timer_func_list(online_timer, "online_timer");
-	add_timer_interval(gettick()+1000, online_timer, 0, 0, CHECK_INTERVAL);	
+	add_timer_interval(gettick()+1000, online_timer, 0, 0, CHECK_INTERVAL);
 
 	do_init_chrif();
 	do_init_clif();
@@ -3586,3 +3615,26 @@ int compare_item(struct item *a, struct item *b) {
 		(a->card[2] == b->card[2]) &&
 		(a->card[3] == b->card[3]));
 }
+
+int charsql_db_init(int method){
+
+
+    	if(method == 1){ //'INIT / START'
+                  printf("Connecting to 'character' Database... ");
+	         mysql_init(&charsql_handle);
+
+	         if(!mysql_real_connect(&charsql_handle, charsql_host, charsql_user, charsql_pass, charsql_db, charsql_port, (char *)NULL, 0)){
+	                 printf("fail, %s\n", mysql_error(&charsql_handle));
+	                 exit(1);
+	         }else{
+	                 printf("success.\n");
+	         }
+         }else if(method == 0){ //'FINAL' / Shutdown
+         	printf("Closing 'character' Database connection ... ");
+                 mysql_close(&charsql_handle);
+                 printf("done.\n");
+         }
+
+    return 0;
+}
+
