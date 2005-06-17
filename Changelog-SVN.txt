@@ -1,6 +1,7 @@
 Date	Added
 06/17
 	!!!Bug: on optimizing run_script, Kafra NPC stopped working. Celest, read it plz. [Lupus]
+	* Switched two frees around that might have caused problems [Codemaster]
 	* Optimised run_script a bit, based on jA [celest]
 	* Fixed a memory leak in script.c [celest]
 
