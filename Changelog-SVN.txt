@@ -2,6 +2,8 @@ Date	Added
 06/17
 	!!!Bug: on optimizing run_script, Kafra NPC stopped working. Celest, read it plz. [Lupus]
 	  -- Fixed, sorry ^^; Please test and tell me if anything goes wrong [celest]
+	* SuperUser checking ... (never run athena as root!) [Sirius]
+	* Added eprintf/eprint (eprintf is equal to printf) but it displays line / file ... (to stdrerr)[Sirius]
 	* Fixed Ungoliatnt casting assumptio on it's target instead of self.	[Skotlex]
 	* Switched two frees around that might have caused problems [Codemaster]
 	* Optimised run_script a bit, based on jA [celest]

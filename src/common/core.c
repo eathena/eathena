@@ -112,7 +112,7 @@ void signals_init (void)
 		compat_signal(SIGPIPE, sig_proc);
 		compat_signal(SIGBUS, SIG_DFL);
 		compat_signal(SIGTRAP, SIG_DFL);
-	#endif	
+	#endif
 }
 #endif
 
@@ -170,8 +170,18 @@ static void display_title(void)
 	ShowMessage(""CL_XXBL"          ("CL_BOLD"                                                         "CL_XXBL")"CL_CLL""CL_NORMAL"\n"); // yellow writing (33)
 	ShowMessage(""CL_XXBL"          ("CL_BT_YELLOW"  Advanced Fusion Maps (c) 2003-2005 The Fusion Project  "CL_XXBL")"CL_CLL""CL_NORMAL"\n"); // yellow writing (33)
 	ShowMessage(""CL_WTBL"          (=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=)"CL_CLL""CL_NORMAL"\n\n"); // reset color
-	
+
 	ShowInfo("SVN Revision: '"CL_WHITE"%s"CL_RESET"'.\n", get_svn_revision());
+}
+
+//Do not run as superuser (root)
+void usercheck(void){
+	if(getuid() == 0 || getgid() == 0){
+         	printf("Sorry, but eAthena do not run as SuperUser (root)\n");
+                 printf("Please use an user-account to host a Server!\n");
+                 printf("Never use root, root is only for sys-configuration and sys-maintenances!\n");
+         	exit(1);
+         }
 }
 
 /*======================================
@@ -191,6 +201,8 @@ int main (int argc, char **argv)
 		arg_c = argc;
 		arg_v = argv;
 	}
+
+         usercheck();
 
 	set_server_type();
 	display_title();
@@ -236,9 +248,12 @@ int main (int argc, char **argv)
 		arg_c = argc;
 		arg_v = argv;
 	}
+
+         usercheck();
+
 	display_title();
 	do_init(argc,argv);
-	do_final();	
+	do_final();
 
 	return 0;
 }
@@ -247,4 +262,3 @@ int main (int argc, char **argv)
 #ifdef BCHECK
 unsigned int __invalid_size_argument_for_IOC;
 #endif
-

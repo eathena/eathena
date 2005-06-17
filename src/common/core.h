@@ -5,6 +5,12 @@
 
 //#define SQL_DEBUG //uncomment for debug_mysql_query instead of mysql_real_query
 
+//Added here, so its avail in 'all' files ..
+#define eprintf(mes, args...) \
+        fprintf(stderr, "%s:%d: "mes"", __FILE__, __LINE__, args);
+#define eprint(mes) \
+	fprintf(stderr, "%s:%d: "mes"", __FILE__, __LINE__);
+
 extern int arg_c;
 extern char **arg_v;
 

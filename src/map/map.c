@@ -44,6 +44,9 @@
 
 #include "log.h"
 
+#include "charsave.h"
+
+
 // maybe put basic macros to somewhere else
 #define swap(a,b) ((a == b) || ((a ^= b), (b ^= a), (a ^= b)))
 
