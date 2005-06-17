@@ -32,6 +32,8 @@ int chrif_changesex(int id, int sex);
 int chrif_chardisconnect(struct map_session_data *sd);
 int check_connect_char_server(int tid, unsigned int tick, int id, int data);
 
+int chrif_pcauthok(int fd);
+
 int do_final_chrif(void);
 int do_init_chrif(void);
 

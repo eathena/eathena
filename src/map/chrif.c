@@ -24,23 +24,24 @@
 #include "pc.h"
 #include "nullpo.h"
 #include "showmsg.h"
+#include "charsave.h"
 
 //Updated table (only doc^^) [Sirius]
-//Used Packets: U->2af8 
-//Free Packets: F->2af8 
+//Used Packets: U->2af8
+//Free Packets: F->2af8
 
 static const int packet_len_table[0x3d] = {
 	60, 3,-1,27,22,-1, 6,-1,	// 2af8-2aff: U->2af8, U->2af9, U->2afa, U->2afb, U->2afc, U->2afd, U->2afe, U->2aff
 	 6,-1,18, 7,-1,49,44, 0,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, F->2b07
 	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	-1,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
-	-1,-1,-1,-1,-1,-1,-1, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, F->2b1c, F->2b1d, F->2b1e, U->2b1f
+	-1,-1,-1,-1,-1,-1,16, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, F->2b1c, F->2b1d, U->2b1e, U->2b1f
 	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b20-2b27: U->2b20, F->2b21, F->2b22, F->2b23, F->2b24, F->2b25, F->2b26, F->2b27
 };
 
 //Used Packets:
-//2af8: Outgoing, chrif_connect -> 'connect to charserver / auth @ charserver' 
-//2af9: Incomming, chrif_connectack -> 'awnser of the 2af8 login(ok / fail)' 
+//2af8: Outgoing, chrif_connect -> 'connect to charserver / auth @ charserver'
+//2af9: Incomming, chrif_connectack -> 'awnser of the 2af8 login(ok / fail)'
 //2afa: Outgoing, chrif_sendmap -> 'sending our maps'
 //2afb: Incomming, chrif_sendmapack -> 'Maps recived successfully / or not ..'
 //2afc: Outgoing, chrif_authreq -> 'validate the incomming client' ? (not sure)
@@ -48,11 +49,11 @@ static const int packet_len_table[0x3d] = {
 //2afe: Incomming, pc_authfail -> 'fail awnser of the 2afc' ? (not sure)
 //2aff: Outgoing, send_users_tochar -> 'sends all actual connected charactersids to charserver'
 //2b00: Incomming, map_setusers -> 'set the actual usercount? PACKET.2B COUNT.L.. ?' (not sure)
-//2b01: Outgoing, chrif_save -> 'charsave of char XY account XY (complete struct)' 
+//2b01: Outgoing, chrif_save -> 'charsave of char XY account XY (complete struct)'
 //2b02: Outgoing, chrif_charselectreq -> 'player returns from ingame to charserver to select another char.., this packets includes sessid etc' ? (not 100% sure)
 //2b03: Incomming, clif_charselectok -> '' (i think its the packet after enterworld?) (not sure)
 //2b04: Incomming, chrif_recvmap -> 'getting maps from charserver of other mapserver's'
-//2b05: Outgoing, chrif_changemapserver -> 'Tell the charserver the mapchange / quest for ok...' 
+//2b05: Outgoing, chrif_changemapserver -> 'Tell the charserver the mapchange / quest for ok...'
 //2b06: Incomming, chrif_changemapserverack -> 'awnser of 2b05, ok/fail, data: dunno^^'
 //2b07: FREE
 //2b08: Outgoing, chrif_searchcharid -> '...'
@@ -77,7 +78,7 @@ static const int packet_len_table[0x3d] = {
 //2b1b: Incomming, chrif_recvfamelist -> 'awnser of 2b1a ..... the famelist top10^^'
 //2b1c: FREE
 //2b1d: FREE
-//2b1e: FREE
+//2b1e: Incomming, chrif_pcauthok -> 'ack when player connects' NOTE: this is the newone (the mapserver loads / save the char itself!) (SQL ONLY)
 //2b1f: Incomming, chrif_disconnectplayer -> 'disconnects a player (aid X) with the message XY ... 0x81 ..' [Sirius]
 //2b20: Incomming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
 //2b21-2b27: FREE
@@ -233,27 +234,27 @@ int chrif_recvmap(int fd)
 int chrif_removemap(int fd){
 	int i, j, ip, port;
         unsigned char *p = (unsigned char *)&ip;
-        
-         	
-	if(chrif_state < 2){	
-		return -1; //i dunno, but i know if its 3 the link is ok^^ 
+
+
+	if(chrif_state < 2){
+		return -1; //i dunno, but i know if its 3 the link is ok^^
 	}
-	
+
 	ip = RFIFOL(fd, 4);
 	port = RFIFOW(fd, 8);
-	
+
 	for(i = 10, j = 0; i < RFIFOW(fd, 2); i += 16, j++){
 		map_eraseipport((char*)RFIFOP(fd, i), ip, port);
 	}
-	
-	
+
+
 	if(battle_config.etc_log){
 		printf("remove map of server %d.%d.%d.%d:%d (%d maps)\n", p[0], p[1], p[2], p[3], port, j);
 	}
-	
-	return 0;	
+
+	return 0;
 }
-	
+
 /*==========================================
  * マップ鯖間移動のためのデータ準備要求
  *------------------------------------------
@@ -358,7 +359,7 @@ int chrif_sendmapack(int fd)
 	}
 
 	memcpy(wisp_server_name, RFIFOP(fd,3), NAME_LENGTH);
-	
+
 	chrif_state = 2;
 
 	return 0;
@@ -928,40 +929,40 @@ int chrif_accountban(int fd)
 //packet.w AID.L WHY.B 2+4+1 = 7byte
 int chrif_disconnectplayer(int fd){
 	struct map_session_data *sd;
-	
+
 	sd = map_id2sd(RFIFOL(fd, 2));
-	
+
 	if(RFIFOL(fd, 2) <= 0 || sd == NULL){
 		return -1;
 	}
-	
-	//change sessid1 
+
+	//change sessid1
 	sd->login_id1++;
 
 	switch(RFIFOB(fd, 6)){
 		//clif_authfail_fd
-		case 1: //server closed 
-			clif_authfail_fd(fd, 1);	
+		case 1: //server closed
+			clif_authfail_fd(fd, 1);
 		break;
-		
+
 		case 2: //someone else logged in
-			clif_authfail_fd(fd, 2);		
+			clif_authfail_fd(fd, 2);
 		break;
-		
+
 		case 3: //server overpopulated
 			clif_authfail_fd(fd, 4);
-		
+
 		break;
-		
+
 		case 4: //out of time payd for .. (avail)
 			clif_authfail_fd(fd, 10);
 		break;
-		
+
 		case 5: //forced to dc by gm
 			clif_authfail_fd(fd, 15);
 		break;
 	}
-	
+
 return 0;
 }
 
@@ -1214,6 +1215,20 @@ int chrif_disconnect(int fd) {
 	return 0;
 }
 
+//The New-One char LOAD/SAVE system (SQL)
+int chrif_pcauthok(int fd){
+	//..
+ 	//OLD: pc_authok(RFIFOL(fd,4), RFIFOL(fd,8), (time_t)RFIFOL(fd,12),
+         //		(struct mmo_charstatus*)RFIFOP(fd,16)); break;
+
+	if(charsave_method != 1){
+         	printf("WARNING!! your settings ARE WRONG\n");
+                 printf("Youre trying to use the new savesystem @ charserver\n");
+                 printf("and @ mapserver the old-one is configured!\n");
+         }
+  return 0; //temp ;P
+}
+
 /*==========================================
  *
  *------------------------------------------
@@ -1260,7 +1275,7 @@ int chrif_parse(int fd)
 		case 0x2af9: chrif_connectack(fd); break;
 		case 0x2afb: chrif_sendmapack(fd); chrif_reqfamelist(); break;
 		case 0x2afd: pc_authok(RFIFOL(fd,4), RFIFOL(fd,8), (time_t)RFIFOL(fd,12), (struct mmo_charstatus*)RFIFOP(fd,16)); break;
-        case 0x2afe: pc_authfail(RFIFOL(fd,2)); break;
+        		case 0x2afe: pc_authfail(RFIFOL(fd,2)); break;
 		case 0x2b00: map_setusers(fd); break;
 		case 0x2b03: clif_charselectok(RFIFOL(fd,2)); break;
 		case 0x2b04: chrif_recvmap(fd); break;
@@ -1275,7 +1290,8 @@ int chrif_parse(int fd)
 		case 0x2b14: chrif_accountban(fd); break;
 		case 0x2b15: chrif_recvgmaccounts(fd); break;
 		case 0x2b1b: chrif_recvfamelist(fd); break;
-		case 0x2b1f: chrif_disconnectplayer(fd); break;
+                 case 0x2b1e: chrif_pcauthok(fd); break;
+                 case 0x2b1f: chrif_disconnectplayer(fd); break;
 		case 0x2b20: chrif_removemap(fd); break; //Remove maps of a server [Sirius]
 
 		default:

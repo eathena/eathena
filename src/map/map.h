@@ -970,6 +970,7 @@ extern char gm_db_account_id[32];
 
 extern int lowest_gm_level;
 extern int read_gm_interval;
+extern int charsave_method;
 
 //Own saving
 extern MYSQL charsql_handle;
