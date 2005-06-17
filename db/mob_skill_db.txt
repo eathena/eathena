@@ -2470,7 +2470,7 @@
 1618,Call Slave Porcellio Scabber,attack,196,4,1000,3000,36000,no,self,myhpltmaxrate,5,1625,,,,,
 1618,Call Slaves if they are dead,chase,196,4,10000,3000,36000,no,self,slavele,0,1625,,,,,
 1618,石化攻撃＠イビルドルイド,attack,180,5,100,1000,40000,yes,target,always,0,,,,,,
-1618,石化攻撃＠イビルドルイド,attack,361,5,100,1000,40000,yes,target,always,0,,,,,,
+1618,石化攻撃＠イビルドルイド,attack,361,5,100,1000,40000,yes,self,always,0,,,,,,
 
 //Noxious - Self-Explode
 1620,self Destroy,idle,173,1,160,0,0,no,self,myhpltmaxrate,90,,,,,,

@@ -24,6 +24,7 @@
 	4265,Li_Me_Mang_Ryang_Card
 
 06/11
+	* Changed Ungoliatnt Assumption skill's target to self from target [Skotlex]
 	* Updated skill_cast_db: Soul-Strike's casting time, Stone Curse's upkeep
 	  time as per the information provided by Midas	[Skotlex]
 	* Changed Sprinkle's Sand range from 8 to 1 (8??? o.O) [Skotlex]
