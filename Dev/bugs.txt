@@ -281,11 +281,6 @@ Problem:	Character global VARS save with delay. (BTW Account #vars are fine!)
 Assigned:	N/A
 Progress:	0%
 
-Problem:	Client Crash
-			When a wizard casts Energy coat then TELEPORTs
-Assigned:	N/A
-Progress:	0%
-
 Problem:	Charge Arrow bug
 			It can be casted w/o any BOW.. and with other weapon, or.. even with bare hands
 Assigned:	Celest
@@ -362,10 +357,6 @@ Problem:	HP_ASSUMPTIO skill
 Assigned:	na
 Progress:	0%
 
-Problem:	Energu Coat, Cloaking, etc DON'T work at all
-Assigned:	na
-Progress:	0%
-
 Problem:	Maps with more than 32 monsters (like anthell01 has 90++) will not load
 		the rest of them because map[i].moblist is full
 			Sorry, i only checked a few NPC files, wasn't seeing more than 32
@@ -401,3 +392,10 @@ damage, 2: skill does splash damage. Yet nowhere are we using that 2 value
 other than to call skill_castend_damage_id! And don't get me started on
 brandish spear having nk 1, then doing some initial calculations on
 skill_castend_nodamage_id and then invoking skill_castend_damage_id o.O
+
+
+Problem:	Guild Expulsion
+			When you kick someone of the guild. He can see Guild Window and him in there.
+			Until he reconnects.
+Assigned:	na
+Progress:	0%
