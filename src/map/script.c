@@ -7947,20 +7947,20 @@ int run_script_main(char *script,int pos,int rid,int oid,struct script_state *st
  * スクリプトの実行
  *------------------------------------------
  */
-int run_script(unsigned char *rootscript,int pos,int rid,int oid)
+int run_script(unsigned char *script,int pos,int rid,int oid)
 {
-	//struct script_stack stack;
 	struct script_state st;
 	struct map_session_data *sd;
+	unsigned char *rootscript = script;
 	int i;
 
-	if (rootscript == NULL || pos < 0)
+	if (script == NULL || pos < 0)
 		return -1;
 	memset(&st, 0, sizeof(struct script_state));
 
 	if ((sd = map_id2sd(rid)) && sd->stack && sd->npc_scriptroot == rootscript){
 		// 前回のスタックを復帰
-		st.script = sd->npc_script;
+		script = st.script = sd->npc_script;
 		st.stack  = sd->stack;
 		sd->stack = NULL;
 		sd->npc_script      = NULL;
@@ -7971,12 +7971,12 @@ int run_script(unsigned char *rootscript,int pos,int rid,int oid)
 		st.stack->sp = 0;
 		st.stack->sp_max = 64;
 		st.stack->stack_data = (struct script_data *) aCalloc (st.stack->sp_max,sizeof(st.stack->stack_data[0]));
-		st.script = rootscript;
+		//st.script = rootscript;
 	}
 	st.pos = pos;
 	st.rid = rid;
 	st.oid = oid;
-	run_script_main(rootscript, pos, rid, oid, &st, rootscript);
+	run_script_main(script, pos, rid, oid, &st, rootscript);
 
 	sd = map_id2sd(st.rid);
 	if (st.state != END && sd) {
