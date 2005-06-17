@@ -1,5 +1,6 @@
 Date	Added
 06/16
+	* Fixed "unable to add to guild" bug.	[Skotlex]
 	* fixed a typo of the guilds sql file DB definition [Lupus]
 	* Added left-out bonus bDef2 [celest]
 	* Moved minicore .o files compiling to under 'common' [celest]

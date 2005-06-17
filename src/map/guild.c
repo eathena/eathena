@@ -552,7 +552,7 @@ int guild_reply_invite(struct map_session_data *sd,int guild_id,int flag)
 	//I checked the code, and there's no "check" for the case where the guy
 	//that invites another to a guild quits the map-server before being replied.
 	//Hence that's a valid null pointer scenario. :) [Skotlex]
-	if ((tsd= map_id2sd( sd->guild_invite_account )) == NULL);
+	if ((tsd= map_id2sd( sd->guild_invite_account )) == NULL)
 	{	//Do we send a "invitation failed" msg or something to the player?
 		//Or should we accept the invitation and add it to the guild anyway?
 		//afterall, guild_invite holds the guild id that the player was invited to.
