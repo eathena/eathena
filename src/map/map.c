@@ -3060,6 +3060,13 @@ int map_config_read(char *cfgName) {
 				autosave_interval = atoi(w2) * 1000;
 				if (autosave_interval <= 0)
 					autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
+                         } else if(strcmpi(w1, "charsave_method") == 0){
+#ifndef TXT_ONLY
+                         	charsave_method = atoi(w2);
+#else
+				charsave_method = 0; //TXT dont support it..
+#endif
+
 			} else if (strcmpi(w1, "motd_txt") == 0) {
 				strcpy(motd_txt, w2);
 			} else if (strcmpi(w1, "help_txt") == 0) {

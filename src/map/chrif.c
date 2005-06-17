@@ -35,7 +35,7 @@ static const int packet_len_table[0x3d] = {
 	 6,-1,18, 7,-1,49,44, 0,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, F->2b07
 	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	-1,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
-	-1,-1,-1,-1,-1,-1,16, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, F->2b1c, F->2b1d, U->2b1e, U->2b1f
+	-1,-1,-1,-1,-1,-1,20, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, F->2b1c, F->2b1d, U->2b1e, U->2b1f
 	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b20-2b27: U->2b20, F->2b21, F->2b22, F->2b23, F->2b24, F->2b25, F->2b26, F->2b27
 };
 
@@ -153,13 +153,16 @@ int chrif_save(struct map_session_data *sd)
 
 	pc_makesavestatus(sd);
 
-	WFIFOW(char_fd,0) = 0x2b01;
-	WFIFOW(char_fd,2) = sizeof(sd->status) + 12;
-	WFIFOL(char_fd,4) = sd->bl.id;
-	WFIFOL(char_fd,8) = sd->char_id;
-	memcpy(WFIFOP(char_fd,12), &sd->status, sizeof(sd->status));
-	WFIFOSET(char_fd, WFIFOW(char_fd,2));
-
+         if(charsave_method == 1){ //New 'Local' save
+         	 charsave_savechar(sd->char_id, &sd->status);
+         }else{
+	         WFIFOW(char_fd,0) = 0x2b01;
+	         WFIFOW(char_fd,2) = sizeof(sd->status) + 12;
+	         WFIFOL(char_fd,4) = sd->bl.id;
+	         WFIFOL(char_fd,8) = sd->char_id;
+	         memcpy(WFIFOP(char_fd,12), &sd->status, sizeof(sd->status));
+	         WFIFOSET(char_fd, WFIFOW(char_fd,2));
+         }
 	storage_storage_save(sd); // to synchronise storage with character [Yor]
 
 	return 0;
@@ -1225,7 +1228,19 @@ int chrif_pcauthok(int fd){
          	printf("WARNING!! your settings ARE WRONG\n");
                  printf("Youre trying to use the new savesystem @ charserver\n");
                  printf("and @ mapserver the old-one is configured!\n");
-         }
+	}
+
+        struct mmo_charstatus *temp = charsave_loadchar(RFIFOL(fd, 14));
+
+        if(temp == NULL){
+        	printf("Cannot accept the client due an internal fault @ charsave_loadchar!\n");
+         pc_authfail(RFIFOL(fd, 2));
+        }else{
+        	temp->sex = RFIFOW(fd, 18);
+        	pc_authok(RFIFOL(fd, 2), RFIFOL(fd, 6), (time_t)RFIFOL(fd, 10), temp);
+        	aFree(temp);
+        }
+
   return 0; //temp ;P
 }
 

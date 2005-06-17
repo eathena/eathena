@@ -1949,8 +1949,9 @@ int parse_frommap(int fd) {
                                                  WFIFOL(fd, 2) = RFIFOL(fd, 2); //AID
                                                  WFIFOL(fd, 6) = auth_fifo[i].login_id2; //SESID #2
                                                  WFIFOL(fd, 10) = (unsigned long)auth_fifo[i].connect_until_time; //connect until ...
-                                                 WFIFOW(fd, 14) = auth_fifo[i].sex; //Sex
-                                                 WFIFOSET(fd, 16); //16 bytes long
+                                                 WFIFOL(fd, 14) = auth_fifo[i].char_id;
+                                                 WFIFOW(fd, 18) = auth_fifo[i].sex; //Sex
+                                                 WFIFOSET(fd, 20); //20 bytes long
                                                  set_char_online(auth_fifo[i].char_id, RFIFOL(fd, 2)); //set ON
                                                  break;
                                          }else{ //OLD

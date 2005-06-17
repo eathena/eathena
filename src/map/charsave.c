@@ -6,12 +6,13 @@
 #include "../common/socket.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
+#include "../common/mmo.h"
 
 #include "charsave.h"
 #include "map.h"
 
 
-int charsave_loadchar(int charid){
+struct mmo_charstatus *charsave_loadchar(int charid){
          int i;
 
          struct mmo_charstatus *c;
@@ -20,7 +21,7 @@ int charsave_loadchar(int charid){
          if(charid <= 0){
          	eprintf("charsave_loadchar() charid <= 0! (%d)", charid);
                  aFree(c);
-         	return -1;
+         	return NULL;
          }
 
 	//Tested, Mysql 4.1.9+ has no problems with the long query, the buf is 65k big and the sql server needs for it 0.00009 secs on an athlon xp 2400+ WinXP (1GB Mem) ..  [Sirius]
@@ -28,7 +29,7 @@ int charsave_loadchar(int charid){
     	if(mysql_query(&charsql_handle, charsql_tmpsql)){
          	eprintf("charsave_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
                  aFree(c);
-         	return -1;
+         	return NULL;
          }
 
          charsql_res = mysql_store_result(&charsql_handle);
@@ -36,7 +37,7 @@ int charsave_loadchar(int charid){
          	printf("WARNING -> charsave_loadchar() -> CHARA NOT FOUND! (id: %d)\n", charid);
          	mysql_free_result(charsql_res);
                  aFree(c);
-         	return -1;
+         	return NULL;
          }
 
          //fetch data
@@ -80,16 +81,16 @@ int charsave_loadchar(int charid){
          c->head_mid = atoi(charsql_row[34]);
          c->head_bottom = atoi(charsql_row[35]);
     	strcpy(c->last_point.map, charsql_row[36]);
-         c->last_point.x = atoi(charsql_row[36]);
-         c->last_point.y = atoi(charsql_row[37]);
-    	strcpy(c->save_point.map, charsql_row[38]);
-         c->save_point.x = atoi(charsql_row[39]);
-         c->save_point.y = atoi(charsql_row[40]);
-         c->partner_id = atoi(charsql_row[41]);
-         c->father = atoi(charsql_row[42]);
-         c->mother = atoi(charsql_row[43]);
-         c->child = atoi(charsql_row[44]);
-         c->fame = atoi(charsql_row[45]);
+         c->last_point.x = atoi(charsql_row[37]);
+         c->last_point.y = atoi(charsql_row[38]);
+    	strcpy(c->save_point.map, charsql_row[39]);
+         c->save_point.x = atoi(charsql_row[40]);
+         c->save_point.y = atoi(charsql_row[41]);
+         c->partner_id = atoi(charsql_row[42]);
+         c->father = atoi(charsql_row[43]);
+         c->mother = atoi(charsql_row[44]);
+         c->child = atoi(charsql_row[45]);
+         c->fame = atoi(charsql_row[46]);
 
         	mysql_free_result(charsql_res);
 
@@ -112,7 +113,7 @@ int charsave_loadchar(int charid){
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
          	eprintf("charsave_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
                  aFree(c);
-                 return -1;
+                 return NULL;
          }
 
          charsql_res = mysql_store_result(&charsql_handle);
@@ -127,11 +128,11 @@ int charsave_loadchar(int charid){
 
 
          //read inventory...
-         sprintf(charsql_tmpsql, "SELECT `id`, `nameid`, `amount`, `equip`, `indentify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` FROM `inventory` WHERE `char_id` = '%d'", charid);
+         sprintf(charsql_tmpsql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` FROM `inventory` WHERE `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
          	eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
                  aFree(c);
-                 return -1;
+                 return NULL;
          }
 
          charsql_res = mysql_store_result(&charsql_handle);
@@ -154,11 +155,11 @@ int charsave_loadchar(int charid){
 
 
          //cart inventory ..
-         sprintf(charsql_tmpsql, "SELECT `id`, `nameid`, `amount`, `equip`, `indentify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` FROM `cart_inventory` WHERE `char_id` = '%d'", charid);
+         sprintf(charsql_tmpsql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` FROM `cart_inventory` WHERE `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
          	eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
                  aFree(c);
-                 return -1;
+                 return NULL;
          }
 
          charsql_res = mysql_store_result(&charsql_handle);
@@ -185,7 +186,7 @@ int charsave_loadchar(int charid){
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
          	eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
                  aFree(c);
-                 return -1;
+                 return NULL;
          }
 
          charsql_res = mysql_store_result(&charsql_handle);
@@ -203,7 +204,7 @@ int charsave_loadchar(int charid){
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
          	eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
                  aFree(c);
-                 return -1;
+                 return NULL;
          }
 
          charsql_res = mysql_store_result(&charsql_handle);
@@ -215,13 +216,18 @@ int charsave_loadchar(int charid){
                  mysql_free_result(charsql_res);
          }
 
+      	printf("charsql_loadchar(): loading of '%d' (%s) Complete.\n", charid, c->name);
 
-
-    return c;
+return c;
 }
 
 
-int charsave_savechar(void){
-  	return 0;
-}
 
+
+
+int charsave_savechar(int charid, struct mmo_charstatus *c){
+	printf("SAVE REQ: %d NAME: %s\n", charid, c->name);
+ 	printf("currently charsave is incomplete ! the char will not be saved, sirius will continue it 18.6.05\n");
+
+         return 0;
+}

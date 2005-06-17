@@ -3,6 +3,7 @@ Date	Added
 	!!!Bug: on optimizing run_script, Kafra NPC stopped working. Celest, read it plz. [Lupus]
 	  -- Fixed, sorry ^^; Please test and tell me if anything goes wrong [celest]
 	  --- Yes. It's fixed now. (Equipment upgraders, etc werent' working, too) [Lupus]
+	* Started adding the charsave_method, Loading is working, saving will be finished @ 18.6.05 [Sirius]
 	* SuperUser checking ... (never run athena as root!) [Sirius]
 	* Added eprintf/eprint (eprintf is equal to printf) but it displays line / file ... (to stdrerr)[Sirius]
 	* Fixed Ungoliatnt casting assumptio on it's target instead of self.	[Skotlex]
