@@ -1563,9 +1563,10 @@ int map_quit(struct map_session_data *sd) {
 		map_delblock(&sd->bl);
 	}
 
-	if( sd->npc_stackbuf && sd->npc_stackbuf != NULL) {
-		aFree( sd->npc_stackbuf );
-		sd->npc_stackbuf = NULL;
+	if (sd->stack) {
+		aFree (sd->stack);
+		aFree (sd->stack->stack_data);
+		sd->stack= NULL;
 	}
 
 	chrif_char_offline(sd);

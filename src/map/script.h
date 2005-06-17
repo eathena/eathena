@@ -42,7 +42,7 @@ struct script_state {
 };
 
 char * parse_script(unsigned char *,int);
-int run_script(char *,int,int,int);
+int run_script(unsigned char *,int,int,int);
 
 int set_var(struct map_session_data *sd, char *name, void *val);
 int conv_num(struct script_state *st,struct script_data *data);

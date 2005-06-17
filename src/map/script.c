@@ -7940,21 +7940,6 @@ int run_script_main(char *script,int pos,int rid,int oid,struct script_state *st
 		break;
 	}
 
-	if( st->state!=END){
-		// 再開するためにスタック情報を保存
-		struct map_session_data *sd=map_id2sd(st->rid);
-		if(sd/* && sd->npc_stackbuf==NULL*/){
-			if( sd->npc_stackbuf )
-				aFree( sd->npc_stackbuf );
-			sd->npc_stackbuf = (char *)aCalloc(sizeof(stack->stack_data[0])*stack->sp_max,sizeof(char));
-			memcpy(sd->npc_stackbuf, stack->stack_data, sizeof(stack->stack_data[0]) * stack->sp_max);
-			sd->npc_stack = stack->sp;
-			sd->npc_stackmax = stack->sp_max;
-			sd->npc_script=script;
-			sd->npc_scriptroot=rootscript;
-		}
-	}
-
 	return 0;
 }
 
@@ -7962,39 +7947,52 @@ int run_script_main(char *script,int pos,int rid,int oid,struct script_state *st
  * スクリプトの実行
  *------------------------------------------
  */
-int run_script(char *script,int pos,int rid,int oid)
+int run_script(unsigned char *rootscript,int pos,int rid,int oid)
 {
-	struct script_stack stack;
+	//struct script_stack stack;
 	struct script_state st;
-	struct map_session_data *sd=map_id2sd(rid);
-	char *rootscript=script;
+	struct map_session_data *sd;
+	int i;
 
-	if(script==NULL || pos<0)
+	if (rootscript == NULL || pos < 0)
 		return -1;
+	memset(&st, 0, sizeof(struct script_state));
 
-	if(sd && sd->npc_stackbuf && sd->npc_scriptroot==rootscript){
+	if ((sd = map_id2sd(rid)) && sd->stack && sd->npc_scriptroot == rootscript){
 		// 前回のスタックを復帰
-		script=sd->npc_script;
-		stack.sp=sd->npc_stack;
-		stack.sp_max=sd->npc_stackmax;
-		stack.stack_data=(struct script_data *)aCalloc(stack.sp_max,sizeof(stack.stack_data[0]));
-		memcpy(stack.stack_data,sd->npc_stackbuf,sizeof(stack.stack_data[0])*stack.sp_max);
-		aFree(sd->npc_stackbuf);
-		sd->npc_stackbuf=NULL;
-	}else{
+		st.script = sd->npc_script;
+		st.stack  = sd->stack;
+		sd->stack = NULL;
+		sd->npc_script      = NULL;
+		sd->npc_scriptroot  = NULL;
+	} else {
 		// スタック初期化
-		stack.sp=0;
-		stack.sp_max=64;
-		stack.stack_data=(struct script_data *)aCalloc(stack.sp_max,sizeof(stack.stack_data[0]));
+		st.stack = aCalloc (1, sizeof(struct script_stack));
+		st.stack->sp = 0;
+		st.stack->sp_max = 64;
+		st.stack->stack_data = (struct script_data *) aCalloc (st.stack->sp_max,sizeof(st.stack->stack_data[0]));
+		st.script = rootscript;
 	}
-	st.stack=&stack;
-	st.pos=pos;
-	st.rid=rid;
-	st.oid=oid;
-	run_script_main(script,pos,rid,oid,&st,rootscript);
+	st.pos = pos;
+	st.rid = rid;
+	st.oid = oid;
+	run_script_main(rootscript, pos, rid, oid, &st, rootscript);
 
-	aFree(stack.stack_data);
-	stack.stack_data=NULL;
+	sd = map_id2sd(st.rid);
+	if (st.state != END && sd) {
+		// 再開するためにスタック情報を保存
+		sd->npc_script      = st.script;
+		sd->npc_scriptroot  = rootscript;
+		sd->stack           = st.stack;
+
+	} else {
+		for (i = 0; i < st.stack->sp; i++)
+			if (st.stack->stack_data[i].type == C_STR)
+				aFree(st.stack->stack_data[i].u.str);
+		aFree(st.stack->stack_data);
+		aFree(st.stack);
+	}
+
 	return st.pos;
 }
 

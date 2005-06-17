@@ -1,4 +1,8 @@
 Date	Added
+06/17
+	* Optimised run_script a bit, based on jA [celest]
+	* Fixed a memory leak in script.c [celest]
+
 06/16
 	* Fixed "unable to add to guild" bug.	[Skotlex]
 	* fixed a typo of the guilds sql file DB definition [Lupus]
