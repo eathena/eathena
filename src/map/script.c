@@ -170,50 +170,6 @@ static int npcclose(lua_State *NL)
 	return lua_yield(NL, 0);
 }
 
-// npcclose2(id)
-// Display a [Close] button in the NPC dialog window of the player but keep the script running
-static int npcclose2(lua_State *NL)
-{
-	struct map_session_data *sd = NULL;
-	int charid, npcid;
-	
-	charid=lua_tonumber(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script");
-		return -1;
-	}
-	npcid = sd->npc_id;
-	sd->npc_script_state = STOP;
-	
-	clif_scriptclose(sd,npcid);
-	
-	return lua_yield(NL, 0);
-}
-
-// npcend(id)
-// End a script that is uses close2
-static int npcend(lua_State *NL)
-{
-	struct map_session_data *sd = NULL;
-	int charid;
-	
-	charid=lua_tonumber(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script");
-		return -1;
-	}
-	
-	if(sd->npc_script_state != STOP) {
-		lua_pushstring(NL, "Script state must be stoped before using npcend, please use npcclose2!");
-		lua_error(NL);
-		return -1;
-	}
-	sd->npc_script_state = NRUN;
-	sd->npc_id = 0;
-	
-	return 0;
-}
-
 // npcnext(id)
 // Display a [Next] button in the NPC dialog window of the player and pause the script until the button is clicked
 static int npcnext(lua_State *NL)
@@ -260,7 +216,7 @@ static int npcinput(lua_State *NL)
 			break;
 	}
 
-	return lua_yield(NL, 0);;
+	return lua_yield(NL, 0);
 }
 
 // npcmenu(id,"menu_name", return_value)
@@ -396,8 +352,6 @@ static struct LuaCommandInfo commands[] = {
 	/* NPC dialog window functions */
 	{"npcmes", npcmes},
 	{"npcclose", npcclose},
-	{"npcclose2", npcclose2},
-	{"npcend", npcend},
 	{"npcnext", npcnext},
 	{"npcinput", npcinput},
 	{"npcmenu", npcmenu},
@@ -431,27 +385,12 @@ void script_buildin_commands()
 	
 }
 
-//Set the current state for another character
-void script_setstate(struct map_session_data *sd, int state) {
-	sd->npc_script_state = state;
-}
-
-//Return the current state for another character
-int script_getstate(struct map_session_data *sd) {
-	return sd->npc_script_state;
-}
-
 //Resume an already paused script with no arguments
 int script_resume(struct map_session_data *sd) {
 	if(lua_resume(sd->NL, 0)) {
 		ShowError("CAN NOT RESUME SCRIPT!");
 	}
 	return 0;
-}
-
-//Access function for other files to get the global lua state
-lua_State *script_getluastate(void) {
-	return L;
 }
 
 // Run a Lua function that was previously loaded, specifying the type of arguments with a "format" string
@@ -461,6 +400,7 @@ void script_run_function(const char *name,const char *format,...)
 	int n=0;
 
 	lua_getglobal(L,name); // Pass function name to Lua
+
 	va_start(arg,format); // Initialize the argument list
 	while (*format) { // Pass arguments to Lua, according to the types defined by "format"
         switch (*format++) {
@@ -478,7 +418,7 @@ void script_run_function(const char *name,const char *format,...)
         }
         n++;
         luaL_checkstack(L,1,"Too many arguments");
-      }
+    }
 	if (lua_pcall(L,n,0,0)!=0){ // Tell Lua to run the function
 		ShowError("Cannot run function %s : %s\n",name,lua_tostring(L,-1));
 		return;
@@ -487,7 +427,7 @@ void script_run_function(const char *name,const char *format,...)
 	va_end(arg);
 }
 
-// Added this function because we needed to get a sperate lua state from the map_session_data, and need to have a set number of args
+// Added this function because we needed to get a separate lua state from the map_session_data, and need to have a set number of args
 void script_run_script(const char *name, int char_id)
 {
 
@@ -496,7 +436,7 @@ void script_run_script(const char *name, int char_id)
 	lua_State *NL = sd->NL;
 	
 	lua_getglobal(NL,name); // Pass function name to Lua
-    lua_pushnumber(NL,char_id);//Send char_id to function
+    lua_pushnumber(NL,char_id); //Send char_id to function
 	if (lua_resume(NL,1)!=0){ // Tell Lua to run the function
 		ShowError("Cannot run function %s : %s\n",name,lua_tostring(L,-1));
 		return;

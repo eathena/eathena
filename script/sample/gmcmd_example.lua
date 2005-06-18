@@ -7,5 +7,3 @@ function gmcmd_heal()
 	disp "Your HP/SP have been restored!"
 end
 --]]
-
-print "GM command example successfully loaded !"

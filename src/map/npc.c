@@ -84,6 +84,35 @@ struct npc_data* npc_name2id(const char *name)
 }
 
 /*==========================================
+ * Click on an NPC
+ *------------------------------------------
+ */
+int npc_click(struct map_session_data *sd,int id)
+{
+	struct npc_data *nd;
+
+	nullpo_retr(1, sd);
+
+	if (sd->npc_id)
+		return 1;
+
+	if (npc_checknear(sd,id))
+		return 1;
+
+	nd=(struct npc_data *)map_id2bl(id);
+
+	if (nd->flag&1)	// Do not allow using hidden/disbled NPCs
+		return 1;
+
+	sd->npc_id=id;
+	sd->NL=lua_newthread(L);
+	sd->npc_script_state=RUNNING;
+	script_run_script(nd->function,sd->char_id);
+
+	return 0;
+}
+
+/*==========================================
  * Activate area scripts
  *------------------------------------------
  */
@@ -93,17 +122,15 @@ int npc_touch_areascript(struct map_session_data *sd,int m,int x,int y)
 
 	nullpo_retr(1, sd);
 
-	if(sd->npc_id)
+	if(sd->areascript_id)
 		return 0;
 
 	for(i=0;i<map[m].areascript_num;i++) { // Scan every areascript on the map
 		if (!map[m].areascript[i]->flag&1 && // Ignore hidden/disabled scripts
 			x >= map[m].areascript[i]->x1 && x <= map[m].areascript[i]->x2 &&
 			y >= map[m].areascript[i]->y1 && x <= map[m].areascript[i]->y2) {
-				if(sd->in_areascript == 0) {
-					script_run_function(map[m].areascript[i]->function,"i",sd->char_id);
-					return 1;
-				}
+			sd->areascript_id=map[m].areascript[i]->bl.id;
+			script_run_function(map[m].areascript[i]->function,"i",sd->char_id);
 		}
 	}
 	return 0;
@@ -193,38 +220,6 @@ int npc_globalmessage(const char *name,char *mes)
 }
 
 /*==========================================
- * ƒNƒŠƒbƒN‚ÌNPCˆ—
- *------------------------------------------
- */
-int npc_click(struct map_session_data *sd,int id)
-{
-	struct npc_data *nd;
-
-	nullpo_retr(1, sd);
-
-	if (sd->npc_id != 0) {
-		if (battle_config.error_log)
-			printf("npc_click: npc_id != 0\n");
-		return 1;
-	}
-
-	if (npc_checknear(sd,id))
-		return 1;
-
-	nd=(struct npc_data *)map_id2bl(id);
-
-	if (nd->flag&1)	// –³Œø‰»‚³‚ê‚Ä‚¢‚é
-		return 1;
-
-	sd->npc_id=id;
-	sd->NL = lua_newthread(script_getluastate());
-	script_setstate(sd, RUNNING);
-	script_run_script(nd->function,sd->char_id);
-
-	return 0;
-}
-
-/*==========================================
  *
  *------------------------------------------
  */
@@ -258,7 +253,7 @@ int npc_scriptend(struct map_session_data *sd,int id)
 	if(sd->npc_script_state == HALT) {
 		if(sd->npc_id > 0) {
 			sd->npc_id = 0;
-			script_setstate(sd, NRUN);
+			sd->npc_script_state = NRUN;
 		}
 	} else {
 		sd->npc_script_state=RUNNING;
@@ -284,9 +279,7 @@ int npc_scriptnext(struct map_session_data *sd,int id)
 	script_resume(sd);
 		
 	return 0;
-	
 }
-
 
 /*==========================================
  *
@@ -305,7 +298,6 @@ int npc_buysellsel(struct map_session_data *sd,int id,int type)
 	if (nd->flag&1)	// –³Œø‰»‚³‚ê‚Ä‚¢‚é
 		return 1;
 
-	sd->npc_shopid=id;
 	if (type==0) {
 		clif_buylist(sd,nd);
 	} else {
@@ -404,7 +396,7 @@ int npc_selllist(struct map_session_data *sd,int n,unsigned short *item_list)
 	nullpo_retr(1, sd);
 	nullpo_retr(1, item_list);
 
-	if (npc_checknear(sd,sd->npc_shopid))
+	if (npc_checknear(sd,sd->npc_id))
 		return 1;
 	for(i=0,z=0;i<n;i++) {
 		int nameid;

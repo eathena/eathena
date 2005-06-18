@@ -32,5 +32,3 @@ end
 function areascript_biter(id)
 	percentheal(id, -50, -50)
 end
-
-print "NPC example successfully loaded !"

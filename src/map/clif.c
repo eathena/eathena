@@ -8947,8 +8947,7 @@ void clif_parse_NpcClicked(int fd,struct map_session_data *sd)
 		clif_clearchar_area(&sd->bl,1);
 		return;
 	}
-	if(sd->npc_id!=0 || sd->vender_id != 0)
-		return;
+
 	npc_click(sd,RFIFOL(fd,2));
 }
 
@@ -9632,7 +9631,7 @@ void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)
  */
 void clif_parse_NpcCloseClicked(int fd,struct map_session_data *sd)
 {
-	npc_scriptend(sd,RFIFOL(fd,2));
+/*	npc_scriptend(sd,RFIFOL(fd,2));*/
 }
 
 /*==========================================

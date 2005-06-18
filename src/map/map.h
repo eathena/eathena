@@ -221,15 +221,11 @@ struct map_session_data {
 	struct walkpath_data walkpath;
 	int walktimer;
 	int next_walktime;
-	int npc_id,areanpc_id,npc_shopid;
-	unsigned in_areascript : 1;
+	int npc_id,areascript_id;
 	int npc_pos;
 	int npc_menu;
 	npc_menu_datas npc_menu_data;
 	int npc_amount;
-	int npc_stack,npc_stackmax;
-	char *npc_script,*npc_scriptroot;
-	char *npc_stackbuf;
 	char npc_str[256];
 	int npc_script_state;
 	lua_State *NL;

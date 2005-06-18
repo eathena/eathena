@@ -51,4 +51,3 @@ int npc_reload(void);
 extern char *current_file;
 
 #endif
-

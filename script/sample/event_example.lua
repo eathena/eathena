@@ -13,5 +13,3 @@ end
 function PCDieEvent(id)
 	print("Player with ID "..id.." died !")
 end
-
-print "Event example successfully loaded !"

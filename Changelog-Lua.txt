@@ -1,4 +1,7 @@
 Date	Added
+06/18
+	* Some reorganizing in scripts, some Payon warps weren't properly converted to Lua style,
+	  I commented them out for the moment. Except those ones, warps work perfectly! [DracoRPG]
 06/12
 	* Fixed areascripts running everytime you walk, now only runs when you go into an area. [Kevin]
 	* Menu functions work, Usage: [Kevin]

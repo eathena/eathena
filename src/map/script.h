@@ -24,7 +24,8 @@ struct LuaCommandInfo {
 	const char *command;
 	lua_CFunction f;
 };
-	
+
+lua_State *L;
 
 extern char mapreg_txt[];
 
@@ -32,11 +33,7 @@ void script_run_function(const char *name,const char *format,...); // [DracoRPG]
 void script_run_script(const char *name, int char_id); // [Kevin]
 void script_run_chunk(const char *chunk); // [DracoRPG]
 void script_buildin_commands(); // [Kevin]
-void script_setstate(struct map_session_data *sd, int state); // [Kevin]
-int script_getstate(struct map_session_data *sd); // [Kevin]
-lua_State *script_getluastate(void); // [Kevin]
 int script_resume(struct map_session_data *sd); // [Kevin]
-lua_State *script_getluascriptstate(struct map_session_data *sd); // [Kevin]
 int script_config_read(char *cfgName);
 int do_init_script();
 int do_final_script();

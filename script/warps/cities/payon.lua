@@ -84,7 +84,7 @@ addwarp("payonwarp047","payon_in01.gat",42,11,"payon.gat",253,285,2,2)
 addwarp("payonwarp048","pay_arche.gat",36,131,"pay_dun00.gat",21,183,2,2)
 addwarp("payonwarp049","pay_arche.gat",71,156,"payon_in02.gat",82,41,2,2)
 addwarp("payonwarp050","pay_arche.gat",92,170,"payon_in02.gat",50,7,2,2)
-addwarp("warp","pay_arche.gat",145,165,"2",payon_in02.gat,64,payonwarp051,2)
+--[[addwarp("warp","pay_arche.gat",145,165,"2",payon_in02.gat,64,payonwarp051,2)
 addwarp("warp","payon_in02.gat",10,25,"2",payon_in02.gat,72,payonwarp052,2)
 addwarp("warp","payon_in02.gat",35,67,"2",payon_in02.gat,55,payonwarp053,2)
 addwarp("warp","payon_in02.gat",50,4,"1",pay_arche.gat,92,payonwarp054,3)
@@ -93,19 +93,19 @@ addwarp("warp","payon_in02.gat",61,33,"2",payon_in02.gat,73,payonwarp056,2)
 addwarp("warp","payon_in02.gat",64,56,"2",pay_arche.gat,141,payonwarp057,2)
 addwarp("warp","payon_in02.gat",70,33,"2",payon_in02.gat,58,payonwarp058,2)
 addwarp("warp","payon_in02.gat",75,67,"2",payon_in02.gat,13,payonwarp059,2)
-addwarp("warp","payon_in02.gat",82,45,"2",pay_arche.gat,74,payonwarp060,2)
+addwarp("warp","payon_in02.gat",82,45,"2",pay_arche.gat,74,payonwarp060,2)]]
 
 -- == Self Made Warps, No Screen Availble ==
 
 -- == Large West House ==
 addwarp("payonwarp061","payon.gat",127,204,"payon_in03.gat",81,19,2,2)
 addwarp("payonwarp062","payon_in03.gat",85,19,"payon.gat",131,204,2,2)
-addwarp("warp","payon_in03.gat",74,18,"2",payon_in03.gat,62,payonwarp063,2)
+--[[addwarp("warp","payon_in03.gat",74,18,"2",payon_in03.gat,62,payonwarp063,2)
 addwarp("warp","payon_in03.gat",67,18,"2",payon_in03.gat,78,payonwarp064,2)
 addwarp("warp","payon_in03.gat",46,18,"2",payon_in03.gat,35,payonwarp065,2)
 addwarp("warp","payon_in03.gat",39,18,"2",payon_in03.gat,51,payonwarp066,2)
 addwarp("warp","payon_in03.gat",28,18,"2",payon_in03.gat,17,payonwarp067,2)
-addwarp("warp","payon_in03.gat",21,18,"2",payon_in03.gat,32,payonwarp068,2)
+addwarp("warp","payon_in03.gat",21,18,"2",payon_in03.gat,32,payonwarp068,2)]]
 
 -- == Big Kitchen ==
 addwarp("payonwarp069","payon.gat",155,327,"payon_in03.gat",165,143,2,2)
@@ -116,7 +116,7 @@ addwarp("payonwarp072","payon_in03.gat",185,153,"payon_in03.gat",185,182,2,2)
 -- == Upper Castle ==
 addwarp("payonwarp073","payon.gat",107,327,"payon_in03.gat",19,64,2,2)
 addwarp("payonwarp074","payon_in03.gat",19,60,"payon.gat",107,323,2,2)
-addwarp("warp","payon_in03.gat",19,73,"2",payon_in03.gat,19,payonwarp075,2)
+--[[addwarp("warp","payon_in03.gat",19,73,"2",payon_in03.gat,19,payonwarp075,2)
 addwarp("warp","payon_in03.gat",19,86,"2",payon_in03.gat,19,payonwarp076,2)
 addwarp("warp","payon_in03.gat",19,103,"2",payon_in03.gat,19,payonwarp077,2)
 addwarp("warp","payon_in03.gat",19,118,"2",payon_in03.gat,19,payonwarp078,2)
@@ -127,7 +127,7 @@ addwarp("warp","payon_in03.gat",27,142,"2",payon_in03.gat,27,payonwarp082,2)
 addwarp("warp","payon_in03.gat",11,161,"2",payon_in03.gat,11,payonwarp083,2)
 addwarp("warp","payon_in03.gat",11,172,"2",payon_in03.gat,11,payonwarp084,2)
 addwarp("warp","payon_in03.gat",27,161,"2",payon_in03.gat,27,payonwarp085,2)
-addwarp("warp","payon_in03.gat",27,172,"2",payon_in03.gat,27,payonwarp086,2)
+addwarp("warp","payon_in03.gat",27,172,"2",payon_in03.gat,27,payonwarp086,2)]]
 
 -- == House ==
 addwarp("payonwarp087","payon_in01.gat",86,9,"payon.gat",266,152,2,2)

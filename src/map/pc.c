@@ -3490,16 +3490,14 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 			}
 		}
 
-	if(map_getcell(sd->bl.m,x,y,CELL_CHKSCRIPT)) {
-		if(npc_touch_areascript(sd,sd->bl.m,x,y)) {
-			sd->in_areascript = 1;
-		}
-	} else {
-		sd->areanpc_id=0;
-		sd->in_areascript = 0;
-	}
-	if(map_getcell(sd->bl.m,x,y,CELL_CHKWARP))
-		npc_touch_warp(sd,sd->bl.m,x,y);
+		if(map_getcell(sd->bl.m,x,y,CELL_CHKSCRIPT))
+			npc_touch_areascript(sd,sd->bl.m,x,y);
+		else
+			sd->areascript_id=0;
+
+		if(map_getcell(sd->bl.m,x,y,CELL_CHKWARP))
+			npc_touch_warp(sd,sd->bl.m,x,y);
+
 	}
 
 	if ((i = calc_next_walk_step(sd)) > 0) {
@@ -3692,9 +3690,11 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y)
 	if(map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKSCRIPT))
 		npc_touch_areascript(sd,sd->bl.m,sd->bl.x,sd->bl.y);
 	else
-		sd->areanpc_id=0;
+		sd->areascript_id=0;
+
 	if(map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKWARP))
 		npc_touch_warp(sd,sd->bl.m,sd->bl.x,sd->bl.y);
+
 	return 0;
 }
 
@@ -7578,6 +7578,5 @@ int do_init_pc(void) {
 			night_timer_tid = add_timer_interval(gettick() + day_duration + night_duration, map_night_timer, 0, 0, day_duration + night_duration);
 		}
 	}
-
 	return 0;
 }
