@@ -1,5 +1,9 @@
 Date	Added
 06/18
+	* celest:
+		added a graph.c / graph.h with void graph_init and graph_final functions
+		due to compiling errors [sirius]
+	* SQL USERS: upgrade with upgrade_2252.sql! 
 	* Added new maps, items. Thanks to Landarma [Lupus]
 	* Added graph creation code by jA / End_of_exam (currently disabled until
 	  finished) [celest]

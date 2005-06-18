@@ -94,6 +94,10 @@
 //For Map Names, which the client considers to be 16 in length
 #define MAP_NAME_LENGTH 16
 
+//Friend list
+#define MAX_FRIENDS 20
+
+
 #define CHAR_CONF_NAME  "conf/char_athena.conf"
 
 struct item {
@@ -136,6 +140,11 @@ struct s_pet {
 	char incuvate;
 };
 
+struct friend {
+	int friend_id;
+         char friend_name[NAME_LENGTH];
+};
+
 struct mmo_charstatus {
 	int char_id;
 	int account_id;
@@ -175,6 +184,8 @@ struct mmo_charstatus {
 	int account_reg2_num;
 	struct global_reg account_reg2[ACCOUNT_REG2_NUM];
 
+
+         //struct friend friends[MAX_FRIENDS];
 	// Friends list vars
 	int friend_id[20];
 	char friend_name[20][NAME_LENGTH];
@@ -299,7 +310,7 @@ struct guild_castle {
 	int Ghp4;
 	int Ghp5;
 	int Ghp6;
-	int Ghp7;	
+	int Ghp7;
 	int GID0;
 	int GID1;
 	int GID2;

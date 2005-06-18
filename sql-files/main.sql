@@ -455,51 +455,10 @@ CREATE TABLE `storage` (
   KEY `account_id` (`account_id`)
 ) TYPE=MyISAM; 
 
+
+
 CREATE TABLE `friends` (
-  `id` int(11) NOT NULL auto_increment,
-  `account_id` int(11) NOT NULL default '0',
-  `friend_id0` int(11) NOT NULL default '0',
-  `name0` varchar(255) NOT NULL default '',
-  `friend_id1` int(11) NOT NULL default '0',
-  `name1` varchar(255) NOT NULL default '',
-  `friend_id2` int(11) NOT NULL default '0',
-  `name2` varchar(255) NOT NULL default '',
-  `friend_id3` int(11) NOT NULL default '0',
-  `name3` varchar(255) NOT NULL default '',
-  `friend_id4` int(11) NOT NULL default '0',
-  `name4` varchar(255) NOT NULL default '',
-  `friend_id5` int(11) NOT NULL default '0',
-  `name5` varchar(255) NOT NULL default '',
-  `friend_id6` int(11) NOT NULL default '0',
-  `name6` varchar(255) NOT NULL default '',
-  `friend_id7` int(11) NOT NULL default '0',
-  `name7` varchar(255) NOT NULL default '',
-  `friend_id8` int(11) NOT NULL default '0',
-  `name8` varchar(255) NOT NULL default '',
-  `friend_id9` int(11) NOT NULL default '0',
-  `name9` varchar(255) NOT NULL default '',
-  `friend_id10` int(11) NOT NULL default '0',
-  `name10` varchar(255) NOT NULL default '',
-  `friend_id11` int(11) NOT NULL default '0',
-  `name11` varchar(255) NOT NULL default '',
-  `friend_id12` int(11) NOT NULL default '0',
-  `name12` varchar(255) NOT NULL default '',
-  `friend_id13` int(11) NOT NULL default '0',
-  `name13` varchar(255) NOT NULL default '',
-  `friend_id14` int(11) NOT NULL default '0',
-  `name14` varchar(255) NOT NULL default '',
-  `friend_id15` int(11) NOT NULL default '0',
-  `name15` varchar(255) NOT NULL default '',
-  `friend_id16` int(11) NOT NULL default '0',
-  `name16` varchar(255) NOT NULL default '',
-  `friend_id17` int(11) NOT NULL default '0',
-  `name17` varchar(255) NOT NULL default '',
-  `friend_id18` int(11) NOT NULL default '0',
-  `name18` varchar(255) NOT NULL default '',
-  `friend_id19` int(11) NOT NULL default '0',
-  `name19` varchar(255) NOT NULL default '',
-  `friend_id20` int(11) NOT NULL default '0',
-  `name20` varchar(255) NOT NULL default '',
-  PRIMARY KEY  (`id`),
-  KEY `account_id` (`account_id`)
-) TYPE=MyISAM
+  `char_id` int(11) NOT NULL default '0',
+  `friend_id` int(11) NOT NULL default '0'
+) TYPE=MyISAM;
+        

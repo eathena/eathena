@@ -7,6 +7,7 @@ common: obj/core.o obj/socket.o obj/timer.o obj/db.o obj/plugins.o obj/lock.o \
 	obj/nullpo.o obj/malloc.o obj/showmsg.o  obj/strlib.o obj/utils.o \
 	obj/graph.o obj/grfio.o obj/minicore.o obj/minisocket.o obj/minimalloc.o
 
+
 obj/%.o: %.c
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
@@ -40,7 +41,7 @@ obj/timer.o: timer.c timer.h showmsg.h
 obj/db.o: db.c db.h showmsg.h
 obj/lock.o: lock.c lock.h showmsg.h
 obj/grfio.o: grfio.c grfio.h
-obj/graph.o: graph.c grfio.h
+obj/graph.o: graph.c graph.h
 obj/nullpo.o: nullpo.c nullpo.h showmsg.h
 obj/malloc.o: malloc.c malloc.h showmsg.h
 obj/plugins.o: plugins.c plugins.h plugin.h

@@ -269,6 +269,7 @@ void read_gm_account(void) {
 
 // Insert friends list
 int insert_friends(int char_id){
+/*
 	int i;
 	char *tmp_p = tmp_sql;
 
@@ -288,6 +289,7 @@ int insert_friends(int char_id){
 		printf("DB server Error (insert `friend`)- %s\n", mysql_error(&mysql_handle));
          	return 0;
          }
+         */
 return 1;
 }
 
@@ -314,7 +316,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	int count = 0;
 	int diff = 0;
 	char temp_str[64]; //2x the value of the string before jstrescapecpy [Skotlex]
-	char *tmp_p = tmp_sql;
+	//char *tmp_p = tmp_sql;
 	struct mmo_charstatus *cp;
 	struct itemtmp mapitem[MAX_GUILD_STORAGE];
 
@@ -576,7 +578,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 
 	// Friends list
 	// account_id, friend_id0, name0, ...
-	#if 0
+         /*
+         #if 0
 		tmp_p += sprintf(tmp_p, "REPLACE INTO `%s` (`id`, `account_id`",friend_db);
 
 		diff = 0;
@@ -614,6 +617,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 
 	if (diff)
 	  mysql_query(&mysql_handle, tmp_sql);
+         */
+         printf("NOTE -> friends are currently not saved in this VERSION!\n");
 
 	printf("saving char is done.\n");
 	save_flag = 0;
@@ -740,8 +745,10 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 //=====================================================================================================
 int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	int i, n;
-	char *tmp_p = tmp_sql;
+         int friends;
+	//char *tmp_p = tmp_sql;
 	struct mmo_charstatus *cp;
+         friends = 0;
 
 	cp = (struct mmo_charstatus*)numdb_search(char_db_,char_id);
 	if (cp != NULL)
@@ -943,6 +950,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	}
 	p->global_reg_num=i;
 
+
+         /*
 	//Friends List Load
 
 	for(i=0;i<20;i++) {
@@ -986,8 +995,50 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	}
 
 	printf("friends ");
-
+         */
 	//-- end friends list load --
+
+
+         //Friend list 'ids'
+         sprintf(tmp_sql, "SELECT `char_id`, `friend_id` FROM `friends` WHERE `char_id` = '%d'", char_id);
+         if(mysql_query(&mysql_handle, tmp_sql)){
+         	eprintf("fromsql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
+         }
+
+         sql_res = mysql_store_result(&mysql_handle);
+         if(sql_res){
+         	for(i = 0; (sql_row = mysql_fetch_row(sql_res)); i++){
+                 	p->friend_id[i] = atoi(sql_row[1]);
+                         //NEW ONE:
+                         //p->friends[i].id = atoi(sql_res[1]);
+                 }
+                 friends = i;
+                 mysql_free_result(sql_res);
+         }
+
+
+        	//Friend list 'names'
+         for(i = 0; i < friends; i++){
+         	sprintf(tmp_sql, "SELECT `char_id`, `name` FROM `char` WHERE `char_id` = '%d'", p->friend_id[i]);
+                 //NEW
+                 //sprintf(tmp_sql, "SELECT `char_id`, `name` FROM `char` WHERE `char_id` = '%d'", p->friends[i].id);
+	        if(mysql_query(&mysql_handle, tmp_sql)){
+	                 eprintf("fromsql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
+	        }
+
+                 sql_res = mysql_store_result(&mysql_handle);
+                 if(sql_res){
+                 	sql_row = mysql_fetch_row(sql_res);
+                         strcpy(p->friend_name[i], sql_row[1]);
+                         //NEW:
+                         //strcpy(p->friends[i].name, sql_row[1]);
+                 	mysql_free_result(sql_res);
+                 }
+
+
+         }
+
+
 
 	if (online) {
 		set_char_online(char_id,p->account_id);
@@ -1330,7 +1381,10 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			return -2; //end....
 		}
 	}
-	if(!insert_friends(char_id)){
+
+         //DEPRECATED until the new friend table
+         /*
+         if(!insert_friends(char_id)){
 		printf("fail (friendlist entrys..)\n");
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", char_db, char_id);
 			mysql_query(&mysql_handle, tmp_sql);
@@ -1338,7 +1392,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			mysql_query(&mysql_handle, tmp_sql);
 			return -2; //end.. charcreate failed
 	}
-
+         */
 	//printf("making new char success - id:(\033[1;32m%d\033[0m\tname:\033[1;32%s\033[0m\n", char_id, t_name);
 	printf("success, aid: %d, cid: %d, slot: %d, name: %s\n", sd->account_id, char_id, dat[30], t_name);
 	return char_id;

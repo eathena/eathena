@@ -13,7 +13,8 @@
 
 
 struct mmo_charstatus *charsave_loadchar(int charid){
-         int i;
+         int i, friends;
+         friends = 0;
 
          struct mmo_charstatus *c;
          c = (struct mmo_charstatus *)aMalloc(sizeof(struct mmo_charstatus));
@@ -216,7 +217,51 @@ struct mmo_charstatus *charsave_loadchar(int charid){
                  mysql_free_result(charsql_res);
          }
 
-      	printf("charsql_loadchar(): loading of '%d' (%s) Complete.\n", charid, c->name);
+
+         //Friend list 'ids'
+         sprintf(charsql_tmpsql, "SELECT `char_id`, `friend_id` FROM `friends` WHERE `char_id` = '%d'", charid);
+         if(mysql_query(&charsql_handle, charsql_tmpsql)){
+         	eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+                 aFree(c);
+                 return NULL;
+         }
+
+         charsql_res = mysql_store_result(&charsql_handle);
+         if(charsql_res){
+         	for(i = 0; (charsql_row = mysql_fetch_row(charsql_res)); i++){
+                 	c->friend_id[i] = atoi(charsql_row[1]);
+                         //NEW ONE:
+                         //c->friends[i].id = atoi(charsql_res[1]);
+                 }
+                 friends = i;
+                 mysql_free_result(charsql_res);
+         }
+
+
+        	//Friend list 'names'
+         for(i = 0; i < friends; i++){
+         	sprintf(charsql_tmpsql, "SELECT `char_id`, `name` FROM `char` WHERE `char_id` = '%d'", c->friend_id[i]);
+                 //NEW
+                 //sprintf(charsql_tmpsql, "SELECT `char_id`, `name` FROM `char` WHERE `char_id` = '%d'", c->friends[i].id);
+	        if(mysql_query(&charsql_handle, charsql_tmpsql)){
+	                 eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+	                 aFree(c);
+	                 return NULL;
+	        }
+
+                 charsql_res = mysql_store_result(&charsql_handle);
+                 if(charsql_res){
+                 	charsql_row = mysql_fetch_row(charsql_res);
+                         strcpy(c->friend_name[i], charsql_row[1]);
+                         //NEW:
+                         //strcpy(c->friends[i].name, charsql_row[1]);
+                 	mysql_free_result(charsql_res);
+                 }
+
+
+         }
+
+      	printf("charsql_loadchar(): loading of '%d' (%s) complete.\n", charid, c->name);
 
 return c;
 }
