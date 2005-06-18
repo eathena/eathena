@@ -3626,6 +3626,7 @@ int compare_item(struct item *a, struct item *b) {
 		(a->card[3] == b->card[3]));
 }
 
+#ifndef TXT_ONLY
 int charsql_db_init(int method){
 
 
@@ -3647,4 +3648,4 @@ int charsql_db_init(int method){
 
     return 0;
 }
-
+#endif

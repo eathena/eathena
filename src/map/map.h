@@ -922,6 +922,9 @@ extern char *SCRIPT_CONF_NAME;
 extern char *MSG_CONF_NAME;
 extern char *GRF_PATH_FILENAME;
 
+
+extern int charsave_method; //needed ..
+
 #ifndef TXT_ONLY
 
 // MySQL
@@ -970,7 +973,7 @@ extern char gm_db_account_id[32];
 
 extern int lowest_gm_level;
 extern int read_gm_interval;
-extern int charsave_method;
+
 
 //Own saving
 extern MYSQL charsql_handle;
@@ -981,5 +984,7 @@ extern char charsql_tmpsql[65335];
 
 extern char char_db[32];
 #endif /* not TXT_ONLY */
+
+
 
 #endif

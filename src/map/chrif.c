@@ -154,7 +154,11 @@ int chrif_save(struct map_session_data *sd)
 	pc_makesavestatus(sd);
 
          if(charsave_method == 1){ //New 'Local' save
+         	#ifndef TXT_ONLY
          	 charsave_savechar(sd->char_id, &sd->status);
+                 #else
+                  printf("u cannot use charsave_method 1 in TXT servers!\n");
+                 #endif
          }else{
 	         WFIFOW(char_fd,0) = 0x2b01;
 	         WFIFOW(char_fd,2) = sizeof(sd->status) + 12;
@@ -1230,6 +1234,7 @@ int chrif_pcauthok(int fd){
                  printf("and @ mapserver the old-one is configured!\n");
 	}
 
+        #ifndef TXT_ONLY
         struct mmo_charstatus *temp = charsave_loadchar(RFIFOL(fd, 14));
 
         if(temp == NULL){
@@ -1240,6 +1245,7 @@ int chrif_pcauthok(int fd){
         	pc_authok(RFIFOL(fd, 2), RFIFOL(fd, 6), (time_t)RFIFOL(fd, 10), temp);
         	aFree(temp);
         }
+        #endif
 
   return 0; //temp ;P
 }

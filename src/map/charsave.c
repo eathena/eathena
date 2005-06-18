@@ -11,6 +11,7 @@
 #include "charsave.h"
 #include "map.h"
 
+#ifndef TXT_ONLY
 
 struct mmo_charstatus *charsave_loadchar(int charid){
          int i, friends;
@@ -276,3 +277,6 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 
          return 0;
 }
+
+#endif
+
