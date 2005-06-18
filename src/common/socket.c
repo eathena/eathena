@@ -154,7 +154,7 @@ static int send_from_fifo(int fd)
 #endif
 		return -1;
 	}
-	
+
 	//ShowMessage("send_from_fifo : %d\n",fd);
 	if (session[fd]->wdata_size == 0)
 	{
@@ -511,7 +511,7 @@ int realloc_fifo(int fd,int rfifo_size,int wfifo_size)
 		RECREATE(session[fd]->rdata, unsigned char, rfifo_size);
 		session[fd]->max_rdata  = rfifo_size;
 	}
-	
+
 	if( session[fd]->max_wdata != wfifo_size && session[fd]->wdata_size < wfifo_size){
 		RECREATE(session[fd]->wdata, unsigned char, wfifo_size);
 		session[fd]->max_wdata  = wfifo_size;
@@ -654,7 +654,7 @@ int do_sendrecv(int next)
 				}
 			}
 #else
-		if(!session[i]) 
+		if(!session[i])
 			continue;
 #endif
 
@@ -685,7 +685,7 @@ int do_sendrecv(int next)
 		}
 
 #ifdef TURBO
-		} // for (j = 0; 
+		} // for (j = 0;
 #endif
 	} // for (i = 0
 	return 0;
@@ -765,7 +765,7 @@ static int connect_check(unsigned int ip) {
 	}
 	return result;
 }
-	
+
 static int connect_check_(unsigned int ip) {
 	struct _connect_history *hist     = connect_history[ip & 0xFFFF];
 	struct _connect_history *hist_new;
@@ -1003,21 +1003,30 @@ int socket_config_read(const char *cfgName) {
 
 int RFIFOSKIP(int fd,int len)
 {
-	struct socket_data *s;
-	
+
+         struct socket_data *s;
+
 	if ( !session_isActive(fd) ) //Nullpo error here[Kevin]
 		return 0;
 
 	s = session[fd];
 
 	if (s->rdata_size-s->rdata_pos-len<0) {
-		fprintf(stderr,"too many skip\n");
-		exit(1);
+                 //fprintf(stderr,"too many skip\n");
+		//exit(1);
+                 //better than a COMPLETE program abort // TEST! :)
+                 fprintf(stderr, "too many skip (%d) now skipped: %d (FD: %d)\n", len, RFIFOREST(fd), fd);
+                 len = RFIFOREST(fd);
+
 	}
 
 	s->rdata_pos = s->rdata_pos+len;
 
-	return 0;
+
+
+
+
+return 0;
 }
 
 
@@ -1154,7 +1163,7 @@ void socket_init (void)
 
 #ifndef MINICORE
 	// とりあえず５分ごとに不要なデータを削除する
-	add_timer_func_list(connect_check_clear, "connect_check_clear");	
+	add_timer_func_list(connect_check_clear, "connect_check_clear");
 	add_timer_interval(gettick()+1000,connect_check_clear,0,0,300*1000);
 #endif
 }
@@ -1168,4 +1177,4 @@ bool session_isValid(int fd)
 bool session_isActive(int fd)
 {
 	return ( session_isValid(fd) && !session[fd]->eof );
-}	
+}
