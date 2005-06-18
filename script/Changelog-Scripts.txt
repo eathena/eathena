@@ -1,0 +1,13 @@
+Person	Working On
+======
+
+Fredzilla
+	* Converting eAthena scripts as commands become available
+	* Currently waiting for structure of the new shops and spawn
+
+== Changelog ==
+
+Date	Added
+======
+06/18	
+	* Updates for the Lighthalzen Warps - Mirror of Stable

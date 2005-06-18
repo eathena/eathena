@@ -3,7 +3,7 @@
 --===== By: ==================================================
 --= Sara-chan (1.0)
 --===== Current Version: =====================================
---= 1.0
+--= 1.2
 --===== Compatible With: =====================================
 --= Any Athena Version; RO Episode 8+
 --===== Description: =========================================
@@ -13,6 +13,20 @@
 --============================================================
 
 --= Lighthalzen Warps ==========================================
+addwarp("lhz001","lhz_fild02.gat",25,214,"lhz_fild01.gat",365,225,1,1)
+addwarp("lhz001a","lhz_fild01.gat",367,225,"lhz_fild02.gat",27,214,1,1)
+addwarp("lhz002","lhz_fild01.gat",210,16,"lighthalzen.gat",214,327,1,1)
+addwarp("lhz002a","lighthalzen.gat",214,329,"lhz_fild01.gat",210,18,1,1)
+addwarp("lhz003","lhz_dun03.gat",140,139,"lhz_dun02.gat",150,147,1,1)
+addwarp("lhz003a","lhz_dun02.gat",150,149,"lhz_dun03.gat",140,137,1,1)
+addwarp("lhz004","lhz_dun02.gat",18,150,"lhz_dun01.gat",18,148,1,1)
+addwarp("lhz004a","lhz_dun01.gat",18,146,"lhz_dun02.gat",18,148,1,1)
+addwarp("lhz005","lhz_dun02.gat",382,155,"lhz_dun01.gat",281,152,1,1)
+addwarp("lhz005a","lhz_dun01.gat",281,150,"lhz_dun02.gat",382,153,1,1)
+addwarp("lhz006","lhz_dun02.gat",148,18,"lhz_dun01.gat",146,10,1,1)
+addwarp("lhz006a","lhz_dun01.gat",148,10,"lhz_dun02.gat",150,18,1,1)
+addwarp("lhz007","lhz_dun01.gat",150,290,"lighthalzen.gat",73,54,1,1)
+addwarp("lhz007a","lighthalzen.gat",73,52,"lhz_dun01.gat",150,288,1,1)
 addwarp("lhz008","lhz_in01.gat",106,15,"lhz_in01.gat",88,213,1,1)
 addwarp("lhz008a","lhz_in01.gat",88,215,"lhz_in01.gat",106,17,1,1)
 addwarp("lhz009","lhz_in01.gat",159,15,"lhz_in01.gat",140,213,1,1)
@@ -101,6 +115,14 @@ addwarp("lhz050","lhz_in02.gat",114,273,"lhz_in02.gat",151,283,1,1)
 addwarp("lhz050a","lhz_in02.gat",149,283,"lhz_in02.gat",112,273,1,1)
 addwarp("lhz051","lhz_cube.gat",248,183,"lighthalzen.gat",54,131,1,1)
 addwarp("lhz051a","lighthalzen.gat",52,131,"lhz_cube.gat",246,183,1,1)
+--== Yuno Airport =================================================
+
+addwarp("jairp1","y_airport.gat",125,14,"y_airport.gat",19,20,1,1)
+addwarp("jairp1a","y_airport.gat",19,18,"y_airport.gat",123,14,1,1)
+addwarp("jairp2","y_airport.gat",160,14,"y_airport.gat",48,20,1,1)
+addwarp("jairp2a","y_airport.gat",48,18,"y_airport.gat",162,14,1,1)
+addwarp("jairp3","yuno.gat",54,217,"y_airport.gat",143,15,1,1)
+addwarp("jairp3a","y_airport.gat",143,13,"yuno.gat",54,215,1,1)
 
 --= Lighthalzen Airport ===========================================
 addwarp("lairp1","lhz_airport.gat",125,14,"lhz_airport.gat",19,20,1,1)
