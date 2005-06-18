@@ -41,9 +41,10 @@
 		#define zlib_deflateInit deflateInit
 		#define zlib_deflate     deflate
 		#define zlib_deflateEnd  deflateEnd
+		#define zlib_crc32       crc32
 	#else
 		#include "../zlib/zlib.h"
-		#include "../common/dll.h"
+		#include "../common/plugins.h"
 		Plugin *zlib_dll;
 		#define zlib_inflateInit(strm) zlib_inflateInit_((strm), ZLIB_VERSION, sizeof(z_stream))
 		#define zlib_deflateInit(strm, level) zlib_deflateInit_((strm), (level), ZLIB_VERSION, sizeof(z_stream))
@@ -55,6 +56,7 @@
 		int (*zlib_deflateInit_) (z_streamp strm, int level, const char *version, int stream_size);
 		int (*zlib_deflate) (z_streamp strm, int flush);
 		int (*zlib_deflateEnd) (z_streamp strm);
+		unsigned long (*zlib_crc32) (unsigned long crc, const char *buf, unsigned int len);
 	#endif
 #else
 	#ifdef LOCALZLIB
@@ -69,6 +71,7 @@
 	#define zlib_deflateInit deflateInit
 	#define zlib_deflate     deflate
 	#define zlib_deflateEnd  deflateEnd
+	#define zlib_crc32       crc32
 #endif
 
 typedef	unsigned char	BYTE;
@@ -431,6 +434,11 @@ int decode_file (FILE *source, FILE *dest)
 	/* clean up and return */
 	zlib_inflateEnd(&strm);
 	return err == Z_STREAM_END ? 1 : 0;
+}
+
+unsigned long grfio_crc32 (const char *buf, unsigned int len)
+{
+	return zlib_crc32(zlib_crc32(0L, Z_NULL, 0), buf, len);
 }
 
 /***********************************************************
@@ -1066,6 +1074,7 @@ void zlib_init (void)
 		DLL_SYM (zlib_deflateInit_,	zlib_dll,	"deflateInit_");
 		DLL_SYM (zlib_deflate,		zlib_dll,	"deflate");
 		DLL_SYM (zlib_deflateEnd,	zlib_dll,	"deflateEnd");
+		DLL_SYM (zlib_crc32,		zlib_dll,	"crc32");
 	#endif
 #endif
 }

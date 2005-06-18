@@ -15,6 +15,7 @@
 #include "../common/malloc.h"
 #include "../common/socket.h"
 #include "../common/timer.h"
+#include "../common/graph.h"
 #include "../common/grfio.h"
 #include "../common/plugins.h"
 #include "../common/version.h"
@@ -216,6 +217,7 @@ int main (int argc, char **argv)
 	plugins_init();
 
 	do_init(argc,argv);
+	graph_init();
 	plugin_event_trigger("Athena_Init");
 
 	while (runflag) {
@@ -227,6 +229,7 @@ int main (int argc, char **argv)
 	}
 
 	plugin_event_trigger("Athena_Final");
+	graph_final();
 	do_final();
 
 	exit_dbn();

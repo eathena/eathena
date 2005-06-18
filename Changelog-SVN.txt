@@ -1,4 +1,9 @@
 Date	Added
+06/18
+	* Added graph creation code by jA / End_of_exam (currently disabled until
+	  finished) [celest]
+	* Added grfio_crc32() [celest]
+
 06/17
 	!!!Bug: on optimizing run_script, Kafra NPC stopped working. Celest, read it plz. [Lupus]
 	  -- Fixed, sorry ^^; Please test and tell me if anything goes wrong [celest]

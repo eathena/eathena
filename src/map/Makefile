@@ -11,11 +11,13 @@ sqlobj:
 COMMON_OBJ = ../common/obj/core.o ../common/obj/socket.o ../common/obj/timer.o \
 	../common/obj/db.o ../common/obj/plugins.o ../common/obj/lock.o \
 	../common/obj/nullpo.o ../common/obj/malloc.o ../common/obj/showmsg.o \
-	../common/obj/utils.o ../common/obj/strlib.o  ../common/obj/grfio.o
+	../common/obj/utils.o ../common/obj/strlib.o ../common/obj/grfio.o \
+	../common/obj/graph.o
 
 COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/db.h \
 	../common/plugins.h ../common/lock.h ../common/nullpo.h ../common/malloc.h \
-	../common/showmsg.h ../common/utils.h ../common/strlib.h ../common/grfio.h
+	../common/showmsg.h ../common/utils.h ../common/strlib.h ../common/grfio.h \
+	../common/graph.h
 
 OBJECTS = obj/map.o obj/chrif.o obj/clif.o obj/pc.o obj/status.o obj/npc.o \
 	obj/npc_chat.o obj/chat.o obj/path.o obj/itemdb.o obj/mob.o obj/script.o \
