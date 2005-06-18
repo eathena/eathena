@@ -1,5 +1,7 @@
 Date	Added
 06/18
+	* Properly updated graph files (Oh god, i keep forgetting things now... 
+	  sorry again! >.< [celest]
 	* celest:
 		added a graph.c / graph.h with void graph_init and graph_final functions
 		due to compiling errors [sirius]
