@@ -23,6 +23,8 @@
 	4262,Taoist_Hermit_Card
 	4265,Li_Me_Mang_Ryang_Card
 
+06/18
+	* Added some new items (by Landarma), fixed recently added ones. [Lupus]
 06/11
 	* Changed Ungoliatnt Assumption skill's target to self from target [Skotlex]
 	* Updated skill_cast_db: Soul-Strike's casting time, Stone Curse's upkeep

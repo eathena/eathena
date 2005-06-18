@@ -1,5 +1,6 @@
 Date	Added
 06/18
+	* Added new maps, items. Thanks to Landarma [Lupus]
 	* Added graph creation code by jA / End_of_exam (currently disabled until
 	  finished) [celest]
 	* Added grfio_crc32() [celest]
