@@ -3,11 +3,18 @@ Person	Working On
 
 Fredzilla
 	* Converting eAthena scripts as commands become available
-	* Currently waiting for structure of the new shops and spawn
+	 - Map Warps
+	 - Monster Spawns
+	* Currently waiting for structure of the new shops
 
 == Changelog ==
 
 Date	Added
 ======
+06/19
+	* Small fix in Payon warps, forgot to change back to 
+	  full names while converting
+	* Also added all Mob spawns currently available in stable
+	  (That didnt take too long did if DracoRPG lol)
 06/18	
 	* Updates for the Lighthalzen Warps - Mirror of Stable
