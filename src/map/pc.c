@@ -3490,10 +3490,14 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 			}
 		}
 
-	if(map_getcell(sd->bl.m,x,y,CELL_CHKSCRIPT))
-		npc_touch_areascript(sd,sd->bl.m,x,y);
-	else
+	if(map_getcell(sd->bl.m,x,y,CELL_CHKSCRIPT)) {
+		if(npc_touch_areascript(sd,sd->bl.m,x,y)) {
+			sd->in_areascript = 1;
+		}
+	} else {
 		sd->areanpc_id=0;
+		sd->in_areascript = 0;
+	}
 	if(map_getcell(sd->bl.m,x,y,CELL_CHKWARP))
 		npc_touch_warp(sd,sd->bl.m,x,y);
 	}

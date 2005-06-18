@@ -9579,8 +9579,8 @@ void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 {
 	nullpo_retv(sd);
 
-	/*sd->npc_menu=RFIFOB(fd,6);
-	npc_scriptcont(sd,RFIFOL(fd,2));*/
+	sd->npc_menu=RFIFOB(fd,6);
+	npc_scriptnext(sd,RFIFOL(fd,2));
 }
 
 /*==========================================

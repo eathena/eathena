@@ -157,6 +157,12 @@ struct pet_db;
 struct item_data;
 struct square;
 
+typedef struct npc_menu_datas {
+	int id[40];
+	int value[40];
+	int current;
+} npc_menu_datas;
+
 struct map_session_data {
 	struct block_list bl;
 	struct {
@@ -216,8 +222,10 @@ struct map_session_data {
 	int walktimer;
 	int next_walktime;
 	int npc_id,areanpc_id,npc_shopid;
+	unsigned in_areascript : 1;
 	int npc_pos;
 	int npc_menu;
+	npc_menu_datas npc_menu_data;
 	int npc_amount;
 	int npc_stack,npc_stackmax;
 	char *npc_script,*npc_scriptroot;
@@ -412,6 +420,7 @@ enum {
 	STOP,
 	NRUN,
 	PAUSE,
+	MENU,
 };
 
 struct npc_data {

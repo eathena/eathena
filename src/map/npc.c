@@ -94,16 +94,19 @@ int npc_touch_areascript(struct map_session_data *sd,int m,int x,int y)
 	nullpo_retr(1, sd);
 
 	if(sd->npc_id)
-		return 1;
+		return 0;
 
 	for(i=0;i<map[m].areascript_num;i++) { // Scan every areascript on the map
 		if (!map[m].areascript[i]->flag&1 && // Ignore hidden/disabled scripts
 			x >= map[m].areascript[i]->x1 && x <= map[m].areascript[i]->x2 &&
 			y >= map[m].areascript[i]->y1 && x <= map[m].areascript[i]->y2) {
-			script_run_function(map[m].areascript[i]->function,"i",sd->char_id);
+				if(sd->in_areascript == 0) {
+					script_run_function(map[m].areascript[i]->function,"i",sd->char_id);
+					return 1;
+				}
 		}
 	}
-	return 1;
+	return 0;
 }
 
 /*==========================================
@@ -252,7 +255,7 @@ int npc_scriptend(struct map_session_data *sd,int id)
 
 	nullpo_retr(1, sd);
 	
-	if(script_getstate(sd) == HALT) {
+	if(sd->npc_script_state == HALT) {
 		if(sd->npc_id > 0) {
 			sd->npc_id = 0;
 			script_setstate(sd, NRUN);
@@ -275,7 +278,9 @@ int npc_scriptnext(struct map_session_data *sd,int id)
 
 	nullpo_retr(1, sd);
 	
-	sd->npc_script_state=RUNNING;
+	if(sd->npc_script_state == PAUSE) {
+		sd->npc_script_state=RUNNING;
+	}
 	script_resume(sd);
 		
 	return 0;

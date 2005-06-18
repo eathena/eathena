@@ -271,10 +271,12 @@ static int npcmenu(lua_State *NL)
 	int charid, npcid;
 	int n, i, len=0;
 	char *buf;
+	char *menu;
 		
 	n = lua_gettop(NL);
-	for(i=1; i<n; i+=2) {
-		len+=strlen((char *)lua_tostring(L, i));
+	for(i=2; i<n; i+=2) {
+		menu = (char *)lua_tostring(NL, i);
+		len+=strlen(menu);
 	}
 	
 	buf=(char *)aCallocA(len+1,sizeof(char));
@@ -293,15 +295,51 @@ static int npcmenu(lua_State *NL)
 		return -1;
 	}
 	
-	for(i=1; i<n; i+=2) {
-		strcat(buf,(char *)lua_tostring(NL, i));
+	for(i=2; i<n; i+=2) {
+		menu = (char *)lua_tostring(NL, i);
+		
+		if(!sd->npc_menu_data.current) {
+			sd->npc_menu_data.current = 0;
+		}
+		sd->npc_menu_data.id[sd->npc_menu_data.current] = sd->npc_menu_data.current +1;
+		sd->npc_menu_data.value[sd->npc_menu_data.current] = lua_tonumber(NL, i+1);
+		sd->npc_menu_data.current +=1;
+		
+		strcat(buf,menu);
 		strcat(buf,":");
 	}
 	
 	clif_scriptmenu(sd,npcid,buf);
 	aFree(buf);
+	
+	sd->npc_script_state = MENU;
+	
+	return lua_yield(NL, 0);
+}
 
-	return 0;
+static int npcmenu_getchoice(lua_State *NL) {
+	
+	struct map_session_data *sd = NULL;
+	
+	int charid=lua_tonumber(NL, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	
+	if(sd->npc_script_state != MENU) {
+		lua_pushstring(NL, "Use npcmenu before using npcmenu_getchoice");
+		lua_error(NL);
+		return 0;
+	}
+	
+	sd->npc_script_state = RUNNING;
+	
+	lua_pushnumber(NL, sd->npc_menu_data.id[sd->npc_menu-1]);
+	
+	sd->npc_menu_data.current=0;
+	
+	return 1;
 }
 
 // heal(id,hp,sp)
@@ -363,6 +401,7 @@ static struct LuaCommandInfo commands[] = {
 	{"npcnext", npcnext},
 	{"npcinput", npcinput},
 	{"npcmenu", npcmenu},
+	{"npcmenu_getchoice", npcmenu_getchoice},
 	/* Player related functions */
 	{"heal", heal},
 	{"percentheal", percentheal},
@@ -402,7 +441,7 @@ int script_getstate(struct map_session_data *sd) {
 	return sd->npc_script_state;
 }
 
-//Resume an already paused script
+//Resume an already paused script with no arguments
 int script_resume(struct map_session_data *sd) {
 	if(lua_resume(sd->NL, 0)) {
 		ShowError("CAN NOT RESUME SCRIPT!");

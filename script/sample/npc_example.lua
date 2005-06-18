@@ -5,11 +5,18 @@ addnpc("Healer Dog","healer_prt","prontera.gat",155,190,4,81,"npc_healer")
 
 function npc_healer(id)
 	npcmes(id,"[Healer Dog]")
-	npcmes(id,"Yep! You look nice! I think I'll heal you!")
+	npcmes(id,"Would you like a heal?")
 	npcnext(id)
-	percentheal(id, 50, 50)
-	npcmes(id,"[Healer Dog")
-	npcmes(id,"Hear you go!")
+	npcmenu(id,"Sure",1,"eh",2)
+	local r = npcmenu_getchoice(id)
+	if r == 1 then
+		percentheal(id, 50, 50)
+		npcmes(id,"[Healer Dog")
+		npcmes(id,"Hear you go!")
+	elseif r ==2 then
+		npcmes(id,"[Healer Dog]")
+		npcmes(id,"Sorry to hear that")
+	end
 	npcclose(id)
 end
 
@@ -24,7 +31,6 @@ end
 
 function areascript_biter(id)
 	percentheal(id, -50, -50)
-	npcclose(id)
 end
 
 print "NPC example successfully loaded !"

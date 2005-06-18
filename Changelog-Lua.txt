@@ -1,5 +1,10 @@
 Date	Added
 06/12
+	* Fixed areascripts running everytime you walk, now only runs when you go into an area. [Kevin]
+	* Menu functions work, Usage: [Kevin]
+	 npcmenu(id, "menuitem", 1, "menuitem2", 2)
+	 local c = npcmenu_getchoice(id)
+       --c contains the return value for the menu item selected, the return value must be an int.
 	* Added advanced script state system, lua branch should now be functional, just needs [Kevin]
 	 commands and scripts in terms of NPCs, not sure about mob spawns or chunks.
 	* Added all warps currently possible [Fredzilla]
