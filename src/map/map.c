@@ -227,19 +227,25 @@ int map_freeblock_lock (void)
  */
 int map_freeblock_unlock (void)
 {
-	if ((--block_free_lock) == 0) {
+	if ((--block_free_lock) == 0)
+	{
 		int i;
-		for (i = 0; i < block_free_count; i++) {
-			aFree(block_free[i]);
-			block_free[i] = NULL;
+		for (i = 0; i < block_free_count; i++)
+		{
+			if(block_free[i])
+			{
+				aFree(block_free[i]);
+				block_free[i] = NULL;
+			}
 		}
 		block_free_count = 0;
-	} else if (block_free_lock < 0) {
+	}
+	else if (block_free_lock < 0)
+	{
 		if (battle_config.error_log)
 			ShowError("map_freeblock_unlock: lock count < 0 !\n");
 		block_free_lock = 0; // 次回以降のロックに支障が出てくるのでリセット
 	}
-
 	return block_free_lock;
 }
 
@@ -320,18 +326,18 @@ int map_addblock(struct block_list &bl)
  */
 int map_delblock(struct block_list &bl)
 {
-	int b;
 	// ?にblocklistから?けている
-	if(bl.prev==NULL){
-		if(bl.next!=NULL){
-			// prevがNULLでnextがNULLでないのは有ってはならない
+	if(bl.prev==NULL)
+	{
+		if(bl.next!=NULL)
+		{	// prevがNULLでnextがNULLでないのは有ってはならない
 			if(battle_config.error_log)
 				ShowMessage("map_delblock error : bl->next!=NULL\n");
 		}
 		return 0;
 	}
-
-	b = bl.x/BLOCK_SIZE+(bl.y/BLOCK_SIZE)*map[bl.m].bxs;
+	if(!map_num || bl.m >= map_num)
+		return 0;
 
 	if (bl.type == BL_PC)
 		if (--map[bl.m].users == 0 && battle_config.dynamic_mobs)	//[Skotlex]
@@ -339,18 +345,25 @@ int map_delblock(struct block_list &bl)
 
 	if (bl.next)
 		bl.next->prev = bl.prev;
-	if (bl.prev == &bl_head) {
+	if (bl.prev == &bl_head)
+	{
+		int b = bl.x/BLOCK_SIZE+(bl.y/BLOCK_SIZE)*map[bl.m].bxs;
 		// リストの頭なので、map[]のblock_listを更新する
-		if(bl.type==BL_MOB){
+		if(bl.type==BL_MOB)
+		{
 			map[bl.m].block_mob[b] = bl.next;
 			if((map[bl.m].block_mob_count[b]--) < 0)
 				map[bl.m].block_mob_count[b] = 0;
-		} else {
+		}
+		else
+		{
 			map[bl.m].block[b] = bl.next;
 			if((map[bl.m].block_count[b]--) < 0)
 				map[bl.m].block_count[b] = 0;
 		}
-	} else {
+	}
+	else
+	{
 		bl.prev->next = bl.next;
 	}
 	bl.next = NULL;
@@ -1670,9 +1683,9 @@ int map_quit(struct map_session_data &sd)
 	skill_clear_unitgroup(&sd.bl);	// スキルユニットグル?プの削除
 	skill_cleartimerskill(&sd.bl);
 
-			pc_stop_walking(sd,0);
-			pc_stopattack(sd);
-			pc_delinvincibletimer(sd);
+	pc_stop_walking(sd,0);
+	pc_stopattack(sd);
+	pc_delinvincibletimer(sd);
 
 	pc_delspiritball(sd,sd.spiritball,1);
 	skill_gangsterparadise(&sd,0);
@@ -1694,18 +1707,18 @@ int map_quit(struct map_session_data &sd)
 			sd.status.pet_id = 0;
 			sd.pd = NULL;
 			sd.petDB = NULL;
-			}
-			else
-			intif_save_petdata(sd.status.account_id,sd.pet);
 		}
-		if(pc_isdead(sd))
-			pc_setrestartvalue(sd,2);
+		else
+			intif_save_petdata(sd.status.account_id,sd.pet);
+	}
+	if(pc_isdead(sd))
+		pc_setrestartvalue(sd,2);
 
-		pc_clean_skilltree(sd);
-		pc_makesavestatus(sd);
-		chrif_save(sd);
-		storage_storage_dirty(sd);
-		storage_storage_save(sd);
+	pc_clean_skilltree(sd);
+	pc_makesavestatus(sd);
+	chrif_save(sd);
+	storage_storage_dirty(sd);
+	storage_storage_save(sd);
 	map_delblock(sd.bl);
 
 	if( sd.npc_stackbuf != NULL)
@@ -1951,7 +1964,7 @@ void clear_moblist(unsigned short m)
 		{
 			aFree(map[m].moblist[i]);
 			map[m].moblist[i] = NULL;
-	}
+		}
 	}
 }
 

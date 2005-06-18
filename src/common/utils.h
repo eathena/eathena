@@ -37,7 +37,11 @@ extern inline const char *strcpytolower(char *tar, const char *str)
 {
 	char *p=tar;
 	if(str && p)
-	while(*str) *p++ = tolower( (int)((unsigned char)*str++) );
+	while(*str) 
+	{
+		*p = tolower( (int)((unsigned char)*str) );
+		p++, str++;
+	}
 	*p=0;
 	return tar;
 }

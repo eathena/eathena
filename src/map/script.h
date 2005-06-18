@@ -48,12 +48,10 @@ struct script_state
 	int defsp;
 	int new_pos;
 	int new_defsp;
-
-//	script_state(struct script_stack s) : stack(s)	{}
 };
 
-char * parse_script(unsigned char *src,int line);
-int run_script(char *,int,int,int);
+char *parse_script(unsigned char *src,int line);
+int run_script(const char *script,int pos,int rid,int oid);
 
 int set_var(const char *name, void *v);
 int conv_num(struct script_state *st,struct script_data *data);

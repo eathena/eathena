@@ -566,7 +566,6 @@ SOCKET SessionGetSocket(const size_t pos)
 
 class DDoS
 {
-public:
 	enum {
 		ACO_DENY_ALLOW=0,
 		ACO_ALLOW_DENY,
@@ -597,7 +596,7 @@ public:
 	int ddos_autoreset;
 
 	struct _connect_history *connect_history[0x10000];
-
+public:
 	DDoS() :
 			access_allow(NULL),
 			access_deny(NULL),
@@ -609,7 +608,6 @@ public:
 			ddos_interval(3000),
 			ddos_autoreset(600*1000)
 	{}
-
 	~DDoS()
 	{
 		Clean();
@@ -795,7 +793,7 @@ public:
 		return list;
 	}
 
-
+private:
 	// IPマスクチェック
 	int access_ipmask(const char *str,struct _access_control* acc)
 	{
@@ -828,7 +826,7 @@ public:
 		acc->mask = mask;
 		return 1;
 	}
-
+public:
 	int socket_config_read(const char *cfgName) {
 		int i;
 		char line[1024],w1[1024],w2[1024];
@@ -1174,7 +1172,7 @@ int RFIFOSKIP(int fd, size_t len)
 		struct socket_data *s=session[fd];
 		if( s->rdata_pos + len > s->rdata_size ) 
 		{	// this should not happen
-			ShowError("Read FIFO is skipping more data then it has.\n");
+			ShowError("Read FIFO is skipping more data then it has (%i<%i).\n",RFIFOREST(fd),len);
 			s->rdata_pos = s->rdata_size;
 		}
 		else
@@ -1206,13 +1204,11 @@ int recv_to_fifo(int fd)
 	{	// we are reading 'arg' bytes of data from the socket
 
 		// if there is more on the socket, limit the read size
-		// socket should be sized that the message with max expected len fit in
+		// fifo should be sized that the message with max expected len fit in
 		if( arg > (unsigned long)RFIFOSPACE(fd) ) arg = RFIFOSPACE(fd);
 
 		len=read(SessionGetSocket(fd),(char*)(session[fd]->rdata+session[fd]->rdata_size),arg);
 
-//		ShowMessage (":::RECEIVE:::\n");
-//		dump(session[fd]->rdata, len); ShowMessage ("\n");
 #ifdef SOCKET_DEBUG_PRINT
 		printf("<-");
 		dumpx(session[fd]->rdata, len);
@@ -1557,7 +1553,7 @@ void process_read(size_t fd)
 			session[fd]->func_parse((int)fd);
 
 		// session could be deleted in func_parse so better check again
-		if(session[fd]) 
+		if(session[fd] && session[fd]->rdata) 
 		{	//RFIFOFLUSH(fd);
 			memmove(session[fd]->rdata, RFIFOP(fd,0), RFIFOREST(fd));
 			session[fd]->rdata_size = RFIFOREST(fd);

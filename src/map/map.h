@@ -314,8 +314,8 @@ struct map_session_data
 	unsigned long npc_stackmax;
 	char *npc_stackbuf;
 
-	char *npc_script;
-	char *npc_scriptroot;
+	const char *npc_script;
+	const char *npc_scriptroot;
 
 
 	char npc_str[256];

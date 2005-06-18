@@ -71,7 +71,7 @@ struct dbt* script_get_label_db(){ return scriptlabel_db; }
 struct dbt* script_get_userfunc_db(){ if(!userfunc_db) userfunc_db=strdb_init(50); return userfunc_db; }
 
 int scriptlabel_final(void *k,void *d,va_list ap){ return 0; }
-static char pos[11][100] = {"頭","体","左手","右手","ローブ","靴","アクセサリー1","アクセサリー2","頭2","頭3","装着していない"};
+static char positions[11][64] = {"頭","体","左手","右手","ローブ","靴","アクセサリー1","アクセサリー2","頭2","頭3","装着していない"};
 
 struct Script_Config script_config;
 
@@ -568,10 +568,10 @@ struct {
 	{buildin_adopt,"adopt","sss"}, // allows 2 parents to adopt a child
 	{buildin_night,"night",""}, // sets the server to night time
 	{buildin_day,"day",""}, // sets the server to day time
-        {buildin_defpattern, "defpattern", "iss"}, // Define pattern to listen for [MouseJstr]
-        {buildin_activatepset, "activatepset", "i"}, // Activate a pattern set [MouseJstr]
-        {buildin_deactivatepset, "deactivatepset", "i"}, // Deactive a pattern set [MouseJstr]
-        {buildin_deletepset, "deletepset", "i"}, // Delete a pattern set [MouseJstr]
+	{buildin_defpattern, "defpattern", "iss"}, // Define pattern to listen for [MouseJstr]
+	{buildin_activatepset, "activatepset", "i"}, // Activate a pattern set [MouseJstr]
+	{buildin_deactivatepset, "deactivatepset", "i"}, // Deactive a pattern set [MouseJstr]
+	{buildin_deletepset, "deletepset", "i"}, // Delete a pattern set [MouseJstr]
 	{buildin_dispbottom,"dispbottom","s"}, //added from jA [Lupus]
 	{buildin_getusersname,"getusersname","*"},
 	{buildin_recovery,"recovery",""},
@@ -609,10 +609,10 @@ unsigned char calc_hash(const char *str)
 		const unsigned char *p = (const unsigned char *)str;
 		while(*p)
 		{
-		h=(h<<1)+(h>>3)+(h>>5)+(h>>8);
-		h+=*p++;
+			h=(h<<1)+(h>>3)+(h>>5)+(h>>8);
+			h+=*p++;
+		}
 	}
-}
 	return h&0xF;
 }
 
@@ -650,7 +650,7 @@ static int add_str(const char *p)
 	lowcase=(char *)aMalloc((strlen(p)+1)*sizeof(char));
 	strcpytolower(lowcase, p);
 	i=search_str(lowcase);
-		aFree(lowcase);
+	aFree(lowcase);
 
 	if(i >= 0)
 		return i;
@@ -833,27 +833,26 @@ static char *skip_word(const char *str)
 {
 	unsigned char*p =(unsigned char*)str;
 	if(p)
-	{
-	// prefix
-	if(*p=='$') p++;	// MAP鯖内共有変数用
-	if(*p=='@') p++;	// 一時的変数用(like weiss)
-	if(*p=='#') p++;	// account変数用
-	if(*p=='#') p++;	// ワールドaccount変数用
-	if(*p=='l') p++;	// 一時的変数用(like weiss)
+	{	// prefix
+		if(*p=='$') p++;	// MAP鯖内共有変数用
+		if(*p=='@') p++;	// 一時的変数用(like weiss)
+		if(*p=='#') p++;	// account変数用
+		if(*p=='#') p++;	// ワールドaccount変数用
+		if(*p=='l') p++;	// 一時的変数用(like weiss)
 
-	// this is for skipping multibyte characters
-	// I do not modify here but just set the string pointer back to unsigned
-	while(isalnum((int)((unsigned char)*p))||*p=='_'|| *p>=0x81)
-	{
-		if(*p>=0x81 && p[1])
-			p+=2;
-		else
-			p++;
+		// this is for skipping multibyte characters
+		// I do not modify here but just set the string pointer back to unsigned
+		while(isalnum((int)((unsigned char)*p))||*p=='_'|| *p>=0x81)
+		{
+			if(*p>=0x81 && p[1])
+				p+=2;
+			else
+				p++;
+		}
+
+		// postfix
+		if(*p=='$') p++;	// 文字列変数
 	}
-
-	// postfix
-	if(*p=='$') p++;	// 文字列変数
-}
 	return (char*)p;
 }
 
@@ -1211,7 +1210,8 @@ static void read_constdb(void)
 			continue;
 		type=0;
 		if(sscanf(line,"%[A-Za-z0-9_],%d,%d",name,&val,&type)>=2 ||
-		   sscanf(line,"%[A-Za-z0-9_] %d %d",name,&val,&type)>=2){
+		   sscanf(line,"%[A-Za-z0-9_] %d %d",name,&val,&type)>=2)
+		{
 			tolower(name);
 			n=add_str(name);
 			if(type==0)
@@ -1240,9 +1240,8 @@ char* parse_script(unsigned char *src,int line)
 	}
 	first = 0;
 
-
-////////////////////////////////////////////// 
-// additional check on the input to filter empty scripts ("{}" and "{ }") 
+	////////////////////////////////////////////// 
+	// additional check on the input to filter empty scripts ("{}" and "{ }") 
 	p = (char*)src;
 	p = skip_space(p);
 	if(*p!='{')
@@ -1308,16 +1307,15 @@ char* parse_script(unsigned char *src,int line)
 			p = tmpp + 1;
 		}
 		else
-		{
-		// 他は全部一緒くた
-		p = parse_line(p);
-		p = skip_space(p);
-		add_scriptc(C_EOL);
-		set_label(LABEL_NEXTLINE, script_pos);
-		str_data[LABEL_NEXTLINE].type = C_NOP;
-		str_data[LABEL_NEXTLINE].backpatch = -1;
-		str_data[LABEL_NEXTLINE].label = -1;
-	}
+		{	// 他は全部一緒くた
+			p = parse_line(p);
+			p = skip_space(p);
+			add_scriptc(C_EOL);
+			set_label(LABEL_NEXTLINE, script_pos);
+			str_data[LABEL_NEXTLINE].type = C_NOP;
+			str_data[LABEL_NEXTLINE].backpatch = -1;
+			str_data[LABEL_NEXTLINE].label = -1;
+		}
 	}
 
 	add_scriptc(C_NOP);
@@ -1345,7 +1343,7 @@ char* parse_script(unsigned char *src,int line)
 #ifdef DEBUG_DISP
 	for (i = 0; i < script_pos; i++) {
 		if((i&15)==0) ShowMessage("%04x : ",i);
-		ShowMessage("%02x ",script_buf[i]);
+		ShowMessage("%02x ", 0xFF&script_buf[i]);
 		if((i&15)==15) ShowMessage("\n");
 	}
 	ShowMessage("\n");
@@ -1386,8 +1384,8 @@ int get_val(struct script_state &st, struct script_data &data)
 		char prefix=*name;
 		char postfix=name[strlen(name)-1];
 
-		if(postfix=='$'){
-
+		if(postfix=='$')
+		{
 			data.type=C_CONSTSTR;
 			if( prefix=='@'/* || prefix=='l' */)
 			{
@@ -1398,7 +1396,7 @@ int get_val(struct script_state &st, struct script_data &data)
 			else if(prefix=='$')
 			{
 				data.u.str = (char *)numdb_search(mapregstr_db,data.u.num);
-				}
+			}
 			else
 			{
 				ShowError("script: get_val: illegal scope string variable.\n");
@@ -1410,21 +1408,23 @@ int get_val(struct script_state &st, struct script_data &data)
 		else
 		{
 			data.type=C_INT;
-			data.u.num = 0;
 			if(str_data[data.u.num&0x00ffffff].type==C_INT)
 			{
 				data.u.num = str_data[data.u.num&0x00ffffff].val;
-	}
+			}
 			else if(str_data[data.u.num&0x00ffffff].type==C_PARAM)
 			{
 				struct map_session_data *sd=script_rid2sd(st);
 				if(sd!=NULL)
 					data.u.num = pc_readparam(*sd,str_data[data.u.num&0x00ffffff].val);
-			}else if(prefix=='@'/* || prefix=='l'*/)
-			{	struct map_session_data *sd=script_rid2sd(st);
+			}
+			else if(prefix=='@'/* || prefix=='l'*/)
+			{
+				struct map_session_data *sd=script_rid2sd(st);
 				if(sd!=NULL)
 					data.u.num = pc_readreg(*sd,data.u.num);
-			}else if(prefix=='$')
+			}
+			else if(prefix=='$')
 			{
 				data.u.num = (int)numdb_search(mapreg_db,data.u.num);
 			}
@@ -1847,8 +1847,6 @@ int buildin_close2(struct script_state &st)
  */
 int buildin_menu(struct script_state &st)
 {
-	char *buf;
-	size_t len,i;
 	struct map_session_data *sd=script_rid2sd(st);
 
 	if(!sd)
@@ -1856,6 +1854,8 @@ int buildin_menu(struct script_state &st)
 
 	if(sd->state.menu_or_input==0)
 	{
+		size_t len,i;
+		char *buf;
 		st.state=RERUNLINE;
 		sd->state.menu_or_input=1;
 		for(i=st.start+2,len=16;i<st.end;i+=2){
@@ -1868,7 +1868,7 @@ int buildin_menu(struct script_state &st)
 			strcat(buf,st.stack.stack_data[i].u.str);
 			strcat(buf,":");
 		}
-		if(sd) clif_scriptmenu(*sd,st.oid,buf);
+		clif_scriptmenu(*sd,st.oid,buf);
 		aFree(buf);
 	}
 	else if(sd->npc_menu==0xff)
@@ -3105,11 +3105,11 @@ int buildin_getequipname(struct script_state &st)
 	if(i >= 0){
 		item=sd->inventory_data[i];
 		if(item)
-			sprintf(buf,"%s-[%s]",pos[num-1],item->jname);
+			sprintf(buf,"%s-[%s]",positions[num-1],item->jname);
 		else
-			sprintf(buf,"%s-[%s]",pos[num-1],pos[10]);
+			sprintf(buf,"%s-[%s]",positions[num-1],positions[10]);
 	}else{
-		sprintf(buf,"%s-[%s]",pos[num-1],pos[10]);
+		sprintf(buf,"%s-[%s]",positions[num-1],positions[10]);
 	}
 	push_str(st.stack,C_STR, buf);
 
@@ -5533,7 +5533,7 @@ int buildin_getcastledata(struct script_state &st)
 				{
 					const char *event = conv_str(st, (st.stack.stack_data[st.start+4]));
 					guild_addcastleinfoevent(i,17,event);
-		}
+				}
 				for(i=1;i<26;i++) guild_castledataload(gc->castle_id,i);
 
 				return 0;	// no idea why 
@@ -7704,8 +7704,8 @@ void unget_com(int c)
 int get_num(const char *script,unsigned int &pos)
 {
 	const unsigned char *s = (const unsigned char *)script;
-	int i,j;
-	i=0; j=0;
+	int i=0,j=0;
+
 	while(s[pos]>=0xc0){
 		i+=(s[pos++]&0x7f)<<j;
 		j+=6;
@@ -7935,7 +7935,6 @@ int run_func(struct script_state &st)
 	if(i==0){
 		if(battle_config.error_log)
 			ShowMessage("function not found\n");
-//		st.stack.sp=0;
 		st.state=END;
 		return 0;
 	}
@@ -7947,7 +7946,6 @@ int run_func(struct script_state &st)
 	if( st.stack.stack_data[st.start].type!=C_NAME || str_data[func].type!=C_FUNC ){
 		ShowMessage ("run_func: '"CL_WHITE"%s"CL_RESET"' (type %d) is not function and command!\n",
 				str_buf + str_data[func].str, str_data[func].type);
-//		st.stack.sp=0;
 		st.state=END;
 		return 0;
 	}
@@ -8014,45 +8012,43 @@ int run_func(struct script_state &st)
  * スクリプトの実行メイン部分
  *------------------------------------------
  */
-bool run_script_main(const char *script,int pos,int rid,int oid,struct script_state &st,const char *rootscript)
+bool run_script_main(struct script_state &st)
 {
-	int c=0,rerun_pos;
+	int c=0, rerun_pos;
 	int cmdcount=script_config.check_cmdcount;
 	int gotocount=script_config.check_gotocount;
 
-	if(!script)
-		return 0;
+	if(!st.script) return 0;
 
 	st.defsp = st.stack.sp;
-	st.script= script;
 
 	rerun_pos=st.pos;
 int last;	
 	for(st.state=0;st.state==0;){
 last = c;
-		switch(c= get_com(script,st.pos)){
+		c = get_com(st.script,st.pos);
+		switch(c){
 		case C_EOL:
 			if(st.stack.sp!=st.defsp){
 				if(battle_config.error_log)
 					ShowMessage("stack.sp(%d) != default(%d)\n",st.stack.sp,st.defsp);
 //!!
-printf("(%d) - %s\n", last, script+st.pos-4);
+printf("(%d) - %s\n", last, st.script+st.pos-4);
 
 				st.stack.sp=st.defsp;
 			}
 			rerun_pos=st.pos;
 			break;
 		case C_INT:
-			push_val(st.stack,C_INT,get_num(script,st.pos));
+			push_val(st.stack,C_INT,get_num(st.script,st.pos));
 			break;
 		case C_POS:
 		case C_NAME:
 		{
-//			push_val(*stack,c,(!*!(int!*!)(script+st.pos))&0xffffff);
 			unsigned long tmp;
-			tmp = (0xFF&script[st.pos])
-				| (0xFF&script[st.pos+1])<<8
-				| (0xFF&script[st.pos+2])<<16;
+			tmp = (0xFF&st.script[st.pos])
+				| (0xFF&st.script[st.pos+1])<<8
+				| (0xFF&st.script[st.pos+2])<<16;
 			push_val(st.stack,c,tmp);
 			st.pos+=3;
 			break;
@@ -8061,14 +8057,14 @@ printf("(%d) - %s\n", last, script+st.pos-4);
 			push_val(st.stack,c,0);
 			break;
 		case C_STR:
-			push_str(st.stack,C_CONSTSTR, (script+st.pos));
-			while(script[st.pos++]);
+			push_str(st.stack, C_CONSTSTR, (st.script+st.pos));
+			while(st.script[st.pos++]);
 			break;
 		case C_FUNC:
 			run_func(st);
 			if(st.state==GOTO){
 				rerun_pos=st.pos;
-				script=st.script;
+//				script=st.script;
 				st.state=0;
 				if( gotocount>0 && (--gotocount)<=0 ){
 					ShowMessage("run_script: infinity loop !\n");
@@ -8108,12 +8104,13 @@ printf("(%d) - %s\n", last, script+st.pos-4);
 			break;
 
 		case C_NOP:
+			st.pos++;
 			st.state=END;
 			break;
 
 		default:
 			if(battle_config.error_log)
-				ShowMessage("unknown command : %d @ %d\n",c,pos);
+				ShowMessage("unknown command : %d @ %d\n",c,st.pos);
 			st.state=END;
 			break;
 		}
@@ -8141,68 +8138,74 @@ printf("(%d) - %s\n", last, script+st.pos-4);
 	}
 
 	return (st.state!=END);
-		}
+}
 
 /*==========================================
  * スクリプトの実行
  *------------------------------------------
  */
-int run_script(char *script,int pos,int rid,int oid)
+int run_script(const char *rootscript,int pos,int rid,int oid)
 {
 	struct script_state st;
 	struct map_session_data *sd=map_id2sd(rid);
-	char *rootscript=script;
 
-	if(script==NULL || pos<0)
+	if(rootscript==NULL || pos<0)
 		return -1;
+
+	memset(&st,0,sizeof(st));
 
 	if(sd && sd->npc_stackbuf && sd->npc_scriptroot==rootscript){
 		// 前回のスタックを復帰
-		script=sd->npc_script;
-		st.stack.sp=sd->npc_stack;
-		st.stack.sp_max=sd->npc_stackmax;
+		// set scripts to continue from previous run
+		st.script			= sd->npc_script;
+		sd->npc_script      = NULL;
+		sd->npc_scriptroot  = NULL;
 
-		//st.stack.stack_data=(struct script_data *)aCalloc(st.stack.sp_max,sizeof(st.stack.stack_data[0]));
-		//memcpy(st.stack.stack_data,sd->npc_stackbuf,sizeof(st.stack.stack_data[0])*st.stack.sp_max);
-		//aFree(sd->npc_stackbuf);
-
-		// transfer saved stack data to stack
+		// transfer saved stack data to script stack
+		st.stack.sp			= sd->npc_stack;
+		st.stack.sp_max		= sd->npc_stackmax;		
 		st.stack.stack_data = (struct script_data *)sd->npc_stackbuf;
-		
 		sd->npc_stackbuf=NULL;
+
 	}else{
 		// スタック初期化
-		st.stack.sp=0;
-		st.stack.sp_max=64;
-		st.stack.stack_data=(struct script_data *)aCalloc(st.stack.sp_max,sizeof(st.stack.stack_data[0]));
+		// set scripts to start a new script
+		st.script			= rootscript;
+
+		// create a new stack
+		st.stack.sp			= 0;
+		st.stack.sp_max		= 64;
+		st.stack.stack_data = (struct script_data *)aCalloc(st.stack.sp_max,sizeof(st.stack.stack_data[0]));
 	}
 	st.pos=pos;
 	st.rid=rid;
 	st.oid=oid;
-	if( run_script_main(script,pos,rid,oid,st,rootscript) && sd)
+
+	if( run_script_main(st) && sd)
 	{	// script is not finished, we save the stack
 		// 再開するためにスタック情報を保存
 
 		if( sd->npc_stackbuf )// should not happen
 			aFree(sd->npc_stackbuf);
 
-		//sd->npc_stackbuf = (char *)aCalloc(sizeof(st.stack.stack_data[0])*st.stack.sp_max,sizeof(char));
-		//memcpy(sd->npc_stackbuf, st.stack.stack_data, sizeof(st.stack.stack_data[0]) * st.stack.sp_max);
-
 		// transfer stack data to npc
 		sd->npc_stackbuf = (char *)st.stack.stack_data;
 		st.stack.stack_data = NULL;
 
-		sd->npc_stack = st.stack.sp;
-		sd->npc_stackmax = st.stack.sp_max;
-		sd->npc_script=(char*)script;
-		sd->npc_scriptroot=(char*)rootscript;
+		sd->npc_stack     = st.stack.sp;
+		sd->npc_stackmax  = st.stack.sp_max;
+		sd->npc_script    = st.script;
+		sd->npc_scriptroot= rootscript;
 	}
 	if(st.stack.stack_data)
 	{
+		for(int i = 0; i < st.stack.sp; i++)
+			if (st.stack.stack_data[i].type == C_STR)
+				aFree((void*)(st.stack.stack_data[i].u.str));
 		aFree(st.stack.stack_data);
 		st.stack.stack_data=NULL;
 	}
+
 	return st.pos;
 }
 
@@ -8347,13 +8350,13 @@ static int set_posword(const char *p)
 	{
 		if((np=strchr(p,','))!=NULL)
 		{	// copy up to the comma
-			memcpy(pos[i],p,np-p);
-			pos[i][np-p]=0; // set the eos explicitly
+			memcpy(positions[i],p,np-p);
+			positions[i][np-p]=0; // set the eos explicitly
 			p=np+1;
 		}
 		else
 		{	//copy the rest including the eos
-			memcpy(pos[i],p,1+strlen(p));
+			memcpy(positions[i],p,1+strlen(p));
 			p+=strlen(p);
 		}
 	}

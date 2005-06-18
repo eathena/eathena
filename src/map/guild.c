@@ -1430,10 +1430,6 @@ int guild_castledataloadack(unsigned short castle_id,int index,int value)
 	ev=(struct eventlist *)numdb_search(guild_castleinfoevent_db,code);
 	if( ev != NULL ){
 		numdb_erase(guild_castleinfoevent_db,code);
-//		for(;ev;ev2=ev->next,aFree(ev),ev=ev2){
-//			npc_event_do(ev->name);
-//		}
-		// same assembler result but more clear to read
 		while(ev)
 		{
 			npc_event_do(ev->name);
@@ -1709,10 +1705,14 @@ static int guild_expcache_db_final(void *key,void *data,va_list ap)
 }
 static int guild_infoevent_db_final(void *key,void *data,va_list ap)
 {
-	struct eventlist *ev=(struct eventlist *) data;
-
-	aFree(ev);
-
+	struct eventlist *ev, *ev2;
+	ev =(struct eventlist *) data;
+	while(ev)
+	{
+		ev2=ev->next;
+		aFree(ev);
+		ev=ev2;
+	}
 	return 0;
 }
 void do_final_guild(void)

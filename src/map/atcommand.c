@@ -1135,21 +1135,29 @@ bool atcommand_jump(int fd, struct map_session_data &sd, const char* command, co
 	int x = 0, y = 0;
 
 
-	sscanf(message, "%d %d", &x, &y);
+	if(!message || !*message || sscanf(message, "%d %d", &x, &y) < 2) {
+		// just nothing
+	}
 
+	if( sd.bl.m >= map_num || 
+		map[sd.bl.m].flag.nowarp || 
+		(map[sd.bl.m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) )
+	{
+		clif_displaymessage(fd, msg_table[248]);
+		return false;
+	}
 	if (x <= 0)
-		x = rand() % 399 + 1;
+		x = rand() % (map[sd.bl.m].xs-1) + 1;
 	if (y <= 0)
-		y = rand() % 399 + 1;
-	if (x > 0 && x < 400 && y > 0 && y < 400) {
-		if (sd.bl.m < map_num && (map[sd.bl.m].flag.nowarp || map[sd.bl.m].flag.nowarpto) && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-			clif_displaymessage(fd, msg_table[248]);
-			return false;
-		}
+		y = rand() % (map[sd.bl.m].ys-1) + 1;
+	if (x > 0 && x < map[sd.bl.m].xs && y > 0 && y < map[sd.bl.m].ys)
+	{
 		pc_setpos(sd, sd.mapname, x, y, 3);
 		sprintf(output, msg_table[5], x, y); // Jump to %d %d
 		clif_displaymessage(fd, output);
-	} else {
+	}
+	else
+	{
 		clif_displaymessage(fd, msg_table[2]); // Coordinates out of range.
 		return false;
 	}

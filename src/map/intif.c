@@ -1123,7 +1123,7 @@ int intif_parse(int fd)
 	}
 	// パケットの長さ確認
 	packet_len = packet_len_table[cmd-0x3800];
-	if(packet_len==-1){
+	if(packet_len < 0){
 		if(RFIFOREST(fd)<4)
 			return 2;
 		packet_len = RFIFOW(fd,2);

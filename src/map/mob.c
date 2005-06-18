@@ -516,6 +516,13 @@ static int mob_walk(struct mob_data &md,unsigned long tick,int data)
 		i = i>>1;
 		if(i < 1 && md.walkpath.path_half == 0)
 			i = 1;
+
+
+		if(md.timer != -1)
+		{
+			delete_timer(md.timer,mob_timer);
+			md.timer=-1;
+		}
 		md.timer=add_timer(tick+i,mob_timer,md.bl.id,md.walkpath.path_pos);
 		md.state.state=MS_WALK;
 
@@ -625,7 +632,11 @@ static int mob_attack(struct mob_data &md,unsigned long tick,int data)
 		status_change_end(&md.bl,SC_CLOAKING,-1);
 
 	md.attackabletime = tick + status_get_adelay(&md.bl);
-
+	if(md.timer != -1)
+	{
+		delete_timer(md.timer,mob_timer);
+		md.timer=-1;
+	}
 	md.timer=add_timer(md.attackabletime,mob_timer,md.bl.id,0);
 	md.state.state=MS_ATTACK;
 
@@ -658,8 +669,10 @@ int mob_changestate(struct mob_data &md,int state,int type)
 	int i;
 
 	if(md.timer != -1)
+	{
 		delete_timer(md.timer,mob_timer);
-	md.timer=-1;
+		md.timer=-1;
+	}
 	md.state.state=state;
 
 	switch(state){
@@ -2126,7 +2139,6 @@ void mob_unload(struct mob_data &md)
 	map_freeblock(&md);
 }
 
-
 int mob_remove_map(struct mob_data &md, int type)
 {
 	if(md.bl.prev == NULL)
@@ -2138,7 +2150,6 @@ int mob_remove_map(struct mob_data &md, int type)
 		aFree(md.lootitem);
 		md.lootitem = NULL;
 	}
-
 	return 0;
 }
 int mob_delete(struct mob_data &md)

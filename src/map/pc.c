@@ -736,11 +736,8 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 	{
 		size_t i;
 		if(battle_config.error_log) 
-		{
-			char buf[32];
-			sprintf(buf, "Last_point_map %s not found\n", sd->status.last_point.map);
-			ShowError (buf);
-		}
+			ShowError("Last_point_map %s not found\n", sd->status.last_point.map);
+
 		// try warping to a default map instead
 		for(i=0; i<map_num; i++)
 		{
@@ -813,12 +810,11 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 
 	// ステ?タス初期計算など
 	status_calc_pc(*sd,1);
-	{
-		if (pc_isGM(*sd))
-			ShowInfo("GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, pc_isGM(*sd));
-		else
-			ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id);
-	}
+
+	if (pc_isGM(*sd))
+		ShowInfo("GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, pc_isGM(*sd));
+	else
+		ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id);
 
 	if (script_config.event_script_type == 0) {
 		struct npc_data *npc;
@@ -2613,7 +2609,7 @@ int pc_useitem(struct map_session_data &sd,unsigned short inx)
 		{
 			clif_useitemack(sd,inx,amount-1,1);
 			pc_delitem(sd,inx,1,1);
-	}
+		}
 		if( sd.status.inventory[inx].card[0]==0x00ff && 
 			pc_istop10fame(MakeDWord(sd.status.inventory[inx].card[2],sd.status.inventory[inx].card[3]),1) )
 		{
@@ -3146,55 +3142,55 @@ bool pc_setpos(struct map_session_data &sd,const char *mapname_org,unsigned shor
 			{
 				if(sd.pd->bl.m != m && sd.pet.intimate <= 0)
 				{
-						pet_remove_map(sd);
+					pet_remove_map(sd);
 					intif_delete_petdata(sd.status.pet_id);
 					sd.status.pet_id = 0;
 					sd.pd = NULL;
 					sd.petDB = NULL;
-						if(battle_config.pet_status_support)
-							status_calc_pc(sd,2);
-					}
+					if(battle_config.pet_status_support)
+						status_calc_pc(sd,2);
+				}
 				else if(sd.pet.intimate > 0)
 				{
 					pet_stopattack(*(sd.pd));
 					pet_changestate(*(sd.pd),MS_IDLE,0);
 					clif_clearchar_area(sd.pd->bl,clrtype&0xffff);
 					map_delblock(sd.pd->bl);
-					}
 				}
-
-				skill_unit_move(sd.bl,gettick(),0);
-				clif_clearchar_area(sd.bl,clrtype&0xffff);
-				skill_gangsterparadise(&sd,0);
-				map_delblock(sd.bl);
-				
-				party_send_logout(sd);					// パーティのログアウトメッセージ送信
-				guild_send_memberinfoshort(sd,0);		// ギルドのログアウトメッセージ送信
-				status_change_clear(&sd.bl,1);	// ステータス異常を解除する
-				skill_stop_dancing(&sd.bl,1);			// ダンス/演奏中断
-				pc_cleareventtimer(sd);					// イベントタイマを破棄する
-				pc_delspiritball(sd,sd.spiritball,1);	// 気功削除
-				skill_unit_move(sd.bl,gettick(),0);	// スキルユニットから離脱
-				skill_cleartimerskill(&sd.bl);			// タイマースキルクリア
-				skill_clear_unitgroup(&sd.bl);			// スキルユニットグループの削除
-
-				memcpy(sd.mapname,mapname,24);
-				sd.bl.x=x;
-				sd.bl.y=y;
-
-				sd.state.waitingdisconnect=1;
-				pc_clean_skilltree(sd);
-				pc_makesavestatus(sd);
-				if(sd.status.pet_id > 0 && sd.pd)
-					intif_save_petdata(sd.status.account_id,sd.pet);
-				chrif_save(sd);
-				storage_storage_save(sd);
-				storage_delete(sd.status.account_id);
-				chrif_changemapserver(sd, mapname, x, y, ip, port);
-				return true;
 			}
-		return false;
+
+			skill_unit_move(sd.bl,gettick(),0);
+			clif_clearchar_area(sd.bl,clrtype&0xffff);
+			skill_gangsterparadise(&sd,0);
+			map_delblock(sd.bl);
+			
+			party_send_logout(sd);					// パーティのログアウトメッセージ送信
+			guild_send_memberinfoshort(sd,0);		// ギルドのログアウトメッセージ送信
+			status_change_clear(&sd.bl,1);	// ステータス異常を解除する
+			skill_stop_dancing(&sd.bl,1);			// ダンス/演奏中断
+			pc_cleareventtimer(sd);					// イベントタイマを破棄する
+			pc_delspiritball(sd,sd.spiritball,1);	// 気功削除
+			skill_unit_move(sd.bl,gettick(),0);	// スキルユニットから離脱
+			skill_cleartimerskill(&sd.bl);			// タイマースキルクリア
+			skill_clear_unitgroup(&sd.bl);			// スキルユニットグループの削除
+
+			memcpy(sd.mapname,mapname,24);
+			sd.bl.x=x;
+			sd.bl.y=y;
+
+			sd.state.waitingdisconnect=1;
+			pc_clean_skilltree(sd);
+			pc_makesavestatus(sd);
+			if(sd.status.pet_id > 0 && sd.pd)
+				intif_save_petdata(sd.status.account_id,sd.pet);
+			chrif_save(sd);
+			storage_storage_save(sd);
+			storage_delete(sd.status.account_id);
+			chrif_changemapserver(sd, mapname, x, y, ip, port);
+			return true;
 		}
+		return false;
+	}
 
 	if(x >= map[m].xs || y >= map[m].ys)
 		x=y=0;
@@ -5811,8 +5807,6 @@ int pc_setreg(struct map_session_data &sd,int reg,int val)
 	}
 	sd.reg_num++;
 	sd.reg = (struct script_reg *)aRealloc(sd.reg, sd.reg_num*sizeof(struct script_reg));
-	memset(sd.reg + (sd.reg_num - 1) * sizeof(struct script_reg), 0, sizeof(struct script_reg));
-
 	sd.reg[i].index = reg;
 	sd.reg[i].data = val;
 
@@ -5843,18 +5837,19 @@ int pc_setregstr(struct map_session_data &sd,int reg,const char *str)
 		ShowMessage("pc_setregstr: string too long !\n");
 		return 0;
 	}
-
 	for(i=0;i<sd.regstr_num;i++)
-		if(sd.regstr[i].index==reg){
-			strcpy(sd.regstr[i].data,str);
-			return 0;
-		}
-	sd.regstr_num++;
-	sd.regstr = (struct script_regstr *)aRealloc(sd.regstr, sizeof(struct script_regstr) * sd.regstr_num);
-	memset(sd.regstr + (sd.reg_num - 1) * sizeof(struct script_regstr), 0, sizeof(struct script_regstr));
-
+	{
+		if(sd.regstr[i].index==reg)
+			break;
+	}
+	if(i >= sd.regstr_num)
+	{
+		sd.regstr_num++;
+		sd.regstr = (struct script_regstr *)aRealloc(sd.regstr, sizeof(struct script_regstr) * sd.regstr_num);
+		memset(sd.regstr + (sd.reg_num - 1) * sizeof(struct script_regstr), 0, sizeof(struct script_regstr));
+	}
 	sd.regstr[i].index=reg;
-	strcpy(sd.regstr[i].data,str);
+	memcpy(sd.regstr[i].data,str,strlen(str)+1);
 
 	return 0;
 }

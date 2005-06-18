@@ -220,7 +220,7 @@ int chrif_recvmap(int fd)
 		map_setipport((char*)RFIFOP(fd,i), ip, port);
 	}
 	if (battle_config.etc_log)
-		ShowMessage("recv map on %d.%d.%d.%d:%d (%d maps)\n", (ip>>24)&0xFF, (ip>>16)&0xFF, (ip>>8)&0xFF, (ip)&0xFF, port, j);
+		ShowStatus("recv map on %d.%d.%d.%d:%d (%d maps)\n", (ip>>24)&0xFF, (ip>>16)&0xFF, (ip>>8)&0xFF, (ip)&0xFF, port, j);
 
 	return 0;
 }
@@ -1279,7 +1279,7 @@ int chrif_parse(int fd)
 			return 0;
 		}
 		packet_len = packet_len_table[cmd-0x2af8];
-		if (packet_len == -1) {
+		if (packet_len < 0) {
 			if (RFIFOREST(fd) < 4)
 				return 0;
 			packet_len = RFIFOW(fd,2);

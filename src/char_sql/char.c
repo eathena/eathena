@@ -1918,8 +1918,8 @@ int parse_frommap(int fd)
 				return 0;
 			memset(server[id].map, 0, sizeof(server[id].map));
 			j = 0;
-			for(i = 4; i < RFIFOW(fd,2); i += 24) {
-				memcpy(server[id].map[j], RFIFOP(fd,i), 24);
+			for(i = 4; i < RFIFOW(fd,2); i += 16) {
+				memcpy(server[id].map[j], RFIFOP(fd,i), 16);
 //				ShowMessage("set map %d.%d : %s\n", id, j, server[id].map[j]);
 				j++;
 			}

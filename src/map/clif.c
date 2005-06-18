@@ -401,7 +401,7 @@ int clif_send (unsigned char *buf, size_t len, struct block_list *bl, int type)
 		}
 		break;
 	case SELF:
-		if (sd && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
+		if (sd && session_isActive(sd->fd) && session[sd->fd]->session_data && packet_db[sd->packet_ver][RBUFW(buf,0)].len ) { // packet must exist for the client version
 			memcpy(WFIFOP(sd->fd,0), buf, len);
 			WFIFOSET(sd->fd,len);
 		}
@@ -1656,9 +1656,6 @@ int clif_changemap(struct map_session_data &sd, const char *mapname, unsigned sh
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
 	WFIFOSET(fd, packet_len_table[0x91]);
-
-	if(sd.disguise_id > 23 && sd.disguise_id < 4001) // mob disguises [Valaris]
-		clif_spawnpc(sd);
 
 	return 0;
 }
@@ -3667,7 +3664,7 @@ int clif_getareachar_pc(struct map_session_data &sd, struct map_session_data &ds
 			len = clif_dis007b(dstsd,WFIFOP(sd.fd,0));
 			WFIFOSET(sd.fd,len);
 		}
-		}
+	}
 	else
 	{
 		len = clif_set0078(dstsd,WFIFOP(sd.fd,0));
@@ -3676,9 +3673,8 @@ int clif_getareachar_pc(struct map_session_data &sd, struct map_session_data &ds
 		{
 			len = clif_dis0078(dstsd,WFIFOP(sd.fd,0));
 			WFIFOSET(sd.fd,len);
+		}
 	}
-	}
-
 
 
 	if(dstsd.chatID)
@@ -3719,6 +3715,9 @@ int clif_getareachar_pc(struct map_session_data &sd, struct map_session_data &ds
 int clif_getareachar_npc(struct map_session_data &sd,struct npc_data &nd)
 {
 	int len;
+	if( !session_isActive(sd.fd) )
+		return 0;
+
 	if(nd.class_ < 0 || nd.flag&1 || nd.class_ == INVISIBLE_CLASS)
 		return 0;
 	if(nd.state.state == MS_WALK){
@@ -3734,7 +3733,7 @@ int clif_getareachar_npc(struct map_session_data &sd,struct npc_data &nd)
 	{
 		struct chat_data*ct = (struct chat_data*)map_id2bl(nd.chat_id);
 		if(ct) clif_dispchat(*ct,sd.fd);
-}
+	}
 	return 0;
 }
 
@@ -11517,11 +11516,11 @@ static int clif_parse(int fd)
 	{ 
 		// wait some time (10sec) before removing the pc after a forced logout
 		// other disconnections got a different WaitClose time before comming here
-		if( session_isMarked(fd) || sd || sd->state.waitingdisconnect )
+		if( session_isMarked(fd) || !sd || sd->state.waitingdisconnect )
 			// removing marked sessons now might be no thread 
 			// even if the timer is not removed and called on an empty or reused session
 			session_Remove(fd); 
-			else
+		else
 			session_SetWaitClose(fd, 10000);
 		return 0;
 	}
@@ -11550,9 +11549,9 @@ static int clif_parse(int fd)
 			case 0x7532: // 接続の切断
 				session_Remove(fd);
 				printf("clif_parse: session #%d, packet 0x%x received -> disconnected.\n", fd, cmd);
-				break;
+				return 0;
 			}
-			return 0;
+			continue;
 		}
 
 		if(sd)
@@ -11660,7 +11659,7 @@ static int clif_parse(int fd)
 		
 		// パケット長を計算
 		packet_len = packet_db[packet_ver][cmd].len;
-		if (packet_len == -1)
+		if (packet_len < 0)
 		{	// 可変長パケットで長さの所までデータが来てない
 			if (RFIFOREST(fd) < 4)
 				return 0; 
@@ -11699,11 +11698,10 @@ static int clif_parse(int fd)
 #if DUMP_UNKNOWN_PACKET == 1
 		else
 		{	// 不明なパケット
-				int i;
-				FILE *fp;
+			int i;
+			FILE *fp;
 			char *packet_txt = "save/packet.txt";
-				time_t now;
-
+			time_t now;
 			fp = savefopen(packet_txt, "a");
 			if(fp == NULL)
 			{
@@ -11711,51 +11709,51 @@ static int clif_parse(int fd)
 			}
 			else
 			{
-					time(&now);
+				time(&now);
 				if (sd && sd->state.auth)
 				{
-						if (sd->status.name != NULL)
+					if (sd->status.name != NULL)
 						fprintf(fp, "%sPlayer with account ID %ld (character ID %ld, player name %s) sent wrong packet:\n",
-							        asctime(localtime(&now)), sd->status.account_id, sd->status.char_id, sd->status.name);
-						else
-						fprintf(fp, "%sPlayer with account ID %ld sent wrong packet:\n", 
-							asctime(localtime(&now)), sd->bl.id);
+								asctime(localtime(&now)), sd->status.account_id, sd->status.char_id, sd->status.name);
+					else
+						fprintf(fp, "%sPlayer with account ID %ld sent wrong packet:\n",
+								asctime(localtime(&now)), sd->bl.id);
 				}
 				else if (sd) // not authentified! (refused by char-server or disconnect before to be authentified)
 					fprintf(fp, "%sPlayer with account ID %ld sent wrong packet:\n", 
-						asctime(localtime(&now)), sd->bl.id);
-
-					fprintf(fp, "\t---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
+							asctime(localtime(&now)), sd->bl.id);
+				
+				fprintf(fp, "\t---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
 				for(i = 0; i < packet_len; i++)
 				{
-						if ((i & 15) == 0)
-							fprintf(fp, "\n\t%04X ", i);
-						fprintf(fp, "%02X ", RFIFOB(fd,i));
-					}
-					fprintf(fp, "\n\n");
-					fclose(fp);
+					if ((i & 15) == 0)
+						fprintf(fp, "\n\t%04X ", i);
+					fprintf(fp, "%02X ", RFIFOB(fd,i));
 				}
+				fprintf(fp, "\n\n");
+				fclose(fp);
 			}
+		}
 #endif
 #if DUMP_ALL_PACKETS == 1
 		{
-		int i;
-		if (fd)
+			int i;
+			if (fd)
 				ShowMessage("\nclif_parse: session #%d, packet 0x%x, lenght %d\n", fd, cmd, packet_len);
 			for(i = 0; i < packet_len; i++)
 			{
-			if ((i & 15) == 0)
+				if ((i & 15) == 0)
 					ShowMessage("\n%04X ",i);
 				ShowMessage("%02X ", RFIFOB(fd,i));
-		}
+			}
 			if (sd && sd->state.auth)
 			{
-			if (sd->status.name != NULL)
+				if (sd->status.name != NULL)
 					ShowMessage("\nAccount ID %d, character ID %d, player name %s.\n",
-			       sd->status.account_id, sd->status.char_id, sd->status.name);
-			else
+							sd->status.account_id, sd->status.char_id, sd->status.name);
+				else
 					ShowMessage("\nAccount ID %d.\n", sd->bl.id);
-	}
+			}
 			else if (sd) // not authentified! (refused by char-server or disconnect before to be authentified)
 				ShowMessage("\nAccount ID %d.\n", sd->bl.id);
 		}

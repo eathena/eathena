@@ -336,8 +336,10 @@ int npc_event_doall_sub(void *key,void *data,va_list ap)
 int npc_event_doall(const char *name)
 {
 	int c=0;
-	char buf[64]="::";
-	memcpy(buf+2,name,sizeof(buf)-2);
+	char buf[128]="::";
+	size_t len=strlen(name)+1;
+	if(len+2>sizeof(buf)) len = sizeof(buf)-2;
+	memcpy(buf+2,name,len);
 	buf[sizeof(buf)-1]=0;
 	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf,0);
 	return c;
@@ -878,8 +880,6 @@ int npc_scriptcont(struct map_session_data &sd,unsigned long id)
 	nd=(struct npc_data *)map_id2bl(id);
 	if( !nd || !npc_icNear(sd,*nd) )
 		return 1;
-
-
 	if(nd && nd->u.scr.ref)
 	sd.npc_pos = run_script(nd->u.scr.ref->script,sd.npc_pos,sd.bl.id,id);
 

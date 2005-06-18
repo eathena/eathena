@@ -200,10 +200,9 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage,int
 	
 	sc_data = status_get_sc_data(target);
 
-
-	if (damage == 0 ||
+	if( damage == 0 ||
 		target->prev == NULL ||
-		target->type == BL_PET)
+		target->type == BL_PET )
 		return 0;
 
 	if (bl) {
@@ -217,7 +216,7 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage,int
 	if (damage < 0)
 		return battle_heal(bl,target,-damage,0,flag);
 
-	if( !flag )
+	if( !flag && sc_data)
 	{
 		// 凍結、石化、睡眠を消去
 		if (sc_data[SC_FREEZE].timer != -1)
@@ -237,7 +236,7 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage,int
 		struct map_session_data *tsd = (struct map_session_data *)target;
 		if (!tsd)
 			return 0;
-		if (sc_data[SC_DEVOTION].val1) {	// ディボーションをかけられている
+		if(sc_data && sc_data[SC_DEVOTION].val1) {	// ディボーションをかけられている
 			struct map_session_data *sd2 = map_id2sd(tsd->sc_data[SC_DEVOTION].val1);
 			if (sd2 && skill_devotion3(&sd2->bl, target->id)) {
 				skill_devotion(sd2, target->id);
@@ -262,6 +261,7 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage,int
 		return skill_unit_ondamaged((struct skill_unit *)target, bl, damage, gettick());
 	return 0;
 }
+
 int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,int flag)
 {
 	nullpo_retr(0, target); //blはNULLで呼ばれることがあるので他でチェック
