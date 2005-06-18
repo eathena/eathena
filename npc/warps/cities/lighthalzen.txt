@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Sara-chan (1.0)
 //===== Current Version: =====================================
-//= 1.0
+//= 1.2
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 8+
 //===== Description: =========================================
@@ -13,6 +13,20 @@
 //============================================================
 
 //= Lighthalzen Warps ==========================================
+lhz_fild02.gat,25,214,0	warp	lhz001	1,1,lhz_fild01.gat,365,225
+lhz_fild01.gat,367,225,0	warp	lhz001a	1,1,lhz_fild02.gat,27,214
+lhz_fild01.gat,210,16,0	warp	lhz002	1,1,lighthalzen.gat,214,327
+lighthalzen.gat,214,329,0	warp	lhz002a	1,1,lhz_fild01.gat,210,18
+lhz_dun03.gat,140,139,0	warp	lhz003	1,1,lhz_dun02.gat,150,147
+lhz_dun02.gat,150,149,0	warp	lhz003a	1,1,lhz_dun03.gat,140,137
+lhz_dun02.gat,18,150,0	warp	lhz004	1,1,lhz_dun01.gat,18,148
+lhz_dun01.gat,18,146,0	warp	lhz004a	1,1,lhz_dun02.gat,18,148
+lhz_dun02.gat,382,155,0	warp	lhz005	1,1,lhz_dun01.gat,281,152
+lhz_dun01.gat,281,150,0	warp	lhz005a	1,1,lhz_dun02.gat,382,153
+lhz_dun02.gat,148,18,0	warp	lhz006	1,1,lhz_dun01.gat,146,10
+lhz_dun01.gat,148,10,0	warp	lhz006a	1,1,lhz_dun02.gat,150,18
+lhz_dun01.gat,150,290,0	warp	lhz007	1,1,lighthalzen.gat,73,54
+lighthalzen.gat,73,52,0	warp	lhz007a	1,1,lhz_dun01.gat,150,288
 lhz_in01.gat,106,15,0	warp	lhz008	1,1,lhz_in01.gat,88,213
 lhz_in01.gat,88,215,0	warp	lhz008a	1,1,lhz_in01.gat,106,17
 lhz_in01.gat,159,15,0	warp	lhz009	1,1,lhz_in01.gat,140,213
@@ -101,8 +115,14 @@ lhz_in02.gat,114,273,0	warp	lhz050	1,1,lhz_in02.gat,151,283
 lhz_in02.gat,149,283,0	warp	lhz050a	1,1,lhz_in02.gat,112,273
 lhz_cube.gat,248,183,0	warp	lhz051	1,1,lighthalzen.gat,54,131
 lighthalzen.gat,52,131,0	warp	lhz051a	1,1,lhz_cube.gat,246,183
-
-//= Lighthalzen Airport ===========================================
+// -Juno Airport-
+y_airport.gat,125,14,0	warp	jairp1	1,1,y_airport.gat,19,20
+y_airport.gat,19,18,0	warp	jairp1a	1,1,y_airport.gat,123,14
+y_airport.gat,160,14,0	warp	jairp2	1,1,y_airport.gat,48,20
+y_airport.gat,48,18,0	warp	jairp2a	1,1,y_airport.gat,162,14
+yuno.gat,54,217,0	warp	jairp3	1,1,y_airport.gat,143,15
+y_airport.gat,143,13,0	warp	jairp3a	1,1,yuno.gat,54,215
+// -Lighthalzen Airport-
 lhz_airport.gat,125,14,0	warp	lairp1	1,1,lhz_airport.gat,19,20
 lhz_airport.gat,19,18,0	warp	lairp1a	1,1,lhz_airport.gat,123,14
 lhz_airport.gat,160,14,0	warp	lairp2	1,1,lhz_airport.gat,48,20

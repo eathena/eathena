@@ -27,6 +27,8 @@ TODO:
 
 Date		Added
 ======
+06/18
+	* Updated Lightharzen warps to Sara-chan's v1.2 [Lupus]
 06/16
 	* Added Sara-chan's Lightharzen warps [celest]
 06/13
