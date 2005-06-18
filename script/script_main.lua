@@ -22,7 +22,7 @@ require("script/sample/script_sample.lua")
 -- Warps
 require("script/warps/script_warps.lua")
 -- Monster Spawn
-require("script/mobs/scripts_spawn.lua")
+--require("script/mobs/scripts_spawn.lua")
 -- Your NPCs go in this file!
 -- require("script/custom/script_custom.lua")
 --------------------------------------------------------------
