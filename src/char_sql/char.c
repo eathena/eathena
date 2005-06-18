@@ -618,7 +618,27 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	if (diff)
 	  mysql_query(&mysql_handle, tmp_sql);
          */
-         printf("NOTE -> friends are currently not saved in this VERSION!\n");
+         diff = 0;
+         for(i = 0; i < MAX_FRIENDS; i++){
+                if(p->friend_id[i] != cp->friend_id[i]){
+                	diff = 1;
+                 break;
+                }
+         }
+
+         if(diff == 1){
+         	sprintf(tmp_sql, "DELETE FROM `friends` WHERE `char_id` = '%d'", char_id);
+                 for(i = 0; i < MAX_FRIENDS; i++){
+                         if(p->friend_id > 0){
+	                         sprintf(tmp_sql, "INSERT INTO `friends` (`char_id`, `friend_id`) VALUES ('%d', '%d')", char_id, p->friend_id[i]);
+	                         if(mysql_query(&mysql_handle, tmp_sql)){
+	                                 eprintf("tosql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
+	                         }
+                         }
+                 }
+         }
+
+         //printf("NOTE -> friends are currently not saved in this VERSION!\n");
 
 	printf("saving char is done.\n");
 	save_flag = 0;
@@ -3815,3 +3835,4 @@ int char_nick2id (char *name) {
 				printf ("CHAR: nick2id Failed!\n");
 		return char_id;
 }
+
