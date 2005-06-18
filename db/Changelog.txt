@@ -24,6 +24,13 @@
 	4265,Li_Me_Mang_Ryang_Card
 
 06/18
+	* Changed slot-count for item 1411 (Lance_) from 0 to 1. [Skotlex]
+	  I am not going to believe 0 is the real number for it considering that:
+	  1: You can't get it from any shop. (that id is nowhere in the npc files)
+	  2: Only DoppelGanger drops it, with a 5.5% chance.
+	* Applying the same logic as before, item 5096 (Assassin Mask_) gets 1
+	  slot. This item can't be acquired via drops nor npcs, and there's already
+	  an Assasin Mask with no slots. There should be some sort of difference! [Skotlex]
 	* Added some new items (by Landarma), fixed recently added ones. [Lupus]
 06/11
 	* Changed Ungoliatnt Assumption skill's target to self from target [Skotlex]
