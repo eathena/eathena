@@ -15,9 +15,9 @@
 
 struct mmo_charstatus *charsave_loadchar(int charid){
          int i, friends;
+         struct mmo_charstatus *c;
          friends = 0;
 
-         struct mmo_charstatus *c;
          c = (struct mmo_charstatus *)aMalloc(sizeof(struct mmo_charstatus));
 
          if(charid <= 0){

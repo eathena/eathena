@@ -1375,6 +1375,7 @@ int clif_spawnpc(struct map_session_data *sd) {
 #endif
 
 	if(sd->disguise > 0) {
+		int len;
 		memset(buf,0,packet_len_table[0x7c]);
 		WBUFW(buf,0)=0x7c;
 		WBUFL(buf,2)=-sd->bl.id;
@@ -1384,7 +1385,7 @@ int clif_spawnpc(struct map_session_data *sd) {
 		WBUFPOS(buf,36,sd->bl.x,sd->bl.y);
 		clif_send(buf,packet_len_table[0x7c],&sd->bl,AREA);
 
-		int len = clif_dis0078(sd,buf);
+		len = clif_dis0078(sd,buf);
 		clif_send(buf,len,&sd->bl,AREA);
 	}
 
@@ -1763,11 +1764,12 @@ int clif_fixpos(struct block_list *bl) {
 	clif_send(buf, packet_len_table[0x88], bl, AREA);
 
 	if(bl->type==BL_PC) {
+		struct map_session_data *sd;
 		WBUFL(buf,2)=-10;
 		WBUFW(buf,6)=bl->x;
 		WBUFW(buf,8)=bl->y;
 		clif_send(buf, packet_len_table[0x88], bl, SELF);
-		struct map_session_data *sd=(struct map_session_data *)bl;
+		sd=(struct map_session_data *)bl;
 		if(sd->disguise) {
 			WBUFL(buf,2)=-bl->id;
 			WBUFW(buf,6)=bl->x;

@@ -1224,6 +1224,9 @@ int chrif_disconnect(int fd) {
 
 //The New-One char LOAD/SAVE system (SQL)
 int chrif_pcauthok(int fd){
+	#ifndef TXT_ONLY
+	struct mmo_charstatus *temp;
+	#endif
 	//..
  	//OLD: pc_authok(RFIFOL(fd,4), RFIFOL(fd,8), (time_t)RFIFOL(fd,12),
          //		(struct mmo_charstatus*)RFIFOP(fd,16)); break;
@@ -1235,7 +1238,7 @@ int chrif_pcauthok(int fd){
 	}
 
         #ifndef TXT_ONLY
-        struct mmo_charstatus *temp = charsave_loadchar(RFIFOL(fd, 14));
+        temp = charsave_loadchar(RFIFOL(fd, 14));
 
         if(temp == NULL){
         	printf("Cannot accept the client due an internal fault @ charsave_loadchar!\n");

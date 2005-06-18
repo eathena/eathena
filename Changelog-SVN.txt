@@ -1,4 +1,7 @@
 Date	Added
+06/19
+	* Fixed some compilation errors on FreeBSD (old compilers [veider]
+
 06/18
 	* Properly updated graph files (Oh god, i keep forgetting things now... 
 	  sorry again! >.< [celest]

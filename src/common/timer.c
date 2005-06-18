@@ -2,6 +2,7 @@
 // original : core.c 2003/02/26 18:03:12 Rev 1.7
 
 //#include <config.h>
+#include <sys/types.h>
 
 #ifdef __WIN32
 #define __USE_W32_SOCKETS
@@ -17,7 +18,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <sys/types.h>
 
 
 #include "timer.h"
