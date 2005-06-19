@@ -1,5 +1,6 @@
 Date	Added
 06/18
+	* Changed npcmenu function just a little, doesn't affect how it is used. [Kevin]
 	* Changed char_id to a global lua thing, so you don't have to use id ever time. [Kevin]
 	* Changed the way menus work, no need to call two different functions now ^^; [Kevin]
 	* Some reorganizing in scripts, some Payon warps weren't properly converted to Lua style,

@@ -238,49 +238,7 @@ static int npcmenu_co(lua_State *NL)
 	struct map_session_data *sd = NULL;
 	char *buf;
 	char *menu;
-	int charid;
-
-	lua_pushliteral(NL, "char_id");
-	lua_rawget(NL, LUA_GLOBALSINDEX);
-	charid=lua_tonumber(NL, -1);
-	lua_pop(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script");
-		return -1;
-	}
-	
-	if(!sd->npc_menu_data.current) {
-		sd->npc_menu_data.current=0;
-	}
-	
-	buf = (char *)aCallocA(512, sizeof(char));
-	buf[0]=0;
-	
-	if(!sd->menu && sd->menu == NULL) {
-		sd->menu = (char *)aCallocA(512, sizeof(char));
-		sd->menu[0]=0;
-	}
-	
-	strcpy(buf, sd->menu);
-	
-	sd->npc_menu_data.id[sd->npc_menu_data.current] = sd->npc_menu_data.current;
-	menu = (char *)lua_tostring(NL, 1);
-	strcat(buf,menu);
-	strcat(buf,":");
-	sd->npc_menu_data.value[sd->npc_menu_data.current] = lua_tonumber(NL, 2);
-	sd->npc_menu_data.current+=1;
-	
-	strcpy(sd->menu, buf);
-	
-	aFree(buf);
-	
-	return 0;
-}
-
-static int npcmenu_done(lua_State *NL)
-{
-	
-	struct map_session_data *sd = NULL;
+	int len=0, n, i;
 	int charid, npcid;
 
 	lua_pushliteral(NL, "char_id");
@@ -294,11 +252,56 @@ static int npcmenu_done(lua_State *NL)
 	
 	npcid = sd->npc_id;
 	
-	clif_scriptmenu(sd,npcid,sd->menu);
-	aFree(sd->menu);
-	sd->menu = NULL;
+	lua_pushliteral(NL, "n");
+	lua_rawget(NL, 1);
+	n = lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
+	
+	if(n%2 == 1) {
+		lua_pushstring(NL, "Incorrect number of arguments for function 'npcmenu'\n");
+		lua_error(NL);
+		return -1;
+	}
+	
+	if(!sd->npc_menu_data.current) {
+		sd->npc_menu_data.current=0;
+	}
+	
+	for(i=0; i<n; i+=2) {
+		lua_pushnumber(NL, i+1);
+		lua_rawget(NL, 1);
+		menu = (char *)lua_tostring(NL, -1);
+		lua_pop(NL, 1);
+		len += strlen(menu);
+	}
+	
+	buf=(char *)aCallocA(len+1, sizeof(char));
+	buf[0]=0;
+	
+	for(i=0; i<n; i+=2) {
+		lua_pushnumber(NL, i+1);
+		lua_rawget(NL, 1);
+		menu = (char *)lua_tostring(NL, -1);
+		lua_pop(NL, 1);
+	
+		lua_pushnumber(NL, i+2);
+		lua_rawget(NL, 1);
+		sd->npc_menu_data.value[sd->npc_menu_data.current] = lua_tonumber(NL, -1);
+		lua_pop(NL, 1);
+		
+		sd->npc_menu_data.id[sd->npc_menu_data.current] = sd->npc_menu_data.current;
+		sd->npc_menu_data.current+=1;
+		
+		strcat(buf,menu);
+		strcat(buf,":");
+	}
+	
+	
+	clif_scriptmenu(sd,npcid,buf);
 	
 	sd->npc_script_state = MENU;
+	
+	aFree(buf);
 	
 	return lua_yield(NL, 0);
 }
@@ -396,7 +399,6 @@ static struct LuaCommandInfo commands[] = {
 	{"npcnext", npcnext},
 	{"npcinput", npcinput},
 	{"npcmenu_co", npcmenu_co},
-	{"npcmenu_done", npcmenu_done},
 	{"npcmenu_getchoice", npcmenu_getchoice},
 	/* Player related functions */
 	{"heal", heal},
