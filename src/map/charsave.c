@@ -214,7 +214,7 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          if(charsql_res){
          	for(i = 0; (charsql_row = mysql_fetch_row(charsql_res)); i++){
                  	strcpy(c->global_reg[i].str, charsql_row[1]);
-                         c->global_reg[i].value = atoi(charsql_row[2]);
+                        c->global_reg[i].value = atoi(charsql_row[2]);
                  }
                  mysql_free_result(charsql_res);
          }
@@ -365,18 +365,20 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 
 
          //global_reg_value saving
-         sprintf(charsql_tmpsql, "DELETE FROM `global_reg_value` WHERE `char_id` = '%d' AND `type` = '3'", charid);
+         sprintf(charsql_tmpsql, "DELETE FROM `global_reg_value` WHERE `type`=3 AND `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
          	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
          }
-         for(i = 0; i < GLOBAL_REG_NUM; i++){
-         	if(c->global_reg[i].value != 0){
-                 	jstrescapecpy(tmp_str, c->global_reg[i].str);
-                 	sprintf(charsql_tmpsql, "INSERT INTO `global_reg_value` (`char_id`, `str`, `value`) VALUES ('%d', '%s', '%d')", charid, tmp_str, c->global_reg[i].value);
+         for(i = 0; i < c->global_reg_num; i++){
+           if(c->global_reg[i].str){
+                 if(c->global_reg[i].value != 0){
+                 	//jstrescapecpy(tmp_str, c->global_reg[i].str);
+                 	sprintf(charsql_tmpsql, "INSERT INTO `global_reg_value` (`char_id`, `str`, `value`) VALUES ('%d', '%s', '%d')", charid, jstrescapecpy(tmp_str,c->global_reg[i].str), c->global_reg[i].value);
 	                if(mysql_query(&charsql_handle, charsql_tmpsql)){
 	                	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
 	                }
                  }
+           }
          }
 
 
