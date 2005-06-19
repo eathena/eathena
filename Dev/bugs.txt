@@ -45,12 +45,6 @@ Problem:	Wierd login-server bug on sql, it displays that the server is full when
 Assigned:	N/A
 Progress:	0%
 
-Problem:	MVP cast spells w/o showing "prepare cast line"
-Assigned:	N/A
-Progress:	jA's mob skill DB itself already has skills that have no cast time,
-                does the same problem happen in jA? Perhaps it should read right from
-                skill_cast_db instead? [celest]
-
 Problem:        Chars with ' in their name.. is legal.. and messes up sql
 Assigned:       Kevin
 Progress:       done
@@ -281,19 +275,9 @@ Problem:	Character global VARS save with delay. (BTW Account #vars are fine!)
 Assigned:	N/A
 Progress:	0%
 
-Problem:	Charge Arrow bug
-			It can be casted w/o any BOW.. and with other weapon, or.. even with bare hands
-Assigned:	Celest
-Progress:	100%
-
-Problem:	Storm Gust, Lord of Vermilion and maybe others AoE skills (it worked fine before ~9 may 2005)
-			It works and casts as LEVEL 10, even if u cast it on lvl 1
-Assigned:	NA
-Progress:	0%
-
 Problem:	Bards songs do BLIND players...
 Assigned:	NA
-Progress:	0%
+Progress:	?? (Fixed?)
 Notes:	It's only the client-side visual effect, not an actual blind state
 
 Problem:	Wedding Teleport Skills
@@ -329,39 +313,10 @@ Problem:	Guilds Breaking
 Assigned:	N/A
 Progress:	0%
 
-
-Problem:	Plagiarizm
-			When you recieve ROGUIE SKILL - it could replace your own skill... then wipe it off the SQL
-			So u lose your own skills..
-Assigned:	na
-Progress:	0% ??? probably fixed?
-
-
-Problem:	Plagiarizm Client CRASH
-			When you get a plagiarized MONSTERS skill in your SKILL list - client crashes.
-Assigned:	na
-Progress:	0%
-
 Problem:	Disconnected from server
 			Some players recieve this note and can't re-connect the server till its reboot.
 Assigned:	na
 Progress:	0%
-
-Problem:	HP_ASSUMPTIO skill
-			When you cast it, then you lose all your SP.
-			And the affected people can't talk and use skills.
-
-			Note: Due to the patch change, this skill now affects people around you, and takes in less SP.
-				 It also shows different effect. 
-
-Assigned:	na
-Progress:	0%
-
-Problem:	Maps with more than 32 monsters (like anthell01 has 90++) will not load
-		the rest of them because map[i].moblist is full
-			Sorry, i only checked a few NPC files, wasn't seeing more than 32
-Assigned:	na
-Progress:	100%
 
 Problem: (script related) Using callfunc/callsub inside a Menu crashes the server.
 Assigned:	None
@@ -399,3 +354,11 @@ Problem:	Guild Expulsion
 			Until he reconnects.
 Assigned:	na
 Progress:	0%
+
+Problem:	Select() sometimes returns a listening fd more than once when a client connects,
+		so the 2nd one will fail on accept() and keep spamming "accept: bad file descriptor".
+Assigned:
+Progess:	0%
+Note:		Seems to happen a lot to the login server... And no it doesn't have anything to do with
+		ip changed, sockets timing out, read/writing to a non existant fd... it's just
+		select() somehow keeps thinking there's a connection on listen_fd even after accepting it >.<
