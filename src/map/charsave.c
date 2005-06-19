@@ -7,6 +7,7 @@
 #include "../common/timer.h"
 #include "../common/nullpo.h"
 #include "../common/mmo.h"
+#include "../common/strlib.h"
 
 #include "charsave.h"
 #include "map.h"
@@ -130,7 +131,7 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 
 
          //read inventory...
-         sprintf(charsql_tmpsql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` FROM `inventory` WHERE `char_id` = '%d'", charid);
+         sprintf(charsql_tmpsql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` FROM `inventory` WHERE `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
          	eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
                  aFree(c);
@@ -140,24 +141,24 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          charsql_res = mysql_store_result(&charsql_handle);
 	if(charsql_res){
 	         for(i = 0; (charsql_row = mysql_fetch_row(charsql_res)); i++){
-	                 c->inventory[i].id = atoi(charsql_row[0]);
-	                 c->inventory[i].nameid = atoi(charsql_row[1]);
-	                 c->inventory[i].amount = atoi(charsql_row[2]);
-	                 c->inventory[i].equip = atoi(charsql_row[3]);
-	                 c->inventory[i].identify = atoi(charsql_row[4]);
-	                 c->inventory[i].refine = atoi(charsql_row[5]);
-	                 c->inventory[i].attribute = atoi(charsql_row[6]);
-	                 c->inventory[i].card[0] = atoi(charsql_row[7]);
-	                 c->inventory[i].card[1] = atoi(charsql_row[8]);
-	                 c->inventory[i].card[2] = atoi(charsql_row[9]);
-	                 c->inventory[i].card[3] = atoi(charsql_row[10]);
+	                 //c->inventory[i].id = atoi(charsql_row[0]);
+	                 c->inventory[i].nameid = atoi(charsql_row[0]);
+	                 c->inventory[i].amount = atoi(charsql_row[1]);
+	                 c->inventory[i].equip = atoi(charsql_row[2]);
+	                 c->inventory[i].identify = atoi(charsql_row[3]);
+	                 c->inventory[i].refine = atoi(charsql_row[4]);
+	                 c->inventory[i].attribute = atoi(charsql_row[5]);
+	                 c->inventory[i].card[0] = atoi(charsql_row[6]);
+	                 c->inventory[i].card[1] = atoi(charsql_row[7]);
+	                 c->inventory[i].card[2] = atoi(charsql_row[8]);
+	                 c->inventory[i].card[3] = atoi(charsql_row[9]);
 	         }
 	         mysql_free_result(charsql_res);
          }
 
 
          //cart inventory ..
-         sprintf(charsql_tmpsql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` FROM `cart_inventory` WHERE `char_id` = '%d'", charid);
+         sprintf(charsql_tmpsql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` FROM `cart_inventory` WHERE `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
          	eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
                  aFree(c);
@@ -167,17 +168,17 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          charsql_res = mysql_store_result(&charsql_handle);
 	if(charsql_res){
 	         for(i = 0; (charsql_row = mysql_fetch_row(charsql_res)); i++){
-	                 c->cart[i].id = atoi(charsql_row[0]);
-	                 c->cart[i].nameid = atoi(charsql_row[1]);
-	                 c->cart[i].amount = atoi(charsql_row[2]);
-	                 c->cart[i].equip = atoi(charsql_row[3]);
-	                 c->cart[i].identify = atoi(charsql_row[4]);
-	                 c->cart[i].refine = atoi(charsql_row[5]);
-	                 c->cart[i].attribute = atoi(charsql_row[6]);
-	                 c->cart[i].card[0] = atoi(charsql_row[7]);
-	                 c->cart[i].card[1] = atoi(charsql_row[8]);
-	                 c->cart[i].card[2] = atoi(charsql_row[9]);
-	                 c->cart[i].card[3] = atoi(charsql_row[10]);
+	                 //c->cart[i].id = atoi(charsql_row[0]);
+	                 c->cart[i].nameid = atoi(charsql_row[0]);
+	                 c->cart[i].amount = atoi(charsql_row[1]);
+	                 c->cart[i].equip = atoi(charsql_row[2]);
+	                 c->cart[i].identify = atoi(charsql_row[3]);
+	                 c->cart[i].refine = atoi(charsql_row[4]);
+	                 c->cart[i].attribute = atoi(charsql_row[5]);
+	                 c->cart[i].card[0] = atoi(charsql_row[6]);
+	                 c->cart[i].card[1] = atoi(charsql_row[7]);
+	                 c->cart[i].card[2] = atoi(charsql_row[8]);
+	                 c->cart[i].card[3] = atoi(charsql_row[9]);
 	         }
 	         mysql_free_result(charsql_res);
          }
@@ -272,11 +273,129 @@ return c;
 
 
 int charsave_savechar(int charid, struct mmo_charstatus *c){
-	printf("SAVE REQ: %d NAME: %s\n", charid, c->name);
- 	printf("currently charsave is incomplete ! the char will not be saved, sirius will continue it 18.6.05\n");
+	int i;
+         char tmp_str[128];
+         //First save the 'char'
+	sprintf(charsql_tmpsql ,"UPDATE `char` SET `class`='%d', `base_level`='%d', `job_level`='%d',"
+		"`base_exp`='%d', `job_exp`='%d', `zeny`='%d',"
+		"`max_hp`='%d',`hp`='%d',`max_sp`='%d',`sp`='%d',`status_point`='%d',`skill_point`='%d',"
+		"`str`='%d',`agi`='%d',`vit`='%d',`int`='%d',`dex`='%d',`luk`='%d',"
+		"`option`='%d',`karma`='%d',`manner`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',"
+		"`hair`='%d',`hair_color`='%d',`clothes_color`='%d',`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
+		"`last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d',"
+		"`partner_id`='%d', `father`='%d', `mother`='%d', `child`='%d', `fame`='%d'"
+		"WHERE  `account_id`='%d' AND `char_id` = '%d'",
+		c->class_, c->base_level, c->job_level,
+		c->base_exp, c->job_exp, c->zeny,
+		c->max_hp, c->hp, c->max_sp, c->sp, c->status_point, c->skill_point,
+		c->str, c->agi, c->vit, c->int_, c->dex, c->luk,
+		c->option, c->karma, c->manner, c->party_id, c->guild_id, c->pet_id,
+		c->hair, c->hair_color, c->clothes_color,
+		c->weapon, c->shield, c->head_top, c->head_mid, c->head_bottom,
+		c->last_point.map, c->last_point.x, c->last_point.y,
+		c->save_point.map, c->save_point.x, c->save_point.y, c->partner_id, c->father, c->mother,
+		c->child, c->fame, c->account_id, c->char_id
+	);
+         if(mysql_query(&charsql_handle, charsql_tmpsql)){
+         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+         }
 
-         return 0;
+
+         //Save the inventory
+         sprintf(charsql_tmpsql, "DELETE FROM `inventory` WHERE `char_id` = '%d'", charid);
+         if(mysql_query(&charsql_handle, charsql_tmpsql)){
+         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+         }
+         for(i = 0; i < MAX_INVENTORY; i++){
+         	if(c->inventory[i].nameid > 0){
+		       	sprintf(charsql_tmpsql, "INSERT INTO `inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')", charid, c->inventory[i].nameid, c->inventory[i].amount, c->inventory[i].equip, c->inventory[i].identify, c->inventory[i].refine, c->inventory[i].attribute, c->inventory[i].card[0], c->inventory[i].card[1], c->inventory[i].card[2], c->inventory[i].card[3]);
+
+                         if(mysql_query(&charsql_handle, charsql_tmpsql)){
+                         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+                         }
+                 }
+         }
+
+
+
+         //Save the cart
+         sprintf(charsql_tmpsql, "DELETE FROM `cart_inventory` WHERE `char_id` = '%d'", charid);
+         if(mysql_query(&charsql_handle, charsql_tmpsql)){
+         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+         }
+         for(i = 0; i < MAX_CART; i++){
+         	if(c->cart[i].nameid > 0){
+		       	sprintf(charsql_tmpsql, "INSERT INTO `cart_inventory` (`id`, `char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')", c->cart[i].id, charid, c->cart[i].nameid, c->cart[i].amount, c->cart[i].equip, c->cart[i].identify, c->cart[i].refine, c->cart[i].attribute, c->cart[i].card[0], c->cart[i].card[1], c->cart[i].card[2], c->cart[i].card[3]);
+
+                         if(mysql_query(&charsql_handle, charsql_tmpsql)){
+                         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+                         }
+                 }
+         }
+
+
+         //Save memo points
+         sprintf(charsql_tmpsql, "DELETE FROM `memo` WHERE `char_id` = '%d'", charid);
+         if(mysql_query(&charsql_handle, charsql_tmpsql)){
+         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+         }
+         for(i = 0; i < MAX_MEMOPOINTS; i++){
+         	if(c->memo_point[i].map != "" && c->memo_point[i].x > 0 && c->memo_point[i].y > 0){
+                 	sprintf(charsql_tmpsql, "INSERT INTO `memo` ( `char_id`, `map`, `x`, `y` ) VALUES ('%d', '%s', '%d', '%d')", charid, c->memo_point[i].map, c->memo_point[i].x, c->memo_point[i].y);
+	                if(mysql_query(&charsql_handle, charsql_tmpsql)){
+	                	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+	                }
+                 }
+         }
+
+
+         //Save skills
+         sprintf(charsql_tmpsql, "DELETE FROM `skill` WHERE `char_id` = '%d'", charid);
+         if(mysql_query(&charsql_handle, charsql_tmpsql)){
+         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+         }
+         for(i = 0; i < MAX_SKILL; i++){
+         	if(c->skill[i].id > 0){
+                 	sprintf(charsql_tmpsql, "INSERT INTO `skill` (`char_id`, `id`, `lv`) VALUES ('%d', '%d', '%d')", charid, c->skill[i].id, c->skill[i].lv);
+	                if(mysql_query(&charsql_handle, charsql_tmpsql)){
+	                	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+	                }
+                 }
+         }
+
+
+         //global_reg_value saving
+         sprintf(charsql_tmpsql, "DELETE FROM `global_reg_value` WHERE `char_id` = '%d' AND `type` = '3'", charid);
+         if(mysql_query(&charsql_handle, charsql_tmpsql)){
+         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+         }
+         for(i = 0; i < GLOBAL_REG_NUM; i++){
+         	if(c->global_reg[i].value != 0){
+                 	jstrescapecpy(tmp_str, c->global_reg[i].str);
+                 	sprintf(charsql_tmpsql, "INSERT INTO `global_reg_value` (`char_id`, `str`, `value`) VALUES ('%d', '%s', '%d')", charid, tmp_str, c->global_reg[i].value);
+	                if(mysql_query(&charsql_handle, charsql_tmpsql)){
+	                	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+	                }
+                 }
+         }
+
+
+         //friendlist saving
+         sprintf(charsql_tmpsql, "DELETE FROM `friends` WHERE `char_id` = '%d'", charid);
+	if(mysql_query(&charsql_handle, charsql_tmpsql)){
+		eprintf("tosql() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+	}
+         for(i = 0; i < MAX_FRIENDS; i++){
+         	if(c->friend_id[i] > 0){
+			sprintf(charsql_tmpsql, "INSERT INTO `friends` (`char_id`, `friend_id`) VALUES ('%d', '%d')", charid, c->friend_id[i]);
+	                if(mysql_query(&charsql_handle, charsql_tmpsql)){
+	                	 eprintf("tosql() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+	                }
+                 }
+    	}
+
+    printf("charsql_savechar(): saving of '%d' (%s) complete.\n", charid, c->name);
+    return 0;
 }
 
 #endif
-

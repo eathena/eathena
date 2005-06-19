@@ -94,8 +94,10 @@
 //For Map Names, which the client considers to be 16 in length
 #define MAP_NAME_LENGTH 16
 
-//Friend list
+//..
 #define MAX_FRIENDS 20
+#define MAX_MEMOPOINTS 10
+
 
 
 #define CHAR_CONF_NAME  "conf/char_athena.conf"
@@ -174,7 +176,7 @@ struct mmo_charstatus {
 	unsigned long mapip;
 	unsigned int mapport;
 
-	struct point last_point,save_point,memo_point[10];
+	struct point last_point,save_point,memo_point[MAX_MEMOPOINTS];
 	struct item inventory[MAX_INVENTORY],cart[MAX_CART];
 	struct skill skill[MAX_SKILL];
 	int global_reg_num;
