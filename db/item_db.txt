@@ -616,7 +616,7 @@
 1408,Pike_,Pike,4,3450,0,1000,60,,3,4,16514,2,2,1,4,1,4,{},{}
 1409,Pike__,Pike,4,3450,0,1000,60,,3,0,16514,2,2,1,4,1,4,{},{}
 1410,Lance,Lance,4,60000,0,2500,185,,3,0,16514,2,34,3,33,1,5,{},{}
-1411,Lance_,Lance,4,60000,0,2500,185,,3,1,16514,2,34,3,33,1,5,{},{}
+1411,Lance_,Lance,4,60000,0,2500,185,,3,0,16514,2,34,3,33,1,5,{},{} //0 slots is correct for these 3 lances. They differ by their IDs. for QUESTS purposes
 1412,Lance__,Lance,4,60000,0,2500,185,,3,0,16514,2,34,3,33,1,5,{},{}
 1413,Gungnir,Gungnir,4,20,0,500,120,,3,0,16514,2,2,4,4,1,4,{},{ bonus bAtkEle,4; bonus bPerfectHitRate,25; bonus bHit,30; }
 1414,Gelerdria,Gelerdria,4,20,0,700,145,,3,0,16514,2,2,4,48,1,4,{},{ bonus bAtkEle,2; bonus bMaxHP,500; bonus bMaxSP,-50; }
@@ -1504,7 +1504,7 @@
 5051,Bell_of_Pussycat,Bell of Pussycat,5,20,0,100,,5,,0,10477567,2,1,,0,0,135,{},{}
 5052,Blue_Bandana,Blue Bandana,5,20,0,150,,1,,0,10477567,2,256,,0,1,136,{},{}
 5053,Sphinx_Hat,Sphinx Hat,5,20,0,3000,,5,,0,16514,2,257,,65,0,137,{},{ bonus bStr,2; }
-5054,Assassin_Mask,Assassin Mask,5,20,0,100,,0,,0,4096,2,1,,70,0,180,{},{}
+5054,Assassin_Mask_,Assassin Mask,5,20,0,100,,0,,0,4352,2,1,,70,0,180,{},{} //for Assassins and Priests only
 5055,Novice_Eggshell,Novice Eggshell,5,20,0,10,,3,,0,8388609,2,256,,0,0,101,{},{}
 5056,Seed_Of_Love,Seed Of Love,5,20,0,200,,0,,0,10477567,2,256,,0,1,140,{},{}
 5057,Black_Cat_Ears,Black Cat Ears,5,20,0,200,,2,,0,10477567,2,256,,45,1,141,{},{}
@@ -1545,7 +1545,7 @@
 5092,Nun_Hat,Nun Hat,5,20,0,300,,5,,0,33024,0,768,,65,1,176,{},{}
 5093,Nun_Hat_,Nun Hat,5,20,0,300,,5,,0,33024,0,768,,65,1,177,{},{ bonus bMaxSP,100; }
 5094,Orc_Hero_Helm,Orc Hero Helm,5,20,0,900,,5,,0,10477567,2,768,,55,1,178,{},{ bonus bStr,2; bonus bVit,1; }
-5096,Assassin_Mask_,Assassin Mask,5,20,0,100,,0,,1,4096,2,1,,70,0,180,{},{}
+5096,Assassin_Mask_,Assassin Mask,5,20,0,100,,0,,0,135488,2,1,,70,0,180,{},{} //for Any Thief Class and Priests class
 5097,Annual_Commemoration_Hat,Annual Commemoration Hat,5,20,0,30,,3,,0,10477567,2,256,,0,1,166,{},{ bonus bAllStats,3; }
 5098,Tiger_Mask,Tiger Mask,5,20,0,400,,2,,0,10477567,2,768,,0,0,181,{},{ bonus bStr,3; bonus bMaxHP,100; }
 5099,Neko_Mimi,Neko Mimi,5,20,0,300,,1,,0,10477567,2,256,,0,1,182,{},{ bonus bLuk,2; bonus bMdef,10; bonus2 bSubRace,2,5; }

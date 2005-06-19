@@ -24,6 +24,12 @@
 	4265,Li_Me_Mang_Ryang_Card
 
 06/18
+	* Reverted Skotlex's work. [Lupus]
+	  all 3 Lances differ by their ID (for quests purposes!)
+	  There are 2 assassin masks: 5054 and 5096. They don't have any slots.
+	  But they differ by applicable jobs: 5054 for Assassins + Priest Class
+		and 5096 is for ANY Thief Class (Thief,Assassin,Roug) + Priest Class
+		Plz, if you want, use ITEM_DB2.TXT for made-up items 8)
 	* Changed slot-count for item 1411 (Lance_) from 0 to 1. [Skotlex]
 	  I am not going to believe 0 is the real number for it considering that:
 	  1: You can't get it from any shop. (that id is nowhere in the npc files)
