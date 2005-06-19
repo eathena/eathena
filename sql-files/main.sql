@@ -2,7 +2,6 @@
 # Table: 'cart_inventory'
 # 
 CREATE TABLE `cart_inventory` (
-  `id` int(11) NOT NULL auto_increment,
   `char_id` int(11) NOT NULL default '0',
   `nameid` int(11) NOT NULL default '0',
   `amount` int(11) NOT NULL default '0',
@@ -15,7 +14,6 @@ CREATE TABLE `cart_inventory` (
   `card2` int(11) NOT NULL default '0',
   `card3` int(11) NOT NULL default '0',
   `broken` int(11) NOT NULL default '0',
-  PRIMARY KEY  (`id`),
   KEY `char_id` (`char_id`)
 ) TYPE=MyISAM; 
 
@@ -271,8 +269,7 @@ CREATE TABLE `interlog` (
 # Table: 'inventory'
 # 
 CREATE TABLE `inventory` (
-  `id` int(11) NOT NULL auto_increment,
-  `char_id` int(11) NOT NULL default '0',
+   `char_id` int(11) NOT NULL default '0',
   `nameid` int(11) NOT NULL default '0',
   `amount` int(11) NOT NULL default '0',
   `equip` mediumint(8) unsigned NOT NULL default '0',
@@ -284,7 +281,6 @@ CREATE TABLE `inventory` (
   `card2` int(11) NOT NULL default '0',
   `card3` int(11) NOT NULL default '0',
   `broken` int(11) NOT NULL default '0',
-  PRIMARY KEY  (`id`),
   KEY `char_id` (`char_id`)
 ) TYPE=MyISAM; 
 
