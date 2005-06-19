@@ -366,7 +366,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	}
 	//printf("- Save item data to MySQL!\n");
 	if (diff)
-		  memitemdataNEW_to_sql(mapitem, count, p->char_id,TABLE_INVENTORY);
+		  memitemdata_to_sql(mapitem, count, p->char_id,TABLE_INVENTORY);
 
 //=========================================map  cart data > memory ====================================
 //	eqcount=1;
@@ -397,7 +397,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 
 	//printf("- Save cart data to MySQL!\n");
 	if (diff)
-	    memitemdataNEW_to_sql(mapitem, count, p->char_id,TABLE_CART);
+	    memitemdata_to_sql(mapitem, count, p->char_id,TABLE_CART);
 
 //=====================================================================================================
 
@@ -1007,7 +1007,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 
 	//read inventory
 	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
-	sprintf(tmp_sql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`"
+	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`"
 		"FROM `%s` WHERE `char_id`='%d'",inventory_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		printf("DB server Error (select `inventory`)- %s\n", mysql_error(&mysql_handle));
@@ -1015,17 +1015,17 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
 		for(i=0;(sql_row = mysql_fetch_row(sql_res));i++){
-			//p->inventory[i].id = atoi(sql_row[0]);
-			p->inventory[i].nameid = atoi(sql_row[0]);
-			p->inventory[i].amount = atoi(sql_row[1]);
-			p->inventory[i].equip = atoi(sql_row[2]);
-			p->inventory[i].identify = atoi(sql_row[3]);
-			p->inventory[i].refine = atoi(sql_row[4]);
-			p->inventory[i].attribute = atoi(sql_row[5]);
-			p->inventory[i].card[0] = atoi(sql_row[6]);
-			p->inventory[i].card[1] = atoi(sql_row[7]);
-			p->inventory[i].card[2] = atoi(sql_row[8]);
-			p->inventory[i].card[3] = atoi(sql_row[9]);
+			p->inventory[i].id = atoi(sql_row[0]);
+			p->inventory[i].nameid = atoi(sql_row[1]);
+			p->inventory[i].amount = atoi(sql_row[2]);
+			p->inventory[i].equip = atoi(sql_row[3]);
+			p->inventory[i].identify = atoi(sql_row[4]);
+			p->inventory[i].refine = atoi(sql_row[5]);
+			p->inventory[i].attribute = atoi(sql_row[6]);
+			p->inventory[i].card[0] = atoi(sql_row[7]);
+			p->inventory[i].card[1] = atoi(sql_row[8]);
+			p->inventory[i].card[2] = atoi(sql_row[9]);
+			p->inventory[i].card[3] = atoi(sql_row[10]);
 		}
 		mysql_free_result(sql_res);
 	}
@@ -1034,7 +1034,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 
 	//read cart.
 	//`cart_inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
-	sprintf(tmp_sql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`"
+	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`"
 		"FROM `%s` WHERE `char_id`='%d'",cart_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		printf("DB server Error (select `cart_inventory`)- %s\n", mysql_error(&mysql_handle));
@@ -1042,17 +1042,17 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
 		for(i=0;(sql_row = mysql_fetch_row(sql_res));i++){
-		        //p->cart[i].id = atoi(sql_row[0]);
-			p->cart[i].nameid = atoi(sql_row[0]);
-			p->cart[i].amount = atoi(sql_row[1]);
-			p->cart[i].equip = atoi(sql_row[2]);
-			p->cart[i].identify = atoi(sql_row[3]);
-			p->cart[i].refine = atoi(sql_row[4]);
-			p->cart[i].attribute = atoi(sql_row[5]);
-			p->cart[i].card[0] = atoi(sql_row[6]);
-			p->cart[i].card[1] = atoi(sql_row[7]);
-			p->cart[i].card[2] = atoi(sql_row[8]);
-			p->cart[i].card[3] = atoi(sql_row[9]);
+		        p->cart[i].id = atoi(sql_row[0]);
+			p->cart[i].nameid = atoi(sql_row[1]);
+			p->cart[i].amount = atoi(sql_row[2]);
+			p->cart[i].equip = atoi(sql_row[3]);
+			p->cart[i].identify = atoi(sql_row[4]);
+			p->cart[i].refine = atoi(sql_row[5]);
+			p->cart[i].attribute = atoi(sql_row[6]);
+			p->cart[i].card[0] = atoi(sql_row[7]);
+			p->cart[i].card[1] = atoi(sql_row[8]);
+			p->cart[i].card[2] = atoi(sql_row[9]);
+			p->cart[i].card[3] = atoi(sql_row[10]);
 		}
 		mysql_free_result(sql_res);
 	}
