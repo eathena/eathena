@@ -137,13 +137,16 @@ static int npcmes(lua_State *NL)
 	char mes[512];
 	int charid, npcid;
 
-	charid=lua_tonumber(NL, 1);
+	lua_pushliteral(NL, "char_id");
+	lua_rawget(NL, LUA_GLOBALSINDEX);
+	charid=lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
 	}
 	npcid = sd->npc_id;
-	sprintf(mes,"%s",lua_tostring(NL, 2)); 
+	sprintf(mes,"%s",lua_tostring(NL, 1)); 
 
 	clif_scriptmes(sd, npcid, mes);
 
@@ -157,7 +160,10 @@ static int npcclose(lua_State *NL)
 	struct map_session_data *sd = NULL;
 	int charid, npcid;
 	
-	charid=lua_tonumber(NL, 1);
+	lua_pushliteral(NL, "char_id");
+	lua_rawget(NL, LUA_GLOBALSINDEX);
+	charid=lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
@@ -178,7 +184,10 @@ static int npcnext(lua_State *NL)
 	struct map_session_data *sd = NULL;
 	int charid, npcid;
 
-	charid=lua_tonumber(NL, 1);
+	lua_pushliteral(NL, "char_id");
+	lua_rawget(NL, LUA_GLOBALSINDEX);
+	charid=lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
@@ -199,7 +208,10 @@ static int npcinput(lua_State *NL)
 	struct map_session_data *sd = NULL;
 	int charid, npcid;
 
-	charid=lua_tonumber(NL, 1);
+	lua_pushliteral(NL, "char_id");
+	lua_rawget(NL, LUA_GLOBALSINDEX);
+	charid=lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
@@ -207,7 +219,7 @@ static int npcinput(lua_State *NL)
 	npcid = sd->npc_id;
 	sd->npc_script_state = PAUSE;
 
-	switch((int)lua_tonumber(NL, 2)){
+	switch((int)lua_tonumber(NL, 1)){
 		case 0:
 			clif_scriptinput(sd,npcid);
 			break;
@@ -228,7 +240,10 @@ static int npcmenu_co(lua_State *NL)
 	char *menu;
 	int charid;
 
-	charid=lua_tonumber(NL, 1);
+	lua_pushliteral(NL, "char_id");
+	lua_rawget(NL, LUA_GLOBALSINDEX);
+	charid=lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
@@ -249,10 +264,10 @@ static int npcmenu_co(lua_State *NL)
 	strcpy(buf, sd->menu);
 	
 	sd->npc_menu_data.id[sd->npc_menu_data.current] = sd->npc_menu_data.current;
-	menu = (char *)lua_tostring(NL, 2);
+	menu = (char *)lua_tostring(NL, 1);
 	strcat(buf,menu);
 	strcat(buf,":");
-	sd->npc_menu_data.value[sd->npc_menu_data.current] = lua_tonumber(NL, 3);
+	sd->npc_menu_data.value[sd->npc_menu_data.current] = lua_tonumber(NL, 2);
 	sd->npc_menu_data.current+=1;
 	
 	strcpy(sd->menu, buf);
@@ -268,7 +283,10 @@ static int npcmenu_done(lua_State *NL)
 	struct map_session_data *sd = NULL;
 	int charid, npcid;
 
-	charid=lua_tonumber(NL, 1);
+	lua_pushliteral(NL, "char_id");
+	lua_rawget(NL, LUA_GLOBALSINDEX);
+	charid=lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
@@ -285,11 +303,16 @@ static int npcmenu_done(lua_State *NL)
 	return lua_yield(NL, 0);
 }
 
-static int npcmenu_getchoice(lua_State *NL) {
+static int npcmenu_getchoice(lua_State *NL)
+{
 	
 	struct map_session_data *sd = NULL;
+	int charid;
 	
-	int charid=lua_tonumber(NL, 1);
+	lua_pushliteral(NL, "char_id");
+	lua_rawget(NL, LUA_GLOBALSINDEX);
+	charid=lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
@@ -317,13 +340,16 @@ static int heal(lua_State *NL)
 	struct map_session_data *sd = NULL;
 	int charid, hp, sp;
 
-	charid=lua_tonumber(NL, 1);
+	lua_pushliteral(NL, "char_id");
+	lua_rawget(NL, LUA_GLOBALSINDEX);
+	charid=lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
 	}
-	hp = lua_tonumber(NL, 2);
-	sp = lua_tonumber(NL, 3);
+	hp = lua_tonumber(NL, 1);
+	sp = lua_tonumber(NL, 2);
 
 	pc_heal(sd, hp, sp);
 
@@ -337,13 +363,16 @@ static int percentheal(lua_State *NL)
 	struct map_session_data *sd = NULL;
 	int charid, hp, sp;
 
-	charid=lua_tonumber(NL, 1);
+	lua_pushliteral(NL, "char_id");
+	lua_rawget(NL, LUA_GLOBALSINDEX);
+	charid=lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
 	}
-	hp = lua_tonumber(NL, 2);
-	sp = lua_tonumber(NL, 3);
+	hp = lua_tonumber(NL, 1);
+	sp = lua_tonumber(NL, 2);
 
 	pc_percentheal(sd, hp, sp);
 
@@ -447,10 +476,11 @@ void script_run_script(const char *name, int char_id)
 	struct map_session_data *sd = map_charid2sd(char_id);
 	
 	lua_State *NL = sd->NL;
-	
 	lua_getglobal(NL,name); // Pass function name to Lua
-    lua_pushnumber(NL,char_id); //Send char_id to function
-	if (lua_resume(NL,1)!=0){ // Tell Lua to run the function
+	lua_pushliteral(NL,"char_id");//push global key for char_id
+    lua_pushnumber(NL,char_id); //push value for char_id
+    lua_rawset(NL, LUA_GLOBALSINDEX);//add global to the table
+	if (lua_resume(NL,0)!=0){ // Tell Lua to run the function
 		ShowError("Cannot run function %s : %s\n",name,lua_tostring(NL,-1));
 		return;
 	}
