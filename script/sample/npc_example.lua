@@ -9,7 +9,11 @@ function npc_healer()
 	npcnext()
 	local r = npcmenu("Sure",1,"eh",2)
 	if r == 1 then
-		percentheal(50, 50)
+		npcmes("[Healer Dog")
+		npcmes("How much hp and sp would you like?")
+		npcnext()
+		local amount = npcinput()
+		heal(amount,amount)
 		npcmes("[Healer Dog")
 		npcmes("Hear you go!")
 	elseif r ==2 then

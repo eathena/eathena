@@ -418,6 +418,7 @@ enum {
 	NRUN,
 	PAUSE,
 	MENU,
+	INPUT,
 };
 
 struct npc_data {

@@ -1,5 +1,6 @@
 Date	Added
 06/18
+	* npcinput now works, use 0 for number input and 1 for string input. [Kevin]
 	* Changed npcmenu function just a little, doesn't affect how it is used. [Kevin]
 	* Changed char_id to a global lua thing, so you don't have to use id ever time. [Kevin]
 	* Changed the way menus work, no need to call two different functions now ^^; [Kevin]

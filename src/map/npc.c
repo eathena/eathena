@@ -254,10 +254,8 @@ int npc_scriptend(struct map_session_data *sd,int id)
 		if(sd->npc_id > 0) {
 			sd->npc_id = 0;
 			sd->npc_script_state = NRUN;
+			sd->NL = NULL;
 		}
-	} else {
-		sd->npc_script_state=RUNNING;
-		script_resume(sd); //close2
 	}
 		
 	return 0;
@@ -275,6 +273,11 @@ int npc_scriptnext(struct map_session_data *sd,int id)
 	
 	if(sd->npc_script_state == PAUSE) {
 		sd->npc_script_state=RUNNING;
+	}
+	if(sd->npc_script_state == MENU && sd->npc_menu == 0xff) {
+		sd->NL = NULL;
+		sd->npc_id = 0;
+		return 0;
 	}
 	script_resume(sd);
 		

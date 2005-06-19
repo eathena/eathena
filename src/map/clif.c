@@ -9598,14 +9598,14 @@ void clif_parse_NpcNextClicked(int fd,struct map_session_data *sd)
 void clif_parse_NpcAmountInput(int fd,struct map_session_data *sd)
 {
 	nullpo_retv(sd);
-/*
+
 #define RFIFOL_(fd,pos) (*(int*)(session[fd]->rdata+session[fd]->rdata_pos+(pos)))
 	//Input Value overflow Exploit FIX
 	sd->npc_amount=RFIFOL_(fd,6); //fixed by Lupus. npc_amount is (int) but was RFIFOL changing it to (unsigned int)
 
 #undef RFIFOL_
 
-	npc_scriptcont(sd,RFIFOL(fd,2));*/
+	npc_scriptnext(sd,RFIFOL(fd,2));
 }
 
 /*==========================================
@@ -9616,13 +9616,13 @@ void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)
 {
 	nullpo_retv(sd);
 
-/*	if(RFIFOW(fd,2)-7 >= sizeof(sd->npc_str)){
+	if(RFIFOW(fd,2)-7 >= sizeof(sd->npc_str)){
 		printf("clif: input string too long !\n");
 		memcpy(sd->npc_str,RFIFOP(fd,8),sizeof(sd->npc_str));
 		sd->npc_str[sizeof(sd->npc_str)-1]=0;
 	} else
 		strcpy(sd->npc_str,(char*)RFIFOP(fd,8));
-	npc_scriptcont(sd,RFIFOL(fd,4));*/
+	npc_scriptnext(sd,RFIFOL(fd,4));
 }
 
 /*==========================================

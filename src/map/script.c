@@ -129,7 +129,7 @@ static int addwarp()
 	return 0;
 }
 
-// npcmes(id,"A bunch of silly text")
+// npcmes("A bunch of silly text")
 // Print the silly text to the NPC dialog window of the player
 static int npcmes(lua_State *NL)
 {
@@ -153,7 +153,7 @@ static int npcmes(lua_State *NL)
 	return 0;
 }
 
-// npcclose(id)
+// npcclose()
 // Display a [Close] button in the NPC dialog window of the player
 static int npcclose(lua_State *NL)
 {
@@ -176,7 +176,7 @@ static int npcclose(lua_State *NL)
 	return lua_yield(NL, 0);
 }
 
-// npcnext(id)
+// npcnext()
 // Display a [Next] button in the NPC dialog window of the player and pause the script until the button is clicked
 static int npcnext(lua_State *NL)
 {
@@ -201,9 +201,9 @@ static int npcnext(lua_State *NL)
 	return lua_yield(NL, 0);
 }
 
-// npcinput(id,type)
+// npcinput(type)
 // Display an NPC input window asking the player for a value
-static int npcinput(lua_State *NL)
+static int npcinput_co(lua_State *NL)
 {
 	struct map_session_data *sd = NULL;
 	int charid, npcid;
@@ -217,7 +217,6 @@ static int npcinput(lua_State *NL)
 		return -1;
 	}
 	npcid = sd->npc_id;
-	sd->npc_script_state = PAUSE;
 
 	switch((int)lua_tonumber(NL, 1)){
 		case 0:
@@ -227,11 +226,42 @@ static int npcinput(lua_State *NL)
 			clif_scriptinputstr(sd,npcid);
 			break;
 	}
+	
+	sd->npc_script_state = INPUT;
 
 	return lua_yield(NL, 0);
 }
 
-// npcmenu(id,"menu_name", return_value)
+static int npcinput_getvalue(lua_State *NL)
+{
+	struct map_session_data *sd = NULL;
+	int charid, npcid;
+
+	lua_pushliteral(NL, "char_id");
+	lua_rawget(NL, LUA_GLOBALSINDEX);
+	charid=lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	npcid = sd->npc_id;
+
+	switch((int)lua_tonumber(NL, 1)){
+		case 0:
+			lua_pushnumber(NL, sd->npc_amount);
+			break;
+		case 1:
+			lua_pushstring(NL, sd->npc_str);
+			break;
+	}
+	
+	sd->npc_script_state = RUNNING;
+
+	return 1;
+}
+
+// npcmenu("menu_name", return_value)
 // Display an NPC input window asking the player for a value
 static int npcmenu_co(lua_State *NL)
 {
@@ -336,7 +366,7 @@ static int npcmenu_getchoice(lua_State *NL)
 	return 1;
 }
 
-// heal(id,hp,sp)
+// heal(hp,sp)
 // Heal the character by a set amount of HP and SP
 static int heal(lua_State *NL)
 {
@@ -353,13 +383,14 @@ static int heal(lua_State *NL)
 	}
 	hp = lua_tonumber(NL, 1);
 	sp = lua_tonumber(NL, 2);
+	lua_pop(NL, 2);
 
 	pc_heal(sd, hp, sp);
 
 	return 0;
 }
 
-// percentheal(id,hp,sp)
+// percentheal(hp,sp)
 // Heal the character by a percentage of MaxHP and MaxSP
 static int percentheal(lua_State *NL)
 {
@@ -397,7 +428,8 @@ static struct LuaCommandInfo commands[] = {
 	{"npcmes", npcmes},
 	{"npcclose", npcclose},
 	{"npcnext", npcnext},
-	{"npcinput", npcinput},
+	{"npcinput_co", npcinput_co},
+	{"npcinput_getvalue", npcinput_getvalue},
 	{"npcmenu_co", npcmenu_co},
 	{"npcmenu_getchoice", npcmenu_getchoice},
 	/* Player related functions */

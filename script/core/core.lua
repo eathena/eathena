@@ -4,3 +4,10 @@ function npcmenu(...)
 	r = npcmenu_getchoice()
 	return r
 end
+
+function npcinput(in_type)
+	local r
+	npcinput_co(in_type)
+	r = npcinput_getvalue(in_type)
+	return r
+end
