@@ -2409,6 +2409,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			status_change_end(src,SC_BLADESTOP,-1);
 		break;
 
+	case PA_SACRIFICE:
 	case SN_FALCONASSAULT:			/* ファルコンアサルト */
 		skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
 		break;
@@ -3315,7 +3316,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case ST_REJECTSWORD:	/* リジェクトソ?ド */
 	case HW_MAGICPOWER:		/* 魔法力?幅 */
 	case PF_MEMORIZE:		/* メモライズ */
-	case PA_SACRIFICE:
+//	case PA_SACRIFICE:
 	case ASC_EDP:			// [Celest]
 	case CG_MOONLIT:		/* 月明りの泉に落ちる花びら */
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);

@@ -1,6 +1,5 @@
 Date	Added
 06/19
-	* SQL USERS: upgrade with upgrade_2265.sql !!
 	* finished the mapservers direct char loading / Charsaving (SQL only!) [Sirius]
 		- set charsave_method in char / map conf to 1 if u want to use the feature
 		- please test it and make db backups, the save / load is completly rewritten. 

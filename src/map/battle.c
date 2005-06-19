@@ -4553,6 +4553,7 @@ struct Damage  battle_calc_misc_attack(
 	int damage=0,div_=1,blewcount=skill_get_blewcount(skill_num,skill_lv);
 	struct Damage md;
 	int damagefix=1;
+	int self_damage=0;	//For Sacrifice [Aru]
 
 	int aflag=BF_MISC|BF_SHORT|BF_SKILL;
 
@@ -4653,6 +4654,13 @@ struct Damage  battle_calc_misc_attack(
 			damage /= flag;
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
+	case PA_SACRIFICE:
+		self_damage = status_get_max_hp(bl)/10;
+		self_damage -= self_damage/10;
+		if(status_get_mexp(target))
+			self_damage = 1;
+		damage = self_damage + (self_damage/10)*(skill_lv-1);
+		break;
 	}
 
 	if(damagefix){
@@ -4688,6 +4696,12 @@ struct Damage  battle_calc_misc_attack(
 
 	if(is_boss(target))
 		blewcount = 0;
+
+	if(self_damage)
+	{
+		pc_damage(bl,sd,self_damage);
+		clif_damage(bl,bl, gettick(), 0, 0, self_damage, 0 , 0, 0);
+	}
 
 	damage=battle_calc_damage(bl,target,damage,div_,skill_num,skill_lv,aflag);	// ç≈èIèCê≥
 
