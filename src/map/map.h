@@ -225,6 +225,7 @@ struct map_session_data {
 	int npc_pos;
 	int npc_menu;
 	npc_menu_datas npc_menu_data;
+	char *menu;
 	int npc_amount;
 	char npc_str[256];
 	int npc_script_state;

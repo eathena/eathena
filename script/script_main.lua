@@ -14,7 +14,7 @@
 --------------------------------------------------------------
 ------------------- Core Scripts Functions -------------------
 -- Simply do NOT touch this ! 
--- require("script/core/core.lua")
+require("script/core/core.lua")
 --------------------------------------------------------------
 ------------------------ Script Files ------------------------
 -- Sample scripts

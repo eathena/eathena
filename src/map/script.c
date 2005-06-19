@@ -221,52 +221,64 @@ static int npcinput(lua_State *NL)
 
 // npcmenu(id,"menu_name", return_value)
 // Display an NPC input window asking the player for a value
-static int npcmenu(lua_State *NL)
+static int npcmenu_co(lua_State *NL)
 {
 	struct map_session_data *sd = NULL;
-	int charid, npcid;
-	int n, i, len=0;
 	char *buf;
 	char *menu;
-		
-	n = lua_gettop(NL);
-	for(i=2; i<n; i+=2) {
-		menu = (char *)lua_tostring(NL, i);
-		len+=strlen(menu);
-	}
-	
-	buf=(char *)aCallocA(len+1,sizeof(char));
-	buf[0]=0;
+	int charid;
 
 	charid=lua_tonumber(NL, 1);
 	if((sd = map_charid2sd(charid))==NULL) {
 		ShowError("Character not found in script");
 		return -1;
 	}
-	npcid = sd->npc_id;
+	
+	if(!sd->npc_menu_data.current) {
+		sd->npc_menu_data.current=0;
+	}
+	
+	buf = (char *)aCallocA(512, sizeof(char));
+	buf[0]=0;
+	
+	if(!sd->menu && sd->menu == NULL) {
+		sd->menu = (char *)aCallocA(512, sizeof(char));
+		sd->menu[0]=0;
+	}
+	
+	strcpy(buf, sd->menu);
+	
+	sd->npc_menu_data.id[sd->npc_menu_data.current] = sd->npc_menu_data.current;
+	menu = (char *)lua_tostring(NL, 2);
+	strcat(buf,menu);
+	strcat(buf,":");
+	sd->npc_menu_data.value[sd->npc_menu_data.current] = lua_tonumber(NL, 3);
+	sd->npc_menu_data.current+=1;
+	
+	strcpy(sd->menu, buf);
+	
+	aFree(buf);
+	
+	return 0;
+}
 
-	if(n%2 == 0) {
-		lua_pushstring(NL, "Incorrect number of arguments for function 'menu'");
-		lua_error(NL);
+static int npcmenu_done(lua_State *NL)
+{
+	
+	struct map_session_data *sd = NULL;
+	int charid, npcid;
+
+	charid=lua_tonumber(NL, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
 		return -1;
 	}
 	
-	for(i=2; i<n; i+=2) {
-		menu = (char *)lua_tostring(NL, i);
-		
-		if(!sd->npc_menu_data.current) {
-			sd->npc_menu_data.current = 0;
-		}
-		sd->npc_menu_data.id[sd->npc_menu_data.current] = sd->npc_menu_data.current +1;
-		sd->npc_menu_data.value[sd->npc_menu_data.current] = lua_tonumber(NL, i+1);
-		sd->npc_menu_data.current +=1;
-		
-		strcat(buf,menu);
-		strcat(buf,":");
-	}
+	npcid = sd->npc_id;
 	
-	clif_scriptmenu(sd,npcid,buf);
-	aFree(buf);
+	clif_scriptmenu(sd,npcid,sd->menu);
+	aFree(sd->menu);
+	sd->menu = NULL;
 	
 	sd->npc_script_state = MENU;
 	
@@ -284,14 +296,14 @@ static int npcmenu_getchoice(lua_State *NL) {
 	}
 	
 	if(sd->npc_script_state != MENU) {
-		lua_pushstring(NL, "Use npcmenu before using npcmenu_getchoice");
+		lua_pushstring(NL, "Use npcmenu_co & npcmenu_done before using npcmenu_getchoice");
 		lua_error(NL);
 		return 0;
 	}
 	
 	sd->npc_script_state = RUNNING;
 	
-	lua_pushnumber(NL, sd->npc_menu_data.id[sd->npc_menu-1]);
+	lua_pushnumber(NL, sd->npc_menu_data.value[sd->npc_menu-1]);
 	
 	sd->npc_menu_data.current=0;
 	
@@ -354,7 +366,8 @@ static struct LuaCommandInfo commands[] = {
 	{"npcclose", npcclose},
 	{"npcnext", npcnext},
 	{"npcinput", npcinput},
-	{"npcmenu", npcmenu},
+	{"npcmenu_co", npcmenu_co},
+	{"npcmenu_done", npcmenu_done},
 	{"npcmenu_getchoice", npcmenu_getchoice},
 	/* Player related functions */
 	{"heal", heal},
@@ -388,7 +401,7 @@ void script_buildin_commands()
 //Resume an already paused script with no arguments
 int script_resume(struct map_session_data *sd) {
 	if(lua_resume(sd->NL, 0)) {
-		ShowError("CAN NOT RESUME SCRIPT!");
+		ShowError("CAN NOT RESUME SCRIPT: %s", lua_tostring(sd->NL, -1));
 	}
 	return 0;
 }
@@ -438,7 +451,7 @@ void script_run_script(const char *name, int char_id)
 	lua_getglobal(NL,name); // Pass function name to Lua
     lua_pushnumber(NL,char_id); //Send char_id to function
 	if (lua_resume(NL,1)!=0){ // Tell Lua to run the function
-		ShowError("Cannot run function %s : %s\n",name,lua_tostring(L,-1));
+		ShowError("Cannot run function %s : %s\n",name,lua_tostring(NL,-1));
 		return;
 	}
 	ShowInfo("Ran function %s\n",name);

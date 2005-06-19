@@ -9631,7 +9631,7 @@ void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)
  */
 void clif_parse_NpcCloseClicked(int fd,struct map_session_data *sd)
 {
-/*	npc_scriptend(sd,RFIFOL(fd,2));*/
+	npc_scriptend(sd,RFIFOL(fd,2));
 }
 
 /*==========================================
