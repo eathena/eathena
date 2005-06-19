@@ -1,5 +1,9 @@
 Date	Added
 06/19
+	* overhauled PA_SACRIFICE. If you want to revert the old 
+	  behavior, you can comment out the new line for it in 
+	  skill_db.txt [Aru]
+	* removed broken SQL "upgrade" script [Aru]
 	* finished the mapservers direct char loading / Charsaving (SQL only!) [Sirius]
 		- set charsave_method in char / map conf to 1 if u want to use the feature
 		- please test it and make db backups, the save / load is completly rewritten. 

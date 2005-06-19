@@ -4655,6 +4655,7 @@ struct Damage  battle_calc_misc_attack(
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
 	case PA_SACRIFICE:
+		ele = status_get_attack_element(bl);
 		self_damage = status_get_max_hp(bl)/10;
 		self_damage -= self_damage/10;
 		if(status_get_mexp(target))
