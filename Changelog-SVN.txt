@@ -1,5 +1,12 @@
 Date	Added
 06/19
+	* Readdded 2265 sql-upgrade [Sirius]
+		- aru:
+		  the sql upgrade is needed, it removes the `id` fields in
+		  cart_inventory and inventory the field is no more needed
+	 	  the charserver and mapserver dont reads it @ charload and 
+		  do not save it @charsave ....
+	* SQL USERS: upgrade with upgrade_svn2265.sql if you dont have upgraded your tables
 	* overhauled PA_SACRIFICE. If you want to revert the old 
 	  behavior, you can comment out the new line for it in 
 	  skill_db.txt [Aru]
