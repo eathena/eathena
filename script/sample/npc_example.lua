@@ -36,7 +36,7 @@ function areascript_biter()
 	percentheal(-50, -50)
 end
 
-addnpc("Shop", "shop_1", "prontera.gat", 155, 185, 4, 71,"npc_shop_1");
+addnpc("Shop", "shop_1", "prontera.gat", 155, 185, 4, 71,"npc_shop_1")
 
 function npc_shop_1()
 	npcshop(501, 50, 502, 100)

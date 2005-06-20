@@ -5,12 +5,18 @@ Fredzilla
 	* Converting eAthena scripts as commands become available
 	 - Map Warps
 	 - Monster Spawns
-	* Currently waiting for structure of the new shops
+	 - Main shops
+	* Currently waiting for anything good :D
 
 == Changelog ==
 
 Date	Added
 ======
+06/20
+	* Added main shops to Rune Midgard, but -1 dont work, so 
+	  everything costs "-1 -> 0", so I didnt add it to the server 
+	  startup
+
 06/19
 	* Small fix in Payon warps, forgot to change back to 
 	  full names while converting
