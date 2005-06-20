@@ -366,6 +366,77 @@ static int npcmenu_getchoice(lua_State *NL)
 	return 1;
 }
 
+// npcshop_start()
+// Start a shop with buylist of item_id selling for item_price
+static int npcshop_start(lua_State *NL)
+{
+	struct map_session_data *sd = NULL;
+	int charid;
+
+	lua_pushliteral(NL, "char_id");
+	lua_rawget(NL, LUA_GLOBALSINDEX);
+	charid=lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	
+	clif_npcbuysell(sd, sd->npc_id);
+	sd->npc_script_state = PAUSE;
+	
+	return lua_yield(NL, 0);
+}
+
+// npcshop_co(arg)
+// Start a shop with buylist of item_id selling for item_price
+static int npcshop_co(lua_State *NL)
+{
+	struct map_session_data *sd = NULL;
+	int charid;
+	int i, j, n;
+
+	lua_pushliteral(NL, "char_id");
+	lua_rawget(NL, LUA_GLOBALSINDEX);
+	charid=lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
+	if((sd = map_charid2sd(charid))==NULL) {
+		ShowError("Character not found in script");
+		return -1;
+	}
+	
+	lua_pushliteral(NL, "n");
+	lua_rawget(NL, 1);
+	n = lua_tonumber(NL, -1);
+	lua_pop(NL, 1);
+	
+	if(n%2 == 1) {
+		lua_pushstring(NL, "Incorrect number of arguments for function 'npcshop_co'\n");
+		lua_error(NL);
+		return -1;
+	}
+	
+	sd->shop_data.n = n/2;
+	
+	for(i=1, j=0; i<=n; i+=2, j++) {
+		lua_pushnumber(NL, i);
+		lua_rawget(NL, 1);
+		sd->shop_data.nameid[j] = lua_tonumber(NL, -1);
+		lua_pop(NL, 1);
+		
+		lua_pushnumber(NL, i+1);
+		lua_rawget(NL, 1);
+		sd->shop_data.value[j] = lua_tonumber(NL, -1);
+		lua_pop(NL, 1);
+	}
+	
+	sd->npc_script_state = PAUSE;
+	clif_buylist(sd);
+	
+	return lua_yield(NL, 0);
+}
+		
+
 // heal(hp,sp)
 // Heal the character by a set amount of HP and SP
 static int heal(lua_State *NL)
@@ -432,6 +503,8 @@ static struct LuaCommandInfo commands[] = {
 	{"npcinput_getvalue", npcinput_getvalue},
 	{"npcmenu_co", npcmenu_co},
 	{"npcmenu_getchoice", npcmenu_getchoice},
+	{"npcshop_co", npcshop_co},
+	{"npcshop_start", npcshop_start},
 	/* Player related functions */
 	{"heal", heal},
 	{"percentheal", percentheal},

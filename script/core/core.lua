@@ -11,3 +11,8 @@ function npcinput(in_type)
 	r = npcinput_getvalue(in_type)
 	return r
 end
+
+function npcshop(...)
+	npcshop_start()
+	npcshop_co(arg)
+end

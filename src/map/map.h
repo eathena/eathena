@@ -226,6 +226,13 @@ struct map_session_data {
 	int npc_menu;
 	npc_menu_datas npc_menu_data;
 	char *menu;
+	
+	struct { //Shop npc data
+		int nameid[40];
+		int value[40];
+		int n;
+	} shop_data;
+	
 	int npc_amount;
 	char npc_str[256];
 	int npc_script_state;

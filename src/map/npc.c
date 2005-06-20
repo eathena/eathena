@@ -279,7 +279,7 @@ int npc_scriptnext(struct map_session_data *sd,int id)
 		sd->npc_id = 0;
 		return 0;
 	}
-	script_resume(sd);
+	lua_resume(sd->NL, 0);
 		
 	return 0;
 }
@@ -290,20 +290,16 @@ int npc_scriptnext(struct map_session_data *sd,int id)
  */
 int npc_buysellsel(struct map_session_data *sd,int id,int type)
 {
-	struct npc_data *nd;
 
 	nullpo_retr(1, sd);
 
-	if (npc_checknear(sd,id))
-		return 1;
-
-	nd=(struct npc_data *)map_id2bl(id);
-	if (nd->flag&1)	// ñ≥å¯âªÇ≥ÇÍÇƒÇ¢ÇÈ
-		return 1;
-
 	if (type==0) {
-		clif_buylist(sd,nd);
+		lua_resume(sd->NL, 0);
+		sd->npc_script_state=RUNNING;
 	} else {
+		sd->npc_script_state=NRUN;
+		sd->npc_id=0;
+		sd->NL=NULL;
 		clif_selllist(sd);
 	}
 	return 0;
@@ -313,54 +309,66 @@ int npc_buysellsel(struct map_session_data *sd,int id,int type)
  *
  *------------------------------------------
  */
-/*int npc_buylist(struct map_session_data *sd,int n,unsigned short *item_list)
+int npc_buylist(struct map_session_data *sd,int n,unsigned short *item_list)
 {
-	struct npc_data *nd;
 	double z;
-	int i,j,w,skill,itemamount=0,new_=0;
+	int i,ii,j,w,skill,itemamount=0,new_=0;
 
 	nullpo_retr(3, sd);
 	nullpo_retr(3, item_list);
 
-	if (npc_checknear(sd,sd->npc_shopid))
-		return 3;
-
-	nd=(struct npc_data*)map_id2bl(sd->npc_shopid);
-	if (nd->bl.subtype!=SHOP)
-		return 3;
-
-	for(i=0,w=0,z=0;i<n;i++) {
-		for(j=0;nd->u.shop_item[j].nameid;j++) {
-			if (nd->u.shop_item[j].nameid==item_list[i*2+1])
+	for(i=0,ii=0,w=0,z=0;i<n;i++, ii+=2) {
+		
+		for(j=0;sd->shop_data.nameid[j];j++) {
+			if (sd->shop_data.nameid[j]==item_list[ii+1])
 				break;
 		}
-		if (nd->u.shop_item[j].nameid==0)
+		if (sd->shop_data.nameid[j]==0) {
+			ShowInfo("3\n");
+			sd->npc_id = 0;
+			sd->NL = NULL;
 			return 3;
+		}
 
-		if (itemdb_value_notdc(nd->u.shop_item[j].nameid))
-			z+=(double)nd->u.shop_item[j].value * item_list[i*2];
+		if (itemdb_value_notdc(sd->shop_data.nameid[j]))
+			z+=(double)sd->shop_data.value[j] * item_list[ii];
 		else
-			z+=(double)pc_modifybuyvalue(sd,nd->u.shop_item[j].value) * item_list[i*2];
-		itemamount+=item_list[i*2];
+			z+=(double)pc_modifybuyvalue(sd,sd->shop_data.value[j]) * item_list[ii];
+		itemamount+=item_list[ii];
 
-		switch(pc_checkadditem(sd,item_list[i*2+1],item_list[i*2])) {
+		switch(pc_checkadditem(sd,item_list[ii+1],item_list[ii])) {
 		case ADDITEM_EXIST:
 			break;
 		case ADDITEM_NEW:
 			new_++;
 			break;
 		case ADDITEM_OVERAMOUNT:
+			ShowInfo("2\n");
+			sd->npc_id = 0;
+			sd->NL = NULL;
 			return 2;
 		}
 
-		w+=itemdb_weight(item_list[i*2+1]) * item_list[i*2];
+		w+=itemdb_weight(item_list[ii+1]) * item_list[ii];
 	}
-	if (z > (double)sd->status.zeny)
+	if (z > (double)sd->status.zeny) {
+		ShowInfo("1\n");
+		sd->npc_id = 0;
+		sd->NL = NULL;
 		return 1;	// zenyïsë´
-	if (w+sd->weight > sd->max_weight)
+	}
+	if (w+sd->weight > sd->max_weight) {
+		ShowInfo("2\n");
+		sd->npc_id = 0;
+		sd->NL = NULL;
 		return 2;	// èdó í¥âﬂ
-	if (pc_inventoryblank(sd)<new_)
+	}
+	if (pc_inventoryblank(sd)<new_) {
+		ShowInfo("3\n");
+		sd->npc_id = 0;
+		sd->NL = NULL;
 		return 3;	// éÌóﬁêîí¥âﬂ
+	}
 
 	pc_payzeny(sd,(int)z);
 	for(i=0;i<n;i++) {
@@ -384,8 +392,10 @@ int npc_buysellsel(struct map_session_data *sd,int id,int type)
 		}
 	}
 
+	sd->npc_id = 0;
+	sd->NL = NULL;
 	return 0;
-}*/
+}
 
 /*==========================================
  *

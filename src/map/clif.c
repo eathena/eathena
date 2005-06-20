@@ -1707,18 +1707,18 @@ int clif_npcbuysell(struct map_session_data* sd, int id) {
  *
  *------------------------------------------
  */
-int clif_buylist(struct map_session_data *sd, struct npc_data *nd) {
-/*	struct item_data *id;
+int clif_buylist(struct map_session_data *sd) {
+	struct item_data *id;
 	int fd,i,val;
 
 	nullpo_retr(0, sd);
-	nullpo_retr(0, nd);
 
 	fd=sd->fd;
 	WFIFOW(fd,0)=0xc6;
-	for(i=0;nd->u.shop_item[i].nameid > 0;i++){
-		id = itemdb_search(nd->u.shop_item[i].nameid);
-		val=nd->u.shop_item[i].value;
+	for(i=0;i<sd->shop_data.n;i++){
+		
+		id = itemdb_search(sd->shop_data.nameid[i]);
+		val=sd->shop_data.value[i];
 		WFIFOL(fd,4+i*11)=val;
 		if (!id->flag.value_notdc)
 			val=pc_modifybuyvalue(sd,val);
@@ -1727,11 +1727,12 @@ int clif_buylist(struct map_session_data *sd, struct npc_data *nd) {
 		if (id->view_id > 0)
 			WFIFOW(fd,13+i*11)=id->view_id;
 		else
-			WFIFOW(fd,13+i*11)=nd->u.shop_item[i].nameid;
+			WFIFOW(fd,13+i*11)=sd->shop_data.nameid[i];
+			
 	}
 	WFIFOW(fd,2)=i*11+4;
 	WFIFOSET(fd,WFIFOW(fd,2));
-*/
+
 	return 0;
 }
 
@@ -8966,7 +8967,7 @@ void clif_parse_NpcBuySellSelected(int fd,struct map_session_data *sd)
  */
 void clif_parse_NpcBuyListSend(int fd,struct map_session_data *sd)
 {
-/*	int fail=0,n;
+	int fail=0,n;
 	unsigned short *item_list;
 
 	n = (RFIFOW(fd,2)-4) /4;
@@ -8976,7 +8977,7 @@ void clif_parse_NpcBuyListSend(int fd,struct map_session_data *sd)
 
 	WFIFOW(fd,0)=0xca;
 	WFIFOB(fd,2)=fail;
-	WFIFOSET(fd,packet_len_table[0xca]);*/
+	WFIFOSET(fd,packet_len_table[0xca]);
 }
 
 /*==========================================

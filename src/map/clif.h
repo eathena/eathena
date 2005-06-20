@@ -66,7 +66,7 @@ int clif_fixpcpos(struct map_session_data *sd);
 int clif_fixpetpos(struct pet_data *pd);
 int clif_fixnpcpos(struct npc_data *nd); // [Valaris]
 int clif_npcbuysell(struct map_session_data*,int);	//self
-int clif_buylist(struct map_session_data*,struct npc_data*);	//self
+int clif_buylist(struct map_session_data*);	//self
 int clif_selllist(struct map_session_data*);	//self
 int clif_scriptmes(struct map_session_data*,int,char*);	//self
 int clif_scriptnext(struct map_session_data*,int);	//self
