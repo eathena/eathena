@@ -1,4 +1,6 @@
 Date	Added
+06/20	* Removed monsters_ignore_gms from battle_athena.conf, and added @monsterignore command. [Valaris]
+
 06/19
 	* Sirius: Even though the `id` field is never directly read or 
 	  written by Athena it is neccesary for the SQL server which 

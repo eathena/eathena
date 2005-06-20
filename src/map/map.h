@@ -400,6 +400,7 @@ struct map_session_data {
 	unsigned noexp :1;
 	unsigned detach :1;
 
+	short monster_ignore;	// for monsters to ignore a character [Valaris]
 	char fakename[NAME_LENGTH]; // fake names [Valaris]
 	short viewsize; // for tiny/large types
 

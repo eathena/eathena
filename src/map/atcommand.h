@@ -241,6 +241,7 @@ enum AtCommandType {
 
 	AtCommand_ItemInfo, // Lupus
 	AtCommand_MapFlag, // Lupus
+	AtCommand_MonsterIgnore, // [Valaris]
 	AtCommand_FakeName, // [Valaris]
 	AtCommand_Size, // [Valaris]
 	AtCommand_ShowDelay,

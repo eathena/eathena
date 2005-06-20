@@ -264,6 +264,7 @@ ACMD_FUNC(rates); // by MouseJstr
 ACMD_FUNC(iteminfo); // Lupus
 ACMD_FUNC(mapflag); // Lupus
 ACMD_FUNC(me); //added by massdriller, code by lordalfa
+ACMD_FUNC(monsterignore); // [Valaris]
 ACMD_FUNC(fakename); //[Valaris]
 ACMD_FUNC(size); //[Valaris]
 ACMD_FUNC(showexp); //moved from charcommand [Kevin]
@@ -557,7 +558,8 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_MapFlag,			"@mapflag",		99, atcommand_mapflag }, // [Lupus]
 
 	{ AtCommand_Me,				"@me",			20, atcommand_me }, //added by massdriller, code by lordalfa
-	{ AtCommand_FakeName,				"@fakename",			20, atcommand_fakename },
+	{ AtCommand_MonsterIgnore,	"@monsterignore",	99,	atcommand_monsterignore }, // [Valaris]
+	{ AtCommand_FakeName,				"@fakename",			20, atcommand_fakename }, // [Valaris]
 	{ AtCommand_Size,				"@size",			20, atcommand_size },
 	{ AtCommand_ShowExp,					"@showexp", 					0, atcommand_showexp},
 	{ AtCommand_ShowDelay,					"@showdelay",					0, atcommand_showdelay},
@@ -9175,7 +9177,7 @@ int atcommand_me(
 
 /*==========================================
  * @size
- * => ?
+ * => Resize your character sprite. [Valaris]
  *------------------------------------------
  */
 int atcommand_size(
@@ -9209,8 +9211,30 @@ int atcommand_size(
 }
 
 /*==========================================
+ * @monsterignore
+ * => Makes monsters ignore you. [Valaris]
+ *------------------------------------------
+ */
+ 
+int atcommand_monsterignore(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	nullpo_retr(-1, sd);
+
+	if(!sd->monster_ignore) {
+		sd->monster_ignore=1;
+		clif_displaymessage(sd->fd, "Monsters will now ignore you.");
+	} else {
+		sd->monster_ignore=0;
+		clif_displaymessage(sd->fd, "Monsters are no longer ignoring you.");
+	}
+
+	return 0;
+}
+/*==========================================
  * @fakename
- * => Gives your character a fake name.
+ * => Gives your character a fake name. [Valaris]
  *------------------------------------------
  */
 int atcommand_fakename(

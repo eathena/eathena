@@ -260,7 +260,6 @@ extern struct Battle_Config {
 	unsigned short alchemist_summon_reward;	// [Valaris]
 	unsigned short maximum_level;
 	unsigned short drops_by_luk;
-	unsigned short monsters_ignore_gm;
 	unsigned short equip_natural_break_rate;	//Base Natural break rate for attacks.
 	unsigned short equip_self_break_rate; //Natural & Penalty skills break rate
 	unsigned short equip_skill_break_rate; //Offensive skills break rate

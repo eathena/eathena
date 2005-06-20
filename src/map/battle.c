@@ -5176,7 +5176,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				}
 			}
 			// option to have monsters ignore GMs [Valaris]
-			if (battle_config.monsters_ignore_gm > 0 && pc_isGM(tsd) >= battle_config.monsters_ignore_gm)
+			if (tsd->monster_ignore)
 				return 1;
 		}
 		// Mob‚Åmaster_id‚ª‚ ‚Á‚Äspecial_mob_ai‚È‚çA¢Š«å‚ğ‹‚ß‚é
@@ -5516,7 +5516,6 @@ static const struct battle_data_short {
 	{ "alchemist_summon_reward",           &battle_config.alchemist_summon_reward	},	// [Valaris]
 	{ "maximum_level",                     &battle_config.maximum_level	},	// [Valaris]
 	{ "drops_by_luk",                      &battle_config.drops_by_luk	},	// [Valaris]
-	{ "monsters_ignore_gm",                &battle_config.monsters_ignore_gm	},	// [Valaris]
 	{ "equip_natural_break_rate",          &battle_config.equip_natural_break_rate	},
 	{ "equip_self_break_rate",             &battle_config.equip_self_break_rate	},
 	{ "equip_skill_break_rate",            &battle_config.equip_skill_break_rate	},
