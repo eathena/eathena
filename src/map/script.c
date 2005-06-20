@@ -6746,7 +6746,7 @@ int buildin_hasitems(struct script_state *st)
 	sd=script_rid2sd(st);
 
 	for(i=0; i<MAX_INVENTORY; i++) {
-		if(sd->status.inventory[i].amount) {
+		if(sd->status.inventory[i].amount && sd->status.inventory[i].nameid!=2364 && sd->status.inventory[i].nameid!=2365) {
 			push_val(st->stack,C_INT,1);
 			return 0;
 		}
