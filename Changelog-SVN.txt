@@ -1,5 +1,8 @@
 Date	Added
-06/20	* Removed wedding rings from hasitems script command. [Valaris]
+06/20	* Large monsters now have 2x base stats, drop rates, exp, and zeny (if enabled). [Valaris]
+	* Small monsters now have half base stats, drop rates, exp, and zeny (if enabled). [Valaris]
+	** Note: this is referring to size just as @monsterbig and @monstersmall, not small, medium, brute, etc... [Valaris]
+	* Removed wedding rings from hasitems script command. [Valaris]
 	* Removed monsters_ignore_gms from battle_athena.conf, and added @monsterignore command. [Valaris]
 
 06/19

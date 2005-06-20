@@ -2559,6 +2559,18 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				job_exp = (int) (job_exp * 1.15);
 			}			
 		}
+		if(md->size==1) { // change experience for different sized monsters [Valaris]
+			if(base_exp > 1)
+				base_exp/=2;
+			if(job_exp > 1)
+				job_exp/=2;
+		}
+		else if(md->size==2) {
+			if(base_exp > 0)
+				base_exp*=2;
+			if(job_exp > 0)
+				job_exp*=2;
+		}
 		if(md->master_id) {
 			if(((master = map_id2bl(md->master_id)) && status_get_mode(master)&0x20) ||	// check if its master is a boss (MVP's and minibosses)
 				(md->state.special_mob_ai >= 1 && battle_config.alchemist_summon_reward != 1)) { // for summoned creatures [Valaris]
@@ -2570,6 +2582,10 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				if(md->level > 0) zeny=(int) ((md->level+rand()%md->level)*per/256); // zeny calculation moblv + random moblv [Valaris]
 				if(mob_db[md->class_].mexp > 0)
 					zeny*=rand()%250;
+				if(md->size==1 && zeny >=2) // change zeny for different sized monsters [Valaris]
+					zeny/=2;
+				else if(md->size==2 && zeny >1)
+					zeny*=2;
 			}
 			if(battle_config.mobs_level_up && md->level > mob_db[md->class_].lv) { // [Valaris]
 				job_exp+=(int) (((md->level-mob_db[md->class_].lv)*mob_db[md->class_].job_exp*.03)*per/256);
@@ -2633,6 +2649,11 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			drop_rate = mob_db[md->class_].dropitem[i].p;
 			if (drop_rate <= 0 && !battle_config.drop_rate0item)
 				drop_rate = 1;
+			// change drops depending on monsters size [Valaris]
+			if(md->size==1 && drop_rate >= 2)
+				drop_rate/=2;
+			else if(md->size==2 && drop_rate > 0)
+				drop_rate*=2;
 			//Drops affected by luk as a % increase [Skotlex] (original implementation by Valaris)
 			if (src && battle_config.drops_by_luk > 0)
 				drop_rate += drop_rate*status_get_luk(src)*battle_config.drops_by_luk/10000;
