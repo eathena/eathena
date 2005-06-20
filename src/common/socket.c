@@ -1317,10 +1317,10 @@ static int connect_client(int listen_fd)
 
 	//ShowMessage("connect_client: %d <- %d\n",listen_fd, fd);
 
-	if(fd<0) 
+	if(fd<0 || session[fd]) 
 	{	
 		closesocket(sock);
-		ShowWarning("socket insert");
+		ShowWarning("socket insert %i %p", fd, session[fd]);
 		return -1;
 	}
 
@@ -1387,10 +1387,10 @@ int make_listen(unsigned long ip, unsigned short port)
 	// insert the socket to the fields and get the position
 	fd = SessionInsertSocket(sock);
 
-	if(fd<0) 
+	if(fd<0 || session[fd]) 
 	{	
 		closesocket(sock);
-		ShowWarning("Socket Insert failed");
+		ShowWarning("socket insert %i %p", fd, session[fd]);
 		return -1;
 	}
 
@@ -1450,10 +1450,10 @@ int make_connection(unsigned long ip, unsigned short port)
 	// insert the socket to the fields and get the position
 	fd = SessionInsertSocket(sock);
 
-	if(fd<0) 
+	if(fd<0 || session[fd]) 
 	{	
 		closesocket(sock);
-		ShowWarning("Socket Insert failed");
+		ShowWarning("socket insert %i %p", fd, session[fd]);
 		return -1;
 	}
 

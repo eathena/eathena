@@ -470,8 +470,9 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list *target,int x,in
  * type!=0 ならその種類のみ
  *------------------------------------------
  */
-int map_foreachinarea(int (*func)(struct block_list&,va_list),unsigned short m,int x0,int y0,int x1,int y1,int type,...) {
-	va_list ap;
+int map_foreachinarea(int (*func)(struct block_list&,va_list),unsigned short m,int x0,int y0,int x1,int y1,int type,...)
+{
+	
 	int bx,by;
 	int returnCount =0;	//total sum of returned values of func() [Skotlex]
 	struct block_list *bl=NULL;
@@ -518,15 +519,18 @@ int map_foreachinarea(int (*func)(struct block_list&,va_list),unsigned short m,i
 	}
 
 
-	va_start(ap,type);
-	map_freeblock_lock();	// メモリからの解放を禁止する
+	{
+		va_list ap;
+		va_start(ap,type);
+		map_freeblock_lock();	// メモリからの解放を禁止する
 
-	for(i=blockcount;i<bl_list_count;i++)
-		if(bl_list[i] && bl_list[i]->prev)	// 有?かどうかチェック
-			returnCount += func(*bl_list[i],ap);
+		for(i=blockcount;i<bl_list_count;i++)
+			if(bl_list[i] && bl_list[i]->prev)	// 有?かどうかチェック
+				returnCount += func(*bl_list[i],ap);
 
-	map_freeblock_unlock();	// 解放を許可する
-	va_end(ap);
+		map_freeblock_unlock();	// 解放を許可する
+		va_end(ap);
+	}
 
 	bl_list_count = blockcount;
 	return returnCount;	//[Skotlex]
@@ -3236,11 +3240,11 @@ int map_config_read(const char *cfgName)
 				if (autosave_interval <= 0)
 					autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 			} else if (strcasecmp(w1, "motd_txt") == 0) {
-				strcpy(motd_txt, w2);
+				safestrcpy(motd_txt, w2, sizeof(motd_txt));
 			} else if (strcasecmp(w1, "help_txt") == 0) {
-				strcpy(help_txt, w2);
+				safestrcpy(help_txt, w2, sizeof(help_txt));
 			} else if (strcasecmp(w1, "mapreg_txt") == 0) {
-				strcpy(mapreg_txt, w2);
+				safestrcpy(mapreg_txt, w2, 256); // we just "know" that it is that large
 			}else if(strcasecmp(w1,"read_map_from_cache")==0){
 				if (atoi(w2) == 2)
 					map_read_flag = READ_FROM_BITMAP_COMPRESSED;
@@ -3249,9 +3253,9 @@ int map_config_read(const char *cfgName)
 				else
 					map_read_flag = READ_FROM_GAT;
 			}else if(strcasecmp(w1,"map_cache_file")==0){
-				strncpy(map_cache_file,w2,255);
+				safestrcpy(map_cache_file,w2,sizeof(map_cache_file));
 			} else if(strcasecmp(w1,"afm_dir") == 0) {
-				strcpy(afm_dir, w2);
+				safestrcpy(afm_dir, w2,sizeof(afm_dir));
 			} else if (strcasecmp(w1, "import") == 0) {
 				map_config_read(w2);
 			} else if (strcasecmp(w1, "console") == 0) {

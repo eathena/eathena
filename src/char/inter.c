@@ -188,25 +188,25 @@ int inter_config_read(const char *cfgName) {
 			continue;
 
 		if (strcasecmp(w1, "storage_txt") == 0) {
-			strncpy(storage_txt, w2, sizeof(storage_txt));
+			safestrcpy(storage_txt, w2, sizeof(storage_txt));
 		} else if (strcasecmp(w1, "party_txt") == 0) {
-			strncpy(party_txt, w2, sizeof(party_txt));
+			safestrcpy(party_txt, w2, sizeof(party_txt));
 		} else if (strcasecmp(w1, "guild_txt") == 0) {
-			strncpy(guild_txt, w2, sizeof(guild_txt));
+			safestrcpy(guild_txt, w2, sizeof(guild_txt));
 		} else if (strcasecmp(w1, "pet_txt") == 0) {
-			strncpy(pet_txt, w2, sizeof(pet_txt));
+			safestrcpy(pet_txt, w2, sizeof(pet_txt));
 		} else if (strcasecmp(w1, "castle_txt") == 0) {
-			strncpy(castle_txt, w2, sizeof(castle_txt));
+			safestrcpy(castle_txt, w2, sizeof(castle_txt));
 		} else if (strcasecmp(w1, "accreg_txt") == 0) {
-			strncpy(accreg_txt, w2, sizeof(accreg_txt));
+			safestrcpy(accreg_txt, w2, sizeof(accreg_txt));
 		} else if (strcasecmp(w1, "guild_storage_txt") == 0) {
-			strncpy(guild_storage_txt, w2, sizeof(guild_storage_txt));
+			safestrcpy(guild_storage_txt, w2, sizeof(guild_storage_txt));
 		} else if (strcasecmp(w1, "party_share_level") == 0) {
 			party_share_level = atoi(w2);
 			if (party_share_level < 0)
 				party_share_level = 0;
 		} else if (strcasecmp(w1, "inter_log_filename") == 0) {
-			strncpy(inter_log_filename, w2, sizeof(inter_log_filename));
+			safestrcpy(inter_log_filename, w2, sizeof(inter_log_filename));
 		} else if (strcasecmp(w1, "import") == 0) {
 			inter_config_read(w2);
 		} else if(strcasecmp(w1,"log_inter")==0) {

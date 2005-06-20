@@ -395,7 +395,7 @@ struct party* search_partyname(char *str)
 			if (m->account_id == leader_id) m->leader = 1; else m->leader = 0;
 			memcpy(m->name,sql_row[1],24);
 			m->lv = atoi(sql_row[2]);
-			strncpy(m->map,sql_row[3],24);
+			safestrcpy(m->map,sql_row[3],24);
 			m->online = atoi(sql_row[4]);
 		}
 		ShowMessage("- %d members found in party %d \n",i,p->party_id);

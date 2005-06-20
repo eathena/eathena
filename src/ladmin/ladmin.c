@@ -2340,8 +2340,7 @@ int changesex(char* param) {
 int changestatesub(char* name, int state, char* error_message7) {
 	char error_message[1023]; // need to use, because we can modify error_message7
 
-	memset(error_message, '\0', sizeof(error_message));
-	strncpy(error_message, error_message7, sizeof(error_message)-1);
+	safestrcpy(error_message, error_message7, sizeof(error_message)-1);
 
 	if ((state < 0 || state > 9) && state != 100) { // Valid values: 0: ok, or value of the 0x006a packet + 1
 		if (defaultlanguage == 'F') {
@@ -3220,10 +3219,10 @@ int parse_fromlogin(int fd)
 			memcpy(md5key, (char*)RFIFOP(fd,4), RFIFOW(fd,2) - 4);
 			md5key[sizeof(md5key)-1] = '0';
 			if (passenc == 1) {
-				strncpy(md5str, (char*)RFIFOP(fd,4), RFIFOW(fd,2) - 4);
+				safestrcpy(md5str, (char*)RFIFOP(fd,4), RFIFOW(fd,2) - 4);
 				strcat(md5str, loginserveradminpassword);
 			} else if (passenc == 2) {
-				strncpy(md5str, loginserveradminpassword, sizeof(loginserveradminpassword));
+				safestrcpy(md5str, loginserveradminpassword, sizeof(loginserveradminpassword));
 				strcat(md5str, (char*)RFIFOP(fd,4));
 			}
 			MD5_String2binary(md5str, md5bin);
@@ -3938,7 +3937,7 @@ int parse_fromlogin(int fd)
 			connect_until_time = (time_t)RFIFOL(fd,140);
 			ban_until_time = (time_t)RFIFOL(fd,144);
 			memset(memo, '\0', sizeof(memo));
-			strncpy(memo, (char*)RFIFOP(fd,150), RFIFOW(fd,148));
+			safestrcpy(memo, (char*)RFIFOP(fd,150), RFIFOW(fd,148));
 			if( (int)RFIFOL(fd,2) == -1 ) {
 				if (defaultlanguage == 'F') {
 					ShowMessage("Impossible de trouver le compte [%s]. Le compte n'existe pas.\n", parameters);
@@ -4195,8 +4194,7 @@ int ladmin_config_read(const char *cfgName) {
 			} else if (strcasecmp(w1, "login_port") == 0) {
 				loginserverport = atoi(w2);
 			} else if (strcasecmp(w1, "admin_pass") == 0) {
-				strncpy(loginserveradminpassword, w2, sizeof(loginserveradminpassword));
-				loginserveradminpassword[sizeof(loginserveradminpassword)-1] = '\0';
+				safestrcpy(loginserveradminpassword, w2, sizeof(loginserveradminpassword));
 #ifdef PASSWORDENC
 			} else if (strcasecmp(w1, "passenc") == 0) {
 				passenc = atoi(w2);
@@ -4207,8 +4205,7 @@ int ladmin_config_read(const char *cfgName) {
 				if (w2[0] == 'F' || w2[0] == 'E')
 					defaultlanguage = w2[0];
 			} else if (strcasecmp(w1, "ladmin_log_filename") == 0) {
-				strncpy(ladmin_log_filename, w2, sizeof(ladmin_log_filename));
-				ladmin_log_filename[sizeof(ladmin_log_filename)-1] = '\0';
+				safestrcpy(ladmin_log_filename, w2, sizeof(ladmin_log_filename));
 			} else if (strcasecmp(w1, "date_format") == 0) { // note: never have more than 19 char for the date!
 				switch (atoi(w2)) {
 				case 0:

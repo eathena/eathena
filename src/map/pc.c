@@ -812,9 +812,9 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 	status_calc_pc(*sd,1);
 
 	if (pc_isGM(*sd))
-		ShowInfo("GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, pc_isGM(*sd));
+		ShowInfo("GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"') [connection %i].\n", sd->status.name, sd->status.account_id, pc_isGM(*sd), sd->fd);
 	else
-		ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id);
+		ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"') [connection %i].\n", sd->status.name, sd->status.account_id, sd->fd);
 
 	if (script_config.event_script_type == 0) {
 		struct npc_data *npc;
@@ -3124,12 +3124,11 @@ bool pc_setpos(struct map_session_data &sd,const char *mapname_org,unsigned shor
 		pet_changestate(*(sd.pd),MS_IDLE,0);
 	}
 
-	memcpy(mapname,mapname_org, sizeof(mapname));
-	mapname[sizeof(mapname)-1]=0;
+
+	safestrcpy(mapname, mapname_org, sizeof(mapname));
 	if(strstr(mapname,".gat")==NULL && strstr(mapname,".afm")==NULL && strlen(mapname)<16){
 		strcat(mapname,".gat");
 	}
-
 	m=map_mapname2mapid(mapname);
 
 	if(m<0)
@@ -3570,25 +3569,29 @@ int pc_walktoxy (struct map_session_data &sd, unsigned short x,unsigned short y)
 		pc_walktoxy_sub(&sd);
 	}
 
-	if( sd.gmaster_flag !=NULL )
-	{
-		struct guild *g = (struct guild *)sd.gmaster_flag;
-			int skill, guildflag = 0;
-		if ((skill = guild_checkskill(*g, GD_LEADERSHIP)) > 0)
-			guildflag |= skill<<16;
-		if ((skill = guild_checkskill(*g, GD_GLORYWOUNDS)) > 0)
-			guildflag |= skill<<12;
-		if ((skill = guild_checkskill(*g, GD_SOULCOLD)) > 0)
-			guildflag |= skill<<8;
-		if ((skill = guild_checkskill(*g, GD_HAWKEYES)) > 0)
-			guildflag |= skill<<4;
-		if ((skill = guild_checkskill(*g, GD_CHARISMA)) > 0)
-			guildflag |= skill;
-			if (guildflag)
+	if (sd.status.guild_id > 0)
+	{	// ckeck for beeing guildmaster
+		struct guild *g = guild_search(sd.status.guild_id);
+		if (g && strcmp(sd.status.name,g->master)==0)
 		{
-			map_foreachinarea (skill_guildaura_sub, sd.bl.m,
-				sd.bl.x-2, sd.bl.y-2, sd.bl.x+2, sd.bl.y+2, BL_PC,
-				sd.bl.id, sd.status.guild_id, &guildflag);
+			int skill, guildflag = 0;
+
+			if ((skill = guild_checkskill(*g, GD_LEADERSHIP)) > 0)
+				guildflag |= skill<<16;
+			if ((skill = guild_checkskill(*g, GD_GLORYWOUNDS)) > 0)
+				guildflag |= skill<<12;
+			if ((skill = guild_checkskill(*g, GD_SOULCOLD)) > 0)
+				guildflag |= skill<<8;
+			if ((skill = guild_checkskill(*g, GD_HAWKEYES)) > 0)
+				guildflag |= skill<<4;
+			if ((skill = guild_checkskill(*g, GD_CHARISMA)) > 0)
+				guildflag |= skill;
+				if (guildflag)
+			{
+				map_foreachinarea (skill_guildaura_sub, sd.bl.m,
+					sd.bl.x-2, sd.bl.y-2, sd.bl.x+2, sd.bl.y+2, BL_PC,
+					sd.bl.id, sd.status.guild_id, &guildflag);
+			}
 		}
 	}
 
@@ -5831,26 +5834,27 @@ const char *pc_readregstr(struct map_session_data &sd,int reg)
  */
 int pc_setregstr(struct map_session_data &sd,int reg,const char *str)
 {
-	int i;
-
-	if(strlen(str)+1 >= sizeof(sd.regstr[0].data)){
-		ShowMessage("pc_setregstr: string too long !\n");
-		return 0;
-	}
-	for(i=0;i<sd.regstr_num;i++)
+	if(str)
 	{
-		if(sd.regstr[i].index==reg)
-			break;
+		int i;
+		if(strlen(str)+1 >= sizeof(sd.regstr[0].data)){
+			ShowMessage("pc_setregstr: string too long !\n");
+			return 0;
+		}
+		for(i=0;i<sd.regstr_num;i++)
+		{
+			if(sd.regstr[i].index==reg)
+				break;
+		}
+		if(i >= sd.regstr_num)
+		{
+			sd.regstr_num++;
+			sd.regstr = (struct script_regstr *)aRealloc(sd.regstr, sizeof(struct script_regstr) * sd.regstr_num);
+			memset(sd.regstr + (sd.reg_num - 1) * sizeof(struct script_regstr), 0, sizeof(struct script_regstr));
+		}
+		sd.regstr[i].index=reg;
+		memcpy(sd.regstr[i].data,str,strlen(str)+1);
 	}
-	if(i >= sd.regstr_num)
-	{
-		sd.regstr_num++;
-		sd.regstr = (struct script_regstr *)aRealloc(sd.regstr, sizeof(struct script_regstr) * sd.regstr_num);
-		memset(sd.regstr + (sd.reg_num - 1) * sizeof(struct script_regstr), 0, sizeof(struct script_regstr));
-	}
-	sd.regstr[i].index=reg;
-	memcpy(sd.regstr[i].data,str,strlen(str)+1);
-
 	return 0;
 }
 
@@ -7123,7 +7127,7 @@ int pc_natural_heal(int tid,unsigned long tick,int id,int data)
  */
 int pc_setsavepoint(struct map_session_data &sd,const char *mapname,unsigned short x,unsigned short y)
 {
-	strncpy(sd.status.save_point.map, mapname, sizeof(sd.status.save_point.map));
+	safestrcpy(sd.status.save_point.map, mapname, sizeof(sd.status.save_point.map));
 	sd.status.save_point.map[sizeof(sd.status.save_point.map)-1]=0;
 	sd.status.save_point.x = x;
 	sd.status.save_point.y = y;

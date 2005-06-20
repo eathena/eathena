@@ -1224,6 +1224,24 @@ static void read_constdb(void)
 	fclose(fp);
 }
 
+
+
+void debug_script(const char*script, size_t i, size_t sz)
+{
+	sz += i&15;
+	i &= ~15;
+	while(sz>0)
+	{
+		if((i&15)==0) ShowMessage("%04x : ",i);
+		ShowMessage("%02x ", 0xFF&script[i]);
+		if((i&15)==15) ShowMessage("\n");
+
+		sz--;
+		i++;
+	}
+	ShowMessage("\n");
+}
+
 /*==========================================
  * ƒXƒNƒŠƒvƒg‚Ì‰ðÍ
  *------------------------------------------
@@ -1942,20 +1960,26 @@ int buildin_warp(struct script_state &st)
 	if(sd==NULL || str==NULL)
 		return 0;
 
-	if(strcmp(str,"Random")==0)
+	if( 0==strcmp(str,"Random") )
+	{
 		pc_randomwarp(*sd,3);
-	else if(strcmp(str,"SavePoint")==0){
+	}
+	else if( 0==strcmp(str,"SavePoint") )
+	{
 		if(map[sd->bl.m].flag.noreturn)	// ’±‹ÖŽ~
 			return 0;
-
 		pc_setpos(*sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);
-	}else if(strcmp(str,"Save")==0){
+	}
+	else if( 0==strcmp(str,"Save") )
+	{
 		if(map[sd->bl.m].flag.noreturn)	// ’±‹ÖŽ~
 			return 0;
-
 		pc_setpos(*sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);
-	}else
+	}
+	else
+	{
 		pc_setpos(*sd,str,x,y,0);
+	}
 	return 0;
 }
 /*==========================================
@@ -7611,7 +7635,7 @@ int buildin_pcstrcharinfo(struct script_state &st)
 	if(num==0){
 		char *buf;
 		buf=(char*)aMalloc(24 * sizeof(char));
-		strncpy(buf,sd->status.name, 24);
+		safestrcpy(buf,sd->status.name, 24);
 		push_str(st.stack,C_STR,buf);
 	}
 	else if(num==1){
@@ -8023,9 +8047,8 @@ bool run_script_main(struct script_state &st)
 	st.defsp = st.stack.sp;
 
 	rerun_pos=st.pos;
-int last;	
+
 	for(st.state=0;st.state==0;){
-last = c;
 		c = get_com(st.script,st.pos);
 		switch(c){
 		case C_EOL:
@@ -8033,7 +8056,8 @@ last = c;
 				if(battle_config.error_log)
 					ShowMessage("stack.sp(%d) != default(%d)\n",st.stack.sp,st.defsp);
 //!!
-printf("(%d) - %s\n", last, st.script+st.pos-4);
+printf("(%d)\n", st.pos);
+debug_script(st.script,((st.pos>32)?st.pos-32:0),64);
 
 				st.stack.sp=st.defsp;
 			}
@@ -8420,19 +8444,19 @@ int script_config_read(const char *cfgName)
 			script_config.event_script_type = config_switch(w2);
 		}
 		else if(strcasecmp(w1,"die_event_name")==0) {			
-			strncpy(script_config.die_event_name, w2,sizeof(script_config.die_event_name));			
+			safestrcpy(script_config.die_event_name, w2,sizeof(script_config.die_event_name));
 		}
 		else if(strcasecmp(w1,"kill_event_name")==0) {
-			strncpy(script_config.kill_event_name, w2,sizeof(script_config.kill_event_name));
+			safestrcpy(script_config.kill_event_name, w2,sizeof(script_config.kill_event_name));
 		}
 		else if(strcasecmp(w1,"login_event_name")==0) {
-			strncpy(script_config.login_event_name, w2,sizeof(script_config.login_event_name));
+			safestrcpy(script_config.login_event_name, w2,sizeof(script_config.login_event_name));
 		}
 		else if(strcasecmp(w1,"logout_event_name")==0) {
-			strncpy(script_config.logout_event_name, w2, sizeof(script_config.logout_event_name));
+			safestrcpy(script_config.logout_event_name, w2, sizeof(script_config.logout_event_name));
 		}
 		else if(strcasecmp(w1,"mapload_event_name")==0) {
-			strncpy(script_config.mapload_event_name, w2, sizeof(script_config.mapload_event_name));
+			safestrcpy(script_config.mapload_event_name, w2, sizeof(script_config.mapload_event_name));
 		}
 		else if(strcasecmp(w1,"event_requires_trigger")==0) {
 			script_config.event_requires_trigger = config_switch(w2);

@@ -201,14 +201,14 @@ int clif_countusers(void)
 int clif_foreachclient(int (*func)(struct map_session_data&, va_list),...) //recoded by sasuke, bug when player count gets higher [Kevin]
 {
 	size_t i;
-	va_list ap;
 	struct map_session_data *sd;
+	va_list ap;
 	va_start(ap,func);
 	for(i = 0; i < fd_max; i++)
 	{
- if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->state.auth)
+		if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->state.auth)
 			func(*sd, ap);
-}
+	}
 	va_end(ap);
 	return 0;
 }
@@ -1946,10 +1946,13 @@ int clif_cutin(struct map_session_data &sd, const char *image, unsigned char typ
 	if( !session_isActive(fd) )
 		return 0;
 
-	WFIFOW(fd,0)=0x1b3;
-	memcpy(WFIFOP(fd,2),image,64);
-	WFIFOB(fd,66)=type;
-	WFIFOSET(fd,packet_len_table[0x1b3]);
+	if(image)
+	{	
+		WFIFOW(fd,0)=0x1b3;
+		safestrcpy((char*)WFIFOP(fd,2),image,64);
+		WFIFOB(fd,66)=type;
+		WFIFOSET(fd,packet_len_table[0x1b3]);
+	}
 
 	return 0;
 }
@@ -5309,7 +5312,7 @@ int clif_item_skill(struct map_session_data &sd,unsigned short skillid,unsigned 
 	if(range < 0)
 		range = status_get_range(&sd.bl) - (range + 1);
 	WFIFOW(fd,12)=range;
-	memcpy(WFIFOP(fd,14),name,24);
+	safestrcpy((char*)WFIFOP(fd,14),name,24);
 	WFIFOB(fd,38)=0;
 	WFIFOSET(fd,packet_len_table[0x147]);
 	return 0;

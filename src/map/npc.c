@@ -337,19 +337,15 @@ int npc_event_doall(const char *name)
 {
 	int c=0;
 	char buf[128]="::";
-	size_t len=strlen(name)+1;
-	if(len+2>sizeof(buf)) len = sizeof(buf)-2;
-	memcpy(buf+2,name,len);
-	buf[sizeof(buf)-1]=0;
+	safestrcpy(buf+2,name,sizeof(buf)-2);
 	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf,0);
 	return c;
 }
 int npc_event_doall_id(const char *name, int rid)
 {
 	int c=0;
-	char buf[64]="::";
-
-	strncpy(buf+2,name,62);
+	char buf[128]="::";
+	safestrcpy(buf+2,name,sizeof(buf)-2);
 	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf,rid);
 	return c;
 }
@@ -816,9 +812,10 @@ int npc_globalmessage(const char *name,const char *mes)
 	if(name==NULL) return 0;
 
 	ltemp=strchr(name,'#');
-	if(ltemp!=NULL) {
-		memcpy(ntemp,name,ltemp - name);	// 123#456 の # から後ろを削除する
-		ntemp[ltemp - name]=0x00;	// strncpy のバグ？使い方間違ってる？
+	if(ltemp!=NULL)
+	{
+		safestrcpy(ntemp,name,ltemp - name);	// 123#456 の # から後ろを削除する
+		ntemp[ltemp - name]=0x00;			// strncpy のバグ？使い方間違ってる？
 	}
 
 	snprintf(temp, sizeof temp ,"%s : %s",ntemp,mes);

@@ -45,6 +45,13 @@ extern inline const char *strcpytolower(char *tar, const char *str)
 	*p=0;
 	return tar;
 }
+extern inline const char *safestrcpy(char *tar, const char *src, size_t cnt)
+{
+	::strncpy(tar,src,cnt);
+	// systems strncpy doesnt append the trailing NULL, of the string is too long.
+	tar[cnt-1]=0;
+	return tar;
+}
 
 extern inline const char *skip_empty_line(const char *line)
 {	// skip whitespaces and returns (0x09-0x0D or 0x20) 

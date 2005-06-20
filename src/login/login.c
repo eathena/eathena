@@ -169,7 +169,7 @@ public:
 		else if (strcasecmp(w1, "admin_pass") == 0)
 		{
 			memset(admin_pass, 0, sizeof(admin_pass));
-			strncpy(admin_pass, w2,sizeof(admin_pass));
+			safestrcpy(admin_pass, w2,sizeof(admin_pass));
 			gm_pass[sizeof(admin_pass)-1] = '\0';
 		}
 		else if (strcasecmp(w1, "ladminallowip") == 0)
@@ -198,14 +198,14 @@ public:
 					access_ladmin_allow = (char*)aRealloc(access_ladmin_allow, (access_ladmin_allownum+1) * ACO_STRSIZE);
 				else
 					access_ladmin_allow = (char*)aMalloc(ACO_STRSIZE * sizeof(char));
-				strncpy(access_ladmin_allow + (access_ladmin_allownum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
+				safestrcpy(access_ladmin_allow + (access_ladmin_allownum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
 				access_ladmin_allow[access_ladmin_allownum * ACO_STRSIZE - 1] = '\0';
 			}
 		}
 		else if (strcasecmp(w1, "gm_pass") == 0)
 		{
 			memset(gm_pass, 0, sizeof(gm_pass));
-			strncpy(gm_pass, w2, sizeof(gm_pass));
+			safestrcpy(gm_pass, w2, sizeof(gm_pass));
 			gm_pass[sizeof(gm_pass)-1] = '\0';
 		}
 		else if (strcasecmp(w1, "level_new_gm") == 0)
@@ -227,13 +227,13 @@ public:
 		else if (strcasecmp(w1, "account_filename") == 0)
 		{
 			memset(account_filename, 0, sizeof(account_filename));
-			strncpy(account_filename, w2, sizeof(account_filename));
+			safestrcpy(account_filename, w2, sizeof(account_filename));
 			account_filename[sizeof(account_filename)-1] = '\0';
 		}
 		else if (strcasecmp(w1, "gm_account_filename") == 0)
 		{
 			memset(GM_account_filename, 0, sizeof(GM_account_filename));
-			strncpy(GM_account_filename, w2, sizeof(GM_account_filename));
+			safestrcpy(GM_account_filename, w2, sizeof(GM_account_filename));
 			GM_account_filename[sizeof(GM_account_filename)-1] = '\0';
 		}
 		else if (strcasecmp(w1, "gm_account_filename_check_timer") == 0)
@@ -247,7 +247,7 @@ public:
 		else if (strcasecmp(w1, "login_log_filename") == 0)
 		{
 			memset(login_log_filename, 0, sizeof(login_log_filename));
-			strncpy(login_log_filename, w2, sizeof(login_log_filename));
+			safestrcpy(login_log_filename, w2, sizeof(login_log_filename));
 			login_log_filename[sizeof(login_log_filename)-1] = '\0';
 		}
 		else if (strcasecmp(w1, "log_login") == 0)
@@ -257,7 +257,7 @@ public:
 		else if (strcasecmp(w1, "login_log_unknown_packets_filename") == 0)
 		{
 			memset(login_log_unknown_packets_filename, 0, sizeof(login_log_unknown_packets_filename));
-			strncpy(login_log_unknown_packets_filename, w2, sizeof(login_log_unknown_packets_filename));
+			safestrcpy(login_log_unknown_packets_filename, w2, sizeof(login_log_unknown_packets_filename));
 			login_log_unknown_packets_filename[sizeof(login_log_unknown_packets_filename)-1] = '\0';
 		}
 		else if (strcasecmp(w1, "save_unknown_packets") == 0)
@@ -348,7 +348,7 @@ public:
 					access_allow = (char*)aRealloc(access_allow, (access_allownum+1) * ACO_STRSIZE);
 				else
 					access_allow = (char*)aMalloc(ACO_STRSIZE * sizeof(char));
-				strncpy(access_allow + (access_allownum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
+				safestrcpy(access_allow + (access_allownum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
 				access_allow[access_allownum * ACO_STRSIZE - 1] = '\0';
 			}
 		}
@@ -378,7 +378,7 @@ public:
 					access_deny = (char*)aRealloc(access_deny, (access_denynum+1) * ACO_STRSIZE);
 				else
 					access_deny = (char*)aCalloc(ACO_STRSIZE, sizeof(char));
-				strncpy(access_deny + (access_denynum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
+				safestrcpy(access_deny + (access_denynum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
 				access_deny[access_denynum * ACO_STRSIZE - 1] = '\0';
 			}
 		}
@@ -904,18 +904,18 @@ int mmo_auth_init(void) {
 
 			if (e_mail_check(email) == 0) {
 				ShowMessage("Account %s (%d): invalid e-mail (replaced par a@a.com).\n", auth_dat[auth_num].userid, auth_dat[auth_num].account_id);
-				strncpy(auth_dat[auth_num].email, "a@a.com", 40);
+				safestrcpy(auth_dat[auth_num].email, "a@a.com", 40);
 			} else {
 				remove_control_chars(email);
-				strncpy(auth_dat[auth_num].email, email, 40);
+				safestrcpy(auth_dat[auth_num].email, email, 40);
 			}
 
 			error_message[19] = '\0';
 			remove_control_chars(error_message);
 			if (error_message[0] == '\0' || state != 7) { // 7, because state is packet 0x006a value + 1
-				strncpy(auth_dat[auth_num].error_message, "-", 20);
+				safestrcpy(auth_dat[auth_num].error_message, "-", 20);
 			} else {
-				strncpy(auth_dat[auth_num].error_message, error_message, 20);
+				safestrcpy(auth_dat[auth_num].error_message, error_message, 20);
 			}
 
 			if (i == 13)
@@ -927,11 +927,11 @@ int mmo_auth_init(void) {
 
 			last_ip[15] = '\0';
 			remove_control_chars(last_ip);
-			strncpy(auth_dat[auth_num].last_ip, last_ip, 16);
+			safestrcpy(auth_dat[auth_num].last_ip, last_ip, 16);
 
 			memo[254] = '\0';
 			remove_control_chars(memo);
-			strncpy(auth_dat[auth_num].memo, memo, 255);
+			safestrcpy(auth_dat[auth_num].memo, memo, 255);
 
 			for(j = 0; j < ACCOUNT_REG2_NUM; j++) {
 				p += n;
@@ -946,7 +946,7 @@ int mmo_auth_init(void) {
 				}
 				str[31] = '\0';
 				remove_control_chars(str);
-				strncpy(auth_dat[auth_num].account_reg2[j].str, str, 32);
+				safestrcpy(auth_dat[auth_num].account_reg2[j].str, str, 32);
 				auth_dat[auth_num].account_reg2[j].value = v;
 			}
 			auth_dat[auth_num].account_reg2_num = j;
@@ -1002,15 +1002,15 @@ int mmo_auth_init(void) {
 
 			auth_dat[auth_num].account_id = account_id;
 
-			strncpy(auth_dat[auth_num].userid, userid, 24);
+			safestrcpy(auth_dat[auth_num].userid, userid, 24);
 
 			pass[23] = '\0';
 			remove_control_chars(pass);
-			strncpy(auth_dat[auth_num].pass, pass, 24);
+			safestrcpy(auth_dat[auth_num].pass, pass, 24);
 
 			lastlogin[23] = '\0';
 			remove_control_chars(lastlogin);
-			strncpy(auth_dat[auth_num].lastlogin, lastlogin, 24);
+			safestrcpy(auth_dat[auth_num].lastlogin, lastlogin, 24);
 
 			auth_dat[auth_num].sex = (sex == 'S' || sex == 's') ? 2 : (sex == 'M' || sex == 'm');
 
@@ -1033,12 +1033,12 @@ int mmo_auth_init(void) {
 				auth_dat[auth_num].state = 0;
 
 			// Initialization of new data
-			strncpy(auth_dat[auth_num].email, "a@a.com", 40);
-			strncpy(auth_dat[auth_num].error_message, "-", 20);
+			safestrcpy(auth_dat[auth_num].email, "a@a.com", 40);
+			safestrcpy(auth_dat[auth_num].error_message, "-", 20);
 			auth_dat[auth_num].ban_until_time = 0;
 			auth_dat[auth_num].connect_until_time = 0;
-			strncpy(auth_dat[auth_num].last_ip, "-", 16);
-			strncpy(auth_dat[auth_num].memo, "-", 255);
+			safestrcpy(auth_dat[auth_num].last_ip, "-", 16);
+			safestrcpy(auth_dat[auth_num].memo, "-", 255);
 
 			for(j = 0; j < ACCOUNT_REG2_NUM; j++) {
 				p += n;
@@ -1053,7 +1053,7 @@ int mmo_auth_init(void) {
 				}
 				str[31] = '\0';
 				remove_control_chars(str);
-				strncpy(auth_dat[auth_num].account_reg2[j].str, str, 32);
+				safestrcpy(auth_dat[auth_num].account_reg2[j].str, str, 32);
 				auth_dat[auth_num].account_reg2[j].value = v;
 			}
 			auth_dat[auth_num].account_reg2_num = j;
@@ -1285,10 +1285,10 @@ int mmo_auth_new(struct mmo_account* account, char sex, char* email) {
 
 	auth_dat[i].account_id = account_id_count++;
 
-	strncpy(auth_dat[i].userid, account->userid, 24);
+	safestrcpy(auth_dat[i].userid, account->userid, 24);
 	auth_dat[i].userid[23] = '\0';
 
-	strncpy(auth_dat[i].pass, account->passwd, 32);
+	safestrcpy(auth_dat[i].pass, account->passwd, 32);
 	auth_dat[i].pass[23] = '\0';
 
 	memcpy(auth_dat[i].lastlogin, "-", 2);
@@ -1300,11 +1300,11 @@ int mmo_auth_new(struct mmo_account* account, char sex, char* email) {
 	auth_dat[i].state = 0;
 
 	if (e_mail_check(email) == 0)
-		strncpy(auth_dat[i].email, "a@a.com", 40);
+		safestrcpy(auth_dat[i].email, "a@a.com", 40);
 	else
-		strncpy(auth_dat[i].email, email, 40);
+		safestrcpy(auth_dat[i].email, email, 40);
 
-	strncpy(auth_dat[i].error_message, "-", 20);
+	safestrcpy(auth_dat[i].error_message, "-", 20);
 
 	auth_dat[i].ban_until_time = 0;
 
@@ -1321,9 +1321,8 @@ int mmo_auth_new(struct mmo_account* account, char sex, char* email) {
 			auth_dat[i].connect_until_time = 0; // unlimited
 	}
 
-	strncpy(auth_dat[i].last_ip, "-", 16);
-
-	strncpy(auth_dat[i].memo, "-", 255);
+	safestrcpy(auth_dat[i].last_ip, "-", 16);
+	safestrcpy(auth_dat[i].memo, "-", 255);
 
 	auth_dat[i].account_reg2_num = 0;
 
@@ -1535,7 +1534,7 @@ int mmo_auth(struct mmo_account* account, int fd)
 	memcpy(account->lastlogin, auth_dat[i].lastlogin, 24);
 	memcpy(auth_dat[i].lastlogin, tmpstr, 24);
 	account->sex = auth_dat[i].sex;
-	strncpy(auth_dat[i].last_ip, ip_str, 16);
+	safestrcpy(auth_dat[i].last_ip, ip_str, 16);
 	auth_dat[i].logincount++;
 
 	// Save until for change ip/time of auth is not very useful => limited save for that
@@ -2703,7 +2702,7 @@ int parse_admin(int fd) {
 			memset(WFIFOP(fd,6), '\0', 24);
 			for(i = 0; i < auth_num; i++) {
 				if (auth_dat[i].account_id == RFIFOL(fd,2)) {
-					strncpy((char*)WFIFOP(fd,6), auth_dat[i].userid, 24);
+					safestrcpy((char*)WFIFOP(fd,6), auth_dat[i].userid, 24);
 					login_log("'ladmin': Request (by id) of an account name (account: %s, id: %d, ip: %s)" RETCODE,
 					          auth_dat[i].userid, (unsigned long)RFIFOL(fd,2), ip_str);
 					break;
@@ -2712,7 +2711,7 @@ int parse_admin(int fd) {
 			if (i == auth_num) {
 				login_log("'ladmin': Name request (by id) of an unknown account (id: %d, ip: %s)" RETCODE,
 				          (unsigned long)RFIFOL(fd,2), ip_str);
-				strncpy((char*)WFIFOP(fd,6), "", 24);
+				safestrcpy((char*)WFIFOP(fd,6), "", 24);
 			}
 			WFIFOSET(fd,30);
 			RFIFOSKIP(fd,6);
@@ -3039,7 +3038,7 @@ int parse_admin(int fd) {
 			if (i == auth_num) {
 				login_log("'ladmin': Attempt to obtain information (by the id) of an unknown account (id: %d, ip: %s)" RETCODE,
 				          (unsigned long)RFIFOL(fd,2), ip_str);
-				strncpy((char*)WFIFOP(fd,7), "", 24);
+				safestrcpy((char*)WFIFOP(fd,7), "", 24);
 				WFIFOW(fd,148) = 0;
 				WFIFOSET(fd,150);
 			}
@@ -3639,9 +3638,7 @@ int login_config_read(const char *cfgName) {
 			if (strcasecmp(w1, "admin_state") == 0) {
 				admin_state = config_switch(w2);
 			} else if (strcasecmp(w1, "admin_pass") == 0) {
-				memset(admin_pass, 0, sizeof(admin_pass));
-				strncpy(admin_pass, w2, sizeof(admin_pass));
-				admin_pass[sizeof(admin_pass)-1] = '\0';
+				safestrcpy(admin_pass, w2, sizeof(admin_pass));
 			} else if (strcasecmp(w1, "ladminallowip") == 0) {
 				if (strcasecmp(w2, "clear") == 0) {
 					if (access_ladmin_allow)
@@ -3664,14 +3661,11 @@ int login_config_read(const char *cfgName) {
 							access_ladmin_allow = (char*)aRealloc(access_ladmin_allow, (access_ladmin_allownum+1) * ACO_STRSIZE);
 						else
 							access_ladmin_allow = (char*)aCalloc(ACO_STRSIZE, sizeof(char));
-						strncpy(access_ladmin_allow + (access_ladmin_allownum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
-						access_ladmin_allow[access_ladmin_allownum * ACO_STRSIZE - 1] = '\0';
+						safestrcpy(access_ladmin_allow + (access_ladmin_allownum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
 					}
 				}
 			} else if (strcasecmp(w1, "gm_pass") == 0) {
-				memset(gm_pass, 0, sizeof(gm_pass));
-				strncpy(gm_pass, w2, sizeof(gm_pass));
-				gm_pass[sizeof(gm_pass)-1] = '\0';
+				safestrcpy(gm_pass, w2, sizeof(gm_pass));
 			} else if (strcasecmp(w1, "level_new_gm") == 0) {
 				level_new_gm = atoi(w2);
 			} else if (strcasecmp(w1, "new_account") == 0) {
@@ -3688,27 +3682,19 @@ int login_config_read(const char *cfgName) {
 			} else if (strcasecmp(w1, "login_port") == 0) {
 				login_port = atoi(w2);
 			} else if (strcasecmp(w1, "account_filename") == 0) {
-				memset(account_filename, 0, sizeof(account_filename));
-				strncpy(account_filename, w2, sizeof(account_filename));
-				account_filename[sizeof(account_filename)-1] = '\0';
+				safestrcpy(account_filename, w2, sizeof(account_filename));
 			} else if (strcasecmp(w1, "gm_account_filename") == 0) {
-				memset(GM_account_filename, 0, sizeof(GM_account_filename));
-				strncpy(GM_account_filename, w2, sizeof(GM_account_filename));
-				GM_account_filename[sizeof(GM_account_filename)-1] = '\0';
+				safestrcpy(GM_account_filename, w2, sizeof(GM_account_filename));
 			} else if (strcasecmp(w1, "gm_account_filename_check_timer") == 0) {
 				gm_account_filename_check_timer = atoi(w2);
 			} else if (strcasecmp(w1, "use_MD5_passwords") == 0) {
 				use_md5_passwds = config_switch(w2);
 			} else if (strcasecmp(w1, "login_log_filename") == 0) {
-				memset(login_log_filename, 0, sizeof(login_log_filename));
-				strncpy(login_log_filename, w2, sizeof(login_log_filename));
-				login_log_filename[sizeof(login_log_filename)-1] = '\0';
+				safestrcpy(login_log_filename, w2, sizeof(login_log_filename));
 			} else if (strcasecmp(w1, "log_login") == 0) {
 				log_login = atoi(w2);
 			} else if (strcasecmp(w1, "login_log_unknown_packets_filename") == 0) {
-				memset(login_log_unknown_packets_filename, 0, sizeof(login_log_unknown_packets_filename));
-				strncpy(login_log_unknown_packets_filename, w2, sizeof(login_log_unknown_packets_filename));
-				login_log_unknown_packets_filename[sizeof(login_log_unknown_packets_filename)-1] = '\0';
+				safestrcpy(login_log_unknown_packets_filename, w2, sizeof(login_log_unknown_packets_filename));
 			} else if (strcasecmp(w1, "save_unknown_packets") == 0) {
 				save_unknown_packets = config_switch(w2);
 			} else if (strcasecmp(w1, "display_parse_login") == 0) {
@@ -3769,8 +3755,7 @@ int login_config_read(const char *cfgName) {
 							access_allow = (char*)aRealloc(access_allow, (access_allownum+1) * ACO_STRSIZE);
 						else
 							access_allow = (char*)aCalloc(ACO_STRSIZE, sizeof(char));
-						strncpy(access_allow + (access_allownum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
-						access_allow[access_allownum * ACO_STRSIZE - 1] = '\0';
+						safestrcpy(access_allow + (access_allownum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
 					}
 				}
 			} else if (strcasecmp(w1, "deny") == 0) {
@@ -3795,8 +3780,7 @@ int login_config_read(const char *cfgName) {
 							access_deny = (char*)aRealloc(access_deny, (access_denynum+1) * ACO_STRSIZE);
 						else
 							access_deny = (char*)aCalloc(ACO_STRSIZE, sizeof(char));
-						strncpy(access_deny + (access_denynum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
-						access_deny[access_denynum * ACO_STRSIZE - 1] = '\0';
+						safestrcpy(access_deny + (access_denynum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
 					}
 				}
 			// dynamic password error ban

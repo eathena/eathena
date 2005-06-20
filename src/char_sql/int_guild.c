@@ -358,8 +358,8 @@ struct guild * inter_guild_fromsql(int guild_id)
 		}
 
 		g->guild_id=atoi(sql_row[0]);
-		strncpy(g->name,sql_row[1],24);
-		strncpy(g->master,sql_row[2],24);
+		safestrcpy(g->name,sql_row[1],24);
+		safestrcpy(g->master,sql_row[2],24);
 		g->guild_lv=atoi(sql_row[3]);
 		g->connect_member=atoi(sql_row[4]);
                 if (atoi(sql_row[5]) > MAX_GUILD) // Fix reduction of MAX_GUILD [PoW]
@@ -371,11 +371,11 @@ struct guild * inter_guild_fromsql(int guild_id)
 		g->next_exp=atoi(sql_row[8]);
 		g->skill_point=atoi(sql_row[9]);
 		g->castle_id=atoi(sql_row[10]);
-		strncpy(g->mes1,sql_row[11],60);
-		strncpy(g->mes2,sql_row[12],120);
+		safestrcpy(g->mes1,sql_row[11],60);
+		safestrcpy(g->mes2,sql_row[12],120);
 		g->emblem_len=atoi(sql_row[13]);
 		g->emblem_id=atoi(sql_row[14]);
-		strncpy(emblem_data,sql_row[15],4096);
+		safestrcpy(emblem_data,sql_row[15],4096);
 		for(i=0,pstr=emblem_data;i<g->emblem_len;i++,pstr+=2)
 		{
 			int c1=pstr[0],c2=pstr[1],x1=0,x2=0;
@@ -420,7 +420,7 @@ struct guild * inter_guild_fromsql(int guild_id)
                         else
                                 m->position = atoi(sql_row[11]);
 
-			strncpy(m->name,sql_row[14],24);
+			safestrcpy(m->name,sql_row[14],24);
 		}
 	}
 	mysql_free_result(sql_res);
@@ -439,7 +439,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 		for(i=0;((sql_row = mysql_fetch_row(sql_res))&&i<MAX_GUILDPOSITION);i++){
 			int position = atoi(sql_row[1]);
 			struct guild_position *p = &g->position[position];
-			strncpy(p->name,sql_row[2],24);
+			safestrcpy(p->name,sql_row[2],24);
 			p->mode=atoi(sql_row[3]);
 			p->exp_mode=atoi(sql_row[4]);
 		}
@@ -460,7 +460,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 			struct guild_alliance *a = &g->alliance[i];
 			a->opposition=atoi(sql_row[1]);
 			a->guild_id=atoi(sql_row[2]);
-			strncpy(a->name,sql_row[3],24);
+			safestrcpy(a->name,sql_row[3],24);
 		}
 	}
 	mysql_free_result(sql_res);
@@ -478,9 +478,9 @@ struct guild * inter_guild_fromsql(int guild_id)
 		for(i=0;((sql_row = mysql_fetch_row(sql_res))&&i<MAX_GUILDEXPLUSION);i++){
 			struct guild_explusion *e = &g->explusion[i];
 
-			strncpy(e->name,sql_row[1],24);
-			strncpy(e->mes,sql_row[2],40);
-			strncpy(e->acc,sql_row[3],24);
+			safestrcpy(e->name,sql_row[1],24);
+			safestrcpy(e->mes,sql_row[2],40);
+			safestrcpy(e->acc,sql_row[3],24);
 			e->account_id=atoi(sql_row[4]);
 			e->rsv1=atoi(sql_row[5]);
 			e->rsv2=atoi(sql_row[6]);

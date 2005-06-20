@@ -555,7 +555,7 @@ int grfio_size(const char *fname)
         }
 
 		if (stat(lfname,&st)==0) {
-			strncpy(lentry.fn, fname, sizeof(lentry.fn)-1 );
+			safestrcpy(lentry.fn, fname, sizeof(lentry.fn)-1 );
 			lentry.declen = st.st_size;
 			lentry.gentry = 0;	// 0:LocalFile
 			entry = filelist_modify(&lentry);
@@ -583,10 +583,11 @@ void* grfio_reads(const char *fname, int *size)
 	if (entry==NULL || entry->gentry<=0) {	// LocalFileCheck
 		char lfname[256];
 		FILELIST lentry;
-		strncpy(lfname,fname,255);
+		safestrcpy(lfname,fname,255);
 		sprintf(lfname,"%s%s",data_dir, grfio_resnametable(fname,lfname));
-
-		in = savefopen(lfname,"rb");
+		
+		if(*lfname)
+			in = savefopen(lfname,"rb");
 		if(in!=NULL) {
 			if (entry!=NULL && entry->gentry==0) {
 				lentry.declen=entry->declen;
@@ -602,7 +603,7 @@ void* grfio_reads(const char *fname, int *size)
 			}
 			fread(buf2,1,lentry.declen,in);
 			fclose(in); in = NULL;
-			strncpy( lentry.fn, fname, sizeof(lentry.fn)-1 );
+			safestrcpy( lentry.fn, fname, sizeof(lentry.fn)-1 );
 			lentry.gentry = 0;	// 0:LocalFile
 			entry = filelist_modify(&lentry);
 		} else {
@@ -777,7 +778,7 @@ static int grfio_entryread(const char *gfname,int gentry)
 				aentry.srcpos         = getlong(grf_filelist+ofs2+13)+0x2e;
 				aentry.cycle          = srccount;
 				aentry.type           = type;
-				strncpy(aentry.fn,(char*)fname,sizeof(aentry.fn)-1);
+				safestrcpy(aentry.fn,(char*)fname,sizeof(aentry.fn)-1);
 #ifdef	GRFIO_LOCAL
 				aentry.gentry         = -(gentry+1);	// As Flag for making it a negative number carrying out the first time LocalFileCheck
 #else
@@ -855,7 +856,7 @@ static int grfio_entryread(const char *gfname,int gentry)
 				aentry.srcpos         = getlong(grf_filelist+ofs2+13)+0x2e;
 				aentry.cycle          = srccount;
 				aentry.type           = type;
-				strncpy(aentry.fn,(char*)fname,sizeof(aentry.fn)-1);
+				safestrcpy(aentry.fn,(char*)fname,sizeof(aentry.fn)-1);
 #ifdef	GRFIO_LOCAL
 				aentry.gentry         = -(gentry+1);	// As Flag for making it a negative number carrying out the first time LocalFileCheck
 #else
@@ -891,6 +892,9 @@ static void grfio_resourcecheck()
 
 	sprintf(src,"%sdata\\resnametable.txt",data_dir);
 	buf=(char*)grfio_reads(src,&size);
+
+	if(buf==NULL) return;
+	
 	buf[size] = 0;
 
 	for(ptr=buf;ptr-buf<size;) {
@@ -906,7 +910,7 @@ static void grfio_resourcecheck()
 			if (entry!=NULL) {
 				FILELIST fentry;
 				memcpy( &fentry, entry, sizeof(FILELIST) );
-				strncpy( fentry.fn ,src, sizeof(fentry.fn)-1 );
+				safestrcpy( fentry.fn ,src, sizeof(fentry.fn)-1 );
 				filelist_modify(&fentry);
 			} else {
 				//ShowError("file not found in data.grf : %s < %s\n",dst,src);
@@ -937,7 +941,6 @@ int grfio_add(const char *fname)
 	}
 
 	ShowStatus("Reading GRF File: '%s'.\n",fname);
-
 
 	if (gentry_entrys>=gentry_maxentry) {
 		gentry_table = (char**)aRealloc(gentry_table,(gentry_maxentry+GENTRY_ADDS)*sizeof(char*) );
@@ -997,8 +1000,10 @@ void grfio_init(const char *fname)
 
 	hashinit();	// hash table initialization
 
-	filelist = NULL;     filelist_entrys = filelist_maxentry = 0;
-	gentry_table = NULL; gentry_entrys = gentry_maxentry = 0;
+	filelist = NULL;
+	filelist_entrys = filelist_maxentry = 0;
+	gentry_table = NULL;
+	gentry_entrys = gentry_maxentry = 0;
 
 
 	// It will read, if there is grf-files.txt.
@@ -1009,10 +1014,10 @@ void grfio_init(const char *fname)
 			if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2)
 			{
 			// Entry table reading
-			if(strcmp(w1, "grf") == 0 ||
-					strcmp(w1, "data") == 0 ||	// Primary data file
-					strcmp(w1, "sdata") == 0 ||	// Sakray data file
-					strcmp(w1, "adata") == 0)	// Alpha version data file
+			if( strcmp(w1, "grf") == 0 ||
+				strcmp(w1, "data") == 0 ||	// Primary data file
+				strcmp(w1, "sdata") == 0 ||	// Sakray data file
+				strcmp(w1, "adata") == 0)	// Alpha version data file
 				// increment if successfully loaded
 				result += (grfio_add(w2) == 0);
 			else if(strcmp(w1,"data_dir") == 0)	// Data directory

@@ -192,11 +192,13 @@ extern inline void _B_tobuffer(const char &valin, unsigned char *&buf)
 extern inline void _S_tobuffer(const char *valin, unsigned char *&buf, const size_t sz)
 {	
 	strncpy((char*)buf, (char*)valin, sz);
+	buf[sz-1]=0;
 	buf += sz;
 }
 extern inline void S_tobuffer(const char *valin, unsigned char *&buf, const size_t sz)
 {	
 	strncpy((char*)buf, (char*)valin, sz);
+	buf[sz-1]=0;
 }
 
 extern inline void _L_frombuffer(unsigned long &valin, const unsigned char *&buf)
@@ -241,11 +243,13 @@ extern inline void _B_frombuffer(char &valin, const unsigned char *&buf)
 extern inline void _S_frombuffer(char *valin, const unsigned char *&buf, const size_t sz)
 {	
 	strncpy((char*)valin, (char*)buf, sz);
+	valin[sz-1]=0;
 	buf += sz;
 }
 extern inline void S_frombuffer(char *valin, const unsigned char *buf, const size_t sz)
 {	
 	strncpy((char*)valin, (char*)buf, sz);
+	valin[sz-1]=0;
 }
 
 

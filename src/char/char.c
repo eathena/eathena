@@ -1763,7 +1763,7 @@ int parse_tologin(int fd)
 //							ShowMessage("count_users(): %d < max_connect_user (%d) -> accepted.\n", count_users(), max_connect_user);
 						memcpy(sd->email, RFIFOP(fd, 7), 40);
 						if (e_mail_check(sd->email) == 0)
-							strncpy(sd->email, "a@a.com", 40); // default e-mail
+							safestrcpy(sd->email, "a@a.com", 40); // default e-mail
 						sd->connect_until_time = (time_t)RFIFOL(fd,47);
 						// send characters to player
 						mmo_char_send006b(i, sd);
@@ -1796,7 +1796,7 @@ int parse_tologin(int fd)
 					if (sd->account_id == RFIFOL(fd,2)) {
 						memcpy(sd->email, RFIFOP(fd,6), 40);
 						if (e_mail_check(sd->email) == 0)
-							strncpy(sd->email, "a@a.com", 40); // default e-mail
+							safestrcpy(sd->email, "a@a.com", 40); // default e-mail
 						sd->connect_until_time = (time_t)RFIFOL(fd,46);
 						break;
 					}
@@ -2879,7 +2879,7 @@ int parse_char(int fd)
 				ShowMessage("Account Logged On; Account ID: %ld.\n", (unsigned long)RFIFOL(fd,2));
 			if (sd == NULL) {
 				sd = (struct char_session_data*)(session[fd]->session_data = aCalloc(1, sizeof(struct char_session_data)));
-				strncpy(sd->email, "no mail", 40); // put here a mail without '@' to refuse deletion if we don't receive the e-mail
+				safestrcpy(sd->email, "no mail", 40); // put here a mail without '@' to refuse deletion if we don't receive the e-mail
 				sd->connect_until_time = 0; // unknow or illimited (not displaying on map-server)
 			}
 			sd->account_id = RFIFOL(fd,2);
@@ -3140,7 +3140,7 @@ int parse_char(int fd)
 
 			memcpy(email, RFIFOP(fd,6), 40);
 			if (e_mail_check(email) == 0)
-				strncpy(email, "a@a.com", 40); // default e-mail
+				safestrcpy(email, "a@a.com", 40); // default e-mail
 
 			
 			if(email_creation != 0 && strcmp(sd->email, "a@a.com") == 0

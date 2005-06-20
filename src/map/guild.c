@@ -84,9 +84,9 @@ int guild_skill_get_max(unsigned short id) { // Modified for new skills [Sara]
 int guild_checkskill(struct guild &g,unsigned short skillid)
 {
 	unsigned short idx = skillid-GD_SKILLBASE;
-	if(idx >= MAX_GUILDSKILL)
-		return 0;
-	return g.skill[idx].lv;
+	if(idx<MAX_GUILDSKILL)
+		return g.skill[idx].lv;
+	return 0;
 }
 
 static int guild_read_castledb(void)

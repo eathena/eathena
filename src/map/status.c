@@ -391,7 +391,8 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	int b_aspd,b_watk,b_def,b_watk2,b_def2,b_flee2,b_critical,b_attackrange,b_matk1,b_matk2,b_mdef,b_mdef2,b_class;
 	int b_base_atk;
 	struct skill b_skill[MAX_SKILL];
-	size_t i,j;
+	int i;
+	size_t j;
 	int bl,index;
 	int skill,aspd_rate,wele,wele_,def_ele,refinedef=0;
 	int pele=0,pdef_ele=0;
@@ -433,7 +434,8 @@ int status_calc_pc(struct map_session_data& sd, int first)
 
 	sd.max_weight = max_weight_base[s_class.job]+sd.status.str*300;
 
-	if(first&1) {
+	if(first&1)
+	{
 		sd.weight=0;
 		for(i=0;i<MAX_INVENTORY;i++){
 			if(sd.status.inventory[i].nameid==0 || sd.inventory_data[i] == NULL)
@@ -613,11 +615,6 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	sd.setitem_hash = 0;
 
 
-	if (sd.status.guild_id > 0) {
-		struct guild *g = guild_search(sd.status.guild_id);
-		if (g && strcmp(sd.status.name,g->master)==0)
-			sd.gmaster_flag = g;
-	}
 	
 	
 	for(i=0;i<10;i++) {
@@ -631,7 +628,8 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		if(i == 6 && (sd.equip_index[5] == index || sd.equip_index[4] == index))
 			continue;
 
-		if(sd.inventory_data[index]) {
+		if(sd.inventory_data[index])
+		{
 			if(sd.inventory_data[index]->type == 4) { // Weapon cards
 				if(sd.status.inventory[index].card[0]!=0x00ff && sd.status.inventory[index].card[0]!=0x00fe && sd.status.inventory[index].card[0]!=0xff00) {
 					for(j=0;j<sd.inventory_data[index]->flag.slot;j++){	// ÉJ?Éh
