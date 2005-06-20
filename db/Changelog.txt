@@ -23,6 +23,10 @@
 	4262,Taoist_Hermit_Card
 	4265,Li_Me_Mang_Ryang_Card
 
+06/20
+	* Fixed some item_db typos [celest]
+	* Updated Thunderstorm range to 2 [celest]
+
 06/18
 	* Reverted Skotlex's work. [Lupus]
 	  all 3 Lances differ by their ID (for quests purposes!)
