@@ -680,15 +680,6 @@ int skillnotok(int skillid, struct map_session_data &sd)
 }
 
 
-static int distance(int x0,int y0,int x1,int y1)
-{
-	int dx,dy;
-
-	dx = abs(x0 - x1);
-	dy = abs(y0 - y1);
-	return dx > dy ? dx : dy;
-}
-
 /* スキルユニットの配置情報を返す */
 struct skill_unit_layout skill_unit_layout[MAX_SKILL_UNIT_LAYOUT];
 int firewall_unit_pos;
@@ -1760,7 +1751,7 @@ int skill_area_sub( struct block_list &bl, va_list ap)
 	return 0;
 }
 
-static int skill_check_unit_range_sub( struct block_list &bl,va_list ap )
+int skill_check_unit_range_sub( struct block_list &bl,va_list ap )
 {
 	struct skill_unit *unit;
 	int *c;
@@ -1825,7 +1816,7 @@ int skill_check_unit_range(int m,int x,int y,unsigned short skillid,unsigned sho
 	return c;
 }
 
-static int skill_check_unit_range2_sub( struct block_list &bl,va_list ap )
+int skill_check_unit_range2_sub( struct block_list &bl,va_list ap )
 {
 	int *c;
 	unsigned short skillid;
@@ -1952,7 +1943,7 @@ int skill_count_water(struct block_list *src,int range)
  *
  *------------------------------------------
  */
-static int skill_timerskill(int tid,unsigned long tick,int id,int data)
+int skill_timerskill(int tid,unsigned long tick,int id,int data)
 {
 	struct map_session_data *sd = NULL;
 	struct mob_data *md = NULL;
@@ -6549,7 +6540,7 @@ int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,
  *------------------------------------------
  */
 
-static int skill_check_condition_char_sub (struct block_list &blx, va_list ap)
+int skill_check_condition_char_sub (struct block_list &blx, va_list ap)
 {
 	struct block_list *bl = &blx;
 	int *c, skillid;
@@ -6620,7 +6611,7 @@ static int skill_check_condition_char_sub (struct block_list &blx, va_list ap)
  *------------------------------------------
  */
 
-static int skill_check_condition_use_sub(struct block_list &bl,va_list ap)
+int skill_check_condition_use_sub(struct block_list &bl,va_list ap)
 {
 	int *c;
 	struct block_list *src;
@@ -6700,7 +6691,7 @@ static int skill_check_condition_use_sub(struct block_list &bl,va_list ap)
  *------------------------------------------
  */
 
-static int skill_check_condition_mob_master_sub(struct block_list &bl,va_list ap)
+int skill_check_condition_mob_master_sub(struct block_list &bl,va_list ap)
 {
 	nullpo_retr(0, ap);
 
@@ -6718,7 +6709,7 @@ static int skill_check_condition_mob_master_sub(struct block_list &bl,va_list ap
 	return 0;
 }
 
-static int skill_check_condition_hermod_sub(struct block_list &bl,va_list ap)
+int skill_check_condition_hermod_sub(struct block_list &bl,va_list ap)
 {
 	int *c;
 	struct npc_data *nd;
@@ -8189,7 +8180,7 @@ int skill_autospell(struct map_session_data *sd,int skillid)
  *------------------------------------------
  */
 
-static int skill_gangster_count(struct block_list &bl,va_list ap)
+int skill_gangster_count(struct block_list &bl,va_list ap)
 {
 	int *c;
 	struct map_session_data &sd = (struct map_session_data&)bl;
@@ -8202,7 +8193,7 @@ static int skill_gangster_count(struct block_list &bl,va_list ap)
 	return 0;
 }
 
-static int skill_gangster_in(struct block_list &bl,va_list ap)
+int skill_gangster_in(struct block_list &bl,va_list ap)
 {
 	struct map_session_data *sd;
 
@@ -8214,7 +8205,7 @@ static int skill_gangster_in(struct block_list &bl,va_list ap)
 	return 0;
 }
 
-static int skill_gangster_out(struct block_list &bl,va_list ap)
+int skill_gangster_out(struct block_list &bl,va_list ap)
 {
 	struct map_session_data &sd=(struct map_session_data&)bl;
 
@@ -8306,7 +8297,7 @@ int skill_frostjoke_scream(struct block_list &bl,va_list ap)
  * Moonlit creates a 'safe zone' [celest]
  *------------------------------------------
  */
-static int skill_moonlit_count(struct block_list &bl,va_list ap)
+int skill_moonlit_count(struct block_list &bl,va_list ap)
 {
 	int *c;
 	unsigned long id;
@@ -10203,7 +10194,7 @@ int skill_readdb(void)
  * For reading leveluseskillspamount.txt [Celest]
  *-----------------------------------------------
  */
-static int skill_read_skillspamount(void)
+int skill_read_skillspamount(void)
 {
 	char *buf,*p;
 	struct skill_db *skill = NULL;

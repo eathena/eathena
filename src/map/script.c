@@ -621,7 +621,7 @@ unsigned char calc_hash(const char *str)
  *------------------------------------------
  */
 // 既存のであれば番号、無ければ-1
-static int search_str(const char *p)
+int search_str(const char *p)
 {
 	int i;
 	i=str_hash[calc_hash(p)];
@@ -639,7 +639,7 @@ static int search_str(const char *p)
  *------------------------------------------
  */
 // 既存のであれば番号、無ければ登録して新規番号
-static int add_str(const char *p)
+int add_str(const char *p)
 {
 	int i;
 	// maybe a fixed size buffer would be sufficient
@@ -697,7 +697,7 @@ static int add_str(const char *p)
  * スクリプトバッファサイズの確認と拡張
  *------------------------------------------
  */
-static void check_script_buf(int size)
+void check_script_buf(int size)
 {
 	if(script_pos+size>=script_size)
 	{
@@ -711,7 +711,7 @@ static void check_script_buf(int size)
  * スクリプトバッファに１バイト書き込む
  *------------------------------------------
  */
-static void add_scriptb(int a)
+void add_scriptb(int a)
 {
 	check_script_buf(1);
 	script_buf[script_pos++]=a;
@@ -721,7 +721,7 @@ static void add_scriptb(int a)
  * スクリプトバッファにデータタイプを書き込む
  *------------------------------------------
  */
-static void add_scriptc(int a)
+void add_scriptc(int a)
 {
 	while(a>=0x40){
 		add_scriptb((a&0x3f)|0x40);
@@ -734,7 +734,7 @@ static void add_scriptc(int a)
  * スクリプトバッファに整数を書き込む
  *------------------------------------------
  */
-static void add_scripti(int a)
+void add_scripti(int a)
 {
 	while(a>=0x40){
 		add_scriptb(a|0xc0);
@@ -748,7 +748,7 @@ static void add_scripti(int a)
  *------------------------------------------
  */
 // 最大16Mまで
-static void add_scriptl(int l)
+void add_scriptl(int l)
 {
 	int backpatch = str_data[l].backpatch;
 
@@ -806,7 +806,7 @@ void set_label(int l,int pos)
  * スペース/コメント読み飛ばし
  *------------------------------------------
  */
-static char *skip_space(const char *p)
+char *skip_space(const char *p)
 {
 	while(1){
 		while( *p==0x20 || (*p>=0x09 && *p<=0x0D) )
@@ -829,7 +829,7 @@ static char *skip_space(const char *p)
  * １単語スキップ
  *------------------------------------------
  */
-static char *skip_word(const char *str)
+char *skip_word(const char *str)
 {
 	unsigned char*p =(unsigned char*)str;
 	if(p)
@@ -863,7 +863,7 @@ static int startline;
  * エラーメッセージ出力
  *------------------------------------------
  */
-static void disp_error_message(const char *mes,const char *pos)
+void disp_error_message(const char *mes,const char *pos)
 {
 	int line,c=0,i;
 	char *p,*linestart,*lineend;
@@ -1178,7 +1178,7 @@ char* parse_line(char *p)
  * 組み込み関数の追加
  *------------------------------------------
  */
-static void add_buildin_func(void)
+void add_buildin_func(void)
 {
 	int i,n;
 	for(i=0;buildin_func[i].func;i++){
@@ -1193,7 +1193,7 @@ static void add_buildin_func(void)
  * 定数データベースの読み込み
  *------------------------------------------
  */
-static void read_constdb(void)
+void read_constdb(void)
 {
 	FILE *fp;
 	char line[1024];
@@ -2271,7 +2271,7 @@ int buildin_copyarray(struct script_state &st)
  * 配列変数のサイズ所得
  *------------------------------------------
  */
-static int getarraysize(struct script_state &st,int num,int postfix)
+int getarraysize(struct script_state &st,int num,int postfix)
 {
 	int i=(num>>24),c=i;
 	for(;i<128;i++){
@@ -6904,7 +6904,8 @@ int buildin_hasitems(struct script_state &st)
 	sd=script_rid2sd(st);
 
 	for(i=0; i<MAX_INVENTORY; i++) {
-		if(sd->status.inventory[i].amount) {
+		if(sd->status.inventory[i].amount && sd->status.inventory[i].nameid!=2364 && sd->status.inventory[i].nameid!=2365)
+		{
 			push_val(st.stack,C_INT,1);
 			return 0;
 		}
@@ -8275,7 +8276,7 @@ int mapreg_setregstr(int num,const char *str)
  * 永続的マップ変数の読み込み
  *------------------------------------------
  */
-static int script_load_mapreg()
+int script_load_mapreg()
 {
 	FILE *fp;
 	char line[1024];
@@ -8315,7 +8316,7 @@ static int script_load_mapreg()
  * 永続的マップ変数の書き込み
  *------------------------------------------
  */
-static int script_save_mapreg_intsub(void *key,void *data,va_list ap)
+int script_save_mapreg_intsub(void *key,void *data,va_list ap)
 {
 	FILE *fp=va_arg(ap,FILE*);
 	int num=((int)key)&0x00ffffff, i=((int)key)>>24;
@@ -8328,7 +8329,7 @@ static int script_save_mapreg_intsub(void *key,void *data,va_list ap)
 	}
 	return 0;
 }
-static int script_save_mapreg_strsub(void *key,void *data,va_list ap)
+int script_save_mapreg_strsub(void *key,void *data,va_list ap)
 {
 	FILE *fp=va_arg(ap,FILE*);
 	int num=((int)key)&0x00ffffff, i=((int)key)>>24;
@@ -8341,7 +8342,7 @@ static int script_save_mapreg_strsub(void *key,void *data,va_list ap)
 	}
 	return 0;
 }
-static int script_save_mapreg()
+int script_save_mapreg()
 {
 	FILE *fp;
 	int lock;
@@ -8354,7 +8355,7 @@ static int script_save_mapreg()
 	mapreg_dirty=0;
 	return 0;
 }
-static int script_autosave_mapreg(int tid,unsigned long tick,int id,int data)
+int script_autosave_mapreg(int tid,unsigned long tick,int id,int data)
 {
 	if(mapreg_dirty)
 		script_save_mapreg();
@@ -8365,7 +8366,7 @@ static int script_autosave_mapreg(int tid,unsigned long tick,int id,int data)
  *
  *------------------------------------------
  */
-static int set_posword(const char *p)
+int set_posword(const char *p)
 {
 	const char* np;
 	int i;
@@ -8474,20 +8475,20 @@ int script_config_read(const char *cfgName)
  * 終了
  *------------------------------------------
  */
-static int mapreg_db_final(void *key,void *data,va_list ap)
+int mapreg_db_final(void *key,void *data,va_list ap)
 {
 	return 0;
 }
-static int mapregstr_db_final(void *key,void *data,va_list ap)
+int mapregstr_db_final(void *key,void *data,va_list ap)
 {
 	aFree(data);
 	return 0;
 }
-static int scriptlabel_db_final(void *key,void *data,va_list ap)
+int scriptlabel_db_final(void *key,void *data,va_list ap)
 {
 	return 0;
 }
-static int userfunc_db_final(void *key,void *data,va_list ap)
+int userfunc_db_final(void *key,void *data,va_list ap)
 {
 	aFree(key);
 	aFree(data);

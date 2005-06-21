@@ -355,7 +355,7 @@ int itemdb_read_randomitem()
  * アイテム使用可能フラグのオーバーライド
  *------------------------------------------
  */
-static int itemdb_read_itemavail(void)
+int itemdb_read_itemavail(void)
 {
 	FILE *fp;
 	char line[1024];
@@ -402,7 +402,7 @@ static int itemdb_read_itemavail(void)
  * read item group data
  *------------------------------------------
  */
-static int itemdb_read_itemgroup(void)
+int itemdb_read_itemgroup(void)
 {
 	FILE *fp;
 	char line[1024];
@@ -452,7 +452,7 @@ static int itemdb_read_itemgroup(void)
  * アイテムの名前テーブルを読み込む
  *------------------------------------------
  */
-static int itemdb_read_itemnametable(void)
+int itemdb_read_itemnametable(void)
 {
 	char *buf,*p;
 	int s;
@@ -494,7 +494,7 @@ static int itemdb_read_itemnametable(void)
  * カードイラストのリソース名前テーブルを読み込む
  *------------------------------------------
  */
-static int itemdb_read_cardillustnametable(void)
+int itemdb_read_cardillustnametable(void)
 {
 	char *buf,*p;
 	int s;
@@ -532,7 +532,7 @@ static int itemdb_read_cardillustnametable(void)
  *
  *------------------------------------------
  */
-static int itemdb_read_itemslottable(void)
+int itemdb_read_itemslottable(void)
 {
 	char *buf, *p;
 	int s;
@@ -560,7 +560,7 @@ static int itemdb_read_itemslottable(void)
 	return 0;
 }
 
-static int itemdb_read_itemslotcounttable(void)
+int itemdb_read_itemslotcounttable(void)
 {
 	char *buf, *p;
 	int s;
@@ -589,7 +589,7 @@ static int itemdb_read_itemslotcounttable(void)
  * 装備制限ファイル読み出し
  *------------------------------------------
  */
-static int itemdb_read_noequip(void)
+int itemdb_read_noequip(void)
 {
 	FILE *fp;
 	char line[1024];
@@ -633,7 +633,7 @@ static int itemdb_read_noequip(void)
  * Reads item trade restrictions [Skotlex]
  *------------------------------------------
  */
-static int itemdb_read_itemtrade(void)
+int itemdb_read_itemtrade(void)
 {
 	FILE *fp;
 	int nameid, j, flag, gmlv, ln = 0;
@@ -681,7 +681,7 @@ static int itemdb_read_itemtrade(void)
 * SQL
 *===================================
 */
-static int itemdb_read_sqldb(void)
+int itemdb_read_sqldb(void)
 {
 	unsigned short nameid;
 	struct item_data *id;
@@ -831,7 +831,7 @@ static int itemdb_read_sqldb(void)
  * アイテムデータベースの読み込み
  *------------------------------------------
  */
-static int itemdb_readdb(void)
+int itemdb_readdb(void)
 {
 	FILE *fp;
 	char line[1024];
@@ -952,7 +952,7 @@ static int itemdb_readdb(void)
  * Removed item_value_db, don't re-add
  *------------------------------------
  */
-static void itemdb_read(void)
+void itemdb_read(void)
 {
 #ifndef TXT_ONLY
 	if (db_use_sqldbs)
@@ -986,7 +986,7 @@ static void itemdb_read(void)
  * Initialize / Finalize
  *------------------------------------------
  */
-static int itemdb_final_sub (void *key,void *data,va_list ap)
+int itemdb_final_sub (void *key,void *data,va_list ap)
 {
 	struct item_data *id = (struct item_data *)data;
 

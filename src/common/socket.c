@@ -906,11 +906,10 @@ int connect_check_clear(int tid,unsigned long tick,int id,int data)
 // Parse Functions
 //
 ///////////////////////////////////////////////////////////////////////////////
-static int null_parse(int fd);
-static int (*default_func_parse)(int) = null_parse;
-
-static int null_console_parse(char *buf);
-static int (*default_console_parse)(char*) = null_console_parse;
+int null_parse(int fd);
+int (*default_func_parse)(int) = null_parse;
+int null_console_parse(char *buf);
+int (*default_console_parse)(char*) = null_console_parse;
 
 /*======================================
  *	CORE : Set function
@@ -1502,7 +1501,7 @@ void set_defaultconsoleparse(int (*defaultparse)(char*))
 	default_console_parse = defaultparse;
 }
 
-static int null_console_parse(char *buf)
+int null_console_parse(char *buf)
 {
 	ShowMessage("null_console_parse : %s\n",buf);
 	return 0;

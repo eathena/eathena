@@ -470,7 +470,7 @@ int login_log(char *fmt, ...)
 // Online User Database [Wizputer]
 //-----------------------------------------------------
 
-static int online_db_final(void *key,void *data,va_list ap)
+int online_db_final(void *key,void *data,va_list ap)
 {
 	unsigned long *p = (unsigned long *) data;
 	if (p) aFree(p);
@@ -2103,7 +2103,7 @@ int parse_fromchar(int fd) {
 					for(i = 0; i < RFIFOREST(fd); i++) {
 						if ((i & 15) == 0)
 							fprintf(logfp, "%04X ",i);
-						fprintf(logfp, "%02x ", RFIFOB(fd,i));
+						fprintf(logfp, "%02x ", (unsigned char)RFIFOB(fd,i));
 						if (RFIFOB(fd,i) > 0x1f)
 							tmpstr[i % 16] = RFIFOB(fd,i);
 						else
@@ -3072,7 +3072,7 @@ int parse_admin(int fd) {
 					for(i = 0; i < RFIFOREST(fd); i++) {
 						if ((i & 15) == 0)
 							fprintf(logfp, "%04X ",i);
-						fprintf(logfp, "%02x ", RFIFOB(fd,i));
+						fprintf(logfp, "%02x ", (unsigned char)RFIFOB(fd,i));
 						if (RFIFOB(fd,i) > 0x1f)
 							tmpstr[i % 16] = RFIFOB(fd,i);
 						else
@@ -3327,7 +3327,7 @@ int parse_login(int fd) {
 				server_name[19] = '\0';
 				remove_control_chars(server_name);
 				login_log("Connection request of the char-server '%s' @ %d.%d.%d.%d:%d (ip: %s)" RETCODE,
-				          server_name, RFIFOB(fd,54), RFIFOB(fd,55), RFIFOB(fd,56), RFIFOB(fd,57), (unsigned short)RFIFOW(fd,58), ip_str);
+				          server_name, (unsigned char)RFIFOB(fd,54), (unsigned char)RFIFOB(fd,55), (unsigned char)RFIFOB(fd,56), (unsigned char)RFIFOB(fd,57), (unsigned short)RFIFOW(fd,58), ip_str);
 				result = mmo_auth(&account, fd);
 				if (result == -1 && account.sex == 2 && account.account_id < MAX_SERVERS && server[account.account_id].fd == -1)
 				{
@@ -3470,7 +3470,7 @@ int parse_login(int fd) {
 					for(i = 0; i < RFIFOREST(fd); i++) {
 						if ((i & 15) == 0)
 							fprintf(logfp, "%04X ",i);
-						fprintf(logfp, "%02x ", RFIFOB(fd,i));
+						fprintf(logfp, "%02x ", (unsigned char)RFIFOB(fd,i));
 						if (RFIFOB(fd,i) > 0x1f)
 							tmpstr[i % 16] = RFIFOB(fd,i);
 						else

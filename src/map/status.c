@@ -1846,6 +1846,10 @@ int status_get_max_hp(struct block_list *bl)
 
 			if(battle_config.mobs_level_up) // mobs leveling up increase [Valaris]
 				max_hp += (md->level - mob_db[md->class_].lv) * status_get_vit(bl);
+			if(md->state.size==1) // change for sized monsters [Valaris]
+					max_hp/=2;
+			else if(md->state.size==2)
+					max_hp*=2;
 
 /* Moved this code to where the mob_db is read in mob.c [Skotlex]
 			if(mob_db[md->class_].mexp > 0) { //MVP Monsters
@@ -1914,6 +1918,10 @@ int status_get_str(struct block_list *bl)
 			str = mob_db[((struct mob_data *)bl)->class_].str;
 			if(battle_config.mobs_level_up) // mobs leveling up increase [Valaris]
 				str += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
+			if(((struct mob_data*)bl)->state.size==1) // change for sized monsters [Valaris]
+				str/=2;
+			else if(((struct mob_data*)bl)->state.size==2)
+				str*=2;
 		}
 		else if(bl->type == BL_PET && ((struct pet_data *)bl))
 		{	//<Skotlex> Use pet's stats
@@ -1962,6 +1970,10 @@ int status_get_agi(struct block_list *bl)
 			agi = mob_db[((struct mob_data *)bl)->class_].agi;
 			if(battle_config.mobs_level_up) // increase of mobs leveling up [Valaris]
 				agi += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
+			if(((struct mob_data*)bl)->state.size==1) // change for sized monsters [Valaris]
+				agi/=2;
+			else if(((struct mob_data*)bl)->state.size==2)
+				agi*=2;
 		}
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
 		{	//<Skotlex> Use pet's stats
@@ -2013,6 +2025,10 @@ int status_get_vit(struct block_list *bl)
 			vit = mob_db[((struct mob_data *)bl)->class_].vit;
 			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				vit += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
+			if(((struct mob_data*)bl)->state.size==1) // change for sized monsters [Valaris]
+				vit/=2;
+			else if(((struct mob_data*)bl)->state.size==2)
+				vit*=2;
 		}	
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
 		{	//<Skotlex> Use pet's stats
@@ -2052,6 +2068,10 @@ int status_get_int(struct block_list *bl)
 			int_ = mob_db[((struct mob_data *)bl)->class_].int_;
 			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				int_ += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
+			if(((struct mob_data*)bl)->state.size==1) // change for sized monsters [Valaris]
+				int_/=2;
+			else if(((struct mob_data*)bl)->state.size==2)
+				int_*=2;
 		}		
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
 		{	//<Skotlex> Use pet's stats
@@ -2099,6 +2119,10 @@ int status_get_dex(struct block_list *bl)
 			dex = mob_db[((struct mob_data *)bl)->class_].dex;
 			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				dex += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
+			if(((struct mob_data*)bl)->state.size==1) // change for sized monsters [Valaris]
+				dex/=2;
+			else if(((struct mob_data*)bl)->state.size==2)
+				dex*=2;
 		}		
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
 		{	//<Skotlex> Use pet's stats
@@ -2151,6 +2175,10 @@ int status_get_luk(struct block_list *bl)
 			luk = mob_db[((struct mob_data *)bl)->class_].luk;
 			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
 				luk += ((struct mob_data *)bl)->level - mob_db[((struct mob_data *)bl)->class_].lv;
+			if(((struct mob_data*)bl)->state.size==1) // change for sized monsters [Valaris]
+				luk/=2;
+			else if(((struct mob_data*)bl)->state.size==2)
+				luk*=2;
 		}		
 		else if(bl->type == BL_PET && (struct pet_data *)bl)
 		{	//<Skotlex> Use pet's stats
@@ -5119,7 +5147,7 @@ int status_change_clear_debuffs (struct block_list *bl)
 	return 0;
 }
 
-static int status_calc_sigma(void)
+int status_calc_sigma(void)
 {
 	int i,j,k;
 

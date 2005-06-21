@@ -923,7 +923,7 @@ AtCommandType is_atcommand(const int fd, struct map_session_data &sd, const char
  *
  *------------------------------------------
  */
-static int atkillmonster_sub(struct block_list &bl, va_list ap)
+int atkillmonster_sub(struct block_list &bl, va_list ap)
 {
 	struct mob_data &md = (struct mob_data &)bl;
 	int flag;
@@ -4347,7 +4347,7 @@ bool atcommand_doommap(int fd, struct map_session_data &sd, const char* command,
  *
  *------------------------------------------
  */
-static void atcommand_raise_sub(struct map_session_data& sd)
+void atcommand_raise_sub(struct map_session_data& sd)
 {
 	if(sd.state.auth && pc_isdead(sd))
 	{
@@ -7542,7 +7542,7 @@ bool atcommand_sound(int fd, struct map_session_data &sd, const char *command, c
  * Mob search
  *------------------------------------------
  */
-static int atmobsearch_sub(struct block_list &bl,va_list ap)
+int atmobsearch_sub(struct block_list &bl,va_list ap)
 {
 	int mob_id,fd;
 	static int number=0;
@@ -7607,7 +7607,7 @@ bool atcommand_mobsearch(int fd, struct map_session_data& sd, const char* comman
  * cleanmap
  *------------------------------------------
  */
-static int atcommand_cleanmap_sub(struct block_list &bl, va_list ap)
+int atcommand_cleanmap_sub(struct block_list &bl, va_list ap)
 {
 	map_clearflooritem(bl.id);
 	return 0;
@@ -7680,7 +7680,7 @@ bool atcommand_pettalk(int fd, struct map_session_data &sd, const char* command,
 static struct dbt *users_db;
 static int users_all;
 
-static int atcommand_users_sub1(struct map_session_data &sd, va_list va)
+int atcommand_users_sub1(struct map_session_data &sd, va_list va)
 {
 	int users = (int)strdb_search(users_db,sd.mapname) + 1;
 	users_all++;
@@ -7688,7 +7688,8 @@ static int atcommand_users_sub1(struct map_session_data &sd, va_list va)
 	return 0;
 }
 
-static int atcommand_users_sub2(void* key,void* val,va_list va) {
+int atcommand_users_sub2(void* key,void* val,va_list va)
+{
 	char buf[256];
 	struct map_session_data* sd = va_arg(va,struct map_session_data*);
 	if(sd)
@@ -8893,7 +8894,7 @@ bool atcommand_version(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-static int atcommand_mutearea_sub(struct block_list &bl,va_list ap)
+int atcommand_mutearea_sub(struct block_list &bl,va_list ap)
 {
 	int time;
 	unsigned long id;

@@ -1723,7 +1723,7 @@ int parse_tologin(int fd)
 			if (RFIFOREST(fd) < 3)
 				return 0;
 			if (RFIFOB(fd,2)) {
-//				ShowMessage("connect login server error : %d\n", RFIFOB(fd,2));
+//				ShowMessage("connect login server error : %d\n", (unsigned char)RFIFOB(fd,2));
 				ShowMessage("Can not connect to login-server.\n");
 				ShowMessage("The server communication passwords (default s1/p1) is probably invalid.\n");
 				ShowMessage("Also, please make sure your accounts file (default: accounts.txt) has those values present.\n");
@@ -1745,7 +1745,7 @@ int parse_tologin(int fd)
 		case 0x2713:
 			if (RFIFOREST(fd) < 51)
 				return 0;
-//			ShowMessage("parse_tologin 2713 : %d\n", RFIFOB(fd,6));
+//			ShowMessage("parse_tologin 2713 : %d\n", (unsigned char)RFIFOB(fd,6));
 			for(i = 0; i < fd_max; i++) {
 				if(session[i] && (sd = (struct char_session_data *)session[i]->session_data) && sd->account_id == RFIFOL(fd,2))
 				{
@@ -2148,8 +2148,8 @@ int parse_tologin(int fd)
 				}
 				if (new_level == 1) {
 					int len;
-					ShowMessage("From login-server: receiving a GM account information (%d: level %d).\n", (unsigned long)RFIFOL(fd,2), (int)RFIFOB(fd,6));
-					char_log("From login-server: receiving a GM account information (%d: level %d)." RETCODE, (unsigned long)RFIFOL(fd,2), (int)RFIFOB(fd,6));
+					ShowMessage("From login-server: receiving a GM account information (%d: level %d).\n", (unsigned long)RFIFOL(fd,2), (unsigned char)RFIFOB(fd,6));
+					char_log("From login-server: receiving a GM account information (%d: level %d)." RETCODE, (unsigned long)RFIFOL(fd,2), (unsigned char)RFIFOB(fd,6));
 					//create_online_files(); // not change online file for only 1 player (in next timer, that will be done
 					// send gm acccounts level to map-servers
 					len = 4;
@@ -2961,7 +2961,7 @@ int parse_char(int fd)
 
 					set_char_online(char_dat[sd->found_char[ch]].char_id, char_dat[sd->found_char[ch]].account_id);
 					char_log("Character Selected, Account ID: %d, Character Slot: %d, Character ID: %ld, Name: %s." RETCODE,
-					         sd->account_id, RFIFOB(fd,2), char_dat[sd->found_char[ch]].char_id, char_dat[sd->found_char[ch]].name);
+					         sd->account_id, (unsigned char)RFIFOB(fd,2), char_dat[sd->found_char[ch]].char_id, char_dat[sd->found_char[ch]].name);
 					// searching map server
 					j = search_mapserver(char_dat[sd->found_char[ch]].last_point.map);
 					// if map is not found, we check major cities

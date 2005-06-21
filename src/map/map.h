@@ -1250,6 +1250,21 @@ void char_online_check(void); // [Valaris]
 void char_offline(struct map_session_data *sd);
 
 
+/*==========================================
+ * “ñ“_ŠÔ‚Ì‹——£‚ð•Ô‚·
+ * –ß‚è‚Í®”‚Å0ˆÈã
+ *------------------------------------------
+ */
+extern inline int distance(int x0,int y0,int x1,int y1)
+{
+	int dx,dy;
+
+	dx=abs(x0-x1);
+	dy=abs(y0-y1);
+	return dx>dy ? dx : dy;
+}
+
+
 #ifndef TXT_ONLY
 
 // MySQL

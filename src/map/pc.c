@@ -108,15 +108,7 @@ int pc_set_gm_level(unsigned long account_id, unsigned long level)
     return 0;
 }
 
-static int distance(int x0, int y0, int x1, int y1) {
-	int dx, dy;
-
-	dx = abs(x0-x1);
-	dy = abs(y0-y1);
-	return dx>dy ? dx : dy;
-}
-
-static int pc_invincible_timer(int tid,unsigned long tick,int id,int data)
+int pc_invincible_timer(int tid,unsigned long tick,int id,int data)
 {
 	struct map_session_data *sd;
 
@@ -152,7 +144,8 @@ int pc_delinvincibletimer(struct map_session_data &sd)
 	return 0;
 }
 
-static int pc_spiritball_timer(int tid,unsigned long tick,int id,int data) {
+int pc_spiritball_timer(int tid,unsigned long tick,int id,int data)
+{
 	struct map_session_data *sd;
 
 	if( (sd=(struct map_session_data *)map_id2sd(id)) == NULL || sd->bl.type!=BL_PC )
@@ -342,7 +335,7 @@ int pc_setrestartvalue(struct map_session_data &sd,int type)
  * ロ?カルプロトタイプ宣言 (必要な物のみ)
  *------------------------------------------
  */
-static int pc_walktoxy_sub(struct map_session_data *);
+int pc_walktoxy_sub(struct map_session_data *);
 
 /*==========================================
  * saveに必要なステ?タス修正を行なう
@@ -902,7 +895,7 @@ int pc_authfail(int id) {
 	return 0;
 }
 
-static int pc_calc_skillpoint(struct map_session_data* sd)
+int pc_calc_skillpoint(struct map_session_data* sd)
 {
 	int  i,skill,skill_point=0;
 
@@ -3372,7 +3365,7 @@ bool pc_can_reach(struct map_session_data &sd, unsigned short x,unsigned short y
  * 次の1?にかかる史ﾔを計算
  *------------------------------------------
  */
-static int calc_next_walk_step(struct map_session_data *sd)
+int calc_next_walk_step(struct map_session_data *sd)
 {
 	nullpo_retr(0, sd);
 
@@ -3388,7 +3381,7 @@ static int calc_next_walk_step(struct map_session_data *sd)
  * 半?進む(timer??)
  *------------------------------------------
  */
-static int pc_walk(int tid,unsigned long tick,int id,int data)
+int pc_walk(int tid,unsigned long tick,int id,int data)
 {
 	struct map_session_data *sd=map_id2sd(id);
 	int i, x, y, dx, dy;
@@ -3520,7 +3513,7 @@ static int pc_walk(int tid,unsigned long tick,int id,int data)
  * 移動可能か確認して、可能なら?行開始
  *------------------------------------------
  */
-static int pc_walktoxy_sub (struct map_session_data *sd)
+int pc_walktoxy_sub (struct map_session_data *sd)
 {
 	struct walkpath_data wpd;
 	int i;
@@ -6718,7 +6711,7 @@ struct map_session_data *pc_get_child (struct map_session_data &sd)
  */
 static unsigned long natural_heal_tick, natural_heal_prev_tick, natural_heal_diff_tick;
 
-static int pc_spheal(struct map_session_data *sd)
+int pc_spheal(struct map_session_data *sd)
 {
 	int a = natural_heal_diff_tick;
 	
@@ -6755,7 +6748,7 @@ static int pc_spheal(struct map_session_data *sd)
  * HP回復量計算
  *------------------------------------------
  */
-static int pc_hpheal(struct map_session_data *sd)
+int pc_hpheal(struct map_session_data *sd)
 {
 	int a = natural_heal_diff_tick;
 
@@ -6785,7 +6778,7 @@ static int pc_hpheal(struct map_session_data *sd)
 	return a;
 }
 
-static int pc_natural_heal_hp(struct map_session_data *sd)
+int pc_natural_heal_hp(struct map_session_data *sd)
 {
 	int bhp,inc_num,bonus,hp_flag;
 
@@ -6866,7 +6859,7 @@ static int pc_natural_heal_hp(struct map_session_data *sd)
 	return 0;
 }
 
-static int pc_natural_heal_sp(struct map_session_data *sd)
+int pc_natural_heal_sp(struct map_session_data *sd)
 {
 	int bsp,inc_num,bonus;
 
@@ -6937,7 +6930,7 @@ static int pc_natural_heal_sp(struct map_session_data *sd)
 	return 0;
 }
 
-static int pc_spirit_heal_hp(struct map_session_data *sd)
+int pc_spirit_heal_hp(struct map_session_data *sd)
 {
 	int bonus_hp;
 	unsigned long interval = battle_config.natural_heal_skill_interval;
@@ -6978,7 +6971,7 @@ static int pc_spirit_heal_hp(struct map_session_data *sd)
 
 	return 0;
 }
-static int pc_spirit_heal_sp(struct map_session_data *sd)
+int pc_spirit_heal_sp(struct map_session_data *sd)
 {
 	int bonus_sp;
 	unsigned long interval = battle_config.natural_heal_skill_interval;
@@ -7020,7 +7013,7 @@ static int pc_spirit_heal_sp(struct map_session_data *sd)
 	return 0;
 }
 
-static int pc_bleeding (struct map_session_data *sd)
+int pc_bleeding (struct map_session_data *sd)
 {
 	long hp=0, sp=0;
 	
@@ -7063,7 +7056,7 @@ static int pc_bleeding (struct map_session_data *sd)
  *------------------------------------------
  */
 
-static int pc_natural_heal_sub(struct map_session_data &sd,va_list ap)
+int pc_natural_heal_sub(struct map_session_data &sd,va_list ap)
 {
 	int skill;
 	unsigned long tick;
@@ -7141,7 +7134,7 @@ int pc_setsavepoint(struct map_session_data &sd,const char *mapname,unsigned sho
  */
 static int last_save_fd,save_flag;
 
-static int pc_autosave_sub(struct map_session_data &sd,va_list ap)
+int pc_autosave_sub(struct map_session_data &sd,va_list ap)
 {
 	Assert((sd->status.pet_id == 0 || sd->pd == 0) || sd->pd->msd == sd);
 

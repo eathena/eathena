@@ -123,7 +123,7 @@ static unsigned char NibbleData[4][64]={
 /*-----------------
  *	long data get
  */
-static unsigned long getlong(unsigned char *p)
+unsigned long getlong(unsigned char *p)
 {
 //	return *p+p[1]*256+(p[2]+p[3]*256)*65536;
 	return    p[0]
@@ -136,14 +136,14 @@ static unsigned long getlong(unsigned char *p)
  *	Grf data decode : Subs
  *------------------------------------------
  */
-static void NibbleSwap(unsigned char *Src, size_t len)
+void NibbleSwap(unsigned char *Src, size_t len)
 {
 	for(;0<len;len--,Src++) {
 		*Src = (*Src>>4) | (*Src<<4);
 	}
 }
 
-static void BitConvert(unsigned char *Src,unsigned char *BitSwapTable)
+void BitConvert(unsigned char *Src,unsigned char *BitSwapTable)
 {
 	size_t lop,prm;
 	unsigned char tmp[8];
@@ -157,7 +157,7 @@ static void BitConvert(unsigned char *Src,unsigned char *BitSwapTable)
 	memcpy(Src,tmp,8);
 }
 
-static void BitConvert4(unsigned char *Src)
+void BitConvert4(unsigned char *Src)
 {
 	size_t lop,prm;
 	unsigned char tmp[8];
@@ -188,7 +188,7 @@ static void BitConvert4(unsigned char *Src)
 	Src[3] ^= tmp[7];
 }
 
-static void decode_des_etc(unsigned char *buf, size_t len, int type, size_t cycle)
+void decode_des_etc(unsigned char *buf, size_t len, int type, size_t cycle)
 {
 	size_t lop,cnt=0;
 	if(cycle<3) cycle=3;
@@ -381,7 +381,7 @@ int decode_file (FILE *source, FILE *dest)
  *	File List : Hash make
  *------------------------------------------
  */
-static unsigned char filehash(unsigned char *fname)
+unsigned char filehash(unsigned char *fname)
 {
 	unsigned long hash=0;
 	while(*fname) {
@@ -395,7 +395,7 @@ static unsigned char filehash(unsigned char *fname)
  *	File List : Hash initalize
  *------------------------------------------
  */
-static void hashinit(void)
+void hashinit(void)
 {
 	size_t lop;
 	for(lop=0;lop<256;lop++)
@@ -444,7 +444,7 @@ FILELIST *filelist_find(const char *fname)
  */
 #define	FILELIST_ADDS	1024	// number increment of file lists `
 
-static FILELIST* filelist_add(FILELIST *entry)
+FILELIST* filelist_add(FILELIST *entry)
 {
 	int hash;
 
@@ -470,7 +470,7 @@ static FILELIST* filelist_add(FILELIST *entry)
 	return &filelist[filelist_entrys-1];
 }
 
-static FILELIST* filelist_modify(FILELIST *entry)
+FILELIST* filelist_modify(FILELIST *entry)
 {
 	FILELIST *fentry;
 	if ((fentry=filelist_find(entry->fn))!=NULL) {
@@ -487,7 +487,7 @@ static FILELIST* filelist_modify(FILELIST *entry)
  *	File List : filelist size adjust
  *------------------------------------------
  */
-static void filelist_adjust(void)
+void filelist_adjust(void)
 {
 	if (filelist!=NULL) {
 		if (filelist_maxentry>filelist_entrys) {
@@ -685,7 +685,7 @@ void* grfio_read(const char *fname)
  *	Resource filename decode
  *------------------------------------------
  */
-static char * decode_filename(unsigned char *buf,int len)
+char * decode_filename(unsigned char *buf,int len)
 {
 	int lop;
 	for(lop=0;lop<len;lop+=8) {
@@ -701,7 +701,7 @@ static char * decode_filename(unsigned char *buf,int len)
  * Grfio : Entry table read
  *------------------------------------------
  */
-static int grfio_entryread(const char *gfname,int gentry)
+int grfio_entryread(const char *gfname,int gentry)
 {
 	FILE *fp;
 	long grf_size,list_size;
@@ -883,7 +883,7 @@ static int grfio_entryread(const char *gfname,int gentry)
  * Grfio : Resource file check
  *------------------------------------------
  */
-static void grfio_resourcecheck()
+void grfio_resourcecheck()
 {
 	int size;
 	char *buf,*ptr;

@@ -1240,16 +1240,16 @@ class objW
 {
 	unsigned char *ip;
 public:
-	objW():ip(NULL)										{}
-	objW(unsigned char* x):ip(x)						{}
-	objW(unsigned char* x,int pos):ip(x+pos)			{}
-	objW(char* x):ip((unsigned char*)x)					{}
-	objW(char* x,int pos):ip((unsigned char*)(x+pos))	{}
+	objW():ip(NULL)												{}
+	objW(unsigned char* x):ip(x)								{}
+	objW(unsigned char* x,int pos):ip(x?x+pos:NULL)				{}
+	objW(char* x):ip((unsigned char*)x)							{}
+	objW(char* x,int pos):ip((unsigned char*)(x?x+pos:NULL))	{}
 
 	objW& init(unsigned char* x)			{ip=x;return *this;}
-	objW& init(unsigned char* x,int pos)	{ip=x+pos;return *this;}
+	objW& init(unsigned char* x,int pos)	{if(x) ip=x+pos;return *this;}
 	objW& init(char* x)						{ip=(unsigned char*)x;return *this;}
-	objW& init(char* x,int pos)				{ip=(unsigned char*)(x+pos);return *this;}
+	objW& init(char* x,int pos)				{if(x) ip=(unsigned char*)(x+pos);return *this;}
 
 	operator unsigned short() const
 	{	return this->operator()();
@@ -1289,16 +1289,16 @@ class objL
 {
 	unsigned char *ip;
 public:
-	objL():ip(NULL)										{}
-	objL(unsigned char* x):ip(x)						{}
-	objL(unsigned char* x,int pos):ip(x+pos)			{}
-	objL(char* x):ip((unsigned char*)x)					{}
-	objL(char* x,int pos):ip((unsigned char*)(x+pos))	{}
+	objL():ip(NULL)												{}
+	objL(unsigned char* x):ip(x)								{}
+	objL(unsigned char* x,int pos):ip(x?x+pos:NULL)				{}
+	objL(char* x):ip((unsigned char*)x)							{}
+	objL(char* x,int pos):ip((unsigned char*)(x?x+pos:NULL))	{}
 
 	objL& init(unsigned char* x)			{ip=x;return *this;}
-	objL& init(unsigned char* x,int pos)	{ip=x+pos;return *this;}
+	objL& init(unsigned char* x,int pos)	{if(x) ip=x+pos;return *this;}
 	objL& init(char* x)						{ip=(unsigned char*)x;return *this;}
-	objL& init(char* x,int pos)				{ip=(unsigned char*)(x+pos);return *this;}
+	objL& init(char* x,int pos)				{if(x) ip=(unsigned char*)(x+pos);return *this;}
 
 
 	operator unsigned long() const
@@ -1352,16 +1352,16 @@ class objLIP
 {
 	unsigned char *ip;
 public:
-	objLIP():ip(NULL)									{}
-	objLIP(unsigned char* x):ip(x)						{}
-	objLIP(unsigned char* x,int pos):ip(x+pos)			{}
-	objLIP(char* x):ip((unsigned char*)x)				{}
-	objLIP(char* x,int pos):ip((unsigned char*)(x+pos))	{}
+	objLIP():ip(NULL)											{}
+	objLIP(unsigned char* x):ip(x)								{}
+	objLIP(unsigned char* x,int pos):ip(x?x+pos:NULL)			{}
+	objLIP(char* x):ip((unsigned char*)x)						{}
+	objLIP(char* x,int pos):ip((unsigned char*)(x?x+pos:NULL))	{}
 
 	objLIP& init(unsigned char* x)			{ip=x;return *this;}
-	objLIP& init(unsigned char* x,int pos)	{ip=x+pos;return *this;}
+	objLIP& init(unsigned char* x,int pos)	{if(x) ip=x+pos;return *this;}
 	objLIP& init(char* x)					{ip=(unsigned char*)x;return *this;}
-	objLIP& init(char* x,int pos)			{ip=(unsigned char*)(x+pos);return *this;}
+	objLIP& init(char* x,int pos)			{if(x) ip=(unsigned char*)(x+pos);return *this;}
 
 	operator unsigned long() const
 	{return this->operator()();
@@ -1405,28 +1405,74 @@ public:
 	}
 };
 
+class objB
+{
+	unsigned char *ip;
+public:
+	objB():ip(NULL)												{}
+	objB(unsigned char* x):ip(x)								{}
+	objB(unsigned char* x,int pos):ip(x?x+pos:NULL)				{}
+	objB(char* x):ip((unsigned char*)x)							{}
+	objB(char* x,int pos):ip((unsigned char*)(x?x+pos:NULL))	{}
+
+	objB& init(unsigned char* x)			{ip=x;return *this;}
+	objB& init(unsigned char* x,int pos)	{if(x) ip=x+pos;return *this;}
+	objB& init(char* x)						{ip=(unsigned char*)x;return *this;}
+	objB& init(char* x,int pos)				{if(x) ip=(unsigned char*)(x+pos);return *this;}
+
+	operator unsigned char() const
+	{	return this->operator()();
+	}
+	unsigned char operator()()	const
+	{
+		if(ip)
+		{	
+			return ip[0];
+		}
+		return 0;
+	}
+	objB& operator=(const objB& objb)
+	{
+		if(ip && objb.ip)
+		{	
+			ip[0] = objb.ip[0];
+		}
+		return *this;
+	}
+	unsigned long operator=(unsigned char valin)
+	{	
+		if(ip)
+		{
+			ip[0] = valin;
+		}
+		return valin;
+	}
+};
+
+
 
 // define declaration
 
-#define RFIFOP(fd,pos) (session[fd]->rdata+session[fd]->rdata_pos+(pos))
-#define RFIFOB(fd,pos) (*((unsigned char*)(session[fd]->rdata+session[fd]->rdata_pos+(pos))))
-#define RFIFOW(fd,pos) (objW( (session[fd]&&session[fd]->rdata)?session[fd]->rdata+session[fd]->rdata_pos+(pos):NULL))
-#define RFIFOL(fd,pos) (objL( (session[fd]&&session[fd]->rdata)?session[fd]->rdata+session[fd]->rdata_pos+(pos):NULL))
-#define RFIFOLIP(fd,pos) (objLIP( (session[fd]&&session[fd]->rdata)?session[fd]->rdata+session[fd]->rdata_pos+(pos):NULL))
-#define RFIFOREST(fd) ((int)(session[fd]->rdata_size-session[fd]->rdata_pos))
-#define RFIFOSPACE(fd) ((int)(session[fd]->rdata_max-session[fd]->rdata_size))
+#define RFIFOP(fd,pos) ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL))
+#define RFIFOB(fd,pos) (objB( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) ))
+#define RFIFOW(fd,pos) (objW( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) ))
+#define RFIFOL(fd,pos) (objL( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) ))
+#define RFIFOLIP(fd,pos) (objLIP( ((session[fd]&&session[fd]->rdata)?(session[fd]->rdata+session[fd]->rdata_pos+(pos)):(NULL)) ))
+#define RFIFOREST(fd) ((int)((session[fd]&&session[fd]->rdata)?(session[fd]->rdata_size-session[fd]->rdata_pos):0))
+#define RFIFOSPACE(fd) ((int)((session[fd]&&session[fd]->rdata)?(session[fd]->rdata_max-session[fd]->rdata_size):0))
 #define RBUFP(p,pos) (((unsigned char*)(p))+(pos))
 #define RBUFB(p,pos) (*((unsigned char*)RBUFP((p),(pos))))
 #define RBUFW(p,pos) (objW(p,pos))
 #define RBUFL(p,pos) (objL(p,pos))
 #define RBUFLIP(p,pos) (objLIP(p,pos))
 
-#define WFIFOSPACE(fd) (session[fd]->wdata_max-session[fd]->wdata_size)
-#define WFIFOP(fd,pos) (session[fd]->wdata+session[fd]->wdata_size+(pos))
-#define WFIFOB(fd,pos) (*((unsigned char*)(session[fd]->wdata+session[fd]->wdata_size+(pos))))
-#define WFIFOW(fd,pos) (objW( (session[fd]&&session[fd]->wdata)?session[fd]->wdata+session[fd]->wdata_size+(pos):NULL))
-#define WFIFOL(fd,pos) (objL( (session[fd]&&session[fd]->wdata)?session[fd]->wdata+session[fd]->wdata_size+(pos):NULL))
-#define WFIFOLIP(fd,pos) (objLIP( (session[fd]&&session[fd]->wdata)?session[fd]->wdata+session[fd]->wdata_size+(pos):NULL))
+#define WFIFOSPACE(fd) ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata_max-session[fd]->wdata_size):0)
+
+#define WFIFOP(fd,pos) ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL))
+#define WFIFOB(fd,pos) (objB( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) ))
+#define WFIFOW(fd,pos) (objW( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) ))
+#define WFIFOL(fd,pos) (objL( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) ))
+#define WFIFOLIP(fd,pos) (objLIP( ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata+session[fd]->wdata_size+(pos)):(NULL)) ))
 #define WBUFP(p,pos) (((unsigned char*)(p))+(pos))
 #define WBUFB(p,pos) (*((unsigned char*)WBUFP((p),(pos))))
 #define WBUFW(p,pos) (objW((p),(pos)))

@@ -61,13 +61,13 @@ int do_init_storage(void) // map.c::do_init()‚©‚çŒÄ‚Î‚ê‚é
 	guild_storage_db=numdb_init();
 	return 1;
 }
-static int guild_storage_db_final(void *key,void *data,va_list ap)
+int guild_storage_db_final(void *key,void *data,va_list ap)
 {
 	struct guild_storage *gstor = (struct guild_storage *)data;
 	if(gstor) aFree(gstor);
 	return 0;
 }
-static int storage_db_final(void *key,void *data,va_list ap)
+int storage_db_final(void *key,void *data,va_list ap)
 {
 	struct storage *stor = (struct storage *)data;
 	if(stor) aFree(stor);

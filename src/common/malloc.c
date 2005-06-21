@@ -203,9 +203,9 @@ struct unit_head_large {
 };
 static struct unit_head_large *unit_head_large_first = NULL;
 
-static struct block* block_malloc(void);
-static void   block_free(struct block* p);
-static void memmgr_info(void);
+struct block* block_malloc(void);
+void   block_free(struct block* p);
+void memmgr_info(void);
 
 static char memmer_logfile[128];
 static FILE *log_fp=NULL;
@@ -458,7 +458,7 @@ void _mfree(void *ptr, const char *file, int line, const char *func )
 }
 
 /* 現在の状況を表示する */
-static void memmgr_info(void)
+void memmgr_info(void)
 {
 	size_t i;
 	struct block *p;
@@ -503,7 +503,7 @@ static void memmgr_info(void)
 }
 
 /* ブロックを確保する */
-static struct block* block_malloc(void)
+struct block* block_malloc(void)
 {
 	if(block_unused != NULL)
 	{	/* ブロック用の領域は確保済み */
@@ -551,7 +551,7 @@ static struct block* block_malloc(void)
 	}
 }
 
-static void block_free(struct block* p)
+void block_free(struct block* p)
 {	/* free() せずに、未使用フラグを付けるだけ */
 	p->unit_size = 0;
 	/* 未使用ポインターを更新する */
@@ -568,7 +568,7 @@ size_t memmgr_usage (void)
 
 
 #ifdef LOG_MEMMGR
-static void memmgr_log (char *buf)
+void memmgr_log (char *buf)
 {
 	if (!log_fp)
 	{
@@ -581,7 +581,7 @@ static void memmgr_log (char *buf)
 }
 #endif
 
-static void memmer_exit(void)
+void memmer_exit(void)
 {
 	struct block *block,*bltmp;
 	struct unit_head_large *large, *large2;

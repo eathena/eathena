@@ -1390,14 +1390,14 @@ int parse_login(int fd)
 					return 0;
 				{
 				unsigned char* server_name;
-			sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s@%s','100', 'charserver - %s@%d.%d.%d.%d:%d')", loginlog_db, p[0], p[1], p[2], p[3], RFIFOP(fd, 2),RFIFOP(fd, 60),RFIFOP(fd, 60), RFIFOB(fd, 54), RFIFOB(fd, 55), RFIFOB(fd, 56), RFIFOB(fd, 57), (unsigned short)RFIFOW(fd, 58));
+			sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s@%s','100', 'charserver - %s@%d.%d.%d.%d:%d')", loginlog_db, p[0], p[1], p[2], p[3], RFIFOP(fd, 2),RFIFOP(fd, 60),RFIFOP(fd, 60), (unsigned char)RFIFOB(fd, 54), (unsigned char)RFIFOB(fd, 55), (unsigned char)RFIFOB(fd, 56), (unsigned char)RFIFOB(fd, 57), (unsigned short)RFIFOW(fd, 58));
 					//query
 			if(mysql_SendQuery(&mysql_handle, tmpsql))
 			{
 				ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
 					}
 			ShowMessage("server connection request %s @ %d.%d.%d.%d:%d (%d.%d.%d.%d)\n",
-				RFIFOP(fd, 60), RFIFOB(fd, 54), RFIFOB(fd, 55), RFIFOB(fd, 56), RFIFOB(fd, 57), 
+				RFIFOP(fd, 60), (unsigned char)RFIFOB(fd, 54), (unsigned char)RFIFOB(fd, 55), (unsigned char)RFIFOB(fd, 56), (unsigned char)RFIFOB(fd, 57), 
 				(unsigned short)RFIFOW(fd, 58),	p[0], p[1], p[2], p[3]);
 
 				account.userid = (char*)RFIFOP(fd, 2);
@@ -1748,7 +1748,7 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 //--------------------------------------
 // Function called at exit of the server
 //--------------------------------------
-static int online_db_final(void *key,void *data,va_list ap)
+int online_db_final(void *key,void *data,va_list ap)
 {
 	int *p = (int *) data;
 	if (p) aFree(p);

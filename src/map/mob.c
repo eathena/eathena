@@ -34,12 +34,12 @@ struct mob_db mob_db[MAX_MOB_DB+1];
  * Local prototype declaration   (only required thing)
  *------------------------------------------
  */
-static int distance(int,int,int,int);
-static int mob_makedummymobdb(int);
-static int mob_timer(int tid,unsigned long tick,int id,int data);
+int mob_makedummymobdb(int);
+int mob_timer(int tid,unsigned long tick,int id,int data);
 int mobskill_deltimer(struct mob_data &md);
 int mob_skillid2skillidx(int class_,unsigned short skillid);
 int mobskill_use_id(struct mob_data &md,struct block_list *target,unsigned short skill_idx);
+int mob_walktoxy_sub(struct mob_data &md);
 
 /*==========================================
  * Mob is searched with a name.
@@ -426,7 +426,7 @@ int mob_can_move(struct mob_data &md)
  * Time calculation concerning one step next to mob
  *------------------------------------------
  */
-static int calc_next_walk_step(struct mob_data &md)
+int calc_next_walk_step(struct mob_data &md)
 {
 	if(md.walkpath.path_pos>=md.walkpath.path_len)
 		return -1;
@@ -435,13 +435,12 @@ static int calc_next_walk_step(struct mob_data &md)
 	return status_get_speed(&md.bl);
 }
 
-static int mob_walktoxy_sub(struct mob_data &md);
 
 /*==========================================
  * Mob Walk processing
  *------------------------------------------
  */
-static int mob_walk(struct mob_data &md,unsigned long tick,int data)
+int mob_walk(struct mob_data &md,unsigned long tick,int data)
 {
 	int moveblock;
 	int i;
@@ -536,7 +535,7 @@ static int mob_walk(struct mob_data &md,unsigned long tick,int data)
  * Attack processing of mob
  *------------------------------------------
  */
-static int mob_attack(struct mob_data &md,unsigned long tick,int data)
+int mob_attack(struct mob_data &md,unsigned long tick,int data)
 {
 	struct block_list *tbl=NULL;
 	struct map_session_data *tsd=NULL;
@@ -728,7 +727,7 @@ int mob_changestate(struct mob_data &md,int state,int type)
  * It branches to a walk and an attack.
  *------------------------------------------
  */
-static int mob_timer(int tid,unsigned long tick,int id,int data)
+int mob_timer(int tid,unsigned long tick,int id,int data)
 {
 	struct mob_data *md;
 	struct block_list *bl;
@@ -779,7 +778,7 @@ static int mob_timer(int tid,unsigned long tick,int id,int data)
  *
  *------------------------------------------
  */
-static int mob_walktoxy_sub(struct mob_data &md)
+int mob_walktoxy_sub(struct mob_data &md)
 {
 	struct walkpath_data wpd;
 	int x,y;
@@ -834,7 +833,7 @@ int mob_walktoxy(struct mob_data &md,int x,int y,int easy)
  * mob spawn with delay (timer function)
  *------------------------------------------
  */
-static int mob_delayspawn(int tid,unsigned long tick,int m,int n)
+int mob_delayspawn(int tid,unsigned long tick,int m,int n)
 {
 	mob_spawn(m);
 	return 0;
@@ -1023,18 +1022,6 @@ int mob_spawn(unsigned long id)
 	return 0;
 }
 
-/*==========================================
- * Distance calculation between two points
- *------------------------------------------
- */
-int distance(int x0,int y0,int x1,int y1)
-{
-	int dx,dy;
-
-	dx=abs(x0-x1);
-	dy=abs(y0-y1);
-	return dx>dy ? dx : dy;
-}
 
 /*==========================================
  * The stop of MOB's attack
@@ -1225,7 +1212,7 @@ int mob_target(struct mob_data &md,struct block_list *bl,int dist)
  * The ?? routine of an active monster
  *------------------------------------------
  */
-static int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list ap)
+int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list ap)
 {
 	int mode,race,dist,*pcc;
 	struct mob_data *smd;
@@ -1298,7 +1285,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list ap)
  * loot monster item search
  *------------------------------------------
  */
-static int mob_ai_sub_hard_lootsearch(struct block_list &bl,va_list ap)
+int mob_ai_sub_hard_lootsearch(struct block_list &bl,va_list ap)
 {
 	struct mob_data* md;
 	int mode,dist,*itc;
@@ -1332,7 +1319,7 @@ static int mob_ai_sub_hard_lootsearch(struct block_list &bl,va_list ap)
  * The ?? routine of a link monster
  *------------------------------------------
  */
-static int mob_ai_sub_hard_linksearch(struct block_list &bl,va_list ap)
+int mob_ai_sub_hard_linksearch(struct block_list &bl,va_list ap)
 {
 	struct mob_data &tmd = (struct mob_data &)bl;
 	struct mob_data* md;
@@ -1359,7 +1346,7 @@ static int mob_ai_sub_hard_linksearch(struct block_list &bl,va_list ap)
  * Processing of slave monsters
  *------------------------------------------
  */
-static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned long tick)
+int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned long tick)
 {
 	struct mob_data *mmd=NULL;
 	struct block_list *bl;
@@ -1558,7 +1545,7 @@ int mob_randomwalk(struct mob_data &md,unsigned long tick)
  * AI of MOB whose is near a Player
  *------------------------------------------
  */
-static int mob_ai_sub_hard(struct block_list &bl,va_list ap)
+int mob_ai_sub_hard(struct block_list &bl,va_list ap)
 {
 	struct mob_data *md = (struct mob_data*)&bl;
 	struct mob_data *tmd = NULL;
@@ -1866,7 +1853,7 @@ static int mob_ai_sub_hard(struct block_list &bl,va_list ap)
  * Serious processing for mob in PC field of view (foreachclient)
  *------------------------------------------
  */
-static int mob_ai_sub_foreachclient(struct map_session_data &sd,va_list ap)
+int mob_ai_sub_foreachclient(struct map_session_data &sd,va_list ap)
 {
 	unsigned long tick;
 
@@ -1884,7 +1871,7 @@ static int mob_ai_sub_foreachclient(struct map_session_data &sd,va_list ap)
  * Serious processing for mob in PC field of view   (interval timer function)
  *------------------------------------------
  */
-static int mob_ai_hard(int tid,unsigned long tick,int id,int data)
+int mob_ai_hard(int tid,unsigned long tick,int id,int data)
 {
 	clif_foreachclient(mob_ai_sub_foreachclient,tick);
 
@@ -1895,7 +1882,7 @@ static int mob_ai_hard(int tid,unsigned long tick,int id,int data)
  * Negligent mode MOB AI (PC is not in near)
  *------------------------------------------
  */
-static int mob_ai_sub_lazy(void * key,void * data,va_list app)
+int mob_ai_sub_lazy(void * key,void * data,va_list app)
 {
 	struct mob_data *md=(struct mob_data *)data;
 	struct mob_data *mmd=NULL;
@@ -1970,7 +1957,7 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
  * Negligent processing for mob outside PC field of view   (interval timer function)
  *------------------------------------------
  */
-static int mob_ai_lazy(int tid,unsigned long tick,int id,int data)
+int mob_ai_lazy(int tid,unsigned long tick,int id,int data)
 {
 	map_foreachiddb(mob_ai_sub_lazy,tick);
 
@@ -2003,7 +1990,7 @@ struct delay_item_drop2 {
  * item drop with delay (timer function)
  *------------------------------------------
  */
-static int mob_delay_item_drop(int tid,unsigned long tick,int id,int data)
+int mob_delay_item_drop(int tid,unsigned long tick,int id,int data)
 {
 	struct delay_item_drop *ditem=(struct delay_item_drop *)id;
 	struct item temp_item;
@@ -2068,7 +2055,7 @@ static int mob_delay_item_drop(int tid,unsigned long tick,int id,int data)
  * item drop (timer function)-lootitem with delay
  *------------------------------------------
  */
-static int mob_delay_item_drop2(int tid,unsigned long tick,int id,int data)
+int mob_delay_item_drop2(int tid,unsigned long tick,int id,int data)
 {
 	struct delay_item_drop2 *ditem=(struct delay_item_drop2 *)id;
 	int flag, drop_flag = 1;
@@ -2555,6 +2542,14 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 				job_exp  += job_exp * 15/100;
 			}			
 		}
+		if(md.state.size==1) { // change experience for different sized monsters [Valaris]
+			if(base_exp > 1)	base_exp/=2;
+			if(job_exp > 1)		job_exp/=2;
+		}
+		else if(md.state.size==2) {
+			base_exp*=2;
+			job_exp*=2;
+		}
 		if(md.master_id) {
 			if(((master = map_id2bl(md.master_id)) && status_get_mode(master)&0x20) ||	// check if its master is a boss (MVP's and minibosses)
 				(md.state.special_mob_ai >= 1 && battle_config.alchemist_summon_reward != 1)) { // for summoned creatures [Valaris]
@@ -2566,6 +2561,11 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 				if(md.level > 0) zeny=(int) ((md.level+rand()%md.level)*per/256); // zeny calculation moblv + random moblv [Valaris]
 				if(mob_db[md.class_].mexp > 0)
 					zeny*=rand()%250;
+				// change zeny for different sized monsters [Valaris]
+				if(md.state.size==1 && zeny >=2)
+					zeny/=2;
+				else if(md.state.size==2)
+					zeny*=2;
 			}
 			if(battle_config.mobs_level_up && md.level > mob_db[md.class_].lv) { // [Valaris]
 				job_exp+=(int) (((md.level-mob_db[md.class_].lv)*mob_db[md.class_].job_exp*.03)*per/256);
@@ -2627,8 +2627,12 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			if (mob_db[md.class_].dropitem[i].nameid <= 0)
 				continue;
 			drop_rate = mob_db[md.class_].dropitem[i].p;
+			// change drops depending on monsters size [Valaris]
+			if(md.state.size==1)			drop_rate/=2;
+			else if(md.state.size==2)		drop_rate*=2;
 			if (drop_rate <= 0 && !battle_config.drop_rate0item)
 				drop_rate = 1;
+
 			//Drops affected by luk as a % increase [Skotlex] (original implementation by Valaris)
 			if (src && battle_config.drops_by_luk > 0)
 				drop_rate += drop_rate*status_get_luk(src)*battle_config.drops_by_luk/10000;
@@ -3885,7 +3889,7 @@ int mobskill_deltimer(struct mob_data &md )
  * Since un-setting [ mob ] up was used, it is an initial provisional value setup.
  *------------------------------------------
  */
-static int mob_makedummymobdb(int class_)
+int mob_makedummymobdb(int class_)
 {
 	int i;
 
@@ -3939,7 +3943,7 @@ static int mob_makedummymobdb(int class_)
  * db/mob_db.txt reading
  *------------------------------------------
  */
-static int mob_readdb(void)
+int mob_readdb(void)
 {
 	FILE *fp;
 	char line[1024];
@@ -4100,7 +4104,7 @@ static int mob_readdb(void)
  * MOB display graphic change data reading
  *------------------------------------------
  */
-static int mob_readdb_mobavail(void)
+int mob_readdb_mobavail(void)
 {
 	FILE *fp;
 	char line[1024];
@@ -4166,7 +4170,7 @@ static int mob_readdb_mobavail(void)
  * Reading of random monster data
  *------------------------------------------
  */
-static int mob_read_randommonster(void)
+int mob_read_randommonster(void)
 {
 	FILE *fp;
 	char line[1024];
@@ -4213,7 +4217,7 @@ static int mob_read_randommonster(void)
  * db/mob_skill_db.txt reading
  *------------------------------------------
  */
-static int mob_readskilldb(void)
+int mob_readskilldb(void)
 {
 	FILE *fp;
 	char line[1024];
@@ -4378,7 +4382,7 @@ static int mob_readskilldb(void)
  * db/mob_race_db.txt reading
  *------------------------------------------
  */
-static int mob_readdb_race(void)
+int mob_readdb_race(void)
 {
 	FILE *fp;
 	char line[1024];
@@ -4433,7 +4437,7 @@ static int mob_readdb_race(void)
  * SQL reading
  *------------------------------------------
  */
-static int mob_read_sqldb(void)
+int mob_read_sqldb(void)
 {
 	char line[1024];
 	int i, j, class_;

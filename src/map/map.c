@@ -172,11 +172,11 @@ void map_setusers(int fd)
 {
 	if( session_isActive(fd) )
 	{
-	users = RFIFOL(fd,2);
-	// send some anser
-	WFIFOW(fd,0) = 0x2718;
-	WFIFOSET(fd,2);
-}
+		users = RFIFOL(fd,2);
+		// send some anser
+		WFIFOW(fd,0) = 0x2718;
+		WFIFOSET(fd,2);
+	}
 }
 
 /*==========================================
@@ -2870,7 +2870,8 @@ bool map_readaf2(int m, const char *fn)
 /*==========================================
  * ƒ}ƒbƒv1–‡“Ç‚ÝbÝ
  * ===================================================*/
-static int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap) {
+int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap)
+{
 
 	size_t size;
 
@@ -3791,3 +3792,4 @@ int compare_item(struct item *a, struct item *b) {
 		(a->card[2] == b->card[2]) &&
 		(a->card[3] == b->card[3]));
 }
+

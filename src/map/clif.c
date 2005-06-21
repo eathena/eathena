@@ -622,7 +622,7 @@ int clif_clearchar(struct block_list &bl, unsigned char type)
 }
 
 
-static int clif_clearchar_delay_sub(int tid, unsigned long tick, int id, int data) 
+int clif_clearchar_delay_sub(int tid, unsigned long tick, int id, int data) 
 {
 	struct block_list *bl = (struct block_list *)id;
 
@@ -666,7 +666,7 @@ int clif_clearchar_id(int fd, unsigned long id, unsigned char type)
  *
  *------------------------------------------
  */
-static int clif_set0078(struct map_session_data &sd, unsigned char *buf)
+int clif_set0078(struct map_session_data &sd, unsigned char *buf)
 {
 	unsigned int level;
 
@@ -915,7 +915,7 @@ int clif_set007b(struct map_session_data &sd,unsigned char *buf)
 }
 
 // moving function for disguises [Valaris]
-static int clif_dis007b(struct map_session_data &sd,unsigned char *buf)
+int clif_dis007b(struct map_session_data &sd,unsigned char *buf)
 {
 	memset(buf,0,packet_len_table[0x7b]);
 
@@ -10838,7 +10838,7 @@ int clif_parse_PMIgnore(int fd, struct map_session_data &sd)
 
 	nick = (char*)RFIFOP(fd,2); // speed up
 	RFIFOB(fd,25) = '\0'; // to be sure that the player name have at maximum 23 characters
-	//ShowMessage("Ignore: char '%s' state: %d\n", nick, RFIFOB(fd,26));
+	//ShowMessage("Ignore: char '%s' state: %d\n", nick, (unsigned char)RFIFOB(fd,26));
 
 	WFIFOW(fd,0) = 0x0d1; // R 00d1 <type>.B <fail>.B: type: 0: deny, 1: allow, fail: 0: success, 1: fail
 	WFIFOB(fd,2) = RFIFOB(fd,26);
@@ -10918,7 +10918,7 @@ int clif_parse_PMIgnore(int fd, struct map_session_data &sd)
 
 int clif_parse_PMIgnoreAll(int fd, struct map_session_data &sd)
 { // Rewritten by [Yor]
-	//ShowMessage("Ignore all: state: %d\n", RFIFOB(fd,2));
+	//ShowMessage("Ignore all: state: %d\n", (unsigned char)RFIFOB(fd,2));
 	if( !session_isActive(fd) )
 		return 0;
 
@@ -11345,7 +11345,7 @@ int clif_parse_debug(int fd,struct map_session_data &sd)
 	for(i=0;i<packet_db[sd.packet_ver][cmd].len;i++){
 		if((i&15)==0)
 			ShowMessage("\n%04X ",i);
-		ShowMessage("%02X ",RFIFOB(fd,i));
+		ShowMessage("%02X ",(unsigned char)RFIFOB(fd,i));
 	}
 	ShowMessage("\n");
 	return 0;
@@ -11501,7 +11501,7 @@ int clif_terminate(int fd)
  * socket.cのdo_parsepacketから呼び出される
  *------------------------------------------
  */
-static int clif_parse(int fd)
+int clif_parse(int fd)
 {
 	int packet_len = 0, packet_ver;
 	unsigned short cmd;
@@ -11731,7 +11731,7 @@ static int clif_parse(int fd)
 				{
 					if ((i & 15) == 0)
 						fprintf(fp, "\n\t%04X ", i);
-					fprintf(fp, "%02X ", RFIFOB(fd,i));
+					fprintf(fp, "%02X ", (unsigned char)RFIFOB(fd,i));
 				}
 				fprintf(fp, "\n\n");
 				fclose(fp);
@@ -11747,7 +11747,7 @@ static int clif_parse(int fd)
 			{
 				if ((i & 15) == 0)
 					ShowMessage("\n%04X ",i);
-				ShowMessage("%02X ", RFIFOB(fd,i));
+				ShowMessage("%02X ", (unsigned char)RFIFOB(fd,i));
 			}
 			if (sd && sd->state.auth)
 			{
@@ -11770,7 +11770,7 @@ static int clif_parse(int fd)
  * パケットデータベース読み込み
  *------------------------------------------
  */
-static int packetdb_readdb(void)
+int packetdb_readdb(void)
 {
 	FILE *fp;
 	char line[1024];

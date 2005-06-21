@@ -3256,13 +3256,13 @@ int parse_fromlogin(int fd)
 				return 0;
 			ShowMessage("  Login-Server [%s:%d]\n", loginserverip, loginserverport);
 			if (((int)RFIFOB(login_fd,5)) == 0) {
-				ShowMessage("  eAthena version stable-%d.%d", (int)RFIFOB(login_fd,2), (int)RFIFOB(login_fd,3));
+				ShowMessage("  eAthena version stable-%d.%d", (unsigned char)RFIFOB(login_fd,2), (unsigned char)RFIFOB(login_fd,3));
 			} else {
-				ShowMessage("  eAthena version dev-%d.%d", (int)RFIFOB(login_fd,2), (int)RFIFOB(login_fd,3));
+				ShowMessage("  eAthena version dev-%d.%d", (unsigned char)RFIFOB(login_fd,2), (unsigned char)RFIFOB(login_fd,3));
 			}
-			if (((int)RFIFOB(login_fd,4)) == 0)
+			if (((unsigned char)RFIFOB(login_fd,4)) == 0)
 				ShowMessage(" revision %d", (int)RFIFOB(login_fd,4));
-			if (((int)RFIFOB(login_fd,6)) == 0)
+			if (((unsigned char)RFIFOB(login_fd,6)) == 0)
 				ShowMessage("%d.\n", (unsigned short)RFIFOW(login_fd,8));
 			else
 				ShowMessage("-mod%d.\n", (unsigned short)RFIFOW(login_fd,8));
@@ -3316,7 +3316,7 @@ int parse_fromlogin(int fd)
 						if (RFIFOB(fd,i+4) == 0)
 							ShowMessage("   ");
 						else
-							ShowMessage("%2d ", (int)RFIFOB(fd,i+4));
+							ShowMessage("%2d ", (unsigned char)RFIFOB(fd,i+4));
 						ShowMessage("%-24s", userid);
 						if (defaultlanguage == 'F') {
 							if (RFIFOB(fd,i+29) == 0)
@@ -3966,9 +3966,9 @@ int parse_fromlogin(int fd)
 					ShowMessage(" Id:     %ld (non-GM)\n", (unsigned long)RFIFOL(fd,2));
 				} else {
 					if (defaultlanguage == 'F') {
-						ShowMessage(" Id:     %ld (GM niveau %d)\n", (unsigned long)RFIFOL(fd,2), (int)RFIFOB(fd,6));
+						ShowMessage(" Id:     %ld (GM niveau %d)\n", (unsigned long)RFIFOL(fd,2), (unsigned char)RFIFOB(fd,6));
 					} else {
-						ShowMessage(" Id:     %ld (GM level %d)\n", (unsigned long)RFIFOL(fd,2), (int)RFIFOB(fd,6));
+						ShowMessage(" Id:     %ld (GM level %d)\n", (unsigned long)RFIFOL(fd,2), (unsigned char)RFIFOB(fd,6));
 					}
 				}
 				if (defaultlanguage == 'F') {

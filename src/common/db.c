@@ -69,7 +69,7 @@ void exit_dbn(void)
 #endif
 
 // maybe change the void* to const char* ???
-static int strdb_cmp (struct dbt* table, void* a, void* b)
+int strdb_cmp (struct dbt* table, void* a, void* b)
 {
 	if(table->maxlen)
 		return strncmp((char*)a,(char*)b,table->maxlen);
@@ -77,7 +77,7 @@ static int strdb_cmp (struct dbt* table, void* a, void* b)
 }
 
 // maybe change the void* to unsigned char* ???
-static unsigned int strdb_hash (struct dbt* table, void* a)
+unsigned int strdb_hash (struct dbt* table, void* a)
 {
 	unsigned int h = 0;
 	unsigned char *p = (unsigned char*)a;
@@ -109,7 +109,7 @@ struct dbt* strdb_init_ (int maxlen, const char *file, int line)
 	return table;
 }
 
-static int numdb_cmp (struct dbt *table, void *a, void *b)
+int numdb_cmp (struct dbt *table, void *a, void *b)
 {
 	int ia, ib;
 
@@ -122,7 +122,7 @@ static int numdb_cmp (struct dbt *table, void *a, void *b)
 	return ia - ib;
 }
 
-static unsigned int numdb_hash (struct dbt *table, void *a)
+unsigned int numdb_hash (struct dbt *table, void *a)
 {
 	return (unsigned int)a;
 }
@@ -192,7 +192,7 @@ void* db_search2 (struct dbt *table, const char *key)
 	return 0;
 }
 
-static void db_rotate_left (struct dbn *p, struct dbn **root)
+void db_rotate_left (struct dbn *p, struct dbn **root)
 {
 	struct dbn * y = p->right;
 	p->right = y->left;
@@ -210,7 +210,7 @@ static void db_rotate_left (struct dbn *p, struct dbn **root)
 	p->parent = y;
 }
 
-static void db_rotate_right(struct dbn *p,struct dbn **root)
+void db_rotate_right(struct dbn *p,struct dbn **root)
 {
 	struct dbn * y = p->left;
 	p->left = y->right;
@@ -228,7 +228,7 @@ static void db_rotate_right(struct dbn *p,struct dbn **root)
 	p->parent = y;
 }
 
-static void db_rebalance(struct dbn *p,struct dbn **root)
+void db_rebalance(struct dbn *p,struct dbn **root)
 {
 	p->color = RED;
 	while(p!=*root && p->parent->color==RED){ // rootは必ず黒で親は赤いので親の親は必ず存在する
@@ -269,7 +269,7 @@ static void db_rebalance(struct dbn *p,struct dbn **root)
 	(*root)->color=BLACK;
 }
 
-static void db_rebalance_erase(struct dbn *z,struct dbn **root)
+void db_rebalance_erase(struct dbn *z,struct dbn **root)
 {
 	struct dbn *y = z, *x = NULL, *x_parent = NULL;
 

@@ -52,19 +52,12 @@ struct pet_db pet_db[MAX_PET_DB];
 static int dirx[8]={0,-1,-1,-1,0,1,1,1};
 static int diry[8]={1,1,0,-1,-1,-1,0,1};
 
-static int pet_timer(int tid,unsigned long tick,int id,int data);
-static int pet_walktoxy_sub(struct pet_data &pd);
+int pet_timer(int tid,unsigned long tick,int id,int data);
+int pet_walktoxy_sub(struct pet_data &pd);
 
-static int distance(int x0,int y0,int x1,int y1)
-{
-	int dx,dy;
 
-	dx=abs(x0-x1);
-	dy=abs(y0-y1);
-	return dx>dy ? dx : dy;
-}
 
-static int calc_next_walk_step(struct pet_data &pd)
+int calc_next_walk_step(struct pet_data &pd)
 {
 	if(pd.walkpath.path_pos>=pd.walkpath.path_len)
 		return -1;
@@ -73,7 +66,7 @@ static int calc_next_walk_step(struct pet_data &pd)
 	return pd.speed;
 }
 
-static int pet_performance_val(struct map_session_data &sd)
+int pet_performance_val(struct map_session_data &sd)
 {
 	if(sd.pet.intimate > 900 && sd.petDB)
 		return (sd.petDB->s_perfor > 0)? 4:3;
@@ -97,7 +90,7 @@ int pet_hungry_val(struct map_session_data &sd)
 		return 0;
 }
 
-static int pet_can_reach(struct pet_data &pd,int x,int y)
+int pet_can_reach(struct pet_data &pd,int x,int y)
 {
 	struct walkpath_data wpd;
 
@@ -111,7 +104,7 @@ static int pet_can_reach(struct pet_data &pd,int x,int y)
 	return (path_search(wpd,pd.bl.m,pd.bl.x,pd.bl.y,x,y,0)!=-1)?1:0;
 }
 
-static int pet_calc_pos(struct pet_data &pd,int tx,int ty,int dir)
+int pet_calc_pos(struct pet_data &pd,int tx,int ty,int dir)
 {
 	int x,y,dx,dy;
 	int i,j=0,k;
@@ -164,13 +157,13 @@ static int pet_calc_pos(struct pet_data &pd,int tx,int ty,int dir)
 	return 0;
 }
 
-static int pet_unlocktarget(struct pet_data &pd)
+int pet_unlocktarget(struct pet_data &pd)
 {
 	pd.target_id=0;
 	return 0;
 }
 
-static int pet_attack(struct pet_data &pd,unsigned int tick,int data)
+int pet_attack(struct pet_data &pd,unsigned int tick,int data)
 {
 	struct mob_data *md;
 
@@ -203,14 +196,14 @@ static int pet_attack(struct pet_data &pd,unsigned int tick,int data)
 }
 
 
-static int petskill_castend(struct pet_data &pd,unsigned long tick,int data);
-static int petskill_castend2(struct pet_data &pd, struct block_list &target, short skill_id, short skill_lv, short skill_x, short skill_y, unsigned int tick);
+int petskill_castend(struct pet_data &pd,unsigned long tick,int data);
+int petskill_castend2(struct pet_data &pd, struct block_list &target, short skill_id, short skill_lv, short skill_x, short skill_y, unsigned int tick);
 
 /*==========================================
  * Pet Attack Skill [Skotlex]
  *------------------------------------------
  */
-static int pet_attackskill(struct pet_data &pd, unsigned int tick, int data)
+int pet_attackskill(struct pet_data &pd, unsigned int tick, int data)
 {
 
 	struct mob_data *md;
@@ -286,7 +279,7 @@ int petskill_use(struct pet_data &pd, struct block_list &target, short skill_id,
  * Pet Attack Cast End [Skotlex]
  *------------------------------------------
  */
-static int petskill_castend(struct pet_data &pd,unsigned long tick,int data)
+int petskill_castend(struct pet_data &pd,unsigned long tick,int data)
 {
 	struct castend_delay *dat = (struct castend_delay *)data;
 	if(dat)
@@ -305,7 +298,7 @@ static int petskill_castend(struct pet_data &pd,unsigned long tick,int data)
  * Pet Attack Cast End2 [Skotlex]
  *------------------------------------------
  */
-static int petskill_castend2(struct pet_data &pd, struct block_list &target, short skill_id, short skill_lv, short skill_x, short skill_y, unsigned int tick)
+int petskill_castend2(struct pet_data &pd, struct block_list &target, short skill_id, short skill_lv, short skill_x, short skill_y, unsigned int tick)
 {	//Invoked after the casting time has passed.
 	short delaytime =0, range;
 
@@ -357,7 +350,7 @@ static int petskill_castend2(struct pet_data &pd, struct block_list &target, sho
  *
  *------------------------------------------
  */
-static int pet_walk(struct pet_data &pd,unsigned long tick,int data)
+int pet_walk(struct pet_data &pd,unsigned long tick,int data)
 {
 	int moveblock;
 	int i;
@@ -540,7 +533,7 @@ int pet_changestate(struct pet_data &pd,int state,int type)
 	return 0;
 }
 
-static int pet_timer(int tid,unsigned long tick,int id,int data)
+int pet_timer(int tid,unsigned long tick,int id,int data)
 {
 	struct pet_data *pd;
 
@@ -598,7 +591,7 @@ static int pet_timer(int tid,unsigned long tick,int id,int data)
 	return 0;
 }
 
-static int pet_walktoxy_sub(struct pet_data &pd)
+int pet_walktoxy_sub(struct pet_data &pd)
 {
 	struct walkpath_data wpd;
 
@@ -646,7 +639,7 @@ int pet_stop_walking(struct pet_data &pd,int type)
 	return 0;
 }
 
-static int pet_hungry(int tid,unsigned long tick,int id,int data)
+int pet_hungry(int tid,unsigned long tick,int id,int data)
 {
 	struct map_session_data *sd;
 	int interval,t;
@@ -1303,7 +1296,7 @@ int pet_food(struct map_session_data &sd)
 	return 0;
 }
 
-static int pet_randomwalk(struct pet_data &pd,unsigned long tick)
+int pet_randomwalk(struct pet_data &pd,unsigned long tick)
 {
 	const int retrycount=20;
 	int speed;
@@ -1345,7 +1338,7 @@ static int pet_randomwalk(struct pet_data &pd,unsigned long tick)
 	return 0;
 }
 
-static int pet_ai_sub_hard(struct pet_data &pd,unsigned long tick)
+int pet_ai_sub_hard(struct pet_data &pd,unsigned long tick)
 {
 	struct map_session_data *sd = pd.msd;
 	struct mob_data *md = NULL;
@@ -1512,7 +1505,7 @@ static int pet_ai_sub_hard(struct pet_data &pd,unsigned long tick)
 	return 0;
 }
 
-static int pet_ai_sub_foreachclient(struct map_session_data &sd,va_list ap)
+int pet_ai_sub_foreachclient(struct map_session_data &sd,va_list ap)
 {
 	unsigned long tick;
 
@@ -1525,7 +1518,7 @@ static int pet_ai_sub_foreachclient(struct map_session_data &sd,va_list ap)
 	return 0;
 }
 
-static int pet_ai_hard(int tid,unsigned long tick,int id,int data)
+int pet_ai_hard(int tid,unsigned long tick,int id,int data)
 {
 	clif_foreachclient(pet_ai_sub_foreachclient,tick);
 

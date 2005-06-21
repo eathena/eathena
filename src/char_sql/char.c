@@ -1540,7 +1540,7 @@ int parse_tologin(int fd)
 			if (RFIFOREST(fd) < 3)
 				return 0;
 			if (RFIFOB(fd, 2)) {
-				//ShowMessage("connect login server error : %d\n", RFIFOB(fd, 2));
+				//ShowMessage("connect login server error : %d\n", (unsigned char)RFIFOB(fd, 2));
 				ShowMessage("Can not connect to login-server.\n");
 				ShowMessage("The server communication passwords (default s1/p1) is probably invalid.\n");
 				ShowMessage("Also, please make sure your login db has the username/password present and the sex of the account is S.\n");
@@ -1837,7 +1837,7 @@ int parse_tologin(int fd)
 					}
 				}
 				if (new_level == 1) {
-					ShowMessage("From login-server: receiving a GM account information (%ld: level %d).\n", (unsigned long)RFIFOL(fd,2), (int)RFIFOB(fd,6));
+					ShowMessage("From login-server: receiving a GM account information (%ld: level %d).\n", (unsigned long)RFIFOL(fd,2), (unsigned char)RFIFOB(fd,6));
 					mapif_send_gmaccounts();
 
 					//create_online_files(); // not change online file for only 1 player (in next timer, that will be done
@@ -2612,7 +2612,7 @@ int parse_char(int fd)
 			break;
 
 		case 0x66: // char select
-//			ShowMessage("0x66> request connect - account_id:%d/char_num:%d\n",sd->account_id,RFIFOB(fd, 2));
+//			ShowMessage("0x66> request connect - account_id:%d/char_num:%d\n",sd->account_id,(unsigned char)RFIFOB(fd, 2));
 			if (RFIFOREST(fd) < 3)
 				return 0;
 			
@@ -2622,7 +2622,7 @@ int parse_char(int fd)
 				break;
 			}
 
-			sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id`='%ld' AND `char_num`='%d'",char_db, sd->account_id, RFIFOB(fd, 2));
+			sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id`='%ld' AND `char_num`='%d'",char_db, sd->account_id, (unsigned char)RFIFOB(fd, 2));
 			if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
 				ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
@@ -2641,13 +2641,13 @@ int parse_char(int fd)
 
 			if (log_char) {
 				sprintf(tmp_sql,"INSERT INTO `%s`(`time`, `account_id`,`char_num`,`name`) VALUES (NOW(), '%ld', '%d', '%s')",
-					charlog_db, sd->account_id, RFIFOB(fd, 2), char_dat[0].name);
+					charlog_db, sd->account_id, (unsigned char)RFIFOB(fd, 2), char_dat[0].name);
 				//query
 				if(mysql_SendQuery(&mysql_handle, tmp_sql)) {
 					ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
 				}
 			}
-			ShowMessage("("CL_BT_BLUE"%d"CL_NORM") char selected ("CL_BT_GREEN"%d"CL_NORM") "CL_BT_GREEN"%s"CL_NORM RETCODE, sd->account_id, RFIFOB(fd, 2), char_dat[0].name);
+			ShowMessage("("CL_BT_BLUE"%d"CL_NORM") char selected ("CL_BT_GREEN"%d"CL_NORM") "CL_BT_GREEN"%s"CL_NORM RETCODE, sd->account_id, (unsigned char)RFIFOB(fd, 2), char_dat[0].name);
 
 			i = search_mapserver(char_dat[0].last_point.map);
 

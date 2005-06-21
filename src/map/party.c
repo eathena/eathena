@@ -22,7 +22,7 @@ int party_send_xyhp_timer(int tid,unsigned long tick,int id,int data);
  * I—¹
  *------------------------------------------
  */
-static int party_db_final(void *key,void *data,va_list ap)
+int party_db_final(void *key,void *data,va_list ap)
 {
 	aFree(data);
 	return 0;

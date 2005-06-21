@@ -26,7 +26,7 @@ struct tmp_path
  * Œo˜H’Tõ•â•heap push
  *------------------------------------------
  */
-static void push_heap_path(int heap[],struct tmp_path tp[],int index)
+void push_heap_path(int heap[],struct tmp_path tp[],int index)
 {
 	int i,h;
 
@@ -49,7 +49,7 @@ static void push_heap_path(int heap[],struct tmp_path tp[],int index)
  * cost‚ªŒ¸‚Á‚½‚Ì‚Åª‚Ì•û‚ÖˆÚ“®
  *------------------------------------------
  */
-static void update_heap_path(int heap[],struct tmp_path tp[],int index)
+void update_heap_path(int heap[],struct tmp_path tp[],int index)
 {
 	int i,h;
 
@@ -74,7 +74,7 @@ static void update_heap_path(int heap[],struct tmp_path tp[],int index)
  * Œo˜H’Tõ•â•heap pop
  *------------------------------------------
  */
-static int pop_heap_path(int heap[],struct tmp_path tp[])
+int pop_heap_path(int heap[],struct tmp_path tp[])
 {
 	int i,h,k;
 	int ret,last;
@@ -109,7 +109,7 @@ static int pop_heap_path(int heap[],struct tmp_path tp[])
  * Œ»İ‚Ì“_‚ÌcostŒvZ
  *------------------------------------------
  */
-static int calc_cost(struct tmp_path &tp,int x1,int y1)
+int calc_cost(struct tmp_path &tp,int x1,int y1)
 {
 	int xd,yd;
 
@@ -124,7 +124,7 @@ static int calc_cost(struct tmp_path &tp,int x1,int y1)
  * •K—v‚È‚çpath‚ğ’Ç‰Á/C³‚·‚é
  *------------------------------------------
  */
-static int add_path(int heap[],struct tmp_path tp[],int x,int y,int dist,int dir,int before,int x1,int y1)
+int add_path(int heap[],struct tmp_path tp[],int x,int y,int dist,int dir,int before,int x1,int y1)
 {
 	int i;
 
@@ -169,7 +169,7 @@ static int add_path(int heap[],struct tmp_path tp[],int x,int y,int dist,int dir
  * flag 0x10000 ‰“‹——£UŒ‚”»’è
  *------------------------------------------
  */
-static int can_place(struct map_data &m,int x,int y,int flag)
+int can_place(struct map_data &m,int x,int y,int flag)
 {
 
 	if(map_getcellp(m,x,y,CELL_CHKPASS))
@@ -183,7 +183,7 @@ static int can_place(struct map_data &m,int x,int y,int flag)
  * (x0,y0)‚©‚ç(x1,y1)‚Ö1•à‚ÅˆÚ“®‰Â”\‚©ŒvZ
  *------------------------------------------
  */
-static int can_move(struct map_data &m,int x0,int y0,int x1,int y1,int flag)
+int can_move(struct map_data &m,int x0,int y0,int x1,int y1,int flag)
 {
 	if(x0-x1<-1 || x0-x1>1 || y0-y1<-1 || y0-y1>1)
 		return 0;

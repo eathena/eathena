@@ -58,8 +58,8 @@ struct event_data {
 
 static struct tm ev_tm_b;	// 時計イベント用
 
-static int npc_walktimer(int tid,unsigned long tick,int id,int data); // [Valaris]
-static int npc_walktoxy_sub(struct npc_data &nd); // [Valaris]
+int npc_walktimer(int tid,unsigned long tick,int id,int data); // [Valaris]
+int npc_walktoxy_sub(struct npc_data &nd); // [Valaris]
 
 
 // ============================================
@@ -1079,7 +1079,7 @@ int npc_selllist(struct map_session_data &sd,unsigned short n,unsigned char *buf
  * Time calculation concerning one step next to npc
  *------------------------------------------
  */
-static int calc_next_walk_step(struct npc_data &nd)
+int calc_next_walk_step(struct npc_data &nd)
 {
 	if( nd.walkpath.path_pos >= nd.walkpath.path_len )
 		return -1;
@@ -1093,7 +1093,7 @@ static int calc_next_walk_step(struct npc_data &nd)
  * npc Walk processing
  *------------------------------------------
  */
-static int npc_walk(struct npc_data &nd,unsigned long tick,int data)
+int npc_walk(struct npc_data &nd,unsigned long tick,int data)
 {
 	int moveblock;
 	int i,j;
@@ -1224,7 +1224,7 @@ int npc_changestate(struct npc_data &nd,int state,int type)
 	return 0;
 }
 
-static int npc_walktimer(int tid,unsigned long tick,int id,int data)
+int npc_walktimer(int tid,unsigned long tick,int id,int data)
 {
 	struct npc_data *nd;
 
@@ -1254,7 +1254,7 @@ static int npc_walktimer(int tid,unsigned long tick,int id,int data)
 }
 
 
-static int npc_walktoxy_sub(struct npc_data &nd)
+int npc_walktoxy_sub(struct npc_data &nd)
 {
 	struct walkpath_data wpd;
 
@@ -1504,7 +1504,7 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
  * shop行解析
  *------------------------------------------
  */
-static int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
+int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
 {
 	#define MAX_SHOPITEM 100
 	const char *p;
@@ -1630,7 +1630,7 @@ int npc_convertlabel_db (void *key, void *data, va_list ap)
  * script行解析
  *------------------------------------------
  */
-static int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4,const char *first_line,FILE *fp,int *lines, struct npc_data **dummy_npc)
+int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4,const char *first_line,FILE *fp,int *lines, struct npc_data **dummy_npc)
 {
 	int x, y, dir = 0, m, xs = 0, ys = 0, class_ = 0;	// [Valaris] thanks to fov
 	char mapname[24];
@@ -1936,7 +1936,7 @@ static int npc_parse_script(const char *w1,const char *w2,const char *w3,const c
  * function行解析
  *------------------------------------------
  */
-static int npc_parse_function(const char *w1,const char *w2,const char *w3,const char *w4,const char *first_line,FILE *fp,int *lines)
+int npc_parse_function(const char *w1,const char *w2,const char *w3,const char *w4,const char *first_line,FILE *fp,int *lines)
 {
 	char *srcbuf, *script, *p;
 	size_t srcsize=65536;
@@ -2136,7 +2136,7 @@ int npc_parse_mob(const char *w1, const char *w2, const char *w3, const char *w4
  * マップフラグ行の解析
  *------------------------------------------
  */
-static int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w4)
+int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const char *w4)
 {
 	int m;
 	char mapname[24];
@@ -2309,7 +2309,7 @@ static int npc_parse_mapflag(const char *w1,const char *w2,const char *w3,const 
  * Setting up map cells
  *------------------------------------------
  */
-static int npc_parse_mapcell(const char *w1,const char *w2,const char *w3,const char *w4)
+int npc_parse_mapcell(const char *w1,const char *w2,const char *w3,const char *w4)
 {
 	int m, cell, x, y, x0, y0, x1, y1;
 	char type[24], mapname[24];
@@ -2523,7 +2523,7 @@ void npc_parsesrcfile(const char*filename)
 	return;
 }
 
-static int npc_read_indoors (void)
+int npc_read_indoors (void)
 {
 	int s, m;
 	char *p, *buf;
@@ -2553,7 +2553,7 @@ static int npc_read_indoors (void)
 	return -1;
 }
 
-static int ev_db_final (void *key,void *data,va_list ap)
+int ev_db_final (void *key,void *data,va_list ap)
 {
 	if(data) aFree(data);
 	if(key && strstr((char*)key,"::")!=NULL)
@@ -2562,7 +2562,7 @@ static int ev_db_final (void *key,void *data,va_list ap)
 }
 
 
-static int npcname_db_final (void *key,void *data,va_list ap)
+int npcname_db_final (void *key,void *data,va_list ap)
 {
 	struct npc_data *nd = (struct npc_data *) data;
 	npc_unload(nd);

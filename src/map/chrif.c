@@ -328,7 +328,7 @@ int chrif_connectack(int fd)
 		return -1;
 
 	if (RFIFOB(fd,2)) {
-		ShowMessage("Connected to char-server failed %d.\n", RFIFOB(fd,2));
+		ShowMessage("Connected to char-server failed %d.\n", (unsigned char)RFIFOB(fd,2));
 		exit(1);
 	}
 	ShowStatus("Successfully connected to Char Server (Connection: '"CL_WHITE"%d"CL_RESET"').\n",fd);
@@ -361,7 +361,7 @@ int chrif_sendmapack(int fd)
 
 	if (RFIFOB(fd,2))
 	{
-		ShowMessage("chrif : send map list to char server failed %d\n", RFIFOB(fd,2));
+		ShowMessage("chrif : send map list to char server failed %d\n", (unsigned char)RFIFOB(fd,2));
 		session_Remove(char_fd); 
 	}
 	else

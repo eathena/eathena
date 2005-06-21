@@ -673,7 +673,7 @@ int intif_parse_WisEnd(int fd)
 	struct map_session_data* sd;
 
 	if(battle_config.etc_log)
-		ShowMessage("intif_parse_wisend: player: %s, flag: %d\n", RFIFOP(fd,2), RFIFOB(fd,26)); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
+		ShowMessage("intif_parse_wisend: player: %s, flag: %d\n", (char*)RFIFOP(fd,2), (unsigned char)RFIFOB(fd,26)); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
 	sd = map_nick2sd((char*)RFIFOP(fd,2));
 	if(sd != NULL)
 		clif_wis_end(sd->fd, RFIFOB(fd,26));
@@ -771,7 +771,7 @@ int intif_parse_LoadStorage(int fd) {
 int intif_parse_SaveStorage(int fd)
 {
 	if(battle_config.save_log)
-		ShowMessage("intif_savestorage: done %ld %d\n",(unsigned long)RFIFOL(fd,2),RFIFOB(fd,6) );
+		ShowMessage("intif_savestorage: done %ld %d\n",(unsigned long)RFIFOL(fd,2),(unsigned char)RFIFOB(fd,6) );
 	return 0;
 }
 
@@ -818,7 +818,7 @@ int intif_parse_LoadGuildStorage(int fd)
 int intif_parse_SaveGuildStorage(int fd)
 {
 	if(battle_config.save_log) {
-		ShowMessage("intif_save_guild_storage: done %ld %ld %d\n",(unsigned long)RFIFOL(fd,2),(unsigned long)RFIFOL(fd,6),RFIFOB(fd,10) );
+		ShowMessage("intif_save_guild_storage: done %ld %ld %d\n",(unsigned long)RFIFOL(fd,2),(unsigned long)RFIFOL(fd,6),(unsigned char)RFIFOB(fd,10) );
 	}
 	return 0;
 }
@@ -858,7 +858,7 @@ int intif_parse_PartyInfo(int fd)
 int intif_parse_PartyMemberAdded(int fd)
 {
 	if(battle_config.etc_log)
-		ShowMessage("intif: party member added %ld %ld %d\n",(unsigned long)RFIFOL(fd,2),(unsigned long)RFIFOL(fd,6),RFIFOB(fd,10));
+		ShowMessage("intif: party member added %ld %ld %d\n",(unsigned long)RFIFOL(fd,2),(unsigned long)RFIFOL(fd,6),(unsigned char)RFIFOB(fd,10));
 	party_member_added(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOB(fd,10));
 	return 0;
 }
@@ -886,8 +886,8 @@ int intif_parse_PartyBroken(int fd)
 int intif_parse_PartyMove(int fd)
 {
 //	if(battle_config.etc_log)
-//		ShowMessage("intif: party move %ld %ld %s %d %d\n",(unsigned long)RFIFOL(fd,2),(unsigned long)RFIFOL(fd,6),RFIFOP(fd,10),RFIFOB(fd,26),(unsigned short)RFIFOW(fd,27));
-	party_recv_movemap(RFIFOL(fd,2),RFIFOL(fd,6),(char*)RFIFOP(fd,10),RFIFOB(fd,26),RFIFOW(fd,27));
+//		ShowMessage("intif: party move %ld %ld %s %d %d\n",(unsigned long)RFIFOL(fd,2),(unsigned long)RFIFOL(fd,6),RFIFOP(fd,10),(unsigned char)RFIFOB(fd,26),(unsigned short)RFIFOW(fd,27));
+	party_recv_movemap(RFIFOL(fd,2),RFIFOL(fd,6),(char*)RFIFOP(fd,10),(unsigned char)RFIFOB(fd,26),(unsigned short)RFIFOW(fd,27));
 	return 0;
 }
 // パーティメッセージ
@@ -933,7 +933,7 @@ int intif_parse_GuildInfo(int fd)
 int intif_parse_GuildMemberAdded(int fd)
 {
 	if(battle_config.etc_log)
-		ShowMessage("intif: guild member added %ld %ld %ld %d\n",(unsigned long)RFIFOL(fd,2),(unsigned long)RFIFOL(fd,6),(unsigned long)RFIFOL(fd,10),RFIFOB(fd,14));
+		ShowMessage("intif: guild member added %ld %ld %ld %d\n",(unsigned long)RFIFOL(fd,2),(unsigned long)RFIFOL(fd,6),(unsigned long)RFIFOL(fd,10),(unsigned char)RFIFOB(fd,14));
 	guild_member_added(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),RFIFOB(fd,14));
 	return 0;
 }

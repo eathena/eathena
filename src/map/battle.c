@@ -22,25 +22,13 @@ int attr_fix_table[4][10][10];
 
 struct Battle_Config battle_config;
 
-/*==========================================
- * “ñ“_ŠÔ‚Ì‹——£‚ğ•Ô‚·
- * –ß‚è‚Í®”‚Å0ˆÈã
- *------------------------------------------
- */
-static int distance(int x0,int y0,int x1,int y1)
-{
-	unsigned int dx,dy;
 
-	dx=abs(x0-x1);
-	dy=abs(y0-y1);
-	return dx>dy ? dx : dy;
-}
 
 /*==========================================
  * ©•ª‚ğƒƒbƒN‚µ‚Ä‚¢‚éMOB‚Ì?‚ğ?‚¦‚é(foreachclient)
  *------------------------------------------
  */
-static int battle_counttargeted_sub(struct block_list &bl, va_list ap)
+int battle_counttargeted_sub(struct block_list &bl, va_list ap)
 {
 	unsigned long id;
 	int *c;
@@ -98,7 +86,7 @@ unsigned int battle_counttargeted(struct block_list &bl,struct block_list *src, 
  * Get random targetting enemy
  *------------------------------------------
  */
-static int battle_gettargeted_sub(struct block_list &bl, va_list ap)
+int battle_gettargeted_sub(struct block_list &bl, va_list ap)
 {
 	struct block_list **bl_list;
 	struct block_list *target;

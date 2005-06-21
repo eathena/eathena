@@ -89,7 +89,7 @@ int guild_checkskill(struct guild &g,unsigned short skillid)
 	return 0;
 }
 
-static int guild_read_castledb(void)
+int guild_read_castledb(void)
 {
 	FILE *fp;
 	char line[1024];
@@ -1679,7 +1679,7 @@ bool guild_isallied(struct guild &g, struct guild_castle &gc)
 	return false;
 }
 
-static int guild_db_final(void *key,void *data,va_list ap)
+int guild_db_final(void *key,void *data,va_list ap)
 {
 	struct guild *g=(struct guild *) data;
 
@@ -1687,7 +1687,7 @@ static int guild_db_final(void *key,void *data,va_list ap)
 
 	return 0;
 }
-static int castle_db_final(void *key,void *data,va_list ap)
+int castle_db_final(void *key,void *data,va_list ap)
 {
 	struct guild_castle *gc=(struct guild_castle *) data;
 
@@ -1695,7 +1695,7 @@ static int castle_db_final(void *key,void *data,va_list ap)
 
 	return 0;
 }
-static int guild_expcache_db_final(void *key,void *data,va_list ap)
+int guild_expcache_db_final(void *key,void *data,va_list ap)
 {
 	struct guild_expcache *c=(struct guild_expcache *) data;
 
@@ -1703,7 +1703,7 @@ static int guild_expcache_db_final(void *key,void *data,va_list ap)
 
 	return 0;
 }
-static int guild_infoevent_db_final(void *key,void *data,va_list ap)
+int guild_infoevent_db_final(void *key,void *data,va_list ap)
 {
 	struct eventlist *ev, *ev2;
 	ev =(struct eventlist *) data;
