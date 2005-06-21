@@ -25,6 +25,8 @@ TODO:
 
 Date		Added
 ======
+06/22
+	* Added baby support to Dancer quest [Fredzilla]
 06/21
 	* Fixed a wrong required item in Sea Otter Hat quest, thanks to frugal [DracoRPG]
 06/18

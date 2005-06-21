@@ -10,6 +10,7 @@
 //===== Description: ========================================= 
 //= Dancer job quest based off a jAthena script and other sources for clarity
 //===== Additional Comments: ================================= 
+//= 1.2 Added Baby Class Support [Fredzilla]
 //= 1.1 Removed the warp I left here my accident, added a check for using 
 //=     Improved Concentration and arrow shower, people could get away with it
 //=     [Fredzilla]
@@ -60,8 +61,8 @@ L1:
 }
 //= 1st quest NPC, asks for Items and/or money, then passes you onto the next NPC
 job_duncer.gat,43,93,4	script	Aire	724,{
-	if ((Class == 3) && (Sex == 0)) goto Larcher;
-	if (Class == 20) goto Ldancer;
+	if ((basejob == 3) && (Sex == 0)) goto Larcher;
+	if (basejob == 20) goto Ldancer;
 	if (Upper==1) goto LUpper1;
 	mes "[Aire]";
 	mes "Hi "+strcharinfo(0)+", you are only allowed to stay in this room any where else is off limits to you.";
@@ -148,8 +149,8 @@ LStart2:
 //3 Random sets
 	mes "[Aire]";
 	set @itemset, rand(1,3);
-	if (itemset == 2) goto ItemSet2;
-	if (itemset == 3) goto ItemSet3;
+	if (@itemset == 2) goto ItemSet2;
+	if (@itemset == 3) goto ItemSet3;
 
 	mes "The cost for the lesson will be :-";
 	mes "^0000FF10,000 Zeny^000000";
@@ -311,8 +312,8 @@ LUpper1:
 }
 //= 2nd "Quest" and Job changer for after the 3rd Quest
 job_duncer.gat,95,93,4	script	Bijou	101,{
-	if ((Class == 3) && (Sex == 0)) goto LArcher;
-	if (Class == 20) goto LDancer;
+	if ((basejob == 3) && (Sex == 0)) goto LArcher;
+	if (basejob == 20) goto LDancer;
 	mes "[Bijou]";
 	mes "Welcome to our Dance Theater, there are many dancers around here.";
 	next;
