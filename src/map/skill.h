@@ -40,6 +40,8 @@
 
 // スキルデ?タベ?ス
 struct skill_db {
+	char *name;
+	char *desc;
 	int range[MAX_SKILL_LEVEL],hit,inf,pl,nk,max;
 	int num[MAX_SKILL_LEVEL];
 	int cast[MAX_SKILL_LEVEL],delay[MAX_SKILL_LEVEL];
@@ -63,11 +65,10 @@ struct skill_db {
 extern struct skill_db skill_db[MAX_SKILL_DB];
 
 struct skill_name_db { 
-        int id;     // skill id
-        char *name; // search strings
-        char *desc; // description that shows up for search's
+	int id;	// skill id
+	char *name;	// search strings
+	char *desc;	// description that shows up for search's
 };
-extern const struct skill_name_db skill_names[];
 
 #define MAX_SKILL_UNIT_LAYOUT	50
 #define MAX_SQUARE_LAYOUT		5	// 11*11のユニット配置が最大

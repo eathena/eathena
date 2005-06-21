@@ -2523,6 +2523,9 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 	nullpo_retr(0, sd);
 	nullpo_retr(0, fitem);
 
+	if(distance(fitem->bl.x,fitem->bl.y,sd->bl.x,sd->bl.y)>2)
+		return 0;	// ‹——£‚ª‰“‚¢
+
 	if(fitem->first_get_id > 0) {
 		first_sd = map_id2sd(fitem->first_get_id);
 		if(tick < fitem->first_get_tick) {
@@ -3180,7 +3183,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 				chrif_save(sd);
 				storage_storage_save(sd);
 				storage_delete(sd->status.account_id);
-				chrif_changemapserver(sd, mapname, x, y, ip, port);
+				chrif_changemapserver(sd, mapname, x, y, ip, (short)port);
 				return 0;
 			}
 		}
@@ -4196,8 +4199,11 @@ int pc_gainexp(struct map_session_data *sd,int base_exp,int job_exp)
 		return 0; // no exp on pvp maps
 
 	if(sd->sc_data[SC_RICHMANKIM].timer != -1) { // added bounds checking [Vaalris]
-		base_exp += base_exp*(25 + sd->sc_data[SC_RICHMANKIM].val1*25)/100;
-		job_exp += job_exp*(25 + sd->sc_data[SC_RICHMANKIM].val1*25)/100;
+		double base, job;
+		base = ((double)base_exp)*(125 + sd->sc_data[SC_RICHMANKIM].val1*25)/100;
+		job = ((double)job_exp)*(125 + sd->sc_data[SC_RICHMANKIM].val1*25)/100;
+		base_exp = (base > 0x7fffffff) ? 0x7fffffff : (int)base;
+		job_exp = (job > 0x7fffffff) ? 0x7fffffff : (int)job;
 	}
 
 	if(sd->status.guild_id>0){	// ƒMƒ‹ƒh‚Éã”[

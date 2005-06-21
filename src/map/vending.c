@@ -2,14 +2,15 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "../common/nullpo.h"
 #include "clif.h"
 #include "itemdb.h"
+#include "atcommand.h"
 #include "map.h"
 #include "vending.h"
 #include "pc.h"
 #include "skill.h"
 #include "battle.h"
-#include "nullpo.h"
 #include "log.h"
 
 /*==========================================
@@ -123,6 +124,11 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 		vsd->vending[vend_list[i]].amount -= amount;
 		pc_cart_delitem(vsd, index, amount, 0);
 		clif_vendingreport(vsd, index, amount);
+		if(battle_config.buyer_name) {
+			char temp[256];
+			sprintf(temp, msg_txt(265), sd->status.name);
+			clif_disp_onlyself(vsd,temp,strlen(temp));
+		}
 
 		//log added by Lupus
 		if(log_config.vend > 0) {

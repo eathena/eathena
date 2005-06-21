@@ -586,6 +586,7 @@ int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 	struct map_session_data* sd[MAX_PARTY];
 	int i;
 	short c, bonus =100; // modified [Valaris]
+	double base, job;
 
 	nullpo_retr(0, p);
 
@@ -601,10 +602,12 @@ int party_exp_share(struct party *p,int map,int base_exp,int job_exp,int zeny)
 	// 1 + 0.05*c*(c-1)/2 [Shinomori]
 	bonus += (5*c*(c-1)/2);	//Changed Valaris's bonus switch to an equation [Skotlex]
 	//Bonus at Full party (12): +3.3 (430% exp/12 ~= 35% of total Mob's exp)
+	base = bonus*base_exp/(c*100);
+	job = bonus*job_exp/(c*100);
 
 	for (i = 0; i < c; i++)
 	{
-		pc_gainexp(sd[i],bonus*base_exp/(c*100),bonus*job_exp/(c*100));
+		pc_gainexp(sd[i], ((base > 0x7fffffff) ? 0x7fffffff : base), ((job > 0x7fffffff) ? 0x7fffffff : job));
 		if (battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
 			pc_getzeny(sd[i],bonus*zeny/(c*100));
 	}

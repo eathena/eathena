@@ -787,6 +787,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		nullpo_retr(0, dstsd=(struct map_session_data *)bl);
 	} else if(bl->type == BL_MOB) {
 		nullpo_retr(0, dstmd=(struct mob_data *)bl); //未使用？
+	} else {
+		//PC,MOB以外は追加効果の対象外
+		return 0;
 	}
 
 	//?象の耐性
@@ -2663,7 +2666,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
 		if (skilllv>1) {
 			int range = skilllv > 5 ? 2 : skilllv/2;
-			int cnt = (sd) ? skill_count_water(src,range) - 1 : skill_get_num(skillid,skilllv) - 1;
+			int cnt = (sd && !map[sd->bl.m].flag.rain) ? skill_count_water(src,range) - 1 : skill_get_num(skillid,skilllv) - 1;
 			if (cnt > 0)
 				skill_addtimerskill(src,tick+150,bl->id,0,0,
 					skillid,skilllv,cnt,flag);
@@ -3756,6 +3759,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case DC_SCREAM:				/* スクリ?ム */
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		skill_addtimerskill(src,tick+3000,bl->id,0,0,skillid,skilllv,0,flag);
+		if (md) {	// Mobは喋れないから、スキル名を叫ばせてみる
+			char temp[100];
+			sprintf(temp,"%s : %s !!",md->name,skill_db[skillid].desc);
+			clif_GlobalMessage(&md->bl,temp);
+		}
 		break;
 
 	case TF_STEAL:			// スティ?ル
@@ -7159,7 +7167,11 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		}
 		break;
 	case ST_WATER:
-		if((!map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKWATER))&& (sd->sc_data[SC_DELUGE].timer==-1)){	//水場判定
+		//水場判定
+		if ((!map[sd->bl.m].flag.rain) &&
+			(sd->sc_data[SC_DELUGE].timer == -1) &&
+			(!map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKWATER)))
+		{
 			clif_skill_fail(sd,skill,0,0);
 			return 0;
 		}
@@ -9844,6 +9856,13 @@ int skill_readdb(void)
 		else
 			skill_db[i].skill_type=0;
 		skill_split_atoi(split[13],skill_db[i].blewcount);
+
+		for (j = 0; skill_names[j].id != 0; j++)
+			if (skill_names[j].id == i) {
+				skill_db[i].name = skill_names[j].name;
+				skill_db[i].desc = skill_names[j].desc;
+				break;
+			}
 	}
 	fclose(fp);
 	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_db.txt");

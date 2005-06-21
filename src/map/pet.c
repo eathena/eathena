@@ -912,7 +912,7 @@ int pet_return_egg(struct map_session_data *sd)
 		memset(&tmp_item,0,sizeof(tmp_item));
 		tmp_item.nameid = sd->petDB->EggID;
 		tmp_item.identify = 1;
-		tmp_item.card[0] = 0xff00;
+		tmp_item.card[0] = (short)0xff00;
 		tmp_item.card[1] = GetWord(sd->pet.pet_id,0);
 		tmp_item.card[2] = GetWord(sd->pet.pet_id,1);
 		tmp_item.card[3] = sd->pet.rename_flag;
@@ -1190,7 +1190,7 @@ int pet_get_egg(int account_id,int pet_id,int flag)
 			memset(&tmp_item,0,sizeof(tmp_item));
 			tmp_item.nameid = pet_db[i].EggID;
 			tmp_item.identify = 1;
-			tmp_item.card[0] = 0xff00;
+			tmp_item.card[0] = (short)0xff00;
 			tmp_item.card[1] = GetWord(pet_id,0);
 			tmp_item.card[2] = GetWord(pet_id,1);
 			tmp_item.card[3] = sd->pet.rename_flag;

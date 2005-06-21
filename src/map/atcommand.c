@@ -6898,20 +6898,23 @@ int
 atcommand_skillid(const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-        int skillen = 0, idx = 0;
+	int skillen, idx;
 	nullpo_retr(-1, sd);
+
 	if (!message || !*message)
 		return -1;
-        skillen = strlen(message);
-        while (skill_names[idx].id != 0) {
-            if ((strnicmp(skill_names[idx].name, message, skillen) == 0) ||
-            (strnicmp(skill_names[idx].desc, message, skillen) == 0)) {
-               sprintf(atcmd_output, "skill %d: %s", skill_names[idx].id, skill_names[idx].desc);
-	       clif_displaymessage(fd, atcmd_output);
-            }
-            idx++;
-        }
-        return 0;
+	skillen = strlen(message);
+
+	for (idx = 0; idx < MAX_SKILL_DB; idx++) {
+		if ((skill_db[idx].name != NULL && strnicmp(skill_db[idx].name, message, skillen) == 0) ||
+			(skill_db[idx].desc != NULL && strnicmp(skill_db[idx].desc, message, skillen) == 0))
+		{
+			sprintf(atcmd_output, "skill %d: %s", idx, skill_db[idx].desc);
+			clif_displaymessage(fd, atcmd_output);
+		}
+	}
+
+	return 0;
 }
 
 /*==========================================
@@ -6958,100 +6961,93 @@ int
 atcommand_skilltree(const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-  struct map_session_data *pl_sd = NULL;
-  int skillnum, skillidx = -1;
-  int meets = 1, j, c=0, s=0;
-  struct pc_base_job s_class;
-  char target[NAME_LENGTH], *tbl;
-  struct skill_tree_entry *ent;
+	struct map_session_data *pl_sd = NULL;
+	int skillnum, skillidx = -1;
+	int meets = 1, j, c=0, s=0;
+	struct pc_base_job s_class;
+	char target[NAME_LENGTH], *tbl;
+	struct skill_tree_entry *ent;
 	nullpo_retr(-1, sd);
 
-  if (!message || !*message)
-    return -1;
+	if (!message || !*message)
+		return -1;
 
-  if(sscanf(message, "%d %23[^\r\n]", &skillnum, target) != 2) {
-    clif_displaymessage(fd, "Usage: @skilltree <skillnum> <target>");
-    return -1;
-  }
-  if((pl_sd=map_nick2sd(target)) == NULL)
-    return -1;
+	if(sscanf(message, "%d %23[^\r\n]", &skillnum, target) != 2) {
+		clif_displaymessage(fd, "Usage: @skilltree <skillnum> <target>");
+		return -1;
+	}
+	if((pl_sd=map_nick2sd(target)) == NULL)
+		return -1;
 
-  s_class = pc_calc_base_job(pl_sd->status.class_);
-  c = s_class.job;
-  s = s_class.upper;
+	s_class = pc_calc_base_job(pl_sd->status.class_);
+	c = s_class.job;
+	s = s_class.upper;
 
-  c = pc_calc_skilltree_normalize_job(c, pl_sd);
+	c = pc_calc_skilltree_normalize_job(c, pl_sd);
 
-  tbl = job_name(c);
+	tbl = job_name(c);
 
-  sprintf(atcmd_output, "Player is using %s %s skill tree (%d basic points)",
-	  s_class.upper ? "upper" : "lower",
-	  tbl, pc_checkskill(pl_sd, 1));
-  clif_displaymessage(fd, atcmd_output);
-
-  for (j = 0; skill_tree[s][c][j].id != 0; j++) {
-    if (skill_tree[s][c][j].id == skillnum) {
-      skillidx = j;
-      break;
-    }
-  }
-
-  if (skillidx == -1) {
-    sprintf(atcmd_output, "I do not believe the player can use that skill");
-    clif_displaymessage(fd, atcmd_output);
-    return 0;
-  }
-
-  ent = &skill_tree[s][c][skillidx];
-
-  for(j=0;j<5;j++)
-    if( ent->need[j].id &&
-	pc_checkskill(sd,ent->need[j].id) < ent->need[j].lv)
-      {
-	int idx = 0;
-	char *desc;
-        while (skill_names[idx].id != 0 && skill_names[idx].id != ent->need[j].id)
-		idx++;
-	if (skill_names[idx].id == 0)
-		desc = "Unknown skill";
-	else
-		desc = skill_names[idx].desc;
-	sprintf(atcmd_output, "player requires level %d of skill %s",
-		ent->need[j].lv,  desc);
+	sprintf(atcmd_output, "Player is using %s %s skill tree (%d basic points)",
+	s_class.upper ? "upper" : "lower",
+	tbl, pc_checkskill(pl_sd, 1));
 	clif_displaymessage(fd, atcmd_output);
-	meets = 0;
-      }
 
-  if (meets == 1) {
-    sprintf(atcmd_output, "I believe the player meets all the requirements for that skill");
-    clif_displaymessage(fd, atcmd_output);
-  }
+	for (j = 0; skill_tree[s][c][j].id != 0; j++) {
+		if (skill_tree[s][c][j].id == skillnum) {
+			skillidx = j;
+			break;
+		}
+	}
 
-  return 0;
+	if (skillidx == -1) {
+		sprintf(atcmd_output, "I do not believe the player can use that skill");
+		clif_displaymessage(fd, atcmd_output);
+		return 0;
+	}
+
+	ent = &skill_tree[s][c][skillidx];
+
+	for(j=0;j<5;j++)
+		if( ent->need[j].id &&
+			pc_checkskill(sd,ent->need[j].id) < ent->need[j].lv)
+		{
+			char *desc = (skill_db[ ent->need[j].id ].desc) ? skill_db[ ent->need[j].id ].desc : "Unknown skill";
+			sprintf(atcmd_output, "player requires level %d of skill %s",
+				ent->need[j].lv, desc);
+			clif_displaymessage(fd, atcmd_output);
+			meets = 0;
+		}
+
+		if (meets == 1) {
+			sprintf(atcmd_output, "I believe the player meets all the requirements for that skill");
+			clif_displaymessage(fd, atcmd_output);
+		}
+
+	return 0;
 }
 
 // Hand a ring with partners name on it to this char
 void getring (
-        struct map_session_data *sd)
+		struct map_session_data *sd)
 {
-        int flag,item_id = 0;
-        struct item item_tmp;
-        if(sd->status.sex==0)
-                item_id = 2635;
-        else
-                item_id = 2634;
+	int flag,item_id = 0;
+	struct item item_tmp;
+	if(sd->status.sex==0)
+		item_id = 2635;
+	else
+		item_id = 2634;
 
-        memset(&item_tmp,0,sizeof(item_tmp));
-        item_tmp.nameid=item_id;
-        item_tmp.identify=1;
-        item_tmp.card[0]=255;
-        item_tmp.card[2]=sd->status.partner_id;
-        item_tmp.card[3]=sd->status.partner_id >> 16;
+	memset(&item_tmp,0,sizeof(item_tmp));
+	item_tmp.nameid=item_id;
+	item_tmp.identify=1;
+	item_tmp.card[0]=255;
+	item_tmp.card[2]=sd->status.partner_id;
+	item_tmp.card[3]=sd->status.partner_id >> 16;
 
-        if((flag = pc_additem(sd,&item_tmp,1))) {
-                clif_additem(sd,0,0,flag);
+	if((flag = pc_additem(sd,&item_tmp,1))) {
+		clif_additem(sd,0,0,flag);
 		map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
-        }
+	}
 
 }
 
@@ -7073,20 +7069,20 @@ atcommand_marry(const int fd, struct map_session_data* sd,
   nullpo_retr(-1, sd);
 
   if (!message || !*message || sscanf(message, "%23[^,],%23[^\r\n]", player1, player2) != 2) {
-    clif_displaymessage(fd, "Usage: @marry <player1>,<player2>.");
-    return -1;
+	clif_displaymessage(fd, "Usage: @marry <player1>,<player2>.");
+	return -1;
   }
 
   if((pl_sd1=map_nick2sd((char *) player1)) == NULL) {
-    sprintf(player2, "Cannot find player '%s' online", player1);
-    clif_displaymessage(fd, player2);
-    return -1;
+	sprintf(player2, "Cannot find player '%s' online", player1);
+	clif_displaymessage(fd, player2);
+	return -1;
   }
 
   if((pl_sd2=map_nick2sd((char *) player2)) == NULL) {
-    sprintf(player1, "Cannot find player '%s' online", player2);
-    clif_displaymessage(fd, player1);
-    return -1;
+	sprintf(player1, "Cannot find player '%s' online", player2);
+	clif_displaymessage(fd, player1);
+	return -1;
   }
 
   if (pc_marriage(pl_sd1, pl_sd2) == 0) {
@@ -7115,8 +7111,8 @@ atcommand_divorce(const int fd, struct map_session_data* sd,
   nullpo_retr(-1, sd);
 
   if (!message || !*message || sscanf(message, "%23[^\r\n]", atcmd_player_name) != 1) {
-    clif_displaymessage(fd, "Usage: @divorce <player>.");
-    return -1;
+	clif_displaymessage(fd, "Usage: @divorce <player>.");
+	return -1;
   }
 
   if((pl_sd=map_nick2sd((char *) atcmd_player_name)) != NULL) {

@@ -290,6 +290,7 @@ extern struct Battle_Config {
 	unsigned short disp_hpmeter;
 	unsigned short bone_drop;
 	unsigned short monster_damage_delay;
+	unsigned short buyer_name;
 
 // eAthena additions
 	unsigned short night_at_start; // added by [Yor]

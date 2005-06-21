@@ -868,19 +868,11 @@ int npc_globalmessage(const char *name,char *mes)
 {
 	struct npc_data *nd=(struct npc_data *) strdb_search(npcname_db,name);
 	char temp[100];
-	char ntemp[50];
-	char *ltemp;
 
-	if(nd==NULL) return 0;
-	if(name==NULL) return 0;
+	if (!nd)
+		return 0;
 
-	ltemp=strchr(name,'#');
-	if(ltemp!=NULL) {
-		strncpy(ntemp,name,ltemp - name);	// 123#456 の # から後ろを削除する
-		ntemp[ltemp - name]=0x00;	// strncpy のバグ？使い方間違ってる？
-	}
-
-	snprintf(temp, sizeof temp ,"%s : %s",ntemp,mes);
+	snprintf(temp, sizeof temp ,"%s : %s",name,mes);
 	clif_GlobalMessage(&nd->bl,temp);
 
 	return 0;

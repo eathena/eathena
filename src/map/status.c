@@ -1054,7 +1054,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->subele[3] += skill*5;
 	}
 	if((skill=pc_checkskill(sd,SA_ADVANCEDBOOK))>0 )
-		ASPD_ADD_RATE( (int)(skill*0.5) );
+		ASPD_ADD_RATE( skill/2 );
 
 	bl = sd->status.base_level;
 	sd->status.max_hp += (3500 + bl*hp_coefficient2[s_class.job] +

@@ -928,8 +928,13 @@ int mob_spawn (int id)
 	md->last_spawntime = tick;
 	if (md->bl.prev != NULL)
 		map_delblock(&md->bl);
-	else
+	else {
+		if(md->class_ != md->base_class){	// クラスチェンジしたMob
+			memcpy(md->name,mob_db[md->base_class].jname,24);
+			md->speed=mob_db[md->base_class].speed;
+		}
 		md->class_ = md->base_class;
+	}
 
 	md->bl.m = md->m;
 	do {
@@ -944,8 +949,9 @@ int mob_spawn (int id)
 	} while(map_getcell(md->bl.m,x,y,CELL_CHKNOPASS) && i < 50);
 
 	if (i >= 50) {
-		// retry again later
-		add_timer(tick+5000,mob_delayspawn,id,0);
+		if (md->spawndelay1 != -1 || md->spawndelay2 == -1)
+			// retry again later
+			add_timer(tick+5000,mob_delayspawn,id,0);
 		return 1;
 	}
 
@@ -1275,7 +1281,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 			if(mode&0x20 ||
 				(tsd->sc_data[SC_TRICKDEAD].timer == -1 && tsd->sc_data[SC_BASILICA].timer == -1 &&
 				((!pc_ishiding(tsd) && !tsd->state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) && !tsd->perfect_hiding) ))){	// 妨害がないか判定
-				if( mob_can_reach(smd,bl,12) && 		// 到達可能性判定
+				if((mob_db[smd->class_].range > 6 || mob_can_reach(smd,bl,12)) &&	// 到達可能性判定
 					rand()%1000<1000/(++(*pcc)) ){	// 範囲内PCで等確率にする
 					smd->target_id=tsd->bl.id;
 					smd->state.targettype = ATTACKABLE;
@@ -1391,8 +1397,18 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 
 	mode=mob_db[md->class_].mode;
 
+	if (!mmd || mmd->hp <= 0) {	//主が死亡しているか見つからない
+		if(md->state.special_mob_ai>0)
+			mob_timer_delete(0, 0, md->bl.id, 0);
+		else
+			mob_damage(NULL,md,md->hp,0);
+		return 0;
+	}
+	if(md->state.special_mob_ai>0)		// 主がPCの場合は、以降の処理は要らない
+		return 0;
+
 	// It is not main monster/leader.
-	if(!mmd || mmd->bl.type!=BL_MOB || mmd->bl.id!=md->master_id)
+	if (mmd->bl.type != BL_MOB || mmd->bl.id != md->master_id)
 		return 0;
 
 	// 呼び戻し
@@ -1691,7 +1707,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 
 	md->state.master_check = 0;
 	// Processing of slave monster
-	if (md->master_id > 0 && md->state.special_mob_ai == 0)
+	if (md->master_id > 0)// && md->state.special_mob_ai == 0)
 		mob_ai_sub_hard_slavemob(md, tick);
 
 	// アクティヴモンスターの策敵 (?? of a bitter taste TIVU monster)
@@ -1923,8 +1939,8 @@ static int mob_ai_hard(int tid,unsigned int tick,int id,int data)
  */
 static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 {
-	struct mob_data *md=(struct mob_data *)data;
-	struct mob_data *mmd=NULL;
+	struct mob_data *md = (struct mob_data *)data;
+	struct mob_data *mmd = NULL;
 	unsigned int tick;
 	va_list ap;
 
@@ -1936,7 +1952,8 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 		return 0;
 
 	if (md->master_id > 0) {
-		mmd = (struct mob_data *)map_id2bl(md->master_id);	//自分のBOSSの情報
+		struct block_list *mbl = map_id2bl(md->master_id);
+		if (mbl && mbl->type == BL_MOB) mmd = (struct mob_data *)mbl;	//自分のBOSSの情報
 	}
 
 	tick=va_arg(ap,unsigned int);
@@ -2326,9 +2343,11 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		}
 		if(src && src->type == BL_MOB && ((struct mob_data*)src)->state.special_mob_ai){
 			struct mob_data *md2 = (struct mob_data *)src;
+			struct map_session_data *msd = map_id2sd(md2->master_id);
 			nullpo_retr(0, md2);
+			nullpo_retr(0, msd);
 			for(i=0,minpos=0,mindmg=0x7fffffff;i<DAMAGELOG_SIZE;i++){
-				if(md->dmglog[i].id==md2->master_id)
+				if(md->dmglog[i].id==msd->status.char_id)
 					break;
 				if(md->dmglog[i].id==0){
 					minpos=i;
@@ -2342,7 +2361,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			if(i<DAMAGELOG_SIZE)
 				md->dmglog[i].dmg+=damage;
 			else {
-				md->dmglog[minpos].id=md2->master_id;
+				md->dmglog[minpos].id=msd->status.char_id;
 				md->dmglog[minpos].dmg=damage;
 
 			if(md->attacked_id <= 0 && md->state.special_mob_ai==0)
@@ -2484,12 +2503,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	for(i=0,count=0,mvp_damage=0;i<DAMAGELOG_SIZE;i++){
 		if(md->dmglog[i].id==0)
 			continue;
-		// Will this slow things down too much?
 		tmpsd[i] = map_charid2sd(md->dmglog[i].id);
-		// try finding again
-		if(tmpsd[i] == NULL)
-			tmpsd[i] = map_id2sd(md->dmglog[i].id);
-		// if we still can't find the player
 		if(tmpsd[i] == NULL)
 			continue;
 		count++;

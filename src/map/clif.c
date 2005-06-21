@@ -156,6 +156,8 @@ static int map_port = 5121;
 int map_fd;
 char talkie_mes[MESSAGE_SIZE];
 
+int clif_parse (int fd);
+
 /*==========================================
  * mapI‚Ìipİ’è
  *------------------------------------------
@@ -231,7 +233,8 @@ int clif_foreachclient(int (*func)(struct map_session_data*, va_list),...) //rec
 	for(i = 0; i < fd_max; i++) {
 		if ( session[i] ) {
 			sd = (struct map_session_data*)session[i]->session_data;
-			if ( sd && sd->state.auth && !sd->state.waitingdisconnect )
+			if ( sd && session[i]->func_parse == clif_parse &&
+				sd->state.auth && !sd->state.waitingdisconnect )
 				func(sd, ap);
 		}
 	}
@@ -5049,14 +5052,16 @@ int clif_GMmessage(struct block_list *bl, char* mes, int len, int flag)
 void clif_GlobalMessage(struct block_list *bl,char *message)
 {
 	char buf[100];
-	int len,cmd=0x8d;
+	int len;
 
-	if(!bl || !message)
+	nullpo_retv(bl);
+
+	if(!message)
 		return;
 
-	len=strlen(message)+1;
+	len = strlen(message)+1;
 
-	WBUFW(buf,0)=cmd;
+	WBUFW(buf,0)=0x8d;
 	WBUFW(buf,2)=len+8;
 	WBUFL(buf,4)=bl->id;
 	strncpy((char *) WBUFP(buf,8),message,len);
@@ -5771,9 +5776,9 @@ int clif_vendinglist(struct map_session_data *sd,int id,struct vending *vending)
 		WBUFB(buf,20+n*22)=vsd->status.cart[index].attribute;
 		WBUFB(buf,21+n*22)=vsd->status.cart[index].refine;
 		if(vsd->status.cart[index].card[0]==0x00ff || vsd->status.cart[index].card[0]==0x00fe || vsd->status.cart[index].card[0]==(short)0xff00) {
-			WBUFW(buf,22+n*22)=vsd->status.cart[index].card[0];
-			WBUFW(buf,24+n*22)=vsd->status.cart[index].card[1];
-			WBUFW(buf,26+n*22)=vsd->status.cart[index].card[2];
+			WBUFW(buf,22+n*22)=(data->type==7)?0:vsd->status.cart[index].card[0];
+			WBUFW(buf,24+n*22)=(data->type==7)?0:vsd->status.cart[index].card[1];
+			WBUFW(buf,26+n*22)=(data->type==7)?0:vsd->status.cart[index].card[2];
 			WBUFW(buf,28+n*22)=vsd->status.cart[index].card[3];
 		} else {
 			if(vsd->status.cart[index].card[0] > 0 && (j=itemdb_viewid(vsd->status.cart[index].card[0])) > 0)
@@ -5858,9 +5863,9 @@ int clif_openvending(struct map_session_data *sd,int id,struct vending *vending)
 		WBUFB(buf,20+n*22)=sd->status.cart[index].attribute;
 		WBUFB(buf,21+n*22)=sd->status.cart[index].refine;
 		if(sd->status.cart[index].card[0]==0x00ff || sd->status.cart[index].card[0]==0x00fe || sd->status.cart[index].card[0]==(short)0xff00) {
-			WBUFW(buf,22+n*22)=sd->status.cart[index].card[0];
-			WBUFW(buf,24+n*22)=sd->status.cart[index].card[1];
-			WBUFW(buf,26+n*22)=sd->status.cart[index].card[2];
+			WBUFW(buf,22+n*22)=(data->type==7)?0:sd->status.cart[index].card[0];
+			WBUFW(buf,24+n*22)=(data->type==7)?0:sd->status.cart[index].card[1];
+			WBUFW(buf,26+n*22)=(data->type==7)?0:sd->status.cart[index].card[2];
 			WBUFW(buf,28+n*22)=sd->status.cart[index].card[3];
 		} else {
 			if(sd->status.cart[index].card[0] > 0 && (j=itemdb_viewid(sd->status.cart[index].card[0])) > 0)
@@ -6322,6 +6327,7 @@ int clif_send_petdata(struct map_session_data *sd,int type,int param)
 	int fd;
 
 	nullpo_retr(0, sd);
+	nullpo_retr(0, sd->pd);
 
 	fd=sd->fd;
 	WFIFOW(fd,0)=0x1a4;
@@ -11276,7 +11282,7 @@ static void (*clif_parse_func_table[MAX_PACKET_DB])(int, struct map_session_data
  * socket.c‚Ìdo_parsepacket‚©‚çŒÄ‚Ño‚³‚ê‚é
  *------------------------------------------
  */
-static int clif_parse(int fd) {
+int clif_parse(int fd) {
 	int packet_len = 0, cmd, packet_ver, dump = 0;
 	struct map_session_data *sd;
 

@@ -1,5 +1,25 @@
 Date	Added
-06/20	* Large monsters now have 2x base stats, drop rates, exp, and zeny (if enabled). [Valaris]
+06/21
+	* Updated map server to partially 1203~1249
+	  - Added 'buyer_name' to battle config: shows the buyer's name when an item
+	    has been sold through vending
+	  - Added skills with 'water' requirement can be used in rain-enabled maps
+	  - Fixed Soul Strike not dealing extra damage to undead
+	  - Fixed Advanced Book not giving its aspd bonus
+	  - Fixed skill name display when Frost Joke and Scream are casted by mobs
+	  - Fixed exp overflow with Rich Man Kim
+	  - Fixed exp overflow with party bonuses
+	  - Fixed mob names not updated properly when respawning to its base class
+	  - Reduced size of struct pet_db a bit
+	  - Prevent trying to respawn a one-time-only mob if it can't find any
+	    coordinates to add it
+	  - Added slave mobs with no master/master died will be removed in mob_ai()
+	  - Changed damage log by summoned mobs will use their masters' char_id instead
+	    of account id (old system)
+	* Some tidying up in atcommand.c [celest]
+
+06/20
+	* Large monsters now have 2x base stats, drop rates, exp, and zeny (if enabled). [Valaris]
 	* Small monsters now have half base stats, drop rates, exp, and zeny (if enabled). [Valaris]
 	** Note: this is referring to size just as @monsterbig and @monstersmall, not small, medium, brute, etc... [Valaris]
 	* Removed wedding rings from hasitems script command. [Valaris]

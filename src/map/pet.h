@@ -6,12 +6,12 @@
 #define MAX_PETLOOT_SIZE	30 // [Valaris] - Changed to MAX_PETLOOT_SIZE [Skotlex]
 
 struct pet_db {
-	int	class_;
+	short class_;
 	char name[NAME_LENGTH],jname[NAME_LENGTH];
-	int itemID;
-	int EggID;
-	int AcceID;
-	int FoodID;
+	short itemID;
+	short EggID;
+	short AcceID;
+	short FoodID;
 	int fullness;
 	int hungry_delay;
 	int r_hungry;
