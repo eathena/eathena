@@ -8,8 +8,6 @@ Mass Zero
 	* Fixing small bugs.
 	* Adding small stuff.
 	* Redoing lots of the custom scripts.
-DracoRPG
-	* Towns Message Boards - They should come fast
 Massdriller
 	* Correcting & Bugfixing scripts
 	* New Novice Grounds from MRO - 65% -(Not sure it should be stopped as DracoRPG 
@@ -27,6 +25,8 @@ TODO:
 
 Date		Added
 ======
+06/21
+	* Fixed a wrong required item in Sea Otter Hat quest, thanks to frugal [DracoRPG]
 06/18
 	* Updated Lightharzen warps to Sara-chan's v1.2 [Lupus]
 06/16
