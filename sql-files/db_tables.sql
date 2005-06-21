@@ -180,6 +180,7 @@ CREATE TABLE `item_db2` (
   `equip_locations` smallint(4) unsigned default NULL,
   `weapon_level` tinyint(2) unsigned default NULL,
   `equip_level` tinyint(3) unsigned default NULL,
+  `refineable` tinyint(1) default NULL,
   `view` tinyint(3) unsigned default NULL,
   `script_use` text,
   `script_equip` text,

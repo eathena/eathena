@@ -35,6 +35,7 @@ CREATE TABLE guild (
 -- Table structure for table `guild_alliance`
 --
 
+DROP TABLE guild_alliance;
 CREATE TABLE guild_alliance (
   guild_id int(11) NOT NULL default '0',
   opposition int(11) NOT NULL default '0',
@@ -55,6 +56,7 @@ CREATE TABLE guild_alliance (
 -- Table structure for table `guild_castle`
 --
 
+DROP TABLE guild_castle;
 CREATE TABLE guild_castle (
   castle_id int(11) NOT NULL default '0',
   guild_id int(11) NOT NULL default '0',
@@ -94,6 +96,7 @@ CREATE TABLE guild_castle (
 -- Table structure for table `guild_expulsion`
 --
 
+DROP TABLE guild_expulsion;
 CREATE TABLE guild_expulsion (
   guild_id int(11) NOT NULL default '0',
   name varchar(24) NOT NULL default '',
@@ -116,6 +119,7 @@ CREATE TABLE guild_expulsion (
 -- Table structure for table `guild_member`
 --
 
+DROP TABLE guild_member;
 CREATE TABLE guild_member (
   guild_id int(11) NOT NULL default '0',
   account_id int(11) NOT NULL default '0',
@@ -147,6 +151,7 @@ CREATE TABLE guild_member (
 -- Table structure for table `guild_position`
 --
 
+DROP TABLE guild_position;
 CREATE TABLE guild_position (
   guild_id int(11) NOT NULL default '0',
   position smallint(6) NOT NULL default '0',
@@ -166,6 +171,7 @@ CREATE TABLE guild_position (
 -- Table structure for table `guild_skill`
 --
 
+DROP TABLE guild_skill;
 CREATE TABLE guild_skill (
   guild_id int(11) NOT NULL default '0',
   id int(11) NOT NULL default '0',
@@ -183,6 +189,7 @@ CREATE TABLE guild_skill (
 -- Table structure for table `guild_storage`
 --
 
+DROP TABLE guild_storage;
 CREATE TABLE guild_storage (
   id int(11) NOT NULL auto_increment,
   guild_id int(11) NOT NULL default '0',
