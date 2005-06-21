@@ -8943,13 +8943,16 @@ void clif_parse_TakeItem(int fd, struct map_session_data *sd) {
 		return;
 	}
 
-	if( sd->npc_id!=0 || sd->vender_id != 0 || sd->opt1 > 0 ||
+	if( sd->npc_id!=0 || sd->vender_id != 0 || sd->opt1 > 0 || 
 		pc_iscloaking(sd) || //Disable cloaking characters from looting [Skotlex]
 		(sd->sc_data && (sd->sc_data[SC_TRICKDEAD].timer != -1 || //死んだふり
 		sd->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
 		sd->sc_data[SC_BERSERK].timer!=-1 ||	//バーサーク
 		sd->sc_data[SC_NOCHAT].timer!=-1 )) )	//会話禁止
-		return;
+		{
+			clif_additem(sd,0,0,6); // send fail packet! [Valaris]
+			return;
+		}
 
 	if (fitem == NULL || fitem->bl.m != sd->bl.m)
 		return;

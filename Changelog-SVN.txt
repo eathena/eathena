@@ -1,5 +1,7 @@
 Date	Added
 06/21
+	* Added send of fail packet on failing to pick up items under certain conditions 
+	  (this allows you to get an item you tried to pick up while cloaked when you uncloak). [Valaris]
 	* Updated map server to partially 1203~1249
 	  - Added 'buyer_name' to battle config: shows the buyer's name when an item
 	    has been sold through vending
