@@ -8948,6 +8948,7 @@ void clif_parse_TakeItem(int fd, struct map_session_data *sd) {
 		(sd->sc_data && (sd->sc_data[SC_TRICKDEAD].timer != -1 || //死んだふり
 		sd->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
 		sd->sc_data[SC_BERSERK].timer!=-1 ||	//バーサーク
+		sd->sc_data[SC_CHASEWALK].timer!=-1 ||  //Chasewalk [Aru]
 		sd->sc_data[SC_NOCHAT].timer!=-1 )) )	//会話禁止
 		{
 			clif_additem(sd,0,0,6); // send fail packet! [Valaris]
