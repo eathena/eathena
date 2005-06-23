@@ -1556,13 +1556,13 @@
 5104,Black_Blindfold,Black Blindfold,5,20,0,100,,0,,0,2088958,2,512,,0,0,184,{},{ bonus2 bResEff,Eff_Blind,10000; bonus2 bResEff,Eff_Stan,200; }
 5105,2nd_Anniversary_Cake_Hat,Chinese Service 2nd Annual Commemoration Cake Hat,5,20,0,1000,,1,,0,10477567,2,256,,24,1,109,{},{ bonus bDex,1; bonus bMaxSP,80; }
 5106,2nd_Anniversary_Hat,2nd Anniversary Hat,5,20,0,300,,3,,0,10477567,2,256,,24,1,144,{},{ bonus bLuk,1; }
-5107,Well_Done_Toast,Slice of Toast,5,20,0,50,0,0,0,0,10477567,2,1,0,0,1,188,{},{}
+5107,Well_Done_Toast,Slice of Toast,5,20,0,50,0,0,0,0,10477567,2,1,0,0,0,188,{},{}
 5108,Detective_Hat,Detective Hat,5,20,0,350,0,3,0,1,10477567,2,256,0,0,1,189,{},{}
 5109,Red_Bonnet,Red Bonnet,5,20,0,400,0,2,0,0,10477567,2,256,0,0,1,190,{},{}
-5110,Baby_Rubber_Nipple,Baby Rubber Nipple,5,20,0,50,0,0,0,0,10477567,2,1,0,0,1,191,{},{}
+5110,Baby_Rubber_Nipple,Baby Rubber Nipple,5,20,0,50,0,0,0,0,10477567,2,1,0,0,0,191,{},{}
 5111,Galapago_Hat,Galapago Hat,5,20,0,500,0,2,0,0,10477567,2,256,0,55,1,192,{},{ bonus3 bAddMonsterDropItem,605,11,200; }
 5112,Super_Novice_Hat,Super Novice Hat,5,20,0,400,0,4,0,0,8388609,2,256,0,40,1,193,{},{ bonus bAllStats,1; }
-5113,Angry_Teeth,Angry Teeth,5,20,0,50,0,0,0,0,10477567,2,1,0,0,1,194,{},{}
+5113,Angry_Teeth,Angry Teeth,5,20,0,50,0,0,0,0,10477567,2,1,0,0,0,194,{},{}
 5114,Soldier's_Felt_Hat,Soldier's Felt Hat,5,20,0,300,0,3,0,0,10477567,2,256,0,0,1,195,{},{}
 5115,Fashionable_Fur_Hat,Winter Cap,5,20,0,500,0,3,0,0,10477567,2,256,0,0,1,196,{},{}
 5116,Banana_Hat,Banana Hat,5,20,0,200,0,1,0,0,10477567,2,256,0,0,1,197,{},{ bonus3 bAutoSpell,6,3,70; } //autospell rate is unknown

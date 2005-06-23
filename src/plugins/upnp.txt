@@ -21,6 +21,9 @@ close_ports: 1
 //
 // map server port
 //map_port: 5121
+//
+// NAT IP address to map your ports to
+//nat_ip: 192.168.0.1
 
 
 // Note: This plugin only works on Windows XP or higher

@@ -1,6 +1,14 @@
 Date	Added
+06/23
+	* Disable AF2 loading -- eA doesn't support unzipping archives yet [celest]
+	* Updated UPnP plugin to 1.0.3.2 [celest]
+	  - Added 'nat_ip' option to upnp.conf (use it to manually set your ip address
+	    if auto detecting doesn't work)
+	  - Fixed ip address not initialised properly
+
 06/22
 	* Stopped looting from Chase Walk [Aru]
+
 06/21
 	* Added send of fail packet on failing to pick up items under certain conditions 
 	  (this allows you to get an item you tried to pick up while cloaked when you uncloak). [Valaris]

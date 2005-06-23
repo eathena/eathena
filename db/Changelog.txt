@@ -23,6 +23,8 @@
 	4262,Taoist_Hermit_Card
 	4265,Li_Me_Mang_Ryang_Card
 
+06/23
+	* Corrected 3 of the new headgears in item DB, thanks to Ishizu-chan [celest]
 06/20
 	* Fixed some item_db typos [celest]
 	* Updated Thunderstorm range to 2 [celest]

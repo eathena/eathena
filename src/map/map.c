@@ -137,7 +137,7 @@ char *MSG_CONF_NAME;
 char *GRF_PATH_FILENAME;
 
 #define USE_AFM
-#define USE_AF2
+//#define USE_AF2
 
 // ã…óÕ staticÇ≈Éç?ÉJÉãÇ…?ÇﬂÇÈ
 static struct dbt * id_db=NULL;
@@ -2635,11 +2635,12 @@ static int map_readafm(int m,char *fn) {
 	return 0;
 }
 
+#ifdef USE_AF2
 static int map_readaf2(int m, char *fn)
 {
 	FILE *af2_file, *dest;
 	char buf[256];
-	int ret;
+	int ret = 0;
 
 	af2_file = fopen(fn, "r");
 	if (af2_file != NULL) {
@@ -2652,7 +2653,8 @@ static int map_readaf2(int m, char *fn)
 			fclose(af2_file);
 			return 0;
 		}
-		ret = decode_file (af2_file, dest);
+		// AF2's zip archive is not supported yet
+		//ret = decode_file (af2_file, dest);
 		fclose(af2_file);
 		fclose(dest);
 
@@ -2664,6 +2666,7 @@ static int map_readaf2(int m, char *fn)
 
 	return 0;
 }
+#endif
 #endif
 
 /*==========================================
@@ -2812,6 +2815,7 @@ int map_readallmap(void) {
 			continue;
 		}
 
+	#ifdef USE_AF2
 		// try with *.af2
 		fn[strlen(fn)-1] = '2';
 		afm_file = fopen(fn, "r");
@@ -2820,6 +2824,7 @@ int map_readallmap(void) {
 			if (map_readaf2(i,fn) != 0)
 				continue;
 		}
+	#endif
 #endif
 		if (strstr(map[i].name,".gat") != NULL) {
 			p = strstr(map[i].name, "<"); // [MouseJstr]
