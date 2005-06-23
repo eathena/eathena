@@ -39,7 +39,7 @@ int clif_charselectok(unsigned long id);
 int clif_dropflooritem(struct flooritem_data &fitem);
 int clif_clearflooritem(struct flooritem_data &fitem, int fd=0);
 int clif_clearchar(struct block_list &bl, unsigned char type);
-extern inline int clif_clearchar_area(struct block_list &bl, unsigned char type)	{ return clif_clearchar(bl,type); }
+#define clif_clearchar_area(bl, type)	clif_clearchar(bl,type)
 int clif_clearchar_delay(unsigned long tick, struct block_list &bl, int type);
 int clif_clearchar_id(int fd, unsigned long id, unsigned char type);
 int clif_spawnpc(struct map_session_data &sd);	//area

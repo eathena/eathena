@@ -18,10 +18,9 @@
 // あんまり信用しないこと。
 // 鯖snapshotの時や、大きな変更があった場合は設定してほしいです。
 // C言語の仕様上、最初に0を付けると8進数になるので間違えないで下さい。
-#define ATHENA_MOD_VERSION	1203	// mod version (patch No.)
+#define ATHENA_MOD_VERSION	1249	// mod version (patch No.)
 
 #define ATHENA_SVN_VERSION	2001	// svn version
-
 
 typedef enum 
 {

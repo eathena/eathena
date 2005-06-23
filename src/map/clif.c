@@ -4903,12 +4903,12 @@ int clif_GlobalMessage(struct block_list &bl,const char *message)
 		if(len>100) len=100;
 
 		WBUFW(buf,0)=0x8d;
-	WBUFW(buf,2)=len+8;
+		WBUFW(buf,2)=len+8;
 		WBUFL(buf,4)=bl.id;
 		memcpy(WBUFP(buf,8),message,len);
 		buf[sizeof(buf)-1]=0;// just paranoid
 		return clif_send(buf,len+8,&bl,AREA_CHAT_WOC);
-}
+	}
 	return 0;
 }
 
@@ -5619,10 +5619,12 @@ int clif_vendinglist(struct map_session_data &sd,unsigned long id,struct vending
 		WBUFB(buf,20+n*22)=vsd->status.cart[index].attribute;
 		WBUFB(buf,21+n*22)=vsd->status.cart[index].refine;
 		if(vsd->status.cart[index].card[0]==0x00ff || vsd->status.cart[index].card[0]==0x00fe || vsd->status.cart[index].card[0]==0xff00) {
-			WBUFW(buf,22+n*22)=vsd->status.cart[index].card[0];
-			WBUFW(buf,24+n*22)=vsd->status.cart[index].card[1];
-			WBUFW(buf,26+n*22)=vsd->status.cart[index].card[2];
+			WBUFW(buf,22+n*22)=(data->type==7)?0:vsd->status.cart[index].card[0];
+			WBUFW(buf,24+n*22)=(data->type==7)?0:vsd->status.cart[index].card[1];
+			WBUFW(buf,26+n*22)=(data->type==7)?0:vsd->status.cart[index].card[2];
 			WBUFW(buf,28+n*22)=vsd->status.cart[index].card[3];
+
+
 		} else {
 			if(vsd->status.cart[index].card[0] > 0 && (j=itemdb_viewid(vsd->status.cart[index].card[0])) > 0)
 				WBUFW(buf,22+n*22)= j;
@@ -5706,9 +5708,9 @@ int clif_openvending(struct map_session_data &sd,unsigned long id,struct vending
 		WBUFB(buf,20+n*22)=sd.status.cart[index].attribute;
 		WBUFB(buf,21+n*22)=sd.status.cart[index].refine;
 		if(sd.status.cart[index].card[0]==0x00ff || sd.status.cart[index].card[0]==0x00fe || sd.status.cart[index].card[0]==0xff00) {
-			WBUFW(buf,22+n*22)=sd.status.cart[index].card[0];
-			WBUFW(buf,24+n*22)=sd.status.cart[index].card[1];
-			WBUFW(buf,26+n*22)=sd.status.cart[index].card[2];
+			WBUFW(buf,22+n*22)=(data->type==7)?0:sd.status.cart[index].card[0];
+			WBUFW(buf,24+n*22)=(data->type==7)?0:sd.status.cart[index].card[1];
+			WBUFW(buf,26+n*22)=(data->type==7)?0:sd.status.cart[index].card[2];
 			WBUFW(buf,28+n*22)=sd.status.cart[index].card[3];
 		} else {
 			if(sd.status.cart[index].card[0] > 0 && (j=itemdb_viewid(sd.status.cart[index].card[0])) > 0)
@@ -6168,7 +6170,7 @@ int clif_sendegg(struct map_session_data &sd)
 int clif_send_petdata(struct map_session_data &sd,unsigned char type,unsigned long param)
 {
 	int fd=sd.fd;
-	if( !session_isActive(fd) )
+	if( !session_isActive(fd) || !sd.pd)
 		return 0;
 
 	WFIFOW(fd,0)=0x1a4;
@@ -8766,12 +8768,17 @@ int clif_parse_TakeItem(int fd, struct map_session_data &sd)
 	}
 
 	if( sd.npc_id!=0 || sd.vender_id != 0 || sd.opt1 > 0 ||
+		pc_iscloaking(sd) || //Disable cloaking characters from looting [Skotlex]
 		(sd.sc_data && (sd.sc_data[SC_TRICKDEAD].timer != -1 || //死んだふり
-		sd.sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
-		sd.sc_data[SC_BERSERK].timer!=-1 ||	//バーサーク
-		sd.sc_data[SC_NOCHAT].timer!=-1 )) )	//会話禁止
+		 sd.sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
+		 sd.sc_data[SC_BERSERK].timer!=-1 ||	//バーサーク
+		 sd.sc_data[SC_CHASEWALK].timer!=-1 ||  //Chasewalk [Aru]
+		 sd.sc_data[SC_NOCHAT].timer!=-1 )) )	//会話禁止
+	{
+		clif_additem(sd,0,0,6); // send fail packet! [Valaris]
 		return 0;
-
+	}
+	
 	if (fitem == NULL || fitem->bl.m != sd.bl.m)
 		return 0;
 

@@ -835,10 +835,10 @@ struct pet_data {
 	unsigned short to_y;
 	short rate_fix;	//Support rate as modified by intimacy (1000 = 100%) [Skotlex]
 	struct walkpath_data walkpath;
-	int move_fail_count;
-	unsigned int attackabletime;
-	unsigned int next_walktime;
-	unsigned int last_thinktime;
+	unsigned long move_fail_count;
+	unsigned long attackabletime;
+	unsigned long next_walktime;
+	unsigned long last_thinktime;
 
 	
 	struct pet_status { //Pet Status data

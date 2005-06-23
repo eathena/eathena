@@ -2198,8 +2198,8 @@ bool atcommand_item(int fd, struct map_session_data &sd, const char* command, co
 			if (pet_id >= 0) {
 				sd.catch_target_class = pet_db[pet_id].class_;
 				intif_create_pet(sd.status.account_id, sd.status.char_id,
-				                 (short)pet_db[pet_id].class_, (short)mob_db[pet_db[pet_id].class_].lv,
-				                 (short)pet_db[pet_id].EggID, 0, (short)pet_db[pet_id].intimate,
+				                 pet_db[pet_id].class_, mob_db[pet_db[pet_id].class_].lv,
+				                 pet_db[pet_id].EggID, 0, pet_db[pet_id].intimate,
 				                 100, 0, 1, pet_db[pet_id].jname);
 			// if not pet egg
 			} else {
@@ -3838,8 +3838,8 @@ bool atcommand_makeegg(int fd, struct map_session_data &sd, const char* command,
 		sd.catch_target_class = pet_db[pet_id].class_;
 		intif_create_pet(
 			sd.status.account_id, sd.status.char_id,
-			(short)pet_db[pet_id].class_, (short)mob_db[pet_db[pet_id].class_].lv,
-			(short)pet_db[pet_id].EggID, 0, (short)pet_db[pet_id].intimate,
+			pet_db[pet_id].class_, mob_db[pet_db[pet_id].class_].lv,
+			pet_db[pet_id].EggID, 0, pet_db[pet_id].intimate,
 			100, 0, 1, pet_db[pet_id].jname);
 	} else {
 		clif_displaymessage(fd, msg_table[180]); // The monter/egg name/id doesn't exist.
@@ -7012,21 +7012,24 @@ bool atcommand_charstoreall(int fd, struct map_session_data &sd, const char* com
  */
 bool atcommand_skillid(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-        int skillen = 0, idx = 0;
-	
+	size_t skillen, idx;
+
 	if (!message || !*message)
 		return false;
-        skillen = strlen(message);
-        while (skill_names[idx].id != 0) {
-		if((strncasecmp(skill_names[idx].name, message, skillen) == 0) ||
-			(strncasecmp(skill_names[idx].desc, message, skillen) == 0)) {
-			char output[255];
-			sprintf(output, "skill %d: %s", skill_names[idx].id, skill_names[idx].desc);
+	skillen = strlen(message);
+
+	for (idx = 0; idx < MAX_SKILL_DB; idx++)
+	{
+		if ((skill_db[idx].name && strncasecmp(skill_db[idx].name, message, skillen) == 0) ||
+			(skill_db[idx].desc && strncasecmp(skill_db[idx].desc, message, skillen) == 0))
+		{
+			char output[256];
+			sprintf(output, "skill %d: %s", idx, skill_db[idx].desc);
 			clif_displaymessage(fd, output);
-            }
-            idx++;
-        }
-        return true;
+		}
+
+	}
+	return true;
 }
 
 /*==========================================
@@ -7073,72 +7076,71 @@ bool atcommand_useskill(int fd, struct map_session_data &sd, const char* command
 bool atcommand_skilltree(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char output[128];
-  struct map_session_data *pl_sd = NULL;
-  int skillnum, skillidx = -1;
-  int meets = 1, j, c=0, s=0;
-  struct pc_base_job s_class;
-	char target[255];
-  struct skill_tree_entry *ent;
-
-  if (!message || !*message)
+	struct map_session_data *pl_sd = NULL;
+	int skillnum, skillidx = -1;
+	int meets = 1, j, c=0, s=0;
+	struct pc_base_job s_class;
+	char target[256];
+	struct skill_tree_entry *ent;
+	
+	if (!message || !*message)
 		return false;
 	if(sscanf(message, "%d %[^\r\n]", &skillnum, target) != 2)
 	{
-    clif_displaymessage(fd, "Usage: @skilltree <skillnum> <target>");
+		clif_displaymessage(fd, "Usage: @skilltree <skillnum> <target>");
 		return false;
-  }
+	}
+	if((pl_sd=map_nick2sd(target)) == NULL)
+		return false;
 	
-  if((pl_sd=map_nick2sd(target)) == NULL)
-		return false;
-
-  s_class = pc_calc_base_job(pl_sd->status.class_);
-  c = s_class.job;
-  s = s_class.upper;
+	s_class = pc_calc_base_job(pl_sd->status.class_);
+	c = s_class.job;
+	s = s_class.upper;
 	c = pc_calc_skilltree_normalize_job(*pl_sd, c);
 	sprintf(output, "Player is using %s %s skill tree (%d basic points)",
-	  s_class.upper ? "upper" : "lower",
+		s_class.upper ? "upper" : "lower",
 		job_name(c), pc_checkskill(*pl_sd, 1));
 	clif_displaymessage(fd, output);
-
+	
 	for (j = 0; skill_tree[s][c][j].id != 0; j++)
 	{
 		if (skill_tree[s][c][j].id == skillnum)
 		{
-      skillidx = j;
-      break;
-    }
-  }
+			skillidx = j;
+			break;
+		}
+	}
 	if (skillidx == -1)
 	{
 		sprintf(output, "I do not believe the player can use that skill");
 		clif_displaymessage(fd, output);
 		return false;
-  }
-  ent = &skill_tree[s][c][skillidx];
-  for(j=0;j<5;j++)
-      {
+	}
+	ent = &skill_tree[s][c][skillidx];
+	for(j=0;j<5;j++)
+	{
 		if( ent->need[j].id && pc_checkskill(sd,ent->need[j].id) < ent->need[j].lv)
 		{
-	int idx = 0;
-	char *desc;
-        while (skill_names[idx].id != 0 && skill_names[idx].id != ent->need[j].id)
-		idx++;
-	if (skill_names[idx].id == 0)
-		desc = "Unknown skill";
-	else
-		desc = skill_names[idx].desc;
+			int idx = 0;
+			char *desc;
+			while (skill_names[idx].id != 0 && skill_names[idx].id != ent->need[j].id)
+				idx++;
+			if (skill_names[idx].id == 0)
+				desc = "Unknown skill";
+			else
+				desc = skill_names[idx].desc;
 			sprintf(output, "player requires level %d of skill %s",
-		ent->need[j].lv,  desc);
+				ent->need[j].lv,  desc);
 			clif_displaymessage(fd, output);
-	meets = 0;
+			meets = 0;
 			break;
-      }
-  }
+		}
+	}
 	if (meets == 1)
 	{
 		sprintf(output, "I believe the player meets all the requirements for that skill");
 		clif_displaymessage(fd, output);
-}
+	}
 	return true;
 }
 

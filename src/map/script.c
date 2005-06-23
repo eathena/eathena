@@ -8058,7 +8058,7 @@ bool run_script_main(struct script_state &st)
 					ShowMessage("stack.sp(%d) != default(%d)\n",st.stack.sp,st.defsp);
 //!!
 printf("(%d)\n", st.pos);
-debug_script(st.script,((st.pos>32)?st.pos-32:0),64);
+debug_script(st.script,((st.pos>32)?st.pos-32:0),((st.pos>32)?32:st.pos));
 
 				st.stack.sp=st.defsp;
 			}

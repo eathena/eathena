@@ -804,8 +804,8 @@ bool npc_icNear(struct map_session_data &sd, struct npc_data &nd)
 int npc_globalmessage(const char *name,const char *mes)
 {
 	struct npc_data *nd=(struct npc_data *) strdb_search(npcname_db,name);
-	char temp[100];
-	char ntemp[50];
+	char temp[128];
+	char ntemp[64];
 	const char *ltemp;
 
 	if(nd==NULL) return 0;
@@ -815,7 +815,7 @@ int npc_globalmessage(const char *name,const char *mes)
 	if(ltemp!=NULL)
 	{
 		safestrcpy(ntemp,name,ltemp - name);	// 123#456 の # から後ろを削除する
-		ntemp[ltemp - name]=0x00;			// strncpy のバグ？使い方間違ってる？
+		ntemp[ltemp - name]=0x00;				// strncpy のバグ？使い方間違ってる？
 	}
 
 	snprintf(temp, sizeof temp ,"%s : %s",ntemp,mes);

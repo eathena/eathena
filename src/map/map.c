@@ -3469,8 +3469,8 @@ void char_online_check(void)
 			sd->status.char_id)
 		{
 			chrif_char_online(*sd);
+		}
 	}
-}
 }
 
 int online_timer(int tid,unsigned long tick,int id,int data)

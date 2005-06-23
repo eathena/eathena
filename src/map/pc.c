@@ -2472,6 +2472,9 @@ int pc_takeitem(struct map_session_data &sd,struct flooritem_data &fitem)
 	unsigned long tick = gettick();
 	struct map_session_data *first_sd = NULL,*second_sd = NULL,*third_sd = NULL;
 
+	if(distance(fitem.bl.x,fitem.bl.y,sd.bl.x,sd.bl.y)>2)
+		return 0;	// ‹——£‚ª‰“‚¢
+
 	if(fitem.first_get_id > 0)
 	{
 		first_sd = map_id2sd(fitem.first_get_id);
@@ -5843,7 +5846,7 @@ int pc_setregstr(struct map_session_data &sd,int reg,const char *str)
 		{
 			sd.regstr_num++;
 			sd.regstr = (struct script_regstr *)aRealloc(sd.regstr, sizeof(struct script_regstr) * sd.regstr_num);
-			memset(sd.regstr + (sd.reg_num - 1) * sizeof(struct script_regstr), 0, sizeof(struct script_regstr));
+			memset(sd.regstr+(sd.regstr_num-1), 0, sizeof(struct script_regstr));
 		}
 		sd.regstr[i].index=reg;
 		memcpy(sd.regstr[i].data,str,strlen(str)+1);
@@ -7136,7 +7139,6 @@ static int last_save_fd,save_flag;
 
 int pc_autosave_sub(struct map_session_data &sd,va_list ap)
 {
-	Assert((sd->status.pet_id == 0 || sd->pd == 0) || sd->pd->msd == sd);
 
 	if(save_flag==0 && sd.fd>last_save_fd && !sd.state.waitingdisconnect)
 	{

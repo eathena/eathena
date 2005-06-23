@@ -106,6 +106,7 @@ struct Battle_Config
 	ulong berserk_cancels_buffs;
 	ulong bone_drop;
 	ulong boss_spawn_delay;
+	ulong buyer_name;
 	ulong cardillust_read_grffile;
 	ulong cast_rate;
 	ulong castle_defense_rate;

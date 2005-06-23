@@ -1,17 +1,19 @@
 // $Id: vending.c,v 1.2 2004/09/25 05:32:19 MouseJstr Exp $
 #include "base.h"
 #include "socket.h"
+#include "showmsg.h"
+#include "utils.h"
+
+#include "map.h"
+#include "atcommand.h"
 #include "clif.h"
 #include "itemdb.h"
-#include "map.h"
 #include "vending.h"
 #include "pc.h"
 #include "skill.h"
 #include "battle.h"
 #include "nullpo.h"
 #include "log.h"
-#include "showmsg.h"
-#include "utils.h"
 
 /*==========================================
  * ˜I“X•Â½
@@ -122,7 +124,12 @@ void vending_purchasereq(struct map_session_data &sd,unsigned short len,unsigned
 		vsd->vending[vend_list[i]].amount -= amount;
 		pc_cart_delitem(*vsd, index, amount, 0);
 		clif_vendingreport(*vsd, index, amount);
-
+		if(battle_config.buyer_name)
+		{
+			char temp[256];
+			sprintf(temp, msg_txt(265), sd.status.name);
+			clif_disp_onlyself(*vsd,temp);
+		}
 		//log added by Lupus
 		if(log_config.vend > 0) {
 			log_vend(sd, *vsd, index, amount, z); // for Item + Zeny. log.

@@ -40,6 +40,8 @@
 
 // スキルデ?タベ?ス
 struct skill_db {
+	const char *name;
+	const char *desc;
 	int range[MAX_SKILL_LEVEL];
 	int hit;
 	int inf;

@@ -793,14 +793,13 @@ int mob_walktoxy_sub(struct mob_data &md)
 		return 1;	
 	x = md.bl.x+dirx[wpd.path[0]];
 	y = md.bl.y+diry[wpd.path[0]];
-	if (map_getcell(md.bl.m,x,y,CELL_CHKBASILICA) && !(status_get_mode(&md.bl)&0x20)) {
-		md.state.change_walk_target=0;
+	md.state.change_walk_target=0;
+
+	if (map_getcell(md.bl.m,x,y,CELL_CHKBASILICA) && !(status_get_mode(&md.bl)&0x20))
+	{
 		return 1;
 	}
-
 	memcpy(&md.walkpath,&wpd,sizeof(wpd));
-
-	md.state.change_walk_target=0;
 	mob_changestate(md,MS_WALK,0);
 	clif_movemob(md);
 
@@ -919,6 +918,7 @@ int mob_spawn(unsigned long id)
 			memcpy(md->name, md->cache->mobname,24);
 		else // no chance to find the real name, just take it from the db, should not happen anyway
 			memcpy(md->name, mob_db[md->base_class].jname,24);
+		md->speed=mob_db[md->base_class].speed;
 	}
 
 	do
@@ -1248,19 +1248,18 @@ int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list ap)
 				!pc_isinvisible(tsd) &&
 				(dist=distance(smd->bl.x,smd->bl.y,tsd.bl.x,tsd.bl.y))<9
 			)
-		{
-			if(mode&0x20 ||
-					(tsd.sc_data[SC_TRICKDEAD].timer == -1 && tsd.sc_data[SC_BASILICA].timer == -1 &&
-				((!pc_ishiding(tsd) && !tsd.state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) && !tsd.perfect_hiding) ))){	// –WŠQ‚ª‚È‚¢‚©”»’è
-					if( mob_can_reach(*smd,bl,12) && 	// “’B‰Â”\«”»’è
-						rand()%1000<1000/(++(*pcc)) )	// ”ÍˆÍ“àPC‚Å“™Šm—¦‚É‚·‚é
-					{
-						smd->target_id=tsd.bl.id;
+			if( mode&0x20 ||
+				(tsd.sc_data[SC_TRICKDEAD].timer == -1 && tsd.sc_data[SC_BASILICA].timer == -1 &&
+				((!pc_ishiding(tsd) && !tsd.state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) && !tsd.perfect_hiding) )))
+			{	// –WŠQ‚ª‚È‚¢‚©”»’è
+				if( ((mob_db[smd->class_].range > 6) && mob_can_reach(*smd,bl,12)) && 	// “’B‰Â”\«”»’è
+					rand()%1000<1000/(++(*pcc)) )	// ”ÍˆÍ“àPC‚Å“™Šm—¦‚É‚·‚é
+				{
+					smd->target_id=tsd.bl.id;
 					smd->state.targettype = ATTACKABLE;
 					smd->min_chase=13;
 				}
 			}
-		}
 		}
 		else if(bl.type==BL_MOB) 
 		{	//‘ÎÛ‚ªMob‚Ìê‡
@@ -1346,72 +1345,82 @@ int mob_ai_sub_hard_linksearch(struct block_list &bl,va_list ap)
  * Processing of slave monsters
  *------------------------------------------
  */
-int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned long tick)
+int mob_ai_sub_hard_slavemob(struct mob_data &md,unsigned long tick)
 {
 	struct mob_data *mmd=NULL;
 	struct block_list *bl;
 	int mode,race,old_dist;
 
-	nullpo_retr(0, md);
 
-	if((bl=map_id2bl(md->master_id)) != NULL )
+	if((bl=map_id2bl(md.master_id)) != NULL )
 		mmd=(struct mob_data *)bl;
 
-	mode=mob_db[md->class_].mode;
+	mode=mob_db[md.class_].mode;
+
+	if(!mmd || mmd->hp <= 0)
+	{	//å‚ª€–S‚µ‚Ä‚¢‚é‚©Œ©‚Â‚©‚ç‚È‚¢
+		if(md.state.special_mob_ai>0)
+			mob_timer_delete(0, 0, md.bl.id, 0);
+		else
+			mob_damage(md,md.hp,0,NULL);
+		return 0;
+	}
+	if(md.state.special_mob_ai>0)		// å‚ªPC‚Ìê‡‚ÍAˆÈ~‚Ìˆ—‚Í—v‚ç‚È‚¢
+		return 0;
 
 	// It is not main monster/leader.
-	if(!mmd || mmd->bl.type!=BL_MOB || mmd->bl.id!=md->master_id)
+	if(!mmd || mmd->bl.type != BL_MOB || mmd->bl.id != md.master_id)
 		return 0;
 
 	// ŒÄ‚Ñ–ß‚µ
 	if(mmd->state.recall_flag == 1){
 		if (mmd->recallcount < (mmd->recallmob_count+2) ){
-			mob_warp(*md,-1,mmd->bl.x,mmd->bl.y,3);
+			mob_warp(md,-1,mmd->bl.x,mmd->bl.y,3);
 			mmd->recallcount += 1;
 		} else{
 			mmd->state.recall_flag = 0;
 			mmd->recallcount=0;
 		}
-		md->state.master_check = 1;
+		md.state.master_check = 1;
 		return 0;
 	}
 	// Since it is in the map on which the master is not, teleport is carried out and it pursues.
-	if( mmd->bl.m != md->bl.m ){
-		mob_warp(*md,mmd->bl.m,mmd->bl.x,mmd->bl.y,3);
-		md->state.master_check = 1;
+	if( mmd->bl.m != md.bl.m ){
+		mob_warp(md,mmd->bl.m,mmd->bl.x,mmd->bl.y,3);
+		md.state.master_check = 1;
 		return 0;
 	}
 
 	// Distance with between slave and master is measured.
-	old_dist=md->master_dist;
-	md->master_dist=distance(md->bl.x,md->bl.y,mmd->bl.x,mmd->bl.y);
+	old_dist=md.master_dist;
+	md.master_dist=distance(md.bl.x,md.bl.y,mmd->bl.x,mmd->bl.y);
 
 	// Since the master was in near immediately before, teleport is carried out and it pursues.
-	if( old_dist<10 && md->master_dist>18){
-		mob_warp(*md,-1,mmd->bl.x,mmd->bl.y,3);
-		md->state.master_check = 1;
+	if( old_dist<10 && md.master_dist>18){
+		mob_warp(md,-1,mmd->bl.x,mmd->bl.y,3);
+		md.state.master_check = 1;
 		return 0;
 	}
 
 	// Although there is the master, since it is somewhat far, it approaches.
-	if((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mob_can_move(*md) &&
-		(md->walkpath.path_pos>=md->walkpath.path_len || md->walkpath.path_len==0) && md->master_dist<15){
+	if((!md.target_id || md.state.targettype == NONE_ATTACKABLE) && mob_can_move(md) &&
+		(md.walkpath.path_pos>=md.walkpath.path_len || md.walkpath.path_len==0) && md.master_dist<15){
 		int i=0,dx,dy,ret;
-		if(md->master_dist>4) {
+		if(md.master_dist>4) {
 			do {
 				if(i<=5){
-					dx=mmd->bl.x - md->bl.x;
-					dy=mmd->bl.y - md->bl.y;
+					dx=mmd->bl.x - md.bl.x;
+					dy=mmd->bl.y - md.bl.y;
 					if(dx<0) dx+=(rand()%( (dx<-3)?3:-dx )+1);
 					else if(dx>0) dx-=(rand()%( (dx>3)?3:dx )+1);
 					if(dy<0) dy+=(rand()%( (dy<-3)?3:-dy )+1);
 					else if(dy>0) dy-=(rand()%( (dy>3)?3:dy )+1);
 				}else{
-					dx=mmd->bl.x - md->bl.x + rand()%7 - 3;
-					dy=mmd->bl.y - md->bl.y + rand()%7 - 3;
+					dx=mmd->bl.x - md.bl.x + rand()%7 - 3;
+					dy=mmd->bl.y - md.bl.y + rand()%7 - 3;
 				}
 
-				ret=mob_walktoxy(*md,md->bl.x+dx,md->bl.y+dy,0);
+				ret=mob_walktoxy(md,md.bl.x+dx,md.bl.y+dy,0);
 				i++;
 			} while(ret && i<10);
 		}
@@ -1426,36 +1435,36 @@ int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned long tick)
 				dx += mmd->bl.x;
 				dy += mmd->bl.y;
 
-				ret=mob_walktoxy(*md,mmd->bl.x+dx,mmd->bl.y+dy,0);
+				ret=mob_walktoxy(md,mmd->bl.x+dx,mmd->bl.y+dy,0);
 				i++;
 			} while(ret && i<10);
 		}
 
-		md->next_walktime=tick+500;
-		md->state.master_check = 1;
+		md.next_walktime=tick+500;
+		md.state.master_check = 1;
 	}
 
 	// There is the master, the master locks a target and he does not lock.
-	if( (mmd->target_id>0 && mmd->state.targettype == ATTACKABLE) && (!md->target_id || md->state.targettype == NONE_ATTACKABLE) ){
+	if( (mmd->target_id>0 && mmd->state.targettype == ATTACKABLE) && (!md.target_id || md.state.targettype == NONE_ATTACKABLE) ){
 		struct map_session_data *sd=map_id2sd(mmd->target_id);
 		if(sd!=NULL && !pc_isdead(*sd) && sd->invincible_timer == -1 && !pc_isinvisible(*sd)){
 
-			race=mob_db[md->class_].race;
+			race=mob_db[md.class_].race;
 			if(mode&0x20 ||
 				(sd->sc_data[SC_TRICKDEAD].timer == -1 && sd->sc_data[SC_BASILICA].timer == -1 &&
 				( (!pc_ishiding(*sd) && !sd->state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) && !sd->perfect_hiding) ) ) ){	// –WŠQ‚ª‚È‚¢‚©”»’è
 
-				md->target_id=sd->bl.id;
-				md->state.targettype = ATTACKABLE;
-				md->min_chase=5+distance(md->bl.x,md->bl.y,sd->bl.x,sd->bl.y);
-				md->state.master_check = 1;
+				md.target_id=sd->bl.id;
+				md.state.targettype = ATTACKABLE;
+				md.min_chase=5+distance(md.bl.x,md.bl.y,sd->bl.x,sd->bl.y);
+				md.state.master_check = 1;
 			}
 		}
 	}
 
 	// There is the master, the master locks a target and he does not lock.
-/*	if( (md->target_id>0 && mmd->state.targettype == ATTACKABLE) && (!mmd->target_id || mmd->state.targettype == NONE_ATTACKABLE) ){
-		struct map_session_data *sd=map_id2sd(md->target_id);
+/*	if( (md.target_id>0 && mmd->state.targettype == ATTACKABLE) && (!mmd->target_id || mmd->state.targettype == NONE_ATTACKABLE) ){
+		struct map_session_data *sd=map_id2sd(md.target_id);
 		if(sd!=NULL && !pc_isdead(sd) && sd->invincible_timer == -1 && !pc_isinvisible(sd)){
 
 			race=mob_db[mmd->class_].race;
@@ -1653,11 +1662,11 @@ int mob_ai_sub_hard(struct block_list &bl,va_list ap)
 
 	md->state.master_check = 0;
 	// Processing of slave monster
-	if (md->master_id > 0 && md->state.special_mob_ai == 0)
-		mob_ai_sub_hard_slavemob(md, tick);
+	if(md->master_id > 0)// && md->state.special_mob_ai == 0)
+		mob_ai_sub_hard_slavemob(*md, tick);
 
 	// ƒAƒNƒeƒBƒ”ƒ‚ƒ“ƒXƒ^[‚Ìô“G (?? of a bitter taste TIVU monster)
-	if ((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mode & 0x04 && !md->state.master_check &&
+	if((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mode & 0x04 && !md->state.master_check &&
 		battle_config.monster_active_enable) {
 		i = 0;
 		search_size = (blind_flag) ? 3 : AREA_SIZE*2;
@@ -1708,7 +1717,7 @@ int mob_ai_sub_hard(struct block_list &bl,va_list ap)
 					(tsd->sc_data[SC_TRICKDEAD].timer != -1 ||
 					tsd->sc_data[SC_BASILICA].timer != -1 ||
 					((pc_ishiding(*tsd) || tsd->state.gangsterparadise) &&
-					!((race == 4 || race == 6) && !tsd->perfect_hiding))))
+					!((race == 4 || race == 6 || mode&0x100) && !tsd->perfect_hiding))))
 				{
 					mob_unlocktarget(*md,tick);	// ƒXƒLƒ‹‚È‚Ç‚É‚æ‚éô“G–WŠQ
 				}
@@ -1904,7 +1913,9 @@ int mob_ai_sub_lazy(void * key,void * data,va_list app)
 		return 0;
 
 	if (md->master_id > 0) {
-		mmd = (struct mob_data *)map_id2bl(md->master_id);	//©•ª‚ÌBOSS‚Ìî•ñ
+		struct block_list *mbl = map_id2bl(md->master_id);
+		if (mbl && mbl->type == BL_MOB) 
+			mmd = (struct mob_data *)mbl;	//©•ª‚ÌBOSS‚Ìî•ñ
 	}
 
 	tick=(unsigned long)va_arg(ap,int);
@@ -1921,7 +1932,7 @@ int mob_ai_sub_lazy(void * key,void * data,va_list app)
 
 	// æ‚èŠª‚«ƒ‚ƒ“ƒXƒ^[‚Ìˆ—iŒÄ‚Ñ–ß‚µ‚³‚ê‚½j
 	if(mmd && md->state.special_mob_ai == 0 && mmd->state.recall_flag == 1) {
-		mob_ai_sub_hard_slavemob (md,tick);
+		mob_ai_sub_hard_slavemob (*md,tick);
 		return 0;
 	}
 
@@ -2307,9 +2318,11 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		}
 		if(src && src->type == BL_MOB && ((struct mob_data*)src)->state.special_mob_ai){
 			struct mob_data *md2 = (struct mob_data *)src;
+			struct map_session_data *msd = map_id2sd(md2->master_id);
 			nullpo_retr(0, md2);
+			nullpo_retr(0, msd);
 			for(i=0,minpos=0,mindmg=0x7fffffff;i<DAMAGELOG_SIZE;i++){
-				if(md.dmglog[i].fromid==md2->master_id)
+				if(md.dmglog[i].fromid==msd->status.char_id)
 					break;
 				if(md.dmglog[i].fromid==0){
 					minpos=i;
@@ -2323,14 +2336,13 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			if(i<DAMAGELOG_SIZE)
 				md.dmglog[i].dmg+=damage;
 			else {
-				md.dmglog[minpos].fromid=md2->master_id;
+				md.dmglog[minpos].fromid=msd->status.char_id;;
 				md.dmglog[minpos].dmg=damage;
 
 			if(md.attacked_id <= 0 && md.state.special_mob_ai==0)
 				md.attacked_id = md2->master_id;
 			}
 		}
-
 	}
 
 	md.hp-=damage;
@@ -2466,14 +2478,11 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 	for(i=0,count=0,mvp_damage=0;i<DAMAGELOG_SIZE;i++){
 		if(md.dmglog[i].fromid==0)
 			continue;
-		// Will this slow things down too much?
+
 		tmpsd[i] = map_charid2sd(md.dmglog[i].fromid);
-		// try finding again
-		if(tmpsd[i] == NULL)
-			tmpsd[i] = map_id2sd(md.dmglog[i].fromid);
-		// if we still can't find the player
 		if(tmpsd[i] == NULL)
 			continue;
+
 		count++;
 		if(tmpsd[i]->bl.m != md.bl.m || pc_isdead(*tmpsd[i]))
 			continue;

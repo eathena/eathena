@@ -54,7 +54,7 @@ const struct skill_name_db skill_names[] = {
  { AL_WARP, "WARP", "Warp_Portal" } ,
  { AM_ACIDTERROR, "ACIDTERROR", "Acid_Terror" } ,
  { AM_AXEMASTERY, "AXEMASTERY", "Axe_Mastery" } ,
- { AM_BERSERKPITCHER, "BERSERKPITCHER", "Berserk_Pitcher" } ,
+ { AM_BERSERKPITCHER, "BERSERKPITCHER", "Aid_Berserk_Potion" } ,
  { AM_BIOETHICS, "BIOETHICS", "Bioethics" } ,
  { AM_BIOTECHNOLOGY, "BIOTECHNOLOGY", "Biotechnology" } ,
  { AM_CALLHOMUN, "CALLHOMUN", "Call_Homunculus" } ,
@@ -111,7 +111,7 @@ const struct skill_name_db skill_names[] = {
  { BD_ROKISWEIL, "ROKISWEIL", "Classical_Pluck" } ,
  { BD_SIEGFRIED, "SIEGFRIED", "Acoustic_Rhythm" } ,
  { BS_ADRENALINE, "ADRENALINE", "Adrenaline_Rush" } ,
- { BS_ADRENALINE2, "ADRENALINE2", "Adrenaline_Rush_2" } ,
+ { BS_ADRENALINE2, "ADRENALINE2", "Advanced_Adrenaline_Rush" } ,
  { BS_AXE, "AXE", "Smith_Axe" } ,
  { BS_DAGGER, "DAGGER", "Smith_Dagger" } ,
  { BS_ENCHANTEDSTONE, "ENCHANTEDSTONE", "Enchantedstone_Craft" } ,
@@ -168,19 +168,19 @@ const struct skill_name_db skill_names[] = {
  { DC_THROWARROW, "THROWARROW", "Slinging_Arrow" } ,
  { DC_UGLYDANCE, "UGLYDANCE", "Hip_Shaker" } ,
  { GD_APPROVAL, "APPROVAL", "Official_Guild_Approval" } ,
- { GD_BATTLEORDER, "BATTLEORDER", "Battle_Orders" } ,
- { GD_DEVELOPMENT, "DEVELOPMENT", "Guild_Development" } ,
- { GD_EMERGENCYCALL, "EMERGENCYCALL", "Emergency_Call" } ,
+ { GD_BATTLEORDER, "BATTLEORDER", "Battle_Command" } ,
+ { GD_DEVELOPMENT, "DEVELOPMENT", "Permanent_Development" } ,
+ { GD_EMERGENCYCALL, "EMERGENCYCALL", "Urgent_Call" } ,
  { GD_EXTENSION, "EXTENSION", "Guild_Extension" } ,
- { GD_GLORYGUILD, "GLORYGUILD", "The_Glory_of_the_Guild" } ,
- { GD_GLORYWOUNDS, "GLORYWOUNDS", "Wounds_of_Glory" } ,
- { GD_GUARDUP, "GUARDUP", "Build_Up_The_Guardian" } ,
+ { GD_GLORYGUILD, "GLORYGUILD", "Glory_of_Guild" } ,
+ { GD_GLORYWOUNDS, "GLORYWOUNDS", "Glorious_Wounds" } ,
+ { GD_GUARDUP, "GUARDUP", "Strengthen_Guardian" } ,
  { GD_LEADERSHIP, "LEADERSHIP", "Great_Leadership" } ,
- { GD_HAWKEYES, "HAWKEYES", "Sharp_Hawk_Eyes" } ,
+ { GD_HAWKEYES, "HAWKEYES", "Sharp_Gaze" } ,
  { GD_KAFRACONTRACT, "KAFRACONTRACT", "Contract_with_Kafra" } ,
  { GD_REGENERATION, "REGENERATION", "Regeneration" } ,
- { GD_RESTORE, "RESTORE", "Restore" } ,
- { GD_SOULCOLD, "SOULCOLD", "Soul_of_Cold" } ,
+ { GD_RESTORE, "RESTORE", "Restoration" } ,
+ { GD_SOULCOLD, "SOULCOLD", "Cold_Heart" } ,
  { HP_ASSUMPTIO, "ASSUMPTIO", "Assumptio" } ,
  { HP_BASILICA, "BASILICA", "Basilica" } ,
  { HP_MANARECHARGE, "MANARECHARGE", "Mana_Recharge" } ,
@@ -208,7 +208,7 @@ const struct skill_name_db skill_names[] = {
  { HW_MAGICPOWER, "MAGICPOWER", "Mystical_Amplification" } ,
  { HW_NAPALMVULCAN, "NAPALMVULCAN", "Napalm_Vulcan" } ,
  { HW_SOULDRAIN, "SOULDRAIN", "Soul_Drain" } ,
- { ITM_TOMAHAWK, "TOMAHAWK", "Tomahawk_Throw" } ,
+ { ITM_TOMAHAWK, "TOMAHAWK", "Tomahawk_Throwing" } ,
  { KN_AUTOCOUNTER, "AUTOCOUNTER", "Counter_Attack" } ,
  { KN_BOWLINGBASH, "BOWLINGBASH", "Bowling_Bash" } ,
  { KN_BRANDISHSPEAR, "BRANDISHSPEAR", "Brandish_Spear" } ,
@@ -397,50 +397,50 @@ const struct skill_name_db skill_names[] = {
  { SA_TAMINGMONSTER, "TAMINGMONSTER", "Beastly_Hypnosis" } ,
  { SA_VIOLENTGALE, "VIOLENTGALE", "Whirlwind" } ,
  { SA_VOLCANO, "VOLCANO", "Volcano" } ,
- { SG_DEVIL, "DEVIL", "Devil" } ,
- { SG_FEEL, "FEEL", "Feel" } ,
- { SG_FRIEND, "FRIEND", "Friend" } ,
- { SG_FUSION, "FUSION", "Fusion" } ,
- { SG_HATE, "HATE", "Hate" } ,
- { SG_KNOWLEDGE, "KNOWLEDGE", "Knowledge" } ,
- { SG_MOON_ANGER, "ANGER", "Moon_Anger" } ,
- { SG_MOON_BLESS, "BLESS", "Moon_Bless" } ,
- { SG_MOON_COMFORT, "COMFORT", "Moon_Comfort" } ,
- { SG_MOON_WARM, "WARM", "Moon_Warm" } ,
- { SG_STAR_ANGER, "ANGER", "Star_Anger" } ,
- { SG_STAR_BLESS, "BLESS", "Star_Bless" } ,
- { SG_STAR_COMFORT, "COMFORT", "Star_Comfort" } ,
- { SG_STAR_WARM, "WARM", "Star_Warm" } ,
- { SG_SUN_ANGER, "ANGER", "Sun_Anger" } ,
- { SG_SUN_BLESS, "BLESS", "Sun_Bless" } ,
- { SG_SUN_COMFORT, "COMFORT", "Sun_Comfort" } ,
- { SG_SUN_WARM, "WARM", "Sun_Warm" } ,
- { SL_ALCHEMIST, "ALCHEMIST", "Alchemist" } ,
- { SL_ASSASIN, "ASSASIN", "Assassin" } ,
- { SL_BARDDANCER, "BARDDANCER", "Bard_Dancer" } ,
- { SL_BLACKSMITH, "BLACKSMITH", "Blacksmith" } ,
- { SL_CRUSADER, "CRUSADER", "Crusader" } ,
- { SL_HUNTER, "HUNTER", "Hunter" } ,
+ { SG_DEVIL, "DEVIL", "Devil_of_the_Sun,_Moon_and_Stars" } ,
+ { SG_FEEL, "FEEL", "Feeling_of_the_Sun,_Moon_and_Star" } ,
+ { SG_FRIEND, "FRIEND", "Companion_of_the_Sun_and_Moon" } ,
+ { SG_FUSION, "FUSION", "Union_of_the_Sun,_Moon_and_Stars" } ,
+ { SG_HATE, "HATE", "Hatred_of_the_Sun,_Moon_and_Stars" } ,
+ { SG_KNOWLEDGE, "KNOWLEDGE", "Knowledge_of_the_Sun,_Moon_and_Stars" } ,
+ { SG_MOON_ANGER, "ANGER", "Fury_of_the_Moon" } ,
+ { SG_MOON_BLESS, "BLESS", "Bless_of_the_Moon" } ,
+ { SG_MOON_COMFORT, "COMFORT", "Comfort_of_the_Moon" } ,
+ { SG_MOON_WARM, "WARM", "Warmth_of_the_Moon" } ,
+ { SG_STAR_ANGER, "ANGER", "Fury_of_the_Stars" } ,
+ { SG_STAR_BLESS, "BLESS", "Bless_of_the_Stars" } ,
+ { SG_STAR_COMFORT, "COMFORT", "Comfort_of_the_Stars" } ,
+ { SG_STAR_WARM, "WARM", "Warmth_of_the_Stars" } ,
+ { SG_SUN_ANGER, "ANGER", "Fury_of_the_Sun" } ,
+ { SG_SUN_BLESS, "BLESS", "Bless_of_the_Sun" } ,
+ { SG_SUN_COMFORT, "COMFORT", "Comfort_of_the_Sun" } ,
+ { SG_SUN_WARM, "WARM", "Warmth_of_the_Sun" } ,
+ { SL_ALCHEMIST, "ALCHEMIST", "Spirit_of_Alchemist" } ,
+ { SL_ASSASIN, "ASSASIN", "Spirit_of_Assassin" } ,
+ { SL_BARDDANCER, "BARDDANCER", "Spirit_of_Bard_and_Dancer" } ,
+ { SL_BLACKSMITH, "BLACKSMITH", "Spirit_of_Blacksmith" } ,
+ { SL_CRUSADER, "CRUSADER", "Spirit_of_Crusader" } ,
+ { SL_HUNTER, "HUNTER", "Spirit_of_Hunter" } ,
  { SL_KAAHI, "KAAHI", "Kaahi" } ,
  { SL_KAINA, "KAINA", "Kaina" } ,
  { SL_KAITE, "KAITE", "Kaite" } ,
  { SL_KAIZEL, "KAIZEL", "Kaizel" } ,
  { SL_KAUPE, "KAUPE", "Kaupe" } ,
- { SL_KNIGHT, "KNIGHT", "Knight" } ,
- { SL_MONK, "MONK", "Monk" } ,
- { SL_PRIEST, "PRIEST", "Priest" } ,
- { SL_ROGUE, "ROGUE", "Rogue" } ,
- { SL_SAGE, "SAGE", "Sage" } ,
- { SL_SKA, "SKA", "SKA" } ,
- { SL_SKE, "SKE", "SKE" } ,
- { SL_SMA, "SMA", "SMA" } ,
- { SL_SOULLINKER, "SOULLINKER", "Soul_Linker" } ,
- { SL_STAR, "STAR", "Star" } ,
- { SL_STIN, "STIN", "Stin" } ,
- { SL_STUN, "STUN", "Stun" } ,
- { SL_SUPERNOVICE, "SUPERNOVICE", "Super_Novice" } ,
- { SL_SWOO, "SWOO", "Swoo" } ,
- { SL_WIZARD, "WIZARD", "Wizard" } ,
+ { SL_KNIGHT, "KNIGHT", "Spirit_of_Knight" } ,
+ { SL_MONK, "MONK", "Spirit_of_Monk" } ,
+ { SL_PRIEST, "PRIEST", "Spirit_of_Priest" } ,
+ { SL_ROGUE, "ROGUE", "Spirit_of_Rogue" } ,
+ { SL_SAGE, "SAGE", "Spirit_of_Sage" } ,
+ { SL_SKA, "SKA", "Eska" } ,
+ { SL_SKE, "SKE", "Eske" } ,
+ { SL_SMA, "SMA", "Esma" } ,
+ { SL_SOULLINKER, "SOULLINKER", "Spirit_of_Soul_Linker" } ,
+ { SL_STAR, "STAR", "Spirit_of_Stars" } ,
+ { SL_STIN, "STIN", "Estin" } ,
+ { SL_STUN, "STUN", "Estun" } ,
+ { SL_SUPERNOVICE, "SUPERNOVICE", "Spirit_of_Super_Novice" } ,
+ { SL_SWOO, "SWOO", "Eswoo" } ,
+ { SL_WIZARD, "WIZARD", "Spirit_of_Wizard" } ,
  { SM_AUTOBERSERK, "AUTOBERSERK", "Berserk" } ,
  { SM_BASH, "BASH", "Bash" } ,
  { SM_ENDURE, "ENDURE", "Endure" } ,
@@ -459,7 +459,7 @@ const struct skill_name_db skill_names[] = {
  { ST_REJECTSWORD, "REJECTSWORD", "Counter_Instinct" } ,
  { ST_STEALBACKPACK, "STEALBACKPACK", "Pickpocket" } ,
  { ST_PRESERVE, "PRESERVE", "Preserve" } ,
- { ST_FULLSTRIP, "FULLSTRIP", "Divest_All" } ,
+ { ST_FULLSTRIP, "FULLSTRIP", "Full_Divestment" } ,
  { TF_BACKSLIDING, "BACKSLIDING", "Back_Slide" } ,
  { TF_DETOXIFY, "DETOXIFY", "Detoxify" } ,
  { TF_DOUBLE, "DOUBLE", "Double_Attack" } ,
@@ -486,9 +486,9 @@ const struct skill_name_db skill_names[] = {
  { TK_SPTIME, "SPTIME", "SP_Time" } ,
  { TK_STORMKICK, "STORMKICK", "Storm_Kick" } ,
  { TK_TURNKICK, "TURNKICK", "Turn_Kick" } ,
- { WE_BABY, "BABY", "I_Love_Mama_and_Fafa" } ,
- { WE_CALLBABY, "CALLBABY", "Come_With_Me,_Baby" } ,
- { WE_CALLPARENT, "CALLPARENT", "I_Miss_My_Parents" } ,
+ { WE_BABY, "BABY", "Mom,_Dad,_I_love_you!" } ,
+ { WE_CALLBABY, "CALLBABY", "Come_to_me,_honey~" } ,
+ { WE_CALLPARENT, "CALLPARENT", "Mom,_Dad,_I_miss_you!" } ,
  { WE_CALLPARTNER, "CALLPARTNER", "Romantic_Rendezvous" } ,
  { WE_FEMALE, "FEMALE", "Loving_Touch" } ,
  { WE_MALE, "MALE", "Undying_Love" } ,
@@ -726,7 +726,7 @@ struct skill_unit_layout *skill_get_unit_layout (int skillid, int skilllv, struc
  * スキル追加?果
  *------------------------------------------
  */
-int skill_additional_effect( struct block_list* src, struct block_list *bl,unsigned short skillid,unsigned short skilllv,int attack_type,unsigned long tick)
+int skill_additional_effect(struct block_list* src, struct block_list *bl,unsigned short skillid,unsigned short skilllv,int attack_type,unsigned long tick)
 {
 	/* MOB追加?果スキル用 */
 // dangerous reverse access
@@ -765,6 +765,9 @@ int skill_additional_effect( struct block_list* src, struct block_list *bl,unsig
 		nullpo_retr(0, md = (struct mob_data *)src); //未使用？
 	} else if (src->type == BL_PET){
 		nullpo_retr(0, pd = (struct pet_data *)src); // [Valaris]
+	} else {
+		//PC,MOB以外は追加効果の対象外
+		return 0;
 	}
 
 	if(bl->type == BL_PC) {
@@ -3246,7 +3249,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 			pc_delitem(*sd, i, skill_db[skillid].amount[0], 0);
 		}
 
-		if(skilllv < 5 && rand()%100 > (60+skilllv*10) ) { //fixed by Lupus (4 -> 5) or else it has 100% success even at lv4
+		if(skilllv < 4 && rand()%100 > (60+skilllv*10) ) { // 100% success rate at lv4 & 5, but lasts longer at lv5
 			if (sd) clif_skill_fail(*sd,skillid,0,0);
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,0);
 			if(dstsd && battle_config.equip_self_break_rate) {
@@ -3743,6 +3746,11 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 	case DC_SCREAM:				/* スクリ?ム */
 		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 		skill_addtimerskill(src,tick+3000,bl->id,0,0,skillid,skilllv,0,flag);
+		if(md) {	// Mobは喋れないから、スキル名を叫ばせてみる
+			char temp[128];
+			sprintf(temp,"%s : %s !!",md->name,skill_db[skillid].desc);
+			clif_GlobalMessage(md->bl,temp);
+		}
 		break;
 
 	case TF_STEAL:			// スティ?ル
@@ -9878,6 +9886,16 @@ int skill_readdb(void)
 		else
 			skill_db[i].skill_type=0;
 		skill_split_atoi(split[13],skill_db[i].blewcount);
+
+		for (j = 0; skill_names[j].id != 0; j++)
+		{
+			if (skill_names[j].id == i)
+			{
+				skill_db[i].name = skill_names[j].name;
+				skill_db[i].desc = skill_names[j].desc;
+				break;
+			}
+		}
 	}
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_db.txt");

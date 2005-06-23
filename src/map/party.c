@@ -578,14 +578,18 @@ int party_exp_share(struct party &p,unsigned short map, unsigned long base_exp,u
 		// 1.00 1.05 1.15 1.30 1.50 1.75 2.05 2.40 2.80 3.25 3.75 4.30
 		//
 		// will be calculated as E*( 1+0.05*(c-1)*c/2 )
-		base_exp += base_exp * (c-1)*c /40;
-		job_exp  += job_exp  * (c-1)*c /40;
-		zeny     += zeny     * (c-1)*c /40;
+		base_exp += base_exp * (c-1) /40+1;	//base_exp * (c-1)*c /40;
+		job_exp  += job_exp  * (c-1) /40+1;	//job_exp  * (c-1)*c /40;
+		zeny     += zeny     * (c-1) /40;	//zeny     * (c-1)*c /40;
 	}
-	base_exp = base_exp/c+1;
-	job_exp  = job_exp /c+1;
-	zeny     = zeny    /c;
+	else
+	{
+		base_exp = base_exp/c+1;
+		job_exp  = job_exp /c+1;
+		zeny     = zeny    /c;
+	}
 
+		
 	for (i = 0; i < MAX_PARTY; i++)
 	{
 		if((sd=p.member[i].sd)!=NULL && p.member[i].online && sd->bl.m==map && session[sd->fd] != NULL) 
@@ -594,9 +598,9 @@ int party_exp_share(struct party &p,unsigned short map, unsigned long base_exp,u
 			{
 				pc_gainexp(*sd,base_exp,job_exp);
 
-			if (battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
+				if (battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
 					pc_getzeny(*sd,zeny);
-		}
+			}
 		}
 	}
 	return 0;
@@ -653,7 +657,7 @@ int party_exp_share2(struct party &p, unsigned short map, unsigned long base_exp
 		{
 			if( !sd->chatID && (sd->idletime+120 > last_tick) )
 			{
-				pc_gainexp(*sd, (unsigned long)(base_exp_div * p.member[i].lv), (unsigned long)(job_exp_div * p.member[i].lv));
+				pc_gainexp(*sd,(unsigned long)(base_exp_div * p.member[i].lv),(unsigned long)(job_exp_div * p.member[i].lv));
 
 				if(battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
 					pc_getzeny(*sd,(unsigned long)(zeny_div*p.member[i].lv));

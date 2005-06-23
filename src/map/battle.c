@@ -4811,12 +4811,14 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 
 		if(wd.div_ == 255 && sd)
 		{	//三段掌
-			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+			int delay = 0;
 			if(wd.damage+wd.damage2 < status_get_hp(target))
 			{
 				int skilllv = pc_checkskill(*sd, MO_CHAINCOMBO);
-				if (skilllv > 0)
+				if (skilllv > 0) {
+					delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
 					delay += 300 * battle_config.combo_delay_rate / 100; //追加ディレイをconfにより調整
+				}
 				status_change_start(src, SC_COMBO, MO_TRIPLEATTACK, skilllv, 0, 0, delay, 0);
 			}
 			sd->attackabletime = sd->canmove_tick = tick + delay;
@@ -5341,11 +5343,12 @@ static struct {
 	{ "backstab_bow_penalty",              &battle_config.backstab_bow_penalty	},
 	{ "ban_spoof_namer",                   &battle_config.ban_spoof_namer	}, // added by [Yor]
 	{ "base_exp_rate",						&battle_config.base_exp_rate			},
-	{ "basic_skill_check",                 &battle_config.basic_skill_check		},
-	{ "battle_log",                        &battle_config.battle_log				},
+	{ "basic_skill_check",					&battle_config.basic_skill_check		},
+	{ "battle_log",							&battle_config.battle_log				},
 	{ "berserk_candels_buffs",				&battle_config.berserk_cancels_buffs}, // [Aru]
-	{ "bone_drop",		                     &battle_config.bone_drop				},
-	{ "boss_spawn_delay",                  &battle_config.boss_spawn_delay			},
+	{ "bone_drop",							&battle_config.bone_drop				},
+	{ "boss_spawn_delay",					&battle_config.boss_spawn_delay			},
+	{ "buyer_name",							&battle_config.buyer_name		},
 	{ "cardillust_read_grffile",           &battle_config.cardillust_read_grffile},	// [Celest]
 	{ "casting_rate",                      &battle_config.cast_rate				},
 	{ "castle_defense_rate",               &battle_config.castle_defense_rate		},
@@ -5630,7 +5633,8 @@ void battle_set_defaults()
 	battle_config.battle_log = 0;
 	battle_config.berserk_cancels_buffs = 0;
 	battle_config.bone_drop = 0;
-	battle_config.boss_spawn_delay=100;
+	battle_config.boss_spawn_delay=100;	
+	battle_config.buyer_name = 1;
 	battle_config.cardillust_read_grffile=0;
 	battle_config.cast_rate=100;
 	battle_config.castle_defense_rate = 100;
@@ -5840,7 +5844,7 @@ void battle_set_defaults()
 	battle_config.pvp_exp=1;
 	battle_config.quest_skill_learn=0;
 	battle_config.quest_skill_reset=1;
-	battle_config.rainy_waterball = 0;
+	battle_config.rainy_waterball = 1;
 	battle_config.random_monster_checklv=1;
 	battle_config.require_glory_guild = 0;
 	battle_config.restart_hp_rate=0;

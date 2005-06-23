@@ -260,24 +260,14 @@ bool path_search_long(unsigned short m,unsigned short x0,unsigned short y0,unsig
 	}
 	dy = ((int)y1 - (int)y0);
 
-//	if (spd) {
-//		spd->rx = spd->ry = 0;
-//		spd->len = 1;
-//		spd->x[0] = x0;
-//		spd->y[0] = y0;
-//	}
 
 	if (map_getcellp(map[m],x1,y1,CELL_CHKWALL))
 		return false;
 
 	if (dx > abs(dy)) {
 		weight = dx;
-//		if (spd)
-//			spd->ry=1;
 	} else {
 		weight = abs(y1 - y0);
-//		if (spd)
-//			spd->rx=1;
 	}
 
 	while (x0 != x1 || y0 != y1) {
@@ -296,31 +286,22 @@ bool path_search_long(unsigned short m,unsigned short x0,unsigned short y0,unsig
 			wy += weight;
 			y0 --;
 		}
-//		if (spd && spd->len<MAX_WALKPATH) {
-//			spd->x[spd->len] = x0;
-//			spd->y[spd->len] = y0;
-//			spd->len++;
-//		}
 	}
 	return true;
 }
 ///////////////////////////////////////////////////////////////////////////////
 // a bit rearranged and spliting to two loops = 12% faster
 ///////////////////////////////////////////////////////////////////////////////
-int path_search_long2(int m,int x0,int y0,int x1,int y1)
+bool path_search_long2(unsigned short m,unsigned short x0,unsigned short y0,unsigned short x1,unsigned short y1)
 {
 	int dx, dy,x,y;
 	int w = 0;
 
-	struct map_data *md;
+	if(m >=map_num || !map[m].gat)
+		return false;
 
-	if (m < 0 || m > MAX_MAP_PER_SERVER || !map[m].gat)
-		return 0;
-	md = &map[m];
-
-
-	dx = (x1 - x0);
-	dy = (y1 - y0);
+	dx = ((int)x1 - (int)x0);
+	dy = ((int)y1 - (int)y0);
 
 	if (abs(dx) > abs(dy))
 	{
@@ -335,7 +316,7 @@ int path_search_long2(int m,int x0,int y0,int x1,int y1)
 		for(x=x0,y=y0; x<=x1; x++)
 		{
 			if (map_getcellp(map[m],x,y,CELL_CHKWALL))
-				return 0;
+				return false;
 
 			// next point on smaller axis
 			w += dy;
@@ -364,7 +345,7 @@ int path_search_long2(int m,int x0,int y0,int x1,int y1)
 		for(x=x0,y=y0; y<=y1; y++)
 		{
 			if (map_getcellp(map[m],x,y,CELL_CHKWALL))
-				return 0;
+				return false;
 
 			// next point on smaller axis
 			w += dx;
@@ -380,24 +361,21 @@ int path_search_long2(int m,int x0,int y0,int x1,int y1)
 			}
 		}
 	}
-
-	return 1;
+	return true;
 }
 ///////////////////////////////////////////////////////////////////////////////
 // splitting to 4 loops = 20% faster
 ///////////////////////////////////////////////////////////////////////////////
-int path_search_long3(int m,int x0,int y0,int x1,int y1)
+bool path_search_long3(unsigned short m,unsigned short x0,unsigned short y0,unsigned short x1,unsigned short y1)
 {
 	int dx, dy,x,y;
 	int w = 0;
 
+	if(m >= map_num || !map[m].gat)
+		return false;
 
-	if (m < 0 || m > MAX_MAP_PER_SERVER || !map[m].gat)
-		return 0;
-
-
-	dx = (x1 - x0);
-	dy = (y1 - y0);
+	dx = ((int)x1 - (int)x0);
+	dy = ((int)y1 - (int)y0);
 
 	if (abs(dx) > abs(dy))
 	{
@@ -414,7 +392,7 @@ int path_search_long3(int m,int x0,int y0,int x1,int y1)
 			for(x=x0,y=y0; x<=x1; x++)
 			{
 				if (map_getcellp(map[m],x,y,CELL_CHKWALL))
-					return 0;
+					return false;
 				// next point on smaller axis
 				w += dy;
 				if(w >= dx)
@@ -429,7 +407,7 @@ int path_search_long3(int m,int x0,int y0,int x1,int y1)
 			for(x=x0,y=y0; x<=x1; x++)
 			{
 				if (map_getcellp(map[m],x,y,CELL_CHKWALL))
-					return 0;
+					return false;
 				// next point on smaller axis
 				w += dy;
 				if(w <= dx)
@@ -455,7 +433,7 @@ int path_search_long3(int m,int x0,int y0,int x1,int y1)
 			for(x=x0,y=y0; y<=y1; y++)
 			{
 				if (map_getcellp(map[m],x,y,CELL_CHKWALL))
-					return 0;
+					return false;
 
 				// next point on smaller axis
 				w += dx;
@@ -471,7 +449,7 @@ int path_search_long3(int m,int x0,int y0,int x1,int y1)
 			for(x=x0,y=y0; y<=y1; y++)
 			{
 				if (map_getcellp(map[m],x,y,CELL_CHKWALL))
-					return 0;
+					return false;
 
 				// next point on smaller axis
 				w += dx;
@@ -484,7 +462,7 @@ int path_search_long3(int m,int x0,int y0,int x1,int y1)
 		}
 	}
 
-	return 1;
+	return true;
 }
 
 /*==========================================
