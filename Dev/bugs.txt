@@ -340,25 +340,35 @@ Problem: The skill_db.txt contents are under-utilized.
 Assigned:	Skotlex
 Progress:	5%
 Notes:	There are values which are under-utilized like NK, while others
-really need a rethought. The skill_db should control most of the logic of how
-skills behave, yet almost 100% of the logic is handled inside the code.
-Example: NK determines the nature of a target-oriented skill: 1: skill does no
-damage, 2: skill does splash damage. Yet nowhere are we using that 2 value
-other than to call skill_castend_damage_id! And don't get me started on
-brandish spear having nk 1, then doing some initial calculations on
-skill_castend_nodamage_id and then invoking skill_castend_damage_id o.O
-
-
-Problem:	Guild Expulsion
-			When you kick someone of the guild. He can see Guild Window and him in there.
-			Until he reconnects.
-Assigned:	na
-Progress:	0%
+		really need a rethought. The skill_db should control most of the logic of how
+		skills behave, yet almost 100% of the logic is handled inside the code.
+		Example: NK determines the nature of a target-oriented skill: 1: skill does no
+		damage, 2: skill does splash damage. Yet nowhere are we using that 2 value
+		other than to call skill_castend_damage_id! And don't get me started on
+		brandish spear having nk 1, then doing some initial calculations on
+		skill_castend_nodamage_id and then invoking skill_castend_damage_id o.O
 
 Problem:	Select() sometimes returns a listening fd more than once when a client connects,
-		so the 2nd one will fail on accept() and keep spamming "accept: bad file descriptor".
+			so the 2nd one will fail on accept() and keep spamming "accept: bad file descriptor".
 Assigned:
 Progess:	0%
 Note:		Seems to happen a lot to the login server... And no it doesn't have anything to do with
-		ip changed, sockets timing out, read/writing to a non existant fd... it's just
-		select() somehow keeps thinking there's a connection on listen_fd even after accepting it >.<
+			ip changed, sockets timing out, read/writing to a non existant fd... it's just
+			select() somehow keeps thinking there's a connection on listen_fd even after accepting it >.<
+
+Problem:	Pets
+			Pets now look like an enemy (you have a sword cursor over them)
+			you can't feed them, etc (you can't pop-up that menu)
+Assigned:	na
+Progress:	0%
+
+Problem:	Fame Lists
+			Both fame lists: Blacksmiths, alchemists show UNKNOWN instead of names.
+Assigned:	na
+Progress:	0%
+
+Problem:	Guilds (doesn't save)
+			Guilds don't save skills (levels), members, etc... So you can't even create a new guild
+			and after reboot you lose learnt guild skills.
+Assigned:	na
+Progress:	0%
