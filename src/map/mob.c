@@ -1762,7 +1762,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					(tsd->sc_data[SC_TRICKDEAD].timer != -1 ||
 					tsd->sc_data[SC_BASILICA].timer != -1 ||
 					((pc_ishiding(tsd) || tsd->state.gangsterparadise) &&
-					!((race == 4 || race == 6) && !tsd->perfect_hiding))))
+					!((race == 4 || race == 6 || mode&0x100) && !tsd->perfect_hiding))))
 				{
 					mob_unlocktarget(md,tick);	// ƒXƒLƒ‹‚È‚Ç‚É‚æ‚éô“G–WŠQ
 				}

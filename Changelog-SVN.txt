@@ -1,5 +1,6 @@
 Date	Added
 06/23
+	* Fixed LittleWolf's detect hidden mode 256 for mobs (missed a line while merging). [Valaris]
 	* Disable AF2 loading -- eA doesn't support unzipping archives yet [celest]
 	* Updated UPnP plugin to 1.0.3.2 [celest]
 	  - Added 'nat_ip' option to upnp.conf (use it to manually set your ip address
