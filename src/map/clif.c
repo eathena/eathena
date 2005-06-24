@@ -8940,69 +8940,6 @@ void clif_parse_UnequipItem(int fd,struct map_session_data *sd)
  *
  *------------------------------------------
  */
-void clif_parse_NpcClicked(int fd,struct map_session_data *sd)
-{
-	nullpo_retv(sd);
-
-	if(pc_isdead(sd)) {
-		clif_clearchar_area(&sd->bl,1);
-		return;
-	}
-
-	npc_click(sd,RFIFOL(fd,2));
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-void clif_parse_NpcBuySellSelected(int fd,struct map_session_data *sd)
-{
-	npc_buysellsel(sd,RFIFOL(fd,2),RFIFOB(fd,6));
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-void clif_parse_NpcBuyListSend(int fd,struct map_session_data *sd)
-{
-	int fail=0,n;
-	unsigned short *item_list;
-
-	n = (RFIFOW(fd,2)-4) /4;
-	item_list = (unsigned short*)RFIFOP(fd,4);
-
-	fail = npc_buylist(sd,n,item_list);
-
-	WFIFOW(fd,0)=0xca;
-	WFIFOB(fd,2)=fail;
-	WFIFOSET(fd,packet_len_table[0xca]);
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-void clif_parse_NpcSellListSend(int fd,struct map_session_data *sd)
-{
-	int fail=0,n;
-	unsigned short *item_list;
-
-	n = (RFIFOW(fd,2)-4) /4;
-	item_list = (unsigned short*)RFIFOP(fd,4);
-
-	fail = npc_selllist(sd,n,item_list);
-
-	WFIFOW(fd,0)=0xcb;
-	WFIFOB(fd,2)=fail;
-	WFIFOSET(fd,packet_len_table[0xcb]);
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
 void clif_parse_CreateChatRoom(int fd,struct map_session_data *sd)
 {
 	if(battle_config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 4){
@@ -9153,7 +9090,7 @@ void clif_parse_GetItemFromCart(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- * 付属品(鷹,ペコ,カート)をはずす
+ * Cart/Peco/Falcon removed
  *------------------------------------------
  */
 void clif_parse_RemoveOption(int fd,struct map_session_data *sd)
@@ -9176,7 +9113,7 @@ void clif_parse_RemoveOption(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- * チェンジカート
+ * Cart look selected
  *------------------------------------------
  */
 void clif_parse_ChangeCart(int fd,struct map_session_data *sd)
@@ -9185,7 +9122,7 @@ void clif_parse_ChangeCart(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- * ステータスアップ
+ * Stat point increased
  *------------------------------------------
  */
 void clif_parse_StatusUp(int fd,struct map_session_data *sd)
@@ -9194,7 +9131,7 @@ void clif_parse_StatusUp(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- * スキルレベルアップ
+ * Skill level increased
  *------------------------------------------
  */
 void clif_parse_SkillUp(int fd,struct map_session_data *sd)
@@ -9203,7 +9140,7 @@ void clif_parse_SkillUp(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- * スキル使用（ID指定）
+ * Skill used on a target
  *------------------------------------------
  */
 void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
@@ -9356,7 +9293,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 }
 
 /*==========================================
- * スキル使用（場所指定）
+ * Skill used on the ground
  *------------------------------------------
  */
 void clif_parse_UseSkillToPos(int fd, struct map_session_data *sd) {
@@ -9526,7 +9463,7 @@ void clif_parse_UseSkillToPos(int fd, struct map_session_data *sd) {
 }
 
 /*==========================================
- * スキル使用（map指定）
+ * Skill without target used
  *------------------------------------------
  */
 void clif_parse_UseSkillMap(int fd,struct map_session_data *sd)
@@ -9572,6 +9509,69 @@ void clif_parse_ProduceMix(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
+ * NPC clicked
+ *------------------------------------------
+ */
+void clif_parse_NpcClicked(int fd,struct map_session_data *sd)
+{
+	nullpo_retv(sd);
+
+	if(pc_isdead(sd)) {
+		clif_clearchar_area(&sd->bl,1);
+		return;
+	}
+
+	npc_click(sd,RFIFOL(fd,2));
+}
+
+/*==========================================
+ *
+ *------------------------------------------
+ */
+void clif_parse_NpcBuySellSelected(int fd,struct map_session_data *sd)
+{
+	npc_buysellsel(sd,RFIFOL(fd,2),RFIFOB(fd,6));
+}
+
+/*==========================================
+ *
+ *------------------------------------------
+ */
+void clif_parse_NpcBuyListSend(int fd,struct map_session_data *sd)
+{
+	int fail=0,n;
+	unsigned short *item_list;
+
+	n = (RFIFOW(fd,2)-4) /4;
+	item_list = (unsigned short*)RFIFOP(fd,4);
+
+	fail = npc_buylist(sd,n,item_list);
+
+	WFIFOW(fd,0)=0xca;
+	WFIFOB(fd,2)=fail;
+	WFIFOSET(fd,packet_len_table[0xca]);
+}
+
+/*==========================================
+ *
+ *------------------------------------------
+ */
+void clif_parse_NpcSellListSend(int fd,struct map_session_data *sd)
+{
+	int fail=0,n;
+	unsigned short *item_list;
+
+	n = (RFIFOW(fd,2)-4) /4;
+	item_list = (unsigned short*)RFIFOP(fd,4);
+
+	fail = npc_selllist(sd,n,item_list);
+
+	WFIFOW(fd,0)=0xcb;
+	WFIFOB(fd,2)=fail;
+	WFIFOSET(fd,packet_len_table[0xcb]);
+}
+
+/*==========================================
  * NPC dialog window's menu
  *------------------------------------------
  */
@@ -9594,7 +9594,7 @@ void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 		sd->areascript_id=0; // Set the player's current area script to 'none'
 	} else {
 		sd->npc_menu_data.current=0;
-		script_resume(sd->char_id,"i",sd->npc_menu_data.value[index-1]); // Resume the script, passing the value
+		script_resume(sd,"i",sd->npc_menu_data.value[index-1]); // Resume the script, passing the value
 	}
 }
 
@@ -9611,7 +9611,7 @@ void clif_parse_NpcNextClicked(int fd,struct map_session_data *sd)
         return;
 	}
 
-	script_resume(sd->char_id,""); // Resume the script
+	script_resume(sd,""); // Resume the script
 }
 
 /*==========================================
@@ -9627,7 +9627,7 @@ void clif_parse_NpcCloseClicked(int fd,struct map_session_data *sd)
         return;
 	}
 
-	script_resume(sd->char_id,""); // Resume the script
+	script_resume(sd,""); // Resume the script
 }
 
 /*==========================================
@@ -9648,7 +9648,7 @@ void clif_parse_NpcAmountInput(int fd,struct map_session_data *sd)
 	amount=RFIFOL_(fd,6); //fixed by Lupus. npc_amount is (int) but was RFIFOL changing it to (unsigned int)
 #undef RFIFOL_
 
-	script_resume(sd->char_id,"i",amount); // Resume the script, passing the value
+	script_resume(sd,"i",amount); // Resume the script, passing the value
 }
 
 /*==========================================
@@ -9672,7 +9672,7 @@ void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)
 	} else
 		strcpy(str,(char*)RFIFOP(fd,8));
 
-	script_resume(sd->char_id,"s",str); // Resume the script, passing the value
+	script_resume(sd,"s",str); // Resume the script, passing the value
 }
 
 /*==========================================
@@ -9695,7 +9695,7 @@ void clif_parse_SelectArrow(int fd,struct map_session_data *sd)
 	skill_arrow_create(sd,RFIFOW(fd,2));
 }
 /*==========================================
- * オートスペル受信
+ * Skill to autocast via Hindsight selected
  *------------------------------------------
  */
 void clif_parse_AutoSpell(int fd,struct map_session_data *sd)
@@ -9703,7 +9703,7 @@ void clif_parse_AutoSpell(int fd,struct map_session_data *sd)
 	skill_autospell(sd,RFIFOW(fd,2));
 }
 /*==========================================
- * カード使用
+ * Card double-clicked
  *------------------------------------------
  */
 void clif_parse_UseCard(int fd,struct map_session_data *sd)
@@ -9711,7 +9711,7 @@ void clif_parse_UseCard(int fd,struct map_session_data *sd)
 	clif_use_card(sd,RFIFOW(fd,2)-2);
 }
 /*==========================================
- * カード挿入装備選択
+ * Item to insert card selected
  *------------------------------------------
  */
 void clif_parse_InsertCard(int fd,struct map_session_data *sd)
@@ -9787,7 +9787,7 @@ void clif_parse_ResetChar(int fd, struct map_session_data *sd) {
 }
 
 /*==========================================
- * 019c /lb等
+ * 019c /lb
  *------------------------------------------
  */
 void clif_parse_LGMmessage(int fd, struct map_session_data *sd) {

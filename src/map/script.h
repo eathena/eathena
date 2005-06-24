@@ -32,7 +32,7 @@ extern char mapreg_txt[];
 // Lua-specific functions by Kevin and DracoRPG
 void script_run_function(const char *name,int char_id,const char *format,...);
 void script_run_chunk(const char *chunk,int char_id);
-void script_resume(int char_id,const char *format,...);
+void script_resume(struct map_session_data *sd,const char *format,...);
 void script_buildin_commands();
 
 int script_config_read(char *cfgName);

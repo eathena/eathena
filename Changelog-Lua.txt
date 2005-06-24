@@ -1,5 +1,7 @@
 Date	Added
 06/24
+	* npcnext, npcclose and npcinput now work perfectly with the rewritten system... npcmenu
+	  crashes and I don't have begun conversion of npcshop [DracoRPG]
 	* Rewrote npcnext, npcclose, npcinput and npcmenu (can't do npcshop... it's 2:30AM lol),
 	  sorry Kevin but you know I like rewriting your work ^^ : now they use only one buildin
 	  function and no more Lua function to call them indirectly [DracoRPG]

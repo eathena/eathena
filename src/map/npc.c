@@ -247,7 +247,7 @@ int npc_scriptnext(struct map_session_data *sd,int id)
 {
 	nullpo_retr(1, sd);
 
-	script_resume(sd->char_id,""); // Resume the script
+	script_resume(sd,""); // Resume the script
 	return 0;
 }
 

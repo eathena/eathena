@@ -29,6 +29,10 @@ addareascript("Bite Area","niflheim.gat",190,190,200,200,"areascript_biter")
 function npc_biter()
 	npcmes "[Healer Dog]"
 	npcmes "Come, come closer so I can heal you!"
+	npcnext()
+	npcmes "This dog looks ferocious... I should better keep away... How far?"
+	npcnext()
+	npcmes("Yes, I think I need to be at least "..npcinput(TYPE_INT).." "..npcinput(TYPE_STR).." away from him to be safe.")
 	npcclose()
 end
 
