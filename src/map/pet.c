@@ -785,7 +785,7 @@ int pet_remove_map(struct map_session_data &sd)
 
 		map_delblock(sd.pd->bl);
 		map_deliddb(sd.pd->bl);
-		aFree(sd.pd);
+		map_freeblock(sd.pd);
 		sd.pd = NULL;
 	}
 	return 0;

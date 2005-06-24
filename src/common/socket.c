@@ -7,6 +7,9 @@
 #include "showmsg.h"
 
 //#define SOCKET_DEBUG_PRINT
+#define SOCKET_DEBUG_LOG
+
+
 
 #ifdef __cplusplus
 
@@ -1274,7 +1277,7 @@ int send_from_fifo(int fd)
 // Creating Sockets and Sessions
 //
 ///////////////////////////////////////////////////////////////////////////////
-static int connect_client(int listen_fd)
+int connect_client(int listen_fd)
 {
 	SOCKET sock;
 	int fd;
@@ -1699,7 +1702,24 @@ size_t process_fdset2(fd_set* fds, void(*func)(size_t) )
 #endif//!WIN32
 ///////////////////////////////////////////////////////////////////////////////
 
-
+#ifdef SOCKET_DEBUG_LOG
+static char temp_buffer1[1024],temp_buffer2[1024];
+void debug_collect(int fd)
+{	static char buf[32];
+	snprintf(buf,32,"(%i,%i%i%i)",fd,session[fd]->flag.connected,session[fd]->flag.marked,session[fd]->flag.remove);
+	strcat(temp_buffer1,buf);
+}
+void debug_output()
+{
+	if( 0!=strcmp(temp_buffer1,temp_buffer2) )
+	{
+		printf("[%ld]%s\n",last_tick,temp_buffer1);
+		fflush(stdout);
+		memcpy(temp_buffer2, temp_buffer1,sizeof(temp_buffer1));
+	}
+	*temp_buffer1=0;
+}
+#endif
 
 int do_sendrecv(int next)
 {
@@ -1725,17 +1745,27 @@ int do_sendrecv(int next)
 			printf("(%i,%i%i%i)",fd,session[fd]->flag.connected,session[fd]->flag.marked,session[fd]->flag.remove);
 			fflush(stdout);
 #endif
+#ifdef SOCKET_DEBUG_LOG
+			debug_collect(fd);
+#endif
 			if( (session[fd]->rdata_tick > 0) && (last_tick > session[fd]->rdata_tick + stall_time_) ) 
-			{	// emulate a disconnection
-				session[fd]->flag.connected = false;
-				// and call the read function
-				process_read(fd);
-				// it should come out with a set remove or marked flag
-				// and will be deleted immediately or on the next loops
+			{	
+//				if( session[fd]->flag.marked )
+//				{	// is already marked; just remove it
+//					session[fd]->flag.marked=false;
+//					session[fd]->flag.remove=true;
+//				}
+//				else
+				{	// emulate a disconnection
+					session[fd]->flag.connected = false;
+					// and call the read function
+					process_read(fd);
+					// it should come out with a set remove or marked flag		
+				}
 			}
 
 			if( session[fd]->flag.remove )
-			{	// delete marked sessions here
+			{	// delete sessions scheduled for remove here
 				// we have to go through the field anyway
 				// and this is the safest place for deletions
 				session_Delete((int)fd);
@@ -1759,6 +1789,10 @@ int do_sendrecv(int next)
 #ifdef SOCKET_DEBUG_PRINT
 	printf("\n");
 #endif
+#ifdef SOCKET_DEBUG_LOG
+	debug_output();
+#endif
+
 	fd_max = cnt+1;
 
 	timeout.tv_sec  = next/1000;
@@ -1816,14 +1850,14 @@ int do_sendrecv(int next)
 ///////////////////////////////////////////////////////////////////////////////
 // delayed session removal timer entry
 ///////////////////////////////////////////////////////////////////////////////
-static int session_WaitClose(int tid, unsigned long tick, int id, int data) 
+int session_WaitClose(int tid, unsigned long tick, int id, int data) 
 {
 	if( session_isValid(id) && session[id]->flag.marked )
-	{
-		// set session to offline
+	{	// set session to offline
 		// it will be removed by do_sendrecv
-		session[id]->flag.marked = false;
-		session[id]->flag.remove = true;
+		session[id]->flag.connected	= false;
+		session[id]->flag.marked	= false;
+		session[id]->flag.remove	= true;
 	}
 	return 0;
 }
@@ -1832,10 +1866,9 @@ static int session_WaitClose(int tid, unsigned long tick, int id, int data)
 ///////////////////////////////////////////////////////////////////////////////
 bool session_SetWaitClose(int fd, unsigned long timeoffset)
 {
-	if( session_isValid(fd) && !session[fd]->flag.marked )
-	{
-		// set the session to marked state
-		session[fd]->flag.marked = true;
+	if( session_isValid(fd) && !session[fd]->flag.marked && !session[fd]->flag.remove )
+	{	// set the session to marked state
+		session[fd]->flag.marked	= true;
 
 		if(session[fd]->session_data == NULL)
 			// limited timer, just to send information.
@@ -1856,12 +1889,12 @@ bool session_SetWaitClose(int fd, unsigned long timeoffset)
 bool session_Delete(int fd)
 {
 	if( session_isValid(fd) )
-	{
-		// socket is marked for delayed deletion
+	{	// socket is marked for delayed deletion
 		// but is not called from the delay handler
 		// so we skip deletion here and wait for the handler
 		if( session[fd]->flag.marked && session[fd]->flag.remove )
 		{
+			session[fd]->flag.connected = false;
 			session[fd]->flag.remove = false;
 			return false;
 		}

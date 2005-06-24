@@ -170,7 +170,7 @@ struct item_data* itemdb_search(unsigned short nameid)
 	id->value_sell=id->value_buy/2;
 	id->weight=10;
 	id->flag.sex=2;
-	id->class_=0xffff;
+	id->class_array=0xffffffff;
 
 	if(nameid>500 && nameid<600)
 		id->type=0;   //heal item
@@ -761,7 +761,7 @@ int itemdb_read_sqldb(void)
 					id->def		= (sql_row[8] != NULL) ? atoi(sql_row[8]) : 0;
 					id->range	= (sql_row[9] != NULL) ? atoi(sql_row[9]) : 0;
 					id->flag.slot= (sql_row[10] != NULL)	? atoi(sql_row[10])	: 0;
-					id->class_	= (sql_row[11] != NULL) ? atoi(sql_row[11]) : 0;
+					id->class_array	= (sql_row[11] != NULL) ? atoi(sql_row[11]) : 0;
 					id->flag.sex= (battle_config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 :
 									( (sql_row[12] != NULL) ? atoi(sql_row[12]) : 0);
 					id->equip	= (sql_row[13] != NULL) ? atoi(sql_row[13]) : 0;
@@ -914,7 +914,7 @@ int itemdb_readdb(void)
 			id->def=atoi(str[8]);
 			id->range=atoi(str[9]);
 			id->flag.slot=atoi(str[10]);
-			id->class_=atoi(str[11]);
+			id->class_array=atoi(str[11]);
 			id->flag.sex=atoi(str[12]);
 			id->flag.sex= (battle_config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 : atoi(str[12]);
 			if(id->equip != atoi(str[13])){

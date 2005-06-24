@@ -5139,7 +5139,6 @@ int clif_use_card(struct map_session_data &sd,unsigned short idx)
 			WFIFOW(fd,4+c*2)=i+2;
 			c++;
 		}
-printf("clif_use_card %i items send\n", c);
 		WFIFOW(fd,0)=0x017b;
 		WFIFOW(fd,2)=4+c*2;
 		WFIFOSET(fd,4+c*2);
@@ -7537,7 +7536,7 @@ int clif_charnameack(int fd, struct block_list &bl)
 		}
 	default:
 		if (battle_config.error_log)
-			printf("clif_parse_GetCharNameRequest : bad type %d(%ld)\n", bl.type, bl.id);
+			ShowError("clif_parse_GetCharNameRequest : bad type %d(%ld)\n", bl.type, bl.id);
 		return 0;
 	}
 
@@ -11558,7 +11557,7 @@ int clif_parse(int fd)
 				break;
 			case 0x7532: // Ú‘±‚ÌØ’f
 				session_Remove(fd);
-				printf("clif_parse: session #%d, packet 0x%x received -> disconnected.\n", fd, cmd);
+				ShowWarning("clif_parse: session #%d, packet 0x%x received -> disconnected.\n", fd, cmd);
 				return 0;
 			}
 			continue;
@@ -11677,7 +11676,7 @@ int clif_parse(int fd)
 			if (packet_len < 4 || packet_len > 32768)
 			{
 				session_Remove(fd);
-				printf("clif_parse: session #%d, packet 0x%x invalid packet_len (%d bytes received) -> disconnected.\n", fd, cmd, packet_len);
+				ShowWarning("clif_parse: session #%d, packet 0x%x invalid packet_len (%d bytes received) -> disconnected.\n", fd, cmd, packet_len);
 				return 0;
 			}
 		}

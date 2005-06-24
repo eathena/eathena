@@ -6541,15 +6541,19 @@ int buildin_specialeffect2(struct script_state &st)
 int buildin_nude(struct script_state &st)
 {
 	struct map_session_data *sd=script_rid2sd(st);
-	int i;
-
-	if(sd==NULL)
-		return 0;
-
-	for(i=0;i<MAX_EQUIP;i++)
-		if(sd->equip_index[i] >= 0)
-			pc_unequipitem(*sd,sd->equip_index[i],2);
-
+	if(sd)
+	{
+		size_t i;
+		register bool calcflag=false;
+		for(i=0;i<MAX_EQUIP;i++)
+			if(sd->equip_index[i] >= 0)
+			{
+				pc_unequipitem(*sd,sd->equip_index[i],2);
+				calcflag=true;
+			}
+		if(calcflag)
+			status_calc_pc(*sd,1);
+	}
 	return 0;
 }
 

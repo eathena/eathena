@@ -504,41 +504,52 @@ bool pc_isequipable(struct map_session_data &sd, unsigned short inx)
 
 	item = sd.inventory_data[inx];
 	sc_data = status_get_sc_data(&sd.bl);
-
 	if( battle_config.gm_allequip>0 && pc_isGM(sd)>=battle_config.gm_allequip )
 		return true;
 
 	if(item == NULL)
 		return false;
+
 	if(item->flag.sex != 2 && sd.status.sex != item->flag.sex)
 		return false;
+
 	if(item->elv > 0 && sd.status.base_level < item->elv)
 		return false;
 // -- moonsoul	(below statement substituted for commented out version further below
 //			 as it allows all advanced classes to equip items their normal versions
 //			 could equip)
 //
-	if (((sd.status.class_ == 13 || sd.status.class_ == 4014) && ((1<<7)&item->class_) == 0) || // have mounted classes use unmounted equipment [Valaris]
-		((sd.status.class_ == 21 || sd.status.class_ == 4022) && ((1<<14)&item->class_) == 0))
+
+	if( ((sd.status.class_ == 13 || sd.status.class_ == 4014) && ((1<<7)&item->class_array) == 0) || // have mounted classes use unmounted equipment [Valaris]
+		((sd.status.class_ == 21 || sd.status.class_ == 4022) && ((1<<14)&item->class_array) == 0))
 		return false;
-	if (sd.status.class_ != 13 && sd.status.class_ != 4014 && sd.status.class_ != 21 && sd.status.class_ != 4022)
-		if((sd.status.class_ <= 4000 && ((1<<sd.status.class_)&item->class_) == 0) ||
-			(sd.status.class_ > 4000 && sd.status.class_ < 4023 && ((1<<(sd.status.class_-4001))&item->class_) == 0) ||
-			(sd.status.class_ >= 4023 && ((1<<(sd.status.class_-4023))&item->class_) == 0))
+
+	if( sd.status.class_ != 13 && sd.status.class_ != 4014 && sd.status.class_ != 21 && sd.status.class_ != 4022 )
+	{
+		if( (sd.status.class_ <= 4000 && ((1<<sd.status.class_)&item->class_array) == 0) ||
+			(sd.status.class_ > 4000 && sd.status.class_ < 4023 && ((1<<(sd.status.class_-4001))&item->class_array) == 0) ||
+			(sd.status.class_ >= 4023 && ((1<<(sd.status.class_-4023))&item->class_array) == 0))
 			return false;
+	}
 
 	if(map[sd.bl.m].flag.pvp && (item->flag.no_equip&1)) //optimized by Lupus
 		return false;
+
 	if(map[sd.bl.m].flag.gvg && (item->flag.no_equip>1)) //optimized by Lupus
 		return false;
+
 	if((item->equip & 0x0002 || item->equip & 0x0020) && item->type == 4 && sc_data && sc_data[SC_STRIPWEAPON].timer != -1) // Also works with left-hand weapons [DracoRPG]
 		return false;
+
 	if(item->equip & 0x0020 && item->type == 5 && sc_data && sc_data[SC_STRIPSHIELD].timer != -1) // Also works with left-hand weapons [DracoRPG]
 		return false;
+
 	if(item->equip & 0x0010 && sc_data && sc_data[SC_STRIPARMOR].timer != -1)
 		return false;
+
 	if(item->equip & 0x0100 && sc_data && sc_data[SC_STRIPHELM].timer != -1)
 		return false;
+
 	return true;
 }
 
@@ -2552,12 +2563,12 @@ bool pc_isUseitem(struct map_session_data &sd,int inx)
 		return 0;
 	if(item->elv > 0 && sd.status.base_level < item->elv)
 		return 0;
-	if(((sd.status.class_==13 || sd.status.class_==4014) && ((1<<7)&item->class_) == 0) || // have mounted classes use unmounted items [Valaris]
-		((sd.status.class_==21 || sd.status.class_==4022) && ((1<<14)&item->class_) == 0))
+	if(((sd.status.class_==13 || sd.status.class_==4014) && ((1<<7)&item->class_array) == 0) || // have mounted classes use unmounted items [Valaris]
+		((sd.status.class_==21 || sd.status.class_==4022) && ((1<<14)&item->class_array) == 0))
 		return 0;
 	if(sd.status.class_!=13 && sd.status.class_!=4014 && sd.status.class_!=21 && sd.status.class_!=4022)
-	if((sd.status.class_<=4000 && ((1<<sd.status.class_)&item->class_) == 0) || (sd.status.class_>4000 && sd.status.class_<4023 && ((1<<(sd.status.class_-4001))&item->class_) == 0) ||
-	  (sd.status.class_>=4023 && ((1<<(sd.status.class_-4023))&item->class_) == 0))
+	if((sd.status.class_<=4000 && ((1<<sd.status.class_)&item->class_array) == 0) || (sd.status.class_>4000 && sd.status.class_<4023 && ((1<<(sd.status.class_-4001))&item->class_array) == 0) ||
+	  (sd.status.class_>=4023 && ((1<<(sd.status.class_-4023))&item->class_array) == 0))
 		return 0;
 
 	if((log_config.branch > 0) && (nameid == 604))
@@ -6173,7 +6184,9 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 	id = sd.inventory_data[inx];
 	pos = pc_equippoint(sd,inx);
 	if(battle_config.battle_log)
-		ShowMessage("(char %i) equip %d(%d) %x:%x\n",sd.status.char_id, nameid, inx, id->equip, pos);
+		ShowMessage("(char %i) equip %d(%d) %x:%x\n",
+		sd.status.char_id, nameid, inx, id->equip, pos);
+
 	if( !pc_isequipable(sd,inx) || !pos || 
 		sd.status.inventory[inx].attribute==1 ||
 		sd.sc_data[SC_BERSERK].timer!=-1 )	// -- moonsoul (if player is berserk then cannot equip)

@@ -22,7 +22,7 @@ struct item_data
 	unsigned char type;
 	unsigned char gm_lv_trade_override;
 
-	unsigned short class_;
+	unsigned long class_array;
 	unsigned short equip;
 	unsigned short range;
 	unsigned short look;

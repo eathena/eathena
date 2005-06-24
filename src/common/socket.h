@@ -1541,10 +1541,14 @@ extern inline bool session_isMarked(int fd)
 	return ( session_isValid(fd) && session[fd]->flag.marked );
 }
 extern inline bool session_Remove(int fd)
-{
-	if( session_isValid(fd) && !session[fd]->flag.marked )
-		session[fd]->flag.remove = true;
-	return session[fd]->flag.remove;
+{	// force removal
+	if( session_isValid(fd)	)
+	{
+		session[fd]->flag.connected = false;
+		session[fd]->flag.marked	= false;
+		session[fd]->flag.remove	= true;
+	}
+	return true;
 }
 extern inline bool session_SetTermFunction(int fd, int (*term)(int))
 {

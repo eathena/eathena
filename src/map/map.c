@@ -261,7 +261,6 @@ int map_freeblock_timer (int tid, unsigned long tick, int id, int data)
 		block_free_lock = 1;
 		map_freeblock_unlock();
 	}
-
 	return 0;
 }
 

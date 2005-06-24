@@ -2645,7 +2645,10 @@ int npc_unload(struct npc_data *nd)
 	if (nd->bl.subtype == SCRIPT)
 	{
 		if (nd->u.scr.timer_event)
+		{
 			aFree(nd->u.scr.timer_event);
+			nd->u.scr.timer_event=NULL;
+		}
 		if(nd->u.scr.ref)
 		{
 			nd->u.scr.ref->refcnt--;
@@ -2656,10 +2659,9 @@ int npc_unload(struct npc_data *nd)
 				if(nd->u.scr.ref->label_list)
 					aFree(nd->u.scr.ref->label_list);
 				aFree(nd->u.scr.ref);
-				nd->u.scr.ref=NULL;
-	}
+			}
+			nd->u.scr.ref=NULL;
 		}
-
 		// quite inconsistent, but:
 		// script npc's have 'exname' in the db
 		strdb_erase(npcname_db, nd->exname);
@@ -2669,7 +2671,7 @@ int npc_unload(struct npc_data *nd)
 		strdb_erase(npcname_db, nd->name);
 	}
 
-	aFree(nd); 
+	map_freeblock(nd); 
 	return 0;
 }
 

@@ -685,12 +685,11 @@ struct skill_unit_layout skill_unit_layout[MAX_SKILL_UNIT_LAYOUT];
 int firewall_unit_pos;
 int icewall_unit_pos;
 
-struct skill_unit_layout *skill_get_unit_layout (int skillid, int skilllv, struct block_list *src, int x, int y)
+struct skill_unit_layout *skill_get_unit_layout(int skillid, int skilllv, struct block_list *src, int x, int y)
 {	
 	int pos = skill_get_unit_layout_type(skillid,skilllv);
 	int dir;
-
-	if (pos != -1)
+	if(pos != -1)
 		return &skill_unit_layout[pos];
 
 	if (src->x == x && src->y == y)
@@ -699,9 +698,9 @@ struct skill_unit_layout *skill_get_unit_layout (int skillid, int skilllv, struc
 		dir = map_calc_dir(*src,x,y);
 
 	if (skillid == MG_FIREWALL)
-		return &skill_unit_layout [firewall_unit_pos + dir];
+		return &skill_unit_layout[firewall_unit_pos + dir];
 	else if (skillid == WZ_ICEWALL)
-		return &skill_unit_layout [icewall_unit_pos + dir];
+		return &skill_unit_layout[icewall_unit_pos + dir];
 
 	ShowMessage("unknown unit layout for skill %d, %d\n",skillid,skilllv);
 	return &skill_unit_layout[0];
@@ -2569,39 +2568,43 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl,unsig
 		}
 		break;
 
-	case KN_BOWLINGBASH:	/* ボウリングバッシュ */
-		if(flag&1){
-			/* 個別にダメ?ジを?える */
+	case KN_BOWLINGBASH:	// ボウリングバッシュ 
+		if(flag&1)
+		{	// 個別にダメ?ジを?える 
 			if(bl->id!=skill_area_temp[1])
 				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500);
-		} else {
-				int i,c;	/* 他人から聞いた動きなので間違ってる可能性大＆?率が?いっす＞＜ */
-				/* まずターゲットに攻撃を加える */
-				if (!skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0))
-					break;
-				c = skill_get_blewcount(skillid,skilllv);
-				if(map[bl->m].flag.gvg) c = 0;
-				for(i=0;i<c;i++){
-					skill_blown(src,bl,1);
-					if(bl->type == BL_MOB)
-						clif_fixmobpos(*((struct mob_data *)bl));
-					else if(bl->type == BL_PET)
-						clif_fixpetpos(*((struct pet_data *)bl));
-					else
-						clif_fixpos(*bl);
-					skill_area_temp[0]=0;
-					map_foreachinarea(skill_area_sub,
-						bl->m,bl->x-1,bl->y-1,bl->x+1,bl->y+1,0,
-						src,skillid,skilllv,tick, flag|BCT_ENEMY ,
-						skill_area_sub_count);
-					if(skill_area_temp[0]>1) break;
-				}
-				skill_area_temp[1]=bl->id;
-				/* その後タ?ゲット以外の範??の敵全?に?理を行う */
+		}
+		else
+		{	// 他人から聞いた動きなので間違ってる可能性大＆?率が?いっす＞＜ 
+			int i,c;
+			// まずターゲットに攻撃を加える 
+			if (!skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0))
+				break;
+			c = skill_get_blewcount(skillid,skilllv);
+			if(map[bl->m].flag.gvg) c = 0;
+			for(i=0;i<c;i++)
+			{
+				skill_blown(src,bl,1);
+				if(bl->type == BL_MOB)
+					clif_fixmobpos(*((struct mob_data *)bl));
+				else if(bl->type == BL_PET)
+					clif_fixpetpos(*((struct pet_data *)bl));
+				else
+					clif_fixpos(*bl);
+				skill_area_temp[0]=0;
 				map_foreachinarea(skill_area_sub,
 					bl->m,bl->x-1,bl->y-1,bl->x+1,bl->y+1,0,
-					src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
-					skill_castend_damage_id);
+					src,skillid,skilllv,tick, flag|BCT_ENEMY,
+					skill_area_sub_count);
+				if(skill_area_temp[0]>1) break;
+			}
+			skill_area_temp[1]=bl->id;
+			// その後タ?ゲット以外の範??の敵全?に?理を行う 
+			map_foreachinarea(skill_area_sub,
+				bl->m,bl->x-1,bl->y-1,bl->x+1,bl->y+1,0,
+				src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
+				skill_castend_damage_id);
+			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
 		}
 		break;
 	
@@ -4294,7 +4297,6 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		break;
 
 	case NPC_REBIRTH:
-		//printf ("%d %d\n", md && md->bl.prev, md && md->bl.prev && md->state.state == MS_DEAD);
 		if (md && md->state.state == MS_DEAD) {
 			mob_setdelayspawn (md->bl.id);
 		}
@@ -5681,7 +5683,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, unsigned sho
 	int count=0;
 	int target,interval,range,unit_flag;
 	struct skill_unit_layout *layout;
-	struct status_change *sc_data;
+	struct status_change *sc_data = status_get_sc_data(src);	// for firewall and fogwall - celest
 	int active_flag=1;
 
 	nullpo_retr(0, src);
@@ -5695,8 +5697,6 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, unsigned sho
 
 	if (unit_flag&UF_DEFNOTENEMY && battle_config.defnotenemy)
 		target = BCT_NOENEMY;
-
-	sc_data = status_get_sc_data(src);	// for firewall and fogwall - celest
 
 	switch(skillid){	/* 設定 */
 
@@ -5862,8 +5862,6 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, unsigned sho
 
 		if(skillid==WZ_ICEWALL && alive){
 
-			//val2=map_getcell(src->m,ux,uy,CELL_GETTYPE);
-			//if(val2==5 || val2==1)
 			if( map_getcell(src->m,ux,uy,CELL_CHKNOPASS) )
 				alive=0;
 			else {
@@ -7746,7 +7744,6 @@ int skill_use_pos( struct map_session_data *sd, int skill_x, int skill_y, unsign
 	struct status_change *sc_data;
 	int casttime = 0, delay = 0, skill, range;
 	unsigned long tick = gettick();
-
 	nullpo_retr(0, sd);
 
 	if (pc_isdead(*sd))
@@ -9621,15 +9618,15 @@ int skill_split_str(char *str,char **val,int num)
 int skill_split_atoi(char *str,int *val)
 {
 	size_t i;
-	int max = 0;
+	int max=INT_MIN;
 	for (i=0; i<MAX_SKILL_LEVEL; i++)
 	{
-		if (str)
+		if(str)
 		{
 			val[i] = atoi(str);
 			if(max<val[i]) max = val[i];
 			str = strchr(str,':');
-			if (str)
+			if(str)
 				*str++=0;
 		}
 		else
@@ -9645,7 +9642,7 @@ int skill_split_atoi(char *str,int *val)
  */
 void skill_init_unit_layout()
 {
-	size_t i,j,size,pos = 0;
+	int i,j,size,pos = 0;
 
 	memset(skill_unit_layout,0,sizeof(skill_unit_layout));
 	// 矩形のユニット配置を作成する
@@ -10032,7 +10029,9 @@ int skill_readdb(void)
 			continue;
 		skill_db[i].unit_id[0] = strtol(split[1],NULL,16);
 		skill_db[i].unit_id[1] = strtol(split[2],NULL,16);
+
 		skill_split_atoi(split[3],skill_db[i].unit_layout_type);
+		
 		skill_db[i].unit_range = atoi(split[4]);
 		skill_db[i].unit_interval = atoi(split[5]);
 

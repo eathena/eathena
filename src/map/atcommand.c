@@ -2774,28 +2774,29 @@ bool atcommand_go(int fd, struct map_session_data &sd, const char* command, cons
 	char map_name[128]="";
 	char output[128];
 	int m;
-
-	const struct { char map[16]; int x,   y; } data[] = {
-	       { "prontera.gat", 156, 191  },	//	 0=Prontera
-	       { "morocc.gat",   156,  93  },	//	 1=Morroc
-	       { "geffen.gat",   119,  59  },	//	 2=Geffen
-	       { "payon.gat",    162, 233  },	//	 3=Payon
-	       { "alberta.gat",  192, 147  },	//	 4=Alberta
-	       { "izlude.gat",   128, 114  },	//	 5=Izlude
-	       { "aldebaran.gat",140, 131  },	//	 6=Al de Baran
-	       { "xmas.gat",     147, 134  },	//	 7=Lutie
-	       { "comodo.gat",   209, 143  },	//	 8=Comodo
-	       { "yuno.gat",     157,  51  },	//	 9=Yuno
-	       { "amatsu.gat",   198,  84  },	//	10=Amatsu
-	       { "gonryun.gat",  160, 120  },	//	11=Gon Ryun
-	       { "umbala.gat",    89, 157  },	//	12=Umbala
-	       { "niflheim.gat",  21, 153  },	//	13=Niflheim
-	       { "louyang.gat",  217,  40  },	//	14=Lou Yang
-	       { "new_1-1.gat",   53, 111  },	//	15=Training Grounds
-	       { "sec_pri.gat",   23,  61  },	//	16=Prison
-           { "jawaii.gat",   249, 127  },	//  17=Jawaii
-		   { "ayothaya.gat", 151, 117  },	//  18=Ayothaya
-		   { "einbroch.gat", 64, 200  },	//  19=Einbroch		   
+	const struct { const char *map; int x,   y; } data[] =
+	{
+		{ "prontera.gat", 156, 191  },	//	 0=Prontera
+		{ "morocc.gat",   156,  93  },	//	 1=Morroc
+		{ "geffen.gat",   119,  59  },	//	 2=Geffen
+		{ "payon.gat",    162, 233  },	//	 3=Payon
+		{ "alberta.gat",  192, 147  },	//	 4=Alberta
+		{ "izlude.gat",   128, 114  },	//	 5=Izlude
+		{ "aldebaran.gat",140, 131  },	//	 6=Al de Baran
+		{ "xmas.gat",     147, 134  },	//	 7=Lutie
+		{ "comodo.gat",   209, 143  },	//	 8=Comodo
+		{ "yuno.gat",     157,  51  },	//	 9=Yuno
+		{ "amatsu.gat",   198,  84  },	//	10=Amatsu
+		{ "gonryun.gat",  160, 120  },	//	11=Gon Ryun
+		{ "umbala.gat",    89, 157  },	//	12=Umbala
+		{ "niflheim.gat",  21, 153  },	//	13=Niflheim
+		{ "louyang.gat",  217,  40  },	//	14=Lou Yang
+		{ "new_1-1.gat",   53, 111  },	//	15=Training Grounds
+		{ "sec_pri.gat",   23,  61  },	//	16=Prison
+		{ "jawaii.gat",   249, 127  },	//  17=Jawaii
+		{ "ayothaya.gat", 151, 117  },	//  18=Ayothaya
+		{ "einbroch.gat", 64, 200  },	//  19=Einbroch
+		{ "lighthalzen.gat",158,  92  },	//  20=Lighthalzen
 	};
 
 
@@ -2818,7 +2819,7 @@ bool atcommand_go(int fd, struct map_session_data &sd, const char* command, cons
 		clif_displaymessage(fd, " 1=Morroc           9=Yuno         17=Jawaii");
 		clif_displaymessage(fd, " 2=Geffen           10=Amatsu      18=Ayothaya");
 		clif_displaymessage(fd, " 3=Payon            11=Gon Ryun    19=Einbroch");
-		clif_displaymessage(fd, " 4=Alberta          12=Umbala");
+		clif_displaymessage(fd, " 4=Alberta          12=Umbala      20=Lighthalzen");
 		return false;
 	} else {
 		// get possible name of the city and add .gat if not in the name
@@ -2881,6 +2882,9 @@ bool atcommand_go(int fd, struct map_session_data &sd, const char* command, cons
 		} else if (strncmp(map_name, "einbroch.gat", 3) == 0 || // 3 first characters
 		           strncmp(map_name, "ainbroch.gat", 3) == 0) { // writing error (3 first characters)
 			town = 19;
+		} else if (strncmp(map_name, "lighthalzen.gat", 3) == 0 || // 3 first characters
+		           strncmp(map_name, "reichthalzen.gat", 3) == 0) { // 'alternative' name (3 first characters)
+			town = 20;
 		}
 
 		if (town >= -3 && town <= -1) {
