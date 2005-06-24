@@ -2582,8 +2582,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		} else {
 				int i,c;	/* 他人から聞いた動きなので間違ってる可能性大＆?率が?いっす＞＜ */
 				/* まずターゲットに攻撃を加える */
-				if (!skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0))
-					break;
 				c = skill_get_blewcount(skillid,skilllv);
 				if(map[bl->m].flag.gvg) c = 0;
 				for(i=0;i<c;i++){
@@ -2607,6 +2605,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 					bl->m,bl->x-1,bl->y-1,bl->x+1,bl->y+1,0,
 					src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
 					skill_castend_damage_id);
+				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
 		}
 		break;
 	
