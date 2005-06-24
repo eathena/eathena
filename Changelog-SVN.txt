@@ -1,5 +1,6 @@
 Date	Added
 06/24
+	* Added Lighthalzen to @go [DracoRPG]
 	* Fixed bug in bowling bash that made the target's sprite remain. [Valaris]
 	* Added status calculation to nude script command if anything was removed. [Valaris]
 
