@@ -1,4 +1,7 @@
 Date	Added
+06/24
+	* Added status calculation to nude script command if anything was removed. [Valaris]
+
 06/23
 	* Fixed LittleWolf's detect hidden mode 256 for mobs (missed a line while merging). [Valaris]
 	* Disable AF2 loading -- eA doesn't support unzipping archives yet [celest]
