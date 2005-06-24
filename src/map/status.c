@@ -921,23 +921,14 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		}
 		if (sd->sc_data[SC_GUILDAURA].timer != -1) {
 			int guildflag = sd->sc_data[SC_GUILDAURA].val4;
-			for (i = 16; i >= 0; i -= 4) {
+			for (i = 12; i >= 0; i -= 4) {
 				skill = guildflag >> i;
 				switch (i) {
 					// guild skills
-					case 16: sd->paramb[0] += skill; break;
-					case 12: sd->paramb[2] += skill; break;
-					case 8: sd->paramb[1] += skill; break;
-					case 4: sd->paramb[4] += skill; break;
-					case 0:
-						// custom stats, since there's no info on how much it actually gives ^^; [Celest]
-						if (skill) {
-							sd->hit += 10;
-							sd->flee += 10;
-						}
-						break;
-					default:
-						break;
+					case 12: sd->paramb[0] += skill; break;
+					case 8: sd->paramb[2] += skill; break;
+					case 4: sd->paramb[1] += skill; break;
+					case 0: sd->paramb[4] += skill; break;
 				}
 				guildflag ^= skill << i;
 			}

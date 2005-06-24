@@ -25,6 +25,9 @@ TODO:
 
 Date		Added
 ======
+06/24
+	* Changed Guild Castle Manager to make Emsolute/Permanent Development affect only economy
+	  investment [DracoRPG]
 06/22
 	* Added baby support to Dancer quest [Fredzilla]
 06/21

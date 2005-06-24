@@ -3563,11 +3563,10 @@ int pc_walktoxy (struct map_session_data *sd, int x, int y)
 		struct guild *g = (struct guild *)sd->state.gmaster_flag;
 		if (g) {
 			int skill, guildflag = 0;
-			if ((skill = guild_checkskill(g, GD_LEADERSHIP)) > 0) guildflag |= skill<<16;
-			if ((skill = guild_checkskill(g, GD_GLORYWOUNDS)) > 0) guildflag |= skill<<12;
-			if ((skill = guild_checkskill(g, GD_SOULCOLD)) > 0) guildflag |= skill<<8;
-			if ((skill = guild_checkskill(g, GD_HAWKEYES)) > 0) guildflag |= skill<<4;
-			if ((skill = guild_checkskill(g, GD_CHARISMA)) > 0) guildflag |= skill;
+			if ((skill = guild_checkskill(g, GD_LEADERSHIP)) > 0) guildflag |= skill<<12;
+			if ((skill = guild_checkskill(g, GD_GLORYWOUNDS)) > 0) guildflag |= skill<<8;
+			if ((skill = guild_checkskill(g, GD_SOULCOLD)) > 0) guildflag |= skill<<4;
+			if ((skill = guild_checkskill(g, GD_HAWKEYES)) > 0) guildflag |= skill;
 			if (guildflag)
 				map_foreachinarea (skill_guildaura_sub, sd->bl.m,
 					sd->bl.x-2, sd->bl.y-2, sd->bl.x+2, sd->bl.y+2, BL_PC,
