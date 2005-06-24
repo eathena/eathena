@@ -1,15 +1,15 @@
-function PCLoginEvent(id)
-	print("Player with ID "..id.." logged in !")
+function PCLoginEvent()
+	print("Player with ID "..char_id.." logged in !")
 end
 
-function PCLogoutEvent(id)
-	print("Player with ID "..id.." logged out !")
+function PCLogoutEvent()
+	print("Player with ID "..char_id.." logged out !")
 end
 
-function PCKillEvent(id)
-	print("Player with ID "..id.." killed someone !")
+function PCKillEvent()
+	print("Player with ID "..char_id.." killed someone !")
 end
 
-function PCDieEvent(id)
-	print("Player with ID "..id.." died !")
+function PCDieEvent()
+	print("Player with ID "..char_id.." died !")
 end

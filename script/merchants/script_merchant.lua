@@ -1,1 +1,1 @@
-require("script/merchants/shops.lua")
+require "script/merchants/shops.lua"

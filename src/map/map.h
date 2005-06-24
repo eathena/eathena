@@ -223,7 +223,6 @@ struct map_session_data {
 	int next_walktime;
 	int npc_id,areascript_id;
 	int npc_pos;
-	int npc_menu;
 	npc_menu_datas npc_menu_data;
 	char *menu;
 	
@@ -232,10 +231,8 @@ struct map_session_data {
 		int value[40];
 		int n;
 	} shop_data;
-	
-	int npc_amount;
-	char npc_str[256];
-	int npc_script_state;
+
+	int script_state;
 	lua_State *NL;
 	unsigned int chatID;
 	unsigned long idletime;
@@ -419,13 +416,13 @@ struct map_session_data {
 };
 
 enum {
-	RUNNING,
-	HALT,
-	STOP,
 	NRUN,
-	PAUSE,
+	RUNNING,
+	NEXT,
+	CLOSE,
 	MENU,
 	INPUT,
+	SHOP
 };
 
 struct npc_data {

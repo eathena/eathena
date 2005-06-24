@@ -1,4 +1,10 @@
 Date	Added
+06/24
+	* Rewrote npcnext, npcclose, npcinput and npcmenu (can't do npcshop... it's 2:30AM lol),
+	  sorry Kevin but you know I like rewriting your work ^^ : now they use only one buildin
+	  function and no more Lua function to call them indirectly [DracoRPG]
+	 --> Some bits of the 'old' code still remain (e.g. the RUNNING state or npc_scriptnext)
+	     to allow compilation since I did not rewrite npcshop yet but I'll remove'em quick ;)
 06/18
 	* Added npcshop function Usage: [Kevin]
 	 npcshop(itemid, price, itempid2, price2, ...)

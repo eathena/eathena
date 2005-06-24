@@ -29,11 +29,12 @@ lua_State *L;
 
 extern char mapreg_txt[];
 
-void script_run_function(const char *name,const char *format,...); // [DracoRPG]
-void script_run_script(const char *name, int char_id); // [Kevin]
-void script_run_chunk(const char *chunk); // [DracoRPG]
-void script_buildin_commands(); // [Kevin]
-int script_resume(struct map_session_data *sd); // [Kevin]
+// Lua-specific functions by Kevin and DracoRPG
+void script_run_function(const char *name,int char_id,const char *format,...);
+void script_run_chunk(const char *chunk,int char_id);
+void script_resume(int char_id,const char *format,...);
+void script_buildin_commands();
+
 int script_config_read(char *cfgName);
 int do_init_script();
 int do_final_script();

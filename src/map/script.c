@@ -169,7 +169,7 @@ static int npcclose(lua_State *NL)
 		return -1;
 	}
 	npcid = sd->npc_id;
-	sd->npc_script_state = HALT;
+	sd->script_state = CLOSE;
 	
 	clif_scriptclose(sd,npcid);
 	
@@ -180,7 +180,6 @@ static int npcclose(lua_State *NL)
 // Display a [Next] button in the NPC dialog window of the player and pause the script until the button is clicked
 static int npcnext(lua_State *NL)
 {
-
 	struct map_session_data *sd = NULL;
 	int charid, npcid;
 
@@ -196,14 +195,14 @@ static int npcnext(lua_State *NL)
 	
 	clif_scriptnext(sd,npcid);
 	
-	sd->npc_script_state = PAUSE;
+	sd->script_state = NEXT;
 
-	return lua_yield(NL, 0);
+	return lua_yield(NL, 1);
 }
 
 // npcinput(type)
 // Display an NPC input window asking the player for a value
-static int npcinput_co(lua_State *NL)
+static int npcinput(lua_State *NL)
 {
 	struct map_session_data *sd = NULL;
 	int charid, npcid;
@@ -227,43 +226,14 @@ static int npcinput_co(lua_State *NL)
 			break;
 	}
 	
-	sd->npc_script_state = INPUT;
+	sd->script_state = INPUT;
 
-	return lua_yield(NL, 0);
-}
-
-static int npcinput_getvalue(lua_State *NL)
-{
-	struct map_session_data *sd = NULL;
-	int charid, npcid;
-
-	lua_pushliteral(NL, "char_id");
-	lua_rawget(NL, LUA_GLOBALSINDEX);
-	charid=lua_tonumber(NL, -1);
-	lua_pop(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script");
-		return -1;
-	}
-	npcid = sd->npc_id;
-
-	switch((int)lua_tonumber(NL, 1)){
-		case 0:
-			lua_pushnumber(NL, sd->npc_amount);
-			break;
-		case 1:
-			lua_pushstring(NL, sd->npc_str);
-			break;
-	}
-	
-	sd->npc_script_state = RUNNING;
-
-	return 1;
+	return lua_yield(NL, 1);
 }
 
 // npcmenu("menu_name", return_value)
 // Display an NPC input window asking the player for a value
-static int npcmenu_co(lua_State *NL)
+static int npcmenu(lua_State *NL)
 {
 	struct map_session_data *sd = NULL;
 	char *buf;
@@ -279,24 +249,24 @@ static int npcmenu_co(lua_State *NL)
 		ShowError("Character not found in script");
 		return -1;
 	}
-	
+
 	npcid = sd->npc_id;
-	
+
 	lua_pushliteral(NL, "n");
 	lua_rawget(NL, 1);
 	n = lua_tonumber(NL, -1);
 	lua_pop(NL, 1);
-	
+
 	if(n%2 == 1) {
 		lua_pushstring(NL, "Incorrect number of arguments for function 'npcmenu'\n");
 		lua_error(NL);
 		return -1;
 	}
-	
+
 	if(!sd->npc_menu_data.current) {
 		sd->npc_menu_data.current=0;
 	}
-	
+
 	for(i=0; i<n; i+=2) {
 		lua_pushnumber(NL, i+1);
 		lua_rawget(NL, 1);
@@ -304,66 +274,36 @@ static int npcmenu_co(lua_State *NL)
 		lua_pop(NL, 1);
 		len += strlen(menu);
 	}
-	
+
 	buf=(char *)aCallocA(len+1, sizeof(char));
 	buf[0]=0;
-	
+
 	for(i=0; i<n; i+=2) {
 		lua_pushnumber(NL, i+1);
 		lua_rawget(NL, 1);
 		menu = (char *)lua_tostring(NL, -1);
 		lua_pop(NL, 1);
-	
+
 		lua_pushnumber(NL, i+2);
 		lua_rawget(NL, 1);
 		sd->npc_menu_data.value[sd->npc_menu_data.current] = lua_tonumber(NL, -1);
 		lua_pop(NL, 1);
-		
+
 		sd->npc_menu_data.id[sd->npc_menu_data.current] = sd->npc_menu_data.current;
 		sd->npc_menu_data.current+=1;
 		
 		strcat(buf,menu);
 		strcat(buf,":");
 	}
-	
-	
-	clif_scriptmenu(sd,npcid,buf);
-	
-	sd->npc_script_state = MENU;
-	
-	aFree(buf);
-	
-	return lua_yield(NL, 0);
-}
 
-static int npcmenu_getchoice(lua_State *NL)
-{
-	
-	struct map_session_data *sd = NULL;
-	int charid;
-	
-	lua_pushliteral(NL, "char_id");
-	lua_rawget(NL, LUA_GLOBALSINDEX);
-	charid=lua_tonumber(NL, -1);
-	lua_pop(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script");
-		return -1;
-	}
-	
-	if(sd->npc_script_state != MENU) {
-		lua_pushstring(NL, "Use npcmenu_co & npcmenu_done before using npcmenu_getchoice");
-		lua_error(NL);
-		return 0;
-	}
-	
-	sd->npc_script_state = RUNNING;
-	
-	lua_pushnumber(NL, sd->npc_menu_data.value[sd->npc_menu-1]);
-	
-	sd->npc_menu_data.current=0;
-	
-	return 1;
+
+	clif_scriptmenu(sd,npcid,buf);
+
+	sd->script_state = MENU;
+
+	aFree(buf);
+
+	return lua_yield(NL, 1);
 }
 
 // npcshop_start()
@@ -381,10 +321,10 @@ static int npcshop_start(lua_State *NL)
 		ShowError("Character not found in script");
 		return -1;
 	}
-	
+
 	clif_npcbuysell(sd, sd->npc_id);
-	sd->npc_script_state = PAUSE;
-	
+	sd->script_state = SHOP;
+
 	return lua_yield(NL, 0);
 }
 
@@ -404,35 +344,35 @@ static int npcshop_co(lua_State *NL)
 		ShowError("Character not found in script");
 		return -1;
 	}
-	
+
 	lua_pushliteral(NL, "n");
 	lua_rawget(NL, 1);
 	n = lua_tonumber(NL, -1);
 	lua_pop(NL, 1);
-	
+
 	if(n%2 == 1) {
 		lua_pushstring(NL, "Incorrect number of arguments for function 'npcshop_co'\n");
 		lua_error(NL);
 		return -1;
 	}
-	
+
 	sd->shop_data.n = n/2;
-	
+
 	for(i=1, j=0; i<=n; i+=2, j++) {
 		lua_pushnumber(NL, i);
 		lua_rawget(NL, 1);
 		sd->shop_data.nameid[j] = lua_tonumber(NL, -1);
 		lua_pop(NL, 1);
-		
+
 		lua_pushnumber(NL, i+1);
 		lua_rawget(NL, 1);
 		sd->shop_data.value[j] = lua_tonumber(NL, -1);
 		lua_pop(NL, 1);
 	}
-	
-	sd->npc_script_state = PAUSE;
+
+	sd->script_state = SHOP;
 	clif_buylist(sd);
-	
+
 	return lua_yield(NL, 0);
 }
 		
@@ -499,10 +439,8 @@ static struct LuaCommandInfo commands[] = {
 	{"npcmes", npcmes},
 	{"npcclose", npcclose},
 	{"npcnext", npcnext},
-	{"npcinput_co", npcinput_co},
-	{"npcinput_getvalue", npcinput_getvalue},
-	{"npcmenu_co", npcmenu_co},
-	{"npcmenu_getchoice", npcmenu_getchoice},
+	{"npcinput", npcinput},
+	{"npcmenu", npcmenu},
 	{"npcshop_co", npcshop_co},
 	{"npcshop_start", npcshop_start},
 	/* Player related functions */
@@ -531,79 +469,148 @@ void script_buildin_commands()
         i++;
     }
 	ShowStatus("Done registering '"CL_WHITE"%d"CL_RESET"' script build-in commands.\n",i);
-	
-}
-
-//Resume an already paused script with no arguments
-int script_resume(struct map_session_data *sd) {
-	if(lua_resume(sd->NL, 0)) {
-		ShowError("CAN NOT RESUME SCRIPT: %s", lua_tostring(sd->NL, -1));
-	}
-	return 0;
 }
 
 // Run a Lua function that was previously loaded, specifying the type of arguments with a "format" string
-void script_run_function(const char *name,const char *format,...)
+void script_run_function(const char *name,int char_id,const char *format,...)
 {
 	va_list arg;
+	lua_State *NL;
+	struct map_session_data *sd=NULL;
 	int n=0;
 
-	lua_getglobal(L,name); // Pass function name to Lua
+	if (char_id == 0) { // If char_id points to no player
+		NL = L; // Use the global thread
+	} else { // Else we want to run the function for a specific player
+		sd = map_charid2sd(char_id);
+		nullpo_retv(sd);
+		if(sd->script_state!=NRUN){ // Check that the player is not currently running a script
+			ShowError("Cannot run function %s for player %d : player is already running a script\n",name,char_id);
+			return;
+		}
+		NL = sd->NL = lua_newthread(L); // Use the player's personal thread
+		lua_pushliteral(NL,"char_id"); // Push global key for char_id
+		lua_pushnumber(NL,char_id); // Push value for char_id
+		lua_rawset(NL,LUA_GLOBALSINDEX); // Tell Lua to set char_id as a global var
+	}
 
+	lua_getglobal(NL,name); // Pass function name to Lua
+ 
 	va_start(arg,format); // Initialize the argument list
 	while (*format) { // Pass arguments to Lua, according to the types defined by "format"
         switch (*format++) {
           case 'd': // d = Double
-            lua_pushnumber(L,va_arg(arg,double));
+            lua_pushnumber(NL,va_arg(arg,double));
             break;
           case 'i': // i = Integer
-            lua_pushnumber(L,va_arg(arg,int));
+            lua_pushnumber(NL,va_arg(arg,int));
             break;
           case 's': // s = String
-            lua_pushstring(L,va_arg(arg,char*));
+            lua_pushstring(NL,va_arg(arg,char*));
             break;
           default: // Unknown code
             ShowError("%c : Invalid argument type code, allowed codes are 'd'/'i'/'s'",*(format-1));
         }
         n++;
-        luaL_checkstack(L,1,"Too many arguments");
+        luaL_checkstack(NL,1,"Too many arguments");
     }
-	if (lua_pcall(L,n,0,0)!=0){ // Tell Lua to run the function
-		ShowError("Cannot run function %s : %s\n",name,lua_tostring(L,-1));
-		return;
-	}
-	ShowInfo("Ran function %s\n",name);
+
 	va_end(arg);
-}
 
-// Added this function because we needed to get a separate lua state from the map_session_data, and need to have a set number of args
-void script_run_script(const char *name, int char_id)
-{
-
-	struct map_session_data *sd = map_charid2sd(char_id);
-	
-	lua_State *NL = sd->NL;
-	lua_getglobal(NL,name); // Pass function name to Lua
-	lua_pushliteral(NL,"char_id");//push global key for char_id
-    lua_pushnumber(NL,char_id); //push value for char_id
-    lua_rawset(NL, LUA_GLOBALSINDEX);//add global to the table
-	if (lua_resume(NL,0)!=0){ // Tell Lua to run the function
+	if (lua_resume(NL,n)!=0){ // Tell Lua to run the function
 		ShowError("Cannot run function %s : %s\n",name,lua_tostring(NL,-1));
 		return;
 	}
-	ShowInfo("Ran function %s\n",name);
-	
+
+	if(sd && sd->script_state==NRUN) { // If the script has finished (not waiting answer from client)
+	    sd->NL=NULL; // Close the player's personal thread
+		sd->npc_id=0; // Set the player's current NPC to 'none'
+		sd->areascript_id=0; // Set the player's current area script to 'none'
+	}
 }
 
 // Run a Lua chunk
-void script_run_chunk(const char *chunk)
+void script_run_chunk(const char *chunk,int char_id)
 {
-	luaL_loadbuffer(L,chunk,strlen(chunk),"chunk"); // Pass chunk to Lua
-	if (lua_pcall(L,0,0,0)!=0){ // Tell Lua to run the chunk
-		ShowError("Cannot run chunk %s : %s\n",chunk,lua_tostring(L,-1));
+	lua_State *NL;
+    struct map_session_data *sd=NULL;
+
+	if (char_id == 0) { // If char_id points to no player
+		NL = L; // Use the global thread
+	} else { // Else we want to run the chunk for a specific player
+		sd = map_charid2sd(char_id);
+		nullpo_retv(sd);
+		if(sd->script_state!=NRUN){ // Check that the player is not currently running a script
+			ShowError("Cannot run chunk %s for player %d : player is currently running a script\n",chunk,char_id);
+			return;
+		}
+		NL = sd->NL = lua_newthread(L); // Else the player's personal thread
+		lua_pushliteral(NL,"char_id"); // Push global key for char_id
+		lua_pushnumber(NL,char_id); // Push value for char_id
+		lua_rawset(NL,LUA_GLOBALSINDEX); // Tell Lua to set char_id as a global var
+	}
+    
+	luaL_loadbuffer(NL,chunk,strlen(chunk),"chunk"); // Pass chunk to Lua
+	if (lua_pcall(NL,0,0,0)!=0){ // Tell Lua to run the chunk
+		ShowError("Cannot run chunk %s : %s\n",chunk,lua_tostring(NL,-1));
 		return;
 	}
-	ShowInfo("Ran chunk %s\n",chunk);
+	if(sd && sd->script_state==NRUN) { // If the script has finished (not waiting answer from client)
+	    sd->NL=NULL; // Close the player's personal thread
+		sd->npc_id=0; // Set the player's current NPC to 'none'
+		sd->areascript_id=0; // Set the player's current area script to 'none'
+	}
+}
+
+// Resume an already paused script
+void script_resume(int char_id,const char *format,...) {
+	va_list arg;
+	lua_State *NL=NULL;
+	struct map_session_data *sd=NULL;
+	int n=0;
+
+	if (char_id == 0) { // If char_id points to no player
+		NL = L; // Use the global thread
+	} else { // Else we want to run the function for a specific player
+		sd = map_charid2sd(char_id);
+		nullpo_retv(sd);
+		if(sd->script_state==NRUN){ // Check that the player is currently running a script
+			ShowError("Cannot resume script for player %d : player is not running a script\n",char_id);
+			return;
+		}
+	}
+
+	va_start(arg,format); // Initialize the argument list
+	while (*format) { // Pass arguments to Lua, according to the types defined by "format"
+        switch (*format++) {
+          case 'd': // d = Double
+            lua_pushnumber(NL,va_arg(arg,double));
+            break;
+          case 'i': // i = Integer
+            lua_pushnumber(NL,va_arg(arg,int));
+            break;
+          case 's': // s = String
+            lua_pushstring(NL,va_arg(arg,char*));
+            break;
+          default: // Unknown code
+            ShowError("%c : Invalid argument type code, allowed codes are 'd'/'i'/'s'",*(format-1));
+        }
+        n++;
+        luaL_checkstack(NL,1,"Too many arguments");
+    }
+
+    va_end(arg);
+
+	if (lua_resume(NL,n)!=0){ // Tell Lua to run the function
+		ShowError("Cannot resume script : %s\n",lua_tostring(NL,-1));
+		return;
+	}
+
+	if(sd && sd->script_state==NRUN) { // If the script has finished (not waiting answer from client)
+	    sd->NL=NULL; // Close the player's personal thread
+		sd->npc_id=0; // Set the player's current NPC to 'none'
+		sd->areascript_id=0; // Set the player's current area script to 'none'
+	}
 }
 
 /*===================================================================
@@ -904,7 +911,11 @@ int do_init_script()
 	luaopen_string(L); // Open the string library
 	luaopen_math(L); // Open the math library
 
-	script_buildin_commands(); // Build in the lua commands XD
+	lua_pushliteral(L,"char_id"); // Push global key for char_id
+	lua_pushnumber(L,0); // Push value 0 for char_id (the global thread is not linked to any player !)
+	lua_rawset(L,LUA_GLOBALSINDEX); // Tell Lua to set char_id as a global var
+
+	script_buildin_commands(); // Build in the Lua commands
 
 	return 0;
 }

@@ -11,12 +11,15 @@ Fredzilla
 == Changelog ==
 
 Date	Added
-======
+06/24
+	* Changed "mobs" to "spawns", it's more self-explanatory ^^ [DracoRPG]
+06/21
+	* Removed parenthesis from functions with only one string argument : make things clearer,
+	  especially for requires ^^ [DracoRPG]
 06/20
 	* Added main shops to Rune Midgard, but -1 dont work, so 
 	  everything costs "-1 -> 0", so I didnt add it to the server 
 	  startup
-
 06/19
 	* Small fix in Payon warps, forgot to change back to 
 	  full names while converting

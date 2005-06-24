@@ -802,6 +802,8 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 			clif_skillinfoblock(sd);
 		}
 	}
+	
+	sd->script_state = NRUN;
 
 	// Automated script events
 	if (script_config.event_requires_trigger) {
@@ -836,7 +838,7 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	ShowInfo(tmp_output);
 
 	if (script_config.login_event_name) {
-		script_run_function(script_config.login_event_name,"i",sd->char_id);
+		script_run_function(script_config.login_event_name,sd->char_id,"");
 		sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.login_event_name);
 		ShowStatus(tmp_output);
 	}
@@ -4872,7 +4874,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 				pc_setglobalreg(sd,"killerrid",(ssd->status.account_id));
 			if (ssd->state.event_kill) {
 				if (script_config.kill_event_name) {
-					script_run_function(script_config.kill_event_name,"i",sd->char_id);
+					script_run_function(script_config.kill_event_name,sd->char_id,"");
 					sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.kill_event_name);
 					ShowStatus(tmp_output);
 				}
@@ -4905,7 +4907,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 
 	if (sd->state.event_death) {
 		if (script_config.die_event_name) {
-			script_run_function(script_config.die_event_name,"i",sd->char_id);
+			script_run_function(script_config.die_event_name,sd->char_id,"");
 			sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.die_event_name);
 			ShowStatus(tmp_output);
 			}

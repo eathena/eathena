@@ -9668,7 +9668,7 @@ int atcommand_runluafunc(
 		return -1;
 	}
 
-	script_run_function(name,"i",arg);
+	script_run_function(name,sd->char_id,"i",arg);
 
 	return 0;
 }
@@ -9688,7 +9688,7 @@ int atcommand_runluachunk(
 		return -1;
 	}
 
-	script_run_chunk(message);
+	script_run_chunk(message,sd->char_id);
 
 	return 0;
 }

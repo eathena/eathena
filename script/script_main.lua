@@ -18,13 +18,13 @@ require("script/core/core.lua")
 --------------------------------------------------------------
 ------------------------ Script Files ------------------------
 -- Sample scripts
-require("script/sample/script_sample.lua")
+require "script/sample/script_sample.lua"
 -- Warps
-require("script/warps/script_warps.lua")
+require "script/warps/script_warps.lua"
 -- Monster Spawn
---require("script/mobs/script_spawn.lua")
+--require "script/spawns/script_spawn.lua"
 -- Shops/Merchants
---require("script/merchants/script_merchant.lua")
+--require "script/merchants/script_merchant.lua"
 -- Your NPCs go in this file!
--- require("script/custom/script_custom.lua")
+--require "script/custom/script_custom.lua"
 --------------------------------------------------------------

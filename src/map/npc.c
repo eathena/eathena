@@ -105,9 +105,7 @@ int npc_click(struct map_session_data *sd,int id)
 		return 1;
 
 	sd->npc_id=id;
-	sd->NL=lua_newthread(L);
-	sd->npc_script_state=RUNNING;
-	script_run_script(nd->function,sd->char_id);
+	script_run_function(nd->function,sd->char_id,"");
 
 	return 0;
 }
@@ -130,7 +128,7 @@ int npc_touch_areascript(struct map_session_data *sd,int m,int x,int y)
 			x >= map[m].areascript[i]->x1 && x <= map[m].areascript[i]->x2 &&
 			y >= map[m].areascript[i]->y1 && x <= map[m].areascript[i]->y2) {
 			sd->areascript_id=map[m].areascript[i]->bl.id;
-			script_run_function(map[m].areascript[i]->function,"i",sd->char_id);
+			script_run_function(map[m].areascript[i]->function,sd->char_id,"");
 		}
 	}
 	return 0;
@@ -245,42 +243,11 @@ int npc_globalmessage(const char *name,char *mes)
  *
  *------------------------------------------
  */
-int npc_scriptend(struct map_session_data *sd,int id)
-{
-
-	nullpo_retr(1, sd);
-	
-	if(sd->npc_script_state == HALT) {
-		if(sd->npc_id > 0) {
-			sd->npc_id = 0;
-			sd->npc_script_state = NRUN;
-			sd->NL = NULL;
-		}
-	}
-		
-	return 0;
-	
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
 int npc_scriptnext(struct map_session_data *sd,int id)
 {
-
 	nullpo_retr(1, sd);
-	
-	if(sd->npc_script_state == PAUSE) {
-		sd->npc_script_state=RUNNING;
-	}
-	if(sd->npc_script_state == MENU && sd->npc_menu == 0xff) {
-		sd->NL = NULL;
-		sd->npc_id = 0;
-		return 0;
-	}
-	lua_resume(sd->NL, 0);
-		
+
+	script_resume(sd->char_id,""); // Resume the script
 	return 0;
 }
 
@@ -295,9 +262,9 @@ int npc_buysellsel(struct map_session_data *sd,int id,int type)
 
 	if (type==0) {
 		lua_resume(sd->NL, 0);
-		sd->npc_script_state=RUNNING;
+		sd->script_state=RUNNING;
 	} else {
-		sd->npc_script_state=NRUN;
+		sd->script_state=NRUN;
 		sd->npc_id=0;
 		sd->NL=NULL;
 		clif_selllist(sd);

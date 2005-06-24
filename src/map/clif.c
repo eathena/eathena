@@ -9549,7 +9549,7 @@ void clif_parse_UseSkillMap(int fd,struct map_session_data *sd)
 	skill_castend_map(sd,RFIFOW(fd,2),(char*)RFIFOP(fd,4));
 }
 /*==========================================
- * メモ要求
+ * /memo
  *------------------------------------------
  */
 void clif_parse_RequestMemo(int fd,struct map_session_data *sd)
@@ -9560,7 +9560,7 @@ void clif_parse_RequestMemo(int fd,struct map_session_data *sd)
 		pc_memo(sd,-1);
 }
 /*==========================================
- * アイテム合成
+ * Item to produce selected
  *------------------------------------------
  */
 void clif_parse_ProduceMix(int fd,struct map_session_data *sd)
@@ -9572,71 +9572,111 @@ void clif_parse_ProduceMix(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- *
+ * NPC dialog window's menu
  *------------------------------------------
  */
 void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 {
+	int index;
 	nullpo_retv(sd);
 
-	sd->npc_menu=RFIFOB(fd,6);
-	npc_scriptnext(sd,RFIFOL(fd,2));
+	if(sd->script_state!=MENU) { // If we were not waiting for the player to choose in a menu, something is wrong
+        ShowWarning("Player %s sent an unexpected packet : NPC menu option selected\n",sd->status.name);
+        return;
+	}
+
+	index=RFIFOB(fd,6);
+
+    if(index==0xff) { // If the player clicked the [Cancel] button
+		sd->script_state=NRUN; // Set the state flag as 'not running a script'
+		sd->NL=NULL; // Close the player's personal thread
+		sd->npc_id=0; // Set the player's current NPC to 'none'
+		sd->areascript_id=0; // Set the player's current area script to 'none'
+	} else {
+		sd->npc_menu_data.current=0;
+		script_resume(sd->char_id,"i",sd->npc_menu_data.value[index-1]); // Resume the script, passing the value
+	}
 }
 
 /*==========================================
- *
+ * NPC dialog window's [Next] button
  *------------------------------------------
  */
 void clif_parse_NpcNextClicked(int fd,struct map_session_data *sd)
 {
-	npc_scriptnext(sd,RFIFOL(fd,2));
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-void clif_parse_NpcAmountInput(int fd,struct map_session_data *sd)
-{
 	nullpo_retv(sd);
 
-#define RFIFOL_(fd,pos) (*(int*)(session[fd]->rdata+session[fd]->rdata_pos+(pos)))
-	//Input Value overflow Exploit FIX
-	sd->npc_amount=RFIFOL_(fd,6); //fixed by Lupus. npc_amount is (int) but was RFIFOL changing it to (unsigned int)
+	if(sd->script_state!=NEXT) { // If we were not waiting for the player to click [Next], something is wrong
+        ShowWarning("Player %s sent an unexpected packet : NPC [Next] clicked\n",sd->status.name);
+        return;
+	}
 
-#undef RFIFOL_
-
-	npc_scriptnext(sd,RFIFOL(fd,2));
+	script_resume(sd->char_id,""); // Resume the script
 }
 
 /*==========================================
- *
- *------------------------------------------
- */
-void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)
-{
-	nullpo_retv(sd);
-
-	if(RFIFOW(fd,2)-7 >= sizeof(sd->npc_str)){
-		printf("clif: input string too long !\n");
-		memcpy(sd->npc_str,RFIFOP(fd,8),sizeof(sd->npc_str));
-		sd->npc_str[sizeof(sd->npc_str)-1]=0;
-	} else
-		strcpy(sd->npc_str,(char*)RFIFOP(fd,8));
-	npc_scriptnext(sd,RFIFOL(fd,4));
-}
-
-/*==========================================
- *
+ * NPC dialog window's [Close] button
  *------------------------------------------
  */
 void clif_parse_NpcCloseClicked(int fd,struct map_session_data *sd)
 {
-	npc_scriptend(sd,RFIFOL(fd,2));
+	nullpo_retv(sd);
+
+	if(sd->script_state!=CLOSE) { // If we were not waiting for the player to click [Close], something is wrong
+        ShowWarning("Player %s sent an unexpected packet : NPC [Close] clicked\n",sd->status.name);
+        return;
+	}
+
+	script_resume(sd->char_id,""); // Resume the script
 }
 
 /*==========================================
- * アイテム鑑定
+ * NPC dialog window's amount input
+ *------------------------------------------
+ */
+void clif_parse_NpcAmountInput(int fd,struct map_session_data *sd)
+{
+	int amount;
+	nullpo_retv(sd);
+
+	if(sd->script_state!=INPUT) { // If we were not waiting for the player to input a value, something is wrong
+        ShowWarning("Player %s sent an unexpected packet : NPC value input\n",sd->status.name);
+        return;
+	}
+
+#define RFIFOL_(fd,pos) (*(int*)(session[fd]->rdata+session[fd]->rdata_pos+(pos))) //Input Value overflow Exploit FIX
+	amount=RFIFOL_(fd,6); //fixed by Lupus. npc_amount is (int) but was RFIFOL changing it to (unsigned int)
+#undef RFIFOL_
+
+	script_resume(sd->char_id,"i",amount); // Resume the script, passing the value
+}
+
+/*==========================================
+ * NPC dialog window's string input
+ *------------------------------------------
+ */
+void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)
+{
+    char str[256];
+	nullpo_retv(sd);
+
+	if(sd->script_state!=INPUT) { // If we were not waiting for the player to input a value, something is wrong
+        ShowWarning("Player %s sent an unexpected packet : NPC value input\n",sd->status.name);
+        return;
+	}
+
+	if(RFIFOW(fd,2)-7 >= sizeof(str)){
+		ShowError("NPC input string too long !\n");
+		memcpy(str,RFIFOP(fd,8),sizeof(str));
+		str[sizeof(str)-1]=0;
+	} else
+		strcpy(str,(char*)RFIFOP(fd,8));
+
+	script_resume(sd->char_id,"s",str); // Resume the script, passing the value
+}
+
+/*==========================================
+ * Item to identify selected
  *------------------------------------------
  */
 void clif_parse_ItemIdentify(int fd,struct map_session_data *sd)
@@ -9644,7 +9684,7 @@ void clif_parse_ItemIdentify(int fd,struct map_session_data *sd)
 	pc_item_identify(sd,RFIFOW(fd,2)-2);
 }
 /*==========================================
- * 矢作成
+ * Arrow to craft selected
  *------------------------------------------
  */
 void clif_parse_SelectArrow(int fd,struct map_session_data *sd)
