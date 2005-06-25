@@ -1,5 +1,6 @@
 Date	Added
 06/25
+	* Added limit 10 to fame list SQL query (faster, when u got 1000+ bsm/alch in DB) [Lupus]
 	* Added missing field guild/char_id to main.sql database definition [Lupus]
 	  Warning: Don't use guild_tables.sql databases yet! Use main.sql file
 06/24

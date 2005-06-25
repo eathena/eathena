@@ -2539,7 +2539,7 @@ int parse_frommap(int fd) {
 
 			WBUFW(buf,0) = 0x2b1b;
 			sprintf(tmp_sql, "SELECT `char_id`,`fame` FROM `%s` WHERE `class`='10' OR `class`='4011'"
-				"OR `class`='4033' ORDER BY `fame` DESC", char_db);
+				"OR `class`='4033' ORDER BY `fame` DESC LIMIT 0,10", char_db);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				printf("DB server Error (select fame)- %s\n", mysql_error(&mysql_handle));
 			}
@@ -2558,7 +2558,7 @@ int parse_frommap(int fd) {
 
 			num = 0;
 			sprintf(tmp_sql, "SELECT `account_id`,`fame` FROM `%s` WHERE `class`='18' OR `class`='4019'"
-				"OR `class`='4041' ORDER BY `fame` DESC", char_db);
+				"OR `class`='4041' ORDER BY `fame` DESC LIMIT 0,10", char_db);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				printf("DB server Error (select fame)- %s\n", mysql_error(&mysql_handle));
 			}
