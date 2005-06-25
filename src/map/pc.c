@@ -3949,9 +3949,6 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 		sd->attackabletime = tick + (sd->aspd<<1);
 	}
 	else {
-		//On this point, we have reached our target, and guarantee an attack, so.. uncloak. [Skotlex]
-		if(pc_iscloaking(sd))
-			status_change_end(&sd->bl, SC_CLOAKING, -1);
 		if(battle_config.pc_attack_direction_change)
 			sd->dir=sd->head_dir=map_calc_dir(&sd->bl, bl->x,bl->y );	// Œü‚«Ý’è
 
@@ -3962,7 +3959,7 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 			map_freeblock_lock();
 			pc_stop_walking(sd,0);
 			sd->attacktarget_lv = battle_weapon_attack(&sd->bl,bl,tick,0);
-			// &2 = ? - Celest
+			// &2 = ? - Celest <- &2 means "cloaking lasts forever" [Skotlex]
 			if(!(battle_config.pc_cloak_check_type&2) && sd->sc_data[SC_CLOAKING].timer != -1)
 				status_change_end(&sd->bl,SC_CLOAKING,-1);
 			if(sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_attack_support)

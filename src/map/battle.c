@@ -1004,7 +1004,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 				break;
 			case MO_INVESTIGATE:	// ”­ ™¤
 				if(def1 < 1000000)
-					damage = damage*(100+ 75*skill_lv)/100 * (def1 + def2)/50;
+					damage = damage*(100+ 75*skill_lv)/100 * (def1 + def2)/100;
 				hitrate = 1000000;
 				ignore_def_flag = 1;
 				s_ele = 0;
@@ -1536,7 +1536,7 @@ static struct Damage battle_calc_mob_weapon_attack(
 				break;
 			case MO_INVESTIGATE:	// ”­ ™¤
 				if(def1 < 1000000)
-					damage = damage*(100+ 75*skill_lv)/100 * (def1 + def2)/50;
+					damage = damage*(100+ 75*skill_lv)/100 * (def1 + def2)/100;
 				hitrate = 1000000;
 				ignore_def_flag = 1;
 				s_ele = 0;
@@ -2294,8 +2294,8 @@ static struct Damage battle_calc_pc_weapon_attack(
 				break;
 			case MO_INVESTIGATE:	// ”­ ™¤
 				if(def1 < 1000000) {
-					damage = damage*(def1 + def2)/50;
-					damage2 = damage2*(def1 + def2)/50;
+					damage = damage*(def1 + def2)/100;
+					damage2 = damage2*(def1 + def2)/100;
 					damage_rate += 75*skill_lv;
 				}
 				hitrate = 1000000;
@@ -3610,7 +3610,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					if (!flag.infdef)
 					{
 						skillratio+=75*skill_lv;
-						ATK_RATE((def1 + def2)/2);
+						ATK_RATE((def1 + def2));
 					}
 					flag.idef= flag.idef2= 1;
 					break;
@@ -5519,6 +5519,7 @@ static const struct battle_data_short {
 	{ "alchemist_summon_reward",           &battle_config.alchemist_summon_reward	},	// [Valaris]
 	{ "maximum_level",                     &battle_config.maximum_level	},	// [Valaris]
 	{ "drops_by_luk",                      &battle_config.drops_by_luk	},	// [Valaris]
+	{ "drops_by_luk2",                     &battle_config.drops_by_luk2	},	// [Skotlex]
 	{ "equip_natural_break_rate",          &battle_config.equip_natural_break_rate	},
 	{ "equip_self_break_rate",             &battle_config.equip_self_break_rate	},
 	{ "equip_skill_break_rate",            &battle_config.equip_skill_break_rate	},
@@ -5784,7 +5785,7 @@ void battle_set_defaults() {
 	battle_config.monster_skill_reiteration = 0;
 	battle_config.pc_skill_nofootset = 0;
 	battle_config.monster_skill_nofootset = 0;
-	battle_config.pc_cloak_check_type = 0;
+	battle_config.pc_cloak_check_type = 1;
 	battle_config.monster_cloak_check_type = 0;
 	battle_config.gvg_short_damage_rate = 100;
 	battle_config.gvg_long_damage_rate = 60;
@@ -5855,6 +5856,7 @@ void battle_set_defaults() {
 	battle_config.prevent_logout = 1;	// Added by RoVeRT
 	battle_config.maximum_level = 255;	// Added by Valaris
 	battle_config.drops_by_luk = 0;	// [Valaris]
+	battle_config.drops_by_luk2 = 0;
 	battle_config.equip_natural_break_rate = 1;
 	battle_config.equip_self_break_rate = 100; // [Valaris], adapted by [Skotlex]
 	battle_config.equip_skill_break_rate = 100; // [Valaris], adapted by [Skotlex]

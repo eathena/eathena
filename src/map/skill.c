@@ -1460,65 +1460,69 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	if(src->type == BL_PC) {
 		struct map_session_data *sd = (struct map_session_data *)src;
 		nullpo_retr(0, sd);
-//連打掌(MO_CHAINCOMBO)ここから
-		if(skillid == MO_CHAINCOMBO) {
-			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src); //基本ディレイの計算
-			if(damage < status_get_hp(bl)) { //ダメ?ジが?象のHPより小さい場合
-				if(pc_checkskill(sd, MO_COMBOFINISH) > 0 && sd->spiritball > 0) //猛龍拳(MO_COMBOFINISH)取得＆?球保持時は+300ms
-					delay += 300 * battle_config.combo_delay_rate /100; //追加ディレイをconfにより調整
-
-					status_change_start(src,SC_COMBO,MO_CHAINCOMBO,skilllv,0,0,delay,0); //コンボ?態に
+		//Sorry for removing the Japanese comments, but they were actually distracting 
+		//from the actual code and I couldn't understand a thing anyway >.< [Skotlex]
+		switch(skillid)
+		{
+			case MO_CHAINCOMBO:
+			{
+				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+				if(damage < status_get_hp(bl) &&
+					(pc_checkskill(sd, MO_COMBOFINISH) > 0 && sd->spiritball > 0))
+				{	//Only enable SC_COMBO status-change whan it is possible to chain. [Skotlex]
+					delay += 300 * battle_config.combo_delay_rate /100;
+					status_change_start(src,SC_COMBO,MO_CHAINCOMBO,skilllv,0,0,delay,0);
+				}
+				sd->attackabletime = sd->canmove_tick = tick + delay;
+				clif_combo_delay(src,delay);
+				break;
 			}
-			sd->attackabletime = sd->canmove_tick = tick + delay;
-			clif_combo_delay(src,delay); //コンボディレイパケットの送信
-		}
-//連打掌(MO_CHAINCOMBO)ここまで
-//猛龍拳(MO_COMBOFINISH)ここから
-		else if(skillid == MO_COMBOFINISH) {
-			int delay = 700 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-			if(damage < status_get_hp(bl)) {
-				//阿修羅覇凰拳(MO_EXTREMITYFIST)取得＆?球4個保持＆爆裂波動(MO_EXPLOSIONSPIRITS)?態時は+300ms
-				//伏虎拳(CH_TIGERFIST)取得時も+300ms
-				if((pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 4 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
-				(pc_checkskill(sd, CH_TIGERFIST) > 0 && sd->spiritball > 0) ||
-				(pc_checkskill(sd, CH_CHAINCRUSH) > 0 && sd->spiritball > 1))
-					delay += 300 * battle_config.combo_delay_rate /100; //追加ディレイをconfにより調整
-
-				status_change_start(src,SC_COMBO,MO_COMBOFINISH,skilllv,0,0,delay,0); //コンボ?態に
+			case MO_COMBOFINISH:
+			{
+				int delay = 700 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+				if(damage < status_get_hp(bl) &&
+				(
+					(pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 4 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
+					(pc_checkskill(sd, CH_TIGERFIST) > 0 && sd->spiritball > 0) ||
+					(pc_checkskill(sd, CH_CHAINCRUSH) > 0 && sd->spiritball > 1)
+				))
+					{
+						delay += 300 * battle_config.combo_delay_rate /100;
+						status_change_start(src,SC_COMBO,MO_COMBOFINISH,skilllv,0,0,delay,0);
+					}
+				sd->attackabletime = sd->canmove_tick = tick + delay;
+				clif_combo_delay(src,delay);
+				break;
 			}
-			sd->attackabletime = sd->canmove_tick = tick + delay;
-			clif_combo_delay(src,delay); //コンボディレイパケットの送信
-		}
-//猛龍拳(MO_COMBOFINISH)ここまで
-//伏虎拳(CH_TIGERFIST)ここから
-		else if(skillid == CH_TIGERFIST) {
-			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-			if(damage < status_get_hp(bl)) {
-				//阿修羅覇凰拳(MO_EXTREMITYFIST)取得＆?球4個保持＆爆裂波動(MO_EXPLOSIONSPIRITS)?態時は+300ms
-				if((pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 3 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
-					(pc_checkskill(sd, CH_CHAINCRUSH) > 0)) //連柱崩?(CH_CHAINCRUSH)取得時は+300ms
-					delay += 300 * battle_config.combo_delay_rate /100; //追加ディレイをconfにより調整
-
-				status_change_start(src,SC_COMBO,CH_TIGERFIST,skilllv,0,0,delay,0); //コンボ?態に
+			case CH_TIGERFIST:
+			{
+				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+				if(damage < status_get_hp(bl) &&
+				(
+				 	(pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 3 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
+					(pc_checkskill(sd, CH_CHAINCRUSH) > 0)
+				))
+				{
+					delay += 300 * battle_config.combo_delay_rate /100;
+					status_change_start(src,SC_COMBO,CH_TIGERFIST,skilllv,0,0,delay,0);
+				}
+				sd->attackabletime = sd->canmove_tick = tick + delay;
+				clif_combo_delay(src,delay);
+				break;
 			}
-			sd->attackabletime = sd->canmove_tick = tick + delay;
-			clif_combo_delay(src,delay); //コンボディレイパケットの送信
-		}
-//伏虎拳(CH_TIGERFIST)ここまで
-//連柱崩?(CH_CHAINCRUSH)ここから
-		else if(skillid == CH_CHAINCRUSH) {
-			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-			if(damage < status_get_hp(bl)) {
-				//阿修羅覇凰拳(MO_EXTREMITYFIST)取得＆?球4個保持＆爆裂波動(MO_EXPLOSIONSPIRITS)?態時は+300ms
-				if(pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 1 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1)
-					delay += 300 * battle_config.combo_delay_rate /100; //追加ディレイをconfにより調整
-
-				status_change_start(src,SC_COMBO,CH_CHAINCRUSH,skilllv,0,0,delay,0); //コンボ?態に
+			case CH_CHAINCRUSH:
+			{
+				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+				if(damage < status_get_hp(bl))
+				{
+					delay += 300 * battle_config.combo_delay_rate /100;
+					status_change_start(src,SC_COMBO,CH_CHAINCRUSH,skilllv,0,0,delay,0);
+				}
+				sd->attackabletime = sd->canmove_tick = tick + delay;
+				clif_combo_delay(src,delay);
+				break;
 			}
-			sd->attackabletime = sd->canmove_tick = tick + delay;
-			clif_combo_delay(src,delay); //コンボディレイパケットの送信
-		}
-//連柱崩?(CH_CHAINCRUSH)ここまで
+		}	//Switch End
 	}
 //使用者がPCの場合の?理ここまで
 //武器スキル？ここから
@@ -7687,8 +7691,9 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	sd->canact_tick = tick + casttime + delay;
 	sd->canmove_tick = tick;
 
-/*	if (!(battle_config.pc_cloak_check_type & 2) &&*/ //Why non-type 2 will not be uncloaked by skills? [Skotlex]
-	if (sc_data && sc_data[SC_CLOAKING].timer != -1 && sd->skillid != AS_CLOAKING)
+	if (!(battle_config.pc_cloak_check_type&2) &&
+		sc_data && sc_data[SC_CLOAKING].timer != -1 &&
+		sd->skillid != AS_CLOAKING)
 		status_change_end(&sd->bl,SC_CLOAKING,-1);
 	if (casttime > 0) {
 		sd->skilltimer = add_timer (tick + casttime, skill_castend_id, sd->bl.id, 0);
@@ -7821,8 +7826,8 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 	sd->skilltarget	= 0;
 	sd->canact_tick = tick + casttime + delay;
 	sd->canmove_tick = tick;
-	/*if (!(battle_config.pc_cloak_check_type&2) &&*/
-	if (sc_data && sc_data[SC_CLOAKING].timer != -1)
+	if (!(battle_config.pc_cloak_check_type&2) &&
+		sc_data && sc_data[SC_CLOAKING].timer != -1)
 		status_change_end(&sd->bl,SC_CLOAKING,-1);
 
 	if (casttime > 0) {

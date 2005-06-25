@@ -1,5 +1,10 @@
 Date	Added
 06/24
+	* Some corrections on player_cloak_type code. [Skotlex]
+	* Some code reorganizing related to Monk combos [Skotlex]
+	* Reverted behaviour of the drops_by_luk to Valaris's way [Skotlex]
+	  Added drops_by_luk2 for those who want the alternate behaviour instead.
+	* Adjusted occult-sight/investigate damage modifier to be (def1+def2)/100 [Skotlex]
 	* Removed remaining bits of code for the ex-guild skill Charisma [DracoRPG]
 	* Added Lighthalzen to @go [DracoRPG]
 	* Fixed bug in bowling bash that made the target's sprite remain. [Valaris]

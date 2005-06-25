@@ -2668,9 +2668,12 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				drop_rate/=2;
 			else if(md->size==2 && drop_rate > 0)
 				drop_rate*=2;
-			//Drops affected by luk as a % increase [Skotlex] (original implementation by Valaris)
+			//Drops affected by luk as a fixed increase [Valaris]
 			if (src && battle_config.drops_by_luk > 0)
-				drop_rate += drop_rate*status_get_luk(src)*battle_config.drops_by_luk/10000;
+				drop_rate += status_get_luk(src)*battle_config.drops_by_luk;
+			//Drops affected by luk as a % increase [Skotlex] 
+			if (src && battle_config.drops_by_luk2 > 0)
+				drop_rate += (int)(0.5+drop_rate*status_get_luk(src)*battle_config.drops_by_luk2/10000.0);
 			if (sd && battle_config.pk_mode == 1 && (mob_db[md->class_].lv - sd->status.base_level >= 20))
 				drop_rate = (int)(drop_rate*1.25); // pk_mode increase drops if 20 level difference [Valaris]
 
