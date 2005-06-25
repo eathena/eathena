@@ -267,31 +267,7 @@ void read_gm_account(void) {
 	mapif_send_gmaccounts();
 }
 
-// Insert friends list
-int insert_friends(int char_id){
-/*
-	int i;
-	char *tmp_p = tmp_sql;
 
-	tmp_p += sprintf(tmp_p, "REPLACE INTO `%s` (`id`, `account_id`",friend_db);
-
-	for (i=0;i<20;i++)
-		tmp_p += sprintf(tmp_p, ", `friend_id%d`, `name%d`", i, i);
-
-	tmp_p += sprintf(tmp_p, ") VALUES (NULL, '%d'", char_id);
-
-	for (i=0;i<20;i++)
-		tmp_p += sprintf(tmp_p, ", '0', ''");
-
-	tmp_p += sprintf(tmp_p, ")");
-
-	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (insert `friend`)- %s\n", mysql_error(&mysql_handle));
-         	return 0;
-         }
-         */
-return 1;
-}
 
 int compare_item(struct item *a, struct item *b) {
   return (
@@ -626,22 +602,21 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
                 }
          }
 
-         if(diff == 1){
-         	sprintf(tmp_sql, "DELETE FROM `friends` WHERE `char_id` = '%d'", char_id);
+		if(diff == 1){
+			
 	        if(mysql_query(&mysql_handle, tmp_sql)){
 	        	eprintf("tosql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
 	        }
-                 for(i = 0; i < MAX_FRIENDS; i++){
-                         if(p->friend_id[i] > 0){
-	                         sprintf(tmp_sql, "INSERT INTO `friends` (`char_id`, `friend_id`) VALUES ('%d', '%d')", char_id, p->friend_id[i]);
-	                         if(mysql_query(&mysql_handle, tmp_sql)){
-	                                 eprintf("tosql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
-	                         }
-                         }
-                 }
-         }
-
-         //printf("NOTE -> friends are currently not saved in this VERSION!\n");
+	        
+			for(i = 0; i < MAX_FRIENDS; i++){
+					if(p->friend_id[i] > 0){
+							sprintf(tmp_sql, "INSERT INTO `friends` (`char_id`, `friend_id`) VALUES ('%d', '%d')", char_id, p->friend_id[i]);
+							if(mysql_query(&mysql_handle, tmp_sql)){
+								eprintf("tosql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
+							}
+            		}
+			}			
+}
 
 	printf("saving char is done.\n");
 	save_flag = 0;
@@ -1542,9 +1517,212 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	return char_id;
 }
 
+/*----------------------------------------------------------------------------------------------------------*/
+/* Delete char - davidsiaw */
+/*----------------------------------------------------------------------------------------------------------*/
+/* Returns 0 if successful
+ * Returns < 0 for error
+ */
+int delete_char_sql(int char_id, int partner_id)
+{
+	char function_name[] = "delete_char_sql(int char_id, int partner_id)";
+	
+	sprintf(tmp_sql, "SELECT `name`,`partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, char_id);
+
+	if (mysql_query(&mysql_handle, tmp_sql)) {
+		printf("%s\n", function_name);
+		printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+	}
+	
+	sql_res = mysql_store_result(&mysql_handle);
+		
+	if(sql_res)
+		sql_row = mysql_fetch_row(sql_res);
+	
+	/* Divorce [Wizputer] */
+	if (partner_id) {
+		sprintf(tmp_sql,"UPDATE `%s` SET `partner_id`='0' WHERE `char_id`='%d'",char_db,partner_id);
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+			printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		}
+		sprintf(tmp_sql,"DELETE FROM `%s` WHERE (`nameid`='%d' OR `nameid`='%d') AND `char_id`='%d'",inventory_db,WEDDING_RING_M,WEDDING_RING_F,partner_id);
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+			printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		}
+	}
+		
+	if (sql_res && sql_row[0]) {
+		/* delete char's pet */
+		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",pet_db, char_id);
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+				printf("%s\n", function_name);
+				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		}
+				
+				// Komurka
+				// temporary disabled on branch, still needs testing
+				/*sprintf(tmp_sql,"DELETE FROM `%s` USING `%s`, `%s`, `%s` "
+					"WHERE `%s`.char_id='%d' AND `%s`.char_id=`%s`.char_id AND `%s`.card0=-256 AND `%s`.card1=`%s`.pet_id",
+					pet_db, pet_db, inventory_db,char_db,char_db,RFIFOL(fd, 2),char_db,inventory_db,inventory_db,inventory_db,pet_db);
+				if(mysql_query(&mysql_handle, tmp_sql)) {
+					printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				}
+
+				sprintf(tmp_sql,"DELETE FROM `%s` USING `%s`, `%s`, `%s` "
+					"WHERE `%s`.char_id='%d' AND `%s`.char_id=`%s`.char_id AND `%s`.card0=-256 AND `%s`.card1=`%s`.pet_id",
+					pet_db, pet_db, cart_db,char_db,char_db,RFIFOL(fd, 2),char_db,cart_db,cart_db,cart_db,pet_db);
+				if(mysql_query(&mysql_handle, tmp_sql)) {
+					printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				}*/
+
+		/* delete char's friends list */
+		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'",friend_db, char_id);
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+				printf("%s\n", function_name);
+				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		}
+		
+		/* delete char from other's friend list */
+		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `friend_id` = '%d'",friend_db, char_id);
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+				printf("%s\n", function_name);
+				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		}
+		
+		/* delete inventory */
+		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",inventory_db, char_id);
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+				printf("%s\n", function_name);
+				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		}
+
+		/* delete cart inventory */
+		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",cart_db, char_id);
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+				printf("%s\n", function_name);
+				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		}
+
+		/* delete memo areas */
+		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",memo_db, char_id);
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+				printf("%s\n", function_name);
+				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		}
+
+		/* delete skills */
+		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",skill_db, char_id);
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+				printf("%s\n", function_name);
+				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		}
+		
+		/* delete character */
+		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",char_db, char_id);
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+				printf("%s\n", function_name);
+				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		}
+		
+			
+		/* Also delete info from guildtables. */
+		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",guild_member_db, char_id);
+		if (mysql_query(&mysql_handle, tmp_sql)) {
+			
+			printf("%s\n", function_name);
+			printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		}
+		
+		mysql_free_result(sql_res);
+
+		sprintf(tmp_sql, "SELECT `guild_id` FROM `%s` WHERE `master` = '%s'", guild_db, sql_row[0]);
+		
+		if (mysql_query(&mysql_handle, tmp_sql) == 0) {
+			sql_res = mysql_store_result(&mysql_handle);
+
+			if (sql_res != NULL) {
+				if (mysql_num_rows(sql_res) != 0) {
+					sql_row = mysql_fetch_row(sql_res);
+
+					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, atoi(sql_row[0]));
+					if (mysql_query(&mysql_handle, tmp_sql)) {
+						printf("%s\n", function_name);
+						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+					}
+
+					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_member_db, atoi(sql_row[0]));
+					if (mysql_query(&mysql_handle, tmp_sql)) {
+						printf("%s\n", function_name);
+						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+					}
+
+					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_castle_db, atoi(sql_row[0]));
+					if (mysql_query(&mysql_handle, tmp_sql)) {
+						printf("%s\n", function_name);
+						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+					}
+
+					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_storage_db, atoi(sql_row[0]));
+					if (mysql_query(&mysql_handle, tmp_sql)) {
+						printf("%s\n", function_name);
+						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+					}
+
+					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d' OR `alliance_id` = '%d'", guild_alliance_db, atoi(sql_row[0]), atoi(sql_row[0]));
+					if (mysql_query(&mysql_handle, tmp_sql)) {
+						printf("%s\n", function_name);
+						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+					}
+
+					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_position_db, atoi(sql_row[0]));
+					if (mysql_query(&mysql_handle, tmp_sql)) {
+						printf("%s\n", function_name);
+						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+					}
+
+					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_skill_db, atoi(sql_row[0]));
+					if (mysql_query(&mysql_handle, tmp_sql)) {
+						printf("%s\n", function_name);
+						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+					}
+
+					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_expulsion_db, atoi(sql_row[0]));
+					if (mysql_query(&mysql_handle, tmp_sql)) {
+						printf("%s\n", function_name);
+						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+					}
+
+					mysql_free_result(sql_res);
+				}
+			} 
+			else /* sql_res != NULL */
+			{
+				if (mysql_errno(&mysql_handle) != 0) {
+					printf("%s\n", function_name);
+					printf("Database server error: %s\n", mysql_error(&mysql_handle));
+				}
+				return -1;			
+			}
+			
+			
+			
+		} 
+		else /* mysql_query(&mysql_handle, tmp_sql) == 0 */
+		{
+			printf("%s\n", function_name);
+			printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+			return -1;
+		}
+		
+		
+	}
+	return 0;
+}
+
 //==========================================================================================================
 
-void mmo_char_sync(void){
+void mmo_char_sync(void)
+{
 	printf("mmo_char_sync() - nothing to do\n");
 }
 
@@ -2656,7 +2834,9 @@ int lan_ip_check(unsigned char *p){
 
 int parse_char(int fd) {
 	int i, ch = 0;
-	char email[40];
+	char email[40];	
+	char function_name[] = "parse_char(int fd)";
+	unsigned char buf[64];
 	unsigned short cmd;
 	struct char_session_data *sd;
 	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
@@ -2916,27 +3096,27 @@ int parse_char(int fd) {
 			//Changed that we can support 'Charname already exists' (-1) amd 'Char creation denied' (-2)
 			//And 'You are underaged' (-3) (XD) [Sirius]
 			if(i == -1){
-                            //already exists
+                       //already exists
                             WFIFOW(fd, 0) = 0x6e;
                             WFIFOB(fd, 2) = 0x00;
                             WFIFOSET(fd, 3);
                             RFIFOSKIP(fd, 37);
                             break;
-                        }else if(i == -2){
-                            //denied
+			}else if(i == -2){
+                        //denied
                             WFIFOW(fd, 0) = 0x6e;
                             WFIFOB(fd, 2) = 0x02;
                             WFIFOSET(fd, 3);
                             RFIFOSKIP(fd, 37);
                             break;
-                        }else if(i == -3){
-                            //underaged XD
+			}else if(i == -3){
+                        //underaged XD
                             WFIFOW(fd, 0) = 0x6e;
                             WFIFOB(fd, 2) = 0x01;
                             WFIFOSET(fd, 3);
                             RFIFOSKIP(fd, 37);
                             break;
-                        }
+			}
 
 			WFIFOW(fd, 0) = 0x6d;
 			memset(WFIFOP(fd, 2), 0x00, 106);
@@ -2981,6 +3161,7 @@ int parse_char(int fd) {
 
 			WFIFOSET(fd, 108);
 			RFIFOSKIP(fd, 37);
+			
 			//to do
 			for(ch = 0; ch < 9; ch++) {
 				if (sd->found_char[ch] == -1) {
@@ -2989,44 +3170,14 @@ int parse_char(int fd) {
 				}
 			}
 
-		case 0x68: // delete
+		case 0x68: /* delete char */
 			if (RFIFOREST(fd) < 46)
 				return 0;
 			printf("\033[1;31m Request Char Del:\033[0m \033[1;32m%d\033[0m(\033[1;32m%d\033[0m)\n", sd->account_id, RFIFOL(fd, 2));
 			memcpy(email, RFIFOP(fd,6), 40);
-/* ---------- REMOVED ----------
-			sprintf(tmp_sql, "SELECT `email` FROM `%s` WHERE `%s`='%d'",login_db, login_db_account_id, sd->account_id);
-			if (mysql_query(&lmysql_handle, tmp_sql)) {
-				printf("\033[1;31m DB server Error Delete Char data - %s \033[0m  \n", mysql_error(&lmysql_handle));
-			}
-			sql_res = mysql_store_result(&lmysql_handle);
-			if (sql_res) {
-				sql_row = mysql_fetch_row(sql_res);
-
-				if ( (strcmp(email,sql_row[0]) == 0) || // client_value == db_value?
-					 ((strcmp(email,"") == 0) &&
-					  (strcmp(sql_row[0],"a@a.com") == 0)) ) { // client_value == "" && db_value == "a@a.com" ?
-					mysql_free_result(sql_res);
-				} else {
-					WFIFOW(fd, 0) = 0x70;
-					WFIFOB(fd, 2) = 0;
-					WFIFOSET(fd, 3);
-					RFIFOSKIP(fd, 46);
-					mysql_free_result(sql_res);
-					break;
-				}
-			} else {
-				WFIFOW(fd, 0) = 0x70;
-				WFIFOB(fd, 2) = 0;
-				WFIFOSET(fd, 3);
-				RFIFOSKIP(fd, 46);
-				mysql_free_result(sql_res);
-				break;
-			}
-
-------------- END REMOVED -------- */
-			//Remove recoded by Sirius
-			if(strcmp(email, sd->email) != 0){
+			
+			/* Check if e-mail is correct */
+			if(strcmp(email, sd->email)){
 				if(strcmp("a@a.com", sd->email) == 0){
 					if(strcmp("a@a.com", email) == 0 || strcmp("", email) == 0){
 						//ignore
@@ -3047,148 +3198,11 @@ int parse_char(int fd) {
 					break;
 				}
 			}
-
-			sprintf(tmp_sql, "SELECT `name`,`partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, RFIFOL(fd,2));
-			if (mysql_query(&mysql_handle, tmp_sql)) {
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-			}
-			sql_res = mysql_store_result(&mysql_handle);
-			if(sql_res)
-				sql_row = mysql_fetch_row(sql_res);
-
-			if (sql_res && sql_row[0]) {
-				//delete char from SQL
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",pet_db, RFIFOL(fd, 2));
-				if(mysql_query(&mysql_handle, tmp_sql)) {
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}
-
-				// Komurka
-				// temporary disabled on branch, still needs testing
-				/*sprintf(tmp_sql,"DELETE FROM `%s` USING `%s`, `%s`, `%s` "
-					"WHERE `%s`.char_id='%d' AND `%s`.char_id=`%s`.char_id AND `%s`.card0=-256 AND `%s`.card1=`%s`.pet_id",
-					pet_db, pet_db, inventory_db,char_db,char_db,RFIFOL(fd, 2),char_db,inventory_db,inventory_db,inventory_db,pet_db);
-				if(mysql_query(&mysql_handle, tmp_sql)) {
-					printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}
-
-				sprintf(tmp_sql,"DELETE FROM `%s` USING `%s`, `%s`, `%s` "
-					"WHERE `%s`.char_id='%d' AND `%s`.char_id=`%s`.char_id AND `%s`.card0=-256 AND `%s`.card1=`%s`.pet_id",
-					pet_db, pet_db, cart_db,char_db,char_db,RFIFOL(fd, 2),char_db,cart_db,cart_db,cart_db,pet_db);
-				if(mysql_query(&mysql_handle, tmp_sql)) {
-					printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}*/
-
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",inventory_db, RFIFOL(fd, 2));
-				if(mysql_query(&mysql_handle, tmp_sql)) {
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}
-
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",cart_db, RFIFOL(fd, 2));
-				if(mysql_query(&mysql_handle, tmp_sql)) {
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}
-
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",memo_db, RFIFOL(fd, 2));
-				if(mysql_query(&mysql_handle, tmp_sql)) {
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}
-
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",skill_db, RFIFOL(fd, 2));
-				if(mysql_query(&mysql_handle, tmp_sql)) {
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}
-
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",char_db, RFIFOL(fd, 2));
-				if(mysql_query(&mysql_handle, tmp_sql)) {
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}
-
-				//Divorce [Wizputer]
-				if (sql_row[1] != 0) {
-					unsigned char buf[64];
-					sprintf(tmp_sql,"UPDATE `%s` SET `partner_id`='0' WHERE `char_id`='%d'",char_db,atoi(sql_row[1]));
-					if(mysql_query(&mysql_handle, tmp_sql)) {
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-					}
-					sprintf(tmp_sql,"DELETE FROM `%s` WHERE (`nameid`='%d' OR `nameid`='%d') AND `char_id`='%d'",inventory_db,WEDDING_RING_M,WEDDING_RING_F,atoi(sql_row[1]));
-					if(mysql_query(&mysql_handle, tmp_sql)) {
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-					}
-					WBUFW(buf,0) = 0x2b12;
-					WBUFL(buf,2) = atoi(sql_row[0]);
-					WBUFL(buf,6) = atoi(sql_row[1]);
-					mapif_sendall(buf,10);
-				}
-				// Also delete info from guildtables.
-				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",guild_member_db, RFIFOL(fd,2));
-				if (mysql_query(&mysql_handle, tmp_sql)) {
-					printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}
-
-				sprintf(tmp_sql, "SELECT `guild_id` FROM `%s` WHERE `master` = '%s'", guild_db, sql_row[0]);
-
-				if (mysql_query(&mysql_handle, tmp_sql) == 0) {
-					sql_res = mysql_store_result(&mysql_handle);
-
-					if (sql_res != NULL) {
-						if (mysql_num_rows(sql_res) != 0) {
-							sql_row = mysql_fetch_row(sql_res);
-
-							sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, atoi(sql_row[0]));
-							if (mysql_query(&mysql_handle, tmp_sql)) {
-								printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-							}
-
-							sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_member_db, atoi(sql_row[0]));
-							if (mysql_query(&mysql_handle, tmp_sql)) {
-								printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-							}
-
-							sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_castle_db, atoi(sql_row[0]));
-							if (mysql_query(&mysql_handle, tmp_sql)) {
-								printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-							}
-
-							sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_storage_db, atoi(sql_row[0]));
-							if (mysql_query(&mysql_handle, tmp_sql)) {
-								printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-							}
-
-							sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d' OR `alliance_id` = '%d'", guild_alliance_db, atoi(sql_row[0]), atoi(sql_row[0]));
-							if (mysql_query(&mysql_handle, tmp_sql)) {
-								printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-							}
-
-							sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_position_db, atoi(sql_row[0]));
-							if (mysql_query(&mysql_handle, tmp_sql)) {
-								printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-							}
-
-							sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_skill_db, atoi(sql_row[0]));
-							if (mysql_query(&mysql_handle, tmp_sql)) {
-								printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-							}
-
-							sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_expulsion_db, atoi(sql_row[0]));
-							if (mysql_query(&mysql_handle, tmp_sql)) {
-								printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-							}
-
-							mysql_free_result(sql_res);
-						}
-					} else {
-						if (mysql_errno(&mysql_handle) != 0) {
-							printf("Database server error: %s\n", mysql_error(&mysql_handle));
-						}
-					}
-				} else {
-					printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}
-			}
-
+			
 			for(i = 0; i < 9; i++) {
-				printf("char comp: %d - %d (%d)\n", sd->found_char[i], RFIFOL(fd, 2), sd->account_id);
+				/* Debug:
+				printf("Checking if char to be deleted: %d - %d (%d)\n", sd->found_char[i], RFIFOL(fd, 2), sd->account_id);
+				*/				
 				if (sd->found_char[i] == RFIFOL(fd, 2)) {
 					for(ch = i; ch < 9-1; ch++)
 						sd->found_char[ch] = sd->found_char[ch+1];
@@ -3196,14 +3210,49 @@ int parse_char(int fd) {
 					break;
 				}
 			}
-			if (i == 9) { // reject
+			/* Such a character does not exist in the account */
+			/* If so, you are so screwed. */
+			if (i == 9) { 
 				WFIFOW(fd, 0) = 0x70;
 				WFIFOB(fd, 2) = 0;
 				WFIFOSET(fd, 3);
-			} else { // deleted!
-				WFIFOW(fd, 0) = 0x6f;
-				WFIFOSET(fd, 2);
+				break;
 			}
+			
+			/* Grab the partner id */ 
+			sprintf(tmp_sql, "SELECT `name`,`partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, RFIFOL(fd,2));
+	
+			if (mysql_query(&mysql_handle, tmp_sql)) {
+				printf("%s\n", function_name);
+				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+			}
+	
+			sql_res = mysql_store_result(&mysql_handle);
+			
+			if(sql_res)
+				sql_row = mysql_fetch_row(sql_res);
+									
+			/* Delete character and partner (if any) */
+			if (sql_row[1] != 0) /* If there is partner */
+			{
+				delete_char_sql(RFIFOL(fd,2), atoi(sql_row[1]));
+				WBUFW(buf,0) = 0x2b12;
+				WBUFL(buf,2) = atoi(sql_row[0]);
+				WBUFL(buf,6) = atoi(sql_row[1]);
+				mapif_sendall(buf,10);
+			}
+			else
+			{
+				/* Delete character */
+				delete_char_sql(RFIFOL(fd,2), 0);
+			}
+			
+			mysql_free_result(sql_res);
+			
+			/* Char successfully deleted. */
+			WFIFOW(fd, 0) = 0x6f;
+			WFIFOSET(fd, 2);
+				
 			RFIFOSKIP(fd, 46);
 			break;
 
