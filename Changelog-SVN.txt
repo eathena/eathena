@@ -1,4 +1,7 @@
 Date	Added
+06/25
+	* Added missing field guild/char_id to main.sql database definition [Lupus]
+	  Warning: Don't use guild_tables.sql databases yet! Use main.sql file
 06/24
 	* Small bug fix on the Monk combos introduced by previous reorganization. [Skotlex]
 	* Some corrections on player_cloak_type code. [Skotlex]

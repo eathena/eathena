@@ -113,8 +113,9 @@ CREATE TABLE `global_reg_value` (
 # Table: 'guild'
 # 
 CREATE TABLE `guild` (
-  `guild_id` int(11) NOT NULL default '10000',
+  `guild_id` int(11) NOT NULL auto_increment,
   `name` varchar(24) NOT NULL default '',
+  `char_id` int(11) NOT NULL default '0',
   `master` varchar(24) NOT NULL default '',
   `guild_lv` smallint(6) NOT NULL default '0',
   `connect_member` smallint(6) NOT NULL default '0',

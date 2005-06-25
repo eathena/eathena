@@ -370,5 +370,5 @@ Progress:	0%
 Problem:	Guilds (doesn't save)
 			Guilds don't save skills (levels), members, etc... So you can't even create a new guild
 			and after reboot you lose learnt guild skills.
-Assigned:	na
-Progress:	0%
+Assigned:	Lupus
+Progress:	100% in main.sql were missing db field guild/char_id. Added.
