@@ -1469,10 +1469,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
 				if(damage < status_get_hp(bl) &&
 					(pc_checkskill(sd, MO_COMBOFINISH) > 0 && sd->spiritball > 0))
-				{	//Only enable SC_COMBO status-change whan it is possible to chain. [Skotlex]
 					delay += 300 * battle_config.combo_delay_rate /100;
-					status_change_start(src,SC_COMBO,MO_CHAINCOMBO,skilllv,0,0,delay,0);
-				}
+				status_change_start(src,SC_COMBO,MO_CHAINCOMBO,skilllv,0,0,delay,0);
 				sd->attackabletime = sd->canmove_tick = tick + delay;
 				clif_combo_delay(src,delay);
 				break;
@@ -1486,10 +1484,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 					(pc_checkskill(sd, CH_TIGERFIST) > 0 && sd->spiritball > 0) ||
 					(pc_checkskill(sd, CH_CHAINCRUSH) > 0 && sd->spiritball > 1)
 				))
-					{
-						delay += 300 * battle_config.combo_delay_rate /100;
-						status_change_start(src,SC_COMBO,MO_COMBOFINISH,skilllv,0,0,delay,0);
-					}
+					delay += 300 * battle_config.combo_delay_rate /100;
+				status_change_start(src,SC_COMBO,MO_COMBOFINISH,skilllv,0,0,delay,0);
 				sd->attackabletime = sd->canmove_tick = tick + delay;
 				clif_combo_delay(src,delay);
 				break;
@@ -1502,10 +1498,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 				 	(pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 3 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
 					(pc_checkskill(sd, CH_CHAINCRUSH) > 0)
 				))
-				{
 					delay += 300 * battle_config.combo_delay_rate /100;
-					status_change_start(src,SC_COMBO,CH_TIGERFIST,skilllv,0,0,delay,0);
-				}
+				status_change_start(src,SC_COMBO,CH_TIGERFIST,skilllv,0,0,delay,0);
 				sd->attackabletime = sd->canmove_tick = tick + delay;
 				clif_combo_delay(src,delay);
 				break;
@@ -1514,10 +1508,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			{
 				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
 				if(damage < status_get_hp(bl))
-				{
 					delay += 300 * battle_config.combo_delay_rate /100;
-					status_change_start(src,SC_COMBO,CH_CHAINCRUSH,skilllv,0,0,delay,0);
-				}
+				status_change_start(src,SC_COMBO,CH_CHAINCRUSH,skilllv,0,0,delay,0);
 				sd->attackabletime = sd->canmove_tick = tick + delay;
 				clif_combo_delay(src,delay);
 				break;

@@ -1,5 +1,6 @@
 Date	Added
 06/24
+	* Small bug fix on the Monk combos introduced by previous reorganization. [Skotlex]
 	* Some corrections on player_cloak_type code. [Skotlex]
 	* Some code reorganizing related to Monk combos [Skotlex]
 	* Reverted behaviour of the drops_by_luk to Valaris's way [Skotlex]
