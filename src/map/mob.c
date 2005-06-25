@@ -2670,7 +2670,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				drop_rate*=2;
 			//Drops affected by luk as a fixed increase [Valaris]
 			if (src && battle_config.drops_by_luk > 0)
-				drop_rate += status_get_luk(src)*battle_config.drops_by_luk;
+				drop_rate += status_get_luk(src)*battle_config.drops_by_luk/100;
 			//Drops affected by luk as a % increase [Skotlex] 
 			if (src && battle_config.drops_by_luk2 > 0)
 				drop_rate += (int)(0.5+drop_rate*status_get_luk(src)*battle_config.drops_by_luk2/10000.0);
