@@ -9525,22 +9525,47 @@ void clif_parse_NpcClicked(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- *
+ * NPC shop : buy/sell selected
  *------------------------------------------
  */
 void clif_parse_NpcBuySellSelected(int fd,struct map_session_data *sd)
 {
-	npc_buysellsel(sd,RFIFOL(fd,2),RFIFOB(fd,6));
+    int choice;
+   	nullpo_retv(sd);
+
+	if(sd->script_state!=SHOP) { // If we were not waiting for the player to choose between [Buy] or [Sell], something is wrong
+        ShowWarning("Player %s sent an unexpected packet : NPC shop option selected\n",sd->status.name);
+        return;
+	}
+
+    choice=RFIFOB(fd,6);
+
+	ShowInfo("%d\n",choice);
+
+	if (choice==0) {
+		sd->script_state=BUY; // Set the script state as 'waiting for buy list'
+		clif_buylist(sd); // Send the list of buyable items at this shop
+	} else {
+		sd->script_state=SELL; // Set the script state as 'waiting for sell list'
+		clif_selllist(sd); // Send the list of sellable items from inventory
+	}
 }
 
 /*==========================================
- *
+ * NPC shop : buy list sent
  *------------------------------------------
  */
 void clif_parse_NpcBuyListSend(int fd,struct map_session_data *sd)
 {
 	int fail=0,n;
 	unsigned short *item_list;
+
+   	nullpo_retv(sd);
+
+	if(sd->script_state!=BUY) { // If we were not waiting for the player to send a buy list, something is wrong
+        ShowWarning("Player %s sent an unexpected packet : NPC shop buy list\n",sd->status.name);
+        return;
+	}
 
 	n = (RFIFOW(fd,2)-4) /4;
 	item_list = (unsigned short*)RFIFOP(fd,4);
@@ -9550,16 +9575,25 @@ void clif_parse_NpcBuyListSend(int fd,struct map_session_data *sd)
 	WFIFOW(fd,0)=0xca;
 	WFIFOB(fd,2)=fail;
 	WFIFOSET(fd,packet_len_table[0xca]);
+
+	script_resume(sd,"i",fail);
 }
 
 /*==========================================
- *
+ * NPC shop : sell list sent
  *------------------------------------------
  */
 void clif_parse_NpcSellListSend(int fd,struct map_session_data *sd)
 {
 	int fail=0,n;
 	unsigned short *item_list;
+
+   	nullpo_retv(sd);
+
+	if(sd->script_state!=SELL) { // If we were not waiting for the player to send a sell list, something is wrong
+        ShowWarning("Player %s sent an unexpected packet : NPC shop sell list\n",sd->status.name);
+        return;
+	}
 
 	n = (RFIFOW(fd,2)-4) /4;
 	item_list = (unsigned short*)RFIFOP(fd,4);
@@ -9569,10 +9603,12 @@ void clif_parse_NpcSellListSend(int fd,struct map_session_data *sd)
 	WFIFOW(fd,0)=0xcb;
 	WFIFOB(fd,2)=fail;
 	WFIFOSET(fd,packet_len_table[0xcb]);
+
+	script_resume(sd,"i",fail);
 }
 
 /*==========================================
- * NPC dialog window's menu
+ * NPC dialog window : menu option selected
  *------------------------------------------
  */
 void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
@@ -9599,7 +9635,7 @@ void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- * NPC dialog window's [Next] button
+ * NPC dialog window : [Next] button clicked
  *------------------------------------------
  */
 void clif_parse_NpcNextClicked(int fd,struct map_session_data *sd)
@@ -9615,7 +9651,7 @@ void clif_parse_NpcNextClicked(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- * NPC dialog window's [Close] button
+ * NPC dialog window : [Close] button clicked
  *------------------------------------------
  */
 void clif_parse_NpcCloseClicked(int fd,struct map_session_data *sd)
@@ -9631,7 +9667,7 @@ void clif_parse_NpcCloseClicked(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- * NPC dialog window's amount input
+ * NPC dialog window : amount input
  *------------------------------------------
  */
 void clif_parse_NpcAmountInput(int fd,struct map_session_data *sd)
@@ -9652,7 +9688,7 @@ void clif_parse_NpcAmountInput(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- * NPC dialog window's string input
+ * NPC dialog window : string input
  *------------------------------------------
  */
 void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)

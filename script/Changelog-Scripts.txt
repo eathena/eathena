@@ -11,6 +11,8 @@ Fredzilla
 == Changelog ==
 
 Date	Added
+06/25
+	* Changed "script_spawn.lua" to "script_spawns.lua", same for merchant->merchants [DracoRPG]
 06/24
 	* Changed "mobs" to "spawns", it's more self-explanatory ^^ [DracoRPG]
 06/21

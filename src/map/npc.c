@@ -221,61 +221,6 @@ int npc_globalmessage(const char *name,char *mes)
  *
  *------------------------------------------
  */
-/*int npc_scriptcont(struct map_session_data *sd,int id)
-{
-	struct npc_data *nd;
-
-	nullpo_retr(1, sd);
-
-	if (id!=sd->npc_id)
-		return 1;
-	if (npc_checknear(sd,id))
-		return 1;
-
-	nd=(struct npc_data *)map_id2bl(id);
-
-	sd->npc_pos=run_script(nd->u.scr.script,sd->npc_pos,sd->bl.id,id);
-
-	return 0;
-}*/
-
-/*==========================================
- *
- *------------------------------------------
- */
-int npc_scriptnext(struct map_session_data *sd,int id)
-{
-	nullpo_retr(1, sd);
-
-	script_resume(sd,""); // Resume the script
-	return 0;
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-int npc_buysellsel(struct map_session_data *sd,int id,int type)
-{
-
-	nullpo_retr(1, sd);
-
-	if (type==0) {
-		lua_resume(sd->NL, 0);
-		sd->script_state=RUNNING;
-	} else {
-		sd->script_state=NRUN;
-		sd->npc_id=0;
-		sd->NL=NULL;
-		clif_selllist(sd);
-	}
-	return 0;
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
 int npc_buylist(struct map_session_data *sd,int n,unsigned short *item_list)
 {
 	double z;
@@ -292,8 +237,6 @@ int npc_buylist(struct map_session_data *sd,int n,unsigned short *item_list)
 		}
 		if (sd->shop_data.nameid[j]==0) {
 			ShowInfo("3\n");
-			sd->npc_id = 0;
-			sd->NL = NULL;
 			return 3;
 		}
 
@@ -311,8 +254,6 @@ int npc_buylist(struct map_session_data *sd,int n,unsigned short *item_list)
 			break;
 		case ADDITEM_OVERAMOUNT:
 			ShowInfo("2\n");
-			sd->npc_id = 0;
-			sd->NL = NULL;
 			return 2;
 		}
 
@@ -320,20 +261,14 @@ int npc_buylist(struct map_session_data *sd,int n,unsigned short *item_list)
 	}
 	if (z > (double)sd->status.zeny) {
 		ShowInfo("1\n");
-		sd->npc_id = 0;
-		sd->NL = NULL;
 		return 1;	// zenyïsë´
 	}
 	if (w+sd->weight > sd->max_weight) {
 		ShowInfo("2\n");
-		sd->npc_id = 0;
-		sd->NL = NULL;
 		return 2;	// èdó í¥âﬂ
 	}
 	if (pc_inventoryblank(sd)<new_) {
 		ShowInfo("3\n");
-		sd->npc_id = 0;
-		sd->NL = NULL;
 		return 3;	// éÌóﬁêîí¥âﬂ
 	}
 
@@ -359,8 +294,6 @@ int npc_buylist(struct map_session_data *sd,int n,unsigned short *item_list)
 		}
 	}
 
-	sd->npc_id = 0;
-	sd->NL = NULL;
 	return 0;
 }
 

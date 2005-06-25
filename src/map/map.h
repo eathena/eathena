@@ -416,13 +416,14 @@ struct map_session_data {
 };
 
 enum {
-	NRUN,
-	RUNNING,
-	NEXT,
-	CLOSE,
-	MENU,
-	INPUT,
-	SHOP
+	NRUN, // Script is ready
+	NEXT, // Waiting for the player to click [Next]
+	CLOSE, // Waiting for the player to click [Close]
+	MENU, // Waiting for the player to choose a menu option
+	INPUT, // Waiting for the player to input a value
+	SHOP, // Waiting for the player to choose [Buy] or [Sell]
+	BUY, // Waiting for the player to choose items to buy
+	SELL // Waiting for the player to choose items to sell
 };
 
 struct npc_data {

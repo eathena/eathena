@@ -7,20 +7,25 @@ function npc_healer()
 	npcmes "[Healer Dog]"
 	npcmes "Would you like a heal?"
 	npcnext()
-	local r = npcmenu("Sure",1,"eh",2)
+	local r = npcmenu("Sure",1,"I prefer potions",2,"eh",3)
 	if r == 1 then
 		npcmes "[Healer Dog"
-		npcmes "How much hp and sp would you like?"
-		npcnext()
-		local amount = npcinput()
-		heal(amount,amount)
-		npcmes "[Healer Dog"
+		npcmes "How much HP and SP would you like?"
+		npcnext() 
+		heal(npcinput(),npcinput())
+		npcmes "[Healer Dog]"
 		npcmes "Here you go!"
+		npcclose()
 	elseif r == 2 then
 		npcmes "[Healer Dog]"
-		npcmes "Sorry to hear that"
+		npcmes "Oh, right, I have some potions to sell!"
+		npcclose()
+		npcshop(501,50,502,100)
+	elseif r == 3 then
+		npcmes "[Healer Dog]"
+		npcmes "Sorry to hear that..."
+		npcclose()
 	end
-	npcclose()
 end
 
 addnpc("Healer Dog","healer_nif","niflheim.gat",195,195,4,81,"npc_biter")
@@ -32,16 +37,10 @@ function npc_biter()
 	npcnext()
 	npcmes "This dog looks ferocious... I should better keep away... How far?"
 	npcnext()
-	npcmes("Yes, I think I need to be at least "..npcinput(TYPE_INT).." "..npcinput(TYPE_STR).." away from him to be safe.")
+	npcmes("Yes, I think I need to be at least "..npcinput().." "..npcinput(TYPE_STR).." away from him to be safe.")
 	npcclose()
 end
 
 function areascript_biter()
 	percentheal(-50,-50)
-end
-
-addnpc("Shop","shop_prt","prontera.gat",155,185,4,71,"npc_shop")
-
-function npc_shop()
-	npcshop(501,50,502,100)
 end
