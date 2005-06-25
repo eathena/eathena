@@ -1171,9 +1171,11 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
                  sql_res = mysql_store_result(&mysql_handle);
                  if(sql_res){
                  	sql_row = mysql_fetch_row(sql_res);
-                         strcpy(p->friend_name[i], sql_row[1]);
-                         //NEW:
-                         //strcpy(p->friends[i].name, sql_row[1]);
+                        if (atoi(sql_row[0])) {
+				strcpy(p->friend_name[i], sql_row[1]);
+				//NEW:
+				//strcpy(p->friends[i].name, sql_row[1]);
+			}
                  	mysql_free_result(sql_res);
                  }
 

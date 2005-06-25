@@ -1,5 +1,6 @@
 Date	Added
 06/25
+	* Added SQL returned row check to friend-list loading, thanks to Sasuke-. [Valaris]
 	* Fixed drops_by_luk not behaving exactly the way it was before... ^^' [Skotlex] 
 	* Proper clear of class sprite if used as a mob when killed. [Valaris]
 	* Added limit 10 to fame list SQL query (faster, when u got 1000+ bsm/alch in DB) [Lupus]
