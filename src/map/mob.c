@@ -2859,7 +2859,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 	(battle_config.mob_clear_delay) ? clif_clearchar_delay(tick+battle_config.mob_clear_delay,&md->bl,1) : clif_clearchar_area(&md->bl,1);
 	if(md->level) md->level=0;
 	map_delblock(&md->bl);
-	if(mob_get_viewclass(md->class_) <= 1000)
+	if(mob_get_viewclass(md->class_) <= 23 || (mob_get_viewclass(md->class_) >= 4001 && mob_get_viewclass(md->class_) <= 4045))
 		clif_clearchar_delay(tick+3000,&md->bl,0);
 	mob_deleteslave(md);
 	mob_setdelayspawn(md->bl.id);
