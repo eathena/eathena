@@ -74,7 +74,7 @@ CREATE TABLE `char` (
   PRIMARY KEY  (`char_id`),
   KEY `party_id` (`party_id`),
   KEY `guild_id` (`guild_id`)
-) TYPE=InnoDB AUTO_INCREMENT=15000; 
+) TYPE=MyISAM AUTO_INCREMENT=15000; 
 
 # Database: Ragnarok
 # Table: 'charlog'
@@ -130,11 +130,8 @@ CREATE TABLE `guild` (
   `emblem_len` int(11) NOT NULL default '0',
   `emblem_id` int(11) NOT NULL default '0',
   `emblem_data` blob NOT NULL,
-  PRIMARY KEY  (guild_id,char_id),
-  UNIQUE KEY guild_id (guild_id),
-  KEY char_id (char_id),
-  CONSTRAINT `guild_ibfk_1` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  PRIMARY KEY  (`guild_id`)
+) TYPE=MyISAM; 
 
 # Database: Ragnarok
 # Table: 'guild_alliance'
@@ -144,11 +141,8 @@ CREATE TABLE `guild_alliance` (
   `opposition` int(11) NOT NULL default '0',
   `alliance_id` int(11) NOT NULL default '0',
   `name` varchar(24) NOT NULL default '',
-  PRIMARY KEY  (guild_id,alliance_id),
-  KEY alliance_id (alliance_id),
-  CONSTRAINT `guild_alliance_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE,
-  CONSTRAINT `guild_alliance_ibfk_2` FOREIGN KEY (`alliance_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  KEY `guild_id` (`guild_id`)
+) TYPE=MyISAM; 
 
 # Database: Ragnarok
 # Table: 'guild_castle'
@@ -196,9 +190,8 @@ CREATE TABLE `guild_expulsion` (
   `rsv1` int(11) NOT NULL default '0',
   `rsv2` int(11) NOT NULL default '0',
   `rsv3` int(11) NOT NULL default '0',
-  PRIMARY KEY  (guild_id,name),
-  CONSTRAINT `guild_expulsion_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  KEY `guild_id` (`guild_id`)
+) TYPE=MyISAM; 
 
 # Database: Ragnarok
 # Table: 'guild_member'
@@ -219,11 +212,10 @@ CREATE TABLE `guild_member` (
   `rsv1` int(11) NOT NULL default '0',
   `rsv2` int(11) NOT NULL default '0',
   `name` varchar(24) NOT NULL default '',
-  PRIMARY KEY  (guild_id,char_id),
-  KEY char_id (char_id),
-  CONSTRAINT `guild_member_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE,
-  CONSTRAINT `guild_member_ibfk_2` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  KEY `guild_id` (`guild_id`),
+  KEY `account_id` (`account_id`),
+  KEY `char_id` (`char_id`)
+) TYPE=MyISAM; 
 
 # Database: Ragnarok
 # Table: 'guild_position'
@@ -234,9 +226,8 @@ CREATE TABLE `guild_position` (
   `name` varchar(24) NOT NULL default '',
   `mode` int(11) NOT NULL default '0',
   `exp_mode` int(11) NOT NULL default '0',
-  PRIMARY KEY  (guild_id,position),
-  KEY guild_id (guild_id)
-) TYPE=InnoDB;
+  KEY `guild_id` (`guild_id`)
+) TYPE=MyISAM; 
 
 # Database: Ragnarok
 # Table: 'guild_skill'
@@ -245,9 +236,8 @@ CREATE TABLE `guild_skill` (
   `guild_id` int(11) NOT NULL default '0',
   `id` int(11) NOT NULL default '0',
   `lv` int(11) NOT NULL default '0',
-  PRIMARY KEY  (guild_id,id),
-  CONSTRAINT `guild_skill_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  KEY `guild_id` (`guild_id`)
+) TYPE=MyISAM; 
 
 # Database: Ragnarok
 # Table: 'guild_storage'
@@ -266,10 +256,9 @@ CREATE TABLE `guild_storage` (
   `card2` int(11) NOT NULL default '0',
   `card3` int(11) NOT NULL default '0',
   `broken` int(11) NOT NULL default '0',
-  PRIMARY KEY  (id),
-  KEY guild_id (guild_id),
-  CONSTRAINT `guild_storage_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE
-) TYPE=InnoDB;
+  PRIMARY KEY  (`id`),
+  KEY `guild_id` (`guild_id`)
+) TYPE=MyISAM; 
 
 # Database: Ragnarok
 # Table: 'interlog'

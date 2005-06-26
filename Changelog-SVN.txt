@@ -1,4 +1,10 @@
 Date	Added
+06/26
+	* Added new guild database structures to main.sql.
+	  Removed obsolete guild_tables.sql.
+	  If for some reason the new main.sql doesn't work for you, you 
+	  can use main_old.sql, but there will be garbage left in the DB 
+	  if a guild is deleted. [Aru]
 06/25
 	* Asura/Extremity-Fist needs Fury/Explosion-Spirits active no matter how
 	  it's triggered. Not yet tested, but it should work. [Skotlex]
