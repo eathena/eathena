@@ -1,5 +1,7 @@
 Date	Added
 06/26
+	* Added proper foreign keys to guild_position, 
+	  SQL users run upgrade_svn2331.sql [Aru]
 	* Added convert_guild_tables2.sql for use on guild tables 
 	  created with a 2314-2321 main.sql. Run this or 
 	  convert_guild_tables.sql if you are having issues with guild 
