@@ -7132,12 +7132,14 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		}
 		break;
 	case ST_EXPLOSIONSPIRITS:
+		/* Sources say that MO_EXTREMITYFIST requires FURY no matter what the situation. [Skotlex]
 		if (skill == MO_EXTREMITYFIST && ((sd->sc_data[SC_COMBO].timer != -1 &&
 				(sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH ||
 				sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST ||
 				sd->sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)) ||
 				sd->sc_data[SC_BLADESTOP].timer!=-1))
 			break;
+		*/
 		if(sd->sc_data[SC_EXPLOSIONSPIRITS].timer == -1) {
 			clif_skill_fail(sd,skill,0,0);
 			return 0;

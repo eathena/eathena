@@ -1,5 +1,7 @@
 Date	Added
 06/25
+	* Asura/Extremity-Fist needs Fury/Explosion-Spirits active no matter how
+	  it's triggered. Not yet tested, but it should work. [Skotlex]
 	* Reorganized deletion process. Friends should now be no more problem [davidsiaw]
 	* Added SQL returned row check to friend-list loading, thanks to Sasuke-. [Valaris]
 	* Fixed drops_by_luk not behaving exactly the way it was before... ^^' [Skotlex] 
