@@ -1,5 +1,7 @@
 Date	Added
 06/26
+	* Fixed a bug with guild_skill table in main_old.sql if you're
+	  fool enough to use it [Aru]
 	* @nuke++, ftw ;D [Valaris]
 	* Modified friend list loading in char-server (sql) to be more efficient. [Valaris]
 	* Modified mmo_friends_list_data_str (char-server txt) so it wouldn't make junk data. [Valaris]

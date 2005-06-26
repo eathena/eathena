@@ -236,7 +236,7 @@ CREATE TABLE `guild_skill` (
   `guild_id` int(11) NOT NULL default '0',
   `id` int(11) NOT NULL default '0',
   `lv` int(11) NOT NULL default '0',
-  KEY `guild_id` (`guild_id`)
+  PRIMARY KEY  (guild_id,id)
 ) TYPE=MyISAM; 
 
 # Database: Ragnarok
