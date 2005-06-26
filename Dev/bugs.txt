@@ -372,3 +372,40 @@ Problem:	Guilds (doesn't save)
 			and after reboot you lose learnt guild skills.
 Assigned:	Lupus
 Progress:	100% in main.sql were missing db field guild/char_id. Added.
+
+Problem:	Child + Papa + Mama EXP sharing exploit
+			adopt a child, make a party papa+mama+child, kill the child, and you can share EXP
+			between both parents 50%/50%. Despite on their levels (should be >=70 tough)
+Assigned:	na
+Progress:	0%
+
+Problem:	Instant, non stop mobs cast
+			They cast instantly, too fast. All of the monsters
+Assigned:	na
+Progress:	0%
+
+Problem:	Peco Crusader != BIG SIZE
+			baby class on peco should have MID size, too
+Assigned:	na
+Progress:	0%
+
+Problem:	Shield Boomerang SKILL BUG
+			When you use it riding on peco, you have very big delay after cast.
+			When you're on your foot, you have no that delay
+Assigned:	na
+Progress:	0%
+
+Problem:	Shield Boomerang SKILL BUG
+			When you use it riding on peco, you have very big delay after cast.
+			When you're on your foot, you have no that delay
+Assigned:	na
+Progress:	0%
+
+Problem:	GVG Enemy Healing BUG
+			During WOE, you can heal your enemy without SHIFT
+Assigned:	na
+Progress:	0%
+
+Problem:	Ghostring Card works everywhere (should work in GVG)
+Assigned:	na
+Progress:	0%
