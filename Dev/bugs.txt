@@ -367,12 +367,6 @@ Problem:	Fame Lists
 Assigned:	na
 Progress:	0%
 
-Problem:	Guilds (doesn't save)
-			Guilds don't save skills (levels), members, etc... So you can't even create a new guild
-			and after reboot you lose learnt guild skills.
-Assigned:	Lupus
-Progress:	100% in main.sql were missing db field guild/char_id. Added.
-
 Problem:	Child + Papa + Mama EXP sharing exploit
 			adopt a child, make a party papa+mama+child, kill the child, and you can share EXP
 			between both parents 50%/50%. Despite on their levels (should be >=70 tough)
@@ -386,14 +380,8 @@ Progress:	0%
 
 Problem:	Peco Crusader != BIG SIZE
 			baby class on peco should have MID size, too
-Assigned:	na
-Progress:	0%
-
-Problem:	Shield Boomerang SKILL BUG
-			When you use it riding on peco, you have very big delay after cast.
-			When you're on your foot, you have no that delay
-Assigned:	na
-Progress:	0%
+Assigned:	Lupus
+Progress:	100% <-- made it optional
 
 Problem:	Shield Boomerang SKILL BUG
 			When you use it riding on peco, you have very big delay after cast.
@@ -407,5 +395,16 @@ Assigned:	na
 Progress:	0%
 
 Problem:	Ghostring Card works everywhere (should work in GVG)
+Assigned:	na
+Progress:	0%
+
+Problem:	Guilds (doesn't correctly save skills)
+			It floods SQL db with entries... ~6000 entries in that guild_skills DB within 2 hours (with 18 guilds)
+			and after reboot you lose learnt guild skills.
+Assigned:	na
+Progress:	0%
+
+Problem:	chat crash
+			instant crash if you change target person name with some packet hack tool. 
 Assigned:	na
 Progress:	0%
