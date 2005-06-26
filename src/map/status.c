@@ -3012,11 +3012,9 @@ int status_get_size(struct block_list *bl)
 		return mob_db[((struct pet_data *)bl)->class_].size;
 	else if(bl->type==BL_PC) {
 		struct map_session_data *sd = (struct map_session_data *)bl;
-		//if (pc_isriding(sd))	// fact or rumour?
-		//	return 2;
-		if (pc_calc_upper(sd->status.class_) == 2)
-			return 0;
-		return 1;
+		if (pc_calc_upper(sd->status.class_)==2) //[Lupus]
+			return (pc_isriding(sd)!=0 && battle_config.character_size&2); //Baby Class Peco Rider + enabled option -> size = 1, else 0
+		return 1+(pc_isriding(sd)!=0 && battle_config.character_size&1);	//Peco Rider + enabled option -> size = 2, else 1
 	} else
 		return 1;
 }

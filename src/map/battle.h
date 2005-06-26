@@ -348,6 +348,9 @@ extern struct Battle_Config {
 
 	unsigned short mob_clear_delay; // [Valaris]
 
+	unsigned short character_size; // if riders have size=2, and baby class riders size=1 [Lupus]
+	unsigned short headset_block_music; // do headsets block Frost Joke, etc [Lupus]
+
 #ifndef TXT_ONLY /* SQL-only options */
 	unsigned short mail_system; // [Valaris]
 #endif

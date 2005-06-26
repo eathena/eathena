@@ -1,5 +1,7 @@
 Date	Added
 06/26
+	* Added 'character_size' to battle config:
+	  Do mounted (on Peco) characters increase their size [Lupus]
 	* Added new guild database structures to main.sql.
 	  Removed obsolete guild_tables.sql.
 	  If for some reason the new main.sql doesn't work for you, you 
