@@ -32,8 +32,8 @@ struct TimerData {
 //unsigned long gettick_nocache(void);
 //unsigned long gettick(void);
 // just trying without tick_cache
-extern inline unsigned long gettick_nocache(void)	{return GetTickCount();}
-extern inline unsigned long gettick(void)			{return GetTickCount();}
+static inline unsigned long gettick_nocache(void)	{return GetTickCount();}
+static inline unsigned long gettick(void)			{return GetTickCount();}
 
 
 int add_timer_p(unsigned long tick, int (*func)(int,unsigned long,int,int),int id, void* pdata);

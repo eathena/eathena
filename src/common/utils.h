@@ -13,7 +13,7 @@ void dump(unsigned char *buffer, size_t num);
 char* checkpath(char *path, const char* src);
 void findfile(const char *p, const char *pat, void (func)(const char*) );
 
-extern inline FILE* savefopen(const char*name, const char*option)
+static inline FILE* savefopen(const char*name, const char*option)
 {	// windows MAXPATH is 260, unix is longer
 	char	 namebuf[2048];
 	checkpath(namebuf,name);
@@ -21,7 +21,7 @@ extern inline FILE* savefopen(const char*name, const char*option)
 }
 
 
-extern inline const char *tolower(char *str)
+static inline const char *tolower(char *str)
 {
 	char *p=str;
 	if(p)
@@ -33,7 +33,7 @@ extern inline const char *tolower(char *str)
 	return str;
 }
 
-extern inline const char *strcpytolower(char *tar, const char *str)
+static inline const char *strcpytolower(char *tar, const char *str)
 {
 	char *p=tar;
 	if(str && p)
@@ -45,15 +45,23 @@ extern inline const char *strcpytolower(char *tar, const char *str)
 	*p=0;
 	return tar;
 }
-extern inline const char *safestrcpy(char *tar, const char *src, size_t cnt)
+static inline const char *safestrcpy(char *tar, const char *src, size_t cnt)
 {
-	::strncpy(tar,src,cnt);
-	// systems strncpy doesnt append the trailing NULL, of the string is too long.
-	tar[cnt-1]=0;
+	if(tar)
+	{
+		if(src)
+		{
+			::strncpy(tar,src,cnt);
+			// systems strncpy doesnt append the trailing NULL if the string is too long.
+			tar[cnt-1]=0;
+		}
+		else
+			tar[0]=0;
+	}
 	return tar;
 }
 
-extern inline const char *skip_empty_line(const char *line)
+static inline const char *skip_empty_line(const char *line)
 {	// skip whitespaces and returns (0x09-0x0D or 0x20) 
 	// and return NULL on EOF or following "//"
 	if(line)

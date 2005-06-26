@@ -43,7 +43,7 @@ void do_init_party(void)
 // 検索
 struct party *party_search(unsigned long party_id)
 {
-	return (struct party *) numdb_search(party_db,party_id);
+	return (struct party *)numdb_search(party_db,party_id);
 }
 int party_searchname_sub(void *key,void *data,va_list ap)
 {
@@ -155,27 +155,31 @@ int party_recv_noinfo(unsigned long party_id)
 // 情報所得
 int party_recv_info(struct party &sp)
 {
-	struct party *p;
 	int i;
+	struct party *p=(struct party *)numdb_search(party_db, sp.party_id);
 	
-	if((p=(struct party *)numdb_search(party_db,sp.party_id))==NULL){
+	if(p==NULL)
+	{	//does not exist, so create a new one
 		p=(struct party *)aCalloc(1,sizeof(struct party));
 		numdb_insert(party_db,sp.party_id,p);
-		
 		// 最初のロードなのでユーザーのチェックを行う
 		party_check_member(sp);
 	}
 	memcpy(p,&sp,sizeof(struct party));
 	
-	for(i=0;i<MAX_PARTY;i++){	// sdの設定
-		struct map_session_data *sd = map_id2sd(p->member[i].account_id);
-		p->member[i].sd=(sd!=NULL && sd->status.party_id==p->party_id && !sd->state.waitingdisconnect)?sd:NULL;
+	for(i=0;i<MAX_PARTY;i++)
+	{	// sdの設定
+		if( p->member[i].account_id )
+		{
+			struct map_session_data *sd = map_id2sd(p->member[i].account_id);
+			p->member[i].sd=(sd!=NULL && sd->status.party_id==p->party_id && !sd->state.waitingdisconnect)?sd:NULL;
+		}
 	}
 
 	clif_party_info(*p,-1);
 
-	for(i=0;i<MAX_PARTY;i++){	// 設定情報の送信
-//		struct map_session_data *sd = map_id2sd(p->member[i].account_id);
+	for(i=0;i<MAX_PARTY;i++)
+	{	// 設定情報の送信
 		struct map_session_data *sd = p->member[i].sd;
 		if(sd!=NULL && sd->party_sended==0){
 			clif_party_option(*p,sd,0x100);
@@ -383,12 +387,10 @@ int party_recv_movemap(unsigned long party_id,unsigned long account_id,const cha
 	int i;
 	if( (p=party_search(party_id))==NULL)
 		return 0;
-	for(i=0;i<MAX_PARTY;i++){
+	for(i=0;i<MAX_PARTY;i++)
+	{
 		struct party_member *m=&p->member[i];
-		if( m == NULL ){
-			ShowMessage("party_recv_movemap nullpo?\n");
-			return 0;
-		}
+
 		if(m->account_id==account_id){
 			memcpy(m->map,map,24);
 			m->map[23]=0;
@@ -396,6 +398,7 @@ int party_recv_movemap(unsigned long party_id,unsigned long account_id,const cha
 			m->lv=lv;
 			break;
 		}
+
 	}
 	if(i==MAX_PARTY){
 		if(battle_config.error_log)

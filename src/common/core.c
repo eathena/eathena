@@ -190,7 +190,7 @@ void init_signal()
 
 ///////////////////////////////////////////////////////////////////////////////
 // revision
-// would make it extern inline but dll wants it on a fixed position
+// would make it inline but dll wants it on a fixed position
 // to get it's function pointer
 const char* get_svn_revision()	{ return "Shinomori's Modified Version"; }
 /*

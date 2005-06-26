@@ -2460,8 +2460,8 @@ int pc_dropitem(struct map_session_data &sd,unsigned short inx, size_t amount)
 		sd.vender_id != 0 ||
 	    sd.status.inventory[inx].amount <= 0 )
 		return 1;
-
-	if( !pc_candrop(sd,sd.status.inventory[inx].nameid) )
+	
+	if( !itemdb_isdropable(sd.status.inventory[inx].nameid, pc_isGM(sd)) )
 	{	//The client does not likes being silently ignored, so we send it a del of 0 qty
 		clif_delitem(sd,inx,0);
 		clif_displaymessage (sd.fd, msg_txt(263));
@@ -2735,7 +2735,7 @@ int pc_putitemtocart(struct map_session_data &sd,unsigned short idx, size_t amou
 {
 	if( idx >= MAX_INVENTORY ) return 0;
 
-	if( !pc_candrop(sd, sd.status.inventory[idx].nameid) )
+	if( itemdb_isdropable(sd.status.inventory[idx].nameid, pc_isGM(sd)) )
 		return 1;
 	if( sd.status.inventory[idx].nameid==0 || sd.status.inventory[idx].amount<amount || sd.vender_id)
 		return 1;
@@ -3919,15 +3919,12 @@ int pc_attack_timer(int tid,unsigned long tick,int id,int data)
 	if( sd->opt1>0 || sd->status.option&2 || pc_ischasewalk(*sd))	// 異常などで攻?できない
 		return 0;
 
-//!!	if(sd->sc_count) 
-	{
-		if(sd->sc_data[SC_AUTOCOUNTER].timer != -1)
-			return 0;
-		if(sd->sc_data[SC_BLADESTOP].timer != -1)
-			return 0;
-		if(sd->sc_data[SC_GRAVITATION].timer != -1)
-			return 0;
-	}
+	if(sd->sc_data[SC_AUTOCOUNTER].timer != -1)
+		return 0;
+	if(sd->sc_data[SC_BLADESTOP].timer != -1)
+		return 0;
+	if(sd->sc_data[SC_GRAVITATION].timer != -1)
+		return 0;
 
 	//if((opt = status_get_option(bl)) != NULL && *opt&0x46)
 	if((opt = status_get_option(bl)) != NULL && *opt&0x42)
@@ -3968,6 +3965,10 @@ int pc_attack_timer(int tid,unsigned long tick,int id,int data)
 		sd->attackabletime = tick + (sd->aspd<<1);
 	}
 	else {
+		//On this point, we have reached our target, and guarantee an attack, so.. uncloak. [Skotlex]
+		if(pc_iscloaking(*sd))
+			status_change_end(&sd->bl, SC_CLOAKING, -1);
+
 		if(battle_config.pc_attack_direction_change)
 			sd->dir=sd->head_dir=map_calc_dir(sd->bl, bl->x,bl->y );	// 向き設定
 
@@ -5778,14 +5779,6 @@ int pc_setriding(struct map_session_data &sd)
 	return 0;
 }
 
-/*==========================================
- * アイテムドロップ可不可判定
- *------------------------------------------
- */
-bool pc_candrop(struct map_session_data &sd,unsigned short item_id)
-{
-	return itemdb_isdropable(item_id, pc_isGM(sd));
-}
 
 /*==========================================
  * script用??の値を?む

@@ -392,7 +392,6 @@ int mapif_load_storage(int fd,unsigned long account_id)
 		WFIFOW(fd,2)=sizeof(struct pc_storage)+8;
 	WFIFOL(fd,4)=account_id;
 
-		//memcpy(WFIFOP(fd,8),stor,sizeof(struct pc_storage));
 		pc_storage_tobuffer(*stor, WFIFOP(fd,8));
 	WFIFOSET(fd,WFIFOW(fd,2));
 	}
@@ -422,7 +421,6 @@ int mapif_load_guild_storage(int fd,unsigned long account_id,unsigned long guild
 		WFIFOW(fd,2)=sizeof(struct guild_storage)+12;
 		WFIFOL(fd,4)=account_id;
 		WFIFOL(fd,8)=guild_id;
-		//memcpy(WFIFOP(fd,12),gs,sizeof(struct guild_storage));
 		guild_storage_tobuffer(*gs, WFIFOP(fd,12));
 	}
 	else {
@@ -473,12 +471,11 @@ int mapif_parse_SaveStorage(int fd)
 	}
 	else {
 		stor=account2storage(account_id);
-//		memcpy(stor,RFIFOP(fd,8),sizeof(struct pc_storage));
 		if(stor)
 		{
 			pc_storage_frombuffer(*stor, RFIFOP(fd,8));
-		mapif_save_storage_ack(fd,account_id);
-	}
+			mapif_save_storage_ack(fd,account_id);
+		}
 	}
 	return 0;
 }
@@ -505,7 +502,6 @@ int mapif_parse_SaveGuildStorage(int fd)
 	else {
 		gs=guild2storage(guild_id);
 		if(gs) {
-			//memcpy(gs,RFIFOP(fd,12),sizeof(struct guild_storage));
 			guild_storage_frombuffer(*gs, RFIFOP(fd,12));
 
 			mapif_save_guild_storage_ack(fd,RFIFOL(fd,4),guild_id,0);

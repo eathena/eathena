@@ -73,6 +73,7 @@ extern size_t GM_num;
 extern struct gm_account *gm_account;
 
 
+extern int party_modus;
 
 
 #endif//_CHAR_H_

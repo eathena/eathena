@@ -616,9 +616,10 @@ int status_calc_pc(struct map_session_data& sd, int first)
 
 
 	
-	
-	for(i=0;i<10;i++) {
-		current_equip_item_index = index = sd.equip_index[i]; //We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
+
+	for(i=0;i<10;i++)
+	{	//We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
+		current_equip_item_index = index = sd.equip_index[i]; 
 		if(index < 0)
 			continue;
 		if(i == 9 && sd.equip_index[8] == index)
@@ -630,12 +631,15 @@ int status_calc_pc(struct map_session_data& sd, int first)
 
 		if(sd.inventory_data[index])
 		{
-			if(sd.inventory_data[index]->type == 4) { // Weapon cards
-				if(sd.status.inventory[index].card[0]!=0x00ff && sd.status.inventory[index].card[0]!=0x00fe && sd.status.inventory[index].card[0]!=0xff00) {
-					for(j=0;j<sd.inventory_data[index]->flag.slot;j++){	// カ?ド
+			if(sd.inventory_data[index]->type == 4)
+			{	// Weapon cards
+				if(sd.status.inventory[index].card[0]!=0x00ff && sd.status.inventory[index].card[0]!=0x00fe && sd.status.inventory[index].card[0]!=0xff00)
+				{
+					for(j=0;j<sd.inventory_data[index]->flag.slot;j++)
+					{	// カ?ド
 						int c=sd.status.inventory[index].card[j];
 						if(c>0){
-							if(i == 8 && sd.status.inventory[index].equip == 0x20)
+							if(i==8 && sd.status.inventory[index].equip==0x20)
 								sd.state.lr_flag = 1;
 							run_script(itemdb_equipscript(c),0,sd.bl.id,0);
 							sd.state.lr_flag = 0;
@@ -643,12 +647,17 @@ int status_calc_pc(struct map_session_data& sd, int first)
 					}
 				}
 			}
-			else if(sd.inventory_data[index]->type==5){ // Non-weapon equipment cards
-				if(sd.status.inventory[index].card[0]!=0x00ff && sd.status.inventory[index].card[0]!=0x00fe && sd.status.inventory[index].card[0]!=0xff00) {
-					for(j=0;j<sd.inventory_data[index]->flag.slot;j++){	// カ?ド
+			else if(sd.inventory_data[index]->type==5)
+			{	// Non-weapon equipment cards
+				if(sd.status.inventory[index].card[0]!=0x00ff && sd.status.inventory[index].card[0]!=0x00fe && sd.status.inventory[index].card[0]!=0xff00)
+				{
+					for(j=0;j<sd.inventory_data[index]->flag.slot;j++)
+					{	// カ?ド
 						int c=sd.status.inventory[index].card[j];
 						if(c>0)
+						{
 							run_script(itemdb_equipscript(c),0,sd.bl.id,0);
+						}
 					}
 				}
 			}
@@ -1148,327 +1157,331 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	if( (skill=pc_checkskill(sd,MO_DODGE))>0 )	// 見切り
 		sd.flee += (skill*3)>>1;
 
-	{
-		if( sd.sc_data[SC_INCFLEE].timer!=-1 )
-			sd.flee += (unsigned short)sd.sc_data[SC_INCFLEE].val1;
-		if( sd.sc_data[SC_INCFLEE2].timer!=-1 )
-			sd.flee += (unsigned short)sd.sc_data[SC_INCFLEE2].val1;
-	}
+
+	if( sd.sc_data[SC_INCFLEE].timer!=-1 )
+		sd.flee += (unsigned short)sd.sc_data[SC_INCFLEE].val1;
+	if( sd.sc_data[SC_INCFLEE2].timer!=-1 )
+		sd.flee += (unsigned short)sd.sc_data[SC_INCFLEE2].val1;
+
 
 	// スキルやステ?タス異常による?りのパラメ?タ補正
 
+
+	// ATK/DEF?化形
+	if(sd.sc_data[SC_ANGELUS].timer!=-1)	// エンジェラス
+		sd.def2 = sd.def2*(110+5*sd.sc_data[SC_ANGELUS].val1)/100;
+	if(sd.sc_data[SC_IMPOSITIO].timer!=-1)	{// インポシティオマヌス
+		sd.right_weapon.watk += sd.sc_data[SC_IMPOSITIO].val1*5;
+		index = sd.equip_index[8];
+		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
+			sd.left_weapon.watk += sd.sc_data[SC_IMPOSITIO].val1*5;
+	}
+	if(sd.sc_data[SC_PROVOKE].timer!=-1){	// プロボック
+		sd.def2 = sd.def2*(100-6*sd.sc_data[SC_PROVOKE].val1)/100;
+		sd.base_atk = sd.base_atk*(100+2*sd.sc_data[SC_PROVOKE].val1)/100;
+		sd.right_weapon.watk = sd.right_weapon.watk*(100+2*sd.sc_data[SC_PROVOKE].val1)/100;
+		index = sd.equip_index[8];
+		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
+			sd.left_weapon.watk = sd.left_weapon.watk*(100+2*sd.sc_data[SC_PROVOKE].val1)/100;
+	}
+	if(sd.sc_data[SC_ENDURE].timer!=-1)
+		sd.mdef2 += (unsigned short)sd.sc_data[SC_ENDURE].val1;
+	if(sd.sc_data[SC_MINDBREAKER].timer!=-1){	// プロボック
+		sd.mdef2 = sd.mdef2*(100-6*sd.sc_data[SC_MINDBREAKER].val1)/100;
+		sd.matk1 = sd.matk1*(100+2*sd.sc_data[SC_MINDBREAKER].val1)/100;
+		sd.matk2 = sd.matk2*(100+2*sd.sc_data[SC_MINDBREAKER].val1)/100;
+	}
+	if(sd.sc_data[SC_INCMATK2].timer!=-1)	// プロボック
+		sd.matk1 += sd.matk1*sd.sc_data[SC_INCMATK2].val1/100;
+	
+	if(sd.sc_data[SC_POISON].timer!=-1)	// 毒?態
+		sd.def2 = sd.def2*75/100;
+	if(sd.sc_data[SC_CURSE].timer!=-1){
+		sd.base_atk = sd.base_atk*75/100;
+		sd.right_weapon.watk = sd.right_weapon.watk*75/100;
+		index = sd.equip_index[8];
+		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
+			sd.left_weapon.watk = sd.left_weapon.watk*75/100;
+	}
+	if(sd.sc_data[SC_DRUMBATTLE].timer!=-1){	// ?太鼓の響き
+		sd.right_weapon.watk += sd.sc_data[SC_DRUMBATTLE].val2;
+		sd.def  += sd.sc_data[SC_DRUMBATTLE].val3;
+		index = sd.equip_index[8];
+		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
+			sd.left_weapon.watk += sd.sc_data[SC_DRUMBATTLE].val2;
+	}
+	if(sd.sc_data[SC_NIBELUNGEN].timer!=-1) {	// ニ?ベルングの指輪
+		index = sd.equip_index[9];
+		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->wlv == 4)
+			sd.right_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].val3;
+		index = sd.equip_index[8];
+		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->wlv == 4)
+			sd.left_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].val3;
+	}
+
+	if(sd.sc_data[SC_VOLCANO].timer != -1 && sd.def_ele == 3)	// ボルケ?ノ
+		sd.right_weapon.watk += sd.sc_data[SC_VOLCANO].val3;
+	if(sd.sc_data[SC_INCATK2].timer != -1)
+		sd.right_weapon.watk += sd.right_weapon.watk * sd.sc_data[SC_INCATK2].val1 / 100;
+	if(sd.sc_data[SC_SIGNUMCRUCIS].timer != -1)
+		sd.def = sd.def * (100 - sd.sc_data[SC_SIGNUMCRUCIS].val2)/100;
+	if(sd.sc_data[SC_ETERNALCHAOS].timer != -1)	// エタ?ナルカオス
+		sd.def = 0;
+
+	if(sd.sc_data[SC_CONCENTRATION].timer!=-1){ //コンセントレ?ション
+		sd.right_weapon.watk = sd.right_weapon.watk * (100 + 5*sd.sc_data[SC_CONCENTRATION].val1)/100;
+		index = sd.equip_index[8];
+		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
+			sd.left_weapon.watk = sd.left_weapon.watk * (100 + 5*sd.sc_data[SC_CONCENTRATION].val1)/100;
+		sd.def = sd.def * (100 - 10*sd.sc_data[SC_CONCENTRATION].val1)/100;
+	}
+
+	if(sd.sc_data[SC_MAGICPOWER].timer!=-1){ //魔法力?幅
+		sd.matk1 = sd.matk1*(100+5*sd.sc_data[SC_MAGICPOWER].val1)/100;
+		sd.matk2 = sd.matk2*(100+5*sd.sc_data[SC_MAGICPOWER].val1)/100;
+	}
+	if(sd.sc_data[SC_ATKPOT].timer!=-1)
+		sd.right_weapon.watk += sd.sc_data[SC_ATKPOT].val1;
+	if(sd.sc_data[SC_MATKPOT].timer!=-1){
+		sd.matk1 += (unsigned short)sd.sc_data[SC_MATKPOT].val1;
+		sd.matk2 += (unsigned short)sd.sc_data[SC_MATKPOT].val1;
+	}
+
+	// ASPD/移動速度?化系
+	if(sd.sc_data[SC_TWOHANDQUICKEN].timer != -1 && sd.sc_data[SC_QUAGMIRE].timer == -1 && sd.sc_data[SC_DONTFORGETME].timer == -1)	// 2HQ
+		aspd_rate -= 30;
+	if(sd.sc_data[SC_ADRENALINE].timer != -1 && sd.sc_data[SC_TWOHANDQUICKEN].timer == -1 &&
+		sd.sc_data[SC_QUAGMIRE].timer == -1 && sd.sc_data[SC_DONTFORGETME].timer == -1) {	// アドレナリンラッシュ
+		if(sd.sc_data[SC_ADRENALINE].val2 || !battle_config.party_skill_penalty)
+			aspd_rate -= 30;
+		else
+			aspd_rate -= 25;
+	}
+	if(sd.sc_data[SC_SPEARSQUICKEN].timer != -1 && sd.sc_data[SC_ADRENALINE].timer == -1 &&
+		sd.sc_data[SC_TWOHANDQUICKEN].timer == -1 && sd.sc_data[SC_QUAGMIRE].timer == -1 && sd.sc_data[SC_DONTFORGETME].timer == -1)	// スピアクィッケン
+		aspd_rate -= sd.sc_data[SC_SPEARSQUICKEN].val2;
+	if(sd.sc_data[SC_ASSNCROS].timer!=-1 && // 夕陽のアサシンクロス
+		sd.sc_data[SC_TWOHANDQUICKEN].timer==-1 && sd.sc_data[SC_ADRENALINE].timer==-1 && sd.sc_data[SC_SPEARSQUICKEN].timer==-1 &&
+		sd.sc_data[SC_DONTFORGETME].timer == -1)
+			aspd_rate -= 5+sd.sc_data[SC_ASSNCROS].val1+sd.sc_data[SC_ASSNCROS].val2+sd.sc_data[SC_ASSNCROS].val3;
+	if(sd.sc_data[SC_DONTFORGETME].timer!=-1){		// 私を忘れないで
+		aspd_rate += sd.sc_data[SC_DONTFORGETME].val1*3 + sd.sc_data[SC_DONTFORGETME].val2 + (sd.sc_data[SC_DONTFORGETME].val3>>16);
+		sd.speed_rate += sd.sc_data[SC_DONTFORGETME].val1*2 + sd.sc_data[SC_DONTFORGETME].val2 + (sd.sc_data[SC_DONTFORGETME].val3&0xffff);
+	}
+	if(	sd.sc_data[i=SC_SPEEDPOTION3].timer!=-1 ||
+		sd.sc_data[i=SC_SPEEDPOTION2].timer!=-1 ||
+		sd.sc_data[i=SC_SPEEDPOTION1].timer!=-1 ||
+		sd.sc_data[i=SC_SPEEDPOTION0].timer!=-1)	// ? 速ポ?ション
+		aspd_rate -= sd.sc_data[i].val2;
+	if(sd.sc_data[SC_GRAVITATION].timer!=-1)
+		aspd_rate += sd.sc_data[SC_GRAVITATION].val2;
+	if(sd.sc_data[SC_WINDWALK].timer!=-1 && sd.sc_data[SC_INCREASEAGI].timer==-1)	//ウィンドウォ?ク暫ﾍLv*2%減算
+		sd.speed_rate -= sd.sc_data[SC_WINDWALK].val1*2;
+	if(sd.sc_data[SC_CARTBOOST].timer!=-1)	// カ?トブ?スト
+		sd.speed_rate -= 20;
+	if(sd.sc_data[SC_BERSERK].timer!=-1)	//バ?サ?ク中はIAと同じぐらい速い？
+		sd.speed_rate -= 25;
+	if(sd.sc_data[SC_WEDDING].timer!=-1)	//結婚中は?くのが?い
+		sd.speed_rate += 100;
+
+	// HIT/FLEE?化系
+	if(sd.sc_data[SC_WHISTLE].timer!=-1){  // 口笛
+		sd.flee += sd.flee * (sd.sc_data[SC_WHISTLE].val1
+				+sd.sc_data[SC_WHISTLE].val2+(sd.sc_data[SC_WHISTLE].val3>>16))/100;
+		sd.flee2+= (sd.sc_data[SC_WHISTLE].val1+sd.sc_data[SC_WHISTLE].val2+(sd.sc_data[SC_WHISTLE].val3&0xffff)) * 10;
+	}
+	if(sd.sc_data[SC_HUMMING].timer!=-1)  // ハミング
+		sd.hit += (sd.sc_data[SC_HUMMING].val1*2+sd.sc_data[SC_HUMMING].val2
+				+sd.sc_data[SC_HUMMING].val3) * sd.hit/100;
+	if(sd.sc_data[SC_VIOLENTGALE].timer != -1 && sd.def_ele == 4)	// バイオレントゲイル
+		sd.flee += sd.flee * sd.sc_data[SC_VIOLENTGALE].val3 / 100;
+	if(sd.sc_data[SC_BLIND].timer != -1)
+	{	// 暗?
+		sd.hit -= sd.hit * 25 / 100;
+		sd.flee -= sd.flee * 25 / 100;
+	}
+	if(sd.sc_data[SC_WINDWALK].timer != -1)
+	{	// ウィンドウォ?ク
+		sd.flee += sd.flee * sd.sc_data[SC_WINDWALK].val2 / 100;
+	}
+	if(sd.sc_data[SC_SPIDERWEB].timer != -1) //スパイダ?ウェブ
 	{
-		// ATK/DEF?化形
-		if(sd.sc_data[SC_ANGELUS].timer!=-1)	// エンジェラス
-			sd.def2 = sd.def2*(110+5*sd.sc_data[SC_ANGELUS].val1)/100;
-		if(sd.sc_data[SC_IMPOSITIO].timer!=-1)	{// インポシティオマヌス
-			sd.right_weapon.watk += sd.sc_data[SC_IMPOSITIO].val1*5;
-			index = sd.equip_index[8];
-			if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
-				sd.left_weapon.watk += sd.sc_data[SC_IMPOSITIO].val1*5;
-		}
-		if(sd.sc_data[SC_PROVOKE].timer!=-1){	// プロボック
-			sd.def2 = sd.def2*(100-6*sd.sc_data[SC_PROVOKE].val1)/100;
-			sd.base_atk = sd.base_atk*(100+2*sd.sc_data[SC_PROVOKE].val1)/100;
-			sd.right_weapon.watk = sd.right_weapon.watk*(100+2*sd.sc_data[SC_PROVOKE].val1)/100;
-			index = sd.equip_index[8];
-			if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
-				sd.left_weapon.watk = sd.left_weapon.watk*(100+2*sd.sc_data[SC_PROVOKE].val1)/100;
-		}
-		if(sd.sc_data[SC_ENDURE].timer!=-1)
-			sd.mdef2 += (unsigned short)sd.sc_data[SC_ENDURE].val1;
-		if(sd.sc_data[SC_MINDBREAKER].timer!=-1){	// プロボック
-			sd.mdef2 = sd.mdef2*(100-6*sd.sc_data[SC_MINDBREAKER].val1)/100;
-			sd.matk1 = sd.matk1*(100+2*sd.sc_data[SC_MINDBREAKER].val1)/100;
-			sd.matk2 = sd.matk2*(100+2*sd.sc_data[SC_MINDBREAKER].val1)/100;
-		}
-		if(sd.sc_data[SC_INCMATK2].timer!=-1)	// プロボック
-			sd.matk1 += sd.matk1*sd.sc_data[SC_INCMATK2].val1/100;
-		
-		if(sd.sc_data[SC_POISON].timer!=-1)	// 毒?態
-			sd.def2 = sd.def2*75/100;
-		if(sd.sc_data[SC_CURSE].timer!=-1){
-			sd.base_atk = sd.base_atk*75/100;
-			sd.right_weapon.watk = sd.right_weapon.watk*75/100;
-			index = sd.equip_index[8];
-			if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
-				sd.left_weapon.watk = sd.left_weapon.watk*75/100;
-		}
-		if(sd.sc_data[SC_DRUMBATTLE].timer!=-1){	// ?太鼓の響き
-			sd.right_weapon.watk += sd.sc_data[SC_DRUMBATTLE].val2;
-			sd.def  += sd.sc_data[SC_DRUMBATTLE].val3;
-			index = sd.equip_index[8];
-			if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
-				sd.left_weapon.watk += sd.sc_data[SC_DRUMBATTLE].val2;
-		}
-		if(sd.sc_data[SC_NIBELUNGEN].timer!=-1) {	// ニ?ベルングの指輪
-			index = sd.equip_index[9];
-			if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->wlv == 4)
-				sd.right_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].val3;
-			index = sd.equip_index[8];
-			if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->wlv == 4)
-				sd.left_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].val3;
-		}
+		sd.flee = sd.flee * 50 / 100;
+	}
+	if(sd.sc_data[SC_TRUESIGHT].timer != -1) //トゥル?サイト
+		sd.hit += 3 * sd.sc_data[SC_TRUESIGHT].val1;
+	if(sd.sc_data[SC_CONCENTRATION].timer != -1) //コンセントレ?ション
+		sd.hit += sd.hit * 10 * sd.sc_data[SC_CONCENTRATION].val1 / 100;
+	if(sd.sc_data[SC_INCHIT].timer != -1)
+		sd.hit += (unsigned short)sd.sc_data[SC_INCHIT].val1;
+	if(sd.sc_data[SC_INCHIT2].timer != -1)
+		sd.hit += sd.hit * sd.sc_data[SC_INCHIT2].val1 / 100;
 
-		if(sd.sc_data[SC_VOLCANO].timer != -1 && sd.def_ele == 3)	// ボルケ?ノ
-			sd.right_weapon.watk += sd.sc_data[SC_VOLCANO].val3;
-		if(sd.sc_data[SC_INCATK2].timer != -1)
-			sd.right_weapon.watk += sd.right_weapon.watk * sd.sc_data[SC_INCATK2].val1 / 100;
-		if(sd.sc_data[SC_SIGNUMCRUCIS].timer != -1)
-			sd.def = sd.def * (100 - sd.sc_data[SC_SIGNUMCRUCIS].val2)/100;
-		if(sd.sc_data[SC_ETERNALCHAOS].timer != -1)	// エタ?ナルカオス
-			sd.def = 0;
+	// 耐性
+	if(sd.sc_data[SC_SIEGFRIED].timer!=-1){  // 不死身のジ?クフリ?ド
+		sd.subele[1] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
+		sd.subele[2] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
+		sd.subele[3] += sd.sc_data[SC_SIEGFRIED].val2;	// 火
+		sd.subele[4] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
+		sd.subele[5] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
+		sd.subele[6] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
+		sd.subele[7] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
+		sd.subele[8] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
+		sd.subele[9] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
+	}
+	if(sd.sc_data[SC_PROVIDENCE].timer!=-1){	// プロヴィデンス
+		sd.subele[6] += sd.sc_data[SC_PROVIDENCE].val2;	// ? 聖?性
+		sd.subrace[6] += sd.sc_data[SC_PROVIDENCE].val2;	// ? ?魔
+	}
 
-		if(sd.sc_data[SC_CONCENTRATION].timer!=-1){ //コンセントレ?ション
-			sd.right_weapon.watk = sd.right_weapon.watk * (100 + 5*sd.sc_data[SC_CONCENTRATION].val1)/100;
-			index = sd.equip_index[8];
-			if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
-				sd.left_weapon.watk = sd.left_weapon.watk * (100 + 5*sd.sc_data[SC_CONCENTRATION].val1)/100;
-			sd.def = sd.def * (100 - 10*sd.sc_data[SC_CONCENTRATION].val1)/100;
-		}
+	// その他
+	if(sd.sc_data[SC_APPLEIDUN].timer!=-1){	// イドゥンの林檎
+		sd.status.max_hp +=
+				(5 + sd.sc_data[SC_APPLEIDUN].val1 * 2 + sd.sc_data[SC_APPLEIDUN].val2
+				+ sd.sc_data[SC_APPLEIDUN].val3 / 10) * sd.status.max_hp / 100;
+		if(sd.status.max_hp < 0 || sd.status.max_hp > (long)battle_config.max_hp)
+			sd.status.max_hp = battle_config.max_hp;
+	}
+	if(sd.sc_data[SC_DELUGE].timer!=-1 && sd.def_ele==1){	// デリュ?ジ
+		sd.status.max_hp += sd.status.max_hp * deluge_eff[sd.sc_data[SC_DELUGE].val1-1]/100;
+		if(sd.status.max_hp < 0 || sd.status.max_hp > (long)battle_config.max_hp)
+			sd.status.max_hp = battle_config.max_hp;
+	}
+	if(sd.sc_data[SC_SERVICE4U].timer!=-1) {	// サ?ビスフォ?ユ?
+		sd.status.max_sp += sd.status.max_sp*(10+sd.sc_data[SC_SERVICE4U].val1+sd.sc_data[SC_SERVICE4U].val2
+					+sd.sc_data[SC_SERVICE4U].val3)/100;
+		if(sd.status.max_sp < 0 || sd.status.max_sp > (long)battle_config.max_sp)
+			sd.status.max_sp = battle_config.max_sp;
+		sd.dsprate-=(10+sd.sc_data[SC_SERVICE4U].val1*3+sd.sc_data[SC_SERVICE4U].val2
+				+sd.sc_data[SC_SERVICE4U].val3);			
+	}
 
-		if(sd.sc_data[SC_MAGICPOWER].timer!=-1){ //魔法力?幅
-			sd.matk1 = sd.matk1*(100+5*sd.sc_data[SC_MAGICPOWER].val1)/100;
-			sd.matk2 = sd.matk2*(100+5*sd.sc_data[SC_MAGICPOWER].val1)/100;
-		}
-		if(sd.sc_data[SC_ATKPOT].timer!=-1)
-			sd.right_weapon.watk += sd.sc_data[SC_ATKPOT].val1;
-		if(sd.sc_data[SC_MATKPOT].timer!=-1){
-			sd.matk1 += (unsigned short)sd.sc_data[SC_MATKPOT].val1;
-			sd.matk2 += (unsigned short)sd.sc_data[SC_MATKPOT].val1;
-		}
+	if(sd.sc_data[SC_FORTUNE].timer!=-1)	// 幸運のキス
+		sd.critical += (10+sd.sc_data[SC_FORTUNE].val1+sd.sc_data[SC_FORTUNE].val2
+					+sd.sc_data[SC_FORTUNE].val3)*10;
 
-		// ASPD/移動速度?化系
-		if(sd.sc_data[SC_TWOHANDQUICKEN].timer != -1 && sd.sc_data[SC_QUAGMIRE].timer == -1 && sd.sc_data[SC_DONTFORGETME].timer == -1)	// 2HQ
-			aspd_rate -= 30;
-		if(sd.sc_data[SC_ADRENALINE].timer != -1 && sd.sc_data[SC_TWOHANDQUICKEN].timer == -1 &&
-			sd.sc_data[SC_QUAGMIRE].timer == -1 && sd.sc_data[SC_DONTFORGETME].timer == -1) {	// アドレナリンラッシュ
-			if(sd.sc_data[SC_ADRENALINE].val2 || !battle_config.party_skill_penalty)
-				aspd_rate -= 30;
-			else
-				aspd_rate -= 25;
-		}
-		if(sd.sc_data[SC_SPEARSQUICKEN].timer != -1 && sd.sc_data[SC_ADRENALINE].timer == -1 &&
-			sd.sc_data[SC_TWOHANDQUICKEN].timer == -1 && sd.sc_data[SC_QUAGMIRE].timer == -1 && sd.sc_data[SC_DONTFORGETME].timer == -1)	// スピアクィッケン
-			aspd_rate -= sd.sc_data[SC_SPEARSQUICKEN].val2;
-		if(sd.sc_data[SC_ASSNCROS].timer!=-1 && // 夕陽のアサシンクロス
-			sd.sc_data[SC_TWOHANDQUICKEN].timer==-1 && sd.sc_data[SC_ADRENALINE].timer==-1 && sd.sc_data[SC_SPEARSQUICKEN].timer==-1 &&
-			sd.sc_data[SC_DONTFORGETME].timer == -1)
-				aspd_rate -= 5+sd.sc_data[SC_ASSNCROS].val1+sd.sc_data[SC_ASSNCROS].val2+sd.sc_data[SC_ASSNCROS].val3;
-		if(sd.sc_data[SC_DONTFORGETME].timer!=-1){		// 私を忘れないで
-			aspd_rate += sd.sc_data[SC_DONTFORGETME].val1*3 + sd.sc_data[SC_DONTFORGETME].val2 + (sd.sc_data[SC_DONTFORGETME].val3>>16);
-			sd.speed_rate += sd.sc_data[SC_DONTFORGETME].val1*2 + sd.sc_data[SC_DONTFORGETME].val2 + (sd.sc_data[SC_DONTFORGETME].val3&0xffff);
-		}
-		if(	sd.sc_data[i=SC_SPEEDPOTION3].timer!=-1 ||
-			sd.sc_data[i=SC_SPEEDPOTION2].timer!=-1 ||
-			sd.sc_data[i=SC_SPEEDPOTION1].timer!=-1 ||
-			sd.sc_data[i=SC_SPEEDPOTION0].timer!=-1)	// ? 速ポ?ション
-			aspd_rate -= sd.sc_data[i].val2;
-		if(sd.sc_data[SC_GRAVITATION].timer!=-1)
-			aspd_rate += sd.sc_data[SC_GRAVITATION].val2;
-		if(sd.sc_data[SC_WINDWALK].timer!=-1 && sd.sc_data[SC_INCREASEAGI].timer==-1)	//ウィンドウォ?ク暫ﾍLv*2%減算
-			sd.speed_rate -= sd.sc_data[SC_WINDWALK].val1*2;
-		if(sd.sc_data[SC_CARTBOOST].timer!=-1)	// カ?トブ?スト
-			sd.speed_rate -= 20;
-		if(sd.sc_data[SC_BERSERK].timer!=-1)	//バ?サ?ク中はIAと同じぐらい速い？
-			sd.speed_rate -= 25;
-		if(sd.sc_data[SC_WEDDING].timer!=-1)	//結婚中は?くのが?い
-			sd.speed_rate += 100;
+	if(sd.sc_data[SC_EXPLOSIONSPIRITS].timer!=-1){	// 爆裂波動
+		if(s_class.job==23)
+			sd.critical += sd.sc_data[SC_EXPLOSIONSPIRITS].val1*100;
+		else
+		sd.critical += sd.sc_data[SC_EXPLOSIONSPIRITS].val2;
+	}
 
-		// HIT/FLEE?化系
-		if(sd.sc_data[SC_WHISTLE].timer!=-1){  // 口笛
-			sd.flee += sd.flee * (sd.sc_data[SC_WHISTLE].val1
-					+sd.sc_data[SC_WHISTLE].val2+(sd.sc_data[SC_WHISTLE].val3>>16))/100;
-			sd.flee2+= (sd.sc_data[SC_WHISTLE].val1+sd.sc_data[SC_WHISTLE].val2+(sd.sc_data[SC_WHISTLE].val3&0xffff)) * 10;
-		}
-		if(sd.sc_data[SC_HUMMING].timer!=-1)  // ハミング
-			sd.hit += (sd.sc_data[SC_HUMMING].val1*2+sd.sc_data[SC_HUMMING].val2
-					+sd.sc_data[SC_HUMMING].val3) * sd.hit/100;
-		if(sd.sc_data[SC_VIOLENTGALE].timer != -1 && sd.def_ele == 4)	// バイオレントゲイル
-			sd.flee += sd.flee * sd.sc_data[SC_VIOLENTGALE].val3 / 100;
-		if(sd.sc_data[SC_BLIND].timer != -1) {	// 暗?
-			sd.hit -= sd.hit * 25 / 100;
-			sd.flee -= sd.flee * 25 / 100;
-		}
-		if(sd.sc_data[SC_WINDWALK].timer != -1) // ウィンドウォ?ク
-			sd.flee += sd.flee * sd.sc_data[SC_WINDWALK].val2 / 100;
-		if(sd.sc_data[SC_SPIDERWEB].timer != -1) //スパイダ?ウェブ
-			sd.flee = sd.flee * 50 / 100;
-		if(sd.sc_data[SC_TRUESIGHT].timer != -1) //トゥル?サイト
-			sd.hit += 3 * sd.sc_data[SC_TRUESIGHT].val1;
-		if(sd.sc_data[SC_CONCENTRATION].timer != -1) //コンセントレ?ション
-			sd.hit += sd.hit * 10 * sd.sc_data[SC_CONCENTRATION].val1 / 100;
-		if(sd.sc_data[SC_INCHIT].timer != -1)
-			sd.hit += (unsigned short)sd.sc_data[SC_INCHIT].val1;
-		if(sd.sc_data[SC_INCHIT2].timer != -1)
-			sd.hit += sd.hit * sd.sc_data[SC_INCHIT2].val1 / 100;
+	if(sd.sc_data[SC_STEELBODY].timer!=-1){	// 金剛
+		sd.def = 90;
+		sd.mdef = 90;
+		aspd_rate += 25;
+		sd.speed_rate += 25;
+	}
+	if(sd.sc_data[SC_DEFENDER].timer != -1) {
+		aspd_rate += 25 - sd.sc_data[SC_DEFENDER].val1*5;
+		sd.speed += 55 - sd.sc_data[SC_DEFENDER].val1*5;
+	}
+	if(sd.sc_data[SC_ENCPOISON].timer != -1)
+		sd.addeff[4] += sd.sc_data[SC_ENCPOISON].val2;
 
-		// 耐性
-		if(sd.sc_data[SC_SIEGFRIED].timer!=-1){  // 不死身のジ?クフリ?ド
-			sd.subele[1] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
-			sd.subele[2] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
-			sd.subele[3] += sd.sc_data[SC_SIEGFRIED].val2;	// 火
-			sd.subele[4] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
-			sd.subele[5] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
-			sd.subele[6] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
-			sd.subele[7] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
-			sd.subele[8] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
-			sd.subele[9] += sd.sc_data[SC_SIEGFRIED].val2;	// 水
-		}
-		if(sd.sc_data[SC_PROVIDENCE].timer!=-1){	// プロヴィデンス
-			sd.subele[6] += sd.sc_data[SC_PROVIDENCE].val2;	// ? 聖?性
-			sd.subrace[6] += sd.sc_data[SC_PROVIDENCE].val2;	// ? ?魔
-		}
+	if( sd.sc_data[SC_DANCING].timer!=-1 ){		// 演奏/ダンス使用中
+		int s_rate = 600 - 40 * pc_checkskill(sd,((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
+		if (sd.sc_data[SC_LONGING].timer != -1)
+			s_rate -= 20 * sd.sc_data[SC_LONGING].val1;
+		sd.speed = sd.speed * s_rate / 100;
+		// is attack speed affected?
+		//aspd_rate = 600 - 40 * pc_checkskill(*sd, ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
+		//if (sd.sc_data[SC_LONGING].timer != -1)
+		//	aspd_rate -= 20 * sd.sc_data[SC_LONGING].val1;
+		//sd.speed*=4;
+		sd.nhealsp = 0;
+		sd.nshealsp = 0;
+		sd.nsshealsp = 0;
+	}
+	if(sd.sc_data[SC_CURSE].timer!=-1)
+		sd.speed += 450;
 
-		// その他
-		if(sd.sc_data[SC_APPLEIDUN].timer!=-1){	// イドゥンの林檎
-			sd.status.max_hp +=
-					(5 + sd.sc_data[SC_APPLEIDUN].val1 * 2 + sd.sc_data[SC_APPLEIDUN].val2
-					+ sd.sc_data[SC_APPLEIDUN].val3 / 10) * sd.status.max_hp / 100;
-			if(sd.status.max_hp < 0 || sd.status.max_hp > (long)battle_config.max_hp)
-				sd.status.max_hp = battle_config.max_hp;
-		}
-		if(sd.sc_data[SC_DELUGE].timer!=-1 && sd.def_ele==1){	// デリュ?ジ
-			sd.status.max_hp += sd.status.max_hp * deluge_eff[sd.sc_data[SC_DELUGE].val1-1]/100;
-			if(sd.status.max_hp < 0 || sd.status.max_hp > (long)battle_config.max_hp)
-				sd.status.max_hp = battle_config.max_hp;
-		}
-		if(sd.sc_data[SC_SERVICE4U].timer!=-1) {	// サ?ビスフォ?ユ?
-			sd.status.max_sp += sd.status.max_sp*(10+sd.sc_data[SC_SERVICE4U].val1+sd.sc_data[SC_SERVICE4U].val2
-						+sd.sc_data[SC_SERVICE4U].val3)/100;
-			if(sd.status.max_sp < 0 || sd.status.max_sp > (long)battle_config.max_sp)
-				sd.status.max_sp = battle_config.max_sp;
-			sd.dsprate-=(10+sd.sc_data[SC_SERVICE4U].val1*3+sd.sc_data[SC_SERVICE4U].val2
-					+sd.sc_data[SC_SERVICE4U].val3);			
-		}
+	if(sd.sc_data[SC_TRUESIGHT].timer!=-1) //トゥル?サイト
+		sd.critical += sd.critical*(sd.sc_data[SC_TRUESIGHT].val1)/100;
 
-		if(sd.sc_data[SC_FORTUNE].timer!=-1)	// 幸運のキス
-			sd.critical += (10+sd.sc_data[SC_FORTUNE].val1+sd.sc_data[SC_FORTUNE].val2
-						+sd.sc_data[SC_FORTUNE].val3)*10;
+	if(sd.sc_data[SC_BERSERK].timer!=-1) {	//All Def/MDef reduced to 0 while in Berserk [DracoRPG]
+		sd.def = sd.def2 = 0;
+		sd.mdef = sd.mdef2 = 0;
+		sd.flee -= sd.flee*50/100;
+		aspd_rate -= 30;
+	}
+	if(sd.sc_data[SC_INCDEF2].timer!=-1)
+		sd.def += sd.def * sd.sc_data[SC_INCDEF2].val1/100;
+	if(sd.sc_data[SC_KEEPING].timer!=-1)
+		sd.def = 100;
+	if(sd.sc_data[SC_BARRIER].timer!=-1)
+		sd.mdef = 100;
 
-		if(sd.sc_data[SC_EXPLOSIONSPIRITS].timer!=-1){	// 爆裂波動
-			if(s_class.job==23)
-				sd.critical += sd.sc_data[SC_EXPLOSIONSPIRITS].val1*100;
-			else
-			sd.critical += sd.sc_data[SC_EXPLOSIONSPIRITS].val2;
-		}
-
-		if(sd.sc_data[SC_STEELBODY].timer!=-1){	// 金剛
-			sd.def = 90;
-			sd.mdef = 90;
-			aspd_rate += 25;
+	if(sd.sc_data[SC_JOINTBEAT].timer!=-1)
+	{	// Random break [DracoRPG]
+		switch(sd.sc_data[SC_JOINTBEAT].val2) {
+		case 0: //Ankle break
+			sd.speed_rate += 50;
+			break;
+		case 1:	//Wrist	break
 			sd.speed_rate += 25;
+			break;
+		case 2:	//Knee break
+			sd.speed_rate += 30;
+			sd.aspd_rate += 10;
+			break;
+		case 3:	//Shoulder break
+			sd.def2 -= sd.def2*50/100;
+			break;
+		case 4:	//Waist	break
+			sd.def2 -= sd.def2*50/100;
+			sd.base_atk -= sd.base_atk*25/100;
+			break;
 		}
-		if(sd.sc_data[SC_DEFENDER].timer != -1) {
-			aspd_rate += 25 - sd.sc_data[SC_DEFENDER].val1*5;
-			sd.speed += 55 - sd.sc_data[SC_DEFENDER].val1*5;
-		}
-		if(sd.sc_data[SC_ENCPOISON].timer != -1)
-			sd.addeff[4] += sd.sc_data[SC_ENCPOISON].val2;
-
-		if( sd.sc_data[SC_DANCING].timer!=-1 ){		// 演奏/ダンス使用中
-			int s_rate = 600 - 40 * pc_checkskill(sd,((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
-			if (sd.sc_data[SC_LONGING].timer != -1)
-				s_rate -= 20 * sd.sc_data[SC_LONGING].val1;
-			sd.speed = sd.speed * s_rate / 100;
-			// is attack speed affected?
-			//aspd_rate = 600 - 40 * pc_checkskill(*sd, ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
-			//if (sd.sc_data[SC_LONGING].timer != -1)
-			//	aspd_rate -= 20 * sd.sc_data[SC_LONGING].val1;
-			//sd.speed*=4;
-			sd.nhealsp = 0;
-			sd.nshealsp = 0;
-			sd.nsshealsp = 0;
-		}
-		if(sd.sc_data[SC_CURSE].timer!=-1)
-			sd.speed += 450;
-
-		if(sd.sc_data[SC_TRUESIGHT].timer!=-1) //トゥル?サイト
-			sd.critical += sd.critical*(sd.sc_data[SC_TRUESIGHT].val1)/100;
-
-		if(sd.sc_data[SC_BERSERK].timer!=-1) {	//All Def/MDef reduced to 0 while in Berserk [DracoRPG]
-			sd.def = sd.def2 = 0;
-			sd.mdef = sd.mdef2 = 0;
-			sd.flee -= sd.flee*50/100;
-			aspd_rate -= 30;
-		}
-		if(sd.sc_data[SC_INCDEF2].timer!=-1)
-			sd.def += sd.def * sd.sc_data[SC_INCDEF2].val1/100;
-		if(sd.sc_data[SC_KEEPING].timer!=-1)
-			sd.def = 100;
-		if(sd.sc_data[SC_BARRIER].timer!=-1)
-			sd.mdef = 100;
-
-		if(sd.sc_data[SC_JOINTBEAT].timer!=-1) { // Random break [DracoRPG]
-			switch(sd.sc_data[SC_JOINTBEAT].val2) {
-			case 0: //Ankle break
-				sd.speed_rate += 50;
+	}
+	if(sd.sc_data[SC_GOSPEL].timer!=-1) {
+		if (sd.sc_data[SC_GOSPEL].val4 == BCT_PARTY){
+			switch (sd.sc_data[SC_GOSPEL].val3)
+			{
+			case 4:
+				sd.status.max_hp += sd.status.max_hp * 25 / 100;
+				if(sd.status.max_hp > (long)battle_config.max_hp)
+					sd.status.max_hp = battle_config.max_hp;
 				break;
-			case 1:	//Wrist	break
-				sd.speed_rate += 25;
+			case 5:
+				sd.status.max_sp += sd.status.max_sp * 25 / 100;
+				if(sd.status.max_sp > (long)battle_config.max_sp)
+					sd.status.max_sp = battle_config.max_sp;
 				break;
-			case 2:	//Knee break
-				sd.speed_rate += 30;
-				sd.aspd_rate += 10;
+			case 11:
+				sd.def += sd.def * 25 / 100;
+				sd.def2 += sd.def2 * 25 / 100;
 				break;
-			case 3:	//Shoulder break
-				sd.def2 -= sd.def2*50/100;
+			case 12:
+				sd.base_atk += sd.base_atk * 8 / 100;
 				break;
-			case 4:	//Waist	break
-				sd.def2 -= sd.def2*50/100;
-				sd.base_atk -= sd.base_atk*25/100;
+			case 13:
+				sd.flee += sd.flee * 5 / 100;
+				break;
+			case 14:
+				sd.hit += sd.hit * 5 / 100;
 				break;
 			}
-		}
-
-		if(sd.sc_data[SC_GOSPEL].timer!=-1) {
-			if (sd.sc_data[SC_GOSPEL].val4 == BCT_PARTY){
-				switch (sd.sc_data[SC_GOSPEL].val3)
-				{
-				case 4:
-					sd.status.max_hp += sd.status.max_hp * 25 / 100;
-					if(sd.status.max_hp > (long)battle_config.max_hp)
-						sd.status.max_hp = battle_config.max_hp;
-					break;
+		} else if (sd.sc_data[SC_GOSPEL].val4 == BCT_ENEMY){
+			switch (sd.sc_data[SC_GOSPEL].val3)
+			{
 				case 5:
-					sd.status.max_sp += sd.status.max_sp * 25 / 100;
-					if(sd.status.max_sp > (long)battle_config.max_sp)
-						sd.status.max_sp = battle_config.max_sp;
+					sd.def = 0;
+					sd.def2 = 0;
 					break;
-				case 11:
-					sd.def += sd.def * 25 / 100;
-					sd.def2 += sd.def2 * 25 / 100;
+				case 6:
+					sd.base_atk = 0;
+					sd.right_weapon.watk = 0;
+					sd.right_weapon.watk2 = 0;
 					break;
-				case 12:
-					sd.base_atk += sd.base_atk * 8 / 100;
+				case 7:
+					sd.flee = 0;
 					break;
-				case 13:
-					sd.flee += sd.flee * 5 / 100;
+				case 8:
+					sd.speed_rate += 75;
+					aspd_rate += 75;
 					break;
-				case 14:
-					sd.hit += sd.hit * 5 / 100;
-					break;
-				}
-			} else if (sd.sc_data[SC_GOSPEL].val4 == BCT_ENEMY){
-				switch (sd.sc_data[SC_GOSPEL].val3)
-				{
-					case 5:
-						sd.def = 0;
-						sd.def2 = 0;
-						break;
-					case 6:
-						sd.base_atk = 0;
-						sd.right_weapon.watk = 0;
-						sd.right_weapon.watk2 = 0;
-						break;
-					case 7:
-						sd.flee = 0;
-						break;
-					case 8:
-						sd.speed_rate += 75;
-						aspd_rate += 75;
-						break;
-				}
 			}
 		}
 	}
@@ -3104,13 +3117,16 @@ int status_get_size(struct block_list *bl)
 		return mob_db[((struct mob_data *)bl)->class_].size;
 	else if(bl->type==BL_PET && (struct pet_data *)bl)
 		return mob_db[((struct pet_data *)bl)->class_].size;
-	else if(bl->type==BL_PC) {
+	else if(bl->type==BL_PC)
+	{
 		struct map_session_data *sd = (struct map_session_data *)bl;
-		//if (pc_isriding(sd))	// fact or rumour?
-		//	return 2;
-		if (pc_calc_upper(sd->status.class_) == 2)
-			return 0;
-		return 1;
+
+		//Baby Class Peco Rider + enabled option -> size = 1, else 0
+		if (pc_calc_upper(sd->status.class_)==2)			
+			return (pc_isriding(*sd)!=0 && battle_config.character_size&2); 
+		
+		//Peco Rider + enabled option -> size = 2, else 1
+		return 1+(pc_isriding(*sd)!=0 && battle_config.character_size&1);
 	} else
 		return 1;
 }
@@ -3296,7 +3312,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 {
 	struct map_session_data *sd = NULL;
 	struct status_change* sc_data;
-	//!!short *sc_count;
 	short*option, *opt1, *opt2, *opt3;
 	int opt_flag = 0, calc_flag = 0,updateflag = 0, save_flag = 0, race, mode, elem, undead_flag;
 	int scdef = 0;
@@ -3308,9 +3323,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		if (status_isdead(bl)) return 0;
 	if(bl->type == BL_PET)	//Pets cannot have status effects
 		return 0;
-	// it's exactly the same thing as line 3231, so not needed ^^;
-	//if(!status_get_sc_data(bl)) //null pointer right here [Kevin]
-	//	return 0;
 
 	nullpo_retr(0, sc_data=status_get_sc_data(bl));
 	nullpo_retr(0, option=status_get_option(bl));
@@ -3344,8 +3356,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_CURSE:
 			scdef=3+status_get_luk(bl);
 			break;
-
-//		case SC_CONFUSION:
 		default:
 			scdef=0;
 	}

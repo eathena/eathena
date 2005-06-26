@@ -12,7 +12,8 @@ struct mob_skill {
 	short state;
 	short skill_id,skill_lv;
 	short permillage;
-	int casttime,delay;
+	int casttime;
+	int delay;
 	short cancel;
 	short cond1,cond2;
 	short target;
@@ -139,7 +140,6 @@ int do_init_mob(void);
 
 void mob_unload(struct mob_data &md);
 int mob_remove_map(struct mob_data &md, int type);
-int mob_delete(struct mob_data &md);
 int mob_timer_delete(int tid, unsigned long tick, int id, int data);
 
 int mob_deleteslave(struct mob_data &md);

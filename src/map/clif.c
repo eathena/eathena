@@ -629,7 +629,7 @@ int clif_clearchar_delay_sub(int tid, unsigned long tick, int id, int data)
 	if(bl)
 	{
 		clif_clearchar(*bl,data);
-	map_freeblock(bl);
+		map_freeblock(bl);
 	}
 
 	return 0;
@@ -5779,7 +5779,7 @@ int clif_party_created(struct map_session_data &sd,unsigned char flag)
 int clif_party_info(struct party &p,int fd)
 {
 	unsigned char buf[1024];
-	int i,c;
+	int i,c, size;
 	struct map_session_data *sd=NULL;
 
 	WBUFW(buf,0)=0xfb;
@@ -5787,7 +5787,7 @@ int clif_party_info(struct party &p,int fd)
 	for(i=c=0;i<MAX_PARTY;i++)
 	{
 		struct party_member &m = p.member[i];
-		if(m.account_id>0)
+		if(m.account_id)
 		{
 			if(sd==NULL) sd=m.sd;
 			WBUFL(buf,28+c*46)=m.account_id;
@@ -5798,15 +5798,16 @@ int clif_party_info(struct party &p,int fd)
 			c++;
 		}
 	}
-	WBUFW(buf,2)=28+c*46;
+	size = 28+c*46;
+	WBUFW(buf,2)=size;
 	if(fd>=0 && session_isActive(fd) )
 	{	// fdが設定されてるならそれに送る
-		memcpy(WFIFOP(fd,0),buf,WBUFW(buf,2));
-		WFIFOSET(fd,WFIFOW(fd,2));
+		memcpy(WFIFOP(fd,0),buf,size);
+		WFIFOSET(fd,size);
 		return 0;
 	}
 	if(sd!=NULL)
-		clif_send(buf,WBUFW(buf,2),&sd->bl,PARTY);
+		clif_send(buf,size,&sd->bl,PARTY);
 	return 0;
 }
 /*==========================================
@@ -5859,8 +5860,6 @@ int clif_party_inviteack(struct map_session_data &sd,const char *nick,unsigned c
 int clif_party_option(struct party &p,struct map_session_data *sd,int flag)
 {
 	unsigned char buf[16];
-
-
 //	if(battle_config.etc_log)
 //		ShowMessage("clif_party_option: %d %d %d\n",p->exp,p->item,flag);
 	if(sd==NULL && flag==0){
@@ -5895,14 +5894,16 @@ int clif_party_leaved(struct party &p,struct map_session_data *sd,unsigned long 
 	memcpy(WBUFP(buf,6),name,24);
 	WBUFB(buf,30)=flag&0x0f;
 
-	if(sd==NULL && (flag&0xf0)==0){
-			for(i=0;i<MAX_PARTY;i++)
-				if((sd=p.member[i].sd)!=NULL)
-					break;
-
-	if(flag==0)
+	if(sd==NULL && (flag&0xf0)==0)
+	{
+		for(i=0;i<MAX_PARTY;i++)
+			if((sd=p.member[i].sd)!=NULL)
+				break;
+		if(flag==0)
 			clif_send(buf,packet_len_table[0x105],&sd->bl,PARTY);
-	} else if( sd && session_isActive(sd->fd) ) {
+	}
+	else if( sd && session_isActive(sd->fd) )
+	{
 		memcpy(WFIFOP(sd->fd,0),buf,packet_len_table[0x105]);
 		WFIFOSET(sd->fd,packet_len_table[0x105]);
 	}
@@ -8173,6 +8174,11 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 		return 0;
 
 	size = RFIFOW(fd,2);
+	if( size>RFIFOREST(fd) )
+	{	// some serious error
+		ShowError("clif_parse_GlobalMessage: size marker outside buffer %i > %i, (connection %i=%i,%p=%p)", 
+			size, RFIFOREST(fd), fd,sd.fd, session[fd]->session_data, &sd);
+	}
 	RFIFOB(fd,size-1)=0; // add an eof marker in the buffer
 
 	if ((is_atcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != AtCommand_None) ||
@@ -11560,7 +11566,6 @@ int clif_parse(int fd)
 				ShowWarning("clif_parse: session #%d, packet 0x%x received -> disconnected.\n", fd, cmd);
 				return 0;
 			}
-			continue;
 		}
 
 		if(sd)
@@ -11659,9 +11664,9 @@ int clif_parse(int fd)
 		}
 		
 		// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する
-		if(cmd >= MAX_PACKET_DB || packet_db[packet_ver][cmd].len == 0)
+		if(cmd >= MAX_PACKET_DB || packet_ver>MAX_PACKET_VER || packet_db[packet_ver][cmd].len == 0)
 		{	// packet is not inside these values: session is incorrect?? or auth packet is unknown
-			ShowMessage("clif_parse: session #%d, packet 0x%x (%d bytes received) -> disconnected.\n", fd, cmd, RFIFOREST(fd));
+			ShowMessage("clif_parse: session #%d, packet 0x%x ver. %i (%d bytes received) -> disconnected.\n", fd, cmd, packet_ver, RFIFOREST(fd));
 			session_Remove(fd);
 			return 0;
 		}

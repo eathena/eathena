@@ -128,7 +128,7 @@ extern int _ShowMessage(enum msg_type flag, const char *string, ...);
 #else// no __GNUC__
 
 // direct printf replacement
-extern inline int ShowMessage(const char *string, ...)
+static inline int ShowMessage(const char *string, ...)
 {
 	va_list va;
 	int ret;
@@ -139,9 +139,9 @@ extern inline int ShowMessage(const char *string, ...)
 }
 
 /* MSG_XX */
-extern inline int ShowMsg(enum msg_type flag, const char *string, ...)
-//	extern inline int DisplayMsg(enum msg_type flag, const char *string, ...)
-//	extern inline int ShowMessage(enum msg_type flag, const char *string, ...)
+static inline int ShowMsg(enum msg_type flag, const char *string, ...)
+//	static inline int DisplayMsg(enum msg_type flag, const char *string, ...)
+//	static inline int ShowMessage(enum msg_type flag, const char *string, ...)
 {
 	va_list va;
 	int ret;
@@ -152,8 +152,8 @@ extern inline int ShowMsg(enum msg_type flag, const char *string, ...)
 }
 
 /* MSG_STATUS */
-extern inline int ShowStatus(const char *string, ...)
-//	extern inline int DisplayStatus(const char *string, ...)
+static inline int ShowStatus(const char *string, ...)
+//	static inline int DisplayStatus(const char *string, ...)
 {
 	va_list va;
 	int ret;
@@ -165,8 +165,8 @@ extern inline int ShowStatus(const char *string, ...)
 
 
 /* MSG_SQL*/
-extern inline int ShowSQL(const char *string, ...)
-//	extern inline int DisplaySQL(const char *string, ...)
+static inline int ShowSQL(const char *string, ...)
+//	static inline int DisplaySQL(const char *string, ...)
 {
 	va_list va;
 	int ret;
@@ -177,10 +177,10 @@ extern inline int ShowSQL(const char *string, ...)
 }
 
 /* MSG_INFORMATION */
-extern inline int ShowInfo(const char *string, ...)
-//	extern inline int DisplayInfo(const char *string, ...)
-//	extern inline int ShowInformation(const char *string, ...)
-//	extern inline int DisplayInformation(const char *string, ...)
+static inline int ShowInfo(const char *string, ...)
+//	static inline int DisplayInfo(const char *string, ...)
+//	static inline int ShowInformation(const char *string, ...)
+//	static inline int DisplayInformation(const char *string, ...)
 {
 	va_list va;
 	int ret;
@@ -190,7 +190,7 @@ extern inline int ShowInfo(const char *string, ...)
 	return ret;
 }
 /* MSG_CONSOLE */
-extern inline int ShowConsole(const char *string, ...)
+static inline int ShowConsole(const char *string, ...)
 {
 	va_list va;
 	int ret;
@@ -201,8 +201,8 @@ extern inline int ShowConsole(const char *string, ...)
 }
 
 /* MSG_NOTICE */
-extern inline int ShowNotice(const char *string, ...)
-//	extern inline int DisplayNotice(const char *string, ...)
+static inline int ShowNotice(const char *string, ...)
+//	static inline int DisplayNotice(const char *string, ...)
 {
 	va_list va;
 	int ret;
@@ -213,9 +213,9 @@ extern inline int ShowNotice(const char *string, ...)
 }
 
 /* MSG_WARNING */
-extern inline int ShowWarning(const char *string, ...)
-//	extern inline int DisplayWarning(const char *string, ...)
-//	extern inline int Warn(const char *string, ...)
+static inline int ShowWarning(const char *string, ...)
+//	static inline int DisplayWarning(const char *string, ...)
+//	static inline int Warn(const char *string, ...)
 {
 	va_list va;
 	int ret;
@@ -226,10 +226,10 @@ extern inline int ShowWarning(const char *string, ...)
 }
 
 /* MSG_DEBUG */
-extern inline int ShowDebug(const char *string, ...)
-//	extern inline int DisplayDebug(const char *string, ...)
-//	extern inline int Debug(const char *string, ...)
-//	extern inline int printDebug(const char *string, ...)
+static inline int ShowDebug(const char *string, ...)
+//	static inline int DisplayDebug(const char *string, ...)
+//	static inline int Debug(const char *string, ...)
+//	static inline int printDebug(const char *string, ...)
 {
 	va_list va;
 	int ret;
@@ -240,9 +240,9 @@ extern inline int ShowDebug(const char *string, ...)
 }
 
 /* MSG_ERROR */
-extern inline int ShowError(const char *string, ...)
-//	extern inline int DisplayError(const char *string, ...)
-//	extern inline int OutputError(const char *string, ...)
+static inline int ShowError(const char *string, ...)
+//	static inline int DisplayError(const char *string, ...)
+//	static inline int OutputError(const char *string, ...)
 {
 	va_list va;
 	int ret;
@@ -253,11 +253,11 @@ extern inline int ShowError(const char *string, ...)
 }
 
 /* MSG_FATALERROR */
-extern inline int ShowFatalError(const char *string, ...)
-//	extern inline int DisplayFatalError(const char *string, ...)
-//	extern inline int Terminate(const char *string, ...)
-//	extern inline int Kill(const char *string, ...)
-//	extern inline int AbortEx(const char *string, ...)
+static inline int ShowFatalError(const char *string, ...)
+//	static inline int DisplayFatalError(const char *string, ...)
+//	static inline int Terminate(const char *string, ...)
+//	static inline int Kill(const char *string, ...)
+//	static inline int AbortEx(const char *string, ...)
 {
 	va_list va;
 	int ret;

@@ -92,7 +92,7 @@ unsigned long gettick(void)
  *--------------------------------------
  */
 
-extern inline int timer_data_diff_tick(size_t a, size_t b)
+inline int timer_data_diff_tick(size_t a, size_t b)
 {
 	// sort for tick count first
 	int x = timer_data[a].tick - timer_data[b].tick;
@@ -202,7 +202,7 @@ void delete_timer_heap(size_t index)
 	//	else we did not found it and don't have to do anything
 }
 
-extern inline int top_timer_heap(void)
+inline int top_timer_heap(void)
 {
 	// get the first element and keep it on the heap
 	if (timer_heap == NULL || timer_heap_pos <= 0)
@@ -210,7 +210,7 @@ extern inline int top_timer_heap(void)
 	return timer_heap[timer_heap_pos-1];
 }
 
-extern inline int pop_timer_heap(void)
+inline int pop_timer_heap(void)
 {
 	// get the first element and remove it from the heap
 	if (timer_heap == NULL || timer_heap_pos <= 0)

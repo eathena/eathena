@@ -269,22 +269,22 @@ typedef unsigned int socklen_t;
 #define strncasecmp			strnicmp
 
 
-extern inline void sleep(unsigned long time)	
+static inline void sleep(unsigned long time)	
 {
 	Sleep(time);
 }
-extern inline int read(SOCKET fd, char*buf, int sz)		
+static inline int read(SOCKET fd, char*buf, int sz)		
 {
 	return recv(fd,buf,sz,0); 
 }
-extern inline int write(SOCKET fd, char*buf, int sz)	
+static inline int write(SOCKET fd, char*buf, int sz)	
 {
 	return send(fd,buf,sz,0); 
 }
 
 
 // missing functions and helpers
-extern inline int gettimeofday(struct timeval *timenow, void *tz)
+static inline int gettimeofday(struct timeval *timenow, void *tz)
 {
     if (timenow)
     {
@@ -370,11 +370,11 @@ typedef int		SOCKET;
 
 // abnormal function definitions
 
-extern inline int closesocket(SOCKET fd)		
+static inline int closesocket(SOCKET fd)		
 {
 	return close(fd); 
 }
-extern inline int ioctlsocket(SOCKET fd, long cmd, unsigned long *arg)		
+static inline int ioctlsocket(SOCKET fd, long cmd, unsigned long *arg)		
 {
 	return ioctl(fd,cmd,arg); 
 }
@@ -384,14 +384,14 @@ extern inline int ioctlsocket(SOCKET fd, long cmd, unsigned long *arg)
 // missing functions and helpers
 
 // missing TickCount on Unix
-extern inline unsigned long GetTickCount()
+static inline unsigned long GetTickCount()
 {
 	struct timeval tval;
 	gettimeofday(&tval, NULL);
 	return tval.tv_sec * 1000 + tval.tv_usec / 1000;
 }
 
-extern inline unsigned long GetCurrentProcessId()
+static inline unsigned long GetCurrentProcessId()
 {	
 	return getpid();
 }
@@ -451,55 +451,55 @@ namespace eapp
 #ifdef isalpha	// get the function form, not the macro
 #undef isalpha
 #endif
-extern inline char isalpha(char val)	{ return isalpha((int)((unsigned char)val)); }
+static inline char isalpha(char val)	{ return isalpha((int)((unsigned char)val)); }
 #ifdef isupper	// get the function form, not the macro
 #undef isupper
 #endif
-extern inline char isupper(char val)	{ return isupper((int)((unsigned char)val)); }
+static inline char isupper(char val)	{ return isupper((int)((unsigned char)val)); }
 #ifdef islower	// get the function form, not the macro
 #undef islower
 #endif
-extern inline char islower(char val)	{ return islower((int)((unsigned char)val)); }
+static inline char islower(char val)	{ return islower((int)((unsigned char)val)); }
 #ifdef isdigit	// get the function form, not the macro
 #undef isdigit
 #endif
-extern inline char isdigit(char val)	{ return isdigit((int)((unsigned char)val)); }
+static inline char isdigit(char val)	{ return isdigit((int)((unsigned char)val)); }
 #ifdef isxdigit	// get the function form, not the macro
 #undef isxdigit
 #endif
-extern inline char isxdigit(char val)	{ return isxdigit((int)((unsigned char)val)); }
+static inline char isxdigit(char val)	{ return isxdigit((int)((unsigned char)val)); }
 #ifdef isspace	// get the function form, not the macro
 #undef isspace
 #endif
-extern inline char isspace(char val)	{ return isspace((int)((unsigned char)val)); }
+static inline char isspace(char val)	{ return isspace((int)((unsigned char)val)); }
 #ifdef ispunct	// get the function form, not the macro
 #undef ispunct
 #endif
-extern inline char ispunct(char val)	{ return ispunct((int)((unsigned char)val)); }
+static inline char ispunct(char val)	{ return ispunct((int)((unsigned char)val)); }
 #ifdef isalnum	// get the function form, not the macro
 #undef isalnum
 #endif
-extern inline char isalnum(char val)	{ return isalnum((int)((unsigned char)val)); }
+static inline char isalnum(char val)	{ return isalnum((int)((unsigned char)val)); }
 #ifdef isprint	// get the function form, not the macro
 #undef isprint
 #endif
-extern inline char isprint(char val)	{ return isprint((int)((unsigned char)val)); }
+static inline char isprint(char val)	{ return isprint((int)((unsigned char)val)); }
 #ifdef isgraph	// get the function form, not the macro
 #undef isgraph
 #endif
-extern inline char isgraph(char val)	{ return isgraph((int)((unsigned char)val)); }
+static inline char isgraph(char val)	{ return isgraph((int)((unsigned char)val)); }
 #ifdef iscntrl	// get the function form, not the macro
 #undef iscntrl
 #endif
-extern inline char iscntrl(char val)	{ return iscntrl((int)((unsigned char)val)); }
+static inline char iscntrl(char val)	{ return iscntrl((int)((unsigned char)val)); }
 #ifdef toupper	// get the function form, not the macro
 #undef toupper
 #endif
-extern inline char toupper(char val)	{ return toupper((int)((unsigned char)val)); }
+static inline char toupper(char val)	{ return toupper((int)((unsigned char)val)); }
 #ifdef tolower	// get the function form, not the macro
 #undef tolower
 #endif
-extern inline char tolower(char val)	{ return tolower((int)((unsigned char)val)); }
+static inline char tolower(char val)	{ return tolower((int)((unsigned char)val)); }
 
 }
 
@@ -507,7 +507,7 @@ extern inline char tolower(char val)	{ return tolower((int)((unsigned char)val))
 // byte word dword access
 //////////////////////////////////////////////////////////////////////////
 
-extern inline unsigned char GetByte(unsigned long val, size_t num)
+static inline unsigned char GetByte(unsigned long val, size_t num)
 {
 	switch(num)
 	{
@@ -523,7 +523,7 @@ extern inline unsigned char GetByte(unsigned long val, size_t num)
 		return 0;	//better throw something here
 	}
 }
-extern inline unsigned short GetWord(unsigned long val, size_t num)
+static inline unsigned short GetWord(unsigned long val, size_t num)
 {
 	switch(num)
 	{
@@ -535,17 +535,17 @@ extern inline unsigned short GetWord(unsigned long val, size_t num)
 		return 0;	//better throw something here
 	}	
 }
-extern inline unsigned short MakeWord(unsigned char byte0, unsigned char byte1)
+static inline unsigned short MakeWord(unsigned char byte0, unsigned char byte1)
 {
 	return byte0 | (byte1<<0x08);
 }
-extern inline unsigned long MakeDWord(unsigned short word0, unsigned short word1)
+static inline unsigned long MakeDWord(unsigned short word0, unsigned short word1)
 {
 	return 	  ((unsigned long)word0)
 			| ((unsigned long)word1<<0x10);
 }
 
-extern inline unsigned long MakeDWord(unsigned char byte0, unsigned char byte1, unsigned char byte2, unsigned char byte3)
+static inline unsigned long MakeDWord(unsigned char byte0, unsigned char byte1, unsigned char byte2, unsigned char byte3)
 {
 	return 	  ((unsigned long)byte0)
 			| ((unsigned long)byte1<<0x08)
@@ -556,7 +556,7 @@ extern inline unsigned long MakeDWord(unsigned char byte0, unsigned char byte1, 
 // Check the byte-order of the CPU.
 #define LSB_FIRST        0
 #define MSB_FIRST        1
-extern inline int CheckByteOrder(void)
+static inline int CheckByteOrder(void)
 {
     static short  w = 0x0001;
     static char  *b = (char *) &w;
@@ -564,14 +564,14 @@ extern inline int CheckByteOrder(void)
 }
 
 // Swap the bytes within a 16-bit WORD.
-extern inline void SwapTwoBytes(char *p)
+static inline void SwapTwoBytes(char *p)
 {	if(p)
 	{	char tmp =p[0];
 		p[0] = p[1];
 		p[1] = tmp;
 	}
 }
-extern inline unsigned short SwapTwoBytes(unsigned short w)
+static inline unsigned short SwapTwoBytes(unsigned short w)
 {
     return	  ((w & 0x00FF) << 0x08)
 			| ((w & 0xFF00) >> 0x08);
@@ -579,7 +579,7 @@ extern inline unsigned short SwapTwoBytes(unsigned short w)
 
 
 // Swap the bytes within a 32-bit DWORD.
-extern inline void SwapFourBytes(char *p)
+static inline void SwapFourBytes(char *p)
 {	if(p)
 	{	char tmp;
 		tmp  = p[0];
@@ -590,7 +590,7 @@ extern inline void SwapFourBytes(char *p)
 		p[2] = tmp;
 	}
 }
-extern inline unsigned long SwapFourBytes(unsigned long w)
+static inline unsigned long SwapFourBytes(unsigned long w)
 {
     return	  ((w & 0x000000FF) << 0x18)
 			| ((w & 0x0000FF00) << 0x08)
@@ -602,7 +602,7 @@ extern inline unsigned long SwapFourBytes(unsigned long w)
 
 // Find the log base 2 of an N-bit integer in O(lg(N)) operations
 // in this case for 32bit input it would be 11 operations
-extern inline unsigned long log2(unsigned long v)
+static inline unsigned long log2(unsigned long v)
 {
 //	static const unsigned long b[] = 
 //		{0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
@@ -634,7 +634,7 @@ extern inline unsigned long log2(unsigned long v)
 	return c;
 }
 
-extern inline unsigned long pow2(unsigned long v)
+static inline unsigned long pow2(unsigned long v)
 {
 	if(v<32)
 		return 1<<v;

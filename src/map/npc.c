@@ -2042,9 +2042,10 @@ int npc_parse_mob2(struct mob_list &mob)
 		md->cache = &mob;
 
 		md->speed=mob_db[mob.class_].speed;
+		md->mode=mob_db[mob.class_].mode;
 		md->timer = -1;
 
-		if (mob_db[mob.class_].mode & 0x02)
+		if(mob_db[mob.class_].mode & 0x02)
 			md->lootitem = (struct item *)aCalloc(LOOTITEM_SIZE, sizeof(struct item));
 		else
 			md->lootitem = NULL;

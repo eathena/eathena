@@ -871,7 +871,7 @@ struct party_member {
 	unsigned long account_id;
 	char name[24];
 	char map[24];
-	unsigned long leader;
+	unsigned char leader;
 	unsigned char online;
 	unsigned short lv;
 	struct map_session_data *sd;
@@ -879,14 +879,14 @@ struct party_member {
 extern inline void _party_member_tobuffer(const struct party_member &p, unsigned char *&buf)
 {	
 	if( NULL==buf )	return;
-	_L_tobuffer(  (p.account_id),		buf);
-	_S_tobuffer(                  (p.name),			buf, 24);
-	_S_tobuffer(                  (p.map),				buf, 24);
-	_L_tobuffer(  (p.leader),			buf);
-	_B_tobuffer(  (p.online),			buf);
-	_W_tobuffer(                 (p.lv),				buf);
-	//_L_tobuffer( &(p.sd),				buf);
-	(*buf)+=4;
+	_L_tobuffer(  (p.account_id),	buf);
+	_S_tobuffer(  (p.name),			buf, 24);
+	_S_tobuffer(  (p.map),			buf, 24);
+	_B_tobuffer(  (p.leader),		buf);
+	_B_tobuffer(  (p.online),		buf);
+	_W_tobuffer(  (p.lv),			buf);
+	//_L_tobuffer( &(p.sd),			buf);
+	buf+=sizeof(struct map_session_data *);
 	// skip the map_session_data *
 }
 extern inline void party_member_tobuffer(const struct party_member &p, unsigned char *buf)
@@ -897,13 +897,14 @@ extern inline void _party_member_frombuffer(struct party_member &p, const unsign
 {
 	if( NULL==buf )	return;
 	_L_frombuffer(  (p.account_id),	buf);
-	_S_frombuffer(                  (p.name),			buf, 24);
-	_S_frombuffer(                  (p.map),			buf, 24);
-	_L_frombuffer(  (p.leader),		buf);
+	_S_frombuffer(  (p.name),		buf, 24);
+	_S_frombuffer(  (p.map),		buf, 24);
+	_B_frombuffer(  (p.leader),		buf);
 	_B_frombuffer(  (p.online),		buf);
-	_W_frombuffer(                 (p.lv),			buf);
-	//_L_frombuffer( (p.sd),			buf);
-	buf+=4; p.sd = NULL; 
+	_W_frombuffer(  (p.lv),			buf);
+	//_L_frombuffer( (p.sd),		buf);
+	buf+=sizeof(struct map_session_data *); 
+	p.sd = NULL; 
 	// skip the map_session_data *
 }
 extern inline void party_member_frombuffer(struct party_member &p, const unsigned char *buf)
@@ -941,10 +942,10 @@ extern inline void _party_frombuffer(struct party &p, const unsigned char *&buf)
 	size_t i;
 	if( NULL==buf )	return;
 	_L_frombuffer(  (p.party_id),	buf);
-	_S_frombuffer(                  (p.name),		buf, 24);
-	_W_frombuffer(                  (p.exp),		buf);
-	_W_frombuffer(                  (p.item),		buf);
-	_W_frombuffer(                  (p.itemc),	buf);
+	_S_frombuffer(  (p.name),		buf, 24);
+	_W_frombuffer(  (p.exp),		buf);
+	_W_frombuffer(  (p.item),		buf);
+	_W_frombuffer(  (p.itemc),		buf);
 	for(i=0; i< MAX_PARTY; i++)
 		_party_member_frombuffer(p.member[i], buf);
 }

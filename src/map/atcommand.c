@@ -326,7 +326,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Go,					"@go",				10, atcommand_go },
 	{ AtCommand_Spawn,				"@monster",			50, atcommand_spawn },
 	{ AtCommand_Spawn,				"@spawn",			50, atcommand_spawn },
-//	{ AtCommand_Spawn,				"@summon",			50, atcommand_spawn },
 	{ AtCommand_Monster,			"@monster2",		50, atcommand_monster },
 	{ AtCommand_MonsterSmall,		"@monstersmall",	50, atcommand_monstersmall },
 	{ AtCommand_MonsterBig,			"@monsterbig",		50, atcommand_monsterbig },
@@ -934,7 +933,7 @@ int atkillmonster_sub(struct block_list &bl, va_list ap)
 	if(flag)
 		mob_damage(md, md.hp, 2, NULL);
 	else
-		mob_delete(md);
+		mob_remove_map(md,1);
 
 	return 0;
 }
@@ -7552,7 +7551,7 @@ int atmobsearch_sub(struct block_list &bl,va_list ap)
 {
 	int mob_id,fd;
 	static int number=0;
-	struct mob_data &md = (struct mob_data &)bl;;
+	struct mob_data &md = (struct mob_data &)bl;
 	char output[128];
 
 	if(!ap){
@@ -7562,9 +7561,9 @@ int atmobsearch_sub(struct block_list &bl,va_list ap)
 	mob_id = va_arg(ap,int);
 	fd = va_arg(ap,int);
 
-	if(fd && (mob_id==-1 || (md.class_==mob_id))){
-		snprintf(output, sizeof(output), "%2d[%3d:%3d] %s",
-				++number,bl.x, bl.y,md.name);
+	if(bl.type==BL_MOB && fd && (mob_id==-1 || (md.class_==mob_id)))
+	{
+		snprintf(output, sizeof(output), "%2d[%3d:%3d] %s",++number,bl.x, bl.y,md.name);
 		clif_displaymessage(fd, output);
 	}
 	return 0;
@@ -7726,21 +7725,19 @@ bool atcommand_users(int fd, struct map_session_data &sd, const char* command, c
 bool atcommand_summon(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char name[128];
-	int mob_id = 0;
+	unsigned long mob_id = 0;
 	int x = 0;
 	int y = 0;
-	int id = 0;
+	unsigned long id = 0;
 	struct mob_data *md;
-	unsigned int tick=gettick();
+	unsigned long tick=gettick();
 
-
-
-	if (!message || !*message)
+	if(!message || !*message)
 		return false;
-	if (sscanf(message, "%99s", name) < 1)
+	if(sscanf(message, "%99s", name) < 1)
 		return false;
 
-	if ((mob_id = atoi(name)) == 0)
+	if((mob_id = atoi(name)) == 0)
 		mob_id = mobdb_searchname(name);
 	if(mob_id == 0)
 		return false;
@@ -7749,10 +7746,12 @@ bool atcommand_summon(int fd, struct map_session_data &sd, const char* command, 
 	y = sd.bl.y + (rand() % 10 - 5);
 
 	id = mob_once_spawn(&sd,"this", x, y, "--ja--", mob_id, 1, "");
-	if((md=(struct mob_data *)map_id2bl(id))){
+
+	if((md=(struct mob_data *)map_id2bl(id)))
+	{
 		md->master_id=sd.bl.id;
 		md->state.special_mob_ai=1;
-		md->mode=mob_db[md->class_].mode|0x04;
+		md->mode = mob_db[md->class_].mode|0x04;
 		md->deletetimer=add_timer(tick+60000,mob_timer_delete,id,0);
 		clif_misceffect2(md->bl,344);
 	}

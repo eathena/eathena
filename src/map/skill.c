@@ -1266,8 +1266,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 		if(sd){
 			sd->to_x=nx;
 			sd->to_y=ny;
-// ? setting it to a valied timer?
-//			sd->walktimer = 1;
+			sd->walktimer = 1;
 			clif_walkok(*sd);
 			clif_movechar(*sd);
 			sd->walktimer = -1;  // set back so not to disturb future pc_stop_walking calls
@@ -1576,6 +1575,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		}
 		break;
 	case NPC_SELFDESTRUCTION:
+		if(src->type==BL_PC)
+			dmg.blewcount = 10;
 		break;
 	case SN_SHARPSHOOTING:
 		clif_damage(*src,*bl,tick,dmg.amotion,dmg.dmotion,damage,0,0,0);
@@ -2596,6 +2597,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl,unsig
 					bl->m,bl->x-1,bl->y-1,bl->x+1,bl->y+1,0,
 					src,skillid,skilllv,tick, flag|BCT_ENEMY,
 					skill_area_sub_count);
+skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
 				if(skill_area_temp[0]>1) break;
 			}
 			skill_area_temp[1]=bl->id;
@@ -2630,6 +2632,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl,unsig
 				x += dirx[dir];
 				y += diry[dir];
 			}
+			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
 		}
 		break;
 
@@ -2825,7 +2828,18 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl,unsig
 				/* ŒÂ•Ê‚Éƒ_ƒ[ƒW‚ğ—^‚¦‚é */
 				if (bl->id != skill_area_temp[1])
 					skill_attack(BF_MISC, src, src, bl, NPC_SELFDESTRUCTION, skilllv, tick, flag);
-			} else {
+			} else if(bl->type==BL_PC){
+				skill_area_temp[1] = bl->id;
+				skill_area_temp[2] = 999999;
+				clif_skill_nodamage(*src,*src, NPC_SELFDESTRUCTION, 0xFFFF, 1);
+				map_foreachinarea(skill_area_sub, bl->m,
+						bl->x-10, bl->y-10, bl->x+10, bl->y+10, 0,
+						src, skillid, skilllv, tick, flag|BCT_ENEMY|1,
+						skill_castend_damage_id);
+				battle_damage(src, src, skill_area_temp[2], 0);
+			}
+			else
+			{
 				skill_area_temp[1] = bl->id;
 				skill_area_temp[2] = status_get_hp(src);
 				clif_skill_nodamage(*src,*src, NPC_SELFDESTRUCTION, 0xFFFF, 1);
@@ -7140,12 +7154,14 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		}
 		break;
 	case ST_EXPLOSIONSPIRITS:
+	/* Sources say that MO_EXTREMITYFIST requires FURY no matter what the situation. [Skotlex]
 		if (skill == MO_EXTREMITYFIST && ((sd->sc_data[SC_COMBO].timer != -1 &&
 				(sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH ||
 				sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST ||
 				sd->sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)) ||
 				sd->sc_data[SC_BLADESTOP].timer!=-1))
 			break;
+	*/
 		if(sd->sc_data[SC_EXPLOSIONSPIRITS].timer == -1) {
 			clif_skill_fail(*sd,skill,0,0);
 			return 0;
@@ -7837,11 +7853,11 @@ int skill_use_pos( struct map_session_data *sd, int skill_x, int skill_y, unsign
 	if( casttime>0 ) {	/* ‰r¥‚ª•K—v */
 		if(sd->disguise_id)
 		{	// [Valaris]
-			clif_skillcasting(sd->bl,sd->bl.id, 0, skill_x,skill_y, skill_num,0);
+			clif_skillcasting(sd->bl,sd->bl.id, 0, skill_x,skill_y, skill_num, casttime);
 			clif_skillcasting(sd->bl,sd->bl.id|FLAG_DISGUISE, 0, skill_x,skill_y, skill_num,casttime);
 		}
 		else
-		clif_skillcasting(sd->bl, sd->bl.id, 0, skill_x, skill_y, skill_num, casttime);
+			clif_skillcasting(sd->bl, sd->bl.id, 0, skill_x, skill_y, skill_num, casttime);
 	}
 	
 	sd->skilltarget	= 0;

@@ -2550,7 +2550,7 @@ int buildin_getitem(struct script_state &st)
 			return 0;
 		if((flag = pc_additem(*sd,item_tmp,amount))) {
 			clif_additem(*sd,0,0,flag);
-			if( !pc_candrop(*sd,nameid) )
+			if( !itemdb_isdropable(nameid, pc_isGM(*sd)) )
 				map_addflooritem(item_tmp,amount,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
 		}
 	}
@@ -4100,12 +4100,12 @@ int buildin_killmonster_sub(struct block_list &bl,va_list ap)
 	if(allflag)
 	{	// delete all script-summoned mobs
 		if( !md.cache  )
-			mob_delete(md);
+			mob_unload(md);
 	}
 	else
 	{	// delete only mobs with same event name
 		if(strcmp(event, md.npc_event)==0)
-			mob_delete(md);
+			mob_remove_map(md, 0);
 	}
 	return 0;
 }
@@ -4129,7 +4129,7 @@ int buildin_killmonster(struct script_state &st)
 
 int buildin_killmonsterall_sub(struct block_list &bl,va_list ap)
 {
-	mob_delete((struct mob_data &)bl);
+	mob_remove_map((struct mob_data &)bl, 1);
 	return 0;
 }
 int buildin_killmonsterall(struct script_state &st)
@@ -5452,7 +5452,7 @@ int buildin_maprespawnguildid_sub(struct block_list &bl,va_list ap)
 	}
 	else if(md && flag&4){
 		if(md->class_ < 1285 || md->class_ > 1288)
-			mob_delete(*md);
+			mob_remove_map(*md, 1);
 	}
 	return 0;
 }

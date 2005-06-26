@@ -714,10 +714,9 @@ struct mob_data {
 	unsigned short base_class;
 	unsigned short class_;
 	unsigned short mode;
-	unsigned short level;
+	unsigned short speed;
 	unsigned char dir;
 	char name[24];
-
 
 	// mobs are divided into cached and noncached (script/spawned)
 	mob_list* cache;
@@ -748,9 +747,9 @@ struct mob_data {
 	unsigned short to_x;
 	unsigned short to_y;
 
-	unsigned short target_dir;
-	unsigned short speed;
+	unsigned short level;
 	unsigned short attacked_count;
+	unsigned short target_dir;
 	unsigned short target_lv;
 
 	unsigned long provoke_id; // Celest
@@ -1255,7 +1254,7 @@ void char_offline(struct map_session_data *sd);
  * ñﬂÇËÇÕêÆêîÇ≈0à»è„
  *------------------------------------------
  */
-extern inline int distance(int x0,int y0,int x1,int y1)
+static inline int distance(int x0,int y0,int x1,int y1)
 {
 	int dx,dy;
 
@@ -1275,7 +1274,7 @@ extern inline int distance(int x0,int y0,int x1,int y1)
 // mysql access function
 //
 ///////////////////////////////////////////////////////////////////////////////
-extern inline int mysql_SendQuery(MYSQL *mysql, const char* q)
+static inline int mysql_SendQuery(MYSQL *mysql, const char* q)
 {
 #ifdef TWILIGHT
 	ShowSQL("%s:%d# %s\n", __FILE__, __LINE__, q);

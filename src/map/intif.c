@@ -834,23 +834,23 @@ int intif_parse_PartyCreated(int fd)
 // パーティ情報
 int intif_parse_PartyInfo(int fd)
 {
-	if( RFIFOW(fd,2)==8){
+	if( RFIFOW(fd,2)==sizeof(struct party)+4 )
+	{
+		struct party par;
+		party_frombuffer(par, RFIFOP(fd,4));
+		party_recv_info(par);
+	}
+	else if( RFIFOW(fd,2)==8){
 		if(battle_config.error_log)
 			ShowMessage("intif: party noinfo %ld\n",(unsigned long)RFIFOL(fd,4));
 		party_recv_noinfo(RFIFOL(fd,4));
 		return 0;
 	}
 
-//	ShowMessage("intif: party info %ld\n",(unsigned long)RFIFOL(fd,4));
-	if( RFIFOW(fd,2)!=sizeof(struct party)+4 ){
+	else
+	{
 		if(battle_config.error_log)
 			ShowMessage("intif: party info : data size error %ld %d %d\n",(unsigned long)RFIFOL(fd,4),(unsigned short)RFIFOW(fd,2),sizeof(struct party)+4);
-	}
-	{
-		struct party par;
-//		memcpy(&p, RFIFOP(fd,4), sizeof(struct party));
-		party_frombuffer(par, RFIFOP(fd,4));
-		party_recv_info(par);
 	}
 	return 0;
 }

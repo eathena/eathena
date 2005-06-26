@@ -38,19 +38,19 @@ const char *LibraryError(void);
 
 typedef void* DLL;
 
-extern inline DLL LoadLibrary(const char* lpLibFileName)
+inline DLL LoadLibrary(const char* lpLibFileName)
 {
 	return dlopen(lpLibFileName,RTLD_LAZY);
 }
-extern inline bool FreeLibrary(DLL hLibModule)
+inline bool FreeLibrary(DLL hLibModule)
 {
 	return 0==dlclose(hLibModule);
 }
-extern inline void *GetProcAddress(DLL hModule, const char* lpProcName)
+inline void *GetProcAddress(DLL hModule, const char* lpProcName)
 {
 	return dlsym(hModule, lpProcName);
 }
-extern inline const char *LibraryError(void)
+inline const char *LibraryError(void)
 {
 	return dlerror();
 }

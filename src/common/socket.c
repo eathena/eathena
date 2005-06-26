@@ -1601,7 +1601,7 @@ size_t process_fdset(fd_set* fds, void(*func)(size_t) )
 	return fds->fd_count;
 }
 // just a dummy to keep win/unix structure consistent
-extern inline size_t process_fdset2(fd_set* fds, void(*func)(size_t) )
+inline size_t process_fdset2(fd_set* fds, void(*func)(size_t) )
 {	return process_fdset(fds, func);
 }
 ///////////////////////////////////////////////////////////////////////////////

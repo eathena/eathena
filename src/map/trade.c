@@ -256,10 +256,10 @@ void trade_tradeok(struct map_session_data &sd)
 {
 	struct map_session_data *target_sd;
 	int trade_i;
-
 	// check items
 	for(trade_i = 0; trade_i < MAX_TRADING; trade_i++)
-	{	
+	{	// have a trade amount, so check if index and amount is valid
+		if( sd.deal_item_amount[trade_i]>0 )
 		if( (sd.deal_item_index[trade_i] < 2) ||
 			(sd.deal_item_index[trade_i] > 2+MAX_INVENTORY) ||
 		    (sd.deal_item_amount[trade_i] > sd.status.inventory[sd.deal_item_index[trade_i]-2].amount) ) 
@@ -346,7 +346,6 @@ void trade_tradecommit(struct map_session_data &sd)
 	struct map_session_data *target_sd;
 	int trade_i;
 	int flag;
-
 	if ((target_sd = map_id2sd(sd.trade_partner)) != NULL)
 	{
 		if( (sd.deal_locked >= 1) && (target_sd->deal_locked >= 1) )

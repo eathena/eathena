@@ -6,21 +6,21 @@
 #include "map.h"
 
 
-extern inline void pc_setdead(struct map_session_data &sd)	{ sd.state.dead_sit = 1; }
-extern inline bool pc_isdead(struct map_session_data &sd)	{ return sd.state.dead_sit == 1; }
-extern inline void pc_setsit(struct map_session_data &sd)	{ sd.state.dead_sit = 2; }
-extern inline bool pc_issit(struct map_session_data &sd)	{ return sd.state.dead_sit == 2; }
-extern inline void pc_setdir(struct map_session_data &sd, unsigned char b, unsigned char h) { sd.dir = b; sd.head_dir = h; }
-extern inline void pc_setchatid(struct map_session_data &sd, unsigned int chatid)	{ sd.chatID = chatid; }
-extern inline bool pc_ishiding(struct map_session_data &sd) { return 0 != (sd.status.option&0x4006); }
-extern inline bool pc_iscloaking(struct map_session_data &sd) { return 0==(sd.status.option&0x4000) && 0!=(sd.status.option&0x0004); }
-extern inline bool pc_ischasewalk(struct map_session_data &sd) { return 0 != (sd.status.option&0x4000); }
-extern inline bool pc_iscarton(struct map_session_data &sd) { return 0 != (sd.status.option&CART_MASK); }
-extern inline bool pc_isfalcon(struct map_session_data &sd) { return 0 != (sd.status.option&0x0010); }
-extern inline bool pc_isriding(struct map_session_data &sd) { return 0 != (sd.status.option&0x0020); }
-extern inline bool pc_isinvisible(struct map_session_data &sd) { return 0 != (sd.status.option&0x0040); }
-extern inline bool pc_is50overweight(struct map_session_data &sd) { return sd.weight*2 >= sd.max_weight; }
-extern inline bool pc_is90overweight(struct map_session_data &sd) { return sd.weight*10 >= sd.max_weight*9; }
+static inline void pc_setdead(struct map_session_data &sd)	{ sd.state.dead_sit = 1; }
+static inline bool pc_isdead(struct map_session_data &sd)	{ return sd.state.dead_sit == 1; }
+static inline void pc_setsit(struct map_session_data &sd)	{ sd.state.dead_sit = 2; }
+static inline bool pc_issit(struct map_session_data &sd)	{ return sd.state.dead_sit == 2; }
+static inline void pc_setdir(struct map_session_data &sd, unsigned char b, unsigned char h) { sd.dir = b; sd.head_dir = h; }
+static inline void pc_setchatid(struct map_session_data &sd, unsigned int chatid)	{ sd.chatID = chatid; }
+static inline bool pc_ishiding(struct map_session_data &sd) { return 0 != (sd.status.option&0x4006); }
+static inline bool pc_iscloaking(struct map_session_data &sd) { return 0==(sd.status.option&0x4000) && 0!=(sd.status.option&0x0004); }
+static inline bool pc_ischasewalk(struct map_session_data &sd) { return 0 != (sd.status.option&0x4000); }
+static inline bool pc_iscarton(struct map_session_data &sd) { return 0 != (sd.status.option&CART_MASK); }
+static inline bool pc_isfalcon(struct map_session_data &sd) { return 0 != (sd.status.option&0x0010); }
+static inline bool pc_isriding(struct map_session_data &sd) { return 0 != (sd.status.option&0x0020); }
+static inline bool pc_isinvisible(struct map_session_data &sd) { return 0 != (sd.status.option&0x0040); }
+static inline bool pc_is50overweight(struct map_session_data &sd) { return sd.weight*2 >= sd.max_weight; }
+static inline bool pc_is90overweight(struct map_session_data &sd) { return sd.weight*10 >= sd.max_weight*9; }
 
 unsigned char pc_isGM(struct map_session_data &sd);
 bool pc_iskiller(struct map_session_data &src, struct map_session_data &target); // [MouseJstr]
@@ -36,10 +36,10 @@ bool pc_isequipable(struct map_session_data &sd, unsigned short inx);
 unsigned short pc_equippoint(struct map_session_data &sd, unsigned short inx);
 
 bool pc_break_equip(struct map_session_data &sd, unsigned short idx);
-extern inline bool pc_breakweapon(struct map_session_data &sd)	{ return pc_break_equip(sd, EQP_WEAPON); }
-extern inline bool pc_breakarmor(struct map_session_data &sd)	{ return pc_break_equip(sd, EQP_ARMOR); }
-extern inline bool pc_breakshield(struct map_session_data &sd)	{ return pc_break_equip(sd, EQP_SHIELD); }
-extern inline bool pc_breakhelm(struct map_session_data &sd)	{ return pc_break_equip(sd, EQP_HELM); }
+static inline bool pc_breakweapon(struct map_session_data &sd)	{ return pc_break_equip(sd, EQP_WEAPON); }
+static inline bool pc_breakarmor(struct map_session_data &sd)	{ return pc_break_equip(sd, EQP_ARMOR); }
+static inline bool pc_breakshield(struct map_session_data &sd)	{ return pc_break_equip(sd, EQP_SHIELD); }
+static inline bool pc_breakhelm(struct map_session_data &sd)	{ return pc_break_equip(sd, EQP_HELM); }
 
 int pc_checkskill(struct map_session_data &sd,unsigned short skill_id);
 int pc_checkallowskill(struct map_session_data &sd);
@@ -172,7 +172,6 @@ struct map_session_data *pc_get_child(struct map_session_data &sd);
 int pc_set_gm_level(unsigned long account_id, unsigned long level);
 void pc_setstand(struct map_session_data &sd);
 bool pc_break_equip(struct map_session_data &sd, unsigned short where);
-bool pc_candrop(struct map_session_data &sd,unsigned short item_id);
 
 struct pc_base_job{
 	int job; //E‹ÆA‚½‚¾‚µ“]¶E‚â—{qE‚Ìê‡‚ÍŒ³‚ÌE‹Æ‚ğ•Ô‚·(”pƒvƒŠ¨ƒvƒŠ)

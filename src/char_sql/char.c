@@ -82,6 +82,7 @@ unsigned long	subnet_mask	= INADDR_BROADCAST;	//255.255.255.255
 int char_maintenance;
 int char_new;
 int char_new_display;
+int party_modus=0;			// party modus, 0 break on leader leave, 1 successor takes over
 int name_ignoring_case = 0; // Allow or not identical name for characters but with a different case by [Yor]
 int char_name_option = 0; // Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
 char char_name_letters[1024] = ""; // list of letters/symbols used to authorise or not a name of a character. by [Yor]
@@ -730,9 +731,9 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 	return 0;
 }
 //=====================================================================================================
-int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
-	int i, n;
-	char *tmp_p = tmp_sql;
+int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online)
+{
+	size_t i, n, friends=0;
 	struct mmo_charstatus *cp;
 
 	cp = (struct mmo_charstatus*)numdb_search(char_db_,char_id);
@@ -938,13 +939,10 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	}
 	p->global_reg_num=i;
 
-	//Friends List Load
 
-	for(i=0;i<MAX_FRIENDLIST;i++) {
-		p->friend_id[i] = 0;
-		p->friend_name[i][0] = '\0';
-	}
+/*	//Friends List Load
 
+	char *tmp_p = tmp_sql;
 	tmp_p += sprintf(tmp_p, "SELECT `id`, `account_id`");
 
 	for(i=0;i<MAX_FRIENDLIST;i++)
@@ -983,7 +981,41 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	}
 	ShowMessage("friends ");
 	//-- end friends list load --
+*/
 
+	//Friend list 'ids'
+	sprintf(tmp_sql, "SELECT `friend_id` FROM `friends` WHERE `char_id` = '%d'", char_id);
+	if(mysql_query(&mysql_handle, tmp_sql)){
+		ShowMessage("fromsql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
+	}
+	
+	sql_res = mysql_store_result(&mysql_handle);
+	if(sql_res) {
+		friends=mysql_num_rows(sql_res);
+		if(friends > MAX_FRIENDLIST)
+			friends=MAX_FRIENDLIST;
+		for(i = 0; i < friends; i++) {
+			sql_row=mysql_fetch_row(sql_res);
+			p->friend_id[i] = atoi(sql_row[0]);
+		}
+		mysql_free_result(sql_res);
+	}
+	//Friend list 'names'
+	for(i = 0; i < friends; i++) {
+		sprintf(tmp_sql, "SELECT `name` FROM `char` WHERE `char_id` = '%d'", p->friend_id[i]);
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+			ShowMessage("fromsql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
+		}
+		sql_res = mysql_store_result(&mysql_handle);
+		if(sql_res) {
+			sql_row = mysql_fetch_row(sql_res);
+			safestrcpy(p->friend_name[i], sql_row[0], 24);
+			mysql_free_result(sql_res);
+		}
+	}
+	
+	
+	
 	if (online)
 	{
 		set_char_online(char_id,p->account_id);
@@ -3611,6 +3643,8 @@ int char_config_read(const char *cfgName) {
 			char_name_option = atoi(w2);
 		} else if (strcasecmp(w1, "char_name_letters") == 0) {
 			strcpy(char_name_letters, w2);
+		} else if (strcasecmp(w1, "party_modus") == 0) {
+			party_modus = atoi(w2);
 		} else if (strcasecmp(w1, "check_ip_flag") == 0) {
 			check_ip_flag = config_switch(w2);
 		} else if (strcasecmp(w1, "chars_per_account") == 0) { //maxchars per account [Sirius]

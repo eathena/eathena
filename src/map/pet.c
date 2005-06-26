@@ -1061,7 +1061,6 @@ int pet_catch_process2(struct map_session_data &sd,int target_id)
 	if(rand()%10000 < pet_catch_rate)
 	{
 		mob_remove_map(*md,0);
-		mob_setdelayspawn(md->bl.id);
 		clif_pet_rulet(sd,1);
 //		if(battle_config.etc_log)
 //			ShowMessage("rulet success %d\n",target_id);

@@ -56,6 +56,7 @@ char unknown_char_name[1024] = "Unknown";
 char char_log_filename[1024] = "log/char.log";
 char db_path[1024]="db";
 
+int party_modus=0;			// party modus, 0 break on leader leave, 1 successor takes over
 int name_ignoring_case = 0; // Allow or not identical name for characters but with a different case by [Yor]
 int char_name_option = 0; // Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
 char char_name_letters[1024] = ""; // list of letters/symbols authorised (or not) in a character name. by [Yor]
@@ -266,7 +267,10 @@ int mmo_friends_list_data_str(char *str, struct mmo_charstatus *p)
 
 	for (i=0;i<MAX_FRIENDLIST;i++)
 	{
-		str_p += sprintf(str_p, ",%ld,%s", p->friend_id[i],p->friend_name[i]);
+		if (p->friend_id[i] > 0 && p->friend_name[i][0])
+			str_p += sprintf(str_p, ",%ld,%s", p->friend_id[i],p->friend_name[i]);
+		else
+			str_p += sprintf(str_p,",,");
 	}
 	return 0;
 }
@@ -706,54 +710,50 @@ int parse_friend_txt(struct mmo_charstatus *p)
 	unsigned long cid=0, temp[20];
 	FILE *fp;
 
+	// initialize
+	memset(p->friend_id,0,sizeof(p->friend_id));
+	memset(p->friend_name,0,sizeof(p->friend_name));
+
 	// Open the file and look for the ID
 	fp = savefopen(friends_txt, "r");
-	if(NULL==fp)
-		return 1;
-
-	while(fgets(line, sizeof(line)-1, fp)) {
-
-		if( !skip_empty_line(line) )
-			continue;
-
-		sscanf(line, "%ld,%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%s",
-			&cid,
-		&temp[0],p->friend_name[0],
-		&temp[1],p->friend_name[1],
-		&temp[2],p->friend_name[2],
-		&temp[3],p->friend_name[3],
-		&temp[4],p->friend_name[4],
-		&temp[5],p->friend_name[5],
-		&temp[6],p->friend_name[6],
-		&temp[7],p->friend_name[7],
-		&temp[8],p->friend_name[8],
-		&temp[9],p->friend_name[9],
-		&temp[10],p->friend_name[10],
-		&temp[11],p->friend_name[11],
-		&temp[12],p->friend_name[12],
-		&temp[13],p->friend_name[13],
-		&temp[14],p->friend_name[14],
-		&temp[15],p->friend_name[15],
-		&temp[16],p->friend_name[16],
-		&temp[17],p->friend_name[17],
-		&temp[18],p->friend_name[18],
-		&temp[19],p->friend_name[19]);
-		if (cid == p->char_id)
-			break;
-	}//end while
-
-	// No register of friends list
-	if (cid == 0) {
+	if(fp)
+	{
+		while(fgets(line, sizeof(line)-1, fp))
+		{
+			if( !skip_empty_line(line) )
+				continue;
+			sscanf(line, "%ld,%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%[^,],%ld,%s",
+				&cid,
+			&temp[0],p->friend_name[0],
+			&temp[1],p->friend_name[1],
+			&temp[2],p->friend_name[2],
+			&temp[3],p->friend_name[3],
+			&temp[4],p->friend_name[4],
+			&temp[5],p->friend_name[5],
+			&temp[6],p->friend_name[6],
+			&temp[7],p->friend_name[7],
+			&temp[8],p->friend_name[8],
+			&temp[9],p->friend_name[9],
+			&temp[10],p->friend_name[10],
+			&temp[11],p->friend_name[11],
+			&temp[12],p->friend_name[12],
+			&temp[13],p->friend_name[13],
+			&temp[14],p->friend_name[14],
+			&temp[15],p->friend_name[15],
+			&temp[16],p->friend_name[16],
+			&temp[17],p->friend_name[17],
+			&temp[18],p->friend_name[18],
+			&temp[19],p->friend_name[19]);
+			if (cid == p->char_id)
+				break;
+		}//end while
+		if (cid != 0)
+		{	// Fill in the list
+			for (i=0; i<MAX_FRIENDLIST; i++)
+				p->friend_id[i] = temp[i];
+		}
 		fclose(fp);
-		return 0;
 	}
-
-	// Fill in the list
-
-	for (i=0; i<MAX_FRIENDLIST; i++)
-		p->friend_id[i] = temp[i];
-
-	fclose(fp);
 	return 0;
 }
 
@@ -882,7 +882,7 @@ void mmo_char_sync(void) {
 	char line[65536],f_line[1024];
 	size_t i, j, k;
 	int lock;
-	FILE *fp,*f_fp;
+	FILE *fp;
 
 	CREATE_BUFFER(id, int, char_num);
 
@@ -923,26 +923,32 @@ void mmo_char_sync(void) {
 		if (fp == NULL) {
 			ShowMessage("WARNING: Server can't not create backup of characters file.\n");
 			char_log("WARNING: Server can't not create backup of characters file." RETCODE);
-			DELETE_BUFFER(id);
-			return;
 		}
-		for(i = 0; i < char_num; i++) {
-			// create only once the line, and save it in the 2 files (it's speeder than repeat twice the loop and create twice the line)
-			mmo_char_tostr(line, &char_dat[id[i]]); // use of sorted index
-				fprintf(fp, "%s" RETCODE, line);
+		else
+		{
+			for(i = 0; i < char_num; i++) {
+				// create only once the line, and save it in the 2 files (it's speeder than repeat twice the loop and create twice the line)
+				mmo_char_tostr(line, &char_dat[id[i]]); // use of sorted index
+					fprintf(fp, "%s" RETCODE, line);
+			}
+			fprintf(fp, "%d\t%%newid%%" RETCODE, char_id_count);
+			lock_fclose(fp, backup_txt, &lock);
 		}
-		fprintf(fp, "%d\t%%newid%%" RETCODE, char_id_count);
-		lock_fclose(fp, backup_txt, &lock);
 	}
 
 	// Friends List data save (davidsiaw)
-	f_fp = lock_fopen(friends_txt, &lock);
-	for(i = 0; i < char_num; i++) {
-		mmo_friends_list_data_str(f_line, &char_dat[id[i]]);
-		fprintf(f_fp, "%s" RETCODE, f_line);
+	fp = lock_fopen(friends_txt, &lock);
+	if (fp == NULL) {
+		ShowMessage("WARNING: Server can't not save friend list.\n");
+		char_log("WARNING: Server can't not save  friend list." RETCODE);
+	} else {
+		for(i = 0; i < char_num; i++) {
+			mmo_friends_list_data_str(f_line, &char_dat[id[i]]);
+			fprintf(fp, "%s"RETCODE, f_line);
+		}
+		lock_fclose(fp, friends_txt, &lock);
 	}
-
-	lock_fclose(f_fp, friends_txt, &lock);
+	
 
 	DELETE_BUFFER(id);
 	return;
@@ -3637,6 +3643,8 @@ int char_config_read(const char *cfgName) {
 			char_name_option = atoi(w2);
 		} else if(strcasecmp(w1, "char_name_letters") == 0) {
 			strcpy(char_name_letters, w2);
+		} else if (strcasecmp(w1, "party_modus") == 0) {
+			party_modus = atoi(w2);
 // online files options
 		} else if(strcasecmp(w1, "online_txt_filename") == 0) {
 			strcpy(online_txt_filename, w2);

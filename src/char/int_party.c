@@ -18,7 +18,7 @@ static struct dbt *party_db;
 static unsigned long party_newid = 100;
 
 int mapif_party_broken(unsigned long party_id, int flag);
-int party_check_empty(struct party *p);
+bool party_isempty(struct party *p);
 int mapif_parse_PartyLeave(int fd, unsigned long party_id, unsigned long account_id);
 
 // パーティデータの文字列への変換
@@ -101,7 +101,7 @@ int inter_party_init() {
 			if (p->party_id >= party_newid)
 				party_newid = p->party_id + 1;
 			numdb_insert(party_db, p->party_id, p);
-			party_check_empty(p);
+			party_isempty(p);
 		} else {
 			ShowMessage("int_party: broken data [%s] line %d\n", party_txt, c + 1);
 			aFree(p);
@@ -213,23 +213,24 @@ bool party_check_exp_share(struct party *p)
 }
 
 // パーティが空かどうかチェック
-int party_check_empty(struct party *p) 
+bool party_isempty(struct party *p) 
 {
-	int i;
-
-//	ShowMessage("party check empty %08X\n", (int)p);
-	for(i = 0; i < MAX_PARTY; i++) {
-//		ShowMessage("%d acc=%d\n", i, p->member[i].account_id);
-		if (p->member[i].account_id > 0) {
-			return 0;
+	if(p)
+	{
+		int i;
+		//ShowMessage("party check empty %08X\n", (int)p);
+		for(i = 0; i < MAX_PARTY; i++) {
+			//ShowMessage("%d acc=%d\n", i, p->member[i].account_id);
+			if (p->member[i].account_id > 0) {
+				return false;
+			}
 		}
+			// 誰もいないので解散
+		mapif_party_broken(p->party_id, 0);
+		numdb_erase(party_db, p->party_id);
+		aFree(p);
 	}
-		// 誰もいないので解散
-	mapif_party_broken(p->party_id, 0);
-	numdb_erase(party_db, p->party_id);
-	aFree(p);
-
-	return 1;
+	return true;
 }
 
 // キャラの競合がないかチェック用
@@ -312,15 +313,14 @@ int mapif_party_info(int fd, struct party *pparty) {
 
 	if(pparty)
 	{
-	WBUFW(buf,0) = 0x3821;
-	WBUFW(buf,2) = 4 + sizeof(struct party);
-		//memcpy(buf + 4, pparty, sizeof(struct party));
+		WBUFW(buf,0) = 0x3821;
+		WBUFW(buf,2) = 4 + sizeof(struct party);
 		party_tobuffer(*pparty, buf+4);
 
 		if( !session_isActive(fd) )
-		mapif_sendall(buf, WBUFW(buf,2));
-	else
-		mapif_send(fd, buf, WBUFW(buf,2));
+			mapif_sendall(buf, WBUFW(buf,2));
+		else
+			mapif_send(fd, buf, WBUFW(buf,2));
 		//ShowMessage("int_party: info %d %s\n", p->party_id, p->name);
 	}
 
@@ -537,17 +537,47 @@ int mapif_parse_PartyChangeOption(int fd, unsigned long party_id, unsigned long 
 // パーティ脱退要求
 int mapif_parse_PartyLeave(int fd, unsigned long party_id, unsigned long account_id) {
 	struct party *p;
-	int i;
+	size_t i,j,k;
 
 	p = (struct party *) numdb_search(party_db, party_id);
-	if (p != NULL) {
-		for(i = 0; i < MAX_PARTY; i++) {
-			if (p->member[i].account_id == account_id) {
+	if (p != NULL)
+	{
+		for(i = 0; i < MAX_PARTY; i++)
+		{
+			if(p->member[i].account_id == account_id)
+			{	
+				bool leader_leave = (p->member[i].leader==1);
+
 				mapif_party_leaved(party_id, account_id, p->member[i].name);
 
 				memset(&p->member[i], 0, sizeof(struct party_member));
-				if (party_check_empty(p) == 0)
-					mapif_party_info(-1, p);// まだ人がいるのでデータ送信
+
+				if( !party_isempty(p) )
+				{	// まだ人がいるのでデータ送信
+					// reorganize
+					for(k=0; k<MAX_PARTY; k++)
+					{
+						if(p->member[k].account_id == 0)
+						{
+							for(j=k+1; j<MAX_PARTY; j++)
+							{
+								if(p->member[j].account_id != 0)
+								{
+									memmove(p->member+k,p->member+j, (MAX_PARTY-j)*sizeof(struct party_member));
+									memset(p->member+k+MAX_PARTY-j, 0,       (j-k)*sizeof(struct party_member));
+									break;
+								}
+							}
+							if(j>=MAX_PARTY)
+								break;
+						}
+					}
+					if(leader_leave)
+					{	// find a new leader
+						p->member[0].leader=1;
+					}
+					mapif_party_info(-1, p);
+				}
 				return 0;
 			}
 		}

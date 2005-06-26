@@ -974,7 +974,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 				hitrate= 1000000;
 				break;
 			case AM_DEMONSTRATION:	// デモンストレーション
-				hitrate= 1000000;
+				hitrate = 1000000;
 				damage = damage*(100+ 20*skill_lv)/100;
 				damage2 = damage2*(100+ 20*skill_lv)/100;
 				break;
@@ -5353,8 +5353,9 @@ static struct {
 	{ "casting_rate",                      &battle_config.cast_rate				},
 	{ "castle_defense_rate",               &battle_config.castle_defense_rate		},
 	{ "castrate_dex_scale",                &battle_config.castrate_dex_scale	}, // added by [MouseJstr]
-	{ "chat_warpportal",                   &battle_config.chat_warpportal			},
-	{ "combo_delay_rate",                  &battle_config.combo_delay_rate			},
+	{ "character_size",						&battle_config.character_size}, // [Lupus]
+	{ "chat_warpportal",					&battle_config.chat_warpportal			},
+	{ "combo_delay_rate",					&battle_config.combo_delay_rate			},
 	{ "copyskill_restrict",					&battle_config.copyskill_restrict}, // [Aru]
 	{ "day_duration",                      &battle_config.day_duration	}, // added by [Yor]
 	{ "dead_branch_active",                &battle_config.dead_branch_active			},
@@ -5369,24 +5370,24 @@ static struct {
 	{ "disp_experience",                   &battle_config.disp_experience			},
 	{ "disp_hpmeter",                      &battle_config.disp_hpmeter				},
 	{ "display_delay_skill_fail",          &battle_config.display_delay_skill_fail	},
-	{ "display_hallucination",				&battle_config.display_hallucination}, // [Skotlex]
+	{ "display_hallucination",				&battle_config.display_hallucination	}, // [Skotlex]
 	{ "display_snatcher_skill_fail",       &battle_config.display_snatcher_skill_fail	},
-	{ "display_version",					&battle_config.display_version}, // [Ancyker], for a feature by...?
+	{ "display_version",					&battle_config.display_version			}, // [Ancyker], for a feature by...?
 	{ "drop_rate0item",                    &battle_config.drop_rate0item			},
-	{ "drops_by_luk",                      &battle_config.drops_by_luk	},	// [Valaris]
-	{ "dynamic_mobs",						&battle_config.dynamic_mobs},
+	{ "drops_by_luk",                      &battle_config.drops_by_luk				},	// [Valaris]
+	{ "dynamic_mobs",						&battle_config.dynamic_mobs				},
 	{ "enemy_critical",                    &battle_config.enemy_critical			},
 	{ "enemy_critical_rate",               &battle_config.enemy_critical_rate		},
 	{ "enemy_perfect_flee",                &battle_config.enemy_perfect_flee		},
-	{ "enemy_str",                         &battle_config.enemy_str				},
+	{ "enemy_str",                         &battle_config.enemy_str					},
 	{ "equip_natural_break_rate",          &battle_config.equip_natural_break_rate	},
-	{ "equip_self_break_rate",             &battle_config.equip_self_break_rate	},
+	{ "equip_self_break_rate",             &battle_config.equip_self_break_rate		},
 	{ "equip_skill_break_rate",            &battle_config.equip_skill_break_rate	},
-	{ "error_log",                         &battle_config.error_log				},
+	{ "error_log",                         &battle_config.error_log					},
 	{ "etc_log",                           &battle_config.etc_log					},
-	{ "exp_calc_type",						&battle_config.exp_calc_type}, // [celest]
-	{ "finding_ore_rate",					&battle_config.finding_ore_rate}, // [celest]
-	{ "finger_offensive_type",             &battle_config.finger_offensive_type	},
+	{ "exp_calc_type",						&battle_config.exp_calc_type			}, // [celest]
+	{ "finding_ore_rate",					&battle_config.finding_ore_rate			}, // [celest]
+	{ "finger_offensive_type",             &battle_config.finger_offensive_type		},
 	{ "flooritem_lifetime",                &battle_config.flooritem_lifetime		},
 	{ "gm_all_equipment",                  &battle_config.gm_allequip				},
 	{ "gm_all_skill",                      &battle_config.gm_allskill				},
@@ -5395,24 +5396,25 @@ static struct {
 	{ "gm_join_chat",                      &battle_config.gm_join_chat				},
 	{ "gm_kick_chat",                      &battle_config.gm_kick_chat				},
 	{ "gm_skill_unconditional",            &battle_config.gm_skilluncond			},
-	{ "gtb_pvp_only",                      &battle_config.gtb_pvp_only		},
+	{ "gtb_pvp_only",                      &battle_config.gtb_pvp_only				},
 	{ "guild_emperium_check",              &battle_config.guild_emperium_check		},
 	{ "guild_exp_limit",                   &battle_config.guild_exp_limit			},
-	{ "guild_max_castles",                 &battle_config.guild_max_castles		},
+	{ "guild_max_castles",                 &battle_config.guild_max_castles			},
 	{ "gvg_eliminate_time",                &battle_config.gvg_eliminate_time		},
 	{ "gvg_long_attack_damage_rate",       &battle_config.gvg_long_damage_rate		},
-	{ "gvg_magic_attack_damage_rate",      &battle_config.gvg_magic_damage_rate	},
+	{ "gvg_magic_attack_damage_rate",      &battle_config.gvg_magic_damage_rate		},
 	{ "gvg_misc_attack_damage_rate",       &battle_config.gvg_misc_damage_rate		},
-	{ "gvg_short_attack_damage_rate",      &battle_config.gvg_short_damage_rate	},
-	{ "gx_allhit",                         &battle_config.gx_allhit				},
+	{ "gvg_short_attack_damage_rate",      &battle_config.gvg_short_damage_rate		},
+	{ "gx_allhit",                         &battle_config.gx_allhit					},
 	{ "gx_cardfix",                        &battle_config.gx_cardfix				},
 	{ "gx_disptype",                       &battle_config.gx_disptype				},
-	{ "gx_dupele",                         &battle_config.gx_dupele				},
-	{ "hack_info_GM_level",                &battle_config.hack_info_GM_level	}, // added by [Yor]
-	{ "heal_exp",                          &battle_config.heal_exp					},
-	{ "hide_GM_session",                   &battle_config.hide_GM_session			},
-	{ "holywater_name_input",              &battle_config.holywater_name_input		},
-	{ "hp_rate",                           &battle_config.hp_rate					},
+	{ "gx_dupele",                         &battle_config.gx_dupele					},
+	{ "hack_info_GM_level",                &battle_config.hack_info_GM_level		}, // added by [Yor]
+	{ "headset_block_music",				&battle_config.headset_block_music		}, // [Lupus]
+	{ "heal_exp",							&battle_config.heal_exp					},
+	{ "hide_GM_session",					&battle_config.hide_GM_session			},
+	{ "holywater_name_input",				&battle_config.holywater_name_input		},
+	{ "hp_rate",							&battle_config.hp_rate					},
 	{ "idle_no_share",						&battle_config.idle_no_share}, // [celest], for a feature by [MouseJstr]
 	{ "ignore_items_gender",				&battle_config.ignore_items_gender}, // [Lupus]
 	{ "indoors_override_grffile",          &battle_config.indoors_override_grffile},	// [Celest]
@@ -5635,6 +5637,7 @@ void battle_set_defaults()
 	battle_config.bone_drop = 0;
 	battle_config.boss_spawn_delay=100;	
 	battle_config.buyer_name = 1;
+	battle_config.character_size = 3; //3: Peco riders Size=2, Baby Class Riders Size=1
 	battle_config.cardillust_read_grffile=0;
 	battle_config.cast_rate=100;
 	battle_config.castle_defense_rate = 100;
@@ -5695,6 +5698,7 @@ void battle_set_defaults()
 	battle_config.gx_disptype = 1;
 	battle_config.gx_dupele = 1;
 	battle_config.hack_info_GM_level = 60; // added by [Yor] (default: 60, GM level)
+	battle_config.headset_block_music = 0; //Do headsets block some sound skills like Frost Joke
 	battle_config.heal_exp=0;
 	battle_config.hide_GM_session = 0;
 	battle_config.holywater_name_input = 1;

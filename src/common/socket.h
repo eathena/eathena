@@ -1523,24 +1523,24 @@ extern size_t fd_max;
 
 
 
-extern inline bool session_isValid(int fd)
+static inline bool session_isValid(int fd)
 {
 	return ( (fd>=0) && (fd<FD_SETSIZE) && (NULL!=session[fd]) );
 }
-extern inline bool session_isActive(int fd)
+static inline bool session_isActive(int fd)
 {
 	return ( session_isValid(fd) && session[fd]->flag.connected );
 }	
 	
-extern inline bool session_isRemoved(int fd)
+static inline bool session_isRemoved(int fd)
 {
 	return ( session_isValid(fd) && session[fd]->flag.remove );
 }
-extern inline bool session_isMarked(int fd)
+static inline bool session_isMarked(int fd)
 {
 	return ( session_isValid(fd) && session[fd]->flag.marked );
 }
-extern inline bool session_Remove(int fd)
+static inline bool session_Remove(int fd)
 {	// force removal
 	if( session_isValid(fd)	)
 	{
@@ -1550,7 +1550,7 @@ extern inline bool session_Remove(int fd)
 	}
 	return true;
 }
-extern inline bool session_SetTermFunction(int fd, int (*term)(int))
+static inline bool session_SetTermFunction(int fd, int (*term)(int))
 {
 	if( session_isValid(fd) )
 		session[fd]->func_term = term;

@@ -111,6 +111,7 @@ struct Battle_Config
 	ulong cast_rate;
 	ulong castle_defense_rate;
 	ulong castrate_dex_scale; // added by [MouseJstr]
+	ulong character_size; // if riders have size=2, and baby class riders size=1 [Lupus]
 	ulong chat_warpportal;
 	ulong combo_delay_rate;
 	ulong copyskill_restrict;
@@ -167,6 +168,7 @@ struct Battle_Config
 	ulong gx_disptype;
 	ulong gx_dupele;
 	ulong hack_info_GM_level; // added by [Yor]
+	ulong headset_block_music; // do headsets block Frost Joke, etc [Lupus]
 	ulong heal_exp;
 	ulong hide_GM_session;
 	ulong holywater_name_input;

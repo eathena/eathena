@@ -1001,7 +1001,6 @@ int mapif_parse_CreateGuild(int fd, unsigned long account_id, char *name, unsign
 	g = (struct guild*)aCalloc(1, sizeof(struct guild));
 	g->guild_id = guild_newid++;
 	memcpy(g->name, name, 24);
-	//memcpy(&g->member[0], buf, sizeof(struct guild_member));
 	guild_member_frombuffer(g->member[0], buf);
 	memcpy(g->master, g->member[0].name, 24);
 
