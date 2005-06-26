@@ -1,5 +1,9 @@
 Date	Added
 06/26
+	* Added convert_guild_tables2.sql for use on guild tables 
+	  created with a 2314-2321 main.sql. Run this or 
+	  convert_guild_tables.sql if you are having issues with guild 
+	  skill saving [Aru]
 	* Fixed a bug with guild_skill table in main_old.sql if you're
 	  fool enough to use it [Aru]
 	* @nuke++, ftw ;D [Valaris]
