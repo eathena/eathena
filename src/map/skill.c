@@ -1575,6 +1575,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		}
 		break;
 	case NPC_SELFDESTRUCTION:
+		if(src->type==BL_PC)
+			dmg.blewcount = 10;
 		break;
 	case SN_SHARPSHOOTING:
 		clif_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,0,0,0);
@@ -2822,12 +2824,21 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 					skill_attack(BF_MISC, src, src, bl, NPC_SELFDESTRUCTION, skilllv, tick, flag);
 			} else {
 				skill_area_temp[1] = bl->id;
-				skill_area_temp[2] = status_get_hp(src);
+				if(bl->type==BL_PC)
+					skill_area_temp[2] = 999999;
+				else
+					skill_area_temp[2] = status_get_hp(src);
 				clif_skill_nodamage(src, src, NPC_SELFDESTRUCTION, -1, 1);
-				map_foreachinarea(skill_area_sub, bl->m,
-						bl->x-5, bl->y-5, bl->x+5, bl->y+5, 0,
-						src, skillid, skilllv, tick, flag|BCT_ENEMY|1,
-						skill_castend_damage_id);
+				if(bl->type==BL_PC)
+					map_foreachinarea(skill_area_sub, bl->m,
+							bl->x-10, bl->y-10, bl->x+10, bl->y+10, 0,
+							src, skillid, skilllv, tick, flag|BCT_ENEMY|1,
+							skill_castend_damage_id);
+				else
+					map_foreachinarea(skill_area_sub, bl->m,
+							bl->x-5, bl->y-5, bl->x+5, bl->y+5, 0,
+							src, skillid, skilllv, tick, flag|BCT_ENEMY|1,
+							skill_castend_damage_id);
 				battle_damage(src, src, skill_area_temp[2], 0);
 			}
 			break;

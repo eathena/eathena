@@ -1,5 +1,6 @@
 Date	Added
 06/26
+	* @nuke++, ftw ;D [Valaris]
 	* Modified friend list loading in char-server (sql) to be more efficient. [Valaris]
 	* Modified mmo_friends_list_data_str (char-server txt) so it wouldn't make junk data. [Valaris]
 	* Added 'character_size' to battle config:
