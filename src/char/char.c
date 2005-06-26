@@ -261,10 +261,15 @@ int mmo_friends_list_data_str(char *str, struct mmo_charstatus *p) {
 	char *str_p = str;
 	str_p += sprintf(str_p, "%d", p->char_id);
 
-	for (i=0;i<20;i++)
-	{
-		str_p += sprintf(str_p, ",%d,%s", p->friend_id[i],p->friend_name[i]);
+	for (i=0;i<20;i++){
+		if (p->friend_id[i] > 0 && p->friend_name[i][0])
+			str_p += sprintf(str_p, ",%d,%s", p->friend_id[i],p->friend_name[i]);
+		else
+			str_p += sprintf(str_p,",,");
 	}
+
+	str_p += '\0';
+
 	return 0;
 }
 
@@ -663,7 +668,7 @@ int parse_friend_txt(struct mmo_charstatus *p)
 
 		if(line[0] == '/' && line[1] == '/')
 			continue;
-//Character names must not exceed the 23+\0 limit. [Skotlex]
+		//Character names must not exceed the 23+\0 limit. [Skotlex]
 		sscanf(line, "%d,%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23s",&cid,
 		&temp[0],p->friend_name[0],
 		&temp[1],p->friend_name[1],

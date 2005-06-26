@@ -862,10 +862,10 @@ int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int 
 //=====================================================================================================
 int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	int i, n;
-         int friends;
+        int friends;
 	//char *tmp_p = tmp_sql;
 	struct mmo_charstatus *cp;
-         friends = 0;
+        friends = 0;
 
 	cp = (struct mmo_charstatus*)numdb_search(char_db_,char_id);
 	if (cp != NULL)
@@ -1097,11 +1097,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 
 	// Create an entry for the character if it doesnt already have one
 	if(!i) {
-
 		insert_friends(char_id);
-
 	} else {
-
 		if (sql_res) {
 			for(i=0;i<20;i++) {
 				p->friend_id[i] = atoi(sql_row[i*2 +2]);
@@ -1116,48 +1113,43 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	//-- end friends list load --
 
 
-         //Friend list 'ids'
-         sprintf(tmp_sql, "SELECT `char_id`, `friend_id` FROM `friends` WHERE `char_id` = '%d'", char_id);
-         if(mysql_query(&mysql_handle, tmp_sql)){
-         	eprintf("fromsql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
-         }
+        //Friend list 'ids'
+        sprintf(tmp_sql, "SELECT `friend_id` FROM `friends` WHERE `char_id` = '%d'", char_id);
+        if(mysql_query(&mysql_handle, tmp_sql)){
+	       	eprintf("fromsql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
+        }
 
-         sql_res = mysql_store_result(&mysql_handle);
-         if(sql_res){
-         	for(i = 0; (sql_row = mysql_fetch_row(sql_res)); i++){
-                 	p->friend_id[i] = atoi(sql_row[1]);
-                         //NEW ONE:
-                         //p->friends[i].id = atoi(sql_res[1]);
-                 }
-                 friends = i;
-                 mysql_free_result(sql_res);
-         }
+        sql_res = mysql_store_result(&mysql_handle);
+	if(sql_res) {
+		friends=mysql_num_rows(sql_res);
+		if(friends > MAX_FRIENDS)
+			friends=MAX_FRIENDS;
+         	for(i = 0; i < friends; i++){
+			sql_row=mysql_fetch_row(sql_res);
+                	p->friend_id[i] = atoi(sql_row[0]);
+                        //NEW ONE:
+                        //p->friends[i].id = atoi(sql_res[0]);
+                }
+        	mysql_free_result(sql_res);
+	}
 
-
-        	//Friend list 'names'
-         for(i = 0; i < friends; i++){
-         	sprintf(tmp_sql, "SELECT `char_id`, `name` FROM `char` WHERE `char_id` = '%d'", p->friend_id[i]);
-                 //NEW
-                 //sprintf(tmp_sql, "SELECT `char_id`, `name` FROM `char` WHERE `char_id` = '%d'", p->friends[i].id);
+       	//Friend list 'names'
+	for(i = 0; i < friends; i++){
+       		sprintf(tmp_sql, "SELECT `name` FROM `char` WHERE `char_id` = '%d'", p->friend_id[i]);
+                //NEW
+                //sprintf(tmp_sql, "SELECT `name` FROM `char` WHERE `char_id` = '%d'", p->friends[i].id);
 	        if(mysql_query(&mysql_handle, tmp_sql)){
 	                 eprintf("fromsql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
 	        }
-
-                 sql_res = mysql_store_result(&mysql_handle);
-                 if(sql_res){
-                 	sql_row = mysql_fetch_row(sql_res);
-                        if (atoi(sql_row[0])) {
-				strcpy(p->friend_name[i], sql_row[1]);
-				//NEW:
-				//strcpy(p->friends[i].name, sql_row[1]);
-			}
-                 	mysql_free_result(sql_res);
-                 }
-
-
-         }
-
-
+		sql_res = mysql_store_result(&mysql_handle);
+		if(sql_res){
+	                sql_row = mysql_fetch_row(sql_res);
+			strcpy(p->friend_name[i], sql_row[0]);
+			//NEW:
+			//strcpy(p->friends[i].name, sql_row[0]);
+			mysql_free_result(sql_res);
+		}
+        }
 
 	if (online) {
 		set_char_online(char_id,p->account_id);

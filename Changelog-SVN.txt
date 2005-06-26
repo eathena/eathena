@@ -1,5 +1,7 @@
 Date	Added
 06/26
+	* Modified friend list loading in char-server (sql) to be more efficient. [Valaris]
+	* Modified mmo_friends_list_data_str (char-server txt) so it wouldn't make junk data. [Valaris]
 	* Added 'character_size' to battle config:
 	  Do mounted (on Peco) characters increase their size [Lupus]
 	* Added new guild database structures to main.sql.
