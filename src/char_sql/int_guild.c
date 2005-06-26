@@ -323,7 +323,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 	if (flag&32){
 		//printf("- Insert guild %d to guild_skill\n",g->guild_id);
 		for(i=0;i<MAX_GUILDSKILL;i++){
-			if (g->skill[i].id>0){
+			if (g->skill[i].id>0 && g->skill[i].lv>0){
 				sprintf(tmp_sql,"REPLACE INTO `%s` (`guild_id`,`id`,`lv`) VALUES ('%d','%d','%d')",
 					guild_skill_db, g->guild_id,g->skill[i].id,g->skill[i].lv);
 				//printf("%s\n",tmp_sql);
