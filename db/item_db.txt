@@ -1265,7 +1265,7 @@
 4146,Maya_Card,Maya Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus bMagicDamageReturn,30; }
 4147,Baphomet_Card,Baphomet Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bHit,-10; bonus bSplashRange,1; }
 4148,Pharaoh_Card,Pharaoh Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus bUseSPrate,-30; }
-4149,Gargoyle_Card,Gargoyle Card,6,20,0,10,,,,,,,136,,,,,{},{}
+4149,Gargoyle_Card,Gargoyle Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAddMonsterDropItem,12028,4,10; }
 4150,Goat_Card,Goat Card,6,20,0,10,,,,,,,16,,,,,{},{ if(getrefine()>=6) end; bonus bDef,2; bonus bMdef,5; }
 4151,Gajomart_Card,Gajomart Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus2 bSubRace,3,-20; bonus2 bExpAddRace,3,10; }
 4152,Galapago_Card,Galapago Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus2 bAddItemHealRate,6,50; bonus3 bAddMonsterDropItemGroup,6,4,10000; }
@@ -1303,10 +1303,10 @@
 4184,Lava_Golem_Card,Lava Golem Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus2 bAddRace2,4,30; }
 4185,Rideword_Card,Rideword Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus bInt,1; if(callfunc("Is_Holy_Class")) goto R_WORD; end; R_WORD: bonus bInt,1; bonus bMdef,1; }
 4186,Raggler_Card,Raggler Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus bStr,1; bonus bVit,1; if(isequipped(4233,4281,4321,4206)==0) end; bonus bLuk,10; bonus3 bSPDrainValue,100,2,0; bonus2 bSkillAtk,42,20; if(callfunc("Is_Merc_Class")==0) end; bonus2 bAddMonsterDropItem,617,10; bonus bMagicDamageReturn,20; }
-4187,Raydric_Archer_Card,Raydric Archer Card,6,20,0,10,,,,,,,136,,,,,{},{}
+4187,Raydric_Archer_Card,Raydric Archer Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAddMonsterDropItem,12030,6,10; }
 4188,Leib_Olmai_Card,Leib Olmai Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus2 bSubEle,3,10; bonus3 bAddMonsterDropItem,990,2,500; }
 4189,Wraith_Dead_Card,Wraith Dead Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus2 bAddEffWhenHit,Eff_Curse,2000; }
-4190,Wraith_Card,Wraith Card,6,20,0,10,,,,,,,136,,,,,{},{}
+4190,Wraith_Card,Wraith Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAddMonsterDropItem,12027,1,10; }
 4191,Loli_Ruri_Card,Loli Ruri Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus4 bAutoSpellWhenHit,28,3,5,0; }
 4192,Rotar_Zairo_Card,Rotar Zairo Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,5,7; }
 4193,Lude_Card,Lude Card,6,20,0,10,,,,,,,136,,,,,{},{ if(BaseJob==Job_Novice||BaseJob==Job_SuperNovice) bonus3 bAutoSpellWhenHit,8,1,20; }
@@ -1340,11 +1340,11 @@
 4221,Skeleton_General_Card,Skeleton General Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus2 bSubRace,4,-20; bonus2 bExpAddRace,4,10;}
 4222,Skeleton_Prisoner_Card,Skel Prisoner Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus bDef,2; if(isequipped(4025)) bonus2 bAddEffWhenHit,Eff_Sleep,3000; }
 4223,Stalactic_Golem_Card,Stalactic Golem Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus bDef,1; bonus2 bResEff,Eff_Stan,2000;}
-4224,Stem_Worm_Card,Stem Worm Card,6,20,0,10,,,,,,,136,,,,,{},{}
+4224,Stem_Worm_Card,Stem Worm Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAddMonsterDropItem,12032,2,10; }
 4225,Stone_Shooter_Card,Stone Shooter Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bAtk,10; bonus bHit,10; }
 4226,Sting_Card,Sting Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus bDef,2; if(getrefine()>8) bonus bMdef,5; }
 4227,Spring_Rabbit_Card,Spring Rabbit Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus2 bAddItemHealRate,5,50; bonus3 bAddMonsterDropItem,517,2,5000; bonus3 bAddMonsterDropItem,528,2,5000; }
-4228,Sleeper_Card,Sleeper Card,6,20,0,10,,,,,,,136,,,,,{},{}
+4228,Sleeper_Card,Sleeper Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAddMonsterDropItem,12031,5,10; }
 4229,Clock_Tower_Manager_Card,Clock Tower Manager Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus bInt,1; bonus bDelayrate,-5; if(isequipped(4244,4299,4313)==0) end; bonus bDef,3; bonus bMdef,3; }
 4230,Shinobi_Card,Shinobi Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus bAgi,1; bonus4 bAutoSpellWhenHit,135,5,1,0; }
 4231,Increase_Soil_Card,Increase Soil Card,6,20,0,10,,,,,,,,,,,,{},{}
@@ -1372,16 +1372,16 @@
 4253,Alice_Card,Alice Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus2 bSubRace,10,40; bonus2 bSubRace,11,-40; }
 4254,Tirfing_Card,Tirfing Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus2 bSubSize,1,25; bonus bDef,1; }
 4255,Orc_Lady_Card,Orc Lady Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus2 bAddRace2,3,30; }
-4256,Orc_Archer_Card,Orc Archer Card,6,20,0,10,,,,,,,136,,,,,{},{}
+4256,Orc_Archer_Card,Orc Archer Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAddMonsterDropItem,12034,7,10; }
 4257,Wild_Rose_Card,Wild Rose Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus bAgi,1; if(callfunc("Is_Thief_Class")) bonus bFlee2,5; }
 4258,Evil_Nymph_Card,Evil Nymph Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus bInt,1; bonus bMaxSP,50; }
 4259,Wooden_Golem_Card,Wooden Golem Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus bDef,1; bonus bHPrecovRate,30; }
 4260,Wootan_Shooter_Card,Wootan Shooter Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus bDef,1; bonus2 bResEff,Eff_Confusion,2000; }
 4261,Wootan_Fighter_Card,Wootan Fighter Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus bDef,1; bonus2 bResEff,Eff_Bleeding,2000; }
-4262,Taoist_Hermit_Card,Taoist Hermit Card,6,20,0,10,,,,,,,,,,,,{},{}
+4262,Taoist_Hermit_Card,Taoist Hermit Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAddMonsterDropItem,12029,3,10; }
 4263,Incantation_Samurai_Card,Incantation Samurai Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bIgnoreDefMob,0; bonus bNoRegen,1; bonus2 bHPLossRate,666,10000; bonus bDamageWhenUnequip,999; }
 4264,Wind_Ghost_Card,Wind Ghost Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAutoSpell,84,3+7*(getskilllv(84)==10),1; }
-4265,Li_Me_Mang_Ryang_Card,Li Me Mang Ryang Card,6,20,0,10,,,,,,,,,,,,{},{}
+4265,Li_Me_Mang_Ryang_Card,Li Me Mang Ryang Card,6,20,0,10,,,,,,,,,,,,{},{ bonus3 bAddMonsterDropItem,12033,8,10; }
 4266,Eclipse_Card,Eclipse Card,6,20,0,10,,,,,,,4,,,,,{},{ bonus bVit,1; if(isequipped(4006)) bonus bFlee,18; }
 4267,Explosion_Card,Explosion Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus2 bSubRace,9,-20; bonus2 bExpAddRace,9,10; }
 4268,Incubus_Card,Incubus Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus bMaxSP,150; if(isequipped(4218)) goto L_SUC; bonus bInt,-3; bonus bSPrecovRate,-20; end; L_SUC: bonus bInt,3; bonus bSPrecovRate,30; }
@@ -1448,6 +1448,7 @@
 4329,Phendark_Card,Phendark Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus2 bSPGainRace,7,5; bonus bLoseSPWhenUnequip,5; }
 4330,Evil_Snake_Lord_Card,Evil Snake Lord Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus bInt,3; bonus2 bResEff,Eff_Blind,10000; bonus2 bResEff,Eff_Curse,10000; }
 4331,Heater_Card,Heater Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus bCritical,3; if(callfunc("Is_Sword_Class")) bonus bFlee2,3; }
+
 
 // More Headgears
 //===================================================================
@@ -2054,16 +2055,15 @@
 12022,Ribs,Ribs,2,20,0,10,,,,,10477567,2,,,,,,{},{}
 12023,2nd_Anniversary_Giftbox,2nd Annual Commemoration Giftbox,2,20,0,200,,,,,10477567,2,,,,,,{ getitem -4,1; },{}
 12024,Red_Pouch,Red Pouch,2,20,0,50,,,,,10477567,2,,,,,,{ set Zeny,Zeny+rand(100,1000); },{}
-
-//Effect Box - Their effects are yet unknown
-12027,Giggling_Box,Giggling Box,2,20,0,200,,,,,10477567,2,,,,,,{},{}
-12028,Lightning_Box,Lighting Box,2,20,0,200,,,,,10477567,2,,,,,,{},{}
-12029,Gloomy_Box,Gloomy Box,2,20,0,200,,,,,10477567,2,,,,,,{},{}
-12030,Grudge_Box,Box of Grudge,2,20,0,200,,,,,10477567,2,,,,,,{},{}
-12031,Sleepy_Box,Sleepy Box,2,20,0,200,,,,,10477567,2,,,,,,{},{}
-12032,Downpour_Box,Box of Heavy Rain,2,20,0,200,,,,,10477567,2,,,,,,{},{}
-12033,Sunshine_Box,Box of Sunshine,2,20,0,200,,,,,10477567,2,,,,,,{},{}
-12034,Gasping_Box,Gasping Box,2,20,0,200,,,,,10477567,2,,,,,,{},{}
+//Effect Boxes
+12027,Giggling_Box,Giggling Box,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_Curse,30000,0; percentheal 9,0; },{} //the probablity is 100%
+12028,Lightning_Box,Lightning Box,2,20,0,200,,,,,10477567,2,,,,,,{},{} //increase moving speed for 20 seconds
+12029,Gloomy_Box,Gloomy Box,11,20,0,200,,,,,10477567,2,,,,,,{ itemskill 45,3,"Gloomy Box"; },{}
+12030,Grudge_Box,Box of Grudge,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_INCATK,60000,20; },{}
+12031,Sleepy_Box,Sleepy Box,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_INCMATK,60000,20; },{}
+12032,Downpour_Box,Box of Heavy Rain,2,20,0,200,,,,,10477567,2,,,,,,{},{} //increase attack speed by 20%
+12033,Sunshine_Box,Box of Sunshine,2,20,0,200,,,,,10477567,2,,,,,,{},{} //can see cloaked or hidden enemy
+12034,Gasping_Box,Gasping Box,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_Silence,30000,0; percentheal 0,9; },{} //the probablity is 100%
 
 // More Weapons
 //===================================================================

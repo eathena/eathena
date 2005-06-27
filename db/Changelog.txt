@@ -9,20 +9,17 @@
 	Skill databases == celest working on them I believe.
 
 	-- New Cards : Not Implemented
-	4149,Gargoyle_Card: missing getitemonkill?? (item not implemented)
 	4177,Dryad_Card: missing getitemonracekill??
-	4187,Raydric_Archer_Card missing getitemonkill?? (item not implemented)
 	4189,Wraith_Dead_Card: missing getitemonracekill??
 	4196,Marin_Card: missing bRandomDrop,Item1,Chance,Item2,Chance,etc
 	4198,Maya_Purple_Card: intravision not working atm
-	4224,Stem_Worm_Card: missing getitemonkill?? (item not implemented)
-	4228,Sleeper_Card: missing getitemonkill?? (item not implemented)
-	4256,Orc_Archer_Card: missing getitemonkill?? (item not implemented)
 	4296,Cramp_Card: missing getzenybychance??
 	4231,Increase_Soil_Card
-	4262,Taoist_Hermit_Card
-	4265,Li_Me_Mang_Ryang_Card
 
+06/28
+	* Added effects to new boxes (thanks to Landarma), added these boxes
+	  as drops to new cards (thanks to MasterOfMuppets), fixed Taoist Card
+	  placement [Lupus] TODO: revise all the cards
 06/23
 	* Corrected 3 of the new headgears in item DB, thanks to Ishizu-chan [celest]
 06/20
