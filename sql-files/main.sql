@@ -235,7 +235,7 @@ CREATE TABLE `guild_position` (
   `mode` int(11) NOT NULL default '0',
   `exp_mode` int(11) NOT NULL default '0',
   PRIMARY KEY  (guild_id,position),
-  KEY guild_id (guild_id)
+  KEY guild_id (guild_id),
   CONSTRAINT `guild_position_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE
 ) TYPE=InnoDB;
 
