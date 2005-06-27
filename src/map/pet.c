@@ -117,8 +117,8 @@ int pet_calc_pos(struct pet_data &pd,int tx,int ty,int dir)
 	dir+=vary&0x03-1;	// vary the target position
 	dir &= 0x07;		// only 3 bits allowed
 
-	dx = -dirx[dir]*(vary&0x04!=0)?2:1;
-	dy = -diry[dir]*(vary&0x08!=0)?2:1;
+	dx = -dirx[dir]*((vary&0x04)!=0)?2:1;
+	dy = -diry[dir]*((vary&0x08)!=0)?2:1;
 
 	x = tx + dx;
 	y = ty + dy;

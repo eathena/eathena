@@ -917,7 +917,7 @@ char* parse_simpleexpr(char *p)
 			disp_error_message("unmatch ')'",p);
 			exit(1);
 		}
-	} else if(isdigit((int)((unsigned char)*p)) || ((*p=='-' || *p=='+') && eapp::isdigit((int)((unsigned char)p[1])))){
+	} else if(isdigit((int)((unsigned char)*p)) || ((*p=='-' || *p=='+') && isdigit((int)((unsigned char)p[1])))){
 		char *np;
 		int i=strtoul(p,&np,0);
 		add_scripti(i);
