@@ -71,7 +71,7 @@
 565,Vita_500_Bottle,Vita 500,0,2000,0,30,,,,,10477567,2,,,,,,{ itemheal 500,0; },{}
 566,Tom_Yum_Goong,Tom Yum Goong,0,20,150,0,,,,,10477567,2,,,,,,{ itemheal rand(100,200),0; },{}
 567,Shrimp,Shrimp,0,20,0,20,,,,,10477567,2,,,,,,{ itemheal rand(50,100),0; },{}
-568,Lemon,Lemon,0,20,0,20,,,,,0,2,,,,,,{ itemheal 0,rand(20,30); },{}
+568,Lemon,Lemon,0,20,0,20,,,,,10477567,2,,,,,,{ itemheal 0,rand(20,30); },{}
 569,Novice's_Red_Potion,Novices Red Potion,0,50,0,70,,,,,10477567,2,,,,,,{ itemheal rand(45,64),0; },{}
 // St.Valentine's Day Items
 570,Fortune_Candy,Fortune Candy,0,10,0,30,,,,,10477567,2,,,,,,{ itemheal rand(45,64),0; },{}

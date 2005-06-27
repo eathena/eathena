@@ -17,6 +17,8 @@
 	4231,Increase_Soil_Card
 
 06/28
+	* Made Lemon consumable (previous equip_jobs was 0), that was not on
+	  purpose, right? [Skotlex]
 	* Added 2-sec aftercast-delay to sonic blows. Too many complains about double
 	  casting it, and I really don't think it was meant to be doble-castable
 	  either. [Skotlex]
