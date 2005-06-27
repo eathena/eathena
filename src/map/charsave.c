@@ -309,7 +309,7 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
          for(i = 0; i < MAX_INVENTORY; i++){
          	if(c->inventory[i].nameid > 0){
 		       	//sprintf(charsql_tmpsql, "INSERT INTO `inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')", charid, c->inventory[i].nameid, c->inventory[i].amount, c->inventory[i].equip, c->inventory[i].identify, c->inventory[i].refine, c->inventory[i].attribute, c->inventory[i].card[0], c->inventory[i].card[1], c->inventory[i].card[2], c->inventory[i].card[3]);
-		       	sprintf(charsql_tmpsql, "INSERT INTO `inventory` (`char_id`, `nameid`, `amount`, `equip`, `identity`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES "
+		       	sprintf(charsql_tmpsql, "INSERT INTO `inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES "
 		       	                        "('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
 		       	                        charid, c->inventory[i].nameid, c->inventory[i].amount, c->inventory[i].equip, c->inventory[i].identify, c->inventory[i].refine,
 		       	                        c->inventory[i].attribute, c->inventory[i].card[0], c->inventory[i].card[1], c->inventory[i].card[2], c->inventory[i].card[3]
