@@ -1,5 +1,7 @@
 Date	Added
 06/27
+	* Fixed Pressure missing. [Skotlex]
+	* Added 2Secs delay to Sonic Blows. [Skotlex]
 	* Removed battle config option maximum_level and replaced it with max_base_level,
 	  max_job_level, max_super_novice_level and max_advanced_job_level. Refer to
 	  battle_athena.conf for more details. [Skotlex]

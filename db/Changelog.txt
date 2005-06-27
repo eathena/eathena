@@ -17,6 +17,9 @@
 	4231,Increase_Soil_Card
 
 06/28
+	* Added 2-sec aftercast-delay to sonic blows. Too many complains about double
+	  casting it, and I really don't think it was meant to be doble-castable
+	  either. [Skotlex]
 	* Added effects to new boxes (thanks to Landarma), added these boxes
 	  as drops to new cards (thanks to MasterOfMuppets), fixed Taoist Card
 	  placement [Lupus] TODO: revise all the cards
