@@ -6,7 +6,6 @@
 	ProjectGUID="{6C499059-C674-43FA-95F0-6933A0E0C249}"
 	RootNamespace="charserver_sql"
 	Keyword="Win32Proj"
-	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -41,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\cygwin\home\Owner\ea\branches\eapp\src\mysql\include;C:\cygwin\home\Owner\ea\branches\eapp\src\common"
+				AdditionalIncludeDirectories="..\..\src\mysql\include;..\..\src\common"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;PACKETVER=6;NEW_006b"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -64,7 +63,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="common_sql.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\cygwin\home\Owner\ea\branches\eapp\vs80\common_sql\Debug"
+				AdditionalLibraryDirectories="..\common_sql\Debug"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"

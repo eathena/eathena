@@ -6,7 +6,6 @@
 	ProjectGUID="{5145E2DA-D2BF-4029-942B-91B481846FD5}"
 	RootNamespace="common_sql"
 	Keyword="Win32Proj"
-	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -41,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\cygwin\home\Owner\ea\branches\eapp\src\zlib"
+				AdditionalIncludeDirectories="..\..\src\zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;PACKETVER=6;NEW_006b"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,7 +62,7 @@
 			<Tool
 				Name="VCLibrarianTool"
 				AdditionalDependencies="Ws2_32.lib zlib1.lib libmysql.lib"
-				AdditionalLibraryDirectories="&quot;C:\cygwin\home\Owner\ea\branches\eapp\src\zlib-compiled-libs\visual-c&quot;;&quot;C:\cygwin\home\Owner\ea\branches\eapp\src\mysql-lib\visual-c&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\src\mysql-lib\visual-c&quot;;&quot;..\..\src\zlib-compiled-libs\visual-c&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"

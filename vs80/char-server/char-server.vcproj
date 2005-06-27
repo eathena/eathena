@@ -6,7 +6,6 @@
 	ProjectGUID="{8D8525E7-8836-4D96-8B53-DE0F372CCD34}"
 	RootNamespace="charserver"
 	Keyword="Win32Proj"
-	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -41,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\cygwin\home\Owner\ea\branches\eapp\src\common"
+				AdditionalIncludeDirectories="..\..\src\common"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;PACKETVER=6;NEW_006b;TXT_ONLY"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -64,7 +63,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="common.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\cygwin\home\Owner\ea\branches\eapp\vs80\common\Debug"
+				AdditionalLibraryDirectories="..\common\Debug"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"

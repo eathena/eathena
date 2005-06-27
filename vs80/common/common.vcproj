@@ -6,7 +6,6 @@
 	ProjectGUID="{DDD4D106-06F9-4346-9DE6-DB29D835D6EA}"
 	RootNamespace="common"
 	Keyword="Win32Proj"
-	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -41,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\cygwin\home\Owner\ea\branches\eapp\src\zlib"
+				AdditionalIncludeDirectories="..\..\src\zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;PACKETVER=6;NEW_006b;TXT_ONLY"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,7 +62,7 @@
 			<Tool
 				Name="VCLibrarianTool"
 				AdditionalDependencies="Ws2_32.lib zlib1.lib"
-				AdditionalLibraryDirectories="&quot;C:\cygwin\home\Owner\ea\branches\eapp\src\zlib-compiled-libs\visual-c&quot;"
+				AdditionalLibraryDirectories="&quot;..\..\src\zlib-compiled-libs\visual-c&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"

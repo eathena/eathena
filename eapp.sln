@@ -1,0 +1,80 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "char-server", "vs80\char-server\char-server.vcproj", "{8D8525E7-8836-4D96-8B53-DE0F372CCD34}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DDD4D106-06F9-4346-9DE6-DB29D835D6EA} = {DDD4D106-06F9-4346-9DE6-DB29D835D6EA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "char-server_sql", "vs80\char-server_sql\char-server_sql.vcproj", "{6C499059-C674-43FA-95F0-6933A0E0C249}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5145E2DA-D2BF-4029-942B-91B481846FD5} = {5145E2DA-D2BF-4029-942B-91B481846FD5}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "vs80\common\common.vcproj", "{DDD4D106-06F9-4346-9DE6-DB29D835D6EA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common_sql", "vs80\common_sql\common_sql.vcproj", "{5145E2DA-D2BF-4029-942B-91B481846FD5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "login-server", "vs80\login-server\login-server.vcproj", "{CEDF5628-2931-4FE8-B893-5E81B69B320B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DDD4D106-06F9-4346-9DE6-DB29D835D6EA} = {DDD4D106-06F9-4346-9DE6-DB29D835D6EA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "login-server_sql", "vs80\login-server_sql\login-server_sql.vcproj", "{4A07E400-2774-409C-8194-83F6A1ACB0AC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5145E2DA-D2BF-4029-942B-91B481846FD5} = {5145E2DA-D2BF-4029-942B-91B481846FD5}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "map-server", "vs80\map-server\map-server.vcproj", "{32185342-34FB-4120-8392-E6961027213E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DDD4D106-06F9-4346-9DE6-DB29D835D6EA} = {DDD4D106-06F9-4346-9DE6-DB29D835D6EA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "map-server_sql", "vs80\map-server_sql\map-server_sql.vcproj", "{A1AE5537-4A3C-42F3-899D-EDF844BE0766}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5145E2DA-D2BF-4029-942B-91B481846FD5} = {5145E2DA-D2BF-4029-942B-91B481846FD5}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8D8525E7-8836-4D96-8B53-DE0F372CCD34}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8D8525E7-8836-4D96-8B53-DE0F372CCD34}.Debug|Win32.Build.0 = Debug|Win32
+		{8D8525E7-8836-4D96-8B53-DE0F372CCD34}.Release|Win32.ActiveCfg = Release|Win32
+		{8D8525E7-8836-4D96-8B53-DE0F372CCD34}.Release|Win32.Build.0 = Release|Win32
+		{6C499059-C674-43FA-95F0-6933A0E0C249}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6C499059-C674-43FA-95F0-6933A0E0C249}.Debug|Win32.Build.0 = Debug|Win32
+		{6C499059-C674-43FA-95F0-6933A0E0C249}.Release|Win32.ActiveCfg = Release|Win32
+		{6C499059-C674-43FA-95F0-6933A0E0C249}.Release|Win32.Build.0 = Release|Win32
+		{DDD4D106-06F9-4346-9DE6-DB29D835D6EA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DDD4D106-06F9-4346-9DE6-DB29D835D6EA}.Debug|Win32.Build.0 = Debug|Win32
+		{DDD4D106-06F9-4346-9DE6-DB29D835D6EA}.Release|Win32.ActiveCfg = Release|Win32
+		{DDD4D106-06F9-4346-9DE6-DB29D835D6EA}.Release|Win32.Build.0 = Release|Win32
+		{5145E2DA-D2BF-4029-942B-91B481846FD5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5145E2DA-D2BF-4029-942B-91B481846FD5}.Debug|Win32.Build.0 = Debug|Win32
+		{5145E2DA-D2BF-4029-942B-91B481846FD5}.Release|Win32.ActiveCfg = Release|Win32
+		{5145E2DA-D2BF-4029-942B-91B481846FD5}.Release|Win32.Build.0 = Release|Win32
+		{CEDF5628-2931-4FE8-B893-5E81B69B320B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CEDF5628-2931-4FE8-B893-5E81B69B320B}.Debug|Win32.Build.0 = Debug|Win32
+		{CEDF5628-2931-4FE8-B893-5E81B69B320B}.Release|Win32.ActiveCfg = Release|Win32
+		{CEDF5628-2931-4FE8-B893-5E81B69B320B}.Release|Win32.Build.0 = Release|Win32
+		{4A07E400-2774-409C-8194-83F6A1ACB0AC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4A07E400-2774-409C-8194-83F6A1ACB0AC}.Debug|Win32.Build.0 = Debug|Win32
+		{4A07E400-2774-409C-8194-83F6A1ACB0AC}.Release|Win32.ActiveCfg = Release|Win32
+		{4A07E400-2774-409C-8194-83F6A1ACB0AC}.Release|Win32.Build.0 = Release|Win32
+		{32185342-34FB-4120-8392-E6961027213E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{32185342-34FB-4120-8392-E6961027213E}.Debug|Win32.Build.0 = Debug|Win32
+		{32185342-34FB-4120-8392-E6961027213E}.Release|Win32.ActiveCfg = Release|Win32
+		{32185342-34FB-4120-8392-E6961027213E}.Release|Win32.Build.0 = Release|Win32
+		{A1AE5537-4A3C-42F3-899D-EDF844BE0766}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A1AE5537-4A3C-42F3-899D-EDF844BE0766}.Debug|Win32.Build.0 = Debug|Win32
+		{A1AE5537-4A3C-42F3-899D-EDF844BE0766}.Release|Win32.ActiveCfg = Release|Win32
+		{A1AE5537-4A3C-42F3-899D-EDF844BE0766}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
