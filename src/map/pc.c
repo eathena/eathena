@@ -5239,7 +5239,7 @@ int pc_readparam(struct map_session_data *sd,int type)
  */
 int pc_setparam(struct map_session_data *sd,int type,int val)
 {
-	int i = 0,up_level = 50;
+	int i = 0,up_level = battle_config.max_job_level;
 	struct pc_base_job s_class;
 
 	nullpo_retr(0, sd);
@@ -5248,6 +5248,8 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 
 	switch(type){
 	case SP_BASELEVEL:
+		if ((val+ sd->status.base_level) > battle_config.max_base_level) //Capping to max
+			val = battle_config.max_base_level - sd->status.base_level;
 		if (val > sd->status.base_level) {
 			for (i = 1; i <= (val - sd->status.base_level); i++)
 				sd->status.status_point += (sd->status.base_level + i + 14) / 5 ;
@@ -5263,11 +5265,11 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 		break;
 	case SP_JOBLEVEL:
 		if (s_class.job == 0) //Novice & Baby Novice have 10 Job Levels only
-			up_level -= 40;
+			up_level = 10;
 		else if (s_class.job == 23) //Super Novice & Super Baby can go up to 99
-			up_level += 49;
+			up_level = battle_config.max_sn_level;
 		else if (sd->status.class_ >= 4008 && sd->status.class_ <= 4022) //3rd Job has 70 Job Levels
-			up_level += 20;
+			up_level = battle_config.max_adv_level;
 		if (val >= sd->status.job_level) {
 			if (val > up_level) val = up_level;
 			sd->status.skill_point += (val-sd->status.job_level);
@@ -7402,8 +7404,42 @@ int pc_readdb(void)
 		exp_table[12][i]=j5;
 		exp_table[13][i]=j6;
 		i++;
-		if(i >= battle_config.maximum_level)
-			break;
+//We can't assume max_base_level is the max between all columns. [Skotlex]
+//		if(i >= battle_config.max_base_level)
+//			break;
+	}
+	if (i > battle_config.max_base_level)
+	{	//Empty Base level columns
+		for (j = battle_config.max_base_level; j < i && exp_table[0][j]>0; j++)
+		{
+			exp_table[0][j]=0;
+			exp_table[1][j]=0;
+			exp_table[2][j]=0;
+			exp_table[3][j]=0;
+			exp_table[4][j]=0;
+			exp_table[5][j]=0;
+			exp_table[6][j]=0;
+		}
+	}
+	if (i > battle_config.max_sn_level)
+	{	//Empty SN job exp columns
+		for (j = battle_config.max_sn_level; j < i && exp_table[10][j]>0; j++)
+			exp_table[10][j]=0;
+	}
+	if (i > battle_config.max_adv_level)
+	{	//Empty Adv Jobs columns
+		for (j = battle_config.max_adv_level; j < i && exp_table[13][j]>0; j++)
+			exp_table[13][j]=0;
+	}
+	if (i > battle_config.max_job_level)
+	{	//Empty normal Job columns
+		for (j = battle_config.max_job_level; j < i &&
+			(exp_table[8][j]>0 || exp_table[9][j]>0 || exp_table[12][j]>0); j++)
+		{
+			exp_table[8][j]=0; //1st Job
+			exp_table[9][j]=0; //2nd Job
+			exp_table[12][j]=0; //Adv 1st Job
+		}
 	}
 	fclose(fp);
 	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/exp.txt");

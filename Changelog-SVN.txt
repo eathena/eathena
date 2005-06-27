@@ -1,4 +1,8 @@
 Date	Added
+06/27
+	* Removed battle config option maximum_level and replaced it with max_base_level,
+	  max_job_level, max_super_novice_level and max_advanced_job_level. Refer to
+	  battle_athena.conf for more details. [Skotlex]
 06/26
 	* Fixed typo 'identity'->'identify' in charsave.c [DracoRPG]
 	* Added missing ',' to guild_position definition of main.sql [Lupus]

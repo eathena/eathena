@@ -2468,12 +2468,12 @@ int atcommand_baselevelup(
 	}
 
 	if (level > 0) {
-		if (sd->status.base_level == battle_config.maximum_level) {	/* check for max level by Valaris */
+		if (sd->status.base_level == battle_config.max_base_level) {	/* check for max level by Valaris */
 			clif_displaymessage(fd, msg_table[47]); /* Base level can't go any higher. */
 			return -1;
 		}	/* End Addition */
-		if ((unsigned int)level > battle_config.maximum_level || (unsigned int)level > (battle_config.maximum_level - sd->status.base_level)) // fix positiv overflow
-			level = battle_config.maximum_level - sd->status.base_level;
+		if ((unsigned int)level > battle_config.max_base_level || (unsigned int)level > (battle_config.max_base_level - sd->status.base_level)) // fix positiv overflow
+			level = battle_config.max_base_level - sd->status.base_level;
 		for (i = 1; i <= level; i++)
 			sd->status.status_point += (sd->status.base_level + i + 14) / 5;
 		sd->status.base_level += level;
@@ -2489,7 +2489,7 @@ int atcommand_baselevelup(
 			clif_displaymessage(fd, msg_table[158]); /* Base level can't go any lower. */
 			return -1;
 		}
-		if (level < -(int)battle_config.maximum_level || level < (1 - (int)sd->status.base_level)) /* fix negativ overflow */
+		if (level < -(int)battle_config.max_base_level || level < (1 - (int)sd->status.base_level)) /* fix negativ overflow */
 			level = 1 - sd->status.base_level;
 		if (sd->status.status_point > 0) {
 			for (i = 0; i > level; i--)
@@ -2517,7 +2517,7 @@ int atcommand_joblevelup(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	unsigned int up_level = 50;
+	unsigned int up_level = battle_config.max_job_level;
 	int level=0;
 	struct pc_base_job s_class;
 	nullpo_retr(-1, sd);
@@ -2531,12 +2531,12 @@ int atcommand_joblevelup(
 	}
 
 	if (s_class.job == 0)
-		up_level -= 40;
+		up_level = 10; //Novice
 	// super novices can go up to 99 [celest]
 	else if (s_class.job == 23)
-		up_level += 49;
+		up_level = battle_config.max_sn_level; //S. Novice
 	else if (sd->status.class_ > 4007 && sd->status.class_ < 4023)
-		up_level += 20;
+		up_level = battle_config.max_adv_level; //Adv Class
 
 	if (level > 0) {
 		if (sd->status.job_level == up_level) {

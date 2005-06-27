@@ -1290,12 +1290,12 @@ int charcommand_baselevel(
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can change base level only lower or same gm level
 
 			if (level > 0) {
-				if (pl_sd->status.base_level == battle_config.maximum_level) {	// check for max level by Valaris
+				if (pl_sd->status.base_level == battle_config.max_base_level) {	// check for max level by Valaris
 					clif_displaymessage(fd, msg_table[91]); // Character's base level can't go any higher.
 					return 0;
 				}	// End Addition
-				if ((unsigned int)level > battle_config.maximum_level || (unsigned int)level > (battle_config.maximum_level - pl_sd->status.base_level)) // fix positiv overflow
-					level = battle_config.maximum_level - pl_sd->status.base_level;
+				if ((unsigned int)level > battle_config.max_base_level || (unsigned int)level > (battle_config.max_base_level - pl_sd->status.base_level)) // fix positiv overflow
+					level = battle_config.max_base_level - pl_sd->status.base_level;
 				for (i = 1; i <= level; i++)
 					pl_sd->status.status_point += (pl_sd->status.base_level + i + 14) / 5;
 				pl_sd->status.base_level += level;
@@ -1311,7 +1311,7 @@ int charcommand_baselevel(
 					clif_displaymessage(fd, msg_table[193]); // Character's base level can't go any lower.
 					return -1;
 				}
-				if (level < -(int)battle_config.maximum_level || level < (1 - (int)pl_sd->status.base_level)) // fix negativ overflow
+				if (level < -(int)battle_config.max_base_level || level < (1 - (int)pl_sd->status.base_level)) // fix negativ overflow
 					level = 1 - pl_sd->status.base_level;
 				if (pl_sd->status.status_point > 0) {
 					for (i = 0; i > level; i--)
@@ -1348,7 +1348,7 @@ int charcommand_joblevel(
 	const char* command, const char* message)
 {
 	struct map_session_data *pl_sd;
-	unsigned int max_level = 50;
+	unsigned int max_level = battle_config.max_job_level;
 	char player[NAME_LENGTH];
 	int level = 0;
 	//“]¶‚â—{Žq‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ðŽZo‚·‚é
@@ -1364,12 +1364,12 @@ int charcommand_joblevel(
 		pl_s_class = pc_calc_base_job(pl_sd->status.class_);
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can change job level only lower or same gm level
 			if (pl_s_class.job == 0)
-				max_level -= 40;
+				max_level = 10; //Novice
 			// super novices can go up to 99 [celest]
 			else if (pl_s_class.job == 23)
-				max_level += 49;
+				max_level = battle_config.max_sn_level; //S. Novice
 			else if (pl_sd->status.class_ > 4007 && pl_sd->status.class_ < 4023)
-				max_level += 20;
+				max_level = battle_config.max_adv_level; //Adv. Class
 
 			if (level > 0) {
 				if (pl_sd->status.job_level == max_level) {
