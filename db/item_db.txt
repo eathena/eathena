@@ -1114,6 +1114,11 @@
 2656,Hyper_Mode_Changer,Hyper-mode Changer,5,20,0,1000,0,0,0,0,2088958,2,136,0,0,0,0,{},{ if((isequipped(2312) || isequipped(2313))==0) end; bonus bDef,6; bonus bMaxHP,200;}
 2657,Laboratory_Passport,Laboratory Passport,5,20,0,100,,0,,,10477567,2,136,,,,,{},{}
 2658,Nile_Rose_,Nile Rose,5,20,0,100,0,0,0,,10477567,2,136,0,0,0,0,{},{ bonus bMaxHP,10; }
+//These are for Advanced 2nd Jobs
+2659,Vesper_Core_01,Vesper Core 01,5,20,0,500,0,1,0,,2088832,2,136,0,0,0,0,{},{ bonus bDef,1; bonus bMdef,3; bonus bInt,2; bonus bMaxSPrate,5; }
+2660,Vesper_Core_02,Vesper Core 02,5,20,0,500,0,1,0,,2088832,2,136,0,0,0,0,{},{ bonus bDef,1; bonus bMdef,3; bonus bStr,3; bonus bAtk,10; }
+2661,Vesper_Core_03,Vesper Core 03,5,20,0,500,0,1,0,,2088832,2,136,0,0,0,0,{},{ bonus bDef,1; bonus bMdef,3; bonus bAgi,3; bonus bFlee,5; }
+2662,Vesper_Core_04,Vesper Core 04,5,20,0,500,0,1,0,,2088832,2,136,0,0,0,0,{},{ bonus bDef,1; bonus bMdef,3; bonus bDex,3; bonus bHit,10; }
 
 // Cards
 //===================================================================
@@ -1943,7 +1948,47 @@
 7357,Embelem_Piece,Piece of Emblem,3,20,0,10,,,,,,,,,,,,{},{}
 7358,Embelem_Piece,Piece of Emblem,3,20,0,10,,,,,,,,,,,,{},{}
 7359,Embelem_Piece,Piece of Emblem,3,20,0,10,,,,,,,,,,,,{},{}
+7360,RO_Festival_Invitation_Ticket,Festival Ticket,3,20,0,10,,,,,,,,,,,,{},{}
+7361,Number_1_Ball,Number_1_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7362,Number_2_Ball,Number_2_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7363,Number_3_Ball,Number_3_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7364,Number_4_Ball,Number_4_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7365,Number_5_Ball,Number_5_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7366,Number_6_Ball,Number_6_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7367,Number_7_Ball,Number_7_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7368,Number_8_Ball,Number_8_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7369,Number_9_Ball,Number_9_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7370,Number_10_Ball,Number_10_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7371,Number_11_Ball,Number_11_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7372,Number_12_Ball,Number_12_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7373,Number_13_Ball,,Number_13_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7374,Number_14_Ball,Number_14_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7375,Number_15_Ball,Number_15_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7376,Number_16_Ball,Number_16_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7377,Number_17_Ball,Number_17_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7378,Number_18_Ball,Number_18_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7379,Number_19_Ball,Number_19_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7380,Number_20_Ball,Number_20_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7381,Number_21_Ball,Number_21_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7382,Number_22_Ball,Number_22_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7383,Number_23_Ball,Number_23_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7384,Number_24_Ball,Number_24_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7385,Number_25_Ball,Number_25_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7386,Number_26_Ball,Number_26_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7387,Number_27_Ball,Number_27_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7388,Number_28_Ball,Number_28_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7389,Number_29_Ball,Number_29_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7390,Number_30_Ball,Number_30_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7391,Number_31_Ball,Number_31_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7392,Number_32_Ball,Number_32_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7393,Number_33_Ball,Number_33_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7394,Number_34_Ball,Number_34_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7395,Number_35_Ball,Number_35_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7396,Number_36_Ball,Number_36_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7397,Number_37_Ball,Number_37_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7398,Number_38_Ball,Number_38_Ball,3,20,0,10,,,,,,,,,,,,{},{}
 
+//THQ Quest Items
 7500,THG_Membership,THG Membership,3,20,0,10,,,,,,,,,,,,{},{}
 7501,Token_Bag,Token Bag,3,20,0,10,,,,,,,,,,,,{},{}
 
@@ -2064,6 +2109,11 @@
 12032,Downpour_Box,Box of Heavy Rain,2,20,0,200,,,,,10477567,2,,,,,,{},{} //increase attack speed by 20%
 12033,Sunshine_Box,Box of Sunshine,2,20,0,200,,,,,10477567,2,,,,,,{},{} //can see cloaked or hidden enemy
 12034,Gasping_Box,Gasping Box,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_Silence,30000,0; percentheal 0,9; },{} //the probablity is 100%
+12035,Ball_Box,Ball Box,2,20,0,20,,,,,10477567,2,,,,,,{ getitem rand(7361,7368),1; },{}
+12036,Ball_Box_,Ball Box,2,20,0,20,,,,,10477567,2,,,,,,{ getitem rand(7369,7376),1; },{}
+12037,Ball_Box__,Ball Box,2,20,0,20,,,,,10477567,2,,,,,,{ getitem rand(7377,7384),1; },{}
+12038,Ball_Box___,Ball Box,2,20,0,20,,,,,10477567,2,,,,,,{ getitem rand(7385,7392),1; },{}
+12039,Ball_Box____,Ball Box,2,20,0,20,,,,,10477567,2,,,,,,{ getitem rand(7393,7398),1; },{}
 
 // More Weapons
 //===================================================================
