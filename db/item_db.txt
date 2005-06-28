@@ -1298,7 +1298,7 @@
 4174,Deviling_Card,Deviling Card,6,20,0,10,,,,,,,4,,,,,{},{ bonus2 bSubEle,0,50; bonus2 bSubEle,1,-50; bonus2 bSubEle,2,-50; bonus2 bSubEle,3,-50; bonus2 bSubEle,4,-50; bonus2 bSubEle,5,-50; bonus2 bSubEle,6,-50; bonus2 bSubEle,7,-50; bonus2 bSubEle,8,-50; bonus2 bSubEle,9,-50; }
 4175,Poisonous_Toad_Card,Poisonous Toad Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus3 bAutoSpell,52,1,2; }
 4176,Dullahan_Card,Dullahan Card,6,20,10,10,,,,,,,2,,,,,{},{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,9,7; }
-4177,Dryad_Card,Dryad Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus2 bSubEle,2,10; }
+4177,Dryad_Card,Dryad Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus2 bSubEle,2,10; bonus3 bAddMonsterDropItem,993,3,500; } 
 4178,Dragon_Tail_Card,Dragon Tail Card,6,20,0,10,,,,,,,4,,,,,{},{ bonus bAgi,1; bonus bFlee,10; bonus2 bSkillAtk,46,5; bonus2 bSkillAtk,47,5; }
 4179,Dragon_Fly_Card,Dragon Fly Card,6,20,0,10,,,,,,,4,,,,,{},{ bonus bAgi,1; if(isequipped(4009)) bonus bFlee,18; }
 4180,Driller_Card,Driller Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus2 bSPGainRace,9,5; bonus bLoseSPWhenUnequip,5; }
