@@ -1,5 +1,6 @@
 Date	Added
 06/28
+	* Old Sakexes can now login to the server. [davidsiaw]
 	* Doubled Investigate/Occult-Sight's damage and made it non-elemental as per
 	  ragnainfo sources. [Skotlex]
 	* Sacrifice now always hits.

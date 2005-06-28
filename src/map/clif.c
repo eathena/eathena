@@ -11442,7 +11442,7 @@ int clif_parse(int fd) {
 	// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する
 	if (cmd >= MAX_PACKET_DB || packet_db[packet_ver][cmd].len == 0) {	// if packet is not inside these values: session is incorrect?? or auth packet is unknown
 		if (!fd)
-			return 0;
+			return 0;			
 		close(fd);
 		session[fd]->eof = 1;
 		printf("clif_parse: session #%d, packet 0x%x (%d bytes received) -> disconnected.\n", fd, cmd, RFIFOREST(fd));
