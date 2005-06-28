@@ -48,7 +48,7 @@
 285,0x9a,    ,  3, 0,  -1,all,   0x000	//SA_VOLCANO#ボルケーノ
 286,0x9b,    ,  3, 0,  -1,all,   0x000	//SA_DELUGE#デリュージ
 287,0x9c,    ,  3, 0,  -1,all,   0x000	//SA_VIOLENTGALE#バイオレントゲイル
-288,0x9d,    ,  3, 0,  -1,all,   0x000	//SA_LANDPROTECTOR#ランドプロテクター
+288,0x9d,,3:3:4:4:5,0, -1,all,   0x000	//SA_LANDPROTECTOR#ランドプロテクター
 306,0x9e,    ,  4, 0,6000,all,   0x300	//BD_LULLABY#子守歌
 307,0x9f,    ,  4, 0,  -1,party, 0x300	//BD_RICHMANKIM#ニヨルドの宴
 308,0xa0,    ,  4, 0,  -1,enemy, 0x300	//BD_ETERNALCHAOS#永遠の混沌
