@@ -20,6 +20,7 @@
 //= 1.3a Temporary corrected an expliot.  Need to check sources 
 //= to fully fix bug [Shinigami]
 //= Fixed repairman prices [shadowlady]
+//= Fixed bug that skips requirements thanks to sir_loon [massdriller]
 //============================================================
 
 
@@ -297,7 +298,7 @@ REFINE0:
 	set @price,2000;
 	set @safe,4;
 	if(@features == 1) callfunc "refinefeatures";
-	callfunc "refinenormal";
+	goto L_refinenormal;
 //Refine Level 1 Weapon
 REFINE1:
 	if(getequipweaponlv(@part) > 1) goto REFINE2;
@@ -306,7 +307,7 @@ REFINE1:
 	set @price,50;
 	set @safe,7;
 	if(@features == 1) callfunc "refinefeatures";
-	callfunc "refinenormal";
+	goto L_refinenormal;
 //Refine Level 2 Weapon
 REFINE2:
 	if(getequipweaponlv(@part) > 2) goto REFINE3;
@@ -315,7 +316,7 @@ REFINE2:
 	set @price,200;
 	set @safe,6;
 	if(@features == 1) callfunc "refinefeatures";
-	callfunc "refinenormal";
+	goto L_refinenormal;
 //Refine Level 3 Weapon
 REFINE3:
 	if(getequipweaponlv(@part) > 3) goto REFINE4;
@@ -324,7 +325,7 @@ REFINE3:
 	set @price,5000;
 	set @safe,5;
 	if(@features == 1) callfunc "refinefeatures";
-	callfunc "refinenormal";
+	goto L_refinenormal;
 //Refine Level 4 Weapon
 REFINE4:
 	set @matname$,"Oridecon";
@@ -332,11 +333,9 @@ REFINE4:
 	set @price,20000;
 	set @safe,4;
 	if(@features == 1) callfunc "refinefeatures";
-	callfunc "refinenormal";
-}
+	goto L_refinenormal;
 
-// Normal Refining Functions =========================
-function	script	refinenormal	-1,{
+L_refinenormal:
 	mes "[" + @name$ + "]";	
 	mes "To refine this stuff,I need ^ff9999" + @matname$ + "^000000 and the fee " + @price + " Zeny.";
 	mes "Continue?";
@@ -357,6 +356,7 @@ function	script	refinenormal	-1,{
 			if ((countitem(@material) < 1) || (Zeny < @price)) goto Lcancel2;
 			delitem @material,1;
 			set Zeny,Zeny-@price;
+
 
 Lrefine:
 	if (getequippercentrefinery(@part)<=rand(100)) goto Lfail;
