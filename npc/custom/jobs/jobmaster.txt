@@ -1,9 +1,9 @@
 //===== eAthena Script =======================================
-//= LunatikBunnie's Compact Jobchanger AKA Job Master
+//= eAthena Jobchanger AKA Job Master
 //===== By: ==================================================
-//= LunatikBunnie
+//= eAthena Dev Team [LunatikBunnie]
 //===== Current Version: =====================================
-//= 1.1b
+//= 1.2b
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Description: =========================================
@@ -23,7 +23,7 @@ prontera.gat,153,193,6	script	Job Master	123,{
 	if(JobLevel <10) goto L_notEn;
 	if((class ==4001) && ((lastJob ==7) || (lastJob ==14))) goto L_cHsword;
 	if((class ==4001) && ((lastJob ==9) || (lastJob ==16))) goto L_cHmage;
-	if((class ==4001) && ((lastJob ==11) || (lastJob ==14))) goto L_cHarcher;
+	if((class ==4001) && ((lastJob ==11) || (lastJob ==19) || (lastJob ==20))) goto L_cHarcher;
 	if((class ==4001) && ((lastJob ==8) || (lastJob ==15))) goto L_cHacolyte;
 	if((class ==4001) && ((lastJob ==10) || (lastJob ==18))) goto L_cHmerchant;
 	if((class ==4001) && ((lastJob ==12) || (lastJob ==17))) goto L_cHthief;
@@ -137,7 +137,7 @@ prontera.gat,153,193,6	script	Job Master	123,{
 					if(GivePlat ==1) goto L_givePlat;
 					close;
 				L_dancer:
-					jobchange 14;
+					jobchange 20;
 					if(GivePlat ==1) goto L_givePlat;
 					close;
 // Change to Priest/Monk
@@ -185,7 +185,7 @@ prontera.gat,153,193,6	script	Job Master	123,{
 		mes "Do you want to reborn?";
 		next;
 		menu "Yes",-,"No",L_quit;
-		if ((BaseLevel < 99) && (JobLevel < 50)) goto L_cantCh;
+		if ((BaseLevel < 99) || (JobLevel < 50)) goto L_cantCh;
 		set lastJob, readparam(19);
 		jobchange 24;
 		resetlvl(1);
@@ -425,4 +425,4 @@ prontera.gat,153,193,6	script	Job Master	123,{
 		mes "Please come again soon!";
 		close;
 }
-// ------------------------------ End ------------------------------
+// ------------------------------ End -------------------

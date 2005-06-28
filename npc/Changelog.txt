@@ -27,6 +27,7 @@ Date		Added
 ======
 06/28
 	* Fixed bug in Refuine script that allows to bypass item & zeny restrictions thanks to sir_loon [massdriller]
+	* Updated Lunatik's Jobchanger [massdriller]
 06/24
 	* Changed Guild Castle Manager to make Emsolute/Permanent Development affect only economy
 	  investment [DracoRPG]
