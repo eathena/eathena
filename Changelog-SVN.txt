@@ -1,10 +1,17 @@
 Date	Added
+06/28
+	* Doubled Investigate/Occult-Sight's damage and made it non-elemental as per
+	  ragnainfo sources. [Skotlex]
+	* Sacrifice now always hits.
+	* Added import of msg_conf.txt for custom message translations. [Skotlex]
+	
 06/27
 	* Fixed Pressure missing. [Skotlex]
 	* Added 2Secs delay to Sonic Blows. [Skotlex]
 	* Removed battle config option maximum_level and replaced it with max_base_level,
 	  max_job_level, max_super_novice_level and max_advanced_job_level. Refer to
 	  battle_athena.conf for more details. [Skotlex]
+	  
 06/26
 	* Fixed typo 'identity'->'identify' in charsave.c [DracoRPG]
 	* Added missing ',' to guild_position definition of main.sql [Lupus]
@@ -26,6 +33,7 @@ Date	Added
 	  If for some reason the new main.sql doesn't work for you, you 
 	  can use main_old.sql, but there will be garbage left in the DB 
 	  if a guild is deleted. [Aru]
+	  
 06/25
 	* Asura/Extremity-Fist needs Fury/Explosion-Spirits active no matter how
 	  it's triggered. Not yet tested, but it should work. [Skotlex]
@@ -36,6 +44,7 @@ Date	Added
 	* Added limit 10 to fame list SQL query (faster, when u got 1000+ bsm/alch in DB) [Lupus]
 	* Added missing field guild/char_id to main.sql database definition [Lupus]
 	  Warning: Don't use guild_tables.sql databases yet! Use main.sql file
+	  
 06/24
 	* Small bug fix on the Monk combos introduced by previous reorganization. [Skotlex]
 	* Some corrections on player_cloak_type code. [Skotlex]

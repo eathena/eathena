@@ -1004,7 +1004,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 				break;
 			case MO_INVESTIGATE:	// ”­ ™¤
 				if(def1 < 1000000)
-					damage = damage*(100+ 75*skill_lv)/100 * (def1 + def2)/100;
+					damage = damage*(100+ 75*skill_lv)/100 * (def1 + def2)/50;
 				hitrate = 1000000;
 				ignore_def_flag = 1;
 				s_ele = 0;
@@ -1536,7 +1536,7 @@ static struct Damage battle_calc_mob_weapon_attack(
 				break;
 			case MO_INVESTIGATE:	// ”­ ™¤
 				if(def1 < 1000000)
-					damage = damage*(100+ 75*skill_lv)/100 * (def1 + def2)/100;
+					damage = damage*(100+ 75*skill_lv)/100 * (def1 + def2)/50;
 				hitrate = 1000000;
 				ignore_def_flag = 1;
 				s_ele = 0;
@@ -2294,8 +2294,8 @@ static struct Damage battle_calc_pc_weapon_attack(
 				break;
 			case MO_INVESTIGATE:	// ”­ ™¤
 				if(def1 < 1000000) {
-					damage = damage*(def1 + def2)/100;
-					damage2 = damage2*(def1 + def2)/100;
+					damage = damage*(def1 + def2)/50;
+					damage2 = damage2*(def1 + def2)/50;
 					damage_rate += 75*skill_lv;
 				}
 				hitrate = 1000000;
@@ -3224,6 +3224,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 			case MO_INVESTIGATE:
 			case MO_EXTREMITYFIST:
 			case PA_PRESSURE:
+			case PA_SACRIFICE:
 				flag.hit = 1;
 				break;
 		}
@@ -3611,9 +3612,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 					if (!flag.infdef)
 					{
 						skillratio+=75*skill_lv;
-						ATK_RATE((def1 + def2));
+						ATK_RATE(2*(def1 + def2));
 					}
 					flag.idef= flag.idef2= 1;
+					ele_flag=1;
 					break;
 				case MO_EXTREMITYFIST:
 					if (sd)
