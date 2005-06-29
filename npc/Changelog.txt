@@ -26,6 +26,7 @@ TODO:
 Date		Added
 ======
 06/29
+	* Fixed massive EXP/Loot exploits of all Job Quests (especially in the Rogue JQ) [Lupus]
 	* Inserted a missing ".gat" in alberta city NPC header
 	* Moved banks scripts into /banks/ [massdriller]
 	* Corrected small typo in config for marraige script [massdriller]

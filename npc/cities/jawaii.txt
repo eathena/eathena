@@ -95,7 +95,7 @@ jawaii.gat,122,263,4	script	Sailor	100,{
 	mes "By chance, you haven't left anything behind?";
 	mes "Perhaps you should verify and check once more.";
 	next;
-	menu "Return to Alberta",-,"Cance;",Lend;
+	menu "Return to Alberta",-,"Cancel",Lend;
 		warp "alberta.gat",192,169;
 		close;
 Lend:

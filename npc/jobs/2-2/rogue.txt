@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.5
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -13,6 +13,7 @@
 //===== Additional Comments: ================================= 
 //= 1.1 fixed 3 wrong questions, added missing lines [Lupus]
 //= 1.3 Baby Class Support + 40/50 JobLevel Item fix [Lupus]
+//= 1.5 Fixed possible EXP abuse [Lupus]
 //============================================================ 
 
 
@@ -741,4 +742,13 @@ OnMinute60:
 	end;
 }
 
-
+//==============================================================================
+// mapflag
+//==============================================================================
+in_rogue.gat	mapflag	nomemo
+in_rogue.gat	mapflag	noteleport
+in_rogue.gat	mapflag	nosave	SavePoint
+in_rogue.gat	mapflag	nopenalty
+in_rogue.gat	mapflag	nobranch
+in_rogue.gat	mapflag	noexp
+in_rogue.gat	mapflag	noloot

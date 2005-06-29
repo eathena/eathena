@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -16,6 +16,7 @@
 //= 1.4 Changed the timing system to initnpctimer, now you do get warnings about time
 //=     and are limited to 7min to complete the quest [Fredzilla]
 //= v1.5 Optimised and moved first checker to Jfunc1-1 [massdriller]
+//= 1.6 Fixed possible EXP abuse [Lupus]
 //============================================================ 
 
 
@@ -765,3 +766,14 @@ sword_1-1.gat,183,167,4	duplicate(3_blank)	3_blank_29_g	139,0,1
 sword_1-1.gat,176,163,4	duplicate(3_blank)	3_blank_30_a	139,0,2
 sword_1-1.gat,177,163,4	duplicate(3_blank)	3_blank_30_b	139,0,2
 sword_1-1.gat,181,163,4	duplicate(3_blank)	3_blank_30_c	139,2,0
+
+//==============================================================================
+// mapflag
+//==============================================================================
+sword_1-1.gat	mapflag	nomemo
+sword_1-1.gat	mapflag	noteleport
+sword_1-1.gat	mapflag	nosave	SavePoint
+sword_1-1.gat	mapflag	nopenalty
+sword_1-1.gat	mapflag	nobranch
+sword_1-1.gat	mapflag	noexp
+sword_1-1.gat	mapflag	noloot

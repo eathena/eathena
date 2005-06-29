@@ -5,7 +5,7 @@
 //= converted by kobra_k88
 //= Further bugfixed and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.5
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -20,6 +20,7 @@
 //= 1.2c changed one Horong to Frilldora (now 3rd room contains 1 agressive mob.)
 //= 1.2d more simplified fire room - removed agressive Desert Wolf [Lupus]
 //= 1.3 Added Baby Class support [Lupus]
+//= 1.5 Fixed possible EXP abuse [Lupus]
 //============================================================ 
 
 
@@ -1392,3 +1393,15 @@ OnTimer30000:
 job_wiz.gat,30,97,1	duplicate(firewrp)	firewarpW	45,1,1
 job_wiz.gat,46,113,1	duplicate(firewrp)	firewarpN	45,1,1
 job_wiz.gat,46,82,1	duplicate(firewrp)	firewarpS	45,1,1
+
+
+//==============================================================================
+// mapflag
+//==============================================================================
+job_wiz.gat	mapflag	nomemo
+job_wiz.gat	mapflag	noteleport
+job_wiz.gat	mapflag	nosave	SavePoint
+job_wiz.gat	mapflag	nopenalty
+job_wiz.gat	mapflag	nobranch
+job_wiz.gat	mapflag	noexp
+job_wiz.gat	mapflag	noloot
