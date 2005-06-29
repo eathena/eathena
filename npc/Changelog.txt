@@ -26,6 +26,7 @@ TODO:
 Date		Added
 ======
 06/29
+	* Inserted a missing ".gat" in alberta city NPC header
 	* Moved banks scripts into /banks/ [massdriller]
 	* Corrected small typo in config for marraige script [massdriller]
 	* Added Jawaii npcs thanks to DNett123 [massdriller]
