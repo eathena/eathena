@@ -25,6 +25,9 @@ TODO:
 
 Date		Added
 ======
+06/29
+	* Moved banks scripts into /banks/ [massdriller]
+	* Corrected small typo in config for marraige script [massdriller]  
 06/28
 	* Fixed bug in Refuine script that allows to bypass item & zeny restrictions thanks to sir_loon [massdriller]
 	* Updated Lunatik's Jobchanger [massdriller]
