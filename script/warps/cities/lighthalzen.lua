@@ -115,8 +115,8 @@ addwarp("lhz050","lhz_in02.gat",114,273,"lhz_in02.gat",151,283,1,1)
 addwarp("lhz050a","lhz_in02.gat",149,283,"lhz_in02.gat",112,273,1,1)
 addwarp("lhz051","lhz_cube.gat",248,183,"lighthalzen.gat",54,131,1,1)
 addwarp("lhz051a","lighthalzen.gat",52,131,"lhz_cube.gat",246,183,1,1)
---== Yuno Airport =================================================
 
+--== Yuno Airport =================================================
 addwarp("jairp1","y_airport.gat",125,14,"y_airport.gat",19,20,1,1)
 addwarp("jairp1a","y_airport.gat",19,18,"y_airport.gat",123,14,1,1)
 addwarp("jairp2","y_airport.gat",160,14,"y_airport.gat",48,20,1,1)
@@ -131,3 +131,17 @@ addwarp("lairp2","lhz_airport.gat",160,14,"lhz_airport.gat",48,20,1,1)
 addwarp("lairp2a","lhz_airport.gat",48,18,"lhz_airport.gat",162,14,1,1)
 addwarp("lairp3","lighthalzen.gat",267,76,"lhz_airport.gat",143,15,1,1)
 addwarp("lairp3a","lhz_airport.gat",143,13,"lighthalzen.gat",265,76,1,1)
+
+--= Airplanes =====================================================
+addwarp("airs01","airplane.gat",255,55,"airplane.gat",90,68,1,1)
+addwarp("airs01a","airplane.gat",88,68,"airplane.gat",253,55,1,1)
+addwarp("airs02","airplane.gat",104,200,"airplane.gat",105,72,1,1)
+addwarp("airs02a","airplane.gat",103,72,"airplane.gat",102,200,1,1)
+addwarp("airs03","airplane.gat",104,176,"airplane.gat",105,52,1,1)
+addwarp("airs03a","airplane.gat",103,52,"airplane.gat",102,176,1,1)
+addwarp("airs04","airplane_01.gat",255,55,"airplane_01.gat",90,68,1,1)
+addwarp("airs04a","airplane_01.gat",88,68,"airplane_01.gat",253,55,1,1)
+addwarp("airs05","airplane_01.gat",104,200,"airplane_01.gat",105,72,1,1)
+addwarp("airs05a","airplane_01.gat",103,72,"airplane_01.gat",102,200,1,1)
+addwarp("airs06","airplane_01.gat",104,176,"airplane_01.gat",105,52,1,1)
+addwarp("airs06a","airplane_01.gat",103,52,"airplane_01.gat",102,176,1,1)

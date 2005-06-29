@@ -11,6 +11,8 @@ Fredzilla
 == Changelog ==
 
 Date	Added
+06/29
+	* Update the Lua Warps, again a mirror of stable
 06/25
 	* Changed "script_spawn.lua" to "script_spawns.lua", same for merchant->merchants [DracoRPG]
 06/24

@@ -28,7 +28,6 @@ addspawn("Horong","ama_dun02.gat",-1,-1,0,0,1129,10,0,0,"")
 addspawn("Miyabi Doll","ama_dun02.gat",-1,-1,0,0,1404,5,0,0,"")
 
 --(ama_dun01.gat)*
-addspawn("0","//(ama_dun01.gat)*",,,,,0,0,,,"")
 addspawn("Shinobi","ama_dun01.gat",-1,-1,0,0,1401,2,0,0,"")
 addspawn("Antique Firelock","ama_dun01.gat",-1,-1,0,0,1403,45,0,0,"")
 addspawn("Miyabi Doll","ama_dun01.gat",-1,-1,0,0,1404,65,0,0,"")
