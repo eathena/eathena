@@ -1,4 +1,7 @@
 Date	Added
+06/29
+	* Fixed Bowling Bash and Spear Stab having knockback in 
+	  situations where knockback should be disabled (GvG/MVP) [Aru]
 06/28
 	* Fixed Land Protector's range
 	* Old Sakexes can now login to the server. [davidsiaw]

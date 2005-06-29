@@ -2581,7 +2581,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				int i,c;	/* 他人から聞いた動きなので間違ってる可能性大＆?率が?いっす＞＜ */
 				/* まずターゲットに攻撃を加える */
 				c = skill_get_blewcount(skillid,skilllv);
-				if(map[bl->m].flag.gvg) c = 0;
+				if(map[bl->m].flag.gvg || status_get_mexp(bl)) 
+					c = 0;
 				for(i=0;i<c;i++){
 					skill_blown(src,bl,1);
 					if(bl->type == BL_MOB)
@@ -2612,7 +2613,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			/* 個別にダメージを与える */
 			if (bl->id==skill_area_temp[1])
 				break;
-			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500))
+			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500) &&
+			   !(map[bl->m].flag.gvg || status_get_mexp(bl)))
 				skill_blown(src,bl,skill_area_temp[2]);
 		} else {
 			int x=bl->x,y=bl->y,i,dir;
@@ -2620,7 +2622,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			dir = map_calc_dir(bl,src->x,src->y);
 			skill_area_temp[1] = bl->id;
 			skill_area_temp[2] = skill_get_blewcount(skillid,skilllv)|dir<<20;
-			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0))
+			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0) &&
+			   !(map[bl->m].flag.gvg || status_get_mexp(bl)))
 				skill_blown(src,bl,skill_area_temp[2]);
 			for (i=0;i<4;i++) {
 				map_foreachinarea(skill_area_sub,bl->m,x,y,x,y,0,
