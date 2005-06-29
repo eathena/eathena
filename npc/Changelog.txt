@@ -31,6 +31,7 @@ Date		Added
 	* Added Jawaii npcs thanks to DNett123 [massdriller]
 	* Updated Sara-Chan's Lighthalzen Warps [massdriller]
 	* Added Warning to config files [massdriller]
+	* Reinstated in warper npc. It was missing o.O [massdriller]
 06/28
 	* Fixed bug in Refine script that allows to bypass item & zeny restrictions thanks to sir_loon [massdriller]
 	* Updated Lunatik's Jobchanger [massdriller]
