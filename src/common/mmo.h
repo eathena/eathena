@@ -990,7 +990,7 @@ extern inline void _guild_member_tobuffer(const struct guild_member &p, unsigned
 	_L_tobuffer(  (p.rsv2),		buf);
 	_S_tobuffer(                  (p.name),		buf, 24);
 	//_L_tobuffer( &(p.sd),			buf);
-	(*buf)+=4;
+	buf+=sizeof(struct map_session_data *);
 	// skip the struct map_session_data *
 }
 extern inline void guild_member_tobuffer(const struct guild_member &p, unsigned char *buf)
@@ -1015,7 +1015,8 @@ extern inline void _guild_member_frombuffer(struct guild_member &p, const unsign
 	_L_frombuffer(  (p.rsv2),		buf);
 	_S_frombuffer(                  (p.name),		buf, 24);
 	//_L_frombuffer( &(p.sd),		buf);
-	buf+=4; p.sd = NULL; 
+	buf+=sizeof(struct map_session_data *);
+	p.sd = NULL; 
 	// skip the struct map_session_data *
 }
 extern inline void guild_member_frombuffer(struct guild_member &p, const unsigned char *buf)

@@ -13,7 +13,7 @@
 #define PC_CLASS_BASE3 (PC_CLASS_BASE2 + 22)
 #define MAX_NPC_PER_MAP 512
 #define BLOCK_SIZE 8
-#define AREA_SIZE battle_config.area_size
+#define AREA_SIZE (int)battle_config.area_size
 #define LOCAL_REG_NUM 16
 #define LIFETIME_FLOORITEM 60
 #define DAMAGELOG_SIZE 30

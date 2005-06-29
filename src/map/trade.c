@@ -41,8 +41,8 @@ void trade_traderequest(struct map_session_data &sd, unsigned long target_id)
 			trade_tradecancel(sd); // person is in another trade
 		}
 		else if( battle_config.gm_can_drop_lv &&
-			(level  < battle_config.gm_can_drop_lv) ||
-			(level2 < battle_config.gm_can_drop_lv) )
+			(level > 0 && level  < battle_config.gm_can_drop_lv) ||
+			(level2> 0 && level2 < battle_config.gm_can_drop_lv) )
 		{
 			clif_displaymessage(sd.fd, msg_txt(246));
 			trade_tradecancel(sd); // GM is not allowed to trade		

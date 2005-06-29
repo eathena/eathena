@@ -222,14 +222,14 @@ int clif_send_sub(block_list &bl, va_list ap)
 	struct map_session_data& sd = (struct map_session_data&)bl;
 	struct block_list *src_bl;
 	unsigned char *buf;
-	int len, type;
+	size_t len, type;
 	
 	if(bl.type!=BL_PC)
 		return 0;
 	
 	nullpo_retr(0, ap);
 	buf = va_arg(ap,unsigned char*);
-	len = va_arg(ap,int);
+	len = (size_t)va_arg(ap,size_t);
 	nullpo_retr(0, src_bl = va_arg(ap,struct block_list*));
 	type = va_arg(ap,int);
 
@@ -254,21 +254,21 @@ int clif_send_sub(block_list &bl, va_list ap)
 
 	if( session_isActive(sd.fd) )
 	{
-		if (WFIFOP(sd.fd,0) == buf)
+		if(WFIFOP(sd.fd,0) == buf)
 		{
 			ShowMessage("WARNING: Invalid use of clif_send function\n");
 			ShowMessage("         Packet x%4x use a WFIFO of a player instead of to use a buffer.\n", (unsigned short)WBUFW(buf,0));
 			ShowMessage("         Please correct your code.\n");
 			// don't send to not move the pointer of the packet for next sessions in the loop
-			}
+		}
 		else
 		{
 			if (packet_db[sd.packet_ver][RBUFW(buf,0)].len)
 			{	// packet must exist for the client version
 				memcpy(WFIFOP(sd.fd,0), buf, len);
 				WFIFOSET(sd.fd,len);
+			}
 		}
-	}
 	}
 	return 0;
 }
@@ -11703,10 +11703,15 @@ int clif_parse(int fd)
 			}
 			else
 			{	// have a dummy session data to call with WantToConnection
-				map_session_data dummy;
 				if( packet_db[packet_ver][cmd].func==clif_parse_WantToConnection )
-					sd = &dummy;
-				if(sd) packet_db[packet_ver][cmd].func(fd, *sd);
+				{	static map_session_data dummy;
+					dummy.packet_ver = packet_ver;
+					packet_db[packet_ver][cmd].func(fd, dummy);
+					// we come out of WantToConnection and have a valid sd for the next run or NULL if not
+					sd = (session[fd])?((struct map_session_data *)session[fd]->session_data):NULL;
+				}
+				else if(sd)
+					packet_db[packet_ver][cmd].func(fd, *sd);
 			}
 		}
 #if DUMP_UNKNOWN_PACKET == 1

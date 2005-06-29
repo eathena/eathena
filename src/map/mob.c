@@ -627,7 +627,7 @@ int mob_attack(struct mob_data &md,unsigned long tick,int data)
 	if(battle_config.monster_attack_direction_change)
 		md.dir=map_calc_dir(md.bl, tbl->x,tbl->y );	// 向き設定
 
-	clif_fixmobpos(md);
+	//clif_fixmobpos(md);
 
 	md.state.skillstate=MSS_ATTACK;
 	if( mobskill_use(md,tick,-2) )	// スキル使用
@@ -922,6 +922,7 @@ int mob_spawn(unsigned long id)
 		else // no chance to find the real name, just take it from the db, should not happen anyway
 			memcpy(md->name, mob_db[md->base_class].jname,24);
 		md->speed=mob_db[md->base_class].speed;
+		md->mode=mob_db[md->base_class].mode;
 	}
 
 	do
@@ -3186,8 +3187,8 @@ int mob_summonslave(struct mob_data &md2,int *value,int amount,int flag)
 			{
 				md->master_id=md2.bl.id;
 				md2.state.is_master = true;
+			}
 		}
-	}
 	}
 	return 0;
 }

@@ -484,7 +484,7 @@ int map_foreachinarea(int (*func)(struct block_list&,va_list),unsigned short m,i
 	struct block_list *bl=NULL;
 	int blockcount=bl_list_count,i,c;
 
-	if(m >= MAX_MAP_PER_SERVER)
+	if(m >= map_num)
 		return 0;
 	
 	if(x0>x1) swap(x0,x1);
@@ -495,27 +495,29 @@ int map_foreachinarea(int (*func)(struct block_list&,va_list),unsigned short m,i
 	if (x1 >= map[m].xs) x1 = map[m].xs-1;
 	if (y1 >= map[m].ys) y1 = map[m].ys-1;
 	if (type == 0 || type != BL_MOB)
-		for (by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++) {
-			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
-				bl = map[m].block[bx+by*map[m].bxs];
-				c = map[m].block_count[bx+by*map[m].bxs];
-				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl && type && bl->type!=type)
-						continue;
-					if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
-						bl_list[bl_list_count++]=bl;
-				}
+		for(by = y0/BLOCK_SIZE; by <= y1/BLOCK_SIZE; by++)
+		for(bx = x0/BLOCK_SIZE; bx <= x1/BLOCK_SIZE; bx++)
+		{
+			bl = map[m].block[bx+by*map[m].bxs];
+			c = map[m].block_count[bx+by*map[m].bxs];
+			for(i=0;i<c && bl;i++,bl=bl->next)
+			{
+				if(bl && type && bl->type!=type)
+					continue;
+				if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
+					bl_list[bl_list_count++]=bl;
 			}
 		}
 	if(type==0 || type==BL_MOB)
-		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++){
-			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
-				bl = map[m].block_mob[bx+by*map[m].bxs];
-				c = map[m].block_mob_count[bx+by*map[m].bxs];
-				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
-						bl_list[bl_list_count++]=bl;
-				}
+		for(by = y0/BLOCK_SIZE; by <= y1/BLOCK_SIZE; by++)
+		for(bx = x0/BLOCK_SIZE; bx <= x1/BLOCK_SIZE; bx++)
+		{
+			bl = map[m].block_mob[bx+by*map[m].bxs];
+			c = map[m].block_mob_count[bx+by*map[m].bxs];
+			for(i=0;i<c && bl;i++,bl=bl->next)
+			{
+				if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
+					bl_list[bl_list_count++]=bl;
 			}
 		}
 
@@ -524,11 +526,13 @@ int map_foreachinarea(int (*func)(struct block_list&,va_list),unsigned short m,i
 			ShowMessage("map_foreachinarea: *WARNING* block count too many!\n");
 	}
 
-
 	{
 		va_list ap;
 		va_start(ap,type);
+
 		map_freeblock_lock();	// メモリからの解放を禁止する
+
+//printf("%p, %i,%i,%i,%i,%i,%i\n", ap, x0,x1,bx,y0,y1,by);fflush(stdout);
 
 		for(i=blockcount;i<bl_list_count;i++)
 			if(bl_list[i] && bl_list[i]->prev)	// 有?かどうかチェック

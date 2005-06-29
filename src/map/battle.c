@@ -3206,6 +3206,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 			case AM_ACIDTERROR:
 			case MO_INVESTIGATE:
 			case MO_EXTREMITYFIST:
+			case PA_PRESSURE:
 				flag.hit = 1;
 				break;
 		}

@@ -1462,9 +1462,9 @@ public:
 #define RFIFOSPACE(fd) ((int)((session[fd]&&session[fd]->rdata)?(session[fd]->rdata_max-session[fd]->rdata_size):0))
 #define RBUFP(p,pos) (((unsigned char*)(p))+(pos))
 #define RBUFB(p,pos) (*((unsigned char*)RBUFP((p),(pos))))
-#define RBUFW(p,pos) (objW(p,pos))
-#define RBUFL(p,pos) (objL(p,pos))
-#define RBUFLIP(p,pos) (objLIP(p,pos))
+#define RBUFW(p,pos) (objW((p),(pos)))
+#define RBUFL(p,pos) (objL((p),(pos)))
+#define RBUFLIP(p,pos) (objLIP((p),(pos)))
 
 #define WFIFOSPACE(fd) ((session[fd]&&session[fd]->wdata)?(session[fd]->wdata_max-session[fd]->wdata_size):0)
 

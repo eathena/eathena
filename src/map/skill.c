@@ -2597,7 +2597,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl,unsig
 					bl->m,bl->x-1,bl->y-1,bl->x+1,bl->y+1,0,
 					src,skillid,skilllv,tick, flag|BCT_ENEMY,
 					skill_area_sub_count);
-skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
+				skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
 				if(skill_area_temp[0]>1) break;
 			}
 			skill_area_temp[1]=bl->id;
