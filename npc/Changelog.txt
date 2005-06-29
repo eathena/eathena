@@ -27,9 +27,11 @@ Date		Added
 ======
 06/29
 	* Moved banks scripts into /banks/ [massdriller]
-	* Corrected small typo in config for marraige script [massdriller]  
+	* Corrected small typo in config for marraige script [massdriller]
+	* Added Jawaii npcs thanks to DNett123 [massdriller]
+	* Updated Sara-Chan's Lighthalzen Warps [massdriller]
 06/28
-	* Fixed bug in Refuine script that allows to bypass item & zeny restrictions thanks to sir_loon [massdriller]
+	* Fixed bug in Refine script that allows to bypass item & zeny restrictions thanks to sir_loon [massdriller]
 	* Updated Lunatik's Jobchanger [massdriller]
 	* Moved healers into /healers folder [massdriller]
 	* Added Skotlex's marraige script [massdriller]
