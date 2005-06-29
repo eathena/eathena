@@ -17,6 +17,7 @@
 	4231,Increase_Soil_Card
 
 06/28
+	* Added "gld_dun01.gat  5" to water_height.txt as reported by Manipulator [Skotlex]
 	* Added Dryad Card effect, thx to MasterOfMuppets [Lupus]
 	* Fixed Land Protector's Range to be 7x7,7x7,9x9,9x9,11x11 [Skotlex]
 	* Made Lemon consumable (previous equip_jobs was 0), that was not on

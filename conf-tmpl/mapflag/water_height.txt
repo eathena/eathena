@@ -52,6 +52,7 @@ beach_dun2.gat	6
 beach_dun3.gat	0
 beach_dun.gat	9
 gef_fild13.gat	19
+gld_dun01.gat	5
 gld_dun02.gat	5
 gld_dun03.gat	14
 gld_dun04.gat	3
