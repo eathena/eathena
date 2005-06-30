@@ -1401,11 +1401,11 @@ int clif_spawnpc(struct map_session_data *sd) {
 			clif_guild_emblem(sd,g);
 	}	// end addition [Valaris]
 
-	if (!sd->disguise && (sd->status.class_==13 || sd->status.class_==21 || sd->status.class_==4014 || sd->status.class_==4022))
+	if (!sd->disguise && (sd->status.class_==13 || sd->status.class_==21 || sd->status.class_==4014 || sd->status.class_==4022 || sd->status.class_==4036 || sd->status.class_==4044))
 		pc_setoption(sd,sd->status.option|0x0020); // [Valaris]
 
-	if ((pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0) && (sd->status.class_==7 ||
-	    sd->status.class_==14 || sd->status.class_==4008 || sd->status.class_==4015))
+	if ((pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0) && (
+		sd->status.class_==7 || sd->status.class_==14 || sd->status.class_==4008 || sd->status.class_==4015 || sd->status.class_==4030 || sd->status.class_==4037 ))
 		pc_setriding(sd); // update peco riders for people upgrading athena [Valaris]
 
 	WFIFOW(sd->fd,0)=0x7c;
@@ -9398,6 +9398,13 @@ void clif_parse_RemoveOption(int fd,struct map_session_data *sd)
 
 		if(sd->status.class_==4022)
 			sd->status.class_=sd->view_class=4015;
+
+		if(sd->status.class_==4036)
+			sd->status.class_=sd->view_class=4030;
+
+		if(sd->status.class_==4044)
+			sd->status.class_=sd->view_class=4037;
+
 	}
 
 	pc_setoption(sd,0);

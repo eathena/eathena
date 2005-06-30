@@ -1,4 +1,7 @@
 Date	Added
+07/01
+	* Fixed crashes of Baby Knight/Crusader Peco riders. Added Baby Class support into
+	  AT / CHAR commands @mountpeco [Lupus]
 06/30
 	* Added web server (http daemon) plugin, originally by jA, ported to plugin form
 	  (but not yet finished) [celest]
