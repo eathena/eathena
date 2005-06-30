@@ -26,6 +26,7 @@ TODO:
 Date		Added
 ======
 06/30
+	* Fixed 2 garbled Amatsu NPC names (thx 2MasterOfMuppets), slight optimization [Lupus]
 	* Added Bluto's unofficial Airship NPC [massdriller]
 	* Added Incomplete New Novice training grounds [massdriller]
 06/29
