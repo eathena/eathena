@@ -27,6 +27,7 @@ Date		Added
 ======
 06/30
 	* Added Bluto's unofficial Airship NPC [massdriller]
+	* Added Incomplete New Novice training grounds [massdriller]
 06/29
 	* Fixed massive EXP/Loot exploits of all Job Quests (especially in the Rogue JQ) [Lupus]
 	* Inserted a missing ".gat" in alberta city NPC header
