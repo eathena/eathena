@@ -1,4 +1,11 @@
 Date	Added
+06/30
+	* Fixed a missing foreign key for guild_position in the SQL 
+	  guild convert files (main.sql has it already) [Aru]
+	* On Guild_skill table corruption in SQL: this is a problem with
+	  some MySQL versions not supporting the syntax used in 
+	  convert_guild_tables properly. The solution is to drop table 
+	  guild_skill and re-create it with the query from main.sql. [Aru]
 06/29
 	* Fixed Bowling Bash and Spear Stab having knockback in 
 	  situations where knockback should be disabled (GvG/MVP) [Aru]

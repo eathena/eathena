@@ -63,6 +63,8 @@ ALTER TABLE guild_position TYPE=InnoDB;
 ALTER TABLE guild_position
  ADD  PRIMARY KEY  (guild_id,position),
 ADD  KEY guild_id (guild_id);
+ADD CONSTRAINT `guild_position_ibfk_1` FOREIGN KEY (`guild_id`) 
+REFERENCES `guild` (`guild_id`) ON DELETE CASCADE
 
 ALTER TABLE guild_skill DROP INDEX `guild_id`;
 ALTER TABLE guild_skill TYPE=InnoDB;
