@@ -1,5 +1,7 @@
 Date	Added
 06/30
+	* Fixed crash when no grf's are loaded [celest]
+	* Some tidying ups in clif.c, guild.c, skill.c, storage.c [celest]
 	* Fixed a missing foreign key for guild_position in the SQL 
 	  guild convert files (main.sql has it already) [Aru]
 	* On Guild_skill table corruption in SQL: this is a problem with

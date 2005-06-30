@@ -478,6 +478,9 @@ FILELIST *filelist_find(char *fname)
 {
 	int hash;
 
+	if (!filelist)
+		return NULL;
+
 	for (hash = filelist_hash[filehash((unsigned char *) fname)]; hash >= 0; hash = filelist[hash].next) {
 		if(strcmpi(filelist[hash].fn, fname) == 0)
 			break;

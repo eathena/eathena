@@ -24,31 +24,29 @@ static struct dbt *guild_storage_db;
  * 倉庫内アイテムソート
  *------------------------------------------
  */
-int storage_comp_item(const void *_i1, const void *_i2){
-struct item *i1=(struct item *)_i1;
-struct item *i2=(struct item *)_i2;
+int storage_comp_item(const void *_i1, const void *_i2)
+{
+	struct item *i1 = (struct item *)_i1;
+	struct item *i2 = (struct item *)_i2;
 
-	if (i1->nameid == i2->nameid) {
+	if (i1->nameid == i2->nameid)
 		return 0;
-	} else if (!(i1->nameid) || !(i1->amount)){
+	else if (!(i1->nameid) || !(i1->amount))
 		return 1;
-	} else if (!(i2->nameid) || !(i2->amount)){
+	else if (!(i2->nameid) || !(i2->amount))
 		return -1;
-	} else {
-		return i1->nameid - i2->nameid;
-	}
+	return i1->nameid - i2->nameid;
 }
-
  
-void sortage_sortitem(struct storage* stor){
+void sortage_sortitem (struct storage *stor)
+{
 	nullpo_retv(stor);
-
 	qsort(stor->storage_, MAX_STORAGE, sizeof(struct item), storage_comp_item);
 }
 
-void sortage_gsortitem(struct guild_storage* gstor){
+void sortage_gsortitem (struct guild_storage* gstor)
+{
 	nullpo_retv(gstor);
-
 	qsort(gstor->storage_, MAX_GUILD_STORAGE, sizeof(struct item), storage_comp_item);
 }
 
@@ -84,22 +82,18 @@ void do_final_storage(void) // by [MC Cameri]
 
 struct storage *account2storage(int account_id)
 {
-	struct storage *stor;
-	stor=(struct storage *) numdb_search(storage_db,account_id);
+	struct storage *stor = (struct storage *) numdb_search (storage_db,account_id);
 	if(stor == NULL) {
-		stor = (struct storage *) aCallocA(sizeof(struct storage), 1);
-		if(stor == NULL){
-			printf("storage: out of memory!\n");
-			exit(0);
-		}
-		stor->account_id=account_id;
-		numdb_insert(storage_db,stor->account_id,stor);
+		stor = (struct storage *) aCallocA (sizeof(struct storage), 1);
+		stor->account_id = account_id;
+		numdb_insert(storage_db, stor->account_id, stor);
 	}
 	return stor;
 }
 
 // Just to ask storage, without creation
-struct storage *account2storage2(int account_id) {
+struct storage *account2storage2(int account_id)
+{
 	return (struct storage *) numdb_search(storage_db, account_id);
 }
 

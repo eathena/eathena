@@ -10,8 +10,6 @@ struct guild_position;
 struct guild_castle;
 
 int guild_skill_get_inf(int id);
-int guild_skill_get_sp(int id,int lv);
-int guild_skill_get_range(int id);
 int guild_skill_get_max(int id);
 
 int guild_checkskill(struct guild *g,int id);

@@ -51,30 +51,36 @@ int guild_gvg_eliminate_timer(int tid,unsigned int tick,int id,int data);
 int guild_save_sub(int tid,unsigned int tick,int id,int data);
 
 // ギルドスキルdbのアクセサ（今は直打ちで代用）
-int guild_skill_get_inf(int id) { // Modified for new skills [Sara]
-	if (id==GD_BATTLEORDER) return 4;
-	else if (id==GD_REGENERATION) return 4;
-	else if (id==GD_RESTORE) return 4;
-	else if (id==GD_EMERGENCYCALL) return 4;
-	else return 0;
+// Modified for new skills [Sara]
+int guild_skill_get_inf(int id)
+{
+	switch(id) {
+		case GD_BATTLEORDER:
+		case GD_REGENERATION:
+		case GD_RESTORE:
+		case GD_EMERGENCYCALL:
+			return 4;
+	}
+	return 0;
 }
-int guild_skill_get_sp(int id,int lv){ return 0; }
-int guild_skill_get_range(int id){ return 0; }
-int guild_skill_get_max(int id) { // Modified for new skills [Sara]
+
+ // Modified for new skills [Sara]
+int guild_skill_get_max (int id)
+{
 	switch (id) {
-	case GD_GUARDUP:
-		return 3;
-	case GD_EXTENSION:
-		return 10;
-	case GD_LEADERSHIP:
-	case GD_GLORYWOUNDS:
-	case GD_SOULCOLD:
-	case GD_HAWKEYES:
-		return 5;
-	case GD_REGENERATION:
-		return 3;
-	default:
-		return 1;
+		case GD_GUARDUP:
+			return 3;
+		case GD_EXTENSION:
+			return 10;
+		case GD_LEADERSHIP:
+		case GD_GLORYWOUNDS:
+		case GD_SOULCOLD:
+		case GD_HAWKEYES:
+			return 5;
+		case GD_REGENERATION:
+			return 3;
+		default:
+			return 1;
 	}
 }
 

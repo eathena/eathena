@@ -7011,8 +7011,8 @@ int clif_guild_skillinfo(struct map_session_data *sd)
 			WFIFOW(fd,c*37+ 8) = guild_skill_get_inf(id);
 			WFIFOW(fd,c*37+10) = 0;
 			WFIFOW(fd,c*37+12) = g->skill[i].lv;
-			WFIFOW(fd,c*37+14) = guild_skill_get_sp(id,g->skill[i].lv);
-			WFIFOW(fd,c*37+16) = guild_skill_get_range(id);
+			WFIFOW(fd,c*37+14) = skill_get_sp(id,g->skill[i].lv);
+			WFIFOW(fd,c*37+16) = skill_get_range(id,g->skill[i].lv);
 			memset(WFIFOP(fd,c*37+18),0,24);
 			if(g->skill[i].lv < guild_skill_get_max(id)) {
 				//Kafra and Guardian changed to require Approval [Sara]
@@ -7235,8 +7235,8 @@ int clif_guild_skillup(struct map_session_data *sd,int skill_num,int lv)
 	WFIFOW(fd,0) = 0x10e;
 	WFIFOW(fd,2) = skill_num;
 	WFIFOW(fd,4) = lv;
-	WFIFOW(fd,6) = guild_skill_get_sp(skill_num,lv);
-	WFIFOW(fd,8) = guild_skill_get_range(skill_num);
+	WFIFOW(fd,6) = skill_get_sp(skill_num,lv);
+	WFIFOW(fd,8) = skill_get_range(skill_num,lv);
 	WFIFOB(fd,10) = 1;
 	WFIFOSET(fd,11);
 	return 0;
