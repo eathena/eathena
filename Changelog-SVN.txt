@@ -1,5 +1,12 @@
 Date	Added
 06/30
+	* Added web server (http daemon) plugin, originally by jA, ported to plugin form
+	  (but not yet finished) [celest]
+	  - To activate it just edit plugin_athena.conf
+	  - When running just access http://<your server IP>:<your server port>. The
+	    default home page is httpd/index.html, you can edit it if you want.
+	  - If graph creation is enabled you can view them in http://..../graph
+	    (by default only memory usage graphs are added)
 	* Fixed crash when no grf's are loaded [celest]
 	* Some tidying ups in clif.c, guild.c, skill.c, storage.c [celest]
 	* Fixed a missing foreign key for guild_position in the SQL 

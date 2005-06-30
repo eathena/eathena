@@ -1,5 +1,6 @@
 
-//#define ENABLE_GRAPH
+// graph creation is enabled
+#define ENABLE_GRAPH
 
 #ifdef ENABLE_GRAPH
 

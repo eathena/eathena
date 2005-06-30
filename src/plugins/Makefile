@@ -1,5 +1,5 @@
 
-OBJECTS = sample.dll sig.dll pid.dll gui.dll upnp.dll
+OBJECTS = sample.dll sig.dll pid.dll gui.dll upnp.dll httpd.dll
 
 ifdef CYGWIN
    PLUGINEXT = dll
@@ -16,15 +16,22 @@ txt sql all: $(PLUGINS)
 	$(CC) $(CFLAGS) -shared -o ../../plugins/$@ $<
 	@touch $@
 
+httpd.$(PLUGINEXT): httpd.c
+	$(CC) $(CFLAGS) -shared -o ../../plugins/$@ $< \
+	../common/obj/minimalloc.o ../common/obj/db.o ../common/obj/showmsg.o \
+	../common/obj/utils.o
+	@touch $@
+
 gui.$(PLUGINEXT): ../../plugins/gui.conf
+httpd.$(PLUGINEXT): ../../plugins/httpd.conf
 upnp.$(PLUGINEXT): ../../plugins/upnp.conf
 
 ../../plugins/%.conf: %.txt
 	cp -r $< $@
 
 ../../plugins/gui.conf: gui.txt
+../../plugins/httpd.conf: httpd.txt
 ../../plugins/upnp.conf: upnp.txt
-
 
 depend:
 	makedepend -fGNUmakefile -o.$(PLUGINEXT) -Y. -Y../common *.c
@@ -36,4 +43,4 @@ clean:
 sample.$(PLUGINEXT): sample.c $(COMMON_H)
 sig.$(PLUGINEXT): sig.c $(COMMON_H)
 pid.$(PLUGINEXT): pid.c $(COMMON_H)
-gui.$(PLUGINEXT): ../../plugins/gui.conf gui.c $(COMMON_H)
+gui.$(PLUGINEXT): gui.c $(COMMON_H)

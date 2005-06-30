@@ -297,7 +297,15 @@ void plugins_init (void)
 	register_plugin_func("Athena_Init");
 	register_plugin_func("Athena_Final");
 
+	// networking
+	export_symbol (func_parse_table,	18);
+	export_symbol (RFIFOSKIP,			17);
+	export_symbol (WFIFOSET,			16);
+	export_symbol (delete_session,		15);
+	export_symbol (session,				14);
+	export_symbol (&fd_max,				13);
 	export_symbol (addr_,				12);
+	// timers
 	export_symbol (get_uptime,			11);
 	export_symbol (delete_timer,		10);
 	export_symbol (add_timer_func_list,	9);
@@ -305,6 +313,7 @@ void plugins_init (void)
 	export_symbol (add_timer,			7);
 	export_symbol (get_svn_revision,	6);
 	export_symbol (gettick,				5);
+	// core
 	export_symbol (&runflag,			4);
 	export_symbol (arg_v,				3);
 	export_symbol (&arg_c,				2);

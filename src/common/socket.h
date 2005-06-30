@@ -79,6 +79,7 @@ struct socket_data{
 	int (*func_parse)(int);
 	int (*func_console)(char*);
 	void* session_data;
+	void* session_data2;
 	enum SessionType type;
 };
 
