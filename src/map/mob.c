@@ -202,8 +202,7 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 		
 		safestrcpy(md->npc_event, event, sizeof(md->npc_event));
 
-
-		mob_spawn (md->bl.id);
+		mob_spawn(md->bl.id);
 
 		if(class_ == 1288)
 		{	// emperium hp based on defense level [Valaris]
@@ -613,7 +612,7 @@ int mob_attack(struct mob_data &md,unsigned long tick,int data)
 		return 0;
 	}
 	if(tsd && !(mode&0x20) && (tsd->sc_data[SC_TRICKDEAD].timer != -1 || tsd->sc_data[SC_BASILICA].timer != -1 ||
-		 ((pc_ishiding(*tsd) || tsd->state.gangsterparadise) && !((race == 4 || race == 6 || mode&0x100) && !tsd->perfect_hiding) ) ) ) {
+		 ((pc_ishiding(*tsd) || tsd->state.gangsterparadise) && !((race == 4 || race == 6 || mode&0x100) && !tsd->state.perfect_hiding) ) ) ) {
 		md.target_id=0;
 		md.state.targettype = NONE_ATTACKABLE;
 		return 0;
@@ -710,7 +709,7 @@ int mob_changestate(struct mob_data &md,int state,int type)
 		break;
 	case MS_DEAD:
 		skill_castcancel(&md.bl,0);
-//		mobskill_deltimer(md);
+		mobskill_deltimer(md);
 		md.state.skillstate=MSS_DEAD;
 		md.last_deadtime=gettick();
 		// Since it died, all aggressors' attack to this mob is stopped.
@@ -925,35 +924,6 @@ int mob_spawn(unsigned long id)
 		md->mode=mob_db[md->base_class].mode;
 	}
 
-	do
-	{
-		if(!md->cache)
-		{
-			x=md->bl.x;
-			y=md->bl.y;
-		}
-		else if( md->cache->x0==0 && md->cache->y0==0 )
-		{
-			x = rand()%(map[md->bl.m].xs-2)+1;
-			y = rand()%(map[md->bl.m].ys-2)+1;
-		}
-		else
-		{
-			x = md->cache->x0+rand()%(md->cache->xs+1)-md->cache->xs/2;
-			y = md->cache->y0+rand()%(md->cache->ys+1)-md->cache->ys/2;
-		}
-		i++;
-	} while(map_getcell(md->bl.m,x,y,CELL_CHKNOPASS) && i < 50);
-
-	if (i >= 50) {
-		// retry again later
-		add_timer(tick+5000,mob_delayspawn,id,0);
-		return 1;
-	}
-
-	md->to_x = md->bl.x = x;
-	md->to_y = md->bl.y = y;
-	md->dir=rand()%8;
 	md->target_dir = 0;
 
 	memset(&md->state, 0, sizeof(md->state));
@@ -988,8 +958,8 @@ int mob_spawn(unsigned long id)
 	}
 
 	md->deletetimer = -1;
-
 	md->skilltimer = -1;
+
 	for (i = 0, c = tick-1000*3600*10; i < MAX_MOBSKILL; i++)
 		md->skilldelay[i] = c;
 	md->skillid = 0;
@@ -1018,6 +988,37 @@ int mob_spawn(unsigned long id)
 		mob_makedummymobdb(md->class_);
 		md->hp = status_get_max_hp(&md->bl);
 	}
+
+	i=0;
+	do
+	{
+		if(!md->cache)
+		{
+			x=md->bl.x;
+			y=md->bl.y;
+		}
+		else if( md->cache->x0==0 && md->cache->y0==0 )
+		{
+			x = rand()%(map[md->bl.m].xs-2)+1;
+			y = rand()%(map[md->bl.m].ys-2)+1;
+		}
+		else
+		{
+			x = md->cache->x0+rand()%(md->cache->xs+1)-md->cache->xs/2;
+			y = md->cache->y0+rand()%(md->cache->ys+1)-md->cache->ys/2;
+		}
+		i++;
+	} while(map_getcell(md->bl.m,x,y,CELL_CHKNOPASS) && i < 50);
+
+	if (i >= 50) {
+		// retry again later
+		add_timer(tick+5000,mob_delayspawn,id,0);
+		return 1;
+	}
+
+	md->to_x = md->bl.x = x;
+	md->to_y = md->bl.y = y;
+	md->dir=rand()%8;
 
 	map_addblock(md->bl);
 	skill_unit_move(md->bl,tick,1);
@@ -1253,7 +1254,7 @@ int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list ap)
 			if( mode&0x20 ||
 				(tsd.sc_data[SC_TRICKDEAD].timer == -1 && tsd.sc_data[SC_BASILICA].timer == -1 &&
 				((!pc_ishiding(tsd) && !tsd.state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) 
-				&& !tsd.perfect_hiding) )))
+				&& !tsd.state.perfect_hiding) )))
 			{	// –WŠQ‚ª‚È‚¢‚©”»’è
 
 
@@ -1457,7 +1458,7 @@ int mob_ai_sub_hard_slavemob(struct mob_data &md,unsigned long tick)
 			race=mob_db[md.class_].race;
 			if(mode&0x20 ||
 				(sd->sc_data[SC_TRICKDEAD].timer == -1 && sd->sc_data[SC_BASILICA].timer == -1 &&
-				( (!pc_ishiding(*sd) && !sd->state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) && !sd->perfect_hiding) ) ) ){	// –WŠQ‚ª‚È‚¢‚©”»’è
+				( (!pc_ishiding(*sd) && !sd->state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) && !sd->state.perfect_hiding) ) ) ){	// –WŠQ‚ª‚È‚¢‚©”»’è
 
 				md.target_id=sd->bl.id;
 				md.state.targettype = ATTACKABLE;
@@ -1735,7 +1736,7 @@ int mob_ai_sub_hard(struct block_list &bl,va_list ap)
 					(tsd->sc_data[SC_TRICKDEAD].timer != -1 ||
 					tsd->sc_data[SC_BASILICA].timer != -1 ||
 					((pc_ishiding(*tsd) || tsd->state.gangsterparadise) &&
-					!((race == 4 || race == 6 || mode&0x100) && !tsd->perfect_hiding))))
+					!((race == 4 || race == 6 || mode&0x100) && !tsd->state.perfect_hiding))))
 				{
 					mob_unlocktarget(*md,tick);	// ƒXƒLƒ‹‚È‚Ç‚É‚æ‚éô“G–WŠQ
 				}
@@ -1887,11 +1888,11 @@ int mob_ai_sub_hard(struct block_list &bl,va_list ap)
 	if (mode & 1 && mob_can_move(*md) &&	// ˆÚ“®‰Â”\MOB&“®‚¯‚éó‘Ô‚É‚ ‚é
 		(md->master_id == 0 || md->state.special_mob_ai || md->master_dist > 10))	//Žæ‚èŠª‚«MOB‚¶‚á‚È‚¢
 	{
-		if (DIFF_TICK(md->next_walktime, tick) > 7000 &&
+		if(DIFF_TICK(md->next_walktime, tick) > 7000 &&
 			(md->walkpath.path_len == 0 || md->walkpath.path_pos >= md->walkpath.path_len))
 			md->next_walktime = tick + 3000 * rand() % 2000;
 		// Random movement
-		if (mob_randomwalk(*md,tick))
+		if(mob_randomwalk(*md,tick))
 			return 0;
 	}
 
@@ -2055,7 +2056,7 @@ int mob_delay_item_drop(int tid,unsigned long tick,int id,int data)
 	memset(&temp_item,0,sizeof(temp_item));
 	temp_item.nameid = ditem->nameid;
 	temp_item.amount = ditem->amount;
-	temp_item.identify = !itemdb_isequip3(temp_item.nameid);
+	temp_item.identify = !itemdb_isEquipment(temp_item.nameid);
 
 	if(ditem->first_sd)
 	{
@@ -2194,7 +2195,6 @@ void mob_unload(struct mob_data &md)
 	clif_clearchar_area(md.bl, 0);
 	mob_deleteslave(md);
 	map_delblock(md.bl);
-
 	if(md.lootitem){
 		aFree(md.lootitem);
 		md.lootitem = NULL;
@@ -2825,7 +2825,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 				continue;
 			memset(&item,0,sizeof(item));
 			item.nameid=mob_db[md.class_].mvpitem[i].nameid;
-			item.identify=!itemdb_isequip3(item.nameid);
+			item.identify=!itemdb_isEquipment(item.nameid);
 			clif_mvp_item(*mvp_sd,item.nameid);
 			log_mvp[0] = item.nameid;
 			if(mvp_sd->weight*2 > mvp_sd->max_weight)

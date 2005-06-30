@@ -213,6 +213,10 @@ static FILE *log_fp=NULL;
 static size_t memmgr_usage_bytes = 0;
 
 
+#ifdef MEMCHECKER
+TslistDST<int> memlist;
+#endif
+
 
 void* _mmalloc(size_t size, const char *file, int line, const char *func )
 {
@@ -255,7 +259,10 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 				p->next = unit_head_large_first;
 				unit_head_large_first = p;
 			}
-			return (char *)p + sizeof(struct unit_head_large);
+#ifdef MEMCHECKER
+			memlist.insert( (int)(((char *)p) + sizeof(struct unit_head_large)) );
+#endif
+			return ((char *)p) + sizeof(struct unit_head_large);
 		}
 		else
 		{
@@ -321,6 +328,9 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 			head->size  = size;
 			head->line  = line;
 			head->file  = file;
+#ifdef MEMCHECKER
+			memlist.insert( (int)((char *)head) + sizeof(struct unit_head) );
+#endif
 			return ((char *)head) + sizeof(struct unit_head);
 		}
 	}
@@ -345,7 +355,16 @@ void* _mrealloc(void *memblock, size_t size, const char *file, int line, const c
 	{
 		return _mmalloc(size,file,line,func);
 	}
-
+#ifdef MEMCHECKER
+	size_t pos;
+	if( !memlist.find( (int)memblock, 0, pos ) )
+	{	
+		ShowFatalError("Realloc on non-aquired memory");
+		// do crash explicitely
+		char *p=NULL;
+		*p = 0;
+	}
+#endif
 	old_size = ((struct unit_head *)((char *)memblock - sizeof(struct unit_head)))->size;
 	if(old_size > size)
 	{	// サイズ縮小 -> そのまま返す（手抜き）
@@ -378,6 +397,21 @@ char* _mstrdup(const char *p, const char *file, int line, const char *func )
 
 void _mfree(void *ptr, const char *file, int line, const char *func )
 {
+#ifdef MEMCHECKER
+	size_t pos;
+	if( !memlist.find( (int)ptr, 0, pos ) )
+	{	
+		ShowFatalError("Free on non-aquired memory");
+		// do crash explicitely
+		char *p=NULL;
+		*p = 0;
+	}
+	else
+	{
+		memlist.removeindex(pos);
+	}
+#endif
+
 	struct unit_head *head = (struct unit_head *)((char *)ptr - sizeof(struct unit_head));
 	if (ptr == NULL)
 	{
@@ -596,9 +630,12 @@ void memmer_exit(void)
 	bltmp = block = block_first;
 	while (block)
 	{
+		// prevent references to a previously deleted block
+		block_unused = NULL;
+
 		if (block->unit_size)
 		{
-			for (i = 0; i < block->unit_count; i++)
+			for(i=0; i<block->unit_count; i++)
 			{
 				struct unit_head *head = (struct unit_head*)(&block->data[block->unit_size * i]);
 				if(head->block != NULL)
@@ -618,8 +655,8 @@ void memmer_exit(void)
 				}
 			}
 		}
-			block = block->block_next;
 
+		block = block->block_next;
 		if( !block || (block >= bltmp+BLOCK_ALLOC) || (block < bltmp) )
 		{	// reached a new block array
 			FREE(bltmp);
@@ -671,16 +708,16 @@ void memmer_exit(void)
 
 int memmgr_init(const char* file)
 {
-	#ifdef LOG_MEMMGR
+#if defined(USE_MEMMGR) && defined(LOG_MEMMGR)
 	sprintf(memmer_logfile, "log/%s.leaks", file);
 		ShowStatus("Memory manager initialised: "CL_WHITE"%s"CL_RESET"\n", memmer_logfile);
-	#endif
+#endif
   return 0;
 }
 
 void memmgr_final()
 {
-#ifdef LOG_MEMMGR
+#if defined(USE_MEMMGR) && defined(LOG_MEMMGR)
 	memmer_exit();
 #endif
 }

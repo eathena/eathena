@@ -336,7 +336,7 @@ int map_delblock(struct block_list &bl)
 		if(bl.next!=NULL)
 		{	// prevがNULLでnextがNULLでないのは有ってはならない
 			if(battle_config.error_log)
-				ShowMessage("map_delblock error : bl->next!=NULL\n");
+				ShowMessage("map_delblock error : bl->next!=NULL, (type=%i)\n", bl.type);
 		}
 		return 0;
 	}
@@ -372,6 +372,7 @@ int map_delblock(struct block_list &bl)
 	{
 		bl.prev->next = bl.next;
 	}
+
 	bl.next = NULL;
 	bl.prev = NULL;
 
@@ -531,8 +532,6 @@ int map_foreachinarea(int (*func)(struct block_list&,va_list),unsigned short m,i
 		va_start(ap,type);
 
 		map_freeblock_lock();	// メモリからの解放を禁止する
-
-//printf("%p, %i,%i,%i,%i,%i,%i\n", ap, x0,x1,bx,y0,y1,by);fflush(stdout);
 
 		for(i=blockcount;i<bl_list_count;i++)
 			if(bl_list[i] && bl_list[i]->prev)	// 有?かどうかチェック
@@ -1567,15 +1566,15 @@ int map_quit(struct map_session_data &sd)
 	if(sd.guild_alliance>0)	// ギルド同盟?誘を拒否する
 		guild_reply_reqalliance(sd,sd.guild_alliance_account,0);
 
-		party_send_logout(sd);	// パ?ティのログアウトメッセ?ジ送信
-		party_send_dot_remove(sd);//minimap dot fix [Kevin]
-		guild_send_memberinfoshort(sd,0);	// ギルドのログアウトメッセ?ジ送信
+	party_send_logout(sd);	// パ?ティのログアウトメッセ?ジ送信
+	party_send_dot_remove(sd);//minimap dot fix [Kevin]
+	guild_send_memberinfoshort(sd,0);	// ギルドのログアウトメッセ?ジ送信
 
-		pc_cleareventtimer(sd);	// イベントタイマを破棄する
+	pc_cleareventtimer(sd);	// イベントタイマを破棄する
 	if(sd.state.storage_flag)
-			storage_guild_storage_quit(sd,0);
-		else
-			storage_storage_quit(sd);	// 倉庫を開いてるなら保存する
+		storage_guild_storage_quit(sd,0);
+	else
+		storage_storage_quit(sd);	// 倉庫を開いてるなら保存する
 
 		// check if we've been authenticated [celest]
 	if (sd.state.auth)
@@ -1598,7 +1597,7 @@ int map_quit(struct map_session_data &sd)
 	skill_unit_move(sd.bl,gettick(),0);
 	
 	if( sd.state.auth )
-			status_calc_pc(sd,4);
+		status_calc_pc(sd,4);
 
 	if( !(sd.status.option & OPTION_HIDE) )
 		clif_clearchar_area(sd.bl,2);
@@ -1816,30 +1815,6 @@ int map_addnpc(unsigned short m, struct npc_data *nd)
 	return i;
 }
 
-void map_removenpc(void)
-{
-	size_t i, m,n=0;
-
-	for(m=0;m<map_num;m++) {
-		for(i=0;i<map[m].npc_num && i<MAX_NPC_PER_MAP;i++) {
-			if(map[m].npc[i]!=NULL) {
-				clif_clearchar_area(map[m].npc[i]->bl,2);
-				map_delblock(map[m].npc[i]->bl);
-				numdb_erase(id_db,map[m].npc[i]->bl.id);
-//				if(map[m].npc[i]->bl.subtype==SCRIPT) {
-//					aFree(map[m].npc[i]->u.scr.script);
-//					aFree(map[m].npc[i]->u.scr.label_list);
-//				}
-//    just unlink npc from map
-//    npc will be deleted with do_final_npc
-//				aFree(map[m].npc[i]);
-				map[m].npc[i] = NULL;
-				n++;
-			}
-		}
-	}
-	ShowStatus("Successfully removed and freed from memory '"CL_WHITE"%d"CL_RESET"' NPCs.\n",n);
-}
 
 /*=========================================
  * Dynamic Mobs [Wizputer]
@@ -2491,16 +2466,16 @@ bool map_cache_read(struct map_data &m)
 		else if(map_cache.map[i].compressed == 1)
 		{	//zlib compressed
 				// 圧縮フラグ=1 : zlib
-				unsigned char *buf;
+			unsigned char *buf;
 			unsigned long size_compress = map_cache.map[i].datalen;
 			unsigned long dest_len = map_cache.map[i].xs * map_cache.map[i].ys * sizeof(struct mapgat);
 			m.xs = map_cache.map[i].xs;
 			m.ys = map_cache.map[i].ys;
-				buf = (unsigned char*)aMalloc(size_compress);
-				fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
+			buf = (unsigned char*)aMalloc(size_compress);
+			fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
 			if(fread(buf,1,size_compress,map_cache.fp) != size_compress)
 			{	// なぜかファイル後半が欠けてるので読み直し
-					aFree(buf);
+				aFree(buf);
 				buf = NULL;
 				m.gat = NULL;
 				m.xs = 0; 
@@ -2942,7 +2917,11 @@ int map_readallmap(void)
 		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 	}
 
-	aFree(waterlist);
+	if(waterlist)
+	{
+		aFree(waterlist);
+		waterlist=NULL;
+	}
 	ShowMessage("\r");
 	ShowInfo("Successfully loaded '"CL_WHITE"%d"CL_RESET"' maps.%30s\n",map_num,"");
 
@@ -3408,25 +3387,47 @@ int cleanup_sub(struct block_list &bl, va_list ap)
 	switch(bl.type)
 	{
 		case BL_PC:
-        map_quit( (struct map_session_data &)bl );
+			map_quit( (struct map_session_data &)bl );
 			break;
 		case BL_NPC:
-        npc_unload( (struct npc_data *)&bl );
+			npc_unload( (struct npc_data *)&bl );
 			break;
 		case BL_MOB:
-        mob_unload( (struct mob_data &)bl);
+			mob_unload( (struct mob_data &)bl);
 			break;
 		case BL_PET:
-        pet_remove_map( (struct map_session_data &)bl );
+			pet_remove_map( (struct map_session_data &)bl );
 			break;
 		case BL_ITEM:
-        map_clearflooritem(bl.id);
+			map_clearflooritem(bl.id);
 			break;
 		case BL_SKILL:
-        skill_delunit( (struct skill_unit *)&bl);
+			skill_delunit( (struct skill_unit *)&bl);
 			break;
+		default:
+			printf("cleanup_sub unhandled block, type%i\n", bl.type);
 	}
 	return 0;
+}
+void map_checknpcsleft(void)
+{
+	size_t i, m,n=0;
+
+	for(m=0;m<map_num;m++) {
+		for(i=0;i<map[m].npc_num && i<MAX_NPC_PER_MAP;i++) {
+			if(map[m].npc[i]!=NULL) {
+				clif_clearchar_area(map[m].npc[i]->bl,2);
+				map_delblock(map[m].npc[i]->bl);
+				numdb_erase(id_db,map[m].npc[i]->bl.id);
+				// just unlink npc from maps
+				// npc will be deleted with do_final_npc
+				map[m].npc[i] = NULL;
+				n++;
+			}
+		}
+	}
+	if(n>0)
+		ShowWarning("Found '"CL_WHITE"%d"CL_RESET"' stray NPCs on maps.\n", n);
 }
 
 /*==========================================
@@ -3441,24 +3442,29 @@ void do_final(void)
 
 	grfio_final();
 	map_eraseallipport();
-	for (i = 0; i < map_num; i++)
-		if (map[i].m >= 0)
-			map_foreachinarea(cleanup_sub, i, 0, 0, map[i].xs, map[i].ys, 0);
 
 	chrif_char_reset_offline();
 	chrif_flush_fifo();
 
-	map_removenpc();
-	do_final_chrif(); // この内部でキャラを全て切断する
+	// regular removing
 	do_final_npc();
+	// additional removing
+	for (i = 0; i < map_num; i++)
+		if (map[i].m >= 0)
+			map_foreachinarea(cleanup_sub, i, 0, 0, map[i].xs, map[i].ys, 0);
+	// and a check
+	map_checknpcsleft();
+
+	do_final_pc();
+	do_final_pet();
+	do_final_guild();
+	do_final_party();
 	do_final_script();
 	do_final_itemdb();
 	do_final_storage();
-	do_final_guild();
-	do_final_party();
-	do_final_pc();
-	do_final_pet();
 	do_final_msg();
+	do_final_chrif(); // この内部でキャラを全て切断する
+
 
 	for (i=0; i<map_num; i++)
 	{

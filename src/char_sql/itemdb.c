@@ -66,21 +66,22 @@ struct item_data* itemdb_search(unsigned short nameid)
  *
  *------------------------------------------
  */
-bool itemdb_isequip(unsigned short nameid)
+bool itemdb_isSingleStorage(unsigned short nameid)
 {
 	int type=itemdb_type(nameid);
-	return (type!=0 && type!=2 && type!=3 && type!=6 && type!=10);
+	return (type==4 || type==5 || type==7 || type==8);
+			//Weapon	Armor	Pet Egg		 Pet Equipment
 }
 /*==========================================
  *
  *------------------------------------------
  */
-bool itemdb_isequip2(struct item_data &data)
+bool itemdb_isSingleStorage(struct item_data &data)
 {
 	int type=data.type;
-	return (type!=0 && type!=2 && type!=3 && type!=6 && type!=10);
-	}
-
+	return (type==4 || type==5 || type==7 || type==8);
+			//Weapon	Armor	Pet Egg		 Pet Equipment
+}
 
 
 /*==========================================

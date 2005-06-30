@@ -26,8 +26,8 @@ struct item_data {
 struct item_data* itemdb_search(unsigned short nameid);
 #define itemdb_type(n) itemdb_search(n)->type
 
-bool itemdb_isequip(unsigned short nameid);
-bool itemdb_isequip2(struct item_data &data);
+bool itemdb_isSingleStorage(unsigned short nameid);
+bool itemdb_isSingleStorage(struct item_data &data);
 
 void do_final_itemdb(void);
 int do_init_itemdb(void);

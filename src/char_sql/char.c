@@ -676,7 +676,7 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 							//ShowMessage("the same item : %d , equip : %d , i : %d , flag :  %d\n", mapitem.equip[i].nameid,mapitem.equip[i].equip , i, mapitem.equip[i].flag); //DEBUG-STRING
 					} else {
 //==============================================Memory data > SQL ===============================
-						if(itemdb_isequip(mapitem[i].nameid) || (mapitem[i].card[0] == atoi(sql_row[7]))) {
+						if(itemdb_isSingleStorage(mapitem[i].nameid) || (mapitem[i].card[0] == atoi(sql_row[7]))) {
 							sprintf(tmp_sql,"UPDATE `%s` SET `equip`='%d', `identify`='%d', `refine`='%d',"
 								"`attribute`='%d', `card0`='%d', `card1`='%d', `card2`='%d', `card3`='%d', `amount`='%d' WHERE `id`='%d' LIMIT 1",
 								tablename, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine, mapitem[i].attribute, mapitem[i].card[0],

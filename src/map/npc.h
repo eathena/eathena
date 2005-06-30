@@ -56,7 +56,7 @@ int npc_timerevent_stop(struct npc_data &nd);
 int npc_gettimerevent_tick(struct npc_data &nd);
 int npc_settimerevent_tick(struct npc_data &nd,int newtimer);
 int npc_remove_map(struct npc_data *nd);
-int npc_unload(struct npc_data *nd);
+int npc_unload(struct npc_data *nd, bool erase_strdb=true);
 int npc_reload(void);
 
 // ============================================

@@ -855,7 +855,7 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 						break;
 					}
 				}
-				if (battle_config.motd_type)
+				if(battle_config.motd_type || pc_ishiding(*sd) || pc_iscloaking(*sd) || pc_ischasewalk(*sd) )
 					clif_disp_onlyself(*sd,buf);
 				else
 					clif_displaymessage(sd->fd, buf);
@@ -1162,6 +1162,25 @@ int pc_checkweighticon(struct map_session_data &sd)
  * ? 備品による能力等のボ?ナス設定
  *------------------------------------------
  */
+
+inline void rangemodify(unsigned short &val, int change, unsigned short max=0xFFFF)
+{	//keep the value within range
+	if(change >0)
+	{
+		if( change<=(max-val) )
+			val+=change;
+		else
+			val=max;
+	}
+	else
+	{
+		if( -change<val)
+			val+=change;
+		else
+			val=0;
+	}
+}
+
 int pc_bonus(struct map_session_data &sd,int type,int val)
 {
 	int i;
@@ -1189,47 +1208,47 @@ int pc_bonus(struct map_session_data &sd,int type,int val)
 		break;
 	case SP_BASE_ATK:
 		if(sd.state.lr_flag != 2)
-			sd.base_atk+=val;
+			rangemodify(sd.base_atk,val);
 		break;
 	case SP_MATK1:
 		if(sd.state.lr_flag != 2)
-			sd.matk1 += val;
+			rangemodify(sd.matk1,val);
 		break;
 	case SP_MATK2:
 		if(sd.state.lr_flag != 2)
-			sd.matk2 += val;
+			rangemodify(sd.matk2,val);
 		break;
 	case SP_MATK:
 		if(sd.state.lr_flag != 2) {
-			sd.matk1 += val;
-			sd.matk2 += val;
+			rangemodify(sd.matk1,val);
+			rangemodify(sd.matk2,val);
 		}
 		break;
 	case SP_DEF1:
 		if(sd.state.lr_flag != 2)
-			sd.def+=val;
+			rangemodify(sd.def,val);
 		break;
 	case SP_MDEF1:
 		if(sd.state.lr_flag != 2)
-			sd.mdef+=val;
+			rangemodify(sd.mdef,val);
 		break;
 	case SP_MDEF2:
 		if(sd.state.lr_flag != 2)
-			sd.mdef+=val;
+			rangemodify(sd.mdef,val);
 		break;
 	case SP_HIT:
 		if(sd.state.lr_flag != 2)
-			sd.hit+=val;
+			rangemodify(sd.hit,val);
 		else
 			sd.arrow_hit+=val;
 		break;
 	case SP_FLEE1:
 		if(sd.state.lr_flag != 2)
-			sd.flee+=val;
+			rangemodify(sd.flee,val);
 		break;
 	case SP_FLEE2:
 		if(sd.state.lr_flag != 2)
-			sd.flee2+=val*10;
+			rangemodify(sd.flee2,val*10);
 		break;
 	case SP_CRITICAL:
 		if(sd.state.lr_flag != 2)
@@ -1275,15 +1294,15 @@ int pc_bonus(struct map_session_data &sd,int type,int val)
 		break;
 	case SP_ATTACKRANGE:
 		if(!sd.state.lr_flag)
-			sd.attackrange += val;
+			rangemodify(sd.attackrange,val);
 		else if(sd.state.lr_flag == 1)
-			sd.attackrange_ += val;
+			rangemodify(sd.attackrange_,val);
 		else if(sd.state.lr_flag == 2)
-			sd.arrow_range += val;
+			rangemodify(sd.arrow_range,val);
 		break;
 	case SP_ADD_SPEED:
 		if(sd.state.lr_flag != 2)
-			sd.speed -= val;
+			rangemodify(sd.speed,-val);
 		break;
 	case SP_SPEED_RATE:
 		if(sd.state.lr_flag != 2)
@@ -1298,7 +1317,7 @@ int pc_bonus(struct map_session_data &sd,int type,int val)
 		break;
 	case SP_ASPD:
 		if(sd.state.lr_flag != 2)
-			sd.aspd -= val*10;
+			rangemodify(sd.aspd,-val*10);
 		break;
 	case SP_ASPD_RATE:
 		if(sd.state.lr_flag != 2)
@@ -1515,7 +1534,7 @@ int pc_bonus(struct map_session_data &sd,int type,int val)
 		break;
 	case SP_PERFECT_HIDE: // [Valaris]
 		if(sd.state.lr_flag!=2) {
-			sd.perfect_hiding=1;
+			sd.state.perfect_hiding=1;
 		}
 		break;
 	case SP_DISGUISE: // Disguise script for items [Valaris]
@@ -2279,7 +2298,7 @@ int pc_checkadditem(struct map_session_data &sd,unsigned short nameid,unsigned s
 {
 	int i;
 
-	if(itemdb_isequip(nameid))
+	if(itemdb_isSingleStorage(nameid))
 		return ADDITEM_NEW;
 
 	if(amount > MAX_AMOUNT)
@@ -2379,7 +2398,7 @@ int pc_additem(struct map_session_data &sd,struct item &item_data,size_t amount)
 
 	i = MAX_INVENTORY;
 
-	if( !itemdb_isequip2(*data) )
+	if( !itemdb_isSingleStorage(*data) )
 	{	// 装 備品ではないので、既所有品なら個数のみ変化させる
 		for (i = 0; i < MAX_INVENTORY; i++)
 			{
@@ -2400,7 +2419,7 @@ int pc_additem(struct map_session_data &sd,struct item &item_data,size_t amount)
 	if (i >= MAX_INVENTORY)
 	{	// 装 備品か未所有品だったので空き欄へ追加
 		i = pc_search_inventory(sd,0);
-		if(i >= 0)
+		if(i < MAX_INVENTORY)
 		{	// clear equips field first, just in case
 			if (item_data.equip != 0)
 				item_data.equip = 0;
@@ -2639,6 +2658,7 @@ int pc_cart_additem(struct map_session_data &sd, struct item &item_data, size_t 
 
 	if(item_data.nameid <= 0 || amount <= 0)
 		return 1;
+
 	data = itemdb_exists(item_data.nameid);
 
 	if(!itemdb_cancartstore(item_data.nameid, pc_isGM(sd)))
@@ -2648,10 +2668,13 @@ int pc_cart_additem(struct map_session_data &sd, struct item &item_data, size_t 
 	}
 
 	if((w=data->weight*amount) + sd.cart_weight > sd.cart_max_weight)
+	{
+		clif_displaymessage (sd.fd, "cart too heavy");
 		return 1;
+	}
 
 	i=MAX_CART;
-	if(!itemdb_isequip2(*data))
+	if(!itemdb_isSingleStorage(*data))
 	{
 		// 装 備品ではないので、既所有品なら個数のみ変化させる
 		for(i=0;i<MAX_CART;i++)
@@ -2677,7 +2700,7 @@ int pc_cart_additem(struct map_session_data &sd, struct item &item_data, size_t 
 		{
 			if(sd.status.cart[i].nameid==0){
 				memcpy(&sd.status.cart[i],&item_data,sizeof(sd.status.cart[0]));
-				if( itemdb_isequip2(*data) )
+				if( itemdb_isSingleStorage(*data) )
 				{
 					sd.status.cart[i].amount=1;
 					amount=1;
@@ -2735,11 +2758,11 @@ int pc_putitemtocart(struct map_session_data &sd,unsigned short idx, size_t amou
 {
 	if( idx >= MAX_INVENTORY ) return 0;
 
-	if( itemdb_isdropable(sd.status.inventory[idx].nameid, pc_isGM(sd)) )
+	if( !itemdb_isdropable(sd.status.inventory[idx].nameid, pc_isGM(sd)) )
 		return 1;
 	if( sd.status.inventory[idx].nameid==0 || sd.status.inventory[idx].amount<amount || sd.vender_id)
 		return 1;
-	if(pc_cart_additem(sd,sd.status.inventory[idx],amount) == 0)
+	if( pc_cart_additem(sd,sd.status.inventory[idx],amount) == 0 )
 		return pc_delitem(sd,idx,amount,0);
 
 	return 1;

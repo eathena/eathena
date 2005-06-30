@@ -1033,7 +1033,8 @@ bool atcommand_rura(int fd, struct map_session_data &sd, const char* command, co
 		}
 		if( pc_setpos(sd, map_name, x, y, 3) )
 			clif_displaymessage(fd, msg_table[0]); // Warped.
-		else {
+		else
+		{
 			clif_displaymessage(fd, msg_table[1]); // Map not found.
 			return false;
 		}
@@ -3394,7 +3395,7 @@ bool atcommand_produce(int fd, struct map_session_data &sd, const char* command,
 	    (item_id <= 500 || item_id > 1099) &&
 	    (item_id < 4001 || item_id > 4148) &&
 	    (item_id < 7001 || item_id > 10019) &&
-	    itemdb_isequip(item_id)) {
+	    itemdb_isSingleStorage(item_id)) {
 		if (attribute < MIN_ATTRIBUTE || attribute > MAX_ATTRIBUTE)
 			attribute = ATTRIBUTE_NORMAL;
 		if (star < MIN_STAR || star > MAX_STAR)

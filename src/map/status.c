@@ -4887,7 +4887,7 @@ int status_change_timer(int tid,unsigned long tick,int id,int data)
 			else if(md && md->mode&1 && mob_can_move(*md)) 
 			{
 				md->state.state=MS_WALK;
-				if( DIFF_TICK(md->next_walktime,tick) > + 7000 &&
+				if( DIFF_TICK(md->next_walktime,tick) > 7000 &&
 					(md->walkpath.path_len==0 || md->walkpath.path_pos>=md->walkpath.path_len) )
 					md->next_walktime = tick + 3000*rand()%2000;
 				mob_randomwalk(*md,tick);

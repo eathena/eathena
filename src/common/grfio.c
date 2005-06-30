@@ -412,7 +412,7 @@ FILELIST *filelist_find(const char *fname)
 	char *p;
 	char *namebuffer;
 
-	if(!fname) return NULL;
+	if(!fname || !filelist) return NULL;
 
 	// grf files uses backslash seperator
 	// so we better check if there are backslashes used
@@ -580,7 +580,8 @@ void* grfio_reads(const char *fname, int *size)
 
 	entry = filelist_find(fname);
 
-	if (entry==NULL || entry->gentry<=0) {	// LocalFileCheck
+	if (entry==NULL || entry->gentry<=0)
+	{	// LocalFileCheck
 		char lfname[256];
 		FILELIST lentry;
 		safestrcpy(lfname,fname,255);
@@ -612,7 +613,7 @@ void* grfio_reads(const char *fname, int *size)
 			} else {
 				ShowError("%s not found (grfio_reads)\n", fname);
 				//goto errret;
-				aFree(buf2);
+				if(buf2) aFree(buf2);
 				return NULL;
 			}
 		}
@@ -659,7 +660,7 @@ void* grfio_reads(const char *fname, int *size)
 		} else {
 			memcpy(buf2,buf,entry->declen);
 		}
-		aFree(buf);
+		if(buf) aFree(buf);
 	}
 	
 	if (size!=NULL && entry!=NULL)

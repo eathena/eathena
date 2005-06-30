@@ -2007,7 +2007,7 @@ int npc_parse_mob2(struct mob_list &mob)
 
 	for(i = 0; i < mob.num; i++)
 	{
-		md = (struct mob_data *) aCalloc (1, sizeof(struct mob_data));
+		md = (struct mob_data *)aCalloc (1, sizeof(struct mob_data));
 
 		if(mob.class_ > MAX_MOB_DB + 2000)
 		{	// large/tiny mobs [Valaris]
@@ -2566,7 +2566,7 @@ int ev_db_final (void *key,void *data,va_list ap)
 int npcname_db_final (void *key,void *data,va_list ap)
 {
 	struct npc_data *nd = (struct npc_data *) data;
-	npc_unload(nd);
+	npc_unload(nd, false);// we are inside the db function and cannot call erase from here
 	return 0;
 }
 
@@ -2631,7 +2631,7 @@ int npc_remove_map (struct npc_data *nd)
     return 0;
 }
 
-int npc_unload(struct npc_data *nd)
+int npc_unload(struct npc_data *nd, bool erase_strdb)//erase_strdb is default true 
 {
 	if(!nd) return 0;
 
@@ -2665,12 +2665,19 @@ int npc_unload(struct npc_data *nd)
 		}
 		// quite inconsistent, but:
 		// script npc's have 'exname' in the db
-		strdb_erase(npcname_db, nd->exname);
+		if(erase_strdb)
+			strdb_erase(npcname_db, nd->exname);
 	}
 	else
 	{	// shop/warp npc's have 'name' in the db
-		strdb_erase(npcname_db, nd->name);
+		if(erase_strdb)
+			strdb_erase(npcname_db, nd->name);
 	}
+
+	// unlink from map, if exist there
+	if( nd->bl.m<map_num && nd->n >=0 && nd->n< MAX_NPC_PER_MAP &&
+		map[nd->bl.m].npc[nd->n]==nd )
+		map[nd->bl.m].npc[nd->n]=NULL;
 
 	map_freeblock(nd); 
 	return 0;
@@ -2682,11 +2689,12 @@ int npc_unload(struct npc_data *nd)
  */
 int do_final_npc(void)
 {
-	size_t i;
+	size_t i, n=0, m=0;
 	struct block_list *bl;
 	struct npc_data *nd;
 	struct mob_data *md;
 	struct pet_data *pd;
+
 	for (i = START_NPC_NUM; i < npc_id; i++)
 	{
 		bl = map_id2bl(i);
@@ -2696,11 +2704,12 @@ int do_final_npc(void)
 			{
 				npc_unload(nd);
 				nd = NULL;
+				n++;
 			}
-			else 
-				if(bl->type == BL_MOB && (md = (struct mob_data *)bl))
+			else if(bl->type == BL_MOB && (md = (struct mob_data *)bl))
 			{
 				mob_unload(*md);
+				m++;
 			}
 			else if(bl->type == BL_PET && (pd = (struct pet_data *)bl))
 			{	// hmm, should never happen
@@ -2709,15 +2718,18 @@ int do_final_npc(void)
 			}
 		}
 	}
-	if(ev_db)
-	{
-		strdb_final(ev_db, ev_db_final);
-		ev_db = NULL;
-	}
+	ShowStatus("Successfully removed '"CL_WHITE"%d"CL_RESET"' NPCs and '"CL_WHITE"%d"CL_RESET"' Mobs.\n", n, m);
+
+	// unload all npcs from db
 	if(npcname_db)
 	{
 		strdb_final(npcname_db, npcname_db_final);
 		npcname_db = NULL;
+	}
+	if(ev_db)
+	{
+		strdb_final(ev_db, ev_db_final);
+		ev_db = NULL;
 	}
 
 	npc_clearsrcfile();

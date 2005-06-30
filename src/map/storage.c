@@ -165,7 +165,7 @@ int storage_additem(struct map_session_data &sd, struct pc_storage &stor, struct
 	}
 	
 	i=MAX_STORAGE;
-	if( !itemdb_isequip2(*data) )
+	if( !itemdb_isSingleStorage(*data) )
 	{	// 装備品ではないので、既所有品なら個数のみ変化させる
 		for(i=0;i<MAX_STORAGE;i++)
 		{
@@ -455,7 +455,7 @@ int guild_storage_additem(struct map_session_data &sd,struct guild_storage &stor
 	}
 
 	i=MAX_GUILD_STORAGE;
-	if( !itemdb_isequip2(*data) )
+	if( !itemdb_isSingleStorage(*data) )
 	{	// 装備品ではないので、既所有品なら個数のみ変化させる
 		for(i=0;i<MAX_GUILD_STORAGE;i++)
 		{

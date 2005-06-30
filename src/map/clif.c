@@ -38,9 +38,6 @@
 struct Clif_Config clif_config;
 struct packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB];
 
-#define USE_PACKET_DB(sd) clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver
-#define IS_PACKET_DB_VER(cmd) cmd == clif_config.connect_cmd
-
 
 static const int packet_len_table[MAX_PACKET_DB] = {
    10,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
@@ -236,11 +233,11 @@ int clif_send_sub(block_list &bl, va_list ap)
 
 	switch(type) {
 	case AREA_WOS:
-		if(&sd.bl == src_bl)
+		if(sd.bl.id == src_bl->id)
 			return 0;
 		break;
 	case AREA_WOC:
-		if (sd.chatID || &sd.bl == src_bl)
+		if (sd.chatID || sd.bl.id == src_bl->id)
 			return 0;
 		break;
 	case AREA_WOSC:
@@ -2068,7 +2065,7 @@ int clif_itemlist(struct map_session_data &sd)
 #if PACKETVER < 5
 	WBUFW(buf,0)=0xa3;
 	for(i=0,n=0;i<MAX_INVENTORY;i++){
-		if (sd.status.inventory[i].nameid <=0 || sd.inventory_data[i] == NULL || itemdb_isequip2(*sd.inventory_data[i]))
+		if (sd.status.inventory[i].nameid <=0 || sd.inventory_data[i] == NULL || itemdb_isSingleStorage(*sd.inventory_data[i]))
 			continue;
 		WBUFW(buf,n*10+4)=i+2;
 		if (sd.inventory_data[i]->view_id > 0)
@@ -2093,7 +2090,7 @@ int clif_itemlist(struct map_session_data &sd)
 #else
 	WBUFW(buf,0)=0x1ee;
 	for(i=0,n=0;i<MAX_INVENTORY;i++){
-		if(sd.status.inventory[i].nameid <=0 || sd.inventory_data[i] == NULL || itemdb_isequip2(*sd.inventory_data[i]))
+		if(sd.status.inventory[i].nameid <=0 || sd.inventory_data[i] == NULL || itemdb_isSingleStorage(*sd.inventory_data[i]))
 			continue;
 		WBUFW(buf,n*18+4)=i+2;
 		if(sd.inventory_data[i]->view_id > 0)
@@ -2141,7 +2138,7 @@ int clif_equiplist(struct map_session_data &sd)
 	buf = WFIFOP(fd,0);
 	WBUFW(buf,0)=0xa4;
 	for(i=0,n=0;i<MAX_INVENTORY;i++){
-		if(sd.status.inventory[i].nameid<=0 || sd.inventory_data[i] == NULL || !itemdb_isequip2(*sd.inventory_data[i]))
+		if(sd.status.inventory[i].nameid<=0 || sd.inventory_data[i] == NULL || !itemdb_isSingleStorage(*sd.inventory_data[i]))
 			continue;
 		WBUFW(buf,n*20+4)=i+2;
 		if(sd.inventory_data[i]->view_id > 0)
@@ -2207,7 +2204,7 @@ int clif_storageitemlist(struct map_session_data &sd,struct pc_storage &stor)
 		if(stor.storage[i].nameid<=0)
 			continue;
 		id = itemdb_exists(stor.storage[i].nameid);
-		if( !id || itemdb_isequip2(*id) )
+		if( !id || itemdb_isSingleStorage(*id) )
 			continue;
 
 		WBUFW(buf,n*10+4)=i+1;
@@ -2231,7 +2228,7 @@ int clif_storageitemlist(struct map_session_data &sd,struct pc_storage &stor)
 		if(stor.storage[i].nameid<=0)
 			continue;
 		id = itemdb_exists(stor.storage[i].nameid);
-		if(!id || itemdb_isequip2(*id))
+		if(!id || itemdb_isSingleStorage(*id))
 			continue;
 
 		WBUFW(buf,n*18+4)=i+1;
@@ -2277,7 +2274,7 @@ int clif_storageequiplist(struct map_session_data &sd,struct pc_storage &stor)
 		if(stor.storage[i].nameid<=0)
 			continue;
 		id = itemdb_exists(stor.storage[i].nameid);
-		if( !id || !itemdb_isequip2(*id) )
+		if( !id || !itemdb_isSingleStorage(*id) )
 			continue;
 		WBUFW(buf,n*20+4)=i+1;
 		if(id->view_id > 0)
@@ -2344,7 +2341,7 @@ int clif_guildstorageitemlist(struct map_session_data &sd,struct guild_storage &
 		if(stor.storage[i].nameid<=0)
 			continue;
 		id = itemdb_exists(stor.storage[i].nameid);
-		if(!id || itemdb_isequip2(*id))
+		if(!id || itemdb_isSingleStorage(*id))
 			continue;
 
 		WBUFW(buf,n*10+4)=i+1;
@@ -2368,7 +2365,7 @@ int clif_guildstorageitemlist(struct map_session_data &sd,struct guild_storage &
 		if(stor.storage[i].nameid<=0)
 			continue;
 		id = itemdb_exists(stor.storage[i].nameid);
-		if( !id || itemdb_isequip2(*id) )
+		if( !id || itemdb_isSingleStorage(*id) )
 			continue;
 
 		WBUFW(buf,n*18+4)=i+1;
@@ -2415,7 +2412,7 @@ int clif_guildstorageequiplist(struct map_session_data &sd,struct guild_storage 
 		if(stor.storage[i].nameid<=0)
 			continue;
 		id = itemdb_exists(stor.storage[i].nameid);
-		if(!id || !itemdb_isequip2(*id))
+		if(!id || !itemdb_isSingleStorage(*id))
 			continue;
 		WBUFW(buf,n*20+4)=i+1;
 		if(id->view_id > 0)
@@ -5411,7 +5408,7 @@ int clif_cart_itemlist(struct map_session_data &sd)
 		if(sd.status.cart[i].nameid<=0)
 			continue;
 		id = itemdb_exists(sd.status.cart[i].nameid);
-		if(!id || itemdb_isequip2(*id))
+		if(!id || itemdb_isSingleStorage(*id))
 			continue;
 		WBUFW(buf,n*10+4)=i+2;
 		if(id->view_id > 0)
@@ -5434,7 +5431,7 @@ int clif_cart_itemlist(struct map_session_data &sd)
 		if(sd.status.cart[i].nameid<=0)
 			continue;
 		id = itemdb_exists(sd.status.cart[i].nameid);
-		if(!id || itemdb_isequip2(*id))
+		if(!id || itemdb_isSingleStorage(*id))
 			continue;
 		WBUFW(buf,n*18+4)=i+2;
 		if(id->view_id > 0)
@@ -5479,7 +5476,7 @@ int clif_cart_equiplist(struct map_session_data &sd)
 		if(sd.status.cart[i].nameid<=0)
 			continue;
 		id = itemdb_exists(sd.status.cart[i].nameid);
-		if(!id || !itemdb_isequip2(*id))
+		if(!id || !itemdb_isSingleStorage(*id))
 			continue;
 		WBUFW(buf,n*20+4)=i+2;
 		if(id->view_id > 0)
@@ -6816,8 +6813,8 @@ int clif_guild_skillinfo(struct map_session_data &sd)
 			WFIFOW(fd,c*37+ 8) = guild_skill_get_inf(id);
 			WFIFOW(fd,c*37+10) = 0;
 			WFIFOW(fd,c*37+12) = g->skill[i].lv;
-			WFIFOW(fd,c*37+14) = guild_skill_get_sp(id,g->skill[i].lv);
-			WFIFOW(fd,c*37+16) = guild_skill_get_range(id);
+			WFIFOW(fd,c*37+14) = skill_get_sp(id,g->skill[i].lv);
+			WFIFOW(fd,c*37+16) = skill_get_range(id,g->skill[i].lv);
 			memset(WFIFOP(fd,c*37+18),0,24);
 			if(g->skill[i].lv < guild_skill_get_max(id)) {
 				//Kafra and Guardian changed to require Approval [Sara]
@@ -7020,8 +7017,8 @@ int clif_guild_skillup(struct map_session_data &sd,unsigned short skillid,unsign
 	WFIFOW(fd,0) = 0x10e;
 	WFIFOW(fd,2) = skillid;
 	WFIFOW(fd,4) = skilllv;
-	WFIFOW(fd,6) = guild_skill_get_sp(skillid,skilllv);
-	WFIFOW(fd,8) = guild_skill_get_range(skillid);
+	WFIFOW(fd,6) = skill_get_sp(skillid,skilllv);
+	WFIFOW(fd,8) = skill_get_range(skillid,skilllv);
 	WFIFOB(fd,10) = 1;
 	WFIFOSET(fd,11);
 	return 0;
@@ -7450,7 +7447,7 @@ int clif_refresh(struct map_session_data &sd)
 int clif_charnameack(int fd, struct block_list &bl)
 {
 	unsigned char buf[103];
-	unsigned short cmd = 0x95;
+	unsigned short cmd = 0x95; // default sending 0x95 and change to 0x195 when necessary
 
 	switch(bl.type)
 	{
@@ -7462,29 +7459,26 @@ int clif_charnameack(int fd, struct block_list &bl)
 		{
 			memcpy(WBUFP(buf,6), sd.fakename, 24);
 		}
-	else
+		else
 		{
 			struct guild *g = NULL;
-
 			memcpy(WBUFP(buf,6), sd.status.name, 24);
 			if( sd.status.guild_id && (g = guild_search(sd.status.guild_id)) != NULL)
-			{
-				// ギルド所属ならパケット0195を返す
+			{	// ギルド所属ならパケット0195を返す
 				size_t i;
 				for(i = 0; i < g->max_member; i++)
 				{
-					if (g->member[i].account_id == sd.status.account_id &&
+					if( g->member[i].account_id == sd.status.account_id &&
 						g->member[i].char_id == sd.status.char_id )
 					{
-				break;
-			}
+						break;
+					}
 				}
 				if(i < g->max_member)
 				{
 					unsigned short ps = g->member[i].position;
 					struct party *p = (sd.status.party_id != 0) ? party_search(sd.status.party_id) : NULL;
- 
-					WBUFW(buf, 0) = 0x195;
+					cmd = 0x195;
 					if (p)
 						memcpy(WBUFP(buf,30), p->name, 24);
 					else
@@ -7519,20 +7513,20 @@ int clif_charnameack(int fd, struct block_list &bl)
 			if (gc && gc->guild_id > 0 && (g = guild_search(gc->guild_id)) != NULL)
 			{
 				cmd = 0x195;
-					WBUFB(buf,30) = 0;
+				WBUFB(buf,30) = 0;
 				memcpy(WBUFP(buf,54), g->name, 24);
 				memcpy(WBUFP(buf,78), gc->castle_name, 24);
-				}
+			}
 		}
 		else if (battle_config.show_mob_hp == 1)
 		{
-				char mobhp[50];
+			char mobhp[50];
 			cmd = 0x195;
 			sprintf(mobhp, "hp: %ld/%ld", md.hp, md.max_hp);
 			memcpy(WBUFP(buf,30), mobhp, 24);
-				WBUFB(buf,54) = 0;
+			WBUFB(buf,54) = 0;
 			WBUFB(buf,78) = 0;
-			}
+		}
 		break;
 		}
 	default:
@@ -7574,7 +7568,7 @@ int clif_parse_WantToConnection(int fd, struct map_session_data &sd)
 	unsigned long login_id1;
 	unsigned long client_tick;
 	unsigned char sex;
-	size_t packet_ver;	// 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
+	size_t packet_ver=0;	// 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 
 	if( !session_isActive(fd) )
 		return 0;
@@ -7582,7 +7576,7 @@ int clif_parse_WantToConnection(int fd, struct map_session_data &sd)
 	cmd = RFIFOW(fd,0);
 	// ShowMessage("Received bytes %d with packet 0x%d.\n", RFIFOREST(fd), cmd);
 
-	if (IS_PACKET_DB_VER(cmd) &&
+	if( cmd == clif_config.connect_cmd &&
 		RFIFOREST(fd) == packet_db[clif_config.packet_db_ver][clif_config.connect_cmd].len &&
 		(RFIFOB(fd, packet_db[clif_config.packet_db_ver][clif_config.connect_cmd].pos[4]) == 0 ||	// 00 = Female
 		RFIFOB(fd, packet_db[clif_config.packet_db_ver][clif_config.connect_cmd].pos[4]) == 1))		// 01 = Male
@@ -7913,7 +7907,7 @@ int clif_parse_TickSend(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( USE_PACKET_DB(sd) )
+	if( clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver )
 	{
 		sd.client_tick=RFIFOL(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0]);
 	} else {
@@ -8003,7 +7997,8 @@ int clif_parse_WalkToXY(int fd, struct map_session_data &sd)
 
 	pc_stopattack(sd);
 
-	if (USE_PACKET_DB(sd)) {
+	if( clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver )
+	{
 		int cmd = RFIFOW(fd,0);
 		x = RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[0]) * 4 +
 			(RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[0] + 1) >> 6);
@@ -8113,9 +8108,12 @@ int clif_parse_GetCharNameRequest(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 	
-	if (USE_PACKET_DB(sd)) {
+	if( clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver )
+	{
 		account_id = RFIFOL(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0]);
-	} else {
+	}
+	else
+	{
 		switch (sd.packet_ver) { // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 		case 8:
 			account_id = RFIFOL(fd,11);
@@ -8181,7 +8179,7 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 	}
 	RFIFOB(fd,size-1)=0; // add an eof marker in the buffer
 
-	if ((is_atcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != AtCommand_None) ||
+	if( (is_atcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != AtCommand_None) ||
         (is_charcommand(fd, sd, (char*)RFIFOP(fd,4),0)!= CharCommand_None) ||
 	    (sd.sc_data &&
 	    (sd.sc_data[SC_BERSERK].timer != -1 || //バーサーク時は会話も不可
@@ -8347,7 +8345,7 @@ int clif_parse_ChangeDir(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if (USE_PACKET_DB(sd))
+	if( clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver )
 	{
 		headdir = RFIFOB(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0]);
 		bodydir = RFIFOB(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[1]);
@@ -8486,10 +8484,13 @@ int clif_parse_ActionRequest(int fd, struct map_session_data &sd)
 	pc_stop_walking(sd, 0);
 	pc_stopattack(sd);
 
-	if (USE_PACKET_DB(sd)) {
+	if( clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver )
+	{
 		target_id = RFIFOL(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0]);
 		action_type = RFIFOB(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[1]);
-	} else {
+	}
+	else
+	{
 		switch (sd.packet_ver) { // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 		case 8:
 			target_id = RFIFOL(fd,3);
@@ -8725,9 +8726,12 @@ int clif_parse_TakeItem(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if (USE_PACKET_DB(sd)) {
+	if( clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver )
+	{
 		map_object_id = RFIFOL(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0]);
-	} else {
+	}
+	else
+	{
 		switch (sd.packet_ver) { // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 		case 7:
 			map_object_id = RFIFOL(fd,6);
@@ -8812,10 +8816,13 @@ int clif_parse_DropItem(int fd, struct map_session_data &sd)
 		sd.sc_data[SC_BERSERK].timer != -1)) ) //バーサーク
 		return 0;
 
-	if (USE_PACKET_DB(sd)) {
+	if( clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver )
+	{
 		item_index = RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0])-2;
 		item_amount = RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[1]);
-	} else {
+	}
+	else
+	{
 		switch (sd.packet_ver) { // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 		case 8:
 			item_index = RFIFOW(fd,5) - 2;
@@ -8889,9 +8896,12 @@ int clif_parse_UseItem(int fd, struct map_session_data &sd)
 	if (sd.invincible_timer != -1)
 		pc_delinvincibletimer(sd);
 
-	if (USE_PACKET_DB(sd)) {
+	if( clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver )
+	{
 		pc_useitem(sd,RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0])-2);
-	} else {
+	}
+	else
+	{
 		switch (sd.packet_ver) { // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 		case 6:
 			pc_useitem(sd,RFIFOW(fd,5)-2);
@@ -9338,11 +9348,14 @@ int clif_parse_UseSkillToId(int fd, struct map_session_data &sd) {
 	if (sd.chatID || sd.npc_id != 0 || sd.vender_id != 0)
 		return 0;
 
-	if (USE_PACKET_DB(sd)) {
+	if( clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver )
+	{
 		skilllv = RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0]);
 		skillnum = RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[1]);
 		target_id = RFIFOL(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[2]);
-	} else {
+	}
+	else
+	{
 		switch (sd.packet_ver) { // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 		case 6:
 			skilllv = RFIFOW(fd,4);
@@ -9507,14 +9520,17 @@ int clif_parse_UseSkillToPos(int fd, struct map_session_data &sd) {
 	if(sd.chatID) return 0;
 
 	skillmoreinfo = -1;
-	if (USE_PACKET_DB(sd)) {
+	if( clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver )
+	{
 		skilllv = RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0]);
 		skillnum = RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[1]);
 		x = RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[2]);
 		y = RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[3]);
 		if (packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[4] > 0)
 			skillmoreinfo = packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[4];
-	} else {
+	}
+	else
+	{
 		switch (sd.packet_ver) { // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 		case 6:
 			skilllv = RFIFOW(fd,4);
@@ -9872,9 +9888,12 @@ int clif_parse_SolveCharName(int fd, struct map_session_data &sd) {
 	if( !session_isActive(fd) )
 		return 0;
 
-	if (USE_PACKET_DB(sd)) {
+	if( clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver )
+	{
 		char_id = RFIFOL(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0]);
-	} else {
+	}
+	else
+	{
 		switch (sd.packet_ver) { // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 		case 8:
 			char_id = RFIFOL(fd,8);
@@ -9970,10 +9989,13 @@ int clif_parse_MoveToKafra(int fd, struct map_session_data &sd) {
 	if (sd.npc_id != 0 || sd.vender_id != 0)
 		return 0;
 
-	if (USE_PACKET_DB(sd)) {
+	if( clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver )
+	{
 		item_index = RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0])-2;
 		item_amount = RFIFOL(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[1]);
-	} else {
+	}
+	else
+	{
 		switch (sd.packet_ver) { // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 		case 8:
 			item_index = RFIFOW(fd,5) - 2;
@@ -10039,10 +10061,13 @@ int clif_parse_MoveFromKafra(int fd,struct map_session_data &sd) {
 	if( !session_isActive(fd) )
 		return 0;
 
-	if (USE_PACKET_DB(sd)) {
+	if( clif_config.enable_packet_db && sd.packet_ver == clif_config.packet_db_ver )
+	{
 		item_index = RFIFOW(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[0])-1;
 		item_amount = RFIFOL(fd,packet_db[clif_config.packet_db_ver][RFIFOW(fd,0)].pos[1]);
-	} else {
+	}
+	else
+	{
 		switch (sd.packet_ver) { // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 		case 8:
 			item_index = RFIFOW(fd,10) - 1;
@@ -11484,6 +11509,7 @@ int clif_terminate(int fd)
 			if( sd->state.event_disconnect )
 				npc_event_doall_attached("OnDisconnect",*sd);   
 
+			clif_clearchar(sd->bl, 0);
 			if(sd->state.auth) 
 			{	// the function doesn't send to inter-server/char-server ifit is not connected [Yor]
 				map_quit(*sd);
@@ -11526,8 +11552,7 @@ int clif_parse(int fd)
 
 	// 接続が切れてるので後始末
 	// char鯖に繋がってない間は接続禁止 (!chrif_isconnect())
-	if( //!chrif_isconnect() || // I try not to delete users on a char server drop
-		!session_isActive(fd) )
+	if( !session_isActive(fd) )
 	{ 
 		// wait some time (10sec) before removing the pc after a forced logout
 		// other disconnections got a different WaitClose time before comming here
@@ -11540,7 +11565,7 @@ int clif_parse(int fd)
 		return 0;
 	}
 
-	while(RFIFOREST(fd) >= 2)
+	while(session_isActive(fd) && RFIFOREST(fd) >= 2)
 	{
 		cmd = RFIFOW(fd,0);
 		//ShowMessage("clif_parse: connection #%d, packet: 0x%x (with being read: %d bytes(&i)).\n", fd, cmd, RFIFOREST(fd), RFIFOW(fd,2));
@@ -11575,7 +11600,7 @@ int clif_parse(int fd)
 			// get packet version before to parse
 			packet_ver = 0;
 			// packet DB
-			if (IS_PACKET_DB_VER (cmd) && 
+			if( cmd == clif_config.connect_cmd && 
 				RFIFOREST(fd) >= packet_db[clif_config.packet_db_ver][cmd].len &&
 				(RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[4]) == 0 ||	// 01 = Male
 				RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[4]) == 1))		// 00 = Female

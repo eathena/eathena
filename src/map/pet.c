@@ -47,7 +47,7 @@ struct delay_item_drop2 {
 
 #define MIN_PETTHINKTIME 100
 
-struct pet_db pet_db[MAX_PET_DB];
+struct petdb pet_db[MAX_PET_DB];
 
 static int dirx[8]={0,-1,-1,-1,0,1,1,1};
 static int diry[8]={1,1,0,-1,-1,-1,0,1};
@@ -772,7 +772,7 @@ int pet_remove_map(struct map_session_data &sd)
 			pd->loot = NULL;
 		}
 		pd->state.skillbonus=-1;
-		if(sd.perfect_hiding==1) sd.perfect_hiding=0;	// end additions
+		sd.state.perfect_hiding=0;	// end additions
 
 		pet_changestate(*(sd.pd),MS_IDLE,0);
 
@@ -1297,10 +1297,20 @@ int pet_randomwalk(struct pet_data &pd,unsigned long tick)
 	if(DIFF_TICK(pd.next_walktime,tick) < 0){
 		int i,x,y,c,d=12-pd.move_fail_count;
 		if(d<5) d=5;
-		for(i=0;i<retrycount;i++){
+		for(i=0;i<retrycount;i++)
+		{
 			int r=rand();
-			x=pd.bl.x+r%(d*2+1)-d;
-			y=pd.bl.y+r/(d*2+1)%(d*2+1)-d;
+			if(pd.msd && distance(pd.bl.x, pd.bl.y, pd.msd->bl.x, pd.msd->bl.y)<d )
+			{	// use master coordinates as base for random walk
+				x=pd.msd->bl.x+r%(d*2+1)-d;
+				y=pd.msd->bl.y+r/(d*2+1)%(d*2+1)-d;
+			}
+			else
+			{
+				x=pd.bl.x+r%(d*2+1)-d;
+				y=pd.bl.y+r/(d*2+1)%(d*2+1)-d;
+			}
+
 			if((map_getcell(pd.bl.m,x,y,CELL_CHKPASS))&&( pet_walktoxy(pd,x,y)==0)){
 				pd.move_fail_count=0;
 				break;
@@ -1440,8 +1450,8 @@ int pet_ai_sub_hard(struct pet_data &pd,unsigned long tick)
 		else if(pd.target_id > 0 && pd.loot)
 		{	//Item Targeted, attempt loot
 			struct block_list *bl_item = map_id2bl(pd.target_id);
-			dist=distance(pd.bl.x,pd.bl.y,bl_item->x,bl_item->y);
-			if(bl_item == NULL || bl_item->type != BL_ITEM || bl_item->m != pd.bl.m || dist>=5)
+			if( bl_item == NULL || bl_item->type != BL_ITEM || bl_item->m != pd.bl.m || 
+				(dist=distance(pd.bl.x,pd.bl.y,bl_item->x,bl_item->y))>=5 )
 			{
 				 // ‰“‚·‚¬‚é‚©ƒAƒCƒeƒ€‚ª‚È‚­‚È‚Á‚½
  				pet_unlocktarget(pd);
@@ -1483,7 +1493,8 @@ int pet_ai_sub_hard(struct pet_data &pd,unsigned long tick)
 				return 0;
 			if(dist<=3)
 			{
-				pet_randomwalk(pd,tick);
+				if(battle_config.pet_random_move)
+					pet_randomwalk(pd,tick);
 				return 0;
 			}
 			pd.speed = status_get_speed(&pd.bl);

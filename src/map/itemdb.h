@@ -20,6 +20,9 @@ struct item_data
 	unsigned long def;
 
 	unsigned char type;
+//0 Healing, 2: Usable, 3: Misc, 4: Weapon, 5: Armor, 6: Card, 7: Pet Egg,
+//8: Pet Equipment, 10: Arrow, 11: Usable with delayed consumption (all items with script "pet" or "itemskill": Lures, Scrolls, Magnifier, Yggdrasil Leaf)
+
 	unsigned char gm_lv_trade_override;
 
 	unsigned long class_array;
@@ -93,9 +96,9 @@ bool itemdb_canguildstore(unsigned short nameid, unsigned char gmlv);
 bool itemdb_cancartstore(unsigned short nameid, unsigned char gmlv);
 bool itemdb_canpartnertrade(unsigned short nameid, unsigned char gmlv);
 
-bool itemdb_isequip(unsigned short nameid);
-bool itemdb_isequip2(struct item_data &data);
-bool itemdb_isequip3(unsigned short nameid);
+bool itemdb_isSingleStorage(unsigned short nameid);
+bool itemdb_isSingleStorage(struct item_data &data);
+bool itemdb_isEquipment(unsigned short nameid);
 
 // itemdb_equipマクロとitemdb_equippointとの違いは
 // 前者が鯖側dbで定義された値そのものを返すのに対し

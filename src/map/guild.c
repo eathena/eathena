@@ -53,16 +53,22 @@ int guild_gvg_eliminate_timer(int tid,unsigned long tick,int id,int data);
 int guild_save_sub(int tid,unsigned long tick,int id,int data);
 
 // ギルドスキルdbのアクセサ（今は直打ちで代用）
-int guild_skill_get_inf(unsigned short id) { // Modified for new skills [Sara]
-	if (id==GD_BATTLEORDER) return 4;
-	else if (id==GD_REGENERATION) return 4;
-	else if (id==GD_RESTORE) return 4;
-	else if (id==GD_EMERGENCYCALL) return 4;
-	else return 0;
+
+// Modified for new skills [Sara]
+int guild_skill_get_inf(unsigned short id)
+{
+	switch(id) {
+		case GD_BATTLEORDER:
+		case GD_REGENERATION:
+		case GD_RESTORE:
+		case GD_EMERGENCYCALL:
+			return 4;
+	}
+	return 0;
 }
-int guild_skill_get_sp(unsigned short id,unsigned short lv){ return 0; }
-int guild_skill_get_range(unsigned short id){ return 0; }
-int guild_skill_get_max(unsigned short id) { // Modified for new skills [Sara]
+
+int guild_skill_get_max(unsigned short id)
+{	// Modified for new skills [Sara]
 	switch (id) {
 	case GD_GUARDUP:
 		return 3;

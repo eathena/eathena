@@ -95,14 +95,15 @@ unsigned long gettick(void)
 inline int timer_data_diff_tick(size_t a, size_t b)
 {
 	// sort for tick count first
-	int x = timer_data[a].tick - timer_data[b].tick;
+	unsigned long x = timer_data[a].tick - timer_data[b].tick;
 	// then sort for index number
 	if( x==0 ) return a-b;
-	return x;
+	unsigned long y = timer_data[b].tick - timer_data[a].tick;
+	return (x<y) ? ((int)x) : -((int)y);
 }
 
 
-int search_timer_heap(size_t* field, size_t count, size_t elem, size_t *pos)
+int search_timer_heap(size_t* field, size_t count, size_t elem, size_t &pos)
 {	// do a binary search
 	// descending sort (largest at 0, smallest at count-1
 	// make some initial stuff
@@ -112,24 +113,24 @@ int search_timer_heap(size_t* field, size_t count, size_t elem, size_t *pos)
 	size_t a=0;
 	size_t b=count-1;	
 	size_t c;
-	*pos = 0;
+	pos = 0;
 
 	if( NULL==field || 0==count)
 		ret = false;
 	else if( 0 < (cmp = timer_data_diff_tick(elem, timer_heap[a])) )
-	{	*pos = a;
+	{	pos = a;
 		ret = false; 
 	}
 	else if( 0 == cmp ) 
-	{	*pos=a;
+	{	pos=a;
 		ret = true;
 	}
 	else if( 0 > (cmp = timer_data_diff_tick(elem, timer_heap[b])) )
-	{	*pos = b+1;
+	{	pos = b+1;
 		ret = false; 
 	}
 	else if( 0 == cmp ) 
-	{	*pos=b;
+	{	pos=b;
 		ret = true;
 	}
 	else
@@ -147,7 +148,7 @@ int search_timer_heap(size_t* field, size_t count, size_t elem, size_t *pos)
 			else
 				a=c;
 		}while( (a+1) < b );
-		*pos = b;
+		pos = b;
 	}
 	return ret;
 }
@@ -180,7 +181,7 @@ int push_timer_heap(size_t index)
 	}
 
 	// push value to the heap
-	if( !search_timer_heap(timer_heap, timer_heap_pos, index, &pos) )
+	if( !search_timer_heap(timer_heap, timer_heap_pos, index, pos) )
 	{
 		// move all elements after pos for one step
 		memmove( timer_heap+pos+1, timer_heap+pos, (timer_heap_pos-pos)*sizeof(size_t) );
@@ -194,7 +195,7 @@ int push_timer_heap(size_t index)
 void delete_timer_heap(size_t index) 
 {
 	size_t pos;
-	if( search_timer_heap(timer_heap, timer_heap_pos, index, &pos) )
+	if( search_timer_heap(timer_heap, timer_heap_pos, index, pos) )
 	{
 		memmove(timer_heap+pos,timer_heap+pos+1,(timer_heap_pos - pos) * sizeof(size_t));
 		timer_heap_pos--;

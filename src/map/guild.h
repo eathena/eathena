@@ -10,8 +10,6 @@ struct guild_position;
 struct guild_castle;
 
 int guild_skill_get_inf(unsigned short id);
-int guild_skill_get_sp(unsigned short id,unsigned short lv);
-int guild_skill_get_range(unsigned short id);
 int guild_skill_get_max(unsigned short id);
 
 int guild_checkskill(struct guild &g,unsigned short id);

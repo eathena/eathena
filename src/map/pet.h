@@ -5,7 +5,7 @@
 #define MAX_PET_DB	300
 #define MAX_PETLOOT_SIZE	30 // [Valaris] - Changed to MAX_PETLOOT_SIZE [Skotlex]
 
-struct pet_db {
+struct petdb {
 	char	name[24];
 	char	jname[24];
 	short	class_;
@@ -28,7 +28,7 @@ struct pet_db {
 	char s_perfor;
 	char *script;
 };
-extern struct pet_db pet_db[MAX_PET_DB];
+extern struct petdb pet_db[MAX_PET_DB];
 
 enum { PET_CLASS,PET_CATCH,PET_EGG,PET_EQUIP,PET_FOOD };
 

@@ -213,8 +213,8 @@ void trade_tradeadditem(struct map_session_data &sd, unsigned short index, unsig
 						amount = 0;
 					}
 					else if (target_sd->weight + trade_weight > target_sd->max_weight)
-					{
-						clif_tradeitemok(sd, index, 1); // fail to add item -- the player was over weighted.
+					{	// fail to add item -- the player was over weighted.
+						clif_tradeitemok(sd, index, 1); 
 						amount = 0;
 					}
 					else 

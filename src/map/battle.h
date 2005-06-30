@@ -301,6 +301,7 @@ struct Battle_Config
 	ulong pet_max_atk1; //[Skotlex]
 	ulong pet_max_atk2; //[Skotlex]
 	ulong pet_max_stats; //[Skotlex]
+	ulong pet_random_move;
 	ulong pet_rename;
 	ulong pet_status_support;
 	ulong pet_str;

@@ -273,20 +273,26 @@ void db_rebalance_erase(struct dbn *z,struct dbn **root)
 {
 	struct dbn *y = z, *x = NULL, *x_parent = NULL;
 
+	if(!z || !root || !*root)
+		return;
+
 	if (y->left == NULL)
 		x = y->right;
 	else if (y->right == NULL)
 		x = y->left;
-	else {
+	else // both are NULL
+	{	
 		y = y->right;
 		while (y->left != NULL)
 			y = y->left;
 		x = y->right;
 	}
-	if (y != z) { // 左右が両方埋まっていた時 yをzの位置に持ってきてzを浮かせる
+	if (y != z)
+	{	// 左右が両方埋まっていた時 yをzの位置に持ってきてzを浮かせる
 		z->left->parent = y;
 		y->left = z->left;
-		if (y != z->right) {
+		if (y != z->right)
+		{
 			x_parent = y->parent;
 			if (x) x->parent = y->parent;
 			y->parent->left = x;
@@ -301,9 +307,15 @@ void db_rebalance_erase(struct dbn *z,struct dbn **root)
 		else
 			z->parent->right = y;
 		y->parent = z->parent;
-		{ int tmp=y->color; y->color=z->color; z->color=tmp; }
+		{	// swap colors
+			int tmp=y->color; 
+			y->color=z->color;
+			z->color=tmp;
+		}
 		y = z;
-	} else { // どちらか空いていた場合 xをzの位置に持ってきてzを浮かせる
+	}
+	else
+	{	// どちらか空いていた場合 xをzの位置に持ってきてzを浮かせる
 		x_parent = y->parent;
 		if (x) x->parent = y->parent;
 		if (*root == z)
@@ -314,67 +326,81 @@ void db_rebalance_erase(struct dbn *z,struct dbn **root)
 			z->parent->right = x;
 	}
 	// ここまで色の移動の除いて通常の2分木と同じ
-	if (y->color != RED) { // 赤が消える分には影響無し
+	if (y->color != RED)
+	{	// 赤が消える分には影響無し
 		while (x != *root && (x == NULL || x->color == BLACK))
-			if (x == x_parent->left) {
+		{
+			if(x == x_parent->left)
+			{
 				struct dbn* w = x_parent->right;
-				if (w->color == RED) {
+				if (w->color == RED)
+				{
 					w->color = BLACK;
 					x_parent->color = RED;
 					db_rotate_left(x_parent, root);
 					w = x_parent->right;
 				}
-				if ((w->left == NULL ||
-					 w->left->color == BLACK) &&
-					(w->right == NULL ||
-					 w->right->color == BLACK)) {
+				if( (w->left == NULL  || w->left->color == BLACK) &&
+					(w->right == NULL || w->right->color == BLACK))
+				{
 					w->color = RED;
 					x = x_parent;
 					x_parent = x_parent->parent;
-				} else {
-					if (w->right == NULL ||
-						w->right->color == BLACK) {
-						if (w->left) w->left->color = BLACK;
+				}
+				else
+				{
+					if (w->right == NULL || w->right->color == BLACK)
+					{
+						if (w->left)
+							w->left->color = BLACK;
 						w->color = RED;
 						db_rotate_right(w, root);
 						w = x_parent->right;
 					}
 					w->color = x_parent->color;
 					x_parent->color = BLACK;
-					if (w->right) w->right->color = BLACK;
+					if (w->right)
+						w->right->color = BLACK;
 					db_rotate_left(x_parent, root);
 					break;
 				}
-			} else {                  // same as above, with right <-> left.
+			}
+			else
+			{	// same as above, with right <-> left.
 				struct dbn* w = x_parent->left;
-				if (w->color == RED) {
+				if( w->color == RED )
+				{
 					w->color = BLACK;
 					x_parent->color = RED;
 					db_rotate_right(x_parent, root);
 					w = x_parent->left;
 				}
-				if ((w->right == NULL ||
-					 w->right->color == BLACK) &&
-					(w->left == NULL ||
-					 w->left->color == BLACK)) {
+				if( (w->right == NULL || w->right->color == BLACK) &&
+					(w->left == NULL  || w->left->color == BLACK))
+				{
 					w->color = RED;
 					x = x_parent;
 					x_parent = x_parent->parent;
-				} else {
-					if (w->left == NULL ||
-						w->left->color == BLACK) {
-						if (w->right) w->right->color = BLACK;
+				}
+				else
+				{
+					if (w->left == NULL || w->left->color == BLACK)
+					{
+						if (w->right)
+							w->right->color = BLACK;
 						w->color = RED;
 						db_rotate_left(w, root);
 						w = x_parent->left;
 					}
 					w->color = x_parent->color;
 					x_parent->color = BLACK;
-					if (w->left) w->left->color = BLACK;
+					if (w->left)
+						w->left->color = BLACK;
 					db_rotate_right(x_parent, root);
 					break;
 				}
 			}
+		}
 		if (x) x->color = BLACK;
 	}
 }
@@ -646,7 +672,15 @@ void db_final(struct dbt *table,int (*func)(void*,void*,va_list),...)
 		}
 	}
 	db_free_unlock(table);
-	aFree(table->free_list);
-	aFree(table);
+	if(table->free_list)
+	{
+		aFree(table->free_list);
+		table->free_list=NULL;
+	}
+	if(table)
+	{
+		aFree(table);
+		table=NULL;
+	}
 	va_end(ap);
 }

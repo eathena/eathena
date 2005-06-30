@@ -914,12 +914,14 @@ int intif_parse_GuildInfo(int fd)
 		guild_recv_noinfo(RFIFOL(fd,4));
 		return 0;
 	}
-
 //	if(battle_config.etc_log)
 //		ShowMessage("intif: guild info %ld\n",(unsigned long)RFIFOL(fd,4));
-	if( RFIFOW(fd,2)!=sizeof(struct guild)+4 ){
+	if( RFIFOW(fd,2)!=4+sizeof(struct guild) )
+	{
 		if(battle_config.error_log)
-			ShowMessage("intif: guild info : data size error\n %ld %d %d",(unsigned long)RFIFOL(fd,4),(unsigned short)RFIFOW(fd,2),sizeof(struct guild)+4);
+			ShowMessage("intif: guild info : data size error %ld %d %d\n",
+			(unsigned long)RFIFOL(fd,4),(unsigned short)RFIFOW(fd,2),4+sizeof(struct guild));
+
 	}
 	{
 		struct guild g;

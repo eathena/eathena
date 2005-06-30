@@ -259,14 +259,15 @@ struct map_session_data
 		unsigned potion_flag : 2;					// 43,44
 		unsigned viewsize : 2;						// 45,46
 		unsigned abra_flag : 1;						// 47  - byte 6
-													// 0 bits left
+		unsigned perfect_hiding : 1;				// 48
+													// 7 bits left
 	} state;
 
 	struct mmo_charstatus status;
 
+	unsigned long packet_ver;  // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 	unsigned long login_id1;
 	unsigned long login_id2;
-	unsigned long packet_ver;  // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 
 	struct item_data *inventory_data[MAX_INVENTORY];
 	short itemindex;
@@ -388,7 +389,7 @@ struct map_session_data
 	unsigned short hit;
 	unsigned short flee;
 	unsigned short flee2;
-	unsigned long aspd;
+	unsigned short aspd;
 	unsigned long amotion;
 	unsigned long dmotion;
 
@@ -535,7 +536,7 @@ struct map_session_data
 	long magic_damage_return; // AppleGirl Was Here
 	long random_attack_increase_add;
 	long random_attack_increase_per; // [Valaris]
-	long perfect_hiding; // [Valaris]
+
 	long classchange; // [Valaris]
 
 	long die_counter;
@@ -579,7 +580,7 @@ struct map_session_data
 
 	long catch_target_class;
 	struct s_pet pet;
-	struct pet_db *petDB;
+	struct petdb *petDB;
 	struct pet_data *pd;
 	int pet_hungry_timer;
 

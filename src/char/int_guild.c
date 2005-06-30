@@ -732,9 +732,9 @@ int mapif_guild_info(int fd, struct guild *g) {
 		guild_tobuffer(*g, WBUFP(buf,4));
 		//ShowMessage("int_guild: sizeof(guild)=%d\n", sizeof(struct guild));
 		if( !session_isActive(fd) )
-			mapif_sendall(buf, WBUFW(buf,2));
+			mapif_sendall(buf, 4 + sizeof(struct guild));
 		else
-			mapif_send(fd, buf, WBUFW(buf,2));
+			mapif_send(fd, buf, 4 + sizeof(struct guild));
 		//ShowMessage("int_guild: info %d %s\n", p->guild_id, p->name);
 	}
 	return 0;

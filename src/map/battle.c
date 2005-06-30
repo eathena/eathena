@@ -5532,6 +5532,7 @@ static struct {
 	{ "pet_max_atk1",                      &battle_config.pet_max_atk1				},	//Skotlex
 	{ "pet_max_atk2",                      &battle_config.pet_max_atk2				},	//Skotlex
 	{ "pet_max_stats",                     &battle_config.pet_max_stats				},	//Skotlex
+	{ "pet_random_move",					&battle_config.pet_random_move			},
 	{ "pet_rename",                        &battle_config.pet_rename				},
 	{ "pet_status_support",                &battle_config.pet_status_support		},
 	{ "pet_str",                           &battle_config.pet_str					},
@@ -5625,7 +5626,7 @@ void battle_set_defaults()
 	battle_config.any_warp_GM_min_level = 60; // added by [Yor]
 	battle_config.area_size = 14;
 	battle_config.arrow_decrement=1;
-	battle_config.atc_gmonly=0;
+	battle_config.atc_gmonly=1;
 	battle_config.atc_spawn_quantity_limit=0;
 	battle_config.attr_recover=1;
 	battle_config.backstab_bow_penalty = 0; // Akaru
@@ -5832,6 +5833,7 @@ void battle_set_defaults()
 	battle_config.pet_max_atk1=750;
 	battle_config.pet_max_atk2=1000;
 	battle_config.pet_max_stats=99;
+	battle_config.pet_random_move=1;
 	battle_config.pet_rename=0;
 	battle_config.pet_status_support=0;
 	battle_config.pet_str=1;

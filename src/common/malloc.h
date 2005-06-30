@@ -3,7 +3,36 @@
 
 #include <stdio.h> // for size_t
 
-//#define MEMTRACE
+
+
+#ifndef __NETBSD__
+#if __STDC_VERSION__ < 199901L
+#	if __GNUC__ >= 2
+#		define __func__ __FUNCTION__
+#	else
+#		define __func__ ""
+#	endif
+#endif
+#endif
+#define ALC_MARK __FILE__, __LINE__, __func__
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////
+// Whether to use Athena's built-in Memory Manager (enabled by default)
+// To disable just comment the following line
+//#define USE_MEMMGR
+
+
+#define LOG_MEMMGR		// Whether to enable Memory Manager's logging
+//#define MEMTRACE		// can be used to mark and identify specific memories
+//#define MEMCHECKER	// checks validity of all pointers in and out of the memory manager
+
+#ifdef USE_MEMMGR
+
 
 #ifdef MEMTRACE
 #include "base.h"
@@ -66,26 +95,6 @@ public:
 };
 #endif
 
-
-#ifndef __NETBSD__
-#if __STDC_VERSION__ < 199901L
-#	if __GNUC__ >= 2
-#		define __func__ __FUNCTION__
-#	else
-#		define __func__ ""
-#	endif
-#endif
-#endif
-#define ALC_MARK __FILE__, __LINE__, __func__
-
-//////////////////////////////////////////////////////////////////////
-// Whether to use Athena's built-in Memory Manager (enabled by default)
-// To disable just comment the following line
-#define USE_MEMMGR
-// Whether to enable Memory Manager's logging
-#define LOG_MEMMGR
-
-#ifdef USE_MEMMGR
 
 #	define aMalloc(n)		_mmalloc(n,ALC_MARK)
 #	define aMallocA(n)		_mmalloc(n,ALC_MARK)

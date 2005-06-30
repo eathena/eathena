@@ -1169,17 +1169,25 @@ int WFIFOSET(int fd,size_t len)
 
 int RFIFOSKIP(int fd, size_t len)
 {
-	if( session_isActive(fd) )
+	if( session_isValid(fd) )
 	{
 		struct socket_data *s=session[fd];
-		if( s->rdata_pos + len > s->rdata_size ) 
-		{	// this should not happen
-			ShowError("Read FIFO is skipping more data then it has (%i<%i).\n",RFIFOREST(fd),len);
-			s->rdata_pos = s->rdata_size;
+		if( session_isActive(fd) )
+		{
+			if( s->rdata_pos + len > s->rdata_size ) 
+			{	// this should not happen
+				ShowError("Read FIFO is skipping more data then it has (%i<%i).\n",RFIFOREST(fd),len);
+				s->rdata_pos = s->rdata_size;
+			}
+			else
+			{
+				s->rdata_pos += len;
+			}
 		}
 		else
-		{
-			s->rdata_pos += len;
+		{	//not active just clear the buffer
+			s->rdata_size = 0;
+			s->rdata_pos  = 0;
 		}
 	}
 	return 0;

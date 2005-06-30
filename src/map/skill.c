@@ -547,7 +547,7 @@ int	skill_get_inf( int id ){ skill_chk (id, 1); return (id < 500) ? skill_db[id]
 int	skill_get_pl( int id ){ skill_get (skill_db[id].pl, id, 1); }
 int	skill_get_nk( int id ){ skill_get (skill_db[id].nk, id, 1); }
 int skill_get_max( int id ){ skill_chk (id, 1); return (id < 500) ? skill_db[id].max : guild_skill_get_max(id); }
-int skill_get_range( int id , int lv ){ skill_chk (id, lv); return (id < 500) ? skill_db[id].range[lv-1] : guild_skill_get_range(id); }
+int skill_get_range( int id , int lv ){ skill_chk (id, lv); return (id < 500) ? skill_db[id].range[lv-1] : 0; }
 int	skill_get_hp( int id ,int lv ){ skill_get (skill_db[id].hp[lv-1], id, lv); }
 int	skill_get_sp( int id ,int lv ){ skill_get (skill_db[id].sp[lv-1], id, lv); }
 int	skill_get_zeny( int id ,int lv ){ skill_get (skill_db[id].zeny[lv-1], id, lv); }
@@ -2613,9 +2613,10 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl,unsig
 	case KN_SPEARSTAB:		/* スピアスタブ */
 		if(flag&1){
 			/* 個別にダメージを与える */
-			if (bl->id==skill_area_temp[1])
+			if(bl->id==skill_area_temp[1])
 				break;
-			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500))
+			if( skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500) &&
+				!(map[bl->m].flag.gvg || status_get_mexp(bl)) )
 				skill_blown(src,bl,skill_area_temp[2]);
 		} else {
 			int x=bl->x,y=bl->y,i,dir;
@@ -2623,9 +2624,11 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl,unsig
 			dir = map_calc_dir(*bl,src->x,src->y);
 			skill_area_temp[1] = bl->id;
 			skill_area_temp[2] = skill_get_blewcount(skillid,skilllv)|dir<<20;
-			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0))
+			if( skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0) &&
+				!(map[bl->m].flag.gvg || status_get_mexp(bl)) )
 				skill_blown(src,bl,skill_area_temp[2]);
-			for (i=0;i<4;i++) {
+			for (i=0;i<4;i++)
+			{
 				map_foreachinarea(skill_area_sub,bl->m,x,y,x,y,0,
 					src,skillid,skilllv,tick,flag|BCT_ENEMY|1,
 					skill_castend_damage_id);
@@ -3670,7 +3673,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc = SkillStatusChangeTable[skillid];
-			clif_skill_nodamage(*src,*bl,skillid,0xFFFF,1);
+			//clif_skill_nodamage(*src,*bl,skillid,0xFFFF,1);
 			if (tsc_data && tsc_data[sc].timer != -1)
 				status_change_end(bl, sc, -1);
 			else
@@ -3682,7 +3685,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc=SkillStatusChangeTable[skillid];
-			clif_skill_nodamage(*src,*bl,skillid,0xFFFF,1);
+			//clif_skill_nodamage(*src,*bl,skillid,0xFFFF,1);
 			if(tsc_data && tsc_data[sc].timer!=-1 )
 				/* 解除する */
 				status_change_end(bl, sc, -1);
@@ -3696,7 +3699,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc=SkillStatusChangeTable[skillid];
-			clif_skill_nodamage(*src,*bl,skillid,0xFFFF,1);
+			//clif_skill_nodamage(*src,*bl,skillid,0xFFFF,1);
 			if(tsc_data && tsc_data[sc].timer!=-1 )
 				/* 解除する */
 				status_change_end(bl, sc, -1);
@@ -6584,7 +6587,7 @@ int skill_check_condition_char_sub (struct block_list &blx, va_list ap)
 		return 0;
 	}
 
-	if (bl == src)
+	if(bl == src)
 		return 0;
 
 	switch(skillid)
@@ -9410,7 +9413,7 @@ int skill_produce_mix( struct map_session_data &sd,
 	}
 
 	/* 確率判定 */
-	if((equip=itemdb_isequip(nameid)))
+	if((equip=itemdb_isSingleStorage(nameid)))
 		wlv = itemdb_wlv(nameid);
 	if(!equip) {
 // Corrected rates [DracoRPG] --------------------------//
