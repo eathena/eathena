@@ -5393,6 +5393,7 @@ static const struct battle_data_short {
 	{ "quest_skill_reset",                 &battle_config.quest_skill_reset		},
 	{ "basic_skill_check",                 &battle_config.basic_skill_check		},
 	{ "guild_emperium_check",              &battle_config.guild_emperium_check		},
+	{ "guild_exp_rate",                    &battle_config.guild_exp_rate			},
 	{ "guild_exp_limit",                   &battle_config.guild_exp_limit			},
 	{ "player_invincible_time",            &battle_config.pc_invincible_time		},
 	{ "pet_catch_rate",                    &battle_config.pet_catch_rate			},
@@ -5719,6 +5720,7 @@ void battle_set_defaults() {
 	battle_config.basic_skill_check=1;
 	battle_config.guild_emperium_check=1;
 	battle_config.guild_exp_limit=50;
+	battle_config.guild_exp_rate=100;
 	battle_config.pc_invincible_time = 5000;
 	battle_config.pet_catch_rate=100;
 	battle_config.pet_rename=0;
@@ -6004,7 +6006,7 @@ void battle_validate_conf() {
 		battle_config.guild_exp_limit = 99;
 /*	if(battle_config.guild_exp_limit < 0)
 		battle_config.guild_exp_limit = 0;*/
-
+	
 	if(battle_config.pet_support_min_friendly > 950) //Capped to 950/1000 [Skotlex]
 		battle_config.pet_support_min_friendly = 950;
 	

@@ -993,9 +993,15 @@ int guild_payexp(struct map_session_data *sd,int exp)
 		c->account_id = sd->status.account_id;
 		c->char_id = sd->status.char_id;
 		c->exp = exp2;
+		if (battle_config.guild_exp_rate != 100)
+			c->exp = c->exp*battle_config.guild_exp_rate/100;
 		numdb_insert(guild_expcache_db, c->char_id, c);
 	} else {
-		double tmp = c->exp + exp2;
+		double tmp = c->exp;
+		if (battle_config.guild_exp_rate != 100)
+			tmp += battle_config.guild_exp_rate*exp2/100;
+		else
+			tmp += exp2;
 		c->exp = (tmp > 0x7fffffff) ? 0x7fffffff : (int)tmp;
 	}
 	return exp2;
