@@ -455,7 +455,7 @@ struct dbn* db_insert(struct dbt *table,void* key,void* data)
 	CREATE(p, struct dbn, 1);
 #endif
 	if(p==NULL){
-		ShowError("out of memory : db_insert\n");
+		ShowFatalError("out of memory : db_insert\n");
 		return NULL;
 	}
 	p->parent= NULL;

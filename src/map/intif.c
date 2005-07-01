@@ -18,6 +18,8 @@
 #include <fcntl.h>
 #include <string.h>
 
+#include "../common/showmsg.h"
+
 #include "socket.h"
 #include "timer.h"
 #include "map.h"
@@ -147,7 +149,7 @@ int intif_wis_message(struct map_session_data *sd, char *nick, char *mes, int me
 	WFIFOSET(inter_fd, WFIFOW(inter_fd,2));
 
 	if (battle_config.etc_log)
-		printf("intif_wis_message from %s to %s (message: '%s')\n", sd->status.name, nick, mes);
+		ShowInfo("intif_wis_message from %s to %s (message: '%s')\n", sd->status.name, nick, mes);
 
 	return 0;
 }
@@ -162,7 +164,7 @@ int intif_wis_replay(int id, int flag) {
 	WFIFOSET(inter_fd,7);
 
 	if (battle_config.etc_log)
-		printf("intif_wis_replay: id: %d, flag:%d\n", id, flag);
+		ShowInfo("intif_wis_replay: id: %d, flag:%d\n", id, flag);
 
 	return 0;
 }
@@ -181,7 +183,7 @@ int intif_wis_message_to_gm(char *Wisp_name, int min_gm_level, char *mes) {
 	WFIFOSET(inter_fd, WFIFOW(inter_fd,2));
 
 	if (battle_config.etc_log)
-		printf("intif_wis_message_to_gm: from: '%s', min level: %d, message: '%s'.\n", Wisp_name, min_gm_level, mes);
+		ShowNotice("intif_wis_message_to_gm: from: '%s', min level: %d, message: '%s'.\n", Wisp_name, min_gm_level, mes);
 
 	return 0;
 }
@@ -684,7 +686,7 @@ int intif_parse_WisEnd(int fd) {
 	struct map_session_data* sd;
 
 	if (battle_config.etc_log)
-		printf("intif_parse_wisend: player: %s, flag: %d\n", RFIFOP(fd,2), RFIFOB(fd,26)); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
+		ShowInfo("intif_parse_wisend: player: %s, flag: %d\n", RFIFOP(fd,2), RFIFOB(fd,26)); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
 	sd = (struct map_session_data *)map_nick2sd((char *) RFIFOP(fd,2));
 	if (sd != NULL)
 		clif_wis_end(sd->fd, RFIFOB(fd,26));
@@ -743,23 +745,23 @@ int intif_parse_LoadStorage(int fd) {
 
 	if (stor->storage_status == 1) { // Already open.. lets ignore this update
 		if (battle_config.error_log)
-			printf("intif_parse_LoadStorage: storage received for a client already open\n");
+			ShowWarning("intif_parse_LoadStorage: storage received for a client already open\n");
 		return 0;
 	}
 
 	if (RFIFOW(fd,2)-8 != sizeof(struct storage)) {
 		if (battle_config.error_log)
-			printf("intif_parse_LoadStorage: data size error %d %d\n", RFIFOW(fd,2)-8, sizeof(struct storage));
+			ShowError("intif_parse_LoadStorage: data size error %d %d\n", RFIFOW(fd,2)-8, sizeof(struct storage));
 		return 1;
 	}
 	sd=map_id2sd( RFIFOL(fd,4) );
 	if(sd==NULL){
 		if(battle_config.error_log)
-			printf("intif_parse_LoadStorage: user not found %d\n",RFIFOL(fd,4));
+			ShowError("intif_parse_LoadStorage: user not found %d\n",RFIFOL(fd,4));
 		return 1;
 	}
 	if(battle_config.save_log)
-		printf("intif_openstorage: %d\n",RFIFOL(fd,4) );
+		ShowInfo("intif_openstorage: %d\n",RFIFOL(fd,4) );
 	memcpy(stor,RFIFOP(fd,8),sizeof(struct storage));
 	stor->dirty=0;
 	stor->storage_status=1;
@@ -775,7 +777,7 @@ int intif_parse_LoadStorage(int fd) {
 int intif_parse_SaveStorage(int fd)
 {
 	if(battle_config.save_log)
-		printf("intif_savestorage: done %d %d\n",RFIFOL(fd,2),RFIFOB(fd,6) );
+		ShowInfo("intif_savestorage: done %d %d\n",RFIFOL(fd,2),RFIFOB(fd,6) );
 	return 0;
 }
 
@@ -788,23 +790,23 @@ int intif_parse_LoadGuildStorage(int fd)
 		gstor=guild2storage(guild_id);
 		if(!gstor) {
 			if(battle_config.error_log)
-				printf("intif_parse_LoadGuildStorage: error guild_id %d not exist\n",guild_id);
+				ShowWarning("intif_parse_LoadGuildStorage: error guild_id %d not exist\n",guild_id);
 			return 1;
 		}
 		if( RFIFOW(fd,2)-12 != sizeof(struct guild_storage) ){
 			gstor->storage_status = 0;
 			if(battle_config.error_log)
-				printf("intif_parse_LoadGuildStorage: data size error %d %d\n",RFIFOW(fd,2)-12 , sizeof(struct guild_storage));
+				ShowError("intif_parse_LoadGuildStorage: data size error %d %d\n",RFIFOW(fd,2)-12 , sizeof(struct guild_storage));
 			return 1;
 		}
 		sd=map_id2sd( RFIFOL(fd,4) );
 		if(sd==NULL){
 			if(battle_config.error_log)
-				printf("intif_parse_LoadGuildStorage: user not found %d\n",RFIFOL(fd,4));
+				ShowError("intif_parse_LoadGuildStorage: user not found %d\n",RFIFOL(fd,4));
 			return 1;
 		}
 		if(battle_config.save_log)
-			printf("intif_open_guild_storage: %d\n",RFIFOL(fd,4) );
+			ShowInfo("intif_open_guild_storage: %d\n",RFIFOL(fd,4) );
 		memcpy(gstor,RFIFOP(fd,12),sizeof(struct guild_storage));
 		gstor->storage_status = 1;
 		sd->state.storage_flag = 1;
@@ -817,7 +819,7 @@ int intif_parse_LoadGuildStorage(int fd)
 int intif_parse_SaveGuildStorage(int fd)
 {
 	if(battle_config.save_log) {
-		printf("intif_save_guild_storage: done %d %d %d\n",RFIFOL(fd,2),RFIFOL(fd,6),RFIFOB(fd,10) );
+		ShowInfo("intif_save_guild_storage: done %d %d %d\n",RFIFOL(fd,2),RFIFOL(fd,6),RFIFOB(fd,10) );
 	}
 	return 0;
 }
@@ -826,7 +828,7 @@ int intif_parse_SaveGuildStorage(int fd)
 int intif_parse_PartyCreated(int fd)
 {
 	if(battle_config.etc_log)
-		printf("intif: party created\n");
+		ShowInfo("intif: party created\n");
 	party_created(RFIFOL(fd,2), RFIFOB(fd,6),RFIFOL(fd,7),(char *) RFIFOP(fd,11));
 	return 0;
 }
@@ -835,7 +837,7 @@ int intif_parse_PartyInfo(int fd)
 {
 	if( RFIFOW(fd,2)==8){
 		if(battle_config.error_log)
-			printf("intif: party noinfo %d\n",RFIFOL(fd,4));
+			ShowWarning("intif: party noinfo %d\n",RFIFOL(fd,4));
 		party_recv_noinfo(RFIFOL(fd,4));
 		return 0;
 	}
@@ -843,7 +845,7 @@ int intif_parse_PartyInfo(int fd)
 //	printf("intif: party info %d\n",RFIFOL(fd,4));
 	if( RFIFOW(fd,2)!=sizeof(struct party)+4 ){
 		if(battle_config.error_log)
-			printf("intif: party info : data size error %d %d %d\n",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct party)+4);
+			ShowError("intif: party info : data size error %d %d %d\n",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct party)+4);
 	}
 	party_recv_info((struct party *)RFIFOP(fd,4));
 	return 0;
@@ -852,7 +854,7 @@ int intif_parse_PartyInfo(int fd)
 int intif_parse_PartyMemberAdded(int fd)
 {
 	if(battle_config.etc_log)
-		printf("intif: party member added %d %d %d\n",RFIFOL(fd,2),RFIFOL(fd,6),RFIFOB(fd,10));
+		ShowInfo("intif: party member added %d %d %d\n",RFIFOL(fd,2),RFIFOL(fd,6),RFIFOB(fd,10));
 	party_member_added(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOB(fd,10));
 	return 0;
 }
@@ -866,7 +868,7 @@ int intif_parse_PartyOptionChanged(int fd)
 int intif_parse_PartyMemberLeaved(int fd)
 {
 	if(battle_config.etc_log)
-		printf("intif: party member leaved %d %d %s\n",RFIFOL(fd,2),RFIFOL(fd,6),RFIFOP(fd,10));
+		ShowInfo("intif: party member leaved %d %d %s\n",RFIFOL(fd,2),RFIFOL(fd,6),RFIFOP(fd,10));
 	party_member_leaved(RFIFOL(fd,2),RFIFOL(fd,6),(char *) RFIFOP(fd,10));
 	return 0;
 }
@@ -904,7 +906,7 @@ int intif_parse_GuildInfo(int fd)
 {
 	if( RFIFOW(fd,2)==8){
 		if(battle_config.error_log)
-			printf("intif: guild noinfo %d\n",RFIFOL(fd,4));
+			ShowWarning("intif: guild noinfo %d\n",RFIFOL(fd,4));
 		guild_recv_noinfo(RFIFOL(fd,4));
 		return 0;
 	}
@@ -913,7 +915,7 @@ int intif_parse_GuildInfo(int fd)
 //		printf("intif: guild info %d\n",RFIFOL(fd,4));
 	if( RFIFOW(fd,2)!=sizeof(struct guild)+4 ){
 		if(battle_config.error_log)
-			printf("intif: guild info : data size error\n %d %d %d",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct guild)+4);
+			ShowError("intif: guild info : data size error\n %d %d %d",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct guild)+4);
 	}
 	guild_recv_info((struct guild *)RFIFOP(fd,4));
 	return 0;
@@ -922,7 +924,7 @@ int intif_parse_GuildInfo(int fd)
 int intif_parse_GuildMemberAdded(int fd)
 {
 	if(battle_config.etc_log)
-		printf("intif: guild member added %d %d %d %d\n",RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),RFIFOB(fd,14));
+		ShowInfo("intif: guild member added %d %d %d %d\n",RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),RFIFOB(fd,14));
 	guild_member_added(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),RFIFOB(fd,14));
 	return 0;
 }
@@ -992,7 +994,7 @@ int intif_parse_GuildPosition(int fd)
 {
 	if( RFIFOW(fd,2)!=sizeof(struct guild_position)+12 ){
 		if(battle_config.error_log)
-			printf("intif: guild info : data size error\n %d %d %d",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct guild_position)+12);
+			ShowError("intif: guild info : data size error\n %d %d %d",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct guild_position)+12);
 	}
 	guild_position_changed(RFIFOL(fd,4),RFIFOL(fd,8),(struct guild_position *)RFIFOP(fd,12));
 	return 0;
@@ -1059,7 +1061,7 @@ int intif_parse_RecvPetData(int fd)
 	int len=RFIFOW(fd,2);
 	if(sizeof(struct s_pet)!=len-9) {
 		if(battle_config.etc_log)
-			printf("intif: pet data: data size error %d %d\n",sizeof(struct s_pet),len-9);
+			ShowError("intif: pet data: data size error %d %d\n",sizeof(struct s_pet),len-9);
 	}
 	else{
 		memcpy(&p,RFIFOP(fd,9),sizeof(struct s_pet));
@@ -1072,7 +1074,7 @@ int intif_parse_SavePetOk(int fd)
 {
 	if(RFIFOB(fd,6) == 1) {
 		if(battle_config.error_log)
-			printf("pet data save failure\n");
+			ShowError("pet data save failure\n");
 	}
 
 	return 0;
@@ -1082,7 +1084,7 @@ int intif_parse_DeletePetOk(int fd)
 {
 	if(RFIFOB(fd,2) == 1) {
 		if(battle_config.error_log)
-			printf("pet data delete failure\n");
+			ShowError("pet data delete failure\n");
 	}
 
 	return 0;
@@ -1154,7 +1156,7 @@ int intif_parse(int fd)
 	case 0x3883:	intif_parse_DeletePetOk(fd); break;
 	default:
 		if(battle_config.error_log)
-			printf("intif_parse : unknown packet %d %x\n",fd,RFIFOW(fd,0));
+			ShowError("intif_parse : unknown packet %d %x\n",fd,RFIFOW(fd,0));
 		return 0;
 	}
 	// パケット読み飛ばし

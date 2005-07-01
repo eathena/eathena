@@ -444,7 +444,7 @@ int npc_chat_sub(struct block_list *bl, va_list ap)
                     }
                 }
                 if (pos == -1) {
-                    printf("Unable to find label: %s", e->label_);
+                    ShowWarning("Unable to find label: %s", e->label_);
                     // unable to find label... do something..
                     return 0;
                 }

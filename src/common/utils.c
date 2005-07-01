@@ -17,6 +17,7 @@
 #include "utils.h"
 #include "../common/mmo.h"
 #include "../common/malloc.h"
+#include "../common/showmsg.h"
 
 void dump(unsigned char *buffer, int num)
 {
@@ -71,7 +72,7 @@ int strcasecmp(const char *arg1, const char *arg2)
   int chk, i;
 
   if (arg1 == NULL || arg2 == NULL) {
-    printf("SYSERR: str_cmp() passed a NULL pointer, %p or %p.\n", arg1, arg2);
+    eprintf("SYSERR: str_cmp() passed a NULL pointer, %p or %p.\n", arg1, arg2);
     return (0);
   }
 
@@ -87,7 +88,7 @@ int strncasecmp(const char *arg1, const char *arg2, int n)
   int chk, i;
 
   if (arg1 == NULL || arg2 == NULL) {
-    printf("SYSERR: strn_cmp() passed a NULL pointer, %p or %p.\n", arg1, arg2);
+    eprintf("SYSERR: strn_cmp() passed a NULL pointer, %p or %p.\n", arg1, arg2);
     return (0);
   }
 
@@ -292,7 +293,7 @@ void findfile(const char *p, const char *pat, void (func)(const char*))
 	// open the directory for reading
 	dir = opendir( checkpath(path, path) );
 	if (!dir) {
-		fprintf(stderr, "Cannot read directory '%s'\n", path);
+		ShowError("Cannot read directory '%s'\n", path);
 		return;
 	}
 
@@ -313,7 +314,7 @@ void findfile(const char *p, const char *pat, void (func)(const char*))
 		}
 		// check if it is a directory.
 		if (stat(tmppath, &dir_stat) == -1) {
-			fprintf(stderr, "stat error %s\n': ", tmppath);
+			ShowError("stat error %s\n': ", tmppath);
 			continue;
 		}
 		// is this a directory?

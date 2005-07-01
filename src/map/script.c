@@ -566,7 +566,7 @@ struct {
 	{buildin_skilluseid,"skilluseid","ii"}, // originally by Qamera [Celest]
 	{buildin_skilluseid,"doskill","ii"}, // since a lot of scripts would already use 'doskill'...
 	{buildin_skillusepos,"skillusepos","iiii"}, // [Celest]
-	{buildin_logmes,"logmes","s"}, //this command actls as MES but prints info into LOG file either SQL/TXT [Lupus]
+	{buildin_logmes,"logmes","s"}, //this command actls as MES but rints info into LOG file either SQL/TXT [Lupus]
 	{buildin_summon,"summon","si*"}, // summons a slave monster [Celest]
 	{buildin_isnight,"isnight",""}, // check whether it is night time [Celest]
 	{buildin_isday,"isday",""}, // check whether it is day time [Celest]
@@ -900,7 +900,7 @@ unsigned char* parse_simpleexpr(unsigned char *p)
 
 #ifdef DEBUG_FUNCIN
 	if(battle_config.etc_log)
-		printf("parse_simpleexpr %s\n",p);
+		ShowDebug("parse_simpleexpr %s\n",p);
 #endif
 	if(*p==';' || *p==','){
 		disp_error_message("unexpected expr end",p);
@@ -976,7 +976,7 @@ unsigned char* parse_simpleexpr(unsigned char *p)
 
 #ifdef DEBUG_FUNCIN
 	if(battle_config.etc_log)
-		printf("parse_simpleexpr end %s\n",p);
+		ShowDebug("parse_simpleexpr end %s\n",p);
 #endif
 	return p;
 }
@@ -992,7 +992,7 @@ unsigned char* parse_subexpr(unsigned char *p,int limit)
 
 #ifdef DEBUG_FUNCIN
 	if(battle_config.etc_log)
-		printf("parse_subexpr %s\n",p);
+		ShowDebug("parse_subexpr %s\n",p);
 #endif
 	p=skip_space(p);
 
@@ -1074,7 +1074,7 @@ unsigned char* parse_subexpr(unsigned char *p,int limit)
 	}
 #ifdef DEBUG_FUNCIN
 	if(battle_config.etc_log)
-		printf("parse_subexpr end %s\n",p);
+		ShowDebug("parse_subexpr end %s\n",p);
 #endif
 	return p;  /* return first untreated operator */
 }
@@ -1087,7 +1087,7 @@ unsigned char* parse_expr(unsigned char *p)
 {
 #ifdef DEBUG_FUNCIN
 	if(battle_config.etc_log)
-		printf("parse_expr %s\n",p);
+		ShowDebug("parse_expr %s\n",p);
 #endif
 	switch(*p){
 	case ')': case ';': case ':': case '[': case ']':
@@ -1098,7 +1098,7 @@ unsigned char* parse_expr(unsigned char *p)
 	p=parse_subexpr(p,-1);
 #ifdef DEBUG_FUNCIN
 	if(battle_config.etc_log)
-		printf("parse_expr end %s\n",p);
+		ShowDebug("parse_expr end %s\n",p);
 #endif
 	return p;
 }
@@ -1191,7 +1191,7 @@ static void read_constdb(void)
 
 	fp=fopen("db/const.txt","r");
 	if(fp==NULL){
-		printf("can't read db/const.txt\n");
+		ShowError("can't read db/const.txt\n");
 		return ;
 	}
 	while(fgets(line,1020,fp)){
@@ -1346,7 +1346,7 @@ struct map_session_data *script_rid2sd(struct script_state *st)
 {
 	struct map_session_data *sd=map_id2sd(st->rid);
 	if(!sd){
-		printf("script_rid2sd: fatal error ! player not attached!\n");
+		ShowError("script_rid2sd: fatal error ! player not attached!\n");
 	}
 	return sd;
 }
@@ -1366,7 +1366,7 @@ int get_val(struct script_state*st,struct script_data* data)
 
 		if(prefix!='$'){
 			if((sd=script_rid2sd(st))==NULL)
-				printf("get_val error name?:%s\n",name);
+				ShowError("get_val error name?:%s\n",name);
 		}
 		if(postfix=='$'){
 
@@ -1377,7 +1377,7 @@ int get_val(struct script_state*st,struct script_data* data)
 			}else if(prefix=='$'){
 				data->u.str = (char *)numdb_search(mapregstr_db,data->u.num);
 			}else{
-				printf("script: get_val: illegal scope string variable.\n");
+				ShowWarning("script: get_val: illegal scope string variable.\n");
 				data->u.str = "!!ERROR!!";
 			}
 			if( data->u.str == NULL )
@@ -1442,7 +1442,7 @@ static int set_reg(struct map_session_data *sd,int num,char *name,void *v)
 		}else if(prefix=='$') {
 			mapreg_setregstr(num,str);
 		}else{
-			printf("script: set_reg: illegal scope string variable !");
+			ShowWarning("script: set_reg: illegal scope string variable !");
 		}
 	}else{
 		// 数値
@@ -1647,7 +1647,7 @@ int buildin_callfunc(struct script_state *st)
 		st->defsp=st->start+4+j;
 		st->state=GOTO;
 	}else{
-		printf("script:callfunc: function not found! [%s]\n",str);
+		ShowWarning("script:callfunc: function not found! [%s]\n",str);
 		st->state=END;
 	}
 	return 0;
@@ -1683,14 +1683,14 @@ int buildin_getarg(struct script_state *st)
 	int num=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	int max,stsp;
 	if( st->defsp<4 || st->stack->stack_data[st->defsp-1].type!=C_RETINFO ){
-		printf("script:getarg without callfunc or callsub!\n");
+		ShowWarning("script:getarg without callfunc or callsub!\n");
 		st->state=END;
 		return 0;
 	}
 	max=conv_num(st,& (st->stack->stack_data[st->defsp-4]));
 	stsp=st->defsp - max -4;
 	if( num >= max ){
-		printf("script:getarg arg1(%d) out of range(%d) !\n",num,max);
+		ShowWarning("script:getarg arg1(%d) out of range(%d) !\n",num,max);
 		st->state=END;
 		return 0;
 	}
@@ -1777,7 +1777,7 @@ int buildin_menu(struct script_state *st)
 		if(sd->npc_menu>0 && sd->npc_menu<(st->end-st->start)/2){
 			int pos;
 			if( st->stack->stack_data[st->start+sd->npc_menu*2+1].type!=C_POS ){
-				printf("script: menu: not label !\n");
+				ShowError("script: menu: not label !\n");
 				st->state=END;
 				return 0;
 			}
@@ -1967,7 +1967,7 @@ int buildin_input(struct script_state *st)
 			if(st->end>st->start+2){ // 引数1個
 				set_reg(sd,num,name,(void*)sd->npc_str);
 			}else{
-				printf("buildin_input: string discarded !!\n");
+				ShowError("buildin_input: string discarded !!\n");
 			}
 		}else{
 
@@ -2037,7 +2037,7 @@ int buildin_set(struct script_state *st)
 	char postfix=name[strlen(name)-1];
 
 	if( st->stack->stack_data[st->start+2].type!=C_NAME ){
-		printf("script: buildin_set: not name\n");
+		ShowError("script: buildin_set: not name\n");
 		return 0;
 	}
 
@@ -2071,7 +2071,7 @@ int buildin_setarray(struct script_state *st)
 	int i,j;
 
 	if( prefix!='$' && prefix!='@' ){
-		printf("buildin_setarray: illegal scope !\n");
+		ShowWarning("buildin_setarray: illegal scope !\n");
 		return 0;
 	}
 	if( prefix!='$' )
@@ -2103,7 +2103,7 @@ int buildin_cleararray(struct script_state *st)
 	void *v;
 
 	if( prefix!='$' && prefix!='@' ){
-		printf("buildin_cleararray: illegal scope !\n");
+		ShowWarning("buildin_cleararray: illegal scope !\n");
 		return 0;
 	}
 	if( prefix!='$' )
@@ -2137,11 +2137,11 @@ int buildin_copyarray(struct script_state *st)
 	int i;
 
 	if( prefix!='$' && prefix!='@' && prefix2!='$' && prefix2!='@' ){
-		printf("buildin_copyarray: illegal scope !\n");
+		ShowWarning("buildin_copyarray: illegal scope !\n");
 		return 0;
 	}
 	if( (postfix=='$' || postfix2=='$') && postfix!=postfix2 ){
-		printf("buildin_copyarray: type mismatch !\n");
+		ShowError("buildin_copyarray: type mismatch !\n");
 		return 0;
 	}
 	if( prefix!='$' || prefix2!='$' )
@@ -2174,7 +2174,7 @@ int buildin_getarraysize(struct script_state *st)
 	char postfix=name[strlen(name)-1];
 
 	if( prefix!='$' && prefix!='@' ){
-		printf("buildin_copyarray: illegal scope !\n");
+		ShowWarning("buildin_copyarray: illegal scope !\n");
 		return 0;
 	}
 
@@ -2200,7 +2200,7 @@ int buildin_deletearray(struct script_state *st)
 		count=conv_num(st,& (st->stack->stack_data[st->start+3]));
 
 	if( prefix!='$' && prefix!='@' ){
-		printf("buildin_deletearray: illegal scope !\n");
+		ShowWarning("buildin_deletearray: illegal scope !\n");
 		return 0;
 	}
 	if( prefix!='$' )
@@ -2225,14 +2225,14 @@ int buildin_getelementofarray(struct script_state *st)
 	if( st->stack->stack_data[st->start+2].type==C_NAME ){
 		int i=conv_num(st,& (st->stack->stack_data[st->start+3]));
 		if(i>127 || i<0){
-			printf("script: getelementofarray (operator[]): param2 illegal number %d\n",i);
+			ShowWarning("script: getelementofarray (operator[]): param2 illegal number %d\n",i);
 			push_val(st->stack,C_INT,0);
 		}else{
 			push_val(st->stack,C_NAME,
 				(i<<24) | st->stack->stack_data[st->start+2].u.num );
 		}
 	}else{
-		printf("script: getelementofarray (operator[]): param1 not name !\n");
+		ShowError("script: getelementofarray (operator[]): param1 not name !\n");
 		push_val(st->stack,C_INT,0);
 	}
 	return 0;
@@ -2335,7 +2335,7 @@ int buildin_countitem(struct script_state *st)
 		}
 	else{
 		if(battle_config.error_log)
-			printf("wrong item ID : countitem(%i)\n",nameid);
+			ShowError("wrong item ID : countitem(%i)\n",nameid);
 	}
 	push_val(st->stack,C_INT,count);
 
@@ -2670,7 +2670,7 @@ int buildin_delitem(struct script_state *st)
 	amount=conv_num(st,& (st->stack->stack_data[st->start+3]));
 
 	if (nameid<500 || amount<=0 ) {//by Lupus. Don't run FOR if u got wrong item ID or amount<=0
-		//printf("wrong item ID or amount<=0 : delitem %i,\n",nameid,amount);
+		//eprintf("wrong item ID or amount<=0 : delitem %i,\n",nameid,amount);
 		return 0;
 	}
 	sd=script_rid2sd(st);
@@ -2965,7 +2965,7 @@ int buildin_getequipid(struct script_state *st)
 	sd=script_rid2sd(st);
 	if(sd == NULL)
 	{
-		printf("getequipid: sd == NULL\n");
+		ShowError("getequipid: sd == NULL\n");
 		return 0;
 	}
 	num=conv_num(st,& (st->stack->stack_data[st->start+2]));
@@ -4561,7 +4561,7 @@ int buildin_getscrate(struct script_state *st)
 int buildin_debugmes(struct script_state *st)
 {
 	conv_str(st,& (st->stack->stack_data[st->start+2]));
-	printf("script debug : %d %d : %s\n",st->rid,st->oid,st->stack->stack_data[st->start+2].u.str);
+	ShowDebug("script debug : %d %d : %s\n",st->rid,st->oid,st->stack->stack_data[st->start+2].u.str);
 	return 0;
 }
 
@@ -6573,7 +6573,7 @@ int buildin_jump_zero(struct script_state *st) {
 	if(!sel) {
 		int pos;
 		if( st->stack->stack_data[st->start+3].type!=C_POS ){
-			printf("script: jump_zero: not label !\n");
+			ShowError("script: jump_zero: not label !\n");
 			st->state=END;
 			return 0;
 		}
@@ -6914,17 +6914,17 @@ int buildin_getmapxy(struct script_state *st){
 	char *mapname;
 
         if( st->stack->stack_data[st->start+2].type!=C_NAME ){
-                printf("script: buildin_getmapxy: not mapname variable\n");
+                ShowWarning("script: buildin_getmapxy: not mapname variable\n");
                 push_val(st->stack,C_INT,-1);
                 return 0;
         }
         if( st->stack->stack_data[st->start+3].type!=C_NAME ){
-                printf("script: buildin_getmapxy: not mapx variable\n");
+                ShowWarning("script: buildin_getmapxy: not mapx variable\n");
                 push_val(st->stack,C_INT,-1);
                 return 0;
         }
         if( st->stack->stack_data[st->start+4].type!=C_NAME ){
-                printf("script: buildin_getmapxy: not mapy variable\n");
+                ShowWarning("script: buildin_getmapxy: not mapy variable\n");
                 push_val(st->stack,C_INT,-1);
                 return 0;
         }
@@ -7511,7 +7511,7 @@ void unget_com(int c)
 {
 	if(unget_com_data!=-1){
 		if(battle_config.error_log)
-			printf("unget_com can back only 1 data\n");
+			ShowError("unget_com can back only 1 data\n");
 	}
 	unget_com_data=c;
 }
@@ -7609,7 +7609,7 @@ void op_2str(struct script_state *st,int op,int sp1,int sp2)
 		a= (strcmp(s1,s2)<=0);
 		break;
 	default:
-		printf("illegal string operater\n");
+		ShowWarning("script: illegal string operator\n");
 		break;
 	}
 
@@ -7714,7 +7714,7 @@ void op_2(struct script_state *st,int op)
 		op_2num(st,op,i1,i2);
 	}else{
 		// si,is => error
-		printf("script: op_2: int&str, str&int not allow.");
+		ShowWarning("script: op_2: int&str, str&int not allow.");
 		push_val(st->stack,C_INT,0);
 	}
 }
@@ -7754,7 +7754,7 @@ int run_func(struct script_state *st)
 	for(i=end_sp-1;i>=0 && st->stack->stack_data[i].type!=C_ARG;i--);
 	if(i==0){
 		if(battle_config.error_log)
-			printf("function not found\n");
+			ShowError("function not found\n");
 //		st->stack->sp=0;
 		st->state=END;
 		return 0;
@@ -7773,8 +7773,8 @@ int run_func(struct script_state *st)
 	}
 #ifdef DEBUG_RUN
 	if(battle_config.etc_log) {
-		printf("run_func : %s? (%d(%d))\n",str_buf+str_data[func].str,func,str_data[func].type);
-		printf("stack dump :");
+		ShowDebug("run_func : %s? (%d(%d))\n",str_buf+str_data[func].str,func,str_data[func].type);
+		ShowDebug("stack dump :");
 		for(i=0;i<end_sp;i++){
 			switch(st->stack->stack_data[i].type){
 			case C_INT:
@@ -7800,7 +7800,7 @@ int run_func(struct script_state *st)
 		str_data[func].func(st);
 	} else {
 		if(battle_config.error_log)
-			printf("run_func : %s? (%d(%d))\n",str_buf+str_data[func].str,func,str_data[func].type);
+			ShowError("run_func : %s? (%d(%d))\n",str_buf+str_data[func].str,func,str_data[func].type);
 		push_val(st->stack,C_INT,0);
 	}
 
@@ -7813,7 +7813,7 @@ int run_func(struct script_state *st)
 
 		pop_stack(st->stack,st->defsp,start_sp);	// 復帰に邪魔なスタック削除
 		if(st->defsp<4 || st->stack->stack_data[st->defsp-1].type!=C_RETINFO){
-			printf("script:run_func(return) return without callfunc or callsub!\n");
+			ShowWarning("script:run_func(return) return without callfunc or callsub!\n");
 			st->state=END;
 			return 0;
 		}
@@ -7850,7 +7850,7 @@ int run_script_main(char *script,int pos,int rid,int oid,struct script_state *st
 		case C_EOL:
 			if(stack->sp!=st->defsp){
 				if(battle_config.error_log)
-					printf("stack.sp(%d) != default(%d)\n",stack->sp,st->defsp);
+					ShowError("stack.sp(%d) != default(%d)\n",stack->sp,st->defsp);
 				stack->sp=st->defsp;
 			}
 			rerun_pos=st->pos;
@@ -7877,7 +7877,7 @@ int run_script_main(char *script,int pos,int rid,int oid,struct script_state *st
 				script=st->script;
 				st->state=0;
 				if( gotocount>0 && (--gotocount)<=0 ){
-					printf("run_script: infinity loop !\n");
+					ShowError("run_script: infinity loop !\n");
 					st->state=END;
 				}
 			}
@@ -7919,12 +7919,12 @@ int run_script_main(char *script,int pos,int rid,int oid,struct script_state *st
 
 		default:
 			if(battle_config.error_log)
-				printf("unknown command : %d @ %d\n",c,pos);
+				ShowError("unknown command : %d @ %d\n",c,pos);
 			st->state=END;
 			break;
 		}
 		if( cmdcount>0 && (--cmdcount)<=0 ){
-			printf("run_script: infinity loop !\n");
+			ShowError("run_script: infinity loop !\n");
 			st->state=END;
 		}
 	}
@@ -8060,7 +8060,7 @@ static int script_load_mapreg()
 			continue;
 		if( buf1[strlen(buf1)-1]=='$' ){
 			if( sscanf(line+n,"%[^\n\r]",buf2)!=1 ){
-				printf("%s: %s broken data !\n",mapreg_txt,buf1);
+				ShowError("%s: %s broken data !\n",mapreg_txt,buf1);
 				continue;
 			}
 			p=(char *)aCallocA(strlen(buf2) + 1,sizeof(char));
@@ -8069,7 +8069,7 @@ static int script_load_mapreg()
 			numdb_insert(mapregstr_db,(i<<24)|s,p);
 		}else{
 			if( sscanf(line+n,"%d",&v)!=1 ){
-				printf("%s: %s broken data !\n",mapreg_txt,buf1);
+				ShowError("%s: %s broken data !\n",mapreg_txt,buf1);
 				continue;
 			}
 			s= add_str((unsigned char *) buf1);
@@ -8178,7 +8178,7 @@ int script_config_read(char *cfgName)
 
 	fp = fopen(cfgName, "r");
 	if (fp == NULL) {
-		printf("file not found: %s\n", cfgName);
+		ShowError("file not found: %s\n", cfgName);
 		return 1;
 	}
 	while (fgets(line, sizeof(line) - 1, fp)) {

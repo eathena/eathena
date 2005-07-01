@@ -3,11 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "db.h"
-#include "timer.h"
-#include "socket.h"
-#include "nullpo.h"
-#include "malloc.h"
+#include "../common/db.h"
+#include "../common/timer.h"
+#include "../common/socket.h"
+#include "../common/nullpo.h"
+#include "../common/malloc.h"
+#include "../common/showmsg.h"
 
 #include "party.h"
 #include "pc.h"
@@ -90,7 +91,7 @@ int party_created(int account_id,int fail,int party_id,char *name)
 		struct party *p;
 		sd->status.party_id=party_id;
 		if((p=(struct party *) numdb_search(party_db,party_id))!=NULL){
-			printf("party: id already exists!\n");
+			ShowFatalError("party: id already exists!\n");
 			exit(1);
 		}
 		p=(struct party *)aCalloc(1,sizeof(struct party));
@@ -133,7 +134,7 @@ int party_check_member(struct party *p)
 				if(f){
 					sd->status.party_id=0;
 					if(battle_config.error_log)
-						printf("party: check_member %d[%s] is not member\n",sd->status.account_id,sd->status.name);
+						ShowWarning("party: check_member %d[%s] is not member\n",sd->status.account_id,sd->status.name);
 				}
 			}
 		}
@@ -252,7 +253,7 @@ int party_member_added(int party_id,int account_id,int flag)
 	if(sd == NULL){
 		if (flag == 0) {
 			if(battle_config.error_log)
-				printf("party: member added error %d is not online\n",account_id);
+				ShowError("party: member added error %d is not online\n",account_id);
 			intif_party_leave(party_id,account_id); // ƒLƒƒƒ‰‘¤‚É“o˜^‚Å‚«‚È‚©‚Á‚½‚½‚ß’E‘Ş—v‹‚ğo‚·
 		}
 		return 0;
@@ -399,7 +400,7 @@ int party_recv_movemap(int party_id,int account_id,char *map,int online,int lv)
 	for(i=0;i<MAX_PARTY;i++){
 		struct party_member *m=&p->member[i];
 		if( m == NULL ){
-			printf("party_recv_movemap nullpo?\n");
+			ShowError("party_recv_movemap nullpo?\n");
 			return 0;
 		}
 		if(m->account_id==account_id){
@@ -411,7 +412,7 @@ int party_recv_movemap(int party_id,int account_id,char *map,int online,int lv)
 	}
 	if(i==MAX_PARTY){
 		if(battle_config.error_log)
-			printf("party: not found member %d on %d[%s]",account_id,party_id,p->name);
+			ShowError("party: not found member %d on %d[%s]",account_id,party_id,p->name);
 		return 0;
 	}
 	

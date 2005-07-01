@@ -11,6 +11,7 @@
 #include "../common/mmo.h"
 #include "../common/db.h"
 #include "../common/core.h"
+#include "../common/showmsg.h"
 
 #include "log.h"
 #include "clif.h"
@@ -819,7 +820,7 @@ AtCommandType atcommand(struct map_session_data* sd, const int level, const char
 	if (battle_config.atc_gmonly != 0 && !level) // level = pc_isGM(sd)
 		return AtCommand_None;
 	if (!p || !*p) {
-		fprintf(stderr, "at command message is empty\n");
+		ShowError("at command message is empty\n");
 		return AtCommand_None;
 	}
 
@@ -866,7 +867,7 @@ int msg_config_read(const char *cfgName) {
 	static int called = 1;
 
 	if ((fp = fopen(cfgName, "r")) == NULL) {
-		printf("Messages file not found: %s\n", cfgName);
+		ShowError("Messages file not found: %s\n", cfgName);
 		return 1;
 	}
 
@@ -930,7 +931,7 @@ int atcommand_config_read(const char *cfgName) {
 	FILE* fp;
 
 	if ((fp = fopen(cfgName, "r")) == NULL) {
-		printf("At commands configuration file not found: %s\n", cfgName);
+		ShowError("At commands configuration file not found: %s\n", cfgName);
 		return 1;
 	}
 
@@ -3163,7 +3164,7 @@ int atcommand_monster(
 		number = battle_config.atc_spawn_quantity_limit;
 
 	if (battle_config.etc_log)
-		printf("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
+		ShowInfo("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
 
 	count = 0;
 	range = (int)sqrt(number) / 2;
@@ -3254,7 +3255,7 @@ int atcommand_spawn(
 		number = battle_config.atc_spawn_quantity_limit;
 
 	if (battle_config.etc_log)
-		printf("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
+		ShowInfo("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
 
 	count = 0;
 	range = (int)sqrt(number) / 2;
@@ -3632,7 +3633,7 @@ int atcommand_produce(
 			clif_additem(sd, 0, 0, flag);
 	} else {
 		if (battle_config.error_log)
-			printf("@produce NOT WEAPON [%d]\n", item_id);
+			ShowError("@produce NOT WEAPON [%d]\n", item_id);
 		if (item_id != 0 && itemdb_exists(item_id))
 			sprintf(atcmd_output, msg_table[169], item_id, item_data->name); // This item (%d: '%s') is not an equipment.
 		else
@@ -9028,7 +9029,8 @@ const char* command, const char* message)
                 return -1;
         }
 
-        printf("Adopting: --%s--%s--%s--\n",player1,player2,player3);
+		  if (battle_config.etc_log)
+	        printf("Adopting: --%s--%s--%s--\n",player1,player2,player3);
 
         if((pl_sd1=map_nick2sd((char *) player1)) == NULL) {
                 sprintf(player2, "Cannot find player %s online", player1);

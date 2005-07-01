@@ -184,7 +184,7 @@ CharCommandType charcommand(const int level, const char* message, CharCommandInf
 	if (battle_config.atc_gmonly != 0 && !level) // level = pc_isGM(sd)
 		return CharCommand_None;
 	if (!p || !*p) {
-		fprintf(stderr, "char command message is empty\n");
+		ShowError("char command message is empty\n");
 		return CharCommand_None;
 	}
 
@@ -243,7 +243,7 @@ int charcommand_config_read(const char *cfgName) {
 	FILE* fp;
 
 	if ((fp = fopen(cfgName, "r")) == NULL) {
-		printf("CharCommands configuration file not found: %s\n", cfgName);
+		ShowError("CharCommands configuration file not found: %s\n", cfgName);
 		return 1;
 	}
 

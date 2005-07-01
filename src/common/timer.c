@@ -19,9 +19,9 @@
 #include <string.h>
 #include <time.h>
 
-
 #include "timer.h"
 #include "malloc.h"
+#include "showmsg.h"
 
 // タイマー間隔の最小値。モンスターの大量召還時、多数のクライアント接続時に
 // サーバーが反応しなくなる場合は、TIMER_MIN_INTERVAL を増やしてください。
@@ -255,11 +255,11 @@ int add_timer_interval(unsigned int tick, int (*func)(int,unsigned int,int,int),
 int delete_timer(int id, int (*func)(int,unsigned int,int,int))
 {
 	if (id <= 0 || id >= timer_data_num) {
-		printf("delete_timer error : no such timer %d\n", id);
+		ShowError("delete_timer error : no such timer %d\n", id);
 		return -1;
 	}
 	if (timer_data[id].func != func) {
-		printf("delete_timer error : function mismatch %08x(%s) != %08x(%s)\n",
+		ShowError("delete_timer error : function mismatch %08x(%s) != %08x(%s)\n",
 			 (int)timer_data[id].func, search_timer_func_list(timer_data[id].func),
 			 (int)func, search_timer_func_list(func));
 		return -2;

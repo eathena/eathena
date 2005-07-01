@@ -638,19 +638,19 @@ int do_sendrecv(int next)
 #if defined(TURBO) && defined(DEBUG)
 			if(!session[i]) {
 				if (FD_ISSET(i, &readfds))
-					printf("FD_ISSET(i, &readfds) returned true with no session set\n");
+					ShowDebug("FD_ISSET(i, &readfds) returned true with no session set\n");
 				if (FD_ISSET(i, &writefds))
-					printf("FD_ISSET(i, &writefds) returned true with no session set\n");
+					ShowDebug("FD_ISSET(i, &writefds) returned true with no session set\n");
 				continue;
 			} else {
 				if ((i != 0) && FD_ISSET(i, &readfds) == 0)
-					printf("FD_ISSET(%d, &readfds) returned false with session set\n", i);
+					ShowDebug("FD_ISSET(%d, &readfds) returned false with session set\n", i);
 				if (session[i]->wdata_size == 0) {
 					if (FD_ISSET(i, &writefds))
-						printf("FD_ISSET(i, &writefds) returned true with session set and no data\n");
+						ShowDebug("FD_ISSET(i, &writefds) returned true with session set and no data\n");
 				} else {
 					if (FD_ISSET(i, &writefds) == 0)
-						printf("FD_ISSET(i, &writefds) returned false with session set and data\n");
+						ShowDebug("FD_ISSET(i, &writefds) returned false with session set and data\n");
 				}
 			}
 #else
@@ -1012,21 +1012,15 @@ int RFIFOSKIP(int fd,int len)
 	s = session[fd];
 
 	if (s->rdata_size-s->rdata_pos-len<0) {
-                 //fprintf(stderr,"too many skip\n");
+		//fprintf(stderr,"too many skip\n");
 		//exit(1);
-                 //better than a COMPLETE program abort // TEST! :)
-                 fprintf(stderr, "too many skip (%d) now skipped: %d (FD: %d)\n", len, RFIFOREST(fd), fd);
-                 len = RFIFOREST(fd);
-
+		//better than a COMPLETE program abort // TEST! :)
+		ShowError("too many skip (%d) now skipped: %d (FD: %d)\n", len, RFIFOREST(fd), fd);
+		len = RFIFOREST(fd);
 	}
-
 	s->rdata_pos = s->rdata_pos+len;
 
-
-
-
-
-return 0;
+	return 0;
 }
 
 

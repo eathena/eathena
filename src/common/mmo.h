@@ -144,7 +144,7 @@ struct s_pet {
 
 struct friend {
 	int friend_id;
-         char friend_name[NAME_LENGTH];
+	char friend_name[NAME_LENGTH];
 };
 
 struct mmo_charstatus {
@@ -189,8 +189,8 @@ struct mmo_charstatus {
 
          //struct friend friends[MAX_FRIENDS];
 	// Friends list vars
-	int friend_id[20];
-	char friend_name[20][NAME_LENGTH];
+	int friend_id[MAX_FRIENDS];
+	char friend_name[MAX_FRIENDS][NAME_LENGTH];
 };
 
 struct storage {

@@ -50,10 +50,17 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 	}
 
 	if (!(flag == MSG_DEBUG && !SHOW_DEBUG_MSG)) {
-		if (flag != MSG_NONE)
-			printf ("%s ", prefix);
-		vprintf (string, ap);
-		fflush (stdout);
+		if (flag == MSG_ERROR || flag == MSG_FATALERROR)
+		{	//Send Errors to StdErr [Skotlex]
+			fprintf (stderr, "%s ", prefix);
+			vfprintf (stderr, string, ap);
+			fflush (stderr);
+		} else {
+			if (flag != MSG_NONE)
+				printf ("%s ", prefix);
+			vprintf (string, ap);
+			fflush (stdout);
+		}
 	}
 
 	va_end(ap);

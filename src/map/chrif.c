@@ -154,11 +154,11 @@ int chrif_save(struct map_session_data *sd)
 	pc_makesavestatus(sd);
 
          if(charsave_method == 1){ //New 'Local' save
-         	#ifndef TXT_ONLY
-         	 charsave_savechar(sd->char_id, &sd->status);
-                 #else
-                  printf("u cannot use charsave_method 1 in TXT servers!\n");
-                 #endif
+        	#ifndef TXT_ONLY
+				charsave_savechar(sd->char_id, &sd->status);
+			#else
+				ShowError("u cannot use charsave_method 1 in TXT servers!\n");
+			#endif
          }else{
 	         WFIFOW(char_fd,0) = 0x2b01;
 	         WFIFOW(char_fd,2) = sizeof(sd->status) + 12;
@@ -229,7 +229,7 @@ int chrif_recvmap(int fd)
 //			printf("recv map %d %s\n", j, RFIFOP(fd,i));
 	}
 	if (battle_config.etc_log)
-		printf("recv map on %d.%d.%d.%d:%d (%d maps)\n", p[0], p[1], p[2], p[3], port, j);
+		ShowStatus("recv map on %d.%d.%d.%d:%d (%d maps)\n", p[0], p[1], p[2], p[3], port, j);
 
 	return 0;
 }
@@ -256,7 +256,7 @@ int chrif_removemap(int fd){
 
 
 	if(battle_config.etc_log){
-		printf("remove map of server %d.%d.%d.%d:%d (%d maps)\n", p[0], p[1], p[2], p[3], port, j);
+		ShowStatus("remove map of server %d.%d.%d.%d:%d (%d maps)\n", p[0], p[1], p[2], p[3], port, j);
 	}
 
 	return 0;
@@ -312,7 +312,7 @@ int chrif_changemapserverack(int fd)
 
 	if (RFIFOL(fd,6) == 1) {
 		if (battle_config.error_log)
-			printf("map server change failed.\n");
+			ShowError("map server change failed.\n");
 		pc_authfail(sd->fd);
 		return 0;
 	}
@@ -328,7 +328,7 @@ int chrif_changemapserverack(int fd)
 int chrif_connectack(int fd)
 {
 	if (RFIFOB(fd,2)) {
-		printf("Connected to char-server failed %d.\n", RFIFOB(fd,2));
+		ShowFatalError("Connected to char-server failed %d.\n", RFIFOB(fd,2));
 		exit(1);
 	}
 	sprintf(tmp_output,"Successfully connected to Char Server (Connection: '"CL_WHITE"%d"CL_RESET"').\n",fd);
@@ -361,7 +361,7 @@ int chrif_connectack(int fd)
 int chrif_sendmapack(int fd)
 {
 	if (RFIFOB(fd,2)) {
-		printf("chrif : send map list to char server failed %d\n", RFIFOB(fd,2));
+		ShowFatalError("chrif : send map list to char server failed %d\n", RFIFOB(fd,2));
 		exit(1);
 	}
 
@@ -459,7 +459,7 @@ int chrif_searchcharid(int char_id)
 int chrif_changegm(int id, const char *pass, int len)
 {
 	if (battle_config.etc_log)
-		printf("chrif_changegm: account: %d, password: '%s'.\n", id, pass);
+		ShowInfo("chrif_changegm: account: %d, password: '%s'.\n", id, pass);
 
 	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
 		return -1;
@@ -480,7 +480,7 @@ int chrif_changegm(int id, const char *pass, int len)
 int chrif_changeemail(int id, const char *actual_email, const char *new_email)
 {
 	if (battle_config.etc_log)
-		printf("chrif_changeemail: account: %d, actual_email: '%s', new_email: '%s'.\n", id, actual_email, new_email);
+		ShowInfo("chrif_changeemail: account: %d, actual_email: '%s', new_email: '%s'.\n", id, actual_email, new_email);
 
 	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
 		return -1;
@@ -522,7 +522,7 @@ int chrif_char_ask_name(int id, char * character_name, short operation_type, int
 		WFIFOW(char_fd, 40) = minute;
 		WFIFOW(char_fd, 42) = second;
 	}
-	printf("chrif : sended 0x2b0e\n");
+	ShowInfo("chrif : sended 0x2b0e\n");
 	WFIFOSET(char_fd,44);
 
 	return 0;
@@ -540,7 +540,7 @@ int chrif_changesex(int id, int sex) {
 	WFIFOW(char_fd,2) = 9;
 	WFIFOL(char_fd,4) = id;
 	WFIFOB(char_fd,8) = sex;
-	printf("chrif : sent 0x3000(changesex)\n");
+	ShowInfo("chrif : sent 0x3000(changesex)\n");
 	WFIFOSET(char_fd,9);
 	return 0;
 }
@@ -655,7 +655,7 @@ int chrif_char_ask_name_answer(int fd)
 			clif_displaymessage(sd->fd, output);
 		}
 	} else
-		printf("chrif_char_ask_name_answer failed - player not online.\n");
+		ShowError("chrif_char_ask_name_answer failed - player not online.\n");
 
 	return 0;
 }
@@ -675,7 +675,7 @@ int chrif_changedgm(int fd)
 	sd = map_id2sd(acc);
 
 	if (battle_config.etc_log)
-		printf("chrif_changedgm: account: %d, GM level 0 -> %d.\n", acc, level);
+		ShowNotice("chrif_changedgm: account: %d, GM level 0 -> %d.\n", acc, level);
 	if (sd != NULL) {
 		if (level > 0)
 			clif_displaymessage(sd->fd, "GM modification success.");
@@ -699,7 +699,7 @@ int chrif_changedsex(int fd)
 	acc = RFIFOL(fd,2);
 	sex = RFIFOL(fd,6);
 	if (battle_config.etc_log)
-		printf("chrif_changedsex %d.\n", acc);
+		ShowNotice("chrif_changedsex %d.\n", acc);
 	sd = map_id2sd(acc);
 	if (acc > 0) {
 		if (sd != NULL && sd->status.sex != sex) {
@@ -751,7 +751,7 @@ int chrif_changedsex(int fd)
 		}
 	} else {
 		if (sd != NULL) {
-			printf("chrif_changedsex failed.\n");
+			ShowError("chrif_changedsex failed.\n");
 		}
 	}
 
@@ -846,7 +846,7 @@ int chrif_accountdeletion(int fd)
 
 	acc = RFIFOL(fd,2);
 	if (battle_config.etc_log)
-		printf("chrif_accountdeletion %d.\n", acc);
+		ShowNotice("chrif_accountdeletion %d.\n", acc);
 	sd = map_id2sd(acc);
 	if (acc > 0) {
 		if (sd != NULL) {
@@ -856,7 +856,7 @@ int chrif_accountdeletion(int fd)
 		}
 	} else {
 		if (sd != NULL)
-			printf("chrif_accountdeletion failed - player not online.\n");
+			ShowError("chrif_accountdeletion failed - player not online.\n");
 	}
 
 	return 0;
@@ -873,7 +873,7 @@ int chrif_accountban(int fd)
 
 	acc = RFIFOL(fd,2);
 	if (battle_config.etc_log)
-		printf("chrif_accountban %d.\n", acc);
+		ShowNotice("chrif_accountban %d.\n", acc);
 	sd = map_id2sd(acc);
 	if (acc > 0) {
 		if (sd != NULL) {
@@ -926,7 +926,7 @@ int chrif_accountban(int fd)
 		}
 	} else {
 		if (sd != NULL)
-			printf("chrif_accountban failed - player not online.\n");
+			ShowError("chrif_accountban failed - player not online.\n");
 	}
 
 	return 0;
@@ -1232,16 +1232,16 @@ int chrif_pcauthok(int fd){
          //		(struct mmo_charstatus*)RFIFOP(fd,16)); break;
 
 	if(charsave_method != 1){
-         	printf("WARNING!! your settings ARE WRONG\n");
-                 printf("Youre trying to use the new savesystem @ charserver\n");
-                 printf("and @ mapserver the old-one is configured!\n");
+		printf("WARNING!! your settings ARE WRONG\n");
+		printf("Youre trying to use the new savesystem @ charserver\n");
+		printf("and @ mapserver the old-one is configured!\n");
 	}
 
         #ifndef TXT_ONLY
         temp = charsave_loadchar(RFIFOL(fd, 14));
 
         if(temp == NULL){
-        	printf("Cannot accept the client due an internal fault @ charsave_loadchar!\n");
+        	ShowError("Cannot accept the client due an internal fault @ charsave_loadchar!\n");
          pc_authfail(RFIFOL(fd, 2));
         }else{
         	temp->sex = RFIFOW(fd, 18);
@@ -1283,7 +1283,7 @@ int chrif_parse(int fd)
 			if (r == 2) return 0;	// intifで処理したが、データが足りない
 
 			session[fd]->eof = 1;
-			printf("chrif_parse: session #%d, intif_parse failed -> disconnected.\n", fd);
+			ShowWarning("chrif_parse: session #%d, intif_parse failed -> disconnected.\n", fd);
 			return 0;
 		}
 		packet_len = packet_len_table[cmd-0x2af8];
@@ -1320,7 +1320,7 @@ int chrif_parse(int fd)
 
 		default:
 			if (battle_config.error_log)
-				printf("chrif_parse : unknown packet %d %d\n", fd, RFIFOW(fd,0));
+				ShowError("chrif_parse : unknown packet %d %d\n", fd, RFIFOW(fd,0));
 			session[fd]->eof = 1;
 			return 0;
 		}

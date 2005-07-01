@@ -5,6 +5,7 @@
 
 #include "../common/strlib.h"
 #include "../common/nullpo.h"
+#include "../common/showmsg.h"
 #include "itemdb.h"
 #include "map.h"
 #include "log.h"
@@ -75,7 +76,7 @@ int log_branch(struct map_session_data *sd)
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`branch_date`, `account_id`, `char_id`, `char_name`, `map`) VALUES (NOW(), '%d', '%d', '%s', '%s')",
 			log_config.log_branch_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), sd->mapname);
 		if(mysql_query(&logmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
+			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_branch,"a+")) != NULL) {
@@ -108,7 +109,7 @@ int log_drop(struct map_session_data *sd, int monster_id, int *log_drop)
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`drop_date`, `kill_char_id`, `monster_id`, `item1`, `item2`, `item3`, `item4`, `item5`, `item6`, `item7`, `item8`, `item9`, `itemCard`, `map`) VALUES (NOW(), '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s') ", log_config.log_drop_db, sd->status.char_id, monster_id, log_drop[0], log_drop[1], log_drop[2], log_drop[3], log_drop[4], log_drop[5], log_drop[6], log_drop[7], log_drop[8], log_drop[9], sd->mapname);
 		if(mysql_query(&logmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
+			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_drop,"a+")) != NULL) {
@@ -138,7 +139,7 @@ int log_mvpdrop(struct map_session_data *sd, int monster_id, int *log_mvp)
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`mvp_date`, `kill_char_id`, `monster_id`, `prize`, `mvpexp`, `map`) VALUES (NOW(), '%d', '%d', '%d', '%d', '%s') ", log_config.log_mvpdrop_db, sd->status.char_id, monster_id, log_mvp[0], log_mvp[1], sd->mapname);
 		if(mysql_query(&logmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
+			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_mvpdrop,"a+")) != NULL) {
@@ -170,7 +171,7 @@ int log_present(struct map_session_data *sd, int source_type, int nameid)
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`present_date`, `src_id`, `account_id`, `char_id`, `char_name`, `nameid`, `map`) VALUES (NOW(), '%d', '%d', '%d', '%s', '%d', '%s') ",
 			log_config.log_present_db, source_type, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), nameid, sd->mapname);
 		if(mysql_query(&logmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
+			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_present,"a+")) != NULL) {
@@ -202,7 +203,7 @@ int log_produce(struct map_session_data *sd, int nameid, int slot1, int slot2, i
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`produce_date`, `account_id`, `char_id`, `char_name`, `nameid`, `slot1`, `slot2`, `slot3`, `map`, `success`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%s', '%d') ",
 			log_config.log_produce_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), nameid, slot1, slot2, slot3, sd->mapname, success);
 		if(mysql_query(&logmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
+			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_produce,"a+")) != NULL) {
@@ -246,7 +247,7 @@ int log_refine(struct map_session_data *sd, int n, int success)
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`refine_date`, `account_id`, `char_id`, `char_name`, `nameid`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `success`, `item_level`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d', '%d')",
 			log_config.log_refine_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), sd->status.inventory[n].nameid, sd->status.inventory[n].refine, log_card[0], log_card[1], log_card[2], log_card[3], sd->mapname, success, item_level);
 		if(mysql_query(&logmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
+			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_refine,"a+")) != NULL) {
@@ -355,7 +356,7 @@ int log_trade(struct map_session_data *sd, struct map_session_data *target_sd, i
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s')",
 			log_config.log_trade_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), target_sd->status.account_id, target_sd->status.char_id, jstrescapecpy(t_name2, target_sd->status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd->mapname);
 		if(mysql_query(&logmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
+			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_trade,"a+")) != NULL) {
@@ -400,7 +401,7 @@ int log_vend(struct map_session_data *sd,struct map_session_data *vsd,int n,int 
 			sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`vend_date`, `vend_account_id`, `vend_char_id`, `vend_char_name`, `buy_account_id`, `buy_char_id`, `buy_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `zeny`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d')",
 				log_config.log_vend_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), vsd->status.account_id, vsd->status.char_id, jstrescapecpy(t_name2, vsd->status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd->mapname, zeny);
 			if(mysql_query(&logmysql_handle, tmp_sql))
-				printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
+				ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_vend,"a+")) != NULL) {
@@ -431,7 +432,7 @@ int log_zeny(struct map_session_data *sd, struct map_session_data *target_sd,int
 		sprintf(tmp_sql,"INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `map`, `zeny`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%s', '%d')",
 			log_config.log_trade_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), target_sd->status.account_id, target_sd->status.char_id, jstrescapecpy(t_name2, target_sd->status.name), sd->mapname, sd->deal_zeny);
 		if(mysql_query(&logmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
+			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_trade,"a+")) != NULL) {
@@ -463,7 +464,7 @@ int log_atcommand(struct map_session_data *sd, const char *message)
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`atcommand_date`, `account_id`, `char_id`, `char_name`, `map`, `command`) VALUES(NOW(), '%d', '%d', '%s', '%s', '%s') ",
 			log_config.log_gm_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), sd->mapname, jstrescapecpy(t_msg, (char *)message));
 		if(mysql_query(&logmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
+			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_gm,"a+")) != NULL) {
@@ -494,7 +495,7 @@ int log_npc(struct map_session_data *sd, const char *message)
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`npc_date`, `account_id`, `char_id`, `char_name`, `map`, `mes`) VALUES(NOW(), '%d', '%d', '%s', '%s', '%s') ",
 			log_config.log_npc_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), sd->mapname, message);
 		if(mysql_query(&logmysql_handle, tmp_sql))
-			printf("DB server Error - %s\n",mysql_error(&logmysql_handle));
+			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_npc,"a+")) != NULL) {
@@ -528,7 +529,7 @@ int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, 
 		 	log_config.log_chat_db, type, type_id, src_charid, src_accid, map, x, y, dst_charname, jstrescapecpy(t_msg, message));
 	
 		if(mysql_query(&logmysql_handle, tmp_sql)){
-			printf("log_chat() -> SQL ERROR / FAIL: %s\n", mysql_error(&logmysql_handle));
+			ShowError("log_chat() -> SQL ERROR / FAIL: %s\n", mysql_error(&logmysql_handle));
 			return -1;	
 		}else{
 			return 0;
@@ -575,7 +576,7 @@ int log_config_read(char *cfgName)
 
 	if((fp = fopen(cfgName, "r")) == NULL)
 	{
-		printf("Log configuration file not found at: %s\n", cfgName);
+		ShowError("Log configuration file not found at: %s\n", cfgName);
 		return 1;
 	}	
 
@@ -635,32 +636,32 @@ int log_config_read(char *cfgName)
 			else if(strcmpi(w1, "log_branch_db") == 0) {
 				strcpy(log_config.log_branch_db, w2);
 				if(log_config.branch == 1)
-					printf("Logging Dead Branch Usage to table `%s`\n", w2);
+					ShowNotice("Logging Dead Branch Usage to table `%s`\n", w2);
 			} else if(strcmpi(w1, "log_drop_db") == 0) {
 				strcpy(log_config.log_drop_db, w2);
 				if(log_config.drop == 1)
-					printf("Logging Item Drops to table `%s`\n", w2);
+					ShowNotice("Logging Item Drops to table `%s`\n", w2);
 			} else if(strcmpi(w1, "log_mvpdrop_db") == 0) {
 				strcpy(log_config.log_mvpdrop_db, w2);
 				if(log_config.mvpdrop == 1)
-					printf("Logging MVP Drops to table `%s`\n", w2);
+					ShowNotice("Logging MVP Drops to table `%s`\n", w2);
 			} else if(strcmpi(w1, "log_present_db") == 0) {
 				strcpy(log_config.log_present_db, w2);
 				if(log_config.present == 1)
-					printf("Logging Present Usage & Results to table `%s`\n", w2);
+					ShowNotice("Logging Present Usage & Results to table `%s`\n", w2);
 			} else if(strcmpi(w1, "log_produce_db") == 0) {
 				strcpy(log_config.log_produce_db, w2);
 				if(log_config.produce == 1)
-					printf("Logging Producing to table `%s`\n", w2);
+					ShowNotice("Logging Producing to table `%s`\n", w2);
 			} else if(strcmpi(w1, "log_refine_db") == 0) {
 				strcpy(log_config.log_refine_db, w2);
 				if(log_config.refine == 1)
-					printf("Logging Refining to table `%s`\n", w2);
+					ShowNotice("Logging Refining to table `%s`\n", w2);
 			} else if(strcmpi(w1, "log_trade_db") == 0) {
 				strcpy(log_config.log_trade_db, w2);
 				if(log_config.trade == 1)
 				{
-					printf("Logging Item Trades");
+					ShowNotice("Logging Item Trades");
 					if(log_config.zeny == 1)
 						printf("and Zeny Trades");
 					printf(" to table `%s`\n", w2);
@@ -675,51 +676,51 @@ int log_config_read(char *cfgName)
 			} else if(strcmpi(w1, "log_vend_db") == 0) {
 				strcpy(log_config.log_vend_db, w2);
 				if(log_config.vend == 1)
-					printf("Logging Vending to table `%s`\n", w2);
+					ShowNotice("Logging Vending to table `%s`\n", w2);
 			} else if(strcmpi(w1, "log_gm_db") == 0) {
 				strcpy(log_config.log_gm_db, w2);
 				if(log_config.gm > 0)
-					printf("Logging GM Level %d Commands to table `%s`\n", log_config.gm, w2);
+					ShowNotice("Logging GM Level %d Commands to table `%s`\n", log_config.gm, w2);
 			} else if(strcmpi(w1, "log_npc_db") == 0) {
 				strcpy(log_config.log_npc_db, w2);
 				if(log_config.npc > 0)
-					printf("Logging NPC 'logmes' to table `%s`\n", w2);
+					ShowNotice("Logging NPC 'logmes' to table `%s`\n", w2);
 			} else if(strcmpi(w1, "log_chat_db") == 0) {
 				strcpy(log_config.log_chat_db, w2);
 				if(log_config.chat > 0)
-					printf("Logging CHAT to table `%s`\n", w2);
+					ShowNotice("Logging CHAT to table `%s`\n", w2);
 			}
 #endif
 
 			else if(strcmpi(w1, "log_branch_file") == 0) {
 				strcpy(log_config.log_branch, w2);
 				if(log_config.branch > 0 && log_config.sql_logs < 1)
-					printf("Logging Dead Branch Usage to file `%s`.txt\n", w2);
+					ShowNotice("Logging Dead Branch Usage to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_drop_file") == 0) {
 				strcpy(log_config.log_drop, w2);
 				if(log_config.drop > 0 && log_config.sql_logs < 1)
-					printf("Logging Item Drops to file `%s`.txt\n", w2);
+					ShowNotice("Logging Item Drops to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_mvpdrop_file") == 0) {
 				strcpy(log_config.log_mvpdrop, w2);
 				if(log_config.mvpdrop > 0 && log_config.sql_logs < 1)
-					printf("Logging MVP Drops to file `%s`.txt\n", w2);
+					ShowNotice("Logging MVP Drops to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_present_file") == 0) {
 				strcpy(log_config.log_present, w2);
 				if(log_config.present > 0 && log_config.sql_logs < 1)
-					printf("Logging Present Usage & Results to file `%s`.txt\n", w2);
+					ShowNotice("Logging Present Usage & Results to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_produce_file") == 0) {
 				strcpy(log_config.log_produce, w2);
 				if(log_config.produce > 0 && log_config.sql_logs < 1)
-					printf("Logging Producing to file `%s`.txt\n", w2);
+					ShowNotice("Logging Producing to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_refine_file") == 0) {
 				strcpy(log_config.log_refine, w2);
 				if(log_config.refine > 0 && log_config.sql_logs < 1)
-					printf("Logging Refining to file `%s`.txt\n", w2);
+					ShowNotice("Logging Refining to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_trade_file") == 0) {
 				strcpy(log_config.log_trade, w2);
 				if(log_config.trade > 0 && log_config.sql_logs < 1)
 				{
-					printf("Logging Item Trades");
+					ShowNotice("Logging Item Trades");
 					if(log_config.zeny > 0)
 						printf("and Zeny Trades");
 					printf(" to file `%s`.txt\n", w2);
@@ -727,26 +728,23 @@ int log_config_read(char *cfgName)
 			} else if(strcmpi(w1, "log_storage_file") == 0) {
 				strcpy(log_config.log_storage, w2);
 				if(log_config.storage > 0 && log_config.sql_logs < 1)
-				{
-					printf("Logging Item Storages");
-					printf(" to file `%s`.txt\n", w2);
-				}
+					ShowNotice("Logging Item Storages to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_vend_file") == 0) {
 				strcpy(log_config.log_vend, w2);
 				if(log_config.vend > 0  && log_config.sql_logs < 1)
-					printf("Logging Vending to file `%s`.txt\n", w2);
+					ShowNotice("Logging Vending to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_gm_file") == 0) {
 				strcpy(log_config.log_gm, w2);
 				if(log_config.gm > 0 && log_config.sql_logs < 1)
-					printf("Logging GM Level %d Commands to file `%s`.txt\n", log_config.gm, w2);
+					ShowNotice("Logging GM Level %d Commands to file `%s`.txt\n", log_config.gm, w2);
 			} else if(strcmpi(w1, "log_npc_file") == 0) {
 				strcpy(log_config.log_npc, w2);
 				if(log_config.npc > 0 && log_config.sql_logs < 1)
-					printf("Logging NPC 'logmes' to file `%s`.txt\n", w2);
+					ShowNotice("Logging NPC 'logmes' to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_chat_file") == 0) {
 				strcpy(log_config.log_chat, w2);
 				if(log_config.chat > 0 && log_config.sql_logs < 1)					
-					printf("Logging CHAT to file `%s`.txt\n", w2);
+					ShowNotice("Logging CHAT to file `%s`.txt\n", w2);
 			//support the import command, just like any other config
 			} else if(strcmpi(w1,"import") == 0) {
 				log_config_read(w2);

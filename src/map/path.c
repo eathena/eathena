@@ -6,6 +6,7 @@
 #include "map.h"
 #include "battle.h"
 #include "nullpo.h"
+#include "../common/showmsg.h"
 
 //#define PATH_STANDALONETEST
 
@@ -22,7 +23,7 @@ static void push_heap_path(int *heap,struct tmp_path *tp,int index)
 	int i,h;
 
 	if( heap == NULL || tp == NULL ){
-		printf("push_heap_path nullpo\n");
+		ShowError("push_heap_path nullpo\n");
 		return;
 	}
 
@@ -51,7 +52,7 @@ static void update_heap_path(int *heap,struct tmp_path *tp,int index)
 		if(heap[h+1]==index)
 			break;
 	if(h==heap[0]){
-		fprintf(stderr,"update_heap_path bug\n");
+		ShowError("update_heap_path bug\n");
 		exit(1);
 	}
 	for(i=(h-1)/2;
@@ -210,12 +211,12 @@ int path_blownpos(int m,int x0,int y0,int dx,int dy,int count)
 
 	if(count>15){	// Å‘å10ƒ}ƒX‚É§ŒÀ
 		if(battle_config.error_log)
-			printf("path_blownpos: count too many %d !\n",count);
+			ShowWarning("path_blownpos: count too many %d !\n",count);
 		count=15;
 	}
 	if(dx>1 || dx<-1 || dy>1 || dy<-1){
 		if(battle_config.error_log)
-			printf("path_blownpos: illeagal dx=%d or dy=%d !\n",dx,dy);
+			ShowError("path_blownpos: illeagal dx=%d or dy=%d !\n",dx,dy);
 		dx=(dx>=0)?1:((dx<0)?-1:0);
 		dy=(dy>=0)?1:((dy<0)?-1:0);
 	}

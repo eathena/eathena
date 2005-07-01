@@ -6,6 +6,7 @@
 #include "../common/db.h"
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
+#include "../common/showmsg.h"
 
 #include "storage.h"
 #include "chrif.h"
@@ -389,7 +390,7 @@ struct guild_storage *guild2storage(int guild_id)
 		if(gs == NULL) {
 			gs = (struct guild_storage *) aCallocA(sizeof(struct guild_storage), 1);
 			if(gs==NULL){
-				printf("storage: out of memory!\n");
+				ShowFatalError("storage: out of memory!\n");
 				exit(0);
 			}
 			gs->guild_id=guild_id;

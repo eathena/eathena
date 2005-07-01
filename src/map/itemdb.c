@@ -319,7 +319,7 @@ static int itemdb_read_randomitem()
 
 		*pdefault = 0;
 		if( (fp=fopen(fn,"r"))==NULL ){
-			printf("can't read %s\n",fn);
+			ShowError("can't read %s\n",fn);
 			continue;
 		}
 
@@ -376,7 +376,7 @@ static int itemdb_read_itemavail (void)
 	struct item_data *id;
 
 	if ((fp = fopen("db/item_avail.txt","r")) == NULL) {
-		printf("can't read db/item_avail.txt\n");
+		ShowError("can't read db/item_avail.txt\n");
 		return -1;
 	}
 
@@ -421,7 +421,7 @@ static int itemdb_read_itemgroup(void)
 	char *str[31],*p;
 
 	if( (fp=fopen("db/item_group_db.txt","r"))==NULL ){
-		printf("can't read db/item_group_db.txt\n");
+		ShowError("can't read db/item_group_db.txt\n");
 		return -1;
 	}
 
@@ -482,7 +482,7 @@ static int itemdb_read_itemnametable(void)
 #ifdef ITEMDB_OVERRIDE_NAME_VERBOSE
 			if( itemdb_exists(nameid) &&
 				strncmp(itemdb_search(nameid)->jname,buf2,ITEM_NAME_LENGTH)!=0 ){
-				printf("[override] %d %s => %s\n",nameid
+				ShowNotice("[override] %d %s => %s\n",nameid
 					,itemdb_search(nameid)->jname,buf2);
 			}
 #endif
@@ -616,7 +616,7 @@ static int itemdb_read_noequip(void)
 	struct item_data *id;
 
 	if( (fp=fopen("db/item_noequip.txt","r"))==NULL ){
-		printf("can't read db/item_noequip.txt\n");
+		ShowError("can't read db/item_noequip.txt\n");
 		return -1;
 	}
 	while(fgets(line,1020,fp)){
@@ -660,7 +660,7 @@ static int itemdb_read_itemtrade(void)
 	struct item_data *id;
 
 	if ((fp = fopen("db/item_trade.txt","r")) == NULL) {
-		printf("can't read db/item_trade.txt\n");
+		ShowError("can't read db/item_trade.txt\n");
 		return -1;
 	}
 
@@ -815,18 +815,18 @@ static int itemdb_read_sqldb(void)
 
 				// If the retrieval failed, output an error
 				if (mysql_errno(&mmysql_handle)) {
-					printf("Database server error (retrieving rows from %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
+					ShowError("Database server error (retrieving rows from %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
 				}
 				sprintf(tmp_output,"Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, item_db_name[i]);
 				ShowStatus(tmp_output);
 				ln = 0;
 			} else
-				printf("MySQL error (storing query result for %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
+				ShowError("MySQL error (storing query result for %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
 
 			// Free the query result
 			mysql_free_result(sql_res);
 		} else
-			printf("Database server error (executing query for %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
+			ShowError("Database server error (executing query for %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
 	}
 
 	return 0;
@@ -854,7 +854,7 @@ static int itemdb_readdb(void)
 		if(fp==NULL){
 			if(i>0)
 				continue;
-			printf("can't read %s\n",filename[i]);
+			ShowFatalError("can't read %s\n",filename[i]);
 			exit(1);
 		}
 

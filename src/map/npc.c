@@ -166,7 +166,7 @@ int npc_event_dequeue(struct map_session_data *sd)
 			sd->eventtimer[ev]=add_timer(gettick()+100,pc_eventtimer,sd->bl.id,(int)name);//!!todo!!
 
 		}else
-			printf("npc_event_dequeue: event timer is full !\n");
+			ShowWarning("npc_event_dequeue: event timer is full !\n");
 	}
 	return 0;
 }
@@ -186,7 +186,7 @@ int npc_event_timer(int tid,unsigned int tick,int id,int data)
 	if((ev==NULL || (nd=ev->nd)==NULL))
 	{
 		if(battle_config.error_log)
-			printf("npc_event: event not found [%s]\n",eventname);
+			ShowWarning("npc_event: event not found [%s]\n",eventname);
 	}	
 	else
 	{
@@ -198,7 +198,7 @@ int npc_event_timer(int tid,unsigned int tick,int id,int data)
 			}
 		}
 		if(i==MAX_EVENTTIMER && battle_config.error_log)
-			printf("npc_event_timer: event timer not found [%s]!\n",eventname);
+			ShowWarning("npc_event_timer: event timer not found [%s]!\n",eventname);
 	}
 
 	aFree(eventname);
@@ -212,7 +212,7 @@ int npc_timer_event(const char *eventname)	// Added by RoVeRT
 //	int xs,ys;
 
 	if((ev==NULL || (nd=ev->nd)==NULL)){
-		printf("npc_event: event not found [%s]\n",eventname);
+		ShowWarning("npc_event: event not found [%s]\n",eventname);
 		return 0;
 	}
 
@@ -283,10 +283,10 @@ int npc_event_export(void *key,void *data,va_list ap)
 		ev=(struct event_data *) aCalloc(sizeof(struct event_data), 1);
 		buf=(char *) aCallocA(50, 1);
 		if (ev==NULL || buf==NULL) {
-			printf("npc_event_export: out of memory !\n");
+			ShowFatalError("npc_event_export: out of memory !\n");
 			exit(1);
 		}else if (p==NULL || (p-lname)>NAME_LENGTH) {
-			printf("npc_event_export: label name error !\n");
+			ShowFatalError("npc_event_export: label name error !\n");
 			exit(1);
 		}else{
 			ev->nd=nd;
@@ -451,13 +451,13 @@ int npc_addeventtimer(struct npc_data *nd,int tick,const char *name)
 	if(i<MAX_EVENTTIMER){
 		char *evname=(char *) aCallocA(NAME_LENGTH, sizeof(char));
 		if(evname==NULL){
-			printf("npc_addeventtimer: out of memory !\n");exit(1);
+			ShowFatalError("npc_addeventtimer: out of memory !\n");exit(1);
 		}
 		memcpy(evname,name,NAME_LENGTH-1);
 		nd->eventtimer[i]=add_timer(gettick()+tick,
 			npc_event_timer,nd->bl.id,(int)evname);
 	}else
-		printf("npc_addtimer: event timer is full !\n");
+		ShowWarning("npc_addtimer: event timer is full !\n");
 
 	return 0;
 }
@@ -538,7 +538,7 @@ int npc_timerevent_import(void *key,void *data,va_list ap)
 		if(te==NULL) te=(struct npc_timerevent_list*)aMallocA(sizeof(struct npc_timerevent_list));
 		else te= (struct npc_timerevent_list*)aRealloc( te, sizeof(struct npc_timerevent_list) * (i+1) );
 		if(te==NULL){
-			printf("npc_timerevent_import: out of memory !\n");
+			ShowFatalError("npc_timerevent_import: out of memory !\n");
 			exit(1);
 		}
 		for(j=0;j<i;j++){
@@ -564,7 +564,7 @@ int npc_timerevent(int tid,unsigned int tick,int id,int data)
 	struct npc_data* nd=(struct npc_data *)map_id2bl(id);
 	struct npc_timerevent_list *te;
 	if( nd==NULL || nd->u.scr.nexttimer<0 ){
-		printf("npc_timerevent: ??\n");
+		ShowError("npc_timerevent: ??\n");
 		return 0;
 	}
 	nd->u.scr.timertick=tick;
@@ -718,7 +718,7 @@ int npc_event (struct map_session_data *sd, const char *eventname, int mob_kill)
 				break;
 		if (i==MAX_EVENTQUEUE) {
 			if (battle_config.error_log)
-				printf("npc_event: event queue is full !\n");
+				ShowWarning("npc_event: event queue is full !\n");
 		}else{
 //			if (battle_config.etc_log)
 //				printf("npc_event: enqueue\n");
@@ -800,7 +800,7 @@ int npc_touch_areanpc(struct map_session_data *sd,int m,int x,int y)
 	if (i==map[m].npc_num) {
 		if (f) {
 			if (battle_config.error_log)
-				printf("npc_touch_areanpc : some bug \n");
+				ShowError("npc_touch_areanpc : some bug \n");
 		}
 		return 1;
 	}
@@ -844,7 +844,7 @@ int npc_checknear(struct map_session_data *sd,int id)
 	nd=(struct npc_data *)map_id2bl(id);
 	if (nd==NULL || nd->bl.type!=BL_NPC) {
 		if (battle_config.error_log)
-			printf("no such npc : %d\n",id);
+			ShowWarning("no such npc : %d\n",id);
 		return 1;
 	}
 
@@ -890,7 +890,7 @@ int npc_click(struct map_session_data *sd,int id)
 
 	if (sd->npc_id != 0) {
 		if (battle_config.error_log)
-			printf("npc_click: npc_id != 0\n");
+			ShowError("npc_click: npc_id != 0\n");
 		return 1;
 	}
 
@@ -954,7 +954,7 @@ int npc_buysellsel(struct map_session_data *sd,int id,int type)
 	nd=(struct npc_data *)map_id2bl(id);
 	if (nd->bl.subtype!=SHOP) {
 		if (battle_config.error_log)
-			printf("no such shop npc : %d\n",id);
+			ShowError("no such shop npc : %d\n",id);
 		sd->npc_id=0;
 		return 1;
 	}

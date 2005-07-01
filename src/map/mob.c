@@ -155,7 +155,7 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 		}
 	} else if (x <= 0 || y <= 0) {
 		i = j = 0;
-		printf("mob_once_spawn: %i at %s x:%i y:%i\n ??\n",class_,map[m].name,x,y); //got idea from Freya [Lupus]
+		ShowInfo("mob_once_spawn: %i at %s x:%i y:%i\n ??\n",class_,map[m].name,x,y); //got idea from Freya [Lupus]
 		do {
 			x = rand() % (map[m].xs - 2) + 1;
 			y = rand() % (map[m].ys - 2) + 1;
@@ -250,7 +250,7 @@ int mob_once_spawn_area(struct map_session_data *sd,char *mapname,
 			}else
 				return 0;	// Since reference of the place which boils first went wrong, it stops.
 		}
-		if(x==0||y==0) printf("xory=0, x=%d,y=%d,x0=%d,y0=%d\n",x,y,x0,y0);
+		if(x==0||y==0) ShowWarning("mob_once_spawn_area: xory=0, x=%d,y=%d,x0=%d,y0=%d\n",x,y,x0,y0);
 		id=mob_once_spawn(sd,mapname,x,y,mobname,class_,1,event);
 		lx=x;
 		ly=y;
@@ -288,7 +288,7 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
 	}
 
 	else if(x<=0 || y<=0)
-		printf("mob_spawn_guardian: ??\n");
+		ShowWarning("mob_spawn_guardian: Invalid coordinates (%d,%d)\n",x,y);
 
 
 	for(count=0;count<amount;count++){
@@ -757,7 +757,7 @@ static int mob_timer(int tid,unsigned int tick,int id,int data)
 
 	if(md->timer != tid){
 		if(battle_config.error_log)
-			printf("mob_timer %d != %d\n",md->timer,tid);
+			ShowError("mob_timer %d != %d\n",md->timer,tid);
 		return 0;
 	}
 	md->timer=-1;
@@ -777,7 +777,7 @@ static int mob_timer(int tid,unsigned int tick,int id,int data)
 		break;
 	default:
 		if(battle_config.error_log)
-			printf("mob_timer : %d ?\n",md->state.state);
+			ShowError("mob_timer : %d ?\n",md->state.state);
 		break;
 	}
 
@@ -1574,7 +1574,7 @@ int mob_randomwalk(struct mob_data *md,int tick)
 				md->target_dir = 0;
 				if(md->move_fail_count>1000){
 					if(battle_config.error_log)
-						printf("MOB cant move. random spawn %d, class = %d\n",md->bl.id,md->class_);
+						ShowWarning("MOB cant move. random spawn %d, class = %d\n",md->bl.id,md->class_);
 					md->move_fail_count=0;
 					mob_spawn(md->bl.id);
 				}
@@ -2264,7 +2264,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 //		printf("mob_damage %d %d %d\n",md->hp,max_hp,damage);
 	if(md->bl.prev==NULL){
 		if(battle_config.error_log==1)
-			printf("mob_damage : BlockError!!\n");
+			ShowError("mob_damage : BlockError!!\n");
 		return 0;
 	}
 
@@ -2826,7 +2826,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 
 	// <Agit> NPC Event [OnAgitBreak]
 	if(md->npc_event[0] && strcmp(((md->npc_event)+strlen(md->npc_event)-13),"::OnAgitBreak") == 0) {
-		printf("MOB.C: Run NPC_Event[OnAgitBreak].\n");
+		ShowNotice("MOB.C: Run NPC_Event[OnAgitBreak].\n");
 		if (agit_flag == 1) //Call to Run NPC_Event[OnAgitBreak]
 			guild_agit_break(md);
 	}
@@ -3062,7 +3062,7 @@ int mob_warp(struct mob_data *md,int m,int x,int y,int type)
 	}else {
 		m=md->bl.m;
 		if(battle_config.error_log==1)
-			printf("MOB %d warp failed, class = %d\n",md->bl.id,md->class_);
+			ShowWarning("MOB %d warp failed, class = %d\n",md->bl.id,md->class_);
 	}
 
 	md->target_id=0;	// ƒ^ƒQ‚ð‰ðœ‚·‚é
@@ -3073,7 +3073,7 @@ int mob_warp(struct mob_data *md,int m,int x,int y,int type)
 
 	if(type>0 && i==1000) {
 		if(battle_config.battle_log)
-			printf("MOB %d warp to (%d,%d), class = %d\n",md->bl.id,x,y,md->class_);
+			ShowInfo("MOB %d warp to (%d,%d), class = %d\n",md->bl.id,x,y,md->class_);
 	}
 
 	map_addblock(&md->bl);
@@ -3230,7 +3230,7 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 	if((mbl = map_id2bl(id)) == NULL ) //‰r¥‚µ‚½Mob‚ª‚à‚¤‚¢‚È‚¢‚Æ‚¢‚¤‚Ì‚Í—Ç‚­‚ ‚é³íˆ—
 		return 0;
 	if((md=(struct mob_data *)mbl) == NULL ){
-		printf("mobskill_castend_id nullpo mbl->id:%d\n",mbl->id);
+		ShowError("mobskill_castend_id nullpo mbl->id:%d\n",mbl->id);
 		return 0;
 	}
 
@@ -3287,8 +3287,8 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 	md->skilldelay[md->skillidx]=tick;
 
 	if(battle_config.mob_skill_log)
-		printf("MOB skill castend skill=%d, class = %d\n",md->skillid,md->class_);
-//	mob_stop_walking(md,0);
+		ShowInfo("MOB skill castend skill=%d, class = %d\n",md->skillid,md->class_);
+//	mob_stop_wShowInfo(md,0);
 
 	switch( skill_get_nk(md->skillid) )
 	{
@@ -3373,7 +3373,7 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 	md->skilldelay[md->skillidx]=tick;
 
 	if(battle_config.mob_skill_log)
-		printf("MOB skill castend skill=%d, class = %d\n",md->skillid,md->class_);
+		ShowInfo("MOB skill castend skill=%d, class = %d\n",md->skillid,md->class_);
 //	mob_stop_walking(md,0);
 
 	skill_castend_pos2(&md->bl,md->skillx,md->skilly,md->skillid,md->skilllv,tick,0);
@@ -3470,7 +3470,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 	}
 
 	if(battle_config.mob_skill_log)
-		printf("MOB skill use target_id=%d skill=%d lv=%d cast=%d, class = %d\n",target->id,skill_id,skill_lv,casttime,md->class_);
+		ShowInfo("MOB skill use target_id=%d skill=%d lv=%d cast=%d, class = %d\n",target->id,skill_id,skill_lv,casttime,md->class_);
 
 	if (casttime || forcecast) { 	// ‰r¥‚ª•K—v
 		if (!selfdestruct_flag)
@@ -3560,7 +3560,7 @@ int mobskill_use_pos( struct mob_data *md,
 	md->state.skillcastcancel=ms->cancel;
 
 	if(battle_config.mob_skill_log)
-		printf("MOB skill use target_pos=(%d,%d) skill=%d lv=%d cast=%d, class = %d\n",
+		ShowInfo("MOB skill use target_pos=(%d,%d) skill=%d lv=%d cast=%d, class = %d\n",
 			skill_x,skill_y,skill_id,skill_lv,casttime,md->class_);
 
 	if( casttime>0 ) {	// A cast time is required.
@@ -4166,7 +4166,7 @@ static int mob_readdb_mobavail(void)
 	char *str[20],*p,*np;
 
 	if( (fp=fopen("db/mob_avail.txt","r"))==NULL ){
-		printf("can't read db/mob_avail.txt\n");
+		ShowError("can't read db/mob_avail.txt\n");
 		return -1;
 	}
 
@@ -4240,7 +4240,7 @@ static int mob_read_randommonster(void)
 		mob_db[0].summonper[i] = 1002;	// Ý’è‚µ–Y‚ê‚½ê‡‚Íƒ|ƒŠƒ“‚ªo‚é‚æ‚¤‚É‚µ‚Ä‚¨‚­
 		fp=fopen(mobfile[i],"r");
 		if(fp==NULL){
-			printf("can't read %s\n",mobfile[i]);
+			ShowError("can't read %s\n",mobfile[i]);
 			return -1;
 		}
 		while(fgets(line,1020,fp)){
@@ -4345,7 +4345,7 @@ static int mob_readskilldb(void)
 		fp=fopen(filename[x],"r");
 		if(fp==NULL){
 			if(x==0)
-				printf("can't read %s\n",filename[x]);
+				ShowError("can't read %s\n",filename[x]);
 			continue;
 		}
 		while(fgets(line,1020,fp)){
@@ -4376,7 +4376,7 @@ static int mob_readskilldb(void)
 				if( (ms=&mob_db[mob_id].skill[i])->skill_id == 0)
 					break;
 			if(i==MAX_MOBSKILL){
-				printf("mob_skill: readdb: too many skill ! [%s] in %d[%s]\n",
+				ShowWarning("mob_skill: readdb: too many skill ! [%s] in %d[%s]\n",
 					sp[1],mob_id,mob_db[mob_id].jname);
 				continue;
 			}
@@ -4445,7 +4445,7 @@ static int mob_readdb_race(void)
 	char *str[20],*p,*np;
 
 	if( (fp=fopen("db/mob_race2_db.txt","r"))==NULL ){
-		printf("can't read db/mob_race2_db.txt\n");
+		ShowError("can't read db/mob_race2_db.txt\n");
 		return -1;
 	}
 	
@@ -4504,7 +4504,7 @@ static int mob_read_sqldb(void)
     for (i = 0; i < 2; i++) {
 		sprintf (tmp_sql, "SELECT * FROM `%s`", mob_db_name[i]);
 		if (mysql_query(&mmysql_handle, tmp_sql)) {
-			printf("DB server Error (select %s to Memory)- %s\n", mob_db_name[i], mysql_error(&mmysql_handle));
+			ShowError("DB server Error (select %s to Memory)- %s\n", mob_db_name[i], mysql_error(&mmysql_handle));
 		}
 		sql_res = mysql_store_result(&mmysql_handle);
 		if (sql_res) {

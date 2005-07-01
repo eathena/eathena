@@ -511,7 +511,7 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 
 	default:
 		if (battle_config.error_log)
-			printf("clif_send ‚Ü‚¾ì‚Á‚Ä‚È‚¢‚æ[\n");
+			ShowError("clif_send: Unrecognized type %d\n",type);
 		return -1;
 	}
 
@@ -1685,7 +1685,7 @@ static int clif_waitclose(int tid, unsigned int tick, int id, int data) {
 	if (session[id])
 	{
 		session[id]->eof = 1;
-		printf("clif_waitclose timer: tid %d, session %d\n", tid, id);
+		ShowNotice("clif_waitclose timer: tid %d, session %d\n", tid, id);
 	}
 
 	close(id);
@@ -2746,7 +2746,7 @@ int clif_updatestatus(struct map_session_data *sd,int type)
 
 	default:
 		if(battle_config.error_log)
-			printf("clif_updatestatus : make %d routine\n",type);
+			ShowError("clif_updatestatus : unrecognized type %d\n",type);
 		return 1;
 	}
 	WFIFOSET(fd,len);
@@ -2774,7 +2774,7 @@ int clif_changestatus(struct block_list *bl,int type,int val)
 			break;
 		default:
 			if(battle_config.error_log)
-				printf("clif_changestatus : make %d routine\n",type);
+				ShowError("clif_changestatus : unrecognized type %d.\n",type);
 			return 1;
 		}
 		clif_send(buf,packet_len_table[0x1ab],bl,AREA_WOS);
@@ -4219,7 +4219,7 @@ int clif_01ac(struct block_list *bl)
 		break;
 	default:
 		if(battle_config.error_log)
-			printf("get area char ??? %d\n",bl->type);
+			ShowError("clif_getareachar: Unrecognized type %d.\n",bl->type);
 		break;
 	}
 	return 0;
@@ -7793,7 +7793,7 @@ int clif_charnameack (int fd, struct block_list *bl)
 		break;
 	default:
 		if (battle_config.error_log)
-			printf("clif_parse_GetCharNameRequest : bad type %d(%d)\n", bl->type, bl->id);
+			ShowError("clif_parse_GetCharNameRequest : bad type %d(%d)\n", bl->type, bl->id);
 		return 0;
 	}
 
@@ -7824,7 +7824,7 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 
 	if (sd) {
 		if (battle_config.error_log)
-			printf("clif_parse_WantToConnection : invalid request?\n");
+			ShowError("clif_parse_WantToConnection : invalid request?\n");
 		return;
 	}
 
@@ -9879,7 +9879,7 @@ void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)
 	nullpo_retv(sd);
 
 	if(RFIFOW(fd,2)-7 >= sizeof(sd->npc_str)){
-		printf("clif: input string too long !\n");
+		ShowWarning("clif: input string too long !\n");
 		memcpy(sd->npc_str,RFIFOP(fd,8),sizeof(sd->npc_str));
 		sd->npc_str[sizeof(sd->npc_str)-1]=0;
 	} else
@@ -10368,7 +10368,7 @@ void clif_parse_GuildRequestInfo(int fd, struct map_session_data *sd) {
 		break;
 	default:
 		if (battle_config.error_log)
-			printf("clif: guild request info: unknown type %d\n", RFIFOL(fd,2));
+			ShowError("clif: guild request info: unknown type %d\n", RFIFOL(fd,2));
 		break;
 	}
 }
@@ -10685,7 +10685,7 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 			dstsd->status.manner = 0;
 			status_change_end(bl,SC_NOCHAT,-1);
 		}
-		printf("name:%s type:%d limit:%d manner:%d\n", dstsd->status.name, type, limit, dstsd->status.manner);
+		ShowNotice("name:%s type:%d limit:%d manner:%d\n", dstsd->status.name, type, limit, dstsd->status.manner);
 	}
 
 	return;
@@ -10878,9 +10878,9 @@ void clif_parse_NoviceExplosionSpirits(int fd, struct map_session_data *sd)
 		struct pc_base_job s_class = pc_calc_base_job(sd->status.class_);
 		if (battle_config.etc_log){
 			if(nextbaseexp != 0)
-				printf("SuperNovice explosionspirits!! %d %d %d %d\n",sd->bl.id,s_class.job,sd->status.base_exp,(int)((double)1000*sd->status.base_exp/nextbaseexp));
+				ShowInfo("SuperNovice explosionspirits!! %d %d %d %d\n",sd->bl.id,s_class.job,sd->status.base_exp,(int)((double)1000*sd->status.base_exp/nextbaseexp));
 			else
-				printf("SuperNovice explosionspirits!! %d %d %d 000\n",sd->bl.id,s_class.job,sd->status.base_exp);
+				ShowInfo("SuperNovice explosionspirits!! %d %d %d 000\n",sd->bl.id,s_class.job,sd->status.base_exp);
 		}
 		if(s_class.job == 23 && sd->status.base_exp > 0 && nextbaseexp > 0 && (int)((double)1000*sd->status.base_exp/nextbaseexp)%100==0){
 			clif_skill_nodamage(&sd->bl,&sd->bl,MO_EXPLOSIONSPIRITS,5,1);
@@ -11172,7 +11172,7 @@ void clif_parse_debug(int fd,struct map_session_data *sd)
 
 	cmd = RFIFOW(fd,0);
 
-	printf("packet debug 0x%4X\n",cmd);
+	ShowDebug("packet debug 0x%4X\n",cmd);
 	printf("---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
 	for(i=0;i<packet_db[sd->packet_ver][cmd].len;i++){
 		if((i&15)==0)
@@ -11350,7 +11350,7 @@ int clif_parse(int fd) {
 		case 0x7532: // Ú‘±‚ÌØ’f
 			close(fd);
 			session[fd]->eof=1;
-			printf("clif_parse: session #%d, packet 0x%x received -> disconnected.\n", fd, cmd);
+			ShowWarning("clif_parse: session #%d, packet 0x%x received -> disconnected.\n", fd, cmd);
 			break;
 		}
 		return 0;
@@ -11363,7 +11363,7 @@ int clif_parse(int fd) {
 		if (packet_ver < 0 || packet_ver > MAX_PACKET_VER) {	// unusual, but just in case
 			close(fd);
 			session[fd]->eof = 1;
-			printf("clif_parse: session #%d, bad packet version -> disconnected.\n", fd);
+			ShowInfo("clif_parse: session #%d, bad packet version -> disconnected.\n", fd);
 			return 0;
 		}
 	// check authentification packet to know packet version
@@ -11452,7 +11452,7 @@ int clif_parse(int fd) {
 			return 0;			
 		close(fd);
 		session[fd]->eof = 1;
-		printf("clif_parse: session #%d, packet 0x%x (%d bytes received) -> disconnected.\n", fd, cmd, RFIFOREST(fd));
+		ShowWarning("clif_parse: session #%d, packet 0x%x (%d bytes received) -> disconnected.\n", fd, cmd, RFIFOREST(fd));
 		return 0;
 	}
 
@@ -11465,7 +11465,7 @@ int clif_parse(int fd) {
 		if (packet_len < 4 || packet_len > 32768) {
 			close(fd);
 			session[fd]->eof =1;
-			printf("clif_parse: session #%d, packet 0x%x invalid packet_len (%d bytes received) -> disconnected.\n", fd, cmd, packet_len);
+			ShowWarning("clif_parse: session #%d, packet 0x%x invalid packet_len (%d bytes received) -> disconnected.\n", fd, cmd, packet_len);
 			return 0;
 		}
 	}
@@ -11493,7 +11493,7 @@ int clif_parse(int fd) {
 				dump = 1;
 
 				if ((fp = fopen(packet_txt, "a")) == NULL) {
-					printf("clif.c: cant write [%s] !!! data is lost !!!\n", packet_txt);
+					ShowError("clif.c: cant write [%s] !!! data is lost !!!\n", packet_txt);
 					return 1;
 				} else {
 					time(&now);
@@ -11523,7 +11523,7 @@ int clif_parse(int fd) {
 	if (dump) {
 		int i;
 		if (fd)
-			printf("\nclif_parse: session #%d, packet 0x%x, length %d\n", fd, cmd, packet_len);
+			ShowDebug("\nclif_parse: session #%d, packet 0x%x, length %d\n", fd, cmd, packet_len);
 		printf("---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
 		for(i = 0; i < packet_len; i++) {
 			if ((i & 15) == 0)
@@ -11686,7 +11686,7 @@ static int packetdb_readdb(void)
 	};
 
 	if( (fp=fopen("db/packet_db.txt","r"))==NULL ){
-		printf("can't read db/packet_db.txt\n");
+		ShowError("can't read db/packet_db.txt\n");
 		return 1;
 	}
 
@@ -12144,7 +12144,7 @@ int do_init_clif(void) {
 #ifdef __WIN32
 	//if (!make_listen_port(map_port)) {
 	if (!make_listen_bind(bind_ip,map_port)) {
-		printf("cant bind game port\n");
+		ShowFatalError("cant bind game port\n");
 		exit(1);
 	}
 #else
@@ -12155,7 +12155,7 @@ int do_init_clif(void) {
 		sleep(20);
 	}
 	if (i == 10) {
-		printf("cant bind game port\n");
+		ShowFatalError("cant bind game port\n");
 		exit(1);
 	}
 #endif

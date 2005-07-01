@@ -102,7 +102,7 @@ static int guild_read_castledb(void)
 	struct guild_castle *gc;
 
 	if( (fp=fopen("db/castle_db.txt","r"))==NULL){
-		printf("can't read db/castle_db.txt\n");
+		ShowError("can't read db/castle_db.txt\n");
 		return -1;
 	}
 
@@ -411,7 +411,7 @@ int guild_check_member(const struct guild *g)
 					sd->guild_sended=0;
 					sd->guild_emblem_id=0;
 					if(battle_config.error_log)
-						printf("guild: check_member %d[%s] is not member\n",sd->status.account_id,sd->status.name);
+						ShowWarning("guild: check_member %d[%s] is not member\n",sd->status.account_id,sd->status.name);
 				}
 			}
 		}
@@ -616,7 +616,7 @@ int guild_member_added(int guild_id,int account_id,int char_id,int flag)
 		// ƒLƒƒƒ‰‘¤‚É“o˜^‚Å‚«‚È‚©‚Á‚½‚½‚ß’E‘Þ—v‹‚ðo‚·
 		if (flag == 0) {
 			if(battle_config.error_log)
-				printf("guild: member added error %d is not online\n",account_id);
+				ShowError("guild: member added error %d is not online\n",account_id);
  			intif_guild_leave(guild_id,account_id,char_id,0,"**“o˜^Ž¸”s**");
 		}
 		return 0;
@@ -815,7 +815,7 @@ int guild_recv_memberinfoshort(int guild_id,int account_id,int char_id,int onlin
 			sd->guild_sended=0;
 		}
 		if(battle_config.error_log)
-			printf("guild: not found member %d,%d on %d[%s]\n",	account_id,char_id,guild_id,g->name);
+			ShowWarning("guild: not found member %d,%d on %d[%s]\n",	account_id,char_id,guild_id,g->name);
 		return 0;
 	}
 	g->average_lv=alv/c;
@@ -1460,7 +1460,7 @@ int guild_castledataloadack(int castle_id,int index,int value)
 	case 24: gc->Ghp6 = value; break;
 	case 25: gc->Ghp7 = value; break;	// end additions [Valaris]
 	default:
-		printf("guild_castledataloadack ERROR!! (Not found index=%d)\n", index);
+		ShowError("guild_castledataloadack ERROR!! (Not found index=%d)\n", index);
 		return 0;
 	}
 	if( (ev=(struct eventlist *) numdb_search(guild_castleinfoevent_db,code))!=NULL ){
@@ -1514,7 +1514,7 @@ int guild_castledatasaveack(int castle_id,int index,int value)
 	case 24: gc->Ghp6 = value; break;
 	case 25: gc->Ghp7 = value; break;	// end additions [Valaris]
 	default:
-		printf("guild_castledatasaveack ERROR!! (Not found index=%d)\n", index);
+		ShowError("guild_castledatasaveack ERROR!! (Not found index=%d)\n", index);
 		return 0;
 	}
 	return 1;
@@ -1538,7 +1538,7 @@ int guild_castlealldataload(int len,struct guild_castle *gc)
 	for(i = 0; i < n; i++, gc++) {
 		struct guild_castle *c = guild_castle_search(gc->castle_id);
 		if (!c) {
-			printf("guild_castlealldataload ??\n");
+			ShowError("guild_castlealldataload Castle id=%d not found.\n", gc->castle_id);
 			continue;
 		}
 		memcpy(&c->guild_id,&gc->guild_id,
@@ -1559,7 +1559,7 @@ int guild_castlealldataload(int len,struct guild_castle *gc)
 int guild_agit_start(void)
 {	// Run All NPC_Event[OnAgitStart]
 	int c = npc_event_doall("OnAgitStart");
-	printf("NPC_Event:[OnAgitStart] Run (%d) Events by @AgitStart.\n",c);
+	ShowStatus("NPC_Event:[OnAgitStart] Run (%d) Events by @AgitStart.\n",c);
 	// Start auto saving
 	guild_save_timer = add_timer_interval (gettick() + GUILD_SAVE_INTERVAL, guild_save_sub, 0, 0, GUILD_SAVE_INTERVAL);
 	return 0;
@@ -1568,7 +1568,7 @@ int guild_agit_start(void)
 int guild_agit_end(void)
 {	// Run All NPC_Event[OnAgitEnd]
 	int c = npc_event_doall("OnAgitEnd");
-	printf("NPC_Event:[OnAgitEnd] Run (%d) Events by @AgitEnd.\n",c);
+	ShowStatus("NPC_Event:[OnAgitEnd] Run (%d) Events by @AgitEnd.\n",c);
 	// Stop auto saving
 	delete_timer (guild_save_timer, guild_save_sub);
 	return 0;
@@ -1588,7 +1588,7 @@ int guild_gvg_eliminate_timer(int tid,unsigned int tick,int id,int data)
 		memcpy(evname,name,len - 5);
 		strcpy(evname + len - 5,"Eliminate");
 		c = npc_event_do(evname);
-		printf("NPC_Event:[%s] Run (%d) Events.\n",evname,c);
+		ShowStatus("NPC_Event:[%s] Run (%d) Events.\n",evname,c);
 	}
 	if(name) aFree(name);
 	return 0;

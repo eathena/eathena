@@ -1,5 +1,7 @@
 Date	Added
 07/01
+	* Some Guild-Sql saving optimizations	[Skotlex]
+	* Changed all printfs to Show* messages (Map Server, common/ files) [Skotlex]
 	* Fixed crashes of Baby Knight/Crusader Peco riders. Added Baby Class support into
 	  AT / CHAR commands @mountpeco [Lupus]
 06/30

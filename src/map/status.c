@@ -3271,7 +3271,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		if(SC_STONE<=type && type<=SC_BLIND){	/* カ?ドによる耐性 */
 			if( sd && sd->reseff[type-SC_STONE] > 0 && rand()%10000<sd->reseff[type-SC_STONE]){
 				if(battle_config.battle_log)
-					printf("PC %d skill_sc_start: cardによる異常耐性?動\n",sd->bl.id);
+					ShowInfo("PC %d skill_sc_start: cardによる異常耐性?動\n",sd->bl.id);
 				return 0;
 			}
 		}
@@ -3280,7 +3280,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	}
 	else {
 		if(battle_config.error_log)
-			printf("status_change_start: neither MOB nor PC !\n");
+			ShowError("status_change_start: neither MOB nor PC !\n");
 		return 0;
 	}
 
@@ -3990,7 +3990,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 		default:
 			if(battle_config.error_log)
-				printf("UnknownStatusChange [%d]\n", type);
+				ShowError("UnknownStatusChange [%d]\n", type);
 			return 0;
 	}
 
@@ -4136,7 +4136,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 	nullpo_retr(0, bl);
 	if(bl->type!=BL_PC && bl->type!=BL_MOB) {
 		if(battle_config.error_log)
-			printf("status_change_end: neither MOB nor PC !\n");
+			ShowError("status_change_end: neither MOB nor PC !\n");
 		return 0;
 	}
 	nullpo_retr(0, sc_data = status_get_sc_data(bl));
@@ -4477,7 +4477,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 
 	if(sc_data[type].timer != tid) {
 		if(battle_config.error_log)
-			printf("status_change_timer %d != %d\n",tid,sc_data[type].timer);
+			ShowError("status_change_timer %d != %d\n",tid,sc_data[type].timer);
 		return 0;
 	}
 
@@ -5132,7 +5132,7 @@ int status_readdb(void) {
 	// JOB補正?値１
 	fp=fopen("db/job_db1.txt","r");
 	if(fp==NULL){
-		printf("can't read db/job_db1.txt\n");
+		ShowError("can't read db/job_db1.txt\n");
 		return 1;
 	}
 	i=0;
@@ -5168,7 +5168,7 @@ int status_readdb(void) {
 	memset(job_bonus,0,sizeof(job_bonus));
 	fp=fopen("db/job_db2.txt","r");
 	if(fp==NULL){
-		printf("can't read db/job_db2.txt\n");
+		ShowError("can't read db/job_db2.txt\n");
 		return 1;
 	}
 	i=0;
@@ -5197,7 +5197,7 @@ int status_readdb(void) {
 	// JOBボ?ナス2 ?生職用
 	fp=fopen("db/job_db2-2.txt","r");
 	if(fp==NULL){
-		printf("can't read db/job_db2-2.txt\n");
+		ShowError("can't read db/job_db2-2.txt\n");
 		return 1;
 	}
 	i=0;
@@ -5225,7 +5225,7 @@ int status_readdb(void) {
 			atkmods[i][j]=100;
 	fp=fopen("db/size_fix.txt","r");
 	if(fp==NULL){
-		printf("can't read db/size_fix.txt\n");
+		ShowError("can't read db/size_fix.txt\n");
 		return 1;
 	}
 	i=0;
@@ -5260,7 +5260,7 @@ int status_readdb(void) {
 	}
 	fp=fopen("db/refine_db.txt","r");
 	if(fp==NULL){
-		printf("can't read db/refine_db.txt\n");
+		ShowError("can't read db/refine_db.txt\n");
 		return 1;
 	}
 	i=0;

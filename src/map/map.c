@@ -306,7 +306,7 @@ int map_addblock (struct block_list *bl)
 
 	if (bl->prev != NULL) {
 		if(battle_config.error_log)
-			printf("map_addblock error : bl->prev != NULL\n");
+			ShowError("map_addblock error : bl->prev != NULL\n");
 		return 0;
 	}
 
@@ -354,7 +354,7 @@ int map_delblock (struct block_list *bl)
 		if (bl->next != NULL) {
 			// prev‚ªNULL‚Ånext‚ªNULL‚Å‚È‚¢‚Ì‚Í—L‚Á‚Ä‚Í‚È‚ç‚È‚¢
 			if(battle_config.error_log)
-				printf("map_delblock error : bl->next!=NULL\n");
+				ShowError("map_delblock error : bl->next!=NULL\n");
 		}
 		return 0;
 	}
@@ -522,7 +522,7 @@ int map_foreachinarea(int (*func)(struct block_list*,va_list),int m,int x0,int y
 
 	if(bl_list_count>=BL_LIST_MAX) {
 		if(battle_config.error_log)
-			printf("map_foreachinarea: *WARNING* block count too many!\n");
+			ShowWarning("map_foreachinarea: block count too many!\n");
 	}
 
 	map_freeblock_lock();	// ƒƒ‚ƒŠ‚©‚ç‚Ì‰ð•ú‚ð‹ÖŽ~‚·‚é
@@ -633,7 +633,7 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list),int m,int x0,i
 
 	if(bl_list_count>=BL_LIST_MAX) {
 		if(battle_config.error_log)
-			printf("map_foreachinarea: *WARNING* block count too many!\n");
+			ShowWarning("map_foreachinarea: block count too many!\n");
 	}
 
 	map_freeblock_lock();	// ƒƒ‚ƒŠ‚©‚ç‚Ì‰ð•ú‚ð‹ÖŽ~‚·‚é
@@ -695,7 +695,7 @@ int map_foreachincell(int (*func)(struct block_list*,va_list),int m,int x,int y,
 
 	if(bl_list_count>=BL_LIST_MAX) {
 		if(battle_config.error_log)
-			printf("map_foreachincell: *WARNING* block count too many!\n");
+			ShowWarning("map_foreachincell: block count too many!\n");
 	}
 
 	map_freeblock_lock();	// ƒƒ‚ƒŠ‚©‚ç‚Ì‰ð•ú‚ð‹ÖŽ~‚·‚é
@@ -1123,7 +1123,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 
 	if(bl_list_count>=BL_LIST_MAX) {
 		if(battle_config.error_log)
-			printf("map_foreachinarea: *WARNING* block count too many!\n");
+			ShowWarning("map_foreachinarea: block count too many!\n");
 	}
 
 	va_start(ap,type);
@@ -1151,7 +1151,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 int map_addobject(struct block_list *bl) {
 	int i;
 	if( bl == NULL ){
-		printf("map_addobject nullpo?\n");
+		ShowWarning("map_addobject nullpo?\n");
 		return 0;
 	}
 	if(first_free_object_id<2 || first_free_object_id>=MAX_FLOORITEM)
@@ -1161,7 +1161,7 @@ int map_addobject(struct block_list *bl) {
 			break;
 	if(i>=MAX_FLOORITEM){
 		if(battle_config.error_log)
-			printf("no free object id\n");
+			ShowWarning("no free object id\n");
 		return 0;
 	}
 	first_free_object_id=i;
@@ -1232,7 +1232,7 @@ void map_foreachobject(int (*func)(struct block_list*,va_list),int type,...) {
 				continue;
 			if(bl_list_count>=BL_LIST_MAX) {
 				if(battle_config.error_log)
-					printf("map_foreachobject: too many block !\n");
+					ShowWarning("map_foreachobject: too many blocks !\n");
 			}
 			else
 				bl_list[bl_list_count++]=objects[i];
@@ -1266,7 +1266,7 @@ int map_clearflooritem_timer(int tid,unsigned int tick,int id,int data) {
 	fitem = (struct flooritem_data *)objects[id];
 	if(fitem==NULL || fitem->bl.type!=BL_ITEM || (!data && fitem->cleartimer != tid)){
 		if(battle_config.error_log)
-			printf("map_clearflooritem_timer : error\n");
+			ShowError("map_clearflooritem_timer : error\n");
 		return 1;
 	}
 	if(data)
@@ -1751,7 +1751,7 @@ int map_addnpc(int m,struct npc_data *nd) {
 			break;
 	if(i==MAX_NPC_PER_MAP){
 		if(battle_config.error_log)
-			printf("too many NPCs in one map %s\n",map[m].name);
+			ShowWarning("too many NPCs in one map %s\n",map[m].name);
 		return -1;
 	}
 	if(i==map[m].npc_num){
@@ -1873,13 +1873,13 @@ int map_removemobs_timer(int tid, unsigned int tick, int id, int data)
 	if (id < 0 || id >= MAX_MAP_PER_SERVER)
 	{	//Incorrect map id!
 		if (battle_config.error_log)
-			printf("map_removemobs_timer error: timer %d points to invalid map %d\n",tid, id);
+			ShowError("map_removemobs_timer error: timer %d points to invalid map %d\n",tid, id);
 		return 0;
 	}
 	if (map[id].mob_delete_timer != tid)
 	{	//Incorrect timer call!
 		if (battle_config.error_log)
-			printf("map_removemobs_timer mismatch: %d != %d (map %s)\n",map[id].mob_delete_timer, tid, map[id].name);
+			ShowError("map_removemobs_timer mismatch: %d != %d (map %s)\n",map[id].mob_delete_timer, tid, map[id].name);
 		return 0;
 	}
 	map[id].mob_delete_timer = -1;
@@ -1888,10 +1888,8 @@ int map_removemobs_timer(int tid, unsigned int tick, int id, int data)
 	k = map_foreachinarea(mob_cache_cleanup_sub, id, 0, 0, map[id].xs, map[id].ys, BL_MOB);
 
 	if (battle_config.etc_log && k > 0)
-	{
-		sprintf(tmp_output,"Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[id].name, k);
-		ShowStatus(tmp_output);
-	}
+		ShowStatus(tmp_output,"Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[id].name, k);
+	
 	return 1;
 }
 
@@ -2138,7 +2136,7 @@ int map_setipport(char *name,unsigned long ip,int port) {
 			// Ž©•ª‚Ì’S“–‚É‚È‚Á‚½ƒ}ƒbƒv
 			if(mdos->map == NULL) {
 				// “Ç‚Ýbñ‚Å‚¢‚È‚¢‚Ì‚ÅI—¹‚·‚é
-				printf("map_setipport : %s is not loaded.\n",name);
+				ShowFatalError("map_setipport : %s is not loaded.\n",name);
 				exit(1);
 			} else {
 				// “Ç‚Ýbñ‚Å‚¢‚é‚Ì‚Å’u‚«Š·‚¦‚é
@@ -2234,7 +2232,7 @@ static void map_readwater(char *watertxt) {
 
 	fp=fopen(watertxt,"r");
 	if(fp==NULL){
-		printf("file not found: %s\n",watertxt);
+		ShowError("file not found: %s\n",watertxt);
 		return;
 	}
 	if(waterlist==NULL)
@@ -2382,7 +2380,7 @@ int map_cache_read(struct map_data *m)
 				fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
 				if(fread(buf,1,size_compress,map_cache.fp) != size_compress) {
 					// ‚È‚º‚©ƒtƒ@ƒCƒ‹Œã”¼‚ªŒ‡‚¯‚Ä‚é‚Ì‚Å“Ç‚Ý’¼‚µ
-					printf("fread error\n");
+					ShowError("fread error\n");
 					aFree(m->gat); m->xs = 0; m->ys = 0; m->gat = NULL;
 					aFree(buf);
 					return 0;
@@ -2577,7 +2575,7 @@ static int map_readafm(int m,char *fn) {
 		map[m].gat = (unsigned char*)aCallocA(s = map[m].xs * map[m].ys, 1);
 
 		if(map[m].gat==NULL){
-			printf("out of memory : map_readmap gat\n");
+			ShowFatalError("out of memory : map_readmap gat\n");
 			exit(1);
 		}
 
@@ -2600,13 +2598,13 @@ static int map_readafm(int m,char *fn) {
 		map[m].block = (struct block_list**)aCalloc(size, 1);
 
 		if(map[m].block == NULL){
-			printf("out of memory : map_readmap block\n");
+			ShowFatalError("out of memory : map_readmap block\n");
 			exit(1);
 		}
 
 		map[m].block_mob = (struct block_list**)aCalloc(size, 1);
 		if (map[m].block_mob == NULL) {
-			printf("out of memory : map_readmap block_mob\n");
+			ShowFatalError("out of memory : map_readmap block_mob\n");
 			exit(1);
 		}
 
@@ -2614,14 +2612,14 @@ static int map_readafm(int m,char *fn) {
 
 		map[m].block_count = (int*)aCallocA(size, 1);
 		if(map[m].block_count==NULL){
-			printf("out of memory : map_readmap block\n");
+			ShowFatalError("out of memory : map_readmap block\n");
 			exit(1);
 		}
 		memset(map[m].block_count,0,size);
 
 		map[m].block_mob_count = (int*)aCallocA(size, 1);
 		if(map[m].block_mob_count==NULL){
-			printf("out of memory : map_readmap block_mob\n");
+			ShowFatalError("out of memory : map_readmap block_mob\n");
 			exit(1);
 		}
 		memset(map[m].block_mob_count,0,size);
@@ -2649,7 +2647,7 @@ static int map_readaf2(int m, char *fn)
 
 		dest = fopen(buf, "w");
 		if (dest == NULL) {
-			printf ("cant open\n");
+			ShowError("cant open %s\n", fn);
 			fclose(af2_file);
 			return 0;
 		}
@@ -2900,7 +2898,7 @@ int map_delmap(char *mapname) {
 
 	for(i = 0; i < map_num; i++) {
 		if (strcmp(map[i].name, mapname) == 0) {
-		    printf("Removing map [ %s ] from maplist\n",map[i].name);
+		    ShowNotice("Removing map [ %s ] from maplist\n",map[i].name);
 			memmove(map+i, map+i+1, sizeof(map[0])*(map_num-i-1));
 			map_num--;
 		}
@@ -2960,12 +2958,12 @@ int parse_console(char *buf) {
 		if ( m >= 0 )
 			sd->bl.m = m;
 		else {
-			printf("Console: Unknown map\n");
+			ShowWarning("Console: Unknown map\n");
 			goto end;
 		}
 	}
 
-	printf("Type of command: %s || Command: %s || Map: %s Coords: %d %d\n",type,command,map,x,y);
+	ShowInfo("Type of command: %s || Command: %s || Map: %s Coords: %d %d\n",type,command,map,x,y);
 
 	if ( strcmpi("admin",type) == 0 && n == 5 ) {
 		sprintf(buf2,"console: %s",command);
@@ -2976,7 +2974,7 @@ int parse_console(char *buf) {
 			runflag = 0;
 		}
 	} else if ( strcmpi("help",type) == 0 ) {
-		printf("To use GM commands:\n");
+		ShowNotice("To use GM commands:\n");
 		printf("admin:<gm command>:<map of \"gm\"> <x> <y>\n");
 		printf("You can use any GM command that doesn't require the GM.\n");
 		printf("No using @item or @warp however you can use @charwarp\n");
@@ -3008,7 +3006,7 @@ int map_config_read(char *cfgName) {
 
 	fp = fopen(cfgName,"r");
 	if (fp == NULL) {
-		printf("Map configuration file not found at: %s\n", cfgName);
+		ShowFatalError("Map configuration file not found at: %s\n", cfgName);
 		exit(1);
 	}
 	while(fgets(line, sizeof(line) -1, fp)) {
@@ -3161,7 +3159,7 @@ int inter_config_read(char *cfgName)
 			strcpy(map_server_db, w2);
 		} else if(strcmpi(w1,"use_sql_db")==0){
 			db_use_sqldbs = battle_config_switch(w2);
-			printf ("Using SQL dbs: %s\n",w2);
+			ShowStatus ("Using SQL dbs: %s\n",w2);
 		//Login Server SQL DB
 		} else if(strcmpi(w1,"login_server_ip")==0){
 			strcpy(login_server_ip, w2);
@@ -3218,36 +3216,36 @@ int map_sql_init(void){
     mysql_init(&mmysql_handle);
 
 	//DB connection start
-	printf("Connect Map DB Server....\n");
+	ShowInfo("Connect Map DB Server....\n");
 	if(!mysql_real_connect(&mmysql_handle, map_server_ip, map_server_id, map_server_pw,
 		map_server_db ,map_server_port, (char *)NULL, 0)) {
 			//pointer check
-			printf("%s\n",mysql_error(&mmysql_handle));
+			ShowFatalError("%s\n",mysql_error(&mmysql_handle));
 			exit(1);
 	}
 	else {
-		printf ("connect success! (Map Server Connection)\n");
+		ShowStatus("connect success! (Map Server Connection)\n");
 	}
 
     mysql_init(&lmysql_handle);
 
     //DB connection start
-    printf("Connect Login DB Server....\n");
+    ShowInfo("Connect Login DB Server....\n");
     if(!mysql_real_connect(&lmysql_handle, login_server_ip, login_server_id, login_server_pw,
         login_server_db ,login_server_port, (char *)NULL, 0)) {
 	        //pointer check
-			printf("%s\n",mysql_error(&lmysql_handle));
+			ShowFatalError("%s\n",mysql_error(&lmysql_handle));
 			exit(1);
 	}
 	 else {
-		printf ("connect success! (Login Server Connection)\n");
+		ShowStatus ("connect success! (Login Server Connection)\n");
 	 }
 
 	if(battle_config.mail_system) { // mail system [Valaris]
 		mysql_init(&mail_handle);
 		if(!mysql_real_connect(&mail_handle, map_server_ip, map_server_id, map_server_pw,
 			map_server_db ,map_server_port, (char *)NULL, 0)) {
-				printf("%s\n",mysql_error(&mail_handle));
+				ShowFatalError("%s\n",mysql_error(&mail_handle));
 				exit(1);
 		}
 	}
@@ -3257,10 +3255,10 @@ int map_sql_init(void){
 
 int map_sql_close(void){
 	mysql_close(&mmysql_handle);
-	printf("Close Map DB Connection....\n");
+	ShowStatus("Close Map DB Connection....\n");
 
 	mysql_close(&lmysql_handle);
-	printf("Close Login DB Connection....\n");
+	ShowStatus("Close Login DB Connection....\n");
 
 	if (log_config.sql_logs)
 //Updating this if each time there's a log_config addition is too much of a hassle.	[Skotlex]
@@ -3268,7 +3266,7 @@ int map_sql_close(void){
 		log_config.present || log_config.produce || log_config.refine || log_config.trade))*/
 	{
 		mysql_close(&logmysql_handle);
-		printf("Close Log DB Connection....\n");
+		ShowStatus("Close Log DB Connection....\n");
 	}
 
 	return 0;
@@ -3279,14 +3277,14 @@ int log_sql_init(void){
     mysql_init(&logmysql_handle);
 
 	//DB connection start
-	printf(""CL_WHITE"[SQL]"CL_RESET": Connecting to Log Database "CL_WHITE"%s"CL_RESET" At "CL_WHITE"%s"CL_RESET"...\n",log_db,log_db_ip);
+	ShowInfo(""CL_WHITE"[SQL]"CL_RESET": Connecting to Log Database "CL_WHITE"%s"CL_RESET" At "CL_WHITE"%s"CL_RESET"...\n",log_db,log_db_ip);
 	if(!mysql_real_connect(&logmysql_handle, log_db_ip, log_db_id, log_db_pw,
 		log_db ,log_db_port, (char *)NULL, 0)) {
 			//pointer check
-			printf(""CL_WHITE"[SQL Error]"CL_RESET": %s\n",mysql_error(&logmysql_handle));
+			ShowFatalError(""CL_WHITE"[SQL Error]"CL_RESET": %s\n",mysql_error(&logmysql_handle));
 			exit(1);
 	} else {
-		printf(""CL_WHITE"[SQL]"CL_RESET": Successfully '"CL_GREEN"connected"CL_RESET"' to Database '"CL_WHITE"%s"CL_RESET"'.\n", log_db);
+		ShowStatus(""CL_WHITE"[SQL]"CL_RESET": Successfully '"CL_GREEN"connected"CL_RESET"' to Database '"CL_WHITE"%s"CL_RESET"'.\n", log_db);
 	}
 
 	return 0;
@@ -3517,9 +3515,8 @@ int do_init(int argc, char *argv[]) {
 	map_config_read(MAP_CONF_NAME);
 
 	if ((naddr_ == 0) && (map_ip_set_ == 0 || char_ip_set_ == 0)) {
-		printf("\nUnable to determine your IP address... please edit\n");
-		printf("the map_athena.conf file and set it.\n");
-		printf("(127.0.0.1 is valid if you have no network interface)\n");
+		ShowError("\nUnable to determine your IP address... please edit the map_athena.conf file and set it.\n");
+		ShowError("(127.0.0.1 is valid if you have no network interface)\n");
 	}
 
 	if (map_ip_set_ == 0 || char_ip_set_ == 0) {
@@ -3530,15 +3527,15 @@ int do_init(int argc, char *argv[]) {
 		char buf[16];
 		sprintf(buf, "%d.%d.%d.%d", ptr[0], ptr[1], ptr[2], ptr[3]);;
 		if (naddr_ != 1)
-			printf("Multiple interfaces detected..  using %s as our IP address\n", buf);
+			ShowNotice("Multiple interfaces detected..  using %s as our IP address\n", buf);
 		else
-			printf("Defaulting to %s as our IP address\n", buf);
+			ShowInfo("Defaulting to %s as our IP address\n", buf);
 		if (map_ip_set_ == 0)
 			clif_setip(buf);
 		if (char_ip_set_ == 0)
 				chrif_setip(buf);
 		if (ptr[0] == 192 && ptr[1] == 168)
-			printf("\nFirewall detected.. \n    edit lan_support.conf and map_athena.conf\n\n");
+			ShowError("\nFirewall detected.. \n    edit lan_support.conf and map_athena.conf\n\n");
 	}
 
 	if (SHOW_DEBUG_MSG)
@@ -3636,7 +3633,7 @@ int charsql_db_init(int method){
 
 
     	if(method == 1){ //'INIT / START'
-                  printf("Connecting to 'character' Database... ");
+                  ShowInfo("Connecting to 'character' Database... ");
 	         mysql_init(&charsql_handle);
 
 	         if(!mysql_real_connect(&charsql_handle, charsql_host, charsql_user, charsql_pass, charsql_db, charsql_port, (char *)NULL, 0)){
@@ -3646,7 +3643,7 @@ int charsql_db_init(int method){
 	                 printf("success.\n");
 	         }
          }else if(method == 0){ //'FINAL' / Shutdown
-         	printf("Closing 'character' Database connection ... ");
+         	ShowInfo("Closing 'character' Database connection ... ");
                  mysql_close(&charsql_handle);
                  printf("done.\n");
          }

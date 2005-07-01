@@ -8,6 +8,7 @@
 #include "../common/nullpo.h"
 #include "../common/mmo.h"
 #include "../common/strlib.h"
+#include "../common/showmsg.h"
 
 #include "charsave.h"
 #include "map.h"
@@ -22,22 +23,22 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          c = (struct mmo_charstatus *)aMalloc(sizeof(struct mmo_charstatus));
 
          if(charid <= 0){
-         	eprintf("charsave_loadchar() charid <= 0! (%d)", charid);
-                 aFree(c);
+         	ShowError("charsave_loadchar() charid <= 0! (%d)", charid);
+				aFree(c);
          	return NULL;
          }
 
 	//Tested, Mysql 4.1.9+ has no problems with the long query, the buf is 65k big and the sql server needs for it 0.00009 secs on an athlon xp 2400+ WinXP (1GB Mem) ..  [Sirius]
          sprintf(charsql_tmpsql, "SELECT `char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`, `str`,`agi`,`vit`,`int`,`dex`,`luk`, `max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point`, `option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`hair`,`hair_color`, `clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`, `last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`, `partner_id`, `father`, `mother`, `child`, `fame` FROM `char` WHERE `char_id` = '%d'", charid);
     	if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	eprintf("charsave_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+         	ShowError("charsave_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
                  aFree(c);
          	return NULL;
          }
 
          charsql_res = mysql_store_result(&charsql_handle);
          if(mysql_num_rows(charsql_res) <= 0){
-         	printf("WARNING -> charsave_loadchar() -> CHARA NOT FOUND! (id: %d)\n", charid);
+         	ShowWarning("charsave_loadchar() -> CHARACTER NOT FOUND! (id: %d)\n", charid);
          	mysql_free_result(charsql_res);
                  aFree(c);
          	return NULL;
@@ -114,9 +115,9 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 	//read the memo points
          sprintf(charsql_tmpsql, "SELECT `memo_id`, `char_id`, `map`, `x`, `y` FROM `memo` WHERE `char_id` = '%d' ORDER BY `memo_id`", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	eprintf("charsave_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-                 aFree(c);
-                 return NULL;
+         	ShowError("charsave_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+				aFree(c);
+				return NULL;
          }
 
          charsql_res = mysql_store_result(&charsql_handle);
@@ -133,9 +134,9 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          //read inventory...
          sprintf(charsql_tmpsql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` FROM `inventory` WHERE `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-                 aFree(c);
-                 return NULL;
+         	ShowError("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+				aFree(c);
+				return NULL;
          }
 
          charsql_res = mysql_store_result(&charsql_handle);
@@ -160,9 +161,9 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          //cart inventory ..
          sprintf(charsql_tmpsql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` FROM `cart_inventory` WHERE `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-                 aFree(c);
-                 return NULL;
+         	ShowError("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+				aFree(c);
+				return NULL;
          }
 
          charsql_res = mysql_store_result(&charsql_handle);
@@ -187,9 +188,9 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          //Skills...
          sprintf(charsql_tmpsql, "SELECT `char_id`, `id`, `lv` FROM `skill` WHERE `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-                 aFree(c);
-                 return NULL;
+         	ShowError("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+				aFree(c);
+				return NULL;
          }
 
          charsql_res = mysql_store_result(&charsql_handle);
@@ -205,9 +206,9 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          //Global REG
          sprintf(charsql_tmpsql, "SELECT `char_id`, `str`, `value` FROM `global_reg_value` WHERE `type` = '3' AND `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-                 aFree(c);
-                 return NULL;
+         	ShowError("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+				aFree(c);
+				return NULL;
          }
 
          charsql_res = mysql_store_result(&charsql_handle);
@@ -223,9 +224,9 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          //Friend list 'ids'
          sprintf(charsql_tmpsql, "SELECT `char_id`, `friend_id` FROM `friends` WHERE `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-                 aFree(c);
-                 return NULL;
+         	ShowError("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+				aFree(c);
+				return NULL;
          }
 
          charsql_res = mysql_store_result(&charsql_handle);
@@ -246,9 +247,9 @@ struct mmo_charstatus *charsave_loadchar(int charid){
                  //NEW
                  //sprintf(charsql_tmpsql, "SELECT `char_id`, `name` FROM `char` WHERE `char_id` = '%d'", c->friends[i].id);
 	        if(mysql_query(&charsql_handle, charsql_tmpsql)){
-	                 eprintf("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-	                 aFree(c);
-	                 return NULL;
+					ShowError("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+					aFree(c);
+					return NULL;
 	        }
 
                  charsql_res = mysql_store_result(&charsql_handle);
@@ -263,7 +264,7 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 
          }
 
-      	printf("charsql_loadchar(): loading of '%d' (%s) complete.\n", charid, c->name);
+      	ShowInfo("charsql_loadchar(): loading of '%d' (%s) complete.\n", charid, c->name);
 
 return c;
 }
@@ -297,14 +298,14 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 		c->child, c->fame, c->account_id, c->char_id
 	);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+         	ShowError("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
          }
 
 
          //Save the inventory
          sprintf(charsql_tmpsql, "DELETE FROM `inventory` WHERE `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+         	ShowError("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
          }
          for(i = 0; i < MAX_INVENTORY; i++){
          	if(c->inventory[i].nameid > 0){
@@ -315,7 +316,7 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 		       	                        c->inventory[i].attribute, c->inventory[i].card[0], c->inventory[i].card[1], c->inventory[i].card[2], c->inventory[i].card[3]
 		       	                        );
                            if(mysql_query(&charsql_handle, charsql_tmpsql)){
-                         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+                         	ShowError("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
                          }
                  }
          }
@@ -325,13 +326,13 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
          //Save the cart
          sprintf(charsql_tmpsql, "DELETE FROM `cart_inventory` WHERE `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+         	ShowError("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
          }
          for(i = 0; i < MAX_CART; i++){
          	if(c->cart[i].nameid > 0){
 		       	sprintf(charsql_tmpsql, "INSERT INTO `cart_inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')", charid, c->cart[i].nameid, c->cart[i].amount, c->cart[i].equip, c->cart[i].identify, c->cart[i].refine, c->cart[i].attribute, c->cart[i].card[0], c->cart[i].card[1], c->cart[i].card[2], c->cart[i].card[3]);
                          if(mysql_query(&charsql_handle, charsql_tmpsql)){
-                         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+                         	ShowError("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
                          }
                  }
          }
@@ -340,13 +341,13 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
          //Save memo points
          sprintf(charsql_tmpsql, "DELETE FROM `memo` WHERE `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+         	ShowError("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
          }
          for(i = 0; i < MAX_MEMOPOINTS; i++){
          	if(c->memo_point[i].map != "" && c->memo_point[i].x > 0 && c->memo_point[i].y > 0){
                  	sprintf(charsql_tmpsql, "INSERT INTO `memo` ( `char_id`, `map`, `x`, `y` ) VALUES ('%d', '%s', '%d', '%d')", charid, c->memo_point[i].map, c->memo_point[i].x, c->memo_point[i].y);
 	                if(mysql_query(&charsql_handle, charsql_tmpsql)){
-	                	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+	                	ShowError("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
 	                }
                  }
          }
@@ -355,13 +356,13 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
          //Save skills
          sprintf(charsql_tmpsql, "DELETE FROM `skill` WHERE `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+         	ShowError("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
          }
          for(i = 0; i < MAX_SKILL; i++){
          	if(c->skill[i].id > 0){
                  	sprintf(charsql_tmpsql, "INSERT INTO `skill` (`char_id`, `id`, `lv`) VALUES ('%d', '%d', '%d')", charid, c->skill[i].id, c->skill[i].lv);
 	                if(mysql_query(&charsql_handle, charsql_tmpsql)){
-	                	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+	                	ShowError("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
 	                }
                  }
          }
@@ -370,7 +371,7 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
          //global_reg_value saving
          sprintf(charsql_tmpsql, "DELETE FROM `global_reg_value` WHERE `type`=3 AND `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+         	ShowError("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
          }
          for(i = 0; i < c->global_reg_num; i++){
            if(c->global_reg[i].str){
@@ -378,7 +379,7 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
                  	//jstrescapecpy(tmp_str, c->global_reg[i].str);
                  	sprintf(charsql_tmpsql, "INSERT INTO `global_reg_value` (`char_id`, `str`, `value`) VALUES ('%d', '%s', '%d')", charid, jstrescapecpy(tmp_str,c->global_reg[i].str), c->global_reg[i].value);
 	                if(mysql_query(&charsql_handle, charsql_tmpsql)){
-	                	eprintf("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+	                	ShowError("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
 	                }
                  }
            }
@@ -388,18 +389,18 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
          //friendlist saving
          sprintf(charsql_tmpsql, "DELETE FROM `friends` WHERE `char_id` = '%d'", charid);
 	if(mysql_query(&charsql_handle, charsql_tmpsql)){
-		eprintf("tosql() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+		ShowError("tosql() SQL ERROR: %s\n", mysql_error(&charsql_handle));
 	}
          for(i = 0; i < MAX_FRIENDS; i++){
          	if(c->friend_id[i] > 0){
 			sprintf(charsql_tmpsql, "INSERT INTO `friends` (`char_id`, `friend_id`) VALUES ('%d', '%d')", charid, c->friend_id[i]);
 	                if(mysql_query(&charsql_handle, charsql_tmpsql)){
-	                	 eprintf("tosql() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+	                	 ShowError("tosql() SQL ERROR: %s\n", mysql_error(&charsql_handle));
 	                }
                  }
     	}
 
-    printf("charsql_savechar(): saving of '%d' (%s) complete.\n", charid, c->name);
+    ShowInfo("charsql_savechar(): saving of '%d' (%s) complete.\n", charid, c->name);
     return 0;
 }
 

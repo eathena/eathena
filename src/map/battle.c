@@ -324,7 +324,7 @@ int battle_attr_fix(int damage,int atk_elem,int def_elem)
 	if (def_type < 0 || def_type > 9 ||
 		def_lv < 1 || def_lv > 4) {	// ëÆ ê´ílÇ™Ç®Ç©ÇµÇ¢ÇÃÇ≈Ç∆ÇËÇ†Ç¶Ç∏ÇªÇÃÇ‹Ç‹ï‘Ç∑
 		if (battle_config.error_log)
-			printf("battle_attr_fix: unknown attr type: atk=%d def_type=%d def_lv=%d\n",atk_elem,def_type,def_lv);
+			ShowError("battle_attr_fix: unknown attr type: atk=%d def_type=%d def_lv=%d\n",atk_elem,def_type,def_lv);
 		return damage;
 	}
 
@@ -4305,7 +4305,7 @@ struct Damage battle_calc_magic_attack(
 				MATK_FIX(1,flag);
 			}else {
 				if(battle_config.error_log)
-					printf("battle_calc_magic_attack(): napam enemy count=0 !\n");
+					ShowError("battle_calc_magic_attack(): napalm enemy count=0 !\n");
 			}
 			break;
 
@@ -4383,7 +4383,7 @@ struct Damage battle_calc_magic_attack(
 				MATK_FIX(1,flag);
 			}else {
 				if(battle_config.error_log)
-					printf("battle_calc_magic_attack(): napalmvulcan enemy count=0 !\n");
+					ShowError("battle_calc_magic_attack(): napalmvulcan enemy count=0 !\n");
 			}
 			break;
 		case PF_SOULBURN: // Celest
@@ -6108,7 +6108,7 @@ int battle_config_read(const char *cfgName)
 
 	fp = fopen(cfgName,"r");
 	if (fp == NULL) {
-		printf("File not found: %s\n", cfgName);
+		ShowError("File not found: %s\n", cfgName);
 		return 1;
 	}
 	while(fgets(line,1020,fp)){

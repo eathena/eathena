@@ -129,7 +129,7 @@ static int pc_invincible_timer(int tid,unsigned int tick,int id,int data) {
 
 	if(sd->invincible_timer != tid){
 		if(battle_config.error_log)
-			printf("invincible_timer %d != %d\n",sd->invincible_timer,tid);
+			ShowError("invincible_timer %d != %d\n",sd->invincible_timer,tid);
 		return 0;
 	}
 	sd->invincible_timer=-1;
@@ -166,13 +166,13 @@ static int pc_spiritball_timer(int tid,unsigned int tick,int id,int data) {
 
 	if(sd->spirit_timer[0] != tid){
 		if(battle_config.error_log)
-			printf("spirit_timer %d != %d\n",sd->spirit_timer[0],tid);
+			ShowError("spirit_timer %d != %d\n",sd->spirit_timer[0],tid);
 		return 0;
 	}
 
 	if(sd->spiritball <= 0) {
 		if(battle_config.error_log)
-			printf("Spiritballs are already 0 when pc_spiritball_timer gets called");
+			ShowError("Spiritballs are already 0 when pc_spiritball_timer gets called");
 		sd->spiritball = 0;
 		return 0;
 	}
@@ -1639,7 +1639,7 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		break;
 	default:
 		if(battle_config.error_log)
-			printf("pc_bonus: unknown type %d %d !\n",type,val);
+			ShowWarning("pc_bonus: unknown type %d %d !\n",type,val);
 		break;
 	}
 	return 0;
@@ -1977,7 +1977,7 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 
 	default:
 		if(battle_config.error_log)
-			printf("pc_bonus2: unknown type %d %d %d!\n",type,type2,val);
+			ShowWarning("pc_bonus2: unknown type %d %d %d!\n",type,type2,val);
 		break;
 	}
 	return 0;
@@ -2090,7 +2090,7 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 
 	default:
 		if(battle_config.error_log)
-			printf("pc_bonus3: unknown type %d %d %d %d!\n",type,type2,type3,val);
+			ShowWarning("pc_bonus3: unknown type %d %d %d %d!\n",type,type2,type3,val);
 		break;
 	}
 
@@ -2135,7 +2135,7 @@ int pc_bonus4(struct map_session_data *sd,int type,int type2,int type3,int type4
 		break;
 	default:
 		if(battle_config.error_log)
-			printf("pc_bonus4: unknown type %d %d %d %d %d!\n",type,type2,type3,type4,val);
+			ShowWarning("pc_bonus4: unknown type %d %d %d %d %d!\n",type,type2,type3,type4,val);
 		break;
 	}
 
@@ -2152,7 +2152,7 @@ int pc_skill(struct map_session_data *sd,int id,int level,int flag)
 
 	if(level>MAX_SKILL_LEVEL){
 		if(battle_config.error_log)
-			printf("support card skill only!\n");
+			ShowError("support card skill only!\n");
 		return 0;
 	}
 	if(!flag && (sd->status.skill[id].id == id || level == 0)){	// クエスト所得ならここで?件を確認して送信する
@@ -3199,7 +3199,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 	if((x==0 && y==0) || map_getcell(m,x,y,CELL_CHKNOPASS)){
 		if(x||y) {
 			if(battle_config.error_log)
-				printf("stacked (%d,%d)\n",x,y);
+				ShowError("pc_set_pos: stacked (%d,%d)\n",x,y);
 		}
 		do {
 			x=rand()%(map[m].xs-2)+1;
@@ -3395,7 +3395,7 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 
 	if(sd->walktimer != tid){
 		if(battle_config.error_log)
-			printf("pc_walk %d != %d\n", sd->walktimer, tid);
+			ShowError("pc_walk %d != %d\n", sd->walktimer, tid);
 		return 0;
 	}
 
@@ -3874,7 +3874,7 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 
 	if(sd->attacktimer != tid){
 		if(battle_config.error_log)
-			printf("pc_attack_timer %d != %d\n",sd->attacktimer,tid);
+			ShowError("pc_attack_timer %d != %d\n",sd->attacktimer,tid);
 		return 0;
 	}
 	sd->attacktimer=-1;
@@ -4054,7 +4054,7 @@ int pc_follow_timer(int tid,unsigned int tick,int id,int data)
 
 	if (sd->followtimer != tid){
 		if(battle_config.error_log)
-			printf("pc_follow_timer %d != %d\n",sd->followtimer,tid);
+			ShowError("pc_follow_timer %d != %d\n",sd->followtimer,tid);
 		sd->followtimer = -1;
 		return 0;
 	}
@@ -5889,7 +5889,7 @@ int pc_setregstr(struct map_session_data *sd,int reg,char *str)
 	nullpo_retr(0, sd);
 
 	if(strlen(str)+1 >= sizeof(sd->regstr[0].data)){
-		printf("pc_setregstr: string too long !\n");
+		ShowWarning("pc_setregstr: string too long !\n");
 		return 0;
 	}
 
@@ -5901,7 +5901,7 @@ int pc_setregstr(struct map_session_data *sd,int reg,char *str)
 	sd->regstr_num++;
 	sd->regstr = (struct script_regstr *) aRealloc(sd->regstr, sizeof(sd->regstr[0]) * sd->regstr_num);
 	if(sd->regstr==NULL){
-		printf("out of memory : pc_setreg\n");
+		ShowFatalError("out of memory : pc_setreg\n");
 		exit(1);
 	}
 /*	memset(sd->reg + (sd->reg_num - 1) * sizeof(*(sd->reg)), 0,
@@ -5976,7 +5976,7 @@ int pc_setglobalreg(struct map_session_data *sd,char *reg,int val)
 		return 0;
 	}
 	if(battle_config.error_log)
-		printf("pc_setglobalreg : couldn't set %s (GLOBAL_REG_NUM = %d)\n", reg, GLOBAL_REG_NUM);
+		ShowError("pc_setglobalreg : couldn't set %s (GLOBAL_REG_NUM = %d)\n", reg, GLOBAL_REG_NUM);
 
 	return 1;
 }
@@ -6010,7 +6010,7 @@ int pc_setaccountreg(struct map_session_data *sd,char *reg,int val)
 
 	if (sd->status.account_reg_num == -1) {
 		if(battle_config.error_log)
-			printf("pc_setaccountreg : refusing to set until vars are received\n");
+			ShowError("pc_setaccountreg : refusing to set until vars are received\n");
 		return 1;
 	}
 
@@ -6040,7 +6040,7 @@ int pc_setaccountreg(struct map_session_data *sd,char *reg,int val)
 		return 0;
 	}
 	if(battle_config.error_log)
-		printf("pc_setaccountreg : couldn't set %s (ACCOUNT_REG_NUM = %d)\n", reg, ACCOUNT_REG_NUM);
+		ShowError("pc_setaccountreg : couldn't set %s (ACCOUNT_REG_NUM = %d)\n", reg, ACCOUNT_REG_NUM);
 
 	return 1;
 }
@@ -6097,7 +6097,7 @@ int pc_setaccountreg2(struct map_session_data *sd,char *reg,int val)
 		return 0;
 	}
 	if(battle_config.error_log)
-		printf("pc_setaccountreg2 : couldn't set %s (ACCOUNT_REG2_NUM = %d)\n", reg, ACCOUNT_REG2_NUM);
+		ShowError("pc_setaccountreg2 : couldn't set %s (ACCOUNT_REG2_NUM = %d)\n", reg, ACCOUNT_REG2_NUM);
 
 	return 1;
 }
@@ -6124,7 +6124,7 @@ int pc_eventtimer(int tid,unsigned int tick,int id,int data)
 	if (p) aFree(p);
 	if(i==MAX_EVENTTIMER) {
 		if(battle_config.error_log)
-			printf("pc_eventtimer: no such event timer\n");
+			ShowError("pc_eventtimer: no such event timer\n");
 	}
 
 	return 0;
@@ -6246,7 +6246,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int pos)
 	id = sd->inventory_data[n];
 	pos = pc_equippoint(sd,n);
 	if(battle_config.battle_log)
-		printf("equip %d(%d) %x:%x\n",nameid,n,id->equip,pos);
+		ShowInfo("equip %d(%d) %x:%x\n",nameid,n,id->equip,pos);
 	if(!pc_isequip(sd,n) || !pos || sd->status.inventory[n].attribute==1 ) { // [Valaris]
 		clif_equipitemack(sd,n,0,0);	// fail
 		return 0;
@@ -6401,7 +6401,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 	}
 
 	if(battle_config.battle_log)
-		printf("unequip %d %x:%x\n",n,pc_equippoint(sd,n),sd->status.inventory[n].equip);
+		ShowInfo("unequip %d %x:%x\n",n,pc_equippoint(sd,n),sd->status.inventory[n].equip);
 	if(sd->status.inventory[n].equip){
 		int i;
 		for(i=0;i<11;i++) {
@@ -6497,7 +6497,7 @@ int pc_checkitem(struct map_session_data *sd)
 			continue;
 		if( battle_config.item_check && !itemdb_available(id) ){
 			if(battle_config.error_log)
-				printf("illeagal item id %d in %d[%s] inventory.\n",id,sd->bl.id,sd->status.name);
+				ShowWarning("illeagal item id %d in %d[%s] inventory.\n",id,sd->bl.id,sd->status.name);
 			pc_delitem(sd,i,sd->status.inventory[i].amount,3);
 			continue;
 		}
@@ -6518,7 +6518,7 @@ int pc_checkitem(struct map_session_data *sd)
 			continue;
 		if( battle_config.item_check &&  !itemdb_available(id) ){
 			if(battle_config.error_log)
-				printf("illeagal item id %d in %d[%s] cart.\n",id,sd->bl.id,sd->status.name);
+				ShowWarning("illeagal item id %d in %d[%s] cart.\n",id,sd->bl.id,sd->status.name);
 			pc_cart_delitem(sd,i,sd->status.cart[i].amount,1);
 			continue;
 		}
@@ -6690,7 +6690,7 @@ int pc_divorce(struct map_session_data *sd)
 	if ((p_sd = map_charid2sd(sd->status.partner_id)) != NULL) {
 		int i;
 		if (p_sd->status.partner_id != sd->status.char_id || sd->status.partner_id != p_sd->status.char_id) {
-			printf("pc_divorce: Illegal partner_id sd=%d p_sd=%d\n", sd->status.partner_id, p_sd->status.partner_id);
+			ShowWarning("pc_divorce: Illegal partner_id sd=%d p_sd=%d\n", sd->status.partner_id, p_sd->status.partner_id);
 			return -1;
 		}
 		sd->status.partner_id = 0;
@@ -6704,7 +6704,7 @@ int pc_divorce(struct map_session_data *sd)
 		clif_divorced(sd, p_sd->status.name);
 		clif_divorced(p_sd, sd->status.name);
 	} else {
-		printf("pc_divorce: p_sd nullpo\n");
+		ShowError("pc_divorce: p_sd nullpo\n");
 		return -1;
 	}
 	return 0;
@@ -7278,7 +7278,7 @@ int pc_read_gm_account(int fd)
 #else
 	sprintf (tmp_lsql, "SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",gm_db_account_id,gm_db_level,gm_db,gm_db_level,lowest_gm_level);
 	if(mysql_query(&lmysql_handle, tmp_lsql) ) {
-		printf("DB server Error (select %s to Memory)- %s\n",login_db,mysql_error(&lmysql_handle) );
+		ShowError("DB server Error (select %s to Memory)- %s\n",login_db,mysql_error(&lmysql_handle) );
 	}
 	lsql_res = mysql_store_result(&lmysql_handle);
 	if (lsql_res) {
@@ -7286,7 +7286,7 @@ int pc_read_gm_account(int fd)
 	    while ((lsql_row = mysql_fetch_row(lsql_res))) {
 	        gm_account[GM_num].account_id = atoi(lsql_row[0]);
 		    gm_account[GM_num].level = atoi(lsql_row[1]);
-		    printf("GM account: %d -> level %d\n", gm_account[GM_num].account_id, gm_account[GM_num].level);
+		    ShowNotice("GM account: %d -> level %d\n", gm_account[GM_num].account_id, gm_account[GM_num].level);
 		    GM_num++;
 	    }
     }
@@ -7379,7 +7379,7 @@ int pc_readdb(void)
 	memset(exp_table,0,sizeof(exp_table));
 	fp=fopen("db/exp.txt","r");
 	if(fp==NULL){
-		printf("can't read db/exp.txt\n");
+		ShowError("can't read db/exp.txt\n");
 		return 1;
 	}
 	i=0;
@@ -7449,7 +7449,7 @@ int pc_readdb(void)
 	memset(skill_tree,0,sizeof(skill_tree));
 	fp=fopen("db/skill_tree.txt","r");
 	if(fp==NULL){
-		printf("can't read db/skill_tree.txt\n");
+		ShowError("can't read db/skill_tree.txt\n");
 		return 1;
 	}
 
@@ -7498,7 +7498,7 @@ int pc_readdb(void)
 				attr_fix_table[i][j][k]=100;
 	fp=fopen("db/attr_fix.txt","r");
 	if(fp==NULL){
-		printf("can't read db/attr_fix.txt\n");
+		ShowError("can't read db/attr_fix.txt\n");
 		return 1;
 	}
 	while(fgets(line, sizeof(line)-1, fp)){

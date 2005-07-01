@@ -69,7 +69,8 @@ static int guild_save_timer(int tid,unsigned int tick,int id,int data) {
 		printf("Guild_Save_timer: wrong tid!\n");
 		return 0;
 	}
-	inter_guild_tosql(g,255);
+//	inter_guild_tosql(g,255); //Ridiculous... [Skotlex]
+	inter_guild_tosql(g,g->save_flag);
 	g->save_flag = 0;
 	g->save_timer=-1;
 	return 0;
@@ -113,25 +114,21 @@ int inter_guild_tosql(struct guild *g,int flag)
 		t_emes[80];
 	char emblem_data[4096];
 	int i=0;
-	int guild_online_member=0;
+//	int guild_online_member=0; //Meh, this value is not being used anywhere! [Skotlex]
 
 	if (g->guild_id<=0) return -1;
 #ifdef NOISY
 	printf("(\033[1;35m%d\033[0m)  Request save guild -(flag 0x%x) ",g->guild_id, flag);
 #endif
 	jstrescapecpy(t_name, g->name);
-	if (1){
-		if (flag&8){
-		}
-	}
-
+/*	
 	guild_online_member = 0;
 	i=0;
 	while (i<g->max_member) {
 		if (g->member[i].account_id>0) guild_online_member++;
 		i++;
 	}
-
+*/
 	// Insert new guild to sqlserver
 	if (flag&1){
 		int len=0;
@@ -184,7 +181,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 		}
 	}
 
-	if (flag&2){
+	if (flag&2){ //Update Guild Members
 		struct guild_member *m;
 		// Re-writing from scratch (Aru)
 		sprintf(tmp_sql,"DELETE from `%s` where `guild_id` = '%d'",
@@ -279,7 +276,6 @@ int inter_guild_tosql(struct guild *g,int flag)
 		}
 		else
 		{
-
 		//printf("- Insert guild %d to guild_alliance\n",g->guild_id);
 		for(i=0;i<MAX_GUILDALLIANCE;i++){
 			struct guild_alliance *a=&g->alliance[i];
@@ -792,7 +788,10 @@ int guild_check_empty(struct guild *g)
 //	inter_guild_tosql(g,255);
 	add_guild_save_timer(g,255);
 	g->save_flag=255;
-	
+	//This piece of code strikes me as broken.... zero-ing the data?
+	//The guild is invalidated, the save timer is lost, the data is just gonna be left there 
+	//hanging in midair.
+	//Should't we break it up instead and free the memory or something? [Skotlex]	
 	memset(g,0,sizeof(struct guild));
 	return 1;
 }
