@@ -16,6 +16,9 @@
 	4296,Cramp_Card: missing getzenybychance??
 	4231,Increase_Soil_Card
 
+06/02
+	* Added packet_ver 18 by Sara-chan [Lupus]
+
 06/28
 	* Added "gld_dun01.gat  5" to water_height.txt as reported by Manipulator [Skotlex]
 	* Added Dryad Card effect, thx to MasterOfMuppets [Lupus]

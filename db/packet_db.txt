@@ -686,6 +686,26 @@ prefer_packet_db: yes
 0x0233,11
 0x0234,-1
 
-// Add new packets here
+//2005-06-28aSakexe by Sara
 // packet_ver: 18
-0x0216,-1
+0x009b,32,wanttoconnection,9:15:23:30:31
+0x0089,13,ticksend,9
+0x00a7,11,walktoxy,8
+0x0190,24,actionrequest,11:23
+0x00f3,-1,globalmessage,2:4
+0x008c,8,getcharnamerequest,4
+0x0085,17,changedir,8:16
+0x0094,31,movetokafra,16:27
+0x0193,2,closekafra,0
+0x00f7,18,movefromkafra,11:14
+0x009f,19,useitem,9:15
+0x0116,12,dropitem,3:10
+0x00f5,13,takeitem,9
+0x0113,33,useskilltopos,12:15:18:31
+0x0072,34,useskilltoid,6:17:30
+0x007e,113,useskilltopos,12:15:18:31:33
+0x00a2,9,solvecharname,5
+0x0143,10,npcamountinput,2:6
+
+// Add new packets here
+// packet_ver: 19
