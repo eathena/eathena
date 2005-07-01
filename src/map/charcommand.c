@@ -318,7 +318,7 @@ bool charcommand_jobchange(int fd, struct map_session_data &sd,const char *comma
 			if ((job >= 0 && job < MAX_PC_CLASS)) {
 
 				// fix pecopeco display
-				if ((job != 13 && job != 21 && job != 4014 && job != 4022)) {
+				if ((job != 13 && job != 21 && job != 4014 && job != 4022 && job != 4030 && job != 4036 && job != 4037 && job != 4044 )) {
 					if (pc_isriding(sd)) {
 						if (pl_sd->status.class_ == 13)
 							pl_sd->status.class_ = pl_sd->view_class = 7;
@@ -328,6 +328,10 @@ bool charcommand_jobchange(int fd, struct map_session_data &sd,const char *comma
 							pl_sd->status.class_ = pl_sd->view_class = 4008;
 						if (pl_sd->status.class_ == 4022)
 							pl_sd->status.class_ = pl_sd->view_class = 4015;
+						if (pl_sd->status.class_ == 4036)
+							pl_sd->status.class_ = pl_sd->view_class = 4030;
+						if (pl_sd->status.class_ == 4044)
+							pl_sd->status.class_ = pl_sd->view_class = 4037;
 						pl_sd->status.option &= ~0x0020;
 						clif_changeoption(pl_sd->bl);
 						status_calc_pc(*pl_sd, 0);
@@ -342,6 +346,10 @@ bool charcommand_jobchange(int fd, struct map_session_data &sd,const char *comma
 							job = 4008;
 						if (job == 4022)
 							job = 4015;
+						if (job == 4036)
+							job = 4030;
+						if (job == 4044)
+							job = 4037;
 					}
 				}
 				for (j=0; j < MAX_INVENTORY; j++) {
@@ -583,7 +591,7 @@ bool charcommand_option(int fd, struct map_session_data &sd,const char *command,
 			pl_sd->opt2 = opt2;
 			pl_sd->status.option = opt3;
 			// fix pecopeco display
-			if (pl_sd->status.class_ == 13 || pl_sd->status.class_ == 21 || pl_sd->status.class_ == 4014 || pl_sd->status.class_ == 4022) {
+			if (pl_sd->status.class_ == 13 || pl_sd->status.class_ == 21 || pl_sd->status.class_ == 4014 || pl_sd->status.class_ == 4022 || pl_sd->status.class_ == 4030 || pl_sd->status.class_ == 4036 || pl_sd->status.class_ == 4037 || pl_sd->status.class_ == 4044) {
 				if (!pc_isriding(*pl_sd)) { // pl_sd have the new value...
 					if (pl_sd->status.class_ == 13)
 						pl_sd->status.class_ = pl_sd->view_class = 7;
@@ -593,19 +601,27 @@ bool charcommand_option(int fd, struct map_session_data &sd,const char *command,
 						pl_sd->status.class_ = pl_sd->view_class = 4008;
 					else if (pl_sd->status.class_ == 4022)
 						pl_sd->status.class_ = pl_sd->view_class = 4015;
+					else if (pl_sd->status.class_ == 4036)
+						pl_sd->status.class_ = pl_sd->view_class = 4030;
+					else if (pl_sd->status.class_ == 4044)
+						pl_sd->status.class_ = pl_sd->view_class = 4037;
 				}
 			} else {
 				if (pc_isriding(*pl_sd)) { // pl_sd have the new value...
-						if (pl_sd->status.class_ == 7)
-							pl_sd->status.class_ = pl_sd->view_class = 13;
-						else if (pl_sd->status.class_ == 14)
-							pl_sd->status.class_ = pl_sd->view_class = 21;
-						else if (pl_sd->status.class_ == 4008)
-							pl_sd->status.class_ = pl_sd->view_class = 4014;
-						else if (pl_sd->status.class_ == 4015)
-							pl_sd->status.class_ = pl_sd->view_class = 4022;
-						else
-							pl_sd->status.option &= ~0x0020;
+					if (pl_sd->status.class_ == 7)
+						pl_sd->status.class_ = pl_sd->view_class = 13;
+					else if (pl_sd->status.class_ == 14)
+						pl_sd->status.class_ = pl_sd->view_class = 21;
+					else if (pl_sd->status.class_ == 4008)
+						pl_sd->status.class_ = pl_sd->view_class = 4014;
+					else if (pl_sd->status.class_ == 4015)
+						pl_sd->status.class_ = pl_sd->view_class = 4022;
+					else if (pl_sd->status.class_ == 4030)
+						pl_sd->status.class_ = pl_sd->view_class = 4036;
+					else if (pl_sd->status.class_ == 4037)
+						pl_sd->status.class_ = pl_sd->view_class = 4044;
+					else
+						pl_sd->status.option &= ~0x0020;
 					}
 				}
 			clif_changeoption(pl_sd->bl);

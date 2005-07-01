@@ -1024,13 +1024,10 @@ void flush_fifos()
 			{
 				// try to write the data nonblocking
 				len=write(SessionGetSocket(fd),(char*)(session[fd]->wdata),session[fd]->wdata_size);
-				//ShowMessage (":::SEND:::\n");
-				//dump(session[fd]->wdata, len); ShowMessage ("\n");
 #ifdef SOCKET_DEBUG_PRINT
 				printf("->");
 				dumpx(session[fd]->wdata, len);
 #endif
-
 				if(len>0)
 				{
 					if((size_t)len < session[fd]->wdata_size)

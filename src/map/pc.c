@@ -458,7 +458,7 @@ int pc_setequipindex(struct map_session_data &sd)
 	size_t i,j;
 
 	for(i=0;i<MAX_EQUIP;i++)
-		sd.equip_index[i] = -1;
+		sd.equip_index[i] = 0xFFFF;
 
 	for(i=0;i<MAX_INVENTORY;i++)
 	{
@@ -2397,7 +2397,6 @@ int pc_additem(struct map_session_data &sd,struct item &item_data,size_t amount)
 		return 2;
 
 	i = MAX_INVENTORY;
-
 	if( !itemdb_isSingleStorage(*data) )
 	{	// 装 備品ではないので、既所有品なら個数のみ変化させる
 		for (i = 0; i < MAX_INVENTORY; i++)
@@ -2600,7 +2599,7 @@ bool pc_isUseitem(struct map_session_data &sd,int inx)
  * アイテムを使う
  *------------------------------------------
  */
-int pc_useitem(struct map_session_data &sd,unsigned short inx)
+int pc_useitem(struct map_session_data &sd, unsigned short inx)
 {
 	unsigned short amount;
 	if(inx < MAX_INVENTORY)
@@ -2989,7 +2988,7 @@ int pc_steal_item(struct map_session_data &sd,struct block_list *bl)
 			mob_db[md->class_].mexp <= 0 && 
 			!(mob_db[md->class_].mode&0x20) &&
 			md->cache &&							// prevent stealing from summoned creatures. [Skotlex]
-			!(md->class_>1324 && md->class_<1364) ) // prevent stealing from treasure boxes [Valaris]
+			!(md->class_>=1324 && md->class_<1364) ) // prevent stealing from treasure boxes [Valaris]
 		{
 			if (md->sc_data && (md->sc_data[SC_STONE].timer != -1 || md->sc_data[SC_FREEZE].timer != -1))
 				return 0;
@@ -3968,7 +3967,7 @@ int pc_attack_timer(int tid,unsigned long tick,int id,int data)
 		}
 	}
 
-	if(sd->status.weapon == 11 && sd->equip_index[10] < 0) {
+	if(sd->status.weapon == 11 && sd->equip_index[10] >= MAX_INVENTORY) {
 		clif_arrow_fail(*sd,0);
 		return 0;
 	}
@@ -3987,8 +3986,8 @@ int pc_attack_timer(int tid,unsigned long tick,int id,int data)
 			pc_walktoxy(*sd,bl->x,bl->y);
 		sd->attackabletime = tick + (sd->aspd<<1);
 	}
-	else {
-		//On this point, we have reached our target, and guarantee an attack, so.. uncloak. [Skotlex]
+	else
+	{	// On this point, we have reached our target, and guarantee an attack, so.. uncloak. [Skotlex]
 		if(pc_iscloaking(*sd))
 			status_change_end(&sd->bl, SC_CLOAKING, -1);
 
@@ -3998,7 +3997,8 @@ int pc_attack_timer(int tid,unsigned long tick,int id,int data)
 		if(sd->walktimer != -1)
 			pc_stop_walking(*sd,1);
 
-		if(sd->sc_data[SC_COMBO].timer == -1) {
+		if(sd->sc_data[SC_COMBO].timer == -1)
+		{
 			map_freeblock_lock();
 			pc_stop_walking(*sd,0);
 			sd->attacktarget_lv = battle_weapon_attack(&sd->bl,bl,tick,0);
@@ -4013,16 +4013,21 @@ int pc_attack_timer(int tid,unsigned long tick,int id,int data)
 			else
 				sd->attackabletime = tick + (sd->aspd<<1);
 		}
-		else if(sd->attackabletime <= tick) {
+		else if(sd->attackabletime <= tick)
+		{
 			if(sd->skilltimer != -1 && (skill = pc_checkskill(*sd,SA_FREECAST)) > 0 ) // フリ?キャスト
+			{
 				sd->attackabletime = tick + ((sd->aspd<<1)*(150 - skill*5)/100);
+			}
 			else
 				sd->attackabletime = tick + (sd->aspd<<1);
 		}
-		if(sd->attackabletime <= tick) sd->attackabletime = tick + (battle_config.max_aspd<<1);
 	}
+	if( DIFF_TICK(sd->attackabletime,tick) < (int)(battle_config.max_aspd_val<<1) )
+		sd->attackabletime = tick + (battle_config.max_aspd_val<<1);
 
-	if(sd->state.attack_continue) {
+	if(sd->state.attack_continue)
+	{
 		sd->attacktimer=add_timer(sd->attackabletime,pc_attack_timer,sd->bl.id,0);
 	}
 
@@ -4058,6 +4063,7 @@ int pc_attack(struct map_session_data &sd,unsigned long target_id,int type)
 	sd.state.attack_continue=type;
 
 	d=DIFF_TICK(sd.attackabletime,gettick());
+
 	if(d>0 && d<2000){	// 攻?delay中
 		sd.attacktimer=add_timer(sd.attackabletime,pc_attack_timer,sd.bl.id,0);
 	} else {
@@ -4680,7 +4686,7 @@ int pc_resetlvl(struct map_session_data &sd,int type)
 
 	for(i=0;i<MAX_EQUIP;i++)
 	{	// unequip items that can't be equipped by base 1 [Valaris]
-		if(sd.equip_index[i] >= 0)
+		if(sd.equip_index[i] < MAX_INVENTORY)
 			if(!pc_isequipable(sd,sd.equip_index[i]))
 				pc_unequipitem(sd,sd.equip_index[i],2);
 	}
@@ -4825,16 +4831,18 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 				status_change_end(&sd.bl, SC_GRAVITATION, -1);
 			}
 		}
-
 	}
 
 	// 演奏/ダンスの中?
-	if(damage > sd.status.max_hp>>2)
+	if(damage > sd.status.max_hp/4)
 		skill_stop_dancing(&sd.bl,0);
 
-	sd.status.hp-=damage;
+	if(sd.status.hp > damage)
+		sd.status.hp -= damage;
+	else
+		sd.status.hp = 0;
 
-	if(sd.status.pet_id > 0 && sd.pd && sd.petDB && battle_config.pet_damage_support)
+	if(sd.status.pet_id > 0 && sd.pd && sd.petDB && battle_config.pet_damage_support && src)
 		pet_target_check(sd,src,1);
 
 	if (sd.sc_data[SC_TRICKDEAD].timer != -1)
@@ -4846,38 +4854,39 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 	if(pc_ischasewalk(sd))
 		status_change_end(&sd.bl, SC_CHASEWALK, -1);
 
-	if(sd.status.hp>0)
+
+	if(sd.status.hp > 0)
 	{	// まだ生きているならHP更新
 		clif_updatestatus(sd,SP_HP);
 
-		//if(sd.status.hp<sd->status.max_hp>>2 && pc_checkskill(sd,SM_AUTOBERSERK)>0 &&
-		if(sd.status.hp<sd.status.max_hp>>2 && sd.sc_data[SC_AUTOBERSERK].timer != -1 &&
+		//if(sd.status.hp<sd->status.max_hp/4 && pc_checkskill(sd,SM_AUTOBERSERK)>0 &&
+		if(sd.status.hp<sd.status.max_hp/4 && sd.sc_data[SC_AUTOBERSERK].timer != -1 &&
 			(sd.sc_data[SC_PROVOKE].timer==-1 || sd.sc_data[SC_PROVOKE].val2==0 ))
 			// オ?トバ?サ?ク?動
 			status_change_start(&sd.bl,SC_PROVOKE,10,1,0,0,0,0);
 
 		sd.canlog_tick = gettick();
 
-		if(sd.status.party_id>0) {	// on-the-fly party hp updates [Valaris]
+		if(sd.status.party_id)
+		{	// on-the-fly party hp updates [Valaris]
 			struct party *p=party_search(sd.status.party_id);
 			if(p!=NULL) clif_party_hp(*p,sd);
 		}	// end addition [Valaris]
-
 		return 0;
 	}
-	sd.status.hp = 0;
-	//pc_setdead(sd);
+	// else dead
+
 
 	if(sd.vender_id)
 		vending_closevending(sd);
 
-	if(sd.status.pet_id > 0 && sd.pd) {
-		if(sd.petDB) {
-			sd.pet.intimate -= sd.petDB->die;
-			if(sd.pet.intimate < 0)
-				sd.pet.intimate = 0;
-			clif_send_petdata(sd,1,sd.pet.intimate);
-		}
+	if(sd.status.pet_id > 0 && sd.pd && sd.petDB)
+	{
+		if(sd.pet.intimate > sd.petDB->die)
+			sd.pet.intimate	-= sd.petDB->die;
+		else
+			sd.pet.intimate = 0;
+		clif_send_petdata(sd,1,sd.pet.intimate);
 	}
 
 	pc_stop_walking(sd,0);
@@ -5626,7 +5635,7 @@ int pc_jobchange(struct map_session_data &sd,int job, int upper)
 	clif_updatestatus(sd,SP_NEXTJOBEXP);
 
 	for(i=0;i<MAX_EQUIP;i++) {
-		if(sd.equip_index[i] >= 0)
+		if(sd.equip_index[i] < MAX_INVENTORY)
 			if(!pc_isequipable(sd,sd.equip_index[i]))
 				pc_unequipitem(sd,sd.equip_index[i],2);	// ?備外し
 	}
@@ -6213,9 +6222,9 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 	if(pos==0x88)
 	{	// アクセサリ用例外?理
 		int epor=0;
-		if(sd.equip_index[0] >= 0)
+		if(sd.equip_index[0] < MAX_INVENTORY)
 			epor |= sd.status.inventory[sd.equip_index[0]].equip;
-		if(sd.equip_index[1] >= 0)
+		if(sd.equip_index[1] < MAX_INVENTORY)
 			epor |= sd.status.inventory[sd.equip_index[1]].equip;
 		epor &= 0x88;
 		pos = epor == 0x08 ? 0x80 : 0x08;
@@ -6227,9 +6236,9 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 		(pc_checkskill(sd, AS_LEFT) > 0 || pc_calc_base_job2(sd.status.class_) == 12) ) // 左手修?有
 	{
 		int tpos=0;
-		if(sd.equip_index[8] >= 0)
+		if(sd.equip_index[8] < MAX_INVENTORY)
 			tpos |= sd.status.inventory[sd.equip_index[8]].equip;
-		if(sd.equip_index[9] >= 0)
+		if(sd.equip_index[9] < MAX_INVENTORY)
 			tpos |= sd.status.inventory[sd.equip_index[9]].equip;
 		tpos &= 0x02;
 		pos = (tpos==0x02) ? 0x20 : 0x02;
@@ -6238,7 +6247,7 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 	arrow=pc_search_inventory(sd,pc_checkequip(sd,9));	// Added by RoVeRT
 	for(i=0;i<MAX_EQUIP;i++)
 	{
-		if(sd.equip_index[i] >= 0 && sd.status.inventory[sd.equip_index[i]].equip&pos)
+		if(sd.equip_index[i] < MAX_INVENTORY && sd.status.inventory[sd.equip_index[i]].equip&pos)
 			pc_unequipitem(sd,sd.equip_index[i],2);
 	}
 	// 弓矢?備
@@ -6360,7 +6369,7 @@ int pc_unequipitem(struct map_session_data &sd,unsigned short inx, int flag)
 		for(i=0;i<MAX_EQUIP;i++) {
 			if(sd.status.inventory[inx].equip & equip_pos[i])
 			{
-				sd.equip_index[i] = -1;
+				sd.equip_index[i] = 0xFFFF;
 				if(sd.unequip_losehp[i] > 0) {
 					hp += sd.unequip_losehp[i];
 					sd.unequip_losehp[i] = 0;

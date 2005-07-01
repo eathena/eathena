@@ -3405,7 +3405,7 @@ int cleanup_sub(struct block_list &bl, va_list ap)
 			skill_delunit( (struct skill_unit *)&bl);
 			break;
 		default:
-			printf("cleanup_sub unhandled block, type%i\n", bl.type);
+			ShowError("cleanup_sub unhandled block, type%i\n", bl.type);
 	}
 	return 0;
 }

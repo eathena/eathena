@@ -1561,7 +1561,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 
 	switch(skillid){
 	case AS_SPLASHER:
-		clif_skill_damage(*dsrc,*bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, skillid, 0xFFFF, 5);
+		clif_skill_damage(*dsrc,*bl,tick,dmg.amotion, dmg.dmotion, damage, dmg.div_, skillid, 0xFFFF, 5);
 		break;
 	case ASC_BREAKER:	// [celest]
 		if (attack_type&BF_MAGIC) {	// only display damage for the 2nd attack
@@ -4001,7 +4001,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 
 		if (dstsd) {
 			for (i=0;i<MAX_EQUIP;i++) {
-				if (dstsd->equip_index[i]>=0 && dstsd->inventory_data[dstsd->equip_index[i]]) {
+				if (dstsd->equip_index[i] < MAX_INVENTORY && dstsd->inventory_data[dstsd->equip_index[i]]) {
 					if (equip &EQP_WEAPON && (i == 9 || (i == 8 && dstsd->inventory_data[dstsd->equip_index[8]]->type == 4)) && !(dstsd->unstripable_equip &EQP_WEAPON) && !(tsc_data && tsc_data[SC_CP_WEAPON].timer != -1)) {
 				   		sclist[0] = SC_STRIPWEAPON; // Okay, we found a weapon to strip - It can be a right-hand, left-hand or two-handed weapon
 						pc_unequipitem(*dstsd,dstsd->equip_index[i],3);
@@ -6799,18 +6799,18 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	if(sd->skillitem == sd->skillid) {	/* ƒAƒCƒeƒ€‚Ìê‡–³?Œ¬Œ÷ */
 		if(!type) //When a target was selected
 		{	//Consume items that were skipped in pc_use_item [Skotlex]
-			int i;
-			 if((i = sd->itemindex) == -1 ||
-				sd->status.inventory[i].nameid != sd->itemid ||
-				!sd->inventory_data[i]->flag.delay_consume ||
-				sd->status.inventory[i].amount < 1
+			int i = sd->itemindex;
+			 if( i >= MAX_INVENTORY ||
+				 sd->status.inventory[i].nameid != sd->itemid ||
+				 !sd->inventory_data[i]->flag.delay_consume ||
+				 sd->status.inventory[i].amount < 1
 				)
 			{	//Something went wrong, item exploit?
-				sd->itemid = sd->itemindex = -1;
+				sd->itemid = sd->itemindex = 0xFFFF;
 				return 0;
 			}
 			//Consume
-			sd->itemid = sd->itemindex = -1;
+			sd->itemid = sd->itemindex = 0xFFFF;
 			pc_delitem(*sd,i,1,0);
 		}
 		if (type&1) //Casting finished
@@ -7044,7 +7044,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case DC_THROWARROW:
 	case SN_SHARPSHOOTING:
 	case CG_ARROWVULCAN:
-		if(sd->equip_index[10] < 0) {
+		if(sd->equip_index[10] >= MAX_INVENTORY) {
 			clif_arrow_fail(*sd,0);
 			return 0;
 		}
@@ -7052,7 +7052,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		break;
 	case RG_BACKSTAP:
 		if(sd->status.weapon == 11) {
-			if (sd->equip_index[10] < 0) {
+			if (sd->equip_index[10] >= MAX_INVENTORY) {
 				clif_arrow_fail(*sd,0);
 				return 0;
 			}
@@ -7334,7 +7334,7 @@ int skill_delayfix(struct block_list *bl, long time)
 			else
 				time = 300;	// default delay, according to official servers
 		} else if (time < 0)
-			time = status_get_adelay (bl)/2 - time;	// if set to <0, the aspd delay will be added
+			time = status_get_adelay(bl)/2 - time;	// if set to <0, the aspd delay will be added
 
 		if (battle_config.delay_dependon_dex &&	/* dex‚Ì‰e‹¿‚ðŒvŽZ‚·‚é */
 			!skill_get_delaynodex(sd->skillid, sd->skilllv))	// if skill casttime is allowed to be reduced by dex

@@ -6550,7 +6550,7 @@ int buildin_nude(struct script_state &st)
 		size_t i;
 		register bool calcflag=false;
 		for(i=0;i<MAX_EQUIP;i++)
-			if(sd->equip_index[i] >= 0)
+			if(sd->equip_index[i] < MAX_INVENTORY)
 			{
 				pc_unequipitem(*sd,sd->equip_index[i],2);
 				calcflag=true;
@@ -7298,7 +7298,7 @@ int buildin_isequipped(struct script_state &st)
 		for (j=0; j<10; j++) {
 			int index, type;
 			index = sd->equip_index[j];
-			if(index < 0) continue;
+			if(index >= MAX_INVENTORY) continue;
 			if(j == 9 && sd->equip_index[8] == index) continue;
 			if(j == 5 && sd->equip_index[4] == index) continue;
 			if(j == 6 && (sd->equip_index[5] == index || sd->equip_index[4] == index)) continue;
@@ -7363,7 +7363,7 @@ int buildin_isequippedcnt(struct script_state &st)
 		
 		for (j=0; j<10; j++) {
 			index = sd->equip_index[j];
-			if(index < 0) continue;
+			if(index >= MAX_INVENTORY) continue;
 			if(j == 9 && sd->equip_index[8] == index) continue;
 			if(j == 5 && sd->equip_index[4] == index) continue;
 			if(j == 6 && (sd->equip_index[5] == index || sd->equip_index[4] == index)) continue;
@@ -7425,7 +7425,7 @@ int buildin_isequipped(struct script_state &st)
 			{
 			int index, type;
 			index = sd->equip_index[j];
-			if(index < 0) continue;
+			if(index >= MAX_INVENTORY) continue;
 			if(j == 9 && sd->equip_index[8] == index) continue;
 			if(j == 5 && sd->equip_index[4] == index) continue;
 			if(j == 6 && (sd->equip_index[5] == index || sd->equip_index[4] == index)) continue;

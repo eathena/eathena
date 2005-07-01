@@ -620,7 +620,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	for(i=0;i<10;i++)
 	{	//We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
 		current_equip_item_index = index = sd.equip_index[i]; 
-		if(index < 0)
+		if(index >= MAX_INVENTORY)
 			continue;
 		if(i == 9 && sd.equip_index[8] == index)
 			continue;
@@ -685,7 +685,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	// ?備品によるステ?タス?化はここで?行
 	for(i=0;i<10;i++) {
 		current_equip_item_index = index = sd.equip_index[i]; //We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
-		if(index < 0)
+		if(index >=MAX_INVENTORY)
 			continue;
 		if(i == 9 && sd.equip_index[8] == index)
 			continue;
@@ -740,9 +740,10 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		}
 	}
 
-	if(sd.equip_index[10] >= 0){ // 矢
+	if(sd.equip_index[10] < MAX_INVENTORY){ // 矢
 		index = sd.equip_index[10];
-		if(sd.inventory_data[index]){		// Arrows
+		if(sd.inventory_data[index])
+		{	// Arrows
 			sd.state.lr_flag = 2;
 			run_script(sd.inventory_data[index]->equip_script,0,sd.bl.id,0);
 			sd.state.lr_flag = 0;
@@ -951,10 +952,8 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	for(i=0;i<6;i++)
 		if(sd.paramc[i] < 0) sd.paramc[i] = 0;
 
-	{
-		if (sd.sc_data[SC_CURSE].timer!=-1)
-			sd.paramc[5] = 0;
-	}
+	if (sd.sc_data[SC_CURSE].timer!=-1)
+		sd.paramc[5] = 0;
 
 	if(sd.status.weapon == 11 || sd.status.weapon == 13 || sd.status.weapon == 14) {
 		str = sd.paramc[4];
@@ -996,25 +995,39 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	if(sd.flee2 < 10) sd.flee2 = 10;
 	if(sd.def_rate != 100)
 		sd.def = (sd.def*sd.def_rate)/100;
-//	if(sd.def < 0) sd.def = 0;
 	if(sd.def2_rate != 100)
 		sd.def2 = (sd.def2*sd.def2_rate)/100;
 	if(sd.def2 < 1) sd.def2 = 1;
 	if(sd.mdef_rate != 100)
 		sd.mdef = (sd.mdef*sd.mdef_rate)/100;
-//	if(sd.mdef < 0) sd.mdef = 0;
 	if(sd.mdef2_rate != 100)
 		sd.mdef2 = (sd.mdef2*sd.mdef2_rate)/100;
 	if(sd.mdef2 < 1) sd.mdef2 = 1;
 
 	// 二刀流 ASPD 修正
 	if (sd.status.weapon <= 16)
-		sd.aspd += aspd_base[s_class.job][sd.status.weapon]-(sd.paramc[1]*4+sd.paramc[4])*aspd_base[s_class.job][sd.status.weapon]/1000;
+	{
+		int ofs = (sd.paramc[1]*4+sd.paramc[4])*aspd_base[s_class.job][sd.status.weapon]/1000;
+		sd.aspd += aspd_base[s_class.job][sd.status.weapon];
+		if( sd.aspd>10+ofs )
+			sd.aspd-=ofs;
+		else
+			sd.aspd = 10; // minimum	
+	}
 	else
-		sd.aspd += (
-			(aspd_base[s_class.job][sd.weapontype1]-(sd.paramc[1]*4+sd.paramc[4])*aspd_base[s_class.job][sd.weapontype1]/1000) +
-			(aspd_base[s_class.job][sd.weapontype2]-(sd.paramc[1]*4+sd.paramc[4])*aspd_base[s_class.job][sd.weapontype2]/1000)
+	{
+		int ofs = 
+			(
+			 (-aspd_base[s_class.job][sd.weapontype1]+(sd.paramc[1]*4+sd.paramc[4])*aspd_base[s_class.job][sd.weapontype1]/1000) +
+			 (-aspd_base[s_class.job][sd.weapontype2]+(sd.paramc[1]*4+sd.paramc[4])*aspd_base[s_class.job][sd.weapontype2]/1000)
 			) * 140 / 200;
+
+		if( sd.aspd>10+ofs )
+			sd.aspd-=ofs;
+		else
+			sd.aspd = 10; // minimum	
+
+	}
 
 	aspd_rate = sd.aspd_rate;
 
@@ -1173,7 +1186,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	if(sd.sc_data[SC_IMPOSITIO].timer!=-1)	{// インポシティオマヌス
 		sd.right_weapon.watk += sd.sc_data[SC_IMPOSITIO].val1*5;
 		index = sd.equip_index[8];
-		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
+		if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
 			sd.left_weapon.watk += sd.sc_data[SC_IMPOSITIO].val1*5;
 	}
 	if(sd.sc_data[SC_PROVOKE].timer!=-1){	// プロボック
@@ -1181,7 +1194,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		sd.base_atk = sd.base_atk*(100+2*sd.sc_data[SC_PROVOKE].val1)/100;
 		sd.right_weapon.watk = sd.right_weapon.watk*(100+2*sd.sc_data[SC_PROVOKE].val1)/100;
 		index = sd.equip_index[8];
-		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
+		if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
 			sd.left_weapon.watk = sd.left_weapon.watk*(100+2*sd.sc_data[SC_PROVOKE].val1)/100;
 	}
 	if(sd.sc_data[SC_ENDURE].timer!=-1)
@@ -1200,22 +1213,22 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		sd.base_atk = sd.base_atk*75/100;
 		sd.right_weapon.watk = sd.right_weapon.watk*75/100;
 		index = sd.equip_index[8];
-		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
+		if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
 			sd.left_weapon.watk = sd.left_weapon.watk*75/100;
 	}
 	if(sd.sc_data[SC_DRUMBATTLE].timer!=-1){	// ?太鼓の響き
 		sd.right_weapon.watk += sd.sc_data[SC_DRUMBATTLE].val2;
 		sd.def  += sd.sc_data[SC_DRUMBATTLE].val3;
 		index = sd.equip_index[8];
-		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
+		if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
 			sd.left_weapon.watk += sd.sc_data[SC_DRUMBATTLE].val2;
 	}
 	if(sd.sc_data[SC_NIBELUNGEN].timer!=-1) {	// ニ?ベルングの指輪
 		index = sd.equip_index[9];
-		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->wlv == 4)
+		if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->wlv == 4)
 			sd.right_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].val3;
 		index = sd.equip_index[8];
-		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->wlv == 4)
+		if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->wlv == 4)
 			sd.left_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].val3;
 	}
 
@@ -1231,7 +1244,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	if(sd.sc_data[SC_CONCENTRATION].timer!=-1){ //コンセントレ?ション
 		sd.right_weapon.watk = sd.right_weapon.watk * (100 + 5*sd.sc_data[SC_CONCENTRATION].val1)/100;
 		index = sd.equip_index[8];
-		if(index >= 0 && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
+		if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->type == 4)
 			sd.left_weapon.watk = sd.left_weapon.watk * (100 + 5*sd.sc_data[SC_CONCENTRATION].val1)/100;
 		sd.def = sd.def * (100 - 10*sd.sc_data[SC_CONCENTRATION].val1)/100;
 	}
@@ -1498,10 +1511,11 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		sd.aspd = sd.aspd*aspd_rate/100;
 	if(pc_isriding(sd))							// 騎兵修練
 		sd.aspd = sd.aspd*(100 + 10*(5 - pc_checkskill(sd,KN_CAVALIERMASTERY)))/ 100;
-	if(sd.aspd < battle_config.max_aspd) sd.aspd = battle_config.max_aspd;
+	if(sd.aspd < battle_config.max_aspd_val) sd.aspd = battle_config.max_aspd_val;
 	sd.amotion = sd.aspd;
-	sd.dmotion = 800-sd.paramc[1]*4;
-	if(sd.dmotion<400)
+	if( sd.paramc[1] < 100 )
+		sd.dmotion = 800-sd.paramc[1]*4;
+	else
 		sd.dmotion = 400;
 	if(sd.skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0) {
 		sd.prev_speed = sd.speed;
@@ -2001,7 +2015,9 @@ int status_get_agi(struct block_list *bl)
 			if(sc_data[SC_CONCENTRATE].timer!=-1 && sc_data[SC_QUAGMIRE].timer == -1)
 				agi += agi * (2 + sc_data[SC_CONCENTRATE].val1)/100;
 			if(sc_data[SC_DECREASEAGI].timer!=-1)	// 速度減少
-				agi -= 2 + sc_data[SC_DECREASEAGI].val1;
+			{
+				agi -= 2+sc_data[SC_DECREASEAGI].val1;
+			}
 			if(sc_data[SC_QUAGMIRE].timer!=-1 ) {	// クァグマイア
 				//agi >>= 1;
 				//int agib = agi*(sc_data[SC_QUAGMIRE].val1*10)/100;

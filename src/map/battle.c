@@ -777,7 +777,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 			if(flee < 1) flee = 1;
 		}
 	}
-	hitrate=status_get_hit(src) - flee + 80;
+	hitrate = status_get_hit(src) - flee + 80;
 
 	type=0;	// normal
 	if (skill_num > 0) {
@@ -1190,8 +1190,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 	return wd;
 }
 
-static struct Damage battle_calc_mob_weapon_attack(
-	struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int wflag)
+struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int wflag)
 {
 	struct map_session_data *tsd=NULL;
 	struct mob_data* md=(struct mob_data *)src,*tmd=NULL;
@@ -1899,9 +1898,9 @@ static struct Damage battle_calc_pc_weapon_attack(
 
 	atkmin = atkmin_ = dex; //最低ATKはDEXで初期化？
 	sd->state.arrow_atk = 0; //arrow_atk初期化
-	if(sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]])
+	if(sd->equip_index[9] < MAX_INVENTORY && sd->inventory_data[sd->equip_index[9]])
 		atkmin = atkmin*(80 + sd->inventory_data[sd->equip_index[9]]->wlv*20)/100;
-	if(sd->equip_index[8] >= 0 && sd->inventory_data[sd->equip_index[8]])
+	if(sd->equip_index[8] < MAX_INVENTORY && sd->inventory_data[sd->equip_index[8]])
 		atkmin_ = atkmin_*(80 + sd->inventory_data[sd->equip_index[8]]->wlv*20)/100;
 	if(sd->status.weapon == 11) { //武器が弓矢の場合
 		atkmin = watk * ((atkmin<watk)? atkmin:watk)/100; //弓用最低ATK計算
@@ -2519,7 +2518,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 		damage2 += status_get_atk_2(src);
 	}
 	if(skill_num == CR_SHIELDBOOMERANG || skill_num == PA_SHIELDCHAIN) {
-		if(sd->equip_index[8] >= 0) {
+		if(sd->equip_index[8] < MAX_INVENTORY) {
 			int index = sd->equip_index[8];
 			if(sd->inventory_data[index] && sd->inventory_data[index]->type == 5) {
 				damage += sd->inventory_data[index]->weight/10;
@@ -2528,7 +2527,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 		}
 	}
 	else if(skill_num == LK_SPIRALPIERCE) {			/* スパイラルピアース */
-		if(sd->equip_index[9] >= 0) {	//重量で追加ダメージらしいのでシールドブーメランを参考に追加
+		if(sd->equip_index[9] < MAX_INVENTORY) {	//重量で追加ダメージらしいのでシールドブーメランを参考に追加
 			int index = sd->equip_index[9];
 			if(sd->inventory_data[index] && sd->inventory_data[index]->type == 4) {
 				damage += (sd->inventory_data[index]->weight*(skill_lv*4*4/10/5));
@@ -2891,8 +2890,7 @@ static struct Damage battle_calc_pc_weapon_attack(
  * battle_calc_weapon_attack_sub (by Skotlex)
  *------------------------------------------
  */
-static struct Damage battle_calc_weapon_attack_sub(
-	struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int wflag)
+struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int wflag)
 {
 	struct map_session_data *sd=NULL, *tsd=NULL;
 	struct mob_data *md=NULL, *tmd=NULL;
@@ -3353,7 +3351,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					{	//Normal attacks
 						atkmin = atkmin_ = status_get_dex(src);
 						
-						if (sd->equip_index[9] >= 0 && sd->inventory_data[sd->equip_index[9]])
+						if (sd->equip_index[9] < MAX_INVENTORY && sd->inventory_data[sd->equip_index[9]])
 							atkmin = atkmin*(80 + sd->inventory_data[sd->equip_index[9]]->wlv*20)/100;
 						
 						if (atkmin > atkmax)
@@ -3361,7 +3359,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 						
 						if(flag.lh)
 						{
-							if (sd->equip_index[8] >= 0 && sd->inventory_data[sd->equip_index[8]])
+							if (sd->equip_index[8] < MAX_INVENTORY && sd->inventory_data[sd->equip_index[8]])
 								atkmin_ = atkmin_*(80 + sd->inventory_data[sd->equip_index[8]]->wlv*20)/100;
 						
 							if (atkmin_ > atkmax_)
@@ -3719,7 +3717,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 						break;
 					case CR_SHIELDBOOMERANG:
 					case PA_SHIELDCHAIN:
-						if ((index = sd->equip_index[8]) >= 0 &&
+						if ((index = sd->equip_index[8]) < MAX_INVENTORY &&
 							sd->inventory_data[index] &&
 							sd->inventory_data[index]->type == 5)
 						{
@@ -3728,7 +3726,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 						}
 						break;
 					case LK_SPIRALPIERCE:
-						if ((index = sd->equip_index[9]) >= 0 &&
+						if ((index = sd->equip_index[9]) < MAX_INVENTORY &&
 							sd->inventory_data[index] &&
 							sd->inventory_data[index]->type == 4)
 						{
@@ -4091,8 +4089,7 @@ static struct Damage battle_calc_weapon_attack_sub(
  * 武器ダメージ計算
  *------------------------------------------
  */
-struct Damage battle_calc_weapon_attack(
-	struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int wflag)
+struct Damage battle_calc_weapon_attack(struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int wflag)
 {
 	struct Damage wd;
 
@@ -4756,7 +4753,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 	{	// 攻撃対象となりうるので攻撃
 		if(sd && sd->status.weapon == 11)
 		{
-			if(sd->equip_index[10] >= 0)
+			if(sd->equip_index[10] < MAX_INVENTORY)
 			{
 				if(battle_config.arrow_decrement)
 					pc_delitem(*sd,sd->equip_index[10],1,0);
@@ -5741,6 +5738,7 @@ void battle_set_defaults()
 	battle_config.mail_system = 0;
 	battle_config.making_arrow_name_input = 1;
 	battle_config.max_aspd = 199;
+	battle_config.max_aspd_val=10;
 	battle_config.max_cart_weight = 8000;
 	battle_config.max_cloth_color = 4;
 	battle_config.max_hair_color = 9;
@@ -5799,7 +5797,7 @@ void battle_set_defaults()
 	battle_config.natural_heal_weight_rate=50;
 	battle_config.natural_healhp_interval=6000;
 	battle_config.natural_healsp_interval=8000;
-	battle_config.new_attack_function = 1; //This is for test/debug purposes [Skotlex]
+	battle_config.new_attack_function = 0; //This is for test/debug purposes [Skotlex]
 	battle_config.night_at_start = 0; // added by [Yor]
 	battle_config.night_darkness_level = 9;
 	battle_config.night_duration = 30*60*1000; // added by [Yor] (30 minutes)
@@ -5891,7 +5889,8 @@ void battle_set_defaults()
 	battle_config.zeny_penalty=0;
 }
 
-void battle_validate_conf() {
+void battle_validate_conf()
+{
 	if(battle_config.flooritem_lifetime < 1000)
 		battle_config.flooritem_lifetime = LIFETIME_FLOORITEM*1000;
 	if(battle_config.restart_hp_rate > 100)
@@ -5913,11 +5912,14 @@ void battle_validate_conf() {
 		battle_config.monster_max_aspd = 10;
 	if(battle_config.monster_max_aspd > 1000)
 		battle_config.monster_max_aspd = 1000;
-	battle_config.max_aspd = 2000 - battle_config.max_aspd*10;
-	if(battle_config.max_aspd < 10)
-		battle_config.max_aspd = 10;
-	if(battle_config.max_aspd > 1000)
-		battle_config.max_aspd = 1000;
+
+	if(battle_config.max_aspd>199)
+		battle_config.max_aspd_val = 10;
+	else if(battle_config.max_aspd<100)
+		battle_config.max_aspd_val = 1000;
+	else
+		battle_config.max_aspd_val = 2000 - battle_config.max_aspd*10;
+
 	if(battle_config.hp_rate < 1)
 		battle_config.hp_rate = 1;
 	if(battle_config.sp_rate < 1)

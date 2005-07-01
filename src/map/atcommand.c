@@ -545,11 +545,11 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Rates,				"@rates",			10, atcommand_rates }, // MouseJstr
 	{ AtCommand_BattleOption,		"@battleoption",	40, atcommand_battleoption }, // MouseJstr
 	{ AtCommand_ItemInfo,			"@iteminfo",		1, atcommand_iteminfo }, // [Lupus]
-	{ AtCommand_ItemInfo,			"@ii",		1, atcommand_iteminfo }, // [Lupus]
-	{ AtCommand_MapFlag,			"@mapflag",		99, atcommand_mapflag }, // [Lupus]
+	{ AtCommand_ItemInfo,			"@ii",				1, atcommand_iteminfo }, // [Lupus]
+	{ AtCommand_MapFlag,			"@mapflag",			99, atcommand_mapflag }, // [Lupus]
 
-	{ AtCommand_Me,				"@me",			20, atcommand_me }, //added by massdriller, code by lordalfa
-	{ AtCommand_FakeName,				"@fakename",			20, atcommand_fakename },
+	{ AtCommand_Me,					"@me",				20, atcommand_me }, //added by massdriller, code by lordalfa
+	{ AtCommand_FakeName,			"@fakename",		20, atcommand_fakename },
 	{ AtCommand_Size,				"@size",			20, atcommand_size },
 
 
@@ -1818,7 +1818,7 @@ bool atcommand_option(int fd, struct map_session_data &sd, const char* command, 
 	}
 	sd.status.option = param3;
 	// fix pecopeco display
-	if (sd.status.class_ == 13 || sd.status.class_ == 21 || sd.status.class_ == 4014 || sd.status.class_ == 4022) {
+	if (sd.status.class_ == 13 || sd.status.class_ == 21 || sd.status.class_ == 4014 || sd.status.class_ == 4022 || sd.status.class_ == 4030 || sd.status.class_ == 4036 || sd.status.class_ == 4037 || sd.status.class_ == 4044) {
 		if (!pc_isriding(sd)) { // sd have the new value...
 			if (sd.status.class_ == 13)
 				sd.status.class_ = sd.view_class = 7;
@@ -1828,19 +1828,27 @@ bool atcommand_option(int fd, struct map_session_data &sd, const char* command, 
 				sd.status.class_ = sd.view_class = 4008;
 			else if (sd.status.class_ == 4022)
 				sd.status.class_ = sd.view_class = 4015;
+			else if (sd.status.class_ == 4036) //baby Knight
+				sd.status.class_ = sd.view_class = 4030;
+			else if (sd.status.class_ == 4044) //baby Crusader
+				sd.status.class_ = sd.view_class = 4037;
 		}
 	} else {
 		if (pc_isriding(sd)) { // sd have the new value...
-				if (sd.status.class_ == 7)
-					sd.status.class_ = sd.view_class = 13;
-				else if (sd.status.class_ == 14)
-					sd.status.class_ = sd.view_class = 21;
-				else if (sd.status.class_ == 4008)
-					sd.status.class_ = sd.view_class = 4014;
-				else if (sd.status.class_ == 4015)
-					sd.status.class_ = sd.view_class = 4022;
-				else
-					sd.status.option &= ~0x0020;
+			if (sd.status.class_ == 7)
+				sd.status.class_ = sd.view_class = 13;
+			else if (sd.status.class_ == 14)
+				sd.status.class_ = sd.view_class = 21;
+			else if (sd.status.class_ == 4008)
+				sd.status.class_ = sd.view_class = 4014;
+			else if (sd.status.class_ == 4015)
+				sd.status.class_ = sd.view_class = 4022;
+			else if (sd.status.class_ == 4030) //baby Knight
+				sd.status.class_ = sd.view_class = 4036;
+			else if (sd.status.class_ == 4037) //baby Crusader
+				sd.status.class_ = sd.view_class = 4044;
+			else
+				sd.status.option &= ~0x0020;
 
 			}
 		}
@@ -1974,7 +1982,7 @@ bool atcommand_jobchange(int fd, struct map_session_data &sd, const char* comman
 		int j;
 
 		// fix pecopeco display
-		if ((job != 13 && job != 21 && job != 4014 && job != 4022)) {
+		if ((job != 13 && job != 21 && job != 4014 && job != 4022 && job != 4030 && job != 4036 && job != 4037 && job != 4044 )) {
 			if (pc_isriding(sd)) {
 				if (sd.status.class_ == 13)
 					sd.status.class_ = sd.view_class = 7;
@@ -1984,6 +1992,10 @@ bool atcommand_jobchange(int fd, struct map_session_data &sd, const char* comman
 					sd.status.class_ = sd.view_class = 4008;
 				if (sd.status.class_ == 4022)
 					sd.status.class_ = sd.view_class = 4015;
+				if (sd.status.class_ == 4036)
+					sd.status.class_ = sd.view_class = 4030;
+				if (sd.status.class_ == 4044)
+					sd.status.class_ = sd.view_class = 4037;
 				sd.status.option &= ~0x0020;
 				clif_changeoption(sd.bl);
 				status_calc_pc(sd, 0);
@@ -1998,6 +2010,10 @@ bool atcommand_jobchange(int fd, struct map_session_data &sd, const char* comman
 					job = 4008;
 				if (job == 4022)
 					job = 4015;
+				if (job == 4036)
+					job = 4030;
+				if (job == 4044)
+					job = 4037;
 			}
 		}
 		for (j=0; j < MAX_INVENTORY; j++) {
@@ -5631,7 +5647,7 @@ bool atcommand_mount_peco(int fd, struct map_session_data &sd, const char* comma
 	
 
 	if (!pc_isriding(sd)) { // if actually no peco
-		if (sd.status.class_ == 7 || sd.status.class_ == 14 || sd.status.class_ == 4008 || sd.status.class_ == 4015) {
+		if (sd.status.class_ == 7 || sd.status.class_ == 14 || sd.status.class_ == 4008 || sd.status.class_ == 4015 || sd.status.class_ == 4030 || sd.status.class_ == 4036 || sd.status.class_ == 4037 || sd.status.class_ == 4044) {
 			if (sd.status.class_ == 7)
 				sd.status.class_ = sd.view_class = 13;
 			else if (sd.status.class_ == 14)
@@ -5640,6 +5656,10 @@ bool atcommand_mount_peco(int fd, struct map_session_data &sd, const char* comma
 				sd.status.class_ = sd.view_class = 4014;
 			else if (sd.status.class_ == 4015)
 				sd.status.class_ = sd.view_class = 4022;
+			else if (sd.status.class_ == 4030) //baby Knight
+				sd.status.class_ = sd.view_class = 4036;
+			else if (sd.status.class_ == 4037) //baby Crusader
+				sd.status.class_ = sd.view_class = 4044;
 			pc_setoption(sd, sd.status.option | 0x0020);
 			clif_displaymessage(fd, msg_table[102]); // Mounted Peco.
 		} else {
@@ -5655,6 +5675,11 @@ bool atcommand_mount_peco(int fd, struct map_session_data &sd, const char* comma
 			sd.status.class_ = sd.view_class = 4008;
 		else if (sd.status.class_ == 4022)
 			sd.status.class_ = sd.view_class = 4015;
+		else if (sd.status.class_ == 4036) //baby Knight
+			sd.status.class_ = sd.view_class = 4030;
+		else if (sd.status.class_ == 4044) //baby Crusader
+			sd.status.class_ = sd.view_class = 4037;
+
 		pc_setoption(sd, sd.status.option & ~0x0020);
 		clif_displaymessage(fd, msg_table[214]); // Unmounted Peco.
 	}
@@ -5679,7 +5704,7 @@ bool atcommand_char_mount_peco(int fd, struct map_session_data &sd, const char* 
 
 	if((pl_sd = map_nick2sd(player_name)) != NULL) {
 		if (!pc_isriding(*pl_sd)) { // if actually no peco
-			if (pl_sd->status.class_ == 7 || pl_sd->status.class_ == 14 || pl_sd->status.class_ == 4008 || pl_sd->status.class_ == 4015) {
+			if (pl_sd->status.class_ == 7 || pl_sd->status.class_ == 14 || pl_sd->status.class_ == 4008 || pl_sd->status.class_ == 4015 || pl_sd->status.class_ == 4030 || pl_sd->status.class_ == 4036 || pl_sd->status.class_ == 4037 || pl_sd->status.class_ == 4044) {
 				if (pl_sd->status.class_ == 7)
 					pl_sd->status.class_ = pl_sd->view_class = 13;
 				else if (pl_sd->status.class_ == 14)
@@ -5688,6 +5713,10 @@ bool atcommand_char_mount_peco(int fd, struct map_session_data &sd, const char* 
 					pl_sd->status.class_ = pl_sd->view_class = 4014;
 				else if (pl_sd->status.class_ == 4015)
 					pl_sd->status.class_ = pl_sd->view_class = 4022;
+				else if (pl_sd->status.class_ == 4030) //baby Knight
+					pl_sd->status.class_ = pl_sd->view_class = 4036;
+				else if (pl_sd->status.class_ == 4037) //baby Crusader
+					pl_sd->status.class_ = pl_sd->view_class = 4044;
 				pc_setoption(*pl_sd, pl_sd->status.option | 0x0020);
 				clif_displaymessage(fd, msg_table[216]); // Now, this player mounts a peco.
 			} else {
@@ -5703,6 +5732,10 @@ bool atcommand_char_mount_peco(int fd, struct map_session_data &sd, const char* 
 				pl_sd->status.class_ = pl_sd->view_class = 4008;
 			else if (pl_sd->status.class_ == 4022)
 				pl_sd->status.class_ = pl_sd->view_class = 4015;
+			else if (pl_sd->status.class_ == 4036) //baby Knight
+				pl_sd->status.class_ = pl_sd->view_class = 4030;
+			else if (pl_sd->status.class_ == 4044) //baby Crusader
+				pl_sd->status.class_ = pl_sd->view_class = 4037;
 			pc_setoption(*pl_sd, pl_sd->status.option & ~0x0020);
 			clif_displaymessage(fd, msg_table[218]); // Now, this player has not more peco.
 		}

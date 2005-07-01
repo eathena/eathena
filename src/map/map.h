@@ -270,9 +270,9 @@ struct map_session_data
 	unsigned long login_id2;
 
 	struct item_data *inventory_data[MAX_INVENTORY];
-	short itemindex;
+	unsigned short itemindex;
 
-	short equip_index[MAX_EQUIP];
+	unsigned short equip_index[MAX_EQUIP];
 	unsigned short unbreakable_equip;
 	unsigned short unbreakable;	// chance to prevent equipment breaking [celest]
 
@@ -295,7 +295,6 @@ struct map_session_data
 	unsigned char dir;
 	unsigned char head_dir;
 	unsigned long client_tick;
-	unsigned long server_tick;
 	struct walkpath_data walkpath;
 	int walktimer;
 	int next_walktime;
@@ -323,18 +322,17 @@ struct map_session_data
 		char name[24];
 	} ignore[MAX_IGNORE_LIST];
 
-
-	int attacktimer;
-	unsigned long attacktarget;
 	unsigned short attacktarget_lv;
 	unsigned long attackabletime;
 
-        int followtimer; // [MouseJstr]
+	unsigned long attacktarget;	
 	unsigned long followtarget;
+	int attacktimer;
+	int followtimer; // [MouseJstr]
+	int skilltimer;
 
 	time_t emotionlasttime; // to limit flood with emotion packets
 
-	int skilltimer;
 	unsigned long skilltarget;
 	unsigned short skillx;
 	unsigned short skilly;
@@ -520,7 +518,7 @@ struct map_session_data
 	long subsize[3];
 	short unequip_losehp[11];
 	short unequip_losesp[11];
-	short itemid;
+	unsigned short itemid;
 	long itemhealrate[7];
 	//--- 03/15's new card effects
 	long expaddrace[12];

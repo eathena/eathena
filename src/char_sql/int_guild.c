@@ -49,7 +49,6 @@ int _erase_guild(void *key, void *data, va_list ap)
         aFree(castle);
         db_erase(castle_db_, key);
     }
-
     return 0;
 }
 
@@ -333,8 +332,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 	if (g != NULL)
 		return g;
 
-	g = (struct guild*)aMalloc(sizeof(struct guild));
-	memset(g,0,sizeof(struct guild));
+	g = (struct guild*)aCalloc(1,sizeof(struct guild));
 
 //	ShowMessage("Retrieve guild information from sql ......\n");
 //	ShowMessage("- Read guild %d from sql \n",guild_id);
@@ -414,12 +412,11 @@ struct guild * inter_guild_fromsql(int guild_id)
 			m->lv=atoi(sql_row[7]);
 			m->exp=atoi(sql_row[8]);
 			m->exp_payper=atoi(sql_row[9]);
-                        m->online=atoi(sql_row[10]);
-                        if (atoi(sql_row[11]) >= MAX_GUILDPOSITION) // Fix reduction of MAX_GUILDPOSITION [PoW]
-                                m->position = MAX_GUILDPOSITION - 1;
-                        else
-                                m->position = atoi(sql_row[11]);
-
+			m->online=atoi(sql_row[10]);
+			if (atoi(sql_row[11]) >= MAX_GUILDPOSITION) // Fix reduction of MAX_GUILDPOSITION [PoW]
+				m->position = MAX_GUILDPOSITION - 1;
+			else
+				m->position = atoi(sql_row[11]);
 			safestrcpy(m->name,sql_row[14],24);
 		}
 	}
@@ -497,22 +494,30 @@ struct guild * inter_guild_fromsql(int guild_id)
 		aFree(g);
 		return 0;
 	}
+	
+	for(i = 0; i < MAX_GUILDSKILL; i++)
+	{	//Skill IDs must always be initialized. [Skotlex]
+		g->skill[i].id = i + GD_SKILLBASE;
+	}
 
 	sql_res = mysql_store_result(&mysql_handle) ;
-	if (sql_res!=NULL && mysql_num_rows(sql_res)>0) {
-		int i;
-		for(i=0;((sql_row = mysql_fetch_row(sql_res))&&i<MAX_GUILDSKILL);i++){
-			g->skill[i].id=atoi(sql_row[1]);
-			g->skill[i].lv=atoi(sql_row[2]);
+	if (sql_res!=NULL && mysql_num_rows(sql_res)>0)
+	{
+		while ((sql_row = mysql_fetch_row(sql_res)))
+		{	//I know this seems ridiculous, but the skills HAVE to be placed on their 'correct' array slot or things break x.x [Skotlex]
+			int id = atoi(sql_row[1])-GD_SKILLBASE;
+			if (id >= 0 && id < MAX_GUILDSKILL)
+				g->skill[id].lv=atoi(sql_row[2]);
 		}
 	}
+
+
 	mysql_free_result(sql_res);
 //	ShowMessage("Successfully retrieve guild information from sql!\n");
 	numdb_insert(guild_db_, guild_id,g);
 	return g;
 }
 
-#if 1
 int _set_guild_castle(void *key, void *data, va_list ap) {
     unsigned short castle_id = (unsigned short)va_arg(ap, int);
     unsigned long guild_id   = va_arg(ap, unsigned long);
@@ -524,7 +529,6 @@ int _set_guild_castle(void *key, void *data, va_list ap) {
         g->castle_id = castle_id;
     return 0;
 }
-#endif
 
 int inter_guildcastle_tosql(struct guild_castle *gc)
 {
@@ -704,7 +708,15 @@ int inter_guild_sql_init()
 int guild_db_final (void *k, void *data, va_list ap)
 {
 	struct guild *g = (struct guild *)data;
-	if (g) aFree(g);
+	if(g)
+	{
+		if(g->save_timer != -1)
+		{	//Save unsaved guild data [Skotlex]
+			//delete_timer(g->save_timer,guild_save_timer);
+			inter_guild_tosql(g, g->save_flag);
+		}
+		aFree(g);
+	}
 	return 0;
 }
 int castle_db_final (void *k, void *data, va_list ap)

@@ -1008,12 +1008,12 @@ int pet_catch_process1(struct map_session_data &sd,int target_class)
 	return 0;
 }
 
-int pet_catch_process2(struct map_session_data &sd,int target_id)
+int pet_catch_process2(struct map_session_data &sd,unsigned long target_id)
 {
 	struct mob_data *md;
 	int i=0,pet_catch_rate=0;
 
-	if(sd.itemid > 0)
+	if(sd.itemid <MAX_INVENTORY)
 	{	//Consume the pet lure [Skotlex]
 		if ((i = sd.itemindex) == -1 ||
 			sd.status.inventory[i].nameid != sd.itemid ||
@@ -1026,7 +1026,7 @@ int pet_catch_process2(struct map_session_data &sd,int target_id)
 			return 1;
 		}
 		//Delete the item
-		sd.itemid = sd.itemindex = -1;
+		sd.itemid = sd.itemindex = 0xFFFF;
 		pc_delitem(sd,i,1,0);
 	}
 	

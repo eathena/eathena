@@ -741,14 +741,14 @@ int clif_set0078(struct map_session_data &sd, unsigned char *buf)
 	}
 	WBUFW(buf,14)=sd.view_class;
 	WBUFW(buf,16)=sd.status.hair;
-	if (sd.equip_index[9] >= 0 && sd.inventory_data[sd.equip_index[9]] && sd.view_class != 22) {
+	if (sd.equip_index[9] < MAX_INVENTORY && sd.inventory_data[sd.equip_index[9]] && sd.view_class != 22) {
 		if (sd.inventory_data[sd.equip_index[9]]->view_id > 0)
 			WBUFW(buf,18) = sd.inventory_data[sd.equip_index[9]]->view_id;
 		else
 			WBUFW(buf,18) = sd.status.inventory[sd.equip_index[9]].nameid;
 	} else
 		WBUFW(buf,18) = 0;
-	if (sd.equip_index[8] >= 0 && sd.equip_index[8] != sd.equip_index[9] && sd.inventory_data[sd.equip_index[8]] && sd.view_class != 22) {
+	if (sd.equip_index[8] < MAX_INVENTORY && sd.equip_index[8] != sd.equip_index[9] && sd.inventory_data[sd.equip_index[8]] && sd.view_class != 22) {
 		if (sd.inventory_data[sd.equip_index[8]]->view_id > 0)
 			WBUFW(buf,20) = sd.inventory_data[sd.equip_index[8]]->view_id;
 		else
@@ -872,7 +872,7 @@ int clif_set007b(struct map_session_data &sd,unsigned char *buf)
 	}
 	WBUFW(buf,14)=sd.view_class;
 	WBUFW(buf,16)=sd.status.hair;
-	if(sd.equip_index[9] >= 0 && sd.inventory_data[sd.equip_index[9]] && sd.view_class != 22) {
+	if(sd.equip_index[9] < MAX_INVENTORY && sd.inventory_data[sd.equip_index[9]] && sd.view_class != 22) {
 		if(sd.inventory_data[sd.equip_index[9]]->view_id > 0)
 			WBUFW(buf,18)=sd.inventory_data[sd.equip_index[9]]->view_id;
 		else
@@ -880,7 +880,7 @@ int clif_set007b(struct map_session_data &sd,unsigned char *buf)
 	}
 	else
 		WBUFW(buf,18)=0;
-	if(sd.equip_index[8] >= 0 && sd.equip_index[8] != sd.equip_index[9] && sd.inventory_data[sd.equip_index[8]] && sd.view_class != 22) {
+	if(sd.equip_index[8] < MAX_INVENTORY && sd.equip_index[8] != sd.equip_index[9] && sd.inventory_data[sd.equip_index[8]] && sd.view_class != 22) {
 		if(sd.inventory_data[sd.equip_index[8]]->view_id > 0)
 			WBUFW(buf,20)=sd.inventory_data[sd.equip_index[8]]->view_id;
 		else
@@ -1384,12 +1384,13 @@ int clif_spawnpc(struct map_session_data &sd)
 			clif_guild_emblem(sd,*g);
 	}	// end addition [Valaris]
 
-	if (!sd.disguise_id && (sd.status.class_==13 || sd.status.class_==21 || sd.status.class_==4014 || sd.status.class_==4022))
+	if (!sd.disguise_id && (sd.status.class_==13 || sd.status.class_==21 || sd.status.class_==4014 || sd.status.class_==4022 || sd.status.class_==4036 || sd.status.class_==4044))
 		pc_setoption(sd,sd.status.option|0x0020); // [Valaris]
 
-	if ((pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0) && (sd.status.class_==7 ||
-	    sd.status.class_==14 || sd.status.class_==4008 || sd.status.class_==4015))
+	if ((pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0) && 
+		(sd.status.class_==7 || sd.status.class_==14 || sd.status.class_==4008 || sd.status.class_==4015 || sd.status.class_==4030 || sd.status.class_==4037))
 		pc_setriding(sd); // update peco riders for people upgrading athena [Valaris]
+
 
 	WFIFOW(fd,0)=0x7c;
 	WFIFOL(fd,2)=0xFFFFFFF6;//-10;
@@ -1556,14 +1557,14 @@ int clif_movenpc(struct npc_data &nd)
  *
  *------------------------------------------
  */
-int clif_servertick(struct map_session_data &sd)
+int clif_servertick(struct map_session_data &sd, unsigned long tick)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
 		return 0;
 
 	WFIFOW(fd,0)=0x7f;
-	WFIFOL(fd,2)=sd.server_tick;
+	WFIFOL(fd,2)=tick;
 	WFIFOSET(fd,packet_len_table[0x7f]);
 
 	return 0;
@@ -1580,7 +1581,7 @@ int clif_walkok(struct map_session_data &sd)
 		return 0;
 
 	WFIFOW(fd,0)=0x87;
-	WFIFOL(fd,2)=gettick();;
+	WFIFOL(fd,2)=gettick();
 	WFIFOPOS2(fd,6,sd.bl.x,sd.bl.y,sd.to_x,sd.to_y);
 	WFIFOB(fd,11)=0;
 	WFIFOSET(fd,packet_len_table[0x87]);
@@ -1704,7 +1705,7 @@ int clif_fixpos(struct block_list &bl)
 		clif_send(buf, packet_len_table[0x88], &bl, SELF);
 		
 		if(sd.disguise_id)
-		{
+		{	// reusing the buffer
 			WBUFL(buf,2)=bl.id|FLAG_DISGUISE;
 			WBUFW(buf,6)=bl.x;
 			WBUFW(buf,8)=bl.y;
@@ -2493,9 +2494,6 @@ int clif_updatestatus(struct map_session_data &sd,unsigned short type)
 	fd=sd.fd;
 	if( !session_isActive(fd) )
 		return 0;
-
-	if ( !session_isActive(fd) ) // Invalid pointer fix, by sasuke [Kevin]
-		return 0;
  
 	WFIFOW(fd,0)=0xb0;
 	WFIFOW(fd,2)=type;
@@ -2503,8 +2501,6 @@ int clif_updatestatus(struct map_session_data &sd,unsigned short type)
 		// 00b0
 	case SP_WEIGHT:
 		pc_checkweighticon(sd);
-		WFIFOW(fd,0)=0xb0;
-		WFIFOW(fd,2)=type;
 		WFIFOL(fd,4)=sd.weight;
 		break;
 	case SP_MAXWEIGHT:
@@ -2546,8 +2542,8 @@ int clif_updatestatus(struct map_session_data &sd,unsigned short type)
 		break;
 	case SP_HP:
 		WFIFOL(fd,4)=sd.status.hp;
-		if (battle_config.disp_hpmeter)
-		clif_hpmeter(sd);
+		if(battle_config.disp_hpmeter)
+			clif_hpmeter(sd);
 		break;
 	case SP_SP:
 		WFIFOL(fd,4)=sd.status.sp;
@@ -2722,13 +2718,12 @@ int clif_changelook(struct block_list &bl,unsigned char type, unsigned short val
 	if(bl->type == BL_PC)
 	{
 		struct map_session_data &sd = (struct map_session_data &)bl;
-
 		if( (type == LOOK_WEAPON || type == LOOK_SHIELD) && sd.view_class == 22 )
-		val =0;
-	WBUFW(buf,0)=0xc3;
+			val =0;
+		WBUFW(buf,0)=0xc3;
 		WBUFL(buf,2)=bl.id;
-	WBUFB(buf,6)=type;
-	WBUFB(buf,7)=val;
+		WBUFB(buf,6)=type;
+		WBUFB(buf,7)=val;
 		return clif_send(buf,packet_len_table[0xc3],&bl,AREA);
 	}
 	return 0;
@@ -2741,12 +2736,12 @@ int clif_changelook(struct block_list &bl,unsigned char type, unsigned short val
 
 		if( (type == LOOK_WEAPON || type == LOOK_SHIELD || type == LOOK_SHOES))
 		{
-		WBUFW(buf,0)=0x1d7;
+			WBUFW(buf,0)=0x1d7;
 			WBUFL(buf,2)=bl.id;
 			if(type == LOOK_SHOES)
 			{
-			WBUFB(buf,6)=9;
-				if(sd.equip_index[2] >= 0 && sd.inventory_data[sd.equip_index[2]])
+				WBUFB(buf,6)=9;
+				if(sd.equip_index[2] < MAX_INVENTORY && sd.inventory_data[sd.equip_index[2]])
 				{
 					if(sd.inventory_data[sd.equip_index[2]]->view_id > 0)
 						WBUFW(buf,7)=sd.inventory_data[sd.equip_index[2]]->view_id;
@@ -2755,48 +2750,48 @@ int clif_changelook(struct block_list &bl,unsigned char type, unsigned short val
 				}
 				else
 				WBUFW(buf,7)=0;
-			WBUFW(buf,9)=0;
-		}
+				WBUFW(buf,9)=0;
+			}
 			else
 			{
-			WBUFB(buf,6)=2;
-				if(sd.equip_index[9] >= 0 && sd.inventory_data[sd.equip_index[9]] && sd.view_class != 22)
+				WBUFB(buf,6)=2;
+				if(sd.equip_index[9] < MAX_INVENTORY && sd.inventory_data[sd.equip_index[9]] && sd.view_class != 22)
 				{
 					if(sd.inventory_data[sd.equip_index[9]]->view_id > 0)
 						WBUFW(buf,7)=sd.inventory_data[sd.equip_index[9]]->view_id;
-				else
+					else
 						WBUFW(buf,7)=sd.status.inventory[sd.equip_index[9]].nameid;
 				}
 				else
-				WBUFW(buf,7)=0;
-				if(sd.equip_index[8] >= 0 && sd.equip_index[8] != sd.equip_index[9] && 
+					WBUFW(buf,7)=0;
+				if(sd.equip_index[8] < MAX_INVENTORY && sd.equip_index[8] != sd.equip_index[9] && 
 					sd.inventory_data[sd.equip_index[8]] && sd.view_class != 22)
 				{
 					if(sd.inventory_data[sd.equip_index[8]]->view_id > 0)
 						WBUFW(buf,9)=sd.inventory_data[sd.equip_index[8]]->view_id;
-				else
+					else
 						WBUFW(buf,9)=sd.status.inventory[sd.equip_index[8]].nameid;
 				}
 				else
-				WBUFW(buf,9)=0;
-		}
+					WBUFW(buf,9)=0;
+			}
 			return clif_send(buf,packet_len_table[0x1d7],&bl,AREA);
-	}
+		}
 		else if( (type == LOOK_BASE) && (val > 255) )
 		{
-		WBUFW(buf,0)=0x1d7;
+			WBUFW(buf,0)=0x1d7;
 			WBUFL(buf,2)=bl.id;
-		WBUFB(buf,6)=type;
-		WBUFW(buf,7)=val;
-		WBUFW(buf,9)=0;
+			WBUFB(buf,6)=type;
+			WBUFW(buf,7)=val;
+			WBUFW(buf,9)=0;
 			return clif_send(buf,packet_len_table[0x1d7],&bl,AREA);
 		}
 
 	}
-		WBUFW(buf,0)=0xc3;
+	WBUFW(buf,0)=0xc3;
 	WBUFL(buf,2)=bl.id;
-		WBUFB(buf,6)=type;
-		WBUFB(buf,7)=val;
+	WBUFB(buf,6)=type;
+	WBUFB(buf,7)=val;
 	return clif_send(buf,packet_len_table[0xc3],&bl,AREA);
 
 #endif
@@ -3837,18 +3832,20 @@ int clif_damage(struct block_list &src,struct block_list &dst,unsigned long tick
 
 	if(type != 4 && dst.type == BL_PC && ((struct map_session_data &)dst).state.infinite_endure)
 		type = 9;
-	if(sc_data) {
-		if(type != 4 && sc_data[SC_ENDURE].timer != -1 &&
-			(dst.type == BL_PC && !map[dst.m].flag.gvg))
+	if(sc_data)
+	{
+		if( type != 4 && sc_data[SC_ENDURE].timer != -1 && 
+			dst.type == BL_PC && !map[dst.m].flag.gvg )
 			type = 9;
-		if(sc_data[SC_HALLUCINATION].timer != -1) {
+		if(sc_data[SC_HALLUCINATION].timer != -1)
+		{
 			if(damage > 0)
 				damage = damage*(5+sc_data[SC_HALLUCINATION].val1) + rand()%100;
 			if(damage2 > 0)
 				damage2 = damage2*(5+sc_data[SC_HALLUCINATION].val1) + rand()%100;
 		}
 	}
-
+	
 	WBUFW(buf,0)=0x8a;
 	if(src.type==BL_PC && ((struct map_session_data &)src).disguise_id)
 		WBUFL(buf,2)=src.id|FLAG_DISGUISE;
@@ -3861,7 +3858,7 @@ int clif_damage(struct block_list &src,struct block_list &dst,unsigned long tick
 	WBUFL(buf,10)=tick;
 	WBUFL(buf,14)=sdelay;
 	WBUFL(buf,18)=ddelay;
-	WBUFW(buf,22)=(damage > 0x7fff)? 0x7fff:damage;
+	WBUFW(buf,22)=(damage > 0x7fff)?0x7fff:damage;
 	WBUFW(buf,24)=div;
 	WBUFB(buf,26)=type;
 	WBUFW(buf,27)=damage2;
@@ -3870,27 +3867,26 @@ int clif_damage(struct block_list &src,struct block_list &dst,unsigned long tick
 	if( (src.type==BL_PC && ((struct map_session_data &)src).disguise_id) || 
 		(dst.type==BL_PC && ((struct map_session_data &)dst).disguise_id) )
 	{
-		unsigned char buf2[256];
-		WBUFW(buf2,0)=0x8a;
+		WBUFW(buf,0)=0x8a;
 		if(src.type==BL_PC && ((struct map_session_data &)src).disguise_id)
-			WBUFL(buf2,2)=src.id|FLAG_DISGUISE;
+			WBUFL(buf,2)=src.id|FLAG_DISGUISE;
 		else 
-			WBUFL(buf2,2)=src.id;
+			WBUFL(buf,2)=src.id;
 		if(dst.type==BL_PC && ((struct map_session_data &)dst).disguise_id)
-			WBUFL(buf2,6)=dst.id|FLAG_DISGUISE;
+			WBUFL(buf,6)=dst.id|FLAG_DISGUISE;
 		else 
-			WBUFL(buf2,6)=dst.id;
-		WBUFL(buf2,10)=tick;
-		WBUFL(buf2,14)=sdelay;
-		WBUFL(buf2,18)=ddelay;
+			WBUFL(buf,6)=dst.id;
+		WBUFL(buf,10)=tick;
+		WBUFL(buf,14)=sdelay;
+		WBUFL(buf,18)=ddelay;
 		if(damage > 0)
-			WBUFW(buf2,22)=0xFFFF;
+			WBUFW(buf,22)=0xFFFF;
 		else
-			WBUFW(buf2,22)=0;
-		WBUFW(buf2,24)=div;
-		WBUFB(buf2,26)=type;
-		WBUFW(buf2,27)=0;
-		clif_send(buf2,packet_len_table[0x8a],&src,AREA);
+			WBUFW(buf,22)=0;
+		WBUFW(buf,24)=div;
+		WBUFB(buf,26)=type;
+		WBUFW(buf,27)=0;
+		clif_send(buf,packet_len_table[0x8a],&src,AREA);
 	}
 
 	return 0;
@@ -4138,12 +4134,12 @@ int clif_pcoutsight(struct block_list &bl,va_list ap)
 		struct map_session_data &dstsd = (struct map_session_data&)bl;
 		if(sd->bl.id != dstsd.bl.id)
 		{
-			clif_clearchar_id(dstsd.bl.id,0,sd->fd);
-			clif_clearchar_id(sd->bl.id,0,dstsd.fd);
+			clif_clearchar_id(dstsd.bl.id,sd->fd,0);
+			clif_clearchar_id(sd->bl.id,dstsd.fd,0);
 			if(dstsd.disguise_id || sd->disguise_id)
 			{
-				clif_clearchar_id(dstsd.bl.id|FLAG_DISGUISE,0,sd->fd);
-				clif_clearchar_id(sd->bl.id|FLAG_DISGUISE,0,dstsd.fd);
+				clif_clearchar_id(dstsd.bl.id|FLAG_DISGUISE,sd->fd,0);
+				clif_clearchar_id(sd->bl.id|FLAG_DISGUISE,dstsd.fd,0);
 			}
 
 
@@ -6513,16 +6509,15 @@ int clif_guild_memberlogin_notice(struct guild &g,unsigned long idx,unsigned lon
  */
 int clif_guild_masterormember(struct map_session_data &sd)
 {
-	int type=0x57,fd;
+	int type=0x57; // member
 	struct guild *g;
-
-	fd=sd.fd;
+	int fd=sd.fd;
 	if( !session_isActive(fd) )
 		return 0;
 
 	g=guild_search(sd.status.guild_id);
 	if(g!=NULL && strcmp(g->master,sd.status.name)==0)
-		type=0xd7;
+		type=0xd7; // master
 	WFIFOW(fd,0)=0x14e;
 	WFIFOL(fd,2)=type;
 	WFIFOSET(fd,packet_len_table[0x14e]);
@@ -7265,7 +7260,7 @@ int clif_disp_onlyself(struct map_session_data &sd, const char *mes)
 		int len = strlen(mes)+1;
 		if(len>512-4) len=512-4; // max buffer limit
 
-	WBUFW(buf, 0) = 0x17f;
+		WBUFW(buf, 0) = 0x17f;
 		WBUFW(buf, 2) = len+4;
 		memcpy(WBUFP(buf,4), mes, len);
 
@@ -7947,8 +7942,7 @@ int clif_parse_TickSend(int fd, struct map_session_data &sd)
 		}
 	}
 
-	sd.server_tick = gettick();
-	return clif_servertick(sd);
+	return clif_servertick(sd, gettick());
 }
 
 /*==========================================
@@ -9289,6 +9283,12 @@ int clif_parse_RemoveOption(int fd,struct map_session_data &sd)
 
 		if(sd.status.class_==4022)
 			sd.status.class_=sd.view_class=4015;
+
+		if(sd.status.class_==4036)
+			sd.status.class_=sd.view_class=4030;
+
+		if(sd.status.class_==4044)
+			sd.status.class_=sd.view_class=4037;
 	}
 
 	pc_setoption(sd,0);
@@ -11568,7 +11568,7 @@ int clif_parse(int fd)
 	while(session_isActive(fd) && RFIFOREST(fd) >= 2)
 	{
 		cmd = RFIFOW(fd,0);
-		//ShowMessage("clif_parse: connection #%d, packet: 0x%x (with being read: %d bytes(&i)).\n", fd, cmd, RFIFOREST(fd), RFIFOW(fd,2));
+		//ShowMessage("clif_parse: connection #%d, packet: 0x%x (with being read: %d bytes(%i)).\n", fd, cmd, RFIFOREST(fd), (unsigned short)RFIFOW(fd,2));
 		// 管理用パケット処理
 		if (cmd >= 30000)
 		{

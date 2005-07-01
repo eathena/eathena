@@ -47,7 +47,7 @@ int pet_birth_process(struct map_session_data &sd);
 int pet_recv_petdata(unsigned long account_id,struct s_pet &p,int flag);
 int pet_select_egg(struct map_session_data &sd,short egg_index);
 int pet_catch_process1(struct map_session_data &sd,int target_class);
-int pet_catch_process2(struct map_session_data &sd,int target_id);
+int pet_catch_process2(struct map_session_data &sd,unsigned long target_id);
 int pet_get_egg(unsigned long account_id,unsigned long pet_id,int flag);
 int pet_menu(struct map_session_data &sd,int menunum);
 int pet_change_name(struct map_session_data &sd, const char *name);

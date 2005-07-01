@@ -209,6 +209,7 @@ struct Battle_Config
 	ulong mail_system; // [Valaris]
 	ulong making_arrow_name_input;
 	ulong max_aspd;
+	ulong max_aspd_val; // not writable
 	ulong max_cart_weight;
 	ulong max_cloth_color; // added by [MouseJstr]
 	ulong max_hair_color; // added by [MouseJstr]
