@@ -1,4 +1,6 @@
 Date	Added
+07/02
+	* Massive cards update (also thx 2Landarma) [Lupus] read db\changelog.txt
 07/01
 	* Fixed being able to steal from Treasure Box #1 [Skotlex]
 	* Char-sql server now uses autosave_interval to decide when to save a
