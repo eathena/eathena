@@ -738,7 +738,15 @@ int inter_guild_sql_init()
 int guild_db_final (void *k, void *data, va_list ap)
 {
 	struct guild *g = (struct guild *) data;
-	if (g) aFree(g);
+	if (g)
+	{
+		if (g->save_timer != -1)
+		{	//Save unsaved guild data [Skotlex]
+			delete_timer(g->save_timer,guild_save_timer);
+			inter_guild_tosql(g, g->save_flag);
+		}
+		aFree(g);
+	}
 	return 0;
 }
 int castle_db_final (void *k, void *data, va_list ap)

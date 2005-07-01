@@ -1,5 +1,7 @@
 Date	Added
 07/01
+	* Fixed 'unclean' guilds not getting saved on char-sql shutdown. [Skotlex]
+	* Corrected map-length calculations when auto-adding .gat (#/@ commands) [Skotlex]
 	* Fixed guild-skill sql loading. [Skotlex]
 	* Added battle_config option guild_exp_rate to adjust taxed experience
 	  before adding it to the guild.	[Skotlex]
