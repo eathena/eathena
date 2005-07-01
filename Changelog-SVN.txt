@@ -1,5 +1,9 @@
 Date	Added
 07/01
+	* Fixed being able to steal from Treasure Box #1 [Skotlex]
+	* Char-sql server now uses autosave_interval to decide when to save a
+	  modified guild. [Skotlex]
+	* Temporary patch to fix the 'invalid pointer' error on shutdown. [Skotlex]
 	* Changed all printf's to Show* messages (login/login-sql servers) [Skotlex]
 	* Cleaned up sql-account creation code. [Skotlex]
 	* Fixed 'unclean' guilds not getting saved on char-sql shutdown. [Skotlex]

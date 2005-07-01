@@ -2983,7 +2983,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 		md=(struct mob_data *)bl;
 		if(!md->state.steal_flag && mob_db[md->class_].mexp <= 0 && !(mob_db[md->class_].mode&0x20) &&
 			(!md->master_id) && //Prevent stealing from summoned creatures. [Skotlex]
-			(!(md->class_>1324 && md->class_<1364))) // prevent stealing from treasure boxes [Valaris]
+			(!(md->class_>=1324 && md->class_<1364))) // prevent stealing from treasure boxes [Valaris]
 		{
 			if (md->sc_data && (md->sc_data[SC_STONE].timer != -1 || md->sc_data[SC_FREEZE].timer != -1))
 				return 0;

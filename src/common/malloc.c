@@ -593,7 +593,10 @@ static void memmgr_final (void)
 		if (block->block_no >= block2->block_no + BLOCK_ALLOC - 1) {
 			// reached a new block array
 			block = block->block_next;
-			FREE(block2);
+//Temporary 'patch' to prevent the crash on shutdown. [Skotlex]
+//We really need to figure out why the given pointer is invalid, is it related to the % 
+//change of the pointer after it was allocated?
+//			FREE(block2);
 			block2 = block;
 			continue;
 		}

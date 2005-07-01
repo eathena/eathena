@@ -87,7 +87,7 @@ int add_guild_save_timer(struct guild *g,unsigned int flag) {
 	g->save_flag |= flag;
 
 	if(g->save_timer == -1)
-		g->save_timer = add_timer(gettick()+180000,guild_save_timer,g->guild_id,0);
+		g->save_timer = add_timer(gettick()+autosave_interval,guild_save_timer,g->guild_id,0);
 	return 0;
 }
 
