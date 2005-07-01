@@ -593,10 +593,22 @@ static void memmgr_final (void)
 		if (block->block_no >= block2->block_no + BLOCK_ALLOC - 1) {
 			// reached a new block array
 			block = block->block_next;
-//Temporary 'patch' to prevent the crash on shutdown. [Skotlex]
-//We really need to figure out why the given pointer is invalid, is it related to the % 
-//change of the pointer after it was allocated?
-//			FREE(block2);
+
+		/* Okay wise guys... this is how block2 was allocated: [Skotlex]
+		struct block* p;
+		char *pb = (char *) CALLOC (sizeof(struct block),BLOCK_ALLOC + 1);
+		pb += sizeof(struct block) - ((unsigned long)pb % sizeof(struct block));
+		p   = (struct block*)pb;
+		
+		The reason we get an invalid pointer is that we allocated pb, not p.
+		So how do you get pb when you only have p? 
+		The answer is, you can't, because the original pointer was lost when
+		memory-aligning the block. So we either forget this FREE or use a
+		self-reference...
+		Since we are already quitting, it might be ok to just not free the block
+		as it is. 
+		 */
+		//	FREE(block2);
 			block2 = block;
 			continue;
 		}
