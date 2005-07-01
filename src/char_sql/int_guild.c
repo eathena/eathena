@@ -516,12 +516,19 @@ struct guild * inter_guild_fromsql(int guild_id)
 		aFree(g);
 		return 0;
 	}
+	
+	for(i = 0; i < MAX_GUILDSKILL; i++)
+	{	//Skill IDs must always be initialized. [Skotlex]
+		g->skill[i].id = i + GD_SKILLBASE;
+	}
+
 	sql_res = mysql_store_result(&mysql_handle) ;
 	if (sql_res!=NULL && mysql_num_rows(sql_res)>0) {
-		int i;
-		for(i=0;((sql_row = mysql_fetch_row(sql_res))&&i<MAX_GUILDSKILL);i++){
-			g->skill[i].id=atoi(sql_row[1]);
-			g->skill[i].lv=atoi(sql_row[2]);
+		while ((sql_row = mysql_fetch_row(sql_res))){
+			int id = atoi(sql_row[1])-GD_SKILLBASE;
+			if (id >= 0 && id < MAX_GUILDSKILL)
+			//I know this seems ridiculous, but the skills HAVE to be placed on their 'correct' array slot or things break x.x [Skotlex]
+				g->skill[id].lv=atoi(sql_row[2]);
 		}
 	}
 	mysql_free_result(sql_res);
