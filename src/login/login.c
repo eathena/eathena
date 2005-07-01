@@ -44,6 +44,7 @@ void Gettimeofday(struct timeval *timenow)
 #include "../common/lock.h"
 #include "../common/malloc.h"
 #include "../common/strlib.h"
+#include "../common/showmsg.h"
 
 #ifdef PASSWORDENC
 #include "md5calc.h"
@@ -259,9 +260,9 @@ void addGM(int account_id, int level) {
 	for(i = 0; i < GM_num; i++)
 		if (gm_account_db[i].account_id == account_id) {
 			if (gm_account_db[i].level == level)
-				printf("addGM: GM account %d defined twice (same level: %d).\n", account_id, level);
+				ShowWarning("addGM: GM account %d defined twice (same level: %d).\n", account_id, level);
 			else {
-				printf("addGM: GM account %d defined twice (levels: %d and %d).\n", account_id, gm_account_db[i].level, level);
+				ShowWarning("addGM: GM account %d defined twice (levels: %d and %d).\n", account_id, gm_account_db[i].level, level);
 				gm_account_db[i].level = level;
 			}
 			return;
@@ -278,7 +279,7 @@ void addGM(int account_id, int level) {
 		gm_account_db[GM_num].level = level;
 		GM_num++;
 		if (GM_num >= 4000) {
-			printf("***WARNING: 4000 GM accounts found. Next GM accounts are not read.\n");
+			ShowWarning("4000 GM accounts found. Next GM accounts are not read.\n");
 			login_log("***WARNING: 4000 GM accounts found. Next GM accounts are not read." RETCODE);
 		}
 	}
@@ -307,8 +308,8 @@ int read_gm_account() {
 		creation_time_GM_account_file = file_stat.st_mtime;
 
 	if ((fp = fopen(GM_account_filename, "r")) == NULL) {
-		printf("read_gm_account: GM accounts file [%s] not found.\n", GM_account_filename);
-		printf("                 Actually, there is no GM accounts on the server.\n");
+		ShowError("read_gm_account: GM accounts file [%s] not found.\n", GM_account_filename);
+		ShowError("                 Actually, there is no GM accounts on the server.\n");
 		login_log("read_gm_account: GM accounts file [%s] not found." RETCODE, GM_account_filename);
 		login_log("                 Actually, there is no GM accounts on the server." RETCODE);
 		return 1;
@@ -323,19 +324,19 @@ int read_gm_account() {
 			continue;
 		is_range = (sscanf(line, "%d%*[-~]%d %d",&start_range,&end_range,&level)==3); // ID Range [MC Cameri]
 		if (!is_range && sscanf(line, "%d %d", &account_id, &level) != 2 && sscanf(line, "%d: %d", &account_id, &level) != 2)
-			printf("read_gm_account: file [%s], invalid 'acount_id|range level' format (line #%d).\n", GM_account_filename, line_counter);
+			ShowError("read_gm_account: file [%s], invalid 'acount_id|range level' format (line #%d).\n", GM_account_filename, line_counter);
 		else if (level <= 0)
-			printf("read_gm_account: file [%s] %dth account (line #%d) (invalid level [0 or negative]: %d).\n", GM_account_filename, GM_num+1, line_counter, level);
+			ShowError("read_gm_account: file [%s] %dth account (line #%d) (invalid level [0 or negative]: %d).\n", GM_account_filename, GM_num+1, line_counter, level);
 		else {
 			if (level > 99) {
-				printf("read_gm_account: file [%s] %dth account (invalid level, but corrected: %d->99).\n", GM_account_filename, GM_num+1, level);
+				ShowNotice("read_gm_account: file [%s] %dth account (invalid level, but corrected: %d->99).\n", GM_account_filename, GM_num+1, level);
 				level = 99;
 			}
 			if (is_range) {
 				if (start_range==end_range)
-					printf("read_gm_account: file [%s] invalid range, beginning of range is equal to end of range (line #%d).\n", GM_account_filename, line_counter);
+					ShowError("read_gm_account: file [%s] invalid range, beginning of range is equal to end of range (line #%d).\n", GM_account_filename, line_counter);
 				else if (start_range>end_range)
-					printf("read_gm_account: file [%s] invalid range, beginning of range must be lower than end of range (line #%d).\n", GM_account_filename, line_counter);
+					ShowError("read_gm_account: file [%s] invalid range, beginning of range must be lower than end of range (line #%d).\n", GM_account_filename, line_counter);
 				else
 					for (current_id = start_range;current_id<=end_range;current_id++)
 						addGM(current_id,level);
@@ -346,7 +347,7 @@ int read_gm_account() {
 	}
 	fclose(fp);
 
-	printf("read_gm_account: file '%s' read (%d GM accounts found).\n", GM_account_filename, GM_num);
+	ShowStatus("read_gm_account: file '%s' read (%d GM accounts found).\n", GM_account_filename, GM_num);
 	login_log("read_gm_account: file '%s' read (%d GM accounts found)." RETCODE, GM_account_filename, GM_num);
 
 	return 0;
@@ -371,7 +372,7 @@ int check_ipmask(unsigned int ip, const unsigned char *str) {
 		for(i = 0; i < m && i < 32; i++)
 			mask = (mask >> 1) | 0x80000000;
 	} else {
-		printf("check_ipmask: invalid mask [%s].\n", str);
+		ShowError("check_ipmask: invalid mask [%s].\n", str);
 		return 0;
 	}
 
@@ -571,7 +572,7 @@ int mmo_auth_init(void) {
 
 	if ((fp = fopen(account_filename, "r")) == NULL) {
 		// no account file -> no account -> no login, including char-server (ERROR)
-		printf("\033[1;31mmmo_auth_init: Accounts file [%s] not found.\033[0m\n", account_filename);
+		ShowError("\033[1;31mmmo_auth_init: Accounts file [%s] not found.\033[0m\n", account_filename);
 		return 0;
 	}
 
@@ -605,8 +606,8 @@ int mmo_auth_init(void) {
 
 			// Some checks
 			if (account_id > END_ACCOUNT_NUM) {
-				printf("\033[1;31mmmo_auth_init: ******Error: an account has an id higher than %d\n", END_ACCOUNT_NUM);
-				printf("               account id #%d -> account not read (saved in log file).\033[0m\n", account_id);
+				ShowError("\033[1;31mmmo_auth_init: an account has an id higher than %d\n", END_ACCOUNT_NUM);
+				ShowError("               account id #%d -> account not read (saved in log file).\033[0m\n", account_id);
 				login_log("mmmo_auth_init: ******Error: an account has an id higher than %d." RETCODE, END_ACCOUNT_NUM);
 				login_log("               account id #%d -> account not read (saved in next line):" RETCODE, account_id);
 				login_log("%s", line);
@@ -616,16 +617,15 @@ int mmo_auth_init(void) {
 			remove_control_chars((unsigned char *)userid);
 			for(j = 0; j < auth_num; j++) {
 				if (auth_dat[j].account_id == account_id) {
-					printf("\033[1;31mmmo_auth_init: ******Error: an account has an identical id to another.\n");
-					printf("               account id #%d -> new account not read (saved in log file).\033[0m\n", account_id);
+					ShowError("\033[1;31mmmo_auth_init: an account has an identical id to another.\n");
+					ShowError("               account id #%d -> new account not read (saved in log file).\033[0m\n", account_id);
 					login_log("mmmo_auth_init: ******Error: an account has an identical id to another." RETCODE);
 					login_log("               account id #%d -> new account not read (saved in next line):" RETCODE, account_id);
 					login_log("%s", line);
 					break;
 				} else if (strcmp(auth_dat[j].userid, userid) == 0) {
-					printf("\033[1;31mmmo_auth_init: ******Error: account name already exists.\n");
-					printf("               account name '%s' -> new account not read.\n", userid); // 2 lines, account name can be long.
-					printf("               Account saved in log file.\033[0m\n");
+					ShowError("\033[1;31mmmo_auth_init: account name already exists.\n");
+					ShowError("               account name '%s' -> new account not read (saved in log file).\n", userid); // 2 lines, account name can be long.
 					login_log("mmmo_auth_init: ******Error: an account has an identical name to another." RETCODE);
 					login_log("               account name '%s' -> new account not read (saved in next line):" RETCODE, userid);
 					login_log("%s", line);
@@ -669,7 +669,7 @@ int mmo_auth_init(void) {
 				auth_dat[auth_num].state = state;
 
 			if (e_mail_check(email) == 0) {
-				printf("Account %s (%d): invalid e-mail (replaced par a@a.com).\n", auth_dat[auth_num].userid, auth_dat[auth_num].account_id);
+				ShowNotice("Account %s (%d): invalid e-mail (replaced par a@a.com).\n", auth_dat[auth_num].userid, auth_dat[auth_num].account_id);
 				strncpy(auth_dat[auth_num].email, "a@a.com", 40);
 			} else {
 				remove_control_chars((unsigned char *)email);
@@ -730,8 +730,8 @@ int mmo_auth_init(void) {
 		} else if ((i = sscanf(line, "%d\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%n",
 		           &account_id, userid, pass, lastlogin, &sex, &logincount, &state, &n)) >= 5) {
 			if (account_id > END_ACCOUNT_NUM) {
-				printf("\033[1;31mmmo_auth_init: ******Error: an account has an id higher than %d\n", END_ACCOUNT_NUM);
-				printf("               account id #%d -> account not read (saved in log file).\033[0m\n", account_id);
+				ShowError("\033[1;31mmmo_auth_init: an account has an id higher than %d\n", END_ACCOUNT_NUM);
+				ShowError("               account id #%d -> account not read (saved in log file).\033[0m\n", account_id);
 				login_log("mmmo_auth_init: ******Error: an account has an id higher than %d." RETCODE, END_ACCOUNT_NUM);
 				login_log("               account id #%d -> account not read (saved in next line):" RETCODE, account_id);
 				login_log("%s", line);
@@ -741,16 +741,15 @@ int mmo_auth_init(void) {
 			remove_control_chars((unsigned char *)userid);
 			for(j = 0; j < auth_num; j++) {
 				if (auth_dat[j].account_id == account_id) {
-					printf("\033[1;31mmmo_auth_init: ******Error: an account has an identical id to another.\n");
-					printf("               account id #%d -> new account not read (saved in log file).\033[0m\n", account_id);
+					ShowError("\033[1;31mmmo_auth_init: an account has an identical id to another.\n");
+					ShowError("               account id #%d -> new account not read (saved in log file).\033[0m\n", account_id);
 					login_log("mmmo_auth_init: ******Error: an account has an identical id to another." RETCODE);
 					login_log("               account id #%d -> new account not read (saved in next line):" RETCODE, account_id);
 					login_log("%s", line);
 					break;
 				} else if (strcmp(auth_dat[j].userid, userid) == 0) {
-					printf("\033[1;31mmmo_auth_init: ******Error: account name already exists.\n");
-					printf("               account name '%s' -> new account not read.\n", userid); // 2 lines, account name can be long.
-					printf("               Account saved in log file.\033[0m\n");
+					ShowError("\033[1;31mmmo_auth_init: account name already exists.\n");
+					ShowError("               account name '%s' -> new account not read (saved in log file).\n", userid);
 					login_log("mmmo_auth_init: ******Error: an account has an identical id to another." RETCODE);
 					login_log("               account id #%d -> new account not read (saved in next line):" RETCODE, account_id);
 					login_log("%s", line);
@@ -844,24 +843,24 @@ int mmo_auth_init(void) {
 	fclose(fp);
 
 	if (auth_num == 0) {
-		printf("mmo_auth_init: No account found in %s.\n", account_filename);
+		ShowNotice("mmo_auth_init: No account found in %s.\n", account_filename);
 		sprintf(line, "No account found in %s.", account_filename);
 	} else {
 		if (auth_num == 1) {
-			printf("mmo_auth_init: 1 account read in %s,\n", account_filename);
+			ShowStatus("mmo_auth_init: 1 account read in %s,\n", account_filename);
 			sprintf(line, "1 account read in %s,", account_filename);
 		} else {
-			printf("mmo_auth_init: %d accounts read in %s,\n", auth_num, account_filename);
+			ShowStatus("mmo_auth_init: %d accounts read in %s,\n", auth_num, account_filename);
 			sprintf(line, "%d accounts read in %s,", auth_num, account_filename);
 		}
 		if (GM_count == 0) {
-			printf("               of which is no GM account, and ");
+			ShowStatus("               of which is no GM account, and ");
 			sprintf(str, "%s of which is no GM account and", line);
 		} else if (GM_count == 1) {
-			printf("               of which is 1 GM account, and ");
+			ShowStatus("               of which is 1 GM account, and ");
 			sprintf(str, "%s of which is 1 GM account and", line);
 		} else {
-			printf("               of which is %d GM accounts, and ", GM_count);
+			ShowStatus("               of which is %d GM accounts, and ", GM_count);
 			sprintf(str, "%s of which is %d GM accounts and", line, GM_count);
 		}
 		if (server_count == 0) {
@@ -1128,7 +1127,7 @@ int mmo_auth(struct mmo_account* account, int fd) {
 						
 		//only continue if amount in this time limit is allowed (account registration flood protection)[Kevin]
 		if(gettick() <= new_reg_tick && num_regs >= allowed_regs) {
-			printf("Notice: Account registration denied (registration limit exceeded) to %s!\n", ip);
+			ShowNotice("Account registration denied (registration limit exceeded) to %s!\n", ip);
 			login_log("Notice: Account registration denied (registration limit exceeded) to %s!", ip);
 			return 3;
 		} else {
@@ -1320,7 +1319,7 @@ int parse_fromchar(int fd) {
 		session[fd]->eof = 1;
 	if(session[fd]->eof) {
 		if (id < MAX_SERVERS) {
-			printf("Char-server '%s' has disconnected.\n", server[id].name);
+			ShowWarning("Char-server '%s' has disconnected.\n", server[id].name);
 			login_log("Char-server '%s' has disconnected (ip: %s)." RETCODE,
 			          server[id].name, ip);
 			server_fd[id] = -1;
@@ -1333,7 +1332,7 @@ int parse_fromchar(int fd) {
 
 	while (RFIFOREST(fd) >= 2) {
 		if (display_parse_fromchar == 2 || (display_parse_fromchar == 1 && RFIFOW(fd,0) != 0x2714)) // 0x2714 is done very often (number of players)
-			printf("parse_fromchar: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
+			ShowDebug("parse_fromchar: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 
 		switch (RFIFOW(fd,0)) {
 		// request from map-server via char-server to reload GM accounts (by Yor).
@@ -1498,26 +1497,26 @@ int parse_fromchar(int fd) {
 								WBUFL(buf,6) = level_new_gm;
 								read_gm_account();
 								send_GM_accounts();
-								printf("GM Change of the account %d: level 0 -> %d.\n", acc, level_new_gm);
+								ShowNotice("GM Change of the account %d: level 0 -> %d.\n", acc, level_new_gm);
 								login_log("Char-server '%s': GM Change of the account %d: level 0 -> %d (ip: %s)." RETCODE,
 								          server[id].name, acc, level_new_gm, ip);
 							} else {
-								printf("Error of GM change (suggested account: %d, correct password, unable to add a GM account in GM accounts file)\n", acc);
+								ShowError("Error of GM change (suggested account: %d, correct password, unable to add a GM account in GM accounts file)\n", acc);
 								login_log("Char-server '%s': Error of GM change (suggested account: %d, correct password, unable to add a GM account in GM accounts file, ip: %s)." RETCODE,
 								          server[id].name, acc, ip);
 							}
 						} else {
-							printf("Error of GM change (suggested account: %d, correct password, but GM creation is disable (level_new_gm = 0))\n", acc);
+							ShowError("Error of GM change (suggested account: %d, correct password, but GM creation is disable (level_new_gm = 0))\n", acc);
 							login_log("Char-server '%s': Error of GM change (suggested account: %d, correct password, but GM creation is disable (level_new_gm = 0), ip: %s)." RETCODE,
 							          server[id].name, acc, ip);
 						}
 					} else {
-						printf("Error of GM change (suggested account: %d (already GM), correct password).\n", acc);
+						ShowError("Error of GM change (suggested account: %d (already GM), correct password).\n", acc);
 						login_log("Char-server '%s': Error of GM change (suggested account: %d (already GM), correct password, ip: %s)." RETCODE,
 						          server[id].name, acc, ip);
 					}
 				} else {
-					printf("Error of GM change (suggested account: %d, invalid password).\n", acc);
+					ShowError("Error of GM change (suggested account: %d, invalid password).\n", acc);
 					login_log("Char-server '%s': Error of GM change (suggested account: %d, invalid password, ip: %s)." RETCODE,
 					          server[id].name, acc, ip);
 				}
@@ -1868,9 +1867,9 @@ int parse_fromchar(int fd) {
 					fclose(logfp);
 				}
 			}
-			printf("parse_fromchar: Unknown packet 0x%x (from a char-server)! -> disconnection.\n", RFIFOW(fd,0));
+			ShowWarning("parse_fromchar: Unknown packet 0x%x (from a char-server)! -> disconnection.\n", RFIFOW(fd,0));
 			session[fd]->eof = 1;
-			printf("Char-server has been disconnected (unknown packet).\n");
+			ShowStatus("Char-server has been disconnected (unknown packet).\n");
 			return 0;
 		}
 	}
@@ -1891,13 +1890,13 @@ int parse_admin(int fd) {
 	if (session[fd]->eof) {
 		close(fd);
 		delete_session(fd);
-		printf("Remote administration has disconnected (session #%d).\n", fd);
+		ShowInfo("Remote administration has disconnected (session #%d).\n", fd);
 		return 0;
 	}
 
 	while(RFIFOREST(fd) >= 2) {
 		if (display_parse_admin == 1)
-			printf("parse_admin: connection #%d, packet: 0x%x (with being read: %d).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
+			ShowDebug("parse_admin: connection #%d, packet: 0x%x (with being read: %d).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 
 		switch(RFIFOW(fd,0)) {
 		case 0x7530:	// Request of the server version
@@ -2833,7 +2832,7 @@ int parse_admin(int fd) {
 			}
 			login_log("'ladmin': End of connection, unknown packet (ip: %s)" RETCODE, ip);
 			session[fd]->eof = 1;
-			printf("Remote administration has been disconnected (unknown packet).\n");
+			ShowWarning("Remote administration has been disconnected (unknown packet).\n");
 			return 0;
 		}
 		//WFIFOW(fd,0) = 0x791f;
@@ -2886,12 +2885,12 @@ int parse_login(int fd) {
 		if (display_parse_login == 1) {
 			if (RFIFOW(fd,0) == 0x64 || RFIFOW(fd,0) == 0x01dd) {
 				if (RFIFOREST(fd) >= ((RFIFOW(fd,0) == 0x64) ? 55 : 47))
-					printf("parse_login: connection #%d, packet: 0x%x (with being read: %d), account: %s.\n", fd, RFIFOW(fd,0), RFIFOREST(fd), RFIFOP(fd,6));
+					ShowDebug("parse_login: connection #%d, packet: 0x%x (with being read: %d), account: %s.\n", fd, RFIFOW(fd,0), RFIFOREST(fd), RFIFOP(fd,6));
 			} else if (RFIFOW(fd,0) == 0x2710) {
 				if (RFIFOREST(fd) >= 86)
-					printf("parse_login: connection #%d, packet: 0x%x (with being read: %d), server: %s.\n", fd, RFIFOW(fd,0), RFIFOREST(fd), RFIFOP(fd,60));
+					ShowDebug("parse_login: connection #%d, packet: 0x%x (with being read: %d), server: %s.\n", fd, RFIFOW(fd,0), RFIFOREST(fd), RFIFOP(fd,60));
 			} else
-				printf("parse_login: connection #%d, packet: 0x%x (with being read: %d).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
+				ShowDebug("parse_login: connection #%d, packet: 0x%x (with being read: %d).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 		}
 
 		switch(RFIFOW(fd,0)) {
@@ -2954,9 +2953,9 @@ int parse_login(int fd) {
 					WFIFOSET(fd,3);
 				} else {
 					if (gm_level)
-						printf("Connection of the GM (level:%d) account '%s' accepted.\n", gm_level, account.userid);
+						ShowInfo("Connection of the GM (level:%d) account '%s' accepted.\n", gm_level, account.userid);
 					else
-						printf("Connection of the account '%s' accepted.\n", account.userid);
+						ShowInfo("Connection of the account '%s' accepted.\n", account.userid);
 					server_num = 0;
 					for(i = 0; i < MAX_SERVERS; i++) {
 						if (server_fd[i] >= 0) {
@@ -3028,14 +3027,14 @@ int parse_login(int fd) {
 			{
 				struct login_session_data *ld;
 				if (session[fd]->session_data) {
-					printf("login: abnormal request of MD5 key (already opened session).\n");
+					ShowWarning("login: abnormal request of MD5 key (already opened session).\n");
 					session[fd]->eof = 1;
 					return 0;
 				}
 				ld = (struct login_session_data*)aCalloc(1, sizeof(struct login_session_data));
                                 session[fd]->session_data = ld;
 				if (!ld) {
-					printf("login: Request for md5 key: memory allocation failure (malloc)!\n");
+					ShowFatalError("login: Request for md5 key: memory allocation failure (malloc)!\n");
 					session[fd]->eof = 1;
 					return 0;
 				}
@@ -3078,7 +3077,7 @@ int parse_login(int fd) {
 				if (result == -1 && account.sex == 2 && account.account_id < MAX_SERVERS && server_fd[account.account_id] == -1) {
 					login_log("Connection of the char-server '%s' accepted (account: %s, pass: %s, ip: %s)" RETCODE,
 					          server_name, account.userid, account.passwd, ip);
-					printf("Connection of the char-server '%s' accepted.\n", server_name);
+					ShowStatus("Connection of the char-server '%s' accepted.\n", server_name);
 					memset(&server[account.account_id], 0, sizeof(struct mmo_char_server));
 					server[account.account_id].ip = RFIFOL(fd,54);
 					server[account.account_id].port = RFIFOW(fd,58);
@@ -3106,12 +3105,12 @@ int parse_login(int fd) {
 					WFIFOSET(fd,len);
 				} else {
 					if (server_fd[account.account_id] != -1) {
-						printf("Connection of the char-server '%s' REFUSED - already connected (account: %ld-%s, pass: %s, ip: %s)\n",
+						ShowNotice("Connection of the char-server '%s' REFUSED - already connected (account: %ld-%s, pass: %s, ip: %s)\n",
 					        server_name, account.account_id, account.userid, account.passwd, ip);
 						login_log("Connexion of the char-server '%s' REFUSED - already connected (account: %ld-%s, pass: %s, ip: %s)" RETCODE,
 					          server_name, account.account_id, account.userid, account.passwd, ip);
 					} else {
-						printf("Connection of the char-server '%s' REFUSED (account: %s, pass: %s, ip: %s).\n", server_name, account.userid, account.passwd, ip);
+						ShowNotice("Connection of the char-server '%s' REFUSED (account: %s, pass: %s, ip: %s).\n", server_name, account.userid, account.passwd, ip);
 						login_log("Connexion of the char-server '%s' REFUSED (account: %s, pass: %s, ip: %s)" RETCODE,
 					          	server_name, account.userid, account.passwd, ip);
 					}
@@ -3159,7 +3158,7 @@ int parse_login(int fd) {
 					// If remote administration is enabled and password sent by client matches password read from login server configuration file
 					if ((admin_state == 1) && (strcmp(password, admin_pass) == 0)) {
 						login_log("'ladmin'-login: Connection in administration mode accepted (non encrypted password: %s, ip: %s)" RETCODE, password, ip);
-						printf("Connection of a remote administration accepted (non encrypted password).\n");
+						ShowNotice("Connection of a remote administration accepted (non encrypted password).\n");
 						WFIFOB(fd,2) = 0;
 						session[fd]->func_parse = parse_admin;
 					} else if (admin_state != 1)
@@ -3168,7 +3167,7 @@ int parse_login(int fd) {
 						login_log("'ladmin'-login: Connection in administration mode REFUSED - invalid password (non encrypted password: %s, ip: %s)" RETCODE, password, ip);
 				} else {	// encrypted password
 					if (!ld)
-						printf("'ladmin'-login: error! MD5 key not created/requested for an administration login.\n");
+						ShowError("'ladmin'-login: error! MD5 key not created/requested for an administration login.\n");
 					else {
 						char md5str[64] = "", md5bin[32];
 						if (RFIFOW(fd,2) == 1) {
@@ -3180,7 +3179,7 @@ int parse_login(int fd) {
 						// If remote administration is enabled and password hash sent by client matches hash of password read from login server configuration file
 						if ((admin_state == 1) && (memcmp(md5bin, RFIFOP(fd,4), 16) == 0)) {
 							login_log("'ladmin'-login: Connection in administration mode accepted (encrypted password, ip: %s)" RETCODE, ip);
-							printf("Connection of a remote administration accepted (encrypted password).\n");
+							ShowNotice("Connection of a remote administration accepted (encrypted password).\n");
 							WFIFOB(fd,2) = 0;
 							session[fd]->func_parse = parse_admin;
 						} else if (admin_state != 1)
@@ -3262,7 +3261,7 @@ int parse_console(char *buf) {
 		runflag = 0;
 	else if(strcmpi("alive", command) == 0 ||
 		strcmpi("status", command) == 0)
-		printf("\033[0;36mConsole: \033[0m\033[1mI'm Alive.\033[0m\n");
+		ShowInfo("\033[0;36mConsole: \033[0m\033[1mI'm Alive.\033[0m\n");
 	else if(strcmpi("help", command) == 0) {
 		printf("\033[32mHelp of commands:\033[0m\n");
 		printf("  To shutdown the server:\n");
@@ -3309,11 +3308,11 @@ int login_lan_config_read(const char *lancfgName) {
 	fp = fopen(lancfgName, "r");
 
 	if (fp == NULL) {
-		printf("***WARNING: LAN Support configuration file is not found: %s\n", lancfgName);
+		ShowWarning("LAN Support configuration file is not found: %s\n", lancfgName);
 		return 1;
 	}
 
-	printf("---Start reading Lan Support configuration file\n");
+	ShowInfo("reading configuration file %s...\n", lancfgName);
 
 	while(fgets(line, sizeof(line)-1, fp)) {
 		if (line[0] == '/' && line[1] == '/')
@@ -3335,7 +3334,7 @@ int login_lan_config_read(const char *lancfgName) {
 				strncpy(lan_char_ip, w2, sizeof(lan_char_ip));
 				lan_char_ip[sizeof(lan_char_ip)-1] = '\0';
 			}
-			printf("LAN IP of char-server: %s.\n", lan_char_ip);
+			ShowStatus("LAN IP of char-server: %s.\n", lan_char_ip);
 		} else if (strcmpi(w1, "subnet") == 0) { // Read Subnetwork
 			for(j = 0; j < 4; j++)
 				subneti[j] = 0;
@@ -3346,7 +3345,7 @@ int login_lan_config_read(const char *lancfgName) {
 			} else {
 				sscanf(w2, "%d.%d.%d.%d", &subneti[0], &subneti[1], &subneti[2], &subneti[3]);
 			}
-			printf("Sub-network of the char-server: %d.%d.%d.%d.\n", subneti[0], subneti[1], subneti[2], subneti[3]);
+			ShowStatus("Sub-network of the char-server: %d.%d.%d.%d.\n", subneti[0], subneti[1], subneti[2], subneti[3]);
 		} else if (strcmpi(w1, "subnetmask") == 0) { // Read Subnetwork Mask
 			for(j = 0; j < 4; j++)
 				subnetmaski[j] = 255;
@@ -3357,7 +3356,7 @@ int login_lan_config_read(const char *lancfgName) {
 			} else {
 				sscanf(w2, "%d.%d.%d.%d", &subnetmaski[0], &subnetmaski[1], &subnetmaski[2], &subnetmaski[3]);
 			}
-			printf("Sub-network mask of the char-server: %d.%d.%d.%d.\n", subnetmaski[0], subnetmaski[1], subnetmaski[2], subnetmaski[3]);
+			ShowStatus("Sub-network mask of the char-server: %d.%d.%d.%d.\n", subnetmaski[0], subnetmaski[1], subnetmaski[2], subnetmaski[3]);
 		}
 	}
 	fclose(fp);
@@ -3374,14 +3373,14 @@ int login_lan_config_read(const char *lancfgName) {
 		unsigned char p[4];
 		sscanf(lan_char_ip, "%d.%d.%d.%d", &a0, &a1, &a2, &a3);
 		p[0] = a0; p[1] = a1; p[2] = a2; p[3] = a3;
-		printf("LAN test of LAN IP of the char-server: ");
+		ShowInfo("LAN test of LAN IP of the char-server: ");
 		if (lan_ip_check(p) == 0) {
-			printf("\033[1;31m***ERROR: LAN IP of the char-server doesn't belong to the specified Sub-network\033[0m\n");
+			ShowError("\033[1;31m LAN IP of the char-server doesn't belong to the specified Sub-network\033[0m\n");
 			login_log("***ERROR: LAN IP of the char-server doesn't belong to the specified Sub-network." RETCODE);
 		}
 	}
 
-	printf("---End reading of Lan Support configuration file\n");
+	ShowInfo("done reading %s.\n", lancfgName);
 
 	return 0;
 }
@@ -3397,11 +3396,11 @@ int login_config_read(const char *cfgName) {
         bind_ip_str[0] = '\0';
 
 	if ((fp = fopen(cfgName, "r")) == NULL) {
-		printf("Configuration file (%s) not found.\n", cfgName);
+		ShowError("Configuration file (%s) not found.\n", cfgName);
 		return 1;
 	}
 
-	printf("---Start reading of Login Server configuration file (%s)\n", cfgName);
+	ShowInfo("reading configuration file %s...\n", cfgName);
 	while(fgets(line, sizeof(line)-1, fp)) {
 		if (line[0] == '/' && line[1] == '/')
 			continue;
@@ -3454,7 +3453,7 @@ int login_config_read(const char *cfgName) {
 				//bind_ip_set_ = 1;
 				h = gethostbyname (w2);
 				if (h != NULL) {
-					printf("Login server binding IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
+					ShowStatus("Login server binding IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 					sprintf(bind_ip_str, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 				} else
 					memcpy(bind_ip_str,w2,16);
@@ -3606,7 +3605,7 @@ int login_config_read(const char *cfgName) {
 	}
 	fclose(fp);
 
-	printf("---End reading of Login Server configuration file.\n");
+	ShowInfo("done reading %s.\n", cfgName);
 
 	return 0;
 }
@@ -3616,139 +3615,130 @@ int login_config_read(const char *cfgName) {
 //-------------------------------------
 void display_conf_warnings(void) {
 	if (admin_state != 0 && admin_state != 1) {
-		printf("***WARNING: Invalid value for admin_state parameter -> set to 0 (no remote admin).\n");
+		ShowWarning("Invalid value for admin_state parameter -> setting to 0 (no remote admin).\n");
 		admin_state = 0;
 	}
 
 	if (admin_state == 1) {
 		if (admin_pass[0] == '\0') {
-			printf("***WARNING: Administrator password is void (admin_pass).\n");
+			ShowWarning("Administrator password is void (admin_pass).\n");
 		} else if (strcmp(admin_pass, "admin") == 0) {
-			printf("***WARNING: You are using the default administrator password (admin_pass).\n");
-			printf("            We highly recommend that you change it.\n");
+			ShowWarning("You are using the default administrator password (admin_pass).\n");
+			ShowWarning("  We highly recommend that you change it.\n");
 		}
 	}
 
 	if (gm_pass[0] == '\0') {
-		printf("***WARNING: 'To GM become' password is void (gm_pass).\n");
-		printf("            We highly recommend that you set one password.\n");
+		ShowWarning("'To GM become' password is void (gm_pass).\n");
+		ShowWarning("  We highly recommend that you set one password.\n");
 	} else if (strcmp(gm_pass, "gm") == 0) {
-		printf("***WARNING: You are using the default GM password (gm_pass).\n");
-		printf("            We highly recommend that you change it.\n");
+		ShowWarning("You are using the default GM password (gm_pass).\n");
+		ShowWarning("  We highly recommend that you change it.\n");
 	}
 
 	if (level_new_gm < 0 || level_new_gm > 99) {
-		printf("***WARNING: Invalid value for level_new_gm parameter -> set to 60 (default).\n");
+		ShowWarning("Invalid value for level_new_gm parameter -> setting to 60 (default).\n");
 		level_new_gm = 60;
 	}
 
 	if (new_account_flag != 0 && new_account_flag != 1) {
-		printf("***WARNING: Invalid value for new_account parameter -> set to 0 (no new account).\n");
+		ShowWarning("Invalid value for new_account parameter -> setting to 0 (no new account).\n");
 		new_account_flag = 0;
 	}
 
 	if (login_port < 1024 || login_port > 65535) {
-		printf("***WARNING: Invalid value for login_port parameter -> set to 6900 (default).\n");
+		ShowWarning("Invalid value for login_port parameter -> setting to 6900 (default).\n");
 		login_port = 6900;
 	}
 
 	if (gm_account_filename_check_timer < 0) {
-		printf("***WARNING: Invalid value for gm_account_filename_check_timer parameter.\n");
-		printf("            -> set to 15 sec (default).\n");
+		ShowWarning("Invalid value for gm_account_filename_check_timer parameter. Setting to 15 sec (default).\n");
 		gm_account_filename_check_timer = 15;
 	} else if (gm_account_filename_check_timer == 1) {
-		printf("***WARNING: Invalid value for gm_account_filename_check_timer parameter.\n");
-		printf("            -> set to 2 sec (minimum value).\n");
+		ShowWarning("Invalid value for gm_account_filename_check_timer parameter. Setting to 2 sec (minimum value).\n");
 		gm_account_filename_check_timer = 2;
 	}
 
 	if (save_unknown_packets != 0 && save_unknown_packets != 1) {
-		printf("WARNING: Invalid value for save_unknown_packets parameter -> set to 0-no save.\n");
+		ShowWarning("Invalid value for save_unknown_packets parameter -> setting to 0-no save.\n");
 		save_unknown_packets = 0;
 	}
 
 	if (display_parse_login != 0 && display_parse_login != 1) { // 0: no, 1: yes
-		printf("***WARNING: Invalid value for display_parse_login parameter\n");
-		printf("            -> set to 0 (no display).\n");
+		ShowWarning("Invalid value for display_parse_login parameter -> setting to 0 (no display).\n");
 		display_parse_login = 0;
 	}
 
 	if (display_parse_admin != 0 && display_parse_admin != 1) { // 0: no, 1: yes
-		printf("***WARNING: Invalid value for display_parse_admin parameter\n");
-		printf("            -> set to 0 (no display).\n");
+		ShowWarning("Invalid value for display_parse_admin parameter -> setting to 0 (no display).\n");
 		display_parse_admin = 0;
 	}
 
 	if (display_parse_fromchar < 0 || display_parse_fromchar > 2) { // 0: no, 1: yes (without packet 0x2714), 2: all packets
-		printf("***WARNING: Invalid value for display_parse_fromchar parameter\n");
-		printf("            -> set to 0 (no display).\n");
+		ShowWarning("Invalid value for display_parse_fromchar parameter -> setting to 0 (no display).\n");
 		display_parse_fromchar = 0;
 	}
 
 	if (min_level_to_connect < 0) { // 0: all players, 1-99 at least gm level x
-		printf("***WARNING: Invalid value for min_level_to_connect (%d) parameter\n", min_level_to_connect);
-		printf("            -> set to 0 (any player).\n");
+		ShowWarning("Invalid value for min_level_to_connect (%d) parameter -> setting 0 (any player).\n", min_level_to_connect);
 		min_level_to_connect = 0;
 	} else if (min_level_to_connect > 99) { // 0: all players, 1-99 at least gm level x
-		printf("***WARNING: Invalid value for min_level_to_connect (%d) parameter\n", min_level_to_connect);
-		printf("            -> set to 99 (only GM level 99).\n");
+		ShowWarning("Invalid value for min_level_to_connect (%d) parameter -> setting to 99 (only GM level 99)\n", min_level_to_connect);
 		min_level_to_connect = 99;
 	}
 
 	if (add_to_unlimited_account != 0 && add_to_unlimited_account != 1) { // 0: no, 1: yes
-		printf("***WARNING: Invalid value for add_to_unlimited_account parameter\n");
-		printf("            -> set to 0 (impossible to add a time to an unlimited account).\n");
+		ShowWarning("Invalid value for add_to_unlimited_account parameter\n");
+		ShowWarning("  -> setting to 0 (impossible to add a time to an unlimited account).\n");
 		add_to_unlimited_account = 0;
 	}
 
 	if (start_limited_time < -1) { // -1: create unlimited account, 0 or more: additionnal sec from now to create limited time
-		printf("***WARNING: Invalid value for start_limited_time parameter\n");
-		printf("            -> set to -1 (new accounts are created with unlimited time).\n");
+		ShowWarning("Invalid value for start_limited_time parameter\n");
+		ShowWarning("  -> setting to -1 (new accounts are created with unlimited time).\n");
 		start_limited_time = -1;
 	}
 
 	if (check_ip_flag != 0 && check_ip_flag != 1) { // 0: no, 1: yes
-		printf("***WARNING: Invalid value for check_ip_flag parameter\n");
-		printf("            -> set to 1 (check players ip between login-server & char-server).\n");
+		ShowWarning("Invalid value for check_ip_flag parameter\n");
+		ShowWarning("  -> setting to 1 (check players ip between login-server & char-server).\n");
 		check_ip_flag = 1;
 	}
 
 	if (access_order == ACO_DENY_ALLOW) {
 		if (access_denynum == 1 && access_deny[0] == '\0') {
-			printf("***WARNING: The IP security order is 'deny,allow' (allow if not deny).\n");
-			printf("            And you refuse ALL IP.\n");
+			ShowWarning("The IP security order is 'deny,allow' (allow if not deny) and you refuse ALL IP.\n");
 		}
 	} else if (access_order == ACO_ALLOW_DENY) {
 		if (access_allownum == 0) {
-			printf("***WARNING: The IP security order is 'allow,deny' (deny if not allow).\n");
-			printf("            But, NO IP IS AUTHORISED!\n");
+			ShowWarning("The IP security order is 'allow,deny' (deny if not allow) but, NO IP IS AUTHORISED!\n");
 		}
 	} else { // ACO_MUTUAL_FAILTURE
 		if (access_allownum == 0) {
-			printf("***WARNING: The IP security order is 'mutual-failture'\n");
-			printf("            (allow if in the allow list and not in the deny list).\n");
-			printf("            But, NO IP IS AUTHORISED!\n");
+			ShowWarning("The IP security order is 'mutual-failture'\n");
+			ShowWarning("  (allow if in the allow list and not in the deny list).\n");
+			ShowWarning("  But, NO IP IS AUTHORISED!\n");
 		} else if (access_denynum == 1 && access_deny[0] == '\0') {
-			printf("***WARNING: The IP security order is mutual-failture\n");
-			printf("            (allow if in the allow list and not in the deny list).\n");
-			printf("            But, you refuse ALL IP!\n");
+			ShowWarning("The IP security order is mutual-failture\n");
+			ShowWarning("  (allow if in the allow list and not in the deny list).\n");
+			ShowWarning("  But, you refuse ALL IP!\n");
 		}
 	}
 
 	if (dynamic_pass_failure_ban != 0) {
 		if (dynamic_pass_failure_ban_time < 1) {
-			printf("***WARNING: Invalid value for dynamic_pass_failure_ban_time (%d) parameter\n", dynamic_pass_failure_ban_time);
-			printf("            -> set to 5 (5 minutes to look number of invalid passwords.\n");
+			ShowWarning("Invalid value for dynamic_pass_failure_ban_time (%d) parameter\n", dynamic_pass_failure_ban_time);
+			ShowWarning("  -> setting to 5 (5 minutes to look number of invalid passwords.\n");
 			dynamic_pass_failure_ban_time = 5;
 		}
 		if (dynamic_pass_failure_ban_how_many < 1) {
-			printf("***WARNING: Invalid value for dynamic_pass_failure_ban_how_many (%d) parameter\n", dynamic_pass_failure_ban_how_many);
-			printf("            -> set to 3 (3 invalid passwords before to temporarily ban.\n");
+			ShowWarning("Invalid value for dynamic_pass_failure_ban_how_many (%d) parameter\n", dynamic_pass_failure_ban_how_many);
+			ShowWarning("  -> setting to 3 (3 invalid passwords before to temporarily ban.\n");
 			dynamic_pass_failure_ban_how_many = 3;
 		}
 		if (dynamic_pass_failure_ban_how_long < 1) {
-			printf("***WARNING: Invalid value for dynamic_pass_failure_ban_how_long (%d) parameter\n", dynamic_pass_failure_ban_how_long);
-			printf("            -> set to 1 (1 minute of temporarily ban.\n");
+			ShowWarning("Invalid value for dynamic_pass_failure_ban_how_long (%d) parameter\n", dynamic_pass_failure_ban_how_long);
+			ShowWarning("  -> setting to 1 (1 minute of temporarily ban.\n");
 			dynamic_pass_failure_ban_how_long = 1;
 		}
 	}
@@ -3900,9 +3890,9 @@ void save_config_in_log(void) {
 		if (dynamic_pass_failure_ban == 0)
 			login_log("- with NO dynamic password error ban." RETCODE);
 		else {
-			printf("- with a dynamic password error ban:" RETCODE);
-			printf("  After %d invalid password in %d minutes" RETCODE, dynamic_pass_failure_ban_how_many, dynamic_pass_failure_ban_time);
-			printf("  IP is banned for %d minutes" RETCODE, dynamic_pass_failure_ban_how_long);
+			login_log("- with a dynamic password error ban:" RETCODE);
+			login_log("  After %d invalid password in %d minutes" RETCODE, dynamic_pass_failure_ban_how_many, dynamic_pass_failure_ban_time);
+			login_log("  IP is banned for %d minutes" RETCODE, dynamic_pass_failure_ban_how_long);
 		}
 	}
 }
@@ -3912,7 +3902,7 @@ void save_config_in_log(void) {
 //--------------------------------------
 void do_final(void) {
 	int i, fd;
-	printf("Terminating...\n");
+	ShowInfo("Terminating...\n");
 	fflush(stdout);
 	mmo_auth_sync();
 	numdb_final(online_db, online_db_final);
@@ -3937,7 +3927,7 @@ void do_final(void) {
 
 	if(log_fp)
 		fclose(log_fp);
-	printf("Finished.\n");
+	ShowStatus("Finished.\n");
 }
 
 //------------------------------
@@ -3998,7 +3988,7 @@ int do_init(int argc, char **argv) {
 	}
 
 	login_log("The login-server is ready (Server is listening on the port %d)." RETCODE, login_port);
-	printf("The login-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", login_port);
+	ShowStatus("The login-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", login_port);
 
 	return 0;
 }

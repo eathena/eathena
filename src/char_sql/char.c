@@ -1633,7 +1633,7 @@ int delete_char_sql(int char_id, int partner_id)
 			sql_res = mysql_store_result(&mysql_handle);
 
 			if (sql_res != NULL) {
-				if (mysql_num_rows(sql_res) != 0) {
+				if (mysql_num_rows(sql_res) > 0) {
 					sql_row = mysql_fetch_row(sql_res);
 
 					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, atoi(sql_row[0]));
