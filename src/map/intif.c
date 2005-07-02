@@ -519,12 +519,13 @@ int intif_guild_change_basicinfo(unsigned long guild_id,int type,const unsigned 
 	return 0;
 }
 // ギルドメンバ情報変更要求
-int intif_guild_change_memberinfo(unsigned long guild_id,unsigned long account_id,unsigned long char_id, int type,unsigned long data)
+int intif_guild_change_memberinfo(unsigned long guild_id,unsigned long account_id,unsigned long char_id, unsigned short type, unsigned long data)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
 	if((guild_search(guild_id) != NULL) && (map_id2sd(char_id) != NULL))
 	{	
+printf("intif_guild_change_memberinfo->\n");
 		WFIFOW(char_fd, 0)=0x303a;
 		WFIFOW(char_fd, 2)=22;
 		WFIFOL(char_fd, 4)=guild_id;
@@ -537,7 +538,7 @@ int intif_guild_change_memberinfo(unsigned long guild_id,unsigned long account_i
 	return 0;
 }
 // ギルド役職変更要求
-int intif_guild_position(unsigned long guild_id,int idx,struct guild_position &pos)
+int intif_guild_position(unsigned long guild_id,unsigned long idx,struct guild_position &pos)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -846,7 +847,6 @@ int intif_parse_PartyInfo(int fd)
 		party_recv_noinfo(RFIFOL(fd,4));
 		return 0;
 	}
-
 	else
 	{
 		if(battle_config.error_log)
@@ -908,26 +908,23 @@ int intif_parse_GuildCreated(int fd)
 // ギルド情報
 int intif_parse_GuildInfo(int fd)
 {
-	if( RFIFOW(fd,2)==8){
+	if( RFIFOW(fd,2)==4+sizeof(struct guild) )
+	{
+		struct guild g;
+		guild_frombuffer(g, RFIFOP(fd,4));
+		guild_recv_info(g);
+	}
+	else if( RFIFOW(fd,2)==8)
+	{
 		if(battle_config.error_log)
 			ShowMessage("intif: guild noinfo %ld\n",(unsigned long)RFIFOL(fd,4));
 		guild_recv_noinfo(RFIFOL(fd,4));
 		return 0;
 	}
-//	if(battle_config.etc_log)
-//		ShowMessage("intif: guild info %ld\n",(unsigned long)RFIFOL(fd,4));
-	if( RFIFOW(fd,2)!=4+sizeof(struct guild) )
+	else
 	{
 		if(battle_config.error_log)
-			ShowMessage("intif: guild info : data size error %ld %d %d\n",
-			(unsigned long)RFIFOL(fd,4),(unsigned short)RFIFOW(fd,2),4+sizeof(struct guild));
-
-	}
-	{
-		struct guild g;
-//		memcpy(&g, RFIFOP(fd,4),sizeof(struct guild));
-		guild_frombuffer(g, RFIFOP(fd,4));
-		guild_recv_info(g);
+			ShowMessage("intif: guild info : data size error %ld %d %d\n", (unsigned long)RFIFOL(fd,4),(unsigned short)RFIFOW(fd,2),4+sizeof(struct guild));
 	}
 	return 0;
 }
@@ -981,6 +978,7 @@ int intif_parse_GuildBasicInfoChanged(int fd)
 // ギルドメンバ情報変更通知
 int intif_parse_GuildMemberInfoChanged(int fd)
 {
+printf("->intif_parse_GuildMemberInfoChanged\n");
 	unsigned short type=RFIFOW(fd,16);
 	unsigned long guild_id=RFIFOL(fd,4);
 	unsigned long account_id=RFIFOL(fd,8);
@@ -991,6 +989,8 @@ int intif_parse_GuildMemberInfoChanged(int fd)
 	unsigned short dd = (unsigned short)RFIFOL(fd,18);
 	if( g==NULL )
 		return 0;
+
+printf("intif_parse_GuildMemberInfoChanged %i\n", dd);
 	idx=guild_getindex(*g,account_id,char_id);
 	switch(type){
 	case GMI_POSITION:
@@ -1007,16 +1007,16 @@ int intif_parse_GuildMemberInfoChanged(int fd)
 // ギルド役職変更通知
 int intif_parse_GuildPosition(int fd)
 {
-	if( RFIFOW(fd,2)!=sizeof(struct guild_position)+12 ){
-		if(battle_config.error_log)
-			ShowMessage("intif: guild info : data size error\n %ld %d %d",(unsigned long)RFIFOL(fd,4),(unsigned short)RFIFOW(fd,2),sizeof(struct guild_position)+12);
-	}
+	if( RFIFOW(fd,2)==sizeof(struct guild_position)+12 )
 	{
 		struct guild_position pos;
-//		memcpy(&p,RFIFOP(fd,12),sizeof(struct guild_position));
 		guild_position_frombuffer(pos, RFIFOP(fd,12));
-
-		guild_position_changed(RFIFOL(fd,4),RFIFOL(fd,8),pos);
+		guild_position_changed(RFIFOL(fd,4), RFIFOL(fd,8), pos);
+	}
+	else
+	{
+		if(battle_config.error_log)
+			ShowMessage("intif: guild position : data size error\n %ld %d %d",(unsigned long)RFIFOL(fd,4),(unsigned short)RFIFOW(fd,2),sizeof(struct guild_position)+12);
 	}
 	return 0;
 }

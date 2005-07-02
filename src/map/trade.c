@@ -117,7 +117,6 @@ int impossible_trade_check(struct map_session_data &sd)
 	char message_to_gm[128];
 	register size_t i, index;
 
-
 	// get inventory of player
 	memcpy(&inventory, &sd.status.inventory, sizeof(struct item) * MAX_INVENTORY);
 

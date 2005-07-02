@@ -5512,6 +5512,7 @@ static struct {
 	{ "night_duration",                    &battle_config.night_duration	}, // added by [Yor]
 	{ "packet_ver_flag",                   &battle_config.packet_ver_flag	}, // added by [Yor]
 	{ "party_bonus",						&battle_config.party_bonus	}, // added by [Valaris]
+	{ "party_share_mode",					&battle_config.party_share_mode			},
 	{ "party_skill_penalty",               &battle_config.party_skill_penalty		},
 	{ "pc_attack_attr_none",               &battle_config.pc_attack_attr_none		},
 	{ "pet_attack_attr_none",              &battle_config.pet_attack_attr_none		},
@@ -5623,7 +5624,7 @@ void battle_set_defaults()
 	battle_config.any_warp_GM_min_level = 60; // added by [Yor]
 	battle_config.area_size = 14;
 	battle_config.arrow_decrement=1;
-	battle_config.atc_gmonly=1;
+	battle_config.atc_gmonly=0;
 	battle_config.atc_spawn_quantity_limit=0;
 	battle_config.attr_recover=1;
 	battle_config.backstab_bow_penalty = 0; // Akaru
@@ -5803,6 +5804,7 @@ void battle_set_defaults()
 	battle_config.night_duration = 30*60*1000; // added by [Yor] (30 minutes)
 	battle_config.packet_ver_flag = 255; // added by [Yor]
 	battle_config.party_bonus = 0;
+	battle_config.party_share_mode = 2; // 0 exclude none, 1 exclude idle, 2 exclude idle+chatting
 	battle_config.party_skill_penalty = 1;
 	battle_config.pc_attack_attr_none = 0;
 	battle_config.pc_attack_direction_change = 1;

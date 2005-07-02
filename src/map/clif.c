@@ -1069,17 +1069,17 @@ int clif_mob007b(struct mob_data &md, unsigned char *buf) {
 	} else
 		WBUFL(buf,22)=gettick();
 
-		if(md.class_ >= 1285 && md.class_ <= 1287 && md.guild_id)	{	// Added guardian emblems [Valaris]
-			struct guild *g;
-			struct guild_castle *gc=guild_mapname2gc(map[md.bl.m].mapname);
-			if(gc && gc->guild_id > 0){
-				g=guild_search(gc->guild_id);
-					if(g) {
-					WBUFL(buf,28)=gc->guild_id;
-					WBUFL(buf,24)=g->emblem_id;
-					}
-			}
-		}									// End addition
+	if(md.class_ >= 1285 && md.class_ <= 1287 && md.guild_id)	{	// Added guardian emblems [Valaris]
+		struct guild *g;
+		struct guild_castle *gc=guild_mapname2gc(map[md.bl.m].mapname);
+		if(gc && gc->guild_id > 0){
+			g=guild_search(gc->guild_id);
+				if(g) {
+				WBUFL(buf,28)=gc->guild_id;
+				WBUFL(buf,24)=g->emblem_id;
+				}
+		}
+	}									// End addition
 
 	WBUFPOS2(buf,50,md.bl.x,md.bl.y,md.to_x,md.to_y);
 	WBUFB(buf,56)=5;
@@ -4134,12 +4134,12 @@ int clif_pcoutsight(struct block_list &bl,va_list ap)
 		struct map_session_data &dstsd = (struct map_session_data&)bl;
 		if(sd->bl.id != dstsd.bl.id)
 		{
-			clif_clearchar_id(dstsd.bl.id,sd->fd,0);
-			clif_clearchar_id(sd->bl.id,dstsd.fd,0);
+			clif_clearchar_id(dstsd.bl.id, sd->fd, 0);
+			clif_clearchar_id(sd->bl.id, dstsd.fd, 0);
 			if(dstsd.disguise_id || sd->disguise_id)
 			{
-				clif_clearchar_id(dstsd.bl.id|FLAG_DISGUISE,sd->fd,0);
-				clif_clearchar_id(sd->bl.id|FLAG_DISGUISE,dstsd.fd,0);
+				clif_clearchar_id(dstsd.bl.id|FLAG_DISGUISE, sd->fd, 0);
+				clif_clearchar_id(sd->bl.id|FLAG_DISGUISE, dstsd.fd, 0);
 			}
 
 
@@ -5163,21 +5163,24 @@ int clif_insert_card(struct map_session_data &sd,unsigned short idx_equip,unsign
  */
 int clif_item_identify_list(struct map_session_data &sd)
 {
-	int i,c;
+	size_t i,c;
+
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
 		return 0;
 
 	WFIFOW(fd,0)=0x177;
 	for(i=c=0;i<MAX_INVENTORY;i++){
-		if(sd.status.inventory[i].nameid > 0 && sd.status.inventory[i].identify!=1){
+		if(sd.status.inventory[i].nameid > 0 && sd.status.inventory[i].identify!=1)
+		{
 			WFIFOW(fd,c*2+4)=i+2;
 			c++;
 		}
 	}
-	if(c > 0) {
+	if(c > 0)
+	{
 		WFIFOW(fd,2)=c*2+4;
-		WFIFOSET(fd,WFIFOW(fd,2));
+		WFIFOSET(fd,c*2+4);
 	}
 	return 0;
 }
@@ -5235,7 +5238,7 @@ int clif_item_repair_list(struct map_session_data &sd)
 	return 0;
 }
 
-int clif_item_repaireffect(struct map_session_data &sd, unsigned short nameid, int flag)
+int clif_repaireffect(struct map_session_data &sd, unsigned short nameid, unsigned char flag)
 {
 	unsigned short view;
 
@@ -5252,7 +5255,7 @@ int clif_item_repaireffect(struct map_session_data &sd, unsigned short nameid, i
 	WFIFOSET(fd, 5);
 
 	//if(sd->repair_target && sd != sd->repair_target && flag==0){	// 成功したら相手にも通知
-	//	clif_item_repaireffect(sd->repair_target,nameid,flag);
+	//	clif_repaireffect(sd->repair_target,nameid,flag);
 	//	sd->repair_target=NULL;
 	//}
 
@@ -6753,7 +6756,7 @@ int clif_guild_memberpositionchanged(struct guild &g,unsigned long idx)
 
 	if( idx>=MAX_GUILD )
 		return 0;
-
+printf("clif_guild_memberpositionchanged->\n");
 	WBUFW(buf, 0)=0x156;
 	WBUFW(buf, 2)=16;
 	WBUFL(buf, 4)=g.member[idx].account_id;
@@ -8287,7 +8290,7 @@ int clif_parse_MapMove(int fd, struct map_session_data &sd)
 	char map_name[17];
 
 
-	if( battle_config.atc_gmonly == 0 || 
+	if( (battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 	    pc_isGM(sd) >= get_atcommand_level(AtCommand_MapMove) )
 	{
 		memcpy(map_name, RFIFOP(fd,2), 16);
@@ -8702,7 +8705,7 @@ int clif_parse_GMmessage(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( battle_config.atc_gmonly == 0 || 
+	if( (battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 	    pc_isGM(sd) >= get_atcommand_level(AtCommand_Broadcast) )
 		intif_GMmessage((char*)RFIFOP(fd,4), 0);
 	return 0;
@@ -8766,8 +8769,7 @@ int clif_parse_TakeItem(int fd, struct map_session_data &sd)
 	fitem = (struct flooritem_data*)map_id2bl(map_object_id);
 
 	if (pc_isdead(sd)) {
-		clif_clearchar_area(sd.bl, 1);
-		return 0;
+		return clif_clearchar_area(sd.bl, 1);
 	}
 
 	if( sd.npc_id!=0 || sd.vender_id != 0 || sd.opt1 > 0 ||
@@ -8801,8 +8803,7 @@ int clif_parse_DropItem(int fd, struct map_session_data &sd)
 		return 0;
 
 	if (pc_isdead(sd)) {
-		clif_clearchar_area(sd.bl, 1);
-		return 0;
+		return clif_clearchar_area(sd.bl, 1);
 	}
 	if (sd.npc_id != 0 || sd.vender_id != 0 || sd.opt1 > 0 ||
 		(sd.sc_data && (sd.sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
@@ -8876,8 +8877,7 @@ int clif_parse_UseItem(int fd, struct map_session_data &sd)
 		return 0;
 
 	if (pc_isdead(sd)) {
-		clif_clearchar_area(sd.bl, 1);
-		return 0;
+		return clif_clearchar_area(sd.bl, 1);
 	}
 	if (sd.npc_id!=0 || sd.vender_id != 0 || (sd.opt1 > 0 && sd.opt1 != 6) ||
 	    (sd.sc_data && (sd.sc_data[SC_TRICKDEAD].timer != -1 || //死んだふり
@@ -8951,8 +8951,7 @@ int clif_parse_EquipItem(int fd,struct map_session_data &sd)
 		return 0;
 
 	if(pc_isdead(sd)) {
-		clif_clearchar_area(sd.bl,1);
-		return 0;
+		return clif_clearchar_area(sd.bl, 1);
 	}
 	index = RFIFOW(fd,2)-2;
 	if(sd.npc_id!=0 || sd.vender_id != 0)
@@ -8987,8 +8986,7 @@ int clif_parse_UnequipItem(int fd,struct map_session_data &sd)
 		return 0;
 
 	if(pc_isdead(sd)) {
-		clif_clearchar_area(sd.bl,1);
-		return 0;
+		return clif_clearchar_area(sd.bl, 1);
 	}
 	if(sd.npc_id!=0 || sd.vender_id != 0 || sd.opt1 > 0)
 		return 0;
@@ -9015,8 +9013,7 @@ int clif_parse_NpcClicked(int fd,struct map_session_data &sd)
 		return 0;
 
 	if(pc_isdead(sd)) {
-		clif_clearchar_area(sd.bl,1);
-		return 0;
+		return clif_clearchar_area(sd.bl, 1);
 	}
 	if(sd.npc_id!=0 || sd.vender_id != 0)
 		return 0;
@@ -9734,14 +9731,7 @@ int clif_parse_ProduceMix(int fd,struct map_session_data &sd)
  */
 int clif_parse_RepairItem(int fd, struct map_session_data &sd)
 {
-	int i = RFIFOW(fd,2);
-	int itemid = 0;
-
-	sd.state.produce_flag = 0;
-	if (i != 0xFFFF && (itemid = pc_item_repair(sd,i)) > 0)
-		return clif_item_repaireffect(sd,itemid,0);
-	else
-		return clif_item_repaireffect(sd,itemid,1);
+	return pc_item_repair(sd, RFIFOW(fd,2));
 }
 
 /*==========================================
@@ -9940,7 +9930,7 @@ int clif_parse_ResetChar(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( battle_config.atc_gmonly == 0 || 
+	if( (battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 		pc_isGM(sd) >= get_atcommand_level(AtCommand_ResetState) )
 	{
 		switch(RFIFOW(fd,2)){
@@ -9965,7 +9955,7 @@ int clif_parse_LGMmessage(int fd, struct map_session_data &sd) {
 	if( !session_isActive(fd) )
 		return 0;
 
-	if( battle_config.atc_gmonly == 0 || 
+	if( (battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 	    pc_isGM(sd) >= get_atcommand_level(AtCommand_LocalBroadcast) )
 	{
 		WBUFW(buf,0) = 0x9a;
@@ -10453,14 +10443,12 @@ int clif_parse_GuildChangePositionInfo(int fd, struct map_session_data &sd)
  */
 int clif_parse_GuildChangeMemberPosition(int fd, struct map_session_data &sd)
 {
+printf("clif_parse_GuildChangeMemberPosition\n");
 	int i;
-
 	if( !session_isActive(fd) )
 		return 0;
-
 	for(i=4;i<RFIFOW(fd,2);i+=12){
-		guild_change_memberposition(sd.status.guild_id,
-			RFIFOL(fd,i),RFIFOL(fd,i+4),RFIFOL(fd,i+8));
+		guild_change_memberposition(sd.status.guild_id,RFIFOL(fd,i),RFIFOL(fd,i+4),RFIFOL(fd,i+8));
 	}
 	return 0;
 }
@@ -10735,7 +10723,7 @@ int clif_parse_Shift(int fd, struct map_session_data &sd) {	// Rewriten by [Yor]
 
 	memset(player_name, '\0', sizeof(player_name));
 
-	if( battle_config.atc_gmonly == 0 || 
+	if( (battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 	    pc_isGM(sd) >= get_atcommand_level(AtCommand_JumpTo) )
 	{
 		memcpy(player_name, RFIFOP(fd,2), 24);
@@ -10757,7 +10745,7 @@ int clif_parse_Recall(int fd, struct map_session_data &sd) {	// Added by RoVeRT
 
 	memset(player_name, '\0', sizeof(player_name));
 
-	if( battle_config.atc_gmonly == 0 ||
+	if( (battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 		pc_isGM(sd) >= get_atcommand_level(AtCommand_Recall) )
 	{
 		memcpy(player_name, RFIFOP(fd,2), 24);
@@ -10771,7 +10759,7 @@ int clif_parse_GMHide(int fd, struct map_session_data &sd)
 {	// Modified by [Yor]
 
 	//ShowMessage("%2x %2x %2x\n", (unsigned short)RFIFOW(fd,0), (unsigned short)RFIFOW(fd,2), (unsigned short)RFIFOW(fd,4)); // R 019d <Option_value>.2B <flag>.2B
-	if( battle_config.atc_gmonly == 0 ||
+	if( (battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 	    pc_isGM(sd) >= get_atcommand_level(AtCommand_Hide) )
 	{
 		if (sd.status.option & OPTION_HIDE) { // OPTION_HIDE = 0x40

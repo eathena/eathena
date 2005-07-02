@@ -782,8 +782,8 @@ int pet_remove_map(struct map_session_data &sd)
 		}
 
 		clif_clearchar_area(sd.pd->bl,0);
-
 		map_delblock(sd.pd->bl);
+
 		map_deliddb(sd.pd->bl);
 		map_freeblock(sd.pd);
 		sd.pd = NULL;
@@ -1011,24 +1011,20 @@ int pet_catch_process1(struct map_session_data &sd,int target_class)
 int pet_catch_process2(struct map_session_data &sd,unsigned long target_id)
 {
 	struct mob_data *md;
-	int i=0,pet_catch_rate=0;
+	int pet_catch_rate=0;
 
-	if(sd.itemid <MAX_INVENTORY)
-	{	//Consume the pet lure [Skotlex]
-		if ((i = sd.itemindex) == -1 ||
-			sd.status.inventory[i].nameid != sd.itemid ||
-			!sd.inventory_data[i]->flag.delay_consume ||
-			sd.status.inventory[i].amount < 1	
-			)
-		{	//Something went wrong, items moved or they tried an exploit.
-			clif_pet_rulet(sd,0);
-			sd.catch_target_class = -1;
-			return 1;
-		}
-		//Delete the item
-		sd.itemid = sd.itemindex = 0xFFFF;
-		pc_delitem(sd,i,1,0);
+	if( sd.itemindex >=MAX_INVENTORY ||
+		sd.status.inventory[sd.itemindex].nameid != sd.itemid ||
+		!sd.inventory_data[sd.itemindex]->flag.delay_consume ||
+		sd.status.inventory[sd.itemindex].amount < 1 )
+	{	//Something went wrong, items moved or they tried an exploit.
+		clif_pet_rulet(sd,0);
+		sd.catch_target_class = -1;
+		return 1;
 	}
+	//Consume the pet lure [Skotlex]
+	pc_delitem(sd,sd.itemindex,1,0);
+	sd.itemid = sd.itemindex = 0xFFFF;
 	
 	md=(struct mob_data*)map_id2bl(target_id);
 	if(!md || md->bl.type != BL_MOB || md->bl.prev == NULL){
@@ -1037,12 +1033,12 @@ int pet_catch_process2(struct map_session_data &sd,unsigned long target_id)
 		return 1;
 	}
 
-	i = search_petDB_index(md->class_,PET_CLASS);
+	int i = search_petDB_index(md->class_,PET_CLASS);
 	//catch_target_class == 0 is used for universal lures. [Skotlex]
 	//for now universal lures do not include bosses.
 	if (sd.catch_target_class == 0 && !(md->mode&0x20))
 		sd.catch_target_class = md->class_;
-	if(i < 0 || sd.catch_target_class != md->class_) {
+	if(i < 0 || i>=MAX_PET_DB || sd.catch_target_class != md->class_) {
 		clif_emotion(md->bl, 7);	//mob will do /ag if wrong lure is used on them.
 		clif_pet_rulet(sd,0);
 		sd.catch_target_class = -1;
@@ -1378,9 +1374,9 @@ int pet_ai_sub_hard(struct pet_data &pd,unsigned long tick)
 				pet_unlocktarget(pd);
 			if(pd.timer != -1 && pd.state.state == MS_WALK && distance(pd.to_x,pd.to_y,sd->bl.x,sd->bl.y) < 3)
 				return 0;
-			pd.speed = (sd->speed>>1);
-			if(pd.speed <= 0)
-				pd.speed = 1;
+			pd.speed = sd->speed *3/4; // be faster than master
+			if(pd.speed <= 10)
+				pd.speed = 10;
 			pet_calc_pos(pd,sd->bl.x,sd->bl.y,sd->dir);
 			if(pet_walktoxy(pd,pd.to_x,pd.to_y))
 				pet_randomwalk(pd,tick);

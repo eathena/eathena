@@ -1576,7 +1576,7 @@ int map_quit(struct map_session_data &sd)
 	else
 		storage_storage_quit(sd);	// ‘qŒÉ‚ğŠJ‚¢‚Ä‚é‚È‚ç•Û‘¶‚·‚é
 
-		// check if we've been authenticated [celest]
+	// check if we've been authenticated [celest]
 	if (sd.state.auth)
 		skill_castcancel(&sd.bl,0);	// ‰r¥‚ğ’†?‚·‚é
 

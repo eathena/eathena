@@ -614,10 +614,10 @@ int guild_check_conflict(unsigned long guild_id, unsigned long account_id, unsig
 	return 0;
 }
 
-int guild_nextexp(int level) {
+int guild_nextexp(int level)
+{
 	if (level < 100)
 		return guild_exp[level-1];
-
 	return 0;
 }
 
@@ -631,7 +631,8 @@ int guild_checkskill(struct guild &g, unsigned short id)
 }
 
 // ギルドの情報の再計算
-int guild_calcinfo(struct guild *g) {
+int guild_calcinfo(struct guild *g)
+{
 	int i, c;
 	unsigned long nextexp;
 	struct guild before = *g;
@@ -644,14 +645,14 @@ int guild_calcinfo(struct guild *g) {
 	if (g->guild_lv <= 0)
 		g->guild_lv = 1;
 	nextexp = guild_nextexp(g->guild_lv);
-	if (nextexp > 0) {
-		while(g->exp >= nextexp && nextexp > 0) {	//fixed guild exp overflow [Kevin]
-			g->exp -= nextexp;
-			g->guild_lv++;
-			g->skill_point++;
-			nextexp = guild_nextexp(g->guild_lv);
-		}
+	while(g->exp >= nextexp && nextexp>0)
+	{
+		g->exp -= nextexp;
+		g->guild_lv++;
+		g->skill_point++;
+		nextexp = guild_nextexp(g->guild_lv);
 	}
+
 
 	// ギルドの次の経験値
 	g->next_exp = guild_nextexp(g->guild_lv);
@@ -674,7 +675,7 @@ int guild_calcinfo(struct guild *g) {
 	if(c) g->average_lv /= c;
 
 	// 全データを送る必要がありそう
-	if (g->max_member != before.max_member ||
+	if( g->max_member != before.max_member ||
 		g->guild_lv != before.guild_lv ||
 		g->skill_point != before.skill_point) {
 		mapif_guild_info(-1, g);
@@ -721,14 +722,13 @@ int mapif_guild_noinfo(int fd, int guild_id)
 }
 
 // ギルド情報まとめ送り
-int mapif_guild_info(int fd, struct guild *g) {
-	unsigned char buf[16384];
-
+int mapif_guild_info(int fd, struct guild *g)
+{
 	if(g)
 	{
+		unsigned char buf[16384];
 		WBUFW(buf,0) = 0x3831;
 		WBUFW(buf,2) = 4 + sizeof(struct guild);
-		//memcpy(WBUFP(buf,4), g, sizeof(struct guild));
 		guild_tobuffer(*g, WBUFP(buf,4));
 		//ShowMessage("int_guild: sizeof(guild)=%d\n", sizeof(struct guild));
 		if( !session_isActive(fd) )
@@ -835,7 +835,7 @@ int mapif_guild_basicinfochanged(unsigned long guild_id, int type, const void *d
 int mapif_guild_memberinfochanged(unsigned long guild_id, unsigned long account_id, unsigned long char_id, int type, unsigned long data)
 {
 	unsigned char buf[22];
-
+printf("mapif_guild_memberinfochanged->\n");
 	WBUFW(buf, 0) = 0x383a;
 	WBUFW(buf, 2) = 22;
 	WBUFL(buf, 4) = guild_id;
@@ -862,7 +862,7 @@ int mapif_guild_skillupack(unsigned long guild_id, unsigned long skill_num, unsi
 
 // ギルド同盟/敵対通知
 int mapif_guild_alliance(unsigned long guild_id1, unsigned long guild_id2, unsigned long account_id1, unsigned long account_id2, int flag, const char *name1, const char *name2) {
-	unsigned char buf[67];
+	unsigned char buf[128];
 
 	WBUFW(buf, 0) = 0x383d;
 	WBUFL(buf, 2) = guild_id1;
@@ -878,21 +878,19 @@ int mapif_guild_alliance(unsigned long guild_id1, unsigned long guild_id2, unsig
 }
 
 // ギルド役職変更通知
-int mapif_guild_position(struct guild *g, size_t idx) {
-	unsigned char buf[2048];
-
-	if(idx < MAX_GUILDPOSITION)
+int mapif_guild_position(struct guild *g, size_t idx)
+{
+	if(g && idx < MAX_GUILDPOSITION)
 	{
+		unsigned char buf[128];
 		WBUFW(buf,0) = 0x383b;
 		WBUFW(buf,2) = sizeof(struct guild_position) + 12;
 		WBUFL(buf,4) = g->guild_id;
 		WBUFL(buf,8) = idx;
 		//memcpy(WBUFP(buf,12), &g->position[idx], sizeof(struct guild_position));
 		guild_position_tobuffer(g->position[idx], WBUFP(buf,12));
-
-		mapif_sendall(buf, WBUFW(buf,2));
+		mapif_sendall(buf, sizeof(struct guild_position) + 12);
 	}
-
 	return 0;
 }
 
@@ -1213,57 +1211,64 @@ int mapif_parse_GuildBasicInfoChange(int fd, unsigned long guild_id, int type, c
 }
 
 // ギルドメンバデータ変更要求
-int mapif_parse_GuildMemberInfoChange(int fd, unsigned long guild_id, unsigned long account_id, unsigned long char_id, int type, unsigned long data)
+int mapif_parse_GuildMemberInfoChange(int fd, unsigned long guild_id, unsigned long account_id, unsigned long char_id, unsigned short type, unsigned long data)
 {
+printf("mapif_parse_GuildMemberInfoChange %i %i %i %i %i\n", guild_id,account_id,char_id,type,data);
 	int i;
 	struct guild *g;
-
+	
 	g = (struct guild *)numdb_search(guild_db, guild_id);
 	if(g == NULL)
 		return 0;
-
+	
 	for(i = 0; i < g->max_member; i++)
+	{
 		if (g->member[i].account_id == account_id && g->member[i].char_id == char_id)
 			break;
-		if (i == g->max_member) {
-			ShowMessage("int_guild: GuildMemberChange: Not found %d,%d in %d[%s]\n", account_id, char_id, guild_id, g->name);
-			return 0;
-		}
-		switch(type) {
-		case GMI_POSITION:	// 役職
-			g->member[i].position = data;
-			break;
-		case GMI_EXP:	// EXP
-		  {
-			int exp, oldexp = g->member[i].exp;
-			exp = g->member[i].exp = data;
-			g->exp += (exp - oldexp);
-			guild_calcinfo(g);	// Lvアップ判断
-			mapif_guild_basicinfochanged(guild_id, GBI_EXP, &g->exp, 4);
-		  }
-			break;
+	}
+	if (i == g->max_member)
+	{
+		ShowMessage("int_guild: GuildMemberChange: Not found %d,%d in %d[%s]\n", account_id, char_id, guild_id, g->name);
+		return 0;
+	}
+printf("mapif_parse_GuildMemberInfoChange member %i\n", i);
+
+	switch(type)
+	{
+	case GMI_POSITION:	// 役職
+		g->member[i].position = data;
+		break;
+	case GMI_EXP:	// EXP
+	{
+
+		int exp, oldexp = g->member[i].exp;
+		exp = g->member[i].exp = data;
+		g->exp += (exp - oldexp);
+		guild_calcinfo(g);	// Lvアップ判断
+printf("mapif_parse_GuildMemberInfoChange exp %i\n", g->exp);
+		mapif_guild_basicinfochanged(guild_id, GBI_EXP, &g->exp, 4);
+		break;
+	}
 	default:
 		ShowMessage("int_guild: GuildMemberInfoChange: Unknown type %d\n", type);
 		break;
 	}
 	mapif_guild_memberinfochanged(guild_id, account_id, char_id, type, data);
-
+	
 	return 0;
 }
 
 // ギルド役職名変更要求
-int mapif_parse_GuildPosition(int fd, unsigned long guild_id, size_t idx, unsigned char *buf) {
+int mapif_parse_GuildPosition(int fd, unsigned long guild_id, unsigned long idx, unsigned char *buf)
+{
 	struct guild *g = (struct guild *)numdb_search(guild_db, guild_id);
+	if(g && idx < MAX_GUILDPOSITION)
+	{
+		guild_position_frombuffer(g->position[idx],buf);
 
-	if (g == NULL || idx >= MAX_GUILDPOSITION)
-		return 0;
-
-	//memcpy(&g->position[idx], buf, sizeof(struct guild_position));
-	guild_position_frombuffer(g->position[idx],buf);
-
-	mapif_guild_position(g, idx);
-	ShowMessage("int_guild: position changed %d\n", idx);
-
+		mapif_guild_position(g, idx);
+		ShowMessage("int_guild: position changed %d\n", idx);
+	}
 	return 0;
 }
 

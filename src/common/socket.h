@@ -1439,7 +1439,7 @@ public:
 		}
 		return *this;
 	}
-	unsigned long operator=(unsigned char valin)
+	unsigned char operator=(unsigned char valin)
 	{	
 		if(ip)
 		{

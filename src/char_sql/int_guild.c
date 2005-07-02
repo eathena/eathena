@@ -886,9 +886,8 @@ int mapif_guild_info(int fd,struct guild *g)
 		unsigned char buf[16384];
 		WBUFW(buf,0)=0x3831;
 		WBUFW(buf,2)=4+sizeof(struct guild);
-		//memcpy(buf+4,g,sizeof(struct guild));
 		guild_tobuffer(*g, buf+4);
-		if(fd<0)
+		if( !session_isActive(fd) )
 			mapif_sendall(buf,4+sizeof(struct guild));
 		else
 			mapif_send(fd,buf,4+sizeof(struct guild));
@@ -1027,13 +1026,13 @@ int mapif_guild_position(struct guild *g, size_t idx)
 	if(g && idx < MAX_GUILDPOSITION)
 	{
 		unsigned char buf[128];
-		WBUFW(buf,0)=0x383b;
-		WBUFW(buf,2)=sizeof(struct guild_position)+12;
-		WBUFL(buf,4)=g->guild_id;
-		WBUFL(buf,8)=idx;
-		//memcpy(WBUFP(buf,12),&g->position[idx],sizeof(struct guild_position));
+		WBUFW(buf,0) = 0x383b;
+		WBUFW(buf,2) = sizeof(struct guild_position) + 12;
+		WBUFL(buf,4) = g->guild_id;
+		WBUFL(buf,8) = idx;
+		//memcpy(WBUFP(buf,12), &g->position[idx], sizeof(struct guild_position));
 		guild_position_tobuffer(g->position[idx], WBUFP(buf,12));
-		mapif_sendall(buf,WBUFW(buf,2));
+		mapif_sendall(buf, sizeof(struct guild_position) + 12);
 	}
 	return 0;
 }
@@ -1453,18 +1452,18 @@ int mapif_parse_GuildBasicInfoChange(int fd,unsigned long guild_id,int type,cons
 		break;
 	}
 	mapif_guild_basicinfochanged(guild_id,type,data,len);
-	//inter_guild_tosql(g,1); // Change guild
+	inter_guild_tosql(g,1); // Change guild
 	return 0;
 }
 
 // ギルドメンバデータ変更要求
-int mapif_parse_GuildMemberInfoChange(int fd,unsigned long guild_id,unsigned long account_id,unsigned long char_id, int type, unsigned long data)
+int mapif_parse_GuildMemberInfoChange(int fd,unsigned long guild_id,unsigned long account_id,unsigned long char_id, unsigned short type, unsigned long data)
 {
 	// Could make some improvement in speed, because only change guild_member
 	int i;
-	struct guild * g = inter_guild_fromsql(guild_id);
+	struct guild* g = inter_guild_fromsql(guild_id);
 
-	//ShowMessage("GuildMemberInfoChange %s \n",(type==GMI_EXP)?"GMI_EXP":"OTHER");
+	ShowMessage("GuildMemberInfoChange %s \n",(type==GMI_EXP)?"GMI_EXP":"OTHER");
 
 	if(g==NULL){
 		return 0;
@@ -1480,14 +1479,14 @@ int mapif_parse_GuildMemberInfoChange(int fd,unsigned long guild_id,unsigned lon
 	}
 	switch(type){
 	case GMI_POSITION:	// 役職
-	  {
+	{
 	    g->member[i].position=data;
 	    mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data);
 	    inter_guild_tosql(g,3); // Change guild & guild_member
 	    break;
-	  }
+	}
 	case GMI_EXP:
-	  {	// EXP
+	{	// EXP
 	    int exp,oldexp=g->member[i].exp;
 	    exp=g->member[i].exp=data;
 	    g->exp+=(exp-oldexp);
@@ -1503,7 +1502,7 @@ int mapif_parse_GuildMemberInfoChange(int fd,unsigned long guild_id,unsigned lon
 	    if(mysql_SendQuery(&mysql_handle, tmp_sql) )
 	      ShowMessage("DB server Error: %s - %s\n", tmp_sql, mysql_error(&mysql_handle) );
 	    break;
-	  }
+	}
 	default:
 	  ShowMessage("int_guild: GuildMemberInfoChange: Unknown type %d\n",type);
 	  break;
@@ -1512,12 +1511,12 @@ int mapif_parse_GuildMemberInfoChange(int fd,unsigned long guild_id,unsigned lon
 }
 
 // ギルド役職名変更要求
-int mapif_parse_GuildPosition(int fd,unsigned long guild_id, size_t idx,unsigned char *buf)
+int mapif_parse_GuildPosition(int fd, unsigned long guild_id, unsigned long idx, unsigned char *buf)
 {
 	// Could make some improvement in speed, because only change guild_position
 	struct guild * g = inter_guild_fromsql(guild_id);
 
-	if(g==NULL || idx<0 || idx>=MAX_GUILDPOSITION)
+	if(g==NULL || idx>=MAX_GUILDPOSITION)
 		return 0;
 
 	guild_position_frombuffer(g->position[idx],buf);

@@ -1601,7 +1601,7 @@ const char* conv_str(struct script_state &st,struct script_data &data)
 	if(data.type==C_INT)
 	{
 		char *buf;
-		buf=(char *)aMalloc(16*sizeof(char));
+		buf=(char *)aMalloc(24*sizeof(char));
 		sprintf(buf,"%d",data.u.num);
 		data.type=C_STR;
 		data.u.str=buf;
@@ -1610,7 +1610,7 @@ const char* conv_str(struct script_state &st,struct script_data &data)
 	{	// テンポラリ。本来無いはず
 		data.type=C_CONSTSTR;
 		data.u.str=str_buf+str_data[data.u.num].str;
-}
+	}
 	return data.u.str;
 }
 
@@ -2432,34 +2432,32 @@ int buildin_countitem(struct script_state &st)
 	struct map_session_data *sd = script_rid2sd(st);
 	if(sd)
 	{
-	struct script_data *data;
+		struct script_data *data;
 		data=&(st.stack.stack_data[st.start+2]);
-
+		
 		get_val(st,*data);
 		if( data->type==C_STR || data->type==C_CONSTSTR )
 		{
 			const char *name=conv_str(st,*data);
-		struct item_data *item_data;
-		if( (item_data = itemdb_searchname(name)) != NULL)
-			nameid=item_data->nameid;
+			struct item_data *item_data;
+			if( (item_data = itemdb_searchname(name)) != NULL)
+				nameid=item_data->nameid;
 		}
 		else
 			nameid=conv_num(st,*data);
-
-	if (nameid>=500) //if no such ID then skip this iteration
+		
+		if(nameid>=500 && nameid<MAX_ITEMS)
+		{
 			for(i=0;i<MAX_INVENTORY;i++)
 			{
-			if(sd->status.inventory[i].nameid==nameid)
-				count+=sd->status.inventory[i].amount;
+				if(sd->status.inventory[i].nameid==nameid)
+					count+=sd->status.inventory[i].amount;
+			}
 		}
-		else
-		{
-		if(battle_config.error_log)
-				ShowMessage("wrong item ID : countitem(%i)\n",nameid);
-	}
+		else if(battle_config.error_log)
+			ShowMessage("wrong item ID : countitem(%i)\n",nameid);
 	}
 	push_val(st.stack,C_INT,count);
-
 	return 0;
 }
 
@@ -2469,32 +2467,31 @@ int buildin_countitem(struct script_state &st)
  */
 int buildin_checkweight(struct script_state &st)
 {
-	int val = 0;
-	unsigned short nameid=0,amount;
+	int val = 1;
+	unsigned short nameid=0, amount;
 	struct script_data &data=(st.stack.stack_data[st.start+2]);
 	struct map_session_data *sd = script_rid2sd(st);
 
 	if(sd)
 	{
-	get_val(st,data);
+		get_val(st,data);
 		if( data.type==C_STR || data.type==C_CONSTSTR )
 		{
-		const char *name=conv_str(st,data);
-		struct item_data *item_data = itemdb_searchname(name);
-		if( item_data )
-			nameid=item_data->nameid;
+			const char *name=conv_str(st,data);
+			struct item_data *item_data = itemdb_searchname(name);
+			if( item_data )
+				nameid=item_data->nameid;
 		}
 		else
-		nameid=conv_num(st,data);
-
+			nameid=conv_num(st,data);
 		amount=conv_num(st, (st.stack.stack_data[st.start+3]));
 		if( amount<MAX_AMOUNT && nameid>=500 && nameid<MAX_ITEMS)
 		{
 			if( itemdb_weight(nameid)*amount + sd->weight <= sd->max_weight )
 			{
-				val = 1;
-	}
-	}
+				val = 0;
+			}
+		}
 	}
 	push_val(st.stack,C_INT,val);
 	return 0;
@@ -3086,7 +3083,7 @@ int buildin_strcharinfo(struct script_state &st)
 	return 0;
 }
 
-unsigned int equip[10]={0x0100,0x0010,0x0020,0x0002,0x0004,0x0040,0x0008,0x0080,0x0200,0x0001};
+unsigned short equip[10]={0x0100,0x0010,0x0020,0x0002,0x0004,0x0040,0x0008,0x0080,0x0200,0x0001};
 
 /*==========================================
  * GetEquipID(Pos);     Pos: 1-10
@@ -3094,23 +3091,25 @@ unsigned int equip[10]={0x0100,0x0010,0x0020,0x0002,0x0004,0x0040,0x0008,0x0080,
  */
 int buildin_getequipid(struct script_state &st)
 {
-	int i,num;
-	struct map_session_data *sd;
+	unsigned short itempos,num;
+	struct map_session_data *sd = script_rid2sd(st);
 	struct item_data* item;
+	int val = -1;
 
-	sd=script_rid2sd(st);
-	if(!sd) return 0;
-	num=conv_num(st, (st.stack.stack_data[st.start+2]));
-	i=pc_checkequip(*sd,equip[num-1]);
-	if(i >= 0){
-		item=sd->inventory_data[i];
-		if(item)
-			push_val(st.stack,C_INT,item->nameid);
-		else
-			push_val(st.stack,C_INT,0);
-	}else{
-		push_val(st.stack,C_INT,-1);
+	if(sd)
+	{
+		num = conv_num(st, (st.stack.stack_data[st.start+2])) - 1;
+		if(num<10)
+		{
+			itempos=pc_checkequip(*sd,equip[num]);
+			if(itempos < MAX_INVENTORY)
+			{
+				item=sd->inventory_data[itempos];
+				val = (item) ? item->nameid : 0;
+			}
+		}
 	}
+	push_val(st.stack,C_INT,val);
 	return 0;
 }
 
@@ -3120,27 +3119,23 @@ int buildin_getequipid(struct script_state &st)
  */
 int buildin_getequipname(struct script_state &st)
 {
-	int i,num;
-	struct map_session_data *sd;
+	struct map_session_data *sd=script_rid2sd(st);
 	struct item_data* item;
-	char *buf;
-
-	buf=(char *)aMalloc(64*sizeof(char));
-	sd=script_rid2sd(st);
-	if(!sd) return 0;
-	num=conv_num(st, (st.stack.stack_data[st.start+2]));
-	i=pc_checkequip(*sd,equip[num-1]);
-	if(i >= 0){
-		item=sd->inventory_data[i];
-		if(item)
-			sprintf(buf,"%s-[%s]",positions[num-1],item->jname);
-		else
-			sprintf(buf,"%s-[%s]",positions[num-1],positions[10]);
-	}else{
-		sprintf(buf,"%s-[%s]",positions[num-1],positions[10]);
+	unsigned short num, itempos;
+	char *buf = (char *)aCalloc(64,sizeof(char)); // string is clear by default
+	if(sd)
+	{
+		num = conv_num(st, (st.stack.stack_data[st.start+2])) - 1;
+		if(num<10)
+		{
+			itempos=pc_checkequip(*sd,equip[num]);
+			if(itempos < MAX_INVENTORY && (item=sd->inventory_data[itempos])!=NULL)
+				sprintf(buf,"%s-[%s]",positions[num],item->jname);
+			else
+				sprintf(buf,"%s-[%s]",positions[num],positions[10]);
+		}
 	}
 	push_str(st.stack,C_STR, buf);
-
 	return 0;
 }
 
@@ -3150,24 +3145,30 @@ int buildin_getequipname(struct script_state &st)
  */
 int buildin_getbrokenid(struct script_state &st)
 {
-	int i,num,id=0,brokencounter=0;
+	unsigned short itempos;
+	size_t count, brokencounter=0;
 	struct map_session_data *sd;
+	int itemid=0;
 
 	sd=script_rid2sd(st);
 
-	num=conv_num(st, (st.stack.stack_data[st.start+2]));
-	for(i=0; i<MAX_INVENTORY; i++) {
-		if(sd->status.inventory[i].attribute==1){
+	if(sd)
+	{
+		count = conv_num(st, (st.stack.stack_data[st.start+2]));
+		for(itempos=0; itempos<MAX_INVENTORY; itempos++)
+		{
+			if(sd->status.inventory[itempos].attribute==1)
+			{
 				brokencounter++;
-				if(num==brokencounter){
-					id=sd->status.inventory[i].nameid;
+				if(count==brokencounter)
+				{
+					itemid=sd->status.inventory[itempos].nameid;
 					break;
 				}
+			}
 		}
 	}
-
-	push_val(st.stack,C_INT,id);
-
+	push_val(st.stack,C_INT,itemid);
 	return 0;
 }
 
@@ -3177,28 +3178,30 @@ int buildin_getbrokenid(struct script_state &st)
  */
 int buildin_repair(struct script_state &st)
 {
-	int i,num;
-	int repaircounter=0;
-	struct map_session_data *sd;
+	unsigned short itempos;
+	size_t count, repaircounter=0;
+	struct map_session_data *sd=script_rid2sd(st);
 
-
-	sd=script_rid2sd(st);
-
-	num=conv_num(st, (st.stack.stack_data[st.start+2]));
-	for(i=0; i<MAX_INVENTORY; i++) {
-		if(sd->status.inventory[i].attribute==1){
+	if(sd)
+	{
+		count=conv_num(st, (st.stack.stack_data[st.start+2]));
+		for(itempos=0; itempos<MAX_INVENTORY; itempos++)
+		{
+			if(sd->status.inventory[itempos].attribute==1)
+			{
 				repaircounter++;
-				if(num==repaircounter){
-					sd->status.inventory[i].attribute=0;
+				if(count==repaircounter)
+				{
+					sd->status.inventory[itempos].attribute=0;
 					clif_equiplist(*sd);
-					clif_produceeffect(*sd, 0, sd->status.inventory[i].nameid);
+					clif_produceeffect(*sd, sd->status.inventory[itempos].nameid, 0);
 					clif_misceffect(sd->bl, 3);
 					clif_displaymessage(sd->fd,"Item has been repaired.");
 					break;
 				}
+			}
 		}
 	}
-
 	return 0;
 }
 
@@ -3208,18 +3211,21 @@ int buildin_repair(struct script_state &st)
  */
 int buildin_getequipisequiped(struct script_state &st)
 {
-	int i,num;
-	struct map_session_data *sd;
+	unsigned short itempos,num;
+	struct map_session_data *sd=script_rid2sd(st);
+	int val=0;
 
-	num=conv_num(st, (st.stack.stack_data[st.start+2]));
-	sd=script_rid2sd(st);
-	if(!sd) return 0;
-	i=pc_checkequip(*sd,equip[num-1]);
-	if(i >= 0){
-		push_val(st.stack,C_INT,1);
-	}else{
-		push_val(st.stack,C_INT,0);
+	if(sd)
+	{
+		num=conv_num(st, (st.stack.stack_data[st.start+2])) - 1;
+		if(num<10)
+		{
+			itempos=pc_checkequip(*sd,equip[num]);
+			if(itempos < MAX_INVENTORY)
+				val = 1;
+		}
 	}
+	push_val(st.stack,C_INT,val);
 
 	return 0;
 }
@@ -3230,26 +3236,22 @@ int buildin_getequipisequiped(struct script_state &st)
  */
 int buildin_getequipisenableref(struct script_state &st)
 {
-	int i,num;
-	struct map_session_data *sd;
+	unsigned short itempos,num;
+	struct map_session_data *sd = script_rid2sd(st);
+	int val=0;
 
-	num=conv_num(st, (st.stack.stack_data[st.start+2]));
-	sd=script_rid2sd(st);
-	if(!sd) return 0;
-	i=pc_checkequip(*sd,equip[num-1]);
-	if(i >= 0 && num<7 && sd->inventory_data[i] && !sd->inventory_data[i]->flag.no_refine)
-			// replaced by Celest
-			/*(num!=1
-				 || sd->inventory_data[i]->def > 1
-	             || (sd->inventory_data[i]->def==1 && sd->inventory_data[i]->equip_script==NULL)
-	             || (sd->inventory_data[i]->def<=0 && sd->inventory_data[i]->equip_script!=NULL)))*/
-
+	if(sd)
 	{
-		push_val(st.stack,C_INT,1);
-	} else {
-		push_val(st.stack,C_INT,0);
+		num=conv_num(st, (st.stack.stack_data[st.start+2])) - 1;
+		if(num<10)
+		{
+			itempos=pc_checkequip(*sd,equip[num]);
+			if( itempos<MAX_INVENTORY && num<7 && 
+				sd->inventory_data[itempos] && !sd->inventory_data[itempos]->flag.no_refine)
+				val = 1;
+		}
 	}
-
+	push_val(st.stack,C_INT,val);
 	return 0;
 }
 
@@ -3259,18 +3261,21 @@ int buildin_getequipisenableref(struct script_state &st)
  */
 int buildin_getequipisidentify(struct script_state &st)
 {
-	int i,num;
-	struct map_session_data *sd;
+	unsigned short itempos, num;
+	struct map_session_data *sd = script_rid2sd(st);
+	int val = 0;
 
-	num=conv_num(st, (st.stack.stack_data[st.start+2]));
-	sd=script_rid2sd(st);
-	if(!sd) return 0;
-	i=pc_checkequip(*sd,equip[num-1]);
-	if(i >= 0)
-		push_val(st.stack,C_INT,sd->status.inventory[i].identify);
-	else
-		push_val(st.stack,C_INT,0);
-
+	if(sd)
+	{
+		num=conv_num(st, (st.stack.stack_data[st.start+2])) - 1;
+		if(num<10)
+		{
+			itempos=pc_checkequip(*sd,equip[num]);
+			if(itempos < MAX_INVENTORY)
+				val = sd->status.inventory[itempos].identify;
+		}
+	}
+	push_val(st.stack,C_INT,val);
 	return 0;
 }
 
@@ -3280,18 +3285,21 @@ int buildin_getequipisidentify(struct script_state &st)
  */
 int buildin_getequiprefinerycnt(struct script_state &st)
 {
-	int i,num;
-	struct map_session_data *sd;
+	unsigned short itempos,num;
+	struct map_session_data *sd=script_rid2sd(st);
+	int val = 0;
 
-	num=conv_num(st, (st.stack.stack_data[st.start+2]));
-	sd=script_rid2sd(st);
-	if(!sd) return 0;
-	i=pc_checkequip(*sd,equip[num-1]);
-	if(i >= 0)
-		push_val(st.stack,C_INT,sd->status.inventory[i].refine);
-	else
-		push_val(st.stack,C_INT,0);
-
+	if(sd)
+	{
+		num=conv_num(st, (st.stack.stack_data[st.start+2])) - 1;
+		if(num<10)
+		{
+			itempos=pc_checkequip(*sd,equip[num]);
+			if(itempos < MAX_INVENTORY)
+				val = sd->status.inventory[itempos].refine;
+		}
+	}
+	push_val(st.stack,C_INT,val);
 	return 0;
 }
 
@@ -3301,18 +3309,21 @@ int buildin_getequiprefinerycnt(struct script_state &st)
  */
 int buildin_getequipweaponlv(struct script_state &st)
 {
-	int i,num;
-	struct map_session_data *sd;
+	unsigned short itempos,num;
+	struct map_session_data *sd=script_rid2sd(st);
+	int val = 0;
 
-	num=conv_num(st, (st.stack.stack_data[st.start+2]));
-	sd=script_rid2sd(st);
-	if(!sd) return 0;
-	i=pc_checkequip(*sd,equip[num-1]);
-	if(i >= 0 && sd->inventory_data[i])
-		push_val(st.stack,C_INT,sd->inventory_data[i]->wlv);
-	else
-		push_val(st.stack,C_INT,0);
-
+	if(sd)
+	{
+		num=conv_num(st, (st.stack.stack_data[st.start+2])) - 1;
+		if(num<10)
+		{
+			itempos=pc_checkequip(*sd,equip[num]);
+			if(itempos < MAX_INVENTORY && sd->inventory_data[itempos])
+				val = sd->inventory_data[itempos]->wlv;
+		}
+	}
+	push_val(st.stack,C_INT,val);
 	return 0;
 }
 
@@ -3322,17 +3333,21 @@ int buildin_getequipweaponlv(struct script_state &st)
  */
 int buildin_getequippercentrefinery(struct script_state &st)
 {
-	int i,num;
-	struct map_session_data *sd;
+	unsigned short itempos,num;
+	struct map_session_data *sd = script_rid2sd(st);
+	int val = 0;
 
-	num=conv_num(st, (st.stack.stack_data[st.start+2]));
-	sd=script_rid2sd(st);
-	if(!sd) return 0;
-	i=pc_checkequip(*sd,equip[num-1]);
-	if(i >= 0)
-		push_val(st.stack,C_INT,status_percentrefinery(*sd,sd->status.inventory[i]));
-	else
-		push_val(st.stack,C_INT,0);
+	if(sd)
+	{
+		num=conv_num(st, (st.stack.stack_data[st.start+2])) - 1;
+		if(num<10)
+		{
+			itempos=pc_checkequip(*sd,equip[num]);
+			if(itempos < MAX_INVENTORY)
+				val = status_percentrefinery(*sd,sd->status.inventory[itempos]);
+		}
+	}
+	push_val(st.stack,C_INT,val);
 
 	return 0;
 }
@@ -3343,44 +3358,51 @@ int buildin_getequippercentrefinery(struct script_state &st)
  */
 int buildin_successrefitem(struct script_state &st)
 {
-	int i,num,ep;
-	struct map_session_data *sd;
+	unsigned short itempos,num, equippos;
+	struct map_session_data *sd=script_rid2sd(st);
 
-	num=conv_num(st, (st.stack.stack_data[st.start+2]));
-	sd=script_rid2sd(st);
-	if(!sd) return 0;
-	i=pc_checkequip(*sd,equip[num-1]);
-	if(sd && i >= 0) {
-		ep=sd->status.inventory[i].equip;
-
-		if(log_config.refine > 0)
-			log_refine(*sd, i, 1);
-
-		sd->status.inventory[i].refine++;
-		pc_unequipitem(*sd,i,2);
-		clif_refine(sd->fd,*sd,0,i,sd->status.inventory[i].refine);
-		clif_delitem(*sd,i,1);
-		clif_additem(*sd,i,1,0);
-		pc_equipitem(*sd,i,ep);
-		clif_misceffect(sd->bl,3);
-		if( sd->status.inventory[i].refine == 10 && 
-			sd->status.inventory[i].card[0] == 0x00ff && 
-			sd->status.char_id == MakeDWord(sd->status.inventory[i].card[2],sd->status.inventory[i].card[3])  )
-		{	// Fame point system [DracoRPG]
-	 		switch (sd->inventory_data[i]->wlv){
-				case 1:
-					pc_addfame(*sd,1,0); // Success to refine to +10 a lv1 weapon you forged = +1 fame point
-					break;
-				case 2:
-					pc_addfame(*sd,25,0); // Success to refine to +10 a lv2 weapon you forged = +25 fame point
-					break;
-				case 3:
-					pc_addfame(*sd,1000,0); // Success to refine to +10 a lv3 weapon you forged = +1000 fame point
-					break;
-	 	 	 }
+	if(sd)
+	{
+		num=conv_num(st, (st.stack.stack_data[st.start+2])) - 1;
+		if(num<10)
+		{
+			itempos=pc_checkequip(*sd,equip[num]);
+			if(itempos < MAX_INVENTORY)
+			{
+				equippos=sd->status.inventory[itempos].equip;
+				if(log_config.refine > 0)
+					log_refine(*sd, itempos, 1);
+				
+				sd->status.inventory[itempos].refine++;
+				pc_unequipitem(*sd,itempos,2);
+				clif_refine(sd->fd,*sd,0,itempos,sd->status.inventory[itempos].refine);
+				clif_delitem(*sd,itempos,1);
+				clif_additem(*sd,itempos,1,0);
+				pc_equipitem(*sd,itempos,equippos);
+				clif_misceffect(sd->bl,3);
+				if( sd->status.inventory[itempos].refine == 10 && 
+					sd->status.inventory[itempos].card[0] == 0x00ff && 
+					sd->status.char_id == MakeDWord(sd->status.inventory[itempos].card[2],sd->status.inventory[itempos].card[3])  )
+				{	// Fame point system [DracoRPG]
+					switch (sd->inventory_data[itempos]->wlv)
+					{
+					 // Success to refine to +10 a lv1 weapon you forged = +1 fame point
+					case 1:
+						pc_addfame(*sd,1,0);
+						break;
+					// Success to refine to +10 a lv2 weapon you forged = +25 fame point
+					case 2:
+						pc_addfame(*sd,25,0);
+						break;
+					// Success to refine to +10 a lv3 weapon you forged = +1000 fame point
+					case 3:
+						pc_addfame(*sd,1000,0);
+						break;
+					}
+				}
+			}
 		}
 	}
-
 	return 0;
 }
 
@@ -3390,27 +3412,29 @@ int buildin_successrefitem(struct script_state &st)
  */
 int buildin_failedrefitem(struct script_state &st)
 {
-	int i,num;
-	struct map_session_data *sd;
+	unsigned short itempos,num;
+	struct map_session_data *sd=script_rid2sd(st);
 
-	num=conv_num(st, (st.stack.stack_data[st.start+2]));
-	sd=script_rid2sd(st);
-	if(!sd)
-		return 0;
-	i=pc_checkequip(*sd,equip[num-1]);
-	if(sd && i >= 0) {
-		if(log_config.refine > 0)
-			log_refine(*sd, i, 0);
-
-		sd->status.inventory[i].refine = 0;
-		pc_unequipitem(*sd,i,3);
-		// 精錬失敗エフェクトのパケット
-		clif_refine(sd->fd,*sd,1,i,sd->status.inventory[i].refine);
-		pc_delitem(*sd,i,1,0);
-		// 他の人にも失敗を通知
-		clif_misceffect(sd->bl,2);
+	if(sd)
+	{
+		num=conv_num(st, (st.stack.stack_data[st.start+2])) - 1;
+		if(num<10)
+		{
+			itempos=pc_checkequip(*sd,equip[num]);
+			if(itempos < MAX_INVENTORY)
+			{
+				if(log_config.refine > 0)
+					log_refine(*sd, itempos, 0);
+				sd->status.inventory[itempos].refine = 0;
+				pc_unequipitem(*sd,itempos,3);
+				// 精錬失敗エフェクトのパケット
+				clif_refine(sd->fd,*sd,1,itempos,sd->status.inventory[itempos].refine);
+				pc_delitem(*sd,itempos,1,0);
+				// 他の人にも失敗を通知
+				clif_misceffect(sd->bl,2);
+			}
+		}
 	}
-
 	return 0;
 }
 
@@ -3956,13 +3980,16 @@ int buildin_itemskill(struct script_state &st)
 	lv=conv_num(st, (st.stack.stack_data[st.start+3]));
 	str=conv_str(st,(st.stack.stack_data[st.start+4]));
 
-	// 詠唱中にスキルアイテムは使用できない
-	if(sd->skilltimer != -1)
-		return 0;
-
-	sd->skillitem=id;
-	sd->skillitemlv=lv;
-	clif_item_skill(*sd,id,lv,str);
+	if(sd)
+	{
+		// 詠唱中にスキルアイテムは使用できない
+		if(sd->skilltimer == -1)
+		{
+			sd->skillitem=id;
+			sd->skillitemlv=lv;
+			clif_item_skill(*sd,id,lv,str);
+		}
+	}
 	return 0;
 }
 /*==========================================
@@ -7777,9 +7804,12 @@ void op_add(struct script_state& st)
 		conv_str(st,(st.stack.stack_data[st.stack.sp]));
 		conv_str(st,(st.stack.stack_data[st.stack.sp-1]));
 	}
-	if(st.stack.stack_data[st.stack.sp].type==C_INT){ // ii
+	if(st.stack.stack_data[st.stack.sp].type==C_INT)
+	{ // ii
 		st.stack.stack_data[st.stack.sp-1].u.num += st.stack.stack_data[st.stack.sp].u.num;
-	} else { // ssの予定
+	}
+	else
+	{	// ssの予定
 		char *buf;
 		buf=(char *)aCallocA(strlen(st.stack.stack_data[st.stack.sp-1].u.str)+
 				strlen(st.stack.stack_data[st.stack.sp].u.str)+1,sizeof(char));

@@ -854,20 +854,22 @@ int guild_recv_message(unsigned long guild_id,unsigned long account_id,const cha
 // ƒMƒ‹ƒhƒƒ“ƒo‚Ì–ğE•ÏX
 int guild_change_memberposition(unsigned long guild_id,unsigned long account_id,unsigned long char_id, unsigned long idx)
 {
+printf("guild_change_memberposition %i %i %i %i\n", guild_id, account_id, char_id, idx);
 	return intif_guild_change_memberinfo(guild_id,account_id,char_id,GMI_POSITION,idx);
 }
 // ƒMƒ‹ƒhƒƒ“ƒo‚Ì–ğE•ÏX’Ê’m
 int guild_memberposition_changed(struct guild &g,unsigned short idx,unsigned short pos)
 {
+printf("guild_memberposition_changed %i %i\n", idx,pos);
 	if(idx<MAX_GUILD)
 	{
 		g.member[idx].position=pos;
-	clif_guild_memberpositionchanged(g,idx);
+		clif_guild_memberpositionchanged(g,idx);
 	}
 	return 0;
 }
 // ƒMƒ‹ƒh–ğE•ÏX
-int guild_change_position(struct map_session_data &sd,int idx,int mode,int exp_mode,const char *name)
+int guild_change_position(struct map_session_data &sd,unsigned long idx,int mode,int exp_mode,const char *name)
 {
 	struct guild_position p;
 	if(exp_mode > (int)battle_config.guild_exp_limit)
@@ -879,15 +881,15 @@ int guild_change_position(struct map_session_data &sd,int idx,int mode,int exp_m
 	return intif_guild_position(sd.status.guild_id,idx,p);
 }
 // ƒMƒ‹ƒh–ğE•ÏX’Ê’m
-int guild_position_changed(unsigned long guild_id,int idx,struct guild_position &p)
+int guild_position_changed(unsigned long guild_id,unsigned long idx,struct guild_position &p)
 {
 	struct guild *g=guild_search(guild_id);
-	if(g!=NULL)
+	if(g!=NULL && idx<MAX_GUILDPOSITION)
 	{
 		memcpy(&g->position[idx],&p,sizeof(struct guild_position));
 		clif_guild_positionchanged(*g,idx);
 	}
-		return 0;
+	return 0;
 }
 // ƒMƒ‹ƒh’m•ÏX
 int guild_change_notice(struct map_session_data &sd,unsigned long guild_id,const char *mes1,const char *mes2)

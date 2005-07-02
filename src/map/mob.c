@@ -2181,8 +2181,8 @@ int mob_remove_map(struct mob_data &md, int type)
 		clif_clearchar_delay(gettick()+3000,md.bl,0);
 	
 	mob_changestate(md,MS_DEAD,0);
-	clif_clearchar_area(md.bl,type);
 	mob_deleteslave(md);
+	clif_clearchar_area(md.bl,type);
 	map_delblock(md.bl);
 
 	mob_setdelayspawn(md.bl.id);
@@ -2192,8 +2192,8 @@ int mob_remove_map(struct mob_data &md, int type)
 void mob_unload(struct mob_data &md)
 {
 	mob_changestate(md,MS_DEAD,0);
-	clif_clearchar_area(md.bl, 0);
 	mob_deleteslave(md);
+	clif_clearchar_area(md.bl, 0);
 	map_delblock(md.bl);
 	if(md.lootitem){
 		aFree(md.lootitem);

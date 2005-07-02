@@ -2253,7 +2253,8 @@ bool atcommand_item2(int fd, struct map_session_data &sd, const char* command, c
 
 	memset(item_name, '\0', sizeof(item_name));
 
-	if (!message || !*message || sscanf(message, "%99s %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 9) {
+	if (!message || !*message || sscanf(message, "%99s %d %d %d %d %d %d %d %d", item_name, &number, &identify, &refine, &attr, &c1, &c2, &c3, &c4) < 1)
+	{
 		clif_displaymessage(fd, "Please, enter all informations (usage: @item2 <item name or ID> <quantity>");
 		clif_displaymessage(fd, "  <Identify_flag> <refine> <attribut> <Card1> <Card2> <Card3> <Card4>).");
 		return false;
@@ -3424,7 +3425,7 @@ bool atcommand_produce(int fd, struct map_session_data &sd, const char* command,
 		tmp_item.card[1] = ((star * 5) << 8) + attribute;
 		tmp_item.card[2] = GetWord(sd.status.char_id, 0);
 		tmp_item.card[3] = GetWord(sd.status.char_id, 1);
-		clif_produceeffect(sd, 0, item_id); // 製造エフェクトパケット
+		clif_produceeffect(sd, item_id, 0); // 製造エフェクトパケット
 		clif_misceffect(sd.bl, 3); // 他人にも成功を通知
 		if ((flag = pc_additem(sd, tmp_item, 1)))
 			clif_additem(sd, 0, 0, flag);
@@ -5831,7 +5832,7 @@ bool atcommand_repairall(int fd, struct map_session_data &sd, const char* comman
 	for (i = 0; i < MAX_INVENTORY; i++) {
 		if (sd.status.inventory[i].nameid && sd.status.inventory[i].attribute == 1) {
 			sd.status.inventory[i].attribute = 0;
-			clif_produceeffect(sd, 0, sd.status.inventory[i].nameid);
+			clif_produceeffect(sd, sd.status.inventory[i].nameid, 0);
 			count++;
 		}
 	}

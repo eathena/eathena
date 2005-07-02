@@ -2808,24 +2808,22 @@ int pc_getitemfromcart(struct map_session_data &sd,unsigned short idx, size_t am
  *------------------------------------------
  */
 int pc_item_identify(struct map_session_data &sd, unsigned short idx)
-{
-	int flag=0;
-	// Celest
+{	// Celest
+	int flag=1;
 	if( sd.skillid == BS_REPAIRWEAPON )
 		return pc_item_repair (sd, idx);
 	else if( sd.skillid == WS_WEAPONREFINE )
 		return pc_item_refine (sd, idx);
-
-	if(idx < MAX_INVENTORY)
+	else if(idx < MAX_INVENTORY)
 	{
 		if(sd.status.inventory[idx].nameid > 0 && sd.status.inventory[idx].identify == 0 )
 		{
-			flag=1;
 			sd.status.inventory[idx].identify=1;
+			flag=0;
 		}
 	}
-		clif_item_identified(sd,idx,flag);
-	return flag;
+	clif_item_identified(sd,idx,flag);
+	return !flag;
 }
 
 /*==========================================
@@ -2834,33 +2832,34 @@ int pc_item_identify(struct map_session_data &sd, unsigned short idx)
  */
 int pc_item_repair(struct map_session_data &sd, unsigned short idx)
 {
+	static int materials[5] = { 0, 1002, 998, 999, 756 };
 	int flag=1, material;
-	int materials[5] = { 0, 1002, 998, 999, 756 };
+	unsigned short nameid = 0;
 
+	sd.state.produce_flag = 0;
 	if(idx < MAX_INVENTORY)
 	{
 		struct item &item = sd.status.inventory[idx];
+		nameid = item.nameid;
 		if(item.nameid > 0 && item.attribute == 1 )
 		{
 			if (itemdb_type(item.nameid)==4)
-				material = materials [itemdb_wlv (item.nameid)];
+				material = materials[itemdb_wlv(item.nameid)];
 			else
-				material = materials [3];
+				material = materials[3];
 
-			if (pc_search_inventory(sd, material) < 0 ) { //fixed by Lupus (item pos can be = 0!)
+			if(pc_search_inventory(sd, material) < 0 ) { //fixed by Lupus (item pos can be = 0!)
 				clif_skill_fail(sd,sd.skillid,0,0);
 				return 0;
 			}
 			flag=0;
 			item.attribute=0;
-			//Temporary Weapon Repair code [DracoRPG]
 			pc_delitem(sd, pc_search_inventory(sd, material), 1, 0);
 			clif_equiplist(sd);
-			clif_misceffect(sd.bl, 3);
 			clif_displaymessage(sd.fd,"Item has been repaired.");
 		}
 	}
-	return !flag;
+	return clif_repaireffect(sd,nameid,flag);
 }
 
 /*==========================================
@@ -3067,7 +3066,7 @@ int pc_steal_coin(struct map_session_data &sd,struct block_list *bl)
  * PCの位置設定
  *------------------------------------------
  */
-bool pc_setpos(struct map_session_data &sd,const char *mapname_org,unsigned short x,unsigned short y,int clrtype)
+bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned short x, unsigned short y, int clrtype)
 {
 	char mapname[24];
 	int m=0;
@@ -3182,14 +3181,14 @@ bool pc_setpos(struct map_session_data &sd,const char *mapname_org,unsigned shor
 				{
 					pet_stopattack(*(sd.pd));
 					pet_changestate(*(sd.pd),MS_IDLE,0);
-					clif_clearchar_area(sd.pd->bl,clrtype&0xffff);
+					clif_clearchar_area(sd.pd->bl,clrtype);
 					map_delblock(sd.pd->bl);
 				}
 			}
 
 			skill_unit_move(sd.bl,gettick(),0);
-			clif_clearchar_area(sd.bl,clrtype&0xffff);
 			skill_gangsterparadise(&sd,0);
+			clif_clearchar_area(sd.bl,clrtype);
 			map_delblock(sd.bl);
 			
 			party_send_logout(sd);					// パーティのログアウトメッセージ送信
@@ -3248,8 +3247,8 @@ bool pc_setpos(struct map_session_data &sd,const char *mapname_org,unsigned shor
 		
 	if(sd.bl.prev != NULL)
 	{
-		clif_clearchar_area(sd.bl,clrtype&0xffff);
 		skill_gangsterparadise(&sd,0);
+		clif_clearchar_area(sd.bl,clrtype);
 		map_delblock(sd.bl);
 
 		if(sd.status.pet_id > 0 && sd.pd)
@@ -3272,7 +3271,7 @@ bool pc_setpos(struct map_session_data &sd,const char *mapname_org,unsigned shor
 			{
 				pet_stopattack(*(sd.pd));
 				pet_changestate(*(sd.pd),MS_IDLE,0);
-				clif_clearchar_area(sd.pd->bl,clrtype&0xffff);
+				clif_clearchar_area(sd.pd->bl,clrtype);
 				map_delblock(sd.pd->bl);
 			}
 		}
@@ -3472,9 +3471,9 @@ int pc_walk(int tid,unsigned long tick,int id,int data)
 		}
 		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
 
-		sd->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
+		//sd->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
 		map_foreachinmovearea(clif_pcoutsight,sd->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,0,sd);
-		sd->walktimer = -1;	// set back so not to disturb future pc_stopwalking calls
+		//sd->walktimer = -1;	// set back so not to disturb future pc_stopwalking calls
 
 		x += dx;
 		y += dy;
@@ -3487,9 +3486,9 @@ int pc_walk(int tid,unsigned long tick,int id,int data)
 		if(moveblock) map_addblock(sd->bl);
 		skill_unit_move(sd->bl,tick,1);
 
-		sd->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
+		//sd->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
 		map_foreachinmovearea(clif_pcinsight,sd->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,0,sd);
-		sd->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
+		//sd->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
 
 		if (sd->status.party_id > 0) {	// パ?ティのＨＰ情報通知?査
 			struct party *p = party_search(sd->status.party_id);
@@ -3822,7 +3821,7 @@ int pc_checkallowskill(struct map_session_data &sd)
  * ? 備品のチェック
  *------------------------------------------
  */
-int pc_checkequip(struct map_session_data &sd,int pos)
+unsigned short pc_checkequip(struct map_session_data &sd, unsigned short pos)
 {
 	size_t i;
 	for(i=0;i<MAX_EQUIP;i++)
@@ -3830,8 +3829,7 @@ int pc_checkequip(struct map_session_data &sd,int pos)
 		if(pos & equip_pos[i])
 			return sd.equip_index[i];
 	}
-
-	return -1;
+	return 0xFFFF;
 }
 
 /*==========================================
@@ -6195,7 +6193,7 @@ int pc_cleareventtimer(struct map_session_data &sd)
 int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short pos)
 {
 	size_t i;
-	unsigned short nameid, arrow;
+	unsigned short nameid, arrowpos;
 	struct item_data *id;
 	//?生や養子の場合の元の職業を算出する
 
@@ -6244,7 +6242,7 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 		pos = (tpos==0x02) ? 0x20 : 0x02;
 	}
 
-	arrow=pc_search_inventory(sd,pc_checkequip(sd,9));	// Added by RoVeRT
+	arrowpos=pc_checkequip(sd,9);	// Added by RoVeRT
 	for(i=0;i<MAX_EQUIP;i++)
 	{
 		if(sd.equip_index[i] < MAX_INVENTORY && sd.status.inventory[sd.equip_index[i]].equip&pos)
@@ -6317,10 +6315,10 @@ int pc_equipitem(struct map_session_data &sd,unsigned short inx, unsigned short 
 		clif_changelook(sd.bl,LOOK_SHOES,0);
 
 	pc_checkallowskill(sd);	// ?備品でスキルか解除されるかチェック
-	if( itemdb_look(sd.status.inventory[inx].nameid) == 11 && (arrow < MAX_INVENTORY) )
+	if( itemdb_look(sd.status.inventory[inx].nameid) == 11 && (arrowpos < MAX_INVENTORY) )
 	{	// Added by RoVeRT
-		clif_arrowequip(sd,arrow);
-		sd.status.inventory[arrow].equip=32768;
+		clif_arrowequip(sd,arrowpos);
+		sd.status.inventory[arrowpos].equip=32768;
 	}
 	status_calc_pc(sd,0);
 

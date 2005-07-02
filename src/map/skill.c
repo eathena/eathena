@@ -9499,7 +9499,7 @@ int skill_produce_mix( struct map_session_data &sd,
 		switch (skill_produce_db[idx].req_skill)
 		{
 			case AM_PHARMACY:
-				clif_produceeffect(sd,2,nameid);/* 製?エフェクト */
+				clif_produceeffect(sd,nameid,2);/* 製?エフェクト */
 			clif_misceffect(sd.bl,5); /* 他人にも成功を通知 */
 			if(nameid >= 545 && nameid <= 547)
 			{	// Fame point system [DracoRPG]
@@ -9522,11 +9522,11 @@ int skill_produce_mix( struct map_session_data &sd,
 				sd.potion_success_counter = 0;
 				break;
 			case ASC_CDP:
-				clif_produceeffect(sd,2,nameid);/* 暫定で製?エフェクト */
+				clif_produceeffect(sd,nameid,2);/* 暫定で製?エフェクト */
 			clif_misceffect(sd.bl,5);
 				break;
 			default:  /* 武器製造、コイン製造 */
-				clif_produceeffect(sd,0,nameid); /* 武器製造エフェクト */
+				clif_produceeffect(sd,nameid,0); /* 武器製造エフェクト */
 			clif_misceffect(sd.bl,3);
 			if(equip && itemdb_wlv(nameid) >= 3 && ((ele? 1 : 0) + sc) >= 3)
 					pc_addfame(sd,10,0); // Success to forge a lv3 weapon with 3 additional ingredients = +10 fame point
@@ -9546,17 +9546,17 @@ int skill_produce_mix( struct map_session_data &sd,
 
 		switch (skill_produce_db[idx].req_skill) {
 			case AM_PHARMACY:
-				clif_produceeffect(sd,3,nameid);/* 製?失敗エフェクト */
+				clif_produceeffect(sd,nameid,3);/* 製?失敗エフェクト */
 				clif_misceffect(sd.bl,6); /* 他人にも失敗を通知 */
 				sd.potion_success_counter = 0; // Fame point system [DracoRPG]
 				break;
 			case ASC_CDP:
-					clif_produceeffect(sd,3,nameid); /* 暫定で製?エフェクト */
+					clif_produceeffect(sd,nameid,3); /* 暫定で製?エフェクト */
 					clif_misceffect(sd.bl,6); /* 他人にも失敗を通知 */
 					pc_heal(sd, -(sd.status.max_hp>>2), 0);
 				break;
 			default:
-				clif_produceeffect(sd,1,nameid);/* 武器製造失敗エフェクト */
+				clif_produceeffect(sd,nameid,1);/* 武器製造失敗エフェクト */
 				clif_misceffect(sd.bl,2); /* 他人にも失敗を通知 */
 				break;
 		}

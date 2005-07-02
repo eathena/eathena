@@ -274,6 +274,7 @@ struct Battle_Config
 	ulong night_duration; // added by [Yor]
 	ulong packet_ver_flag; // added by [Yor]
 	ulong party_bonus;
+	ulong party_share_mode;
 	ulong party_skill_penalty;
 	ulong pc_attack_attr_none;
 	ulong pc_attack_direction_change;

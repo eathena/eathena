@@ -43,7 +43,7 @@ static inline bool pc_breakhelm(struct map_session_data &sd)	{ return pc_break_e
 
 int pc_checkskill(struct map_session_data &sd,unsigned short skill_id);
 int pc_checkallowskill(struct map_session_data &sd);
-int pc_checkequip(struct map_session_data &sd,int pos);
+unsigned short pc_checkequip(struct map_session_data &sd, unsigned short pos);
 
 int pc_calc_skilltree(struct map_session_data &sd);
 int pc_calc_skilltree_normalize_job(struct map_session_data &sd, int c);
