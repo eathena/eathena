@@ -2820,11 +2820,8 @@ int pc_item_identify(struct map_session_data *sd,int idx)
 			flag=0;
 			sd->status.inventory[idx].identify=1;
 		}
-		clif_item_identified(sd,idx,flag);
 	}
-	else
-		clif_item_identified(sd,idx,flag);
-
+	clif_item_identified(sd,idx,flag);
 	return !flag;
 }
 
@@ -2840,7 +2837,7 @@ int pc_item_repair(struct map_session_data *sd, int idx)
 
 	nullpo_retr(0, sd);
 
-	item = &sd->status.inventory[idx];
+    item = &sd->status.inventory[idx];
 
 	if(idx >= 0 && idx < MAX_INVENTORY) {
 		if(item->nameid > 0 && item->attribute == 1 ) {
@@ -2848,21 +2845,17 @@ int pc_item_repair(struct map_session_data *sd, int idx)
 				material = materials [itemdb_wlv (item->nameid)];
 			else
 				material = materials [3];
-
 			if (pc_search_inventory(sd, material) < 0 ) { //fixed by Lupus (item pos can be = 0!)
 				clif_skill_fail(sd,sd->skillid,0,0);
 				return 0;
 			}
 			flag=0;
 			item->attribute=0;
-			//Temporary Weapon Repair code [DracoRPG]
 			pc_delitem(sd, pc_search_inventory(sd, material), 1, 0);
-			clif_equiplist(sd);
-			clif_misceffect(&sd->bl, 3);
-			clif_displaymessage(sd->fd, "Item has been repaired.");
+			clif_equiplist(sd); // Refresh the equipment status
 		}
 	}
-
+	clif_item_repaireffect(sd,item->nameid,flag);
 	return !flag;
 }
 
@@ -2964,7 +2957,7 @@ int pc_show_steal(struct block_list *bl,va_list ap)
 			sprintf(output,"%s stole %s.",sd->status.name,item->jname);
 		clif_displaymessage( ((struct map_session_data *)bl)->fd, output);
 	}else{
-		sprintf(output,"%s has not stolen the item because of being  overweight.",sd->status.name);
+		sprintf(output,"%s has not stolen the item because of being overweight.",sd->status.name);
 		clif_displaymessage( ((struct map_session_data *)bl)->fd, output);
 	}
 

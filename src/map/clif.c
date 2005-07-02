@@ -5394,7 +5394,7 @@ int clif_item_repair_list (struct map_session_data *sd)
 
 	return 0;
 }
-int clif_item_repaireffect(struct map_session_data *sd, int flag, int nameid)
+int clif_item_repaireffect(struct map_session_data *sd, int nameid, int flag)
 {
 	int view, fd;
 
@@ -9822,14 +9822,10 @@ void clif_parse_ProduceMix(int fd,struct map_session_data *sd)
  */
 void clif_parse_RepairItem(int fd, struct map_session_data *sd)
 {
-	int i = RFIFOW(fd,2);
-	int itemid = 0;
 	nullpo_retv(sd);
+
 	sd->state.produce_flag = 0;
-	if (i != 0xFFFF && (itemid = pc_item_repair(sd,i)) > 0)
-		clif_item_repaireffect(sd,0,itemid);
-	else
-		clif_item_repaireffect(sd,1,itemid);
+	pc_item_repair(sd,RFIFOW(fd,2));
 }
 
 /*==========================================
@@ -10891,7 +10887,7 @@ void clif_parse_NoviceExplosionSpirits(int fd, struct map_session_data *sd)
 }
 
 // random notes:
-// 0x214: forging chance?
+// 0x214: monster/player info ?
 
 /*==========================================
  * Friends List

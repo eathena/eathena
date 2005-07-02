@@ -15,7 +15,7 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance??
 
-06/02
+07/02
 	* Added missing ';' in Incubus Card script [DracoRPG]
 	* Updated mapflags. Added new hats drops to Kobold Archer, Wootan Fighter, Galapago [Lupus]
 	* Added Li Me Mang Ryang Card to OCA and to the drops [Lupus]

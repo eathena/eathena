@@ -8,7 +8,7 @@ Note:
 Problem:	The map server crashes when a session gets timed out. Like, a player suddenly dc's after doing something, then the session is removed. 
 Assigned:
 Progess:
-Note:I believe the map server thinks its still there and tries to access it and then it just faults.
+Note:		I believe the map server thinks its still there and tries to access it and then it just faults.
 
 Problem:	Timer stack has PROBLEMS!!! wow!
 [Status]: Map pay_dun04.gat: Removed '121' mobs.
@@ -36,11 +36,6 @@ Problem:	Pre skill requirements for new skills are wrong it makes you use 49 ski
 Assigned:	Celest
 Progess:	~90% (Notes: not sure if it causes problems, need more testing =p)
 
-Problem:	Joker card 4139 lets anyone to steal money / zeny. Just like he's a thief. It shoul;d be revised - success rates lowered and "steal item" disabled
-Assigned:	N/A
-Progess:	0%
-Note:		It DOES let people use Steal Level 1 like a thief. But nothing else apart from that.
-
 Problem:	Wierd login-server bug on sql, it displays that the server is full when map-server crashes, has something to do with anti double login feature?
 Assigned:	N/A
 Progress:	0%
@@ -50,8 +45,6 @@ Assigned:       Kevin
 Progress:       done
 Note:           I used a sql query instead of escaping the string, works better, causes less lag on the server, puts less stress on mysql.
 Information:	http://dev.mysql.com/doc/mysql/en/mysql_real_escape_string.html
-
-	DB server Error - You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'n' Sniff')' at line 1    Scratch 'n' Sniff
 
 Problem:	mob_aval clone bug crashes client
 Assigned:       N/A
@@ -173,13 +166,6 @@ Problem:	Guilds Skill - GD_DEVELOPMENT (Extend_Guild)
 Assigned:	N/A
 Progress:	0%
 
-Problem:	'Adrenaline Rush' has to work with any weapon again (for whole party)
-		according to the kRO Sak patch on 21/12
-Assigned:	N/A
-Progress:	N/A
-Notes:          "Fixed Adrenaline Rush skill working for all weapon types again."
-                I think it was supposed to not work with all weapons ^^;
-
 Problem:	[Urgent!] Server doesn't save Variables (#global and global)
 		If you exit the client with Alt-F4 or lose connection to the server.
 Assigned:	N/A
@@ -214,6 +200,7 @@ Problem:	Scripts prob
 		We can't use jA's new commands: FOR, WHILE, ELSE, etc
 Assigned:	N/A
 Progress:	0%
+Note:		Maybe better wait for Lua ???
 
 Problem:	Sniper
 		They have 2 skills to dismount traps: Emeny's and Our's.
@@ -361,6 +348,7 @@ Problem:	Pets
 			you can't feed them, etc (you can't pop-up that menu)
 Assigned:	na
 Progress:	0%
+Note:		Alt-J works to open menu... just seems that the client management of pets has a lil bit changed (due to Homonculi ?)
 
 Problem:	Fame Lists
 			Both fame lists: Blacksmiths, alchemists show UNKNOWN instead of names.
@@ -377,11 +365,6 @@ Problem:	Instant, non stop mobs cast
 			They cast instantly, too fast. All of the monsters
 Assigned:	na
 Progress:	0%
-
-Problem:	Peco Crusader != BIG SIZE
-			baby class on peco should have MID size, too
-Assigned:	Lupus
-Progress:	100% <-- made it optional
 
 Problem:	Shield Boomerang SKILL BUG
 			When you use it riding on peco, you have very big delay after cast.
