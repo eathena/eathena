@@ -25,6 +25,11 @@ TODO:
 
 Date		Added
 ======
+07/03
+	* Fixed Job Quests exploits (Advanced Classes were able to pass their 2nd job quests again) [Lupus]
+	  High Novices were able to pass Super Novice Job Quest as well. They weren't able to GET those
+	  professions, tough. But there were some items exploits.
+	  Now Advanced classes get reborn guides from all main Job Quest NPCs (1st, 2nd Classes)
 07/02
 	* Replaced gmcommand with atcommand in NEWnovice NPC set.
 	* Removed the Flower Band selling in Amatsu, shouldn't be sold in shops. [Mass Zero]

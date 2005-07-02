@@ -5,7 +5,7 @@
 //= converted by kobra_k88
 //= Further bugfixed and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -21,11 +21,15 @@
 //= 1.2d more simplified fire room - removed agressive Desert Wolf [Lupus]
 //= 1.3 Added Baby Class support [Lupus]
 //= 1.5 Fixed possible EXP abuse [Lupus]
+//= 1.6 Added a func which prevent advanced classes passing
+//= 2nd Job Quests again. It also guides adv classes where
+//= to go. [Lupus]
 //============================================================ 
 
 
 //<=================== Some dog =========================>
 gef_tower.gat,107,35,5	script	Some Dog	81,{
+	callfunc "F_BlockHigh",26,"High Mage",33,"High Wizard","Dog";
 	if(BaseJob == Job_Mage) goto L_JobMage;
 	callfunc "Wiz1_check";
 
@@ -132,6 +136,8 @@ L_JobMage:
 
 //<=========================================== Registrar and Examiner Catherine Medichi ==============================================>\\
 gef_tower.gat,111,37,4	script	Catherine Medichi	68,{
+	callfunc "F_BlockHigh",26,"High Mage",33,"High Wizard","Catherine Medichi";
+
 	mes "[Catherine Medichi]";
 	if(BaseJob == Job_Mage) goto L_Mage;
 	callfunc "Wiz2_check";

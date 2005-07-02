@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena RC4
 //===== Description: ========================================= 
@@ -22,6 +22,9 @@
 //= 1.2b Fixed missing commands and typos [Lupus]
 //= 1.3 Baby class Support added [Lupus]
 //= 1.5 Fixed possible EXP abuse [Lupus]
+//= 1.6 Added a func which prevent advanced classes passing
+//= 2nd Job Quests again. It also guides adv classes where
+//= to go. [Lupus]
 //============================================================ 
 
 
@@ -31,6 +34,8 @@
 //****************************************************************************//
 
 in_moc_16.gat,19,33,4	script	Guildsman	55,{
+	callfunc "F_BlockHigh",30,"Theif High",36,"Assassin Cross","Assassin Huey";
+
 	if(BaseJob==Job_Thief) goto L_Thief;
 	callfunc "Ass_check";
 

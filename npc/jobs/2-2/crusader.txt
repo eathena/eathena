@@ -5,7 +5,7 @@
 //= Converted by: Shin
 //=
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena  0.5.2 +
 //===== Description: ========================================= 
@@ -21,10 +21,15 @@
 //= 1.3b changed monsters ID in patience test [Komurka]
 //= 1.4 Fixed Job Level parameters mix-up. [massdriller] (Thanks to Komurka)
 //= 1.5 Fixed possible EXP abuse [Lupus]
+//= 1.6 Added a func which prevent advanced classes passing
+//= 2nd Job Quests again. It also guides adv classes where
+//= to go. [Lupus]
 //============================================================
 
 
 prt_castle.gat,178,99,6	script	Lothar	752,{
+	callfunc "F_BlockHigh",25,"Swordman High",38,"Paladin","^000080Lothar^000000";
+
 	mes "[^000080Lothar^000000]";
 	if (BaseJob > 0) goto NEXT_0;
 	if (BaseJob == 0) goto NOV;

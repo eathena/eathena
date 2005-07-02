@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -14,6 +14,9 @@
 //= 1.1 fixed 3 wrong questions, added missing lines [Lupus]
 //= 1.3 Baby Class Support + 40/50 JobLevel Item fix [Lupus]
 //= 1.5 Fixed possible EXP abuse [Lupus]
+//= 1.6 Added a func which prevent advanced classes passing
+//= 2nd Job Quests again. It also guides adv classes where
+//= to go. [Lupus]
 //============================================================ 
 
 
@@ -21,6 +24,7 @@
 //					Markie: Test 1 and Jobchange						//
 //***********************************************************************************************************************************************************//
 in_rogue.gat,363,123,3	script	Markie	747,{
+	callfunc "F_BlockHigh",30,"Theif High",41,"Stalker","Markie";
 
 	mes "[Markie]";
 	if(BaseJob == Job_Thief) goto L_Thief;

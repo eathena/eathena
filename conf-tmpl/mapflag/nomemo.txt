@@ -63,6 +63,7 @@ que_sign01.gat	mapflag	nomemo
 ein_in01.gat	mapflag	nomemo
 airport.gat	mapflag	nomemo
 airplane.gat	mapflag	nomemo
+airplane_01.gat	mapflag	nomemo
 // New areas
 yuno_pre.gat	mapflag	nomemo
 y_airport.gat	mapflag	nomemo

@@ -1,16 +1,16 @@
-﻿//===== eAthena Script ======================================= 
+//===== eAthena Script ======================================= 
 //= Dancer Job Quest
 //===== By: ==================================================
 //= Kalen - Original jAthena
 //= Fredzilla - Converted
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena Final
 //===== Description: ========================================= 
 //= Dancer job quest based off a jAthena script and other sources for clarity
 //===== Additional Comments: ================================= 
-//= 1.2 Added Baby Class Support [Fredzilla]
+//= 1.5 Added Baby Class Support [Fredzilla]
 //= 1.1 Removed the warp I left here my accident, added a check for using 
 //=     Improved Concentration and arrow shower, people could get away with it
 //=     [Fredzilla]
@@ -18,7 +18,10 @@
 //=     this turned out to be quite hard, but on the whole it is the same script
 //=     I have added some new things, and changed some of the used commands,
 //=     along with some optimization. [Fredzilla]
-
+//= 1.6 Added a func which prevent advanced classes passing
+//= 2nd Job Quests again. It also guides adv classes where
+//= to go. [Lupus]
+//============================================================
 
 //= Warning Warp to escape the quest if need be
 job_duncer.gat,69,165,1	script	wwarp	45,1,1,{
@@ -32,6 +35,8 @@ L_Can:
 }
 //= Warp man, takes you to the quest map (Comodo Theater)
 comodo.gat,193,151,4	script	Bor Robin	86,{
+	callfunc "F_BlockHigh",27,"High Archer",44,"Gypsy","Bor Robin";
+
 	mes "[Bor Robin]";
 	mes "Well...... alot of people seem to be coming here lately.";
 	mes " ";

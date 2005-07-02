@@ -5,7 +5,7 @@
 //= Converted by kobra_k88
 //= Further bugfixed and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.5
+//= 1.6
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -21,12 +21,17 @@
 //= Added second set of items to first test. Added Awake pots award for job change.
 //= 1.3 Added Baby Class support [Lupus]
 //= 1.5 Fixed possible EXP abuse [Lupus]
+//= 1.6 Added a func which prevent advanced classes passing
+//= 2nd Job Quests again. It also guides adv classes where
+//= to go. [Lupus]
 //============================================================ 
 
 
 
 //<------------------------------------------------------------------------------------ Chivalry Captain Herman------------------------------------------------------------------------------------------>\\
 prt_in.gat,88,101,3	script	Chivalry Captain Herman	56,{
+	callfunc "F_BlockHigh",25,"Swordman High",31,"Lord Knight","Chivalry Captain Herman";
+
 	if (BaseJob == Job_Swordman && KNIGHT_Q > 0) goto L_Check;
 
 	mes "[Chivalry Captain Herman]";

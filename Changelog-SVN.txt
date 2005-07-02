@@ -1,5 +1,10 @@
 Date	Added
 07/02
+	* Fixed Job Quests exploits (Advanced Classes were able to pass their 2nd job quests again) [Lupus]
+	  High Novices were able to pass Super Novice Job Quest as well. They weren't able to GET those
+	  professions, tough. But there were some items exploits.
+	  Now Advanced classes get reborn guides from all main Job Quest NPCs (1st, 2nd Classes)
+07/02
 	* Fixed NEWnovice NPC set using gmcommand instead of atcommand. [Codemaster]
 	* Maps and bugs updates, some cleanup in Weapon Repair code [DracoRPG]
 	* Added new areas into map flags folder. According to the patch, added NOMEMO flag to Yuno [Lupus]

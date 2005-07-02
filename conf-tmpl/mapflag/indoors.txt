@@ -55,6 +55,8 @@ que_sign01.gat	mapflag	indoors
 ein_in01.gat	mapflag	indoors
 airport.gat	mapflag	indoors
 airplane.gat	mapflag	indoors
+airplane_01.gat	mapflag	indoors
+
 
 // New areas
 yuno_pre.gat	mapflag	indoors
