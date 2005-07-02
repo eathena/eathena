@@ -26,6 +26,7 @@ TODO:
 Date		Added
 ======
 07/02
+	* Replaced gmcommand with atcommand in NEWnovice NPC set.
 	* Removed the Flower Band selling in Amatsu, shouldn't be sold in shops. [Mass Zero]
 06/30
 	* Fixed 2 garbled Amatsu NPC names (thx 2MasterOfMuppets), slight optimization [Lupus]

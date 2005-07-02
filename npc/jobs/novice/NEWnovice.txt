@@ -200,7 +200,7 @@ N_happy:
 	mes "And you should also learn";
 	mes "how to treat a beautiful lady like me, lad";
 	mes "This is a present for you.";
-	gmcommand strcharinfo(0) + "@baselvlup 1";
+	atcommand strcharinfo(0) + "@baselvlup 1";
 	set xien_F,1;
 	close;
 
@@ -235,7 +235,7 @@ Int_talked2:
 	next;
 	mes "[Xi En]";
 	mes "Your experience level will also increase as well";
-	gmcommand strcharinfo(0) + "@baselvlup 1";
+	atcommand strcharinfo(0) + "@baselvlup 1";
 	next;
 	mes "[Xi En]";
 	mes "Although it might be boring,";
@@ -443,7 +443,7 @@ L_interface:
 	mes "Please pay attention to the changes of experience bar in the";
 	mes "basic information window.";
 	mes "Do you see that.?";
-	gmcommand strcharinfo(0) + "@baselvlup 1";
+	atcommand strcharinfo(0) + "@baselvlup 1";
 	mes "Besides that....";
 	next;
 	mes "[Instructor Chris]";
@@ -474,7 +474,7 @@ L_interface:
 	mes "option in the basic information window.";
 	mes "You will be able to open the item window, Equipment Window and skill window";
 	next;
-	gmcommand strcharinfo(0) + "@joblvlup 1";
+	atcommand strcharinfo(0) + "@joblvlup 1";
 	mes "[Instructor Chris]";
 	mes "I hope that I have made a bried yet clear explanation to you.";
 	mes "I hope you won't feel bored of it";
@@ -603,7 +603,7 @@ T_1:
 	mes "You can drag items such as item, skill and equipment to the shortcut bar.";
 	next;
 	mes "[Instructor Alice]";
-	gmcommand strcharinfo(0) + "@joblvlup 1";
+	atcommand strcharinfo(0) + "@joblvlup 1";
 	mes "Every column has a relevant shortcut key ranging from F1 to F9.";
 	mes "Use these shortcut bar wisely.";
 	mes "When you take the skill course,";
@@ -875,7 +875,7 @@ K_lvlcheck:
 	if(K_lvlup >= 1)return;
 	
 changelvl:
-	gmcommand strcharinfo(0) + "@joblvlup 1";
+	atcommand strcharinfo(0) + "@joblvlup 1";
 	set K_lvlup, 1;
 	return;
 }
@@ -906,7 +906,7 @@ S_course:
 	mes "The shortcut key to open it is Alt + s.";
 	mes "You can always use alt+s to open the window";
 	next;
-	gmcommand strcharinfo(0) + "@joblvlup 1";
+	atcommand strcharinfo(0) + "@joblvlup 1";
 	mes "Have you opened the Skill Window?";
 	mes "Do you see the category of Basic Skill?";
 	mes "There is stated the writing of skill:";
@@ -930,7 +930,7 @@ S_course:
 	skill 142,1,0;
 	next;
 	mes "FF0000You have Obtained minor Job Skill^000000";
-	gmcommand strcharinfo(0) + "@joblvlup 1";
+	atcommand strcharinfo(0) + "@joblvlup 1";
 	next;
 	mes "[Instructor Sai Xi]";
 	mes "Now, when you open the skill window,";
@@ -943,7 +943,7 @@ S_course:
 	mes "it helps to recover the HP and serve as a good skill at the";
 	mes "beginning stage.";
 	next;
-	gmcommand strcharinfo(0) + "@baselvlup 1";
+	atcommand strcharinfo(0) + "@baselvlup 1";
 	mes "[Instructor Sai Xi]";
 	mes "Thank to me, you understand now!";
 	mes "Haha, this is my duty.";
@@ -1145,7 +1145,7 @@ equip_Y:
 	mes "Real battle is very dangerous and it suprises me that someone like you wants to win in a battle too....";
 	mes "In order to help you win, I shall call upon some power for you.";
 	next;
-	gmcommand strcharinfo(0) + "@baselvlup 1";
+	atcommand strcharinfo(0) + "@baselvlup 1";
 	mes "[Elmeen]";
 	mes "Ah Ah---Hehehehehehehehehe!!!";
 	next;

@@ -1,5 +1,6 @@
 Date	Added
 07/02
+	* Fixed NEWnovice NPC set using gmcommand instead of atcommand. [Codemaster]
 	* Maps and bugs updates, some cleanup in Weapon Repair code [DracoRPG]
 	* Added new areas into map flags folder. According to the patch, added NOMEMO flag to Yuno [Lupus]
 	* Some monsters drops changes, cards fixes. [Lupus]
