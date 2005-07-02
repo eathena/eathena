@@ -3222,26 +3222,26 @@ int parse_char(int fd) {
 			sql_res = mysql_store_result(&mysql_handle);
 			
 			if(sql_res)
+			{	//sql_res2 is necessary because sql_res can (and will) be used inside delete_char_sql! [Skotlex]
+				MYSQL_RES* sql_res2 = sql_res;
 				sql_row = mysql_fetch_row(sql_res);
-									
-			/* Delete character and partner (if any) */
-			if (sql_row[1] != 0) /* If there is partner */
-			{
-				delete_char_sql(RFIFOL(fd,2), atoi(sql_row[1]));
-				WBUFW(buf,0) = 0x2b12;
-				WBUFL(buf,2) = atoi(sql_row[0]);
-				WBUFL(buf,6) = atoi(sql_row[1]);
-				mapif_sendall(buf,10);
-			}
-			else
-			{
-				/* Delete character */
-				delete_char_sql(RFIFOL(fd,2), 0);
-			}
 			
-			mysql_free_result(sql_res);
-			
-			/* Char successfully deleted. */
+				/* Delete character and partner (if any) */
+				if (sql_row[1] != 0)
+				{	/* If there is partner */
+					delete_char_sql(RFIFOL(fd,2), atoi(sql_row[1]));
+					WBUFW(buf,0) = 0x2b12;
+					WBUFL(buf,2) = atoi(sql_row[0]);
+					WBUFL(buf,6) = atoi(sql_row[1]);
+					mapif_sendall(buf,10);
+				}
+				else
+				{	/* Delete character */
+					delete_char_sql(RFIFOL(fd,2), 0);
+				}
+				mysql_free_result(sql_res2);
+			}
+			/* Char successfully deleted. <- For sure? There could had been an sql db error, what is done then?. [Skotlex] */
 			WFIFOW(fd, 0) = 0x6f;
 			WFIFOSET(fd, 2);
 				

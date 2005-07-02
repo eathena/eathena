@@ -2925,7 +2925,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 	short def1, def2;
 	struct status_change *sc_data = status_get_sc_data(src);
 	struct status_change *t_sc_data = status_get_sc_data(target);
-	struct bcwasf	{	//bcwasf stands for battle_calc_weapon_attack_sub flags
+	struct {
 		unsigned hit : 1; //the attack Hit? (not a miss)
 		unsigned cri : 1;		//Critical hit
 		unsigned idef : 1;	//Ignore defense
@@ -2938,7 +2938,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 	}	flag;	
 
 	memset(&wd,0,sizeof(wd));
-	memset(&flag,0,sizeof(struct bcwasf));
+	memset(&flag,0,sizeof(flag));
 
 	if(src==NULL || target==NULL)
 	{
