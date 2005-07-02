@@ -2,7 +2,7 @@
 //= Map flags that disable exp. penalty on death.
 //===== By: ==================================================
 //= eAthena Dev Team
-//= 1.1 [Lupus]
+//= 1.2 [Lupus]
 //===== Current Version: =====================================
 
 
@@ -32,6 +32,7 @@ izlude.gat	mapflag	nopenalty
 izlude_in.gat	mapflag	nopenalty
 jawaii.gat	mapflag	nopenalty
 jawaii_in.gat	mapflag	nopenalty
+lighthalzen.gat	mapflag	nopenalty
 louyang.gat	mapflag	nopenalty
 lou_in01.gat	mapflag	nopenalty
 lou_in02.gat	mapflag	nopenalty
@@ -63,6 +64,14 @@ yuno_in01.gat	mapflag	nopenalty
 yuno_in03.gat	mapflag	nopenalty
 yuno_in04.gat	mapflag	nopenalty
 yuno_in05.gat	mapflag	nopenalty
+
+// New areas
+yuno_pre.gat	mapflag	nopenalty
+y_airport.gat	mapflag	nopenalty
+lhz_airport.gat	mapflag	nopenalty
+lhz_in01.gat	mapflag	nopenalty
+lhz_in02.gat	mapflag	nopenalty
+lhz_in03.gat	mapflag	nopenalty
 
 // Job Quests ========================
 sword_1-1.gat	mapflag	nopenalty

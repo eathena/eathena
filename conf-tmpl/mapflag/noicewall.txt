@@ -66,3 +66,10 @@ que_sign01.gat	mapflag	noicewall
 ein_in01.gat	mapflag	noicewall
 airport.gat	mapflag	noicewall
 airplane.gat	mapflag	noicewall
+lighthalzen.gat	mapflag	noicewall
+yuno_pre.gat	mapflag	noicewall
+y_airport.gat	mapflag	noicewall
+lhz_airport.gat	mapflag	noicewall
+lhz_in01.gat	mapflag	noicewall
+lhz_in02.gat	mapflag	noicewall
+lhz_in03.gat	mapflag	noicewall

@@ -1,5 +1,7 @@
 Date	Added
 07/02
+	* Added new areas into map flags folder. According to the patch, added NOMEMO flag to Yuno [Lupus]
+	* Some monsters drops changes, cards fixes. [Lupus]
 	* Fixed sql-char server crash when deleting a Guild Master [Skotlex]
 	* Massive cards update (also thx 2Landarma) [Lupus] read db\changelog.txt
 07/01

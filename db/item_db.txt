@@ -1877,7 +1877,7 @@
 7286,Red_Chili,Red Chili,3,20,0,10,,,,,,,,,,,,{},{}
 7287,Holier_Threads,Holier Threads,3,20,0,10,,,,,,,,,,,,{},{}
 7288,Engagement_Ring,Engagement Ring,3,20,0,10,,,,,,,,,,,,{},{}
-7289,Peridot,Peridot,3,20,0,100,,,,,,,,,,,,{},{}
+7289,Peridot,Peridotite,3,20,0,100,,,,,,,,,,,,{},{}
 7290,Phlogopite,Phlogopite,3,20,0,100,,,,,,,,,,,,{},{}
 7291,Agate,Agate,3,20,0,100,,,,,,,,,,,,{},{}
 7292,Muscovite,Muscovite,3,20,0,100,,,,,,,,,,,,{},{}
@@ -1893,7 +1893,7 @@
 7302,Krathong,Krathong,3,20,0,10,,,,,,,,,,,,{},{}
 7303,Straw_Rice_Bag,Straw Rice Bag,3,20,0,800,,,,,,,,,,,,{},{}
 7304,Witchs_Spellbook,Witch's Spellbook,3,20,0,10,0,0,0,0,0,0,0,0,0,,0,{},{}
-7305,Unknown_item,Authority of 9 worlds,3,20,0,10,0,0,0,0,0,0,0,0,0,,0,{},{}
+7305,Nine_Words_Authority,Authority of 9 worlds,3,20,0,10,0,0,0,0,0,0,0,0,0,,0,{},{}
 7306,Piece_of_Soul,Piece of Soul,3,20,0,10,0,0,0,0,0,0,0,0,0,,0,{},{}
 7307,Whisper_of_Soul,Whisper of Soul,3,20,0,10,0,0,0,0,0,0,0,0,0,,0,{},{}
 7308,Witchs_Potion,Witch's Potion,3,20,0,10,0,0,0,0,0,0,0,0,0,,0,{},{}
@@ -1961,7 +1961,7 @@
 7370,Number_10_Ball,Number_10_Ball,3,20,0,10,,,,,,,,,,,,{},{}
 7371,Number_11_Ball,Number_11_Ball,3,20,0,10,,,,,,,,,,,,{},{}
 7372,Number_12_Ball,Number_12_Ball,3,20,0,10,,,,,,,,,,,,{},{}
-7373,Number_13_Ball,,Number_13_Ball,3,20,0,10,,,,,,,,,,,,{},{}
+7373,Number_13_Ball,Number_13_Ball,3,20,0,10,,,,,,,,,,,,{},{}
 7374,Number_14_Ball,Number_14_Ball,3,20,0,10,,,,,,,,,,,,{},{}
 7375,Number_15_Ball,Number_15_Ball,3,20,0,10,,,,,,,,,,,,{},{}
 7376,Number_16_Ball,Number_16_Ball,3,20,0,10,,,,,,,,,,,,{},{}

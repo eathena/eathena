@@ -17,11 +17,12 @@
 	4231,Increase_Soil_Card
 
 06/02
+	* Updated mapflags. Added new hats drops to Kobold Archer, Wootan Fighter, Galapago [Lupus]
+	* Added Li Me Mang Ryang Card to OCA and to the drops [Lupus]
 	* Updated tons of cards, thanx to Landarma
 	  Also fixed misplaced IDs od 4269 Incubus and 4268 Injustice cards [Lupus]
 		(everywhere, including card album, mobs drops, cards-combo bonus)
-		!!!!WARNING!!!! check your servers for those cards. Remove them. They have
-		different placements!
+!!!!WARNING!!!! check your servers for those cards. Remove them. They have different placements and could cause exploits!
 	* Fixed Succubus+Incubus card-combo bonus exploit. Thx 2DracoRPG [Lupus]
 	* Implemented Increase Soil card (compound to Armor) -50% DMG by Guardians [Lupus]
 	* Added temp plug to Cramp Card (on a mob kill now it gives you 1 zeny) [Lupus]
