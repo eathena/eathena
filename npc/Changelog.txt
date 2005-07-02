@@ -25,6 +25,8 @@ TODO:
 
 Date		Added
 ======
+07/02
+	* Removed the Flower Band selling in Amatsu, shouldn't be sold in shops. [Mass Zero]
 06/30
 	* Fixed 2 garbled Amatsu NPC names (thx 2MasterOfMuppets), slight optimization [Lupus]
 	* Added Bluto's unofficial Airship NPC [massdriller]
