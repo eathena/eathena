@@ -25,6 +25,9 @@ TODO:
 
 Date		Added
 ======
+07/04
+	* Added Lorky's NEW HEADGEARS quests (according to the patch 2005/6/14) [Lupus]
+	  Please, feel free to fix, imporve, etc. (all the URLs are in the script)
 07/03
 	* Added few missing mobs to Jawaii, updated Peco/Falcon Renter [Lupus]
 	* Added new hairstyles to the stylist NPC. [Mass Zero]

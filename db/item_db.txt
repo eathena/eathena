@@ -1729,9 +1729,9 @@
 7138,Marine_Sphere_Bottle,Mine Bottle,3,20,0,10,,,,,,,,,,,,{},{}
 7139,Glistening_Coat,Coating Wax,3,20,0,10,,,,,,,,,,,,{},{}
 7140,Seed_of_Life,Seed of Life,3,20,0,10,,,,,,,,,,,,{},{}
-7141,Morning_Dew_of_Yggdrasil,Water Flow,3,20,0,10,,,,,,,,,,,,{},{}
-7142,Ancient_Life,Embryo,3,20,0,10,,,,,,,,,,,,{},{}
-7143,Glass_Tube,Seperation Tubes,2,50000,,1000,,,,,262144,2,,,,,,{ bpet; },{}
+7141,Morning_Dew_of_Yggdrasil,Water Flow,3,20000,0,10,,,,,,,,,,,,{},{}
+7142,Ancient_Life,Embryo,3,60000,0,10,,,,,,,,,,,,{},{}
+7143,Glass_Tube,Seperation Tubes,2,5000,0,1000,,,,,262144,2,,,,,,{ bpet; },{}
 7144,Potion_Creation_Gude,Potion Making Book,3,100000,0,10,,,,,,,,,,,,{},{}
 7145,Ragnarok_T-shirt,Ragnarok T-Shirt,3,20,0,10,,,,,,,,,,,,{},{}
 7146,Vacation_Ticket,Vacation Ticket,3,20,0,10,,,,,,,,,,,,{},{}

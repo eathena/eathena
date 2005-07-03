@@ -1,4 +1,6 @@
 Date	Added
+07/04
+	* Added some NEW official HEADGEARS quests thanks to Lorky [Lupus]
 07/02
 	* Fixed a small bug in PCloadmapevent thanks to lance. [massdriller]
 	* Added lance's PCLoadMapEvent script event command. to trigger, type in
