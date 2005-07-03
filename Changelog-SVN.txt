@@ -1,7 +1,5 @@
 Date	Added
-06/10
-	* eA++ will now compile on VC.net 2003. Just prepare the appropriate conf files and run.
-	  read the README.txt for notes on compilation. [davidsiaw]
+
 06/08
 	* Updated idle time considerations. [Skotlex]
 	  A character's idle time is reset upon: Walking, attacking (auto-attack

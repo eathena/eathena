@@ -1,4 +1,6 @@
 Date	Added
+07/3
+	* Updated NPCs [massdriller]
 06/18
 	just to note all the differences of eApp to stable branch
 	might be quite incomplete, though; there are lots of playgrounds 
@@ -94,3 +96,6 @@ Date	Added
 	c++ compilable with VC and g++
 	the makefiles are for solaris,
 	so might need to edit linker options on linux
+06/10
+	* eA++ will now compile on VC.net 2003. Just prepare the appropriate conf files and run.
+	  read the README.txt for notes on compilation. [davidsiaw]
