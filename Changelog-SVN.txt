@@ -1,5 +1,6 @@
 Date	Added
 07/02
+	* Fixed a small bug in PCloadmapevent thanks to lance. [massdriller]
 	* Added lance's PCLoadMapEvent script event command. to trigger, type in
 	  -[TAB]script[TAB]PCLoadMapEvent[TAB]-1,{
 		YOUR SCRIPT HERE

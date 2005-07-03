@@ -8104,9 +8104,7 @@ if ((npc = npc_name2id("PCLoadMapEvent"))) {
 	}
 }
 
-	sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-	npc_event_doall_id("OnPCLoadMapEvent", sd->bl.id), "OnPCLoadMapEvent");
-	ShowStatus(tmp_output);
+	npc_event_doall_id("OnPCLoadMapEvent", sd->bl.id);
 
 	// option
 	clif_changeoption(&sd->bl);
