@@ -34,7 +34,7 @@ as they can see the map.
 + PCCommand: PcBaseUpEvent
 + Code by: lordalfa
 + How it works:
-When a player logs in, the NPC will run as if he just clicked it. Which means
+When a player Base level increases, the NPC will run as if he just clicked it. Which means
 if the script is like this:
 
 + Sample:
@@ -72,7 +72,8 @@ on the guy's face.
 + Note:
  1) This script runs everytime a player kills a monster It is adviced if
     you want to repeatedly use this script, to use a sort of filter.
-
+ 2) The var "KilledRid" is set on the killer, this can be used in
+    strmobinfo to find out info about the Monster that was killed
 -----------------------------------------------------------------------------
 
 + PCCommand: PCLoadMapEvent
