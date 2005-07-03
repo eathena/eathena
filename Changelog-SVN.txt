@@ -1,5 +1,10 @@
 Date	Added
 07/02
+	* Added lordalfa's PCBaseUpEvent script event command. to trigger, type in 
+	-[TAB]Script[TAB]PCBaseUpEvent[TAB]-1,{
+	 YOUR CODE HERE;
+	}
+	the script should run everytime the user gains a level. [massdriller]
 	* Fixed Job Quests exploits (Advanced Classes were able to pass their 2nd job quests again) [Lupus]
 	  High Novices were able to pass Super Novice Job Quest as well. They weren't able to GET those
 	  professions, tough. But there were some items exploits.

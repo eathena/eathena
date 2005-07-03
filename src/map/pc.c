@@ -4141,6 +4141,21 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 		//レベルアップしたのでパ?ティ?情報を更新する
 		//(公平範?チェック)
 		party_send_movemap(sd);
+//LORDALFA - LVLUPEVENT
+	if (script_config.event_script_type == 0) {
+	struct npc_data *npc;
+	if ((npc = npc_name2id("PCBaseUpEvent"))) {
+	run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLvlUPNPC
+	sprintf (tmp_output, "Event '"CL_WHITE"PCBaseUpEvent"CL_RESET"' executed.\n");
+	ShowStatus(tmp_output);
+	}
+	} else {
+		sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
+			npc_event_doall_id("PCBaseUpEvent", sd->bl.id), "PCBaseUpEvent");
+			ShowStatus(tmp_output);
+	}
+//LORDALFA - LVLUPEVENT
+
 		return 1;
 	}
 
