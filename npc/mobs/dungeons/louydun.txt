@@ -20,7 +20,7 @@ lou_dun01.gat,0,0,0,0	monster	Zipper Bear	1417,15,0,0,0
 //lou_dun02)?
 lou_dun02.gat,0,0,0,0	monster	Bon Gun	1188,30,0,0,0
 lou_dun02.gat,0,0,0,0	monster	Munak	1026,30,0,0,0
-lou_dun02.gat,0,0,0,0	monster	Hyegun	1512,15,0,0,0
+//lou_dun02.gat,0,0,0,0	monster	Hyegun	1512,15,0,0,0
 lou_dun02.gat,0,0,0,0	monster	Dancing Dragon	1514,25,0,0,0
 
 //lou_dun03)?
