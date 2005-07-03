@@ -4182,6 +4182,23 @@ int pc_checkbaselevelup(struct map_session_data &sd)
 		//レベルアップしたのでパ?ティ?情報を更新する
 		//(公平範?チェック)
 		party_send_movemap(sd);
+
+		//LORDALFA - LVLUPEVENT
+		if (script_config.event_script_type == 0)
+		{
+			struct npc_data *npc = npc_name2id("PCBaseUpEvent");
+			if(npc && npc->u.scr.ref)
+			{
+				run_script(npc->u.scr.ref->script,0,sd.bl.id,npc->bl.id); // PCLvlUPNPC
+				ShowStatus("Event '"CL_WHITE"PCBaseUpEvent"CL_RESET"' executed.\n");
+			}
+		}
+		else
+		{
+			ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", npc_event_doall_id("PCBaseUpEvent", sd.bl.id), "PCBaseUpEvent");
+		}
+		//LORDALFA - LVLUPEVENT
+
 		return 1;
 	}
 
@@ -4229,9 +4246,12 @@ int pc_gainexp(struct map_session_data &sd,unsigned long base_exp,unsigned long 
 		job_exp += job_exp*(25 + sd.sc_data[SC_RICHMANKIM].val1*25)/100;
 	}
 
-	if(sd.status.guild_id>0){	// ギルドに上納
-		base_exp-=guild_payexp(sd,base_exp);
-		if(base_exp < 0)
+	if(sd.status.guild_id>0)
+	{	// ギルドに上納
+		unsigned long payexp=guild_payexp(sd,base_exp);
+		if(base_exp > payexp)
+			base_exp-=payexp;
+		else
 			base_exp = 0;
 	}
 
@@ -4913,31 +4933,51 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 				{
 					ShowStatus ("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
 						npc_event_doall_id(script_config.kill_event_name, sd.bl.id), script_config.kill_event_name);
-			}
+				}
 			}
 			if (battle_config.pk_mode && ssd->status.manner >= 0)
-			{
-				ssd->status.manner -= 5;
+			{	// limit manner to +/-127
+				if(ssd->status.manner > -127)
+					ssd->status.manner -= 5;
+				else
+					ssd->status.manner = -127;
+
 				if(ssd->status.manner < 0)
 					status_change_start(src,SC_NOCHAT,0,0,0,0,0,0);
+				
+				// PK/Karma system code (not enabled yet) [celest]
+				// originally from Kade Online, so i don't know if any of these is correct ^^;
+				// note: karma is measured REVERSE, so more karma = more 'evil' / less honourable,
+				// karma going down = more 'good' / more honourable.
+				// The Karma System way...
 
-			// PK/Karma system code (not enabled yet) [celest]
-			// originally from Kade Online, so i don't know if any of these is correct ^^;
-			// note: karma is measured REVERSE, so more karma = more 'evil' / less honourable,
-			// karma going down = more 'good' / more honourable.
-			// The Karma System way...
-				/*if (sd->status.karma > ssd->status.karma) {	// If player killed was more evil
-					sd->status.karma--;
-					ssd->status.karma--;
+				if (sd.status.karma > ssd->status.karma)
+				{	// If player killed was more evil
+					// limit karma to +/-127 (is a char anyway)
+					if( sd.status.karma >-127 )
+						sd.status.karma--;
+					if( ssd->status.karma >-127 )
+						ssd->status.karma--;
 				}
-				else if (sd->status.karma < ssd->status.karma)	// If player killed was more good
-					ssd->status.karma++;*/
-
-			// or the PK System way...
-				/* if (sd->status.karma > 0)	// player killed is dishonourable?
-					ssd->status.karma--; // honour points earned
-				sd->status.karma++;	// honour points lost */
+				else if (sd.status.karma < ssd->status.karma)
+				{	// If player killed was more good
+					if( ssd->status.karma < 127 )
+						ssd->status.karma++;
+				}
+/*
+				// or the PK System way...
+				if (sd.status.karma > 0)
+				{	// player killed is dishonourable
+					if( sd.status.karma >-127 )
+						sd.status.karma--; // honour points earned
+				}
+				else
+				{
+					if( sd.status.karma < 127 )
+						sd.status.karma++;	// honour points lost
+				}
 				// To-do: Receive exp on certain occasions
+*/
 			}
 		}
 	}

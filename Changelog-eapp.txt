@@ -71,9 +71,7 @@ Date	Added
 	just put path : <path name> to map config
 	and have any *.txt file read in
 
-	npc duplication fix for multimap
-	duplication is not working on multiple map servers
-	when the npc to duplicate from is not on the same server,
+	working npc duplication fix for multimap
 
 	fast socket access
 	replacing the loop with IS_FDSET

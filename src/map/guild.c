@@ -103,7 +103,7 @@ int guild_read_castledb(void)
 	char *str[32],*p;
 	struct guild_castle *gc;
 
-	if( (fp=savefopen("db/castle_db.txt","r"))==NULL){
+	if( (fp=savefopen("db/castle_db.txt","r"))==NULL ){
 		ShowMessage("can't read %s\n", "db/castle_db.txt");
 		return -1;
 	}
@@ -122,19 +122,19 @@ int guild_read_castledb(void)
 		{
 			gc=(struct guild_castle *)aCalloc(1,sizeof(struct guild_castle));
 			// would be not necessary, calloc has cleared the memory already
-		gc->guild_id=0; // <Agit> Clear Data for Initialize
-		gc->economy=0; gc->defense=0; gc->triggerE=0; gc->triggerD=0; gc->nextTime=0; gc->payTime=0;
-		gc->createTime=0; gc->visibleC=0; gc->visibleG0=0; gc->visibleG1=0; gc->visibleG2=0;
-		gc->visibleG3=0; gc->visibleG4=0; gc->visibleG5=0; gc->visibleG6=0; gc->visibleG7=0;
-		gc->Ghp0=0; gc->Ghp1=0; gc->Ghp2=0; gc->Ghp3=0; gc->Ghp4=0; gc->Ghp5=0; gc->Ghp6=0; gc->Ghp7=0; // guardian HP [Valaris]
+			gc->guild_id=0; // <Agit> Clear Data for Initialize
+			gc->economy=0; gc->defense=0; gc->triggerE=0; gc->triggerD=0; gc->nextTime=0; gc->payTime=0;
+			gc->createTime=0; gc->visibleC=0; gc->visibleG0=0; gc->visibleG1=0; gc->visibleG2=0;
+			gc->visibleG3=0; gc->visibleG4=0; gc->visibleG5=0; gc->visibleG6=0; gc->visibleG7=0;
+			gc->Ghp0=0; gc->Ghp1=0; gc->Ghp2=0; gc->Ghp3=0; gc->Ghp4=0; gc->Ghp5=0; gc->Ghp6=0; gc->Ghp7=0; // guardian HP [Valaris]
 
 			if(str[0]) gc->castle_id=atoi(str[0]);
 			if(str[1]) memcpy(gc->map_name,str[1],24); 
 			if(str[2]) memcpy(gc->castle_name,str[2],24);
 			if(str[3]) memcpy(gc->castle_event,str[3],24);
 
-		numdb_insert(castle_db,gc->castle_id,gc);
-		//intif_guild_castle_info(gc->castle_id);
+			numdb_insert(castle_db,gc->castle_id,gc);
+			//intif_guild_castle_info(gc->castle_id);
 		}
 		ln++;
 	}
@@ -263,7 +263,6 @@ int guild_payexp_timer_sub(void *key, void *data, va_list ap)
 	struct guild_expcache *c;
 	struct guild *g;
 	double exp2;
-
 	nullpo_retr(0, ap);
 	nullpo_retr(0, c = (struct guild_expcache *)data);
 	nullpo_retr(0, dellist = va_arg(ap,int *));
@@ -275,14 +274,8 @@ int guild_payexp_timer_sub(void *key, void *data, va_list ap)
 		return 0;
 
 	// It is *already* fixed... this would be more appropriate ^^; [celest]
-	exp2 = g->member[i].exp + c->exp;
+	exp2 = (double)g->member[i].exp + (double)c->exp;
 	g->member[i].exp = (exp2 > 0x7FFFFFFF) ? 0x7FFFFFFF : (int)exp2;
-
-	//fixed a bug in exp overflow [Kevin]
-	//g->member[i].exp += c->exp;
-	//if(g->member[i].exp < 0)
-		//g->member[i].exp = 0x7FFFFFFF;
-	
 	intif_guild_change_memberinfo(g->guild_id,c->account_id,c->char_id,GMI_EXP,g->member[i].exp);
 	c->exp=0;
 
@@ -296,8 +289,8 @@ int guild_payexp_timer(int tid,unsigned long tick,int id,int data)
 	numdb_foreach(guild_expcache_db, guild_payexp_timer_sub, dellist, &delp);
 	for (i = 0; i < delp; i++)
 		numdb_erase(guild_expcache_db, dellist[i]);
-//	if(battle_config.etc_log)
-//		ShowMessage("guild exp %d charactor's exp flushed !\n",delp);
+	if(battle_config.etc_log && delp)
+		ShowMessage("guild exp %d charactor's exp flushed !\n",delp);
 	return 0;
 }
 
@@ -432,7 +425,7 @@ int guild_recv_noinfo(unsigned long guild_id)
 // 情報所得
 int guild_recv_info(struct guild &sg)
 {
-	struct guild *g,before;
+	struct guild *g, before;
 	int i,bm,m;
 	struct eventlist *ev,*ev2;
 
@@ -441,10 +434,8 @@ int guild_recv_info(struct guild &sg)
 	{	// 最初のロードなのでユーザーのチェックを行う
 		guild_check_member(sg);
 		memcpy(&before, &sg, sizeof(struct guild)); //before=sg;
-
 		g=(struct guild *)aCalloc(1,sizeof(struct guild));
 		numdb_insert(guild_db,sg.guild_id,g);
-
 	}
 	else
 	{
@@ -854,13 +845,11 @@ int guild_recv_message(unsigned long guild_id,unsigned long account_id,const cha
 // ギルドメンバの役職変更
 int guild_change_memberposition(unsigned long guild_id,unsigned long account_id,unsigned long char_id, unsigned long idx)
 {
-printf("guild_change_memberposition %i %i %i %i\n", guild_id, account_id, char_id, idx);
 	return intif_guild_change_memberinfo(guild_id,account_id,char_id,GMI_POSITION,idx);
 }
 // ギルドメンバの役職変更通知
 int guild_memberposition_changed(struct guild &g,unsigned short idx,unsigned short pos)
 {
-printf("guild_memberposition_changed %i %i\n", idx,pos);
 	if(idx<MAX_GUILD)
 	{
 		g.member[idx].position=pos;
@@ -953,11 +942,11 @@ int guild_emblem_changed(unsigned short len,unsigned long guild_id,unsigned long
 }
 
 // ギルドのEXP上納
-int guild_payexp(struct map_session_data &sd,int exp)
+int guild_payexp(struct map_session_data &sd, unsigned long exp)
 {
 	struct guild *g;
 	struct guild_expcache *c;
-	int per, exp2;
+	unsigned long per, exp2;
 	
 	if (sd.status.guild_id == 0 ||
 		(g = guild_search(sd.status.guild_id)) == NULL ||
@@ -1522,7 +1511,13 @@ int guild_castlealldataload(int len, unsigned char *buf)
 			ShowMessage("guild_castlealldataload ??\n");
 			continue;
 		}
+		// copy values of the struct guildcastle that are included in the char server packet
+		memcpy(gctmp.map_name,c->map_name,24 );
+		memcpy(gctmp.castle_name,c->castle_name,24 );
+		memcpy(gctmp.castle_event,c->castle_event,24 );
+		// and copy the whole thing back
 		memcpy(c,&gctmp,sizeof(struct guild_castle) );
+
 		if( c->guild_id )
 		{
 			if(i!=ev)
@@ -1541,7 +1536,7 @@ int guild_agit_start(void)
 	int c = npc_event_doall("OnAgitStart");
 	ShowMessage("NPC_Event:[OnAgitStart] Run (%d) Events by @AgitStart.\n",c);
 	// Start auto saving
-	guild_save_timer = add_timer_interval (gettick() + GUILD_SAVE_INTERVAL, GUILD_SAVE_INTERVAL, guild_save_sub, 0, 0);
+	guild_save_timer = add_timer_interval(gettick() + GUILD_SAVE_INTERVAL, GUILD_SAVE_INTERVAL, guild_save_sub, 0, 0);
 	return 0;
 }
 

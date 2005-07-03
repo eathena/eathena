@@ -3820,9 +3820,7 @@ bool atcommand_guildlevelup(int fd, struct map_session_data &sd, const char* com
 		added_level = 1 - guild_info->guild_lv;
 
 	if (added_level != 0) {
-		unsigned char buf[2];
-		WBUFW(buf,0) = added_level;	// do the same as on the other side
-		intif_guild_change_basicinfo(guild_info->guild_id, GBI_GUILDLV, buf, 2);
+		intif_guild_change_basicinfo(guild_info->guild_id, GBI_GUILDLV, added_level);
 		clif_displaymessage(fd, msg_table[179]); // Guild level changed.
 	} else {
 		clif_displaymessage(fd, msg_table[45]); // Guild level change failed.

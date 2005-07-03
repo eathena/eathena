@@ -5551,11 +5551,12 @@ int buildin_getcastlename(struct script_state &st)
 	struct guild_castle *gc;
 	int i;
 	char *buf=NULL;
+
 	for(i=0;i<MAX_GUILDCASTLE;i++)
 	{
 		if( (gc=guild_castle_search(i)) != NULL )
 		{
-			if(strcmp(mapname,gc->map_name)==0)
+			if( strcasecmp(mapname,gc->map_name)==0 )
 			{
 				buf=(char *)aMalloc(24*sizeof(char));
 				memcpy(buf,gc->castle_name,24);//EOS included

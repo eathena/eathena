@@ -75,12 +75,20 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // dynamic size, unix system independend fd_set replacement
-class Cfd_set
+class CFDSET
 {
 	///////////////////////////////////////////////////////////////////////////
 	// class data
-	unsigned long*	cArray;
+
+	// unix
 	unsigned long	cSZ;
+	unsigned long*	cArray;
+
+	// windows
+//	u_int fd_count;					// how many are SET?
+//	SOCKET  fd_array[FD_SETSIZE];   // an array of SOCKETs
+
+
 	///////////////////////////////////////////////////////////////////////////
 	// resize the array; only grow, no shrink
 	void checksize(size_t pos)
@@ -131,17 +139,17 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// Construct/Destruct
 
-	Cfd_set() : cArray(new unsigned long[FD_SETSIZE/NBBY/sizeof(unsigned long)]),cSZ(FD_SETSIZE/NBBY/sizeof(unsigned long))	{}
-	~Cfd_set()	{ if(cArray) delete [] cArray; }
+	CFDSET() : cArray(new unsigned long[FD_SETSIZE/NBBY/sizeof(unsigned long)]),cSZ(FD_SETSIZE/NBBY/sizeof(unsigned long))	{}
+	~CFDSET()	{ if(cArray) delete [] cArray; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// Copy/Assign
-	Cfd_set(const Cfd_set& cfd) : cArray(NULL),cSZ(0)
+	CFDSET(const CFDSET& cfd) : cArray(NULL),cSZ(0)
 	{
 		copy(cfd);
 	}
 
-	const Cfd_set& operator =(const Cfd_set& cfd)
+	const CFDSET& operator =(const CFDSET& cfd)
 	{
 		copy(cfd);
 		return *this;
@@ -298,7 +306,6 @@ public:
 
 #endif
 ///////////////////////////////////////////////////////////////////////////////
-
 
 
 

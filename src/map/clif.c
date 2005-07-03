@@ -764,7 +764,7 @@ int clif_set0078(struct map_session_data &sd, unsigned char *buf)
 	WBUFL(buf,34) = sd.status.guild_id;
 	WBUFW(buf,38) = sd.guild_emblem_id;
 	WBUFW(buf,40) = sd.status.manner;
-	WBUFW(buf,42)=sd.opt3;
+	WBUFW(buf,42) = sd.opt3;
 	WBUFB(buf,44) = sd.status.karma;
 	WBUFB(buf,45) = sd.status.sex;
 	WBUFPOS(buf, 46, sd.bl.x, sd.bl.y);
@@ -6742,7 +6742,9 @@ int clif_guild_positionchanged(struct guild &g,unsigned long idx)
 	WBUFL(buf,16)=g.position[idx].exp_mode;
 	memcpy(WBUFP(buf,20),g.position[idx].name,24);
 	if( (sd=guild_getavailablesd(g))!=NULL )
+	{
 		clif_send(buf,WBUFW(buf,2),&sd->bl,GUILD);
+	}
 	return 0;
 }
 /*==========================================
@@ -6756,7 +6758,6 @@ int clif_guild_memberpositionchanged(struct guild &g,unsigned long idx)
 
 	if( idx>=MAX_GUILD )
 		return 0;
-printf("clif_guild_memberpositionchanged->\n");
 	WBUFW(buf, 0)=0x156;
 	WBUFW(buf, 2)=16;
 	WBUFL(buf, 4)=g.member[idx].account_id;
@@ -7506,7 +7507,7 @@ int clif_charnameack(int fd, struct block_list &bl)
 		memcpy(WBUFP(buf,6), md.name, 24);
 		if (md.class_ >= 1285 && md.class_ <= 1288 && md.guild_id)
 		{
-				struct guild *g;
+			struct guild *g;
 			struct guild_castle *gc = guild_mapname2gc(map[md.bl.m].mapname);
 			if (gc && gc->guild_id > 0 && (g = guild_search(gc->guild_id)) != NULL)
 			{
@@ -7868,6 +7869,16 @@ int clif_parse_LoadEndAck(int fd,struct map_session_data &sd)
 	if (night_flag && !map[sd.bl.m].flag.indoors)
 		clif_weather1(sd.fd, 474 + battle_config.night_darkness_level);
 
+	// Lance
+	struct npc_data *npc= npc_name2id("PCLoadMapEvent");
+	if(npc && npc->bl.m==sd.bl.m && npc->u.scr.ref)
+	{
+		run_script(npc->u.scr.ref->script,0,sd.bl.id,npc->bl.id);
+		ShowStatus("Event '"CL_WHITE"PCLoadMapEvent"CL_RESET"' executed.\n");
+	}
+	ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
+		npc_event_doall_id("OnPCLoadMapEvent", sd.bl.id), "OnPCLoadMapEvent");
+	
 	// option
 	clif_changeoption(sd.bl);
 	if(sd.sc_data[SC_TRICKDEAD].timer != -1)
@@ -10430,7 +10441,6 @@ int clif_parse_GuildChangePositionInfo(int fd, struct map_session_data &sd)
 	int i;
 	if( !session_isActive(fd) )
 		return 0;
-
 	for(i = 4; i < RFIFOW(fd,2); i += 40 ){
 		guild_change_position(sd, RFIFOL(fd,i), RFIFOL(fd,i+4), RFIFOL(fd,i+12), (char*)RFIFOP(fd,i+16));
 	}
@@ -10443,7 +10453,6 @@ int clif_parse_GuildChangePositionInfo(int fd, struct map_session_data &sd)
  */
 int clif_parse_GuildChangeMemberPosition(int fd, struct map_session_data &sd)
 {
-printf("clif_parse_GuildChangeMemberPosition\n");
 	int i;
 	if( !session_isActive(fd) )
 		return 0;

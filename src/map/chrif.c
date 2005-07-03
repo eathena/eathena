@@ -148,7 +148,6 @@ int chrif_save(struct map_session_data &sd)
 	WFIFOW(char_fd,2) = 12+sizeof(sd.status);
 	WFIFOL(char_fd,4) = sd.bl.id;
 	WFIFOL(char_fd,8) = sd.status.char_id;
-	//memcpy(WFIFOP(char_fd,12), &sd.status, sizeof(sd.status));
 	mmo_charstatus_tobuffer( sd.status, WFIFOP(char_fd,12) );
 	WFIFOSET(char_fd, 12+sizeof(sd.status));
 	storage_storage_dirty(sd);

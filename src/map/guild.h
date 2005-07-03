@@ -26,7 +26,7 @@ struct guild_castle *guild_mapname2gc(const char *mapname);
 struct map_session_data *guild_getavailablesd(struct guild &g);
 int guild_getindex(struct guild &g,unsigned long account_id,unsigned long char_id);
 int guild_getposition(struct map_session_data &sd,struct guild &g);
-int guild_payexp(struct map_session_data &sd,int exp);
+int guild_payexp(struct map_session_data &sd,unsigned long exp);
 int guild_getexp(struct map_session_data &sd,int exp); // [Celest]
 
 int guild_create(struct map_session_data &sd,const char *name);

@@ -36,7 +36,7 @@ int intif_guild_memberinfoshort(unsigned long guild_id, unsigned long account_id
 int intif_guild_break(unsigned long guild_id);
 int intif_guild_message(unsigned long guild_id, unsigned long account_id, const char *mes, size_t len);
 int intif_guild_checkconflict(unsigned long guild_id, unsigned long account_id, unsigned long char_id);
-int intif_guild_change_basicinfo(unsigned long guild_id, int type, const unsigned char *data, size_t len);
+int intif_guild_change_basicinfo(unsigned long guild_id,int type, unsigned long data);
 int intif_guild_change_memberinfo(unsigned long guild_id, unsigned long account_id, unsigned long char_id, unsigned short type, unsigned long data);
 int intif_guild_position(unsigned long guild_id, unsigned long idx, struct guild_position &p);
 int intif_guild_skillup(unsigned long guild_id, unsigned short skillid, unsigned long account_id, int flag);

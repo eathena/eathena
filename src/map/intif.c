@@ -506,16 +506,16 @@ int intif_guild_checkconflict(unsigned long guild_id,unsigned long account_id,un
 	return 0;
 }
 // ギルド基本情報変更要求
-int intif_guild_change_basicinfo(unsigned long guild_id,int type,const unsigned char *data,size_t len)
+int intif_guild_change_basicinfo(unsigned long guild_id,int type, unsigned long data)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
-	WFIFOW(char_fd,0)=0x3039;
-	WFIFOW(char_fd,2)=len+10;
-	WFIFOL(char_fd,4)=guild_id;
-	WFIFOW(char_fd,8)=type;
-	memcpy(WFIFOP(char_fd,10),data,len);
-	WFIFOSET(char_fd,len+10);
+	WFIFOW(char_fd, 0)=0x3039;
+	WFIFOW(char_fd, 2)=14;
+	WFIFOL(char_fd, 4)=guild_id;
+	WFIFOW(char_fd, 8)=type;
+	WFIFOL(char_fd,10)=data;
+	WFIFOSET(char_fd,14);
 	return 0;
 }
 // ギルドメンバ情報変更要求
@@ -523,9 +523,8 @@ int intif_guild_change_memberinfo(unsigned long guild_id,unsigned long account_i
 {
 	if( !session_isActive(char_fd) )
 		return 0;
-	if((guild_search(guild_id) != NULL) && (map_id2sd(char_id) != NULL))
+	if((guild_search(guild_id) != NULL) && (map_id2sd(account_id) != NULL))
 	{	
-printf("intif_guild_change_memberinfo->\n");
 		WFIFOW(char_fd, 0)=0x303a;
 		WFIFOW(char_fd, 2)=22;
 		WFIFOL(char_fd, 4)=guild_id;
@@ -978,28 +977,25 @@ int intif_parse_GuildBasicInfoChanged(int fd)
 // ギルドメンバ情報変更通知
 int intif_parse_GuildMemberInfoChanged(int fd)
 {
-printf("->intif_parse_GuildMemberInfoChanged\n");
 	unsigned short type=RFIFOW(fd,16);
 	unsigned long guild_id=RFIFOL(fd,4);
 	unsigned long account_id=RFIFOL(fd,8);
 	unsigned long char_id=RFIFOL(fd,12);
-//	void *data=RFIFOP(fd,18);
+	unsigned long dd = RFIFOL(fd,18);
 	struct guild *g=guild_search(guild_id);
 	int idx;
-	unsigned short dd = (unsigned short)RFIFOL(fd,18);
-	if( g==NULL )
-		return 0;
-
-printf("intif_parse_GuildMemberInfoChanged %i\n", dd);
-	idx=guild_getindex(*g,account_id,char_id);
-	switch(type){
-	case GMI_POSITION:
-		g->member[idx].position=dd;
-		guild_memberposition_changed(*g,idx,dd);
-		break;
-	case GMI_EXP:
-		g->member[idx].exp=dd;
-		break;
+	if( g )
+	{
+		idx=guild_getindex(*g,account_id,char_id);
+		switch(type){
+		case GMI_POSITION:
+			g->member[idx].position=dd;
+			guild_memberposition_changed(*g,idx,dd);
+			break;
+		case GMI_EXP:
+			g->member[idx].exp=dd;
+			break;
+		}
 	}
 	return 0;
 }

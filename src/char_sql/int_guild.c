@@ -35,7 +35,7 @@ int mapif_parse_GuildLeave(int fd,int guild_id,unsigned long account_id,unsigned
 int mapif_guild_broken(unsigned long guild_id,int flag);
 int guild_check_empty(struct guild *g);
 int guild_calcinfo(struct guild *g);
-int mapif_guild_basicinfochanged(unsigned long guild_id,int type,const void *data,int len);
+int mapif_guild_basicinfochanged(unsigned long guild_id,int type, unsigned long data);
 int mapif_guild_info(int fd,struct guild *g);
 int guild_break_sub(void *key,void *data,va_list ap);
 
@@ -711,9 +711,11 @@ int guild_db_final (void *k, void *data, va_list ap)
 	if(g)
 	{
 		if(g->save_timer != -1)
-		{	//Save unsaved guild data [Skotlex]
+		{	// Save unsaved guild data [Skotlex]
 			//delete_timer(g->save_timer,guild_save_timer);
+			g->save_timer = -1;
 			inter_guild_tosql(g, g->save_flag);
+			
 		}
 		aFree(g);
 	}
@@ -795,53 +797,55 @@ int guild_checkskill(struct guild &g, unsigned short id)
 // ギルドの情報の再計算
 int guild_calcinfo(struct guild *g)
 {
-	size_t i,c,nextexp;
-	struct guild before=*g;
+	if(g)
+	{
+		size_t i,c;
+		unsigned long nextexp;
+		struct guild before=*g;
 
-	// スキルIDの設定
-	for(i=0;i<MAX_GUILDSKILL;i++)
-		g->skill[i].id=i+GD_SKILLBASE;
+		// スキルIDの設定
+		for(i=0;i<MAX_GUILDSKILL;i++)
+			g->skill[i].id=i+GD_SKILLBASE;
 
-	// ギルドレベル
-	if(g->guild_lv<=0) g->guild_lv=1;
-	nextexp = guild_nextexp(g->guild_lv);
-	if(nextexp > 0) {
-		while(g->exp >= nextexp && nextexp > 0){	//fixed guild exp overflow [Kevin]
+		// ギルドレベル
+		if(g->guild_lv<=0) g->guild_lv=1;
+		nextexp = guild_nextexp(g->guild_lv);
+		while(g->exp >= nextexp && nextexp > 0)
+		{
 			g->exp-=nextexp;
 			g->guild_lv++;
 			g->skill_point++;
 			nextexp = guild_nextexp(g->guild_lv);
 		}
-	}
 
-	// ギルドの次の経験値
-	g->next_exp = guild_nextexp(g->guild_lv);
+		// ギルドの次の経験値
+		g->next_exp = guild_nextexp(g->guild_lv);
 
-	// メンバ上限（ギルド拡張適用）
-	g->max_member = 16 + guild_checkskill(*g, GD_EXTENSION) * 6; //  Guild Extention skill - adds by 6 people per level to Max Member [Lupus]
+		// メンバ上限（ギルド拡張適用）
+		g->max_member = 16 + guild_checkskill(*g, GD_EXTENSION) * 6; //  Guild Extention skill - adds by 6 people per level to Max Member [Lupus]
 
-	// 平均レベルとオンライン人数
-	g->average_lv=0;
-	g->connect_member=0;
-	for(i=c=0;i<g->max_member;i++){
-		if(g->member[i].account_id>0){
-			g->average_lv+=g->member[i].lv;
-			c++;
+		// 平均レベルとオンライン人数
+		g->average_lv=0;
+		g->connect_member=0;
+		for(i=c=0;i<g->max_member;i++){
+			if(g->member[i].account_id>0){
+				g->average_lv+=g->member[i].lv;
+				c++;
 
-			if(g->member[i].online>0)
-				g->connect_member++;
+				if(g->member[i].online>0)
+					g->connect_member++;
+			}
+		}
+		if(c) g->average_lv/=c;
+
+		// 全データを送る必要がありそう
+		if(	g->max_member!=before.max_member	||
+			g->guild_lv!=before.guild_lv		||
+			g->skill_point!=before.skill_point	){
+			mapif_guild_info(-1,g);
+			return 1;
 		}
 	}
-	if(c) g->average_lv/=c;
-
-	// 全データを送る必要がありそう
-	if(	g->max_member!=before.max_member	||
-		g->guild_lv!=before.guild_lv		||
-		g->skill_point!=before.skill_point	){
-		mapif_guild_info(-1,g);
-		return 1;
-	}
-
 	return 0;
 }
 
@@ -967,15 +971,15 @@ int mapif_guild_message(unsigned long guild_id,unsigned long account_id,char *me
 }
 
 // ギルド基本情報変更通知
-int mapif_guild_basicinfochanged(unsigned long guild_id,int type,const void *data,int len)
+int mapif_guild_basicinfochanged(unsigned long guild_id,int type,unsigned long data)
 {
 	unsigned char buf[2048];
 	WBUFW(buf, 0)=0x3839;
-	WBUFW(buf, 2)=len+10;
+	WBUFW(buf, 2)=14;
 	WBUFL(buf, 4)=guild_id;
 	WBUFW(buf, 8)=type;
-	memcpy(WBUFP(buf,10),data,len);
-	mapif_sendall(buf,len+10);
+	WBUFL(buf,10)=data;
+	mapif_sendall(buf,14);
 	return 0;
 }
 // ギルドメンバ情報変更通知
@@ -1428,22 +1432,20 @@ int mapif_parse_GuildMessage(int fd,unsigned long guild_id,unsigned long account
 	return mapif_guild_message(guild_id,account_id,mes,len, fd);
 }
 // ギルド基本データ変更要求
-int mapif_parse_GuildBasicInfoChange(int fd,unsigned long guild_id,int type,const char *data,int len)
+int mapif_parse_GuildBasicInfoChange(int fd,unsigned long guild_id,int type, unsigned long data)
 {
 	struct guild * g = inter_guild_fromsql(guild_id);
-//	int dd=RBUFL(data,0);
-	unsigned short dw = RBUFW((unsigned char*)data,0);// just removing the const
 
 	if(g==NULL||g->guild_id<=0)
 		return 0;
 	switch(type){
 	case GBI_GUILDLV: {
 		ShowMessage("GBI_GUILDLV\n");
-			if(dw>0 && g->guild_lv+dw<=50){
-				g->guild_lv+=dw;
-				g->skill_point+=dw;
-			}else if(g->guild_lv+dw>=1)
-				g->guild_lv+=dw;
+			if(g->guild_lv+data<=50){
+				g->guild_lv+=data;
+				g->skill_point+=data;
+			}else if(g->guild_lv+data>=1)
+				g->guild_lv+=data;
 			mapif_guild_info(-1,g);
 			inter_guild_tosql(g,1);
 		} return 0;
@@ -1451,7 +1453,7 @@ int mapif_parse_GuildBasicInfoChange(int fd,unsigned long guild_id,int type,cons
 		ShowMessage("int_guild: GuildBasicInfoChange: Unknown type %d\n",type);
 		break;
 	}
-	mapif_guild_basicinfochanged(guild_id,type,data,len);
+	mapif_guild_basicinfochanged(guild_id,type,data);
 	inter_guild_tosql(g,1); // Change guild
 	return 0;
 }
@@ -1491,7 +1493,7 @@ int mapif_parse_GuildMemberInfoChange(int fd,unsigned long guild_id,unsigned lon
 	    exp=g->member[i].exp=data;
 	    g->exp+=(exp-oldexp);
 	    guild_calcinfo(g);	// Lvアップ判断
-	    mapif_guild_basicinfochanged(guild_id,GBI_EXP,&g->exp,4);
+	    mapif_guild_basicinfochanged(guild_id,GBI_EXP,g->exp);
 	    mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data);
 
 	    sprintf(tmp_sql, "UPDATE `%s` SET `guild_lv`=%d,`connect_member`=%d,`max_member`=%d,`average_lv`=%d,`exp`=%ld,`next_exp`=%ld,`skill_point`=%d WHERE `guild_id`='%ld'", guild_db, g->guild_lv, g->connect_member, g->max_member, g->average_lv, g->exp, g->next_exp, g->skill_point, g->guild_id);
@@ -1516,13 +1518,13 @@ int mapif_parse_GuildPosition(int fd, unsigned long guild_id, unsigned long idx,
 	// Could make some improvement in speed, because only change guild_position
 	struct guild * g = inter_guild_fromsql(guild_id);
 
-	if(g==NULL || idx>=MAX_GUILDPOSITION)
-		return 0;
-
-	guild_position_frombuffer(g->position[idx],buf);
-	mapif_guild_position(g,idx);
-	ShowMessage("int_guild: position changed %d\n",idx);
-	inter_guild_tosql(g,4); // Change guild_position
+	if(g && idx<MAX_GUILDPOSITION)
+	{
+		guild_position_frombuffer(g->position[idx],buf);
+		mapif_guild_position(g,idx);
+		ShowMessage("int_guild: position changed %d\n",idx);
+		inter_guild_tosql(g,4); // Change guild_position
+	}
 	return 0;
 }
 // ギルドスキルアップ要求
@@ -1731,7 +1733,7 @@ int inter_guild_parse_frommap(int fd)
 	case 0x3036: mapif_parse_BreakGuild(fd,RFIFOL(fd,2)); break;
 	case 0x3037: mapif_parse_GuildMessage(fd,RFIFOL(fd,4),RFIFOL(fd,8),(char*)RFIFOP(fd,12),RFIFOW(fd,2)-12); break;
 	case 0x3038: mapif_parse_GuildCheck(fd,RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10)); break;
-	case 0x3039: mapif_parse_GuildBasicInfoChange(fd,RFIFOL(fd,4),RFIFOW(fd,8),(const char*)RFIFOP(fd,10),RFIFOW(fd,2)-10); break;
+	case 0x3039: mapif_parse_GuildBasicInfoChange(fd,RFIFOL(fd,4),RFIFOW(fd,8), RFIFOL(fd,10)); break;
 	case 0x303A: mapif_parse_GuildMemberInfoChange(fd,RFIFOL(fd,4),RFIFOL(fd,8),RFIFOL(fd,12),RFIFOW(fd,16),RFIFOL(fd,18)); break;
 	case 0x303B: mapif_parse_GuildPosition(fd,RFIFOL(fd,4),RFIFOL(fd,8),RFIFOP(fd,12)); break;
 	case 0x303C: mapif_parse_GuildSkillUp(fd,RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10)); break;

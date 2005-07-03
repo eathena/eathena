@@ -5,6 +5,9 @@
 #include "db.h"
 #include "nullpo.h"
 #include "malloc.h"
+#include "utils.h"
+#include "showmsg.h"
+
 #include "map.h"
 #include "clif.h"
 #include "intif.h"
@@ -18,8 +21,9 @@
 #include "party.h"
 #include "npc.h"
 #include "log.h"
-#include "showmsg.h"
-#include "utils.h"
+#include "script.h"
+
+
 
 #define MIN_MOBTHINKTIME 100
 
@@ -2521,6 +2525,9 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 	// map外に消えた人は計算から除くので
 	// overkill分は無いけどsumはmax_hpとは違う
 
+	map_session_data *damager[DAMAGELOG_SIZE];
+	int dmcount=0;
+
 	tdmg = 0;
 	for(i=0,count=0,mvp_damage=0;i<DAMAGELOG_SIZE;i++){
 		if(md.dmglog[i].fromid==0)
@@ -2534,6 +2541,9 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		if(tmpsd[i]->bl.m != md.bl.m || pc_isdead(*tmpsd[i]))
 			continue;
 
+		// make a list of all that attackers
+		damager[dmcount++] = tmpsd[i];
+
 		tdmg += (double)md.dmglog[i].dmg;
 		if(mvp_damage<md.dmglog[i].dmg){
 			third_sd = second_sd;
@@ -2542,6 +2552,27 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			mvp_damage=md.dmglog[i].dmg;
 		}
 	}
+	if(mvp_sd)
+	{	// kill steal karma code
+		for(i=0; i<dmcount; i++)
+		{	// the mvp_sd is the reference
+			if( damager[i] != mvp_sd && damager[i])
+			{
+				if( damager[i]->status.party_id == mvp_sd->status.party_id ||
+					damager[i]->status.guild_id == mvp_sd->status.guild_id )
+				{	// same guild or party
+					if( rand()%1000<   1 && sd->status.karma >-127 )	//  0.1% chance
+						sd->status.karma--; // honour points earned
+				}
+				else
+				{	// killstealer 
+					if( rand()%1000< 100 && sd->status.karma < 127 )	// 10.0% chance
+						sd->status.karma++;	// honour points lost
+				}
+			}
+		}
+	}
+
 
 	// [MouseJstr]
 	if((map[md.bl.m].flag.pvp == 0) || (battle_config.pvp_exp == 1)) {
@@ -2851,7 +2882,8 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 	}
 
 		// SCRIPT実行
-	if(md.npc_event[0]){
+	if(md.npc_event[0])
+	{
 //		if(battle_config.battle_log)
 //			ShowMessage("mob_damage : run event : %s\n",md->npc_event);
 		if(src && src->type == BL_PET)
@@ -2875,6 +2907,27 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		if(sd)
 			npc_event(*sd,md.npc_event,0);
 	}
+	//lordalfa
+	else if (mvp_sd)
+	{
+		pc_setglobalreg(*mvp_sd,"killedrid",(md.class_));
+		if (script_config.event_script_type == 0)
+		{
+			struct npc_data *npc= npc_name2id("NPCKillEvent");
+			if(npc && npc->u.scr.ref)
+			{
+				run_script(npc->u.scr.ref->script,0,mvp_sd->bl.id,npc->bl.id); // NPCKillNPC
+				ShowStatus("Event '"CL_WHITE"NPCKillEvent"CL_RESET"' executed.\n");
+			}
+		}
+		else
+		{
+			ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
+				npc_event_doall_id("NPCKillEvent", mvp_sd->bl.id), "NPCKillEvent");
+		}
+	}
+	//lordalfa 
+
 	if(battle_config.mob_clear_delay)
 		clif_clearchar_delay(tick+battle_config.mob_clear_delay,md.bl,1);
 	else
