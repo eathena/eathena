@@ -23,6 +23,7 @@
 #include "npc.h"
 #include "log.h"
 #include "showmsg.h"
+#include "script.h"
 
 #define MIN_MOBTHINKTIME 100
 
@@ -2853,9 +2854,27 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 				}
 			}
 		}
-		if(sd)
-			npc_event(sd,md->npc_event,0);
+		if(mvp_sd)
+			npc_event(mvp_sd,md->npc_event,0);
+
+	} else if (mvp_sd) {
+//lordalfa
+		pc_setglobalreg(mvp_sd,"killedrid",(md->class_));
+	if (script_config.event_script_type == 0) {
+		struct npc_data *npc;
+	if ((npc = npc_name2id("NPCKillEvent"))) {
+	run_script(npc->u.scr.script,0,mvp_sd->bl.id,npc->bl.id); // NPCKillNPC
+	sprintf (tmp_output, "Event '"CL_WHITE"NPCKillEvent"CL_RESET"' executed.\n");
+	 ShowStatus(tmp_output);
 	}
+		} else {
+		 sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",	
+		npc_event_doall_id("NPCKillEvent", mvp_sd->bl.id), "NPCKillEvent");
+	ShowStatus(tmp_output);
+	}
+}
+//lordalfa  
+
 	(battle_config.mob_clear_delay) ? clif_clearchar_delay(tick+battle_config.mob_clear_delay,&md->bl,1) : clif_clearchar_area(&md->bl,1);
 	if(md->level) md->level=0;
 	map_delblock(&md->bl);

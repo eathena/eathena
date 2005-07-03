@@ -1,5 +1,12 @@
 Date	Added
 07/02
+	* Added lordalfa's NPCKillEvent script event command. to trigger, type in
+	  -[TAB]script[TAB]NPCKillEvent[TAB]-1,{
+		YOUR SCRIPT HERE
+	}
+	  The script should run everytime a normal monster is killed. [massdriller]
+	* Added lordalfa's edit where Labels from Event Monsters be executed using the MVP RID, 
+	  and not the Last Hit guy RID. [massdriller]
 	* Added lordalfa's PCBaseUpEvent script event command. to trigger, type in 
 	-[TAB]Script[TAB]PCBaseUpEvent[TAB]-1,{
 	 YOUR CODE HERE;
