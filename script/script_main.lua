@@ -22,9 +22,9 @@ require "script/sample/script_sample.lua"
 -- Warps
 require "script/warps/script_warps.lua"
 -- Monster Spawn
---require "script/spawns/script_spawns.lua"
+require "script/spawns/script_spawns.lua"
 -- Shops/Merchants
---require "script/merchants/script_merchants.lua"
+require "script/merchants/script_merchants.lua"
 -- Your NPCs go in this file!
 --require "script/custom/script_custom.lua"
 --------------------------------------------------------------

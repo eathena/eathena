@@ -61,9 +61,9 @@ lua_State *L; // [DracoRPG]
  *===================================================================
  */
 
-// end()
+// scriptend()
 // Exits definitively the script
-static int buildin_end(lua_State *NL)
+static int buildin_scriptend(lua_State *NL)
 {
 	struct map_session_data *sd = NULL;
 	int charid;
@@ -84,7 +84,7 @@ static int buildin_end(lua_State *NL)
 // Add an standard NPC that triggers a function when clicked
 static int buildin_addnpc(lua_State *NL)
 {
-	char name[24], exname[24], map[16], function[512];
+	char name[24],exname[24],map[16],function[50];
 	short m,x,y,dir,class_;
 	
 	sprintf(name, "%s", lua_tostring(NL,1));
@@ -106,7 +106,7 @@ static int buildin_addnpc(lua_State *NL)
 // Add an invisible area that triggers a function when entered
 static int buildin_addareascript(lua_State *NL)
 {
-	char name[24], map[16], function[512];
+	char name[24],map[16],function[50];
 	short m,x1,y1,x2,y2;
 
 	sprintf(name,"%s",lua_tostring(NL,1));
@@ -120,7 +120,6 @@ static int buildin_addareascript(lua_State *NL)
 
 	areascript_add(name,m,x1,y1,x2,y2,function);
 
-
 	return 0;
 }
 
@@ -128,7 +127,7 @@ static int buildin_addareascript(lua_State *NL)
 // Add a warp that moves players to somewhere else when entered
 static int buildin_addwarp(lua_State *NL)
 {
-	char name[24], map[16], destmap[100];
+	char name[24],map[16],destmap[16];
 	short m,x,y;
 	short destx,desty,xs,ys;
 	
@@ -148,19 +147,27 @@ static int buildin_addwarp(lua_State *NL)
 	return 0;
 }
 
-// addmapflag("Type","map.gat")
-// Sets a mapflag for map
-static int buildin_addmapflag(lua_State *NL)
+// addspawn("Monster name","map.gat",x,y,xradius,yradius,id,amount,delay1,delay2,"function")
+// Add a monster spawn etc
+static int buildin_addspawn(lua_State *NL)
 {
-	char name[24], map[16];
-	short m,x,y;
-	short destx,desty,xs,ys;
+	char name[24],map[16],function[50];
+	short m,x,y,xs,ys,class_,num,d1,d2;
 
 	sprintf(name,"%s",lua_tostring(NL,1));
 	sprintf(map,"%s",lua_tostring(NL,2));
 	m=map_mapname2mapid(map);
+	x=lua_tonumber(NL,3);
+	y=lua_tonumber(NL,4);
+	xs=lua_tonumber(NL,5);
+	ys=lua_tonumber(NL,6);
+	class_=lua_tonumber(NL,7);
+	num=lua_tonumber(NL,8);
+	d1=lua_tonumber(NL,9);
+	d2=lua_tonumber(NL,10);
+	sprintf(function,"%s",lua_tostring(NL,11));
 
-
+	spawn_add(name,m,x,y,xs,ys,class_,num,d1,d2,function);
 
 	return 0;
 }
@@ -430,16 +437,15 @@ static int buildin_percentheal(lua_State *NL)
 // List of commands to build into Lua
 static struct LuaCommandInfo commands[] = {
 	/* Basic functions */
-	{"end", buildin_end},
+	{"scriptend", buildin_scriptend},
 	/* Object creation functions */
 	{"addnpc", buildin_addnpc},
 	{"addareascript", buildin_addareascript},
 	{"addwarp", buildin_addwarp},
-//  {"addspawn", buildin_addspawn},
+	{"addspawn", buildin_addspawn},
 //	{"addgmcommand", buildin_addgmcommand},
 //	{"addtimer", buildin_addtimer},
 //	{"addevent", buildin_addevent},
-//	{"addmapflag", buildin_addmapflag},
 	/* NPC dialog window functions */
 	{"npcmes", buildin_npcmes},
 	{"npcclose", buildin_npcclose},
@@ -615,139 +621,6 @@ void script_resume(struct map_session_data *sd,const char *format,...) {
  *                   LUA FUNCTIONS END HERE [DracoRPG]
  *
  *===================================================================
- */
-
-
-/*==========================================
- * マップ変数の変更
- *------------------------------------------
- */
-/*int mapreg_setreg(int num,int val)
-{
-	if(val!=0)
-		numdb_insert(mapreg_db,num,val);
-	else
-		numdb_erase(mapreg_db,num);
-
-	mapreg_dirty=1;
-	return 0;
-}*/
-/*==========================================
- * 文字列型マップ変数の変更
- *------------------------------------------
- */
-/*int mapreg_setregstr(int num,const char *str)
-{
-	char *p;
-
-	if( (p=(char *) numdb_search(mapregstr_db,num))!=NULL )
-		aFree(p);
-
-	if( str==NULL || *str==0 ){
-		numdb_erase(mapregstr_db,num);
-		mapreg_dirty=1;
-		return 0;
-	}
-	p=(char *)aCallocA(strlen(str)+1, sizeof(char));
-	strcpy(p,str);
-	numdb_insert(mapregstr_db,num,p);
-	mapreg_dirty=1;
-	return 0;
-}*/
-
-/*==========================================
- * 永続的マップ変数の読み込み
- *------------------------------------------
- */
-/*static int script_load_mapreg()
-{
-	FILE *fp;
-	char line[1024];
-
-	if( (fp=fopen(mapreg_txt,"rt"))==NULL )
-		return -1;
-
-	while(fgets(line,sizeof(line),fp)){
-		char buf1[256],buf2[1024],*p;
-		int n,v,s,i;
-		if( sscanf(line,"%255[^,],%d\t%n",buf1,&i,&n)!=2 &&
-			(i=0,sscanf(line,"%[^\t]\t%n",buf1,&n)!=1) )
-			continue;
-		if( buf1[strlen(buf1)-1]=='$' ){
-			if( sscanf(line+n,"%[^\n\r]",buf2)!=1 ){
-				printf("%s: %s broken data !\n",mapreg_txt,buf1);
-				continue;
-			}
-			p=(char *)aCallocA(strlen(buf2) + 1,sizeof(char));
-			strcpy(p,buf2);
-			s= add_str((unsigned char *) buf1);
-			numdb_insert(mapregstr_db,(i<<24)|s,p);
-		}else{
-			if( sscanf(line+n,"%d",&v)!=1 ){
-				printf("%s: %s broken data !\n",mapreg_txt,buf1);
-				continue;
-			}
-			s= add_str((unsigned char *) buf1);
-			numdb_insert(mapreg_db,(i<<24)|s,v);
-		}
-	}
-	fclose(fp);
-	mapreg_dirty=0;
-	return 0;
-}*/
-/*==========================================
- * 永続的マップ変数の書き込み
- *------------------------------------------
- */
-/*static int script_save_mapreg_intsub(void *key,void *data,va_list ap)
-{
-	FILE *fp=va_arg(ap,FILE*);
-	int num=((int)key)&0x00ffffff, i=((int)key)>>24;
-	char *name=str_buf+str_data[num].str;
-	if( name[1]!='@' ){
-		if(i==0)
-			fprintf(fp,"%s\t%d\n", name, (int)data);
-		else
-			fprintf(fp,"%s,%d\t%d\n", name, i, (int)data);
-	}
-	return 0;
-}
-static int script_save_mapreg_strsub(void *key,void *data,va_list ap)
-{
-	FILE *fp=va_arg(ap,FILE*);
-	int num=((int)key)&0x00ffffff, i=((int)key)>>24;
-	char *name=str_buf+str_data[num].str;
-	if( name[1]!='@' ){
-		if(i==0)
-			fprintf(fp,"%s\t%s\n", name, (char *)data);
-		else
-			fprintf(fp,"%s,%d\t%s\n", name, i, (char *)data);
-	}
-	return 0;
-}
-static int script_save_mapreg()
-{
-	FILE *fp;
-	int lock;
-
-	if( (fp=lock_fopen(mapreg_txt,&lock))==NULL )
-		return -1;
-	numdb_foreach(mapreg_db,script_save_mapreg_intsub,fp);
-	numdb_foreach(mapregstr_db,script_save_mapreg_strsub,fp);
-	lock_fclose(fp,mapreg_txt,&lock);
-	mapreg_dirty=0;
-	return 0;
-}
-static int script_autosave_mapreg(int tid,unsigned int tick,int id,int data)
-{
-	if(mapreg_dirty)
-		script_save_mapreg();
-	return 0;
-}*/
-
-/*==========================================
- *
- *------------------------------------------
  */
 
 static int set_posword(char *p)

@@ -11,6 +11,8 @@ Fredzilla
 == Changelog ==
 
 Date	Added
+07/03
+	* Changed "-1" -> "0" for random spawn coordinates [DracoRPG]
 06/29
 	* Update the Lua Warps, again a mirror of stable
 06/25

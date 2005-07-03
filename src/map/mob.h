@@ -90,6 +90,7 @@ enum {
 
 int mobdb_searchname(const char *str);
 int mobdb_checkid(const int id);
+int mob_add_spawn(struct mob_list *mob, int cached);
 int mob_once_spawn(struct map_session_data *sd,char *mapname,
 	int x,int y,const char *mobname,int class_,int amount,const char *event);
 int mob_once_spawn_area(struct map_session_data *sd,char *mapname,

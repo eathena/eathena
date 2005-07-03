@@ -11,5 +11,5 @@
 --============================================================
 
 --lou_fild01)?
-addspawn("Mantis","lou_fild01.gat",-1,-1,0,0,1139,25,0,0,"")
-addspawn("Civil Servant","lou_fild01.gat",-1,-1,0,0,1513,25,0,0,"")
+addspawn("Mantis","lou_fild01.gat",0,0,0,0,1139,25,0,0,"")
+addspawn("Civil Servant","lou_fild01.gat",0,0,0,0,1513,25,0,0,"")

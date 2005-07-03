@@ -48,7 +48,7 @@ require "script/spawns/dungeons/toyfactory.lua"
 require "script/spawns/dungeons/turtleisland.lua"
 require "script/spawns/dungeons/umbaladun.lua"
 
--- -=Extra=-
+-- -=Others=-
 
 require "script/spawns/citycleaners.lua"
 require "script/spawns/pvp.lua"

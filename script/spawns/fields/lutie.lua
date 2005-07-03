@@ -11,7 +11,7 @@
 --============================================================
 
 --xmas_fild01
-addspawn("Marin","xmas_fild01.gat",-1,-1,0,0,1242,35,0,0,"")
-addspawn("Sasquatch","xmas_fild01.gat",-1,-1,0,0,1243,20,0,0,"")
-addspawn("Hatii Baby","xmas_fild01.gat",-1,-1,0,0,1515,10,30000,30000,"")
-addspawn("Garm","xmas_fild01.gat",-1,-1,0,0,1252,1,3600000,7200000,"")
+addspawn("Marin","xmas_fild01.gat",0,0,0,0,1242,35,0,0,"")
+addspawn("Sasquatch","xmas_fild01.gat",0,0,0,0,1243,20,0,0,"")
+addspawn("Hatii Baby","xmas_fild01.gat",0,0,0,0,1515,10,30000,30000,"")
+addspawn("Garm","xmas_fild01.gat",0,0,0,0,1252,1,3600000,7200000,"")

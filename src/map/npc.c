@@ -615,7 +615,7 @@ int npc_add (char *name,char *exname,short m,short x,short y,short dir,short cla
 	strdb_insert(npcname_db,nd->exname,nd);
 	npc_num++;
 
-	return nd->bl.id;
+	return 0;
 }
 
 int areascript_add (char *name,short m,short x1,short y1,short x2,short y2,char *function)
@@ -649,7 +649,7 @@ int areascript_add (char *name,short m,short x1,short y1,short x2,short y2,char 
 	strdb_insert(areascriptname_db,ad->name,ad);
 	areascript_num++;
 
-	return ad->bl.id;
+	return 0;
 }
 
 int warp_add (char *name,short m,short x,short y,char *destmap,short destx,short desty,short xs,short ys)
@@ -683,7 +683,58 @@ int warp_add (char *name,short m,short x,short y,char *destmap,short destx,short
 	strdb_insert(warpname_db,wd->name,wd);
 	warp_num++;
 
-	return wd->bl.id;
+	return 0;
+}
+
+int spawn_add (char* name,short m,short x,short y,short xs,short ys,short class_,int num,int d1,int d2,char* function)
+{
+	struct mob_list mob;
+
+	memset(&mob, 0, sizeof(struct mob_list));
+
+	if (strcmp(name,"--en--") == 0) // --en-- = default english name
+		strcpy(mob.mobname,mob_db[mob.class_].name);
+	else if (strcmp(name,"--ja--") == 0) // --ja-- = default jap name
+		strcpy(mob.mobname,mob_db[mob.class_].jname);
+	else strcpy(mob.mobname,name);
+
+	mob.m=m;
+	mob.x=x;
+	mob.y=y;
+	mob.xs=xs;
+	mob.ys=ys;
+	mob.class_=class_;
+	mob.num=((battle_config.mob_count_rate != 100)?(num*battle_config.mob_count_rate/100):num);
+	if(mob.num < 1)
+	    mob.num=1;
+	mob.delay1=d1;
+	mob.delay2=d2;
+	strcpy(mob.function,function);
+
+	if( !battle_config.dynamic_mobs || mob.delay1 || mob.delay2 ) {
+		mob_add_spawn(&mob,0);
+		npc_delay_mob += mob.num;
+	} else {
+		struct mob_list *dynmob = map_addmobtolist(mob.m);
+		if( dynmob ) {
+			memcpy(dynmob, &mob, sizeof(struct mob_list));
+			// check if target map has players
+			// (usually shouldn't occur when map server is just starting,
+			// but not the case when we do @reloadscript
+			if (map[mob.m].users > 0)
+				mob_add_spawn(&mob,1);
+			npc_cache_mob += mob.num;
+		} else {
+			// mobcache is full
+			// create them as delayed with one second
+			mob.delay1 = 1000;
+			mob_add_spawn(&mob,0);
+			npc_delay_mob += mob.num;
+		}
+	}
+	mob_num++;
+
+	return 0;
 }
 
 int npc_unload (struct npc_data *nd)
@@ -741,10 +792,6 @@ int warp_unload (struct warp_data *wd)
 
 	return 0;
 }
-
-//
-// 初期化関係
-//
 
 /*==========================================
  * 読み込むnpcファイルのクリア
@@ -818,123 +865,6 @@ void npc_delsrcfile (char *name)
 		pp = p;
 		p = p->next;
 	}
-}
-
-int npc_parse_mob2 (struct mob_list *mob, int cached)
-{
-	int i;
-	struct mob_data *md;
-
-	for (i = 0; i < mob->num; i++) {
-		md = (struct mob_data *) aCalloc (1, sizeof(struct mob_data));
-		memset(md, 0, sizeof(struct mob_data));	//Why not 0 up the structure?	[Skotlex]
-
-		if (mob->class_ > 4000) { // large/tiny mobs [Valaris]
-			md->size = 2;
-			mob->class_ -= 4000;
-		} else if (mob->class_ > 2000) {
-			md->size = 1;
-			mob->class_ -= 2000;
-		}
-
-		md->bl.prev = NULL;
-		md->bl.next = NULL;
-		md->bl.m = mob->m;
-		md->bl.x = mob->x;
-		md->bl.y = mob->y;
-		md->level = mob->level;
-		memcpy(md->name, mob->mobname, 24);
-		md->n = i;
-		md->base_class = md->class_ = mob->class_;
-		md->bl.id = npc_get_new_npc_id();
-		md->m = mob->m;
-		md->x0 = mob->x;
-		md->y0 = mob->y;
-		md->xs = mob->xs;
-		md->ys = mob->ys;
-		md->spawndelay1 = mob->delay1;
-		md->spawndelay2 = mob->delay2;
-
-		md->cached = cached;	//If cached, mob is dynamically removed
-		md->timer = -1;
-		md->speed = mob_db[mob->class_].speed;
-
-		if (mob_db[mob->class_].mode & 0x02)
-			md->lootitem = (struct item *)aCalloc(LOOTITEM_SIZE, sizeof(struct item));
-		else
-			md->lootitem = NULL;
-
-		if (strlen(mob->eventname) >= 4) {
-			memcpy(md->npc_event, mob->eventname, 24);
-		} else
-			memset(md->npc_event, 0, 24);
-
-		md->bl.type = BL_MOB;
-		map_addiddb(&md->bl);
-		mob_spawn(md->bl.id);
-	}
-
-	return 0;
-}
-
-int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
-{
-	int level;
-	char mapname[24];
-	char mobname[24];
-	struct mob_list mob;
-
-	memset(&mob, 0, sizeof(struct mob_list));
-	
-	// 引数の個数チェック
-	if (sscanf(w1, "%[^,],%d,%d,%d,%d", mapname, &mob.x, &mob.y, &mob.xs, &mob.ys) < 3 ||
-		sscanf(w4, "%d,%d,%d,%d,%s", &mob.class_, &mob.num, &mob.delay1, &mob.delay2, mob.eventname) < 2 ) {
-		ShowError("bad monster line : %s\n", w3);
-		return 1;
-	}
-
-	mob.m = map_mapname2mapid(mapname);
-	if (mob.m < 0)
-		return 1;
-		
-	if (mob.num > 1 && battle_config.mob_count_rate != 100) {
-		if ((mob.num = mob.num * battle_config.mob_count_rate / 100) < 1)
-			mob.num = 1;
-	}
-	
-	if (sscanf(w3, "%[^,],%d", mobname, &level) > 1)
-		mob.level = level;
-	if (strcmp(mobname, "--en--") == 0)
-		memcpy(mob.mobname, mob_db[mob.class_].name, 24);
-	else if (strcmp(mobname, "--ja--") == 0)
-		memcpy(mob.mobname, mob_db[mob.class_].jname, 24);
-	else memcpy(mob.mobname, mobname, 24);
-
-	if( !battle_config.dynamic_mobs || mob.delay1 || mob.delay2 ) {
-		npc_parse_mob2(&mob,0);
-		npc_delay_mob += mob.num;
-	} else {
-		struct mob_list *dynmob = map_addmobtolist(mob.m);
-		if( dynmob ) {
-			memcpy(dynmob, &mob, sizeof(struct mob_list));
-			// check if target map has players
-			// (usually shouldn't occur when map server is just starting,
-			// but not the case when we do @reloadscript
-			if (map[mob.m].users > 0)
-				npc_parse_mob2(&mob,1);
-			npc_cache_mob += mob.num;
-		} else {
-			// mobcache is full
-			// create them as delayed with one second
-			mob.delay1 = 1000;
-			npc_parse_mob2(&mob,0);
-			npc_delay_mob += mob.num;
-		}
-	}
-
-	mob_num++;
-
-	return 0;
 }
 
 void npc_parsesrcfile (char *name)

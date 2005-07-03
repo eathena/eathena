@@ -15,14 +15,10 @@ int npc_chat_sub(struct block_list *bl, va_list ap);
 int npc_click(struct map_session_data *,int);
 int npc_touch_areascript(struct map_session_data *,int,int,int);
 int npc_touch_warp(struct map_session_data *,int,int,int);
-int npc_scriptend(struct map_session_data *,int);
-int npc_scriptnext(struct map_session_data *,int);
 int npc_checknear(struct map_session_data *,int);
 int npc_buysellsel(struct map_session_data *,int,int);
 int npc_buylist(struct map_session_data *,int,unsigned short *);
 int npc_selllist(struct map_session_data *,int,unsigned short *);
-int npc_parse_mob(char *w1,char *w2,char *w3,char *w4);
-int npc_parse_mob2 (struct mob_list *, int cached); // [Wizputer]
 int npc_globalmessage(const char *name,char *mes);
 
 int npc_enable(const char *name,int flag);
@@ -43,6 +39,7 @@ int do_init_npc(void);
 int npc_add(char *,char *,short,short,short,short,short,char *);
 int areascript_add (char *,short,short,short,short,short,char *);
 int warp_add (char *,short,short,short,char *,short,short,short,short);
+int spawn_add (char *,short,short,short,short,short,short,int,int,int,char *);
 int npc_unload(struct npc_data *nd);
 int warp_unload(struct warp_data *wd);
 int areascript_unload(struct areascript_data *ad);

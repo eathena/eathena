@@ -1629,9 +1629,9 @@ int guild_agit_break(struct mob_data *md)
 
 	nullpo_retr(0, md);
 
-	evname=(char *)aCallocA(strlen(md->npc_event) + 1, sizeof(char));
+	evname=(char *)aCallocA(strlen(md->function) + 1, sizeof(char));
 
-	strcpy(evname,md->npc_event);
+	strcpy(evname,md->function);
 // Now By User to Run [OnAgitBreak] NPC Event...
 // It's a little impossible to null point with player disconnect in this!
 // But Script will be stop, so nothing...

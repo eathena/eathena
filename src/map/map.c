@@ -1861,7 +1861,7 @@ void map_spawnmobs(int m)
 		if(map[m].moblist[i]!=NULL)
 		{
 			k+=map[m].moblist[i]->num;
-			npc_parse_mob2(map[m].moblist[i],1);
+			mob_add_spawn(map[m].moblist[i],1);
 		}
 	if (k > 0)
 	{

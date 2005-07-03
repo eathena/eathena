@@ -76,6 +76,67 @@ int mobdb_checkid(const int id)
 }
 
 /*==========================================
+ * Add a mob spawn point
+ *------------------------------------------
+ */
+int mob_add_spawn(struct mob_list *mob, int cached)
+{
+	int i;
+	struct mob_data *md;
+
+	for (i = 0; i < mob->num; i++) {
+		md = (struct mob_data *) aCalloc (1, sizeof(struct mob_data));
+		memset(md, 0, sizeof(struct mob_data));	//Why not 0 up the structure?	[Skotlex]
+
+		if (mob->class_ > 4000) { // large/tiny mobs [Valaris]
+			md->size = 2;
+			mob->class_ -= 4000;
+		} else if (mob->class_ > 2000) {
+			md->size = 1;
+			mob->class_ -= 2000;
+		}
+
+		md->bl.prev = NULL;
+		md->bl.next = NULL;
+		md->bl.m = mob->m;
+		md->bl.x = mob->x;
+		md->bl.y = mob->y;
+		md->level = mob->level;
+		memcpy(md->name, mob->mobname, 24);
+		md->n = i;
+		md->base_class = md->class_ = mob->class_;
+		md->bl.id = npc_get_new_npc_id();
+		md->m = mob->m;
+		md->x0 = mob->x;
+		md->y0 = mob->y;
+		md->xs = mob->xs;
+		md->ys = mob->ys;
+		md->spawndelay1 = mob->delay1;
+		md->spawndelay2 = mob->delay2;
+
+		md->cached = cached;	//If cached, mob is dynamically removed
+		md->timer = -1;
+		md->speed = mob_db[mob->class_].speed;
+
+		if (mob_db[mob->class_].mode & 0x02)
+			md->lootitem = (struct item *)aCalloc(LOOTITEM_SIZE, sizeof(struct item));
+		else
+			md->lootitem = NULL;
+
+		if (strlen(mob->function) >= 4) {
+			strcpy(md->function, mob->function);
+		} else
+			memset(md->function, 0, 50);
+
+		md->bl.type = BL_MOB;
+		map_addiddb(&md->bl);
+		mob_spawn(md->bl.id);
+	}
+
+	return 0;
+}
+
+/*==========================================
  * The minimum data set for MOB spawning
  *------------------------------------------
  */
@@ -86,11 +147,11 @@ int mob_spawn_dataset(struct mob_data *md,const char *mobname,int class_)
 	md->bl.prev=NULL;
 	md->bl.next=NULL;
 	if(strcmp(mobname,"--en--")==0)
-		memcpy(md->name,mob_db[class_].name,24);
+		strcpy(md->name,mob_db[class_].name);
 	else if(strcmp(mobname,"--ja--")==0)
-		memcpy(md->name,mob_db[class_].jname,24);
+		strcpy(md->name,mob_db[class_].jname);
 	else
-		memcpy(md->name,mobname,24);
+		strcpy(md->name,mobname);
 
 	md->n = 0;
 	md->base_class = md->class_ = class_;
@@ -106,13 +167,12 @@ int mob_spawn_dataset(struct mob_data *md,const char *mobname,int class_)
 	return 0;
 }
 
-
 /*==========================================
- * The MOB appearance for one time (for scripts)
+ * Spawn a single mob, for script or skills
  *------------------------------------------
  */
 int mob_once_spawn (struct map_session_data *sd, char *mapname,
-	int x, int y, const char *mobname, int class_, int amount, const char *event)
+	int x, int y, const char *mobname, int class_, int amount, const char *function)
 {
 	struct mob_data *md = NULL;
 	int m, count, lv = 255;
@@ -198,7 +258,7 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 		md->spawndelay1 = -1;	// 一度のみフラグ
 		md->spawndelay2 = -1;	// 一度のみフラグ
 
-		memcpy(md->npc_event, event, strlen(event));
+		strcpy(md->function, function);
 
 		md->bl.type = BL_MOB;
 		map_addiddb (&md->bl);
@@ -214,8 +274,9 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 	}
 	return (amount > 0) ? md->bl.id : 0;
 }
+
 /*==========================================
- * The MOB appearance for one time (& area specification for scripts)
+ * Spawn a single mob, for script or skills
  *------------------------------------------
  */
 int mob_once_spawn_area(struct map_session_data *sd,char *mapname,
@@ -263,7 +324,7 @@ int mob_once_spawn_area(struct map_session_data *sd,char *mapname,
  *------------------------------------------
  */
 int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
-	int x,int y,const char *mobname,int class_,int amount,const char *event,int guardian)
+	int x,int y,const char *mobname,int class_,int amount,const char *function,int guardian)
 {
 	struct mob_data *md=NULL;
 	int m,count=1,lv=255;
@@ -308,7 +369,7 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
 		md->spawndelay1=-1;	// Only once is a flag.
 		md->spawndelay2=-1;	// Only once is a flag.
 
-		memcpy(md->npc_event,event,sizeof(md->npc_event));
+		strcpy(md->function,function);
 
 		md->bl.type=BL_MOB;
 		map_addiddb(&md->bl);
@@ -2783,17 +2844,15 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 
         } // [MouseJstr]
 
-	// <Agit> NPC Event [OnAgitBreak]
-	if(md->npc_event[0] && strcmp(((md->npc_event)+strlen(md->npc_event)-13),"::OnAgitBreak") == 0) {
-		printf("MOB.C: Run NPC_Event[OnAgitBreak].\n");
+/*	// <Agit> NPC Event [OnAgitBreak]
+	if(md->function[0] && strcmp(((md->function)+strlen(md->function)-13),"::OnAgitBreak") == 0) {
 		if (agit_flag == 1) //Call to Run NPC_Event[OnAgitBreak]
 			guild_agit_break(md);
-	}
+	}*/
 
-		// SCRIPT実行
-	if(md->npc_event[0]){
-//		if(battle_config.battle_log)
-//			printf("mob_damage : run event : %s\n",md->npc_event);
+	// ABOVE : Castle taking disabled atm, need to find a more elegant solution ^^
+
+	if(md->function[0]){ // Function triggered on mob death
 		if(src && src->type == BL_PET)
 			sd = ((struct pet_data *)src)->msd;
 		if(sd == NULL) {
@@ -2813,7 +2872,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 			}
 		}
 		if(sd)
-			script_run_function(md->npc_event,sd->char_id,"");
+			script_run_function(md->function,sd->char_id,"");
 	}
 
 	clif_clearchar_area(&md->bl,1);
@@ -3128,7 +3187,7 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int flag)
 			md->spawndelay1=-1;	// 一度のみフラグ
 			md->spawndelay2=-1;	// 一度のみフラグ
 
-			memset(md->npc_event,0,sizeof(md->npc_event));
+			memset(md->function,0,sizeof(md->function));
 			md->bl.type=BL_MOB;
 			map_addiddb(&md->bl);
 			mob_spawn(md->bl.id);

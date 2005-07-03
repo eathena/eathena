@@ -1,4 +1,6 @@
 Date	Added
+07/03
+	* addspawn works, but finally I'll keep 0 = random coordinate and not -1 ^^" [DracoRPG]
 06/25
 	* npcmenu works perfectly and npcshop works except the cancel buttons xD [DracoRPG]
 06/24

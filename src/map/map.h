@@ -472,6 +472,7 @@ struct mob_data {
 	short base_class,class_,dir,mode,level;
 	short m,x0,y0,xs,ys;
 	char name[24];
+	char function[50];
 	int spawndelay1,spawndelay2;
 	struct {
 		unsigned state : 8;
@@ -527,7 +528,6 @@ struct mob_data {
 	struct skill_timerskill skilltimerskill[MAX_MOBSKILLTIMERSKILL];
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP];
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET];
-	char npc_event[50];
 	unsigned char size;
 	short recall_flag;
 	int recallmob_count;
@@ -622,8 +622,9 @@ enum {
 
 // Mob List Held in memory for Dynamic Mobs [Wizputer]
 struct mob_list {
-    int m,x,y,xs,ys,class_,num,delay1,delay2,level;
-    char mobname[24],eventname[24];
+	short m,x,y,xs,ys,class_,level;
+    int num,delay1,delay2;
+    char mobname[24],function[50];
 };
 
 struct map_data {
