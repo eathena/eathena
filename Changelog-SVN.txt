@@ -1,5 +1,10 @@
 Date	Added
 07/02
+	* Added lance's PCLoadMapEvent script event command. to trigger, type in
+	  -[TAB]script[TAB]PCLoadMapEvent[TAB]-1,{
+		YOUR SCRIPT HERE
+	PCLoadMapEvent as NPC Name will trigger when players step into the map.
+	OnPCLoadMapEvent as Label will trigger when players step into all maps. [massdriller]
 	* Added lordalfa's NPCKillEvent script event command. to trigger, type in
 	  -[TAB]script[TAB]NPCKillEvent[TAB]-1,{
 		YOUR SCRIPT HERE

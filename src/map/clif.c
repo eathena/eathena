@@ -8094,6 +8094,20 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if (night_flag && !map[sd->bl.m].flag.indoors)
 		clif_weather1(sd->fd, 474 + battle_config.night_darkness_level);
 
+// Lance
+	struct npc_data *npc;
+if ((npc = npc_name2id("PCLoadMapEvent"))) {  
+	if(npc->bl.m == sd->bl.m) {
+		run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id);
+		sprintf (tmp_output, "Event '"CL_WHITE"PCLoadMapEvent"CL_RESET"' executed.\n");    
+		ShowStatus(tmp_output);
+	}
+}
+
+	sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
+	npc_event_doall_id("OnPCLoadMapEvent", sd->bl.id), "OnPCLoadMapEvent");
+	ShowStatus(tmp_output);
+
 	// option
 	clif_changeoption(&sd->bl);
 	if(sd->sc_data[SC_TRICKDEAD].timer != -1)
