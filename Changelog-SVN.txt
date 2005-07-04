@@ -1,5 +1,7 @@
 Date	Added
 07/04
+	* Displayed name is now updated whenever a character leaves/joins a
+	  party/guild. [Skotlex]
 	* Added some NEW official HEADGEARS quests thanks to Lorky [Lupus]
 	* Added zbuffer/lance's "Dynamic NPC Look 'n Feel" feature. [massdriller]
 07/02

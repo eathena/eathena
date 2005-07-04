@@ -640,7 +640,7 @@ int guild_member_added(int guild_id,int account_id,int char_id,int flag)
 
 	// ‚¢‚¿‚¨‚¤‹£‡Šm”F
 	guild_check_conflict(sd);
-
+	clif_charnameack(0, &sd->bl); //Update display name [Skotlex]
 	return 0;
 }
 
@@ -737,6 +737,7 @@ int guild_member_leaved(int guild_id,int account_id,int char_id,int flag,
 			sd->status.guild_id=0;
 			sd->guild_emblem_id=0;
 			sd->guild_sended=0;
+			clif_charnameack(0, &sd->bl); //Update display name [Skotlex]
 		}
 	}
 	

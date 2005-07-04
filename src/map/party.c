@@ -99,6 +99,7 @@ int party_created(int account_id,int fail,int party_id,char *name)
 		memcpy(p->name, name, NAME_LENGTH-1);
 		numdb_insert(party_db,party_id,p);
 		clif_party_created(sd,0);
+		clif_charnameack(0, &sd->bl); //Update other people's display. [Skotlex]
 	}else{
 		clif_party_created(sd,1);
 	}
@@ -277,7 +278,7 @@ int party_member_added(int party_id,int account_id,int flag)
 
 	// いちおう競合確認
 	party_check_conflict(sd);
-
+	clif_charnameack(0, &sd->bl); //Update char name's display [Skotlex]
 	return 0;
 }
 // パーティ除名要求
@@ -342,6 +343,7 @@ int party_member_leaved(int party_id,int account_id,char *name)
 	if(sd!=NULL && sd->status.party_id==party_id){
 		sd->status.party_id=0;
 		sd->party_sended=0;
+		clif_charnameack(0, &sd->bl); //Update name display [Skotlex]
 	}
 	return 0;
 }
