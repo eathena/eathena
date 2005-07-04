@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance??
 
 07/04
+	* Fixed BonGun's pet script. [Skotlex]
 	* Fixed Li Me Mang Ryang Not Equipable bug thanks to vicious_pucca [massdriller]
 
 07/02
