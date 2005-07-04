@@ -2657,3 +2657,14 @@ int do_init_npc(void)
 
 	return 0;
 }
+// [Lance]
+	int npc_changename(const char *name, const char *newname, short look){
+	struct npc_data *nd= (struct npc_data *) strdb_search(npcname_db,name);
+	if (nd==NULL)
+		return 0;
+		strcpy(nd->name,newname);
+		nd->class_ = look;
+		npc_enable(name,0);
+		npc_enable(name,1);
+	return 0;
+}

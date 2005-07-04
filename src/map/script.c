@@ -331,6 +331,7 @@ int buildin_getmapmobs(struct script_state *st); //jA addition end
 int buildin_unequip(struct script_state *st); // unequip [Spectre]
 int buildin_getstrlen(struct script_state *st); //strlen [valaris]
 int buildin_charisalpha(struct script_state *st);//isalpha [valaris]
+int buildin_fakenpcname(struct script_state *st); // [Lance]
 
 void push_val(struct script_stack *stack,int type,int val);
 int run_func(struct script_state *st);
@@ -595,6 +596,7 @@ struct {
 	{buildin_unequip,"unequip","i"}, // unequip command [Spectre]
 	{buildin_getstrlen,"getstrlen","s"}, //strlen [Valaris]
 	{buildin_charisalpha,"charisalpha","si"}, //isalpha [Valaris]
+	{buildin_fakenpcname,"fakenpcname","ssi"}, // [Lance]
 	{NULL,NULL,NULL},
 };
 
@@ -8315,4 +8317,18 @@ int do_init_script()
 	if (scriptlabel_db == NULL)
 	  scriptlabel_db=strdb_init(50);
 	return 0;
+}
+
+// [Lance]
+int buildin_fakenpcname(struct script_state *st)
+{
+char *name;
+char *newname;
+int look;
+name = conv_str(st,& (st->stack->stack_data[st->start+2]));
+newname = conv_str(st,& (st->stack->stack_data[st->start+3]));
+look = conv_num(st,& (st->stack->stack_data[st->start+4]));
+if(look > 32767 || look < -32768) return 0; // Safety measure to prevent runtime errors
+npc_changename(name,newname,(short)look);
+return 0;
 }
