@@ -1386,7 +1386,7 @@
 4262,Taoist_Hermit_Card,Taoist Hermit Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAddMonsterDropItem,12029,3,10; }
 4263,Incantation_Samurai_Card,Incantation Samurai Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bIgnoreDefMob,0; bonus bNoRegen,1; bonus2 bHPLossRate,666,10000; bonus bDamageWhenUnequip,999; }
 4264,Wind_Ghost_Card,Wind Ghost Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAutoSpell,84,3+7*(getskilllv(84)==10),1; }
-4265,Li_Me_Mang_Ryang_Card,Li Me Mang Ryang Card,6,20,0,10,,,,,,,,,,,,{},{ bonus3 bAddMonsterDropItem,12033,8,10; }
+4265,Li_Me_Mang_Ryang_Card,Li Me Mang Ryang Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAddMonsterDropItem,12033,8,10; }
 4266,Eclipse_Card,Eclipse Card,6,20,0,10,,,,,,,4,,,,,{},{ bonus bVit,1; if(isequipped(4006)) bonus bFlee,18; }
 4267,Explosion_Card,Explosion Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus2 bSubRace,9,-20; bonus2 bExpAddRace,9,10; }
 4268,Injustice_Card,Injustice Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus3 bAutoSpell,136,1,1; if(isequipped(4277)==0) end; bonus bAtk,20; bonus bLuk,3; }
