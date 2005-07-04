@@ -16,9 +16,10 @@
 	4296,Cramp_Card: missing getzenybychance??
 
 07/04
+	* Added Zealotus Mask 0.01% drop into Zherlthsh #1200 [Lupus]
+	* Added Marine Card effect, added added minerals drops to various monsters (need for official lvl4 weapon quest!) thanks to MasterOfMuppets [Lupus]
 	* Fixed BonGun's pet script. [Skotlex]
 	* Fixed Li Me Mang Ryang Not Equipable bug thanks to vicious_pucca [massdriller]
-
 07/02
 	* Added missing ';' in Incubus Card script [DracoRPG]
 	* Updated mapflags. Added new hats drops to Kobold Archer, Wootan Fighter, Galapago [Lupus]
