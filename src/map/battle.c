@@ -3799,9 +3799,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 
 		if (!flag.infdef && (!flag.idef || !flag.idef2))
 		{	//Defense reduction
-			short t_vit = status_get_vit(target);
-			short vit_def = 0;
-
+			short vit_def;
 			if(battle_config.vit_penalty_type)
 			{
 				unsigned char target_count; //256 max targets should be a sane max
@@ -3810,30 +3808,27 @@ static struct Damage battle_calc_weapon_attack_sub(
 					if(battle_config.vit_penalty_type == 1) {
 						def1 = (def1 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
 						def2 = (def2 * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
-						t_vit = (t_vit * (100 - (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num))/100;
 					} else { //Assume type 2
 						def1 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
 						def2 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
-						t_vit -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
 					}
 				}
 				if(def1 < 0) def1 = 0;
 				if(def2 < 1) def2 = 1;
-				if(t_vit < 1) t_vit = 1;
 			}
 			//Vitality reduction from rodatazone: http://rodatazone.simgaming.net/mechanics/substats.php#def	
 			if (tsd)	//Sd vit-eq
 			{	//[VIT*0.5] + rnd([VIT*0.3], max([VIT*0.3],[VIT^2/150]-1))
-				vit_def = t_vit*(t_vit-15)/150;
-				vit_def = t_vit/2 + (vit_def>0?rand()%vit_def:0);
+				vit_def = def2*(def2-15)/150;
+				vit_def = def2/2 + (vit_def>0?rand()%vit_def:0);
 				
 				if((battle_check_undead(s_race,status_get_elem_type(src)) || s_race==6) &&
 					(skill=pc_checkskill(tsd,AL_DP)) >0)
 					vit_def += skill*(int)(3 +(tsd->status.base_level+1)*0.04);   // submitted by orn
 			} else { //Mob-Pet vit-eq
 				//VIT + rnd(0,[VIT/20]^2-1)
-				vit_def = (t_vit/20)*(t_vit/20);
-				vit_def = t_vit + (vit_def>0?rand()%vit_def:0);
+				vit_def = (def2/20)*(def2/20);
+				vit_def = def2 + (vit_def>0?rand()%vit_def:0);
 			}
 			
 			if(battle_config.player_defense_type)
