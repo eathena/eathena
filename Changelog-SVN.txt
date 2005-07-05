@@ -1,4 +1,7 @@
 Date	Added
+07/05
+	* Fixed double attack damage [Skotlex]
+
 07/04
 	* Displayed name is now updated whenever a character leaves/joins a
 	  party/guild. [Skotlex]

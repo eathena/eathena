@@ -3838,10 +3838,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 			ATK_ADD2(flag.idef?0:-vit_def, flag.idef2?0:-vit_def);
 		}
 
-		//Double damage placed here until I find better info on how it works. [Skotlex]
-		if (skill_num == TF_DOUBLE)
-			wd.damage *=2;
-		
 		//Post skill/vit reduction damage increases
 		if (sc_data)
 		{	//SC skill damages
@@ -4024,6 +4020,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 		return wd;
 	}
 	
+	//Double is basicly a normal attack x2, so... [Skotlex]
+	if (skill_num == TF_DOUBLE)
+		wd.damage *=2;
+
 	if(!flag.rh || wd.damage<1)
 		wd.damage=0;
 	
@@ -4038,9 +4038,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 			wd.damage2 = 0;
 			flag.rh=1;
 			flag.lh=0;
-		}
-
-		if(sd->status.weapon > 16)
+		} else if(sd->status.weapon > 16)
 		{	//Dual-wield
 			if (wd.damage > 0)
 			{
