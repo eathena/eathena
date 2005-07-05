@@ -9,15 +9,19 @@
 	Skill databases == celest working on them I believe.
 
 	-- New Cards : Not Implemented
-	4177,Dryad_Card: missing getitemonracekill??
 	4189,Wraith_Dead_Card: missing getitemonracekill??
-	4196,Marin_Card: missing bRandomDrop,Item1,Chance,Item2,Chance,etc
 	4198,Maya_Purple_Card: intravision not working atm
-	4296,Cramp_Card: missing getzenybychance??
+	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+07/06
+	* Added Novice Red Potion into item_trade.txt db. (can't be traded, etc) [Lupus]
+	* Removed Zealotus Mask drop from Zherlthsh (could be3 made as a quest only. And goes with Player's name prefix) [Lupus]
+	* Added missing Horns of Succubus drop (thx 2Lorky), added Angry Teeth drops to Teddy Bear + Hylozoist [Lupus]
+	* Few fixes in the new_hats_0625.txt quests [Lupus]
+	* Re-Fixed few mobs drops, thanks to MasterOfMuppets [Lupus]
+	* Added missing bonusrate = 1 into Bon Gun's petskillattack2 params [Lupus]
 07/04
-	* Added Zealotus Mask 0.01% drop into Zherlthsh #1200 [Lupus]
-	* Added Marine Card effect, added added minerals drops to various monsters (need for official lvl4 weapon quest!) thanks to MasterOfMuppets [Lupus]
+	* Added Marine Card effect,added minerals drops to various monsters (need for official lvl4 weapon quest!) thanks to MasterOfMuppets [Lupus]
 	* Fixed BonGun's pet script. [Skotlex]
 	* Fixed Li Me Mang Ryang Not Equipable bug thanks to vicious_pucca [massdriller]
 07/02

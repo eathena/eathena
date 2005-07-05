@@ -3,24 +3,25 @@
 //===== By: =========================
 //= Lorky
 //===== Current Version: ===================
-//= 0.1b
+//= 0.1c
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
-//Name of hats:
-//	Baby Suckle
+//Hats lists:
 //	Hat of the Investigator
+//	Baby Suckle (Baby Rubber Nipple)
 //	Mystic rose
 //	Red Bonnet
 //	Well-Baked Toast
 //	Mask of Zealotus (not finished)
 //	Fashionable Warm Hat
 //	Super Novice Hat (shop item)
-//	Wide Bunker Hat	(shop item)
+//	Soldier's Felt Hat (shop item)
 //===== Additional Comments: ==========================================
 // 03.06.2005	:: Lorky ::	First release 0.1a
 // 0.1b Fixed some missing things with temp IDs. [Lupus]
 // 		Could someone correct wrong info, names, coords, etc? ^___-
+// 0.1c Fixed hats shop. It shouldn't sell slotted hats.
 //=====================================================================
 
 //Links (some info related to these headgears)
@@ -30,11 +31,10 @@
 
 
 
-//Selling Hats
-//Super no screw hat (Super Novice Hat) ID 5119
-//Head gear hat (Upside-Down Cup or Wide Bunker Hat)ID 5120
-//!!!!!!!!!!!!!!!!!!!! WRONG Location and name of NPC
-lighthalzen.gat,100,100,1	shop	Hat Merchant	90,5119:-1,5120:-1
+//- Hats Shop -----------------------------------------------------------
+//ID 5112 Super Novice Hat[0] , ID 5114 Soldier's Felt Hat[0]
+//!!! WRONG Location and NPC name
+lighthalzen.gat,100,100,1	shop	Hat Merchant	90,5112:-1,5114:-1
 
 
 //Quest Hats
@@ -73,7 +73,7 @@ L_EXIT:
 	
 }
 //-------------------------------------------------------------------------------------------------
-//Name detective hat (Hat_of_the_Investigator) ID 5108
+//Detective hat (Hat_of_the_Investigator) ID 5108
 lighthalzen.gat,140,68,4	script	Morris	818,{
 	mes "[Morris]";
 	mes "Do you want a ^FF3300Hat of the Investigator^000000?"; 
@@ -105,14 +105,14 @@ L_NOITEM:
 }
 //-------------------------------------------------------------------------------------------------
 //Mystic rose ID 5117
-lighthalzen.gat,97,109,4	script	Rouse	818,{	//!!!!!!!!!!!!!!!!!!!! WRONG Location and name of NPC
+lighthalzen.gat,97,109,4	script	Rouse	818,{	//!!! WRONG Location and name of NPC
 	mes "[Rouse]";
 	mes "Wheee! Don't you just love making youself look pretty!?";
 	mes "I love glamourising myself with all the best accessories!";
 	next;
 
 	mes "[Rouse]";
-	mes "Have you ever heard of a ^FF330000Mystic rose^000000?";
+	mes "Have you ever heard of a ^FF3300Mystic rose^000000?";
 	mes "I can make you one, and you could be fashionable and mysticly, too!";
 	menu "Make me a ^670000Mystic rose^000000.",-,"No, I dont want one.",L_EXIT;
 	
@@ -153,7 +153,7 @@ lighthalzen.gat,180,88,4	script	Rich Girl	818,{
 	next;
 	mes "[Rich Girl]";
 	mes "Do you have a grandma?";
-	emotion 1;
+	emotion 20;
 	next;
 	mes "[Rich Girl]";
 	mes "Really? I'm sorry. Do you like wolves?";
@@ -197,7 +197,7 @@ L_EXIT:
 
 //-------------------------------------------------------------------------------------------------
 //Well-Baked Toast ID 5107
-lighthalzen.gat,224,116,4	script	Juneau Cho	818,{	//!!!!!!!!!!!!!!!!!!!! WRONG name of NPC
+lighthalzen.gat,224,116,4	script	Juneau Cho	818,{	//!!! WRONG name of NPC
 	mes "[Juneau Cho]";
 	mes "Do you want a ^FF3300 Well-Baked Toast ^000000?";
 	menu "Please, make one for me",-,"No, thanks. I'm so full",L_EXIT;
@@ -209,7 +209,7 @@ lighthalzen.gat,224,116,4	script	Juneau Cho	818,{	//!!!!!!!!!!!!!!!!!!!! WRONG n
 	delitem 548,50;//Items: Cheese,
 	delitem 538,50;//Items: Well-baked_Cookie,
 	delitem 7031,50;//Items: Old_Frying_Pan,
-	delitem 5107,1;
+	getitem 5107,1;
 	next;
 	mes "[Juneau Cho]";	
 	mes "Well done. Be careful, it's hot.";
@@ -231,15 +231,21 @@ L_EXIT:
 	
 }
 //-------------------------------------------------------------------------------------------------
-// Mask_of_Zealotus id 5121	!!!!!!!!!!!!!!!!!!!! WRONG Location and name of NPC. Unknown Quest...
+// Mask_of_Zealotus id 5121	!!! WRONG Location and name of NPC. Unknown Quest...
 lighthalzen.gat,200,200,4	script	Gill Tass	818,{
 	mes "[Gill Tass]";
 	mes "Do you want a ^FF3300Mask of Zealotus^000000";
 	menu "Yes, I do!",-,"No, thanks",L_EXIT;
 
 	mes "[Gill Tass]";
-	mes "All right. Go and kill a Zealtous.";
-	mes "To bye or not to bye...";
+	mes "All right. Go and kill a Zherlthsh.";
+	next;
+	mes "[Gill Tass]";
+	mes "Wait! She doesn't drop that mast. There should be a quest.";
+	next;
+	mes "[Gill Tass]";
+	mes "They say it should be similiar to the Orc Hero Helm Quest.";
+	mes "So all masks should be signed...";
 	close;
 L_EXIT:
 	mes "[Gill Tass]";
@@ -248,10 +254,10 @@ L_EXIT:
 }
 //-------------------------------------------------------------------------------------------------
 //Fashionable Warm Hat ID 5115
-lighthalzen.gat,70,200,4	script	Gugex	818,{	//!!!!!!!!!!!!!!!!!!!! WRONG Location and name of NPC
+lighthalzen.gat,70,200,4	script	Gugex	818,{	//!!! WRONG Location and name of NPC
 	mes "[Gugex]";
 	mes "Aren't you cold?";
-	mes "I can make you a ^FF3300Fashionable Warm Hat^000000";
+	mes "I can make you a ^FF3300Winter Hat^000000";
 	menu "Please, make one for me",-,"No, thanks",L_EXIT;
 
 	if ((countitem(7267) < 999) || (countitem(983) < 1) || (countitem(749) < 1) || Zeny<50000) goto L_NOITEM;//Items: Tigerskin_Underwear, Black_Dyestuff, Frozen_Rose,

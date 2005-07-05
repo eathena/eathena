@@ -14,3 +14,5 @@
 //only GMs of GM-level 50 and up can override the setting.
 2634,109,100
 2635,109,100
+//Novice Red Potion
+569,109,100
