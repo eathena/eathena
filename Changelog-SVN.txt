@@ -1,5 +1,6 @@
 Date	Added
 07/06
+	* Improved appearance of script-errors reported during loading. [Skotlex]
 	* Some mob-ai cleanup. Mobs should now unlock their target
 	  when it has died. [Skotlex]
 	* Some items, monster drops fixes [Lupus]

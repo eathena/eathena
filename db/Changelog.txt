@@ -14,6 +14,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/06
+	* Changed Spider Web's inf to 2 so that it becomes ground-targeted [Skotlex]
 	* Added Novice Red Potion into item_trade.txt db. (can't be traded, etc) [Lupus]
 	* Removed Zealotus Mask drop from Zherlthsh (could be3 made as a quest only. And goes with Player's name prefix) [Lupus]
 	* Added missing Horns of Succubus drop (thx 2Lorky), added Angry Teeth drops to Teddy Bear + Hylozoist [Lupus]

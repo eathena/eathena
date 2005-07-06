@@ -870,6 +870,8 @@ static void disp_error_message(const char *mes,const unsigned char *pos)
 			*lineend=0;
 		}
 		if(lineend==NULL || pos<lineend){
+			printf("\n"); //To not printout the error next to the spinner...
+			ShowError(" "); //Better error display [Skotlex]
 			if (current_file) {
 				printf("%s in "CL_WHITE"\'%s\'"CL_RESET" line "CL_WHITE"\'%d\'"CL_RESET" : ", mes, current_file, line);
 			} else {
