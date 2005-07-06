@@ -592,19 +592,13 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 
 	if(tsd){
 		if( pc_isdead(tsd) || tsd->invincible_timer != -1 ||  pc_isinvisible(tsd) || md->bl.m != tbl->m || tbl->prev == NULL || distance(md->bl.x,md->bl.y,tbl->x,tbl->y)>=13 ){
-			md->target_id=0;
-			if (md->mode&0x08) //Unlock passive pets. [Skotlex]
-				md->attacked_id = 0;
-			md->state.targettype = NONE_ATTACKABLE;
+			mob_stopattack(md); //Stop attacking once target has been defeated/unreachable.[Skotlex]
 			return 0;
 		}
 	}
 	if(tmd){
 		if(md->bl.m != tbl->m || tbl->prev == NULL || distance(md->bl.x,md->bl.y,tbl->x,tbl->y)>=13){
-			md->target_id=0;
-			if (md->mode&0x08) //Unlock passive pets. [Skotlex]
-				md->attacked_id = 0;
-			md->state.targettype = NONE_ATTACKABLE;
+			mob_stopattack(md);
 			return 0;
 		}
 	}
@@ -1643,13 +1637,16 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 	if (!(mode & 0x80) && md->target_id > 0)
 		md->target_id = 0;
 
-	if (md->attacked_id > 0 && mode & 0x08){	// Link monster
+	if (md->attacked_id > 0 && mode & 0x08){	// Link monster/ if target is not dead [Skotlex]
 		struct map_session_data *asd = map_id2sd (md->attacked_id);
-		if (asd && asd->invincible_timer == -1 && !pc_isinvisible(asd)) {
+		//If the invincible timer is active, then players are exploiting this,
+		//because how could they have attacked the mob and still have it? [Skotlex]
+		if (asd && !pc_isdead(asd)/*&& asd->invincible_timer == -1*/&& !pc_isinvisible(asd)) {
 			map_foreachinarea(mob_ai_sub_hard_linksearch, md->bl.m,
 				md->bl.x-13, md->bl.y-13, md->bl.x+13, md->bl.y+13,
 				BL_MOB, md, &asd->bl);
-		}
+		} else //If the target is not reachable, unlock it. [Skotlex]
+			mob_unlocktarget(md, tick);
 	}
 
 	// It checks to see it was attacked first (if active, it is target change at 25% of probability).
@@ -1661,8 +1658,6 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			if (abl->type == BL_PC)
 				asd = (struct map_session_data *)abl;
 			if (asd == NULL || md->bl.m != abl->m || abl->prev == NULL ||
-//invincible timer is unneeded, hidden gms shouldn't trigger this, thanks to Komurka [Skotlex]	
-//				asd->invincible_timer != -1 || pc_isinvisible(asd) || 
 				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
 				battle_check_target(bl, abl, BCT_ENEMY) == 0 ||
 				!mob_can_reach(md, abl, distance(md->bl.x, md->bl.y, abl->x, abl->y))) //added

@@ -1,5 +1,7 @@
 Date	Added
 07/06
+	* Some mob-ai cleanup. Mobs should now unlock their target
+	  when it has died. [Skotlex]
 	* Some items, monster drops fixes [Lupus]
 07/05
 	* Fixed double attack damage [Skotlex]
