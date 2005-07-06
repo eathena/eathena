@@ -49,8 +49,8 @@ enum {	// ÅIŒvZ‚Ìƒtƒ‰ƒO
 };
 
 // ÀÛ‚ÉHP‚ğ‘Œ¸
-int battle_delay_damage(unsigned int tick,struct block_list *src,struct block_list *target,int damage,int flag);
-int battle_damage(struct block_list *bl,struct block_list *target,int damage,int flag);
+int battle_delay_damage(unsigned int tick,struct block_list *src,struct block_list *target,int damage,int div_,int flag);
+int battle_damage(struct block_list *bl,struct block_list *target,int damage,int div_,int flag);
 int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,int flag);
 
 // UŒ‚‚âˆÚ“®‚ğ~‚ß‚é
@@ -95,8 +95,8 @@ extern struct Battle_Config {
 	unsigned short pc_skill_add_range;
 	unsigned short skill_out_range_consume;
 	unsigned short mob_skill_add_range;
-	unsigned short pc_damage_delay;
 	unsigned short pc_damage_delay_rate;
+	unsigned short pc_combo_damage_delay;	//[Skotlex]
 	unsigned short defnotenemy;
 	unsigned short random_monster_checklv;
 	unsigned short attr_recover;
@@ -135,6 +135,7 @@ extern struct Battle_Config {
 	unsigned short pp_rate;
 	unsigned short monster_active_enable;
 	unsigned short monster_damage_delay_rate;
+	unsigned short monster_combo_damage_delay;	//[Skotlex]
 	unsigned short monster_loot_type;
 	unsigned short mob_skill_rate;	//[Skotlex]
 	unsigned short mob_skill_delay;	//[Skotlex]
@@ -295,7 +296,6 @@ extern struct Battle_Config {
 	unsigned short gm_can_drop_lv;
 	unsigned short disp_hpmeter;
 	unsigned short bone_drop;
-	unsigned short monster_damage_delay;
 	unsigned short buyer_name;
 
 // eAthena additions

@@ -4954,7 +4954,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 				switch ((i = rand() % 8)) {
 				case 1: // damage between 300-800
 				case 2: // damage between 150-550 (ignore def)
-					battle_damage(NULL, bl, rand() % 500,0); // temporary damage
+					battle_damage(NULL, bl, rand() % 500,1,0); // temporary damage
 					break;
 				case 3: // random status effect
 					{

@@ -156,6 +156,7 @@ struct delay_damage {
 	struct block_list *src;
 	int target;
 	int damage;
+	int div_;
 	int flag;
 };
 int battle_delay_damage_sub (int tid, unsigned int tick, int id, int data)
@@ -163,24 +164,25 @@ int battle_delay_damage_sub (int tid, unsigned int tick, int id, int data)
 	struct delay_damage *dat = (struct delay_damage *)data;
 	struct block_list *target = map_id2bl(dat->target);
 	if (target && dat && map_id2bl(id) == dat->src && target->prev != NULL)
-		battle_damage(dat->src, target, dat->damage, dat->flag);
+		battle_damage(dat->src, target, dat->damage, dat->div_, dat->flag);
 	aFree(dat);
 	return 0;
 }
-int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int damage, int flag)
+int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int damage, int div_, int flag)
 {
 	struct delay_damage *dat;
 	nullpo_retr(0, src);
 	nullpo_retr(0, target);
 
 	if (!battle_config.delay_battle_damage) {
-		battle_damage(src, target, damage, flag);
+		battle_damage(src, target, damage, div_, flag);
 		return 0;
 	}
 	dat = (struct delay_damage *)aCalloc(1, sizeof(struct delay_damage));
 	dat->src = src;
 	dat->target = target->id;
 	dat->damage = damage;
+	dat->div_ = div_;
 	dat->flag = flag;
 	add_timer(tick, battle_delay_damage_sub, src->id, (int)dat);
 
@@ -188,7 +190,7 @@ int battle_delay_damage (unsigned int tick, struct block_list *src, struct block
 }
 
 // 実際にHPを操作
-int battle_damage(struct block_list *bl,struct block_list *target,int damage,int flag)
+int battle_damage(struct block_list *bl,struct block_list *target,int damage, int div_, int flag)
 {
 	struct map_session_data *sd = NULL;
 	struct status_change *sc_data;
@@ -230,7 +232,7 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage,int
 		struct mob_data *md = (struct mob_data *)target;
 		if (md && md->skilltimer != -1 && md->state.skillcastcancel)	// 詠唱妨害
 			skill_castcancel(target,0);
-		return mob_damage(bl,md,damage,0);
+		return mob_damage(bl,md,damage,div_,0);
 	} else if (target->type == BL_PC) {	// PC
 		struct map_session_data *tsd = (struct map_session_data *)target;
 		if (!tsd)
@@ -243,7 +245,7 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage,int
 				for (i = 0; i < 5; i++)
 					if (sd2->dev.val1[i] == target->id) {
 						clif_damage(bl, &sd2->bl, gettick(), 0, 0, damage, 0 , 0, 0);
-						pc_damage(&sd2->bl, sd2, damage);
+						pc_damage(&sd2->bl, sd2, damage, 1);
 						return 0;
 					}
 			}
@@ -255,7 +257,7 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage,int
 				!tsd->special_state.no_castcancel2)
 				skill_castcancel(target,0);
 		}
-		return pc_damage(bl,tsd,damage);
+		return pc_damage(bl,tsd,damage,div_);
 	} else if (target->type == BL_SKILL)
 		return skill_unit_ondamaged((struct skill_unit *)target, bl, damage, gettick());
 	return 0;
@@ -272,7 +274,7 @@ int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,in
 		return 0;
 
 	if (hp < 0)
-		return battle_damage(bl,target,-hp,flag);
+		return battle_damage(bl,target,-hp,1,flag);
 
 	if (target->type == BL_MOB)
 		return mob_heal((struct mob_data *)target,hp);
@@ -493,7 +495,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			if(rand()%100 < (15*sc_data[SC_REJECTSWORD].val1)){ //反射確率は15*Lv
 				damage = damage*50/100;
 				clif_damage(bl,src,gettick(),0,0,damage,0,0,0);
-				battle_damage(bl,src,damage,0);
+				battle_damage(bl,src,damage,1,0);
 				//ダメージを与えたのは良いんだが、ここからどうして表示するんだかわかんねぇ
 				//エフェクトもこれでいいのかわかんねぇ
 				clif_skill_nodamage(bl,bl,ST_REJECTSWORD,sc_data[SC_REJECTSWORD].val1,1);
@@ -4518,7 +4520,7 @@ struct Damage battle_calc_magic_attack(
 		rdamage += damage * tsd->magic_damage_return / 100;
 			if(rdamage < 1) rdamage = 1;
 			clif_damage(target,bl,gettick(),0,0,rdamage,0,0,0);
-			battle_damage(target,bl,rdamage,0);
+			battle_damage(target,bl,rdamage,1,0);
 	}
 	/*			end magic_damage_return			*/
 
@@ -4696,7 +4698,7 @@ struct Damage  battle_calc_misc_attack(
 
 	if(self_damage)
 	{
-		pc_damage(bl,sd,self_damage);
+		pc_damage(bl,sd,self_damage,1);
 		clif_damage(bl,bl, gettick(), 0, 0, self_damage, 0 , 0, 0);
 	}
 
@@ -4854,22 +4856,22 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 
 		map_freeblock_lock();
 
-		battle_delay_damage(tick+wd.amotion, src, target, (wd.damage+wd.damage2), 0);
+		battle_delay_damage(tick+wd.amotion, src, target, (wd.damage+wd.damage2), wd.div_, 0);
 
 		if (target->prev != NULL && (wd.damage > 0 || wd.damage2 > 0)) {
 			skill_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
 			if (sd) {
 				int hp = status_get_max_hp(target);
 				if (sd->weapon_coma_ele[ele] > 0 && rand()%10000 < sd->weapon_coma_ele[ele])
-					battle_damage(src, target, hp, 1);
+					battle_damage(src, target, hp, 1, 1);
 				if (sd->weapon_coma_race[race] > 0 && rand()%10000 < sd->weapon_coma_race[race])
-					battle_damage(src, target, hp, 1);
+					battle_damage(src, target, hp, 1, 1);
 				if (is_boss(target)) {
 					if(sd->weapon_coma_race[10] > 0 && rand()%10000 < sd->weapon_coma_race[10])
-						battle_damage(src, target, hp, 1);
+						battle_damage(src, target, hp, 1, 1);
 				} else {
 					if (sd->weapon_coma_race[11] > 0 && rand()%10000 < sd->weapon_coma_race[11])
-						battle_damage(src, target, hp, 1);
+						battle_damage(src, target, hp, 1, 1);
 				}
 			}
 		}
@@ -5009,7 +5011,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			}
 		}
 		if (rdamage > 0)
-			battle_delay_damage(tick+wd.amotion, target, src, rdamage, 0);
+			battle_delay_damage(tick+wd.amotion, target, src, rdamage, wd.div_, 0);
 
 		if (tsc_data) {
 			if (tsc_data[SC_AUTOCOUNTER].timer != -1 && tsc_data[SC_AUTOCOUNTER].val4 > 0) {
@@ -5340,8 +5342,8 @@ static const struct battle_data_short {
 	{ "player_skill_add_range",            &battle_config.pc_skill_add_range		},
 	{ "skill_out_range_consume",           &battle_config.skill_out_range_consume	},
 	{ "monster_skill_add_range",           &battle_config.mob_skill_add_range		},
-	{ "player_damage_delay",               &battle_config.pc_damage_delay			},
 	{ "player_damage_delay_rate",          &battle_config.pc_damage_delay_rate		},
+	{ "player_combo_damage_delay",         &battle_config.pc_combo_damage_delay	},
 	{ "defunit_not_enemy",                 &battle_config.defnotenemy				},
 	{ "random_monster_checklv",            &battle_config.random_monster_checklv	},
 	{ "attribute_recover",                 &battle_config.attr_recover				},
@@ -5374,6 +5376,7 @@ static const struct battle_data_short {
 	{ "potion_produce_rate",               &battle_config.pp_rate					},
 	{ "monster_active_enable",             &battle_config.monster_active_enable	},
 	{ "monster_damage_delay_rate",         &battle_config.monster_damage_delay_rate},
+	{ "monster_combo_damage_delay",        &battle_config.monster_combo_damage_delay},
 	{ "monster_loot_type",                 &battle_config.monster_loot_type		},
 //	{ "mob_skill_use",                     &battle_config.mob_skill_use			},	//Deprecated
 	{ "mob_skill_rate",                    &battle_config.mob_skill_rate			},
@@ -5500,7 +5503,6 @@ static const struct battle_data_short {
 	{ "gm_can_drop_lv",                    &battle_config.gm_can_drop_lv			},
 	{ "disp_hpmeter",                      &battle_config.disp_hpmeter				},
 	{ "bone_drop",		                   &battle_config.bone_drop				},
-	{ "monster_damage_delay",              &battle_config.monster_damage_delay		},
 	{ "buyer_name",                        &battle_config.buyer_name		},
 
 // eAthena additions
@@ -5657,8 +5659,8 @@ void battle_set_defaults() {
 	battle_config.pc_skill_add_range=0;
 	battle_config.skill_out_range_consume=1;
 	battle_config.mob_skill_add_range=0;
-	battle_config.pc_damage_delay=1;
 	battle_config.pc_damage_delay_rate=100;
+	battle_config.pc_combo_damage_delay=0;
 	battle_config.defnotenemy=1;
 	battle_config.random_monster_checklv=1;
 	battle_config.attr_recover=1;
@@ -5700,6 +5702,7 @@ void battle_set_defaults() {
 	battle_config.pp_rate=100;
 	battle_config.monster_active_enable=1;
 	battle_config.monster_damage_delay_rate=100;
+	battle_config.monster_combo_damage_delay=0;
 	battle_config.monster_loot_type=0;
 //	battle_config.mob_skill_use=1;
 	battle_config.mob_skill_rate=100;
@@ -5835,7 +5838,6 @@ void battle_set_defaults() {
 	battle_config.disp_hpmeter = 60;
 
 	battle_config.bone_drop = 0;
-	battle_config.monster_damage_delay = 1;
 	battle_config.buyer_name = 1;
 
 // eAthena additions

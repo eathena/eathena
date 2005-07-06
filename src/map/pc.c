@@ -3587,11 +3587,12 @@ int pc_stop_walking (struct map_session_data *sd, int type)
 	sd->to_y = sd->bl.y;
 	if (type & 0x01)
 		clif_fixpos(&sd->bl);
-	if (type & 0x02 && battle_config.pc_damage_delay) {
+	if (type & 0x02 && battle_config.pc_damage_delay_rate) {
 		unsigned int tick = gettick();
 		int delay = status_get_dmotion(&sd->bl);
+		type = type>>2; //Remove the flags to get the div_ count [Skotlex]
 		if (sd->canmove_tick < tick)
-			sd->canmove_tick = tick + delay;
+			sd->canmove_tick = tick + delay + (type>2?(type-1)*battle_config.pc_combo_damage_delay:0);
 	}
 
 	return 0;
@@ -4786,7 +4787,7 @@ int pc_resetskill(struct map_session_data* sd)
  * pc‚Éƒ_ƒ?ƒW‚ð?‚¦‚é
  *------------------------------------------
  */
-int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
+int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int div_)
 {
 	int i=0,j=0;
 	struct pc_base_job s_class;
@@ -4812,7 +4813,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage)
 		else if (sd->sc_data[SC_ENDURE].timer != -1 && (src != NULL && src->type == BL_MOB) && !map[sd->bl.m].flag.gvg) {
 			if ((--sd->sc_data[SC_ENDURE].val2) < 0) 
 				status_change_end(&sd->bl, SC_ENDURE, -1);
-		} else pc_stop_walking(sd,3);
+		} else pc_stop_walking(sd,3|(div_<<2));
 
 		if (sd->sc_data[SC_GRAVITATION].timer != -1 &&
 			sd->sc_data[SC_GRAVITATION].val3 == BCT_SELF) {
@@ -5422,7 +5423,7 @@ int pc_heal(struct map_session_data *sd,int hp,int sp)
 	sd->status.hp+=hp;
 	if(sd->status.hp <= 0) {
 		sd->status.hp = 0;
-		pc_damage(NULL,sd,1);
+		pc_damage(NULL,sd,1,1);
 		hp = 0;
 	}
 	sd->status.sp+=sp;
@@ -5492,7 +5493,7 @@ int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 	sd->status.hp+=hp;
 	if(sd->status.hp <= 0) {
 		sd->status.hp = 0;
-		pc_damage(NULL,sd,1);
+		pc_damage(NULL,sd,1,1);
 		hp = 0;
 	}
 	sd->status.sp+=sp;
@@ -5534,7 +5535,7 @@ int pc_percentheal(struct map_session_data *sd,int hp,int sp)
 		}
 		else if(hp <= -100) {
 			sd->status.hp = 0;
-			pc_damage(NULL,sd,1);
+			pc_damage(NULL,sd,1,1);
 		}
 		else {
 			sd->status.hp += sd->status.max_hp*hp/100;
@@ -5542,7 +5543,7 @@ int pc_percentheal(struct map_session_data *sd,int hp,int sp)
 				sd->status.hp = sd->status.max_hp;
 			if(sd->status.hp <= 0) {
 				sd->status.hp = 0;
-				pc_damage(NULL,sd,1);
+				pc_damage(NULL,sd,1,1);
 				hp = 0;
 			}
 		}

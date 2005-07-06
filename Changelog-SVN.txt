@@ -1,5 +1,10 @@
 Date	Added
 07/06
+	* Added player_combo_damage_delay & monster_combo_damage_delay [Skotlex]
+	  See battle_athena.conf for description of how they work.
+	  Defaults to 0 because it is not yet tested for an appropiate default.
+	* Removed player_damage_delay & monster_damage_delay [Skotlex]
+	  Use player_damage_delay_rate:0 & monster_damage_delay_rate:0 instead.
 	* Set item_use_interval to 0 (official default, isn't it ?) [DracoRPG]
 	* Improved appearance of script-errors reported during loading. [Skotlex]
 	* Some mob-ai cleanup. Mobs should now unlock their target when it has died. [Skotlex]

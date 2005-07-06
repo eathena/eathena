@@ -10567,7 +10567,7 @@ void clif_parse_GMKick(int fd, struct map_session_data *sd) {
 			} else if (target->type == BL_MOB) {
 				struct mob_data *md = (struct mob_data *)target;
 				sd->state.attack_type = 0;
-				mob_damage(&sd->bl, md, md->hp, 2);
+				mob_damage(&sd->bl, md, md->hp, 1, 2);
 			} else
 				clif_GM_kickack(sd, 0);
 		} else

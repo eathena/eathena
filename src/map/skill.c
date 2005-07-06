@@ -1599,9 +1599,9 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	/* ?Û‚Éƒ_ƒ?ƒW?—‚ðs‚¤ */
 	if (skillid || flag) {
 		if (attack_type&BF_WEAPON)
-			battle_delay_damage(tick+dmg.amotion,src,bl,damage,0);
+			battle_delay_damage(tick+dmg.amotion,src,bl,damage,dmg.div_,0);
 		else
-			battle_damage(src,bl,damage,0);
+			battle_damage(src,bl,damage,dmg.div_, 0);
 	}
 	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&0x20) && !map[src->m].flag.gvg ) {
 		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
@@ -1690,9 +1690,9 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 
 	if ((skillid || flag) && rdamage>0) {
 		if (attack_type&BF_WEAPON)
-			battle_delay_damage(tick+dmg.amotion,bl,src,rdamage,0);
+			battle_delay_damage(tick+dmg.amotion,bl,src,rdamage,dmg.div_,0);
 		else
-			battle_damage(bl,src,rdamage,0);
+			battle_damage(bl,src,rdamage,dmg.div_,0);
 	}
 
 	if(attack_type&BF_WEAPON && sc_data && sc_data[SC_AUTOCOUNTER].timer != -1 && sc_data[SC_AUTOCOUNTER].val4 > 0) {
@@ -2842,7 +2842,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 							bl->x-5, bl->y-5, bl->x+5, bl->y+5, 0,
 							src, skillid, skilllv, tick, flag|BCT_ENEMY|1,
 							skill_castend_damage_id);
-				battle_damage(src, src, skill_area_temp[2], 0);
+				battle_damage(src, src, skill_area_temp[2], 1, 0);
 			}
 			break;
 
@@ -3138,7 +3138,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case SA_INSTANTDEATH:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if (sd) pc_damage(NULL,sd,sd->status.max_hp);
+		if (sd) pc_damage(NULL,sd,sd->status.max_hp,1);
 		break;
 	case SA_QUESTION:
 	case SA_GRAVITY:
@@ -3166,8 +3166,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case SA_DEATH:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if (dstsd) pc_damage(NULL,dstsd,dstsd->status.max_hp);
-		if (dstmd) mob_damage(NULL,dstmd,dstmd->hp,1);
+		if (dstsd) pc_damage(NULL,dstsd,dstsd->status.max_hp,1);
+		if (dstmd) mob_damage(NULL,dstmd,dstmd->hp,1,1);
 		break;
 	case SA_REVERSEORCISH:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
@@ -4351,9 +4351,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if(src && bl){
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if (md)
-				mob_damage(NULL,md,md->hp,0);
+				mob_damage(NULL,md,md->hp,1,0);
 			else if (sd)
-				pc_damage(NULL,sd,sd->status.hp);
+				pc_damage(NULL,sd,sd->status.hp,1);
 		}
 		break;
 
@@ -4847,7 +4847,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				case 3:	// 1000 damage, random armor destroyed
 					{
 						int where[] = { EQP_ARMOR, EQP_SHIELD, EQP_HELM };
-						battle_damage(src, bl, 1000, 0);
+						battle_damage(src, bl, 1000, 1, 0);
 						clif_damage(src,bl,tick,0,0,1000,0,0,0);
 						if (dstsd) pc_break_equip(dstsd, where[rand() % 3]);
 					}
@@ -4879,14 +4879,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					status_change_start(bl,SC_CONFUSION,skilllv,0,0,0,30000,0);
 					break;
 				case 10:	// 6666 damage, atk matk halved, cursed
-					battle_damage(src, bl, 6666, 0);
+					battle_damage(src, bl, 6666, 1, 0);
 					clif_damage(src,bl,tick,0,0,6666,0,0,0);
 					status_change_start(bl,SC_INCATK2,-50,0,0,0,30000,0);
 					status_change_start(bl,SC_INCMATK2,-50,0,0,0,30000,0);
 					status_change_start(bl,SC_CURSE,skilllv,0,0,0,30000,0);
 					break;
 				case 11:	// 4444 damage
-					battle_damage(src, bl, 4444, 0);
+					battle_damage(src, bl, 4444, 1, 0);
 					clif_damage(src,bl,tick,0,0,4444,0,0,0);
 					break;
 				case 12:	// stun

@@ -1087,10 +1087,11 @@ int mob_stop_walking(struct mob_data *md,int type)
 	if(type&0x01)
 		clif_fixmobpos(md);
 	if(type&0x02) {
+		type = type>>3; //Extract the div count [Skotlex]
 		int delay=status_get_dmotion(&md->bl);
 		unsigned int tick = gettick();
-		if(battle_config.monster_damage_delay && md->canmove_tick < tick)
-			md->canmove_tick = tick + delay;
+		if(battle_config.monster_damage_delay_rate && md->canmove_tick < tick)
+			md->canmove_tick = tick + delay + (type>1?(type-1)*battle_config.monster_combo_damage_delay:0);
 	}
 
 	return 0;
@@ -1396,7 +1397,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		if(md->state.special_mob_ai>0)
 			mob_timer_delete(0, 0, md->bl.id, 0);
 		else
-			mob_damage(NULL,md,md->hp,0);
+			mob_damage(NULL,md,md->hp,1,0);
 		return 0;
 	}
 	if(md->state.special_mob_ai>0)		// Žå‚ªPC‚Ìê‡‚ÍAˆÈ~‚Ìˆ—‚Í—v‚ç‚È‚¢
@@ -2206,7 +2207,7 @@ int mob_deleteslave_sub(struct block_list *bl,va_list ap)
 
 	id=va_arg(ap,int);
 	if(md->master_id > 0 && md->master_id == id )
-		mob_damage(NULL,md,md->hp,1);
+		mob_damage(NULL,md,md->hp,1,1);
 	return 0;
 }
 /*==========================================
@@ -2227,7 +2228,7 @@ int mob_deleteslave(struct mob_data *md)
  * It is the damage of sd to damage to md.
  *------------------------------------------
  */
-int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
+int mob_damage(struct block_list *src,struct mob_data *md,int damage,int div_,int type)
 {
 	int i,count,minpos,mindmg;
 	struct map_session_data *sd = NULL,*tmpsd[DAMAGELOG_SIZE];
@@ -2275,8 +2276,8 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int type)
 		return 0;
 	}
 
-	if(battle_config.monster_damage_delay && md->sc_data[SC_ENDURE].timer == -1)
-		mob_stop_walking(md,3);
+	if(battle_config.monster_damage_delay_rate && md->sc_data[SC_ENDURE].timer == -1)
+		mob_stop_walking(md,3|(div_<<3));
 	if(damage > max_hp>>2)
 		skill_stop_dancing(&md->bl,0);
 
