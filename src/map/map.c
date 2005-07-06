@@ -636,7 +636,6 @@ int map_foreachinmovearea(int (*func)(struct block_list&,va_list),unsigned short
 				}
 			}
 		}
-
 	}
 
 	if(bl_list_count>=BL_LIST_MAX) {

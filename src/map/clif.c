@@ -4134,12 +4134,13 @@ int clif_pcoutsight(struct block_list &bl,va_list ap)
 		struct map_session_data &dstsd = (struct map_session_data&)bl;
 		if(sd->bl.id != dstsd.bl.id)
 		{
-			clif_clearchar_id(dstsd.bl.id, sd->fd, 0);
-			clif_clearchar_id(sd->bl.id, dstsd.fd, 0);
+			clif_clearchar_id(sd->fd, dstsd.bl.id, 0);
+			clif_clearchar_id(dstsd.fd, sd->bl.id, 0);
+
 			if(dstsd.disguise_id || sd->disguise_id)
 			{
-				clif_clearchar_id(dstsd.bl.id|FLAG_DISGUISE, sd->fd, 0);
-				clif_clearchar_id(sd->bl.id|FLAG_DISGUISE, dstsd.fd, 0);
+				clif_clearchar_id(sd->fd, dstsd.bl.id|FLAG_DISGUISE, 0);
+				clif_clearchar_id(dstsd.fd, sd->bl.id|FLAG_DISGUISE, 0);
 			}
 
 

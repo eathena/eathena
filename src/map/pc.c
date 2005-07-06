@@ -3464,8 +3464,8 @@ int pc_walk(int tid,unsigned long tick,int id,int data)
 			return 0;
 		}
 		sd->dir = sd->head_dir = sd->walkpath.path[sd->walkpath.path_pos];
-		dx = dirx[(int)sd->dir];
-		dy = diry[(int)sd->dir];
+		dx = dirx[sd->dir];
+		dy = diry[sd->dir];
 		if (map_getcell(sd->bl.m,x,y,CELL_CHKNOPASS)) {
 			pc_walktoxy_sub(sd);
 			return 0;
@@ -3483,7 +3483,6 @@ int pc_walk(int tid,unsigned long tick,int id,int data)
 		x += dx;
 		y += dy;
 
-		sd->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
 		skill_unit_move(sd->bl,tick,0);
 		if(moveblock) map_delblock(sd->bl);
 		sd->bl.x = x;
@@ -3711,7 +3710,7 @@ int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y)
 
 	moveblock = ( sd.bl.x/BLOCK_SIZE != x/BLOCK_SIZE || sd.bl.y/BLOCK_SIZE != y/BLOCK_SIZE);
 
-	map_foreachinmovearea(clif_pcoutsight,sd.bl.m,sd.bl.x-AREA_SIZE,sd.bl.y-AREA_SIZE,sd.bl.x+AREA_SIZE,sd.bl.y+AREA_SIZE,dx,dy,0,&sd);
+	map_foreachinmovearea(clif_pcoutsight,sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,dx,dy,0,&sd);
 
 	skill_unit_move(sd.bl,tick,0);
 	if(moveblock) map_delblock(sd.bl);
@@ -3720,7 +3719,7 @@ int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y)
 	if(moveblock) map_addblock(sd.bl);
 	skill_unit_move(sd.bl,tick,1);
 
-	map_foreachinmovearea(clif_pcinsight,sd.bl.m,sd.bl.x-AREA_SIZE,sd.bl.y-AREA_SIZE,sd.bl.x+AREA_SIZE,sd.bl.y+AREA_SIZE,-dx,-dy,0,&sd);
+	map_foreachinmovearea(clif_pcinsight,sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,-dx,-dy,0,&sd);
 
 	if(sd.status.party_id>0)
 	{	// パ?ティのＨＰ情報通知?査
@@ -3728,7 +3727,7 @@ int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y)
 		if(p!=NULL)
 		{
 			int flag=0;
-			map_foreachinmovearea(party_send_hp_check,sd.bl.m,sd.bl.x-AREA_SIZE,sd.bl.y-AREA_SIZE,sd.bl.x+AREA_SIZE,sd.bl.y+AREA_SIZE,-dx,-dy,BL_PC,sd.status.party_id, &flag);
+			map_foreachinmovearea(party_send_hp_check,sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,-dx,-dy,BL_PC,sd.status.party_id, &flag);
 			if(flag)
 				sd.party_hp=-1;
 		}
