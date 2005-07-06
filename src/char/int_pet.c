@@ -8,6 +8,7 @@
 #include "../common/socket.h"
 #include "../common/db.h"
 #include "../common/lock.h"
+#include "../common/showmsg.h"
 #include "char.h"
 #include "inter.h"
 #include "int_pet.h"
@@ -91,7 +92,7 @@ int inter_pet_init()
 	while(fgets(line,sizeof(line),fp)){
 		p = (struct s_pet*)aCalloc(sizeof(struct s_pet), 1);
 		if(p==NULL){
-			printf("int_pet: out of memory!\n");
+			ShowFatalError("int_pet: out of memory!\n");
 			exit(0);
 		}
 		memset(p,0,sizeof(struct s_pet));
@@ -100,7 +101,7 @@ int inter_pet_init()
 				pet_newid=p->pet_id+1;
 			numdb_insert(pet_db,p->pet_id,p);
 		}else{
-			printf("int_pet: broken data [%s] line %d\n",pet_txt,c);
+			ShowError("int_pet: broken data [%s] line %d\n",pet_txt,c);
 			aFree(p);
 		}
 		c++;
@@ -136,7 +137,7 @@ int inter_pet_save()
 	FILE *fp;
 	int lock;
 	if( (fp=lock_fopen(pet_txt,&lock))==NULL ){
-		printf("int_pet: cant write [%s] !!! data is lost !!!\n",pet_txt);
+		ShowError("int_pet: cant write [%s] !!! data is lost !!!\n",pet_txt);
 		return 1;
 	}
 	numdb_foreach(pet_db,inter_pet_save_sub,fp);
@@ -153,7 +154,7 @@ int inter_pet_delete(int pet_id)
 		return 1;
 	else {
 		numdb_erase(pet_db,pet_id);
-		printf("pet_id: %d deleted\n",pet_id);
+		ShowInfo("Deleted pet (pet_id: %d)\n",pet_id);
 	}
 	return 0;
 }
@@ -165,7 +166,7 @@ int mapif_pet_created(int fd,int account_id,struct s_pet *p)
 	if(p!=NULL){
 		WFIFOB(fd,6)=0;
 		WFIFOL(fd,7)=p->pet_id;
-		printf("int_pet: created! %d %s\n",p->pet_id,p->name);
+		ShowInfo("Created pet (%d - %s)\n",p->pet_id,p->name);
 	}else{
 		WFIFOB(fd,6)=1;
 		WFIFOL(fd,7)=0;
@@ -224,7 +225,7 @@ int mapif_create_pet(int fd,int account_id,int char_id,short pet_class,short pet
 	struct s_pet *p;
 	p= (struct s_pet *) aCalloc(sizeof(struct s_pet), 1);
 	if(p==NULL){
-		printf("int_pet: out of memory !\n");
+		ShowFatalError("int_pet: out of memory !\n");
 		mapif_pet_created(fd,account_id,NULL);
 		return 0;
 	}
@@ -288,7 +289,7 @@ int mapif_save_pet(int fd,int account_id,struct s_pet *data)
 	int pet_id;
 	int len=RFIFOW(fd,2);
 	if(sizeof(struct s_pet)!=len-8) {
-		printf("inter pet: data size error %d %d\n",sizeof(struct s_pet),len-8);
+		ShowError("inter pet: data size error %d %d\n",sizeof(struct s_pet),len-8);
 	}
 	else{
 		pet_id = data->pet_id;
@@ -296,7 +297,7 @@ int mapif_save_pet(int fd,int account_id,struct s_pet *data)
 		if(p == NULL) {
 			p=(struct s_pet *)aCalloc(sizeof(struct s_pet),1);
 			if(p==NULL){
-				printf("int_pet: out of memory !\n");
+				ShowFatalError("int_pet: out of memory !\n");
 				mapif_save_pet_ack(fd,account_id,1);
 				return 0;
 			}

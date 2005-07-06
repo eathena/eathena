@@ -1579,6 +1579,7 @@ static int npc_parse_shop (char *w1, char *w2, char *w3, char *w4)
 		nd->u.shop_item[pos].value = value;
 		// check for bad prices that can possibly cause exploits
 		if (value*75/100 < id->value_sell*124/100) {
+			printf("\r"); //Carriage return to clear the 'loading..' line. [Skotlex]
 			ShowWarning ("Item %s [%d] buying price (%d) is less than selling price (%d)\n",
 				id->name, id->nameid, value*75/100, id->value_sell*124/100);
 		}

@@ -8,6 +8,7 @@
 #include "../common/socket.h"
 #include "../common/db.h"
 #include "../common/lock.h"
+#include "../common/showmsg.h"
 #include "char.h"
 #include "inter.h"
 #include "int_storage.h"
@@ -362,7 +363,7 @@ int inter_guild_readdb() {
 	sprintf(path, "%s%s", db_path, "/exp_guild.txt");
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("can't read db/exp_guild.txt\n");
+		ShowError("can't read db/exp_guild.txt\n");
 		return 1;
 	}
 	i = 0;
@@ -401,7 +402,7 @@ int inter_guild_init() {
 
 		g = (struct guild *) aCalloc(sizeof(struct guild), 1);
 		if(g == NULL){
-			printf("int_guild: out of memory!\n");
+			ShowFatalError("int_guild: out of memory!\n");
 			exit(0);
 		}
 //		memset(g, 0, sizeof(struct guild)); not needed...
@@ -412,7 +413,7 @@ int inter_guild_init() {
 			guild_check_empty(g);
 			guild_calcinfo(g);
 		} else {
-			printf("int_guild: broken data [%s] line %d\n", guild_txt, c);
+			ShowError("int_guild: broken data [%s] line %d\n", guild_txt, c);
 			aFree(g);
 		}
 		c++;
@@ -429,26 +430,26 @@ int inter_guild_init() {
 	while(fgets(line, sizeof(line)-1, fp)) {
 		gc = (struct guild_castle *) aCalloc(sizeof(struct guild_castle), 1);
 		if(gc == NULL){
-			printf("int_guild: out of memory!\n");
+			ShowFatalError("int_guild: out of memory!\n");
 			exit(0);
 		}
 //		memset(gc, 0, sizeof(struct guild_castle)); No need...
 		if (inter_guildcastle_fromstr(line, gc) == 0) {
 			numdb_insert(castle_db, gc->castle_id, gc);
 		} else {
-			printf("int_guild: broken data [%s] line %d\n", castle_txt, c);
+			ShowError("int_guild: broken data [%s] line %d\n", castle_txt, c);
 			aFree(gc);
 		}
 		c++;
 	}
 
 	if (!c) {
-		printf(" %s - making Default Data...\n", castle_txt);
+		ShowStatus(" %s - making Default Data...\n", castle_txt);
 		//デフォルトデータを作成
 		for(i = 0; i < MAX_GUILDCASTLE; i++) {
 			gc = (struct guild_castle *) aCalloc(sizeof(struct guild_castle), 1);
 			if (gc == NULL) {
-				printf("int_guild: out of memory!\n");
+				ShowFatalError("int_guild: out of memory!\n");
 				exit(0);
 			}
 //			memset(gc, 0, sizeof(struct guild_castle)); unneeded...
@@ -482,7 +483,7 @@ int inter_guild_init() {
 */
 			numdb_insert(castle_db, gc->castle_id, gc);
 		}
-		printf(" %s - making done\n",castle_txt);
+		ShowStatus(" %s - making done\n",castle_txt);
 		return 0;
 	}
 
@@ -547,7 +548,7 @@ int inter_guild_save() {
 	int lock;
 
 	if ((fp = lock_fopen(guild_txt, &lock)) == NULL) {
-		printf("int_guild: cant write [%s] !!! data is lost !!!\n", guild_txt);
+		ShowError("int_guild: cant write [%s] !!! data is lost !!!\n", guild_txt);
 		return 1;
 	}
 	numdb_foreach(guild_db, inter_guild_save_sub, fp);
@@ -556,7 +557,7 @@ int inter_guild_save() {
 //	printf("int_guild: %s saved.\n", guild_txt);
 
 	if ((fp = lock_fopen(castle_txt,&lock)) == NULL) {
-		printf("int_guild: cant write [%s] !!! data is lost !!!\n", castle_txt);
+		ShowError("int_guild: cant write [%s] !!! data is lost !!!\n", castle_txt);
 		return 1;
 	}
 	numdb_foreach(castle_db, inter_castle_save_sub, fp);
@@ -618,7 +619,7 @@ int guild_check_conflict_sub(void *key, void *data, va_list ap) {
 	for(i = 0; i < MAX_GUILD; i++) {
 		if (g->member[i].account_id == account_id && g->member[i].char_id == char_id) {
 			// 別のギルドに偽の所属データがあるので脱退
-			printf("int_guild: guild conflict! %d,%d %d!=%d\n", account_id, char_id, guild_id, g->guild_id);
+			ShowWarning("int_guild: guild conflict! %d,%d %d!=%d\n", account_id, char_id, guild_id, g->guild_id);
 			mapif_parse_GuildLeave(-1, g->guild_id, account_id, char_id, 0, "**データ競合**");
 		}
 	}
@@ -716,7 +717,7 @@ int mapif_guild_created(int fd, int account_id, struct guild *g) {
 	WFIFOL(fd,2) = account_id;
 	if (g != NULL) {
 		WFIFOL(fd,6) = g->guild_id;
-		printf("int_guild: created! %d %s\n", g->guild_id, g->name);
+		ShowInfo("Created Guild (%d %s)\n", g->guild_id, g->name);
 	}else{
 		WFIFOL(fd,6) = 0;
 	}
@@ -730,7 +731,7 @@ int mapif_guild_noinfo(int fd, int guild_id) {
 	WFIFOW(fd,2) = 8;
 	WFIFOL(fd,4) = guild_id;
 	WFIFOSET(fd,8);
-	printf("int_guild: info not found %d\n", guild_id);
+	ShowNotice("int_guild: info not found %d\n", guild_id);
 
 	return 0;
 }
@@ -777,7 +778,7 @@ int mapif_guild_leaved(int guild_id, int account_id, int char_id, int flag, cons
 	memcpy(WBUFP(buf,55), name, NAME_LENGTH);
 	mapif_sendall(buf, 55+NAME_LENGTH);
 //	mapif_sendall(buf, 79);
-	printf("int_guild: guild leaved %d %d %s %s\n", guild_id, account_id, name, mes);
+	ShowInfo("Character left guild (Guild %d, %d - %s: %s)\n", guild_id, account_id, name, mes);
 
 	return 0;
 }
@@ -805,7 +806,7 @@ int mapif_guild_broken(int guild_id, int flag) {
 	WBUFL(buf,2) = guild_id;
 	WBUFB(buf,6) = flag;
 	mapif_sendall(buf, 7);
-	printf("int_guild: broken %d\n", guild_id);
+	ShowInfo("Guild Break (%d)\n", guild_id);
 
 	return 0;
 }
@@ -982,20 +983,20 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 
 	for(i = 0; i < NAME_LENGTH && name[i]; i++) {
 		if (!(name[i] & 0xe0) || name[i] == 0x7f) {
-			printf("int_guild: illeagal guild name [%s]\n", name);
+			ShowInfo("Create Guild: illegal guild name [%s]\n", name);
 			mapif_guild_created(fd, account_id, NULL);
 			return 0;
 		}
 	}
 
 	if ((g = search_guildname(name)) != NULL) {
-		printf("int_guild: same name guild exists [%s]\n", name);
+		ShowInfo("Create Guild: same name guild exists [%s]\n", name);
 		mapif_guild_created(fd, account_id, NULL);
 		return 0;
 	}
 	g = (struct guild *) aCalloc(sizeof(struct guild), 1);
 	if (g == NULL) {
-		printf("int_guild: CreateGuild: out of memory !\n");
+		ShowFatalError("int_guild: CreateGuild: out of memory !\n");
 		mapif_guild_created(fd, account_id, NULL);
 		exit(0);
 	}
@@ -1204,7 +1205,7 @@ int mapif_parse_GuildBasicInfoChange(int fd, int guild_id, int type, const char 
 		mapif_guild_info(-1, g);
 		return 0;
 	default:
-		printf("int_guild: GuildBasicInfoChange: Unknown type %d\n", type);
+		ShowError("int_guild: GuildBasicInfoChange: Unknown type %d\n", type);
 		break;
 	}
 	mapif_guild_basicinfochanged(guild_id, type, data, len);
@@ -1225,7 +1226,7 @@ int mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int 
 		if (g->member[i].account_id == account_id && g->member[i].char_id == char_id)
 			break;
 		if (i == g->max_member) {
-			printf("int_guild: GuildMemberChange: Not found %d,%d in %d[%s]\n", account_id, char_id, guild_id, g->name);
+			ShowWarning("int_guild: GuildMemberChange: Not found %d,%d in %d[%s]\n", account_id, char_id, guild_id, g->name);
 			return 0;
 		}
 		switch(type) {
@@ -1242,7 +1243,7 @@ int mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int 
 		  }
 			break;
 	default:
-		printf("int_guild: GuildMemberInfoChange: Unknown type %d\n", type);
+		ShowError("int_guild: GuildMemberInfoChange: Unknown type %d\n", type);
 		break;
 	}
 	mapif_guild_memberinfochanged(guild_id, account_id, char_id, type, data, len);
@@ -1259,7 +1260,7 @@ int mapif_parse_GuildPosition(int fd, int guild_id, int idx, struct guild_positi
 	}
 	memcpy(&g->position[idx], p, sizeof(struct guild_position));
 	mapif_guild_position(g, idx);
-	printf("int_guild: position changed %d\n", idx);
+	ShowInfo("int_guild: position [%d] changed\n", idx);
 
 	return 0;
 }
@@ -1278,7 +1279,7 @@ int mapif_parse_GuildSkillUp(int fd, int guild_id, int skill_num, int account_id
 		if (guild_calcinfo(g) == 0)
 			mapif_guild_info(-1, g);
 		mapif_guild_skillupack(guild_id, skill_num, account_id);
-		printf("int_guild: skill %d up\n", skill_num);
+		ShowInfo("int_guild: skill %d up\n", skill_num);
 	}
 
 	return 0;
@@ -1379,7 +1380,7 @@ int mapif_parse_GuildCastleDataLoad(int fd, int castle_id, int index) {
 	case 25: return mapif_guild_castle_dataload(gc->castle_id, index, gc->Ghp7);	// end additions [Valaris]
 
 	default:
-		printf("mapif_parse_GuildCastleDataLoad ERROR!! (Not found index=%d)\n", index);
+		ShowError("mapif_parse_GuildCastleDataLoad ERROR!! (Not found index=%d)\n", index);
 		return 0;
 	}
 
@@ -1428,7 +1429,7 @@ int mapif_parse_GuildCastleDataSave(int fd, int castle_id, int index, int value)
 	case 24: gc->Ghp6 = value; break;
 	case 25: gc->Ghp7 = value; break;	// end additions [Valaris]
 	default:
-		printf("mapif_parse_GuildCastleDataSave ERROR!! (Not found index=%d)\n", index);
+		ShowError("mapif_parse_GuildCastleDataSave ERROR!! (Not found index=%d)\n", index);
 		return 0;
 	}
 

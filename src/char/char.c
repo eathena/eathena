@@ -520,22 +520,22 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	// Some checks
 	for(i = 0; i < char_num; i++) {
 		if (char_dat[i].char_id == p->char_id) {
-			printf("\033[1;31mmmo_auth_init: ******Error: a character has an identical id to another.\n");
-			printf("               character id #%d -> new character not readed.\n", p->char_id);
-			printf("               Character saved in log file.\033[0m\n");
+			ShowError("\033[1;31mmmo_auth_init: a character has an identical id to another.\n");
+			ShowError("               character id #%d -> new character not readed.\n", p->char_id);
+			ShowError("               Character saved in log file.\033[0m\n");
 			return -1;
 		} else if (strcmp(char_dat[i].name, p->name) == 0) {
-			printf("\033[1;31mmmo_auth_init: ******Error: character name already exists.\n");
-			printf("               character name '%s' -> new character not read.\n", p->name);
-			printf("               Character saved in log file.\033[0m\n");
+			ShowError("\033[1;31mmmo_auth_init: a character name already exists.\n");
+			ShowError("               character name '%s' -> new character not read.\n", p->name);
+			ShowError("               Character saved in log file.\033[0m\n");
 			return -2;
 		}
 	}
 
 	if (strcmpi(wisp_server_name, p->name) == 0) {
-		printf("mmo_auth_init: ******WARNING: character name has wisp server name.\n");
-		printf("               Character name '%s' = wisp server name '%s'.\n", p->name, wisp_server_name);
-		printf("               Character readed. Suggestion: change the wisp server name.\n");
+		ShowWarning("mmo_auth_init: ******WARNING: character name has wisp server name.\n");
+		ShowWarning("               Character name '%s' = wisp server name '%s'.\n", p->name, wisp_server_name);
+		ShowWarning("               Character readed. Suggestion: change the wisp server name.\n");
 		char_log("mmo_auth_init: ******WARNING: character name has wisp server name: Character name '%s' = wisp server name '%s'." RETCODE,
 		          p->name, wisp_server_name);
 	}
@@ -721,7 +721,7 @@ int mmo_char_init(void) {
 	char_max = 256;
 	char_dat = (struct mmo_charstatus*)aCalloc(sizeof(struct mmo_charstatus) * 256, 1);
 	if (!char_dat) {
-		printf("out of memory: mmo_char_init (calloc of char_dat).\n");
+		ShowFatalError("out of memory: mmo_char_init (calloc of char_dat).\n");
 		exit(1);
 	}
 	for(i = 0; i < char_max; i++)
@@ -735,7 +735,7 @@ int mmo_char_init(void) {
 	fp = fopen(char_txt, "r");
 
 	if (fp == NULL) {
-		printf("Characters file not found: %s.\n", char_txt);
+		ShowError("Characters file not found: %s.\n", char_txt);
 		char_log("Characters file not found: %s." RETCODE, char_txt);
 		char_log("Id for the next created character: %d." RETCODE, char_id_count);
 		return 0;
@@ -761,13 +761,13 @@ int mmo_char_init(void) {
 			char_max += 256;
 			char_dat = (struct mmo_charstatus*)aRealloc(char_dat, sizeof(struct mmo_charstatus) * char_max);
 			if (!char_dat) {
-				printf("Out of memory: mmo_char_init (realloc of char_dat).\n");
+				ShowFatalError("Out of memory: mmo_char_init (realloc of char_dat).\n");
 				char_log("Out of memory: mmo_char_init (realloc of char_dat)." RETCODE);
 				exit(1);
 			}
 			online_chars = (struct online_chars*)aRealloc(online_chars, sizeof(struct online_chars) * char_max);
 			if (!online_chars) {
-				printf("Out of memory: mmo_char_init (realloc of online_chars).\n");
+				ShowFatalError("Out of memory: mmo_char_init (realloc of online_chars).\n");
 				char_log("Out of memory: mmo_char_init (realloc of online_chars)." RETCODE);
 				exit(1);
 			}
@@ -788,8 +788,8 @@ int mmo_char_init(void) {
 				char_id_count = char_dat[char_num].char_id + 1;
 			char_num++;
 		} else {
-			printf("mmo_char_init: in characters file, unable to read the line #%d.\n", line_count);
-			printf("               -> Character saved in log file.\n");
+			ShowError("mmo_char_init: in characters file, unable to read the line #%d.\n", line_count);
+			ShowError("               -> Character saved in log file.\n");
 			switch (ret) {
 			case -1:
 				char_log("Duplicate character id in the next character line (character not readed):" RETCODE);
@@ -822,13 +822,13 @@ int mmo_char_init(void) {
 	fclose(fp);
 
 	if (char_num == 0) {
-		printf("mmo_char_init: No character found in %s.\n", char_txt);
+		ShowNotice("mmo_char_init: No character found in %s.\n", char_txt);
 		char_log("mmo_char_init: No character found in %s." RETCODE, char_txt);
 	} else if (char_num == 1) {
-		printf("mmo_char_init: 1 character read in %s.\n", char_txt);
+		ShowStatus("mmo_char_init: 1 character read in %s.\n", char_txt);
 		char_log("mmo_char_init: 1 character read in %s." RETCODE, char_txt);
 	} else {
-		printf("mmo_char_init: %d characters read in %s.\n", char_num, char_txt);
+		ShowStatus("mmo_char_init: %d characters read in %s.\n", char_num, char_txt);
 		char_log("mmo_char_init: %d characters read in %s." RETCODE, char_num, char_txt);
 	}
 
@@ -867,7 +867,7 @@ void mmo_char_sync(void) {
 	// Data save
 	fp = lock_fopen(char_txt, &lock);
 	if (fp == NULL) {
-		printf("WARNING: Server can't not save characters.\n");
+		ShowWarning("Server can't not save characters.\n");
 		char_log("WARNING: Server can't not save characters." RETCODE);
 	} else {
 		for(i = 0; i < char_num; i++) {
@@ -883,7 +883,7 @@ void mmo_char_sync(void) {
 	if (backup_txt_flag) { // The backup_txt file was created because char deletion bug existed. Now it's finish and that take a lot of time to create a second file when there are a lot of characters. => option By [Yor]
 		fp = lock_fopen(backup_txt, &lock);
 		if (fp == NULL) {
-			printf("WARNING: Server can't not create backup of characters file.\n");
+			ShowWarning("Server can't not create backup of characters file.\n");
 			char_log("WARNING: Server can't not create backup of characters file." RETCODE);
 			//aFree(id); // free up the memory before leaving -.- [Ajarn]
 			DELETE_BUFFER(id);
@@ -1013,13 +1013,13 @@ int make_new_char(int fd, unsigned char *dat) {
 		char_max += 256;
 		char_dat = (struct mmo_charstatus*)aRealloc(char_dat, sizeof(struct mmo_charstatus) * char_max);
 		if (!char_dat) {
-			printf("Out of memory: make_new_char (realloc of char_dat).\n");
+			ShowFatalError("Out of memory: make_new_char (realloc of char_dat).\n");
 			char_log("Out of memory: make_new_char (realloc of char_dat)." RETCODE);
 			exit(1);
 		}
 		online_chars = (struct online_chars*)aRealloc(online_chars, sizeof(struct online_chars) * char_max);
 		if (!online_chars) {
-			printf("Out of memory: make_new_char (realloc of online_chars).\n");
+			ShowFatalError("Out of memory: make_new_char (realloc of online_chars).\n");
 			char_log("Out of memory: make_new_char (realloc of online_chars)." RETCODE);
 			exit(1);
 		}
@@ -1714,7 +1714,7 @@ int parse_tologin(int fd) {
 		session[fd]->eof = 1;
 	if(session[fd]->eof) {
 		if (fd == login_fd) {
-			printf("Char-server can't connect to login-server (connection #%d).\n", fd);
+			ShowWarning("Char-server can't connect to login-server (connection #%d).\n", fd);
 			login_fd = -1;
 		}
 		close(fd);
@@ -1733,20 +1733,20 @@ int parse_tologin(int fd) {
 				return 0;
 			if (RFIFOB(fd,2)) {
 //				printf("connect login server error : %d\n", RFIFOB(fd,2));
-				printf("Can not connect to login-server.\n");
-				printf("The server communication passwords (default s1/p1) is probably invalid.\n");
-				printf("Also, please make sure your accounts file (default: accounts.txt) has those values present.\n");
-				printf("If you changed the communication passwords, change them back at map_athena.conf and char_athena.conf\n");
+				ShowError("Can not connect to login-server.\n");
+				ShowError("The server communication passwords (default s1/p1) is probably invalid.\n");
+				ShowInfo("Also, please make sure your accounts file (default: accounts.txt) has those values present.\n");
+				ShowInfo("If you changed the communication passwords, change them back at map_athena.conf and char_athena.conf\n");
 				exit(1);
 			} else {
-				printf("Connected to login-server (connection #%d).\n", fd);
+				ShowStatus("Connected to login-server (connection #%d).\n", fd);
 				set_all_offline();
 				// if no map-server already connected, display a message...
 				for(i = 0; i < MAX_MAP_SERVERS; i++)
 					if (server_fd[i] >= 0 && server[i].map[0][0]) // if map-server online and at least 1 map
 						break;
 				if (i == MAX_MAP_SERVERS)
-					printf("Awaiting maps from map-server.\n");
+					ShowStatus("Awaiting maps from map-server.\n");
 			}
 			RFIFOSKIP(fd,3);
 			break;
@@ -2094,8 +2094,8 @@ int parse_tologin(int fd) {
 				//printf("GM account: %d -> level %d\n", gm_account[GM_num].account_id, gm_account[GM_num].level);
 				GM_num++;
 			}
-			printf("From login-server: receiving of %d GM accounts information.\n", GM_num);
-			char_log("From login-server: receiving of %d GM accounts information." RETCODE, GM_num);
+			ShowStatus("From login-server: receiving information of %d GM accounts.\n", GM_num);
+			char_log("From login-server: receiving information of %d GM accounts." RETCODE, GM_num);
 			create_online_files(); // update online players files (perhaps some online players change of GM level)
 			// send new gm acccounts level to map-servers
 			memcpy(buf, RFIFOP(fd,0), RFIFOW(fd,2));
@@ -2137,14 +2137,14 @@ int parse_tologin(int fd) {
 						new_level = 1;
 						GM_num++;
 						if (GM_num >= 4000) {
-							printf("***WARNING: 4000 GM accounts found. Next GM accounts are not readed.\n");
+							ShowWarning("4000 GM accounts found. Next GM accounts are not readed.\n");
 							char_log("***WARNING: 4000 GM accounts found. Next GM accounts are not readed." RETCODE);
 						}
 					}
 				}
 				if (new_level == 1) {
 					int len;
-					printf("From login-server: receiving a GM account information (%d: level %d).\n", RFIFOL(fd,2), (int)RFIFOB(fd,6));
+					ShowStatus("From login-server: receiving GM account information (%d: level %d).\n", RFIFOL(fd,2), (int)RFIFOB(fd,6));
 					char_log("From login-server: receiving a GM account information (%d: level %d)." RETCODE, RFIFOL(fd,2), (int)RFIFOB(fd,6));
 					//create_online_files(); // not change online file for only 1 player (in next timer, that will be done
 					// send gm acccounts level to map-servers
@@ -2164,7 +2164,7 @@ int parse_tologin(int fd) {
 			break;
 
 		default:
-			printf("parse_tologin: unknown packet %x! \n", RFIFOW(fd,0));
+			ShowWarning("parse_tologin: unknown packet %x! \n", RFIFOW(fd,0));
 			session[fd]->eof = 1;
 			return 0;
 		}
@@ -2186,7 +2186,7 @@ int parse_frommap(int fd) {
 	if(session[fd]->eof){
 		for(i = 0; i < MAX_MAP_SERVERS; i++)
 			if (server_fd[i] == fd) {
-				printf("Map-server %d has disconnected.\n", i);
+				ShowStatus("Map-server %d has disconnected.\n", i);
 				server_fd[i] = -1;
 			}
 		close(fd);
@@ -2230,9 +2230,9 @@ int parse_frommap(int fd) {
 			}
 			{
 				unsigned char *p = (unsigned char *)&server[id].ip;
-				printf("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
+				ShowStatus("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
 				       id, j, p[0], p[1], p[2], p[3], server[id].port);
-				printf("Map-server %d loading complete.\n", id);
+				ShowStatus("Map-server %d loading complete.\n", id);
 				char_log("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d. Map-server %d loading complete." RETCODE,
 				         id, j, p[0], p[1], p[2], p[3], server[id].port, id);
 				set_all_offline();
@@ -2246,7 +2246,7 @@ int parse_frommap(int fd) {
 				unsigned char buf[16384];
 				int x;
 				if (j == 0) {
-					printf("WARNING: Map-Server %d have NO map.\n", id);
+					ShowWarning("Map-Server %d have NO map.\n", id);
 					char_log("WARNING: Map-Server %d have NO map." RETCODE, id);
 				// Transmitting maps information to the other map-servers
 				} else {
@@ -2311,7 +2311,7 @@ int parse_frommap(int fd) {
 				WFIFOW(fd,0) = 0x2afe;
 				WFIFOL(fd,2) = RFIFOL(fd,2);
 				WFIFOSET(fd,6);
-				printf("auth_fifo search error! account %d not authentified.\n", RFIFOL(fd,2));
+				ShowError("auth_fifo search error! account %d not authentified.\n", RFIFOL(fd,2));
 			}
 			RFIFOSKIP(fd,22);
 			break;
@@ -2344,7 +2344,7 @@ int parse_frommap(int fd) {
 					online_players_max += 256;
 					online_chars = (struct online_chars*)aRealloc(online_chars, sizeof(struct online_chars) * online_players_max);
 					if (!online_chars) {
-						printf("out of memory: parse_frommap - online_chars (realloc).\n");
+						ShowFatalError("out of memory: parse_frommap - online_chars (realloc).\n");
 						exit(1);
 					}
 					for( ; j < online_players_max; j++) {
@@ -2734,7 +2734,7 @@ int parse_frommap(int fd) {
 					return 0;
 			}
 			// inter server処理でもない場合は切断
-			printf("char: unknown packet 0x%04x (%d bytes to read in buffer)! (from map).\n", RFIFOW(fd,0), RFIFOREST(fd));
+			ShowError("char: unknown packet 0x%04x (%d bytes to read in buffer)! (from map).\n", RFIFOW(fd,0), RFIFOREST(fd));
 			session[fd]->eof = 1;
 			return 0;
 		}
@@ -2789,7 +2789,7 @@ int lan_ip_check(unsigned char *p){
 			break;
 		}
 	}
-	printf("LAN test (result): %s source\033[0m.\n", (lancheck) ? "\033[1;36mLAN" : "\033[1;32mWAN");
+	ShowInfo("LAN test (result): %s source\033[0m.\n", (lancheck) ? "\033[1;36mLAN" : "\033[1;32mWAN");
 	return lancheck;
 }
 
@@ -2824,7 +2824,7 @@ int parse_char(int fd) {
 			(RFIFOREST(fd)<6 || RFIFOW(fd,4)==0x65)	){	// 次に何かパケットが来てるなら、接続でないとだめ
 			RFIFOSKIP(fd,4);
 			cmd = RFIFOW(fd,0);
-			printf("parse_char : %d crc32 skipped\n",fd);
+			ShowDebug("parse_char : %d crc32 skipped\n",fd);
 			if(RFIFOREST(fd)==0)
 				return 0;
 		}
@@ -2850,9 +2850,9 @@ int parse_char(int fd) {
 		  {
 			int GM_value;
 			if ((GM_value = isGM(RFIFOL(fd,2))))
-				printf("Account Logged On; Account ID: %d (GM level %d).\n", RFIFOL(fd,2), GM_value);
+				ShowInfo("Account Logged On; Account ID: %d (GM level %d).\n", RFIFOL(fd,2), GM_value);
 			else
-				printf("Account Logged On; Account ID: %d.\n", RFIFOL(fd,2));
+				ShowInfo("Account Logged On; Account ID: %d.\n", RFIFOL(fd,2));
 			if (sd == NULL) {
 				sd = (struct char_session_data*)aCalloc(sizeof(struct char_session_data), 1);
 				session[fd]->session_data = sd;
@@ -2971,7 +2971,7 @@ int parse_char(int fd) {
 								if (server_fd[j] >= 0 && server[j].map[0][0]) { // change save point to one of map found on the server (the first)
 									i = j;
 									memcpy(char_dat[sd->found_char[ch]].last_point.map, server[j].map[0], MAP_NAME_LENGTH-1);
-									printf("Map-server #%d found with a map: '%s'.\n", j, server[j].map[0]);
+									ShowInfo("Map-server #%d found with a map: '%s'.\n", j, server[j].map[0]);
 									// coordonates are unknown
 									break;
 								}
@@ -2988,8 +2988,8 @@ int parse_char(int fd) {
 					WFIFOW(fd,0) = 0x71;
 					WFIFOL(fd,2) = char_dat[sd->found_char[ch]].char_id;
 					memcpy(WFIFOP(fd,6), char_dat[sd->found_char[ch]].last_point.map, MAP_NAME_LENGTH);
-					printf("Character selection '%s' (account: %d, slot: %d).\n", char_dat[sd->found_char[ch]].name, sd->account_id, ch);
-					printf("--Send IP of map-server. ");
+					ShowInfo("Character selection '%s' (account: %d, slot: %d).\n", char_dat[sd->found_char[ch]].name, sd->account_id, ch);
+					//printf("--Send IP of map-server. ");
 					if (lan_ip_check(p))
 						WFIFOL(fd, 22) = inet_addr(lan_map_ip);
 					else
@@ -3272,12 +3272,12 @@ int parse_console(char *buf) {
 //	memset(type,0,64);
 //	memset(command,0,64);
 
-    printf("Console: %s\n",buf);
+    ShowStatus("Console: %s\n",buf);
 
     if ( sscanf(buf, "%[^:]:%[^\n]", type , command ) < 2 )
         sscanf(buf,"%[^\n]",type);
 
-    printf("Type of command: %s || Command: %s \n",type,command);
+    ShowDebug("Type of command: %s || Command: %s \n",type,command);
 
     if(buf) aFree(buf);
     if(type) aFree(type);
@@ -3353,7 +3353,7 @@ int send_users_tologin(int tid, unsigned int tick, int id, int data) {
 
 int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 	if (login_fd <= 0 || session[login_fd] == NULL) {
-		printf("Attempt to connect to login-server...\n");
+		ShowInfo("Attempt to connect to login-server...\n");
 		login_fd = make_connection(login_ip, login_port);
 		session[login_fd]->func_parse = parse_tologin;
 		realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
@@ -3411,11 +3411,11 @@ int lan_config_read(const char *lancfgName) {
 	fp = fopen(lancfgName, "r");
 
 	if (fp == NULL) {
-		printf("LAN support configuration file not found: %s\n", lancfgName);
+		ShowError("LAN support configuration file not found: %s\n", lancfgName);
 		return 1;
 	}
 
-	printf ("---start reading of Lan Support configuration...\n");
+	ShowInfo("reading configuration file %s...\n", lancfgName);
 
 	while(fgets(line, sizeof(line)-1, fp)) {
 		if (line[0] == '/' && line[1] == '/')
@@ -3435,7 +3435,7 @@ int lan_config_read(const char *lancfgName) {
 				strncpy(lan_map_ip, w2, sizeof(lan_map_ip));
 				lan_map_ip[sizeof(lan_map_ip)-1] = 0;
 			}
-			printf("LAN IP of map-server: %s.\n", lan_map_ip);
+			ShowStatus("LAN IP of map-server: %s.\n", lan_map_ip);
 		} else if (strcmpi(w1, "subnet") == 0) { // Read Subnetwork
 			for(j = 0; j < 4; j++)
 				subneti[j] = 0;
@@ -3446,7 +3446,7 @@ int lan_config_read(const char *lancfgName) {
 			} else {
 				sscanf(w2, "%d.%d.%d.%d", &subneti[0], &subneti[1], &subneti[2], &subneti[3]);
 			}
-			printf("Sub-network of the map-server: %d.%d.%d.%d.\n", subneti[0], subneti[1], subneti[2], subneti[3]);
+			ShowStatus("Sub-network of the map-server: %d.%d.%d.%d.\n", subneti[0], subneti[1], subneti[2], subneti[3]);
 		} else if (strcmpi(w1, "subnetmask") == 0){ // Read Subnetwork Mask
 			for(j = 0; j < 4; j++)
 				subnetmaski[j] = 255;
@@ -3457,7 +3457,7 @@ int lan_config_read(const char *lancfgName) {
 			} else {
 				sscanf(w2, "%d.%d.%d.%d", &subnetmaski[0], &subnetmaski[1], &subnetmaski[2], &subnetmaski[3]);
 			}
-			printf("Sub-network mask of the map-server: %d.%d.%d.%d.\n", subnetmaski[0], subnetmaski[1], subnetmaski[2], subnetmaski[3]);
+			ShowStatus("Sub-network mask of the map-server: %d.%d.%d.%d.\n", subnetmaski[0], subnetmaski[1], subnetmaski[2], subnetmaski[3]);
 		}
 	}
 	fclose(fp);
@@ -3468,13 +3468,13 @@ int lan_config_read(const char *lancfgName) {
 		unsigned char p[4];
 		sscanf(lan_map_ip, "%d.%d.%d.%d", &a0, &a1, &a2, &a3);
 		p[0] = a0; p[1] = a1; p[2] = a2; p[3] = a3;
-		printf("LAN test of LAN IP of the map-server: ");
+		ShowInfo("LAN test of LAN IP of the map-server...\n");
 		if (lan_ip_check(p) == 0) {
-			printf("\033[1;31m***ERROR: LAN IP of the map-server doesn't belong to the specified Sub-network.\033[0m\n");
+			ShowError("\033[1;31m LAN IP of the map-server doesn't belong to the specified Sub-network.\033[0m\n");
 		}
 	}
 
-	printf("---End reading of Lan Support configuration...\n");
+	ShowInfo("done reading %s.\n", lancfgName);
 
 	return 0;
 }
@@ -3485,10 +3485,11 @@ int char_config_read(const char *cfgName) {
 	FILE *fp = fopen(cfgName, "r");
 
 	if (fp == NULL) {
-		printf("Configuration file not found: %s.\n", cfgName);
+		ShowFatalError("Configuration file not found: %s.\n", cfgName);
 		exit(1);
 	}
 
+	ShowInfo("Reading configuration file %s...\n", cfgName);
 	while(fgets(line, sizeof(line)-1, fp)) {
 		if (line[0] == '/' && line[1] == '/')
 			continue;
@@ -3506,7 +3507,7 @@ int char_config_read(const char *cfgName) {
 		} else if (strcmpi(w1, "server_name") == 0) {
 			memcpy(server_name, w2, sizeof(server_name));
 			server_name[sizeof(server_name) - 1] = '\0';
-			printf("%s server has been initialized\n", w2);
+			ShowStatus("%s server has been initialized\n", w2);
 		} else if (strcmpi(w1, "wisp_server_name") == 0) {
 			if (strlen(w2) >= 4) {
 				memcpy(wisp_server_name, w2, sizeof(wisp_server_name));
@@ -3516,7 +3517,7 @@ int char_config_read(const char *cfgName) {
 			login_ip_set_ = 1;
 			h = gethostbyname(w2);
 			if (h != NULL) {
-				printf("Login server IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
+				ShowStatus("Login server IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 				sprintf(login_ip_str, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 			} else
 				memcpy(login_ip_str, w2, 16);
@@ -3526,7 +3527,7 @@ int char_config_read(const char *cfgName) {
 			char_ip_set_ = 1;
 			h = gethostbyname(w2);
 			if (h != NULL) {
-				printf("Character server IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
+				ShowStatus("Character server IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 				sprintf(char_ip_str, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 			} else
 				memcpy(char_ip_str, w2, 16);
@@ -3534,7 +3535,7 @@ int char_config_read(const char *cfgName) {
 			bind_ip_set_ = 1;
 			h = gethostbyname(w2);
 			if (h != NULL) {
-				printf("Character server binding IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
+				ShowStatus("Character server binding IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 				sprintf(bind_ip_str, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 			} else
 				memcpy(bind_ip_str, w2, 16);
@@ -3633,12 +3634,13 @@ int char_config_read(const char *cfgName) {
 	}
 	fclose(fp);
 
+	ShowInfo("done reading %s.\n", cfgName);
 	return 0;
 }
 
 void do_final(void) {
 	int i;
-	printf("Terminating server.\n");
+	ShowStatus("Terminating server.\n");
 	// write online players files with no player
 	for(i = 0; i < online_players_max; i++) {
 		online_chars[i].char_id = -1;
@@ -3686,16 +3688,16 @@ int do_init(int argc, char **argv) {
 		char buf[16];
 		sprintf(buf, "%d.%d.%d.%d", ptr[0], ptr[1], ptr[2], ptr[3]);;
 		if (naddr_ != 1)
-			printf("Multiple interfaces detected..  using %s as our IP address\n", buf);
+			ShowStatus("Multiple interfaces detected..  using %s as our IP address\n", buf);
 		else
-			printf("Defaulting to %s as our IP address\n", buf);
+			ShowStatus("Defaulting to %s as our IP address\n", buf);
 		if (login_ip_set_ == 0)
 			strcpy(login_ip_str, buf);
 		if (char_ip_set_ == 0)
 			strcpy(char_ip_str, buf);
 
 		if (ptr[0] == 192 && ptr[1] == 168)
-			printf("Firewall detected.. edit lan_support.conf and char_athena.conf\n");
+			ShowWarning("Firewall detected.. edit lan_support.conf and char_athena.conf\n");
 	}
 
 	login_ip = inet_addr(login_ip_str);
@@ -3709,7 +3711,7 @@ int do_init(int argc, char **argv) {
 	online_players_max = 256;
 	online_chars = (struct online_chars*)aCalloc(sizeof(struct online_chars) * 256, 1);
 	if (!online_chars) {
-		printf("out of memory: do_init (calloc).\n");
+		ShowFatalError("out of memory: do_init (calloc).\n");
 		exit(1);
 	}
 	for(i = 0; i < online_players_max; i++) {
@@ -3746,7 +3748,7 @@ int do_init(int argc, char **argv) {
 
 	char_log("The char-server is ready (Server is listening on the port %d)." RETCODE, char_port);
 
-	printf("The char-server is \033[1;32mready\033[0m (Server is listening on the port %d).\n\n", char_port);
+	ShowStatus("The char-server is \033[1;32mready\033[0m (Server is listening on the port %d).\n\n", char_port);
 
 	return 0;
 }

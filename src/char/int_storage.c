@@ -7,6 +7,7 @@
 #include "../common/socket.h"
 #include "../common/db.h"
 #include "../common/lock.h"
+#include "../common/showmsg.h"
 #include "char.h"
 #include "inter.h"
 #include "int_storage.h"
@@ -195,7 +196,7 @@ struct storage *account2storage(int account_id)
 	if(s == NULL) {
 		s = (struct storage *) aCalloc(sizeof(struct storage), 1);
 		if(s==NULL){
-			printf("int_storage: out of memory!\n");
+			ShowFatalError("int_storage: out of memory!\n");
 			exit(0);
 		}
 		memset(s,0,sizeof(struct storage));
@@ -213,7 +214,7 @@ struct guild_storage *guild2storage(int guild_id)
 		if(gs == NULL) {
 			gs = (struct guild_storage *) aCalloc(sizeof(struct guild_storage), 1);
 			if(gs==NULL){
-				printf("int_storage: out of memory!\n");
+				ShowFatalError("int_storage: out of memory!\n");
 				exit(0);
 			}
 //			memset(gs,0,sizeof(struct guild_storage)); aCalloc does this! [Skotlex]
@@ -238,14 +239,14 @@ int inter_storage_init()
 
 	fp=fopen(storage_txt,"r");
 	if(fp==NULL){
-		printf("cant't read : %s\n",storage_txt);
+		ShowError("cant't read : %s\n",storage_txt);
 		return 1;
 	}
 	while(fgets(line,65535,fp)){
 		sscanf(line,"%d",&tmp_int);
 		s = (struct storage*)aCalloc(sizeof(struct storage), 1);
 		if(s==NULL){
-			printf("int_storage: out of memory!\n");
+			ShowFatalError("int_storage: out of memory!\n");
 			exit(0);
 		}
 //		memset(s,0,sizeof(struct storage)); aCalloc does this...
@@ -254,7 +255,7 @@ int inter_storage_init()
 			numdb_insert(storage_db,s->account_id,s);
 		}
 		else{
-			printf("int_storage: broken data [%s] line %d\n",storage_txt,c);
+			ShowError("int_storage: broken data [%s] line %d\n",storage_txt,c);
 			aFree(s);
 		}
 		c++;
@@ -266,14 +267,14 @@ int inter_storage_init()
 
 	fp=fopen(guild_storage_txt,"r");
 	if(fp==NULL){
-		printf("cant't read : %s\n",guild_storage_txt);
+		ShowError("cant't read : %s\n",guild_storage_txt);
 		return 1;
 	}
 	while(fgets(line,65535,fp)){
 		sscanf(line,"%d",&tmp_int);
 		gs = (struct guild_storage*)aCalloc(sizeof(struct guild_storage), 1);
 		if(gs==NULL){
-			printf("int_storage: out of memory!\n");
+			ShowFatalError("int_storage: out of memory!\n");
 			exit(0);
 		}
 //		memset(gs,0,sizeof(struct guild_storage)); aCalloc...
@@ -282,7 +283,7 @@ int inter_storage_init()
 			numdb_insert(guild_storage_db,gs->guild_id,gs);
 		}
 		else{
-			printf("int_storage: broken data [%s] line %d\n",guild_storage_txt,c);
+			ShowError("int_storage: broken data [%s] line %d\n",guild_storage_txt,c);
 			aFree(gs);
 		}
 		c++;
@@ -325,7 +326,7 @@ int inter_storage_save()
 	FILE *fp;
 	int lock;
 	if( (fp=lock_fopen(storage_txt,&lock))==NULL ){
-		printf("int_storage: cant write [%s] !!! data is lost !!!\n",storage_txt);
+		ShowError("int_storage: cant write [%s] !!! data is lost !!!\n",storage_txt);
 		return 1;
 	}
 	numdb_foreach(storage_db,inter_storage_save_sub,fp);
@@ -353,7 +354,7 @@ int inter_guild_storage_save()
 	FILE *fp;
 	int  lock;
 	if( (fp=lock_fopen(guild_storage_txt,&lock))==NULL ){
-		printf("int_storage: cant write [%s] !!! data is lost !!!\n",guild_storage_txt);
+		ShowError("int_storage: cant write [%s] !!! data is lost !!!\n",guild_storage_txt);
 		return 1;
 	}
 	numdb_foreach(guild_storage_db,inter_guild_storage_save_sub,fp);
@@ -463,7 +464,7 @@ int mapif_parse_SaveStorage(int fd)
 	int account_id=RFIFOL(fd,4);
 	int len=RFIFOW(fd,2);
 	if(sizeof(struct storage)!=len-8){
-		printf("inter storage: data size error %d %d\n",sizeof(struct storage),len-8);
+		ShowError("inter storage: data size error %d %d\n",sizeof(struct storage),len-8);
 	}
 	else {
 		s=account2storage(account_id);
@@ -484,7 +485,7 @@ int mapif_parse_SaveGuildStorage(int fd)
 	int guild_id=RFIFOL(fd,8);
 	int len=RFIFOW(fd,2);
 	if(sizeof(struct guild_storage)!=len-12){
-		printf("inter storage: data size error %d %d\n",sizeof(struct guild_storage),len-12);
+		ShowError("inter storage: data size error %d %d\n",sizeof(struct guild_storage),len-12);
 	}
 	else {
 		gs=guild2storage(guild_id);

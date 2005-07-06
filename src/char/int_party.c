@@ -8,6 +8,7 @@
 #include "../common/socket.h"
 #include "../common/db.h"
 #include "../common/lock.h"
+#include "../common/showmsg.h"
 #include "char.h"
 #include "inter.h"
 #include "int_party.h"
@@ -98,7 +99,7 @@ int inter_party_init() {
 
 		p = (struct party*)aCalloc(sizeof(struct party), 1);
 		if (p == NULL){
-			printf("int_party: out of memory!\n");
+			ShowFatalError("int_party: out of memory!\n");
 			exit(0);
 		}
 		memset(p, 0, sizeof(struct party));
@@ -108,7 +109,7 @@ int inter_party_init() {
 			numdb_insert(party_db, p->party_id, p);
 			party_check_empty(p);
 		} else {
-			printf("int_party: broken data [%s] line %d\n", party_txt, c + 1);
+			ShowError("int_party: broken data [%s] line %d\n", party_txt, c + 1);
 			aFree(p);
 		}
 		c++;
@@ -148,7 +149,7 @@ int inter_party_save() {
 	int lock;
 
 	if ((fp = lock_fopen(party_txt, &lock)) == NULL) {
-		printf("int_party: cant write [%s] !!! data is lost !!!\n", party_txt);
+		ShowError("int_party: cant write [%s] !!! data is lost !!!\n", party_txt);
 		return 1;
 	}
 	numdb_foreach(party_db, inter_party_save_sub, fp);
@@ -201,7 +202,7 @@ int party_check_exp_share(struct party *p) {
                 pl1=search_character_index(p->member[0].name);
                 pl2=search_character_index(p->member[1].name);
                 pl3=search_character_index(p->member[2].name);
-                printf("PARTY: group of 3 Id1 %d lv %d name %s Id2 %d lv %d name %s Id3 %d lv %d name %s\n",pl1,p->member[0].lv,p->member[0].name,pl2,p->member[1].lv,p->member[1].name,pl3,p->member[2].lv,p->member[2].name);
+                ShowDebug("PARTY: group of 3 Id1 %d lv %d name %s Id2 %d lv %d name %s Id3 %d lv %d name %s\n",pl1,p->member[0].lv,p->member[0].name,pl2,p->member[1].lv,p->member[1].name,pl3,p->member[2].lv,p->member[2].name);
                 if (char_married(pl1,pl2) && char_child(pl1,pl3))
                         return 1;
                 if (char_married(pl1,pl3) && char_child(pl1,pl2))
@@ -247,7 +248,7 @@ int party_check_conflict_sub(void *key, void *data, va_list ap) {
 	for(i = 0; i < MAX_PARTY; i++) {
 		if (p->member[i].account_id == account_id && strcmp(p->member[i].name, nick) == 0) {
 			// 別のパ?ティに?の所?デ?タがあるので?退
-			printf("int_party: party conflict! %d %d %d\n", account_id, party_id, p->party_id);
+			ShowWarning("int_party: party conflict! %d %d %d\n", account_id, party_id, p->party_id);
 			mapif_parse_PartyLeave(-1, p->party_id, account_id);
 		}
 	}
@@ -273,7 +274,7 @@ int mapif_party_created(int fd,int account_id, struct party *p) {
 		WFIFOB(fd,6) = 0;
 		WFIFOL(fd,7) = p->party_id;
 		memcpy(WFIFOP(fd,11), p->name, NAME_LENGTH);
-		printf("int_party: created! %d %s\n", p->party_id, p->name);
+		ShowInfo("Created party (%d - %s)\n", p->party_id, p->name);
 	} else {
 		WFIFOB(fd,6) = 1;
 		WFIFOL(fd,7) = 0;
@@ -291,7 +292,7 @@ int mapif_party_noinfo(int fd, int party_id) {
 	WFIFOW(fd,2) = 8;
 	WFIFOL(fd,4) = party_id;
 	WFIFOSET(fd,8);
-	printf("int_party: info not found %d\n", party_id);
+	ShowWarning("int_party: info not found %d\n", party_id);
 
 	return 0;
 }
@@ -337,7 +338,7 @@ int mapif_party_optionchanged(int fd,struct party *p, int account_id, int flag) 
 		mapif_sendall(buf, 15);
 	else
 		mapif_send(fd, buf, 15);
-	printf("int_party: option changed %d %d %d %d %d\n", p->party_id, account_id, p->exp, p->item, flag);
+	ShowDebug("int_party: option changed (%d - %d: Exp: %d Item: %d Flag: %d)\n", p->party_id, account_id, p->exp, p->item, flag);
 
 	return 0;
 }
@@ -352,7 +353,7 @@ int mapif_party_leaved(int party_id,int account_id, char *name) {
 	memcpy(WBUFP(buf,10), name, NAME_LENGTH);
 	mapif_sendall(buf, 10+NAME_LENGTH);
 //	mapif_sendall(buf, 34);
-	printf("int_party: party leaved %d %d %s\n", party_id, account_id, name);
+	ShowDebug("int_party: party leaved (%d: %d - %s)\n", party_id, account_id, name);
 
 	return 0;
 }
@@ -384,7 +385,7 @@ int mapif_party_broken(int party_id, int flag) {
 	WBUFL(buf,2) = party_id;
 	WBUFB(buf,6) = flag;
 	mapif_sendall(buf, 7);
-	printf("int_party: broken %d\n", party_id);
+	ShowInfo("Party broken (%d)\n", party_id);
 
 	return 0;
 }
@@ -414,20 +415,20 @@ int mapif_parse_CreateParty(int fd, int account_id, char *name, char *nick, char
 
 	for(i = 0; i < NAME_LENGTH && name[i]; i++) {
 		if (!(name[i] & 0xe0) || name[i] == 0x7f) {
-			printf("int_party: illegal party name [%s]\n", name);
+			ShowInfo("int_party: illegal party name [%s]\n", name);
 			mapif_party_created(fd, account_id, NULL);
 			return 0;
 		}
 	}
 
 	if ((p = search_partyname(name)) != NULL) {
-		printf("int_party: same name party exists [%s]\n", name);
+		ShowInfo("int_party: same name party exists [%s]\n", name);
 		mapif_party_created(fd, account_id, NULL);
 		return 0;
 	}
 	p = (struct party *) aCalloc(sizeof(struct party), 1);
 	if (p == NULL) {
-		printf("int_party: out of memory !\n");
+		ShowFatalError("int_party: out of memory !\n");
 		mapif_party_created(fd,account_id,NULL);
 		return 0;
 	}

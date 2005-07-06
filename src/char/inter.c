@@ -9,6 +9,7 @@
 #include "../common/timer.h"
 #include "../common/malloc.h"
 #include "../common/lock.h"
+#include "../common/showmsg.h"
 
 #include "char.h"
 #include "inter.h"
@@ -119,13 +120,13 @@ int inter_accreg_init() {
 
 		reg = (struct accreg*)aCalloc(sizeof(struct accreg), 1);
 		if (reg == NULL) {
-			printf("inter: accreg: out of memory!\n");
+			ShowFatalError("inter: accreg: out of memory!\n");
 			exit(0);
 		}
 		if (inter_accreg_fromstr(line, reg) == 0 && reg->account_id > 0) {
 			numdb_insert(accreg_db, reg->account_id, reg);
 		} else {
-			printf("inter: accreg: broken data [%s] line %d\n", accreg_txt, c);
+			ShowError("inter: accreg: broken data [%s] line %d\n", accreg_txt, c);
 			aFree(reg);
 		}
 		c++;
@@ -157,7 +158,7 @@ int inter_accreg_save() {
 	int lock;
 
 	if ((fp = lock_fopen(accreg_txt,&lock)) == NULL) {
-		printf("int_accreg: cant write [%s] !!! data is lost !!!\n", accreg_txt);
+		ShowError("int_accreg: cant write [%s] !!! data is lost !!!\n", accreg_txt);
 		return 1;
 	}
 	numdb_foreach(accreg_db, inter_accreg_save_sub,fp);
@@ -179,7 +180,7 @@ int inter_config_read(const char *cfgName) {
 
 	fp = fopen(cfgName, "r");
 	if (fp == NULL) {
-		printf("file not found: %s\n", cfgName);
+		ShowError("file not found: %s\n", cfgName);
 		return 1;
 	}
 	while(fgets(line, sizeof(line) - 1, fp)) {
@@ -393,7 +394,7 @@ int check_ttl_wisdata() {
 		numdb_foreach(wis_db, check_ttl_wisdata_sub, tick);
 		for(i = 0; i < wis_delnum; i++) {
 			struct WisData *wd = (struct WisData*)numdb_search(wis_db, wis_dellist[i]);
-			printf("inter: wis data id=%d time out : from %s to %s\n", wd->id, wd->src, wd->dst);
+			ShowWarning("inter: wis data id=%d time out : from %s to %s\n", wd->id, wd->src, wd->dst);
 			// removed. not send information after a timeout. Just no answer for the player
 			//mapif_wis_end(wd, 1); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
 			numdb_erase(wis_db, wd->id);
@@ -421,10 +422,10 @@ int mapif_parse_WisRequest(int fd) {
 	int index;
 
 	if (RFIFOW(fd,2)-52 >= sizeof(wd->msg)) {
-		printf("inter: Wis message size too long.\n");
+		ShowWarning("inter: Wis message size too long.\n");
 		return 0;
 	} else if (RFIFOW(fd,2)-52 <= 0) { // normaly, impossible, but who knows...
-		printf("inter: Wis message doesn't exist.\n");
+		ShowError("inter: Wis message doesn't exist.\n");
 		return 0;
 	}
 
@@ -451,7 +452,7 @@ int mapif_parse_WisRequest(int fd) {
 
 			wd = (struct WisData *)aCalloc(sizeof(struct WisData), 1);
 			if (wd == NULL){
-				printf("inter: WisRequest: out of memory !\n");
+				ShowFatalError("inter: WisRequest: out of memory !\n");
 				return 0;
 			}
 
@@ -508,7 +509,7 @@ int mapif_parse_AccReg(int fd) {
 
 	if (reg == NULL) {
 		if ((reg = (struct accreg*)aCalloc(sizeof(struct accreg), 1)) == NULL) {
-			printf("inter: accreg: out of memory !\n");
+			ShowFatalError("inter: accreg: out of memory !\n");
 			exit(0);
 		}
 		reg->account_id = RFIFOL(fd,4);
