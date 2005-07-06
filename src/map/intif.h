@@ -20,7 +20,7 @@ int intif_send_guild_storage(unsigned long account_id, struct guild_storage &gst
 int intif_create_party(struct map_session_data &sd,const char *name,int item,int item2);
 int intif_request_partyinfo(unsigned long party_id);
 int intif_party_addmember(unsigned long party_id, unsigned long account_id);
-int intif_party_changeoption(unsigned long party_id, unsigned long account_id, int exp, int item);
+int intif_party_changeoption(unsigned long party_id, unsigned long account_id, unsigned short expshare,unsigned short itemshare);
 int intif_party_leave(unsigned long party_id, unsigned long accound_id);
 int intif_party_changemap(struct map_session_data *sd, int online);
 int intif_break_party(unsigned long party_id);

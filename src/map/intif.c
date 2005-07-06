@@ -309,15 +309,15 @@ int intif_party_addmember(unsigned long party_id,unsigned long account_id)
 	return 0;
 }
 // パーティ設定変更
-int intif_party_changeoption(unsigned long party_id,unsigned long account_id,int exp,int item)
+int intif_party_changeoption(unsigned long party_id,unsigned long account_id,unsigned short expshare,unsigned short itemshare)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
 	WFIFOW(char_fd,0)=0x3023;
 	WFIFOL(char_fd,2)=party_id;
 	WFIFOL(char_fd,6)=account_id;
-	WFIFOW(char_fd,10)=exp;
-	WFIFOW(char_fd,12)=item;
+	WFIFOW(char_fd,10)=expshare;
+	WFIFOW(char_fd,12)=itemshare;
 	WFIFOSET(char_fd,14);
 	return 0;
 }
@@ -523,17 +523,15 @@ int intif_guild_change_memberinfo(unsigned long guild_id,unsigned long account_i
 {
 	if( !session_isActive(char_fd) )
 		return 0;
-	if((guild_search(guild_id) != NULL) && (map_id2sd(account_id) != NULL))
-	{	
-		WFIFOW(char_fd, 0)=0x303a;
-		WFIFOW(char_fd, 2)=22;
-		WFIFOL(char_fd, 4)=guild_id;
-		WFIFOL(char_fd, 8)=account_id;
-		WFIFOL(char_fd,12)=char_id;
-		WFIFOW(char_fd,16)=type;
-		WFIFOL(char_fd,18)=data;
-		WFIFOSET(char_fd,22);
-	}
+
+	WFIFOW(char_fd, 0)=0x303a;
+	WFIFOW(char_fd, 2)=22;
+	WFIFOL(char_fd, 4)=guild_id;
+	WFIFOL(char_fd, 8)=account_id;
+	WFIFOL(char_fd,12)=char_id;
+	WFIFOW(char_fd,16)=type;
+	WFIFOL(char_fd,18)=data;
+	WFIFOSET(char_fd,22);
 	return 0;
 }
 // ギルド役職変更要求
@@ -545,11 +543,8 @@ int intif_guild_position(unsigned long guild_id,unsigned long idx,struct guild_p
 	WFIFOW(char_fd,2)=sizeof(struct guild_position)+12;
 	WFIFOL(char_fd,4)=guild_id;
 	WFIFOL(char_fd,8)=idx;
-	//memcpy(WFIFOP(char_fd,12),p,sizeof(struct guild_position));
 	guild_position_tobuffer(pos, WFIFOP(char_fd,12));
-
 	WFIFOSET(char_fd, sizeof(struct guild_position)+12);
-
 	return 0;
 }
 // ギルドスキルアップ要求
@@ -561,7 +556,7 @@ int intif_guild_skillup(unsigned long guild_id,unsigned short skillid,unsigned l
 	WFIFOL(char_fd, 2)=guild_id;
 	WFIFOL(char_fd, 6)=skillid;
 	WFIFOL(char_fd,10)=account_id;
-	//WFIFOL(char_fd,14)=flag;
+	//WFIFOL(char_fd,14)=flag; // not used
 	WFIFOSET(char_fd,14);
 	return 0;
 }

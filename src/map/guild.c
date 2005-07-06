@@ -164,7 +164,7 @@ void do_init_guild(void)
 // 検索
 struct guild *guild_search(unsigned long guild_id)
 {
-	return (struct guild *) numdb_search(guild_db,guild_id);
+	return (struct guild *)numdb_search(guild_db,guild_id);
 }
 int guild_searchname_sub(void *key,void *data,va_list ap)
 {
@@ -379,14 +379,13 @@ bool guild_check_member(const struct guild &g)
 {
 	size_t i;
 	struct map_session_data *sd;
-
+	
 	for(i=0;i<fd_max;i++)
 	{
 		if( session[i] && 
 			(sd=(struct map_session_data *)session[i]->session_data) && 
 			sd->state.auth &&
-			sd->status.guild_id==g.guild_id
-		  )
+			sd->status.guild_id==g.guild_id )
 		{
 			size_t j;
 			for(j=0;j<MAX_GUILD;j++)
@@ -399,16 +398,16 @@ bool guild_check_member(const struct guild &g)
 			}
 			if(j>=MAX_GUILD)// always valid
 			{
-					sd->status.guild_id=0;
-					sd->guild_sended=0;
-					sd->guild_emblem_id=0;
-					if(battle_config.error_log)
+				sd->status.guild_id=0;
+				sd->guild_sended=0;
+				sd->guild_emblem_id=0;
+				if(battle_config.error_log)
 					ShowMessage("guild: check_member %d[%s] is not member\n",sd->status.account_id,sd->status.name);
-				}
 			}
 		}
-	return false;
 	}
+	return false;
+}
 // 情報所得失敗（そのIDのキャラを全部未所属にする）
 int guild_recv_noinfo(unsigned long guild_id)
 {
@@ -430,9 +429,11 @@ int guild_recv_info(struct guild &sg)
 	struct eventlist *ev,*ev2;
 
 
-	if((g=(struct guild *) numdb_search(guild_db,sg.guild_id))==NULL)
+	if((g=(struct guild *) numdb_search(guild_db,sg.guild_id))==NULL )
 	{	// 最初のロードなのでユーザーのチェックを行う
+
 		guild_check_member(sg);
+
 		memcpy(&before, &sg, sizeof(struct guild)); //before=sg;
 		g=(struct guild *)aCalloc(1,sizeof(struct guild));
 		numdb_insert(guild_db,sg.guild_id,g);
@@ -442,6 +443,7 @@ int guild_recv_info(struct guild &sg)
 		memcpy(&before, g, sizeof(struct guild)); //before=*g;
 	}
 	memcpy(g,&sg,sizeof(struct guild));
+
 
 	for(i=bm=m=0;i<g->max_member;i++)
 	{	// sdの設定と人数の確認
@@ -632,7 +634,7 @@ int guild_member_added(unsigned long guild_id,unsigned long account_id,unsigned 
 
 	// いちおう競合確認
 	guild_check_conflict(*sd);
-
+	clif_charnameack(0, sd->bl); //Update display name [Skotlex]
 	return 0;
 }
 
@@ -723,6 +725,7 @@ int guild_member_leaved(unsigned long guild_id,unsigned long account_id,unsigned
 			sd->status.guild_id=0;
 			sd->guild_emblem_id=0;
 			sd->guild_sended=0;
+			clif_charnameack(0, sd->bl); //Update display name [Skotlex]
 		}
 	return 0;
 }
@@ -754,8 +757,8 @@ int guild_send_memberinfoshort(struct map_session_data &sd,int online)
 	guild_check_conflict(sd);
 
 	// あるならギルド初期送信データ送信
-	if( (g=guild_search(sd.status.guild_id))!=NULL ){
-		guild_check_member(*g);	// 所属を確認する
+	if( (g=guild_search(sd.status.guild_id))!=NULL && guild_check_member(*g) )
+	{	// 所属を確認する
 		if(sd.status.guild_id==g->guild_id){
 			clif_guild_belonginfo(sd,*g);
 			clif_guild_notice(sd,*g);

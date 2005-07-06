@@ -26,8 +26,8 @@ int party_recv_noinfo(unsigned long party_id);
 int party_recv_info(struct party &sp);
 int party_recv_movemap(unsigned long party_id,unsigned long account_id,const char *map,int online,unsigned short lv);
 int party_broken(unsigned long party_id);
-int party_optionchanged(unsigned long party_id,unsigned long account_id,int exp,int item,int flag);
-int party_changeoption(struct map_session_data &sd,int exp,int item);
+int party_optionchanged(unsigned long party_id,unsigned long account_id,unsigned short expshare,unsigned short itemshare,unsigned char flag);
+int party_changeoption(struct map_session_data &sd,unsigned short expshare,unsigned short itemshare);
 
 int party_send_movemap(struct map_session_data &sd);
 int party_send_logout(struct map_session_data &sd);

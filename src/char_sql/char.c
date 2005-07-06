@@ -734,12 +734,6 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online)
 {
 	size_t i, n, friends=0;
-	struct mmo_charstatus *cp;
-
-	cp = (struct mmo_charstatus*)numdb_search(char_db_,char_id);
-	if (cp != NULL)
-	  aFree(cp);
-
 	memset(p, 0, sizeof(struct mmo_charstatus));
 
 	p->char_id = char_id;
@@ -1013,18 +1007,22 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online)
 			mysql_free_result(sql_res);
 		}
 	}
-	
-	
-	
 	if (online)
 	{
 		set_char_online(char_id,p->account_id);
 	}
 	ShowMessage("char data load success]\n");	//ok. all data load successfuly!
 
+
+	struct mmo_charstatus *cp;
+	cp = (struct mmo_charstatus*)numdb_search(char_db_,char_id);
+	if(!cp)
+	{
 	cp = (struct mmo_charstatus *) aMalloc(sizeof(struct mmo_charstatus));
+		numdb_insert(char_db_, char_id, cp);
+	}
     	memcpy(cp, p, sizeof(struct mmo_charstatus));
-	numdb_insert(char_db_, char_id,cp);
+	
 	return 1;
 }
 //==========================================================================================================
@@ -1533,7 +1531,6 @@ int mmo_char_send006b(int fd, struct char_session_data *sd)
 		WFIFOB(fd,j+103) = (p->luk > 255) ? 255 : p->luk;
 		WFIFOB(fd,j+104) = p->char_num;
 	}
-
 	WFIFOSET(fd,WFIFOW(fd,2));
 //	ShowMessage("mmo_char_send006b end..\n");
 	return 0;
@@ -1914,6 +1911,18 @@ int parse_frommap(int fd)
 		}
 		server[id].fd = -1;
 		session_Remove(fd);
+
+		// inform the other map servers of the loss
+		unsigned char buf[16384];
+		WBUFW(buf,0) = 0x2b20;
+		WBUFW(buf,2) = server[id].maps * 16 + 10;
+		WBUFLIP(buf,4) = server[id].lanip;
+		WBUFW(buf,8) = server[id].lanport;
+
+		for(i=10, j=0; j<server[id].maps; i+=16, j++)
+			memcpy(RBUFP(buf,i), server[id].map[j], 16);
+		mapif_sendallwos(fd, buf, server[id].maps * 16 + 10);
+
 		return 0;
 	}
 
@@ -1955,7 +1964,7 @@ int parse_frommap(int fd)
 //				ShowMessage("set map %d.%d : %s\n", id, j, server[id].map[j]);
 				j++;
 			}
-
+			server[id].maps = j;
 			ShowMessage("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
 			       id, j, (server[id].lanip>>24)&0xFF, (server[id].lanip>>16)&0xFF, (server[id].lanip>>8)&0xFF, (server[id].lanip)&0xFF, server[id].lanport);
 			ShowMessage("Map-server %d loading complete.\n", id);

@@ -21,6 +21,17 @@ enum CharCommandType {
 	CharCommandShowExp,
 	CharCommandShowDelay,
 
+	CharCommandFakeName,
+	CharCommandBaseLevel,
+	CharCommandJobLevel,
+	CharCommandQuestSkill,
+	CharCommandLostSkill,
+	CharCommandSkReset,
+	CharCommandStReset,
+	CharCommandModel,
+	CharCommandSKPoint,
+	CharCommandSTPoint,
+	CharCommandChangeSex,
 
 #ifdef TXT_ONLY
 /* TXT_ONLY */

@@ -4409,7 +4409,7 @@ int status_change_end( struct block_list* bl, int type, int tid )
 				{
 					struct map_session_data *sd=NULL;
 					if(bl->type == BL_PC && (sd=(struct map_session_data *)bl)){
-						sd->next_walktime = -1;
+						sd->next_walktime = 0;
 					}
 				}
 				break;
@@ -4640,7 +4640,7 @@ int status_change_timer(int tid,unsigned long tick,int id,int data)
 			int range = 5;
 			if ( type == SC_SIGHT ) range = 7;
 			map_foreachinarea( status_change_timer_sub,
-				bl->m, bl->x-range, bl->y-range, bl->x+range,bl->y+range,0,
+				bl->m, ((int)bl->x)-range, ((int)bl->y)-range, ((int)bl->x)+range,((int)bl->y)+range,0,
 				bl,type,tick);
 
 			if( (--sc_data[type].val2)>0 ){
@@ -4779,7 +4779,7 @@ int status_change_timer(int tid,unsigned long tick,int id,int data)
 	case SC_BROKNWEAPON:
 	case SC_BROKNARMOR:
 	case SC_SACRIFICE:
-		sc_data[type].timer=add_timer( 1000*600+tick,status_change_timer, bl->id, data );
+		sc_data[type].timer=add_timer( tick+1000*600,status_change_timer, bl->id, data );
 		return 0;
 	case SC_DANCING: //ダンススキルの時間SP消費
 		{

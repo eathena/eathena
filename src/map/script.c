@@ -319,6 +319,7 @@ int buildin_select(struct script_state &st);
 int buildin_getmapmobs(struct script_state &st); //jA addition end
 int buildin_getstrlen(struct script_state &st); //strlen [valaris]
 int buildin_charisalpha(struct script_state &st);//isalpha [valaris]
+int buildin_fakenpcname(struct script_state &st); // [Lance]
 
 int buildin_defpattern(struct script_state &st); // MouseJstr
 int buildin_activatepset(struct script_state &st); // MouseJstr
@@ -329,6 +330,8 @@ int buildin_unequip(struct script_state &st); // unequip [Spectre]
 
 int buildin_pcstrcharinfo(struct script_state &st);
 int buildin_getnameditem(struct script_state &st);
+
+
 
 void push_val(struct script_stack &stack,int type,int val);
 int run_func(struct script_state &st);
@@ -585,6 +588,7 @@ struct {
 	{buildin_pcstrcharinfo,"pcstrcharinfo","ii"},
 	{buildin_getstrlen,"getstrlen","s"}, //strlen [Valaris]
 	{buildin_charisalpha,"charisalpha","si"}, //isalpha [Valaris]
+	{buildin_fakenpcname,"fakenpcname","ssi"}, // [Lance]
 
 	{NULL,NULL,NULL},
 };
@@ -2022,7 +2026,7 @@ int buildin_areawarp(struct script_state &st)
 //!! broadcast command if not on this mapserver
 
 	map_foreachinarea(buildin_areawarp_sub,
-		m,x0,y0,x1,y1,BL_PC,	str,x,y );
+		m,x0,y0,x1,y1,BL_PC, str,x,y );
 	return 0;
 }
 
@@ -2758,7 +2762,7 @@ int buildin_makeitem(struct script_state &st)
 		if(!flag)
 			item_tmp.identify=1;
 		else
-			item_tmp.identify=!itemdb_isEquipment(nameid);
+			item_tmp.identify = !itemdb_isEquipment(nameid);
 
 //		clif_additem(sd,0,0,flag);
 		map_addflooritem(item_tmp,amount,m,x,y,NULL,NULL,NULL,0);
@@ -4154,7 +4158,7 @@ int buildin_killmonster(struct script_state &st)
 		return 0;
 //!! broadcast command if not on this mapserver
 	map_foreachinarea(buildin_killmonster_sub,
-		m,0,0,map[m].xs,map[m].ys,BL_MOB, event ,allflag);
+		m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB, event ,allflag);
 	return 0;
 }
 
@@ -4173,7 +4177,7 @@ int buildin_killmonsterall(struct script_state &st)
 		return 0;
 //!! broadcast command if not on this mapserver
 	map_foreachinarea(buildin_killmonsterall_sub,
-		m,0,0,map[m].xs,map[m].ys,BL_MOB);
+		m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
 	return 0;
 }
 
@@ -4422,7 +4426,7 @@ int buildin_mapannounce(struct script_state &st)
 		return 0;
 //!! broadcast command if not on this mapserver
 	map_foreachinarea(buildin_mapannounce_sub,
-		m,0,0,map[m].xs,map[m].ys,BL_PC, str,strlen(str)+1,flag&0x10);
+		m,0,0,map[m].xs-1,map[m].ys-1,BL_PC, str,strlen(str)+1,flag&0x10);
 	return 0;
 }
 /*==========================================
@@ -5474,12 +5478,12 @@ int buildin_maprespawnguildid_sub(struct block_list &bl,va_list ap)
 		md=(struct mob_data *)&bl;
 
 	if(sd){
-		if((sd->status.guild_id == g_id) && (flag&1))
+		if( (sd->status.guild_id == 0) ||
+			((sd->status.guild_id == g_id) && (flag&1)) ||
+			((sd->status.guild_id != g_id) && (flag&2)) )
+		{	// move players out that not belong here
 			pc_setpos(*sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);
-		else if((sd->status.guild_id != g_id) && (flag&2))
-			pc_setpos(*sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);
-		else if (sd->status.guild_id == 0)	// Warp out players not in guild [Valaris]
-			pc_setpos(*sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);	// end addition [Valaris]
+		}
 	}
 	else if(md && flag&4){
 		if(md->class_ < 1285 || md->class_ > 1288)
@@ -5863,7 +5867,7 @@ int buildin_mapwarp(struct script_state &st)	// Added by RoVeRT
 		return 0;
 //!! broadcast command if not on this mapserver
 	map_foreachinarea(buildin_areawarp_sub,
-		m,x0,y0,x1,y1,BL_PC,	str,x,y );
+		m,x0,y0,x1,y1,BL_PC, str,x,y );
 	return 0;
 }
 
@@ -5922,7 +5926,7 @@ int buildin_mobcount(struct script_state &st)	// Added by RoVeRT
 		return 0;
 	}
 	map_foreachinarea(buildin_mobcount_sub,
-		m,0,0,map[m].xs,map[m].ys,BL_MOB, event,&c );
+		m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB, event,&c );
 
 	push_val(st.stack,C_INT, (c));
 
@@ -6984,7 +6988,7 @@ int buildin_npcstop(struct script_state &st)
 {
 	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
 
-	if( (nd) && (nd->state.state==MS_WALK) )
+	if( (nd) && (nd->state.npcstate==MS_WALK) )
 		npc_stop_walking(*nd,1);
 	return 0;
 }
@@ -7717,6 +7721,29 @@ int buildin_charisalpha(struct script_state &st)
 	push_val(st.stack,C_INT, val);
 	return 0;
 }
+
+
+
+// [Lance]
+int buildin_fakenpcname(struct script_state &st)
+{
+	const char *name;
+	const char *newname;
+	unsigned long look;
+	name = conv_str(st, (st.stack.stack_data[st.start+2]));
+	newname = conv_str(st, (st.stack.stack_data[st.start+3]));
+	look = conv_num(st, (st.stack.stack_data[st.start+4]));
+	if(look > 0xFFFF) return 0; // Safety measure to prevent runtime errors
+	npc_changename(name, newname, look);
+	return 0;
+}
+
+
+
+
+
+
+
 //
 // é¿çsïîmain
 //
@@ -7973,13 +8000,13 @@ void op_1num(struct script_state &st,int op)
 	i1=pop_val(st);
 	switch(op){
 	case C_NEG:
-		i1=-i1;
+		i1 = -i1;
 		break;
 	case C_NOT:
-		i1=~i1;
+		i1 = ~i1;
 		break;
 	case C_LNOT:
-		i1=!i1;
+		i1 = !i1;
 		break;
 	}
 	push_val(st.stack,C_INT,i1);

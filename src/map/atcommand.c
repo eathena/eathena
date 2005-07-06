@@ -3299,7 +3299,7 @@ bool atcommand_killmonster_sub(int fd, struct map_session_data &sd, const char* 
 
 	if(map_id>0 && map_id<(int)map_num)
 	{
-	map_foreachinarea(atkillmonster_sub, map_id, 0, 0, map[map_id].xs, map[map_id].ys, BL_MOB, drop);
+	map_foreachinarea(atkillmonster_sub, map_id, 0, 0, map[map_id].xs-1, map[map_id].ys-1, BL_MOB, drop);
 	clif_displaymessage(fd, msg_table[165]); // All monsters killed!
 		return true;
 }
@@ -7631,7 +7631,7 @@ bool atcommand_mobsearch(int fd, struct map_session_data& sd, const char* comman
 	clif_displaymessage(fd, output);
 
 	map_foreachinarea(atmobsearch_sub, map_id, 0, 0,
-		map[map_id].xs, map[map_id].ys, BL_MOB, mob_id, fd);
+		map[map_id].xs-1, map[map_id].ys-1, BL_MOB, mob_id, fd);
 
 	atmobsearch_sub(sd.bl,0);		// ”Ô†ƒŠƒZƒbƒg
 
@@ -7655,8 +7655,8 @@ int atcommand_cleanmap_sub(struct block_list &bl, va_list ap)
 bool atcommand_cleanmap(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	map_foreachinarea(atcommand_cleanmap_sub, sd.bl.m,
-		sd.bl.x-AREA_SIZE*2, sd.bl.y-AREA_SIZE*2,
-		sd.bl.x+AREA_SIZE*2, sd.bl.y+AREA_SIZE*2,
+		((int)sd.bl.x)-AREA_SIZE*2, ((int)sd.bl.y)-AREA_SIZE*2,
+		((int)sd.bl.x)+AREA_SIZE*2, ((int)sd.bl.y)+AREA_SIZE*2,
 		BL_ITEM);
 	clif_displaymessage(fd, "All dropped items have been cleaned up.");
 	return true;
@@ -8968,8 +8968,8 @@ bool atcommand_mutearea(int fd, struct map_session_data &sd, const char* command
 	if (time <= 0)
 		time = 15; // 15 minutes default
 	map_foreachinarea(atcommand_mutearea_sub,sd.bl.m, 
-		sd.bl.x-AREA_SIZE,sd.bl.y-AREA_SIZE, 
-		sd.bl.x+AREA_SIZE, sd.bl.y+AREA_SIZE, BL_PC, sd.bl.id, time);
+		((int)sd.bl.x)-AREA_SIZE, ((int)sd.bl.y)-AREA_SIZE, 
+		((int)sd.bl.x)+AREA_SIZE, ((int)sd.bl.y)+AREA_SIZE, BL_PC, sd.bl.id, time);
 
 	return true;
 }
@@ -8991,13 +8991,13 @@ bool atcommand_shuffle(int fd, struct map_session_data &sd, const char* command,
 	if (strcmp(message, "area")== 0)
 	{
 		map_foreachinarea(atcommand_shuffle_sub,sd.bl.m,
-			sd.bl.x-AREA_SIZE,sd.bl.y-AREA_SIZE,
-			sd.bl.x+AREA_SIZE, sd.bl.y+AREA_SIZE, BL_PC);
+			((int)sd.bl.x)-AREA_SIZE, ((int)sd.bl.y)-AREA_SIZE,
+			((int)sd.bl.x)+AREA_SIZE, ((int)sd.bl.y)+AREA_SIZE, BL_PC);
 	}
 	else if (strcmp(message, "map")== 0)
 	{
 		map_foreachinarea(atcommand_shuffle_sub,sd.bl.m,
-      0, 399, 0, 399, BL_PC);
+			0, 0, map[sd.bl.m].xs, map[sd.bl.m].ys, BL_PC);
 	}
 	else if (strcmp(message, "world") == 0)
 	{

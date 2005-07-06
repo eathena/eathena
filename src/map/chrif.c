@@ -219,7 +219,7 @@ int chrif_recvmap(int fd)
 		map_setipport((char*)RFIFOP(fd,i), ip, port);
 	}
 	if (battle_config.etc_log)
-		ShowStatus("recv map on %d.%d.%d.%d:%d (%d maps)\n", (ip>>24)&0xFF, (ip>>16)&0xFF, (ip>>8)&0xFF, (ip)&0xFF, port, j);
+		ShowStatus("recv maps from %d.%d.%d.%d:%d (%d maps)\n", (ip>>24)&0xFF, (ip>>16)&0xFF, (ip>>8)&0xFF, (ip)&0xFF, port, j);
 
 	return 0;
 }
@@ -244,7 +244,7 @@ int chrif_removemap(int fd)
 		map_eraseipport((char*)RFIFOP(fd, i), ip, port);
 	}
 	if(battle_config.etc_log){
-		ShowMessage("remove map of server %d.%d.%d.%d:%d (%d maps)\n", (ip>>24)&0xFF, (ip>>16)&0xFF, (ip>>8)&0xFF, (ip)&0xFF, port, j);
+		ShowStatus("remove maps of server %d.%d.%d.%d:%d (%d maps)\n", (ip>>24)&0xFF, (ip>>16)&0xFF, (ip>>8)&0xFF, (ip)&0xFF, port, j);
 	}
 	
 	return 0;	

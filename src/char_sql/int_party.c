@@ -56,7 +56,7 @@ bool inter_party_tosql(unsigned long party_id, struct party &p)
 				leader_id = p.member[i].account_id;
 			
 			sprintf(tmp_sql,"INSERT INTO `%s`  (`party_id`, `name`, `exp`, `item`, `leader_id`) VALUES ('%ld', '%s', '%d', '%d', '%ld')",
-				party_db, party_id, t_name, p.exp, p.item, leader_id);
+				party_db, party_id, t_name, p.expshare, p.itemshare, leader_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (inset/update `party` 1)- %s\n", mysql_error(&mysql_handle) );
 				return false;
@@ -132,7 +132,7 @@ bool inter_party_tosql(unsigned long party_id, struct party &p)
 			
 			//Sasuke- Updates Party db correct info
 			sprintf(tmp_sql,"UPDATE `%s` SET `name`='%s', `exp`='%d', `item`='%d', `leader_id`='%ld' WHERE `party_id`='%ld'",
-				party_db, t_name, p.exp, p.item, leader_id, party_id);
+				party_db, t_name, p.expshare, p.itemshare, leader_id, party_id);
 			if( mysql_SendQuery(&mysql_handle, tmp_sql) )
 				ShowMessage("DB server Error (insert/update `party` 3)- %s\n", mysql_error(&mysql_handle) );
 			//ShowMessage("- Update party %d information \n",party_id);
@@ -162,8 +162,8 @@ bool inter_party_fromsql(int party_id, struct party &p)
 		ShowMessage("- Read party %d from MySQL\n",party_id);
 		p.party_id = party_id;
 		safestrcpy(p.name, sql_row[0], 24);
-		p.exp = atoi(sql_row[1]);
-		p.item = atoi(sql_row[2]);
+		p.expshare = atoi(sql_row[1]);
+		p.itemshare = atoi(sql_row[2]);
 		leader_id = atoi(sql_row[3]);
 	} else {
 		mysql_free_result(sql_res);
@@ -290,15 +290,20 @@ bool party_check_exp_share(struct party &p)
 	size_t pl1=0,pl2=0,pl3=0;
 	unsigned short maxlv = 0, minlv = 0xFFFF;
 	
-	for(i=0;i<MAX_PARTY;i++)
+	for(i = 0; i < MAX_PARTY; i++)
 	{
 		unsigned short lv = p.member[i].lv;
-		if (p.member[i].online)
+		if(lv && p.member[i].account_id && p.member[i].online)
 		{
-			if( lv < minlv ) minlv=lv;
-			else if (maxlv < lv)	maxlv = lv;
+			if(minlv == 0xFFFF)
+				minlv = maxlv = lv;
+			else if (lv < minlv)
+				minlv = lv;
+			else if (maxlv < lv)
+				maxlv = lv;
 			cnt_lo++;
-			if( lv >= 70 )			cnt_hi++;
+			if( lv >= 70 )
+				cnt_hi++;
 		}
 	}
 	// check for party with parents with child
@@ -310,14 +315,12 @@ bool party_check_exp_share(struct party &p)
 		pl2=char_nick2id(p.member[1].name);
 		pl3=char_nick2id(p.member[2].name);
 		ShowMessage("PARTY: group of 3 Id1 %d lv %d name %s Id2 %d lv %d name %s Id3 %d lv %d name %s\n",pl1,p.member[0].lv,p.member[0].name,pl2,p.member[1].lv,p.member[1].name,pl3,p.member[2].lv,p.member[2].name);
-		if (char_married(pl1,pl2) && char_child(pl1,pl3))
-			return true;
-		if (char_married(pl1,pl3) && char_child(pl1,pl2))
-			return true;
-		if (char_married(pl2,pl3) && char_child(pl2,pl1))
+		if( (char_married(pl1,pl2) && char_child(pl1,pl3)) ||
+			(char_married(pl1,pl3) && char_child(pl1,pl2)) ||
+			(char_married(pl2,pl3) && char_child(pl2,pl1)) )
 			return true;
 	}
-	return (maxlv==0 || maxlv<=minlv+party_share_level);
+	return (maxlv==0) || (maxlv<=(minlv+party_share_level));
 }
 
 // Is there any member in the party?
@@ -416,7 +419,7 @@ int mapif_party_memberadded(int fd,unsigned long party_id,unsigned long account_
 	return 0;
 }
 // パーティ設定変更通知
-int mapif_party_optionchanged(int fd,struct party *p,unsigned long account_id,int flag)
+int mapif_party_optionchanged(int fd,struct party *p,unsigned long account_id, unsigned char flag)
 {
 	if(p)
 	{
@@ -424,14 +427,14 @@ int mapif_party_optionchanged(int fd,struct party *p,unsigned long account_id,in
 		WBUFW(buf,0)=0x3823;
 		WBUFL(buf,2)=p->party_id;
 		WBUFL(buf,6)=account_id;
-		WBUFW(buf,10)=p->exp;
-		WBUFW(buf,12)=p->item;
+		WBUFW(buf,10)=p->expshare;
+		WBUFW(buf,12)=p->itemshare;
 		WBUFB(buf,14)=flag;
 		if(flag==0)
 			mapif_sendall(buf,15);
 		else
 			mapif_send(fd,buf,15);
-		ShowMessage("int_party: option changed %ld %ld %d %d %d\n",p->party_id,account_id,p->exp,p->item,flag);
+		ShowMessage("int_party: option changed %ld %ld %d %d %d\n",p->party_id,account_id,p->expshare,p->itemshare,flag);
 	}
 	return 0;
 }
@@ -507,8 +510,8 @@ int mapif_parse_CreateParty(int fd,unsigned long account_id,char *name,char *nic
 
 		p.party_id=party_newid++;
 		safestrcpy(p.name,name,24);
-		p.exp=0;
-		p.item=item;
+		p.expshare=0;
+		p.itemshare=item;
 		//<item1>アイテム?集方法。0で個人別、1でパ?ティ公有
 		//<item2>アイテム分配方法。0で個人別、1でパ?ティに均等分配
 		p.itemc = 0;
@@ -557,8 +560,6 @@ int mapif_parse_PartyAddMember(int fd,unsigned long party_id,unsigned long accou
 	{
 		if(p.member[i].account_id==0)
 		{
-			int flag=0;
-
 			p.member[i].account_id=account_id;
 			memcpy(p.member[i].name,nick,24);
 			memcpy(p.member[i].map,map,24);
@@ -568,12 +569,11 @@ int mapif_parse_PartyAddMember(int fd,unsigned long party_id,unsigned long accou
 			mapif_party_memberadded(fd, party_id, account_id, 0);
 			mapif_party_info(-1, &p);
 
-			if( p.exp>0 && !party_check_exp_share(p) ){
-				p.exp=0;
-				flag=0x01;
-			}
-			if(flag)
+			if( (p.itemshare||p.expshare) && !party_check_exp_share(p) ) {
+				// disable the menu
+				p.itemshare = p.expshare = 0;
 				mapif_party_optionchanged(fd, &p, 0, 0);
+			}
 			inter_party_tosql(party_id, p);
 			return 0;
 		}
@@ -582,7 +582,7 @@ int mapif_parse_PartyAddMember(int fd,unsigned long party_id,unsigned long accou
 	return 0;
 }
 // パーティー設定変更要求
-int mapif_parse_PartyChangeOption(int fd,unsigned long party_id,unsigned long account_id,int exp,int item)
+int mapif_parse_PartyChangeOption(int fd,unsigned long party_id,unsigned long account_id,unsigned short expshare,unsigned short itemshare)
 {
 	int flag=0;
 	struct party p;
@@ -591,15 +591,17 @@ int mapif_parse_PartyChangeOption(int fd,unsigned long party_id,unsigned long ac
 	if(p.party_id != party_id){
 		return 0;
 	}
-
-	p.exp=exp;
-	if( exp>0 && !party_check_exp_share(p) ){
-		flag|=0x01;
-		p.exp=0;
+	if( party_check_exp_share(p) )
+	{
+		p.itemshare = itemshare;
+		p.expshare = expshare;
 	}
-
-	p.item=item;
-	mapif_party_optionchanged(fd, &p, account_id, flag);
+	else
+	{	// disable the menu
+		p.itemshare = p.expshare =  0;
+		flag = 1;
+	}
+	mapif_party_optionchanged(fd, &p, account_id, flag );
 	inter_party_tosql(party_id, p);
 	return 0;
 }
@@ -719,18 +721,17 @@ int mapif_parse_PartyChangeMap(int fd,unsigned long party_id,unsigned long accou
 	for(i=0;i<MAX_PARTY;i++){
 		if(p.member[i].account_id==account_id)
 		{
-			int flag=0;
 			safestrcpy(p.member[i].map,map,24);
 			p.member[i].online=online;
 			p.member[i].lv=lv;
 			mapif_party_membermoved(&p,i);
 
-			if( p.exp>0 && !party_check_exp_share(p) ){
-				p.exp=0;
-				flag=1;
-			}
-			if(flag)
+			if( (p.itemshare||p.expshare) && !party_check_exp_share(p) ) {
+				// disable the menu
+				p.itemshare = p.expshare = 0;
 				mapif_party_optionchanged(fd, &p,0,0);
+
+			}
 			break;
 		}
 	}

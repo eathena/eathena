@@ -92,6 +92,7 @@ int party_created(unsigned long account_id,int fail,unsigned long party_id,const
 		memcpy(p->name, name, 24);
 		numdb_insert(party_db,party_id,p);
 		clif_party_created(*sd,0);
+		clif_charnameack(0, sd->bl); //Update other people's display. [Skotlex]
 	}else{
 		clif_party_created(*sd,1);
 	}
@@ -186,7 +187,6 @@ int party_recv_info(struct party &sp)
 			sd->party_sended=1;
 		}
 	}
-	
 	return 0;
 }
 
@@ -273,7 +273,7 @@ int party_member_added(unsigned long party_id,unsigned long account_id,int flag)
 
 	// いちおう競合確認
 	party_check_conflict(*sd);
-
+	clif_charnameack(0, sd->bl); //Update char name's display [Skotlex]
 	return 0;
 }
 // パーティ除名要求
@@ -315,6 +315,7 @@ int party_leave(struct map_session_data &sd)
 			return 0;
 		}
 	}
+	
 	return 0;
 }
 // パーティメンバが脱退した
@@ -334,6 +335,7 @@ int party_member_leaved(unsigned long party_id,unsigned long account_id,const ch
 	if(sd!=NULL && sd->status.party_id==party_id){
 		sd->status.party_id=0;
 		sd->party_sended=0;
+		clif_charnameack(0, sd->bl); //Update name display [Skotlex]
 	}
 	return 0;
 }
@@ -357,25 +359,35 @@ int party_broken(unsigned long party_id)
 	return 0;
 }
 // パーティの設定変更要求
-int party_changeoption(struct map_session_data &sd,int exp,int item)
+int party_changeoption(struct map_session_data &sd,unsigned short expshare,unsigned short itemshare)
 {
+	size_t i;
 	struct party *p;
 
 	if( sd.status.party_id==0 || (p=party_search(sd.status.party_id))==NULL )
 		return 0;
-	intif_party_changeoption(sd.status.party_id,sd.status.account_id,exp,item);
+
+	for(i=0; i<MAX_PARTY; i++)
+	{	// only leader can change party options
+		if(p->member[i].account_id == sd.status.account_id)
+		{
+			if( p->member[i].leader )
+				intif_party_changeoption(sd.status.party_id, sd.status.account_id, expshare, itemshare);
+			break;
+		}
+	}
 	return 0;
 }
 // パーティの設定変更通知
-int party_optionchanged(unsigned long party_id,unsigned long account_id,int exp,int item,int flag)
+int party_optionchanged(unsigned long party_id,unsigned long account_id,unsigned short expshare,unsigned short itemshare,unsigned char flag)
 {
 	struct party *p;
 	struct map_session_data *sd=map_id2sd(account_id);
 	if( (p=party_search(party_id))==NULL)
 		return 0;
 
-	if(!(flag&0x01)) p->exp=exp;
-	if(!(flag&0x10)) p->item=item;
+	p->expshare = expshare;
+	p->itemshare = itemshare;
 	clif_party_option(*p,sd,flag);
 	return 0;
 }
@@ -433,7 +445,8 @@ int party_send_movemap(struct map_session_data &sd)
 	party_check_conflict(sd);
 	
 	// あるならパーティ情報送信
-	if( (p=party_search(sd.status.party_id))!=NULL ){
+	if( (p=party_search(sd.status.party_id))!=NULL )
+	{
 		party_check_member(*p);	// 所属を確認する
 		if(sd.status.party_id==p->party_id){
 			clif_party_info(*p,sd.fd);
@@ -564,15 +577,12 @@ int party_exp_share(struct party &p,unsigned short map, unsigned long base_exp,u
 	unsigned short c=0;
 	unsigned short memberpos[MAX_PARTY];
 
-
-	
-
 	for (i=c=0; i < MAX_PARTY; i++)
 	{	
 		if((sd=p.member[i].sd)!=NULL && p.member[i].online && sd->bl.m==map && session[sd->fd] != NULL)
 		{
-			if( !(sd->chatID && battle_config.party_share_mode>=2 ) &&					// don't count chatting
-				!(sd->idletime+120 < last_tick && battle_config.party_share_mode>=1) )	// don't count idle
+			if( !( sd->chatID                            && battle_config.party_share_mode>=2 ) &&	// don't count chatting
+				!( difftime(last_tick, sd->idletime)>120 && battle_config.party_share_mode>=1) )	// don't count idle
 				memberpos[c++] = i;
 		}
 	}
@@ -636,8 +646,8 @@ int party_exp_share2(struct party &p, unsigned short map, unsigned long base_exp
 	{	
 		if((sd=p.member[i].sd)!=NULL && p.member[i].online && sd->bl.m==map && session[sd->fd] != NULL)
 		{
-			if( !(sd->chatID && battle_config.party_share_mode>=2 ) &&					// don't count chatting
-				!(sd->idletime+120 < last_tick && battle_config.party_share_mode>=1) )	// don't count idle
+			if( !( sd->chatID                             && battle_config.party_share_mode>=2 ) &&	// don't count chatting
+				!( difftime(last_tick, sd->idletime)>120  && battle_config.party_share_mode>=1) )	// don't count idle
 				memberpos[c++] = i;
 				lvlsum += p.member[i].lv;
 		}

@@ -75,8 +75,8 @@ unsigned int battle_counttargeted(struct block_list &bl,struct block_list *src, 
 	unsigned int c = 0;
 
 	map_foreachinarea(battle_counttargeted_sub, bl.m,
-		bl.x-AREA_SIZE, bl.y-AREA_SIZE,
-		bl.x+AREA_SIZE, bl.y+AREA_SIZE, 0,
+		((int)bl.x)-AREA_SIZE, ((int)bl.y)-AREA_SIZE,
+		((int)bl.x)+AREA_SIZE, ((int)bl.y)+AREA_SIZE, 0,
 		bl.id, &c, src, target_lv);
 
 	return c;
@@ -131,9 +131,8 @@ struct block_list* battle_gettargeted(struct block_list &target)
 
 	memset(bl_list, 0, sizeof(bl_list));
 	map_foreachinarea(battle_gettargeted_sub, target.m,
-		target.x-AREA_SIZE, target.y-AREA_SIZE,
-		target.x+AREA_SIZE, target.y+AREA_SIZE, 0,
-		bl_list, &c, &target);
+		((int)target.x)-AREA_SIZE, ((int)target.y)-AREA_SIZE,
+		((int)target.x)+AREA_SIZE, ((int)target.y)+AREA_SIZE, 0, bl_list, &c, &target);
 	if (c == 0 || c > 24)
 		return NULL;
 	return bl_list[rand()%c];
@@ -350,7 +349,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			// セーフティウォール
 			struct skill_unit *unit;
 			unit = (struct skill_unit *)sc_data[SC_SAFETYWALL].val2;
-			if (unit) {
+			// temporary check to prevent access on wrong val2
+			if (unit && unit->bl.m == bl->m) {
 				if (unit->group && (--unit->group->val2)<=0)
 					skill_delunit(unit);
 				damage=0;
@@ -3099,7 +3099,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 	if (!skill_num && !flag.cri && sc_data && sc_data[SC_SACRIFICE].timer != -1)
 	{
 		skill_num = PA_SACRIFICE;
-		skill_lv	=  sc_data[SC_SACRIFICE].val1;
+		skill_lv =  sc_data[SC_SACRIFICE].val1;
 	}
 
 	if (!skill_num && (tsd || battle_config.enemy_perfect_flee))
@@ -4009,6 +4009,10 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 	
 	if(!flag.lh || wd.damage2<1)
 		wd.damage2=0;
+
+	//Double is basicly a normal attack x2, so... [Skotlex]
+	if (skill_num == TF_DOUBLE)
+		wd.damage *=2;
 	
 	if (sd)
 	{
@@ -4019,8 +4023,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 			flag.rh=1;
 			flag.lh=0;
 		}
-
-		if(sd->status.weapon > 16)
+		else if(sd->status.weapon > 16)
 		{	//Dual-wield
 			if (wd.damage > 0)
 			{
@@ -4034,7 +4037,8 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 				wd.damage2 = wd.damage2 * (30 + (skill * 10))/100;
 				if(wd.damage2 < 1) wd.damage2 = 1;
 			}
-		} else if(sd->status.weapon == 16)
+		}
+		else if(sd->status.weapon == 16)
 		{ //Katars
 			skill = pc_checkskill(*sd,TF_DOUBLE);
 			wd.damage2 = wd.damage * (1 + (skill * 2))/100;
@@ -5448,15 +5452,18 @@ static struct {
 	{ "magic_defense_type",                &battle_config.magic_defense_type		},
 	{ "mail_system",						&battle_config.mail_system	}, // added by [Valaris]
 	{ "making_arrow_name_input",           &battle_config.making_arrow_name_input	},
+	{ "max_adv_level",						&battle_config.max_adv_level				},
 	{ "max_aspd",                          &battle_config.max_aspd					},
+	{ "max_base_level",						&battle_config.max_base_level				},
 	{ "max_cart_weight",                   &battle_config.max_cart_weight			},
 	{ "max_cloth_color",                   &battle_config.max_cloth_color	}, // added by [MouseJstr]
 	{ "max_hair_color",                    &battle_config.max_hair_color	}, // added by [MouseJstr]
 	{ "max_hair_style",                    &battle_config.max_hair_style	}, // added by [MouseJstr]
 	{ "max_hitrate",                       &battle_config.max_hitrate	},
 	{ "max_hp",                            &battle_config.max_hp					},
-	{ "max_lv",                            &battle_config.max_lv					},
+	{ "max_job_level",						&battle_config.max_job_level				},
 	{ "max_parameter",                     &battle_config.max_parameter			},
+	{ "max_sn_level",						&battle_config.max_sn_level				},
 	{ "max_sp",                            &battle_config.max_sp					},
 	{ "max_walk_speed",						&battle_config.max_walk_speed			},
 	{ "maximum_level",                     &battle_config.maximum_level	},	// [Valaris]
@@ -5738,16 +5745,19 @@ void battle_set_defaults()
 	battle_config.magic_defense_type = 0;
 	battle_config.mail_system = 0;
 	battle_config.making_arrow_name_input = 1;
+	battle_config.max_adv_level=70;
 	battle_config.max_aspd = 199;
 	battle_config.max_aspd_val=10;
+	battle_config.max_base_level = 99; // [MouseJstr]
 	battle_config.max_cart_weight = 8000;
 	battle_config.max_cloth_color = 4;
 	battle_config.max_hair_color = 9;
 	battle_config.max_hair_style = 20;
 	battle_config.max_hitrate = 95;
 	battle_config.max_hp = 32500;
-	battle_config.max_lv = 99; // [MouseJstr]
+	battle_config.max_job_level = 50; // [MouseJstr]
 	battle_config.max_parameter = 99;
+	battle_config.max_sn_level = 70;
 	battle_config.max_sp = 32500;
 	battle_config.max_walk_speed = 300;
 	battle_config.maximum_level = 255;

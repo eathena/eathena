@@ -1924,7 +1924,7 @@ int map_removemobs_timer(int tid,unsigned long tick,int id,int data)
 	if (map[id].users > 0) //Map not empty!
 		return 1;
 	
-	k = map_foreachinarea(mob_cache_cleanup_sub, id, 0, 0, map[id].xs, map[id].ys, BL_MOB);
+	k = map_foreachinarea(mob_cache_cleanup_sub, id, 0, 0, map[id].xs-1, map[id].ys-1, BL_MOB);
 	if (battle_config.etc_log && k > 0)
 		ShowStatus("Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[id].mapname, k);
 	return 1;
@@ -2271,8 +2271,8 @@ int map_eraseipport(const char *name, unsigned long ip,unsigned short port)
 					strdb_erase(map_db,name);
 					aFree(mdos);
 				}
-				if(battle_config.etc_log)
-					ShowStatus("erase map %s %d.%d.%d.%d:%d\n",name,(ip>>24)&0xFF,(ip>>16)&0xFF,(ip>>8)&0xFF,(ip)&0xFF,port);
+				//if(battle_config.etc_log)
+				//	ShowStatus("erase map %s %d.%d.%d.%d:%d\n",name,(ip>>24)&0xFF,(ip>>16)&0xFF,(ip>>8)&0xFF,(ip)&0xFF,port);
 			}
 		}
 	}
@@ -3451,7 +3451,7 @@ void do_final(void)
 	// additional removing
 	for (i = 0; i < map_num; i++)
 		if (map[i].m >= 0)
-			map_foreachinarea(cleanup_sub, i, 0, 0, map[i].xs, map[i].ys, 0);
+			map_foreachinarea(cleanup_sub, i, 0, 0, map[i].xs-1, map[i].ys-1, 0);
 	// and a check
 	map_checknpcsleft();
 
@@ -3661,7 +3661,6 @@ int do_init(int argc, char *argv[]) {
 	do_init_skill();
 	do_init_pet();
 	do_init_npc();
-
 
 	if(battle_config.mail_system)
 		do_init_mail();

@@ -415,7 +415,7 @@ int pet_walk(struct pet_data &pd,unsigned long tick,int data)
 		if(pd.walkpath.path_pos >= pd.walkpath.path_len)
 			clif_fixpetpos(pd);
 
-		if(pd.timer=!-1) delete_timer(pd.timer, pet_timer);
+		if(pd.timer!=-1) delete_timer(pd.timer, pet_timer);
 		pd.timer=add_timer(tick+i,pet_timer,pd.bl.id,pd.walkpath.path_pos);
 	}
 	return 0;
@@ -1360,8 +1360,8 @@ int pet_ai_sub_hard(struct pet_data &pd,unsigned long tick)
 	if(!pd.target_id && pd.loot && pd.loot->count < pd.loot->max && DIFF_TICK(gettick(),pd.loot->loottick)>0)
 	{
 		map_foreachinarea(pet_ai_sub_hard_lootsearch,pd.bl.m,
-						  pd.bl.x-AREA_SIZE*2,pd.bl.y-AREA_SIZE*2,
-						  pd.bl.x+AREA_SIZE*2,pd.bl.y+AREA_SIZE*2,
+						  ((int)pd.bl.x)-AREA_SIZE*2,((int)pd.bl.y)-AREA_SIZE*2,
+						  ((int)pd.bl.x)+AREA_SIZE*2,((int)pd.bl.y)+AREA_SIZE*2,
 						  BL_ITEM,&pd,&i);
 	}
 

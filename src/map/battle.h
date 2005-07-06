@@ -208,16 +208,19 @@ struct Battle_Config
 	ulong magic_defense_type;
 	ulong mail_system; // [Valaris]
 	ulong making_arrow_name_input;
+	ulong max_adv_level;
 	ulong max_aspd;
 	ulong max_aspd_val; // not writable
+	ulong max_base_level;
 	ulong max_cart_weight;
 	ulong max_cloth_color; // added by [MouseJstr]
 	ulong max_hair_color; // added by [MouseJstr]
 	ulong max_hair_style; // added by [MouseJstr]
 	ulong max_hitrate;
 	ulong max_hp;
-	ulong max_lv;
+	ulong max_job_level;
 	ulong max_parameter;
+	ulong max_sn_level;
 	ulong max_sp;
 	ulong max_walk_speed;
 	ulong maximum_level;

@@ -25,7 +25,7 @@ int mapif_parse_PartyLeave(int fd, unsigned long party_id, unsigned long account
 int inter_party_tostr(char *str, struct party *p) {
 	int i, len;
 
-	len = sprintf(str, "%ld\t%s\t%d,%d\t", p->party_id, p->name, p->exp, p->item);
+	len = sprintf(str, "%ld\t%s\t%d,%d\t", p->party_id, p->name, p->expshare, p->itemshare);
 	for(i = 0; i < MAX_PARTY; i++) {
 		struct party_member *m = &p->member[i];
 		len += sprintf(str + len, "%ld,%ld\t%s\t", m->account_id, m->leader, ((m->account_id > 0) ? m->name : "NoMember"));
@@ -48,8 +48,8 @@ int inter_party_fromstr(char *str, struct party *p) {
 
 	p->party_id = tmp_int[0];
 	memcpy(p->name, tmp_str, 24);
-	p->exp = tmp_int[1];
-	p->item = tmp_int[2];
+	p->expshare = tmp_int[1];
+	p->itemshare = tmp_int[2];
 //	ShowMessage("%d [%s] %d %d\n", tmp_int[0], tmp_str[0], tmp_int[1], tmp_int[2]);
 
 	for(j = 0; j < 3 && str != NULL; j++)
@@ -185,31 +185,35 @@ bool party_check_exp_share(struct party *p)
 	for(i = 0; i < MAX_PARTY; i++)
 	{
 		unsigned short lv = p->member[i].lv;
-		if (p->member[i].online)
+		if(lv && p->member[i].account_id && p->member[i].online)
 		{
-			if (lv < minlv)			minlv = lv;
-			else if (maxlv < lv)	maxlv = lv;
+			if(minlv == 0xFFFF)
+				minlv = maxlv = lv;
+			else if (lv < minlv)
+				minlv = lv;
+			else if (maxlv < lv)
+				maxlv = lv;
 			cnt_lo++;
-			if( lv >= 70 )			cnt_hi++;
+			if( lv >= 70 )
+				cnt_hi++;
 		}
 	}
+
 	// check for party with parents with child
 	if( (cnt_hi >= 2) && (cnt_lo == 3) &&
-		(!strcmp(p->member[0].map,p->member[1].map)) &&
-		(!strcmp(p->member[1].map,p->member[2].map)) )
+		(0==strcmp(p->member[0].map,p->member[1].map)) &&
+		(0==strcmp(p->member[1].map,p->member[2].map)) )
 	{
-                pl1=search_character_index(p->member[0].name);
-                pl2=search_character_index(p->member[1].name);
-                pl3=search_character_index(p->member[2].name);
-		ShowMessage("PARTY: group of 3 Id1 %d lv %d name %s Id2 %d lv %d name %s Id3 %d lv %d name %s\n",pl1,p->member[0].lv,p->member[0].name,pl2,p->member[1].lv,p->member[1].name,pl3,p->member[2].lv,p->member[2].name);
-                if (char_married(pl1,pl2) && char_child(pl1,pl3))
+		pl1=search_character_index(p->member[0].name);
+		pl2=search_character_index(p->member[1].name);
+		pl3=search_character_index(p->member[2].name);
+		//ShowMessage("PARTY: group of 3 Id1 %d lv %d name %s Id2 %d lv %d name %s Id3 %d lv %d name %s\n",pl1,p->member[0].lv,p->member[0].name,pl2,p->member[1].lv,p->member[1].name,pl3,p->member[2].lv,p->member[2].name);
+		if( (char_married(pl1,pl2) && char_child(pl1,pl3)) ||
+			(char_married(pl1,pl3) && char_child(pl1,pl2)) ||
+			(char_married(pl2,pl3) && char_child(pl2,pl1)) )
 			return true;
-                if (char_married(pl1,pl3) && char_child(pl1,pl2))
-			return true;
-                if (char_married(pl2,pl3) && char_child(pl2,pl1))
-			return true;
-        }
-	return (maxlv==0 || maxlv<=minlv+party_share_level);
+	}
+	return (maxlv==0) || (maxlv<=(minlv+party_share_level));
 }
 
 // パーティが空かどうかチェック
@@ -343,20 +347,21 @@ int mapif_party_memberadded(int fd, unsigned long party_id, unsigned long accoun
 }
 
 // パーティ設定変更通知
-int mapif_party_optionchanged(int fd,struct party *p, unsigned long account_id, int flag) {
+int mapif_party_optionchanged(int fd,struct party *p, unsigned long account_id, unsigned char flag)
+{
 	unsigned char buf[15];
 
 	WBUFW(buf,0) = 0x3823;
 	WBUFL(buf,2) = p->party_id;
 	WBUFL(buf,6) = account_id;
-	WBUFW(buf,10) = p->exp;
-	WBUFW(buf,12) = p->item;
+	WBUFW(buf,10) = p->expshare;
+	WBUFW(buf,12) = p->itemshare;
 	WBUFB(buf,14) = flag;
 	if (flag == 0)
 		mapif_sendall(buf, 15);
 	else
 		mapif_send(fd, buf, 15);
-	ShowMessage("int_party: option changed %d %d %d %d %d\n", p->party_id, account_id, p->exp, p->item, flag);
+	ShowMessage("int_party: option changed %d %d %d %d %d\n", p->party_id, account_id, p->expshare, p->itemshare, flag);
 
 	return 0;
 }
@@ -445,8 +450,8 @@ int mapif_parse_CreateParty(int fd, unsigned long account_id, char *name, char *
 	p = (struct party*)aCalloc(1,sizeof(struct party));
 	p->party_id = party_newid++;
 	memcpy(p->name, name, 24);
-	p->exp = 0;
-	p->item = 0;
+	p->expshare = 0;
+	p->itemshare = 0;
 	p->member[0].account_id = account_id;
 	memcpy(p->member[0].name, nick, 24);
 	memcpy(p->member[0].map, map, 24);
@@ -476,7 +481,8 @@ int mapif_parse_PartyInfo(int fd, int party_id) {
 }
 
 // パーティ追加要求
-int mapif_parse_PartyAddMember(int fd, unsigned long party_id, unsigned long account_id, char *nick, char *map, int lv) {
+int mapif_parse_PartyAddMember(int fd, unsigned long party_id, unsigned long account_id, char *nick, char *map, int lv)
+{
 	struct party *p;
 	int i;
 
@@ -488,8 +494,6 @@ int mapif_parse_PartyAddMember(int fd, unsigned long party_id, unsigned long acc
 
 	for(i = 0; i < MAX_PARTY; i++) {
 		if (p->member[i].account_id == 0) {
-			int flag = 0;
-
 			p->member[i].account_id = account_id;
 			memcpy(p->member[i].name, nick, 24);
 			memcpy(p->member[i].map, map, 24);
@@ -499,12 +503,11 @@ int mapif_parse_PartyAddMember(int fd, unsigned long party_id, unsigned long acc
 			mapif_party_memberadded(fd, party_id, account_id, 0);
 			mapif_party_info(-1, p);
 
-			if (p->exp > 0 && !party_check_exp_share(p)) {
-				p->exp = 0;
-				flag = 0x01;
-			}
-			if (flag)
+			if( (p->itemshare||p->expshare) && !party_check_exp_share(p) ) {
+				// disable the menu
+				p->itemshare = p->expshare = 0;
 				mapif_party_optionchanged(fd, p, 0, 0);
+			}
 			return 0;
 		}
 	}
@@ -514,28 +517,36 @@ int mapif_parse_PartyAddMember(int fd, unsigned long party_id, unsigned long acc
 }
 
 // パーティー設定変更要求
-int mapif_parse_PartyChangeOption(int fd, unsigned long party_id, unsigned long account_id, int exp, int item) {
+int mapif_parse_PartyChangeOption(int fd, unsigned long party_id, unsigned long account_id, unsigned short expshare, unsigned short itemshare)
+{
 	struct party *p;
 	int flag = 0;
+	unsigned short esold, isold;
 
 	p = (struct party *) numdb_search(party_db, party_id);
 	if (p == NULL)
 		return 0;
 
-	p->exp = exp;
-	if (exp>0 && !party_check_exp_share(p)) {
-		flag |= 0x01;
-		p->exp = 0;
+	esold = p->expshare;
+	isold = p->itemshare;
+
+	if( party_check_exp_share(p) )
+	{
+		p->itemshare = itemshare;
+		p->expshare = expshare;
 	}
-
-	p->item = item;
-
-	mapif_party_optionchanged(fd, p, account_id, flag);
+	else
+	{	// disable
+		p->itemshare = p->expshare =  0;
+		flag = 1;
+	}
+	mapif_party_optionchanged(fd, p, account_id, flag );
 	return 0;
 }
 
 // パーティ脱退要求
-int mapif_parse_PartyLeave(int fd, unsigned long party_id, unsigned long account_id) {
+int mapif_parse_PartyLeave(int fd, unsigned long party_id, unsigned long account_id)
+{
 	struct party *p;
 	size_t i,j,k;
 
@@ -603,12 +614,11 @@ int mapif_parse_PartyChangeMap(int fd, unsigned long party_id, unsigned long acc
 			p->member[i].lv = lv;
 			mapif_party_membermoved(p, i);
 
-			if (p->exp > 0 && !party_check_exp_share(p)) {
-				p->exp = 0;
-				flag = 1;
-			}
-			if (flag)
+			if( (p->itemshare||p->expshare) && !party_check_exp_share(p) ) {
+				// disable the menu
+				p->itemshare = p->expshare = 0;
 				mapif_party_optionchanged(fd, p, 0, 0);
+			}
 			break;
 		}
 	}

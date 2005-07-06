@@ -349,9 +349,9 @@ int pc_makesavestatus(struct map_session_data &sd)
 	// 死亡?態だったのでhpを1、位置をセ?ブ場所に?更
 	if(pc_isdead(sd))
 	{
-			pc_setrestartvalue(sd,0);
+		pc_setrestartvalue(sd,0);
 		memcpy(&sd.status.last_point,&sd.status.save_point,sizeof(sd.status.last_point));
-		}
+	}
 	else
 	{
 		memcpy(sd.status.last_point.map,sd.mapname,24);
@@ -364,13 +364,14 @@ int pc_makesavestatus(struct map_session_data &sd)
 	{
 		if( strcmp(map[sd.bl.m].save.map,"SavePoint")==0 )
 			memcpy(&sd.status.last_point,&sd.status.save_point,sizeof(sd.status.last_point));
-			else
+		else
 			memcpy(&sd.status.last_point,&map[sd.bl.m].save,sizeof(sd.status.last_point));
-		}
+	}
 
 	//マナ?ポイントがプラスだった場合0に
-	if(battle_config.muting_players && sd.status.manner != 0)
-		sd.status.manner = 0;
+	//if(battle_config.muting_players && sd.status.manner != 0)
+	//	sd.status.manner = 0;
+	//!! dont clear the mute counter, chars otherwise just log out to strip off their mute
 
 	return 0;
 }
@@ -647,7 +648,7 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 	sd->head_dir = 0;
 	sd->state.auth = 1;
 	sd->walktimer = -1;
-	sd->next_walktime = -1;
+	sd->next_walktime = 0;
 	sd->attacktimer = -1;
 	sd->followtimer = -1; // [MouseJstr]
 	sd->skilltimer = -1;
@@ -3188,8 +3189,6 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 
 			skill_unit_move(sd.bl,gettick(),0);
 			skill_gangsterparadise(&sd,0);
-			clif_clearchar_area(sd.bl,clrtype);
-			map_delblock(sd.bl);
 			
 			party_send_logout(sd);					// パーティのログアウトメッセージ送信
 			guild_send_memberinfoshort(sd,0);		// ギルドのログアウトメッセージ送信
@@ -3213,6 +3212,10 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 			chrif_save(sd);
 			storage_storage_save(sd);
 			storage_delete(sd.status.account_id);
+
+			clif_clearchar_area(sd.bl,clrtype);
+			map_delblock(sd.bl);
+
 			chrif_changemapserver(sd, mapname, x, y, ip, port);
 			return true;
 		}
@@ -3248,8 +3251,6 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 	if(sd.bl.prev != NULL)
 	{
 		skill_gangsterparadise(&sd,0);
-		clif_clearchar_area(sd.bl,clrtype);
-		map_delblock(sd.bl);
 
 		if(sd.status.pet_id > 0 && sd.pd)
 		{
@@ -3275,6 +3276,10 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 				map_delblock(sd.pd->bl);
 			}
 		}
+
+		clif_clearchar_area(sd.bl,clrtype);
+		map_delblock(sd.bl);
+
 		clif_changemap(sd,map[m].mapname,x,y); // [MouseJstr]
 	}
 	
@@ -3617,7 +3622,7 @@ int pc_walktoxy (struct map_session_data &sd, unsigned short x,unsigned short y)
 				if (guildflag)
 			{
 				map_foreachinarea (skill_guildaura_sub, sd.bl.m,
-					sd.bl.x-2, sd.bl.y-2, sd.bl.x+2, sd.bl.y+2, BL_PC,
+					((int)sd.bl.x)-2, ((int)sd.bl.y)-2, ((int)sd.bl.x)+2, ((int)sd.bl.y)+2, BL_PC,
 					sd.bl.id, sd.status.guild_id, &guildflag);
 			}
 		}
@@ -4936,12 +4941,8 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 				}
 			}
 			if (battle_config.pk_mode && ssd->status.manner >= 0)
-			{	// limit manner to +/-127
-				if(ssd->status.manner > -127)
-					ssd->status.manner -= 5;
-				else
-					ssd->status.manner = -127;
-
+			{	
+				ssd->status.manner -= 5;
 				if(ssd->status.manner < 0)
 					status_change_start(src,SC_NOCHAT,0,0,0,0,0,0);
 				
@@ -4953,27 +4954,27 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 
 				if (sd.status.karma > ssd->status.karma)
 				{	// If player killed was more evil
-					// limit karma to +/-127 (is a char anyway)
-					if( sd.status.karma >-127 )
+					// limit karma to +/-100 (is a char anyway)
+					if( sd.status.karma >-100 )
 						sd.status.karma--;
-					if( ssd->status.karma >-127 )
+					if( ssd->status.karma >-100 )
 						ssd->status.karma--;
 				}
 				else if (sd.status.karma < ssd->status.karma)
 				{	// If player killed was more good
-					if( ssd->status.karma < 127 )
+					if( ssd->status.karma < 100 )
 						ssd->status.karma++;
 				}
 /*
 				// or the PK System way...
 				if (sd.status.karma > 0)
 				{	// player killed is dishonourable
-					if( sd.status.karma >-127 )
+					if( sd.status.karma >-100 )
 						sd.status.karma--; // honour points earned
 				}
 				else
 				{
-					if( sd.status.karma < 127 )
+					if( sd.status.karma < 100 )
 						sd.status.karma++;	// honour points lost
 				}
 				// To-do: Receive exp on certain occasions
@@ -5283,6 +5284,9 @@ int pc_readparam(struct map_session_data &sd,int type)
 	case SP_KARMA:	// celest
 		val = sd.status.karma;
 		break;
+	case SP_CHAOS:
+		val = sd.status.chaos;
+		break;
 	case SP_MANNER:
 		val = sd.status.manner;
 		break;
@@ -5312,7 +5316,7 @@ int pc_setparam(struct map_session_data &sd,int type,int val)
 			for (i = 1; i <= (val - sd.status.base_level); i++)
 				sd.status.status_point += (sd.status.base_level + i + 14) / 5 ;
 		}
-		sd.status.base_level = val;
+		sd.status.base_level = (val>0) ? val : 1;
 		sd.status.base_exp = 0;
 		clif_updatestatus(sd, SP_BASELEVEL);
 		clif_updatestatus(sd, SP_NEXTBASEEXP);
@@ -5341,7 +5345,7 @@ int pc_setparam(struct map_session_data &sd,int type,int val)
 			status_calc_pc(sd, 0);
 			clif_misceffect(sd.bl, 1);
 		} else {
-			sd.status.job_level = val;
+			sd.status.job_level = (val>0) ? val : 1;
 			sd.status.job_exp = 0;
 			clif_updatestatus(sd, SP_JOBLEVEL);
 			clif_updatestatus(sd, SP_NEXTJOBEXP);
@@ -5351,10 +5355,10 @@ int pc_setparam(struct map_session_data &sd,int type,int val)
 		clif_updatestatus(sd,type);
 		break;
 	case SP_SKILLPOINT:
-		sd.status.skill_point = val;
+		sd.status.skill_point = (val>0) ? val : 0;
 		break;
 	case SP_STATUSPOINT:
-		sd.status.status_point = val;
+		sd.status.status_point = (val>0) ? val : 0;
 		break;
 	case SP_ZENY:
 		if(val < 0)
@@ -5366,67 +5370,66 @@ int pc_setparam(struct map_session_data &sd,int type,int val)
 		break;
 	case SP_BASEEXP:
 		if(pc_nextbaseexp(sd) > 0) {
-			sd.status.base_exp = val;
-			if(sd.status.base_exp < 0)
-				sd.status.base_exp=0;
+			sd.status.base_exp = (val>0) ? val : 0;
 			pc_checkbaselevelup(sd);
 		}
 		break;
 	case SP_JOBEXP:
 		if(pc_nextjobexp(sd) > 0) {
-			sd.status.job_exp = val;
-			if(sd.status.job_exp < 0)
-				sd.status.job_exp=0;
+			sd.status.job_exp = (val>0) ? val : 0;
 			pc_checkjoblevelup(sd);
 		}
 		break;
 	case SP_SEX:
-		sd.status.sex = val;
+		sd.status.sex = val&0x1; // only use the LSB
 		break;
 	case SP_WEIGHT:
-		sd.weight = val;
+		sd.weight = (val>0) ? val : 0;
 		break;
 	case SP_MAXWEIGHT:
-		sd.max_weight = val;
+		sd.max_weight = (val>0) ? val : 0;
 		break;
 	case SP_HP:
-		sd.status.hp = val;
+		sd.status.hp = (val>0) ? val : 0;
 		break;
 	case SP_MAXHP:
-		sd.status.max_hp = val;
+		sd.status.max_hp = (val>0) ? val : 0;
 		break;
 	case SP_SP:
-		sd.status.sp = val;
+		sd.status.sp = (val>0) ? val : 0;
 		break;
 	case SP_MAXSP:
-		sd.status.max_sp = val;
+		sd.status.max_sp = (val>0) ? val : 0;
 		break;
 	case SP_STR:
-		sd.status.str = val;
+		sd.status.str = (val>0) ? val : 0;
 		break;
 	case SP_AGI:
-		sd.status.agi = val;
+		sd.status.agi = (val>0) ? val : 0;
 		break;
 	case SP_VIT:
-		sd.status.vit = val;
+		sd.status.vit = (val>0) ? val : 0;
 		break;
 	case SP_INT:
-		sd.status.int_ = val;
+		sd.status.int_ = (val>0) ? val : 0;
 		break;
 	case SP_DEX:
-		sd.status.dex = val;
+		sd.status.dex = (val>0) ? val : 0;
 		break;
 	case SP_LUK:
-		sd.status.luk = val;
+		sd.status.luk = (val>0) ? val : 0;
 		break;
 	case SP_KARMA:
-		sd.status.karma = val;
+		sd.status.karma = (val>100)?100 : (val<-100) ? -100 : val;
+		break;
+	case SP_CHAOS:
+		sd.status.chaos = (val>100)?100 : (val<-100) ? -100 : val;
 		break;
 	case SP_MANNER:
-		sd.status.manner = val;
+		sd.status.manner= (val>32767)?32767 : (val<-32768) ? -32768 : val;
 		break;
 	case SP_FAME:
-		sd.status.fame_points = val;
+		sd.status.fame_points = (val>0) ? val : 0;
 		break;
 	}
 	clif_updatestatus(sd,type);
@@ -5680,10 +5683,8 @@ int pc_jobchange(struct map_session_data &sd,int job, int upper)
 
 	clif_changelook(sd.bl,LOOK_BASE,sd.view_class); // move sprite update to prevent client crashes with incompatible equipment [Valaris]
 
-	if(battle_config.save_clothcolor &&
-		sd.status.clothes_color > 0 &&
-		(sd.view_class != 22 || !battle_config.wedding_ignorepalette)
-		)
+	if(battle_config.save_clothcolor && sd.status.clothes_color > 0 &&
+		(sd.view_class != 22 || !battle_config.wedding_ignorepalette) )
 		clif_changelook(sd.bl,LOOK_CLOTHES_COLOR,sd.status.clothes_color);
 	if(battle_config.muting_players && sd.status.manner < 0)
 		clif_changestatus(sd.bl,SP_MANNER,sd.status.manner);
@@ -6622,7 +6623,7 @@ int pc_calc_pvprank(struct map_session_data &sd)
 	if( !(m.flag.pvp) )
 		return 0;
 	sd.pvp_rank=1;
-	map_foreachinarea(pc_calc_pvprank_sub,sd.bl.m,0,0,m.xs,m.ys,BL_PC,&sd);
+	map_foreachinarea(pc_calc_pvprank_sub,sd.bl.m,0,0,m.xs-1,m.ys-1,BL_PC,&sd);
 
 	if(old!=sd.pvp_rank || sd.pvp_lastusers!=m.users)
 		clif_pvpset(sd,sd.pvp_rank,sd.pvp_lastusers=m.users,0);

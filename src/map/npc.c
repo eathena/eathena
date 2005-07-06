@@ -155,7 +155,9 @@ int npc_enable(const char *name,int flag)
 		clif_clearchar(nd->bl,0);
 	}
 	if(flag&3 && (nd->u.scr.xs > 0 || nd->u.scr.ys >0))
-		map_foreachinarea( npc_enable_sub,nd->bl.m,nd->bl.x-nd->u.scr.xs,nd->bl.y-nd->u.scr.ys,nd->bl.x+nd->u.scr.xs,nd->bl.y+nd->u.scr.ys,BL_PC,nd);
+		map_foreachinarea( npc_enable_sub,nd->bl.m,
+		((int)nd->bl.x)-nd->u.scr.xs,((int)nd->bl.y)-nd->u.scr.ys,
+		((int)nd->bl.x)+nd->u.scr.xs,((int)nd->bl.y)+nd->u.scr.ys,BL_PC,nd);
 
 	return 0;
 }
@@ -1101,7 +1103,7 @@ int npc_walk(struct npc_data &nd,unsigned long tick,int data)
 	static int diry[8]={1,1,0,-1,-1,-1,0,1};
 	int x,y,dx,dy;
 
-	nd.state.state=MS_IDLE;
+	nd.state.npcstate=MS_IDLE;
 	if(nd.walkpath.path_pos>=nd.walkpath.path_len || nd.walkpath.path_pos!=data)
 		return 0;
 
@@ -1134,7 +1136,7 @@ int npc_walk(struct npc_data &nd,unsigned long tick,int data)
 
 		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
 
-		nd.state.state=MS_WALK;
+		nd.state.npcstate=MS_WALK;
 		map_foreachinmovearea(clif_npcoutsight,nd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,&nd);
 
 		x += dx;
@@ -1171,14 +1173,14 @@ int npc_walk(struct npc_data &nd,unsigned long tick,int data)
 		}
 
 		map_foreachinmovearea(clif_npcinsight,nd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC,&nd);
-		nd.state.state=MS_IDLE;
+		nd.state.npcstate=MS_IDLE;
 	}
 	if((i=calc_next_walk_step(nd))>0){
 		i = i>>1;
 		if(i < 1 && nd.walkpath.path_half == 0)
 			i = 1;
 
-		nd.state.state=MS_WALK;
+		nd.state.npcstate=MS_WALK;
 		if(nd.walktimer != -1)
 		{
 			delete_timer(nd.walktimer,npc_walktimer);
@@ -1202,7 +1204,7 @@ int npc_changestate(struct npc_data &nd,int state,int type)
 		nd.walktimer=-1;
 	}
 
-	nd.state.state=state;
+	nd.state.npcstate=state;
 
 	switch(state){
 	case MS_WALK:
@@ -1211,7 +1213,7 @@ int npc_changestate(struct npc_data &nd,int state,int type)
 			nd.walktimer = add_timer(gettick()+i,npc_walktimer,nd.bl.id,0);
 		}
 		else {
-			nd.state.state=MS_IDLE;
+			nd.state.npcstate=MS_IDLE;
 		}
 		break;
 	case MS_IDLE:
@@ -1240,7 +1242,7 @@ int npc_walktimer(int tid,unsigned long tick,int id,int data)
 	if(nd->bl.prev == NULL)
 		return 1;
 
-	switch(nd->state.state){
+	switch(nd->state.npcstate){
 		case MS_WALK:
 			npc_walk(*nd,tick,data);
 			break;
@@ -1274,13 +1276,13 @@ int npc_walktoxy(struct npc_data &nd,int x,int y,int easy)
 {
 	struct walkpath_data wpd;
 
-	if(nd.state.state == MS_WALK && path_search(wpd,nd.bl.m,nd.bl.x,nd.bl.y,x,y,0) )
+	if(nd.state.npcstate == MS_WALK && path_search(wpd,nd.bl.m,nd.bl.x,nd.bl.y,x,y,0) )
 		return 1;
 
 	nd.state.walk_easy = easy;
 	nd.to_x=x;
 	nd.to_y=y;
-	if(nd.state.state == MS_WALK)
+	if(nd.state.npcstate == MS_WALK)
 		nd.state.change_walk_target=1;
 	else
 		return npc_walktoxy_sub(nd);
@@ -1290,7 +1292,7 @@ int npc_walktoxy(struct npc_data &nd,int x,int y,int easy)
 
 int npc_stop_walking(struct npc_data &nd,int type)
 {
-	if(nd.state.state == MS_WALK || nd.state.state == MS_IDLE)
+	if(nd.state.npcstate == MS_WALK || nd.state.npcstate == MS_IDLE)
 	{
 		int dx=0,dy=0;
 
@@ -2593,7 +2595,7 @@ int npc_reload (void)
 
 	for (m = 0; m < map_num; m++)
 	{
-		map_foreachinarea(npc_cleanup_sub, m, 0, 0, map[m].xs, map[m].ys, 0);
+		map_foreachinarea(npc_cleanup_sub, m, 0, 0, map[m].xs-1, map[m].ys-1, 0);
 		clear_moblist(m);
 		map[m].npc_num = 0;
 	}
@@ -2759,5 +2761,18 @@ int do_init_npc(void)
 	add_timer_func_list(npc_event_do_clock,"npc_event_do_clock");
 	add_timer_func_list(npc_timerevent,"npc_timerevent");
 
+	return 0;
+}
+
+// [Lance]
+int npc_changename(const char *name, const char *newname, unsigned short look)
+{
+	struct npc_data *nd= (struct npc_data *) strdb_search(npcname_db,name);
+	if(nd==NULL)
+		return 0;
+	safestrcpy(nd->name, newname, 24);
+	nd->class_ = look;
+	npc_enable(name,0);
+	npc_enable(name,1);
 	return 0;
 }

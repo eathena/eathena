@@ -13,7 +13,7 @@
 #define PC_CLASS_BASE3 (PC_CLASS_BASE2 + 22)
 #define MAX_NPC_PER_MAP 512
 #define BLOCK_SIZE 8
-#define AREA_SIZE (int)battle_config.area_size
+#define AREA_SIZE ((int)battle_config.area_size)
 #define LOCAL_REG_NUM 16
 #define LIFETIME_FLOORITEM 60
 #define DAMAGELOG_SIZE 30
@@ -255,7 +255,7 @@ struct map_session_data
 		unsigned ignoreAll : 1;						// 39  - byte 5
 		unsigned nodelay :1;						// 40
 		unsigned noexp :1;							// 41
-		unsigned detach :1;							// 42
+	//	unsigned detach :1;							// 42
 		unsigned potion_flag : 2;					// 43,44
 		unsigned viewsize : 2;						// 45,46
 		unsigned abra_flag : 1;						// 47  - byte 6
@@ -297,7 +297,7 @@ struct map_session_data
 	unsigned long client_tick;
 	struct walkpath_data walkpath;
 	int walktimer;
-	int next_walktime;
+	unsigned long next_walktime;
 
 	unsigned long npc_id;
 	unsigned long areanpc_id;
@@ -642,7 +642,7 @@ struct npc_data {
 	unsigned long canmove_tick;
 
 	struct { // [Valaris]
-		unsigned state : 8;
+		unsigned npcstate : 8;
 		unsigned change_walk_target : 1;
 		unsigned walk_easy : 1;
 	} state;
@@ -1063,6 +1063,7 @@ enum {
 	SP_28,SP_ATK1,SP_ATK2,SP_MATK1,SP_MATK2,SP_DEF1,SP_DEF2,SP_MDEF1,	// 40-47
 	SP_MDEF2,SP_HIT,SP_FLEE1,SP_FLEE2,SP_CRITICAL,SP_ASPD,SP_36,SP_JOBLEVEL,	// 48-55
 	SP_UPPER,SP_PARTNER,SP_CART,SP_FAME,SP_UNBREAKABLE,	//56-60
+	SP_CHAOS, // 61
 	SP_CARTINFO=99,	// 99
 
 	SP_BASEJOB=119,	// 100+19 - celest

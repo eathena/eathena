@@ -879,7 +879,7 @@ int mapif_guild_noinfo(int fd,int guild_id)
 	WFIFOW(fd,2)=8;
 	WFIFOL(fd,4)=guild_id;
 	WFIFOSET(fd,8);
-	ShowMessage("int_guild: info not found %d\n",guild_id);
+	//ShowMessage("int_guild: info not found %d\n",guild_id);
 	return 0;
 }
 // ƒMƒ‹ƒhî•ñ‚Ü‚Æ‚ß‘—‚è
@@ -895,6 +895,7 @@ int mapif_guild_info(int fd,struct guild *g)
 			mapif_sendall(buf,4+sizeof(struct guild));
 		else
 			mapif_send(fd,buf,4+sizeof(struct guild));
+		//ShowMessage("int_guild: info %d %s\n", g->guild_id, g->name);
 	}
 	return 0;
 }

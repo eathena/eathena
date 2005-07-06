@@ -99,7 +99,8 @@ int check_ip_flag = 1; // It's to check IP of a player between char-server and o
 
 size_t char_id_count = 150000;
 struct mmo_charstatus *char_dat;
-size_t char_num, char_max;
+size_t char_num;
+size_t char_max;
 int max_connect_user = 0;
 int gm_allow_level = 99;
 int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
@@ -298,7 +299,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
 		"\t%ld,%ld,%ld,%ld"
 		"\t%d,%d,%d,%d,%d,%d"
 		"\t%d,%d"
-		"\t%d,%d,%d"
+		"\t%d,%d,%d,%d"
 		"\t%ld,%ld,%ld"
 		"\t%d,%d,%d"
 		"\t%d,%d,%d,%d,%d"
@@ -315,7 +316,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
 		p->hp, p->max_hp, p->sp, p->max_sp,
 		p->str, p->agi, p->vit, p->int_, p->dex, p->luk,
 		p->status_point, p->skill_point,
-		p->option, p->karma, p->manner,
+		p->option, p->karma, p->chaos, p->manner,
 		p->party_id, p->guild_id, p->pet_id,
 		p->hair, p->hair_color, p->clothes_color,
 		p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
@@ -373,8 +374,41 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	// initilialise character
 	memset(p, '\0', sizeof(struct mmo_charstatus));
 	
-	// my personal reordering
 	if( sscanf(str, 
+		"%d\t%d,%d\t%[^\t]"
+		"\t%d,%d,%d"
+		"\t%d,%d,%d"
+		"\t%d,%d,%d,%d"
+		"\t%d,%d,%d,%d,%d,%d"
+		"\t%d,%d"
+		"\t%d,%d,%d,%d"
+		"\t%d,%d,%d"
+		"\t%d,%d,%d"
+		"\t%d,%d,%d,%d,%d"
+		"\t%[^,],%d,%d"
+		"\t%[^,],%d,%d"
+		"\t%d,%d,%d,%d"
+		"\t%d"
+		"%n",
+		&tmp_int[0], &tmp_int[1], &tmp_int[2], p->name, //
+		&tmp_int[3], &tmp_int[4], &tmp_int[5],
+		&tmp_int[6], &tmp_int[7], &tmp_int[8],
+		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
+		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
+		&tmp_int[19], &tmp_int[20],
+		&tmp_int[21], &tmp_int[22], &tmp_int[44], &tmp_int[23], //!! chaos here
+		&tmp_int[24], &tmp_int[25], &tmp_int[26],
+		&tmp_int[27], &tmp_int[28], &tmp_int[29],
+		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
+		p->last_point.map, &tmp_int[35], &tmp_int[36], //
+		p->save_point.map, &tmp_int[37], &tmp_int[38], &tmp_int[39], 
+		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) == 48 )
+	{
+		// my personal reordering 2005/07/06
+		//ShowMessage("char: new char data ver.5b\n");
+		// added chaos, is id 44 but inserted between 22 and 23
+	}
+	else if( sscanf(str, 
 		"%d\t%d,%d\t%[^\t]"
 		"\t%d,%d,%d"
 		"\t%d,%d,%d"
@@ -405,7 +439,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) == 47 )
 	{
 		// my personal reordering
-//		ShowMessage("char: new char data ver.5a\n");
+		//ShowMessage("char: new char data ver.5a\n");
 	}
 	else if( sscanf(str, "%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
@@ -425,7 +459,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) == 47 )
 	{
 		// Char structture of version 1488+
-//		ShowMessage("char: new char data ver.5\n");
+		//ShowMessage("char: new char data ver.5\n");
 	}
 	else if( sscanf(str, "%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 			"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
@@ -446,7 +480,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 		{
 		// Char structture of version 1363+
 		tmp_int[43] = 0; // fame
-//		ShowMessage("char: new char data ver.4\n");
+		//ShowMessage("char: new char data ver.4\n");
 	}
 	else if( sscanf(str,"%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 				"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
@@ -469,7 +503,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 		tmp_int[41] = 0; // mother
 		tmp_int[42] = 0; // child
 		tmp_int[43] = 0; // fame
-//		ShowMessage("char: new char data ver.3\n");
+		//ShowMessage("char: new char data ver.3\n");
 	}
 	else if( sscanf(str, "%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 					"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
@@ -494,7 +528,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 		tmp_int[41] = 0; // mother
 		tmp_int[42] = 0; // child
 		tmp_int[43] = 0; // fame
-//		ShowMessage("char: old char data ver.2\n");
+		//ShowMessage("char: old char data ver.2\n");
 	}
 	else if( sscanf(str, "%d\t%d,%d\t%[^\t]\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 					"\t%d,%d,%d\t%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
@@ -519,8 +553,8 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 		tmp_int[41] = 0; // mother
 		tmp_int[42] = 0; // child
 		tmp_int[43] = 0; // fame
-//		ShowMessage("char: old char data ver.1\n");
-				}
+		//ShowMessage("char: old char data ver.1\n");
+	}
 	else 
 		return 0;
 
@@ -547,6 +581,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	p->skill_point = tmp_int[20];
 	p->option = tmp_int[21];
 	p->karma = tmp_int[22];
+	p->chaos = tmp_int[44];
 	p->manner = tmp_int[23];
 	p->party_id = tmp_int[24];
 	p->guild_id = tmp_int[25];
@@ -2193,7 +2228,7 @@ int parse_frommap(int fd) {
 		// not a map server
 		session_Remove(fd);
 		return 0;
-			}
+	}
 	// else it is a valid map server
 	if( !session_isActive(fd) ) {
 		// a map server is disconnecting
@@ -2201,6 +2236,19 @@ int parse_frommap(int fd) {
 		server[id].fd = -1;
 		session_Remove(fd);// have it removed by do_sendrecv
 		create_online_files();
+
+		
+		// inform the other map servers of the loss
+		unsigned char buf[16384];
+		WBUFW(buf,0) = 0x2b20;
+		WBUFW(buf,2) = server[id].maps * 16 + 10;
+		WBUFLIP(buf,4) = server[id].lanip;
+		WBUFW(buf,8) = server[id].lanport;
+
+		for(i=10, j=0; j<server[id].maps; i+=16, j++)
+			memcpy(RBUFP(buf,i), server[id].map[j], 16);
+		mapif_sendallwos(fd, buf, server[id].maps * 16 + 10);
+
 		return 0;
 	}
 
@@ -2247,6 +2295,7 @@ int parse_frommap(int fd) {
 //				ShowMessage("set map %d.%d : %s\n", id, j, server[id].map[j]);
 				j++;
 			}
+			server[id].maps = j;
 			{
 				ShowMessage("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
 					id, j, (server[id].lanip>>24)&0xFF, (server[id].lanip>>16)&0xFF, (server[id].lanip>>8)&0xFF, (server[id].lanip)&0xFF, server[id].lanport);

@@ -30,6 +30,7 @@ bool npc_parse_warp(const char *w1,const char *w2,const char *w3,const char *w4)
 int npc_globalmessage(const char *name,const char *mes);
 
 int npc_enable(const char *name,int flag);
+int npc_changename(const char *name, const char *newname, unsigned short look);
 struct npc_data* npc_name2id(const char *name);
 
 int npc_walktoxy(struct npc_data &nd,int x,int y,int easy); // npc walking [Valaris]

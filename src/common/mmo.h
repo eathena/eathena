@@ -125,6 +125,7 @@ struct mmo_map_server
 	unsigned short	wanport;
 
 	unsigned long	users;
+	unsigned long	maps;
 	char map[MAX_MAP_PER_SERVER][16];
 };
 
@@ -552,10 +553,10 @@ struct mmo_charstatus
 	long sp;
 	long max_sp;
 
+	char karma;		// good<->evil
+	char chaos;		// chaotic<->lawful
+	short manner;	// stores negative values of mute
 	short option;
-	char karma;
-	short manner;
-
 	unsigned short hair;
 	unsigned short hair_color;
 	unsigned short clothes_color;
@@ -629,9 +630,10 @@ extern inline void _mmo_charstatus_tobuffer(const struct mmo_charstatus &p, unsi
 	_L_tobuffer( (p.sp),				buf);
 	_L_tobuffer( (p.max_sp),			buf);
 
-	_W_tobuffer( (p.option),			buf);
 	_B_tobuffer( (p.karma),			buf);
+	_B_tobuffer( (p.chaos),			buf);
 	_W_tobuffer( (p.manner),			buf);
+	_W_tobuffer( (p.option),			buf);
 	_W_tobuffer( (p.hair),			buf);
 	_W_tobuffer( (p.hair_color),		buf);
 	_W_tobuffer( (p.clothes_color),	buf);
@@ -707,61 +709,62 @@ extern inline void _mmo_charstatus_frombuffer(struct mmo_charstatus &p, const un
 {
 	size_t i;
 	if( NULL==buf )	return;
-	_L_frombuffer( (p.char_id),		buf);
-	_L_frombuffer( (p.account_id),	buf);
-	_L_frombuffer( (p.partner_id),	buf);
-	_L_frombuffer( (p.father_id),	buf);
-	_L_frombuffer( (p.mother_id),	buf);
+	_L_frombuffer( (p.char_id),			buf);
+	_L_frombuffer( (p.account_id),		buf);
+	_L_frombuffer( (p.partner_id),		buf);
+	_L_frombuffer( (p.father_id),		buf);
+	_L_frombuffer( (p.mother_id),		buf);
 	_L_frombuffer( (p.child_id),		buf);
 
 	_L_frombuffer( (p.base_exp),		buf);
-	_L_frombuffer( (p.job_exp),		buf);
+	_L_frombuffer( (p.job_exp),			buf);
 	_L_frombuffer( (p.zeny),			buf);
 
-	_W_frombuffer( (p.class_),		buf);
+	_W_frombuffer( (p.class_),			buf);
 	_W_frombuffer( (p.status_point),	buf);
-	_W_frombuffer( (p.skill_point),	buf);
+	_W_frombuffer( (p.skill_point),		buf);
 
-	_L_frombuffer( (p.hp),			buf);
-	_L_frombuffer( (p.max_hp),		buf);
-	_L_frombuffer( (p.sp),			buf);
-	_L_frombuffer( (p.max_sp),		buf);
+	_L_frombuffer( (p.hp),				buf);
+	_L_frombuffer( (p.max_hp),			buf);
+	_L_frombuffer( (p.sp),				buf);
+	_L_frombuffer( (p.max_sp),			buf);
 
-	_W_frombuffer( (p.option),		buf);
-	_B_frombuffer( (p.karma),		buf);
-	_W_frombuffer( (p.manner),		buf);
+	_B_frombuffer( (p.karma),			buf);
+	_B_frombuffer( (p.chaos),			buf);
+	_W_frombuffer( (p.manner),			buf);
+	_W_frombuffer( (p.option),			buf);
 	_W_frombuffer( (p.hair),			buf);
-	_W_frombuffer( (p.hair_color),	buf);
-	_W_frombuffer( (p.clothes_color),buf);
+	_W_frombuffer( (p.hair_color),		buf);
+	_W_frombuffer( (p.clothes_color),	buf);
 
 	_L_frombuffer( (p.party_id),		buf);
 	_L_frombuffer( (p.guild_id),		buf);
-	_L_frombuffer( (p.pet_id),		buf);
+	_L_frombuffer( (p.pet_id),			buf);
 
-	_L_frombuffer( (p.fame_points),			buf);
+	_L_frombuffer( (p.fame_points),		buf);
 
-	_W_frombuffer( (p.weapon),		buf);
-	_W_frombuffer( (p.shield),		buf);
+	_W_frombuffer( (p.weapon),			buf);
+	_W_frombuffer( (p.shield),			buf);
 	_W_frombuffer( (p.head_top),		buf);
 	_W_frombuffer( (p.head_mid),		buf);
-	_W_frombuffer( (p.head_bottom),	buf);
+	_W_frombuffer( (p.head_bottom),		buf);
 
-	_S_frombuffer( p.name,			buf, 24);
+	_S_frombuffer( p.name,				buf, 24);
 
-	_W_frombuffer( (p.base_level),	buf);
+	_W_frombuffer( (p.base_level),		buf);
 	_W_frombuffer( (p.job_level),		buf);
-	_W_frombuffer( (p.str),			buf);
-	_W_frombuffer( (p.agi),			buf);
-	_W_frombuffer( (p.vit),			buf);
+	_W_frombuffer( (p.str),				buf);
+	_W_frombuffer( (p.agi),				buf);
+	_W_frombuffer( (p.vit),				buf);
 	_W_frombuffer( (p.int_),			buf);
-	_W_frombuffer( (p.dex),			buf);
-	_W_frombuffer( (p.luk),			buf);
+	_W_frombuffer( (p.dex),				buf);
+	_W_frombuffer( (p.luk),				buf);
 
-	_B_frombuffer(                 (p.char_num),		buf);
-	_B_frombuffer(                 (p.sex),			buf);
+	_B_frombuffer( (p.char_num),		buf);
+	_B_frombuffer( (p.sex),				buf);
 
-	_L_frombuffer(                 (p.mapip),			buf);
-	_W_frombuffer(                 (p.mapport),		buf);
+	_L_frombuffer( (p.mapip),			buf);
+	_W_frombuffer( (p.mapport),			buf);
 
 
 	_point_frombuffer(             (p.last_point),	buf);
@@ -934,8 +937,8 @@ extern inline void party_member_frombuffer(struct party_member &p, const unsigne
 struct party {
 	unsigned long party_id;
 	char name[24];
-	unsigned short exp;
-	unsigned short item;
+	unsigned short expshare;
+	unsigned short itemshare;
 	unsigned short itemc;
 	struct party_member member[MAX_PARTY];
 };
@@ -945,8 +948,8 @@ extern inline void _party_tobuffer(const struct party &p, unsigned char *&buf)
 	if( NULL==buf )	return;
 	_L_tobuffer( (p.party_id),		buf);
 	_S_tobuffer( (p.name),			buf, 24);
-	_W_tobuffer( (p.exp),			buf);
-	_W_tobuffer( (p.item),			buf);
+	_W_tobuffer( (p.expshare),		buf);
+	_W_tobuffer( (p.itemshare),		buf);
 	_W_tobuffer( (p.itemc),			buf);
 	for(i=0; i< MAX_PARTY; i++)
 		_party_member_tobuffer(p.member[i], buf);
@@ -961,8 +964,8 @@ extern inline void _party_frombuffer(struct party &p, const unsigned char *&buf)
 	if( NULL==buf )	return;
 	_L_frombuffer( (p.party_id),	buf);
 	_S_frombuffer( (p.name),		buf, 24);
-	_W_frombuffer( (p.exp),			buf);
-	_W_frombuffer( (p.item),		buf);
+	_W_frombuffer( (p.expshare),	buf);
+	_W_frombuffer( (p.itemshare),	buf);
 	_W_frombuffer( (p.itemc),		buf);
 	for(i=0; i< MAX_PARTY; i++)
 		_party_member_frombuffer(p.member[i], buf);
@@ -1193,8 +1196,10 @@ struct guild {
 	char mes1[60];
 	char mes2[120];
 	unsigned long emblem_id;
-	unsigned short emblem_len;
 	unsigned char emblem_data[2048];
+	unsigned short emblem_len;
+	signed char		chaos;	// average chaos of guild members
+	signed char		honour;	// average honour of guild members (not saved calculated on the fly)
 	struct guild_alliance alliance[MAX_GUILDALLIANCE];
 	struct guild_explusion explusion[MAX_GUILDEXPLUSION];
 	struct guild_skill skill[MAX_GUILDSKILL];

@@ -11,52 +11,23 @@
 
 
 
-#ifdef __cplusplus
-
-#ifdef __GNUC__
-// message convention for gnu compilers
-#warning "INFO: Building C++"
-#warning "INFO: This build will work on little and big endian machines"
-#else
-// message convention for visual c compilers
-#pragma message ( "INFO: Building C++" )
-#pragma message ( "INFO: This build will work on little and big endian machines" )
-#endif
-
-#else// !__cplusplus
-
-#ifdef __GNUC__
-// message convention for gnu compilers
-#warning "INFO: Building standard C"
-#warning "INFO: This build will not work on big endian machines even if it compiles successfully, build C++ instead"
-#warning "INFO: Since I generally changed IP byte order this build will not work at all, build C++ instead"
-#else
-// message convention for visual c compilers
-#pragma message ( "INFO: Building standard C" )
-#pragma message ( "INFO: This build will not work on big endian machines even if it compiles successfully, build C++ instead" )
-#pragma message ( "INFO: Since I generally changed IP byte order this build will not work at all, build C++ instead" )
-#endif
-
-#endif//__cplusplus
-
-
 ///////////////////////////////////////////////////////////////////////////////
 #ifndef WIN32
 // defines for direct access of fd_set data on unix
 //
 // it seams on linux you need to compile with __BSD_VISIBLE, _GNU_SOURCE or __USE_XOPEN
 // defined to get the internal structures visible.
-// anyway, since I can only test on solaris,
+// anyway, since I can only test on solaris, 
 // i cannot tell what other machines would need
 // so I explicitely set the necessary structures here.
 // and you would not need to redefine anything
 //
-// anyway, if compiler warning/error occure here, try to comment out
+// anyway, if compiler warning/error occure here, try to comment out 
 // the quested thing and please give a report
 //
-// it should be checked if the fd_mask is still an ulong on 64bit machines
+// it should be checked if the fd_mask is still an ulong on 64bit machines 
 // if lucky the compiler will throw a redefinition warning if different
-// further, 64 bit unix defines FD_SETSIZE with 65535 so maybe reconsider
+// further, 64 bit unix defines FD_SETSIZE with 65535 so maybe reconsider 
 // the current structures
 
 //typedef	unsigned long	fd_mask;
@@ -65,7 +36,7 @@
 #endif
 #ifndef howmany
 #define	howmany(x, y)	(((x) + ((y) - 1)) / (y))
-#endif
+#endif  
 #ifndef NFDBITS
 #define	NFDBITS	(sizeof (unsigned long) * NBBY)	// bits per mask
 #endif
@@ -73,29 +44,23 @@
 # define __FDS_BITS(set) ((set)->fds_bits)
 #endif
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // dynamic size, unix system independend fd_set replacement
 class CFDSET
 {
 	///////////////////////////////////////////////////////////////////////////
 	// class data
-
-	// unix
-	unsigned long	cSZ;
-	unsigned long*	cArray;
-
-	// windows
-//	u_int fd_count;					// how many are SET?
-//	SOCKET  fd_array[FD_SETSIZE];   // an array of SOCKETs
-
+	unsigned long	cSZ;		// alloced size
+	unsigned long*	cArray;		// array pointer
 
 	///////////////////////////////////////////////////////////////////////////
 	// resize the array; only grow, no shrink
 	void checksize(size_t pos)
-	{
-		if( cSZ >= pos )
+	{	// pos gives the dword position in the array
+		if( pos >= cSZ )
 		{	// need to reallocate
-			size_t sz = cSZ;
+			size_t sz = (cSZ)?cSZ:2;
 			while(sz >= pos) sz *= 2;
 
 			unsigned long* temp= new unsigned long[sz];
@@ -134,11 +99,9 @@ class CFDSET
 				memcpy(cArray, cfd.cArray, cfd.cSZ*sizeof(unsigned long));
 		}
 	}
-
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// Construct/Destruct
-
 	CFDSET() : cArray(new unsigned long[FD_SETSIZE/NBBY/sizeof(unsigned long)]),cSZ(FD_SETSIZE/NBBY/sizeof(unsigned long))	{}
 	~CFDSET()	{ if(cArray) delete [] cArray; }
 
@@ -154,12 +117,11 @@ public:
 		copy(cfd);
 		return *this;
 	}
-
 	///////////////////////////////////////////////////////////////////////////
 	// clear everything
 	void clear()
 	{
-		if(cArray) memset (cArray,0, cSZ*sizeof(unsigned long));
+		memset (cArray,0, cSZ*sizeof(unsigned long));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// set a bit
@@ -203,7 +165,6 @@ public:
 			return 0!=(cArray[pos] & (1<<bit));
 		}
 	}
-
 	///////////////////////////////////////////////////////////////////////////
 	// Call a function with each set bit
 	// version 1 (using log2)
@@ -218,18 +179,18 @@ public:
 			unsigned long	bits;
 			unsigned long	nfd=0;
 			max = howmany(max, NFDBITS);
-
+			
 			while( nfd <  max )
 			{	// while something is set in the ulong at position nfd
 				bits = cArray[nfd];
 				while( bits )
 				{	// method 1
 					// calc the highest bit with log2 and clear it from the field
-					// this method is especially fast
+					// this method is especially fast 
 					// when only a few bits are set in the field
 					// which usually happens on read events
 					val = log2( bits );
-					bits ^= (1<<val);
+					bits ^= (1<<val);	
 					// build the socket number
 					sock = nfd*NFDBITS + val;
 
@@ -266,7 +227,7 @@ public:
 				while( bits )
 				{	// method 2
 					// calc the next set bit with shift/add
-					// therefore copy the value from fds_bits
+					// therefore copy the value from fds_bits 
 					// array to an unsigned type (fd_bits is an field of long)
 					// otherwise it would not shift the MSB
 					// the shift add method is faster if many bits are set in the field
@@ -293,20 +254,177 @@ public:
 		}
 		return c; // number of processed sockets
 	}
-
-
 	///////////////////////////////////////////////////////////////////////////
-	// pretending to be an fd_set structure
-	operator fd_set*()	{ return (fd_set*)cArray; }
-
+	// pretending to be an unix fd_set structure
+	operator fd_set*()	
+	{
+		return (fd_set*)cArray; 
+	}
 	///////////////////////////////////////////////////////////////////////////
 	// size
-	int Count()	{ return cSZ * NFDBITS; }
+	int Count()	
+	{ 
+		return cSZ * NFDBITS; 
+	}
 };
 
+#else 
+
+///////////////////////////////////////////////////////////////////////////////
+// dynamic size, windows system independend fd_set replacement
+class CFDSET
+{
+	///////////////////////////////////////////////////////////////////////////
+	// class data
+	// windows
+	struct winfdset
+	{
+		u_int fd_count;				// how many are SET?
+		SOCKET  fd_array[1];		// an array of SOCKETs 
+									// only one in the struct the others will be alloced outside
+	};
+	unsigned long	cSZ;			// alloced elements
+	struct winfdset *cSet;			// the set struct
+
+	///////////////////////////////////////////////////////////////////////////
+	// resize the array; only grow, no shrink
+	void checksize()
+	{	// no pos parameter here
+		if( cSet->fd_count >= cSZ )
+		{	// need to reallocate
+			size_t sz = (cSZ)?cSZ:2;
+			while(sz >= cSet->fd_count) sz *= 2;
+
+			struct winfdset *temp= (struct winfdset *) new char[sizeof(struct winfdset)+sz*sizeof(SOCKET)];
+
+			// copy over the old array
+			if(cSet)
+			{
+				memcpy(temp, cSet, sizeof(struct winfdset)+cSZ*sizeof(SOCKET));
+				delete[] ((char*)cSet);
+			}
+			// clearing the rest is not necessary
+
+			// take it over
+			cSet = temp;
+			cSZ = sz;
+		}
+	}
+	void copy(const CFDSET& cfd)
+	{
+		if(this != &cfd)
+		{
+			if( cfd.cSet->fd_count > this->cSZ )
+			{	// not enough space, need to realloc
+				if(cSet) delete [] ((char*)cSet);
+				
+				cSZ = cfd.cSZ;
+				cSet = (struct winfdset *) new char[sizeof(struct winfdset)+cSZ*sizeof(SOCKET)];
+			}
+			//else
+			// current array is larger, nothing to do in this case
+
+			// and copy the given array if it exists
+			if(cfd.cSet)
+				memcpy(cSet, cfd.cSet, sizeof(struct winfdset)+cSZ*sizeof(SOCKET));
+		}
+	}
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// Construct/Destruct
+	CFDSET() : cSet((struct winfdset *) new char[sizeof(struct winfdset)+128*sizeof(SOCKET)]),cSZ(128)	{ cSet->fd_count=0; }
+	~CFDSET()	{ if(cSet) delete [] ((char*)cSet); }
+
+	///////////////////////////////////////////////////////////////////////////
+	// Copy/Assign
+	CFDSET(const CFDSET& cfd) : cSet(NULL),cSZ(0)
+	{
+		copy(cfd);
+	}
+	const CFDSET& operator =(const CFDSET& cfd)
+	{
+		copy(cfd);
+		return *this;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// clear everything
+	void clear()
+	{
+		cSet->fd_count = 0;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// set a bit
+	void set_bit(int fd)
+	{
+		if(fd>0)
+		{
+			checksize();
+			cSet->fd_array[cSet->fd_count++] = fd;
+		}		
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// Clear a bit
+	void clear_bit(int fd)
+	{
+		if(fd>0)
+		{	// only have a unsorted list for the moment, maybe sort it later
+			u_int i;
+			for(i=0; i<cSet->fd_count; i++)
+				if( (SOCKET)fd == cSet->fd_array[i] )
+					break;
+			if(i<cSet->fd_count)
+			{
+				memmove(cSet->fd_array+i, cSet->fd_array+i+1, (cSet->fd_count-i-1)*sizeof(cSet->fd_array[0]));
+				cSet->fd_count--;
+			}
+		}
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// Clear a bit
+	bool isSet(int fd)
+	{
+		if(fd>0)
+		{	// only have a unsorted list for the moment, maybe sort it later
+			size_t i;
+			for(i=0; i<cSet->fd_count; i++)
+				if( (SOCKET)fd == cSet->fd_array[i] )
+					return true;
+			return false;
+		}
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// Call a function with each set bit
+	size_t foreach1( void(*func)(size_t), size_t max)
+	{
+		if(func)
+		{	
+			size_t i;
+			for(i=0; i<cSet->fd_count; i++)
+				func( cSet->fd_array[i] );
+		}
+		return cSet->fd_count;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// Call a function with each set bit
+	size_t foreach2( void(*func)(size_t), size_t max )
+	{	// no different approaches on windows
+		return foreach1( func, max );
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// pretending to be an fd_set structure
+	operator fd_set*()	
+	{
+		return (fd_set*)cSet; 
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// size
+	int Count()	
+	{ 
+		return cSZ;
+	}
+};
 #endif
 ///////////////////////////////////////////////////////////////////////////////
-
 
 
 
@@ -356,18 +474,18 @@ size_t fd_max=0;	// greatest used session fd in the field
 // list of session positions corrosponding to fd_set list
 // so fist search a socket in readfds with binary search to get a position
 // and then look up the corrosponding fd for session[fd]
-size_t session_pos[FD_SETSIZE];
+size_t session_pos[FD_SETSIZE];	
 
 // list of sockets corrosponding to session list
 // socket_pos[fd] is the SOCKET of the session[fd]
-SOCKET	socket_pos[FD_SETSIZE];
+SOCKET	socket_pos[FD_SETSIZE];	
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // binary search implementation
 // might be not that efficient in this implementation
-// it first checks the boundaries so calls outside
-// the list range are handles much faster
+// it first checks the boundaries so calls outside 
+// the list range are handles much faster 
 // at the expence of some extra code
 // runtime behaviour much faster if often called for outside data
 ///////////////////////////////////////////////////////////////////////////////
@@ -385,12 +503,12 @@ bool SessionBinarySearch(const SOCKET elem, size_t &retpos)
 	else if( elem < readfds.fd_array[a] )
 	{	// less than lower
 		pos = a;
-		ret = false;
+		ret = false; 
 	}
 	else if( elem > readfds.fd_array[b] )
 	{	// larger than upper
 		pos = b+1;
-		ret = false;
+		ret = false; 
 	}
 	else if( elem == readfds.fd_array[a] )
 	{	// found at first position
@@ -420,7 +538,7 @@ bool SessionBinarySearch(const SOCKET elem, size_t &retpos)
 				a=c;
 		}while( (a+1) < b );
 		pos = b;
-		// return the next larger element to the given
+		// return the next larger element to the given 
 		// or the found element so we can insert a new element there
 	}
 	retpos = pos;
@@ -453,7 +571,7 @@ int SessionInsertSocket(const SOCKET elem)
 		for(fd=0; fd<FD_SETSIZE; fd++)
 			if( NULL==session[fd] )
 				break;
-		// we might not need to test validity
+		// we might not need to test validity 
 		// since there must have been an empty place
 		session_pos[pos]      = fd;
 		readfds.fd_array[pos] = elem;
@@ -519,7 +637,7 @@ int SessionInsertSocket(const SOCKET elem)
 		FD_SET(elem,&readfds);
 		// need for select
 		// we reduce this on building the writefds when necessary
-		if((SOCKET)fd_max<=elem) fd_max = elem+1;
+		if((SOCKET)fd_max<=elem) fd_max = elem+1; 
 	}
 	return elem;
 }
@@ -568,9 +686,9 @@ SOCKET SessionGetSocket(const size_t pos)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//
+// 
 // DDoS UŒ‚‘Îô
-// derived from jAthena
+// derived from jAthena 
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -626,7 +744,7 @@ public:
 	void Clean()
 	{
 		struct _connect_history *hist , *hist2;
-		for(size_t i=0; i<0x10000; i++)
+		for(size_t i=0; i<0x10000; i++) 
 		{
 			hist = connect_history[i];
 			while(hist) {
@@ -642,7 +760,7 @@ public:
 			access_allow = NULL;
 		}
 		if(access_deny)
-		{
+		{	
 			aFree(access_deny);
 			access_deny = NULL;
 		}
@@ -654,7 +772,7 @@ public:
 	//   true  : Ú‘±NG
 
 	// ip is host byte order
-	int connect_check(ulong ip)
+	int connect_check(ulong ip) 
 	{
 		int result = connect_check_(ip);
 		if(access_debug) {
@@ -664,7 +782,7 @@ public:
 		return result;
 	}
 	// ip is host byte order
-	int connect_check_(ulong ip)
+	int connect_check_(ulong ip) 
 	{
 		struct _connect_history *hist     = connect_history[ip & 0xFFFF];
 		struct _connect_history *hist_new;
@@ -950,12 +1068,12 @@ int null_parse(int fd)
 
 void socket_nonblocking(SOCKET sock, unsigned long yes) {
 	// I don't think we need this
-	// TCP_NODELAY BOOL Disables the Nagle algorithm for send coalescing.
+	// TCP_NODELAY BOOL Disables the Nagle algorithm for send coalescing. 
 	//setsockopt(sock,IPPROTO_TCP,TCP_NODELAY,(char *)&yes,sizeof yes);
-
-	// FIONBIO Use with a nonzero argp parameter to enable the nonblocking mode of socket s.
-	// The argp parameter is zero if nonblocking is to be disabled.
-	ioctlsocket(sock, FIONBIO, &yes);
+	
+	// FIONBIO Use with a nonzero argp parameter to enable the nonblocking mode of socket s. 
+	// The argp parameter is zero if nonblocking is to be disabled. 
+	ioctlsocket(sock, FIONBIO, &yes); 
 }
 
 void socket_setopts(SOCKET sock)
@@ -997,7 +1115,7 @@ void dumpx(unsigned char *buf, int len)
 }
 #endif
 
-void flush_fifos()
+void flush_fifos() 
 {
 	// write fifos and be sure the data in on the run
 
@@ -1020,7 +1138,7 @@ void flush_fifos()
 	size_t fd;
 	int len, c;
 	fd_set wfd;
-
+	
 	while(1)
 	{
 		memset(&wfd,0,sizeof(fd_set));
@@ -1052,7 +1170,7 @@ void flush_fifos()
 						session[fd]->wdata_size=0;
 					}
 				}
-				else if (errno != EAGAIN)
+				else if (errno != EAGAIN) 
 				{	// the socket is gone, just disconnect it, will be cleared later
 					session[fd]->flag.connected = false;
 					session[fd]->wdata_size=0;
@@ -1065,8 +1183,8 @@ void flush_fifos()
 			}
 		}
 		// finish if all has been send and no need to wait longer
-		if(c==0) break;
-		// otherwise wait until marked write sockets can exept more data
+		if(c==0) break; 
+		// otherwise wait until marked write sockets can exept more data 
 		select(fd_max,NULL,&wfd,NULL,NULL);
 	}//end while
 }
@@ -1126,10 +1244,10 @@ int realloc_writefifo(int fd, size_t addition)
 int realloc_fifo(int fd, size_t rfifo_size, size_t wfifo_size)
 {
 	struct socket_data *s =session[fd];
-
+	
 	if( !session_isActive(fd) )
 		return 0;
-
+	
 	//printf("realloc all %d,%d\n", rfifo_size, wfifo_size);fflush(stdout);
 	if( s->rdata_max != rfifo_size && s->rdata_size < rfifo_size){
 		RECREATE(s->rdata, unsigned char, rfifo_size);
@@ -1161,12 +1279,12 @@ int WFIFOSET(int fd,size_t len)
 	}
 
 	// always keep a WFIFO_SIZE reserve in the buffer
-	newreserve = s->wdata_size + WFIFO_SIZE;
+	newreserve = s->wdata_size + WFIFO_SIZE; 
 
 	send_from_fifo(fd);
 
 	// realloc after sending
-	realloc_writefifo(fd, newreserve);
+	realloc_writefifo(fd, newreserve); 
 
 	return 0;
 }
@@ -1178,7 +1296,7 @@ int RFIFOSKIP(int fd, size_t len)
 		struct socket_data *s=session[fd];
 		if( session_isActive(fd) )
 		{
-			if( s->rdata_pos + len > s->rdata_size )
+			if( s->rdata_pos + len > s->rdata_size ) 
 			{	// this should not happen
 				ShowError("Read FIFO is skipping more data then it has (%i<%i).\n",RFIFOREST(fd),len);
 				s->rdata_pos = s->rdata_size;
@@ -1234,7 +1352,7 @@ int recv_to_fifo(int fd)
 			session[fd]->flag.connected = false;
 			session[fd]->wdata_size=0;
 		}
-	} else {
+	} else {	
 		// the socket has been terminated
 		session[fd]->flag.connected = false;
 	}
@@ -1302,7 +1420,7 @@ int connect_client(int listen_fd)
 		return -1;
 
 	sock = accept(SessionGetSocket(listen_fd),(struct sockaddr*)&client_address,&len);
-	if(sock==-1)
+	if(sock==-1) 
 	{	// same here, app might have passed away
 		perror("accept");
 		return -1;
@@ -1315,7 +1433,7 @@ int connect_client(int listen_fd)
 
 #ifndef WIN32
 	// on unix a socket can only be in range from 1 to FD_SETSIZE
-	// otherwise it would not fit into the fd_set structure and
+	// otherwise it would not fit into the fd_set structure and 
 	// overwrite data outside that range, so we have to reject them
 	// windows uses a different fd_set structure and is not affected
 	if(sock > FD_SETSIZE)
@@ -1331,8 +1449,8 @@ int connect_client(int listen_fd)
 
 	//ShowMessage("connect_client: %d <- %d\n",listen_fd, fd);
 
-	if(fd<0 || session[fd])
-	{
+	if(fd<0 || session[fd]) 
+	{	
 		closesocket(sock);
 		ShowWarning("socket insert %i %p", fd, session[fd]);
 		return -1;
@@ -1370,7 +1488,7 @@ int make_listen(unsigned long ip, unsigned short port)
 	sock = socket( AF_INET, SOCK_STREAM, 0 );
 #ifndef WIN32
 	// on unix a socket can only be in range from 1 to FD_SETSIZE
-	// otherwise it would not fit into the fd_set structure and
+	// otherwise it would not fit into the fd_set structure and 
 	// overwrite data outside that range, so we have to reject them
 	// windows uses a different fd_set structure and is not affected
 	if(sock > FD_SETSIZE)
@@ -1401,8 +1519,8 @@ int make_listen(unsigned long ip, unsigned short port)
 	// insert the socket to the fields and get the position
 	fd = SessionInsertSocket(sock);
 
-	if(fd<0 || session[fd])
-	{
+	if(fd<0 || session[fd]) 
+	{	
 		closesocket(sock);
 		ShowWarning("socket insert %i %p", fd, session[fd]);
 		return -1;
@@ -1430,7 +1548,7 @@ int make_connection(unsigned long ip, unsigned short port)
 	sock = socket( AF_INET, SOCK_STREAM, 0 );
 #ifndef WIN32
 	// on unix a socket can only be in range from 1 to FD_SETSIZE
-	// otherwise it would not fit into the fd_set structure and
+	// otherwise it would not fit into the fd_set structure and 
 	// overwrite data outside that range, so we have to reject them
 	// windows uses a different fd_set structure and is not affected
 	if(sock > FD_SETSIZE)
@@ -1444,7 +1562,7 @@ int make_connection(unsigned long ip, unsigned short port)
 	server_address.sin_family		= AF_INET;
 	server_address.sin_addr.s_addr	= htonl( ip );
 	server_address.sin_port			= htons(port);
-
+	
 	ShowStatus("Connecting to %d.%d.%d.%d:%i\n",(ip>>24)&0xFF,(ip>>16)&0xFF,(ip>>8)&0xFF,(ip)&0xFF,port);
 
 	result = connect(sock, (struct sockaddr *)(&server_address),sizeof(struct sockaddr_in));
@@ -1464,8 +1582,8 @@ int make_connection(unsigned long ip, unsigned short port)
 	// insert the socket to the fields and get the position
 	fd = SessionInsertSocket(sock);
 
-	if(fd<0 || session[fd])
-	{
+	if(fd<0 || session[fd]) 
+	{	
 		closesocket(sock);
 		ShowWarning("socket insert %i %p", fd, session[fd]);
 		return -1;
@@ -1524,29 +1642,29 @@ int null_console_parse(char *buf)
 
 // Console Input [Wizputer]
 int start_console(void) {
-
+	
 	SOCKET sock=0; // default zero socket, is not used regulary
 	size_t fd;
-
+    
 	// insert the socket to the fields and get the position
 	fd = SessionInsertSocket(sock);
 
-	if(fd<0)
+	if(fd<0) 
 	{	ShowWarning("Socket Insert failed");
 		return -1;
 	}
 
 	CREATE(session[fd], struct socket_data, 1);
-
+	
 	session[fd]->flag.connected   = true;
 	session[fd]->flag.remove      = false;
 	session[fd]->flag.marked      = false;
 
 	session[fd]->func_recv    = console_recieve;
 	session[fd]->func_console = default_console_parse;
-
+	
 	return 0;
-}
+}   
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -1567,7 +1685,7 @@ void process_read(size_t fd)
 			session[fd]->func_parse((int)fd);
 
 		// session could be deleted in func_parse so better check again
-		if(session[fd] && session[fd]->rdata)
+		if(session[fd] && session[fd]->rdata) 
 		{	//RFIFOFLUSH(fd);
 			memmove(session[fd]->rdata, RFIFOP(fd,0), RFIFOREST(fd));
 			session[fd]->rdata_size = RFIFOREST(fd);
@@ -1594,7 +1712,7 @@ void process_write(size_t fd)
 //        u_int fd_count;               // how many are SET?
 //        SOCKET  fd_array[FD_SETSIZE];   // an array of SOCKETs
 // } fd_set;
-//
+// 
 // the select the sets, the correct fd_count and the array
 // and access the signaled sockets one by one
 size_t process_fdset(fd_set* fds, void(*func)(size_t) )
@@ -1620,12 +1738,12 @@ inline size_t process_fdset2(fd_set* fds, void(*func)(size_t) )
 #else//!WIN32
 ///////////////////////////////////////////////////////////////////////////////
 //
-// unix uses a bit array where the socket number equals the
-// position in the array, so finding sockets inside that array
+// unix uses a bit array where the socket number equals the 
+// position in the array, so finding sockets inside that array 
 // is not that easy exept the socket is knows before
-// so this method here goes through the bit array
-// and build the socket number from the position
-// where a set bit was found.
+// so this method here goes through the bit array 
+// and build the socket number from the position 
+// where a set bit was found. 
 // since we can skip 32 sockets all together when none is set
 // we can travel quite fast through the array
 size_t process_fdset(fd_set* fds, void(*func)(size_t) )
@@ -1645,11 +1763,11 @@ size_t process_fdset(fd_set* fds, void(*func)(size_t) )
 		while( bits )
 		{	// method 1
 			// calc the highest bit with log2 and clear it from the field
-			// this method is especially fast
+			// this method is especially fast 
 			// when only a few bits are set in the field
 			// which usually happens on read events
 			val = log2( bits );
-			bits ^= (1<<val);
+			bits ^= (1<<val);	
 			// build the socket number
 			sock = nfd*NFDBITS + val;
 
@@ -1683,7 +1801,7 @@ size_t process_fdset2(fd_set* fds, void(*func)(size_t) )
 		while( bits )
 		{	// method 2
 			// calc the next set bit with shift/add
-			// therefore copy the value from fds_bits
+			// therefore copy the value from fds_bits 
 			// array to an unsigned type (fd_bits is an field of long)
 			// otherwise it would not shift the MSB
 			// the shift add method is faster if many bits are set in the field
@@ -1760,8 +1878,8 @@ int do_sendrecv(int next)
 #ifdef SOCKET_DEBUG_LOG
 			debug_collect(fd);
 #endif
-			if( (session[fd]->rdata_tick > 0) && (last_tick > session[fd]->rdata_tick + stall_time_) )
-			{
+			if( (session[fd]->rdata_tick > 0) && (last_tick > session[fd]->rdata_tick + stall_time_) ) 
+			{	
 //				if( session[fd]->flag.marked )
 //				{	// is already marked; just remove it
 //					session[fd]->flag.marked=false;
@@ -1772,7 +1890,7 @@ int do_sendrecv(int next)
 					session[fd]->flag.connected = false;
 					// and call the read function
 					process_read(fd);
-					// it should come out with a set remove or marked flag
+					// it should come out with a set remove or marked flag		
 				}
 			}
 
@@ -1795,7 +1913,7 @@ int do_sendrecv(int next)
 			// double usage of fd_max as max session number and to call select is valid
 			// because on unix the fd field position equals the socket identifier
 			// and on windows the first parameter of select is ignored
-			cnt = fd;
+			cnt = fd; 
 		}
 	}
 #ifdef SOCKET_DEBUG_PRINT
@@ -1822,17 +1940,17 @@ int do_sendrecv(int next)
 		// process readings and parse them immediately
 		process_fdset(&rfd,process_read);
 	}
-
+	
 
 /*
 	// this is the do_parsepackets placed directly here
 	// and removed the call from core.c
-
-	// this structure was necessary because the map func_parse
+	
+	// this structure was necessary because the map func_parse 
 	// did not loop until all incoming data has been processed
 	// but just processed the first packet and returned
 
-	// this could leed to serious lag when clients send many packets
+	// this could leed to serious lag when clients send many packets 
 	// at once but only get the first packet processed
 	// in a time between each call to select and timer
 
@@ -1847,7 +1965,7 @@ int do_sendrecv(int next)
 		if(session[fd]->func_parse && !(session[fd]->flag.marked || session[fd]->flag.remove))
 			session[fd]->func_parse(fd);
 
-		if(session[fd])
+		if(session[fd]) 
 		{	//RFIFOFLUSH(fd);
 			memmove(session[fd]->rdata, RFIFOP(fd,0), RFIFOREST(fd));
 			session[fd]->rdata_size = RFIFOREST(fd);
@@ -1862,7 +1980,7 @@ int do_sendrecv(int next)
 ///////////////////////////////////////////////////////////////////////////////
 // delayed session removal timer entry
 ///////////////////////////////////////////////////////////////////////////////
-int session_WaitClose(int tid, unsigned long tick, int id, int data)
+int session_WaitClose(int tid, unsigned long tick, int id, int data) 
 {
 	if( session_isValid(id) && session[id]->flag.marked )
 	{	// set session to offline
@@ -1949,19 +2067,19 @@ void socket_init(void)
 	unsigned int i;
 	char fullhost[255];
 	struct hostent* hent;
-
+	
 	/* Start up the windows networking */
 	WSADATA wsaData;
 	if ( WSAStartup(WINSOCK_VERSION, &wsaData) != 0 ) {
 		ShowError("SYSERR: WinSock not available!\n");
 		exit(1);
 	}
-
+	
 	if(gethostname(fullhost, sizeof(fullhost)) == SOCKET_ERROR) {
 		ShowWarning("Ugg.. no hostname defined!\n");
 		return;
-	}
-
+	} 
+	
 	// XXX This should look up the local IP addresses in the registry
 	// instead of calling gethostbyname. However, the way IP addresses
 	// are stored in the registry is annoyingly complex, so I'll leave
@@ -1982,7 +2100,7 @@ void socket_init(void)
 	int fdes = socket(AF_INET, SOCK_STREAM, 0);
 	char buf[16 * sizeof(struct ifreq)];
 	struct ifconf ic;
-
+	
 	// The ioctl call will fail with Invalid Argument if there are more
 	// interfaces than will fit in the buffer
 	ic.ifc_len = sizeof(buf);
@@ -1995,7 +2113,7 @@ void socket_init(void)
 	{
 		struct ifreq * ir = (struct ifreq *) (ic.ifc_buf + pos);
 		struct sockaddr_in * a = (struct sockaddr_in *) &(ir->ifr_addr);
-
+		
 		if(a->sin_family == AF_INET) {
 			u_long ad = ntohl(a->sin_addr.s_addr);
 			if(ad != INADDR_LOOPBACK) {
@@ -2012,7 +2130,7 @@ void socket_init(void)
 #endif//not AIX or APPLE
 	}
 #endif//not W32
-
+	
 
 	ddos.socket_config_read("conf/packet_athena.conf");
 
@@ -2052,14 +2170,14 @@ void socket_final(void)
 //
 // new ip address stuff
 // just setting them up
-//
+// 
 ///////////////////////////////////////////////////////////////////////////////
 //
 // class that holds the IP addresses of app
-//
+// 
 // we need a lan_ip, subnetmask and lan port; further a wan ip and wan port
 // if not set explicitely, the initial network addresses will be used
-// wan ip and port will the same as lan values when not specified,
+// wan ip and port will the same as lan values when not specified, 
 // and subnetmask is BROADCAST
 // also used to check if a bind address is valid or not
 //
@@ -2067,7 +2185,7 @@ void socket_final(void)
 class ipset : public streamable
 {
 	template <uint C> class _ipset_helper
-	{
+	{	
 		ulong	cAddr[C];	// ip addresses of local host (host byte order)
 		uint	cCnt;		// # of ip addresses
 
@@ -2080,7 +2198,7 @@ class ipset : public streamable
 			unsigned int i;
 			char fullhost[255];
 			struct hostent* hent;
-
+			
 			/* Start up the windows networking */
 			WSADATA wsaData;
 			if ( WSAStartup(WINSOCK_VERSION, &wsaData) != 0 )
@@ -2088,13 +2206,13 @@ class ipset : public streamable
 				printf("SYSERR: WinSock not available!\n");
 				exit(1);
 			}
-
+			
 			if(gethostname(fullhost, sizeof(fullhost)) == SOCKET_ERROR)
 			{
 				printf("No hostname defined!\n");
 				return;
-			}
-
+			} 
+			
 			// XXX This should look up the local IP addresses in the registry
 			// instead of calling gethostbyname. However, the way IP addresses
 			// are stored in the registry is annoyingly complex, so I'll leave
@@ -2118,7 +2236,7 @@ class ipset : public streamable
 			int fdes = socket(AF_INET, SOCK_STREAM, 0);
 			char buf[16 * sizeof(struct ifreq)];
 			struct ifconf ic;
-
+			
 			// The ioctl call will fail with Invalid Argument if there are more
 			// interfaces than will fit in the buffer
 			ic.ifc_len = sizeof(buf);
@@ -2131,7 +2249,7 @@ class ipset : public streamable
 			{
 				struct ifreq * ir = (struct ifreq *) (ic.ifc_buf + pos);
 				struct sockaddr_in * a = (struct sockaddr_in *) &(ir->ifr_addr);
-
+				
 				if(a->sin_family == AF_INET) {
 					u_long ad = ntohl(a->sin_addr.s_addr);
 					if(ad != INADDR_LOOPBACK) {
@@ -2147,10 +2265,10 @@ class ipset : public streamable
 				pos += sizeof(struct ifreq);
 #endif//not AIX or APPLE
 			}
-#endif//not W32
+#endif//not W32	
 		}
 
-		uint GetSytemCount()
+		uint GetSytemCount()	
 		{
 			return cCnt;
 		}
@@ -2208,14 +2326,14 @@ public:
 	}
 	void check()
 	{	// check for unset wan address/port
-		if( wan_port == 0 )
+		if( wan_port == 0 ) 
 			wan_port = lan_port;
 	}
 
 	ipaddress LANIP() const	{return lan_ip;}
 	bool SetLANIP(const ipaddress ip)
 	{	// a valid lan address should be bindable
-		if( isBindable(ip) )
+		if( isBindable(ip) ) 
 		{
 			lan_ip = ip;
 			return true;
@@ -2227,8 +2345,8 @@ public:
 	ushort& LANPort()		{return lan_port;}
 	ushort& WANPort()		{return wan_port;}
 
-
-
+	
+	
 
 	virtual size_t BufferSize() const
 	{
@@ -2266,7 +2384,7 @@ class app_ipaddresses
 
 
 public:
-
+	
 	app_ipaddresses():
 	    iplogin(INADDR_ANY,INADDR_BROADCAST),
 		ipchar(INADDR_ANY,INADDR_BROADCAST),
