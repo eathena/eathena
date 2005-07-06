@@ -1,4 +1,9 @@
 Date	Added
+07/06
+	* Added itemheal, warp, jobchange, setlook and npccutin build-in commands [DracoRPG]
+	* Added script_get_target : simplifies writing build-in functions and allows use of a
+	  char ID as an optional last argument for any function affecting a player (except npcmenu
+	  and npcshop that both need to be recoded without intermediate vararg func) [DracoRPG]
 07/03
 	* addspawn works, but finally I'll keep 0 = random coordinate and not -1 ^^" [DracoRPG]
 06/25

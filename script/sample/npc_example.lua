@@ -37,7 +37,7 @@ function npc_biter()
 	npcnext()
 	npcmes "This dog looks ferocious... I should better keep away... How far?"
 	npcnext()
-	npcmes("Yes, I think I need to be at least "..npcinput().." "..npcinput(TYPE_STR).." away from him to be safe.")
+	npcmes("Yes, I think I need to be at least "..npcinput().." "..npcinput(1).." away from him to be safe.")
 	npcclose()
 end
 

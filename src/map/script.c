@@ -51,12 +51,12 @@ char mapreg_txt[256]="save/mapreg.txt";
 struct Script_Config script_config;
 static char pos[11][100] = {"Head","Body","Left hand","Right hand","Robe","Shoes","Accessory 1","Accessory 2","Head 2","Head 3","Not Equipped"};
 
-lua_State *L; // [DracoRPG]
+lua_State *L;
 
 
 /*===================================================================
  *
- *                  LUA BUILDIN COMMANDS GO HERE [Kevin]
+ *                  LUA BUILD-IN COMMANDS GO HERE
  *
  *===================================================================
  */
@@ -65,18 +65,6 @@ lua_State *L; // [DracoRPG]
 // Exits definitively the script
 static int buildin_scriptend(lua_State *NL)
 {
-	struct map_session_data *sd = NULL;
-	int charid;
-
-	lua_pushliteral(NL, "char_id");
-	lua_rawget(NL, LUA_GLOBALSINDEX);
-	charid=lua_tonumber(NL, -1);
-	lua_pop(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script\n");
-		return -1;
-	}
-
 	return lua_yield(NL, 0);
 }
 
@@ -172,45 +160,28 @@ static int buildin_addspawn(lua_State *NL)
 	return 0;
 }
 
-// npcmes("A bunch of silly text")
-// Print the silly text to the NPC dialog window of the player
+// npcmes("Text",[id])
+// Print the text into the NPC dialog window of the player
 static int buildin_npcmes(lua_State *NL)
 {
-	struct map_session_data *sd = NULL;
+	struct map_session_data *sd;
 	char mes[512];
-	int charid, npcid;
 
-	lua_pushliteral(NL, "char_id");
-	lua_rawget(NL, LUA_GLOBALSINDEX);
-	charid=lua_tonumber(NL, -1);
-	lua_pop(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script\n");
-		return -1;
-	}
-	npcid = sd->npc_id;
 	sprintf(mes,"%s",lua_tostring(NL, 1)); 
+	sd = script_get_target(NL, 2);
 
-	clif_scriptmes(sd, npcid, mes);
+	clif_scriptmes(sd, sd->npc_id, mes);
 
 	return 0;
 }
 
-// npcclose()
+// npcclose([id])
 // Display a [Close] button in the NPC dialog window of the player and pause the script until the button is clicked
 static int buildin_npcclose(lua_State *NL)
 {
-	struct map_session_data *sd = NULL;
-	int charid;
-	
-	lua_pushliteral(NL, "char_id");
-	lua_rawget(NL, LUA_GLOBALSINDEX);
-	charid=lua_tonumber(NL, -1);
-	lua_pop(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script\n");
-		return -1;
-	}
+	struct map_session_data *sd;
+
+	sd = script_get_target(NL, 1);
 
 	clif_scriptclose(sd,sd->npc_id);
 
@@ -218,21 +189,13 @@ static int buildin_npcclose(lua_State *NL)
 	return lua_yield(NL, 0);
 }
 
-// npcnext()
+// npcnext([id])
 // Display a [Next] button in the NPC dialog window of the player and pause the script until the button is clicked
 static int buildin_npcnext(lua_State *NL)
 {
-	struct map_session_data *sd = NULL;
-	int charid;
+	struct map_session_data *sd;
 
-	lua_pushliteral(NL, "char_id");
-	lua_rawget(NL, LUA_GLOBALSINDEX);
-	charid=lua_tonumber(NL, -1);
-	lua_pop(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script\n");
-		return -1;
-	}
+	sd = script_get_target(NL, 1);
 
 	clif_scriptnext(sd,sd->npc_id);
 
@@ -240,23 +203,17 @@ static int buildin_npcnext(lua_State *NL)
 	return lua_yield(NL, 0);
 }
 
-// npcinput(type)
+// npcinput(type,[id])
 // Display an NPC input window asking the player for a value
 static int buildin_npcinput(lua_State *NL)
 {
-	struct map_session_data *sd = NULL;
-	int charid;
+	struct map_session_data *sd;
+	int type;
 
-	lua_pushliteral(NL, "char_id");
-	lua_rawget(NL, LUA_GLOBALSINDEX);
-	charid=lua_tonumber(NL, -1);
-	lua_pop(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script\n");
-		return -1;
-	}
+	type = lua_tonumber(NL, 1);
+	sd = script_get_target(NL, 2);
 
-	switch((int)lua_tonumber(NL, 1)){
+	switch(type){
 		case 0:
 			clif_scriptinput(sd,sd->npc_id);
 			break;
@@ -269,24 +226,16 @@ static int buildin_npcinput(lua_State *NL)
 	return lua_yield(NL, 1);
 }
 
-// npcmenu("menu_name1", return_value1, ...)
+// npcmenu("menu_name1",return_value1,...)
 // Display an NPC input window asking the player for a value
 static int buildin_npcmenu(lua_State *NL)
 {
-	struct map_session_data *sd = NULL;
+	struct map_session_data *sd;
 	char *buf;
 	char *menu;
 	int len=0, n, i;
-	int charid;
 
-	lua_pushliteral(NL, "char_id");
-	lua_rawget(NL, LUA_GLOBALSINDEX);
-	charid=lua_tonumber(NL, -1);
-	lua_pop(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script\n");
-		return -1;
-	}
+	sd = script_get_target(NL, 2);
 
 	lua_pushliteral(NL, "n");
 	lua_rawget(NL, 1);
@@ -339,22 +288,14 @@ static int buildin_npcmenu(lua_State *NL)
 	return lua_yield(NL, 1);
 }
 
-// npcshop()
+// npcshop(item_id1,item_price1,...)
 // Start a shop with buylist of item_id selling for item_price
 static int buildin_npcshop(lua_State *NL)
 {
-	struct map_session_data *sd = NULL;
+	struct map_session_data *sd;
 	int n, i, j;
-	int charid;
 
-	lua_pushliteral(NL, "char_id");
-	lua_rawget(NL, LUA_GLOBALSINDEX);
-	charid=lua_tonumber(NL, -1);
-	lua_pop(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script\n");
-		return -1;
-	}
+	sd = script_get_target(NL, 2);
 
 	lua_pushliteral(NL, "n");
 	lua_rawget(NL, 1);
@@ -362,7 +303,7 @@ static int buildin_npcshop(lua_State *NL)
 	lua_pop(NL, 1);
 
 	if(n%2 == 1) {
-		lua_pushstring(NL, "Incorrect number of arguments for function 'npcshop_co'\n");
+		lua_pushstring(NL, "Incorrect number of arguments for function 'npcmenu'\n");
 		lua_error(NL);
 		return -1;
 	}
@@ -387,82 +328,162 @@ static int buildin_npcshop(lua_State *NL)
 	return lua_yield(NL, 1);
 }
 
-// heal(hp,sp)
+// npccutin(name,type,[id])
+// Display a cutin picture on the screen
+static int buildin_npccutin(lua_State *NL)
+{
+	struct map_session_data *sd;
+	char name[50];
+	int type;
+
+	sprintf(name, "%s", lua_tostring(NL,1));
+	type = lua_tonumber(NL, 2);
+	sd = script_get_target(NL, 3);
+
+	clif_cutin(sd,name,type);
+
+	return 0;
+}
+
+// heal(hp,sp,[id])
 // Heal the character by a set amount of HP and SP
 static int buildin_heal(lua_State *NL)
 {
-	struct map_session_data *sd = NULL;
-	int charid, hp, sp;
+	struct map_session_data *sd;
+	int hp, sp;
 
-	lua_pushliteral(NL, "char_id");
-	lua_rawget(NL, LUA_GLOBALSINDEX);
-	charid=lua_tonumber(NL, -1);
-	lua_pop(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script\n");
-		return -1;
-	}
 	hp = lua_tonumber(NL, 1);
 	sp = lua_tonumber(NL, 2);
-	lua_pop(NL, 2);
+	sd = script_get_target(NL, 3);
 
 	pc_heal(sd, hp, sp);
 
 	return 0;
 }
 
-// percentheal(hp,sp)
+// percentheal(hp,sp,[id])
 // Heal the character by a percentage of MaxHP and MaxSP
 static int buildin_percentheal(lua_State *NL)
 {
-	struct map_session_data *sd = NULL;
-	int charid, hp, sp;
+	struct map_session_data *sd;
+	int hp, sp;
 
-	lua_pushliteral(NL, "char_id");
-	lua_rawget(NL, LUA_GLOBALSINDEX);
-	charid=lua_tonumber(NL, -1);
-	lua_pop(NL, 1);
-	if((sd = map_charid2sd(charid))==NULL) {
-		ShowError("Character not found in script\n");
-		return -1;
-	}
 	hp = lua_tonumber(NL, 1);
 	sp = lua_tonumber(NL, 2);
+	sd = script_get_target(NL, 3);
 
 	pc_percentheal(sd, hp, sp);
 
 	return 0;
 }
 
-// List of commands to build into Lua
+// itemheal(hp,sp,[id])
+// Heal the character by an amount of HP and SP that increases with VIT/INT, skills, etc
+static int buildin_itemheal(lua_State *NL)
+{
+	struct map_session_data *sd;
+	int hp, sp;
+
+	hp = lua_tonumber(NL, 1);
+	sp = lua_tonumber(NL, 2);
+	sd = script_get_target(NL, 3);
+
+	pc_itemheal(sd, hp, sp);
+
+	return 0;
+}
+
+// warp("map.gat",x,y,[id])
+// Warp the character to a set location
+static int buildin_warp(lua_State *NL)
+{
+	struct map_session_data *sd;
+	char str[16];
+	int x, y;
+
+	sprintf(str, "%s", lua_tostring(NL,1));
+	x = lua_tonumber(NL, 2);
+	y = lua_tonumber(NL, 3);
+	sd = script_get_target(NL, 4);
+
+	if(strcmp(str,"Random")==0) // Warp to random location
+		pc_randomwarp(sd,3);
+	else if(strcmp(str,"SavePoint")==0 || strcmp(str,"Save")==0) { // Warp to save point
+		if(map[sd->bl.m].flag.noreturn)
+			return 0;
+		pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);
+	} else // Warp to given location
+		pc_setpos(sd,str,x,y,0);
+
+	return 0;
+}
+
+// jobchange(job,[id])
+// Change the job of the character
+static int buildin_jobchange(lua_State *NL)
+{
+	struct map_session_data *sd;
+	int job;
+
+	job = lua_tonumber(NL, 1);
+	sd = script_get_target(NL, 2);
+
+	pc_jobchange(sd,job,0);
+
+	return 0;
+}
+
+// setlook(type,val,[id])
+// Change the look of the character
+static int buildin_setlook(lua_State *NL)
+{
+	struct map_session_data *sd;
+	int type,val;
+
+	type = lua_tonumber(NL, 1);
+	val = lua_tonumber(NL, 2);
+	sd = script_get_target(NL, 3);
+
+	pc_changelook(sd,type,val);
+
+	return 0;
+}
+
+// List of commands to build into Lua, format : {"function_name_in_lua", C_function_name}
 static struct LuaCommandInfo commands[] = {
-	/* Basic functions */
+	// Basic functions
 	{"scriptend", buildin_scriptend},
-	/* Object creation functions */
+	// Object creation functions
 	{"addnpc", buildin_addnpc},
 	{"addareascript", buildin_addareascript},
 	{"addwarp", buildin_addwarp},
 	{"addspawn", buildin_addspawn},
 //	{"addgmcommand", buildin_addgmcommand},
 //	{"addtimer", buildin_addtimer},
+//  {"addclock", buildin_addclock},
 //	{"addevent", buildin_addevent},
-	/* NPC dialog window functions */
+	// NPC dialog functions
 	{"npcmes", buildin_npcmes},
 	{"npcclose", buildin_npcclose},
 	{"npcnext", buildin_npcnext},
 	{"npcinput", buildin_npcinput},
 	{"npcmenu_", buildin_npcmenu},
 	{"npcshop_", buildin_npcshop},
-	/* Player related functions */
+	{"npccutin", buildin_npccutin},
+	// Player related functions
 	{"heal", buildin_heal},
 	{"percentheal", buildin_percentheal},
-	/* End of build-in functions list */
+	{"itemheal", buildin_itemheal},
+	{"warp", buildin_warp},
+	{"jobchange", buildin_jobchange},
+	{"setlook", buildin_setlook},
+	// End of build-in functions list
 	{"-End of list-", NULL},
 };
 
 /*===================================================================
  *
- *                   LUA FUNCTIONS BEGIN HERE [DracoRPG]
+ *                   END OF LUA BUILD-IN COMMANDS
  *
  *===================================================================
  */
@@ -479,6 +500,27 @@ void script_buildin_commands()
         i++;
     }
 	ShowStatus("Done registering '"CL_WHITE"%d"CL_RESET"' script build-in commands.\n",i);
+}
+
+// Check whether a char ID was passed as argument, else check if there's a global one
+struct map_session_data* script_get_target(lua_State *NL,int idx)
+{
+	int char_id;
+	struct map_session_data* sd;
+
+	if((char_id=lua_tonumber(NL, idx))==0) { // If 0 or nothing was passed as argument
+		lua_pushliteral(NL, "char_id");
+		lua_rawget(NL, LUA_GLOBALSINDEX);
+		char_id=lua_tonumber(NL, -1); // Get the thread's char ID if it's a personal one
+		lua_pop(NL, 1);
+	}
+
+	if(char_id==0 || (sd=map_charid2sd(char_id))==NULL) { // If we still dont have a valid char ID here, there's a problem
+		ShowError("Target character not found for script command\n");
+		return NULL;
+	}
+	
+	return sd;
 }
 
 // Run a Lua function that was previously loaded, specifying the type of arguments with a "format" string
@@ -615,13 +657,6 @@ void script_resume(struct map_session_data *sd,const char *format,...) {
 		sd->npc_id=0; // Set the player's current NPC to 'none'
 	}
 }
-
-/*===================================================================
- *
- *                   LUA FUNCTIONS END HERE [DracoRPG]
- *
- *===================================================================
- */
 
 static int set_posword(char *p)
 {

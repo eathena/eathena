@@ -30,10 +30,11 @@ lua_State *L;
 extern char mapreg_txt[];
 
 // Lua-specific functions by Kevin and DracoRPG
+struct map_session_data* script_get_target(lua_State *NL,int idx);
+void script_buildin_commands();
 void script_run_function(const char *name,int char_id,const char *format,...);
 void script_run_chunk(const char *chunk,int char_id);
 void script_resume(struct map_session_data *sd,const char *format,...);
-void script_buildin_commands();
 
 int script_config_read(char *cfgName);
 int do_init_script();
