@@ -8157,28 +8157,12 @@ static int set_posword(char *p)
 	return 0;
 }
 
-int script_config_read(char *cfgName)
+int script_config_read_sub(char *cfgName)
 {
 	int i;
 	char line[1024],w1[1024],w2[1024];
 	FILE *fp;
 
-	script_config.verbose_mode = 0;
-	script_config.warn_func_no_comma = 1;
-	script_config.warn_cmd_no_comma = 1;
-	script_config.warn_func_mismatch_paramnum = 1;
-	script_config.warn_cmd_mismatch_paramnum = 1;
-	script_config.check_cmdcount = 65535;
-	script_config.check_gotocount = 2048;
-
-	script_config.die_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
-	script_config.kill_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
-	script_config.login_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
-	script_config.logout_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
-	script_config.mapload_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
-
-	script_config.event_script_type = 0;
-	script_config.event_requires_trigger = 1;
 
 	fp = fopen(cfgName, "r");
 	if (fp == NULL) {
@@ -8237,12 +8221,35 @@ int script_config_read(char *cfgName)
 			script_config.event_requires_trigger = battle_config_switch(w2);
 		}
 		else if(strcmpi(w1,"import")==0){
-			script_config_read(w2);
+			script_config_read_sub(w2);
 		}
 	}
 	fclose(fp);
 
 	return 0;
+}
+
+int script_config_read(char *cfgName)
+{	//Script related variables should be initialized once! [Skotlex]
+	
+	script_config.verbose_mode = 0;
+	script_config.warn_func_no_comma = 1;
+	script_config.warn_cmd_no_comma = 1;
+	script_config.warn_func_mismatch_paramnum = 1;
+	script_config.warn_cmd_mismatch_paramnum = 1;
+	script_config.check_cmdcount = 65535;
+	script_config.check_gotocount = 2048;
+
+	script_config.die_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
+	script_config.kill_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
+	script_config.login_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
+	script_config.logout_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
+	script_config.mapload_event_name = (char *) aCallocA (NAME_LENGTH, sizeof(char));
+
+	script_config.event_script_type = 0;
+	script_config.event_requires_trigger = 1;
+
+	return script_config_read_sub(cfgName);
 }
 
 /*==========================================

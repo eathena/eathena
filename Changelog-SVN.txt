@@ -1,5 +1,7 @@
 Date	Added
 07/06
+	* Fixed script config import reading. [Skotlex]
+	  (was working incorrectly and causing memory leaks)
 	* Another mob-ai fix, this time mobs should unlock their target once
 	  it has died for sure. [Skotlex]
 	* Added player_combo_damage_delay & monster_combo_damage_delay [Skotlex]
