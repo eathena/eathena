@@ -1,5 +1,7 @@
 Date	Added
 07/06
+	* Another mob-ai fix, this time mobs should unlock their target once
+	  it has died for sure. [Skotlex]
 	* Added player_combo_damage_delay & monster_combo_damage_delay [Skotlex]
 	  See battle_athena.conf for description of how they work.
 	  Defaults to 0 because it is not yet tested for an appropiate default.

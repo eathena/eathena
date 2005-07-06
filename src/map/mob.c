@@ -1742,7 +1742,9 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				tmd = (struct mob_data *)tbl;
 			if (tsd || tmd) {
 				if (tbl->m != md->bl.m || tbl->prev == NULL ||
-					(dist = distance(md->bl.x, md->bl.y, tbl->x, tbl->y)) >= search_size)
+					(dist = distance(md->bl.x, md->bl.y, tbl->x, tbl->y)) >= search_size ||
+					(tsd && pc_isdead(tsd)) //Unlock when target died. [Skotlex]
+					)
 				{
 					mob_unlocktarget(md,tick);	// 別マップか、視界外
 				} else if (blind_flag && dist > 2 && DIFF_TICK(tick,md->next_walktime) < 0) {
