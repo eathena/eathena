@@ -890,7 +890,7 @@
 2238,Moustache,Moustache,5,2,0,100,,0,,0,10477567,2,1,,0,0,22,{},{}
 2239,Single_Glass,Single Glass,5,10000,0,100,,0,,0,10477567,2,512,,0,0,23,{},{}
 2240,Beard,Beard,5,2,0,100,,0,,0,10477567,2,1,,0,0,24,{},{}
-2241,Granpa_Beard,Granpa Beard,5,5000,0,100,,0,,0,10477567,2,1,,0,0,25,{},{}
+2241,Grandpa_Beard,Grandpa Beard,5,5000,0,100,,0,,0,10477567,2,1,,0,0,25,{},{}
 2242,Purple_Sunglasses,Purple Glasses,5,24000,0,100,,1,,0,10477567,2,512,,0,0,26,{},{ bonus2 bResEff,Eff_Blind,1000; }
 2243,Geek_Glasses,Geek Glasses,5,20000,0,100,,1,,0,10477567,2,512,,0,0,27,{},{ bonus2 bResEff,Eff_Blind,1500; }
 2244,Big_Ribbon,Big Ribbon,5,15000,0,200,,2,,0,2088958,2,256,,0,1,28,{},{ bonus bMdef,3; }
