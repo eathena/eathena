@@ -1,4 +1,10 @@
 Date	Added
+07/07
+	* Modified Dispel so that it can fail. [Skotlex]
+	  As I have no information of how mdef protects against it, the current
+	  dummy equation is: (50+10*SkillLv - mdef)% (note that mdef2 is not used!)
+	  If someone knows the actual equation, do open a bug report.
+
 07/06
 	* Fixed Spider-web (works like a ground-targeted trap) [Skotlex]
 	* Fixed combo delay not working with skills that have a blowcount [Skotlex]

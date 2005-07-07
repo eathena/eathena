@@ -2911,7 +2911,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	struct mob_data *dstmd = NULL;
 	int i;
 	int sc_def_vit, sc_def_mdef;
-	int sc_dex, sc_luk;
+//	int sc_dex, sc_luk;
 	
 	if(skillid < 0) 
 	{	// remove the debug print when this case is finished
@@ -2930,8 +2930,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		nullpo_retr (1, md = (struct mob_data *)src);
 	}
 
-	sc_dex = status_get_mdef (bl);
-	sc_luk = status_get_luk (bl);
+	//Removed because these ain't used in this function... [Skotlex]
+//	sc_dex = status_get_mdef (bl);
+//	sc_luk = status_get_luk (bl);
 	sc_def_vit = status_get_sc_def_vit (bl);
 	sc_def_mdef = status_get_sc_def_mdef (bl);
 
@@ -4123,6 +4124,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			int i;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			if (rand()%100 >= 50+10*skilllv-sc_def_mdef)
+			{
+				if (sd)
+					clif_skill_fail(sd,skillid,0,0);
+				break;
+			}
 			if(status_isimmune(bl))
 				break;
 			for(i=0;i<136;i++){
