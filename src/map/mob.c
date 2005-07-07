@@ -1087,9 +1087,11 @@ int mob_stop_walking(struct mob_data *md,int type)
 	if(type&0x01)
 		clif_fixmobpos(md);
 	if(type&0x02) {
+		int delay;
+		unsigned int tick;
 		type = type>>3; //Extract the div count [Skotlex]
-		int delay=status_get_dmotion(&md->bl);
-		unsigned int tick = gettick();
+		delay=status_get_dmotion(&md->bl);
+		tick = gettick();
 		if(battle_config.monster_damage_delay_rate && md->canmove_tick < tick)
 			md->canmove_tick = tick + delay + (type>1?(type-1)*battle_config.monster_combo_damage_delay:0);
 	}

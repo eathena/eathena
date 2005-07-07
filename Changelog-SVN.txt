@@ -1,5 +1,7 @@
 Date	Added
 07/07
+	* Moved some declarations causing errors with gcc 2.95 [veider]
+	* Added valid fd test in inter.c char_sql - caused charserver crash [veider]
 	* Fixed pet-exploit where you could use a bow with no arrow equipped to
 	  'send' your pet to attack distant enemies. [Skotlex]
 	* Added a visual skill effect when pets heal a status ailment. [Skotlex]

@@ -7971,6 +7971,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 {
 //	struct item_data* item;
 	int i;
+	struct npc_data *npc;
 	nullpo_retv(sd);
 
 	if(sd->bl.prev != NULL)
@@ -8095,7 +8096,6 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_weather1(sd->fd, 474 + battle_config.night_darkness_level);
 
 // Lance
-	struct npc_data *npc;
 if ((npc = npc_name2id("PCLoadMapEvent"))) {  
 	if(npc->bl.m == sd->bl.m) {
 		run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id);

@@ -502,6 +502,8 @@ int mapif_parse_WisRequest(int fd) {
 	static int wisid = 0;
 	char t_name[NAME_LENGTH*2]; //Needs space to allocate names with escaped chars [Skotlex]
 
+	if ( fd <= 0 ) {return 0;} // check if we have a valid fd
+
 	if (RFIFOW(fd,2)-52 >= sizeof(wd->msg)) {
 		ShowWarning("inter: Wis message size too long.\n");
 		return 0;

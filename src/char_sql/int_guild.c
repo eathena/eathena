@@ -134,9 +134,9 @@ int inter_guild_tosql(struct guild *g,int flag)
 	t_info[0]='\0';
 	// Insert new guild to sqlserver
 	if (flag&1){
-		strcat(t_info, " guild");
 		int len=0;
 		char updateflag=1;
+		strcat(t_info, " guild");
 		
 		// Check if the guild exists.
 		sprintf(tmp_sql,"SELECT guild_id FROM `%s` WHERE guild_id='%d'",guild_db, g->guild_id);
@@ -186,8 +186,8 @@ int inter_guild_tosql(struct guild *g,int flag)
 	}
 
 	if (flag&2){ //Update Guild Members
-		strcat(t_info, " members");
 		struct guild_member *m;
+		strcat(t_info, " members");
 		// Re-writing from scratch (Aru)
 		sprintf(tmp_sql,"DELETE from `%s` where `guild_id` = '%d'",
 			guild_member_db, g->guild_id);
