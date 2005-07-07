@@ -35,6 +35,7 @@
 #include "char.h"
 #include "../common/utils.h"
 #include "../common/strlib.h"
+#include "../common/showmsg.h"
 #include "itemdb.h"
 #include "inter.h"
 #include "db.h"
@@ -167,7 +168,7 @@ void set_char_online(int char_id, int account_id) {
     if ( char_id != 99 ) {
         sprintf(tmp_sql, "UPDATE `%s` SET `online`='1' WHERE `char_id`='%d'",char_db,char_id);
 		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (set char online)- %s\n", mysql_error(&mysql_handle));
+			ShowError("DB server Error (set char online)- %s\n", mysql_error(&mysql_handle));
 		}
     }
 
@@ -182,13 +183,14 @@ void set_char_online(int char_id, int account_id) {
 void set_all_offline(void) {
 	sprintf(tmp_sql, "SELECT `account_id` FROM `%s` WHERE `online`='1'",char_db);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (select all online)- %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error (select all online)- %s\n", mysql_error(&mysql_handle));
 	}
+	ShowNotice("Sending all users offline.\n");
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
 	    while((sql_row = mysql_fetch_row(sql_res))) {
 	        if ( login_fd > 0 ) {
-	            printf("send user offline: %d\n",atoi(sql_row[0]));
+	            ShowInfo("send user offline: %d\n",atoi(sql_row[0]));
 	            WFIFOW(login_fd,0) = 0x272c;
 	            WFIFOL(login_fd,2) = atoi(sql_row[0]);
 	            WFIFOSET(login_fd,6);
@@ -199,7 +201,7 @@ void set_all_offline(void) {
    	mysql_free_result(sql_res);
     sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `online`='1'", char_db);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (set_all_offline)- %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error (set_all_offline)- %s\n", mysql_error(&mysql_handle));
 	}
 
 }
@@ -219,7 +221,7 @@ void set_char_offline(int char_id, int account_id) {
 		sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `char_id`='%d'", char_db, char_id);
 
 		if (mysql_query(&mysql_handle, tmp_sql))
-			printf("DB server Error (set_char_offline)- %s\n", mysql_error(&mysql_handle));
+			ShowError("DB server Error (set_char_offline)- %s\n", mysql_error(&mysql_handle));
 	}
 
    if (login_fd <= 0 || session[login_fd]->eof)
@@ -251,7 +253,7 @@ void read_gm_account(void) {
 
 	sprintf(tmp_lsql, "SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",login_db_account_id,login_db_level,login_db,login_db_level,lowest_gm_level);
 	if (mysql_query(&lmysql_handle, tmp_lsql)) {
-		printf("DB server Error (select %s to Memory)- %s\n",login_db,mysql_error(&lmysql_handle));
+		ShowError("DB server Error (select %s to Memory)- %s\n",login_db,mysql_error(&lmysql_handle));
 	}
 	lsql_res = mysql_store_result(&lmysql_handle);
 	if (lsql_res) {
@@ -307,7 +309,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	}
 
 	save_flag = p->char_id;
-	printf("(\033[1;32m%d\033[0m) %s \trequest save char data - ",char_id,char_dat[0].name);
+	ShowInfo("Save char request (\033[1;32m%d\033[0m - %s)\n",char_id,char_dat[0].name);
 
 //for(testcount=1;testcount<50;testcount++){//---------------------------test count--------------------
 //	printf("test count : %d\n", testcount);
@@ -400,7 +402,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	party_exist=0;
 	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id` = '%d'",party_db, p->party_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error - %s\n", mysql_error(&mysql_handle));
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	sql_row = mysql_fetch_row(sql_res);
@@ -411,7 +413,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	guild_exist=0;
 	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id` = '%d'",guild_db, p->guild_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error - %s\n", mysql_error(&mysql_handle));
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	sql_row = mysql_fetch_row(sql_res);
@@ -451,7 +453,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	);
 
 	if(mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle));
+			ShowError("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle));
 	}
 
 	}
@@ -470,7 +472,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
 	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",memo_db, p->char_id);
 	if(mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (delete `memo`)- %s\n", mysql_error(&mysql_handle));
+			ShowError("DB server Error (delete `memo`)- %s\n", mysql_error(&mysql_handle));
 	}
 
 	//insert here.
@@ -479,7 +481,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`,`map`,`x`,`y`) VALUES ('%d', '%s', '%d', '%d')",
 				memo_db, char_id, p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
 			if(mysql_query(&mysql_handle, tmp_sql))
-				printf("DB server Error (insert `memo`)- %s\n", mysql_error(&mysql_handle));
+				ShowError("DB server Error (insert `memo`)- %s\n", mysql_error(&mysql_handle));
 		}
 	}
 	}
@@ -501,7 +503,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	//`skill` (`char_id`, `id`, `lv`)
 	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",skill_db, p->char_id);
 	if(mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (delete `skill`)- %s\n", mysql_error(&mysql_handle));
+			ShowError("DB server Error (delete `skill`)- %s\n", mysql_error(&mysql_handle));
 	}
 	//printf("- Insert skill \n");
 	//insert here.
@@ -511,7 +513,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 				sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`, `id`, `lv`) VALUES ('%d', '%d','%d')",
 					skill_db, char_id, p->skill[i].id, (p->skill[i].flag==0)?p->skill[i].lv:p->skill[i].flag-2);
 				if(mysql_query(&mysql_handle, tmp_sql)) {
-					printf("DB server Error (insert `skill`)- %s\n", mysql_error(&mysql_handle));
+					ShowError("DB server Error (insert `skill`)- %s\n", mysql_error(&mysql_handle));
 				}
 			}
 		}
@@ -535,7 +537,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	//`global_reg_value` (`char_id`, `str`, `value`)
 	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, p->char_id);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (delete `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
+			ShowError("DB server Error (delete `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
 	}
 
 	//insert here.
@@ -545,7 +547,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 					sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`, `str`, `value`) VALUES ('%d', '%s','%d')",
 					         reg_db, char_id, jstrescapecpy(temp_str,p->global_reg[i].str), p->global_reg[i].value);
 					if(mysql_query(&mysql_handle, tmp_sql)) {
-						printf("DB server Error (insert `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
+						ShowError("DB server Error (insert `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
 					}
 			}
 		}
@@ -618,7 +620,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			}			
 }
 
-	printf("saving char is done.\n");
+	ShowInfo("saving char is done.\n");
 	save_flag = 0;
 
 	memcpy(cp, p, sizeof(struct mmo_charstatus));
@@ -651,7 +653,7 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 		sprintf(selectoption,"guild_id");
 		break;
 	default:
-		printf("Invalid table name!\n");
+		ShowError("Invalid table name!\n");
 		return 1;
 	}
 	//printf("Working Table : %s \n",tablename);
@@ -664,7 +666,7 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 
 
          if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (select `%s` to Memory)- %s\n",tablename ,mysql_error(&mysql_handle));
+		ShowError("DB server Error (select `%s` to Memory)- %s\n",tablename ,mysql_error(&mysql_handle));
 		return 1;
 	}
 	sql_res = mysql_store_result(&mysql_handle);
@@ -694,7 +696,7 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 								tablename, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine, mapitem[i].attribute, mapitem[i].card[0],
 								mapitem[i].card[1], mapitem[i].card[2], mapitem[i].card[3], mapitem[i].amount, id);
 							if(mysql_query(&mysql_handle, tmp_sql))
-								printf("DB server Error (UPdate `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
+								ShowError("DB server Error (UPdate `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
 						}
 						//printf("not the same item : %d ; i : %d ; flag :  %d\n", mapitem.equip[i].nameid, i, mapitem.equip[i].flag);
 					}
@@ -705,7 +707,7 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 			if(!flag) {
 				sprintf(tmp_sql,"DELETE from `%s` where `id`='%d'", tablename, id);
 					if(mysql_query(&mysql_handle, tmp_sql))
-						printf("DB server Error (DELETE `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
+						ShowError("DB server Error (DELETE `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
 			}
 		}
 		mysql_free_result(sql_res);
@@ -718,7 +720,7 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 				tablename, selectoption,  char_id, mapitem[i].nameid, mapitem[i].amount, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine,
 				mapitem[i].attribute, mapitem[i].card[0], mapitem[i].card[1], mapitem[i].card[2], mapitem[i].card[3]);
 			if(mysql_query(&mysql_handle, tmp_sql))
-				printf("DB server Error (INSERT `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
+				ShowError("DB server Error (INSERT `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
 		}
 	}
 
@@ -762,7 +764,7 @@ int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int 
 		sprintf(selectoption,"char_id");
 		break;
 	default:
-		printf("Invalid table name!\n");
+		ShowError("Invalid table name!\n");
 		return 1;
 	}
 	//printf("Working Table : %s \n",tablename);
@@ -775,7 +777,7 @@ int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int 
 
 
          if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (select `%s` to Memory)- %s\n",tablename ,mysql_error(&mysql_handle));
+		ShowError("DB server Error (select `%s` to Memory)- %s\n",tablename ,mysql_error(&mysql_handle));
 		return 1;
 	}
 	sql_res = mysql_store_result(&mysql_handle);
@@ -833,7 +835,7 @@ int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int 
 				tablename, selectoption,  char_id, mapitem[i].nameid, mapitem[i].amount, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine,
 				mapitem[i].attribute, mapitem[i].card[0], mapitem[i].card[1], mapitem[i].card[2], mapitem[i].card[3]);
 			if(mysql_query(&mysql_handle, tmp_sql))
-				printf("DB server Error (INSERT `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
+				ShowError("DB server Error (INSERT `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
 		}
 	}
 
@@ -863,6 +865,7 @@ int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int 
 int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	int i, n;
 	int friends;
+	char t_msg[128];
 	//char *tmp_p = tmp_sql;
 	struct mmo_charstatus *cp;
         friends = 0;
@@ -872,9 +875,10 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	  aFree(cp);
 
 	memset(p, 0, sizeof(struct mmo_charstatus));
-
+	t_msg[0]= '\0';
+	
 	p->char_id = char_id;
-	printf("Loaded: ");
+	ShowInfo("Char load request (%d)\n", char_id);
 	//`char`( `char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`, //9
 	//`str`,`agi`,`vit`,`int`,`dex`,`luk`, //15
 	//`max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point`, //21
@@ -887,7 +891,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 		"`str`,`agi`,`vit`,`int`,`dex`,`luk`, `max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point` FROM `%s` WHERE `char_id` = '%d'",char_db, char_id); // TBR
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
 	}
 
 	sql_res = mysql_store_result(&mysql_handle);
@@ -919,17 +923,16 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 		p->skill_point = atoi(sql_row[21]);
 		//free mysql result.
 		mysql_free_result(sql_res);
+		strcat (t_msg, " status");
 	} else
-		printf("char1 - failed\n");	//Error?! ERRRRRR WHAT THAT SAY!?
-	printf("(\033[1;32m%d\033[0m)\033[1;32m%s\033[0m\t[",p->char_id,p->name);
-	printf("char1 ");
+		ShowError("Load char failed (%d - table %s).\n", char_id, char_db);	//Error?! ERRRRRR WHAT THAT SAY!?
 
 	sprintf(tmp_sql, "SELECT `option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`hair`,`hair_color`,"
 		"`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`,"
 		"`last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`, `partner_id`, `father`, `mother`, `child`, `fame`"
 		"FROM `%s` WHERE `char_id` = '%d'",char_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (select `char2`)- %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error (select `char2`)- %s\n", mysql_error(&mysql_handle));
 	}
 
 	sql_res = mysql_store_result(&mysql_handle);
@@ -950,8 +953,9 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 
 		//free mysql result.
 		mysql_free_result(sql_res);
+		strcat (t_msg, " status2");
 	} else
-		printf("char2 - failed\n");	//Error?! ERRRRRR WHAT THAT SAY!?
+		ShowError("Char load failed (%d - table %s)\n", char_id, char_db);	//Error?! ERRRRRR WHAT THAT SAY!?
 
 	if (p->last_point.x == 0 || p->last_point.y == 0 || p->last_point.map[0] == '\0')
 		memcpy(&p->last_point, &start_point, sizeof(start_point));
@@ -959,13 +963,11 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	if (p->save_point.x == 0 || p->save_point.y == 0 || p->save_point.map[0] == '\0')
 		memcpy(&p->save_point, &start_point, sizeof(start_point));
 
-	printf("char2 ");
-
 	//read memo data
 	//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
 	sprintf(tmp_sql, "SELECT `map`,`x`,`y` FROM `%s` WHERE `char_id`='%d' ORDER by `memo_id`",memo_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (select `memo`)- %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error (select `memo`)- %s\n", mysql_error(&mysql_handle));
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 
@@ -977,15 +979,15 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 			//i ++;
 		}
 		mysql_free_result(sql_res);
+		strcat (t_msg, " memo");
 	}
-	printf("memo ");
 
 	//read inventory
 	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
 	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`"
 		"FROM `%s` WHERE `char_id`='%d'",inventory_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (select `inventory`)- %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error (select `inventory`)- %s\n", mysql_error(&mysql_handle));
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
@@ -1003,16 +1005,15 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 			p->inventory[i].card[3] = atoi(sql_row[10]);
 		}
 		mysql_free_result(sql_res);
+		strcat (t_msg, " inventory");
 	}
-	printf("inventory ");
-
 
 	//read cart.
 	//`cart_inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
 	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`"
 		"FROM `%s` WHERE `char_id`='%d'",cart_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (select `cart_inventory`)- %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error (select `cart_inventory`)- %s\n", mysql_error(&mysql_handle));
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
@@ -1030,14 +1031,14 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 			p->cart[i].card[3] = atoi(sql_row[10]);
 		}
 		mysql_free_result(sql_res);
+		strcat (t_msg, " cart");
 	}
-	printf("cart ");
 
 	//read skill
 	//`skill` (`char_id`, `id`, `lv`)
 	sprintf(tmp_sql, "SELECT `id`, `lv` FROM `%s` WHERE `char_id`='%d'",skill_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (select `skill`)- %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error (select `skill`)- %s\n", mysql_error(&mysql_handle));
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
@@ -1047,14 +1048,14 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 			p->skill[n].lv = atoi(sql_row[1]);
 		}
 		mysql_free_result(sql_res);
+		strcat (t_msg, " skills");
 	}
-	printf("skill ");
 
 	//global_reg
 	//`global_reg_value` (`char_id`, `str`, `value`)
 	sprintf(tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (select `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error (select `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
 	}
 	i = 0;
 	sql_res = mysql_store_result(&mysql_handle);
@@ -1064,6 +1065,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 			p->global_reg[i].value = atoi (sql_row[1]);
 		}
 		mysql_free_result(sql_res);
+		strcat (t_msg, " reg_values");
 	}
 	p->global_reg_num=i;
 
@@ -1131,6 +1133,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
                   //p->friends[i].id = atoi(sql_res[0]);
                 }
         	mysql_free_result(sql_res);
+			strcat (t_msg, " friends");
 	}
 
 	//Friend list 'names'
@@ -1155,7 +1158,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 		set_char_online(char_id,p->account_id);
 	}
 
-	printf("char data load success]\n");	//ok. all data load successfuly!
+	ShowInfo("Loaded char (%d - %s): %s\n", char_id, p->name, t_msg);	//ok. all data load successfuly!
 
 	cp = (struct mmo_charstatus *) aMalloc(sizeof(struct mmo_charstatus));
     	memcpy(cp, p, sizeof(struct mmo_charstatus));
@@ -1169,10 +1172,11 @@ int mmo_char_sql_init(void) {
 
         char_db_=numdb_init();
 
-	printf("init start.......\n");
+	ShowInfo("init start.......\n");
 	// memory initialize
 	// no need to set twice size in this routine. but some cause segmentation error. :P
-	printf("initializing char memory...(%d byte)\n",sizeof(struct mmo_charstatus)*2);
+	// The hell? Why segmentation faults? Sounds like a bug that needs addressing... [Skotlex]
+	ShowDebug("initializing char memory...(%d byte)\n",sizeof(struct mmo_charstatus)*2);
 	CREATE(char_dat, struct mmo_charstatus, 2);
 
 	memset(char_dat, 0, sizeof(struct mmo_charstatus)*2);
@@ -1216,22 +1220,22 @@ int mmo_char_sql_init(void) {
          sprintf(tmp_sql, "SELECT `char_id` FROM `%s`", char_db);
          if(mysql_query(&mysql_handle, tmp_sql)){
          	//fail :(
-                 printf("SQL Error (in select the charid .. (all)): %s", mysql_error(&mysql_handle));
+                 ShowError("SQL Error (in select the charid .. (all)): %s", mysql_error(&mysql_handle));
          }else{
          	sql_res = mysql_store_result(&mysql_handle);
                  if(sql_res){
                         charcount = mysql_num_rows(sql_res);
-                 	printf("total char data -> '%d'.......\n", charcount);
+                 	ShowStatus("total char data -> '%d'.......\n", charcount);
                  	mysql_free_result(sql_res);
                  }else{
-                 	printf("total char data -> '0'.......\n");
+                 	ShowStatus("total char data -> '0'.......\n");
                  }
 	}
 
 	if(char_per_account == 0){
-	  printf("Chars per Account: 'Unlimited'.......\n");
+	  ShowStatus("Chars per Account: 'Unlimited'.......\n");
         }else{
-          printf("Chars per Account: '%d'.......\n", char_per_account);
+          ShowStatus("Chars per Account: '%d'.......\n", char_per_account);
         }
 
         /*
@@ -1256,7 +1260,7 @@ int mmo_char_sql_init(void) {
 	//it will dc all off players
 	//and send the loginserver the new state....
 
-	printf("init end.......\n");
+	ShowInfo("init end.......\n");
 
 	return 0;
 }
@@ -1280,13 +1284,13 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	if (!session_isValid(fd) || !(sd = (struct char_session_data*)session[fd]->session_data))
 		return -2;
 
-	printf("[CHAR] Add - ");
+	ShowInfo("New character request (%d)\n", sd->account_id);
 
 	//check for charcount (maxchars) :)
 	if(char_per_account != 0){
 		sprintf(tmp_sql, "SELECT `account_id` FROM `%s` WHERE `account_id` = '%d'", char_db, sd->account_id);
 		if(mysql_query(&mysql_handle, tmp_sql)){
-			printf("fail, SQL Error: %s !!FAIL!!\n", tmp_sql);
+			ShowError("fail, SQL Error: %s !!FAIL!!\n", tmp_sql);
 		}
 		sql_res = mysql_store_result(&mysql_handle);
 		if(sql_res){
@@ -1294,7 +1298,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			temp = mysql_num_rows(sql_res);
 			if(temp >= char_per_account){
 				//hehe .. limit exceeded :P
-				printf("fail (aid: %d), charlimit exceeded.\n", sd->account_id);
+				ShowInfo("Create char failed (%d): charlimit exceeded.\n", sd->account_id);
 				mysql_free_result(sql_res);
 				return -2;
 			}
@@ -1326,7 +1330,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			//query
 			mysql_query(&mysql_handle, tmp_sql);
 		}
-		printf("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
+		ShowWarning("Create char failed (%d): stats error (bot cheat?!)\n", sd->account_id);
 		return -2;
 	} // for now we have checked: stat points used <31, char slot is less then 9, hair style/color values are acceptable
 
@@ -1341,7 +1345,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 				//query
 				mysql_query(&mysql_handle, tmp_sql);
 			}
-			printf("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
+			ShowWarning("Create char failed (%d): stats error (bot cheat?!)\n", sd->account_id);
 				return -2;
 		}
 	} // now we know that every stat has proper value but we have to check if str/int agi/luk vit/dex pairs are correct
@@ -1355,7 +1359,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			//query
 			mysql_query(&mysql_handle, tmp_sql);
 		}
-		printf("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
+		ShowWarning("Create char failed (%d): stats error (bot cheat?!)\n", sd->account_id);
 		return -2;
 	} // now when we have passed all stat checks
 
@@ -1366,7 +1370,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			charlog_db,"make new char", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 		//query
 		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("fail(log error), SQL error: %s\n", mysql_error(&mysql_handle));
+			ShowError("fail(log error), SQL error: %s\n", mysql_error(&mysql_handle));
 		}
 	}
 	//printf("make new char %d-%d %s %d, %d, %d, %d, %d, %d - %d, %d" RETCODE,
@@ -1375,7 +1379,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	//Check Name (already in use?)
 	sprintf(tmp_sql, "SELECT `name` FROM `%s` WHERE `name` = '%s'",char_db, t_name);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("fail (namecheck!), SQL error: %s\n", mysql_error(&mysql_handle));
+		ShowError("fail (namecheck!), SQL error: %s\n", mysql_error(&mysql_handle));
 		return -2;
 	}
 	sql_res = mysql_store_result(&mysql_handle);
@@ -1384,7 +1388,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 
 		if (temp > 0) {
 			mysql_free_result(sql_res);
-			printf("fail, charname already in use\n");
+			ShowInfo("Create char failed: charname already in use\n");
 			return -1;
 		}
 		mysql_free_result(sql_res);
@@ -1393,7 +1397,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	// check char slot.
 	sprintf(tmp_sql, "SELECT `account_id`, `char_num` FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d'",char_db, sd->account_id, dat[30]);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("fail (charslot check), SQL error: %s\n", mysql_error(&mysql_handle));
+		ShowError("fail (charslot check), SQL error: %s\n", mysql_error(&mysql_handle));
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 
@@ -1402,7 +1406,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 
 		if (temp > 0) {
 			mysql_free_result(sql_res);
-			printf("fail (aid: %d, slot: %d), slot already in use\n", sd->account_id, dat[30]);
+			ShowWarning("Create char failed (%d, slot: %d), slot already in use\n", sd->account_id, dat[30]);
 			return -2;
 		}
 		mysql_free_result(sql_res);
@@ -1436,14 +1440,14 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	//Insert the char to the 'chardb' ^^
 	sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", char_db, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.map, start_point.x, start_point.y, start_point.map, start_point.x, start_point.y);
 	if(mysql_query(&mysql_handle, tmp_sql)){
-		printf("failed (insert in chardb), SQL error: %s\n", mysql_error(&mysql_handle));
+		ShowError("failed (insert in chardb), SQL error: %s\n", mysql_error(&mysql_handle));
 		return -2; //No, stop the procedure!
 	}
 
 	//Now we need the charid from sql!
 	sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id , dat[30] , t_name);
 	if(mysql_query(&mysql_handle, tmp_sql)){
-		printf("failed (get char_id), SQL error: %s\n", mysql_error(&mysql_handle));
+		ShowError("failed (get char_id), SQL error: %s\n", mysql_error(&mysql_handle));
 		//delete the char ..(no trash in DB!)
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 		mysql_query(&mysql_handle, tmp_sql);
@@ -1456,14 +1460,14 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			char_id = atoi(sql_row[0]); //char id :)
 			mysql_free_result(sql_res);
 			if(char_id <= 0){
-				printf("failed (get char id..) CHARID wrong!\n");
+				ShowError("failed (get char id..) CHARID (%d) wrong!\n", char_id);
 				sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 				mysql_query(&mysql_handle, tmp_sql);
 				return -2; //charcreate denied ..
 			}
 		}else{
 			//prevent to crash (if its false, and we want to free -> segfault :)
-			printf("failed (get char id.. res), SQL error: %s\n", mysql_error(&mysql_handle));
+			ShowError("failed (get char id.. res), SQL error: %s\n", mysql_error(&mysql_handle));
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 			mysql_query(&mysql_handle, tmp_sql);
 			return -2; //end ...... -> charcreate failed :)
@@ -1475,7 +1479,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	if (start_weapon > 0) { //add Start Weapon (Knife?)
 		sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, start_weapon,1,0x02,1);
 		if (mysql_query(&mysql_handle, tmp_sql)){
-			printf("fail (insert in inventory  the 'knife'), SQL error: %s\n", mysql_error(&mysql_handle));
+			ShowError("fail (insert in inventory default weapon), SQL error: %s\n", mysql_error(&mysql_handle));
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 			mysql_query(&mysql_handle, tmp_sql);
 			return -2;//end XD
@@ -1484,7 +1488,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	if (start_armor > 0) { //Add default armor (cotton shirt?)
 		sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, start_armor,1,0x10,1);
 		if (mysql_query(&mysql_handle, tmp_sql)){
-			printf("fail (insert in inventory the 'cotton shirt'), SQL error: %s\n", mysql_error(&mysql_handle));
+			ShowError("fail (insert in inventory the default armor), SQL error: %s\n", mysql_error(&mysql_handle));
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 			mysql_query(&mysql_handle, tmp_sql);
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
@@ -1505,7 +1509,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	}
          */
 	//printf("making new char success - id:(\033[1;32m%d\033[0m\tname:\033[1;32%s\033[0m\n", char_id, t_name);
-	printf("success, aid: %d, cid: %d, slot: %d, name: %s\n", sd->account_id, char_id, dat[30], t_name);
+	ShowInfo("Created char: account: %d, char: %d, slot: %d, name: %s\n", sd->account_id, char_id, dat[30], t_name);
 	return char_id;
 }
 
@@ -1517,13 +1521,12 @@ int make_new_char_sql(int fd, unsigned char *dat) {
  */
 int delete_char_sql(int char_id, int partner_id)
 {
-	char function_name[] = "delete_char_sql(int char_id, int partner_id)";
+	char function_name[] = "delete_char_sql";
 	
 	sprintf(tmp_sql, "SELECT `name`,`partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, char_id);
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("%s\n", function_name);
-		printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 	}
 	
 	sql_res = mysql_store_result(&mysql_handle);
@@ -1535,11 +1538,11 @@ int delete_char_sql(int char_id, int partner_id)
 	if (partner_id) {
 		sprintf(tmp_sql,"UPDATE `%s` SET `partner_id`='0' WHERE `char_id`='%d'",char_db,partner_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+			ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE (`nameid`='%d' OR `nameid`='%d') AND `char_id`='%d'",inventory_db,WEDDING_RING_M,WEDDING_RING_F,partner_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+			ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 	}
 		
@@ -1547,8 +1550,7 @@ int delete_char_sql(int char_id, int partner_id)
 		/* delete char's pet */
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",pet_db, char_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-				printf("%s\n", function_name);
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+			ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 				
 				// Komurka
@@ -1570,50 +1572,43 @@ int delete_char_sql(int char_id, int partner_id)
 		/* delete char's friends list */
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'",friend_db, char_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-				printf("%s\n", function_name);
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 		
 		/* delete char from other's friend list */
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `friend_id` = '%d'",friend_db, char_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-				printf("%s\n", function_name);
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 		
 		/* delete inventory */
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",inventory_db, char_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-				printf("%s\n", function_name);
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 
 		/* delete cart inventory */
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",cart_db, char_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-				printf("%s\n", function_name);
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 
 		/* delete memo areas */
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",memo_db, char_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-				printf("%s\n", function_name);
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 
 		/* delete skills */
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",skill_db, char_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-				printf("%s\n", function_name);
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 		
 		/* delete character */
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",char_db, char_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-				printf("%s\n", function_name);
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 		
 			
@@ -1621,8 +1616,7 @@ int delete_char_sql(int char_id, int partner_id)
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",guild_member_db, char_id);
 		if (mysql_query(&mysql_handle, tmp_sql)) {
 			
-			printf("%s\n", function_name);
-			printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+			ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 		
 		mysql_free_result(sql_res);
@@ -1638,50 +1632,42 @@ int delete_char_sql(int char_id, int partner_id)
 
 					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, atoi(sql_row[0]));
 					if (mysql_query(&mysql_handle, tmp_sql)) {
-						printf("%s\n", function_name);
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+						ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 					}
 
 					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_member_db, atoi(sql_row[0]));
 					if (mysql_query(&mysql_handle, tmp_sql)) {
-						printf("%s\n", function_name);
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+						ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 					}
 
 					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_castle_db, atoi(sql_row[0]));
 					if (mysql_query(&mysql_handle, tmp_sql)) {
-						printf("%s\n", function_name);
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+						ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 					}
 
 					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_storage_db, atoi(sql_row[0]));
 					if (mysql_query(&mysql_handle, tmp_sql)) {
-						printf("%s\n", function_name);
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+						ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 					}
 
 					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d' OR `alliance_id` = '%d'", guild_alliance_db, atoi(sql_row[0]), atoi(sql_row[0]));
 					if (mysql_query(&mysql_handle, tmp_sql)) {
-						printf("%s\n", function_name);
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+						ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 					}
 
 					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_position_db, atoi(sql_row[0]));
 					if (mysql_query(&mysql_handle, tmp_sql)) {
-						printf("%s\n", function_name);
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+						ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 					}
 
 					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_skill_db, atoi(sql_row[0]));
 					if (mysql_query(&mysql_handle, tmp_sql)) {
-						printf("%s\n", function_name);
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+						ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 					}
 
 					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_expulsion_db, atoi(sql_row[0]));
 					if (mysql_query(&mysql_handle, tmp_sql)) {
-						printf("%s\n", function_name);
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+						ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 					}
 
 					mysql_free_result(sql_res);
@@ -1690,8 +1676,7 @@ int delete_char_sql(int char_id, int partner_id)
 			else /* sql_res != NULL */
 			{
 				if (mysql_errno(&mysql_handle) != 0) {
-					printf("%s\n", function_name);
-					printf("Database server error: %s\n", mysql_error(&mysql_handle));
+					ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 				}
 				return -1;			
 			}
@@ -1701,8 +1686,7 @@ int delete_char_sql(int char_id, int partner_id)
 		} 
 		else /* mysql_query(&mysql_handle, tmp_sql) == 0 */
 		{
-			printf("%s\n", function_name);
-			printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+			ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 			return -1;
 		}
 		
@@ -1715,14 +1699,14 @@ int delete_char_sql(int char_id, int partner_id)
 
 void mmo_char_sync(void)
 {
-	printf("mmo_char_sync() - nothing to do\n");
+	ShowWarning("mmo_char_sync() - nothing to do\n");
 }
 
 // to do
 ///////////////////////////
 
 int mmo_char_sync_timer(int tid, unsigned int tick, int id, int data) {
-	printf("mmo_char_sync_timer() tic - no works to do\n");
+	ShowWarning("mmo_char_sync_timer() tic - no works to do\n");
 	return 0;
 }
 
@@ -1753,7 +1737,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 //	int offset = 4;
 //#endif
 
-	printf("mmo_char_send006b start.. (account:%d)\n",sd->account_id);
+	ShowDebug("mmo_char_send006b start.. (account:%d)\n",sd->account_id);
 //	printf("offset -> %d...\n",offset);
 
     set_char_online(99,sd->account_id);
@@ -1761,12 +1745,12 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	//search char.
 	sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%d'",char_db, sd->account_id);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error - %s\n", mysql_error(&mysql_handle));
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
 		found_num = mysql_num_rows(sql_res);
-		printf("number of chars: %d\n", found_num);
+		ShowInfo("number of chars: %d\n", found_num);
 		i = 0;
 		while((sql_row = mysql_fetch_row(sql_res))) {
 			sd->found_char[i] = atoi(sql_row[0]);
@@ -1784,7 +1768,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	WFIFOW(fd, 0) = 0x6b;
 	WFIFOW(fd, 2) = offset + found_num * 106;
 
-	printf("(\033[1;13m%d\033[0m) Request Char Data:\n",sd->account_id);
+	ShowInfo("Request Char Data (\033[1;13m%d\033[0m):\n",sd->account_id);
 
 	for(i = 0; i < found_num; i++) {
 		mmo_char_fromsql(sd->found_char[i], char_dat, 0);
@@ -1857,7 +1841,7 @@ int parse_tologin(int fd) {
 		session[fd]->eof = 1;
 	if(session[fd]->eof) {
 		if (fd == login_fd) {
-			printf("Char-server can't connect to login-server (connection #%d).\n", fd);
+			ShowWarning("Char-server can't connect to login-server (connection #%d).\n", fd);
 			login_fd = -1;
 		}
 		close(fd);
@@ -1878,21 +1862,21 @@ int parse_tologin(int fd) {
 				return 0;
 			if (RFIFOB(fd, 2)) {
 				//printf("connect login server error : %d\n", RFIFOB(fd, 2));
-				printf("Can not connect to login-server.\n");
-				printf("The server communication passwords (default s1/p1) is probably invalid.\n");
-				printf("Also, please make sure your login db has the username/password present and the sex of the account is S.\n");
-				printf("If you changed the communication passwords, change them back at map_athena.conf and char_athena.conf\n");
+				ShowError("Can not connect to login-server.\n");
+				ShowError("The server communication passwords (default s1/p1) is probably invalid.\n");
+				ShowError("Also, please make sure your login db has the username/password present and the sex of the account is S.\n");
+				ShowError("If you changed the communication passwords, change them back at map_athena.conf and char_athena.conf\n");
 				return 0;
 				//exit(1); //fixed for server shutdown.
 			}else {
-				printf("Connected to login-server (connection #%d).\n", fd);
+				ShowStatus("Connected to login-server (connection #%d).\n", fd);
                 set_all_offline();
 				// if no map-server already connected, display a message...
 				for(i = 0; i < MAX_MAP_SERVERS; i++)
 					if (server_fd[i] >= 0 && server[i].map[0][0]) // if map-server online and at least 1 map
 						break;
 				if (i == MAX_MAP_SERVERS)
-					printf("Awaiting maps from map-server.\n");
+					ShowStatus("Awaiting maps from map-server.\n");
 			}
 			RFIFOSKIP(fd, 3);
 			break;
@@ -2019,7 +2003,7 @@ int parse_tologin(int fd) {
 			if (acc > 0) {
 				sprintf(tmp_sql, "SELECT `char_id`,`class`,`skill_point` FROM `%s` WHERE `account_id` = '%d'",char_db, acc);
 				if (mysql_query(&mysql_handle, tmp_sql)) {
-						printf("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+						ShowError("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
 				}
 				sql_res = mysql_store_result(&mysql_handle);
 
@@ -2044,7 +2028,7 @@ int parse_tologin(int fd) {
 							// remove specifical skills of classes 19,20 4020,4021 and 4042,4043
 							sprintf(tmp_sql, "SELECT `lv` FROM `%s` WHERE `char_id` = '%d' AND `id` >= '315' AND `id` <= '330'",skill_db, char_id);
 							if (mysql_query(&mysql_handle, tmp_sql)) {
-								printf("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+								ShowError("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
 							}
 							sql_res = mysql_store_result(&mysql_handle);
 							if (sql_res) {
@@ -2054,17 +2038,17 @@ int parse_tologin(int fd) {
 							}
 							sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d' AND `id` >= '315' AND `id` <= '330'",skill_db, char_id);
 							if (mysql_query(&mysql_handle, tmp_sql)) {
-								printf("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+								ShowError("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
 							}
 						}
 						// to avoid any problem with equipment and invalid sex, equipment is unequiped.
 						sprintf(tmp_sql, "UPDATE `%s` SET `equip` = '0' WHERE `char_id` = '%d'",inventory_db, char_id);
 						if (mysql_query(&mysql_handle, tmp_sql)) {
-							printf("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+							ShowError("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
 						}
 						sprintf(tmp_sql, "UPDATE `%s` SET `class`='%d' , `skill_point`='%d' , `weapon`='0' , `shield='0' , `head_top`='0' , `head_mid`='0' , `head_bottom`='0' WHERE `char_id` = '%d'",char_db, class_, skill_point, char_id);
 						if (mysql_query(&mysql_handle, tmp_sql)) {
-							printf("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+							ShowError("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
 						}
 					}
 				}
@@ -2165,11 +2149,11 @@ int parse_tologin(int fd) {
 						new_level = 1;
 						GM_num++;
 						if (GM_num >= 4000)
-							printf("***WARNING: 4000 GM accounts found. Next GM accounts are not readed.\n");
+							ShowWarning("4000 GM accounts found. Next GM accounts are not readed.\n");
 					}
 				}
 				if (new_level == 1) {
-					printf("From login-server: receiving a GM account information (%d: level %d).\n", RFIFOL(fd,2), (int)RFIFOB(fd,6));
+					ShowStatus("From login-server: receiving GM account information (%d: level %d).\n", RFIFOL(fd,2), (int)RFIFOB(fd,6));
 					mapif_send_gmaccounts();
 
 					//create_online_files(); // not change online file for only 1 player (in next timer, that will be done
@@ -2180,7 +2164,7 @@ int parse_tologin(int fd) {
 			break;
 
 		default:
-			printf("set eof.\n");
+			ShowError("Unknown packet %x from login server, disconnecting.\n", RFIFOW(fd, 0));
 			session[fd]->eof = 1;
 			return 0;
 		}
@@ -2197,7 +2181,7 @@ int parse_frommap(int fd) {
 
 	// Sometimes fd=0, and it will cause server crash. Don't know why. :(
 	if (fd <= 0) {
-		printf("parse_frommap error fd=0\n");
+		ShowError("parse_frommap error fd=%d\n", fd);
 		return 0;
 	}
 
@@ -2209,10 +2193,10 @@ int parse_frommap(int fd) {
 	if(session[fd]->eof) {
 		if (id < MAX_MAP_SERVERS) {
 			memset(&server[id], 0, sizeof(struct mmo_map_server));
-			printf("Map-server %d (session #%d) has disconnected.\n", id, fd);
+			ShowStatus("Map-server %d (session #%d) has disconnected.\n", id, fd);
 			sprintf(tmp_sql, "DELETE FROM `ragsrvinfo` WHERE `index`='%d'", server_fd[id]);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
 			server_fd[id] = -1;
 		}
@@ -2252,9 +2236,9 @@ int parse_frommap(int fd) {
 			i = server[id].ip;
 			{
 				unsigned char *p = (unsigned char *)&server[id].ip;
-				printf("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
+				ShowStatus("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
 				       id, j, p[0], p[1], p[2], p[3], server[id].port);
-				printf("Map-server %d loading complete.\n", id);
+				ShowStatus("Map-server %d loading complete.\n", id);
 				set_all_offline();
 			}
 			WFIFOW(fd,0) = 0x2afb;
@@ -2266,7 +2250,7 @@ int parse_frommap(int fd) {
 				unsigned char buf[16384];
 				int x;
 				if (j == 0) {
-					printf("WARNING: Map-Server %d have NO maps.\n", id);
+					ShowWarning("Map-Server %d have NO maps.\n", id);
 				// Transmitting maps information to the other map-servers
 				} else {
 					WBUFW(buf,0) = 0x2b04;
@@ -2352,7 +2336,7 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 6 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 			if (RFIFOW(fd,4) != server[id].users)
-				printf("[UserCount]: %d (Server: %d)\n", RFIFOW(fd,4), id);
+				ShowInfo("User Count: %d (Server: %d)\n", RFIFOW(fd,4), id);
 			server[id].users = RFIFOW(fd,4);
 			RFIFOSKIP(fd,RFIFOW(fd,2));
 			break;
@@ -2365,7 +2349,7 @@ int parse_frommap(int fd) {
 			//check account
 			sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `account_id` = '%d' AND `char_id`='%d'",char_db, RFIFOL(fd,4),RFIFOL(fd,8)); // TBR
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 			if (sql_res) {
@@ -2421,7 +2405,7 @@ int parse_frommap(int fd) {
 			WFIFOW(fd, 0) = 0x2b06;
 			memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 42);
 //			printf("(map change) auth_fifo set %d - account_id:%08x login_id1:%08x\n", auth_fifo_pos, RFIFOL(fd, 2), RFIFOL(fd, 6));
-			printf("[MapChange] ");
+			ShowDebug("Map Change...");
 			auth_fifo[auth_fifo_pos].account_id = RFIFOL(fd, 2);
 			auth_fifo[auth_fifo_pos].login_id1 = RFIFOL(fd, 6);
 			auth_fifo[auth_fifo_pos].login_id2 = RFIFOL(fd,10);
@@ -2432,18 +2416,18 @@ int parse_frommap(int fd) {
 
 			sprintf(tmp_sql, "SELECT `char_id`, `name` FROM `%s` WHERE `account_id` = '%d' AND `char_id`='%d'", char_db, RFIFOL(fd,2), RFIFOL(fd,14));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 			if(sql_res){
 				i = atoi(sql_row[0]);
-				printf("aid: %d, cid: %d, name: %s", RFIFOL(fd,2), atoi(sql_row[0]), sql_row[1]);
+				ShowDebug("aid: %d, cid: %d, name: %s", RFIFOL(fd,2), atoi(sql_row[0]), sql_row[1]);
 				mysql_free_result(sql_res);
 				auth_fifo[auth_fifo_pos].char_pos = auth_fifo[auth_fifo_pos].char_id;
 				auth_fifo_pos++;
 				WFIFOL(fd,6) = 0;
 			}else{
-				printf("Error, aborted\n");
+				ShowError("Map Change Error, aborted\n");
 				return 0;
 			}
 
@@ -2453,7 +2437,7 @@ int parse_frommap(int fd) {
 
 			WFIFOSET(fd, 44);
 			RFIFOSKIP(fd, 49);
-			printf(" done.\n");
+			ShowDebug("Map change done.\n");
 			/*
 			if (( sql_row = mysql_fetch_row(sql_res))) {
 				i = atoi(sql_row[0]);
@@ -2482,7 +2466,7 @@ int parse_frommap(int fd) {
 
 			sprintf(tmp_sql, "SELECT `name` FROM `%s` WHERE `char_id`='%d'", char_db, RFIFOL(fd,2));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 
@@ -2571,7 +2555,7 @@ int parse_frommap(int fd) {
 			WFIFOW(fd,30) = RFIFOW(fd, 30); // type of operation: 1-block, 2-ban, 3-unblock, 4-unban
 			sprintf(tmp_sql, "SELECT `account_id`,`name` FROM `%s` WHERE `name` = '%s'",char_db, character_name);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				printf("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+				ShowError("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
 			}
 
 			sql_res = mysql_store_result(&mysql_handle);
@@ -2673,7 +2657,7 @@ int parse_frommap(int fd) {
 			sprintf(tmp_sql, "INSERT INTO `ragsrvinfo` SET `index`='%d',`name`='%s',`exp`='%d',`jexp`='%d',`drop`='%d',`motd`='%s'",
 			        fd, server_name, RFIFOW(fd,2), RFIFOW(fd,4), RFIFOW(fd,6), RFIFOP(fd,10));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
 			RFIFOSKIP(fd,RFIFOW(fd,8));
 			break;
@@ -2713,7 +2697,7 @@ int parse_frommap(int fd) {
 			sprintf(tmp_sql, "SELECT `char_id`,`fame` FROM `%s` WHERE `class`='10' OR `class`='4011'"
 				"OR `class`='4033' ORDER BY `fame` DESC LIMIT 0,10", char_db);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				printf("DB server Error (select fame)- %s\n", mysql_error(&mysql_handle));
+				ShowError("DB server Error (select fame)- %s\n", mysql_error(&mysql_handle));
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 			if (sql_res) {
@@ -2732,7 +2716,7 @@ int parse_frommap(int fd) {
 			sprintf(tmp_sql, "SELECT `account_id`,`fame` FROM `%s` WHERE `class`='18' OR `class`='4019'"
 				"OR `class`='4041' ORDER BY `fame` DESC LIMIT 0,10", char_db);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				printf("DB server Error (select fame)- %s\n", mysql_error(&mysql_handle));
+				ShowError("DB server Error (select fame)- %s\n", mysql_error(&mysql_handle));
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 			if (sql_res) {
@@ -2761,7 +2745,7 @@ int parse_frommap(int fd) {
 			}
 
 			// no inter server packet. no char server packet -> disconnect
-			printf("parse_frommap: unknown packet %x! \n", RFIFOW(fd,0));
+			ShowError("Unknown packet %x from map server, disconnecting.\n", RFIFOW(fd,0));
 			session[fd]->eof = 1;
 			return 0;
 		}
@@ -2827,7 +2811,7 @@ int lan_ip_check(unsigned char *p){
 int parse_char(int fd) {
 	int i, ch = 0;
 	char email[40];	
-	char function_name[] = "parse_char(int fd)";
+	char function_name[] = "parse_char";
 	unsigned char buf[64];
 	unsigned short cmd;
 	struct char_session_data *sd;
@@ -2857,7 +2841,7 @@ int parse_char(int fd) {
 			(RFIFOREST(fd)<6 || RFIFOW(fd,4)==0x65)	){	// 次に何かパケットが来てるなら、接続でないとだめ
 			RFIFOSKIP(fd,4);
 			cmd = RFIFOW(fd,0);
-			printf("parse_char : %d crc32 skipped\n",fd);
+			ShowDebug("parse_char : %d crc32 skipped\n",fd);
 			if(RFIFOREST(fd)==0)
 				return 0;
 		}
@@ -2878,7 +2862,7 @@ int parse_char(int fd) {
 			break;
 
 		case 0x65: // request to connect
-			printf("request connect - account_id:%d/login_id1:%d/login_id2:%d\n", RFIFOL(fd, 2), RFIFOL(fd, 6), RFIFOL(fd, 10));
+			ShowInfo("request connect - account_id:%d/login_id1:%d/login_id2:%d\n", RFIFOL(fd, 2), RFIFOL(fd, 6), RFIFOL(fd, 10));
 			if (RFIFOREST(fd) < 17)
 				return 0;
 		  {
@@ -2959,7 +2943,7 @@ int parse_char(int fd) {
 
 			sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'",char_db, sd->account_id, RFIFOB(fd, 2));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 
@@ -2978,10 +2962,10 @@ int parse_char(int fd) {
 					charlog_db, sd->account_id, RFIFOB(fd, 2), char_dat[0].name);
 				//query
 				if(mysql_query(&mysql_handle, tmp_sql)) {
-					printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+					ShowError("DB server Error - %s\n", mysql_error(&mysql_handle));
 				}
 			}
-			printf("(\033[1;64m%d\033[0m) char selected (\033[1;32m%d\033[0m) \033[1;32m%s\033[0m" RETCODE, sd->account_id, RFIFOB(fd, 2), char_dat[0].name);
+			ShowInfo("Selected char: (Account %d: %d - %s)" RETCODE, sd->account_id, RFIFOB(fd, 2), char_dat[0].name);
 
 			i = search_mapserver(char_dat[0].last_point.map);
 
@@ -3018,7 +3002,7 @@ int parse_char(int fd) {
 					for(j = 0; j < MAX_MAP_SERVERS; j++)
 						if (server_fd[j] >= 0 && server[j].map[0][0])  {
 							i = j;
-							printf("Map-server #%d found with a map: '%s'.\n", j, server[j].map[0]);
+							ShowDebug("Map-server #%d found with a map: '%s'.\n", j, server[j].map[0]);
 							break;
 						}
 					// if no map-servers are connected, we send: server closed
@@ -3165,7 +3149,7 @@ int parse_char(int fd) {
 		case 0x68: /* delete char */
 			if (RFIFOREST(fd) < 46)
 				return 0;
-			printf("\033[1;31m Request Char Del:\033[0m \033[1;32m%d\033[0m(\033[1;32m%d\033[0m)\n", sd->account_id, RFIFOL(fd, 2));
+			ShowInfo("\033[1;31m Request Char Deletion:\033[0m \033[1;32m%d\033[0m(\033[1;32m%d\033[0m)\n", sd->account_id, RFIFOL(fd, 2));
 			memcpy(email, RFIFOP(fd,6), 40);
 			
 			/* Check if e-mail is correct */
@@ -3215,8 +3199,7 @@ int parse_char(int fd) {
 			sprintf(tmp_sql, "SELECT `name`,`partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, RFIFOL(fd,2));
 	
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				printf("%s\n", function_name);
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 			}
 	
 			sql_res = mysql_store_result(&mysql_handle);
@@ -3327,12 +3310,12 @@ int parse_console(char *buf) {
     memset(type,0,64);
     memset(command,0,64);
 
-    printf("Console: %s\n",buf);
+    ShowNotice("Console: %s\n",buf);
 
     if ( sscanf(buf, "%[^:]:%[^\n]", type , command ) < 2 )
         sscanf(buf,"%[^\n]",type);
 
-    printf("Type of command: %s || Command: %s \n",type,command);
+    ShowNotice("Type of command: %s || Command: %s \n",type,command);
 
     if(buf) aFree(buf);
     if(type) aFree(type);
@@ -3413,7 +3396,7 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 		int i, cc;
 		unsigned char buf[16];
 
-		printf("Attempt to connect to login-server...\n");
+		ShowInfo("Attempt to connect to login-server...\n");
 		login_fd = make_connection(login_ip, login_port);
 		session[login_fd]->func_parse = parse_tologin;
 		realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
@@ -3443,14 +3426,14 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 
 		sprintf(tmp_sql, "SELECT `account_id`, `online` FROM `%s` WHERE `online` = '1'", char_db);
 		if(mysql_query(&mysql_handle, tmp_sql)){
-			printf("SQL Error: check_conn_loginserver '1', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+			ShowError("SQL Error: check_conn_loginserver '1', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
 			return -1;
 		}
 
 		sql_res = mysql_store_result(&mysql_handle);
 		if(sql_res){
 			cc = mysql_num_rows(sql_res);
-			printf("Setting %d Players offline\n", cc);
+			ShowStatus("Setting %d Players offline\n", cc);
 			while((sql_row = mysql_fetch_row(sql_res))){
 				//sql_row[0] == AID
 				//tell the loginserver
@@ -3478,22 +3461,22 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 			mysql_free_result(sql_res);
 		}else{
 			//fail
-			printf("SQL ERROR: check_conn_loginserver '2', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+			ShowError("SQL ERROR: check_conn_loginserver '2', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
 			return -1;
 		}
 
 		//Now Update all players to 'OFFLINE'
 		sprintf(tmp_sql, "UPDATE `%s` SET `online` = '0'", char_db);
 		if(mysql_query(&mysql_handle, tmp_sql)){
-			printf("SQL ERROR: check_conn_loginserver '3', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+			ShowError("SQL ERROR: check_conn_loginserver '3', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
 		}
 		sprintf(tmp_sql, "UPDATE `%s` SET `online` = '0'", guild_member_db);
 		if(mysql_query(&mysql_handle, tmp_sql)){
-			printf("SQL ERROR: check_conn_loginserver '4', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+			ShowError("SQL ERROR: check_conn_loginserver '4', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
 		}
 		sprintf(tmp_sql, "UPDATE `%s` SET `connect_member` = '0'", guild_db);
 		if(mysql_query(&mysql_handle, tmp_sql)){
-			printf("SQL ERROR: check_conn_loginserver '5', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+			ShowError("SQL ERROR: check_conn_loginserver '5', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
 		}
 
 	}
@@ -3521,11 +3504,11 @@ int char_lan_config_read(const char *lancfgName){
 	struct hostent * h = NULL;
 
 	if ((fp = fopen(lancfgName, "r")) == NULL) {
-		printf("file not found: %s\n", lancfgName);
+		ShowError("file not found: %s\n", lancfgName);
 		return 1;
 	}
 
-	printf("Start reading of Lan Support configuration file\n");
+	ShowInfo("Reading file %s...\n", lancfgName);
 
 	while(fgets(line, sizeof(line)-1, fp)){
 		if (line[0] == '/' && line[1] == '/')
@@ -3542,7 +3525,7 @@ int char_lan_config_read(const char *lancfgName){
 				strncpy(lan_map_ip, w2, sizeof(lan_map_ip));
 				lan_map_ip[sizeof(lan_map_ip)-1] = 0;
 			}
-			printf("set Lan_map_IP : %s\n", lan_map_ip);
+			ShowStatus("set Lan_map_IP : %s\n", lan_map_ip);
 		}
 
 		else if (strcmpi(w1, "subnetmask") == 0) {
@@ -3550,12 +3533,12 @@ int char_lan_config_read(const char *lancfgName){
 			strcpy(subnetmask, w2);
 			sscanf(subnetmask, "%d.%d.%d.%d", &k0, &k1, &k2, &k3);
 			subnetmaski[0] = k0; subnetmaski[1] = k1; subnetmaski[2] = k2; subnetmaski[3] = k3;
-			printf("set subnetmask : %s\n", w2);
+			ShowStatus("set subnetmask : %s\n", w2);
 		}
 	}
 	fclose(fp);
 
-	printf("End reading of Lan Support configuration file\n");
+	ShowInfo("Done reading %s.\n", lancfgName);
 	return 0;
 }
 
@@ -3566,7 +3549,7 @@ static int char_db_final(void *key,void *data,va_list ap)
 	return 0;
 }
 void do_final(void) {
-	printf("Doing final stage...\n");
+	ShowInfo("Doing final stage...\n");
 	//mmo_char_sync();
 	//inter_save();
 	do_final_itemdb();
@@ -3581,7 +3564,7 @@ void do_final(void) {
 
 	sprintf(tmp_sql,"DELETE FROM `ragsrvinfo");
 	if (mysql_query(&mysql_handle, tmp_sql))
-		printf("DB server Error (insert `char`)- %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error (insert `char`)- %s\n", mysql_error(&mysql_handle));
 
 	if(gm_account)  {
 		aFree(gm_account);
@@ -3600,17 +3583,17 @@ void do_final(void) {
 	mysql_close(&mysql_handle);
 	mysql_close(&lmysql_handle);
 
-	printf("ok! all done...\n");
+	ShowInfo("ok! all done...\n");
 }
 
 void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
-	printf("reading configure: %s\n", cfgName);
+	ShowInfo("Reading file %s...\n", cfgName);
 
 	if ((fp = fopen(cfgName, "r")) == NULL) {
-		printf("file not found: %s\n", cfgName);
+		ShowFatalError("file not found: %s\n", cfgName);
 		exit(1);
 	}
 
@@ -3666,7 +3649,7 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		//Map server option to use SQL db or not
 		}else if(strcmpi(w1,"use_sql_db")==0){ // added for sql item_db read for char server [Valaris]
 			db_use_sqldbs = config_switch(w2);
-			printf("Using SQL dbs: %s\n",w2);
+			ShowStatus("Using SQL dbs: %s\n",w2);
 		//custom columns for login database
 		}else if(strcmpi(w1,"login_db_level")==0){
 			strcpy(login_db_level,w2);
@@ -3674,7 +3657,7 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 			strcpy(login_db_account_id,w2);
 		}else if(strcmpi(w1,"lowest_gm_level")==0){
 			lowest_gm_level = atoi(w2);
-			printf("set lowest_gm_level : %s\n",w2);
+			ShowStatus("set lowest_gm_level : %s\n",w2);
 		//support the import command, just like any other config
 		}else if(strcmpi(w1,"import")==0){
 			sql_config_read(w2);
@@ -3682,7 +3665,7 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 
 	}
 	fclose(fp);
-	printf("reading configure done.....\n");
+	ShowInfo("done reading %s.\n", cfgName);
 }
 
 int char_config_read(const char *cfgName) {
@@ -3691,10 +3674,11 @@ int char_config_read(const char *cfgName) {
 	FILE *fp;
 
 	if ((fp = fopen(cfgName, "r")) == NULL) {
-		printf("Configuration file not found: %s.\n", cfgName);
+		ShowFatalError("Configuration file not found: %s.\n", cfgName);
 		exit(1);
 	}
 
+	ShowInfo("Reading file %s...\n", cfgName);
 	while(fgets(line, sizeof(line)-1, fp)) {
 		if (line[0] == '/' && line[1] == '/')
 			continue;
@@ -3711,7 +3695,7 @@ int char_config_read(const char *cfgName) {
 			memcpy(passwd, w2, 24);
 		} else if (strcmpi(w1, "server_name") == 0) {
 			memcpy(server_name, w2, 20);
-			printf("%s server has been initialized\n", w2);
+			ShowStatus("%s server has been initialized\n", w2);
 		} else if (strcmpi(w1, "wisp_server_name") == 0) {
 			if (strlen(w2) >= 4) {
 				memcpy(wisp_server_name, w2, sizeof(wisp_server_name));
@@ -3721,7 +3705,7 @@ int char_config_read(const char *cfgName) {
 			login_ip_set_ = 1;
 			h = gethostbyname (w2);
 			if (h != NULL) {
-				printf("Login server IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
+				ShowStatus("Login server IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 				sprintf(login_ip_str, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 			} else
 				memcpy(login_ip_str,w2,16);
@@ -3731,7 +3715,7 @@ int char_config_read(const char *cfgName) {
 			char_ip_set_ = 1;
 			h = gethostbyname (w2);
 			if(h != NULL) {
-				printf("Character server IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
+				ShowStatus("Character server IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 				sprintf(char_ip_str, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 			} else
 				memcpy(char_ip_str, w2, 16);
@@ -3739,7 +3723,7 @@ int char_config_read(const char *cfgName) {
 			bind_ip_set_ = 1;
 			h = gethostbyname (w2);
 			if(h != NULL) {
-				printf("Character server binding IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
+				ShowStatus("Character server binding IP address : %s -> %d.%d.%d.%d\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 				sprintf(bind_ip_str, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 			} else
 				memcpy(bind_ip_str, w2, 16);
@@ -3812,6 +3796,8 @@ int char_config_read(const char *cfgName) {
         }
 	}
 	fclose(fp);
+	
+	ShowInfo("Done reading %s.\n", cfgName);
 
 	return 0;
 }
@@ -3832,22 +3818,22 @@ int do_init(int argc, char **argv){
 	char_lan_config_read((argc > 1) ? argv[1] : LAN_CONF_NAME);
 	sql_config_read(SQL_CONF_NAME);
 
-	printf("charserver configuration reading done.....\n");
+	ShowInfo("charserver configuration reading done.\n");
 
 	inter_init((argc > 2) ? argv[2] : inter_cfgName); // inter server ﾃﾊｱ篳ｭ
-	printf("interserver configuration reading done.....\n");
+	ShowInfo("interserver configuration reading done.\n");
 
 	//Read ItemDB
 	do_init_itemdb();
 
-	printf("start char server initializing.....\n");
+	ShowInfo("start char server initializing.\n");
 	mmo_char_sql_init();
-	printf("char server initializing done.....\n");
+	ShowInfo("char server initialized.\n");
 
-	printf("set parser -> parse_char().....\n");
+	ShowDebug("set parser -> parse_char()...\n");
 	set_defaultparse(parse_char);
 
-	printf("set terminate function -> do_final().....\n");
+	ShowDebug("set terminate function -> do_final().....\n");
 
         if ((naddr_ != 0) && (login_ip_set_ == 0 || char_ip_set_ == 0)) {
           // The char server should know what IP address it is running on
@@ -3857,22 +3843,22 @@ int do_init(int argc, char **argv){
           char buf[16];
           sprintf(buf, "%d.%d.%d.%d", ptr[0], ptr[1], ptr[2], ptr[3]);
           if (naddr_ != 1)
-            printf("Multiple interfaces detected..  using %s as our IP address\n", buf);
+            ShowStatus("Multiple interfaces detected..  using %s as our IP address\n", buf);
           else
-            printf("Defaulting to %s as our IP address\n", buf);
+            ShowStatus("Defaulting to %s as our IP address\n", buf);
           if (login_ip_set_ == 0)
           	strcpy(login_ip_str, buf);
           if (char_ip_set_ == 0)
           	strcpy(char_ip_str, buf);
 
           if (ptr[0] == 192 && ptr[1] == 168)
-            printf("Firewall detected.. edit lan_support.conf and char_athena.conf\n");
+            ShowWarning("Firewall detected.. edit lan_support.conf and char_athena.conf\n");
         }
 
 	login_ip = inet_addr(login_ip_str);
 	char_ip = inet_addr(char_ip_str);
 
-	printf("open port %d.....\n",char_port);
+	ShowInfo("open port %d.....\n",char_port);
 	//char_fd = make_listen_port(char_port);
         if (bind_ip_set_)
             char_fd = make_listen_bind(inet_addr(bind_ip_str),char_port);
@@ -3880,12 +3866,12 @@ int do_init(int argc, char **argv){
             char_fd = make_listen_bind(INADDR_ANY,char_port);
 
 	// send ALIVE PING to login server.
-	printf("add interval tic (check_connect_login_server)....\n");
+	ShowDebug("add interval tic (check_connect_login_server)....\n");
 	add_timer_func_list(check_connect_login_server, "check_connect_login_server");
 	i = add_timer_interval(gettick() + 10, check_connect_login_server, 0, 0, 10 * 1000);
 
 	// send USER COUNT PING to login server.
-	printf("add interval tic (send_users_tologin)....\n");
+	ShowDebug("add interval tic (send_users_tologin)....\n");
 	add_timer_func_list(send_users_tologin, "send_users_tologin");
 	i = add_timer_interval(gettick() + 10, send_users_tologin, 0, 0, 5 * 1000);
 
@@ -3902,7 +3888,7 @@ int do_init(int argc, char **argv){
 
 	//Cleaning the tables for NULL entrys @ startup [Sirius]
          //Chardb clean
-        	printf("Cleaning the '%s' table...", char_db);
+        	ShowInfo("Cleaning the '%s' table...", char_db);
          sprintf(tmp_sql,"DELETE FROM `%s` WHERE `account_id` = '0'", char_db);
          if(mysql_query(&mysql_handle, tmp_sql)){
            //error on clean
@@ -3912,7 +3898,7 @@ int do_init(int argc, char **argv){
          }
 
          //guilddb clean
-         printf("Cleaning the '%s' table...", guild_db);
+         ShowInfo("Cleaning the '%s' table...", guild_db);
          sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_lv` = '0' AND `max_member` = '0' AND `exp` = '0' AND `next_exp` = '0' AND `average_lv` = '0'", guild_db);
          if(mysql_query(&mysql_handle, tmp_sql)){
           //error on clean
@@ -3922,7 +3908,7 @@ int do_init(int argc, char **argv){
          }
 
          //guildmemberdb clean
-         printf("Cleaning the '%s' table...", guild_member_db);
+         ShowInfo("Cleaning the '%s' table...", guild_member_db);
          sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '0' AND `account_id` = '0' AND `char_id` = '0'", guild_member_db);
          if(mysql_query(&mysql_handle, tmp_sql)){
           //error on clean
@@ -3933,8 +3919,8 @@ int do_init(int argc, char **argv){
 
 
 
-	printf("char server init func end (now unlimited loop start!)....\n");
-	printf("The char-server is \033[1;32mready\033[0m (Server is listening on the port %d).\n\n", char_port);
+	ShowInfo("char server init func end (now unlimited loop start!)....\n");
+	ShowStatus("The char-server is \033[1;32mready\033[0m (Server is listening on the port %d).\n\n", char_port);
 	return 0;
 }
 
@@ -3942,7 +3928,7 @@ int do_init(int argc, char **argv){
 
 int debug_mysql_query(char *file, int line, void *mysql, const char *q) {
 #ifdef TWILIGHT
-        printf("sql: %s:%d# %s\n", file, line, q);
+        ShowDebug("sql: %s:%d# %s\n", file, line, q);
 #endif
         return mysql_query((MYSQL *) mysql, q);
 }
@@ -3951,7 +3937,7 @@ int char_child(int parent_id, int child_id) {
 		int tmp_id = 0;
 		sprintf (tmp_sql, "SELECT `child` FROM `%s` WHERE `char_id` = '%d'", char_db, parent_id);
 		if (mysql_query (&mysql_handle, tmp_sql)) {
-			printf ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
+			ShowError ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
 		}
 		sql_res = mysql_store_result (&mysql_handle);
 		if (sql_res && (sql_row = mysql_fetch_row (sql_res))) {
@@ -3959,7 +3945,7 @@ int char_child(int parent_id, int child_id) {
 			mysql_free_result (sql_res);
 		}
 		else
-			printf("CHAR: child Failed!\n");
+			ShowError("CHAR: child Failed!\n");
 		if ( tmp_id == child_id )
 			return 1;
 		else
@@ -3970,7 +3956,7 @@ int char_married(int pl1,int pl2) {
 		int tmp_id = 0;
 		sprintf (tmp_sql, "SELECT `partner_id` FROM `%s` WHERE `char_id` = '%d'", char_db, pl1);
 		if (mysql_query (&mysql_handle, tmp_sql)) {
-				printf ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
+				ShowError ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
 		}
 		sql_res = mysql_store_result (&mysql_handle);
 		if (sql_res && (sql_row = mysql_fetch_row (sql_res))) {
@@ -3978,7 +3964,7 @@ int char_married(int pl1,int pl2) {
 				mysql_free_result (sql_res);
 		}
 		else
-				printf("CHAR: married Failed!\n");
+				ShowError("CHAR: married Failed!\n");
 		if ( tmp_id == pl2 )
 				return 1;
 		else
@@ -3989,7 +3975,7 @@ int char_nick2id (char *name) {
 		int char_id = 0;
 		sprintf (tmp_sql, "SELECT `char_id` FROM `%s` WHERE `name` = '%s'", char_db, name);
 		if (mysql_query (&mysql_handle, tmp_sql)) {
-				printf ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
+				ShowError ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
 		}
 		sql_res = mysql_store_result (&mysql_handle);
 		if (sql_res && (sql_row = mysql_fetch_row (sql_res))) {
@@ -3997,6 +3983,6 @@ int char_nick2id (char *name) {
 				mysql_free_result (sql_res);
 		}
 		else
-				printf ("CHAR: nick2id Failed!\n");
+				ShowError ("CHAR: nick2id Failed!\n");
 		return char_id;
 }

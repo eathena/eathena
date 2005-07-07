@@ -98,7 +98,7 @@ int inter_accreg_tosql(int account_id,struct accreg *reg){
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
 	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%d'",reg_db, account_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		printf("DB server Error (delete `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
+		ShowError("DB server Error (delete `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 	}
 
 	if (reg->reg_num<=0) return 0;
@@ -108,7 +108,7 @@ int inter_accreg_tosql(int account_id,struct accreg *reg){
 			sprintf(tmp_sql,"INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES (2,'%d', '%s','%d')",
 				reg_db, reg->account_id, jstrescapecpy(temp_str,reg->reg[j].str), reg->reg[j].value);
 			if(mysql_query(&mysql_handle, tmp_sql) ) {
-				printf("DB server Error (insert `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
+				ShowError("DB server Error (insert `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 			}
 		}
 	}
@@ -126,7 +126,7 @@ int inter_accreg_fromsql(int account_id,struct accreg *reg)
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
 	sprintf (tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%d'",reg_db, reg->account_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		printf("DB server Error (select `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
+		ShowError("DB server Error (select `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 
@@ -158,13 +158,14 @@ int inter_config_read(const char *cfgName) {
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
-	printf ("start reading interserver configuration: %s\n",cfgName);
-
 	fp=fopen(cfgName,"r");
 	if(fp==NULL){
-		printf("file not found: %s\n", cfgName);
+		ShowError("file not found: %s\n", cfgName);
 		return 1;
 	}
+
+	ShowInfo("reading file %s...\n",cfgName);
+
 	while(fgets(line, 1020, fp)){
 		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
 		if(i!=2)
@@ -172,46 +173,46 @@ int inter_config_read(const char *cfgName) {
 
 		if(strcmpi(w1,"char_server_ip")==0){
 			strcpy(char_server_ip, w2);
-			printf ("set char_server_ip : %s\n",w2);
+			ShowStatus ("set char_server_ip : %s\n",w2);
 		}
 		else if(strcmpi(w1,"char_server_port")==0){
 			char_server_port=atoi(w2);
-			printf ("set char_server_port : %s\n",w2);
+			ShowStatus ("set char_server_port : %s\n",w2);
 		}
 		else if(strcmpi(w1,"char_server_id")==0){
 			strcpy(char_server_id, w2);
-			printf ("set char_server_id : %s\n",w2);
+			ShowStatus ("set char_server_id : %s\n",w2);
 		}
 		else if(strcmpi(w1,"char_server_pw")==0){
 			strcpy(char_server_pw, w2);
-			printf ("set char_server_pw : %s\n",w2);
+			ShowStatus ("set char_server_pw : %s\n",w2);
 		}
 		else if(strcmpi(w1,"char_server_db")==0){
 			strcpy(char_server_db, w2);
-			printf ("set char_server_db : %s\n",w2);
+			ShowStatus ("set char_server_db : %s\n",w2);
 		}
 		//Logins information to be read from the inter_athena.conf
 		//for character deletion (checks email in the loginDB)
 
 		else if(strcmpi(w1,"login_server_ip")==0){
 			strcpy(login_server_ip, w2);
-			printf ("set login_server_ip : %s\n",w2);
+			ShowStatus ("set login_server_ip : %s\n",w2);
 		}
 		else if(strcmpi(w1,"login_server_port")==0){
 			login_server_port=atoi(w2);
-			printf ("set login_server_port : %s\n",w2);
+			ShowStatus ("set login_server_port : %s\n",w2);
 		}
 		else if(strcmpi(w1,"login_server_id")==0){
 			strcpy(login_server_id, w2);
-			printf ("set login_server_id : %s\n",w2);
+			ShowStatus ("set login_server_id : %s\n",w2);
 		}
 		else if(strcmpi(w1,"login_server_pw")==0){
 			strcpy(login_server_pw, w2);
-			printf ("set login_server_pw : %s\n",w2);
+			ShowStatus ("set login_server_pw : %s\n",w2);
 		}
 		else if(strcmpi(w1,"login_server_db")==0){
 			strcpy(login_server_db, w2);
-			printf ("set login_server_db : %s\n",w2);
+			ShowStatus ("set login_server_db : %s\n",w2);
 		}
 		else if(strcmpi(w1,"party_share_level")==0){
 			party_share_level=atoi(w2);
@@ -224,12 +225,12 @@ int inter_config_read(const char *cfgName) {
 		}
 		else if(strcmpi(w1,"login_server_db")==0){
 			strcpy(login_server_db, w2);
-			printf ("set login_server_db : %s\n",w2);
+			ShowStatus ("set login_server_db : %s\n",w2);
 		}
 	}
 	fclose(fp);
 
-	printf ("success reading interserver configuration\n");
+	ShowInfo ("done reading %s.\n", cfgName);
 
 	return 0;
 }
@@ -245,7 +246,7 @@ int inter_log(char *fmt,...)
 	vsprintf(str,fmt,ap);
 	sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `log`) VALUES (NOW(),  '%s')",interlog_db, jstrescapecpy(temp_str,str));
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		printf("DB server Error (insert `interlog`)- %s\n", mysql_error(&mysql_handle) );
+		ShowError("DB server Error (insert `interlog`)- %s\n", mysql_error(&mysql_handle) );
 	}
 
 	va_end(ap);
@@ -258,31 +259,31 @@ int inter_init(const char *file)
 {
 	//int i;
 
-	printf ("interserver initialize...\n");
+	ShowInfo ("interserver initialize...\n");
 	inter_config_read(file);
 
 	//DB connection initialized
 	mysql_init(&mysql_handle);
-	printf("Connect Character DB server.... (Character Server)\n");
+	ShowInfo("Connect Character DB server.... (Character Server)\n");
 	if(!mysql_real_connect(&mysql_handle, char_server_ip, char_server_id, char_server_pw,
 		char_server_db ,char_server_port, (char *)NULL, 0)) {
 			//pointer check
-			printf("%s\n",mysql_error(&mysql_handle));
+			ShowFatalError("%s\n",mysql_error(&mysql_handle));
 			exit(1);
 	}
 	else if (inter_sql_test()) {
-		printf ("Connect Success! (Character Server)\n");
+		ShowStatus("Connect Success! (Character Server)\n");
 	}
 
 	mysql_init(&lmysql_handle);
-	printf("Connect Character DB server.... (login server)\n");
+	ShowInfo("Connect Character DB server.... (login server)\n");
 	if(!mysql_real_connect(&lmysql_handle, login_server_ip, login_server_id, login_server_pw,
 		login_server_db ,login_server_port, (char *)NULL, 0)) {
 			//pointer check
-			printf("%s\n",mysql_error(&lmysql_handle));
+			ShowFatalError("%s\n",mysql_error(&lmysql_handle));
 			exit(1);
 	}else {
-		printf ("Connect Success! (Login Server)");
+		ShowStatus ("Connect Success! (Login Server)\n");
 	}
 	wis_db = numdb_init();
 	inter_guild_sql_init();
@@ -368,7 +369,7 @@ int mapif_GMmessage(unsigned char *mes, int len, int sfd) {
 	WBUFW(buf, 2) = len;
 	memcpy(WBUFP(buf, 4), mes, len-4);
 	mapif_sendallwos(sfd, buf, len);
-	printf("\033[1;34m inter server: GM[len:%d] - '%s' \033[0m\n", len, mes);
+	ShowNotice("\033[1;34m inter server: GM[len:%d] - '%s' \033[0m\n", len, mes);
 	return 0;
 }
 
@@ -474,7 +475,7 @@ int check_ttl_wisdata() {
 		numdb_foreach(wis_db, check_ttl_wisdata_sub, tick);
 		for(i = 0; i < wis_delnum; i++) {
 			struct WisData *wd = (struct WisData*)numdb_search(wis_db, wis_dellist[i]);
-			printf("inter: wis data id=%d time out : from %s to %s\n", wd->id, wd->src, wd->dst);
+			ShowNotice("inter: wis data id=%d time out : from %s to %s\n", wd->id, wd->src, wd->dst);
 			// removed. not send information after a timeout. Just no answer for the player
 			//mapif_wis_end(wd, 1); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
 			numdb_erase(wis_db, wd->id);
@@ -502,16 +503,16 @@ int mapif_parse_WisRequest(int fd) {
 	char t_name[NAME_LENGTH*2]; //Needs space to allocate names with escaped chars [Skotlex]
 
 	if (RFIFOW(fd,2)-52 >= sizeof(wd->msg)) {
-		printf("inter: Wis message size too long.\n");
+		ShowWarning("inter: Wis message size too long.\n");
 		return 0;
 	} else if (RFIFOW(fd,2)-52 <= 0) { // normaly, impossible, but who knows...
-		printf("inter: Wis message doesn't exist.\n");
+		ShowError("inter: Wis message doesn't exist.\n");
 		return 0;
 	}
 	sprintf (tmp_sql, "SELECT `name` FROM `%s` WHERE `name`='%s'",
 		char_db, jstrescapecpy(t_name, (char *)RFIFOP(fd,28)));
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		printf("DB server Error - %s\n", mysql_error(&mysql_handle) );
+		ShowError("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 

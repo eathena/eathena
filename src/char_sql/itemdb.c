@@ -8,6 +8,7 @@
 #include "inter.h"
 #include "char.h"
 #include "utils.h"
+#include "../common/showmsg.h"
 
 #define MAX_RANDITEM	2000
 
@@ -103,7 +104,7 @@ static int itemdb_readdb(void)
 
 	fp=fopen("db/item_db.txt","r");
 	if(fp==NULL){
-		printf("can't read db/item_db.txt\n");
+		ShowError("can't read db/item_db.txt\n");
 		exit(1);
 	}
 	while(fgets(line,1020,fp)){
@@ -131,7 +132,7 @@ static int itemdb_readdb(void)
 
 	}
 	fclose(fp);
-	printf("read db/item_db.txt done (count=%d)\n",ln);
+	ShowStatus("done reading db/item_db.txt (count=%d)\n",ln);
 	return 0;
 }
 
@@ -147,7 +148,7 @@ static int itemdb_read_sqldb(void) // sql item_db read, shortened version of map
 
 	// Execute the query; if the query execution fails, output an error
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("Database server error (executing query for %s): %s\n", item_db_db, mysql_error(&mysql_handle));
+		ShowError("Database server error (executing query for %s): %s\n", item_db_db, mysql_error(&mysql_handle));
 	}
 
 	// Store the query result
@@ -177,15 +178,15 @@ static int itemdb_read_sqldb(void) // sql item_db read, shortened version of map
 
 		// If the retrieval failed, output an error
 		if (mysql_errno(&mysql_handle)) {
-			printf("Database server error (retrieving rows from %s): %s\n", item_db_db, mysql_error(&mysql_handle));
+			ShowError("Database server error (retrieving rows from %s): %s\n", item_db_db, mysql_error(&mysql_handle));
 		}
 
-		printf("read %s done (count = %lu)\n", item_db_db, (unsigned long) mysql_num_rows(sql_res));
+		ShowInfo("read %s done (count = %lu)\n", item_db_db, (unsigned long) mysql_num_rows(sql_res));
 
 		// Free the query result
 		mysql_free_result(sql_res);
 	} else {
-		printf("MySQL error (storing query result for %s): %s\n", item_db_db, mysql_error(&mysql_handle));
+		ShowError("MySQL error (storing query result for %s): %s\n", item_db_db, mysql_error(&mysql_handle));
 	}
 
 	return 0;

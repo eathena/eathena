@@ -10,6 +10,7 @@
 #include "../common/db.h"
 #include "../common/strlib.h"
 #include "../common/socket.h"
+#include "../common/showmsg.h"
 
 static struct party *party_pt;
 static int party_newid = 100;
@@ -39,18 +40,18 @@ int inter_party_tosql(int party_id,struct party *p)
 	int party_exist = 0;
 	int i;
 
-	printf("(\033[1;64m%d\033[0m)    Request save party - ", party_id);
+	ShowInfo("Save party request (\033[1;64m%d\033[0m).\n", party_id);
 	jstrescapecpy(t_name, p->name);
 
 	if (p == NULL || party_id == 0 || p->party_id == 0 || party_id != p->party_id) {
-		printf("- Party pointer or party_id error \n");
+		ShowError("Party pointer or party_id error\n");
 		return 0;
 	}
 
 	// Check if party exists
 	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id`='%d'", party_db, party_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error - %s\n", mysql_error(&mysql_handle) );
+		ShowError("DB server Error - %s\n", mysql_error(&mysql_handle) );
 		return 0;
 	}
 	sql_res = mysql_store_result(&mysql_handle);
@@ -65,7 +66,7 @@ int inter_party_tosql(int party_id,struct party *p)
 		// Check members in party
 		sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id`='%d'", char_db, party_id); // TBR
 		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+			ShowError("DB server Error - %s\n", mysql_error(&mysql_handle));
 			return 0;
 		}
 		sql_res = mysql_store_result(&mysql_handle) ;
@@ -88,7 +89,7 @@ int inter_party_tosql(int party_id,struct party *p)
 			// Delete the party, if has no member.
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `party_id`='%d'", party_db, party_id);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowError("DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
 		//	printf("No member in party %d, break it \n",party_id);
 			memset(p, 0, sizeof(struct party));
@@ -109,13 +110,13 @@ int inter_party_tosql(int party_id,struct party *p)
 			}
 			//printf("%s",tmp_sql);
 			if (tmp_sql[0] != '\0' && mysql_query(&mysql_handle, tmp_sql)) {
-				printf("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle));
+				ShowError("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle));
 			}
 
 			sprintf(tmp_sql, "UPDATE `%s` SET `name`='%s', `exp`='%d', `item`='%d' WHERE `party_id`='%d'",
 				party_db, t_name, p->exp, p->item, party_id);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				printf("DB server Error (inset/update `party`)- %s\n", mysql_error(&mysql_handle));
+				ShowError("DB server Error (inset/update `party`)- %s\n", mysql_error(&mysql_handle));
 			}
 			//	printf("- Update party %d information \n",party_id);
 		}
@@ -130,19 +131,19 @@ int inter_party_tosql(int party_id,struct party *p)
 		sprintf(tmp_sql, "INSERT INTO `%s`  (`party_id`, `name`, `exp`, `item`, `leader_id`) VALUES ('%d', '%s', '%d', '%d', '%d')",
 			party_db, party_id, t_name, p->exp, p->item, leader_id);
 		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (inset/update `party`)- %s\n", mysql_error(&mysql_handle));
+			ShowError("DB server Error (insert/update `party`)- %s\n", mysql_error(&mysql_handle));
 			return 0;
 		}
 
 		sprintf(tmp_sql,"UPDATE `%s` SET `party_id`='%d'  WHERE `account_id`='%d' AND `name`='%s'",
 			char_db, party_id,leader_id, jstrescapecpy(t_member, p->member[i].name));
 		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (inset/update `party`)- %s\n", mysql_error(&mysql_handle) );
+			ShowError("DB server Error (insert/update `party`)- %s\n", mysql_error(&mysql_handle) );
 		}
 		//printf("- Insert new party %d  \n",party_id);
 	}
 
-	printf("Party save success\n");
+	ShowInfo("Party Saved (%d - %s)\n", party_id, p->name);
 	return 0;
 }
 
@@ -150,14 +151,14 @@ int inter_party_tosql(int party_id,struct party *p)
 int inter_party_fromsql(int party_id, struct party *p)
 {
 	int leader_id = 0;
-	printf("(\033[1;64m%d\033[0m)    Request load party - ", party_id);
+	ShowInfo("Load party request (\033[1;64m%d\033[0m)\n", party_id);
 
 	memset(p, 0, sizeof(struct party));
 
 	sprintf(tmp_sql, "SELECT `party_id`, `name`,`exp`,`item`, `leader_id` FROM `%s` WHERE `party_id`='%d'",
 		party_db, party_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (select `party`)- %s\n", mysql_error(&mysql_handle));
+		ShowError("DB server Error (select `party`)- %s\n", mysql_error(&mysql_handle));
 		return 0;
 	}
 
@@ -181,7 +182,7 @@ int inter_party_fromsql(int party_id, struct party *p)
 	sprintf(tmp_sql,"SELECT `account_id`, `name`,`base_level`,`last_map`,`online` FROM `%s` WHERE `party_id`='%d'",
 		char_db, party_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (select `party`)- %s\n", mysql_error(&mysql_handle) );
+		ShowError("DB server Error (select `party`)- %s\n", mysql_error(&mysql_handle) );
 		return 0;
 	}
 	sql_res = mysql_store_result(&mysql_handle);
@@ -203,7 +204,7 @@ int inter_party_fromsql(int party_id, struct party *p)
 	}
 	mysql_free_result(sql_res);
 
-	printf("Party load success\n");
+	ShowInfo("Party loaded (%d - %s).\n",party_id, p->name);
 	return 0;
 }
 
@@ -211,16 +212,16 @@ int inter_party_sql_init(){
 	int i;
 
 	//memory alloc
-	printf("interserver party memory initialize.... (%d byte)\n",sizeof(struct party));
+	ShowDebug("interserver party memory initialize.... (%d byte)\n",sizeof(struct party));
 	party_pt = (struct party*)aCalloc(sizeof(struct party), 1);
 
 	sprintf (tmp_sql , "SELECT count(*) FROM `%s`", party_db);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error - %s\n", mysql_error(&mysql_handle) );
+		ShowError("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
 	sql_row = mysql_fetch_row(sql_res);
-	printf("total party data -> '%s'.......\n",sql_row[0]);
+	ShowStatus("total party data -> '%s'.......\n",sql_row[0]);
 	i = atoi (sql_row[0]);
 	mysql_free_result(sql_res);
 
@@ -238,7 +239,7 @@ int inter_party_sql_init(){
 		mysql_free_result(sql_res);
 	}
 
-	printf("set party_newid: %d.......\n", party_newid);
+	ShowDebug("set party_newid: %d.......\n", party_newid);
 
 	return 0;
 }
@@ -258,7 +259,7 @@ struct party* search_partyname(char *str)
 
 	sprintf(tmp_sql,"SELECT `party_id`, `name`,`exp`,`item`,`leader_id` FROM `%s` WHERE `name`='%s'",party_db, jstrescapecpy(t_name,str));
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-			printf("DB server Error (select `party`)- %s\n", mysql_error(&mysql_handle) );
+		ShowError("DB server Error (select `party`)- %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
 	if (sql_res==NULL || mysql_num_rows(sql_res)<=0) { mysql_free_result(sql_res); return p; }
@@ -274,7 +275,7 @@ struct party* search_partyname(char *str)
 	// Load members
 	sprintf(tmp_sql,"SELECT `account_id`, `name`,`base_level`,`last_map`,`online` FROM `%s` WHERE `party_id`='%d'",char_db, p->party_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		printf("DB server Error (select `party`)- %s\n", mysql_error(&mysql_handle) );
+		ShowError("DB server Error (select `party`)- %s\n", mysql_error(&mysql_handle) );
 		return 0;
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
@@ -289,7 +290,7 @@ struct party* search_partyname(char *str)
 			strncpy(m->map,sql_row[3],MAP_NAME_LENGTH-1);
 			m->online = atoi(sql_row[4]);
 		}
-		printf("- %d members found in party %d \n",i,p->party_id);
+		ShowInfo("- %d members found in party %d \n",i,p->party_id);
 	}
 	mysql_free_result(sql_res);
 
@@ -316,7 +317,7 @@ int party_check_exp_share(struct party *p)
                 pl1=char_nick2id(p->member[0].name);
                 pl2=char_nick2id(p->member[1].name);
                 pl3=char_nick2id(p->member[2].name);
-                printf("PARTY: group of 3 Id1 %d lv %d name %s Id2 %d lv %d name %s Id3 %d lv %d name %s\n",pl1,p->member[0].lv,p->member[0].name,pl2,p->member[1].lv,p->member[1].name,pl3,p->member[2].lv,p->member[2].name);
+                ShowDebug("PARTY: group of 3 Id1 %d lv %d name %s Id2 %d lv %d name %s Id3 %d lv %d name %s\n",pl1,p->member[0].lv,p->member[0].name,pl2,p->member[1].lv,p->member[1].name,pl3,p->member[2].lv,p->member[2].name);
                 if (char_married(pl1,pl2) && char_child(pl1,pl3))
                         return 1;
                 if (char_married(pl1,pl3) && char_child(pl1,pl2))
@@ -363,7 +364,7 @@ int mapif_party_created(int fd,int account_id,struct party *p)
 		WFIFOB(fd,6)=0;
 		WFIFOL(fd,7)=p->party_id;
 		memcpy(WFIFOP(fd,11),p->name,NAME_LENGTH);
-		printf("int_party: created! %d %s\n",p->party_id,p->name);
+		ShowInfo("int_party: Party created (%d - %s)\n",p->party_id,p->name);
 	}else{
 		WFIFOB(fd,6)=1;
 		WFIFOL(fd,7)=0;
@@ -382,7 +383,7 @@ int mapif_party_noinfo(int fd,int party_id)
 	WFIFOW(fd,2)=8;
 	WFIFOL(fd,4)=party_id;
 	WFIFOSET(fd,8);
-	printf("int_party: info not found %d\n",party_id);
+	ShowWarning("int_party: info not found %d\n",party_id);
 	return 0;
 }
 // パーティ情報まとめ送り
@@ -499,7 +500,7 @@ int mapif_parse_CreateParty(int fd,int account_id,char *name,char *nick,char *ma
 	}
 	p=party_pt;
 	if(p==NULL){
-		printf("int_party: out of memory !\n");
+		ShowFatalError("int_party: out of memory !\n");
 		mapif_party_created(fd,account_id,NULL);
 		return 0;
 	}
@@ -532,7 +533,7 @@ int mapif_parse_PartyInfo(int fd,int party_id)
 {
 	struct party *p = party_pt;
 	if(p==NULL){
-		printf("int_party: out of memory !\n");
+		ShowFatalError("int_party: out of memory !\n");
 		return 0;
 	}
 	inter_party_fromsql(party_id, p);
@@ -551,7 +552,7 @@ int mapif_parse_PartyAddMember(int fd,int party_id,int account_id,char *nick,cha
 
 	p = party_pt;
 	if(p==NULL){
-		printf("int_party: out of memory !\n");
+		ShowFatalError("int_party: out of memory !\n");
 		return 0;
 	}
 	inter_party_fromsql(party_id, p);
@@ -597,7 +598,7 @@ int mapif_parse_PartyChangeOption(int fd,int party_id,int account_id,int exp,int
 
 	p = party_pt;
 	if(p==NULL){
-		printf("int_party: out of memory !\n");
+		ShowFatalError("int_party: out of memory !\n");
 		return 0;
 	}
 
@@ -625,7 +626,7 @@ int mapif_parse_PartyLeave(int fd,int party_id,int account_id)
 	char t_member[2*NAME_LENGTH];
 	struct party *p = party_pt;
 	if (p == NULL) {
-		printf("int_party: out of memory !\n");
+		ShowFatalError("int_party: out of memory !\n");
 		return 0;
 	}
 
@@ -641,7 +642,7 @@ int mapif_parse_PartyLeave(int fd,int party_id,int account_id)
 				sprintf (tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d' AND `name`='%s'",
 					char_db, party_id, jstrescapecpy(t_member,p->member[i].name));
 				if (mysql_query (&mysql_handle, tmp_sql)) {
-					printf("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle));
+					ShowError("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle));
 				}
 //				printf("Delete member %s from MySQL \n", p->member[i].name);
 
@@ -666,12 +667,12 @@ int mapif_parse_PartyLeave(int fd,int party_id,int account_id)
 					// -- if anything goes wrong just uncomment the section above ^^;
 					sprintf (tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d'", char_db, party_id);
 					if (/*tmp_sql != '\0' &&*/ mysql_query(&mysql_handle, tmp_sql)) {
-						printf("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
+						ShowError("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
 					}
 					// Delete the party, if has no member.
 					sprintf(tmp_sql, "DELETE FROM `%s` WHERE `party_id`='%d'", party_db, party_id);
 					if (mysql_query(&mysql_handle, tmp_sql)) {
-						printf("DB server Error - %s\n", mysql_error(&mysql_handle) );
+						ShowError("DB server Error - %s\n", mysql_error(&mysql_handle) );
 					}
 //					printf("Leader breaks party %d \n",party_id);
 					memset(p, 0, sizeof(struct party));
@@ -689,7 +690,7 @@ int mapif_parse_PartyLeave(int fd,int party_id,int account_id)
 		sprintf(tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d' AND `account_id`='%d' AND `online`='1'",
 			char_db, party_id, account_id);
 		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
+			ShowError("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
 		}
 	}
 	return 0;
@@ -702,7 +703,7 @@ int mapif_parse_PartyChangeMap(int fd,int party_id,int account_id,char *map,int 
 
 	p = party_pt;
 	if(p==NULL){
-		printf("int_party: out of memory !\n");
+		ShowFatalError("int_party: out of memory !\n");
 		return 0;
 	}
 	inter_party_fromsql(party_id, p);
@@ -738,7 +739,7 @@ int mapif_parse_BreakParty(int fd,int party_id)
 
 	p = party_pt;
 	if(p==NULL){
-		printf("int_party: out of memory !\n");
+		ShowFatalError("int_party: out of memory !\n");
 		return 0;
 	}
 

@@ -7,6 +7,7 @@
 
 #include "char.h"
 #include "itemdb.h"
+#include "../common/showmsg.h"
 
 #define STORAGE_MEMINC	16
 
@@ -66,7 +67,7 @@ int storage_fromsql(int account_id, struct storage *p){
 	// storage {`account_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3`}
 	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `account_id`='%d'",storage_db, account_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-			printf("DB server Error - %s\n", mysql_error(&mysql_handle) );
+		ShowError ("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
 
@@ -88,7 +89,7 @@ int storage_fromsql(int account_id, struct storage *p){
 		mysql_free_result(sql_res);
 	}
 
-	printf ("storage load complete from DB - id: %d (total: %d)\n", account_id, p->storage_amount);
+	ShowInfo ("storage load complete from DB - id: %d (total: %d)\n", account_id, p->storage_amount);
 	return 1;
 }
 
@@ -119,7 +120,7 @@ int guild_storage_tosql(int guild_id, struct guild_storage *p){
 
 	memitemdata_to_sql(mapitem, count, guild_id,TABLE_GUILD_STORAGE);
 
-	printf ("guild storage save to DB - id: %d (total: %d)\n", guild_id,i);
+	ShowInfo ("guild storage save to DB - id: %d (total: %d)\n", guild_id,i);
 	return 0;
 }
 
@@ -136,7 +137,7 @@ int guild_storage_fromsql(int guild_id, struct guild_storage *p){
 	// storage {`guild_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3`}
 	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `guild_id`='%d'",guild_storage_db, guild_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		printf("DB server Error - %s\n", mysql_error(&mysql_handle) );
+		ShowError("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
 
@@ -159,7 +160,7 @@ int guild_storage_fromsql(int guild_id, struct guild_storage *p){
 		}
 		mysql_free_result(sql_res);
 	}
-	printf ("guild storage load complete from DB - id: %d (total: %d)\n", guild_id, p->storage_amount);
+	ShowInfo ("guild storage load complete from DB - id: %d (total: %d)\n", guild_id, p->storage_amount);
 	return 0;
 }
 
@@ -168,7 +169,7 @@ int guild_storage_fromsql(int guild_id, struct guild_storage *p){
 int inter_storage_sql_init(){
 
 	//memory alloc
-	printf("interserver storage memory initialize....(%d byte)\n",sizeof(struct storage));
+	ShowDebug("interserver storage memory initialize....(%d byte)\n",sizeof(struct storage));
 	storage_pt = (struct storage*)aCalloc(sizeof(struct storage), 1);
 	guild_storage_pt = (struct guild_storage*)aCalloc(sizeof(struct guild_storage), 1);
 //	memset(storage_pt,0,sizeof(struct storage)); //Calloc sets stuff to 0 already. [Skotlex]
@@ -188,7 +189,7 @@ int inter_storage_delete(int account_id)
 {
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id`='%d'",storage_db, account_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		printf("DB server Error (delete `storage`)- %s\n", mysql_error(&mysql_handle) );
+		ShowError("DB server Error (delete `storage`)- %s\n", mysql_error(&mysql_handle) );
 	}
 	return 0;
 }
@@ -196,7 +197,7 @@ int inter_guild_storage_delete(int guild_id)
 {
 	sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%d'",guild_storage_db, guild_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		printf("DB server Error (delete `guild_storage`)- %s\n", mysql_error(&mysql_handle) );
+		ShowError("DB server Error (delete `guild_storage`)- %s\n", mysql_error(&mysql_handle) );
 	}
 	return 0;
 }
@@ -284,7 +285,7 @@ int mapif_parse_SaveStorage(int fd){
 	int len=RFIFOW(fd,2);
 
 	if(sizeof(struct storage)!=len-8){
-		printf("inter storage: data size error %d %d\n",sizeof(struct storage),len-8);
+		ShowError("inter storage: data size error %d %d\n",sizeof(struct storage),len-8);
 	}else{
 		memcpy(&storage_pt[0],RFIFOP(fd,8),sizeof(struct storage));
 		storage_tosql(account_id, storage_pt);
@@ -305,7 +306,7 @@ int mapif_parse_SaveGuildStorage(int fd)
 	int guild_id=RFIFOL(fd,8);
 	int len=RFIFOW(fd,2);
 	if(sizeof(struct guild_storage)!=len-12){
-		printf("inter storage: data size error %d %d\n",sizeof(struct guild_storage),len-12);
+		ShowError("inter storage: data size error %d %d\n",sizeof(struct guild_storage),len-12);
 	}
 	else {
 #if 0	// Again, innodb key checks make the check pointless
