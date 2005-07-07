@@ -3956,7 +3956,9 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 			// &2 = ? - Celest <- &2 means "cloaking lasts forever" [Skotlex]
 			if(!(battle_config.pc_cloak_check_type&2) && sd->sc_data[SC_CLOAKING].timer != -1)
 				status_change_end(&sd->bl,SC_CLOAKING,-1);
-			if(sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_attack_support)
+			//battle_weapon_attack returns 0 when you can't attack, this prevents exploits
+			//from using bows with no arrows to 'send' their pet into action. [Skotlex]
+			if(sd->attacktarget_lv >0 && sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_attack_support)
 				pet_target_check(sd,bl,0);
 			map_freeblock_unlock();
 			if(sd->skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0 ) // フリ?キャスト

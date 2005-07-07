@@ -1,5 +1,10 @@
 Date	Added
 07/07
+	* Fixed pet-exploit where you could use a bow with no arrow equipped to
+	  'send' your pet to attack distant enemies. [Skotlex]
+	* Added a visual skill effect when pets heal a status ailment. [Skotlex]
+	  (Adrenaline Rush was chosen because it's animation does resemble a
+	  'curative spell')
 	* Changed all SQL-related error messages to use ShowSQL [Skotlex]
 	  ShowSQL now is also printed on the stderr (like ShowError and ShowFatalError)
 	* Beautified the output of the char server (sql) [Skotlex]
