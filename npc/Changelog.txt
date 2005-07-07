@@ -25,6 +25,8 @@ TODO:
 
 Date		Added
 ======
+07/08
+	* Fixed new_hats_0625.txt, thanx to vicious_pucca [Lupus]
 07/07
 	* Hunter Job Quest: Infinite Arrows exploit fix [Lupus]
 	* Fixed a small burried treasure map error thanks to kyoki. [massdriller]

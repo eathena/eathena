@@ -207,7 +207,7 @@ lighthalzen.gat,224,116,4	script	Juneau Cho	818,{	//!!! WRONG name of NPC
 	mes "Good, thank you! Let me just take your items.";
 	delitem 519,50;//Items: Milk,
 	delitem 548,50;//Items: Cheese,
-	delitem 538,50;//Items: Well-baked_Cookie,
+	delitem 539,50;//Items: Piece of Cake,
 	delitem 7031,50;//Items: Old_Frying_Pan,
 	getitem 5107,1;
 	next;
