@@ -148,7 +148,7 @@ static int itemdb_read_sqldb(void) // sql item_db read, shortened version of map
 
 	// Execute the query; if the query execution fails, output an error
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowError("Database server error (executing query for %s): %s\n", item_db_db, mysql_error(&mysql_handle));
+		ShowSQL("Database server error (executing query for %s): %s\n", item_db_db, mysql_error(&mysql_handle));
 	}
 
 	// Store the query result
@@ -178,7 +178,7 @@ static int itemdb_read_sqldb(void) // sql item_db read, shortened version of map
 
 		// If the retrieval failed, output an error
 		if (mysql_errno(&mysql_handle)) {
-			ShowError("Database server error (retrieving rows from %s): %s\n", item_db_db, mysql_error(&mysql_handle));
+			ShowSQL("Database server error (retrieving rows from %s): %s\n", item_db_db, mysql_error(&mysql_handle));
 		}
 
 		ShowInfo("read %s done (count = %lu)\n", item_db_db, (unsigned long) mysql_num_rows(sql_res));
@@ -186,7 +186,7 @@ static int itemdb_read_sqldb(void) // sql item_db read, shortened version of map
 		// Free the query result
 		mysql_free_result(sql_res);
 	} else {
-		ShowError("MySQL error (storing query result for %s): %s\n", item_db_db, mysql_error(&mysql_handle));
+		ShowSQL("MySQL error (storing query result for %s): %s\n", item_db_db, mysql_error(&mysql_handle));
 	}
 
 	return 0;

@@ -1,5 +1,7 @@
 Date	Added
 07/07
+	* Changed all SQL-related error messages to use ShowSQL [Skotlex]
+	  ShowSQL now is also printed on the stderr (like ShowError and ShowFatalError)
 	* Beautified the output of the char server (sql) [Skotlex]
 	  WARNING: It was a massive update, so some stuff might have broken
 	  (can't do much testing right now)

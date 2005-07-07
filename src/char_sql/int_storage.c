@@ -67,7 +67,7 @@ int storage_fromsql(int account_id, struct storage *p){
 	// storage {`account_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3`}
 	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `account_id`='%d'",storage_db, account_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowError ("DB server Error - %s\n", mysql_error(&mysql_handle) );
+		ShowSQL ("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
 
@@ -137,7 +137,7 @@ int guild_storage_fromsql(int guild_id, struct guild_storage *p){
 	// storage {`guild_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3`}
 	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `guild_id`='%d'",guild_storage_db, guild_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowError("DB server Error - %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
 
@@ -189,7 +189,7 @@ int inter_storage_delete(int account_id)
 {
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id`='%d'",storage_db, account_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowError("DB server Error (delete `storage`)- %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB server Error (delete `storage`)- %s\n", mysql_error(&mysql_handle) );
 	}
 	return 0;
 }
@@ -197,7 +197,7 @@ int inter_guild_storage_delete(int guild_id)
 {
 	sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%d'",guild_storage_db, guild_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowError("DB server Error (delete `guild_storage`)- %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB server Error (delete `guild_storage`)- %s\n", mysql_error(&mysql_handle) );
 	}
 	return 0;
 }

@@ -23,7 +23,7 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 		case MSG_STATUS: //Bright Green (To inform about good things)
 			strcpy(prefix,CL_GREEN"[Status]"CL_RESET":");
 			break;
-		case MSG_SQL: //Bright Violet (For dumping out anything related with SQL)
+		case MSG_SQL: //Bright Violet (For dumping out anything related with SQL) <- Actually, this is mostly used for SQL errors with the database, as successes can as well just be anything else... [Skotlex]
 			strcpy(prefix,CL_MAGENTA"[SQL]"CL_RESET":");
 			break;
 		case MSG_INFORMATION: //Bright White (Variable information)
@@ -50,7 +50,7 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 	}
 
 	if (!(flag == MSG_DEBUG && !SHOW_DEBUG_MSG)) {
-		if (flag == MSG_ERROR || flag == MSG_FATALERROR)
+		if (flag == MSG_ERROR || flag == MSG_FATALERROR || flag == MSG_SQL)
 		{	//Send Errors to StdErr [Skotlex]
 			fprintf (stderr, "%s ", prefix);
 			vfprintf (stderr, string, ap);

@@ -98,7 +98,7 @@ int inter_accreg_tosql(int account_id,struct accreg *reg){
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
 	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%d'",reg_db, account_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowError("DB server Error (delete `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB server Error (delete `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 	}
 
 	if (reg->reg_num<=0) return 0;
@@ -108,7 +108,7 @@ int inter_accreg_tosql(int account_id,struct accreg *reg){
 			sprintf(tmp_sql,"INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES (2,'%d', '%s','%d')",
 				reg_db, reg->account_id, jstrescapecpy(temp_str,reg->reg[j].str), reg->reg[j].value);
 			if(mysql_query(&mysql_handle, tmp_sql) ) {
-				ShowError("DB server Error (insert `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
+				ShowSQL("DB server Error (insert `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 			}
 		}
 	}
@@ -126,7 +126,7 @@ int inter_accreg_fromsql(int account_id,struct accreg *reg)
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
 	sprintf (tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%d'",reg_db, reg->account_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowError("DB server Error (select `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB server Error (select `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 
@@ -246,7 +246,7 @@ int inter_log(char *fmt,...)
 	vsprintf(str,fmt,ap);
 	sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `log`) VALUES (NOW(),  '%s')",interlog_db, jstrescapecpy(temp_str,str));
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowError("DB server Error (insert `interlog`)- %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB server Error (insert `interlog`)- %s\n", mysql_error(&mysql_handle) );
 	}
 
 	va_end(ap);
@@ -512,7 +512,7 @@ int mapif_parse_WisRequest(int fd) {
 	sprintf (tmp_sql, "SELECT `name` FROM `%s` WHERE `name`='%s'",
 		char_db, jstrescapecpy(t_name, (char *)RFIFOP(fd,28)));
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowError("DB server Error - %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 
