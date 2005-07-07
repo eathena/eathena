@@ -385,3 +385,15 @@ addwarp("gldd_004","gld_dun03.gat",42,30,"prt_gld.gat",63,66,1,1)
 addwarp("gldd_005","gld_dun03.gat",238,274,"prt_gld.gat",252,247,1,1)
 addwarp("gldd_006","gld_dun04.gat",37,230,"gef_fild13.gat",42,331,1,1)
 addwarp("gldd_007","gld_dun04.gat",110,20,"gef_fild13.gat",373,62,1,1)
+
+--= Special Warp =====================================================
+addnpc("aldg408r","aldg408r","aldeg_cas04.gat",132,231,4,45)
+addareascript("aldg408rArea","aldeg_cas04.gat",131,230,133,232,"GCasRand")
+
+function GCasRand()
+	local r = math.random(4)
+	if r==1 then warp("aldeg_cas04.gat",170,100) end
+	if r==2 then warp("aldeg_cas04.gat",186,88) end
+	if r==3 then warp("aldeg_cas04.gat",129,212) end
+	if r==4 then warp("aldeg_cas04.gat",132,209) end
+end

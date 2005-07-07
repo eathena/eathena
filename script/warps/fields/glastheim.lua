@@ -76,3 +76,13 @@ addwarp("gl6","glast_01.gat",237,330,"gl_in01.gat",122,59,1,1)
 addwarp("glst001","glast_01.gat",377,304,"gef_fild06.gat",22,304,3,3)
 addwarp("gl1","glast_01.gat",51,108,"gl_step.gat",12,7,1,1)
 addwarp("gl2","glast_01.gat",77,193,"gl_knt01.gat",150,15,1,1)
+
+-== Special Warps ===============================================
+addnpc("gl18-2","gl18-2","gl_prison.gat",10,70,4,45)
+addareascript("gl18-2Area","gl_prison.gat",9,69,11,71,"GLRand")
+
+function GLRand()
+	local r = math.random(2)
+	if r==1 then warp("gl_cas01.gat",236,192) end
+	if r==2 then warp("gl_cas01.gat",164,191) end
+end

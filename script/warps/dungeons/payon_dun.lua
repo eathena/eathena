@@ -24,3 +24,16 @@ addwarp("payd04-2","pay_dun04.gat",191,41,"pay_dun03.gat",125,62,1,1)
 addwarp("payd04-3","pay_dun04.gat",202,206,"pay_dun03.gat",125,62,1,1)
 addwarp("payd04-4","pay_dun04.gat",32,204,"pay_dun03.gat",125,62,2,1)
 addwarp("payd04-1","pay_dun04.gat",40,37,"pay_dun03.gat",125,62,2,2)
+
+--= Special Warp =============================================
+
+addnpc("payd04r","payd04r","pay_dun03.gat",127,62,4,45)
+addareascript("payd04rArea","pay_dun03.gat",125,60,129,64,"PayonRand")
+
+function PayonRand()
+	local r = math.random(4)
+	if r==1 then warp("pay_dun04.gat",201,204) end
+	if r==2 then warp("pay_dun04.gat",193,43) end
+	if r==3 then warp("pay_dun04.gat",43,40) end
+	if r==4 then warp("pay_dun04.gat",34,202) end
+end

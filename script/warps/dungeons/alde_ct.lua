@@ -46,15 +46,173 @@ addwarp("aldd04","alde_dun02.gat",43,20,"alde_dun01.gat",292,300,1,1)
 addwarp("aldd05","alde_dun02.gat",279,250,"alde_dun03.gat",18,267,2,2)
 addwarp("ald006","alde_dun02.gat",122,169,"c_tower3.gat",47,41,2,2)
 addwarp("ald007","alde_dun02.gat",187,234,"c_tower3.gat",65,147,2,2)
---= Random B2 ================================================
+--= B2 ================================================
 addwarp("aldd09","alde_dun03.gat",12,267,"alde_dun02.gat",273,250,2,2)
 addwarp("ald010","alde_dun03.gat",277,183,"c_tower2.gat",27,27,2,2)
 addwarp("ald011","alde_dun03.gat",191,31,"c_tower3.gat",217,159,2,2)
 addwarp("ald012","alde_dun03.gat",276,48,"c_tower1.gat",235,223,2,2)
---= Random 3-2 ===============================================
+--= 3-2 ===============================================
 addwarp("aldd016","alde_dun04.gat",80,273,"alde_dun03.gat",263,26,2,2)
 addwarp("ald017","alde_dun04.gat",207,225,"c_tower3.gat",7,34,1,1)
 addwarp("ald018","alde_dun04.gat",215,192,"c_tower2.gat",148,283,1,1)
 addwarp("aldd19","alde_dun04.gat",32,74,"alde_dun02.gat",187,239,1,1)
 addwarp("aldd20","alde_dun04.gat",208,58,"alde_dun04.gat",268,74,2,2)
 addwarp("aldd021","alde_dun04.gat",272,74,"alde_dun04.gat",204,62,2,2)
+
+--= Special Warps ============================================
+--============================================================
+--= Level 2 ==================================================
+--= Random 2-1 ===============================================
+addnpc("clt006r","clt006r","c_tower2.gat",13,288,4,45)
+addareascript("clt006rArea","c_tower2.gat",11,286,15,290,"Clockt01")
+
+function Clockt01()
+	local r = math.random(3)
+	if r==1 then warp("c_tower2.gat",13,282) end
+	if r==2 then warp("alde_dun03.gat",175,131) end
+	if r==3 then warp("c_tower3.gat",235,7) end
+end
+--============================================================
+--= Random 2-2 ===============================================
+addnpc("clt007r","clt007r","c_tower2.gat",223,267,4,45)
+addareascript("clt007rArea","c_tower2.gat",222,266,224,268,"Clockt02")
+
+function Clockt02()
+	local r = math.random(3)
+	if r==1 then warp("c_tower2.gat",288,267) end
+	if r==2 then warp("alde_dun03.gat",130,130) end
+	if r==3 then warp("c_tower3.gat",252,29) end
+end
+--============================================================
+--= Random 3-1 ===============================================
+addnpc("clt014r","clt014r","c_tower3.gat",163,252,4,45)
+addareascript("clt014rArea","c_tower3.gat",162,251,164,253,"Clockt03")
+
+function Clockt03()
+	local r = math.random(2)
+	if r==1 then warp("c_tower3.gat",168,252) end
+	if r==2 then warp("alde_dun02.gat",262,41) end
+end
+--============================================================
+--= Random 3-2 ===============================================
+addnpc("clt015r","clt015r","c_tower3.gat",240,7,4,45)
+addareascript("clt015rArea","c_tower3.gat",239,6,241,8,"Clockt04")
+
+function Clockt04()
+	local r = math.random(3)
+	if r==1 then warp("c_tower2.gat",13,282) end
+	if r==2 then warp("alde_dun03.gat",175,131) end
+	if r==3 then warp("c_tower3.gat",235,7) end
+end
+--============================================================
+--= Random 3-3 ===============================================
+addnpc("clt016r","clt016r","c_tower3.gat",252,24,4,45)
+addareascript("clt016rArea","c_tower3.gat",251,23,253,25,"Clockt05")
+
+function Clockt05()
+	local r = math.random(3)
+	if r==1 then warp("c_tower2.gat",228,267) end
+	if r==2 then warp("alde_dun03.gat",130,130) end
+	if r==3 then warp("c_tower3.gat",252,29) end
+end
+--============================================================
+--= Random 4-1 ===============================================
+addnpc("clt027r","clt027r","c_tower4.gat",75,156,4,45)
+addareascript("clt027rArea","c_tower4.gat",74,155,76,157,"Clockt06")
+
+function Clockt06()
+	local r = math.random(4)
+	if r==1 then warp("c_tower3.gat",168,252) end
+	if r==2 then warp("alde_dun02.gat",262,41) end
+	if r==3 then warp("c_tower4.gat",73,154) end
+	if r==4 then warp("c_tower4.gat",140,149) end
+end
+--============================================================
+--= Random 4-2 ===============================================
+addnpc("clt028r","clt028r","c_tower4.gat",68,79,4,45)
+addareascript("clt028rArea","c_tower4.gat",67,78,69,80,"Clockt07")
+
+function Clockt07()
+	local r = math.random(4)
+	if r==1 then warp("c_tower2.gat",13,282) end
+	if r==2 then warp("alde_dun03.gat",175,131) end
+	if r==3 then warp("c_tower3.gat",235,7) end
+	if r==4 then warp("c_tower4.gat",65,77) end
+end
+--============================================================
+--= Random 4-3 ===============================================
+addnpc("clt029r","clt029r","c_tower4.gat",142,151,4,45)
+addareascript("clt029rArea","c_tower4.gat",141,150,143,152,"Clockt08")
+
+function Clockt08()
+	local r = math.random(4)
+	if r==1 then warp("c_tower3.gat",168,252) end
+	if r==2 then warp("alde_dun02.gat",262,41) end
+	if r==3 then warp("c_tower4.gat",73,154) end
+	if r==4 then warp("c_tower4.gat",140,149) end
+end
+--============================================================
+--= Random 4-4 ===============================================
+addnpc("clt030r","clt030r","c_tower4.gat",151,96,4,45)
+addareascript("clt030rArea","c_tower4.gat",150,95,152,97,"Clockt09")
+
+function Clockt09()
+	local r = math.random(4)
+	if r==1 then warp("c_tower2.gat",228,267) end
+	if r==2 then warp("alde_dun03.gat",130,130) end
+	if r==3 then warp("c_tower3.gat",252,29) end
+	if r==4 then warp("c_tower4.gat",152,95) end
+end
+--============================================================
+--= Random 4-5 ===============================================
+addnpc("clt031r","clt031r","c_tower4.gat",189,40,4,45)
+addareascript("clt031rArea","c_tower4.gat",187,38,191,42,"Clockt10")
+
+function Clockt10()
+	local r = math.random(4)
+	if r==1 then warp("c_tower2.gat",228,267) end
+	if r==2 then warp("alde_dun03.gat",130,130) end
+	if r==3 then warp("c_tower3.gat",252,29) end
+	if r==4 then warp("c_tower4.gat",152,95) end	
+end
+--= Random B2 ================================================
+addnpc("clt008r","clt008r","alde_dun02.gat",267,41,4,45)
+addareascript("clt008rArea","alde_dun02.gat",266,40,268,42,"Clockt11")
+
+function Clockt11()
+	local r = math.random(2)
+	if r==1 then warp("c_tower3.gat",168,252) end
+	if r==2 then warp("alde_dun02.gat",262,141) end
+end
+--============================================================
+--7(npc)
+--= Random B3-1 ================================================
+addnpc("clt014r","clt014r","alde_dun03.gat",130,125,4,45)
+addareascript("clt014rArea","alde_dun03.gat",129,124,131,126,"Clockt12")
+
+function Clockt12()
+	local r = math.random(3)
+	if r==1 then warp("c_tower2.gat",228,267) end
+	if r==2 then warp("alde_dun03.gat",130,130) end
+	if r==3 then warp("c_tower3.gat",252,29) end	
+end
+--============================================================
+--= Random 3-2 ===============================================
+addnpc("clt015r","clt015r","alde_dun03.gat",171,127,4,45)
+addareascript("clt015rArea","alde_dun03.gat",170,126,172,128,"Clockt13")
+function Clockt13()
+	local r = math.random(3)
+	if r==1 then warp("c_tower2.gat",13,282) end
+	if r==2 then warp("alde_dun03.gat",175,131) end
+	if r==3 then warp("c_tower3.gat",235,7) end	
+end
+
+addnpc("clt022r","clt022r","alde_dun04.gat",80,34,4,45)
+addareascript("clt022rArea","alde_dun04.gat",79,33,81,35,"Clockt14")
+function Clockt14()
+	local r = math.random(4)
+	if r==1 then warp("c_tower2.gat",13,282) end
+	if r==2 then warp("alde_dun03.gat",175,131) end
+	if r==3 then warp("c_tower3.gat",235,7) end
+	if r==4 then warp("alde_dun04.gat",84,36) end	
+end
