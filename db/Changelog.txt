@@ -14,6 +14,11 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/06
+	* Made Arrow Vulcan be affected by dex, delay unaffected by dex. [Skotlex]
+	  (from what I read around on the forums, it seems that's how it is)
+	* Made Double Strafe, Arrow Shower cast time be affected by dex, and delay
+	  be unaffected by dex. [Skotlex]
+	  (hey, these two had 0 cast times already, so it was a waste the way it was)
 	* Changed Tao Gunka's mode to 163 (131+32) to make it a boss type mob [Skotlex]
 	* Changed Spider Web's inf to 2 so that it becomes ground-targeted [Skotlex]
 	* Added Novice Red Potion into item_trade.txt db. (can't be traded, etc) [Lupus]
