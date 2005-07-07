@@ -3216,9 +3216,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			int sc = SkillStatusChangeTable[skillid];
 			int sc2 = SC_MARIONETTE2;
 
-			if ((sd == dstsd)
-			 || (!sd->status.party_id)
-			 || (sd->status.party_id != dstsd->status.party_id)) {
+//			if ((sd == dstsd)
+//			 || (!sd->status.party_id)
+//			 || (sd->status.party_id != dstsd->status.party_id)) {
+			if (sd == dstsd) { //using inf2 = INF2_PARTY_ONLY spares the check [Skotlex]
 			 	clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
 				return 1;
