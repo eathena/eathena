@@ -1,5 +1,6 @@
 Date	Added
 07/06
+	* Fixed Spider-web (works like a ground-targeted trap) [Skotlex]
 	* Fixed combo delay not working with skills that have a blowcount [Skotlex]
 	* Set the default skill combo delay value to 230ms [Skotlex]
 	  (this default was empirically obtained testing with Jupitel Thunder as reference)

@@ -4751,11 +4751,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
-	case PF_SPIDERWEB:			/* スパイダ?ウェッブ */
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		skill_unitsetting(src,skillid,skilllv,bl->x,bl->y,0);
-		break;
-
 	// Slim Pitcher
 	case CR_SLIMPITCHER:
 		{
@@ -5381,6 +5376,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	case AS_VENOMDUST:			/* ベノムダスト */
 	case AM_DEMONSTRATION:			/* デモンストレ?ション */
 	case PF_FOGWALL:			/* フォグウォ?ル */
+	case PF_SPIDERWEB:			/* スパイダ?ウェッブ */
 	case HT_TALKIEBOX:			/* ト?キ?ボックス */
 		skill_unitsetting(src,skillid,skilllv,x,y,0);
 		break;
