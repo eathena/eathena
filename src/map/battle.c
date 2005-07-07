@@ -621,7 +621,7 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 	int damage,skill;
 	int race=status_get_race(target);
 	int weapon;
-	damage = 0;
+	damage = dmg;
 
 	nullpo_retr(0, sd);
 
@@ -726,6 +726,10 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 		}
 		case 0x10:	// Katars
 		{
+			if((skill = pc_checkskill(sd,ASC_KATAR)) > 0) {
+				//Advanced Katar Research by zanetheinsane
+				damage += damage*(10 +skill * 2)/100;
+			}
 			// カタール修練(+3 ～ +30) カタール
 			if((skill = pc_checkskill(sd,AS_KATAR)) > 0) {
 				//ソニックブロー時は別処理（1撃に付き1/8適応)
@@ -734,7 +738,6 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 			break;
 		}
 	}
-	damage = dmg + damage;
 	return (damage);
 }
 
@@ -2561,9 +2564,6 @@ static struct Damage battle_calc_pc_weapon_attack(
 	// スキル修正２（修練系）
 	// 修練ダメージ(右手のみ) ソニックブロー時は別処理（1撃に付き1/8適応)
 	if( skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST && skill_num != CR_GRANDCROSS) {			//修練ダメージ無視
-		//Advanced Katar Research by zanetheinsane
-		if((sd->weapontype1 == 0x10 || sd->weapontype2 == 0x10) && (skill = pc_checkskill(sd,ASC_KATAR)) > 0)
-				damage += damage*(10+(skill * 2))/100;
 		damage = battle_addmastery(sd,target,damage,0);
 		damage2 = battle_addmastery(sd,target,damage2,1);
 	}
@@ -3860,8 +3860,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 
 		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST && skill_num != CR_GRANDCROSS)
 		{	//Add mastery damage
-			if((sd->weapontype1 == 0x10 || sd->weapontype2 == 0x10) && (skill = pc_checkskill(sd,ASC_KATAR)) > 0)
-				ATK_ADDRATE(10+(skill *2));	//Advanced Katar Research by zanetheinsane
 			wd.damage = battle_addmastery(sd,target,wd.damage,0);
 			if (flag.lh) wd.damage2 = battle_addmastery(sd,target,wd.damage2,1);
 		}
