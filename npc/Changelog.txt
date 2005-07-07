@@ -26,8 +26,8 @@ TODO:
 Date		Added
 ======
 07/07
+	* Hunter Job Quest: Infinite Arrows exploit fix [Lupus]
 	* Fixed a small burried treasure map error thanks to kyoki. [massdriller]
-
 07/04
 	* Added Lorky's NEW HEADGEARS quests (according to the patch 2005/6/14) [Lupus]
 	  Please, feel free to fix, imporve, etc. (all the URLs are in the script)

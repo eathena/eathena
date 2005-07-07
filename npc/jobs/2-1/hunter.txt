@@ -5,7 +5,7 @@
 //= Converted by kobra_k88
 //= Further bugfixed and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.6
+//= 1.6a
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -23,6 +23,8 @@
 //= 1.6 Added a func which prevent advanced classes passing
 //= 2nd Job Quests again. It also guides adv classes where
 //= to go. [Lupus]
+//= 1.6a Infinite Arrows exploit fix (thanx to Lorky, that
+//= reported the bug) [Lupus]
 //============================================================ 
 
 
@@ -562,11 +564,12 @@ L_Start:
 		mes "And ALWAYS watch your step!  There are traps everywhere!";
 		goto M_Menu;
 	M_Start:
-		if (countitem(1751) <= 5) callsub sF_GetArrows;
+		if (countitem(1751) <= 5 && @HNTR_QA==0) callsub sF_GetArrows;
 		mes "[Guild Master]";
 		mes "Good luck, I'll send you to the test room now.";
 		next;
 		set HNTR_Q2, 1;
+		set @HNTR_QA,0;
 		savepoint "payon_in02.gat", 16, 26;
 		warp "job_hunte.gat", 176, 22;
 		end;
@@ -575,6 +578,7 @@ L_Start:
 			mes "[Guild Master]";
 			mes "This is where your hard work in the 2nd test payed off.  Here are some arrows, made with the items you collected.";
  			getitem 1751, 200;
+			set @HNTR_QA,1;
 			next;
 			return;
 

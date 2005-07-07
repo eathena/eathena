@@ -9,7 +9,6 @@
 	Skill databases == celest working on them I believe.
 
 	-- New Cards : Not Implemented
-	4189,Wraith_Dead_Card: missing getitemonracekill??
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
