@@ -5660,7 +5660,7 @@ void battle_set_defaults() {
 	battle_config.skill_out_range_consume=1;
 	battle_config.mob_skill_add_range=0;
 	battle_config.pc_damage_delay_rate=100;
-	battle_config.pc_combo_damage_delay=0;
+	battle_config.pc_combo_damage_delay=230;
 	battle_config.defnotenemy=1;
 	battle_config.random_monster_checklv=1;
 	battle_config.attr_recover=1;
@@ -5702,7 +5702,7 @@ void battle_set_defaults() {
 	battle_config.pp_rate=100;
 	battle_config.monster_active_enable=1;
 	battle_config.monster_damage_delay_rate=100;
-	battle_config.monster_combo_damage_delay=0;
+	battle_config.monster_combo_damage_delay=230;
 	battle_config.monster_loot_type=0;
 //	battle_config.mob_skill_use=1;
 	battle_config.mob_skill_rate=100;

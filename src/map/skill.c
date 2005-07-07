@@ -1226,7 +1226,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 /*=========================================================================
  スキル攻?吹き飛ばし?理
 -------------------------------------------------------------------------*/
-int skill_blown( struct block_list *src, struct block_list *target,int count)
+int skill_blown( struct block_list *src, struct block_list *target,int count, int flag)
 {
 	int dx=0,dy=0,nx,ny;
 	int x=target->x,y=target->y;
@@ -1292,7 +1292,10 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 		}
 	}
 	else
-		battle_stopwalking(target,2);
+		//if the 2 is hardcoded, it causes conflicts with the div combo-delay,
+		//so it's best to pass it to the function the flag value. [Skotlex]
+		//(or perhaps would it be safe to just use 1 here? I am not risking it....
+		battle_stopwalking(target,flag);
 
 	dx = nx - x;
 	dy = ny - y;
@@ -1586,7 +1589,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	}
 	/* 吹き飛ばし処理とそのパケット */
 	if (dmg.blewcount > 0 && bl->type!=BL_SKILL && !map[src->m].flag.gvg) {
-		skill_blown(dsrc,bl,dmg.blewcount);
+		skill_blown(dsrc,bl,dmg.blewcount, 1);
 		if(bl->type == BL_MOB)
 			clif_fixmobpos((struct mob_data *)bl);
 		else if(bl->type == BL_PET)
@@ -2584,7 +2587,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				if(map[bl->m].flag.gvg || status_get_mexp(bl)) 
 					c = 0;
 				for(i=0;i<c;i++){
-					skill_blown(src,bl,1);
+					skill_blown(src,bl,1, 2);
 					if(bl->type == BL_MOB)
 						clif_fixmobpos((struct mob_data *)bl);
 					else if(bl->type == BL_PET)
@@ -2615,7 +2618,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				break;
 			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0x0500) &&
 			   !(map[bl->m].flag.gvg || status_get_mexp(bl)))
-				skill_blown(src,bl,skill_area_temp[2]);
+				skill_blown(src,bl,skill_area_temp[2],1);
 		} else {
 			int x=bl->x,y=bl->y,i,dir;
 			/* まずターゲットに攻撃を加える */
@@ -2624,7 +2627,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			skill_area_temp[2] = skill_get_blewcount(skillid,skilllv)|dir<<20;
 			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0) &&
 			   !(map[bl->m].flag.gvg || status_get_mexp(bl)))
-				skill_blown(src,bl,skill_area_temp[2]);
+				skill_blown(src,bl,skill_area_temp[2],1);
 			for (i=0;i<4;i++) {
 				map_foreachinarea(skill_area_sub,bl->m,x,y,x,y,0,
 					src,skillid,skilllv,tick,flag|BCT_ENEMY|1,
@@ -4140,7 +4143,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case TF_BACKSLIDING:		/* バックステップ */
 		battle_stopwalking(src,1);
-		skill_blown(src,bl,skill_get_blewcount(skillid,skilllv)|0x10000);
+		skill_blown(src,bl,skill_get_blewcount(skillid,skilllv)|0x10000, 2);
 		if (sd)
 			clif_fixpos(src);
 		else if (md)
@@ -6015,7 +6018,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 			status_change_start(bl,type,sg->skill_lv,0,0,(int)sg,
 				skill_get_time2(sg->skill_id,sg->skill_lv),0);
 		} else if (!status_get_mode(bl)&0x20)
-			skill_blown(&src->bl,bl,1);
+			skill_blown(&src->bl,bl,1,2);
 		break;
 
 	case 0xb6:	/* フォグウォ?ル */
@@ -6163,7 +6166,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 			int i,c = skill_get_blewcount(sg->skill_id,sg->skill_lv);
 			if(map[bl->m].flag.gvg) c = 0;
 			for(i=0;i<c;i++)
-				skill_blown(&src->bl,bl,1|0x30000);
+				skill_blown(&src->bl,bl,1|0x30000,2);
 			sg->unit_id = 0x8c;
 			clif_changelook(&src->bl,LOOK_BASE,sg->unit_id);
 			sg->limit=DIFF_TICK(tick,sg->tick)+1500;
@@ -6265,7 +6268,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	case 0xb4:				/* バジリカ */
 	   	if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0 &&
 			!(status_get_mode(bl)&0x20))
-			skill_blown(&src->bl,bl,1);
+			skill_blown(&src->bl,bl,1,2);
 		if (sg->src_id==bl->id)
 			break;
 		if (battle_check_target(&src->bl,bl,BCT_NOENEMY)>0 && sc_data && sc_data[type].timer == -1)
@@ -6540,7 +6543,7 @@ int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,
 		break;
 	case 0x8f:	/* ブラストマイン */
 	case 0x98:	/* クレイモア?トラップ */
-		skill_blown(bl,&src->bl,2); //吹き飛ばしてみる
+		skill_blown(bl,&src->bl,2,1); //吹き飛ばしてみる
 		break;
 	default:
 		damage = 0;

@@ -1,5 +1,8 @@
 Date	Added
 07/06
+	* Fixed combo delay not working with skills that have a blowcount [Skotlex]
+	* Set the default skill combo delay value to 230ms [Skotlex]
+	  (this default was empirically obtained testing with Jupitel Thunder as reference)
 	* Beautified output of the char server (txt) [Skotlex]
 	* Fixed script config import reading. [Skotlex]
 	  (was working incorrectly and causing memory leaks)
