@@ -13,6 +13,8 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/07
+	* Changed Soul-Change's inf2 to 3072 (use on party/guild only) [Skotlex]
+	  Still not sure what's the proper way to enable it on pvp/gvg grounds, though...
 	* Fixed small typo with grandpa_beared thanks to N0_0N3. [massdriller]
 
 07/06
