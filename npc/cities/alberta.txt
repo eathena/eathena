@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.4
+//= 1.5
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -14,6 +14,7 @@
 //= 1.2 Fixed typos in script [massdriller]
 //= 1.3 Ran through spellcheck system [massdriller]
 //= 1.4 Someone forget a .gat in an NPC header [Fredzilla]
+//= 1.5 Fixed typo in script. [massdriller]
 //============================================================ 
 
 
@@ -848,8 +849,8 @@ L_Treasure:
 	close;
 }
 
-// Burred treasure --------------------------------------------------------------------
-turn_dun01.gat,160,80,1	script	Skull Stone	111,{
+// Burried treasure --------------------------------------------------------------------
+tur_dun01.gat,160,80,1	script	Skull Stone	111,{
 	if(SKULLKEY == 1) goto L_OpenBox;
 	mes "^5555FF(It's a frightening stone tomb with horrible skull on it.)^000000";
 	close;
