@@ -142,11 +142,11 @@ A_Noring:
 	next;
 	mes "[Adoption Lady]";
 	mes "I dont believe you deserve a baby";
-	callfunc "AdoptReset","the parent hasnt got a wedding as proof of marriage";
+	callfunc "AdoptReset","the parent hasnt got a wedding ring as proof of marriage";
 	close;
 A_Wedring:
 	if ( countitem(2634)>0 || countitem(2635)>0 ) goto A_Wedringpassed;
-	goto A_noring;
+	goto A_Noring;
 A_Wedringpassed:
 	mes "[Adoption Lady]";
 	mes "Awwwww, such a lovely ring, you must love your partner";
