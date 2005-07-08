@@ -1,4 +1,6 @@
 Date	Added
+07/08
+	* All the new monsters have been added. Check db\changelog.txt
 07/07
 	* Moved some declarations causing errors with gcc 2.95 [veider]
 	* Added valid fd test in inter.c char_sql - caused charserver crash [veider]
