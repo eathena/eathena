@@ -1,5 +1,7 @@
 Date	Added
 07/08
+	* Added warning messages when mobs from the mob_db are not loaded due to
+	  invalid IDs. [Skotlex]
 	* All the new monsters have been added. Check db\changelog.txt
 07/07
 	* Moved some declarations causing errors with gcc 2.95 [veider]
@@ -12,8 +14,6 @@ Date	Added
 	* Changed all SQL-related error messages to use ShowSQL [Skotlex]
 	  ShowSQL now is also printed on the stderr (like ShowError and ShowFatalError)
 	* Beautified the output of the char server (sql) [Skotlex]
-	  WARNING: It was a massive update, so some stuff might have broken
-	  (can't do much testing right now)
 	* Modified Dispel so that it can fail. [Skotlex]
 	  As I have no information of how mdef protects against it, the current
 	  dummy equation is: (50+10*SkillLv - mdef)% (note that mdef2 is not used!)

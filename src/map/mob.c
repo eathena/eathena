@@ -4055,7 +4055,10 @@ static int mob_readdb(void)
 
 			class_ = atoi(str[0]);
 			if (class_ <= 1000 || class_ > MAX_MOB_DB)
+			{
+				ShowWarning("Mob with ID: %d not loaded. ID must be in range [%d-%d]\n", class_, 1000, MAX_MOB_DB);
 				continue;
+			}
 
 			mob_db[class_].view_class = class_;
 			memcpy(mob_db[class_].name, str[1], NAME_LENGTH-1);
@@ -4555,7 +4558,10 @@ static int mob_read_sqldb(void)
 
 				class_ = atoi(str[0]);
 				if (class_ <= 1000 || class_ > MAX_MOB_DB)
+				{
+					ShowWarning("Mob with ID: %d not loaded. ID must be in range [%d-%d]\n", class_, 1000, MAX_MOB_DB);
 					continue;
+				}
 
 				ln++;
 
