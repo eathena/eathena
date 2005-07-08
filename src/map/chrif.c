@@ -389,6 +389,8 @@ int chrif_authreq(struct map_session_data *sd)
 
 	for(i = 0; i < fd_max; i++)
 		if (session[i] && session[i]->session_data == sd) {
+			if (sd->bl.id < 0) //Temp debug... [Skotlex]
+				ShowDebug("Warning! Sending to char-server invalid account information (Char Id: %d, Account: %d)\n", sd->char_id, sd->bl.id);
 			WFIFOW(char_fd, 0) = 0x2afc;
 			WFIFOL(char_fd, 2) = sd->bl.id;
 			WFIFOL(char_fd, 6) = sd->char_id;

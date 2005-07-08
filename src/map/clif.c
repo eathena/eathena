@@ -7951,6 +7951,8 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 		sd->fd = fd;
 		sd->packet_ver = packet_ver;
 
+		if (account_id < 0) //Temp info... [Skotlex]
+			ShowDebug("Warning! Received invalid account from Char Server (Account: %d Char Id: %d Packet Version: %d)\n", account_id, char_id, packet_ver);
 		pc_setnewpc(sd, account_id, char_id, login_id1, client_tick, sex, fd);
 		WFIFOL(fd,0) = sd->bl.id;
 		WFIFOSET(fd,4);
