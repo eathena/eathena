@@ -924,13 +924,16 @@ int pc_authfail(int id) {
 
 static int pc_calc_skillpoint(struct map_session_data* sd)
 {
-	int  i,skill,skill_point=0;
+	int  i,skill,inf2,skill_point=0;
 
 	nullpo_retr(0, sd);
 
 	for(i=1;i<MAX_SKILL;i++){
 		if( (skill = pc_checkskill(sd,i)) > 0) {
-			if(!(skill_get_inf2(i)&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) {
+			inf2 = skill_get_inf2(i);
+			if((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
+				!(inf2&INF2_WEDDING_SKILL) //Do not count wedding skills. [Skotlex]
+				) {
 				if(!sd->status.skill[i].flag)
 					skill_point += skill;
 				else if(sd->status.skill[i].flag > 2 && sd->status.skill[i].flag != 13) {
@@ -4598,8 +4601,10 @@ int pc_allskillup(struct map_session_data *sd)
 			sd->status.skill[i].lv=skill_get_max(i);
 	}
 	else {
+		int inf2;
 		for(i=0;(id=skill_tree[s][c][i].id)>0;i++){
-			if(sd->status.skill[id].id==0 && (!(skill_get_inf2(id)&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) ) {
+			inf2 = skill_get_inf2(id);
+			if(sd->status.skill[id].id==0 && (!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL)) {
 				sd->status.skill[id].id = id;	// celest
 				// sd->status.skill[id].lv=skill_get_max(id);
 				sd->status.skill[id].lv = skill_tree_get_max(id, sd->status.class_);	// celest
@@ -4759,19 +4764,22 @@ int pc_resetstate(struct map_session_data* sd)
  */
 int pc_resetskill(struct map_session_data* sd)
 {
-	int i, skill;
+	int i, skill, inf2;
 	nullpo_retr(0, sd);
 
 	for (i = 1; i < MAX_SKILL; i++) {
 		if ((skill = sd->status.skill[i].lv) > 0) {
-			if (!(skill_get_inf2(i)&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) {
-				if (!sd->status.skill[i].flag)
-					sd->status.skill_point += skill;
-				else if (sd->status.skill[i].flag > 2 && sd->status.skill[i].flag != 13)
-					sd->status.skill_point += (sd->status.skill[i].flag - 2);
-				sd->status.skill[i].lv = 0;
+			inf2 = skill_get_inf2(i);	
+			if ((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
+				!(inf2&INF2_WEDDING_SKILL)) //Avoid reseting wedding skills.
+			{
+					if (!sd->status.skill[i].flag)
+						sd->status.skill_point += skill;
+					else if (sd->status.skill[i].flag > 2 && sd->status.skill[i].flag != 13)
+						sd->status.skill_point += (sd->status.skill[i].flag - 2);
+					sd->status.skill[i].lv = 0;
 			}
-			else if (battle_config.quest_skill_reset)
+			else if (battle_config.quest_skill_reset && (inf2&INF2_QUEST_SKILL))
 				sd->status.skill[i].lv = 0;
 			sd->status.skill[i].flag = 0;
 		} else {
@@ -6742,8 +6750,14 @@ int pc_adoption(struct map_session_data *sd,struct map_session_data *dstsd, stru
 			pc_unequipitem(jasd, j, 3);
 	}
 	if (pc_jobchange(jasd, 4023, 0) == 0)
+	{	//Success, and give Junior the Baby skills. [Skotlex]
+		pc_skill(jasd,WE_BABY,1,0);
+		pc_skill(jasd,WE_CALLPARENT,1,0);
 		clif_displaymessage(jasd->fd, msg_txt(12)); // Your job has been changed.
-	else {
+		//We should also grant the parent skills to the parents [Skotlex]
+		pc_skill(sd,WE_CALLBABY,1,0);
+		pc_skill(dstsd,WE_CALLBABY,1,0);
+	} else {
 		clif_displaymessage(jasd->fd, msg_txt(155)); // Impossible to change your job.
 		return -1;
 	}

@@ -4448,7 +4448,7 @@ int clif_npcinsight(struct block_list *bl,va_list ap)
  */
 int clif_skillinfo(struct map_session_data *sd,int skillid,int type,int range)
 {
-	int fd,id;
+	int fd,id, inf2;
 
 	nullpo_retr(0, sd);
 
@@ -4472,8 +4472,10 @@ int clif_skillinfo(struct map_session_data *sd,int skillid,int type,int range)
 	} else
 		WFIFOW(fd,12)= range;
 	memset(WFIFOP(fd,14),0,24);
-	if(!(skill_get_inf2(id)&INF2_QUEST_SKILL) || battle_config.quest_skill_learn ||
-		(battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill) )
+	inf2 = skill_get_inf2(id);
+	if(((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
+		!(inf2&INF2_WEDDING_SKILL)) ||
+		(battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill))
 		//WFIFOB(fd,38)= (sd->status.skill[skillid].lv < skill_get_max(id) && sd->status.skill[skillid].flag ==0 )? 1:0;
 		WFIFOB(fd,38)= (sd->status.skill[skillid].lv < skill_tree_get_max(id, sd->status.class_) && sd->status.skill[skillid].flag ==0 )? 1:0;
 	else
@@ -4490,7 +4492,7 @@ int clif_skillinfo(struct map_session_data *sd,int skillid,int type,int range)
 int clif_skillinfoblock(struct map_session_data *sd)
 {
 	int fd;
-	int i,c,len=4,id,range;
+	int i,c,len=4,id,range, inf2;
 
 	nullpo_retr(0, sd);
 
@@ -4508,7 +4510,8 @@ int clif_skillinfoblock(struct map_session_data *sd)
 				range = status_get_range(&sd->bl) - (range + 1);
 			WFIFOW(fd,len+10)= range;
 			memset(WFIFOP(fd,len+12),0,24);
-			if(!(skill_get_inf2(id)&INF2_QUEST_SKILL) || battle_config.quest_skill_learn ||
+			if(((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
+				!(inf2&INF2_WEDDING_SKILL)) ||
 				(battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill) )
 				//WFIFOB(fd,len+36)= (sd->status.skill[i].lv < skill_get_max(id) && sd->status.skill[i].flag ==0 )? 1:0;
 				WFIFOB(fd,len+36)= (sd->status.skill[i].lv < skill_tree_get_max(id, sd->status.class_) && sd->status.skill[i].flag ==0 )? 1:0;

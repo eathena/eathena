@@ -13,6 +13,10 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/08
+	* Reverted the wedding rings behaviour. [Skotlex]
+	* Wedding/Adoption skill's inf2 has been changed to 4 (Wedding Skills) [Skotlex]
+	* Added the adoption skills to the tree of all classes [Skotlex]
+	  (WE_CALLPARENT, WE_BABY to baby classes, WE_CALLBABY to all others)
 	* Updated the Wedding Rings to give the adoption parent skill. [Skotlex]
 	* Einbroch monsters obtained some new drops, thanx to MasterOfMuppet [Lupus]
 	* Added drops: Super Novice Hat[1]->Mole 0.1%, Soldier Felt Hat[1]->Removal 0.1% [Lupus]
