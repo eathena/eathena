@@ -2311,7 +2311,7 @@ int parse_frommap(int fd) {
 				WFIFOW(fd,0) = 0x2afe;
 				WFIFOL(fd,2) = RFIFOL(fd,2);
 				WFIFOSET(fd,6);
-				ShowError("auth_fifo search error! account %d not authentified.\n", RFIFOL(fd,2));
+				ShowError("Character request data search error! Character %d (account %d) not authentified.\n", RFIFOL(fd,6),  RFIFOL(fd,2));
 			}
 			RFIFOSKIP(fd,22);
 			break;
