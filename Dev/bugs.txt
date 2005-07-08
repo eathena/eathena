@@ -391,3 +391,11 @@ Problem:	chat crash
 			instant crash if you change target person name with some packet hack tool. 
 Assigned:	na
 Progress:	0%
+
+Problem:	Can't see players name, party name, guild name
+			On creating a party, you can see all names normally, when u teleport or go to another map
+			all names disappear.
+			You can see GUILD EMBLEM only.
+Assigned:	na
+Progress:	0%
+
