@@ -13,6 +13,12 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/08
+	* MasterOfMuppet's fixes. According to kRO's website fixed: [Lupus]
+	  ayothaya mobs with elemental attributes, race, size, temp speed and temp modes(ie aggressive, loot e.t.c)
+	  einbroch mobs with elemental attributes, race, size, adjusted atk dmg,def,mdef,exp,jexp
+	* Added Lighthalzen monsters (with poring stats) and Homuculuses(as monsters), thanks to Muad Dib of Fusion.
+	  I've added common stats to Bascojin&Chung_E monsters tough [Lupus]
+	* Fixed Bloody Roar item effect, thanks to Landarma [Lupus]
 	* Fixed Enchanted Peach Tree (Live Tree) Card to autocast Heal on self [DracoRPG]
 	* Added new effect to Winter Cap. thanks to Landarma [Lupus]
 07/07
