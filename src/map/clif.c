@@ -4510,6 +4510,7 @@ int clif_skillinfoblock(struct map_session_data *sd)
 				range = status_get_range(&sd->bl) - (range + 1);
 			WFIFOW(fd,len+10)= range;
 			memset(WFIFOP(fd,len+12),0,24);
+			inf2 = skill_get_inf2(id);
 			if(((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
 				!(inf2&INF2_WEDDING_SKILL)) ||
 				(battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill) )

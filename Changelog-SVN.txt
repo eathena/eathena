@@ -1,5 +1,6 @@
 Date	Added
 07/08
+	* More Adoption skill fixes. [Skotlex]
 	* Added the Adoption skills to all classes [Skotlex]
 	  They should be auto-granted upon adoption (and are not resetable,
 	  learnable). This, of course, needs testing, do report if it does not

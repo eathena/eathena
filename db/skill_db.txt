@@ -339,9 +339,9 @@
 332,0,6,4,0,1,10,0,no,0,2,0,none,0	//NPC_SPEEDUP
 333,0,6,4,0,1,1,0,no,0,2,0,none,0	//NPC_REVENGE
 
-334,8,6,4,0,1,1,1,yes,0,0,0,magic,0	//WE_MALE#君だけは護るよ#
-335,8,6,4,0,1,1,1,yes,0,0,0,magic,0	//WE_FEMALE#あなたに尽くします#
-336,8,6,4,0,1,1,1,yes,0,0,1,magic,0	//WE_CALLPARTNER#あなたに逢いたい#
+334,8,6,4,0,1,1,1,yes,0,4,0,magic,0	//WE_MALE#君だけは護るよ#
+335,8,6,4,0,1,1,1,yes,0,4,0,magic,0	//WE_FEMALE#あなたに尽くします#
+336,8,6,4,0,1,1,1,yes,0,4,1,magic,0	//WE_CALLPARTNER#あなたに逢いたい#
 
 337,9,6,1,0,0,1,1,no,0,0,0,weapon,0	//ITM_TOMAHAWK#ｫﾈｫﾞｫﾛ?ｫｯｪｲ#
 338,0,0,0,0,0,0,0,no,0,2,0,none,0	//NPC_DARKCROSS#ダーククロス#
@@ -418,9 +418,9 @@
 405,3,6,2,0,1,1,1,no,0,128,2,misc,0	//PF_SPIDERWEB#スパイ??ウェッブ#
 406,0,6,4,0,1,10,1,no,33,0,0,weapon,0	//ASC_METEORASSAULT#メテオアサルト#
 407,0,6,4,0,1,1,0,no,0,0,0,none,0	//ASC_CDP#デッドリ??イズン製造#
-408,8,6,4,0,1,1,1,yes,0,0,0,magic,0	//WE_BABY##
-409,8,6,4,0,1,1,1,yes,0,0,0,magic,0	//WE_CALLPARENT##
-410,8,6,4,0,1,1,1,yes,0,0,0,magic,0	//WE_CALLBABY##
+408,8,6,4,0,1,1,1,yes,0,4,0,magic,0	//WE_BABY##
+409,8,6,4,0,1,1,1,yes,0,4,0,magic,0	//WE_CALLPARENT##
+410,8,6,4,0,1,1,1,yes,0,4,0,magic,0	//WE_CALLBABY##
 
 411,0,0,0,0,0,0,0,no,0,0,0,none,0	//TK_RUN##
 412,0,0,0,0,0,0,0,no,0,0,0,none,0	//TK_READYSTORM##

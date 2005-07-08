@@ -13,6 +13,10 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/08
+	* Wedding/Adoption skill's inf2 has been changed to 4 (Wedding Skills) [Skotlex]
+	  (Deja vu? Somehow I did not do it last time I said I did)
+	* Added the Adoption skills to the skill_require_db [Skotlex]
+	  They use basic stats for now and sp cost 1 so you can cast it.
 	* Reverted the wedding rings behaviour. [Skotlex]
 	* Wedding/Adoption skill's inf2 has been changed to 4 (Wedding Skills) [Skotlex]
 	* Added the adoption skills to the tree of all classes [Skotlex]
