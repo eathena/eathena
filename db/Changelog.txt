@@ -13,6 +13,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/08
+	* Einbroch monsters obtained some new drops, thanx to MasterOfMuppet [Lupus]
 	* Added drops: Super Novice Hat[1]->Mole 0.1%, Soldier Felt Hat[1]->Removal 0.1% [Lupus]
 	* MasterOfMuppet's fixes. According to kRO's website fixed: [Lupus]
 	  ayothaya mobs with elemental attributes, race, size, temp speed and temp modes(ie aggressive, loot e.t.c)
