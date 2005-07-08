@@ -4538,7 +4538,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 // parent-baby skills
 	case WE_BABY:
-		if(sd && dstsd){
+		if(sd){
 			struct map_session_data *f_sd = pc_get_father(sd);
 			struct map_session_data *m_sd = pc_get_mother(sd);
 			// if neither was found
@@ -4554,7 +4554,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case WE_CALLPARENT:
-		if(sd && dstsd){
+		if(sd){
 			struct map_session_data *f_sd = pc_get_father(sd);
 			struct map_session_data *m_sd = pc_get_mother(sd);
 			// if neither was found
@@ -4563,18 +4563,28 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				map_freeblock_unlock();
 				return 0;
 			}
-			if(map[sd->bl.m].flag.nomemo || map[sd->bl.m].flag.nowarpto || map[dstsd->bl.m].flag.nowarp){
+			if(map[sd->bl.m].flag.nomemo || map[sd->bl.m].flag.nowarpto){
 				clif_skill_teleportmessage(sd,1);
 				map_freeblock_unlock();
 				return 0;
 			}
-			if (f_sd) pc_setpos(f_sd,map[sd->bl.m].name,sd->bl.x,sd->bl.y,3);
-			if (m_sd) pc_setpos(f_sd,map[sd->bl.m].name,sd->bl.x,sd->bl.y,3);
+			if((!f_sd && m_sd && map[m_sd->bl.m].flag.nowarp) ||
+				(!m_sd && f_sd && map[f_sd->bl.m].flag.nowarp))
+			{	//Case where neither one can be warped.
+				clif_skill_teleportmessage(sd,1);
+				map_freeblock_unlock();
+				return 0;
+			}
+			//Warp those that can be warped.
+			if (f_sd && !map[f_sd->bl.m].flag.nowarp)
+				pc_setpos(f_sd,map[sd->bl.m].name,sd->bl.x,sd->bl.y,3);
+			if (m_sd && !map[m_sd->bl.m].flag.nowarp)
+				pc_setpos(m_sd,map[sd->bl.m].name,sd->bl.x,sd->bl.y,3);
 		}
 		break;
 
 	case WE_CALLBABY:
-		if(sd && dstsd){
+		if(sd){
 			if((dstsd = pc_get_child(sd)) == NULL){
 				clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();

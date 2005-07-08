@@ -1,5 +1,10 @@
 Date	Added
 07/08
+	* Added script command getchildid() [Skotlex]
+	* Updated wedding rings to give the adoption skill when equipped. [Skotlex]
+	* Fixed some adoption skills [Skotlex]
+	* Baby classes won't display the wedding sprite when they equip the
+	  tux/wedding dress since that resets their size. [Skotlex]
 	* Added warning messages when mobs from the mob_db are not loaded due to
 	  invalid IDs. [Skotlex]
 	* All the new monsters have been added. Check db\changelog.txt

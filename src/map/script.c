@@ -257,6 +257,7 @@ int buildin_wedding_effect(struct script_state *st);
 int buildin_divorce(struct script_state *st);
 int buildin_ispartneron(struct script_state *st); // MouseJstr
 int buildin_getpartnerid(struct script_state *st); // MouseJstr
+int buildin_getchildid(struct script_state *st); // Skotlex
 int buildin_warppartner(struct script_state *st); // MouseJstr
 int buildin_getitemname(struct script_state *st);
 int buildin_getitemslots(struct script_state *st);
@@ -516,6 +517,7 @@ struct {
 	{buildin_divorce,"divorce","*"},
 	{buildin_ispartneron,"ispartneron","*"},
 	{buildin_getpartnerid,"getpartnerid","*"},
+	{buildin_getchildid,"getchildid",""},
 	{buildin_warppartner,"warppartner","sii"},
 	{buildin_getitemname,"getitemname","i"},
 	{buildin_getitemslots,"getitemslots","i"},
@@ -4651,8 +4653,13 @@ int buildin_changebase(struct script_state *st)
 		return 0;
 
 	vclass = conv_num(st,& (st->stack->stack_data[st->start+2]));
-	if(vclass == 22 && !battle_config.wedding_modifydisplay)
+	if(vclass == 22)
+	{
+		if (!battle_config.wedding_modifydisplay ||	//Do not show the wedding sprites
+			(sd->status.class_ >= 4023 && sd->status.class_ <= 4045) //Baby classes screw up when showing wedding sprites. [Skotlex]
+			) 
 		return 0;
+	}
 
 //	if(vclass==22) {
 //		pc_unequipitem(sd,sd->equip_index[9],0);	// ‘•”õŠO
@@ -5773,6 +5780,19 @@ int buildin_getpartnerid(struct script_state *st)
     push_val(st->stack,C_INT,sd->status.partner_id);
     return 0;
 }
+
+int buildin_getchildid(struct script_state *st)
+{
+    struct map_session_data *sd=script_rid2sd(st);
+    if (sd == NULL) {
+        push_val(st->stack,C_INT,0);
+        return 0;
+    }
+
+    push_val(st->stack,C_INT,sd->status.child);
+    return 0;
+}
+
 
 int buildin_warppartner(struct script_state *st)
 {
