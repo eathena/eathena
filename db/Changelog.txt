@@ -13,6 +13,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/08
+	* Fixed Enchanted Peach Tree (Live Tree) Card to autocast Heal on self [DracoRPG]
 	* Added new effect to Winter Cap. thanks to Landarma [Lupus]
 07/07
 	* Changed Marionette's inf2 to 1024 (use only on party) [Skotlex]
