@@ -1,5 +1,6 @@
 Date	Added
 07/08
+	* Fixed below fix xD [DracoRPG]
 	* Added another sql injection fix [Kevin]
 	* Rewrote part of the name request code [Skotlex]
 	  This means that now you can see other people's party even if they don't
