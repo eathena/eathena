@@ -155,7 +155,7 @@ L_Hunt:
 	close;
 L_Other:
 	mes "[Hunter Sharon]";
-	mes "What are YOU doing her? Did you come to do a little song and dance... ke.. keke....kekekeHahahahhaha!!!";
+	mes "What are YOU doing here? Did you come to do a little song and dance... ke.. keke....kekekeHahahahhaha!!!";
 	emotion 18;
 	close;
 

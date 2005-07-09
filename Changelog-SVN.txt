@@ -1,5 +1,7 @@
 Date	Added
 07/09
+	* Updated Palm Strike cost/sphere requirement. [Skotlex]
+	  (the delayed damage still needs to be coded in)
 	* Now adoption.txt NPC can also teach parents/babies their missing family skills [Lupus]
 	  But the skills don't work yet (I tested)
 	* Massive mapflags fix. Also added there Novice Guilds. [Lupus]

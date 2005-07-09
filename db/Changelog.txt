@@ -12,6 +12,11 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+07/09
+	* Updated Palm Strike's sp cost and sphere requirement [Skotlex]
+	  (info provided by ZeroXell)
+	* Fixed Apocalypse (guild) mob id. [Skotlex]
+	* Awakening Potions now cure 'Sleep' [Skotlex]
 07/08
 	* Wedding/Adoption skill's inf2 has been changed to 4 (Wedding Skills) [Skotlex]
 	  (Deja vu? Somehow I did not do it last time I said I did)

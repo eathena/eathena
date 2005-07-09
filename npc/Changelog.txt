@@ -26,6 +26,7 @@ TODO:
 Date		Added
 ======
 07/09
+	* Fixed typo on JFunc2-1.txt script [Skotlex]
 	* Now adoption.txt NPC can teach parents/babies their missing family skills [Lupus]
 	* Added Novice Guilds warps. Fixed some mapflags. NG WOE NPC is coming soon. [Lupus]
 07/08
