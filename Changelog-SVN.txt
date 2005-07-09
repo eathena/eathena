@@ -1,5 +1,10 @@
 Date	Added
 07/08
+	* Rewrote part of the name request code [Skotlex]
+	  This means that now you can see other people's party even if they don't
+	  belong to a guild, and the party/guild names are updated whenever someone
+	  joins/leaves them. Not fully tested but works alright on the client I use
+	  (0411)
 	* More Adoption skill fixes. [Skotlex]
 	* Added the Adoption skills to all classes [Skotlex]
 	  They should be auto-granted upon adoption (and are not resetable,

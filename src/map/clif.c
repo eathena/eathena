@@ -7732,7 +7732,7 @@ int clif_charnameack (int fd, struct block_list *bl)
 			struct map_session_data *ssd = (struct map_session_data *)bl;
 			struct party *p = NULL;
 			struct guild *g = NULL;
-
+			
 			nullpo_retr(0, ssd);
 
 			if (strlen(ssd->fakename)>1) {
@@ -7740,25 +7740,44 @@ int clif_charnameack (int fd, struct block_list *bl)
 				break;
 			}
 			memcpy(WBUFP(buf,6), ssd->status.name, NAME_LENGTH);
-			if (ssd->status.guild_id > 0 && (g = guild_search(ssd->status.guild_id)) != NULL &&
-				(ssd->status.party_id == 0 || (p = party_search(ssd->status.party_id)) != NULL)) {
-				// ギルド所属ならパケット0195を返す
+			
+			if (ssd->status.party_id > 0)
+				p = party_search(ssd->status.party_id);
+
+			if (ssd->status.guild_id > 0)
+				g = guild_search(ssd->status.guild_id);
+
+			if (p == NULL && g == NULL)
+				break;
+			
+			WBUFW(buf, 0) = cmd = 0x195;
+			if (p)
+				memcpy(WBUFP(buf,30), p->name, NAME_LENGTH);
+			else
+				WBUFB(buf,30) = 0;
+			
+			if (g)
+			{
 				int i, ps = -1;
 				for(i = 0; i < g->max_member; i++) {
 					if (g->member[i].account_id == ssd->status.account_id &&
 						g->member[i].char_id == ssd->status.char_id )
-						ps = g->member[i].position;
-				}
-				if (ps >= 0 && ps < MAX_GUILDPOSITION) {
-					WBUFW(buf, 0) = cmd = 0x195;
-					if (p)
-						memcpy(WBUFP(buf,30), p->name, NAME_LENGTH);
-					else
-						WBUFB(buf,30) = 0;
+						{
+							ps = g->member[i].position;
+							break;
+						}
+					}
+				if (ps >= 0 && ps < MAX_GUILDPOSITION)
+				{
 					memcpy(WBUFP(buf,54), g->name,NAME_LENGTH);
 					memcpy(WBUFP(buf,78), g->position[ps].name, NAME_LENGTH);
-					break;
+				} else { //Assume no guild.
+					WBUFB(buf,54) = 0;
+					WBUFB(buf,78) = 0;
 				}
+			} else {
+				WBUFB(buf,54) = 0;
+				WBUFB(buf,78) = 0;
 			}
 		}
 		break;
@@ -7809,6 +7828,69 @@ int clif_charnameack (int fd, struct block_list *bl)
 		WFIFOSET(fd, packet_len_table[cmd]);
 	}
 
+	return 0;
+}
+
+//Used to update when a char leaves a party/guild. [Skotlex]
+//Needed because when you send a 0x95 packet, the client will not remove the cached party/guild info that is not sent.
+int clif_charnameupdate (struct map_session_data *ssd)
+{
+	unsigned char buf[103];
+	int cmd = 0x195;
+	struct party *p = NULL;
+	struct guild *g = NULL;
+
+	nullpo_retr(0, ssd);
+
+	if (strlen(ssd->fakename)>1)
+		return 0; //No need to update as the party/guild was not displayed anyway.
+
+	WBUFW(buf,0) = cmd;
+
+	if(ssd->disguise)
+		WBUFL(buf,2) = -(ssd->bl.id);
+	else
+		WBUFL(buf,2) = ssd->bl.id;
+
+	memcpy(WBUFP(buf,6), ssd->status.name, NAME_LENGTH);
+			
+	if (ssd->status.party_id > 0)
+		p = party_search(ssd->status.party_id);
+
+	if (ssd->status.guild_id > 0)
+		g = guild_search(ssd->status.guild_id);
+
+	if (p)
+		memcpy(WBUFP(buf,30), p->name, NAME_LENGTH);
+	else
+		WBUFB(buf,30) = 0;
+			
+	if (g)
+	{
+		int i, ps = -1;
+		for(i = 0; i < g->max_member; i++) {
+			if (g->member[i].account_id == ssd->status.account_id &&
+				g->member[i].char_id == ssd->status.char_id )
+				{
+					ps = g->member[i].position;
+					break;
+				}
+			}
+		if (ps >= 0 && ps < MAX_GUILDPOSITION)
+		{
+			memcpy(WBUFP(buf,54), g->name,NAME_LENGTH);
+			memcpy(WBUFP(buf,78), g->position[ps].name, NAME_LENGTH);
+		} else { //Assume no guild.
+			WBUFB(buf,54) = 0;
+			WBUFB(buf,78) = 0;
+		}
+	} else {
+		WBUFB(buf,54) = 0;
+		WBUFB(buf,78) = 0;
+	}
+
+	// Update nearby cliens
+	clif_send(buf, packet_len_table[cmd], &ssd->bl, AREA);
 	return 0;
 }
 

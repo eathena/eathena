@@ -203,6 +203,7 @@ int clif_wis_end(int fd,int flag);
 
 int clif_solved_charname(struct map_session_data *sd,int char_id);
 int clif_charnameack(int fd, struct block_list *bl);
+int clif_charnameupdate(struct map_session_data *ssd);
 
 int clif_use_card(struct map_session_data *sd,int idx);
 int clif_insert_card(struct map_session_data *sd,int idx_equip,int idx_card,int flag);
