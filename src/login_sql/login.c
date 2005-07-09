@@ -347,6 +347,9 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 		return 1; //Already exists, return incorrect user/pass.
 	}
 	mysql_free_result(sql_res); //Only needed for the already-exists check...
+	
+	account->userid = mysql_real_escape_string(account->userid);
+	account->password = mysql_real_escape_string(account->password);
 
 	ShowInfo("New account: user: %s with passwd: %s sex: %c\n", account->userid, account->passwd, sex);
 	sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, account->passwd, sex, "a@a.com");
