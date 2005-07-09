@@ -13,6 +13,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/09
+	* Fixed SP usage of PALMSTRIKE, SPIRAL PIERCE [Lupus]
 	* Added delays to Falcon Assault (1 sec for 1lvl,2,3,4,5sec for 5lvl)
 	  according to desc.
 	* Fixed Aura Blade (now requires Magnum Break LV 5) [Lupus]
