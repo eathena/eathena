@@ -1,5 +1,6 @@
 Date	Added
 07/09
+	* Updated Palm Strike to push back even if it misses. [Skotlex]
 	* Updated Palm Strike cost/sphere requirement. [Skotlex]
 	  (the delayed damage still needs to be coded in)
 	* Now adoption.txt NPC can also teach parents/babies their missing family skills [Lupus]

@@ -4148,7 +4148,7 @@ struct Damage battle_calc_weapon_attack(
 				if(sd->sc_data[SC_OVERTHRUST].timer!=-1)
 					breakrate += 10;
 				if(sd->sc_data[SC_MAXOVERTHRUST].timer!=-1)
-					breakrate += 10;				
+					breakrate += 10;
 			}
 			if(rand() % 10000 < breakrate * battle_config.equip_self_break_rate / 100 || breakrate >= 10000)
 				if (pc_breakweapon(sd))

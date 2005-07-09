@@ -1451,7 +1451,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	if( flag&0xff00 )
 		type=(flag&0xff00)>>8;
 
-	if(damage <= 0 || damage < dmg.div_) //吹き飛ばし判定？※
+	if((damage <= 0 || damage < dmg.div_)
+			&& skillid != CH_PALMSTRIKE) //Palm Strike is the only skill that will knockback even if it misses. [Skotlex]
 		dmg.blewcount = 0;
 
 	if(skillid == CR_GRANDCROSS||skillid == NPC_GRANDDARKNESS) {//グランドクロス
