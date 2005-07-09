@@ -25,6 +25,9 @@ TODO:
 
 Date		Added
 ======
+07/09
+	* Now adoption.txt NPC can teach parents/babies their missing family skills [Lupus]
+	* Added Novice Guilds warps. Fixed some mapflags. NG WOE NPC is coming soon. [Lupus]
 07/08
 	* Fixed new_hats_0625.txt, thanx to vicious_pucca [Lupus]
 07/07

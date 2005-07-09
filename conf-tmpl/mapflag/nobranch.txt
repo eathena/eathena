@@ -83,8 +83,8 @@ in_rogue.gat	mapflag	nobranch
 job_sage.gat	mapflag	nobranch
 
 // Special Quests Places =========
-que_god01.gat	mapflag	noteleport
-que_god02.gat	mapflag	noteleport
+que_god01.gat	mapflag	nobranch
+que_god02.gat	mapflag	nobranch
 
 // Guild Castles ==================
 //alde_gld.gat	mapflag	nobranch
@@ -110,6 +110,11 @@ prtg_cas02.gat	mapflag	nobranch
 prtg_cas03.gat	mapflag	nobranch
 prtg_cas04.gat	mapflag	nobranch
 prtg_cas05.gat	mapflag	nobranch
+//n_castle.gat	mapflag	nobranch
+nguild_alde.gat	mapflag	nobranch
+nguild_gef.gat	mapflag	nobranch
+nguild_pay.gat	mapflag	nobranch
+nguild_prt.gat	mapflag	nobranch
 
 // GvG Arenas =====================
 guild_vs1.gat	mapflag	nobranch
@@ -260,5 +265,5 @@ niflheim.gat	mapflag	nobranch
 ayothaya.gat	mapflag	nobranch
 einbroch.gat	mapflag	nobranch
 einbech.gat	mapflag	nobranch
-
+lighthalzen.gat	mapflag	nobranch
 

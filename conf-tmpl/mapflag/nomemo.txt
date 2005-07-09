@@ -2,7 +2,7 @@
 //= Map flags that disable warp portal memory
 //===== By: ==================================================
 //= eAthena Dev Team
-//= 1.4 [Lupus]
+//= 1.4 added Yuno. [Lupus]
 //===== Current Version: =====================================
 
 
@@ -277,6 +277,11 @@ gefg_cas02.gat	mapflag	nomemo
 gefg_cas03.gat	mapflag	nomemo
 gefg_cas04.gat	mapflag	nomemo
 gefg_cas05.gat	mapflag	nomemo
+//n_castle.gat	mapflag	nomemo
+nguild_alde.gat	mapflag	nomemo
+nguild_gef.gat	mapflag	nomemo
+nguild_pay.gat	mapflag	nomemo
+nguild_prt.gat	mapflag	nomemo
 
 // GvG Arenas ================
 guild_vs1.gat	mapflag	nomemo

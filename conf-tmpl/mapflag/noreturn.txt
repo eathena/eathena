@@ -109,6 +109,10 @@ prtg_cas02.gat	mapflag	noreturn
 prtg_cas03.gat	mapflag	noreturn
 prtg_cas04.gat	mapflag	noreturn
 prtg_cas05.gat	mapflag	noreturn
+nguild_alde.gat	mapflag	noreturn
+nguild_gef.gat	mapflag	noreturn
+nguild_pay.gat	mapflag	noreturn
+nguild_prt.gat	mapflag	noreturn
 
 // GvG Arenas ===================
 guild_vs1.gat	mapflag	noreturn

@@ -2,6 +2,7 @@
 //= Map flags that disables attacking a party member
 //===== By: ==================================================
 //= eAthena Dev Team
+//= v 1.1
 //===== Current Version: =====================================
 
 
@@ -26,6 +27,10 @@ prtg_cas02.gat	mapflag	pvp_noparty
 prtg_cas03.gat	mapflag	pvp_noparty
 prtg_cas04.gat	mapflag	pvp_noparty
 prtg_cas05.gat	mapflag	pvp_noparty
+nguild_alde.gat	mapflag	pvp_noparty
+nguild_gef.gat	mapflag	pvp_noparty
+nguild_pay.gat	mapflag	pvp_noparty
+nguild_prt.gat	mapflag	pvp_noparty
 
 // GvG Arenas =================
 guild_vs1.gat	mapflag	pvp_noparty

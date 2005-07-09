@@ -1,3 +1,10 @@
+//===== eAthena Script =======================================
+//= Map flags that disable warp
+//===== By: ==================================================
+//= eAthena Dev Team
+//= v 1.1
+//===== Current Version: =====================================
+
 aldeg_cas02.gat	mapflag	nowarp
 aldeg_cas03.gat	mapflag	nowarp
 aldeg_cas04.gat	mapflag	nowarp
@@ -17,3 +24,8 @@ prtg_cas02.gat	mapflag	nowarp
 prtg_cas03.gat	mapflag	nowarp
 prtg_cas04.gat	mapflag	nowarp
 prtg_cas05.gat	mapflag	nowarp
+n_castle.gat	mapflag	nowarp
+nguild_alde.gat	mapflag	nowarp
+nguild_gef.gat	mapflag	nowarp
+nguild_pay.gat	mapflag	nowarp
+nguild_prt.gat	mapflag	nowarp

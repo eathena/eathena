@@ -3,14 +3,14 @@
 //===== By: ==================================================
 //= eAthena Dev Team
 //===== Current Version: =====================================
-//= 1.0
+//= 1.1
 //===== Description: =========================================
 //= gvg: Turns on GvG mode
 //===== Additional Comments: =================================
-//=
+//= 1.1 Added Novice Guild Castles
 //============================================================
 
-// GvG Arenas ==============
+// GvG Arenas =============
 guild_vs1.gat	mapflag	gvg
 guild_vs2.gat	mapflag	gvg
 guild_vs3.gat	mapflag	gvg
@@ -39,7 +39,14 @@ prtg_cas03.gat	mapflag	gvg
 prtg_cas04.gat	mapflag	gvg
 prtg_cas05.gat	mapflag	gvg
 
-// Guild Dungeons ==========
+// Novice Guild Castles ===
+//n_castle.gat	mapflag	gvg
+nguild_alde.gat	mapflag	gvg
+nguild_gef.gat	mapflag	gvg
+nguild_pay.gat	mapflag	gvg
+nguild_prt.gat	mapflag	gvg
+
+// Guild Dungeons =========
 gld_dun01.gat	mapflag	gvg_dungeon
 gld_dun02.gat	mapflag	gvg_dungeon
 gld_dun03.gat	mapflag	gvg_dungeon
