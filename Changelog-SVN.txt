@@ -1,5 +1,9 @@
 Date	Added
 07/09
+	* Updated Falcon Assault (now gives 500% at 5 lvl) [Lupus]
+	* Fixed True Sight (now gives +10 Crit, instead of +10%) [Lupus]
+	* Update Sharp Shooting (now gives 350% at 5lvl) [Lupus]
+	* Check other DB related skills req changes in db\changelog.txt [Lupus]
 	* Updated Palm Strike to push back even if it misses. [Skotlex]
 	* Updated Palm Strike cost/sphere requirement. [Skotlex]
 	  (the delayed damage still needs to be coded in)

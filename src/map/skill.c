@@ -2375,6 +2375,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		break;
 	
 	case SN_SHARPSHOOTING:			/* シャ?プシュ?ティング */
+		//DOes it stop if touch an obstacle? it shouldn't shoot trough walls
 			map_foreachinpath (skill_attack_area,src->m,					// function, map
 					src->x,src->y,											// source xy
 					bl->x,bl->y,											// target xy

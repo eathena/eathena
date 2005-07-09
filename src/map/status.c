@@ -1393,7 +1393,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->speed += 450;
 
 		if(sd->sc_data[SC_TRUESIGHT].timer!=-1) //トゥル?サイト
-			sd->critical += sd->critical*(sd->sc_data[SC_TRUESIGHT].val1)/100;
+			//sd->critical += sd->critical*(sd->sc_data[SC_TRUESIGHT].val1)/100;
+			sd->critical += sd->sc_data[SC_TRUESIGHT].val1; // not +10% CRIT but +CRIT!! [Lupus] u can see it in any RO calc stats
 
 		if(sd->sc_data[SC_BERSERK].timer!=-1) {	//All Def/MDef reduced to 0 while in Berserk [DracoRPG]
 			sd->def = sd->def2 = 0;

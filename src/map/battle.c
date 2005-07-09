@@ -1062,7 +1062,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 				damage = damage*(40+ 40*skill_lv)/100;
 				break;
 			case SN_SHARPSHOOTING:			/* シャープシューティング */
-				damage += damage*(30*skill_lv)/100;
+				damage += damage*(100+50*skill_lv)/100;
 				break;
 			case CG_ARROWVULCAN:			/* アローバルカン */
 				damage = damage*(200+100*skill_lv)/100;
@@ -1594,7 +1594,7 @@ static struct Damage battle_calc_mob_weapon_attack(
 				damage = damage*(40+ 40*skill_lv)/100;
 				break;
 			case SN_SHARPSHOOTING:			/* シャープシューティング */
-				damage += damage*(30*skill_lv)/100;
+				damage += damage*(100+50*skill_lv)/100;
 				break;
 			case CG_ARROWVULCAN:			/* アローバルカン */
 				damage = damage*(200+100*skill_lv)/100;
@@ -2374,7 +2374,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				no_cardfix = 1;
 				break;
 			case SN_SHARPSHOOTING:			/* シャープシューティング */
-				damage_rate += 30*skill_lv;
+				damage_rate += 100+50*skill_lv;
 				break;
 			case CG_ARROWVULCAN:			/* アローバルカン */
 				damage_rate += 100+100*skill_lv;
@@ -3674,7 +3674,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					skillratio+= 40*skill_lv-60;
 					break;
 				case SN_SHARPSHOOTING:
-					skillratio+= 30*skill_lv;
+					skillratio+= 100+50*skill_lv;
 					break;
 				case CG_ARROWVULCAN:
 					skillratio+= 100+100*skill_lv;
@@ -4637,6 +4637,10 @@ struct Damage  battle_calc_misc_attack(
 		}
 		break;
 	case SN_FALCONASSAULT:			/* ファルコンアサルト */
+		{
+		static int falcasspercent[]={
+			0,220,290,360,430,500 };
+
 #ifdef TWILIGHT
 		if( sd==NULL || (skill = pc_checkskill(sd,HT_BLITZBEAT)) <= 0)
 			skill=0;
@@ -4644,11 +4648,12 @@ struct Damage  battle_calc_misc_attack(
 #else
 		if( sd==NULL || (skill = pc_checkskill(sd,HT_STEELCROW)) <= 0)
 			skill=0;
-		damage=((150+50*skill_lv)*(dex/10+int_/2+skill*3+40)*2)/100; // [Celest]
+		damage=(falcasspercent[skill_lv]*(dex/10+int_/2+skill*3+40)*2)/100; // [Lupus] according desc
 #endif
 		if(flag > 1)
 			damage /= flag;
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
+		}
 		break;
 	case PA_SACRIFICE:
 		ele = status_get_attack_element(bl);
