@@ -1,0 +1,51 @@
+//===== eAthena Script =======================================
+//= N Guild Castles War of Emperium Usher NPC
+//===== By: ==================================================
+//= Lupus
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= eAthena 1+; RO Episode 4+
+//===== Description: =========================================
+//=
+//===== Additional Comments: =================================
+//= Now you have access to 4 N Guild castles. They don't have
+//= dungeons. And 2nd Classes can't seize these Castles.
+//= These new castles need a new strategy. It would bring some
+//= fun and live to your game.
+//= NOTE: If your Guild Master is 2nd class, then he could 
+//=	rule the Castles and gather Treasure Boxes after WoE
+//============================================================
+
+
+prontera.gat,146,163,6	script	Novice Castles	729,{
+	mes "[Cita]";
+	mes "Hey! I'm a new usher of Novice Castles.";
+	if (agitcheck(0) == 0) mes "At the moment there is no WoE. So I could warp any person to the Novice Castles square.";
+	next;
+	if (agitcheck(0) == 0 || (agitcheck(0) != 0 && (BaseJob<Job_Knight || BaseJob>Job_Crusader2)) ) menu "Warp me to Novice Castles",M_WARP,"Cancel",-;
+
+	mes "[Cita]";
+	mes "All 2nd classes aren't allowed to enter the sacred Novice Castles place during WoE.";
+	mes "Call by next time, dude!";
+	emotion 0;
+	close;
+
+M_WARP:
+	warp "n_castle.gat",	102,	93+rand(14);	close;
+}
+
+
+n_castle.gat,102,107,5	script	Cita	729,{
+	mes "[Cita]";
+	mes "Hello, "+ strcharinfo(0) +". Can I help you?";
+	next;
+	menu "Warp me to Prontera!",-,"Cancel",LEnd;
+	
+		warp "prontera.gat",155,177+rand(5);
+		close;
+	LEnd:
+		mes "[Cita]";
+		mes "Okay.";
+		close;
+}

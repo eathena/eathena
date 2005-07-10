@@ -9,6 +9,9 @@
 	Skill databases == celest working on them I believe.
 
 	-- New Cards : Not Implemented
+	All cards that add CRIT bonus vs. specific race is now applied
+	 at 2x rate when installed on a Katar-type weapon.
+	 EX) If Goblin Archer card goes on a Katar-type weapon, the CRIT Bonus vs. Undeads become +14.
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 

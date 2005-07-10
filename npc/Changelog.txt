@@ -26,6 +26,13 @@ TODO:
 Date		Added
 ======
 07/09
+	* Added Novice Castles Usher NPC. [Lupus]
+		Now you have access to 4 N Guild castles. They don't have
+		dungeons. And 2nd Classes can't seize these Castles.
+		These new castles need a new strategy. It would bring some
+		fun and live to your game.
+		NOTE: If your Guild Master is 2nd class, then he could 
+		rule the Castles and gather Treasure Boxes after WoE
 	* Fixed typo on JFunc2-1.txt script [Skotlex]
 	* Now adoption.txt NPC can teach parents/babies their missing family skills [Lupus]
 	* Added Novice Guilds warps. Fixed some mapflags. NG WOE NPC is coming soon. [Lupus]
