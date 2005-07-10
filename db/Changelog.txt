@@ -16,6 +16,8 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/10
+	* Fixed Lord of Death mob (added house auger), added correct MVP exp to Tao Gunka,
+	  RSX 0806, thanks to MasterOfMuppets [Lupus]
 	* Reduced drop chance of Galapago, Banana Hat, etc hats (acc. the patch) [Lupus]
 	* Due to adding (thanx to Muad_dib) Lighthalzen fields mobs spawn. I had to change
 	  temp Mole stats to Martin. But Mole has its own hat drop [Lupus]
