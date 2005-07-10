@@ -12,6 +12,13 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+07/10
+	* Edited skill_castnodex_db [DracoRPG]
+	  - Enabled DEX-reduced casting time on Blitz Beat, Falcon Assault and Sharp Shooting
+	    (Lupus told me to do, so blame him, not me :p)
+	  - Removed the skills that only had a non-DEX-reduced after-cast delay since DEX
+	    shouldn't reduce after-cast delays anyway (only useful for custom servers who want to
+	    enable delay_dependon_dex but it's not our matter)
 07/09
 	* Fixed SP usage of PALMSTRIKE, SPIRAL PIERCE [Lupus]
 	* Added delays to Falcon Assault (1 sec for 1lvl,2,3,4,5sec for 5lvl)
@@ -132,12 +139,12 @@
 	  8 are free for the taking. What should they be for? Partner/Baby skills? [Skotlex]
 	* Added inf2 values: 32 (Dance/Song skills) & 64 (Encore skills).
 	  (Encore skills don't need to be set as 96) [Skotlex]:
-	- Bard Skills set to inf2 32: BA_WHISTLE, BA_ASSASSINCROSS, BA_POEMBRAGI, BA_APPLEIDUN
-	- Dancer Skills set to inf2 32: DC_HUMMING, DC_DONTFORGETME,
+	  - Bard Skills set to inf2 32: BA_WHISTLE, BA_ASSASSINCROSS, BA_POEMBRAGI, BA_APPLEIDUN
+	  - Dancer Skills set to inf2 32: DC_HUMMING, DC_DONTFORGETME,
 	  DC_SERVICEFORYOU, DC_UGLYDANCE
-	- Encore Skills set to inf2 64: BD_LULLABY, BD_RICHMANKIM,
+	  - Encore Skills set to inf2 64: BD_LULLABY, BD_RICHMANKIM,
 	  BD_DRUMBATTLEFIELD, BD_RINGNIBELUL, BD_INTOABYSS, BD_SIEGFRIED
-	- If I missed any skill, help me correct it, these inf2 values are not yet
+	  - If I missed any skill, help me correct it, these inf2 values are not yet
 	  used in the code, but that'll change soon.
 	* Added inf2 value 16 for Guild Skills, set all guild skills to have inf2
 	* Readded skills to items Electric Guitar, Firebrand & Ice Falchion [Skotlex]
