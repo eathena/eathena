@@ -393,7 +393,7 @@ addareascript("aldg408rArea","aldeg_cas04.gat",131,230,133,232,"warp_GCasRand")
 function warp_GCasRand()
 	local r = math.random(4)
 	if r==1 then warp("aldeg_cas04.gat",170,100)
-	else if r==2 then warp("aldeg_cas04.gat",186,88)
-	else if r==3 then warp("aldeg_cas04.gat",129,212)
-	else if r==4 then warp("aldeg_cas04.gat",132,209) end
+	elseif r==2 then warp("aldeg_cas04.gat",186,88)
+	elseif r==3 then warp("aldeg_cas04.gat",129,212)
+	elseif r==4 then warp("aldeg_cas04.gat",132,209) end
 end

@@ -32,8 +32,9 @@ addareascript("payd04rArea","pay_dun03.gat",125,60,129,64,"PayonRand")
 
 function PayonRand()
 	local r = math.random(4)
-	if r==1 then warp("pay_dun04.gat",201,204) end
-	if r==2 then warp("pay_dun04.gat",193,43) end
-	if r==3 then warp("pay_dun04.gat",43,40) end
-	if r==4 then warp("pay_dun04.gat",34,202) end
+	if r==1 then warp("pay_dun04.gat",201,204)
+	elseif r==2 then warp("pay_dun04.gat",193,43)
+	elseif r==3 then warp("pay_dun04.gat",43,40)
+	elseif r==4 then warp("pay_dun04.gat",34,202) 
+	end
 end

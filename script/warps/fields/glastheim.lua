@@ -83,6 +83,7 @@ addareascript("gl18-2Area","gl_prison.gat",9,69,11,71,"GLRand")
 
 function GLRand()
 	local r = math.random(2)
-	if r==1 then warp("gl_cas01.gat",236,192) end
-	if r==2 then warp("gl_cas01.gat",164,191) end
+	if r==1 then warp("gl_cas01.gat",236,192)
+	elseif r==2 then warp("gl_cas01.gat",164,191)
+	end
 end
