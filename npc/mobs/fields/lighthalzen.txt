@@ -15,36 +15,36 @@
 // - Lighthalzen Field 01
 //========================================================================================
 
-lhz_fild01.gat,0,0,0,0	monster	Metaling 1613,35,0,0,0
-lhz_fild01.gat,0,0,0,0	monster	Mole 1628,20,0,0,0
-lhz_fild01.gat,0,0,0,0	monster	Caramel 1103,30,0,0,0
-lhz_fild01.gat,0,0,0,0	monster	Yellow Plant 1081,15,0,0,0
+lhz_fild01.gat,0,0,0,0	monster	Metaling	1613,35,0,0,0
+lhz_fild01.gat,0,0,0,0	monster	Mole	1628,20,0,0,0
+lhz_fild01.gat,0,0,0,0	monster	Caramel	1103,30,0,0,0
+lhz_fild01.gat,0,0,0,0	monster	Yellow Plant	1081,15,0,0,0
 lhz_fild01.gat,0,0,0,0	monster	Red Plant	1078,15,0,0,0
-lhz_fild01.gat,0,0,0,0	monster	Green Plant 1080,15,0,0,0
+lhz_fild01.gat,0,0,0,0	monster	Green Plant	1080,15,0,0,0
 
 //========================================================================================
 // - Lighthalzen Field 02
 //========================================================================================
 
-lhz_fild02.gat,0,0,0,0	monster	Metaling 1613,25,0,0,0
-lhz_fild02.gat,0,0,0,0	monster	Horn 1128,20,0,0,0
-lhz_fild02.gat,0,0,0,0	monster	Caramel 1103,15,0,0,0
-lhz_fild02.gat,0,0,0,0	monster	Mole 1628,20,0,0,0
-lhz_fild02.gat,0,0,0,0	monster	Venomous 1621,5,0,0,0
-lhz_fild02.gat,0,0,0,0	monster	Yellow Plant 1081,15,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Metaling	1613,25,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Horn	1128,20,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Caramel	1103,15,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Mole	1628,20,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Venomous	1621,5,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Yellow Plant	1081,15,0,0,0
 lhz_fild02.gat,0,0,0,0	monster	Red Plant	1078,15,0,0,0
-lhz_fild02.gat,0,0,0,0	monster	Green Plant 1080,15,0,0,0
+lhz_fild02.gat,0,0,0,0	monster	Green Plant	1080,15,0,0,0
 
 //========================================================================================
 // - Lighthalzen Field 03
 //========================================================================================
 
-lhz_fild03.gat,0,0,0,0	monster	Metaling 1613,15,0,0,0
-lhz_fild03.gat,0,0,0,0	monster	Hill Wind 1629,20,0,0,0
-lhz_fild03.gat,0,0,0,0	monster	Horn 1128,15,0,0,0
-lhz_fild03.gat,0,0,0,0	monster	Caramel 1103,15,0,0,0
-lhz_fild03.gat,0,0,0,0	monster	Rafflesia 1162,10,0,0,0
-lhz_fild03.gat,0,0,0,0	monster	Venomous 1621,5,0,0,0
-lhz_fild03.gat,0,0,0,0	monster	Yellow Plant 1081,15,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Metaling	1613,15,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Hill Wind	1629,20,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Horn	1128,15,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Caramel	1103,15,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Rafflesia	1162,10,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Venomous	1621,5,0,0,0
+lhz_fild03.gat,0,0,0,0	monster	Yellow Plant	1081,15,0,0,0
 lhz_fild03.gat,0,0,0,0	monster	Red Plant	1078,15,0,0,0
 lhz_fild03.gat,0,0,0,0	monster	Green Plant	1080,15,0,0,0
