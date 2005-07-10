@@ -11,6 +11,10 @@ Fredzilla
 == Changelog ==
 
 Date	Added
+07/10
+	* Finished Optimizing Warps
+	* Added new spawns
+	* Added Warp NPC [Fredzilla]
 07/09
 	* Optimized random warps scripts [DracoRPG]
 07/06
