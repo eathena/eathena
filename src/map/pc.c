@@ -909,22 +909,25 @@ int pc_authfail(int id) {
 
 int pc_calc_skillpoint(struct map_session_data* sd)
 {
-	int  i,skill,skill_point=0;
+	int i,inf2,skill,skill_point=0;
 
 	nullpo_retr(0, sd);
 
-	for(i=1;i<MAX_SKILL;i++){
-		if( (skill = pc_checkskill(*sd,i)) > 0) {
-			if(!(skill_get_inf2(i)&0x01) || battle_config.quest_skill_learn) {
+	for(i=1;i<MAX_SKILL;i++)
+	{
+		if( (skill = pc_checkskill(*sd,i)) > 0)
+		{
+			inf2 = skill_get_inf2(i);
+			if( ( !(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
+				 !(inf2&INF2_WEDDING_SKILL) ) //Do not count wedding skills. [Skotlex]
+			{
 				if(!sd->status.skill[i].flag)
 					skill_point += skill;
-				else if(sd->status.skill[i].flag > 2 && sd->status.skill[i].flag != 13) {
+				else if(sd->status.skill[i].flag > 2 && sd->status.skill[i].flag != 13)
 					skill_point += (sd->status.skill[i].flag - 2);
-				}
 			}
 		}
 	}
-
 	return skill_point;
 }
 
@@ -3283,7 +3286,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 		clif_changemap(sd,map[m].mapname,x,y); // [MouseJstr]
 	}
 	
-	if (strcmp(sd.mapname,mapname)!=0) //minimap dot fix [Kevin]
+	if (strcmp(sd.mapname,mapname)!=0)
 		party_send_dot_remove(sd);
 
 	memcpy(sd.mapname,mapname,24);
@@ -3649,7 +3652,7 @@ int pc_stop_walking (struct map_session_data &sd, int type)
 	{
 		unsigned long tick = gettick();
 		int delay = status_get_dmotion(&sd.bl);
-		if( sd.canmove_tick < tick)
+		if( DIFF_TICK(sd.canmove_tick,tick) < 0)
 			sd.canmove_tick = tick + delay;
 	}
 	return 0;
@@ -3984,7 +3987,7 @@ int pc_attack_timer(int tid,unsigned long tick,int id,int data)
 	}
 
 	if(dist <= range && !battle_check_range(&sd->bl,bl,range) ) {
-		if(pc_can_reach(*sd,bl->x,bl->y) && sd->canmove_tick < tick && (sd->sc_data[SC_ANKLE].timer == -1 || sd->sc_data[SC_SPIDERWEB].timer == -1))
+		if(pc_can_reach(*sd,bl->x,bl->y) && DIFF_TICK(sd->canmove_tick,tick)<0 && (sd->sc_data[SC_ANKLE].timer == -1 || sd->sc_data[SC_SPIDERWEB].timer == -1))
 			pc_walktoxy(*sd,bl->x,bl->y);
 		sd->attackabletime = tick + (sd->aspd<<1);
 	}
@@ -4007,7 +4010,7 @@ int pc_attack_timer(int tid,unsigned long tick,int id,int data)
 			// &2 = ? - Celest
 			if(!(battle_config.pc_cloak_check_type&2) && sd->sc_data[SC_CLOAKING].timer != -1)
 				status_change_end(&sd->bl,SC_CLOAKING,-1);
-			if(sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_attack_support)
+			if(sd->attacktarget_lv >0 && sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_attack_support)
 				pet_target_check(*sd,bl,0);
 			map_freeblock_unlock();
 			if(sd->skilltimer != -1 && (skill = pc_checkskill(*sd,SA_FREECAST)) > 0 ) // フリ?キャスト
@@ -4015,7 +4018,7 @@ int pc_attack_timer(int tid,unsigned long tick,int id,int data)
 			else
 				sd->attackabletime = tick + (sd->aspd<<1);
 		}
-		else if(sd->attackabletime <= tick)
+		else if( DIFF_TICK(sd->attackabletime,tick) <= 0 )
 		{
 			if(sd->skilltimer != -1 && (skill = pc_checkskill(*sd,SA_FREECAST)) > 0 ) // フリ?キャスト
 			{
@@ -4025,8 +4028,8 @@ int pc_attack_timer(int tid,unsigned long tick,int id,int data)
 				sd->attackabletime = tick + (sd->aspd<<1);
 		}
 	}
-	if( DIFF_TICK(sd->attackabletime,tick) < (int)(battle_config.max_aspd_val<<1) )
-		sd->attackabletime = tick + (battle_config.max_aspd_val<<1);
+	if( DIFF_TICK(sd->attackabletime,tick) < (int)(battle_config.max_aspd_interval<<1) )
+		sd->attackabletime = tick + (battle_config.max_aspd_interval<<1);
 
 	if(sd->state.attack_continue)
 	{
@@ -4618,9 +4621,11 @@ int pc_allskillup(struct map_session_data &sd)
 	}
 	else
 	{
+		int inf2;
 		for(i=0;(id=skill_tree[s][c][i].id)>0;i++)
 		{
-			if(sd.status.skill[id].id==0 && (!(skill_get_inf2(id)&0x01) || battle_config.quest_skill_learn) )
+			inf2 = skill_get_inf2(id);
+			if(sd.status.skill[id].id==0 && (!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL))
 			{
 				sd.status.skill[id].id = id;	// celest
 				//sd.status.skill[id].lv=skill_get_max(id);
@@ -4783,12 +4788,14 @@ int pc_resetstate(struct map_session_data &sd)
  */
 int pc_resetskill(struct map_session_data &sd)
 {
-	size_t i, skill;
+	size_t i, inf2, skill;
 	for (i = 1; i < MAX_SKILL; i++)
 	{
 		if ((skill = sd.status.skill[i].lv) > 0)
 		{
-			if (!(skill_get_inf2(i) & 0x01) || battle_config.quest_skill_learn)
+			inf2 = skill_get_inf2(i);	
+			if ((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
+				!(inf2&INF2_WEDDING_SKILL) ) //Avoid reseting wedding skills.
 			{
 				if (!sd.status.skill[i].flag)
 					sd.status.skill_point += skill;
@@ -4796,7 +4803,7 @@ int pc_resetskill(struct map_session_data &sd)
 					sd.status.skill_point += (sd.status.skill[i].flag - 2);
 				sd.status.skill[i].lv = 0;
 			}
-			else if (battle_config.quest_skill_reset)
+			else if (battle_config.quest_skill_reset && (inf2&INF2_QUEST_SKILL))
 				sd.status.skill[i].lv = 0;
 			sd.status.skill[i].flag = 0;
 		}
@@ -6733,7 +6740,14 @@ bool pc_adoption(struct map_session_data &sd1,struct map_session_data &sd2, stru
 	}
 
 	if( pc_jobchange(sd3, 4023, 0) == 0 )
+	{	//Success, and give Junior the Baby skills. [Skotlex]
+		pc_skill(sd3,WE_BABY,1,0);
+		pc_skill(sd3,WE_CALLPARENT,1,0);
 		clif_displaymessage(sd3.fd, msg_txt(12)); // Your job has been changed.
+		//We should also grant the parent skills to the parents [Skotlex]
+		pc_skill(sd1,WE_CALLBABY,1,0);
+		pc_skill(sd2,WE_CALLBABY,1,0);
+	}
 	else
 	{
 		clif_displaymessage(sd3.fd, msg_txt(155)); // Impossible to change your job.

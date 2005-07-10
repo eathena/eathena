@@ -241,7 +241,6 @@ enum AtCommandType {
 	AtCommand_MuteArea, // MouseJstr
 	AtCommand_Shuffle, // MouseJstr
 	AtCommand_Rates, // MouseJstr
-	AtCommand_BattleOption,
 
 	AtCommand_ItemInfo, // Lupus
 	AtCommand_MapFlag, // Lupus

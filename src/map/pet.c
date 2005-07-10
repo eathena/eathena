@@ -1674,7 +1674,9 @@ int pet_recovery_timer(int tid,unsigned long tick,int id,int data)
 	}
 
 	if(sd->sc_data && sd->sc_data[pd->recovery->type].timer != -1)
-	{
+	{	//Display a heal animation? 
+		//Adrenaline Rush?? Well, it DOES looks like a nice recovery spell.... [Skotlex]
+		clif_skill_nodamage(pd->bl,sd->bl,BS_ADRENALINE,1,1);
 		status_change_end(&sd->bl,pd->recovery->type,-1);
 		clif_emotion(pd->bl, 33);
 	}

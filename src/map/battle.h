@@ -210,7 +210,7 @@ struct Battle_Config
 	ulong making_arrow_name_input;
 	ulong max_adv_level;
 	ulong max_aspd;
-	ulong max_aspd_val; // not writable
+	ulong max_aspd_interval; // not writable
 	ulong max_base_level;
 	ulong max_cart_weight;
 	ulong max_cloth_color; // added by [MouseJstr]
@@ -255,6 +255,7 @@ struct Battle_Config
 	ulong monster_land_skill_limit;
 	ulong monster_loot_type;
 	ulong monster_max_aspd;
+	ulong monster_max_aspd_interval;// not writable, 
 	ulong monster_skill_nofootset;
 	ulong monster_skill_reiteration;
 	ulong monsters_ignore_gm;

@@ -246,6 +246,7 @@ int buildin_wedding_effect(struct script_state &st);
 int buildin_divorce(struct script_state &st);
 int buildin_ispartneron(struct script_state &st); // MouseJstr
 int buildin_getpartnerid(struct script_state &st); // MouseJstr
+int buildin_getchildid(struct script_state &st); // Skotlex
 int buildin_warppartner(struct script_state &st); // MouseJstr
 int buildin_getitemname(struct script_state &st);
 int buildin_makepet(struct script_state &st);
@@ -510,6 +511,7 @@ struct {
 	{buildin_divorce,"divorce","*"},
 	{buildin_ispartneron,"ispartneron","*"},
 	{buildin_getpartnerid,"getpartnerid","*"},
+	{buildin_getchildid,"getchildid",""},
 	{buildin_warppartner,"warppartner","sii"},
 	{buildin_getitemname,"getitemname","i"},
 	{buildin_makepet,"makepet","i"},
@@ -4716,7 +4718,7 @@ int buildin_sc_end(struct script_state &st)
 	type=conv_num(st, (st.stack.stack_data[st.start+2]));
 	bl = map_id2bl(st.rid);
 	
-	nullpo_retr(0,bl);  //Fixed null pointer right here [Kevin]
+	nullpo_retr(0,bl);
 
 	if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
 		bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
@@ -4835,7 +4837,9 @@ int buildin_changebase(struct script_state &st)
 		return 0;
 
 	vclass = conv_num(st, (st.stack.stack_data[st.start+2]));
-	if(vclass == 22 && !battle_config.wedding_modifydisplay)
+	if( vclass == 22 && 
+		(!battle_config.wedding_modifydisplay ||					// Do not show the wedding sprites
+		(sd->status.class_ >= 4023 && sd->status.class_ <= 4045)) )	// Baby classes screw up when showing wedding sprites. [Skotlex]
 		return 0;
 
 //	if(vclass==22) {
@@ -5973,13 +5977,24 @@ int buildin_ispartneron(struct script_state &st)
 
 int buildin_getpartnerid(struct script_state &st)
 {
-    struct map_session_data *sd=script_rid2sd(st);
-    if (sd == NULL) {
-        push_val(st.stack,C_INT,0);
-        return 0;
-    }
-    push_val(st.stack,C_INT,sd->status.partner_id);
-    return 0;
+	struct map_session_data *sd=script_rid2sd(st);
+	if (sd == NULL) {
+		push_val(st.stack,C_INT,0);
+		return 0;
+	}
+	push_val(st.stack,C_INT,sd->status.partner_id);
+	return 0;
+}
+
+int buildin_getchildid(struct script_state &st)
+{
+	struct map_session_data *sd=script_rid2sd(st);
+	if (sd == NULL) {
+		push_val(st.stack,C_INT,0);
+		return 0;
+	}
+	push_val(st.stack,C_INT,sd->status.child_id);
+	return 0;
 }
 
 int buildin_warppartner(struct script_state &st)

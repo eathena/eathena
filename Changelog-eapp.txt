@@ -1,4 +1,9 @@
 Date	Added
+07/10
+	merges from stable
+	Paladin's new Sacrifical Ritual
+	adding chaos as additional characterisation variable (besides karma)
+	and some code reordering [Shinomori]
 07/3
 	* Updated NPCs [massdriller]
 06/18

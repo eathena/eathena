@@ -538,7 +538,7 @@ int mapif_parse_PartyChangeOption(int fd, unsigned long party_id, unsigned long 
 	else
 	{	// disable
 		p->itemshare = p->expshare =  0;
-		flag = 1;
+		flag = expshare||itemshare;
 	}
 	mapif_party_optionchanged(fd, p, account_id, flag );
 	return 0;

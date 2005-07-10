@@ -261,8 +261,8 @@ ACMD_FUNC(mapflag); // Lupus
 ACMD_FUNC(me); //added by massdriller, code by lordalfa
 ACMD_FUNC(fakename); //[Valaris]
 ACMD_FUNC(size); //[Valaris]
-ACMD_FUNC(showexp); //moved from charcommand [Kevin]
-ACMD_FUNC(showdelay); //moved from charcommand [Kevin]
+ACMD_FUNC(showexp);
+ACMD_FUNC(showdelay);
 
 /*==========================================
  *AtCommandInfo atcommand_info[]ç\ë¢ëÃÇÃíËã`
@@ -472,6 +472,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Trade,				"@trade",			60, atcommand_trade },
 	{ AtCommand_Send,				"@send",			60, atcommand_send },
 	{ AtCommand_SetBattleFlag,		"@setbattleflag",	60, atcommand_setbattleflag },
+	{ AtCommand_SetBattleFlag,		"@battleoption",	60, atcommand_setbattleflag }, // MouseJstr
 	{ AtCommand_UnMute,				"@unmute",			60, atcommand_unmute }, // [Valaris]
 	{ AtCommand_Clearweather,		"@clearweather",	99, atcommand_clearweather }, // Dexity
 	{ AtCommand_UpTime,				"@uptime",			 0, atcommand_uptime }, // by MC Cameri
@@ -543,7 +544,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_MuteArea,			"@stfu",			99, atcommand_mutearea }, // MouseJstr
 	{ AtCommand_Shuffle,			"@shuffle",			40, atcommand_shuffle }, // MouseJstr
 	{ AtCommand_Rates,				"@rates",			10, atcommand_rates }, // MouseJstr
-	{ AtCommand_BattleOption,		"@battleoption",	40, atcommand_battleoption }, // MouseJstr
 	{ AtCommand_ItemInfo,			"@iteminfo",		1, atcommand_iteminfo }, // [Lupus]
 	{ AtCommand_ItemInfo,			"@ii",				1, atcommand_iteminfo }, // [Lupus]
 	{ AtCommand_MapFlag,			"@mapflag",			99, atcommand_mapflag }, // [Lupus]
@@ -7885,19 +7885,21 @@ bool atcommand_trade(int fd, struct map_session_data &sd, const char* command, c
  */
 bool atcommand_setbattleflag(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	char flag[128], value[128];
-
+	char flag[128];
+	char value[128];
 
 	if (!message || !*message || sscanf(message, "%s %s", flag, value) != 2) {
         	clif_displaymessage(fd, "Usage: @setbattleflag <flag> <value>.");
         	return false;
     	}
 
-	if (battle_set_value(flag, value) == 0)
-        	clif_displaymessage(fd, "unknown battle_config flag");
+	if( battle_set_value(flag, value) )
+	{
+		clif_displaymessage(fd, "battle_config set as requested");
+		battle_validate_conf();
+	}
 	else
-        	clif_displaymessage(fd, "battle_config set as requested");
-
+		clif_displaymessage(fd, "unknown battle_config flag");
 	return true;
 }
 
@@ -9024,20 +9026,6 @@ bool atcommand_rates(int fd, struct map_session_data &sd, const char* command, c
   return true;
 }
 
-bool atcommand_battleoption(int fd, struct map_session_data &sd, const char* command, const char* message)
-{
-	char w1[128];
-	char w2[128];
-
-	memset(w1, '\0', sizeof(w1));
-	memset(w2, '\0', sizeof(w2));
-	if (!message || !*message || sscanf(message, "%99s %99s", w1, w2) < 2) {
-		clif_displaymessage(fd, "usage: @battleoption <option> <value>).");
-		return false;
-	}
-	battle_set_value(w1,w2);
-	return true;
-}
 
 /*==========================================
  * @me by lordalfa
@@ -9121,7 +9109,7 @@ bool atcommand_fakename(int fd, struct map_session_data &sd, const char* command
 	}
 	
 	strcpy(sd.fakename,name);
-	clif_charnameack(0, sd.bl);
+	clif_charnameack(-1, sd.bl, true);
 	clif_displaymessage(sd.fd,"Fake name enabled.");
 	
 	return true;

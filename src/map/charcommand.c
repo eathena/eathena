@@ -1335,7 +1335,6 @@ bool charcommand_fakename(int fd, struct map_session_data &sd,const char *comman
 
 /*==========================================
  * #baselvl <#> <nickname> 
- * Transferred by: Kevin
  *------------------------------------------
 */
 bool charcommand_baselevel(int fd, struct map_session_data &sd,const char *command, const char *message)
@@ -1406,7 +1405,6 @@ bool charcommand_baselevel(int fd, struct map_session_data &sd,const char *comma
 
 /*==========================================
  * #jlvl <#> <nickname> 
- * Transferred by: Kevin
  *------------------------------------------
  */
 bool charcommand_joblevel(int fd, struct map_session_data &sd,const char *command, const char *message)
@@ -1488,7 +1486,6 @@ bool charcommand_joblevel(int fd, struct map_session_data &sd,const char *comman
 
 /*==========================================
  * #questskill <skill_#> <nickname>
- * Transferred by: Kevin
  *------------------------------------------
  */
 bool charcommand_questskill(int fd, struct map_session_data &sd,const char *command, const char *message)
@@ -1531,7 +1528,6 @@ bool charcommand_questskill(int fd, struct map_session_data &sd,const char *comm
 
 /*==========================================
  * #lostskill <skill_#> <nickname>
- * Transferred by: Kevin
  *------------------------------------------
  */
 bool charcommand_lostskill(int fd, struct map_session_data &sd,const char *command, const char *message)

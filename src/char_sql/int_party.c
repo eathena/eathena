@@ -599,7 +599,7 @@ int mapif_parse_PartyChangeOption(int fd,unsigned long party_id,unsigned long ac
 	else
 	{	// disable the menu
 		p.itemshare = p.expshare =  0;
-		flag = 1;
+		flag = expshare||itemshare;
 	}
 	mapif_party_optionchanged(fd, &p, account_id, flag );
 	inter_party_tosql(party_id, p);

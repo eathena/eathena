@@ -1443,8 +1443,9 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 
 	if( flag&0xff00 )
 		type=(flag&0xff00)>>8;
-
-	if(damage <= 0 || damage < dmg.div_) //吹き飛ばし判定？※
+	
+	if( (damage <= 0 || damage < dmg.div_) &&	//吹き飛ばし判定？※
+		skillid != CH_PALMSTRIKE )				//Palm Strike is the only skill that will knockback even if it misses. [Skotlex]
 		dmg.blewcount = 0;
 
 	if(skillid == CR_GRANDCROSS||skillid == NPC_GRANDDARKNESS) {//グランドクロス
@@ -2408,6 +2409,7 @@ int skill_castend_damage_id( struct block_list* src, struct block_list *bl,unsig
 			status_change_end(src,SC_BLADESTOP,-1);
 		break;
 
+	case PA_SACRIFICE:				// sacrifice new style
 	case SN_FALCONASSAULT:			/* ファルコンアサルト */
 		skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
 		break;
@@ -2916,7 +2918,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 	struct mob_data *dstmd = NULL;
 	int i;
 	int sc_def_vit, sc_def_mdef;
-	int sc_dex, sc_luk;
+//	int sc_dex, sc_luk;
 	
 
 	if(skillid > 0 && skilllv <= 0) return 0;	// celest
@@ -2933,8 +2935,8 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 	else if(src->type==BL_MOB)
 		md=(struct mob_data *)src;
 
-	sc_dex = status_get_mdef (bl);
-	sc_luk = status_get_luk (bl);
+//	sc_dex = status_get_mdef (bl);
+//	sc_luk = status_get_luk (bl);
 	sc_def_vit = status_get_sc_def_vit (bl);
 	sc_def_mdef = status_get_sc_def_mdef (bl);
 
@@ -4123,6 +4125,12 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		{
 			int i;
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
+			if (rand()%100 >= 50+10*skilllv-sc_def_mdef)
+			{
+				if (sd)
+					clif_skill_fail(*sd,skillid,0,0);
+				break;
+			}
 			if(status_isimmune(bl))
 				break;
 			for(i=0;i<136;i++){
@@ -4533,7 +4541,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 
 // parent-baby skills
 	case WE_BABY:
-		if(sd && dstsd){
+		if(sd){
 			struct map_session_data *f_sd = pc_get_father(*sd);
 			struct map_session_data *m_sd = pc_get_mother(*sd);
 			// if neither was found
@@ -4549,7 +4557,7 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		break;
 
 	case WE_CALLPARENT:
-		if(sd && dstsd){
+		if(sd){
 			struct map_session_data *f_sd = pc_get_father(*sd);
 			struct map_session_data *m_sd = pc_get_mother(*sd);
 			// if neither was found
@@ -4558,18 +4566,26 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 				map_freeblock_unlock();
 				return 0;
 			}
-			if(map[sd->bl.m].flag.nomemo || map[sd->bl.m].flag.nowarpto || map[dstsd->bl.m].flag.nowarp){
+			if(map[sd->bl.m].flag.nomemo || map[sd->bl.m].flag.nowarpto){
 				clif_skill_teleportmessage(*sd,1);
 				map_freeblock_unlock();
 				return 0;
 			}
-			if(f_sd) pc_setpos(*f_sd,map[sd->bl.m].mapname,sd->bl.x,sd->bl.y,3);
-			if(m_sd) pc_setpos(*f_sd,map[sd->bl.m].mapname,sd->bl.x,sd->bl.y,3);
+			if( (!f_sd && m_sd && map[m_sd->bl.m].flag.nowarp) ||
+				(!m_sd && f_sd && map[f_sd->bl.m].flag.nowarp))
+			{	//Case where neither one can be warped.
+				clif_skill_teleportmessage(*sd,1);
+				map_freeblock_unlock();
+				return 0;
+			}
+			//Warp those that can be warped.
+			if(f_sd && !map[f_sd->bl.m].flag.nowarp) pc_setpos(*f_sd,map[sd->bl.m].mapname,sd->bl.x,sd->bl.y,3);
+			if(m_sd && !map[m_sd->bl.m].flag.nowarp) pc_setpos(*m_sd,map[sd->bl.m].mapname,sd->bl.x,sd->bl.y,3);
 		}
 		break;
 
 	case WE_CALLBABY:
-		if(sd && dstsd){
+		if(sd){
 			if((dstsd = pc_get_child(*sd)) == NULL){
 				clif_skill_fail(*sd,skillid,0,0);
 				map_freeblock_unlock();
@@ -4752,11 +4768,6 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 			}
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
 		}
-		break;
-
-	case PF_SPIDERWEB:			/* スパイダ?ウェッブ */
-		clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-		skill_unitsetting(src,skillid,skilllv,bl->x,bl->y,0);
 		break;
 
 	// Slim Pitcher
@@ -5058,7 +5069,8 @@ int skill_castend_id(int tid,unsigned long tick,int id,int data)
 		return 0;
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != tid )	/* タイマIDの確認 */
 		return 0;
-	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(*sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
+
+	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(*sd,SA_FREECAST)) > 0) //Hope ya don't mind me borrowing range :X
 		status_calc_speed(*sd, SA_FREECAST, range, 0); 
 
 	if(sd->skillid != SA_CASTCANCEL)
@@ -5203,7 +5215,7 @@ int skill_castend_pos( int tid, unsigned long tick, int id,int data )
 		return 0;
 	if(sd->skillid == 0xFFFF || sd->skilllv == 0xFFFF)	// skill has failed after starting casting
 		return 0;
-	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(*sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
+	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(*sd,SA_FREECAST)) > 0) //Hope ya don't mind me borrowing range :X
 		status_calc_speed(*sd, SA_FREECAST, range, 0); 
 
 	sd->skilltimer=-1;
@@ -5391,6 +5403,7 @@ int skill_castend_pos2(struct block_list *src, int x,int y,unsigned short skilli
 	case AM_DEMONSTRATION:			/* デモンストレ?ション */
 	case PF_FOGWALL:			/* フォグウォ?ル */
 	case HT_TALKIEBOX:			/* ト?キ?ボックス */
+	case PF_SPIDERWEB:			/* スパイダ?ウェッブ */
 		skill_unitsetting(src,skillid,skilllv,x,y,0);
 		break;
 
@@ -5693,7 +5706,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
  * スキルユニット設定?理
  *------------------------------------------
  */
-struct skill_unit_group *skill_unitsetting( struct block_list *src, unsigned short skillid,unsigned short skilllv,int x,int y,int flag)
+struct skill_unit_group *skill_unitsetting(struct block_list *src, unsigned short skillid,unsigned short skilllv,int x,int y,int flag)
 {
 	struct skill_unit_group *group;
 	int i,limit,val1=0,val2=0,val3=0;
@@ -5896,8 +5909,8 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, unsigned sho
 
 			if (range==0 && active_flag)
 				map_foreachinarea(skill_unit_effect,unit->bl.m,
-					unit->bl.x,unit->bl.y,unit->bl.x,unit->bl.y,
-					0,unit,gettick(),1);
+					unit->bl.x,unit->bl.y,unit->bl.x,unit->bl.y,0,
+					unit,gettick(),1);
 		}
 	}
 	
@@ -6695,7 +6708,7 @@ int skill_check_condition_use_sub(struct block_list &bl,va_list ap)
 			!pc_issit(*sd) && !pc_isdead(*sd) && //座ってない
 			sd->sc_data[SC_DANCING].timer==-1 && //ダンス中じゃない
 		   sd->skilltimer==-1 &&
-		   sd->canmove_tick < tick // added various missing ensemble checks [Valaris]
+		   DIFF_TICK(sd->canmove_tick,tick)<0  // added various missing ensemble checks [Valaris]
 			)
 		{
 			ssd->sc_data[SC_DANCING].val4=bl.id;
@@ -7895,8 +7908,7 @@ int skill_use_pos( struct map_session_data *sd, int skill_x, int skill_y, unsign
  */
 int skill_castcancel (struct block_list *bl, int type)
 {
-	int inf;
-	int ret = 0;
+	int ret=0;
 
 	nullpo_retr(0, bl);
 
@@ -7907,12 +7919,12 @@ int skill_castcancel (struct block_list *bl, int type)
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
 		if (sd->skilltimer != -1) {
-			if (pc_checkskill(*sd,SA_FREECAST) > 0) {
-				sd->speed = sd->prev_speed;
-				clif_updatestatus(*sd,SP_SPEED);
-			}
+
+			if( (ret=pc_checkskill(*sd,SA_FREECAST)) > 0)	// borrow ret as temp variable
+				status_calc_speed(*sd,SA_FREECAST,ret,0);
+
 			if (!type) {
-				if ((inf = skill_get_inf( sd->skillid )) == 2 || inf == 32)
+				if (skill_get_inf( sd->skillid ) & INF_GROUND_SKILL)
 					ret = delete_timer( sd->skilltimer, skill_castend_pos );
 				else
 					ret = delete_timer( sd->skilltimer, skill_castend_id );
@@ -7920,7 +7932,7 @@ int skill_castcancel (struct block_list *bl, int type)
 					ShowMessage("delete timer error : skillid : %d\n",sd->skillid);
 			}
 			else {
-				if ((inf = skill_get_inf( sd->skillid_old )) == 2 || inf == 32)
+				if (skill_get_inf( sd->skillid_old ) & INF_GROUND_SKILL)
 					ret = delete_timer( sd->skilltimer, skill_castend_pos );
 				else
 					ret = delete_timer( sd->skilltimer, skill_castend_id );
@@ -7935,7 +7947,7 @@ int skill_castcancel (struct block_list *bl, int type)
 		struct mob_data *md = (struct mob_data *)bl;
 		nullpo_retr(0, md);
 		if (md->skilltimer != -1) {
-			if ((inf = skill_get_inf( md->skillid )) == 2 || inf == 32)
+			if (skill_get_inf( md->skillid ) & INF_GROUND_SKILL)
 				ret = delete_timer( md->skilltimer, mobskill_castend_pos );
 			else
 				ret = delete_timer( md->skilltimer, mobskill_castend_id );

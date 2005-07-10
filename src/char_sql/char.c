@@ -402,7 +402,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 	    (p->status_point != cp->status_point) || (p->skill_point != cp->skill_point) ||
 	    (p->str != cp->str) || (p->agi != cp->agi) || (p->vit != cp->vit) ||
 	    (p->int_ != cp->int_) || (p->dex != cp->dex) || (p->luk != cp->luk) ||
-	    (p->option != cp->option) || (p->karma != cp->karma) || (p->manner != cp->manner) ||
+	    (p->option != cp->option) || (p->karma != cp->karma) || (p->chaos != cp->chaos) || (p->manner != cp->manner) ||
 	    (p->party_id != cp->party_id) || (p->guild_id != cp->guild_id) ||
 	    (p->pet_id != cp->pet_id) || (p->hair != cp->hair) || (p->hair_color != cp->hair_color) ||
 	    (p->clothes_color != cp->clothes_color) || (p->weapon != cp->weapon) ||
@@ -412,6 +412,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 	    (p->mother_id != cp->mother_id) || (p->child_id != cp->child_id) || 
 		(p->fame_points != cp->fame_points)) 
 	{	//check party_exist
+
 	party_exist=0;
 	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id` = '%ld'",party_db, p->party_id); // TBR
 	if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
@@ -457,7 +458,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 		p->base_exp, p->job_exp, p->zeny,
 		p->max_hp, p->hp, p->max_sp, p->sp, p->status_point, p->skill_point,
 		p->str, p->agi, p->vit, p->int_, p->dex, p->luk,
-		p->option, p->karma, p->manner, p->party_id, p->guild_id, p->pet_id,
+		p->option, MakeWord(p->karma, p->chaos), p->manner, p->party_id, p->guild_id, p->pet_id,
 		p->hair, p->hair_color, p->clothes_color,
 		p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
 		p->last_point.map, p->last_point.x, p->last_point.y,
@@ -799,15 +800,27 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online)
 	if (sql_res) {
 		sql_row = mysql_fetch_row(sql_res);
 
-
-		p->option = atoi(sql_row[0]);	p->karma = atoi(sql_row[1]);	p->manner = atoi(sql_row[2]);
-			p->party_id = atoi(sql_row[3]);	p->guild_id = atoi(sql_row[4]);	p->pet_id = atoi(sql_row[5]);
-
-		p->hair = atoi(sql_row[6]);	p->hair_color = atoi(sql_row[7]);	p->clothes_color = atoi(sql_row[8]);
-		p->weapon = atoi(sql_row[9]);	p->shield = atoi(sql_row[10]);
-		p->head_top = atoi(sql_row[11]);	p->head_mid = atoi(sql_row[12]);	p->head_bottom = atoi(sql_row[13]);
-		strcpy(p->last_point.map,sql_row[14]); p->last_point.x = atoi(sql_row[15]);	p->last_point.y = atoi(sql_row[16]);
-		strcpy(p->save_point.map,sql_row[17]); p->save_point.x = atoi(sql_row[18]);	p->save_point.y = atoi(sql_row[19]);
+		p->option = atoi(sql_row[0]);
+		p->karma = GetByte( atoi(sql_row[1]), 0);
+		p->chaos = GetByte( atoi(sql_row[1]), 1);
+		p->manner = atoi(sql_row[2]);
+		p->party_id = atoi(sql_row[3]);
+		p->guild_id = atoi(sql_row[4]);
+		p->pet_id = atoi(sql_row[5]);
+		p->hair = atoi(sql_row[6]);
+		p->hair_color = atoi(sql_row[7]);
+		p->clothes_color = atoi(sql_row[8]);
+		p->weapon = atoi(sql_row[9]);
+		p->shield = atoi(sql_row[10]);
+		p->head_top = atoi(sql_row[11]);
+		p->head_mid = atoi(sql_row[12]);
+		p->head_bottom = atoi(sql_row[13]);
+		strcpy(p->last_point.map,sql_row[14]);
+		p->last_point.x = atoi(sql_row[15]);
+		p->last_point.y = atoi(sql_row[16]);
+		strcpy(p->save_point.map,sql_row[17]);
+		p->save_point.x = atoi(sql_row[18]);
+		p->save_point.y = atoi(sql_row[19]);
 		p->partner_id = atoi(sql_row[20]); 
 		p->father_id = atoi(sql_row[21]); 
 		p->mother_id = atoi(sql_row[22]); 
@@ -1919,7 +1932,7 @@ int parse_frommap(int fd)
 		WBUFLIP(buf,4) = server[id].lanip;
 		WBUFW(buf,8) = server[id].lanport;
 
-		for(i=10, j=0; j<server[id].maps; i+=16, j++)
+		for(i=10, j=0; j<(int)server[id].maps; i+=16, j++)
 			memcpy(RBUFP(buf,i), server[id].map[j], 16);
 		mapif_sendallwos(fd, buf, server[id].maps * 16 + 10);
 
@@ -2775,7 +2788,7 @@ int parse_char(int fd)
 			if (RFIFOREST(fd) < 37)
 				return 0;
 				
-			if(char_new == 0) //turn character creation on/off [Kevin]
+			if(char_new == 0)
 				i = -2;
 			else
 				i = make_new_char_sql(fd, RFIFOP(fd, 2));
@@ -3270,9 +3283,7 @@ int check_connect_login_server(int tid, unsigned long tick, int id, int data) {
 		memcpy(WFIFOP(login_fd,60), server_name, strlen(server_name) < 20 ? strlen(server_name) : 20);
 		WFIFOW(login_fd,80) = 0;
 		WFIFOW(login_fd,82) = char_maintenance;
-		
-		WFIFOW(login_fd,84) = char_new_display; //only display (New) if they want to [Kevin]
-			
+		WFIFOW(login_fd,84) = char_new_display;
 		WFIFOSET(login_fd,86);
 		
 		//(re)connected to login-server,

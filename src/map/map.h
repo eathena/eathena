@@ -288,7 +288,6 @@ struct map_session_data
 	unsigned short to_x;
 	unsigned short to_y;
 	unsigned short speed;
-	unsigned short prev_speed;
 	short opt1;
 	short opt2;
 	short opt3;

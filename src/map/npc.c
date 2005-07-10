@@ -1326,7 +1326,7 @@ int npc_stop_walking(struct npc_data &nd,int type)
 	{
 		int delay=status_get_dmotion(&nd.bl);
 		unsigned long tick = gettick();
-		if(nd.canmove_tick < tick)
+		if( DIFF_TICK(nd.canmove_tick,tick) < 0 )
 			nd.canmove_tick = tick + delay;
 }
 

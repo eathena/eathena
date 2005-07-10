@@ -266,9 +266,8 @@ int storage_storageget(struct map_session_data &sd, size_t index, size_t amount)
 			{	//valid amount
 				if( (flag = pc_additem(sd,stor->storage[index],amount)) == 0 )
 					storage_delitem(sd,*stor,index,amount);
-				//else //taken out because it can dupe items if the above fails somehow :) [Kevin]
-					//clif_additem(&sd,0,0,flag);
-				//log_fromstorage(&sd, index, 0);
+				else
+					clif_additem(sd,0,0,flag);
 			}
 		}
 	}

@@ -1093,14 +1093,98 @@ void socket_setopts(SOCKET sock)
 
 
 
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// FIFO Reading/Sending Functions
+//
+///////////////////////////////////////////////////////////////////////////////
+int recv_to_fifo(int fd)
+{
+	int len;
+	unsigned long arg = 0;
+	int rv;
+
+	//ShowMessage("recv_to_fifo : %d\n",fd);
+	if( !session_isActive(fd) )
+		return -1;
+
+	// check for incoming data and the amount
+	rv = ioctlsocket(SessionGetSocket(fd), FIONREAD, &arg);
+	if( (rv == 0) && (arg > 0) )
+	{	// we are reading 'arg' bytes of data from the socket
+
+		// if there is more on the socket, limit the read size
+		// fifo should be sized that the message with max expected len fit in
+		if( arg > (unsigned long)RFIFOSPACE(fd) ) arg = RFIFOSPACE(fd);
+
+		len=read(SessionGetSocket(fd),(char*)(session[fd]->rdata+session[fd]->rdata_size),arg);
+
+#ifdef SOCKET_DEBUG_PRINT
+		printf("<-");
+		dumpx(session[fd]->rdata, len);
+#endif
+		if(len>0){
+			session[fd]->rdata_size+=len;
+			session[fd]->rdata_tick = last_tick;
+		} else if(len<=0){
+			session[fd]->flag.connected = false;
+			session[fd]->wdata_size=0;
+		}
+	} else {	
+		// the socket has been terminated
+		session[fd]->flag.connected = false;
+	}
+	return 0;
+}
+int send_from_fifo(int fd)
+{
+	int len;
+
+	//ShowMessage("send_from_fifo : %d\n",fd);
+	if( !session_isValid(fd) )
+		return -1;
+
+	if (session[fd]->wdata_size == 0)
+		return 0;
+
+	// clear buffer if not connected
+	if( !session[fd]->flag.connected )
+	{
+		session[fd]->wdata_size = 0;
+		return 0;
+	}
+
+	len=write(SessionGetSocket(fd),(char*)(session[fd]->wdata),session[fd]->wdata_size);
+//	ShowMessage (":::SEND:::\n");
+//	dump(session[fd]->wdata, len); ShowMessage ("\n");
+#ifdef SOCKET_DEBUG_PRINT
+	printf("->");
+	dumpx(session[fd]->wdata, len);
+#endif
+
+	//{ int i; ShowMessage("send %d : ",fd);  for(i=0;i<len;i++){ ShowMessage("%02x ",session[fd]->wdata[i]); } ShowMessage("\n");}
+	if(len>0){
+		if((size_t)len<session[fd]->wdata_size){
+			memmove(session[fd]->wdata,session[fd]->wdata+len,session[fd]->wdata_size-len);
+			session[fd]->wdata_size -= len;
+		} else {
+			session[fd]->wdata_size=0;
+		}
+	} else if (errno != EAGAIN) {
+//		ShowMessage("set eof :%d\n",fd);
+		session[fd]->flag.connected = false;
+		session[fd]->wdata_size=0;
+	}
+	return 0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Fifo Control
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-int recv_to_fifo(int fd);
-int send_from_fifo(int fd);
 
 #ifdef SOCKET_DEBUG_PRINT
 void dumpx(unsigned char *buf, int len)
@@ -1315,91 +1399,6 @@ int RFIFOSKIP(int fd, size_t len)
 	return 0;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// FIFO Reading/Sending Functions
-//
-///////////////////////////////////////////////////////////////////////////////
-int recv_to_fifo(int fd)
-{
-	int len;
-	unsigned long arg = 0;
-	int rv;
-
-	//ShowMessage("recv_to_fifo : %d\n",fd);
-	if( !session_isActive(fd) )
-		return -1;
-
-	// check for incoming data and the amount
-	rv = ioctlsocket(SessionGetSocket(fd), FIONREAD, &arg);
-	if( (rv == 0) && (arg > 0) )
-	{	// we are reading 'arg' bytes of data from the socket
-
-		// if there is more on the socket, limit the read size
-		// fifo should be sized that the message with max expected len fit in
-		if( arg > (unsigned long)RFIFOSPACE(fd) ) arg = RFIFOSPACE(fd);
-
-		len=read(SessionGetSocket(fd),(char*)(session[fd]->rdata+session[fd]->rdata_size),arg);
-
-#ifdef SOCKET_DEBUG_PRINT
-		printf("<-");
-		dumpx(session[fd]->rdata, len);
-#endif
-		if(len>0){
-			session[fd]->rdata_size+=len;
-			session[fd]->rdata_tick = last_tick;
-		} else if(len<=0){
-			session[fd]->flag.connected = false;
-			session[fd]->wdata_size=0;
-		}
-	} else {	
-		// the socket has been terminated
-		session[fd]->flag.connected = false;
-	}
-	return 0;
-}
-
-int send_from_fifo(int fd)
-{
-	int len;
-
-	//ShowMessage("send_from_fifo : %d\n",fd);
-	if( !session_isValid(fd) )
-		return -1;
-
-	if (session[fd]->wdata_size == 0)
-		return 0;
-
-	// clear buffer if not connected
-	if( !session[fd]->flag.connected )
-	{
-		session[fd]->wdata_size = 0;
-		return 0;
-	}
-
-	len=write(SessionGetSocket(fd),(char*)(session[fd]->wdata),session[fd]->wdata_size);
-//	ShowMessage (":::SEND:::\n");
-//	dump(session[fd]->wdata, len); ShowMessage ("\n");
-#ifdef SOCKET_DEBUG_PRINT
-	printf("->");
-	dumpx(session[fd]->wdata, len);
-#endif
-
-	//{ int i; ShowMessage("send %d : ",fd);  for(i=0;i<len;i++){ ShowMessage("%02x ",session[fd]->wdata[i]); } ShowMessage("\n");}
-	if(len>0){
-		if((size_t)len<session[fd]->wdata_size){
-			memmove(session[fd]->wdata,session[fd]->wdata+len,session[fd]->wdata_size-len);
-			session[fd]->wdata_size -= len;
-		} else {
-			session[fd]->wdata_size=0;
-		}
-	} else if (errno != EAGAIN) {
-//		ShowMessage("set eof :%d\n",fd);
-		session[fd]->flag.connected = false;
-		session[fd]->wdata_size=0;
-	}
-	return 0;
-}
 
 
 ///////////////////////////////////////////////////////////////////////////////

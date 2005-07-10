@@ -1411,7 +1411,8 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		sd.speed += 450;
 
 	if(sd.sc_data[SC_TRUESIGHT].timer!=-1) //ÉgÉDÉã?ÉTÉCÉg
-		sd.critical += sd.critical*(sd.sc_data[SC_TRUESIGHT].val1)/100;
+		//sd.critical += sd.critical*(sd.sc_data[SC_TRUESIGHT].val1)/100;
+		sd.critical += sd.sc_data[SC_TRUESIGHT].val1; // not +10% CRIT but +CRIT!! [Lupus] u can see it in any RO calc stats
 
 	if(sd.sc_data[SC_BERSERK].timer!=-1) {	//All Def/MDef reduced to 0 while in Berserk [DracoRPG]
 		sd.def = sd.def2 = 0;
@@ -1501,26 +1502,29 @@ int status_calc_pc(struct map_session_data& sd, int first)
 
 	if (sd.speed_rate <= 0)
 		sd.speed_rate = 1;
+
 	if(sd.speed_rate != 100)
 		sd.speed = sd.speed*sd.speed_rate/100;
-	if(sd.speed < DEFAULT_WALK_SPEED/4)
-		sd.speed = DEFAULT_WALK_SPEED/4;
+
+	if(sd.skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0) {
+		sd.speed = sd.speed*(175 - skill*5)/100;
+	}
+
+	if(sd.speed < MAX_WALK_SPEED/battle_config.max_walk_speed)
+		sd.speed = MAX_WALK_SPEED/battle_config.max_walk_speed;
+
 	if(pc_isriding(sd))
 		sd.aspd += sd.aspd * 10*(5 - pc_checkskill(sd,KN_CAVALIERMASTERY))/100;
 	if(aspd_rate != 100)
 		sd.aspd = sd.aspd*aspd_rate/100;
 	if(pc_isriding(sd))							// ãRï∫èCó˚
 		sd.aspd = sd.aspd*(100 + 10*(5 - pc_checkskill(sd,KN_CAVALIERMASTERY)))/ 100;
-	if(sd.aspd < battle_config.max_aspd_val) sd.aspd = battle_config.max_aspd_val;
+	if(sd.aspd < battle_config.max_aspd_interval) sd.aspd = battle_config.max_aspd_interval;
 	sd.amotion = sd.aspd;
 	if( sd.paramc[1] < 100 )
 		sd.dmotion = 800-sd.paramc[1]*4;
 	else
 		sd.dmotion = 400;
-	if(sd.skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0) {
-		sd.prev_speed = sd.speed;
-		sd.speed = sd.speed*(175 - skill*5)/100;
-	}
 	if(sd.dsprate < 0)
 		sd.dsprate = 0;
 	if(sd.status.hp>sd.status.max_hp)
@@ -1697,7 +1701,6 @@ int status_calc_speed_old (struct map_session_data &sd)
 		sd.speed = DEFAULT_WALK_SPEED/4;
 
 	if(sd.skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0) {
-		sd.prev_speed = sd.speed;
 		sd.speed = sd.speed*(175 - skill*5)/100;
 	}
 
@@ -1710,7 +1713,7 @@ int status_calc_speed_old (struct map_session_data &sd)
  * For quick calculating [Celest] Adapted by [Skotlex]
  *------------------------------------------
  */
-int status_calc_speed(struct map_session_data &sd, unsigned short skill_num, unsigned short skill_lv, bool start)
+int status_calc_speed(struct map_session_data &sd, unsigned short skill_num, unsigned short skill_lv, int start)
 {
 	// [Skotlex]
 	// This function individually changes a character's speed upon a skill change and restores it upon it's ending.
@@ -1718,21 +1721,21 @@ int status_calc_speed(struct map_session_data &sd, unsigned short skill_num, uns
 	// Currently used for freedom of cast
 	// and when cloaking changes it's val3 (in which case the new val3 value comes in the level.
 	
-	int b_speed;
-	
-	b_speed = sd.speed;
+	int b_speed = sd.speed;
 	
 	switch (skill_num)
 	{
 	case SA_FREECAST:
-		if (start)
-		{
-			sd.prev_speed = sd.speed;
-			sd.speed = sd.speed*(175 - skill_lv*5)/100;
-		}
-		else
-			sd.speed = sd.prev_speed;
+	{
+		int val = 175 - skill_lv*5;
+		if (start) // do round integers properly
+			sd.speed = (sd.speed*val + 100/2)/100;
+		else//stop
+			sd.speed = (sd.speed*100 + val/2)/val;
+printf("speed set to %i (%i)\n",sd.speed, val);
+
 		break;
+	}
 	case AS_CLOAKING:
 		if (start && sd.sc_data[SC_CLOAKING].timer != -1)
 		{	//There shouldn't be an "stop" case here.
@@ -1747,8 +1750,8 @@ int status_calc_speed(struct map_session_data &sd, unsigned short skill_num, uns
 		break;
 	}
 
-	if(sd.speed < battle_config.max_walk_speed)
-		sd.speed = battle_config.max_walk_speed;
+	if(sd.speed < MAX_WALK_SPEED/battle_config.max_walk_speed)
+		sd.speed = MAX_WALK_SPEED/battle_config.max_walk_speed;
 
 	if(b_speed != sd.speed)
 		clif_updatestatus(sd,SP_SPEED);
@@ -2918,7 +2921,7 @@ int status_get_adelay(struct block_list *bl)
 		}
 		if(aspd_rate != 100)
 			adelay = adelay*aspd_rate/100;
-		if(adelay < 2*(int)battle_config.monster_max_aspd) adelay = battle_config.monster_max_aspd<<1;
+		if(adelay < 2*(int)battle_config.monster_max_aspd_interval) adelay = 2*battle_config.monster_max_aspd_interval;
 		return adelay;
 	}
 }
@@ -2967,7 +2970,7 @@ int status_get_amotion(struct block_list *bl)
 		}
 		if(aspd_rate != 100)
 			amotion = amotion*aspd_rate/100;
-		if(amotion < (int)battle_config.monster_max_aspd) amotion = battle_config.monster_max_aspd;
+		if(amotion < (int)battle_config.monster_max_aspd_interval) amotion = battle_config.monster_max_aspd_interval;
 		return amotion;
 	}
 }

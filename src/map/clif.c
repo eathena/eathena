@@ -195,7 +195,7 @@ int clif_countusers(void)
  *------------------------------------------
  */
  
-int clif_foreachclient(int (*func)(struct map_session_data&, va_list),...) //recoded by sasuke, bug when player count gets higher [Kevin]
+int clif_foreachclient(int (*func)(struct map_session_data&, va_list),...)
 {
 	size_t i;
 	struct map_session_data *sd;
@@ -4331,7 +4331,7 @@ int clif_npcinsight(struct block_list &bl,va_list ap)
  */
 int clif_skillinfo(struct map_session_data &sd, unsigned short skillid, short type, short range)
 {
-	int fd;
+	int fd, inf2;
 	unsigned short id;
 
 	fd=sd.fd;
@@ -4357,7 +4357,9 @@ int clif_skillinfo(struct map_session_data &sd, unsigned short skillid, short ty
 	} else
 		WFIFOW(fd,12)= range;
 	memset(WFIFOP(fd,14),0,24);
-	if(!(skill_get_inf2(id)&0x01) || battle_config.quest_skill_learn == 1 || (battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill) )
+	inf2 = skill_get_inf2(id);
+	if( ((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL)) ||
+		(battle_config.gm_allskill && pc_isGM(sd) >= battle_config.gm_allskill) )
 		//WFIFOB(fd,38)= (sd.status.skill[skillid].lv < skill_get_max(id) && sd.status.skill[skillid].flag ==0 )? 1:0;
 		WFIFOB(fd,38)= (sd.status.skill[skillid].lv < skill_tree_get_max(id, sd.status.class_) && sd.status.skill[skillid].flag ==0 )? 1:0;
 	else
@@ -4374,7 +4376,7 @@ int clif_skillinfo(struct map_session_data &sd, unsigned short skillid, short ty
 int clif_skillinfoblock(struct map_session_data &sd)
 {
 	int fd;
-	int i,c,len=4,id,range;
+	int i,c,len=4,id,range, inf2;
 
 	fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -4393,7 +4395,9 @@ int clif_skillinfoblock(struct map_session_data &sd)
 				range = status_get_range(&sd.bl) - (range + 1);
 			WFIFOW(fd,len+10)= range;
 			memset(WFIFOP(fd,len+12),0,24);
-			if(!(skill_get_inf2(id)&0x01) || battle_config.quest_skill_learn == 1 || (battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill) )
+			inf2 = skill_get_inf2(id);
+			if( ((!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL)) ||
+				(battle_config.gm_allskill && pc_isGM(sd) >= battle_config.gm_allskill) )
 				//WFIFOB(fd,len+36)= (sd.status.skill[i].lv < skill_get_max(id) && sd.status.skill[i].flag ==0 )? 1:0;
 				WFIFOB(fd,len+36)= (sd.status.skill[i].lv < skill_tree_get_max(id, sd.status.class_) && sd.status.skill[i].flag ==0 )? 1:0;
 			else
@@ -5866,8 +5870,8 @@ int clif_party_option(struct party &p,struct map_session_data *sd, int flag)
 				break;
 	}
 	WBUFW(buf,0)=0x101;
-	WBUFW(buf,2)=p.expshare;//((flag&0x01)?2:p.expshare);
-	WBUFW(buf,4)=p.itemshare;//((flag&0x10)?2:p.itemshare);
+	WBUFW(buf,2)=((flag&0x01)?2:p.expshare);
+	WBUFW(buf,4)=((flag&0x10)?2:p.itemshare);
 	if(flag==0)
 		clif_send(buf,packet_len_table[0x101],&sd->bl,PARTY);
 	else if( sd && session_isActive(sd->fd) ) {
@@ -7463,10 +7467,23 @@ int clif_refresh(struct map_session_data &sd)
 
 
 // updates the object's (bl) name on client
-int clif_charnameack(int fd, struct block_list &bl)
+int clif_charnameack(int fd, struct block_list &bl, bool clear)
 {
 	unsigned char buf[103];
-	unsigned short cmd = 0x95; // default sending 0x95 and change to 0x195 when necessary
+	unsigned short cmd;
+	
+	if(clear)
+	{
+		cmd = 0x195;
+		WBUFB(buf,30) = 0;
+		WBUFB(buf,54) = 0;
+		WBUFB(buf,78) = 0;
+	}
+	else
+	{	// default sending 0x95 and change to 0x195 when necessary
+		cmd = 0x95; 
+	}
+
 
 	switch(bl.type)
 	{
@@ -7480,11 +7497,12 @@ int clif_charnameack(int fd, struct block_list &bl)
 		}
 		else
 		{
+			size_t i;
+			struct party *p = NULL;
 			struct guild *g = NULL;
 			memcpy(WBUFP(buf,6), sd.status.name, 24);
-			if( sd.status.guild_id && (g = guild_search(sd.status.guild_id)) != NULL)
+			if( sd.status.guild_id && NULL!=(g = guild_search(sd.status.guild_id)) )
 			{	// ギルド所属ならパケット0195を返す
-				size_t i;
 				for(i = 0; i < g->max_member; i++)
 				{
 					if( g->member[i].account_id == sd.status.account_id &&
@@ -7496,23 +7514,55 @@ int clif_charnameack(int fd, struct block_list &bl)
 				if(i < g->max_member)
 				{
 					unsigned short ps = g->member[i].position;
-					struct party *p = (sd.status.party_id != 0) ? party_search(sd.status.party_id) : NULL;
 					cmd = 0x195;
-					if (p)
-						memcpy(WBUFP(buf,30), p->name, 24);
-					else
-						WBUFB(buf,30) = 0;
 					memcpy(WBUFP(buf,54), g->name,24);
 					memcpy(WBUFP(buf,78), g->position[ps].name, 24);
-					break;
 				}
 			}
+			if( sd.status.party_id && NULL!=(p=party_search(sd.status.party_id)) )
+			{
+				if(g)
+					memcpy(WBUFP(buf,30), p->name, 24);
+				else
+				{
+					for(i=0; i<MAX_PARTY; i++)
+					{
+						if( p->member[i].account_id==sd.status.account_id &&
+							0==strcmp(p->member[i].name, sd.status.name) )
+						{
+							break;
+						}
+					}
+					cmd = 0x195;
+					if(i<MAX_PARTY && p->member[i].leader)
+						memcpy(WBUFP(buf,54), "Leader", 7);
+					else
+						WBUFB(buf,54) = 0;
+					memcpy(WBUFP(buf,78), p->name,24);
+					WBUFB(buf,30) = 0;
+				}
+			}
+			else
+				WBUFB(buf,30) = 0;
 		}
 		break;
 	}
 	case BL_PET:
 	{
-		memcpy(WBUFP(buf,6), ((struct pet_data&)bl).namep, 24);
+		struct pet_data& pd = (struct pet_data&)bl;
+		memcpy(WBUFP(buf,6), pd.namep, 24);
+		if(pd.msd)
+		{
+			char nameextra[24];
+			memcpy(nameextra, pd.msd->status.name, 24);
+			nameextra[21]=0; // need 2 extra chars for the attachment
+			strcat(nameextra, "'s");
+
+			cmd = 0x195;
+			WBUFB(buf,54) = 0;
+			memcpy(WBUFP(buf,78), nameextra,24);
+		}
+
 		break;
 	}
 	case BL_NPC:
@@ -7537,7 +7587,7 @@ int clif_charnameack(int fd, struct block_list &bl)
 				memcpy(WBUFP(buf,78), gc->castle_name, 24);
 			}
 		}
-		else if (battle_config.show_mob_hp == 1)
+		else if(battle_config.show_mob_hp)
 		{
 			char mobhp[50];
 			cmd = 0x195;
@@ -7553,7 +7603,6 @@ int clif_charnameack(int fd, struct block_list &bl)
 			ShowError("clif_parse_GetCharNameRequest : bad type %d(%ld)\n", bl.type, bl.id);
 		return 0;
 	}
-
 
 	WBUFW(buf,0) = cmd;
 	WBUFL(buf,2) = bl.id;

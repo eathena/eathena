@@ -8,7 +8,7 @@
 // mysql access function
 //
 ///////////////////////////////////////////////////////////////////////////////
-extern inline int mysql_SendQuery(MYSQL *mysql, const char* q)
+static inline int mysql_SendQuery(MYSQL *mysql, const char* q)
 {
 #ifdef TWILIGHT
 	ShowSQL("%s:%d# %s\n", __FILE__, __LINE__, q);

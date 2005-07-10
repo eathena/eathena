@@ -299,7 +299,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
 		"\t%ld,%ld,%ld,%ld"
 		"\t%d,%d,%d,%d,%d,%d"
 		"\t%d,%d"
-		"\t%d,%d,%d,%d"
+		"\t%d,%d,%d"
 		"\t%ld,%ld,%ld"
 		"\t%d,%d,%d"
 		"\t%d,%d,%d,%d,%d"
@@ -316,7 +316,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
 		p->hp, p->max_hp, p->sp, p->max_sp,
 		p->str, p->agi, p->vit, p->int_, p->dex, p->luk,
 		p->status_point, p->skill_point,
-		p->option, p->karma, p->chaos, p->manner,
+		p->option, MakeWord(p->karma, p->chaos), p->manner,
 		p->party_id, p->guild_id, p->pet_id,
 		p->hair, p->hair_color, p->clothes_color,
 		p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
@@ -372,43 +372,10 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	size_t i;
 
 	// initilialise character
-	memset(p, '\0', sizeof(struct mmo_charstatus));
+	memset(p, 0, sizeof(struct mmo_charstatus));
+	memset(tmp_int, 0, sizeof(tmp_int));
 	
 	if( sscanf(str, 
-		"%d\t%d,%d\t%[^\t]"
-		"\t%d,%d,%d"
-		"\t%d,%d,%d"
-		"\t%d,%d,%d,%d"
-		"\t%d,%d,%d,%d,%d,%d"
-		"\t%d,%d"
-		"\t%d,%d,%d,%d"
-		"\t%d,%d,%d"
-		"\t%d,%d,%d"
-		"\t%d,%d,%d,%d,%d"
-		"\t%[^,],%d,%d"
-		"\t%[^,],%d,%d"
-		"\t%d,%d,%d,%d"
-		"\t%d"
-		"%n",
-		&tmp_int[0], &tmp_int[1], &tmp_int[2], p->name, //
-		&tmp_int[3], &tmp_int[4], &tmp_int[5],
-		&tmp_int[6], &tmp_int[7], &tmp_int[8],
-		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
-		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
-		&tmp_int[19], &tmp_int[20],
-		&tmp_int[21], &tmp_int[22], &tmp_int[44], &tmp_int[23], //!! chaos here
-		&tmp_int[24], &tmp_int[25], &tmp_int[26],
-		&tmp_int[27], &tmp_int[28], &tmp_int[29],
-		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-		p->last_point.map, &tmp_int[35], &tmp_int[36], //
-		p->save_point.map, &tmp_int[37], &tmp_int[38], &tmp_int[39], 
-		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) == 48 )
-	{
-		// my personal reordering 2005/07/06
-		//ShowMessage("char: new char data ver.5b\n");
-		// added chaos, is id 44 but inserted between 22 and 23
-	}
-	else if( sscanf(str, 
 		"%d\t%d,%d\t%[^\t]"
 		"\t%d,%d,%d"
 		"\t%d,%d,%d"
@@ -580,8 +547,8 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	p->status_point = tmp_int[19];
 	p->skill_point = tmp_int[20];
 	p->option = tmp_int[21];
-	p->karma = tmp_int[22];
-	p->chaos = tmp_int[44];
+	p->karma = GetByte(tmp_int[22],0);
+	p->chaos = GetByte(tmp_int[22],1);
 	p->manner = tmp_int[23];
 	p->party_id = tmp_int[24];
 	p->guild_id = tmp_int[25];
@@ -3105,7 +3072,7 @@ int parse_char(int fd)
 			if (RFIFOREST(fd) < 37)
 				return 0;
 				
-			if(char_new == 0) //turn character creation on/off [Kevin]
+			if(char_new == 0)
 				ret = -2;
 			else
 				ret = make_new_char(fd, (char*)RFIFOP(fd,2));
@@ -3494,9 +3461,7 @@ int check_connect_login_server(int tid, unsigned long tick, int id, int data) {
 			memcpy(WFIFOP(login_fd,60), server_name, strlen(server_name) < 20 ? strlen(server_name) : 20);
 			WFIFOW(login_fd,80) = 0;
 			WFIFOW(login_fd,82) = char_maintenance;
-
-			WFIFOW(login_fd,84) = char_new_display; //only display (New) if they want to [Kevin]
-			
+			WFIFOW(login_fd,84) = char_new_display;	
 			WFIFOSET(login_fd,86);
 		}
 	}

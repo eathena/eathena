@@ -55,7 +55,6 @@ struct mmo_char_server server[MAX_SERVERS];
 
 int login_fd;
 
-//Account flood protection [Kevin]
 unsigned int new_reg_tick=0;
 int allowed_regs=1;
 int num_regs=0;
@@ -1366,7 +1365,7 @@ int mmo_auth(struct mmo_account* account, int fd)
 	    (account->userid[len+1] == 'F' || account->userid[len+1] == 'M') && new_account_flag == 1 &&
 	    account_id_count <= END_ACCOUNT_NUM && len >= 4 && strlen(account->passwd) >= 4) {
 						
-		//only continue if amount in this time limit is allowed (account registration flood protection)[Kevin]
+		// only continue if amount in this time limit is allowed
 		if(gettick() <= new_reg_tick && num_regs >= allowed_regs) {
 			ShowMessage("Notice: Account registration in disallowed time from: %s!", ip_str);
 			login_log("Notice: Account registration in disallowed time from: %s!", ip_str);
@@ -1514,8 +1513,7 @@ int mmo_auth(struct mmo_account* account, int fd)
 			login_log("Account creation and authentification accepted (account %s (id: %d), pass: %s, sex: %c, connection with _F/_M, ip: %s)" RETCODE,
 			          account->userid, new_id, account->passwd, account->userid[len+1], ip_str);
 			auth_before_save_file = 0; // Creation of an account -> save accounts file immediatly
-			
-			//restart ticker (account registration flood protection)[Kevin]
+			//restart ticker
 			if(num_regs==0) {
 				new_reg_tick=gettick()+time_allowed*1000;
 			}
@@ -3783,7 +3781,7 @@ int login_config_read(const char *cfgName) {
 						safestrcpy(access_deny + (access_denynum++) * ACO_STRSIZE, w2, ACO_STRSIZE);
 					}
 				}
-			// dynamic password error ban
+				// dynamic password error ban
 			} else if (strcasecmp(w1, "dynamic_pass_failure_ban") == 0) {
 				dynamic_pass_failure_ban = config_switch(w2);
 			} else if (strcasecmp(w1, "dynamic_pass_failure_ban_time") == 0) {
@@ -3794,20 +3792,18 @@ int login_config_read(const char *cfgName) {
 				dynamic_pass_failure_ban_how_long = atoi(w2);
 			} else if (strcasecmp(w1, "import") == 0) {
 				login_config_read(w2);
-			} else if(strcasecmp(w1, "check_client_version") == 0){		//Added by Sirius for client version check
+			} else if(strcasecmp(w1, "check_client_version") == 0){	//Added by Sirius for client version check
 				check_client_version = config_switch(w2);
 			}else if(strcasecmp(w1, "client_version_to_connect") == 0){	//Added by Sirius for client version check
 				client_version_to_connect = atoi(w2);			//Added by Sirius for client version check
 			} else if (strcasecmp(w1, "console") == 0) {
-		        console = config_switch(w2);
-            } else if (strcasecmp(w1, "allowed_regs") == 0) { //account flood protection system [Kevin]
-	            
-	            allowed_regs = atoi(w2);
-	            
+				console = config_switch(w2);
+			} else if (strcasecmp(w1, "allowed_regs") == 0) {			
+				allowed_regs = atoi(w2);
 			} else if (strcasecmp(w1, "time_allowed") == 0) {
-	            
-	            time_allowed = atoi(w2);
-	            
+				
+				time_allowed = atoi(w2);
+				
 			}
 		}
 	}

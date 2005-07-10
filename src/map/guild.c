@@ -334,10 +334,11 @@ int guild_created(unsigned long account_id,unsigned long guild_id)
 		{
 			ShowMessage("guild: id already exists!\n");
 			return 0;
-			}
+		}
 		clif_guild_created(*sd,0);
-			if(battle_config.guild_emperium_check)
+		if(battle_config.guild_emperium_check)
 			pc_delitem(*sd,pc_search_inventory(*sd,714),1,0);	// エンペリウム消耗
+		clif_charnameack(-1, sd->bl);
 	}
 	else
 	{
@@ -634,7 +635,7 @@ int guild_member_added(unsigned long guild_id,unsigned long account_id,unsigned 
 
 	// いちおう競合確認
 	guild_check_conflict(*sd);
-	clif_charnameack(0, sd->bl); //Update display name [Skotlex]
+	clif_charnameack(-1, sd->bl); //Update display name [Skotlex]
 	return 0;
 }
 
@@ -725,7 +726,7 @@ int guild_member_leaved(unsigned long guild_id,unsigned long account_id,unsigned
 			sd->status.guild_id=0;
 			sd->guild_emblem_id=0;
 			sd->guild_sended=0;
-			clif_charnameack(0, sd->bl); //Update display name [Skotlex]
+			clif_charnameack(-1, sd->bl,true); //Update display name [Skotlex]
 		}
 	return 0;
 }
@@ -857,6 +858,9 @@ int guild_memberposition_changed(struct guild &g,unsigned short idx,unsigned sho
 	{
 		g.member[idx].position=pos;
 		clif_guild_memberpositionchanged(g,idx);
+
+		if( g.member[idx].sd )
+			clif_charnameack(-1, g.member[idx].sd->bl);
 	}
 	return 0;
 }
@@ -875,11 +879,18 @@ int guild_change_position(struct map_session_data &sd,unsigned long idx,int mode
 // ギルド役職変更通知
 int guild_position_changed(unsigned long guild_id,unsigned long idx,struct guild_position &p)
 {
+	size_t i;
 	struct guild *g=guild_search(guild_id);
 	if(g!=NULL && idx<MAX_GUILDPOSITION)
 	{
 		memcpy(&g->position[idx],&p,sizeof(struct guild_position));
 		clif_guild_positionchanged(*g,idx);
+
+		for(i=0; i<g->max_member; i++)
+		{	// update all members with that position
+			if( g->member[i].sd && g->member[i].position==idx )
+				clif_charnameack(-1, g->member[i].sd->bl);
+		}
 	}
 	return 0;
 }

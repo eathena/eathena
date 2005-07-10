@@ -1566,7 +1566,7 @@ int map_quit(struct map_session_data &sd)
 		guild_reply_reqalliance(sd,sd.guild_alliance_account,0);
 
 	party_send_logout(sd);	// パ?ティのログアウトメッセ?ジ送信
-	party_send_dot_remove(sd);//minimap dot fix [Kevin]
+	party_send_dot_remove(sd);
 	guild_send_memberinfoshort(sd,0);	// ギルドのログアウトメッセ?ジ送信
 
 	pc_cleareventtimer(sd);	// イベントタイマを破棄する

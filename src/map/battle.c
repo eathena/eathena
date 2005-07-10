@@ -598,12 +598,12 @@ int battle_calc_drain(int damage, int rate, int per, int val)
  * 修練ダメージ
  *------------------------------------------
  */
-int battle_addmastery(struct map_session_data *sd,struct block_list *target,int dmg,int type)
+int battle_addmastery(struct map_session_data *sd,struct block_list *target,int damage,int type)
 {
-	int damage,skill;
+	int skill;
 	int race=status_get_race(target);
 	int weapon;
-	damage = 0;
+
 
 	nullpo_retr(0, sd);
 
@@ -708,6 +708,10 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 		}
 		case 0x10:	// Katars
 		{
+			//Advanced Katar Research by zanetheinsane
+			if( (skill = pc_checkskill(*sd,ASC_KATAR)) > 0 )
+				damage += damage*(10+(skill * 2))/100;
+
 			// カタール修練(+3 ～ +30) カタール
 			if((skill = pc_checkskill(*sd,AS_KATAR)) > 0) {
 				//ソニックブロー時は別処理（1撃に付き1/8適応)
@@ -716,7 +720,6 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 			break;
 		}
 	}
-	damage = dmg + damage;
 	return (damage);
 }
 
@@ -1043,7 +1046,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 				damage = damage*(40+ 40*skill_lv)/100;
 				break;
 			case SN_SHARPSHOOTING:			/* シャープシューティング */
-				damage += damage*(30*skill_lv)/100;
+				damage += damage*(100+50*skill_lv)/100;
 				break;
 			case CG_ARROWVULCAN:			/* アローバルカン */
 				damage = damage*(200+100*skill_lv)/100;
@@ -1574,7 +1577,7 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 				damage = damage*(40+ 40*skill_lv)/100;
 				break;
 			case SN_SHARPSHOOTING:			/* シャープシューティング */
-				damage += damage*(30*skill_lv)/100;
+				damage += damage*(100+50*skill_lv)/100;
 				break;
 			case CG_ARROWVULCAN:			/* アローバルカン */
 				damage = damage*(200+100*skill_lv)/100;
@@ -2354,7 +2357,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				no_cardfix = 1;
 				break;
 			case SN_SHARPSHOOTING:			/* シャープシューティング */
-				damage_rate += 30*skill_lv;
+				damage_rate += 100+50*skill_lv;
 				break;
 			case CG_ARROWVULCAN:			/* アローバルカン */
 				damage_rate += 100+100*skill_lv;
@@ -2543,9 +2546,6 @@ static struct Damage battle_calc_pc_weapon_attack(
 	// スキル修正２（修練系）
 	// 修練ダメージ(右手のみ) ソニックブロー時は別処理（1撃に付き1/8適応)
 	if( skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST && skill_num != CR_GRANDCROSS) {			//修練ダメージ無視
-		//Advanced Katar Research by zanetheinsane
-		if((sd->weapontype1 == 0x10 || sd->weapontype2 == 0x10) && (skill = pc_checkskill(*sd,ASC_KATAR)) > 0)
-				damage += damage*(10+(skill * 2))/100;
 		damage = battle_addmastery(sd,target,damage,0);
 		damage2 = battle_addmastery(sd,target,damage2,1);
 	}
@@ -3205,6 +3205,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 			case MO_INVESTIGATE:
 			case MO_EXTREMITYFIST:
 			case PA_PRESSURE:
+			case PA_SACRIFICE:
 				flag.hit = 1;
 				break;
 		}
@@ -3652,7 +3653,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 					skillratio+= 40*skill_lv-60;
 					break;
 				case SN_SHARPSHOOTING:
-					skillratio+= 30*skill_lv;
+					skillratio+= 100+50*skill_lv;
 					break;
 				case CG_ARROWVULCAN:
 					skillratio+= 100+100*skill_lv;
@@ -3842,8 +3843,6 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 
 		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST && skill_num != CR_GRANDCROSS)
 		{	//Add mastery damage
-			if((sd->weapontype1 == 0x10 || sd->weapontype2 == 0x10) && (skill = pc_checkskill(*sd,ASC_KATAR)) > 0)
-				ATK_ADDRATE(10+(skill *2));	//Advanced Katar Research by zanetheinsane
 			wd.damage = battle_addmastery(sd,target,wd.damage,0);
 			if (flag.lh) wd.damage2 = battle_addmastery(sd,target,wd.damage2,1);
 		}
@@ -4518,8 +4517,7 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
  * その他ダメージ計算
  *------------------------------------------
  */
-struct Damage  battle_calc_misc_attack(
-	struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag)
+struct Damage  battle_calc_misc_attack(struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag)
 {
 	int int_=status_get_int(bl);
 //	int luk=status_get_luk(bl);
@@ -4529,7 +4527,7 @@ struct Damage  battle_calc_misc_attack(
 	int damage=0,div_=1,blewcount=skill_get_blewcount(skill_num,skill_lv);
 	struct Damage md;
 	int damagefix=1;
-
+	int self_damage=0;
 	int aflag=BF_MISC|BF_SHORT|BF_SKILL;
 
 	//return前の処理があるので情報出力部のみ変更
@@ -4588,6 +4586,7 @@ struct Damage  battle_calc_misc_attack(
 		break;
 
 	case BA_DISSONANCE:	// 不協和音
+		if(sd)
 		damage=30+(skill_lv)*10+pc_checkskill(*sd,BA_MUSICALLESSON)*3;
 		break;
 
@@ -4616,20 +4615,32 @@ struct Damage  battle_calc_misc_attack(
 		}
 		break;
 	case SN_FALCONASSAULT:			/* ファルコンアサルト */
+	{
 #ifdef TWILIGHT
 		if( sd==NULL || (skill = pc_checkskill(*sd,HT_BLITZBEAT)) <= 0)
 			skill=0;
- 		damage=(100+50*skill_lv+(dex/10+int_/2+skill*3+40)*2) * 2;
+ 		damage=(100+70*skill_lv+(dex/10+int_/2+skill*3+40)*2) * 2;
 #else
 		if( sd==NULL || (skill = pc_checkskill(*sd,HT_STEELCROW)) <= 0)
 			skill=0;
-		damage=((150+50*skill_lv)*(dex/10+int_/2+skill*3+40)*2)/100; // [Celest]
+		damage=((150+70*skill_lv)*(dex/10+int_/2+skill*3+40)*2)/100; // [Celest]
 #endif
 		if(flag > 1)
 			damage /= flag;
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
 	}
+	case PA_SACRIFICE:
+	{	
+		if( status_get_mexp(target) )
+			self_damage = 1;
+		else
+			self_damage = status_get_max_hp(bl)*9/100;
+		ele = status_get_attack_element(bl);
+		damage = self_damage + (self_damage/10)*(skill_lv-1);
+		break;
+	}
+	}//end case
 
 	if(damagefix){
 		if(damage<1 && skill_num != NPC_DARKBREATH)
@@ -4664,6 +4675,13 @@ struct Damage  battle_calc_misc_attack(
 
 	if(is_boss(target))
 		blewcount = 0;
+
+	if(self_damage)
+	{
+		if(sd)
+			pc_damage(*sd, self_damage, bl);
+		clif_damage(*bl,*bl, gettick(), 0, 0, self_damage, 0 , 0, 0);
+	}
 
 	damage=battle_calc_damage(bl,target,damage,div_,skill_num,skill_lv,aflag);	// 最終修正
 
@@ -5616,7 +5634,7 @@ int battle_set_value(const char *w1, const char *w2)
 			*(battle_data[i].val) = config_switch(w2);
 			return 1;
 		}
-		}
+	}
 	return 0;
 }
 
@@ -5747,7 +5765,7 @@ void battle_set_defaults()
 	battle_config.making_arrow_name_input = 1;
 	battle_config.max_adv_level=70;
 	battle_config.max_aspd = 199;
-	battle_config.max_aspd_val=10;
+	battle_config.max_aspd_interval=10;
 	battle_config.max_base_level = 99; // [MouseJstr]
 	battle_config.max_cart_weight = 8000;
 	battle_config.max_cloth_color = 4;
@@ -5919,18 +5937,25 @@ void battle_validate_conf()
 		battle_config.natural_heal_weight_rate = 50;
 	if(battle_config.natural_heal_weight_rate > 101)
 		battle_config.natural_heal_weight_rate = 101;
-	battle_config.monster_max_aspd = 2000 - battle_config.monster_max_aspd*10;
-	if(battle_config.monster_max_aspd < 10)
-		battle_config.monster_max_aspd = 10;
-	if(battle_config.monster_max_aspd > 1000)
-		battle_config.monster_max_aspd = 1000;
-
-	if(battle_config.max_aspd>199)
-		battle_config.max_aspd_val = 10;
-	else if(battle_config.max_aspd<100)
-		battle_config.max_aspd_val = 1000;
+	
+	////////////////////////////////////////////////
+	if( battle_config.monster_max_aspd< 200 )
+		battle_config.monster_max_aspd_interval = 2000 - battle_config.monster_max_aspd*10;
 	else
-		battle_config.max_aspd_val = 2000 - battle_config.max_aspd*10;
+		battle_config.monster_max_aspd_interval= 10;
+	if(battle_config.monster_max_aspd_interval > 1000)
+		battle_config.monster_max_aspd_interval = 1000;
+	////////////////////////////////////////////////
+	if(battle_config.max_aspd>199)
+		battle_config.max_aspd_interval = 10;
+	else if(battle_config.max_aspd<100)
+		battle_config.max_aspd_interval = 1000;
+	else
+		battle_config.max_aspd_interval = 2000 - battle_config.max_aspd*10;
+	////////////////////////////////////////////////
+	if(battle_config.max_walk_speed > MAX_WALK_SPEED)
+		battle_config.max_walk_speed = MAX_WALK_SPEED;
+
 
 	if(battle_config.hp_rate < 1)
 		battle_config.hp_rate = 1;
@@ -5964,8 +5989,6 @@ void battle_validate_conf()
 
 	if(battle_config.guild_exp_limit > 99)
 		battle_config.guild_exp_limit = 99;
-/*	if(battle_config.guild_exp_limit < 0)
-		battle_config.guild_exp_limit = 0;*/
 
 	if(battle_config.pet_support_min_friendly > 950) //Capped to 950/1000 [Skotlex]
 		battle_config.pet_support_min_friendly = 950;
@@ -5973,8 +5996,6 @@ void battle_validate_conf()
 	if(battle_config.pet_max_atk1 > battle_config.pet_max_atk2)	//Skotlex
 		battle_config.pet_max_atk1 = battle_config.pet_max_atk2;
 	
-//	if(battle_config.castle_defense_rate < 0)
-//		battle_config.castle_defense_rate = 0;
 	if(battle_config.castle_defense_rate > 100)
 		battle_config.castle_defense_rate = 100;
 	if(battle_config.item_drop_common_min < 1)		// Added by TyrNemesis^
@@ -5994,28 +6015,24 @@ void battle_validate_conf()
 	if(battle_config.item_drop_mvp_max > 10000)
 		battle_config.item_drop_mvp_max = 10000;	// End Addition
 
-/*	if (battle_config.night_at_start < 0) // added by [Yor]
-		battle_config.night_at_start = 0;
-	else if (battle_config.night_at_start > 1) // added by [Yor]
-		battle_config.night_at_start = 1; */
+
+	if (battle_config.night_at_start > 1) // added by [Yor]
+		battle_config.night_at_start = 1;
 	if (battle_config.day_duration != 0 && battle_config.day_duration < 60000) // added by [Yor]
 		battle_config.day_duration = 60000;
 	if (battle_config.night_duration != 0 && battle_config.night_duration < 60000) // added by [Yor]
 		battle_config.night_duration = 60000;
 	
-/*	if (battle_config.ban_spoof_namer < 0) // added by [Yor]
-		battle_config.ban_spoof_namer = 0;
-	else*/ if (battle_config.ban_spoof_namer > 32767)
+
+	if (battle_config.ban_spoof_namer > 32767)
 		battle_config.ban_spoof_namer = 32767;
 
-/*	if (battle_config.hack_info_GM_level < 0) // added by [Yor]
-		battle_config.hack_info_GM_level = 0;
-	else*/ if (battle_config.hack_info_GM_level > 100)
+
+	if (battle_config.hack_info_GM_level > 100)
 		battle_config.hack_info_GM_level = 100;
 
-/*	if (battle_config.any_warp_GM_min_level < 0) // added by [Yor]
-		battle_config.any_warp_GM_min_level = 0;
-	else*/ if (battle_config.any_warp_GM_min_level > 100)
+
+	if (battle_config.any_warp_GM_min_level > 100)
 		battle_config.any_warp_GM_min_level = 100;
 
 	// at least 1 client must be accepted
@@ -6025,13 +6042,9 @@ void battle_validate_conf()
 	if (battle_config.night_darkness_level > 10) // Celest
 		battle_config.night_darkness_level = 10;
 
-/*	if (battle_config.motd_type < 0)
-		battle_config.motd_type = 0;
-	else if (battle_config.motd_type > 1)
+
+	if (battle_config.motd_type > 1)
 		battle_config.motd_type = 1;
-*/
-//	if (battle_config.finding_ore_rate < 0)
-//		battle_config.finding_ore_rate = 0;
 
 	if (battle_config.vending_max_value > 10000000 || battle_config.vending_max_value<=0) // Lupus & Kobra_k88
 		battle_config.vending_max_value = 10000000;
@@ -6039,19 +6052,10 @@ void battle_validate_conf()
 	if (battle_config.min_skill_delay_limit < 10)
 		battle_config.min_skill_delay_limit = 10;	// minimum delay of 10ms
 
-	//Spawn delays [Skotlex]
-/*	if (battle_config.mob_spawn_delay < 0)
-		battle_config.mob_spawn_delay = 0;
-	if (battle_config.boss_spawn_delay < 0)
-		battle_config.boss_spawn_delay = 0;
-	if (battle_config.plant_spawn_delay < 0)
-		battle_config.plant_spawn_delay = 0;
-*/	
 	if (battle_config.mob_remove_delay < 15000)	//Min 15 sec
 		battle_config.mob_remove_delay = 15000;
 	if (battle_config.dynamic_mobs > 1)
-		battle_config.dynamic_mobs = 1;	//The flag will be used in assignations
-	
+		battle_config.dynamic_mobs = 1;	//The flag will be used in assignations	
 }
 
 /*==========================================
@@ -6083,7 +6087,7 @@ int battle_config_read(const char *cfgName)
 		{
 			if( !battle_set_value(w1, w2) )
 				ShowWarning("(Battle Config) %s: no such option.\n", w1);
-	}
+		}
 	}
 	fclose(fp);
 
