@@ -16,6 +16,10 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/10
+	* Reduced drop chance of Galapago, Banana Hat, etc hats (acc. the patch) [Lupus]
+	* Due to adding (thanx to Muad_dib) Lighthalzen fields mobs spawn. I had to change
+	  temp Mole stats to Martin. But Mole has its own hat drop [Lupus]
+	* Lighthalzen fields mobs spawn. thanx to Muad_dib
 	* Edited skill_castnodex_db [DracoRPG]
 	  - Enabled DEX-reduced casting time on Blitz Beat, Falcon Assault and Sharp Shooting
 	    (Lupus told me to do, so blame him, not me :p)
@@ -24,6 +28,7 @@
 	    enable delay_dependon_dex but it's not our matter)
 07/09
 	* Fixed SP usage of PALMSTRIKE, SPIRAL PIERCE [Lupus]
+	  I do always open the latest korean patch and get ACTUAL numbers from there ^^
 	* Added delays to Falcon Assault (1 sec for 1lvl,2,3,4,5sec for 5lvl)
 	  according to desc.
 	* Fixed Aura Blade (now requires Magnum Break LV 5) [Lupus]
