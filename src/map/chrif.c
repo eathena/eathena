@@ -1053,13 +1053,13 @@ int chrif_recvfamelist(int fd)
 			smith_fame_list[num].id = id;
 			smith_fame_list[num].fame = fame;
 			name = map_charid2nick(id);
+			ShowDebug("Received fame info for Blacksmith %s (%d): %d points\n",name,id,fame);
 			if (name != NULL)
 				memcpy(smith_fame_list[num].name, name, NAME_LENGTH-1);
 			else {
 				memcpy(smith_fame_list[num].name, "Unknown", NAME_LENGTH-1);
 				chrif_searchcharid(id);
 			}
-			//printf("received : %s (id:%d) fame:%d\n", name, id, fame);
 		}
 		// in case the char server sends too long
 		if (++num == 10)
@@ -1073,13 +1073,13 @@ int chrif_recvfamelist(int fd)
 			chemist_fame_list[num].id = id;
 			chemist_fame_list[num].fame = fame;
 			name = map_charid2nick(id);
+			ShowDebug("Received fame info for Alchemist %s (%d): %d points\n",name,id,fame);
 			if (name != NULL)
 				memcpy(chemist_fame_list[num].name, name, NAME_LENGTH-1);
 			else {
 				memcpy(chemist_fame_list[num].name, "Unknown", NAME_LENGTH-1);
 				chrif_searchcharid(id);
 			}
-			//printf("received : %s (id:%d) fame:%d\n", name, id, fame);
 		}
 		// in case the char server sends too long
 		if (++num == 10)

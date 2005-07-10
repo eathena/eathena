@@ -1,4 +1,8 @@
 Date	Added
+07/10
+	* Fixed Alchemist Fame system using' account_id' instead of 'char_id', however this does
+	  NOT solve the names problem : I left debug messages so you can see by yourself that the
+	  bug comes from map_charid2nick that always returns null... [DracoRPG]
 07/09
 	* Added Novice Castles Usher NPC. 4 new Castles for all but 2nd classes! [Lupus]
 	* Updated Falcon Assault (now gives 500% at 5 lvl) [Lupus]
