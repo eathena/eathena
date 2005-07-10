@@ -25,6 +25,9 @@ TODO:
 
 Date		Added
 ======
+07/10
+	* Added Custom Auctioneer script by request if Lupus [Fredzilla]
+	  (Also added my WoE Setter because of all the people who cant set WoE themself)
 07/09
 	* Added Novice Castles Usher NPC. [Lupus]
 		Now you have access to 4 N Guild castles. They don't have
