@@ -1,4 +1,40 @@
-//Field update - Einbroch and Lhztargen by Sara - Version 1
+//===== Athena Script ========================================
+//= Einbroch Field Warp Script
+//===== By: ==================================================
+//= Sara-chan (1.0)
+//===== Current Version: =====================================
+//= 1.1
+//===== Compatible With: =====================================
+//= Any Athena Version; RO Episode 8+
+//===== Description: =========================================
+//= Warp Points for Lighthalzen Field
+//===== Additional Comments: =================================
+// Field update - Einbroch and Lhztargen by Sara - Version 1.0
+// 1.1 moved field warps from town warps [Lupus]
+//============================================================
+
+
+//Einbroch Field <-> Juno Field
+yuno_fild04.gat,251,21,0	warp	ein001	1,1,ein_fild06.gat,252,363
+ein_fild06.gat,252,365,0	warp	ein001a	1,1,yuno_fild04.gat,251,23
+yuno_fild07.gat,73,219,0	warp	ein002	1,1,ein_fild06.gat,338,170
+ein_fild06.gat,340,170,0	warp	ein002a	1,1,yuno_fild07.gat,75,219
+yuno_fild07.gat,56,76,0	warp	ein003	1,1,ein_fild06.gat,354,94
+ein_fild06.gat,356,94,0	warp	ein003a	1,1,yuno_fild07.gat,58,76
+yuno_fild11.gat,28,266,0	warp	ein004	1,1,ein_fild07.gat,380,263
+ein_fild07.gat,382,263,0	warp	ein004a	1,1,yuno_fild11.gat,30,266
+
+//Einbroch Field
+ein_fild06.gat,135,35,0	warp	ein005	1,1,ein_fild07.gat,147,360
+ein_fild07.gat,145,362,0	warp	ein005a	1,1,ein_fild06.gat,135,37
+ein_fild07.gat,191,42,0	warp	ein006	1,1,ein_fild10.gat,194,370
+ein_fild10.gat,194,372,0	warp	ein006a	1,1,ein_fild07.gat,191,44
+ein_fild10.gat,24,331,0	warp	ein007	1,1,ein_fild09.gat,327,346
+ein_fild09.gat,329,346,0	warp	ein007a	1,1,ein_fild10.gat,26,331
+ein_fild09.gat,34,132,0	warp	ein008	1,1,ein_fild08.gat,361,128
+ein_fild08.gat,363,128,0	warp	ein008a	1,1,ein_fild09.gat,36,132
+
+//Einbroch -> Einbroch Field <-> Lighthalzen Field
 einbroch.gat,158,331,0	warp	ein045	1,1,ein_fild04.gat,184,28
 ein_fild04.gat,184,26,0	warp	ein045a	1,1,einbroch.gat,158,329
 ein_fild04.gat,20,251,0	warp	ein046	1,1,ein_fild03.gat,361,257

@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Nana (1.0)
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Description: =========================================
 //= Disabled Warp's for entire Athena
 //===== Additional Comments: =================================
@@ -39,3 +39,7 @@
 
 //= Payon Cave
 //pay_dun03.gat,127,62,0	warp	payd04	1,2,pay_dun04.gat,201,204
+
+// Airplane (no direct access there)
+//airplane.gat,255,55,0	warp	ein044	1,1,airplane.gat,90,68
+//airplane.gat,88,68,0	warp	ein044a	1,1,airplane.gat,253,55

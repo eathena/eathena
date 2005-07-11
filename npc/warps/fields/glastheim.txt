@@ -3,13 +3,14 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 2.x
 //===== Description: =========================================
 //= Warp Points for Glastheim
 //===== Additional Comments: =================================
 //= Split off npc_warp.txt, 1.1 added gl18-2 [Lupus]
+//= optimized random warp [Lupus]
 //============================================================
 
 //Glastheim
@@ -51,10 +52,8 @@ gl_knt02.gat,157,292,0	warp	gl16-1	1,1,gl_knt01.gat,150,286
 gl_knt02.gat,289,138,0	warp	gl17-1	1,1,gl_knt01.gat,292,144
 gl_prison.gat,149,183,0	warp	gl18-1	1,1,gl_prison1.gat,150,14
 gl_prison.gat,10,70,4	script	gl18-2	45,1,1,{
-set @r,rand(2);
-if(@r==0) goto w1;
-if(@r==1) goto w2;
-w1: warp "gl_cas01",236,192; end;
+if(rand(2)==1) goto w2;
+	warp "gl_cas01",236,192; end;
 w2: warp "gl_cas01",164,191; end;
 }
 gl_prison1.gat,150,10,0	warp	gl18	1,1,gl_prison.gat,149,178
