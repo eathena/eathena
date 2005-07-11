@@ -1,5 +1,8 @@
 Date	Added
 07/11
+	* Fixed Dispell succes rate reduction by MDef working reversed [DracoRPG]
+	* Changed Guild auras to not be removed by Dispell (they came back when you walked
+	  anyway :p) [DracoRPG]
 	* Changed the default for equip_natural_break_rate to 0 (official) [DracoRPG]
 	* Fixed the function that checks whether the player has valid equipment for his buffs :
 	  don't return once one buff is stopped, since there can be more (e.g. Crus' shield buffs

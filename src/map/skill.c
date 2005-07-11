@@ -4127,7 +4127,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			int i;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if (rand()%100 >= 50+10*skilllv-sc_def_mdef)
+			if (rand()%100 >= (50+10*skilllv) * sc_def_mdef/100) // Fixed & changed to use a proportionnal reduction (no info, but seems far more logical) [DracoRPG]
 			{
 				if (sd)
 					clif_skill_fail(sd,skillid,0,0);
@@ -4136,10 +4136,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if(status_isimmune(bl))
 				break;
 			for(i=0;i<136;i++){
-				if(i==SC_RIDING || i==SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50
-					|| i==SC_WEIGHT90 || i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR
-					|| i==SC_STRIPHELM || i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR
-					|| i==SC_CP_HELM || i==SC_COMBO || i==SC_LULLABY || i==SC_RICHMANKIM
+				if(i==SC_RIDING || i==SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50 || i==SC_WEIGHT90
+					|| i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR | i==SC_STRIPHELM
+					|| i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR || i==SC_CP_HELM
+					|| i==SC_COMBO || i==SC_GUILDAURA || i==SC_LULLABY || i==SC_RICHMANKIM
 					|| i==SC_ETERNALCHAOS || i==SC_DRUMBATTLE || i==SC_NIBELUNGEN || i==SC_ROKISWEIL
 					|| i==SC_INTOABYSS || i==SC_SIEGFRIED || i==SC_DISSONANCE || i==SC_WHISTLE
 					|| i==SC_ASSNCROS || i==SC_POEMBRAGI || i==SC_APPLEIDUN || i==SC_UGLYDANCE
