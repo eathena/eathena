@@ -21,6 +21,7 @@
 //= to fully fix bug [Shinigami]
 //= Fixed repairman prices [shadowlady]
 //= Fixed bug that skips requirements thanks to sir_loon [massdriller]
+//= Fixed itemid error thanks to -Vitamin- [massdriller]
 //============================================================
 
 
@@ -583,7 +584,7 @@ CONTINUE:
 	if (@ammount <= 0) goto L_BELOW;
 	if (@ammount > 999) goto L_ABOVE;
 	if (zeny<@value*@ammount) goto L_NOZENY;
-	if (checkweight(@item,@ammount) == 0) goto L_WEIGHT;
+	if (checkweight(@itemid,@ammount) == 0) goto L_WEIGHT;
 	getitem @itemid,@ammount;
 	set Zeny,Zeny-@value*@ammount;
 	mes "[" + @name$ + "]";

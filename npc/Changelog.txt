@@ -26,6 +26,7 @@ TODO:
 Date		Added
 ======
 07/11
+	* Fixed small item check error in refine.txt thanks to -Vitamin- [massdriller]
 	* Removed some warps dupes in WARPS. Rearranded Einbroch and Airplane&Airport warps [Lupus]
 07/10
 	* Added Custom Auctioneer script by request of Lupus [Fredzilla]
