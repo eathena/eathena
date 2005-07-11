@@ -45,8 +45,8 @@ lighthalzen.gat,360,310,4	script	Boy	818,{
 	mes "...MA...Ma..ma...";
 	emotion 43;
 	next;
-
 	menu "Wow! Give me Baby Suckle!",-,"Nice Boy!",L_EXIT;
+
 	mes "[Boy]";
 	mes "Rrr..Rrr.. (^FF3300Royal jelly^000000)";			//526
 	mes "Bu.. Ba...Ba-Bu-bi (^FF3300Baby Bottle^000000)";	//7270	(nursing bottle of baby )
@@ -77,13 +77,15 @@ L_EXIT:
 lighthalzen.gat,140,68,4	script	Morris	818,{
 	mes "[Morris]";
 	mes "Do you want a ^FF3300Hat of the Investigator^000000?"; 
+	next;
 	menu "Of course, I do",-,"No, thanks",L_EXIT;
 
+	mes "[Morris]";
 	mes "Ok then, I shall make one for you.";
-	next;
+
 	if (countitem(611)<10 || countitem(7205)<1887 || countitem(5114)<1 || Zeny<50000) goto L_NOITEM;//Items: Magnifier, Black_Piece_of_Cloth, Soldier's_Felt_Hat,
 	mes "[Morris]";
-	mes "Very well.Now I can make it...";
+	mes "Very well. Now I can make it...";
 	next;
 	mes "[Morris]";
 	mes "Enjoy.";
@@ -102,6 +104,11 @@ L_NOITEM:
 	mes "^FF3300 1 Head Gear Hat,^000000";
 	mes "^FF3300 50.000 zeny. ^000000";
 	close;
+
+L_EXIT:
+	mes "[Morris]";
+	mes "Bye.";
+	close;
 }
 //-------------------------------------------------------------------------------------------------
 //Mystic rose ID 5117
@@ -114,6 +121,7 @@ lighthalzen.gat,97,109,4	script	Rouse	818,{	//!!! WRONG Location and name of NPC
 	mes "[Rouse]";
 	mes "Have you ever heard of a ^FF3300Mystic rose^000000?";
 	mes "I can make you one, and you could be fashionable and mysticly, too!";
+	next;
 	menu "Make me a ^670000Mystic rose^000000.",-,"No, I dont want one.",L_EXIT;
 	
 	if ((countitem(731) < 10) || (countitem(748) < 3) || (countitem(982) < 1) || Zeny<50000) goto L_NOITEM;//Items: 2_Carat_Diamond, Witherless_Rose, White_Dyestuff,
@@ -164,6 +172,7 @@ lighthalzen.gat,180,88,4	script	Rich Girl	818,{
 	next;
 	mes "[Rich Girl]";
 	mes "Just kidding, Have you ever read 'Red-Hood'? I can make to you the very same ^FF3300Red Bonnet^000000.";
+	next;
 	menu "Please, make it!",-,"No, thanks",L_EXIT;
 	if ((countitem(10015) < 1) || (countitem(975) < 1) || (countitem(10007) < 1) || (countitem(5032)<1) || Zeny<50000) goto L_NOITEM;//Items: Green_Lace, Scarlet_Dyestuffs, Silk_Ribbon, Sunday_Hat,
 	mes "[Rich Girl]";
@@ -200,6 +209,7 @@ L_EXIT:
 lighthalzen.gat,224,116,4	script	Juneau Cho	818,{	//!!! WRONG name of NPC
 	mes "[Juneau Cho]";
 	mes "Do you want a ^FF3300 Well-Baked Toast ^000000?";
+	next;
 	menu "Please, make one for me",-,"No, thanks. I'm so full",L_EXIT;
 
 	if ((countitem(519) < 50) || (countitem(548) < 50) || (countitem(539) < 50) || (countitem(7031)<50)) goto L_NOITEM;//Items: Milk, Cheese, Piece_of_Cake, Old_Frying_Pan,
@@ -235,6 +245,7 @@ L_EXIT:
 lighthalzen.gat,200,200,4	script	Gill Tass	818,{
 	mes "[Gill Tass]";
 	mes "Do you want a ^FF3300Mask of Zealotus^000000";
+	next;
 	menu "Yes, I do!",-,"No, thanks",L_EXIT;
 
 	mes "[Gill Tass]";
@@ -258,6 +269,7 @@ lighthalzen.gat,70,200,4	script	Gugex	818,{	//!!! WRONG Location and name of NPC
 	mes "[Gugex]";
 	mes "Aren't you cold?";
 	mes "I can make you a ^FF3300Winter Hat^000000";
+	next;
 	menu "Please, make one for me",-,"No, thanks",L_EXIT;
 
 	if ((countitem(7267) < 999) || (countitem(983) < 1) || (countitem(749) < 1) || Zeny<50000) goto L_NOITEM;//Items: Tigerskin_Underwear, Black_Dyestuff, Frozen_Rose,
