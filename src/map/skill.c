@@ -4127,7 +4127,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			int i;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if (rand()%100 >= (50+10*skilllv) * sc_def_mdef/100) // Fixed & changed to use a proportionnal reduction (no info, but seems far more logical) [DracoRPG]
+			if (rand()%100 >= (50+10*skilllv) * (100-sc_def_mdef)/100) // Fixed & changed to use a proportionnal reduction (no info, but seems far more logical) [DracoRPG]
 			{
 				if (sd)
 					clif_skill_fail(sd,skillid,0,0);
