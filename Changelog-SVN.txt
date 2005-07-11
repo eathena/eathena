@@ -1,5 +1,6 @@
 Date	Added
 07/11
+	* Changed the default for equip_natural_break_rate to 0 (official) [DracoRPG]
 	* Fixed the function that checks whether the player has valid equipment for his buffs :
 	  don't return once one buff is stopped, since there can be more (e.g. Crus' shield buffs
 	  will now ALL be stopped when the shield is unequipped, not only Guard ^^) [DracoRPG]

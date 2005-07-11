@@ -1,26 +1,25 @@
-//ギルド城データ by sakage,shuto
-// AgitDB Modify by Michael_Huang at 2004-02/13.
+// castle_db with iRO castle names
 // <Castle_ID>,<Map_Name>,<Castle_Name>,<Switch_Flag:(reserved)>
-0,aldeg_cas01.gat,Noisyubantian,1
-1,aldeg_cas02.gat,Hohensyubangawoo,1
-2,aldeg_cas03.gat,Nyirenverk,1
-3,aldeg_cas04.gat,Byirtsburi,1
-4,aldeg_cas05.gat,Rotenburk,1
-5,gefg_cas01.gat,Reprion,1
-6,gefg_cas02.gat,Yolbriger,1
-7,gefg_cas03.gat,Isinlife,1
-8,gefg_cas04.gat,Berigel,1
-9,gefg_cas05.gat,Melsedetsu,1
-10,payg_cas01.gat,Mingting,1
-11,payg_cas02.gat,Tiantan,1
-12,payg_cas03.gat,Fuying,1
-13,payg_cas04.gat,Honglou,1
-14,payg_cas05.gat,Zhulinxian,1
-15,prtg_cas01.gat,Creamhilt,1
-16,prtg_cas02.gat,Sbanhealt,1
-17,prtg_cas03.gat,Lazrigees,1
-18,prtg_cas04.gat,Squagul,1
-19,prtg_cas05.gat,Guindull,1
+0,aldeg_cas01.gat,Neuschwanstein,1		// kRO : Noisyubantian
+1,aldeg_cas02.gat,Hohenschwangau,1		// kRO : Hohensyubangawoo
+2,aldeg_cas03.gat,Nuenberg,1			// kRO : Nyirenverk
+3,aldeg_cas04.gat,Wuerzburg,1			// kRO : Byirtsburi
+4,aldeg_cas05.gat,Rothenburg,1		// kRO : Rotenburk
+5,gefg_cas01.gat,Repherion,1			// kRO : Reprion
+6,gefg_cas02.gat,Eeyolbriggar,1		// kRO : Yolbriger
+7,gefg_cas03.gat,Yesnelph,1			// kRO : Isinlife
+8,gefg_cas04.gat,Bergel,1			// kRO : Berigel
+9,gefg_cas05.gat,Mersetzdeitz,1		// kRO : Melsedetsu
+10,payg_cas01.gat,Bright Arbor,1		// kRO : Mingting
+11,payg_cas02.gat,Scarlet Palace,1		// kRO : Tiantan
+12,payg_cas03.gat,Holy Shadow,1		// kRO : Fuying
+13,payg_cas04.gat,Sacred Altar,1		// kRO : Honglou
+14,payg_cas05.gat,Bamboo Grove Hill,1	// kRO : Zhulinxian
+15,prtg_cas01.gat,Kriemhild,1			// kRO : Creamhilt
+16,prtg_cas02.gat,Swanhild,1			// kRO : Sbanhealt
+17,prtg_cas03.gat,Fadhgridh,1			// kRO : Lazrigees
+18,prtg_cas04.gat,Skoegul,1			// kRO : Squagul
+19,prtg_cas05.gat,Gondul,1			// kRO : Guindull
 20,nguild_alde.gat,Novice Castle 1,1
 21,nguild_gef.gat,Novice Castle 2,1
 22,nguild_pay.gat,Novice Castle 3,1
