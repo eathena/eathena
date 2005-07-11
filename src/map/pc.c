@@ -3728,43 +3728,32 @@ int pc_checkallowskill(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 	nullpo_retr(0, sd->sc_data);
 
-	if(!(skill_get_weapontype(KN_TWOHANDQUICKEN)&(1<<sd->status.weapon)) && sd->sc_data[SC_TWOHANDQUICKEN].timer!=-1) {	// 2HQ
-		status_change_end(&sd->bl,SC_TWOHANDQUICKEN,-1);	// 2HQを解除
-		return -1;
+	// Skills requiring specific weapon types
+	if(!(skill_get_weapontype(KN_TWOHANDQUICKEN)&(1<<sd->status.weapon)) && sd->sc_data[SC_TWOHANDQUICKEN].timer!=-1) { // Two-Hand Quicken requires a Two-handed sword
+		status_change_end(&sd->bl,SC_TWOHANDQUICKEN,-1);
 	}
-	if(!(skill_get_weapontype(LK_AURABLADE)&(1<<sd->status.weapon)) && sd->sc_data[SC_AURABLADE].timer!=-1) {	/* オ?ラブレ?ド */
-		status_change_end(&sd->bl,SC_AURABLADE,-1);	/* オ?ラブレ?ドを解除 */
-		return -1;
+	if(!(skill_get_weapontype(LK_AURABLADE)&(1<<sd->status.weapon)) && sd->sc_data[SC_AURABLADE].timer!=-1) { // Aura Blade requires any weapon but bare fists
+		status_change_end(&sd->bl,SC_AURABLADE,-1);	// Aura
 	}
-	if(!(skill_get_weapontype(LK_PARRYING)&(1<<sd->status.weapon)) && sd->sc_data[SC_PARRYING].timer!=-1) {	/* パリイング */
+	if(!(skill_get_weapontype(LK_PARRYING)&(1<<sd->status.weapon)) && sd->sc_data[SC_PARRYING].timer!=-1) {	// Parrying requires a Two-handed sword
 		status_change_end(&sd->bl,SC_PARRYING,-1);	/* パリイングを解除 */
-		return -1;
 	}
-	if(!(skill_get_weapontype(LK_CONCENTRATION)&(1<<sd->status.weapon)) && sd->sc_data[SC_CONCENTRATION].timer!=-1) {	/* コンセントレ?ション */
-		status_change_end(&sd->bl,SC_CONCENTRATION,-1);	/* コンセントレ?ションを解除 */
-		return -1;
-	}
-	if(!(skill_get_weapontype(CR_SPEARQUICKEN)&(1<<sd->status.weapon)) && sd->sc_data[SC_SPEARSQUICKEN].timer!=-1){	// スピアクィッケン
+	if(!(skill_get_weapontype(CR_SPEARQUICKEN)&(1<<sd->status.weapon)) && sd->sc_data[SC_SPEARSQUICKEN].timer!=-1){	// Spear Quicken requires a Two-handed spear
 		status_change_end(&sd->bl,SC_SPEARSQUICKEN,-1);	// スピアクイッケンを解除
-		return -1;
 	}
-	if(!(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)) && sd->sc_data[SC_ADRENALINE].timer!=-1){	// アドレナリンラッシュ
+	if(!(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)) && sd->sc_data[SC_ADRENALINE].timer!=-1){	// Adrenaline Rush requires an Axe of a Mace
 		status_change_end(&sd->bl,SC_ADRENALINE,-1);	// アドレナリンラッシュを解除
-		return -1;
 	}
 
-	if(sd->status.shield <= 0) {
-		if(sd->sc_data[SC_AUTOGUARD].timer!=-1){	// オ?トガ?ド
+	if(sd->status.shield <= 0) { // Skills requiring a shield
+		if(sd->sc_data[SC_AUTOGUARD].timer!=-1){	// Guard
 			status_change_end(&sd->bl,SC_AUTOGUARD,-1);
-			return -1;
 		}
-		if(sd->sc_data[SC_DEFENDER].timer!=-1){	// ディフェンダ?
+		if(sd->sc_data[SC_DEFENDER].timer!=-1){	// Defending Aura
 			status_change_end(&sd->bl,SC_DEFENDER,-1);
-			return -1;
 		}
-		if(sd->sc_data[SC_REFLECTSHIELD].timer!=-1){ //リフレクトシ?ルド
+		if(sd->sc_data[SC_REFLECTSHIELD].timer!=-1){ // Shield Reflect
 			status_change_end(&sd->bl,SC_REFLECTSHIELD,-1);
-			return -1;
 		}
 	}
 

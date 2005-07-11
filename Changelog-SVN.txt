@@ -1,4 +1,8 @@
 Date	Added
+07/11
+	* Fixed the function that checks whether the player has valid equipment for his buffs :
+	  don't return once one buff is stopped, since there can be more (e.g. Crus' shield buffs
+	  will now ALL be stopped when the shield is unequipped, not only Guard ^^) [DracoRPG]
 07/10
 	* Fixed Alchemist Fame system using' account_id' instead of 'char_id', however this does
 	  NOT solve the names problem : I left debug messages so you can see by yourself that the
