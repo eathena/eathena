@@ -44,7 +44,7 @@ nguild_gef.gat,40,48,5	script	Leiber	55,{
 	if(@GDnum==16) guardian "nguild_gef.gat",49,67,"Knight Guardian",1286,1,"Guardian_N02::OnGuardianDied",6; 
 	if(@GDnum==17) guardian "nguild_gef.gat",181,14,"Knight Guardian",1286,1,"Guardian_N02::OnGuardianDied",7;
 	mes "[Leiber]";
-	mes "Guardian has been installed, guardian will protect our guild base against enemies.";
+	mes "Guardian has been installed, the guardian will protect our guild base against enemies.";
 	close;
 }
 
@@ -62,7 +62,7 @@ nguild_pay.gat,120,58,4	script	Dundar	55,{
 	if(@GDnum==16) guardian "nguild_pay.gat",69,26,"Knight Guardian",1286,1,"Guardian_N03::OnGuardianDied",6; 
 	if(@GDnum==17) guardian "nguild_pay.gat",23,141,"Knight Guardian",1286,1,"Guardian_N03::OnGuardianDied",7;
 	mes "[Dundar]";
-	mes "Guardian has been installed, guardian will protect our guild base against enemies.";
+	mes "Guardian has been installed, the guardian will protect our guild base against enemies.";
 	close;
 }
 

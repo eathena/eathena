@@ -1,5 +1,7 @@
 Date	Added
 07/11
+	* Added nomemo mapflag to Ayothaya Dungeon. Check your memo DBs and wipe forbidden entries [Lupus]
+		- Yuno, Ayothaya Dungeon
 	* Fixed Dispell succes rate reduction by MDef working reversed [DracoRPG]
 	* Changed Guild auras to not be removed by Dispell (they came back when you walked
 	  anyway :p) [DracoRPG]

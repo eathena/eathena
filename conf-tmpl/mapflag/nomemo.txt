@@ -124,6 +124,9 @@ anthell02.gat	mapflag	nomemo
 ama_dun01.gat	mapflag	nomemo
 ama_dun02.gat	mapflag	nomemo 
 ama_dun03.gat	mapflag	nomemo 
+// Ayothaya
+ayo_dun01.gat	mapflag	nomemo
+ayo_dun02.gat	mapflag	nomemo
 // Comodo Beach --------------
 beach_dun.gat	mapflag	nomemo
 beach_dun2.gat	mapflag	nomemo
