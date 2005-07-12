@@ -2467,8 +2467,8 @@
 1617,石投げ＠ヨーヨー,chase,152,1,100,1000,10000,yes,target,always,0,,,,,,
 
 //Mini-Boss Ungoliatnt, Petrify/Assumptio?
-1618,Call Slave Porcellio Scabber,attack,196,4,1000,3000,36000,no,self,myhpltmaxrate,5,1625,,,,,
-1618,Call Slaves if they are dead,chase,196,4,10000,3000,36000,no,self,slavele,0,1625,,,,,
+1618,Call Slave Porcellio Scabber,attack,196,4,500,3000,36000,no,self,myhpltmaxrate,5,1625,,,,,
+1618,Call Slaves if they are dead,chase,196,4,1000,3000,36000,no,self,slavele,0,1625,,,,,
 1618,石化攻撃＠イビルドルイド,attack,180,5,100,1000,40000,yes,target,always,0,,,,,,
 1618,石化攻撃＠イビルドルイド,attack,361,5,100,1000,40000,yes,self,always,0,,,,,,
 
@@ -2485,8 +2485,8 @@
 1622,防御無視攻撃＠ホーネット,attack,170,1,100,0,30000,no,target,always,0,,,,,,
 
 //MVP RSX 0806
-1623,Call Slave Waste Stove,attack,196,2,1000,3000,36000,no,self,myhpltmaxrate,5,1624,,,,,
-1623,Call Slaves if they are dead,chase,196,2,10000,3000,36000,no,self,slavele,0,1624,,,,,
+1623,Call Slave Waste Stove,attack,196,2,500,3000,36000,no,self,myhpltmaxrate,5,1624,,,,,
+1623,Call Slaves if they are dead,chase,196,2,1000,3000,36000,no,self,slavele,0,1624,,,,,
 
 //Waste Stove (slave) - Stun/Throwing Stone
 1624,スタン攻撃＠ビックフット,attack,179,4,300,1000,10000,no,target,myhpltmaxrate,30,,,,,,

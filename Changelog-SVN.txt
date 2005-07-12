@@ -1,5 +1,7 @@
 Date	Added
 07/13
+	* Fixed max chance const of "mob skill usage". Now all mobs aren't hyperactive. [Lupus]
+		Doppel's hammerfall affects THE whole map, Eddga makes damage ~9999, Moonlight heals itself by 9999 , and similiar probs should be fixed, tough
 	* Fixed global vars not being saved instantly (used to cause some scripts exploits) [Lupus]
 	  Need some offensive testing.
 07/12

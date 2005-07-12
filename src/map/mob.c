@@ -3801,7 +3801,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 		}
 
 		// Šm—¦”»’è
-		if (flag && rand() % 1000 < ms[i].permillage)
+		if (flag && rand() % 10000 < ms[i].permillage) //Lupus (max value = 10000)
 		{
 			if (skill_get_inf(ms[i].skill_id) & INF_GROUND_SKILL) {
 				// êŠŽw’è
