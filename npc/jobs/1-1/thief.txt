@@ -194,7 +194,7 @@ M_Menu:
 
 // -- Test Grader --
 moc_prydb1.gat,42,133,2	script	Comrade Brad	118,{
-	callfunc "F_ToHigh",30,"Theif High",36,"Assassin Cross",149,150,151,152,"Brad";
+	callfunc "F_ToHigh",30,"Thief High",36,"Assassin Cross",149,150,151,152,"Brad";
 	if(BaseJob == 0) goto L_Novice;
 	if(BaseJob == 6) goto L_Thief;
 
@@ -213,7 +213,7 @@ L_Novice:
 	if((job_thief_q == 2) && ((countitem(1069) > 0) || (countitem(1070) > 0))) goto L_4;//Items: Orange_Net_Mushroom, Orange_Gooey_Mushroom_,
 	if(job_thief_q >= 1) goto L_3;
 
-	mes "Errr? What's matter newbie? If you want to be a theif, speak to the girl beside me.";
+	mes "Errr? What's matter newbie? If you want to be a thief, speak to the girl beside me.";
 	close;
 L_3:
 	mes "Go get some mushrooms so that I can grade them ok.";
@@ -268,7 +268,7 @@ L_4:
 		next;
 		set Zeny,Zeny+@money_thief;
 		mes "[Comrade Brad]";
-		mes "From now on you must act, think, and even smell like a Theif.";
+		mes "From now on you must act, think, and even smell like a Thief.";
 		mes "You are one of us now, which means you have the trust and freindship of Thieves all over Rune Midgard";
 		next;
 		mes "[Comrade Brad]";
@@ -277,7 +277,7 @@ L_4:
 		emotion 29;
 		next;
 		mes "[Comrade Brad]";
-		mes "Good luck and always remeber the ^0000cc'Theif Motto'^000000: ^ff0000DON'T Get Caught^000000l!";
+		mes "Good luck and always remeber the ^0000cc'Thief Motto'^000000: ^ff0000DON'T Get Caught^000000l!";
 		close;
 
 		sL_SkPoint:

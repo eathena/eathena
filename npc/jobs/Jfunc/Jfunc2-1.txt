@@ -76,7 +76,7 @@ function	script	Bla_check	{
 	if (BaseJob == 0) goto L_Nov;
 	if (callfunc("Is_Sword_Class")) goto L_Sword;
 	if (callfunc("Is_Holy_Class")) goto L_Aco;
-	if (callfunc("Is_Thief_Class")) goto L_Theif;
+	if (callfunc("Is_Thief_Class")) goto L_Thief;
 	if (callfunc("Is_Magic_Class")) goto L_Wiz;
 	if (callfunc("Is_Bow_Class")) goto L_Arc;
 	if (BaseJob == 10) goto L_Black;
@@ -99,7 +99,7 @@ L_Wiz:
 L_Aco:
 	mes "Oh! A Holy one...! Do me a favor and bless the sword I'm crafting!";
 	close;
-L_Theif:	
+L_Thief:	
 	mes "Sorry, but this is more of a office, so there's nothing worth money.  We CAN do knife forges though.";
 	close;
 L_Black:

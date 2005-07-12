@@ -1145,7 +1145,7 @@ L_Test3:
 	menu "Yes",-, "No.",M_2b;
 
 		mes "[Sister Cecile]";
-		mes "No, that doesn't work, if you use God's power to do what you wish, you're just like a theif.";
+		mes "No, that doesn't work, if you use God's power to do what you wish, you're just like a thief.";
 		mes "How can you become a good priest if you think like that?";
 		next;
 		mes "[Sister Cecile]";

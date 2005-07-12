@@ -15,5 +15,5 @@
 
 // -== Assassin Cross ==-
 valkyrie.gat,44,58,6	script	Assassin Cross	725,{
-	callfunc "F_Rebirth",30,"Theif High",36,"Assassin Cross",149,150,151,152;
+	callfunc "F_Rebirth",30,"Thief High",36,"Assassin Cross",149,150,151,152;
 }

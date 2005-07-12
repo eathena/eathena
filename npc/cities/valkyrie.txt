@@ -233,11 +233,11 @@ L_CHANGE:
 //	callfunc "F_ToHigh",26,"High Mage",33,"High Wizard",157,0,0,0;
 //	callfunc "F_ToHigh",29,"Merchant High",34,"White Smith",153,154,155,0;
 //	callfunc "F_ToHigh",27,"High Archer",35,"Sniper",147,148,0,0;
-//	callfunc "F_ToHigh",30,"Theif High",36,"Assassin Cross",149,150,151,152;
+//	callfunc "F_ToHigh",30,"Thief High",36,"Assassin Cross",149,150,151,152;
 //	callfunc "F_ToHigh",25,"Swordman High",38,"Paladin",144,145,146,0;
 //	callfunc "F_ToHigh",28,"Acolyte High",39,"Champion",156,0,0,0;
 //	callfunc "F_ToHigh",26,"High Mage",40,"Professor",157,0,0,0;
-//	callfunc "F_ToHigh",30,"Theif High",41,"Stalker",149,150,151,152;
+//	callfunc "F_ToHigh",30,"Thief High",41,"Stalker",149,150,151,152;
 //	callfunc "F_ToHigh",29,"Merchant High",42,"Creator",153,154,155,0;
 //	callfunc "F_ToHigh",27,"High Archer",43,"Clown",147,148,0,0;
 //	callfunc "F_ToHigh",27,"High Archer",44,"Gypsy",147,148,0,0;

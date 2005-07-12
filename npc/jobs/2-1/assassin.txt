@@ -34,7 +34,7 @@
 //****************************************************************************//
 
 in_moc_16.gat,19,33,4	script	Guildsman	55,{
-	callfunc "F_BlockHigh",30,"Theif High",36,"Assassin Cross","Assassin Huey";
+	callfunc "F_BlockHigh",30,"Thief High",36,"Assassin Cross","Assassin Huey";
 
 	if(BaseJob==Job_Thief) goto L_Thief;
 	callfunc "Ass_check";

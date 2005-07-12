@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/11
+	* Added the Loli Ruri card to the magician set [Skotlex]
 	* Changed Guild Castles' names to iRO [DracoRPG]
 07/10
 	* Fixed Lord of Death mob (added house auger), added correct MVP exp to Tao Gunka,

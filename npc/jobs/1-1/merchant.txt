@@ -88,14 +88,14 @@ M_Menu:
 		mes "Now that that's settled, let me talk to you about the Merchant License Test.  You will be given a task to fullfill.";
 		mes "How well you perform the task will determine whether or not you will become a merchant.";
 		next;
-		mes "[Cheif Mahnsoo]";
+		mes "[Chief Mahnsoo]";
 		mes "Oh, but before we get started I must say one thing.....";
 		next;
-		mes "[Cheif Mahnsoo]";
+		mes "[Chief Mahnsoo]";
 		mes "There are some dumb and greedy people out there who do not know what  it means to be a Merchant.";
 		mes "I sincerely hope you will not turn out to be like them.  You won't... will you??..... (stares at you intently)";
 		next;
-		mes "[Cheif Mahnsoo]";
+		mes "[Chief Mahnsoo]";
 		mes "Anywho, here is your task.  You will need to....";
 		next;
 		mes "[Chief Mahnsoo]";

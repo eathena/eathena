@@ -67,7 +67,7 @@ readparam(19) == 4001 || oldclass == 21 && readparam(19) == 4001) goto Lswordsma
 	if(readparam(19) == 4002 && oldclass == 7 || readparam(19) == 4002 && oldclass == 13) goto Llordknight;
 	if(readparam(19) == 4002 && oldclass == 14 || readparam(19) == 4002 && oldclass == 21) goto Lpaladin;
 //Assassin Cross & Stalker
-	if(oldclass == 12 && readparam(19) == 4001 || oldclass == 17 && readparam(19) == 4001) goto Ltheifhigh;
+	if(oldclass == 12 && readparam(19) == 4001 || oldclass == 17 && readparam(19) == 4001) goto Lthiefhigh;
 	if(readparam(19) == 4007 && oldclass == 12) goto Lassassincross;
 	if(readparam(19) == 4007 && oldclass == 17) goto Lstalker;
 //High Priest & Champion
@@ -199,7 +199,7 @@ Lpaladin:
 	jobchange 38;
 	close;
 //Assassin Cross & Stalker
-Ltheifhigh:
+Lthiefhigh:
 	mes "[ ^0065DFJobra^000000 ]";
 	mes "Those devious hand of yours really look like they need to grab something (no comment)..... go forth and steal!!";
 	cutin "kafra_01",255;

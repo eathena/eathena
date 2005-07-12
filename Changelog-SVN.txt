@@ -1,5 +1,8 @@
 Date	Added
 07/12
+	* Added Loli Ruri to the Magician set [Skotlex]
+	* Fixed 'theif' on the scripts. [Skotlex]
+	* Added mapflag pvp_noparty to the pvp rooms [Skotlex]
 	* More Dispell Fixes [Skotlex]
 	* log_login option now also works for the SQL Login server [Skotlex]
 07/11

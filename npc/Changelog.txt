@@ -25,6 +25,9 @@ TODO:
 
 Date		Added
 ======
+07/12
+	* Fixed the th**f typo everywhere. [Skotlex]
+	  (too many changes to bother bumping the script versions)
 07/11
 	* Changed guild castle flags names according to iRO naming [DracoRPG]
 	* Fixed small item check error in refine.txt thanks to -Vitamin- [massdriller]

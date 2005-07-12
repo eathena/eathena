@@ -562,17 +562,17 @@ N_QuestStart:
 }
 ///////Job list 6///////
 //6-1;
-moc_prydb1.gat,47,132,6	script	Theif	48,{
+moc_prydb1.gat,47,132,6	script	Thief	48,{
 	if (six_qset == 1 && countitem(1083) > 0) goto N_QuestComp;
 	if (six_qset == 1) goto N_QuestStart;
 	mes "[Thief]";
-	mes "Welcome to the Theifs Guild.";
+	mes "Welcome to the Thiefs Guild.";
 	close;
 N_QuestComp:
-	mes "[Theif]";
+	mes "[Thief]";
 	mes "Thank you for this delivery.";
 	next;
-	mes "[Theif]";
+	mes "[Thief]";
 	mes "Here take this Treasure Token as a reward.";
 	set six_qset,0;
 	delitem 1083,1;
@@ -580,7 +580,7 @@ N_QuestComp:
 	set #Treasure_Token,#Treasure_Token+1;
 	close;
 N_QuestStart:
-	mes "[Theif]";
+	mes "[Thief]";
 	mes "Where's my delivery?";
 	close;
 }

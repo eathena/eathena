@@ -24,7 +24,7 @@
 //					Markie: Test 1 and Jobchange						//
 //***********************************************************************************************************************************************************//
 in_rogue.gat,363,123,3	script	Markie	747,{
-	callfunc "F_BlockHigh",30,"Theif High",41,"Stalker","Markie";
+	callfunc "F_BlockHigh",30,"Thief High",41,"Stalker","Markie";
 
 	mes "[Markie]";
 	if(BaseJob == Job_Thief) goto L_Thief;

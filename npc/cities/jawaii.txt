@@ -23,7 +23,7 @@
 //===== Mobs: ================================================
 jawaii.gat,0,0,0,0	monster	Black Mushroom	1084,10,600000,300000
 jawaii.gat,0,0,0,0	monster	Red Mushroom	1085,10,600000,300000
-jawaii_in.gat,0,0,0,0	monster	Theif Bug	1051,5,600000,300000
+jawaii_in.gat,0,0,0,0	monster	Thief Bug	1051,5,600000,300000
 jawaii_in.gat,0,0,0,0	monster	Black Mushroom	1084,10,600000,300000
 jawaii_in.gat,0,0,0,0	monster	Red Mushroom	1085,10,600000,300000
 

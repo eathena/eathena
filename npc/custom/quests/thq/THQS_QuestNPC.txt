@@ -152,7 +152,7 @@ N_HitList:
 	mes "^FF0000------------^000000";
 	mes "In this quest you get to see some action.";
 	mes " ";
-	mes "There has been a farmer that keeps having all his crops eaten by ^FF0000Theif Bugs, Porings, and Lunitics^000000 here is a lost of what I need you to do. He is nexting East of Prontera.";
+	mes "There has been a farmer that keeps having all his crops eaten by ^FF0000Thief Bugs, Porings, and Lunitics^000000 here is a lost of what I need you to do. He is nexting East of Prontera.";
 	next;
 	mes "[Guy]";
 	mes "Ok go to the east and bash those little bastards like there is no tommorow. When you are done with that list you have just discard it, but you will NOT get another one!.";
@@ -411,7 +411,7 @@ N_Delivery3:
 	goto L_QuestGiven;
 
 N_GTB:
-	mes "^FF0000Golden Theif Bug^000000";
+	mes "^FF0000Golden Thief Bug^000000";
 	mes "^FF0000****************^000000";
 	mes "The prontera Culvert has never been the same...";
 	mes " ";
