@@ -110,6 +110,7 @@ char login_server_pw[32] = "ragnarok";
 char login_server_db[32] = "ragnarok";
 int use_md5_passwds = 0;
 char login_db[256] = "login";
+int log_login=1; //Whether to log the logins or not. [Skotlex]
 char loginlog_db[256] = "loginlog";
 
 // added to help out custom login tables, without having to recompile
@@ -272,13 +273,15 @@ int mmo_auth_sqldb_init(void) {
 		ShowStatus("Connect success!\n");
 	}
 
-	sprintf(tmpsql, "INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver', '100','login server started')", loginlog_db);
+	if (log_login)
+	{
+		sprintf(tmpsql, "INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver', '100','login server started')", loginlog_db);
 
-	//query
-	if (mysql_query(&mysql_handle, tmpsql)) {
+		//query
+		if (mysql_query(&mysql_handle, tmpsql)) {
 			ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+		}
 	}
-
 	return 0;
 }
 
@@ -297,13 +300,15 @@ void mmo_db_close(void) {
 	int i, fd;
 
 	//set log.
-	sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver','100', 'login server shutdown')", loginlog_db);
+	if (log_login)
+	{
+		sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver','100', 'login server shutdown')", loginlog_db);
 
-	//query
-	if (mysql_query(&mysql_handle, tmpsql)) {
+		//query
+		if (mysql_query(&mysql_handle, tmpsql)) {
 			ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+		}
 	}
-
 	//delete all server status
 	sprintf(tmpsql,"DELETE FROM `sstatus`");
 	//query
@@ -1188,11 +1193,14 @@ int parse_login(int fd) {
 		if (atoi(sql_row[0]) >0) {
 			// ip ban ok.
 			ShowWarning("packet from banned ip : %d.%d.%d.%d\n" RETCODE, p[0], p[1], p[2], p[3]);
-			sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', 'unknown','-3', 'ip banned')", loginlog_db, p[0], p[1], p[2], p[3]);
+			if (log_login)
+			{
+				sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', 'unknown','-3', 'ip banned')", loginlog_db, p[0], p[1], p[2], p[3]);
 
-			// query
-			if(mysql_query(&mysql_handle, tmpsql)) {
-				ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+				// query
+				if(mysql_query(&mysql_handle, tmpsql)) {
+					ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+				}
 			}
 			ShowInfo ("close session connection...\n");
 
@@ -1257,7 +1265,7 @@ int parse_login(int fd) {
 					WFIFOSET(fd,3);
 		    } else {
 		    
-                    if (p[0] != 127) {
+                    if (p[0] != 127 && log_login) {
                          sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s','100', 'login ok')", loginlog_db, p[0], p[1], p[2], p[3], t_uid);
                          //query
                          if(mysql_query(&mysql_handle, tmpsql)) {
@@ -1313,66 +1321,69 @@ int parse_login(int fd) {
       } else {
 		char tmp_sql[512];
 		char error[64];
-		sprintf(tmp_sql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s', '%d','login failed : %%s')", loginlog_db, p[0], p[1], p[2], p[3], t_uid, result);
-		switch((result + 1)) {
-		case -2:  //-3 = Account Banned
-			sprintf(tmpsql,tmp_sql,"Account banned.");
-			sprintf(error,"Account banned.");
-		break;
-		case -1:  //-2 = Dynamic Ban
-			sprintf(tmpsql,tmp_sql,"dynamic ban (ip and account).");
-			sprintf(error,"dynamic ban (ip and account).");
-		break;
-		case 1:   // 0 = Unregistered ID
-			sprintf(tmpsql,tmp_sql,"Unregisterd ID.");
-			sprintf(error,"Unregisterd ID.");
-		break;
-		case 2:   // 1 = Incorrect Password
-			sprintf(tmpsql,tmp_sql,"Incorrect Password.");
-			sprintf(error,"Incorrect Password.");
-		break;
-		case 3:   // 2 = This ID is expired
-			sprintf(tmpsql,tmp_sql,"Account Expired.");
-			sprintf(error,"Account Expired.");
-		break;
-		case 4:   // 3 = Rejected from Server
-			sprintf(tmpsql,tmp_sql,"Rejected from server.");
-			sprintf(error,"Rejected from server.");
-		break;
-		case 5:   // 4 = You have been blocked by the GM Team
-			sprintf(tmpsql,tmp_sql,"Blocked by GM.");
-			sprintf(error,"Blocked by GM.");
-		break;
-		case 6:   // 5 = Your Game's EXE file is not the latest version
-			sprintf(tmpsql,tmp_sql,"Not latest game EXE.");
-			sprintf(error,"Not latest game EXE.");
-		break;
-		case 7:   // 6 = Your are Prohibited to log in until %s
-			sprintf(tmpsql,tmp_sql,"Banned.");
-			sprintf(error,"Banned.");
-		break;
-		case 8:   // 7 = Server is jammed due to over populated
-			sprintf(tmpsql,tmp_sql,"Server Over-population.");
-			sprintf(error,"Server Over-population.");
-		break;
-		case 9:   // 8 = No MSG (actually, all states after 9 except 99 are No MSG, use only this)
-			sprintf(tmpsql,tmp_sql," ");
-			sprintf(error," ");
-		break;
-		case 100: // 99 = This ID has been totally erased
-			sprintf(tmpsql,tmp_sql,"Account gone.");
-			sprintf(error,"Account gone.");
-		break;
-		default:
-			sprintf(tmpsql,tmp_sql,"Uknown Error.");
-			sprintf(error,"Uknown Error.");
-		break;
-			}
-			//query
-			if(mysql_query(&mysql_handle, tmpsql)) {
-					ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
-			}
-			if ((result == 1) && (dynamic_pass_failure_ban != 0)){	// failed password
+		if (log_login)
+		{
+			sprintf(tmp_sql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s', '%d','login failed : %%s')", loginlog_db, p[0], p[1], p[2], p[3], t_uid, result);
+			switch((result + 1)) {
+			case -2:  //-3 = Account Banned
+				sprintf(tmpsql,tmp_sql,"Account banned.");
+				sprintf(error,"Account banned.");
+			break;
+			case -1:  //-2 = Dynamic Ban
+				sprintf(tmpsql,tmp_sql,"dynamic ban (ip and account).");
+				sprintf(error,"dynamic ban (ip and account).");
+			break;
+			case 1:   // 0 = Unregistered ID
+				sprintf(tmpsql,tmp_sql,"Unregisterd ID.");
+				sprintf(error,"Unregisterd ID.");
+			break;
+			case 2:   // 1 = Incorrect Password
+				sprintf(tmpsql,tmp_sql,"Incorrect Password.");
+				sprintf(error,"Incorrect Password.");
+			break;
+			case 3:   // 2 = This ID is expired
+				sprintf(tmpsql,tmp_sql,"Account Expired.");
+				sprintf(error,"Account Expired.");
+			break;
+			case 4:   // 3 = Rejected from Server
+				sprintf(tmpsql,tmp_sql,"Rejected from server.");
+				sprintf(error,"Rejected from server.");
+			break;
+			case 5:   // 4 = You have been blocked by the GM Team
+				sprintf(tmpsql,tmp_sql,"Blocked by GM.");
+				sprintf(error,"Blocked by GM.");
+			break;
+			case 6:   // 5 = Your Game's EXE file is not the latest version
+				sprintf(tmpsql,tmp_sql,"Not latest game EXE.");
+				sprintf(error,"Not latest game EXE.");
+			break;
+			case 7:   // 6 = Your are Prohibited to log in until %s
+				sprintf(tmpsql,tmp_sql,"Banned.");
+				sprintf(error,"Banned.");
+			break;
+			case 8:   // 7 = Server is jammed due to over populated
+				sprintf(tmpsql,tmp_sql,"Server Over-population.");
+				sprintf(error,"Server Over-population.");
+			break;
+			case 9:   // 8 = No MSG (actually, all states after 9 except 99 are No MSG, use only this)
+				sprintf(tmpsql,tmp_sql," ");
+				sprintf(error," ");
+			break;
+			case 100: // 99 = This ID has been totally erased
+				sprintf(tmpsql,tmp_sql,"Account gone.");
+				sprintf(error,"Account gone.");
+			break;
+			default:
+				sprintf(tmpsql,tmp_sql,"Uknown Error.");
+				sprintf(error,"Uknown Error.");
+			break;
+				}
+				//query
+				if(mysql_query(&mysql_handle, tmpsql)) {
+						ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+				}
+			} //End login log of error.
+			if ((result == 1) && (dynamic_pass_failure_ban != 0) && log_login){	// failed password
 				sprintf(tmpsql,"SELECT count(*) FROM `%s` WHERE `ip` = '%d.%d.%d.%d' AND `rcode` = '1' AND `time` > NOW() - INTERVAL %d MINUTE",
 				  loginlog_db, p[0], p[1], p[2], p[3], dynamic_pass_failure_ban_time);	//how many times filed account? in one ip.
 				if(mysql_query(&mysql_handle, tmpsql)) {
@@ -1447,12 +1458,15 @@ int parse_login(int fd) {
 				if(RFIFOREST(fd)<86)
 					return 0;
 				{
-				unsigned char* server_name;
-					sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s@%s','100', 'charserver - %s@%d.%d.%d.%d:%d')", loginlog_db, p[0], p[1], p[2], p[3], RFIFOP(fd, 2),RFIFOP(fd, 60),RFIFOP(fd, 60), RFIFOB(fd, 54), RFIFOB(fd, 55), RFIFOB(fd, 56), RFIFOB(fd, 57), RFIFOW(fd, 58));
+					unsigned char* server_name;
+					if (log_login)
+					{
+						sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s@%s','100', 'charserver - %s@%d.%d.%d.%d:%d')", loginlog_db, p[0], p[1], p[2], p[3], RFIFOP(fd, 2),RFIFOP(fd, 60),RFIFOP(fd, 60), RFIFOB(fd, 54), RFIFOB(fd, 55), RFIFOB(fd, 56), RFIFOB(fd, 57), RFIFOW(fd, 58));
 
-					//query
-					if(mysql_query(&mysql_handle, tmpsql)) {
-							ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+						//query
+						if(mysql_query(&mysql_handle, tmpsql)) {
+								ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+						}
 					}
 					ShowInfo("server connection request %s @ %d.%d.%d.%d:%d (%d.%d.%d.%d)\n",
 						RFIFOP(fd, 60), RFIFOB(fd, 54), RFIFOB(fd, 55), RFIFOB(fd, 56), RFIFOB(fd, 57), RFIFOW(fd, 58),
@@ -1820,7 +1834,9 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		else if(strcmpi(w1,"login_db_level")==0){
 			strcpy(login_db_level, w2);
 		}
-		//end of custom table config
+		else if (strcmpi(w1, "log_login") == 0) {
+			log_login = atoi(w2);
+		}
 		else if (strcmpi(w1, "loginlog_db") == 0) {
 			strcpy(loginlog_db, w2);
 		}

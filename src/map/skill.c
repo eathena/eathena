@@ -4127,7 +4127,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			int i;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if (rand()%100 >= (50+10*skilllv) * (100-sc_def_mdef)/100) // Fixed & changed to use a proportionnal reduction (no info, but seems far more logical) [DracoRPG]
+			if (rand()%100 >= (50+10*skilllv) -sc_def_mdef)
+			// Fixed & changed to use a proportionnal reduction (no info, but seems far more logical) [DracoRPG]
+			//-> Using *(100-def)/100 might be logical, but it is a more complex equation, and yields the same results when used on level 5 Dispel. -> Look at dec-agility for another skill with similar equation. [Skotlex]
 			{
 				if (sd)
 					clif_skill_fail(sd,skillid,0,0);
@@ -4137,7 +4139,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				break;
 			for(i=0;i<136;i++){
 				if(i==SC_RIDING || i==SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50 || i==SC_WEIGHT90
-					|| i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR | i==SC_STRIPHELM
+					|| i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR || i==SC_STRIPHELM
 					|| i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR || i==SC_CP_HELM
 					|| i==SC_COMBO || i==SC_GUILDAURA || i==SC_LULLABY || i==SC_RICHMANKIM
 					|| i==SC_ETERNALCHAOS || i==SC_DRUMBATTLE || i==SC_NIBELUNGEN || i==SC_ROKISWEIL

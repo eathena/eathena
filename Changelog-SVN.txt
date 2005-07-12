@@ -1,4 +1,7 @@
 Date	Added
+07/12
+	* More Dispell Fixes [Skotlex]
+	* log_login option now also works for the SQL Login server [Skotlex]
 07/11
 	* Fixed again Dispell. [Skotlex]
 	* Added nomemo mapflag to Ayothaya Dungeon. Check your memo DBs and wipe forbidden entries [Lupus]
