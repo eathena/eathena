@@ -7761,7 +7761,13 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 		clif_skill_fail(sd,sd->skillid,0,0);
 		return 0;
 	}
-
+	if (map_getcell(sd->bl.m, skill_x, skill_y, CELL_CHKNOPASS) && skill_get_inf2(skill_num)&INF2_TRAP)
+	{	//prevent casting traps on non-walkable areas. [Skotlex] 
+		
+		clif_skill_fail(sd,skill_num,0,0);
+		return 0;
+	}
+	
 	sc_data = sd->sc_data;
 
 	if (sd->opt1 > 0)
