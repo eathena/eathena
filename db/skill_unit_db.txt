@@ -74,4 +74,4 @@
 404,0xb6,    , -1, 0,  -1,all,   0x000	//PF_FOGWALL#フォグウォール
 405,0xb7,    ,  0, 1,1000,enemy, 0x006	//PF_SPIDERWEB#スパイダーウェッブ
 484,0xb8,    ,  2, 0,1000,enemy, 0x000	//HW_GRAVITATION
-488,0xb9,    ,  3, 0,  -1,friend,0x100	//CG_HERMODE
+488,0xb9,    ,  3, 0,  -1,party, 0x100	//CG_HERMODE

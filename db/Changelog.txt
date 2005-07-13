@@ -15,6 +15,10 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+07/13
+	* Changed Wand of Hermod's skill_unit_setting from 'friend' to 'party' [Skotlex]
+	  (this should make the skill affect only party (and guild?) mates instead
+	  of all players in normal maps)
 07/11
 	* Reduced Einbroch mobs (RSX,Ungoliatnt) call-slave skill chance from 10000 (100%) to (10%) [Lupus]
 	* Added the Loli Ruri card to the magician set [Skotlex]

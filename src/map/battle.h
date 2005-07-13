@@ -338,7 +338,6 @@ extern struct Battle_Config {
 
 	unsigned short display_hallucination;	// [Skotlex]
 	unsigned short use_statpoint_table;	// [Skotlex]
-	unsigned short new_attack_function; //For testing purposes [Skotlex]
 
 	unsigned short ignore_items_gender; //[Lupus]
 

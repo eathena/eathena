@@ -740,7 +740,7 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 	}
 	return (damage);
 }
-
+/* Commented code left here as reference (for now) [Skotlex]
 static struct Damage battle_calc_pet_weapon_attack(
 	struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int wflag)
 {
@@ -813,7 +813,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 	else
 		damage = 0;
 
-	if(skill_num==HW_MAGICCRASHER){			/* マジッククラッシャーはMATKで殴る */
+	if(skill_num==HW_MAGICCRASHER){			// マジッククラッシャーはMATKで殴る 
 		atkmin = status_get_matk1(src);
 		atkmax = status_get_matk2(src);
 	}else{
@@ -1043,7 +1043,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 			case CH_PALMSTRIKE:	// 猛虎硬派山
 				damage = damage*(200+ 100*skill_lv)/100;
 				break;
-			case LK_SPIRALPIERCE:			/* スパイラルピアース */
+			case LK_SPIRALPIERCE:			// スパイラルピアース 
 				damage = damage*(100+ 50*skill_lv)/100; //増加量が分からないので適当に
 				ignore_def_flag = 1;
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
@@ -1052,22 +1052,22 @@ static struct Damage battle_calc_pet_weapon_attack(
 				else if(target->type == BL_MOB)
 					((struct mob_data *)target)->canmove_tick = gettick() + 1000;
 				break;
-			case LK_HEADCRUSH:				/* ヘッドクラッシュ */
+			case LK_HEADCRUSH:				// ヘッドクラッシュ 
 				damage = damage*(100+ 40*skill_lv)/100;
 				break;
-			case LK_JOINTBEAT:				/* ジョイントビート */
+			case LK_JOINTBEAT:				// ジョイントビート 
 				damage = damage*(50+ 10*skill_lv)/100;
 				break;
-			case ASC_METEORASSAULT:			/* メテオアサルト */
+			case ASC_METEORASSAULT:			// メテオアサルト 
 				damage = damage*(40+ 40*skill_lv)/100;
 				break;
-			case SN_SHARPSHOOTING:			/* シャープシューティング */
+			case SN_SHARPSHOOTING:			// シャープシューティング 
 				damage += damage*(100+50*skill_lv)/100;
 				break;
-			case CG_ARROWVULCAN:			/* アローバルカン */
+			case CG_ARROWVULCAN:			// アローバルカン 
 				damage = damage*(200+100*skill_lv)/100;
 				break;
-			case AS_SPLASHER:		/* ベナムスプラッシャー */
+			case AS_SPLASHER:		// ベナムスプラッシャー 
 				damage = damage*(200+20*skill_lv)/100;
 				hitrate = 1000000;
 				break;
@@ -1164,7 +1164,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 	if(skill_num != 0 || s_ele != 0 || !battle_config.pet_attack_attr_none)
 	damage=battle_attr_fix(damage, s_ele, status_get_element(target) );
 
-	if(skill_num==PA_PRESSURE) /* プレッシャー 必中? */
+	if(skill_num==PA_PRESSURE) // プレッシャー 必中? 
 		damage = 500+300*skill_lv;
 
 	// インベナム修正
@@ -1208,7 +1208,8 @@ static struct Damage battle_calc_pet_weapon_attack(
 
 	return wd;
 }
-
+*/
+/* Commented code left here for reference (for now). [Skotlex]
 static struct Damage battle_calc_mob_weapon_attack(
 	struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int wflag)
 {
@@ -1310,7 +1311,7 @@ static struct Damage battle_calc_mob_weapon_attack(
 		damage = status_get_baseatk(src);
 	else
 		damage = 0;
-	if(skill_num==HW_MAGICCRASHER){			/* マジッククラッシャーはMATKで殴る */
+	if(skill_num==HW_MAGICCRASHER){			// マジッククラッシャーはMATKで殴る 
 		atkmin = status_get_matk1(src);
 		atkmax = status_get_matk2(src);
 	}else{
@@ -1575,7 +1576,7 @@ static struct Damage battle_calc_mob_weapon_attack(
 			case CH_PALMSTRIKE:	// 猛虎硬派山
 				damage = damage*(200+ 100*skill_lv)/100;
 				break;
-			case LK_SPIRALPIERCE:			/* スパイラルピアース */
+			case LK_SPIRALPIERCE:			// スパイラルピアース 
 				damage = damage*(100+ 50*skill_lv)/100; //増加量が分からないので適当に
 				ignore_def_flag = 1;
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
@@ -1584,22 +1585,22 @@ static struct Damage battle_calc_mob_weapon_attack(
 				else if(tmd)
 					tmd->canmove_tick = gettick() + 1000;
 				break;
-			case LK_HEADCRUSH:				/* ヘッドクラッシュ */
+			case LK_HEADCRUSH:				// ヘッドクラッシュ 
 				damage = damage*(100+ 40*skill_lv)/100;
 				break;
-			case LK_JOINTBEAT:				/* ジョイントビート */
+			case LK_JOINTBEAT:				// ジョイントビート 
 				damage = damage*(50+ 10*skill_lv)/100;
 				break;
-			case ASC_METEORASSAULT:			/* メテオアサルト */
+			case ASC_METEORASSAULT:			// メテオアサルト 
 				damage = damage*(40+ 40*skill_lv)/100;
 				break;
-			case SN_SHARPSHOOTING:			/* シャープシューティング */
+			case SN_SHARPSHOOTING:			// シャープシューティング 
 				damage += damage*(100+50*skill_lv)/100;
 				break;
-			case CG_ARROWVULCAN:			/* アローバルカン */
+			case CG_ARROWVULCAN:			// アローバルカン 
 				damage = damage*(200+100*skill_lv)/100;
 				break;
-			case AS_SPLASHER:		/* ベナムスプラッシャー */
+			case AS_SPLASHER:		// ベナムスプラッシャー 
 				damage = damage*(200+20*skill_lv)/100;
 				hitrate = 1000000;
 				break;
@@ -1737,9 +1738,9 @@ static struct Damage battle_calc_mob_weapon_attack(
 		if(skill_num != 0 || s_ele != 0 || !battle_config.mob_attack_attr_none)
 			damage=battle_attr_fix(damage, s_ele, status_get_element(target) );
 
-	//if(sc_data && sc_data[SC_AURABLADE].timer!=-1)	/* オーラブレード 必中 */
+	//if(sc_data && sc_data[SC_AURABLADE].timer!=-1)	// オーラブレード 必中 
 	//	damage += sc_data[SC_AURABLADE].val1 * 10;
-	if(skill_num==PA_PRESSURE) /* プレッシャー 必中? */
+	if(skill_num==PA_PRESSURE) // プレッシャー 必中? 
 		damage = 500+300*skill_lv;
 
 	// インベナム修正
@@ -1791,11 +1792,13 @@ static struct Damage battle_calc_mob_weapon_attack(
 	wd.dmg_lv=dmg_lv;
 	return wd;
 }
+*/
 /*
  * =========================================================================
  * PCの武器による攻撃
  *-------------------------------------------------------------------------
  */
+/* This code is left commented for reference (at least for now)
 static struct Damage battle_calc_pc_weapon_attack(
 	struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int wflag)
 {
@@ -1912,7 +1915,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	watk = status_get_atk(src); //ATK
 	watk_ = status_get_atk_(src); //ATK左手
 
-	if(skill_num == HW_MAGICCRASHER)	/* マジッククラッシャーはMATKで殴る */
+	if(skill_num == HW_MAGICCRASHER)	// マジッククラッシャーはMATKで殴る
 		damage = damage2 = status_get_matk1(src); //damega,damega2初登場、base_atkの取得
 	else
 		damage = damage2 = status_get_baseatk(&sd->bl); //damega,damega2初登場、base_atkの取得
@@ -2354,7 +2357,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			case CH_PALMSTRIKE:	// 猛虎硬派山
 				damage_rate += 100+ 100*skill_lv;
 				break;
-			case LK_SPIRALPIERCE:			/* スパイラルピアース */
+			case LK_SPIRALPIERCE:			// スパイラルピアース
 				damage_rate += 50*skill_lv; //増加量が分からないので適当に
 				ignore_def_flag = 1;
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
@@ -2363,20 +2366,20 @@ static struct Damage battle_calc_pc_weapon_attack(
 				else if(tmd)
 					tmd->canmove_tick = gettick() + 1000;
 				break;
-			case LK_HEADCRUSH:				/* ヘッドクラッシュ */
+			case LK_HEADCRUSH:				// ヘッドクラッシュ 
 				damage_rate += 40*skill_lv;
 				break;
-			case LK_JOINTBEAT:				/* ジョイントビート */
+			case LK_JOINTBEAT:				// ジョイントビート 
 				damage_rate += 10*skill_lv-50;
 				break;
-			case ASC_METEORASSAULT:			/* メテオアサルト */
+			case ASC_METEORASSAULT:			// メテオアサルト 
 				damage_rate += 40*skill_lv-60;
 				no_cardfix = 1;
 				break;
-			case SN_SHARPSHOOTING:			/* シャープシューティング */
+			case SN_SHARPSHOOTING:			// シャープシューティング 
 				damage_rate += 100+50*skill_lv;
 				break;
-			case CG_ARROWVULCAN:			/* アローバルカン */
+			case CG_ARROWVULCAN:			// アローバルカン 
 				damage_rate += 100+100*skill_lv;
 				if(sd->arrow_ele > 0) {
 					s_ele = sd->arrow_ele;
@@ -2384,7 +2387,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 				}
 				flag=(flag&~BF_RANGEMASK)|BF_LONG;
 				break;
-			case AS_SPLASHER:		/* ベナムスプラッシャー */
+			case AS_SPLASHER:		// ベナムスプラッシャー 
 				damage_rate += 100+20*skill_lv+20*pc_checkskill(sd,AS_POISONREACT);
 				no_cardfix = 1;
 				hitrate = 1000000;
@@ -2547,7 +2550,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			}
 		}
 	}
-	else if(skill_num == LK_SPIRALPIERCE) {			/* スパイラルピアース */
+	else if(skill_num == LK_SPIRALPIERCE) {			// スパイラルピアース 
 		if(sd->equip_index[9] >= 0) {	//重量で追加ダメージらしいのでシールドブーメランを参考に追加
 			int index = sd->equip_index[9];
 			if(sd->inventory_data[index] && sd->inventory_data[index]->type == 4) {
@@ -2755,7 +2758,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	damage += sd->spiritball*3;
 	damage2 += sd->spiritball*3;
 
-	if(skill_num==PA_PRESSURE){ /* プレッシャー 必中? */
+	if(skill_num==PA_PRESSURE){ // プレッシャー 必中? 
 		damage = 500+300*skill_lv;
 		damage2 = 500+300*skill_lv;
 	}
@@ -2854,14 +2857,14 @@ static struct Damage battle_calc_pc_weapon_attack(
 		}
 	}
 
-	/*				For executioner card [Valaris]				*/
+	//				For executioner card [Valaris]				
 		if(src->type == BL_PC && sd->random_attack_increase_add > 0 && sd->random_attack_increase_per > 0 && skill_num == 0 ){
 			if(rand()%100 < sd->random_attack_increase_per){
 				if(damage >0) damage*=sd->random_attack_increase_add/100;
 				if(damage2 >0) damage2*=sd->random_attack_increase_add/100;
 				}
 		}
-	/*					End addition					*/
+	//					End addition					
 
 		// for azoth weapon [Valaris]
 		if(src->type == BL_PC && target->type == BL_MOB && sd->classchange) {
@@ -2905,7 +2908,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 
 	return wd;
 }
-
+*/
 /*==========================================
  * battle_calc_weapon_attack_sub (by Skotlex)
  *------------------------------------------
@@ -4121,22 +4124,8 @@ struct Damage battle_calc_weapon_attack(
 		return wd;
 	}
 
-	//Until the function becomes official [Skotlex]
-	if (battle_config.new_attack_function)
-		wd = battle_calc_weapon_attack_sub(src,target,skill_num,skill_lv,wflag);
-	else
-	{
-		if(target->type == BL_PET)
-			memset(&wd,0,sizeof(wd));
-		else if(src->type == BL_PC)
-			wd = battle_calc_pc_weapon_attack(src,target,skill_num,skill_lv,wflag);
-		else if(src->type == BL_MOB)
-			wd = battle_calc_mob_weapon_attack(src,target,skill_num,skill_lv,wflag);
-		else if(src->type == BL_PET)
-			wd = battle_calc_pet_weapon_attack(src,target,skill_num,skill_lv,wflag);
-		else
-			memset(&wd,0,sizeof(wd));
-	}
+	wd = battle_calc_weapon_attack_sub(src,target,skill_num,skill_lv,wflag);
+	
 	if ( src->type==BL_PC &&
 		( battle_config.equip_self_break_rate || battle_config.equip_skill_break_rate ) &&
 		(wd.damage > 0 || wd.damage2 > 0)) {
@@ -4153,10 +4142,7 @@ struct Damage battle_calc_weapon_attack(
 			if(rand() % 10000 < breakrate * battle_config.equip_self_break_rate / 100 || breakrate >= 10000)
 				if (pc_breakweapon(sd))
 				{
-					if (battle_config.new_attack_function)
-						wd = battle_calc_weapon_attack_sub(src,target,skill_num,skill_lv,wflag);
-					else
-						wd = battle_calc_pc_weapon_attack(src,target,skill_num,skill_lv,wflag);
+					wd = battle_calc_weapon_attack_sub(src,target,skill_num,skill_lv,wflag);
 				}
 		}
 		if (battle_config.equip_skill_break_rate)
@@ -5567,7 +5553,6 @@ static const struct battle_data_short {
 	{ "who_display_aid",	                  &battle_config.who_display_aid}, // [Ancyker], for a feature by...?
 	{ "display_hallucination",             &battle_config.display_hallucination}, // [Skotlex]
 	{ "use_statpoint_table",               &battle_config.use_statpoint_table}, // [Skotlex]
-//	{ "new_attack_function",               &battle_config.new_attack_function}, // Unchangeable default now... we need to move to this already! [Skotlex]
 	{ "ignore_items_gender",               &battle_config.ignore_items_gender}, // [Lupus]
 	{ "copyskill_restrict",		       &battle_config.copyskill_restrict}, // [Aru]
 	{ "berserk_candels_buffs",		&battle_config.berserk_cancels_buffs}, // [Aru]
@@ -5911,19 +5896,13 @@ void battle_set_defaults() {
 	battle_config.who_display_aid = 0;
 	battle_config.display_hallucination = 1;
 	battle_config.ignore_items_gender = 1;
-
 	battle_config.use_statpoint_table = 1;
-	battle_config.new_attack_function = 1; //This is for test/debug purposes [Skotlex]
-
 	battle_config.dynamic_mobs = 1; // use Dynamic Mobs [Wizputer]
 	battle_config.mob_remove_damaged = 1; // Dynamic Mobs - Remove mobs even if damaged [Wizputer]
 	battle_config.mob_remove_delay = 60000;
-
 	battle_config.show_hp_sp_drain = 0; //Display drained hp/sp from attacks
 	battle_config.show_hp_sp_gain = 1;	//Display gained hp/sp from mob-kills
-	
 	battle_config.mob_clear_delay = 0;
-
 	battle_config.character_size = 3; //3: Peco riders Size=2, Baby Class Riders Size=1
 	battle_config.headset_block_music = 0; //Do headsets block some sound skills like Frost Joke
 

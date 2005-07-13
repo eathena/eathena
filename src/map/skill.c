@@ -5127,6 +5127,11 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 			fail_flag = 0;
 		if(inf2 & INF2_GUILD_ONLY && sd->status.guild_id > 0 && sd->status.guild_id == status_get_guild_id(bl))
 			fail_flag = 0;
+		
+		if (sd->skillid == PF_SOULCHANGE && (map[sd->bl.m].flag.gvg || map[sd->bl.m].flag.pvp))
+			//Soul Change overrides this restriction during pvp/gvg [Skotlex]
+			fail_flag = 0;
+		
 		if(fail_flag) {
 			clif_skill_fail(sd,sd->skillid,0,0);
 			sd->canact_tick = tick;
