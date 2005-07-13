@@ -1,5 +1,6 @@
 Date	Added
 07/13
+	* Fixed the compile problem on the previous upgrade. [Skotlex]
 	* Changed refine success chances to match jRO information. [Skotlex]
 	  See http://tomcat1.s13.xrea.com/bs/calc.html and
 	  http://eathena.deltaanime.net/board/index.php?showtopic=39997

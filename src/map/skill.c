@@ -9452,7 +9452,7 @@ int skill_produce_mix( struct map_session_data *sd,
 		if(battle_config.pp_rate != 100)
 			make_per = make_per * battle_config.pp_rate / 100;
 	} else { // Weapon Forging. Using rates based on jRO [Skotlex]
-		make_per = 2000 + sd->status.job_level*20 + status_get_dex(sd)*10 + status_get_luk(sd)*10; //Base
+		make_per = 2000 + sd->status.job_level*20 + status_get_dex(&sd->bl)*10 + status_get_luk(&sd->bl)*10; //Base
 		make_per += 2500 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*500; //Skill bonus: +30/+35/+40
 		make_per += pc_checkskill(sd,BS_WEAPONRESEARCH)*100 +((wlv >= 3)? pc_checkskill(sd,BS_ORIDEOCON)*100:0); //Weapon/Oridecon research
 		make_per -= (ele?2000:0 + sc*1500 + wlv>1?wlv*1000:0); //Ele: -20%, StarCrumb: -15%ea, Wlevel: -0/-20/-30
