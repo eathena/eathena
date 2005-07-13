@@ -1,8 +1,9 @@
 Date	Added
 07/13
-        * Adjusted my fix of buildin_getequipisequiped to not leave
-          the return stack tweaked [MouseJstr]
-        * Changed skill_unit_onlimit to use strncpy instead of memcpy
+	* Fixed login-sql server not reading login_log value [Skotlex]
+	* Adjusted my fix of buildin_getequipisequiped to not leave
+	  the return stack tweaked [MouseJstr]
+	* Changed skill_unit_onlimit to use strncpy instead of memcpy
 	  in one spot to eliminate accessing unallocated memory [MouseJstr]
 	* Added check into _mmalloc for allocations of less then zero
 	  to make debugging easier [MouseJstr]
@@ -11,7 +12,7 @@ Date	Added
 	* Fixed the debugging malloc MACRO's to use the correct arguments
 	  [MouseJstr]
 	* increased max maps per server to 1024 [MouseJstr]
-        * Added check into buildin_getequipisequiped to make sure arguments
+	* Added check into buildin_getequipisequiped to make sure arguments
 	  don't go outside of array boundries *crash* [MouseJstr]
 	* Add a check into refine bonuses to not go outside of array
 	  boundries if somebody has a wlv above 5 in the database *crash* [MouseJstr]

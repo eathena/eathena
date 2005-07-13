@@ -1768,14 +1768,18 @@ int login_config_read(const char *cfgName){
 		else if(strcmpi(w1, "register_users_online") == 0) {
 			register_users_online = config_switch(w2);
 		} else if (strcmpi(w1, "allowed_regs") == 0) { //account flood protection system [Kevin]
-	            
 			allowed_regs = atoi(w2);
-	            
 		} else if (strcmpi(w1, "time_allowed") == 0) {
-	            
 			time_allowed = atoi(w2);
-	            
+		} else if (strcmpi(w1, "log_login") == 0) {
+			if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
+				log_login = 1;
+			else if(strcmpi(w2,"off") == 0 || strcmpi(w2,"no") == 0 )
+				log_login = 0;
+			else
+				log_login = atoi(w2);
 		}
+
  	}
 	fclose(fp);
 	ShowInfo("done reading %s.\n", cfgName);
@@ -1833,9 +1837,6 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		}
 		else if(strcmpi(w1,"login_db_level")==0){
 			strcpy(login_db_level, w2);
-		}
-		else if (strcmpi(w1, "log_login") == 0) {
-			log_login = atoi(w2);
 		}
 		else if (strcmpi(w1, "loginlog_db") == 0) {
 			strcpy(loginlog_db, w2);
