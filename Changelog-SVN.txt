@@ -1,5 +1,6 @@
 Date	Added
 07/13
+	* Fixed triple blow's 'infinite damage delay'. [Skotlex
 	* Added check to prevent placing traps on non-walkable cells. [Skotlex]
 	* Fixed login-sql server not reading login_log value [Skotlex]
 	* Adjusted my fix of buildin_getequipisequiped to not leave

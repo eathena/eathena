@@ -4834,9 +4834,10 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				clif_damage(src, src, tick, wd.amotion, wd.dmotion, rdamage, 1, 4, 0);
 		}
 
-		if (wd.div_ == 255 && sd)	{ //三段掌
+		if (wd.div_ == 255)	{ //三段掌
 			int delay = 0;
-			if (wd.damage + wd.damage2 < status_get_hp(target)) {
+			wd.div_ = 3;
+			if (sd && wd.damage + wd.damage2 < status_get_hp(target)) {
 				int skilllv = pc_checkskill(sd, MO_CHAINCOMBO);
 				if (skilllv > 0) {
 					delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
@@ -4844,10 +4845,11 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				}
 				status_change_start(src, SC_COMBO, MO_TRIPLEATTACK, skilllv, 0, 0, delay, 0);
 			}
-			sd->attackabletime = sd->canmove_tick = tick + delay;
+			if (sd)
+				sd->attackabletime = sd->canmove_tick = tick + delay;
 			clif_combo_delay(src, delay);
-			clif_skill_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, 3,
-				MO_TRIPLEATTACK, pc_checkskill(sd,MO_TRIPLEATTACK), -1);
+			clif_skill_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_,
+				MO_TRIPLEATTACK, sd?pc_checkskill(sd,MO_TRIPLEATTACK):1, -1);
 		} else {
 			clif_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_ , wd.type, wd.damage2);
 			//二刀流左手とカタール追撃のミス表示(無理やり～)
