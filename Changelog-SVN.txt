@@ -1,5 +1,10 @@
 Date	Added
 07/13
+	* Changed refine success chances to match jRO information. [Skotlex]
+	  See http://tomcat1.s13.xrea.com/bs/calc.html and
+	  http://eathena.deltaanime.net/board/index.php?showtopic=39997
+	  for the details on the new equation.
+	  (changed because the current equations seem somewhat outdated)
 	* Fixed max chance const of "mob skill usage". Now all mobs aren't hyperactive. [Lupus]
 		Doppel's hammerfall affects THE whole map, Eddga makes damage ~9999, Moonlight heals itself by 9999 , and similiar probs should be fixed, tough
 	* Fixed global vars not being saved instantly (used to cause some scripts exploits) [Lupus]
