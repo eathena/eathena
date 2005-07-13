@@ -1,3 +1,0 @@
-moc_fild04.gat,219,327,0	script	mocf016	45,3,4,{ set anthell,0; warp "anthell01.gat",35,262; }
-
-moc_fild15.gat,258,253,0	script	mocf017	45,3,3,{ set anthell,1; warp "anthell01.gat",35,262; }
