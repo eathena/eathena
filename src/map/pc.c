@@ -7513,7 +7513,7 @@ int pc_readdb(void)
 		// check for bounds [celest]
 		if (i > 25 || u > 3)
 			continue;
-		for(j = 0; skill_tree[u][i][j].id && j < MAX_SKILL_TREE; j++);
+		for(j = 0; (j < MAX_SKILL_TREE) && skill_tree[u][i][j].id; j++);
 		if (j == MAX_SKILL_TREE)
 			continue;
 		skill_tree[u][i][j].id=atoi(split[1]);

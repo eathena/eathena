@@ -1,5 +1,24 @@
 Date	Added
 07/13
+        * Changed skill_unit_onlimit to use strncpy instead of memcpy
+	  in one spot to eliminate accessing unallocated memory [MouseJstr]
+	* Added check into _mmalloc for allocations of less then zero
+	  to make debugging easier [MouseJstr]
+	* Fixed USE_MEMMGR to disable when running bounds checker or
+	  the debugging malloc code [MouseJstr]
+	* Fixed the debugging malloc MACRO's to use the correct arguments
+	  [MouseJstr]
+	* increased max maps per server to 1024 [MouseJstr]
+        * Added check into buildin_getequipisequiped to make sure arguments
+	  don't go outside of array boundries *crash* [MouseJstr]
+	* Add a check into refine bonuses to not go outside of array
+	  boundries if somebody has a wlv above 5 in the database *crash* [MouseJstr]
+	* Modified skill_tree code to confirm we are still inside the 
+	  skill_tree array before accessing a element from the skill_tree
+	  array *crash* [MouseJstr]
+	* Changed the mob spawning code to use strncpy instead of memcpy
+	  in some places to avoid copying unallocated and uninitialized 
+	  memory *crash* [MouseJstr]
 	* Fixed the compile problem on the previous upgrade. [Skotlex]
 	* Changed refine success chances to match jRO information. [Skotlex]
 	  See http://tomcat1.s13.xrea.com/bs/calc.html and

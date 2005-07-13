@@ -15,7 +15,9 @@
 //////////////////////////////////////////////////////////////////////
 // Whether to use Athena's built-in Memory Manager (enabled by default)
 // To disable just comment the following line
+#if !defined(DMALLOC) && !defined(BCHECK)
 #define USE_MEMMGR
+#endif
 // Whether to enable Memory Manager's logging
 #define LOG_MEMMGR
 
@@ -73,8 +75,8 @@
 #	include "dmalloc.h"
 #	define MALLOC(n)	dmalloc_malloc(__FILE__, __LINE__, (n), DMALLOC_FUNC_MALLOC, 0, 0)
 #	define MALLOCA(n)	dmalloc_malloc(__FILE__, __LINE__, (n), DMALLOC_FUNC_MALLOC, 0, 0)
-#	define CALLOC(m,n)	dmalloc_malloc(__FILE__, __LINE__, (p)*(n), DMALLOC_FUNC_CALLOC, 0, 0)
-#	define CALLOCA(m,n)	dmalloc_malloc(__FILE__, __LINE__, (p)*(n), DMALLOC_FUNC_CALLOC, 0, 0)
+#	define CALLOC(m,n)	dmalloc_malloc(__FILE__, __LINE__, (m)*(n), DMALLOC_FUNC_CALLOC, 0, 0)
+#	define CALLOCA(m,n)	dmalloc_malloc(__FILE__, __LINE__, (m)*(n), DMALLOC_FUNC_CALLOC, 0, 0)
 #	define REALLOC(p,n)	dmalloc_realloc(__FILE__, __LINE__, (p), (n), DMALLOC_FUNC_REALLOC, 0)
 #	define STRDUP(p)	strdup(p)
 #	define FREE(p)		free(p)

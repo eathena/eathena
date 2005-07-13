@@ -3086,11 +3086,14 @@ int buildin_getequipisequiped(struct script_state *st)
 
 	num=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	sd=script_rid2sd(st);
-	i=pc_checkequip(sd,equip[num-1]);
-	if(i >= 0){
-		push_val(st->stack,C_INT,1);
-	}else{
-		push_val(st->stack,C_INT,0);
+	if ((num - 1)  >= (sizeof(equip) / sizeof(equip[0])))
+		i = 0;
+	else {
+		i=pc_checkequip(sd,equip[num-1]);
+		if(i >= 0)
+			push_val(st->stack,C_INT,1);
+		else
+			push_val(st->stack,C_INT,0);
 	}
 
 	return 0;

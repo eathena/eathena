@@ -86,11 +86,11 @@ int mob_spawn_dataset(struct mob_data *md,const char *mobname,int class_)
 	md->bl.prev=NULL;
 	md->bl.next=NULL;
 	if(strcmp(mobname,"--en--")==0)
-		memcpy(md->name,mob_db[class_].name,NAME_LENGTH-1);
+		strncpy(md->name,mob_db[class_].name,NAME_LENGTH-1);
 	else if(strcmp(mobname,"--ja--")==0)
-		memcpy(md->name,mob_db[class_].jname,NAME_LENGTH-1);
+		strncpy(md->name,mob_db[class_].jname,NAME_LENGTH-1);
 	else
-		memcpy(md->name,mobname,NAME_LENGTH-1);
+		strncpy(md->name,mobname,NAME_LENGTH-1);
 
 	md->n = 0;
 	md->base_class = md->class_ = class_;

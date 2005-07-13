@@ -291,7 +291,8 @@ static int hp_coefficient2[MAX_PC_CLASS];
 static int hp_sigma_val[MAX_PC_CLASS][MAX_LEVEL];
 static int sp_coefficient[MAX_PC_CLASS];
 static int aspd_base[MAX_PC_CLASS][20];
-static int refinebonus[5][3];	// 精錬ボーナステーブル(refine_db.txt)
+#define MAX_REFINE_BONUS 5
+static int refinebonus[MAX_REFINE_BONUS][3];	// 精錬ボーナステーブル(refine_db.txt)
 int percentrefinery[5][MAX_REFINE+1];	// 精錬成功率(refine_db.txt)
 static int atkmods[3][20];	// 武器ATKサイズ修正(size_fix.txt)
 static char job_bonus[3][MAX_PC_CLASS][MAX_LEVEL];
@@ -698,6 +699,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->def += sd->inventory_data[index]->def;
 			if(sd->inventory_data[index]->type == 4) {
 				int r,wlv = sd->inventory_data[index]->wlv;
+				if (wlv >= MAX_REFINE_BONUS) 
+					wlv = MAX_REFINE_BONUS - 1;
 				if(i == 8 && sd->status.inventory[index].equip == 0x20) { // Left-hand weapon
 					sd->left_weapon.watk += sd->inventory_data[index]->atk;
 					sd->left_weapon.watk2 = (r=sd->status.inventory[index].refine)*	// 精?攻?力

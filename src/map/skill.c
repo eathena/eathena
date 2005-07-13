@@ -6519,7 +6519,7 @@ int skill_unit_onlimit(struct skill_unit *src,unsigned int tick)
 				ShowFatalError("skill_unit_onlimit: out of memory !\n");
 				exit(1);
 			}
-			memcpy(group->valstr,sg->valstr,MESSAGE_SIZE-1);
+			strncpy(group->valstr,sg->valstr,MESSAGE_SIZE-1);
 			group->val2=sg->val2;
 		}
 		break;
