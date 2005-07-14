@@ -218,6 +218,10 @@ typedef int bool;
 //////////////////////////////
 #ifndef __socklen_t_defined
 
+#ifdef socklen_t
+#undef socklen_t
+#endif
+
 #ifdef WIN32
 //#if defined(WIN32) || defined(CYGWIN)
 typedef int socklen_t;
@@ -599,6 +603,9 @@ static inline unsigned long SwapFourBytes(unsigned long w)
 }
 
 
+#ifdef log2
+#undef log2
+#endif
 
 // Find the log base 2 of an N-bit integer in O(lg(N)) operations
 // in this case for 32bit input it would be 11 operations
@@ -1811,4 +1818,3 @@ public:
 
 
 #endif//_BASE_H_
-
