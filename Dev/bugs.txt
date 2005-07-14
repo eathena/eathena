@@ -399,3 +399,10 @@ Problem:	Can't see players name, party name, guild name
 Assigned:	na
 Progress:	0%
 
+
+Problem:	These bugs've appeared in some old win32 cygwin (under Linux, FreeBSD it works fine).
+		Probably it's due to removed of memset + strncpy. ()
+	BUG: latest changes in battle.c MADE all mobs not attackin players.
+	BUG: Using STRNCPY for structs CAUSE huge errors! IT's applicable for strings only!
+		Because your struct could contain ZERO in its middle. Then the next part of it
+		won't be copied properly.

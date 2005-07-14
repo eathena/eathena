@@ -1,11 +1,4 @@
 Date	Added
-07/14
-	BUG: latest changes in battle.c MADE all mobs not attackin players.
-	BUG: Using STRNCPY for structs CAUSE huge errors! IT's applicable for strings only!
-		Because your struct could contain ZERO in its middle. Then the next part of it
-		won't be copied properly.
-	If these bugs won't be fixed by tonight, I'm reverting battle.c myself [Lupus]
-
 07/13
 	* Soul Change should now work on anyone in pvp/gvg maps [Skotlex]
 	* Wand of Hermod's target change from 'friend' to 'party' [Skotlex]
