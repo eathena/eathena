@@ -1,4 +1,8 @@
 Date	Added
+07/14
+	* Fixed the login-sql registration issue. [Skotlex]
+	* Made it so all ground-targetted skills fail if you try to cast them on a
+	  cell you can't step in. [Skotlex]
 07/13
 	* Soul Change should now work on anyone in pvp/gvg maps [Skotlex]
 	* Wand of Hermod's target change from 'friend' to 'party' [Skotlex]

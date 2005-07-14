@@ -353,8 +353,8 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 	}
 	mysql_free_result(sql_res); //Only needed for the already-exists check...
 
-	mysql_real_escape_string(&mysql_handle, account->userid, account->userid, sizeof(account->userid));
-	mysql_real_escape_string(&mysql_handle, account->passwd, account->passwd, sizeof(account->passwd));
+	mysql_real_escape_string(&mysql_handle, account->userid, account->userid, strlen(account->userid));
+	mysql_real_escape_string(&mysql_handle, account->passwd, account->passwd, strlen(account->passwd));
 
 	ShowInfo("New account: user: %s with passwd: %s sex: %c\n", account->userid, account->passwd, sex);
 	sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, account->passwd, sex, "a@a.com");
