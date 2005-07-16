@@ -29,6 +29,7 @@ TODO:
 Date		Added
 ======
 07/16
+	* Fixed a map name typo in the Prontera fields mobs spawn file. (thanx 2Gwendalin) [Lupus]
 	* Added NOLOOT, NOEXP mapflags files (thanks to Lorky,OSKOM) [Lupus]
 	* Updated Louyang monsters spawn (thanks to MasterOfMuppets) [Lupus]
 07/12

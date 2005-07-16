@@ -3,11 +3,11 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 1.0
+//= 1.1
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
-//=
+//= 1.1 map name type fix, thanx to Gwendalin
 //============================================================
 
 //(prt_fild00.gat)*
@@ -89,7 +89,7 @@ prt_fild08.gat,0,0,0,0	monster	Poring	1002,100,0,0,0
 prt_fild09.gat,0,0,0,0	monster	Desert Wolf Puppy	1107,20,0,0,0
 prt_fild09.gat,0,0,0,0	monster	Savage Babe	1167,70,0,0,0
 prt_fild09.gat,0,0,0,0	monster	Condor	1009,10,0,0,0
-moc_fild09.gat,0,0,0,0	monster	PecoPeco Egg	1047,10,0,0,0
+prt_fild09.gat,0,0,0,0	monster	PecoPeco Egg	1047,10,0,0,0
 prt_fild09.gat,0,0,0,0	monster	Picky	1049,20,0,0,0
 prt_fild09.gat,237,115,5,5	monster	Yellow Plant	1081,3,360000,180000,1
 
