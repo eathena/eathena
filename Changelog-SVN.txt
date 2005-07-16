@@ -1,4 +1,7 @@
 Date	Added
+
+07/15
+	* Added sql runservers to all branches as runserver-sql.bat [Evera]
 07/14
 	* Fixed the login-sql registration issue. [Skotlex]
 	* Made it so all ground-targetted skills fail if you try to cast them on a
