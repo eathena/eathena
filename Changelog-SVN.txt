@@ -1,5 +1,7 @@
 Date	Added
 
+07/15
+	* Added sql runservers to all branches as runserver-sql.bat [Evera]
 06/08
 	* Updated idle time considerations. [Skotlex]
 	  A character's idle time is reset upon: Walking, attacking (auto-attack
