@@ -1166,6 +1166,101 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 
 	return 1;
 }
+
+// For quick selection of data when displaying the char menu. [Skotlex]
+// 
+int mmo_char_fromsql_short(int char_id, struct mmo_charstatus *p){
+	char t_msg[128];
+
+	/* The quick method does not loads a complete character, so we bypass the db.
+	cp = (struct mmo_charstatus*)numdb_search(char_db_,char_id);
+	if (cp != NULL)
+	  aFree(cp);
+	*/
+	memset(p, 0, sizeof(struct mmo_charstatus));
+	t_msg[0]= '\0';
+	
+	p->char_id = char_id;
+	ShowInfo("Quick Char load request (%d)\n", char_id);
+	//`char`( `char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`, //9
+	//`str`,`agi`,`vit`,`int`,`dex`,`luk`, //15
+	//`max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point`, //21
+	//`option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`, //27
+	//`hair`,`hair_color`,`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`, //35
+	//`last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`)
+	//splite 2 parts. cause veeeery long SQL syntax
+
+	sprintf(tmp_sql, "SELECT `char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`,"
+		"`str`,`agi`,`vit`,`int`,`dex`,`luk`, `max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point` FROM `%s` WHERE `char_id` = '%d'",char_db, char_id); // TBR
+
+	if (mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+	}
+
+	sql_res = mysql_store_result(&mysql_handle);
+
+	if (sql_res) {
+		sql_row = mysql_fetch_row(sql_res);
+
+		p->char_id = char_id;
+		p->account_id = atoi(sql_row[1]);
+		p->char_num = atoi(sql_row[2]);
+		strcpy(p->name, sql_row[3]);
+		p->class_ = atoi(sql_row[4]);
+		p->base_level = atoi(sql_row[5]);
+		p->job_level = atoi(sql_row[6]);
+		p->base_exp = atoi(sql_row[7]);
+		p->job_exp = atoi(sql_row[8]);
+		p->zeny = atoi(sql_row[9]);
+		p->str = atoi(sql_row[10]);
+		p->agi = atoi(sql_row[11]);
+		p->vit = atoi(sql_row[12]);
+		p->int_ = atoi(sql_row[13]);
+		p->dex = atoi(sql_row[14]);
+		p->luk = atoi(sql_row[15]);
+		p->max_hp = atoi(sql_row[16]);
+		p->hp = atoi(sql_row[17]);
+		p->max_sp = atoi(sql_row[18]);
+		p->sp = atoi(sql_row[19]);
+		p->status_point = atoi(sql_row[20]);
+		p->skill_point = atoi(sql_row[21]);
+		//free mysql result.
+		mysql_free_result(sql_res);
+		strcat (t_msg, " status");
+	} else
+		ShowError("Load char failed (%d - table %s).\n", char_id, char_db);	//Error?! ERRRRRR WHAT THAT SAY!?
+
+	sprintf(tmp_sql, "SELECT `option`,`karma`,`manner`,`hair`,`hair_color`,"
+		"`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`,"
+		"FROM `%s` WHERE `char_id` = '%d'",char_db, char_id); // TBR
+	if (mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL("DB server Error (select `char2`)- %s\n", mysql_error(&mysql_handle));
+	}
+
+	sql_res = mysql_store_result(&mysql_handle);
+	if (sql_res) {
+		sql_row = mysql_fetch_row(sql_res);
+
+		p->option = atoi(sql_row[0]);	p->karma = atoi(sql_row[1]);	p->manner = atoi(sql_row[2]);
+		p->hair = atoi(sql_row[3]);	p->hair_color = atoi(sql_row[4]);	p->clothes_color = atoi(sql_row[5]);
+		p->weapon = atoi(sql_row[6]);	p->shield = atoi(sql_row[7]);
+		p->head_top = atoi(sql_row[8]);	p->head_mid = atoi(sql_row[9]);	p->head_bottom = atoi(sql_row[10]);
+
+		//free mysql result.
+		mysql_free_result(sql_res);
+		strcat (t_msg, " status2");
+	} else
+		ShowError("Char load failed (%d - table %s)\n", char_id, char_db);	//Error?! ERRRRRR WHAT THAT SAY!?
+
+	ShowInfo("Quick Loaded char (%d - %s): %s\n", char_id, p->name, t_msg);	//ok. all data load successfuly!
+
+//	cp = (struct mmo_charstatus *) aMalloc(sizeof(struct mmo_charstatus)); //The loaded char is temporary, so no need for long-term storage [Skotlex]
+//		memcpy(cp, p, sizeof(struct mmo_charstatus));
+
+	//numdb_insert(char_db_, char_id,cp);
+
+	return 1;
+}
 //==========================================================================================================
 int mmo_char_sql_init(void) {
 	int charcount;
@@ -1771,7 +1866,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	ShowInfo("Request Char Data (\033[1;13m%d\033[0m):\n",sd->account_id);
 
 	for(i = 0; i < found_num; i++) {
-		mmo_char_fromsql(sd->found_char[i], char_dat, 0);
+		mmo_char_fromsql_short(sd->found_char[i], char_dat);
 
 		p = &char_dat[0];
 

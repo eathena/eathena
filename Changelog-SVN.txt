@@ -1,4 +1,6 @@
 Date	Added
+07/16
+	* Optimized sql loading of data when displaying the Char Select Screen [Skotlex]
 
 07/15
 	* Rewrote most of the packet_db handling code. [Skotlex]
