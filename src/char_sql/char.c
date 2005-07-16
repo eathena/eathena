@@ -1231,7 +1231,7 @@ int mmo_char_fromsql_short(int char_id, struct mmo_charstatus *p){
 		ShowError("Load char failed (%d - table %s).\n", char_id, char_db);	//Error?! ERRRRRR WHAT THAT SAY!?
 
 	sprintf(tmp_sql, "SELECT `option`,`karma`,`manner`,`hair`,`hair_color`,"
-		"`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`,"
+		"`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`"
 		"FROM `%s` WHERE `char_id` = '%d'",char_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB server Error (select `char2`)- %s\n", mysql_error(&mysql_handle));
