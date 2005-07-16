@@ -50,7 +50,7 @@ new_1-1.gat,117,107,2	script	Guard	105,{
 	set @TEMP,rand(2);
 	if (@TEMP !=0) goto L0;
 	mes "[Guard]";
-	mes "Go! Newbie! Go! You will see a New sun tomorrow!";
+	mes "Go! Newbie! Go! You will see a new strength lies in the holy see-er of truth tomorrow!";
 	close;
 
 	L0:

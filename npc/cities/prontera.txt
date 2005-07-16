@@ -595,12 +595,26 @@ prt_in.gat,177,20,2	script	TenSue	97,{
 
 // Library Girl Ellen ----------------------------------------------------
 prt_in.gat,175,50,2	script	Librarian Ellen	71,{
+	if(ttt_1==1)goto ttt;
 	mes "[Librarian Ellen]";
 	mes "Welcome. You can find books about monsters, organized by their properties here. There are also books about Merchant and Blacksmith skills.";
 	next;
 	mes "[Librarian Ellen]";
 	mes "Ah~! The library next door also has many interesting reading materials so please visit there too.";
+	set ttt_1,1;
 	close;
+
+ttt:
+	mes "[Librarian Ellen]";
+	mes "What you think is what you get. From the seas to the air of the great";
+	mes "One who hears the bell of chime, he trades what life is left of time";
+	next;
+	mes "[Librarian Ellen]";
+	mes "You need the egg of blobs to seek the truth, the truth you seek is near it comes.";
+	mes "What you want is not far, but to get this far you have seek in par.";
+	set ttt_1,0;
+	close;
+
 }
 
 // Gurator Guiss -------------------------------------------------------

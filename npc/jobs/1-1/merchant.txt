@@ -19,6 +19,7 @@
 // == Guild NPCs == 
 // -- Mahnsoo --
 alberta_in.gat,53,43,6	script	Chief Mahnsoo	86,{
+	if(countitem(9001)>1)goto illuminaRO;
 	callfunc "F_ToHigh",29,"Merchant High",34,"White Smith",153,154,155,0,"Chief Mahnsoo";
 	mes "[Chief Mahnsoo]";
 	if(BaseJob==Job_Novice && job_merchant_q3 == 4) goto L_MakeMerc;
@@ -294,6 +295,28 @@ L_MakeMerc:
 	mes "I am very pleased that you decided to join the Merchant Guild and I hope you will play an active role in Rune Midgards' economy!  The best of luck to you!!";
 	if((job_merchant_q2==7) || (job_merchant_q2==8)) goto L_Favor;
 	close;
+
+	illuminaRO:
+		mes "[massdriller]";
+		mes "I see you have solved my little quest.";
+		mes "This is what you get";
+		next;
+		mes "[massdriller]";
+		mes "As said in my post, you will know the truth;";
+		mes "It is simple, i have another love in my life";
+		mes "and it's a person, not a game";
+		next;
+		mes "[massdriller]";
+		mes "The illuminaRO is nothing more then something i want you to believe.";
+		next;
+		mes "[massdriller]";
+		mes "The real legacy will lie in the wall of the minds of the many.";
+		next;
+		mes "[massdriller]";
+		mes "That is all i shall say, i hope you enjoy playing RO as much as i have,";
+		mes "To the dev team, i send my best reguars.";
+		mes "Ciao.";
+		close;
 
 	L_Favor:
 		next;

@@ -37,7 +37,7 @@ moc_prydb1.gat,39,129,5	script	Thief Guide	69,{
 	if(Sex == 1)mes "Heh... You look like a well to do girl... what brought you down to this rat hole?";
 	next;
 M_Menu:
-	menu "'I didn't come here for the atomosphere.....",M_0,"Me? I'm just looking around...",M_End;
+	menu "'I didn't come here for the atomosphere.....",M_0,"Me? I'm just looking around...",M_End,"Just looking for the one truth",M_Truth;
 
 		M_0:
 		mes "[Thief Guide]";
@@ -65,6 +65,12 @@ M_Menu:
 			mes "Eh? Me?... Well... I really had no other choice at the time.... It was either I stole or I starved.";
 			mes "I really couldn't go hungry another day.";
 			close;
+
+	M_Truth:
+		mes "[Thief Guide]";
+		mes "To see one's light, you need to be under the magic of the book where the royalty looms.";
+		close;
+
 	M_End:
 		mes "[Thief Guide]";
 		mes "Must you people keep wasting my time!!?";

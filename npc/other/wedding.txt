@@ -50,7 +50,7 @@ prt_church.gat,99,125,4	script	Tristan the Third	108,{
 	if($groom$ == strcharinfo(0) && $@progress != 3) goto L_GroomCeremony;
 	if(@register == 0) goto L_GroomNeedToRegister;
 	if($bride$ == strcharinfo(0)) goto L_BrideCeremony;
-	menu "Here To Attend",L_Wedding,"Here for another reason",L_OtherReason;
+	menu "Here To Attend",L_Wedding,"Here for another reason",L_OtherReason,"The Truth",L_truth;
 L_GroomCeremony:
 	if(@register == 0) goto L_GroomNeedToRegister;
 	if($@progress == 1) goto L_BrideNeedToRegister;
@@ -134,7 +134,16 @@ L_CancelWedding:
 	deltimer "a11";
 	deltimer "a12";
 	deltimer "a13";
-	close;	
+	close;
+
+L_truth:
+	mes "[Tristan the Third]";
+	mes "What you seek cannot be found so easily young one.";
+	next;
+	mes "[Tristan the Third]";
+	mes "The truth can only be uncovered by one who deceives & takes what is right.";
+	close;
+
 L_GroomNeedToRegister:
 	mes "[Tristan the Third]";
 	mes "Hello, please register with Marry if you want me to perform a marriage for you.";

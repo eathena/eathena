@@ -25,7 +25,7 @@ comodo.gat,322,178,4	script	Comodo Guide#1::Comodo_Guide	724,{
 	mes "I know the area very well.  If you need directions, ask me for asistance anytime.";
 M_Menu:
 	next;
-	menu "View Buildings",M_1, "Notice",M_2, "Cancel",M_End;
+	menu "View Buildings",M_1, "Notice",M_2,"What else is new?",M_3,"Cancel",M_End;
 
 	M_1:
 		mes "[Comodo Guide]";
@@ -126,6 +126,11 @@ M_Menu:
 		mes "If you can't see the Mini-Map, just hit ^0000ff'ctrl+tab'^000000 or Click the ^0000ff'map'^000000 button in the Basic Information Window";
 		mes "Remeber to use the ^ff0000+,-^000000 buttons to adjust the map to your liking.";
 		goto M_Menu;
+
+	M_3:
+		mes "[Comodo Guide]";
+		mes "The truth unfolds at the very beggining. What you seek is what the tiger hunts.";
+		goto M_Menu;		
 
 	M_End:
 		mes "[Comodo Guide]";

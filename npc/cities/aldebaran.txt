@@ -1196,8 +1196,9 @@ aldeba_in.gat,81,166,4	script	Kafra Pavianee	117,{
 		next;
 		mes "["+strcharinfo(0)+"]";
 		mes "No, but why is the sun not shining?";
+		next;
 		mes "[Kafra Pavianne]";
-		mes "You will only know, when joyment cease.";
+		mes "You will only know, when enjoyment cease the guide to illumination.";
 		cutin "kafra_01",255;
 		close;
 
