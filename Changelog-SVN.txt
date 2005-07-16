@@ -1,6 +1,14 @@
 Date	Added
 
 07/15
+	* Rewrote most of the packet_db handling code. [Skotlex]
+	  eA now really supports multiple packet versions at the same time,
+	  (so that transitioning from one packet version to another should be
+	  smooth), there is no longer any need to mess with the db/packet_db.txt
+	  file.
+	* The values for packet_ver_flag have changed, check the battle_athena
+	  comments and set it up accordingly!
+	* Using the packet_db is the only way to manage packets now. [Skotlex]
 	* Added sql runservers to all branches as runserver-sql.bat [Evera]
 07/14
 	* Fixed the login-sql registration issue. [Skotlex]
