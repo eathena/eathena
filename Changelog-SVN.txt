@@ -1,5 +1,7 @@
 Date	Added
 07/16
+	* Fixed the spamming of 'unknown packet received' when a client connects
+	  with an unidentifiable version. [Skotlex]
 	* Optimized sql loading of data when displaying the Char Select Screen [Skotlex]
 
 07/16

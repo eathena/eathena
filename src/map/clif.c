@@ -7909,6 +7909,7 @@ int clif_guess_PacketVer(int fd)
 	int cmd = RFIFOW(fd,0);
 	int packet_len = RFIFOREST(fd);
 	int account_id, char_id, sex;
+	static struct socket_data *last_session;
 	
 	if (
 		cmd == clif_config.connect_cmd[clif_config.packet_db_ver] &&
@@ -7941,8 +7942,12 @@ int clif_guess_PacketVer(int fd)
 		
 		return packet_ver; //This is our best guess.
 	}
-	
-	ShowDebug("Received packet of unknown version (packet: 0x%x, length: %d)\n", cmd, packet_len);
+
+	if (last_session != session[fd])
+	{	//The client loves spamming with wanttoconnect packets when it fails at first try, so we have to avoid spamming the console.
+		ShowDebug("Received packet of unknown version (packet: 0x%x, length: %d)\n", cmd, packet_len);
+		last_session = session[fd];
+	}
 	return -1;
 }
 
