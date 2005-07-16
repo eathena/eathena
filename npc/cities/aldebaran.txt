@@ -1154,7 +1154,7 @@ aldeba_in.gat,81,166,4	script	Kafra Pavianee	117,{
 	mes "[Kafra Pavianne]";
 	mes "With complete service training and supervision, we are able to fully meet the needs of our customers.";
 	next;
-	menu "Buy a Kafra Pass",M_0,"What is a Kafra Pass",M_1,"Good Bye",M_3;
+	menu "Buy a Kafra Pass",M_0,"What is a Kafra Pass",M_1,"Good Bye",M_3,"I have a question...",M_4;
 	
 	M_0:
 		if(Zeny < 2000) goto sL_Zeny;
@@ -1189,6 +1189,18 @@ aldeba_in.gat,81,166,4	script	Kafra Pavianee	117,{
 		emotion 15;
 		cutin "kafra_01",255;
 		close;
+
+	M_3:
+		mes "[Kafra Pavianne]";
+		mes "Why? Is there something disturbing you?";
+		next;
+		mes "["+strcharinfo(0)+"]";
+		mes "No, but why is the sun not shining?";
+		mes "[Kafra Pavianne]";
+		mes "You will only know, when joyment cease.";
+		cutin "kafra_01",255;
+		close;
+
 }
 
 // Kafra Blossom -----------------------------------
