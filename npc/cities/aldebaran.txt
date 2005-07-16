@@ -1190,7 +1190,7 @@ aldeba_in.gat,81,166,4	script	Kafra Pavianee	117,{
 		cutin "kafra_01",255;
 		close;
 
-	M_3:
+	M_4:
 		mes "[Kafra Pavianne]";
 		mes "Why? Is there something disturbing you?";
 		next;
