@@ -995,7 +995,7 @@ int atcommand_send(
 			WFIFOW(fd,0) = 0x209;
 			WFIFOW(fd,2) = 2;
 			memcpy(WFIFOP(fd, 12), sd->status.name, NAME_LENGTH);
-			WFIFOSET(fd, packet_db[clif_config.packet_db_ver][type].len);
+			WFIFOSET(fd, packet_db[sd->packet_ver][type].len);
 			break;
 		case 0x1b1:
 		case 0x1c2:
@@ -1007,7 +1007,7 @@ int atcommand_send(
 			for(i=1;i<=sizeof(info);i++)
 				if(info[i])
 					WFIFOW(fd,i) = info[i];
-			WFIFOSET(fd, packet_db[clif_config.packet_db_ver][type].len);
+			WFIFOSET(fd, packet_db[sd->packet_ver][type].len);
 			break;
 		}
 
