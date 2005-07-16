@@ -20,11 +20,17 @@ Massdriller
 
 TODO:
 	* Redo all NPCs to work with BABY CLASSES.
+		(Super Baby + CART, Baby Merchant + Cart, Baby Blacksmith + Cart, Baby alchemist +Cart = client crash)
+		It's not a script, but the server issue.
+		
 
 == Changelog ==
 
 Date		Added
 ======
+07/16
+	* Added NOLOOT, NOEXP mapflags files (thanks to Lorky,OSKOM) [Lupus]
+	* Updated Louyang monsters spawn (thanks to MasterOfMuppets) [Lupus]
 07/12
 	* Fixed the th**f typo everywhere. [Skotlex]
 	  (too many changes to bother bumping the script versions)

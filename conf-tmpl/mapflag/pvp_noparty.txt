@@ -1,5 +1,5 @@
 //===== eAthena Script =======================================
-//= Map flags that disables attacking a party member
+//= Map flags that disable attacking a party member
 //===== By: ==================================================
 //= eAthena Dev Team
 //= v 1.1

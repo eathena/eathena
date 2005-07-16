@@ -3,13 +3,23 @@
 //===== By: ==================================================
 //= Evera/Lorri
 //===== Current Version: =====================================
-//= 1.0
+//= 1.1
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
-//= May be more
+//= 1.1 updated by MasterOfMuppets
 //============================================================
 
-//lou_fild01)?
+//lou_fild01
 lou_fild01.gat,0,0,0,0	monster	Mantis	1139,25,0,0,0
-lou_fild01.gat,0,0,0,0	monster	Civil Servant	1513,25,0,0,0
+lou_fild01.gat,0,0,0,0	monster	Increase Soil	1516,25,0,0,0
+lou_fild01.gat,0,0,0,0	monster	Anacondaq	1030,15,0,0,0
+lou_fild01.gat,0,0,0,0	monster	Caramel	1103,15,0,0,0
+lou_fild01.gat,0,0,0,0	monster	Bigfoot	1060,10,0,0,0
+lou_fild01.gat,163,291,2,2	monster	Black Mushroom	1084,1,180000,90000,0
+lou_fild01.gat,178,246,3,3	monster	Black Mushroom	1084,1,180000,90000,0
+lou_fild01.gat,197,233,2,2	monster	Black Mushroom	1084,1,180000,90000,0
+lou_fild01.gat,205,186,2,2	monster	Black Mushroom	1084,1,180000,90000,0
+lou_fild01.gat,285,237,10,10	monster	Yellow Plant	1081,2,180000,180000,0
+lou_fild01.gat,287,265,15,15	monster	Yellow Plant	1081,3,180000,180000,0
+lou_fild01.gat,312,185,25,25	monster	Yellow Plant	1081,5,180000,180000,0
