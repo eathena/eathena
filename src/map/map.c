@@ -1888,7 +1888,7 @@ int map_removemobs_timer(int tid, unsigned int tick, int id, int data)
 	k = map_foreachinarea(mob_cache_cleanup_sub, id, 0, 0, map[id].xs, map[id].ys, BL_MOB);
 
 	if (battle_config.etc_log && k > 0)
-		ShowStatus(tmp_output,"Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[id].name, k);
+		ShowStatus("Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[id].name, k);
 	
 	return 1;
 }
