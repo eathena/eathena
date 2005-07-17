@@ -16,7 +16,7 @@ int chrif_authreq(struct map_session_data &sd);
 int chrif_save(struct map_session_data &sd);
 int chrif_charselectreq(struct map_session_data &sd);
 
-int chrif_changemapserver(struct map_session_data &sd, const char *name, unsigned short x, unsigned short y, unsigned long ip, unsigned short port);
+int chrif_changemapserver(struct map_session_data &sd, const char *name, unsigned short x, unsigned short y, ipset& mapset);
 
 int chrif_searchcharid(unsigned long id);
 int chrif_changegm(unsigned long id,const char *pass,size_t len);

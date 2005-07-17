@@ -1788,7 +1788,7 @@ int read_petdb()
 	
 	memset(pet_db,0,sizeof(pet_db));
 	for(i=0;i<2;i++){
-		fp=savefopen(filename[i],"r");
+		fp=safefopen(filename[i],"r");
 		if(fp==NULL){
 			if(i>0)
 				continue;

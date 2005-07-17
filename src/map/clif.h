@@ -3,6 +3,7 @@
 #define _CLIF_H_
 
 #include "base.h"
+#include "socket.h"
 #include "map.h"
 
 // protocol version
@@ -19,18 +20,14 @@ struct packet_db {
 };
 extern struct packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB];
 
-extern struct Clif_Config {
-	int enable_packet_db;
-	unsigned long packet_db_ver;
-	int prefer_packet_db;
-	int connect_cmd;
-} clif_config;
 
-void clif_setip(unsigned long ip);
-void clif_setport(unsigned short port);
+netaddress& getcharaddress();
+ipset& getmapaddress();
+//void clif_setip(unsigned long ip);
+//void clif_setport(unsigned short port);
+//unsigned long  clif_getip(void);
+//unsigned short clif_getport(void);
 
-unsigned long  clif_getip(void);
-unsigned short clif_getport(void);
 int clif_countusers(void);
 
 int clif_authok(struct map_session_data &sd);

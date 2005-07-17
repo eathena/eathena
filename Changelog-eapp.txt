@@ -1,4 +1,9 @@
 Date	Added
+07/17
+	modification on the ip storage and transfer,
+	removed the lan support stuff and integrated it directly to the server configs
+	corrections on the fame system
+	beautified some outputs [Shinomori]
 07/10
 	merges from stable
 	Paladin's new Sacrifical Ritual

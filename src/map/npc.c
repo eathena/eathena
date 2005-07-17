@@ -182,7 +182,7 @@ void ev_release(struct dbn *db, int which)
 	{
         aFree(db->data);
 		db->data=NULL;
-}
+	}
 }
 
 /*==========================================
@@ -261,7 +261,7 @@ int npc_timer_event(const char *eventname)	// Added by RoVeRT
 	struct npc_data *nd;
 
 	if((ev==NULL || (nd=ev->nd)==NULL)){
-		ShowMessage("npc_event: event not found [%s]\n",eventname);
+		ShowError("npc_event: event not found [%s]\n",eventname);
 		return 0;
 	}
 	if(nd->u.scr.ref)
@@ -282,16 +282,14 @@ int npc_event_export(void *key,void *data,va_list ap)
 	struct npc_data *nd=va_arg(ap,struct npc_data *);
 
 	if ((lname[0]=='O' || lname[0]=='o')&&(lname[1]=='N' || lname[1]=='n')) {
-		struct event_data *ev;
-		char *buf;
 		char *p=strchr(lname,':');
 		// エクスポートされる
-		ev = (struct event_data *)aCalloc(1, sizeof(struct event_data));
-
 		if (p==NULL || (p-lname)>24) {
-			ShowError("npc_event_export: label name error !\n");
+			ShowError("npc_event_export: label name longer than 24 chars!\n");
 			exit(1);
 		}else{
+			char *buf;
+			struct event_data *ev = (struct event_data *)aCalloc(1, sizeof(struct event_data));
 			ev->nd=nd;
 			ev->pos=pos;
 			*p='\0';
@@ -803,24 +801,21 @@ bool npc_icNear(struct map_session_data &sd, struct npc_data &nd)
  * NPCのオープンチャット発言
  *------------------------------------------
  */
-int npc_globalmessage(const char *name,const char *mes)
+int npc_globalmessage(const char *name, const char *mes)
 {
-	struct npc_data *nd=(struct npc_data *) strdb_search(npcname_db,name);
+	struct npc_data *nd=(struct npc_data *)strdb_search(npcname_db,name);
 	char temp[128];
 	char ntemp[64];
-	const char *ltemp;
+	char *ltemp;
 
 	if(nd==NULL) return 0;
 	if(name==NULL) return 0;
 
-	ltemp=strchr(name,'#');
-	if(ltemp!=NULL)
-	{
-		safestrcpy(ntemp,name,ltemp - name);	// 123#456 の # から後ろを削除する
-		ntemp[ltemp - name]=0x00;				// strncpy のバグ？使い方間違ってる？
-	}
+	safestrcpy(ntemp,name,sizeof(ntemp));	// copy the name
+	ltemp=strchr(ntemp,'#');				// check for a # numerator
+	if(ltemp) *ltemp=0;						// and remove it
 
-	snprintf(temp, sizeof temp ,"%s : %s",ntemp,mes);
+	snprintf(temp, sizeof(temp),"%s: %s",ntemp, mes);
 	clif_GlobalMessage(nd->bl,temp);
 
 	return 0;
@@ -844,8 +839,6 @@ int npc_click(struct map_session_data &sd,unsigned long npcid)
 
 	if( !nd || !npc_icNear(sd,*nd) )
 		return 1;
-
-
 
 	if (!nd || nd->flag&1)	// 無効化されている
 		return 1;
@@ -2353,7 +2346,7 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 	int count, w4pos;
 	FILE *fp;
 
-	fp = savefopen(filename,"r");
+	fp = safefopen(filename,"r");
 	if (fp==NULL)
 	{
 		ShowError("File not found : %s\n",filename);
@@ -2489,8 +2482,8 @@ void npc_parsesrcfiles()
 			aFree(marker);
 		}
 	}
-	
-	ShowStatus("\rDone loading '"CL_WHITE"%d"CL_RESET"' NPCs:%30s\n\t\t-'"
+	ShowMessage("\r");
+	ShowStatus("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:%30s\n\t\t-'"
 		CL_WHITE"%d"CL_RESET"' Warps\n\t\t-'"
 		CL_WHITE"%d"CL_RESET"' Shops\n\t\t-'"
 		CL_WHITE"%d"CL_RESET"' Scripts\n\t\t-'"
@@ -2697,6 +2690,14 @@ int do_final_npc(void)
 	struct mob_data *md;
 	struct pet_data *pd;
 
+	// clear event data first, there are pointers to the npc names stored inside
+	// so we have to call this before deleting the npcs
+	if(ev_db)
+	{
+		strdb_final(ev_db, ev_db_final);
+		ev_db = NULL;
+	}
+
 	for (i = START_NPC_NUM; i < npc_id; i++)
 	{
 		bl = map_id2bl(i);
@@ -2722,18 +2723,12 @@ int do_final_npc(void)
 	}
 	ShowStatus("Successfully removed '"CL_WHITE"%d"CL_RESET"' NPCs and '"CL_WHITE"%d"CL_RESET"' Mobs.\n", n, m);
 
-	// unload all npcs from db
+	// unload all functional npcs from db
 	if(npcname_db)
 	{
 		strdb_final(npcname_db, npcname_db_final);
 		npcname_db = NULL;
 	}
-	if(ev_db)
-	{
-		strdb_final(ev_db, ev_db_final);
-		ev_db = NULL;
-	}
-
 	npc_clearsrcfile();
 	return 0;
 }

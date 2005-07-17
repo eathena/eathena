@@ -8,33 +8,207 @@
 #include "timer.h"
 
 
-
 extern time_t last_tick;
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // IP number stuff
 ///////////////////////////////////////////////////////////////////////////////
-class ipaddress
+
+///////////////////////////////////////////////////////////////////////////////
+// virtual interface for ip numbers and operations
+///////////////////////////////////////////////////////////////////////////////
+class ipaddr
 {
+public:
+	ipaddr()			{}
+	virtual ~ipaddr()	{}
+	///////////////////////////////////////////////////////////////////////////
+	virtual const ulong addr() const { return INADDR_LOOPBACK; }
+	virtual ulong& addr() { static ulong dummy; dummy=INADDR_LOOPBACK; return dummy; }
+	///////////////////////////////////////////////////////////////////////////
+	virtual const ulong mask() const { return INADDR_BROADCAST; }
+	virtual ulong& mask() { static ulong dummy; dummy=INADDR_BROADCAST; return dummy; }
+	///////////////////////////////////////////////////////////////////////////
+	virtual const ushort port() const { return 0; }
+	virtual ushort& port() { static ushort dummy; dummy=0; return dummy; }
+	///////////////////////////////////////////////////////////////////////////
+
+	///////////////////////////////////////////////////////////////////////////
+	virtual const char *getstring(char *buffer=NULL) = 0;
+	///////////////////////////////////////////////////////////////////////////
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// class for ip numbers and helpers
+///////////////////////////////////////////////////////////////////////////////
+class ipaddress : public ipaddr
+{
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// class helper
+	// does network initialisation and gets available system ips
+	template <uint C> class _ipset_helper
+	{	
+		ulong	cAddr[C];	// ip addresses of local host (host byte order)
+		uint	cCnt;		// # of ip addresses
+
+	public:
+		_ipset_helper() : cCnt(0)
+		{
+#ifdef WIN32
+			uchar** a;
+			unsigned int i;
+			char fullhost[255];
+			struct hostent* hent;
+			
+			/* Start up the windows networking */
+			WSADATA wsaData;
+			if ( WSAStartup(WINSOCK_VERSION, &wsaData) != 0 )
+			{
+				printf("SYSERR: WinSock not available!\n");
+				exit(1);
+			}
+			
+			if(gethostname(fullhost, sizeof(fullhost)) == SOCKET_ERROR)
+			{
+				printf("No hostname defined!\n");
+				return;
+			} 
+			
+			// XXX This should look up the local IP addresses in the registry
+			// instead of calling gethostbyname. However, the way IP addresses
+			// are stored in the registry is annoyingly complex, so I'll leave
+			// this as T.B.D.
+			hent = gethostbyname(fullhost);
+			if (hent == NULL) {
+				printf("Cannot resolve our own hostname to a IP address");
+				return;
+			}
+			a = (uchar**)hent->h_addr_list;
+			for(i = 0; a[i] != NULL && i < C; ++i) {
+				cAddr[i] =	  (a[i][0]<<0x18)
+							| (a[i][1]<<0x10)
+							| (a[i][2]<<0x08)
+							| (a[i][3]);
+			}
+			cCnt = i;
+#else//not W32
+			int pos;
+			int fdes = socket(AF_INET, SOCK_STREAM, 0);
+			char buf[16 * sizeof(struct ifreq)];
+			struct ifconf ic;
+			
+			// The ioctl call will fail with Invalid Argument if there are more
+			// interfaces than will fit in the buffer
+			ic.ifc_len = sizeof(buf);
+			ic.ifc_buf = buf;
+			if(ioctl(fdes, SIOCGIFCONF, &ic) == -1) {
+				printf("SIOCGIFCONF failed!\n");
+				return;
+			}
+			for(pos = 0; pos < ic.ifc_len;   )
+			{
+				struct ifreq * ir = (struct ifreq *) (ic.ifc_buf + pos);
+				struct sockaddr_in * a = (struct sockaddr_in *) &(ir->ifr_addr);
+				
+				if(a->sin_family == AF_INET) {
+					u_long ad = ntohl(a->sin_addr.s_addr);
+					if(ad != INADDR_LOOPBACK) {
+						cAddr[cCnt++] = ad;
+						if(cCnt == C)
+							break;
+					}
+				}
+#if defined(_AIX) || defined(__APPLE__)
+				pos += ir->ifr_addr.sa_len;
+				pos += sizeof(ir->ifr_name);
+#else// not AIX or APPLE
+				pos += sizeof(struct ifreq);
+#endif//not AIX or APPLE
+			}
+#endif//not W32	
+		}
+		///////////////////////////////////////////////////////////////////////
+		// number of found system ip's (w/o localhost)
+		uint GetSystemIPCount()	const
+		{
+			return cCnt;
+		}
+		///////////////////////////////////////////////////////////////////////
+		// get an address from the array, return loopback on error
+		ipaddress GetSystemIP(uint i=0) const
+		{
+			if( i < cCnt )
+				return cAddr[i];
+			else if(cCnt>0)
+				return cAddr[0];
+			return INADDR_LOOPBACK;
+		}
+	};
+	///////////////////////////////////////////////////////////////////////////
+	// need a singleton, this here is safe, 
+	// we need it only once and destruction order is irrelevant
+	static _ipset_helper<16>& gethelper()
+	{
+		static _ipset_helper<16> iphelp;
+		return iphelp;
+	}
+	
+public:
+	static ipaddress GetSystemIP(uint i=0) { return gethelper().GetSystemIP(i); }
+	static uint GetSystemIPCount()	{ return gethelper().GetSystemIPCount(); }
+	static bool isBindable(ipaddress ip)
+	{	// check if an given IP is part of the system IP that can be bound to
+		for(uint i=0; i<GetSystemIPCount(); i++)
+			if( ip==GetSystemIP(i) )
+				return true;
+		return false;
+	}
+
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// class data
     union
     {
         uchar   bdata[4];
         ulong   ldata;
     };
 public:
-    ipaddress():ldata(INADDR_LOOPBACK)          {}
-    ipaddress(ulong a):ldata(a)                 {}
-    ipaddress(const ipaddress& a):ldata(a.ldata){}
+	///////////////////////////////////////////////////////////////////////////
+	// standard constructor/destructor
+    ipaddress():ldata(INADDR_ANY)	{}
+	~ipaddress()					{}
+	///////////////////////////////////////////////////////////////////////////
+	// copy/assign (actually not really necessary)
+    ipaddress(const ipaddress& a) : ldata(a.ldata)	{}
+    ipaddress& operator= (const ipaddress& a)	{ this->ldata = a.ldata; return *this; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// construction set (needs explicite casts when initializing with 0)
+    ipaddress(ulong a):ldata(a)	{}
+	ipaddress(const char* str):ldata(str2ip(str))	{}
     ipaddress(int a, int b, int c, int d)
 	{
 		ldata =	 (a&0xFF) << 0x18
 				|(b&0xFF) << 0x10
 				|(c&0xFF) << 0x08
-				|(d&0xFF)        ;
+				|(d&0xFF);
 	}
-    ipaddress& operator= (ulong a)              { ldata = a; return *this; }
-    ipaddress& operator= (const ipaddress& a)   { ldata = a.ldata; return *this; }
+	///////////////////////////////////////////////////////////////////////////
+	// assignment set (needs explicite casts when assigning 0)
+    ipaddress& operator= (ulong a)			{ ldata = a; return *this; }
+	ipaddress& operator= (const char* str)	{ ldata = str2ip(str); return *this; }
+	bool init(const char *str)
+	{
+		ldata = str2ip(str);
+		return true;
+	}
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// bytewise access (writable and readonly)
     uchar& operator [] (int i)                  
 	{ 
 #ifdef CHECK_BOUNDS
@@ -50,9 +224,9 @@ public:
 #endif//CHECK_BOUNDS
 
 		if( MSB_FIRST == CheckByteOrder() )
-			return bdata[i];
-		else
 			return bdata[3-i];
+		else
+			return bdata[i];
 	}
     const uchar operator [] (int i) const
 	{ 
@@ -68,718 +242,449 @@ public:
 #endif//CHECK_BOUNDS
 
 		if( MSB_FIRST == CheckByteOrder() )
-			return bdata[i];
-		else
 			return bdata[3-i];
-	}
-
-	void toBuffer(uchar *buf) const
-	{	// implement little endian buffer format
-		// IPs are placed in network byte order to the buffer
-		if(buf)
-		{
-			buf[0] = (uchar)((ldata >> 0x18)&0xFF);
-			buf[1] = (uchar)((ldata >> 0x10)&0xFF);
-			buf[2] = (uchar)((ldata >> 0x08)&0xFF);
-			buf[3] = (uchar)((ldata        )&0xFF);
-		}
-	}
-	void fromBuffer(const uchar *buf)
-	{	// implement little endian buffer format
-		// IPs are placed in network byte order to the buffer
-		if(buf)
-		{
-			ldata =	 buf[0] << 0x18
-					|buf[1] << 0x10
-					|buf[2] << 0x08
-					|buf[3]        ;
-		}
-	}
-
-    operator ulong() const                      { return ldata; }
-};
-
-
-
-
-
-/*
-
-/////////////////////////////////////////////////////////////////////
-//
-//  Basic FIFO Template
-//
-/////////////////////////////////////////////////////////////////////
-template<class T> class TFIFO : public global, public noncopyable
-{
-public:
-	TFIFO()				{}
-	virtual ~TFIFO()	{}
-	/////////////////////////////////////////////////////////////////
-	virtual bool	isEmpty() const = 0;
-	virtual bool	isFull() const = 0;
-	virtual size_t	usedSize() const = 0;
-	virtual size_t	nextusedSize() const = 0;
-	virtual size_t	freeSize() const = 0;
-	virtual size_t	nextfreeSize() const = 0;
-	size_t	Count() {return usedSize();}
-	/////////////////////////////////////////////////////////////////
-	virtual const T& operator[](size_t i) const = 0;
-	virtual T& operator()(size_t i) = 0;
-	/////////////////////////////////////////////////////////////////
-	virtual bool write(const T* p, size_t sz) = 0;
-	virtual bool read(T* p, size_t sz) = 0;
-	/////////////////////////////////////////////////////////////////
-	virtual bool push(const T& p) = 0;
-	virtual bool top(T& p) = 0;
-	virtual T top() = 0;
-	virtual bool pop(T& p) = 0;
-	virtual T pop() = 0;
-	/////////////////////////////////////////////////////////////////
-};
-
-/////////////////////////////////////////////////////////////////////
-//
-// Dynamically resizable FIFO Template
-// rotating behaviour so no need to memmove data
-//
-/////////////////////////////////////////////////////////////////////
-template<class T> class TFIFODST : public TFIFO<T>
-{
-	///////////////////////////////////////////////////////////////////////////
-	T*		cBuffer;
-	size_t	cSZ;
-	size_t	cRD;
-	size_t	cWR;
-
-private:
-	///////////////////////////////////////////////////////////////////////////
-	// overload with a suitable function for copying your types
-	// can be either memcpy for simple types or a loop with assignments for complex
-	virtual void Copy(T* tar, const T* src, size_t sz)
-	{
-		memcpy(tar,src,sz*sizeof(T));
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	// realloc for sz _MORE_ data able to fit into the fifo
-	void ReAlloc(size_t sz)
-	{
-		size_t newsize;
-		if(  freeSize() < sz )
-		{	// grow rule
-			size_t tarsize = usedSize() + sz;
-			newsize = 16 + cSZ*2;
-			while( newsize < tarsize ) newsize *= 2;
-		}
-		else if( cSZ>16 && usedSize() < cSZ/4 )
-		{	// shrink rule
-			newsize = cSZ/2;
-		}
-		else // no change
-			return;
-
-		T *newfield = new T[newsize];
-		if(newfield==NULL)
-			throw exception_memory("TFIFOD: memory allocation failed");
-
-		// copy defragmented fifo content to read-in-line
-		if( cRD > cWR )
-		{
-			Copy(newfield+0,       cBuffer+cRD, cSZ-cRD); // between read ptr and buffer end
-			Copy(newfield+cSZ-cRD, cBuffer    , cWR    ); // between buffer start and write ptr
-			cWR = cWR+cSZ-cRD;
-		}
 		else
-		{
-			Copy(newfield+0,       cBuffer+cRD, cWR-cRD); // between read ptr and write ptr
-			cWR = cWR-cRD;
-		}
-		cRD = 0;
-		cSZ = newsize;
-
-		delete[] cBuffer;
-		cBuffer = newfield;
+			return bdata[i];
 	}
 
-public:
 	///////////////////////////////////////////////////////////////////////////
-	TFIFODST(size_t sz=16): cBuffer(new T[sz]),cSZ(sz),cRD(0),cWR(0)
-	{}
-	~TFIFODST()	{if(cBuffer) delete[] cBuffer;}
+	// pod access on the ip (host byte order)
+    operator ulong() const	{ return ldata; }
 
 	///////////////////////////////////////////////////////////////////////////
-	// true when empty
-	virtual bool	isEmpty() const		{return (cRD==cWR);}
+	// virtual access interface
+	virtual const ulong addr() const { return ldata; }
+	virtual ulong& addr() { return ldata; }
 	///////////////////////////////////////////////////////////////////////////
-	// true when full (actually when only one place is left)
-	virtual bool	isFull() const		{return (cRD==((cWR+1)%cSZ));}
-	///////////////////////////////////////////////////////////////////////////
-	// returns the overall used size
-	virtual size_t	usedSize() const	{return (cWR>=cRD) ? (   cWR-cRD):(cSZ-cRD+cWR);}
-	// returns the size of the next used data block
-	virtual size_t	nextusedSize() const{return (cWR>=cRD) ? (   cWR-cRD):(cSZ-cRD    );}
-	///////////////////////////////////////////////////////////////////////////
-	// returns the overall free size, 
-	virtual size_t	freeSize() const	{if(cWR==cRD) return cSZ; return (cWR>cRD) ? (cSZ-cWR+cRD-1):(    cRD-cWR-1);}
-	///////////////////////////////////////////////////////////////////////////
-	// returns the size of the next free data block
-	virtual size_t	nextfreeSize() const{return (cWR>=cRD) ? (cSZ-cWR    ):(    cRD-cWR-1);}
-	///////////////////////////////////////////////////////////////////////////
-	T* ReserveRead(const size_t wish, size_t &sz)
-	{ 
-		sz = nextusedSize();
-		if( wish < sz ) sz = wish;
-		// wish greater cannot be granted because of 
-		// either buffer fragmentation or possible buffer underflow 
+	// ip2string
+	virtual const char *getstring(char *buffer=NULL)
+	{	// usage of the static buffer is not threadsafe
+		static char tmp[16];
+		char *buf = (buffer) ? buffer : tmp;
+		sprintf(buf, "%d.%d.%d.%d",bdata[3],bdata[2],bdata[1],bdata[0]);
+		return buf;
+	}
 
-		T* ret = cBuffer+cRD;
-		cRD+=sz;
-		if(cRD>=cSZ) cRD-=cSZ;
-
+	///////////////////////////////////////////////////////////////////////////
+	// converts a string to an ip (host byte order)
+	static ipaddress str2ip(const char *str)
+	{	// format: <ip>
+		struct hostent*h;
+		while( isspace( ((unsigned char)(*str)) ) ) str++;
+		h = gethostbyname(str);
+		if (h != NULL)
+			return ipaddress( MakeDWord((unsigned char)h->h_addr[3], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[0]) );
+		else
+			return ipaddress( ntohl(inet_addr(str)) );
+	}
+	static bool str2ip(const char* str, ipaddress &addr, ipaddress &mask, ushort &port)
+	{	// format: <ip>/<mask>:<port>
+		bool ret = false;
+		if(str)
+		{
+			char buffer[1024];
+			char *kp=NULL, *mp=NULL;
+			kp = strchr(str,'/'); // the first ip/mask seperator
+			mp=strchr(str,':'); // the second ip/port seperator
+			if(kp && mp)
+			{	// all data given
+				// <ip>
+				memcpy(buffer, str, kp-str);
+				buffer[kp-str]=0;
+				addr = ipaddress::str2ip(buffer);
+				// <mask>
+				if(kp<mp)
+				{	// format is ok
+					kp++;
+					memcpy(buffer, kp, mp-kp);
+					buffer[mp-kp]=0;
+					mask = ipaddress::str2ip(buffer);
+				}
+				else
+				{	// the mask seperator placement is wrong
+					mask = INADDR_BROADCAST;
+				}
+				// <port>
+				port = atoi(mp+1);
+			}
+			else if(!kp && mp)
+			{	// mo mask given
+				// <ip>
+				memcpy(buffer, str, mp-str);
+				buffer[mp-str]=0;
+				addr = ipaddress::str2ip(buffer);
+				// default mask
+				mask = INADDR_BROADCAST; // 255.255.255.255
+				// <port>
+				port = atoi(mp+1);
+			}
+			else if(kp && !mp)
+			{	// no port given
+				// <ip>
+				memcpy(buffer, str, kp-str);
+				buffer[kp-str]=0;
+				addr = ipaddress::str2ip(buffer);
+				// <mask>
+				kp++;
+				memcpy(buffer, kp, mp-kp);
+				buffer[mp-kp]=0;
+				mask = ipaddress::str2ip(buffer);
+				// don't change the port
+			}
+			else
+			{	// neither mask nor port given
+				// <ip>
+				addr = ipaddress::str2ip(str);
+				// default mask
+				mask = INADDR_BROADCAST; // 255.255.255.255
+				// don't change the port
+			}
+			ret = true;
+		}
 		return ret;
 	}
-	void UndoReserveRead(const size_t sz)
-	{
-		if(cRD >= sz) // otherwise something is really fishy
-			cRD -= sz;
-	}
-	T* ReserveWrite(const size_t wish, size_t &sz)	
-	{ 
-		size_t totalfree = freeSize();
-
-		// if the data won't fit in we can realloc the buffer already
-		// there will be a second ReserveWrite call anyway would now split the date
-		if( totalfree < wish )
-			ReAlloc(wish);
-
-		sz = nextfreeSize();
-		if( wish < sz ) sz = wish;
-		// wish greater cannot be granted because of buffer fragmentation
-		// possible buffer overflow was already handled above
-
-		T* ret = cBuffer+cWR;
-		cWR+=sz;
-		if(cWR>=cSZ) cWR-=cSZ;
-
-		return ret;
-	}
-	void UndoReserveWrite(const size_t sz)
-	{
-		if(cWR >= sz) // otherwise something is really fishy
-			cWR -= sz;
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	virtual const T& operator[](size_t i) const
-	{	// read operator, goes on read pointer
-		static T dummy;
-		if(cWR>=cRD)
-		{	
-			if( (cWR-cRD) > i ) 
-			{	// enough space left between write pointer and read pointer
-				return cBuffer[cRD+i];
-			}
-			else	// does not fit into the buffer
-			{
-#ifdef CHECK_BOUNDS
-				// throw something instead
-				throw exception_bound("FIFO underflow");
-#endif
-				return dummy;
-			}
-		}
-		else
-		{	
-			if( (cSZ-cRD) > i ) 
-			{	// enough space left between write pointer and end of buffer
-				return cBuffer[cRD+i];
-			}
-			else if( cWR > (i-(cSZ-cRD)) )
-			{	// split it up to two potions
-				// check if it fits
-				return cBuffer[i-(cSZ-cRD)];
-			}
-			else	// does not fit into the buffer
-			{
-#ifdef CHECK_BOUNDS
-				// throw something instead
-				throw exception_bound("FIFO underflow");
-#endif
-				return dummy;
-			}
-		}
-	}
-	///////////////////////////////////////////////////////////////////////////
-	virtual T& operator()(size_t i)
-	{	// write operator, goes on write pointer
-		// ignore the max-1 case here
-		if(cWR>=cRD)
-		{	
-			if( (cSZ-cWR) > i ) 
-			{	// enough space left between write pointer and end of buffer
-				return cBuffer[cWR+i];
-			}
-			else if( cRD > (i-(cSZ-cWR)) )
-			{	// split it up to two potions
-				// check if it fits
-				return cBuffer[i-(cSZ-cWR)];
-			}
-			else	// does not fit into the buffer
-			{
-				ReAlloc(i);
-				return cBuffer[cWR+i];
-			}
-		}
-		else
-		{	
-			if( (cRD-cWR) > i ) 
-			{	// enough space left between write pointer and read pointer
-				return cBuffer[cWR+i];
-				
-			}
-			else	// does not fit into the buffer
-			{
-				ReAlloc(i);
-				return cBuffer[cWR+i];
-			}
-		}	
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	virtual bool write(const T* p, size_t sz)
-	{
-		if(p && sz)
-		if(cWR>=cRD)
-		{	
-			if( ((cSZ-cWR) > sz) || (((cSZ-cWR) == sz) && cRD>0) )
-			{	// enough space left between write pointer and end of buffer
-				Copy(cBuffer+cWR, p, sz);
-				cWR += sz;
-				if(cWR>=cSZ) cWR=0;
-			}
-			else if( cRD > (sz-(cSZ-cWR)) )
-			{	// split it up to two potions
-				// check if it fits
-				Copy(cBuffer+cWR, p,            cSZ-cWR);
-				Copy(cBuffer,     p+cSZ-cWR, sz-(cSZ-cWR));
-				cWR = sz-(cSZ-cWR);
-			}
-			else	// does not fit into the buffer
-			{
-				ReAlloc(sz);
-				Copy(cBuffer+cWR, p, sz);
-				cWR += sz;
-			}
-		}
-		else
-		{	
-			if( (cRD-cWR) > sz ) 
-			{	// enough space left between write pointer and read pointer
-				Copy(cBuffer+cWR, p, sz);
-				cWR += sz;
-			}
-			else	// does not fit into the buffer
-			{
-				ReAlloc(sz);
-				Copy(cBuffer+cWR, p, sz);
-				cWR += sz;
-			}
-		}
-		return true;
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	virtual bool read(T* p, size_t sz)
-	{
-		if(p && sz)
-		if(cWR>=cRD)
-		{	
-			if( (cWR-cRD) >= sz ) 
-			{	// enough space left between write pointer and read pointer
-				Copy(p, cBuffer+cRD, sz);
-				cRD += sz;
-			}
-			else	// does not fit into the buffer
-			{
-#ifdef CHECK_BOUNDS
-				// throw something instead
-				throw exception_bound("FIFO underflow");
-#endif
-				return false;
-			}
-		}
-		else
-		{	
-			if( (cSZ-cRD) >= sz ) 
-			{	// enough space left between write pointer and end of buffer
-				Copy(p, cBuffer+cRD, sz);
-				cRD += sz;
-				if(cRD>=cSZ) cRD=0;
-			}
-			else if( cWR >= (sz-(cSZ-cRD)) )
-			{	// split it up to two potions
-				// check if it fits
-				Copy(p,        cBuffer+cRD,     cSZ-cRD);
-				Copy(p+cSZ-cRD, cBuffer,     sz-(cSZ-cRD));
-				cRD = sz-(cSZ-cRD);
-			}
-			else	// does not fit into the buffer
-			{
-#ifdef CHECK_BOUNDS
-				// throw something instead
-				throw exception_bound("FIFO underflow");
-#endif
-				return false;
-			}
-
-		}
-		return true;
-	}
-
-	///////////////////////////////////////////////////////////////////////////
-	virtual bool push(const T& p)
-	{
-
-		if( (cSZ<16) || (((cWR+1)%cSZ)==cRD) )
-		{	// buffer full
-			// actually not really full but we cannot write at the last empty field
-			// because this is necessary to enable an empty/full detection
-			ReAlloc(1);
-		}
-
-		// write between write and read pointer
-		// or between write pointer and end of buffer
-		cBuffer[cWR++] = p;
-		if(cWR>=cSZ) cWR=0;
-		return true;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	virtual bool top(T& p)
-	{
-		if(cWR==cRD)
-		{	// buffer empty
-#ifdef CHECK_BOUNDS
-			throw exception_bound("FIFO underflow");
-#endif
-			return false;
-		}
-		else 
-		{	// read between read and write pointer
-			// or between read pointer and end of buffer
-			p = cBuffer[cRD];
-			return true;
-		}
-	}
-	///////////////////////////////////////////////////////////////////////////
-	virtual T top()
-	{
-#ifdef CHECK_BOUNDS
-		if(cWR==cRD)
-		{	// buffer empty
-			// throw something instead
-			throw exception_bound("FIFO underflow");
-		}
-#endif
-		return cBuffer[cRD];
-	}
-	///////////////////////////////////////////////////////////////////////////
-	virtual bool pop(T& p)
-	{
-		if(cWR==cRD)
-		{	// buffer empty
-#ifdef CHECK_BOUNDS
-			throw exception_bound("FIFO underflow");
-#endif
-			return false;
-		}
-		else 
-		{	// read between read and write pointer
-			// or between read pointer and end of buffer
-			p = cBuffer[cRD++];
-			if(cRD>=cSZ) cRD=0;
-			return true;
-		}
-	}
-	///////////////////////////////////////////////////////////////////////////
-	virtual T pop()
-	{
-		if(cWR==cRD)
-		{	// buffer empty
-#ifdef CHECK_BOUNDS
-			throw exception_bound("FIFO underflow");
-#endif
-			return cBuffer[cRD];
-		}
-		else 
-		{	// read between read and write pointer
-			// or between read pointer and end of buffer
-			T *p = cBuffer+cRD;
-			cRD++;
-			if(cRD>=cSZ) cRD=0;
-			return *p;
-		}
-	}
 };
 
-class CFIFO : public TFIFODST<unsigned char>
+///////////////////////////////////////////////////////////////////////////////
+//
+// class for a network address (compound of an ip address and a port number)
+//
+///////////////////////////////////////////////////////////////////////////////
+class netaddress : public ipaddr
 {
-
-	char * cStrBuf;
-	size_t cStrSZ;
-
-public:
-	CFIFO():cStrBuf(NULL),cStrSZ(0)
-	{}
-	~CFIFO()
-	{
-		if(cStrBuf) 
-		{
-			delete[] cStrBuf;
-			cStrBuf = NULL;
-			cStrSZ = 0;
-		}
-	}
+	friend class ipset;
+protected:
 	///////////////////////////////////////////////////////////////////////////
-	unsigned char operator = (const unsigned char ch)
-	{	// no check push will throw anyway
-		push(ch);
-		return ch;
-	}
-	char operator = (const char ch)
+	// class data
+	ipaddress	cAddr;
+	ushort		cPort;
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// standard constructor/destructor
+    netaddress():cAddr((ulong)INADDR_ANY),cPort(0)	{}
+	~netaddress()	{}
+	///////////////////////////////////////////////////////////////////////////
+	// copy/assign (actually not really necessary)
+    netaddress(const netaddress& a):cAddr(a.cAddr),cPort(a.cPort){}
+    netaddress& operator= (const netaddress& a)	{ this->cAddr = a.cAddr; this->cPort=a.cPort; return *this; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// construction set
+	netaddress(ulong a, ushort p):cAddr(a),cPort(p)	{}
+	netaddress(ushort p):cAddr((ulong)INADDR_ANY),cPort(p)	{}
+    netaddress(int a, int b, int c, int d, ushort p):cAddr(a,b,c,d),cPort(p) {}
+	netaddress(const char* str)	{ init(str); }
+	///////////////////////////////////////////////////////////////////////////
+	// assignment set
+    netaddress& operator= (ulong a)			{ this->cAddr = a; return *this; }
+	netaddress& operator= (ushort p)		{ this->cPort = p; return *this; }
+	netaddress& operator= (const char* str)	{ init(str); return *this; }
+	bool init(const char *str)
 	{	
-		push((unsigned char)ch);
-		return ch;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	unsigned short operator = (const unsigned short sr)
-	{	// implement little endian buffer format
-		push( (unsigned char)(sr         ) ); 
-		push( (unsigned char)(sr  >> 0x08) );
-		return sr;
-	}
-	short operator = (const short sr)
-	{	// implement little endian buffer format
-		push( (unsigned char)(sr         ) ); 
-		push( (unsigned char)(sr  >> 0x08) );
-		return sr;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	unsigned long operator = (const unsigned long ln)
-	{	// implement little endian buffer format
-		push( (unsigned char)(ln          ) );
-		push( (unsigned char)(ln  >> 0x08 ) );
-		push( (unsigned char)(ln  >> 0x10 ) );
-		push( (unsigned char)(ln  >> 0x18 ) );
-		return ln;
-	}
-	long operator = (const long ln)
-	{	// implement little endian buffer format
-		push( (unsigned char)(ln          ) );
-		push( (unsigned char)(ln  >> 0x08 ) );
-		push( (unsigned char)(ln  >> 0x10 ) );
-		push( (unsigned char)(ln  >> 0x18 ) );
-		return ln;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	ipaddress operator = (const ipaddress ip)
-	{	// implement little endian buffer format
-		// IPs are given in network byte order to the buffer
-		push( (unsigned char)(ip[3]) );
-		push( (unsigned char)(ip[2]) );
-		push( (unsigned char)(ip[1]) );
-		push( (unsigned char)(ip[0]) );
-		return ip;
-	}
-
-
-	///////////////////////////////////////////////////////////////////////////
-	int64 operator = (const int64 lx)
-	{	// implement little endian buffer format
-		push( (unsigned char)(lx          ) );
-		push( (unsigned char)(lx  >> 0x08 ) );
-		push( (unsigned char)(lx  >> 0x10 ) );
-		push( (unsigned char)(lx  >> 0x18 ) );
-		push( (unsigned char)(lx  >> 0x20 ) );
-		push( (unsigned char)(lx  >> 0x28 ) );
-		push( (unsigned char)(lx  >> 0x30 ) );
-		push( (unsigned char)(lx  >> 0x38 ) );
-		return lx;
-	}
-	uint64 operator = (const uint64 lx)
-	{	// implement little endian buffer format
-		push( (unsigned char)(lx          ) );
-		push( (unsigned char)(lx  >> 0x08 ) );
-		push( (unsigned char)(lx  >> 0x10 ) );
-		push( (unsigned char)(lx  >> 0x18 ) );
-		push( (unsigned char)(lx  >> 0x20 ) );
-		push( (unsigned char)(lx  >> 0x28 ) );
-		push( (unsigned char)(lx  >> 0x30 ) );
-		push( (unsigned char)(lx  >> 0x38 ) );
-		return lx;
+		ipaddress mask; // dummy
+		return ipaddress::str2ip(str, this->cAddr, mask, this->cPort);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	operator unsigned char ()
-	{	// no check, pop will return 0 or throw anyway
-		return pop();
-	}
-	operator char()
-	{	// no check, pop will return 0 anyway
-		return pop();
+	// virtual access interface
+	virtual const ulong addr() const { return cAddr.ldata; }
+	virtual ulong& addr() { return cAddr.ldata; }
+	///////////////////////////////////////////////////////////////////////////
+	virtual const ushort port() const { return cPort; }
+	virtual ushort& port()		 { return cPort; }
+	///////////////////////////////////////////////////////////////////////////
+	// networkaddr2string
+	virtual const char *getstring(char *buffer=NULL)
+	{	// usage of the static buffer is not threadsafe
+		static char tmp[32];
+		char *buf = (buffer) ? buffer : tmp;
+		sprintf(buf, "%d.%d.%d.%d:%d",
+			cAddr[3],cAddr[2],cAddr[1],cAddr[0],
+			cPort);
+		return buf;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	operator unsigned short()
-	{	// implement little endian buffer format
-		unsigned short sr;
-#ifdef CHECK_BOUNDS
-		if(usedSize()<2)
-			throw exception_bound("FIFO underflow");
-#endif
-		sr  = ((unsigned short)pop()        ); 
-		sr |= ((unsigned short)pop() << 0x08);
-		return sr;
-	}
-	operator short ()
-	{	// implement little endian buffer format
-		short sr;
-#ifdef CHECK_BOUNDS
-		if(usedSize()<2)
-			throw exception_bound("FIFO underflow");
-#endif
-		sr  = ((short)pop()        ); 
-		sr |= ((short)pop() << 0x08);
-		return sr;
-	}
-	///////////////////////////////////////////////////////////////////////////
-	operator unsigned long ()
-	{	// implement little endian buffer format
-		unsigned long ln;
-#ifdef CHECK_BOUNDS
-		if(usedSize()<4)
-			throw exception_bound("FIFO underflow");
-#endif
-		ln  = ((unsigned long)pop()        ); 
-		ln |= ((unsigned long)pop() << 0x08);
-		ln |= ((unsigned long)pop() << 0x10);
-		ln |= ((unsigned long)pop() << 0x18);
-		return ln;
-	}
-	operator long ()
-	{	// implement little endian buffer format
-		long ln;
-#ifdef CHECK_BOUNDS
-		if(usedSize()<4)
-			throw exception_bound("FIFO underflow");
-#endif
-		ln  = ((long)pop()        ); 
-		ln |= ((long)pop() << 0x08);
-		ln |= ((long)pop() << 0x10);
-		ln |= ((long)pop() << 0x18);
-		return ln;
-	}
-	///////////////////////////////////////////////////////////////////////////
+	// boolean operators
+	bool operator == (const netaddress s) const { return cAddr==s.cAddr && cPort==s.cPort; }
+	bool operator != (const netaddress s) const { return cAddr!=s.cAddr || cPort!=s.cPort; }
 
-	operator ipaddress ()
-	{	// implement little endian buffer format
-#ifdef CHECK_BOUNDS
-		if(usedSize()<4)
-			throw exception_bound("FIFO underflow");
-#endif
-		ipaddress ip( pop(),pop(),pop(),pop() );
-		return  ip;
-	}
+};
+///////////////////////////////////////////////////////////////////////////////
+//
+// class for a subnetwork address (ip address, subnetmask and port number)
+//
+///////////////////////////////////////////////////////////////////////////////
+class subnetaddress : public netaddress
+{
+	friend class ipset;
+protected:
 	///////////////////////////////////////////////////////////////////////////
-	operator int64 ()
-	{	// implement little endian buffer format
-		int64 lx;
-#ifdef CHECK_BOUNDS
-		if(usedSize()<8)
-			throw exception_bound("FIFO underflow");
-#endif
-		lx  = ((int64)pop()        ); 
-		lx |= ((int64)pop() << 0x08);
-		lx |= ((int64)pop() << 0x10);
-		lx |= ((int64)pop() << 0x18);
-		lx |= ((int64)pop() << 0x20);
-		lx |= ((int64)pop() << 0x28);
-		lx |= ((int64)pop() << 0x30);
-		lx |= ((int64)pop() << 0x38);
-		return lx;
-	}
-	operator uint64 ()
-	{	// implement little endian buffer format
-		uint64 lx;
-#ifdef CHECK_BOUNDS
-		if(usedSize()<8)
-			throw exception_bound("FIFO underflow");
-#endif
-		lx  = ((uint64)pop()        ); 
-		lx |= ((uint64)pop() << 0x08);
-		lx |= ((uint64)pop() << 0x10);
-		lx |= ((uint64)pop() << 0x18);
-		lx |= ((uint64)pop() << 0x20);
-		lx |= ((uint64)pop() << 0x28);
-		lx |= ((uint64)pop() << 0x30);
-		lx |= ((uint64)pop() << 0x38);
-		return lx;
-	}
+	// class data
+	ipaddress cMask;
+public:
 	///////////////////////////////////////////////////////////////////////////
-
-	const char* operator = (const char * c)
-	{	// write will throw exception_bound automatically
-		if(c) write((const unsigned char*)c, strlen(c)+1);
-		return c;
-	}
-
-
-	operator const char*()
-	{
-		size_t i, used = usedSize();
-		// find the EOS
-		// cannot do anything else then going through the array
-		for(i=0; i<used; i++)
-			if( this->operator[](i) == 0 )
-				break;
-		if(i<used)
-		{	
-			// make sure the string buffer is long enough
-			if( cStrSZ < i+1 )
-			{	// buffer is not sufficient, reallocate
-				if(cStrBuf) delete[] cStrBuf;
-				cStrSZ = i+1;
-				cStrBuf = new char[i+1];
-			} 
-			// reuse the existing buffer otherwise
-			read((unsigned char*)cStrBuf, i+1);
-		}
-		else
-		{	// otherwise we did not find an EOS, 
-			// maybe there is no string in the buffer or it is not complete yet
-			if(NULL==cStrBuf)
-			{	// make a default buffer in not exist
-				cStrSZ = 64; 
-				cStrBuf = new char[64];
-			}
-			cStrBuf[0] = 0;
-		}
-		return cStrBuf;
-	}
+	// standard constructor/destructor
+    subnetaddress():cMask(INADDR_BROADCAST)	{}
+	~subnetaddress()	{}
+	///////////////////////////////////////////////////////////////////////////
+	// copy/assign (actually not really necessary)
+    subnetaddress(const subnetaddress& a):netaddress(a),cMask(a.cMask) {}
+    subnetaddress& operator= (const subnetaddress& a)	{ this->cAddr = a.cAddr; this->cPort=a.cPort; this->cMask=a.cMask; return *this; }
 
 	///////////////////////////////////////////////////////////////////////////
+	// construction set
+	subnetaddress(ulong a, ulong m, ushort p):netaddress(a,p),cMask(m)	{}
+	subnetaddress(netaddress a, ipaddress m):netaddress(a),cMask(m)	{}
+	subnetaddress(const char* str)	{ init(str); }
+	///////////////////////////////////////////////////////////////////////////
+	// assignment set
+	subnetaddress& operator= (const char* str)	{ init(str); return *this; }
+	bool init(const char *str)
+	{	// format: <ip>/<mask>:<port>
+		return ipaddress::str2ip(str, this->cAddr, this->cMask, this->cPort);
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// virtual access interface
+	virtual const ulong mask() const { return cMask.ldata; }
+	virtual ulong& mask() { return cMask.ldata; }
+	///////////////////////////////////////////////////////////////////////////
+	// networkaddr2string
+	virtual const char *getstring(char *buffer=NULL)
+	{	// usage of the static buffer is not threadsafe
+		static char tmp[64];
+		char *buf = (buffer) ? buffer : tmp;
+		sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d",
+			this->cAddr[3],this->cAddr[2],this->cAddr[1],this->cAddr[0], 
+			this->cMask[3],this->cMask[2],this->cMask[1],this->cMask[0], 
+			this->cPort);
+		return buf;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// boolean operators
+	bool operator == (const subnetaddress s) const { return cMask==s.cMask && cAddr==s.cAddr && cPort==s.cPort; }
+	bool operator != (const subnetaddress s) const { return cMask!=s.cMask || cAddr!=s.cAddr || cPort!=s.cPort; }
+
 };
 
-*/
+
+///////////////////////////////////////////////////////////////////////////////
+// class for IP-sets 
+// stores wan/lan ips with lan subnet and wan/lan ports
+// can automatically fill default values
+///////////////////////////////////////////////////////////////////////////////
+class ipset : public ipaddr
+{
+	///////////////////////////////////////////////////////////////////////////
+	// class data
+	subnetaddress	lanaddr;
+	netaddress		wanaddr;
+	
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	// init with 0, need to
+	ipset(const ipaddress lip = ipaddress::GetSystemIP(0),	// identify with the first System IP by default
+		  const ipaddress lsu = INADDR_BROADCAST,			// 255.255.255.255
+		  const ushort lpt    = 0,
+		  const ipaddress wip = (ulong)INADDR_ANY,			// 0.0.0.0
+		  const ushort wpt    = 0 )
+		: lanaddr(lip,lsu,lpt),wanaddr(wip,wpt)
+	{}
+	ipset(const ulong lip,
+		  const ulong lsu,
+		  const ushort lpt,
+		  const ulong wip,
+		  const ushort wpt)
+		: lanaddr(lip,lsu,lpt),wanaddr(wip,wpt)
+	{}
+
+	ipset(const ushort lpt,
+		  const ushort wpt)
+		: lanaddr(ipaddress::GetSystemIP(0),INADDR_BROADCAST,lpt),wanaddr(INADDR_ANY,wpt)
+	{}
+	ipset(const ushort pt)
+		: lanaddr(ipaddress::GetSystemIP(0),INADDR_BROADCAST,pt),wanaddr(INADDR_ANY,pt)
+	{}
+
+	~ipset()	{}
+	// can use default copy/assign here
+
+	///////////////////////////////////////////////////////////////////////////
+	// construction set
+	ipset(const char* str)	{ init(str); }
+
+	///////////////////////////////////////////////////////////////////////////
+	// assignment set
+	const ipset& operator=(const char* str)	{ init(str); return *this; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// initializes from a format string
+	// automatically checks the ips for local usage
+	bool init(const char *str)
+	{	// reading formatstring:
+		// "<whitespace>*wanip:wanport,<whitespace>*lanip/lanmask:lanport.*"
+		bool ret = false;
+		if(str)
+		{	
+			char buffer[1024];
+			const char *ip, *jp, *kp;
+			ip = strchr(str,',');
+			if(ip)
+			{	// given two ip strings
+				// copy the first
+				if(str+sizeof(buffer) < ip) ip = str+sizeof(buffer)-1;
+				memcpy(buffer,str,ip-str);
+				buffer[ip-str] = 0;
+				// skip the comma
+				ip++; 
+				// check if the first ip string has a subnet
+				jp = strchr(buffer,'/');
+				// check if the second ip string has a subnet
+				kp = strchr(ip,'/');
+
+				//if( (jp&&kp) || (jp&&!kp) ) ->
+				if( jp )
+				{	// both have subnets 
+					// first has sub, second has none
+					// assume order: "lan,wan"
+					lanaddr = buffer;
+					wanaddr = ip;
+				}
+				else if(!jp && kp)
+				{	// first has none, second has sub
+					lanaddr = ip;
+					wanaddr = buffer;
+				}
+				else
+				{	// no subnets; only take the first ip, default the second
+					lanaddr = buffer;
+					wanaddr = netaddress((ulong)INADDR_ANY, lanaddr.cPort);
+				}
+			}
+			else
+			{	// only one given, assume it the lanip
+				lanaddr = str;
+				wanaddr = netaddress((ulong)INADDR_ANY, lanaddr.cPort);
+			}
+		}
+		checklocal();
+		return ret;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// checks if the ip's are locally available and correct wrong entries
+	// returns true on ok, false if something has changed
+	bool checklocal()
+	{
+		bool ret = true;
+		if(lanaddr.cAddr==INADDR_ANY) // not detected
+		{	// take the first system ip for wan and loopback for lan
+			lanaddr.cAddr = ipaddress::GetSystemIP(0);
+			ret = false;
+		}
+		ret &= checkPorts();
+		return ret;
+	}
+	bool checkPorts()
+	{	// check for unset wan address/port
+		if( wanaddr.port() == 0 ) 
+			wanaddr.port() = lanaddr.port();
+		if( lanaddr.port() == 0 ) 
+			lanaddr.port() = wanaddr.port();
+		return (lanaddr.port() != 0) ;
+	}
 
 
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// check if an given ip is LAN
+	bool isLAN(const ipaddress ip) const
+	{
+		return ( (lanaddr.addr()&lanaddr.mask()) == (ip.addr()&lanaddr.mask()) );
+	}
+	///////////////////////////////////////////////////////////////////////////
+	// check if an given ip is WAN
+	bool isWAN(const ipaddress ip) const
+	{
+		return ( (lanaddr.addr()&lanaddr.mask()) != (ip.addr()&lanaddr.mask()) );
+	}
+	///////////////////////////////////////////////////////////////////////////
+	bool SetLANIP(const ipaddress ip)
+	{	// a valid lan address should be bindable
+		if( ipaddress::isBindable(ip) ) 
+		{
+			lanaddr.addr() = ip;
+			return true;
+		}
+		return false;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	ipaddress LANIP() const	{ return lanaddr.cAddr; }
+	ipaddress& LANMask()	{ return lanaddr.cMask; }
+	ushort& LANPort()		{ return lanaddr.cPort; }
+	ipaddress& WANIP()		{ return wanaddr.cAddr; }
+	ushort& WANPort()		{ return wanaddr.cPort; }
 
+	///////////////////////////////////////////////////////////////////////////
+	// returning as netaddresses only
+	netaddress& LANAddr()	{ return lanaddr; }	
+	netaddress& WANAddr()	{ return wanaddr; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// virtual interface
+	virtual const ulong addr() const { return lanaddr.cAddr; }
+	virtual ulong& addr() { return lanaddr.cAddr.ldata; }
+	///////////////////////////////////////////////////////////////////////////
+	virtual const ulong mask() const { return lanaddr.cMask; }
+	virtual ulong& mask() { return lanaddr.cMask.ldata; }
+	///////////////////////////////////////////////////////////////////////////
+	virtual const ushort port() const { return lanaddr.cPort; }
+	virtual ushort& port() { return lanaddr.cPort; }
+	///////////////////////////////////////////////////////////////////////////
+	virtual const char *getstring(char *buffer=NULL)
+	{	// usage of the static buffer is not threadsafe
+		static char tmp[64];
+		char *buf = (buffer) ? buffer : tmp;
+		if(lanaddr.cMask == INADDR_BROADCAST)
+		{	// have only one accessable ip
+			sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d",
+				lanaddr.cAddr[3],lanaddr.cAddr[2],lanaddr.cAddr[1],lanaddr.cAddr[0], 
+				lanaddr.cMask[3],lanaddr.cMask[2],lanaddr.cMask[1],lanaddr.cMask[0], 
+				lanaddr.cPort);
+		}
+		else
+		{	// have a full set
+			sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d, %d.%d.%d.%d:%d",
+				lanaddr.cAddr[3],lanaddr.cAddr[2],lanaddr.cAddr[1],lanaddr.cAddr[0], 
+				lanaddr.cMask[3],lanaddr.cMask[2],lanaddr.cMask[1],lanaddr.cMask[0], 
+				lanaddr.cPort,
+				wanaddr.cAddr[3],wanaddr.cAddr[2],wanaddr.cAddr[1],wanaddr.cAddr[0], 
+				wanaddr.cPort);
+		}
+		return buf;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// boolean operators
+	bool operator == (const ipset s) const { return lanaddr==s.lanaddr && wanaddr==s.wanaddr; }
+	bool operator != (const ipset s) const { return lanaddr!=s.lanaddr || wanaddr!=s.wanaddr; }
+
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// predeclares
+class streamable;
+class buffer_iterator;
 
 
 //////////////////////////////////////////////////////////////////////////
 // char buffer access
 //////////////////////////////////////////////////////////////////////////
 
-class streamable;
 
 class buffer_iterator
 {
@@ -933,7 +838,7 @@ public:
 			ipp+=4;
 			return  ip;
 		}
-		return 0;
+		return ((ulong)0);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	int64 operator = (const int64 lx)
@@ -1186,6 +1091,7 @@ public:
 	}
 */
 };
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // 
@@ -1484,11 +1390,10 @@ public:
 #define FD_SETSIZE 4096
 #endif	// __INTERIX
 
-/* Removed Cygwin FD_SETSIZE declarations, now are directly passed on to the compiler through Makefile [Valaris] */
-
 
 // Struct declaration
-struct socket_data{
+struct socket_data
+{
 	struct {
 		bool connected : 1;			// true when connected
 		bool remove : 1;			// true when to be removed
@@ -1520,7 +1425,6 @@ struct socket_data{
 
 extern struct socket_data *session[FD_SETSIZE];
 extern size_t fd_max;
-
 
 
 static inline bool session_isValid(int fd)
@@ -1582,9 +1486,5 @@ int start_console(void);
 
 void set_defaultparse(int (*defaultparse)(int));
 void set_defaultconsoleparse(int (*defaultparse)(char*));
-
-extern unsigned long addr_[16];	// ip addresses of local host (host byte order)
-extern unsigned int naddr_;   // # of ip addresses
-
 
 #endif	// _SOCKET_H_

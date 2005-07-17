@@ -1206,7 +1206,7 @@ void read_constdb(void)
 	char name[1024];
 	int val,n,type;
 
-	fp=savefopen("db/const.txt","r");
+	fp=safefopen("db/const.txt","r");
 	if(fp==NULL){
 		ShowMessage("can't read %s\n","db/const.txt");
 		return ;
@@ -1772,7 +1772,7 @@ int buildin_callfunc(struct script_state &st)
 		st.defsp=st.start+4+j;
 		st.state=GOTO;
 	}else{
-		ShowMessage("script:callfunc: function not found! [%s]\n",str);
+		ShowError("script:callfunc: function not found! [%s]\n",str);
 		st.state=END;
 	}
 	return 0;
@@ -8040,7 +8040,7 @@ int run_func(struct script_state &st)
 	for(i=end_sp-1;i>=0 && st.stack.stack_data[i].type!=C_ARG;i--);
 	if(i==0){
 		if(battle_config.error_log)
-			ShowMessage("function not found\n");
+			ShowError("function not found\n");
 		st.state=END;
 		return 0;
 	}
@@ -8362,7 +8362,7 @@ int script_load_mapreg()
 	FILE *fp;
 	char line[1024];
 
-	if( (fp=savefopen(mapreg_txt,"rt"))==NULL )
+	if( (fp=safefopen(mapreg_txt,"rt"))==NULL )
 		return -1;
 
 	while(fgets(line,sizeof(line),fp)){
@@ -8487,9 +8487,9 @@ int script_config_read(const char *cfgName)
 	script_config.event_script_type = 0;
 	script_config.event_requires_trigger = 1;
 
-	fp=savefopen(cfgName,"r");
+	fp=safefopen(cfgName,"r");
 	if (fp == NULL) {
-		ShowMessage("file not found: %s\n",cfgName);
+		ShowError("file not found: %s\n",cfgName);
 		return 1;
 	}
 	while (fgets(line, sizeof(line) - 1, fp)) {

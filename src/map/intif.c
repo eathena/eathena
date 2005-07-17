@@ -743,7 +743,7 @@ int intif_parse_LoadStorage(int fd) {
 		sd=map_id2sd( RFIFOL(fd,4) );
 		if(sd==NULL){
 			if(battle_config.error_log)
-				ShowMessage("intif_parse_LoadStorage: user not found %ld\n",(unsigned long)RFIFOL(fd,4));
+				ShowError("intif_parse_LoadStorage: user not found %ld\n",(unsigned long)RFIFOL(fd,4));
 			return 1;
 		}
 		if(battle_config.save_log)
@@ -792,7 +792,7 @@ int intif_parse_LoadGuildStorage(int fd)
 		sd=map_id2sd( RFIFOL(fd,4) );
 		if(sd==NULL){
 			if(battle_config.error_log)
-				ShowMessage("intif_parse_LoadGuildStorage: user not found %ld\n",(unsigned long)RFIFOL(fd,4));
+				ShowError("intif_parse_LoadGuildStorage: user not found %ld\n",(unsigned long)RFIFOL(fd,4));
 			return 1;
 		}
 		if(battle_config.save_log)

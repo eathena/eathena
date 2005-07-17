@@ -18,23 +18,26 @@ struct dbn *tail;
 #ifdef MALLOC_DBN
 #define ROOT_SIZE 4096
 static struct dbn *dbn_root[512], *dbn_free;
-static int dbn_root_rest = 0, dbn_root_num = 0;
+static size_t dbn_root_inx = 0;
+static size_t dbn_root_pos = ROOT_SIZE;
 
 struct dbn* malloc_dbn (void)
 {
 	struct dbn* ret;
 
-	if (dbn_free == NULL) {
-		if (dbn_root_rest <= 0) {
-			CREATE(dbn_root[dbn_root_num], struct dbn, ROOT_SIZE);
-
-			dbn_root_rest = ROOT_SIZE;
-			dbn_root_num++;
+	if (dbn_free == NULL)
+	{
+		if(dbn_root_pos >= ROOT_SIZE)
+		{
+			CREATE(dbn_root[dbn_root_inx], struct dbn, ROOT_SIZE);
+			dbn_root_inx++;
+			dbn_root_pos = 0;
 		}
-		return &(dbn_root[dbn_root_num-1][--dbn_root_rest]);
+		return &(dbn_root[dbn_root_inx-1][dbn_root_pos++]);
 	}
 	ret = dbn_free;
-	dbn_free = dbn_free->parent;
+	dbn_free = ret->parent;
+	memset(ret,0,sizeof(struct dbn));
 	return ret;
 }
 
@@ -46,13 +49,14 @@ void free_dbn (struct dbn *add_dbn)
 
 void exit_dbn (void)
 {
-	int i;
-
-	for (i = 0; i < dbn_root_num; i++)
+	size_t i;
+	for (i = 0; i < dbn_root_inx; i++)
 		if (dbn_root[i])
+		{
 			aFree(dbn_root[i]);
-
-	dbn_root_rest = dbn_root_num = 0;
+			dbn_root[i]=NULL;
+		}
+	dbn_root_pos = dbn_root_inx = 0;
 	return;
 }
 #else
@@ -410,7 +414,9 @@ void db_free_lock(struct dbt *table) {
 }
 
 void db_free_unlock(struct dbt *table) {
-	if(--table->free_lock == 0) {
+	if(table->free_lock>0) table->free_lock--;
+	if(table->free_lock == 0)
+	{
 		int i;
 		for(i = 0; i < table->free_count ; i++) {
 			db_rebalance_erase(table->free_list[i].z,table->free_list[i].root);
@@ -479,7 +485,7 @@ struct dbn* db_insert(struct dbt *table,void* key,void* data)
 		}
 	}
 #ifdef MALLOC_DBN
-	p = (struct dbn*)malloc_dbn();
+	p = malloc_dbn();
 #else
 	CREATE(p, struct dbn, 1);
 #endif
@@ -641,7 +647,11 @@ void db_final(struct dbt *table,int (*func)(void*,void*,va_list),...)
 		sp=0;
 		while(1){
 			if(func && !p->deleted)
+			{
 				func(p->key,p->data,ap);
+				p->key=NULL;
+				p->data=NULL;
+			}
 			if((pn=p->left)!=NULL){
 				if(p->right){
 					stack[sp++]=p->right;

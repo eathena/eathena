@@ -309,7 +309,7 @@ int itemdb_read_randomitem()
 		int *pdefault=data[i].pdefault;
 		char *fn=(char *) data[i].filename;
 		*pdefault = 0;
-		if( (fp=savefopen(fn,"r"))==NULL )
+		if( (fp=safefopen(fn,"r"))==NULL )
 		{
 			ShowMessage("can't read %s\n",fn);
 			continue;
@@ -369,7 +369,7 @@ int itemdb_read_itemavail(void)
 	char *str[10],*p;
 	struct item_data *id;
 
-	if( (fp=savefopen("db/item_avail.txt","r"))==NULL ){
+	if( (fp=safefopen("db/item_avail.txt","r"))==NULL ){
 		ShowMessage("can't read %s\n","db/item_avail.txt");
 		return -1;
 	}
@@ -415,7 +415,7 @@ int itemdb_read_itemgroup(void)
 	size_t j;
 	char *str[31],*p;
 
-	if( (fp=savefopen("db/item_group_db.txt","r"))==NULL ){
+	if( (fp=safefopen("db/item_group_db.txt","r"))==NULL ){
 		ShowError("can't read db/item_group_db.txt\n");
 		return -1;
 	}
@@ -602,7 +602,7 @@ int itemdb_read_noequip(void)
 	char *str[32],*p;
 	struct item_data *id;
 
-	if( (fp=savefopen("db/item_noequip.txt","r"))==NULL ){
+	if( (fp=safefopen("db/item_noequip.txt","r"))==NULL ){
 		ShowMessage("can't read %s\n", "db/item_noequip.txt");
 		return -1;
 	}
@@ -849,7 +849,7 @@ int itemdb_readdb(void)
 
 	for(i=0;i<2;i++){
 
-		fp=savefopen(filename[i],"r");
+		fp=safefopen(filename[i],"r");
 		if(fp==NULL){
 			if(i>0)
 				continue;

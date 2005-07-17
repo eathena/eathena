@@ -5,6 +5,7 @@
 
 
 int config_switch(const char *str);
+unsigned long str2ip(const char *str);
 bool e_mail_check(const char *email);
 bool remove_control_chars(char *str);
 
@@ -13,7 +14,7 @@ void dump(unsigned char *buffer, size_t num);
 char* checkpath(char *path, const char* src);
 void findfile(const char *p, const char *pat, void (func)(const char*) );
 
-static inline FILE* savefopen(const char*name, const char*option)
+static inline FILE* safefopen(const char*name, const char*option)
 {	// windows MAXPATH is 260, unix is longer
 	char	 namebuf[2048];
 	checkpath(namebuf,name);

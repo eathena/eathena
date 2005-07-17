@@ -131,8 +131,6 @@ static char afm_dir[1024] = ""; // [Valaris]
 struct map_data map[MAX_MAP_PER_SERVER];
 size_t map_num = 0;
 
-//int map_port=0;
-
 int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 int agit_flag = 0;
 int night_flag = 0; // 0=day, 1=night [Yor]
@@ -1966,15 +1964,16 @@ int map_mapname2mapid(const char *name)
  * ‘¼ŽImap–¼‚©‚çip,port?Š·
  *------------------------------------------
  */
-bool map_mapname2ipport(const char *name, unsigned long &ip, unsigned short &port)
+bool map_mapname2ipport(const char *name, ipset &mapset)
 {
 	struct map_data_other_server *mdos=NULL;
 
 	mdos = (struct map_data_other_server*)strdb_search(map_db,name);
 	if(mdos==NULL || mdos->gat)
 		return false;
-	ip  =mdos->ip;
-	port=mdos->port;
+//	ip  =mdos->ip;
+//	port=mdos->port;
+	mapset = mdos->mapset;
 	return true;
 }
 
@@ -2076,7 +2075,7 @@ int map_calc_dir( struct block_list &src,int x,int y)
 
 int map_getcell(unsigned short m,unsigned short x, unsigned short y,cell_t cellchk)
 {
-	return (m >= MAX_MAP_PER_SERVER) ? 0 : map_getcellp(map[m],x,y,cellchk);
+	return (m<map_num) ? 0 : map_getcellp(map[m],x,y,cellchk);
 }
 
 int map_getcellp(struct map_data& m,unsigned short x, unsigned short y,cell_t cellchk)
@@ -2092,30 +2091,30 @@ int map_getcellp(struct map_data& m,unsigned short x, unsigned short y,cell_t ce
 
 	switch(cellchk)
 	{
-		case CELL_CHKPASS:
-			return (mg->type != GAT_WALL && mg->type != GAT_GROUND);
-		case CELL_CHKNOPASS:
-			return (mg->type == GAT_WALL || mg->type == GAT_GROUND);
-		case CELL_CHKWALL:
-			return (mg->type == GAT_WALL);
-		case CELL_CHKWATER:
-			return (mg->type == GAT_WATER);
-		case CELL_CHKGROUND:
-			return (mg->type == GAT_GROUND);
-		case CELL_CHKHOLE:
-			return (mg->type == GAT_HOLE);
-		case CELL_GETTYPE:
-			return mg->type;
-		case CELL_CHKNPC:
-			return mg->npc;
-		case CELL_CHKBASILICA:
-			return mg->basilica;
-		case CELL_CHKMOONLIT:
-			return mg->moonlit;
-		case CELL_CHKREGEN:
-			return mg->regen;
-		default:
-			return 0;
+	case CELL_CHKPASS:
+		return (mg->type != GAT_WALL && mg->type != GAT_GROUND);
+	case CELL_CHKNOPASS:
+		return (mg->type == GAT_WALL || mg->type == GAT_GROUND);
+	case CELL_CHKWALL:
+		return (mg->type == GAT_WALL);
+	case CELL_CHKWATER:
+		return (mg->type == GAT_WATER);
+	case CELL_CHKGROUND:
+		return (mg->type == GAT_GROUND);
+	case CELL_CHKHOLE:
+		return (mg->type == GAT_HOLE);
+	case CELL_GETTYPE:
+		return mg->type;
+	case CELL_CHKNPC:
+		return mg->npc;
+	case CELL_CHKBASILICA:
+		return mg->basilica;
+	case CELL_CHKMOONLIT:
+		return mg->moonlit;
+	case CELL_CHKREGEN:
+		return mg->regen;
+	default:
+		return 0;
 	}
 }
 /*==========================================
@@ -2161,7 +2160,7 @@ void map_setcell(unsigned short m,unsigned short x, unsigned short y, int cellck
 	case CELL_CLRREGEN:
 		mg->regen = 0;
 		break;
-		default:
+	default:
 		// check the numbers from the gat and warn on an unknown type
 		if( (cellck != GAT_NONE) && (cellck != GAT_WALL) && (cellck != GAT_WATER) && 
 			(cellck != GAT_GROUND) && (cellck != GAT_HOLE) )
@@ -2170,58 +2169,67 @@ void map_setcell(unsigned short m,unsigned short x, unsigned short y, int cellck
 			mg->type = cellck & CELL_MASK;
 			break;
 	};
-	}
+}
 
 /*==========================================
  * ‘¼ŽIŠÇ—‚Ìƒ}ƒbƒv‚ðdb‚É’Ç‰Á
  *------------------------------------------
  */
-int map_setipport(const char *name, unsigned long ip, unsigned short port) {
+int map_setipport(const char *name, ipset &mapset)
+{
 	struct map_data *md=NULL;
 	struct map_data_other_server *mdos=NULL;
 
 	md = (struct map_data*)strdb_search(map_db,name);
-	if(md==NULL){ // not exist -> add new data
+	if(md==NULL)
+	{	// does not exist -> add new data
 		mdos=(struct map_data_other_server *)aCalloc(1,sizeof(struct map_data_other_server));
 		memcpy(mdos->name,name,24);
 		mdos->gat  = NULL;
-		mdos->ip   = ip;
-		mdos->port = port;
+		mdos->mapset=mapset;
 		mdos->map  = NULL;
 		strdb_insert(map_db,mdos->name,mdos);
-	} else if(md->gat){
-		if(ip!=clif_getip() || port!=clif_getport()){
+	}
+	else if(md->gat)
+	{	// exists and has is a locally loaded map
+		if( mapset != getmapaddress() )
+		{	// a differnt server then the local one is owning the map
 			// “Ç‚Ýbñ‚Å‚¢‚½‚¯‚ÇA’S“–ŠO‚É‚È‚Á‚½ƒ}ƒbƒv
 			mdos=(struct map_data_other_server *)aCalloc(1,sizeof(struct map_data_other_server));
 			memcpy(mdos->name,name,24);
 			mdos->gat  = NULL;
-			mdos->ip   = ip;
-			mdos->port = port;
-			mdos->map  = md;
+			mdos->mapset=mapset;
+			mdos->map  = md;	// safe the locally loaded map data
 			strdb_insert(map_db,mdos->name,mdos);
 			// ShowMessage("from char server : %s -> %08lx:%d\n",name,ip,port);
-		} else {
+		}
+		else
+		{	// nothing to do, just keep the map as it is
 			// “Ç‚Ýbñ‚Å‚¢‚ÄA’S“–‚É‚È‚Á‚½ƒ}ƒbƒvi‰½‚à‚µ‚È‚¢j
 			;
 		}
-	} else {
+	}
+	else
+	{	// exists and is an other_server_map
 		mdos=(struct map_data_other_server *)md;
-		if(ip == clif_getip() && port == clif_getport()) {
+		if( mapset == getmapaddress() )
+		{	// the current server is claiming the map
 			// Ž©•ª‚Ì’S“–‚É‚È‚Á‚½ƒ}ƒbƒv
-			if(mdos->map == NULL) {
-				// “Ç‚Ýbñ‚Å‚¢‚È‚¢‚Ì‚ÅI—¹‚·‚é
-				ShowMessage("map_setipport : %s is not loaded.\n",name);
-				exit(1);
-			} else {
-				// “Ç‚Ýbñ‚Å‚¢‚é‚Ì‚Å’u‚«Š·‚¦‚é
-				md = mdos->map;
-				aFree(mdos);
+
+			// reclaim the real mapdata
+			// “Ç‚Ýbñ‚Å‚¢‚é‚Ì‚Å’u‚«Š·‚¦‚é
+			md = mdos->map;
+			aFree(mdos);
+			
+			if(md)
 				strdb_insert(map_db,md->mapname,md);
-			}
-		} else {
+			else
+				ShowError("map_setipport error: data for local map %s does not exist.\n",name);
+		}
+		else
+		{	// the ip of the mapserver has changed
 			// ‘¼‚ÌŽI‚Ì’S“–ƒ}ƒbƒv‚È‚Ì‚Å’u‚«Š·‚¦‚é‚¾‚¯
-			mdos->ip   = ip;
-			mdos->port = port;
+			mdos->mapset=mapset;
 		}
 	}
 	return 0;
@@ -2234,9 +2242,15 @@ int map_setipport(const char *name, unsigned long ip, unsigned short port) {
 int map_eraseallipport_sub(void *key,void *data,va_list va)
 {
 	struct map_data_other_server *mdos = (struct map_data_other_server*)data;
-	if(mdos->gat == NULL && mdos->map == NULL) {
+	if(mdos->gat == NULL)
+	{
+		struct map_data *md = mdos->map;
 		strdb_erase(map_db,key);
 		aFree(mdos);
+		if( md )
+		{	// real mapdata exists
+			strdb_insert(map_db,md->mapname, md);
+		}
 	}
 	return 0;
 }
@@ -2251,27 +2265,23 @@ int map_eraseallipport(void)
  * ‘¼ŽIŠÇ—‚Ìƒ}ƒbƒv‚ðdb‚©‚çíœ
  *------------------------------------------
  */
-int map_eraseipport(const char *name, unsigned long ip,unsigned short port)
+int map_eraseipport(const char *name, ipset &mapset)
 {
 	struct map_data *md;
 	struct map_data_other_server *mdos;
 
 	md=(struct map_data *) strdb_search(map_db,name);
-	if(md){
-		if(md->gat) // local -> check data
-			return 0;
-		else {
-			mdos=(struct map_data_other_server *)md;
-			if(mdos->ip==ip && mdos->port == port) {
-				if(mdos->map) {
-					// ‚±‚Ìƒ}ƒbƒvŽI‚Å‚à“Ç‚Ýbñ‚Å‚¢‚é‚Ì‚ÅˆÚ“®‚Å‚«‚é
-					return 1; // ŒÄ‚Ño‚µŒ³‚Å chrif_sendmap() ‚ð‚·‚é
-				} else {
-					strdb_erase(map_db,name);
-					aFree(mdos);
-				}
-				//if(battle_config.etc_log)
-				//	ShowStatus("erase map %s %d.%d.%d.%d:%d\n",name,(ip>>24)&0xFF,(ip>>16)&0xFF,(ip>>8)&0xFF,(ip)&0xFF,port);
+	if(md && NULL==md->gat)
+	{	// check if map exists and if it is a other_server_map
+		mdos=(struct map_data_other_server *)md;
+		if(mdos->mapset==mapset)
+		{
+			md = mdos->map;
+			strdb_erase(map_db,name);
+			aFree(mdos);
+			if( md )
+			{	// saved real mapdata exists, insert it again
+				strdb_insert(map_db,md->mapname, md);
 			}
 		}
 	}
@@ -2305,9 +2315,9 @@ void map_readwater(const char *watertxt) {
 	FILE *fp=NULL;
 	int n=0;
 
-	fp=savefopen(watertxt,"r");
+	fp=safefopen(watertxt,"r");
 	if(fp==NULL){
-		ShowMessage("file not found: %s\n",watertxt);
+		ShowError("waterheight file not found: %s\n",watertxt);
 		return;
 	}
 	if(waterlist==NULL)
@@ -2375,7 +2385,7 @@ bool map_cache_open(const char *fn)
 	if(map_cache.fp)
 		map_cache_close();
 
-	map_cache.fp = savefopen(fn,"r+b");
+	map_cache.fp = safefopen(fn,"r+b");
 	if(map_cache.fp)
 	{
 		fread(&map_cache.head,1,sizeof(struct map_cache_head),map_cache.fp);
@@ -2394,7 +2404,7 @@ bool map_cache_open(const char *fn)
 		fclose(map_cache.fp);
 	}
 	// “Ç‚ÝbÝ‚ÉŽ¸”s‚µ‚½‚Ì‚ÅV‹K‚Éì¬‚·‚é
-	map_cache.fp = savefopen(fn,"wb");
+	map_cache.fp = safefopen(fn,"wb");
 	if(map_cache.fp)
 	{
 		memset(&map_cache.head,0,sizeof(struct map_cache_head));
@@ -2664,7 +2674,7 @@ int map_readafm(int m,const char *fn)
 	FILE *afm_file;
 	char *str;
 
-	afm_file = savefopen(fn, "r");
+	afm_file = safefopen(fn, "r");
 	if (afm_file != NULL) {
 
 		ShowMessage("\rLoading Maps [%d/%d]: %-50s  ",m,map_num,fn);
@@ -2719,13 +2729,13 @@ bool map_readaf2(int m, const char *fn)
 	char buf[256];
 	bool ret=false;
 
-	af2_file = savefopen(fn, "r");
+	af2_file = safefopen(fn, "r");
 	if( af2_file != NULL )
 	{
 		memcpy(buf,              fn,     strlen(fn)-4);
 		memcpy(buf+strlen(fn)-4, ".out", 5);
 
-		dest = savefopen(buf, "w");
+		dest = safefopen(buf, "w");
 		if (dest == NULL)
 		{
 			ShowMessage("can't open\n");
@@ -2866,7 +2876,7 @@ int map_readallmap(void)
 			memcpy(afm_name+strlen(map[i].mapname) - 3, "afm", 4); // copy with EOS
 		}
 		sprintf(fn,"%s%c%s",afm_dir,PATHSEP,afm_name);
-		afm_file = savefopen(fn, "r");
+		afm_file = safefopen(fn, "r");
 		if (afm_file != NULL)
 		{
 			fclose(afm_file);
@@ -2877,7 +2887,7 @@ int map_readallmap(void)
 
 		// try with *.af2
 		fn[strlen(fn)-1] = '2';
-		afm_file = savefopen(fn, "r");
+		afm_file = safefopen(fn, "r");
 		if (afm_file != NULL)
 		{
 			fclose(afm_file);
@@ -2947,7 +2957,7 @@ int map_addmap(const char *mapname)
 		ShowError("Could not add map '"CL_WHITE"%s"CL_RESET"', the limit of maps has been reached.\n",mapname);
 		return 1;
 	}
-	memcpy(map[map_num].mapname, mapname, 24);
+	safestrcpy(map[map_num].mapname, mapname, sizeof(map[map_num].mapname));
 	map_num++;
 	return 0;
 }
@@ -3066,12 +3076,12 @@ int map_config_read(const char *cfgName)
 {
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
-	struct hostent *h = NULL;
+//	struct hostent *h = NULL;
 
-	fp = savefopen(cfgName,"r");
+	fp = safefopen(cfgName,"r");
 	if (fp == NULL) {
-		ShowMessage("Map configuration file not found at: %s\n", cfgName);
-		exit(1);
+		ShowError("Map configuration file not found at: %s\n", cfgName);
+		return 0;
 	}
 	
 	while(fgets(line, sizeof(line) -1, fp)) {
@@ -3082,26 +3092,23 @@ int map_config_read(const char *cfgName)
 				chrif_setuserid(w2);
 			} else if (strcasecmp(w1, "passwd") == 0) {
 				chrif_setpasswd(w2);
-			} else if (strcasecmp(w1, "char_ip") == 0) {
-				h = gethostbyname (w2);
-				if(h != NULL) {
-					ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-					sprintf(w2,"%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-				}
-				chrif_setip( ntohl(inet_addr(w2)) );
+			}
+			else if (strcasecmp(w1, "char_ip") == 0) {
+				getcharaddress() = w2;
+				ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", w2, getcharaddress().getstring());
+			} 
+else if (strcasecmp(w1, "char_port") == 0) {
+	getcharaddress().port() = atoi(w2);
+}
+			else if (strcasecmp(w1, "map_ip") == 0) {
+				getmapaddress() = w2;
+				ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", w2, getmapaddress().getstring());
+			}
+else if (strcasecmp(w1, "map_port") == 0) {
+	getmapaddress().LANPort() = atoi(w2);
+}
 
-			} else if (strcasecmp(w1, "char_port") == 0) {
-				chrif_setport(atoi(w2));
-			} else if (strcasecmp(w1, "map_ip") == 0) {
-				h = gethostbyname (w2);
-				if (h != NULL) {
-					ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-					sprintf(w2, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-				}
-				clif_setip( ntohl(inet_addr(w2)) );
-			} else if (strcasecmp(w1, "map_port") == 0) {
-				clif_setport(atoi(w2));
-			} else if (strcasecmp(w1, "water_height") == 0) {
+			else if (strcasecmp(w1, "water_height") == 0) {
 				map_readwater(w2);
 			} else if (strcasecmp(w1, "map") == 0) {
 				map_addmap(w2);
@@ -3156,7 +3163,7 @@ int inter_config_read(const char *cfgName)
 	char line[1024],w1[1024],w2[1024];
 	FILE *fp;
 
-	fp=savefopen(cfgName,"r");
+	fp=safefopen(cfgName,"r");
 	if(fp==NULL){
 		ShowError("File not found: '%s'.\n",cfgName);
 		return 1;
@@ -3593,7 +3600,7 @@ int do_init(int argc, char *argv[]) {
 	}
 
 	map_config_read(MAP_CONF_NAME);
-
+/*
 	if ( naddr_ == 0 ) {
 		ShowMessage("\nUnable to automatically determine the IP address.\n");
 		ShowMessage("please edit the map_athena.conf file and set it to correct values.\n");
@@ -3617,6 +3624,7 @@ int do_init(int argc, char *argv[]) {
 		if ((localaddr&0xFFFF0000) == 0xC0A80000)//192.168.x.x
 			ShowMessage("\nPrivate Network detected.. \nedit lan_support.conf and map_athena.conf\n\n");
 	}
+*/
 	if (SHOW_DEBUG_MSG) ShowNotice("Server running in '"CL_WHITE"Debug Mode"CL_RESET"'.\n");
 	battle_config_read(BATTLE_CONF_FILENAME);
 	msg_config_read(MSG_CONF_NAME);
@@ -3682,7 +3690,7 @@ int do_init(int argc, char *argv[]) {
 	if (battle_config.pk_mode == 1)
 		ShowNotice("Server is running on '"CL_WHITE"PK Mode"CL_RESET"'.\n");
 
-	ShowStatus("Server is '"CL_GREEN"ready"CL_RESET"' and listening on port '"CL_WHITE"%d"CL_RESET"'.\n\n", clif_getport());
+	ShowStatus("Server is '"CL_GREEN"ready"CL_RESET"' and listening on '"CL_WHITE"%s:%d"CL_RESET"'.\n\n", getmapaddress().LANIP().getstring(), getmapaddress().LANPort());
 
 	return 0;
 }

@@ -323,7 +323,7 @@ int plugins_config_read(const char *cfgName)
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
-	fp = savefopen(cfgName, "r");
+	fp = safefopen(cfgName, "r");
 	if (fp == NULL) {
 		ShowError("File not found: %s\n", cfgName);
 		return 1;
@@ -358,7 +358,7 @@ void plugin_init (void)
 	register_plugin_func("Athena_Init");
 	register_plugin_func("Athena_Final");
 
-	export_symbol (addr_,				12);
+//	export_symbol (addr_,						12);
 //	export_symbol((void*)get_uptime,			11);
 	export_symbol((void*)NULL,					11);
 	export_symbol((void*)delete_timer,			10);

@@ -73,9 +73,6 @@ static const int packet_len_table[0x3d] = {
 int chrif_connected;
 int char_fd = -1;
 
-
-static unsigned long	char_ip   = INADDR_LOOPBACK;
-static unsigned short	char_port = 6121;
 static char userid[24];
 static char passwd[24];
 static int chrif_state = 0;
@@ -101,28 +98,6 @@ void chrif_setpasswd(const char *pwd)
 	passwd[sizeof(passwd)-1]=0;
 }
 
-/*==========================================
- *
- *------------------------------------------
- */
-void chrif_setip(unsigned long ip) 
-{
-	char_ip = ip;
-}
-
-unsigned long chrif_getip()
-{
-	return char_ip;
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-void chrif_setport(unsigned short port)
-{
-	char_port = port;
-}
 
 /*==========================================
  *
@@ -169,9 +144,14 @@ int chrif_connect(int fd)
 	memcpy(WFIFOP(fd,2), userid, 24);
 	memcpy(WFIFOP(fd,26), passwd, 24);
 	WFIFOL(fd,50) = 0;
-	WFIFOLIP(fd,54) = clif_getip();
-	WFIFOW(fd,58) = clif_getport();	// [Valaris] thanks to fov
-	WFIFOSET(fd,60);
+
+	WFIFOLIP(fd,54) = getmapaddress().LANIP();
+	WFIFOLIP(fd,58) = getmapaddress().LANMask();
+	WFIFOW(fd,62)   = getmapaddress().LANPort();
+	WFIFOLIP(fd,64) = getmapaddress().WANIP();
+	WFIFOW(fd,68)   = getmapaddress().WANPort();
+
+	WFIFOSET(fd,70);
 	return 0;
 }
 
@@ -182,20 +162,20 @@ int chrif_connect(int fd)
 int chrif_sendmap(int fd)
 {
 	size_t i;
-
+	
 	if( !session_isActive(fd) )
 		return -1;
-
+	
 	WFIFOW(fd,0) = 0x2afa;
 	for(i = 0; i < map_num; i++) {
-                if (map[i].alias != '\0') // [MouseJstr] map aliasing
-		    memcpy(WFIFOP(fd,4+i*16), map[i].alias, 16);
+		if (map[i].alias != '\0') // [MouseJstr] map aliasing
+			memcpy(WFIFOP(fd,4+i*16), map[i].alias, 16);
 		else
-		    memcpy(WFIFOP(fd,4+i*16), map[i].mapname, 16);
+			memcpy(WFIFOP(fd,4+i*16), map[i].mapname, 16);
 	}
 	WFIFOW(fd,2) = 4 + i * 16;
 	WFIFOSET(fd,WFIFOW(fd,2));
-
+	
 	return 0;
 }
 
@@ -212,14 +192,16 @@ int chrif_recvmap(int fd)
 	if( !session_isActive(char_fd) || !chrif_isconnect() )	// まだ準備中
 		return -1;
 
+	ipset mapset( RFIFOLIP(fd,4), RFIFOLIP(fd,8),RFIFOW(fd,12), RFIFOLIP(fd,14), RFIFOW(fd,18) );
+
 	ip = RFIFOLIP(fd,4);
 	port = RFIFOW(fd,8);
-	for(i = 10, j = 0; i < RFIFOW(fd,2); i += 16, j++)
+	for(i = 20, j = 0; i < RFIFOW(fd,2); i += 16, j++)
 	{
-		map_setipport((char*)RFIFOP(fd,i), ip, port);
+		map_setipport((char*)RFIFOP(fd,i), mapset);
 	}
 	if (battle_config.etc_log)
-		ShowStatus("recv maps from %d.%d.%d.%d:%d (%d maps)\n", (ip>>24)&0xFF, (ip>>16)&0xFF, (ip>>8)&0xFF, (ip)&0xFF, port, j);
+		ShowStatus("recv maps from %s (%d maps)\n", mapset.getstring(), j);
 
 	return 0;
 }
@@ -231,21 +213,24 @@ int chrif_recvmap(int fd)
 int chrif_removemap(int fd)
 {
 	int i, j;
-	unsigned long ip;
-	unsigned short port;
+//	unsigned long ip;
+//	unsigned short port;
+	
 
 	if( !session_isActive(fd) || !chrif_isconnect() )
 		return -1;
 	
-	ip = RFIFOLIP(fd, 4);
-	port = RFIFOW(fd, 8);
-	for(i = 10, j = 0; i < RFIFOW(fd, 2); i += 16, j++)
+//	ip = RFIFOLIP(fd, 4);
+//	port = RFIFOW(fd, 8);
+
+	ipset mapset( RFIFOLIP(fd,4), RFIFOLIP(fd,8),RFIFOW(fd,12), RFIFOLIP(fd,14), RFIFOW(fd,18) );
+	for(i=20, j=0; i<RFIFOW(fd, 2); i+=16, j++)
 	{
-		map_eraseipport((char*)RFIFOP(fd, i), ip, port);
+		map_eraseipport((char*)RFIFOP(fd, i), mapset);
 	}
-	if(battle_config.etc_log){
-		ShowStatus("remove maps of server %d.%d.%d.%d:%d (%d maps)\n", (ip>>24)&0xFF, (ip>>16)&0xFF, (ip>>8)&0xFF, (ip)&0xFF, port, j);
-	}
+	if(battle_config.etc_log)
+		ShowStatus("remove maps of server %s (%d maps)\n", mapset.getstring(), j);
+	
 	
 	return 0;	
 }
@@ -254,7 +239,7 @@ int chrif_removemap(int fd)
  * マップ鯖間移動のためのデータ準備要求
  *------------------------------------------
  */
-int chrif_changemapserver(struct map_session_data &sd, const char *name, unsigned short x, unsigned short y, unsigned long ip, unsigned short port) 
+int chrif_changemapserver(struct map_session_data &sd, const char *name, unsigned short x, unsigned short y, ipset& mapset)
 {
 	size_t i;
 	unsigned long s_ip=0;
@@ -279,8 +264,17 @@ int chrif_changemapserver(struct map_session_data &sd, const char *name, unsigne
 	memcpy(WFIFOP(char_fd,18), name, 16);
 	WFIFOW(char_fd,34) = x;
 	WFIFOW(char_fd,36) = y;
-	WFIFOLIP(char_fd,38) = ip;
-	WFIFOL(char_fd,42) = port;
+
+	if( mapset.isLAN(s_ip) )
+	{
+		WFIFOLIP(char_fd,38) = mapset.LANIP();
+		WFIFOL(char_fd,42) = mapset.LANPort();
+	}
+	else
+	{
+		WFIFOLIP(char_fd,38) = mapset.WANIP();
+		WFIFOL(char_fd,42) = mapset.WANPort();
+	}
 	WFIFOB(char_fd,44) = sd.status.sex;
 	WFIFOLIP(char_fd,45) = s_ip;
 	WFIFOSET(char_fd,49);
@@ -1044,57 +1038,40 @@ int chrif_recvfamelist(int fd)
 	memset (chemist_fame_list, 0, sizeof(chemist_fame_list));
 
 	size = RFIFOW(fd,4);
-	for (i=6, num=0; i<size; i+=8)
+	for (i=6, num=0; i<size && num < MAX_FAMELIST; i+=32, num++)
 	{
-		id = RFIFOL(fd,i);
+		id   = RFIFOL(fd,i);
 		fame = RFIFOL(fd,i+4);
+		name = (char*)RFIFOP(fd,i+8);
 		if( id > 0 && fame > 0 && num < MAX_FAMELIST)
 		{
 			smith_fame_list[num].id = id;
 			smith_fame_list[num].fame = fame;
-			name = map_charid2nick(id);
-			if (name != NULL)
-				memcpy(smith_fame_list[num].name, name, 24);
-			else
-			{
-				memcpy(smith_fame_list[num].name, "Unknown", 24);
-				chrif_searchcharid(id);
-			}
+			memcpy(smith_fame_list[num].name, name, 24);
 			//ShowMessage("received : %s (id:%d) fame:%d\n", name, id, fame);
 		}
-		// in case the char server sends too long
-		if (++num >= MAX_FAMELIST)
-			break;
 	}
 	total += num;
 
+	i = size;
 	size = RFIFOW(fd,2);
-	for (num=0; i<size; i+=8)
+	for (num=0; i<size && num < MAX_FAMELIST; i+=32, num++)
 	{
 		id = RFIFOL(fd,i);
 		fame = RFIFOL(fd,i+4);
+		name = (char*)RFIFOP(fd,i+8);
 		if( id > 0 && fame > 0 && num < MAX_FAMELIST)
 		{
 			chemist_fame_list[num].id = id;
 			chemist_fame_list[num].fame = fame;
-			name = map_charid2nick(id);
-			if (name != NULL)
-				memcpy(chemist_fame_list[num].name, name, 24);
-			else
-			{
-				memcpy(chemist_fame_list[num].name, "Unknown", 24);
-				chrif_searchcharid(id);
-			}
+			memcpy(chemist_fame_list[num].name, name, 24);
 			//ShowMessage("received : %s (id:%d) fame:%d\n", name, id, fame);
 		}
-		// in case the char server sends too long
-		if (++num >= MAX_FAMELIST)
-			break;
 	}
 	total += num;
 
 	if(battle_config.etc_log)
-	ShowInfo("Receiving Fame List of '"CL_WHITE"%d"CL_RESET"' characters.\n", total);
+		ShowInfo("Receiving Fame List of '"CL_WHITE"%d"CL_RESET"' characters.\n", total);
 	return 0;
 }
 
@@ -1116,7 +1093,7 @@ int chrif_recvfamelist(int fd)
 	WFIFOW(char_fd,4) = job_rate;
 	WFIFOW(char_fd,6) = drop_rate;
 
-	if( (fp = savefopen(motd_txt, "r")) != NULL) {
+	if( (fp = safefopen(motd_txt, "r")) != NULL) {
 		if (fgets(buf, 250, fp) != NULL) {
 			for(i = 0; buf[i]; i++) {
 				if (buf[i] == '\r' || buf[i] == '\n') {
@@ -1366,8 +1343,7 @@ int check_connect_char_server(int tid, unsigned long tick, int id, int data)
 		chrif_state = 0;
 
 		ShowStatus("Attempting to connect to Char Server. Please wait.\n");
-		char_fd = make_connection(char_ip, char_port);
-
+		char_fd = make_connection(getcharaddress().addr(), getcharaddress().port());
 		if( session_isActive(char_fd) )
 		{
 			session[char_fd]->func_parse = chrif_parse;

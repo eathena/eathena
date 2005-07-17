@@ -385,7 +385,7 @@ int mapif_party_noinfo(int fd,int party_id)
 	WFIFOW(fd,2)=8;
 	WFIFOL(fd,4)=party_id;
 	WFIFOSET(fd,8);
-	ShowMessage("int_party: info not found %d\n",party_id);
+	ShowError("int_party: info not found %d\n",party_id);
 	return 0;
 }
 // パーティ情報まとめ送り

@@ -103,7 +103,7 @@ int guild_read_castledb(void)
 	char *str[32],*p;
 	struct guild_castle *gc;
 
-	if( (fp=savefopen("db/castle_db.txt","r"))==NULL ){
+	if( (fp=safefopen("db/castle_db.txt","r"))==NULL ){
 		ShowMessage("can't read %s\n", "db/castle_db.txt");
 		return -1;
 	}
@@ -801,7 +801,7 @@ int guild_recv_memberinfoshort(unsigned long guild_id,unsigned long account_id,u
 			sd->guild_sended=0;
 		}
 		if(battle_config.error_log)
-			ShowMessage("guild: not found member %d,%d on %d[%s]\n",	account_id,char_id,guild_id,g->name);
+			ShowError("guild: not found member %d,%d on %d[%s]\n",	account_id,char_id,guild_id,g->name);
 		return 0;
 	}
 	g->average_lv=alv/c;
@@ -1435,7 +1435,7 @@ int guild_castledataloadack(unsigned short castle_id,int index,int value)
 	case 24: gc->Ghp6 = value; break;
 	case 25: gc->Ghp7 = value; break;	// end additions [Valaris]
 	default:
-		ShowMessage("guild_castledataloadack ERROR!! (Not found index=%d, castle %d)\n", index,castle_id);
+		ShowError("guild_castledataloadack ERROR!! (Not found index=%d, castle %d)\n", index,castle_id);
 		return 0;
 	}
 	ev=(struct eventlist *)numdb_search(guild_castleinfoevent_db,code);
@@ -1491,7 +1491,7 @@ int guild_castledatasaveack(unsigned short castle_id,int index,int value)
 	case 24: gc->Ghp6 = value; break;
 	case 25: gc->Ghp7 = value; break;	// end additions [Valaris]
 	default:
-		ShowMessage("guild_castledatasaveack ERROR!! (Not found index=%d)\n", index);
+		ShowError("guild_castledatasaveack ERROR!! (Not found index=%d)\n", index);
 		return 0;
 	}
 	return 1;

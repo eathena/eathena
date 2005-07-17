@@ -4125,24 +4125,27 @@ int skill_castend_nodamage_id( struct block_list *src, struct block_list *bl,uns
 		{
 			int i;
 			clif_skill_nodamage(*src,*bl,skillid,skilllv,1);
-			if (rand()%100 >= 50+10*skilllv-sc_def_mdef)
+			
+			if(status_isimmune(bl))
+				break;
+
+			if(rand()%100 >= 50+10*skilllv-sc_def_mdef)
 			{
 				if (sd)
 					clif_skill_fail(*sd,skillid,0,0);
 				break;
 			}
-			if(status_isimmune(bl))
-				break;
 			for(i=0;i<136;i++){
-				if(i==SC_RIDING || i==SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50
-					|| i==SC_WEIGHT90 || i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR
-					|| i==SC_STRIPHELM || i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR
-					|| i==SC_CP_HELM || i==SC_COMBO || i==SC_LULLABY || i==SC_RICHMANKIM
-					|| i==SC_ETERNALCHAOS || i==SC_DRUMBATTLE || i==SC_NIBELUNGEN || i==SC_ROKISWEIL
-					|| i==SC_INTOABYSS || i==SC_SIEGFRIED || i==SC_DISSONANCE || i==SC_WHISTLE
-					|| i==SC_ASSNCROS || i==SC_POEMBRAGI || i==SC_APPLEIDUN || i==SC_UGLYDANCE
-					|| i==SC_HUMMING || i==SC_DONTFORGETME || i==SC_FORTUNE || i==SC_SERVICE4U
-					|| i==SC_MOONLIT || i==SC_LONGING || i==SC_HERMODE || i== SC_DANCING)
+				if( i==SC_RIDING || i==SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50 || i==SC_WEIGHT90 || 
+					i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR || i==SC_STRIPHELM || 
+					i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR || i==SC_CP_HELM || 
+					i==SC_COMBO || i==SC_LULLABY || i==SC_RICHMANKIM || i==SC_ETERNALCHAOS || 
+					i==SC_DRUMBATTLE || i==SC_NIBELUNGEN || i==SC_ROKISWEIL || i==SC_INTOABYSS || 
+					i==SC_SIEGFRIED || i==SC_DISSONANCE || i==SC_WHISTLE || i==SC_ASSNCROS || 
+					i==SC_POEMBRAGI || i==SC_APPLEIDUN || i==SC_UGLYDANCE || i==SC_HUMMING || 
+					i==SC_DONTFORGETME || i==SC_FORTUNE || i==SC_SERVICE4U || 
+					i==SC_MOONLIT || i==SC_LONGING || i==SC_HERMODE || i== SC_DANCING || 
+					i==SC_GUILDAURA )
 						continue;
 				status_change_end(bl,i,-1);
 			}
@@ -5119,12 +5122,18 @@ int skill_castend_id(int tid,unsigned long tick,int id,int data)
 		sd->skillitem = sd->skillitemlv = 0xFFFF;
 		return 0;
 	}
-	if(inf2 & 0xC00 && sd->bl.id != bl->id) {
+
+	if(inf2 & (INF2_PARTY_ONLY|INF2_GUILD_ONLY) && sd->bl.id != bl->id) {
 		int fail_flag = 1;
-		if(inf2 & 0x400 && battle_check_target(&sd->bl,bl, BCT_PARTY) > 0)
+		if(inf2 & INF2_PARTY_ONLY && battle_check_target(&sd->bl,bl, BCT_PARTY) > 0)
 			fail_flag = 0;
-		if(inf2 & 0x800 && sd->status.guild_id > 0 && sd->status.guild_id == status_get_guild_id(bl))
+		if(inf2 & INF2_GUILD_ONLY && sd->status.guild_id > 0 && sd->status.guild_id == status_get_guild_id(bl))
 			fail_flag = 0;
+		
+		if (sd->skillid == PF_SOULCHANGE && (map[sd->bl.m].flag.gvg || map[sd->bl.m].flag.pvp))
+			//Soul Change overrides this restriction during pvp/gvg [Skotlex]
+			fail_flag = 0;
+		
 		if(fail_flag) {
 			clif_skill_fail(*sd,sd->skillid,0,0);
 			sd->canact_tick = tick;
@@ -6519,7 +6528,7 @@ int skill_unit_onlimit(struct skill_unit *src,unsigned long tick)
 			if(group == NULL)
 				return 0;
 			group->valstr=(char*)aMalloc(24*sizeof(char));
-			memcpy(group->valstr,sg->valstr,24);
+			safestrcpy(group->valstr,sg->valstr,24);
 			group->valstr[24-1]=0;
 			group->val2=sg->val2;
 		}
@@ -7394,7 +7403,7 @@ int skill_use_id(struct map_session_data *sd, unsigned long target_id,unsigned s
 
 	if( (bl=map_id2bl(target_id)) == NULL ){
 //		if(battle_config.error_log)
-//			ShowMessage("skill target not found %d\n",target_id); */
+//			ShowError("skill target not found %d\n",target_id); */
 		return 0;
 	}
 	if(sd->bl.m != bl->m || pc_isdead(*sd))
@@ -7786,7 +7795,12 @@ int skill_use_pos( struct map_session_data *sd, int skill_x, int skill_y, unsign
 		clif_skill_fail(*sd,sd->skillid,0,0);
 		return 0;
 	}
-
+	if( map_getcell(sd->bl.m, skill_x, skill_y, CELL_CHKNOPASS) )
+	{	//prevent casting traps on non-walkable areas. [Skotlex] 
+		clif_skill_fail(*sd,skill_num,0,0);
+		return 0;
+	}
+	
 	sc_data = sd->sc_data;
 
 	if (sd->opt1 > 0)
@@ -9364,8 +9378,7 @@ int skill_can_produce_mix( struct map_session_data &sd, unsigned short nameid, i
  * アイテム合成可能判定
  *------------------------------------------
  */
-int skill_produce_mix( struct map_session_data &sd,
-	unsigned short nameid, int slot1, int slot2, int slot3 )
+int skill_produce_mix(struct map_session_data &sd, unsigned short nameid, int slot1, int slot2, int slot3)
 {
 	int slot[3];
 	int i,sc,ele,idx,equip,make_per,flag;
@@ -9454,22 +9467,30 @@ int skill_produce_mix( struct map_session_data &sd,
 					pc_checkskill(sd,AM_CP_ARMOR)*100 + pc_checkskill(sd,AM_CP_HELM)*100;
 		} else if (skill_produce_db[idx].req_skill == ASC_CDP) {
 			make_per = 2000 + 40*sd.paramc[4] + 20*sd.paramc[5]; // Poison Bottle
-		} else {
+		} else { //Refining ores - using JRO data [Skotlex]
+			int skill = pc_checkskill(sd,skill_produce_db[idx].req_skill);
+			make_per = 2000 + sd.status.job_level*20 + sd.paramc[4]*10 + sd.paramc[5]*10; //Base chance
 			if(nameid == 998) //Iron
-				make_per = 1500 + sd.status.job_level*35 + sd.paramc[4]*10 + sd.paramc[5]*10 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*600; // Iron
-			else
-				make_per = 1000 + sd.status.job_level*35 + sd.paramc[4]*10 + sd.paramc[5]*10 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*500; // Steel and Enchantedstones
+				make_per += 200+skill*600; //Bonus: +26/+32/+38/+44/+50
+			else if(nameid == 999) //Steel
+				make_per += 100+skill*500; //Bonus: +15/+20/+25/+30/+35
+			else	//Enchanted Stones
+				make_per += -500 +skill*500; //Bonus: - 5/+ 0/+ 5/+10/+15
+
 		}
 		if(battle_config.pp_rate != 100)
 			make_per = make_per * battle_config.pp_rate / 100;
-	} else { // Corrected rates [DracoRPG]
-		int add_per=0;
-		if(pc_search_inventory(sd,989) > 0) add_per = 400;
-		else if(pc_search_inventory(sd,988) > 0) add_per = 300;
-		else if(pc_search_inventory(sd,987) > 0) add_per = 200;
-		else if(pc_search_inventory(sd,986) > 0) add_per = 100;
-		make_per = 1500 + sd.status.job_level*35 + sd.paramc[4]*10 + sd.paramc[5]*10 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*1000 + pc_checkskill(sd,BS_WEAPONRESEARCH)*100 +
-			((wlv >= 3)? pc_checkskill(sd,BS_ORIDEOCON)*100 : 0) + add_per - (ele? 2500:0) - sc*((4-wlv)*500) - wlv*1000;
+
+	} else { // Weapon Forging. Using rates based on jRO [Skotlex]
+		make_per = 2000 + sd.status.job_level*20 + status_get_dex(&sd.bl)*10 + status_get_luk(&sd.bl)*10; //Base
+		make_per += 2500 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*500; //Skill bonus: +30/+35/+40
+		make_per += pc_checkskill(sd,BS_WEAPONRESEARCH)*100 +((wlv >= 3)? pc_checkskill(sd,BS_ORIDEOCON)*100:0); //Weapon/Oridecon research
+		make_per -= (ele?2000:0 + sc*1500 + wlv>1?wlv*1000:0); //Ele: -20%, StarCrumb: -15%ea, Wlevel: -0/-20/-30
+		if(pc_search_inventory(sd,989) > 0) make_per+= 1000; //Emperium Anvil +10%
+		else if(pc_search_inventory(sd,988) > 0) make_per+= 500; //Gold Anvil +5%
+		else if(pc_search_inventory(sd,987) > 0) make_per+= 300; //Oridecon Anvil +3%
+		else if(pc_search_inventory(sd,986) > 0) make_per+= 0; //Iron Anvil +0%?
+
 		if(battle_config.wp_rate != 100)	/* 確率補正 */
 			make_per = make_per * battle_config.wp_rate / 100;
 	}
@@ -9870,7 +9891,7 @@ int skill_readdb(void)
 
 	/* スキルデ?タベ?ス */
 	memset(skill_db,0,sizeof(skill_db));
-	fp=savefopen("db/skill_db.txt","r");
+	fp=safefopen("db/skill_db.txt","r");
 	if(fp==NULL){
 		ShowMessage("can't read %s\n","db/skill_db.txt");
 		return 1;
@@ -9928,7 +9949,7 @@ int skill_readdb(void)
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_db.txt");
 
-	fp=savefopen("db/skill_require_db.txt","r");
+	fp=safefopen("db/skill_require_db.txt","r");
 	if(fp==NULL){
 		ShowMessage("can't read %s\n","db/skill_require_db.txt");
 		return 1;
@@ -10009,7 +10030,7 @@ int skill_readdb(void)
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_require_db.txt");
 
 	/* キャスティングデ?タベ?ス */
-	fp=savefopen("db/skill_cast_db.txt","r");
+	fp=safefopen("db/skill_cast_db.txt","r");
 	if(fp==NULL){
 		ShowMessage("can't read %s\n","db/skill_cast_db.txt");
 		return 1;
@@ -10039,7 +10060,7 @@ int skill_readdb(void)
 
 
 	/* スキルユニットデータベース */
-	fp = savefopen("db/skill_unit_db.txt","r");
+	fp = safefopen("db/skill_unit_db.txt","r");
 	if (fp==NULL) {
 		ShowMessage("can't read db/skill_unit_db.txt\n");
 		return 1;
@@ -10084,7 +10105,7 @@ int skill_readdb(void)
 	/* 製造系スキルデ?タベ?ス */
 	memset(skill_produce_db,0,sizeof(skill_produce_db));
 	for(m=0;m<2;m++){
-		fp=savefopen(filename[m],"r");
+		fp=safefopen(filename[m],"r");
 		if(fp==NULL){
 			if(m>0)
 				continue;
@@ -10122,7 +10143,7 @@ int skill_readdb(void)
 
 	memset(skill_arrow_db,0,sizeof(skill_arrow_db));
 
-	fp=savefopen("db/create_arrow_db.txt","r");
+	fp=safefopen("db/create_arrow_db.txt","r");
 	if(fp==NULL){
 		ShowMessage("can't read %s\n","db/create_arrow_db.txt");
 		return 1;
@@ -10155,7 +10176,7 @@ int skill_readdb(void)
 	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,"db/create_arrow_db.txt");
 
 	memset(skill_abra_db,0,sizeof(skill_abra_db));
-	fp=savefopen("db/abra_db.txt","r");
+	fp=safefopen("db/abra_db.txt","r");
 	if(fp==NULL){
 		ShowMessage("can't read %s\n","db/abra_db.txt");
 		return 1;
@@ -10183,7 +10204,7 @@ int skill_readdb(void)
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,"db/abra_db.txt");
 
-	fp=savefopen("db/skill_castnodex_db.txt","r");
+	fp=safefopen("db/skill_castnodex_db.txt","r");
 	if(fp==NULL){
 		ShowMessage("can't read %s\n","db/skill_castnodex_db.txt");
 		return 1;
@@ -10210,7 +10231,7 @@ int skill_readdb(void)
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_castnodex_db.txt");
 
-	fp=savefopen("db/skill_nocast_db.txt","r");
+	fp=safefopen("db/skill_nocast_db.txt","r");
 	if(fp==NULL){
 		ShowMessage("can't read %s\n","db/skill_nocast_db.txt");
 		return 1;

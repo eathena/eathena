@@ -3,7 +3,7 @@
 
 #include "base.h"
 #include "showmsg.h"	// ShowMessage
-#include "utils.h"		// savefopen
+#include "utils.h"		// safefopen
 #include "socket.h"		// buffer iterator
 #include "timer.h"		// timed config reload
 
@@ -35,7 +35,7 @@ public:
 		char line[1024], w1[1024], w2[1024], *ip;
 		FILE *fp;
 
-		if ((fp = savefopen(cfgName, "r")) == NULL) {
+		if ((fp = safefopen(cfgName, "r")) == NULL) {
 			ShowError("Configuration file (%s) not found.\n", cfgName);
 			return false;
 		}
@@ -631,8 +631,8 @@ public:
 		else
 			def.GM_account_creation = file_stat.st_mtime;
 
-		if ((fp = savefopen(def.GM_account_filename, "r")) == NULL) {
-			ShowMessage("read_gm_account: GM accounts file [%s] not found.\n", def.GM_account_filename);
+		if ((fp = safefopen(def.GM_account_filename, "r")) == NULL) {
+			ShowError("read_gm_account: GM accounts file [%s] not found.\n", def.GM_account_filename);
 			ShowMessage("                 Actually, there is no GM accounts on the server.\n");
 			return false;
 		}

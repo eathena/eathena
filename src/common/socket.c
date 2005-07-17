@@ -960,9 +960,9 @@ public:
 		char line[1024],w1[1024],w2[1024];
 		FILE *fp;
 
-		fp=savefopen(cfgName, "r");
+		fp=safefopen(cfgName, "r");
 		if(fp==NULL){
-			ShowMessage("File not found: %s\n", cfgName);
+			ShowError("socket config file not found: %s\n", cfgName);
 			return 1;
 		}
 		while(fgets(line,1020,fp)){
@@ -1534,7 +1534,15 @@ int make_listen(unsigned long ip, unsigned short port)
 
 	session[fd]->func_recv   = connect_client;
 
-	ShowStatus("Open listen port on %d.%d.%d.%d:%i\n",(ip>>24)&0xFF,(ip>>16)&0xFF,(ip>>8)&0xFF,(ip)&0xFF,port);
+	if(ip==INADDR_ANY)
+	{	size_t i;
+		ShowStatus("Open listen ports on localhost, ");
+		for(i=0; i<ipaddress::GetSystemIPCount(); i++)
+			ShowMessage("%d.%d.%d.%d:%i, ",ipaddress::GetSystemIP(i)[3],ipaddress::GetSystemIP(i)[2],ipaddress::GetSystemIP(i)[1],ipaddress::GetSystemIP(i)[0],port);
+		ShowMessage("\n");
+	}
+	else
+		ShowStatus("Open listen port on %d.%d.%d.%d:%i\n",(ip>>24)&0xFF,(ip>>16)&0xFF,(ip>>8)&0xFF,(ip)&0xFF,port);
 	return fd;
 }
 int make_connection(unsigned long ip, unsigned short port)
@@ -1870,11 +1878,10 @@ int do_sendrecv(int next)
 	{
 		if( session[fd] )
 		{
-#ifdef SOCKET_DEBUG_PRINT
+#if defined(SOCKET_DEBUG_PRINT)
 			printf("(%i,%i%i%i)",fd,session[fd]->flag.connected,session[fd]->flag.marked,session[fd]->flag.remove);
 			fflush(stdout);
-#endif
-#ifdef SOCKET_DEBUG_LOG
+#elif defined(SOCKET_DEBUG_LOG)
 			debug_collect(fd);
 #endif
 			if( (session[fd]->rdata_tick > 0) && (last_tick > session[fd]->rdata_tick + stall_time_) ) 
@@ -1915,10 +1922,9 @@ int do_sendrecv(int next)
 			cnt = fd; 
 		}
 	}
-#ifdef SOCKET_DEBUG_PRINT
+#if defined SOCKET_DEBUG_PRINT
 	printf("\n");
-#endif
-#ifdef SOCKET_DEBUG_LOG
+#elif defined SOCKET_DEBUG_LOG
 	debug_output();
 #endif
 
@@ -2067,7 +2073,7 @@ void socket_init(void)
 	char fullhost[255];
 	struct hostent* hent;
 	
-	/* Start up the windows networking */
+	// Start up the windows networking 
 	WSADATA wsaData;
 	if ( WSAStartup(WINSOCK_VERSION, &wsaData) != 0 ) {
 		ShowError("SYSERR: WinSock not available!\n");
@@ -2129,7 +2135,6 @@ void socket_init(void)
 #endif//not AIX or APPLE
 	}
 #endif//not W32
-	
 
 	ddos.socket_config_read("conf/packet_athena.conf");
 
@@ -2164,299 +2169,3 @@ void socket_final(void)
 
 
 
-
-///////////////////////////////////////////////////////////////////////////////
-//
-// new ip address stuff
-// just setting them up
-// 
-///////////////////////////////////////////////////////////////////////////////
-//
-// class that holds the IP addresses of app
-// 
-// we need a lan_ip, subnetmask and lan port; further a wan ip and wan port
-// if not set explicitely, the initial network addresses will be used
-// wan ip and port will the same as lan values when not specified, 
-// and subnetmask is BROADCAST
-// also used to check if a bind address is valid or not
-//
-///////////////////////////////////////////////////////////////////////////////
-class ipset : public streamable
-{
-	template <uint C> class _ipset_helper
-	{	
-		ulong	cAddr[C];	// ip addresses of local host (host byte order)
-		uint	cCnt;		// # of ip addresses
-
-	public:
-		_ipset_helper() : cCnt(0)
-		{
-
-#ifdef WIN32
-			uchar** a;
-			unsigned int i;
-			char fullhost[255];
-			struct hostent* hent;
-			
-			/* Start up the windows networking */
-			WSADATA wsaData;
-			if ( WSAStartup(WINSOCK_VERSION, &wsaData) != 0 )
-			{
-				printf("SYSERR: WinSock not available!\n");
-				exit(1);
-			}
-			
-			if(gethostname(fullhost, sizeof(fullhost)) == SOCKET_ERROR)
-			{
-				printf("No hostname defined!\n");
-				return;
-			} 
-			
-			// XXX This should look up the local IP addresses in the registry
-			// instead of calling gethostbyname. However, the way IP addresses
-			// are stored in the registry is annoyingly complex, so I'll leave
-			// this as T.B.D.
-
-			hent = gethostbyname(fullhost);
-			if (hent == NULL) {
-				printf("Cannot resolve our own hostname to a IP address");
-				return;
-			}
-			a = (uchar**)hent->h_addr_list;
-			for(i = 0; a[i] != NULL && i < C; ++i) {
-				cAddr[i] =	  (a[i][0]<<0x18)
-							| (a[i][1]<<0x10)
-							| (a[i][2]<<0x08)
-							| (a[i][3]);
-			}
-			cCnt = i;
-#else//not W32
-			int pos;
-			int fdes = socket(AF_INET, SOCK_STREAM, 0);
-			char buf[16 * sizeof(struct ifreq)];
-			struct ifconf ic;
-			
-			// The ioctl call will fail with Invalid Argument if there are more
-			// interfaces than will fit in the buffer
-			ic.ifc_len = sizeof(buf);
-			ic.ifc_buf = buf;
-			if(ioctl(fdes, SIOCGIFCONF, &ic) == -1) {
-				printf("SIOCGIFCONF failed!\n");
-				return;
-			}
-			for(pos = 0; pos < ic.ifc_len;   )
-			{
-				struct ifreq * ir = (struct ifreq *) (ic.ifc_buf + pos);
-				struct sockaddr_in * a = (struct sockaddr_in *) &(ir->ifr_addr);
-				
-				if(a->sin_family == AF_INET) {
-					u_long ad = ntohl(a->sin_addr.s_addr);
-					if(ad != INADDR_LOOPBACK) {
-						cAddr[cCnt++] = ad;
-						if(cCnt == C)
-							break;
-					}
-				}
-#if defined(_AIX) || defined(__APPLE__)
-				pos += ir->ifr_addr.sa_len;  // For when we port athena to run on Mac's :)
-				pos += sizeof(ir->ifr_name);
-#else// not AIX or APPLE
-				pos += sizeof(struct ifreq);
-#endif//not AIX or APPLE
-			}
-#endif//not W32	
-		}
-
-		uint GetSytemCount()	
-		{
-			return cCnt;
-		}
-		ipaddress GetSytemIP(uint i=0)
-		{
-			if( i < cCnt )
-				return cAddr[i];
-			else if(cCnt>0)
-				return cAddr[0];
-			return INADDR_LOOPBACK;
-		}
-	};
-
-	static _ipset_helper<16> iphelp;
-
-
-	// read a system IP, might use the first only; maybe play a bit more with that
-
-	ipaddress	lan_ip;		// LAN ip			(aka computer ip)
-	ipaddress	lan_sub;	// LAN subnetmask	(255.255.255.0 for class-C subnet)
-	ushort		lan_port;	// LAN port			(aka computer port)
-
-	ipaddress	wan_ip;		// WAN ip			(aka router ip)
-	ushort		wan_port;	// WAN port			(aka router port that is forwarded to ip/port on computer)
-
-public:
-	// construction with defaults
-	ipset(const ipaddress bip = INADDR_ANY,			// 0.0.0.0 (bind on all addresses)
-		  const ipaddress lip = iphelp.GetSytemIP(0),// 127.0.0.1
-		  const ipaddress lsu = INADDR_BROADCAST,	// 255.255.255.255
-		  const ushort lpt    = 0,
-		  const ipaddress wip = iphelp.GetSytemIP(0),// identify with the first System IP by default
-		  const ushort wpt    = 0)
-		: lan_ip(lip),lan_sub(lsu),lan_port(lpt),wan_ip(wip),wan_port(wpt)
-	{}
-	virtual ~ipset()	{}
-
-	// check if an given ip is LAN
-	bool isLAN(const ipaddress ip) const
-	{
-		return ( (lan_ip&lan_sub) == (ip&lan_sub) );
-	}
-	// check if an given ip is WAN
-	bool isWAN(const ipaddress ip) const
-	{
-		return ( (lan_ip&lan_sub) != (ip&lan_sub) );
-	}
-
-	static bool isBindable(ipaddress ip)
-	{	// check if an IP is part of the system IP can can be bound to
-		for(uint i=0; i<iphelp.GetSytemCount(); i++)
-			if( ip==iphelp.GetSytemIP(i) )
-				return true;
-		return false;
-	}
-	void check()
-	{	// check for unset wan address/port
-		if( wan_port == 0 ) 
-			wan_port = lan_port;
-	}
-
-	ipaddress LANIP() const	{return lan_ip;}
-	bool SetLANIP(const ipaddress ip)
-	{	// a valid lan address should be bindable
-		if( isBindable(ip) ) 
-		{
-			lan_ip = ip;
-			return true;
-		}
-		return false;
-	}
-	ipaddress& WANIP()		{return wan_ip;}
-	ipaddress& SubnetMask()	{return lan_sub;}
-	ushort& LANPort()		{return lan_port;}
-	ushort& WANPort()		{return wan_port;}
-
-	
-	
-
-	virtual size_t BufferSize() const
-	{
-		return 0;
-	}
-
-	virtual bool toBuffer(buffer_iterator& bi) const
-	{
-		return false;
-	}
-	virtual bool fromBuffer(const buffer_iterator& bi)
-	{
-		return false;
-	}
-
-};
-ipset::_ipset_helper<16> ipset::iphelp;
-
-class app_ipaddresses
-{
-
-	ipset iplogin;
-	ipset ipchar;
-	ipset ipmap;
-
-	ipaddress String2IP(const char *c)
-	{
-		struct hostent * h;
-		h = gethostbyname(c);
-		if (h != NULL) {
-			return ipaddress(h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-		} else
-			return ntohl(inet_addr(c));
-	}
-
-
-public:
-	
-	app_ipaddresses():
-	    iplogin(INADDR_ANY,INADDR_BROADCAST),
-		ipchar(INADDR_ANY,INADDR_BROADCAST),
-		ipmap(INADDR_ANY,INADDR_BROADCAST)
-	{}
-
-
-	bool load(const char *filename)
-	{
-		char line[1024], w1[1024], w2[1024];
-		FILE *fp;
-
-		fp = savefopen(filename, "r");
-
-		if (fp == NULL) {
-			ShowError("Configuration file not found: %s\n", filename);
-			return false;
-		}
-
-		ShowStatus("Reading Configuration...\n");
-
-		while(fgets(line, sizeof(line)-1, fp)) {
-
-			if( !skip_empty_line(line) )
-				continue;
-
-			line[sizeof(line)-1] = '\0';
-			if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) != 2)
-				continue;
-
-			remove_control_chars(w1);
-			remove_control_chars(w2);
-
-			if (strcasecmp(w1, "login_lan_ip") == 0)
-				ipmap.SetLANIP( String2IP(w2) );
-			if (strcasecmp(w1, "login_lan_port") == 0)
-				ipmap.LANPort() = atoi(w2);
-			if (strcasecmp(w1, "login_subnetmask") == 0)
-				ipmap.SubnetMask() = String2IP(w2);
-			if (strcasecmp(w1, "login_wan_ip") == 0)
-				ipmap.WANIP() = String2IP(w2);
-			if (strcasecmp(w1, "login_wan_port") == 0)
-				ipmap.WANPort() = atoi(w2);
-
-			if (strcasecmp(w1, "char_lan_ip") == 0)
-				ipmap.SetLANIP( String2IP(w2) );
-			if (strcasecmp(w1, "char_lan_port") == 0)
-				ipmap.LANPort() = atoi(w2);
-			if (strcasecmp(w1, "char_subnetmask") == 0)
-				ipmap.SubnetMask() = String2IP(w2);
-			if (strcasecmp(w1, "char_wan_ip") == 0)
-				ipmap.WANIP() = String2IP(w2);
-			if (strcasecmp(w1, "char_wan_port") == 0)
-				ipmap.WANPort() = atoi(w2);
-
-			if (strcasecmp(w1, "map_lan_ip") == 0)
-				ipmap.SetLANIP( String2IP(w2) );
-			if (strcasecmp(w1, "map_lan_port") == 0)
-				ipmap.LANPort() = atoi(w2);
-			if (strcasecmp(w1, "map_subnetmask") == 0)
-				ipmap.SubnetMask() = String2IP(w2);
-			if (strcasecmp(w1, "map_wan_ip") == 0)
-				ipmap.WANIP() = String2IP(w2);
-			if (strcasecmp(w1, "map_wan_port") == 0)
-				ipmap.WANPort() = atoi(w2);
-		}
-		fclose(fp);
-
-
-		iplogin.check();
-		ipchar.check();
-		ipmap.check();
-
-		return 0;
-	}
-};

@@ -301,7 +301,7 @@ int status_getrefinebonus(int lv,int type);
 int status_percentrefinery(struct map_session_data &sd,struct item &item);
 //Use this to refer the max refinery level [Skotlex]
 
-extern int percentrefinery[5][MAX_REFINE+1]; //The last slot always has a 0% success chance [Skotlex]
+extern int percentrefinery[MAX_REFINE_BONUS][MAX_REFINE+1]; //The last slot always has a 0% success chance [Skotlex]
 
 int status_readdb(void);
 int do_init_status(void);

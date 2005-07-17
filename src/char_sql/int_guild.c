@@ -24,9 +24,7 @@
 static struct dbt *guild_db_;
 static struct dbt *castle_db_;
 
-static struct guild *guild_pt;
-static struct guild *guild_pt2;
-static struct guild_castle * guildcastle_pt;
+
 static int guild_newid=10000;
 
 static int guild_exp[100];
@@ -62,8 +60,8 @@ int inter_guild_tosql(struct guild *g,int flag)
 	// 16 `guild_expulsion` (`guild_id`,`name`,`mes`,`acc`,`account_id`,`rsv1`,`rsv2`,`rsv3`)
 	// 32 `guild_skill` (`guild_id`,`id`,`lv`)
 
-	char t_name[100],t_master[24],t_mes1[60],t_mes2[240],t_member[24],t_position[24],t_alliance[24];  // temporay storage for str convertion;
-	char t_ename[24],t_emes[40];
+	char t_name[128],t_master[32],t_mes1[128],t_mes2[256],t_member[32],t_position[32],t_alliance[32];  // temporay storage for str convertion;
+	char t_ename[32],t_emes[64];
 	char emblem_data[4096];
 	int i=0;
 	int guild_exist=0,guild_member=0,guild_online_member=0;
@@ -82,7 +80,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 	sql_res = mysql_store_result(&mysql_handle) ;
 	if (sql_res!=NULL && mysql_num_rows(sql_res)>0) {
 		sql_row = mysql_fetch_row(sql_res);
-		guild_exist =  atoi (sql_row[0]);
+		guild_exist =  atoi(sql_row[0]);
 		//ShowMessage("- Check if guild %d exists : %s\n",g->guild_id,((guild_exist==0)?"No":"Yes"));
 	}
 	mysql_free_result(sql_res) ; //resource free
@@ -164,7 +162,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (delete `guild_castle`)- %s\n", mysql_error(&mysql_handle) );
 			}
-                        db_foreach(castle_db_, _erase_guild, g->guild_id);
+			db_foreach(castle_db_, _erase_guild, g->guild_id);
 		}
 	}
 
@@ -642,7 +640,7 @@ int inter_guild_readdb()
 	char line[1024];
 	for (i=0;i<100;i++) guild_exp[i]=0;
 
-	fp=savefopen("db/exp_guild.txt","r");
+	fp=safefopen("db/exp_guild.txt","r");
 	if(fp==NULL){
 		ShowMessage("can't read %s\n", "db/exp_guild.txt");
 		return 1;
@@ -669,9 +667,6 @@ int inter_guild_sql_init()
 	castle_db_=numdb_init();
 
 	ShowMessage("interserver guild memory initialize.... (%d byte)\n",sizeof(struct guild));
-	guild_pt = (struct guild*)aCalloc(sizeof(struct guild), 1);
-	guild_pt2= (struct guild*)aCalloc(sizeof(struct guild), 1);
-	guildcastle_pt = (struct guild_castle*)aCalloc(sizeof(struct guild_castle), 1);
 
 	inter_guild_readdb(); // Read exp
 
@@ -729,10 +724,6 @@ int castle_db_final (void *k, void *data, va_list ap)
 }
 void inter_guild_sql_final()
 {
-	if (guild_pt) aFree(guild_pt);
-	if (guild_pt2) aFree(guild_pt2);
-	if (guildcastle_pt) aFree(guildcastle_pt);
-	
 	numdb_final(guild_db_, guild_db_final);
 	numdb_final(castle_db_, castle_db_final);
 
@@ -879,7 +870,7 @@ int mapif_guild_noinfo(int fd,int guild_id)
 	WFIFOW(fd,2)=8;
 	WFIFOL(fd,4)=guild_id;
 	WFIFOSET(fd,8);
-	//ShowMessage("int_guild: info not found %d\n",guild_id);
+	//ShowError("int_guild: info not found %d\n",guild_id);
 	return 0;
 }
 // ギルド情報まとめ送り
@@ -1090,71 +1081,68 @@ int mapif_guild_castle_datasave(int castle_id,int index,int value)      // <Agit
 
 int mapif_guild_castle_alldataload(int fd)
 {
-	struct guild_castle* gc = guildcastle_pt;
+	struct guild_castle gc;
+	struct guild_castle *gcopy;
+	size_t i, len = 4;
 
 	if( !session_isActive(fd) )
 		return 0;
 
-	if(gc)
-	{
-		struct guild_castle *gcopy;
-		size_t i, len = 4;
 
-		WFIFOW(fd,0) = 0x3842;
-		sprintf(tmp_sql, "SELECT * FROM `%s` ORDER BY `castle_id`", guild_castle_db);
-		if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
-			ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle) );
-		}
-		sql_res = mysql_store_result(&mysql_handle);
-		if (sql_res != NULL && mysql_num_rows(sql_res) > 0)
-		{
-			for(i = 0; ((sql_row = mysql_fetch_row(sql_res)) && i < MAX_GUILDCASTLE); i++)
-			{
-				memset(gc, 0, sizeof(struct guild_castle));
-				gc->castle_id = atoi(sql_row[0]);
-				gc->guild_id =  atoi(sql_row[1]);
-				gc->economy = atoi(sql_row[2]);
-				gc->defense = atoi(sql_row[3]);
-				gc->triggerE = atoi(sql_row[4]);
-				gc->triggerD = atoi(sql_row[5]);
-				gc->nextTime = atoi(sql_row[6]);
-				gc->payTime = atoi(sql_row[7]);
-				gc->createTime = atoi(sql_row[8]);
-				gc->visibleC = atoi(sql_row[9]);
-				gc->visibleG0 = atoi(sql_row[10]);
-				gc->visibleG1 = atoi(sql_row[11]);
-				gc->visibleG2 = atoi(sql_row[12]);
-				gc->visibleG3 = atoi(sql_row[13]);
-				gc->visibleG4 = atoi(sql_row[14]);
-				gc->visibleG5 = atoi(sql_row[15]);
-				gc->visibleG6 = atoi(sql_row[16]);
-				gc->visibleG7 = atoi(sql_row[17]);
-				gc->Ghp0 = atoi(sql_row[18]);
-				gc->Ghp1 = atoi(sql_row[19]);
-				gc->Ghp2 = atoi(sql_row[20]);
-				gc->Ghp3 = atoi(sql_row[21]);
-				gc->Ghp4 = atoi(sql_row[22]);
-				gc->Ghp5 = atoi(sql_row[23]);
-				gc->Ghp6 = atoi(sql_row[24]);
-				gc->Ghp7 = atoi(sql_row[25]);
-
-				//memcpy(WFIFOP(fd,len), gc, sizeof(struct guild_castle));
-				guild_castle_tobuffer(*gc,WFIFOP(fd,len));
-				
-				gcopy = (struct guild_castle*)numdb_search(castle_db_,gc->castle_id);
-				if (gcopy == NULL)
-				{
-					gcopy = (struct guild_castle *) aMalloc(sizeof(struct guild_castle));
-					numdb_insert(castle_db_, gc->castle_id, gcopy);
-				}
-				memcpy(gcopy, gc, sizeof(struct guild_castle));
-				len += sizeof(struct guild_castle);
-			}
-		}
-		mysql_free_result(sql_res);
-		WFIFOW(fd,2) = len;
-		WFIFOSET(fd,len);
+	WFIFOW(fd,0) = 0x3842;
+	sprintf(tmp_sql, "SELECT * FROM `%s` ORDER BY `castle_id`", guild_castle_db);
+	if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
+		ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
+	sql_res = mysql_store_result(&mysql_handle);
+	if (sql_res != NULL && mysql_num_rows(sql_res) > 0)
+	{
+		for(i = 0; ((sql_row = mysql_fetch_row(sql_res)) && i < MAX_GUILDCASTLE); i++)
+		{
+			memset(&gc, 0, sizeof(struct guild_castle));
+			gc.castle_id = atoi(sql_row[0]);
+			gc.guild_id =  atoi(sql_row[1]);
+			gc.economy = atoi(sql_row[2]);
+			gc.defense = atoi(sql_row[3]);
+			gc.triggerE = atoi(sql_row[4]);
+			gc.triggerD = atoi(sql_row[5]);
+			gc.nextTime = atoi(sql_row[6]);
+			gc.payTime = atoi(sql_row[7]);
+			gc.createTime = atoi(sql_row[8]);
+			gc.visibleC = atoi(sql_row[9]);
+			gc.visibleG0 = atoi(sql_row[10]);
+			gc.visibleG1 = atoi(sql_row[11]);
+			gc.visibleG2 = atoi(sql_row[12]);
+			gc.visibleG3 = atoi(sql_row[13]);
+			gc.visibleG4 = atoi(sql_row[14]);
+			gc.visibleG5 = atoi(sql_row[15]);
+			gc.visibleG6 = atoi(sql_row[16]);
+			gc.visibleG7 = atoi(sql_row[17]);
+			gc.Ghp0 = atoi(sql_row[18]);
+			gc.Ghp1 = atoi(sql_row[19]);
+			gc.Ghp2 = atoi(sql_row[20]);
+			gc.Ghp3 = atoi(sql_row[21]);
+			gc.Ghp4 = atoi(sql_row[22]);
+			gc.Ghp5 = atoi(sql_row[23]);
+			gc.Ghp6 = atoi(sql_row[24]);
+			gc.Ghp7 = atoi(sql_row[25]);
+
+			//memcpy(WFIFOP(fd,len), gc, sizeof(struct guild_castle));
+			guild_castle_tobuffer(gc,WFIFOP(fd,len));
+			
+			gcopy = (struct guild_castle*)numdb_search(castle_db_,gc.castle_id);
+			if (gcopy == NULL)
+			{
+				gcopy = (struct guild_castle *) aMalloc(sizeof(struct guild_castle));
+				numdb_insert(castle_db_, gc.castle_id, gcopy);
+			}
+			memcpy(gcopy, &gc, sizeof(struct guild_castle));
+			len += sizeof(struct guild_castle);
+		}
+	}
+	mysql_free_result(sql_res);
+	WFIFOW(fd,2) = len;
+	WFIFOSET(fd,len);
 	return 0;
 }
 
@@ -1176,7 +1164,7 @@ int mapif_parse_CreateGuild(int fd,unsigned long account_id,char *name,unsigned 
 		mapif_guild_created(fd,account_id,NULL);
 		return 0;
 	}
-	g=guild_pt;
+
 	memset(g,0,sizeof(struct guild));
 	g->guild_id=guild_newid++;
 	memcpy(g->name,name,24);
@@ -1476,7 +1464,7 @@ int mapif_parse_GuildMemberInfoChange(int fd,unsigned long guild_id,unsigned lon
 			g->member[i].char_id==char_id )
 				break;
 	if(i==g->max_member){
-		ShowMessage("int_guild: GuildMemberChange: Not found %d,%d in %d[%s]\n",
+		ShowError("int_guild: GuildMemberChange: Not found %d,%d in %d[%s]\n",
 			account_id,char_id,guild_id,g->name);
 		return 0;
 	}
@@ -1619,93 +1607,94 @@ int mapif_parse_GuildEmblem(int fd,int len,int guild_id,int dummy,const char *da
 
 int mapif_parse_GuildCastleDataLoad(int fd,int castle_id,int index)     // <Agit>
 {
-	struct guild_castle *gc=guildcastle_pt;
-	inter_guildcastle_fromsql(castle_id, gc);
+	struct guild_castle gc;
 
-	if(gc==NULL || gc->castle_id ==0xFFFF )
+	inter_guildcastle_fromsql(castle_id, &gc);
+
+	if(gc.castle_id ==0xFFFF )
 		return mapif_guild_castle_dataload(castle_id,0,0);
 
 	switch(index){
-	case 1: return mapif_guild_castle_dataload(gc->castle_id,index,gc->guild_id); break;
-	case 2: return mapif_guild_castle_dataload(gc->castle_id,index,gc->economy); break;
-	case 3: return mapif_guild_castle_dataload(gc->castle_id,index,gc->defense); break;
-	case 4: return mapif_guild_castle_dataload(gc->castle_id,index,gc->triggerE); break;
-	case 5: return mapif_guild_castle_dataload(gc->castle_id,index,gc->triggerD); break;
-	case 6: return mapif_guild_castle_dataload(gc->castle_id,index,gc->nextTime); break;
-	case 7: return mapif_guild_castle_dataload(gc->castle_id,index,gc->payTime); break;
-	case 8: return mapif_guild_castle_dataload(gc->castle_id,index,gc->createTime); break;
-	case 9: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleC); break;
-	case 10: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG0); break;
-	case 11: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG1); break;
-	case 12: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG2); break;
-	case 13: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG3); break;
-	case 14: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG4); break;
-	case 15: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG5); break;
-	case 16: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG6); break;
-	case 17: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG7); break;
-	case 18: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp0); break;	// guardian HP [Valaris]
-	case 19: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp1); break;
-	case 20: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp2); break;
-	case 21: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp3); break;
-	case 22: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp4); break;
-	case 23: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp5); break;
-	case 24: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp6); break;
-	case 25: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp7); break;	// end additions [Valaris]
+	case 1: return mapif_guild_castle_dataload(gc.castle_id,index,gc.guild_id); break;
+	case 2: return mapif_guild_castle_dataload(gc.castle_id,index,gc.economy); break;
+	case 3: return mapif_guild_castle_dataload(gc.castle_id,index,gc.defense); break;
+	case 4: return mapif_guild_castle_dataload(gc.castle_id,index,gc.triggerE); break;
+	case 5: return mapif_guild_castle_dataload(gc.castle_id,index,gc.triggerD); break;
+	case 6: return mapif_guild_castle_dataload(gc.castle_id,index,gc.nextTime); break;
+	case 7: return mapif_guild_castle_dataload(gc.castle_id,index,gc.payTime); break;
+	case 8: return mapif_guild_castle_dataload(gc.castle_id,index,gc.createTime); break;
+	case 9: return mapif_guild_castle_dataload(gc.castle_id,index,gc.visibleC); break;
+	case 10: return mapif_guild_castle_dataload(gc.castle_id,index,gc.visibleG0); break;
+	case 11: return mapif_guild_castle_dataload(gc.castle_id,index,gc.visibleG1); break;
+	case 12: return mapif_guild_castle_dataload(gc.castle_id,index,gc.visibleG2); break;
+	case 13: return mapif_guild_castle_dataload(gc.castle_id,index,gc.visibleG3); break;
+	case 14: return mapif_guild_castle_dataload(gc.castle_id,index,gc.visibleG4); break;
+	case 15: return mapif_guild_castle_dataload(gc.castle_id,index,gc.visibleG5); break;
+	case 16: return mapif_guild_castle_dataload(gc.castle_id,index,gc.visibleG6); break;
+	case 17: return mapif_guild_castle_dataload(gc.castle_id,index,gc.visibleG7); break;
+	case 18: return mapif_guild_castle_dataload(gc.castle_id,index,gc.Ghp0); break;	// guardian HP [Valaris]
+	case 19: return mapif_guild_castle_dataload(gc.castle_id,index,gc.Ghp1); break;
+	case 20: return mapif_guild_castle_dataload(gc.castle_id,index,gc.Ghp2); break;
+	case 21: return mapif_guild_castle_dataload(gc.castle_id,index,gc.Ghp3); break;
+	case 22: return mapif_guild_castle_dataload(gc.castle_id,index,gc.Ghp4); break;
+	case 23: return mapif_guild_castle_dataload(gc.castle_id,index,gc.Ghp5); break;
+	case 24: return mapif_guild_castle_dataload(gc.castle_id,index,gc.Ghp6); break;
+	case 25: return mapif_guild_castle_dataload(gc.castle_id,index,gc.Ghp7); break;	// end additions [Valaris]
 	default:
-		ShowMessage("mapif_parse_GuildCastleDataLoad ERROR!! (Not found index=%d)\n", index);
+		ShowError("mapif_parse_GuildCastleDataLoad ERROR!! (Not found index=%d)\n", index);
 		return 0;
 	}
 }
 
 int mapif_parse_GuildCastleDataSave(int fd,int castle_id,int index,int value)   // <Agit>
 {
-	struct guild_castle *gc=guildcastle_pt;
-	inter_guildcastle_fromsql(castle_id, gc);
+	struct guild_castle gc;
+	inter_guildcastle_fromsql(castle_id, &gc);
 
-	if(gc==NULL||gc->castle_id == 0xFFFF)
+	if(gc.castle_id == 0xFFFF)
 		return mapif_guild_castle_datasave(castle_id,index,value);
 
 	switch(index){
 	case 1:
-		if( gc->guild_id!=(unsigned long)value ){
-			int gid=(value)?value:gc->guild_id;
+		if( gc.guild_id!=(unsigned long)value ){
+			int gid=(value)?value:gc.guild_id;
 			struct guild *g=inter_guild_fromsql(gid);
 			if(log_inter)
 				inter_log("guild %s (id=%d) %s castle id=%d" RETCODE,
 					(g)?g->name:"??" ,gid, (value)?"occupy":"abandon", castle_id);
 		}
-		gc->guild_id = value;
+		gc.guild_id = value;
 		break;
-	case 2: gc->economy = value; break;
-	case 3: gc->defense = value; break;
-	case 4: gc->triggerE = value; break;
-	case 5: gc->triggerD = value; break;
-	case 6: gc->nextTime = value; break;
-	case 7: gc->payTime = value; break;
-	case 8: gc->createTime = value; break;
-	case 9: gc->visibleC = value; break;
-	case 10: gc->visibleG0 = value; break;
-	case 11: gc->visibleG1 = value; break;
-	case 12: gc->visibleG2 = value; break;
-	case 13: gc->visibleG3 = value; break;
-	case 14: gc->visibleG4 = value; break;
-	case 15: gc->visibleG5 = value; break;
-	case 16: gc->visibleG6 = value; break;
-	case 17: gc->visibleG7 = value; break;
-	case 18: gc->Ghp0 = value; break;	// guardian HP [Valaris]
-	case 19: gc->Ghp1 = value; break;
-	case 20: gc->Ghp2 = value; break;
-	case 21: gc->Ghp3 = value; break;
-	case 22: gc->Ghp4 = value; break;
-	case 23: gc->Ghp5 = value; break;
-	case 24: gc->Ghp6 = value; break;
-	case 25: gc->Ghp7 = value; break;	// end additions [Valaris]
+	case 2: gc.economy = value; break;
+	case 3: gc.defense = value; break;
+	case 4: gc.triggerE = value; break;
+	case 5: gc.triggerD = value; break;
+	case 6: gc.nextTime = value; break;
+	case 7: gc.payTime = value; break;
+	case 8: gc.createTime = value; break;
+	case 9: gc.visibleC = value; break;
+	case 10: gc.visibleG0 = value; break;
+	case 11: gc.visibleG1 = value; break;
+	case 12: gc.visibleG2 = value; break;
+	case 13: gc.visibleG3 = value; break;
+	case 14: gc.visibleG4 = value; break;
+	case 15: gc.visibleG5 = value; break;
+	case 16: gc.visibleG6 = value; break;
+	case 17: gc.visibleG7 = value; break;
+	case 18: gc.Ghp0 = value; break;	// guardian HP [Valaris]
+	case 19: gc.Ghp1 = value; break;
+	case 20: gc.Ghp2 = value; break;
+	case 21: gc.Ghp3 = value; break;
+	case 22: gc.Ghp4 = value; break;
+	case 23: gc.Ghp5 = value; break;
+	case 24: gc.Ghp6 = value; break;
+	case 25: gc.Ghp7 = value; break;	// end additions [Valaris]
 	default:
-		ShowMessage("mapif_parse_GuildCastleDataSave ERROR!! (Not found index=%d)\n", index);
+		ShowError("mapif_parse_GuildCastleDataSave ERROR!! (Not found index=%d)\n", index);
 		return 0;
 	}
-	inter_guildcastle_tosql(gc);
-	return mapif_guild_castle_datasave(gc->castle_id,index,value);
+	inter_guildcastle_tosql(&gc);
+	return mapif_guild_castle_datasave(gc.castle_id,index,value);
 }
 
 // ギルドチェック要求 == Guild Check Request

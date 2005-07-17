@@ -12,7 +12,6 @@
 #include "int_pet.h"
 
 
-struct s_pet *pet_pt;
 static int pet_newid = 100;
 
 
@@ -56,7 +55,9 @@ int inter_pet_tosql(int pet_id, struct s_pet *p)
 	return 0;
 }
 
-int inter_pet_fromsql(int pet_id, struct s_pet *p){
+bool inter_pet_fromsql(int pet_id, struct s_pet *p)
+{
+	bool ret = false;
 
 	ShowMessage("request load pet: %d.......\n",pet_id);
 
@@ -66,8 +67,8 @@ int inter_pet_fromsql(int pet_id, struct s_pet *p){
 
 	sprintf(tmp_sql,"SELECT `pet_id`, `class`,`name`,`account_id`,`char_id`,`level`,`egg_id`,`equip`,`intimate`,`hungry`,`rename_flag`,`incuvate` FROM `%s` WHERE `pet_id`='%d'",pet_db, pet_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
-			ShowMessage("DB server Error (select `pet`)- %s\n", mysql_error(&mysql_handle) );
-			return 0;
+		ShowMessage("DB server Error (select `pet`)- %s\n", mysql_error(&mysql_handle) );
+		return false;
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
 	if (sql_res!=NULL && mysql_num_rows(sql_res)>0) {
@@ -85,20 +86,20 @@ int inter_pet_fromsql(int pet_id, struct s_pet *p){
 		p->hungry = atoi(sql_row[9]);
 		p->rename_flag = atoi(sql_row[10]);
 		p->incuvate = atoi(sql_row[11]);
+
+		if(p->hungry < 0)
+			p->hungry = 0;
+		else if(p->hungry > 100)
+			p->hungry = 100;
+		if(p->intimate < 0)
+			p->intimate = 0;
+		else if(p->intimate > 1000)
+			p->intimate = 1000;
+		ShowMessage("pet load success.......\n");
+		ret=true;
 	}
-	if(p->hungry < 0)
-		p->hungry = 0;
-	else if(p->hungry > 100)
-		p->hungry = 100;
-	if(p->intimate < 0)
-		p->intimate = 0;
-	else if(p->intimate > 1000)
-		p->intimate = 1000;
-
 	mysql_free_result(sql_res);
-
-	ShowMessage("pet load success.......\n");
-	return 0;
+	return ret;
 }
 //----------------------------------------------
 
@@ -107,7 +108,6 @@ int inter_pet_sql_init(){
 
 	//memory alloc
 	ShowMessage("interserver pet memory initialize.... (%d byte)\n",sizeof(struct s_pet));
-	pet_pt = (struct s_pet*)aCalloc(sizeof(struct s_pet), 1);
 
 	sprintf (tmp_sql , "SELECT count(*) FROM `%s`", pet_db);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
@@ -139,7 +139,6 @@ int inter_pet_sql_init(){
 	return 0;
 }
 void inter_pet_sql_final(){
-	if (pet_pt) aFree(pet_pt);
 	return;
 }
 //----------------------------------
@@ -232,54 +231,57 @@ int mapif_delete_pet_ack(int fd, int flag)
 }
 
 int mapif_create_pet(int fd, unsigned long account_id, unsigned long char_id, short pet_class, short pet_lv, short pet_egg_id,
-	short pet_equip, short intimate, short hungry, char rename_flag, char incuvate, char *pet_name){
+	short pet_equip, short intimate, short hungry, char rename_flag, char incuvate, char *pet_name)
+{
+	struct s_pet pet;
+	memset(&pet, 0, sizeof(struct s_pet));
 
-	memset(pet_pt, 0, sizeof(struct s_pet));
-	pet_pt->pet_id = pet_newid++;
-	memcpy(pet_pt->name, pet_name, 24);
+	pet.pet_id = pet_newid++;
+	memcpy(pet.name, pet_name, 24);
 	if(incuvate == 1)
-		pet_pt->account_id = pet_pt->char_id = 0;
+		pet.account_id = pet.char_id = 0;
 	else {
-		pet_pt->account_id = account_id;
-		pet_pt->char_id = char_id;
+		pet.account_id = account_id;
+		pet.char_id = char_id;
 	}
-	pet_pt->class_ = pet_class;
-	pet_pt->level = pet_lv;
-	pet_pt->egg_id = pet_egg_id;
-	pet_pt->equip_id = pet_equip;
-	pet_pt->intimate = intimate;
-	pet_pt->hungry = hungry;
-	pet_pt->rename_flag = rename_flag;
-	pet_pt->incuvate = incuvate;
+	pet.class_ = pet_class;
+	pet.level = pet_lv;
+	pet.egg_id = pet_egg_id;
+	pet.equip_id = pet_equip;
+	pet.intimate = intimate;
+	pet.hungry = hungry;
+	pet.rename_flag = rename_flag;
+	pet.incuvate = incuvate;
 
-	if(pet_pt->hungry < 0)
-		pet_pt->hungry = 0;
-	else if(pet_pt->hungry > 100)
-		pet_pt->hungry = 100;
-	if(pet_pt->intimate < 0)
-		pet_pt->intimate = 0;
-	else if(pet_pt->intimate > 1000)
-		pet_pt->intimate = 1000;
+	if(pet.hungry < 0)
+		pet.hungry = 0;
+	else if(pet.hungry > 100)
+		pet.hungry = 100;
+	if(pet.intimate < 0)
+		pet.intimate = 0;
+	else if(pet.intimate > 1000)
+		pet.intimate = 1000;
 
-	inter_pet_tosql(pet_pt->pet_id,pet_pt);
+	inter_pet_tosql(pet.pet_id, &pet);
 
-	mapif_pet_created(fd, account_id, pet_pt);
+	mapif_pet_created(fd, account_id, &pet);
 
 	return 0;
 }
 
-int mapif_load_pet(int fd, unsigned long account_id, unsigned long char_id, unsigned long pet_id){
-	memset(pet_pt, 0, sizeof(struct s_pet));
+int mapif_load_pet(int fd, unsigned long account_id, unsigned long char_id, unsigned long pet_id)
+{
+	struct s_pet pet;
+	memset(&pet, 0, sizeof(struct s_pet));
 
-	inter_pet_fromsql(pet_id, pet_pt);
-
-	if(pet_pt!=NULL) {
-		if(pet_pt->incuvate == 1) {
-			pet_pt->account_id = pet_pt->char_id = 0;
-			mapif_pet_info(fd, account_id, pet_pt);
+	if( inter_pet_fromsql(pet_id, &pet) )
+	{
+		if(pet.incuvate == 1) {
+			pet.account_id = pet.char_id = 0;
+			mapif_pet_info(fd, account_id, &pet);
 		}
-		else if(account_id == pet_pt->account_id && char_id == pet_pt->char_id)
-			mapif_pet_info(fd, account_id, pet_pt);
+		else if(account_id == pet.account_id && char_id == pet.char_id)
+			mapif_pet_info(fd, account_id, &pet);
 		else
 			mapif_pet_noinfo(fd, account_id);
 	}

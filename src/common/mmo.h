@@ -17,7 +17,7 @@
 
 
 
-#define MAX_MAP_PER_SERVER 512
+#define MAX_MAP_PER_SERVER 1024
 #define MAX_INVENTORY 100
 #define MAX_ITEMS 20000
 #define MAX_EQUIP 11
@@ -28,6 +28,7 @@
 #define MAX_CART 100
 #define MAX_SKILL 650
 #define MAX_REFINE 10
+#define MAX_REFINE_BONUS 5
 #define GLOBAL_REG_NUM 96
 #define ACCOUNT_REG_NUM 16
 #define ACCOUNT_REG2_NUM 16
@@ -118,12 +119,7 @@ enum
 struct mmo_map_server
 {
 	int fd;
-	unsigned long	lanip;
-	unsigned short	lanport;
-	unsigned long	lanmask;
-	unsigned long	wanip;
-	unsigned short	wanport;
-
+	ipset			address;
 	unsigned long	users;
 	unsigned long	maps;
 	char map[MAX_MAP_PER_SERVER][16];
@@ -131,14 +127,10 @@ struct mmo_map_server
 
 /////////////////////////////////////////////////////////////////////////////
 // login server definition for incomming char server connections
-struct mmo_char_server {
+struct mmo_char_server
+{
 	int fd;
-	unsigned long	lanip;
-	unsigned short	lanport;
-	unsigned long	lanmask;
-	unsigned long	wanip;
-	unsigned short	wanport;
-
+	ipset			address;
 	char name[20];
 	size_t users;
 	int maintenance;
@@ -651,7 +643,6 @@ extern inline void _mmo_charstatus_tobuffer(const struct mmo_charstatus &p, unsi
 	_W_tobuffer( (p.head_bottom),		buf);
 
 	_S_tobuffer( p.name,				buf, 24);
-
 
 	_W_tobuffer( (p.base_level),		buf);
 	_W_tobuffer( (p.job_level),		buf);

@@ -656,8 +656,10 @@
 1141,Marina@NPC_CRITICALSLASH,attack,170,1,50,500,5000,no,target,always,0,,,,,,6
 1141,Marina@NPC_EMOTION,walk,197,1,20,0,5000,yes,self,always,0,19,,,,,
 1141,Marina@NPC_WATERATTACK,attack,184,2,50,500,5000,no,target,always,0,,,,,,6
+1142,Marine Sphere@NPC_RANDOMMOVE,idle,331,1,1000,0,30000,no,self,alchemist,,,,,,,
 1142,Marine Sphere@NPC_SELFDESTRUCTION,idle,173,1,1000,2000,5000,no,self,skillused,173,,,,,,
 1142,Marine Sphere@NPC_SELFDESTRUCTION,idle,173,1,5,2000,5000,no,self,myhpltmaxrate,99,,,,,,
+1142,Marine Sphere@NPC_SELFDESTRUCTION,walk,173,1,1000,0,0,no,self,alchemist,,,,,,,
 1143,Marionette@HT_FREEZINGTRAP,idle,121,5,5,0,300000,yes,self,always,0,,,,,,29
 1143,Marionette@MG_FIREWALL,chase,18,5,50,500,5000,yes,target,always,0,,,,,,2
 1143,Marionette@NPC_TELEKINESISATTACK,attack,191,5,50,0,5000,yes,target,always,0,,,,,,6
@@ -2468,7 +2470,7 @@
 1618,Call Slave Porcellio Scabber,attack,196,4,1000,3000,36000,no,self,myhpltmaxrate,5,1625,,,,,
 1618,Call Slaves if they are dead,chase,196,4,10000,3000,36000,no,self,slavele,0,1625,,,,,
 1618,石化攻撃＠イビルドルイド,attack,180,5,100,1000,40000,yes,target,always,0,,,,,,
-1618,石化攻撃＠イビルドルイド,attack,361,5,100,1000,40000,yes,target,always,0,,,,,,
+1618,石化攻撃＠イビルドルイド,attack,361,5,100,1000,40000,yes,self,always,0,,,,,,
 
 //Noxious - Self-Explode
 1620,self Destroy,idle,173,1,160,0,0,no,self,myhpltmaxrate,90,,,,,,

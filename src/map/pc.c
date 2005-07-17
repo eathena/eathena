@@ -245,7 +245,7 @@ int pc_addfame(struct map_session_data &sd, unsigned long count,int type)
             break;
 	}
 	chrif_save(sd); // Save to allow up-to-date fame list refresh
-	chrif_reqfamelist(); // Refresh the fame list
+	chrif_reqfamelist(); // Refresh all fame lists
 	return 0;
 }
 
@@ -812,14 +812,12 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 		clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
 		clif_weather1(sd->fd, 474 + battle_config.night_darkness_level);
 	}
-
 	// ステ?タス初期計算など
 	status_calc_pc(*sd,1);
-
 	if (pc_isGM(*sd))
-		ShowInfo("GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"') [connection %i].\n", sd->status.name, sd->status.account_id, pc_isGM(*sd), sd->fd);
+		ShowInfo("GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"') [connection %i, ver. %i].\n", sd->status.name, sd->status.account_id, pc_isGM(*sd), sd->fd, sd->packet_ver);
 	else
-		ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"') [connection %i].\n", sd->status.name, sd->status.account_id, sd->fd);
+		ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"') [connection %i, ver. %i].\n", sd->status.name, sd->status.account_id, sd->fd, sd->packet_ver);
 
 	if (script_config.event_script_type == 0) {
 		struct npc_data *npc;
@@ -847,7 +845,7 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 	{
 		char buf[256];
 		FILE *fp;
-		if((fp = savefopen(motd_txt, "r")) != NULL) {
+		if((fp = safefopen(motd_txt, "r")) != NULL) {
 			while (fgets(buf, sizeof(buf)-1, fp) != NULL) {
 				int i;
 				for(i=0; buf[i]; i++) {
@@ -3165,9 +3163,8 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 
 	if(m<0)
 	{
-		unsigned long ip;
-		unsigned short port;
-		if( map_mapname2ipport(mapname,ip,port) )
+		ipset mapset;
+		if( map_mapname2ipport(mapname,mapset) )
 		{
 			if(sd.status.pet_id > 0 && sd.pd)
 			{
@@ -3219,7 +3216,7 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 			clif_clearchar_area(sd.bl,clrtype);
 			map_delblock(sd.bl);
 
-			chrif_changemapserver(sd, mapname, x, y, ip, port);
+			chrif_changemapserver(sd, mapname, x, y, mapset);
 			return true;
 		}
 		return false;
@@ -3532,7 +3529,7 @@ int pc_walk(int tid,unsigned long tick,int id,int data)
 				status_change_end(&sd->bl,SC_BASILICA,-1);
 			}
 
-		if( map_getcell(sd->bl.m,x,y,CELL_CHKNPC)>0 )
+		if( map_getcell(sd->bl.m,x,y,CELL_CHKNPC) )
 			npc_touch_areanpc(*sd,sd->bl.m,x,y);
 		else
 			sd->areanpc_id = 0;
@@ -3739,7 +3736,7 @@ int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y)
 	if (pc_iscloaking(sd)) // クロ?キングの消滅?査
 		skill_check_cloaking(&sd.bl);
 
-	if( map_getcell(sd.bl.m,sd.bl.x,sd.bl.y,CELL_CHKNPC)>0 )
+	if( map_getcell(sd.bl.m,sd.bl.x,sd.bl.y,CELL_CHKNPC) )
 		npc_touch_areanpc(sd,sd.bl.m,sd.bl.x,sd.bl.y);
 	else
 		sd.areanpc_id=0;
@@ -3774,54 +3771,55 @@ int pc_checkskill(struct map_session_data &sd, unsigned short skill_id)
  *   struct map_session_data *sd	セッションデ?タ
  *   unsigned short nameid			?備品ID
  * 返り値：
- *   0		?更なし
- *   -1		スキルを解除
+ *   true		?更なし
+ *   false		スキルを解除
  *------------------------------------------
  */
-int pc_checkallowskill(struct map_session_data &sd)
+bool pc_checkallowskill(struct map_session_data &sd)
 {
 	nullpo_retr(0, sd.sc_data);
+	bool ret = true;
 
-	if(!(skill_get_weapontype(KN_TWOHANDQUICKEN)&(1<<sd.status.weapon)) && sd.sc_data[SC_TWOHANDQUICKEN].timer!=-1) {	// 2HQ
+	if( sd.sc_data[SC_TWOHANDQUICKEN].timer!=-1 && !(skill_get_weapontype(KN_TWOHANDQUICKEN)&(1<<sd.status.weapon)) ) {	// 2HQ
 		status_change_end(&sd.bl,SC_TWOHANDQUICKEN,-1);	// 2HQを解除
-		return -1;
+		ret=false;
 	}
-	if(!(skill_get_weapontype(LK_AURABLADE)&(1<<sd.status.weapon)) && sd.sc_data[SC_AURABLADE].timer!=-1) {	/* オ?ラブレ?ド */
-		status_change_end(&sd.bl,SC_AURABLADE,-1);	/* オ?ラブレ?ドを解除 */
-		return -1;
+	if( sd.sc_data[SC_AURABLADE].timer!=-1      && !(skill_get_weapontype(LK_AURABLADE)&(1<<sd.status.weapon)) ) {	/* オ?ラブレ?ド */
+		status_change_end(&sd.bl,SC_AURABLADE,-1);	/* オ-ラブレ-ドを解除 */
+		ret=false;
 	}
-	if(!(skill_get_weapontype(LK_PARRYING)&(1<<sd.status.weapon)) && sd.sc_data[SC_PARRYING].timer!=-1) {	/* パリイング */
+	if( sd.sc_data[SC_PARRYING].timer!=-1       && !(skill_get_weapontype(LK_PARRYING)&(1<<sd.status.weapon)) ) {	/* パリイング */
 		status_change_end(&sd.bl,SC_PARRYING,-1);	/* パリイングを解除 */
-		return -1;
+		ret=false;
 	}
-	if(!(skill_get_weapontype(LK_CONCENTRATION)&(1<<sd.status.weapon)) && sd.sc_data[SC_CONCENTRATION].timer!=-1) {	/* コンセントレ?ション */
-		status_change_end(&sd.bl,SC_CONCENTRATION,-1);	/* コンセントレ?ションを解除 */
-		return -1;
+	if( sd.sc_data[SC_CONCENTRATION].timer!=-1  && !(skill_get_weapontype(LK_CONCENTRATION)&(1<<sd.status.weapon)) ) {	/* コンセントレ?ション */
+		status_change_end(&sd.bl,SC_CONCENTRATION,-1);	/* コンセントレ-ションを解除 */
+		ret=false;
 	}
-	if(!(skill_get_weapontype(CR_SPEARQUICKEN)&(1<<sd.status.weapon)) && sd.sc_data[SC_SPEARSQUICKEN].timer!=-1){	// スピアクィッケン
+	if( sd.sc_data[SC_SPEARSQUICKEN].timer!=-1  && !(skill_get_weapontype(CR_SPEARQUICKEN)&(1<<sd.status.weapon)) ){	// スピアクィッケン
 		status_change_end(&sd.bl,SC_SPEARSQUICKEN,-1);	// スピアクイッケンを解除
-		return -1;
+		ret=false;
 	}
-	if(!(skill_get_weapontype(BS_ADRENALINE)&(1<<sd.status.weapon)) && sd.sc_data[SC_ADRENALINE].timer!=-1){	// アドレナリンラッシュ
+	if( sd.sc_data[SC_ADRENALINE].timer!=-1     && !(skill_get_weapontype(BS_ADRENALINE)&(1<<sd.status.weapon)) ){	// アドレナリンラッシュ
 		status_change_end(&sd.bl,SC_ADRENALINE,-1);	// アドレナリンラッシュを解除
-		return -1;
+		ret=false;
 	}
 
 	if(sd.status.shield <= 0) {
-		if(sd.sc_data[SC_AUTOGUARD].timer!=-1){	// オ?トガ?ド
+		if(sd.sc_data[SC_AUTOGUARD].timer!=-1){	// オ-トガ-ド
 			status_change_end(&sd.bl,SC_AUTOGUARD,-1);
-			return -1;
+			ret=false;
 		}
 		if(sd.sc_data[SC_DEFENDER].timer!=-1){	// ディフェンダ?
 			status_change_end(&sd.bl,SC_DEFENDER,-1);
-			return -1;
+			ret=false;
 		}
-		if(sd.sc_data[SC_REFLECTSHIELD].timer!=-1){ //リフレクトシ?ルド
+		if(sd.sc_data[SC_REFLECTSHIELD].timer!=-1){ //リフレクトシ-ルド
 			status_change_end(&sd.bl,SC_REFLECTSHIELD,-1);
-			return -1;
+			ret=false;
 		}
 	}
-	return 0;
+	return ret;
 }
 
 /*==========================================
@@ -5930,7 +5928,7 @@ int pc_setregstr(struct map_session_data &sd,int reg,const char *str)
 			memset(sd.regstr+(sd.regstr_num-1), 0, sizeof(struct script_regstr));
 		}
 		sd.regstr[i].index=reg;
-		memcpy(sd.regstr[i].data,str,strlen(str)+1);
+		safestrcpy(sd.regstr[i].data,str,sizeof(sd.regstr[i].data));
 	}
 	return 0;
 }
@@ -5974,7 +5972,7 @@ int pc_setglobalreg(struct map_session_data &sd,const char *reg,int val)
 	if(val==0){
 		for(i=0;i<sd.status.global_reg_num;i++){
 			if(strcmp(sd.status.global_reg[i].str,reg)==0){
-				sd.status.global_reg[i]=sd.status.global_reg[sd.status.global_reg_num-1];
+				sd.status.global_reg[i] = sd.status.global_reg[sd.status.global_reg_num-1];
 				sd.status.global_reg_num--;
 				break;
 			}
@@ -5988,7 +5986,7 @@ int pc_setglobalreg(struct map_session_data &sd,const char *reg,int val)
 		}
 	}
 	if(sd.status.global_reg_num<GLOBAL_REG_NUM){
-		strcpy(sd.status.global_reg[i].str,reg);
+		safestrcpy(sd.status.global_reg[i].str,reg, sizeof(sd.status.global_reg[i].str));
 		sd.status.global_reg[i].value=val;
 		sd.status.global_reg_num++;
 		return 0;
@@ -6047,7 +6045,7 @@ int pc_setaccountreg(struct map_session_data &sd,const char *reg,int val)
 		}
 	}
 	if(sd.status.account_reg_num<ACCOUNT_REG_NUM){
-		strcpy(sd.status.account_reg[i].str,reg);
+		safestrcpy(sd.status.account_reg[i].str,reg,sizeof(sd.status.account_reg[i].str));
 		sd.status.account_reg[i].value=val;
 		sd.status.account_reg_num++;
 		intif_saveaccountreg(sd);
@@ -6099,7 +6097,7 @@ int pc_setaccountreg2(struct map_session_data &sd,const char *reg,int val)
 		}
 	}
 	if(sd.status.account_reg2_num<ACCOUNT_REG2_NUM){
-		strcpy(sd.status.account_reg2[i].str,reg);
+		safestrcpy(sd.status.account_reg2[i].str,reg,sizeof(sd.status.account_reg2[i].str));
 		sd.status.account_reg2[i].value=val;
 		sd.status.account_reg2_num++;
 		chrif_saveaccountreg2(sd);
@@ -7399,7 +7397,7 @@ int pc_readdb(void)
 
 	// 必要??値?み?み
 	memset(exp_table,0,sizeof(exp_table));
-	fp=savefopen("db/exp.txt","r");
+	fp=safefopen("db/exp.txt","r");
 	if(fp==NULL){
 		ShowMessage("can't read %s\n","db/exp.txt");
 		return 1;
@@ -7435,7 +7433,7 @@ int pc_readdb(void)
 	// スキルツリ?
 	memset(skill_tree,0,sizeof(skill_tree));
 
-	fp=savefopen("db/skill_tree.txt","r");
+	fp=safefopen("db/skill_tree.txt","r");
 	if(fp==NULL){
 		ShowMessage("can't read %s\n", "db/skill_tree.txt");
 		return 1;
@@ -7463,8 +7461,8 @@ int pc_readdb(void)
 		// check for bounds [celest]
 		if (i > 25 || u > 3)
 			continue;
-		for(j = 0; skill_tree[u][i][j].id && j < MAX_SKILL_TREE; j++);
-		if (j == MAX_SKILL_TREE)
+		for(j=0; j<MAX_SKILL_TREE && skill_tree[u][i][j].id; j++);
+		if( j==MAX_SKILL_TREE )
 			continue;
 		skill_tree[u][i][j].id=atoi(split[1]);
 		skill_tree[u][i][j].max=atoi(split[2]);
@@ -7483,7 +7481,7 @@ int pc_readdb(void)
 		for(j=0;j<10;j++)
 			for(k=0;k<10;k++)
 				attr_fix_table[i][j][k]=100;
-	fp=savefopen("db/attr_fix.txt","r");
+	fp=safefopen("db/attr_fix.txt","r");
 	if(fp==NULL){
 		ShowMessage("can't read %s\n","db/attr_fix.txt");
 		return 1;
@@ -7528,7 +7526,7 @@ int pc_readdb(void)
 	memset(statp,0,sizeof(statp));
 	i=1;
 	j=45;	// base points
-	fp=savefopen("db/statpoint.txt","r");
+	fp=safefopen("db/statpoint.txt","r");
 	if(fp == NULL){
 		ShowError("Can't read '"CL_WHITE"%s"CL_RESET"'... Generating DB.\n","db/statpoint.txt");
 		//return 1;

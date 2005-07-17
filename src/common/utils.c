@@ -126,6 +126,19 @@ int config_switch(const char *str) {
 
 	return atoi(str);
 }
+///////////////////////////////////////////////////////////////////////////
+// converts a string to an ip (host byte order)
+unsigned long str2ip(const char *str)
+{
+	struct hostent*h;
+	while( isspace( ((unsigned char)(*str)) ) ) str++;
+	h = gethostbyname(str);
+	if (h != NULL)
+		return ipaddress( MakeDWord((unsigned char)h->h_addr[3], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[0]) );
+	else
+		return ipaddress( ntohl(inet_addr(str)) );
+}
+
 
 
 //-----------------------------------------------------

@@ -6,7 +6,7 @@
 4,0,0,0,0,0,10,0,no,0,0,0,none,0	//SM_RECOVERY#HP回復力向上#
 5,-1,6,1,0,0,10,1,no,0,0,0,weapon,0	//SM_BASH#バッシュ#
 6,8,6,1,0,1,10,1,no,0,0,0,none,0	//SM_PROVOKE#プロ?ック#
-7,0,6,4,3,2,10,5,no,0,16,0,weapon,2	//SM_MAGNUM#?グナ?ブレイク#
+7,0,6,4,3,2,10,5,no,0,0,0,weapon,2	//SM_MAGNUM#?グナ?ブレイク#
 8,0,6,4,0,1,10,1,no,0,0,0,weapon,0	//SM_ENDURE#インデュア#
 9,0,0,0,0,0,10,0,no,0,0,0,none,0	//MG_SRECOVERY#SP回復力向上#
 10,8,6,4,3,1,1,1,yes,0,0,0,magic,0	//MG_SIGHT#サイト#
@@ -68,7 +68,7 @@
 66,8,6,16,0,1,5,1,yes,0,0,0,magic,0	//PR_IMPOSITIO#イ??シティオ?ヌス#	
 67,8,6,16,0,1,3,1,yes,0,512,0,magic,0	//PR_SUFFRAGIUM#サフラギウ?#
 68,8,6,16,6,1,5,1,yes,0,0,0,magic,0	//PR_ASPERSIO#アスペルシオ#
-69,1,6,2,0,1,5,1,yes,0,0,0,magic,0	//PR_BENEDICTIO#聖体?福#
+69,1,6,2,0,1,5,1,yes,0,64,0,magic,0	//PR_BENEDICTIO#聖体?福#
 70,8,6,2,6,1,10,1,yes,0,0,0,magic,2	//PR_SANCTUARY#サンク?ュアリ#
 71,8,6,16,0,1,4,1,yes,0,0,0,magic,0	//PR_SLOWPOISON#スロ??イズン#
 72,8,6,16,0,1,1,1,yes,0,0,0,magic,0	//PR_STRECOVERY#リカバリ?#
@@ -88,7 +88,7 @@
 86,8,8,1,1,0,5,1,yes,0,0,0,magic,0	//WZ_WATERBALL#ウォ?????ル#
 87,8,6,2,1,0,10,1,yes,0,0,0,magic,0	//WZ_ICEWALL#アイスウォ?ル#
 88,0,6,4,1,0,10,1,yes,0,0,0,magic,0	//WZ_FROSTNOVA#フロストノヴ?#
-89,8,6,2,1,1,10,1,yes,0,0,0,magic,2	//WZ_STORMGUST#スト??ガスト#
+89,8,6,2,1,0,10,1,yes,0,0,0,magic,2	//WZ_STORMGUST#スト??ガスト#
 90,8,8,1,2,0,5,1:2:3:4:5,yes,0,0,0,magic,0	//WZ_EARTHSPIKE#ア?ススパイク#
 91,8,8,2,2,0,5,1:2:3:4:5,yes,0,0,0,magic,0	//WZ_HEAVENDRIVE#ヘヴンズドライブ#
 92,8,6,2,2,1,5,1,yes,0,128,3,magic,0	//WZ_QUAGMIRE#ク?グ?イア#
@@ -128,7 +128,7 @@
 126,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//HT_BEASTBANE#ビ?ストベイン#
 127,0,0,0,0,0,1,0,no,0,0,0,misc,0	//HT_FALCON#フ?ルコン?ス?リ?#
 128,0,0,0,0,0,10,0,no,0,0,0,misc,0	//HT_STEELCROW#ス??ルクロウ#
-129,9,8,1,0,0,5,1:2:3:4:5,yes,0,0,0,misc,0	//HT_BLITZBEAT#ブリッツビ?ト#
+129,9,8,1,0,2,5,1:2:3:4:5,yes,0,0,0,misc,0	//HT_BLITZBEAT#ブリッツビ?ト#
 130,8,6,2,0,1,4,1,no,0,0,0,misc,0	//HT_DETECTING#ディテクティング#
 131,-5:-6:-7:-8:-9,6,32,0,1,5,1,no,0,0,0,misc,0	//HT_SPRINGTRAP#スプリングトラップ#
 132,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//AS_RIGHT#右手修練#
@@ -148,7 +148,7 @@
 146,0,6,4,0,1,1,1,no,0,1,0,weapon,0	//SM_AUTOBERSERK#オ?トバ?サ?ク#
 147,0,0,4,0,1,1,0,no,0,1,0,weapon,0	//AC_MAKINGARROW#矢作成#
 148,-3,6,1,0,2,1,1,no,0,1,0,weapon,6	//AC_CHARGEARROW#?ャ?ジアロ?#
-149,8,6,1,2,0,1,1,no,0,1,0,weapon,0	//TF_SPRINKLESAND#砂まき#
+149,1,6,1,2,0,1,1,no,0,1,0,weapon,0	//TF_SPRINKLESAND#砂まき#
 150,0,6,4,0,1,1,1,no,0,1,0,weapon,5	//TF_BACKSLIDING#バックステップ#
 151,0,6,4,0,1,1,1,no,0,1,0,none,0	//TF_PICKSTONE#石拾い#
 152,8,6,1,0,0,1,1,no,0,1,0,weapon,0	//TF_THROWSTONE#石投げ#
@@ -175,7 +175,7 @@
 170,-1,6,1,0,0,10,1,no,0,2,0,weapon,0	//NPC_CRITICALSLASH#防御無視攻撃#
 171,-1,8,1,0,0,10,2:3:4:5:6:7:8:9:10:11,no,0,2,0,weapon,0	//NPC_COMBOATTACK#多段攻撃#
 172,-1,6,1,0,0,10,1,no,0,2,0,weapon,0	//NPC_GUIDEATTACK#必中攻撃#
-173,1,6,4,3,1,10,1,no,0,2,0,misc,3	//NPC_SELFDESTRUCTION#自爆#
+173,1,6,4,3,0,10,1,no,0,2,0,misc,3	//NPC_SELFDESTRUCTION#自爆#
 174,-1,6,1,0,0,10,1,no,0,2,0,weapon,0	//NPC_SPLASHATTACK#範囲攻撃#
 175,0,0,4,0,1,10,1,no,0,2,0,misc,0	//NPC_SUICIDE#自決#
 176,-1,6,1,0,0,10,1,no,0,2,0,weapon,0	//NPC_POISON#毒攻撃#
@@ -210,7 +210,7 @@
 205,0,0,4,0,1,10,1,no,0,2,0,weapon,0	//NPC_DEFENDER#ディフェン??#
 206,1,6,1,0,1,10,1,no,0,2,0,weapon,0	//NPC_LICK#リック#
 207,8,0,1,0,1,10,1,no,0,2,0,magic,0	//NPC_HALLUCINATION#錯覚#
-208,0,0,0,0,0,10,1,no,0,2,0,magic,0	//NPC_REBIRTH#リバ?ス#
+208,0,0,4,0,1,1,1,no,0,2,0,magic,0	//NPC_REBIRTH#リバ?ス#
 209,0,0,4,0,1,10,1,no,0,2,0,magic,0	//NPC_SUMMONMONSTER#モンス??召喚#
 
 210,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//RG_SNATCHER#スナッ?ャ?#
@@ -274,7 +274,7 @@
 268,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//MO_STEELBODY#金剛#
 269,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//MO_BLADESTOP#白刃取り#
 270,0,6,4,0,1,5,0,no,0,0,0,weapon,0	//MO_EXPLOSIONSPIRITS#爆裂波動#
-271,-3,6,4,0,0,5,1,yes,0,4,0,weapon,0	//MO_EXTREMITYFIST#阿修羅覇?拳#
+271,-3,6,4,0,0,5,1,yes,0,0,0,weapon,0	//MO_EXTREMITYFIST#阿修羅覇?拳#
 272,-2,8,4,0,0,5,4,no,0,0,0,weapon,0	//MO_CHAINCOMBO#連打掌#
 273,-2,6,4,0,0,5,1,no,0,0,0,weapon,0	//MO_COMBOFINISH#猛龍拳#
 274,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//SA_ADVANCEDBOOK#アドバンスドブック#
@@ -309,58 +309,58 @@
 303,8,6,4,0,1,1,1,yes,0,0,0,magic,0	//SA_COMA#コ??#
 304,0,6,4,0,1,1,1,no,0,0,0,none,0	//BD_ADAPTATION#アドリブ#
 305,0,6,4,0,1,1,1,no,0,0,0,none,0	//BD_ENCORE#アンコ?ル#
-306,0,6,4,0,1,1,1,no,0,0,0,misc,0	//BD_LULLABY#子守歌#
-307,0,6,4,0,1,5,1,no,0,0,0,misc,0	//BD_RICHMANKIM#ニヨルドの宴#
-308,0,6,4,0,1,1,1,no,0,0,0,misc,0	//BD_ETERNALCHAOS#永遠の混沌#
-309,0,6,4,0,1,5,1,no,0,0,0,misc,0	//BD_DRUMBATTLEFIELD#戦太鼓の響き#
-310,0,6,4,0,1,5,1,no,0,0,0,misc,0	//BD_RINGNIBELUNGEN#ニ?ベルングの指輪#
-311,0,6,4,0,1,1,1,no,0,0,0,misc,0	//BD_ROKISWEIL#ロキの叫び#
-312,0,6,4,0,1,1,1,no,0,0,0,misc,0	//BD_INTOABYSS#?淵の中に#
-313,0,6,4,0,1,5,1,no,0,0,0,misc,0	//BD_SIEGFRIED#不?身のジ?クフリ?ド#
-//314,0,0,0,0,0,1,1,no,0,0,0,misc,0	//BD_RAGNAROK#?々の黄昏#
+306,0,6,4,0,1,1,1,no,0,64,0,misc,0	//BD_LULLABY#子守歌#
+307,0,6,4,0,1,5,1,no,0,64,0,misc,0	//BD_RICHMANKIM#ニヨルドの宴#
+308,0,6,4,0,1,1,1,no,0,64,0,misc,0	//BD_ETERNALCHAOS#永遠の混沌#
+309,0,6,4,0,1,5,1,no,0,64,0,misc,0	//BD_DRUMBATTLEFIELD#戦太鼓の響き#
+310,0,6,4,0,1,5,1,no,0,64,0,misc,0	//BD_RINGNIBELUNGEN#ニ?ベルングの指輪#
+311,0,6,4,0,1,1,1,no,0,64,0,misc,0	//BD_ROKISWEIL#ロキの叫び#
+312,0,6,4,0,1,1,1,no,0,64,0,misc,0	//BD_INTOABYSS#?淵の中に#
+313,0,6,4,0,1,5,1,no,0,64,0,misc,0	//BD_SIEGFRIED#不?身のジ?クフリ?ド#
+//314,0,0,0,0,0,1,1,no,0,64,0,misc,0	//BD_RAGNAROK#?々の黄昏#
 315,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//BA_MUSICALLESSON#楽器の練習#
 316,8,6,1,0,0,5,1,no,0,0,0,weapon,0	//BA_MUSICALSTRIKE#?ュ?ジカルストライク#
 317,0,8,4,0,1,5,1,no,0,0,0,misc,0	//BA_DISSONANCE#不協和音#
 318,0,6,4,0,1,5,1,no,0,0,0,misc,0	//BA_FROSTJOKE#寒いジョ?ク#
-319,0,6,4,0,1,10,1,no,0,0,0,misc,0	//BA_WHISTLE#口笛#
-320,0,6,4,0,1,10,1,no,0,0,0,misc,0	//BA_ASSASSINCROSS#?陽のアサシンクロス#
-321,0,6,4,0,1,10,1,no,0,0,0,misc,0	//BA_POEMBRAGI#ブラギの詩#
-322,0,6,4,0,1,10,1,no,0,0,0,misc,0	//BA_APPLEIDUN#イドゥンの林檎#
+319,0,6,4,0,1,10,1,no,0,32,0,misc,0	//BA_WHISTLE#口笛#
+320,0,6,4,0,1,10,1,no,0,32,0,misc,0	//BA_ASSASSINCROSS#?陽のアサシンクロス#
+321,0,6,4,0,1,10,1,no,0,32,0,misc,0	//BA_POEMBRAGI#ブラギの詩#
+322,0,6,4,0,1,10,1,no,0,32,0,misc,0	//BA_APPLEIDUN#イドゥンの林檎#
 323,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//DC_DANCINGLESSON#?ンスの練習#
 324,8,6,1,0,0,5,1,no,0,0,0,weapon,0	//DC_THROWARROW#矢撃ち#
-325,0,8,4,0,1,5,1,no,0,0,0,misc,0	//DC_UGLYDANCE#自分勝手な?ンス#
+325,0,8,4,0,1,5,1,no,0,32,0,misc,0	//DC_UGLYDANCE#自分勝手な?ンス#
 326,0,6,4,0,1,5,1,no,0,0,0,misc,0	//DC_SCREAM#スクリ??#
-327,0,6,4,0,1,10,1,no,0,0,0,misc,0	//DC_HUMMING#ハ?ング#
-328,0,6,4,0,1,10,1,no,0,0,0,misc,0	//DC_DONTFORGETME#私を忘れないで…#
-329,0,6,4,0,1,10,1,no,0,0,0,misc,0	//DC_FORTUNEKISS#幸?のキス#
-330,0,6,4,0,1,10,1,no,0,0,0,misc,0	//DC_SERVICEFORYOU#サ?ビスフォ?ユ?#
+327,0,6,4,0,1,10,1,no,0,32,0,misc,0	//DC_HUMMING#ハ?ング#
+328,0,6,4,0,1,10,1,no,0,32,0,misc,0	//DC_DONTFORGETME#私を忘れないで…#
+329,0,6,4,0,1,10,1,no,0,32,0,misc,0	//DC_FORTUNEKISS#幸?のキス#
+330,0,6,4,0,1,10,1,no,0,32,0,misc,0	//DC_SERVICEFORYOU#サ?ビスフォ?ユ?#
 
-331,0,6,4,0,1,10,0,no,0,0,0,none,0	//NPC_RANDOMMOVE
-332,0,6,4,0,1,10,0,no,0,0,0,none,0	//NPC_SPEEDUP
-333,0,6,4,0,1,1,0,no,0,0,0,none,0	//NPC_REVENGE
+331,0,6,4,0,1,10,0,no,0,2,0,none,0	//NPC_RANDOMMOVE
+332,0,6,4,0,1,10,0,no,0,2,0,none,0	//NPC_SPEEDUP
+333,0,6,4,0,1,1,0,no,0,2,0,none,0	//NPC_REVENGE
 
 334,8,6,4,0,1,1,1,yes,0,0,0,magic,0	//WE_MALE#君だけは護るよ#
 335,8,6,4,0,1,1,1,yes,0,0,0,magic,0	//WE_FEMALE#あなたに尽くします#
 336,8,6,4,0,1,1,1,yes,0,0,1,magic,0	//WE_CALLPARTNER#あなたに逢いたい#
 
 337,9,6,1,0,0,1,1,no,0,0,0,weapon,0	//ITM_TOMAHAWK#ｫﾈｫﾞｫﾛ?ｫｯｪｲ#
-338,0,0,0,0,0,0,0,no,0,0,0,none,0	//NPC_DARKCROSS#ダーククロス#
-339,0,6,4,7,0,10,1,no,33,256,0,magic,0		//NPC_GRANDDARKNESS#闇グランドクロス#
+338,0,0,0,0,0,0,0,no,0,2,0,none,0	//NPC_DARKCROSS#ダーククロス#
+339,0,6,4,7,0,10,1,no,33,258,0,magic,0		//NPC_GRANDDARKNESS#闇グランドクロス#
 340,8,8,1,7,0,10,1:1:2:2:3:3:4:4:5:5,yes,0,2,0,magic,0	//NPC_DARKSTRIKE#闇ソウルストライク#
 341,8,8,1,7,0,10,3:4:5:6:7:8:9:10:11:12,yes,0,2,0,magic,2:3:3:4:4:5:5:6:6:7	//NPC_DARKTHUNDER#闇ユピテル#
-342,0,6,4,0,1,1,0,no,0,0,0,none,0	//NPC_STOP
+342,0,6,4,0,1,1,0,no,0,2,0,none,0	//NPC_STOP
 343,8,6,1,0,0,5,1,no,0,2,0,weapon,0	//NPC_BREAKWEAPON#ブレイクウェポン#
 344,8,6,1,0,0,5,1,no,0,2,0,weapon,0	//NPC_BREAKARMOR#ブレイクアーマー#
 345,8,6,1,0,0,5,1,no,0,2,0,weapon,0	//NPC_BREAKHELM#ブレイクヘルム#
 346,8,6,1,0,0,5,1,no,0,2,0,weapon,0	//NPC_BREAKSIELD#ブレイクシールド#
 347,-1,6,1,9,0,10,1,no,0,2,0,weapon,0	//NPC_UNDEADATTACK
 348,0,0,4,9,1,10,1,no,0,2,0,magic,0	//NPC_CHANGEUNDEAD
-349,0,6,4,0,1,10,0,no,0,0,0,weapon,0	//NPC_POWERUP
-350,0,6,4,0,1,10,0,no,0,0,0,none,0	//NPC_AGIUP
-351,0,0,0,0,1,0,0,no,0,0,0,none,0	//NPC_SIEGEMODE
-352,2,0,4,0,1,1,0,no,0,0,0,none,0	//NPC_CALLSLAVE
-353,0,0,0,0,1,0,0,no,0,0,0,none,0	//NPC_INVISIBLE
-354,2,6,4,0,1,20,0,no,0,0,0,magic,0	//NPC_RUN
+349,0,6,4,0,1,10,0,no,0,2,0,weapon,0	//NPC_POWERUP
+350,0,6,4,0,1,10,0,no,0,2,0,none,0	//NPC_AGIUP
+351,0,0,0,0,1,0,0,no,0,2,0,none,0	//NPC_SIEGEMODE
+352,2,0,4,0,1,1,0,no,0,2,0,none,0	//NPC_CALLSLAVE
+353,0,0,0,0,1,0,0,no,0,2,0,none,0	//NPC_INVISIBLE
+354,2,6,4,0,1,20,0,no,0,2,0,magic,0	//NPC_RUN
 
 355,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//LK_AURABLADE#オ?ラブレ?ド#
 356,0,6,4,0,1,10,1,no,0,0,0,weapon,0	//LK_PARRYING#パリイング#
@@ -375,13 +375,16 @@
 365,8,8,1,0,2,1,1,yes,0,0,0,magic,0	//HW_MAGICCRASHER#?ジッククラッシャ?#
 366,0,6,4,0,1,10,1,no,0,0,0,magic,0	//HW_MAGICPOWER#魔?力増幅#
 367,8,8,1,0,2,5,1,no,0,0,0,magic,0	//PA_PRESSURE#プレッシャ?#
-368,0,6,4,0,1,5,1,yes,0,0,0,magic,0	//PA_SACRIFICE#サクリファイス#
+//If you want to revert to old style, uncomment the next line
+//and comment the one after it [Aru]
+//368,0,6,4,0,1,5,1,yes,0,0,0,magic,0	//PA_SACRIFICE# Old Style
+368,3,6,1,0,2,5,1,yes,0,0,0,magic,0	//PA_SACRIFICE# New Style by Aru
 369,0,6,4,0,1,10,1,yes,0,0,0,magic,0	//PA_GOSPEL#ゴスペル#
 370,-2,6,1,0,0,5,1,yes,0,0,0,weapon,3	//CH_PALMSTRIKE#猛虎硬派山#
 371,-2,8,4,0,0,5,1,no,0,0,0,weapon,0	//CH_TIGERFIST#伏虎拳#
 372,-2,8,4,0,0,10,1:1:2:2:3:3:4:4:5:5,no,0,0,0,weapon,0	//CH_CHAINCRUSH#連柱崩撃#
 373,0,6,4,0,1,5,1,no,0,0,0,magic,0	//PF_HPCONVERSION#ライフ置き換え#
-374,8,6,16,0,1,1,1,yes,0,0,0,none,0	//PF_SOULCHANGE#?ウル?ェンジ#
+374,8,6,16,0,1,1,1,yes,0,3072,0,none,0	//PF_SOULCHANGE#?ウル?ェンジ#
 375,8,6,1,0,0,5,1,yes,0,0,0,magic,0	//PF_SOULBURN#?ウルバ?ン#
 376,0,0,0,0,1,5,1,no,0,0,0,weapon,0	//ASC_KATAR#アドバンスドカ??ル研究#
 377,0,0,4,0,1,10,1,no,0,0,0,misc,0	//ASC_HALLUCINATION#ハルシネ?ションウォ?ク#
@@ -403,7 +406,7 @@
 393,0,0,4,0,1,1,1,yes,0,0,0,magic,0	//CR_SYNTHESISPOTION#??ションシンセシス#
 394,8,8,1,0,0,10,9,no,0,0,0,weapon,0	//CG_ARROWVULCAN#アロ?バルカン#
 395,0,0,4,0,1,1,1,yes,0,0,0,magic,0	//CG_MOONLIT#月明りの泉に落ちる花びら#
-396,-1,6,1,0,1,1,1,yes,0,0,0,magic,1	//CG_MARIONETTE#?リオネットコントロ?ル#
+396,-1,6,16,0,1,1,1,yes,0,1024,0,magic,1	//CG_MARIONETTE#?リオネットコントロ?ル#
 397,5,8,1,0,0,5,5,no,0,0,0,weapon,0	//LK_SPIRALPIERCE#スパイラルピア?ス#
 398,4,6,1,0,0,5,1,no,0,0,0,weapon,0	//LK_HEADCRUSH#ヘッドクラッシュ#
 399,4,6,1,0,0,10,1,no,0,0,0,weapon,0	//LK_JOINTBEAT#ジョイントビ?ト#
@@ -412,7 +415,7 @@
 402,8,6,1,0,1,5,1,no,0,0,0,none,0	//PF_MINDBREAKER#?インドブレ?カ?#
 403,0,0,4,0,1,1,1,yes,0,0,0,magic,0	//PF_MEMORIZE#メモライズ#
 404,3,6,2,2,1,5,1,yes,0,256,2,magic,0	//PF_FOGWALL#フォグウォ?ル#
-405,3,6,1,0,1,1,1,no,0,128,2,misc,0	//PF_SPIDERWEB#スパイ??ウェッブ#
+405,3,6,2,0,1,1,1,no,0,128,2,misc,0	//PF_SPIDERWEB#スパイ??ウェッブ#
 406,0,6,4,0,1,10,1,no,33,0,0,weapon,0	//ASC_METEORASSAULT#メテオアサルト#
 407,0,6,4,0,1,1,0,no,0,0,0,none,0	//ASC_CDP#デッドリ??イズン製造#
 408,8,6,4,0,1,1,1,yes,0,0,0,magic,0	//WE_BABY##
@@ -482,8 +485,7 @@
 471,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SKE##
 472,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SKA##
 
-//473,0,0,0,0,0,0,0,no,0,0,0,none,0	//SM_SELFPROVOKE##
-473,1,6,4,3,1,10,1,no,0,2,0,misc,3	//NPC_SELFDESTRUCTION2#自爆2#
+473,0,0,0,0,0,0,0,no,0,0,0,none,0	//SM_SELFPROVOKE##
 474,0,0,4,0,1,10,1,no,0,2,0,none,0	//NPC_EMOTION_ON##
 475,0,0,4,0,1,1,1,yes,0,0,0,magic,0	//ST_PRESERVE##
 476,1,6,1,0,1,5,1,yes,0,0,0,weapon,0	//ST_FULLSTRIP##
@@ -504,18 +506,18 @@
 491,1,6,2,0,1,2,1,no,0,0,0,none,0	//CR_CULTIVATION##
 
 //id,range,hit,inf,pl,nk,max,list_num,castcancel,cast_defence_rate,inf2,maxcount,skill_type,blow_count
-10000,0,0,0,0,0,1,0,no,0,0,0,none,0	//GD_APPROVAL#正規ギルド承認#
-10001,0,0,0,0,0,1,0,no,0,0,0,none,0	//GD_KAFRACONTRACT#カプラ雇用#
-10002,0,0,0,0,0,1,0,no,0,0,0,none,0	//GD_GUARDRESEARCH#ガ?ディアン研究#
-10003,0,0,0,0,0,1,0,no,0,0,0,none,0	//GD_CHARISMA#カリス?#
-10004,0,0,0,0,0,10,0,no,0,0,0,none,0	//GD_EXTENSION#ギルド拡張#
-10005,0,0,0,0,0,1,0,no,0,0,0,none,0	//GD_GLORYGUILD##
-10006,0,0,0,0,0,1,0,no,0,0,0,none,0	//GD_LEADERSHIP##
-10007,0,0,0,0,0,1,0,no,0,0,0,none,0	//GD_GLORYWOUNDS##
-10008,0,0,0,0,0,1,0,no,0,0,0,none,0	//GD_SOULCOLD##
-10009,0,0,0,0,0,1,0,no,0,0,0,none,0	//GD_HAWKEYES##
-10010,0,0,4,0,1,1,0,no,0,0,0,none,0	//GD_BATTLEORDER##
-10011,0,0,4,0,1,3,0,no,0,0,0,none,0	//GD_REGENERATION##
-10012,0,0,4,0,1,1,0,no,0,0,0,none,0	//GD_RESTORE##
-10013,0,0,4,0,1,1,0,no,0,0,0,none,0	//GD_EMERGENCYCALL##
-10014,0,0,0,0,0,1,0,no,0,0,0,none,0	//GD_DEVELOPMENT##
+10000,0,0,0,0,0,1,0,no,0,16,0,none,0	//GD_APPROVAL#正規ギルド承認#
+10001,0,0,0,0,0,1,0,no,0,16,0,none,0	//GD_KAFRACONTRACT#カプラ雇用#
+10002,0,0,0,0,0,1,0,no,0,16,0,none,0	//GD_GUARDRESEARCH#ガ?ディアン研究#
+10003,0,0,0,0,0,1,0,no,0,16,0,none,0	//GD_CHARISMA#カリス?#
+10004,0,0,0,0,0,10,0,no,0,16,0,none,0	//GD_EXTENSION#ギルド拡張#
+10005,0,0,0,0,0,1,0,no,0,16,0,none,0	//GD_GLORYGUILD##
+10006,0,0,0,0,0,1,0,no,0,16,0,none,0	//GD_LEADERSHIP##
+10007,0,0,0,0,0,1,0,no,0,16,0,none,0	//GD_GLORYWOUNDS##
+10008,0,0,0,0,0,1,0,no,0,16,0,none,0	//GD_SOULCOLD##
+10009,0,0,0,0,0,1,0,no,0,16,0,none,0	//GD_HAWKEYES##
+10010,0,0,4,0,1,1,0,no,0,16,0,none,0	//GD_BATTLEORDER##
+10011,0,0,4,0,1,3,0,no,0,16,0,none,0	//GD_REGENERATION##
+10012,0,0,4,0,1,1,0,no,0,16,0,none,0	//GD_RESTORE##
+10013,0,0,4,0,1,1,0,no,0,16,0,none,0	//GD_EMERGENCYCALL##
+10014,0,0,0,0,0,1,0,no,0,16,0,none,0	//GD_DEVELOPMENT##

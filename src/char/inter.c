@@ -113,7 +113,7 @@ int inter_accreg_init(void) {
 
 	accreg_db = numdb_init();
 
-	if( (fp = savefopen(accreg_txt, "r")) == NULL)
+	if( (fp = safefopen(accreg_txt, "r")) == NULL)
 		return 1;
 	while(fgets(line, sizeof(line)-1, fp)){
 		line[sizeof(line)-1] = '\0';
@@ -174,9 +174,9 @@ int inter_config_read(const char *cfgName) {
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
-	fp = savefopen(cfgName, "r");
+	fp = safefopen(cfgName, "r");
 	if (fp == NULL) {
-		ShowMessage("file not found: %s\n", line);
+		ShowError("file not found: %s\n", line);
 		return 1;
 	}
 	while(fgets(line, sizeof(line) - 1, fp)) {
@@ -224,7 +224,7 @@ int inter_log(char *fmt,...) {
 	va_list ap;
 
 	va_start(ap,fmt);
-	logfp = savefopen(inter_log_filename, "a");
+	logfp = safefopen(inter_log_filename, "a");
 	if (logfp && fmt) {
 		vfprintf(logfp, fmt, ap);
 		fclose(logfp);

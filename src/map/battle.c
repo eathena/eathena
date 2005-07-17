@@ -3981,13 +3981,13 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 			scfix=scfix*(100-t_sc_data[SC_DEFENDER].val2)/100;
 		
 		if(t_sc_data[SC_FOGWALL].timer != -1 && wd.flag&BF_LONG)
-			scfix=scfix*50/100;
+			scfix=scfix/2;
 		
 		if(t_sc_data[SC_ASSUMPTIO].timer != -1){
 			if(!map[target->m].flag.pvp)
-				scfix=scfix/3;
+				scfix=scfix*2/3;
 			else
-				scfix=scfix*50/100;
+				scfix=scfix/2;
 		}
 	
 		if(scfix != 1000)
@@ -4829,10 +4829,11 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 				clif_damage(*src, *src, tick, wd.amotion, wd.dmotion, rdamage, 1, 4, 0);
 		}
 
-		if(wd.div_ == 255 && sd)
+		if(wd.div_ == 255)
 		{	//三段掌
 			int delay = 0;
-			if(wd.damage+wd.damage2 < status_get_hp(target))
+			wd.div_ = 3;
+			if(sd && wd.damage+wd.damage2 < status_get_hp(target))
 			{
 				int skilllv = pc_checkskill(*sd, MO_CHAINCOMBO);
 				if (skilllv > 0) {
@@ -4841,10 +4842,11 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 				}
 				status_change_start(src, SC_COMBO, MO_TRIPLEATTACK, skilllv, 0, 0, delay, 0);
 			}
-			sd->attackabletime = sd->canmove_tick = tick + delay;
+			if(sd) sd->attackabletime = sd->canmove_tick = tick + delay;
+
 			clif_combo_delay(*src, delay);
-			clif_skill_damage(*src, *target, tick, wd.amotion, wd.dmotion, wd.damage, 3,
-				MO_TRIPLEATTACK, pc_checkskill(*sd,MO_TRIPLEATTACK), -1);
+			clif_skill_damage(*src, *target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_,
+				MO_TRIPLEATTACK, (sd)?pc_checkskill(*sd,MO_TRIPLEATTACK):1, -1);
 		}
 		else
 		{	//二刀流左手とカタール追撃のミス表示(無理やり～)
@@ -6071,7 +6073,7 @@ int battle_config_read(const char *cfgName)
 	if ((count++) == 0)
 		battle_set_defaults();
 
-	fp = savefopen(cfgName,"r");
+	fp = safefopen(cfgName,"r");
 	if (fp == NULL) {
 		ShowError("file not found: %s\n", cfgName);
 		return 1;

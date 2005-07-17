@@ -86,7 +86,7 @@ int inter_party_init() {
 
 	party_db = numdb_init();
 
-	if ((fp = savefopen(party_txt, "r")) == NULL)
+	if ((fp = safefopen(party_txt, "r")) == NULL)
 		return 1;
 
 	while(fgets(line, sizeof(line) - 1, fp)) {
@@ -306,7 +306,7 @@ int mapif_party_noinfo(int fd, int party_id)
 	WFIFOW(fd,2) = 8;
 	WFIFOL(fd,4) = party_id;
 	WFIFOSET(fd,8);
-	ShowMessage("int_party: info not found %d\n", party_id);
+	ShowError("int_party: info not found %d\n", party_id);
 
 	return 0;
 }

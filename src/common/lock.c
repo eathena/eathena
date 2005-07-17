@@ -67,9 +67,9 @@ FILE* lock_fopen (const char* filename, int *info) {
 	// 安全なファイル名を得る（手抜き）
 	do {
 		sprintf(newfile, "%s_%04d.tmp", filename, ++no);
-	} while((fp = savefopen(newfile,"r")) && (fclose(fp), no<9999) );
+	} while((fp = safefopen(newfile,"r")) && (fclose(fp), no<9999) );
 	*info = no;
-	return savefopen(newfile,"w");
+	return safefopen(newfile,"w");
 }
 
 // 旧ファイルを削除＆新ファイルをリネーム

@@ -77,7 +77,7 @@ void pid_create(const char* file)
 		pid_file[len - 4] = 0;
 	}
 	strcat(pid_file,".pid");
-	fp = savefopen(pid_file,"w");
+	fp = safefopen(pid_file,"w");
 	if(fp)
 	{
 		fprintf(fp,"%ld",GetCurrentProcessId());
@@ -96,7 +96,7 @@ void log_uptime(void)
 	long seconds = 0, day = 24*60*60, hour = 60*60,
 		minute = 60, days = 0, hours = 0, minutes = 0;
 
-	fp = savefopen("log/uptime.log","a");
+	fp = safefopen("log/uptime.log","a");
 	if (fp)
 	{
 		time(&curtime);
@@ -110,13 +110,11 @@ void log_uptime(void)
 
 ///////////////////////////////////////////////////////////////////////////////
 // signal and dump
-
+//
 // Added by Gabuzomeu
 // This is an implementation of signal() using sigaction() for portability.
 // (sigaction() is POSIX; signal() is not.)  Taken from Stevens' _Advanced
 // Programming in the UNIX Environment_.
-//
-
 
 #ifndef POSIX
 #define compat_signal(signo, func) signal(signo, func)

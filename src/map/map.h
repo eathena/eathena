@@ -4,6 +4,7 @@
 
 #include <stdarg.h>
 #include "mmo.h"
+#include "socket.h"
 
 
 
@@ -1034,8 +1035,9 @@ struct map_data {
 struct map_data_other_server {
 	char name[24];
 	struct mapgat *gat;	// NULLŒÅ’è‚É‚µ‚Ä”»’f
-	unsigned long ip;
-	unsigned short port;
+//	unsigned long ip;
+//	unsigned short port;
+	ipset mapset;
 	struct map_data* map;
 };
 
@@ -1201,9 +1203,9 @@ struct map_session_data * map_id2sd(unsigned long id);
 struct block_list * map_id2bl(unsigned long id);
 
 int map_mapname2mapid(const char *name);
-bool map_mapname2ipport(const char *name, unsigned long &ip,unsigned short &port);
-int map_setipport(const char *name, unsigned long ip, unsigned short port);
-int map_eraseipport(const char *name, unsigned long ip,unsigned short port);
+bool map_mapname2ipport(const char *name, ipset &mapset);
+int map_setipport(const char *name, ipset &mapset);
+int map_eraseipport(const char *name, ipset &mapset);
 int map_eraseallipport(void);
 void map_addiddb(struct block_list &bl);
 void map_deliddb(struct block_list &bl);

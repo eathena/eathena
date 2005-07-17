@@ -510,7 +510,7 @@ const char* grfio_resnametable(const char* fname, char *lfname)
 	char w1[256],w2[256],restable[256],line[512];
 
 	sprintf(restable,"%sdata\\resnametable.txt",data_dir);
-	fp = savefopen(restable,"rb");
+	fp = safefopen(restable,"rb");
 	if(fp==NULL) {
 		ShowError("%s not found (grfio_resnametable)\n",restable);
 		lfname[0]=0;
@@ -560,7 +560,7 @@ int grfio_size(const char *fname)
 			lentry.gentry = 0;	// 0:LocalFile
 			entry = filelist_modify(&lentry);
 		} else if (entry==NULL) {
-			ShowMessage("%s not found (grfio_size)\n", fname);
+			ShowError("%s not found (grfio_size)\n", fname);
          	return -1;
 		}
 	}
@@ -588,7 +588,7 @@ void* grfio_reads(const char *fname, int *size)
 		sprintf(lfname,"%s%s",data_dir, grfio_resnametable(fname,lfname));
 		
 		if(*lfname)
-			in = savefopen(lfname,"rb");
+			in = safefopen(lfname,"rb");
 		if(in!=NULL) {
 			if (entry!=NULL && entry->gentry==0) {
 				lentry.declen=entry->declen;
@@ -625,7 +625,7 @@ void* grfio_reads(const char *fname, int *size)
 			goto errret;
 		}
 		gfname = gentry_table[entry->gentry-1];
-		in = savefopen(gfname,"rb");
+		in = safefopen(gfname,"rb");
 		if(in==NULL) {
 			ShowError("%s not found (grfio_reads)\n",gfname);
 			//goto errret;
@@ -711,7 +711,7 @@ int grfio_entryread(const char *gfname,int gentry)
 	char *fname;
 	unsigned char *grf_filelist;
 
-	fp = savefopen(gfname,"rb");
+	fp = safefopen(gfname,"rb");
 	if(fp==NULL) {
 		ShowWarning("GRF Data File not found: '"CL_WHITE"%s"CL_RESET"'.\n",gfname);
 		return 1;	// 1:not found error
@@ -997,7 +997,7 @@ void grfio_init(const char *fname)
 	char line[1024], w1[1024], w2[1024];
 	int result = 0;
 
-	data_conf = savefopen(fname, "r");
+	data_conf = safefopen(fname, "r");
 
 	hashinit();	// hash table initialization
 

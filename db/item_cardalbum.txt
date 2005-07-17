@@ -52,7 +52,7 @@
 4044,Smokie Card,10000
 4045,Horn Card,30000
 4046,Martin Card,30000
-4047,Ghostring Card,10000
+4047,Ghostring Card,5000
 4048,Poison Spore Card,30000
 4049,Vadon Card,30000
 4050,Male Thiefbug Card,30000
@@ -106,7 +106,7 @@
 4099,Pasana Card,10000
 4100,Sohee Card,10000
 4101,Sandman Card,10000
-4102,Whisper Card,10000
+4102,Whisper Card,5000
 4103,Horong Card,10000
 4104,Requiem Card,10000
 4105,Marc Card,10000
@@ -223,7 +223,7 @@
 4228,Sleeper Card,10000
 4229,Clock Tower Manager Card,10000
 4230,Shinobi Card,10000
-//4231,Increase Soil Card,10000 //not implemented yet
+4231,Increase Soil Card,10000
 4232,Hermit Plant Card,10000
 4233,Baby Leopard Card,10000
 4234,Anolian Card,10000
@@ -255,11 +255,11 @@
 4261,Wootan Fighter Card,10000
 4262,Taoist Hermit Card,10000
 4264,Wind Ghost Card,10000
-//4265,Li Me Mang Ryang Card,10000 //not implemented yet
+4265,Li Me Mang Ryang Card,10000
 4266,Eclipse Card,5000
 4267,Explosion Card,10000
-4268,Incubus Card,10000
-4269,Injustice Card,10000
+4268,Injustice Card,10000
+4269,Incubus Card,10000
 4270,Giant Spider Card,10000
 4271,Giant Hornet Card,10000
 4272,Dancing Dragon Card,10000
@@ -312,7 +312,7 @@
 4323,Garm Baby Card,10000
 4325,Harpy Card,10000
 4326,Sea Otter Card,10000
-4327,Bloody Butterfly Card,10000
+4327,Bloody Butterfly Card,5000
 4328,Hyegun Card,10000
 4329,Phendark Card,10000
 4331,Heater Card,10000

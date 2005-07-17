@@ -83,11 +83,11 @@ int mob_spawn_dataset(struct mob_data &md,const char *mobname,int class_)
 	md.bl.prev=NULL;
 	md.bl.next=NULL;
 	if(strcmp(mobname,"--en--")==0)
-		memcpy(md.name,mob_db[class_].name,24);
+		safestrcpy(md.name,mob_db[class_].name,24);
 	else if(strcmp(mobname,"--ja--")==0)
-		memcpy(md.name,mob_db[class_].jname,24);
+		safestrcpy(md.name,mob_db[class_].jname,24);
 	else
-		memcpy(md.name,mobname,24);
+		safestrcpy(md.name,mobname,24);
 
 	md.base_class = md.class_ = class_;
 	md.bl.id = npc_get_new_npc_id();
@@ -3876,7 +3876,7 @@ int mobskill_use(struct mob_data &md,unsigned long tick,int event)
 		}
 
 		// 確率判定
-		if (flag && rand() % 1000 < ms[i].permillage)
+		if (flag && rand() % 10000 < ms[i].permillage)
 		{
 			if (skill_get_inf(ms[i].skill_id) & 2) {
 				// 場所指定
@@ -4099,7 +4099,7 @@ int mob_readdb(void)
 
 	for(i=0;i<2;i++){
 
-		fp=savefopen(filename[i],"r");
+		fp=safefopen(filename[i],"r");
 		if(fp==NULL){
 			if(i>0)
 				continue;
@@ -4257,7 +4257,7 @@ int mob_readdb_mobavail(void)
 	int class_,j,k;
 	char *str[20],*p,*np;
 
-	if( (fp=savefopen("db/mob_avail.txt","r"))==NULL ){
+	if( (fp=safefopen("db/mob_avail.txt","r"))==NULL ){
 		ShowMessage("can't read %s\n", "db/mob_avail.txt");
 		return -1;
 	}
@@ -4329,7 +4329,7 @@ int mob_read_randommonster(void)
 
 	for(i=0;i<MAX_RANDOMMONSTER;i++){
 		mob_db[0].summonper[i] = 1002;	// 設定し忘れた場合はポリンが出るようにしておく
-		fp=savefopen(mobfile[i],"r");
+		fp=safefopen(mobfile[i],"r");
 		if(fp==NULL){
 			ShowMessage("can't read %s\n",mobfile[i]);
 			return -1;
@@ -4432,7 +4432,7 @@ int mob_readskilldb(void)
 
 	for(x=0;x<2;x++){
 
-		fp=savefopen(filename[x],"r");
+		fp=safefopen(filename[x],"r");
 		if(fp==NULL){
 			if(x==0)
 				ShowMessage("can't read %s\n",filename[x]);
@@ -4534,7 +4534,7 @@ int mob_readdb_race(void)
 	int race,j,k;
 	char *str[20],*p,*np;
 
-	if( (fp=savefopen("db/mob_race2_db.txt","r"))==NULL ){
+	if( (fp=safefopen("db/mob_race2_db.txt","r"))==NULL ){
 		ShowError("can't read db/mob_race2_db.txt\n");
 		return -1;
 	}

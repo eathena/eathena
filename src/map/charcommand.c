@@ -168,8 +168,8 @@ bool charcommand_config_read(const char *cfgName)
 	CharCommandInfo* p;
 	FILE* fp;
 
-	if ((fp = savefopen(cfgName, "r")) == NULL) {
-		ShowMessage("CharCommands configuration file not found: %s\n", cfgName);
+	if ((fp = safefopen(cfgName, "r")) == NULL) {
+		ShowError("CharCommands configuration file not found: %s\n", cfgName);
 		return false;
 	}
 

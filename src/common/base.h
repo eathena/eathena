@@ -217,20 +217,20 @@ typedef int bool;
 // socketlen type definition
 //////////////////////////////
 #ifndef __socklen_t_defined
-
-#ifdef socklen_t
-#undef socklen_t
-#endif
+#define __socklen_t_defined	// define socklen_t if not already defined
 
 #ifdef WIN32
-//#if defined(WIN32) || defined(CYGWIN)
-typedef int socklen_t;
-#else
-typedef unsigned int socklen_t;
+  typedef int socklen_t;	// type in an int on windows
+#elif CYGWIN				// stupid cygwin is not standard conform
+  #ifdef socklen_t			// it has a define for this instead a typedef as it should have
+  #undef socklen_t
+  #endif
+  typedef int socklen_t;	// define it pr
+#else// normal unix with undefined socklen_t
+  typedef unsigned int socklen_t;
 #endif
-
-#define __socklen_t_defined
-#endif
+  
+#endif//__socklen_t_defined
 
 
 
@@ -581,7 +581,6 @@ static inline unsigned short SwapTwoBytes(unsigned short w)
 			| ((w & 0xFF00) >> 0x08);
 }
 
-
 // Swap the bytes within a 32-bit DWORD.
 static inline void SwapFourBytes(char *p)
 {	if(p)
@@ -603,10 +602,10 @@ static inline unsigned long SwapFourBytes(unsigned long w)
 }
 
 
+// glibc conflicting define
 #ifdef log2
 #undef log2
 #endif
-
 // Find the log base 2 of an N-bit integer in O(lg(N)) operations
 // in this case for 32bit input it would be 11 operations
 static inline unsigned long log2(unsigned long v)
@@ -640,6 +639,9 @@ static inline unsigned long log2(unsigned long v)
 	if (v & 0x00000002) { v >>= 0x01; c |= 0x01; }
 	return c;
 }
+#ifdef pow2
+#undef pow2
+#endif
 
 static inline unsigned long pow2(unsigned long v)
 {
@@ -1818,3 +1820,4 @@ public:
 
 
 #endif//_BASE_H_
+

@@ -364,7 +364,7 @@ int inter_guild_readdb()
 	char path[1024];
 
 	sprintf(path, "%s%s", db_path, "/exp_guild.txt");
-	fp = savefopen(path, "r");
+	fp = safefopen(path, "r");
 	if (fp == NULL) {
 		ShowMessage("can't read %s\n",path);
 		return 1;
@@ -395,7 +395,7 @@ int inter_guild_init()
 	guild_db = numdb_init();
 	castle_db = numdb_init();
 
-	if ((fp = savefopen(guild_txt,"r")) == NULL)
+	if ((fp = safefopen(guild_txt,"r")) == NULL)
 		return 1;
 	while(fgets(line, sizeof(line)-1, fp)) {
 		j = 0;
@@ -421,7 +421,7 @@ int inter_guild_init()
 
 	c = 0;//ƒJƒEƒ“ƒ^‰Šú‰»
 
-	if ((fp = savefopen(castle_txt, "r")) == NULL) {
+	if ((fp = safefopen(castle_txt, "r")) == NULL) {
 		return 1;
 	}
 
@@ -728,7 +728,7 @@ int mapif_guild_noinfo(int fd, int guild_id)
 	WFIFOW(fd,2) = 8;
 	WFIFOL(fd,4) = guild_id;
 	WFIFOSET(fd,8);
-	//ShowMessage("int_guild: info not found %d\n", guild_id);
+	//ShowError("int_guild: info not found %d\n", guild_id);
 
 	return 0;
 }
@@ -1249,7 +1249,7 @@ int mapif_parse_GuildMemberInfoChange(int fd, unsigned long guild_id, unsigned l
 	}
 	if (i == g->max_member)
 	{
-		ShowMessage("int_guild: GuildMemberChange: Not found %d,%d in %d[%s]\n", account_id, char_id, guild_id, g->name);
+		ShowError("int_guild: GuildMemberChange: Not found %d,%d in %d[%s]\n", account_id, char_id, guild_id, g->name);
 		return 0;
 	}
 
@@ -1414,7 +1414,7 @@ int mapif_parse_GuildCastleDataLoad(int fd, int castle_id, int index)
 	case 25: return mapif_guild_castle_dataload(gc->castle_id, index, gc->Ghp7);	// end additions [Valaris]
 
 	default:
-		ShowMessage("mapif_parse_GuildCastleDataLoad ERROR!! (Not found index=%d)\n", index);
+		ShowError("mapif_parse_GuildCastleDataLoad ERROR!! (Not found index=%d)\n", index);
 		return 0;
 	}
 }
@@ -1462,7 +1462,7 @@ int mapif_parse_GuildCastleDataSave(int fd, int castle_id, int index, int value)
 	case 24: gc->Ghp6 = value; break;
 	case 25: gc->Ghp7 = value; break;	// end additions [Valaris]
 	default:
-		ShowMessage("mapif_parse_GuildCastleDataSave ERROR!! (Not found index=%d)\n", index);
+		ShowError("mapif_parse_GuildCastleDataSave ERROR!! (Not found index=%d)\n", index);
 		return 0;
 	}
 

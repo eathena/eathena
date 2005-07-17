@@ -227,7 +227,7 @@ int inter_storage_init()
 
 	storage_db = numdb_init();
 
-	fp=savefopen(storage_txt,"r");
+	fp=safefopen(storage_txt,"r");
 	if(fp==NULL){
 		ShowMessage("cant't read : %s\n",storage_txt);
 		return 1;
@@ -250,7 +250,7 @@ int inter_storage_init()
 	c = 0;
 	guild_storage_db = numdb_init();
 
-	fp=savefopen(guild_storage_txt,"r");
+	fp=safefopen(guild_storage_txt,"r");
 	if(fp==NULL){
 		ShowMessage("cant't read : %s\n",guild_storage_txt);
 		return 1;

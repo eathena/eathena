@@ -167,11 +167,11 @@ int inter_config_read(const char *cfgName) {
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
-	ShowMessage ("start reading interserver configuration: %s\n",cfgName);
+	ShowMessage ("Reading Interserver Configuration: %s\n",cfgName);
 
-	fp=savefopen(cfgName,"r");
+	fp=safefopen(cfgName,"r");
 	if(fp==NULL){
-		ShowMessage("file not found: %s\n", cfgName);
+		ShowError("inter config file not found: %s\n", cfgName);
 		return 1;
 	}
 	while(fgets(line, 1020, fp)){

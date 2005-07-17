@@ -98,7 +98,7 @@ int itemdb_readdb(void)
 	char *str[128],*p,*np;
 	struct item_data *id;
 
-	fp=savefopen("db/item_db.txt","r");
+	fp=safefopen("db/item_db.txt","r");
 	if(fp==NULL){
 		ShowMessage("can't read %s\n", "db/item_db.txt");
 		exit(1);

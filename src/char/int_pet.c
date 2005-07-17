@@ -86,7 +86,7 @@ int inter_pet_init()
 
 	pet_db=numdb_init();
 
-	if( (fp=savefopen(pet_txt,"r"))==NULL )
+	if( (fp=safefopen(pet_txt,"r"))==NULL )
 		return 1;
 	while(fgets(line,sizeof(line),fp)){
 		p = (struct s_pet*)aCalloc(1,sizeof(struct s_pet));

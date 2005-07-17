@@ -123,7 +123,6 @@ MaxSp		8	1
 BaseJob		119	1
 Karma		4	1
 Manner		5	1
-Chaos		61	1
 
 bMaxHP		6
 bMaxSP		8
@@ -138,6 +137,7 @@ bAtk2		42
 bMatk1		43
 bMatk2		44
 bDef		45
+bDef2		46
 bMdef		47
 bMdef2		48
 bHit		49

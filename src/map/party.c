@@ -414,7 +414,7 @@ int party_recv_movemap(unsigned long party_id,unsigned long account_id,const cha
 	}
 	if(i==MAX_PARTY){
 		if(battle_config.error_log)
-			ShowMessage("party: not found member %d on %d[%s]",account_id,party_id,p->name);
+			ShowError("party: not found member %d on %d[%s]",account_id,party_id,p->name);
 		return 0;
 	}
 	

@@ -262,11 +262,12 @@ int	PRINTF(const char *fmt, ...)
 
 
 
-int _vShowMessage(enum msg_type flag, const char *string, va_list ap){
-//		_ShowMessage MUST be used instead of printf as of 10/24/2004.
-//		Return: 0 = Successful, 1 = Failed.
+int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
+{	// Return: 0 = Successful, 1 = Failed.
+	const char *prefix = "";
 
-	char prefix[40]="";
+	if(flag == MSG_DEBUG && !SHOW_DEBUG_MSG)
+		return 0;
 
 	if( (NULL==string) || (0==*string) ) {
 		ShowError("Empty string flag %i passed to _ShowMessage().\n", flag);
@@ -276,45 +277,41 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap){
 		case MSG_NONE:	// just a message without prefix
 			break;
 		case MSG_STATUS: //Bright Green (To inform about good things)
-			strcpy(prefix,CL_BT_GREEN"[Status]"CL_RESET":");
+			prefix = CL_BT_GREEN"[Status]"CL_RESET": ";
 			break;
 		case MSG_SQL: //Bright Violet (For dumping out anything related with SQL)
-			strcpy(prefix,CL_BT_MAGENTA"[SQL]"CL_RESET":");
+			prefix = CL_BT_MAGENTA"[SQL]"CL_RESET":    ";
 			break;
 		case MSG_INFORMATION: //Bright White (Variable information)
-			strcpy(prefix,CL_BT_WHITE"[Info]"CL_RESET":");
+			prefix = CL_BT_WHITE"[Info]"CL_RESET":   ";
 			break;
 		case MSG_CONSOLE: //
-			strcpy(prefix,CL_LT_CYAN"[Console]"CL_RESET":");
+			prefix = CL_LT_CYAN"[Console]"CL_RESET":";
 			break;
 		case MSG_NOTICE: //Bright White (Less than a warning)
-			strcpy(prefix,CL_BT_WHITE"[Notice]"CL_RESET":");
+			prefix = CL_BT_WHITE"[Notice]"CL_RESET": ";
 			break;
 		case MSG_WARNING: //Bright Yellow
-			strcpy(prefix,CL_BT_YELLOW"[Warning]"CL_RESET":");
+			prefix = CL_BT_YELLOW"[Warning]"CL_RESET":";
 			break;
 		case MSG_DEBUG:
-			strcpy(prefix,CL_BT_CYAN"[Debug]"CL_RESET":");
+			prefix = CL_BT_CYAN"[Debug]"CL_RESET":  ";
 			break;
 		case MSG_ERROR: //Bright Red  (Regular errors)
-			strcpy(prefix,CL_BT_RED"[Error]"CL_RESET":");
+			prefix = CL_BT_RED"[Error]"CL_RESET":  ";
 			break;
 		case MSG_FATALERROR: //Bright Red (Fatal errors, abort(); if possible)
-			strcpy(prefix,CL_BT_RED"[Fatal Error]"CL_RESET":");
+			prefix = CL_BT_RED"[Fatal]"CL_RESET":  ";
 			break;
 		default:
 			ShowError("In function _ShowMessage() -> Invalid flag passed.\n");
 			return 1;
 	}
-	if (!(flag == MSG_DEBUG && !SHOW_DEBUG_MSG)) {
 
-		if(flag!=MSG_NONE)
+	if(flag!=MSG_NONE)
 		PRINTF("%s ", prefix);
-		VPRINTF(string, ap);
-//		printf("%s ", prefix);
-//		vprintf(string,ap);
-		fflush(stdout);
-	}
+	VPRINTF(string, ap);
+	fflush(stdout);
 
 	return 0;
 }

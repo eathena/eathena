@@ -249,7 +249,7 @@ int ladmin_log(char *fmt, ...) {
 
 	va_start(ap, fmt);
 
-	logfp = savefopen(ladmin_log_filename, "a");
+	logfp = safefopen(ladmin_log_filename, "a");
 	if (logfp)
 	{
 		if (fmt[0] == '\0') // jump a line if no message
@@ -4098,12 +4098,12 @@ int Connect_login_server()
 	
 	if (defaultlanguage == 'F')
 	{
-		ShowMessage("Essai de connection au server de logins...\n");
+		ShowStatus("Essai de connection au server de logins...\n");
 		ladmin_log("Essai de connection au server de logins..." RETCODE);
 	}
 	else
 	{
-		ShowMessage("Attempt to connect to login-server...\n");
+		ShowStatus("Attempt to connect to login-server...\n");
 		ladmin_log("Attempt to connect to login-server..." RETCODE);
 	}
 
@@ -4156,12 +4156,12 @@ int ladmin_config_read(const char *cfgName) {
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
-	fp = savefopen(cfgName, "r");
+	fp = safefopen(cfgName, "r");
 	if (fp == NULL) {
 		if (defaultlanguage == 'F') {
-			ShowMessage(CL_NORM"Fichier de configuration (%s) non trouvé.\n", cfgName);
+			ShowError(CL_NORM"Fichier de configuration (%s) non trouvé.\n", cfgName);
 		} else {
-			ShowMessage(CL_NORM"Configuration file (%s) not found.\n", cfgName);
+			ShowError(CL_NORM"Configuration file (%s) not found.\n", cfgName);
 		}
 		return 1;
 	}
@@ -4231,9 +4231,9 @@ int ladmin_config_read(const char *cfgName) {
 	login_ip = ntohl(inet_addr(loginserverip));
 
 	if (defaultlanguage == 'F') {
-		ShowMessage("---Lecture du fichier de configuration Ladmin terminée.\n");
+		ShowMessage("Lecture du fichier de configuration Ladmin terminée.\n");
 	} else {
-		ShowMessage("---End reading of Ladmin configuration file.\n");
+		ShowMessage("End reading of Ladmin configuration file.\n");
 	}
 
 	return 0;

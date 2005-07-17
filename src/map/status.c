@@ -287,7 +287,7 @@ static int hp_coefficient2[MAX_PC_CLASS];
 static int hp_sigma_val[MAX_PC_CLASS][MAX_LEVEL];
 static int sp_coefficient[MAX_PC_CLASS];
 static int aspd_base[MAX_PC_CLASS][20];
-static int refinebonus[5][3];	// 精錬ボーナステーブル(refine_db.txt)
+static int refinebonus[MAX_REFINE_BONUS][3];	// 精錬ボーナステーブル(refine_db.txt)
 int percentrefinery[5][MAX_REFINE+1];	// 精錬成功率(refine_db.txt)
 static int atkmods[3][20];	// 武器ATKサイズ修正(size_fix.txt)
 static char job_bonus[3][MAX_PC_CLASS][MAX_LEVEL];
@@ -302,7 +302,7 @@ int current_equip_item_index; //Contains inventory index of an equipped item. To
  */
 int status_getrefinebonus(int lv,int type)
 {
-	if (lv >= 0 && lv < 5 && type >= 0 && type < 3)
+	if (lv >= 0 && lv < MAX_REFINE_BONUS && type >= 0 && type < 3)
 		return refinebonus[lv][type];
 	return 0;
 }
@@ -697,6 +697,8 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			sd.def += sd.inventory_data[index]->def;
 			if(sd.inventory_data[index]->type == 4) {
 				int r,wlv = sd.inventory_data[index]->wlv;
+				if (wlv >= MAX_REFINE_BONUS) 
+					wlv = MAX_REFINE_BONUS - 1;
 				if(i == 8 && sd.status.inventory[index].equip == 0x20) { // Left-hand weapon
 					sd.left_weapon.watk += sd.inventory_data[index]->atk;
 					sd.left_weapon.watk2 = (r=sd.status.inventory[index].refine)*	// 精?攻?力
@@ -5194,7 +5196,7 @@ int status_readdb(void) {
 	char line[1024],*p;
 
 	// JOB補正?値１
-	fp=savefopen("db/job_db1.txt","r");
+	fp=safefopen("db/job_db1.txt","r");
 	if(fp==NULL){
 		ShowWarning("can't read db/job_db1.txt\n");
 		return 1;
@@ -5229,7 +5231,7 @@ int status_readdb(void) {
 
 	// JOBボ?ナス
 	memset(job_bonus,0,sizeof(job_bonus));
-	fp=savefopen("db/job_db2.txt","r");
+	fp=safefopen("db/job_db2.txt","r");
 	if(fp==NULL){
 		ShowWarning("can't read db/job_db2.txt\n");
 		return 1;
@@ -5257,7 +5259,7 @@ int status_readdb(void) {
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/job_db2.txt");
 
 	// JOBボ?ナス2 ?生職用
-	fp=savefopen("db/job_db2-2.txt","r");
+	fp=safefopen("db/job_db2-2.txt","r");
 	if(fp==NULL){
 		ShowWarning("can't read db/job_db2-2.txt\n");
 		return 1;
@@ -5284,7 +5286,7 @@ int status_readdb(void) {
 	for(i=0;i<3;i++)
 		for(j=0;j<20;j++)
 			atkmods[i][j]=100;
-	fp=savefopen("db/size_fix.txt","r");
+	fp=safefopen("db/size_fix.txt","r");
 	if(fp==NULL){
 		ShowWarning("can't read db/size_fix.txt\n");
 		return 1;
@@ -5310,7 +5312,7 @@ int status_readdb(void) {
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/size_fix.txt");
 
 	// 精?デ?タテ?ブル
-	for(i=0;i<5;i++){
+	for(i=0;i<MAX_REFINE_BONUS;i++){
 		for(j=0;j<MAX_REFINE; j++)
 			percentrefinery[i][j]=100;
 		percentrefinery[i][j]=0; //Slot MAX+1 always has 0% success chance [Skotlex]
@@ -5318,13 +5320,13 @@ int status_readdb(void) {
 		refinebonus[i][1]=0;
 		refinebonus[i][2]=10;
 	}
-	fp=savefopen("db/refine_db.txt","r");
+	fp=safefopen("db/refine_db.txt","r");
 	if(fp==NULL){
 		ShowWarning("can't read db/refine_db.txt\n");
 		return 1;
 	}
 	i=0;
-	while(fgets(line, sizeof(line)-1, fp)){
+	while(fgets(line, sizeof(line)-1, fp) && i<MAX_REFINE_BONUS){
 		char *split[16];
 		if( !skip_empty_line(line) )
 			continue;

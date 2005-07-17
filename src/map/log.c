@@ -66,7 +66,7 @@ int log_branch(struct map_session_data &sd)
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
-		if((logfp=savefopen(log_config.log_branch,"a+")) != NULL) {
+		if((logfp=safefopen(log_config.log_branch,"a+")) != NULL) {
 			char timestring[128];
 			time_t curtime;
 
@@ -102,7 +102,7 @@ int log_drop(struct map_session_data &sd, unsigned long monster_id, int log_drop
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
-		if((logfp=savefopen(log_config.log_drop,"a+")) != NULL) {
+		if((logfp=safefopen(log_config.log_drop,"a+")) != NULL) {
 			char timestring[128];
 			time_t curtime;
 			time(&curtime);
@@ -131,7 +131,7 @@ int log_mvpdrop(struct map_session_data &sd, unsigned long monster_id, int log_m
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
-		if((logfp=savefopen(log_config.log_mvpdrop,"a+")) != NULL) {
+		if((logfp=safefopen(log_config.log_mvpdrop,"a+")) != NULL) {
 			char timestring[128];
 			time_t curtime;
 
@@ -166,7 +166,7 @@ int log_present(struct map_session_data &sd, int source_type, unsigned short nam
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
-		if((logfp=savefopen(log_config.log_present,"a+")) != NULL) {
+		if((logfp=safefopen(log_config.log_present,"a+")) != NULL) {
 			char timestring[128];
 			time_t curtime;
 
@@ -201,7 +201,7 @@ int log_produce(struct map_session_data &sd, unsigned short nameid, int slot1, i
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
-		if((logfp=savefopen(log_config.log_produce,"a+")) != NULL) {
+		if((logfp=safefopen(log_config.log_produce,"a+")) != NULL) {
 			char timestring[128];
 			time_t curtime;
 
@@ -246,7 +246,7 @@ int log_refine(struct map_session_data &sd, int n, int success)
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
-		if((logfp=savefopen(log_config.log_refine,"a+")) != NULL) {
+		if((logfp=safefopen(log_config.log_refine,"a+")) != NULL) {
 			char timestring[128];
 			time_t curtime;
 
@@ -273,7 +273,7 @@ int log_tostorage(struct map_session_data &sd,int n, int guild)
 	if( sd.status.inventory[n].amount > MAX_AMOUNT )//sd.status.inventory[n].amount < 0 )
     return 1;
 
-	if((logfp=savefopen(log_config.log_trade,"a+")) != NULL) {
+	if((logfp=safefopen(log_config.log_trade,"a+")) != NULL) {
 		char timestring[128];
 		time_t curtime;
 
@@ -306,7 +306,7 @@ int log_fromstorage(struct map_session_data &sd,int n, int guild)
 	if( sd.status.inventory[n].amount > MAX_AMOUNT )//sd.status.inventory[n].amount < 0 )
     return 1;
 
-	if((logfp=savefopen(log_config.log_trade,"a+")) != NULL) {
+	if((logfp=safefopen(log_config.log_trade,"a+")) != NULL) {
 		char timestring[128];
 		time_t curtime;
 
@@ -361,7 +361,7 @@ int log_trade(struct map_session_data &sd, struct map_session_data &target_sd, i
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
-		if((logfp=savefopen(log_config.log_trade,"a+")) != NULL) {
+		if((logfp=safefopen(log_config.log_trade,"a+")) != NULL) {
 			char timestring[128];
 			time_t curtime;
 
@@ -408,7 +408,7 @@ int log_vend(struct map_session_data &sd,struct map_session_data &vsd,int n,int 
 				ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
-		if((logfp=savefopen(log_config.log_vend,"a+")) != NULL) {
+		if((logfp=safefopen(log_config.log_vend,"a+")) != NULL) {
 			char timestring[128];
 			time_t curtime;
 
@@ -442,7 +442,7 @@ int log_zeny(struct map_session_data &sd, struct map_session_data &target_sd,int
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
-		if((logfp=savefopen(log_config.log_trade,"a+")) != NULL) {
+		if((logfp=safefopen(log_config.log_trade,"a+")) != NULL) {
 			char timestring[128];
 			time_t curtime;
 
@@ -477,7 +477,7 @@ int log_atcommand(struct map_session_data &sd, const char *message)
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
-		if((logfp=savefopen(log_config.log_gm,"a+")) != NULL) {
+		if((logfp=safefopen(log_config.log_gm,"a+")) != NULL) {
 			char timestring[128];
 			time_t curtime;
 
@@ -511,7 +511,7 @@ int log_npc(struct map_session_data &sd, const char *message)
 			ShowError("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
-		if((logfp=savefopen(log_config.log_npc,"a+")) != NULL) {
+		if((logfp=safefopen(log_config.log_npc,"a+")) != NULL) {
 			char timestring[128];
 			time_t curtime;
 
@@ -591,9 +591,9 @@ int log_config_read(const char *cfgName)
 	if ((count++) == 0)
 		log_set_defaults();		
 
-	if((fp = savefopen(cfgName, "r")) == NULL)
+	if((fp = safefopen(cfgName, "r")) == NULL)
 	{
-		ShowMessage("Log configuration file not found at: %s\n", cfgName);
+		ShowError("Log configuration file not found at: %s\n", cfgName);
 		return 1;
 	}	
 
@@ -653,32 +653,32 @@ int log_config_read(const char *cfgName)
 			else if(strcasecmp(w1, "log_branch_db") == 0) {
 				strcpy(log_config.log_branch_db, w2);
 				if(log_config.branch == 1)
-					ShowMessage("Logging Dead Branch Usage to table `%s`\n", w2);
+					ShowInfo("Logging Dead Branch Usage to table `%s`\n", w2);
 			} else if(strcasecmp(w1, "log_drop_db") == 0) {
 				strcpy(log_config.log_drop_db, w2);
 				if(log_config.drop == 1)
-					ShowMessage("Logging Item Drops to table `%s`\n", w2);
+					ShowInfo("Logging Item Drops to table `%s`\n", w2);
 			} else if(strcasecmp(w1, "log_mvpdrop_db") == 0) {
 				strcpy(log_config.log_mvpdrop_db, w2);
 				if(log_config.mvpdrop == 1)
-					ShowMessage("Logging MVP Drops to table `%s`\n", w2);
+					ShowInfo("Logging MVP Drops to table `%s`\n", w2);
 			} else if(strcasecmp(w1, "log_present_db") == 0) {
 				strcpy(log_config.log_present_db, w2);
 				if(log_config.present == 1)
-					ShowMessage("Logging Present Usage & Results to table `%s`\n", w2);
+					ShowInfo("Logging Present Usage & Results to table `%s`\n", w2);
 			} else if(strcasecmp(w1, "log_produce_db") == 0) {
 				strcpy(log_config.log_produce_db, w2);
 				if(log_config.produce == 1)
-					ShowMessage("Logging Producing to table `%s`\n", w2);
+					ShowInfo("Logging Producing to table `%s`\n", w2);
 			} else if(strcasecmp(w1, "log_refine_db") == 0) {
 				strcpy(log_config.log_refine_db, w2);
 				if(log_config.refine == 1)
-					ShowMessage("Logging Refining to table `%s`\n", w2);
+					ShowInfo("Logging Refining to table `%s`\n", w2);
 			} else if(strcasecmp(w1, "log_trade_db") == 0) {
 				strcpy(log_config.log_trade_db, w2);
 				if(log_config.trade == 1)
 				{
-					ShowMessage("Logging Item Trades");
+					ShowInfo("Logging Item Trades");
 					if(log_config.zeny == 1)
 						ShowMessage("and Zeny Trades");
 					ShowMessage(" to table `%s`\n", w2);
@@ -687,57 +687,57 @@ int log_config_read(const char *cfgName)
 //				strcpy(log_config.log_storage_db, w2);
 //				if(log_config.storage == 1)
 //				{
-//					ShowMessage("Logging Item Storages");
+//					ShowInfo("Logging Item Storages");
 //					ShowMessage(" to table `%s`\n", w2);
 //				}
 			} else if(strcasecmp(w1, "log_vend_db") == 0) {
 				strcpy(log_config.log_vend_db, w2);
 				if(log_config.vend == 1)
-					ShowMessage("Logging Vending to table `%s`\n", w2);
+					ShowInfo("Logging Vending to table `%s`\n", w2);
 			} else if(strcasecmp(w1, "log_gm_db") == 0) {
 				strcpy(log_config.log_gm_db, w2);
 				if(log_config.gm > 0)
-					ShowMessage("Logging GM Level %d Commands to table `%s`\n", log_config.gm, w2);
+					ShowInfo("Logging GM Level %d Commands to table `%s`\n", log_config.gm, w2);
 			} else if(strcasecmp(w1, "log_npc_db") == 0) {
 				strcpy(log_config.log_npc_db, w2);
 				if(log_config.npc > 0)
-					ShowMessage("Logging NPC 'logmes' to table `%s`\n", w2);
+					ShowInfo("Logging NPC 'logmes' to table `%s`\n", w2);
 			} else if(strcasecmp(w1, "log_chat_db") == 0) {
 				strcpy(log_config.log_chat_db, w2);
 				if(log_config.chat > 0)
-					ShowMessage("Logging CHAT to table `%s`\n", w2);
+					ShowInfo("Logging CHAT to table `%s`\n", w2);
 			}
 #endif
 
 			else if(strcasecmp(w1, "log_branch_file") == 0) {
 				strcpy(log_config.log_branch, w2);
 				if(log_config.branch > 0 && log_config.sql_logs < 1)
-					ShowMessage("Logging Dead Branch Usage to file `%s`.txt\n", w2);
+					ShowInfo("Logging Dead Branch Usage to file `%s`.txt\n", w2);
 			} else if(strcasecmp(w1, "log_drop_file") == 0) {
 				strcpy(log_config.log_drop, w2);
 				if(log_config.drop > 0 && log_config.sql_logs < 1)
-					ShowMessage("Logging Item Drops to file `%s`.txt\n", w2);
+					ShowInfo("Logging Item Drops to file `%s`.txt\n", w2);
 			} else if(strcasecmp(w1, "log_mvpdrop_file") == 0) {
 				strcpy(log_config.log_mvpdrop, w2);
 				if(log_config.mvpdrop > 0 && log_config.sql_logs < 1)
-					ShowMessage("Logging MVP Drops to file `%s`.txt\n", w2);
+					ShowInfo("Logging MVP Drops to file `%s`.txt\n", w2);
 			} else if(strcasecmp(w1, "log_present_file") == 0) {
 				strcpy(log_config.log_present, w2);
 				if(log_config.present > 0 && log_config.sql_logs < 1)
-					ShowMessage("Logging Present Usage & Results to file `%s`.txt\n", w2);
+					ShowInfo("Logging Present Usage & Results to file `%s`.txt\n", w2);
 			} else if(strcasecmp(w1, "log_produce_file") == 0) {
 				strcpy(log_config.log_produce, w2);
 				if(log_config.produce > 0 && log_config.sql_logs < 1)
-					ShowMessage("Logging Producing to file `%s`.txt\n", w2);
+					ShowInfo("Logging Producing to file `%s`.txt\n", w2);
 			} else if(strcasecmp(w1, "log_refine_file") == 0) {
 				strcpy(log_config.log_refine, w2);
 				if(log_config.refine > 0 && log_config.sql_logs < 1)
-					ShowMessage("Logging Refining to file `%s`.txt\n", w2);
+					ShowInfo("Logging Refining to file `%s`.txt\n", w2);
 			} else if(strcasecmp(w1, "log_trade_file") == 0) {
 				strcpy(log_config.log_trade, w2);
 				if(log_config.trade > 0 && log_config.sql_logs < 1)
 				{
-					ShowMessage("Logging Item Trades");
+					ShowInfo("Logging Item Trades");
 					if(log_config.zeny > 0)
 						ShowMessage("and Zeny Trades");
 					ShowMessage(" to file `%s`.txt\n", w2);
@@ -746,25 +746,25 @@ int log_config_read(const char *cfgName)
 				strcpy(log_config.log_storage, w2);
 				if(log_config.storage > 0 && log_config.sql_logs < 1)
 				{
-					ShowMessage("Logging Item Storages");
+					ShowInfo("Logging Item Storages");
 					ShowMessage(" to file `%s`.txt\n", w2);
 				}
 			} else if(strcasecmp(w1, "log_vend_file") == 0) {
 				strcpy(log_config.log_vend, w2);
 				if(log_config.vend > 0  && log_config.sql_logs < 1)
-					ShowMessage("Logging Vending to file `%s`.txt\n", w2);
+					ShowInfo("Logging Vending to file `%s`.txt\n", w2);
 			} else if(strcasecmp(w1, "log_gm_file") == 0) {
 				strcpy(log_config.log_gm, w2);
 				if(log_config.gm > 0 && log_config.sql_logs < 1)
-					ShowMessage("Logging GM Level %d Commands to file `%s`.txt\n", log_config.gm, w2);
+					ShowInfo("Logging GM Level %d Commands to file `%s`.txt\n", log_config.gm, w2);
 			} else if(strcasecmp(w1, "log_npc_file") == 0) {
 				strcpy(log_config.log_npc, w2);
 				if(log_config.npc > 0 && log_config.sql_logs < 1)
-					ShowMessage("Logging NPC 'logmes' to file `%s`.txt\n", w2);
+					ShowInfo("Logging NPC 'logmes' to file `%s`.txt\n", w2);
 			} else if(strcasecmp(w1, "log_chat_file") == 0) {
 				strcpy(log_config.log_chat, w2);
 				if(log_config.chat > 0 && log_config.sql_logs < 1)					
-					ShowMessage("Logging CHAT to file `%s`.txt\n", w2);
+					ShowInfo("Logging CHAT to file `%s`.txt\n", w2);
 			//support the import command, just like any other config
 			} else if(strcasecmp(w1,"import") == 0) {
 				log_config_read(w2);

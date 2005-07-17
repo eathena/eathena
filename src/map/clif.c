@@ -35,8 +35,15 @@
 #include "log.h"
 
 
+struct Clif_Config {
+	int enable_packet_db;
+	unsigned long packet_db_ver;
+	int prefer_packet_db;
+	int connect_cmd;
+};
+
 struct Clif_Config clif_config;
-struct packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB];
+struct packet_db packet_db[MAX_PACKET_VER+1][MAX_PACKET_DB];
 
 
 static const int packet_len_table[MAX_PACKET_DB] = {
@@ -127,48 +134,15 @@ enum {
 #define WFIFOPOS(fd,pos,x,y) { WBUFPOS (WFIFOP(fd,pos),0,x,y); }
 #define WFIFOPOS2(fd,pos,x0,y0,x1,y1) { WBUFPOS2(WFIFOP(fd,pos),0,x0,y0,x1,y1); }
 
+netaddress	charaddress(ipaddress::GetSystemIP(0), 6121);
+ipset		mapaddress(5121);
 
-static unsigned long	map_ip	= INADDR_ANY;
-static unsigned short	map_port= 5121;
-int map_fd;
+int map_fd=-1;
 char talkie_mes[80];
 
+netaddress& getcharaddress()	{ return charaddress; }
+ipset& getmapaddress()			{ return mapaddress; }
 
-/*==========================================
- * mapŽI‚ÌipÝ’è
- *------------------------------------------
- */
-void clif_setip(unsigned long ip)
-{
-	map_ip = ip;
-}
-
-/*==========================================
- * mapŽI‚ÌportÝ’è
- *------------------------------------------
- */
-void clif_setport(unsigned short port)
-{
-	map_port = port;
-}
-
-/*==========================================
- * mapŽI‚Ìip“Ç‚Ýo‚µ
- *------------------------------------------
- */
-unsigned long clif_getip(void)
-{
-	return map_ip;
-}
-
-/*==========================================
- * mapŽI‚Ìport“Ç‚Ýo‚µ
- *------------------------------------------
- */
-unsigned short clif_getport(void)
-{
-	return map_port;
-}
 
 /*==========================================
  *
@@ -7618,6 +7592,55 @@ int clif_charnameack(int fd, struct block_list &bl, bool clear)
 
 	return 0;
 }
+/*
+// ---------------------
+// cliff_guess_PacketVer
+// ---------------------
+// Parses a WantToConnection packet to try to identify which is the packet version used. [Skotlex]
+int clif_guess_PacketVer(int fd)
+{
+	int packet_ver =0;
+	unsigned short cmd = RFIFOW(fd,0);
+	int packet_len = RFIFOREST(fd);
+	unsigned long account_id, char_id;
+	unsigned char sex;
+	
+	if (
+		cmd == clif_config.connect_cmd[clif_config.packet_db_ver] &&
+		packet_len == packet_db[clif_config.packet_db_ver][cmd].len &&
+		((sex = RFIFOB(fd, packet_db[clif_config.packet_db_ver][cmd].pos[4])) == 0 ||	sex == 1) &&
+		RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]) > 700000 &&
+		((char_id = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) >= 150000 && char_id < 5000000)
+	)
+		return clif_config.packet_db_ver; //Default packet version found.
+	
+
+	for(packet_ver = MAX_PACKET_VER; packet_ver > 0; packet_ver--)
+	{	//Start guessing the version, giving priority to the newer ones. [Skotlex]
+		if (cmd != clif_config.connect_cmd[packet_ver] ||	//it is not a wanttoconnection for this version.
+			packet_len != packet_db[packet_ver][cmd].len)	//The size of the wantoconnection packet does not matches.
+			continue;
+
+		
+		account_id = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]);
+		char_id = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]);
+		sex = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4]);
+		//Do general checks to verify our guess.
+		//FIXME: There has to be a better way to check the validity of the account/char_id! [Skotlex]
+		if (sex < 0 ||	sex > 1 ||
+			account_id < 700000 ||
+			account_id > 10000000 || //Wrong account_id range
+			char_id < 150000 || 
+			char_id > 5000000	//Wrong char_id range
+		)
+			continue;
+		
+		return packet_ver; //This is our best guess.
+	}
+	ShowDebug("Received packet of unknown version (packet: 0x%x, length: %d)\n", cmd, packet_len);
+	return -1;
+}
+*/
 
 // ------------
 // clif_parse_*
@@ -11669,7 +11692,7 @@ int clif_parse(int fd)
 			if( cmd == clif_config.connect_cmd && 
 				RFIFOREST(fd) >= packet_db[clif_config.packet_db_ver][cmd].len &&
 				(RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[4]) == 0 ||	// 01 = Male
-				RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[4]) == 1))		// 00 = Female
+				 RFIFOB(fd,packet_db[clif_config.packet_db_ver][cmd].pos[4]) == 1) )		// 00 = Female
 			{
 				packet_ver = clif_config.packet_db_ver;
 			}
@@ -11812,7 +11835,7 @@ int clif_parse(int fd)
 			FILE *fp;
 			char *packet_txt = "save/packet.txt";
 			time_t now;
-			fp = savefopen(packet_txt, "a");
+			fp = safefopen(packet_txt, "a");
 			if(fp == NULL)
 			{
 				ShowError("clif.c: cant write [%s] !!! data is lost !!!\n", packet_txt);
@@ -12014,7 +12037,7 @@ int packetdb_readdb(void)
 		{NULL,NULL}
 	};
 
-	if( (fp=savefopen("db/packet_db.txt","r"))==NULL ){
+	if( (fp=safefopen("db/packet_db.txt","r"))==NULL ){
 		ShowMessage("can't read db/packet_db.txt\n");		
 		return 1;
 	}
@@ -12469,8 +12492,10 @@ int do_init_clif(void) {
 	set_defaultparse(clif_parse);
 
 
-	for(i = 0; i < 10; i++) {
-		if( make_listen(map_ip, map_port) >= 0 )
+	for(i=0; i<10; i++)
+	{
+		map_fd = make_listen(mapaddress.LANIP(), mapaddress.LANPort());
+		if( map_fd >= 0 )
 			break;
 		sleep(20);
 	}

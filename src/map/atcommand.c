@@ -677,7 +677,7 @@ bool msg_config_read(const char *cfgName)
 	FILE *fp;
 	static bool initialized = false;
 
-	if((fp = savefopen(cfgName, "r")) == NULL) {
+	if((fp = safefopen(cfgName, "r")) == NULL) {
 		ShowError("Messages file not found: %s\n", cfgName);
 		return false;
 	}
@@ -769,7 +769,7 @@ bool atcommand_config_read(const char *cfgName)
 	AtCommandInfo* p;
 	FILE* fp;
 
-	if((fp = savefopen(cfgName, "r")) == NULL) {
+	if((fp = safefopen(cfgName, "r")) == NULL) {
 		ShowError("At commands configuration file not found: %s\n", cfgName);
 		return false;
 	}
@@ -968,7 +968,7 @@ bool atcommand_send(int fd, struct map_session_data &sd, const char* command, co
 			WFIFOW(fd,0) = 0x209;
 			WFIFOW(fd,2) = 2;
 			memcpy(WFIFOP(fd, 12), sd.status.name, 24);
-			WFIFOSET(fd, packet_db[clif_config.packet_db_ver][type].len);
+			WFIFOSET(fd, packet_db[sd.packet_ver][type].len);
 			break;
 		case 0x1b1:
 		case 0x1c2:
@@ -980,7 +980,7 @@ bool atcommand_send(int fd, struct map_session_data &sd, const char* command, co
 			for(i=1;i<=sizeof(info);i++)
 				if(info[i])
 					WFIFOW(fd,i) = info[i];
-			WFIFOSET(fd, packet_db[clif_config.packet_db_ver][type].len);
+			WFIFOSET(fd, packet_db[sd.packet_ver][type].len);
 			break;
 		}
 
@@ -1064,12 +1064,10 @@ bool atcommand_where(int fd, struct map_session_data &sd, const char* command, c
 	if(strncmp(sd.status.name,player_name,24)==0)
 		return false;
 	
-	if (battle_config.hide_GM_session) {
-		if (!(battle_config.who_display_aid > 0 && pc_isGM(sd) >= battle_config.who_display_aid))
-		{
-			return false;
-			}
-		}
+	if( battle_config.hide_GM_session && !(battle_config.who_display_aid > 0 && pc_isGM(sd)>=battle_config.who_display_aid) )
+	{
+		return false;
+	}
 
 	if((pl_sd = map_nick2sd(player_name)) == NULL) {
 		snprintf(output, sizeof(output), "%s %d %d",
@@ -1177,8 +1175,6 @@ bool atcommand_who(int fd, struct map_session_data &sd, const char* command, con
 	char output[128]="";
 	char match_text[104]="";
 	char player_name[24]="";
-
-
 
 	if (sscanf(message, "%99[^\n]", match_text) < 1)
 		*match_text = 0;
@@ -2474,7 +2470,7 @@ bool atcommand_help(int fd, struct map_session_data &sd, const char* command, co
 
 	memset(buf, '\0', sizeof(buf));
 
-	if((fp = savefopen(help_txt, "r")) != NULL) {
+	if((fp = safefopen(help_txt, "r")) != NULL) {
 		clif_displaymessage(fd, msg_table[26]); // Help commands:
 		gm_level = pc_isGM(sd);
 		while(fgets(buf, sizeof(buf) - 1, fp) != NULL) {
@@ -5940,7 +5936,7 @@ bool atcommand_loadnpc(int fd, struct map_session_data &sd, const char* command,
 	}
 
 	// check if script file exists
-	if ((fp = savefopen(message, "r")) == NULL) {
+	if ((fp = safefopen(message, "r")) == NULL) {
 		clif_displaymessage(fd, msg_table[261]);
 		return false;
 	}
@@ -8088,7 +8084,7 @@ bool atcommand_gmotd(int fd, struct map_session_data &sd, const char* command, c
 		char buf[256];
 		FILE *fp;
 	
-	if(	(fp = savefopen(motd_txt, "r"))!=NULL){
+	if(	(fp = safefopen(motd_txt, "r"))!=NULL){
 			while (fgets(buf, 250, fp) != NULL){
 				int i;
 				for( i=0; buf[i]; i++){
@@ -8873,49 +8869,48 @@ bool atcommand_iteminfo(int fd, struct map_session_data &sd, const char* command
  */
 bool atcommand_adopt(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-        struct map_session_data *pl_sd1 = NULL;
-        struct map_session_data *pl_sd2 = NULL;
-        struct map_session_data *pl_sd3 = NULL;
+	struct map_session_data *pl_sd1 = NULL;
+	struct map_session_data *pl_sd2 = NULL;
+	struct map_session_data *pl_sd3 = NULL;
 	char player1[128], player2[128], player3[128];
-
-        if (!message || !*message)
+	
+	if (!message || !*message)
 		return false;
 	if (sscanf(message, "%[^,],%[^,],%[^\r\n]", player1, player2, player3) != 3)
 	{
-                clif_displaymessage(fd, "usage: @adopt <player1>,<player2>,<player3>.");
+		clif_displaymessage(fd, "usage: @adopt <player1>,<player2>,<player3>.");
 		return false;
-        }
-
+	}
 	ShowMessage("Adopting: --%s--%s--%s--\n",player1,player2,player3);
-
+	
 	if((pl_sd1=map_nick2sd((char *) player1)) == NULL)
 	{
-                sprintf(player2, "Cannot find player %s online", player1);
-                clif_displaymessage(fd, player2);
+		sprintf(player2, "Cannot find player %s online", player1);
+		clif_displaymessage(fd, player2);
 		return false;
-        }
+	}
 	if((pl_sd2=map_nick2sd((char *) player2)) == NULL)
 	{
-                sprintf(player1, "Cannot find player %s online", player2);
-                clif_displaymessage(fd, player1);
+		sprintf(player1, "Cannot find player %s online", player2);
+		clif_displaymessage(fd, player1);
 		return false;
 	}
 	if((pl_sd3=map_nick2sd((char *) player3)) == NULL)
 	{
-                sprintf(player1, "Cannot find player %s online", player3);
-                clif_displaymessage(fd, player1);
+		sprintf(player1, "Cannot find player %s online", player3);
+		clif_displaymessage(fd, player1);
 		return false;
-        }
+	}
 	if((pl_sd1->status.base_level < 70) || (pl_sd2->status.base_level < 70))
 	{
-                clif_displaymessage(fd, "They are too young to be parents!");
+		clif_displaymessage(fd, "They are too young to be parents!");
 		return false;
-        }
+	}
 	if( pc_adoption(*pl_sd1, *pl_sd2, *pl_sd3) )
 	{
-                clif_displaymessage(fd, "They are family.. wish them luck");
+		clif_displaymessage(fd, "They are family.. wish them luck");
 		return true;
-        }
+	}
 	return false;
 }
 
