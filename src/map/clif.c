@@ -11644,7 +11644,7 @@ int clif_parse(int fd) {
 		{
 			int i;
 			if (fd)
-				ShowDebug("\nclif_parse: session #%d, packet 0x%x, length %d, version %d\n", fd, cmd, packet_len, packet_ver);
+				ShowDebug("\nclif_parse: session #%d, packet 0x%x, length %d, version %d\n", fd, cmd, RFIFOREST(fd), packet_ver);
 			printf("---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
 			for(i = 0; i < packet_len; i++) {
 				if ((i & 15) == 0)
