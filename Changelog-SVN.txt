@@ -1,5 +1,7 @@
 Date	Added
 07/16
+	* Added a bunch of debug information to help me understand why the client
+	  version check is failing. Report back the output on the forums. [Skotlex]
 	* The memory manager is now OFF by default [Skotlex]
 	  (if the server now crashes instead of the matrix bug, then whoever
 	  gets the traceback first gets to locate it's source)

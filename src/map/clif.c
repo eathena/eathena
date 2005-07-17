@@ -7925,20 +7925,27 @@ int clif_guess_PacketVer(int fd)
 		if (cmd != clif_config.connect_cmd[packet_ver] ||	//it is not a wanttoconnection for this version.
 			packet_len != packet_db[packet_ver][cmd].len)	//The size of the wantoconnection packet does not matches.
 			continue;
-
 		
 		account_id = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]);
 		char_id = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]);
 		sex = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4]);
 		//Do general checks to verify our guess.
 		//FIXME: There has to be a better way to check the validity of the account/char_id! [Skotlex]
-		if (sex < 0 ||	sex > 1 ||
-			account_id < 700000 ||
-			account_id > 10000000 || //Wrong account_id range
-			char_id < 150000 || 
-			char_id > 5000000	//Wrong char_id range
-		)
+		if (sex < 0 ||	sex > 1)
+		{
+			ShowDebug("Version check %d failed: invalid gender %d\n", packet_ver, sex);
 			continue;
+		}
+		if (account_id < 700000 ||	account_id > 10000000)
+		{
+			ShowDebug("Version check %d failed: invalid account id %d\n", packet_ver, account_id);
+			continue;
+		}
+		if (char_id < 150000 || char_id > 5000000)
+		{
+			ShowDebug("Version check %d failed: invalid char id %d\n", packet_ver, char_id);
+			continue;
+		}
 		
 		return packet_ver; //This is our best guess.
 	}
@@ -11630,7 +11637,23 @@ int clif_parse(int fd) {
 			packet_ver > MAX_PACKET_VER)	// no packet version support yet
 			// identified version, but unknown client?
 //			(!sd && packet_db[packet_ver][cmd].func != clif_parse_WantToConnection)) {
-		{	
+		{
+		
+		//Temporary debug information [Skotlex]
+		if (packet_ver < 5)
+		{
+			int i;
+			if (fd)
+				ShowDebug("\nclif_parse: session #%d, packet 0x%x, length %d, version %d\n", fd, cmd, packet_len, packet_ver);
+			printf("---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
+			for(i = 0; i < packet_len; i++) {
+				if ((i & 15) == 0)
+					printf("\n%04X ",i);
+				printf("%02X ", RFIFOB(fd,i));
+			}
+			printf("\n");
+		}	//End Debug
+
 			WFIFOW(fd,0) = 0x6a;
 			WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
 			WFIFOSET(fd,23);
