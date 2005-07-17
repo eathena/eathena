@@ -3327,8 +3327,17 @@ static struct Damage battle_calc_weapon_attack_sub(
 		switch (skill_num)
 		{	//Calc base damage according to skill
 			case PA_SACRIFICE:
-				ATK_ADD(status_get_max_hp(src)* 9/100);
+			{
+				int hp_dmg = status_get_max_hp(src)* 9/100;
+				ATK_ADD(hp_dmg);
+				battle_damage(src, src, -hp_dmg, 0, 0); //Damage to self is always 9%
+				if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
+				{
+					if (--sc_data[SC_SACRIFICE].val2 <= 0)
+						status_change_end(src, SC_SACRIFICE,-1);
+				}
 				break;
+			}
 			case PA_PRESSURE: //Since PRESSURE ignores everything, finish here
 				wd.damage=battle_calc_damage(src,target,500+300*skill_lv,wd.div_,skill_num,skill_lv,wd.flag);
 				wd.damage2=0;
@@ -3694,7 +3703,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 					break;
 				case PA_SACRIFICE:
 					skillratio+= 10*skill_lv -10;
-					flag.idef = flag.idef2 = 1;
 					ele_flag=1;
 					break;
 				case PA_SHIELDCHAIN:
@@ -3733,13 +3741,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 				short index= 0;
 				switch (skill_num)
 				{
-					case	PA_SACRIFICE:
-						pc_heal(sd, -wd.damage, 0);//Do we really always use wd.damage here?
-						//clif_skill_nodamage(src,target,skill_num,skill_lv,1);  // this doesn't show effect either.. hmm =/
-						sc_data[SC_SACRIFICE].val2 --;
-						if (sc_data[SC_SACRIFICE].val2 == 0)
-							status_change_end(src, SC_SACRIFICE,-1);
-						break;
 					case CR_SHIELDBOOMERANG:
 					case PA_SHIELDCHAIN:
 						if ((index = sd->equip_index[8]) >= 0 &&
@@ -4004,10 +4005,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 			scfix=scfix*50/100;
 		
 		if(t_sc_data[SC_ASSUMPTIO].timer != -1){
-			if(!map[target->m].flag.pvp)
-				scfix=scfix/3;
+			if(map[target->m].flag.pvp)
+				scfix=scfix*2/3; //Receive 66% damage
 			else
-				scfix=scfix*50/100;
+				scfix=scfix/2; //Receive 50% damage
 		}
 	
 		if(scfix != 1000)

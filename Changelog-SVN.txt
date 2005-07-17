@@ -1,5 +1,10 @@
 Date	Added
 07/16
+	* The memory manager is now OFF by default [Skotlex]
+	  (if the server now crashes instead of the matrix bug, then whoever
+	  gets the traceback first gets to locate it's source)
+	* Various fixes to Sacrifice (self damage, display, defense reduction, etc) [Skotlex]
+	* Fixed Assumptio's damage reduction in pvp/normal maps [Skotlex]
 	* Tiny fix to #fakename [Codemaster]
 	* Probable fix for matrix bug. [Kevin]
 	* Fixed SegFault with friends list loading on sql. [Kevin]
