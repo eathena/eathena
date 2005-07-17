@@ -1,5 +1,6 @@
 Date	Added
 07/16
+	* Tiny fix to #fakename [Codemaster]
 	* Probable fix for matrix bug. [Kevin]
 	* Fixed SegFault with friends list loading on sql. [Kevin]
 	* Fixed the spamming of 'unknown packet received' when a client connects

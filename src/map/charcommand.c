@@ -1253,7 +1253,7 @@ int charcommand_fakename(
 		return 0;
 	}
 	
-	if(strlen(char_name) < 1 ) {
+	if(strlen(char_name) < 1 || !char_name) {
 		if(!(pl_sd = map_nick2sd(name))) {
 			clif_displaymessage(sd->fd,"Character not found.");
 		}
