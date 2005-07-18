@@ -7916,7 +7916,7 @@ int clif_guess_PacketVer(int fd)
 		packet_len == packet_db[clif_config.packet_db_ver][cmd].len &&
 		((sex = RFIFOB(fd, packet_db[clif_config.packet_db_ver][cmd].pos[4])) == 0 ||	sex == 1) &&
 		RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]) > 700000 &&
-		((char_id = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) >= 150000 && char_id < 5000000)
+		((char_id = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) >= 1 && char_id < 5000000)
 	)
 		return clif_config.packet_db_ver; //Default packet version found.
 	
@@ -7941,7 +7941,7 @@ int clif_guess_PacketVer(int fd)
 			ShowDebug("Version check %d failed: invalid account id %d\n", packet_ver, account_id);
 			continue;
 		}
-		if (char_id < 150000 || char_id > 5000000)
+		if (char_id < 1 || char_id > 5000000)
 		{
 			ShowDebug("Version check %d failed: invalid char id %d\n", packet_ver, char_id);
 			continue;
