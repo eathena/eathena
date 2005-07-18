@@ -1,5 +1,7 @@
 Date	Added
 07/16
+	* More Sacrificial Ritual updates [Skotlex]
+	* Added Jawaii's water level, thanks to Manipulator [Skotlex]
 	* Sacrificial Ritual update [Skotlex]
 	* Bumped max Vending price to MAX_ZENY (currently 1000M) [Skotlex]
 	* Fixed a bug with Brandish Spear's damage. [Skotlex]

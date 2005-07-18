@@ -3330,11 +3330,14 @@ static struct Damage battle_calc_weapon_attack_sub(
 			case PA_SACRIFICE:
 			{
 				int hp_dmg = status_get_max_hp(src)* 9/100;
+				battle_damage(src, src, hp_dmg, 0, 0); //Damage to self is always 9%
+				if (map[src->m].flag.gvg)
+					hp_dmg = 6*hp_dmg/10; //40% less effective on siege maps. [Skotlex]
 				if (flag.rh)
 					wd.damage = hp_dmg;
 				else if (flag.lh) //This shouldn't be needed.. but just in case. [Skotlex]
 					wd.damage2 = hp_dmg;
-				battle_damage(src, src, hp_dmg, 0, 0); //Damage to self is always 9%
+
 				if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
 				{
 					if (--sc_data[SC_SACRIFICE].val2 <= 0)
