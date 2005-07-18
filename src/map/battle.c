@@ -3124,6 +3124,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 	{
 		skill_num = PA_SACRIFICE;
 		skill_lv	=  sc_data[SC_SACRIFICE].val1;
+		wd.div_ = 254; //Like triple blows, used to display the clif effect [Skotlex]
 	}
 
 	if (!skill_num && (tsd || battle_config.enemy_perfect_flee))
@@ -3329,8 +3330,11 @@ static struct Damage battle_calc_weapon_attack_sub(
 			case PA_SACRIFICE:
 			{
 				int hp_dmg = status_get_max_hp(src)* 9/100;
-				ATK_ADD(hp_dmg);
-				battle_damage(src, src, -hp_dmg, 0, 0); //Damage to self is always 9%
+				if (flag.rh)
+					wd.damage = hp_dmg;
+				else if (flag.lh) //This shouldn't be needed.. but just in case. [Skotlex]
+					wd.damage2 = hp_dmg;
+				battle_damage(src, src, hp_dmg, 0, 0); //Damage to self is always 9%
 				if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
 				{
 					if (--sc_data[SC_SACRIFICE].val2 <= 0)
@@ -3704,6 +3708,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					break;
 				case PA_SACRIFICE:
 					skillratio+= 10*skill_lv -10;
+					flag.idef = flag.idef2 = 1;
 					ele_flag=1;
 					break;
 				case PA_SHIELDCHAIN:
@@ -4822,7 +4827,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				clif_damage(src, src, tick, wd.amotion, wd.dmotion, rdamage, 1, 4, 0);
 		}
 
-		if (wd.div_ == 255)	{ //三段掌
+		if (wd.div_ == 255)	{ //Triple Blows
 			int delay = 0;
 			wd.div_ = 3;
 			if (sd && wd.damage + wd.damage2 < status_get_hp(target)) {
@@ -4838,6 +4843,10 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			clif_combo_delay(src, delay);
 			clif_skill_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_,
 				MO_TRIPLEATTACK, sd?pc_checkskill(sd,MO_TRIPLEATTACK):1, -1);
+		} else if (wd.div_ == 254) { //Sacrifice [Skotlex]
+			wd.div_ = 1;
+			clif_skill_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_,
+				PA_SACRIFICE, sd?pc_checkskill(sd,PA_SACRIFICE):1, -1);
 		} else {
 			clif_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_ , wd.type, wd.damage2);
 			//二刀流左手とカタール追撃のミス表示(無理やり～)
