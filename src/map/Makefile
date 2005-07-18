@@ -19,7 +19,7 @@ map-server: txtobj/map.o txtobj/chrif.o txtobj/clif.o txtobj/pc.o txtobj/npc.o t
 	$(CC) $(LIB_S) $(LIBS) -o ../../$@ $> 
 
 map-server_sql: sqlobj/map.o sqlobj/chrif.o sqlobj/clif.o sqlobj/pc.o sqlobj/npc.o sqlobj/chat.o sqlobj/path.o sqlobj/itemdb.o sqlobj/mob.o sqlobj/script.o sqlobj/storage.o sqlobj/skill.o sqlobj/atcommand.o sqlobj/charcommand.o sqlobj/battle.o sqlobj/intif.o sqlobj/trade.o sqlobj/party.o sqlobj/vending.o sqlobj/guild.o sqlobj/pet.o sqlobj/log.o sqlobj/status.o sqlobj/mail.o sqlobj/npc_chat.o sqlobj/mercenary.o $(COMMON_OBJ)
-	$(CC) $(LIB_S) $(LIBS) -o ../../$@ $> 
+	$(CC) $> $(LIB_S) $(LIBS) -o ../../$@
 
 txtobj/%.o: %.c
 	$(COMPILE.c) -DTXT_ONLY $(OUTPUT_OPTION) $<

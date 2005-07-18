@@ -6,7 +6,7 @@ COMMON_OBJ = ../common/core.o ../common/db.o ../common/plugins.o ../common/lock.
 COMMON_H = ../common/base.h ../common/core.h ../common/db.h ../common/plugins.h ../common/lock.h ../common/malloc.h ../common/md5calc.h ../common/mmo.h ../common/nullpo.h ../common/showmsg.h ../common/socket.h ../common/strlib.h ../common/timer.h ../common/utils.h ../common/version.h
 
 char-server_sql: char.o inter.o int_party.o int_guild.o int_storage.o int_pet.o itemdb.o $(COMMON_OBJ)
-	$(CC) $(LIB_S) -o ../../$@ $>
+	$(CC) $> $(LIB_S) -o ../../$@
 
 char.o: char.c char.h $(COMMON_H)
 inter.o: inter.c inter.h int_party.h int_guild.h int_storage.h int_pet.h $(COMMON_H)
