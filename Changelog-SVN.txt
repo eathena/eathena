@@ -1,5 +1,6 @@
 Date	Added
 07/16
+	* Fixed a bug with Brandish Spear's damage. [Skotlex]
 	* Changed the minimum valid char_id from 150k to 1 as apparently many sql
 	  servers somehow got their chars to start from id 1 instead of 150k. [Skotlex]
 	* Added a bunch of debug information to help me understand why the client

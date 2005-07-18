@@ -3525,6 +3525,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					if(skill_lv>6 && wflag==2) skillratio+= 50;
 					if(skill_lv>9 && wflag==2) skillratio+= 25;
 					if(skill_lv>9 && wflag==3) skillratio+= 50;
+					break;
 				case KN_BOWLINGBASH:
 					skillratio+= 50*skill_lv;
 					break;
@@ -5870,7 +5871,7 @@ void battle_set_defaults() {
 	battle_config.ban_spoof_namer = 5; // added by [Yor] (default: 5 minutes)
 	battle_config.hack_info_GM_level = 60; // added by [Yor] (default: 60, GM level)
 	battle_config.any_warp_GM_min_level = 20; // added by [Yor]
-	battle_config.packet_ver_flag = 255; // added by [Yor]
+	battle_config.packet_ver_flag = 1023; // added by [Yor]
 	battle_config.min_hair_style = 0;
 	battle_config.max_hair_style = 20;
 	battle_config.min_hair_color = 0;
