@@ -160,6 +160,7 @@ int skill_addtimerskill(struct block_list *src,unsigned int tick,int target,int 
 
 // 追加?果
 int skill_additional_effect( struct block_list* src, struct block_list *bl,int skillid,int skilllv,int attack_type,unsigned int tick);
+int skill_counter_additional_effect( struct block_list* src, struct block_list *bl,int skillid,int skilllv,int attack_type,unsigned int tick);
 
 // ユニットスキル
 struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,int skilllv,int x,int y,int flag);

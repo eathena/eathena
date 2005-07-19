@@ -762,7 +762,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	int rate;
 
 	int sc_def_mdef,sc_def_vit,sc_def_int,sc_def_luk;
-	int sc_def_mdef2,sc_def_vit2,sc_def_int2,sc_def_luk2;
 
 	nullpo_retr(0, src);
 	nullpo_retr(0, bl);
@@ -797,12 +796,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	sc_def_vit = status_get_sc_def_vit(bl);
 	sc_def_int = status_get_sc_def_int(bl);
 	sc_def_luk = status_get_sc_def_luk(bl);
-
-	//自分の耐性
-	sc_def_mdef2 = status_get_sc_def_mdef(src);
-	sc_def_vit2 = status_get_sc_def_vit(src);
-	sc_def_int2 = status_get_sc_def_int(src);
-	sc_def_luk2 = status_get_sc_def_luk(src);
 
 	switch(skillid){
 	case 0:					/* 通常攻? */
@@ -1107,10 +1100,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
   			}
 		break;
-	case MO_EXTREMITYFIST:			/* 阿修羅覇凰拳 */
-		//阿修羅を使うと5分間自然回復しないようになる
-		status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time2(skillid,skilllv),0 );
-		break;
 	case HW_NAPALMVULCAN:			/* ナパ?ムバルカン */
 		// skilllv*5%の確率で呪い
 		if (rand()%10000 < 5*skilllv*sc_def_luk)
@@ -1133,12 +1122,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 	}
 
-	if((sd||dstsd) && skillid != MC_CARTREVOLUTION && attack_type&BF_WEAPON){	/* カ?ドによる追加?果 */
+	if(sd && skillid != MC_CARTREVOLUTION && attack_type&BF_WEAPON){	/* カ?ドによる追加?果 */
 		int i, type;
 		int sc_def_card=100;
 
 		for(i=SC_STONE;i<=SC_BLIND;i++){
 			type=i-SC_STONE;
+			if (!sd->addeff[type] && (!sd->state.arrow_atk || !sd->arrow_addeff[type]))
+				continue; //Code Speedup.
 			//?象に?態異常
 			switch (i) {
 				case SC_STONE:
@@ -1159,64 +1150,123 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					sc_def_card=sc_def_luk;
 			}
 
-			if (sd) {
-				if(!sd->state.arrow_atk) {
-					if(rand()%10000 < (sd->addeff[type])*sc_def_card/100 ){
-						if(battle_config.battle_log)
-							ShowInfo("PC %d skill_addeff: cardによる異常?動 %d %d\n",sd->bl.id,i,sd->addeff[type]);
-						status_change_start(bl,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
-					}
-				}
-				else {
-					if(rand()%10000 < (sd->addeff[type]+sd->arrow_addeff[type])*sc_def_card/100 ){
-						if(battle_config.battle_log)
-							ShowInfo("PC %d skill_addeff: cardによる異常?動 %d %d\n",sd->bl.id,i,sd->addeff[type]);
-						status_change_start(bl,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
-					}
-				}
+			if	(rand()%10000 < (sd->addeff[type]+sd->state.arrow_atk?sd->arrow_addeff[type]:0)*sc_def_card/100 )
+			{	//Inflicted status effect.
+				if(battle_config.battle_log)
+					ShowInfo("PC %d skill_additional_effect: caused status effect (pos %d): %d\n",sd->bl.id,i,sd->addeff[type]);
+				status_change_start(bl,i,7,0,0,0,(i==SC_CONFUSION)? 17000:skill_get_time2(sc2[type],7),0);
 			}
-			//自分に?態異常
+		}
+	}
+	return 0;
+}
+
+/* Splitted off from skill_additional_effect, which is never called when the
+ * attack skill kills the enemy. Place in this function counter status effects 
+ * when using skills (eg: Asura's sp regen penalty, or counter-status effects 
+ * from cards) that will take effect on the source, not the target. [Skotlex]
+ * Note: Currently this function only applies to Extremity Fist and BF_WEAPON 
+ * type of skills, so not every instance of skill_additional_effect needs a call
+ * to this one.
+ */
+int skill_counter_additional_effect (struct block_list* src, struct block_list *bl, int skillid, int skilllv, int attack_type, unsigned int tick)
+{
+	const int sc2[]={
+		MG_STONECURSE,MG_FROSTDIVER,NPC_STUNATTACK,
+		NPC_SLEEPATTACK,TF_POISON,NPC_CURSEATTACK,
+		NPC_SILENCEATTACK,0,NPC_BLINDATTACK
+	};
+
+	struct map_session_data *sd=NULL;
+	struct map_session_data *dstsd=NULL;
+	struct mob_data *md=NULL;
+	struct mob_data *dstmd=NULL;
+	struct pet_data *pd=NULL;
+
+	int sc_def_mdef,sc_def_vit,sc_def_int,sc_def_luk;
+
+	nullpo_retr(0, src);
+	nullpo_retr(0, bl);
+
+	if(skillid < 0) 
+	{	// remove the debug print when this case is finished
+		ShowDebug("skill_counter_additional_effect: skillid=%i\ncall: %p %p %i %i %i %i",skillid,
+						src, bl,skillid,skilllv,attack_type,tick);
+		return 0;
+	}
+	if(skillid > 0 && skilllv <= 0) return 0;	// don't forget auto attacks! - celest
+
+	if (src->type == BL_PC){
+		nullpo_retr(0, sd = (struct map_session_data *)src);
+	} else if (src->type == BL_MOB){
+		nullpo_retr(0, md = (struct mob_data *)src); //未使用？
+	} else if (src->type == BL_PET){
+		nullpo_retr(0, pd = (struct pet_data *)src); // [Valaris]
+	}
+
+	if(bl->type == BL_PC) {
+		nullpo_retr(0, dstsd=(struct map_session_data *)bl);
+	} else if(bl->type == BL_MOB) {
+		nullpo_retr(0, dstmd=(struct mob_data *)bl); //未使用？
+	} else {
+		//PC,MOB以外は追加効果の対象外
+		return 0;
+	}
+
+	//自分の耐性
+	sc_def_mdef = status_get_sc_def_mdef(src);
+	sc_def_vit = status_get_sc_def_vit(src);
+	sc_def_int = status_get_sc_def_int(src);
+	sc_def_luk = status_get_sc_def_luk(src);
+
+	switch(skillid){
+	case 0: //Normal Attack - Nothing here yet.
+		break;
+	case MO_EXTREMITYFIST:			/* 阿修羅覇凰拳 */
+		//阿修羅を使うと5分間自然回復しないようになる
+		status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time2(skillid,skilllv),0 );
+		break;
+	}
+	
+	if((sd||dstsd) && skillid != MC_CARTREVOLUTION && attack_type&BF_WEAPON){	/* カ?ドによる追加?果 */
+		int i, type;
+		int sc_def_card=100;
+
+		for(i=SC_STONE;i<=SC_BLIND;i++){
+			type=i-SC_STONE;
+					
 			switch (i) {
 				case SC_STONE:
 				case SC_FREEZE:
-					sc_def_card=sc_def_mdef2;
+					sc_def_card=sc_def_mdef;
 					break;
 				case SC_STAN:
 				case SC_POISON:
 				case SC_SILENCE:
-					sc_def_card=sc_def_vit2;
+					sc_def_card=sc_def_vit;
 					break;
 				case SC_SLEEP:
 				case SC_CONFUSION:
 				case SC_BLIND:
-					sc_def_card=sc_def_int2;
+					sc_def_card=sc_def_int;
 					break;
 				case SC_CURSE:
-					sc_def_card=sc_def_luk2;
+					sc_def_card=sc_def_luk;
 			}
 
-			if (sd) {
-				if(!sd->state.arrow_atk) {
-					if(rand()%10000 < (sd->addeff2[type])*sc_def_card/100 ){
-						if(battle_config.battle_log)
-							ShowInfo("PC %d skill_addeff: cardによる異常?動 %d %d\n",src->id,i,sd->addeff2[type]);
-						status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
-					}
-				}
-				else {
-					if(rand()%10000 < (sd->addeff2[type]+sd->arrow_addeff2[type])*sc_def_card/100 ){
-						if(battle_config.battle_log)
-							ShowInfo("PC %d skill_addeff: cardによる異常?動 %d %d\n",src->id,i,sd->addeff2[type]);
-						status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
-					}
-				}
-			}
-			if (dstsd && rand()%10000 < dstsd->addeff3[type]*sc_def_card/100){
-				if (dstsd->addeff3_type[type] != 1 && ((sd && !sd->state.arrow_atk) || (status_get_range(src)<=2)))
-					continue;
+			if (sd && (rand()%10000 < (sd->addeff2[type]+sd->state.arrow_atk?sd->arrow_addeff2[type]:0)*sc_def_card/100 ))
+			{	//Self infliced status from attacking.
 				if(battle_config.battle_log)
-					ShowInfo("PC %d skill_addeff: cardによる異常?動 %d %d\n",src->id,i,dstsd->addeff3[type]);
-				status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
+					ShowInfo("PC %d skill_addeff: self inflicted effect (pos %d): %d\n",src->id,i,sd->addeff2[type]);
+				status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 17000:skill_get_time2(sc2[type],7),0);
+			}
+			if (dstsd &&
+				(dstsd->addeff3_type[type] == 1 || ((sd && sd->state.arrow_atk) || (status_get_range(src)>2))) &&
+				(rand()%10000 < dstsd->addeff3[type]*sc_def_card/100)
+			) {	//Counter status effect.
+				if(battle_config.battle_log)
+					ShowInfo("PC %d skill_addeff: counter inflicted effect (pos %d): %d\n",src->id,i,dstsd->addeff3[type]);
+				status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 17000:skill_get_time2(sc2[type],7),0);
 			}
 		}
 	}
@@ -1497,13 +1547,16 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			case CH_TIGERFIST:
 			{
 				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-				if(damage < status_get_hp(bl) &&
-				(
-				 	(pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 3 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
-					(pc_checkskill(sd, CH_CHAINCRUSH) > 0)
-				))
-					delay += 300 * battle_config.combo_delay_rate /100;
-				status_change_start(src,SC_COMBO,CH_TIGERFIST,skilllv,0,0,delay,0);
+				if(sc_data && sc_data[SC_COMBO].timer != -1)
+				{	//Avoid triggering combo status if not used in a combo. [Skotlex]
+					if(damage < status_get_hp(bl) &&
+					(
+					 	(pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 3 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
+						(pc_checkskill(sd, CH_CHAINCRUSH) > 0)
+					))
+						delay += 300 * battle_config.combo_delay_rate /100;
+					status_change_start(src,SC_COMBO,CH_TIGERFIST,skilllv,0,0,delay,0);
+				}
 				sd->attackabletime = sd->canmove_tick = tick + delay;
 				clif_combo_delay(src,delay);
 				break;
@@ -1638,7 +1691,10 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			clif_skillinfoblock(tsd);
 		}
 	}
-	/* ダメ?ジがあるなら追加?果判定 */
+	if (damage > 0) //Counter status effects [Skotlex] 
+		skill_counter_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
+	
+	/* ダメ?ジがあるなら追加?果判定 */	
 	if(bl->prev != NULL){
 		if(!status_isdead(bl)) {
 			if(damage > 0)
@@ -2357,6 +2413,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case MO_COMBOFINISH:	/* 猛龍拳 */
 	case CH_CHAINCRUSH:		/* 連柱崩? */
 	case CH_PALMSTRIKE:		/* 猛虎硬派山 */
+	case CH_TIGERFIST:		/* 伏虎拳 */
 	case PA_SHIELDCHAIN:	// Shield Chain
 	case PA_SACRIFICE:	//Sacrifice, Aru's style.
 	case CR_ACIDDEMONSTRATION:
@@ -2472,13 +2529,15 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		}
 		break;
 
-	case CH_TIGERFIST:		/* 伏虎拳 */
+/*		The target check should had been done together with the other skills (look for INF_ATTACK_SKILL) [Skotlex]
+	case CH_TIGERFIST:
 		if (tsd && !(map[bl->m].flag.gvg || map[bl->m].flag.pvp)) {
 			map_freeblock_unlock();
 			return 1;
 		}
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
+*/
 
 	case MO_EXTREMITYFIST:	/* 阿修羅覇鳳拳 */
 		{
@@ -5127,7 +5186,9 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		}
 	}
 
-	if( ( skill_get_inf(skill_id) & INF_ATTACK_SKILL || skill_id == MO_EXTREMITYFIST ) &&	// 彼我敵??係チェック
+	if( ( skill_get_inf(skill_id) & INF_ATTACK_SKILL ||
+		skill_id == MO_EXTREMITYFIST ||
+		skill_id == CH_TIGERFIST) &&	// 彼我敵??係チェック
 		battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0 ) {
 		SKILL_FAILED(0,0);
 	}
@@ -7034,9 +7095,8 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			else if (sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST)
 				spiritball = 3;
 			else if (sd->sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)
-				spiritball = 1;
-			// if chain crush came after tiger fist it should be 2...
-			// but i'm not sure how to check that yet ^^;
+				spiritball = sd->spiritball?sd->spiritball:1;
+			//It should consume whatever is left as long as it's at least 1.
 		}
 		break;
 	case BD_ADAPTATION:				/* アドリブ */

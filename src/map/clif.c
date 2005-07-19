@@ -9739,10 +9739,10 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 				sd->sc_data[SC_COMBO].val1 != CH_CHAINCRUSH))) {
 				if (!sd->state.skill_flag ) {
 					sd->state.skill_flag = 1;
-					clif_skillinfo(sd, MO_EXTREMITYFIST, 1, -1);
+					clif_skillinfo(sd, MO_EXTREMITYFIST, INF_ATTACK_SKILL, -1);
 					return;
 				} else if (sd->bl.id == target_id) {
-					clif_skillinfo(sd, MO_EXTREMITYFIST, 1, -1);
+					clif_skillinfo(sd, MO_EXTREMITYFIST, INF_ATTACK_SKILL, -1);
 					return;
 				}
 			}
@@ -9750,13 +9750,10 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 			if (sd->sc_data[SC_COMBO].timer == -1 || sd->sc_data[SC_COMBO].val1 != MO_COMBOFINISH) {
 				if (!sd->state.skill_flag ) {
 					sd->state.skill_flag = 1;
-					if (!sd->attacktarget) {
-						clif_skillinfo(sd, CH_TIGERFIST, 1, -2);
-						return;
-					} else
-						target_id = sd->attacktarget;
+					clif_skillinfo(sd, CH_TIGERFIST, INF_ATTACK_SKILL, -1);
+					return;
 				} else if (sd->bl.id == target_id) {
-					clif_skillinfo(sd, CH_TIGERFIST, 1, -2);
+					clif_skillinfo(sd, CH_TIGERFIST, INF_ATTACK_SKILL, -1);
 					return;
 				}
 			}

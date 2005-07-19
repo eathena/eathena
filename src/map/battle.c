@@ -4855,6 +4855,8 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 
 		battle_delay_damage(tick+wd.amotion, src, target, (wd.damage+wd.damage2), wd.div_, 0);
 
+		if (wd.damage > 0 || wd.damage2 > 0) //Added counter effect [Skotlex]
+			skill_counter_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
 		if (target->prev != NULL && (wd.damage > 0 || wd.damage2 > 0)) {
 			skill_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
 			if (sd) {

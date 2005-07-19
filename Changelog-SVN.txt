@@ -1,5 +1,9 @@
 Date	Added
-07/16
+07/19
+	* Corrections to Tiger Knuckle Fist [Skotlex]
+	* Rewriting of part of the skill-additional effect code. (Should fix
+	  Asura's penalty) [Skotlex]
+07/18
 	* Added a check that might prevent sql char crashes when requesting info
 	  for non-existant Characters. [Skotlex]
 	* Fixed main.sql (start char_id should be 150k) [Skotlex]
@@ -40,6 +44,7 @@ Date	Added
 	- Effects have a chance of 10*Skill_lv% of triggering every 5~15 secs 
 	  for whoever is on the skill area.
 	- Report any modifications/corrections needed on the forums.
+07/17
 	* More Sacrificial Ritual updates [Skotlex]
 	* Added Jawaii's water level, thanks to Manipulator [Skotlex]
 	* Sacrificial Ritual update [Skotlex]
