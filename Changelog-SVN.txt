@@ -1,5 +1,7 @@
 Date	Added
 07/19
+        * corrected some bounds errors in the new packet_db code 
+	  that was corrupting memory [MouseJstr]
 	* Corrections to Tiger Knuckle Fist [Skotlex]
 	* Rewriting of part of the skill-additional effect code. (Should fix
 	  Asura's penalty) [Skotlex]

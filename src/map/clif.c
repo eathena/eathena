@@ -287,7 +287,7 @@ int clif_send_sub(struct block_list *bl, va_list ap)
 	case AREA_WOSC:
 		{
 			struct map_session_data *ssd = (struct map_session_data *)src_bl;
-			if (ssd && sd->chatID && sd->chatID == ssd->chatID)
+			if ((ssd != 0) && (src_bl->type == BL_PC) && (sd->chatID != 0) && (sd->chatID == ssd->chatID))
 				return 0;
 		}
 		break;
@@ -11275,11 +11275,11 @@ void clif_parse_Blacksmith(int fd,struct map_session_data *sd)
 			if (strcmp(smith_fame_list[i].name, "-") == 0 &&
 				(name = map_charid2nick(smith_fame_list[i].id)) != NULL)
 			{
-				memcpy(WFIFOP(fd, 2 + 24 * i), name, NAME_LENGTH);
+				strncpy(WFIFOP(fd, 2 + 24 * i), name, NAME_LENGTH);
 			} else
-				memcpy(WFIFOP(fd, 2 + 24 * i), smith_fame_list[i].name, NAME_LENGTH);
+				strncpy(WFIFOP(fd, 2 + 24 * i), smith_fame_list[i].name, NAME_LENGTH);
 		} else
-			memcpy(WFIFOP(fd, 2 + 24 * i), "None", NAME_LENGTH);
+			strncpy(WFIFOP(fd, 2 + 24 * i), "None", 5);
 		WFIFOL(fd, 242 + i * 4) = smith_fame_list[i].fame;
 	}
 	WFIFOSET(fd, packet_len_table[0x219]);
@@ -12037,7 +12037,7 @@ int do_init_clif(void) {
 //	clif_config.enable_packet_db = 1; // whether to use the packet DB for client connection
 	clif_config.packet_db_ver = -1; // the main packet version of the DB
 //	clif_config.prefer_packet_db = 1; // whether the packet version takes precedence
-	clif_config.connect_cmd[MAX_PACKET_DB] = 0xF5;	// the default packet used for connecting to the server
+	clif_config.connect_cmd[MAX_PACKET_VER] = 0xF5;	// the default packet used for connecting to the server
 
 	memset(packet_db,0,sizeof(packet_db));
 
