@@ -2358,6 +2358,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case CH_CHAINCRUSH:		/* 連柱崩? */
 	case CH_PALMSTRIKE:		/* 猛虎硬派山 */
 	case PA_SHIELDCHAIN:	// Shield Chain
+	case PA_SACRIFICE:	//Sacrifice, Aru's style.
 	case CR_ACIDDEMONSTRATION:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
@@ -2415,7 +2416,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			status_change_end(src,SC_BLADESTOP,-1);
 		break;
 
-	case PA_SACRIFICE:
 	case SN_FALCONASSAULT:			/* ファルコンアサルト */
 		skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
 		break;
@@ -5052,6 +5052,18 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	return 0;
 }
 
+//This structure is used for delayed skill casting in which the skill data is independent
+//of the caster (ie: Palm Strike), it should be sent as the data part of the timer for skill_cast_end [Skotlex]
+struct skill_use_data {
+	int src_id; //Id of caster
+	int target_id; //Target id for id based skills
+	int m; //Source's map
+	int x; //Target x for area skills
+	int y; //Target y for area skills
+	int skill_id;
+	int skill_lv;
+};
+
 /*==========================================
  * スキル使用（詠唱完了、ID指定）
  *------------------------------------------
@@ -5060,67 +5072,67 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 {
 	struct map_session_data* sd = map_id2sd(id)/*,*target_sd=NULL*/;
 	struct block_list *bl;
+	int skill_id, skill_lv;
 	int range,inf2;
 
 	nullpo_retr(0, sd);
 
 	if( sd->bl.prev == NULL ) //prevが無いのはありなの？
 		return 0;
+//For quick cancelling of the skill [Skotlex]
+#define SKILL_FAILED(show, a) { if (show) clif_skill_fail(sd,skill_id,0,0); \
+	if (data == 0) { sd->canact_tick = sd->canmove_tick = tick; sd->skillitem = sd->skillitemlv = -1; }; \
+	return a; }
+	
+	if (data)
+	{
+		struct skill_use_data *sa = (struct skill_use_data*) data;
+		skill_id = sa->skill_id;
+		skill_lv = sa->skill_lv;
+		bl = map_id2bl(sa->target_id);
+		aFree(sa);	
+	} else {
+		skill_id = sd->skillid;
+		skill_lv = sd->skilllv;
+		bl = map_id2bl(sd->skilltarget);
+		
+		if (skill_id == -1 || skill_lv == -1)	// skill has failed after starting casting
+			return 0;
+		if(skill_id != SA_CASTCANCEL && sd->skilltimer != tid )	/* タイマIDの確認 */
+			return 0;
+		if(skill_id != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
+			status_calc_speed(sd, SA_FREECAST, range, 0); 
+		if(skill_id != SA_CASTCANCEL)
+			sd->skilltimer=-1;
+	}
 
-	if (sd->skillid == -1 || sd->skilllv == -1)	// skill has failed after starting casting
-		return 0;
-	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != tid )	/* タイマIDの確認 */
-		return 0;
-	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
-		status_calc_speed(sd, SA_FREECAST, range, 0); 
-
-	if(sd->skillid != SA_CASTCANCEL)
-		sd->skilltimer=-1;
-
-	if((bl=map_id2bl(sd->skilltarget))==NULL || bl->prev==NULL) {
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
-		return 0;
+	if(bl==NULL || bl->prev==NULL) {
+		SKILL_FAILED(0,0);
 	}
 	if(sd->bl.m != bl->m || pc_isdead(sd)) { //マップが違うか自分が死んでいる
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
-		return 0;
+		SKILL_FAILED(0,0);
 	}
 
-	if(sd->skillid == PR_LEXAETERNA) {
+	if(skill_id == PR_LEXAETERNA) {
 		struct status_change *sc_data = status_get_sc_data(bl);
 		if(sc_data && (sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2 == 0))) {
-			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			sd->skillitem = sd->skillitemlv = -1;
-			return 0;
+			SKILL_FAILED(1,0);
 		}
 	}
-	else if(sd->skillid == RG_BACKSTAP) {
+	else if(skill_id == RG_BACKSTAP) {
 		int dir = map_calc_dir(&sd->bl,bl->x,bl->y),t_dir = status_get_dir(bl);
 		int dist = distance(sd->bl.x,sd->bl.y,bl->x,bl->y);
 		if(bl->type != BL_SKILL && (dist == 0 || map_check_dir(dir,t_dir))) {
-			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			sd->skillitem = sd->skillitemlv = -1;
-			return 0;
+			SKILL_FAILED(1,0);
 		}
 	}
 
-	if( ( skill_get_inf(sd->skillid) & INF_ATTACK_SKILL || sd->skillid == MO_EXTREMITYFIST ) &&	// 彼我敵??係チェック
+	if( ( skill_get_inf(skill_id) & INF_ATTACK_SKILL || skill_id == MO_EXTREMITYFIST ) &&	// 彼我敵??係チェック
 		battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0 ) {
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
-		return 0;
+		SKILL_FAILED(0,0);
 	}
 	
-	inf2 = skill_get_inf2(sd->skillid);
+	inf2 = skill_get_inf2(skill_id);
 	if(inf2 & (INF2_PARTY_ONLY|INF2_GUILD_ONLY) && sd->bl.id != bl->id) {
 		int fail_flag = 1;
 		if(inf2 & INF2_PARTY_ONLY && battle_check_target(&sd->bl,bl, BCT_PARTY) > 0)
@@ -5128,73 +5140,60 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		if(inf2 & INF2_GUILD_ONLY && sd->status.guild_id > 0 && sd->status.guild_id == status_get_guild_id(bl))
 			fail_flag = 0;
 		
-		if (sd->skillid == PF_SOULCHANGE && (map[sd->bl.m].flag.gvg || map[sd->bl.m].flag.pvp))
+		if (skill_id == PF_SOULCHANGE && (map[sd->bl.m].flag.gvg || map[sd->bl.m].flag.pvp))
 			//Soul Change overrides this restriction during pvp/gvg [Skotlex]
 			fail_flag = 0;
 		
 		if(fail_flag) {
-			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			sd->skillitem = sd->skillitemlv = -1;
-			return 0;
+			SKILL_FAILED(1,0);
 		}
 	}
 
-	range = skill_get_range(sd->skillid,sd->skilllv);
+	range = skill_get_range(skill_id,skill_lv);
 	if(range < 0)
 		range = status_get_range(&sd->bl) - (range + 1);
 	range += battle_config.pc_skill_add_range;
 
 	if (sd->sc_data[SC_COMBO].timer != -1 &&
-		((sd->skillid == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
-		(sd->skillid == CH_TIGERFIST && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
-		(sd->skillid == CH_CHAINCRUSH && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
-		(sd->skillid == CH_CHAINCRUSH && sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST) ||
-		(sd->skillid == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST) ||
-		(sd->skillid == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)))
+		((skill_id == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
+		(skill_id == CH_TIGERFIST && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
+		(skill_id == CH_CHAINCRUSH && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
+		(skill_id == CH_CHAINCRUSH && sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST) ||
+		(skill_id == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST) ||
+		(skill_id == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)))
 		range += skill_get_blewcount(MO_COMBOFINISH,sd->sc_data[SC_COMBO].val2);
 
 	if(battle_config.skill_out_range_consume) { // changed to allow casting when target walks out of range [Valaris]
 		if(range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y)) {
-			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			sd->skillitem = sd->skillitemlv = -1;
-			return 0;
+			SKILL_FAILED(1,0);
 		}
 	}
 	if(!skill_check_condition(sd,1)) {		/* 使用?件チェック */
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
-		return 0;
+		SKILL_FAILED(0,0);
 	}
-//	sd->skillitem = sd->skillitemlv = -1; <- skill_check_condition(sd,1) does this
+
 	if(battle_config.skill_out_range_consume) {
 		if(range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y)) {
-			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			return 0;
+			SKILL_FAILED(1,0);
 		}
 	}
 
 	if(battle_config.pc_skill_log)
-		ShowInfo("PC %d skill castend skill=%d\n",sd->bl.id,sd->skillid);
-	pc_stop_walking(sd,0);
+		ShowInfo("PC %d skill castend skill=%d\n",sd->bl.id,skill_id);
+	if (data == 0)
+		pc_stop_walking(sd,0);
 
-	switch( skill_get_nk(sd->skillid) )
+	switch( skill_get_nk(skill_id) )
 	{
 	case NK_NO_DAMAGE:
-		if( (sd->skillid==AL_HEAL || (sd->skillid==ALL_RESURRECTION && bl->type != BL_PC) || sd->skillid==PR_ASPERSIO) && battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
-			skill_castend_damage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
+		if( (skill_id==AL_HEAL || (skill_id==ALL_RESURRECTION && bl->type != BL_PC) || skill_id==PR_ASPERSIO) && battle_check_undead(status_get_race(bl),status_get_elem_type(bl)))
+			skill_castend_damage_id(&sd->bl,bl,skill_id,skill_lv,tick,0);
 		else
-			skill_castend_nodamage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
+			skill_castend_nodamage_id(&sd->bl,bl,skill_id,skill_lv,tick,0);
 		break;
 	case NK_SPLASH_DAMAGE:
 	default:
-		skill_castend_damage_id(&sd->bl,bl,sd->skillid,sd->skilllv,tick,0);
+		skill_castend_damage_id(&sd->bl,bl,skill_id,skill_lv,tick,0);
 		break;
 	}
 
@@ -5757,7 +5756,6 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 	case PR_SANCTUARY:			/* サンクチュアリ */
 		val1=(skilllv+3)*2;
 		val2=(skilllv>6)?777:skilllv*100;
-		interval += 500;
 		break;
 
 	case WZ_FIREPILLAR:			/* ファイア?ピラ? */
@@ -6071,7 +6069,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 		break;
 
 	case 0xb2:				/* あなたを_?いたいです */
-	case 0xb3:				/* ゴスペル */
+	case 0xb3:
 	//とりあえず何もしない
 		break;
 	/*	default:
@@ -6119,11 +6117,13 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	// 前に影響を受けてからintervalの間は影響を受けない
 	nullpo_retr(0,ts = skill_unitgrouptickset_search(bl,sg,tick));
 	diff = DIFF_TICK(tick,ts->tick);
-	if (sg->skill_id == PR_SANCTUARY)
-		diff += 500; // 新規に回復したユニットだけカウントするための仕掛け
 	if (diff < 0)
 		return 0;
-	ts->tick = tick+sg->interval;
+	if (sg->unit_id == 0xb3 && sg->interval > 0) //Random effect delay for PA_GOSPEL [Skotlex]
+		ts->tick = tick+ sg->interval/2 + rand()%sg->interval; //-50%~+50% guess (no real data yet)
+	else
+		ts->tick = tick+sg->interval;
+	
 	// GXは重なっていたら3HITしない
 	if (sg->skill_id==CR_GRANDCROSS && !battle_config.gx_allhit)
 		ts->tick += sg->interval*(map_count_oncell(bl->m,bl->x,bl->y)-1);
@@ -6326,6 +6326,85 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0)
 			skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);		
 		break;
+
+	case 0xb3:	//PA_GOSPEL - Gospel
+		if (rand()%100 > sg->skill_lv*10)
+			break;
+		if (ss != bl && battle_check_target(ss,bl,BCT_PARTY)>0) 
+		{	//Support Effect
+			int i = rand()%14; //Positive buff count
+			switch (i)
+			{
+				case 0: // heal between 1-9999
+					{
+						int heal = rand() %9999+1;
+						clif_skill_nodamage(ss,bl,AL_HEAL,heal,1);
+						battle_heal(NULL,bl,heal,0,0);
+					}
+					break;
+				case 1: // end negative status
+					status_change_clear_debuffs (bl);
+					break;
+				case 2: // level 10 bless
+					clif_skill_nodamage(ss,bl,AL_BLESSING,10,1);
+					status_change_start(bl,SkillStatusChangeTable[AL_BLESSING],10,
+						0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					break;
+				case 3: // level 10 increase agility
+					clif_skill_nodamage(ss,bl,AL_INCAGI,10,1);
+					status_change_start(bl,SkillStatusChangeTable[AL_INCAGI],5,
+						0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					break;
+				case 4: // holy element to weapon
+					clif_skill_nodamage(ss,bl,PR_ASPERSIO,1,1);
+					status_change_start(bl,SkillStatusChangeTable[PR_ASPERSIO],1,
+						0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					break;
+				case 5: // holy element to armour
+					clif_skill_nodamage(ss,bl,PR_BENEDICTIO,1,1);
+					status_change_start(bl,SkillStatusChangeTable[PR_BENEDICTIO],1,
+						0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					break;
+				default: //Status change
+					status_change_start (bl, type, sg->skill_lv,
+						0, i, BCT_PARTY, skill_get_time2(sg->skill_id, sg->skill_lv),0);
+			}
+		}			
+		else if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0)
+		{	//Offensive Effect
+			int i = rand()%9; //Negative buff count
+			switch (i)
+			{
+				case 0: // damage between 1~9999
+				{
+					int dmg = rand() % 9999 +1;
+					clif_damage(ss, bl, sg->tick,0,0,dmg,0,0,0);
+					battle_damage(ss, bl, dmg,1,0); // temporary damage
+					break;
+				}
+				case 1: //Curse
+					status_change_start(bl, SC_CURSE,1,
+						0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					break;
+				case 2: //Blind
+					status_change_start(bl, SC_BLIND,1,
+						0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					break;
+				case 3: //Poison
+					status_change_start(bl, SC_POISON,1,
+						0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					break;
+				case 4: //Lv10 Provoke
+					clif_skill_nodamage(ss,bl,SM_PROVOKE,1,1);
+					status_change_start(bl,SkillStatusChangeTable[SM_PROVOKE],10,
+						0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					break;
+				default: //Status change
+					status_change_start (bl, type, sg->skill_lv,
+						0, i, BCT_ENEMY, skill_get_time2(sg->skill_id, sg->skill_lv),0);
+			}
+		}
+		break;	
 
 /*	default:
 		if(battle_config.error_log)
@@ -7702,7 +7781,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		ShowInfo("PC %d skill use target_id=%d skill=%d lv=%d cast=%d\n",
 			sd->bl.id, target_id, skill_num, skill_lv, casttime);
 
-	if (casttime > 0 || forcecast) { /* 詠唱が必要 */
+	if ((casttime > 0 || forcecast) && skill_num != CH_PALMSTRIKE) { //Palm Strike shows no cast bar [Skotlex]
 		struct mob_data *md;
 		if(sd->disguise) { // [Valaris]
 			clif_skillcasting(&sd->bl,sd->bl.id, target_id, 0,0, skill_num,0);
@@ -7730,11 +7809,27 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		sd->skillid != AS_CLOAKING)
 		status_change_end(&sd->bl,SC_CLOAKING,-1);
 	if (casttime > 0) {
-		sd->skilltimer = add_timer (tick + casttime, skill_castend_id, sd->bl.id, 0);
-		if ((skill = pc_checkskill(sd,SA_FREECAST)) > 0)
-			status_calc_speed (sd, SA_FREECAST, skill, 1);
+		if (skill_num == CH_PALMSTRIKE)
+		{	//Palm strike attacks happen independently of other attacks. 
+			struct skill_use_data *sa = (struct skill_use_data*) aCalloc(1, sizeof(struct skill_use_data));
+			sa->src_id = sd->bl.id;
+			sa->target_id = bl->id;
+			sa->m = sd->bl.m;
+			sa->skill_id = skill_num;
+			sa->skill_lv = skill_lv;
+			
+			clif_skill_nodamage(&sd->bl,bl,skill_num,skill_lv,0); //Display the effect
+			sd->canact_tick -= casttime; //Cast time is voided.
+			add_timer(tick + casttime, skill_castend_id, sd->bl.id, (int)sa);
+		}
 		else
-			pc_stop_walking(sd,0);
+		{
+			sd->skilltimer = add_timer (tick + casttime, skill_castend_id, sd->bl.id, 0);
+			if ((skill = pc_checkskill(sd,SA_FREECAST)) > 0)
+				status_calc_speed (sd, SA_FREECAST, skill, 1);
+			else
+				pc_stop_walking(sd,0);
+		}
 	} else {
 		sd->state.skillcastcancel = 0;	/* 詠唱の無いものはキャンセルされない */
 		if (skill_num != SA_CASTCANCEL)
@@ -8854,6 +8949,8 @@ struct skill_unit_group *skill_initunitgroup(struct block_list *src,
 	group->limit=10000;
 	group->interval=1000;
 	group->tick=gettick();
+	if (skillid == PR_SANCTUARY) //Sanctuary starts healing +1500ms after casted. [Skotlex]
+		group->tick += group->interval +500;
 	group->valstr=NULL;
 
 	if (skill_get_unit_flag(skillid)&UF_DANCE) {

@@ -15,6 +15,14 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+07/18
+	* Changed Double Attack's list_num (div) to 2. [Skotlex]
+	* Added Palm Strike to the "skill_castnodex" file. [Skotlex]
+	* Changed Palm Strike's casting time to 1500ms (this value is used as the
+	  delay between doing the skill and the damage taking effect) [Skotlex]
+	* Updated Gospel's uptime2 to 60 secs (that's how long the bonuses should
+	  affect) [Skotlex]
+
 07/13
 	* Changed Wand of Hermod's skill_unit_setting from 'friend' to 'party' [Skotlex]
 	  (this should make the skill affect only party (and guild?) mates instead

@@ -907,13 +907,13 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			}
 		}
 		if(sd->sc_data[SC_GOSPEL].timer!=-1 && sd->sc_data[SC_GOSPEL].val4 == BCT_PARTY){
-			if (sd->sc_data[SC_GOSPEL].val3 == 6) {
-				sd->paramb[0]+= 2;
-				sd->paramb[1]+= 2;
-				sd->paramb[2]+= 2;
-				sd->paramb[3]+= 2;
-				sd->paramb[4]+= 2;
-				sd->paramb[5]+= 2;
+			if (sd->sc_data[SC_GOSPEL].val3 == 8) {
+				sd->paramb[0]+= 20;
+				sd->paramb[1]+= 20;
+				sd->paramb[2]+= 20;
+				sd->paramb[3]+= 20;
+				sd->paramb[4]+= 20;
+				sd->paramb[5]+= 20;
 			}
 		}
 		// New guild skills - Celest
@@ -1438,28 +1438,28 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			if (sd->sc_data[SC_GOSPEL].val4 == BCT_PARTY){
 				switch (sd->sc_data[SC_GOSPEL].val3)
 				{
-				case 4:
-					sd->status.max_hp += sd->status.max_hp * 25 / 100;
+				case 6:
+					sd->status.max_hp += sd->status.max_hp;
 					if(sd->status.max_hp > battle_config.max_hp)
 						sd->status.max_hp = battle_config.max_hp;
 					break;
-				case 5:
-					sd->status.max_sp += sd->status.max_sp * 25 / 100;
+				case 7:
+					sd->status.max_sp += sd->status.max_sp;
 					if(sd->status.max_sp > battle_config.max_sp)
 						sd->status.max_sp = battle_config.max_sp;
 					break;
-				case 11:
+				case 9:
 					sd->def += sd->def * 25 / 100;
 					sd->def2 += sd->def2 * 25 / 100;
 					break;
+				case 10:
+					sd->base_atk += sd->base_atk;
+					break;
+				case 11:
+					sd->flee += 50;
+					break;
 				case 12:
-					sd->base_atk += sd->base_atk * 8 / 100;
-					break;
-				case 13:
-					sd->flee += sd->flee * 5 / 100;
-					break;
-				case 14:
-					sd->hit += sd->hit * 5 / 100;
+					sd->hit += 50;
 					break;
 				}
 			} else if (sd->sc_data[SC_GOSPEL].val4 == BCT_ENEMY){
@@ -1478,8 +1478,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 						sd->flee = 0;
 						break;
 					case 8:
-						SPEED_ADD_RATE(-75);
-						ASPD_ADD_RATE(-75);
+						SPEED_ADD_RATE(-25);
+						ASPD_ADD_RATE(-25);
 						break;
 				}
 			}
@@ -1781,16 +1781,6 @@ int status_get_max_hp(struct block_list *bl)
 			struct pet_data *pd;
 			nullpo_retr(1, pd = (struct pet_data*)bl);
 			max_hp = mob_db[pd->class_].max_hp;
-/* Moved this code to where the mob_db is read in mob.c [Skotlex]
-			if(mob_db[pd->class_].mexp > 0) { //MVP Monsters 
-				if(battle_config.mvp_hp_rate != 100)
-					max_hp = (max_hp * battle_config.mvp_hp_rate)/100;
-			}
-			else {	//Common MONSTERS
-				if(battle_config.monster_hp_rate != 100)
-					max_hp = (max_hp * battle_config.monster_hp_rate)/100;
-			}
-*/
 		}
 
 		sc_data = status_get_sc_data(bl);
@@ -1800,8 +1790,8 @@ int status_get_max_hp(struct block_list *bl)
 					+ sc_data[SC_APPLEIDUN].val3 / 10) * max_hp)/100;
 			if(sc_data[SC_GOSPEL].timer != -1 &&
 				sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-				sc_data[SC_GOSPEL].val3 == 4)
-				max_hp += max_hp * 25 / 100;
+				sc_data[SC_GOSPEL].val3 == 6)
+				max_hp += max_hp;
 			if(sc_data[SC_INCMHP2].timer!=-1)
 				max_hp *= (100+ sc_data[SC_INCMHP2].val1)/100;
 		}
@@ -2142,8 +2132,8 @@ int status_get_flee(struct block_list *bl)
 				flee -= flee*50/100;
 			if(sc_data[SC_GOSPEL].timer!=-1) {
 				if (sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-					sc_data[SC_GOSPEL].val3 == 13)
-					flee += flee*5/100;
+					sc_data[SC_GOSPEL].val3 == 11)
+					flee += 50;
 				else if (sc_data[SC_GOSPEL].val4 == BCT_ENEMY &&
 					sc_data[SC_GOSPEL].val3 == 7)
 					flee = 0;
@@ -2182,8 +2172,8 @@ int status_get_hit(struct block_list *bl)
 				hit += hit * 10 * sc_data[SC_CONCENTRATION].val1 / 100;
 			if (sc_data[SC_GOSPEL].timer != -1 &&
 				sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-				sc_data[SC_GOSPEL].val3 == 14)
-				hit += hit * 5 / 100;
+				sc_data[SC_GOSPEL].val3 == 12)
+				hit += 50;
 			if (sc_data[SC_EXPLOSIONSPIRITS].timer != -1)
 				hit += 20 * sc_data[SC_EXPLOSIONSPIRITS].val1;
 			if (sc_data[SC_INCHIT].timer != -1)
@@ -2322,8 +2312,8 @@ int status_get_atk(struct block_list *bl)
 
 			if(sc_data[SC_GOSPEL].timer!=-1) {
 				if (sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-					sc_data[SC_GOSPEL].val3 == 12)
-					atk += atk*8/100;
+					sc_data[SC_GOSPEL].val3 == 10)
+					atk += atk;
 				else if (sc_data[SC_GOSPEL].val4 == BCT_ENEMY &&
 					sc_data[SC_GOSPEL].val3 == 6)
 					atk = 0;
@@ -2520,7 +2510,7 @@ int status_get_def(struct block_list *bl)
 
 				if(sc_data[SC_GOSPEL].timer!=-1) {
 					if (sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-						sc_data[SC_GOSPEL].val3 == 11)
+						sc_data[SC_GOSPEL].val3 == 9)
 						def += def*25/100;
 					else if (sc_data[SC_GOSPEL].val4 == BCT_ENEMY &&
 						sc_data[SC_GOSPEL].val3 == 5)
@@ -2618,7 +2608,7 @@ int status_get_def2(struct block_list *bl)
 
 			if(sc_data[SC_GOSPEL].timer!=-1) {
 				if (sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-					sc_data[SC_GOSPEL].val3 == 11)
+					sc_data[SC_GOSPEL].val3 == 9)
 					def2 += def2*25/100;
 				else if (sc_data[SC_GOSPEL].val4 == BCT_ENEMY &&
 					sc_data[SC_GOSPEL].val3 == 5)
@@ -3197,8 +3187,8 @@ int status_get_sc_def(struct block_list *bl, int type)
 		struct status_change* sc_data = status_get_sc_data(bl);
 		if (sc_data && sc_data[SC_GOSPEL].timer != -1 &&
 			sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-			sc_data[SC_GOSPEL].val3 == 3)
-			sc_def -= 25;
+			sc_data[SC_GOSPEL].val3 == 13)
+			sc_def = 0; //Status inmunity
 	}
 
 	return (sc_def < 0) ? 0 : sc_def;
@@ -3733,7 +3723,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_SILENCE:			/* 沈?（レックスデビ?ナ） */
 			if (sc_data && sc_data[SC_GOSPEL].timer!=-1) {
-				skill_delunitgroup((struct skill_unit_group *)sc_data[SC_GOSPEL].val3);
+				if (sc_data[SC_GOSPEL].val4 == BCT_SELF) //Clear Gospel [Skotlex]
+					skill_delunitgroup((struct skill_unit_group *)sc_data[SC_GOSPEL].val3);
 				status_change_end(bl,SC_GOSPEL,-1);
 				break;
 			}
@@ -3878,7 +3869,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				val2 = tick;
 				tick = 1000;
 				status_change_clear_buffs(bl);
-			}
+			} else
+				calc_flag = 1;
 			break;
 
 		case SC_MARIONETTE:		/* マリオネットコントロ?ル */
@@ -4343,6 +4335,11 @@ int status_change_end( struct block_list* bl , int type,int tid )
 						}
 					} else calc_flag = 1;
 				}
+				break;
+			
+			case SC_GOSPEL: //Clear buffs for other chars (no need on caster since he is unbuffab le [Skotlex]
+				if(sc_data[type].val3 != BCT_SELF)
+					calc_flag = 1;
 				break;
 
 			case SC_BABY:
@@ -4852,30 +4849,37 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		break;
 
 	case SC_GOSPEL:
-		{
+		//This will only be called when the time runs out (or once every few secs for the caster, so most of the code is unnecessary [Skotlex]
+		/*
 			int calc_flag = 0;
 			if (sc_data[type].val3 > 0) {
 				sc_data[type].val3 = 0;
 				calc_flag = 1;
 			}
-			if(sd && sc_data[type].val4 == BCT_SELF){
-				int hp, sp;
-				hp = (sc_data[type].val1 > 5) ? 45 : 30;
-				sp = (sc_data[type].val1 > 5) ? 35 : 20;
-				if(sd->status.hp - hp > 0 &&
-					sd->status.sp - sp > 0){
-					sd->status.hp -= hp;
-					sd->status.sp -= sp;
-					clif_updatestatus(sd,SP_HP);
-					clif_updatestatus(sd,SP_SP);
-					if ((sc_data[type].val2 -= 10000) > 0) {
-						sc_data[type].timer = add_timer(
-							10000+tick, status_change_timer,
-							bl->id, data);
-						return 0;
-					}
+		*/
+		if(sc_data[type].val4 == BCT_SELF){
+			int hp, sp;
+			hp = (sc_data[type].val1 > 5) ? 45 : 30;
+			sp = (sc_data[type].val1 > 5) ? 35 : 20;
+			if(status_get_hp(bl) - hp > 0 &&
+				(sd == NULL || sd->status.sp - sp> 0))
+			{
+				if (sd)
+					pc_heal(sd,-hp,-sp);
+				else if (bl->type == BL_MOB)
+					mob_heal((struct mob_data *)bl,-hp);
+					
+				if ((sc_data[type].val2 -= 10000) > 0) {
+					sc_data[type].timer = add_timer(
+					10000+tick, status_change_timer,
+						bl->id, data);
+					return 0;
 				}
-			} else if (sd && sc_data[type].val4 == BCT_PARTY) {
+			}
+		}
+		break;
+			/*
+			else if (sd && sc_data[type].val4 == BCT_PARTY) {
 				int i;
 				switch ((i = rand() % 12)) {
 				case 1: // heal between 100-1000
@@ -4995,6 +4999,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 				status_calc_pc (sd, 0);
 		}
 		break;
+	*/
 
 	case SC_GUILDAURA:
 		{

@@ -2914,13 +2914,17 @@ static struct Damage battle_calc_pc_weapon_attack(
  *------------------------------------------
  */
 static struct Damage battle_calc_weapon_attack_sub(
-	struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int wflag)
+	struct block_list *src,struct block_list *target,int *skillnum,int *skilllv,int wflag)
 {
 	struct map_session_data *sd=NULL, *tsd=NULL;
 	struct mob_data *md=NULL, *tmd=NULL;
 	struct pet_data *pd=NULL;//, *tpd=NULL; (Noone can target pets)
 	struct Damage wd;
 	short skill=0;
+	//Not very efficient, but it's the way to implement auto skills with minimum changes
+	//(or would I best modify struct Damage to hold the skill info as well?) [Skotlex].
+	int skill_num = *skillnum;
+	int skill_lv = *skilllv;
 	unsigned short skillratio = 100;	//Skill dmg modifiers.
 
 	short i;
@@ -3108,23 +3112,24 @@ static struct Damage battle_calc_weapon_attack_sub(
 		
 		if (da == 1)
 		{
-			skill_num = TF_DOUBLE;
-			wd.div_ = 2;
+			*skillnum = skill_num = TF_DOUBLE;
+			*skilllv = skill_lv = pc_checkskill(sd, TF_DOUBLE);
 		} else if (da == 2) {
-			skill_num = MO_TRIPLEATTACK;
-			skill_lv = skill;
-			wd.div_ = 255;
+			*skillnum = skill_num = MO_TRIPLEATTACK;
+			*skilllv = skill_lv = skill;
 		}
 		
 		if (da)
+		{
+			wd.div_ = skill_get_num(skill_num,skill_lv);
 			wd.type = 0x08;
+		}
 	}
 
 	if (!skill_num && !flag.cri && sc_data && sc_data[SC_SACRIFICE].timer != -1)
 	{
-		skill_num = PA_SACRIFICE;
-		skill_lv	=  sc_data[SC_SACRIFICE].val1;
-		wd.div_ = 254; //Like triple blows, used to display the clif effect [Skotlex]
+		*skillnum = skill_num = PA_SACRIFICE;
+		*skilllv = skill_lv = sc_data[SC_SACRIFICE].val1;
 	}
 
 	if (!skill_num && (tsd || battle_config.enemy_perfect_flee))
@@ -3331,12 +3336,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 			{
 				int hp_dmg = status_get_max_hp(src)* 9/100;
 				battle_damage(src, src, hp_dmg, 0, 0); //Damage to self is always 9%
-				if (map[src->m].flag.gvg)
-					hp_dmg = 6*hp_dmg/10; //40% less effective on siege maps. [Skotlex]
-				if (flag.rh)
-					wd.damage = hp_dmg;
-				else if (flag.lh) //This shouldn't be needed.. but just in case. [Skotlex]
-					wd.damage2 = hp_dmg;
+				clif_damage(src,src, gettick(), 0, 0, hp_dmg, 0 , 0, 0);
+				
+				wd.damage = hp_dmg;
+				wd.damage2 = 0;
 
 				if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
 				{
@@ -3710,7 +3713,8 @@ static struct Damage battle_calc_weapon_attack_sub(
 					flag.cardfix = 0;
 					break;
 				case PA_SACRIFICE:
-					skillratio+= 10*skill_lv -10;
+					//40% less effective on siege maps. [Skotlex]	
+					skillratio+= 10*skill_lv -map[src->m].flag.gvg?50:10;
 					flag.idef = flag.idef2 = 1;
 					ele_flag=1;
 					break;
@@ -4123,7 +4127,7 @@ static struct Damage battle_calc_weapon_attack_sub(
  *------------------------------------------
  */
 struct Damage battle_calc_weapon_attack(
-	struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int wflag)
+	struct block_list *src,struct block_list *target,int *skill_num,int *skill_lv,int wflag)
 {
 	struct Damage wd;
 
@@ -4478,7 +4482,7 @@ struct Damage battle_calc_magic_attack(
 
 	if(skill_num == CR_GRANDCROSS) {	// グランドクロス
 		struct Damage wd;
-		wd=battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
+		wd=battle_calc_weapon_attack(bl,target,&skill_num,&skill_lv,flag);
 		damage = (damage + wd.damage) * (100 + 40*skill_lv)/100;
 		if(battle_config.gx_dupele) damage=battle_attr_fix(damage, ele, status_get_element(target) );	//属性2回かかる
 		if(bl==target){
@@ -4545,7 +4549,6 @@ struct Damage  battle_calc_misc_attack(
 	int damage=0,div_=1,blewcount=skill_get_blewcount(skill_num,skill_lv);
 	struct Damage md;
 	int damagefix=1;
-	int self_damage=0;	//For Sacrifice [Aru]
 
 	int aflag=BF_MISC|BF_SHORT|BF_SKILL;
 
@@ -4651,14 +4654,6 @@ struct Damage  battle_calc_misc_attack(
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		}
 		break;
-	case PA_SACRIFICE:
-		ele = status_get_attack_element(bl);
-		self_damage = status_get_max_hp(bl)/10;
-		self_damage -= self_damage/10;
-		if(status_get_mexp(target))
-			self_damage = 1;
-		damage = self_damage + (self_damage/10)*(skill_lv-1);
-		break;
 	}
 
 	if(damagefix){
@@ -4695,12 +4690,6 @@ struct Damage  battle_calc_misc_attack(
 	if(is_boss(target))
 		blewcount = 0;
 
-	if(self_damage)
-	{
-		pc_damage(bl,sd,self_damage,1);
-		clif_damage(bl,bl, gettick(), 0, 0, self_damage, 0 , 0, 0);
-	}
-
 	damage=battle_calc_damage(bl,target,damage,div_,skill_num,skill_lv,aflag);	// 最終修正
 
 	md.damage=damage;
@@ -4724,7 +4713,7 @@ struct Damage battle_calc_attack(	int attack_type,
 	struct Damage d;
 	switch(attack_type){
 	case BF_WEAPON:
-		return battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
+		return battle_calc_weapon_attack(bl,target,&skill_num,&skill_lv,flag);
 	case BF_MAGIC:
 		return battle_calc_magic_attack(bl,target,skill_num,skill_lv,flag);
 	case BF_MISC:
@@ -4747,6 +4736,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 	struct map_session_data *sd = NULL, *tsd = NULL;
 	struct status_change *sc_data, *tsc_data;
 	int race, ele, damage, rdamage = 0;
+	int skill_num = 0, skill_lv = 0; //For attacks that convert to a skill [Skotlex]
 	struct Damage wd;
 	short *opt1;
 
@@ -4796,19 +4786,22 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				return 0;
 			}
 		}
-		if(flag&0x8000) {
+		if(flag&0x8000) {	//Counter Attack
 			if(sd && battle_config.pc_attack_direction_change)
 				sd->dir = sd->head_dir = map_calc_dir(src, target->x,target->y );
 			else if (src->type == BL_MOB && battle_config.monster_attack_direction_change) {
 				struct mob_data *md = (struct mob_data *)src;
 				if (md) md->dir = map_calc_dir(src, target->x, target->y);
 			}
-			wd = battle_calc_weapon_attack(src, target, KN_AUTOCOUNTER, flag&0xff, 0);
+			skill_num = KN_AUTOCOUNTER;
+			skill_lv = flag&0xff;
 		}
 		else if (flag & AS_POISONREACT && sc_data && sc_data[SC_POISONREACT].timer != -1)
-			wd = battle_calc_weapon_attack(src, target, AS_POISONREACT, sc_data[SC_POISONREACT].val1, 0);
-		else
-			wd = battle_calc_weapon_attack(src,target,0,0,0);
+		{	//Poison React
+			skill_num = AS_POISONREACT;
+			skill_lv = sc_data[SC_POISONREACT].val1;
+		}
+		wd = battle_calc_weapon_attack(src,target, &skill_num, &skill_lv,0);
 	
 		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
 			if (wd.flag & BF_SHORT) {
@@ -4830,26 +4823,25 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				clif_damage(src, src, tick, wd.amotion, wd.dmotion, rdamage, 1, 4, 0);
 		}
 
-		if (wd.div_ == 255)	{ //Triple Blows
-			int delay = 0;
-			wd.div_ = 3;
-			if (sd && wd.damage + wd.damage2 < status_get_hp(target)) {
-				int skilllv = pc_checkskill(sd, MO_CHAINCOMBO);
-				if (skilllv > 0) {
-					delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-					delay += 300 * battle_config.combo_delay_rate / 100; //追加ディレイをconfにより調整
-				}
-				status_change_start(src, SC_COMBO, MO_TRIPLEATTACK, skilllv, 0, 0, delay, 0);
+		if (skill_num && skill_num != TF_DOUBLE) //Double attack must show as a normal attack
+		{	//Skill Attack
+			if (skill_num == MO_TRIPLEATTACK)
+			{	//Triple Blows
+				//Isn't this the skill delay? It should happen regardless of enemy-killed or not. [Skotlex]
+				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+				
+				if (sd && wd.damage + wd.damage2 < status_get_hp(target) &&
+					pc_checkskill(sd, MO_CHAINCOMBO) > 0)
+					delay += 300 * battle_config.combo_delay_rate / 100;
+				
+				status_change_start(src, SC_COMBO, skill_num, skill_lv, 0, 0, delay, 0);
+				if (sd)
+					sd->attackabletime = sd->canmove_tick = tick + delay;
+				clif_combo_delay(src, delay);
 			}
-			if (sd)
-				sd->attackabletime = sd->canmove_tick = tick + delay;
-			clif_combo_delay(src, delay);
+			
 			clif_skill_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_,
-				MO_TRIPLEATTACK, sd?pc_checkskill(sd,MO_TRIPLEATTACK):1, -1);
-		} else if (wd.div_ == 254) { //Sacrifice [Skotlex]
-			wd.div_ = 1;
-			clif_skill_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_,
-				PA_SACRIFICE, sd?pc_checkskill(sd,PA_SACRIFICE):1, -1);
+				skill_num, skill_lv, -1);
 		} else {
 			clif_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_ , wd.type, wd.damage2);
 			//二刀流左手とカタール追撃のミス表示(無理やり～)

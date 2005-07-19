@@ -7,6 +7,7 @@
 // By default, dex NEVER affects after-cast delay, so no need of putting 'x,0,1' in this file
 
 366,1	//HW_MAGICPOWER
+370,1	//CH_PALMSTRIKE
 383,1	//SN_WINDWALK
 403,1	//PF_MEMORIZE
 482,1	//PF_DOUBLECASTING

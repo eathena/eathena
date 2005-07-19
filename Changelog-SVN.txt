@@ -1,5 +1,43 @@
 Date	Added
 07/16
+	* Fixed main.sql (start char_id should be 150k) [Skotlex]
+	* Some code-cleaning for Sacrificial Ritual [Skotlex]
+	* Optimization of auto-triggering skills (double attack, sacrifice, triple
+	  blows) [Skotlex]
+	* Small fix to Sanctuary (shouldn't start healing until after 1.5 secs of
+	  casted) [Skotlex]
+	* Implemented Palm Strike (you cast the skill, it pushes back the enemy and
+	  deals damage 1 sec after it was casted) [Skotlex]
+	* Rewrote and tested Gospel's code, currently it works as follows: [Skotlex]
+	  Offensive Effects:
+	  0: Defense ignoring damage 1~9999
+	  1: Curse enemy
+	  2: Blind enemy
+	  3: Poison enemy
+	  4: Lv10 Provoke
+	  5: Def, Def2 to 0
+	  6: Base Atk, Watk to 0
+	  7: Flee to 0
+	  8: Speed/Aspd -25%
+	  
+	  Deffensive Effects:
+	  0: Heal 1~9999
+	  1: End all negative status effects
+	  2: Lv10 Bless
+	  3: Lv10 Inc Agi
+	  4: Aspersio (holy weapon)
+	  5: Benedictio (holy armor)
+	  6: +100% max hp
+	  7: +100% max sp
+	  8: +20 to all stats
+	  9: +25% def (armor and vit)
+	  10: +100% base atk
+	  11: +50 flee
+	  12: +50 hit
+	  13: Status effect inmunity
+	- Effects have a chance of 10*Skill_lv% of triggering every 5~15 secs 
+	  for whoever is on the skill area.
+	- Report any modifications/corrections needed on the forums.
 	* More Sacrificial Ritual updates [Skotlex]
 	* Added Jawaii's water level, thanks to Manipulator [Skotlex]
 	* Sacrificial Ritual update [Skotlex]
