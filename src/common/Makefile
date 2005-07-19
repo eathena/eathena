@@ -15,6 +15,8 @@ timer.o: timer.c base.h timer.h showmsg.h
 utils.o: utils.c base.h utils.h showmsg.h malloc.h mmo.h
 plugins.o: plugins.c base.h plugins.h mmo.h core.h utils.h malloc.h version.h showmsg.h
 
+dbaccess.o: dbaccess.c dbaccess.h showmsg.h
+
 clean:
 	rm -rf *.o obj
 

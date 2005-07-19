@@ -6,7 +6,7 @@
 #include "utils.h"		// safefopen
 #include "socket.h"		// buffer iterator
 #include "timer.h"		// timed config reload
-
+#include "dbaccess.h"	// SQL DB ACCESS includes
 #include "strlib.h"
 #include "mmo.h"
 
@@ -40,19 +40,19 @@ public:
 			return false;
 		}
 		ShowInfo("Reading configuration file '%s'\n", cfgName);
-		while(fgets(line, sizeof(line)-1, fp)) 
+		while(fgets(line, sizeof(line)-1, fp))
 		{
 			// terminate buffer
 			line[sizeof(line)-1] = '\0';
 
 			// skip leading spaces
 			ip = line;
-			while( isspace((int)((unsigned char)*ip) ) ) ip++; 
+			while( isspace((int)((unsigned char)*ip) ) ) ip++;
 
 			// skipping comment lines
 			if( ip[0] == '/' && ip[1] == '/')
 				continue;
-			
+
 			memset(w2, 0, sizeof(w2));
 			// format: "name:value"
 			if (sscanf(ip, "%[^:]: %[^\r\n]", w1, w2) == 2)
@@ -87,7 +87,7 @@ public:
 	static ulong String2IP(const char* str)
 	{	// host byte order
 		struct hostent *h = gethostbyname(str);
-		if (h != NULL) 
+		if (h != NULL)
 		{	// ip's are hostbyte order
 			return	  (((ulong)h->h_addr[3]) << 0x18 )
 					| (((ulong)h->h_addr[2]) << 0x10 )
@@ -136,7 +136,7 @@ public:
 		bool change = false;
 		if(str)
 		while( *str )
-		{	// replace control chars 
+		{	// replace control chars
 			// but skip chars >0x7F which are negative in char representations
 			if ( (*str<32) && (*str>0) )
 			{
@@ -205,11 +205,11 @@ class Database
 protected:
 	DBDefaults& def;
 
-	Database(DBDefaults &d) : def(d)	
+	Database(DBDefaults &d) : def(d)
 	{
 		Open();
 	}
-	~Database()	
+	~Database()
 	{
 	}
 	bool Open()
@@ -227,20 +227,6 @@ protected:
 //////////////////////////////////////////////////////////////////////////
 #else// SQL
 //////////////////////////////////////////////////////////////////////////
-
-#include <mysql.h>
-///////////////////////////////////////////////////////////////////////////////
-//
-// mysql access function
-//
-///////////////////////////////////////////////////////////////////////////////
-static inline int mysql_SendQuery(MYSQL *mysql, const char* q)
-{
-#ifdef TWILIGHT
-	ShowSQL("%s:%d# %s\n", __FILE__, __LINE__, q);
-#endif
-	return mysql_real_query(mysql, q, strlen(q));
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -365,44 +351,23 @@ class Database : public global, public noncopyable
 protected:
 	DBDefaults& def;
 
-	char	tmpsql[65536];
-	MYSQL	handle;
-
-	Database(DBDefaults &d) : def(d)	
+	Database(DBDefaults &d) : def(d)
 	{
 		Open();
 	}
-	~Database()	
-	{	
+	~Database()
+	{
 		Close();
 	}
 	bool Open()
-	{	
+	{
 		bool ret = true;
-		mysql_init(&handle);
 		//DB connection start
 		ShowInfo("Connect DB Server (%s)....\n", def.server_db);
-		if(!mysql_real_connect(&handle, def.server_ip, 
-										def.server_id, 
-										def.server_pw, 
-										def.server_db, 
-										def.server_port, NULL, 0)) 
-		{
-			//pointer check
-			ShowError("%s\n",mysql_error(&handle));
-			ret = false;
-		}
-		else 
-		{
-			ShowStatus("connect success!\n");
-		}
+		sql_connect(def.server_ip,def.server_id,def.server_pw,def.server_db,def.server_port)
+		ShowStatus("connect success!\n");
 
-		sprintf(tmpsql, "INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver', '100','login server started')", def.table_loginlog);
-		//query
-		if (mysql_SendQuery(&handle, tmpsql)) {
-			ShowMessage("DB server Error - %s\n", mysql_error(&handle));
-			ret = false;
-		}
+		sql_query("INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver', '100','login server started')", def.table_loginlog);
 		return ret;
 	}
 
@@ -410,24 +375,13 @@ protected:
 	{
 		bool ret = true;
 		//set log.
-		sprintf(tmpsql,"INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver','100', 'login server shutdown')", def.table_loginlog);
+		sql_query("INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver','100', 'login server shutdown')", def.table_loginlog);
 
 		//query
-		if (mysql_SendQuery(&handle, tmpsql)) {
-			ShowMessage("DB server Error - %s\n", mysql_error(&handle));
-			ret = false;
-		}
-
 		//delete all server status
-		sprintf(tmpsql,"DELETE FROM `sstatus`");
+		sql_query("DELETE FROM `sstatus`",NULL);
 
-		//query
-		if (mysql_SendQuery(&handle, tmpsql)) {
-			ShowMessage("DB server Error - %s\n", mysql_error(&handle));
-			ret = false;
-		}
-
-		mysql_close(&handle);
+		sql_close();
 		ShowMessage("Close DB Connection (%s)....\n", def.server_db);
 
 		return ret;
@@ -470,74 +424,51 @@ public:
 	Login_DB(DBDefaults& d) : Database(d)
 	{
 	}
-	~Login_DB()									
+	~Login_DB()
 	{
 	}
 
 	int isGM(unsigned long account_id) {
 		int level;
 
-		MYSQL_RES* 	sql_res;
-		MYSQL_ROW	sql_row;
 		level = 0;
-		sprintf(tmpsql,"SELECT `%s` FROM `%s` WHERE `%s`='%d'", 
+		sql_query("SELECT `%s` FROM `%s` WHERE `%s`='%d'",
 			def.column_level, def.table_login, def.column_account_id, account_id);
-
-		if (mysql_SendQuery(&handle, tmpsql)) {
-			ShowMessage("DB server Error (select GM Level to Memory)- %s\n", mysql_error(&handle));
-		}
-		sql_res = mysql_store_result(&handle);
-		if (sql_res) 
+		if (sql_res)
 		{
-			sql_row = mysql_fetch_row(sql_res);
+			sql_fetch_row();
 			level = atoi(sql_row[0]);
 			if (level > 99)
 				level = 99;
 		}
-		mysql_free_result(sql_res);
+		sql_free();
 		return level;
 	}
 
 
 	bool NewAccount(const char*userid, const char* passwd, const char *sex)
 	{
-		MYSQL_RES* 	sql_res;
 		bool ret = false;
 		char t_uid[256], t_pass[256];
 
 		jstrescapecpy(t_uid,  userid);
 		jstrescapecpy(t_pass, passwd);
 
-		sprintf(tmpsql, "SELECT `%s` FROM `%s` WHERE `userid` = '%s'", 
-			def.column_userid, def.table_login, t_uid);
+		sql_query("SELECT `%s` FROM `%s` WHERE `userid` = '%s'",def.column_userid, def.table_login, t_uid);
 
-		if(mysql_SendQuery(&handle, tmpsql))
-		{
-			ShowError("SQL error (NewAccount): %s", mysql_error(&handle));
-		}
-		else
-		{
-			sql_res = mysql_store_result(&handle);
-			if(mysql_num_rows(sql_res) == 0)
-			{	// ok no existing acc,
+		if(sql_num_rows() == 0)
+		{	// ok no existing acc,
 
-				ShowMessage("Adding a new account user: %s with passwd: %s sex: %c\n", 
-					userid, passwd, sex);
+			ShowMessage("Adding a new account user: %s with passwd: %s sex: %c\n",
+				userid, passwd, sex);
 
-				sprintf(tmpsql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", 
-					def.table_login, def.column_userid, def.column_user_pass, 
-					t_uid, t_pass, sex, "a@a.com");
+			sql_query("INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')",
+				def.table_login, def.column_userid, def.column_user_pass,
+				t_uid, t_pass, sex, "a@a.com");
+			ret =false;
 
-				if(mysql_SendQuery(&handle, tmpsql))
-				{
-					//Failed to insert new acc :/
-					ShowMessage("SQL error (NewAccount): %s", mysql_error(&handle));
-				}//sql query check to insert
-				else
-					ret =false;
-			}//rownum check (0!)
-			mysql_free_result(sql_res);
-		}//sqlquery
+		}//rownum check (0!)
+		sql_free();
 		//all values for NEWaccount ok ?
 		return ret;
 	}
@@ -584,7 +515,7 @@ class GM_Database : public Database
 {
 	//////////////////////////////////////////////////////////////////////////
 	// database entry structure
-	class gm_account 
+	class gm_account
 	{
 	public:
 		unsigned long account_id;
@@ -612,7 +543,7 @@ public:
 
 		read_gm_account();
 	}
-	~GM_Database()	
+	~GM_Database()
 	{}
 
 	int read_gm_account() {
@@ -680,38 +611,29 @@ public:
 	{
 		read_gm_account();
 	}
-	~GM_Database()	
+	~GM_Database()
 	{}
 
 
-	void read_gm_account(void) 
+	void read_gm_account(void)
 	{
 		gm_list.clear();
 
-		snprintf(tmpsql, sizeof(tmpsql), "SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",
+		sql_query("SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",
 			def.column_account_id, def.column_level, def.table_login, def.column_level, def.lowest_gm_level);
 
-		if( mysql_SendQuery(&handle, tmpsql) ) 
-		{
-			ShowMessage("DB server Error (select %s to Memory)- %s\n",def.table_login,mysql_error(&handle));
-		}
-		else
-		{
-			MYSQL_RES* 	lsql_res = mysql_store_result(&handle);
-			MYSQL_ROW	lsql_row;
-			size_t line_counter = 0;
-			if (lsql_res) {
+		size_t line_counter = 0;
+		if (sql_res) {
 
-				gm_list.realloc( (size_t)mysql_num_rows(lsql_res) );
+			gm_list.realloc( (size_t)sql_num_rows() );
 
-				while( (lsql_row = mysql_fetch_row(lsql_res)) && line_counter < 4000) 
-				{
-					line_counter++;
-					gm_list.push( gm_account(atoi(lsql_row[0]), atoi(lsql_row[1])) );
-				}
+			while( sql_fetch_row() && line_counter < 4000)
+			{
+				line_counter++;
+				gm_list.push( gm_account(atoi(sql_row[0]), atoi(sql_row[1])) );
 			}
-			mysql_free_result(lsql_res);
 		}
+		sql_free();
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -734,7 +656,7 @@ public:
 		return true;
 	}
 	bool _frombuffer(const unsigned char*buffer, size_t btsz)
-	{	
+	{
 		unsigned long ac;
 		unsigned char lv;
 		buffer_iterator bi(buffer, btsz);
@@ -772,8 +694,8 @@ void database_log_interal(ulong ip, const char*user_id, int code, char*msg)
 
 void database_log(ulong ip, const char*user_id, int code, char*msg,...)
 {
-	// initially using a static fixed buffer size 
-	static char		tempbuf[4096]; 
+	// initially using a static fixed buffer size
+	static char		tempbuf[4096];
 	// and make it multithread safe
 	static Mutex	mtx;
 	ScopeLock		sl(mtx);
@@ -794,7 +716,7 @@ void database_log(ulong ip, const char*user_id, int code, char*msg,...)
 		sz *= 2;
 		ibuf = new char[sz];
 		// and loop in again
-	}while(1); 
+	}while(1);
 
 	database_log_interal(ip,user_id,code,ibuf);
 
@@ -828,8 +750,8 @@ class CGlobalReg : public streamable
 public:
 	char str[32];
 	long value;
-	
-	
+
+
 	virtual bool toBuffer(buffer_iterator& bi) const
 	{
 		bi.str2buffer(str,32);
@@ -852,7 +774,7 @@ public:
 	char sex;
 	char userid[24];
 	char pass[33]; // 33 for 32 + NULL terminated
-	char lastlogin[24]; 
+	char lastlogin[24];
 	long logincount;
 	long state; // packet 0x006a value + 1 (0: compte OK)
 	char email[40]; // e-mail (by default: a@a.com)
@@ -872,7 +794,7 @@ public:
 		buffer_iterator bi(buffer, 10);
 
 		bi = globalreg[1];
-	
+
 	}
 
 };
@@ -893,7 +815,7 @@ class logger : private Mutex
 		}
 		return false;
 	}
-		
+
 	bool log_file(const char* msg, va_list va)
 	{
 		if(cToFile)
@@ -909,11 +831,11 @@ public:
 	{
 	}
 	logger(bool s, const char* n) : cToScreen(s), cToFile(NULL)
-	{	
+	{
 		open(n);
 	}
 	logger(const char* n) : cToScreen(true), cToFile(NULL)
-	{	
+	{
 		open(n);
 	}
 	~logger()
