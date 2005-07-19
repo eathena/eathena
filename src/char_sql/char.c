@@ -898,6 +898,11 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 
 	if (sql_res) {
 		sql_row = mysql_fetch_row(sql_res);
+		if (!sql_row)
+		{	//Just how does this happens? [Skotlex]
+			ShowError("Requested non-existant character id: %d!\n", char_id);
+			return 0;	
+		}
 
 		p->char_id = char_id;
 		p->account_id = atoi(sql_row[1]);
@@ -1204,7 +1209,11 @@ int mmo_char_fromsql_short(int char_id, struct mmo_charstatus *p){
 
 	if (sql_res) {
 		sql_row = mysql_fetch_row(sql_res);
-
+		if (!sql_row)
+		{	//Just how does this happens? [Skotlex]
+			ShowError("Requested non-existant character id: %d!\n", char_id);
+			return 0;	
+		}
 		p->char_id = char_id;
 		p->account_id = atoi(sql_row[1]);
 		p->char_num = atoi(sql_row[2]);

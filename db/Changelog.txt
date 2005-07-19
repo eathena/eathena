@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/18
+	* A silly me, Palm Strike's delay before taking effect is 1s, not 1.5 ^^' [Skotlex]
 	* Changed Double Attack's list_num (div) to 2. [Skotlex]
 	* Added Palm Strike to the "skill_castnodex" file. [Skotlex]
 	* Changed Palm Strike's casting time to 1500ms (this value is used as the

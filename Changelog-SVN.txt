@@ -1,5 +1,7 @@
 Date	Added
 07/16
+	* Added a check that might prevent sql char crashes when requesting info
+	  for non-existant Characters. [Skotlex]
 	* Fixed main.sql (start char_id should be 150k) [Skotlex]
 	* Some code-cleaning for Sacrificial Ritual [Skotlex]
 	* Optimization of auto-triggering skills (double attack, sacrifice, triple

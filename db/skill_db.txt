@@ -96,7 +96,7 @@
 94,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//BS_IRON#鉄製造#
 95,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//BS_STEEL#?鉄製造#
 96,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//BS_ENCHANTEDSTONE#属性石製造#
-97,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//BS_ORIDEOCON#オリデオコン研究#
+97,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//BS_ORIDECON#オリデオコン研究#
 98,0,0,0,0,0,3,0,no,0,0,0,weapon,0	//BS_DAGGER#短剣製作#
 99,0,0,0,0,0,3,0,no,0,0,0,weapon,0	//BS_SWORD#剣製作#
 100,0,0,0,0,0,3,0,no,0,0,0,weapon,0	//BS_TWOHANDSWORD#両手剣製作#
