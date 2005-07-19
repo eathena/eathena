@@ -13,7 +13,7 @@
 #include "mmo.h"
 #include "utils.h"
 #include "showmsg.h"
-
+#include "../common/dbaccess.h"
 
 #include "char.h"
 #include "int_storage.h"
@@ -492,7 +492,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 		aFree(g);
 		return 0;
 	}
-	
+
 	for(i = 0; i < MAX_GUILDSKILL; i++)
 	{	//Skill IDs must always be initialized. [Skotlex]
 		g->skill[i].id = i + GD_SKILLBASE;
@@ -533,7 +533,7 @@ int inter_guildcastle_tosql(struct guild_castle *gc)
 	struct guild_castle *gcopy;
 	if(gc == NULL || gc->castle_id == 0xFFFF )
 		return 0;
-	
+
 	gcopy = (struct guild_castle *)numdb_search(castle_db_,gc->castle_id);
 	if (gcopy == NULL) {
 		gcopy = (struct guild_castle *) aMalloc(sizeof(struct guild_castle));
@@ -549,8 +549,8 @@ int inter_guildcastle_tosql(struct guild_castle *gc)
 		"(`castle_id`, `guild_id`, `economy`, `defense`, `triggerE`, `triggerD`, `nextTime`, `payTime`, `createTime`,"
 		"`visibleC`, `visibleG0`, `visibleG1`, `visibleG2`, `visibleG3`, `visibleG4`, `visibleG5`, `visibleG6`, `visibleG7`,"
 		"`Ghp0`, `Ghp1`, `Ghp2`, `Ghp3`, `Ghp4`, `Ghp5`, `Ghp6`, `Ghp7`)"
-		"VALUES ('%d','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld')", 
-		guild_castle_db, gc->castle_id, gc->guild_id,  gc->economy, gc->defense, gc->triggerE, gc->triggerD, gc->nextTime, gc->payTime, 
+		"VALUES ('%d','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld')",
+		guild_castle_db, gc->castle_id, gc->guild_id,  gc->economy, gc->defense, gc->triggerE, gc->triggerD, gc->nextTime, gc->payTime,
 		gc->createTime, gc->visibleC, gc->visibleG0, gc->visibleG1, gc->visibleG2, gc->visibleG3, gc->visibleG4, gc->visibleG5,
 		gc->visibleG6, gc->visibleG7, gc->Ghp0, gc->Ghp1, gc->Ghp2, gc->Ghp3, gc->Ghp4, gc->Ghp5, gc->Ghp6, gc->Ghp7);
 
@@ -560,7 +560,7 @@ int inter_guildcastle_tosql(struct guild_castle *gc)
 		return 0;
 	}
 	mysql_free_result(sql_res) ; //resource free
-	
+
 	db_foreach(guild_db_, _set_guild_castle, gc->castle_id,gc->guild_id);
 
 	return 0;
@@ -662,7 +662,7 @@ int inter_guild_readdb()
 int inter_guild_sql_init()
 {
 	int i;
-	
+
 	guild_db_=numdb_init();
 	castle_db_=numdb_init();
 
@@ -710,7 +710,7 @@ int guild_db_final (void *k, void *data, va_list ap)
 			//delete_timer(g->save_timer,guild_save_timer);
 			g->save_timer = -1;
 			inter_guild_tosql(g, g->save_flag);
-			
+
 		}
 		aFree(g);
 	}
@@ -1129,7 +1129,7 @@ int mapif_guild_castle_alldataload(int fd)
 
 			//memcpy(WFIFOP(fd,len), gc, sizeof(struct guild_castle));
 			guild_castle_tobuffer(gc,WFIFOP(fd,len));
-			
+
 			gcopy = (struct guild_castle*)numdb_search(castle_db_,gc.castle_id);
 			if (gcopy == NULL)
 			{
@@ -1397,7 +1397,7 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (delete `guild_position`)- %s\n", mysql_error(&mysql_handle) );
 	}
-	
+
 	db_foreach(castle_db_, _erase_guild, guild_id);
 
 	//ShowMessage("- Update guild %d of char\n",guild_id);

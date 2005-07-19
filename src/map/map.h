@@ -225,12 +225,12 @@ struct map_session_data
 		unsigned dead_sit : 2;						// 4, 5
 		unsigned skillcastcancel : 1;				// 6
 		unsigned waitingdisconnect : 1;				// 7 - byte 1
-		unsigned lr_flag : 2;						// 8,9 
+		unsigned lr_flag : 2;						// 8,9
 		unsigned connect_new : 1;					// 10
 		unsigned arrow_atk : 1;						// 11
 		unsigned attack_type : 3;					// 12,13,14
 		unsigned skill_flag : 1;					// 15 - byte 2
-		unsigned gangsterparadise : 1;				// 16 
+		unsigned gangsterparadise : 1;				// 16
 		unsigned produce_flag : 1;					// 17
 		unsigned autoloot : 1; //by Upa-Kun			// 18
 		unsigned storage_flag : 1;					// 19
@@ -325,7 +325,7 @@ struct map_session_data
 	unsigned short attacktarget_lv;
 	unsigned long attackabletime;
 
-	unsigned long attacktarget;	
+	unsigned long attacktarget;
 	unsigned long followtarget;
 	int attacktimer;
 	int followtimer; // [MouseJstr]
@@ -347,7 +347,7 @@ struct map_session_data
 	struct skill_unit_group skillunit[MAX_SKILLUNITGROUP];
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET];
 	struct skill_timerskill skilltimerskill[MAX_SKILLTIMERSKILL];
-	char blockskill[MAX_SKILL];	// [celest]	
+	char blockskill[MAX_SKILL];	// [celest]
 	unsigned short cloneskill_id;
 	unsigned short cloneskill_lv;
 	unsigned long potion_hp;
@@ -617,7 +617,7 @@ struct npc_item_list {
 struct npc_reference{
 	char *script;
 	struct npc_label_list *label_list;
-	int label_list_num;	
+	int label_list_num;
 	size_t refcnt;			//reference counter
 };
 struct npc_data {
@@ -675,7 +675,7 @@ struct npc_data {
 	short arenaflag;
 	void *chatdb;
 
-	npc_data() : chatdb(NULL)	{} 
+	npc_data() : chatdb(NULL)	{}
 };
 
 
@@ -762,7 +762,7 @@ struct mob_data {
 	unsigned long last_spawntime;
 	unsigned long last_thinktime;
 	unsigned long canmove_tick;
-	
+
 	struct mob_damage
 	{
 		unsigned long fromid;
@@ -814,7 +814,7 @@ struct pet_data {
 		unsigned state : 8 ;
 		unsigned skillstate : 8 ;
 		unsigned change_walk_target : 1 ;
-		
+
 		unsigned casting_flag : 1; //Skotlex: Used to identify when we are casting. I want a state.state value for that....
 
 		signed skillbonus : 2;
@@ -838,7 +838,7 @@ struct pet_data {
 	unsigned long next_walktime;
 	unsigned long last_thinktime;
 
-	
+
 	struct pet_status { //Pet Status data
 		unsigned short level;
 		unsigned short atk1;
@@ -856,7 +856,7 @@ struct pet_data {
 		unsigned short delay; //How long before curing (secs).
 		int timer;
 	} *recovery; //[Valaris] / Reimplemented by [Skotlex]
-	
+
 	struct pet_bonus {
 		unsigned short type; //bStr, bVit?
 		unsigned short val;	//Qty
@@ -864,7 +864,7 @@ struct pet_data {
 		unsigned short delay;	//Time before recasting (secs)
 		int timer;
 	} *bonus; //[Valaris] / Reimplemented by [Skotlex]
-	
+
 	struct pet_skill_attack { //Attack Skill
 		unsigned short id;
 		unsigned short lv;
@@ -872,7 +872,7 @@ struct pet_data {
 		unsigned short rate; //Base chance of skill ocurrance (10 = 10% of attacks)
 		unsigned short bonusrate; //How being 100% loyal affects cast rate (10 = At 1000 intimacy->rate+10%
 	} *a_skill;	//[Skotlex]
-	
+
 	struct pet_skill_support { //Support Skill
 		unsigned short id;
 		unsigned short lv;
@@ -889,7 +889,7 @@ struct pet_data {
 		unsigned short max;
 		unsigned long loottick;
 	} *loot; //[Valaris] / Rewritten by [Skotlex]
-	
+
 	struct skill_timerskill skilltimerskill[MAX_MOBSKILLTIMERSKILL]; // [Valaris]
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP]; // [Valaris]
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET]; // [Valaris]
@@ -913,7 +913,7 @@ enum {
 
 
 // map_getcell()/map_setcell()‚Εg—p‚³‚κ‚ιƒtƒ‰ƒO
-typedef enum { 
+typedef enum {
 	CELL_CHKWALL=0,		// •Η(ƒZƒ‹ƒ^ƒCƒv1)
 	CELL_CHKWATER,		// …κ(ƒZƒ‹ƒ^ƒCƒv3)
 	CELL_CHKGROUND,		// ’n–ΚαQ•¨(ƒZƒ‹ƒ^ƒCƒv5)
@@ -953,7 +953,7 @@ enum {
 	GAT_UNUSED3		= 7,
 };
 
-struct mapgat // values from .gat & 
+struct mapgat // values from .gat &
 {
 	unsigned char type : 3;		// 3bit used for land,water,wall,(hole) (values 0,1,3,5,6 used)
 								// providing 4 bit space and interleave two cells in x dimension
@@ -1017,8 +1017,8 @@ struct map_data {
 		unsigned nogo : 1;						// 30
 		unsigned nobaseexp	: 1;				// 31 (byte 4) // [Lorky] added by Lupus
 		unsigned nojobexp	: 1;				// 32 // [Lorky]
-		unsigned nomobloot	: 1;				// 33 // [Lorky]				
-		unsigned nomvploot	: 1;				// 34 // [Lorky]		
+		unsigned nomobloot	: 1;				// 33 // [Lorky]
+		unsigned nomvploot	: 1;				// 34 // [Lorky]
 		unsigned _unused : 5;					// 35-39 (byte 5)
 	} flag;
 	struct point save;
@@ -1094,7 +1094,7 @@ enum {
 	SP_HP_DRAIN_VALUE,SP_SP_DRAIN_VALUE, // 1079-1080
 	SP_WEAPON_ATK,SP_WEAPON_ATK_RATE, // 1081-1082
 	SP_DELAYRATE,	// 1083
-	
+
 	SP_RESTART_FULL_RECORVER=2000,SP_NO_CASTCANCEL,SP_NO_SIZEFIX,SP_NO_MAGIC_DAMAGE,SP_NO_WEAPON_DAMAGE,SP_NO_GEMSTONE, // 2000-2005
 	SP_NO_CASTCANCEL2,SP_INFINITE_ENDURE,SP_UNBREAKABLE_WEAPON,SP_UNBREAKABLE_ARMOR, SP_UNBREAKABLE_HELM, // 2006-2010
 	SP_UNBREAKABLE_SHIELD, SP_LONG_ATK_RATE, // 2011-2012
@@ -1144,9 +1144,9 @@ void map_setcell(unsigned short m,unsigned short x, unsigned short y,int cellck)
 
 extern int map_read_flag; // 0: grf«Υ«΅«¤«λ 1: «­«γ«Γ«·«ε 2: «­«γ«Γ«·«ε(?υκ)
 enum {
-	READ_FROM_GAT, 
+	READ_FROM_GAT,
 	READ_FROM_AFM,
-	READ_FROM_BITMAP, 
+	READ_FROM_BITMAP,
 	READ_FROM_BITMAP_COMPRESSED
 };
 
@@ -1282,13 +1282,6 @@ static inline int mysql_SendQuery(MYSQL *mysql, const char* q)
 #endif
 	return mysql_real_query(mysql, q, strlen(q));
 }
-
-
-
-extern MYSQL mmysql_handle;
-extern char tmp_sql[65535];
-extern MYSQL_RES* sql_res ;
-extern MYSQL_ROW	sql_row ;
 
 extern MYSQL lmysql_handle;
 extern char tmp_lsql[65535];

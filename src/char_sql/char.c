@@ -15,6 +15,7 @@
 #include "timer.h"
 #include "mmo.h"
 #include "version.h"
+#include "../common/dbaccess.h"
 
 #include "char.h"
 #include "inter.h"
@@ -303,7 +304,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 	char temp_str[64]; //2x the value of the string before jstrescapecpy [Skotlex]
 	char *tmp_p = tmp_sql;
 	struct mmo_charstatus *cp;
-	struct itemtmp mapitem[MAX_GUILD_STORAGE];	
+	struct itemtmp mapitem[MAX_GUILD_STORAGE];
 
 	if (char_id!=p->char_id) return 0;
 
@@ -401,8 +402,8 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 	    (p->shield != cp->shield) || (p->head_top != cp->head_top) ||
 	    (p->head_mid != cp->head_mid) || (p->head_bottom != cp->head_bottom) ||
 	    (p->partner_id != cp->partner_id) || (p->father_id != cp->father_id) ||
-	    (p->mother_id != cp->mother_id) || (p->child_id != cp->child_id) || 
-		(p->fame_points != cp->fame_points)) 
+	    (p->mother_id != cp->mother_id) || (p->child_id != cp->child_id) ||
+		(p->fame_points != cp->fame_points))
 	{	//check party_exist
 
 	party_exist=0;
@@ -586,7 +587,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 		tmp_p += sprintf(tmp_p, "UPDATE `%s` SET ",friend_db);
 
 		diff = 0;
-		
+
 		for (i=0;i<MAX_FRIENDLIST;i++) {
 			if (i>0)
 				tmp_p += sprintf(tmp_p, ", ");
@@ -813,9 +814,9 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online)
 		strcpy(p->save_point.map,sql_row[17]);
 		p->save_point.x = atoi(sql_row[18]);
 		p->save_point.y = atoi(sql_row[19]);
-		p->partner_id = atoi(sql_row[20]); 
-		p->father_id = atoi(sql_row[21]); 
-		p->mother_id = atoi(sql_row[22]); 
+		p->partner_id = atoi(sql_row[20]);
+		p->father_id = atoi(sql_row[21]);
+		p->mother_id = atoi(sql_row[22]);
 		p->child_id = atoi(sql_row[23]);
 		p->fame_points = atoi(sql_row[24]);
 
@@ -987,7 +988,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online)
 	if(mysql_query(&mysql_handle, tmp_sql)){
 		ShowMessage("fromsql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
 	}
-	
+
 	sql_res = mysql_store_result(&mysql_handle);
 	if(sql_res) {
 		friends=mysql_num_rows(sql_res);
@@ -1027,7 +1028,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online)
 		numdb_insert(char_db_, char_id, cp);
 	}
     	memcpy(cp, p, sizeof(struct mmo_charstatus));
-	
+
 	return 1;
 }
 //==========================================================================================================
@@ -1094,7 +1095,7 @@ int mmo_char_sql_init(void) {
                  	ShowMessage("total char data -> '0'.......\n");
                  }
 	}
-	
+
 	if(char_per_account == 0){
 	  ShowMessage("Chars per Account: 'Unlimited'.......\n");
         }else{
@@ -1118,7 +1119,7 @@ int mmo_char_sql_init(void) {
 	if (mysql_SendQuery(&mysql_handle, tmp_sql))
 		ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle));
 	*/
-	//the 'set offline' part is now in check_login_conn ... 
+	//the 'set offline' part is now in check_login_conn ...
 	//if the server connects to loginserver
 	//it will dc all off players
 	//and send the loginserver the new state....
@@ -1167,7 +1168,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 			mysql_free_result(sql_res);
 		}
 	}
-	
+
 	// Check Authorised letters/symbols in the name of the character
 	if (char_name_option == 1)
 	{	// only letters/symbols in char_name_letters are authorised
@@ -1187,13 +1188,13 @@ int make_new_char_sql(int fd, unsigned char *dat)
 		(dat[30] >= 9) || // slots (dat[30] can not be negativ)
 		(dat[33] <= 0) || (dat[33] >= 24) || // hair style
 		(dat[31] >= 9)) { // hair color (dat[31] can not be negativ)
-		if (log_char) {	
+		if (log_char) {
 			// char.log to charlog
 			sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
 				"VALUES (NOW(), '%s', '%ld', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
 				charlog_db,"make new char error", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 			//query
-			mysql_SendQuery(&mysql_handle, tmp_sql);		
+			mysql_SendQuery(&mysql_handle, tmp_sql);
 		}
 		ShowError("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
 		return -2;
@@ -1227,7 +1228,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 		ShowError("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
 		return -2;
 	} // now when we have passed all stat checks
-		
+
 	if (log_char) {
 		// char.log to charlog
 		sprintf(tmp_sql,"INSERT INTO `%s`(`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
@@ -1280,7 +1281,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 		}
 		mysql_free_result(sql_res);
 	}
-	
+
 	//char_id_count++;
 
 	// make new char.
@@ -1317,7 +1318,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	insert_friends(char_id_count);
 	*/
 
-	
+
 	//New Querys [Sirius]
 	//Insert the char to the 'chardb' ^^
 	sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%ld', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", char_db, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.map, start_point.x, start_point.y, start_point.map, start_point.x, start_point.y);
@@ -1650,7 +1651,7 @@ int parse_tologin(int fd)
 		case 0x2718:
 			if (RFIFOREST(fd) < 2)
 				return 0;
-	
+
 			RFIFOSKIP(fd,2);
 			break;
 
@@ -1860,7 +1861,7 @@ int parse_tologin(int fd)
 						if (GM_num == 0) {
 							gm_account = (struct gm_account*)aMalloc(sizeof(struct gm_account));
 						} else {
-							gm_account = (struct gm_account*)aRealloc(gm_account, sizeof(struct gm_account) * (GM_num + 1));						
+							gm_account = (struct gm_account*)aRealloc(gm_account, sizeof(struct gm_account) * (GM_num + 1));
 						}
 						gm_account[GM_num].account_id = RFIFOL(fd,2);
 						gm_account[GM_num].level = (int)RFIFOB(fd,6);
@@ -1965,7 +1966,7 @@ int parse_frommap(int fd)
 			WBUFW(buf,12) = server[id].address.LANPort();
 			WBUFLIP(buf,14) = server[id].address.WANIP();
 			WBUFW(buf,18) = server[id].address.WANPort();
-		
+
 			for(i=0, j=0; i<MAX_MAP_PER_SERVER; i++)
 				if(server[id].map[i][0])
 					memcpy(WBUFP(buf,20+(j++)*16), server[id].map[i], 16);
@@ -2187,10 +2188,10 @@ int parse_frommap(int fd)
 			if(i == 0){
 				WFIFOW(fd, 6) = 0;
 			}
-			
+
 			WFIFOSET(fd, 44);
 			RFIFOSKIP(fd, 49);
-			ShowMessage(" done.\n");			
+			ShowMessage(" done.\n");
 			/*
 			i = 0;
 			if (( sql_row = mysql_fetch_row(sql_res))) {
@@ -2212,7 +2213,7 @@ int parse_frommap(int fd)
 			*/
 
 		break;
-		
+
 		// char name check
 		case 0x2b08:
 			if (RFIFOREST(fd) < 6)
@@ -2672,7 +2673,7 @@ int parse_char(int fd)
 				}
 			}
 			RFIFOSKIP(fd, 17);
-			break;		  
+			break;
 		}
 		case 0x66: // char select
 //			ShowMessage("0x66> request connect - account_id:%d/char_num:%d\n",sd->account_id,(unsigned char)RFIFOB(fd, 2));
@@ -2680,7 +2681,7 @@ int parse_char(int fd)
 				return 0;
 		{
 			int j;
-			
+
 			if(!sd)
 			{
 				RFIFOSKIP(fd, 3);
@@ -2776,7 +2777,7 @@ int parse_char(int fd)
 				WFIFOLIP(fd, 22) = server[j].address.WANIP();
 				WFIFOW(fd, 26)   = server[j].address.WANPort();
 			}
-			
+
 			WFIFOSET(fd, 28);
 
 			if (auth_fifo_pos >= AUTH_FIFO_SIZE) {
@@ -2830,8 +2831,8 @@ int parse_char(int fd)
                 //denied
                 WFIFOW(fd, 0) = 0x6e;
                 WFIFOB(fd, 2) = 0x02;
-                WFIFOSET(fd, 3); 
-                RFIFOSKIP(fd, 37);                           
+                WFIFOSET(fd, 3);
+                RFIFOSKIP(fd, 37);
                 break;
             }else if(i == -3){
                 //underaged XD
@@ -2933,7 +2934,7 @@ int parse_char(int fd)
 			}
 
 ------------- END REMOVED -------- */
-			//Remove recoded by Sirius 
+			//Remove recoded by Sirius
 			if(strcmp(email, sd->email) != 0){
 				if(strcmp("a@a.com", sd->email) == 0){
 					if(strcmp("a@a.com", email) == 0 || strcmp("", email) == 0){
@@ -2943,7 +2944,7 @@ int parse_char(int fd)
 						WFIFOW(fd, 0) = 0x70;
 						WFIFOB(fd, 2) = 0;
 						WFIFOSET(fd, 3);
-						RFIFOSKIP(fd, 46);	
+						RFIFOSKIP(fd, 46);
 						break;
 					}
 				}else{
@@ -2953,7 +2954,7 @@ int parse_char(int fd)
 					WFIFOSET(fd, 3);
 					RFIFOSKIP(fd, 46);
 					break;
-				}			
+				}
 			}
 
 			sprintf(tmp_sql, "SELECT `name`,`partner_id` FROM `%s` WHERE `char_id`='%ld'",char_db, (unsigned long)RFIFOL(fd,2));
@@ -3276,12 +3277,12 @@ int send_users_tologin(int tid, unsigned long tick, int id, int data) {
 }
 
 int check_connect_login_server(int tid, unsigned long tick, int id, int data) {
-		
-	if ( !session_isActive(login_fd) ) 
+
+	if ( !session_isActive(login_fd) )
 	{
 		ShowStatus("Attempt to connect to login-server...\n");
 		login_fd = make_connection(loginaddress.addr(), loginaddress.port());
-		if ( session_isActive(login_fd) ) 
+		if ( session_isActive(login_fd) )
 		{
 			session[login_fd]->func_parse = parse_tologin;
 			realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
@@ -3305,7 +3306,7 @@ int check_connect_login_server(int tid, unsigned long tick, int id, int data) {
 			WFIFOW(login_fd,88)   = charaddress.WANPort();
 
 			WFIFOSET(login_fd,90);
-		
+
 			// (re)connected to login-server,
 			// now wi'll look in sql which player's are ON and set them OFF
 			// AND send to all mapservers (if we have one / ..) to kick the players
@@ -3315,14 +3316,14 @@ int check_connect_login_server(int tid, unsigned long tick, int id, int data) {
 			struct char_session_data *sd;
 			int fd, cc;
 			unsigned char buf[16];
-		
+
 			sprintf(tmp_sql, "SELECT `account_id`, `online` FROM `%s` WHERE `online` = '1'", char_db);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql))
 			{
 				ShowError("SQL Error: check_conn_loginserver '1', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
 				return -1;
 			}
-		
+
 			sql_res = mysql_store_result(&mysql_handle);
 			if(sql_res)
 			{
@@ -3335,13 +3336,13 @@ int check_connect_login_server(int tid, unsigned long tick, int id, int data) {
 					WFIFOW(login_fd, 0) = 0x272c; //set off
 					WFIFOL(login_fd, 2) = atoi(sql_row[0]); //AID
 					WFIFOSET(login_fd, 6);
-					
+
 					//tell map to 'kick' the player (incase of 'on' ..)
 					WBUFW(buf, 0) = 0x2b1f;
 					WBUFL(buf, 2) = atoi(sql_row[0]);
 					WBUFB(buf, 6) = 1;
 					mapif_sendall(buf, 7);
-					
+
 					//kick the player if he's on charselect
 					for(fd=0; (size_t)fd<fd_max; fd++)
 					{
@@ -3352,16 +3353,16 @@ int check_connect_login_server(int tid, unsigned long tick, int id, int data) {
 								session_Remove(fd);
 							}
 						}
-					}	
+					}
 				}
-				mysql_free_result(sql_res);			
+				mysql_free_result(sql_res);
 			}
 			else
 			{	//fail
 				ShowError("SQL ERROR: check_conn_loginserver '2', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
 				return -1;
 			}
-		
+
 			//Now Update all players to 'OFFLINE'
 			sprintf(tmp_sql, "UPDATE `%s` SET `online` = '0'", char_db);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql))
@@ -3421,7 +3422,7 @@ void do_final(void)
 	///////////////////////////////////////////////////////////////////////////
 	// delete sessions
 	for(i = 0; i < fd_max; i++)
-		if(session[i] != NULL) 
+		if(session[i] != NULL)
 			session_Delete(i);
 	// clear externaly stored fd's
 	login_fd=-1;

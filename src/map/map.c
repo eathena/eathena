@@ -11,6 +11,7 @@
 #include "grfio.h"
 #include "malloc.h"
 #include "version.h"
+#include "../common/dbaccess.h"
 
 #include "map.h"
 #include "chrif.h"
@@ -37,11 +38,6 @@
 
 
 #ifndef TXT_ONLY
-
-MYSQL mmysql_handle;
-MYSQL_RES* 	sql_res ;
-MYSQL_ROW	sql_row ;
-char tmp_sql[65535]="";
 
 MYSQL lmysql_handle;
 MYSQL_RES* lsql_res ;
@@ -166,7 +162,7 @@ int CHECK_INTERVAL = 3600000; // [Valaris]
  * (char鯖から送られてくる)
  *------------------------------------------
  */
-void map_setusers(int fd) 
+void map_setusers(int fd)
 {
 	if( session_isActive(fd) )
 	{
@@ -315,7 +311,7 @@ int map_addblock(struct block_list &bl)
 		map[m].block_count[pos]++;
 		if(bl.type==BL_PC)
 			if (map[m].users++ == 0 && battle_config.dynamic_mobs)	//Skotlex
-				map_spawnmobs(m);			
+				map_spawnmobs(m);
 	}
 
 	return 0;
@@ -477,7 +473,7 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list *target,int x,in
  */
 int map_foreachinarea(int (*func)(struct block_list&,va_list),unsigned short m,int x0,int y0,int x1,int y1,int type,...)
 {
-	
+
 	int bx,by;
 	int returnCount =0;	//total sum of returned values of func() [Skotlex]
 	struct block_list *bl=NULL;
@@ -485,7 +481,7 @@ int map_foreachinarea(int (*func)(struct block_list&,va_list),unsigned short m,i
 
 	if(m >= map_num)
 		return 0;
-	
+
 	if(x0>x1) swap(x0,x1);
 	if(y0>y1) swap(y0,y1);
 
@@ -730,7 +726,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 // sharp shooting 1
 //
 //////////////////////////////////////////////////////////////
-// problem: 
+// problem:
 // finding targets standing on and within some range of the line
 // (t1,t2 t3 and t4 get hit)
 //
@@ -744,13 +740,13 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 // solution 1 (straight forward, but a bit calculation expensive)
 // calculating perpendiculars from quesionable mobs to the straight line
 // if the mob is hit then depends on the distance to the line
-// 
+//
 // solution 2 (complex, need to handle many cases, but maybe faster)
 // make a formula to deside if a given (x,y) is within a shooting area
 // the shape can be ie. rectangular or triangular
 // if the mob is hit then depends on if the mob is inside or outside the area
 // I'm not going to implement this, but if somebody is interested
-// in vector algebra, it might be some fun 
+// in vector algebra, it might be some fun
 
 //////////////////////////////////////////////////////////////
 // possible shooting ranges (I prefer the second one)
@@ -789,7 +785,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 	if (y1 >= map[m].ys) y1 = map[m].ys-1;
 
 	///////////////////////////////
-	// stuff for a linear equation in xy coord to calculate 
+	// stuff for a linear equation in xy coord to calculate
 	// the perpendicular from a block xy to the straight line
 	deltax = (x1-x0);
 	deltay = (y1-y0);
@@ -828,7 +824,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 	// enlarge the block area by a range value and 1
 	// so we can be sure to process all blocks that might touch the shooting area
 	// in this case here with BLOCK_SIZE=8 and range=2 it will be only enlarged by 1
-	// but I implement it anyway just in case that ranges will be larger 
+	// but I implement it anyway just in case that ranges will be larger
 	// or BLOCK_SIZE smaller in future
 	i = (range/BLOCK_SIZE+1);//temp value
 	if(bx0>i)				bx0 -=i; else bx0=0;
@@ -847,10 +843,10 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 
 //ShowMessage("block(%i,%i) %i %i\n",bx,by,c1,c2);fflush(stdout);
 		// test if the mid-point of the block is too far away
-		// so we could skip the whole block in this case 
+		// so we could skip the whole block in this case
 		v1 = (bx*BLOCK_SIZE+BLOCK_SIZE/2-xm)*(bx*BLOCK_SIZE+BLOCK_SIZE/2-xm)
 			+(by*BLOCK_SIZE+BLOCK_SIZE/2-ym)*(by*BLOCK_SIZE+BLOCK_SIZE/2-ym);
-//ShowMessage("block(%i,%i) v1=%f rd=%f\n",bx,by,v1,rd);fflush(stdout);		
+//ShowMessage("block(%i,%i) v1=%f rd=%f\n",bx,by,v1,rd);fflush(stdout);
 		// check for the worst case scenario
 		if(v1 > rd)	continue;
 
@@ -919,7 +915,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 
 	map_freeblock_unlock();	// 解放を許可する
 	va_end(ap);
-	
+
 	bl_list_count = blockcount;
 
 */
@@ -929,7 +925,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 // sharp shooting 2
 //
 //////////////////////////////////////////////////////////////
-// problem: 
+// problem:
 // finding targets standing exactly on a line
 // (only t1 and t2 get hit)
 //
@@ -969,7 +965,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 	///////////////////////////////
 	// find maximum runindex
 	tmax = abs(y1-y0);
-	if(tmax  < abs(x1-x0))	
+	if(tmax  < abs(x1-x0))
 		tmax = abs(x1-x0);
 	// pre-calculate delta values for x and y destination
 	// should speed up cause you don't need to divide in the loop
@@ -1000,7 +996,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 				bl = map[m].block[bx+by*map[m].bxs];		// a block with the elements
 				for(i=0;i<c1 && bl;i++,bl=bl->next){		// go through all elements
 					if( bl && ( !type || bl->type==type ) && bl_list_count<BL_LIST_MAX )
-					{	
+					{
 						// check if block xy is on the line
 						if( abs((bl->x-x0)*(y1-y0) - (bl->y-y0)*(x1-x0)) <= tmax/2 )
 
@@ -1025,7 +1021,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 							bl_list[bl_list_count++]=bl;
 					}
 				}//end for mobs
-			}	
+			}
 		}
 	}//end for index
 
@@ -1043,7 +1039,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 
 	map_freeblock_unlock();	// 解放を許可する
 	va_end(ap);
-	
+
 	bl_list_count = blockcount;
 */
 
@@ -1052,7 +1048,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 // sharp shooting 2 version 2
 // mix between line calculation and point storage
 //////////////////////////////////////////////////////////////
-// problem: 
+// problem:
 // finding targets standing exactly on a line
 // (only t1 and t2 get hit)
 //
@@ -1092,7 +1088,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 	if (y1 >= map[m].ys) y1 = map[m].ys-1;
 
 	///////////////////////////////
-	// find maximum runindex, 
+	// find maximum runindex,
 	if( abs(y1-y0) > abs(x1-x0) )
 		tmax = abs(y1-y0);
 	else
@@ -1106,7 +1102,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 	}
 	// go along the index t from 0 to tmax
 	t=0;
-	do {	
+	do {
 		x = (int)floor(dx * (double)t +0.5)+x0;
 		y = (int)floor(dy * (double)t +0.5)+y0;
 
@@ -1185,7 +1181,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,i
 
 	map_freeblock_unlock();	// 解放を許可する
 	va_end(ap);
-	
+
 	bl_list_count = blockcount;
 
 	return returnCount;
@@ -1462,7 +1458,7 @@ void map_addchariddb(unsigned long charid, const char *name)
 	p = (struct charid2nick*)numdb_search(charid_db,charid);
 	if (p == NULL)
 	{	// not in database -> create new
-		p = (struct charid2nick *)aCallocA(1, sizeof(struct charid2nick));		
+		p = (struct charid2nick *)aCallocA(1, sizeof(struct charid2nick));
 	}
 	else
 	{	// in database, remove to be reinserted afterwards
@@ -1487,7 +1483,7 @@ void map_addchariddb(unsigned long charid, const char *name)
  * charid_dbへ追加（返信要求のみ）
  *------------------------------------------
  */
-int map_reqchariddb(struct map_session_data &sd, unsigned long charid) 
+int map_reqchariddb(struct map_session_data &sd, unsigned long charid)
 {
 	struct charid2nick *p= (struct charid2nick*)numdb_search(charid_db,charid);
 	if(p==NULL)
@@ -1503,7 +1499,7 @@ int map_reqchariddb(struct map_session_data &sd, unsigned long charid)
  * id_dbへblを追加
  *------------------------------------------
  */
-void map_addiddb(struct block_list &bl) 
+void map_addiddb(struct block_list &bl)
 {
 	numdb_insert(id_db, bl.id, &bl);
 }
@@ -1512,7 +1508,7 @@ void map_addiddb(struct block_list &bl)
  * id_dbからblを削除
  *------------------------------------------
  */
-void map_deliddb(struct block_list &bl) 
+void map_deliddb(struct block_list &bl)
 {
 	numdb_erase(id_db,bl.id);
 }
@@ -1521,7 +1517,7 @@ void map_deliddb(struct block_list &bl)
  * nick_dbへsdを追加
  *------------------------------------------
  */
-void map_addnickdb(struct map_session_data &sd) 
+void map_addnickdb(struct map_session_data &sd)
 {
 	strdb_insert(nick_db,sd.status.name,&sd);
 }
@@ -1532,7 +1528,7 @@ void map_addnickdb(struct map_session_data &sd)
  * quit?理の主?が違うような?もしてきた
  *------------------------------------------
  */
-int map_quit(struct map_session_data &sd) 
+int map_quit(struct map_session_data &sd)
 {
 	if( sd.state.event_disconnect )
 	{
@@ -1592,7 +1588,7 @@ int map_quit(struct map_session_data &sd)
 	pc_delspiritball(sd,sd.spiritball,1);
 	skill_gangsterparadise(&sd,0);
 	skill_unit_move(sd.bl,gettick(),0);
-	
+
 	if( sd.state.auth )
 		status_calc_pc(sd,4);
 
@@ -1638,17 +1634,17 @@ int map_quit(struct map_session_data &sd)
 			aFree(p);
 		}
 	}
-	
+
 	strdb_erase(nick_db,sd.status.name);
 	numdb_erase(charid_db,sd.status.char_id);
 	numdb_erase(id_db,sd.bl.id);
-		
+
 	if(sd.reg)
 	{
 		aFree(sd.reg);
 		sd.reg=NULL;
 	}
-		
+
 	if(sd.regstr)
 	{
 		aFree(sd.regstr);
@@ -1859,7 +1855,7 @@ void map_spawnmobs(unsigned short m)
 		map[m].mob_delete_timer = -1;
 		return;
 	}
-	for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)	
+	for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)
 	{
 		if(map[m].moblist[i]!=NULL)
 		{
@@ -1874,19 +1870,19 @@ void map_spawnmobs(unsigned short m)
 int mob_cache_cleanup_sub(struct block_list &bl, va_list ap)
 {
 	struct mob_data &md = (struct mob_data &)bl;
-	
+
 	if( bl.type!= BL_MOB )
 		return 0;
 
 	//When not to remove:
 	//1: Mob is not from a cache
-	//2: Mob is damaged 
+	//2: Mob is damaged
 
 	// not cached, delayed or already on delete schedule
 	if( !md.cache || md.cache->delay1 || md.cache->delay2 || md.deletetimer != -1)
 		return 0;
-	
-	// hurt enemies	
+
+	// hurt enemies
 	if ( (md.hp != md.max_hp) && !battle_config.mob_remove_damaged )
 		return 0;
 
@@ -1897,14 +1893,14 @@ int mob_cache_cleanup_sub(struct block_list &bl, va_list ap)
 	// check the mob into the cache
 	md.cache->num++;
 	// and unload it
-	mob_unload(md);	
+	mob_unload(md);
 	return 1;
 }
 
 int map_removemobs_timer(int tid,unsigned long tick,int id,int data)
 {
 	int k;
-	
+
 	if (id < 0 || id >= MAX_MAP_PER_SERVER)
 	{	//Incorrect map id!
 		if (battle_config.error_log)
@@ -1920,7 +1916,7 @@ int map_removemobs_timer(int tid,unsigned long tick,int id,int data)
 	map[id].mob_delete_timer = -1;
 	if (map[id].users > 0) //Map not empty!
 		return 1;
-	
+
 	k = map_foreachinarea(mob_cache_cleanup_sub, id, 0, 0, map[id].xs-1, map[id].ys-1, BL_MOB);
 	if (battle_config.etc_log && k > 0)
 		ShowStatus("Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[id].mapname, k);
@@ -2069,7 +2065,7 @@ int map_calc_dir( struct block_list &src,int x,int y)
 // GAT_GROUND	= 5,
 // GAT_HOLE		= 6,	// holes in morroc desert
 // GAT_UNUSED3	= 7,
-// change the gat to a bitfield with tree bits 
+// change the gat to a bitfield with tree bits
 // instead of using an unsigned char have it merged with other usages
 /////////////////////////////////////////////////////////////////////
 
@@ -2162,7 +2158,7 @@ void map_setcell(unsigned short m,unsigned short x, unsigned short y, int cellck
 		break;
 	default:
 		// check the numbers from the gat and warn on an unknown type
-		if( (cellck != GAT_NONE) && (cellck != GAT_WALL) && (cellck != GAT_WATER) && 
+		if( (cellck != GAT_NONE) && (cellck != GAT_WALL) && (cellck != GAT_WATER) &&
 			(cellck != GAT_GROUND) && (cellck != GAT_HOLE) )
 			ShowWarning("Setting mapcell with improper value %i on %s (%i,%i)\n", cellck,map[m].mapname,x,y);
 		else
@@ -2220,7 +2216,7 @@ int map_setipport(const char *name, ipset &mapset)
 			// 読み甲ﾅいるので置き換える
 			md = mdos->map;
 			aFree(mdos);
-			
+
 			if(md)
 				strdb_insert(map_db,md->mapname,md);
 			else
@@ -2487,11 +2483,11 @@ bool map_cache_read(struct map_data &m)
 				aFree(buf);
 				buf = NULL;
 				m.gat = NULL;
-				m.xs = 0; 
-				m.ys = 0; 
+				m.xs = 0;
+				m.ys = 0;
 				return false;
 				}
-			m.gat = (struct mapgat *)aMalloc( dest_len );				
+			m.gat = (struct mapgat *)aMalloc( dest_len );
 			decode_zip((unsigned char*)m.gat, &dest_len, buf, size_compress);
 			if(dest_len != map_cache.map[i].xs * map_cache.map[i].ys * sizeof(struct mapgat))
 			{	// 正常に解凍が出来てない
@@ -2499,8 +2495,8 @@ bool map_cache_read(struct map_data &m)
 				buf=NULL;
 				aFree(m.gat);
 				m.gat = NULL;
-				m.xs = 0; 
-				m.ys = 0; 
+				m.xs = 0;
+				m.ys = 0;
 				return false;
 				}
 			if(buf)// might be ok without this check
@@ -2523,12 +2519,12 @@ bool map_cache_write(struct map_data &m)
 	if(!map_cache.fp)
 		return false;
 
-	for(i = 0;i < map_cache.head.nmaps ; i++) 
+	for(i = 0;i < map_cache.head.nmaps ; i++)
 	{
 		if( (0==strcmp(m.mapname,map_cache.map[i].fn)) || (map_cache.map[i].fn[0] == 0) )
 			break;
 			}
-	if(i<map_cache.head.nmaps) 
+	if(i<map_cache.head.nmaps)
 	{	// should always be valid but better check it
 		int compress = 0;
 		if(map_read_flag == READ_FROM_BITMAP_COMPRESSED)
@@ -2550,7 +2546,7 @@ bool map_cache_write(struct map_data &m)
 			len_new = m.xs * m.ys *sizeof(struct mapgat);
 			write_buf = (unsigned char*)m.gat;
 		}
-		
+
 		// now insert it
 		if( (map_cache.map[i].fn[0] == 0) )
 		{	// new map is inserted
@@ -2560,7 +2556,7 @@ bool map_cache_write(struct map_data &m)
 
 			// prepare the data header
 			memcpy(map_cache.map[i].fn, m.mapname, sizeof(map_cache.map[i].fn));
-			map_cache.map[i].fn[sizeof(map_cache.map[i].fn)-1]=0;			
+			map_cache.map[i].fn[sizeof(map_cache.map[i].fn)-1]=0;
 
 			// update file header
 				map_cache.map[i].pos = map_cache.head.filesize;
@@ -2574,9 +2570,9 @@ bool map_cache_write(struct map_data &m)
 			{	// サイズが同じか小さくなったので場所は変わらない
 				fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
 				fwrite(write_buf,1,len_new,map_cache.fp);
-	
+
 			}
-			else 
+			else
 			{	// new len is larger then the old space -> write at file end
 			// 新しい場所に登録
 			fseek(map_cache.fp,map_cache.head.filesize,SEEK_SET);
@@ -2782,9 +2778,9 @@ int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap)
 		map[m].gat = (struct mapgat *)aCalloc( (map[m].xs * map[m].ys), sizeof(struct mapgat));
 
 		wh=map_waterheight(map[m].mapname);
-		
+
 		ShowMessage("\rLoading Maps [%d/%d]: %s, size (%d %d)(%i)%-10s",m,map_num,fn,map[m].xs,map[m].ys,wh,"");
-		
+
 		p = gat+14;
 		for(y=0;y<map[m].ys;y++)
 		for(x=0;x<map[m].xs;x++)
@@ -2881,7 +2877,7 @@ int map_readallmap(void)
 		{
 			fclose(afm_file);
 			// map_readafm open and closes the file anyway
-			map_readafm(i,fn);			
+			map_readafm(i,fn);
 			continue;
 		}
 
@@ -2896,8 +2892,8 @@ int map_readallmap(void)
 		}
 #endif
 		char *p = strchr(map[i].mapname, '<'); // [MouseJstr]
-		if (p != NULL) 
-		{	// swap mapname and the stuff after the '<' 
+		if (p != NULL)
+		{	// swap mapname and the stuff after the '<'
 			// asuming following ('.' is EOS marker):
 			// buffer: aaaaaaaa<bbbbb. change to:
 			// buffer: bbbbb.aaaaaaaa.
@@ -3083,7 +3079,7 @@ int map_config_read(const char *cfgName)
 		ShowError("Map configuration file not found at: %s\n", cfgName);
 		return 0;
 	}
-	
+
 	while(fgets(line, sizeof(line) -1, fp)) {
 		if( !skip_empty_line(line) )
 			continue;
@@ -3096,7 +3092,7 @@ int map_config_read(const char *cfgName)
 			else if (strcasecmp(w1, "char_ip") == 0) {
 				getcharaddress() = w2;
 				ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", w2, getcharaddress().getstring());
-			} 
+			}
 else if (strcasecmp(w1, "char_port") == 0) {
 	getcharaddress().port() = atoi(w2);
 }
@@ -3259,14 +3255,14 @@ int inter_config_read(const char *cfgName)
 
 int map_sql_init(void)
 {
-    mysql_init(&mmysql_handle);
+    mysql_init(&mysql_handle);
 
 	//DB connection start
 	ShowMessage("Connect Map DB Server....\n");
-	if(!mysql_real_connect(&mmysql_handle, map_server_ip, map_server_id, map_server_pw,
+	if(!mysql_real_connect(&mysql_handle, map_server_ip, map_server_id, map_server_pw,
 		map_server_db ,map_server_port, (char *)NULL, 0)) {
 			//pointer check
-			ShowMessage("%s\n",mysql_error(&mmysql_handle));
+			ShowMessage("%s\n",mysql_error(&mysql_handle));
 			exit(1);
 	}
 	else {
@@ -3301,7 +3297,7 @@ int map_sql_init(void)
 
 int map_sql_close(void)
 {
-	mysql_close(&mmysql_handle);
+	mysql_close(&mysql_handle);
 	ShowMessage("Close Map DB Connection....\n");
 
 	mysql_close(&lmysql_handle);
@@ -3368,13 +3364,13 @@ int online_timer(int tid,unsigned long tick,int id,int data)
 
 
 
-int id_db_final(void *k,void *d,va_list ap) 
+int id_db_final(void *k,void *d,va_list ap)
 {
-	return 0; 
+	return 0;
 }
-int map_db_final(void *k,void *d,va_list ap) 
+int map_db_final(void *k,void *d,va_list ap)
 {
-	return 0; 
+	return 0;
 }
 int nick_db_final(void *k,void *d,va_list ap)
 {
@@ -3388,7 +3384,7 @@ int charid_db_final(void *k,void *d,va_list ap)
 	if (p) aFree(p);
 	return 0;
 }
-int cleanup_sub(struct block_list &bl, va_list ap) 
+int cleanup_sub(struct block_list &bl, va_list ap)
 {
 	switch(bl.type)
 	{
@@ -3499,7 +3495,7 @@ void do_final(void)
 	///////////////////////////////////////////////////////////////////////////
 	// delete sessions
 	for(i = 0; i < fd_max; i++)
-		if(session[i] != NULL) 
+		if(session[i] != NULL)
 			session_Delete(i);
 	// clear externaly stored fd's
 
@@ -3653,7 +3649,7 @@ int do_init(int argc, char *argv[]) {
 
 	// online status timer, checks every hour [Valaris]
 	add_timer_func_list(online_timer, "online_timer");
-	add_timer_interval(gettick()+10, CHECK_INTERVAL, online_timer, 0, 0);	
+	add_timer_interval(gettick()+10, CHECK_INTERVAL, online_timer, 0, 0);
 
 	do_init_chrif();
 	do_init_clif();

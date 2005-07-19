@@ -13,6 +13,7 @@
 #include "malloc.h"
 #include "showmsg.h"
 #include "lock.h"
+#include "../common/dbaccess.h"
 
 #include "char.h"
 #include "inter.h"
@@ -36,12 +37,7 @@ static struct accreg *accreg_pt;
 
 
 size_t party_share_level = 10;
-MYSQL mysql_handle;
-MYSQL_RES* 	sql_res ;
-MYSQL_ROW	sql_row ;
 size_t sql_fields;
-size_t sql_cnt;
-char tmp_sql[65535];
 
 MYSQL lmysql_handle;
 char tmp_lsql[65535];
@@ -309,7 +305,7 @@ int inter_sql_test (void)
 	const char fields[][24] = {
 		"father",	// version 1363
 		"fame",		// version 1491
-	};	
+	};
 	char buf[1024] = "";
 	int i;
 
@@ -352,7 +348,7 @@ void inter_final() {
 	inter_storage_sql_final();
 	inter_party_sql_final();
 	inter_pet_sql_final();
-	
+
 	if (accreg_pt) aFree(accreg_pt);
 	return;
 }
@@ -454,7 +450,7 @@ int mapif_send_gmaccounts()
 	// forward the gm accounts to the map server
 	len = 4;
 	WBUFW(buf,0) = 0x2b15;
-				
+
 	for(i = 0; i < GM_num; i++) {
 		WBUFL(buf, len) = gm_account[i].account_id;
 		WBUFB(buf, len+4) = (unsigned char)gm_account[i].level;
@@ -558,7 +554,7 @@ int mapif_parse_WisRequest(int fd)
 			WBUFB(buf,26) = 1; // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
 			mapif_send(fd, buf, 27);
 		} else {
-			
+
 			CREATE(wd, struct WisData, 1);
 
 			// Whether the failure of previous wisp/page transmission (timeout)
@@ -575,12 +571,12 @@ int mapif_parse_WisRequest(int fd)
 			mapif_wis_message(wd);
 		}
 	}
-	
-	//Freeing ... O.o 
+
+	//Freeing ... O.o
 	if(sql_res){
 		mysql_free_result(sql_res);
 	}
-	
+
 	return 0;
 }
 

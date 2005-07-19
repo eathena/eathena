@@ -1,4 +1,4 @@
-txt sql all: core.o db.o plugins.o grfio.o lock.o malloc.o md5calc.o mmo.o nullpo.o showmsg.o socket.o strlib.o timer.o utils.o
+all char login map: core.o db.o plugins.o grfio.o lock.o malloc.o md5calc.o mmo.o nullpo.o showmsg.o socket.o strlib.o timer.o utils.o dbaccess.o
 
 core.o: core.c base.h core.h mmo.h showmsg.h socket.h timer.h utils.h version.h
 db.o: db.c base.h db.h mmo.h showmsg.h utils.h
@@ -14,7 +14,6 @@ strlib.o: strlib.c base.h strlib.h utils.h
 timer.o: timer.c base.h timer.h showmsg.h
 utils.o: utils.c base.h utils.h showmsg.h malloc.h mmo.h
 plugins.o: plugins.c base.h plugins.h mmo.h core.h utils.h malloc.h version.h showmsg.h
-
 dbaccess.o: dbaccess.c dbaccess.h showmsg.h
 
 clean:

@@ -2,6 +2,9 @@
 #include "base.h"
 #include "strlib.h"
 #include "nullpo.h"
+#include "../common/dbaccess.h"
+
+
 #include "itemdb.h"
 #include "map.h"
 #include "showmsg.h"
@@ -261,7 +264,7 @@ int log_refine(struct map_session_data &sd, int n, int success)
 	return 0;
 }
 
-int log_tostorage(struct map_session_data &sd,int n, int guild) 
+int log_tostorage(struct map_session_data &sd,int n, int guild)
 {
   FILE *logfp;
 
@@ -279,9 +282,9 @@ int log_tostorage(struct map_session_data &sd,int n, int guild)
 
     time(&curtime);
 		strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-		fprintf(logfp,"%s - to %s: %s[%ld:%ld]\t%d\t%d\t%d\t%d,%d,%d,%d"RETCODE, 
-			timestring, guild ? "guild_storage": "storage", 
-			sd.status.name, sd.status.account_id, sd.status.char_id, 
+		fprintf(logfp,"%s - to %s: %s[%ld:%ld]\t%d\t%d\t%d\t%d,%d,%d,%d"RETCODE,
+			timestring, guild ? "guild_storage": "storage",
+			sd.status.name, sd.status.account_id, sd.status.char_id,
 			sd.status.inventory[n].nameid,
 			sd.status.inventory[n].amount,
 			sd.status.inventory[n].refine,
@@ -294,7 +297,7 @@ int log_tostorage(struct map_session_data &sd,int n, int guild)
   return 0;
 }
 
-int log_fromstorage(struct map_session_data &sd,int n, int guild) 
+int log_fromstorage(struct map_session_data &sd,int n, int guild)
 {
   FILE *logfp;
 
@@ -312,9 +315,9 @@ int log_fromstorage(struct map_session_data &sd,int n, int guild)
 
     time(&curtime);
 		strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-		fprintf(logfp,"%s - from %s: %s[%ld:%ld]\t%d\t%d\t%d\t%d,%d,%d,%d"RETCODE, 
-			timestring, guild ? "guild_storage": "storage", 
-			sd.status.name, sd.status.account_id, sd.status.char_id, 
+		fprintf(logfp,"%s - from %s: %s[%ld:%ld]\t%d\t%d\t%d\t%d,%d,%d,%d"RETCODE,
+			timestring, guild ? "guild_storage": "storage",
+			sd.status.name, sd.status.account_id, sd.status.char_id,
 			sd.status.inventory[n].nameid,
 			sd.status.inventory[n].amount,
 			sd.status.inventory[n].refine,
@@ -542,16 +545,16 @@ int log_chat(const char *type, int type_id, int src_charid, int src_accid, const
 
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0){
-		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_map_x`, `src_map_y`, `dst_charname`, `message`) VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s')", 
+		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_map_x`, `src_map_y`, `dst_charname`, `message`) VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s')",
 		 	log_config.log_chat_db, type, type_id, src_charid, src_accid, map, x, y, dst_charname, jstrescapecpy(t_msg, message));
-	
+
 		if(mysql_SendQuery(&logmysql_handle, tmp_sql)){
 			ShowError("log_chat() -> SQL ERROR / FAIL: %s\n", mysql_error(&logmysql_handle));
-			return -1;	
+			return -1;
 		}else{
 			return 0;
 		}
-	}			
+	}
 #endif
 
 #ifdef TXT_ONLY
@@ -561,7 +564,7 @@ int log_chat(const char *type, int type_id, int src_charid, int src_accid, const
 		time(&curtime);
 		strftime(timestring, 127, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
 		//DATE - type,type_id,src_charid,src_accountid,src_map,src_x,src_y,dst_charname,message
-		fprintf(logfp, "%s - %s,%d,%d,%d,%s,%d,%d,%s,%s%s", 
+		fprintf(logfp, "%s - %s,%d,%d,%d,%s,%d,%d,%s,%s%s",
 			timestring, type, type_id, src_charid, src_accid, map, x, y, dst_charname, message, RETCODE);
 		fclose(logfp);
 		return 0;
@@ -579,7 +582,7 @@ void log_set_defaults(void)
 	log_config.refine_items_log = 7; //log refined items, with refine >= +7
 	log_config.rare_items_log = 100; //log rare items. drop chance <= 1%
 	log_config.price_items_log = 1000; //1000z
-	log_config.amount_items_log = 100;	
+	log_config.amount_items_log = 100;
 }
 
 int log_config_read(const char *cfgName)
@@ -589,13 +592,13 @@ int log_config_read(const char *cfgName)
 	FILE *fp;
 
 	if ((count++) == 0)
-		log_set_defaults();		
+		log_set_defaults();
 
 	if((fp = safefopen(cfgName, "r")) == NULL)
 	{
 		ShowError("Log configuration file not found at: %s\n", cfgName);
 		return 1;
-	}	
+	}
 
 	while(fgets(line, sizeof(line) -1, fp))
 	{
@@ -641,7 +644,7 @@ int log_config_read(const char *cfgName)
 					log_config.zeny = 0;
 				else
 					log_config.zeny = (atoi(w2));
-			} else if(strcasecmp(w1,"log_gm") == 0) {				
+			} else if(strcasecmp(w1,"log_gm") == 0) {
 				log_config.gm = (atoi(w2));
 			} else if(strcasecmp(w1,"log_npc") == 0) {
 				log_config.npc = (atoi(w2));
@@ -763,7 +766,7 @@ int log_config_read(const char *cfgName)
 					ShowInfo("Logging NPC 'logmes' to file `%s`.txt\n", w2);
 			} else if(strcasecmp(w1, "log_chat_file") == 0) {
 				strcpy(log_config.log_chat, w2);
-				if(log_config.chat > 0 && log_config.sql_logs < 1)					
+				if(log_config.chat > 0 && log_config.sql_logs < 1)
 					ShowInfo("Logging CHAT to file `%s`.txt\n", w2);
 			//support the import command, just like any other config
 			} else if(strcasecmp(w1,"import") == 0) {

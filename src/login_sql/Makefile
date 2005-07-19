@@ -1,5 +1,4 @@
-all: login-server_sql
-sql: login-server_sql
+all login: login-server_sql
 
 
 COMMON_OBJ = ../common/core.o ../common/db.o ../common/plugins.o ../common/lock.o ../common/malloc.o ../common/md5calc.o ../common/mmo.o ../common/nullpo.o ../common/showmsg.o ../common/socket.o ../common/strlib.o ../common/timer.o ../common/utils.o ../common/dbaccess.o
@@ -13,4 +12,4 @@ login.o: login.c login.h $(COMMON_H)
 $(COMMON_OBJ): $(COMMON_H)
 
 clean:
-	rm -rf *.o ../../login-server
+	rm -rf *.o ../../login-server_sql

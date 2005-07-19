@@ -40,13 +40,6 @@ int inter_log(char *fmt,...);
 extern size_t party_share_level;
 extern char inter_log_filename[1024];
 
-
-extern MYSQL mysql_handle;
-extern char tmp_sql[65535];
-extern MYSQL_RES* 	sql_res ;
-extern MYSQL_ROW	sql_row ;
-extern size_t 	sql_cnt;
-
 extern MYSQL lmysql_handle;
 extern char tmp_lsql[65535];
 extern MYSQL_RES* 	lsql_res ;

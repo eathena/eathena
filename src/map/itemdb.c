@@ -6,6 +6,7 @@
 #include "showmsg.h"
 #include "utils.h"
 #include "grfio.h"
+#include "../common/dbaccess.h"
 
 #include "map.h"
 #include "battle.h"
@@ -138,7 +139,7 @@ int itemdb_searchrandomgroup(unsigned short groupid)
 		return 0;
 	do {
 		if ((nameid = itemgroup_db[groupid].nameid[ rand()%20 ]) > 0)
-			return nameid;		
+			return nameid;
 	} while ((i++) < 20);
 	return 0;
 }
@@ -257,19 +258,19 @@ bool itemdb_cansell(unsigned short nameid, unsigned char gmlv)
 }
 
 bool itemdb_cancartstore(unsigned short nameid, unsigned char gmlv)
-{	
+{
 	struct item_data* item = itemdb_exists(nameid);
 	return (item && (item->flag.trade_restriction&16)==0) || gmlv >= item->gm_lv_trade_override;
 }
 
 bool itemdb_canstore(unsigned short nameid, unsigned char gmlv)
-{	
+{
 	struct item_data* item = itemdb_exists(nameid);
 	return (item && (item->flag.trade_restriction&32)==0) || gmlv >= item->gm_lv_trade_override;
 }
 
 bool itemdb_canguildstore(unsigned short nameid, unsigned char gmlv)
-{	
+{
 	struct item_data* item = itemdb_exists(nameid);
 	return (item && (item->flag.trade_restriction&64)==0) || gmlv >= item->gm_lv_trade_override;
 }
@@ -444,7 +445,7 @@ int itemdb_read_itemgroup(void)
 				continue;
 			//ShowMessage ("%d[%d] = %d\n", groupid, j-1, k);
 			itemgroup_db[groupid].nameid[j-1] = nameid;
-		}		
+		}
 		ln++;
 	}
 	fclose(fp);
@@ -518,7 +519,7 @@ int itemdb_read_cardillustnametable(void)
 			memcpy(itemdb_search(nameid)->cardillustname,buf2,64);
 //			ShowMessage("%d %s\n",nameid,itemdb_search(nameid)->cardillustname);
 		}
-		
+
 		p=strchr(p,10);
 		if(!p) break;
 		p++;
@@ -550,7 +551,7 @@ int itemdb_read_itemslottable(void)
 		struct item_data* item;
 		sscanf(p, "%d#%d#", &nameid, &equip);
 		item = itemdb_search(nameid);
-		if (item && itemdb_isSingleStorage(*item))			
+		if (item && itemdb_isSingleStorage(*item))
 			item->equip = equip;
 		p = strchr(p, 10);
 		if(!p) break;
@@ -629,7 +630,7 @@ int itemdb_read_noequip(void)
 	fclose(fp);
 	if (ln > 0) {
 		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"db/item_noequip.txt");
-	}	
+	}
 	return 0;
 }
 
@@ -665,7 +666,7 @@ int itemdb_read_itemtrade(void)
 
 		flag = atoi(str[1]);
 		gmlv = atoi(str[2]);
-		
+
 		if (flag > 0 && flag < 128 && gmlv > 0)
 		{	//Check range
 			id->flag.trade_restriction = flag;
@@ -692,7 +693,7 @@ int itemdb_read_sqldb(void)
 	char script[65535 + 2 + 1]; // Maximum length of MySQL TEXT type (65535) + 2 bytes for curly brackets + 1 byte for terminator
 	char *item_db_name[] = { item_db_db, item_db2_db };
 	long unsigned int ln = 0;
-	int i;	
+	int i;
 
 	// ----------
 
@@ -701,9 +702,9 @@ int itemdb_read_sqldb(void)
 		sprintf(tmp_sql, "SELECT * FROM `%s`", item_db_name[i]);
 
 		// Execute the query; if the query execution succeeded...
-		if (mysql_SendQuery(&mmysql_handle, tmp_sql) == 0)
+		if (mysql_SendQuery(&mysql_handle, tmp_sql) == 0)
 		{
-			sql_res = mysql_store_result(&mmysql_handle);
+			sql_res = mysql_store_result(&mysql_handle);
 			// If the storage of the query result succeeded...
 			if (sql_res)
 			{
@@ -726,7 +727,7 @@ int itemdb_read_sqldb(void)
 
 					// ----------
 					id = itemdb_search(nameid);
-					
+
 					memcpy(id->name, sql_row[1], 24);
 					memcpy(id->jname, sql_row[2], 24);
 
@@ -743,7 +744,7 @@ int itemdb_read_sqldb(void)
 						id->value_buy = atoi(sql_row[4]);
 						id->value_sell = atoi(sql_row[5]);
 					}
-					
+
 					else if ((sql_row[4] != NULL) && (sql_row[5] == NULL))
 					{	// If price_buy is not NULL and price_sell is NULL...
 						id->value_buy = atoi(sql_row[4]);
@@ -807,9 +808,9 @@ int itemdb_read_sqldb(void)
 				}
 
 				// If the retrieval failed, output an error
-				if (mysql_errno(&mmysql_handle))
+				if (mysql_errno(&mysql_handle))
 				{
-					ShowError("Database server error (retrieving rows from %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
+					ShowError("Database server error (retrieving rows from %s): %s\n", item_db_name[i], mysql_error(&mysql_handle));
 				}
 				else
 				{
@@ -819,13 +820,13 @@ int itemdb_read_sqldb(void)
 			}
 			else
 			{
-				ShowError("MySQL error (storing query result for %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
+				ShowError("MySQL error (storing query result for %s): %s\n", item_db_name[i], mysql_error(&mysql_handle));
 			}
 			// Free the query result
 			mysql_free_result(sql_res);
 	}
 		else
-			ShowError("Database server error (executing query for %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
+			ShowError("Database server error (executing query for %s): %s\n", item_db_name[i], mysql_error(&mysql_handle));
 	}
 	return 0;
 }
@@ -965,7 +966,7 @@ void itemdb_read(void)
 	}
 	else
 	{
-		itemdb_readdb();	
+		itemdb_readdb();
 	}
 #else	// not TXT_ONLY
 	itemdb_readdb();

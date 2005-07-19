@@ -4,6 +4,7 @@
 //
 #include "base.h"
 #include "showmsg.h"
+#include "dbaccess.h"
 
 #include "char.h"
 #include "inter.h"
@@ -171,7 +172,7 @@ int inter_storage_sql_init(){
 void inter_storage_sql_final()
 {
 	if (storage_pt) aFree(storage_pt);
-	if (guild_storage_pt) aFree(guild_storage_pt);	 
+	if (guild_storage_pt) aFree(guild_storage_pt);
 	return;
 }
 // q?f[^?

@@ -7,6 +7,7 @@
 #include "mmo.h"
 #include "utils.h"
 #include "showmsg.h"
+#include "../common/dbaccess.h"
 
 #include "inter.h"
 #include "itemdb.h"

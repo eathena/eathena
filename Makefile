@@ -44,7 +44,6 @@ CFLAGS = $(OPT) -I../common $(OS_TYPE)
 MYSQL_INCLUDE = -I../../../mysql/include/ 
 MYSQL_LIB     = -L../../../mysql/lib -lmysqlclient -lposix4 -lcrypt -lgen -lnsl -lm
 
-ifdef SQLFLAG
 MYSQLFLAG_CONFIG = $(shell which mysql_config)
 
 # 'which' does not work system independend 
@@ -72,53 +71,37 @@ endif
 
 MYLIB = CC="$(CC)" CFLAGS="$(CFLAGS) $(MYSQL_INCLUDE)" LIB_S="$(MYSQL_LIB) $(LIBS) $(GCLIB)"
 
-endif
+all: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile conf
+	cd src/common ; $(MAKE) $(MYLIB) $@ ; cd ../..
+	cd src/login_sql ; $(MAKE) $(MYLIB) $@ ; cd ../..
+	cd src/char_sql ; $(MAKE) $(MYLIB) $@ ; cd ../..
+	cd src/map ; $(MAKE) $(MYLIB) $@ ; cd ../..
+	cd src/ladmin ; $(MAKE) $(MYLIB) $@ ; cd ../..
 
-MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS)" LIB_S="$(LIBS) $(GCLIB)"
+login: src/common/Makefile src/login_sql/Makefile
+	cd src/common ; $(MAKE) $(MYLIB) $@ ; cd ..
+	cd src/login_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
 
-all: conf txt
+char: src/common/Makefile src/char_sql/Makefile
+	cd src/common ; $(MAKE) $(MYLIB) $@ ; cd ..
+	cd src/char_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
 
-conf:
-	cp -r conf-tmpl conf
-	rm -rf conf/.svn conf/*/.svn
+map: src/common/Makefile src/map/Makefile
+	cd src/common ; $(MAKE) $(MYLIB) $@ ; cd ..
+	cd src/map ; $(MAKE) $(MYLIB) $@ ; cd ..
 
-txt : src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile conf
-	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd map ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-
-ifdef SQLFLAG
-sql: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile conf
-	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd login_sql ; $(MAKE) $(MYLIB) $@ ; cd .. ; cd ..
-	cd src ; cd char_sql ; $(MAKE) $(MYLIB) $@ ; cd .. ; cd ..
-	cd src ; cd map ; $(MAKE) $(MYLIB) $@ ; cd .. ; cd ..
-	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-else
-sql:
-	$(MAKE) CC="$(CC)" OPT="$(OPT)" SQLFLAG=1 $@
-endif
-
-clean: src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile
-	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd login_sql ; $(MAKE) $(MKLIB) $@ ; cd .. ; cd ..
-	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
-	cd src ; cd char_sql ; $(MAKE) $(MKLIB) $@ ; cd .. ; cd ..
-	cd src ; cd map ; $(MAKE) $(MKLIB) $@ ; cd .. ; cd ..
-	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd .. ; cd ..
+clean: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile
+	cd src/common ; $(MAKE) $@ ; cd ../..
+	cd src/login_sql ; $(MAKE) $@ ; cd ../..
+	cd src/char_sql ; $(MAKE) $@ ; cd ../..
+	cd src/map ; $(MAKE) $@ ; cd ../..
+	cd src/ladmin ; $(MAKE) $@ ; cd ../..
 
 
 src/common/GNUmakefile: src/common/Makefile
 	sed -e 's/$$>/$$^/' src/common/Makefile > src/common/GNUmakefile
-src/login/GNUmakefile: src/login/Makefile
-	sed -e 's/$$>/$$^/' src/login/Makefile > src/login/GNUmakefile
 src/login_sql/GNUmakefile: src/login_sql/Makefile
 	sed -e 's/$$>/$$^/' src/login_sql/Makefile > src/login_sql/GNUmakefile
-src/char/GNUmakefile: src/char/Makefile
-	sed -e 's/$$>/$$^/' src/char/Makefile > src/char/GNUmakefile
 src/char_sql/GNUmakefile: src/char_sql/Makefile
 	sed -e 's/$$>/$$^/' src/char_sql/Makefile > src/char_sql/GNUmakefile
 src/map/GNUmakefile: src/map/Makefile
