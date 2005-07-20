@@ -1,4 +1,13 @@
 Date	Added
+07/18
+	- Fixed Makefiles for all SQL based compiles (login,char,map) [CLOWNISIUS]
+	- Implementation of the dbaccess.c/h files to help ease usage of SQL commands,
+	and allowing others to make a small dbaccess.c/h for any other type of SQL
+	API [CLOWNISIUS]
+	- Updated Login, Char and Map SQL server to use the new dbaccess.c/h [CLOWNISIUS]
+	- Updated the main Makefile to not touch TXT based servers, and simplified compiling options
+	for the login, char and map servers. [CLOWNISIUS]
+	
 07/17
 	modification on the ip storage and transfer,
 	removed the lan support stuff and integrated it directly to the server configs
