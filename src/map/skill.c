@@ -1688,6 +1688,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 				tsd->status.skill[skillid].lv = lv;
 			tsd->status.skill[skillid].flag = 13;//cloneskill flag
 			pc_setglobalreg(tsd, "CLONE_SKILL", tsd->cloneskill_id);
+			pc_setglobalreg(tsd, "CLONE_SKILL_LV", tsd->status.skill[skillid].lv);
 			clif_skillinfoblock(tsd);
 		}
 	}

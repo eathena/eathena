@@ -59,6 +59,8 @@
 #define WEDDING_RING_M 2634
 #define WEDDING_RING_F 2635
 
+#define MAX_MEMOPOINTS 10
+
 #define CHAR_CONF_NAME  "conf/char_athena.conf"
 
 struct item {

@@ -1,5 +1,7 @@
 Date	Added
 07/20
+	* Updated the txt->sql converter, I THINK it will work now. [Skotlex]
+	* Fixed Plagiarized skill's level not being saved. [Skotlex]
 	* Changed Pressure/Gloria Domini to take a % of current SP, not max SP (from a post on
 	  ragnainfo, not personal custom shit! :p) [DracoRPG]
 	* Removed debug messages for fame list and signaled the bug that causes problems [DracoRPG]
