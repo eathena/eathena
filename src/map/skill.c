@@ -1656,9 +1656,9 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	/* ?Û‚Éƒ_ƒ?ƒW?—‚ğs‚¤ */
 	if (skillid || flag) {
 		if (attack_type&BF_WEAPON)
-			battle_delay_damage(tick+dmg.amotion,src,bl,damage,dmg.div_,0);
+			battle_delay_damage(tick+dmg.amotion,src,bl,damage,dmg.dmotion,0);
 		else
-			battle_damage(src,bl,damage,dmg.div_, 0);
+			battle_damage(src,bl,damage,dmg.dmotion, 0);
 	}
 	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&0x20) && !map[src->m].flag.gvg ) {
 		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
@@ -1750,9 +1750,9 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 
 	if ((skillid || flag) && rdamage>0) {
 		if (attack_type&BF_WEAPON)
-			battle_delay_damage(tick+dmg.amotion,bl,src,rdamage,dmg.div_,0);
+			battle_delay_damage(tick+dmg.amotion,bl,src,rdamage,dmg.dmotion,0);
 		else
-			battle_damage(bl,src,rdamage,dmg.div_,0);
+			battle_damage(bl,src,rdamage,dmg.dmotion,0);
 	}
 
 	if(attack_type&BF_WEAPON && sc_data && sc_data[SC_AUTOCOUNTER].timer != -1 && sc_data[SC_AUTOCOUNTER].val4 > 0) {
@@ -6440,7 +6440,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 				{
 					int dmg = rand() % 9999 +1;
 					clif_damage(ss, bl, sg->tick,0,0,dmg,0,0,0);
-					battle_damage(ss, bl, dmg,1,0); // temporary damage
+					battle_damage(ss, bl, dmg,1,0);
 					break;
 				}
 				case 1: //Curse

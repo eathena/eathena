@@ -1086,15 +1086,6 @@ int mob_stop_walking(struct mob_data *md,int type)
 	}
 	if(type&0x01)
 		clif_fixmobpos(md);
-	if(type&0x02) {
-		int delay;
-		unsigned int tick;
-		type = type>>3; //Extract the div count [Skotlex]
-		delay=status_get_dmotion(&md->bl);
-		tick = gettick();
-		if(battle_config.monster_damage_delay_rate && md->canmove_tick < tick)
-			md->canmove_tick = tick + delay + (type>1?(type-1)*battle_config.monster_combo_damage_delay:0);
-	}
 
 	return 0;
 }
@@ -1877,7 +1868,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		} else {
 			mob_unlocktarget(md,tick);
 			if (md->state.state == MS_WALK)
-				mob_stop_walking(md,4);	// ï‡çsíÜÇ»ÇÁí‚é~
+				mob_stop_walking(md,4); //<- what is this FOUR for? It does nothing.... [Skotlex]
 			return 0;
 		}
 	}
@@ -2232,7 +2223,7 @@ int mob_deleteslave(struct mob_data *md)
  * It is the damage of sd to damage to md.
  *------------------------------------------
  */
-int mob_damage(struct block_list *src,struct mob_data *md,int damage,int div_,int type)
+int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,int type)
 {
 	int i,count,minpos,mindmg;
 	struct map_session_data *sd = NULL,*tmpsd[DAMAGELOG_SIZE];
@@ -2281,7 +2272,12 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int div_,in
 	}
 
 	if(battle_config.monster_damage_delay_rate && md->sc_data[SC_ENDURE].timer == -1)
-		mob_stop_walking(md,3|(div_<<3));
+	{
+		mob_stop_walking(md,3);
+		if (md->canmove_tick < tick)
+			md->canmove_tick = tick + delay;
+	}
+
 	if(damage > max_hp>>2)
 		skill_stop_dancing(&md->bl,0);
 

@@ -2873,7 +2873,7 @@ int status_get_dmotion(struct block_list *bl)
 		ret=0;
 
 	//Let's apply a random damage modifier to prevent 'stun-lock' abusers. [Skotlex]
-	ret = ret*(95+rand()%10)/100;	//Currently: +/- 5%
+	ret = ret*(95+rand()%11)/100;	//Currently: +/- 5%
 	return ret;
 }
 int status_get_element(struct block_list *bl)

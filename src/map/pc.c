@@ -3590,14 +3590,6 @@ int pc_stop_walking (struct map_session_data *sd, int type)
 	sd->to_y = sd->bl.y;
 	if (type & 0x01)
 		clif_fixpos(&sd->bl);
-	if (type & 0x02 && battle_config.pc_damage_delay_rate) {
-		unsigned int tick = gettick();
-		int delay = status_get_dmotion(&sd->bl);
-		type = type>>2; //Remove the flags to get the div_ count [Skotlex]
-		if (sd->canmove_tick < tick)
-			sd->canmove_tick = tick + delay + (type>2?(type-1)*battle_config.pc_combo_damage_delay:0);
-	}
-
 	return 0;
 }
 
@@ -4786,7 +4778,7 @@ int pc_resetskill(struct map_session_data* sd)
  * pc‚Éƒ_ƒ?ƒW‚ð?‚¦‚é
  *------------------------------------------
  */
-int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int div_)
+int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int delay)
 {
 	int i=0,j=0;
 	struct pc_base_job s_class;
@@ -4812,8 +4804,12 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 		else if (sd->sc_data[SC_ENDURE].timer != -1 && (src != NULL && src->type == BL_MOB) && !map[sd->bl.m].flag.gvg) {
 			if ((--sd->sc_data[SC_ENDURE].val2) < 0) 
 				status_change_end(&sd->bl, SC_ENDURE, -1);
-		} else pc_stop_walking(sd,3|(div_<<2));
-
+		} else {
+			pc_stop_walking (sd,1);
+			if (battle_config.pc_damage_delay_rate &&
+				sd->canmove_tick < gettick())
+				sd->canmove_tick = gettick() + delay;
+		}
 		if (sd->sc_data[SC_GRAVITATION].timer != -1 &&
 			sd->sc_data[SC_GRAVITATION].val3 == BCT_SELF) {
 			struct skill_unit_group *sg = (struct skill_unit_group *)sd->sc_data[SC_GRAVITATION].val4;

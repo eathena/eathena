@@ -286,15 +286,14 @@ int compare_item(struct item *a, struct item *b) {
 	  (a->card[3] == b->card[3]));
 }
 
-//=====================================================================================================
 int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	int i=0,party_exist,guild_exist;
-//	int eqcount=1;
-//	int noteqcount=1;
 	int count = 0;
 	int diff = 0;
 	char temp_str[64]; //2x the value of the string before jstrescapecpy [Skotlex]
-	//char *tmp_p = tmp_sql;
+	char *tmp_ptr; //Building a single query should be more efficient than running
+		//multiple queries for each thing about to be saved, right? [Skotlex]
+	char save_status[100]; //For displaying save information. [Skotlex]
 	struct mmo_charstatus *cp;
 	struct itemtmp mapitem[MAX_GUILD_STORAGE];
 
@@ -308,24 +307,13 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		numdb_insert(char_db_, char_id,cp);
 	}
 
-	save_flag = p->char_id;
-	ShowInfo("Save char request (\033[1;32m%d\033[0m - %s)\n",char_id,char_dat[0].name);
-
-//for(testcount=1;testcount<50;testcount++){//---------------------------test count--------------------
-//	printf("test count : %d\n", testcount);
-//	eqcount=1;
-//	noteqcount=1;
-//	dbeqcount=1;
-//	dbnoteqcount=1;
-//-----------------------------------------------------------------------------------------------------
-
-//=========================================map  inventory data > memory ===============================
+	ShowInfo("Saving char "CL_WHITE"%d"CL_RESET" (%s)...\n",char_id,char_dat[0].name);
+	memset(save_status, 0, sizeof(save_status));
 	diff = 0;
-
 	//map inventory data
 	for(i=0;i<MAX_INVENTORY;i++){
-			if (!compare_item(&p->inventory[i], &cp->inventory[i]))
-				diff = 1;
+		if (!compare_item(&p->inventory[i], &cp->inventory[i]))
+			diff = 1;
 		if(p->inventory[i].nameid>0){
 			mapitem[count].flag=0;
 			mapitem[count].id = p->inventory[i].id;
@@ -344,18 +332,16 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	}
 	//printf("- Save item data to MySQL!\n");
 	if (diff)
-		  memitemdata_to_sql(mapitem, count, p->char_id,TABLE_INVENTORY);
+		if (!memitemdata_to_sql(mapitem, count, p->char_id,TABLE_INVENTORY))
+			strcat(save_status, " inventory");
 
-//=========================================map  cart data > memory ====================================
-//	eqcount=1;
-//	noteqcount=1;
 	count = 0;
 	diff = 0;
 
 	//map cart data
 	for(i=0;i<MAX_CART;i++){
-	        if (!compare_item(&p->cart[i], &cp->cart[i]))
-		        diff = 1;
+		if (!compare_item(&p->cart[i], &cp->cart[i]))
+			diff = 1;
 		if(p->cart[i].nameid>0){
 			mapitem[count].flag=0;
 			mapitem[count].id = p->cart[i].id;
@@ -373,11 +359,9 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		}
 	}
 
-	//printf("- Save cart data to MySQL!\n");
 	if (diff)
-	    memitemdata_to_sql(mapitem, count, p->char_id,TABLE_CART);
-
-//=====================================================================================================
+		if (!memitemdata_to_sql(mapitem, count, p->char_id,TABLE_CART))
+			strcat(save_status, " cart");
 
 	if ((p->base_exp != cp->base_exp) || (p->class_ != cp->class_) ||
 	    (p->base_level != cp->base_level) || (p->job_level != cp->job_level) ||
@@ -395,234 +379,251 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	    (p->shield != cp->shield) || (p->head_top != cp->head_top) ||
 	    (p->head_mid != cp->head_mid) || (p->head_bottom != cp->head_bottom) ||
 	    (p->partner_id != cp->partner_id) || (p->father != cp->father) ||
-	    (p->mother != cp->mother) || (p->child != cp->child) || (p->fame != cp->fame)) {
+	    (p->mother != cp->mother) || (p->child != cp->child) || (p->fame != cp->fame))
+	{	//Save status
+	
+		//Check for party
+		party_exist=1;
+		sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id` = '%d'",party_db, p->party_id); // TBR
+		if (mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("DB Error - %s\n", mysql_error(&mysql_handle));
+		} else { //In case of failure, don't touch the data. [Skotlex
+			sql_res = mysql_store_result(&mysql_handle);
+			sql_row = mysql_fetch_row(sql_res);
+			if (sql_row)
+				party_exist = atoi(sql_row[0]);
+			mysql_free_result(sql_res);
+		}
 
-//}//---------------------------test count------------------------------
-	//check party_exist
-	party_exist=0;
-	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id` = '%d'",party_db, p->party_id); // TBR
-	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
-	}
-	sql_res = mysql_store_result(&mysql_handle);
-	sql_row = mysql_fetch_row(sql_res);
-	if (sql_row) party_exist = atoi(sql_row[0]);
-	mysql_free_result(sql_res);
+		//check guild_exist
+		guild_exist=1;
+		sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id` = '%d'",guild_db, p->guild_id); // TBR
+		if (mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("DB Error (select guild): %s\n", mysql_error(&mysql_handle));
+		} else { //If we fail to confirm, don't touch the data.
+			sql_res = mysql_store_result(&mysql_handle);
+			sql_row = mysql_fetch_row(sql_res);
+			if (sql_row)
+				guild_exist = atoi(sql_row[0]);
+			mysql_free_result(sql_res);
+		}
+		
+		if (guild_exist==0) p->guild_id=0;
+		if (party_exist==0) p->party_id=0;
 
-	//check guild_exist
-	guild_exist=0;
-	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id` = '%d'",guild_db, p->guild_id); // TBR
-	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
-	}
-	sql_res = mysql_store_result(&mysql_handle);
-	sql_row = mysql_fetch_row(sql_res);
-	if (sql_row) guild_exist = atoi(sql_row[0]);
-	mysql_free_result(sql_res);
+		//sql query
+		//`char`( `char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`, //9
+		//`str`,`agi`,`vit`,`int`,`dex`,`luk`, //15
+		//`max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point`, //21
+		//`option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`, //27
+		//`hair`,`hair_color`,`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`, //35
+		//`last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`)
 
-	if (guild_exist==0) p->guild_id=0;
-	if (party_exist==0) p->party_id=0;
+		sprintf(tmp_sql ,"UPDATE `%s` SET `class`='%d', `base_level`='%d', `job_level`='%d',"
+			"`base_exp`='%d', `job_exp`='%d', `zeny`='%d',"
+			"`max_hp`='%d',`hp`='%d',`max_sp`='%d',`sp`='%d',`status_point`='%d',`skill_point`='%d',"
+			"`str`='%d',`agi`='%d',`vit`='%d',`int`='%d',`dex`='%d',`luk`='%d',"
+			"`option`='%d',`karma`='%d',`manner`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',"
+			"`hair`='%d',`hair_color`='%d',`clothes_color`='%d',`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
+			"`last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d',"
+			"`partner_id`='%d', `father`='%d', `mother`='%d', `child`='%d', `fame`='%d'"
+			"WHERE  `account_id`='%d' AND `char_id` = '%d'",
+			char_db, p->class_, p->base_level, p->job_level,
+			p->base_exp, p->job_exp, p->zeny,
+			p->max_hp, p->hp, p->max_sp, p->sp, p->status_point, p->skill_point,
+			p->str, p->agi, p->vit, p->int_, p->dex, p->luk,
+			p->option, p->karma, p->manner, p->party_id, p->guild_id, p->pet_id,
+			p->hair, p->hair_color, p->clothes_color,
+			p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
+			p->last_point.map, p->last_point.x, p->last_point.y,
+			p->save_point.map, p->save_point.x, p->save_point.y, p->partner_id, p->father, p->mother,
+			p->child, p->fame, p->account_id, p->char_id
+		);
 
-	//sql query
-	//`char`( `char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`, //9
-	//`str`,`agi`,`vit`,`int`,`dex`,`luk`, //15
-	//`max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point`, //21
-	//`option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`, //27
-	//`hair`,`hair_color`,`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`, //35
-	//`last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`)
-	//printf("- Save char data to MySQL!\n");
-	sprintf(tmp_sql ,"UPDATE `%s` SET `class`='%d', `base_level`='%d', `job_level`='%d',"
-		"`base_exp`='%d', `job_exp`='%d', `zeny`='%d',"
-		"`max_hp`='%d',`hp`='%d',`max_sp`='%d',`sp`='%d',`status_point`='%d',`skill_point`='%d',"
-		"`str`='%d',`agi`='%d',`vit`='%d',`int`='%d',`dex`='%d',`luk`='%d',"
-		"`option`='%d',`karma`='%d',`manner`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',"
-		"`hair`='%d',`hair_color`='%d',`clothes_color`='%d',`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
-		"`last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d',"
-		"`partner_id`='%d', `father`='%d', `mother`='%d', `child`='%d', `fame`='%d'"
-		"WHERE  `account_id`='%d' AND `char_id` = '%d'",
-		char_db, p->class_, p->base_level, p->job_level,
-		p->base_exp, p->job_exp, p->zeny,
-		p->max_hp, p->hp, p->max_sp, p->sp, p->status_point, p->skill_point,
-		p->str, p->agi, p->vit, p->int_, p->dex, p->luk,
-		p->option, p->karma, p->manner, p->party_id, p->guild_id, p->pet_id,
-		p->hair, p->hair_color, p->clothes_color,
-		p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
-		p->last_point.map, p->last_point.x, p->last_point.y,
-		p->save_point.map, p->save_point.x, p->save_point.y, p->partner_id, p->father, p->mother,
-		p->child, p->fame, p->account_id, p->char_id
-	);
-
-	if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle));
-	}
-
+		if(mysql_query(&mysql_handle, tmp_sql))
+			ShowSQL("DB Error (update char): %s\n", mysql_error(&mysql_handle));
+		else
+			strcat(save_status, " status");
 	}
 
 	diff = 0;
 
-	for(i=0;i<10;i++){
-	  if((strcmp(p->memo_point[i].map,cp->memo_point[i].map) == 0) && (p->memo_point[i].x == cp->memo_point[i].x) && (p->memo_point[i].y == cp->memo_point[i].y))
-	    continue;
-	  diff = 1;
-	  break;
+	for(i=0;i<MAX_MEMOPOINTS;i++){
+		if((strcmp(p->memo_point[i].map,cp->memo_point[i].map) == 0) && (p->memo_point[i].x == cp->memo_point[i].x) && (p->memo_point[i].y == cp->memo_point[i].y))
+			continue;
+		diff = 1;
+		break;
 	}
 
-	if (diff) {
-	//printf("- Save memo data to MySQL!\n");
-	//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
-	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",memo_db, p->char_id);
-	if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("DB server Error (delete `memo`)- %s\n", mysql_error(&mysql_handle));
-	}
+	if (diff)
+	{ //Save memo
+		//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
+		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",memo_db, p->char_id);
+		if(mysql_query(&mysql_handle, tmp_sql))
+			ShowSQL("DB Error (delete memo): %s\n", mysql_error(&mysql_handle));
 
-	//insert here.
-	for(i=0;i<10;i++){
-		if(p->memo_point[i].map[0]){
-			sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`,`map`,`x`,`y`) VALUES ('%d', '%s', '%d', '%d')",
-				memo_db, char_id, p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
-			if(mysql_query(&mysql_handle, tmp_sql))
-				ShowSQL("DB server Error (insert `memo`)- %s\n", mysql_error(&mysql_handle));
+		//insert here.
+		tmp_ptr = tmp_sql;
+		tmp_ptr += sprintf(tmp_ptr, "INSERT INTO `%s`(`char_id`,`map`,`x`,`y`) VALUES ", memo_db);
+		count = 0;
+		for(i=0;i<MAX_MEMOPOINTS;i++){
+			if(p->memo_point[i].map[0]){
+				tmp_ptr += sprintf(tmp_ptr,"('%d', '%s', '%d', '%d'),",
+					char_id, p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
+				count++;
+			}
 		}
-	}
+		if (count)
+		{	//Dangerous? Only if none of the above sprintf worked. [Skotlex]
+			tmp_sql[-1] = '\0'; //Remove the trailing comma.
+			if(mysql_query(&mysql_handle, tmp_sql))
+				ShowSQL("DB Error (insert memo): %s\n", mysql_error(&mysql_handle));
+			else
+				strcat(save_status, " memo");
+		} else //Memo Points cleared (how is this possible?).
+			strcat(save_status, " memo");
 	}
 
 	diff = 0;
 	for(i=0;i<MAX_SKILL;i++) {
-            if ((p->skill[i].lv != 0) && (p->skill[i].id == 0))
-                p->skill[i].id = i; // Fix skill tree
+		if ((p->skill[i].lv != 0) && (p->skill[i].id == 0))
+			p->skill[i].id = i; // Fix skill tree
 
-            if((p->skill[i].id != cp->skill[i].id) || (p->skill[i].lv != cp->skill[i].lv) ||
-                (p->skill[i].flag != cp->skill[i].flag)) {
-                diff = 1;
-                break;
-            }
-        }
-
-	if (diff) {
-	//printf("- Save skill data to MySQL!\n");
-	//`skill` (`char_id`, `id`, `lv`)
-	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",skill_db, p->char_id);
-	if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("DB server Error (delete `skill`)- %s\n", mysql_error(&mysql_handle));
-	}
-	//printf("- Insert skill \n");
-	//insert here.
-	for(i=0;i<MAX_SKILL;i++){
-		if(p->skill[i].id){
-			if (p->skill[i].id && p->skill[i].flag!=1) {
-				sprintf(tmp_sql,"INSERT INTO `%s`(`char_id`, `id`, `lv`) VALUES ('%d', '%d','%d')",
-					skill_db, char_id, p->skill[i].id, (p->skill[i].flag==0)?p->skill[i].lv:p->skill[i].flag-2);
-				if(mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("DB server Error (insert `skill`)- %s\n", mysql_error(&mysql_handle));
-				}
-			}
+		if((p->skill[i].id != cp->skill[i].id) || (p->skill[i].lv != cp->skill[i].lv) ||
+			(p->skill[i].flag != cp->skill[i].flag))
+		{
+			diff = 1;
+			break;
 		}
 	}
+
+	if (diff)
+	{	//Save skills
+		
+		//`skill` (`char_id`, `id`, `lv`)
+		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",skill_db, p->char_id);
+		if(mysql_query(&mysql_handle, tmp_sql))
+			ShowSQL("DB Error (delete skill): %s\n", mysql_error(&mysql_handle));
+
+		tmp_ptr = tmp_sql;
+		tmp_ptr += sprintf(tmp_ptr,"INSERT INTO `%s`(`char_id`,`id`,`lv`) VALUES ", skill_db);
+		count = 0;
+		//insert here.
+		for(i=0;i<MAX_SKILL;i++){
+			if(p->skill[i].id && p->skill[i].flag!=1)
+			{
+				tmp_ptr += sprintf(tmp_ptr,"('%d','%d','%d'),",
+					char_id, p->skill[i].id, (p->skill[i].flag==0)?p->skill[i].lv:p->skill[i].flag-2);
+				count++;
+			}
+		}
+	
+		if (count)
+		{
+			tmp_ptr[-1] = '\0';	//Remove trailing comma.
+			if(mysql_query(&mysql_handle, tmp_sql))
+				ShowSQL("DB Error (insert skill): %s\n", mysql_error(&mysql_handle));
+			else
+				strcat(save_status, " skills");
+		} else //Skills removed (reset?)
+			strcat(save_status, " skills");
 	}
 
 	diff = 0;
 	for(i=0;i<p->global_reg_num;i++) {
-	  if ((p->global_reg[i].str == NULL) && (cp->global_reg[i].str == NULL))
-	    continue;
-	  if (((p->global_reg[i].str == NULL) != (cp->global_reg[i].str == NULL)) ||
-	      (p->global_reg[i].value != cp->global_reg[i].value) ||
-	      strcmp(p->global_reg[i].str, cp->global_reg[i].str) != 0) {
-	    diff = 1;
-	    break;
-	  }
-	}
-
-	if (diff) {
-	//printf("- Save global_reg_value data to MySQL!\n");
-	//`global_reg_value` (`char_id`, `str`, `value`)
-	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, p->char_id);
-	if (mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("DB server Error (delete `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
-	}
-
-	//insert here.
-	for(i=0;i<p->global_reg_num;i++){
-		if (p->global_reg[i].str) {
-			if(p->global_reg[i].value !=0){
-					sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`, `str`, `value`) VALUES ('%d', '%s','%d')",
-					         reg_db, char_id, jstrescapecpy(temp_str,p->global_reg[i].str), p->global_reg[i].value);
-					if(mysql_query(&mysql_handle, tmp_sql)) {
-						ShowSQL("DB server Error (insert `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
-					}
-			}
+		if ((p->global_reg[i].str == NULL) && (cp->global_reg[i].str == NULL))
+			continue;
+		if (((p->global_reg[i].str == NULL) != (cp->global_reg[i].str == NULL)) ||
+			(p->global_reg[i].value != cp->global_reg[i].value) ||
+			strcmp(p->global_reg[i].str, cp->global_reg[i].str) != 0
+		) {
+			diff = 1;
+			break;
 		}
 	}
-	}
-
-	// Friends list
-	// account_id, friend_id0, name0, ...
-         /*
-         #if 0
-		tmp_p += sprintf(tmp_p, "REPLACE INTO `%s` (`id`, `account_id`",friend_db);
-
-		diff = 0;
-
-		for (i=0;i<20;i++)
-			tmp_p += sprintf(tmp_p, ", `friend_id%d`, `name%d`", i, i);
-
-		tmp_p += sprintf(tmp_p, ") VALUES (NULL, '%d'", char_id);
-
-		for (i=0;i<20;i++) {
-			tmp_p += sprintf(tmp_p, ", '%d', '%s'", p->friend_id[i], p->friend_name[i]);
-			if ((p->friend_id[i] != cp->friend_id[i]) ||
-				strcmp(p->friend_name[i], cp->friend_name[i]))
-			  diff = 1;
-		}
-
-		tmp_p += sprintf(tmp_p, ")");
-	#else	// [Dino9021]
-		tmp_p += sprintf(tmp_p, "UPDATE `%s` SET ",friend_db);
-
-		diff = 0;
-
-		for (i=0;i<20;i++) {
-			if (i>0)
-				tmp_p += sprintf(tmp_p, ", ");
-
-			tmp_p += sprintf(tmp_p, "`friend_id%d`='%d', `name%d`='%s'", i, p->friend_id[i], i, p->friend_name[i]);
-
-			if ((p->friend_id[i] != cp->friend_id[i]) || strcmp(p->friend_name[i], cp->friend_name[i]))
-				diff = 1;
-		}
-
-		tmp_p += sprintf(tmp_p, " where account_id='%d';", char_id);
-	#endif
 
 	if (diff)
-	  mysql_query(&mysql_handle, tmp_sql);
-         */
-         diff = 0;
-         for(i = 0; i < MAX_FRIENDS; i++){
-                if(p->friend_id[i] != cp->friend_id[i]){
-                	diff = 1;
-                 break;
-                }
-         }
+	{	//Save global registry.
+		//`global_reg_value` (`char_id`, `str`, `value`)
+		
+		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, p->char_id);
+		if (mysql_query(&mysql_handle, tmp_sql))
+			ShowSQL("DB Error (delete global_reg_value): %s\n", mysql_error(&mysql_handle));
 
-		if(diff == 1){
-			
-	        if(mysql_query(&mysql_handle, tmp_sql)){
-	        	eprintf("tosql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
-	        }
-	        
-			for(i = 0; i < MAX_FRIENDS; i++){
-					if(p->friend_id[i] > 0){
-							sprintf(tmp_sql, "INSERT INTO `%s` (`char_id`, `friend_id`) VALUES ('%d', '%d')", friend_db, char_id, p->friend_id[i]);
-							if(mysql_query(&mysql_handle, tmp_sql)){
-								eprintf("tosql() SQL ERROR: %s\n", mysql_error(&mysql_handle));
-							}
-            		}
-			}			
-}
+		//insert here.
+		tmp_ptr = tmp_sql;
+		tmp_ptr += sprintf(tmp_ptr,"INSERT INTO `%s` (`char_id`, `str`, `value`) VALUES", reg_db);
+		count = 0;
+		for(i=0;i<p->global_reg_num;i++)
+		{
+			if (p->global_reg[i].str && p->global_reg[i].value !=0)
+			{
+				tmp_ptr += sprintf(tmp_ptr,"('%d','%s','%d'),",
+					char_id, jstrescapecpy(temp_str,p->global_reg[i].str), p->global_reg[i].value);
+				if (++count%100 == 0)
+				{ //Save every X registers to avoid overflowing tmp_sql [Skotlex]
+					tmp_ptr[-1] = '\0';
+					if(mysql_query(&mysql_handle, tmp_sql))
+						ShowSQL("DB Error (insert global_reg_value sub): %s\n", mysql_error(&mysql_handle));
+					else
+						strcat(save_status, " global_reg");
+						
+					tmp_ptr = tmp_sql;
+					tmp_ptr += sprintf(tmp_ptr,"INSERT INTO `%s` (`char_id`, `str`, `value`) VALUES", reg_db);
+					count = 0;
+				}
+			}
+		}
 
-	ShowInfo("saving char is done.\n");
-	save_flag = 0;
+		if (count)
+		{
+			tmp_ptr[-1] = '\0';
+			if(mysql_query(&mysql_handle, tmp_sql))
+				ShowSQL("DB Error (insert global_reg_value): %s\n", mysql_error(&mysql_handle));
+			else
+				strcat(save_status, " global_reg");
+		} else //Values cleared.
+			strcat(save_status, " global_reg");
+	}
 
+	diff = 0;
+	for(i = 0; i < MAX_FRIENDS; i++){
+		if(p->friend_id[i] != cp->friend_id[i]){
+			diff = 1;
+			break;
+		}
+	}
+
+	if(diff == 1)
+	{	//Save friends	
+		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id`='%d'", friend_db, char_id);
+		if(mysql_query(&mysql_handle, tmp_sql)){
+			ShowSQL("DB Error (delete friend): %s\n", mysql_error(&mysql_handle));
+		}
+		  
+		tmp_ptr = tmp_sql;
+		tmp_ptr += sprintf(tmp_ptr, "INSERT INTO `%s` (`char_id`, `friend_id`) VALUES ", friend_db);
+		count = 0;
+		for(i = 0; i < MAX_FRIENDS; i++){
+			if(p->friend_id[i] > 0)
+			{
+				tmp_ptr += sprintf(tmp_ptr, "('%d', '%d'),", char_id, p->friend_id[i]);
+				count++;
+			}
+		}
+		if (count)
+		{
+			tmp_ptr[-1] = '\0';	//Remove the last comma. [Skotlex]
+			if(mysql_query(&mysql_handle, tmp_sql))
+				ShowSQL("DB Error (insert friend): %s\n", mysql_error(&mysql_handle));
+			else
+				strcat(save_status, " friends");
+		} else //Friend list cleared.
+			strcat(save_status, " friends");
+
+	}
+
+	ShowInfo("Saved char %d:%s.\n", char_id, save_status);
 	memcpy(cp, p, sizeof(struct mmo_charstatus));
 
 	return 0;
@@ -656,7 +657,6 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 		ShowError("Invalid table name!\n");
 		return 1;
 	}
-	//printf("Working Table : %s \n",tablename);
 
 	//=======================================mysql database data > memory===============================================
 

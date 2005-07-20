@@ -190,7 +190,7 @@ int battle_delay_damage (unsigned int tick, struct block_list *src, struct block
 }
 
 // ŽÀÛ‚ÉHP‚ð‘€ì
-int battle_damage(struct block_list *bl,struct block_list *target,int damage, int div_, int flag)
+int battle_damage(struct block_list *bl,struct block_list *target,int damage, int delay, int flag)
 {
 	struct map_session_data *sd = NULL;
 	struct status_change *sc_data;
@@ -232,7 +232,7 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage, in
 		struct mob_data *md = (struct mob_data *)target;
 		if (md && md->skilltimer != -1 && md->state.skillcastcancel)	// ‰r¥–WŠQ
 			skill_castcancel(target,0);
-		return mob_damage(bl,md,damage,div_,0);
+		return mob_damage(bl,md,damage,delay,0);
 	} else if (target->type == BL_PC) {	// PC
 		struct map_session_data *tsd = (struct map_session_data *)target;
 		if (!tsd)
@@ -244,8 +244,8 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage, in
 			} else if (sd2 && bl) {
 				for (i = 0; i < 5; i++)
 					if (sd2->dev.val1[i] == target->id) {
-						clif_damage(bl, &sd2->bl, gettick(), 0, 0, damage, 0 , 0, 0);
-						pc_damage(&sd2->bl, sd2, damage, 1);
+						clif_damage(bl, &sd2->bl, gettick(), 0, 0, damage, delay, 0, 0);
+						pc_damage(&sd2->bl, sd2, damage, delay);
 						return 0;
 					}
 			}
@@ -257,11 +257,12 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage, in
 				!tsd->special_state.no_castcancel2)
 				skill_castcancel(target,0);
 		}
-		return pc_damage(bl,tsd,damage,div_);
+		return pc_damage(bl,tsd,damage,delay);
 	} else if (target->type == BL_SKILL)
 		return skill_unit_ondamaged((struct skill_unit *)target, bl, damage, gettick());
 	return 0;
 }
+
 int battle_heal(struct block_list *bl,struct block_list *target,int hp,int sp,int flag)
 {
 	nullpo_retr(0, target); //bl‚ÍNULL‚ÅŒÄ‚Î‚ê‚é‚±‚Æ‚ª‚ ‚é‚Ì‚Å‘¼‚Åƒ`ƒFƒbƒN
@@ -4713,17 +4714,22 @@ struct Damage battle_calc_attack(	int attack_type,
 	struct Damage d;
 	switch(attack_type){
 	case BF_WEAPON:
-		return battle_calc_weapon_attack(bl,target,&skill_num,&skill_lv,flag);
+		d = battle_calc_weapon_attack(bl,target,&skill_num,&skill_lv,flag);
+		break;
 	case BF_MAGIC:
-		return battle_calc_magic_attack(bl,target,skill_num,skill_lv,flag);
+		d = battle_calc_magic_attack(bl,target,skill_num,skill_lv,flag);
+		break;
 	case BF_MISC:
-		return battle_calc_misc_attack(bl,target,skill_num,skill_lv,flag);
+		d = battle_calc_misc_attack(bl,target,skill_num,skill_lv,flag);
+		break;
 	default:
 		if (battle_config.error_log)
 			ShowError("battle_calc_attack: unknown attack type! %d\n",attack_type);
 		memset(&d,0,sizeof(d));
 		break;
 	}
+	if (d.div_ > 1 && battle_config.combo_damage_delay) //Combo Damage Delay [Skotlex]
+		d.dmotion += (d.div_-1)*battle_config.combo_damage_delay;
 	return d;
 }
 /*==========================================
@@ -5342,7 +5348,7 @@ static const struct battle_data_short {
 	{ "skill_out_range_consume",           &battle_config.skill_out_range_consume	},
 	{ "monster_skill_add_range",           &battle_config.mob_skill_add_range		},
 	{ "player_damage_delay_rate",          &battle_config.pc_damage_delay_rate		},
-	{ "player_combo_damage_delay",         &battle_config.pc_combo_damage_delay	},
+	{ "combo_damage_delay",                &battle_config.combo_damage_delay		},
 	{ "defunit_not_enemy",                 &battle_config.defnotenemy				},
 	{ "random_monster_checklv",            &battle_config.random_monster_checklv	},
 	{ "attribute_recover",                 &battle_config.attr_recover				},
@@ -5375,7 +5381,6 @@ static const struct battle_data_short {
 	{ "potion_produce_rate",               &battle_config.pp_rate					},
 	{ "monster_active_enable",             &battle_config.monster_active_enable	},
 	{ "monster_damage_delay_rate",         &battle_config.monster_damage_delay_rate},
-	{ "monster_combo_damage_delay",        &battle_config.monster_combo_damage_delay},
 	{ "monster_loot_type",                 &battle_config.monster_loot_type		},
 //	{ "mob_skill_use",                     &battle_config.mob_skill_use			},	//Deprecated
 	{ "mob_skill_rate",                    &battle_config.mob_skill_rate			},
@@ -5658,7 +5663,7 @@ void battle_set_defaults() {
 	battle_config.skill_out_range_consume=1;
 	battle_config.mob_skill_add_range=0;
 	battle_config.pc_damage_delay_rate=100;
-	battle_config.pc_combo_damage_delay=230;
+	battle_config.combo_damage_delay=230;
 	battle_config.defnotenemy=1;
 	battle_config.random_monster_checklv=1;
 	battle_config.attr_recover=1;
@@ -5700,7 +5705,6 @@ void battle_set_defaults() {
 	battle_config.pp_rate=100;
 	battle_config.monster_active_enable=1;
 	battle_config.monster_damage_delay_rate=100;
-	battle_config.monster_combo_damage_delay=230;
 	battle_config.monster_loot_type=0;
 //	battle_config.mob_skill_use=1;
 	battle_config.mob_skill_rate=100;

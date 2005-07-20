@@ -1,6 +1,11 @@
 Date	Added
 07/19
-        * corrected some bounds errors in the new packet_db code 
+	* Reorganized the way sql chars are being saved. [Skotlex]
+	* Merged battle options player_combo_damage_delay and
+	  mob_combo_damage_delay into combo_damage_delay [Skotlex]
+	* Some code reorganization that hopefully should help with mobs not having
+	  the same damage delay on the client and within the server. [Skotlex]
+	* corrected some bounds errors in the new packet_db code 
 	  that was corrupting memory [MouseJstr]
 	* Corrections to Tiger Knuckle Fist [Skotlex]
 	* Rewriting of part of the skill-additional effect code. (Should fix
