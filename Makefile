@@ -71,7 +71,7 @@ endif
 
 MYLIB = CC="$(CC)" CFLAGS="$(CFLAGS) $(MYSQL_INCLUDE)" LIB_S="$(MYSQL_LIB) $(LIBS) $(GCLIB)"
 
-all: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile conf
+all: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile
 	cd src/common ; $(MAKE) $(MYLIB) $@ ; cd ../..
 	cd src/login_sql ; $(MAKE) $(MYLIB) $@ ; cd ../..
 	cd src/char_sql ; $(MAKE) $(MYLIB) $@ ; cd ../..
