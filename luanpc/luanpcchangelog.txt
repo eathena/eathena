@@ -1,5 +1,8 @@
 //Lua NPC Changelog
 
-14-7-04
+20-7-05
+	* Re-added the "missing" contents of the folders
+
+14-7-05
 	* Added LuaNPC Folder and it's contents [massdriller]
 	- Previous contents went missing O.o
