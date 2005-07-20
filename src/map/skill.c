@@ -2454,9 +2454,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			else if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit / 100)
 				status_change_start(bl, SC_BLEEDING, skilllv, 0, 0, 0, bleed_time, 0);
 			if (tsd) {
-				int sp = tsd->status.max_sp * (15 + 5 * skilllv) / 100;
-				if (sp > tsd->status.sp) sp = tsd->status.sp;
-				tsd->status.sp -= sp;
+				tsd->status.sp -= tsd->status.sp * (15 + 5 * skilllv) / 100;
 				clif_updatestatus(tsd,SP_SP);
 			}
 		}

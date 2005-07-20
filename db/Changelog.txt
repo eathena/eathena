@@ -15,6 +15,9 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+07/20
+	* Changed Bow Thimble damage bonus to 3% (trustworthy-looking ragnainfo source) [DracoRPG]
+	* Removed job_db2-2 and rewritten + UPDATED job_db2 for the new system [DracoRPG]
 07/18
 	* A silly me, Palm Strike's delay before taking effect is 1s, not 1.5 ^^' [Skotlex]
 	* Changed Double Attack's list_num (div) to 2. [Skotlex]
@@ -23,7 +26,6 @@
 	  delay between doing the skill and the damage taking effect) [Skotlex]
 	* Updated Gospel's uptime2 to 60 secs (that's how long the bonuses should
 	  affect) [Skotlex]
-
 07/13
 	* Changed Wand of Hermod's skill_unit_setting from 'friend' to 'party' [Skotlex]
 	  (this should make the skill affect only party (and guild?) mates instead

@@ -295,7 +295,7 @@ static int aspd_base[MAX_PC_CLASS][20];
 static int refinebonus[MAX_REFINE_BONUS][3];	// 精錬ボーナステーブル(refine_db.txt)
 int percentrefinery[5][MAX_REFINE+1];	// 精錬成功率(refine_db.txt)
 static int atkmods[3][20];	// 武器ATKサイズ修正(size_fix.txt)
-static char job_bonus[3][MAX_PC_CLASS][MAX_LEVEL];
+static char job_bonus[MAX_PC_CLASS][MAX_LEVEL];
 
 int current_equip_item_index; //Contains inventory index of an equipped item. To pass it into the EQUP_SCRIPT [Lupus]
 //we need it for new cards 15 Feb 2005, to check if the combo cards are insrerted into the CURRENT weapon only
@@ -804,8 +804,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	// jobボ?ナス分
 	for(i=0;i<sd->status.job_level && i<MAX_LEVEL;i++){
-		if(job_bonus[s_class.upper][s_class.job][i])
-			sd->paramb[job_bonus[s_class.upper][s_class.job][i]-1]++;
+		if(job_bonus[sd->status.class_][i])
+			sd->paramb[job_bonus[sd->status.class_][i]-1]++;
 	}
 
 	if( (skill=pc_checkskill(sd,MC_INCCARRY))>0 )	// skill can be used with an item now, thanks to orn [Valaris]
@@ -5134,7 +5134,7 @@ static int status_calc_sigma(void)
 }
 
 int status_readdb(void) {
-	int i,j,k;
+	int i,j;
 	FILE *fp;
 	char line[1024],*p;
 
@@ -5180,52 +5180,21 @@ int status_readdb(void) {
 		ShowError("can't read db/job_db2.txt\n");
 		return 1;
 	}
-	i=0;
+
 	while(fgets(line, sizeof(line)-1, fp)){
+       	char *split[100];
 		if(line[0]=='/' && line[1]=='/')
 			continue;
-		for(j=0,p=line;j<MAX_LEVEL && p;j++){
-			if(sscanf(p,"%d",&k)==0)
-				break;
-			job_bonus[0][i][j]=k;
-			job_bonus[2][i][j]=k; //養子職のボ?ナスは分からないので?
+		for(j=0,p=line;j<100 && p;j++){
+			split[j]=p;
 			p=strchr(p,',');
-			if(p) p++;
+			if(p) *p++=0;
 		}
-		i++;
-// -- moonsoul (below two lines added to accommodate high numbered new class ids)
-		if(i==24)
-			i=4001;
-		if(i==MAX_PC_CLASS)
-			break;
+		for(j=1;j<100 && split[j];j++)
+			job_bonus[atoi(split[0])][j-1]=atoi(split[j]);
 	}
 	fclose(fp);
 	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/job_db2.txt");
-	ShowStatus(tmp_output);
-
-	// JOBボ?ナス2 ?生職用
-	fp=fopen("db/job_db2-2.txt","r");
-	if(fp==NULL){
-		ShowError("can't read db/job_db2-2.txt\n");
-		return 1;
-	}
-	i=0;
-	while(fgets(line, sizeof(line)-1, fp)){
-		if(line[0]=='/' && line[1]=='/')
-			continue;
-		for(j=0,p=line;j<MAX_LEVEL && p;j++){
-			if(sscanf(p,"%d",&k)==0)
-				break;
-			job_bonus[1][i][j]=k;
-			p=strchr(p,',');
-			if(p) p++;
-		}
-		i++;
-		if(i==MAX_PC_CLASS)
-			break;
-	}
-	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/job_db2-2.txt");
 	ShowStatus(tmp_output);
 
 	// サイズ補正テ?ブル

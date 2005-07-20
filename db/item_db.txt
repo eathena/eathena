@@ -1077,7 +1077,7 @@
 2616,Critical_Ring,Critical Ring,5,75000,0,100,,0,,0,10477567,2,136,,40,0,0,{},{ bonus bCritical,5; }
 2617,Celebrant's_Mitten,Celebrant's Mitten,5,20,0,100,,1,,0,10477567,2,136,,35,0,0,{},{ bonus bInt,1; }
 2618,Matyr's_Leash,Matyr's Leash,5,20,0,100,,1,,0,10477567,2,136,,35,0,0,{},{ bonus bAgi,1; }
-2619,Thimble_Of_Archer,Bow Thimble,5,30000,0,100,,0,,0,1574920,2,136,,65,0,0,{},{ bonus bLongAtkRate,10; }
+2619,Thimble_Of_Archer,Bow Thimble,5,30000,0,100,,0,,0,1574920,2,136,,65,0,0,{},{ bonus bLongAtkRate,3; }
 2620,Ring_Of_Rogue,Rogue's Treasure,5,30000,0,100,,0,,0,135232,2,136,,70,0,0,{},{ bonus bAddStealRate,100; }
 2621,Ring_,Ring,5,30000,0,200,,0,,1,10477567,2,136,,90,0,0,{},{ bonus bStr,1; }
 2622,Earring_,Earring,5,30000,0,200,,0,,1,10477567,2,136,,90,0,0,{},{ bonus bInt,1; }

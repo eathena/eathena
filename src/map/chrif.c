@@ -1053,7 +1053,6 @@ int chrif_recvfamelist(int fd)
 			smith_fame_list[num].id = id;
 			smith_fame_list[num].fame = fame;
 			name = map_charid2nick(id);
-			ShowDebug("Received fame info for Blacksmith %s (%d): %d points\n",name,id,fame);
 			if (name != NULL)
 				memcpy(smith_fame_list[num].name, name, NAME_LENGTH-1);
 			else {
@@ -1073,7 +1072,6 @@ int chrif_recvfamelist(int fd)
 			chemist_fame_list[num].id = id;
 			chemist_fame_list[num].fame = fame;
 			name = map_charid2nick(id);
-			ShowDebug("Received fame info for Alchemist %s (%d): %d points\n",name,id,fame);
 			if (name != NULL)
 				memcpy(chemist_fame_list[num].name, name, NAME_LENGTH-1);
 			else {

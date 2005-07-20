@@ -1,4 +1,3 @@
-// $Id: pc.c 101 2004-12-13 7:23:07 PM Celestia $
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -601,10 +600,8 @@ int pc_break_equip(struct map_session_data *sd, unsigned short where)
 			(where == EQP_SHIELD && i == 9 && sd->inventory_data[j]->type == 5)))
 		{
 			sd->status.inventory[j].attribute = 1;
-			sprintf(tmp_output, "%s has broken.", sd->inventory_data[j]->name);
 			pc_unequipitem(sd, j, 3);
 			clif_emotion(&sd->bl, 23);
-			clif_displaymessage(sd->fd, tmp_output);
 			clif_equiplist(sd);
 			return 1;
 		}

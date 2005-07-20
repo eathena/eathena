@@ -353,7 +353,8 @@ Note:		Alt-J works to open menu... just seems that the client management of pets
 Problem:	Fame Lists
 			Both fame lists: Blacksmiths, alchemists show UNKNOWN instead of names.
 Assigned:	na
-Progress:	0%
+Progress:	50%
+Note:		The function works perfectly... but map_charid2nick is BROKEN, as well as other functions calling to a stringdb search
 
 Problem:	Child + Papa + Mama EXP sharing exploit
 			adopt a child, make a party papa+mama+child, kill the child, and you can share EXP
