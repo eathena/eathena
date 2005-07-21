@@ -76,8 +76,9 @@ void sql_connect_debug(
 	const char *file_name, const char *function_name,int line_number,
 	const char *server_ip, const char *server_id, const char *server_pw, const char *server_db, int server_port)
 {
+	//Will be used when testing of the embedded server begins.
 
-	mysql_server_init(num_elements, server_options, server_groups);
+	//mysql_server_init(num_elements, server_options, server_groups);
 
 	if (!mysql_init(&mysql_handle)){
 		ShowWarning("------- SQL INIT error report -------\n\n");
@@ -101,6 +102,7 @@ void sql_close_debug(
 	const char *file_name, const char *function_name,int line_number)
 {
 	mysql_close(&mysql_handle);
-	mysql_server_end();
+	// Will be used when testing of the embedded server begins.
+	//mysql_server_end();
 
 }
