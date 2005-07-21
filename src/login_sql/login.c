@@ -22,11 +22,11 @@
 
 
 #ifdef PASSWORDENC
-#include "md5calc.h"
+#include "md5.hh"
 #endif // PASSWORDENC
 
 #ifdef CLOWNPHOBIA
-#include "md5calc.h"
+#include "md5.hh"
 #endif // CLOWNPHOBIA
 
 //-----------------------------------------------------
