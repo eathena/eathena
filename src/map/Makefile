@@ -3,8 +3,8 @@ all map: sqlobj map-server_sql
 sqlobj:
 	mkdir sqlobj
 
-COMMON_OBJ = ../common/core.o ../common/db.o ../common/plugins.o ../common/grfio.o ../common/lock.o ../common/malloc.o ../common/md5calc.o ../common/mmo.o ../common/nullpo.o ../common/showmsg.o ../common/socket.o ../common/strlib.o ../common/timer.o ../common/utils.o ../common/dbaccess.o
-COMMON_H =   ../common/core.h ../common/db.h ../common/plugins.h ../common/grfio.h ../common/lock.h ../common/malloc.h ../common/md5calc.h ../common/mmo.h ../common/nullpo.h ../common/showmsg.h ../common/socket.h ../common/strlib.h ../common/timer.h ../common/utils.h ../common/dbaccess.h ../common/version.h ../common/base.h 
+COMMON_OBJ = ../common/core.o ../common/db.o ../common/plugins.o ../common/grfio.o ../common/lock.o ../common/malloc.o ../common/mmo.o ../common/nullpo.o ../common/showmsg.o ../common/socket.o ../common/strlib.o ../common/timer.o ../common/utils.o ../common/dbaccess.o
+COMMON_H =   ../common/core.h ../common/db.h ../common/plugins.h ../common/grfio.h ../common/lock.h ../common/malloc.h ../common/mmo.h ../common/nullpo.h ../common/showmsg.h ../common/socket.h ../common/strlib.h ../common/timer.h ../common/utils.h ../common/dbaccess.h ../common/version.h ../common/base.h 
 
 LIBS = -lz -lm
 

@@ -4,9 +4,7 @@
 
 #include <stdio.h>
 #include <fstream>
-#include <iostream>
-
-using namespace std;
+#include <iostream.h>
 
 class MD5 {
 

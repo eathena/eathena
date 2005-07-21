@@ -1,4 +1,11 @@
 Date	Added
+07/21
+	- Added new md5.cc and md5.hh for usage in the PASSWORDENC and CLOWNPHOBIA sections
+	  of the login.c/h and in the ladmin for compiling of some other things.
+	  lAdmin at the meantime is bugged, and will be that way for a while, till things
+	  are stable.[CLOWNISIUS]
+	- Login server fixed to use PASSWORDENC properly, CLOWNPHOBIA updated also to use salted
+	  hashes.[CLOWNISIUS]
 07/18
 	- Fixed Makefiles for all SQL based compiles (login,char,map) [CLOWNISIUS]
 	- Implementation of the dbaccess.c/h files to help ease usage of SQL commands,
