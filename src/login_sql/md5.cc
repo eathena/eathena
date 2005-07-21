@@ -1,9 +1,9 @@
 // Set by CLOWNPHOBIA [dot] COM devs... CLOWNISIUS and Klarthneko
 #include "md5.hh"
 
-#include <assert.h>
-#include <strings.h>
-#include <iostream.h>
+#include <assert>
+#include <strings>
+#include <iostream>
 
 // MD5 simple initialization method
 

@@ -3,8 +3,8 @@
 #define _MD5_HH_
 
 #include <stdio.h>
-#include <fstream.h>
-#include <iostream.h>
+#include <fstream>
+#include <iostream>
 
 class MD5 {
 
