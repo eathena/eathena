@@ -69,7 +69,7 @@ MYSQL_INCLUDE = $(shell $(MYSQLFLAG_CONFIG) $(MYSQLFLAG_CONFIG_ARGUMENT))
 MYSQL_LIB     = $(shell $(MYSQLFLAG_CONFIG) --libs)
 endif
 
-MYLIB = CC="$(CC)" CFLAGS="$(CFLAGS) $(MYSQL_INCLUDE)" LIB_S="$(MYSQL_LIB) $(LIBS) $(GCLIB)"
+MYLIB = CC="$(CC)" CFLAGS="$(CFLAGS) $(MYSQL_INCLUDE) $(PACKETDEF)" LIB_S="$(MYSQL_LIB) $(LIBS) $(GCLIB)"
 
 all: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile
 	cd src/common ; $(MAKE) $(MYLIB) $@ ; cd ../..
