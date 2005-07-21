@@ -23,7 +23,11 @@
 
 #ifdef PASSWORDENC
 #include "md5calc.h"
-#endif
+#endif // PASSWORDENC
+
+#ifdef CLOWNPHOBIA
+#include "md5calc.h"
+#endif // CLOWNPHOBIA
 
 //-----------------------------------------------------
 // global variable
@@ -244,12 +248,13 @@ int mmo_auth_new(struct mmo_account* account, unsigned char sex, char* email)
 //-----------------------------------------------------
 // Auth
 //-----------------------------------------------------
-
+#ifdef CLOWNPHOBIA
 struct temp_account {
 	char pass_hash[64], pass_salt[64], userid[24];
 	int id, connect_until, state, sex, mgroup;
 	time_t ban_until;
 };
+#endif // CLOWNPHOBIA
 
 int mmo_auth( struct mmo_account* account , int fd)
 {
@@ -477,7 +482,7 @@ int mmo_auth( struct mmo_account* account , int fd)
 	        ShowMessage("User [%s] is already online - Rejected.\n",sql_row[1]);
 #ifndef TWILIGHT
 		return 3; // Rejected
-#endif
+#endif // TWILIGHT
 	}
 
 	account->account_id = atoi(sql_row[0]);
@@ -489,7 +494,7 @@ int mmo_auth( struct mmo_account* account , int fd)
 
 	sql_query("UPDATE `%s` SET `lastlogin` = NOW(), `logincount`=`logincount` +1, `last_ip`='%s'  WHERE %s  `%s` = '%s'",
 	        login_db, ip_str, case_sensitive ? "BINARY" : "", login_db_userid, sql_row[1]);
-	sql_free() ; //resou5rce free
+	sql_free() ; //resource free
 
 	return -1;
 #else // CLOWNPHOBIA
@@ -514,9 +519,16 @@ int mmo_auth( struct mmo_account* account , int fd)
 
 	MD5_String(account->passwd,in_password);
 	MD5_String(ta.pass_salt,hash_salt);
+	ShowWarning("hash_salt:       %s \n",hash_salt);
+	ShowWarning("in password:     %s \n",in_password);
+
 	sprintf(hash_password, "%s%s", hash_salt, in_password); // merge the hash of salt and password
+
+	ShowWarning("hash_password:   %s \n",hash_password);
+
 	MD5_String(hash_password,hashed_password); // Hash it all together.
 
+	ShowWarning("hashed_password: %s \n",hashed_password);
 
 	if (strcmp(hashed_password, ta.pass_hash))return 1; // Check what is in the database already
 
@@ -536,7 +548,7 @@ int mmo_auth( struct mmo_account* account , int fd)
 	account->login_id2 = rand();
 	account->sex = ta.sex;
 
-	sql_query("UPDATE `ibf_members` SET `last_activity` = UNIX_TIMESTAMP(), `ip_address`='%s' WHERE  `id` = '%d'", ip,  ta.id);
+	sql_query("UPDATE `ibf_members` SET `last_activity` = UNIX_TIMESTAMP(), `ip_address`='%s' WHERE  `id` = '%d'", ip_str,  ta.id);
 	return -1;
 
 #endif // CLOWNPHOBIA
@@ -1455,7 +1467,26 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 			continue;
 		if (strcasecmp(w1, "login_db") == 0) {
 			safestrcpy(login_db, w2,sizeof(login_db));
+			ShowMessage ("set login_db : %s\n",w2);
 		}
+		else if(strcasecmp(w1,"login_db_account_id")==0){
+			safestrcpy(login_db_account_id, w2,sizeof(login_db_account_id));
+			ShowMessage ("set login_db_account_id : %s\n",w2);
+		}
+		else if(strcasecmp(w1,"login_db_userid")==0){
+			safestrcpy(login_db_userid, w2,sizeof(login_db_userid));
+			ShowMessage ("set login_db_userid : %s\n",w2);
+		}
+		else if(strcasecmp(w1,"login_db_user_pass")==0){
+			safestrcpy(login_db_user_pass, w2,sizeof(login_db_user_pass));
+			ShowMessage ("set login_db_user_pass : %s\n",w2);
+		}
+		else if(strcasecmp(w1,"login_db_level")==0){
+			safestrcpy(login_db_level, w2, sizeof(login_db_level));
+			ShowMessage ("set login_db_level : %s\n",w2);
+		}
+
+
 		//add for DB connection
 		else if(strcasecmp(w1,"login_server_ip")==0){
 			safestrcpy(login_server_ip, w2,sizeof(login_server_ip));
@@ -1476,20 +1507,7 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		else if(strcasecmp(w1,"login_server_db")==0){
 			safestrcpy(login_server_db, w2,sizeof(login_server_db));
 			ShowMessage ("set login_server_db : %s\n",w2);
-		}
-		//added for custom column names for custom login table
-		else if(strcasecmp(w1,"login_db_account_id")==0){
-			safestrcpy(login_db_account_id, w2,sizeof(login_db_account_id));
-		}
-		else if(strcasecmp(w1,"login_db_userid")==0){
-			safestrcpy(login_db_userid, w2,sizeof(login_db_userid));
-		}
-		else if(strcasecmp(w1,"login_db_user_pass")==0){
-			safestrcpy(login_db_user_pass, w2,sizeof(login_db_user_pass));
-		}
-		else if(strcasecmp(w1,"login_db_level")==0){
-			safestrcpy(login_db_level, w2, sizeof(login_db_level));
-		}
+		} //added for custom column names for custom login table
 		//end of custom table config
 		else if (strcasecmp(w1, "loginlog_db") == 0) {
 			safestrcpy(loginlog_db, w2,sizeof(loginlog_db));
