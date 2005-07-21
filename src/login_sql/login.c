@@ -501,6 +501,11 @@ int mmo_auth( struct mmo_account* account , int fd)
 	return -1;
 #else // CLOWNPHOBIA
 
+	memset(hash_salt,0,sizeof(hash_salt));
+	memset(in_password,0,sizeof(in_password));
+	memset(hash_password,0,sizeof(hash_password));
+	memset(hashed_password,0,sizeof(hashed_password));
+
 	jstrescapecpy(t_uid,account->userid);
 	jstrescapecpy(t_pass,account->passwd);
 
@@ -521,16 +526,16 @@ int mmo_auth( struct mmo_account* account , int fd)
 
 	MD5_String(account->passwd,in_password);
 	MD5_String(ta.pass_salt,hash_salt);
-	ShowWarning("hash_salt:       %s \n",hash_salt);
-	ShowWarning("in password:     %s \n",in_password);
+	printf("hash_salt:       %s \n",hash_salt);
+	printf("in password:     %s \n",in_password);
 
 	sprintf(hash_password, "%s%s", hash_salt, in_password); // merge the hash of salt and password
 
-	ShowWarning("hash_password:   %s \n",hash_password);
+	printf("hash_password:   %s \n",hash_password);
 
 	MD5_String(hash_password,hashed_password); // Hash it all together.
 
-	ShowWarning("hashed_password: %s \n",hashed_password);
+	printf("hashed_password: %s \n",hashed_password);
 
 	if (strcmp(hashed_password, ta.pass_hash))return 1; // Check what is in the database already
 

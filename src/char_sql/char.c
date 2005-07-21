@@ -250,7 +250,7 @@ void read_gm_account(void) {
 	}
 
 	mysql_free_result(lsql_res);
-	mapif_send_gmaccounts();
+	//mapif_send_gmaccounts();
 }
 
 // Insert friends list
