@@ -258,7 +258,9 @@ struct temp_account {
 
 int mmo_auth( struct mmo_account* account , int fd)
 {
+	#ifdef CLOWNPHOBIA
 	struct temp_account ta;
+	#endif // CLOWNPHOBIA
 	struct timeval tv;
 	time_t unixtime;
 	time_t ban_until_time;
