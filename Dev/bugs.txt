@@ -131,7 +131,10 @@ Problem:	[item exploit] Hunters can set traps not consuming the TRAPS ITEMS, whe
 		use their special support skill.
 		Then Hunters can collect these traps for free... And then sell, etc.
 Assigned:	N/A
-Progress:	0%
+Progress:	50%
+Note:	I added a check so that when you collect a trap during the 'Into the
+	Abyss' skill effect, you won't receive the item. It ain't perfect, but.. is it
+	good enough (other than disabling no-trap cost effect of the skill?) [Skotlex]
 
 Problem:	Speed hack and other proxy-like hacks
 		they change/double selected packets for different exploits:
@@ -265,7 +268,10 @@ Progress:	0%
 Problem:	Bards songs do BLIND players...
 Assigned:	NA
 Progress:	?? (Fixed?)
-Notes:	It's only the client-side visual effect, not an actual blind state
+Notes:	It's only the client-side visual effect, not an actual blind state.
+			- If this is flawed, then it is the server not knowing the correct
+			  int value of the status change (SC_ASSNCROS,
+			  SC_POEMBRAGI, SC_APPLEIDUN, etc) [Skotlex]
 
 Problem:	Wedding Teleport Skills
 			Somehow.. just married could RECALL players from Prison
@@ -325,15 +331,9 @@ Progress:	99%
 
 Problem: The skill_db.txt contents are under-utilized.
 Assigned:	Skotlex
-Progress:	5%
-Notes:	There are values which are under-utilized like NK, while others
-		really need a rethought. The skill_db should control most of the logic of how
-		skills behave, yet almost 100% of the logic is handled inside the code.
-		Example: NK determines the nature of a target-oriented skill: 1: skill does no
-		damage, 2: skill does splash damage. Yet nowhere are we using that 2 value
-		other than to call skill_castend_damage_id! And don't get me started on
-		brandish spear having nk 1, then doing some initial calculations on
-		skill_castend_nodamage_id and then invoking skill_castend_damage_id o.O
+Progress:	99%
+Notes:	Forgot to update this... I already am pretty ok with the later inf2
+updates to the db. ^^ [Skotlex]
 
 Problem:	Select() sometimes returns a listening fd more than once when a client connects,
 			so the 2nd one will fail on accept() and keep spamming "accept: bad file descriptor".
@@ -355,6 +355,12 @@ Problem:	Fame Lists
 Assigned:	na
 Progress:	50%
 Note:		The function works perfectly... but map_charid2nick is BROKEN, as well as other functions calling to a stringdb search
+	- Note: Are you sure the problem is not that the blacksmiths in question
+	  are not logged in? All map_*to* will not work if the character is not
+	  currently logged in (look at clif_friendslist_send to see how it is used
+	  to determine who is online or not).
+	  To have a fame list that will work regardless, the names should be sent
+	  directly from the char server. [Skotlex]
 
 Problem:	Child + Papa + Mama EXP sharing exploit
 			adopt a child, make a party papa+mama+child, kill the child, and you can share EXP
@@ -366,6 +372,8 @@ Problem:	Instant, non stop mobs cast
 			They cast instantly, too fast. All of the monsters
 Assigned:	na
 Progress:	0%
+Notes:	The code was already fixed (per milliage %10000 and not %1000), if
+mobs have quick cast times then the mob skill db needs to be updated. [Skotlex]
 
 Problem:	Shield Boomerang SKILL BUG
 			When you use it riding on peco, you have very big delay after cast.
@@ -377,6 +385,12 @@ Problem:	GVG Enemy Healing BUG
 			During WOE, you can heal your enemy without SHIFT
 Assigned:	na
 Progress:	0%
+Notes:	Can't be fixed. The server never tells the client "who is your enemy"
+and "who is not". We just give'em the name to display, that's it. The current
+"the attack cursor appears on my pet" error, likewise, is the client's fault.
+So, in short, this one can't be fixed. (the most that can be done is block
+support skills on your enemy on gvg grounds, but then what if you DO want to
+cast it on them?) [Skotlex]
 
 Problem:	Ghostring Card works everywhere (should work in GVG)
 Assigned:	na

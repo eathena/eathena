@@ -4688,7 +4688,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			   (su->group->src_id == src->id || map[bl->m].flag.pvp || map[bl->m].flag.gvg) &&
 			   (su->group->unit_id >= 0x8f && su->group->unit_id <= 0x99) &&
 			   (su->group->unit_id != 0x92)){ //?‚ðŽæ‚è•Ô‚·
-				if(sd){
+				if(sd && sd->sc_data[SC_INTOABYSS].timer == -1)
+				{ //Avoid collecting traps when it does not costs to place them down. [Skotlex]
 					if(battle_config.skill_removetrap_type == 1){
 						for(i=0;i<10;i++) {
 							if(skill_db[su->group->skill_id].itemid[i] > 0){

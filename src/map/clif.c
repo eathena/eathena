@@ -11093,13 +11093,14 @@ void clif_friendslist_send(struct map_session_data *sd) {
 
 	// Send friends list
 	WFIFOW(sd->fd, 0) = 0x201;
-	for(i = 0; i < 20; i++)
+	for(i = 0; i < MAX_FRIENDS; i++)
 		if (sd->status.friend_id[i]) {
 			//WFIFOL(sd->fd, 4 + 32 * n + 1) = sd->status.friend_id[i];
 			//WFIFOB(sd->fd, 4 + 32 * n + 5) = (online[n]) ? 0 : 1; // <- We don't know this yet. I'd reckon its 5 but... i could be wrong.
-			WFIFOL(sd->fd, 4 + 32 * n + 0) = (map_charid2sd(sd->status.friend_id[i]) != NULL);
+			//Note that this currently is NOT working! We NEED some packet sniffing help here to fix this... [Skotlex]
+			WFIFOL(sd->fd, 4 + 32 * n + 0) = (map_charid2nick(sd->status.friend_id[i]) != NULL);
 			WFIFOL(sd->fd, 4 + 32 * n + 4) = sd->status.friend_id[i];
-			memcpy(WFIFOP(sd->fd, 4 + 32 * n + 8), &sd->status.friend_name[i], NAME_LENGTH-1); //Why we omit the '\0'?
+			memcpy(WFIFOP(sd->fd, 4 + 32 * n + 8), &sd->status.friend_name[i], NAME_LENGTH);
 			n++;
 		}
 	WFIFOW(sd->fd,2) = 4 + 32 * n;
@@ -11133,7 +11134,7 @@ void clif_parse_FriendsListAdd(int fd, struct map_session_data *sd) {
 	}
 
 	// Friend already exists
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < MAX_FRIENDS; i++) {
 		if (sd->status.friend_id[i] != 0)
 			count++;
 		if (sd->status.friend_id[i] == f_sd->status.char_id) {
@@ -11172,7 +11173,7 @@ void clif_parse_FriendsListReply(int fd, struct map_session_data *sd) {
 	else {
 		int i;
 		// Find an empty slot
-		for (i = 0; i < 20; i++)
+		for (i = 0; i < MAX_FRIENDS; i++)
 			if (f_sd->status.friend_id[i] == 0)
 				break;
 		if (i == 20) {
@@ -11199,15 +11200,15 @@ void clif_parse_FriendsListRemove(int fd, struct map_session_data *sd) {
 	f_sd = map_charid2sd(id);
 
 	// Search friend
-	for (i = 0; i < 20; i ++) {
+	for (i = 0; i < MAX_FRIENDS; i ++) {
 		if (sd->status.friend_id[i] == id) {
 			// move all chars down
-			for(j = i + 1; j < 20; j++) {
+			for(j = i + 1; j < MAX_FRIENDS; j++) {
 				sd->status.friend_id[j-1] = sd->status.friend_id[j];
 				memcpy(sd->status.friend_name[j-1], sd->status.friend_name[j], sizeof(sd->status.friend_name[j]));
 			}
-			sd->status.friend_id[19] = 0;
-			memset(sd->status.friend_name[19], 0, sizeof(sd->status.friend_name[19]));
+			sd->status.friend_id[MAX_FRIENDS-1] = 0;
+			memset(sd->status.friend_name[MAX_FRIENDS-1], 0, sizeof(sd->status.friend_name[MAX_FRIENDS-1]));
 			clif_displaymessage(fd, "Friend removed");
 			WFIFOW(fd,0) = 0x20a;
 			WFIFOW(fd,2) = (f_sd) ? f_sd->bl.id : 0;	//account id;
@@ -11218,7 +11219,7 @@ void clif_parse_FriendsListRemove(int fd, struct map_session_data *sd) {
 		}
 	}
 
-	if (i == 20)
+	if (i == MAX_FRIENDS)
 		clif_displaymessage(fd, "Name not found in list.");
 
 	return;

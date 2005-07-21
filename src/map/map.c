@@ -1584,7 +1584,7 @@ int map_quit(struct map_session_data *sd) {
 		aFree (sd->stack);
 		sd->stack= NULL;
 	}
-
+	
 	chrif_char_offline(sd);
 
 	{
@@ -1593,6 +1593,10 @@ int map_quit(struct map_session_data *sd) {
 			numdb_erase(charid_db,sd->status.char_id);
 			aFree(p);
 		}
+#ifdef FRIEND_NOTIFY
+		// Notify friends that this char logged out.
+		clif_foreachclient(pc_friends_update, sd->status.char_id);
+#endif
 	}
 	strdb_erase(nick_db,sd->status.name);
 	numdb_erase(charid_db,sd->status.char_id);
@@ -3063,9 +3067,9 @@ int map_config_read(char *cfgName) {
 				autosave_interval = atoi(w2) * 1000;
 				if (autosave_interval <= 0)
 					autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
-                         } else if(strcmpi(w1, "charsave_method") == 0){
+			} else if(strcmpi(w1, "charsave_method") == 0){
 #ifndef TXT_ONLY
-                         	charsave_method = atoi(w2);
+				charsave_method = atoi(w2);
 #else
 				charsave_method = 0; //TXT dont support it..
 #endif

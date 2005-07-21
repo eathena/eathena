@@ -1120,47 +1120,25 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	//-- end friends list load --
 
 
-        //Friend list 'ids'
-        sprintf(tmp_sql, "SELECT `friend_id` FROM `%s` WHERE `char_id` = '%d'", friend_db, char_id);
-        if(mysql_query(&mysql_handle, tmp_sql)){
-	       	ShowError("fromsql() SQL ERROR (reading %s): %s\n", friend_db, mysql_error(&mysql_handle));
-        }
+	//Shamelessly stolen from its_sparky (ie: thanks) [Skotlex]
+	//Friend list 'ids'
+	sprintf(tmp_sql, "SELECT f.friend_id, c.name FROM `friends` f LEFT JOIN `char` c ON f.friend_id=c.char_id WHERE f.char_id='%d'", char_id);
 
-        sql_res = mysql_store_result(&mysql_handle);
-	if(sql_res) {
-		friends=mysql_num_rows(sql_res);
-		if(friends > MAX_FRIENDS)
-			friends=MAX_FRIENDS;
-         	for(i = 0; i < friends; i++){
-					sql_row=mysql_fetch_row(sql_res);
-						p->friend_id[i] = atoi(sql_row[0]);
-						//NEW ONE:
-                  //p->friends[i].id = atoi(sql_res[0]);
-                }
-        	mysql_free_result(sql_res);
-			strcat (t_msg, " friends");
+	if(mysql_query(&mysql_handle, tmp_sql)){
+		ShowSQL("fromsql() SQL ERROR (reading friends): %s\n", mysql_error(&mysql_handle));
 	}
 
-	//Friend list 'names'
-	for(i = 0; i < friends; i++){
-		sprintf(tmp_sql, "SELECT `name` FROM `%s` WHERE `char_id` = '%d'", char_db, p->friend_id[i]);
-		//NEW
-		//sprintf(tmp_sql, "SELECT `name` FROM `char` WHERE `char_id` = '%d'", p->friends[i].id);
-		if(mysql_query(&mysql_handle, tmp_sql)){
-			ShowSQL("fromsql() SQL ERROR (reading friends from %s) %s\n", char_db, mysql_error(&mysql_handle));
+	sql_res = mysql_store_result(&mysql_handle);
+	if(sql_res)
+	{
+		for(i = 0; (sql_row = mysql_fetch_row(sql_res)) && i<MAX_FRIENDS; i++)
+		{
+			p->friend_id[i] = atoi(sql_row[0]);
+			strncpy(p->friend_name[i], sql_row[1], NAME_LENGTH-1); //The -1 is to avoid losing the ending \0 [Skotlex]
 		}
-		sql_res = mysql_store_result(&mysql_handle);
-		if(sql_res){
-			sql_row = mysql_fetch_row(sql_res);
-			if(sql_row)
-			{
-				strcpy(p->friend_name[i], sql_row[0]);
-				//NEW:
-				//strcpy(p->friends[i].name, sql_row[0]);
-			}
-			mysql_free_result(sql_res);
-		}
-        }
+		mysql_free_result(sql_res);
+		strcat (t_msg, " friends");
+	}
 
 	if (online) {
 		set_char_online(char_id,p->account_id);

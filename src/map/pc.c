@@ -609,6 +609,23 @@ int pc_break_equip(struct map_session_data *sd, unsigned short where)
 
 	return 1;
 }
+	
+#ifdef FRIEND_NOTIFY
+//Updates the display of friends when one of them joins/leaves [Skotlex]
+int pc_friends_update(struct map_session_data *sd,va_list ap)
+{
+	int char_id, i;
+	char_id = va_arg(ap, int);
+	
+	for (i = 0; i < MAX_FRIENDS && sd->status.friend_id[i]; i++)
+		if (sd->status.friend_id[i] == char_id)
+		{
+			clif_friendslist_send(sd);
+			return 0;
+		}
+	return 0;
+}
+#endif
 
 /*==========================================
  * session idに問題無し
@@ -787,6 +804,11 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	if (map_charid2nick(sd->status.char_id) == NULL)
 		map_addchariddb(sd->status.char_id, sd->status.name);
 
+#ifdef FRIEND_NOTIFY
+	// Notify everyone that this char logged in.
+	clif_foreachclient(pc_friends_update, sd->status.char_id);
+#endif
+	
 	//スパノビ用死にカウンタ?のスクリプト??からの?み出しとsdへのセット
 	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
 
@@ -7625,7 +7647,6 @@ int do_init_pc(void) {
 	add_timer_func_list(pc_follow_timer, "pc_follow_timer");	
 	add_timer_interval((natural_heal_prev_tick = gettick() + NATURAL_HEAL_INTERVAL), pc_natural_heal, 0, 0, NATURAL_HEAL_INTERVAL);
 	add_timer(gettick() + autosave_interval, pc_autosave, 0, 0);
-
 #ifndef TXT_ONLY
 	pc_read_gm_account(0);
 #endif /* not TXT_ONLY */
