@@ -92,6 +92,14 @@ and takes care of all global map-player interaction things
 the mapserver is initialized with data from the char server
 ans only does stuff related to single maps and gives any
 other requests directly back to the char server to handle them
+*How would you like this to be taken care of? Ive been working on
+this and my way was nifty when a player switches map server all 
+their variables are sent into SQL< and when player arrives on other
+end map checks if the AID is in sql, and loads it, and player has
+all timers/variables loaded. On map variables, map sends in its own
+data to the char server and resent to all servers so that all servers
+have sync'ed variables, and no issues with multiple connects per account.
+
 ///////////////////////////////////////////////////////////
 removed parts of RoVeRT's npc timer system
 still centralising and cleaning code
