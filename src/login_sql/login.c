@@ -20,11 +20,6 @@
 // Source Includes
 #include "login.h"
 
-
-#ifdef PASSWORDENC
-#include "md5.hh"
-#endif // PASSWORDENC
-
 #ifdef CLOWNPHOBIA
 #include "md5.hh"
 #endif // CLOWNPHOBIA
@@ -377,47 +372,9 @@ int mmo_auth( struct mmo_account* account , int fd)
 			jstrescapecpy(user_password, account->passwd);
 		}
 		ShowMessage("account id ok encval:%d\n",account->passwdenc);
-#ifdef PASSWORDENC
-		if (account->passwdenc > 0) {
-			int j = account->passwdenc;
-			ShowMessage ("start md5calc..\n");
-			if (j > 2)
-				j = 1;
-			do {
-				if (j == 1) {
-					sprintf(md5str, "%s%s", md5key,sql_row[2]);
-				} else if (j == 2) {
-					sprintf(md5str, "%s%s", sql_row[2], md5key);
-				} else
-					md5str[0] = 0;
-				ShowMessage("j:%d mdstr:%s\n", j, md5str);
-				MD5_String2binary(md5str, md5bin);
-				encpasswdok = (memcmp(user_password, md5bin, 16) == 0);
-			} while (j < 2 && !encpasswdok && (j++) != account->passwdenc);
-			//ShowMessage("key[%s] md5 [%s] ", md5key, md5);
-			ShowMessage("client [%s] accountpass [%s]\n", user_password, sql_row[2]);
-			ShowMessage ("end md5calc..\n");
-		}
-#endif // PASSWORDENC
 		if ((strcmp(user_password, sql_row[2]) && !encpasswdok)) {
 			if (account->passwdenc == 0) {
 				ShowMessage ("auth failed pass error %s %s %s" RETCODE, tmpstr, account->userid, user_password);
-#ifdef PASSWORDENC
-			} else {
-				char logbuf[1024], *p = logbuf;
-				int j;
-				p += sprintf(p, "auth failed pass error %s %s recv-md5[", tmpstr, account->userid);
-				for(j = 0; j < 16; j++)
-					p += sprintf(p, "%02x", ((unsigned char *)user_password)[j]);
-				p += sprintf(p, "] calc-md5[");
-				for(j = 0; j < 16; j++)
-					p += sprintf(p, "%02x", ((unsigned char *)md5bin)[j]);
-				p += sprintf(p, "] md5key[");
-				for(j = 0; j < md5keylen; j++)
-					p += sprintf(p, "%02x", ((unsigned char *)md5key)[j]);
-				p += sprintf(p, "]" RETCODE);
-				ShowMessage("%s\n", p);
-#endif // PASSWORDENC
 			}
 			return 1;
 		}
@@ -1073,16 +1030,7 @@ int parse_fromchar(int fd){
 //----------------------------------------------------------------------------------------
 // Default packet parsing (normal players or administation/char-server connection requests)
 //----------------------------------------------------------------------------------------
-int parse_login(int fd){
-	char t_uid[100];
-	struct mmo_account account;
-
-	int result, i;
-	char ip_str[16];
-	unsigned long client_ip = session[fd]->client_ip;
-	unsigned char p[] = {(unsigned char)(client_ip>>24)&0xFF,(unsigned char)(client_ip>>16)&0xFF,(unsigned char)(client_ip>>8)&0xFF,(unsigned char)(client_ip)&0xFF};
-	sprintf(ip_str, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
-
+int IPBanCheck(unsigned char * p){
 	if (ipban > 0)
 	{	//ip ban
 		//p[0], p[1], p[2], p[3]
@@ -1091,23 +1039,227 @@ int parse_login(int fd){
 		  p[0], p[0], p[1], p[0], p[1], p[2], p[0], p[1], p[2], p[3]);
 
 		sql_fetch_row();	//row fetching
-		if (atoi(sql_row[0]) >0)
-		{	// ip ban ok.
+		if (atoi(sql_row[0]) >0) {	// ip ban ok.
 			ShowMessage ("packet from banned ip : %d.%d.%d.%d" RETCODE, p[0], p[1], p[2], p[3]);
-			if (log_login)
-			{
+
+			if (log_login){
 				sql_query("INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', 'unknown','-3', 'ip banned')", loginlog_db, p[0], p[1], p[2], p[3]);
 			}
 			ShowMessage ("close session connection...\n");
 			// close connection
-			session_Remove(fd);
-		}
-		else
-		{
+			sql_free();
+			return 1;
+
+		} else {
+
 			ShowMessage ("packet from ip (ban check ok) : %d.%d.%d.%d" RETCODE, p[0], p[1], p[2], p[3]);
 		}
+
 		sql_free();
 	}
+	return 0;
+}
+
+void ClientConnectIsGM(int gm_level,char * userid){
+	if (gm_level)
+		ShowMessage("Connection of the GM (level:%d) account '%s' accepted.\n", gm_level, userid);
+	else
+		ShowMessage("Connection of the account '%s' accepted.\n", userid);
+}
+
+void Parse_Login_ClientConnect(int fd){
+	struct mmo_account account;
+	int result, i;
+	char t_uid[100];
+	unsigned long client_ip = session[fd]->client_ip;
+	unsigned char p[] = {(unsigned char)(client_ip>>24)&0xFF,(unsigned char)(client_ip>>16)&0xFF,(unsigned char)(client_ip>>8)&0xFF,(unsigned char)(client_ip)&0xFF};
+
+
+	if(RFIFOREST(fd)< ((RFIFOW(fd, 0) ==0x64)?55:47))
+		return;
+
+	account.version = RFIFOL(fd, 2);
+	account.userid = (char*)RFIFOP(fd, 6);
+	account.passwd = (char*)RFIFOP(fd, 30);
+	account.passwdenc=0;
+
+	result=mmo_auth(&account, fd);
+
+	jstrescapecpy(t_uid,(char*)RFIFOP(fd, 6));
+	if(result==-1)
+	{
+		int gm_level = isGM(account.account_id);
+		if (min_level_to_connect > gm_level)
+		{
+			WFIFOW(fd,0) = 0x81;
+			WFIFOL(fd,2) = 1; // 01 = Server closed
+			WFIFOSET(fd,3);
+		} else {
+			ClientConnectIsGM(gm_level,account.userid);
+
+			server_num=0;
+			for(i = 0; i < MAX_SERVERS; i++)
+			{
+				if( server[i].fd >= 0){
+// This seriously needs fixing, Wan is a blank marker, using LANIP for the meantime.
+//							if( server[i].address.isLAN(client_ip) ){
+						WFIFOLIP(fd,47+server_num*32) = server[i].address.LANIP();
+						WFIFOW(fd,47+server_num*32+4) = server[i].address.LANPort();
+//							}else{
+//								WFIFOLIP(fd,47+server_num*32) = server[i].address.WANIP();
+//								WFIFOW(fd,47+server_num*32+4) = server[i].address.WANPort();
+//							}
+					ShowMessage("Name: %s ",server[i].name);
+					memcpy(WFIFOP(fd,47+server_num*32+6), server[i].name, 20);
+					WFIFOW(fd,47+server_num*32+26) = server[i].users;
+					WFIFOW(fd,47+server_num*32+28) = server[i].maintenance;
+					WFIFOW(fd,47+server_num*32+30) = server[i].new_;
+					server_num++;
+				}
+			}
+			// if at least 1 char-server
+			if (server_num > 0) {
+				WFIFOW(fd,0)=0x69;
+				WFIFOW(fd,2)=47+32*server_num;
+				WFIFOL(fd,4)=account.login_id1;
+				WFIFOL(fd,8)=account.account_id;
+				WFIFOL(fd,12)=account.login_id2;
+				WFIFOL(fd,16)=0;
+				memcpy(WFIFOP(fd,20),account.lastlogin,24);
+				WFIFOB(fd,46)=account.sex;
+				WFIFOSET(fd,47+32*server_num);
+				if(auth_fifo_pos>=AUTH_FIFO_SIZE)
+					auth_fifo_pos=0;
+				auth_fifo[auth_fifo_pos].account_id=account.account_id;
+				auth_fifo[auth_fifo_pos].login_id1=account.login_id1;
+				auth_fifo[auth_fifo_pos].login_id2=account.login_id2;
+				auth_fifo[auth_fifo_pos].sex=account.sex;
+				auth_fifo[auth_fifo_pos].delflag=0;
+				auth_fifo[auth_fifo_pos].ip = client_ip;
+				auth_fifo_pos++;
+			} else {
+				WFIFOW(fd,0) = 0x81;
+				WFIFOL(fd,2) = 1; // 01 = Server closed
+				WFIFOSET(fd,3);
+			}
+		}
+	}
+	else
+	{
+		const char *error;
+		switch((result + 1)) {
+		case -2:  //-3 = Account Banned
+			error = "Account banned.";
+			break;
+		case -1:  //-2 = Dynamic Ban
+			error="dynamic ban (ip and account).";
+			break;
+		case 1:   // 0 = Unregistered ID
+			error="Unregisterd ID.";
+			break;
+		case 2:   // 1 = Incorrect Password
+			error="Incorrect Password.";
+			break;
+		case 3:   // 2 = This ID is expired
+			error="Account Expired.";
+			break;
+		case 4:   // 3 = Rejected from Server
+			error="Rejected from server.";
+			break;
+		case 5:   // 4 = You have been blocked by the GM Team
+			error="Blocked by GM.";
+			break;
+		case 6:   // 5 = Your Game's EXE file is not the latest version
+			error="Not latest game EXE.";
+			break;
+		case 7:   // 6 = Your are Prohibited to log in until %s
+			error="Banned.";
+			break;
+		case 8:   // 7 = Server is jammed due to over populated
+			error="Server Over-population.";
+			break;
+		case 9:   // 8 = No MSG (actually, all states after 9 except 99 are No MSG, use only this)
+			error=" ";
+			break;
+		case 100: // 99 = This ID has been totally erased
+			error="Account gone.";
+			break;
+		default:
+			error="Unknown Error.";
+			break;
+		}
+		if(log_login)
+		{
+			sql_query("INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s', '%d','login failed : %s')", loginlog_db, p[0], p[1], p[2], p[3], t_uid, result, error);
+		}
+		if((result == 1) && (dynamic_pass_failure_ban != 0))
+		{	// failed password
+			sql_query("SELECT count(*) FROM `%s` WHERE `ip` = '%d.%d.%d.%d' AND `rcode` = '1' AND `time` > NOW() - INTERVAL %d MINUTE",
+				loginlog_db, p[0], p[1], p[2], p[3], dynamic_pass_failure_ban_time);	//how many times filed account? in one ip.
+			//check query result
+			sql_fetch_row();	//row fetching
+
+			if (atoi(sql_row[0]) >= dynamic_pass_failure_ban_how_many )
+			{
+				sql_query("INSERT INTO `ipbanlist`(`list`,`btime`,`rtime`,`reason`) VALUES ('%d.%d.%d.*', NOW() , NOW() +  INTERVAL %d MINUTE ,'Password error ban: %s')", p[0], p[1], p[2], dynamic_pass_failure_ban_how_long, t_uid);
+			}
+			sql_free();
+		}
+		else if (result == -2)
+		{	//dynamic banned - add ip to ban list.
+			sql_query("INSERT INTO `ipbanlist`(`list`,`btime`,`rtime`,`reason`) VALUES ('%d.%d.%d.*', NOW() , NOW() +  INTERVAL 1 MONTH ,'Dynamic banned user id : %s')", p[0], p[1], p[2], t_uid);
+			result = -3;
+		}
+		else if(result == 6)
+		{	//not lastet version ..
+			//result = 5;
+		}
+
+		sql_query("SELECT `ban_until` FROM `%s` WHERE %s `%s` = '%s'",login_db, case_sensitive ? "BINARY" : "",login_db_userid, t_uid);
+		if (sql_res)
+		{
+			sql_fetch_row();	//row fetching
+		}
+		//cannot connect login failed
+		memset(WFIFOP(fd,0),'\0',23);
+		WFIFOW(fd,0)=0x6a;
+		WFIFOB(fd,2)=result;
+
+		if(result == 6)
+		{	// 6 = Your are Prohibited to log in until %s
+			if (atol(sql_row[0]) != 0)
+			{	// if account is banned, we send ban timestamp
+				char tmpstr[256];
+				time_t ban_until_time;
+				ban_until_time = atol(sql_row[0]);
+				strftime(tmpstr, 20, date_format, localtime(&ban_until_time));
+				tmpstr[19] = '\0';
+				memcpy(WFIFOP(fd,3), tmpstr, 20);
+			}
+			else
+			{	// we send error message
+				memcpy(WFIFOP(fd,3), error, 20);
+			}
+		}
+		WFIFOSET(fd,23);
+		sql_free();
+	}
+	RFIFOSKIP(fd,(RFIFOW(fd,0)==0x64)?55:47);
+}
+
+int parse_login(int fd){
+
+	struct mmo_account account;
+
+	int result, i;
+	char ip_str[16];
+	char t_uid[100];
+	unsigned long client_ip = session[fd]->client_ip;
+	unsigned char p[] = {(unsigned char)(client_ip>>24)&0xFF,(unsigned char)(client_ip>>16)&0xFF,(unsigned char)(client_ip>>8)&0xFF,(unsigned char)(client_ip)&0xFF};
+	sprintf(ip_str, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
+
+
+	if (IPBanCheck(p)) session_Remove(fd);
 
 	if ( !session_isActive(fd) )
 		session_Remove(fd);// have it removed by do_sendrecv
@@ -1125,210 +1277,19 @@ int parse_login(int fd){
 
 		switch(RFIFOW(fd,0)){
 		case 0x200:		// New alive packet: structure: 0x200 <account.userid>.24B. used to verify if client is always alive.
-			if (RFIFOREST(fd) < 26)
-				return 0;
+			if (RFIFOREST(fd) < 26) return 0;
 			RFIFOSKIP(fd,26);
 			break;
 
 		case 0x204:		// New alive packet: structure: 0x204 <encrypted.account.userid>.16B. (new ragexe from 22 june 2004)
-			if (RFIFOREST(fd) < 18)
-				return 0;
+			if (RFIFOREST(fd) < 18) return 0;
 			RFIFOSKIP(fd,18);
 			break;
 
 		case 0x64:		// request client login
 		case 0x01dd:	// request client login with encrypt
-			if(RFIFOREST(fd)< ((RFIFOW(fd, 0) ==0x64)?55:47))
-				return 0;
+			Parse_Login_ClientConnect(fd);
 
-			ShowMessage("client connection request %s from %d.%d.%d.%d\n", RFIFOP(fd, 6), p[0], p[1], p[2], p[3]);
-			account.version = RFIFOL(fd, 2);
-			account.userid = (char*)RFIFOP(fd, 6);
-			account.passwd = (char*)RFIFOP(fd, 30);
-#ifdef PASSWORDENC
-			account.passwdenc= (RFIFOW(fd,0)==0x64)?0:PASSWORDENC;
-#else
-			account.passwdenc=0;
-#endif
-			result=mmo_auth(&account, fd);
-
-			jstrescapecpy(t_uid,(char*)RFIFOP(fd, 6));
-			if(result==-1)
-			{
-				int gm_level = isGM(account.account_id);
-				if (min_level_to_connect > gm_level)
-				{
-					WFIFOW(fd,0) = 0x81;
-					WFIFOL(fd,2) = 1; // 01 = Server closed
-					WFIFOSET(fd,3);
-				}
-				else
-				{
-					if(p[0] != 127 && log_login)
-					{
-						sql_query("INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s','100', 'login ok')", loginlog_db, p[0], p[1], p[2], p[3], t_uid);
-						//query
-					}
-					if (gm_level)
-						ShowMessage("Connection of the GM (level:%d) account '%s' accepted.\n", gm_level, account.userid);
-					else
-						ShowMessage("Connection of the account '%s' accepted.\n", account.userid);
-
-					ShowMessage("Sending Character server info for listing \n");
-
-					server_num=0;
-					for(i = 0; i < MAX_SERVERS; i++)
-					{
-						if( server[i].fd >= 0)
-						{	//Lan check added by Kashy
-							ShowMessage("sending info for LAN server[%d]: %s:%d ",server_num,server[i].address.LANIP().getstring(),server[i].address.LANPort());
-							ShowMessage("sending info for WAN server[%d]: %s:%d ",server_num,server[i].address.WANIP().getstring(),server[i].address.WANPort());
-
-							if( server[i].address.isLAN(client_ip) ){
-								ShowMessage("Is LAN network\n");
-								WFIFOLIP(fd,47+server_num*32) = server[i].address.LANIP();
-								WFIFOW(fd,47+server_num*32+4) = server[i].address.LANPort();
-							}else{
-								ShowMessage("Is WAN network\n");
-								WFIFOLIP(fd,47+server_num*32) = server[i].address.WANIP();
-								WFIFOW(fd,47+server_num*32+4) = server[i].address.WANPort();
-							}
-							ShowMessage("Name: %s ",server[i].name);
-							memcpy(WFIFOP(fd,47+server_num*32+6), server[i].name, 20);
-							WFIFOW(fd,47+server_num*32+26) = server[i].users;
-							WFIFOW(fd,47+server_num*32+28) = server[i].maintenance;
-							WFIFOW(fd,47+server_num*32+30) = server[i].new_;
-							server_num++;
-						}
-					}
-					// if at least 1 char-server
-					if (server_num > 0) {
-						WFIFOW(fd,0)=0x69;
-						WFIFOW(fd,2)=47+32*server_num;
-						WFIFOL(fd,4)=account.login_id1;
-						WFIFOL(fd,8)=account.account_id;
-						WFIFOL(fd,12)=account.login_id2;
-						WFIFOL(fd,16)=0;
-						memcpy(WFIFOP(fd,20),account.lastlogin,24);
-						WFIFOB(fd,46)=account.sex;
-						WFIFOSET(fd,47+32*server_num);
-						if(auth_fifo_pos>=AUTH_FIFO_SIZE)
-							auth_fifo_pos=0;
-						auth_fifo[auth_fifo_pos].account_id=account.account_id;
-						auth_fifo[auth_fifo_pos].login_id1=account.login_id1;
-						auth_fifo[auth_fifo_pos].login_id2=account.login_id2;
-						auth_fifo[auth_fifo_pos].sex=account.sex;
-						auth_fifo[auth_fifo_pos].delflag=0;
-						auth_fifo[auth_fifo_pos].ip = client_ip;
-						auth_fifo_pos++;
-					} else {
-						WFIFOW(fd,0) = 0x81;
-						WFIFOL(fd,2) = 1; // 01 = Server closed
-						WFIFOSET(fd,3);
-					}
-				}
-			}
-			else
-			{
-				const char *error;
-				switch((result + 1)) {
-				case -2:  //-3 = Account Banned
-					error = "Account banned.";
-					break;
-				case -1:  //-2 = Dynamic Ban
-					error="dynamic ban (ip and account).";
-					break;
-				case 1:   // 0 = Unregistered ID
-					error="Unregisterd ID.";
-					break;
-				case 2:   // 1 = Incorrect Password
-					error="Incorrect Password.";
-					break;
-				case 3:   // 2 = This ID is expired
-					error="Account Expired.";
-					break;
-				case 4:   // 3 = Rejected from Server
-					error="Rejected from server.";
-					break;
-				case 5:   // 4 = You have been blocked by the GM Team
-					error="Blocked by GM.";
-					break;
-				case 6:   // 5 = Your Game's EXE file is not the latest version
-					error="Not latest game EXE.";
-					break;
-				case 7:   // 6 = Your are Prohibited to log in until %s
-					error="Banned.";
-					break;
-				case 8:   // 7 = Server is jammed due to over populated
-					error="Server Over-population.";
-					break;
-				case 9:   // 8 = No MSG (actually, all states after 9 except 99 are No MSG, use only this)
-					error=" ";
-					break;
-				case 100: // 99 = This ID has been totally erased
-					error="Account gone.";
-					break;
-				default:
-					error="Unknown Error.";
-					break;
-				}
-				if(log_login)
-				{
-					sql_query("INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s', '%d','login failed : %s')", loginlog_db, p[0], p[1], p[2], p[3], t_uid, result, error);
-				}
-				if((result == 1) && (dynamic_pass_failure_ban != 0))
-				{	// failed password
-					sql_query("SELECT count(*) FROM `%s` WHERE `ip` = '%d.%d.%d.%d' AND `rcode` = '1' AND `time` > NOW() - INTERVAL %d MINUTE",
-						loginlog_db, p[0], p[1], p[2], p[3], dynamic_pass_failure_ban_time);	//how many times filed account? in one ip.
-					//check query result
-					sql_fetch_row();	//row fetching
-
-					if (atoi(sql_row[0]) >= dynamic_pass_failure_ban_how_many )
-					{
-						sql_query("INSERT INTO `ipbanlist`(`list`,`btime`,`rtime`,`reason`) VALUES ('%d.%d.%d.*', NOW() , NOW() +  INTERVAL %d MINUTE ,'Password error ban: %s')", p[0], p[1], p[2], dynamic_pass_failure_ban_how_long, t_uid);
-					}
-					sql_free();
-				}
-				else if (result == -2)
-				{	//dynamic banned - add ip to ban list.
-					sql_query("INSERT INTO `ipbanlist`(`list`,`btime`,`rtime`,`reason`) VALUES ('%d.%d.%d.*', NOW() , NOW() +  INTERVAL 1 MONTH ,'Dynamic banned user id : %s')", p[0], p[1], p[2], t_uid);
-					result = -3;
-				}
-				else if(result == 6)
-				{	//not lastet version ..
-					//result = 5;
-				}
-
-				sql_query("SELECT `ban_until` FROM `%s` WHERE %s `%s` = '%s'",login_db, case_sensitive ? "BINARY" : "",login_db_userid, t_uid);
-				if (sql_res)
-				{
-					sql_fetch_row();	//row fetching
-				}
-				//cannot connect login failed
-				memset(WFIFOP(fd,0),'\0',23);
-				WFIFOW(fd,0)=0x6a;
-				WFIFOB(fd,2)=result;
-
-				if(result == 6)
-				{	// 6 = Your are Prohibited to log in until %s
-					if (atol(sql_row[0]) != 0)
-					{	// if account is banned, we send ban timestamp
-						char tmpstr[256];
-						time_t ban_until_time;
-						ban_until_time = atol(sql_row[0]);
-						strftime(tmpstr, 20, date_format, localtime(&ban_until_time));
-						tmpstr[19] = '\0';
-						memcpy(WFIFOP(fd,3), tmpstr, 20);
-					}
-					else
-					{	// we send error message
-						memcpy(WFIFOP(fd,3), error, 20);
-					}
-				}
-				WFIFOSET(fd,23);
-				sql_free();
-			}
-			RFIFOSKIP(fd,(RFIFOW(fd,0)==0x64)?55:47);
 			break;
 		case 0x01db:	// request password key
 			if (session[fd]->session_data) {
