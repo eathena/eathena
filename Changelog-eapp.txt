@@ -1,4 +1,12 @@
 Date	Added
+07/22
+	- Removal of PASSWORDENC from Login_sql comple, Cleaning of the code from login.c/h 
+	  now almost complete.[CLOWNISIUS]
+	- Removal of PASSWORDENC from Ladmin complete.[CLOWNISIUS]
+	- Cleansing of the directory structure almost complete.[CLOWNISIUS]
+	- Repair of Shino's IP structure from login workaround complete, using LANIP instead 
+	  of the blank WANIP that always seems to be blank, and LAN is a simple 
+	  workaround [CLOWNISIUS]
 07/21
 	- Added new md5.cc and md5.hh for usage in the PASSWORDENC and CLOWNPHOBIA sections
 	  of the login.c/h and in the ladmin for compiling of some other things.

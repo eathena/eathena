@@ -98,7 +98,6 @@ size_t auth_fifo_pos = 0;
 
 //-----------------------------------------------------
 
-static char md5key[20], md5keylen = 16;
 struct dbt *online_db = NULL;
 
 //-----------------------------------------------------
@@ -534,9 +533,6 @@ void Parse_Char_Connect(int id,int fd){
 	int i;
 	unsigned long account_id;
 
-	if (RFIFOREST(fd) < 19)
-		return;
-
 	account_id = RFIFOL(fd,2);
 
 	for(i=0;i<AUTH_FIFO_SIZE;i++)
@@ -606,8 +602,6 @@ void Parse_Char_Connect(int id,int fd){
 }
 
 void Parse_Char_UserCount(int id, int fd){
-	if (RFIFOREST(fd) < 6)
-		return;
 	// how many users on world? (update)
 	if (server[id].users != RFIFOL(fd,2))
 	{
@@ -631,9 +625,6 @@ void Parse_Char_PlayerReturn(int id, int fd){
 	time_t connect_until_time = 0;
 	char email[40] = "";
 
-	if (RFIFOREST(fd) < 6)
-		return;
-
 	account_id=RFIFOL(fd,2);
 	sql_query("SELECT `email`,`connect_until` FROM `%s` WHERE `%s`='%ld'",login_db, login_db_account_id, account_id);
 	if (sql_res)
@@ -654,17 +645,12 @@ void Parse_Char_PlayerReturn(int id, int fd){
 }
 
 void Parse_Char_Alive(int id, int fd){
-	if (RFIFOREST(fd) < 2)
-		return;
 	// do whatever it's supposed to do here?
 
 	RFIFOSKIP(fd,2);
 }
 void Parse_Char_GM(int id, int fd){
-	if (RFIFOREST(fd) < 4)
-		return;
-	if (RFIFOREST(fd) < RFIFOW(fd,2))
-		return;
+
 	//oldacc = RFIFOL(fd,4);
 	ShowMessage("change GM isn't support in this login server version.\n");
 	ShowMessage("change GM error 0 %s\n", RFIFOP(fd, 8));
@@ -683,8 +669,6 @@ void Parse_Char_ChangeEmail(int id, int fd){
 	int acc;
 	char actual_email[40], new_email[40];
 
-	if (RFIFOREST(fd) < 86)
-		return;
 	#ifdef CLOWNPHOBIA // Clownphobia doesnt support this.
 	RFIFOSKIP(fd, 86);
 	return;
@@ -733,8 +717,6 @@ void Parse_Char_Ban(int id, int fd){
 	struct tm *tmtime;
 	time_t timestamp, tmptime;
 
-	if (RFIFOREST(fd) < 18)
-		return;
 	#ifdef CLOWNPHOBIA // Clownphobia doesnt support this
 	RFIFOSKIP(fd,18);
 	return;
@@ -784,8 +766,6 @@ void Parse_Char_Ban(int id, int fd){
 void Parse_Char_StatusChange(int id, int fd){
 	int acc, statut;
 
-	if (RFIFOREST(fd) < 10)
-		return;
 	#ifdef CLOWNPHOBIA // Clownphobia doesnt support this.
 	RFIFOSKIP(fd,10);
 	return;
@@ -815,8 +795,6 @@ void Parse_Char_SexChange(int id, int fd){
 	int acc,sex;
 	unsigned char buf[16];
 
-	if (RFIFOREST(fd) < 6)
-		return;
 	#ifdef CLOWNPHOBIA // Clownphobia doesnt support this
 	RFIFOSKIP(fd,6);
 	return;
@@ -849,9 +827,6 @@ void Parse_Char_SaveAccount(int id, int fd){
 	char temp_str[32];
 	int value;
 
-	if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
-		return;
-
 	#ifdef CLOWNPHOBIA
 	RFIFOSKIP(fd,RFIFOW(fd,2));
 	return;
@@ -879,9 +854,6 @@ void Parse_Char_SaveAccount(int id, int fd){
 
 void Parse_Char_Unban(int id, int fd){
 	int acc;
-
-	if (RFIFOREST(fd) < 6)
-		return;
 	#ifdef CLOWNPHOBIA // Clownphobia doesnt support this
 	RFIFOSKIP(fd,6);
 	return;
@@ -900,9 +872,6 @@ void Parse_Char_Unban(int id, int fd){
 }
 
 void Parse_Char_SetOffline(int id, int fd){
-	if (RFIFOREST(fd) < 6)
-		return;
-
 	#ifdef CLOWNPHOBIA // Clownphobia doesnt support this.
 	RFIFOSKIP(fd,6);
 	return;
@@ -913,9 +882,6 @@ void Parse_Char_SetOffline(int id, int fd){
 }
 
 void Parse_Char_SetOnline(int id, int fd){
-	if (RFIFOREST(fd) < 6)
-		return;
-
 	#ifdef CLOWNPHOBIA // Clownphobia doesnt support this.
 	RFIFOSKIP(fd,6);
 	return;
@@ -961,56 +927,71 @@ int parse_fromchar(int fd){
 
 		switch (RFIFOW(fd,0)) {
 		case 0x2712:
+			if (RFIFOREST(fd) < 19) return 0;
 			Parse_Char_Connect(id,fd);
 			break;
 
 		case 0x2714: // Set user count
+			if (RFIFOREST(fd) < 6) return 0;
 			Parse_Char_UserCount(id,fd);
 			break;
 
 		// We receive an e-mail/limited time request, because a player comes back from a map-server to the char-server
 		case 0x2716:
+			if (RFIFOREST(fd) < 6) return 0;
+
 			Parse_Char_PlayerReturn(id,fd);
 			break;
 
 		// login-server alive packet reply
 		case 0x2718:
+			if (RFIFOREST(fd) < 2)  return 0;
 			Parse_Char_Alive(id,fd);
 			break;
 
 		case 0x2720:	// GM
+			if (RFIFOREST(fd) < 4) return 0;
+			if (RFIFOREST(fd) < RFIFOW(fd,2)) return 0;
 			Parse_Char_GM(id,fd);
 			break;
 
 		// Map server send information to change an email of an account via char-server
 		case 0x2722:	// 0x2722 <account_id>.L <actual_e-mail>.40B <new_e-mail>.40B
+			if (RFIFOREST(fd) < 86) return 0;
 			Parse_Char_ChangeEmail(id,fd);
 			break;
 
 		case 0x2724:	// Receiving of map-server via char-server a status change resquest (by Yor)
+			if (RFIFOREST(fd) < 10) return 0;
 			Parse_Char_StatusChange(id,fd);
 			break;
 
 		case 0x2725: // Receiving of map-server via char-server a ban resquest (by Yor)
+			if (RFIFOREST(fd) < 18) return 0;
 			Parse_Char_Ban(id,fd);
 			break;
 
 		case 0x2727:
+			if (RFIFOREST(fd) < 6) return 0;
 			Parse_Char_SexChange(id,fd);
 			break;
 
 		case 0x2728:	// save account_reg
+			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2)) return 0;
 			Parse_Char_SaveAccount(id,fd);
 			break;
 
 		case 0x272a:	// Receiving of map-server via char-server a unban resquest (by Yor)
+			if (RFIFOREST(fd) < 6) return 0;
 			Parse_Char_Unban(id,fd);
 			break;
 
 		case 0x272b:    // Set account_id to online [Wizputer]
+			if (RFIFOREST(fd) < 6) return 0;
 			Parse_Char_SetOnline(id,fd);
 			break;
 		case 0x272c:   // Set account_id to offline [Wizputer]
+			if (RFIFOREST(fd) < 6) return 0;
 			Parse_Char_SetOffline(id,fd);
 			break;
 
@@ -1070,10 +1051,6 @@ void Parse_Login_ClientConnect(int fd){
 	char t_uid[100];
 	unsigned long client_ip = session[fd]->client_ip;
 	unsigned char p[] = {(unsigned char)(client_ip>>24)&0xFF,(unsigned char)(client_ip>>16)&0xFF,(unsigned char)(client_ip>>8)&0xFF,(unsigned char)(client_ip)&0xFF};
-
-
-	if(RFIFOREST(fd)< ((RFIFOW(fd, 0) ==0x64)?55:47))
-		return;
 
 	account.version = RFIFOL(fd, 2);
 	account.userid = (char*)RFIFOP(fd, 6);
@@ -1241,15 +1218,87 @@ void Parse_Login_ClientConnect(int fd){
 		WFIFOSET(fd,23);
 		sql_free();
 	}
-	RFIFOSKIP(fd,(RFIFOW(fd,0)==0x64)?55:47);
+	RFIFOSKIP(fd,55);
+}
+
+void Parse_Login_CharServerConnect(int fd){
+	int result;
+	unsigned char* server_name;
+	struct mmo_account account;
+	char t_uid[100];
+	unsigned long client_ip = session[fd]->client_ip;
+	unsigned char p[] = {(unsigned char)(client_ip>>24)&0xFF,(unsigned char)(client_ip>>16)&0xFF,(unsigned char)(client_ip>>8)&0xFF,(unsigned char)(client_ip)&0xFF};
+
+	if(log_login){
+		sql_query("INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s@%s','100', 'charserver - %s@%d.%d.%d.%d:%d')", loginlog_db, p[0], p[1], p[2], p[3], RFIFOP(fd, 2),RFIFOP(fd, 60),RFIFOP(fd, 60), (unsigned char)RFIFOB(fd, 54), (unsigned char)RFIFOB(fd, 55), (unsigned char)RFIFOB(fd, 56), (unsigned char)RFIFOB(fd, 57), (unsigned short)RFIFOW(fd, 58));
+	}
+
+	ShowMessage("server connection request %s @ %d.%d.%d.%d:%d (%d.%d.%d.%d)\n",
+		RFIFOP(fd, 60), (unsigned char)RFIFOB(fd, 74), (unsigned char)RFIFOB(fd, 75), (unsigned char)RFIFOB(fd, 76), (unsigned char)RFIFOB(fd, 77), (unsigned short)RFIFOW(fd, 82),	p[0], p[1], p[2], p[3]);
+
+	account.userid = (char*)RFIFOP(fd, 2);
+	account.passwd = (char*)RFIFOP(fd, 26);
+	account.passwdenc = 0;
+	server_name = RFIFOP(fd,50);
+	result = mmo_auth(&account, fd);
+	//ShowMessage("Result: %d - Sex: %d - Account ID: %d\n",result,account.sex,(int) account.account_id);
+
+	if( result == -1 && account.sex==2 && account.account_id<MAX_SERVERS && server[account.account_id].fd==-1)
+	{
+		ShowStatus("Connection of the char-server '%s' accepted.\n", server_name);
+		memset(&server[account.account_id], 0, sizeof(struct mmo_char_server));
+
+		memcpy(server[account.account_id].name,RFIFOP(fd,50),20);
+		server[account.account_id].maintenance=RFIFOB(fd,70);
+		server[account.account_id].new_=RFIFOB(fd,71);
+		// wanip,wanport,lanip,lanmask,lanport
+		server[account.account_id].address = ipset(	RFIFOLIP(fd,74), RFIFOLIP(fd,78), RFIFOW(fd,82), RFIFOLIP(fd,84), RFIFOW(fd,88) );
+
+		server[account.account_id].users=0;
+		server[account.account_id].fd = fd;
+
+
+		sql_query("DELETE FROM `sstatus` WHERE `index`='%ld'", account.account_id);
+
+		jstrescapecpy(t_uid,server[account.account_id].name);
+
+		sql_query("INSERT INTO `sstatus`(`index`,`name`,`user`) VALUES ( '%ld', '%s', '%d')",account.account_id, server[account.account_id].name,0);
+
+		WFIFOW(fd,0)=0x2711;
+		WFIFOB(fd,2)=0;
+		WFIFOSET(fd,3);
+		session[fd]->func_parse=parse_fromchar;
+		realloc_fifo(fd,FIFOSIZE_SERVERLINK,FIFOSIZE_SERVERLINK);
+	}
+	else
+	{
+		WFIFOW(fd, 0) =0x2711;
+		WFIFOB(fd, 2)=3;
+		WFIFOSET(fd, 3);
+	}
+	RFIFOSKIP(fd, 90);
+}
+
+void SendAthenaVersion(int fd){
+	WFIFOW(fd,0)=0x7531;
+	WFIFOB(fd,2)=ATHENA_MAJOR_VERSION;
+	WFIFOB(fd,3)=ATHENA_MINOR_VERSION;
+	WFIFOB(fd,4)=ATHENA_REVISION;
+	WFIFOB(fd,5)=ATHENA_RELEASE_FLAG;
+	WFIFOB(fd,6)=ATHENA_OFFICIAL_FLAG;
+	WFIFOB(fd,7)=ATHENA_SERVER_LOGIN;
+	WFIFOW(fd,8)=ATHENA_MOD_VERSION;
+	WFIFOSET(fd,10);
+	RFIFOSKIP(fd,2);
+	ShowMessage ("Athena version check...\n");
 }
 
 int parse_login(int fd){
+	int i;
+	char ip_str[16];
+
 
 	struct mmo_account account;
-
-	int result, i;
-	char ip_str[16];
 	char t_uid[100];
 	unsigned long client_ip = session[fd]->client_ip;
 	unsigned char p[] = {(unsigned char)(client_ip>>24)&0xFF,(unsigned char)(client_ip>>16)&0xFF,(unsigned char)(client_ip>>8)&0xFF,(unsigned char)(client_ip)&0xFF};
@@ -1284,97 +1333,17 @@ int parse_login(int fd){
 			break;
 
 		case 0x64:		// request client login
-		case 0x01dd:	// request client login with encrypt
+			if(RFIFOREST(fd) < 55) return 0;
 			Parse_Login_ClientConnect(fd);
-
-			break;
-		case 0x01db:	// request password key
-			if (session[fd]->session_data) {
-						ShowMessage("login: abnormal request of MD5 key (already opened session).\n");
-						session_Remove(fd);
-				return 0;
-			}
-						ShowMessage("Request Password key -%s\n",md5key);
-			RFIFOSKIP(fd,2);
-			WFIFOW(fd,0)=0x01dc;
-			WFIFOW(fd,2)=4+md5keylen;
-			memcpy(WFIFOP(fd,4),md5key,md5keylen);
-			WFIFOSET(fd,WFIFOW(fd,2));
 			break;
 
 		case 0x2710:	// request Char-server connection
-//			if(RFIFOREST(fd)<86)
-			if(RFIFOREST(fd)<90)
-				return 0;
-		{
-			unsigned char* server_name;
-			if(log_login)
-			{
-				sql_query("INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%d.%d.%d.%d', '%s@%s','100', 'charserver - %s@%d.%d.%d.%d:%d')", loginlog_db, p[0], p[1], p[2], p[3], RFIFOP(fd, 2),RFIFOP(fd, 60),RFIFOP(fd, 60), (unsigned char)RFIFOB(fd, 54), (unsigned char)RFIFOB(fd, 55), (unsigned char)RFIFOB(fd, 56), (unsigned char)RFIFOB(fd, 57), (unsigned short)RFIFOW(fd, 58));
-			}
-//			ShowMessage("server connection request %s @ %d.%d.%d.%d:%d (%d.%d.%d.%d)\n",
-//				RFIFOP(fd, 60), (unsigned char)RFIFOB(fd, 54), (unsigned char)RFIFOB(fd, 55), (unsigned char)RFIFOB(fd, 56), (unsigned char)RFIFOB(fd, 57),
-//				(unsigned short)RFIFOW(fd, 58),	p[0], p[1], p[2], p[3]);
-			ShowMessage("server connection request %s @ %d.%d.%d.%d:%d (%d.%d.%d.%d)\n",
-				RFIFOP(fd, 60), (unsigned char)RFIFOB(fd, 74), (unsigned char)RFIFOB(fd, 75), (unsigned char)RFIFOB(fd, 76), (unsigned char)RFIFOB(fd, 77), (unsigned short)RFIFOW(fd, 82),	p[0], p[1], p[2], p[3]);
+			if(RFIFOREST(fd) < 90) return 0;
+			Parse_Login_CharServerConnect(fd);
+		break;
 
-			account.userid = (char*)RFIFOP(fd, 2);
-			account.passwd = (char*)RFIFOP(fd, 26);
-			account.passwdenc = 0;
-//			server_name = RFIFOP(fd,60);
-			server_name = RFIFOP(fd,50);
-			result = mmo_auth(&account, fd);
-			//ShowMessage("Result: %d - Sex: %d - Account ID: %d\n",result,account.sex,(int) account.account_id);
-
-			if( result == -1 && account.sex==2 && account.account_id<MAX_SERVERS && server[account.account_id].fd==-1)
-			{
-				ShowStatus("Connection of the char-server '%s' accepted.\n", server_name);
-				memset(&server[account.account_id], 0, sizeof(struct mmo_char_server));
-
-				memcpy(server[account.account_id].name,RFIFOP(fd,50),20);
-				server[account.account_id].maintenance=RFIFOB(fd,70);
-				server[account.account_id].new_=RFIFOB(fd,71);
-				// wanip,wanport,lanip,lanmask,lanport
-				server[account.account_id].address = ipset(	RFIFOLIP(fd,74), RFIFOLIP(fd,78), RFIFOW(fd,82), RFIFOLIP(fd,84), RFIFOW(fd,88) );
-
-				server[account.account_id].users=0;
-				server[account.account_id].fd = fd;
-
-
-				sql_query("DELETE FROM `sstatus` WHERE `index`='%ld'", account.account_id);
-
-				jstrescapecpy(t_uid,server[account.account_id].name);
-
-				sql_query("INSERT INTO `sstatus`(`index`,`name`,`user`) VALUES ( '%ld', '%s', '%d')",account.account_id, server[account.account_id].name,0);
-
-				WFIFOW(fd,0)=0x2711;
-				WFIFOB(fd,2)=0;
-				WFIFOSET(fd,3);
-				session[fd]->func_parse=parse_fromchar;
-				realloc_fifo(fd,FIFOSIZE_SERVERLINK,FIFOSIZE_SERVERLINK);
-			}
-			else
-			{
-				WFIFOW(fd, 0) =0x2711;
-				WFIFOB(fd, 2)=3;
-				WFIFOSET(fd, 3);
-			}
-//			RFIFOSKIP(fd, 86);
-			RFIFOSKIP(fd, 90);
-			break;
-		}
 		case 0x7530:	// request Athena information
-			WFIFOW(fd,0)=0x7531;
-			WFIFOB(fd,2)=ATHENA_MAJOR_VERSION;
-			WFIFOB(fd,3)=ATHENA_MINOR_VERSION;
-			WFIFOB(fd,4)=ATHENA_REVISION;
-			WFIFOB(fd,5)=ATHENA_RELEASE_FLAG;
-			WFIFOB(fd,6)=ATHENA_OFFICIAL_FLAG;
-			WFIFOB(fd,7)=ATHENA_SERVER_LOGIN;
-			WFIFOW(fd,8)=ATHENA_MOD_VERSION;
-			WFIFOSET(fd,10);
-			RFIFOSKIP(fd,2);
-			ShowMessage ("Athena version check...\n");
+			SendAthenaVersion(fd);
 			break;
 
 		case 0x7532:
@@ -1624,15 +1593,6 @@ int do_init(int argc,char **argv){
 	login_config_read( (argc>1)?argv[1]:LOGIN_CONF_NAME );
 	sql_config_read(SQL_CONF_NAME);
 
-	//Generate Passworded Key.
-	ShowMessage ("memset md5key \n");
-	memset(md5key, 0, sizeof(md5key));
-	ShowMessage ("memset md5key complete\n");
-	ShowMessage ("memset keyleng\n");
-	md5keylen=rand()%4+12;
-	for(i=0;i<md5keylen;i++)
-		md5key[i]=rand()%255+1;
-	ShowMessage ("memset keyleng complete\n");
 
 	ShowMessage ("set FIFO Size\n");
 	for(i=0;i<AUTH_FIFO_SIZE;i++)

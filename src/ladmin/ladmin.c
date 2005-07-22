@@ -15,9 +15,6 @@
 #include "mmo.h"
 #include "malloc.h"
 
-#ifdef PASSWORDENC
-#include "md5calc.h"
-#endif
 
 //-------------------------------INSTRUCTIONS------------------------------
 // Set the variables below:
@@ -32,11 +29,7 @@
 char loginserverip[16] = "127.0.0.1";        // IP of login-server
 unsigned short loginserverport = 6900;       // Port of login-server
 char loginserveradminpassword[24] = "admin"; // Administration password
-#ifdef PASSWORDENC
-int passenc = 2;                             // Encoding type of the password
-#else
 int passenc = 0;                             // Encoding type of the password
-#endif
 char defaultlanguage = 'E';                  // Default language (F: Français/E: English)
                                              // (if it's not 'F', default is English)
 char ladmin_log_filename[1024] = "log/ladmin.log";
@@ -3208,49 +3201,6 @@ int parse_fromlogin(int fd)
 			RFIFOSKIP(fd,3);
 			break;
 
-#ifdef PASSWORDENC
-		case 0x01dc:	// answer of a coding key request
-			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
-				return 0;
-		  {
-			char md5str[64] = "", md5bin[32];
-			CREATE_BUFFER(md5key,char,RFIFOW(fd,2) - 4 + 1);
-
-			memcpy(md5key, (char*)RFIFOP(fd,4), RFIFOW(fd,2) - 4);
-			md5key[sizeof(md5key)-1] = '0';
-			if (passenc == 1) {
-				safestrcpy(md5str, (char*)RFIFOP(fd,4), RFIFOW(fd,2) - 4);
-				strcat(md5str, loginserveradminpassword);
-			} else if (passenc == 2) {
-				safestrcpy(md5str, loginserveradminpassword, sizeof(loginserveradminpassword));
-				strcat(md5str, (char*)RFIFOP(fd,4));
-			}
-			MD5_String2binary(md5str, md5bin);
-			WFIFOW(login_fd,0) = 0x7918; // Request for administation login (encrypted password)
-			WFIFOW(login_fd,2) = passenc; // Encrypted type
-			memcpy(WFIFOP(login_fd,4), md5bin, 16);
-			WFIFOSET(login_fd,20);
-			if (defaultlanguage == 'F') {
-				ShowMessage("Réception de la clef MD5.\n");
-				ladmin_log("Réception de la clef MD5." RETCODE);
-				ShowMessage("Envoi du mot de passe crypté...\n");
-				ladmin_log("Envoi du mot de passe crypté..." RETCODE);
-			} else {
-				ShowMessage("Receiving of the MD5 key.\n");
-				ladmin_log("Receiving of the MD5 key." RETCODE);
-				ShowMessage("Sending of the encrypted password...\n");
-				ladmin_log("Sending of the encrypted password..." RETCODE);
-			}
-
-			DELETE_BUFFER(md5key);
-
-		  }
-			bytes_to_read = 1;
-			RFIFOSKIP(fd,RFIFOW(fd,2));
-
-			break;
-#endif
-
 		case 0x7531:	// Displaying of the version of the login-server
 			if (RFIFOREST(fd) < 10)
 				return 0;
@@ -4095,7 +4045,7 @@ int parse_fromlogin(int fd)
 int Connect_login_server()
 {
 
-	
+
 	if (defaultlanguage == 'F')
 	{
 		ShowStatus("Essai de connection au server de logins...\n");
@@ -4110,13 +4060,9 @@ int Connect_login_server()
 	while( !session_isActive(login_fd) )
 	{
 		login_fd = make_connection(login_ip, loginserverport);
-		if(login_fd<0) sleep(2000); 
+		if(login_fd<0) sleep(2000);
 	}
 
-#ifdef PASSWORDENC
-	if (passenc == 0)
-	{
-#endif
 		WFIFOW(login_fd,0) = 0x7918; // Request for administation login
 		WFIFOW(login_fd,2) = 0; // no encrypted
 		memcpy(WFIFOP(login_fd,4), loginserveradminpassword, 24);
@@ -4129,22 +4075,6 @@ int Connect_login_server()
 			ShowMessage("Sending of the password...\n");
 			ladmin_log("Sending of the password..." RETCODE);
 		}
-#ifdef PASSWORDENC
-	}
-	else
-	{
-		WFIFOW(login_fd,0) = 0x791a; // Sending request about the coding key
-		WFIFOSET(login_fd,2);
-		bytes_to_read = 1;
-		if (defaultlanguage == 'F') {
-			ShowMessage("Demande de la clef MD5...\n");
-			ladmin_log("Demande de la clef MD5..." RETCODE);
-		} else {
-			ShowMessage("Request about the MD5 key...\n");
-			ladmin_log("Request about the MD5 key..." RETCODE);
-		}
-	}
-#endif
 	return 0;
 }
 
@@ -4195,12 +4125,6 @@ int ladmin_config_read(const char *cfgName) {
 				loginserverport = atoi(w2);
 			} else if (strcasecmp(w1, "admin_pass") == 0) {
 				safestrcpy(loginserveradminpassword, w2, sizeof(loginserveradminpassword));
-#ifdef PASSWORDENC
-			} else if (strcasecmp(w1, "passenc") == 0) {
-				passenc = atoi(w2);
-				if (passenc < 0 || passenc > 2)
-					passenc = 0;
-#endif
 			} else if (strcasecmp(w1, "defaultlanguage") == 0) {
 				if (w2[0] == 'F' || w2[0] == 'E')
 					defaultlanguage = w2[0];
@@ -4255,7 +4179,7 @@ void do_final(void) {
 	///////////////////////////////////////////////////////////////////////////
 	// delete sessions
 	for(i = 0; i < fd_max; i++)
-		if(session[i] != NULL) 
+		if(session[i] != NULL)
 			session_Delete(i);
 	// clear externaly stored fd's
 	login_fd = -1;
