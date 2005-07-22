@@ -1,5 +1,9 @@
 // The packet database allows you to add support for new clients,
 // because packets change every release.
+// Note: Every packet version needs a wanttoconnection specification, since
+// that is the packet used to identify a client's version, if multiple versions
+// have the same connection packet, the higher version will be used (unless
+// the lower one is specified as the default)
 
 // Main packet version of the DB to use (default = max available version)
 // Client detection is faster when all clients use the specified here version.
@@ -582,6 +586,7 @@ packet_ver: 13
 
 //2004-11-01aSakexe by Sara
 packet_ver: 14
+0x00f5,29,wanttoconnection,5:14:20:24:28
 0x0143,23,npcamountinput,2:6
 0x0215,6
 0x0216,6

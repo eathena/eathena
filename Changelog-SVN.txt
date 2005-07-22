@@ -1,6 +1,14 @@
 Date	Added
 07/22
+	* Fixed char-sql memo saving. [Skotlex]
+	* Added the wantoconnection packet of version 13 to version 14 [Skotlex]
+	  Note that this will cause all ver13 clients to be identified as v14, it
+	  WILL cause problems if you use ver13 clients. There is no easy way around
+	  this as both versions seem to use the identical login packet. If you
+	  want to give preference to v13 over v14, you can specify the default to
+	  be it.
 	* Fixed Encore skills working when the partner has no weapon equipped. [Skotlex]
+	
 07/21
 	* Fixed the fame lists, they work now. [Skotlex]
 	* Rewrote the friends system, it now works. [Skotlex]

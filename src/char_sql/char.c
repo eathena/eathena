@@ -475,7 +475,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		}
 		if (count)
 		{	//Dangerous? Only if none of the above sprintf worked. [Skotlex]
-			tmp_sql[-1] = '\0'; //Remove the trailing comma.
+			tmp_ptr[-1] = '\0'; //Remove the trailing comma.
 			if(mysql_query(&mysql_handle, tmp_sql))
 				ShowSQL("DB Error (insert memo): %s\n", mysql_error(&mysql_handle));
 			else
