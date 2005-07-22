@@ -71,5 +71,6 @@ ama_fild01.gat	5
 yuno_fild09.gat	10
 yuno_fild11.gat	-19
 jawaii.gat	-10
-//sec_in02.gat 5 dunno what value
-//ayo_dun02.gat 5 dunno what value
+sec_in02.gat	5 
+ayothaya.gat	20
+ayo_dun02.gat	15
