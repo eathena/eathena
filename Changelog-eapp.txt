@@ -1,5 +1,8 @@
 Date	Added
 07/22
+	- Removal of checks whether the client is LAN or WAN, Must be fixed ASAP, map, login, char
+	  updated to allow players to log in.[CLOWNISIUS]
+	- Completed Update of char.c/h for optimized SQL access.[CLOWNISIUS]
 	- Removal of PASSWORDENC from Login_sql comple, Cleaning of the code from login.c/h 
 	  now almost complete.[CLOWNISIUS]
 	- Removal of PASSWORDENC from Ladmin complete.[CLOWNISIUS]

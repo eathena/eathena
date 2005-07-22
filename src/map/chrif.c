@@ -14,8 +14,8 @@
 #include "showmsg.h"
 
 //Updated table (only doc^^) [Sirius]
-//Used Packets: U->2af8 
-//Free Packets: F->2af8 
+//Used Packets: U->2af8
+//Free Packets: F->2af8
 
 static const int packet_len_table[0x3d] = {
 	60, 3,-1,27,22,-1, 6,-1,	// 2af8-2aff: U->2af8, U->2af9, U->2afa, U->2afb, U->2afc, U->2afd, U->2afe, U->2aff
@@ -27,8 +27,8 @@ static const int packet_len_table[0x3d] = {
 };
 
 //Used Packets:
-//2af8: Outgoing, chrif_connect -> 'connect to charserver / auth @ charserver' 
-//2af9: Incomming, chrif_connectack -> 'awnser of the 2af8 login(ok / fail)' 
+//2af8: Outgoing, chrif_connect -> 'connect to charserver / auth @ charserver'
+//2af9: Incomming, chrif_connectack -> 'awnser of the 2af8 login(ok / fail)'
 //2afa: Outgoing, chrif_sendmap -> 'sending our maps'
 //2afb: Incomming, chrif_sendmapack -> 'Maps recived successfully / or not ..'
 //2afc: Outgoing, chrif_authreq -> 'validate the incomming client' ? (not sure)
@@ -36,11 +36,11 @@ static const int packet_len_table[0x3d] = {
 //2afe: Incomming, pc_authfail -> 'fail awnser of the 2afc' ? (not sure)
 //2aff: Outgoing, send_users_tochar -> 'sends all actual connected charactersids to charserver'
 //2b00: Incomming, map_setusers -> 'set the actual usercount? PACKET.2B COUNT.L.. ?' (not sure)
-//2b01: Outgoing, chrif_save -> 'charsave of char XY account XY (complete struct)' 
+//2b01: Outgoing, chrif_save -> 'charsave of char XY account XY (complete struct)'
 //2b02: Outgoing, chrif_charselectreq -> 'player returns from ingame to charserver to select another char.., this packets includes sessid etc' ? (not 100% sure)
 //2b03: Incomming, clif_charselectok -> '' (i think its the packet after enterworld?) (not sure)
 //2b04: Incomming, chrif_recvmap -> 'getting maps from charserver of other mapserver's'
-//2b05: Outgoing, chrif_changemapserver -> 'Tell the charserver the mapchange / quest for ok...' 
+//2b05: Outgoing, chrif_changemapserver -> 'Tell the charserver the mapchange / quest for ok...'
 //2b06: Incomming, chrif_changemapserverack -> 'awnser of 2b05, ok/fail, data: dunno^^'
 //2b07: FREE
 //2b08: Outgoing, chrif_searchcharid -> '...'
@@ -162,10 +162,10 @@ int chrif_connect(int fd)
 int chrif_sendmap(int fd)
 {
 	size_t i;
-	
+
 	if( !session_isActive(fd) )
 		return -1;
-	
+
 	WFIFOW(fd,0) = 0x2afa;
 	for(i = 0; i < map_num; i++) {
 		if (map[i].alias != '\0') // [MouseJstr] map aliasing
@@ -175,7 +175,7 @@ int chrif_sendmap(int fd)
 	}
 	WFIFOW(fd,2) = 4 + i * 16;
 	WFIFOSET(fd,WFIFOW(fd,2));
-	
+
 	return 0;
 }
 
@@ -215,11 +215,11 @@ int chrif_removemap(int fd)
 	int i, j;
 //	unsigned long ip;
 //	unsigned short port;
-	
+
 
 	if( !session_isActive(fd) || !chrif_isconnect() )
 		return -1;
-	
+
 //	ip = RFIFOLIP(fd, 4);
 //	port = RFIFOW(fd, 8);
 
@@ -230,11 +230,11 @@ int chrif_removemap(int fd)
 	}
 	if(battle_config.etc_log)
 		ShowStatus("remove maps of server %s (%d maps)\n", mapset.getstring(), j);
-	
-	
-	return 0;	
+
+
+	return 0;
 }
-	
+
 /*==========================================
  * マップ鯖間移動のためのデータ準備要求
  *------------------------------------------
@@ -265,16 +265,16 @@ int chrif_changemapserver(struct map_session_data &sd, const char *name, unsigne
 	WFIFOW(char_fd,34) = x;
 	WFIFOW(char_fd,36) = y;
 
-	if( mapset.isLAN(s_ip) )
-	{
+//	if( mapset.isLAN(s_ip) )
+//	{
 		WFIFOLIP(char_fd,38) = mapset.LANIP();
 		WFIFOL(char_fd,42) = mapset.LANPort();
-	}
-	else
-	{
-		WFIFOLIP(char_fd,38) = mapset.WANIP();
-		WFIFOL(char_fd,42) = mapset.WANPort();
-	}
+//	}
+//	else
+//	{
+//		WFIFOLIP(char_fd,38) = mapset.WANIP();
+//		WFIFOL(char_fd,42) = mapset.WANPort();
+//	}
 	WFIFOB(char_fd,44) = sd.status.sex;
 	WFIFOLIP(char_fd,45) = s_ip;
 	WFIFOSET(char_fd,49);
@@ -355,7 +355,7 @@ int chrif_sendmapack(int fd)
 	if (RFIFOB(fd,2))
 	{
 		ShowMessage("chrif : send map list to char server failed %d\n", (unsigned char)RFIFOB(fd,2));
-		session_Remove(char_fd); 
+		session_Remove(char_fd);
 	}
 	else
 	{
@@ -400,7 +400,7 @@ int chrif_authreq(struct map_session_data &sd)
  */
 int chrif_charselectreq(struct map_session_data &sd)
 {
-	size_t i; 
+	size_t i;
 	unsigned long s_ip;
 
 	if( !sd.bl.id || !sd.login_id1 )
@@ -944,40 +944,40 @@ int chrif_accountban(int fd)
 //packet.w AID.L WHY.B 2+4+1 = 7byte
 int chrif_disconnectplayer(int fd){
 	struct map_session_data *sd;
-	
+
 	sd = map_id2sd(RFIFOL(fd, 2));
-	
+
 	if(RFIFOL(fd, 2) <= 0 || sd == NULL){
 		return -1;
 	}
-	
-	//change sessid1 
+
+	//change sessid1
 	sd->login_id1++;
 
 	switch(RFIFOB(fd, 6)){
 		//clif_authfail_fd
-		case 1: //server closed 
-			clif_authfail_fd(fd, 1);	
+		case 1: //server closed
+			clif_authfail_fd(fd, 1);
 		break;
-		
+
 		case 2: //someone else logged in
-			clif_authfail_fd(fd, 2);		
+			clif_authfail_fd(fd, 2);
 		break;
-		
+
 		case 3: //server overpopulated
 			clif_authfail_fd(fd, 4);
-		
+
 		break;
-		
+
 		case 4: //out of time payd for .. (avail)
 			clif_authfail_fd(fd, 10);
 		break;
-		
+
 		case 5: //forced to dc by gm
 			clif_authfail_fd(fd, 15);
 		break;
 	}
-	
+
 return 0;
 }
 
@@ -1216,7 +1216,7 @@ int chrif_disconnect(int fd)
  */
 int chrif_parse(int fd)
 {
-	int packet_len; 
+	int packet_len;
 	unsigned short cmd;
 	// only char-server can have an access to here.
 	// so, if it isn't the char-server, we disconnect the session (fd != char_fd).
@@ -1266,9 +1266,9 @@ int chrif_parse(int fd)
 		switch(cmd) {
 		case 0x2af9: chrif_connectack(fd); break;
 		case 0x2afb: chrif_sendmapack(fd); chrif_reqfamelist(); break;
-		case 0x2afd: 
+		case 0x2afd:
 		{
-			pc_authok(RFIFOL(fd,4), RFIFOL(fd,8), (time_t)RFIFOL(fd,12), RFIFOP(fd,16)); 
+			pc_authok(RFIFOL(fd,4), RFIFOL(fd,8), (time_t)RFIFOL(fd,12), RFIFOP(fd,16));
 			// typecast is bad but only memcopied internally, so it might be ok
 			break;
 		}
