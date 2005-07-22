@@ -4578,7 +4578,6 @@ int mob_readdb_race(void)
 
 
 
-#ifndef TXT_ONLY
 /*==========================================
  * SQL reading
  *------------------------------------------
@@ -4758,15 +4757,12 @@ int mob_read_sqldb(void)
 	}
 	return 0;
 }
-#endif /* not TXT_ONLY */
 
 void mob_reload(void)
 {
-#ifndef TXT_ONLY
     if(db_use_sqldbs)
         mob_read_sqldb();
     else
-#endif /* TXT_ONLY */
 	mob_readdb();
 
 	mob_readdb_mobavail();
@@ -4782,11 +4778,9 @@ void mob_reload(void)
  */
 int do_init_mob(void)
 {
-#ifndef TXT_ONLY
     if(db_use_sqldbs)
         mob_read_sqldb();
     else
-#endif /* TXT_ONLY */
         mob_readdb();
 
 	mob_readdb_mobavail();

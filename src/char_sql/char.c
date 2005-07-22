@@ -54,7 +54,6 @@ int db_use_sqldbs;
 char login_db_account_id[32] = "account_id";
 char login_db_level[32] = "level";
 
-int lowest_gm_level = 1;
 
 char *SQL_CONF_NAME = "conf/inter_athena.conf";
 
@@ -221,7 +220,7 @@ void read_gm_account(void) {
 		aFree(gm_account);
 	GM_num = 0;
 
-	sql_query("SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",login_db_account_id,login_db_level,login_db,login_db_level,lowest_gm_level);
+	sql_query("SELECT `%s`,`%s` FROM `%s`",login_db_account_id,login_db_level,login_db);
 	if (sql_res) {
 		gm_account = (struct gm_account*)aCalloc(sizeof(struct gm_account) * (int)sql_num_rows(), 1);
 		while (sql_fetch_row()) {
@@ -3013,9 +3012,6 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 			strcpy(login_db_level,w2);
 		}else if(strcasecmp(w1,"login_db_account_id")==0){
 			strcpy(login_db_account_id,w2);
-		}else if(strcasecmp(w1,"lowest_gm_level")==0){
-			lowest_gm_level = atoi(w2);
-			ShowMessage("set lowest_gm_level : %s\n",w2);
 		//support the import command, just like any other config
 		}else if(strcasecmp(w1,"import")==0){
 			sql_config_read(w2);

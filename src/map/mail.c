@@ -1,4 +1,3 @@
-#ifndef TXT_ONLY
 // Mail System for eAthena SQL
 // Created by Valaris
 // moved all strings to msg_athena.conf [Lupus]
@@ -31,10 +30,10 @@ int mail_check(struct map_session_data &sd, int type)
 	char message[50];
 
 	sprintf(tmp_msql,"SELECT `message_id`,`to_account_id`,`from_char_name`,`read_flag`,`priority`,`check_flag` "
-		"FROM `%s` WHERE `to_account_id` = \"%ld\" ORDER by `message_id`", 
+		"FROM `%s` WHERE `to_account_id` = \"%ld\" ORDER by `message_id`",
 		mail_db, sd.status.account_id);
 
-	if (mysql_SendQuery(&mail_handle, tmp_msql)) 
+	if (mysql_SendQuery(&mail_handle, tmp_msql))
 	{
 		ShowMessage("Database server error (executing query for %s): %s\n", mail_db, mysql_error(&mail_handle));
 		return 0;
@@ -42,9 +41,9 @@ int mail_check(struct map_session_data &sd, int type)
 
    	mail_res = mysql_store_result(&mail_handle);
 
-	if(mail_res) 
+	if(mail_res)
 	{
-		if (mysql_num_rows(mail_res) == 0) 
+		if (mysql_num_rows(mail_res) == 0)
 		{
 			//clif_displaymessage(sd.fd,"You have no messages.");
 			clif_displaymessage(sd.fd,msg_txt(516));
@@ -53,34 +52,34 @@ int mail_check(struct map_session_data &sd, int type)
 			return 0;
 		}
 
-		while ((mail_row = mysql_fetch_row(mail_res))) 
+		while ((mail_row = mysql_fetch_row(mail_res)))
 		{
 			i++;
-			if(!atoi(mail_row[5])) 
+			if(!atoi(mail_row[5]))
 			{
-				sprintf(tmp_msql,"UPDATE `%s` SET `check_flag`='1' WHERE `message_id`= \"%d\"", 
+				sprintf(tmp_msql,"UPDATE `%s` SET `check_flag`='1' WHERE `message_id`= \"%d\"",
 					mail_db, atoi(mail_row[0]));
-				if(mysql_SendQuery(&mail_handle, tmp_msql) ) 
+				if(mysql_SendQuery(&mail_handle, tmp_msql) )
 				{
-						ShowMessage("DB server Error (update Read `%s`)- %s\n", 
+						ShowMessage("DB server Error (update Read `%s`)- %s\n",
 							mail_db, mysql_error(&mail_handle) );
 				}
 			}
 
-			if(!atoi(mail_row[3])) 
+			if(!atoi(mail_row[3]))
 			{
 				new_++;
 				if(atoi(mail_row[4]))
 					priority++;
-				if(type==2 || type==3) 
+				if(type==2 || type==3)
 				{
-					if(atoi(mail_row[4])) 
+					if(atoi(mail_row[4]))
 					{
 						//sprintf(message, "%d - From : %s (New - Priority)", i, mail_row[2]);
 						sprintf(message, msg_txt(511), i, mail_row[2]);
 
 						clif_displaymessage(sd.fd, jstrescape(message));
-					} 
+					}
 					else
 					{
 						//sprintf(message, "%d - From : %s (New)", i, mail_row[2]);
@@ -88,7 +87,7 @@ int mail_check(struct map_session_data &sd, int type)
 						clif_displaymessage(sd.fd, jstrescape(message));
 					}
 				}
-			} 
+			}
 			else if(type==2)
 			{
 				//sprintf(message, "%d - From : %s", i, mail_row[2]);
@@ -173,12 +172,12 @@ int mail_read(struct map_session_data &sd, unsigned long message_id)
 			}
 		}
 		mysql_free_result(mail_res);
-	} 
+	}
 	else
 	{
 		ShowMessage("MySQL error (storing query result for %s): %s\n", mail_db, mysql_error(&mail_handle));
 		return 0;
-    
+
 	}
 	return 0;
 }
@@ -187,14 +186,14 @@ int mail_delete(struct map_session_data &sd, unsigned long message_id)
 {
 	sprintf(tmp_msql,"SELECT `message_id`,`to_account_id`,`read_flag`,`priority`,`check_flag` from `%s` WHERE `to_account_id` = \"%ld\" ORDER by `message_id` LIMIT %ld, 1",mail_db,sd.status.account_id,message_id-1);
 
-	if (mysql_SendQuery(&mail_handle, tmp_msql)) 
+	if (mysql_SendQuery(&mail_handle, tmp_msql))
 	{
 		ShowMessage("Database server error (executing query for %s): %s\n", mail_db, mysql_error(&mail_handle));
 		return 0;
    	}
 
    	mail_res = mysql_store_result(&mail_handle);
-	if(mail_res) 
+	if(mail_res)
 	{
 		if (mysql_num_rows(mail_res) == 0)
 		{
@@ -204,7 +203,7 @@ int mail_delete(struct map_session_data &sd, unsigned long message_id)
 			return 0;
 		}
 
-		if ((mail_row = mysql_fetch_row(mail_res))) 
+		if ((mail_row = mysql_fetch_row(mail_res)))
 		{
 			if(!atoi(mail_row[2]) && atoi(mail_row[3]))
 			{
@@ -234,8 +233,8 @@ int mail_delete(struct map_session_data &sd, unsigned long message_id)
 
 		mysql_free_result(mail_res);
 
-	} 
-	else 
+	}
+	else
 	{
 		ShowMessage("MySQL error (delete query result for %s): %s\n", mail_db, mysql_error(&mail_handle));
 		return 0;
@@ -275,7 +274,7 @@ int mail_send(struct map_session_data &sd, char *name, char *message, int flag)
    	mail_res = mysql_store_result(&mail_handle);
 	if(mail_res)
 	{
-		if (mysql_num_rows(mail_res) == 0) 
+		if (mysql_num_rows(mail_res) == 0)
 		{
 			mysql_free_result(mail_res);
 			//clif_displaymessage(sd.fd,"Character does not exist.");
@@ -283,14 +282,14 @@ int mail_send(struct map_session_data &sd, char *name, char *message, int flag)
 			return 0;
 		}
 
-		while ((mail_row = mysql_fetch_row(mail_res))) 
+		while ((mail_row = mysql_fetch_row(mail_res)))
 		{
-			if(strcmp(name,"*")==0) 
+			if(strcmp(name,"*")==0)
 			{
 				sprintf(tmp_msql, "INSERT DELAYED INTO `%s` (`to_account_id`,`from_account_id`,`from_char_name`,`message`,`priority`)"
 					" VALUES ('%d', '%ld', '%s', '%s', '%d')",mail_db, atoi(mail_row[0]), sd.status.account_id, sd.status.name, jstrescape(message), flag);
 			}
-			else 
+			else
 			{
 				sprintf(tmp_msql, "INSERT DELAYED INTO `%s` (`to_account_id`,`to_char_name`,`from_account_id`,`from_char_name`,`message`,`priority`)"
 					" VALUES ('%d', '%s', '%ld', '%s', '%s', '%d')",mail_db, atoi(mail_row[0]), mail_row[1], sd.status.account_id, sd.status.name, jstrescape(message), flag);
@@ -298,7 +297,7 @@ int mail_send(struct map_session_data &sd, char *name, char *message, int flag)
 					sd.mail_counter=5;
 			}
 
-			if(mysql_SendQuery(&mail_handle, tmp_msql) ) 
+			if(mysql_SendQuery(&mail_handle, tmp_msql) )
 			{
 				mysql_free_result(mail_res);
 				ShowMessage("DB server Error (insert `mail_db`)- %s\n", mysql_error(&mail_handle) );
@@ -317,7 +316,7 @@ int mail_check_timer(int tid,unsigned long tick,int id,int data)
 {
 	struct map_session_data *sd = NULL;
 	size_t i;
-	
+
 	if(mail_timer != tid)
 		return 0;
 	sprintf(tmp_msql,"SELECT DISTINCT `to_account_id` FROM `%s` WHERE `read_flag` = '0' AND `check_flag` = '0'", mail_db);
@@ -327,11 +326,11 @@ int mail_check_timer(int tid,unsigned long tick,int id,int data)
 		mail_timer=add_timer(gettick()+MAIL_CHECK_TIME,mail_check_timer,0,0);
 		return 0;
 	}
-	
+
 	mail_res = mysql_store_result(&mail_handle);
 	if (mail_res)
 	{
-		if (mysql_num_rows(mail_res) == 0) 
+		if (mysql_num_rows(mail_res) == 0)
 		{
 			mysql_free_result(mail_res);
 			mail_timer=add_timer(gettick()+MAIL_CHECK_TIME,mail_check_timer,0,0);
@@ -352,7 +351,7 @@ int mail_check_timer(int tid,unsigned long tick,int id,int data)
 			}
 		}
 	}
-	
+
 	sprintf(tmp_msql,"UPDATE `%s` SET `check_flag`='1' WHERE `check_flag`= '0' ", mail_db);
 	if( mysql_SendQuery(&mail_handle, tmp_msql) )
 	{
@@ -368,5 +367,3 @@ int do_init_mail(void)
 	mail_timer=add_timer(gettick()+MAIL_CHECK_TIME,mail_check_timer,0,0);
 	return 0;
 }
-
-#endif//TXT_ONLY

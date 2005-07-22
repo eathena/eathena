@@ -63,17 +63,6 @@ CCMD_FUNC(stpoint);
 CCMD_FUNC(skpoint);
 CCMD_FUNC(changesex);
 
-
-#ifdef TXT_ONLY
-/* TXT_ONLY */
-
-/* TXT_ONLY */
-#else
-/* SQL-only */
-
-/* SQL Only */
-#endif
-
 /*==========================================
  *CharCommandInfo charcommand_info[]\‘¢‘Ì‚Ì’è‹`
  *------------------------------------------
@@ -119,17 +108,6 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandSTPoint,				"#stpoint",					60, charcommand_stpoint },
 	{ CharCommandChangeSex,				"#changesex",				60, charcommand_changesex },
 
-	
-
-#ifdef TXT_ONLY
-/* TXT_ONLY */
-
-/* TXT_ONLY */
-#else
-/* SQL-only */
-
-/* SQL Only */
-#endif
 
 // add new commands before this line
 	{ CharCommand_Unknown,             NULL,                1, NULL }
@@ -241,7 +219,7 @@ CharCommandType charcommand(struct CharCommandInfo &info, const char* message, u
 	{
 		return CharCommand_None;
 	}
-	
+
 }
 
 /*==========================================
@@ -448,7 +426,7 @@ bool charcommand_petrename(int fd, struct map_session_data &sd,const char *comma
 
 
 /*==========================================
- * 
+ *
  *------------------------------------------
  */
 bool charcommand_petfriendly(int fd, struct map_session_data &sd,const char *command, const char *message)
@@ -1020,7 +998,7 @@ bool charcommand_storagelist(int fd, struct map_session_data &sd,const char *com
 	return true;
 }
 
-static void 
+static void
 charcommand_giveitem_sub(struct map_session_data &sd,struct item_data &item_data, size_t number)
 {
 	int flag = 0;
@@ -1087,10 +1065,10 @@ bool charcommand_item(int fd, struct map_session_data &sd,const char *command, c
 					if (pet_id >= 0) {
 						sd.catch_target_class = pet_db[pet_id].class_;
 						intif_create_pet(
-							sd.status.account_id, sd.status.char_id,           
-							pet_db[pet_id].class_, mob_db[pet_db[pet_id].class_].lv,             
-							pet_db[pet_id].EggID, 0, pet_db[pet_id].intimate,100, 
-							0, 1, 
+							sd.status.account_id, sd.status.char_id,
+							pet_db[pet_id].class_, mob_db[pet_db[pet_id].class_].lv,
+							pet_db[pet_id].EggID, 0, pet_db[pet_id].intimate,100,
+							0, 1,
 							pet_db[pet_id].jname);
 					// if not pet egg
 					} else {
@@ -1287,17 +1265,17 @@ bool charcommand_fakename(int fd, struct map_session_data &sd,const char *comman
 	struct map_session_data *pl_sd;
 	char name[64];
 	char char_name[64];
-	
+
 	if (!message || !*message) {
 		clif_displaymessage(sd.fd,"Usage: #fakename <fake name> <char name>.");
 		clif_displaymessage(sd.fd,"Or: #fakename <char name> to disable.");
 		return 0;
 	}
-	
+
 	if (sscanf(message, "%23s %23[^\n]", name, char_name) < 1) {
 		return 0;
 	}
-	
+
 	if(strlen(char_name) < 1 ) {
 		if(!(pl_sd = map_nick2sd(name))) {
 			clif_displaymessage(sd.fd,"Character not found.");
@@ -1320,21 +1298,21 @@ bool charcommand_fakename(int fd, struct map_session_data &sd,const char *comman
 		clif_displaymessage(sd.fd,"Character not found.");
 		return false;
 	}
-	
+
 	if(strlen(name) < 2) {
 		clif_displaymessage(sd.fd,"Fake name must be at least two characters.");
 		return false;
 	}
-	
+
 	safestrcpy(pl_sd->fakename,name, 24);
 	pc_setpos(*pl_sd, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y, 3);
 	clif_displaymessage(sd.fd,"Fake name enabled.");
-	
+
 	return true;
 }
 
 /*==========================================
- * #baselvl <#> <nickname> 
+ * #baselvl <#> <nickname>
  *------------------------------------------
 */
 bool charcommand_baselevel(int fd, struct map_session_data &sd,const char *command, const char *message)
@@ -1404,7 +1382,7 @@ bool charcommand_baselevel(int fd, struct map_session_data &sd,const char *comma
 }
 
 /*==========================================
- * #jlvl <#> <nickname> 
+ * #jlvl <#> <nickname>
  *------------------------------------------
  */
 bool charcommand_joblevel(int fd, struct map_session_data &sd,const char *command, const char *message)
@@ -1461,7 +1439,7 @@ bool charcommand_joblevel(int fd, struct map_session_data &sd,const char *comman
 				clif_updatestatus(*pl_sd, SP_NEXTJOBEXP);
 				if (pl_sd->status.skill_point > 0)
 				{
-					
+
 					if (pl_sd->status.skill_point > - level)
 						pl_sd->status.skill_point += level;
 					else

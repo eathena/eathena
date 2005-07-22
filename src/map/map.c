@@ -37,8 +37,6 @@
 #include "mail.h"
 
 
-#ifndef TXT_ONLY
-
 MYSQL lmysql_handle;
 MYSQL_RES* lsql_res ;
 MYSQL_ROW  lsql_row ;
@@ -84,12 +82,9 @@ char gm_db[32] = "login";
 char gm_db_level[32] = "level";
 char gm_db_account_id[32] = "account_id";
 
-int lowest_gm_level = 1;
 int read_gm_interval = 600000;
 
 char char_db[32] = "char";
-
-#endif//TXT_OMLY
 
 char *INTER_CONF_NAME="conf/inter_athena.conf";
 char *LOG_CONF_NAME="conf/log_athena.conf";
@@ -3175,7 +3170,6 @@ int inter_config_read(const char *cfgName)
 		//support the import command, just like any other config
 			inter_config_read(w2);
 		}
-	#ifndef TXT_ONLY
 		  else if(strcasecmp(w1,"item_db_db")==0){
 			strcpy(item_db_db,w2);
 		} else if(strcasecmp(w1,"mob_db_db")==0){
@@ -3223,8 +3217,6 @@ int inter_config_read(const char *cfgName)
 			strcpy(login_server_pw, w2);
 		} else if(strcasecmp(w1,"login_server_db")==0){
 			strcpy(login_server_db, w2);
-		} else if(strcasecmp(w1,"lowest_gm_level")==0){
-			lowest_gm_level = atoi(w2);
 		} else if(strcasecmp(w1,"read_gm_interval")==0){
 			read_gm_interval = ( atoi(w2) * 60 * 1000 ); // Minutes multiplied by 60 secs per min by 1000 milliseconds per second
 		} else if(strcasecmp(w1,"log_db")==0) {
@@ -3240,14 +3232,12 @@ int inter_config_read(const char *cfgName)
 		} else if(strcasecmp(w1,"log_db_port")==0) {
 			log_db_port = atoi(w2);
 		}
-	#endif
 		}
 	fclose(fp);
 
 	return 0;
 }
 
-#ifndef TXT_ONLY
 /*=======================================
  *  MySQL Init
  *---------------------------------------
@@ -3333,8 +3323,6 @@ int log_sql_init(void)
 
 	return 0;
 }
-#endif /* not TXT_ONLY */
-
 
 void char_online_check(void)
 {
@@ -3488,9 +3476,7 @@ void do_final(void)
 	numdb_final(charid_db, charid_db_final);
 
 
-#ifndef TXT_ONLY
     map_sql_close();
-#endif /* not TXT_ONLY */
 
 	///////////////////////////////////////////////////////////////////////////
 	// delete sessions
@@ -3585,10 +3571,8 @@ int do_init(int argc, char *argv[]) {
 			MSG_CONF_NAME = argv[i+1];
 		else if (strcmp(argv[i],"--grf_path_file") == 0 || strcmp(argv[i],"--grf-path-file") == 0)
 			GRF_PATH_FILENAME = argv[i+1];
-#ifndef TXT_ONLY
 		else if (strcmp(argv[i],"--inter_config") == 0 || strcmp(argv[i],"--inter-config") == 0)
 			INTER_CONF_NAME = argv[i+1];
-#endif
 		else if (strcmp(argv[i],"--log_config") == 0 || strcmp(argv[i],"--log-config") == 0)
 			LOG_CONF_NAME = argv[i+1];
 		else if (strcmp(argv[i],"--run_once") == 0)	// close the map-server as soon as its done.. for testing [Celest]
@@ -3634,9 +3618,7 @@ int do_init(int argc, char *argv[]) {
 	map_db = strdb_init(24);
 	nick_db = strdb_init(24);
 	charid_db = numdb_init();
-#ifndef TXT_ONLY
 	map_sql_init();
-#endif /* not TXT_ONLY */
 
 	grfio_init(GRF_PATH_FILENAME);
 
@@ -3668,13 +3650,11 @@ int do_init(int argc, char *argv[]) {
 	if(battle_config.mail_system)
 		do_init_mail();
 
-#ifndef TXT_ONLY
 	if (log_config.sql_logs && (log_config.branch || log_config.drop || log_config.mvpdrop ||
 		log_config.present || log_config.produce || log_config.refine || log_config.trade))
 	{
 		log_sql_init();
 	}
-#endif /* not TXT_ONLY */
 
 	npc_event_do_oninit();	// npcのOnInitイベント?行
 

@@ -1265,8 +1265,6 @@ static inline int distance(int x0,int y0,int x1,int y1)
 }
 
 
-#ifndef TXT_ONLY
-
 // MySQL
 #include <mysql.h>
 
@@ -1312,10 +1310,9 @@ extern char gm_db[32];
 extern char gm_db_level[32];
 extern char gm_db_account_id[32];
 
-extern int lowest_gm_level;
 extern int read_gm_interval;
 
 extern char char_db[32];
-#endif /* not TXT_ONLY */
+
 
 #endif

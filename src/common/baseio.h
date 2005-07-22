@@ -163,72 +163,6 @@ public:
 //////////////////////////////////////////////////////////////////////////
 
 
-
-//////////////////////////////////////////////////////////////////////////
-#ifdef TXT_ONLY
-//////////////////////////////////////////////////////////////////////////
-
-
-
-//////////////////////////////////////////////////////////////////////////
-// defaults for a txt
-//////////////////////////////////////////////////////////////////////////
-class DBDefaults : public CConfig
-{
-protected:
-
-public:
-	char GM_account_filename[1024];
-	long GM_account_creation;
-
-
-	// others
-	DBDefaults()
-	{	// setting defaults
-		strcpy(GM_account_filename, "conf/GM_account.txt");
-			   GM_account_creation = 0;
-
-	}
-
-	virtual bool ProcessConfig(const char*w1, const char*w2)
-	{
-
-	}
-};
-
-//////////////////////////////////////////////////////////////////////////
-// basic interface to a txt database
-//////////////////////////////////////////////////////////////////////////
-
-class Database
-{
-protected:
-	DBDefaults& def;
-
-	Database(DBDefaults &d) : def(d)
-	{
-		Open();
-	}
-	~Database()
-	{
-	}
-	bool Open()
-	{
-		return true;
-	}
-
-};
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////
-#else// SQL
-//////////////////////////////////////////////////////////////////////////
-
-
 //////////////////////////////////////////////////////////////////////////
 // defaults for a sql database
 //////////////////////////////////////////////////////////////////////////
@@ -255,8 +189,6 @@ public:
 	char column_level[256];
 
 
-	// others
-	int lowest_gm_level;
 
 	DBDefaults() : sql_conf_name("conf/inter_athena.conf")
 	{	// setting defaults
@@ -276,9 +208,6 @@ public:
 		strcpy(column_userid, "userid");
 		strcpy(column_user_pass, "user_pass");
 		strcpy(column_level, "level");
-
-		//others
-		lowest_gm_level = 1;
 
 		// loading from default file
 		LoadConfig(sql_conf_name);
@@ -389,34 +318,6 @@ protected:
 
 };
 
-//////////////////////////////////////////////////////////////////////////
-#endif
-//////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////
-#ifdef TXT_ONLY
-//////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////
-#else// SQL
-//////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
 
 class Login_DB : public Database
 {
@@ -478,23 +379,6 @@ public:
 
 
 
-//////////////////////////////////////////////////////////////////////////
-#endif
-//////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -532,81 +416,6 @@ class GM_Database : public Database
 	//////////////////////////////////////////////////////////////////////////
 
 
-
-	//////////////////////////////////////////////////////////////////////////
-	#ifdef TXT_ONLY
-	//////////////////////////////////////////////////////////////////////////
-
-public:
-	GM_Database(DBDefaults& d) : Database(d)
-	{	//defaults
-
-		read_gm_account();
-	}
-	~GM_Database()
-	{}
-
-	int read_gm_account() {
-		char line[512];
-		FILE *fp;
-		int account_id, level;
-		int line_counter;
-		struct stat file_stat;
-		int start_range = 0, end_range = 0, is_range = 0, current_id = 0;
-
-		gm_list.clear();
-
-		// get last modify time/date
-		if (stat(def.GM_account_filename, &file_stat))
-			def.GM_account_creation = 0; // error
-		else
-			def.GM_account_creation = file_stat.st_mtime;
-
-		if ((fp = safefopen(def.GM_account_filename, "r")) == NULL) {
-			ShowError("read_gm_account: GM accounts file [%s] not found.\n", def.GM_account_filename);
-			ShowMessage("                 Actually, there is no GM accounts on the server.\n");
-			return false;
-		}
-
-		line_counter = 0;
-		// limited to 4000, because we send information to char-servers (more than 4000 GM accounts???)
-		// int (id) + int (level) = 8 bytes * 4000 = 32k (limit of packets in windows)
-		while(fgets(line, sizeof(line)-1, fp) && line_counter < 4000) {
-			line_counter++;
-			if( !skip_empty_line(line) )
-				continue;
-			is_range = (sscanf(line, "%d%*[-~]%d %d",&start_range,&end_range,&level)==3); // ID Range [MC Cameri]
-
-			if (!is_range && sscanf(line, "%d %d", &account_id, &level) != 2 && sscanf(line, "%d: %d", &account_id, &level) != 2)
-				ShowMessage("read_gm_account: file [%s], invalid 'acount_id|range level' format (line #%d).\n", def.GM_account_filename, line_counter);
-			else if (level <= 0)
-				ShowMessage("read_gm_account: file [%s] %dth account (line #%d) (invalid level [0 or negative]: %d).\n", def.GM_account_filename, gm_list.size()+1, line_counter, level);
-			else {
-				if (level > 99) {
-					ShowMessage("read_gm_account: file [%s] %dth account (invalid level, but corrected: %d->99).\n", def.GM_account_filename, gm_list.size()+1, level);
-					level = 99;
-				}
-				if (is_range) {
-					if (start_range==end_range)
-						ShowMessage("read_gm_account: file [%s] invalid range, beginning of range is equal to end of range (line #%d).\n", def.GM_account_filename, line_counter);
-					else if (start_range>end_range)
-						ShowMessage("read_gm_account: file [%s] invalid range, beginning of range must be lower than end of range (line #%d).\n", def.GM_account_filename, line_counter);
-					else
-						for (current_id = start_range;current_id<=end_range;current_id++)
-							gm_list.push( gm_account(current_id,level) );
-				} else {
-					gm_list.push( gm_account(account_id,level) );
-				}
-			}
-		}
-		fclose(fp);
-		ShowMessage("read_gm_account: file '%s' read (%d GM accounts found).\n", def.GM_account_filename, gm_list.size());
-		return 0;
-	}
-	//////////////////////////////////////////////////////////////////////////
-	#else// SQL
-	//////////////////////////////////////////////////////////////////////////
-
 	GM_Database(DBDefaults& d) : Database(d)
 	{
 		read_gm_account();
@@ -619,8 +428,8 @@ public:
 	{
 		gm_list.clear();
 
-		sql_query("SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",
-			def.column_account_id, def.column_level, def.table_login, def.column_level, def.lowest_gm_level);
+		sql_query("SELECT `%s`,`%s` FROM `%s`",
+			def.column_account_id, def.column_level, def.table_login);
 
 		size_t line_counter = 0;
 		if (sql_res) {
@@ -635,11 +444,6 @@ public:
 		}
 		sql_free();
 	}
-
-	///////////////////////////////////////////////////////////////////////////////
-	#endif// SQL
-	///////////////////////////////////////////////////////////////////////////////
-
 
 	bool _tobuffer(unsigned char*buffer, size_t &btsz)
 	{

@@ -680,7 +680,6 @@ int itemdb_read_itemtrade(void)
 	return 0;
 }
 
-#ifndef TXT_ONLY
 
 /*======================================
 * SQL
@@ -830,7 +829,6 @@ int itemdb_read_sqldb(void)
 	}
 	return 0;
 }
-#endif /* not TXT_ONLY */
 
 /*==========================================
  * アイテムデータベースの読み込み
@@ -959,7 +957,6 @@ int itemdb_readdb(void)
  */
 void itemdb_read(void)
 {
-#ifndef TXT_ONLY
 	if (db_use_sqldbs)
 	{
 		itemdb_read_sqldb();
@@ -968,9 +965,6 @@ void itemdb_read(void)
 	{
 		itemdb_readdb();
 	}
-#else	// not TXT_ONLY
-	itemdb_readdb();
-#endif	// TXT_ONLY
 
 	itemdb_read_itemgroup();
 	itemdb_read_randomitem();
