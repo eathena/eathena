@@ -19,10 +19,7 @@
 
 // Source Includes
 #include "login.h"
-
-#ifdef CLOWNPHOBIA
 #include "md5.hh"
-#endif // CLOWNPHOBIA
 
 //-----------------------------------------------------
 // global variable
