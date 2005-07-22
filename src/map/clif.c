@@ -11148,7 +11148,6 @@ void clif_friendslist_reqack(struct map_session_data *sd, struct map_session_dat
 	int fd;
 	nullpo_retv(sd);
 
-	ShowDebug("Friend reply type %d\n", type);
 	fd = sd->fd;
 	WFIFOW(fd,0) = 0x209;
 	WFIFOW(fd,2) = type;
@@ -11210,10 +11209,7 @@ void clif_parse_FriendsListReply(int fd, struct map_session_data *sd) {
 
 	f_sd = map_id2sd(account_id); //The account id is the same as the bl.id of players.
 	if (f_sd == NULL)
-	{
-		ShowDebug("Not found %d\n", account_id);
 		return;
-	}
 		
 	if (reply == 0)
 		clif_friendslist_reqack(f_sd, sd, 1);
