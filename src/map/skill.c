@@ -6772,6 +6772,8 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 				if (((t_class.job == 19 && s_class.job == 20) ||
 						(t_class.job == 20 && s_class.job == 19)) &&
 						(skilllv = pc_checkskill(sd, skillid)) > 0 &&
+						(sd->weapontype1==13 || sd->weapontype1==14) &&
+						(ssd->weapontype1==13 || ssd->weapontype1==14) &&
 						sd->status.party_id && tsd->status.party_id &&
 						sd->status.party_id == tsd->status.party_id &&
 						!pc_issit(sd) && !pc_isdead(sd) &&

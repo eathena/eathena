@@ -1,4 +1,6 @@
 Date	Added
+07/22
+	* Fixed Encore skills working when the partner has no weapon equipped. [Skotlex]
 07/21
 	* Fixed the fame lists, they work now. [Skotlex]
 	* Rewrote the friends system, it now works. [Skotlex]
