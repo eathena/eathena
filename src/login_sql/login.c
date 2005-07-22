@@ -1181,19 +1181,15 @@ int parse_login(int fd){
 					{
 						if( server[i].fd >= 0)
 						{	//Lan check added by Kashy
-							if( server[i].address.isLAN(client_ip) )
-							{
+							ShowMessage("sending info for LAN server[%d]: %s:%d ",server_num,server[i].address.LANIP().getstring(),server[i].address.LANPort());
+							ShowMessage("sending info for WAN server[%d]: %s:%d ",server_num,server[i].address.WANIP().getstring(),server[i].address.WANPort());
+
+							if( server[i].address.isLAN(client_ip) ){
 								ShowMessage("Is LAN network\n");
-
-								ShowMessage("sending info for LAN server[%d]: %s:%d ",server_num,server[i].address.LANIP().getstring(),server[i].address.LANPort());
-
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.LANIP();
 								WFIFOW(fd,47+server_num*32+4) = server[i].address.LANPort();
-							}
-							else
-							{
+							}else{
 								ShowMessage("Is WAN network\n");
-								ShowMessage("sending info for WAN server[%d]: %s:%d ",server_num,server[i].address.WANIP().getstring(),server[i].address.WANPort());
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.WANIP();
 								WFIFOW(fd,47+server_num*32+4) = server[i].address.WANPort();
 							}
