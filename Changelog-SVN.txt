@@ -1,5 +1,6 @@
 Date	Added
 07/22
+	* More fixes to the txt->sql converter. Does it works now? [Skotlex]
 	* Added water height values of Ayothaya, Ayo_dun02, sec_in02 maps (thanx 2Lorky) [Lupus]
 	* Fixed char-sql memo saving. [Skotlex]
 	* Added the wantoconnection packet of version 13 to version 14 [Skotlex]

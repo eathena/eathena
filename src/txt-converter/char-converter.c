@@ -513,7 +513,7 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 	}
 */
 	for(i = 0; i < count; i++) {
-		if(!mapitem[i].nameid) {
+		if(mapitem[i].nameid) {
 			sprintf(tmp_sql,"INSERT INTO `%s`(`%s`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` )"
 				" VALUES ( '%d','%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d' )",
 				tablename, selectoption,  char_id, mapitem[i].nameid, mapitem[i].amount, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine,
@@ -726,7 +726,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		}
 		if (count)
 		{	//Dangerous? Only if none of the above sprintf worked. [Skotlex]
-			tmp_sql[-1] = '\0'; //Remove the trailing comma.
+			tmp_ptr[-1] = '\0'; //Remove the trailing comma.
 			if(mysql_query(&mysql_handle, tmp_sql))
 				ShowSQL("DB Error (insert memo): %s\n", mysql_error(&mysql_handle));
 			else
