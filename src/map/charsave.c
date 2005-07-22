@@ -220,9 +220,28 @@ struct mmo_charstatus *charsave_loadchar(int charid){
                  mysql_free_result(charsql_res);
          }
 
+	//Shamelessly stolen from its_sparky (ie: thanks) and then assimilated by [Skotlex]
+	//Friend list 
+	sprintf(tmp_sql, "SELECT f.friend_account, f.friend_id, c.name FROM friends f LEFT JOIN `char` c ON f.friend_account=c.account_id AND f.friend_id=c.char_id WHERE f.char_id='%d'", charid);
 
+	if(mysql_query(&charsql_handle, tmp_sql)){
+		ShowSQL("fromsql() SQL ERROR (reading friends): %s\n", mysql_error(&charsql_handle));
+	}
+
+	sql_res = mysql_store_result(&charsql_handle);
+	if(sql_res)
+	{
+		for(i = 0; (sql_row = mysql_fetch_row(sql_res)) && i<MAX_FRIENDS; i++)
+		{
+			c->friends[i].account_id = atoi(sql_row[0]);
+			c->friends[i].char_id = atoi(sql_row[1]);
+			strncpy(c->friends[i].name, sql_row[2], NAME_LENGTH-1); //The -1 is to avoid losing the ending \0 [Skotlex]
+		}
+		mysql_free_result(sql_res);
+	}
+/*	Previous implementation...
          //Friend list 'ids'
-         sprintf(charsql_tmpsql, "SELECT `char_id`, `friend_id` FROM `friends` WHERE `char_id` = '%d'", charid);
+         sprintf(charsql_tmpsql, "SELECT `char_id`, `friend_account`, `friend_id` FROM `friends` WHERE `char_id` = '%d'", charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
          	ShowSQL("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
 				aFree(c);
@@ -260,9 +279,8 @@ struct mmo_charstatus *charsave_loadchar(int charid){
                          //strcpy(c->friends[i].name, charsql_row[1]);
                  	mysql_free_result(charsql_res);
                  }
-
-
          }
+*/
 
       	ShowInfo("charsql_loadchar(): loading of '%d' (%s) complete.\n", charid, c->name);
 
@@ -392,8 +410,8 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 		ShowSQL("tosql() SQL ERROR: %s\n", mysql_error(&charsql_handle));
 	}
          for(i = 0; i < MAX_FRIENDS; i++){
-         	if(c->friend_id[i] > 0){
-			sprintf(charsql_tmpsql, "INSERT INTO `friends` (`char_id`, `friend_id`) VALUES ('%d', '%d')", charid, c->friend_id[i]);
+         	if(c->friends[i].char_id > 0){
+			sprintf(charsql_tmpsql, "INSERT INTO `friends` (`char_id`, `account_id`, `friend_id`) VALUES ('%d','%d','%d')", charid, c->friends[i].account_id, c->friends[i].char_id);
 	                if(mysql_query(&charsql_handle, charsql_tmpsql)){
 	                	 ShowSQL("tosql() SQL ERROR: %s\n", mysql_error(&charsql_handle));
 	                }

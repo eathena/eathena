@@ -8901,8 +8901,8 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		}
 		if (sd->invincible_timer != -1)
 			pc_delinvincibletimer(sd);
-		if (sd->attacktarget > 0) // [Valaris]
-			sd->attacktarget = 0;
+//		if (sd->attacktarget > 0) // [Valaris] <- removed because I am gonna try a new system... [Skotlex]
+//			sd->attacktarget = 0;
 		pc_attack(sd, target_id, action_type != 0);
 		break;
 	case 0x02: // sitdown
@@ -11088,42 +11088,82 @@ void clif_parse_NoviceExplosionSpirits(int fd, struct map_session_data *sd)
  * Friends List
  *------------------------------------------
  */
-void clif_friendslist_send(struct map_session_data *sd) {
-	int i, n = 0;
+void clif_friendslist_toggle(struct map_session_data *sd,int account_id, int char_id, int online)
+{	//Toggles a single friend online/offline [Skotlex]
+	int i;
 
-	// Send friends list
-	WFIFOW(sd->fd, 0) = 0x201;
-	for(i = 0; i < MAX_FRIENDS; i++)
-		if (sd->status.friend_id[i]) {
-			//WFIFOL(sd->fd, 4 + 32 * n + 1) = sd->status.friend_id[i];
-			//WFIFOB(sd->fd, 4 + 32 * n + 5) = (online[n]) ? 0 : 1; // <- We don't know this yet. I'd reckon its 5 but... i could be wrong.
-			//Note that this currently is NOT working! We NEED some packet sniffing help here to fix this... [Skotlex]
-			WFIFOL(sd->fd, 4 + 32 * n + 0) = (map_charid2nick(sd->status.friend_id[i]) != NULL);
-			WFIFOL(sd->fd, 4 + 32 * n + 4) = sd->status.friend_id[i];
-			memcpy(WFIFOP(sd->fd, 4 + 32 * n + 8), &sd->status.friend_name[i], NAME_LENGTH);
-			n++;
-		}
-	WFIFOW(sd->fd,2) = 4 + 32 * n;
-	WFIFOSET(sd->fd, WFIFOW(sd->fd,2));
+	//Seek friend.
+	for (i = 0; i < MAX_FRIENDS && sd->status.friends[i].char_id &&
+		(sd->status.friends[i].char_id != char_id || sd->status.friends[i].account_id != account_id); i++);
+
+	if(i == MAX_FRIENDS || sd->status.friends[i].char_id == 0)
+		return; //Not found
+
+	WFIFOW(sd->fd, 0) = 0x206;
+	WFIFOL(sd->fd, 2) = sd->status.friends[i].account_id;
+	WFIFOL(sd->fd, 6) = sd->status.friends[i].char_id;
+	WFIFOB(sd->fd,10) = !online; //Yeah, a 1 here means "logged off", go figure... 
+	
+	WFIFOSET(sd->fd, packet_len_table[0x206]);
 }
 
+//Subfunction called from clif_foreachclient to toggle friends on/off [Skotlex]
+int clif_friendslist_toggle_sub(struct map_session_data *sd,va_list ap)
+{
+	int account_id, char_id, online;
+	account_id = va_arg(ap, int);
+	char_id = va_arg(ap, int);
+	online = va_arg(ap, int);
+	clif_friendslist_toggle(sd, account_id, char_id, online);
+	return 0;
+}
+
+//For sending the whole friends list.
+void clif_friendslist_send(struct map_session_data *sd) {
+	int i = 0, n;
+	
+	// Send friends list
+	WFIFOW(sd->fd, 0) = 0x201;
+	for(i = 0; i < MAX_FRIENDS && sd->status.friends[i].char_id; i++)
+	{
+		WFIFOL(sd->fd, 4 + 32 * i + 0) = sd->status.friends[i].account_id;
+		WFIFOL(sd->fd, 4 + 32 * i + 4) = sd->status.friends[i].char_id;
+		memcpy(WFIFOP(sd->fd, 4 + 32 * i + 8), &sd->status.friends[i].name, NAME_LENGTH);
+	}
+
+	WFIFOW(sd->fd,2) = 4 + 32 * i;
+	WFIFOSET(sd->fd, WFIFOW(sd->fd,2));
+
+	for (n = 0; n < i; n++)
+	{	//Sending the online players
+		if (map_charid2sd(sd->status.friends[n].char_id))
+			clif_friendslist_toggle(sd, sd->status.friends[n].account_id, sd->status.friends[n].char_id, 1);
+	}
+}
+
+
 // Status for adding friend - 0: successfull 1: not exist/rejected 2: over limit
-void clif_friendslist_reqack(struct map_session_data *sd, char *name, int type)
+void clif_friendslist_reqack(struct map_session_data *sd, struct map_session_data *f_sd, int type)
 {
 	int fd;
 	nullpo_retv(sd);
 
+	ShowDebug("Friend reply type %d\n", type);
 	fd = sd->fd;
 	WFIFOW(fd,0) = 0x209;
 	WFIFOW(fd,2) = type;
-	if (type != 2)
-		memcpy(WFIFOP(fd, 12), name,NAME_LENGTH);
+	if (f_sd)
+	{
+		WFIFOW(fd,4) = f_sd->status.account_id;
+		WFIFOW(fd,8) = f_sd->status.char_id;
+		memcpy(WFIFOP(fd, 12), f_sd->status.name,NAME_LENGTH);
+	}
 	WFIFOSET(fd, packet_len_table[0x209]);
 }
 
 void clif_parse_FriendsListAdd(int fd, struct map_session_data *sd) {
 	struct map_session_data *f_sd;
-	int i, f_fd, count = 0;
+	int i, f_fd;
 
 	f_sd = map_nick2sd((char*)RFIFOP(fd,2));
 
@@ -11134,19 +11174,23 @@ void clif_parse_FriendsListAdd(int fd, struct map_session_data *sd) {
 	}
 
 	// Friend already exists
-	for (i = 0; i < MAX_FRIENDS; i++) {
-		if (sd->status.friend_id[i] != 0)
-			count++;
-		if (sd->status.friend_id[i] == f_sd->status.char_id) {
+	for (i = 0; i < MAX_FRIENDS && sd->status.friends[i].char_id != 0; i++) {
+		if (sd->status.friends[i].char_id == f_sd->status.char_id) {
 			clif_displaymessage(fd, "Friend already exists.");
 			return;
 		}
 	}
 
+	if (i == MAX_FRIENDS) {
+		//No space, list full.
+		clif_friendslist_reqack(sd, f_sd, 2);
+		return;
+	}
+		
 	f_fd = f_sd->fd;
 	WFIFOW(f_fd,0) = 0x207;
-	WFIFOL(f_fd,2) = sd->status.char_id;
-	WFIFOL(f_fd,6) = sd->bl.id;
+	WFIFOL(f_fd,2) = sd->status.account_id;
+	WFIFOL(f_fd,6) = sd->status.char_id;
 	memcpy(WFIFOP(f_fd,10), sd->status.name, NAME_LENGTH);
 	WFIFOSET(f_fd, packet_len_table[0x207]);
 
@@ -11156,36 +11200,40 @@ void clif_parse_FriendsListAdd(int fd, struct map_session_data *sd) {
 void clif_parse_FriendsListReply(int fd, struct map_session_data *sd) {
 	//<W: id> <L: Player 1 chara ID> <L: Player 1 AID> <B: Response>
 	struct map_session_data *f_sd;
-	int char_id, id;
+	int char_id, account_id;
 	char reply;
 
-	char_id = RFIFOL(fd,2);
-	id = RFIFOL(fd,6);
+	account_id = RFIFOL(fd,2);
+	char_id = RFIFOL(fd,6);
 	reply = RFIFOB(fd,10);
 	//printf ("reply: %d %d %d\n", char_id, id, reply);
 
-	f_sd = map_id2sd(id);
+	f_sd = map_id2sd(account_id); //The account id is the same as the bl.id of players.
 	if (f_sd == NULL)
+	{
+		ShowDebug("Not found %d\n", account_id);
 		return;
-
+	}
+		
 	if (reply == 0)
-		clif_friendslist_reqack(f_sd, sd->status.name, 1);
+		clif_friendslist_reqack(f_sd, sd, 1);
 	else {
 		int i;
 		// Find an empty slot
 		for (i = 0; i < MAX_FRIENDS; i++)
-			if (f_sd->status.friend_id[i] == 0)
+			if (f_sd->status.friends[i].char_id == 0)
 				break;
-		if (i == 20) {
-			clif_friendslist_reqack(f_sd, sd->status.name, 2);
+		if (i == MAX_FRIENDS) {
+			clif_friendslist_reqack(f_sd, sd, 2);
 			return;
 		}
 
-		f_sd->status.friend_id[i] = sd->status.char_id;
-		memcpy(f_sd->status.friend_name[i], sd->status.name, NAME_LENGTH);
-		clif_friendslist_reqack(f_sd, sd->status.name, 0);
+		f_sd->status.friends[i].account_id = sd->status.account_id;
+		f_sd->status.friends[i].char_id = sd->status.char_id;
+		memcpy(f_sd->status.friends[i].name, sd->status.name, NAME_LENGTH);
+		clif_friendslist_reqack(f_sd, sd, 0);
 
-		clif_friendslist_send(sd);
+//		clif_friendslist_send(sd); //This is not needed anymore.
 	}
 
 	return;
@@ -11193,34 +11241,33 @@ void clif_parse_FriendsListReply(int fd, struct map_session_data *sd) {
 
 void clif_parse_FriendsListRemove(int fd, struct map_session_data *sd) {
 	// 0x203 </o> <ID to be removed W 4B>
-	struct map_session_data *f_sd = NULL;
-	int id = RFIFOL(fd,6);
+	int account_id, char_id;
 	int i, j;
 
-	f_sd = map_charid2sd(id);
+	account_id = RFIFOL(fd,2);
+	char_id = RFIFOL(fd,6);
 
 	// Search friend
-	for (i = 0; i < MAX_FRIENDS; i ++) {
-		if (sd->status.friend_id[i] == id) {
-			// move all chars down
-			for(j = i + 1; j < MAX_FRIENDS; j++) {
-				sd->status.friend_id[j-1] = sd->status.friend_id[j];
-				memcpy(sd->status.friend_name[j-1], sd->status.friend_name[j], sizeof(sd->status.friend_name[j]));
-			}
-			sd->status.friend_id[MAX_FRIENDS-1] = 0;
-			memset(sd->status.friend_name[MAX_FRIENDS-1], 0, sizeof(sd->status.friend_name[MAX_FRIENDS-1]));
-			clif_displaymessage(fd, "Friend removed");
-			WFIFOW(fd,0) = 0x20a;
-			WFIFOW(fd,2) = (f_sd) ? f_sd->bl.id : 0;	//account id;
-			WFIFOW(fd,6) = id;
-			WFIFOSET(fd, packet_len_table[0x20a]);
-			clif_friendslist_send(sd);
-			break;
-		}
-	}
+	for (i = 0; i < MAX_FRIENDS &&
+		(sd->status.friends[i].char_id != char_id || sd->status.friends[i].account_id != account_id); i++);
 
-	if (i == MAX_FRIENDS)
+	if (i == MAX_FRIENDS) {
 		clif_displaymessage(fd, "Name not found in list.");
+		return;
+	}
+		
+	// move all chars down
+	for(j = i + 1; j < MAX_FRIENDS; j++)
+		memcpy(&sd->status.friends[j-1], &sd->status.friends[j], sizeof(sd->status.friends[0]));
+
+	memset(&sd->status.friends[MAX_FRIENDS-1], 0, sizeof(sd->status.friends[MAX_FRIENDS-1]));
+	clif_displaymessage(fd, "Friend removed");
+	
+	WFIFOW(fd,0) = 0x20a;
+	WFIFOL(fd,2) = account_id;
+	WFIFOL(fd,6) = char_id;
+	WFIFOSET(fd, packet_len_table[0x20a]);
+//	clif_friendslist_send(sd); //This is not needed anymore.
 
 	return;
 }

@@ -1,4 +1,14 @@
 Date	Added
+07/21
+	* Fixed the fame lists, they work now. [Skotlex]
+	* Rewrote the friends system, it now works. [Skotlex]
+	  Sql users upgrade with the 2574.sql upgrade, txt users will have to
+	  wipe their friends.txt (there's no easy way to convert that one).
+	* Fixed the txt->sql converter not converting inventory/card. [Skotlex]
+	  The friend conversion was removed due to the new structure.
+	* Restructured some of the logic behind auto-attacks and normal attacks
+	  which should prevent most speed-hacks and be more responsive to players. [Skotlex]
+
 07/20
 	* Updated the txt->sql converter, I THINK it will work now. [Skotlex]
 	* Fixed Plagiarized skill's level not being saved. [Skotlex]

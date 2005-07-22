@@ -1037,55 +1037,36 @@ int chrif_reqfamelist(void)
 
 	return 0;
 }
-int chrif_recvfamelist(int fd)
-{
-	int i, num, id, fame, count;
-	int total = 0;
-	char *name;
 
-	// response from 0x2b1b
+int chrif_recvfamelist(int fd)
+{	// response from 0x2b1b
+	int num, size;
+	int total = 0, len = 6;
+
+	if (RFIFOREST(fd) != RFIFOW(fd,2))
+	{
+		ShowError("(recvfamelist) Packet size mismatch (%d != %d)!\n", RFIFOW(fd,2), RFIFOREST(fd));
+		return -1;	
+	}
 	memset (smith_fame_list, 0, sizeof(smith_fame_list));
 	memset (chemist_fame_list, 0, sizeof(chemist_fame_list));
 
-	count = RFIFOW(fd,4);
-	for (i = 6, num = 0; i < count; i = i + 8) {
-		if ((id = RFIFOL(fd,i)) > 0 && (fame = RFIFOL(fd,i+4)) > 0) {
-			smith_fame_list[num].id = id;
-			smith_fame_list[num].fame = fame;
-			name = map_charid2nick(id);
-			if (name != NULL)
-				memcpy(smith_fame_list[num].name, name, NAME_LENGTH-1);
-			else {
-				memcpy(smith_fame_list[num].name, "Unknown", NAME_LENGTH-1);
-				chrif_searchcharid(id);
-			}
-		}
-		// in case the char server sends too long
-		if (++num == 10)
-			break;
+	size = RFIFOW(fd,4); //Blasksmith block size.
+
+	for (len = 6, num = 0; len < size && num < 10; num++) {
+		memcpy(&smith_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
+ 		len += sizeof(struct fame_list);
+	}
+	total += num;
+	size = RFIFOW(fd,2); //The total packet size...
+	
+	for (num = 0; len < size && num < 10; num++) {
+		memcpy(&chemist_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
+ 		len += sizeof(struct fame_list);
 	}
 	total += num;
 
-	count = RFIFOW(fd,2);
-	for (num = 0; i < count; i = i + 8) {
-		if ((id = RFIFOL(fd,i)) > 0 && (fame = RFIFOL(fd,i+4)) > 0) {
-			chemist_fame_list[num].id = id;
-			chemist_fame_list[num].fame = fame;
-			name = map_charid2nick(id);
-			if (name != NULL)
-				memcpy(chemist_fame_list[num].name, name, NAME_LENGTH-1);
-			else {
-				memcpy(chemist_fame_list[num].name, "Unknown", NAME_LENGTH-1);
-				chrif_searchcharid(id);
-			}
-		}
-		// in case the char server sends too long
-		if (++num == 10)
-			break;
-	}
-	total += num;
-
-	ShowInfo("Receiving Fame List of '"CL_WHITE"%d"CL_RESET"' characters.\n", total);
+	ShowInfo("Received Fame List of '"CL_WHITE"%d"CL_RESET"' characters.\n", total);
 
 	return 0;
 }

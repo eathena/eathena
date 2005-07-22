@@ -298,8 +298,9 @@ int clif_pet_equip(struct pet_data *pd,int nameid);
 int clif_pet_food(struct map_session_data *sd,int foodid,int fail);
 
 //friends list
+int clif_friendslist_toggle_sub(struct map_session_data *sd,va_list ap);
 void clif_friendslist_send(struct map_session_data *sd);
-void clif_friendslist_reqack(struct map_session_data *sd, char *name, int type);
+void clif_friendslist_reqack(struct map_session_data *sd, struct map_session_data *f_sd, int type);
 
 // [Valaris]
 int clif_mob_hp(struct mob_data *md);

@@ -42,9 +42,6 @@
 
 #define OPTION_HIDE 0x40
 
-//This is about the new code that will notify clients whenever their friends leave/join, 
-//since it does not currently works, I blocked out the code with #ifdef's [Skotlex]
-//#define FRIEND_NOTIFY
 enum { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL , BL_PET };
 enum { WARP, SHOP, SCRIPT, MONS };
 

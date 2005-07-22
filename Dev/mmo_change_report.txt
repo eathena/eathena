@@ -21,3 +21,10 @@ over the place to use NAME_LENGTH instead of hard-coded 23/24's)
 length on the map server: at times it is 24, at others it is 16 in length. I
 am going to standarize it to 16 (but just check for the value of the constant)
 [Skotlex]
+21/July: Use the new friend structured (struct friend), the friend system
+works based on char_id, account_id AND name, so storing char_id/name was not
+enough. [Skotlex]
+Also the fame-list sending has changed, the char server needs to send the
+names. The new packet is a lot like the previous one, except that instead of
+sending individual fields, the whole struct fame_list of each smith/chem is
+saved into the packets. [Skotlex]

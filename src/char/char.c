@@ -261,11 +261,11 @@ int mmo_friends_list_data_str(char *str, struct mmo_charstatus *p) {
 	char *str_p = str;
 	str_p += sprintf(str_p, "%d", p->char_id);
 
-	for (i=0;i<20;i++){
-		if (p->friend_id[i] > 0 && p->friend_name[i][0])
-			str_p += sprintf(str_p, ",%d,%s", p->friend_id[i],p->friend_name[i]);
+	for (i=0;i<MAX_FRIENDS;i++){
+		if (p->friends[i].account_id > 0 && p->friends[i].char_id > 0 && p->friends[i].name[0])
+			str_p += sprintf(str_p, ",%d,%d,%s", p->friends[i].account_id, p->friends[i].char_id, p->friends[i].name);
 		else
-			str_p += sprintf(str_p,",,");
+			str_p += sprintf(str_p,",,,");
 	}
 
 	str_p += '\0';
@@ -653,21 +653,57 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 
 int parse_friend_txt(struct mmo_charstatus *p)
 {
-	char line[1024];
-	int i,cid=0,temp[20];
+	char line[1024], temp[1024];
+	int pos = 0, count = 0, next;
+	int i,len;
 	FILE *fp;
 
 	// Open the file and look for the ID
 	fp = fopen(friends_txt, "r");
 
 	if(fp == NULL)
-		return 1;
-
-
+		return -1;
+	
 	while(fgets(line, sizeof(line)-1, fp)) {
 
 		if(line[0] == '/' && line[1] == '/')
 			continue;
+		if (sscanf(line, "%d%n",&i, &pos) < 1 || i != p->char_id)
+			continue; //Not this line...
+		//Read friends
+		len = strlen(line);
+		next = pos;
+		for (count = 0; next < len && count < MAX_FRIENDS; count++)
+		{ //Read friends.
+			if (sscanf(line+next, ",%d,%d,%23[^,]%n",&p->friends[count].account_id,&p->friends[count].char_id, p->friends[count].name, &pos) < 3)
+			{	//Invalid friend?
+				memset(&p->friends[count], 0, sizeof(p->friends[count]));
+				break;
+			}
+			next+=pos;
+			//What IF the name contains a comma? while the next field is not a 
+			//number, we assume it belongs to the current name. [Skotlex]
+			//NOTE: Of course, this will fail if someone sets their name to something like
+			//Bob,2005 but... meh, it's the problem of parsing a text file (encasing it in "
+			//won't do as quotes are also valid name chars!)
+			while(next < len && sscanf(line+next, ",%23[^,]%n", temp, &len) > 0)
+			{
+				if (atoi(temp)) 
+				{	//We read the next friend, just continue.
+					break;
+				} else {	//Append the name.
+					next+=len;
+					if (strlen(p->friends[count].name) + strlen(temp) +1 < NAME_LENGTH)
+					{
+						strcat(p->friends[count].name, ",");
+						strcat(p->friends[count].name, temp);
+					}
+				}
+			} //End Guess Block
+		} //Friend's for.
+		break; //Finished reading.
+	}
+	/*
 		//Character names must not exceed the 23+\0 limit. [Skotlex]
 		sscanf(line, "%d,%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23s",&cid,
 		&temp[0],p->friend_name[0],
@@ -693,7 +729,6 @@ int parse_friend_txt(struct mmo_charstatus *p)
 		if (cid == p->char_id)
 			break;
 	}
-
 	// No register of friends list
 	if (cid == 0) {
 		fclose(fp);
@@ -702,11 +737,11 @@ int parse_friend_txt(struct mmo_charstatus *p)
 
 	// Fill in the list
 
-	for (i=0; i<20; i++)
+	for (i=0; i<MAX_FRIENDS; i++)
 		p->friend_id[i] = temp[i];
-
+*/
 	fclose(fp);
-	return 0;
+	return count;
 }
 
 //---------------------------------
@@ -2657,6 +2692,7 @@ int parse_frommap(int fd) {
 		{
 			int i, j, k, len = 6;
 			unsigned char buf[32000];
+			struct fame_list fame_item;
 			//struct mmo_charstatus *dat;
 			//dat = (struct mmo_charstatus *)aCalloc(char_num, sizeof(struct mmo_charstatus *));
 			CREATE_BUFFER(id, int, char_num);
@@ -2687,15 +2723,16 @@ int parse_frommap(int fd) {
 					char_dat[id[i]].class_ == 4011 ||
 					char_dat[id[i]].class_ == 4033)
 				{
-					//WBUFL(buf, len) = dat[i].account_id;
-					//WBUFL(buf, len+4) = dat[i].fame;
-					WBUFL(buf, len) = char_dat[id[i]].char_id;
-					WBUFL(buf, len+4) = char_dat[id[i]].fame;
-					len += 8;
+					fame_item.id = char_dat[id[i]].char_id;
+					fame_item.fame = char_dat[id[i]].fame;
+					strncpy(fame_item.name, char_dat[id[i]].name, NAME_LENGTH);
+					
+					memcpy(WBUFP(buf, len), &fame_item, sizeof(struct fame_list));
+					len += sizeof(struct fame_list);
 					j++;
 				}
 			}
-			// adding blacksmith's list length
+			// adding blacksmith's block length
 			WBUFW(buf, 4) = len;
 			
 			// adding second list for alchemists
@@ -2704,11 +2741,12 @@ int parse_frommap(int fd) {
 					char_dat[id[i]].class_ == 4019 ||
 					char_dat[id[i]].class_ == 4041)
 				{
-					//WBUFL(buf, len) = dat[i].account_id;
-					//WBUFL(buf, len+4) = dat[i].fame;
-					WBUFL(buf, len) = char_dat[id[i]].account_id;
-					WBUFL(buf, len+4) = char_dat[id[i]].fame;
-					len += 8;
+					fame_item.id = char_dat[id[i]].char_id;
+					fame_item.fame = char_dat[id[i]].fame;
+					strncpy(fame_item.name, char_dat[id[i]].name, NAME_LENGTH);
+					
+					memcpy(WBUFP(buf, len), &fame_item, sizeof(struct fame_list));
+					len += sizeof(struct fame_list);
 					j++;
 				}
 			}

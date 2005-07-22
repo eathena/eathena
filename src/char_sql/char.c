@@ -588,7 +588,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 
 	diff = 0;
 	for(i = 0; i < MAX_FRIENDS; i++){
-		if(p->friend_id[i] != cp->friend_id[i]){
+		if(p->friends[i].char_id != cp->friends[i].char_id ||
+			p->friends[i].account_id != cp->friends[i].account_id){
 			diff = 1;
 			break;
 		}
@@ -602,12 +603,12 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		}
 		  
 		tmp_ptr = tmp_sql;
-		tmp_ptr += sprintf(tmp_ptr, "INSERT INTO `%s` (`char_id`, `friend_id`) VALUES ", friend_db);
+		tmp_ptr += sprintf(tmp_ptr, "INSERT INTO `%s` (`char_id`, `friend_account`, `friend_id`) VALUES ", friend_db);
 		count = 0;
 		for(i = 0; i < MAX_FRIENDS; i++){
-			if(p->friend_id[i] > 0)
+			if(p->friends[i].char_id > 0)
 			{
-				tmp_ptr += sprintf(tmp_ptr, "('%d', '%d'),", char_id, p->friend_id[i]);
+				tmp_ptr += sprintf(tmp_ptr, "('%d','%d','%d'),", char_id, p->friends[i].account_id, p->friends[i].char_id);
 				count++;
 			}
 		}
@@ -1120,9 +1121,9 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	//-- end friends list load --
 
 
-	//Shamelessly stolen from its_sparky (ie: thanks) [Skotlex]
-	//Friend list 'ids'
-	sprintf(tmp_sql, "SELECT f.friend_id, c.name FROM `friends` f LEFT JOIN `char` c ON f.friend_id=c.char_id WHERE f.char_id='%d'", char_id);
+	//Shamelessly stolen from its_sparky (ie: thanks) and then assimilated by [Skotlex]
+	//Friend list 
+	sprintf(tmp_sql, "SELECT f.friend_account, f.friend_id, c.name FROM `%s` f LEFT JOIN `char` c ON f.friend_account=c.account_id AND f.friend_id=c.char_id WHERE f.char_id='%d'", friend_db, char_id);
 
 	if(mysql_query(&mysql_handle, tmp_sql)){
 		ShowSQL("fromsql() SQL ERROR (reading friends): %s\n", mysql_error(&mysql_handle));
@@ -1133,8 +1134,9 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	{
 		for(i = 0; (sql_row = mysql_fetch_row(sql_res)) && i<MAX_FRIENDS; i++)
 		{
-			p->friend_id[i] = atoi(sql_row[0]);
-			strncpy(p->friend_name[i], sql_row[1], NAME_LENGTH-1); //The -1 is to avoid losing the ending \0 [Skotlex]
+			p->friends[i].account_id = atoi(sql_row[0]);
+			p->friends[i].char_id = atoi(sql_row[1]);
+			strncpy(p->friends[i].name, sql_row[2], NAME_LENGTH-1); //The -1 is to avoid losing the ending \0 [Skotlex]
 		}
 		mysql_free_result(sql_res);
 		strcat (t_msg, " friends");
@@ -1696,7 +1698,6 @@ int delete_char_sql(int char_id, int partner_id)
 				ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 		
-			
 		/* Also delete info from guildtables. */
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",guild_member_db, char_id);
 		if (mysql_query(&mysql_handle, tmp_sql)) {
@@ -2777,28 +2778,31 @@ int parse_frommap(int fd) {
 		{
 			int len = 6, num = 0;
 			unsigned char buf[32000];
+			struct fame_list fame_item;
 
 			WBUFW(buf,0) = 0x2b1b;
-			sprintf(tmp_sql, "SELECT `char_id`,`fame` FROM `%s` WHERE `class`='10' OR `class`='4011'"
-				"OR `class`='4033' ORDER BY `fame` DESC LIMIT 0,10", char_db);
+			sprintf(tmp_sql, "SELECT `char_id`,`fame`, `name` FROM `%s` WHERE `class`='10' OR `class`='4011'OR `class`='4033' ORDER BY `fame` DESC LIMIT 0,10", char_db);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB server Error (select fame)- %s\n", mysql_error(&mysql_handle));
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 			if (sql_res) {
 				while((sql_row = mysql_fetch_row(sql_res))) {
-					WBUFL(buf, len) = atoi(sql_row[0]);
-					WBUFL(buf, len+4) = atoi(sql_row[1]);
-					len += 8;
+					fame_item.id = atoi(sql_row[0]);
+					fame_item.fame = atoi(sql_row[1]);
+					strncpy(fame_item.name, sql_row[2], NAME_LENGTH);
+
+					memcpy(WBUFP(buf,len), &fame_item, sizeof(struct fame_list));
+					len += sizeof(struct fame_list);
 					if (++num == 10)
 						break;
 				}
 			}
-   			mysql_free_result(sql_res);
-			WBUFW(buf, 4) = len;
+   		mysql_free_result(sql_res);
+			WBUFW(buf, 4) = len; //Blacksmith block size.
 
 			num = 0;
-			sprintf(tmp_sql, "SELECT `char_id`,`fame` FROM `%s` WHERE `class`='18' OR `class`='4019'"
+			sprintf(tmp_sql, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `class`='18' OR `class`='4019'"
 				"OR `class`='4041' ORDER BY `fame` DESC LIMIT 0,10", char_db);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("DB server Error (select fame)- %s\n", mysql_error(&mysql_handle));
@@ -2806,15 +2810,17 @@ int parse_frommap(int fd) {
 			sql_res = mysql_store_result(&mysql_handle);
 			if (sql_res) {
 				while((sql_row = mysql_fetch_row(sql_res))) {
-					WBUFL(buf, len) = atoi(sql_row[0]);
-					WBUFL(buf, len+4) = atoi(sql_row[1]);
-					len += 8;
+					fame_item.id = atoi(sql_row[0]);
+					fame_item.fame = atoi(sql_row[1]);
+					strncpy(fame_item.name, sql_row[2], NAME_LENGTH);
+					memcpy(WBUFP(buf,len), &fame_item, sizeof(struct fame_list));
+					len += sizeof(struct fame_list);
 					if (++num == 10)
 						break;
 				}
 			}
 			mysql_free_result(sql_res);
-			WBUFW(buf, 2) = len;
+			WBUFW(buf, 2) = len; //Total packet size
 
 			mapif_sendall(buf, len);
 			RFIFOSKIP(fd,2);

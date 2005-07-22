@@ -68,9 +68,6 @@ enum {
 	TABLE_GUILD_STORAGE,
 };
 
-//Signals if friends are also converted.
-int convert_friends = 0;
-
 #define CHAR_CONF_NAME "conf/char_athena.conf"
 #define INTER_CONF_NAME "conf/inter_athena.conf"
 //==========================================================================================================
@@ -369,7 +366,7 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 
 	return 1;
 }
-
+/* Because of the friend database update, it is no longer possible to convert friends.
 //Note: Keep updated with the same function found in src/char/char.c [Skotlex]
 int parse_friend_txt(struct mmo_charstatus *p)
 {
@@ -390,26 +387,26 @@ int parse_friend_txt(struct mmo_charstatus *p)
 			continue;
 		//Character names must not exceed the 23+\0 limit. [Skotlex]
 		sscanf(line, "%d,%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23[^,],%d,%23s",&cid,
-		&temp[0],p->friend_name[0],
-		&temp[1],p->friend_name[1],
-		&temp[2],p->friend_name[2],
-		&temp[3],p->friend_name[3],
-		&temp[4],p->friend_name[4],
-		&temp[5],p->friend_name[5],
-		&temp[6],p->friend_name[6],
-		&temp[7],p->friend_name[7],
-		&temp[8],p->friend_name[8],
-		&temp[9],p->friend_name[9],
-		&temp[10],p->friend_name[10],
-		&temp[11],p->friend_name[11],
-		&temp[12],p->friend_name[12],
-		&temp[13],p->friend_name[13],
-		&temp[14],p->friend_name[14],
-		&temp[15],p->friend_name[15],
-		&temp[16],p->friend_name[16],
-		&temp[17],p->friend_name[17],
-		&temp[18],p->friend_name[18],
-		&temp[19],p->friend_name[19]);
+		&temp[0],p->friends[0].name,
+		&temp[1],p->friends[1].name,
+		&temp[2],p->friends[2].name,
+		&temp[3],p->friends[3].name,
+		&temp[4],p->friends[4].name,
+		&temp[5],p->friends[5].name,
+		&temp[6],p->friends[6].name,
+		&temp[7],p->friends[7].name,
+		&temp[8],p->friends[8].name,
+		&temp[9],p->friends[9].name,
+		&temp[10],p->friends[10].name,
+		&temp[11],p->friends[11].name,
+		&temp[12],p->friends[12].name,
+		&temp[13],p->friends[13].name,
+		&temp[14],p->friends[14].name,
+		&temp[15],p->friends[15].name,
+		&temp[16],p->friends[16].name,
+		&temp[17],p->friends[17].name,
+		&temp[18],p->friends[18].name,
+		&temp[19],p->friends[19].name);
 		if (cid == p->char_id)
 			break;
 	}
@@ -423,11 +420,12 @@ int parse_friend_txt(struct mmo_charstatus *p)
 	// Fill in the list
 
 	for (i=0; i<20; i++)
-		p->friend_id[i] = temp[i];
+		p->friends[i].char_id = temp[i];
 
 	fclose(fp);
 	return 0;
 }
+*/
 
 // Note: Remember to keep this function updated with the one in src/char_sql/char.c [Skotlex]
 // Unneded code was left commented for easier merging of changes.
@@ -515,14 +513,14 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 	}
 */
 	for(i = 0; i < count; i++) {
-//		if(!mapitem[i].flag) {
+		if(!mapitem[i].nameid) {
 			sprintf(tmp_sql,"INSERT INTO `%s`(`%s`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` )"
 				" VALUES ( '%d','%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d' )",
 				tablename, selectoption,  char_id, mapitem[i].nameid, mapitem[i].amount, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine,
 				mapitem[i].attribute, mapitem[i].card[0], mapitem[i].card[1], mapitem[i].card[2], mapitem[i].card[3]);
 			if(mysql_query(&mysql_handle, tmp_sql))
 				ShowSQL("DB server Error (INSERT `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
-//		}
+		}
 	}
 	return 0;
 }
@@ -553,6 +551,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 */
 	ShowInfo("Saving char "CL_WHITE"%d"CL_RESET" (%s)...\n",char_id,p->name);
 	memset(save_status, 0, sizeof(save_status));
+
+	count = MAX_INVENTORY;
 	/*
 	diff = 0;
 	//map inventory data
@@ -580,8 +580,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		if (!memitemdata_to_sql(mapitem, count, p->char_id,TABLE_INVENTORY))
 			strcat(save_status, " inventory");
 
+	count = MAX_CART;
 /*
-	count = 0;
 	diff = 0;
 	//map cart data
 	for(i=0;i<MAX_CART;i++){
@@ -836,7 +836,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		} else //Values cleared.
 			strcat(save_status, " global_reg");
 	}
-/*
+/*	
 	diff = 0;
 	for(i = 0; i < MAX_FRIENDS; i++){
 		if(p->friend_id[i] != cp->friend_id[i]){
@@ -844,8 +844,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			break;
 		}
 	}
-*/
-	if(convert_friends)
+	if(diff)
 	{	//Save friends	
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id`='%d'", friend_db, char_id);
 		if(mysql_query(&mysql_handle, tmp_sql)){
@@ -873,7 +872,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			strcat(save_status, " friends");
 
 	}
-
+*/
 	ShowInfo("Saved char %d:%s.\n", char_id, save_status);
 //	memcpy(cp, p, sizeof(struct mmo_charstatus));
 
@@ -1081,12 +1080,6 @@ int mmo_char_init(void){
 	ShowNotice("Do you wish to convert your Character Database to SQL? (y/n) : ");
 	input=getchar();
 	if(input == 'y' || input == 'Y'){
-		while(getchar() != '\n');
-		printf("\n");
-		ShowNotice("Do you also want to convert the friend list? (y/n)");
-		input=getchar();
-		convert_friends = (input == 'y' || input == 'Y');
-			
 		ShowStatus("Converting Character Database...\n");
 		fp=fopen("save/athena.txt","r");
 		char_dat = (struct mmo_charstatus*)malloc(sizeof(char_dat[0])*256);
@@ -1101,8 +1094,6 @@ int mmo_char_init(void){
 			memset(&char_dat[char_num], 0, sizeof(char_dat[0]));
 			ret=mmo_char_fromstr(line, &char_dat[char_num]);
 			if(ret){
-				if (convert_friends)
-					parse_friend_txt(&char_dat[char_num]);
 				mmo_char_tosql(char_dat[char_num].char_id , &char_dat[char_num]);
 				if(char_dat[char_num].char_id>=char_id_count)
 					char_id_count=char_dat[char_num].char_id+1;

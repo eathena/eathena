@@ -609,23 +609,6 @@ int pc_break_equip(struct map_session_data *sd, unsigned short where)
 
 	return 1;
 }
-	
-#ifdef FRIEND_NOTIFY
-//Updates the display of friends when one of them joins/leaves [Skotlex]
-int pc_friends_update(struct map_session_data *sd,va_list ap)
-{
-	int char_id, i;
-	char_id = va_arg(ap, int);
-	
-	for (i = 0; i < MAX_FRIENDS && sd->status.friend_id[i]; i++)
-		if (sd->status.friend_id[i] == char_id)
-		{
-			clif_friendslist_send(sd);
-			return 0;
-		}
-	return 0;
-}
-#endif
 
 /*==========================================
  * session idに問題無し
@@ -804,10 +787,8 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	if (map_charid2nick(sd->status.char_id) == NULL)
 		map_addchariddb(sd->status.char_id, sd->status.name);
 
-#ifdef FRIEND_NOTIFY
-	// Notify everyone that this char logged in.
-	clif_foreachclient(pc_friends_update, sd->status.char_id);
-#endif
+	// Notify everyone that this char logged in [Skotlex].
+	clif_foreachclient(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 1);
 	
 	//スパノビ用死にカウンタ?のスクリプト??からの?み出しとsdへのセット
 	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
@@ -3919,14 +3900,13 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 	if(sd->skilltimer != -1 && pc_checkskill(sd,SA_FREECAST) <= 0)
 		return 0;
 
-	if(!battle_config.sdelay_attack_enable && pc_checkskill(sd,SA_FREECAST) <= 0) {
-		if(DIFF_TICK(tick , sd->canact_tick) < 0) {
-			clif_skill_fail(sd,1,4,0);
-			return 0;
-		}
+	if(!battle_config.sdelay_attack_enable && sd->canact_tick < tick && pc_checkskill(sd,SA_FREECAST) <= 0)
+	{
+		clif_skill_fail(sd,1,4,0);
+		return 0;
 	}
 
-	if(sd->status.weapon == 11 && sd->equip_index[10] < 0) {
+	if(sd->status.weapon == 11 && sd->equip_index[10] < 1) {
 		clif_arrow_fail(sd,0);
 		return 0;
 	}
@@ -3940,7 +3920,7 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 		return 0;
 	}
 
-	if(dist <= range && !battle_check_range(&sd->bl,bl,range) ) {
+	if(!battle_check_range(&sd->bl,bl,range) ) {
 		if(pc_can_reach(sd,bl->x,bl->y) && sd->canmove_tick < tick && (sd->sc_data[SC_ANKLE].timer == -1 || sd->sc_data[SC_SPIDERWEB].timer == -1))
 			pc_walktoxy(sd,bl->x,bl->y);
 		sd->attackabletime = tick + (sd->aspd<<1);
@@ -3952,30 +3932,23 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 		if(sd->walktimer != -1)
 			pc_stop_walking(sd,1);
 
-		if(sd->sc_data[SC_COMBO].timer == -1) {
+		if(sd->attackabletime <= tick) {
 			map_freeblock_lock();
-			pc_stop_walking(sd,0);
 			sd->attacktarget_lv = battle_weapon_attack(&sd->bl,bl,tick,0);
-			// &2 = ? - Celest <- &2 means "cloaking lasts forever" [Skotlex]
+			
 			if(!(battle_config.pc_cloak_check_type&2) && sd->sc_data[SC_CLOAKING].timer != -1)
 				status_change_end(&sd->bl,SC_CLOAKING,-1);
-			//battle_weapon_attack returns 0 when you can't attack, this prevents exploits
-			//from using bows with no arrows to 'send' their pet into action. [Skotlex]
-			if(sd->attacktarget_lv >0 && sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_attack_support)
+			
+			if(sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_attack_support)
 				pet_target_check(sd,bl,0);
+
 			map_freeblock_unlock();
+			
 			if(sd->skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0 ) // フリ?キャスト
 				sd->attackabletime = tick + ((sd->aspd<<1)*(150 - skill*5)/100);
 			else
 				sd->attackabletime = tick + (sd->aspd<<1);
 		}
-		else if(sd->attackabletime <= tick) {
-			if(sd->skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0 ) // フリ?キャスト
-				sd->attackabletime = tick + ((sd->aspd<<1)*(150 - skill*5)/100);
-			else
-				sd->attackabletime = tick + (sd->aspd<<1);
-		}
-		if(sd->attackabletime <= tick) sd->attackabletime = tick + (battle_config.max_aspd<<1);
 	}
 
 	if(sd->state.attack_continue) {
@@ -3993,8 +3966,6 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 int pc_attack(struct map_session_data *sd,int target_id,int type)
 {
 	struct block_list *bl;
-	int d;
-
 
 	nullpo_retr(0, sd);
 
@@ -4011,15 +3982,18 @@ int pc_attack(struct map_session_data *sd,int target_id,int type)
 	if(battle_check_target(&sd->bl,bl,BCT_ENEMY) <= 0)
 		return 1;
 	if(sd->attacktimer != -1)
-		pc_stopattack(sd);
+	{	//Just change target/type. [Skotlex]
+		sd->attacktarget=target_id;
+		sd->state.attack_continue=type;
+		return 0;
+	}
+	
 	sd->attacktarget=target_id;
 	sd->state.attack_continue=type;
 
-	d=DIFF_TICK(sd->attackabletime,gettick());
-	if(d>0 && d<2000){	// 攻?delay中
+	if(sd->attackabletime > gettick()){	//Do attack next time it is possible. [Skotlex]
 		sd->attacktimer=add_timer(sd->attackabletime,pc_attack_timer,sd->bl.id,0);
-	} else {
-		// 本?timer??なので引?を合わせる
+	} else { //Attack NOW.
 		pc_attack_timer(-1,gettick(),sd->bl.id,0);
 	}
 

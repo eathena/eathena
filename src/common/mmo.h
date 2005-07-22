@@ -143,8 +143,9 @@ struct s_pet {
 };
 
 struct friend {
-	int friend_id;
-	char friend_name[NAME_LENGTH];
+	int account_id;
+	int char_id;
+	char name[NAME_LENGTH];
 };
 
 struct mmo_charstatus {
@@ -186,11 +187,7 @@ struct mmo_charstatus {
 	int account_reg2_num;
 	struct global_reg account_reg2[ACCOUNT_REG2_NUM];
 
-
-         //struct friend friends[MAX_FRIENDS];
-	// Friends list vars
-	int friend_id[MAX_FRIENDS];
-	char friend_name[MAX_FRIENDS][NAME_LENGTH];
+	struct friend friends[MAX_FRIENDS]; //New friend system [Skotlex]
 };
 
 struct storage {
@@ -325,6 +322,12 @@ struct guild_castle {
 struct square {
 	int val1[5];
 	int val2[5];
+};
+
+struct fame_list {
+	int id;
+	int fame;
+	char name[NAME_LENGTH];
 };
 
 enum {

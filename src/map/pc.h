@@ -37,8 +37,6 @@ int pc_setnewpc(struct map_session_data*,int,int,int,int,int,int);
 int pc_authok(int, int, time_t, struct mmo_charstatus *);
 int pc_authfail(int);
 
-int pc_friends_update(struct map_session_data *sd,va_list ap);
-	
 int pc_isequip(struct map_session_data *sd,int n);
 int pc_equippoint(struct map_session_data *sd,int n);
 
@@ -212,11 +210,6 @@ int pc_addfame(struct map_session_data *sd,int count,int type);
 int pc_istop10fame(int char_id, int type);
 int pc_eventtimer(int tid,unsigned int tick,int id,int data); // for npc_dequeue
 
-struct fame_list {
-	int id;
-	int fame;
-	char name[NAME_LENGTH];
-};
 extern struct fame_list smith_fame_list[10];
 extern struct fame_list chemist_fame_list[10];
 

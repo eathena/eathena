@@ -1593,15 +1593,14 @@ int map_quit(struct map_session_data *sd) {
 			numdb_erase(charid_db,sd->status.char_id);
 			aFree(p);
 		}
-#ifdef FRIEND_NOTIFY
-		// Notify friends that this char logged out.
-		clif_foreachclient(pc_friends_update, sd->status.char_id);
-#endif
 	}
 	strdb_erase(nick_db,sd->status.name);
 	numdb_erase(charid_db,sd->status.char_id);
 	numdb_erase(id_db,sd->bl.id);
 
+	// Notify friends that this char logged out. [Skotlex]
+	clif_foreachclient(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 0);
+	
 	if(sd->reg)
 	{	//Double logout already freed pointer fix... [Skotlex]
 		aFree(sd->reg);
