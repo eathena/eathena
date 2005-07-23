@@ -1,5 +1,9 @@
 Date	Added
 07/23
+	* Fixed friend-saving on the new charsave sql method. [Skotlex]
+	* Corrected the ghostfix description in battle_athena. [Skotlex]
+	* Modified the Makefile to include FD_SETSIZE = 4096 when compiled under
+	  Cygwin [Skotlex]
 	* Added a check for max mob skill level (when reading mob_skill db) [Lupus]
 	* More fixes/updates to the txt->sql converter of inventory/cart (will it ever work?) [Skotlex]
 	* Fixed job_db2 reading [Sasuke]

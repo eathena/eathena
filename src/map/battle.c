@@ -3889,7 +3889,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 	if(skill_num==TF_POISON)
 		ATK_ADD(15*skill_lv);
 
-	if (sd ||
+	if ((sd && !skill_num && !battle_config.pc_attack_attr_none) ||
 		(md && !skill_num && !battle_config.mob_attack_attr_none) ||
 		(pd && !skill_num && !battle_config.pet_attack_attr_none))
 	{	//Elemental attribute fix
@@ -5820,8 +5820,8 @@ void battle_set_defaults() {
 	battle_config.show_steal_in_same_party = 0;
 	battle_config.pet_attack_attr_none = 0;
 	battle_config.pc_attack_attr_none = 0;
-	battle_config.mob_attack_attr_none = 1;
-	battle_config.mob_ghostring_fix = 0;
+	battle_config.mob_attack_attr_none = 0;
+	battle_config.mob_ghostring_fix = 1;
 	battle_config.gx_allhit = 0;
 	battle_config.gx_cardfix = 0;
 	battle_config.gx_dupele = 1;

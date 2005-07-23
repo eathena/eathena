@@ -3441,7 +3441,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			if(tick <= 0) tick = 1000;	/* (オ?トバ?サ?ク) */
 		case SC_TRICKDEAD:			/* 死んだふり */
 			if (bl->type == BL_PC) {
-				pc_stopattack((struct map_session_data *)sd);
+				pc_stopattack(sd);
 			}
 			break;
 		case SC_QUAGMIRE:			/* クァグマイア */

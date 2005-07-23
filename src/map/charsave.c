@@ -411,7 +411,7 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
 	}
          for(i = 0; i < MAX_FRIENDS; i++){
          	if(c->friends[i].char_id > 0){
-			sprintf(charsql_tmpsql, "INSERT INTO `friends` (`char_id`, `account_id`, `friend_id`) VALUES ('%d','%d','%d')", charid, c->friends[i].account_id, c->friends[i].char_id);
+			sprintf(charsql_tmpsql, "INSERT INTO `friends` (`char_id`, `friend_account`, `friend_id`) VALUES ('%d','%d','%d')", charid, c->friends[i].account_id, c->friends[i].char_id);
 	                if(mysql_query(&charsql_handle, charsql_tmpsql)){
 	                	 ShowSQL("tosql() SQL ERROR: %s\n", mysql_error(&charsql_handle));
 	                }

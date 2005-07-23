@@ -55,6 +55,7 @@ endif
 
 ifeq ($(findstring CYGWIN,$(PLATFORM)), CYGWIN)
    OS_TYPE = -DCYGWIN
+	OPT += -DFD_SETSIZE=4096
 endif
 
 CFLAGS = $(OPT) -I../common $(OS_TYPE)
