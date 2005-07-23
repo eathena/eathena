@@ -553,12 +553,11 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	memset(save_status, 0, sizeof(save_status));
 
 	count = MAX_INVENTORY;
-	/*
-	diff = 0;
+//	diff = 0;
 	//map inventory data
 	for(i=0;i<MAX_INVENTORY;i++){
-		if (!compare_item(&p->inventory[i], &cp->inventory[i]))
-			diff = 1;
+//		if (!compare_item(&p->inventory[i], &cp->inventory[i]))
+//			diff = 1;
 		if(p->inventory[i].nameid>0){
 			mapitem[count].flag=0;
 			mapitem[count].id = p->inventory[i].id;
@@ -574,19 +573,19 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			mapitem[count].card[3] = p->inventory[i].card[3];
 			count++;
 		}
-	}*/
+	}
 	//printf("- Save item data to MySQL!\n");
 	if (diff)
 		if (!memitemdata_to_sql(mapitem, count, p->char_id,TABLE_INVENTORY))
 			strcat(save_status, " inventory");
 
 	count = MAX_CART;
-/*
-	diff = 0;
+
+//	diff = 0;
 	//map cart data
 	for(i=0;i<MAX_CART;i++){
-		if (!compare_item(&p->cart[i], &cp->cart[i]))
-			diff = 1;
+//		if (!compare_item(&p->cart[i], &cp->cart[i]))
+//			diff = 1;
 		if(p->cart[i].nameid>0){
 			mapitem[count].flag=0;
 			mapitem[count].id = p->cart[i].id;
@@ -603,7 +602,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			count++;
 		}
 	}
-*/
+
 	if (diff)
 		if (!memitemdata_to_sql(mapitem, count, p->char_id,TABLE_CART))
 			strcat(save_status, " cart");
