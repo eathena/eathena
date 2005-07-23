@@ -47,7 +47,8 @@ extern time_t stall_time;
 #define WBUFW(p,pos) (*(unsigned short*)WBUFP((p),(pos)))
 #define WBUFL(p,pos) (*(unsigned int*)WBUFP((p),(pos)))
 
-#if defined(__INTERIX) || defined(CYGWIN) || defined(_WIN32)
+//#if defined(__INTERIX) || defined(CYGWIN) || defined(_WIN32) //This seems to not work! Let's try the following... [Skotlex]
+#ifdef __INTERIX || CYGWIN || _WIN32
 	#undef FD_SETSIZE
 	#define FD_SETSIZE 4096
 #endif	// __INTERIX

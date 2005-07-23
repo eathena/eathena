@@ -1,5 +1,7 @@
 Date	Added
 07/22
+	* Changed the way the OS is detected in socket.h [Skotlex]
+	  This MIGHT fix the current 60 user limit problem.
 	* Fixed characters not being able to attack and getting "there is a delay
 	  after a skill" messages instead. [Skotlex]
 	* Fixed status changing cards not taking effect. [Skotlex]
