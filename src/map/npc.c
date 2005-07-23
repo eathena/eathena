@@ -2102,30 +2102,49 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 	struct mob_list mob;
 
 	memset(&mob, 0, sizeof(struct mob_list));
-	
+
 	// 引数の個数チェック
 	if (sscanf(w1, "%15[^,],%d,%d,%d,%d", mapname, &mob.x, &mob.y, &mob.xs, &mob.ys) < 3 ||
 		sscanf(w4, "%d,%d,%d,%d,%23s", &mob.class_, &mob.num, &mob.delay1, &mob.delay2, mob.eventname) < 2 ) {
-		ShowError("bad monster line : %s\n", w3);
+		ShowError("bad monster line : %s %s %s\n", w1, w3, w4);
 		return 1;
 	}
+
 	mob.m = map_mapname2mapid(mapname);
-	if (mob.m < 0)
+	if (mob.m < 0) {
+		ShowError("wrong map name : %s %s\n", w1,w3);
 		return 1;
+	}
+//	printf("map name : %i %s %s\n", mob.m, w1,w3);
 		
+	if (mob.num < 1 || mob.num>1000 ) {
+		ShowError("wrong number of monsters : %s %s\n", w3, w4);
+		return 1;
+	}
 	if (mob.num > 1 && battle_config.mob_count_rate != 100) {
 		if ((mob.num = mob.num * battle_config.mob_count_rate / 100) < 1)
 			mob.num = 1;
 	}
-	
+	// parse MOB_NAME,[MOB LEVEL]
 	if (sscanf(w3, "%23[^,],%d", mobname, &level) > 1)
 		mob.level = level;
 	
+	// check monster ID if exists!
+	if (mobdb_checkid(mob.class_)==0) {
+		ShowError("bad monster ID : %s %s\n", w3, w4);
+		return 1;
+	}
+
 	if (strcmp(mobname, "--en--") == 0)
 		memcpy(mob.mobname, mob_db[mob.class_].name, NAME_LENGTH-1);
 	else if (strcmp(mobname, "--ja--") == 0)
 		memcpy(mob.mobname, mob_db[mob.class_].jname, NAME_LENGTH-1);
 	else memcpy(mob.mobname, mobname, NAME_LENGTH-1);
+
+	if( mob.delay1<0 || mob.delay2<0 || mob.delay1>0xfffffff || mob.delay2>0xfffffff) {
+		ShowError("wrong monsters spawn delays : %s %s\n", w3, w4);
+		return 1;
+	}
 
 	if( !battle_config.dynamic_mobs || mob.delay1 || mob.delay2 ) {
 		npc_parse_mob2(&mob,0);
@@ -2425,6 +2444,8 @@ void npc_parsesrcfile (char *name)
 			npc_parse_mapflag(w1,w2,w3,w4);
 		} else if (strcmpi(w2,"setcell") == 0 && count >= 3) {
 			npc_parse_mapcell(w1,w2,w3,w4);
+		} else {
+			ShowError("Probably TAB is missing: %s %s %s %s line '%i'\n",w1,w2,w3,w4,lines); //Lupus
 		}
 	}
 	fclose(fp);

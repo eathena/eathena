@@ -1,4 +1,8 @@
 Date	Added
+07/24
+	* Added some checks into MONSTER spawn command (reports wrong number, ID, delays, etc.) [Lupus]
+	  - somehow it doesn't report about wrong map names yet
+	* Added check for missing TAB characters into script parser [Lupus]
 07/23
 	* Fixed friend-saving on the new charsave sql method. [Skotlex]
 	* Corrected the ghostfix description in battle_athena. [Skotlex]

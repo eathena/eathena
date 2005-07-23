@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Lupus
 //===== Current Version: =====================================
-//= 1.0
+//= 1.1
 //===== Compatible With: =====================================
 //= eAthena 1+; RO Episode 4+
 //===== Description: =========================================
@@ -15,19 +15,18 @@
 //= fun and live to your game.
 //= NOTE: If your Guild Master is 2nd class, then he could 
 //=	rule the Castles and gather Treasure Boxes after WoE
+//= 1.1 Now 2nd classes can't enter NC place at all
 //============================================================
 
 
 prontera.gat,146,163,6	script	Novice Castles	729,{
 	mes "[Cita]";
 	mes "Hey! I'm a new usher of Novice Castles.";
-	if (agitcheck(0) == 0) mes "At the moment there is no WoE. So I could warp any person to the Novice Castles square.";
 	next;
-	if (agitcheck(0) == 0 || (agitcheck(0) != 0 && (BaseJob<Job_Knight || BaseJob>Job_Crusader2)) ) menu "Warp me to Novice Castles",M_WARP,"Cancel",-;
+	if (BaseJob<Job_Knight || BaseJob>Job_Crusader2) menu "Warp me to Novice Castles",M_WARP,"Cancel",-;
 
 	mes "[Cita]";
-	mes "All 2nd classes aren't allowed to enter the sacred Novice Castles place during WoE.";
-	mes "Call by next time, dude!";
+	mes "All the 2nd classes aren't allowed to enter the sacred Novice Castles place.";
 	emotion 0;
 	close;
 
