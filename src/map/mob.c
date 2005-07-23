@@ -4404,11 +4404,16 @@ static int mob_readskilldb(void)
 				if( strcmp(sp[2],state[j].str)==0)
 					ms->state=state[j].id;
 			}
-			ms->skill_id=atoi(sp[3]);
-			j=atoi(sp[4]);
-			if (j<=0 || j>MAX_SKILL_DB)
+
+			//Skill ID
+			j=atoi(sp[3]);
+			if (j<=0 || j>MAX_SKILL_DB) //fixed Lupus
 				continue;
-			ms->skill_lv=j;
+			ms->skill_id=j;
+			//Skill lvl
+			j= atoi(sp[4])<=0 ? 1 : atoi(sp[4]);
+			ms->skill_lv= j>battle_config.mob_max_skilllvl ? battle_config.mob_max_skilllvl : j; //we strip max skill level
+
 			//Apply battle_config modifiers to rate (permillage) and delay [Skotlex]
 			ms->permillage=atoi(sp[5]);
 			if (battle_config.mob_skill_rate != 100)

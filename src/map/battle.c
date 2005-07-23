@@ -5917,6 +5917,7 @@ void battle_set_defaults() {
 	battle_config.mob_clear_delay = 0;
 	battle_config.character_size = 3; //3: Peco riders Size=2, Baby Class Riders Size=1
 	battle_config.headset_block_music = 0; //Do headsets block some sound skills like Frost Joke
+	battle_config.mob_max_skilllvl = 11; //max possible level of monsters skills
 
 //SQL-only options start
 #ifndef TXT_ONLY
@@ -6085,6 +6086,8 @@ void battle_validate_conf() {
 		battle_config.mob_remove_delay = 15000;
 	if (battle_config.dynamic_mobs > 1)
 		battle_config.dynamic_mobs = 1;	//The flag will be used in assignations
+	if (battle_config.mob_max_skilllvl> 11 || battle_config.mob_max_skilllvl<1 )
+		battle_config.mob_max_skilllvl = 11;
 }
 
 /*==========================================

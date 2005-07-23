@@ -1,5 +1,6 @@
 Date	Added
 07/23
+	* Added a check for max mob skill level (when reading mob_skill db) [Lupus]
 	* More fixes/updates to the txt->sql converter of inventory/cart (will it ever work?) [Skotlex]
 
 07/22
