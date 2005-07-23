@@ -5182,16 +5182,16 @@ int status_readdb(void) {
 	}
 
 	while(fgets(line, sizeof(line)-1, fp)){
-       	char *split[100];
+       	char *split[MAX_LEVEL]; //Job Level is limited to MAX_LEVEL, so the bonuses should likewise be limited to it. [Skotlex]
 		if(line[0]=='/' && line[1]=='/')
 			continue;
-		for(j=0,p=line;j<100 && p;j++){
+		for(j=0,p=line;j<MAX_LEVEL && p;j++){
 			split[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;
 		}
-		for(j=1;j<100 && split[j];j++)
-			job_bonus[atoi(split[0])][j-1]=atoi(split[j]);
+		for(i=1;i<j && split[i];i++)
+			job_bonus[atoi(split[0])][i-1]=atoi(split[i]);
 	}
 	fclose(fp);
 	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/job_db2.txt");
