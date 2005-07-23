@@ -3,13 +3,14 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 1.1
+//= 1.1a
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
 //= 1.0 spawn N and spawn delays aren't yet correct, so I set
 //=     respawn delays quite big for now [Lupus]
 //= 1.1 Fixed monsters spawn places
+//= 1.1a Reduced RSX's respawn delay value []
 //============================================================
 
 //(ein_dun01.gat)*
@@ -26,4 +27,4 @@ ein_dun02.gat,0,0,0,0	monster	Obsidian	1615,30,0,0,0
 ein_dun02.gat,0,0,0,0	monster	Mineral	1614,30,30000,30000,0
 ein_dun02.gat,0,0,0,0	monster	Waste Stove	1617,10,60000,60000,0
 ein_dun02.gat,0,0,0,0	monster	Venomus	1621,20,10000,10000,0
-ein_dun02.gat,163,137,50,50	monster	RSX 0806	1623,1,14400000,144400000,0
+ein_dun02.gat,163,137,50,50	monster	RSX 0806	1623,1,14400000,14400000,0

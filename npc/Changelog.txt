@@ -28,6 +28,8 @@ TODO:
 
 Date		Added
 ======
+07/23
+	* Fixed value overflow (RSX MVP respawn delay) thanks to Valaris
 07/16
 	* Fixed a map name typo in the Prontera fields mobs spawn file. (thanx 2Gwendalin) [Lupus]
 	* Added NOLOOT, NOEXP mapflags files (thanks to Lorky,OSKOM) [Lupus]
