@@ -1,5 +1,8 @@
 Date	Added
 07/22
+	* Changed a bit the aspd penalty for dual-wielding assassins. [Skotlex]
+	  The new factor is 2/3 rather than 0.7, which should be closer to what
+	  rodatazone says, but also makes them dual wielders a bit slower :X
 	* Fixed job_db2.txt reading so that it will read up to MAX_LEVEL job bonuses. [Skotlex]
 	* Changed the way the OS is detected in socket.h [Skotlex]
 	  This MIGHT fix the current 60 user limit problem.

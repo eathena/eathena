@@ -1019,7 +1019,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->aspd += (
 			(aspd_base[s_class.job][sd->weapontype1]-(sd->paramc[1]*4+sd->paramc[4])*aspd_base[s_class.job][sd->weapontype1]/1000) +
 			(aspd_base[s_class.job][sd->weapontype2]-(sd->paramc[1]*4+sd->paramc[4])*aspd_base[s_class.job][sd->weapontype2]/1000)
-			) * 140 / 200;
+			) *2/3; //From what I read in rodatazone, 2/3 should be more accurate than 0.7 -> 140 / 200; [Skotlex]
 
 	//çU?ë¨ìx?â¡
 
