@@ -1,5 +1,8 @@
 Date	Added
 07/22
+	* Fixed packet_ver_flag reading. [Skotlex]
+	  (previously, if you tried setting it to 256 or 512 it would be
+	  resetted back to 255, which would cause problems with the later clients)
 	* More fixes to the txt->sql converter. Does it works now? [Skotlex]
 	* Added water height values of Ayothaya, Ayo_dun02, sec_in02 maps (thanx 2Lorky) [Lupus]
 	* Fixed char-sql memo saving. [Skotlex]

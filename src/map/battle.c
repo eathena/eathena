@@ -6049,10 +6049,11 @@ void battle_validate_conf() {
 	else*/ if (battle_config.any_warp_GM_min_level > 100)
 		battle_config.any_warp_GM_min_level = 100;
 
+/*	//This is a hassle to keep updated each time there's a new limit to packet_ver_flag.... [Skotlex]
 	// at least 1 client must be accepted
 	if ((battle_config.packet_ver_flag & 255) == 0) // added by [Yor]
 		battle_config.packet_ver_flag = 255; // accept all clients
-
+*/
 	if (battle_config.night_darkness_level <= 0)
 		battle_config.night_darkness_level = 9;
 	else if (battle_config.night_darkness_level > 10) // Celest
