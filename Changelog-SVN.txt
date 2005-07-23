@@ -2,6 +2,8 @@ Date	Added
 07/23
 	* Added a check for max mob skill level (when reading mob_skill db) [Lupus]
 	* More fixes/updates to the txt->sql converter of inventory/cart (will it ever work?) [Skotlex]
+	* Fixed job_db2 reading [Sasuke]
+	  Field count is MAX_LEVEL+1 since job ID is the first field of the 'split' table.
 
 07/22
 	* Changed a bit the aspd penalty for dual-wielding assassins. [Skotlex]

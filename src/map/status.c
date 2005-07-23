@@ -5182,10 +5182,10 @@ int status_readdb(void) {
 	}
 
 	while(fgets(line, sizeof(line)-1, fp)){
-       	char *split[MAX_LEVEL]; //Job Level is limited to MAX_LEVEL, so the bonuses should likewise be limited to it. [Skotlex]
+       	char *split[MAX_LEVEL+1]; //Job Level is limited to MAX_LEVEL, so the bonuses should likewise be limited to it. [Skotlex]
 		if(line[0]=='/' && line[1]=='/')
 			continue;
-		for(j=0,p=line;j<MAX_LEVEL && p;j++){
+		for(j=0,p=line;j<MAX_LEVEL+1 && p;j++){
 			split[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;
