@@ -1,5 +1,6 @@
 Date	Added
 07/22
+	* Fixed status changing cards not taking effect. [Skotlex]
 	* Fixed packet_ver_flag reading. [Skotlex]
 	  (previously, if you tried setting it to 256 or 512 it would be
 	  resetted back to 255, which would cause problems with the later clients)

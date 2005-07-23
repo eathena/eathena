@@ -1150,7 +1150,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					sc_def_card=sc_def_luk;
 			}
 
-			if	(rand()%10000 < (sd->addeff[type]+sd->state.arrow_atk?sd->arrow_addeff[type]:0)*sc_def_card/100 )
+			if	(rand()%10000 < (sd->addeff[type]+(sd->state.arrow_atk?sd->arrow_addeff[type]:0))*sc_def_card/100 )
 			{	//Inflicted status effect.
 				if(battle_config.battle_log)
 					ShowInfo("PC %d skill_additional_effect: caused status effect (pos %d): %d\n",sd->bl.id,i,sd->addeff[type]);
@@ -1254,7 +1254,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 					sc_def_card=sc_def_luk;
 			}
 
-			if (sd && (rand()%10000 < (sd->addeff2[type]+sd->state.arrow_atk?sd->arrow_addeff2[type]:0)*sc_def_card/100 ))
+			if (sd && (rand()%10000 < (sd->addeff2[type]+(sd->state.arrow_atk?sd->arrow_addeff2[type]:0))*sc_def_card/100 ))
 			{	//Self infliced status from attacking.
 				if(battle_config.battle_log)
 					ShowInfo("PC %d skill_addeff: self inflicted effect (pos %d): %d\n",src->id,i,sd->addeff2[type]);
