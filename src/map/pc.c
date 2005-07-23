@@ -3900,7 +3900,7 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 	if(sd->skilltimer != -1 && pc_checkskill(sd,SA_FREECAST) <= 0)
 		return 0;
 
-	if(!battle_config.sdelay_attack_enable && sd->canact_tick < tick && pc_checkskill(sd,SA_FREECAST) <= 0)
+	if(!battle_config.sdelay_attack_enable && sd->canact_tick > tick && pc_checkskill(sd,SA_FREECAST) <= 0)
 	{
 		clif_skill_fail(sd,1,4,0);
 		return 0;
