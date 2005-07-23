@@ -559,10 +559,18 @@ void Parse_Char_Connect(int id,int fd){
 		time_t connect_until_time = 0;
 		char email[40] = "";
 		account_id=RFIFOL(fd,2);
+		#ifdef CLOWNPHOBIA
+		sql_query("SELECT `email` FROM `%s` WHERE `%s`='%ld'", login_db, login_db_account_id, account_id);
+		#else // CLOWNPHOBIA
 		sql_query("SELECT `email`,`connect_until` FROM `%s` WHERE `%s`='%ld'", login_db, login_db_account_id, account_id);
+		#endif // CLOWNPHOBIA
 		if (sql_res) {
 			sql_fetch_row();
+			#ifdef CLOWNPHOBIA
+			connect_until_time = 0;
+			#else // CLOWNPHOBIA
 			connect_until_time = atol(sql_row[1]);
+			#endif // CLOWNPHOBIA
 			strcpy(email, sql_row[0]);
 		}
 		sql_free();
@@ -626,11 +634,19 @@ void Parse_Char_PlayerReturn(int id, int fd){
 	char email[40] = "";
 
 	account_id=RFIFOL(fd,2);
+	#ifdef CLOWNPHOBIA
+	sql_query("SELECT `email` FROM `%s` WHERE `%s`='%ld'",login_db, login_db_account_id, account_id);
+	#else
 	sql_query("SELECT `email`,`connect_until` FROM `%s` WHERE `%s`='%ld'",login_db, login_db_account_id, account_id);
+	#endif
 	if (sql_res)
 	{
 		sql_fetch_row();
+		#ifdef CLOWNPHOBIA
+		connect_until_time = 0;
+		#else
 		connect_until_time = atol(sql_row[1]);
+		#endif
 		strcpy(email, sql_row[0]);
 	}
 	sql_free();

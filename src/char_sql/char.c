@@ -47,12 +47,13 @@ char guild_skill_db[256] = "guild_skill";
 char guild_storage_db[256] = "guild_storage";
 char party_db[256] = "party";
 char pet_db[256] = "pet";
-char login_db[256] = "login";
 char friend_db[256] = "friends";
 int db_use_sqldbs;
 
-char login_db_account_id[32] = "account_id";
-char login_db_level[32] = "level";
+// GM database
+char gm_db_account_id[32] = "account_id";
+char gm_db_level[32] = "level";
+char gm_db[256] = "db_gm";
 
 
 char *SQL_CONF_NAME = "conf/inter_athena.conf";
@@ -220,7 +221,7 @@ void read_gm_account(void) {
 		aFree(gm_account);
 	GM_num = 0;
 
-	sql_query("SELECT `%s`,`%s` FROM `%s`",login_db_account_id,login_db_level,login_db);
+	sql_query("SELECT `%s`,`%s` FROM `%s`",gm_db_account_id,gm_db_level,gm_db);
 	if (sql_res) {
 		gm_account = (struct gm_account*)aCalloc(sizeof(struct gm_account) * (int)sql_num_rows(), 1);
 		while (sql_fetch_row()) {
@@ -234,8 +235,10 @@ void read_gm_account(void) {
 	//mapif_send_gmaccounts();
 }
 
+
 // Insert friends list
 int insert_friends(int char_id){
+#ifdef _NOT_INSERTED_YET_
 	int i;
 	char *tmp_p = tmp_sql;
 
@@ -252,7 +255,7 @@ int insert_friends(int char_id){
 	tmp_p += sprintf(tmp_p, ")");
 
 	sql_query(tmp_p,NULL);
-
+#endif
 return 1;
 }
 
@@ -582,6 +585,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 		}
 		diff = 1;
 	}
+#ifdef _NOT_INSERTED_YET_
 	// Check difference in friends from what's in memory
 	//---------------------------------------------------------------------------------------------
 	// If different, save to database
@@ -609,6 +613,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 		}
 		diff = 1;
 	}
+#endif
 
 	#ifdef CHAR_DEBUG
 	printf("\n");
@@ -941,6 +946,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online)
 	}
 	p->global_reg_num=i;
 
+#ifdef _NOT_INSERTED_YET_
 	//Read Friends
 	// `friends` (`friend_id`,`friend_name`)
 	sql_query("SELECT f.friend_id, c.name FROM `%s` f, `%s` c WHERE f.char_id='%d' AND f.friend_id=c.char_id",friend_db,char_db, char_id);
@@ -955,14 +961,12 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online)
 		printf("[ Friends ]");
 		#endif
 	}
-
+#endif
 
 	if (online)
 	{
 		set_char_online(char_id,p->account_id);
 	}
-	ShowMessage(show_status);	//ok. all data load successfuly!
-
 
 	struct mmo_charstatus *cp;
 	cp = (struct mmo_charstatus*)numdb_search(char_db_,char_id);
@@ -1119,9 +1123,8 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	//	fd, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 
 	//Check Name (already in use?)
-	sprintf(tmp_sql, "SELECT `name` FROM `%s` WHERE `name` = '%s'",char_db, t_name);
-	if(sql_res)
-	{
+	sql_query("SELECT `name` FROM `%s` WHERE `name` = '%s'",char_db, t_name);
+	if(sql_res){
 
 		if (sql_num_rows() > 0)
 		{
@@ -1282,7 +1285,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd)
 		WFIFOB(fd,j+104) = p->char_num;
 	}
 	WFIFOSET(fd,WFIFOW(fd,2));
-//	ShowMessage("mmo_char_send006b end..\n");
+	ShowMessage("mmo_char_send006b end..\n");
 	return 0;
 }
 
@@ -1490,8 +1493,9 @@ int parse_tologin(int fd)
 			WBUFB(buf,6) = sex;
 
 			mapif_sendall(buf, 7);
-		  }
 		  	#endif // CLOWNPHOBIA
+		  }
+
 			break;
 
 		// account_reg2•ÏX’Ê’m
@@ -2333,11 +2337,12 @@ int parse_char(int fd)
 			break;
 		}
 		case 0x66: // char select
-//			ShowMessage("0x66> request connect - account_id:%d/char_num:%d\n",sd->account_id,(unsigned char)RFIFOB(fd, 2));
 			if (RFIFOREST(fd) < 3)
 				return 0;
 		{
 			int j;
+
+			ShowMessage("0x66> request connect - account_id:%d/char_num:%d\n",sd->account_id,(unsigned char)RFIFOB(fd, 2));
 
 			if(!sd)
 			{
@@ -2345,14 +2350,16 @@ int parse_char(int fd)
 				break;
 			}
 
-			sql_query("SELECT `char_id` FROM `%s` WHERE `account_id`='%ld' AND `char_num`='%d'",char_db, sd->account_id, (unsigned char)RFIFOB(fd, 2));
+
+			sql_query("SELECT `char_id` FROM `%s` WHERE `account_id` = '%ld' AND `char_num` = '%d' ",char_db, sd->account_id,(unsigned char)RFIFOB(fd, 2));
 			if (sql_res){
-				sql_fetch_row();
-				if (sql_row)
+				if (sql_fetch_row()){
 					mmo_char_fromsql(atoi(sql_row[0]), char_dat, 1);
+				}
 				else
 				{
 					mysql_free_result(sql_res);
+					session_Remove(fd);
 					RFIFOSKIP(fd, 3);
 					break;
 				}
@@ -2360,9 +2367,9 @@ int parse_char(int fd)
 
 			if (log_char) {
 				sql_query("INSERT INTO `%s`(`time`, `account_id`,`char_num`,`name`) VALUES (NOW(), '%ld', '%d', '%s')",
-					charlog_db, sd->account_id, (unsigned char)RFIFOB(fd, 2), char_dat[0].name);
+					charlog_db, sd->account_id, (unsigned long int)RFIFOW(fd, 2), char_dat[0].name);
 			}
-			ShowMessage("("CL_BT_BLUE"%d"CL_NORM") char selected ("CL_BT_GREEN"%d"CL_NORM") "CL_BT_GREEN"%s"CL_NORM RETCODE, sd->account_id, (unsigned char)RFIFOB(fd, 2), char_dat[0].name);
+			ShowMessage("("CL_BT_BLUE"%d"CL_NORM") char selected ("CL_BT_GREEN"%d"CL_NORM") "CL_BT_GREEN"%s"CL_NORM RETCODE, sd->account_id, (unsigned long int)RFIFOW(fd, 2), char_dat[0].name);
 
 			j = search_mapserver(char_dat[0].last_point.map);
 
@@ -2419,7 +2426,7 @@ int parse_char(int fd)
 //			{
 				ShowMessage("--Send IP of map-server: %s:%d (%s)\n", server[j].address.LANIP().getstring(), server[j].address.LANPort(), CL_LT_GREEN"LAN"CL_NORM);
 				WFIFOLIP(fd, 22) = server[j].address.LANIP();
-				WFIFOW(fd, 26)   = server[j].address.WANPort();
+				WFIFOW(fd, 26)   = server[j].address.LANPort();
 //			}
 //			else
 //			{
@@ -2943,7 +2950,7 @@ void do_final(void)
 	ShowMessage("ok! all done...\n");
 }
 
-void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
+void sql_config_read(const char *cfgName){
 	char line[1024], w1[1024], w2[1024];
 	FILE *fp;
 
@@ -2961,8 +2968,8 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) != 2)
 			continue;
 
-		if(strcasecmp(w1, "login_db") == 0) {
-			strcpy(login_db, w2);
+		if(strcasecmp(w1, "gm_db") == 0) {
+			strcpy(gm_db, w2);
 		}else if(strcasecmp(w1,"char_db")==0){
 			strcpy(char_db,w2);
 		}else if(strcasecmp(w1,"cart_db")==0){
@@ -3008,10 +3015,10 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 			db_use_sqldbs = config_switch(w2);
 			ShowMessage("Using SQL dbs: %s\n",w2);
 		//custom columns for login database
-		}else if(strcasecmp(w1,"login_db_level")==0){
-			strcpy(login_db_level,w2);
-		}else if(strcasecmp(w1,"login_db_account_id")==0){
-			strcpy(login_db_account_id,w2);
+		}else if(strcasecmp(w1,"gm_db_level")==0){
+			strcpy(gm_db_level,w2);
+		}else if(strcasecmp(w1,"gm_db_account_id")==0){
+			strcpy(gm_db_account_id,w2);
 		//support the import command, just like any other config
 		}else if(strcasecmp(w1,"import")==0){
 			sql_config_read(w2);
