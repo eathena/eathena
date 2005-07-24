@@ -283,10 +283,10 @@
 277,8,6,1,0,1,5,1,yes,0,0,0,magic,0	//SA_SPELLBREAKER#スペルブレイカ?#
 278,0,0,0,0,0,10,0,no,0,0,0,magic,0	//SA_FREECAST#フリ?キャスト#
 279,0,6,4,0,1,10,1,yes,0,0,0,magic,0	//SA_AUTOSPELL#オ?トスペル#
-280,8,6,16,0,1,5,1,yes,0,0,0,magic,0	//SA_FLAMELAUNCHER#フレイ?ラン?ャ?#
-281,8,6,16,0,1,5,1,yes,0,0,0,magic,0	//SA_FROSTWEAPON#フロストウェ?ン#
-282,8,6,16,0,1,5,1,yes,0,0,0,magic,0	//SA_LIGHTNINGLOADER#ライトニングロ???#
-283,8,6,16,0,1,5,1,yes,0,0,0,magic,0	//SA_SEISMICWEAPON#サイズ?ックウェ?ン#
+280,8,6,16,0,1,5,1,yes,0,3072,0,magic,0	//SA_FLAMELAUNCHER#フレイ?ラン?ャ?#
+281,8,6,16,0,1,5,1,yes,0,3072,0,magic,0	//SA_FROSTWEAPON#フロストウェ?ン#
+282,8,6,16,0,1,5,1,yes,0,3072,0,magic,0	//SA_LIGHTNINGLOADER#ライトニングロ???#
+283,8,6,16,0,1,5,1,yes,0,3072,0,magic,0	//SA_SEISMICWEAPON#サイズ?ックウェ?ン#
 284,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//SA_DRAGONOLOGY#ドラゴノロジ?#
 285,2,6,2,0,1,5,1,yes,0,0,0,magic,0	//SA_VOLCANO#?ルケ?ノ#
 286,2,6,2,0,1,5,1,yes,0,0,0,magic,0	//SA_DELUGE#デリュ?ジ#

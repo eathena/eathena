@@ -14,7 +14,8 @@
 	 EX) If Goblin Archer card goes on a Katar-type weapon, the CRIT Bonus vs. Undeads become +14.
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
-
+07/24
+	* Changed the endow spell's inf2 to 3072 (party only/guild only) [Skotlex]
 07/20
 	* Changed Bow Thimble damage bonus to 3% (trustworthy-looking ragnainfo source) [DracoRPG]
 	* Removed job_db2-2 and rewritten + UPDATED job_db2 for the new system [DracoRPG]
