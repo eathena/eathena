@@ -1,5 +1,8 @@
 Date	Added
 07/24
+	* Fixed elemental modifiers not applying to skills. [Skotlex]
+	* Fixed mob_ghostring_fix config. [Skotlex]
+	* Fixed firewall stun-locking enemies that are not pushed back. [Skotlex]
 	* Added some checks into MONSTER spawn command (reports wrong number, ID, delays, etc.) [Lupus]
 	  - somehow it doesn't report about wrong map names yet
 	* Added check for missing TAB characters into script parser [Lupus]

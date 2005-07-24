@@ -3145,15 +3145,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 	}
 
 	//Initialize variables that will be used afterwards
-	if (sd)
-	{
-		t_race = status_get_race(target);
-		t_ele = status_get_elem_type(target);
-	}
-	if (tsd)
-	{
-		s_race = status_get_race(src);
-	}
+	t_race = status_get_race(target);
+	t_ele = status_get_elem_type(target);
+		
+	s_race = status_get_race(src);
 	s_ele=status_get_attack_element(src);
 	s_ele_=status_get_attack_element2(src);
 
@@ -3889,11 +3884,11 @@ static struct Damage battle_calc_weapon_attack_sub(
 	if(skill_num==TF_POISON)
 		ATK_ADD(15*skill_lv);
 
-	if ((sd && !skill_num && !battle_config.pc_attack_attr_none) ||
-		(md && !skill_num && !battle_config.mob_attack_attr_none) ||
-		(pd && !skill_num && !battle_config.pet_attack_attr_none))
+	if ((sd && (skill_num || !battle_config.pc_attack_attr_none)) ||
+		(md && (skill_num || !battle_config.mob_attack_attr_none)) ||
+		(pd && (skill_num || !battle_config.pet_attack_attr_none)))
 	{	//Elemental attribute fix
-		if	(!(!sd && tsd && !battle_config.mob_ghostring_fix && t_ele==8))
+		if	(!(!sd && tsd && battle_config.mob_ghostring_fix && t_ele==8))
 		{
 			short t_element = status_get_element(target);
 			if (wd.damage > 0)
@@ -4241,6 +4236,8 @@ struct Damage battle_calc_magic_attack(
 	t_race = status_get_race(target);
 	t_mode = status_get_mode(target);
 
+	md.amotion=status_get_amotion(bl);
+	md.dmotion=status_get_dmotion(target);
 #define MATK_FIX( a,b ) { matk1=matk1*(a)/(b); matk2=matk2*(a)/(b); }
 
 	if( bl->type==BL_PC && (sd=(struct map_session_data *)bl) ){
@@ -4328,8 +4325,10 @@ struct Damage battle_calc_magic_attack(
 				blewcount = 0;
 */
 			if((t_ele==3 || battle_check_undead(t_race,t_ele)) && target->type!=BL_PC)
+			{
 				blewcount = 0;
-			else
+				md.dmotion=0;
+			}	else
 				blewcount |= 0x10000;
 			MATK_FIX( 1,2 );
 			break;
@@ -4525,8 +4524,6 @@ struct Damage battle_calc_magic_attack(
 
 	md.damage=damage;
 	md.div_=div_;
-	md.amotion=status_get_amotion(bl);
-	md.dmotion=status_get_dmotion(target);
 	md.damage2=0;
 	md.type=0;
 	md.blewcount=blewcount;

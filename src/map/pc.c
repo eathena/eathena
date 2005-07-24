@@ -3906,7 +3906,8 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 		return 0;
 	}
 
-	if(sd->status.weapon == 11 && sd->equip_index[10] < 1) {
+	if(sd->status.weapon == 11 && sd->equip_index[10] < 0)
+	{
 		clif_arrow_fail(sd,0);
 		return 0;
 	}
