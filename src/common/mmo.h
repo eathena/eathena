@@ -621,10 +621,13 @@ struct mmo_charstatus
 	struct item cart[MAX_CART];
 
 	#ifdef TEST_STORAGE
+
 	struct item storage[MAX_STORAGE];
+
 	short storage_amount;
 	short storage_status;
-	#endif
+
+	#endif // TEST_STORAGE
 
 	struct skill skill[MAX_SKILL];
 	unsigned long global_reg_num;

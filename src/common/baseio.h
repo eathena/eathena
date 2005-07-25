@@ -296,7 +296,7 @@ protected:
 		sql_connect(def.server_ip,def.server_id,def.server_pw,def.server_db,def.server_port)
 		ShowStatus("connect success!\n");
 
-		sql_query("INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver', '100','login server started')", def.table_loginlog);
+		sql_query("INSERT INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver', '100','login server started')", def.table_loginlog);
 		return ret;
 	}
 
@@ -304,7 +304,7 @@ protected:
 	{
 		bool ret = true;
 		//set log.
-		sql_query("INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver','100', 'login server shutdown')", def.table_loginlog);
+		sql_query("INSERT INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver','100', 'login server shutdown')", def.table_loginlog);
 
 		//query
 		//delete all server status

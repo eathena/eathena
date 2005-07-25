@@ -259,21 +259,6 @@ int insert_friends(int char_id){
 return 1;
 }
 
-int compare_item(struct item *a, struct item *b) {
-  return (
-	  (a->id == b->id) &&
-	  (a->nameid == b->nameid) &&
-	  (a->amount == b->amount) &&
-	  (a->equip == b->equip) &&
-	  (a->identify == b->identify) &&
-	  (a->refine == b->refine) &&
-	  (a->attribute == b->attribute) &&
-	  (a->card[0] == b->card[0]) &&
-	  (a->card[1] == b->card[1]) &&
-	  (a->card[2] == b->card[2]) &&
-	  (a->card[3] == b->card[3]));
-}
-
 //=====================================================================================================
 int char_base_cmp(struct mmo_charstatus *p, struct mmo_charstatus *cp){
 	// Check if the Char data has changed since the last save
@@ -383,7 +368,7 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 			"`option`='%d',`karma`='%d',`manner`='%d',`party_id`='%ld',`guild_id`='%ld',`pet_id`='%ld',"
 			"`hair`='%d',`hair_color`='%d',`clothes_color`='%d',`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
 			"`last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d',"
-			"`partner_id`='%ld', `father`='%ld', `mother`='%ld', `child`='%ld', `fame`='%ld'"
+			"`partner_id`='%ld', `father_id`='%ld', `mother_id`='%ld', `child_id`='%ld', `fame_points`='%ld'"
 			"WHERE  `account_id`='%ld' AND `char_id` = '%ld'",
 			char_db, p->class_, p->base_level, p->job_level,
 			p->base_exp, p->job_exp, p->zeny,
@@ -615,9 +600,8 @@ int mmo_char_tosql(unsigned long char_id, struct mmo_charstatus *p)
 	}
 #endif
 
-	#ifdef CHAR_DEBUG
 	printf("\n");
-	#endif
+
 	save_flag = 0;
 	if (diff){
 		// This makes sure memory is clean, then update CP with what P is.
@@ -728,7 +712,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online)
 		"`option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`hair`,`hair_color`,"
 		"`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`,"
 		"`last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`, `partner_id`,"
-		"`father`,`mother`,`child`,`fame` "
+		"`father_id`,`mother_id`,`child_id`,`fame_points` "
 		"FROM `%s` WHERE `char_id` = '%d'",char_db, char_id);
 
 	if (sql_res && sql_fetch_row()) {
