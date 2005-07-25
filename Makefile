@@ -71,12 +71,11 @@ endif
 
 MYLIB = CC="$(CC)" CFLAGS="$(CFLAGS) $(MYSQL_INCLUDE) $(PACKETDEF)" LIB_S="$(MYSQL_LIB) $(LIBS) $(GCLIB)"
 
-all: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile
+all: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile
 	cd src/common ; $(MAKE) $(MYLIB) $@ ; cd ../..
 	cd src/login_sql ; $(MAKE) $(MYLIB) $@ ; cd ../..
 	cd src/char_sql ; $(MAKE) $(MYLIB) $@ ; cd ../..
 	cd src/map ; $(MAKE) $(MYLIB) $@ ; cd ../..
-	cd src/ladmin ; $(MAKE) $(MYLIB) $@ ; cd ../..
 
 login: src/common/Makefile src/login_sql/Makefile
 	cd src/common ; $(MAKE) $(MYLIB) $@ ; cd ..
@@ -90,13 +89,11 @@ map: src/common/Makefile src/map/Makefile
 	cd src/common ; $(MAKE) $(MYLIB) $@ ; cd ..
 	cd src/map ; $(MAKE) $(MYLIB) $@ ; cd ..
 
-clean: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile
+clean: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile 
 	cd src/common ; $(MAKE) $@ ; cd ../..
 	cd src/login_sql ; $(MAKE) $@ ; cd ../..
 	cd src/char_sql ; $(MAKE) $@ ; cd ../..
 	cd src/map ; $(MAKE) $@ ; cd ../..
-	cd src/ladmin ; $(MAKE) $@ ; cd ../..
-
 
 src/common/GNUmakefile: src/common/Makefile
 	sed -e 's/$$>/$$^/' src/common/Makefile > src/common/GNUmakefile
@@ -106,5 +103,3 @@ src/char_sql/GNUmakefile: src/char_sql/Makefile
 	sed -e 's/$$>/$$^/' src/char_sql/Makefile > src/char_sql/GNUmakefile
 src/map/GNUmakefile: src/map/Makefile
 	sed -e 's/$$>/$$^/' src/map/Makefile > src/map/GNUmakefile
-src/ladmin/GNUmakefile: src/ladmin/Makefile
-	sed -e 's/$$>/$$^/' src/ladmin/Makefile > src/ladmin/GNUmakefile
