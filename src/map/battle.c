@@ -3475,7 +3475,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 				skill_num != ASC_METEORASSAULT)
 			{	
 				skillratio += 150 + sc_data[SC_EDP].val1 * 50;
-				flag.cardfix = 0;
+//				flag.cardfix = 0; <- Officially cards DO count [Skotlex]
 			}
 		}
 		if (!skill_num)

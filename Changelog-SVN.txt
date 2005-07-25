@@ -1,5 +1,6 @@
 Date	Added
 07/24
+	* Enchant Deadly Potion now does count card modifiers. [Skotlex]
 	* Fixed elemental modifiers not applying to skills. [Skotlex]
 	* Fixed mob_ghostring_fix config. [Skotlex]
 	* Fixed firewall stun-locking enemies that are not pushed back. [Skotlex]
