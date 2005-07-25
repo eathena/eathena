@@ -15,6 +15,7 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 07/25
+	* New items. Thanx to Landarma [Lupus]
 	* Few item names have been fixed. Added drops to Evil Snake Lord, Injustice.
 	  thanks to MasterOfMuppets [Lupus]
 07/24
