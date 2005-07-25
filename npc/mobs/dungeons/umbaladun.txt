@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
@@ -24,3 +24,4 @@ um_dun02.gat,0,0,0,0	monster	Wootan Shooter	1498,10,0,0,0
 um_dun02.gat,0,0,0,0	monster	Dryad	1493,30,0,0,0
 um_dun02.gat,0,0,0,0	monster	Wooden Golem	1497,30,0,0,0
 um_dun02.gat,0,0,0,0	monster	Stone Shooter	1495,20,0,0,0
+um_dun02.gat,0,0,0,0	monster	Driller	1380,1,0,0,0

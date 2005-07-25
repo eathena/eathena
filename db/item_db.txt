@@ -138,8 +138,8 @@
 658,Tribal_Solidarity,Tribal Solidarity,2,1000,0,500,,,,,10477567,2,,,,,,{ guildgetexp rand(1,10000); },{}
 // New Pet Tames
 659,Her_Heart,Her Heart,11,500,0,50,,,,,10477567,2,,,,,,{ pet 1188; },{}
-660,Forbidden_Red_Candle,Red Candle,11,20,0,50,,,,,10477567,2,,,,,,{ pet 1200; },{}
-661,Sky_Apron,Soft Apron,11,20,0,50,,,,,10477567,2,,,,,,{ pet 1275; },{}
+660,Forbidden_Red_Candle,Forbidden Red Candle,11,20,0,50,,,,,10477567,2,,,,,,{ pet 1200; },{}
+661,Soft_Apron,Soft Apron,11,20,0,50,,,,,10477567,2,,,,,,{ pet 1275; },{}
 662,Horse_Crest,Crest of the Horse,2,3000,0,30,0,0,0,0,10477567,2,0,0,0,,0,{ skilleffect 507,5; sc_start SC_SpeedUp0,240000,0; },{}
 // Item Givers
 664,Gift_Box_,Gift Box,2,20,0,200,,,,,10477567,2,,,,,,{ getitem -4,1; },{}
@@ -158,7 +158,7 @@
 676,Silver_Coin_Pouch,Bag of Silver Coins,2,20,0,400,,,,,0,3,,,,,,{},{}
 677,Platinum_Coin,Platinum Coin,2,20,0,40,,,,,0,3,,,,,,{},{}
 678,Deadly_Poison_Bottle,Poison Bottle,2,20,0,100,,,,,10477567,2,,,,,,{ if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_SpeedPot3,30,0; end; Not_ASC: percentheal -100,0; },{}
-679,Recall_Pills,Golden Pill,2,20,0,300,,,,,10477567,3,,,,,,{ itemheal 50,50; },{}
+679,Pilule,Pilule,2,20,0,300,,,,,10477567,3,,,,,,{ itemheal 50,50; },{}
 680,Carnation,Magical Carnation,2,20,0,1000,,,,,10477567,3,,,,,,{ itemheal 25,0; },{}
 681,Wedding_Photo_Album,Wedding Photo Album,2,20,0,10,,,,,0,3,,,,,,{},{}
 // ATK/MATK Potions

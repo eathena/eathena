@@ -19,21 +19,21 @@
 //============================================================
 
 louyang.gat,260,96,2	script	Chun Hua	770,{
-mes "[^000080Chun Hua^000000]";
-mes "Welcome traveler, you must be hungry and thirsty.";
-mes "Please come inside, there is much to eat.";
-next;
-mes "[^000080Chun Hua^000000]";
-mes "Do not be afraid about how much you ask for, there is much to go around.";
-close;
+	mes "[^000080Chun Hua^000000]";
+	mes "Welcome traveler, you must be hungry and thirsty.";
+	mes "Please come inside, there is much to eat.";
+	next;
+	mes "[^000080Chun Hua^000000]";
+	mes "Do not be afraid about how much you ask for, there is much to go around.";
+	close;
 }
 
 
 lou_fild01.gat,190,100,1	script	Young Girl	815,{
-mes "[Young Girl]";
-mes "You'd like to go back now?";
-next;
-menu "Return to Alberta",L_Return,"Cancel",L_Cancle;
+	mes "[Young Girl]";
+	mes "You'd like to go back now?";
+	next;
+	menu "Return to Alberta",L_Return,"Cancel",L_Cancle;
 
 L_Return:
 	mes "[Young Girl]";
@@ -51,11 +51,11 @@ L_Cancle:
 }
 
 alberta.gat,245,45,4	script	Young Girl	815,{
-mes "[Young Girl]";
-mes "Nana, Nananana, I'm in such a good mood today";
-mes "I wish I could go somewhere and play";
-next;
-menu "About Louyang",L_AboutLouyang,"Go to Louyang",L_GoToLouyang,"Cancel",L_Cancle;
+	mes "[Young Girl]";
+	mes "Nana, Nananana, I'm in such a good mood today";
+	mes "I wish I could go somewhere and play";
+	next;
+	menu "About Louyang",L_AboutLouyang,"Go to Louyang",L_GoToLouyang,"Cancel",L_Cancle;
 
 L_AboutLouyang:
 	mes "[Young Girl]";

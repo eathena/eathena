@@ -28,6 +28,8 @@ TODO:
 
 Date		Added
 ======
+07/25
+	* Totally Updated Louyang shops. Added Driller monster spawn into UmbalaDun2. thanks to MasterOfMuppets [Lupus]
 07/23
 	* Fixed value overflow (RSX MVP respawn delay) thanks to Valaris
 07/16
