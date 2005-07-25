@@ -107,7 +107,7 @@
 105,0,0,0,0,0,1,0,no,0,0,0,weapon,0	//BS_HILTBINDING#ヒルトバインディング#
 106,0,0,0,0,0,1,0,no,0,0,0,weapon,0	//BS_FINDINGORE#鉱石発見#
 107,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//BS_WEAPONRESEARCH#武器研究#
-108,0,6,4,0,1,1,1,no,0,0,0,weapon,0	//BS_REPAIRWEAPON#武器修理#
+108,2,6,16,0,1,1,1,no,0,0,0,weapon,0	//BS_REPAIRWEAPON#武器修理#
 109,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//BS_SKINTEMPER#スキンテンパリング#
 110,2,6,2,0,1,5,1,no,0,0,0,weapon,0	//BS_HAMMERFALL#ハン??フォ?ル#
 111,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//BS_ADRENALINE#アドレナリンラッシュ#

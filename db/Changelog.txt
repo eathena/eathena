@@ -15,6 +15,9 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 07/26
+	* Fixed drop rates of all god-equipment-quest items from Treasure Boxes, they were 10x
+	  too high!! (lowered from '80'=0.8% to '8'=0.08%) [DracoRPG]
+	* Changed Weapon Repair to targetted with range 2 [DracoRPG]
 	* Made real effect of Textbook on Battlefield [Lupus]
 	* New Items. Thanx to Landarma & Erpirata [Lupus]
 07/25

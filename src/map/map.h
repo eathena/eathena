@@ -258,6 +258,7 @@ struct map_session_data {
 	unsigned short timerskill_count; // [celest]
 	int cloneskill_id;
 	int potion_hp,potion_sp,potion_per_hp,potion_per_sp;
+	struct map_session_data *repair_target;
 
 	int invincible_timer;
 	unsigned int canact_tick;

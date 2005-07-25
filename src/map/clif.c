@@ -5368,60 +5368,52 @@ int clif_item_identified(struct map_session_data *sd,int idx,int flag)
  * 修理可能アイテムリスト送信
  *------------------------------------------
  */
-//int clif_item_repair_list (struct map_session_data *sd, struct map_session_data *dstsd)
-//temporarily cast on self -- need to find time to rearrange everything again ^^;
-int clif_item_repair_list (struct map_session_data *sd)
+int clif_item_repair_list(struct map_session_data *sd,struct map_session_data *dstsd)
 {
-	int i, c, fd;
+	int i,c;
+	int fd;
 	int nameid;
 
 	nullpo_retr(0, sd);
-	//nullpo_retr(0, dstsd);
+	nullpo_retr(0, dstsd);
 
-	fd = sd->fd;
+	fd=sd->fd;
 
-	WFIFOW(fd,0) = 0x1fc;
-	for (i = c = 0; i < MAX_INVENTORY; i++) {
-		//if ((nameid = dstsd->status.inventory[i].nameid) > 0 && dstsd->status.inventory[i].attribute == 1){
-		if ((nameid = sd->status.inventory[i].nameid) > 0 && sd->status.inventory[i].attribute == 1){
-			WFIFOW(fd,c*13+4) = i;	// これが1fdで返ってくる･･･コレしか返ってこない！！
+	WFIFOW(fd,0)=0x1fc;
+	for(i=c=0;i<MAX_INVENTORY;i++){
+		if((nameid=dstsd->status.inventory[i].nameid) > 0 && dstsd->status.inventory[i].attribute!=0){// && skill_can_repair(sd,nameid)){
+			WFIFOW(fd,c*13+4) = i;
 			WFIFOW(fd,c*13+6) = nameid;
 			WFIFOL(fd,c*13+8) = sd->status.char_id;
-			//WFIFOL(fd,c*13+12)= dstsd->status.char_id;
-			WFIFOL(fd,c*13+12)= sd->status.char_id;
+			WFIFOL(fd,c*13+12)= dstsd->status.char_id;
 			WFIFOB(fd,c*13+16)= c;
 			c++;
 		}
 	}
 	if(c > 0) {
-		WFIFOW(fd,2) = c*13+4;
+		WFIFOW(fd,2)=c*13+4;
 		WFIFOSET(fd,WFIFOW(fd,2));
 		sd->state.produce_flag = 1;
-		//sd->repair_target = dstsd;
-	} else
+		sd->repair_target=dstsd;
+	}else
 		clif_skill_fail(sd,sd->skillid,0,0);
 
 	return 0;
 }
-int clif_item_repaireffect(struct map_session_data *sd, int nameid, int flag)
+int clif_item_repaireffect(struct map_session_data *sd,int nameid,int flag)
 {
-	int view, fd;
+	int view,fd;
 
 	nullpo_retr(0, sd);
-	fd = sd->fd;
+	fd=sd->fd;
 
-	WFIFOW(fd, 0) = 0x1fe;
+	WFIFOW(fd, 0)=0x1fe;
 	if((view = itemdb_viewid(nameid)) > 0)
-		WFIFOW(fd, 2) = view;
+		WFIFOW(fd, 2)=view;
 	else
-		WFIFOW(fd, 2) = nameid;
-	WFIFOB(fd, 4) = flag;
-	WFIFOSET(fd, 5);
-
-	//if(sd->repair_target && sd != sd->repair_target && flag==0){	// 成功したら相手にも通知
-	//	clif_item_repaireffect(sd->repair_target,flag,nameid);
-	//	sd->repair_target=NULL;
-	//}
+		WFIFOW(fd, 2)=nameid;
+	WFIFOB(fd, 4)=flag;
+	WFIFOSET(fd,packet_len_table[0x1fe]);
 
 	return 0;
 }
@@ -9623,77 +9615,10 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 	if (sd->chatID || sd->npc_id != 0 || sd->vender_id != 0)
 		return;
 
-//	if (USE_PACKET_DB(sd)) {
 	skilllv = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
 	skillnum = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
 	target_id = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[2]);
-/*
-	} else {
-		switch (sd->packet_ver) { // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-		case 6:
-			skilllv = RFIFOW(fd,4);
-			skillnum = RFIFOW(fd,9);
-			target_id = RFIFOL(fd,11);
-			break;
-		case 7:
-			skilllv = RFIFOW(fd,7);
-			skillnum = RFIFOW(fd,9);
-			target_id = RFIFOL(fd,15);
-			break;
-		case 8:
-			skilllv = RFIFOW(fd,7);
-			skillnum = RFIFOW(fd,12);
-			target_id = RFIFOL(fd,16);
-			break;
-		case 9:
-			skilllv = RFIFOW(fd,11);
-			skillnum = RFIFOW(fd,18);
-			target_id = RFIFOL(fd,22);
-			break;
-		case 10:
-			skilllv = RFIFOW(fd,9);
-			skillnum = RFIFOW(fd,15);
-			target_id = RFIFOL(fd,18);
-			break;
-		case 11:
-			skilllv = RFIFOW(fd,4);
-			skillnum = RFIFOW(fd,7);
-			target_id = RFIFOL(fd,10);
-			break;
-		case 12:
-			skilllv = RFIFOW(fd,7);
-			skillnum = RFIFOW(fd,12);
-			target_id = RFIFOL(fd,16);
-			break;
-		case 13:
-		case 14:
-			skilllv = RFIFOW(fd,4);
-			skillnum = RFIFOW(fd,10);
-			target_id = RFIFOL(fd,22);
-			break;
-		case 15:
-			skilllv = RFIFOW(fd,8);
-			skillnum = RFIFOW(fd,12);
-			target_id = RFIFOL(fd,18);
-			break;
-		case 16:
-			skilllv = RFIFOW(fd,8);
-			skillnum = RFIFOW(fd,16);
-			target_id = RFIFOL(fd,22);
-			break;
-		case 17:
-			skilllv = RFIFOW(fd,6);
-			skillnum = RFIFOW(fd,10);
-			target_id = RFIFOL(fd,21);
-			break;
-		default: // old version by default
-			skilllv = RFIFOW(fd,2);
-			skillnum = RFIFOW(fd,4);
-			target_id = RFIFOL(fd,6);
-			break;
-		}
-	}
-*/
+
 	//Whether skill fails or not is irrelevant, the char ain't idle. [Skotlex]
 	sd->idletime = last_tick;
 	
@@ -10016,7 +9941,7 @@ void clif_parse_RepairItem(int fd, struct map_session_data *sd)
 	nullpo_retv(sd);
 
 	sd->state.produce_flag = 0;
-	pc_item_repair(sd,RFIFOW(fd,2));
+	skill_repairweapon(sd,RFIFOW(fd,2));
 }
 
 /*==========================================
@@ -10089,7 +10014,7 @@ void clif_parse_NpcCloseClicked(int fd,struct map_session_data *sd)
  */
 void clif_parse_ItemIdentify(int fd,struct map_session_data *sd)
 {
-	pc_item_identify(sd,RFIFOW(fd,2)-2);
+	skill_identify(sd,RFIFOW(fd,2)-2);
 }
 /*==========================================
  * 矢作成
@@ -11879,6 +11804,7 @@ static int packetdb_readdb(void)
 		{clif_parse_AutoSpell,"autospell"},
 		{clif_parse_UseCard,"usecard"},
 		{clif_parse_InsertCard,"insertcard"},
+		{clif_parse_RepairItem,"repairitem"},
 		{clif_parse_SolveCharName,"solvecharname"},
 		{clif_parse_ResetChar,"resetchar"},
 		{clif_parse_LGMmessage,"lgmmessage"},

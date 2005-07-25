@@ -2805,135 +2805,6 @@ int pc_getitemfromcart(struct map_session_data *sd,int idx,int amount)
 }
 
 /*==========================================
- * アイテム鑑定
- *------------------------------------------
- */
-int pc_item_identify(struct map_session_data *sd,int idx)
-{
-	int flag=1;
-
-	nullpo_retr(0, sd);
-
-	// Celest
-	if (sd->skillid == WS_WEAPONREFINE)
-		return pc_item_refine (sd, idx);
-
-	if(idx >= 0 && idx < MAX_INVENTORY) {
-		if(sd->status.inventory[idx].nameid > 0 && sd->status.inventory[idx].identify == 0 ){
-			flag=0;
-			sd->status.inventory[idx].identify=1;
-		}
-	}
-	clif_item_identified(sd,idx,flag);
-	return !flag;
-}
-
-/*==========================================
- * Weapon Repair [Celest]
- *------------------------------------------
- */
-int pc_item_repair(struct map_session_data *sd, int idx)
-{
-	int flag=1, material;
-	int materials[5] = { 0, 1002, 998, 999, 756 };
-	struct item *item;
-
-	nullpo_retr(0, sd);
-
-    item = &sd->status.inventory[idx];
-
-	if(idx >= 0 && idx < MAX_INVENTORY) {
-		if(item->nameid > 0 && item->attribute == 1 ) {
-			if (itemdb_type(item->nameid)==4)
-				material = materials [itemdb_wlv (item->nameid)];
-			else
-				material = materials [3];
-			if (pc_search_inventory(sd, material) < 0 ) { //fixed by Lupus (item pos can be = 0!)
-				clif_skill_fail(sd,sd->skillid,0,0);
-				return 0;
-			}
-			flag=0;
-			item->attribute=0;
-			pc_delitem(sd, pc_search_inventory(sd, material), 1, 0);
-			clif_equiplist(sd); // Refresh the equipment status
-		}
-	}
-	clif_item_repaireffect(sd,item->nameid,flag);
-	return !flag;
-}
-
-/*==========================================
- * Weapon Refining [Celest]
- *------------------------------------------
- */
-int pc_item_refine(struct map_session_data *sd,int idx)
-{
-	int flag = 1, i = 0, ep = 0, per;
-	int material[5] = { 0, 1010, 1011, 984, 984 };
-	struct item *item;
-
-	nullpo_retr(0, sd);
-	
-	if (idx >= 0 && idx < MAX_INVENTORY) {
-		struct item_data *ditem = sd->inventory_data[idx];
-		item = &sd->status.inventory[idx];
-
-		if(item->nameid > 0 && ditem->type == 4) {
-			if (item->refine >= sd->skilllv ||
-				item->refine >= MAX_REFINE ||		// if it's no longer refineable
-				ditem->flag.no_refine ||	// if the item isn't refinable
-				(i = pc_search_inventory(sd, material [ditem->wlv])) < 0 ) { //fixed by Lupus (item pos can be = 0!)
-				clif_skill_fail(sd,sd->skillid,0,0);
-				return 0;
-			}
-
-			per = percentrefinery [ditem->wlv][(int)item->refine];
-			per *= (75 + sd->status.job_level/2)/100;
-
-			if (per > rand() % 100) {
-				flag = 0;
-				item->refine++;
-				pc_delitem(sd, i, 1, 0);
-				if(item->equip) {
-					ep = item->equip;
-					pc_unequipitem(sd,idx,3);
-				}
-				clif_refine(sd->fd,sd,0,idx,item->refine);
-				clif_delitem(sd,idx,1);
-				clif_additem(sd,idx,1,0);
-				if (ep)
-					pc_equipitem(sd,idx,ep);
-				clif_misceffect(&sd->bl,3);
-				if(item->refine == MAX_REFINE && item->card[0] == 0x00ff && MakeDWord(item->card[2],item->card[3]) == sd->char_id){ // Fame point system [DracoRPG]
-					switch(ditem->wlv){
-						case 1:
-							pc_addfame(sd,1,0); // Success to refine to +10 a lv1 weapon you forged = +1 fame point
-							break;
-						case 2:
-							pc_addfame(sd,25,0); // Success to refine to +10 a lv2 weapon you forged = +25 fame point
-							break;
-						case 3:
-							pc_addfame(sd,1000,0); // Success to refine to +10 a lv3 weapon you forged = +1000 fame point
-							break;
-					}
-				}
-			} else {
-				pc_delitem(sd, i, 1, 0);
-				item->refine = 0;
-				if(item->equip)
-					pc_unequipitem(sd,idx,3);
-				clif_refine(sd->fd,sd,1,idx,item->refine);
-				pc_delitem(sd,idx,1,0);
-				clif_misceffect(&sd->bl,2);
-				clif_emotion(&sd->bl, 23);
-			}
-		}
-	}
-
-	return !flag;
-}
-
-/*==========================================
  * スティル品公開
  *------------------------------------------
  */
@@ -2955,7 +2826,7 @@ int pc_show_steal(struct block_list *bl,va_list ap)
 
 	if(!type){
 		if((item=itemdb_exists(itemid))==NULL)
-			sprintf(output,"%s stole an Unknown_Item.",sd->status.name);
+			sprintf(output,"%s stole an Unknown Item.",sd->status.name);
 		else
 			sprintf(output,"%s stole %s.",sd->status.name,item->jname);
 		clif_displaymessage( ((struct map_session_data *)bl)->fd, output);

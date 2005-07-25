@@ -2993,9 +2993,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		nullpo_retr (1, md = (struct mob_data *)src);
 	}
 
-	//Removed because these ain't used in this function... [Skotlex]
-//	sc_dex = status_get_mdef (bl);
-//	sc_luk = status_get_luk (bl);
 	sc_def_vit = status_get_sc_def_vit (bl);
 	sc_def_mdef = status_get_sc_def_mdef (bl);
 
@@ -3605,7 +3602,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 	case ASC_CDP: // [DracoRPG]
-		// notes: success rate (from emperium.org) = 20 + [(20*Dex)/50] + [(20*Luk)/100]
 		if(sd) {
 			clif_skill_produce_mix_list(sd,256);
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
@@ -3959,16 +3955,15 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
+	case BS_REPAIRWEAPON:			/* 武器修理 */
+		if(sd && dstsd) {
+			clif_item_repair_list(sd,dstsd);
+		}
+		break;
+
 	case MC_IDENTIFY:			/* アイテム鑑定 */
 		if(sd)
 			clif_item_identify_list(sd);
-		break;
-
-	case BS_REPAIRWEAPON:			/* 武器修理 */
-		if(sd) {
-//動作しないのでとりあえずコメントアウト
-			clif_item_repair_list(sd);
-		}
 		break;
 
 	// Weapon Refining [Celest]
@@ -8242,6 +8237,143 @@ void skill_brandishspear_dir(struct square *tc,int dir,int are){
 			tc->val1[c]+=are;
 		}else if(dir==7){
 			tc->val1[c]+=are; tc->val2[c]+=are;
+		}
+	}
+}
+
+/*==========================================
+ * Weapon Repair [Celest/DracoRPG]
+ *------------------------------------------
+ */
+void skill_repairweapon(struct map_session_data *sd, int idx)
+{
+	int material;
+	int materials[4] = { 1002, 998, 999, 756 };
+	struct item *item;
+
+	nullpo_retv(sd);
+	nullpo_retv(sd->repair_target);
+
+	if(idx==0xFFFF) // No item selected ('Cancel' clicked)
+		return;
+
+    item = &sd->repair_target->status.inventory[idx];
+
+	if(sd!=sd->repair_target && !battle_check_range(&sd->bl,&sd->repair_target->bl,skill_get_range(sd->skillid,sd->skilllv))){
+		clif_item_repaireffect(sd,item->nameid,1);
+		return;
+	}
+
+	if(idx >= 0 && idx < MAX_INVENTORY) {
+		if(item->nameid > 0 && item->attribute == 1 ) {
+			if (itemdb_type(item->nameid)==4)
+				material = materials [itemdb_wlv(item->nameid)-1]; // Lv1/2/3/4 weapons consume 1 Iron Ore/Iron/Steel/Rough Oridecon
+			else
+				material = materials [2]; // Armors consume 1 Steel
+			if (pc_search_inventory(sd,material) < 0 ) {
+				clif_skill_fail(sd,sd->skillid,0,0);
+				return;
+			}
+			item->attribute=0;
+			clif_equiplist(sd->repair_target);
+			pc_delitem(sd,pc_search_inventory(sd,material),1,0);
+            clif_item_repaireffect(sd,item->nameid,0);
+            if(sd!=sd->repair_target)
+            	clif_item_repaireffect(sd->repair_target,item->nameid,0);
+			sd->repair_target=NULL;
+		}
+	}
+}
+
+/*==========================================
+ * Item Appraisal
+ *------------------------------------------
+ */
+void skill_identify(struct map_session_data *sd,int idx)
+{
+	int flag=1;
+
+	nullpo_retv(sd);
+
+	// Celest
+	if (sd->skillid == WS_WEAPONREFINE){
+		skill_weaponrefine (sd, idx);
+		return;
+	}
+
+	if(idx >= 0 && idx < MAX_INVENTORY) {
+		if(sd->status.inventory[idx].nameid > 0 && sd->status.inventory[idx].identify == 0 ){
+			flag=0;
+			sd->status.inventory[idx].identify=1;
+		}
+	}
+	clif_item_identified(sd,idx,flag);
+}
+
+/*==========================================
+ * Weapon Refine [Celest]
+ *------------------------------------------
+ */
+void skill_weaponrefine(struct map_session_data *sd,int idx)
+{
+	int i = 0, ep = 0, per;
+	int material[5] = { 0, 1010, 1011, 984, 984 };
+	struct item *item;
+
+	nullpo_retv(sd);
+
+	if (idx >= 0 && idx < MAX_INVENTORY) {
+		struct item_data *ditem = sd->inventory_data[idx];
+		item = &sd->status.inventory[idx];
+
+		if(item->nameid > 0 && ditem->type == 4) {
+			if (item->refine >= sd->skilllv ||
+				item->refine >= MAX_REFINE ||		// if it's no longer refineable
+				ditem->flag.no_refine ||	// if the item isn't refinable
+				(i = pc_search_inventory(sd, material [ditem->wlv])) < 0 ) { //fixed by Lupus (item pos can be = 0!)
+				clif_skill_fail(sd,sd->skillid,0,0);
+				return;
+			}
+
+			per = percentrefinery [ditem->wlv][(int)item->refine];
+			per *= (75 + sd->status.job_level/2)/100;
+
+			if (per > rand() % 100) {
+				item->refine++;
+				pc_delitem(sd, i, 1, 0);
+				if(item->equip) {
+					ep = item->equip;
+					pc_unequipitem(sd,idx,3);
+				}
+				clif_refine(sd->fd,sd,0,idx,item->refine);
+				clif_delitem(sd,idx,1);
+				clif_additem(sd,idx,1,0);
+				if (ep)
+					pc_equipitem(sd,idx,ep);
+				clif_misceffect(&sd->bl,3);
+				if(item->refine == MAX_REFINE && item->card[0] == 0x00ff && MakeDWord(item->card[2],item->card[3]) == sd->char_id){ // Fame point system [DracoRPG]
+					switch(ditem->wlv){
+						case 1:
+							pc_addfame(sd,1,0); // Success to refine to +10 a lv1 weapon you forged = +1 fame point
+							break;
+						case 2:
+							pc_addfame(sd,25,0); // Success to refine to +10 a lv2 weapon you forged = +25 fame point
+							break;
+						case 3:
+							pc_addfame(sd,1000,0); // Success to refine to +10 a lv3 weapon you forged = +1000 fame point
+							break;
+					}
+				}
+			} else {
+				pc_delitem(sd, i, 1, 0);
+				item->refine = 0;
+				if(item->equip)
+					pc_unequipitem(sd,idx,3);
+				clif_refine(sd->fd,sd,1,idx,item->refine);
+				pc_delitem(sd,idx,1,0);
+				clif_misceffect(&sd->bl,2);
+				clif_emotion(&sd->bl, 23);
+			}
 		}
 	}
 }
