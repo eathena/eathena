@@ -59,6 +59,7 @@
 552,Ketupat,Ketupat,0,100,0,10,,,,,10477567,2,,,,,,{ itemheal rand(100,200),0; },{}
 553,Dumpling,Dumpling,0,20,0,50,,,,,10477567,2,,,,,,{ itemheal rand(39,68),0; },{}
 554,Mochi,Mochi,0,100,0,80,,,,,10477567,2,,,,,,{ itemheal rand(15,22),0; if(rand(100)<3) sc_start SC_Stan,10000,0; if(rand(100)<3) sc_start SC_Blind,10000,0; },{}
+555,Traditional_Rice_Cake,Rice Cake,0,,,20,,,,,10477567,2,,,,,,{ itemheal 10,0; },{}
 556,Rolled_Rice,Rolled Rice,0,20,0,10,,,,,10477567,2,,,,,,{ itemheal rand(10,50),0; },{}
 557,Cut_Rice_Rolls,Cut Rice Rolls,0,20,0,10,,,,,0,2,,,,,,{ itemheal rand(10,200),0; },{}
 558,Chocolate,Chocolate,0,500,0,20,,,,,10477567,2,,,,,,{ itemheal 1,1; },{}
@@ -141,6 +142,7 @@
 660,Forbidden_Red_Candle,Forbidden Red Candle,11,20,0,50,,,,,10477567,2,,,,,,{ pet 1200; },{}
 661,Soft_Apron,Soft Apron,11,20,0,50,,,,,10477567,2,,,,,,{ pet 1275; },{}
 662,Horse_Crest,Crest of the Horse,2,3000,0,30,0,0,0,0,10477567,2,0,0,0,,0,{ skilleffect 507,5; sc_start SC_SpeedUp0,240000,0; },{}
+663,Songpyun,Songpyun,0,,,10,,,,,10477567,2,,,,,,{ percentheal 10,0; },{}
 // Item Givers
 664,Gift_Box_,Gift Box,2,20,0,200,,,,,10477567,2,,,,,,{ getitem -4,1; },{}
 665,Gift_Box__,Gift Box,2,20,0,200,,,,,10477567,2,,,,,,{ getitem -4,1; },{}
@@ -428,6 +430,7 @@
 1088,Morroc_Solution,Morocc Solution,3,2,0,30,,,,,,,,,,,,{},{}
 1089,Payon_Solution,Payon Solution,3,2,0,30,,,,,,,,,,,,{},{}
 1090,Unknown_Test_Tube____,Unknown Testtube,3,2,0,30,,,,,,,,,,,,{},{}
+1091,Wooden_Delivery_Box,Wooden Delivery Box,3,2,0,1200,,,,,,,,,,,,{},{}
 1092,Empty_Test_Tube,Empty Testtube,3,3,0,20,,,,,,,,,,,,{},{}
 1093,Empty_Potion_Bottle,Empty Potion Bottle,3,10,0,10,,,,,,,,,,,,{},{}
 1094,Short_Daenggie,Short Daenggie,3,278,0,10,,,,,,,,,,,,{},{}
@@ -1591,7 +1594,7 @@
 //the name, which I wrote as 'Gebney', can be Goibniu who is Celtic smith god
 5129,Nest,Bird Nest,5,,,400,0,1,0,0,10477567,2,256,0,55,1,201,{},{ bonus bAgi,2; bonus2 bSubRace,2,10; }
 5130,Lion_Mask,Lion Mask,5,,,700,0,0,0,0,2088832,2,768,0,75,1,202,{},{ bonus2 bAddEffWhenHit,Eff_Silence,300; bonus bMdef,1; }
-5131,Close Helmet,Close Helmet,5,,,1200,0,8,0,0,8405122,2,769,0,75,0,203,{},{ bonus bVit,3; bonus bMaxHPrate,3; }
+5131,Close Helmet,Close Helmet,5,,,1200,0,8,0,0,8405122,2,769,0,75,1,203,{},{ bonus bVit,3; bonus bMaxHPrate,3; }
 5132,Angeling_Hat,Angeling Hat,5,,,700,0,2,0,0,10477567,2,256,0,38,1,204,{},{ bonus2 bSubRace,7,10; }
 
 // More Etc Items
@@ -1995,11 +1998,12 @@
 7397,Number_37_Ball,Number_37_Ball,3,20,0,10,,,,,,,,,,,,{},{}
 7398,Number_38_Ball,Number_38_Ball,3,20,0,10,,,,,,,,,,,,{},{}
 //-Indonesian Independence Day Event
-7399,Selamat,Selamat,3,,,10,,,,,,,,,,,,{},{}
+7399,Selamat,Sselamat,3,,,10,,,,,,,,,,,,{},{}
 7400,Hari,Hari,3,,,10,,,,,,,,,,,,{},{}
-7401,Republik_Indonesia,Republic Indonesia,3,,,10,,,,,,,,,,,,{},{}
-7402,RI,RI,3,,,10,,,,,,,,,,,,{},{}
-7403,Yang,Yang,3,,,10,,,,,,,,,,,,{},{}
+7401,Kemerdekaan,Kemerdekaan,3,,,10,,,,,,,,,,,,{},{}
+7402,Republik,Republik,3,,,10,,,,,,,,,,,,{},{}
+7403,Indonesia,Indonesia,3,,,10,,,,,,,,,,,,{},{}
+7404,Ke-60,KE-60,3,,,10,,,,,,,,,,,,{},{}
 
 //THQ Quest Items
 7500,THG_Membership,THG Membership,3,20,0,10,,,,,,,,,,,,{},{}
@@ -2034,8 +2038,8 @@
 9025,Bongun_Egg,Bongun Egg,7,20,0,0,,,,,,,,,,,,{},{}
 9026,Alice_Egg,Alice Egg,7,20,0,0,,,,,,,,,,,,{},{}
 9027,Zherlthsh_Egg,Zherlthsh Egg,7,20,0,0,,,,,,,,,,,,{},{}
-9028,test_Egg,Test Egg,7,20,0,0,,,,,,,,,,,,{},{}
-9029,test_Egg_,Test Egg,7,20,0,0,,,,,,,,,,,,{},{}
+9028,Test_Egg,Test Egg,7,20,0,0,,,,,,,,,,,,{},{}
+9029,Test_Egg_,Test Egg,7,20,0,0,,,,,,,,,,,,{},{}
 
 // Pet Accessories
 //===================================================================
@@ -2069,8 +2073,8 @@
 11004,Aldebaran_History_Book,Aldebaran History Book,3,20,0,0,,,,,,,,,,,,{},{}
 11005,Alberta_History_Book,Alberta History Book,3,20,0,0,,,,,,,,,,,,{},{}
 11006,Payon_History_Book,Payon History Book,3,20,0,0,,,,,,,,,,,,{},{}
-11007,History_Book,Unknown Item,3,20,0,0,,,,,,,,,,,,{},{}
-11009,History_Book_,Unknown Item,3,20,0,0,,,,,,,,,,,,{},{}
+11007,History_Book,Unknown History Book,3,20,0,0,,,,,,,,,,,,{},{}
+11009,History_Book_,Unknown History Book,3,20,0,0,,,,,,,,,,,,{},{}
 11010,Archer_Village_History_Book,Archer Village History Book,3,20,0,0,,,,,,,,,,,,{},{}
 11011,Lutie_History_Book,Lutie History Book,3,20,0,0,,,,,,,,,,,,{},{}
 11012,Jawaii_History_Book,Jawaii History Book,3,20,0,0,,,,,,,,,,,,{},{}
@@ -2113,6 +2117,8 @@
 12022,Ribs,Ribs,2,20,0,10,,,,,10477567,2,,,,,,{},{}
 12023,2nd_Anniversary_Giftbox,2nd Annual Commemoration Giftbox,2,20,0,200,,,,,10477567,2,,,,,,{ getitem -4,1; },{}
 12024,Red_Pouch,Red Pouch,2,20,0,50,,,,,10477567,2,,,,,,{ set Zeny,Zeny+rand(100,1000); },{}
+12025,Five_Paragraphs_Egg,Five Paragraphs Egg,2,20,0,10,,,,,,,,,,,{},{}
+12026,Five_Paragraphs_Egg_,Five Paragraphs Egg,2,20,0,10,,,,,,,,,,,{},{}
 //Effect Boxes
 12027,Giggling_Box,Giggling Box,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_Curse,30000,0; percentheal 9,0; },{} //the probablity is 100%
 12028,Lightning_Box,Lightning Box,2,20,0,200,,,,,10477567,2,,,,,,{},{} //increase moving speed for 20 seconds
@@ -2128,6 +2134,36 @@
 12038,Ball_Box___,Ball Box,2,20,0,20,,,,,10477567,2,,,,,,{ getitem rand(7385,7392),1; },{}
 12039,Ball_Box____,Ball Box,2,20,0,20,,,,,10477567,2,,,,,,{ getitem rand(7393,7398),1; },{}
 12040,Philosopher's_Stone,Philosopher's Stone,2,20,0,10,,,,,10477567,2,,,,,,{},{}
+12041,Food_of_Vigor,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12042,Food_of_Vigor_,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12043,Food_of_Vigor__,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12044,Food_of_Vigor___,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12045,Food_of_Vigor____,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12046,Food_of_Int,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12047,Food_of_Int_,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12048,Food_of_Int__,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12049,Food_of_Int___,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12050,Food_of_Int____,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12051,Substantial_Food,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12052,Substantial_Food_,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12053,Substantial_Food__,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12054,Substantial_Food___,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12055,Substantial_Food____,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12056,Food_of_Agility,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12057,Food_of_Agility_,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12058,Food_of_Agility__,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12059,Food_of_Agility___,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12060,Food_of_Agility____,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12061,Food_of_Elaborateness,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12062,Food_of_Elaborateness_,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12063,Food_of_Elaborateness__,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12064,Food_of_Elaborateness___,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12065,Food_of_Elaborateness____,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12066,Food_of_Luck,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12067,Food_of_Luck_,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12068,Food_of_Luck__,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12069,Food_of_Luck___,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12070,Food_of_Luck____,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
 
 // More Weapons
 //===================================================================
@@ -2136,5 +2172,5 @@
 13001,Dragon_Killer,Dragon Killer,4,20,0,900,110,0,1,0,10444527,2,2,4,60,1,1,{},{ bonus bIgnoreDefRace,9; bonus2 bExpAddRace,9,10; }
 13002,Ginnungagap,Ginnungagap,4,20,0,700,120,0,1,0,10444527,2,2,4,70,1,1,{},{ bonus bAtkEle,7; bonus2 bAddEff,Eff_Blind,500; bonus2 bAddEff2,Eff_Blind,50; }
 13003,Coward,Coward,4,20,0,700,80,0,1,1,10444527,2,2,3,55,1,1,{},{ bonus bDef,5; }
-13004,Coward,Coward,4,20,0,700,80,0,1,2,10444527,2,2,3,55,1,1,{},{ bonus bDef,5; }
+13004,Coward_,Coward,4,20,0,700,80,0,1,2,10444527,2,2,3,55,1,1,{},{ bonus bDef,5; }
 13005,Angel_Wing_Dagger,Angel Wing Dagger,4,20,0,10,,,,,,,,,,,,{},{}
