@@ -7901,6 +7901,7 @@ int clif_guess_PacketVer(int fd)
 	int cmd = RFIFOW(fd,0);
 	int packet_len = RFIFOREST(fd);
 	int account_id, char_id, sex;
+	int login1, client_tick; 
 	static struct socket_data *last_session;
 	
 	if (
@@ -7908,8 +7909,10 @@ int clif_guess_PacketVer(int fd)
 		packet_len == packet_db[clif_config.packet_db_ver][cmd].len &&
 		((sex = RFIFOB(fd, packet_db[clif_config.packet_db_ver][cmd].pos[4])) == 0 ||	sex == 1) &&
 		RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]) > 700000 &&
-		((char_id = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) >= 1 && char_id < 5000000)
-	)
+		RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]) > 0 &&
+		RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) > 0 &&
+		RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]) >= 0
+		)
 		return clif_config.packet_db_ver; //Default packet version found.
 	
 	for (packet_ver = MAX_PACKET_VER; packet_ver > 0; packet_ver--)
@@ -7920,25 +7923,35 @@ int clif_guess_PacketVer(int fd)
 		
 		account_id = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]);
 		char_id = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]);
+		login1	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]);
+		client_tick	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]);
 		sex = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4]);
 		//Do general checks to verify our guess.
-		//FIXME: There has to be a better way to check the validity of the account/char_id! [Skotlex]
 		if (sex < 0 ||	sex > 1)
 		{
 			ShowDebug("Version check %d failed: invalid gender %d\n", packet_ver, sex);
 			continue;
 		}
-		if (account_id < 700000 ||	account_id > 10000000)
+		if (account_id < 700000)
 		{
 			ShowDebug("Version check %d failed: invalid account id %d\n", packet_ver, account_id);
 			continue;
 		}
-		if (char_id < 1 || char_id > 5000000)
+		if (char_id < 1)
 		{
 			ShowDebug("Version check %d failed: invalid char id %d\n", packet_ver, char_id);
 			continue;
 		}
-		
+		if (login1 < 1)
+		{
+			ShowDebug("Version check %d failed: invalid login1 %d\n", packet_ver, login1);
+			continue;
+		}
+		if (client_tick < 0)
+		{
+			ShowDebug("Version check %d failed: invalid client tick %d\n", packet_ver, client_tick);
+			continue;
+		}
 		return packet_ver; //This is our best guess.
 	}
 

@@ -1,5 +1,8 @@
 Date	Added
 07/26
+	* Corrected some refine success rates. [Skotlex]
+	* Modified the packet client version guessing code (perhaps it more
+	  accurately guesses the version now?) [Skotlex]
 	* Fixed reading of 'repairitem' packet in packet_db -> fixes Weapon Repair [DracoRPG]
 	* Rewrote Weapon Repair to allow use on other players [DracoRPG]
 	* Moved pc_item_repair, pc_item_refine and pc_item_identify to skill.c [DracoRPG]

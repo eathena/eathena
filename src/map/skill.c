@@ -9748,19 +9748,19 @@ int skill_produce_mix( struct map_session_data *sd,
 			int skill = pc_checkskill(sd,skill_produce_db[idx].req_skill);
 			make_per = 2000 + sd->status.job_level*20 + sd->paramc[4]*10 + sd->paramc[5]*10; //Base chance
 			if(nameid == 998) //Iron
-				make_per += 200+skill*600; //Bonus: +26/+32/+38/+44/+50
+				make_per += 2000+skill*600; //Bonus: +26/+32/+38/+44/+50
 			else if(nameid == 999) //Steel
-				make_per += 100+skill*500; //Bonus: +15/+20/+25/+30/+35
+				make_per += 1000+skill*500; //Bonus: +15/+20/+25/+30/+35
 			else	//Enchanted Stones
-				make_per += -500 +skill*500; //Bonus: - 5/+ 0/+ 5/+10/+15
+				make_per += -1000 +skill*500; //Bonus: - 5/+ 0/+ 5/+10/+15
 		}
 		if(battle_config.pp_rate != 100)
 			make_per = make_per * battle_config.pp_rate / 100;
 	} else { // Weapon Forging. Using rates based on jRO [Skotlex]
-		make_per = 2000 + sd->status.job_level*20 + status_get_dex(&sd->bl)*10 + status_get_luk(&sd->bl)*10; //Base
+		make_per = 2000 + sd->status.job_level*20 + sd->paramc[4]*10 + sd->paramc[5]*10; //Base
 		make_per += 2500 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*500; //Skill bonus: +30/+35/+40
 		make_per += pc_checkskill(sd,BS_WEAPONRESEARCH)*100 +((wlv >= 3)? pc_checkskill(sd,BS_ORIDEOCON)*100:0); //Weapon/Oridecon research
-		make_per -= (ele?2000:0 + sc*1500 + wlv>1?wlv*1000:0); //Ele: -20%, StarCrumb: -15%ea, Wlevel: -0/-20/-30
+		make_per -= (ele?2000:0) + sc*1500 + (wlv>1?wlv*1000:0); //Ele: -20%, StarCrumb: -15%ea, Wlevel: -0/-20/-30
 		if(pc_search_inventory(sd,989) > 0) make_per+= 1000; //Emperium Anvil +10%
 		else if(pc_search_inventory(sd,988) > 0) make_per+= 500; //Gold Anvil +5%
 		else if(pc_search_inventory(sd,987) > 0) make_per+= 300; //Oridecon Anvil +3%
