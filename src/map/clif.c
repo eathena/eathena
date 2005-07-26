@@ -7900,7 +7900,7 @@ int clif_guess_PacketVer(int fd)
 	int packet_ver =0;
 	int cmd = RFIFOW(fd,0);
 	int packet_len = RFIFOREST(fd);
-	int account_id, char_id, sex;
+	int account_id, char_id, sex, acc_offset, char_offset;
 	int login1, client_tick; 
 	static struct socket_data *last_session;
 	
@@ -7921,35 +7921,42 @@ int clif_guess_PacketVer(int fd)
 			packet_len != packet_db[packet_ver][cmd].len)	//The size of the wantoconnection packet does not matches.
 			continue;
 		
-		account_id = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]);
-		char_id = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]);
-		login1	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]);
-		client_tick	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]);
-		sex = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4]);
-		//Do general checks to verify our guess.
-		if (sex < 0 ||	sex > 1)
-		{
-			ShowDebug("Version check %d failed: invalid gender %d\n", packet_ver, sex);
-			continue;
-		}
-		if (account_id < 700000)
+		//Looking at the packet data, the account_id is the most important field to identify
+		//the packet version, and it usually has 0 padded bytes around it.
+		acc_offset = packet_db[packet_ver][cmd].pos[0];
+		account_id = RFIFOL(fd, acc_offset);
+		if (account_id < 700000 || account_id > 7000000) //More than 7M accounts?
 		{
 			ShowDebug("Version check %d failed: invalid account id %d\n", packet_ver, account_id);
 			continue;
 		}
+
+		char_offset = packet_db[packet_ver][cmd].pos[1];
+		char_id = RFIFOL(fd, char_offset);
 		if (char_id < 1)
 		{
 			ShowDebug("Version check %d failed: invalid char id %d\n", packet_ver, char_id);
 			continue;
 		}
+
+		login1	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]);
 		if (login1 < 1)
 		{
 			ShowDebug("Version check %d failed: invalid login1 %d\n", packet_ver, login1);
 			continue;
 		}
+
+		client_tick	= RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]);
 		if (client_tick < 0)
 		{
 			ShowDebug("Version check %d failed: invalid client tick %d\n", packet_ver, client_tick);
+			continue;
+		}
+
+		sex = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4]);
+		if (sex < 0 ||	sex > 1)
+		{
+			ShowDebug("Version check %d failed: invalid gender %d\n", packet_ver, sex);
 			continue;
 		}
 		return packet_ver; //This is our best guess.
