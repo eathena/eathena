@@ -552,7 +552,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	ShowInfo("Saving char "CL_WHITE"%d"CL_RESET" (%s)...\n",char_id,p->name);
 	memset(save_status, 0, sizeof(save_status));
 
-	count = MAX_INVENTORY;
+	count = 0;
 //	diff = 0;
 	//map inventory data
 	for(i=0;i<MAX_INVENTORY;i++){
@@ -579,7 +579,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		if (!memitemdata_to_sql(mapitem, count, p->char_id,TABLE_INVENTORY))
 			strcat(save_status, " inventory");
 
-	count = MAX_CART;
+	count = 0;
 
 //	diff = 0;
 	//map cart data

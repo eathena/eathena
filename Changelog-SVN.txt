@@ -1,5 +1,6 @@
 Date	Added
 07/26
+	* Likely fixed the txt->sql converter. [Skotlex]
 	* Corrected some refine success rates. [Skotlex]
 	* Modified the packet client version guessing code (perhaps it more
 	  accurately guesses the version now?) [Skotlex]
