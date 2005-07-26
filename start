@@ -1,4 +1,4 @@
-# /bin/bash
+#!/bin/bash
 
 ./athena-start start
 sleep 30
@@ -24,7 +24,7 @@ date
 	printf "Check Miss Sorry:"
 	date
 	fi
-else
+#else
 #printf "Check OK:"
 #date
 fi

@@ -18,7 +18,7 @@
 	* Fixed drop rates of all god-equipment-quest items from Treasure Boxes, they were 10x
 	  too high!! (lowered from '80'=0.8% to '8'=0.08%) [DracoRPG]
 	* Changed Weapon Repair to targetted with range 2 [DracoRPG]
-	* Made real effect of Textbook on Battlefield [Lupus]
+	* Made real effect of Textbook on Battlefield. Fixed skill ID.[Lupus]
 	* New Items. Thanx to Landarma & Erpirata [Lupus]
 07/25
 	* New items. Thanx to Landarma [Lupus]
