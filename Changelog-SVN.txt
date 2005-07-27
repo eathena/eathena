@@ -1,5 +1,7 @@
 Date	Added
 07/27
+	* Even more cleanups to socket.c and chrif.c to prevent even handling
+	  Session #0 [Skotlex]
 	* Some more cleanups to chrif.c (the interface to the char server)'s code. [Skotlex]
 	* Appied End of Exam's socket/connection related fixes/suggestions. [Skotlex]
 	* Fixed a Segmentation Fault with friends list loading. [Kevin]

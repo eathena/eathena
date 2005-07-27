@@ -84,7 +84,7 @@ static const int packet_len_table[0x3d] = {
 //2b21-2b27: FREE
 
 int chrif_connected;
-int char_fd = -1;
+int char_fd = 0; //Using 0 instead of -1 is safer against crashes. [Skotlex]
 int srvinfo;
 static char char_ip_str[16];
 static int char_ip;
@@ -1164,7 +1164,7 @@ int chrif_disconnect_sub(struct map_session_data* sd,va_list va) {
 
 int chrif_disconnect(int fd) {
 	if(fd == char_fd) {
-		char_fd = -1; //char_fd started as -1, I think it is best to return it to -1, not 0 [Skotlex]
+		char_fd = 0;
 		ShowWarning("Map Server disconnected from Char Server.\n\n");
 		clif_foreachclient(chrif_disconnect_sub);
 		chrif_connected = 0;

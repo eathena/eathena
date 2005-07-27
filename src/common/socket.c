@@ -195,7 +195,7 @@ static int send_from_fifo(int fd)
 void flush_fifos()
 {
 	int i;
-	for(i=0;i<fd_max;i++)
+	for(i=1;i<fd_max;i++) //fd==0 is never a valid session, so let's skip it. [Skotlex]
 		if(session[i] != NULL &&
 		   session[i]->func_send == send_from_fifo)
 			send_from_fifo(i);
@@ -599,7 +599,7 @@ int do_sendrecv(int next)
 #else
 	FD_ZERO(&wfd);
 
-	for (i = 0; i < fd_max; i++){
+	for (i = 1; i < fd_max; i++){ //Session 0 is never a valid session, so it's best to skip it. [Skotlex
 		if(!session[i] && FD_ISSET(i, &readfds)){
 			ShowMessage("force clr fds %d\n", i);
 			FD_CLR(i, &readfds);
@@ -619,14 +619,14 @@ int do_sendrecv(int next)
 #ifndef TURBO
 	if (ret <= 0)
 		return 0;
-	for (i = 0; i < fd_max; i++){
+	for (i = 1; i < fd_max; i++){
 #else
 
 #ifndef __FDS_BITS
 	#define __FDS_BITS(set) ((set)->fds_bits)
 #endif
 
-	for (i = 0; i < fd_max && ret > 0; i++){
+	for (i = 1; i < fd_max && ret > 0; i++){
 		if ((i & (NFDBITS - 1)) == 0) {
 			int off = i / NFDBITS;
 			if ((__FDS_BITS(&wfd)[off] == 0) && (__FDS_BITS(&rfd)[off] == 0))
