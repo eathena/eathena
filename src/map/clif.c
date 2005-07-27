@@ -9037,7 +9037,7 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 	if ((npc = npc_name2id((const char*)RFIFOP(fd,4))))
 	{
 		
-		whisper_tmp=aCallocA(strlen(RFIFOP(fd,28))+1,sizeof(char));
+		whisper_tmp=(char *)aCallocA(strlen(RFIFOP(fd,28))+1,sizeof(char));
 		whisper_tmp[0]=0;
 	   
 		sprintf(whisper_tmp, "%s", (const char*)RFIFOP(fd,28));  
@@ -9057,7 +9057,7 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 		split_data[i][j-k]='\0';
 		
 		aFree(whisper_tmp);
-		whisper_tmp=aCallocA(15,sizeof(char));
+		whisper_tmp=(char *)aCallocA(15,sizeof(char));
 		whisper_tmp[0]=0;
 		
 		for (j=0;j<=10;j++)
@@ -9067,7 +9067,7 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 		}//You don't need to zero them, just reset them [Kevin]
 		
 		aFree(whisper_tmp);
-		whisper_tmp=aCallocA(strlen(npc->name)+18,sizeof(char));
+		whisper_tmp=(char *)aCallocA(strlen(npc->name)+18,sizeof(char));
 		whisper_tmp[0]=0;
 		
 		sprintf(whisper_tmp, "%s::OnWhisperGlobal", npc->name);
