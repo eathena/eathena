@@ -1046,6 +1046,7 @@ int charcommand_item(
 	struct item item_tmp;
 	struct item_data *item_data;
 	int get_count, i, pet_id;
+	char tmp_cmdoutput[1024];
 	nullpo_retr(-1, sd);
 
 	memset(item_name, '\0', sizeof(item_name));
@@ -1099,12 +1100,12 @@ int charcommand_item(
 			for (i = 0; i < fd_max; i++) {
 				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data)){
 					charcommand_giveitem_sub(pl_sd,item_data,number);
-					snprintf(tmp_output, sizeof(tmp_output), "You got %s %d.", item_name,number);
-					clif_displaymessage(pl_sd->fd, tmp_output);
+					snprintf(tmp_cmdoutput, sizeof(tmp_cmdoutput), "You got %s %d.", item_name,number);
+					clif_displaymessage(pl_sd->fd, tmp_cmdoutput);
 				}
 			}
-			snprintf(tmp_output, sizeof(tmp_output), "%s received %s %d.","Everyone",item_name,number);
-			clif_displaymessage(fd, tmp_output);
+			snprintf(tmp_cmdoutput, sizeof(tmp_cmdoutput), "%s received %s %d.","Everyone",item_name,number);
+			clif_displaymessage(fd, tmp_cmdoutput);
 		} else {
 			clif_displaymessage(fd, msg_table[3]); // Character not found.
 			return -1;
@@ -1538,9 +1539,8 @@ int charcommand_skreset(
 {
 	struct map_session_data *pl_sd;
 	char player[NAME_LENGTH];
+	char tmp_cmdoutput[1024];
 	nullpo_retr(-1, sd);
-
-	memset(tmp_output, '\0', sizeof(tmp_output));
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", player) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charskreset <charname>).");
@@ -1550,8 +1550,8 @@ int charcommand_skreset(
 	if ((pl_sd = map_nick2sd(player)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can reset skill points only lower or same gm level
 			pc_resetskill(pl_sd);
-			sprintf(tmp_output, msg_table[206], player); // '%s' skill points reseted!
-			clif_displaymessage(fd, tmp_output);
+			sprintf(tmp_cmdoutput, msg_table[206], player); // '%s' skill points reseted!
+			clif_displaymessage(fd, tmp_cmdoutput);
 		} else {
 			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
 			return -1;
@@ -1574,9 +1574,8 @@ int charcommand_streset(
 {
 	struct map_session_data *pl_sd;
 	char player[NAME_LENGTH];
+	char tmp_cmdoutput[1024];
 	nullpo_retr(-1, sd);
-
-	memset(tmp_output, '\0', sizeof(tmp_output));
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", player) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charstreset <charname>).");
@@ -1586,8 +1585,8 @@ int charcommand_streset(
 	if ((pl_sd = map_nick2sd(player)) != NULL) {
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can reset stats points only lower or same gm level
 			pc_resetstate(pl_sd);
-			sprintf(tmp_output, msg_table[207], player); // '%s' stats points reseted!
-			clif_displaymessage(fd, tmp_output);
+			sprintf(tmp_cmdoutput, msg_table[207], player); // '%s' stats points reseted!
+			clif_displaymessage(fd, tmp_cmdoutput);
 		} else {
 			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
 			return -1;
@@ -1611,14 +1610,13 @@ int charcommand_model(
 	int hair_style = 0, hair_color = 0, cloth_color = 0;
 	struct map_session_data *pl_sd;
 	char player[NAME_LENGTH];
+	char tmp_cmdoutput[1024];
 	nullpo_retr(-1, sd);
 
-	memset(tmp_output, '\0', sizeof(tmp_output));
-
 	if (!message || !*message || sscanf(message, "%d %d %d %23[^\n]", &hair_style, &hair_color, &cloth_color, player) < 4 || hair_style < 0 || hair_color < 0 || cloth_color < 0) {
-		sprintf(tmp_output, "Please, enter a valid model and a player name (usage: @charmodel <hair ID: %d-%d> <hair color: %d-%d> <clothes color: %d-%d> <name>).",
+		sprintf(tmp_cmdoutput, "Please, enter a valid model and a player name (usage: @charmodel <hair ID: %d-%d> <hair color: %d-%d> <clothes color: %d-%d> <name>).",
 				MIN_HAIR_STYLE, MAX_HAIR_STYLE, MIN_HAIR_COLOR, MAX_HAIR_COLOR, MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
-		clif_displaymessage(fd, tmp_output);
+		clif_displaymessage(fd, tmp_cmdoutput);
 		return -1;
 	}
 

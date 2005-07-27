@@ -1487,13 +1487,11 @@ int map_quit(struct map_session_data *sd) {
 				struct npc_data *npc;
 				if ((npc = npc_name2id(script_config.logout_event_name))) {
 					run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLogoutNPC
-					sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.logout_event_name);
-					ShowStatus(tmp_output);
+					ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.logout_event_name);
 				}
 			} else {
-				sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
+				ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
 					npc_event_doall_id(script_config.logout_event_name, sd->bl.id), script_config.logout_event_name);
-				ShowStatus(tmp_output);
 			}
 		}
 
@@ -1789,9 +1787,8 @@ void map_removenpc(void) {
 			}
 		}
 	}
-
-	sprintf(tmp_output,"Successfully removed and freed from memory '"CL_WHITE"%d"CL_RESET"' NPCs.\n",n);
-	ShowStatus(tmp_output);
+	
+	ShowStatus("Successfully removed and freed from memory '"CL_WHITE"%d"CL_RESET"' NPCs.\n",n);
 }
 
 /*=========================================
@@ -1848,8 +1845,7 @@ void map_spawnmobs(int m)
 
 	if (battle_config.etc_log && k > 0)
 	{
-		sprintf(tmp_output,"Map %s: Spawned '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[m].name, k);
-		ShowStatus(tmp_output);
+		ShowStatus("Map %s: Spawned '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[m].name, k);
 	}
 }
 
@@ -2786,12 +2782,11 @@ int map_readallmap(void) {
 		map_cache_open(map_cache_file);
 	}
 
-	sprintf(tmp_output, "Loading Maps%s...\n",
+	ShowStatus("Loading Maps%s...\n",
 		(map_read_flag == CREATE_BITMAP_COMPRESSED ? " (Generating Map Cache w/ Compression)" :
 		map_read_flag == CREATE_BITMAP ? " (Generating Map Cache)" :
 		map_read_flag >= READ_FROM_BITMAP ? " (w/ Map Cache)" :
 		map_read_flag == READ_FROM_AFM ? " (w/ AFM)" : ""));
-	ShowStatus(tmp_output);
 
 	// 先に全部のャbプの存在を確認
 	for (i = 0; i < map_num; i++){
@@ -2850,8 +2845,7 @@ int map_readallmap(void) {
 
 	aFree(waterlist);
 	printf("\r");
-	snprintf(tmp_output,sizeof(tmp_output),"Successfully loaded '"CL_WHITE"%d"CL_RESET"' maps.%30s\n",map_num,"");
-	ShowInfo(tmp_output);
+	ShowInfo("Successfully loaded '"CL_WHITE"%d"CL_RESET"' maps.%30s\n",map_num,"");
 
 	map_cache_close();
 	if(map_read_flag == CREATE_BITMAP || map_read_flag == CREATE_BITMAP_COMPRESSED) {
@@ -2859,8 +2853,7 @@ int map_readallmap(void) {
 	}
 
 	if (maps_removed) {
-		snprintf(tmp_output,sizeof(tmp_output),"Maps Removed: '"CL_WHITE"%d"CL_RESET"'\n",maps_removed);
-		ShowNotice(tmp_output);
+		ShowNotice("Maps Removed: '"CL_WHITE"%d"CL_RESET"'\n",maps_removed);
 	}
 	return 0;
 }
@@ -2876,9 +2869,8 @@ int map_addmap(char *mapname) {
 	}
 
 	if (map_num >= MAX_MAP_PER_SERVER - 1) {
-		snprintf(tmp_output,sizeof(tmp_output),"Could not add map '"
+		ShowError("Could not add map '"
 		CL_WHITE"%s"CL_RESET"', the limit of maps has been reached.\n",mapname);
-		ShowError(tmp_output);
 		return 1;
 	}
 	memcpy(map[map_num].name, mapname, MAP_NAME_LENGTH-1);
@@ -3024,8 +3016,7 @@ int map_config_read(char *cfgName) {
 				char_ip_set_ = 1;
 				h = gethostbyname (w2);
 				if(h != NULL) {
-					snprintf(tmp_output,sizeof(tmp_output),"Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-					ShowInfo(tmp_output);
+					ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 					sprintf(w2,"%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 				}
 				chrif_setip(w2);
@@ -3035,8 +3026,7 @@ int map_config_read(char *cfgName) {
 				map_ip_set_ = 1;
 				h = gethostbyname (w2);
 				if (h != NULL) {
-					snprintf(tmp_output,sizeof(tmp_output),"Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-					ShowInfo(tmp_output);
+					ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 					sprintf(w2, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 				}
 				clif_setip(w2);
@@ -3044,8 +3034,7 @@ int map_config_read(char *cfgName) {
 				//bind_ip_set_ = 1;
 				h = gethostbyname (w2);
 				if (h != NULL) {
-					snprintf(tmp_output,sizeof(tmp_output),"Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
-					ShowInfo(tmp_output);
+					ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%d.%d.%d.%d"CL_RESET"'.\n", w2, (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 					sprintf(w2, "%d.%d.%d.%d", (unsigned char)h->h_addr[0], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[3]);
 				}
 				clif_setbindip(w2);
@@ -3113,8 +3102,7 @@ int inter_config_read(char *cfgName)
 
 	fp=fopen(cfgName,"r");
 	if(fp==NULL){
-		snprintf(tmp_output,sizeof(tmp_output),"File not found: '%s'.\n",cfgName);
-		ShowError(tmp_output);
+		ShowError("File not found: '%s'.\n",cfgName);
 		return 1;
 	}
 	while(fgets(line,1020,fp)){
@@ -3613,8 +3601,7 @@ int do_init(int argc, char *argv[]) {
 	if (battle_config.pk_mode == 1)
 		ShowNotice("Server is running on '"CL_WHITE"PK Mode"CL_RESET"'.\n");
 
-	sprintf(tmp_output,"Server is '"CL_GREEN"ready"CL_RESET"' and listening on port '"CL_WHITE"%d"CL_RESET"'.\n\n", map_port);
-	ShowStatus(tmp_output);
+	ShowStatus("Server is '"CL_GREEN"ready"CL_RESET"' and listening on port '"CL_WHITE"%d"CL_RESET"'.\n\n", map_port);
 
 	return 0;
 }

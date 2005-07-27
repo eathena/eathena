@@ -1,5 +1,7 @@
 Date	Added
 07/27
+	* Fixed most of the matrix bug, note to devs: Don't use tmp_output anymore! [Kevin]
+	* Fixed a small compile warning with previous fix. [Kevin]
 	* Added ATCommand @AutoTrade. You open a shop, setup your goods. Then use @AUTOTRADE.
 	  Your will be closed, but your merchant would remain in the game. So you can vending
 	  without your client ON. (originally by Fantik, changed by Lupus)

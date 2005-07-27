@@ -429,9 +429,8 @@ int npc_event_do_clock(int tid,unsigned int tick,int id,int data)
 int npc_event_do_oninit(void)
 {
 //	int c = npc_event_doall("OnInit");
-	sprintf(tmp_output,"Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"
+	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"
 	CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_event_doall("OnInit"));
-	ShowStatus(tmp_output);
 
 	add_timer_interval(gettick()+100,
 		npc_event_do_clock,0,0,1000);

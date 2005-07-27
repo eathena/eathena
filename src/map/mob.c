@@ -2861,13 +2861,11 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		struct npc_data *npc;
 	if ((npc = npc_name2id("NPCKillEvent"))) {
 	run_script(npc->u.scr.script,0,mvp_sd->bl.id,npc->bl.id); // NPCKillNPC
-	sprintf (tmp_output, "Event '"CL_WHITE"NPCKillEvent"CL_RESET"' executed.\n");
-	 ShowStatus(tmp_output);
+	 ShowStatus("Event '"CL_WHITE"NPCKillEvent"CL_RESET"' executed.\n");
 	}
 		} else {
-		 sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",	
+	ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",	
 		npc_event_doall_id("NPCKillEvent", mvp_sd->bl.id), "NPCKillEvent");
-	ShowStatus(tmp_output);
 	}
 }
 //lordalfa  
@@ -4166,8 +4164,7 @@ static int mob_readdb(void)
 			mob_db[class_].clothes_color=0; //Add for player monster dye - Valaris
 		}
 		fclose(fp);
-		sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n",filename[i]);
-		ShowStatus(tmp_output);
+		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",filename[i]);
 	}
 	return 0;
 }
@@ -4234,8 +4231,7 @@ static int mob_readdb_mobavail(void)
 		ln++;
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"db/mob_avail.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"db/mob_avail.txt");
 	return 0;
 }
 
@@ -4281,9 +4277,8 @@ static int mob_read_randommonster(void)
 			if((class_>1000 && class_<=MAX_MOB_DB) || class_==0)
 				mob_db[class_].summonper[i]=per;
 		}
-		fclose(fp);
-		sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n",mobfile[i]);
-		ShowStatus(tmp_output);
+		fclose(fp);\
+		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",mobfile[i]);
 	}
 	return 0;
 }
@@ -4452,8 +4447,7 @@ static int mob_readskilldb(void)
 			mob_db[mob_id].maxskill=i+1;
 		}
 		fclose(fp);
-		sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n",filename[x]);
-		ShowStatus(tmp_output);
+		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",filename[x]);
 	}
 	return 0;
 }
@@ -4504,8 +4498,7 @@ static int mob_readdb_race(void)
 		}
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/mob_race2_db.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/mob_race2_db.txt");
 	return 0;
 }
 
@@ -4673,8 +4666,7 @@ static int mob_read_sqldb(void)
 				mob_db[class_].head_buttom = 0;
 			}
 			mysql_free_result(sql_res);
-			sprintf(tmp_output,"Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, mob_db_name[i]);
-			ShowStatus(tmp_output);
+			ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, mob_db_name[i]);
 			ln = 0;
 		}
 	}

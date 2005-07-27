@@ -5170,8 +5170,7 @@ int status_readdb(void) {
 			break;
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/job_db1.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/job_db1.txt");
 
 	// JOBボ?ナス
 	memset(job_bonus,0,sizeof(job_bonus));
@@ -5194,8 +5193,7 @@ int status_readdb(void) {
 			job_bonus[atoi(split[0])][i-1]=atoi(split[i]);
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/job_db2.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/job_db2.txt");
 
 	// サイズ補正テ?ブル
 	for(i=0;i<3;i++)
@@ -5224,8 +5222,7 @@ int status_readdb(void) {
 		i++;
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/size_fix.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/size_fix.txt");
 
 	// 精?デ?タテ?ブル
 	for(i=0;i<5;i++){
@@ -5262,8 +5259,7 @@ int status_readdb(void) {
 		i++;
 	}
 	fclose(fp); //Lupus. close this file!!!
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/refine_db.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/refine_db.txt");
 
 	return 0;
 }

@@ -331,21 +331,17 @@ int chrif_connectack(int fd)
 		ShowFatalError("Connected to char-server failed %d.\n", RFIFOB(fd,2));
 		exit(1);
 	}
-	sprintf(tmp_output,"Successfully connected to Char Server (Connection: '"CL_WHITE"%d"CL_RESET"').\n",fd);
-	ShowStatus(tmp_output);
+	ShowStatus("Successfully connected to Char Server (Connection: '"CL_WHITE"%d"CL_RESET"').\n",fd);
 	chrif_state = 1;
 	chrif_connected=1;
 
 	chrif_sendmap(fd);
 
-	sprintf(tmp_output,"Event '"CL_WHITE"OnCharIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnCharIfInit"));
-	ShowStatus(tmp_output);
-	sprintf(tmp_output,"Event '"CL_WHITE"OnInterIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInit"));
-	ShowStatus(tmp_output);
+	ShowStatus("Event '"CL_WHITE"OnCharIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnCharIfInit"));
+	ShowStatus("Event '"CL_WHITE"OnInterIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInit"));
 	if(!char_init_done) {
 		char_init_done = 1;
-		sprintf(tmp_output,"Event '"CL_WHITE"OnInterIfInitOnce"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInitOnce"));
-		ShowStatus(tmp_output);
+		ShowStatus("Event '"CL_WHITE"OnInterIfInitOnce"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInitOnce"));
 	}
 
 	// <Agit> Run Event [AgitInit]
@@ -1017,9 +1013,7 @@ int chrif_reloadGMdb(void)
  */
 int chrif_recvgmaccounts(int fd)
 {
-	sprintf(tmp_output,"From login-server: receiving information of '"CL_WHITE"%d"CL_RESET"' GM accounts.\n", pc_read_gm_account(fd));
-	ShowInfo(tmp_output);
-	memset(tmp_output,'\0',sizeof(tmp_output));
+	ShowInfo("From login-server: receiving information of '"CL_WHITE"%d"CL_RESET"' GM accounts.\n", pc_read_gm_account(fd));
 	return 0;
 }
 
@@ -1188,8 +1182,7 @@ int chrif_disconnect_sub(struct map_session_data* sd,va_list va) {
 int chrif_disconnect(int fd) {
 	if(fd == char_fd) {
 		char_fd = 0;
-		sprintf(tmp_output,"Map Server disconnected from Char Server.\n\n");
-		ShowWarning(tmp_output);
+		ShowWarning("Map Server disconnected from Char Server.\n\n");
 		clif_foreachclient(chrif_disconnect_sub);
 		chrif_connected = 0;
 		// ëºÇÃmap éIÇÃÉfÅ[É^Çè¡Ç∑

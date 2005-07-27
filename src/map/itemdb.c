@@ -356,8 +356,7 @@ static int itemdb_read_randomitem()
 		}
 		fclose(fp);
 		if (*pc > 0) {
-			sprintf(tmp_output,"Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",*pc,fn);
-			ShowStatus(tmp_output);
+			ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",*pc,fn);
 		}
 	}
 
@@ -453,8 +452,7 @@ static int itemdb_read_itemgroup(void)
 		ln++;
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"db/item_group_db.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"db/item_group_db.txt");
 	return 0;
 }
 
@@ -495,8 +493,7 @@ static int itemdb_read_itemnametable(void)
 		p++;
 	}
 	aFree(buf);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\idnum2itemdisplaynametable.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\idnum2itemdisplaynametable.txt");
 
 	return 0;
 }
@@ -530,8 +527,7 @@ static int itemdb_read_cardillustnametable(void)
 		p++;
 	}
 	aFree(buf);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\num2cardillustnametable.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\num2cardillustnametable.txt");
 
 	return 0;
 }
@@ -642,8 +638,7 @@ static int itemdb_read_noequip(void)
 	}
 	fclose(fp);
 	if (ln > 0) {
-		sprintf(tmp_output,"Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"db/item_noequip.txt");
-		ShowStatus(tmp_output);
+		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"db/item_noequip.txt");
 	}	
 	return 0;
 }
@@ -817,8 +812,7 @@ static int itemdb_read_sqldb(void)
 				if (mysql_errno(&mmysql_handle)) {
 					ShowSQL("Database server error (retrieving rows from %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
 				}
-				sprintf(tmp_output,"Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, item_db_name[i]);
-				ShowStatus(tmp_output);
+				ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, item_db_name[i]);
 				ln = 0;
 			} else
 				ShowSQL("MySQL error (storing query result for %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
@@ -907,9 +901,8 @@ static int itemdb_readdb(void)
 				}
 				// check for bad prices that can possibly cause exploits
 				if (id->value_buy*75/100 < id->value_sell*124/100) {
-					sprintf (tmp_output, "Item %s [%d] buying:%d < selling:%d\n",
+					ShowWarning ("Item %s [%d] buying:%d < selling:%d\n",
 						id->name, id->nameid, id->value_buy*75/100, id->value_sell*124/100);
-					ShowWarning (tmp_output);
 				}
 			}
 			id->weight=atoi(str[6]);
@@ -944,8 +937,7 @@ static int itemdb_readdb(void)
 		}
 		fclose(fp);
 		if (ln > 0) {
-			sprintf(tmp_output,"Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,filename[i]);
-			ShowStatus(tmp_output);
+			ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,filename[i]);
 		}
 		ln=0;	// reset to 0
 	}

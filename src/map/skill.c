@@ -9314,8 +9314,7 @@ struct skill_unit_group_tickset *skill_unitgrouptickset_search(
 
 	if (j == -1) {
 		if(battle_config.error_log) {
-			sprintf (tmp_output, "skill_unitgrouptickset_search: tickset is full\n");
-			ShowWarning (tmp_output);
+			ShowWarning ("skill_unitgrouptickset_search: tickset is full\n");
 		}
 		j = id % MAX_SKILLUNITGROUPTICKSET;
 	}
@@ -10239,8 +10238,7 @@ int skill_readdb(void)
 			}
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_db.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_db.txt");
 
 	fp=fopen("db/skill_require_db.txt","r");
 	if(fp==NULL){
@@ -10320,8 +10318,7 @@ int skill_readdb(void)
 		skill_db[i].amount[9]=atoi(split[29]);
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_require_db.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_require_db.txt");
 
 	/* キャスティングデ?タベ?ス */
 	fp=fopen("db/skill_cast_db.txt","r");
@@ -10350,8 +10347,7 @@ int skill_readdb(void)
 		skill_split_atoi(split[4],skill_db[i].upkeep_time2);
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_cast_db.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_cast_db.txt");
 
 	/* スキルユニットデータベース */
 	fp = fopen("db/skill_unit_db.txt","r");
@@ -10391,8 +10387,7 @@ int skill_readdb(void)
 		k++;
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_unit_db.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_unit_db.txt");
 	skill_init_unit_layout();
 
 	/* 製造系スキルデ?タベ?ス */
@@ -10431,8 +10426,7 @@ int skill_readdb(void)
 				break;
 		}
 		fclose(fp);
-		sprintf(tmp_output,"Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,filename[m]);
-		ShowStatus(tmp_output);
+		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,filename[m]);
 	}
 
 	memset(skill_arrow_db,0,sizeof(skill_arrow_db));
@@ -10466,8 +10460,7 @@ int skill_readdb(void)
 			break;
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,"db/create_arrow_db.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,"db/create_arrow_db.txt");
 
 	memset(skill_abra_db,0,sizeof(skill_abra_db));
 	fp=fopen("db/abra_db.txt","r");
@@ -10496,8 +10489,7 @@ int skill_readdb(void)
 			break;
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,"db/abra_db.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",k,"db/abra_db.txt");
 
 	fp=fopen("db/skill_castnodex_db.txt","r");
 	if(fp==NULL){
@@ -10524,8 +10516,7 @@ int skill_readdb(void)
 		skill_split_atoi(split[2],skill_db[i].delaynodex);
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_castnodex_db.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_castnodex_db.txt");
 
 	fp=fopen("db/skill_nocast_db.txt","r");
 	if(fp==NULL){
@@ -10550,8 +10541,7 @@ int skill_readdb(void)
 		k++;
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_nocast_db");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_nocast_db");
 
 	return 0;
 }
@@ -10596,8 +10586,7 @@ static int skill_read_skillspamount(void)
 		p++;
 	}
 	aFree(buf);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\leveluseskillspamount.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","data\\leveluseskillspamount.txt");
 
 	return 0;
 }

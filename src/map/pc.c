@@ -829,10 +829,9 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	{	//Add IP field
 		unsigned char *ip = (unsigned char *) &session[sd->fd]->client_addr.sin_addr;
 		if (pc_isGM(sd))
-			sprintf(tmp_output,"GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', Connection: '"CL_WHITE"%d"CL_RESET"', Packet Ver: '"CL_WHITE"%d"CL_RESET"', IP: '"CL_WHITE"%d.%d.%d.%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, sd->fd, sd->packet_ver, ip[0],ip[1],ip[2],ip[3], pc_isGM(sd));
+			ShowInfo("GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', Connection: '"CL_WHITE"%d"CL_RESET"', Packet Ver: '"CL_WHITE"%d"CL_RESET"', IP: '"CL_WHITE"%d.%d.%d.%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, sd->fd, sd->packet_ver, ip[0],ip[1],ip[2],ip[3], pc_isGM(sd));
 		else
-			sprintf(tmp_output,"Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"', Connection: '"CL_WHITE"%d"CL_RESET"', Packet Ver: '"CL_WHITE"%d"CL_RESET"', IP: '"CL_WHITE"%d.%d.%d.%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, sd->fd, sd->packet_ver, ip[0],ip[1],ip[2],ip[3]);
-		ShowInfo(tmp_output);
+			ShowInfo("Character '"CL_WHITE"%s"CL_RESET"' logged in. (Account ID: '"CL_WHITE"%d"CL_RESET"', Connection: '"CL_WHITE"%d"CL_RESET"', Packet Ver: '"CL_WHITE"%d"CL_RESET"', IP: '"CL_WHITE"%d.%d.%d.%d"CL_RESET"').\n", sd->status.name, sd->status.account_id, sd->fd, sd->packet_ver, ip[0],ip[1],ip[2],ip[3]);
 	}
 	
 	if (script_config.event_script_type == 0) {
@@ -840,13 +839,11 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 		//printf("pc: OnPCLogin event done. (%d events)\n", npc_event_doall("OnPCLogin") );
 		if ((npc = npc_name2id(script_config.login_event_name))) {
 			run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLoginNPC
-			sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.login_event_name);
-			ShowStatus(tmp_output);
+			ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.login_event_name);
 		}
 	} else {
-		sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
+		ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
 			npc_event_doall_id(script_config.login_event_name, sd->bl.id), script_config.login_event_name);
-		ShowStatus(tmp_output);
 	}
 
 	// Send friends list
@@ -879,8 +876,7 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 			fclose(fp);
 		}
 		else if(battle_config.error_log) {
-			sprintf(tmp_output, "In function pc_atuhok() -> File '"CL_WHITE"%s"CL_RESET"' not found.\n", motd_txt);
-			ShowWarning(tmp_output);
+			ShowWarning("In function pc_atuhok() -> File '"CL_WHITE"%s"CL_RESET"' not found.\n", motd_txt);
 		}
 	}
 
@@ -3998,13 +3994,11 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 	struct npc_data *npc;
 	if ((npc = npc_name2id("PCBaseUpEvent"))) {
 	run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCLvlUPNPC
-	sprintf (tmp_output, "Event '"CL_WHITE"PCBaseUpEvent"CL_RESET"' executed.\n");
-	ShowStatus(tmp_output);
+	ShowStatus("Event '"CL_WHITE"PCBaseUpEvent"CL_RESET"' executed.\n");
 	}
 	} else {
-		sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
+			ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
 			npc_event_doall_id("PCBaseUpEvent", sd->bl.id), "PCBaseUpEvent");
-			ShowStatus(tmp_output);
 	}
 //LORDALFA - LVLUPEVENT
 
@@ -4758,13 +4752,11 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 					struct npc_data *npc;
 					if ((npc = npc_name2id(script_config.kill_event_name))) {
 						run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCKillNPC
-						sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.kill_event_name);
-						ShowStatus(tmp_output);
+						ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.kill_event_name);
 					}
 				} else {
-					sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
+					ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
 						npc_event_doall_id(script_config.kill_event_name, sd->bl.id), script_config.kill_event_name);
-					ShowStatus(tmp_output);
 				}
 			}
 			if (battle_config.pk_mode && ssd->status.manner >= 0) {
@@ -4798,13 +4790,11 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 			struct npc_data *npc;
 			if ((npc = npc_name2id(script_config.die_event_name))) {
 				run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id); // PCDeathNPC
-				sprintf (tmp_output, "Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.die_event_name);
-				ShowStatus(tmp_output);
+				ShowStatus("Event '"CL_WHITE"%s"CL_RESET"' executed.\n", script_config.die_event_name);
 			}
 		} else {
-			sprintf (tmp_output, "%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
+			ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
 				npc_event_doall_id(script_config.die_event_name, sd->bl.id), script_config.die_event_name);
-			ShowStatus(tmp_output);
 		}
 	}
 
@@ -7209,6 +7199,7 @@ int pc_read_gm_account(int fd)
  */
 int map_day_timer(int tid, unsigned int tick, int id, int data)
 {
+	char tmp_soutput[1024];
 	if (data == 0 && battle_config.day_duration <= 0)	// if we want a day
 		return 0;
 	
@@ -7218,8 +7209,8 @@ int map_day_timer(int tid, unsigned int tick, int id, int data)
 		for (i = 0; i < map_num; i++)
 			clif_clearweather(i);
 
-		strcpy(tmp_output, (data == 0) ? msg_txt(502) : msg_txt(60)); // The day has arrived!
-		intif_GMmessage(tmp_output, strlen(tmp_output) + 1, 0);
+		strcpy(tmp_soutput, (data == 0) ? msg_txt(502) : msg_txt(60)); // The day has arrived!
+		intif_GMmessage(tmp_soutput, strlen(tmp_soutput) + 1, 0);
 	}
 
 	return 0;
@@ -7232,6 +7223,7 @@ int map_day_timer(int tid, unsigned int tick, int id, int data)
  */
 int map_night_timer(int tid, unsigned int tick, int id, int data)
 {
+	char tmp_soutput[1024];
 	struct map_session_data *pl_sd;
 
 	if (data == 0 && battle_config.night_duration <= 0)	// if we want a night
@@ -7244,8 +7236,8 @@ int map_night_timer(int tid, unsigned int tick, int id, int data)
 			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth  && !map[pl_sd->bl.m].flag.indoors)
 				clif_weather1(i, 474 + battle_config.night_darkness_level);
 		}
-		strcpy(tmp_output, (data == 0) ? msg_txt(503) : msg_txt(59)); // The night has fallen...
-		intif_GMmessage(tmp_output, strlen(tmp_output) + 1, 0);
+		strcpy(tmp_soutput, (data == 0) ? msg_txt(503) : msg_txt(59)); // The night has fallen...
+		intif_GMmessage(tmp_soutput, strlen(tmp_soutput) + 1, 0);
 	}
 
 	return 0;
@@ -7348,8 +7340,7 @@ int pc_readdb(void)
 		}
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/exp.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/exp.txt");
 
 	// スキルツリ?
 	memset(skill_tree,0,sizeof(skill_tree));
@@ -7394,8 +7385,7 @@ int pc_readdb(void)
 		}
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_tree.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/skill_tree.txt");
 
 	// ?性修正テ?ブル
 	for(i=0;i<4;i++)
@@ -7441,8 +7431,7 @@ int pc_readdb(void)
 		}
 	}
 	fclose(fp);
-	sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/attr_fix.txt");
-	ShowStatus(tmp_output);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/attr_fix.txt");
 
 	// スキルツリ?
 	memset(statp,0,sizeof(statp));
@@ -7450,7 +7439,7 @@ int pc_readdb(void)
 	j=45;	// base points
 	fp=fopen("db/statpoint.txt","r");
 	if(fp == NULL){
-		sprintf(tmp_output,"Can't read '"CL_WHITE"%s"CL_RESET"'... Generating DB.\n","db/statpoint.txt");
+		ShowStatus("Can't read '"CL_WHITE"%s"CL_RESET"'... Generating DB.\n","db/statpoint.txt");
 		//return 1;
 	} else {
 		while(fgets(line, sizeof(line)-1, fp)){
@@ -7464,14 +7453,13 @@ int pc_readdb(void)
 			i++;
 		}
 		fclose(fp);
-		sprintf(tmp_output,"Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/statpoint.txt");
+		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/statpoint.txt");
 	}
 	// generate the remaining parts of the db if necessary
 	for (; i < MAX_LEVEL; i++) {
 		j += (i+15)/5;
 		statp[i] = j;		
 	}
-	ShowStatus(tmp_output);
 
 	return 0;
 }

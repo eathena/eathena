@@ -7584,8 +7584,7 @@ int clif_timedout(struct map_session_data *sd)
 {
 	nullpo_retr(0, sd);
 
-	sprintf(tmp_output,"%sCharacter with Account ID '"CL_WHITE"%d"CL_RESET"' timed out.\n", (pc_isGM(sd))?"GM ":"", sd->bl.id);
-	ShowInfo(tmp_output);
+	ShowInfo("%sCharacter with Account ID '"CL_WHITE"%d"CL_RESET"' timed out.\n", (pc_isGM(sd))?"GM ":"", sd->bl.id);
 	map_quit(sd);
 	clif_authfail_fd(sd->fd,3); // Even if player is not on we still send anyway
 	clif_setwaitclose(sd->fd); // Set session to EOF
@@ -8117,7 +8116,7 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 				map_quit(old_sd);
 				session[fd]->eof = 1;
 				clif_authfail_fd(old_sd->fd, 15);
-				return 0;
+				return;
 			}
 
 			clif_authfail_fd(fd, 8); // still recognizes last connection
@@ -8278,8 +8277,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 if ((npc = npc_name2id("PCLoadMapEvent"))) {  
 	if(npc->bl.m == sd->bl.m) {
 		run_script(npc->u.scr.script,0,sd->bl.id,npc->bl.id);
-		sprintf (tmp_output, "Event '"CL_WHITE"PCLoadMapEvent"CL_RESET"' executed.\n");    
-		ShowStatus(tmp_output);
+		ShowStatus("Event '"CL_WHITE"PCLoadMapEvent"CL_RESET"' executed.\n");
 	}
 }
 
@@ -11502,20 +11500,19 @@ int clif_parse(int fd) {
 		if (sd && sd->state.auth) {
 			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]
 			if (sd->status.name != NULL)
-				sprintf(tmp_output,"%sCharacter '"CL_WHITE"%s"CL_RESET"' logged off.\n", (pc_isGM(sd))?"GM ":"",sd->status.name); // Player logout display [Valaris]
+				ShowInfo("%sCharacter '"CL_WHITE"%s"CL_RESET"' logged off.\n", (pc_isGM(sd))?"GM ":"",sd->status.name); // Player logout display [Valaris]
 			else
-				sprintf(tmp_output,"%sCharacter with Account ID '"CL_WHITE"%d"CL_RESET"' logged off.\n", (pc_isGM(sd))?"GM ":"", sd->bl.id); // Player logout display [Yor]
+				ShowInfo("%sCharacter with Account ID '"CL_WHITE"%d"CL_RESET"' logged off.\n", (pc_isGM(sd))?"GM ":"", sd->bl.id); // Player logout display [Yor]
 		} else if (sd) { // not authentified! (refused by char-server or disconnect before to be authentified)
-			sprintf(tmp_output,"Player not authenticated with Account ID '"CL_WHITE"%d"CL_RESET"' logged off.\n", sd->bl.id); // Player logout display [Yor]
+			ShowInfo("Player not authenticated with Account ID '"CL_WHITE"%d"CL_RESET"' logged off.\n", sd->bl.id); // Player logout display [Yor]
 //			if (chrif_isconnect())
 //				clif_quitsave(fd, sd);
 			map_deliddb(&sd->bl); // account_id has been included in the DB before auth answer [Yor]
 //			sd = 0;
 		} else {
 			unsigned char *ip = (unsigned char *) &session[fd]->client_addr.sin_addr;
-			sprintf(tmp_output,"Player not identified with IP '"CL_WHITE"%d.%d.%d.%d"CL_RESET"' logged off.\n", ip[0],ip[1],ip[2],ip[3]);
+			ShowInfo("Player not identified with IP '"CL_WHITE"%d.%d.%d.%d"CL_RESET"' logged off.\n", ip[0],ip[1],ip[2],ip[3]);
 		}
-		ShowInfo(tmp_output);
 		close(fd);
 //		if (sd) // ’Ç‰Á
 //			map_deliddb(&sd->bl); // ’Ç‰Á
@@ -11978,8 +11975,7 @@ static int packetdb_readdb(void)
 		if(cmd<=0 || cmd>=MAX_PACKET_DB)
 			continue;
 		if(str[1]==NULL){
-			sprintf(tmp_output, "packet_db: packet len error\n");
-			ShowError(tmp_output);
+			ShowError("packet_db: packet len error\n");
 			continue;
 		}
 		k = atoi(str[1]);
@@ -12012,8 +12008,7 @@ static int packetdb_readdb(void)
 			clif_config.connect_cmd[packet_ver] = cmd;
 			
 		if(str[3]==NULL){
-			sprintf(tmp_output, "packet_db: packet error\n");
-			ShowError(tmp_output);
+			ShowError("packet_db: packet error\n");
 			exit(1);
 		}
 		for(j=0,p2=str[3];p2;j++){
@@ -12029,9 +12024,8 @@ static int packetdb_readdb(void)
 //		if(packet_db[clif_config.packet_db_ver][cmd].len > 2 /* && packet_db[cmd].pos[0] == 0 */)
 //			printf("packet_db ver %d: %d 0x%x %d %s %p\n",packet_ver,ln,cmd,packet_db[packet_ver][cmd].len,str[2],packet_db[packet_ver][cmd].func);
 	}
-
-	sprintf(tmp_output,"Done reading packet database from '"CL_WHITE"%s"CL_RESET"'.\n", "db/packet_db.txt");
-	ShowStatus(tmp_output);
+	
+	ShowStatus("Done reading packet database from '"CL_WHITE"%s"CL_RESET"'.\n", "db/packet_db.txt");
 	return 0;
 }
 
