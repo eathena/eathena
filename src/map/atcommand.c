@@ -270,6 +270,8 @@ ACMD_FUNC(fakename); //[Valaris]
 ACMD_FUNC(size); //[Valaris]
 ACMD_FUNC(showexp); //moved from charcommand [Kevin]
 ACMD_FUNC(showdelay); //moved from charcommand [Kevin]
+ACMD_FUNC(autotrade);// durf
+ACMD_FUNC(changegm);// durf
 
 /*==========================================
  *AtCommandInfo atcommand_info[]\‘¢‘Ì‚Ì’è‹`
@@ -564,6 +566,8 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Size,				"@size",			20, atcommand_size },
 	{ AtCommand_ShowExp,					"@showexp", 					0, atcommand_showexp},
 	{ AtCommand_ShowDelay,					"@showdelay",					0, atcommand_showdelay},
+	{ AtCommand_AutoTrade,			"@autotrade",		10,	atcommand_autotrade }, // durf
+	{ AtCommand_ChangeGM,			"@changegm",		10,	atcommand_changegm }, // durf
 
 
 // add new commands before this line
@@ -7281,6 +7285,77 @@ atcommand_changelook(const int fd, struct map_session_data* sd,
 
 	return 0;
 }
+
+/*==========================================
+ *Turns on/off Autotrade for a specific player
+ *------------------------------------------
+ *by durf (changed by Lupus)
+ */
+int
+atcommand_autotrade(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	nullpo_retr(-1, sd);
+	if (sd->special_state.autotrade) 
+	{
+		sd->special_state.autotrade = 0;
+		clif_displaymessage(fd, "Autotrade is now off.");
+	}
+	else 
+	{
+		sd->special_state.autotrade = 1;
+		clif_displaymessage(fd, "Autotrade is now on.");
+		clif_authfail_fd(fd, 15);
+	}
+	return 0;  
+}   
+
+
+/*==========================================
+ * Changes Master of your Guild to a specified guild member
+ *------------------------------------------
+ *by durf (changed by Lupus)
+ */
+int
+atcommand_changegm(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	nullpo_retr(-1, sd);
+	struct guild *g;
+	
+	if ((g=guild_search(sd->status.guild_id))!=NULL)
+	{
+	//printf("guild...%s....%s\n",sd->status.name,g->master);
+	if (strcmp(g->master,sd->status.name)) 
+	{
+		clif_displaymessage(fd, "You aren't a guild master.");
+		return -1;
+	} 
+	if (strlen(message)==0)
+	{
+		clif_displaymessage(fd, "Command usage: @changegm <guildmember>");
+		return -1;
+	}
+	
+	/*sprintf(tmp_sql, "SELECT `account_id` FROM `guild` WHERE `guildid`=%d",sd->status.guild_id);
+	if (mysql_query(&mmysql_handle, tmp_sql)) {
+		printf("DB server Error- \n");
+	}*/
+	guild_change_memberposition(sd->status.guild_id,2000000,sd->char_id,0);
+	//temp plug: 
+	strcpy(g->master,"gggg");
+
+	}
+	else
+	{
+		clif_displaymessage(fd, "You aren't a guild member.");
+		return -1;
+	}
+	
+	return 0;  
+}   
 
 /*==========================================
  *Turns on/off AutoLoot for a specific player

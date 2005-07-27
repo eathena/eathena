@@ -246,6 +246,8 @@ enum AtCommandType {
 	AtCommand_Size, // [Valaris]
 	AtCommand_ShowDelay,
 	AtCommand_ShowExp,
+	AtCommand_AutoTrade,//durf
+	AtCommand_ChangeGM,//durf
 	// end <- Ahem, guys, don't place AtCommands after AtCommand_Unknown! [Skotlex]
 	AtCommand_Unknown,
 	AtCommand_MAX

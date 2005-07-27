@@ -1,4 +1,10 @@
 Date	Added
+07/27
+	* Added ATCommand @AutoTrade. You open a shop, setup your goods. Then use @AUTOTRADE.
+	  Your will be closed, but your merchant would remain in the game. So you can vending
+	  without your client ON. (originally by Fantik, changed by Lupus)
+	* Added ATCommand @ChangeGM. Your Guild Master can set another GM of the guild.
+	  Note: It works, but have to be optimized, WIP. (originally by Fantik, changed by Lupus)
 07/26
 	* Updated the packet-version guessing code, hopefully it does a better job now [Skotlex]
 	* Fixed the mob bug where they "stick to you" and won't let you escape [Skotlex]

@@ -137,6 +137,9 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 			z = 0;
 		}
 	}
+
+	//check for @AUTOTRADE users [durf]
+	if (sd->special_state.autotrade) storage_storage_save(sd);
 }
 
 /*==========================================

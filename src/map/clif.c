@@ -8110,6 +8110,16 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 		
 		if ((old_sd = map_id2sd(account_id)) != NULL)
 		{	// if same account already connected, we disconnect the 2 sessions
+
+			//Check for @AUTOTRADE ON [durf]
+			if (old_sd->special_state.autotrade) {
+				old_sd->special_state.autotrade=0;
+				map_quit(old_sd);
+				session[fd]->eof = 1;
+				clif_authfail_fd(old_sd->fd, 15);
+				return 0;
+			}
+
 			clif_authfail_fd(fd, 8); // still recognizes last connection
 			clif_authfail_fd(old_sd->fd, 2); // same id
 //			if (sd != 0) <- this can't happen, already checked for sd up in the function! [Skotlex]

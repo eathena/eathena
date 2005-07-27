@@ -4,7 +4,7 @@
 //= Nana, fixes by Poki
 //= finished, optimized and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.6
+//= 1.7
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -20,6 +20,7 @@
 //= 1.6 Added a func which prevent advanced classes passing
 //= 2nd Job Quests again. It also guides adv classes where
 //= to go. [Lupus]
+//= 1.7 On reborn reset some Job Quest Vars and Reset Girls Counter [Lupus]
 //============================================================ 
 
 
@@ -251,6 +252,8 @@ L_CHANGE:
 	mes "Good luck.";
 	jobchange 24; //Novice High
 	resetlvl(1);
+	callfunc "F_ClearJobVar";
+	set RES_SKILL,0; //we reset Reset Skills NPC counter
 	next;
 	if(ADVJOB == Job_Assassin + 4001 || ADVJOB == Job_Rogue + 4001 ) goto L_Mor;
 	if(ADVJOB == Job_Blacksmith + 4001 || ADVJOB == Job_Alchem + 4001 ) goto L_Alb;
