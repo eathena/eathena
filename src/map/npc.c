@@ -699,7 +699,7 @@ int npc_event (struct map_session_data *sd, const char *eventname, int mob_kill)
 
 	xs=nd->u.scr.xs;
 	ys=nd->u.scr.ys;
-	if (xs>=0 && ys>=0 ) {
+	if (xs>=0 && ys>=0 && (strcmp(((eventname)+strlen(eventname)-6),"Global") != 0) )        {
 		if (nd->bl.m != sd->bl.m )
 			return 1;
 		if ( xs>0 && (sd->bl.x<nd->bl.x-xs/2 || nd->bl.x+xs/2<sd->bl.x) )
