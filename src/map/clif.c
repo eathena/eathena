@@ -8996,45 +8996,6 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
 	}
 }
 
-//-------------------------------------------------------//
-//   Lordalfa - Paperboy - To whisper NPC commands       //
-//-------------------------------------------------------//
-struct npc_data *npc;
-if ((npc = npc_name2id((const char*)RFIFOP(fd,4)))) {
-        char split_data[10][50];
-        int j,blocco=0;
-        int i = 0;          
-     
-   
-   sprintf(tempmes, "%s", (const char*)RFIFOP(fd,28));  
-   for( j=0;tempmes[j]!='\0';j++)
-{
-     if(tempmes[j]!=',') split_data[i][j-blocco]=tempmes[j];
-     else {
-          split_data[i][j-blocco]='\0';
-          blocco=j+1;
-             i++;
-     }
-} // Splits the message using ',' as separators
-split_data[i][j-blocco]='\0';
-for (j=0;j<=10;j++)
-{
-       sprintf(tempmes, "@whispervar%d$", j);
-   set_var(sd,tempmes,"");        
-   }// Zeroes the previous temporary variables
-   for (j=0;j<=i;j++)
-   {
-       sprintf(tempmes, "@whispervar%d$", j);
-   set_var(sd,tempmes,(char *) split_data[j]);
-   }//Sets Variables to use in the NPC
-   sprintf(tempmes, "%s::OnWhisperGlobal", npc->name);
-   if (npc_event(sd,tempmes,0)) return;     // Calls the NPC label                
-}
-//-------------------------------------------------------//
-//  Lordalfa - Paperboy - END - NPC Whisper Commands     //
-//-------------------------------------------------------//
-
-
 /*==========================================
  * Transmission of a wisp (S 0096 <len>.w <nick>.24B <message>.?B)
  *------------------------------------------
@@ -9042,7 +9003,11 @@ for (j=0;j<=10;j++)
 void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <nick>.24B <message>.?B // rewritten by [Yor]
 	char *gm_command;
 	struct map_session_data *dstsd;
-	int i;
+	int i=0;
+	struct npc_data *npc;
+	char split_data[10][50];
+	int j=0,k=0;
+	char *whisper_tmp;      
 
 	//printf("clif_parse_Wis: message: '%s'.\n", RFIFOP(fd,28));
 
@@ -9065,6 +9030,53 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 	//Chat Logging type 'W' / Whisper
 	log_chat("W", 0, sd->status.char_id, sd->status.account_id, (char*)sd->mapname, sd->bl.x, sd->bl.y, (char*)RFIFOP(fd, 4), (char*)RFIFOP(fd, 28));
 
+
+	//-------------------------------------------------------//
+	//   Lordalfa - Paperboy - To whisper NPC commands       //
+	//-------------------------------------------------------//
+	if ((npc = npc_name2id((const char*)RFIFOP(fd,4))))
+	{
+		
+		whisper_tmp=aCallocA(strlen(RFIFOP(fd,28))+1,sizeof(char));
+		whisper_tmp[0]=0;
+	   
+		sprintf(whisper_tmp, "%s", (const char*)RFIFOP(fd,28));  
+		for( j=0;whisper_tmp[j]!='\0';j++)
+		{
+			if(whisper_tmp[j]!=',')
+			{
+				split_data[i][j-k]=whisper_tmp[j];
+			}
+			else
+			{
+				split_data[i][j-k]='\0';
+				k=j+1;
+				i++;
+			}
+		} // Splits the message using ',' as separators
+		split_data[i][j-k]='\0';
+		
+		aFree(whisper_tmp);
+		whisper_tmp=aCallocA(15,sizeof(char));
+		whisper_tmp[0]=0;
+		
+		for (j=0;j<=10;j++)
+		{
+			sprintf(whisper_tmp, "@whispervar%d$", j);
+			set_var(sd,whisper_tmp,(char *) split_data[j]);        
+		}//You don't need to zero them, just reset them [Kevin]
+		
+		aFree(whisper_tmp);
+		whisper_tmp=aCallocA(strlen(npc->name)+18,sizeof(char));
+		whisper_tmp[0]=0;
+		
+		sprintf(whisper_tmp, "%s::OnWhisperGlobal", npc->name);
+		if (npc_event(sd,whisper_tmp,0))
+			return;     // Calls the NPC label    
+			
+		aFree(whisper_tmp);            
+	}
+	
 	// searching destination character
 	dstsd = map_nick2sd((char*)RFIFOP(fd,4));
 	// player is not on this map-server
