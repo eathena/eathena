@@ -1192,7 +1192,7 @@ int chrif_disconnect(int fd) {
 		do_final_storage();
 		do_init_storage();
 	}
-	close(fd);
+//	close(fd); //Quote from End of Exam: "And close(fd) in chrif_disconnect() and clif_waitclose() do not need since the socket will be closed in clif_parse() or chrif_parse(). This might be link to crash if you use lazy OS." [Skotlex]
 	return 0;
 }
 

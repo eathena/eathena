@@ -1693,7 +1693,7 @@ static int clif_waitclose(int tid, unsigned int tick, int id, int data) {
 		ShowNotice("clif_waitclose timer: tid %d, session %d\n", tid, id);
 	}
 
-	close(id);
+//	close(id); //Quote from End of Exam: "And close(fd) in chrif_disconnect() and clif_waitclose() do not need since the socket will be closed in clif_parse() or chrif_parse(). This might be link to crash if you use lazy OS." [Skotlex]
 	return 0;
 }
 

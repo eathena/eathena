@@ -1164,8 +1164,8 @@ void socket_init (void)
 
 
 bool session_isValid(int fd)
-{
-	return ( (fd>=0) && (fd<FD_SETSIZE) && (NULL!=session[fd]) );
+{	//End of Exam has pointed out that fd==0 is actually an unconnected session! [Skotlex]
+	return ( (fd>0) && (fd<FD_SETSIZE) && (NULL!=session[fd]) );
 }
 
 bool session_isActive(int fd)
