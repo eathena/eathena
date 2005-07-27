@@ -7,6 +7,7 @@ Date	Added
 	  without your client ON. (originally by Fantik, changed by Lupus)
 	* Added ATCommand @ChangeGM. Your Guild Master can set another GM of the guild.
 	  Note: It works, but have to be optimized, WIP. (originally by Fantik, changed by Lupus)
+	* Added lordalfa's npc whisper system [massdriller] 
 07/26
 	* Updated the packet-version guessing code, hopefully it does a better job now [Skotlex]
 	* Fixed the mob bug where they "stick to you" and won't let you escape [Skotlex]

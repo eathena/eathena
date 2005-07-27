@@ -8996,6 +8996,45 @@ void clif_parse_Restart(int fd, struct map_session_data *sd) {
 	}
 }
 
+//-------------------------------------------------------//
+//   Lordalfa - Paperboy - To whisper NPC commands       //
+//-------------------------------------------------------//
+struct npc_data *npc;
+if ((npc = npc_name2id((const char*)RFIFOP(fd,4)))) {
+        char split_data[10][50];
+        int j,blocco=0;
+        int i = 0;          
+     
+   
+   sprintf(tempmes, "%s", (const char*)RFIFOP(fd,28));  
+   for( j=0;tempmes[j]!='\0';j++)
+{
+     if(tempmes[j]!=',') split_data[i][j-blocco]=tempmes[j];
+     else {
+          split_data[i][j-blocco]='\0';
+          blocco=j+1;
+             i++;
+     }
+} // Splits the message using ',' as separators
+split_data[i][j-blocco]='\0';
+for (j=0;j<=10;j++)
+{
+       sprintf(tempmes, "@whispervar%d$", j);
+   set_var(sd,tempmes,"");        
+   }// Zeroes the previous temporary variables
+   for (j=0;j<=i;j++)
+   {
+       sprintf(tempmes, "@whispervar%d$", j);
+   set_var(sd,tempmes,(char *) split_data[j]);
+   }//Sets Variables to use in the NPC
+   sprintf(tempmes, "%s::OnWhisperGlobal", npc->name);
+   if (npc_event(sd,tempmes,0)) return;     // Calls the NPC label                
+}
+//-------------------------------------------------------//
+//  Lordalfa - Paperboy - END - NPC Whisper Commands     //
+//-------------------------------------------------------//
+
+
 /*==========================================
  * Transmission of a wisp (S 0096 <len>.w <nick>.24B <message>.?B)
  *------------------------------------------
