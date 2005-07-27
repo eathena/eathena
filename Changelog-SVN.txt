@@ -1,5 +1,6 @@
 Date	Added
 07/27
+	* Fixed a Segmentation Fault with friends list loading. [Kevin]
 	* Fixed the npc whisper system. [Kevin]
 	* Fixed most of the matrix bug, note to devs: Don't use tmp_output anymore! [Kevin]
 	* Fixed a small compile warning with previous fix. [Kevin]

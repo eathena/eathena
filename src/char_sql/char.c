@@ -1134,9 +1134,13 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	{
 		for(i = 0; (sql_row = mysql_fetch_row(sql_res)) && i<MAX_FRIENDS; i++)
 		{
-			p->friends[i].account_id = atoi(sql_row[0]);
-			p->friends[i].char_id = atoi(sql_row[1]);
-			strncpy(p->friends[i].name, sql_row[2], NAME_LENGTH-1); //The -1 is to avoid losing the ending \0 [Skotlex]
+			if(sql_row) { //need to check if we have sql_row before we check if we have sql_row[2] because we don't want a segfault
+				if(sql_row[2]) {
+					p->friends[i].account_id = atoi(sql_row[0]);
+					p->friends[i].char_id = atoi(sql_row[1]);
+					strncpy(p->friends[i].name, sql_row[2], NAME_LENGTH-1); //The -1 is to avoid losing the ending \0 [Skotlex]
+				}
+			}
 		}
 		mysql_free_result(sql_res);
 		strcat (t_msg, " friends");
