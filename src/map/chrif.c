@@ -93,6 +93,9 @@ static char userid[NAME_LENGTH], passwd[NAME_LENGTH];
 static int chrif_state = 0;
 static int char_init_done = 0;
 
+//This define should spare writing the check in every function. [Skotlex]
+#define chrif_check(a) { if(!chrif_isconnect()) return a; }
+
 // Ý’èƒtƒ@ƒCƒ‹“Ç‚Ýž‚ÝŠÖŒW
 /*==========================================
  *
@@ -137,7 +140,7 @@ void chrif_setport(int port)
  */
 int chrif_isconnect(void)
 {
-	return chrif_state == 2;
+	return (char_fd > 0 && session[char_fd] != NULL && chrif_state == 2);
 }
 
 /*==========================================
@@ -148,8 +151,7 @@ int chrif_save(struct map_session_data *sd)
 {
 	nullpo_retr(-1, sd);
 
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	pc_makesavestatus(sd);
 
@@ -272,8 +274,7 @@ int chrif_changemapserver(struct map_session_data *sd, char *name, int x, int y,
 
 	nullpo_retr(-1, sd);
 
-	if( !sd || char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	s_ip = 0;
 	for(i = 0; i < fd_max; i++)
@@ -380,13 +381,10 @@ int chrif_authreq(struct map_session_data *sd)
 
 	if(!sd || !sd->bl.id || !sd->login_id1)
 		return -1;
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	for(i = 0; i < fd_max; i++)
 		if (session[i] && session[i]->session_data == sd) {
-			if (sd->bl.id < 0) //Temp debug... [Skotlex]
-				ShowDebug("Warning! Sending to char-server invalid account information (Char Id: %d, Account: %d)\n", sd->char_id, sd->bl.id);
 			WFIFOW(char_fd, 0) = 0x2afc;
 			WFIFOL(char_fd, 2) = sd->bl.id;
 			WFIFOL(char_fd, 6) = sd->char_id;
@@ -412,8 +410,7 @@ int chrif_charselectreq(struct map_session_data *sd)
 
 	if( !sd || !sd->bl.id || !sd->login_id1 )
 		return -1;
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	s_ip = 0;
 	for(i = 0; i < fd_max; i++)
@@ -440,8 +437,7 @@ int chrif_searchcharid(int char_id)
 {
 	if( !char_id )
 		return -1;
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	WFIFOW(char_fd,0) = 0x2b08;
 	WFIFOL(char_fd,2) = char_id;
@@ -459,8 +455,7 @@ int chrif_changegm(int id, const char *pass, int len)
 	if (battle_config.etc_log)
 		ShowInfo("chrif_changegm: account: %d, password: '%s'.\n", id, pass);
 
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	WFIFOW(char_fd,0) = 0x2b0a;
 	WFIFOW(char_fd,2) = len + 8;
@@ -480,8 +475,7 @@ int chrif_changeemail(int id, const char *actual_email, const char *new_email)
 	if (battle_config.etc_log)
 		ShowInfo("chrif_changeemail: account: %d, actual_email: '%s', new_email: '%s'.\n", id, actual_email, new_email);
 
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	WFIFOW(char_fd,0) = 0x2b0c;
 	WFIFOL(char_fd,2) = id;
@@ -505,8 +499,7 @@ int chrif_changeemail(int id, const char *actual_email, const char *new_email)
  */
 int chrif_char_ask_name(int id, char * character_name, short operation_type, int year, int month, int day, int hour, int minute, int second)
 {
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	WFIFOW(char_fd, 0) = 0x2b0e;
 	WFIFOL(char_fd, 2) = id; // account_id of who ask (for answer) -1 if nobody
@@ -531,8 +524,7 @@ int chrif_char_ask_name(int id, char * character_name, short operation_type, int
  *------------------------------------------
  */
 int chrif_changesex(int id, int sex) {
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	WFIFOW(char_fd,0) = 0x2b11;
 	WFIFOW(char_fd,2) = 9;
@@ -765,8 +757,7 @@ int chrif_saveaccountreg2(struct map_session_data *sd)
 	int p, j;
 	nullpo_retr(-1, sd);
 
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	p = 8;
 	for(j = 0; j < sd->status.account_reg2_num; j++) {
@@ -980,8 +971,7 @@ int chrif_chardisconnect(struct map_session_data *sd)
 {
 	nullpo_retr(-1, sd);
 
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	WFIFOW(char_fd,0)=0x2b18;
 	WFIFOL(char_fd,2)=sd->status.account_id;
@@ -998,8 +988,7 @@ int chrif_chardisconnect(struct map_session_data *sd)
  */
 int chrif_reloadGMdb(void)
 {
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	WFIFOW(char_fd,0) = 0x2af7;
 	WFIFOSET(char_fd, 2);
@@ -1023,8 +1012,7 @@ int chrif_recvgmaccounts(int fd)
  */
 int chrif_reqfamelist(void)
 {
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	WFIFOW(char_fd,0) = 0x2b1a;
 	WFIFOSET(char_fd, 2);
@@ -1075,8 +1063,7 @@ int chrif_recvfamelist(int fd)
 	FILE *fp;
 	int i;
 
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	WFIFOW(char_fd,0) = 0x2b16;
 	WFIFOW(char_fd,2) = base_rate;
@@ -1111,8 +1098,7 @@ int chrif_recvfamelist(int fd)
 
 int chrif_char_offline(struct map_session_data *sd)
 {
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	WFIFOW(char_fd,0) = 0x2b17;
 	WFIFOL(char_fd,2) = sd->status.char_id;
@@ -1127,8 +1113,7 @@ int chrif_char_offline(struct map_session_data *sd)
  *-----------------------------------------
  */
 int chrif_flush_fifo(void) {
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	set_nonblocking(char_fd, 0);
 	flush_fifos();
@@ -1142,8 +1127,7 @@ int chrif_flush_fifo(void) {
  *-----------------------------------------
  */
 int chrif_char_reset_offline(void) {
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	WFIFOW(char_fd,0) = 0x2b18;
 	WFIFOSET(char_fd,2);
@@ -1158,8 +1142,7 @@ int chrif_char_reset_offline(void) {
 
 int chrif_char_online(struct map_session_data *sd)
 {
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() )
-		return -1;
+	chrif_check(-1);
 
 	WFIFOW(char_fd,0) = 0x2b19;
 	WFIFOL(char_fd,2) = sd->status.char_id;
@@ -1181,7 +1164,7 @@ int chrif_disconnect_sub(struct map_session_data* sd,va_list va) {
 
 int chrif_disconnect(int fd) {
 	if(fd == char_fd) {
-		char_fd = 0;
+		char_fd = -1; //char_fd started as -1, I think it is best to return it to -1, not 0 [Skotlex]
 		ShowWarning("Map Server disconnected from Char Server.\n\n");
 		clif_foreachclient(chrif_disconnect_sub);
 		chrif_connected = 0;
@@ -1313,8 +1296,7 @@ int send_users_tochar(int tid, unsigned int tick, int id, int data) {
 	int users = 0, i;
 	struct map_session_data *sd;
 
-	if( char_fd < 1 || session[char_fd] == NULL || !chrif_isconnect() ) // Thanks to Toster
-		return 0;
+	chrif_check(-1);
 
 	WFIFOW(char_fd,0) = 0x2aff;
 	for (i = 0; i < fd_max; i++) {
@@ -1349,7 +1331,7 @@ int check_connect_char_server(int tid, unsigned int tick, int id, int data) {
 		realloc_fifo(char_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 
 		chrif_connect(char_fd);
-		chrif_connected = chrif_isconnect();
+		chrif_connected = (chrif_state == 2);
 #ifndef TXT_ONLY
 		srvinfo = 0;
 	} else {

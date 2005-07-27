@@ -5208,7 +5208,7 @@ int clif_wis_message(int fd, char *nick, char *mes, int mes_len) // R 0097 <len>
 //	printf("clif_wis_message(%d, %s, %s)\n", fd, nick, mes);
 
 	WFIFOW(fd,0) = 0x97;
-	WFIFOW(fd,2) = mes_len + 24 + 4;
+	WFIFOW(fd,2) = mes_len + NAME_LENGTH + 4;
 	memcpy(WFIFOP(fd,4), nick, NAME_LENGTH);
 	memcpy(WFIFOP(fd,28), mes, mes_len);
 	WFIFOSET(fd,WFIFOW(fd,2));

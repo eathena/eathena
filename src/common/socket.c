@@ -458,7 +458,7 @@ int make_connection(long ip,int port)
 
 	result = connect(fd, (struct sockaddr *)(&server_address), sizeof(struct sockaddr_in));
 
-	// cool, what do you do if connect fails (result<0)?
+	// cool, what do you do if connect fails (result<0)? <- so true, why nothing is done?? @.@ [Skotlex]
 	/*if (result == -1) {
 		//perror("connect");
 		return result;
