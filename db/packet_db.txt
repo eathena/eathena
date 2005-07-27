@@ -681,7 +681,7 @@ packet_ver: 17
 
 //2005-06-28aSakexe by Sara
 packet_ver: 18
-0x009b,32,wanttoconnection,9:15:23:30:31
+0x009b,32,wanttoconnection,9:15:23:27:31
 0x0089,13,ticksend,9
 0x00a7,11,walktoxy,8
 0x0190,24,actionrequest,11:23

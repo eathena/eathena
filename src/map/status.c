@@ -4337,8 +4337,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				}
 				break;
 			
-			case SC_GOSPEL: //Clear buffs for other chars (no need on caster since he is unbuffab le [Skotlex]
-				if(sc_data[type].val3 != BCT_SELF)
+			case SC_GOSPEL: //Clear the buffs from other chars.
+				if(sc_data[type].val4 != BCT_SELF)
 					calc_flag = 1;
 				break;
 

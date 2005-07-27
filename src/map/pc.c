@@ -4739,6 +4739,13 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 
 	pc_stop_walking(sd,0);
 	skill_castcancel(&sd->bl,0);	// ‰r¥‚Ì’†Ž~
+	skill_stop_dancing(&sd->bl,0); //You should stop dancing when dead... [Skotlex]
+	if (sd->sc_data[SC_GOSPEL].timer != -1 && sd->sc_data[SC_GOSPEL].val4 == BCT_SELF)
+	{	//Remove Gospel [Skotlex]
+		struct skill_unit_group *sg = (struct skill_unit_group *)sd->sc_data[SC_GOSPEL].val3;
+		if (sg)
+			skill_delunitgroup(sg);
+	}
 	clif_clearchar_area(&sd->bl,1);
 
 	if (src && src->type == BL_PC) {

@@ -1,5 +1,11 @@
 Date	Added
 07/26
+	* Updated the packet-version guessing code, hopefully it does a better job now [Skotlex]
+	* Fixed the mob bug where they "stick to you" and won't let you escape [Skotlex]
+	* Reverted mob skill usage rates. A rate of 1000 (in mob_skill_db.txt) IS 100% usage. [Skotlex]
+	* Corrected Gospel not dissipating when you die. [Skotlex]
+	* Fixed Providence/Resistant soul so it can't be casted on yourself-other crusaders [Skotlex]
+	* Updated Quagmire to affect everyone in GVG maps. [Skotlex]
 	* Small fix to the packet_version identification [Skotlex]
 	  A more complete testing/verification code comes later...
 	* Likely fixed the txt->sql converter. [Skotlex]

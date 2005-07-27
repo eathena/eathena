@@ -258,8 +258,8 @@
 252,0,6,4,0,1,10,1,no,0,0,0,weapon,0	//CR_REFLECTSHIELD#リフレクトシ?ルド#
 253,-2,8,1,6,0,10,2,no,0,0,0,weapon,0	//CR_HOLYCROSS#ホ?リ?クロス#
 254,0,5,4,6,0,10,1,no,33,256,0,magic,0	//CR_GRANDCROSS#グランドクロス#
-255,8,6,16,0,1,5,1,yes,0,0,0,magic,0	//CR_DEVOTION#ディ??ション#
-256,8,6,16,0,1,5,1,yes,0,0,0,magic,0	//CR_PROVIDENCE#プロヴィデンス#
+255,8,6,16,0,1,5,1,yes,0,3584,0,magic,0	//CR_DEVOTION#ディ??ション#
+256,8,6,16,0,1,5,1,yes,0,512,0,magic,0	//CR_PROVIDENCE#プロヴィデンス#
 257,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//CR_DEFENDER#ディフェン??#
 258,0,6,4,0,1,10,1,no,0,0,0,weapon,0	//CR_SPEARQUICKEN#スピアクイッケン#
 259,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//MO_IRONHAND#鉄拳#
@@ -406,7 +406,7 @@
 393,0,0,4,0,1,1,1,yes,0,0,0,magic,0	//CR_SYNTHESISPOTION#??ションシンセシス#
 394,8,8,1,0,0,10,9,no,0,0,0,weapon,0	//CG_ARROWVULCAN#アロ?バルカン#
 395,0,0,4,0,1,1,1,yes,0,0,0,magic,0	//CG_MOONLIT#月明りの泉に落ちる花びら#
-396,-1,6,16,0,1,1,1,yes,0,1024,0,magic,1	//CG_MARIONETTE#?リオネットコントロ?ル#
+396,-1,6,16,0,1,1,1,yes,0,1536,0,magic,1	//CG_MARIONETTE#?リオネットコントロ?ル#
 397,5,8,1,0,0,5,5,no,0,0,0,weapon,0	//LK_SPIRALPIERCE#スパイラルピア?ス#
 398,4,6,1,0,0,5,1,no,0,0,0,weapon,0	//LK_HEADCRUSH#ヘッドクラッシュ#
 399,4,6,1,0,0,10,1,no,0,0,0,weapon,0	//LK_JOINTBEAT#ジョイントビ?ト#

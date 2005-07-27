@@ -641,7 +641,8 @@ static int mob_attack(struct mob_data *md,unsigned int tick,int data)
 	if(!(battle_config.monster_cloak_check_type&2) && md->sc_data[SC_CLOAKING].timer != -1)
 		status_change_end(&md->bl,SC_CLOAKING,-1);
 
-	md->attackabletime = tick + status_get_adelay(&md->bl);
+	//Mobs can't move if they can't attack neither. [Skotlex]
+	md->attackabletime = md->canmove_tick = tick + status_get_adelay(&md->bl);
 
 	md->timer=add_timer(md->attackabletime,mob_timer,md->bl.id,0);
 	md->state.state=MS_ATTACK;
@@ -3797,7 +3798,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 		}
 
 		// Šm—¦”»’è
-		if (flag && rand() % 10000 < ms[i].permillage) //Lupus (max value = 10000)
+		if (flag && rand() % 1000 < ms[i].permillage) //Lupus (max value = 10000) <- WRONG. The max is 1000, the mob_skill_db uses frequencies of 1~1000 where 1000 is 100%, which means cast as often as possible! If you want to lower skill usage rate use the battle_config options or lower the rates (you can alternatively raise the after-cast delay) in the mob_skill_db [Skotlex]
 		{
 			if (skill_get_inf(ms[i].skill_id) & INF_GROUND_SKILL) {
 				// êŠŽw’è

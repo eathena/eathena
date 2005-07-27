@@ -15,6 +15,13 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 07/26
+	* Changed the inf2 of Marionette Control to 512 + 1024 (can't cast on self
+	  + party only) [Skotlex]
+	* Changed the inf2 of Providence/Resistant Souls to 512 (can't cast on self) [Skotlex]
+	* Changed the inf2 of Devotion/Sacrifice to 3524 (512 -can't cast on self- 
+	  + 1024+2048 (party/guild only)) [Skotlex]
+	* Reverted Palm Strike's cast-time to 0 (the skill's code has been updated
+	  so it is not needed now) [Skotlex]
 	* Fixed skill-tree requirements of Soul Burn and Mind Breaker as described
 	  by Ishizu. [Skotlex]
 	* Fixed drop rates of all god-equipment-quest items from Treasure Boxes, they were 10x
