@@ -23,6 +23,7 @@
 	  - Wind Walker : after-cast delay changed to 2 sec, casting time can be reduced by DEX
 	  - Meteor Assault : casting time / after-cast delay changed to 0.5 sec / 0.5 sec
 	  - Gloria Domini : after-cast delay changed to 2~4 sec
+	* Fixed "Greatest General Card" now casts the correct skill level [Fredzilla]
 07/26
 	* Changed the inf2 of Marionette Control to 512 + 1024 (can't cast on self
 	  + party only) [Skotlex]

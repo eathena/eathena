@@ -1412,7 +1412,7 @@
 4280,Geographer_Card,Geographer Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus4 bAutoSpellWhenHit,34,2+8*(getskilllv(34)==10),1,0; }
 4281,Zipper_Bear_Card,Zipper Bear Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bAtk,30; bonus3 bSPDrainValue,100,-1,0; if(callfunc("Is_Merc_Class")==0) end; bonus bUnbreakableWeapon,0; bonus bUnstripableWeapon,0; }
 4282,Tengu_Card,Tengu Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus2 bAddMonsterDropItemGroup,13,500; }
-4283,Greatest_General_Card,Greatest General Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAutospell,261,1,1+callfunc("Is_Holy_Class"); }
+4283,Greatest_General_Card,Greatest General Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAutospell,261,1+(getskilllv(261)>1)*(getskilllv(261)-1),1+callfunc("Is_Holy_Class");}
 4284,Chepet_Card,Chepet Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus3 bAutoSpell,28,5,5; }
 4285,Choco_Card,Choco Card,6,20,0,10,,,,,,,4,,,,,{},{ bonus bFlee2,5; bonus bFlee,10; }
 4286,Karakasa_Card,Karakasa Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus2 bAddEffWhenHit,Eff_Confusion,1000+2000*(readparam(bStr)>77); }
