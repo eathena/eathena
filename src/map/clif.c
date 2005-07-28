@@ -7907,9 +7907,9 @@ int clif_guess_PacketVer(int fd)
 		packet_len == packet_db[clif_config.packet_db_ver][cmd].len &&
 		((sex = RFIFOB(fd, packet_db[clif_config.packet_db_ver][cmd].pos[4])) == 0 ||	sex == 1) &&
 		RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]) > 700000 && //Account ID is valid
-		RFIFOB(fd, packet_db[packet_ver][cmd].pos[0]+3) == 0 &&	//Account ID ends in 0
+		//RFIFOB(fd, packet_db[packet_ver][cmd].pos[0]+3) == 0 &&	//Account ID ends in 0
 		RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]) > 0 &&	//Char ID is valid
-		RFIFOB(fd, packet_db[packet_ver][cmd].pos[1]+3) == 0 &&	//Char ID ends in 0
+		//RFIFOB(fd, packet_db[packet_ver][cmd].pos[1]+3) == 0 &&	//Char ID ends in 0
 		RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) > 0 &&
 		RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]) >= 0
 		)
