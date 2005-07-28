@@ -798,16 +798,16 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	sc_def_luk = status_get_sc_def_luk(bl);
 
 	switch(skillid){
-	case 0:					/* 通常攻? */
-		/* 自動鷹 */
+	case 0: // Normal attacks (no skill used)
 		if(sd) {
+			// Automatic trigger of Blitz Beat
 			struct status_change *sc_data = status_get_sc_data(bl);
 			if (pc_isfalcon(sd) && sd->status.weapon == 11 && (skill=pc_checkskill(sd,HT_BLITZBEAT))>0 &&
 				rand()%1000 <= sd->paramc[5]*10/3+1 ) {
 				int lv=(sd->status.job_level+9)/10;
 				skill_castend_damage_id(src,bl,HT_BLITZBEAT,(skill<lv)?skill:lv,tick,0xf00000);
 			}
-			// スナッチャ?
+			// Gank
 			if(dstmd && !dstmd->state.steal_flag && sd->status.weapon != 11 && (skill=pc_checkskill(sd,RG_SNATCHER)) > 0 &&
 				(skill*15 + 55) + (skill2 = pc_checkskill(sd,TF_STEAL))*10 > rand()%1000) {
 				if(pc_steal_item(sd,bl))
@@ -815,13 +815,13 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				else if (battle_config.display_snatcher_skill_fail)
 					clif_skill_fail(sd,skillid,0,0);
 			}
-			// enchant poison has a chance of poisoning enemy
+			// Enchant Poison gives a chance to poison attacked enemies
 			if (sd->sc_data[SC_ENCPOISON].timer != -1 && sc_data && sc_data[SC_POISON].timer == -1 &&
 				rand() % 100 < sd->sc_data[SC_ENCPOISON].val1 * sc_def_vit / 100) {
 				status_change_start(bl,SC_POISON,sd->sc_data[SC_ENCPOISON].val1,
 					0,0,0,skill_get_time2(AS_ENCHANTPOISON,sd->sc_data[SC_ENCPOISON].val1),0);
 			}
-			// エンチャントデットリ?ポイズン(猛毒?果)
+			// Enchant Deadly Poison gives a chance to deadly poison attacked enemies
 			if (sd->sc_data[SC_EDP].timer != -1 && !(status_get_mode(bl) & 0x20) &&
 				sc_data && sc_data[SC_DPOISON].timer == -1 &&
 				rand() % 100 < sd->sc_data[SC_EDP].val2 * sc_def_vit / 100)
@@ -860,21 +860,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		}
 		break;
 
-	case HT_FREEZINGTRAP:	/* フリ?ジングトラップ */
-		if(dstmd || (dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) ) {
-			rate = skilllv*3 + 35;
-			if(rand()%100 < rate*sc_def_mdef/100)
-				status_change_start(bl,SC_FREEZE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
-		}
-		break;
-
-	 case HT_FLASHER:  /* Flasher */
-		if (!(status_get_mode(bl) & 0x20) && !(status_get_mode(bl)&0x40) &&
-				((dstsd && md) || (dstmd && !md) || (dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg))) &&
-				rand()%100 < (10*skilllv+30)*sc_def_int/100)
-			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
-		break;
-
 	case MG_FROSTDIVER:		/* フロストダイバ? */
 	case WZ_FROSTNOVA:		/* フロストノヴァ */
 		{
@@ -898,6 +883,30 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		}
 		break;
 
+	case WZ_METEOR:
+		if(rand()%100 < 3*skilllv*sc_def_vit/100)
+			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		break;
+
+	case WZ_VERMILION:
+		if(rand()%100 < 4*skilllv*sc_def_int/100)
+			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		break;
+		
+	case HT_FREEZINGTRAP:	/* フリ?ジングトラップ */
+		if(dstmd || (dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) ) {
+			if(rand()%100 < (3*skilllv+35)*sc_def_mdef/100)
+				status_change_start(bl,SC_FREEZE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		}
+		break;
+
+	 case HT_FLASHER:  /* Flasher */
+		if (!(status_get_mode(bl) & 0x20) && !(status_get_mode(bl)&0x40) &&
+				((dstsd && md) || (dstmd && !md) || (dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg))) &&
+				rand()%100 < (10*skilllv+30)*sc_def_int/100)
+			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		break;
+
 	case HT_LANDMINE:		/* ランドマイン */
 		if( bl->type == BL_MOB || (bl->type == BL_PC && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) )
 			if( rand()%100 < (5*skilllv+30)*sc_def_vit/100 )
@@ -906,15 +915,17 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	case HT_SHOCKWAVE:				//it can't affect mobs, because they have no SP...
 		if( bl->type == BL_PC && dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg) ){
-			dstsd->status.sp -= dstsd->status.sp*(5+15*skilllv)/100;
+			dstsd->status.sp -= dstsd->status.sp*(15*skilllv+5)/100;
 			status_calc_pc(dstsd,0);
 		}
 		break;
+
 	case HT_SANDMAN:		/* サンドマン */
 		if( bl->type == BL_MOB || (bl->type == BL_PC && (map[bl->m].flag.pvp || map[bl->m].flag.gvg)) )
-			if( rand()%100 < (5*skilllv+30)*sc_def_int/100 )
+			if( rand()%100 < (10*skilllv+40)*sc_def_int/100 )
 				status_change_start(bl,SC_SLEEP,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
+
 	case TF_SPRINKLESAND:	/* 砂まき */
 		if( rand()%100 < 20*sc_def_int/100 )
 			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
@@ -1003,17 +1014,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			if(sp < 1) sp = 1;
 			pc_heal(dstsd,0,-sp);
 		}
-		break;
-
-// -- moonsoul (adding status effect chance given to wizard aoe skills meteor and vermillion)
-//
-	case WZ_METEOR:
-		if(rand()%100 < sc_def_vit)
-			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
-		break;
-	case WZ_VERMILION:
-		if(rand()%100 < sc_def_int)
-			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
 // -- moonsoul (stun ability of new champion skill tigerfist)
@@ -6328,10 +6328,10 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		if(sg->val2==0 && sc_data && sc_data[SC_ANKLE].timer==-1){
 			int moveblock = ( bl->x/BLOCK_SIZE != src->bl.x/BLOCK_SIZE || bl->y/BLOCK_SIZE != src->bl.y/BLOCK_SIZE);
 			int sec = skill_get_time2(sg->skill_id,sg->skill_lv) - status_get_agi(bl)*100;
-			if(status_get_mode(bl)&0x20)
+			if(status_get_mode(bl)&0x20) // Lasts 5 times less on bosses
 				sec = sec/5;
-			if (sec < 3000)	// minimum time of 3 seconds [celest]
-				sec = 3000;
+			if (sec < 3000+30*sg->skill_lv)	// Minimum trap time of 3+0.03*skilllv seconds [celest]
+				sec = 3000+30*sg->skill_lv;
 			battle_stopwalking(bl,1);
 			status_change_start(bl,SC_ANKLE,sg->skill_lv,0,0,0,sec,0);
 
@@ -9751,65 +9751,72 @@ int skill_produce_mix( struct map_session_data *sd,
 	if((equip=itemdb_isequip(nameid)))
 		wlv = itemdb_wlv(nameid);
 	if(!equip) {
-// Corrected rates [DracoRPG] --------------------------//
+// Potion Making - reviewed with the help of various Ragnainfo sources [DracoRPG]
 		if(skill_produce_db[idx].req_skill==AM_PHARMACY) {
 			make_per = pc_checkskill(sd,AM_LEARNINGPOTION)*100
 				+ pc_checkskill(sd,AM_PHARMACY)*300 + sd->status.job_level*20
 				+ sd->paramc[3]*5 + sd->paramc[4]*10+sd->paramc[5]*10;
-
-			if(nameid >= 501 && nameid <= 505) // Normal potions
-				make_per += 2000 + pc_checkskill(sd,AM_POTIONPITCHER)*100;
-			else if(nameid >= 605 && nameid <= 606) // Anodyne & Aloevera (not sure of the formula, I put the same base value as normal pots but without the Aid Potion bonus since they are not throwable pots ^^)
-				make_per += 2000;
-//			else if(nameid >= 545 && nameid <= 547) // Concentrated potions
-			else if(nameid == 970) // Alcohol
-				make_per += 1000;
-			else if(nameid == 7135) // Bottle Grenade
-				make_per += 500 + pc_checkskill(sd,AM_DEMONSTRATION)*100;
-			else if(nameid == 7136) // Acid Bottle
-				make_per += 500 + pc_checkskill(sd,AM_ACIDTERROR)*100;
-			else if(nameid == 7137) // Plant Bottle
-				make_per += 500 + pc_checkskill(sd,AM_CANNIBALIZE)*100;
-			else if(nameid == 7138) // Marine Sphere Bottle
-				make_per += 500 + pc_checkskill(sd,AM_SPHEREMINE)*100;
-			else if(nameid == 7139) // Glistening Coat
-				make_per += 500 + pc_checkskill(sd,AM_CP_WEAPON)*100 + pc_checkskill(sd,AM_CP_SHIELD)*100 +
-					pc_checkskill(sd,AM_CP_ARMOR)*100 + pc_checkskill(sd,AM_CP_HELM)*100;
+			switch(nameid){
+				case 501: // Red Potion
+				case 503: // Yellow Potion
+				case 504: // White Potion
+				case 605: // Anodyne
+				case 606: // Aloevera
+					make_per += 2000;
+					break;
+				case 505: // Blue Potion
+					make_per -= 500;
+					break;
+				case 545: // Condensed Red Potion
+				case 546: // Condensed Yellow Potion
+				case 547: // Condensed White Potion
+					make_per -= 1000;
+				    break;
+			 	case 970: // Alcohol
+					make_per += 1000;
+					break;
+				case 7139: // Glistening Coat
+					make_per -= 1000;
+					break;
+				case 7135: // Bottle Grenade
+				case 7136: // Acid Bottle
+				case 7137: // Plant Bottle
+				case 7138: // Marine Sphere Bottle
+				default:
+					break;
+			}
 		} else if (skill_produce_db[idx].req_skill == ASC_CDP) {
 			make_per = 2000 + 40*sd->paramc[4] + 20*sd->paramc[5]; // Poison Bottle
-		} else { //Refining ores - using JRO data [Skotlex]
+		} else { // Ores & Metals Refining - skill bonuses are straight from kRO website [DracoRPG]
 			int skill = pc_checkskill(sd,skill_produce_db[idx].req_skill);
-			make_per = 2000 + sd->status.job_level*20 + sd->paramc[4]*10 + sd->paramc[5]*10; //Base chance
-			if(nameid == 998) //Iron
-				make_per += 2000+skill*600; //Bonus: +26/+32/+38/+44/+50
-			else if(nameid == 999) //Steel
-				make_per += 1000+skill*500; //Bonus: +15/+20/+25/+30/+35
-			else	//Enchanted Stones
-				make_per += -1000 +skill*500; //Bonus: - 5/+ 0/+ 5/+10/+15
-		}
+			make_per = sd->status.job_level*20 + sd->paramc[4]*10 + sd->paramc[5]*10; //Base chance
+			if(nameid == 998) // Iron
+				make_per += 4000+skill*500; // Temper Iron bonus: +26/+32/+38/+44/+50
+			else if(nameid == 999) // Steel
+				make_per += 3000+skill*500; // Temper Steel bonus: +35/+40/+45/+50/+55
+			else	// Enchanted Stones
+				make_per += 1000+skill*500; } // Enchantedstone Craft bonus: +15/+20/+25/+30/+35
+		
 		if(battle_config.pp_rate != 100)
 			make_per = make_per * battle_config.pp_rate / 100;
-	} else { // Weapon Forging. Using rates based on jRO [Skotlex]
-		make_per = 2000 + sd->status.job_level*20 + sd->paramc[4]*10 + sd->paramc[5]*10; //Base
-		make_per += 2500 + pc_checkskill(sd,skill_produce_db[idx].req_skill)*500; //Skill bonus: +30/+35/+40
-		make_per += pc_checkskill(sd,BS_WEAPONRESEARCH)*100 +((wlv >= 3)? pc_checkskill(sd,BS_ORIDEOCON)*100:0); //Weapon/Oridecon research
-		make_per -= (ele?2000:0) + sc*1500 + (wlv>1?wlv*1000:0); //Ele: -20%, StarCrumb: -15%ea, Wlevel: -0/-20/-30
-		if(pc_search_inventory(sd,989) > 0) make_per+= 1000; //Emperium Anvil +10%
-		else if(pc_search_inventory(sd,988) > 0) make_per+= 500; //Gold Anvil +5%
-		else if(pc_search_inventory(sd,987) > 0) make_per+= 300; //Oridecon Anvil +3%
-		else if(pc_search_inventory(sd,986) > 0) make_per+= 0; //Iron Anvil +0%?
-		if(battle_config.wp_rate != 100)	/* 確率補正 */
+	} else { // Weapon Forging - skill bonuses are straight from kRO website, other things from a jRO calculator [DracoRPG]
+		make_per = 5000 + sd->status.job_level*20 + sd->paramc[4]*10 + sd->paramc[5]*10; // Base
+		make_per += pc_checkskill(sd,skill_produce_db[idx].req_skill)*500; // Smithing skills bonus: +5/+10/+15
+		make_per += pc_checkskill(sd,BS_WEAPONRESEARCH)*100 +((wlv >= 3)? pc_checkskill(sd,BS_ORIDEOCON)*100:0); // Weaponry Research bonus: +1/+2/+3/+4/+5/+6/+7/+8/+9/+10, Oridecon Research bonus (custom): +1/+2/+3/+4/+5
+		make_per -= (ele?2000:0) + sc*1500 + (wlv>1?wlv*1000:0); // Element Stone: -20%, Star Crumb: -15% each, Weapon level malus: -0/-20/-30
+		if(pc_search_inventory(sd,989) > 0) make_per+= 1000; // Emperium Anvil: +10
+		else if(pc_search_inventory(sd,988) > 0) make_per+= 500; // Golden Anvil: +5
+		else if(pc_search_inventory(sd,987) > 0) make_per+= 300; // Oridecon Anvil: +3
+		else if(pc_search_inventory(sd,986) > 0) make_per+= 0; // Anvil: +0?
+		if(battle_config.wp_rate != 100)
 			make_per = make_per * battle_config.wp_rate / 100;
 	}
 // - Baby Class Penalty = 80% (from adult's chance) ----//
 	if (s_class.upper==2) //if it's a Baby Class
 		make_per = (make_per * 80) / 100; //Lupus
-// -----------------------------------------------------//
 
 	if(make_per < 1) make_per = 1;
 
-//	if(battle_config.etc_log)
-//		printf("make rate = %d\n",make_per);
 
 	if(rand()%10000 < make_per){
 		/* 成功 */

@@ -295,7 +295,6 @@ int status_calc_pc(struct map_session_data* sd,int first);
 int status_calc_speed(struct map_session_data*, int, int, char); // [Celest] - modified by [Skotlex]
 // int status_calc_skilltree(struct map_session_data *sd);
 int status_getrefinebonus(int lv,int type);
-int status_percentrefinery(struct map_session_data *sd,struct item *item);
 //Use this to refer the max refinery level [Skotlex]
 #define MAX_REFINE 10
 extern int percentrefinery[5][MAX_REFINE+1]; //The last slot always has a 0% success chance [Skotlex]

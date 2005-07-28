@@ -312,30 +312,6 @@ int status_getrefinebonus(int lv,int type)
 	return 0;
 }
 
-/*==========================================
- * 精錬成功率
- *------------------------------------------
- */
-int status_percentrefinery(struct map_session_data *sd,struct item *item)
-{
-	int percent;
-
-	nullpo_retr(0, item);
-	percent=percentrefinery[itemdb_wlv(item->nameid)][(int)item->refine];
-
-	percent += pc_checkskill(sd,BS_WEAPONRESEARCH);	// 武器研究スキル所持
-
-	// 確率の有効範囲チェック
-	if( percent > 100 ){
-		percent = 100;
-	}
-	if( percent < 0 ){
-		percent = 0;
-	}
-
-	return percent;
-}
-
 //Skotlex: Calculates the stats of the given pet.
 int status_calc_pet(struct map_session_data *sd, int first)
 {
@@ -1045,7 +1021,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	}
 	if((skill=pc_checkskill(sd,BS_SKINTEMPER))>0) {
 		sd->subele[0] += skill;
-		sd->subele[3] += skill*5;
+		sd->subele[3] += skill*4;
 	}
 	if((skill=pc_checkskill(sd,SA_ADVANCEDBOOK))>0 )
 		ASPD_ADD_RATE( skill/2 );
@@ -3213,9 +3189,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		if (status_isdead(bl)) return 0;
 	if(bl->type == BL_PET)	//Pets cannot have status effects
 		return 0;
-	// it's exactly the same thing as line 3231, so not needed ^^;
-	//if(!status_get_sc_data(bl)) //null pointer right here [Kevin]
-	//	return 0;
 
 	nullpo_retr(0, sc_data=status_get_sc_data(bl));
 	nullpo_retr(0, sc_count=status_get_sc_count(bl));
@@ -3348,9 +3321,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			calc_flag = 1;
 			if(sc_data[SC_DECREASEAGI].timer!=-1 )
 				status_change_end(bl,SC_DECREASEAGI,-1);
-			// the effect will still remain [celest]
-//			if(sc_data[SC_WINDWALK].timer!=-1 )	/* ウインドウォ?ク */
-//				status_change_end(bl,SC_WINDWALK,-1);
 			break;
 		case SC_DECREASEAGI:		/* 速度減少 */
 			if (bl->type == BL_PC)	// Celest
@@ -3898,7 +3868,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 					sd->canact_tick += tick;
 				} else calc_flag = 1;
 			}
-			//val2 = val1*5;
 			break;
 
 		case SC_HERMODE:
@@ -3907,7 +3876,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 		case SC_BLEEDING:
 			{
-				//val4 = 10000;
 				val4 = tick;
 				tick = 10000;
 			}

@@ -4814,7 +4814,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 		}
 		if(eq_num > 0){
 			int n = eq_n[rand()%eq_num];
-			if(rand()%10000 < sd->status.karma && pc_checkskill(sd,BS_HILTBINDING) < 1){
+			if(rand()%10000 < sd->status.karma){
 				if(sd->status.inventory[n].equip)
 					pc_unequipitem(sd,n,0);
 				pc_dropitem(sd,n,1);

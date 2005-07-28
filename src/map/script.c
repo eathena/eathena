@@ -3201,7 +3201,7 @@ int buildin_getequippercentrefinery(struct script_state *st)
 	sd=script_rid2sd(st);
 	i=pc_checkequip(sd,equip[num-1]);
 	if(i >= 0)
-		push_val(st->stack,C_INT,status_percentrefinery(sd,&sd->status.inventory[i]));
+		push_val(st->stack,C_INT,percentrefinery[itemdb_wlv(&sd->status.inventory[i])][(int)&sd->status.inventory[i].refine]);
 	else
 		push_val(st->stack,C_INT,0);
 
