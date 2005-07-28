@@ -1,4 +1,7 @@
 Date	Added
+07/28
+	* Some fixes to Whsiper system. [massdriller]
+
 07/27
 	* Fixed the fame list packet mismatch bug. [Skotlex]
 	* Even more cleanups to socket.c and chrif.c to prevent even handling

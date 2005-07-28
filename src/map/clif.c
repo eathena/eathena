@@ -9072,11 +9072,18 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 		
 		sprintf(whisper_tmp, "%s::OnWhisperGlobal", npc->name);
 		if (npc_event(sd,whisper_tmp,0))
-			return;     // Calls the NPC label    
+			return;     // Calls the NPC label 
+
+//		aFree(whisper_tmp);     <--- I dunno where this came from, it's not in the code O.o       
+//	}    <--- I dunno where this came from, it's not in the code also @_@
+
+
+}
+//-------------------------------------------------------//
+//  Lordalfa - Paperboy - END - NPC Whisper Commands     //
+//-------------------------------------------------------//
 			
-		aFree(whisper_tmp);            
-	}
-	
+
 	// searching destination character
 	dstsd = map_nick2sd((char*)RFIFOP(fd,4));
 	// player is not on this map-server
