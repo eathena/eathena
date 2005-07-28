@@ -1025,11 +1025,6 @@ int chrif_recvfamelist(int fd)
 	int num, size;
 	int total = 0, len = 6;
 
-	if (RFIFOREST(fd) != RFIFOW(fd,2))
-	{
-		ShowError("(recvfamelist) Packet size mismatch (%d != %d)!\n", RFIFOW(fd,2), RFIFOREST(fd));
-		return -1;	
-	}
 	memset (smith_fame_list, 0, sizeof(smith_fame_list));
 	memset (chemist_fame_list, 0, sizeof(chemist_fame_list));
 
