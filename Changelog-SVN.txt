@@ -1,5 +1,7 @@
 Date	Added
 07/28
+	* Updated Bard's AssasinCross (Riff something) to not affect Bows (is this
+	  how it really is?) [Skotlex]
 	* Massive skills update (from now updated kRO website) [DracoRPG]
 	  - Weapon forging, ore/metals refining, potion making : tried to correct rates ^^
 	  - Weaponry Research : does NOT increase NPC equipment upgrading chance
@@ -11,7 +13,7 @@ Date	Added
 	  - Ankle Snare : minimum trap time changed to (3+0.03*skill_lv) seconds
 	  Tons of other skills could and should be reviewed the same way ! ^^
 	* Fixed massdriller's fixes ^_^ [Kevin]
-	* Some fixes to Whsiper system. [massdriller]
+	* Some fixes to Whisper system. [massdriller]
 07/27
 	* Fixed the fame list packet mismatch bug. [Skotlex]
 	* Even more cleanups to socket.c and chrif.c to prevent even handling
