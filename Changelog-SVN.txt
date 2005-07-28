@@ -1,5 +1,6 @@
 Date	Added
 07/28
+	* Fixed that compiling issue with buildin_getequippercentrefinery [Skotlex]
 	* Updated Bard's AssasinCross (Riff something) to not affect Bows (is this
 	  how it really is?) [Skotlex]
 	* Massive skills update (from now updated kRO website) [DracoRPG]

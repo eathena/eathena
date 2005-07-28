@@ -3200,8 +3200,8 @@ int buildin_getequippercentrefinery(struct script_state *st)
 	num=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	sd=script_rid2sd(st);
 	i=pc_checkequip(sd,equip[num-1]);
-	if(i >= 0)
-		push_val(st->stack,C_INT,percentrefinery[itemdb_wlv(&sd->status.inventory[i])][(int)&sd->status.inventory[i].refine]);
+	if(i >= 0 && sd->status.inventory[i].nameid && sd->status.inventory[i].refine < MAX_REFINE)
+		push_val(st->stack,C_INT,percentrefinery[itemdb_wlv(sd->status.inventory[i].nameid)][(int)sd->status.inventory[i].refine]);
 	else
 		push_val(st->stack,C_INT,0);
 
