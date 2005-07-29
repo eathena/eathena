@@ -1194,7 +1194,7 @@ int charcommand_zeny(
 }
 
 /*==========================================
- * #fakename <fake name> <char name>
+ * #fakename <char name> <fake name>
  *------------------------------------------
  */
 
@@ -1208,18 +1208,15 @@ int charcommand_fakename(
 	
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message) {
-		clif_displaymessage(sd->fd,"Usage: #fakename <fake name> <char name>.");
+	name[0] = '\0'; //If you don't pass a second word, name is left as garbage, most definitely not a blank name! [Skotlex]
+	if (!message || !*message || sscanf(message, "%23s %23[^\n]", char_name, name) < 1) {
+		clif_displaymessage(sd->fd,"Usage: #fakename <char name> <fake name>.");
 		clif_displaymessage(sd->fd,"Or: #fakename <char name> to disable.");
 		return 0;
 	}
-	
-	if (sscanf(message, "%23s %23[^\n]", name, char_name) < 1) {
-		return 0;
-	}
-	
-	if(strlen(char_name) < 1 || !char_name) {
-		if(!(pl_sd = map_nick2sd(name))) {
+
+	if(strlen(name) < 1 || !name) {
+		if(!(pl_sd = map_nick2sd(char_name))) {
 			clif_displaymessage(sd->fd,"Character not found.");
 		}
 		if(strlen(pl_sd->fakename) > 1) {
@@ -1227,7 +1224,7 @@ int charcommand_fakename(
 			pc_setpos(pl_sd, pl_sd->mapname, pl_sd->bl.x, sd->bl.y, 3);
 			clif_displaymessage(sd->fd,"Returned to real name.");
 		} else {
-			clif_displaymessage(sd->fd,"Usage: #fakename <fake name> <char name>.");
+			clif_displaymessage(sd->fd,"Usage: #fakename <char name> <fake name>.");
 		}
 		return 0;
 	}

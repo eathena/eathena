@@ -1,5 +1,6 @@
 Date	Added
 07/29
+	* Fixed #fakename [Skotlex]
 	* Optimized Apple of Idun's implementation [Skotlex]
 	* Updated pc_calc_base_job and related functions and applied them around
 	  the map server. This should fix all item related problems with Super Babies
