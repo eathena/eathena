@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/28
+	* Added baby skills delays, added them into nocastdex.txt [Lupus]
 	* Updated the Wedding skills: They cost 10% HP/SP and grand 10% HP/SP of
 	  their partner's sp. Also the recall partner skill has a casttime of 20secs
 	  not diminishable by dex. [Skotlex]
