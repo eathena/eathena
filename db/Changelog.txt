@@ -16,6 +16,10 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/29
+	* Removed Poison Bottle (item lv256) from produce_db [DracoRPG]
+	* Changed NPC_CURSEATTACK and NPC_ENERGYDRAIN to Dark attribute [DracoRPG]
+	* Changed mobs with NPC_STOP to cast it on target [DracoRPG]
+	* Changed Cart Termination to use "cartboost" state in skill_require_db [DracoRPG]
 	* Modified Hip Shaker/Ugly Dance's unit data to make it work every 3 secs [Skotlex]
 	* Okay, reduced the Call Partner's uptime from 10 secs to 0. [Skotlex]
 	* Changed Soul Collect/Summon Spirit Sphere type from weapon to none. [Skotlex]

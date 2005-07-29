@@ -1,5 +1,3 @@
-// $Id: clif.c 2200 2004-11-07 11:49:58Z Yor $
-
 #define DUMP_UNKNOWN_PACKET	1
 #define	DUMP_ALL_PACKETS	0
 
@@ -58,13 +56,6 @@ struct Clif_Config {
 } clif_config;
 
 struct packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB];
-
-//The packet_db is now always used (was about time) [Skotlex]
-//#define USE_PACKET_DB(sd) 
-//	clif_config.enable_packet_db
-
-//#define IS_PACKET_DB_VER(cmd) 
-//	cmd == clif_config.connect_cmd
 
 static const int packet_len_table[MAX_PACKET_DB] = {
    10,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
@@ -9789,109 +9780,6 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 	int lv;
 	unsigned int tick = gettick();
 
-/*
-	} else {
-		switch (sd->packet_ver) { // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-		case 6:
-			skilllv = RFIFOW(fd,4);
-			skillnum = RFIFOW(fd,9);
-			x = RFIFOW(fd,11);
-			y = RFIFOW(fd,13);
-			if (RFIFOW(fd,0) == 0x190)
-				skillmoreinfo = 15;
-			break;
-		case 7:
-			skilllv = RFIFOW(fd,7);
-			skillnum = RFIFOW(fd,9);
-			x = RFIFOW(fd,15);
-			y = RFIFOW(fd,17);
-			if (RFIFOW(fd,0) == 0x190)
-				skillmoreinfo = 19;
-			break;
-		case 8:
-			skilllv = RFIFOW(fd,3);
-			skillnum = RFIFOW(fd,6);
-			x = RFIFOW(fd,17);
-			y = RFIFOW(fd,21);
-			if (RFIFOW(fd,0) == 0x0a2)
-				skillmoreinfo = 23;
-			break;
-		case 9:
-			skilllv = RFIFOW(fd,5);
-			skillnum = RFIFOW(fd,15);
-			x = RFIFOW(fd,29);
-			y = RFIFOW(fd,38);
-			if (RFIFOW(fd,0) == 0x0a2)
-				skillmoreinfo = 40;
-			break;
-		case 10:
-			skilllv = RFIFOW(fd,10);
-			skillnum = RFIFOW(fd,14);
-			x = RFIFOW(fd,18);
-			y = RFIFOW(fd,23);
-			if (RFIFOW(fd,0) == 0x08c)
-				skillmoreinfo = 25;
-			break;
-		case 11:
-			skilllv = RFIFOW(fd,6); // 16? to check.
-			skillnum = RFIFOW(fd,20);
-			x = RFIFOW(fd,23);
-			y = RFIFOW(fd,27);
-			if (RFIFOW(fd,0) == 0x08c)
-				skillmoreinfo = 29;
-			break;
-		case 12:
-			skilllv = RFIFOW(fd,3); // 2? to check.
-			skillnum = RFIFOW(fd,6);
-			x = RFIFOW(fd,17);
-			y = RFIFOW(fd,21);
-			if (RFIFOW(fd,0) == 0x08c)
-				skillmoreinfo = 23;
-			break;
-		case 13:
-		case 14:
-			skilllv = RFIFOW(fd,6);
-			skillnum = RFIFOW(fd,9);
-			x = RFIFOW(fd,23);
-			y = RFIFOW(fd,26);
-			if (RFIFOW(fd,0) == 0x08c)
-				skillmoreinfo = 28;
-			break;
-		case 15:
-			skilllv = RFIFOW(fd,4);
-			skillnum = RFIFOW(fd,9);
-			x = RFIFOW(fd,22);
-			y = RFIFOW(fd,28);
-			if (RFIFOW(fd,0) == 0x113)
-				skillmoreinfo = 30;
-			break;
-		case 16:
-			skilllv = RFIFOW(fd,10);
-			skillnum = RFIFOW(fd,18);
-			x = RFIFOW(fd,22);
-			y = RFIFOW(fd,32);
-			if (RFIFOW(fd,0) == 0x07e)
-				skillmoreinfo = 34;
-			break;
-		case 17:
-			skilllv = RFIFOW(fd,5);
-			skillnum = RFIFOW(fd,9);
-			x = RFIFOW(fd,12);
-			y = RFIFOW(fd,20);
-			if (RFIFOW(fd,0) == 0x07e)
-				skillmoreinfo = 22;
-			break;
-		default: // old version by default
-			skilllv = RFIFOW(fd,2);
-			skillnum = RFIFOW(fd,4);
-			x = RFIFOW(fd,6);
-			y = RFIFOW(fd,8);
-			if (RFIFOW(fd,0) == 0x190)
-				skillmoreinfo = 10;
-			break;
-		}
-	}
-*/
 	//Whether skill fails or not is irrelevant, the char ain't idle. [Skotlex]
 	sd->idletime = last_tick;
 

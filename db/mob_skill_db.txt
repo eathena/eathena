@@ -7,7 +7,7 @@
 //All idle and walk skills are adjusted to newsest SVN version (1811+)
 //Added rudeattack skills
 //Bacsojin now have Dancing Dragon as slave mob
-//
+//NPC_STOP is casted on target
 //
 //MOB_ID, a dummy character sequence (skill name), STATE, SKILL_ID, SKILL_LV, use rate (1000 = 100%), casttime, delay, cancelable, a target, a condition type, a condition value, a value 1, a value 2, a value 3, a value 4, a value 5, emotion
 //Example
@@ -283,7 +283,7 @@
 1059,Mistress@NPC_SILENCEATTACK,attack,178,5,200,0,5000,no,target,always,0,,,,,,
 1059,Mistress@NPC_SILENCEATTACK,chase,178,5,1000,0,5000,no,target,skillused,18,,,,,,
 1059,Mistress@NPC_SILENCEATTACK,chase,178,5,200,0,5000,no,target,always,0,,,,,,
-1059,Mistress@NPC_STOP,attack,342,1,200,0,15000,no,self,always,0,,,,,,6
+1059,Mistress@NPC_STOP,attack,342,1,200,0,15000,no,target,always,0,,,,,,6
 1059,Mistress@NPC_SUMMONSLAVE,attack,196,5,1000,700,60000,no,self,slavele,3,1303,,,,,
 1059,Mistress@NPC_SUMMONSLAVE,idle,196,5,1000,700,60000,no,self,slavele,3,1303,,,,,
 1059,Mistress@WZ_JUPITEL,attack,84,10,200,0,5000,yes,target,always,0,,,,,,
@@ -454,7 +454,7 @@
 1102,Bathory@NPC_ENERGYDRAIN,attack,200,1,50,0,5000,yes,target,always,0,,,,,,30
 1102,Bathory@NPC_ENERGYDRAIN,chase,200,1,50,0,5000,yes,target,always,0,,,,,,30
 1102,Bathory@NPC_SILENCEATTACK,attack,178,3,50,700,5000,no,target,always,0,,,,,,
-1102,Bathory@NPC_STOP,attack,342,1,50,500,5000,no,self,always,0,,,,,,30
+1102,Bathory@NPC_STOP,attack,342,1,50,500,5000,no,target,always,0,,,,,,30
 1103,Caramel@NPC_GROUNDATTACK,attack,185,1,200,0,5000,yes,target,always,0,,,,,,
 1103,Caramel@NPC_PIERCINGATT,attack,158,5,50,0,5000,yes,target,always,0,,,,,,6
 1104,Coco@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,,,,,
@@ -820,7 +820,7 @@
 1169,Skeleton Worker@NPC_CRITICALSLASH,attack,170,1,50,500,5000,no,target,always,0,,,,,,
 1169,Skeleton Worker@NPC_EMOTION,idle,197,1,20,0,5000,yes,self,always,0,1,,,,,
 1170,Sohee@NPC_EMOTION,walk,197,1,20,0,5000,yes,self,always,0,28,,,,,
-1170,Sohee@NPC_STOP,attack,342,1,50,0,30000,yes,self,always,0,,,,,,9
+1170,Sohee@NPC_STOP,attack,342,1,50,0,30000,yes,target,always,0,,,,,,9
 1170,Sohee@NPC_SUICIDE,attack,175,1,50,0,5000,yes,target,myhpltmaxrate,80,,,,,,
 1170,Sohee@NPC_WATERATTACK,attack,184,3,50,500,5000,no,target,always,0,,,,,,6
 1174,Stainer@NPC_KEEPING,attack,201,1,200,0,5000,yes,self,attackpcgt,2,,,,,,19
@@ -910,7 +910,7 @@
 1200,Zherlthsh@NPC_EMOTION,chase,197,1,200,0,5000,yes,self,always,0,30,,,,,
 1200,Zherlthsh@NPC_GUIDEDATTACK,attack,172,3,50,1000,20000,no,target,always,0,,,,,,30
 1200,Zherlthsh@NPC_LICK,attack,206,3,50,0,5000,yes,target,always,0,,,,,,30
-1200,Zherlthsh@NPC_STOP,attack,342,1,50,0,30000,no,self,always,0,,,,,,3
+1200,Zherlthsh@NPC_STOP,attack,342,1,50,0,30000,no,target,always,0,,,,,,3
 1200,Zherlthsh@NPC_SUMMONSLAVE,idle,196,3,1000,2000,60000,no,self,slavele,0,1257,,,,,
 1201,Rybio@AS_SONICBLOW,attack,136,10,50,800,5000,no,target,always,0,,,,,,4
 1201,Rybio@NPC_POISON,attack,176,2,50,800,5000,no,target,always,0,,,,,,4
@@ -1328,12 +1328,12 @@
 1304,Giant Spider@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,,,,,
 1304,Giant Spider@NPC_EMOTION,idle,197,1,20,0,5000,yes,self,always,0,9,,,,,
 1304,Giant Spider@NPC_POISON,attack,176,5,50,800,5000,no,target,always,0,,,,,,
-1304,Giant Spider@NPC_STOP,attack,342,1,50,0,30000,yes,self,always,0,,,,,,
+1304,Giant Spider@NPC_STOP,attack,342,1,50,0,30000,yes,target,always,0,,,,,,
 1304,Giant Spider@NPC_SUMMONSLAVE,idle,196,2,1000,2000,60000,no,self,slavele,0,1100,,,,,
 1305,Ancient Worm@AL_TELEPORT,idle,26,1,1000,0,0,yes,self,rudeattacked,,,,,,,
 1305,Ancient Worm@AS_VENOMDUST,attack,140,1,50,1500,5000,no,target,always,0,,,,,,
 1305,Ancient Worm@NPC_POISON,attack,176,5,50,800,5000,no,target,always,0,,,,,,
-1305,Ancient Worm@NPC_STOP,attack,342,1,50,500,5000,no,self,always,0,,,,,,
+1305,Ancient Worm@NPC_STOP,attack,342,1,50,500,5000,no,target,always,0,,,,,,
 1305,Ancient Worm@NPC_SUMMONSLAVE,idle,196,2,1000,2000,60000,no,self,slavele,0,1099,,,,,
 1306,Leib Olmai@AL_TELEPORT,idle,26,1,1000,0,0,yes,self,rudeattacked,,,,,,,
 1306,Leib Olmai@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,,,,,
@@ -1785,7 +1785,7 @@
 1416,Wicked Nymph@AL_HEAL,chase,28,3,1000,500,5000,yes,self,myhpltmaxrate,30,,,,,,2
 1416,Wicked Nymph@AL_HEAL,idle,28,3,1000,500,5000,yes,friend,friendhpltmaxrate,60,,,,,,2
 1416,Wicked Nymph@AL_HEAL,idle,28,3,1000,500,5000,yes,self,myhpltmaxrate,30,,,,,,2
-1416,Wicked Nymph@NPC_STOP,attack,342,1,50,0,30000,no,self,always,0,,,,,,6
+1416,Wicked Nymph@NPC_STOP,attack,342,1,50,0,30000,no,target,always,0,,,,,,6
 1416,Wicked Nymph@SA_DISPELL,attack,289,5,0,0,5000,yes,target,always,0,,,,,,
 1417,Zipper Bear@NPC_CRITICALSLASH,attack,170,1,50,500,5000,no,target,always,0,,,,,,6
 1417,Zipper Bear@NPC_STUNATTACK,attack,179,2,50,1500,5000,no,target,always,0,,,,,,6
@@ -1798,7 +1798,7 @@
 1418,Evil Snake Lord@NPC_DARKBREATH,attack,202,5,200,800,5000,no,target,always,0,,,,,,29
 1418,Evil Snake Lord@NPC_POWERUP,attack,349,5,1000,0,30000,yes,self,myhpltmaxrate,30,,,,,,6
 1418,Evil Snake Lord@NPC_SHIELDBRAKE,attack,346,10,200,0,0,yes,target,always,0,,,,,,2
-1418,Evil Snake Lord@NPC_STOP,attack,342,1,1000,0,15000,yes,self,always,0,,,,,,2
+1418,Evil Snake Lord@NPC_STOP,attack,342,1,1000,0,15000,yes,target,always,0,,,,,,2
 1418,Evil Snake Lord@NPC_SUMMONSLAVE,attack,196,1,1000,700,60000,no,self,slavele,2,1412,1412,1416,,,
 1418,Evil Snake Lord@NPC_SUMMONSLAVE,idle,196,1,1000,700,60000,no,self,slavele,2,1412,1412,1416,,,
 1418,Evil Snake Lord@SM_MAGNUM,attack,7,10,200,0,5000,yes,target,attackpcgt,2,,,,,,
@@ -2278,7 +2278,7 @@
 1493,Dryad@NPC_GROUNDATTACK,attack,185,3,50,500,5000,no,target,always,0,,,,,,
 1493,Dryad@NPC_HALLUCINATION,attack,207,1,50,500,5000,yes,target,always,0,,,,,,
 1493,Dryad@NPC_HALLUCINATION,chase,207,1,50,500,5000,yes,target,always,0,,,,,,
-1493,Dryad@NPC_STOP,attack,342,1,50,0,30000,yes,self,always,0,,,,,,3
+1493,Dryad@NPC_STOP,attack,342,1,50,0,30000,yes,target,always,0,,,,,,3
 1494,Kind of Beetle@NPC_COMBOATTACK,attack,171,1,50,700,5000,no,target,always,0,,,,,,
 1494,Kind of Beetle@NPC_GROUNDATTACK,attack,185,2,50,500,5000,no,target,always,0,,,,,,6
 1494,Kind of Beetle@NPC_KEEPING,attack,201,1,200,0,5000,yes,self,myhpltmaxrate,30,,,,,,19

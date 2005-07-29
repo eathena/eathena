@@ -96,5 +96,3 @@
 675,64,385,7232,1
 //Mysterious Ore Coin <- Mysterious Ore
 674,64,385,7233,1
-//Deadly Poison Bottle ItemLV=256
-678,256,407,937,1,939,1,952,1,7033,1,972,1,657,1,713,1

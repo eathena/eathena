@@ -239,6 +239,7 @@ extern struct Battle_Config {
 	unsigned short produce_potion_name_input;
 	unsigned short making_arrow_name_input;
 	unsigned short holywater_name_input;
+	unsigned short cdp_name_input;
 	unsigned short display_delay_skill_fail;
 	unsigned short display_snatcher_skill_fail;
 	unsigned short chat_warpportal;

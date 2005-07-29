@@ -1,6 +1,3 @@
-// $Id: skill.c,v 1.8 2004/02/27 5:34:51 PM Celestia $
-/* スキル?係 */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1624,14 +1621,15 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, skillid, -1, 5);
 		break;
 	case ASC_BREAKER:	// [celest]
-		if (attack_type&BF_MAGIC) {	// only display damage for the 2nd attack
-			if (damage + tmpdmg != 0)	// if both attacks missed, do not display a 2nd 'miss'
-				clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage+tmpdmg, dmg.div_, skillid, skilllv, type);
-			tmpdmg = 0;	// clear the temporary damage
-		} else {
-			if (damage == 0)	// if weapon attack missed, display the 'miss'
-				clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, 0, dmg.div_, skillid, skilllv, type);
+		if (attack_type&BF_WEAPON) { // the 1st attack won't really deal any damage
 			tmpdmg = damage;	// store the temporary weapon damage
+		} else {	// only display damage for the 2nd attack
+			if (tmpdmg == 0 || damage == 0)	// if one or both attack(s) missed, display a 'miss'
+				clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, 0, dmg.div_, skillid, skilllv, type);
+			damage += tmpdmg;	// add weapon and magic damage
+			tmpdmg = 0;	// clear the temporary weapon damage
+			if (damage > 0)	// if both attacks missed, do not display a 2nd 'miss'
+				clif_skill_damage(dsrc, bl, tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skillid, skilllv, type);
 		}
 		break;
 	case NPC_SELFDESTRUCTION:
@@ -1657,7 +1655,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 
 	map_freeblock_lock();
 	/* ?際にダメ?ジ?理を行う */
-	if (skillid || flag) {
+	if ((skillid || flag) && !(skillid == ASC_BREAKER && attack_type&BF_WEAPON)) {  // do not really deal damage for ASC_BREAKER's 1st attack
 		if (attack_type&BF_WEAPON)
 			battle_delay_damage(tick+dmg.amotion,src,bl,damage,dmg.dmotion,0);
 		else
@@ -2418,25 +2416,20 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case CH_CHAINCRUSH:		/* 連柱崩? */
 	case CH_TIGERFIST:		/* 伏虎拳 */
 	case PA_SHIELDCHAIN:	// Shield Chain
-	case PA_SACRIFICE:	//Sacrifice, Aru's style.
-	case CR_ACIDDEMONSTRATION:
+	case PA_SACRIFICE:	// Sacrifice, Aru's style.
+	case CR_ACIDDEMONSTRATION:  // Acid Demonstration
+	case WS_CARTTERMINATION:	// Cart Termination
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 
-	case WS_CARTTERMINATION:	// Cart Termination
-		if (sc_data && sc_data[SC_CARTBOOST].timer != -1)
-			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-		else if (sd) clif_skill_fail(sd,skillid,0,0);
-		break;
-
 	case ASC_BREAKER:				/* ソウルブレ?カ? */	// [DracoRPG]
-		// separate weapon and magic attacks
+		// Separate weapon and magic attacks
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 	
 	case SN_SHARPSHOOTING:			/* シャ?プシュ?ティング */
-		//DOes it stop if touch an obstacle? it shouldn't shoot trough walls
+		// Does it stop if touch an obstacle? it shouldn't shoot trough walls
 			map_foreachinpath (skill_attack_area,src->m,					// function, map
 					src->x,src->y,											// source xy
 					bl->x,bl->y,											// target xy
@@ -3207,7 +3200,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			static int changeclass[]={1038,1039,1046,1059,1086,1087,1112,1115
 				,1157,1159,1190,1272,1312,1373,1492};
 			int class_ = mob_random_class (changeclass,sizeof(changeclass)/sizeof(changeclass[0]));
-			//if (class_ == 0) break;	// skip checking in a hardcoded array
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if(dstmd) mob_class_change(dstmd,class_);
 		}
@@ -3216,7 +3208,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			static int poringclass[]={1002};
 			int class_ = mob_random_class (poringclass,sizeof(poringclass)/sizeof(poringclass[0]));
-			//if (class_ == 0) break;	// skip checking in a hardcoded array
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if(dstmd) mob_class_change(dstmd,class_);
 		}
@@ -3285,14 +3276,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			int sc = SkillStatusChangeTable[skillid];
 			int sc2 = SC_MARIONETTE2;
 
-//			if ((sd == dstsd)
-//			 || (!sd->status.party_id)
-//			 || (sd->status.party_id != dstsd->status.party_id)) { //using inf2 = INF2_PARTY_ONLY spares the check [Skotlex]
-//			if (sd == dstsd) { //Using inf2 = INF2_NO_TARGET_SELF spares this check [Skotlex]
-//			 	clif_skill_fail(sd,skillid,0,0);
-//				map_freeblock_unlock();
-//				return 1;
-//			}
 			if(sc_data && tsc_data){
 				if (sc_data[sc].timer == -1 && tsc_data[sc2].timer == -1) {
 					status_change_start (src,sc,skilllv,0,bl->id,0,skill_get_time(skillid,skilllv),0);
@@ -3509,16 +3492,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 			int lv = sd->status.base_level - dstsd->status.base_level;
 			if (lv < 0) lv = -lv;
-			//Many of these checks are unneeded thanks to the new inf2 value. [Skotlex]
-			/*
-			if ((sd == dstsd)									// 相手はPCじゃないとだめ
-			 || (sd->bl.id == dstsd->bl.id)						// 相手が自分はだめ
-			 || (lv > battle_config.devotion_level_difference)	// レベル差±10まで
-			 || (!sd->status.party_id && !sd->status.guild_id)	// PTにもギルドにも所?無しはだめ
-			 || ((sd->status.party_id != dstsd->status.party_id)	// 同じパ?ティ?か、
-				&&(sd->status.guild_id != dstsd->status.guild_id))	// 同じギルドじゃないとだめ
-			 || (s_class == 14 || s_class == 21)) {	// クルセだめ
-			 */
 			if (lv > battle_config.devotion_level_difference ||
 				s_class == 14 || s_class == 21) {	
 				clif_skill_fail(sd,skillid,0,0);
@@ -3612,12 +3585,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case WS_CREATENUGGET:			/* 塊製造 */
 		if(sd) {
 			clif_skill_produce_mix_list(sd,128);
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		}
-		break;
-	case ASC_CDP: // [DracoRPG]
-		if(sd) {
-			clif_skill_produce_mix_list(sd,256);
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		}
 		break;
@@ -4051,6 +4018,35 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 		}
 		break;
+	case ASC_CDP:
+       	if(sd) {
+			int eflag;
+			struct item item_tmp;
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			if(rand()%10000 < (2000 + 40*sd->paramc[4] + 20*sd->paramc[5])){
+				clif_produceeffect(sd,2,678);
+				clif_misceffect(&sd->bl,5);
+				memset(&item_tmp,0,sizeof(item_tmp));
+				item_tmp.nameid = 678;
+				item_tmp.identify = 1;
+				if(battle_config.cdp_name_input) {
+					item_tmp.card[0] = 0xfe;
+					item_tmp.card[1] = 0;
+					item_tmp.card[2] = GetWord(sd->char_id,0); // CharId
+					item_tmp.card[3] = GetWord(sd->char_id,1);
+				}
+				eflag = pc_additem(sd,&item_tmp,1);
+				if(eflag) {
+					clif_additem(sd,0,0,eflag);
+					map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+				}
+			} else {
+				clif_produceeffect(sd,3,678);
+				clif_misceffect(&sd->bl,6);
+				pc_heal(sd,-(sd->status.max_hp>>2),0);
+			}
+		}
+		break;
 
 	case RG_STRIPWEAPON:		/* ストリップウェポン */
 	case RG_STRIPSHIELD:		/* ストリップシールド */
@@ -4399,7 +4395,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case NPC_REBIRTH:
-		//printf ("%d %d\n", md && md->bl.prev, md && md->bl.prev && md->state.state == MS_DEAD);
 		if (md && md->state.state == MS_DEAD) {
 			mob_setdelayspawn (md->bl.id);
 		}
@@ -4495,9 +4490,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case NPC_STOP:
-		if (md && md->target_id > 0) {
-			mob_unlocktarget(md, tick);
-		}
+		if(dstsd)
+		    dstsd->canmove_tick += skill_get_time(skillid,skilllv);
+		else if(dstmd)
+		    dstmd->canmove_tick += skill_get_time(skillid,skilllv);
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
 
@@ -6990,7 +6986,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	}
 
 	if (sd->state.produce_flag &&
-		(sd->skillid == AM_PHARMACY || sd->skillid == ASC_CDP || sd->skillid == AC_MAKINGARROW || sd->skillid == BS_REPAIRWEAPON))
+		(sd->skillid == AM_PHARMACY || sd->skillid == AC_MAKINGARROW || sd->skillid == BS_REPAIRWEAPON))
 	{
 		sd->skillitem = sd->skillitemlv = -1;
 		return 0;
@@ -7362,6 +7358,12 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			return 0;
 		}
 		break;
+	case ST_CARTBOOST:
+		if(!pc_iscarton(sd) || sd->sc_data[SC_CARTBOOST].timer == -1) {
+			clif_skill_fail(sd,skill,0,0);
+			return 0;
+		}
+		break;
 	case ST_RECOV_WEIGHT_RATE:
 		if(battle_config.natural_heal_weight_rate <= 100 && sd->weight*100/sd->max_weight >= battle_config.natural_heal_weight_rate) {
 			clif_skill_fail(sd,skill,0,0);
@@ -7635,7 +7637,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	 	return 0;
 	if(skill_get_inf2(skill_num)&INF2_NO_TARGET_SELF && sd->bl.id == target_id)
 		return 0;
-	
+
 	//直前のスキルが何か?える必要のあるスキル
 	switch (skill_num) {
 	case SA_CASTCANCEL:
@@ -7817,12 +7819,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			if (f_sd) target_id = f_sd->bl.id;
 			else if (m_sd) target_id = m_sd->bl.id;
 			else return 0;	// neither are found
-
-			// skip range check
-			//rangeをもう1回?査
-			//range = skill_get_range(skill_num,skill_lv);
-			//if(!battle_check_range(&sd->bl,&p_sd->bl,range))
-			//	return 0;
 		}
 		break;
 
@@ -9742,56 +9738,61 @@ int skill_produce_mix( struct map_session_data *sd,
 		}while( j>=0 && x>0 );	/* 材料を消費するか、エラ?になるまで繰り返す */
 	}
 
-	/* 確率判定 */
 	if((equip=itemdb_isequip(nameid)))
 		wlv = itemdb_wlv(nameid);
 	if(!equip) {
-// Potion Making - reviewed with the help of various Ragnainfo sources [DracoRPG]
-		if(skill_produce_db[idx].req_skill==AM_PHARMACY) {
-			make_per = pc_checkskill(sd,AM_LEARNINGPOTION)*100
-				+ pc_checkskill(sd,AM_PHARMACY)*300 + sd->status.job_level*20
-				+ sd->paramc[3]*5 + sd->paramc[4]*10+sd->paramc[5]*10;
-			switch(nameid){
-				case 501: // Red Potion
-				case 503: // Yellow Potion
-				case 504: // White Potion
-				case 605: // Anodyne
-				case 606: // Aloevera
-					make_per += 2000;
+		switch(skill_produce_db[idx].req_skill){
+			case AM_PHARMACY: // Potion Making - reviewed with the help of various Ragnainfo sources [DracoRPG]
+				make_per = pc_checkskill(sd,AM_LEARNINGPOTION)*100
+					+ pc_checkskill(sd,AM_PHARMACY)*300 + sd->status.job_level*20
+					+ sd->paramc[3]*5 + sd->paramc[4]*10+sd->paramc[5]*10;
+				switch(nameid){
+					case 501: // Red Potion
+					case 503: // Yellow Potion
+					case 504: // White Potion
+					case 605: // Anodyne
+					case 606: // Aloevera
+						make_per += 2000;
+						break;
+					case 505: // Blue Potion
+						make_per -= 500;
+						break;
+					case 545: // Condensed Red Potion
+					case 546: // Condensed Yellow Potion
+					case 547: // Condensed White Potion
+						make_per -= 1000;
+					    break;
+				 	case 970: // Alcohol
+						make_per += 1000;
+						break;
+					case 7139: // Glistening Coat
+						make_per -= 1000;
+						break;
+					case 7135: // Bottle Grenade
+					case 7136: // Acid Bottle
+					case 7137: // Plant Bottle
+					case 7138: // Marine Sphere Bottle
+					default:
+						break;
+				}
+				break;
+			default:{ // Ores & Metals Refining - skill bonuses are straight from kRO website [DracoRPG]
+				int skill = pc_checkskill(sd,skill_produce_db[idx].req_skill);
+				make_per = sd->status.job_level*20 + sd->paramc[4]*10 + sd->paramc[5]*10; //Base chance
+				switch(nameid){
+					case 998: // Iron
+						make_per += 4000+skill*500; // Temper Iron bonus: +26/+32/+38/+44/+50
+						break;
+					case 999: // Steel
+						make_per += 3000+skill*500; // Temper Steel bonus: +35/+40/+45/+50/+55
+						break;
+					default: // Enchanted Stones
+						make_per += 1000+skill*500; // Enchantedstone Craft bonus: +15/+20/+25/+30/+35
 					break;
-				case 505: // Blue Potion
-					make_per -= 500;
-					break;
-				case 545: // Condensed Red Potion
-				case 546: // Condensed Yellow Potion
-				case 547: // Condensed White Potion
-					make_per -= 1000;
-				    break;
-			 	case 970: // Alcohol
-					make_per += 1000;
-					break;
-				case 7139: // Glistening Coat
-					make_per -= 1000;
-					break;
-				case 7135: // Bottle Grenade
-				case 7136: // Acid Bottle
-				case 7137: // Plant Bottle
-				case 7138: // Marine Sphere Bottle
-				default:
-					break;
+				}
+				break;
 			}
-		} else if (skill_produce_db[idx].req_skill == ASC_CDP) {
-			make_per = 2000 + 40*sd->paramc[4] + 20*sd->paramc[5]; // Poison Bottle
-		} else { // Ores & Metals Refining - skill bonuses are straight from kRO website [DracoRPG]
-			int skill = pc_checkskill(sd,skill_produce_db[idx].req_skill);
-			make_per = sd->status.job_level*20 + sd->paramc[4]*10 + sd->paramc[5]*10; //Base chance
-			if(nameid == 998) // Iron
-				make_per += 4000+skill*500; // Temper Iron bonus: +26/+32/+38/+44/+50
-			else if(nameid == 999) // Steel
-				make_per += 3000+skill*500; // Temper Steel bonus: +35/+40/+45/+50/+55
-			else	// Enchanted Stones
-				make_per += 1000+skill*500; } // Enchantedstone Craft bonus: +15/+20/+25/+30/+35
-		
+		}
 		if(battle_config.pp_rate != 100)
 			make_per = make_per * battle_config.pp_rate / 100;
 	} else { // Weapon Forging - skill bonuses are straight from kRO website, other things from a jRO calculator [DracoRPG]
@@ -9812,7 +9813,6 @@ int skill_produce_mix( struct map_session_data *sd,
 
 	if(make_per < 1) make_per = 1;
 
-
 	if(rand()%10000 < make_per){
 		/* 成功 */
 		struct item tmp_item;
@@ -9825,8 +9825,7 @@ int skill_produce_mix( struct map_session_data *sd,
 			tmp_item.card[1]=((sc*5)<<8)+ele;	/* ?性とつよさ */
 			tmp_item.card[2]=GetWord(sd->char_id,0); // CharId
             tmp_item.card[3]=GetWord(sd->char_id,1);
-		}
-		else if((battle_config.produce_item_name_input && skill_produce_db[idx].req_skill!=AM_PHARMACY) ||
+		} else if((battle_config.produce_item_name_input && skill_produce_db[idx].req_skill!=AM_PHARMACY) ||
 			(battle_config.produce_potion_name_input && skill_produce_db[idx].req_skill==AM_PHARMACY)) {
 			tmp_item.card[0]=0x00fe;
 			tmp_item.card[1]=0;
@@ -9858,10 +9857,6 @@ int skill_produce_mix( struct map_session_data *sd,
 					}
 				} else sd->potion_success_counter = 0;
 				break;
-			case ASC_CDP:
-				clif_produceeffect(sd,2,nameid);/* 暫定で製?エフェクト */
-				clif_misceffect(&sd->bl,5);
-				break;
 			default:  /* 武器製造、コイン製造 */
 				clif_produceeffect(sd,0,nameid); /* 武器製造エフェクト */
 				clif_misceffect(&sd->bl,3);
@@ -9884,11 +9879,6 @@ int skill_produce_mix( struct map_session_data *sd,
 				clif_produceeffect(sd,3,nameid);/* 製?失敗エフェクト */
 				clif_misceffect(&sd->bl,6); /* 他人にも失敗を通知 */
 				sd->potion_success_counter = 0; // Fame point system [DracoRPG]
-				break;
-			case ASC_CDP:
-					clif_produceeffect(sd,3,nameid); /* 暫定で製?エフェクト */
-					clif_misceffect(&sd->bl,6); /* 他人にも失敗を通知 */
-					pc_heal(sd, -(sd->status.max_hp>>2), 0);
 				break;
 			default:
 				clif_produceeffect(sd,1,nameid);/* 武器製造失敗エフェクト */
@@ -9940,10 +9930,6 @@ int skill_arrow_create( struct map_session_data *sd,int nameid)
 
 	return 0;
 }
-
-/*----------------------------------------------------------------------------
- * 初期化系
- */
 
 /*----------------------------------------------------------------------------
  * 初期化系
@@ -10292,6 +10278,7 @@ int skill_readdb(void)
 		else if( strcmpi(split[8],"shield")==0 ) skill_db[i].state=ST_SHIELD;
 		else if( strcmpi(split[8],"sight")==0 ) skill_db[i].state=ST_SIGHT;
 		else if( strcmpi(split[8],"explosionspirits")==0 ) skill_db[i].state=ST_EXPLOSIONSPIRITS;
+		else if( strcmpi(split[8],"cartboost")==0 ) skill_db[i].state=ST_CARTBOOST;
 		else if( strcmpi(split[8],"recover_weight_rate")==0 ) skill_db[i].state=ST_RECOV_WEIGHT_RATE;
 		else if( strcmpi(split[8],"move_enable")==0 ) skill_db[i].state=ST_MOVE_ENABLE;
 		else if( strcmpi(split[8],"water")==0 ) skill_db[i].state=ST_WATER;
