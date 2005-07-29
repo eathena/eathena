@@ -1,5 +1,11 @@
 Date	Added
 07/28
+	* Fixed the Server Whisper to GMs in the char-sql server [Skotlex]
+	  (when an exploit that should be notified to GMs is triggered, the map
+	  server would just hang instead...)
+	* Some code reorganization around the name-spoof exploit protection code. [Skotlex]
+	* Fixed not being able to do Extremity Fist after Glacier Fist/Tiger
+	  Knuckle Fist [Skotlex]
 	* Likely fixed the Famous Alchemist potions not having that 50% boost. [Skotlex]
 	* Updated the Wedding Skills (they work with 10% HP/SP and heal 10% of
 	  their target's, summoning has a cast time of 20s) [Skotlex]

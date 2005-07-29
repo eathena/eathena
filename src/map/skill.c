@@ -1550,7 +1550,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			case CH_TIGERFIST:
 			{
 				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-				if(sc_data && sc_data[SC_COMBO].timer != -1)
+				if(sd->sc_data[SC_COMBO].timer != -1)
 				{	//Avoid triggering combo status if not used in a combo. [Skotlex]
 					if(damage < status_get_hp(bl) &&
 					(

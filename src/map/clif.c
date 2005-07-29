@@ -8564,23 +8564,13 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 	unsigned char *buf;
 
 	nullpo_retv(sd);
-	if ((is_atcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != AtCommand_None) ||
-        (is_charcommand(fd, sd, (char*)RFIFOP(fd,4),0)!= CharCommand_None) ||
-	    (sd->sc_data &&
-	    (sd->sc_data[SC_BERSERK].timer != -1 || //バーサーク時は会話も不可
-	     sd->sc_data[SC_NOCHAT].timer != -1 ))) //チャット禁止
-		return;
-
-	message = (char*)aCallocA(RFIFOW(fd,2) + 128, sizeof(char));
-	buf = (unsigned char*)aCallocA(RFIFOW(fd,2) + 4, sizeof(char));
-
-	//printf("clif_parse_GlobalMessage: message: '%s'.\n", RFIFOP(fd,4));
 	if (strncmp((char*)RFIFOP(fd,4), sd->status.name, strlen(sd->status.name)) != 0) {
 		ShowWarning("Hack on global message: character '%s' (account: %d), use an other name to send a (normal) message.\n", sd->status.name, sd->status.account_id);
-
+		message = (char*)aCallocA(256, sizeof(char));
 		// information is sended to all online GM
 		sprintf(message, "Hack on global message (normal message): character '%s' (account: %d) uses another name.", sd->status.name, sd->status.account_id);
 		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message);
+		
 		if (strlen((char*)RFIFOP(fd,4)) == 0)
 			strcpy(message, " This player sends a void name and a void message.");
 		else
@@ -8597,21 +8587,30 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 		if (battle_config.ban_spoof_namer > 0) {
 			chrif_char_ask_name(-1, sd->status.name, 2, 0, 0, 0, 0, battle_config.ban_spoof_namer, 0); // type: 2 - ban (year, month, day, hour, minute, second)
 			clif_setwaitclose(fd); // forced to disconnect because of the hack
-
-			if(message) aFree(message);
-			if(buf) aFree(buf);
-
-			return;
 		}
-		// but for the hacker, we display on his screen (he see/look no difference).
-	} else {
-		// send message to others
-		WBUFW(buf,0) = 0x8d;
-		WBUFW(buf,2) = RFIFOW(fd,2) + 4; // len of message - 4 + 8
-		WBUFL(buf,4) = sd->bl.id;
-		memcpy(WBUFP(buf,8), RFIFOP(fd,4), RFIFOW(fd,2) - 4);
-		clif_send(buf, WBUFW(buf,2), &sd->bl, sd->chatID ? CHAT_WOS : AREA_CHAT_WOC);
+		else
+			session[fd]->eof = 1; //Disconnect them too, bad packets can cause problems down the road. [Skotlex]
+				
+		if(message) aFree(message);
+		return;
 	}
+	
+	if ((is_atcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != AtCommand_None) ||
+		(is_charcommand(fd, sd, (char*)RFIFOP(fd,4),0) != CharCommand_None) ||
+		(sd->sc_data &&
+		(sd->sc_data[SC_BERSERK].timer != -1 || //バーサーク時は会話も不可
+		sd->sc_data[SC_NOCHAT].timer != -1 ))) //チャット禁止
+		return;
+
+	message = (char*)aCallocA(RFIFOW(fd,2) + 128, sizeof(char));
+	buf = (unsigned char*)aCallocA(RFIFOW(fd,2) + 4, sizeof(char));
+
+	// send message to others
+	WBUFW(buf,0) = 0x8d;
+	WBUFW(buf,2) = RFIFOW(fd,2) + 4; // len of message - 4 + 8
+	WBUFL(buf,4) = sd->bl.id;
+	memcpy(WBUFP(buf,8), RFIFOP(fd,4), RFIFOW(fd,2) - 4);
+	clif_send(buf, WBUFW(buf,2), &sd->bl, sd->chatID ? CHAT_WOS : AREA_CHAT_WOC);
 
 	// send back message to the speaker
 	memcpy(WFIFOP(fd,0), RFIFOP(fd,0), RFIFOW(fd,2));
@@ -8619,7 +8618,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 	WFIFOSET(fd, WFIFOW(fd,2));
 
 #ifdef PCRE_SUPPORT
-        map_foreachinarea(npc_chat_sub, sd->bl.m, sd->bl.x-AREA_SIZE, sd->bl.y-AREA_SIZE, sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_NPC, RFIFOP(fd,4), strlen(RFIFOP(fd,4)), &sd->bl);
+	map_foreachinarea(npc_chat_sub, sd->bl.m, sd->bl.x-AREA_SIZE, sd->bl.y-AREA_SIZE, sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_NPC, RFIFOP(fd,4), strlen(RFIFOP(fd,4)), &sd->bl);
 #endif
 
 	// Celest

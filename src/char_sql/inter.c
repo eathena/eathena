@@ -582,6 +582,17 @@ int mapif_parse_WisReply(int fd) {
 	return 0;
 }
 
+// Received wisp message from map-server for ALL gm (just copy the message and resends it to ALL map-servers)
+int mapif_parse_WisToGM(int fd) {
+	unsigned char buf[2048]; // 0x3003/0x3803 <packet_len>.w <wispname>.24B <min_gm_level>.w <message>.?B
+
+	ShowDebug("Sent packet back!\n");
+	memcpy(WBUFP(buf,0), RFIFOP(fd,0), RFIFOW(fd,2));
+	WBUFW(buf, 0) = 0x3803;
+	mapif_sendall(buf, RFIFOW(fd,2));
+
+	return 0;
+}
 
 // Save account_reg into sql (type=2)
 int mapif_parse_AccReg(int fd)
@@ -609,8 +620,6 @@ int mapif_parse_AccRegRequest(int fd)
 	return mapif_account_reg_reply(fd,RFIFOL(fd,2));
 }
 
-
-
 //--------------------------------------------------------
 int inter_parse_frommap(int fd)
 {
@@ -630,6 +639,7 @@ int inter_parse_frommap(int fd)
 	case 0x3000: mapif_parse_GMmessage(fd); break;
 	case 0x3001: mapif_parse_WisRequest(fd); break;
 	case 0x3002: mapif_parse_WisReply(fd); break;
+	case 0x3003: mapif_parse_WisToGM(fd); break;
 	case 0x3004: mapif_parse_AccReg(fd); break;
 	case 0x3005: mapif_parse_AccRegRequest(fd); break;
 	default:
