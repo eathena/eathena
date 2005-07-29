@@ -356,6 +356,8 @@ extern struct Battle_Config {
 	unsigned short character_size; // if riders have size=2, and baby class riders size=1 [Lupus]
 	unsigned short headset_block_music; // do headsets block Frost Joke, etc [Lupus]
 	unsigned short mob_max_skilllvl; // Max possible skill level [Lupus]
+	unsigned short rare_drop_announce; // chance <= to show rare drops global announces
+
 #ifndef TXT_ONLY /* SQL-only options */
 	unsigned short mail_system; // [Valaris]
 #endif

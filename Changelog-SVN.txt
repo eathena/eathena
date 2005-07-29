@@ -1,4 +1,7 @@
 Date	Added
+07/29
+	* Added optional announce of rare drops. When a SomePlayer kills a monster [Lupus]
+	  with a rare drop then everyone gets announce: 'SomePlayer' won Pupa's Pupa Card (chance 0.01%)
 07/28
 	* Fixed the Server Whisper to GMs in the char-sql server [Skotlex]
 	  (when an exploit that should be notified to GMs is triggered, the map

@@ -3403,6 +3403,8 @@ static const struct battle_data_short {
 	{ "mob_clear_delay",                   &battle_config.mob_clear_delay}, // [Valaris]
 	{ "character_size",						&battle_config.character_size}, // [Lupus]
 	{ "headset_block_music",				&battle_config.headset_block_music}, // [Lupus]
+	{ "mob_max_skilllvl",				&battle_config.mob_max_skilllvl}, // [Lupus]
+	{ "rare_drop_announce",				&battle_config.rare_drop_announce}, // [Lupus]
 
 //SQL-only options start
 #ifndef TXT_ONLY
@@ -3742,10 +3744,10 @@ void battle_set_defaults() {
 	battle_config.show_hp_sp_drain = 0; //Display drained hp/sp from attacks
 	battle_config.show_hp_sp_gain = 1;	//Display gained hp/sp from mob-kills
 	battle_config.mob_clear_delay = 0;
-	battle_config.character_size = 3; //3: Peco riders Size=2, Baby Class Riders Size=1
-	battle_config.headset_block_music = 0; //Do headsets block some sound skills like Frost Joke
-	battle_config.mob_max_skilllvl = 11; //max possible level of monsters skills
-
+	battle_config.character_size = 3; //3: Peco riders Size=2, Baby Class Riders Size=1 [Lupus]
+	battle_config.headset_block_music = 0; //Do headsets block some sound skills like Frost Joke [Lupus]
+	battle_config.mob_max_skilllvl = 11; //max possible level of monsters skills [Lupus]
+	battle_config.rare_drop_announce = 10; //show global announces for rare items drops (<= 0.1% chance) [Lupus]
 //SQL-only options start
 #ifndef TXT_ONLY
 	battle_config.mail_system = 0;
