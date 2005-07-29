@@ -1,5 +1,10 @@
 Date	Added
 07/29
+	* Optimized Apple of Idun's implementation [Skotlex]
+	* Updated pc_calc_base_job and related functions and applied them around
+	  the map server. This should fix all item related problems with Super Babies
+	  and alike. [Skotlex]
+	* Simplified/optimized the code that mounts/dismounts from Pecos. [Skotlex]
 	* Changed Create Deadly Poison to not use the item producing interface (works simplier,
 	  like Aqua Benedicta) and added a separate config option to choose whether the maker's
 	  name is written on the Poison Bottle [DracoRPG]

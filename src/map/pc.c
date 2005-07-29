@@ -286,11 +286,11 @@ int pc_istop10fame(int char_id,int type) {
 
 int pc_setrestartvalue(struct map_session_data *sd,int type) {
 	//?生や養子の場合の元の職業を算出する
-	struct pc_base_job s_class;
+	int s_class;
 
 	nullpo_retr(0, sd);
 
-	s_class = pc_calc_base_job(sd->status.class_);
+	s_class = pc_calc_base_job2(sd->status.class_);
 
 	//-----------------------
 	// 死亡した
@@ -304,7 +304,7 @@ int pc_setrestartvalue(struct map_session_data *sd,int type) {
 		}
 	}
 	else {
-		if(s_class.job == 0 && battle_config.restart_hp_rate < 50) { //ノビは半分回復
+		if(s_class == JOB_NOVICE && battle_config.restart_hp_rate < 50) { //ノビは半分回復
 			sd->status.hp=(sd->status.max_hp)/2;
 		}
 		else {
@@ -329,7 +329,7 @@ int pc_setrestartvalue(struct map_session_data *sd,int type) {
 
 	/* removed exp penalty on spawn [Valaris] */
 
-	if(type&2 && sd->status.class_ != 0 && battle_config.zeny_penalty > 0 && !map[sd->bl.m].flag.nozenypenalty) {
+	if(type&2 && s_class != JOB_NOVICE && battle_config.zeny_penalty > 0 && !map[sd->bl.m].flag.nozenypenalty) {
 		int zeny = (int)((double)sd->status.zeny * (double)battle_config.zeny_penalty / 10000.);
 		if(zeny < 1) zeny = 1;
 		sd->status.zeny -= zeny;
@@ -412,16 +412,16 @@ int pc_equippoint(struct map_session_data *sd,int n)
 {
 	int ep = 0;
 	//?生や養子の場合の元の職業を算出する
-	struct pc_base_job s_class;
+	int s_class;
 
 	nullpo_retr(0, sd);
 
-	s_class = pc_calc_base_job(sd->status.class_);
+	s_class = pc_calc_base_job2(sd->status.class_);
 
 	if(sd->inventory_data[n]) {
 		ep = sd->inventory_data[n]->equip;
 		if(sd->inventory_data[n]->look == 1 || sd->inventory_data[n]->look == 2 || sd->inventory_data[n]->look == 6) {
-			if(ep == 2 && (pc_checkskill(sd,AS_LEFT) > 0 || s_class.job == 12))
+			if(ep == 2 && (pc_checkskill(sd,AS_LEFT) > 0 || s_class == JOB_ASSASSIN))
 				return 34;
 		}
 	}
@@ -533,18 +533,10 @@ int pc_isequip(struct map_session_data *sd,int n)
 		return 0;
 	if(item->elv > 0 && sd->status.base_level < item->elv)
 		return 0;
-// -- moonsoul	(below statement substituted for commented out version further below
-//			 as it allows all advanced classes to equip items their normal versions
-//			 could equip)
-//
-	if (((sd->status.class_ == 13 || sd->status.class_ == 4014) && ((1<<7)&item->class_) == 0) || // have mounted classes use unmounted equipment [Valaris]
-		((sd->status.class_ == 21 || sd->status.class_ == 4022) && ((1<<14)&item->class_) == 0))
+
+	//Much cleaner now, ain't it? [Skotlex]
+	if ((1<<(pc_calc_base_job(sd->status.class_).job) & item->class_) == 0)
 		return 0;
-	if (sd->status.class_ != 13 && sd->status.class_ != 4014 && sd->status.class_ != 21 && sd->status.class_ != 4022)
-		if((sd->status.class_ <= 4000 && ((1<<sd->status.class_)&item->class_) == 0) ||
-			(sd->status.class_ > 4000 && sd->status.class_ < 4023 && ((1<<(sd->status.class_-4001))&item->class_) == 0) ||
-			(sd->status.class_ >= 4023 && ((1<<(sd->status.class_-4023))&item->class_) == 0))
-			return 0;
 
 	if(map[sd->bl.m].flag.pvp && (item->flag.no_equip&1)) //optimized by Lupus
 		return 0;
@@ -957,7 +949,6 @@ int pc_calc_skilltree(struct map_session_data *sd)
 
 	s_class = pc_calc_base_job(sd->status.class_);
 	c = s_class.job;
-	//s = (s_class.upper==1) ? 1 : 0 ; //?生以外は通常のスキル？
 	s = s_class.upper;
 
 	c = pc_calc_skilltree_normalize_job(c, sd);
@@ -2596,12 +2587,10 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 		return 0;
 	if(item->elv > 0 && sd->status.base_level < item->elv)
 		return 0;
-	if(((sd->status.class_==13 || sd->status.class_==4014) && ((1<<7)&item->class_) == 0) || // have mounted classes use unmounted items [Valaris]
-		((sd->status.class_==21 || sd->status.class_==4022) && ((1<<14)&item->class_) == 0))
-		return 0;
-	if(sd->status.class_!=13 && sd->status.class_!=4014 && sd->status.class_!=21 && sd->status.class_!=4022)
-	if((sd->status.class_<=4000 && ((1<<sd->status.class_)&item->class_) == 0) || (sd->status.class_>4000 && sd->status.class_<4023 && ((1<<(sd->status.class_-4001))&item->class_) == 0) ||
-	  (sd->status.class_>=4023 && ((1<<(sd->status.class_-4023))&item->class_) == 0))
+
+	//Phew, this way is much cleaner to check for valid jobs :3 [Skotlex]
+	//Note that items for mounted chars alone will never be usable as items for non-mounted chars apply to both mounted/non-mounted chars.
+	if ((1<<(pc_calc_base_job2(sd->status.class_)) & item->class_) == 0)
 		return 0;
 
 	if((log_config.branch > 0) && (nameid == 604))
@@ -3644,28 +3633,33 @@ int pc_checkequip(struct map_session_data *sd,int pos)
 struct pc_base_job pc_calc_base_job(int b_class)
 {
 	struct pc_base_job bj;
-	//?生や養子の場合の元の職業を算出する
-	//if(b_class < MAX_PC_CLASS){ //通常
-	if(b_class < 4001){
-		bj.job = b_class;
+	if(b_class < JOB_NOVICE_HIGH){
+		if (b_class == JOB_KNIGHT2)
+			bj.job = JOB_KNIGHT;
+		else if (b_class == JOB_CRUSADER2)
+			bj.job = JOB_CRUSADER;
+		else	
+			bj.job = b_class;
 		bj.upper = 0;
-	}else if(b_class >= 4001 && b_class < 4023){ //?生職
-		// Athena almost never uses this... well, used this. :3
-		bj.job = b_class - 4001;
+	}else if(b_class >= JOB_NOVICE_HIGH && b_class <= JOB_PALADIN2){ //High Jobs
+		if (b_class == JOB_LORD_KNIGHT2)
+			bj.job = JOB_LORD_KNIGHT;
+		else if (b_class == JOB_PALADIN2)
+			bj.job = JOB_PALADIN;
+		else	
+			bj.job = b_class - JOB_NOVICE_HIGH;
 		bj.upper = 1;
-	//}else if(b_class == 23 + 4023 -1){ //養子スパノビ
-	}else if(b_class == 4045){ // super baby
-		//bj.job = b_class - (4023 - 1);
-		bj.job = 23;
+	}else if(b_class == JOB_SUPER_BABY){ // super baby
+		bj.job = JOB_SUPER_NOVICE;
 		bj.upper = 2;
-	}else{ //養子スパノビ以外の養子
-		bj.job = b_class - 4023;
+	}else{	//Baby Classes
+		bj.job = b_class - JOB_BABY;
 		bj.upper = 2;
 	}
 
-	if(bj.job == 0){
+	if(bj.job == JOB_NOVICE){
 		bj.type = 0;
-	}else if(bj.job < 7){
+	}else if(bj.job <= JOB_THIEF){
 		bj.type = 1;
 	}else{
 		bj.type = 2;
@@ -3680,20 +3674,32 @@ struct pc_base_job pc_calc_base_job(int b_class)
  */
 int pc_calc_base_job2 (int b_class)
 {
-	if(b_class < 4001)
+	if(b_class < JOB_NOVICE_HIGH)
+	{
+		if (b_class == JOB_KNIGHT2)
+			return JOB_KNIGHT;
+		if (b_class == JOB_CRUSADER2)
+			return JOB_CRUSADER;
 		return b_class;
-	else if(b_class >= 4001 && b_class < 4023)
-		return b_class - 4001;
-	else if(b_class == 4045)
-		return 23;
-	return b_class - 4023;
+	}
+	else if(b_class >= JOB_NOVICE_HIGH && b_class < JOB_BABY)
+	{
+		if (b_class == JOB_LORD_KNIGHT2)
+			return JOB_LORD_KNIGHT;
+		if (b_class == JOB_PALADIN2)
+			return JOB_PALADIN;
+		return b_class - JOB_NOVICE_HIGH;
+	}
+	else if(b_class == JOB_SUPER_BABY)
+		return JOB_SUPER_NOVICE;
+	return b_class - JOB_BABY;
 }
 
 int pc_calc_upper(int b_class)
 {
-	if(b_class < 4001)
+	if(b_class < JOB_NOVICE_HIGH)
 		return 0;
-	else if(b_class >= 4001 && b_class < 4023)
+	else if(b_class >= JOB_NOVICE_HIGH && b_class < JOB_BABY)
 		return 1;
 	return 2;
 }
@@ -3961,7 +3967,7 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 
 	if(sd->status.base_exp >= next && next > 0){
-		struct pc_base_job s_class = pc_calc_base_job(sd->status.class_);
+		int s_class = pc_calc_base_job2(sd->status.class_);
 
 		// base側レベルアップ?理
 		sd->status.base_exp -= next;
@@ -3977,7 +3983,7 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 		pc_heal(sd,sd->status.max_hp,sd->status.max_sp);
 
 		//スパノビはキリエ、イムポ、マニピ、グロ、サフラLv1がかかる
-		if(s_class.job == 23){
+		if(s_class == JOB_SUPER_NOVICE){
 			status_change_start(&sd->bl,SkillStatusChangeTable[PR_KYRIE],1,0,0,0,skill_get_time(PR_KYRIE,1),0 );
 			status_change_start(&sd->bl,SkillStatusChangeTable[PR_IMPOSITIO],1,0,0,0,skill_get_time(PR_IMPOSITIO,1),0 );
 			status_change_start(&sd->bl,SkillStatusChangeTable[PR_MAGNIFICAT],1,0,0,0,skill_get_time(PR_MAGNIFICAT,1),0 );
@@ -4111,20 +4117,24 @@ int pc_gainexp(struct map_session_data *sd,int base_exp,int job_exp)
 int pc_nextbaseexp(struct map_session_data *sd)
 {
 	int i;
+	struct pc_base_job s_class;
 
 	nullpo_retr(0, sd);
 
 	if(sd->status.base_level>=MAX_LEVEL || sd->status.base_level<=0)
 		return 0;
 
-	if(sd->status.class_==0 || sd->status.class_==4023) i=0; //Novice & Baby Novice [Lupus]
-	else if(sd->status.class_<=6 || (sd->status.class_>=4024 && sd->status.class_<=4029)) i=1; //1st Job & Baby 1st Job
-	else if(sd->status.class_<=22 || (sd->status.class_>=4030 && sd->status.class_<=4044)) i=2; //2nd Job & Baby 2nd Job
-	else if(sd->status.class_==23 || sd->status.class_==4045) i=3; //Super Novice & Super Baby
-	else if(sd->status.class_==4001) i=4; //High Novice
-	else if(sd->status.class_<=4007) i=5; //High 1st Job
-	else i=6; //3rd Job
+	s_class = pc_calc_base_job(sd->status.class_);
 
+	if (s_class.upper == 1)
+	{	//Uppper Classes
+		i = 4 + s_class.type; //4+0: High Novice, 4+1: High First Class, 4+2: Advanced Classes
+	} else { //Baby/Normal classes
+		if (s_class.job == JOB_SUPER_NOVICE)
+			i = 3; //Super Novice/Super Baby
+		else
+			i = s_class.type; //0: Novice, 1: First Class, 2: Second Class
+	}
 	return exp_table[i][sd->status.base_level-1];
 }
 
@@ -4135,19 +4145,24 @@ int pc_nextbaseexp(struct map_session_data *sd)
 int pc_nextjobexp(struct map_session_data *sd)
 {
 	int i;
+	struct pc_base_job s_class;
 
 	nullpo_retr(0, sd);
 
 	if(sd->status.job_level>=MAX_LEVEL || sd->status.job_level<=0)
 		return 0;
 
-	if(sd->status.class_==0 || sd->status.class_==4023) i=7; //Novice & Baby Novice [Lupus]
-	else if(sd->status.class_<=6 || (sd->status.class_>=4024 && sd->status.class_<=4029)) i=8; //1st Job & Baby 1st Job
-	else if(sd->status.class_<=22 || (sd->status.class_>=4030 && sd->status.class_<=4044)) i=9; //2nd Job & Baby 2nd Job
-	else if(sd->status.class_==23 || sd->status.class_==4045) i=10; //Super Novice & Super Baby
-	else if(sd->status.class_==4001) i=11; //High Novice
-	else if(sd->status.class_<=4007) i=12; //High 1st Job
-	else i=13; //3rd Job
+	s_class = pc_calc_base_job(sd->status.class_);
+
+	if (s_class.upper == 1)
+	{	//Uppper Classes
+		i = 11 + s_class.type; //11+0: High Novice, 11+1: High First Class, 11+2: Advanced Classes
+	} else { //Baby/Normal classes
+		if (s_class.job == JOB_SUPER_NOVICE)
+			i = 10; //Super Novice/Super Baby
+		else
+			i = 7+s_class.type; //7+0: Novice, 7+1: First Class, 7+2: Second Class
+	}
 
 	return exp_table[i][sd->status.job_level-1];
 }
@@ -4159,19 +4174,24 @@ int pc_nextjobexp(struct map_session_data *sd)
 int pc_nextbaseafter(struct map_session_data *sd)
 {
 	int i;
+	struct pc_base_job s_class;
 
 	nullpo_retr(0, sd);
 
 	if(sd->status.base_level>=MAX_LEVEL || sd->status.base_level<=0)
 		return 0;
 
-	if(sd->status.class_==0 || sd->status.class_==4023) i=0; //Novice & Baby Novice [Lupus]
-	else if(sd->status.class_<=6 || (sd->status.class_>=4024 && sd->status.class_<=4029)) i=1; //1st Job & Baby 1st Job
-	else if(sd->status.class_<=22 || (sd->status.class_>=4030 && sd->status.class_<=4044)) i=2; //2nd Job & Baby 2nd Job
-	else if(sd->status.class_==23 || sd->status.class_==4045) i=3; //Super Novice & Super Baby
-	else if(sd->status.class_==4001) i=4; //High Novice
-	else if(sd->status.class_<=4007) i=5; //High 1st Job
-	else i=6; //3rd Job
+	s_class = pc_calc_base_job(sd->status.class_);
+
+	if (s_class.upper == 1)
+	{	//Uppper Classes
+		i = 4 + s_class.type; //4+0: High Novice, 4+1: High First Class, 4+2: Advanced Classes
+	} else { //Baby/Normal classes
+		if (s_class.job == JOB_SUPER_NOVICE)
+			i = 3; //Super Novice/Super Baby
+		else
+			i = s_class.type; //0: Novice, 1: First Class, 2: Second Class
+	}
 
 	return exp_table[i][sd->status.base_level];
 }
@@ -4183,19 +4203,24 @@ int pc_nextbaseafter(struct map_session_data *sd)
 int pc_nextjobafter(struct map_session_data *sd)
 {
 	int i;
+	struct pc_base_job s_class;
 
 	nullpo_retr(0, sd);
 
 	if(sd->status.job_level>=MAX_LEVEL || sd->status.job_level<=0)
 		return 0;
 
-	if(sd->status.class_==0 || sd->status.class_==4023) i=7; //Novice & Baby Novice [Lupus]
-	else if(sd->status.class_<=6 || (sd->status.class_>=4024 && sd->status.class_<=4029)) i=8; //1st Job & Baby 1st Job
-	else if(sd->status.class_<=22 || (sd->status.class_>=4030 && sd->status.class_<=4044)) i=9; //2nd Job & Baby 2nd Job
-	else if(sd->status.class_==23 || sd->status.class_==4045) i=10; //Super Novice & Super Baby
-	else if(sd->status.class_==4001) i=11; //High Novice
-	else if(sd->status.class_<=4007) i=12; //High 1st Job
-	else i=13; //3rd Job
+	s_class = pc_calc_base_job(sd->status.class_);
+
+	if (s_class.upper == 1)
+	{	//Uppper Classes
+		i = 11 + s_class.type; //11+0: High Novice, 11+1: High First Class, 11+2: Advanced Classes
+	} else { //Baby/Normal classes
+		if (s_class.job == JOB_SUPER_NOVICE)
+			i = 10; //Super Novice/Super Baby
+		else
+			i = 7+s_class.type; //7+0: Novice, 7+1: First Class, 7+2: Second Class
+	}
 
 	return exp_table[i][sd->status.job_level];
 }
@@ -4485,7 +4510,7 @@ int pc_resetlvl(struct map_session_data* sd,int type)
 	sd->status.int_=1;
 	sd->status.dex=1;
 	sd->status.luk=1;
-	if(sd->status.class_ == 4001)
+	if(sd->status.class_ == JOB_NOVICE_HIGH)
 		sd->status.status_point=100;	// not 88 [celest]
 		// give platinum skills upon changing
 		pc_skill(sd,142,1,0);
@@ -4555,12 +4580,10 @@ int pc_resetstate(struct map_session_data* sd)
 		lv = sd->status.base_level < MAX_LEVEL ? sd->status.base_level : MAX_LEVEL - 1;
 		
 		sd->status.status_point = statp[lv];
-		if(sd->status.class_ >= 4001 && sd->status.class_ <= 4024)
+		if (pc_calc_upper(sd->status.class_)==2)
 			sd->status.status_point+=52;	// extra 52+48=100 stat points
 	} else { //Use new stat-calculating equation [Skotlex]
 #define sumsp(a) (((a-1)/10 +2)*(5*((a-1)/10 +1) + (a-1)%10) -10)
-//Old bugged equation:
-//#define sumsp(a) ((a)*((a-2)/10+2) - 5*((a-2)/10)*((a-2)/10) - 6*((a-2)/10) -2)
 		int add=0;
 		add += sumsp(sd->status.str);
 		add += sumsp(sd->status.agi);
@@ -4640,12 +4663,12 @@ int pc_resetskill(struct map_session_data* sd)
 int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int delay)
 {
 	int i=0,j=0;
-	struct pc_base_job s_class;
+	int s_class;
 
 	nullpo_retr(0, sd);
 
 	//?生や養子の場合の元の職業を算出する
-	s_class = pc_calc_base_job(sd->status.class_);
+	s_class = pc_calc_base_job2(sd->status.class_);
 	// ?に死んでいたら無?
 	if(pc_isdead(sd))
 		return 0;
@@ -4836,7 +4859,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 	}
 
 	// activate Steel body if a super novice dies at 99+% exp [celest]
-	if (s_class.job == 23) {
+	if (s_class == JOB_SUPER_NOVICE) {
 		if ((i=pc_nextbaseexp(sd))<=0)
 			i=sd->status.base_exp;
 		if (i>0 && (j=sd->status.base_exp*1000/i)>=990 && j<=1000)
@@ -4861,7 +4884,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 	sd->canregen_tick = gettick();
 
 	if(battle_config.death_penalty_type>0) { // changed penalty options, added death by player if pk_mode [Valaris]
-		if(sd->status.class_ != 0 && !map[sd->bl.m].flag.nopenalty && !map[sd->bl.m].flag.gvg &&	// only novices will recieve no penalty
+		if(pc_calc_base_job2(sd->status.class_) != JOB_NOVICE && !map[sd->bl.m].flag.nopenalty && !map[sd->bl.m].flag.gvg &&	// only novices will recieve no penalty
 			!(sd->sc_count && sd->sc_data[SC_BABY].timer!=-1)) {
 			if(battle_config.death_penalty_type==1 && battle_config.death_penalty_base > 0)
 				sd->status.base_exp -= (int) ((double)pc_nextbaseexp(sd) * (double)battle_config.death_penalty_base/10000);
@@ -5130,11 +5153,11 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 		pc_heal(sd, sd->status.max_hp, sd->status.max_sp);
 		break;
 	case SP_JOBLEVEL:
-		if (s_class.job == 0) //Novice & Baby Novice have 10 Job Levels only
+		if (s_class.job == JOB_NOVICE) //Novice & Baby Novice have 10 Job Levels only
 			up_level = 10;
-		else if (s_class.job == 23) //Super Novice & Super Baby can go up to 99
+		else if (s_class.job == JOB_SUPER_NOVICE) //Super Novice & Super Baby can go up to 99
 			up_level = battle_config.max_sn_level;
-		else if (sd->status.class_ >= 4008 && sd->status.class_ <= 4022) //3rd Job has 70 Job Levels
+		else if (s_class.upper == 1 && s_class.type == 2) //3rd Job has 70 Job Levels
 			up_level = battle_config.max_adv_level;
 		if (val >= sd->status.job_level) {
 			if (val > up_level) val = up_level;
@@ -5444,36 +5467,37 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 
 	nullpo_retr(0, sd);
 
+	if (job < 0)
+		return 1;
 	if (upper < 0 || upper > 2) //現在?生かどうかを判?する
 		upper = s_class.upper;
 
 	b_class = job;	//通常職ならjobそのまんま
-	if (job < 23) {
+	if (job < JOB_SUPER_NOVICE) {
 		if (upper == 1)
-			b_class += 4001;
+			b_class += JOB_NOVICE_HIGH;
 		else if (upper == 2)	//養子に結婚はないけどどうせ次で蹴られるからいいや
-			b_class += 4023;
-	} else if (job == 23) {
+			b_class += JOB_BABY;
+	} else if (job == JOB_SUPER_NOVICE) {
 		if (upper == 1)	//?生にスパノビは存在しないのでお?り
 			return 1;
 		else if (upper == 2)
-			b_class += 4022;
-	} else if (job > 23 && job < 69) {
-		b_class += 3977;
-	} else if ((job >= 69 && job < 4001) || (job > 4045))
+			b_class = JOB_SUPER_BABY;
+	} else if (job < JOB_SUPER_BABY-JOB_NOVICE_HIGH+JOB_SUPER_NOVICE+2) {
+	// Min is SuperNovice +1 -> Becomes Novice High [Skotlex]
+	// Max is SuperBaby-NoviceHigh+1 -> Becomes Super Baby
+		b_class += JOB_NOVICE_HIGH - JOB_SUPER_NOVICE -1;
+	} else //Too high value
 		return 1;
 
 	job = pc_calc_base_job2 (b_class); // check base class [celest]
 
-	if((sd->status.sex == 0 && job == 19) || (sd->status.sex == 1 && job == 20) ||
-		// not needed [celest]
-		//(sd->status.sex == 0 && job == 4020) || (sd->status.sex == 1 && job == 4021) ||
-		job == 22 || sd->status.class_ == b_class) //♀はバ?ドになれない、♂はダンサ?になれない、結婚衣裳もお?り
+	if((sd->status.sex == 0 && job == JOB_BARD) || (sd->status.sex == 1 && job == JOB_DANCER))
 		return 1;
 
 	// check if we are changing from 1st to 2nd job
-	if (job >= 7 && job <= 21) {
-		if (s_class.job > 0 && s_class.job < 7)
+	if (job >= JOB_KNIGHT && job <= JOB_CRUSADER2) {
+		if (s_class.job > JOB_NOVICE && s_class.job < JOB_KNIGHT)
 			sd->change_level = sd->status.job_level;
 		else
 			sd->change_level = 40;
@@ -5501,7 +5525,7 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 
 	if(battle_config.save_clothcolor &&
 		sd->status.clothes_color > 0 &&
-		(sd->view_class != 22 || !battle_config.wedding_ignorepalette)
+		(sd->view_class != JOB_WEDDING || !battle_config.wedding_ignorepalette)
 		)
 		clif_changelook(&sd->bl,LOOK_CLOTHES_COLOR,sd->status.clothes_color);
 	if(battle_config.muting_players && sd->status.manner < 0)
@@ -5604,11 +5628,57 @@ int pc_changelook(struct map_session_data *sd,int type,int val)
 int pc_setoption(struct map_session_data *sd,int type)
 {
 	nullpo_retr(0, sd);
-
+	if (type&0x0020 && sd->status.option&~0x0020)
+	{	//We are going to mount. [Skotlex]
+		switch (sd->status.class_)
+		{
+			case JOB_KNIGHT:
+				sd->status.class_ = sd->view_class = JOB_KNIGHT2;
+				break;
+			case JOB_CRUSADER:
+				sd->status.class_ = sd->view_class = JOB_CRUSADER2;
+				break;
+			case JOB_LORD_KNIGHT:
+				sd->status.class_ = sd->view_class = JOB_LORD_KNIGHT2;
+				break;
+			case JOB_PALADIN:
+				sd->status.class_ = sd->view_class = JOB_PALADIN2;
+				break;
+			case JOB_BABY_KNIGHT:
+				sd->status.class_ = sd->view_class = JOB_BABY_KNIGHT2;
+				break;
+			case JOB_BABY_CRUSADER:
+				sd->status.class_ = sd->view_class = JOB_BABY_CRUSADER2;
+				break;
+		}
+	}
+	else if (type&~0x0020 && sd->status.option&0x0020)
+	{	//We are going to dismount.
+		switch (sd->status.class_)
+		{
+			case JOB_KNIGHT2:
+				sd->status.class_ = sd->view_class = JOB_KNIGHT;
+				break;
+			case JOB_CRUSADER2:
+				sd->status.class_ = sd->view_class = JOB_CRUSADER;
+				break;
+			case JOB_LORD_KNIGHT2:
+				sd->status.class_ = sd->view_class = JOB_LORD_KNIGHT;
+				break;
+			case JOB_PALADIN2:
+				sd->status.class_ = sd->view_class = JOB_PALADIN;
+				break;
+			case JOB_BABY_KNIGHT2:
+				sd->status.class_ = sd->view_class = JOB_BABY_KNIGHT;
+				break;
+			case JOB_BABY_CRUSADER2:
+				sd->status.class_ = sd->view_class = JOB_BABY_CRUSADER;
+				break;
+		}
+	}
 	sd->status.option=type;
 	clif_changeoption(&sd->bl);
 	status_calc_pc(sd,0);
-
 	return 0;
 }
 
@@ -5659,20 +5729,7 @@ int pc_setriding(struct map_session_data *sd)
 {
 	if((pc_checkskill(sd,KN_RIDING)>0)){ // ライディングスキル所持
 		pc_setoption(sd,sd->status.option|0x0020);
-
-		if(sd->status.class_==7)
-			sd->status.class_=sd->view_class=13;
-
-		if(sd->status.class_==14)
-			sd->status.class_=sd->view_class=21;
-
-		if(sd->status.class_==4008)
-			sd->status.class_=sd->view_class=4014;
-
-		if(sd->status.class_==4015)
-			sd->status.class_=sd->view_class=4022;
 	}
-
 	return 0;
 }
 
@@ -6162,7 +6219,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int pos)
 	// 二刀流?理
 	if ((pos==0x22) // 一?、?備要求箇所が二刀流武器かチェックする
 	 &&	(id->equip==2)	// ? 手武器
-	 &&	(pc_checkskill(sd, AS_LEFT) > 0 || pc_calc_base_job2(sd->status.class_) == 12) ) // 左手修?有
+	 &&	(pc_checkskill(sd, AS_LEFT) > 0 || pc_calc_base_job2(sd->status.class_) == JOB_ASSASSIN) ) // 左手修?有
 	{
 		int tpos=0;
 		if(sd->equip_index[8] >= 0)
@@ -6887,8 +6944,7 @@ static int pc_natural_heal_sp(struct map_session_data *sd)
 
 	if(sd->nshealsp > 0) {
 		if(sd->inchealsptick >= battle_config.natural_heal_skill_interval && sd->status.sp < sd->status.max_sp) {
-			struct pc_base_job s_class = pc_calc_base_job(sd->status.class_);
-			if(sd->doridori_counter && s_class.job == 23)
+			if(sd->doridori_counter && pc_calc_base_job2(sd->status.class_) == JOB_SUPER_NOVICE)
 				bonus = sd->nshealsp*2;
 			else
 			bonus = sd->nshealsp;

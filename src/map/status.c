@@ -915,7 +915,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	}
 
 	// If Super Novice / Super Baby Never Died till Job70 they get bonus: AllStats +10
-	if(s_class.job == 23 && sd->die_counter == 0 && sd->status.job_level >= 70){
+	if(s_class.job == JOB_SUPER_NOVICE && sd->die_counter == 0 && sd->status.job_level >= 70){
 		sd->paramb[0]+= 10;
 		sd->paramb[1]+= 10;
 		sd->paramb[2]+= 10;
@@ -1044,7 +1044,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->status.max_hp = sd->status.max_hp * 3;			
 		}
 	}
-	if(s_class.job == 23 && sd->status.base_level >= 99){
+	if(s_class.job == JOB_SUPER_NOVICE && sd->status.base_level >= 99){
 		sd->status.max_hp = sd->status.max_hp + 2000;
 	}
 
@@ -1130,8 +1130,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	//Fleeã¸
 	if( (skill=pc_checkskill(sd,TF_MISS))>0 ){	// ‰ñ”ð—¦?‰Á
-		sd->flee += skill*((sd->status.class_==12 || sd->status.class_==17 || sd->status.class_==4013 || sd->status.class_==4018) ? 4 : 3);
-		if((sd->status.class_==12 || sd->status.class_==4013) && (sd->sc_count && sd->sc_data[SC_CLOAKING].timer==-1))
+		sd->flee += skill*((s_class.job == JOB_THIEF && s_class.type == 2)? 4 : 3); //2nd class Thieves (Rogue/Sin) get extra bonus.
+		if((sd->status.class_==JOB_ASSASSIN || sd->status.class_==JOB_ASSASSIN_CROSS || sd->status.class_==JOB_BABY_ASSASSIN) && 
+			(sd->sc_count && sd->sc_data[SC_CLOAKING].timer==-1))
 			SPEED_ADD_RATE((int)(skill*1.5));
 	}
 	if( (skill=pc_checkskill(sd,MO_DODGE))>0 )	// Œ©Ø‚è
@@ -1335,7 +1336,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 						+sd->sc_data[SC_FORTUNE].val3)*10;
 
 		if(sd->sc_data[SC_EXPLOSIONSPIRITS].timer!=-1){	// ”š—ô”g“®
-			if(s_class.job==23)
+			if(s_class.job==JOB_SUPER_NOVICE)
 				sd->critical += sd->sc_data[SC_EXPLOSIONSPIRITS].val1*100;
 			else
 			sd->critical += sd->sc_data[SC_EXPLOSIONSPIRITS].val2;
@@ -1355,12 +1356,12 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->addeff[4] += sd->sc_data[SC_ENCPOISON].val2;
 
 		if( sd->sc_data[SC_DANCING].timer!=-1 ){		// ‰‰‘t/ƒ_ƒ“ƒXŽg—p’†
-			int s_rate = 500 - 40 * pc_checkskill(sd,((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
+			int s_rate = 500 - 40 * pc_checkskill(sd,((s_class.job == JOB_BARD) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
 			if (sd->sc_data[SC_LONGING].timer != -1)
 				s_rate -= 20 * sd->sc_data[SC_LONGING].val1;
 			SPEED_ADD_RATE(-s_rate);
 			// is attack speed affected?
-			//aspd_rate = 600 - 40 * pc_checkskill(sd, ((s_class.job == 19) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
+			//aspd_rate = 600 - 40 * pc_checkskill(sd, ((s_class.job == JOB_BARD) ? BA_MUSICALLESSON : DC_DANCINGLESSON));
 			//if (sd->sc_data[SC_LONGING].timer != -1)
 			//	aspd_rate -= 20 * sd->sc_data[SC_LONGING].val1;
 			//sd->speed*=4;
@@ -1762,8 +1763,8 @@ int status_get_max_hp(struct block_list *bl)
 		sc_data = status_get_sc_data(bl);
 		if(sc_data) {
 			if(sc_data[SC_APPLEIDUN].timer != -1)
-				max_hp += ((5 + sc_data[SC_APPLEIDUN].val1 * 2 + ((sc_data[SC_APPLEIDUN].val2 + 1) >> 1)
-					+ sc_data[SC_APPLEIDUN].val3 / 10) * max_hp)/100;
+				max_hp += (5 + sc_data[SC_APPLEIDUN].val1 * 2 + ((sc_data[SC_APPLEIDUN].val2 + 1) >> 1) //Why is the Musical Lesson bonus halved? [Skotlex]
+					+ sc_data[SC_APPLEIDUN].val3 / 10) * max_hp/100;
 			if(sc_data[SC_GOSPEL].timer != -1 &&
 				sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
 				sc_data[SC_GOSPEL].val3 == 6)

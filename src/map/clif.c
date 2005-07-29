@@ -1397,13 +1397,15 @@ int clif_spawnpc(struct map_session_data *sd) {
 			clif_guild_emblem(sd,g);
 	}	// end addition [Valaris]
 
-	if (!sd->disguise && (sd->status.class_==13 || sd->status.class_==21 || sd->status.class_==4014 || sd->status.class_==4022 || sd->status.class_==4036 || sd->status.class_==4044))
+	/* This can probably be disposed, the option was saved with the char, right? [Skotlex]
+	if (!sd->disguise && (sd->status.class_==JOB_KNIGHT2 || sd->status.class_==JOB_CRUSADER2 || sd->status.class_==JOB_LORD_KNIGHT2 || sd->status.class_==JOB_PALADIN2 || sd->status.class_==JOB_BABY_KNIGHT2 || sd->status.class_==JOB_BABY_CRUSADER2))
 		pc_setoption(sd,sd->status.option|0x0020); // [Valaris]
-
+	*/
+	/* This can probably be disposed, it is for people upgrading athena from which version of how many years ago? [Skotlex]
 	if ((pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0) && (
-		sd->status.class_==7 || sd->status.class_==14 || sd->status.class_==4008 || sd->status.class_==4015 || sd->status.class_==4030 || sd->status.class_==4037 ))
+		sd->status.class_==JOB_KNIGHT || sd->status.class_==JOB_CRUSADER || sd->status.class_==JOB_LORD_KNIGHT || sd->status.class_==JOB_PALADIN || sd->status.class_==JOB_BABY_KNIGHT || sd->status.class_==JOB_BABY_CRUSADER ))
 		pc_setriding(sd); // update peco riders for people upgrading athena [Valaris]
-
+	*/
 	WFIFOW(sd->fd,0)=0x7c;
 	WFIFOL(sd->fd,2)=-10;
 	WFIFOW(sd->fd,6)=0;
@@ -8613,7 +8615,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 #endif
 
 	// Celest
-	if (pc_calc_base_job2 (sd->status.class_) == 23 ) {
+	if (pc_calc_base_job2 (sd->status.class_) == JOB_SUPER_NOVICE) {
 		int next = pc_nextbaseexp(sd) > 0 ? pc_nextbaseexp(sd) : sd->status.base_exp;
 		char *rfifo = (char*)RFIFOP(fd,4);
 		if (next > 0 && (sd->status.base_exp * 100 / next) % 10 == 0) {
@@ -9629,27 +9631,6 @@ void clif_parse_GetItemFromCart(int fd,struct map_session_data *sd)
  */
 void clif_parse_RemoveOption(int fd,struct map_session_data *sd)
 {
-	if(pc_isriding(sd)) {	// jobchange when removing peco [Valaris]
-		if(sd->status.class_==13)
-			sd->status.class_=sd->view_class=7;
-
-		if(sd->status.class_==21)
-			sd->status.class_=sd->view_class=14;
-
-		if(sd->status.class_==4014)
-			sd->status.class_=sd->view_class=4008;
-
-		if(sd->status.class_==4022)
-			sd->status.class_=sd->view_class=4015;
-
-		if(sd->status.class_==4036)
-			sd->status.class_=sd->view_class=4030;
-
-		if(sd->status.class_==4044)
-			sd->status.class_=sd->view_class=4037;
-
-	}
-
 	pc_setoption(sd,0);
 }
 

@@ -3080,7 +3080,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			if(su && su->group->target_flag == BCT_NOENEMY)
 				return 1;
 			else if (battle_config.pk_mode &&
-				(ssd->status.class_ == 0 || tsd->status.class_ == 0 ||
+				(pc_calc_base_job2(ssd->status.class_) == JOB_NOVICE || pc_calc_base_job2(tsd->status.class_) == JOB_NOVICE ||
 				ssd->status.base_level < battle_config.pk_min_level ||
 				tsd->status.base_level < battle_config.pk_min_level))
 				return 1; // prevent novice engagement in pk_mode [Valaris]

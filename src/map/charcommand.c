@@ -307,7 +307,7 @@ int charcommand_jobchange(
 		int j;
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can change job only to lower or same level
 			if ((job >= 0 && job < MAX_PC_CLASS)) {
-
+				/* I don't think this is needed anymore. [Skotlex]
 				// fix pecopeco display
 				if ((job != 13 && job != 21 && job != 4014 && job != 4022 && job != 4030 && job != 4036 && job != 4037 && job != 4044 )) {
 					if (pc_isriding(sd)) {
@@ -343,6 +343,7 @@ int charcommand_jobchange(
 							job = 4037;
 					}
 				}
+				*/
 				for (j=0; j < MAX_INVENTORY; j++) {
 					if(pl_sd->status.inventory[j].nameid>0 && pl_sd->status.inventory[j].equip!=0)
 						pc_unequipitem(pl_sd, j, 3);
@@ -590,44 +591,7 @@ int charcommand_option(
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can change option only to lower or same level
 			pl_sd->opt1 = opt1;
 			pl_sd->opt2 = opt2;
-			pl_sd->status.option = opt3;
-			// fix pecopeco display
-			if (pl_sd->status.class_ == 13 || pl_sd->status.class_ == 21 || pl_sd->status.class_ == 4014 || pl_sd->status.class_ == 4022 || pl_sd->status.class_ == 4030 || pl_sd->status.class_ == 4036 || pl_sd->status.class_ == 4037 || pl_sd->status.class_ == 4044) {
-				if (!pc_isriding(pl_sd)) { // pl_sd have the new value...
-					if (pl_sd->status.class_ == 13)
-						pl_sd->status.class_ = pl_sd->view_class = 7;
-					else if (pl_sd->status.class_ == 21)
-						pl_sd->status.class_ = pl_sd->view_class = 14;
-					else if (pl_sd->status.class_ == 4014)
-						pl_sd->status.class_ = pl_sd->view_class = 4008;
-					else if (pl_sd->status.class_ == 4022)
-						pl_sd->status.class_ = pl_sd->view_class = 4015;
-					else if (pl_sd->status.class_ == 4036)
-						pl_sd->status.class_ = pl_sd->view_class = 4030;
-					else if (pl_sd->status.class_ == 4044)
-						pl_sd->status.class_ = pl_sd->view_class = 4037;
-
-				}
-			} else {
-				if (pc_isriding(pl_sd)) { // pl_sd have the new value...
-					if (pl_sd->status.class_ == 7)
-						pl_sd->status.class_ = pl_sd->view_class = 13;
-					else if (pl_sd->status.class_ == 14)
-						pl_sd->status.class_ = pl_sd->view_class = 21;
-					else if (pl_sd->status.class_ == 4008)
-						pl_sd->status.class_ = pl_sd->view_class = 4014;
-					else if (pl_sd->status.class_ == 4015)
-						pl_sd->status.class_ = pl_sd->view_class = 4022;
-					else if (pl_sd->status.class_ == 4030)
-						pl_sd->status.class_ = pl_sd->view_class = 4036;
-					else if (pl_sd->status.class_ == 4037)
-						pl_sd->status.class_ = pl_sd->view_class = 4044;
-					else
-						pl_sd->status.option &= ~0x0020;
-				}
-			}
-			clif_changeoption(&pl_sd->bl);
-			status_calc_pc(pl_sd, 0);
+			pc_setoption(pl_sd, opt3);
 			clif_displaymessage(fd, msg_table[58]); // Character's options changed.
 		} else {
 			clif_displaymessage(fd, msg_table[81]); // Your GM level don't authorise you to do this action on this player.
@@ -1381,12 +1345,12 @@ int charcommand_joblevel(
 	if ((pl_sd = map_nick2sd(player)) != NULL) {
 		pl_s_class = pc_calc_base_job(pl_sd->status.class_);
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can change job level only lower or same gm level
-			if (pl_s_class.job == 0)
+			if (pl_s_class.job == JOB_NOVICE)
 				max_level = 10; //Novice
 			// super novices can go up to 99 [celest]
-			else if (pl_s_class.job == 23)
+			else if (pl_s_class.job == JOB_SUPER_NOVICE)
 				max_level = battle_config.max_sn_level; //S. Novice
-			else if (pl_sd->status.class_ > 4007 && pl_sd->status.class_ < 4023)
+			else if (pl_s_class.upper == 1 && pl_s_class.type == 2)
 				max_level = battle_config.max_adv_level; //Adv. Class
 
 			if (level > 0) {
@@ -1627,7 +1591,7 @@ int charcommand_model(
 
 			if (cloth_color != 0 &&
 				pl_sd->status.sex == 1 &&
-				(pl_sd->status.class_ == 12 ||  pl_sd->status.class_ == 17)) {
+				(pl_sd->status.class_ == JOB_ASSASSIN ||  pl_sd->status.class_ == JOB_ROGUE)) {
 				clif_displaymessage(fd, msg_table[35]); // You can't use this command with this class.
 				return -1;
 			} else {

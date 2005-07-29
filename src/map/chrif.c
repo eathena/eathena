@@ -684,7 +684,7 @@ int chrif_changedsex(int fd)
 {
 	int acc, sex, i;
 	struct map_session_data *sd;
-	struct pc_base_job s_class;
+	int s_class;
 
 	acc = RFIFOL(fd,2);
 	sex = RFIFOL(fd,6);
@@ -693,7 +693,7 @@ int chrif_changedsex(int fd)
 	sd = map_id2sd(acc);
 	if (acc > 0) {
 		if (sd != NULL && sd->status.sex != sex) {
-			s_class = pc_calc_base_job(sd->status.class_);
+			s_class = pc_calc_base_job2(sd->status.class_);
 			if (sd->status.sex == 0) {
 				sd->status.sex = 1;
 				sd->sex = 1;
@@ -707,9 +707,8 @@ int chrif_changedsex(int fd)
 					pc_unequipitem((struct map_session_data*)sd, i, 2);
 			}
 			// reset skill of some job
-			if (s_class.job == 19 || s_class.job == 4020 || s_class.job == 4042 ||
-			    s_class.job == 20 || s_class.job == 4021 || s_class.job == 4043) {
-				// remove specifical skills of classes 19, 4020 and 4042
+			if (s_class == JOB_BARD || s_class == JOB_DANCER) {
+				// remove specifical skills of Bard classes 
 				for(i = 315; i <= 322; i++) {
 					if (sd->status.skill[i].id > 0 && !sd->status.skill[i].flag) {
 						sd->status.skill_point += sd->status.skill[i].lv;
@@ -717,7 +716,7 @@ int chrif_changedsex(int fd)
 						sd->status.skill[i].lv = 0;
 					}
 				}
-				// remove specifical skills of classes 20, 4021 and 4043
+				// remove specifical skills of Dancer classes 
 				for(i = 323; i <= 330; i++) {
 					if (sd->status.skill[i].id > 0 && !sd->status.skill[i].flag) {
 						sd->status.skill_point += sd->status.skill[i].lv;
@@ -727,9 +726,9 @@ int chrif_changedsex(int fd)
 				}
 				clif_updatestatus(sd, SP_SKILLPOINT);
 				// change job if necessary
-				if (s_class.job == 20 || s_class.job == 4021 || s_class.job == 4043)
+				if (s_class == JOB_DANCER)
 					sd->status.class_ -= 1;
-				else if (s_class.job == 19 || s_class.job == 4020 || s_class.job == 4042)
+				else if (s_class == JOB_BARD)
 					sd->status.class_ += 1;
 			}
 			// save character

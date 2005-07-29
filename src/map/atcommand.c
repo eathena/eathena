@@ -1926,50 +1926,13 @@ int atcommand_option(
 	sd->opt1 = param1;
 	sd->opt2 = param2;
 	if (!(sd->status.option & CART_MASK) && param3 & CART_MASK) {
-		if (sd->status.class_ == 4028)
-		clif_cart_itemlist(sd);
+		if (sd->status.class_ == JOB_BABY_MERCHANT)
+			clif_cart_itemlist(sd);
 		clif_cart_equiplist(sd);
 		clif_updatestatus(sd, SP_CARTINFO);
 	}
-	sd->status.option = param3;
-	// fix pecopeco display
-	if (sd->status.class_ == 13 || sd->status.class_ == 21 || sd->status.class_ == 4014 || sd->status.class_ == 4022 || sd->status.class_ == 4030 || sd->status.class_ == 4036 || sd->status.class_ == 4037 || sd->status.class_ == 4044) {
-		if (!pc_isriding(sd)) { // sd have the new value...
-			if (sd->status.class_ == 13)
-				sd->status.class_ = sd->view_class = 7;
-			else if (sd->status.class_ == 21)
-				sd->status.class_ = sd->view_class = 14;
-			else if (sd->status.class_ == 4014)
-				sd->status.class_ = sd->view_class = 4008;
-			else if (sd->status.class_ == 4022)
-				sd->status.class_ = sd->view_class = 4015;
-			else if (sd->status.class_ == 4036) //baby Knight
-				sd->status.class_ = sd->view_class = 4030;
-			else if (sd->status.class_ == 4044) //baby Crusader
-				sd->status.class_ = sd->view_class = 4037;
-
-		}
-	} else {
-		if (pc_isriding(sd)) { // sd have the new value...
-			if (sd->status.class_ == 7)
-				sd->status.class_ = sd->view_class = 13;
-			else if (sd->status.class_ == 14)
-				sd->status.class_ = sd->view_class = 21;
-			else if (sd->status.class_ == 4008)
-				sd->status.class_ = sd->view_class = 4014;
-			else if (sd->status.class_ == 4015)
-				sd->status.class_ = sd->view_class = 4022;
-			else if (sd->status.class_ == 4030) //baby Knight
-				sd->status.class_ = sd->view_class = 4036;
-			else if (sd->status.class_ == 4037) //baby Crusader
-				sd->status.class_ = sd->view_class = 4044;
-			else
-				sd->status.option &= ~0x0020;
-		}
-	}
-
-	clif_changeoption(&sd->bl);
-	status_calc_pc(sd, 0);
+	pc_setoption(sd, param3);
+	
 	clif_displaymessage(fd, msg_table[9]); // Options changed.
 
 	return 0;
@@ -2097,44 +2060,65 @@ int atcommand_jobchange(
 	if (job == 37 ||job == 45)
 		return 0;
 
-	if ((job >= 0 && job < MAX_PC_CLASS)) {
+	if ((job >= 0 && job < MAX_PC_CLASS))
+	{
 		int j;
 
-		// fix pecopeco display
-		if ((job != 13 && job != 21 && job != 4014 && job != 4022 && job != 4030 && job != 4036 && job != 4037 && job != 4044 )) {
-			if (pc_isriding(sd)) {
-				if (sd->status.class_ == 13)
-					sd->status.class_ = sd->view_class = 7;
-				if (sd->status.class_ == 21)
-					sd->status.class_ = sd->view_class = 14;
-				if (sd->status.class_ == 4014)
-					sd->status.class_ = sd->view_class = 4008;
-				if (sd->status.class_ == 4022)
-					sd->status.class_ = sd->view_class = 4015;
-				if (sd->status.class_ == 4036)
-					sd->status.class_ = sd->view_class = 4030;
-				if (sd->status.class_ == 4044)
-					sd->status.class_ = sd->view_class = 4037;
-				sd->status.option &= ~0x0020;
-				clif_changeoption(&sd->bl);
-				status_calc_pc(sd, 0);
-			}
-		} else {
-			if (!pc_isriding(sd)) {
-				if (job == 13)
-					job = 7;
-				if (job == 21)
-					job = 14;
-				if (job == 4014)
-					job = 4008;
-				if (job == 4022)
-					job = 4015;
-				if (job == 4036)
-					job = 4030;
-				if (job == 4044)
-					job = 4037;
+/*		// fix pecopeco display <-- is this really needed? [Skotlex]
+		p_class = pc_calc_base_job2(job);
+		if (p_class == JOB_KNIGHT || p_class == JOB_PALADIN)
+		{
+			if (pc_isriding(sd))
+			{	//Mount
+				switch (sd->status.class_)
+				{
+					case JOB_KNIGHT:
+						sd->status.class_ = sd->view_class = JOB_KNIGHT2;
+						break;
+					case JOB_CRUSADER:
+						sd->status.class_ = sd->view_class = JOB_CRUSADER2;
+						break;
+					case JOB_LORD_KNIGHT:
+						sd->status.class_ = sd->view_class = JOB_LORD_KNIGHT2;
+						break;
+					case JOB_PALADIN:
+						sd->status.class_ = sd->view_class = JOB_PALADIN2;
+						break;
+					case JOB_BABY_KNIGHT:
+						sd->status.class_ = sd->view_class = JOB_BABY_KNIGHT2;
+						break;
+					case JOB_BABY_CRUSADER:
+						sd->status.class_ = sd->view_class = JOB_BABY_CRUSADER2;
+						break;
+					default:
+						sd->status.option &= ~0x0020;
+				}
+			} else
+			{	//Dismount
+				switch (sd->status.class_)
+				{
+					case JOB_KNIGHT2:
+						sd->status.class_ = sd->view_class = JOB_KNIGHT;
+						break;
+					case JOB_CRUSADER2:
+						sd->status.class_ = sd->view_class = JOB_CRUSADER;
+						break;
+					case JOB_LORD_KNIGHT2:
+						sd->status.class_ = sd->view_class = JOB_LORD_KNIGHT;
+						break;
+					case JOB_PALADIN2:
+						sd->status.class_ = sd->view_class = JOB_PALADIN;
+						break;
+					case JOB_BABY_KNIGHT2:
+						sd->status.class_ = sd->view_class = JOB_BABY_KNIGHT;
+						break;
+					case JOB_BABY_CRUSADER2:
+						sd->status.class_ = sd->view_class = JOB_BABY_CRUSADER;
+						break;
+				}
 			}
 		}
+*/
 		for (j=0; j < MAX_INVENTORY; j++) {
 			if(sd->status.inventory[j].nameid>0 && sd->status.inventory[j].equip!=0)
 				pc_unequipitem(sd, j, 3);
@@ -2552,12 +2536,12 @@ int atcommand_joblevelup(
 		return -1;
 	}
 
-	if (s_class.job == 0)
+	if (s_class.job == JOB_NOVICE)
 		up_level = 10; //Novice
 	// super novices can go up to 99 [celest]
-	else if (s_class.job == 23)
+	else if (s_class.job == JOB_SUPER_NOVICE)
 		up_level = battle_config.max_sn_level; //S. Novice
-	else if (sd->status.class_ > 4007 && sd->status.class_ < 4023)
+	else if (s_class.upper == 1 && s_class.type == 2)
 		up_level = battle_config.max_adv_level; //Adv Class
 
 	if (level > 0) {
@@ -2813,7 +2797,8 @@ int atcommand_model(
 		hair_color >= MIN_HAIR_COLOR && hair_color <= MAX_HAIR_COLOR &&
 		cloth_color >= MIN_CLOTH_COLOR && cloth_color <= MAX_CLOTH_COLOR) {
 		//•bÌF•ÏX
-		if (cloth_color != 0 && sd->status.sex == 1 && (sd->status.class_ == 12 ||  sd->status.class_ == 17)) {
+		if (cloth_color != 0 && sd->status.sex == 1 && (sd->status.class_ == JOB_ASSASSIN ||  sd->status.class_ == JOB_ROGUE)) {
+			//The hell? Why Rogue/Assassins can't... change their option if they have clothes colors and are males? o.O [Skotlex]
 			//•bÌF–¢ŽÀ‘•E‚Ì”»’è
 			clif_displaymessage(fd, msg_table[35]); // You can't use this command with this class.
 			return -1;
@@ -2877,7 +2862,7 @@ int atcommand_hair_style(const int fd, struct map_session_data* sd, const char* 
 	}
 
 	if (hair_style >= MIN_HAIR_STYLE && hair_style <= MAX_HAIR_STYLE) {
-		if (hair_style != 0 && sd->status.sex == 1 && (sd->status.class_ == 12 || sd->status.class_ == 17)) {
+		if (hair_style != 0 && sd->status.sex == 1 && (sd->status.class_ == JOB_ASSASSIN || sd->status.class_ == JOB_ROGUE)) { //???
 			clif_displaymessage(fd, msg_table[35]); // You can't use this command with this class.
 			return -1;
 		} else {
@@ -2922,7 +2907,7 @@ int atcommand_hair_color(const int fd, struct map_session_data* sd, const char* 
 	}
 
 	if (hair_color >= MIN_HAIR_COLOR && hair_color <= MAX_HAIR_COLOR) {
-		if (hair_color != 0 && sd->status.sex == 1 && (sd->status.class_ == 12 || sd->status.class_ == 17)) {
+		if (hair_color != 0 && sd->status.sex == 1 && (sd->status.class_ == JOB_ASSASSIN || sd->status.class_ == JOB_ROGUE)) {
 			clif_displaymessage(fd, msg_table[35]); // You can't use this command with this class.
 			return -1;
 		} else {
@@ -5523,39 +5508,14 @@ int atcommand_mount_peco(
 	nullpo_retr(-1, sd);
 
 	if (!pc_isriding(sd)) { // if actually no peco
-		if (sd->status.class_ == 7 || sd->status.class_ == 14 || sd->status.class_ == 4008 || sd->status.class_ == 4015 || sd->status.class_ == 4030 || sd->status.class_ == 4036 || sd->status.class_ == 4037 || sd->status.class_ == 4044) {
-			if (sd->status.class_ == 7)
-				sd->status.class_ = sd->view_class = 13;
-			else if (sd->status.class_ == 14)
-				sd->status.class_ = sd->view_class = 21;
-			else if (sd->status.class_ == 4008)
-				sd->status.class_ = sd->view_class = 4014;
-			else if (sd->status.class_ == 4015)
-				sd->status.class_ = sd->view_class = 4022;
-			else if (sd->status.class_ == 4030) //baby Knight
-				sd->status.class_ = sd->view_class = 4036;
-			else if (sd->status.class_ == 4037) //baby Crusader
-				sd->status.class_ = sd->view_class = 4044;
+		if (pc_checkskill(sd, KN_RIDING)) {
 			pc_setoption(sd, sd->status.option | 0x0020);
 			clif_displaymessage(fd, msg_table[102]); // Mounted Peco.
 		} else {
 			clif_displaymessage(fd, msg_table[213]); // You can not mount a peco with your job.
 			return -1;
 		}
-	} else {
-		if (sd->status.class_ == 13)
-			sd->status.class_ = sd->view_class = 7;
-		else if (sd->status.class_ == 21)
-			sd->status.class_ = sd->view_class = 14;
-		else if (sd->status.class_ == 4014)
-			sd->status.class_ = sd->view_class = 4008;
-		else if (sd->status.class_ == 4022)
-			sd->status.class_ = sd->view_class = 4015;
-		else if (sd->status.class_ == 4036) //baby Knight
-			sd->status.class_ = sd->view_class = 4030;
-		else if (sd->status.class_ == 4044) //baby Crusader
-			sd->status.class_ = sd->view_class = 4037;
-
+	} else {	//Dismount
 		pc_setoption(sd, sd->status.option & ~0x0020);
 		clif_displaymessage(fd, msg_table[214]); // Unmounted Peco.
 	}
@@ -5582,41 +5542,18 @@ int atcommand_char_mount_peco(
 	}
 
 	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (!pc_isriding(pl_sd)) { // if actually no peco
-			if (pl_sd->status.class_ == 7 || pl_sd->status.class_ == 14 || pl_sd->status.class_ == 4008 || pl_sd->status.class_ == 4015 || pl_sd->status.class_ == 4030 || pl_sd->status.class_ == 4036 || pl_sd->status.class_ == 4037 || pl_sd->status.class_ == 4044) {
-				if (pl_sd->status.class_ == 7)
-					pl_sd->status.class_ = pl_sd->view_class = 13;
-				else if (pl_sd->status.class_ == 14)
-					pl_sd->status.class_ = pl_sd->view_class = 21;
-				else if (pl_sd->status.class_ == 4008)
-					pl_sd->status.class_ = pl_sd->view_class = 4014;
-				else if (pl_sd->status.class_ == 4015)
-					pl_sd->status.class_ = pl_sd->view_class = 4022;
-				else if (sd->status.class_ == 4030) //baby Knight
-					pl_sd->status.class_ = pl_sd->view_class = 4036;
-				else if (sd->status.class_ == 4037) //baby Crusader
-					pl_sd->status.class_ = pl_sd->view_class = 4044;
-				pc_setoption(pl_sd, pl_sd->status.option | 0x0020);
-				clif_displaymessage(fd, msg_table[216]); // Now, this player mounts a peco.
+
+		if (!pc_isriding(sd)) { // if actually no peco
+			if (pc_checkskill(sd, KN_RIDING)) {
+				pc_setoption(sd, sd->status.option | 0x0020);
+				clif_displaymessage(fd, msg_table[216]); // Mounted Peco.
 			} else {
-				clif_displaymessage(fd, msg_table[217]); // This player can not mount a peco with his/her job.
+				clif_displaymessage(fd, msg_table[217]); // You can not mount a peco with your job.
 				return -1;
 			}
-		} else {
-			if (pl_sd->status.class_ == 13)
-				pl_sd->status.class_ = pl_sd->view_class = 7;
-			else if (pl_sd->status.class_ == 21)
-				pl_sd->status.class_ = pl_sd->view_class = 14;
-			else if (pl_sd->status.class_ == 4014)
-				pl_sd->status.class_ = pl_sd->view_class = 4008;
-			else if (pl_sd->status.class_ == 4022)
-				pl_sd->status.class_ = pl_sd->view_class = 4015;
-			else if (sd->status.class_ == 4036) //baby Knight
-				pl_sd->status.class_ = pl_sd->view_class = 4030;
-			else if (sd->status.class_ == 4044) //baby Crusader
-				pl_sd->status.class_ = pl_sd->view_class = 4037;
-			pc_setoption(pl_sd, pl_sd->status.option & ~0x0020);
-			clif_displaymessage(fd, msg_table[218]); // Now, this player has not more peco.
+		} else {	//Dismount
+			pc_setoption(sd, sd->status.option & ~0x0020);
+			clif_displaymessage(fd, msg_table[218]); // Unmounted Peco.
 		}
 	} else {
 		clif_displaymessage(fd, msg_table[3]); // Character not found.

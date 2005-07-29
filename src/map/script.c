@@ -4660,7 +4660,7 @@ int buildin_changebase(struct script_state *st)
 	if(vclass == 22)
 	{
 		if (!battle_config.wedding_modifydisplay ||	//Do not show the wedding sprites
-			(sd->status.class_ >= 4023 && sd->status.class_ <= 4045) //Baby classes screw up when showing wedding sprites. [Skotlex]
+			(sd->status.class_ >= JOB_BABY && sd->status.class_ <= JOB_SUPER_BABY) //Baby classes screw up when showing wedding sprites. [Skotlex]
 			) 
 		return 0;
 	}
@@ -4685,12 +4685,12 @@ int buildin_changesex(struct script_state *st) {
 	if (sd->status.sex == 0) {
 		sd->status.sex = 1;
 		sd->sex = 1;
-		if (sd->status.class_ == 20 || sd->status.class_ == 4021)
+		if (pc_calc_base_job2(sd->status.class_) == JOB_DANCER)
 			sd->status.class_ -= 1;
 	} else if (sd->status.sex == 1) {
 		sd->status.sex = 0;
 		sd->sex = 0;
-		if(sd->status.class_ == 19 || sd->status.class_ == 4020)
+		if (pc_calc_base_job2(sd->status.class_) == JOB_BARD)
 			sd->status.class_ += 1;
 	}
 	chrif_char_ask_name(-1, sd->status.name, 5, 0, 0, 0, 0, 0, 0); // type: 5 - changesex

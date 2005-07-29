@@ -624,7 +624,7 @@ int can_copy(struct map_session_data *sd, int skillid)
 		if(battle_config.copyskill_restrict == 2)
 			return 0;
 		else if(battle_config.copyskill_restrict)
-			return (sd->status.class_ == 4018);
+			return (sd->status.class_ == JOB_STALKER);
 	}
 
 	return 1;
@@ -3016,7 +3016,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if ((skill = pc_checkskill(sd, HP_MEDITATIO)) > 0) // メディテイティオ
 					heal += heal * skill * 2 / 100;
 				if (sd && dstsd && sd->status.partner_id == dstsd->status.char_id &&
-					pc_calc_base_job2(sd->status.class_) == 23 && sd->status.sex == 0) //自分も?象もPC、?象が自分のパ?トナ?、自分がスパノビ、自分が♀なら
+					pc_calc_base_job2(sd->status.class_) == JOB_SUPER_NOVICE && sd->status.sex == 0) //自分も?象もPC、?象が自分のパ?トナ?、自分がスパノビ、自分が♀なら
 					heal = heal*2;	//スパノビの嫁が旦那にヒ?ルすると2倍になる
 			}
 
@@ -3257,8 +3257,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		else {
 			if(sd && dstsd){ //Check they are not another crusader [Skotlex]
-				int s_class = pc_calc_base_job2 (dstsd->status.class_);
-				if (s_class == 14 || s_class == 21) {	
+				if (pc_calc_base_job2(dstsd->status.class_) == JOB_CRUSADER) {	
 					clif_skill_fail(sd,skillid,0,0);
 					map_freeblock_unlock();
 					return 1;
@@ -3488,12 +3487,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case CR_DEVOTION:		/* ディボ?ション */
 		if(sd && dstsd){
 			//?生や養子の場合の元の職業を算出する
-			int s_class = pc_calc_base_job2 (dstsd->status.class_);
 
 			int lv = sd->status.base_level - dstsd->status.base_level;
 			if (lv < 0) lv = -lv;
 			if (lv > battle_config.devotion_level_difference ||
-				s_class == 14 || s_class == 21) {	
+				pc_calc_base_job2 (dstsd->status.class_) == JOB_CRUSADER) {
 				clif_skill_fail(sd,skillid,0,0);
 				map_freeblock_unlock();
 				return 1;
@@ -5909,9 +5907,8 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		break;
 	case BA_APPLEIDUN:			/* イドゥンの林檎 */
 		if(src->type == BL_PC)
-			val1 = pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON)&0xffff;
-		val2 |= (status_get_vit(src))&0xffff; // Used modulus to prevent e.g. 42VIT/10*5 gives 21 HP healing bonus instead if 20 [DracoRPG]
-		val3 = 0;//回復用タイムカウンタ(6秒?に1?加)
+			val1 = pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
+		val2 = status_get_vit(src);
 		break;
 	case DC_SERVICEFORYOU:		/* サ?ビスフォ?ユ? */
 		if(src->type == BL_PC)
@@ -6143,7 +6140,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 		break;
 
 	case 0xb8:	// Gravitation
-		if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0) {
+//		if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0) { <-- this check is unneeded, you set enemy already in skill_unit_db [Skotlex]
 			if (sc_data && sc_data[type].timer!=-1) {
 				struct skill_unit_group *sg2 = (struct skill_unit_group *)sc_data[type].val4;
 				if (sg2 && (sg2 == src->group || DIFF_TICK(sg->tick,sg2->tick)<=0))
@@ -6153,7 +6150,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 			}
 			status_change_start(bl,type,sg->skill_lv,5*sg->skill_lv,BCT_ENEMY,(int)sg,
 				skill_get_time2(sg->skill_id,sg->skill_lv),0);
-		}
+//		}
 		break;
 
 	case 0xb2:				/* あなたを_?いたいです */
@@ -6369,6 +6366,16 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		skill_attack(BF_MISC, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
 		break;
 
+	case 0xaa: //Apple of Idun [Skotlex]
+	{
+		int heal;
+		if (sg->src_id == bl->id)
+			break;
+		heal = 30 + sg->skill_lv * 5 + sg->val1 * 5 + (sg->val2/10) * 5;
+		clif_skill_nodamage(&src->bl, bl, AL_HEAL, heal, 1);
+		battle_heal(NULL, bl, heal, 0, 0);
+		break;	
+	}
 	case 0xb1:	/* デモンストレ?ション */
 		skill_attack(BF_WEAPON, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
 		if (bl->type == BL_PC &&
@@ -6424,7 +6431,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		break;
 
 	case 0xb8:	// Gravitation
-		if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0)
+//		if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0) <-- no need, specified in skill_unit_db! [Skotlex]
 			skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);		
 		break;
 
@@ -6766,7 +6773,7 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 	struct block_list *src;
 	struct map_session_data *sd;
 	struct map_session_data *tsd;
-	struct pc_base_job s_class;
+	int s_class;
 	unsigned int tick = gettick();
 
 	nullpo_retr(0, bl);
@@ -6777,7 +6784,7 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 	nullpo_retr(0, c=va_arg(ap,int *));
 	skillid = va_arg(ap,int);
 	
-	s_class = pc_calc_base_job(sd->status.class_);
+	s_class = pc_calc_base_job2(sd->status.class_);
 	//チェックしない設定ならcにありえない大きな?字を返して終了
 	/* This check is done before even calling the function. [Skotlex]
 	if (!battle_config.player_skill_partner_check) {	//本?はforeachの前にやりたいけど設定適用箇所をまとめるためにここへ
@@ -6791,7 +6798,7 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 	switch(skillid)
 	{
 		case PR_BENEDICTIO:				/* 聖?降福 */
-			if ((s_class.job == 4 || s_class.job == 8 || s_class.job == 15) &&
+			if ((s_class == JOB_ACOLYTE || s_class == JOB_PRIEST || s_class == JOB_MONK) &&
 					(sd->bl.x == tsd->bl.x - 1 || sd->bl.x == tsd->bl.x + 1) &&
 					sd->status.sp >= 10)
 				(*c)++;
@@ -6807,10 +6814,10 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 		case BD_RAGNAROK:				/* 神?の?昏 */
 		case CG_MOONLIT:				/* 月明りの泉に落ちる花びら */
 			{
-				struct pc_base_job t_class = pc_calc_base_job(tsd->status.class_);
+				int t_class = pc_calc_base_job2(tsd->status.class_);
 				int skilllv;
-				if (((t_class.job == 19 && s_class.job == 20) ||
-						(t_class.job == 20 && s_class.job == 19)) &&
+				if (((t_class == JOB_BARD && s_class == JOB_DANCER) ||
+						(t_class == JOB_DANCER && s_class == JOB_BARD)) &&
 						(skilllv = pc_checkskill(sd, skillid)) > 0 &&
 						(sd->weapontype1==13 || sd->weapontype1==14) &&
 						(tsd->weapontype1==13 || tsd->weapontype1==14) &&
@@ -6838,8 +6845,8 @@ static int skill_check_condition_use_sub(struct block_list *bl,va_list ap)
 	struct block_list *src;
 	struct map_session_data *sd;
 	struct map_session_data *ssd;
-	struct pc_base_job s_class;
-	struct pc_base_job ss_class;
+	int s_class;
+	int ss_class;
 	int skillid,skilllv;
 	unsigned int tick = gettick();
 
@@ -6850,23 +6857,16 @@ static int skill_check_condition_use_sub(struct block_list *bl,va_list ap)
 	nullpo_retr(0, c=va_arg(ap,int *));
 	nullpo_retr(0, ssd=(struct map_session_data*)src);
 
-	s_class = pc_calc_base_job(sd->status.class_);
+	s_class = pc_calc_base_job2(sd->status.class_);
+	ss_class = pc_calc_base_job2(ssd->status.class_);
 
-	//チェックしない設定ならcにありえない大きな?字を返して終了
-	/* Unneeded here, check is done before calling function [Skotlex]
-	if(!battle_config.player_skill_partner_check){	//本?はforeachの前にやりたいけど設定適用箇所をまとめるためにここへ
-		(*c)=99;
-		return 0;
-	}
-	*/
-	ss_class = pc_calc_base_job(ssd->status.class_);
 	skillid=ssd->skillid;
 	skilllv=ssd->skilllv;
 	//if(skilllv <= 0) return 0;
 	if(skillid > 0 && skilllv <= 0) return 0;	// celest
 	switch(skillid){
 	case PR_BENEDICTIO:				/* 聖?降福 */
-		if (sd != ssd && (s_class.job == 4 || s_class.job == 8 || s_class.job == 15) &&
+		if (sd != ssd && (s_class == JOB_ACOLYTE || s_class == JOB_ROGUE || s_class == JOB_MONK) &&
 			(sd->bl.x == ssd->bl.x - 1 || sd->bl.x == ssd->bl.x + 1) && sd->status.sp >= 10){
 			sd->status.sp -= 10;
 			clif_updatestatus(sd,SP_SP);
@@ -6884,8 +6884,8 @@ static int skill_check_condition_use_sub(struct block_list *bl,va_list ap)
 	case BD_RAGNAROK:				/* 神?の?昏 */
 	case CG_MOONLIT:				/* 月明りの泉に落ちる花びら */
 		if(sd != ssd && //本人以外で
-		  ((ss_class.job==19 && s_class.job==20) || //自分がバ?ドならダンサ?で
-		   (ss_class.job==20 && s_class.job==19)) && //自分がダンサ?ならバ?ドで
+		  ((ss_class==JOB_BARD && s_class==JOB_DANCER) || //自分がバ?ドならダンサ?で
+		   (ss_class==JOB_DANCER && s_class==JOB_BARD)) && //自分がダンサ?ならバ?ドで
 		   pc_checkskill(sd,skillid) > 0 && //スキルを持っていて
 		   (*c)==0 && //最初の一人で
 		   (sd->weapontype1==13 || sd->weapontype1==14) &&
@@ -8813,6 +8813,7 @@ int skill_ganbatein(struct block_list *bl, va_list ap )
  * イドゥンの林檎の回復?理(foreachinarea)
  *------------------------------------------
  */
+/* This implementation of Apple of Idun is no longer needed. [Skotlex]
 int skill_idun_heal (struct block_list *bl, va_list ap)
 {
 	struct skill_unit *unit;
@@ -8834,7 +8835,7 @@ int skill_idun_heal (struct block_list *bl, va_list ap)
 
 	return 0;
 }
-
+*/
 /*==========================================
  * 指定範??でsrcに?して有?なタ?ゲットのblの?を?える(foreachinarea)
  *------------------------------------------
@@ -9381,6 +9382,7 @@ int skill_unit_timer_sub( struct block_list *bl, va_list ap )
 		}
 	}
 	// イドゥンの林檎による回復
+/*	This implementation deviates from the standard way of using area skills and timers... [Skotlex]
 	if (group->unit_id==0xaa && DIFF_TICK(tick,group->tick)>=6000*group->val3) {
 		struct block_list *src = map_id2bl(group->src_id);
 		int range = skill_get_unit_layout_type(group->skill_id,group->skill_lv);
@@ -9389,6 +9391,7 @@ int skill_unit_timer_sub( struct block_list *bl, va_list ap )
 			src->x-range,src->y-range,src->x+range,src->y+range,0,unit);
 		group->val3++;
 	}
+	*/
 	/* 時間切れ削除 */
 	if((DIFF_TICK(tick,group->tick)>=group->limit || DIFF_TICK(tick,group->tick)>=unit->limit)){
 		switch(group->unit_id){

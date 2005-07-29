@@ -35,6 +35,79 @@
 #define MAX_IGNORE_LIST 80
 #define MAX_VENDING 12
 
+//Definitions for Jobs, this should help code be more readable. [Skotlex]
+#define JOB_NOVICE 0
+#define JOB_SWORDMAN 1
+#define JOB_MAGE 2
+#define JOB_ARCHER 3
+#define JOB_ACOLYTE 4
+#define JOB_MERCHANT 5
+#define JOB_THIEF 6
+#define JOB_KNIGHT 7
+#define JOB_PRIEST 8
+#define JOB_WIZARD 9
+#define JOB_BLACKSMITH 10
+#define JOB_HUNTER 11
+#define JOB_ASSASSIN 12
+#define JOB_KNIGHT2 13
+#define JOB_CRUSADER 14
+#define JOB_MONK 15
+#define JOB_SAGE 16
+#define JOB_ROGUE 17
+#define JOB_ALCHEMIST 18
+#define JOB_BARD 19
+#define JOB_DANCER 20
+#define JOB_CRUSADER2 21
+#define JOB_WEDDING 22
+#define JOB_SUPER_NOVICE 23
+
+#define JOB_NOVICE_HIGH 4001
+#define JOB_SWORDMAN_HIGH 4002
+#define JOB_MAGE_HIGH 4003
+#define JOB_ARCHER_HIGH 4004
+#define JOB_ACOLYTE_HIGH 4005
+#define JOB_MERCHANT_HIGH 4006
+#define JOB_THIEF_HIGH 4007
+#define JOB_LORD_KNIGHT 4008
+#define JOB_HIGH_PRIEST 4009
+#define JOB_HIGH_WIZARD 4010
+#define JOB_WHITESMITH 4011
+#define JOB_SNIPER 4012
+#define JOB_ASSASSIN_CROSS 4013
+#define JOB_LORD_KNIGHT2 4014
+#define JOB_PALADIN 4015
+#define JOB_CHAMPION 4016
+#define JOB_PROFESSOR 4017
+#define JOB_STALKER 4018
+#define JOB_CREATOR 4019
+#define JOB_CLOWN 4020
+#define JOB_GYPSY 4021
+#define JOB_PALADIN2 4022
+
+#define JOB_BABY 4023
+#define JOB_BABY_SWORDMAN 4024
+#define JOB_BABY_MAGE 4025
+#define JOB_BABY_ARCHER 4026
+#define JOB_BABY_ACOLYTE 4027
+#define JOB_BABY_MERCHANT 4028
+#define JOB_BABY_THIEF 4029
+#define JOB_BABY_KNIGHT 4030
+#define JOB_BABY_PRIEST 4031
+#define JOB_BABY_WIZARD 4032
+#define JOB_BABY_BLACKSMITH 4033
+#define JOB_BABY_HUNTER  4034
+#define JOB_BABY_ASSASSIN 4035
+#define JOB_BABY_KNIGHT2 4036
+#define JOB_BABY_CRUSADER 4037
+#define JOB_BABY_MONK 4038
+#define JOB_BABY_SAGE 4039
+#define JOB_BABY_ROGUE 4040
+#define JOB_BABY_ALCHEMIST 4041
+#define JOB_BABY_BARD 4042
+#define JOB_BABY_DANCER 4043
+#define JOB_BABY_CRUSADER2 4044
+#define JOB_SUPER_BABY 4045
+
 //Don't change this, as the client seems to always send/receive 80 characters as it currently is. [Skotlex]
 #define MESSAGE_SIZE 80
 
