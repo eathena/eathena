@@ -1356,14 +1356,17 @@ static struct Damage battle_calc_weapon_attack_sub(
 					skillratio+= 50*skill_lv;
 					break;
 				case KN_BRANDISHSPEAR:
-					skillratio+=20*skill_lv;
-					if(skill_lv>3 && wflag==1) skillratio+= 50;
-					if(skill_lv>6 && wflag==1) skillratio+= 25;
-					if(skill_lv>9 && wflag==1) skillratio+= 12; //1/8th = 12.5%, rounded to 12?
-					if(skill_lv>6 && wflag==2) skillratio+= 50;
-					if(skill_lv>9 && wflag==2) skillratio+= 25;
-					if(skill_lv>9 && wflag==3) skillratio+= 50;
+				{
+					int ratio = 20*skill_lv;
+					skillratio+= ratio;
+					if(skill_lv>3 && wflag==1) skillratio+= ratio/2;
+					if(skill_lv>6 && wflag==1) skillratio+= ratio/4;
+					if(skill_lv>9 && wflag==1) skillratio+= ratio/8;
+					if(skill_lv>6 && wflag==2) skillratio+= ratio/2;
+					if(skill_lv>9 && wflag==2) skillratio+= ratio/4;
+					if(skill_lv>9 && wflag==3) skillratio+= ratio/2;
 					break;
+				}
 				case KN_BOWLINGBASH:
 					skillratio+= 50*skill_lv;
 					break;

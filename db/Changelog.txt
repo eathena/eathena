@@ -15,6 +15,10 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+07/29
+	* Modified Hip Shaker/Ugly Dance's unit data to make it work every 3 secs [Skotlex]
+	* Okay, reduced the Call Partner's uptime from 10 secs to 0. [Skotlex]
+	* Changed Soul Collect/Summon Spirit Sphere type from weapon to none. [Skotlex]
 07/28
 	* Added baby skills delays, added them into nocastdex.txt [Lupus]
 	* Updated the Wedding skills: They cost 10% HP/SP and grand 10% HP/SP of

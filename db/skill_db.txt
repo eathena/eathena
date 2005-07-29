@@ -264,7 +264,7 @@
 258,0,6,4,0,1,10,1,no,0,0,0,weapon,0	//CR_SPEARQUICKEN#スピアクイッケン#
 259,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//MO_IRONHAND#鉄拳#
 260,0,0,0,0,0,5,0,no,0,0,0,weapon,0	//MO_SPIRITSRECOVERY#息吹#
-261,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//MO_CALLSPIRITS#気功#
+261,0,6,4,0,1,5,1,no,0,0,0,none,0	//MO_CALLSPIRITS#気功#
 262,6,6,16,0,1,1,1,no,0,0,0,weapon,0	//MO_ABSORBSPIRITS#気奪#
 263,0,8,0,0,0,10,3,no,0,0,0,weapon,0	//MO_TRIPLEATTACK#三段掌#
 264,14,6,2,0,1,1,1,no,0,0,0,none,0	//MO_BODYRELOCATION#残影#
@@ -411,7 +411,7 @@
 398,4,6,1,0,0,5,1,no,0,0,0,weapon,0	//LK_HEADCRUSH#ヘッドクラッシュ#
 399,4,6,1,0,0,10,1,no,0,0,0,weapon,0	//LK_JOINTBEAT#ジョイントビ?ト#
 400,8,8,1,8,0,5,1:2:3:4:5,yes,0,0,0,magic,0	//HW_NAPALMVULCAN#ナパ??バルカン#
-401,0,6,4,0,1,1,1,yes,0,0,0,weapon,0	//CH_SOULCOLLECT#狂気功#
+401,0,6,4,0,1,1,1,yes,0,0,0,none,0	//CH_SOULCOLLECT#狂気功#
 402,8,6,1,0,1,5,1,no,0,0,0,none,0	//PF_MINDBREAKER#?インドブレ?カ?#
 403,0,0,4,0,1,1,1,yes,0,0,0,magic,0	//PF_MEMORIZE#メモライズ#
 404,3,6,2,2,1,5,1,yes,0,256,2,magic,0	//PF_FOGWALL#フォグウォ?ル#

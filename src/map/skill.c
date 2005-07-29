@@ -6103,7 +6103,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	case 0xa8:	/* 夕陽のアサシンクロス */
 	case 0xa9:	/* ブラギの詩 */
 	case 0xaa:	/* イドゥンの林檎 */
-	case 0xab:	/* 自分勝手なダンス */
+//	case 0xab:	//Ugly Dance is treated on the onplace timer. [Skotlex]	
 	case 0xac:	/* ハミング */
 	case 0xad:	/* 私を忘れないで… */
 	case 0xae:	/* 幸運のキス */
@@ -6350,7 +6350,20 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 			status_change_start(bl,type,sg->skill_lv,(int)src,0,0,skill_get_time2(sg->skill_id,sg->skill_lv),0);
 		break;
 
-	case 0x9e:
+	case 0xab:	//Ugly Dance [Skotlex]
+		if (ss->id == bl->id)
+			break;
+		//Doing a skill attack would be the logically correct thing, but.. this skill only hurts sp, so let's do the thing here:
+//		skill_attack(BF_MISC, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
+		if (bl->type == BL_PC)
+		{	//This does not shows any 'damage' effects, or does it?
+			//It appears not because the guides I've read mentioned that your victims would not even notice.
+			int sp = sg->skill_lv*10;
+			pc_heal((struct map_session_data *)bl,0,-sp);
+		}
+		break;
+
+	case 0x9e:	//Lullaby
 		if (ss->id == bl->id)
 			break;
 		skill_additional_effect(ss, bl, sg->skill_id, sg->skill_lv, BF_LONG|BF_SKILL|BF_MISC, tick);

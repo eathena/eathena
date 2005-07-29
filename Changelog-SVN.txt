@@ -1,5 +1,9 @@
 Date	Added
 07/29
+	* Readded Assassin Cross not affecting bows [Skotlex]
+	* Fixed Hip-Shaker (not tested, but I am assuming it works now) [Skotlex]
+	* Fixed Brandish spear's damage [Skotlex]
+	* Removed the after-cast delay of Recall Partner [Skotlex]
 	* Added optional announce of rare drops. When a SomePlayer kills a monster [Lupus]
 	  with a rare drop then everyone gets announce: 'SomePlayer' won Pupa's Pupa Card (chance 0.01%)
 07/28
