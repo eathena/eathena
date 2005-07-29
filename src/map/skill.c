@@ -2530,16 +2530,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		}
 		break;
 
-/*		The target check should had been done together with the other skills (look for INF_ATTACK_SKILL) [Skotlex]
-	case CH_TIGERFIST:
-		if (tsd && !(map[bl->m].flag.gvg || map[bl->m].flag.pvp)) {
-			map_freeblock_unlock();
-			return 1;
-		}
-		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-		break;
-*/
-
 	case MO_EXTREMITYFIST:	/* ˆ¢C—…”e–PŒ */
 		{
 			if(sd) {
@@ -4593,7 +4583,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case WE_MALE:				/* ŒN‚¾‚¯‚ÍŒì‚é‚æ */
 		if(sd && dstsd){
 			int hp_rate=(skilllv <= 0)? 0:skill_db[skillid].hp_rate[skilllv-1];
-			int gain_hp=sd->status.max_hp*abs(hp_rate)/100;// 15%
+			int gain_hp=dstsd->status.max_hp*abs(hp_rate)/100;// The earned is the same % of the target HP than it costed the caster. [Skotlex]
 			clif_skill_nodamage(src,bl,skillid,gain_hp,1);
 			battle_heal(NULL,bl,gain_hp,0,0);
 		}
@@ -4601,7 +4591,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case WE_FEMALE:				/* ‚ ‚È‚½‚Ì?‚É?µ‚É‚È‚è‚Ü‚· */
 		if(sd && dstsd){
 			int sp_rate=(skilllv <= 0)? 0:skill_db[skillid].sp_rate[skilllv-1];
-			int gain_sp=sd->status.max_sp*abs(sp_rate)/100;// 15%
+			int gain_sp=dstsd->status.max_sp*abs(sp_rate)/100;// The earned is the same % of the target SP than it costed the caster. [Skotlex]
 			clif_skill_nodamage(src,bl,skillid,gain_sp,1);
 			battle_heal(NULL,bl,0,gain_sp,0);
 		}
@@ -7354,14 +7344,6 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		}
 		break;
 	case ST_EXPLOSIONSPIRITS:
-		/* Sources say that MO_EXTREMITYFIST requires FURY no matter what the situation. [Skotlex]
-		if (skill == MO_EXTREMITYFIST && ((sd->sc_data[SC_COMBO].timer != -1 &&
-				(sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH ||
-				sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST ||
-				sd->sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)) ||
-				sd->sc_data[SC_BLADESTOP].timer!=-1))
-			break;
-		*/
 		if(sd->sc_data[SC_EXPLOSIONSPIRITS].timer == -1) {
 			clif_skill_fail(sd,skill,0,0);
 			return 0;

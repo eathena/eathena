@@ -2648,7 +2648,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 			clif_useitemack(sd,n,amount-1,1);
 			pc_delitem(sd,n,1,1);
 		}
-		if(sd->status.inventory[n].card[0]==0x00ff && pc_istop10fame(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]),1))
+		if(sd->status.inventory[n].card[0]==0x00fe && pc_istop10fame(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]),1))
 		    sd->state.potion_flag = 1; // Famous player's potions have 50% more efficiency
 		sd->canuseitem_tick= gettick() + battle_config.item_use_interval; //Update item use time.
 		run_script(script,0,sd->bl.id,0);

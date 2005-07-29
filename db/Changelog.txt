@@ -16,6 +16,9 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 07/28
+	* Updated the Wedding skills: They cost 10% HP/SP and grand 10% HP/SP of
+	  their partner's sp. Also the recall partner skill has a casttime of 20secs
+	  not diminishable by dex. [Skotlex]
 	* Massive skills update (from now updated kRO website) [DracoRPG]
 	  - Blitz Beat : casting time changed to 1.5 sec
 	  - Falcon Assault : casting time / after-cast delay changed to 1 sec / 3 sec

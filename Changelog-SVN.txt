@@ -1,5 +1,9 @@
 Date	Added
 07/28
+	* Likely fixed the Famous Alchemist potions not having that 50% boost. [Skotlex]
+	* Updated the Wedding Skills (they work with 10% HP/SP and heal 10% of
+	  their target's, summoning has a cast time of 20s) [Skotlex]
+	* Reverted AssassinCross's song behaviour. [Skotlex]
 	* Odd bug wanting all Account and Char IDs to end with 0?! [Codemaster]
 	  Note: Not all acc or char ids end with 0...this gave alot of problems with client version 16
 	* Fixed that compiling issue with buildin_getequippercentrefinery [Skotlex]

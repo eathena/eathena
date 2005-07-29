@@ -1241,7 +1241,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			ASPD_ADD_RATE(sd->sc_data[SC_SPEARSQUICKEN].val2);
 		if(sd->sc_data[SC_ASSNCROS].timer!=-1 && // —[—z‚ÌƒAƒTƒVƒ“ƒNƒƒX
 			sd->sc_data[SC_TWOHANDQUICKEN].timer==-1 && sd->sc_data[SC_ADRENALINE].timer==-1 && sd->sc_data[SC_SPEARSQUICKEN].timer==-1 &&
-			sd->sc_data[SC_DONTFORGETME].timer == -1 && sd->status.weapon != 11) //Doesn't works on bows from what I was informed. [Skotlex]
+			sd->sc_data[SC_DONTFORGETME].timer == -1)
 				ASPD_ADD_RATE(5+sd->sc_data[SC_ASSNCROS].val1+sd->sc_data[SC_ASSNCROS].val2+sd->sc_data[SC_ASSNCROS].val3);
 		if(sd->sc_data[SC_DONTFORGETME].timer!=-1){		// Ž„‚ð–Y‚ê‚È‚¢‚Å
 			ASPD_ADD_RATE(-(sd->sc_data[SC_DONTFORGETME].val1*3 + sd->sc_data[SC_DONTFORGETME].val2 + (sd->sc_data[SC_DONTFORGETME].val3>>16)));
