@@ -1,5 +1,6 @@
 Date	Added
 07/30
+	* Another fix about advanced/baby mounted characters not having skills. [Skotlex]
 	* Fixed character's class not getting updated when mounting/dismounting peco. [Skotlex]
 	* Fixed the default packet version checking in the guessing version code.
 	  as pointed out by End of Exam. [Skotlex]

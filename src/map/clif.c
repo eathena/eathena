@@ -1397,15 +1397,6 @@ int clif_spawnpc(struct map_session_data *sd) {
 			clif_guild_emblem(sd,g);
 	}	// end addition [Valaris]
 
-	/* This can probably be disposed, the option was saved with the char, right? [Skotlex]
-	if (!sd->disguise && (sd->status.class_==JOB_KNIGHT2 || sd->status.class_==JOB_CRUSADER2 || sd->status.class_==JOB_LORD_KNIGHT2 || sd->status.class_==JOB_PALADIN2 || sd->status.class_==JOB_BABY_KNIGHT2 || sd->status.class_==JOB_BABY_CRUSADER2))
-		pc_setoption(sd,sd->status.option|0x0020); // [Valaris]
-	*/
-	/* This can probably be disposed, it is for people upgrading athena from which version of how many years ago? [Skotlex]
-	if ((pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0) && (
-		sd->status.class_==JOB_KNIGHT || sd->status.class_==JOB_CRUSADER || sd->status.class_==JOB_LORD_KNIGHT || sd->status.class_==JOB_PALADIN || sd->status.class_==JOB_BABY_KNIGHT || sd->status.class_==JOB_BABY_CRUSADER ))
-		pc_setriding(sd); // update peco riders for people upgrading athena [Valaris]
-	*/
 	WFIFOW(sd->fd,0)=0x7c;
 	WFIFOL(sd->fd,2)=-10;
 	WFIFOW(sd->fd,6)=0;

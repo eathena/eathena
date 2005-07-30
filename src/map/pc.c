@@ -3643,17 +3643,22 @@ struct pc_base_job pc_calc_base_job(int b_class)
 		bj.upper = 0;
 	}else if(b_class >= JOB_NOVICE_HIGH && b_class <= JOB_PALADIN2){ //High Jobs
 		if (b_class == JOB_LORD_KNIGHT2)
-			bj.job = JOB_LORD_KNIGHT;
+			bj.job = JOB_KNIGHT;
 		else if (b_class == JOB_PALADIN2)
-			bj.job = JOB_PALADIN;
-		else	
+			bj.job = JOB_CRUSADER;
+		else
 			bj.job = b_class - JOB_NOVICE_HIGH;
 		bj.upper = 1;
 	}else if(b_class == JOB_SUPER_BABY){ // super baby
 		bj.job = JOB_SUPER_NOVICE;
 		bj.upper = 2;
 	}else{	//Baby Classes
-		bj.job = b_class - JOB_BABY;
+		if (b_class == JOB_BABY_KNIGHT2)
+			bj.job = JOB_KNIGHT;
+		else if (b_class == JOB_BABY_CRUSADER2)
+			bj.job = JOB_CRUSADER;
+		else
+			bj.job = b_class - JOB_BABY;
 		bj.upper = 2;
 	}
 
