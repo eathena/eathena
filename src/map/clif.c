@@ -7866,16 +7866,16 @@ int clif_charnameupdate (struct map_session_data *ssd)
 // Parses a WantToConnection packet to try to identify which is the packet version used. [Skotlex]
 int clif_guess_PacketVer(int fd)
 {
-	int packet_ver =0;
+	int packet_ver = clif_config.packet_db_ver; //Try the default one first.
 	int cmd = RFIFOW(fd,0);
 	int packet_len = RFIFOREST(fd);
 	int sex, acc_offset;
 	static struct socket_data *last_session;
 	
 	if (
-		cmd == clif_config.connect_cmd[clif_config.packet_db_ver] &&
-		packet_len == packet_db[clif_config.packet_db_ver][cmd].len &&
-		((sex = RFIFOB(fd, packet_db[clif_config.packet_db_ver][cmd].pos[4])) == 0 ||	sex == 1) &&
+		cmd == clif_config.connect_cmd[packet_ver] &&
+		packet_len == packet_db[packet_ver][cmd].len &&
+		((sex = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) == 0 ||	sex == 1) &&
 		RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]) > 700000 && //Account ID is valid
 		//RFIFOB(fd, packet_db[packet_ver][cmd].pos[0]+3) == 0 &&	//Account ID ends in 0
 		RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]) > 0 &&	//Char ID is valid

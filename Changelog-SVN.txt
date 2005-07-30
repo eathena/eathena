@@ -1,5 +1,7 @@
 Date	Added
 07/30
+	* Fixed the default packet version checking in the guessing version code.
+	  as pointed out by End of Exam. [Skotlex]
 	* Optimized the code that determines what packet version to use by default
 	  when you specify "packet_db_ver: default" [Skotlex]
 	* Fixed job changing to high/baby classes [Skotlex]
