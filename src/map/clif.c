@@ -6760,33 +6760,10 @@ int clif_guild_basicinfo(struct map_session_data *sd)
 		if(!gc) continue;
 			if(g->guild_id == gc->guild_id)	t++;
 	}
-
-	if      (t==1)  strncpy((char*)WFIFOP(fd,94),"One Castle",20);
-	else if (t==2)  strncpy((char*)WFIFOP(fd,94),"Two Castles",20);
-	else if (t==3)  strncpy((char*)WFIFOP(fd,94),"Three Castles",20);
-	else if (t==4)  strncpy((char*)WFIFOP(fd,94),"Four Castles",20);
-	else if (t==5)  strncpy((char*)WFIFOP(fd,94),"Five Castles",20);
-	else if (t==6)  strncpy((char*)WFIFOP(fd,94),"Six Castles",20);
-	else if (t==7)  strncpy((char*)WFIFOP(fd,94),"Seven Castles",20);
-	else if (t==8)  strncpy((char*)WFIFOP(fd,94),"Eight Castles",20);
-	else if (t==9)  strncpy((char*)WFIFOP(fd,94),"Nine Castles",20);
-	else if (t==10) strncpy((char*)WFIFOP(fd,94),"Ten Castles",20);
-	else if (t==11) strncpy((char*)WFIFOP(fd,94),"Eleven Castles",20);
-	else if (t==12) strncpy((char*)WFIFOP(fd,94),"Twelve Castles",20);
-	else if (t==13) strncpy((char*)WFIFOP(fd,94),"Thirteen Castles",20);
-	else if (t==14) strncpy((char*)WFIFOP(fd,94),"Fourteen Castles",20);
-	else if (t==15) strncpy((char*)WFIFOP(fd,94),"Fifteen Castles",20);
-	else if (t==16) strncpy((char*)WFIFOP(fd,94),"Sixteen Castles",20);
-	else if (t==17) strncpy((char*)WFIFOP(fd,94),"Seventeen Castles",20);
-	else if (t==18) strncpy((char*)WFIFOP(fd,94),"Eighteen Castles",20);
-	else if (t==19) strncpy((char*)WFIFOP(fd,94),"Nineteen Castles",20);
-	else if (t==20) strncpy((char*)WFIFOP(fd,94),"Twenty Castles",20);
-	else if (t==21) strncpy((char*)WFIFOP(fd,94),"Twenty One Castles",20);
-	else if (t==22) strncpy((char*)WFIFOP(fd,94),"Twenty Two Castles",20);
-	else if (t==23) strncpy((char*)WFIFOP(fd,94),"Twenty Three Castles",20);
-	else if (t==24) strncpy((char*)WFIFOP(fd,94),"Twenty Four Castles",20);
-	else if (t==MAX_GUILDCASTLE) strncpy((char*)WFIFOP(fd,94),"Total Domination",20);
-	else strncpy((char*)WFIFOP(fd,94),"None Taken",20);
+	if (t>=0 && t<=MAX_GUILDCASTLE) //(0=None, 1..24 = N of Casles) [Lupus]
+		strncpy((char*)WFIFOP(fd,94),msg_txt(300+t),20);
+	else
+		strncpy((char*)WFIFOP(fd,94),msg_txt(299),20);
 
 	WFIFOSET(fd,packet_len_table[WFIFOW(fd,0)]);
 	clif_guild_emblem(sd,g);	// Guild emblem vanish fix [Valaris]

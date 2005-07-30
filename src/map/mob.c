@@ -24,6 +24,7 @@
 #include "log.h"
 #include "showmsg.h"
 #include "script.h"
+#include "atcommand.h"
 
 #define MIN_MOBTHINKTIME 100
 
@@ -2697,15 +2698,13 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			ditem->third_sd = third_sd;
 			add_timer(tick+500+i, mob_delay_item_drop, (int)ditem, 0);
 
-			//Rare Drop Global Announce by Lupus
+			//A Rare Drop Global Announce by Lupus
 			if(drop_rate<=battle_config.rare_drop_announce) {
 				struct item_data *i_data;
 				char message[128];
 				i_data = itemdb_exists(ditem->nameid);
-				if (sd!=NULL && md!=NULL && sd->status.name != NULL)
-					sprintf (message, "'%s' won %s's %s (chance: %%%0.02f)", sd->status.name, mob_db[md->class_].jname, i_data->jname, (float)drop_rate/1000);
-				else
-					sprintf (message, "GM won %s's %s (chance: %%%0.02f)", mob_db[md->class_].jname, i_data->jname, (float)drop_rate/1000);
+				sprintf (message, msg_txt(541), (sd!=NULL && md!=NULL && sd->status.name != NULL)?sd->status.name :"GM", mob_db[md->class_].jname, i_data->jname, (float)drop_rate/1000);
+				//MSG: "'%s' won %s's %s (chance: %%%0.02f)"
 				intif_GMmessage(message,strlen(message)+1,0);
 			}
 		}

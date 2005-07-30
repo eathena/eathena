@@ -1,5 +1,8 @@
 Date	Added
 07/29
+	* Moved messages "One Castle", "Two Castles", etc into msg_athena.conf [Lupus]
+	* Fixed wrong msg_athena.conf messages in the trade hack spoof code [Lupus]
+	* Added a Rare Item announce string into msg_athena.conf [Lupus]
 	* Fixed compilation of the TXT server. [Skotlex]
 	* Fixed song/dances not clearing when you run out of SP [Skotlex]
 	* Fixed #fakename [Skotlex]
