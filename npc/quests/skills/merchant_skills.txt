@@ -155,9 +155,9 @@ L_GetSkill:
 	if ((countitem(1019)<50) || (countitem(998)<10) || (countitem(919)<20)) goto L_Items;
 	mes "Oh good, you have all of the items.  Well here you are..... Hmm?... Oh these are the design sheets for your cart.";
 	mes "Now that you have the proper materials, just follow these guides to make your cart look spectactular.";
-	//delitem 1019,50;
-	//delitem 998,10;
-	//delitem 919,20;
+	delitem 1019,50;
+	delitem 998,10;
+	delitem 919,20;
 	skill 154,1,0;
 	set CHANGECART, 0;
 	mes "[Charlron]";

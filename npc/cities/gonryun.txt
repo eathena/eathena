@@ -43,7 +43,7 @@ alberta.gat,245,69,4	script	Gonryun Public Relations Official	776,{
 			set Zeny,Zeny-10000;
 			warp "gon_fild01.gat",258,82;
 			end;
-		L_Zeny:
+		L_NoZeny:
 			mes "[Waba]";
 			mes "I am sorry if it seems like alot, but the ^0000ff10,000 zeny^000000 we request is necessary in order to make the trip.";
 			close;

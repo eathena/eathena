@@ -35,9 +35,11 @@ aldeba_in.gat,152,166,4	script	Trader	86,{
 		
 	M_0:
 		mes "[Trader]";
-		if ((countitem(2275) == 0) || (countitem(998) < 50) || (Zeny < 3500)) goto L_CantMake; //Items: Red Bandana, Iron,
+		if ((countitem(2275) == 0) || (countitem(998) < 50) || (countitem(733) == 0) || (Zeny < 3500)) goto L_CantMake;
+ //Items: Red Bandana, Iron, Cracked deamond
 		delitem 2275,1;//Items: Red Bandana,
 		delitem 998,50;//Items: Iron,
+		delitem 733,1;//Items: Cracked deamond
 		set Zeny,Zeny - 3500;
 		mes "Hmm.... Do you have a.... MEDICAL LICENSE?!";
 		emotion 1;

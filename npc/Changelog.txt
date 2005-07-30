@@ -28,6 +28,8 @@ TODO:
 
 Date		Added
 ======
+07/30
+	* Few NPC fixes reported on in "SVN Script Fixes" [Fredzilla]
 07/25
 	* Totally Updated Louyang shops. Added Driller monster spawn into UmbalaDun2. thanks to MasterOfMuppets [Lupus]
 07/23
