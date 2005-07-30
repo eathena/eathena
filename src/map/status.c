@@ -4717,7 +4717,11 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 					sd->status.sp -= sp;
 					clif_updatestatus(sd,SP_SP);
 					if (sd->status.sp <= 0)
-						break;
+					{	///We HAVE to stop dancing, otherwise the status wears off and the skill remains in the ground! :X [Skotlex]
+						sc_data[type].timer = temp_timerid; //Timer needs to be restored or stop_dancing won't work!
+						skill_stop_dancing(bl,0);
+						return 0; //No need to continue as skill_stop_dancing will invoke the status_change_end call.
+					}
 				}
 				sc_data[type].timer=add_timer(	/* ƒ^ƒCƒ}?Äİ’è */
 					1000+tick, status_change_timer,
