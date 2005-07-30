@@ -5487,7 +5487,7 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	// Min is SuperNovice +1 -> Becomes Novice High [Skotlex]
 	// Max is SuperBaby-NoviceHigh+1 -> Becomes Super Baby
 		b_class += JOB_NOVICE_HIGH - JOB_SUPER_NOVICE -1;
-	} else //Too high value
+	} else if (job < JOB_NOVICE_HIGH || job > JOB_SUPER_BABY) //Invalid value
 		return 1;
 
 	job = pc_calc_base_job2 (b_class); // check base class [celest]

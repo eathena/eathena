@@ -1,4 +1,8 @@
 Date	Added
+07/30
+	* Optimized the code that determines what packet version to use by default
+	  when you specify "packet_db_ver: default" [Skotlex]
+	* Fixed job changing to high/baby classes [Skotlex]
 07/29
 	* Moved messages "One Castle", "Two Castles", etc into msg_athena.conf [Lupus]
 	* Fixed wrong msg_athena.conf messages in the trade hack spoof code [Lupus]

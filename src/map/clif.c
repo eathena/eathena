@@ -11824,8 +11824,6 @@ static int packetdb_readdb(void)
 				}
 				// copy from previous version into new version and continue
 				// - indicating all following packets should be read into the newer version
-				// -- on 2nd thought, rereading everything isn't the best thing to do...
-				// --- Yes it is, why do we had such a broken packet reading scheme? [Skotlex]
 				memcpy(&packet_db[packet_ver], &packet_db[prev_ver], sizeof(packet_db[0]));
 				continue;
 			} else if(strcmpi(w1,"packet_db_ver")==0) {
@@ -11840,23 +11838,7 @@ static int packetdb_readdb(void)
 						clif_config.packet_db_ver < 0)
 						clif_config.packet_db_ver = MAX_PACKET_VER;
 				}
-				ShowDebug("Using default packet version: %d\n", clif_config.packet_db_ver);
 				continue;
-			/* Disabled now. The db is always used. [Skotlex]
-			 } else if(strcmpi(w1,"enable_packet_db")==0) {
-				// whether we want to allow identifying clients via the packet DB
-				clif_config.enable_packet_db = battle_config_switch(w2);
-				// if we don't want to read the packet DB, and use hardcoded values only
-				if (!clif_config.enable_packet_db)
-					return 0;
-				continue;
-			} else if(strcmpi(w1,"prefer_packet_db")==0) {
-				// whether the packet DB takes higher precedence over the hardcoded one (type 1)
-				// and whether to overwrite predefined packet length and functions when reading
-				// from the DB (type 2)
-				clif_config.prefer_packet_db = battle_config_switch(w2); // not used for now
-				continue;
-				*/
 			}
 		}
 
@@ -11921,8 +11903,13 @@ static int packetdb_readdb(void)
 //		if(packet_db[clif_config.packet_db_ver][cmd].len > 2 /* && packet_db[cmd].pos[0] == 0 */)
 //			printf("packet_db ver %d: %d 0x%x %d %s %p\n",packet_ver,ln,cmd,packet_db[packet_ver][cmd].len,str[2],packet_db[packet_ver][cmd].func);
 	}
-	
-	ShowStatus("Done reading packet database from '"CL_WHITE"%s"CL_RESET"'.\n", "db/packet_db.txt");
+	if (!clif_config.connect_cmd[clif_config.packet_db_ver])
+	{	//Locate the nearest version that we still support. [Skotlex]
+		for(j = clif_config.packet_db_ver; j >= 0 && !clif_config.connect_cmd[j]; j--);
+		
+		clif_config.packet_db_ver = j?j:MAX_PACKET_VER;
+	}
+	ShowStatus("Done reading packet database from '"CL_WHITE"%s"CL_RESET"'. Using default packet version: "CL_WHITE"%d"CL_RESET".\n", "db/packet_db.txt", clif_config.packet_db_ver);
 	return 0;
 }
 
@@ -11933,10 +11920,8 @@ static int packetdb_readdb(void)
 int do_init_clif(void) {
 	int i;
 
-//	clif_config.enable_packet_db = 1; // whether to use the packet DB for client connection
 	clif_config.packet_db_ver = -1; // the main packet version of the DB
-//	clif_config.prefer_packet_db = 1; // whether the packet version takes precedence
-	clif_config.connect_cmd[MAX_PACKET_VER] = 0xF5;	// the default packet used for connecting to the server
+	memset(clif_config.connect_cmd, 0, sizeof(clif_config.connect_cmd)); //The default connect command will be determined after reading the packet_db [Skotlex]
 
 	memset(packet_db,0,sizeof(packet_db));
 
