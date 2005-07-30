@@ -1,5 +1,6 @@
 Date	Added
 07/29
+	* Fixed compilation of the TXT server. [Skotlex]
 	* Fixed song/dances not clearing when you run out of SP [Skotlex]
 	* Fixed #fakename [Skotlex]
 	* Optimized Apple of Idun's implementation [Skotlex]
