@@ -2434,7 +2434,6 @@ struct Damage  battle_calc_misc_attack(
 
 	case TF_THROWSTONE:	// Î“Š‚°
 		damage=50;
-		damagefix=0;
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
 

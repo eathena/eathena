@@ -929,8 +929,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case TF_THROWSTONE:		/* Î“Š‚° */
-		if( rand()%100 < 7*sc_def_vit/100 )
+		if( rand()%100 < 3*sc_def_vit/100 )
 			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		if( rand()%100 < 3*sc_def_int/100 )
+			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
 	case CR_HOLYCROSS:		/* ƒz?ƒŠ?ƒNƒƒX */
