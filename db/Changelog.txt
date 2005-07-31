@@ -15,6 +15,9 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+07/31
+	* Updated throw stone's range to 7, delay 100ms [Skotlex]
+	* Updated Steel Body to require 50% sp [Skotlex]
 07/29
 	* Removed Poison Bottle (item lv256) from produce_db [DracoRPG]
 	* Changed NPC_CURSEATTACK and NPC_ENERGYDRAIN to Dark attribute [DracoRPG]

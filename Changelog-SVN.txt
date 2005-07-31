@@ -1,5 +1,12 @@
 Date	Added
 07/31
+	* Fixed map server rejecting clients of packet versions 9 and below
+	  (regardless of packet_ver_flag) [Skotlex]
+	* Updated Steel Body: Consumes 50% sp and is not dispellable. [Skotlex]
+	* Updated sprinkle sand's damage to 130%, Throw Stone's range and delay [Skotlex]
+	* Fixed increased dodge's flee bonus and speed bonus (to Assassins). [Skotlex]
+	* Simplified clif.c by removing all code related to hard-coded packet
+	  information (the packet_db.txt is an essential file now) [Skotlex]
 	* Small fixes to provide clarity to # commands 
 	(So many people ask "why doesnt @char????? work, like OMGWTFBBQ") [Fredzilla]
 	* Fixed a stupid typo in a drop rate display [Lupus]

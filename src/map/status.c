@@ -1130,10 +1130,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	//Fleeã¸
 	if( (skill=pc_checkskill(sd,TF_MISS))>0 ){	// ‰ñ”ð—¦?‰Á
-		sd->flee += skill*((s_class.job == JOB_THIEF && s_class.type == 2)? 4 : 3); //2nd class Thieves (Rogue/Sin) get extra bonus.
-		if((sd->status.class_==JOB_ASSASSIN || sd->status.class_==JOB_ASSASSIN_CROSS || sd->status.class_==JOB_BABY_ASSASSIN) && 
-			(sd->sc_count && sd->sc_data[SC_CLOAKING].timer==-1))
-			SPEED_ADD_RATE((int)(skill*1.5));
+		sd->flee += skill*((s_class.job == JOB_ASSASSIN || s_class.job == JOB_ROGUE)? 4 : 3);
+		if(s_class.job==JOB_ASSASSIN && sd->sc_data[SC_CLOAKING].timer==-1)
+			SPEED_ADD_RATE(skill);
 	}
 	if( (skill=pc_checkskill(sd,MO_DODGE))>0 )	// Œ©Ø‚è
 		sd->flee += (skill*3)>>1;

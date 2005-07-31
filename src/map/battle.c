@@ -1387,7 +1387,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					skillratio+= 200+ 50*skill_lv;
 					break;
 				case TF_SPRINKLESAND:
-					skillratio+= 25;
+					skillratio+= 30;
 					break;
 				case MC_CARTREVOLUTION:
 					if(sd && sd->cart_max_weight > 0 && sd->cart_weight > 0)

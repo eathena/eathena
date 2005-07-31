@@ -4213,7 +4213,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					|| i==SC_INTOABYSS || i==SC_SIEGFRIED || i==SC_DISSONANCE || i==SC_WHISTLE
 					|| i==SC_ASSNCROS || i==SC_POEMBRAGI || i==SC_APPLEIDUN || i==SC_UGLYDANCE
 					|| i==SC_HUMMING || i==SC_DONTFORGETME || i==SC_FORTUNE || i==SC_SERVICE4U
-					|| i==SC_MOONLIT || i==SC_LONGING || i==SC_HERMODE || i== SC_DANCING)
+					|| i==SC_MOONLIT || i==SC_LONGING || i==SC_HERMODE || i== SC_DANCING
+					|| i==SC_STEELBODY)
 						continue;
 				status_change_end(bl,i,-1);
 			}
