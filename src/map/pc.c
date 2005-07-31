@@ -563,7 +563,10 @@ int pc_break_equip(struct map_session_data *sd, unsigned short where)
 		return 0;
 	if (sd->unbreakable >= rand()%100)
 		return 0;
-	if (where == EQP_WEAPON && (sd->status.weapon == 0 || sd->status.weapon == 6 || sd->status.weapon == 7 || sd->status.weapon == 8)) // Axes and Maces can't be broken [DracoRPG] Added bare fists to the list [Skotlex]
+	if (where == EQP_WEAPON && (sd->status.weapon == 0 ||	//Bare fists should not break :P
+		sd->status.weapon == 6 || sd->status.weapon == 7 || sd->status.weapon == 8 || // Axes and Maces can't be broken [DracoRPG]
+		sd->status.weapon == 10 || sd->status.weapon == 15 //Rods and Books can't be broken [Skotlex]
+		))
 		return 0;
 	switch (where) {
 		case EQP_WEAPON:

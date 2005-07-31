@@ -1,5 +1,6 @@
 Date	Added
 07/31
+	* Added rods/books to the list of items that can't break. [Skotlex]
 	* Fixed map server rejecting clients of packet versions 9 and below
 	  (regardless of packet_ver_flag) [Skotlex]
 	* Updated Steel Body: Consumes 50% sp and is not dispellable. [Skotlex]
