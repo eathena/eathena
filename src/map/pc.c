@@ -981,7 +981,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 	} else {
             do {
                 flag=0;
-                for(i=0;(id=skill_tree[s][c][i].id)>0;i++){
+                for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[s][c][i].id)>0;i++){
                     int j,f=1;
                     if(!battle_config.skillfree) {
 						for(j=0;j<5;j++) {
@@ -4472,7 +4472,7 @@ int pc_allskillup(struct map_session_data *sd)
 	}
 	else {
 		int inf2;
-		for(i=0;(id=skill_tree[s][c][i].id)>0;i++){
+		for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[s][c][i].id)>0;i++){
 			inf2 = skill_get_inf2(id);
 			if(sd->status.skill[id].id==0 && (!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL)) {
 				sd->status.skill[id].id = id;	// celest
@@ -7431,12 +7431,13 @@ int pc_readdb(void)
 		i = s_class.job;
 		u = s_class.upper;
 		// check for bounds [celest]
-		if (i > 25 || u > 3)
+		if (i >= 25 || u >= 3) //Remember that if the array is defined as [25], the max is [24]	//[Skotlex]
 			continue;
-		for(j = 0; (j < MAX_SKILL_TREE) && skill_tree[u][i][j].id; j++);
+		k = atoi(split[1]); //This is to avoid adding two lines for the same skill. [Skotlex]
+		for(j = 0; j < MAX_SKILL_TREE && skill_tree[u][i][j].id && skill_tree[u][i][j].id != k; j++);
 		if (j == MAX_SKILL_TREE)
 			continue;
-		skill_tree[u][i][j].id=atoi(split[1]);
+		skill_tree[u][i][j].id=k;
 		skill_tree[u][i][j].max=atoi(split[2]);
 		if (f) skill_tree[u][i][j].joblv=atoi(split[3]);
 
