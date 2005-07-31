@@ -95,7 +95,7 @@ static CharCommandInfo charcommand_info[] = {
 	{ CharCommandLostSkill,				"#lostskill",				60, charcommand_lostskill },
 	{ CharCommandSkReset,				"#skreset",					60, charcommand_skreset },
 	{ CharCommandStReset,				"#streset",					60, charcommand_streset },
-	{ CharCommandModel,					"#charmodel",				50, charcommand_model },
+	{ CharCommandModel,					"#model",				50, charcommand_model },
 	{ CharCommandSKPoint,				"#skpoint",					60, charcommand_skpoint },
 	{ CharCommandSTPoint,				"#stpoint",					60, charcommand_stpoint },
 	{ CharCommandChangeSex,				"#changesex",			60, charcommand_changesex },
