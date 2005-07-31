@@ -1,5 +1,8 @@
 Date	Added
 07/30
+	* Some more fixes to the job calculating equations. This one should fix item
+	  usage for mounted classes and hopefully be the last fix needed regarding
+	  the job system upgrade. [Skotlex]
 	* Corrected the parsing/reading of the skill tree. This fixes the Priest/Monk
 	 skills appearing in the skill trees of Paladings/Crusaders. [Skotlex]
 	* Another fix about advanced/baby mounted characters not having skills. [Skotlex]

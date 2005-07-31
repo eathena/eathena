@@ -3649,11 +3649,10 @@ struct pc_base_job pc_calc_base_job(int b_class)
 		else
 			bj.job = b_class - JOB_NOVICE_HIGH;
 		bj.upper = 1;
-	}else if(b_class == JOB_SUPER_BABY){ // super baby
-		bj.job = JOB_SUPER_NOVICE;
-		bj.upper = 2;
 	}else{	//Baby Classes
-		if (b_class == JOB_BABY_KNIGHT2)
+		if (b_class == JOB_SUPER_BABY)
+			bj.job = JOB_SUPER_NOVICE;
+		else if (b_class == JOB_BABY_KNIGHT2)
 			bj.job = JOB_KNIGHT;
 		else if (b_class == JOB_BABY_CRUSADER2)
 			bj.job = JOB_CRUSADER;
@@ -3687,17 +3686,24 @@ int pc_calc_base_job2 (int b_class)
 			return JOB_CRUSADER;
 		return b_class;
 	}
-	else if(b_class >= JOB_NOVICE_HIGH && b_class < JOB_BABY)
+	if(b_class >= JOB_NOVICE_HIGH && b_class < JOB_BABY)
 	{
 		if (b_class == JOB_LORD_KNIGHT2)
-			return JOB_LORD_KNIGHT;
+			return JOB_KNIGHT;
 		if (b_class == JOB_PALADIN2)
-			return JOB_PALADIN;
+			return JOB_CRUSADER;
 		return b_class - JOB_NOVICE_HIGH;
 	}
-	else if(b_class == JOB_SUPER_BABY)
-		return JOB_SUPER_NOVICE;
-	return b_class - JOB_BABY;
+	//Baby Classes
+	{
+		if (b_class == JOB_SUPER_BABY)
+			return JOB_SUPER_NOVICE;
+		if (b_class == JOB_BABY_KNIGHT2)
+			return JOB_KNIGHT;
+		if (b_class == JOB_BABY_CRUSADER2)
+			return JOB_CRUSADER;
+		return b_class - JOB_BABY;
+	}
 }
 
 int pc_calc_upper(int b_class)
