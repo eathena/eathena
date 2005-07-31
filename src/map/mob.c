@@ -2703,7 +2703,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				struct item_data *i_data;
 				char message[128];
 				i_data = itemdb_exists(ditem->nameid);
-				sprintf (message, msg_txt(541), (sd!=NULL && md!=NULL && sd->status.name != NULL)?sd->status.name :"GM", mob_db[md->class_].jname, i_data->jname, (float)drop_rate/1000);
+				sprintf (message, msg_txt(541), (sd!=NULL && md!=NULL && sd->status.name != NULL)?sd->status.name :"GM", mob_db[md->class_].jname, i_data->jname, (float)drop_rate/100);
 				//MSG: "'%s' won %s's %s (chance: %%%0.02f)"
 				intif_GMmessage(message,strlen(message)+1,0);
 			}

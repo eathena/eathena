@@ -2,6 +2,7 @@ Date	Added
 07/31
 	* Small fixes to provide clarity to # commands 
 	(So many people ask "why doesnt @char????? work, like OMGWTFBBQ") [Fredzilla]
+	* Fixed a stupid typo in a drop rate display [Lupus]
 07/30
 	* Some more fixes to the job calculating equations. This one should fix item
 	  usage for mounted classes and hopefully be the last fix needed regarding
