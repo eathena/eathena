@@ -807,7 +807,7 @@ int npc_touch_areanpc(struct map_session_data *sd,int m,int x,int y)
 		case WARP:
 			if (sd->status.option&6)	// hidden chars cannot use warps -- is it the same for scripts too?
 				break;
-			skill_stop_dancing(&sd->bl,0);
+			skill_stop_dancing(&sd->bl);
 			pc_setpos(sd,map[m].npc[i]->u.warp.name,map[m].npc[i]->u.warp.x,map[m].npc[i]->u.warp.y,0);
 			break;
 		case SCRIPT:

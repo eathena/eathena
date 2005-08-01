@@ -2281,7 +2281,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 	}
 
 	if(damage > max_hp>>2)
-		skill_stop_dancing(&md->bl,0);
+		skill_stop_dancing(&md->bl);
 
 	if(md->hp > max_hp)
 		md->hp = max_hp;

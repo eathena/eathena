@@ -1526,7 +1526,7 @@ int map_quit(struct map_session_data *sd) {
 		if (sd->state.auth)
 			skill_castcancel(&sd->bl,0);	// 詠唱を中?する
 
-		skill_stop_dancing(&sd->bl,1);// ダンス/演奏中?
+		skill_stop_dancing(&sd->bl);// ダンス/演奏中?
 
 		if(sd->sc_data && sd->sc_data[SC_BERSERK].timer!=-1) //バ?サ?ク中の終了はHPを100に
 			sd->status.hp = 100;

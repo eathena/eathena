@@ -3970,7 +3970,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_STAN:
 		case SC_SLEEP:
 			battle_stopattack(bl);	/* 攻?停止 */
-			skill_stop_dancing(bl,0);	/* 演奏/ダンスの中? */
+			skill_stop_dancing(bl);	/* 演奏/ダンスの中? */
 			{	/* 同時に掛からないステ?タス異常を解除 */
 				int i;
 				for(i = SC_STONE; i <= SC_SLEEP; i++){
@@ -4225,11 +4225,19 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				{
 					struct map_session_data *dsd;
 					struct status_change *d_sc_data;
+					if(sc_data[type].val2)
+					{
+						skill_delunitgroup((struct skill_unit_group *)sc_data[type].val2);
+						sc_data[type].val2 = 0;
+					}
 					if(sc_data[type].val4 && (dsd=map_id2sd(sc_data[type].val4))){
 						d_sc_data = dsd->sc_data;
 						//合奏で相手がいる場合相手のval4を0にする
 						if(d_sc_data && d_sc_data[type].timer!=-1)
-							d_sc_data[type].val4=0;
+						{
+							d_sc_data[type].val2 = d_sc_data[type].val4 = 0; //This will prevent recursive loops. 
+							status_change_end(&dsd->bl, type, -1);
+						}
 					}
 				}
 				if (sc_data[SC_LONGING].timer!=-1)
@@ -4718,11 +4726,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 					sd->status.sp -= sp;
 					clif_updatestatus(sd,SP_SP);
 					if (sd->status.sp <= 0)
-					{	///We HAVE to stop dancing, otherwise the status wears off and the skill remains in the ground! :X [Skotlex]
-						sc_data[type].timer = temp_timerid; //Timer needs to be restored or stop_dancing won't work!
-						skill_stop_dancing(bl,0);
-						return 0; //No need to continue as skill_stop_dancing will invoke the status_change_end call.
-					}
+						break;
 				}
 				sc_data[type].timer=add_timer(	/* タイマ?再設定 */
 					1000+tick, status_change_timer,
@@ -4823,14 +4827,6 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		break;
 
 	case SC_GOSPEL:
-		//This will only be called when the time runs out (or once every few secs for the caster, so most of the code is unnecessary [Skotlex]
-		/*
-			int calc_flag = 0;
-			if (sc_data[type].val3 > 0) {
-				sc_data[type].val3 = 0;
-				calc_flag = 1;
-			}
-		*/
 		if(sc_data[type].val4 == BCT_SELF){
 			int hp, sp;
 			hp = (sc_data[type].val1 > 5) ? 45 : 30;
@@ -4852,129 +4848,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			}
 		}
 		break;
-			/*
-			else if (sd && sc_data[type].val4 == BCT_PARTY) {
-				int i;
-				switch ((i = rand() % 12)) {
-				case 1: // heal between 100-1000
-					{
-						struct block_list tbl;
-						int heal = rand() % 900 + 100;
-						tbl.id = 0;
-						tbl.m = bl->m;
-						tbl.x = bl->x;
-						tbl.y = bl->y;
-						clif_skill_nodamage(&tbl,bl,AL_HEAL,heal,1);
-						battle_heal(NULL,bl,heal,0,0);
-					}
-					break;
-				case 2: // end negative status
-					status_change_clear_debuffs (bl);
-					break;
-				case 3:	// +25% resistance to negative status
-				case 4: // +25% max hp
-				case 5: // +25% max sp
-				case 6: // +2 to all stats
-				case 11: // +25% armor and vit def
-				case 12: // +8% atk
-				case 13: // +5% flee
-				case 14: // +5% hit
-					sc_data[type].val3 = i;
-					if (i == 6 ||
-						(i >= 11 && i <= 14))
-						calc_flag = 1;
-					break;
-				case 7: // level 5 bless
-					{
-						struct block_list tbl;
-						tbl.id = 0;
-						tbl.m = bl->m;
-						tbl.x = bl->x;
-						tbl.y = bl->y;
-						clif_skill_nodamage(&tbl,bl,AL_BLESSING,5,1);
-						status_change_start(bl,SkillStatusChangeTable[AL_BLESSING],5,0,0,0,10000,0 );
-					}
-					break;
-				case 8: // level 5 increase agility
-					{
-						struct block_list tbl;
-						tbl.id = 0;
-						tbl.m = bl->m;
-						tbl.x = bl->x;
-						tbl.y = bl->y;
-						clif_skill_nodamage(&tbl,bl,AL_INCAGI,5,1);
-						status_change_start(bl,SkillStatusChangeTable[AL_INCAGI],5,0,0,0,10000,0 );
-					}
-					break;
-				case 9: // holy element to weapon
-					{
-						struct block_list tbl;
-						tbl.id = 0;
-						tbl.m = bl->m;
-						tbl.x = bl->x;
-						tbl.y = bl->y;
-						clif_skill_nodamage(&tbl,bl,PR_ASPERSIO,1,1);
-						status_change_start(bl,SkillStatusChangeTable[PR_ASPERSIO],1,0,0,0,10000,0 );
-					}
-					break;
-				case 10: // holy element to armour
-					{
-						struct block_list tbl;
-						tbl.id = 0;
-						tbl.m = bl->m;
-						tbl.x = bl->x;
-						tbl.y = bl->y;
-						clif_skill_nodamage(&tbl,bl,PR_BENEDICTIO,1,1);
-						status_change_start(bl,SkillStatusChangeTable[PR_BENEDICTIO],1,0,0,0,10000,0 );
-					}
-					break;
-				default:
-					break;
-				}
-			} else if (sc_data[type].val4 == BCT_ENEMY) {
-				int i;
-				switch ((i = rand() % 8)) {
-				case 1: // damage between 300-800
-				case 2: // damage between 150-550 (ignore def)
-					battle_damage(NULL, bl, rand() % 500,1,0); // temporary damage
-					break;
-				case 3: // random status effect
-					{
-						int effect[3] = {
-							SC_CURSE,
-							SC_BLIND,
-							SC_POISON };
-						status_change_start(bl,effect[rand()%3],1,0,0,0,10000,0 );
-					}
-					break;
-				case 4: // level 10 provoke
-					{
-						struct block_list tbl;
-						tbl.id = 0;
-						tbl.m = bl->m;
-						tbl.x = bl->x;
-						tbl.y = bl->y;
-						clif_skill_nodamage(&tbl,bl,SM_PROVOKE,1,1);
-						status_change_start(bl,SkillStatusChangeTable[SM_PROVOKE],10,0,0,0,10000,0 );
-					}
-					break;
-				case 5: // 0 def
-				case 6: // 0 atk
-				case 7: // 0 flee
-				case 8: // -75% move speed and aspd
-					sc_data[type].val3 = i;
-					calc_flag = 1;
-					break;
-				default:
-					break;
-				}
-			}
-			if (sd && calc_flag)
-				status_calc_pc (sd, 0);
-		}
-		break;
-	*/
-
+		
 	case SC_GUILDAURA:
 		{
 			struct block_list *tbl = map_id2bl(sc_data[type].val2);

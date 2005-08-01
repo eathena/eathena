@@ -1,5 +1,12 @@
 Date	Added
 08/01
+	* Rewrote Ensemble skill implementation to be more efficient and less
+	  error-prone [Skotlex]
+	  (say, when you do an ensemble skill, your partner has to be
+	  charged SP too? That is not the current case)
+	* Dance/Song checks so that the ground effect is more tightly coupled with
+	  the status effect (if the dance's effect is cancelled for whatever reason,
+	  the ground skill WILL be removed) [Skotlex]
 	* Fixed stat reset for Advanced Classes [Skotlex]
 	* Updated Lord Knight's Concentration (damage, defense, endure effect) [Skotlex]
 	* Likely fixed famous alchemist potion usage. [Skotlex]

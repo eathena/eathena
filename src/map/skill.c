@@ -3807,7 +3807,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			struct status_change *sc_data = status_get_sc_data(src);
 			if(sc_data && sc_data[SC_DANCING].timer!=-1){
 				clif_skill_nodamage(src,bl,skillid,skilllv,1);
-				skill_stop_dancing(src,0);
+				skill_stop_dancing(src);
 			}
 		}
 		break;
@@ -6776,72 +6776,70 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 	struct block_list *src;
 	struct map_session_data *sd;
 	struct map_session_data *tsd;
+	int *p_sd;	//Contains the list of characters found.
 	int s_class;
 	unsigned int tick = gettick();
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
-	nullpo_retr(0, sd=(struct map_session_data*)bl);
+	nullpo_retr(0, tsd=(struct map_session_data*)bl);
 	nullpo_retr(0, src=va_arg(ap,struct block_list *));
-	nullpo_retr(0, tsd=(struct map_session_data*)src);
-	nullpo_retr(0, c=va_arg(ap,int *));
+	nullpo_retr(0, sd=(struct map_session_data*)src);
+
+	c=va_arg(ap,int *);
+	p_sd = va_arg(ap, int *);
 	skillid = va_arg(ap,int);
+
+	if ((skillid != PR_BENEDICTIO && *c >=1) || *c >=2)
+		return 0; //Partner found for ensembles, or the two companions for Benedictio. [Skotlex]
 	
-	s_class = pc_calc_base_job2(sd->status.class_);
-	//チェックしない設定ならcにありえない大きな?字を返して終了
-	/* This check is done before even calling the function. [Skotlex]
-	if (!battle_config.player_skill_partner_check) {	//本?はforeachの前にやりたいけど設定適用箇所をまとめるためにここへ
-		(*c) = 99;
-		return 0;
-	}
-	*/
 	if (bl == src)
 		return 0;
 
+	if(pc_issit(tsd) || pc_isdead(tsd) || tsd->skilltimer!=-1 || tsd->canmove_tick > tick)
+		return 0;
+
+	if (tsd->sc_count && (tsd->sc_data[SC_SILENCE].timer != -1 || tsd->sc_data[SC_STAN].timer != -1))
+		return 0;
+		
+	s_class = pc_calc_base_job2(tsd->status.class_);
+	
 	switch(skillid)
 	{
 		case PR_BENEDICTIO:				/* 聖?降福 */
 			if ((s_class == JOB_ACOLYTE || s_class == JOB_PRIEST || s_class == JOB_MONK) &&
-					(sd->bl.x == tsd->bl.x - 1 || sd->bl.x == tsd->bl.x + 1) &&
-					sd->status.sp >= 10)
-				(*c)++;
-			break;
-		case BD_LULLABY:				/* 子守歌 */
-		case BD_RICHMANKIM:				/* ニヨルドの宴 */
-		case BD_ETERNALCHAOS:			/* 永遠の混沌 */
-		case BD_DRUMBATTLEFIELD:		/* ?太鼓の響き */
-		case BD_RINGNIBELUNGEN:			/* ニ?ベルングの指輪 */
-		case BD_ROKISWEIL:				/* ロキの叫び */
-		case BD_INTOABYSS:				/* 深淵の中に */
-		case BD_SIEGFRIED:				/* 不死身のジ?クフリ?ド */
-		case BD_RAGNAROK:				/* 神?の?昏 */
-		case CG_MOONLIT:				/* 月明りの泉に落ちる花びら */
+//				(sd->bl.x == tsd->bl.x - 1 || sd->bl.x == tsd->bl.x + 1) && <- the heck? This check seems unnecessary, and even if it is necessary, where's the parallel check on the y axis? [Skotlex]
+				sd->status.sp >= 10)
+				p_sd[(*c)++]=tsd->bl.id;
+			return 1;
+		default: //Warning: Assuming Ensemble Dance/Songs for code speed. [Skotlex]
 			{
-				int t_class = pc_calc_base_job2(tsd->status.class_);
+				int t_class = pc_calc_base_job2(sd->status.class_);
 				int skilllv;
 				if (((t_class == JOB_BARD && s_class == JOB_DANCER) ||
 						(t_class == JOB_DANCER && s_class == JOB_BARD)) &&
-						(skilllv = pc_checkskill(sd, skillid)) > 0 &&
-						(sd->weapontype1==13 || sd->weapontype1==14) &&
+						(skilllv = pc_checkskill(tsd, skillid)) > 0 &&
 						(tsd->weapontype1==13 || tsd->weapontype1==14) &&
 						sd->status.party_id && tsd->status.party_id &&
 						sd->status.party_id == tsd->status.party_id &&
-						!pc_issit(sd) && !pc_isdead(sd) &&
-						(*c) == 0 &&
-						sd->skilltimer==-1 &&
-						sd->canmove_tick < tick && // added various missing ensemble checks [Valaris]
-						sd->sc_data[SC_DANCING].timer == -1)
-					(*c) = skilllv;
+						tsd->sc_data[SC_DANCING].timer == -1)
+				{
+					p_sd[(*c)++]=tsd->bl.id;
+					return skilllv;
+				} else {
+					return 0;
+				}
 			}
 			break;
 	}
 	return 0;
 }
+
 /*==========================================
  * 範??キャラ存在確認判定後スキル使用?理(foreachinarea)
  *------------------------------------------
  */
-
+/* No Longer needed. [Skotlex]
 static int skill_check_condition_use_sub(struct block_list *bl,va_list ap)
 {
 	int *c;
@@ -6868,7 +6866,7 @@ static int skill_check_condition_use_sub(struct block_list *bl,va_list ap)
 	//if(skilllv <= 0) return 0;
 	if(skillid > 0 && skilllv <= 0) return 0;	// celest
 	switch(skillid){
-	case PR_BENEDICTIO:				/* 聖?降福 */
+	case PR_BENEDICTIO:				// 聖?降福
 		if (sd != ssd && (s_class == JOB_ACOLYTE || s_class == JOB_ROGUE || s_class == JOB_MONK) &&
 			(sd->bl.x == ssd->bl.x - 1 || sd->bl.x == ssd->bl.x + 1) && sd->status.sp >= 10){
 			sd->status.sp -= 10;
@@ -6876,16 +6874,16 @@ static int skill_check_condition_use_sub(struct block_list *bl,va_list ap)
 			(*c)++;
 		}
 		break;
-	case BD_LULLABY:				/* 子守歌 */
-	case BD_RICHMANKIM:				/* ニヨルドの宴 */
-	case BD_ETERNALCHAOS:			/* 永遠の混沌 */
-	case BD_DRUMBATTLEFIELD:		/* ?太鼓の響き */
-	case BD_RINGNIBELUNGEN:			/* ニ?ベルングの指輪 */
-	case BD_ROKISWEIL:				/* ロキの叫び */
-	case BD_INTOABYSS:				/* 深淵の中に */
-	case BD_SIEGFRIED:				/* 不死身のジ?クフリ?ド */
-	case BD_RAGNAROK:				/* 神?の?昏 */
-	case CG_MOONLIT:				/* 月明りの泉に落ちる花びら */
+	case BD_LULLABY:				// 子守歌 
+	case BD_RICHMANKIM:				// ニヨルドの宴 
+	case BD_ETERNALCHAOS:			// 永遠の混沌 
+	case BD_DRUMBATTLEFIELD:		// ?太鼓の響き 
+	case BD_RINGNIBELUNGEN:			// ニ?ベルングの指輪 
+	case BD_ROKISWEIL:				// ロキの叫び 
+	case BD_INTOABYSS:				// 深淵の中に 
+	case BD_SIEGFRIED:				// 不死身のジ?クフリ?ド 
+	case BD_RAGNAROK:				// 神?の?昏 
+	case CG_MOONLIT:				// 月明りの泉に落ちる花びら 
 		if(sd != ssd && //本人以外で
 		  ((ss_class==JOB_BARD && s_class==JOB_DANCER) || //自分がバ?ドならダンサ?で
 		   (ss_class==JOB_DANCER && s_class==JOB_BARD)) && //自分がダンサ?ならバ?ドで
@@ -6911,6 +6909,56 @@ static int skill_check_condition_use_sub(struct block_list *bl,va_list ap)
 	}
 	return 0;
 }
+*/
+
+/*==========================================
+ * Checks and stores partners for ensemble skills [Skotlex]
+ *------------------------------------------
+ */
+static int skill_check_pc_partner(struct map_session_data *sd, int skill_id, int* skill_lv, int range, int cast_flag)
+{
+	static int c=0;
+	static int p_sd[2] = { 0, 0 };
+	int i;
+	if (cast_flag)
+	{	//Execute the skill on the partners.
+		struct map_session_data* tsd;
+		switch (skill_id)
+		{
+			case PR_BENEDICTIO:
+				for (i = 0; i < c; i++)
+				{
+					if ((tsd = map_id2sd(p_sd[i])) != NULL)
+					{
+						tsd->status.sp -= 10;
+						clif_updatestatus(tsd,SP_SP);
+					}
+				}
+				return c;
+			default: //Warning: Assuming Ensemble skills here (for speed)
+				if (c > 0 && (tsd = map_id2sd(p_sd[0])) != NULL)
+				{
+					sd->sc_data[SC_DANCING].val4= tsd->bl.id;
+					clif_skill_nodamage(&tsd->bl, &sd->bl, skill_id, *skill_lv, 1);
+					status_change_start(&tsd->bl,SC_DANCING,skill_id,sd->sc_data[SC_DANCING].val2,0,sd->bl.id,skill_get_time(skill_id,*skill_lv)+1000,0);
+					tsd->skillid_dance = tsd->skillid = skill_id;
+					tsd->skilllv_dance = tsd->skilllv = *skill_lv;
+				}
+				return c;
+		}
+	}
+	//Else: new search for partners.
+	c = 0;
+	memset (p_sd, 0, sizeof(p_sd));
+	i = map_foreachinarea(skill_check_condition_char_sub, sd->bl.m,
+		sd->bl.x-range, sd->bl.y-range, sd->bl.x+range,
+		sd->bl.y+range, BL_PC, &sd->bl, &c, &p_sd, skill_id);
+
+	if (skill_id != PR_BENEDICTIO) //Apply the average lv to encore skills.
+		*skill_lv = (i+(*skill_lv))/(c+1); //I know c should be one, but this shows how it could be used for the average of n partners.
+	return c;
+}
+
 /*==========================================
  * 範??バイオプラント、スフィアマイン用Mob存在確認判定?理(foreachinarea)
  *------------------------------------------
@@ -7155,11 +7203,24 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		break;
 	case PR_BENEDICTIO:				/* 聖?降福 */
 		{
-			int range = 1;
-			int c = 0;
 			if (!battle_config.player_skill_partner_check)
 				break; //No need to do any partner checking [Skotlex]
-			
+			if (!(type&1))
+			{	//Started casting.
+				if (skill_check_pc_partner(sd, skill, &lv, 1, 0) < 2)
+				{
+					clif_skill_fail(sd,skill,0,0);
+					return 0;
+				}
+			}
+			else
+			{	//Done casting
+				//Should I repeat the check? If so, it would be best to only do this on cast-ending. [Skotlex]
+				skill_check_pc_partner(sd, skill, &lv, 1, 1);
+			}
+			/*
+			int range = 1;
+			int c = 0;
 			if  (!(type & 1)) {
 				map_foreachinarea(skill_check_condition_char_sub, sd->bl.m,
 					sd->bl.x-range, sd->bl.y-range, sd->bl.x+range,
@@ -7173,6 +7234,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 					sd->bl.x-range, sd->bl.y-range, sd->bl.x+range,
 					sd->bl.y+range, BL_PC, &sd->bl, &c);
 			}
+		*/
 		}
 		break;
 	case WE_CALLPARTNER:		/* あなたに逢いたい */
@@ -7689,6 +7751,12 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		{
 			if (battle_config.player_skill_partner_check)
 			{
+				if (skill_check_pc_partner(sd, skill_num, &skill_lv, 1, 0) < 1) //Note that skill_lv is automatically updated.
+				{
+					clif_skill_fail(sd,skill_num,0,0);
+					return 0;
+				}
+				/*
 				int range = 1;
 				int c = 0;
 				map_foreachinarea (skill_check_condition_char_sub, sd->bl.m,
@@ -7699,6 +7767,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 					return 0;
 				} else
 					sd->skilllv = (c + skill_lv)/2;
+				*/
 			}
 			break;
 		}
@@ -8987,18 +9056,40 @@ int skill_check_cloaking(struct block_list *bl)
  *
  *------------------------------------------
  */
-void skill_stop_dancing(struct block_list *src, int flag)
+void skill_stop_dancing(struct block_list *src)
 {
 	struct status_change* sc_data;
 	struct skill_unit_group* group;
+	struct map_session_data* dsd = NULL;
 	short* sc_count;
 
 	nullpo_retv(src);
 	nullpo_retv(sc_data = status_get_sc_data(src));
 	nullpo_retv(sc_count = status_get_sc_count(src));
 
-	if((*sc_count) > 0 && sc_data[SC_DANCING].timer != -1) {
-		group = (struct skill_unit_group *)sc_data[SC_DANCING].val2; //ダンスのスキルユニットIDはval2に入ってる
+	if((*sc_count) == 0 || sc_data[SC_DANCING].timer == -1)
+		return;
+	
+	group = (struct skill_unit_group *)sc_data[SC_DANCING].val2;
+	sc_data[SC_DANCING].val2 = 0;
+	
+	if (sc_data[SC_DANCING].val4)
+	{
+		dsd = map_id2sd(sc_data[SC_DANCING].val4);
+		sc_data[SC_DANCING].val4 = 0;
+	}
+
+	if (group)
+		skill_delunitgroup(group);
+		
+	if (dsd)
+	{
+		dsd->sc_data[SC_DANCING].val4 = dsd->sc_data[SC_DANCING].val2 = 0;
+		status_change_end(&dsd->bl, SC_DANCING, -1);
+	}
+	status_change_end(src, SC_DANCING, -1);
+	/*		
+	//ダンスのスキルユニットIDはval2に入ってる
 		if (src->type == BL_PC) {
 			if (group && sc_data[SC_DANCING].val4){ //合奏中?
 				struct map_session_data* dsd = map_id2sd(sc_data[SC_DANCING].val4); //相方のsd取得
@@ -9033,6 +9124,7 @@ void skill_stop_dancing(struct block_list *src, int flag)
 		}
 		skill_delunitgroup(group);
 	}
+	*/
 }
 
 /*==========================================
@@ -9184,9 +9276,12 @@ struct skill_unit_group *skill_initunitgroup(struct block_list *src,
 		//合奏スキルは相方をダンス状態にする
 		if (sd && skill_get_unit_flag(skillid)&UF_ENSEMBLE &&
 			battle_config.player_skill_partner_check) {
+				skill_check_pc_partner(sd, skillid, &skilllv, 1, 1);
+		/*
 			int c=0;
 			map_foreachinarea(skill_check_condition_use_sub,sd->bl.m,
 				sd->bl.x-1,sd->bl.y-1,sd->bl.x+1,sd->bl.y+1,BL_PC,&sd->bl,&c);
+		*/
 		}
 	}
 	return group;
@@ -9208,8 +9303,15 @@ int skill_delunitgroup(struct skill_unit_group *group)
 	src=map_id2bl(group->src_id);
 	//ダンススキルはダンス状態を解除する
 	if(src) {
-		if (skill_get_unit_flag(group->skill_id)&UF_DANCE)		
-			status_change_end(src,SC_DANCING,-1);
+		if (skill_get_unit_flag(group->skill_id)&UF_DANCE)
+		{
+			struct status_change* sc_data = status_get_sc_data(src);
+			if (sc_data && sc_data[SC_DANCING].timer != -1)
+			{
+				sc_data[SC_DANCING].val2 = 0 ; //This prevents status_change_end attempting to redelete the group. [Skotlex]
+				status_change_end(src,SC_DANCING,-1);
+			}
+		}
 		if (group->unit_id == 0x86) {
 			struct status_change *sc_data = status_get_sc_data(src);
 			if(sc_data && sc_data[SC_MAGICPOWER].timer != -1)	//マジックパワ?の?果終了

@@ -2965,7 +2965,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		if(sd->sc_data[SC_BLADESTOP].timer!=-1)
 			status_change_end(&sd->bl,SC_BLADESTOP,-1);
 		if(sd->sc_data[SC_DANCING].timer!=-1) // clear dance effect when warping [Valaris]
-			skill_stop_dancing(&sd->bl,0);
+			skill_stop_dancing(&sd->bl);
 		if (sd->sc_data[SC_BASILICA].timer!=-1) {
 			/*int i;
 			for (i=0;i<MAX_SKILLUNITGROUP;i++)
@@ -3005,7 +3005,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		if(sd->mapname[0]){
 			int ip,port;
 			if(map_mapname2ipport(mapname,&ip,&port)==0){
-				skill_stop_dancing(&sd->bl,1);
+				skill_stop_dancing(&sd->bl);
 				skill_unit_move(&sd->bl,gettick(),0);
 				clif_clearchar_area(&sd->bl,clrtype&0xffff);
 				skill_gangsterparadise(sd,0);
@@ -4068,7 +4068,7 @@ int pc_gainexp(struct map_session_data *sd,int base_exp,int job_exp)
 	if((battle_config.pvp_exp == 0) && map[sd->bl.m].flag.pvp)  // [MouseJstr]
 		return 0; // no exp on pvp maps
 
-	if(sd->sc_data[SC_RICHMANKIM].timer != -1) { // added bounds checking [Vaalris]
+	if(sd->sc_data[SC_RICHMANKIM].timer != -1) { // added bounds checking [Valaris]
 		double base, job;
 		base = ((double)base_exp)*(125 + sd->sc_data[SC_RICHMANKIM].val1*25)/100;
 		job = ((double)job_exp)*(125 + sd->sc_data[SC_RICHMANKIM].val1*25)/100;
@@ -4715,7 +4715,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 
 	// ‰‰‘t/ƒ_ƒ“ƒX‚Ì’†?
 	if(damage > sd->status.max_hp>>2)
-		skill_stop_dancing(&sd->bl,0);
+		skill_stop_dancing(&sd->bl);
 
 	sd->status.hp-=damage;
 	if(sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_damage_support)
@@ -4766,7 +4766,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 
 	pc_stop_walking(sd,0);
 	skill_castcancel(&sd->bl,0);	// ‰r¥‚Ì’†Ž~
-	skill_stop_dancing(&sd->bl,0); //You should stop dancing when dead... [Skotlex]
+	skill_stop_dancing(&sd->bl); //You should stop dancing when dead... [Skotlex]
 	if (sd->sc_data[SC_GOSPEL].timer != -1 && sd->sc_data[SC_GOSPEL].val4 == BCT_SELF)
 	{	//Remove Gospel [Skotlex]
 		struct skill_unit_group *sg = (struct skill_unit_group *)sd->sc_data[SC_GOSPEL].val3;
@@ -6335,7 +6335,7 @@ int pc_equipitem(struct map_session_data *sd,int n,int pos)
 		if (sd->sc_data[SC_SIGNUMCRUCIS].timer != -1 && !battle_check_undead(7,sd->def_ele))
 			status_change_end(&sd->bl,SC_SIGNUMCRUCIS,-1);
 		if(sd->sc_data[SC_DANCING].timer!=-1 && (sd->status.weapon != 13 && sd->status.weapon !=14))
-			skill_stop_dancing(&sd->bl,0);
+			skill_stop_dancing(&sd->bl);
 	}
 
 	return 0;
