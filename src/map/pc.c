@@ -4594,7 +4594,7 @@ int pc_resetstate(struct map_session_data* sd)
 		lv = sd->status.base_level < MAX_LEVEL ? sd->status.base_level : MAX_LEVEL - 1;
 		
 		sd->status.status_point = statp[lv];
-		if (pc_calc_upper(sd->status.class_)==2)
+		if (pc_calc_upper(sd->status.class_)==1) //Upper Jobs are Upper 1! (2 is for baby classes) [Skotlex]
 			sd->status.status_point+=52;	// extra 52+48=100 stat points
 	} else { //Use new stat-calculating equation [Skotlex]
 #define sumsp(a) (((a-1)/10 +2)*(5*((a-1)/10 +1) + (a-1)%10) -10)

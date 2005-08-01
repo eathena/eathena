@@ -1,5 +1,6 @@
 Date	Added
 08/01
+	* Fixed stat reset for Advanced Classes [Skotlex]
 	* Updated Lord Knight's Concentration (damage, defense, endure effect) [Skotlex]
 	* Likely fixed famous alchemist potion usage. [Skotlex]
 	* Small optimization to the packet version guessing code. [Skotlex]
