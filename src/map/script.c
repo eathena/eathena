@@ -108,6 +108,8 @@ int buildin_menu(struct script_state *st);
 int buildin_rand(struct script_state *st);
 int buildin_warp(struct script_state *st);
 int buildin_areawarp(struct script_state *st);
+int buildin_warpparty(struct script_state *st); //[Fredzilla]
+int buildin_warpguild(struct script_state *st); //[Fredzilla]
 int buildin_heal(struct script_state *st);
 int buildin_itemheal(struct script_state *st);
 int buildin_percentheal(struct script_state *st);
@@ -367,6 +369,8 @@ struct {
 	{buildin_input,"input","*"},
 	{buildin_warp,"warp","sii"},
 	{buildin_areawarp,"areawarp","siiiisii"},
+	{buildin_warpparty,"warpparty","siii"}, // [Fredzilla]
+	{buildin_warpguild,"warpguild","siii"}, // [Fredzilla]
 	{buildin_setlook,"setlook","ii"},
 	{buildin_set,"set","ii"},
 	{buildin_setarray,"setarray","ii*"},
@@ -1896,7 +1900,156 @@ int buildin_areawarp(struct script_state *st)
 		m,x0,y0,x1,y1,BL_PC,	str,x,y );
 	return 0;
 }
-
+/*==========================================
+ * Warpparty - [Fredzilla]
+ * Syntax: warpparty "mapname.gat",x,y,Party_ID;
+ *------------------------------------------
+ */
+int buildin_warpparty(struct script_state *st)
+{
+	int x,y;
+	char *str;
+	int p;
+	int i;
+	struct map_session_data *pl_sd;
+	struct map_session_data *sd;
+	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
+	x=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	y=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	p=conv_num(st,& (st->stack->stack_data[st->start+5]));
+	sd=script_rid2sd(st);
+	if(map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.noteleport){
+	return 0; }
+if(p!=0) {
+	if(strcmp(str,"Random")==0)	{
+		if(map[sd->bl.m].flag.noteleport){
+			return 0; }
+		for (i = 0; i < fd_max; i++) 	{
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+			pl_sd->status.party_id == p)	{
+			if(map[pl_sd->bl.m].flag.noteleport){}
+			pc_randomwarp(pl_sd,3);
+							}
+						}
+					}
+	else if(strcmp(str,"SavePointAll")==0)	{
+		if(map[sd->bl.m].flag.noreturn){
+			return 0; }
+		for (i = 0; i < fd_max; i++)		{
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+			    pl_sd->status.party_id == p)	{
+				if(map[pl_sd->bl.m].flag.noreturn){ }
+				else	{
+				pc_setpos(pl_sd,pl_sd->status.save_point.map,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
+					}
+								}
+							}
+						}
+	else if(strcmp(str,"SavePoint")==0)	{
+		if(map[sd->bl.m].flag.noreturn){
+		return 0; }
+	str=sd->status.save_point.map;
+	x=sd->status.save_point.x;
+	y=sd->status.save_point.y;
+		for (i = 0; i < fd_max; i++)		{
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+			    pl_sd->status.party_id == p)	{
+				if(map[pl_sd->bl.m].flag.noreturn){}
+				else	{
+					pc_setpos(pl_sd,str,x,y,3);
+					}
+								}
+							}
+						}
+	else	{
+		for (i = 0; i < fd_max; i++)	{
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+			    pl_sd->status.party_id == p)	{
+				if(map[pl_sd->bl.m].flag.noreturn){}
+				else	{
+					pc_setpos(pl_sd,str,x,y,3);
+					}
+								}
+						}
+		}
+	 }
+	return 0;
+}
+/*==========================================
+ * Warpguild - [Fredzilla]
+ * Syntax: warpguild "mapname.gat",x,y,Guild_ID;
+ *------------------------------------------
+ */
+int buildin_warpguild(struct script_state *st)
+{
+	int x,y;
+	char *str;
+	int p;
+	int i;
+	struct map_session_data *pl_sd;
+	struct map_session_data *sd;
+	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
+	x=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	y=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	g=conv_num(st,& (st->stack->stack_data[st->start+5]));
+	sd=script_rid2sd(st);
+	if(map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.noteleport){
+	return 0; }
+if(g!=0) {
+	if(strcmp(str,"Random")==0)	{
+		if(map[sd->bl.m].flag.noteleport){
+			return 0; }
+		for (i = 0; i < fd_max; i++) 	{
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+			pl_sd->status.guild_id == g)	{
+			if(map[pl_sd->bl.m].flag.noteleport){}
+			pc_randomwarp(pl_sd,3);
+							}
+						}
+					}
+	else if(strcmp(str,"SavePointAll")==0)	{
+		if(map[sd->bl.m].flag.noreturn){
+			return 0; }
+		for (i = 0; i < fd_max; i++)		{
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+			    pl_sd->status.guild_id == g)	{
+				if(map[pl_sd->bl.m].flag.noreturn){ }
+				else	{
+				pc_setpos(pl_sd,pl_sd->status.save_point.map,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
+					}
+								}
+							}
+						}
+	else if(strcmp(str,"SavePoint")==0)	{
+		if(map[sd->bl.m].flag.noreturn){
+		return 0; }
+	str=sd->status.save_point.map;
+	x=sd->status.save_point.x;
+	y=sd->status.save_point.y;
+		for (i = 0; i < fd_max; i++)		{
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+			    pl_sd->status.guild_id == g)	{
+				if(map[pl_sd->bl.m].flag.noreturn){}
+				else	{
+					pc_setpos(pl_sd,str,x,y,3);
+					}
+								}
+							}
+						}
+	else	{
+		for (i = 0; i < fd_max; i++)	{
+			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
+			    pl_sd->status.guild_id == p)	{
+				if(map[pl_sd->bl.m].flag.noreturn){}
+				else	{
+					pc_setpos(pl_sd,str,x,y,3);
+					}
+								}
+						}
+		}
+	 }
+	return 0;
+}
 /*==========================================
  *
  *------------------------------------------

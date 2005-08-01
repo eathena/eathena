@@ -1,5 +1,6 @@
 Date	Added
 08/01
+	* Added Warpparty and Warpguild script commands *requested* [Fredzilla]
 	* Fixed the exp exploit bug dealing with expaddrace [Skotlex]
 	* Added missing CharCommands logs (together with ATCommands) [Lupus]
 		TODO: '/' commands 8)
