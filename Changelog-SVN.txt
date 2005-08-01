@@ -1,5 +1,8 @@
 Date	Added
 08/01
+	* Updated Lord Knight's Concentration (damage, defense, endure effect) [Skotlex]
+	* Likely fixed famous alchemist potion usage. [Skotlex]
+	* Small optimization to the packet version guessing code. [Skotlex]
 	* Added Warpparty and Warpguild script commands *requested* [Fredzilla]
 	* Fixed the exp exploit bug dealing with expaddrace [Skotlex]
 	* Added missing CharCommands logs (together with ATCommands) [Lupus]

@@ -1392,7 +1392,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		if(md->state.special_mob_ai>0)
 			mob_timer_delete(0, 0, md->bl.id, 0);
 		else
-			mob_damage(NULL,md,md->hp,1,0);
+			mob_damage(NULL,md,md->hp,0,0);
 		return 0;
 	}
 	if(md->state.special_mob_ai>0)		// Žå‚ªPC‚Ìê‡‚ÍAˆÈ~‚Ìˆ—‚Í—v‚ç‚È‚¢
@@ -2204,7 +2204,7 @@ int mob_deleteslave_sub(struct block_list *bl,va_list ap)
 
 	id=va_arg(ap,int);
 	if(md->master_id > 0 && md->master_id == id )
-		mob_damage(NULL,md,md->hp,1,1);
+		mob_damage(NULL,md,md->hp,0,1);
 	return 0;
 }
 /*==========================================
@@ -2273,7 +2273,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		return 0;
 	}
 
-	if(battle_config.monster_damage_delay_rate && md->sc_data[SC_ENDURE].timer == -1)
+	if(delay)
 	{
 		mob_stop_walking(md,3);
 		if (md->canmove_tick < tick)

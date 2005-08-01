@@ -1208,11 +1208,13 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->def = 0;
 
 		if(sd->sc_data[SC_CONCENTRATION].timer!=-1){ //コンセントレ?ション
+			sd->base_atk = sd->base_atk * (100 + 5*sd->sc_data[SC_CONCENTRATION].val1)/100;
 			sd->right_weapon.watk = sd->right_weapon.watk * (100 + 5*sd->sc_data[SC_CONCENTRATION].val1)/100;
 			index = sd->equip_index[8];
 			if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == 4)
 				sd->left_weapon.watk = sd->left_weapon.watk * (100 + 5*sd->sc_data[SC_CONCENTRATION].val1)/100;
-			sd->def = sd->def * (100 - 10*sd->sc_data[SC_CONCENTRATION].val1)/100;
+			sd->def = sd->def * (100 - 5*sd->sc_data[SC_CONCENTRATION].val1)/100;
+			sd->def2 = sd->def2 * (100 - 5*sd->sc_data[SC_CONCENTRATION].val1)/100;
 		}
 
 		if(sd->sc_data[SC_MAGICPOWER].timer!=-1){ //魔法力?幅
@@ -2482,7 +2484,7 @@ int status_get_def(struct block_list *bl)
 					def = 0;
 				//コンセントレーション時は減算
 				if( sc_data[SC_CONCENTRATION].timer!=-1)
-					def = (def*(100 - 10*sc_data[SC_CONCENTRATION].val1))/100;
+					def = (def*(100 - 5*sc_data[SC_CONCENTRATION].val1))/100;
 
 				if(sc_data[SC_GOSPEL].timer!=-1) {
 					if (sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
@@ -2580,7 +2582,7 @@ int status_get_def2(struct block_list *bl)
 				def2 = def2*75/100;
 			//コンセントレーション時は減算
 			if( sc_data[SC_CONCENTRATION].timer!=-1)
-				def2 = def2*(100 - 10*sc_data[SC_CONCENTRATION].val1)/100;
+				def2 = def2*(100 - 5*sc_data[SC_CONCENTRATION].val1)/100;
 
 			if(sc_data[SC_GOSPEL].timer!=-1) {
 				if (sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
@@ -2844,7 +2846,7 @@ int status_get_dmotion(struct block_list *bl)
 	else
 		return 2000;
 
-	if((sc_data && (sc_data[SC_ENDURE].timer!=-1 || sc_data[SC_BERSERK].timer!=-1)) ||
+	if((sc_data && (sc_data[SC_ENDURE].timer!=-1 || sc_data[SC_CONCENTRATION].timer!=-1 ||  sc_data[SC_BERSERK].timer!=-1)) ||
 		(bl->type == BL_PC && ((struct map_session_data *)bl)->special_state.infinite_endure))
 		ret=0;
 

@@ -3912,7 +3912,29 @@ int clif_fixnpcpos(struct npc_data *nd)
 
 	return 0;
 }
+/*==========================================
+ * Modifies the type of damage according to status changes [Skotlex]
+ *------------------------------------------
+ */
+static int clif_calc_delay(struct block_list *dst, int type, int delay)
+{
+	struct status_change *sc_data;
 
+	if (type == 4)
+		return type;
+	if (delay == 0)
+		return 9; //Endure type attack (damage delay is 0)
+	
+	if(type != 4 && dst->type == BL_PC && ((struct map_session_data *)dst)->special_state.infinite_endure)
+		return 9;
+
+	sc_data = status_get_sc_data(dst);
+	if(sc_data && (sc_data[SC_ENDURE].timer != -1 || sc_data[SC_CONCENTRATION].timer != -1 || sc_data[SC_BERSERK].timer != -1) &&
+		(dst->type != BL_PC || !map[dst->m].flag.gvg))
+			return 9;
+
+	return type;
+}
 /*==========================================
  * 通常攻撃エフェクト＆ダメージ
  *------------------------------------------
@@ -3927,12 +3949,7 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 
 	sc_data = status_get_sc_data(dst);
 
-	if(type != 4 && dst->type == BL_PC && ((struct map_session_data *)dst)->special_state.infinite_endure)
-		type = 9;
 	if(sc_data) {
-		if(type != 4 && sc_data[SC_ENDURE].timer != -1 &&
-			(dst->type == BL_PC && !map[dst->m].flag.gvg))
-			type = 9;
 		if(sc_data[SC_HALLUCINATION].timer != -1) {
 			if(damage > 0)
 				damage = damage*(5+sc_data[SC_HALLUCINATION].val1) + rand()%100;
@@ -3955,7 +3972,7 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 	WBUFL(buf,18)=ddelay;
 	WBUFW(buf,22)=(damage > 0x7fff)? 0x7fff:damage;
 	WBUFW(buf,24)=div;
-	WBUFB(buf,26)=type;
+	WBUFB(buf,26)=clif_calc_delay(dst, (type>0)?type:6, ddelay); //Six is the default type for damaging attacks. [Skotlex]
 	WBUFW(buf,27)=damage2;
 	clif_send(buf,packet_len_table[0x8a],src,AREA);
 
@@ -4628,11 +4645,7 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 
 	sc_data = status_get_sc_data(dst);
 
-	if(type != 5 && dst->type == BL_PC && ((struct map_session_data *)dst)->special_state.infinite_endure)
-		type = 9;
 	if(sc_data) {
-		if(type != 5 && sc_data[SC_ENDURE].timer != -1)
-			type = 9;
 		if(sc_data[SC_HALLUCINATION].timer != -1 && damage > 0)
 			damage = damage*(5+sc_data[SC_HALLUCINATION].val1) + rand()%100;
 	}
@@ -4654,7 +4667,7 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 	WBUFW(buf,24)=damage;
 	WBUFW(buf,26)=skill_lv;
 	WBUFW(buf,28)=div;
-	WBUFB(buf,30)=(type>0)?type:skill_get_hit(skill_id);
+	WBUFB(buf,30)=clif_calc_delay(dst, (type>0)?type:skill_get_hit(skill_id), ddelay);
 	clif_send(buf,packet_len_table[0x114],src,AREA);
 #else
 	WBUFW(buf,0)=0x1de;
@@ -4673,7 +4686,7 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,
 	WBUFL(buf,24)=damage;
 	WBUFW(buf,28)=skill_lv;
 	WBUFW(buf,30)=div;
-	WBUFB(buf,32)=(type>0)?type:skill_get_hit(skill_id);
+	WBUFB(buf,32)=clif_calc_delay(dst, (type>0)?type:skill_get_hit(skill_id), ddelay);
 	clif_send(buf,packet_len_table[0x1de],src,AREA);
 #endif
 
@@ -4695,11 +4708,7 @@ int clif_skill_damage2(struct block_list *src,struct block_list *dst,
 
 	sc_data = status_get_sc_data(dst);
 
-	if(type != 5 && dst->type == BL_PC && ((struct map_session_data *)dst)->special_state.infinite_endure)
-		type = 9;
 	if(sc_data) {
-		if(type != 5 && sc_data[SC_ENDURE].timer != -1)
-			type = 9;
 		if(sc_data[SC_HALLUCINATION].timer != -1 && damage > 0)
 			damage = damage*(5+sc_data[SC_HALLUCINATION].val1) + rand()%100;
 	}
@@ -4716,7 +4725,7 @@ int clif_skill_damage2(struct block_list *src,struct block_list *dst,
 	WBUFW(buf,28)=damage;
 	WBUFW(buf,30)=skill_lv;
 	WBUFW(buf,32)=div;
-	WBUFB(buf,34)=(type>0)?type:skill_get_hit(skill_id);
+	WBUFB(buf,34)=clif_calc_delay(dst, (type>0)?type:skill_get_hit(skill_id), ddelay);
 	clif_send(buf,packet_len_table[0x115],src,AREA);
 
 	return 0;
@@ -7855,13 +7864,19 @@ int clif_charnameupdate (struct map_session_data *ssd)
 // cliff_guess_PacketVer
 // ---------------------
 // Parses a WantToConnection packet to try to identify which is the packet version used. [Skotlex]
-int clif_guess_PacketVer(int fd)
+static int clif_guess_PacketVer(int fd, int get_previous)
 {
-	int packet_ver = clif_config.packet_db_ver; //Try the default one first.
-	int cmd = RFIFOW(fd,0);
-	int packet_len = RFIFOREST(fd);
-	int sex, acc_offset;
+	static int packet_ver = -1;
+	int cmd, packet_len, sex, acc_offset;
 	static struct socket_data *last_session;
+	
+	if (get_previous) //For quick reruns, since the normal code flow is to fetch this once to identify the packet version, then again in the wanttoconnect function. [Skotlex]
+		return packet_ver;
+
+	//By default, start searching on the default one. 
+	packet_ver = clif_config.packet_db_ver;
+	cmd = RFIFOW(fd,0);
+	packet_len = RFIFOREST(fd);
 	
 	if (
 		cmd == clif_config.connect_cmd[packet_ver] &&
@@ -7935,6 +7950,8 @@ int clif_guess_PacketVer(int fd)
 		ShowDebug("Received packet of unknown version (packet: 0x%x, length: %d)\n", cmd, packet_len);
 		last_session = session[fd];
 	}
+
+	packet_ver = -1;
 	return -1;
 }
 
@@ -7958,7 +7975,7 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 		return;
 	}
 
-	packet_ver = clif_guess_PacketVer(fd);
+	packet_ver = clif_guess_PacketVer(fd, 1);
 	cmd = RFIFOW(fd,0);
 	
 	if (packet_ver > 0)
@@ -10001,7 +10018,7 @@ void clif_parse_GMKick(int fd, struct map_session_data *sd) {
 			} else if (target->type == BL_MOB) {
 				struct mob_data *md = (struct mob_data *)target;
 				sd->state.attack_type = 0;
-				mob_damage(&sd->bl, md, md->hp, 1, 2);
+				mob_damage(&sd->bl, md, md->hp, 0, 2);
 			} else
 				clif_GM_kickack(sd, 0);
 		} else
@@ -10747,7 +10764,7 @@ int clif_parse(int fd) {
 		}
 	} else {
 	// check authentification packet to know packet version
-		packet_ver = clif_guess_PacketVer(fd);	
+		packet_ver = clif_guess_PacketVer(fd, 0);	
 		// check if version is accepted
 		if (packet_ver < 5 ||	// reject really old client versions
 			(packet_ver <= 9 && (battle_config.packet_ver_flag & 1) == 0) ||	// older than 6sept04
@@ -10781,7 +10798,7 @@ int clif_parse(int fd) {
 		if (packet_len < 4 || packet_len > 32768) {
 			close(fd);
 			session[fd]->eof =1;
-			ShowWarning("clif_parse: session #%d, packet 0x%x invalid packet_len (%d bytes received) -> disconnected.\n", fd, cmd, packet_len);
+			ShowWarning("clif_parse: session #%d, packet 0x%x invalid packet_len (specified length: %d bytes) -> disconnected.\n", fd, cmd, packet_len);
 			return 0;
 		}
 	}
@@ -10794,7 +10811,7 @@ int clif_parse(int fd) {
 
 	if (sd && sd->state.auth == 1 && sd->state.waitingdisconnect == 1) { // 切断待ちの場合パケットを処理しない
 
-	} else if (packet_db[packet_ver][cmd].func) { // packet version 5-6-7 use same functions, but size are different
+	} else if (packet_db[packet_ver][cmd].func) {
 		// パケット処理
 		packet_db[packet_ver][cmd].func(fd, sd);
 	} else {

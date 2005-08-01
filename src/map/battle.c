@@ -2557,7 +2557,7 @@ struct Damage battle_calc_attack(	int attack_type,
 		memset(&d,0,sizeof(d));
 		break;
 	}
-	if (d.div_ > 1 && battle_config.combo_damage_delay) //Combo Damage Delay [Skotlex]
+	if (d.div_ > 1 && d.dmotion > 0 && battle_config.combo_damage_delay) //Combo Damage Delay [Skotlex]
 		d.dmotion += (d.div_-1)*battle_config.combo_damage_delay;
 	return d;
 }

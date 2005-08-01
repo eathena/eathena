@@ -3190,7 +3190,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case SA_INSTANTDEATH:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if (sd) pc_damage(NULL,sd,sd->status.max_hp,1);
+		if (sd) pc_damage(NULL,sd,sd->status.max_hp,0);
 		break;
 	case SA_QUESTION:
 	case SA_GRAVITY:
@@ -3216,8 +3216,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case SA_DEATH:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		if (dstsd) pc_damage(NULL,dstsd,dstsd->status.max_hp,1);
-		if (dstmd) mob_damage(NULL,dstmd,dstmd->hp,1,1);
+		if (dstsd) pc_damage(NULL,dstsd,dstsd->status.max_hp,0);
+		if (dstmd) mob_damage(NULL,dstmd,dstmd->hp,0,1);
 		break;
 	case SA_REVERSEORCISH:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
@@ -4435,9 +4435,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if(src && bl){
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if (md)
-				mob_damage(NULL,md,md->hp,1,0);
+				mob_damage(NULL,md,md->hp,0,0);
 			else if (sd)
-				pc_damage(NULL,sd,sd->status.hp,1);
+				pc_damage(NULL,sd,sd->status.hp,0);
 		}
 		break;
 

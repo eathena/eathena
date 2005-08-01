@@ -2641,7 +2641,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 			pc_delitem(sd,n,1,1);
 		}
 		if(sd->status.inventory[n].card[0]==0x00fe && pc_istop10fame(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]),1))
-		    sd->state.potion_flag = 1; // Famous player's potions have 50% more efficiency
+		    sd->state.potion_flag = 2; // Famous player's potions have 50% more efficiency
 		sd->canuseitem_tick= gettick() + battle_config.item_use_interval; //Update item use time.
 		run_script(script,0,sd->bl.id,0);
 		sd->state.potion_flag = 0;
@@ -4694,16 +4694,12 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 
 	// ? ‚¢‚Ä‚¢‚½‚ç‘«‚ðŽ~‚ß‚é
 	if (sd->sc_data) {
-		if (sd->sc_data[SC_BERSERK].timer != -1 ||
-			sd->special_state.infinite_endure)
-			;	// do nothing
-		else if (sd->sc_data[SC_ENDURE].timer != -1 && (src != NULL && src->type == BL_MOB) && !map[sd->bl.m].flag.gvg) {
+		if (sd->sc_data[SC_ENDURE].timer != -1 && (src != NULL && src->type == BL_MOB) && !map[sd->bl.m].flag.gvg) {
 			if ((--sd->sc_data[SC_ENDURE].val2) < 0) 
 				status_change_end(&sd->bl, SC_ENDURE, -1);
-		} else {
+		} else if (delay) {
 			pc_stop_walking (sd,1);
-			if (battle_config.pc_damage_delay_rate &&
-				sd->canmove_tick < gettick())
+			if (sd->canmove_tick < gettick())
 				sd->canmove_tick = gettick() + delay;
 		}
 		if (sd->sc_data[SC_GRAVITATION].timer != -1 &&
@@ -5205,6 +5201,9 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 			// MAX_ZENY ˆÈ‰º‚È‚ç‘ã“ü
 			sd->status.zeny = val;
 		} else {
+			sd->status.zeny = MAX_ZENY;
+			/* Could someone explain the comments below? I have no idea what they are trying to do... 
+			 * if you want to give someone so much zeny, just set their zeny to the max. [Skotlex]
 			if(sd->status.zeny > val) {
 				// Zeny ‚ªŒ¸­‚µ‚Ä‚¢‚é‚È‚ç‘ã“ü
 				sd->status.zeny = val;
@@ -5215,6 +5214,7 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 				// Zeny ‚ª‘‰Á‚µ‚Ä‚¢‚ÄAŒ»Ý‚Ì’l‚ªMAX_ZENY ‚æ‚è‰º‚È‚ç‘‰Á•ª‚ð–³Ž‹
 				;
 			}
+			*/
 		}
 		break;
 	case SP_BASEEXP:
@@ -5317,7 +5317,7 @@ int pc_heal(struct map_session_data *sd,int hp,int sp)
 	sd->status.hp+=hp;
 	if(sd->status.hp <= 0) {
 		sd->status.hp = 0;
-		pc_damage(NULL,sd,1,1);
+		pc_damage(NULL,sd,1,0);
 		hp = 0;
 	}
 	sd->status.sp+=sp;
@@ -5387,7 +5387,7 @@ int pc_itemheal(struct map_session_data *sd,int hp,int sp)
 	sd->status.hp+=hp;
 	if(sd->status.hp <= 0) {
 		sd->status.hp = 0;
-		pc_damage(NULL,sd,1,1);
+		pc_damage(NULL,sd,1,0);
 		hp = 0;
 	}
 	sd->status.sp+=sp;
@@ -5429,7 +5429,7 @@ int pc_percentheal(struct map_session_data *sd,int hp,int sp)
 		}
 		else if(hp <= -100) {
 			sd->status.hp = 0;
-			pc_damage(NULL,sd,1,1);
+			pc_damage(NULL,sd,1,0);
 		}
 		else {
 			sd->status.hp += sd->status.max_hp*hp/100;
@@ -5437,7 +5437,7 @@ int pc_percentheal(struct map_session_data *sd,int hp,int sp)
 				sd->status.hp = sd->status.max_hp;
 			if(sd->status.hp <= 0) {
 				sd->status.hp = 0;
-				pc_damage(NULL,sd,1,1);
+				pc_damage(NULL,sd,1,0);
 				hp = 0;
 			}
 		}
