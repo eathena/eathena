@@ -1984,7 +1984,7 @@ int buildin_warpguild(struct script_state *st)
 {
 	int x,y;
 	char *str;
-	int p;
+	int g;
 	int i;
 	struct map_session_data *pl_sd;
 	struct map_session_data *sd;
