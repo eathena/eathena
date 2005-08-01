@@ -8655,19 +8655,23 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 	log_chat("W", 0, sd->status.char_id, sd->status.account_id, (char*)sd->mapname, sd->bl.x, sd->bl.y, (char*)RFIFOP(fd, 4), (char*)RFIFOP(fd, 28));
 
 
-	//-------------------------------------------------------//
-	//   Lordalfa - Paperboy - To whisper NPC commands       //
-	//-------------------------------------------------------//
-	if ((npc = npc_name2id((const char*)RFIFOP(fd,4))))
+//-------------------------------------------------------//
+//   Lordalfa - Paperboy - To whisper NPC commands       //
+//-------------------------------------------------------//
+if ((strncasecmp((const char*)RFIFOP(fd,4),"NPC:",4) == 0) && (strlen((const char*)RFIFOP(fd,4)) >4))   {
+		whisper_tmp=(char *)aCallocA(strlen(RFIFOP(fd,4)-3),sizeof(char));
+		whisper_tmp[0]=0;
+		whisper_tmp = (char*) RFIFOP(fd,4) + 4;		
+    if ((npc = npc_name2id(whisper_tmp)))	
 	{
-		
+		aFree(whisper_tmp);
 		whisper_tmp=(char *)aCallocA(strlen(RFIFOP(fd,28))+1,sizeof(char));
 		whisper_tmp[0]=0;
 	   
 		sprintf(whisper_tmp, "%s", (const char*)RFIFOP(fd,28));  
 		for( j=0;whisper_tmp[j]!='\0';j++)
 		{
-			if(whisper_tmp[j]!=',')
+			if(whisper_tmp[j]!='#')
 			{
 				split_data[i][j-k]=whisper_tmp[j];
 			}
@@ -8677,7 +8681,7 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 				k=j+1;
 				i++;
 			}
-		} // Splits the message using ',' as separators
+		} // Splits the message using '#' as separators
 		split_data[i][j-k]='\0';
 		
 		aFree(whisper_tmp);
@@ -8695,11 +8699,13 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 		whisper_tmp[0]=0;
 		
 		sprintf(whisper_tmp, "%s::OnWhisperGlobal", npc->name);
-		if (npc_event(sd,whisper_tmp,0))
-			return;     // Calls the NPC label 
+		npc_event(sd,whisper_tmp,0); // Calls the NPC label 
+		return;     
 
 		aFree(whisper_tmp); //I rewrote it a little to use memory allocation, a bit more stable =P  [Kevin]
 	} //should have just removed the one below that was a my bad =P
+	if (whisper_tmp) aFree(whisper_tmp);
+}		
 			
 
 	// searching destination character
