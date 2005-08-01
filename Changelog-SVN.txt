@@ -1,5 +1,7 @@
 Date	Added
 07/31
+	* Fixed (I think) the char sql server freezing when the map server sends it
+	  a GM whisper request. [Skotlex]
 	* Rewrote the way that experience is given, this should prevent exp overflows
 	  even in even-share parties. [Skotlex]
 	* Changed how the exp_calc_type works, take note that there's no longer a "2"
