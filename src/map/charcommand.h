@@ -52,7 +52,7 @@ CharCommandType
 is_charcommand(const int fd, struct map_session_data* sd, const char* message, int gmlvl);
 
 CharCommandType charcommand(
-	const int level, const char* message, CharCommandInfo* info);
+	struct map_session_data* sd, const int level, const char* message, CharCommandInfo* info);
 int get_charcommand_level(const CharCommandType type);
 
 int charcommand_config_read(const char *cfgName);

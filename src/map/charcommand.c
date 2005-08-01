@@ -140,7 +140,7 @@ is_charcommand(const int fd, struct map_session_data* sd, const char* message, i
 	if (!*str)
 		return CharCommand_None;
 
-	type = charcommand(gmlvl > 0 ? gmlvl : pc_isGM(sd), str, &info);
+	type = charcommand(sd, gmlvl > 0 ? gmlvl : pc_isGM(sd), str, &info);
 	if (type != CharCommand_None) {
 		char command[100];
 		char output[200];
@@ -176,7 +176,7 @@ is_charcommand(const int fd, struct map_session_data* sd, const char* message, i
  *
  *------------------------------------------
  */
-CharCommandType charcommand(const int level, const char* message, CharCommandInfo* info) {
+CharCommandType charcommand(struct map_session_data* sd, const int level, const char* message, CharCommandInfo* info) {
 	char* p = (char *)message; 
 
 	if (!info)
@@ -209,6 +209,8 @@ CharCommandType charcommand(const int level, const char* message, CharCommandInf
 				return CharCommand_None;
 			else
 				return CharCommand_Unknown;
+		} else if((log_config.gm) && (charcommand_info[i].level >= log_config.gm)) {
+			log_atcommand(sd, message);
 		}
 		memcpy(info, &charcommand_info[i], sizeof charcommand_info[i]);
 	} else {
