@@ -1,5 +1,9 @@
 Date	Added
 07/31
+	* Rewrote the way that experience is given, this should prevent exp overflows
+	  even in even-share parties. [Skotlex]
+	* Changed how the exp_calc_type works, take note that there's no longer a "2"
+	  value for it! [Skotlex]
 	* Updated throw stone: Damage is modified by target's cards, 3% chance to
 	  cause Stun/Blind. [Skotlex]
 	* Added rods/books to the list of items that can't break. [Skotlex]

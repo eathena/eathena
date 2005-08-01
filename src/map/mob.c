@@ -2523,72 +2523,34 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 
 	// ŒoŒ±’l‚Ì•ª”z
 	for(i=0;i<DAMAGELOG_SIZE;i++){
-		int pid,base_exp,job_exp,flag=1,zeny=0;
+		int pid,flag=1,zeny=0;
+		unsigned long base_exp,job_exp;
 		double per;
 		struct party *p;
 		if(tmpsd[i]==NULL || tmpsd[i]->bl.m != md->bl.m || pc_isdead(tmpsd[i]))
 			continue;
 
-		if (battle_config.exp_calc_type == 0) {
-			// jAthena's exp formula
-			per = ((double)md->dmglog[i].dmg)*(9.+(double)((count > 6)? 6:count))/10./tdmg;
-			temp = (double)mob_db[md->class_].base_exp * per;
-			base_exp = (temp > 2147483647.) ? 0x7fffffff : (int)temp;
-			temp = (double)mob_db[md->class_].job_exp * per;
-			job_exp = (temp > 2147483647.) ? 0x7fffffff : (int)temp;
-		}
-		else if (battle_config.exp_calc_type == 1) {
-			//eAthena's exp formula rather than jAthena's
-			per = (double)md->dmglog[i].dmg*256*(9+(double)((count > 6)? 6:count))/10/(double)max_hp;
-			if (per > 512) per = 512;
-			if (per < 1) per = 1;
-			temp = (double)(mob_db[md->class_].base_exp*per/256);
-			base_exp = (temp > 2147483647.) ? 0x7fffffff : (int)temp;
-			temp = (double)(mob_db[md->class_].job_exp*per/256);
-			job_exp = (temp > 2147483647.) ? 0x7fffffff : (int)temp;
-		}
-		else {
-			//eAthena's exp formula rather than jAthena's, but based on total damage dealt
-			per = (double)md->dmglog[i].dmg*256*(9+(double)((count > 6)? 6:count))/10/tdmg;
-			if (per > 512) per = 512;
-			if (per < 1) per = 1;
-			temp = (double)(mob_db[md->class_].base_exp*per/256);
-			base_exp = (temp > 2147483647.) ? 0x7fffffff : (int)temp;
-			temp = (double)(mob_db[md->class_].job_exp*per/256);
-			job_exp = (temp > 2147483647.) ? 0x7fffffff : (int)temp;			
-		}
+		if (battle_config.exp_calc_type)	// eAthena's exp formula based on max hp.
+			per = (double)md->dmglog[i].dmg*(9.+(double)((count > 6)? 6:count))/10./(double)max_hp;
+		else //jAthena's exp formula based on total damage.
+			per = (double)md->dmglog[i].dmg*(9.+(double)((count > 6)? 6:count))/10./tdmg;
 
-		if (base_exp < 1) base_exp = 1;
-		if (job_exp < 1) job_exp = 1;
+		base_exp = (unsigned long)mob_db[md->class_].base_exp;
+		job_exp = (unsigned long)mob_db[md->class_].job_exp;
 
 		if(sd) {
-			int rate;
-			if ((rate = sd->expaddrace[race]) > 0) {
-				base_exp = (100+rate)*base_exp/100;
-				job_exp = (100+rate)*job_exp/100;
-			}
-			if (battle_config.pk_mode && (mob_db[md->class_].lv - sd->status.base_level >= 20)) {
-				base_exp = (int) (base_exp *1.15); // pk_mode additional exp if monster >20 levels [Valaris]		
-				job_exp = (int) (job_exp * 1.15);
-			}			
+			per += (double)sd->expaddrace[race];	
+			if (battle_config.pk_mode && (mob_db[md->class_].lv - sd->status.base_level >= 20))
+				per += 1.15;	// pk_mode additional exp if monster >20 levels [Valaris]		
 		}
-		if(md->size==1) { // change experience for different sized monsters [Valaris]
-			if(base_exp > 1)
-				base_exp/=2;
-			if(job_exp > 1)
-				job_exp/=2;
-		}
-		else if(md->size==2) {
-			if(base_exp > 0)
-				base_exp*=2;
-			if(job_exp > 0)
-				job_exp*=2;
-		}
+		if(md->size==1)	// change experience for different sized monsters [Valaris]
+			per /=2.;
+		else if(md->size==2)
+			per *=2.;
 		if(md->master_id) {
 			if(((master = map_id2bl(md->master_id)) && status_get_mode(master)&0x20) ||	// check if its master is a boss (MVP's and minibosses)
 				(md->state.special_mob_ai >= 1 && battle_config.alchemist_summon_reward != 1)) { // for summoned creatures [Valaris]
-				base_exp = 0;
-				job_exp = 0;
+				per = 0;
 			}
 		} else {
 			if(battle_config.zeny_from_mobs) {
@@ -2601,10 +2563,21 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 					zeny*=2;
 			}
 			if(battle_config.mobs_level_up && md->level > mob_db[md->class_].lv) { // [Valaris]
-				job_exp+=(int) (((md->level-mob_db[md->class_].lv)*mob_db[md->class_].job_exp*.03)*per/256);
-				base_exp+=(int) (((md->level-mob_db[md->class_].lv)*mob_db[md->class_].base_exp*.03)*per/256);
+				base_exp+=(unsigned long) ((md->level-mob_db[md->class_].lv)*mob_db[md->class_].base_exp*.03);
+				job_exp+=(unsigned long) ((md->level-mob_db[md->class_].lv)*mob_db[md->class_].job_exp*.03);
 			}
 		}
+
+		if (per > 3) per = 3; //Limit gained exp to triple the mob's exp.
+		base_exp = base_exp*per;
+		job_exp = job_exp*per;
+	
+		if (base_exp > 0x7fffffff) base_exp = 0x7fffffff;
+		else if (base_exp < 1) base_exp = 1;
+		
+		if (job_exp > 0x7fffffff) job_exp = 0x7fffffff;
+		else if (job_exp < 1) job_exp = 1;
+	
 		//mapflags: noexp check [Lorky]
 		if (map[md->bl.m].flag.nobaseexp == 1)	base_exp=0; 
 		if (map[md->bl.m].flag.nojobexp == 1)	job_exp=0; 
@@ -2626,8 +2599,14 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 					flag=0;
 				}
 			}else{	// ‚¢‚é‚Æ‚«‚ÍŒö•½
-				pt[j].base_exp+=base_exp;
-				pt[j].job_exp+=job_exp;
+				if (pt[j].base_exp +base_exp < 0x7fffffff)
+					pt[j].base_exp+=base_exp;
+				else
+					pt[j].base_exp = 0x7fffffff;
+				if (pt[j].job_exp +job_exp < 0x7fffffff)
+					pt[j].job_exp+=job_exp;
+				else
+					pt[j].job_exp = 0x7fffffff;
 				if(battle_config.zeny_from_mobs)
 					pt[j].zeny+=zeny;  // zeny share [Valaris]
 				flag=0;
@@ -2635,7 +2614,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		}
 		if(flag) {	// added zeny from mobs [Valaris]
 			if(base_exp > 0 || job_exp > 0)
-			pc_gainexp(tmpsd[i],base_exp,job_exp);
+				pc_gainexp(tmpsd[i],base_exp,job_exp);
 			if (battle_config.zeny_from_mobs && zeny > 0) {
 				pc_getzeny(tmpsd[i],zeny); // zeny from mobs [Valaris]
 			}
