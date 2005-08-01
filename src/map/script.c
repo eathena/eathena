@@ -2039,7 +2039,7 @@ if(g!=0) {
 	else	{
 		for (i = 0; i < fd_max; i++)	{
 			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
-			    pl_sd->status.guild_id == p)	{
+			    pl_sd->status.guild_id == g)	{
 				if(map[pl_sd->bl.m].flag.noreturn){}
 				else	{
 					pc_setpos(pl_sd,str,x,y,3);
