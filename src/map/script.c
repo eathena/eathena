@@ -333,6 +333,7 @@ int buildin_unequip(struct script_state *st); // unequip [Spectre]
 int buildin_getstrlen(struct script_state *st); //strlen [valaris]
 int buildin_charisalpha(struct script_state *st);//isalpha [valaris]
 int buildin_fakenpcname(struct script_state *st); // [Lance]
+int buildin_compare(struct script_state *st); // Lordalfa, to bring strstr to Scripting Engine
 
 void push_val(struct script_stack *stack,int type,int val);
 int run_func(struct script_state *st);
@@ -599,6 +600,7 @@ struct {
 	{buildin_getstrlen,"getstrlen","s"}, //strlen [Valaris]
 	{buildin_charisalpha,"charisalpha","si"}, //isalpha [Valaris]
 	{buildin_fakenpcname,"fakenpcname","ssi"}, // [Lance]
+	{buildin_compare,"compare","ss"}, // Lordalfa - To bring strstr to scripting Engine.
 	{NULL,NULL,NULL},
 };
 
@@ -8365,3 +8367,23 @@ if(look > 32767 || look < -32768) return 0; // Safety measure to prevent runtime
 npc_changename(name,newname,(short)look);
 return 0;
 }
+
+//-----------------------------------------------------------------------//
+//         BRING STRSTR TO SCRIPTING ENGINE         - LORDALFA  START    //
+//-----------------------------------------------------------------------//
+int buildin_compare(struct script_state *st)                                 {
+   char *message;
+   char *cmpstring;
+   int j;
+   message = conv_str(st,& (st->stack->stack_data[st->start+2]));
+   cmpstring = conv_str(st,& (st->stack->stack_data[st->start+3]));
+   for (j = 0; message[j]; j++)
+    message[j] = tolower(message[j]);
+   for (j = 0; cmpstring[j]; j++)
+    cmpstring[j] = tolower(cmpstring[j]);    
+   push_val(st->stack,C_INT,(strstr(message,cmpstring) != NULL));
+   return 0;
+}
+//-----------------------------------------------------------------------//
+//         BRING STRSTR TO SCRIPTING ENGINE         - LORDALFA  END      //
+//-----------------------------------------------------------------------//

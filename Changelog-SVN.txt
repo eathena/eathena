@@ -3,6 +3,7 @@ Date	Added
 	* Added missing CharCommands logs (together with ATCommands) [Lupus]
 		TODO: '/' commands 8)
 	* Added mod for npc whisper system(lordalpha)[massdriller]
+	* Added lordalfa's str1 and str2 compare and check commands [massdriller]
 07/31
 	* Fixed (I think) the char sql server freezing when the map server sends it
 	  a GM whisper request. [Skotlex]
