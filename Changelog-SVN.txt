@@ -1,5 +1,9 @@
 Date	Added
 08/01
+	* Updated the login servers so that account registration can be done with
+	  _m/_f as well as _M/_F [Skotlex]
+	* Fixed login sql server not using md5sum on the passwords before creating
+	  accounts (when md5 passwords are enabled) [Skotlex]
 	* Updated Enchant Deadly Poison: Increases Sonic Blow's damage by 4x and
 	  affects all skills except Breaker/Meteor Assault [Skotlex]
 	* Added a check to prevent char-server freezes when receiving unknown

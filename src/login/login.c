@@ -1061,7 +1061,7 @@ int mmo_auth_new(struct mmo_account* account, char sex, char* email) {
 
 	memcpy(auth_dat[i].lastlogin, "-", 2);
 
-	auth_dat[i].sex = (sex == 'M');
+	auth_dat[i].sex = (sex == 'M' || sex == 'm');
 
 	auth_dat[i].logincount = 0;
 
@@ -1122,8 +1122,9 @@ int mmo_auth(struct mmo_account* account, int fd) {
 	len = strlen(account->userid) - 2;
 	// Account creation with _M/_F
 	if (account->passwdenc == 0 && account->userid[len] == '_' &&
-	    (account->userid[len+1] == 'F' || account->userid[len+1] == 'M') && new_account_flag == 1 &&
-	    account_id_count <= END_ACCOUNT_NUM && len >= 4 && strlen(account->passwd) >= 4) {
+		(account->userid[len+1] == 'F' || account->userid[len+1] == 'M' ||
+		account->userid[len+1] == 'f' || account->userid[len+1] == 'm')
+		&& new_account_flag == 1 && account_id_count <= END_ACCOUNT_NUM && len >= 4 && strlen(account->passwd) >= 4) {
 						
 		//only continue if amount in this time limit is allowed (account registration flood protection)[Kevin]
 		if(gettick() <= new_reg_tick && num_regs >= allowed_regs) {

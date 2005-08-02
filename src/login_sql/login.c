@@ -333,6 +333,7 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 {
 	MYSQL_RES* 	sql_res;
 	unsigned int tick = gettick();
+	char user_password[256];
 	//Account Registration Flood Protection by [Kevin]
 	if(tick <= new_reg_tick && num_regs >= allowed_regs) {
 		ShowNotice("Account registration denied (registration limit exceeded)\n");
@@ -356,8 +357,15 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 	mysql_real_escape_string(&mysql_handle, account->userid, account->userid, strlen(account->userid));
 	mysql_real_escape_string(&mysql_handle, account->passwd, account->passwd, strlen(account->passwd));
 
-	ShowInfo("New account: user: %s with passwd: %s sex: %c\n", account->userid, account->passwd, sex);
-	sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, account->passwd, sex, "a@a.com");
+	if (sex == 'f') sex = 'F';
+	else if (sex == 'm') sex = 'M';
+	if (use_md5_passwds)
+		MD5_String(account->passwd,user_password);
+	else
+		jstrescapecpy(user_password, account->passwd);
+
+	ShowInfo("New account: user: %s with passwd: %s sex: %c\n", account->userid, user_password, sex);
+	sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, user_password, sex, "a@a.com");
 	if(mysql_query(&mysql_handle, tmp_sql)){
 		//Failed to insert new acc :/
 		ShowSQL("SQL Error (_M/_F reg, Insert): %s", mysql_error(&mysql_handle));
@@ -408,7 +416,8 @@ int mmo_auth( struct mmo_account* account , int fd){
 	len = strlen(account->userid) -2;
 	
 	if (account->passwdenc == 0 && account->userid[len] == '_' &&
-		(account->userid[len+1] == 'F' || account->userid[len+1] == 'M') &&
+		(account->userid[len+1] == 'F' || account->userid[len+1] == 'M' ||
+		account->userid[len+1] == 'f' || account->userid[len+1] == 'm') &&
 		new_account_flag == 1 && account_id_count <= END_ACCOUNT_NUM &&
 		len >= 4 && strlen(account->passwd) >= 4)
 	{
@@ -417,45 +426,6 @@ int mmo_auth( struct mmo_account* account , int fd){
 		if ((result = mmo_auth_new(account, account->userid[len+1])))
 			return result; //Failed to make account. [Skotlex].
 	}
-/*	This code was moved and cleaned up in mmo_auth_new [Skotlex]
-	{
-                          if (new_account_flag == 1) 
-                                        account->userid[len] = '\0';                       	                                        
-                                      	sprintf(tmp_sql, "SELECT `%s` FROM `%s` WHERE `userid` = '%s'", login_db_userid, login_db, account->userid);
-					if(mysql_query(&mysql_handle, tmp_sql)){
-						printf("SQL error (_M/_F reg): %s", mysql_error(&mysql_handle));
-					}else{
-					sql_res = mysql_store_result(&mysql_handle);
-						
-						//only continue if amount in this time limit is allowed (account registration flood protection)[Kevin]
-						if(gettick() <= new_reg_tick && num_regs >= allowed_regs) {
-							printf("Notice: Account registration denied (registration limit exceeded) to %s!\n", ip);
-							return 3;
-						} else {
-							num_regs=0;
-						}
-						
-						if(mysql_num_rows(sql_res) == 0){
-						//ok no existing acc,
-							printf("Adding a new account user: %s with passwd: %s sex: %c (ip: %s)\n", account->userid, account->passwd, account->userid[len+1], ip);
-							sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, account->passwd, account->userid[len+1], "a@a.com");
-							if(mysql_query(&mysql_handle, tmp_sql)){
-								//Failed to insert new acc :/
-								printf("SQL Error (_M/_F reg) .. insert ..: %s", mysql_error(&mysql_handle));
-							} else {//sql query check to insert
-							
-								//restart ticker (account registration flood protection)[Kevin]
-								if(num_regs==0) {
-									new_reg_tick=gettick()+time_allowed*1000;
-								}
-								num_regs++;
-								
-							}
-						}//rownum check (0!)
-					mysql_free_result(sql_res);
-					}//sqlquery                              
-	}//New Account Successful.
-	*/
 
  	// auth start : time seed
 	gettimeofday(&tv, NULL);
