@@ -1,5 +1,7 @@
 Date	Added
 08/01
+	* Fixed some problems with the clif optimizations from earlier today (wrong
+	  animations being displayed for normal attacks/picking items) [Skotlex]
 	* Rewrote Ensemble skill implementation to be more efficient and less
 	  error-prone [Skotlex]
 	  (say, when you do an ensemble skill, your partner has to be

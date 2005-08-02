@@ -3920,7 +3920,7 @@ static int clif_calc_delay(struct block_list *dst, int type, int delay)
 {
 	struct status_change *sc_data;
 
-	if (type == 4)
+	if (type == 1 || type == 4) //Type 1 is the crouching animation, type 4 are non-flinching attacks. 
 		return type;
 	if (delay == 0)
 		return 9; //Endure type attack (damage delay is 0)
@@ -3972,7 +3972,7 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 	WBUFL(buf,18)=ddelay;
 	WBUFW(buf,22)=(damage > 0x7fff)? 0x7fff:damage;
 	WBUFW(buf,24)=div;
-	WBUFB(buf,26)=clif_calc_delay(dst, (type>0)?type:6, ddelay); //Six is the default type for damaging attacks. [Skotlex]
+	WBUFB(buf,26)=clif_calc_delay(dst, type, ddelay); //Type defaults to 0 for normal attacks.
 	WBUFW(buf,27)=damage2;
 	clif_send(buf,packet_len_table[0x8a],src,AREA);
 
@@ -3995,7 +3995,7 @@ int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,
 		else
 			WBUFW(buf2,22)=0;
 		WBUFW(buf2,24)=div;
-		WBUFB(buf2,26)=type;
+		WBUFB(buf2,26)=clif_calc_delay(dst, type, ddelay); //Type defaults to 0 for normal attacks.
 		WBUFW(buf2,27)=0;
 		clif_send(buf2,packet_len_table[0x8a],src,AREA);
 	}
