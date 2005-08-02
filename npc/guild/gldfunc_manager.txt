@@ -116,9 +116,9 @@ L_Start:
 			if(Zeny < @eco_invest) goto sL_NoZenyC;
 			set Zeny,Zeny-@eco_invest;
 			SetCastleData getarg(1)+".gat",4,@TriggerE+1;
-			SetCastleData getarg(1)+".gat",2,@Economy+1;
 			// if we learnt Emsolute Develop there's 50% chance to get +1 investment again
 			if (getgdskilllv(@GID,10014) > 0 && rand(100)>50) set @Economy, @Economy + 1;
+			SetCastleData getarg(1)+".gat",2,@Economy+1;
 			mes "[ "+getarg(0)+" ]";
 			mes "You have invested successfully.";
 			return 0;

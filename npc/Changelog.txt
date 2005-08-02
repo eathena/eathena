@@ -28,6 +28,8 @@ TODO:
 
 Date		Added
 ======
+08/02
+	* Changed order of adding up Economy thanks to kyoki [Fredzilla]
 07/30
 	* Few NPC fixes reported on in "SVN Script Fixes" [Fredzilla]
 07/25
