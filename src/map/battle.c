@@ -1302,12 +1302,13 @@ static struct Damage battle_calc_weapon_attack_sub(
 			if(sc_data[SC_MAXOVERTHRUST].timer!=-1)
 				skillratio += 20*sc_data[SC_MAXOVERTHRUST].val1;
 			if(sc_data[SC_EDP].timer != -1 &&
-				skill_num != AS_SPLASHER &&
+//				skill_num != AS_SPLASHER && People keep saying it will work with all skills except the next two...
 				skill_num != ASC_BREAKER &&
 				skill_num != ASC_METEORASSAULT)
 			{	
-				skillratio += 150 + sc_data[SC_EDP].val1 * 50;
-//				flag.cardfix = 0; <- Officially cards DO count [Skotlex]
+				//Since records say it does works with Sonic Blows, instead of pre-multiplying the damage,
+				//we take the number of hits in consideration. [Skotlex]
+				skillratio += (150 + sc_data[SC_EDP].val1 * 50)*(skill_num != TF_DOUBLE?wd.div_:1);
 			}
 		}
 		if (!skill_num)

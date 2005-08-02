@@ -1,5 +1,9 @@
 Date	Added
 08/01
+	* Updated Enchant Deadly Poison: Increases Sonic Blow's damage by 4x and
+	  affects all skills except Breaker/Meteor Assault [Skotlex]
+	* Added a check to prevent char-server freezes when receiving unknown
+	  packets from the map server. [Skotlex]
 	* Fixed some problems with the clif optimizations from earlier today (wrong
 	  animations being displayed for normal attacks/picking items) [Skotlex]
 	* Rewrote Ensemble skill implementation to be more efficient and less
