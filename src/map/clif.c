@@ -7882,12 +7882,12 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 		cmd == clif_config.connect_cmd[packet_ver] &&
 		packet_len == packet_db[packet_ver][cmd].len &&
 		((sex = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) == 0 ||	sex == 1) &&
-		RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]) > 700000 && //Account ID is valid
+		(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]) > 700000 && //Account ID is valid
 		//RFIFOB(fd, packet_db[packet_ver][cmd].pos[0]+3) == 0 &&	//Account ID ends in 0
-		RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]) > 0 &&	//Char ID is valid
+		(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]) > 0 &&	//Char ID is valid
 		//RFIFOB(fd, packet_db[packet_ver][cmd].pos[1]+3) == 0 &&	//Char ID ends in 0
-		RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) > 0 &&
-		RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]) >= 0
+		(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) > 0 &&
+		(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]) >= 0
 		)
 		return clif_config.packet_db_ver; //Default packet version found.
 	
@@ -7902,36 +7902,36 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 		//2. The fourth byte of the account_id and char_id are always 0.
 		//(probably because of the range of account ids? it would have to go over 16M before the last byte is needed)
 		acc_offset = packet_db[packet_ver][cmd].pos[0];
-		if (RFIFOL(fd, acc_offset) < 700000)
+		if ((int)RFIFOL(fd, acc_offset) < 700000)
 		{
-			ShowDebug("Version check %d failed: invalid account id %d\n", packet_ver, RFIFOL(fd, acc_offset));
+			ShowDebug("Version check %d failed: invalid account id %d\n", packet_ver, (int)RFIFOL(fd, acc_offset));
 			continue;
 		}
 		if (RFIFOB(fd, acc_offset+3) != 0)
 		{
-			ShowDebug("Version check %d failed: account id's last byte not 0 terminated (%d)\n", packet_ver, RFIFOL(fd, acc_offset));
+			ShowDebug("Version check %d failed: account id's last byte not 0 terminated (%d)\n", packet_ver, (int)RFIFOL(fd, acc_offset));
 			continue;
 		}
-		if (RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]) < 1)
+		if ((int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]) < 1)
 		{
-			ShowDebug("Version check %d failed: invalid char id %d\n", packet_ver, RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]));
+			ShowDebug("Version check %d failed: invalid char id %d\n", packet_ver, (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]));
 			continue;
 		}
 		if (RFIFOB(fd, packet_db[packet_ver][cmd].pos[1]+3) != 0)
 		{
-			ShowDebug("Version check %d failed: char id's last byte not 0 terminated (%d)\n", packet_ver, RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]));
+			ShowDebug("Version check %d failed: char id's last byte not 0 terminated (%d)\n", packet_ver, (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]));
 			continue;
 		}
 		//What is login 1? In my tests it is a very very high value.
-		if (RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) < 1)
+		if ((int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) < 1)
 		{
-			ShowDebug("Version check %d failed: invalid login1 %d\n", packet_ver, RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]));
+			ShowDebug("Version check %d failed: invalid login1 %d\n", packet_ver, (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]));
 			continue;
 		}
 		//I've seen this tick as 1/0, wonder what other valid values it has?
-		if (RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]) < 0)
+		if ((int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]) < 0)
 		{
-			ShowDebug("Version check %d failed: invalid client tick %d\n", packet_ver, RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]));
+			ShowDebug("Version check %d failed: invalid client tick %d\n", packet_ver, (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]));
 			continue;
 		}
 		//This check seems redundant, all wanttoconnection packets have the gender on the very 

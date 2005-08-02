@@ -793,7 +793,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 
 	//Initial Values
 	wd.type=0; //Normal attack
-	wd.div_=skill_get_num(skill_num,skill_lv);
+	wd.div_=skill_num?skill_get_num(skill_num,skill_lv):1;
 	wd.amotion=status_get_amotion(src);
 	if(skill_num == KN_AUTOCOUNTER)
 		wd.amotion >>= 1;

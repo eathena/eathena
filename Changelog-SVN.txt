@@ -1,4 +1,8 @@
 Date	Added
+08/02
+	*  Fixed Enchant Deadly Poison on normal attacks. [Skotlex]
+	*  Updated the packet-guessing code, trying to load negative char accounts
+	should be fixed now. [Skotlex]
 08/01
 	* Updated the login servers so that account registration can be done with
 	  _m/_f as well as _M/_F [Skotlex]
