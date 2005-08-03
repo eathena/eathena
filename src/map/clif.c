@@ -557,6 +557,7 @@ int clif_authfail_fd(int fd, int type) {
 	WFIFOL(fd,2) = type;
 	WFIFOSET(fd,packet_len_table[0x81]);
 
+	ShowDebug("clif_authfail_fd: Disconnecting session #%d\n", fd);
 	clif_setwaitclose(fd);
 
 	return 0;
@@ -1687,10 +1688,7 @@ void clif_quitsave(int fd,struct map_session_data *sd)
  */
 static int clif_waitclose(int tid, unsigned int tick, int id, int data) {
 	if (session[id])
-	{
 		session[id]->eof = 1;
-		ShowNotice("clif_waitclose timer: tid %d, session %d\n", tid, id);
-	}
 
 //	close(id); //Quote from End of Exam: "And close(fd) in chrif_disconnect() and clif_waitclose() do not need since the socket will be closed in clif_parse() or chrif_parse(). This might be link to crash if you use lazy OS." [Skotlex]
 	return 0;
@@ -7537,6 +7535,8 @@ int clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd,int ty
 	WFIFOW(tsd->fd,0) = 0x18b;
 	WFIFOW(tsd->fd,2) = 0;
 	WFIFOSET(tsd->fd,packet_len_table[0x18b]);
+	
+	ShowDebug("clif_GM_kick: Disconnecting session #%d\n", tsd->fd);
 	clif_setwaitclose(tsd->fd);
 
 	return 0;
@@ -10700,7 +10700,7 @@ int clif_parse(int fd) {
 			else
 				ShowInfo("%sCharacter with Account ID '"CL_WHITE"%d"CL_RESET"' logged off.\n", (pc_isGM(sd))?"GM ":"", sd->bl.id); // Player logout display [Yor]
 		} else if (sd) { // not authentified! (refused by char-server or disconnect before to be authentified)
-			ShowInfo("Player not authenticated with Account ID '"CL_WHITE"%d"CL_RESET"' logged off.\n", sd->bl.id); // Player logout display [Yor]
+			ShowInfo("Player not authenticated (Account '"CL_WHITE"%d"CL_RESET"', Char ID '"CL_WHITE"%d"CL_RESET"', Packet Ver '"CL_WHITE"%d"CL_RESET"') logged off.\n", sd->bl.id, sd->status.char_id, sd->packet_ver); // Player logout display [Yor]
 //			if (chrif_isconnect())
 //				clif_quitsave(fd, sd);
 			map_deliddb(&sd->bl); // account_id has been included in the DB before auth answer [Yor]
@@ -10740,8 +10740,8 @@ int clif_parse(int fd) {
 			break;
 		case 0x7532: // Ú‘±‚ÌØ’f
 			close(fd);
+			ShowWarning("clif_parse: session #%d disconnected for sending packet 0x%x\n", fd, cmd);
 			session[fd]->eof=1;
-			ShowWarning("clif_parse: session #%d, packet 0x%x received -> disconnected.\n", fd, cmd);
 			break;
 		}
 		return 0;
@@ -10751,10 +10751,9 @@ int clif_parse(int fd) {
 	packet_ver = 0;
 	if (sd) {
 		packet_ver = sd->packet_ver;
-		if (packet_ver < 0 || packet_ver > MAX_PACKET_VER) {	// unusual, but just in case
+		if (packet_ver < 0 || packet_ver > MAX_PACKET_VER) {	// This should never happen unless we have some corrupted memory issues :X [Skotlex]
 			close(fd);
 			session[fd]->eof = 1;
-			ShowInfo("clif_parse: session #%d, bad packet version -> disconnected.\n", fd);
 			return 0;
 		}
 	} else {
@@ -10769,6 +10768,7 @@ int clif_parse(int fd) {
 			WFIFOW(fd,0) = 0x6a;
 			WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
 			WFIFOSET(fd,23);
+			ShowDebug("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
 			clif_setwaitclose(fd);
 			return 0;
 		}
@@ -10779,8 +10779,8 @@ int clif_parse(int fd) {
 		if (!fd)
 			return 0;			
 		close(fd);
+		ShowWarning("clif_parse: Received unsupported packet (packet 0x%x, %d bytes received), disconnecting session #%d.\n", cmd, RFIFOREST(fd), fd);
 		session[fd]->eof = 1;
-		ShowWarning("clif_parse: unsupported packet (session #%d, packet 0x%x, %d bytes received) -> disconnected.\n", fd, cmd, RFIFOREST(fd));
 		return 0;
 	}
 
@@ -10792,8 +10792,8 @@ int clif_parse(int fd) {
 		packet_len = RFIFOW(fd,2);
 		if (packet_len < 4 || packet_len > 32768) {
 			close(fd);
+			ShowWarning("clif_parse: Packet 0x%x specifies invalid packet_len (%d), disconnecting session #%d.\n", cmd, packet_len, fd);
 			session[fd]->eof =1;
-			ShowWarning("clif_parse: session #%d, packet 0x%x invalid packet_len (specified length: %d bytes) -> disconnected.\n", fd, cmd, packet_len);
 			return 0;
 		}
 	}
