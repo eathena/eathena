@@ -6,7 +6,7 @@ Date	Added
 	  descriptive (however I don't know how much of the player data is available
 	  when disconnecting this way, so if it crashes DO REPORT it) [Skotlex]
 	* Modified @me so that it actually works as expected by IRC junkies. [Skotlex]
-	  Note: Not yet tested!
+	  (tested and works correctly)
 	* Updated Enchant Deadly Poison: Can't be dispelled, won't end when you are killed. [Skotlex]
 	* Fixed draining more HP/SP than you can have [Skotlex]
 	* Fixed enchanted peach tree damaging you when attacking the undead [Skotlex]

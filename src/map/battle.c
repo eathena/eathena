@@ -1967,12 +1967,17 @@ struct Damage battle_calc_weapon_attack(
 	struct Damage wd;
 
 	//return‘O‚Ìˆ—‚ª‚ ‚é‚Ì‚Åî•ño—Í•”‚Ì‚Ý•ÏX
-	 if (src == NULL || target == NULL || (src->m != target->m)) {  // [ShAPoNe] Src and target same map check.
+	 if (src == NULL || target == NULL) {
 		nullpo_info(NLP_MARK);
 		memset(&wd,0,sizeof(wd));
 		return wd;
 	}
-
+	if (src->m != target->m)  // [ShAPoNe] Src and target same map check
+	{	//I don't see why this exploit attempt should cause a nullpo_info [Skotlex]
+		memset(&wd,0,sizeof(wd));
+		return wd;
+	}
+	
 	wd = battle_calc_weapon_attack_sub(src,target,skill_num,skill_lv,wflag);
 	
 	if ( src->type==BL_PC &&
