@@ -391,7 +391,7 @@ struct map_session_data {
 	int addeff3[10];
 	short addeff3_type[10];
 	short autospell2_id[10],autospell2_lv[10],autospell2_rate[10];
-	int skillatk[2];
+	int skillatk[5][2]; //For skill damage enhancement bonuses [Skotlex] (index 0 is skillid, 1 damage %bonus)
 	unsigned short unstripable_equip;
 	short add_damage_classid2[10],add_damage_class_count2;
 	int add_damage_classrate2[10];

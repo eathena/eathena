@@ -2555,7 +2555,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			}
 		} else {
 			if(battle_config.zeny_from_mobs) {
-				if(md->level > 0) zeny=(int) ((md->level+rand()%md->level)*per/256); // zeny calculation moblv + random moblv [Valaris]
+				if(md->level > 0) zeny=(int) ((md->level+rand()%md->level)*per); // zeny calculation moblv + random moblv [Valaris]
 				if(mob_db[md->class_].mexp > 0)
 					zeny*=rand()%250;
 				if(md->size==1 && zeny >=2) // change zeny for different sized monsters [Valaris]

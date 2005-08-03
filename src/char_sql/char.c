@@ -109,6 +109,9 @@ int subnetmaski[4]; // Subnetmask added by kashy
 char unknown_char_name[NAME_LENGTH] = "Unknown";
 char db_path[1024]="db";
 
+//These are used to aid the map server in identifying valid clients. [Skotlex]
+static int max_account_id = 200000, max_char_id = 150000;
+	
 struct char_session_data{
 	int account_id,login_id1,login_id2,sex;
 	int found_char[9];
@@ -170,10 +173,20 @@ void set_char_online(int char_id, int account_id) {
 		if (mysql_query(&mysql_handle, tmp_sql)) {
 			ShowSQL("DB server Error (set char online)- %s\n", mysql_error(&mysql_handle));
 		}
-    }
-
-    if (login_fd <= 0 || session[login_fd]->eof)
+	
+		if (max_account_id < account_id || max_char_id < char_id)
+		{	//Notify map-server of the new max IDs [Skotlex]
+			if (account_id > max_account_id)
+				max_account_id = account_id;
+			if (char_id > max_char_id)
+				max_char_id = char_id;
+			mapif_send_maxid(max_account_id, max_char_id);
+		}
+	}
+		
+	if (login_fd <= 0 || session[login_fd]->eof)
 		return;
+	
 	WFIFOW(login_fd,0) = 0x272b;
 	WFIFOL(login_fd,2) = account_id;
 	WFIFOSET(login_fd,6);
@@ -2330,6 +2343,7 @@ int parse_frommap(int fd) {
 				       id, j, p[0], p[1], p[2], p[3], server[id].port);
 				ShowStatus("Map-server %d loading complete.\n", id);
 				set_all_offline();
+				mapif_send_maxid(max_account_id, max_char_id); //Send the current max ids to the server to keep in sync [Skotlex]
 			}
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;

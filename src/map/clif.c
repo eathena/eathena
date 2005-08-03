@@ -152,6 +152,11 @@ static int map_port = 5121;
 int map_fd;
 char talkie_mes[MESSAGE_SIZE];
 
+//These two will be used to verify the incoming player's validity.
+//It helps identify their client packet version correctly. [Skotlex]
+static int max_account_id = 2000000;
+static int max_char_id = 150000;
+
 int clif_parse (int fd);
 
 /*==========================================
@@ -555,6 +560,16 @@ int clif_authfail_fd(int fd, int type) {
 	clif_setwaitclose(fd);
 
 	return 0;
+}
+
+/*==========================================
+ * Used to know which is the max valid account/char id [Skotlex]
+ *------------------------------------------
+ */
+void clif_updatemaxid(int account_id, int char_id)
+{
+	max_account_id = account_id;
+	max_char_id = char_id;
 }
 
 /*==========================================
@@ -7867,7 +7882,7 @@ int clif_charnameupdate (struct map_session_data *ssd)
 static int clif_guess_PacketVer(int fd, int get_previous)
 {
 	static int packet_ver = -1;
-	int cmd, packet_len, sex, acc_offset;
+	int cmd, packet_len, value; //Value is used to temporarily store account/char_id/sex
 	static struct socket_data *last_session;
 	
 	if (get_previous) //For quick reruns, since the normal code flow is to fetch this once to identify the packet version, then again in the wanttoconnect function. [Skotlex]
@@ -7881,11 +7896,11 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 	if (
 		cmd == clif_config.connect_cmd[packet_ver] &&
 		packet_len == packet_db[packet_ver][cmd].len &&
-		((sex = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) == 0 ||	sex == 1) &&
-		(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[0]) > 700000 && //Account ID is valid
-		//RFIFOB(fd, packet_db[packet_ver][cmd].pos[0]+3) == 0 &&	//Account ID ends in 0
-		(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]) > 0 &&	//Char ID is valid
-		//RFIFOB(fd, packet_db[packet_ver][cmd].pos[1]+3) == 0 &&	//Char ID ends in 0
+		((value = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) == 0 ||	value == 1) &&
+		(value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0])) > 700000 && //Account ID is valid
+		 value <= max_account_id &&
+		(value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1])) > 0 &&	//Char ID is valid
+		 value <= max_char_id &&
 		(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) > 0 &&
 		(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]) >= 0
 		)
@@ -7897,29 +7912,14 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 			packet_len != packet_db[packet_ver][cmd].len)	//The size of the wantoconnection packet does not matches.
 			continue;
 	
-		//From the packet analysis I've done of a few versions, I reached the following conclusions: [Skotlex]
-		//1. Packets are full of 0s after the command and until the account_id <- scracth this, version 19 has a 10 in there for some reason :/
-		//2. The fourth byte of the account_id and char_id are always 0.
-		//(probably because of the range of account ids? it would have to go over 16M before the last byte is needed)
-		acc_offset = packet_db[packet_ver][cmd].pos[0];
-		if ((int)RFIFOL(fd, acc_offset) < 700000)
+		if ((value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0])) < 700000 || value > max_account_id)
 		{
-			ShowDebug("Version check %d failed: invalid account id %d\n", packet_ver, (int)RFIFOL(fd, acc_offset));
+			ShowDebug("Version check %d failed: invalid account id %d\n", packet_ver, value);
 			continue;
 		}
-		if (RFIFOB(fd, acc_offset+3) != 0)
+		if ((value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1])) < 1 || value > max_char_id)
 		{
-			ShowDebug("Version check %d failed: account id's last byte not 0 terminated (%d)\n", packet_ver, (int)RFIFOL(fd, acc_offset));
-			continue;
-		}
-		if ((int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]) < 1)
-		{
-			ShowDebug("Version check %d failed: invalid char id %d\n", packet_ver, (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]));
-			continue;
-		}
-		if (RFIFOB(fd, packet_db[packet_ver][cmd].pos[1]+3) != 0)
-		{
-			ShowDebug("Version check %d failed: char id's last byte not 0 terminated (%d)\n", packet_ver, (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[1]));
+			ShowDebug("Version check %d failed: invalid char id %d\n", packet_ver, value);
 			continue;
 		}
 		//What is login 1? In my tests it is a very very high value.
@@ -7936,10 +7936,9 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 		}
 		//This check seems redundant, all wanttoconnection packets have the gender on the very 
 		//last byte of the packet.
-		sex = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4]);
-		if (sex < 0 ||	sex > 1)
+		if ((value = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) < 0 || value > 1)
 		{
-			ShowDebug("Version check %d failed: invalid gender %d\n", packet_ver, sex);
+			ShowDebug("Version check %d failed: invalid gender %d\n", packet_ver, value);
 			continue;
 		}
 		return packet_ver; //This is our best guess.

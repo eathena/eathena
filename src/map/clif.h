@@ -39,6 +39,7 @@ void clif_setwaitclose(int);
 
 int clif_authok(struct map_session_data *);
 int clif_authfail_fd(int,int);
+void clif_updatemaxid(int, int);
 int clif_charselectok(int);
 int clif_dropflooritem(struct flooritem_data *);
 int clif_clearflooritem(struct flooritem_data *,int);

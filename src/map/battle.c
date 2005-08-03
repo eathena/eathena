@@ -1570,11 +1570,14 @@ static struct Damage battle_calc_weapon_attack_sub(
 			else if((skill=skill_get_pl(skill_num))>0) //Checking for the skill's element
 				s_ele=s_ele_=skill;
 
-			if (sd && sd->skillatk[0] == skill_num)
-				//If we apply skillatk[] as ATK_RATE, it will also affect other skills,
-				//unfortunately this way ignores a skill's constant modifiers...
-				skillratio += sd->skillatk[1];
-
+			if (sd && sd->skillatk[0] != 0)
+			{
+				for (i = 0; i < 5 && sd->skillatk[i][0] != 0 && sd->skillatk[i][0] != skill_num; i++);
+				if (i < 5 && sd->skillatk[i][0] == skill_num)
+					//If we apply skillatk[] as ATK_RATE, it will also affect other skills,
+					//unfortunately this way ignores a skill's constant modifiers...
+					skillratio += sd->skillatk[i][1];
+			}
 			ATK_RATE(skillratio);
 
 			//Constant/misc additions from skills
@@ -2284,8 +2287,12 @@ struct Damage battle_calc_magic_attack(
 			}
 		}
 		damage=damage*cardfix/100;
-		if (skill_num > 0 && sd->skillatk[0] == skill_num)
-			damage += damage*sd->skillatk[1]/100;
+		if (skill_num > 0 && sd->skillatk[0][0] != 0)
+		{
+			for (i = 0; i < 5 && sd->skillatk[i][0] != 0 && sd->skillatk[i][0] != skill_num; i++);
+			if (i < 5 && sd->skillatk[i][0] == skill_num)
+				damage += damage*sd->skillatk[i][1]/100;
+		}
 	}
 
 	if (tsd && !no_cardfix) {
@@ -2500,8 +2507,13 @@ struct Damage  battle_calc_misc_attack(
 			cardfix=cardfix*(100-tsd->subrace2[race2])/100;
 			damage=damage*cardfix/100;
 		}
-		if (sd && skill_num > 0 && sd->skillatk[0] == skill_num)
-			damage += damage*sd->skillatk[1]/100;
+		if (sd && skill_num > 0 && sd->skillatk[0][0] != 0)
+		{
+			int i;
+			for (i = 0; i < 5 && sd->skillatk[i][0] != 0 && sd->skillatk[i][0] != skill_num; i++);
+			if (i < 5 && sd->skillatk[i][0] == skill_num)
+				damage += damage*sd->skillatk[i][1]/100;
+		}
 
 		if(damage < 0) damage = 0;
 		damage=battle_attr_fix(damage, ele, status_get_element(target) );		// ‘®«C³

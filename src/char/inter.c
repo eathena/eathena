@@ -298,6 +298,17 @@ int inter_mapif_init(int fd) {
 //--------------------------------------------------------
 // sended packets to map-server
 
+//Sends to map server the current max Account/Char id [Skotlex]
+void mapif_send_maxid(int account_id, int char_id)
+{
+	unsigned char buf[12];
+
+	WBUFW(buf,0) = 0x2b07;
+	WBUFL(buf,2) = account_id;
+	WBUFL(buf,6) = char_id;
+	mapif_sendall(buf, 10);
+}
+
 // GMメッセージ送信
 int mapif_GMmessage(unsigned char *mes, int len, int sfd) {
 	unsigned char buf[2048];

@@ -7,6 +7,7 @@ void inter_final();
 int inter_save();
 int inter_parse_frommap(int fd);
 int inter_mapif_init(int fd);
+void mapif_send_maxid(int, int);
 
 int inter_check_length(int fd,int length);
 

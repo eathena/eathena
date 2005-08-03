@@ -594,6 +594,7 @@ int skill_frostjoke_scream(struct block_list *bl,va_list ap);
 int status_change_timer_sub(struct block_list *bl, va_list ap );
 int skill_attack_area(struct block_list *bl,va_list ap);
 int skill_clear_element_field(struct block_list *bl);
+struct skill_unit_group *skill_locate_element_field(struct block_list *bl); // [Skotlex]
 int skill_graffitiremover(struct block_list *bl, va_list ap ); // [Valaris]
 int skill_landprotector(struct block_list *bl, va_list ap );
 int skill_ganbatein(struct block_list *bl, va_list ap );
@@ -5505,7 +5506,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	case SA_DELUGE:			/* デリュ?ジ */
 	case SA_VIOLENTGALE:	/* バイオレントゲイル */
 	case SA_LANDPROTECTOR:	/* ランドプロテクタ? */
-		skill_clear_element_field(src);//?に自分が?動している?性場をクリア
+//		skill_clear_element_field(src); //This will be done on setting up the field.
 		skill_unitsetting(src,skillid,skilllv,x,y,0);
 		break;
 
@@ -5883,7 +5884,24 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 			aoe_diameter=skilllv+skilllv%2+5;
 			count=aoe_diameter*aoe_diameter;	// -- this will not function if changed to ^2 (moonsoul)
 		}
+	//No break because we also have to check if we use gemstones. [Skotlex]
+	case SA_VOLCANO:
+	case SA_DELUGE:
+	case SA_VIOLENTGALE:
+	{
+		struct skill_unit_group *old_sg;
+		if ((old_sg = skill_locate_element_field(src)) != NULL)
+		{
+			if (old_sg->skill_id == skillid && old_sg->limit > 0)
+			{	//Use the previous limit (minus the elapsed time) [Skotlex]
+				limit = old_sg->limit - DIFF_TICK(gettick(), old_sg->tick);
+				if (limit < 0)	//This can happen... 
+					limit = skill_get_time(skillid,skilllv);
+			}
+			skill_clear_element_field(src);
+		}
 		break;
+	}
 
 	case BA_WHISTLE:			/* 口笛 */
 		if(src->type == BL_PC)
@@ -7006,7 +7024,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	int	index[10],itemid[10],amount[10];
 	int arrow_flag = 0;
 	int force_gem_flag = 0;
-	int delitem_flag = 1;
+	int delitem_flag = 1, checkitem_flag = 1;
 
 	nullpo_retr(0, sd);
 
@@ -7332,6 +7350,20 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case SA_SEISMICWEAPON:
 		delitem_flag = 0;
 		break;
+	case SA_DELUGE:
+	case SA_VOLCANO:
+	case SA_VIOLENTGALE:
+	case SA_LANDPROTECTOR:
+	{	//Does not consumes if the skill is already active. [Skotlex]
+		struct skill_unit_group *sg;
+		if ((sg= skill_locate_element_field(&sd->bl)) != NULL && sg->skill_id == skill)
+		{
+			if (sg->limit - DIFF_TICK(gettick(), sg->tick) > 0)
+				checkitem_flag = delitem_flag = 0;
+			else sg->limit = 0; //Disable it.
+		}
+		break;
+	}
 	case CG_HERMODE:
 		{
 			int c = 0;
@@ -7456,28 +7488,30 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		break;
 	}
 
-	for(i=0;i<10;i++) {
-		int x = lv%11 - 1;
-		index[i] = -1;
-		if(itemid[i] <= 0)
-			continue;
-		if(itemid[i] >= 715 && itemid[i] <= 717 && sd->special_state.no_gemstone && !force_gem_flag)
-			continue;
-		if(((itemid[i] >= 715 && itemid[i] <= 717) || itemid[i] == 1065)
-			&& sd->sc_data[SC_INTOABYSS].timer != -1 && !force_gem_flag)
-			continue;
-		if((skill == AM_POTIONPITCHER ||
-			skill == CR_SLIMPITCHER ||
-			skill == CR_CULTIVATION) && i != x)
-			continue;
+	if (checkitem_flag) {
+		for(i=0;i<10;i++) {
+			int x = lv%11 - 1;
+			index[i] = -1;
+			if(itemid[i] <= 0)
+				continue;
+			if(itemid[i] >= 715 && itemid[i] <= 717 && sd->special_state.no_gemstone && !force_gem_flag)
+				continue;
+			if(((itemid[i] >= 715 && itemid[i] <= 717) || itemid[i] == 1065)
+				&& sd->sc_data[SC_INTOABYSS].timer != -1 && !force_gem_flag)
+				continue;
+			if((skill == AM_POTIONPITCHER ||
+				skill == CR_SLIMPITCHER ||
+				skill == CR_CULTIVATION) && i != x)
+				continue;
 
-		index[i] = pc_search_inventory(sd,itemid[i]);
-		if(index[i] < 0 || sd->status.inventory[index[i]].amount < amount[i]) {
-			if(itemid[i] == 716 || itemid[i] == 717)
-				clif_skill_fail(sd,skill,(7+(itemid[i]-716)),0);
-			else
-				clif_skill_fail(sd,skill,0,0);
-			return 0;
+			index[i] = pc_search_inventory(sd,itemid[i]);
+			if(index[i] < 0 || sd->status.inventory[index[i]].amount < amount[i]) {
+				if(itemid[i] == 716 || itemid[i] == 717)
+					clif_skill_fail(sd,skill,(7+(itemid[i]-716)),0);
+				else
+					clif_skill_fail(sd,skill,0,0);
+				return 0;
+			}
 		}
 	}
 
@@ -8814,6 +8848,41 @@ int skill_clear_element_field(struct block_list *bl)
 		}
 	}
 	return 0;
+}
+
+/*==========================================
+ * Returns the first element field found [Skotlex]
+ *------------------------------------------
+ */
+struct skill_unit_group *skill_locate_element_field(struct block_list *bl)
+{
+	struct mob_data *md=NULL;
+	struct map_session_data *sd=NULL;
+	int i,max,skillid;
+
+	nullpo_retr(0, bl);
+
+	if (bl->type==BL_MOB) {
+		max = MAX_MOBSKILLUNITGROUP;
+		md = (struct mob_data *)bl;
+	} else if(bl->type==BL_PC) {
+		max = MAX_SKILLUNITGROUP;
+		sd = (struct map_session_data *)bl;
+	} else
+		return NULL;
+
+	for (i=0;i<max;i++) {
+		if(sd){
+			skillid=sd->skillunit[i].skill_id;
+			if(skillid==SA_DELUGE||skillid==SA_VOLCANO||skillid==SA_VIOLENTGALE||skillid==SA_LANDPROTECTOR)
+				return &sd->skillunit[i];
+		}else if(md){
+			skillid=md->skillunit[i].skill_id;
+			if(skillid==SA_DELUGE||skillid==SA_VOLCANO||skillid==SA_VIOLENTGALE||skillid==SA_LANDPROTECTOR)
+				return &md->skillunit[i];
+		}
+	}
+	return NULL;
 }
 
 // for graffiti cleaner [Valaris]

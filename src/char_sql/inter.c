@@ -52,6 +52,7 @@ char login_server_pw[32] = "ragnarok";
 char login_server_db[32] = "ragnarok";
 
 // sending packet list
+// NOTE: This variable ain't used at all! And it's confusing.. where do I add that the length of packet 0x2b07 is 10? x.x [Skotlex]
 int inter_send_packet_length[]={
 	-1,-1,27,-1, -1, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	-1, 7, 0, 0,  0, 0, 0, 0, -1,11, 0, 0,  0, 0,  0, 0,
@@ -451,6 +452,16 @@ int mapif_send_gmaccounts()
 	return 0;
 }
 
+//Sends to map server the current max Account/Char id [Skotlex]
+void mapif_send_maxid(int account_id, int char_id)
+{
+	unsigned char buf[12];
+
+	WBUFW(buf,0) = 0x2b07;
+	WBUFL(buf,2) = account_id;
+	WBUFL(buf,6) = char_id;
+	mapif_sendall(buf, 10);
+}
 
 //--------------------------------------------------------
 
