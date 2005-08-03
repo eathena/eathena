@@ -2775,7 +2775,8 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 					else {
 						switch (skill_get_nk(skillid)) {
 							case NK_NO_DAMAGE:/* x‰‡Œn */
-								if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) && battle_check_undead(race,ele))
+								if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
+									battle_check_undead(status_get_race(tbl),status_get_elem_type(tbl)))
 									skill_castend_damage_id(src, tbl, skillid, skilllv, tick, flag);
 								else
 									skill_castend_nodamage_id(src, tbl, skillid, skilllv, tick, flag);
@@ -2806,16 +2807,21 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 					hp += battle_calc_drain(wd.damage, hp_drain_rate, hp_drain_per, hp_drain_value);
 					sp += battle_calc_drain(wd.damage, sp_drain_rate, sp_drain_per, sp_drain_value);
 				}
+				if (hp && hp + sd->status.hp > sd->status.max_hp)
+					hp = sd->status.max_hp - sd->status.hp;
+				if (sp && sp + sd->status.sp > sd->status.max_sp)
+					sp = sd->status.max_sp - sd->status.sp;
+				
+				if (hp || sp)
+					pc_heal(sd, hp, sp);
 
 				if (battle_config.show_hp_sp_drain)
 				{	//Display gained values [Skotlex]
-					if (hp > 0 && pc_heal(sd, hp, 0) > 0)
+					if (hp)
 						clif_heal(sd->fd, SP_HP, hp);
-					if (sp > 0 && pc_heal(sd, 0, sp) > 0)
+					if (sp)
 						clif_heal(sd->fd, SP_SP, sp);
 				}
-				else	if (hp || sp)
-					pc_heal(sd, hp, sp);
 
 				if (tsd && sd->sp_drain_type)
 					pc_heal(tsd, 0, -sp);

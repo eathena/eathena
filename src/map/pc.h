@@ -33,7 +33,7 @@ int pc_getrefinebonus(int lv,int type);
 
 int pc_setrestartvalue(struct map_session_data *sd,int type);
 int pc_makesavestatus(struct map_session_data *);
-int pc_setnewpc(struct map_session_data*,int,int,int,int,int,int);
+int pc_setnewpc(struct map_session_data*,int,int,int,unsigned int,int,int);
 int pc_authok(int, int, time_t, struct mmo_charstatus *);
 int pc_authfail(int);
 

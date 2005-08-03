@@ -28,3 +28,11 @@ Also the fame-list sending has changed, the char server needs to send the
 names. The new packet is a lot like the previous one, except that instead of
 sending individual fields, the whole struct fame_list of each smith/chem is
 saved into the packets. [Skotlex]
+
+August 03
+The char server keeps track of which is the max account/char id currently in
+use, and notifies the map server when said max has changed (using packet
+0x2b07), this is used to help the map server identify the validity of incoming
+players. The initial values for said max are DEFAULT_MAX_ACCOUNT_ID and
+DEFAULT_MAX_CHAR_ID (which give room for 10K accounts and 100K players before
+it needs to be updated) [Skotlex]

@@ -390,7 +390,7 @@ int pc_makesavestatus(struct map_session_data *sd)
  * Ú?bÌ‰Šú‰»
  *------------------------------------------
  */
-int pc_setnewpc(struct map_session_data *sd, int account_id, int char_id, int login_id1, int client_tick, int sex, int fd) {
+int pc_setnewpc(struct map_session_data *sd, int account_id, int char_id, int login_id1, unsigned int client_tick, int sex, int fd) {
 	nullpo_retr(0, sd);
 
 	sd->bl.id        = account_id;

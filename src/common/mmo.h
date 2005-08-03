@@ -94,11 +94,15 @@
 //For Map Names, which the client considers to be 16 in length
 #define MAP_NAME_LENGTH 16
 
-//..
 #define MAX_FRIENDS 20
 #define MAX_MEMOPOINTS 10
 
-
+//These max values can be exceeded and the char/map servers will update them with no problems
+//These are just meant to minimize the updating needed between char/map servers as players login.
+//Room for initial 10K accounts
+#define DEFAULT_MAX_ACCOUNT_ID 2010000
+//Room for initial 100k characters
+#define DEFAULT_MAX_CHAR_ID 250000
 
 #define CHAR_CONF_NAME  "conf/char_athena.conf"
 

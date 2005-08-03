@@ -124,7 +124,7 @@ int online_refresh_html = 20; // refresh time (in sec) of the html file in the e
 int online_gm_display_min_level = 20; // minimum GM level to display 'GM' when we want to display it
 
 //These are used to aid the map server in identifying valid clients. [Skotlex]
-static int max_account_id = 200000, max_char_id = 150000;
+static int max_account_id = DEFAULT_MAX_ACCOUNT_ID, max_char_id = DEFAULT_MAX_CHAR_ID;
 
 struct online_chars {
 	int char_id;
@@ -2283,7 +2283,8 @@ int parse_frommap(int fd) {
 				char_log("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d. Map-server %d loading complete." RETCODE,
 				         id, j, p[0], p[1], p[2], p[3], server[id].port, id);
 				set_all_offline();
-				mapif_send_maxid(max_account_id, max_char_id); //Send the current max ids to the server to keep in sync [Skotlex]
+				if (max_account_id != DEFAULT_MAX_ACCOUNT_ID || max_char_id != DEFAULT_MAX_CHAR_ID)
+					mapif_send_maxid(max_account_id, max_char_id); //Send the current max ids to the server to keep in sync [Skotlex]
 			}
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;

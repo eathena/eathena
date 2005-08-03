@@ -154,8 +154,8 @@ char talkie_mes[MESSAGE_SIZE];
 
 //These two will be used to verify the incoming player's validity.
 //It helps identify their client packet version correctly. [Skotlex]
-static int max_account_id = 2000000;
-static int max_char_id = 150000;
+static int max_account_id = DEFAULT_MAX_ACCOUNT_ID;
+static int max_char_id = DEFAULT_MAX_CHAR_ID;
 
 int clif_parse (int fd);
 
@@ -7901,8 +7901,7 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 		 value <= max_account_id &&
 		(value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1])) > 0 &&	//Char ID is valid
 		 value <= max_char_id &&
-		(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) > 0 &&
-		(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]) >= 0
+		(int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) > 0	//Login 1 is a positive value (?)
 		)
 		return clif_config.packet_db_ver; //Default packet version found.
 	
@@ -7928,12 +7927,8 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 			ShowDebug("Version check %d failed: invalid login1 %d\n", packet_ver, (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]));
 			continue;
 		}
-		//I've seen this tick as 1/0, wonder what other valid values it has?
-		if ((int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]) < 0)
-		{
-			ShowDebug("Version check %d failed: invalid client tick %d\n", packet_ver, (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[3]));
-			continue;
-		}
+		//Removed the tick check as it can be a very large value (it is an unsigned int, so all values are possible)
+
 		//This check seems redundant, all wanttoconnection packets have the gender on the very 
 		//last byte of the packet.
 		if ((value = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) < 0 || value > 1)
@@ -7965,7 +7960,8 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 {
 	struct map_session_data *old_sd;
-	int cmd, account_id, char_id, login_id1, client_tick, sex;
+	int cmd, account_id, char_id, login_id1, sex;
+	unsigned int client_tick; //The client tick is a tick, therefore it needs be unsigned. [Skotlex]
 	int packet_ver;	// 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 
 	if (sd) {

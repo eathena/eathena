@@ -1,4 +1,9 @@
 Date	Added
+08/03
+	* Fixed draining more HP/SP than you can have [Skotlex]
+	* Fixed enchanted peach tree damaging you when attacking the undead [Skotlex]
+	* Removed the tick check from the packet_version guessing as it is an
+	  unsigned int (so every value in said field is valid) [Skotlex]
 08/02
 	* The char server now notifies the map server about which is the max
 	  account/char id available, this is used to help identify packet versions

@@ -110,7 +110,7 @@ char unknown_char_name[NAME_LENGTH] = "Unknown";
 char db_path[1024]="db";
 
 //These are used to aid the map server in identifying valid clients. [Skotlex]
-static int max_account_id = 200000, max_char_id = 150000;
+static int max_account_id = DEFAULT_MAX_ACCOUNT_ID, max_char_id = DEFAULT_MAX_CHAR_ID;
 	
 struct char_session_data{
 	int account_id,login_id1,login_id2,sex;
@@ -2343,7 +2343,8 @@ int parse_frommap(int fd) {
 				       id, j, p[0], p[1], p[2], p[3], server[id].port);
 				ShowStatus("Map-server %d loading complete.\n", id);
 				set_all_offline();
-				mapif_send_maxid(max_account_id, max_char_id); //Send the current max ids to the server to keep in sync [Skotlex]
+				if (max_account_id != DEFAULT_MAX_ACCOUNT_ID || max_char_id != DEFAULT_MAX_CHAR_ID)
+					mapif_send_maxid(max_account_id, max_char_id); //Send the current max ids to the server to keep in sync [Skotlex]
 			}
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;
