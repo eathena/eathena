@@ -4217,7 +4217,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					|| i==SC_ASSNCROS || i==SC_POEMBRAGI || i==SC_APPLEIDUN || i==SC_UGLYDANCE
 					|| i==SC_HUMMING || i==SC_DONTFORGETME || i==SC_FORTUNE || i==SC_SERVICE4U
 					|| i==SC_MOONLIT || i==SC_LONGING || i==SC_HERMODE || i== SC_DANCING
-					|| i==SC_STEELBODY)
+					|| i==SC_STEELBODY || i==SC_EDP)
 						continue;
 				status_change_end(bl,i,-1);
 			}
@@ -6220,12 +6220,17 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	if (map_find_skill_unit_oncell(bl,bl->x,bl->y,SA_LANDPROTECTOR,NULL))
 		return 0;
 
+	if (sg->interval < 1 || (bl->type != BL_PC && bl->type != BL_MOB))
+	{	//Temporary debug to figure out why the nullpo below is being caused. [Skotlex]
+		ShowDebug("skill_unit_onplace_timer: unit error! (unit 0x%x from bl_type: %d)\n", sg->unit_id, bl->type);
+		return 0;
+	}
 	// ‘O‚É‰e‹¿‚ðŽó‚¯‚Ä‚©‚çinterval‚ÌŠÔ‚Í‰e‹¿‚ðŽó‚¯‚È‚¢
 	nullpo_retr(0,ts = skill_unitgrouptickset_search(bl,sg,tick));
 	diff = DIFF_TICK(tick,ts->tick);
 	if (diff < 0)
 		return 0;
-	if (sg->unit_id == 0xb3 && sg->interval > 0) //Random effect delay for PA_GOSPEL [Skotlex]
+	if (sg->unit_id == 0xb3)  //Random effect delay for PA_GOSPEL [Skotlex]
 		ts->tick = tick+ sg->interval/2 + rand()%sg->interval; //-50%~+50% guess (no real data yet)
 	else
 		ts->tick = tick+sg->interval;
@@ -8950,33 +8955,7 @@ int skill_ganbatein(struct block_list *bl, va_list ap )
 
 	return 0;
 }
-/*==========================================
- * ƒCƒhƒDƒ“‚Ì—ÑŒç‚Ì‰ñ•œ?—(foreachinarea)
- *------------------------------------------
- */
-/* This implementation of Apple of Idun is no longer needed. [Skotlex]
-int skill_idun_heal (struct block_list *bl, va_list ap)
-{
-	struct skill_unit *unit;
-	struct skill_unit_group *sg;
-	int heal;
 
-	nullpo_retr(0, bl);
-	if (bl->type != BL_PC && bl->type != BL_MOB)
-		return 0;
-
-	nullpo_retr(0, ap);
-	nullpo_retr(0, unit = va_arg(ap,struct skill_unit *));
-	nullpo_retr(0, sg = unit->group);
-	if (bl->id == sg->src_id)
-		return 0;
-	heal = 30 + sg->skill_lv * 5 + ((sg->val1) >> 16) * 5 + ((sg->val2) & 0xfff) / 2;
-	clif_skill_nodamage(&unit->bl, bl, AL_HEAL, heal, 1);
-	battle_heal(NULL, bl, heal, 0, 0);
-
-	return 0;
-}
-*/
 /*==========================================
  * Žw’è”Í??‚Åsrc‚É?‚µ‚Ä—L?‚Èƒ^?ƒQƒbƒg‚Ìbl‚Ì?‚ð?‚¦‚é(foreachinarea)
  *------------------------------------------
@@ -9259,7 +9238,7 @@ int skill_delunit(struct skill_unit *unit)
 	unit->group=NULL;
 	unit->alive=0;
 	map_delobjectnofree(unit->bl.id);
-	if(group->alive_count>0 && (--group->alive_count)<=0)
+	if(--group->alive_count==0)
 		skill_delunitgroup(group);
 
 	return 0;
@@ -9346,11 +9325,6 @@ struct skill_unit_group *skill_initunitgroup(struct block_list *src,
 		if (sd && skill_get_unit_flag(skillid)&UF_ENSEMBLE &&
 			battle_config.player_skill_partner_check) {
 				skill_check_pc_partner(sd, skillid, &skilllv, 1, 1);
-		/*
-			int c=0;
-			map_foreachinarea(skill_check_condition_use_sub,sd->bl.m,
-				sd->bl.x-1,sd->bl.y-1,sd->bl.x+1,sd->bl.y+1,BL_PC,&sd->bl,&c);
-		*/
 		}
 	}
 	return group;
@@ -9555,17 +9529,6 @@ int skill_unit_timer_sub( struct block_list *bl, va_list ap )
 			return 0;
 		}
 	}
-	// ƒCƒhƒDƒ“‚Ì—ÑŒç‚É‚æ‚é‰ñ•œ
-/*	This implementation deviates from the standard way of using area skills and timers... [Skotlex]
-	if (group->unit_id==0xaa && DIFF_TICK(tick,group->tick)>=6000*group->val3) {
-		struct block_list *src = map_id2bl(group->src_id);
-		int range = skill_get_unit_layout_type(group->skill_id,group->skill_lv);
-		nullpo_retr(0, src);
-		map_foreachinarea(skill_idun_heal,src->m,
-			src->x-range,src->y-range,src->x+range,src->y+range,0,unit);
-		group->val3++;
-	}
-	*/
 	/* ŽžŠÔØ‚êíœ */
 	if((DIFF_TICK(tick,group->tick)>=group->limit || DIFF_TICK(tick,group->tick)>=unit->limit)){
 		switch(group->unit_id){

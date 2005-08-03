@@ -4073,7 +4073,9 @@ int status_change_clear(struct block_list *bl,int type)
 	if (*sc_count == 0)
 		return 0;
 	for(i = 0; i < MAX_STATUSCHANGE; i++){
-		if(sc_data[i].timer != -1){	/* 異常があるならタイマ?を削除する */
+		if(sc_data[i].timer != -1 &&	/* 異常があるならタイマ?を削除する */
+			(i != SC_EDP || type != 1) //Type 1: PC killed -> EDP must not be dispelled. [Skotlex]
+		){
 			status_change_end(bl, i, -1);
 		}
 	}
