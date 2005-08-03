@@ -5148,13 +5148,25 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 
 	nullpo_retr(0, sd);
 
-	if( sd->bl.prev == NULL ) //prevが無いのはありなの？
+	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != tid )
+	{	/* タイマIDの確認 */
+		ShowError("skill_castend_id: Timer mismatch %d!=%d!\n", sd->skilltimer, tid);
+		sd->skilltimer = -1;
 		return 0;
+	}
 
-	if (sd->skillid == -1 || sd->skilllv == -1)	// skill has failed after starting casting
+	if( sd->bl.prev == NULL )
+	{	//prevが無いのはありなの？
+		sd->skilltimer = -1;
 		return 0;
-	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != tid )	/* タイマIDの確認 */
+	}
+
+	if (sd->skillid == -1 || sd->skilllv == -1)
+	{	// skill has failed after starting casting
+		sd->skilltimer = -1;
 		return 0;
+	}
+
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
 		status_calc_speed(sd, SA_FREECAST, range, 0); 
 
@@ -5302,10 +5314,17 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 
 	if( sd->bl.prev == NULL )
 		return 0;
-	if( sd->skilltimer != tid )	/* タイマIDの確認 */
+	if( sd->skilltimer != tid )
+	{	/* タイマIDの確認 */
+		ShowError("skill_castend_pos: Timer mismatch %d!=%d\n", sd->skilltimer, tid);
+		sd->skilltimer = -1;
 		return 0;
-	if (sd->skillid == -1 || sd->skilllv == -1)	// skill has failed after starting casting
+	}
+	if (sd->skillid == -1 || sd->skilllv == -1)
+	{	// skill has failed after starting casting
+		sd->skilltimer = -1;
 		return 0;
+	}
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
 		status_calc_speed(sd, SA_FREECAST, range, 0); 
 
