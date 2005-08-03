@@ -9216,7 +9216,7 @@ int atcommand_me(
 	}
 	
 	sscanf(message, "%199[^\n]", tempmes);
-	sprintf(atcmd_output, "** %s %s **", sd->status.name, tempmes);
+	sprintf(atcmd_output, "* %s %s *", sd->status.name, tempmes);
     clif_disp_overhead(sd, atcmd_output);
     
 	return 0;

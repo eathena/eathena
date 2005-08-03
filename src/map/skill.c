@@ -6220,7 +6220,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	if (map_find_skill_unit_oncell(bl,bl->x,bl->y,SA_LANDPROTECTOR,NULL))
 		return 0;
 
-	if (sg->interval < 1 || (bl->type != BL_PC && bl->type != BL_MOB))
+	if (sg->interval == -1 || (bl->type != BL_PC && bl->type != BL_MOB))
 	{	//Temporary debug to figure out why the nullpo below is being caused. [Skotlex]
 		ShowDebug("skill_unit_onplace_timer: unit error! (unit 0x%x from bl_type: %d)\n", sg->unit_id, bl->type);
 		return 0;

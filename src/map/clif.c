@@ -11168,14 +11168,28 @@ int do_init_clif(void) {
 
 
 /*------------------------------------------
- * @me command by lordalfa
+ * @me command by lordalfa, rewritten implementation by Skotlex
  *------------------------------------------
 */
 int clif_disp_overhead(struct map_session_data *sd, char* mes)
 {
-	unsigned char *buf;
-	int len_mes;
+	unsigned char buf[256]; //This should be more than sufficient, the theorical max is MESSAGE_SIZE+NAME_LENGTH + 8 (pads and extra inserted crap)
+	int len_mes = strlen(mes)+1; //Account for \0
 
+	// send message to others
+	WBUFW(buf,0) = 0x8d;
+	WBUFW(buf,2) = len_mes + 8; // len of message + 8 (command+len+id)
+	WBUFL(buf,4) = sd->bl.id;
+	memcpy(WBUFP(buf,8), mes, len_mes);
+	clif_send(buf, WBUFW(buf,2), &sd->bl, AREA_CHAT_WOC);
+
+	// send back message to the speaker
+	WBUFW(buf,0) = 0x8e;
+	WBUFW(buf, 2) = len_mes + 4;
+	memcpy(WBUFP(buf,4), mes, len_mes);  
+	clif_send(buf, WBUFW(buf,2), &sd->bl, SELF);
+
+/* Previous non-expected behaviour
 	nullpo_retr(-1, mes);
 
 	len_mes = strlen(mes);
@@ -11185,8 +11199,8 @@ int clif_disp_overhead(struct map_session_data *sd, char* mes)
 	WBUFW(buf, 2) = len_mes + 5;
 	memcpy(WBUFP(buf,4), mes, len_mes + 1);  
 		clif_send(buf, WBUFW(buf,2), &sd->bl, AREA); //Sends self speech to Area
-}
-
+	}
+	*/
 	return 0;
 }
 
