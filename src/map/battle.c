@@ -1358,8 +1358,8 @@ static struct Damage battle_calc_weapon_attack_sub(
 					break;
 				case KN_BRANDISHSPEAR:
 				{
-					int ratio = 20*skill_lv;
-					skillratio+= ratio;
+					int ratio = 100+20*skill_lv;
+					skillratio+= ratio-100;
 					if(skill_lv>3 && wflag==1) skillratio+= ratio/2;
 					if(skill_lv>6 && wflag==1) skillratio+= ratio/4;
 					if(skill_lv>9 && wflag==1) skillratio+= ratio/8;
