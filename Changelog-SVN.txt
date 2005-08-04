@@ -1,4 +1,7 @@
 Date	Added
+08/04
+	* Added 2 new mobs, updated and added some items. Thanks to Landarma [Lupus]
+	  Also fixed map-serv loading warnings (about wrong mob IDs)
 08/03
 	* Removed the clif_waitclose timer message, and placed it instead around
 	  clif.c on the areas that are actually invoking the waitclose timer. [Skotlex]

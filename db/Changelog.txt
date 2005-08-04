@@ -15,6 +15,9 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+08/04
+	* Added new mobs: Green Iguana, Orc Baby, updated and added some items. Thanks to Landarma [Lupus]
+	  Thanks to Erpirata for pointing me some tiny typos.
 08/02
 	* Reduced Soul Burn's after cast to 0 (the 15sec delay for reusing the
 	  skill is already hardcoded) [Skotlex]

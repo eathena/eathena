@@ -558,7 +558,7 @@
 1243,Main_Gauche_For_Novice,Novice Main Gauche,4,20,0,1,45,,1,0,8388609,2,2,1,1,0,1,{},{}
 1244,Holy_Dagger,Holy Dagger,4,20,0,800,100,,1,0,135232,2,2,4,55,1,1,{},{ bonus bAtkEle,6; }
 1245,Cinquedia,Cinquedia,4,,,700,110,0,1,1,8388609,2,2,3,55,1,1,{},{}
-1246,Cinquedia,Cinquedia,4,,,700,110,0,1,2,8388609,2,2,3,55,1,1,{},{}
+1246,Cinquedia_,Cinquedia,4,,,700,110,0,1,2,8388609,2,2,3,55,1,1,{},{}
 1247,Kindling_Dagger,Kindling Dagger,4,,,600,39,0,1,0,10444527,2,2,1,0,1,1,{},{ bonus bAtkEle,3; }
 1248,Obsidian_Dagger,Obsidian Dagger,4,,,600,39,0,1,0,10444527,2,2,1,0,1,1,{},{ bonus bAtkEle,2; }
 1249,Fisherman's_Knife,Fisherman's Knife,4,,,600,39,0,1,0,10444527,2,2,1,0,1,1,{},{ bonus bAtkEle,1; }
@@ -1032,9 +1032,9 @@
 2414,Sandal_For_Novice,Novice Sandals,5,20,0,1,,2,,0,8388609,2,64,,0,0,0,{},{}
 2415,Bunny_Slippers,Bunny Slippers,5,20,0,300,,,,,10477567,0,64,,0,1,0,{},{ bonus bLuk,3; }
 2416,Novice_Shoes,Novice Shoes,5,20,0,500,0,2,0,1,8388609,2,64,0,40,1,0,{},{ bonus bMaxHPrate,5; }
-2417,Unknown,Frico Shoes,5,20,0,500,0,3,0,0,2088958,2,64,0,65,1,0,{},{ bonus bAgi,2; } //Missing Set bonus, and red,orange,yellow,white potion heal rate 20% increasing bonus(if you want, edit db/item_group_db.txt, then use bonus2 bAddItemHealRate) And I don't know if it's proper name..
+2417,Frico_Shoes,Frico Shoes,5,20,0,500,0,3,0,0,2088958,2,64,0,65,1,0,{},{ bonus bAgi,2; } //Missing Set bonus, and red,orange,yellow,white potion heal rate 20% increasing bonus(if you want, edit db/item_group_db.txt, then use bonus2 bAddItemHealRate) And I don't know if it's proper name..
 2418,Boots_of_Vidar,Boots of Vidar,5,20,0,650,0,4,0,0,2088958,2,64,0,65,1,0,{},{ bonus bMaxHPrate,9; bonus bMaxSPrate,9; } //Missing set bonus
-2419,Unknown,Gebney's Combat Boots,5,20,0,700,0,4,0,0,2088958,2,64,0,54,1,0,{},{ bonus bMdef,3; bonus bMaxHPrate,5; bonus bMaxSPrate,5; }
+2419,Combat_Boots,Gebney's Combat Boots,5,20,0,700,0,4,0,0,2088958,2,64,0,54,1,0,{},{ bonus bMdef,3; bonus bMaxHPrate,5; bonus bMaxSPrate,5; }
 2420,Second_Advent_of_Angel,Second Advent of Angel,5,20,0,10,0,0,0,1,8388609,2,64,0,0,1,0,{},{ bonus bMaxHP,100; } //Item description is not right, so it needs correction through patch
 
 // Garments
@@ -1107,7 +1107,7 @@
 2643,Celines_Ring_,Celine's Ring,5,20,0,100,,0,,0,10477567,2,136,,0,0,0,{},{}
 2644,The_Sign_,The Sign,5,20,0,0,,0,,0,10477567,2,136,,0,0,0,{},{ bonus bMatkRate,5; }
 2645,Moonlight_Ring,Moonlight Ring,5,20,0,200,,0,,0,135232,2,136,,60,0,0,{},{}
-2646,Bouquet,Bunch of Carnations,5,20,0,100,,0,,0,10477567,2,136,,0,0,0,{},{ bonus bAllStats,3; }
+2646,Bouquet_,Bunch of Carnations,5,20,0,100,,0,,0,10477567,2,136,,0,0,0,{},{ bonus bAllStats,3; }
 2647,Nile_Rose,Nile Rose,5,20,0,100,0,0,0,1,10477567,2,136,0,0,0,0,{},{ bonus bAllStats,5; }
 2648,Morphicious_Ring,Ring of Morphicious,5,20,0,100,0,0,0,0,2088958,2,136,0,33,0,0,{},{ bonus bInt,1; bonus bMaxSPrate,5; }
 2649,Morphicious_Bracelet,Bracelet of Morphicious,5,20,0,100,0,0,0,0,2088958,2,136,0,33,0,0,{},{ bonus bInt,1; bonus bMaxSPrate,5; }
@@ -1559,8 +1559,8 @@
 5092,Nun_Hat,Nun Hat,5,20,0,300,,5,,0,33024,0,768,,65,1,176,{},{}
 5093,Nun_Hat_,Nun Hat,5,20,0,300,,5,,0,33024,0,768,,65,1,177,{},{ bonus bMaxSP,100; }
 5094,Orc_Hero_Helm,Orc Hero Helm,5,20,0,900,,5,,0,10477567,2,768,,55,1,178,{},{ bonus bStr,2; bonus bVit,1; }
-5096,Assassin_Mask_,Assassin Mask,5,20,0,100,,0,,0,135488,2,1,,70,0,180,{},{} //for Any Thief Class and Priests class
-5097,Annual_Commemoration_Hat,Annual Commemoration Hat,5,20,0,30,,3,,0,10477567,2,256,,0,1,166,{},{ bonus bAllStats,3; }
+5096,Assassin_Mask,Assassin Mask,5,20,0,100,,0,,0,4352,2,1,,70,0,180,{},{} //for Assassins and Priests only
+5097,Annual_Commemoration_Hat,3rd Annual Commemoration Hat,5,20,0,300,,3,,0,10477567,2,256,,0,1,144,{},{ bonus bAllStat,3; bonus bMdef,3; }
 5098,Tiger_Mask,Tiger Mask,5,20,0,400,,2,,0,10477567,2,768,,0,0,181,{},{ bonus bStr,3; bonus bMaxHP,100; }
 5099,Neko_Mimi,Neko Mimi,5,20,0,300,,1,,0,10477567,2,256,,0,1,182,{},{ bonus bLuk,2; bonus bMdef,10; bonus2 bSubRace,2,5; }
 5100,Sale_Sign,Sale Sign,5,20,0,800,,1,,0,10477567,2,256,,75,1,183,{},{ bonus bStr,1; bonus bAgi,1; bonus bLuk,1; }
@@ -1595,7 +1595,7 @@
 //the name, which I wrote as 'Gebney', can be Goibniu who is Celtic smith god
 5129,Nest,Bird Nest,5,,,400,0,1,0,0,10477567,2,256,0,55,1,201,{},{ bonus bAgi,2; bonus2 bSubRace,2,10; }
 5130,Lion_Mask,Lion Mask,5,,,700,0,0,0,0,2088832,2,768,0,75,1,202,{},{ bonus2 bAddEffWhenHit,Eff_Silence,300; bonus bMdef,1; }
-5131,Close Helmet,Close Helmet,5,,,1200,0,8,0,0,8405122,2,769,0,75,1,203,{},{ bonus bVit,3; bonus bMaxHPrate,3; }
+5131,Close_Helmet,Close Helmet,5,,,1200,0,8,0,0,8405122,2,769,0,75,1,203,{},{ bonus bVit,3; bonus bMaxHPrate,3; }
 5132,Angeling_Hat,Angeling Hat,5,,,700,0,2,0,0,10477567,2,256,0,38,1,204,{},{ bonus2 bSubRace,7,10; }
 
 // More Etc Items
@@ -1854,13 +1854,13 @@
 7252,Chinese_Medicine,Chinese Medicine,3,20,0,10,,,,,,,,,,,,{},{}
 7253,Golden_Flag,Golden Flag,3,20,0,10,,,,,,,,,,,,{},{}
 7254,Digitally_Printed_Ticket,Digitally Printed Ticket,3,20,0,10,,,,,,,,,,,,{},{}
-7255,Unknown_Item3,???,3,20,0,10,,,,,,,,,,,,{},{}
-7256,Unknown_Item4,???,3,20,0,10,,,,,,,,,,,,{},{}
-7257,Unknown_Item5,???,3,20,0,10,,,,,,,,,,,,{},{}
-7258,Unknown_Item6,???,3,20,0,10,,,,,,,,,,,,{},{}
-7259,Unknown_Item7,???,3,20,0,10,,,,,,,,,,,,{},{}
-7260,Unknown_Item8,???,3,20,0,10,,,,,,,,,,,,{},{}
-7261,Unknown_Item9,???,3,20,0,10,,,,,,,,,,,,{},{}
+7255,Songwha_Orb,Songwha Orb,3,20,0,10,,,,,,,,,,,,{},{}
+7256,Songwha_Orb1,Songwha Orb,3,20,0,10,,,,,,,,,,,,{},{}
+7257,Songwha_Orb2,Songwha Orb,3,20,0,10,,,,,,,,,,,,{},{}
+7258,Songwha_Orb3,Songwha Orb,3,20,0,10,,,,,,,,,,,,{},{}
+7259,Songwha_Orb4,Songwha Orb,3,20,0,10,,,,,,,,,,,,{},{}
+7260,Songwha_Orb5,Songwha Orb,3,20,0,10,,,,,,,,,,,,{},{}
+7261,Songwha_Orb6,Songwha Orb,3,20,0,10,,,,,,,,,,,,{},{}
 7262,Paper_Fan,Paper Fan,3,233,0,10,,,,,,,,,,,,{},{}
 7263,Cat's_Eye,Cat's-Eye,3,20,477,10,,,,,,,,,,,,{},{}
 7264,Dried_Sand,Dried Sand,3,20,161,10,,,,,,,,,,,,{},{}
@@ -1929,8 +1929,8 @@
 7327,Flashlight,Flashlight,3,20,0,10,0,0,0,0,0,0,0,0,0,,0,{},{}
 7328,Songkran_Legend,Songkran Legend,3,20,0,10,0,0,0,0,0,0,0,0,0,,0,{},{}
 7329,Old_Copper_Key,Old Copper Key,3,20,0,10,0,0,0,0,0,0,0,0,0,,0,{},{}
-7330,Unknown_Item1,???,3,20,0,10,,,,,,,,,,,,{},{}
-7331,Unknown_Item2,???,3,20,0,10,,,,,,,,,,,,{},{}
+7330,Songwha_Orb7,Songwha Orb,3,20,0,10,,,,,,,,,,,,{},{}
+7331,Heavenly_Flower,Heavenly Flower,3,20,0,10,,,,,,,,,,,,{},{}
 7332,Stone_Tablet,Stone Tablet,3,0,0,10,0,0,0,0,0,0,0,0,0,0,0,{},{}
 7333,Piece_of_Stone_Tablet,Piece of Stone Tablet,3,20,0,10,0,0,0,0,0,0,0,0,0,0,0,{},{}
 7334,Piece_of_Stone_Tablet_,Piece of Stone Tablet,3,20,0,10,0,0,0,0,0,0,0,0,0,0,0,{},{}
@@ -2005,6 +2005,7 @@
 7402,Republik,Republik,3,,,10,,,,,,,,,,,,{},{}
 7403,Indonesia,Indonesia,3,,,10,,,,,,,,,,,,{},{}
 7404,Ke-60,KE-60,3,,,10,,,,,,,,,,,,{},{}
+7405,Crushed_Can,Crushed Can,3,,,10,,,,,,,,,,,,{},{} //Green Iguana's drop
 
 //THQ Quest Items
 7500,THG_Membership,THG Membership,3,20,0,10,,,,,,,,,,,,{},{}
@@ -2135,36 +2136,67 @@
 12038,Ball_Box___,Ball Box,2,20,0,20,,,,,10477567,2,,,,,,{ getitem rand(7385,7392),1; },{}
 12039,Ball_Box____,Ball Box,2,20,0,20,,,,,10477567,2,,,,,,{ getitem rand(7393,7398),1; },{}
 12040,Philosopher's_Stone,Philosopher's Stone,2,20,0,10,,,,,10477567,2,,,,,,{},{}
-12041,Food_of_Vigor,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12042,Food_of_Vigor_,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12043,Food_of_Vigor__,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12044,Food_of_Vigor___,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12045,Food_of_Vigor____,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12046,Food_of_Int,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12047,Food_of_Int_,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12048,Food_of_Int__,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12049,Food_of_Int___,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12050,Food_of_Int____,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12051,Substantial_Food,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12052,Substantial_Food_,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12053,Substantial_Food__,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12054,Substantial_Food___,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12055,Substantial_Food____,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12056,Food_of_Agility,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12057,Food_of_Agility_,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12058,Food_of_Agility__,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12059,Food_of_Agility___,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12060,Food_of_Agility____,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12061,Food_of_Elaborateness,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12062,Food_of_Elaborateness_,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12063,Food_of_Elaborateness__,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12064,Food_of_Elaborateness___,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12065,Food_of_Elaborateness____,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12066,Food_of_Luck,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
-12067,Food_of_Luck_,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
-12068,Food_of_Luck__,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
-12069,Food_of_Luck___,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
-12070,Food_of_Luck____,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+//Mixed Food, gives temp bonuses
+12041,Boiled_Down_Locust,Boiled Locust,2,,,60,,,,,10477567,2,,,,,,{},{} //Str+1
+12042,Seasoned_Webs,Seasoned Webs,2,,,500,,,,,10477567,2,,,,,,{},{} //Str+2
+12043,Bomber_Steak,Bomber Steak,2,,,500,,,,,10477567,2,,,,,,{},{} //Str+3
+12044,Rib_with_Herb_and_Spices,Spicy Ribs,2,,,500,,,,,10477567,2,,,,,,{},{} //Str+4
+12045,Lutie_Plat_Cake,Lutie Plat Cake,2,,,500,,,,,10477567,2,,,,,,{},{} //Str+5
+12046,Herb_Tea_with_Grape_Juice,Grape Juice and Tea,2,,,100,,,,,10477567,2,,,,,,{},{} //Int+1
+12047,Black_Tea,Black Tea,2,,,500,,,,,10477567,2,,,,,,{},{}
+12048,Herb_and_Honey_Tea,Herb and Honey Tea,2,,,500,,,,,10477567,2,,,,,,{},{}
+12049,Morocc_Fruit_Wine,Morocc Fruit Wine,2,,,300,,,,,10477567,2,,,,,,{},{}
+12050,Mastela_Wine,Mastela Wine,2,,,400,,,,,10477567,2,,,,,,{},{} //Int+5
+12051,Steamed_Crab_Pincer,Steamed Crab Pincer,2,,,100,,,,,10477567,2,,,,,,{},{} //Vit+1
+12052,Sea_Food,Sea Food,2,,,200,,,,,10477567,2,,,,,,{},{}
+12053,Clam_Soup,Clam Soup,2,,,300,,,,,10477567,2,,,,,,{},{}
+12054,Seasoned_Jellyfish,Seasoned Jellyfish,2,,,500,,,,,10477567,2,,,,,,{},{}
+12055,Peppery_Roasted_Dumpling,Hot Roasted Dumpling,2,,,800,,,,,10477567,2,,,,,,{},{} //Vit+5
+12056,Frog_Sspawn_Soup,,2,,,100,,,,,10477567,2,,,,,,{},{} //Agi+1
+12057,Smooth_Noodle,Smooth Noodle,2,,,100,,,,,10477567,2,,,,,,{},{}
+12058,Tentacle_and_Cheese_Gratin,Tentacle'n'Cheese Gratin,2,,,500,,,,,10477567,2,,,,,,{},{}
+12059,Lutie_Mixed_Cold_Noodle,Lutie Mixed Cold Noodle,2,,,400,,,,,10477567,2,,,,,,{},{} 
+12060,Steamed_Bat_Wing_and_Pumpkin,Steamed Bat Wing'n'Pumpkin,2,,,500,,,,,10477567,2,,,,,,{},{} //Agi+5
+12061,Grape_Juice_with_Honey,Grape Juice with Honey,2,,,100,,,,,10477567,2,,,,,,{},{} //Dex+1
+12062,Chocolate_Mousse_Cake,Chocolate Mousse Cake,2,,,200,,,,,10477567,2,,,,,,{},{}
+12063,Fruits_Punch,Fruits Punch,2,,,200,,,,,10477567,2,,,,,,{},{}
+12064,Cream_Sandwich,Cream Sandwich,2,,,500,,,,,10477567,2,,,,,,{},{}
+12065,Green_Salad,Green Salad,2,,,200,,,,,10477567,2,,,,,,{},{} //Dex+5
+12066,Fried_Monkey_Tail,Fried Monkey Tail,2,,,60,,,,,10477567,2,,,,,,{},{} //Luk+1
+12067,Mixed_Juice,Mixed Juice,2,,,200,,,,,10477567,2,,,,,,{},{}
+12068,Fried_Sweet_Potato_with_Syrup,Fried Sweet Potato with Syrup,2,,,500,,,,,10477567,2,,,,,,{},{}
+12069,Ancient_Fish_Dish,Ancient Fish Dish,2,,,500,,,,,10477567,2,,,,,,{},{}
+12070,Broiled_Down_Scorpion,Broiled Scorpion,2,,,400,,,,,10477567,2,,,,,,{},{} //Luk+5
+12071,Food_of_Vigor,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12072,Food_of_Vigor,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12073,Food_of_Vigor,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12074,Food_of_Vigor,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12075,Food_of_Vigor,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12076,Food_of_Intelligent,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12077,Food_of_Intelligent,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12078,Food_of_Intelligent,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12079,Food_of_Intelligent,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12080,Food_of_Intelligent,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12081,Substantial_Food,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12082,Substantial_Food,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12083,Substantial_Food,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12084,Substantial_Food,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12085,Substantial_Food,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12086,Food_of_Agility,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12087,Food_of_Agility,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12088,Food_of_Agility,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12089,Food_of_Agility,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12090,Food_of_Agility,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12091,Food_of_Elaborateness,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12092,Food_of_Elaborateness,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12093,Food_of_Elaborateness,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12094,Food_of_Elaborateness,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12095,Food_of_Elaborateness,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12096,Food_of_Luck,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12097,Food_of_Luck,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12098,Food_of_Luck,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12099,Food_of_Luck,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12100,Food_of_Luck,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
 
 // More Weapons
 //===================================================================
