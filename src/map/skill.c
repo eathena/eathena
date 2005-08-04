@@ -5173,13 +5173,9 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	if(sd->skillid != SA_CASTCANCEL)
 		sd->skilltimer=-1;
 
-	if((bl=map_id2bl(sd->skilltarget))==NULL || bl->prev==NULL) {
-		sd->canact_tick = tick;
-		sd->canmove_tick = tick;
-		sd->skillitem = sd->skillitemlv = -1;
-		return 0;
-	}
-	if(sd->bl.m != bl->m || pc_isdead(sd)) { //ƒ}ƒbƒv‚ªˆá‚¤‚©Ž©•ª‚ªŽ€‚ñ‚Å‚¢‚é
+	if(pc_isdead(sd) || (bl=map_id2bl(sd->skilltarget))==NULL ||
+		bl->prev==NULL || sd->bl.m != bl->m
+		) {
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
 		sd->skillitem = sd->skillitemlv = -1;

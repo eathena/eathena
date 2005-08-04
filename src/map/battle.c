@@ -1972,12 +1972,19 @@ struct Damage battle_calc_weapon_attack(
 		memset(&wd,0,sizeof(wd));
 		return wd;
 	}
+ /* This check is not needed. Why? [Skotlex]
+  * 1. The attack timers in pet.c/mob.c/pc.c already check the target map
+  * 2. skill_attack already checks for the target map
+  * 3. skill_use_id alreacy checks for the target map
+  * The map check is not done on land-based skills, since it makes sense that it can hit players after the caster has placed it and left to another map.
+  * The only non-magical skill that is land-based, will enter here and can possibly trigger this check is Grand Cross, but since it is a land-based skill, it should be let to hit the target even when the caster has been sent to another map.
+  * Agreed?
 	if (src->m != target->m)  // [ShAPoNe] Src and target same map check
-	{	//I don't see why this exploit attempt should cause a nullpo_info [Skotlex]
+	{
 		memset(&wd,0,sizeof(wd));
 		return wd;
 	}
-	
+*/	
 	wd = battle_calc_weapon_attack_sub(src,target,skill_num,skill_lv,wflag);
 	
 	if ( src->type==BL_PC &&
