@@ -4030,7 +4030,7 @@ int buildin_makepet(struct script_state *st)
 		sd->catch_target_class = pet_db[pet_id].class_;
 		intif_create_pet(
 			sd->status.account_id, sd->status.char_id,
-			(short)pet_db[pet_id].class_, (short)mob_db[pet_db[pet_id].class_].lv,
+			(short)pet_db[pet_id].class_, (short)mob_db(pet_db[pet_id].class_)->lv,
 			(short)pet_db[pet_id].EggID, 0, (short)pet_db[pet_id].intimate,
 			100, 0, 1, pet_db[pet_id].jname);
 	}
@@ -5994,9 +5994,9 @@ int buildin_strmobinfo(struct script_state *st)
 		{
 			char *buf;
 			buf=(char *) aCallocA(NAME_LENGTH, sizeof(char));
-//			buf=mob_db[class_].name;
+//			buf=mob_db(class_)->name;
 // for string assignments you would need to go for c++ [Shinomori]
-			memcpy(buf, mob_db[class_].name, NAME_LENGTH-1);
+			memcpy(buf, mob_db(class_)->name, NAME_LENGTH-1);
 			push_str(st->stack,C_STR,(unsigned char *) buf);
 			break;
 		}
@@ -6004,26 +6004,26 @@ int buildin_strmobinfo(struct script_state *st)
 		{
 			char *buf;
 			buf=(char *) aCallocA(NAME_LENGTH, sizeof(char));
-//			buf=mob_db[class_].jname;
+//			buf=mob_db(class_).jname;
 // for string assignments you would need to go for c++ [Shinomori]
-			memcpy(buf,mob_db[class_].jname, NAME_LENGTH-1);
+			memcpy(buf,mob_db(class_)->jname, NAME_LENGTH-1);
 			push_str(st->stack,C_STR,(unsigned char *) buf);
 			break;
 		}
 	case 3:
-		push_val(st->stack,C_INT,mob_db[class_].lv);
+		push_val(st->stack,C_INT,mob_db(class_)->lv);
 		break;
 	case 4:
-		push_val(st->stack,C_INT,mob_db[class_].max_hp);
+		push_val(st->stack,C_INT,mob_db(class_)->max_hp);
 		break;
 	case 5:
-		push_val(st->stack,C_INT,mob_db[class_].max_sp);
+		push_val(st->stack,C_INT,mob_db(class_)->max_sp);
 		break;
 	case 6:
-		push_val(st->stack,C_INT,mob_db[class_].base_exp);
+		push_val(st->stack,C_INT,mob_db(class_)->base_exp);
 		break;
 	case 7:
-		push_val(st->stack,C_INT,mob_db[class_].job_exp);
+		push_val(st->stack,C_INT,mob_db(class_)->job_exp);
 		break;
 	}
 	return 0;
@@ -7287,7 +7287,7 @@ int buildin_summon(struct script_state *st)
 		if((md=(struct mob_data *)map_id2bl(id))){
 			md->master_id=sd->bl.id;
 			md->state.special_mob_ai=1;
-			md->mode=mob_db[md->class_].mode|0x04;
+			md->mode=mob_db(md->class_)->mode|0x04;
 			md->deletetimer=add_timer(tick+60000,mob_timer_delete,id,0);
 			clif_misceffect2(&md->bl,344);
 		}

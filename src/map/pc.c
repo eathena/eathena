@@ -2842,27 +2842,27 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 		int i,skill,itemid,flag, count;
 		struct mob_data *md;
 		md=(struct mob_data *)bl;
-		if(!md->state.steal_flag && mob_db[md->class_].mexp <= 0 && !(mob_db[md->class_].mode&0x20) &&
+		if(!md->state.steal_flag && md->db->mexp <= 0 && !(md->db->mode&0x20) &&
 			(!md->master_id) && //Prevent stealing from summoned creatures. [Skotlex]
 			(!(md->class_>=1324 && md->class_<1364))) // prevent stealing from treasure boxes [Valaris]
 		{
 			if (md->sc_data && (md->sc_data[SC_STONE].timer != -1 || md->sc_data[SC_FREEZE].timer != -1))
 				return 0;
 			skill = battle_config.skill_steal_type == 1
-				? (sd->paramc[4] - mob_db[md->class_].dex)/2 + pc_checkskill(sd,TF_STEAL)*6 + 10
-				: sd->paramc[4] - mob_db[md->class_].dex + pc_checkskill(sd,TF_STEAL)*3 + 10;
+				? (sd->paramc[4] - md->db->dex)/2 + pc_checkskill(sd,TF_STEAL)*6 + 10
+				: sd->paramc[4] - md->db->dex + pc_checkskill(sd,TF_STEAL)*3 + 10;
 
 			if(0 < skill)
 			{
 				for(count = 10; count <= 10 && count != 0; count--) //8 -> 10 Lupus
 				{
 					i = rand()%10; //8 -> 10 Lupus
-					itemid = mob_db[md->class_].dropitem[i].nameid;
+					itemid = md->db->dropitem[i].nameid;
 
 					if(itemid > 0 && (itemdb_type(itemid) != 6 || pc_checkskill(sd,TF_STEAL) > 5))
 					{
 						//fixed rate. From Freya [Lupus]
-						if (rand() % 10000 < ((mob_db[md->class_].dropitem[i].p * skill) / 100 + sd->add_steal_rate))
+						if (rand() % 10000 < ((md->db->dropitem[i].p * skill) / 100 + sd->add_steal_rate))
 						{
 							struct item tmp_item;
 							memset(&tmp_item,0,sizeof(tmp_item));
@@ -2908,9 +2908,9 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *bl)
 			if (md->sc_data && (md->sc_data[SC_STONE].timer != -1 || md->sc_data[SC_FREEZE].timer != -1))
 				return 0;
 			skill = pc_checkskill(sd,RG_STEALCOIN)*10;
-			rate = skill + (sd->status.base_level - mob_db[md->class_].lv)*3 + sd->paramc[4]*2 + sd->paramc[5]*2;
+			rate = skill + (sd->status.base_level - md->db->lv)*3 + sd->paramc[4]*2 + sd->paramc[5]*2;
 			if(rand()%1000 < rate) {
-				pc_getzeny(sd,mob_db[md->class_].lv*10 + rand()%100);
+				pc_getzeny(sd,md->db->lv*10 + rand()%100);
 				md->state.steal_coin_flag = 1;
 				return 1;
 			}

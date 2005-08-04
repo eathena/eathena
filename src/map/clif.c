@@ -1043,7 +1043,7 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
 	WBUFW(buf,12)=md->option;
 	WBUFW(buf,14)=mob_get_viewclass(md->class_);
 	if((i=mob_get_viewclass(md->class_)) <= 23 || i == 812 || i >= 4001) {
-		WBUFW(buf,12)|=mob_db[md->class_].option;
+		WBUFW(buf,12)|=md->db->option;
 		WBUFW(buf,16)=mob_get_hair(md->class_);
 		WBUFW(buf,18)=mob_get_weapon(md->class_);
 		WBUFW(buf,20)=mob_get_head_buttom(md->class_);
@@ -1095,7 +1095,7 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 	WBUFW(buf,12)=md->option;
 	WBUFW(buf,14)=mob_get_viewclass(md->class_);
 	if ((mob_get_viewclass(md->class_) < 24) || (mob_get_viewclass(md->class_) > 4000)) {
-		WBUFW(buf,12)|=mob_db[md->class_].option;
+		WBUFW(buf,12)|=md->db->option;
 		WBUFW(buf,16)=mob_get_hair(md->class_);
 		WBUFW(buf,18)=mob_get_weapon(md->class_);
 		WBUFW(buf,20)=mob_get_head_buttom(md->class_);
@@ -1197,7 +1197,7 @@ static int clif_pet0078(struct pet_data *pd, unsigned char *buf) {
 	WBUFW(buf,6)=pd->speed;
 	WBUFW(buf,14)=mob_get_viewclass(pd->class_);
 	if((mob_get_viewclass(pd->class_) < 24) || (mob_get_viewclass(pd->class_) > 4000)) {
-		WBUFW(buf,12)=mob_db[pd->class_].option;
+		WBUFW(buf,12)=pd->db->option;
 		WBUFW(buf,16)=mob_get_hair(pd->class_);
 		WBUFW(buf,18)=mob_get_weapon(pd->class_);
 		WBUFW(buf,20)=mob_get_head_buttom(pd->class_);
@@ -1239,7 +1239,7 @@ static int clif_pet007b(struct pet_data *pd, unsigned char *buf) {
 	WBUFW(buf,6)=pd->speed;
 	WBUFW(buf,14)=mob_get_viewclass(pd->class_);
 	if((mob_get_viewclass(pd->class_) < 24) || (mob_get_viewclass(pd->class_) > 4000)) {
-		WBUFW(buf,12)=mob_db[pd->class_].option;
+		WBUFW(buf,12)=pd->db->option;
 		WBUFW(buf,16)=mob_get_hair(pd->class_);
 		WBUFW(buf,18)=mob_get_weapon(pd->class_);
 		WBUFW(buf,20)=mob_get_head_buttom(pd->class_);
@@ -4942,11 +4942,11 @@ int clif_skill_estimation(struct map_session_data *sd,struct block_list *dst)
 	WBUFW(buf, 0)=0x18c;
 	WBUFW(buf, 2)=mob_get_viewclass(md->class_);
 	WBUFW(buf, 4)=md->level;
-	WBUFW(buf, 6)=mob_db[md->class_].size;
+	WBUFW(buf, 6)=md->db->size;
 	WBUFL(buf, 8)=md->hp;
 	WBUFW(buf,12)=status_get_def2(&md->bl);
-	WBUFW(buf,14)=mob_db[md->class_].race;
-	WBUFW(buf,16)=status_get_mdef2(&md->bl) - (mob_db[md->class_].vit>>1);
+	WBUFW(buf,14)=md->db->race;
+	WBUFW(buf,16)=status_get_mdef2(&md->bl) - (md->db->vit>>1);
 	WBUFW(buf,18)=status_get_elem_type(&md->bl);
 	for(i=0;i<9;i++)
 		WBUFB(buf,20+i)= battle_attr_fix(100,i+1,md->def_ele);

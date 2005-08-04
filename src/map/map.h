@@ -549,6 +549,7 @@ struct mob_data {
 	struct block_list bl;
 	short n;
 	short base_class,class_,dir,mode,level;
+	struct mob_db *db;	//For quick data access (saves doing mob_db(md->class_) all the time) [Skotlex]
 	short m,x0,y0,xs,ys;
 	char name[NAME_LENGTH];
 	int spawndelay1,spawndelay2;
@@ -618,6 +619,7 @@ struct pet_data {
 	struct block_list bl;
 	short n;
 	short class_,dir;
+	struct mob_db *db;
 	short speed;
 	char name[NAME_LENGTH];
 	struct {

@@ -189,7 +189,7 @@ static int pet_attack(struct pet_data *pd,unsigned int tick,int data)
 		return 0;
 	}
 
-	range = mob_db[pd->class_].range + 1;
+	range = pd->db->range + 1;
 	if(distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > range)
 		return 0;
 	if(battle_config.monster_attack_direction_change)
@@ -478,8 +478,8 @@ int pet_target_check(struct map_session_data *sd,struct block_list *bl,int type)
 		pd->state.state == MS_DELAY)
 		return 0;
 
-	mode=mob_db[pd->class_].mode;
-	race=mob_db[pd->class_].race;
+	mode=pd->db->mode;
+	race=pd->db->race;
 
 	if(pd->bl.m != md->bl.m ||
 		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13 || 
@@ -487,7 +487,7 @@ int pet_target_check(struct map_session_data *sd,struct block_list *bl,int type)
 		return 0;
 
 	//What is this check for? TODO: Re-check it later [Skotlex]
-	if(mob_db[pd->class_].mexp <= 0 && !(mode&0x20) && (md->option&0x06 && race!=4 && race!=6))
+	if(pd->db->mexp <= 0 && !(mode&0x20) && (md->option&0x06 && race!=4 && race!=6))
 		return 0;
 
 	if(!type) {
@@ -969,6 +969,7 @@ int pet_data_init(struct map_session_data *sd)
 	pd->bl.id = npc_get_new_npc_id();
 	memcpy(pd->name, sd->pet.name, NAME_LENGTH-1);
 	pd->class_ = sd->pet.class_;
+	pd->db = mob_db(pd->class_);
 	pd->equip = sd->pet.equip;
 	pd->dir = sd->dir;
 	pd->speed = sd->petDB->speed;
@@ -1149,7 +1150,7 @@ int pet_catch_process2(struct map_session_data *sd,int target_id)
 //	if(battle_config.etc_log)
 //		printf("mob_id = %d, mob_class = %d\n",md->bl.id,md->class_);
 		//¬Œ÷‚Ìê‡
-	pet_catch_rate = (pet_db[i].capture + (sd->status.base_level - mob_db[md->class_].lv)*30 + sd->paramc[5]*20)*(200 - md->hp*100/mob_db[md->class_].max_hp)/100;
+	pet_catch_rate = (pet_db[i].capture + (sd->status.base_level - md->db->lv)*30 + sd->paramc[5]*20)*(200 - md->hp*100/md->db->max_hp)/100;
 	if(pet_catch_rate < 1) pet_catch_rate = 1;
 	if(battle_config.pet_catch_rate != 100)
 		pet_catch_rate = (pet_catch_rate*battle_config.pet_catch_rate)/100;
@@ -1160,7 +1161,7 @@ int pet_catch_process2(struct map_session_data *sd,int target_id)
 		clif_pet_rulet(sd,1);
 //		if(battle_config.etc_log)
 //			printf("rulet success %d\n",target_id);
-		intif_create_pet(sd->status.account_id,sd->status.char_id,pet_db[i].class_,mob_db[pet_db[i].class_].lv,
+		intif_create_pet(sd->status.account_id,sd->status.char_id,pet_db[i].class_,mob_db(pet_db[i].class_)->lv,
 			pet_db[i].EggID,0,pet_db[i].intimate,100,0,1,pet_db[i].jname);
 	}
 	else
@@ -1480,15 +1481,15 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 				pet_randomwalk(pd,tick);
 		}
 		else if(pd->target_id - MAX_FLOORITEM > 0) {	//Mob targeted
-			mode=mob_db[pd->class_].mode;
-			race=mob_db[pd->class_].race;
+			mode=pd->db->mode;
+			race=pd->db->race;
 			md=(struct mob_data *)map_id2bl(pd->target_id);
 			if(md == NULL /*|| md->bl.type != BL_MOB*/ || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
 				distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13)
 				pet_unlocktarget(pd);
-/*			else if(mob_db[pd->class_].mexp <= 0 && !(mode&0x20) && (md->option & 0x06 && race!=4 && race!=6) )
+/*			else if(pd->db->mexp <= 0 && !(mode&0x20) && (md->option & 0x06 && race!=4 && race!=6) )
 				pet_unlocktarget(pd);*/
-			else if(!battle_check_range(&pd->bl,&md->bl,mob_db[pd->class_].range && !pd->state.casting_flag)){ //Skotlex Don't interrupt a casting spell when targed moved
+			else if(!battle_check_range(&pd->bl,&md->bl,pd->db->range && !pd->state.casting_flag)){ //Skotlex Don't interrupt a casting spell when targed moved
 				if(pd->timer != -1 && pd->state.state == MS_WALK && distance(pd->to_x,pd->to_y,md->bl.x,md->bl.y) < 2)
 					return 0;
 				if( !pet_can_reach(pd,md->bl.x,md->bl.y))

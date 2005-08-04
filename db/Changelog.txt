@@ -16,6 +16,9 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 08/04
+	* Updated mobs 1006 (Thief Bug Larva), 1393 (G Mummy), 1394 (G Zombie), and
+	  1407 (Dokebi) to be Level 1 and have max HP 1, otherwise the new mob db
+	  loading system will complain about them. [Skotlex]
 	* Added new mobs: Green Iguana, Orc Baby, updated and added some items. Thanks to Landarma [Lupus]
 	  Thanks to Erpirata for pointing me some tiny typos.
 08/02

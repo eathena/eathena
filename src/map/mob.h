@@ -4,9 +4,10 @@
 
 #define MAX_RANDOMMONSTER 3
 #define MAX_MOB_RACE_DB 6
-#define MAX_MOB_DB 2000		/* Change this to increase the table size in your mob_db to accomodate
-				numbers more than 2000 for mobs if you want to (and know what you're doing).
-				Be sure to note that 4001 to 4047 are for advanced classes. */
+#define MAX_MOB_DB 10000
+	/* Change this to increase the table size in your mob_db to accomodate
+		a larger mob database. Be sure to note that IDs 4001 to 4047 are reserved for advanced classes.
+	*/
 
 struct mob_skill {
 	short state;
@@ -42,7 +43,6 @@ struct mob_db {
 	int maxskill;
 	struct mob_skill skill[MAX_MOBSKILL];
 };
-extern struct mob_db mob_db[];
 
 enum {
 	MST_TARGET			=	0,
@@ -89,6 +89,7 @@ enum {
 	MSS_CHASE,
 };
 
+struct mob_db* mob_db(int class_);
 int mobdb_searchname(const char *str);
 int mobdb_checkid(const int id);
 int mob_once_spawn(struct map_session_data *sd,char *mapname,
@@ -115,6 +116,21 @@ int mob_changestate(struct mob_data *md,int state,int type);
 int mob_heal(struct mob_data*,int);
 int mob_exclusion_add(struct mob_data *md,int type,int id);
 int mob_exclusion_check(struct mob_data *md,struct map_session_data *sd);
+
+//Defines to speed up search.
+#define mob_get_viewclass(class_) mob_db(class_)->view_class
+#define mob_get_sex(class_) mob_db(class_)->sex
+#define mob_get_hair(class_) mob_db(class_)->hair
+#define mob_get_hair_color(class_) mob_db(class_)->hair_color
+#define mob_get_weapon(class_) mob_db(class_)->weapon
+#define mob_get_shield(class_) mob_db(class_)->shield
+#define mob_get_head_top(class_) mob_db(class_)->head_top
+#define mob_get_head_mid(class_) mob_db(class_)->head_mid
+#define mob_get_head_buttom(class_) mob_db(class_)->head_buttom
+#define mob_get_clothes_color(class_) mob_db(class_)->clothes_color
+#define mob_get_equip(class_) mob_db(class_)->equip
+
+/* Made defines for faster seek.
 int mob_get_viewclass(int);
 int mob_get_sex(int);
 short mob_get_hair(int);
@@ -126,7 +142,9 @@ short mob_get_head_mid(int);
 short mob_get_head_buttom(int);
 short mob_get_clothes_color(int);	//player mob dye [Valaris]
 int mob_get_equip(int); // mob equip [Valaris]
+*/
 int do_init_mob(void);
+int do_final_mob(void);
 
 void mob_unload(struct mob_data *md);
 int mob_remove_map(struct mob_data *md, int type);

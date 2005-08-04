@@ -1,5 +1,12 @@
 Date	Added
 08/04
+	* Modified the mob_db to make it a dynamic array of mob databases. [Skotlex]
+	  This allows usage of high mob ids without wasting memory on large gaps of
+	  unused mob IDS.
+	  NOTE: Other than loading/unloading the map server, this has not
+	  been tested, if it crashes DO report right away (preferrably with a
+	  backtrace)
+	* Bumped the MAX MOB ID to 10K [Skotlex] 
 	* Added 2 new mobs, updated and added some items. Thanks to Landarma [Lupus]
 	  Also fixed map-serv loading warnings (about wrong mob IDs)
 08/03

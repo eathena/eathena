@@ -2056,6 +2056,7 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 		} else
 			md->base_class = md->class_ = mob->class_;
 		md->bl.id = npc_get_new_npc_id();
+		md->db = mob_db(mob->class_);
 		md->m = mob->m;
 		md->x0 = mob->x;
 		md->y0 = mob->y;
@@ -2069,9 +2070,9 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 		md->timer = -1;
 //		md->target_id=0;
 //		md->attacked_id=0;
-		md->speed = mob_db[mob->class_].speed;
+		md->speed = mob_db(mob->class_)->speed;
 
-		if (mob_db[mob->class_].mode & 0x02)
+		if (mob_db(mob->class_)->mode & 0x02)
 			md->lootitem = (struct item *)aCalloc(LOOTITEM_SIZE, sizeof(struct item));
 		else
 			md->lootitem = NULL;
@@ -2131,9 +2132,9 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 	}
 
 	if (strcmp(mobname, "--en--") == 0)
-		memcpy(mob.mobname, mob_db[mob.class_].name, NAME_LENGTH-1);
+		memcpy(mob.mobname, mob_db(mob.class_)->name, NAME_LENGTH-1);
 	else if (strcmp(mobname, "--ja--") == 0)
-		memcpy(mob.mobname, mob_db[mob.class_].jname, NAME_LENGTH-1);
+		memcpy(mob.mobname, mob_db(mob.class_)->jname, NAME_LENGTH-1);
 	else memcpy(mob.mobname, mobname, NAME_LENGTH-1);
 
 	if( mob.delay1<0 || mob.delay2<0 || mob.delay1>0xfffffff || mob.delay2>0xfffffff) {

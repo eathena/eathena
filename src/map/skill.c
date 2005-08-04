@@ -3546,9 +3546,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			pc_delspiritball(dstsd,dstsd->spiritball,0);
 		} else if (dstmd && //?象がモンスタ?の場合
 			//20%の確率で?象のLv*2のSPを回復する。成功したときはタ?ゲット(σ?Д?)σ????!!
-			!(mob_db[dstmd->class_].mode & 0x20) && rand() % 100 < 20)
+			!(dstmd->db->mode & 0x20) && rand() % 100 < 20)
 		{
-			i = 2 * mob_db[dstmd->class_].lv;
+			i = 2 * dstmd->db->lv;
 			mob_target(dstmd,src,0);
 		}
 		if (sd){
@@ -4373,7 +4373,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NPC_PROVOCATION:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		if(md)
-			clif_pet_performance(src,mob_db[md->class_].skill[md->skillidx].val[0]);
+			clif_pet_performance(src,md->db->skill[md->skillidx].val[0]);
 		break;
 
 	case NPC_HALLUCINATION:
@@ -4445,7 +4445,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NPC_SUMMONSLAVE:		/* 手下召喚 */
 	case NPC_SUMMONMONSTER:		/* MOB召喚 */
 		if(md)
-			mob_summonslave(md,mob_db[md->class_].skill[md->skillidx].val,skilllv,(skillid==NPC_SUMMONSLAVE)?1:0);
+			mob_summonslave(md,md->db->skill[md->skillidx].val,skilllv,(skillid==NPC_SUMMONSLAVE)?1:0);
 		break;
 
 	case NPC_CALLSLAVE:		//取り巻き呼び戻し
@@ -4487,7 +4487,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				(tbl = battle_gettargeted(mbl)) == NULL)
 				break;
 			md->state.provoke_flag = tbl->id;
-			mob_target(md, tbl, mob_db[md->class_].range);
+			mob_target(md, tbl, md->db->range);
 		}
 		break;
 
@@ -4517,14 +4517,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NPC_TRANSFORMATION:
 	case NPC_METAMORPHOSIS:
 		if(md) {
-			int class_ = mob_random_class (mob_db[md->class_].skill[md->skillidx].val,0);
+			int class_ = mob_random_class (md->db->skill[md->skillidx].val,0);
 			if (class_ > 1000 && class_ < MAX_MOB_DB) mob_class_change(md, class_);
 		}
 		break;
 
 	case NPC_EMOTION:			/* エモ?ション */
 		if(md)
-			clif_emotion(&md->bl,mob_db[md->class_].skill[md->skillidx].val[0]);
+			clif_emotion(&md->bl,md->db->skill[md->skillidx].val[0]);
 		break;
 
 	case NPC_EMOTION_ON:
@@ -8010,7 +8010,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		else
 			clif_skillcasting(&sd->bl,sd->bl.id, target_id, 0,0, skill_num,casttime);
 		/* 詠唱反?モンスタ? */
-		if (bl->type == BL_MOB && (md = (struct mob_data *)bl) && mob_db[md->class_].mode & 0x10 &&
+		if (bl->type == BL_MOB && (md = (struct mob_data *)bl) && md->db->mode & 0x10 &&
 			md->state.state != MS_ATTACK && sd->invincible_timer == -1){
 				md->target_id = sd->bl.id;
 				md->state.targettype = ATTACKABLE;
