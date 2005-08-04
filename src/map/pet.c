@@ -1705,13 +1705,11 @@ int pet_skill_bonus_timer(int tid,unsigned int tick,int id,int data)
 	
 	pd=sd->pd;
 
-	if(pd->bonus == NULL || pd->bonus->timer != tid) {
+	if(pd->bonus->timer != tid) {
 		if(battle_config.error_log)
 		{
-			if (pd->bonus)
-				ShowError("pet_skill_bonus_timer %d != %d\n",pd->bonus->timer,tid);
-			else
-				ShowError("pet_skill_bonus_timer called with no bonus defined (tid=%d)\n",tid);
+			ShowError("pet_skill_bonus_timer %d != %d\n",pd->bonus->timer,tid);
+			pd->bonus->timer = -1;
 		}
 		return 0;
 	}
