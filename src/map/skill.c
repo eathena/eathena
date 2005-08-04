@@ -6230,16 +6230,17 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	nullpo_retr(0, ss=map_id2bl(sg->src_id));
 	sc_data = status_get_sc_data(bl);
 	type = SkillStatusChangeTable[sg->skill_id];
+	
+	if (sg->interval == -1 && (sg->unit_id == 0x91 || sg->unit_id == 0xb7))
+		//Ok, this case only happens with Ankle Snare/Spider Web (only skills that sets its interval to -1), 
+		//and only happens when more than one target is stepping on the trap at the moment it was triggered
+		//(yet only the first mob standing on the trap will be captured) [Skotlex]
+		return 0;
 
 	// ‘ÎÛ‚ªLPã‚É‹‚éê‡‚Í–³Œø
 	if (map_find_skill_unit_oncell(bl,bl->x,bl->y,SA_LANDPROTECTOR,NULL))
 		return 0;
 
-	if (sg->interval == -1 || (bl->type != BL_PC && bl->type != BL_MOB))
-	{	//Temporary debug to figure out why the nullpo below is being caused. [Skotlex]
-		ShowDebug("skill_unit_onplace_timer: unit error! (unit 0x%x from bl_type: %d)\n", sg->unit_id, bl->type);
-		return 0;
-	}
 	// ‘O‚É‰e‹¿‚ðŽó‚¯‚Ä‚©‚çinterval‚ÌŠÔ‚Í‰e‹¿‚ðŽó‚¯‚È‚¢
 	nullpo_retr(0,ts = skill_unitgrouptickset_search(bl,sg,tick));
 	diff = DIFF_TICK(tick,ts->tick);
