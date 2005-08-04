@@ -9011,7 +9011,12 @@ int skill_trap_splash (struct block_list *bl, va_list ap)
 	nullpo_retr(0, src = va_arg(ap,struct block_list *));
 	nullpo_retr(0, unit = (struct skill_unit *)src);
 	nullpo_retr(0, sg = unit->group);
-	nullpo_retr(0, ss = map_id2bl(sg->src_id));
+//	nullpo_retr(0, ss = map_id2bl(sg->src_id));
+	if ((ss = map_id2bl(sg->src_id)) == NULL)
+	{	//Temporal debug until this case is solved. [Skotlex]
+		ShowDebug("skill_trap_splash: Trap's source (id: %d) not found!\n", sg->src_id);
+		return 0;
+	}
 
 	tick = va_arg(ap,int);
 	splash_count = va_arg(ap,int);
