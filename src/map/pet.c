@@ -1324,9 +1324,13 @@ int pet_unequipitem(struct map_session_data *sd)
 				delete_timer(sd->pd->s_skill->timer, pet_heal_timer);
 			else
 				delete_timer(sd->pd->s_skill->timer, pet_skill_support_timer);
+			sd->pd->s_skill->timer = -1;
 		}
 		if (sd->pd->bonus && sd->pd->bonus->timer != -1)
+		{
 			delete_timer(sd->pd->bonus->timer, pet_skill_bonus_timer);
+			sd->pd->bonus->timer = -1;
+		}
 	}
 
 	return 0;
