@@ -1,4 +1,9 @@
 ** PLEASE WRITE CLEARLY WHAT THE PROBLEM IS AND HOW TO DUPLICATE IT SO IT CAN BE FIX0RED. THANK YOU **
+Problem:	Creator's Acid Demonstration damage formula is completely wrong. The current "formula" is only a placeholder it seems.
+Assigned:
+Progress:
+Note:		I cannot seem to find the correct formula spelled-out anywhere (English)
+
 
 Problem:	The // Set here which client version do you accept. part in battle_athena not working properly (not that its important, but some servers only want a certain packet range to come in)
 Assigned:
