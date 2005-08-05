@@ -1419,21 +1419,33 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	if(skillid > 0 && skilllv <= 0) return 0;
 
 	rdamage = 0;
-	nullpo_retr(0, src);
-	nullpo_retr(0, dsrc);
-	nullpo_retr(0, bl);
+	nullpo_retr(0, src);	//Source is the one who originated the attack (can be a player or a ground skill)
+	nullpo_retr(0, dsrc); //dsrc is the owner of the source, the same player or the owner of the ground skill.
+	nullpo_retr(0, bl); //Target to be attacked.
 
 	sc_data = status_get_sc_data(bl);
 
 //何もしない判定ここから
-	if(dsrc->m != bl->m) //?象が同じマップにいなければ何もしない
-		return 0;
 	if(src->prev == NULL || dsrc->prev == NULL || bl->prev == NULL) //prevよくわからない※
 		return 0;
+
+	//This check should not be needed anymore as the map was checked before invoked (or by using map_foreachinarea) [Skotlex]
+	//if(src->m != bl->m) //The source/trap is the one that should be in the same map, even if the caster has moved to another map.
+	//	return 0;
+
+	//uncomment the following to do a check between caster and target. [Skotlex]
+	//eg: if you want storm gust to do no damage if the caster runs to another map after invoking the skill.
+//	if(dsrc->m != bl->m) 
+//		return 0;
+
 	if(src->type == BL_PC && pc_isdead((struct map_session_data *)src)) //術者？がPCですでに死んでいたら何もしない
 		return 0;
-	if(src != dsrc && dsrc->type == BL_PC && pc_isdead((struct map_session_data *)dsrc)) //術者？がPCですでに死んでいたら何もしない
-		return 0;
+
+	//Uncomment the following to disable trap-ground skills from hitting when the caster is dead [Skotlex]
+	//eg: You cast meteor and then are killed, if you uncomment the following the meteors that fall afterwards cause no damage.
+//	if(src != dsrc && dsrc->type == BL_PC && pc_isdead((struct map_session_data *)dsrc))
+//		return 0;
+
 	if(bl->type == BL_PC && pc_isdead((struct map_session_data *)bl)) //?象がPCですでに死んでいたら何もしない
 		return 0;
 	if(src->type == BL_PC && skillnotok(skillid, (struct map_session_data *)src))
@@ -2062,6 +2074,7 @@ static int skill_timerskill(int tid, unsigned int tick, int id,int data )
 		}
 		if(target == NULL)
 			return 0;
+
 		if(target->prev == NULL && skl->skill_id != RG_INTIMIDATE)
 			return 0;
 		if(src->m != target->m)
@@ -2340,6 +2353,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	nullpo_retr(1, src);
 	nullpo_retr(1, bl);	
 
+	if (src->m != bl->m)
+		return 1;
+	
 	if (src->type == BL_PC) {
 		nullpo_retr(1, sd = (struct map_session_data *)src);
 	}
@@ -2982,6 +2998,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	nullpo_retr(1, src);
 	nullpo_retr(1, bl);
+
+	if (src->m != bl->m)
+		return 1;
 
 	if (src->type == BL_PC) {
 		nullpo_retr (1, sd = (struct map_session_data *)src);
@@ -6242,7 +6261,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	nullpo_retr(0, ss=map_id2bl(sg->src_id));
 	sc_data = status_get_sc_data(bl);
 	type = SkillStatusChangeTable[sg->skill_id];
-	
+
 	if (sg->interval == -1 && (sg->unit_id == 0x91 || sg->unit_id == 0xb7))
 		//Ok, this case only happens with Ankle Snare/Spider Web (only skills that sets its interval to -1), 
 		//and only happens when more than one target is stepping on the trap at the moment it was triggered
@@ -6485,8 +6504,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		break;
 
 	case 0xb8:	// Gravitation
-//		if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0) <-- no need, specified in skill_unit_db! [Skotlex]
-			skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);		
+		skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);		
 		break;
 
 	case 0xb3:	//PA_GOSPEL - Gospel
