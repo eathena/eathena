@@ -1286,6 +1286,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 	struct mob_data *md=NULL;
 	struct pet_data *pd=NULL;
 	struct skill_unit *su=NULL;
+	struct status_change* sc_data=NULL;
 
 	nullpo_retr(0, src);
 	nullpo_retr(0, target);
@@ -1299,6 +1300,9 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 	}else if(target->type==BL_SKILL){
 		su=(struct skill_unit *)target;
 	}else return 0;
+
+	if (target->type != BL_SKILL)
+		sc_data = status_get_sc_data(target);
 
 	if (count&0xf00000)
 		dir = (count>>20)&0xf;
@@ -1357,6 +1361,9 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 	else if(pd)
 		map_foreachinmovearea(clif_petoutsight,target->m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,pd);
 
+	if (sc_data && sc_data[SC_DANCING].timer != -1) //Move the song/dance [Skotlex]
+		skill_unit_move_unit_group((struct skill_unit_group *)sc_data[SC_DANCING].val2, target->m, dx, dy);
+		
 	if(su){
 		skill_unit_move_unit_group(su->group,target->m,dx,dy);
 	}else{
@@ -5988,9 +5995,14 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		}
 		memcpy(group->valstr,talkie_mes,MESSAGE_SIZE-1);
 	}
+
+	//Why redefine local variables when the ones of the function can be reused? [Skotlex]
+	val1=skilllv;
+	val2=0;
+	limit=group->limit;
 	for(i=0;i<layout->count;i++){
 		struct skill_unit *unit;
-		int ux,uy,val1=skilllv,val2=0,limit=group->limit,alive=1;
+		int ux,uy,alive=1;
 		ux = x + layout->dx[i];
 		uy = y + layout->dy[i];
 		switch (skillid) {
@@ -9332,7 +9344,7 @@ struct skill_unit_group *skill_initunitgroup(struct block_list *src,
 	group->interval=1000;
 	group->tick=gettick();
 	if (skillid == PR_SANCTUARY) //Sanctuary starts healing +1500ms after casted. [Skotlex]
-		group->tick += group->interval +500;
+		group->tick += 1500;
 	group->valstr=NULL;
 
 	if (skill_get_unit_flag(skillid)&UF_DANCE) {

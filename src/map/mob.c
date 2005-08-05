@@ -61,7 +61,9 @@ int mobdb_searchname(const char *str)
 	struct mob_db* mob;
 	for(i=0;i<=MAX_MOB_DB;i++){
 		mob = mob_db(i);
-		if( mob != mob_dummy || strcmpi(mob->name,str)==0 || strcmp(mob->jname,str)==0 ||
+		if(mob == mob_dummy) //Skip dummy mobs.
+			continue;
+		if(strcmpi(mob->name,str)==0 || strcmp(mob->jname,str)==0 ||
 			memcmp(mob->name,str,NAME_LENGTH)==0 || memcmp(mob->jname,str,NAME_LENGTH)==0)
 			return i;
 	}

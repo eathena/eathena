@@ -5711,19 +5711,30 @@ int pc_setoption(struct map_session_data *sd,int type)
 int pc_setcart(struct map_session_data *sd,int type)
 {
 	int cart[6]={0x0000,0x0008,0x0080,0x0100,0x0200,0x0400};
-
+	int option, i;
 	nullpo_retr(0, sd);
+	
+	if (type < 0 || type > 5)
+		return 0; //Never trust the values sent by the client! [Skotlex]
 
+	option = sd->status.option;
+	for (i = 0; i < 6; i++)
+	{	//This should preserve the current option, only modifying the cart bit.
+		if (i == type)
+			option |= cart[type];
+		else
+			option &= ~cart[type];
+	}
 	if(pc_checkskill(sd,MC_PUSHCART)>0){ // プッシュカ?トスキル所持
 		if(!pc_iscarton(sd)){ // カ?トを付けていない
-			pc_setoption(sd,cart[type]);
+			pc_setoption(sd,option);
 			clif_cart_itemlist(sd);
 			clif_cart_equiplist(sd);
 			clif_updatestatus(sd,SP_CARTINFO);
 			clif_status_change(&sd->bl,0x0c,0);
 		}
 		else{
-			pc_setoption(sd,cart[type]);
+			pc_setoption(sd,option);
 		}
 	}
 

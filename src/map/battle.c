@@ -2167,12 +2167,6 @@ struct Damage battle_calc_magic_attack(
 			break;
 
 		case MG_FIREWALL:	// ファイヤーウォール
-/*
-			if( (t_ele!=3 && !battle_check_undead(t_race,t_ele)) || target->type==BL_PC ) //PCは火属性でも飛ぶ？そもそもダメージ受ける？
-				blewcount |= 0x10000;
-			else
-				blewcount = 0;
-*/
 			if((t_ele==3 || battle_check_undead(t_race,t_ele)) && target->type!=BL_PC)
 			{
 				blewcount = 0;
