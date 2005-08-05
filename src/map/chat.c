@@ -64,8 +64,12 @@ int chat_joinchat (struct map_session_data *sd, int chatid, char* pass)
 	struct chat_data *cd;
 
 	nullpo_retr(0, sd);
-	nullpo_retr(1, cd = (struct chat_data*)map_id2bl(chatid));
+	cd = (struct chat_data*)map_id2bl(chatid);
 
+ //No need for a nullpo check. The chatid was sent by the client, if they lag or mess with the packet 
+ //a wrong chat id can be received. [Skotlex]
+	if (cd == NULL)
+		return 1;
 	if (cd->bl.m != sd->bl.m || cd->limit <= cd->users) {
 		clif_joinchatfail(sd,0);
 		return 0;

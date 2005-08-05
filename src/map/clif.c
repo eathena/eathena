@@ -7883,7 +7883,6 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 {
 	static int packet_ver = -1;
 	int cmd, packet_len, value; //Value is used to temporarily store account/char_id/sex
-	static struct socket_data *last_session;
 	
 	if (get_previous) //For quick reruns, since the normal code flow is to fetch this once to identify the packet version, then again in the wanttoconnect function. [Skotlex]
 		return packet_ver;
@@ -7938,13 +7937,6 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 		}
 		return packet_ver; //This is our best guess.
 	}
-
-	if (last_session != session[fd])
-	{	//The client loves spamming with wanttoconnect packets when it fails at first try, so we have to avoid spamming the console.
-		ShowDebug("Received packet of unknown version (packet: 0x%x, length: %d)\n", cmd, packet_len);
-		last_session = session[fd];
-	}
-
 	packet_ver = -1;
 	return -1;
 }
@@ -10688,7 +10680,7 @@ void clif_parse_debug(int fd,struct map_session_data *sd)
 int clif_parse(int fd) {
 	int packet_len = 0, cmd, packet_ver, dump = 0;
 	struct map_session_data *sd;
-
+	static int last_fail_fd = 0; //To prevent spamming the console. [Skotlex]
 	sd = (struct map_session_data*)session[fd]->session_data;
 
 	// 接続が切れてるので後始末
@@ -10758,7 +10750,10 @@ int clif_parse(int fd) {
 		}
 	} else {
 	// check authentification packet to know packet version
-		packet_ver = clif_guess_PacketVer(fd, 0);	
+		if (last_fail_fd == fd) //Avoid recalling packet_guess several dozen times. [Skotlex]
+			packet_ver = -1;
+		else
+			packet_ver = clif_guess_PacketVer(fd, 0);
 		// check if version is accepted
 		if (packet_ver < 5 ||	// reject really old client versions
 			(packet_ver <= 9 && (battle_config.packet_ver_flag & 1) == 0) ||	// older than 6sept04
@@ -10768,10 +10763,15 @@ int clif_parse(int fd) {
 			WFIFOW(fd,0) = 0x6a;
 			WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
 			WFIFOSET(fd,23);
-			ShowDebug("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
+			if (fd != last_fail_fd)
+			{	//This prevent log spamming. [Skotlex]
+				last_fail_fd = fd;
+				ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
+			}
 			clif_setwaitclose(fd);
 			return 0;
-		}
+		} else
+			last_fail_fd = 0;
 	}
 
 	// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する

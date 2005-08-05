@@ -1,5 +1,8 @@
 Date	Added
 08/05
+	* Likely fixed the map server spamming the console when clients gets
+	  rejected due to packet version. [Skotlex]
+	* Fixed the make_connection problem (sorry about that) [Skotlex]
 	* Updated make_connection (socket.c) so that it actually returns -1 when
 	  the connection fails. [Skotlex]
 	* Fixed change-cart clearing other options. [Skotlex]

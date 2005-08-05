@@ -444,25 +444,25 @@ int make_connection(long ip,int port)
 	server_address.sin_addr.s_addr = ip;
 	server_address.sin_port = htons((unsigned short)port);
 
+	ShowStatus("Connecting to %d.%d.%d.%d:%i\n",
+		(ip)&0xFF,(ip>>8)&0xFF,(ip>>16)&0xFF,(ip>>24)&0xFF,port);
+
+	result = connect(fd, (struct sockaddr *)(&server_address), sizeof(struct sockaddr_in));
+	if (result < 0) { //This is only used when the map/char server try to connect to each other, so it can be handled. [Skotlex]
+		perror("make_connection error");
+		delete_session(fd);
+		return -1;
+	}
+//Now the socket can be made non-blocking. [Skotlex]
 #ifdef _WIN32
         {
             unsigned long val = 1;
             ioctlsocket(fd, FIONBIO, &val);
         }
 #else
-        result = fcntl(fd, F_SETFL, O_NONBLOCK);
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
+		perror("Error: Unable to set the socket to non-blocking mode!\n");
 #endif
-
-	ShowStatus("Connecting to %d.%d.%d.%d:%i\n",
-		(ip)&0xFF,(ip>>8)&0xFF,(ip>>16)&0xFF,(ip>>24)&0xFF,port);
-
-	result = connect(fd, (struct sockaddr *)(&server_address), sizeof(struct sockaddr_in));
-
-	if (result < 0) { //This is only used when the map/char server try to connect to each other, so it can be handled. [Skotlex]
-		ShowError("make_connection: Socket %d connection error\n", fd);
-		delete_session(fd);
-		return -1;
-	}
 
 	FD_SET(fd,&readfds);
 
