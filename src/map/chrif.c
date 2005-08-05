@@ -1322,6 +1322,11 @@ int check_connect_char_server(int tid, unsigned int tick, int id, int data) {
 		}
 		chrif_state = 0;
 		char_fd = make_connection(char_ip, char_port);
+		if (char_fd == -1)
+		{	//Attempt to connect later. [Skotlex]
+			char_fd = 0;
+			return 0;
+		}
 		session[char_fd]->func_parse = chrif_parse;
 		realloc_fifo(char_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 

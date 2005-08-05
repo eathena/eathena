@@ -1,5 +1,7 @@
 Date	Added
 08/05
+	* Updated make_connection (socket.c) so that it actually returns -1 when
+	  the connection fails. [Skotlex]
 	* Fixed change-cart clearing other options. [Skotlex]
 	* Fixed @spawn not working with string names. [Skotlex]
 	* Fixed songs/dances not being moved when knocked back. [Skotlex]

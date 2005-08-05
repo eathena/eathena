@@ -10700,7 +10700,7 @@ int clif_parse(int fd) {
 			else
 				ShowInfo("%sCharacter with Account ID '"CL_WHITE"%d"CL_RESET"' logged off.\n", (pc_isGM(sd))?"GM ":"", sd->bl.id); // Player logout display [Yor]
 		} else if (sd) { // not authentified! (refused by char-server or disconnect before to be authentified)
-			ShowInfo("Player not authenticated (Account '"CL_WHITE"%d"CL_RESET"', Char ID '"CL_WHITE"%d"CL_RESET"', Packet Ver '"CL_WHITE"%d"CL_RESET"') logged off.\n", sd->bl.id, sd->status.char_id, sd->packet_ver); // Player logout display [Yor]
+			ShowInfo("Player not authenticated (Account '"CL_WHITE"%d"CL_RESET"', Session '"CL_WHITE"%d"CL_RESET"', PacketVer '"CL_WHITE"%d"CL_RESET"') logged off.\n", sd->bl.id, fd, sd->packet_ver); // Player logout display [Yor]
 //			if (chrif_isconnect())
 //				clif_quitsave(fd, sd);
 			map_deliddb(&sd->bl); // account_id has been included in the DB before auth answer [Yor]

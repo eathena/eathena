@@ -3407,6 +3407,11 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 	if (login_fd <= 0 || session[login_fd] == NULL) {
 		ShowInfo("Attempt to connect to login-server...\n");
 		login_fd = make_connection(login_ip, login_port);
+		if (login_fd == -1)
+		{	//Try again later... [Skotlex]
+			login_fd = 0;
+			return 0;
+		}
 		session[login_fd]->func_parse = parse_tologin;
 		realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 		WFIFOW(login_fd,0) = 0x2710;

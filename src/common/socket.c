@@ -458,11 +458,11 @@ int make_connection(long ip,int port)
 
 	result = connect(fd, (struct sockaddr *)(&server_address), sizeof(struct sockaddr_in));
 
-	// cool, what do you do if connect fails (result<0)? <- so true, why nothing is done?? @.@ [Skotlex]
-	/*if (result == -1) {
-		//perror("connect");
-		return result;
-	}*/
+	if (result < 0) { //This is only used when the map/char server try to connect to each other, so it can be handled. [Skotlex]
+		ShowError("make_connection: Socket %d connection error\n", fd);
+		delete_session(fd);
+		return -1;
+	}
 
 	FD_SET(fd,&readfds);
 

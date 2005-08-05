@@ -4178,7 +4178,11 @@ int Connect_login_server() {
 	}
 
 	login_fd = make_connection(login_ip, loginserverport);
-
+	if (login_fd == -1)
+	{	//Might not be the most elegant way to handle this, but I've never used ladmin so I dunno what else you could do. [Skotlex]
+		printf("Error: Failed to connect to Login Server\n");
+		exit(1);
+	}
 #ifdef PASSWORDENC
 	if (passenc == 0) {
 #endif

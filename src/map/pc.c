@@ -620,7 +620,12 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	unsigned long tick = gettick();
 
 	sd = map_id2sd(id);
-	nullpo_retr(1, sd);
+	if (sd == NULL)
+	{
+		ShowDebug("pc_authok: Player with account %d not found!\n", id);
+		return 1;	
+	//	nullpo_retr(1, sd);
+	}
 
 	// check if double login occured
 	if(sd->new_fd){
