@@ -2344,35 +2344,40 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				md->dmglog[minpos].id=pd->msd->status.char_id;
 				md->dmglog[minpos].dmg=(damage*battle_config.pet_attack_exp_rate)/100;
 			}
+			//Let mobs retaliate against the pet's master [Skotlex]
+			if(md->attacked_id <= 0 && md->state.special_mob_ai==0)
+				md->attacked_id = pd->msd->status.char_id;
 		}
 		if(src && src->type == BL_MOB && ((struct mob_data*)src)->state.special_mob_ai){
 			struct mob_data *md2 = (struct mob_data *)src;
 			struct map_session_data *msd = map_id2sd(md2->master_id);
-			nullpo_retr(0, md2);
-			nullpo_retr(0, msd);
-			for(i=0,minpos=0,mindmg=0x7fffffff;i<DAMAGELOG_SIZE;i++){
-				if(md->dmglog[i].id==msd->status.char_id)
-					break;
-				if(md->dmglog[i].id==0){
-					minpos=i;
-					mindmg=0;
+			//nullpo_retr(0, md2); <- this check is ridiculous, see the above if! [Skotlex]
+			//nullpo_retr(0, msd);
+			if (msd)	
+			{	//If master is not logged on, we just make his share of exp be lost. [Skotlex]
+				for(i=0,minpos=0,mindmg=0x7fffffff;i<DAMAGELOG_SIZE;i++){
+					if(md->dmglog[i].id==msd->status.char_id)
+						break;
+					if(md->dmglog[i].id==0){
+						minpos=i;
+						mindmg=0;
+					}
+					else if(md->dmglog[i].dmg<mindmg){
+						minpos=i;
+						mindmg=md->dmglog[i].dmg;
+					}
 				}
-				else if(md->dmglog[i].dmg<mindmg){
-					minpos=i;
-					mindmg=md->dmglog[i].dmg;
-				}
-			}
-			if(i<DAMAGELOG_SIZE)
-				md->dmglog[i].dmg+=damage;
-			else {
-				md->dmglog[minpos].id=msd->status.char_id;
-				md->dmglog[minpos].dmg=damage;
+				if(i<DAMAGELOG_SIZE)
+					md->dmglog[i].dmg+=damage;
+				else {
+					md->dmglog[minpos].id=msd->status.char_id;
+					md->dmglog[minpos].dmg=damage;
 
-			if(md->attacked_id <= 0 && md->state.special_mob_ai==0)
-				md->attacked_id = md2->master_id;
+				if(md->attacked_id <= 0 && md->state.special_mob_ai==0)
+					md->attacked_id = md2->master_id;
+				}
 			}
 		}
-
 	}
 
 	md->hp-=damage;

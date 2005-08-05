@@ -1,5 +1,7 @@
 Date	Added
 08/04
+	* Made mobs retaliate against a pet's master when for some reason a pet is
+	  attacking a passive mob which is not yet attacking back. [Skotlex]
 	* Modified the mob_db to make it a dynamic array of mob databases. [Skotlex]
 	  This allows usage of high mob ids without wasting memory on large gaps of
 	  unused mob IDS.
