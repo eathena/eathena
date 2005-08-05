@@ -7729,6 +7729,10 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	}
 	if(sd->bl.m != bl->m || pc_isdead(sd))
 		return 0;
+
+	if(sd->skilltimer != -1 && skill_num != SA_CASTCANCEL) //Normally not needed because clif.c checks for it, but the at/char/script commands don't! [Skotlex]
+		return 0;
+	
 	if(skillnotok(skill_num, sd)) // [MouseJstr]
 		return 0;
 	if (tsd && skill_num == ALL_RESURRECTION && !pc_isdead(tsd))
@@ -8092,6 +8096,8 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 
 	if (pc_isdead(sd))
 		return 0;
+	if (sd->skilltimer != -1) //Normally not needed since clif.c checks for it, but at/char/script commands don't! [Skotlex]
+		return 0;
 	if (skillnotok(skill_num, sd)) // [MoueJstr]
 		return 0;
 	if (skill_num == WZ_ICEWALL && map[sd->bl.m].flag.noicewall && !map[sd->bl.m].flag.pvp)  { // noicewall flag [Valaris]
@@ -8256,7 +8262,7 @@ int skill_castcancel (struct block_list *bl, int type)
 				else
 					ret = delete_timer( sd->skilltimer, skill_castend_id );
 				if (ret < 0)
-					ShowError("delete timer error : skillid : %d\n", sd->skillid_old);
+					ShowError("delete timer error : (old) skillid : %d\n", sd->skillid_old);
 			}
 			sd->skilltimer = -1;
 			clif_skillcastcancel(bl);
