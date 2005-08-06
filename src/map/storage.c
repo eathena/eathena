@@ -122,6 +122,8 @@ int storage_storageopen(struct map_session_data *sd)
 		clif_displaymessage(sd->fd, msg_txt(246));
 		return 1;
 	}
+//Storage loading always from sql idea from Komurka [Skotlex]
+#ifdef TXT_ONLY
 	if((stor = (struct storage *) numdb_search(storage_db,sd->status.account_id)) != NULL) {
 		if (stor->storage_status == 0) {
 			stor->storage_status = 1;
@@ -132,6 +134,7 @@ int storage_storageopen(struct map_session_data *sd)
 			return 0;
 		}
 	} else
+#endif
 		intif_request_storage(sd->status.account_id);
 
 	return 1;

@@ -1652,26 +1652,30 @@ int delete_char_sql(int char_id, int partner_id)
 		
 	if (sql_res && sql_row[0]) {
 		/* delete char's pet */
-		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",pet_db, char_id);
+		//Delete the hatched pet if you have one...
+		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d' AND `incuvate` = '0'",pet_db, char_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+			ShowSQL("%s - DB server Error (hatched pet): %s\n", function_name, mysql_error(&mysql_handle));
 		}
-				
-				// Komurka
-				// temporary disabled on branch, still needs testing
-				/*sprintf(tmp_sql,"DELETE FROM `%s` USING `%s`, `%s`, `%s` "
-					"WHERE `%s`.char_id='%d' AND `%s`.char_id=`%s`.char_id AND `%s`.card0=-256 AND `%s`.card1=`%s`.pet_id",
-					pet_db, pet_db, inventory_db,char_db,char_db,RFIFOL(fd, 2),char_db,inventory_db,inventory_db,inventory_db,pet_db);
-				if(mysql_query(&mysql_handle, tmp_sql)) {
-					printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}
 
-				sprintf(tmp_sql,"DELETE FROM `%s` USING `%s`, `%s`, `%s` "
-					"WHERE `%s`.char_id='%d' AND `%s`.char_id=`%s`.char_id AND `%s`.card0=-256 AND `%s`.card1=`%s`.pet_id",
-					pet_db, pet_db, cart_db,char_db,char_db,RFIFOL(fd, 2),char_db,cart_db,cart_db,cart_db,pet_db);
-				if(mysql_query(&mysql_handle, tmp_sql)) {
-					printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-				}*/
+		// Komurka's suggested way to clear pets, modified by [Skotlex] (because I always personalize what I do :X)
+		//Removing pets that are in the char's inventory....
+		sprintf(tmp_sql,
+		"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
+			pet_db, char_db, inventory_db, pet_db, char_id);
+		
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("%s - DB server Error (pets from inventory): %s\n", function_name, mysql_error(&mysql_handle));
+		}
+
+		//Removing pets that are in the char's cart....
+		sprintf(tmp_sql,
+		"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
+			pet_db, char_db, cart_db, pet_db, char_id);
+		
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("%s - DB server Error (pets from cart): %s\n", function_name, mysql_error(&mysql_handle));
+		}
 
 		/* delete char's friends list */
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'",friend_db, char_id);

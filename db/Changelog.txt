@@ -14,7 +14,10 @@
 	 EX) If Goblin Archer card goes on a Katar-type weapon, the CRIT Bonus vs. Undeads become +14.
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
-
+	
+08/05
+	* Updated Sky Deleter Card to give 15SP per kill (ragnainfo patch
+	  information, or so they say at the forums)
 08/04
 	* Updated mobs 1006 (Thief Bug Larva), 1393 (G Mummy), 1394 (G Zombie), and
 	  1407 (Dokebi) to be Level 1 and have max HP 1, otherwise the new mob db

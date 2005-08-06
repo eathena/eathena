@@ -1,5 +1,9 @@
 Date	Added
 08/05
+	* Updated map_server sql so that the storage is loaded from sql everytime [Skotlex]
+	* Updated the char deletion routine (sql) so that only the correct pets
+	  will be deleted (those hatched and that are in the char's inventory/cart)
+	  [Skotlex]
 	* Likely fixed the map server spamming the console when clients gets
 	  rejected due to packet version. [Skotlex]
 	* Fixed the make_connection problem (sorry about that) [Skotlex]
