@@ -3184,6 +3184,12 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	nullpo_retr(0, opt2=status_get_opt2(bl));
 	nullpo_retr(0, opt3=status_get_opt3(bl));
 
+	if( bl->type == BL_PC ) { //for @autotrade (we'll reuse SD later) [Lupus]
+		sd=(struct map_session_data *)bl;
+		if( sd && sd->special_state.autotrade )
+			return 0;
+	} //end of @autrade ON check
+
 	race=status_get_race(bl);
 	mode=status_get_mode(bl);
 	elem=status_get_elem_type(bl);
@@ -3218,7 +3224,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if(scdef>=100)
 		return 0;
 	if(bl->type==BL_PC){
-		sd=(struct map_session_data *)bl;
+		//we've already got SD before [Lupus]
+		//sd=(struct map_session_data *)bl;
 		if( sd && type == SC_ADRENALINE && !(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)))
 			return 0;
 

@@ -1,5 +1,6 @@
 Date	Added
 08/05
+	* A li'l fix of @autotrade. Used some irmin's code and optimized a bit [Lupus]
 	* Fixed pc_setcart... [Skotlex]
 	* Updated Fireball and Stone Curse data [Skotlex]
 	  Source used: http://guide.ragnarok.co.kr/jobmagskill.asp
