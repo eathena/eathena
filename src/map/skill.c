@@ -4518,10 +4518,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case NPC_STOP:
-		if(dstsd)
+		if(dstsd) {
+			battle_stopwalking(&dstsd->bl,1);
 		    dstsd->canmove_tick += skill_get_time(skillid,skilllv);
-		else if(dstmd)
+		} else if(dstmd) {
+			battle_stopwalking(&dstmd->bl,1);
 		    dstmd->canmove_tick += skill_get_time(skillid,skilllv);
+		}
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
 

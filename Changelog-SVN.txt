@@ -1,4 +1,6 @@
 Date	Added
+08/06
+	* Added a battle_stopwalking to NPC_STOP effect [DracoRPG]
 08/05
 	* A li'l fix of @autotrade. Used some irmin's code and optimized a bit [Lupus]
 	* Fixed pc_setcart... [Skotlex]
