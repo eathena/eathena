@@ -2157,7 +2157,7 @@ struct Damage battle_calc_magic_attack(
 				if(flag>2)
 					matk1=matk2=0;
 				else
-					MATK_FIX( (95+skill_lv*5)*drate[flag] ,10000 );
+					MATK_FIX( (70+skill_lv*10)*drate[flag] ,10000 );
 			}
 			break;
 

@@ -1,5 +1,7 @@
 Date	Added
 08/05
+	* Updated Fireball and Stone Curse data [Skotlex]
+	  Source used: http://guide.ragnarok.co.kr/jobmagskill.asp
 	* Updated map_server sql so that the storage is loaded from sql everytime [Skotlex]
 	* Updated the char deletion routine (sql) so that only the correct pets
 	  will be deleted (those hatched and that are in the char's inventory/cart)
