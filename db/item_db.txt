@@ -1867,7 +1867,7 @@
 7265,Dragon_Horn,Dragon Horn,3,20,0,10,,,,,,,,,,,,{},{}
 7266,Dragon_Teeth,Dragon Teeth,3,218,0,10,,,,,,,,,,,,{},{}
 7267,Tigerskin_Underwear,Tigerskin Underwear,3,20,107,10,,,,,,,,,,,,{},{}
-7268,Ghost_Doll,Ghost Doll,3,20,605,10,,,,,,,,,,,,{},{}
+7268,Ghost_Doll,Ghost Doll,3,1210,605,10,,,,,,,,,,,,{},{}
 7269,Baby_Bib,Baby Bib,3,20,0,10,,,,,,,,,,,,{},{}
 7270,Baby_Bottle,Baby Bottle,3,20,0,10,,,,,,,,,,,,{},{}
 7271,Novice_Statue,Novice Statue,3,20,0,10,,,,,,,,,,,,{},{}

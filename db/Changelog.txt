@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 	
 08/05
+	* Fixed price of Ghost Doll (from Freya)
 	* Reverted Earth Deleter Card to 10SP [Lupus]
 	  HINT! HINT! HINT!
 	  How to check false items/cards bonuses reports? Just open latest korean idnum2itemdesctable.txt
