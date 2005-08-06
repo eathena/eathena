@@ -4248,7 +4248,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				{
 					struct map_session_data *md = map_id2sd(sc_data[type].val1);
 					sc_data[type].val1=sc_data[type].val2=0;
-					skill_devotion(md,bl->id);
+					//The status could have changed because the Crusader left the game. [Skotlex]
+					if (md) skill_devotion(md,bl->id);
 					//Remove AutoGuard and Defender [Skotlex]
 					if (sc_data[SC_AUTOGUARD].timer != -1)
 						status_change_end(bl,SC_AUTOGUARD,-1);

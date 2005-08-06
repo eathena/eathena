@@ -8626,12 +8626,13 @@ void skill_devotion_end(struct map_session_data *md,struct map_session_data *sd,
 	nullpo_retv(sd);
 
 	md->dev.val1[target]=md->dev.val2[target]=0;
-	if(sd && sd->sc_data){
-	//	status_change_end(sd->bl,SC_DEVOTION,-1);
-		sd->sc_data[SC_DEVOTION].val1=0;
-		sd->sc_data[SC_DEVOTION].val2=0;
-		clif_status_change(&sd->bl,SC_DEVOTION,0);
-		clif_devotion(md,sd->bl.id);
+	if(sd && sd->sc_data){	//Why they preferred four lines instead of status_change_end? [Skotlex]
+		status_change_end(&sd->bl,SC_DEVOTION,-1);
+	
+	//	sd->sc_data[SC_DEVOTION].val1=0;
+	//	sd->sc_data[SC_DEVOTION].val2=0;
+	//	clif_status_change(&sd->bl,SC_DEVOTION,0);
+	//	clif_devotion(md,sd->bl.id);
 	}
 }
 /*==========================================
