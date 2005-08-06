@@ -585,9 +585,11 @@ packet_ver: 13
 0x0193,22,movefromkafra,12:18
 
 //2004-11-01aSakexe by Sara
-packet_ver: 14
-0x00f5,29,wanttoconnection,5:14:20:24:28
-0x0143,23,npcamountinput,2:6
+//It has been reported that this npcamountinput line is WRONG. Therefore this
+//new data is now part of packet version 13
+//packet_ver: 14
+//0x00f5,29,wanttoconnection,5:14:20:24:28
+//0x0143,23,npcamountinput,2:6
 0x0215,6
 0x0216,6
 

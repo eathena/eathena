@@ -1,5 +1,11 @@
 Date	Added
 08/06
+	* Removed the data about packet_version 14 in the packet_db [Skotlex]
+	  This could mean that version 14 never really existed, and all following
+	  versions need to be shifted up (who decides how to call these versions?
+	  they certainly don't come coded in the login packet. We should ask
+	  Sara-chan.... whoever she is...). Note that no such changes have yet been
+	  decided other than removing version 14.
 	* Updated Devotion/Sacrifice. AutoGuard and Defender skills are now kept in sync
 	  between the Crusader and those Devoted. [Skotlex]
 	* Added a battle_stopwalking to NPC_STOP effect [DracoRPG]
