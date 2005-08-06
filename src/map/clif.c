@@ -557,7 +557,7 @@ int clif_authfail_fd(int fd, int type) {
 	WFIFOL(fd,2) = type;
 	WFIFOSET(fd,packet_len_table[0x81]);
 
-	ShowDebug("clif_authfail_fd: Disconnecting session #%d\n", fd);
+	ShowDebug("clif_authfail_fd (type %d): Disconnecting session #%d\n", type, fd);
 	clif_setwaitclose(fd);
 
 	return 0;
@@ -7882,6 +7882,7 @@ int clif_charnameupdate (struct map_session_data *ssd)
 static int clif_guess_PacketVer(int fd, int get_previous)
 {
 	static int packet_ver = -1;
+	static int last_fd = 0;
 	int cmd, packet_len, value; //Value is used to temporarily store account/char_id/sex
 	
 	if (get_previous) //For quick reruns, since the normal code flow is to fetch this once to identify the packet version, then again in the wanttoconnect function. [Skotlex]
@@ -7912,18 +7913,21 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 	
 		if ((value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0])) < 700000 || value > max_account_id)
 		{
-			ShowDebug("Version check %d failed: invalid account id %d\n", packet_ver, value);
+			if (last_fd != fd)
+				ShowDebug("Version check %d failed: invalid account id %d\n", packet_ver, value);
 			continue;
 		}
 		if ((value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1])) < 1 || value > max_char_id)
 		{
-			ShowDebug("Version check %d failed: invalid char id %d\n", packet_ver, value);
+			if (last_fd != fd)
+				ShowDebug("Version check %d failed: invalid char id %d\n", packet_ver, value);
 			continue;
 		}
 		//What is login 1? In my tests it is a very very high value.
 		if ((int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) < 1)
 		{
-			ShowDebug("Version check %d failed: invalid login1 %d\n", packet_ver, (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]));
+			if (last_fd != fd)
+				ShowDebug("Version check %d failed: invalid login1 %d\n", packet_ver, (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]));
 			continue;
 		}
 		//Removed the tick check as it can be a very large value (it is an unsigned int, so all values are possible)
@@ -7932,11 +7936,14 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 		//last byte of the packet.
 		if ((value = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) < 0 || value > 1)
 		{
-			ShowDebug("Version check %d failed: invalid gender %d\n", packet_ver, value);
+			if (last_fd != fd)
+				ShowDebug("Version check %d failed: invalid gender %d\n", packet_ver, value);
 			continue;
 		}
+		last_fd = fd;
 		return packet_ver; //This is our best guess.
 	}
+	last_fd = fd;
 	packet_ver = -1;
 	return -1;
 }
@@ -10750,10 +10757,7 @@ int clif_parse(int fd) {
 		}
 	} else {
 	// check authentification packet to know packet version
-		if (last_fail_fd == fd) //Avoid recalling packet_guess several dozen times. [Skotlex]
-			packet_ver = -1;
-		else
-			packet_ver = clif_guess_PacketVer(fd, 0);
+		packet_ver = clif_guess_PacketVer(fd, 0);
 		// check if version is accepted
 		if (packet_ver < 5 ||	// reject really old client versions
 			(packet_ver <= 9 && (battle_config.packet_ver_flag & 1) == 0) ||	// older than 6sept04
