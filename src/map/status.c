@@ -3764,18 +3764,37 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 
 		case SC_AUTOGUARD:
+			if (!flag)
 			{
+				struct map_session_data *tsd;
 				int i,t;
 				for(i=val2=0;i<val1;i++) {
 					t = 5-(i>>1);
 					val2 += (t < 0)? 1:t;
 				}
+				if (sd)
+					for (i = 0; i < 5 && sd->dev.val1[i]; i++)
+					{	//Pass the status to the other affected chars. [Skotlex]
+						if ((tsd = map_id2sd(sd->dev.val1[i])))
+							status_change_start(&tsd->bl,SC_AUTOGUARD,val1,val2,0,0,tick,1);
+					}
 			}
 			break;
 
 		case SC_DEFENDER:
 			calc_flag = 1;
-			val2 = 5 + val1*15;
+			if (!flag)
+			{	
+				struct map_session_data *tsd;
+				int i;
+				val2 = 5 + val1*15;
+				if (sd)
+					for (i = 0; i < 5 && sd->dev.val1[i]; i++)
+					{	//See if there are devoted characters, and pass the status to them. [Skotlex]
+						if ((tsd = map_id2sd(sd->dev.val1[i])))
+							status_change_start(&tsd->bl,SC_DEFENDER,val1,val2,0,0,tick,1);
+					}
+			}
 			break;
 
 		case SC_CONCENTRATION:	/* コンセントレ?ション */
@@ -3898,7 +3917,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_IMPOSITIO:			/* インポシティオマヌス */
 		case SC_GLORIA:				/* グロリア */
 		case SC_LOUD:				/* ラウドボイス */
-		case SC_DEVOTION:			/* ディボ?ション */
 		case SC_KEEPING:
 		case SC_BARRIER:
 		case SC_MELTDOWN:		/* メルトダウン */
@@ -3921,6 +3939,21 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			calc_flag = 1;
 			break;
 
+		case SC_DEVOTION:			/* ディボ?ション */
+		{
+			struct map_session_data *src;
+			calc_flag = 1;
+			if (sd && (src = map_id2sd(val1)) && src->sc_count)
+			{	//Try to inherit the status from the Crusader [Skotlex]
+			//Ideally, we should calculate the remaining time and use that, but we'll trust that
+			//once the Crusader's status changes, it will reflect on the others. 
+				if (src->sc_data[SC_AUTOGUARD].timer != -1)
+					status_change_start(bl,SC_AUTOGUARD,src->sc_data[SC_AUTOGUARD].val1,0,0,0,tick,0);
+				if (src->sc_data[SC_DEFENDER].timer != -1)
+					status_change_start(bl,SC_DEFENDER,src->sc_data[SC_DEFENDER].val1,0,0,0,tick,0);
+			}
+			break;
+		}
 		case SC_SUFFRAGIUM:			/* サフラギム */
 		case SC_BENEDICTIO:			/* 聖? */
 		case SC_MAGNIFICAT:			/* マグニフィカ?ト */
@@ -4149,7 +4182,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_SERVICE4U:			/* サ?ビスフォ?ユ? */
 			case SC_EXPLOSIONSPIRITS:	// 爆裂波動
 			case SC_STEELBODY:			// 金剛
-			case SC_DEFENDER:
 			case SC_SPEEDPOTION0:		/* ?速ポ?ション */
 			case SC_SPEEDPOTION1:
 			case SC_SPEEDPOTION2:
@@ -4196,11 +4228,33 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				if (sc_data[SC_PROVOKE].timer != -1)
 					status_change_end(bl,SC_PROVOKE,-1);
 				break;
+
+			case SC_DEFENDER:
+				calc_flag = 1;
+			case SC_AUTOGUARD:
+			{
+				struct map_session_data *sd, *tsd;
+				int i;
+				if (bl->type == BL_PC && (sd= (struct map_session_data *)bl))
+					for (i = 0; i < 5 && sd->dev.val1[i]; i++)
+					{	//Clear the status from the others too [Skotlex]
+						if ((tsd = map_id2sd(sd->dev.val1[i])) && tsd->sc_data[type].timer != -1)
+							status_change_end(&tsd->bl,type,-1);
+					}
+				break;
+			}
+
 			case SC_DEVOTION:		/* ディボ?ション */
 				{
 					struct map_session_data *md = map_id2sd(sc_data[type].val1);
 					sc_data[type].val1=sc_data[type].val2=0;
 					skill_devotion(md,bl->id);
+					//Remove AutoGuard and Defender [Skotlex]
+					if (sc_data[SC_AUTOGUARD].timer != -1)
+						status_change_end(bl,SC_AUTOGUARD,-1);
+					if (sc_data[SC_DEFENDER].timer != -1)
+						status_change_end(bl,SC_DEFENDER,-1);
+
 					calc_flag = 1;
 				}
 				break;

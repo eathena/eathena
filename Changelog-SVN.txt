@@ -1,5 +1,7 @@
 Date	Added
 08/06
+	* Updated Devotion/Sacrifice. AutoGuard and Defender skills are now kept in sync
+	  between the Crusader and those Devoted. [Skotlex]
 	* Added a battle_stopwalking to NPC_STOP effect [DracoRPG]
 08/05
 	* A li'l fix of @autotrade. Used some irmin's code and optimized a bit [Lupus]
