@@ -5726,9 +5726,9 @@ int pc_setcart(struct map_session_data *sd,int type)
 	for (i = 0; i < 6; i++)
 	{	//This should preserve the current option, only modifying the cart bit.
 		if (i == type)
-			option |= cart[type];
+			option |= cart[i];
 		else
-			option &= ~cart[type];
+			option &= ~cart[i];
 	}
 	if(pc_checkskill(sd,MC_PUSHCART)>0){ // プッシュカ?トスキル所持
 		if(!pc_iscarton(sd)){ // カ?トを付けていない
