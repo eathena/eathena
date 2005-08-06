@@ -16,10 +16,12 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 	
 08/05
+	* Reverted Earth Deleter Card to 10SP [Lupus]
+	  HINT! HINT! HINT!
+	  How to check false items/cards bonuses reports? Just open latest korean idnum2itemdesctable.txt
+	  And check numbers in the item desc 8)))
 	* Updated Fireball cast times and delay [Skotlex]
 	* Updated SP cost of Stone Curae [Skotlex]
-	* Updated Sky Deleter Card to give 15SP per kill (ragnainfo patch
-	  information, or so they say at the forums) [Skotlex]
 08/04
 	* Updated mobs 1006 (Thief Bug Larva), 1393 (G Mummy), 1394 (G Zombie), and
 	  1407 (Dokebi) to be Level 1 and have max HP 1, otherwise the new mob db

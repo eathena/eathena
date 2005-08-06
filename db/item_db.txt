@@ -1408,7 +1408,7 @@
 4276,Lord_of_Death_Card,Lord of Death Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus2 bAddEff,Eff_Stan,100; bonus2 bAddEff,Eff_Curse,100; bonus2 bAddEff,Eff_Poison,100; bonus2 bAddEff,Eff_Bleeding,100; bonus2 bAddWeaponComaRace,11,30; }
 4277,Zherlthsh_Card,Zherlthsh Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus bLuk,2; bonus2 bSkillAtk,316,10; bonus2 bSkillAtk,324,10; }
 4278,Gibbet_Card,Gibbet Card,6,20,0,10,,,,,,,769,,,,,{},{ if(getrefine()<6) bonus bMdef,5; }
-4279,Earth_Deleter_Card,Earth Deleter Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus bSPrecovRate,-100; bonus bSPGainValue,15; bonus bLoseSPWhenUnequip,100; }
+4279,Earth_Deleter_Card,Earth Deleter Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus bSPrecovRate,-100; bonus bSPGainValue,10; bonus bLoseSPWhenUnequip,100; }
 4280,Geographer_Card,Geographer Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus4 bAutoSpellWhenHit,34,2+8*(getskilllv(34)==10),1,0; }
 4281,Zipper_Bear_Card,Zipper Bear Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bAtk,30; bonus3 bSPDrainValue,100,-1,0; if(callfunc("Is_Merc_Class")==0) end; bonus bUnbreakableWeapon,0; bonus bUnstripableWeapon,0; }
 4282,Tengu_Card,Tengu Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus2 bAddMonsterDropItemGroup,13,500; }
