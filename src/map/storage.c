@@ -114,8 +114,9 @@ int storage_delete(int account_id)
  */
 int storage_storageopen(struct map_session_data *sd)
 {
+#ifdef TXT_ONLY
 	struct storage *stor;
-
+#endif
 	nullpo_retr(0, sd);
 
 	if(pc_isGM(sd) && pc_isGM(sd) < battle_config.gm_can_drop_lv) {
