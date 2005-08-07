@@ -3745,11 +3745,12 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 
 		/* セ?フティウォ?ル、ニュ?マ */
+		/* The tick is passed from skill.c, so no need to guess it. [Skotlex]
 		case SC_SAFETYWALL:
 		case SC_PNEUMA:
 			tick=((struct skill_unit *)val2)->group->limit;
 			break;
-
+		*/
 		/* スキルじゃない/時間に?係しない */
 		case SC_RIDING:
 			calc_flag = 1;

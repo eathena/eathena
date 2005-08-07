@@ -1,4 +1,7 @@
 Date	Added
+08/07
+	* Fixed Pneuma and Safety Wall crashing the server. [Skotlex]
+	  (was caused by yesterday's skill upgrade not being... eh, complete)
 08/06
 	* Yet another @autotrade fix by irmin&Ultra. More fixes are coming soon 8)) [Lupus]
 	* Pretty big change in the way ground skills are handled, meant to fix
