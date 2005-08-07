@@ -7616,6 +7616,9 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 	if (bl->type == BL_PC) {
 		nullpo_retr(0, tsd = (struct map_session_data*)bl);
 	}
+	if (bl->prev == NULL) //Prevent targeting enemies that are not in the map. [Skotlex]
+		return 0;
+	
 	if(sd->bl.m != bl->m || pc_isdead(sd))
 		return 0;
 

@@ -1,5 +1,7 @@
 Date	Added
 08/07
+	* Quick fix meant to prevent crashes when targetting "ghosts" of already
+	  dead mobs. [Skotlex]
 	* Fixed Pneuma and Safety Wall crashing the server. [Skotlex]
 	  (was caused by yesterday's skill upgrade not being... eh, complete)
 08/06
