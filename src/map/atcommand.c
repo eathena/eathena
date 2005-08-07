@@ -7234,16 +7234,17 @@ atcommand_autotrade(
 	const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	if (sd->special_state.autotrade) 
+	if (!sd->special_state.autotrade && sd->vender_id) //check if player's vending
 	{
-		sd->special_state.autotrade = 0;
-		clif_displaymessage(fd, "Autotrade is now off.");
+		sd->special_state.autotrade = 1;
+		//You can't see this message anyway
+		//clif_displaymessage(fd, "Autotrade is now on.");
+		clif_authfail_fd(fd, 15);
 	}
 	else 
 	{
-		sd->special_state.autotrade = 1;
-		clif_displaymessage(fd, "Autotrade is now on.");
-		clif_authfail_fd(fd, 15);
+		//sd->special_state.autotrade = 0;
+		clif_displaymessage(fd, "You should be vending to use @Autotrade.");
 	}
 	return 0;  
 }   

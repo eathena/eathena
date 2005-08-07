@@ -1,5 +1,9 @@
 Date	Added
 08/07
+	* More fixes to @autotrade
+		(You still can't disconnect your autotrader by entering in the
+		server again. And an autotrader rises map server usage to 70%+).
+		 Started adding Freya's anti-bot thing [Lupus]
 	* Quick fix meant to prevent crashes when targetting "ghosts" of already
 	  dead mobs. [Skotlex]
 	* Fixed Pneuma and Safety Wall crashing the server. [Skotlex]

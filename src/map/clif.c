@@ -7986,8 +7986,9 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			//Check for @AUTOTRADE ON [durf]
 			if (old_sd->special_state.autotrade) {
 				old_sd->special_state.autotrade=0;
+				session[old_sd->fd]->eof = 1;
 				map_quit(old_sd);
-				session[fd]->eof = 1;
+				//session[sd->fd]->rdata_tick = 1;
 				clif_authfail_fd(old_sd->fd, 15);
 				return;
 			}
@@ -8274,6 +8275,99 @@ void clif_parse_QuitGame(int fd, struct map_session_data *sd) {
 	}
 	WFIFOSET(fd,packet_len_table[0x18b]);
 
+}
+
+
+/*==========================================
+ *
+ *------------------------------------------
+ */
+void check_fake_id(int fd, struct map_session_data *sd, int target_id) {
+	// if player asks for the fake player (only bot and modified client can see a hiden player)
+/*	if (target_id == server_char_id) {
+		char message_to_gm[strlen(msg_txt(622)) + strlen(msg_txt(540)) + strlen(msg_txt(507)) + strlen(msg_txt(508))];
+		sprintf(message_to_gm, msg_txt(622), sd->status.name, sd->status.account_id); // Character '%s' (account: %d) try to use a bot (it tries to detect a fake player).
+		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
+		// if we block people
+		if (battle_config.ban_bot < 0) {
+			chrif_char_ask_name(-1, sd->status.name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
+			clif_setwaitclose(sd->fd); // forced to disconnect because of the hack
+			// message about the ban
+			sprintf(message_to_gm, msg_txt(540)); //  This player has been definitivly blocked.
+		// if we ban people
+		} else if (battle_config.ban_bot > 0) {
+			chrif_char_ask_name(-1, sd->status.name, 2, 0, 0, 0, 0, battle_config.ban_bot, 0); // type: 2 - ban (year, month, day, hour, minute, second)
+			clif_setwaitclose(sd->fd); // forced to disconnect because of the hack
+			// message about the ban
+			sprintf(message_to_gm, msg_txt(507), battle_config.ban_bot); //  This player has been banned for %d minute(s).
+		} else { // impossible to display: we don't send fake player if battle_config.ban_bot is == 0
+			// message about the ban
+			sprintf(message_to_gm, msg_txt(508)); //  This player hasn't been banned (Ban option is disabled).
+		}
+		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
+		// send this info cause the bot ask until get an answer, damn spam
+		memset(WPACKETP(0), 0, packet_len_table[0x95]);
+		WPACKETW(0) = 0x95;
+		WPACKETL(2) = server_char_id;
+		strncpy(WPACKETP(6), sd->status.name, 24);
+		SENDPACKET(fd, packet_len_table[0x95]);
+		// take fake player out of screen
+		WPACKETW(0) = 0x80;
+		WPACKETL(2) = server_char_id;
+		WPACKETB(6) = 0;
+		SENDPACKET(fd, packet_len_table[0x80]);
+		// take fake mob out of screen
+		WPACKETW(0) = 0x80;
+		WPACKETL(2) = server_fake_mob_id;
+		WPACKETB(6) = 0;
+		SENDPACKET(fd, packet_len_table[0x80]);
+	}
+
+	// if player asks for the fake mob (only bot and modified client can see a hiden mob)
+	if (target_id == server_fake_mob_id) {
+		int fake_mob;
+		char message_to_gm[strlen(msg_txt(623)) + strlen(msg_txt(540)) + strlen(msg_txt(507)) + strlen(msg_txt(508))];
+		sprintf(message_to_gm, msg_txt(623), sd->status.name, sd->status.account_id); // Character '%s' (account: %d) try to use a bot (it tries to detect a fake mob).
+		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
+		// if we block people
+		if (battle_config.ban_bot < 0) {
+			chrif_char_ask_name(-1, sd->status.name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
+			clif_setwaitclose(sd->fd); // forced to disconnect because of the hack
+			// message about the ban
+			sprintf(message_to_gm, msg_txt(540)); //  This player has been definitivly blocked.
+		// if we ban people
+		} else if (battle_config.ban_bot > 0) {
+			chrif_char_ask_name(-1, sd->status.name, 2, 0, 0, 0, 0, battle_config.ban_bot, 0); // type: 2 - ban (year, month, day, hour, minute, second)
+			clif_setwaitclose(sd->fd); // forced to disconnect because of the hack
+			// message about the ban
+			sprintf(message_to_gm, msg_txt(507), battle_config.ban_bot); //  This player has been banned for %d minute(s).
+		} else { // impossible to display: we don't send fake player if battle_config.ban_bot is == 0
+			// message about the ban
+			sprintf(message_to_gm, msg_txt(508)); //  This player hasn't been banned (Ban option is disabled).
+		}
+		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
+		// send this info cause the bot ask until get an answer, damn spam
+		memset(WPACKETP(0), 0, packet_len_table[0x95]);
+		WPACKETW(0) = 0x95;
+		WPACKETL(2) = server_fake_mob_id;
+		fake_mob = fake_mob_list[(sd->bl.m + sd->fd + sd->status.char_id) % (sizeof(fake_mob_list) / sizeof(fake_mob_list[0]))]; // never same mob
+		if (mobdb_checkid(fake_mob) == 0)
+			fake_mob = 1002; // poring (default)
+		strncpy(WPACKETP(6), mob_db[fake_mob].name, 24);
+		SENDPACKET(fd, packet_len_table[0x95]);
+		// take fake mob out of screen
+		WPACKETW(0) = 0x80;
+		WPACKETL(2) = server_fake_mob_id;
+		WPACKETB(6) = 0;
+		SENDPACKET(fd, packet_len_table[0x80]);
+		// take fake player out of screen
+		WPACKETW(0) = 0x80;
+		WPACKETL(2) = server_char_id;
+		WPACKETB(6) = 0;
+		SENDPACKET(fd, packet_len_table[0x80]);
+	}
+*/
+	return;
 }
 
 /*==========================================
@@ -10690,7 +10784,10 @@ int clif_parse(int fd) {
 	static int last_fail_fd = 0; //To prevent spamming the console. [Skotlex]
 	sd = (struct map_session_data*)session[fd]->session_data;
 
-	if( sd && sd->special_state.autotrade) session[sd->fd]->eof = 0; //for @autotrade [Lupus]
+	if( sd && sd->special_state.autotrade) {
+		session[sd->fd]->eof = 0; //for @autotrade [Lupus]
+		session[sd->fd]->rdata_tick = 0; //to prevent TIMEOUT of SESSION
+	}
 
 	// Ú‘±‚ªØ‚ê‚Ä‚é‚Ì‚ÅŒãn––
 	if (!chrif_isconnect() || session[fd]->eof) { // charI‚ÉŒq‚ª‚Á‚Ä‚È‚¢ŠÔ‚ÍÚ‘±‹Ö~ (!chrif_isconnect())

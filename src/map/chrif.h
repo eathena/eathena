@@ -14,7 +14,7 @@ extern int chrif_connected;
 int chrif_authreq(struct map_session_data *);
 int chrif_save(struct map_session_data*);
 int chrif_charselectreq(struct map_session_data *);
-
+void check_fake_id(int fd, struct map_session_data *sd, int target_id);
 int chrif_changemapserver(struct map_session_data *sd,char *name,int x,int y,int ip,short port);
 
 int chrif_searchcharid(int char_id);
