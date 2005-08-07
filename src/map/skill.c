@@ -6081,7 +6081,6 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 {
 	struct skill_unit_group *sg;
 	struct block_list *ss;
-	struct skill_unit *unit2;
 	struct status_change *sc_data;
 	int type;
 
@@ -6109,7 +6108,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	case 0x85:	/* ニューマ */
 	case 0x7e:	/* セイフティウォール */
 		if (sc_data && sc_data[type].timer == -1)
-			status_change_start(bl,type,sg->skill_lv,(int)src,0,0,0,0);
+			status_change_start(bl,type,sg->skill_lv,sg->group_id,0,0,0,0);
 		break;
 
 	case 0x80:	/* ワープポータル(発動後) */
@@ -6136,20 +6135,16 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 		if(status_isimmune(bl))
 			break;
 		if(sc_data && sc_data[type].timer==-1)
-			status_change_start(bl,type,sg->skill_lv,(int)src,0,0,
+			status_change_start(bl,type,sg->skill_lv,sg->group_id,0,0,
 				skill_get_time2(sg->skill_id,sg->skill_lv),0);
 		break;
 
 	case 0x9a:	/* ボルケ?ノ */
 	case 0x9b:	/* デリュ?ジ */
 	case 0x9c:	/* バイオレントゲイル */
-		if (sc_data && sc_data[type].timer!=-1) {
-			unit2 = (struct skill_unit *)sc_data[type].val4;
-			if (unit2 && unit2->group &&
-				(unit2==src || DIFF_TICK(sg->tick,unit2->group->tick)<=0))
-				break;
-		}
-		status_change_start(bl,type,sg->skill_lv,(int)src,0,0,
+		if (sc_data && sc_data[type].timer!=-1 && sc_data[type].val2 == sg->group_id)
+			break;
+		status_change_start(bl,type,sg->skill_lv,sg->group_id,0,0,
 			skill_get_time2(sg->skill_id,sg->skill_lv),0);
 		break;
 
@@ -6174,63 +6169,42 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	case 0xb9:	// Wand of Hermod
 		if (sg->src_id==bl->id)
 			break;
-		if (sc_data && sc_data[type].timer!=-1) {
-			unit2 = (struct skill_unit *)sc_data[type].val4;
-			if (unit2 && unit2->group &&
-				(unit2 == src || DIFF_TICK(sg->tick,unit2->group->tick)<=0))
-				break;
-		}
+		if (sc_data && sc_data[type].timer!=-1 && sc_data[type].val4 == sg->group_id)
+			break;
 		status_change_start(bl,type,sg->skill_lv,sg->val1,sg->val2,
-				(int)src,skill_get_time2(sg->skill_id,sg->skill_lv),0);
+			sg->group_id,skill_get_time2(sg->skill_id,sg->skill_lv),0);
 		break;
 
 	case 0xb4:	// Basilica
 		if (battle_check_target(&src->bl,bl,BCT_NOENEMY)>0) {
-			if (sc_data && sc_data[type].timer!=-1) {
-				struct skill_unit_group *sg2 = (struct skill_unit_group *)sc_data[type].val4;
-				if (sg2 && (sg2 == src->group || DIFF_TICK(sg->tick,sg2->tick)<=0))
+			if (sc_data && sc_data[type].timer!=-1 && sc_data[type].val4 == sg->group_id)
 					break;
-			}
-			status_change_start(bl,type,sg->skill_lv,0,0,(int)sg,
+			status_change_start(bl,type,sg->skill_lv,0,0,sg->group_id,
 				skill_get_time2(sg->skill_id,sg->skill_lv),0);
 		} else if (!status_get_mode(bl)&0x20)
 			skill_blown(&src->bl,bl,1,2);
 		break;
 
 	case 0xb6:	/* フォグウォ?ル */
-		if (sc_data && sc_data[type].timer!=-1) {
-			struct skill_unit_group *sg2 = (struct skill_unit_group *)sc_data[type].val4;
-			if (sg2 && (sg2 == src->group || DIFF_TICK(sg->tick,sg2->tick)<=0))
-				break;
-		}
-		status_change_start (bl, type, sg->skill_lv, sg->val1, sg->val2, (int)sg,
+		if (sc_data && sc_data[type].timer!=-1 && sc_data[type].val4 == sg->group_id)
+			break;
+		status_change_start (bl, type, sg->skill_lv, sg->val1, sg->val2, sg->group_id,
 				skill_get_time2(sg->skill_id, sg->skill_lv), 0);
 		if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0)
 			skill_additional_effect (ss, bl, sg->skill_id, sg->skill_lv, BF_MISC, tick);
 		break;
 
 	case 0xb8:	// Gravitation
-//		if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0) { <-- this check is unneeded, you set enemy already in skill_unit_db [Skotlex]
-			if (sc_data && sc_data[type].timer!=-1) {
-				struct skill_unit_group *sg2 = (struct skill_unit_group *)sc_data[type].val4;
-				if (sg2 && (sg2 == src->group || DIFF_TICK(sg->tick,sg2->tick)<=0))
-					break;
-				if (!status_get_mode(bl)&0x20)
-					break;
-			}
-			status_change_start(bl,type,sg->skill_lv,5*sg->skill_lv,BCT_ENEMY,(int)sg,
-				skill_get_time2(sg->skill_id,sg->skill_lv),0);
-//		}
+		if (sc_data && sc_data[type].timer!=-1 && (sc_data[type].val4 == sg->group_id || !status_get_mode(bl)&0x20)) //What is this check for? seems odd...
+			break;
+		status_change_start(bl,type,sg->skill_lv,5*sg->skill_lv,BCT_ENEMY,sg->group_id,
+			skill_get_time2(sg->skill_id,sg->skill_lv),0);
 		break;
 
 	case 0xb2:				/* あなたを_?いたいです */
 	case 0xb3:
 	//とりあえず何もしない
 		break;
-	/*	default:
-		if(battle_config.error_log)
-			printf("skill_unit_onplace: Unknown skill unit id=%d block=%d\n",sg->unit_id,bl->id);
-		break;*/
 	}
 
 	return 0;
@@ -6416,7 +6390,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	case 0x92:	/* ベノムダスト */
 		if(sc_data && sc_data[type].timer==-1 )
-			status_change_start(bl,type,sg->skill_lv,(int)src,0,0,skill_get_time2(sg->skill_id,sg->skill_lv),0);
+			status_change_start(bl,type,sg->skill_lv,sg->group_id,0,0,skill_get_time2(sg->skill_id,sg->skill_lv),0);
 		break;
 
 	case 0xab:	//Ugly Dance [Skotlex]
@@ -6473,13 +6447,13 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	// Basilica
 	case 0xb4:				/* バジリカ */
-	   	if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0 &&
+		if (battle_check_target(&src->bl,bl,BCT_ENEMY)>0 &&
 			!(status_get_mode(bl)&0x20))
 			skill_blown(&src->bl,bl,1,2);
 		if (sg->src_id==bl->id)
 			break;
 		if (battle_check_target(&src->bl,bl,BCT_NOENEMY)>0 && sc_data && sc_data[type].timer == -1)
-			status_change_start(bl,type,sg->skill_lv,(int)src,0,0,
+			status_change_start(bl,type,sg->skill_lv,sg->group_id,0,0,
 				skill_get_time2(sg->skill_id,sg->skill_lv),0);
 		break;
 
@@ -6588,11 +6562,6 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 			}
 		}
 		break;	
-
-/*	default:
-		if(battle_config.error_log)
-			printf("skill_unit_onplace: Unknown skill unit id=%d block=%d\n",sg->unit_id,bl->id);
-		break;*/
 	}
 
 	if (bl->type == BL_MOB && ss != bl) {	/* スキル使用?件のMOBスキル */
@@ -6639,9 +6608,8 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 	case 0x9c:	/* バイオレントゲイル */
 		if (type==SC_QUAGMIRE && bl->type==BL_MOB)
 			break;
-		if (sc_data && sc_data[type].timer!=-1 && sc_data[type].val2==(int)src) {
+		if (sc_data && sc_data[type].timer!=-1 && sc_data[type].val2==sg->group_id)
 			status_change_end(bl,type,-1);
-		}
 		break;
 	case 0x91:	/* アンクルスネア */
 	{
@@ -6662,9 +6630,8 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 	case 0xa5:	/* 不死身のジークフリード */
 	case 0xad:	/* 私を忘れないで… */
 	case 0xb9:	// Wand of Hermod
-		if (sc_data[type].timer!=-1 && sc_data[type].val4==(int)src) {
+		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id)
 			status_change_end(bl,type,-1);
-		}
 		break;	
 
 //	case 0xa6:	/* 不協和音 */
@@ -6680,29 +6647,30 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 			status_change_end(bl,type,-1);
 			break;
 		}
-		if (sc_data[type].timer!=-1 && sc_data[type].val4==(int)src) {
+
+		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id) {
+			delete_timer(sc_data[type].timer, status_change_timer);
 			sc_data[type].timer = add_timer(20000+tick, status_change_timer, bl->id, type);
 		}
 		break;		
 
 	case 0xb4:	// Basilica
 	case 0xb8:	// Gravitation
-		if (sc_data[type].timer!=-1 && sc_data[type].val4==(int)sg) {
+		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id)
 			status_change_end(bl,type,-1);
-		}
 		break;
 
 	case 0xb6:
-		{
-			if (sc_data[type].timer!=-1 && sc_data[type].val4==(int)sg) {
-				status_change_end(bl,SC_FOGWALL,-1);
-				if (sc_data && sc_data[SC_BLIND].timer!=-1)
-					sc_data[SC_BLIND].timer = add_timer(
-						gettick() + 30000, status_change_timer, bl->id, 0);
+		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id) {
+			status_change_end(bl,SC_FOGWALL,-1);
+			if (sc_data && sc_data[SC_BLIND].timer!=-1)
+			{
+				delete_timer(sc_data[SC_BLIND].timer, status_change_timer);
+				sc_data[SC_BLIND].timer = add_timer(
+					gettick() + 30000, status_change_timer, bl->id, 0);
 			}		
 			break;
 		}
-
 	case 0xb7:	/* スパイダ?ウェッブ */
 		{
 			struct block_list *target = map_id2bl(sg->val2);
@@ -6711,13 +6679,7 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 			sg->limit = DIFF_TICK(tick,sg->tick)+1000;
 			break;
 		}
-
-/*	default:
-		if(battle_config.error_log)
-			printf("skill_unit_onout: Unknown skill unit id=%d block=%d\n",sg->unit_id,bl->id);
-		break;*/
 	}
-
 	return 0;
 }
 
@@ -6906,82 +6868,6 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 	}
 	return 0;
 }
-
-/*==========================================
- * 範??キャラ存在確認判定後スキル使用?理(foreachinarea)
- *------------------------------------------
- */
-/* No Longer needed. [Skotlex]
-static int skill_check_condition_use_sub(struct block_list *bl,va_list ap)
-{
-	int *c;
-	struct block_list *src;
-	struct map_session_data *sd;
-	struct map_session_data *ssd;
-	int s_class;
-	int ss_class;
-	int skillid,skilllv;
-	unsigned int tick = gettick();
-
-	nullpo_retr(0, bl);
-	nullpo_retr(0, ap);
-	nullpo_retr(0, sd=(struct map_session_data*)bl);
-	nullpo_retr(0, src=va_arg(ap,struct block_list *));
-	nullpo_retr(0, c=va_arg(ap,int *));
-	nullpo_retr(0, ssd=(struct map_session_data*)src);
-
-	s_class = pc_calc_base_job2(sd->status.class_);
-	ss_class = pc_calc_base_job2(ssd->status.class_);
-
-	skillid=ssd->skillid;
-	skilllv=ssd->skilllv;
-	//if(skilllv <= 0) return 0;
-	if(skillid > 0 && skilllv <= 0) return 0;	// celest
-	switch(skillid){
-	case PR_BENEDICTIO:				// 聖?降福
-		if (sd != ssd && (s_class == JOB_ACOLYTE || s_class == JOB_ROGUE || s_class == JOB_MONK) &&
-			(sd->bl.x == ssd->bl.x - 1 || sd->bl.x == ssd->bl.x + 1) && sd->status.sp >= 10){
-			sd->status.sp -= 10;
-			clif_updatestatus(sd,SP_SP);
-			(*c)++;
-		}
-		break;
-	case BD_LULLABY:				// 子守歌 
-	case BD_RICHMANKIM:				// ニヨルドの宴 
-	case BD_ETERNALCHAOS:			// 永遠の混沌 
-	case BD_DRUMBATTLEFIELD:		// ?太鼓の響き 
-	case BD_RINGNIBELUNGEN:			// ニ?ベルングの指輪 
-	case BD_ROKISWEIL:				// ロキの叫び 
-	case BD_INTOABYSS:				// 深淵の中に 
-	case BD_SIEGFRIED:				// 不死身のジ?クフリ?ド 
-	case BD_RAGNAROK:				// 神?の?昏 
-	case CG_MOONLIT:				// 月明りの泉に落ちる花びら 
-		if(sd != ssd && //本人以外で
-		  ((ss_class==JOB_BARD && s_class==JOB_DANCER) || //自分がバ?ドならダンサ?で
-		   (ss_class==JOB_DANCER && s_class==JOB_BARD)) && //自分がダンサ?ならバ?ドで
-		   pc_checkskill(sd,skillid) > 0 && //スキルを持っていて
-		   (*c)==0 && //最初の一人で
-		   (sd->weapontype1==13 || sd->weapontype1==14) &&
-		   (ssd->weapontype1==13 || ssd->weapontype1==14) &&
-		   sd->status.party_id && ssd->status.party_id &&
-		   sd->status.party_id == ssd->status.party_id && //パ?ティ?が同じで
-		   !pc_issit(sd) && !pc_isdead(sd) && //座ってない
-		   sd->sc_data[SC_DANCING].timer==-1 &&
-		   sd->skilltimer==-1 &&
-		   sd->canmove_tick < tick // added various missing ensemble checks [Valaris]
-		  ){
-			ssd->sc_data[SC_DANCING].val4=bl->id;
-			clif_skill_nodamage(bl,src,skillid,skilllv,1);
-			status_change_start(bl,SC_DANCING,skillid,ssd->sc_data[SC_DANCING].val2,0,src->id,skill_get_time(skillid,skilllv)+1000,0);
-			sd->skillid_dance=sd->skillid=skillid;
-			sd->skilllv_dance=sd->skilllv=skilllv;
-			(*c)++;
-		}
-		break;
-	}
-	return 0;
-}
-*/
 
 /*==========================================
  * Checks and stores partners for ensemble skills [Skotlex]
