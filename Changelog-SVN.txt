@@ -1,5 +1,9 @@
 Date	Added
 08/07
+	* Updated skill_blown to avoid knocking back plants. [Skotlex]
+	* Made the damage delay of the finishing blow the same delay before sending
+	  a char clear packet, this might fix mob sprites being left there after
+	  killed. [Skotlex]
 	* More fixes to @autotrade
 		(You still can't disconnect your autotrader by entering in the
 		server again. And an autotrader rises map server usage to 70%+).

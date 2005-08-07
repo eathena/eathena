@@ -2871,9 +2871,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		npc_event_doall_id("NPCKillEvent", mvp_sd->bl.id), "NPCKillEvent");
 	}
 }
-//lordalfa  
-
-	(battle_config.mob_clear_delay) ? clif_clearchar_delay(tick+battle_config.mob_clear_delay,&md->bl,1) : clif_clearchar_area(&md->bl,1);
+//[lordalfa], let's consider the default damage delay too [Skotlex] 
+	(battle_config.mob_clear_delay || delay) ? clif_clearchar_delay(tick+delay+battle_config.mob_clear_delay,&md->bl,1) : clif_clearchar_area(&md->bl,1);
+	
 	if(md->level) md->level=0;
 	map_delblock(&md->bl);
 	if(mob_get_viewclass(md->class_) <= JOB_SUPER_NOVICE || (mob_get_viewclass(md->class_) >= JOB_NOVICE_HIGH && mob_get_viewclass(md->class_) <= JOB_SUPER_BABY))

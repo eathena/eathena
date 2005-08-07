@@ -1295,6 +1295,8 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 		sd=(struct map_session_data *)target;
 	}else if(target->type==BL_MOB){
 		md=(struct mob_data *)target;
+		if (md->db->mode&(0x40)) //Avoid Pushing inmobile Plants [Skotlex]
+			return 0;
 	}else if(target->type==BL_PET){
 		pd=(struct pet_data *)target;
 	}else if(target->type==BL_SKILL){
