@@ -28,7 +28,7 @@ Guardian3:
 	goto Guardian4;
 Guardian4:
 	if (GetCastleData("payg_cas05.gat",13) <= 0) goto Guardian5;
-	guardian "payg_cas05.gat",46,273,"Archer Guardian",1285,1,"Guardian_C05::OnGuardianDied",3;
+	guardian "payg_cas05.gat",18,281,"Archer Guardian",1285,1,"Guardian_C05::OnGuardianDied",3;
 	goto Guardian5;
 Guardian5:
 	if (GetCastleData("payg_cas05.gat",14) <= 0) goto Guardian6;

@@ -10690,6 +10690,8 @@ int clif_parse(int fd) {
 	static int last_fail_fd = 0; //To prevent spamming the console. [Skotlex]
 	sd = (struct map_session_data*)session[fd]->session_data;
 
+	if( sd && sd->special_state.autotrade) session[sd->fd]->eof = 0; //for @autotrade [Lupus]
+
 	// Ú‘±‚ªØ‚ê‚Ä‚é‚Ì‚ÅŒãn––
 	if (!chrif_isconnect() || session[fd]->eof) { // charI‚ÉŒq‚ª‚Á‚Ä‚È‚¢ŠÔ‚ÍÚ‘±‹Ö~ (!chrif_isconnect())
 		if (sd && sd->state.auth) {
