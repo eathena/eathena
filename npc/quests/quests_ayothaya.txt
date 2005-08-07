@@ -3,7 +3,7 @@
 //===== By ================================================
 //= Fredzilla
 //===== Version ===========================================
-//= 1.0 - First Release, made with infomation from RagnaInfo
+//= 1.1
 //===== Compatible With ===================================
 //= eAthena 1.0
 //===== Description =======================================
@@ -19,6 +19,8 @@
 //= recoveredring - Signifies you have retrieved the ring 
 //=		    and therefore can't just drop the ring and 
 //=		    get the same quest again.
+//= 1.0 - First Release, made with infomation from RagnaInfo
+//= 1.1 - added anti-novice protection [Lupus]
 
 ayo_dun02.gat,277,178,1	script	OBB	139,4,4,{
 	if (AyoOBB==1 || weddingring!=3) goto L_Cancel;
@@ -27,6 +29,7 @@ ayo_dun02.gat,277,178,1	script	OBB	139,4,4,{
 	next;
 	set AyoOBB,1;
 	getitem 603,1;
+	logmes "Q_AYOTH1: got OBB";
 	mes "["+strcharinfo(0)+"]";
 	mes "I think I will keep it";
 	close;
@@ -119,6 +122,8 @@ L_Cancel:
 
 ayothaya.gat,233,105,7	script	Shuda	818,{
 	mes "[Shuda]";
+	if (BaseLevel<50) mes "Where is my ring!?!";
+	if (BaseLevel<50) close;
 	if (weddingring==2) goto L_Quest2;
 	if (weddingring==3) goto L_OnQ2;
 	if (weddingring==4) goto L_QuestComplete;

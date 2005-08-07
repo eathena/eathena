@@ -29,6 +29,7 @@ TODO:
 Date		Added
 ======
 08/02
+	* Added anit-novice protection to Ayothay OBB quest [Lupus]
 	* Changed order of adding up Economy thanks to kyoki [Fredzilla]
 07/30
 	* Few NPC fixes reported on in "SVN Script Fixes" [Fredzilla]
