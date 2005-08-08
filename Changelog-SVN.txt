@@ -1,5 +1,6 @@
 Date	Added
 08/07
+	* Corrected the Payon Guild Flags [Codemaster]
 	* Lots of debug message cleanup in clif.c which should make more clear the
 	  why characters are being disconnected. [Skotlex]
 	* Added OnAgitInit to the list of npc events executed on connection (it
