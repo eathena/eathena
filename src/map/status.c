@@ -3225,8 +3225,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	if(scdef>=100)
 		return 0;
 	if(bl->type==BL_PC){
-		//we've already got SD before [Lupus]
-		//sd=(struct map_session_data *)bl;
+		sd=(struct map_session_data *)bl;
 		if( sd && type == SC_ADRENALINE && !(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)))
 			return 0;
 
