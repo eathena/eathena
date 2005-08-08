@@ -349,7 +349,7 @@ L_refinenormal:
 		mes "I must warn you if it is refined ANYMORE, It could be DESTROYED and become USELESS!!";
 		next;
 		mes "["+@name$+"]";
-		mes "Do you still wish you refine it? If so I will not be able to gaurantee my work...";
+		mes "Do you still wish you refine it? If so I will not be able to guarantee my work...";
 		next;
 		menu "Yes",L_Sub,"No",Lcancel1;
 

@@ -808,6 +808,7 @@ int pet_remove_map(struct map_session_data *sd)
 	if(sd->status.pet_id && sd->pd) {
 
 		struct pet_data *pd=sd->pd; // [Valaris]
+		skill_cleartimerskill(&pd->bl); //Just in case pets get a timer-based skill.
 		//[Skotlex] clear bonus data
 		if (pd->status)
 		{
@@ -979,7 +980,10 @@ int pet_data_init(struct map_session_data *sd)
 	pd->timer = -1;
 	pd->next_walktime = pd->attackabletime = pd->last_thinktime = gettick();
 	pd->msd = sd;
-	
+
+	for(i=0;i<MAX_MOBSKILLTIMERSKILL;i++)
+		pd->skilltimerskill[i].timer = -1;
+		
 	map_addiddb(&pd->bl);
 
 	// initialise

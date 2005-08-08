@@ -2292,7 +2292,16 @@ int skill_cleartimerskill(struct block_list *src)
 			}
 		}
 	}
-
+	else if(src->type == BL_PET) { // Ya forgot this one, Valaris. [Skotlex]
+		struct pet_data *pd = (struct pet_data *)src;
+		nullpo_retr(1, pd);
+		for(i=0;i<MAX_MOBSKILLTIMERSKILL;i++) {
+			if(pd->skilltimerskill[i].timer != -1) {
+				delete_timer(pd->skilltimerskill[i].timer, skill_timerskill);
+				pd->skilltimerskill[i].timer = -1;
+			}
+		}
+	}
 	return 0;
 }
 
