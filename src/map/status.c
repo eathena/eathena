@@ -3744,13 +3744,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			tick = 10;
 			break;
 
-		/* セ?フティウォ?ル、ニュ?マ */
-		/* The tick is passed from skill.c, so no need to guess it. [Skotlex]
-		case SC_SAFETYWALL:
-		case SC_PNEUMA:
-			tick=((struct skill_unit *)val2)->group->limit;
-			break;
-		*/
 		/* スキルじゃない/時間に?係しない */
 		case SC_RIDING:
 			calc_flag = 1;
@@ -3955,6 +3948,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			}
 			break;
 		}
+		case SC_SAFETYWALL:
+		case SC_PNEUMA:
 		case SC_SUFFRAGIUM:			/* サフラギム */
 		case SC_BENEDICTIO:			/* 聖? */
 		case SC_MAGNIFICAT:			/* マグニフィカ?ト */
@@ -3976,8 +3971,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_PRESERVE:
 		case SC_DOUBLECAST:
 		case SC_MAXOVERTHRUST:
-        case SC_AURABLADE:		/* オ?ラブレ?ド */
-       	case SC_BABY:
+		case SC_AURABLADE:		/* オ?ラブレ?ド */
+		case SC_BABY:
 			break;
 
 		default:
