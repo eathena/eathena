@@ -627,13 +627,12 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	//	nullpo_retr(1, sd);
 	}
 
-	// check if double login occured
-	if(sd->new_fd){
-		// 2重login状態だったので、両方落す
-		clif_authfail_fd(sd->fd,2);	// same id
-		clif_authfail_fd(sd->new_fd,8);	// same id
+	if (sd->state.auth) //Temporary debug. [Skotlex]
+	{
+		ShowDebug("pc_authok: Received auth ok for already authorized client (account id %d)!\n", sd->bl.id);
 		return 1;
 	}
+		
 	sd->login_id2 = login_id2;
 	memcpy(&sd->status, st, sizeof(*st));
 
@@ -909,12 +908,8 @@ int pc_authfail(int id) {
 	if (sd == NULL)
 		return 1;
 
-	if(sd->new_fd){
-		// 2重login状態だったので、新しい接続のみ落す
-		clif_authfail_fd(sd->new_fd,0);
-		sd->new_fd=0;
-		return 0;
-	}
+	if (sd->state.auth) //Temporary debug. [Skotlex]
+		ShowDebug("pc_authfail: Received auth fail for already authentified client (account id %d!)\n", sd->bl.id);
 
 	clif_authfail_fd(sd->fd, 0);
 

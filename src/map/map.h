@@ -285,7 +285,7 @@ struct map_session_data {
 	int weight,max_weight;
 	int cart_weight,cart_max_weight,cart_num,cart_max_num;
 	char mapname[MAP_NAME_LENGTH];
-	int fd,new_fd;
+	int fd;
 	short to_x,to_y;
 	short speed,prev_speed;
 	short opt1,opt2,opt3;

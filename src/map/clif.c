@@ -8008,13 +8008,15 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			//Check for @AUTOTRADE ON [durf]
 			if (old_sd->state.autotrade) {
 				old_sd->state.autotrade=0;
+			//Let's try a short version for a while, until the double login issue is solved. [Skotlex]
+			/*
 				session[old_sd->fd]->eof = 1;
 				map_quit(old_sd);
 				//session[sd->fd]->rdata_tick = 1;
 				clif_authfail_fd(old_sd->fd, 15);
 				return;
+			*/
 			}
-
 			clif_authfail_fd(fd, 8); // still recognizes last connection
 			clif_authfail_fd(old_sd->fd, 2); // same id
 		} else {
