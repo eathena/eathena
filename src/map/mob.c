@@ -2554,7 +2554,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			if (sd->expaddrace[race])
 				per += sd->expaddrace[race]/100.;	
 			if (battle_config.pk_mode && (md->db->lv - sd->status.base_level >= 20))
-				per += 1.15;	// pk_mode additional exp if monster >20 levels [Valaris]		
+				per *= 1.15;	// pk_mode additional exp if monster >20 levels [Valaris]		
 		}
 		if(md->size==1)	// change experience for different sized monsters [Valaris]
 			per /=2.;
@@ -2649,6 +2649,10 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			if ((master && status_get_mode(master) & 0x20) ||	// check if its master is a boss (MVP's and minibosses)
 				(md->state.special_mob_ai >= 1 && battle_config.alchemist_summon_reward != 1))	// Added [Valaris]
 				break;	// End
+			//mapflag: noloot check [Lorky]
+			if (map[md->bl.m].flag.nomobloot) break;; 
+			//end added [Lorky]
+
 			if (md->db->dropitem[i].nameid <= 0)
 				continue;
 			drop_rate = md->db->dropitem[i].p;
@@ -2667,10 +2671,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				drop_rate += (int)(0.5+drop_rate*status_get_luk(src)*battle_config.drops_by_luk2/10000.0);
 			if (sd && battle_config.pk_mode == 1 && (md->db->lv - sd->status.base_level >= 20))
 				drop_rate = (int)(drop_rate*1.25); // pk_mode increase drops if 20 level difference [Valaris]
-
-			//mapflag: noloot check [Lorky]
-			if (map[md->bl.m].flag.nomobloot == 1)	drop_rate=0; 
-			//end added [Lorky]
 
 			if (drop_rate < rand() % 10000 + 1) { //fixed 0.01% impossible drops bug [Lupus]
 				drop_ore = i; //we remember an empty slot to put there ORE DISCOVERY drop later.
@@ -2789,6 +2789,10 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		log_mvp[1] = mexp;
 		for(j=0;j<3;j++){
 			i = rand() % 3;
+			//mapflag: noloot check [Lorky]
+			if (map[md->bl.m].flag.nomvploot == 1) break;
+			//end added Lorky 			
+
 			if(md->db->mvpitem[i].nameid <= 0)
 				continue;
 			drop_rate = md->db->mvpitem[i].p;
@@ -2799,10 +2803,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			else if(drop_rate > battle_config.item_drop_mvp_max) //fixed
 				drop_rate = battle_config.item_drop_mvp_max;
 */
-			//mapflag: noloot check [Lorky]
-			if (map[md->bl.m].flag.nomvploot == 1)	drop_rate=0; 
-			//end added Lorky 			
-
 			if(drop_rate <= rand()%10000+1) //if ==0, then it doesn't drop
 				continue;
 			memset(&item,0,sizeof(item));

@@ -1,5 +1,10 @@
 Date	Added
 08/07
+	* Lots of debug message cleanup in clif.c which should make more clear the
+	  why characters are being disconnected. [Skotlex]
+	* Added OnAgitInit to the list of npc events executed on connection (it
+	  will be executed only the first time it connects, thought) [Skotlex]
+	* Fixed the exp bonus on pvp maps (it was set to +115%, not +15%) [Skotlex]
 	* Updated skill_blown to avoid knocking back plants. [Skotlex]
 	* Made the damage delay of the finishing blow the same delay before sending
 	  a char clear packet, this might fix mob sprites being left there after

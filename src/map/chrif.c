@@ -343,10 +343,8 @@ int chrif_connectack(int fd)
 	if(!char_init_done) {
 		char_init_done = 1;
 		ShowStatus("Event '"CL_WHITE"OnInterIfInitOnce"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInitOnce"));
+		ShowStatus("Event '"CL_WHITE"OnAgitInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnAgitInit"));
 	}
-
-	// <Agit> Run Event [AgitInit]
-//	printf("NPC_Event:[OnAgitInit] do (%d) events (Agit Initialize).\n", npc_event_doall("OnAgitInit"));
 
 	return 0;
 }
@@ -363,7 +361,7 @@ int chrif_sendmapack(int fd)
 	}
 
 	memcpy(wisp_server_name, RFIFOP(fd,3), NAME_LENGTH);
-
+	ShowDebug("Connection to Char Server verified.\n");
 	chrif_state = 2;
 
 	return 0;
@@ -1266,13 +1264,13 @@ int chrif_parse(int fd)
 		case 0x2b14: chrif_accountban(fd); break;
 		case 0x2b15: chrif_recvgmaccounts(fd); break;
 		case 0x2b1b: chrif_recvfamelist(fd); break;
-                 case 0x2b1e: chrif_pcauthok(fd); break;
-                 case 0x2b1f: chrif_disconnectplayer(fd); break;
+		case 0x2b1e: chrif_pcauthok(fd); break;
+		case 0x2b1f: chrif_disconnectplayer(fd); break;
 		case 0x2b20: chrif_removemap(fd); break; //Remove maps of a server [Sirius]
 
 		default:
 			if (battle_config.error_log)
-				ShowError("chrif_parse : unknown packet %d %d\n", fd, RFIFOW(fd,0));
+				ShowError("chrif_parse : unknown packet (session #%d): 0x%x. Disconnecting.\n", fd, cmd);
 			session[fd]->eof = 1;
 			return 0;
 		}

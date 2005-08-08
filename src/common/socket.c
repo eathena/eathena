@@ -455,10 +455,11 @@ int make_connection(long ip,int port)
 	}
 //Now the socket can be made non-blocking. [Skotlex]
 #ifdef _WIN32
-        {
-            unsigned long val = 1;
-            ioctlsocket(fd, FIONBIO, &val);
-        }
+	{
+		unsigned long val = 1;
+		if (ioctlsocket(fd, FIONBIO, &val) != 0);
+			ShowError("Couldn't set the socket to non-blocking mode!\n");
+	}
 #else
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
 		perror("Error: Unable to set the socket to non-blocking mode!\n");

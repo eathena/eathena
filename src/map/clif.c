@@ -557,7 +557,29 @@ int clif_authfail_fd(int fd, int type) {
 	WFIFOL(fd,2) = type;
 	WFIFOSET(fd,packet_len_table[0x81]);
 
-	ShowDebug("clif_authfail_fd (type %d): Disconnecting session #%d\n", type, fd);
+	switch (type)
+	{	//NOTE: Remove these once the connection issues are solved. [Skotlex]
+		case 1: //Server closed
+			ShowDebug("clif_authfail_fd: Disconnecting session #%d (reason: Server Closed)\n", fd);
+			break;	
+		case 2: //Someone else logged on with this id
+			ShowDebug("clif_authfail_fd: Disconnecting session #%d (reason: Someone else logged in with this id)\n", fd);
+			break;	
+		case 8: //server recognizes your last connection
+			ShowDebug("clif_authfail_fd: Disconnecting session #%d (reason: Server still recognizes your last connection)\n", fd);
+			break;	
+		case 4: //Overpopulated
+			ShowDebug("clif_authfail_fd: Disconnecting session #%d (reason: Server is full)\n", fd);
+			break;	
+		case 10: //Out of Time Payd For
+			ShowDebug("clif_authfail_fd: Disconnecting session #%d (reason: Account banned)\n", fd);
+			break;	
+		case 15: //GM kick
+			ShowDebug("clif_authfail_fd: Disconnecting session #%d (reason: Kicked by a GM)\n", fd);
+			break;	
+		default:
+			ShowDebug("clif_authfail_fd (type %d): Disconnecting session #%d\n", type, fd);
+	}
 	clif_setwaitclose(fd);
 
 	return 0;
@@ -10790,7 +10812,13 @@ int clif_parse(int fd) {
 	}
 
 	// Ú‘±‚ªØ‚ê‚Ä‚é‚Ì‚ÅŒãŽn––
-	if (!chrif_isconnect() || session[fd]->eof) { // charŽI‚ÉŒq‚ª‚Á‚Ä‚È‚¢ŠÔ‚ÍÚ‘±‹ÖŽ~ (!chrif_isconnect())
+	if (!chrif_isconnect())
+	{
+		if (sd && sd->state.auth)
+			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]
+		ShowInfo("Closing session #%d (Not connected to Char server)\n", fd);
+	}
+	else if (session[fd]->eof) { // charŽI‚ÉŒq‚ª‚Á‚Ä‚È‚¢ŠÔ‚ÍÚ‘±‹ÖŽ~ (!chrif_isconnect())
 		if (sd && sd->state.auth) {
 			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]
 			if (sd->status.name != NULL)
