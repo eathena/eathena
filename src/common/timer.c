@@ -276,6 +276,12 @@ int addtick_timer(int tid, unsigned int tick)
 	return timer_data[tid].tick += tick;
 }
 
+//Sets the tick at which the timer triggers directly (meant as a replacement of delete_timer + add_timer) [Skotlex]
+int settick_timer(int tid, unsigned int tick)
+{
+	return timer_data[tid].tick = tick;
+}
+
 struct TimerData* get_timer(int tid)
 {
 	return &timer_data[tid];

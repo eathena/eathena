@@ -6116,8 +6116,8 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 		return 0;
 
 	switch (sg->unit_id) {
-	case 0x85:	/* ニューマ */
 	case 0x7e:	/* セイフティウォール */
+	case 0x85:	/* ニューマ */
 		if (sc_data && sc_data[type].timer == -1)
 			status_change_start(bl,type,sg->skill_lv,sg->group_id,0,0,sg->limit,0);
 		break;
@@ -6660,8 +6660,7 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 		}
 
 		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id) {
-			delete_timer(sc_data[type].timer, status_change_timer);
-			sc_data[type].timer = add_timer(20000+tick, status_change_timer, bl->id, type);
+			settick_timer(sc_data[type].timer, 20000+tick);
 		}
 		break;		
 
@@ -6675,11 +6674,7 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id) {
 			status_change_end(bl,SC_FOGWALL,-1);
 			if (sc_data && sc_data[SC_BLIND].timer!=-1)
-			{
-				delete_timer(sc_data[SC_BLIND].timer, status_change_timer);
-				sc_data[SC_BLIND].timer = add_timer(
-					gettick() + 30000, status_change_timer, bl->id, 0);
-			}		
+				settick_timer(sc_data[SC_BLIND].timer, tick+30000);
 			break;
 		}
 	case 0xb7:	/* スパイダ?ウェッブ */

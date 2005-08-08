@@ -7234,16 +7234,16 @@ atcommand_autotrade(
 	const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	if (!sd->special_state.autotrade && sd->vender_id) //check if player's vending
+	if (!sd->state.autotrade && sd->vender_id) //check if player's vending
 	{
-		sd->special_state.autotrade = 1;
+		sd->state.autotrade = 1;
 		//You can't see this message anyway
 		//clif_displaymessage(fd, "Autotrade is now on.");
 		clif_authfail_fd(fd, 15);
 	}
 	else 
 	{
-		//sd->special_state.autotrade = 0;
+		//sd->state.autotrade = 0;
 		clif_displaymessage(fd, "You should be vending to use @Autotrade.");
 	}
 	return 0;  
@@ -7306,14 +7306,14 @@ atcommand_autoloot(
 	const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	if (sd->autoloot) 
+	if (sd->state.autoloot) 
 	{
-		sd->autoloot = 0;
+		sd->state.autoloot = 0;
 		clif_displaymessage(fd, "Autoloot is now off.");
 	}
 	else 
 	{
-		sd->autoloot = 1;
+		sd->state.autoloot = 1;
 		clif_displaymessage(fd, "Autoloot is now on.");
 	}
 	return 0;  

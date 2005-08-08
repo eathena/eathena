@@ -43,6 +43,7 @@ int add_timer_interval(unsigned int,int (*)(int,unsigned int,int,int),int,int,in
 int delete_timer(int,int (*)(int,unsigned int,int,int));
 
 int addtick_timer(int tid,unsigned int tick);
+int settick_timer(int tid,unsigned int tick);
 struct TimerData *get_timer(int tid);
 
 int do_timer(unsigned int tick);

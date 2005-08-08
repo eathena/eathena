@@ -1533,10 +1533,11 @@ int map_quit(struct map_session_data *sd) {
 
 		status_change_clear(&sd->bl,1);	// ステ?タス異常を解除する
 		skill_clear_unitgroup(&sd->bl);	// スキルユニットグル?プの削除
-		skill_cleartimerskill(&sd->bl);
+//		skill_cleartimerskill(&sd->bl);	//These are not initialized to -1 until pc_auth_ok, so it should not be called yet. [Skotlex]
 
 		// check if we've been authenticated [celest]
 		if (sd->state.auth) {
+			skill_cleartimerskill(&sd->bl);
 			pc_stop_walking(sd,0);
 			pc_stopattack(sd);
 			pc_stop_following(sd);

@@ -231,6 +231,8 @@ struct square;
 
 struct map_session_data {
 	struct block_list bl;
+	//NOTE: When deciding to add a flag to state or special_state, take into consideration that state is preserved in
+	//status_calc_pc, while special_state is recalculated in each call. [Skotlex]
 	struct {
 		unsigned auth : 1;
 		unsigned change_walk_target : 1;
@@ -256,6 +258,8 @@ struct map_session_data {
 		unsigned event_disconnect : 1;
 		// Abracadabra bugfix by Aru
 		unsigned abra_flag : 1;
+		unsigned autoloot : 1; //by Upa-Kun <- Ya know, I originally wrote this code... [Skotlex]
+		unsigned autotrade : 1;	//By Fantik
 	} state;
 	struct {
 		unsigned killer : 1;
@@ -269,7 +273,6 @@ struct map_session_data {
 		unsigned no_gemstone : 1;
 		unsigned infinite_endure : 1;
 		unsigned intravision : 1; // Maya Purple Card effect allowing to see Hiding/Cloaking people [DracoRPG]
-		unsigned autotrade : 1;	//By Fantik
 	} special_state;
 	int char_id, login_id1, login_id2, sex;
 
@@ -471,7 +474,6 @@ struct map_session_data {
 	int last_skillid,last_skilllv;		// Added by RoVeRT
 
 	unsigned char change_level; // [celest]
-	int autoloot; //by Upa-Kun
 	unsigned nodelay :1;
 	unsigned noexp :1;
 	unsigned detach :1;

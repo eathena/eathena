@@ -8006,8 +8006,8 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 		{	// if same account already connected, we disconnect the 2 sessions
 
 			//Check for @AUTOTRADE ON [durf]
-			if (old_sd->special_state.autotrade) {
-				old_sd->special_state.autotrade=0;
+			if (old_sd->state.autotrade) {
+				old_sd->state.autotrade=0;
 				session[old_sd->fd]->eof = 1;
 				map_quit(old_sd);
 				//session[sd->fd]->rdata_tick = 1;
@@ -10806,7 +10806,7 @@ int clif_parse(int fd) {
 	static int last_fail_fd = 0; //To prevent spamming the console. [Skotlex]
 	sd = (struct map_session_data*)session[fd]->session_data;
 
-	if( sd && sd->special_state.autotrade) {
+	if( sd && sd->state.autotrade) {
 		session[sd->fd]->eof = 0; //for @autotrade [Lupus]
 		session[sd->fd]->rdata_tick = 0; //to prevent TIMEOUT of SESSION
 	}

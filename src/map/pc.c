@@ -701,6 +701,9 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 //		sd->dev.val2[i] = 0;
 //	}
 
+	if (battle_config.item_auto_get)
+		sd->state.autoloot = 1;
+	
 	// アカウント??の送信要求
 	intif_request_accountreg(sd);
 

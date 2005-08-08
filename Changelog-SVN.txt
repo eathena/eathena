@@ -1,4 +1,11 @@
 Date	Added
+08/08
+	* Fixed Safety Wall (I think). Do test and pray it crashes no more. [Skotlex]
+	* Added settick_timer to timer.c, optimizes status retimings for dance
+	  skills. [Skotlex]
+	* Made @autoloot and item_auto_get play along nicely (@autoloot toggles the
+	  mode, item_auto_get sets the default state of it) [Skotlex]
+
 08/07
 	* Corrected the Payon Guild Flags [Codemaster]
 	* Lots of debug message cleanup in clif.c which should make more clear the
