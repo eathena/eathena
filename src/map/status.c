@@ -4240,7 +4240,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 					}
 				break;
 			}
-
+				
 			case SC_DEVOTION:		/* ディボ?ション */
 				{
 					struct map_session_data *md = map_id2sd(sc_data[type].val1);

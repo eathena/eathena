@@ -1,5 +1,7 @@
 Date	Added
 08/08
+	* Reverted Safety Wall to last known working state. [Skotlex]
+	  (from what I read in the code, it should be crash-safe anyway)
 	* Mob level up is now capped to max_base_level rather than 99. [Skotlex]
 	* Another fix to Safety Wall :X [Skotlex]
 	* Fixed Safety Wall (I think). Do test and pray it crashes no more. [Skotlex]

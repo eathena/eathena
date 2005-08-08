@@ -6117,6 +6117,11 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 
 	switch (sg->unit_id) {
 	case 0x7e:	/* セイフティウォール */
+		//TODO: Find a more reliable way to handle the link to sg, this could cause dangling pointers. [Skotlex]
+		if (sc_data && sc_data[type].timer == -1)
+			status_change_start(bl,type,sg->skill_lv,sg->group_id,(int)sg,0,sg->limit,0);
+		break;
+
 	case 0x85:	/* ニューマ */
 		if (sc_data && sc_data[type].timer == -1)
 			status_change_start(bl,type,sg->skill_lv,sg->group_id,0,0,sg->limit,0);
