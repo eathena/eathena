@@ -1,5 +1,6 @@
 Date	Added
 08/08
+	* Mob level up is now capped to max_base_level rather than 99. [Skotlex]
 	* Another fix to Safety Wall :X [Skotlex]
 	* Fixed Safety Wall (I think). Do test and pray it crashes no more. [Skotlex]
 	* Added settick_timer to timer.c, optimizes status retimings for dance
