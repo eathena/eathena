@@ -1,5 +1,8 @@
 Date	Added
 08/08
+	* Added a timer to the map server. It'll try to reconnect 1 sec after it is
+	  disconnected from the char server (in addition to the default "try to
+	  connect every 10 secs" mechanism). [Skotlex]
 	* Reverted Safety Wall to last known working state. [Skotlex]
 	  (from what I read in the code, it should be crash-safe anyway)
 	* Mob level up is now capped to max_base_level rather than 99. [Skotlex]

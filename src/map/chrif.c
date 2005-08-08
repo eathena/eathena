@@ -1166,6 +1166,8 @@ int chrif_disconnect(int fd) {
 		// 倉庫キャッシュを消す
 		do_final_storage();
 		do_init_storage();
+		//Attempt to reconnect in a second. [Skotlex]
+		add_timer(gettick() + 1000, check_connect_char_server, 0, 0);
 	}
 //	close(fd); //Quote from End of Exam: "And close(fd) in chrif_disconnect() and clif_waitclose() do not need since the socket will be closed in clif_parse() or chrif_parse(). This might be link to crash if you use lazy OS." [Skotlex]
 	return 0;
