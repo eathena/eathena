@@ -378,7 +378,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		}
 		if(sc_data[SC_PNEUMA].timer!=-1 && damage>0 &&
 			((flag&BF_WEAPON && flag&BF_LONG && skill_num != NPC_GUIDEDATTACK) ||
-			(flag&BF_MISC && (skill_num ==  HT_BLITZBEAT || skill_num == SN_FALCONASSAULT)) ||
+			(flag&BF_MISC && (skill_num ==  HT_BLITZBEAT || skill_num == SN_FALCONASSAULT || skill_num == TF_THROWSTONE)) ||
 			(flag&BF_MAGIC && skill_num == ASC_BREAKER))){ // [DracoRPG]
 			// ニューマ
 			damage=0;
@@ -442,7 +442,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		if(sc_data[SC_KYRIE].timer!=-1 && damage > 0){	// キリエエレイソン
 			sc=&sc_data[SC_KYRIE];
 			sc->val2-=damage;
-			if(flag&BF_WEAPON){
+			if(flag&BF_WEAPON || (flag&BF_MISC && skill_num == TF_THROWSTONE)){
 				if(sc->val2>=0)	damage=0;
 				else damage=-sc->val2;
 			}
