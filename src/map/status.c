@@ -4093,13 +4093,21 @@ int status_change_clear(struct block_list *bl,int type)
 
 	if (*sc_count == 0)
 		return 0;
-	for(i = 0; i < MAX_STATUSCHANGE; i++){
-		if(sc_data[i].timer != -1 &&	/* ˆÙí‚ª‚ ‚é‚È‚çƒ^ƒCƒ}?‚ðíœ‚·‚é */
-			(i != SC_EDP || type != 1) //Type 1: PC killed -> EDP must not be dispelled. [Skotlex]
-		){
-			status_change_end(bl, i, -1);
+	for(i = 0; i < MAX_STATUSCHANGE; i++)
+	{
+		//Type 0: PC killed -> EDP must not be dispelled. [Skotlex]
+		if(sc_data[i].timer == -1 || (i == SC_EDP && type == 0))
+			continue;
+
+		status_change_end(bl, i, -1);
+
+		if (type == 1 && sc_data[i].timer != 1)
+		{	//If for some reason status_change_end decides to still keep the status when quitting. [Skotlex]
+			delete_timer(sc_data[i].timer, status_change_timer);
+			sc_data[i].timer = -1;
 		}
 	}
+	//This is probably not true, some status are preserved even after death such as SC_RIDING! [Skotlex]
 	*sc_count = 0;
 	*opt1 = 0;
 	*opt2 = 0;
