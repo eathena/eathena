@@ -10818,7 +10818,12 @@ int clif_parse(int fd) {
 	{
 		if (sd && sd->state.auth)
 			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]
+		else if (sd)
+			map_deliddb(&sd->bl); // account_id has been included in the DB before auth answer [Yor]
 		ShowInfo("Closing session #%d (Not connected to Char server)\n", fd);
+		close(fd);
+		delete_session(fd);
+		return 0;
 	}
 	else if (session[fd]->eof) { // charI‚ÉŒq‚ª‚Á‚Ä‚È‚¢ŠÔ‚ÍÚ‘±‹Ö~ (!chrif_isconnect())
 		if (sd && sd->state.auth) {

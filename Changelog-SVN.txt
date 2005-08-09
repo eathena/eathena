@@ -1,5 +1,6 @@
 Date	Added
 08/08
+	* Fixed Picky's pet-script being used for all pets... [Skotlex]
 	* Fixed an ugly bug that was causing status-changes to crash the map server [Skotlex]
 	* Added a timer to the map server. It'll try to reconnect 1 sec after it is
 	  disconnected from the char server (in addition to the default "try to

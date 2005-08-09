@@ -981,9 +981,6 @@ int pet_data_init(struct map_session_data *sd)
 	pd->next_walktime = pd->attackabletime = pd->last_thinktime = gettick();
 	pd->msd = sd;
 
-	for(i=0;i<MAX_MOBSKILLTIMERSKILL;i++)
-		pd->skilltimerskill[i].timer = -1;
-		
 	map_addiddb(&pd->bl);
 
 	// initialise
@@ -995,6 +992,9 @@ int pet_data_init(struct map_session_data *sd)
 	pd->state.skillbonus = -1;
 	if (battle_config.pet_status_support) //Skotlex
 		run_script(pet_db[i].script,0,sd->bl.id,0);
+
+	for(i=0;i<MAX_MOBSKILLTIMERSKILL;i++)
+		pd->skilltimerskill[i].timer = -1;
 
 	if(sd->pet_hungry_timer != -1)
 		pet_hungry_timer_delete(sd);
