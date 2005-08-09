@@ -2833,7 +2833,8 @@ int status_get_dmotion(struct block_list *bl)
 
 	if((sc_data && (sc_data[SC_ENDURE].timer!=-1 || sc_data[SC_CONCENTRATION].timer!=-1 ||  sc_data[SC_BERSERK].timer!=-1)) ||
 		(bl->type == BL_PC && ((struct map_session_data *)bl)->special_state.infinite_endure))
-		ret=0;
+		if (!map[bl->m].flag.gvg) //Only works on non-gvg grounds. [Skotlex]
+			return 0;
 
 	//Let's apply a random damage modifier to prevent 'stun-lock' abusers. [Skotlex]
 	ret = ret*(95+rand()%11)/100;	//Currently: +/- 5%

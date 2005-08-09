@@ -3957,16 +3957,19 @@ static int clif_calc_delay(struct block_list *dst, int type, int delay)
 
 	if (type == 1 || type == 4) //Type 1 is the crouching animation, type 4 are non-flinching attacks. 
 		return type;
+	
 	if (delay == 0)
 		return 9; //Endure type attack (damage delay is 0)
-	
-	if(type != 4 && dst->type == BL_PC && ((struct map_session_data *)dst)->special_state.infinite_endure)
-		return 9;
 
+	if	(map[dst->m].flag.gvg)	//Can't be endure-type attacks on gvg maps. [Skotlex]
+		return type;
+/* Not needed, this state auto-invokes SC_ENDURE	
+	if(dst->type == BL_PC && ((struct map_session_data *)dst)->special_state.infinite_endure)
+		return 9;
+*/
 	sc_data = status_get_sc_data(dst);
-	if(sc_data && (sc_data[SC_ENDURE].timer != -1 || sc_data[SC_CONCENTRATION].timer != -1 || sc_data[SC_BERSERK].timer != -1) &&
-		(dst->type != BL_PC || !map[dst->m].flag.gvg))
-			return 9;
+	if(sc_data && (sc_data[SC_ENDURE].timer != -1 || sc_data[SC_CONCENTRATION].timer != -1 || sc_data[SC_BERSERK].timer != -1))
+		return 9;
 
 	return type;
 }
