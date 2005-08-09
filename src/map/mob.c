@@ -2644,7 +2644,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		int drop_ore = -1, drop_items = 0; //slot N for DROP LOG, number of dropped items
 		for (i = 0; i < 10; i++) { // 8 -> 10 Lupus
 			struct delay_item_drop *ditem;
-			int drop_rate;
 
 			if ((master && status_get_mode(master) & 0x20) ||	// check if its master is a boss (MVP's and minibosses)
 				(md->state.special_mob_ai >= 1 && battle_config.alchemist_summon_reward != 1))	// Added [Valaris]
@@ -2816,24 +2815,26 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				clif_additem(sd,0,0,ret);
 				map_addflooritem(&item,1,mvp_sd->bl.m,mvp_sd->bl.x,mvp_sd->bl.y,mvp_sd,second_sd,third_sd,1);
 			}
-			break;
+			
+			//A Rare MVP Drop Global Announce by Lupus
+			if(drop_rate<=battle_config.rare_drop_announce) {
+				struct item_data *i_data;
+				char message[128];
+				i_data = itemdb_exists(item.nameid);
+				sprintf (message, msg_txt(541), (mvp_sd!=NULL && md!=NULL && mvp_sd->status.name != NULL)?mvp_sd->status.name :"GM", md->db->jname, i_data->jname, (float)drop_rate/100);
+				//MSG: "'%s' won %s's %s (chance: %%%0.02f)"
+				intif_GMmessage(message,strlen(message)+1,0);
+			}
+
+			if(log_config.mvpdrop > 0)
+				log_mvpdrop(mvp_sd, md->class_, log_mvp);
+				
+				break;
 		}
 
-		//A Rare MVP Drop Global Announce by Lupus
-		if(drop_rate<=battle_config.rare_drop_announce) {
-			struct item_data *i_data;
-			char message[128];
-			i_data = itemdb_exists(item.nameid);
-			sprintf (message, msg_txt(541), (mvp_sd!=NULL && md!=NULL && mvp_sd->status.name != NULL)?mvp_sd->status.name :"GM", md->db->jname, i_data->jname, (float)drop_rate/100);
-			//MSG: "'%s' won %s's %s (chance: %%%0.02f)"
-			intif_GMmessage(message,strlen(message)+1,0);
-		}
-
-		if(log_config.mvpdrop > 0)
-			log_mvpdrop(mvp_sd, md->class_, log_mvp);
 	}
 
-        } // [MouseJstr]
+	} // [MouseJstr]
 
 	// <Agit> NPC Event [OnAgitBreak]
 	if(md->npc_event[0] && strcmp(((md->npc_event)+strlen(md->npc_event)-13),"::OnAgitBreak") == 0) {
