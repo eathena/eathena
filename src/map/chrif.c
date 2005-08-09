@@ -202,7 +202,7 @@ int chrif_sendmap(int fd)
 	ShowStatus("Sending maps to char server...\n");
 	WFIFOW(fd,0) = 0x2afa;
 	for(i = 0; i < map_num; i++)
-                if (map[i].alias != '\0') // [MouseJstr] map aliasing
+		if (map[i].alias != '\0') // [MouseJstr] map aliasing
 		    memcpy(WFIFOP(fd,4+i*16), map[i].alias, MAP_NAME_LENGTH);
 		else
 		    memcpy(WFIFOP(fd,4+i*16), map[i].name, MAP_NAME_LENGTH);

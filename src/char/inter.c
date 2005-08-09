@@ -583,7 +583,6 @@ int inter_parse_frommap(int fd) {
 		return 0;
 	}
 	RFIFOSKIP(fd, len);
-
 	return 1;
 }
 

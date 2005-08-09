@@ -113,7 +113,7 @@ char db_path[1024]="db";
 static int max_account_id = DEFAULT_MAX_ACCOUNT_ID, max_char_id = DEFAULT_MAX_CHAR_ID;
 	
 struct char_session_data{
-	int account_id,login_id1,login_id2,sex;
+	int account_id, login_id1, login_id2,sex;
 	int found_char[9];
 	char email[40]; // e-mail (default: a@a.com) by [Yor]
 	time_t connect_until_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
@@ -121,7 +121,7 @@ struct char_session_data{
 
 #define AUTH_FIFO_SIZE 256
 struct {
-	int account_id,char_id,login_id1,login_id2,ip,char_pos,delflag,sex;
+	int account_id, char_id, login_id1, login_id2, ip, char_pos, delflag,sex;
 	time_t connect_until_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
 } auth_fifo[AUTH_FIFO_SIZE];
 int auth_fifo_pos = 0;
@@ -193,32 +193,6 @@ void set_char_online(int char_id, int account_id) {
 
 }
 
-void set_all_offline(void) {
-	sprintf(tmp_sql, "SELECT `account_id` FROM `%s` WHERE `online`='1'",char_db);
-	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select all online)- %s\n", mysql_error(&mysql_handle));
-	}
-	ShowNotice("Sending all users offline.\n");
-	sql_res = mysql_store_result(&mysql_handle);
-	if (sql_res) {
-	    while((sql_row = mysql_fetch_row(sql_res))) {
-	        if ( login_fd > 0 ) {
-	            ShowInfo("send user offline: %d\n",atoi(sql_row[0]));
-	            WFIFOW(login_fd,0) = 0x272c;
-	            WFIFOL(login_fd,2) = atoi(sql_row[0]);
-	            WFIFOSET(login_fd,6);
-            }
-       }
-    }
-
-   	mysql_free_result(sql_res);
-    sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `online`='1'", char_db);
-	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (set_all_offline)- %s\n", mysql_error(&mysql_handle));
-	}
-
-}
-
 void set_char_offline(int char_id, int account_id) {
     struct mmo_charstatus *cp;
 
@@ -245,6 +219,31 @@ void set_char_offline(int char_id, int account_id) {
    WFIFOSET(login_fd,6);
 }
 
+void set_all_offline(void) {
+	sprintf(tmp_sql, "SELECT `account_id` FROM `%s` WHERE `online`='1'",char_db);
+	if (mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL("DB server Error (select all online)- %s\n", mysql_error(&mysql_handle));
+	}
+	ShowNotice("Sending all users offline.\n");
+	sql_res = mysql_store_result(&mysql_handle);
+	if (sql_res) {
+	    while((sql_row = mysql_fetch_row(sql_res))) {
+	        if ( login_fd > 0 ) {
+	            ShowInfo("send user offline: %d\n",atoi(sql_row[0]));
+	            WFIFOW(login_fd,0) = 0x272c;
+	            WFIFOL(login_fd,2) = atoi(sql_row[0]);
+	            WFIFOSET(login_fd,6);
+            }
+       }
+    }
+
+   	mysql_free_result(sql_res);
+    sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `online`='1'", char_db);
+	if (mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL("DB server Error (set_all_offline)- %s\n", mysql_error(&mysql_handle));
+	}
+
+}
 //----------------------------------------------------------------------
 // Determine if an account (id) is a GM account
 // and returns its level (or 0 if it isn't a GM account or if not found)

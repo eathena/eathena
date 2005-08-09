@@ -15,8 +15,8 @@
 #include "int_storage.h"
 #include "int_pet.h"
 
-#define WISDATA_TTL		(60*1000)	// Wisデータの生存時間(60秒)
-#define WISDELLIST_MAX	256			// Wisデータ削除リストの要素数
+#define WISDATA_TTL (60*1000)	// Wisデータの生存時間(60秒)
+#define WISDELLIST_MAX 256			// Wisデータ削除リストの要素数
 
 
 struct accreg {
@@ -78,9 +78,9 @@ int inter_recv_packet_length[]={
 };
 
 struct WisData {
-	int id,fd,count,len;
+	int id, fd, count,len;
 	unsigned long tick;
-	unsigned char src[24],dst[24],msg[512];
+	unsigned char src[24], dst[24], msg[512];
 };
 static struct dbt * wis_db = NULL;
 static int wis_dellist[WISDELLIST_MAX], wis_delnum;
@@ -403,10 +403,11 @@ int mapif_wis_end(struct WisData *wd,int flag)
 
 int mapif_account_reg(int fd,unsigned char *src)
 {
-	unsigned char buf[WBUFW(src,2)];
+//	unsigned char buf[WBUFW(src,2)]; <- Hey, can this really be done? [Skotlex]
+	unsigned char buf[2048];
 	memcpy(WBUFP(buf,0),src,WBUFW(src,2));
 	WBUFW(buf, 0)=0x3804;
-	mapif_sendallwos(fd,buf,WBUFW(buf,2));
+	mapif_sendallwos(fd, buf, WBUFW(buf,2));
 	return 0;
 }
 
@@ -486,7 +487,7 @@ int check_ttl_wisdata() {
 		numdb_foreach(wis_db, check_ttl_wisdata_sub, tick);
 		for(i = 0; i < wis_delnum; i++) {
 			struct WisData *wd = (struct WisData*)numdb_search(wis_db, wis_dellist[i]);
-			ShowNotice("inter: wis data id=%d time out : from %s to %s\n", wd->id, wd->src, wd->dst);
+			ShowWarning("inter: wis data id=%d time out : from %s to %s\n", wd->id, wd->src, wd->dst);
 			// removed. not send information after a timeout. Just no answer for the player
 			//mapif_wis_end(wd, 1); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
 			numdb_erase(wis_db, wd->id);
@@ -638,7 +639,7 @@ int inter_parse_frommap(int fd)
 	int len=0;
 
 	// inter鯖管轄かを調べる
-	if(cmd<0x3000 || cmd>=0x3000+( sizeof(inter_recv_packet_length)/
+	if(cmd < 0x3000 || cmd >= 0x3000 + (sizeof(inter_recv_packet_length)/
 		sizeof(inter_recv_packet_length[0]) ) )
 		return 0;
 
@@ -646,7 +647,7 @@ int inter_parse_frommap(int fd)
 		return 0;
 	
 	// パケット長を調べる
-	if(	(len=inter_check_length(fd,inter_recv_packet_length[cmd-0x3000]))==0 )
+	if((len = inter_check_length(fd, inter_recv_packet_length[cmd - 0x3000])) == 0)
 		return 2;
 
 	switch(cmd){
@@ -657,17 +658,17 @@ int inter_parse_frommap(int fd)
 	case 0x3004: mapif_parse_AccReg(fd); break;
 	case 0x3005: mapif_parse_AccRegRequest(fd); break;
 	default:
-		if( inter_party_parse_frommap(fd) )
+		if(inter_party_parse_frommap(fd))
 			break;
-		if( inter_guild_parse_frommap(fd) )
+		if(inter_guild_parse_frommap(fd))
 			break;
-		if( inter_storage_parse_frommap(fd) )
+		if(inter_storage_parse_frommap(fd))
 			break;
-		if( inter_pet_parse_frommap(fd) )
+		if(inter_pet_parse_frommap(fd))
 			break;
 		return 0;
 	}
-	RFIFOSKIP(fd, len );
+	RFIFOSKIP(fd, len);
 	return 1;
 }
 
@@ -680,7 +681,7 @@ int inter_check_length(int fd, int length)
 		length = RFIFOW(fd, 2);
 	}
 
-	if(RFIFOREST(fd)<length)	// packet not yet
+	if(RFIFOREST(fd) < length)	// packet not yet
 		return 0;
 
 	return length;

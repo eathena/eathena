@@ -16,6 +16,11 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 	
 08/09
+	* Updated Enchanted Peach Tree, Owl Duke and Greatest General
+	  to have their auto-spell casted on themselves rather than the enemy [Skotlex]
+	  (I don't have the data at hand, so if any of these should actually cast
+	  on the enemy, please correct it).
+	* Updated Battlefield Textbook to cast Bless on yourself, not the enemy. [Skotlex]
 	* Added new mobs, thanks to Death Dealer [Lupus]
 	* Added new items, thanx to Landarma [Lupus]
 	* Fixed Lunar Bow bonus [Lupus]

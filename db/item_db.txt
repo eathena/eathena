@@ -700,7 +700,7 @@
 1559,Dragon_Legacy,Legacy of Dragon,4,,,700,130,0,1,0,65792,2,2,4,70,1,15,{},{ bonus bInt,3; bonus bIgnoreDefRace,9; bonus2 bSPGainRace,9,10; }
 1560,Sage's_Diary,Sage's Diary,4,,,1100,100,0,1,0,65536,2,2,3,60,1,15,{},{ bonus bMatkRate,15; if readparam(bStr>=50) bonus bAspdRate,5; if readparam(bInt>=70) bonus bMatkRate,5; }
 1561,Hard_Covered_Book,Hard Covered Book,4,,,1500,140,0,1,0,65792,2,2,4,55,1,15,{},{ bonus bStr,3; bonus bDex,2; }
-1562,Battlefield_Textbook,Textbook on Battlefield,4,,,1500,140,0,1,0,65792,2,2,4,55,1,15,{},{ bonus bInt,3; bonus3 bAutoSpell,34,3+(getskilllv(34)>3)*(getskilllv(34)-3),10; }
+1562,Battlefield_Textbook,Textbook on Battlefield,4,,,1500,140,0,1,0,65792,2,2,4,55,1,15,{},{ bonus bInt,3; bonus3 bAutoSpell,-34,3+(getskilllv(34)>3)*(getskilllv(34)-3),10; }
 
 1599,Angra_Manyu,Angra Manyu,4,120,0,10,1,,1,5,10477567,2,2,4,2,1,8,{},{ bonus bBaseAtk,3800; bonus2 bHPDrainRate,100,100; }
 // Staffs
@@ -1346,7 +1346,7 @@
 4214,Bloody_Murderer_Card,Bloody Murderer Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,4,7; }
 4215,Blazer_Card,Blazer Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus2 bAddMonsterDropItemGroup,12,500; }
 4216,Sasquatch_Card,Sasquatch Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus2 bAddEffWhenHit,Eff_Freeze,2000; }
-4217,Enchanted_Peach_Tree_Card,Enchanted Peach Tree Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus4 bAutoSpell,28,1+9*(getskilllv(28)==10),1,0; if(isequipped(4280,4185,4293,4312)==0) end; bonus bVit,10; bonus bCastrate,-10; bonus bUseSPRate,-10; if(callfunc("Is_Holy_Class")==0) end; bonus2 bExpAddRace,1,5; bonus2 bExpAddRace,6,5; bonus2 bSubRace,1,30; bonus2 bSubRace,6,30; }
+4217,Enchanted_Peach_Tree_Card,Enchanted Peach Tree Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus4 bAutoSpell,-28,1+9*(getskilllv(28)==10),1,0; if(isequipped(4280,4185,4293,4312)==0) end; bonus bVit,10; bonus bCastrate,-10; bonus bUseSPRate,-10; if(callfunc("Is_Holy_Class")==0) end; bonus2 bExpAddRace,1,5; bonus2 bExpAddRace,6,5; bonus2 bSubRace,1,30; bonus2 bSubRace,6,30; }
 4218,Succubus_Card,Succubus Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus bMaxHP,1000; bonus bVit,-3+4*isequipped(4269); bonus bHPrecovRate,-20+30*isequipped(4269); }
 4219,Sage_Worm_Card,Sage Worm Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus2 bAddMonsterDropItemGroup,9,500; }
 4220,Solider_Card,Solider Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus bDef,2; bonus bMdef,2; }
@@ -1366,7 +1366,7 @@
 4234,Anolian_Card,Anolian Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus4 bAutoSpellWhenHit,45,1+9*(getskilllv(45)==10),1,0; }
 4235,Cookie_Xmas_Card,Cookie Xmas Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus2 bSubRace,8,-20; bonus2 bExpAddRace,8,10; }
 4236,Amon_Ra_Card,Amon Ra Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus bAllStats,1; bonus4 bAutoSpellWhenHit,73,10,(1+(readparam(bInt)>=99)),0; }
-4237,Owl_Duke_Card,Owl Duke Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus4 bAutoSpell,66,3,1,0; if(isequipped(4238)) bonus3 bAutoSpell,20,5,1; }
+4237,Owl_Duke_Card,Owl Duke Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus4 bAutoSpell,-66,3,1,0; if(isequipped(4238)) bonus3 bAutoSpell,20,5,1; }
 4238,Owl_Baron_Card,Owl Baron Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAutoSpell,78,1,1; }
 4239,Iron_Fist_Card,Iron Fist Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus2 bSubRace,0,-20; bonus2 bExpAddRace,0,10; }
 4240,Arclouze_Card,Arclouze Card,6,20,0,10,,,,,,,32,,,,,{},{ if (getrefine()>=6) end; bonus bDef,2; bonus bMdef,3; }
@@ -1412,7 +1412,7 @@
 4280,Geographer_Card,Geographer Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus4 bAutoSpellWhenHit,34,2+8*(getskilllv(34)==10),1,0; }
 4281,Zipper_Bear_Card,Zipper Bear Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bAtk,30; bonus3 bSPDrainValue,100,-1,0; if(callfunc("Is_Merc_Class")==0) end; bonus bUnbreakableWeapon,0; bonus bUnstripableWeapon,0; }
 4282,Tengu_Card,Tengu Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus2 bAddMonsterDropItemGroup,13,500; }
-4283,Greatest_General_Card,Greatest General Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAutospell,261,1+(getskilllv(261)>1)*(getskilllv(261)-1),1+callfunc("Is_Holy_Class");}
+4283,Greatest_General_Card,Greatest General Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAutospell,-261,1+(getskilllv(261)>1)*(getskilllv(261)-1),1+callfunc("Is_Holy_Class");}
 4284,Chepet_Card,Chepet Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus3 bAutoSpell,28,5,5; }
 4285,Choco_Card,Choco Card,6,20,0,10,,,,,,,4,,,,,{},{ bonus bFlee2,5; bonus bFlee,10; }
 4286,Karakasa_Card,Karakasa Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus2 bAddEffWhenHit,Eff_Confusion,1000+2000*(readparam(bStr)>77); }
