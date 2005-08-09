@@ -1,5 +1,10 @@
 Date	Added
 08/09
+	* Some modifications to char-sql char deletion, so that characters are
+	  correctly removed from parties and guilds. [Skotlex]
+	  (Note that this is yet to be tested, so upgrade at your own risk or if
+	  you want to help file bug reports until I can get to test it on my own
+	  later today)
 	* Likely fixed Endure and the like not being 'disabled' on GvG grounds. [Skotlex]
 	* More debug messages to clif.c (these can be ignored on normal situations,
 	  but might be useful during freezes) [Skotlex]

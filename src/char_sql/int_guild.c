@@ -1787,3 +1787,8 @@ int inter_guild_leave(int guild_id,int account_id,int char_id)
 {
 	return mapif_parse_GuildLeave(-1,guild_id,account_id,char_id,0,"**サーバー命令**");
 }
+
+int inter_guild_broken(int guild_id)
+{
+	return mapif_guild_broken(guild_id, 0);
+}

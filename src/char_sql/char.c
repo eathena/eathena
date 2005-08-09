@@ -1625,8 +1625,10 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 int delete_char_sql(int char_id, int partner_id)
 {
 	char function_name[] = "delete_char_sql";
+	char char_name[NAME_LENGTH];
+	int account_id=0, party_id=0, guild_id=0;
 	
-	sprintf(tmp_sql, "SELECT `name`,`partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, char_id);
+	sprintf(tmp_sql, "SELECT `name`,`account_id`,`party_id`,`guild_id` FROM `%s` WHERE `char_id`='%d'",char_db, char_id);
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
@@ -1636,7 +1638,18 @@ int delete_char_sql(int char_id, int partner_id)
 		
 	if(sql_res)
 		sql_row = mysql_fetch_row(sql_res);
-	
+
+	if (sql_res == NULL || sql_row == NULL)
+	{
+		ShowError("delete_char_sql: Unable to fetch character data, deletion aborted.\n");
+		return -1;
+	}
+	strncpy(char_name, sql_row[0], NAME_LENGTH);
+	account_id = atoi(sql_row[1]);
+	party_id = atoi(sql_row[2]);
+	guild_id = atoi(sql_row[3]);
+	mysql_free_result(sql_res); //Let's free this as soon as possible to avoid problems later on.
+
 	/* Divorce [Wizputer] */
 	if (partner_id) {
 		sprintf(tmp_sql,"UPDATE `%s` SET `partner_id`='0' WHERE `char_id`='%d'",char_db,partner_id);
@@ -1648,155 +1661,148 @@ int delete_char_sql(int char_id, int partner_id)
 			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 	}
-		
-	if (sql_res && sql_row[0]) {
-		/* delete char's pet */
-		//Delete the hatched pet if you have one...
-		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d' AND `incuvate` = '0'",pet_db, char_id);
-		if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error (hatched pet): %s\n", function_name, mysql_error(&mysql_handle));
-		}
 
-		// Komurka's suggested way to clear pets, modified by [Skotlex] (because I always personalize what I do :X)
-		//Removing pets that are in the char's inventory....
-		sprintf(tmp_sql,
-		"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
-			pet_db, char_db, inventory_db, pet_db, char_id);
-		
-		if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error (pets from inventory): %s\n", function_name, mysql_error(&mysql_handle));
-		}
+	//Make the character leave the guild/party [Skotlex]
+	if (party_id)
+		inter_party_leave(party_id, account_id);
+	if (guild_id)
+		inter_guild_leave(guild_id, account_id, char_id);
 
-		//Removing pets that are in the char's cart....
-		sprintf(tmp_sql,
-		"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
-			pet_db, char_db, cart_db, pet_db, char_id);
-		
-		if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error (pets from cart): %s\n", function_name, mysql_error(&mysql_handle));
-		}
+	/* delete char's pet */
+	//Delete the hatched pet if you have one...
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d' AND `incuvate` = '0'",pet_db, char_id);
+	if(mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL("%s - DB server Error (hatched pet): %s\n", function_name, mysql_error(&mysql_handle));
+	}
 
-		/* delete char's friends list */
-		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'",friend_db, char_id);
-		if(mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-		}
-		
-		/* delete char from other's friend list */
-		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `friend_id` = '%d'",friend_db, char_id);
-		if(mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-		}
-		
-		/* delete inventory */
-		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",inventory_db, char_id);
-		if(mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-		}
+	// Komurka's suggested way to clear pets, modified by [Skotlex] (because I always personalize what I do :X)
+	//Removing pets that are in the char's inventory....
+	sprintf(tmp_sql,
+	"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
+		pet_db, char_db, inventory_db, pet_db, char_id);
+	
+	if(mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL("%s - DB server Error (pets from inventory): %s\n", function_name, mysql_error(&mysql_handle));
+	}
 
-		/* delete cart inventory */
-		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",cart_db, char_id);
-		if(mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-		}
+	//Removing pets that are in the char's cart....
+	sprintf(tmp_sql,
+	"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
+		pet_db, char_db, cart_db, pet_db, char_id);
+	
+	if(mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL("%s - DB server Error (pets from cart): %s\n", function_name, mysql_error(&mysql_handle));
+	}
 
-		/* delete memo areas */
-		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",memo_db, char_id);
-		if(mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-		}
-
-		/* delete skills */
-		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",skill_db, char_id);
-		if(mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-		}
-		
-		/* delete character */
-		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",char_db, char_id);
-		if(mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-		}
-		
-		/* Also delete info from guildtables. */
-		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",guild_member_db, char_id);
-		if (mysql_query(&mysql_handle, tmp_sql)) {
-			
+	/* delete char's friends list */
+	sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'",friend_db, char_id);
+	if(mysql_query(&mysql_handle, tmp_sql)) {
 			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-		}
-		
-		mysql_free_result(sql_res);
+	}
 
-		sprintf(tmp_sql, "SELECT `guild_id` FROM `%s` WHERE `master` = '%s'", guild_db, sql_row[0]);
-		
-		if (mysql_query(&mysql_handle, tmp_sql) == 0) {
-			sql_res = mysql_store_result(&mysql_handle);
+	/* delete char from other's friend list */
+	//NOTE: Won't this cause problems for people who are already online? [Skotlex]
+	sprintf(tmp_sql, "DELETE FROM `%s` WHERE `friend_id` = '%d'",friend_db, char_id);
+	if(mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+	}
+	
+	/* delete inventory */
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",inventory_db, char_id);
+	if(mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+	}
 
-			if (sql_res != NULL) {
-				if (mysql_num_rows(sql_res) > 0) {
-					sql_row = mysql_fetch_row(sql_res);
+	/* delete cart inventory */
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",cart_db, char_id);
+	if(mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+	}
 
-					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, atoi(sql_row[0]));
-					if (mysql_query(&mysql_handle, tmp_sql)) {
-						ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-					}
+	/* delete memo areas */
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",memo_db, char_id);
+	if(mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+	}
 
-					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_member_db, atoi(sql_row[0]));
-					if (mysql_query(&mysql_handle, tmp_sql)) {
-						ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-					}
+	/* delete skills */
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",skill_db, char_id);
+	if(mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+	}
+	
+	/* delete character */
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",char_db, char_id);
+	if(mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+	}
 
-					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_castle_db, atoi(sql_row[0]));
-					if (mysql_query(&mysql_handle, tmp_sql)) {
-						ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-					}
+	/* No need as we used inter_guild_leave [Skotlex]
+	// Also delete info from guildtables.
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",guild_member_db, char_id);
+	if (mysql_query(&mysql_handle, tmp_sql)) {
+		ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+	}
+	*/
 
-					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_storage_db, atoi(sql_row[0]));
-					if (mysql_query(&mysql_handle, tmp_sql)) {
-						ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-					}
+	sprintf(tmp_sql, "SELECT `guild_id` FROM `%s` WHERE `master` = '%s'", guild_db, char_name);
+	
+	if (mysql_query(&mysql_handle, tmp_sql))
+		ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+	else {
+		sql_res = mysql_store_result(&mysql_handle);
 
-					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d' OR `alliance_id` = '%d'", guild_alliance_db, atoi(sql_row[0]), atoi(sql_row[0]));
-					if (mysql_query(&mysql_handle, tmp_sql)) {
-						ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-					}
+		if (sql_res == NULL) {
+			if (mysql_errno(&mysql_handle) != 0)
+				ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+			return -1;			
+		} else {
+			if (mysql_num_rows(sql_res) > 0) {
+				//We assume the guild found is the same as the char belongs (how would this NOT be possible?) [Skotlex]
 
-					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_position_db, atoi(sql_row[0]));
-					if (mysql_query(&mysql_handle, tmp_sql)) {
-						ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-					}
-
-					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_skill_db, atoi(sql_row[0]));
-					if (mysql_query(&mysql_handle, tmp_sql)) {
-						ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-					}
-
-					sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_expulsion_db, atoi(sql_row[0]));
-					if (mysql_query(&mysql_handle, tmp_sql)) {
-						ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-					}
-
-					mysql_free_result(sql_res);
-				}
-			} 
-			else /* sql_res != NULL */
-			{
-				if (mysql_errno(&mysql_handle) != 0) {
+				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, guild_id);
+				if (mysql_query(&mysql_handle, tmp_sql)) {
 					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 				}
-				return -1;			
+
+				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_member_db, guild_id);
+				if (mysql_query(&mysql_handle, tmp_sql)) {
+					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+				}
+
+				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_castle_db, guild_id);
+				if (mysql_query(&mysql_handle, tmp_sql)) {
+					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+				}
+
+				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_storage_db, guild_id);
+				if (mysql_query(&mysql_handle, tmp_sql)) {
+					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+				}
+
+				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d' OR `alliance_id` = '%d'", guild_alliance_db, guild_id, guild_id);
+				if (mysql_query(&mysql_handle, tmp_sql)) {
+					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+				}
+
+				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_position_db, guild_id);
+				if (mysql_query(&mysql_handle, tmp_sql)) {
+					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+				}
+
+				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_skill_db, guild_id);
+				if (mysql_query(&mysql_handle, tmp_sql)) {
+					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+				}
+
+				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_expulsion_db, guild_id);
+				if (mysql_query(&mysql_handle, tmp_sql)) {
+					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+				}
 			}
-			
-			
-			
+			mysql_free_result(sql_res);
+			inter_guild_broken(guild_id); //Signal the map server that this guild has been deleted.
 		} 
-		else /* mysql_query(&mysql_handle, tmp_sql) == 0 */
-		{
-			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-			return -1;
-		}
-		
-		
 	}
 	return 0;
 }
