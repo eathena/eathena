@@ -7898,7 +7898,7 @@ int clif_charnameupdate (struct map_session_data *ssd)
 }
 
 // ---------------------
-// cliff_guess_PacketVer
+// clif_guess_PacketVer
 // ---------------------
 // Parses a WantToConnection packet to try to identify which is the packet version used. [Skotlex]
 static int clif_guess_PacketVer(int fd, int get_previous)

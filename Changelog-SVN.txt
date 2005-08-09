@@ -1,5 +1,7 @@
 Date	Added
 08/08
+	* Added more information to the map-char connection process, meant to help
+	  understand what is going on when things 'freeze'. [Skotlex]
 	* Fixed players not really being disconnected when the char-server is out. [Skotlex]
 	* Added check to resend map server connection packets if the connection to
 	  the char server was established but the initial packets get somehow lost. [Skotlex]

@@ -43,7 +43,7 @@ static const int packet_len_table[0x3d] = {
 //2af8: Outgoing, chrif_connect -> 'connect to charserver / auth @ charserver'
 //2af9: Incomming, chrif_connectack -> 'awnser of the 2af8 login(ok / fail)'
 //2afa: Outgoing, chrif_sendmap -> 'sending our maps'
-//2afb: Incomming, chrif_sendmapack -> 'Maps recived successfully / or not ..'
+//2afb: Incomming, chrif_sendmapack -> 'Maps received successfully / or not ..'
 //2afc: Outgoing, chrif_authreq -> 'validate the incomming client' ? (not sure)
 //2afd: Incomming, pc_authok -> 'ok awnser of the 2afc'
 //2afe: Incomming, pc_authfail -> 'fail awnser of the 2afc' ? (not sure)
@@ -180,6 +180,7 @@ int chrif_save(struct map_session_data *sd)
  */
 int chrif_connect(int fd)
 {
+	ShowStatus("Logging in to char server...\n", char_fd);
 	WFIFOW(fd,0) = 0x2af8;
 	memcpy(WFIFOP(fd,2), userid, NAME_LENGTH);
 	memcpy(WFIFOP(fd,26), passwd, NAME_LENGTH);
@@ -198,7 +199,7 @@ int chrif_connect(int fd)
 int chrif_sendmap(int fd)
 {
 	int i;
-
+	ShowStatus("Sending maps to char server...\n");
 	WFIFOW(fd,0) = 0x2afa;
 	for(i = 0; i < map_num; i++)
                 if (map[i].alias != '\0') // [MouseJstr] map aliasing
@@ -329,10 +330,10 @@ int chrif_changemapserverack(int fd)
 int chrif_connectack(int fd)
 {
 	if (RFIFOB(fd,2)) {
-		ShowFatalError("Connected to char-server failed %d.\n", RFIFOB(fd,2));
+		ShowFatalError("Connection to char-server failed %d.\n", RFIFOB(fd,2));
 		exit(1);
 	}
-	ShowStatus("Successfully connected to Char Server (Connection: '"CL_WHITE"%d"CL_RESET"').\n",fd);
+	ShowStatus("Successfully logged on to Char Server (Connection: '"CL_WHITE"%d"CL_RESET"').\n",fd);
 	chrif_state = 1;
 	chrif_connected=1;
 
@@ -359,9 +360,8 @@ int chrif_sendmapack(int fd)
 		ShowFatalError("chrif : send map list to char server failed %d\n", RFIFOB(fd,2));
 		exit(1);
 	}
-
 	memcpy(wisp_server_name, RFIFOP(fd,3), NAME_LENGTH);
-	ShowDebug("Connection to Char Server verified.\n");
+	ShowStatus("Map sending complete. Map Server is now online.\n");
 	chrif_state = 2;
 
 	return 0;
