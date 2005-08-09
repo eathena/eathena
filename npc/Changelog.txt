@@ -28,9 +28,11 @@ TODO:
 
 Date		Added
 ======
-08/02
+09/02
 	* Added custom quest on a Bandit Beard (by Mega Man Expert) [Lupus]
-	* Added anit-novice protection to Ayothay OBB quest [Lupus]
+	* Fixed logging bugs in THQ shop [Lupus]
+08/02
+	* Added anti-novice protection to Ayothay OBB quest [Lupus]
 	* Changed order of adding up Economy thanks to kyoki [Fredzilla]
 07/30
 	* Few NPC fixes reported on in "SVN Script Fixes" [Fredzilla]

@@ -70,7 +70,7 @@
 563,Double_Growing_Swiss_Pong_Tyu_,Doublecrust Swiss Fondue,0,20,0,150,,,,,10477567,3,,,,,,{ itemheal rand(100,200),0; },{}
 564,Meat_Dumpling,Meat Dumpling,0,20,0,30,,,,,0,2,,,,,,{ itemheal rand(175,234),0; },{}
 565,Vita_500_Bottle,Vita 500,0,2000,0,30,,,,,10477567,2,,,,,,{ itemheal 500,0; },{}
-566,Tom_Yum_Goong,Tom Yum Goong,0,20,150,0,,,,,10477567,2,,,,,,{ itemheal rand(100,200),0; },{}
+566,Tom_Yum_Goong,Tom Yum Goong,0,20,0,150,,,,,10477567,2,,,,,,{ itemheal rand(100,200),0; },{}
 567,Shrimp,Shrimp,0,20,0,20,,,,,10477567,2,,,,,,{ itemheal rand(50,100),0; },{}
 568,Lemon,Lemon,0,20,0,20,,,,,10477567,2,,,,,,{ itemheal 0,rand(20,30); },{}
 569,Novice's_Red_Potion,Novices Red Potion,0,50,0,70,,,,,10477567,2,,,,,,{ itemheal rand(45,64),0; },{}
@@ -748,8 +748,8 @@
 1720,Bow_of_Rudra,Rudra's Bow,4,20,0,1200,150,,5,0,1705992,2,34,4,48,1,11,{},{ bonus bAtkEle,6; bonus bInt,5; skill 35,1; skill 28,1; bonus2 bResEff,Eff_Poison,5000; bonus2 bResEff,Eff_Curse,5000; bonus2 bResEff,Eff_Silence,5000; bonus2 bResEff,Eff_Confusion,5000; bonus2 bResEff,Eff_Blind,5000; }
 1721,Repeating_Crossbow,Repeating Crossbow,4,89000,0,2000,95,,9,1,133184,2,34,3,65,1,11,{},{}
 1722,Ballista,Ballista,4,20,0,3500,145,,5,0,1574912,2,34,4,77,1,11,{},{}
-1723,Luna_Bow,Luna Bow,4,,,2000,100,0,5,0,2048,2,34,3,30,1,11,{},{ if(getrefine()>=9) bonus bDef,5; if(getrefine()>=6) bonus bDef,3; if(getrefine()<6) bonus bDef,2; }
-1724,Dragon_Wing,Dragon Wing,4,,,1200,100,0,5,0,1706056,2,34,4,60,1,11,{},{ bonus3 bAddMonsterDropItem,1765,9,300; bonus bIgnoreDefRace,9; bonus bAtkEle,0; }
+1723,Lunar_Bow,Lunar Bow,4,20,0,2000,100,0,5,0,2048,2,34,3,30,1,11,{},{ bonus bDef,2+3*(getrefine()>9)+(getrefine()>6 && getrefine()<=9); }
+1724,Dragon_Wing,Dragon Wing,4,20,0,1200,100,0,5,0,1706056,2,34,4,60,1,11,{},{ bonus3 bAddMonsterDropItem,1765,9,300; bonus bIgnoreDefRace,9; bonus bAtkEle,0; }
 // Arrows
 1750,Arrow,Arrow,10,1,0,1,25,,,,1706056,2,32768,,1,,,{},{}
 1751,Silver_Arrow,Silver Arrow,10,3,0,2,30,,,,1706056,2,32768,,1,,,{},{ bonus bAtkEle,6; }
@@ -1048,7 +1048,7 @@
 2507,Cape_Of_Ancient_Lord,Cape of Old Marquess,5,20,0,600,,2,,0,2088958,2,4,,40,1,0,{},{ bonus bAgi,1; }
 2508,Ragamuffin_Cape,Ragamuffin Manteau,5,20,0,500,,1,,0,2088958,2,4,,0,1,0,{},{ bonus bMdef,10; bonus bUnbreakableArmor,0; }
 2509,Manteau_of_Survival,Manteau of Life,5,20,0,550,,0,,0,66052,2,4,,75,0,0,{},{ bonus bVit,10; }
-2510,Hood_For_Novice,Novice Hood,5,20,0,1,,2,,0,8388609,2,4,,0,0,0,{},{}
+2510,Novice_Cloak,Novice Hood,5,20,0,1,,2,,0,8388609,2,4,,0,0,0,{},{ bonus2 bSubEle,0,20; }
 2511,Skeleton_Manteau,Skeleton's Manteau,5,20,0,700,,1,,,2088958,2,4,,75,1,0,{},{}
 2512,Novice_Manteau,Novice Manteau,5,20,0,500,0,2,0,1,8388609,2,4,0,40,1,0,{},{ bonus2 bSubEle,0,10; }
 2513,Heavenly_Wings,Light Wing-cloth,5,20,0,500,0,3,0,1,2088958,2,4,0,80,1,0,{},{} //you see, my translation is somewhat bad..
@@ -2006,6 +2006,16 @@
 7403,Indonesia,Indonesia,3,,,10,,,,,,,,,,,,{},{}
 7404,Ke-60,KE-60,3,,,10,,,,,,,,,,,,{},{}
 7405,Crushed_Can,Crushed Can,3,,,10,,,,,,,,,,,,{},{} //Green Iguana's drop
+7406,Yuebing,Lettered Moon Cake,3,,,10,,,,,,,,,,,,{},{} 
+7407,Yuebing,Lettered Moon Cake,3,,,10,,,,,,,,,,,,{},{}
+7408,Yuebing,Lettered Moon Cake,3,,,10,,,,,,,,,,,,{},{}
+7409,Yuebing,Lettered Moon Cake,3,,,10,,,,,,,,,,,,{},{}
+7410,Yuebing,Lettered Moon Cake,3,,,10,,,,,,,,,,,,{},{}
+7411,Yuebing,Lettered Moon Cake,3,,,10,,,,,,,,,,,,{},{}
+7412,Yuebing,Lettered Moon Cake,3,,,10,,,,,,,,,,,,{},{}
+7413,Yuebing,Lettered Moon Cake,3,,,10,,,,,,,,,,,,{},{}
+7414,Yuebing,Lettered Moon Cake,3,,,10,,,,,,,,,,,,{},{}
+7415,Summoning_Stone,Summoning Stone,3,,,10,,,,,,,,,,,,{},{}
 
 //THQ Quest Items
 7500,THG_Membership,THG Membership,3,20,0,10,,,,,,,,,,,,{},{}
@@ -2168,35 +2178,37 @@
 12069,Ancient_Fish_Dish,Ancient Fish Dish,2,,,500,,,,,10477567,2,,,,,,{},{}
 12070,Broiled_Down_Scorpion,Broiled Scorpion,2,,,400,,,,,10477567,2,,,,,,{},{} //Luk+5
 12071,Food_of_Vigor,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12072,Food_of_Vigor,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12073,Food_of_Vigor,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12074,Food_of_Vigor,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12075,Food_of_Vigor,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12072,Food_of_Vigor_,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12073,Food_of_Vigor__,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12074,Food_of_Vigor___,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
+12075,Food_of_Vigor____,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
 12076,Food_of_Intelligent,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12077,Food_of_Intelligent,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12078,Food_of_Intelligent,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12079,Food_of_Intelligent,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12080,Food_of_Intelligent,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12077,Food_of_Intelligent_,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12078,Food_of_Intelligent__,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12079,Food_of_Intelligent___,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
+12080,Food_of_Intelligent____,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
 12081,Substantial_Food,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12082,Substantial_Food,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12083,Substantial_Food,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12084,Substantial_Food,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12085,Substantial_Food,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12082,Substantial_Food_,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12083,Substantial_Food__,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12084,Substantial_Food___,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
+12085,Substantial_Food____,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
 12086,Food_of_Agility,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12087,Food_of_Agility,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12088,Food_of_Agility,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12089,Food_of_Agility,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12090,Food_of_Agility,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12087,Food_of_Agility_,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12088,Food_of_Agility__,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12089,Food_of_Agility___,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
+12090,Food_of_Agility____,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
 12091,Food_of_Elaborateness,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12092,Food_of_Elaborateness,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12093,Food_of_Elaborateness,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12094,Food_of_Elaborateness,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12095,Food_of_Elaborateness,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12092,Food_of_Elaborateness_,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12093,Food_of_Elaborateness__,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12094,Food_of_Elaborateness___,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
+12095,Food_of_Elaborateness____,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
 12096,Food_of_Luck,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
-12097,Food_of_Luck,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
-12098,Food_of_Luck,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
-12099,Food_of_Luck,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
-12100,Food_of_Luck,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12097,Food_of_Luck_,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12098,Food_of_Luck___,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12099,Food_of_Luck____,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12100,Food_of_Luck_____,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12101,Citron,Citron,2,,,300,,,,,10477567,2,,,,,,{},{}
+12102,Grilled_Skewer,Grilled Skewer,2,,,300,,,,,10477567,2,,,,,,{},{}
 
 // More Weapons
 //===================================================================

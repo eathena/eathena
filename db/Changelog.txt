@@ -16,6 +16,10 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 	
 08/09
+	* Added new mobs, thanks to Death Dealer [Lupus]
+	* Added new items, thanx to Landarma [Lupus]
+	* Fixed Lunar Bow bonus [Lupus]
+	* Added effect to Novice Hood [Lupus]
 	* Fixed Freezer Card combo (was doing Weapon Perfection on the enemy) [Skotlex]
 08/05
 	* Fixed price of Ghost Doll (from Freya)

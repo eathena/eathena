@@ -2819,6 +2819,16 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			break;
 		}
 
+		//A Rare MVP Drop Global Announce by Lupus
+		if(drop_rate<=battle_config.rare_drop_announce) {
+			struct item_data *i_data;
+			char message[128];
+			i_data = itemdb_exists(item.nameid);
+			sprintf (message, msg_txt(541), (mvp_sd!=NULL && md!=NULL && mvp_sd->status.name != NULL)?mvp_sd->status.name :"GM", md->db->jname, i_data->jname, (float)drop_rate/100);
+			//MSG: "'%s' won %s's %s (chance: %%%0.02f)"
+			intif_GMmessage(message,strlen(message)+1,0);
+		}
+
 		if(log_config.mvpdrop > 0)
 			log_mvpdrop(mvp_sd, md->class_, log_mvp);
 	}

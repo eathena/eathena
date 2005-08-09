@@ -145,7 +145,7 @@ N_SolarS:
 N_CaesarS:
 	if (#Treasure_Token < 170) goto N_NeedToken;
 	set #Treasure_Token,#Treasure_Token-170;
-	logmes "Treasure Token: Bought a Caesar's Sword";
+	logmes "Treasure Token: Bought a Caesars Sword";
 	getitem 1134,1;
 	close;
 N_Nagan:
@@ -279,13 +279,13 @@ N_Bow:
 
 	if (#Treasure_Token < 150) goto N_NeedToken;
 	set #Treasure_Token,#Treasure_Token-150;
-	logmes "Treasure Token: Bought a Rudra's Bow";
+	logmes "Treasure Token: Bought a Rudra Bow";
 	getitem 1720,1;
 	close;
 N_Rogue:
 	if (#Treasure_Token < 150) goto N_NeedToken;
 	set #Treasure_Token,#Treasure_Token-150;
-	logmes "Treasure Token: Bought a Roguemaster's Bow";
+	logmes "Treasure Token: Bought a Roguemaster Bow";
 	getitem 1719,1;
 	close;
 
