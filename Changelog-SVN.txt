@@ -1,5 +1,8 @@
 Date	Added
 08/09
+	* More debug messages to clif.c (these can be ignored on normal situations,
+	  but might be useful during freezes) [Skotlex]
+	* Optimized the packet-version failed rejecting code. [Skotlex]
 	* Fixed Freezer Card combo casting Weapon Perfection on the enemy. [Skotlex]
 	* Added more information to the map-char connection process, meant to help
 	  understand what is going on when things 'freeze'. [Skotlex]

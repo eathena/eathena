@@ -7904,7 +7904,6 @@ int clif_charnameupdate (struct map_session_data *ssd)
 static int clif_guess_PacketVer(int fd, int get_previous)
 {
 	static int packet_ver = -1;
-	static int last_fd = 0;
 	int cmd, packet_len, value; //Value is used to temporarily store account/char_id/sex
 	
 	if (get_previous) //For quick reruns, since the normal code flow is to fetch this once to identify the packet version, then again in the wanttoconnect function. [Skotlex]
@@ -7935,21 +7934,18 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 	
 		if ((value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0])) < 700000 || value > max_account_id)
 		{
-			if (last_fd != fd)
-				ShowDebug("Version check %d failed: invalid account id %d\n", packet_ver, value);
+			ShowDebug("Version check %d failed: invalid account id %d\n", packet_ver, value);
 			continue;
 		}
 		if ((value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1])) < 1 || value > max_char_id)
 		{
-			if (last_fd != fd)
-				ShowDebug("Version check %d failed: invalid char id %d\n", packet_ver, value);
+			ShowDebug("Version check %d failed: invalid char id %d\n", packet_ver, value);
 			continue;
 		}
 		//What is login 1? In my tests it is a very very high value.
 		if ((int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) < 1)
 		{
-			if (last_fd != fd)
-				ShowDebug("Version check %d failed: invalid login1 %d\n", packet_ver, (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]));
+			ShowDebug("Version check %d failed: invalid login1 %d\n", packet_ver, (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]));
 			continue;
 		}
 		//Removed the tick check as it can be a very large value (it is an unsigned int, so all values are possible)
@@ -7958,14 +7954,12 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 		//last byte of the packet.
 		if ((value = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) < 0 || value > 1)
 		{
-			if (last_fd != fd)
-				ShowDebug("Version check %d failed: invalid gender %d\n", packet_ver, value);
+			ShowDebug("Version check %d failed: invalid gender %d\n", packet_ver, value);
 			continue;
 		}
-		last_fd = fd;
 		return packet_ver; //This is our best guess.
 	}
-	last_fd = fd;
+	ShowDebug("Unknown packet version (packet: cmd = 0x%x, len = %d)!\n", cmd, packet_len);
 	packet_ver = -1;
 	return -1;
 }
@@ -10805,7 +10799,13 @@ void clif_parse_debug(int fd,struct map_session_data *sd)
 int clif_parse(int fd) {
 	int packet_len = 0, cmd, packet_ver, dump = 0;
 	struct map_session_data *sd;
-	static int last_fail_fd = 0; //To prevent spamming the console. [Skotlex]
+
+	if (fd <= 0)
+	{	//Just in case, there are some checks for this later down below anyway which should be removed. [Skotlex]
+		ShowError("clif_parse: Received invalid session %d\n", fd);
+		return 0;
+	}
+
 	sd = (struct map_session_data*)session[fd]->session_data;
 
 	if( sd && sd->state.autotrade) {
@@ -10816,11 +10816,11 @@ int clif_parse(int fd) {
 	// 接続が切れてるので後始末
 	if (!chrif_isconnect())
 	{
+		ShowInfo("Closing session #%d (Not connected to Char server)\n", fd);
 		if (sd && sd->state.auth)
 			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]
 		else if (sd)
 			map_deliddb(&sd->bl); // account_id has been included in the DB before auth answer [Yor]
-		ShowInfo("Closing session #%d (Not connected to Char server)\n", fd);
 		close(fd);
 		delete_session(fd);
 		return 0;
@@ -10850,7 +10850,10 @@ int clif_parse(int fd) {
 	}
 
 	if (RFIFOREST(fd) < 2)
+	{
+		ShowDebug("clif_parse: Session %d: Insufficient data, skipping.\n ", fd);
 		return 0;
+	}
 
 //	printf("clif_parse: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 
@@ -10872,11 +10875,12 @@ int clif_parse(int fd) {
 			RFIFOSKIP(fd,2);
 			break;
 		case 0x7532: // 接続の切断
-			close(fd);
 			ShowWarning("clif_parse: session #%d disconnected for sending packet 0x%x\n", fd, cmd);
+			close(fd);
 			session[fd]->eof=1;
 			break;
 		}
+		ShowWarning("Ignoring incoming packet (command: 0x%x, session: %d)\n", cmd, fd);
 		return 0;
 	}
 
@@ -10901,24 +10905,19 @@ int clif_parse(int fd) {
 			WFIFOW(fd,0) = 0x6a;
 			WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
 			WFIFOSET(fd,23);
-			if (fd != last_fail_fd)
-			{	//This prevent log spamming. [Skotlex]
-				last_fail_fd = fd;
-				ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
-			}
+
+			ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
+			RFIFOSKIP(fd, RFIFOREST(fd)); //No need to do any further parsing. [Skotlex]
 			clif_setwaitclose(fd);
 			return 0;
-		} else
-			last_fail_fd = 0;
+		}
 	}
 
 	// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する
 	if (cmd >= MAX_PACKET_DB || packet_db[packet_ver][cmd].len == 0) {	// if packet is not inside these values: session is incorrect?? or auth packet is unknown
-		if (!fd)
-			return 0;			
-		close(fd);
 		ShowWarning("clif_parse: Received unsupported packet (packet 0x%x, %d bytes received), disconnecting session #%d.\n", cmd, RFIFOREST(fd), fd);
 		session[fd]->eof = 1;
+		close(fd);
 		return 0;
 	}
 
@@ -10926,7 +10925,10 @@ int clif_parse(int fd) {
 	packet_len = packet_db[packet_ver][cmd].len;
 	if (packet_len == -1) {
 		if (RFIFOREST(fd) < 4)
+		{
+			ShowDebug("clif_parse: Session %d: Insufficient data for packet parsing, skipping.\n", fd);
 			return 0; // 可変長パケットで長さの所までデータが来てない
+		}
 		packet_len = RFIFOW(fd,2);
 		if (packet_len < 4 || packet_len > 32768) {
 			close(fd);
@@ -10936,7 +10938,10 @@ int clif_parse(int fd) {
 		}
 	}
 	if (RFIFOREST(fd) < packet_len)
+	{
+		ShowDebug("clif_parse: session %d: Insufficient packet data (need %d), skipping.\n", fd, packet_len);
 		return 0; // まだ1パケット分データが揃ってない
+	}
 
 	#if DUMP_ALL_PACKETS
 		dump = 1;
