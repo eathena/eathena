@@ -3063,7 +3063,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 	if((x==0 && y==0) || map_getcell(m,x,y,CELL_CHKNOPASS)){
 		if(x||y) {
 			if(battle_config.error_log)
-				ShowError("pc_set_pos: stacked (%d,%d)\n",x,y);
+				ShowError("pc_setpos: stacked (%d,%d)\n",x,y);
 		}
 		do {
 			x=rand()%(map[m].xs-2)+1;

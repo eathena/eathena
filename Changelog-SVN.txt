@@ -1,5 +1,6 @@
 Date	Added
 08/09
+	* Fixed "[error] delete_timer error: no such timer -1" (stupid mistake x.x) [Skotlex]
 	* Some modifications to char-sql char deletion, so that characters are
 	  correctly removed from parties and guilds. [Skotlex]
 	  (Note that this is yet to be tested, so upgrade at your own risk or if

@@ -4102,7 +4102,7 @@ int status_change_clear(struct block_list *bl,int type)
 
 		status_change_end(bl, i, -1);
 
-		if (type == 1 && sc_data[i].timer != 1)
+		if (type == 1 && sc_data[i].timer != -1)
 		{	//If for some reason status_change_end decides to still keep the status when quitting. [Skotlex]
 			delete_timer(sc_data[i].timer, status_change_timer);
 			sc_data[i].timer = -1;
