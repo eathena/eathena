@@ -1,5 +1,8 @@
 Date	Added
 08/10
+	* Updated Login-SQL server to guarantee that new accounts (_M/_F reg) are
+	  created with account_ids above 2M. [Skotlex]
+	  (note it hasn't been tested yet, but I think it should work)
 	* Fixed @readmail 0 [Skotlex]
 	* Fixed success rates for Dispell and Decrease Agility [Skotlex]
 	* Fixed cultivation not being in the list of skills for GMs with

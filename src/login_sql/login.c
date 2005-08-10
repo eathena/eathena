@@ -282,6 +282,26 @@ int mmo_auth_sqldb_init(void) {
 			ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
 		}
 	}
+	if (new_account_flag)
+	{	//Check if the next new account will need to have it's ID set (to avoid bad DBs which would otherwise insert
+		//new accounts with account_ids of less than 2M [Skotlex]
+		sprintf(tmp_sql, "SELECT `%s` from `%s` ORDER BY `account_id` DESC LIMIT 1", login_db_account_id, login_db);
+		if(mysql_query(&mysql_handle, tmp_sql)){
+			ShowSQL("mmo_auth_sqldb_init: Error (get max account_id): %s\n", mysql_error(&mysql_handle));
+		} else {
+			MYSQL_RES* 	sql_res;
+			MYSQL_ROW	sql_row;
+			
+			sql_res = mysql_store_result(&mysql_handle) ;
+			if (sql_res)
+			{
+				if ((sql_row = mysql_fetch_row(sql_res)) && atoi(sql_row[0]) >= account_id_count)
+				//Ok, chars already exist, no need to use this.
+					account_id_count = 0;
+				mysql_free_result(sql_res);
+			}
+		}
+	}
 	return 0;
 }
 
@@ -365,12 +385,20 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 		jstrescapecpy(user_password, account->passwd);
 
 	ShowInfo("New account: user: %s with passwd: %s sex: %c\n", account->userid, user_password, sex);
-	sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, user_password, sex, "a@a.com");
+
+	if (account_id_count) //Force new Account ID
+		sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `%s`, `sex`, `email`) VALUES ('%d', '%s', '%s', '%c', '%s')", login_db, login_db_account_id, login_db_userid, login_db_user_pass, account_id_count, account->userid, user_password, sex, "a@a.com");
+	else
+		sprintf(tmp_sql, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, account->userid, user_password, sex, "a@a.com");
+		
 	if(mysql_query(&mysql_handle, tmp_sql)){
 		//Failed to insert new acc :/
 		ShowSQL("SQL Error (_M/_F reg, Insert): %s", mysql_error(&mysql_handle));
 		return 1;
 	}
+
+	if (account_id_count) //Clear it or all new accounts will try to use the same id :P
+		account_id_count = 0;
 
 	if(tick > new_reg_tick)
 	{	//Update the registration check.
@@ -418,7 +446,7 @@ int mmo_auth( struct mmo_account* account , int fd){
 	if (account->passwdenc == 0 && account->userid[len] == '_' &&
 		(account->userid[len+1] == 'F' || account->userid[len+1] == 'M' ||
 		account->userid[len+1] == 'f' || account->userid[len+1] == 'm') &&
-		new_account_flag == 1 && account_id_count <= END_ACCOUNT_NUM &&
+		new_account_flag == 1 && 
 		len >= 4 && strlen(account->passwd) >= 4)
 	{
 		int result;
