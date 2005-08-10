@@ -10853,10 +10853,7 @@ int clif_parse(int fd) {
 	}
 
 	if (RFIFOREST(fd) < 2)
-	{
-		ShowDebug("clif_parse: Session %d: Insufficient data, skipping.\n ", fd);
 		return 0;
-	}
 
 //	printf("clif_parse: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 

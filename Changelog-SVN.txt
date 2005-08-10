@@ -1,4 +1,7 @@
 Date	Added
+08/10
+	* Alright, removed the "insufficient data" debug line as it was just
+	  causing mass lag. [Skotlex]
 08/09
 	* Fixed Magnum Break's damage display. [Skotlex]
 	* Finished fixing and testing the sql char deletion update. [Skotlex]
