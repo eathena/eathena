@@ -1,5 +1,7 @@
 Date	Added
 08/09
+	* Finished fixing and testing the sql char deletion update. [Skotlex]
+	  Deleted characters should now properly leave their party/guild.
 	* Throw Stone is now blocked by Kyrie and Pneuma [Skotlex]
 	* Fixed "[error] delete_timer error: no such timer -1" (stupid mistake x.x) [Skotlex]
 	* Some modifications to char-sql char deletion, so that characters are

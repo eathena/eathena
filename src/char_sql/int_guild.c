@@ -363,7 +363,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 //	printf("Retrieve guild information from sql ......\n");
 //	printf("- Read guild %d from sql \n",guild_id);
 
-	ShowInfo("Guild load request (%d)...", guild_id);
+	ShowInfo("Guild load request (%d)...\n", guild_id);
 
 	sprintf(tmp_sql,"SELECT `guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data` "
 		"FROM `%s` WHERE `guild_id`='%d'",guild_db, guild_id);
@@ -1785,7 +1785,7 @@ int inter_guild_mapif_init(int fd)
 // サーバーから脱退要求（キャラ削除用）
 int inter_guild_leave(int guild_id,int account_id,int char_id)
 {
-	return mapif_parse_GuildLeave(-1,guild_id,account_id,char_id,0,"**サーバー命令**");
+	return mapif_parse_GuildLeave(-1,guild_id,account_id,char_id,0,"** Character Deleted **");
 }
 
 int inter_guild_broken(int guild_id)

@@ -1662,11 +1662,9 @@ int delete_char_sql(int char_id, int partner_id)
 		}
 	}
 
-	//Make the character leave the guild/party [Skotlex]
+	//Make the character leave the party [Skotlex]
 	if (party_id)
 		inter_party_leave(party_id, account_id);
-	if (guild_id)
-		inter_guild_leave(guild_id, account_id, char_id);
 
 	/* delete char's pet */
 	//Delete the hatched pet if you have one...
@@ -1757,7 +1755,9 @@ int delete_char_sql(int char_id, int partner_id)
 				ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 			return -1;			
 		} else {
-			if (mysql_num_rows(sql_res) > 0) {
+			int rows = mysql_num_rows(sql_res);
+			mysql_free_result(sql_res);
+			if (rows > 0) {
 				//We assume the guild found is the same as the char belongs (how would this NOT be possible?) [Skotlex]
 
 				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, guild_id);
@@ -1799,9 +1799,10 @@ int delete_char_sql(int char_id, int partner_id)
 				if (mysql_query(&mysql_handle, tmp_sql)) {
 					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 				}
+				inter_guild_broken(guild_id); //Signal the map server that this guild has been deleted.
 			}
-			mysql_free_result(sql_res);
-			inter_guild_broken(guild_id); //Signal the map server that this guild has been deleted.
+			else if (guild_id) //Leave your guild.
+				inter_guild_leave(guild_id, account_id, char_id);
 		} 
 	}
 	return 0;
@@ -3315,7 +3316,7 @@ int parse_char(int fd) {
 			}
 			
 			/* Grab the partner id */ 
-			sprintf(tmp_sql, "SELECT `name`,`partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, RFIFOL(fd,2));
+			sprintf(tmp_sql, "SELECT `partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, RFIFOL(fd,2));
 	
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
@@ -3324,24 +3325,22 @@ int parse_char(int fd) {
 			sql_res = mysql_store_result(&mysql_handle);
 			
 			if(sql_res)
-			{	//sql_res2 is necessary because sql_res can (and will) be used inside delete_char_sql! [Skotlex]
-				MYSQL_RES* sql_res2 = sql_res;
+			{
+				int char_pid=0;
 				sql_row = mysql_fetch_row(sql_res);
+				if (sql_row)
+					char_pid = atoi(sql_row[0]);
+				mysql_free_result(sql_res);
 			
 				/* Delete character and partner (if any) */
-				if (sql_row[1] != 0)
-				{	/* If there is partner */
-					delete_char_sql(RFIFOL(fd,2), atoi(sql_row[1]));
+				delete_char_sql(RFIFOL(fd,2), char_pid);
+				if (char_pid != 0)
+				{	/* If there is partner, tell map server to do divorce */
 					WBUFW(buf,0) = 0x2b12;
-					WBUFL(buf,2) = atoi(sql_row[0]);
-					WBUFL(buf,6) = atoi(sql_row[1]);
+					WBUFL(buf,2) = RFIFOL(fd,2);
+					WBUFL(buf,6) = char_pid;
 					mapif_sendall(buf,10);
 				}
-				else
-				{	/* Delete character */
-					delete_char_sql(RFIFOL(fd,2), 0);
-				}
-				mysql_free_result(sql_res2);
 			}
 			/* Char successfully deleted. <- For sure? There could had been an sql db error, what is done then?. [Skotlex] */
 			WFIFOW(fd, 0) = 0x6f;

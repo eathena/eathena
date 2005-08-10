@@ -1480,5 +1480,5 @@ int inter_guild_mapif_init(int fd) {
 
 // サーバーから脱退要求（キャラ削除用）
 int inter_guild_leave(int guild_id, int account_id, int char_id) {
-	return mapif_parse_GuildLeave(-1, guild_id, account_id, char_id, 0, "**サーバー命令**");
+	return mapif_parse_GuildLeave(-1, guild_id, account_id, char_id, 0, "** Character Deleted **");
 }
