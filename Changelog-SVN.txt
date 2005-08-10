@@ -1,5 +1,8 @@
 Date	Added
 08/10
+	* Updated char-sql deletion to take into consideration the mysql version [Skotlex]
+	  It should treat versions 4.1+ differently from the rest, please test and
+	  report if it is still failing.
 	* Removed sql loading of storage every time you open it as it's an open
 	  exploit on lagging servers. [Skotlex]
 	* Removed another "insufficient data" debug line. That should take care of

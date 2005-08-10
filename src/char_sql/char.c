@@ -1675,21 +1675,26 @@ int delete_char_sql(int char_id, int partner_id)
 
 	// Komurka's suggested way to clear pets, modified by [Skotlex] (because I always personalize what I do :X)
 	//Removing pets that are in the char's inventory....
-	sprintf(tmp_sql,
-	"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
-		pet_db, char_db, inventory_db, pet_db, char_id);
-	
-	if(mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("%s - DB server Error (pets from inventory): %s\n", function_name, mysql_error(&mysql_handle));
-	}
+	{	//NOTE: The syntax for multi-table deletes is a bit changed between 4.0 and 4.1 regarding aliases, so we have to consider the version... [Skotlex]
+		//Since we only care about the major and minor version, a double conversion is good enough. (4.1.20 -> 4.10000)
+		double mysql_version = atof(mysql_get_server_info(&mysql_handle));
+		
+		sprintf(tmp_sql,
+		"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
+			(mysql_version<4.1?pet_db:"p"), char_db, inventory_db, pet_db, char_id);
+		
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("%s - DB server Error (pets from inventory): %s\n", function_name, mysql_error(&mysql_handle));
+		}
 
-	//Removing pets that are in the char's cart....
-	sprintf(tmp_sql,
-	"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
-		pet_db, char_db, cart_db, pet_db, char_id);
-	
-	if(mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("%s - DB server Error (pets from cart): %s\n", function_name, mysql_error(&mysql_handle));
+		//Removing pets that are in the char's cart....
+		sprintf(tmp_sql,
+		"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
+			(mysql_version<4.1?pet_db:"p"), char_db, cart_db, pet_db, char_id);
+		
+		if(mysql_query(&mysql_handle, tmp_sql)) {
+			ShowSQL("%s - DB server Error (pets from cart): %s\n", function_name, mysql_error(&mysql_handle));
+		}
 	}
 
 	/* delete char's friends list */
