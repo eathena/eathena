@@ -1,5 +1,6 @@
 Date	Added
 08/10
+	* Fixed (I think) being able to sit while casting. [Skotlex]
 	* Updated Char-SQL server to guarantee that new chars are created with
 	  char_ids above 150K. [Skotlex]
 	  (note from last update applies too)

@@ -8690,6 +8690,9 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		break;
 	case 0x02: // sitdown
 		if (battle_config.basic_skill_check == 0 || pc_checkskill(sd, NV_BASIC) >= 3) {
+			if (sd->skilltimer != -1) //No sitting while casting :P
+				break;
+			pc_stopattack(sd);
 			pc_stop_walking(sd, 1);
 			pc_setsit(sd);
 			skill_gangsterparadise(sd, 1); // ギャングスターパラダイス設定 fixed Valaris
