@@ -128,7 +128,7 @@ int auth_fifo_pos = 0;
 
 int check_ip_flag = 1; // It's to check IP of a player between char-server and other servers (part of anti-hacking system)
 
-//int char_id_count = 150000; //removed by [Sirius] for new charcreate issue (auto_increment @sql)
+int char_id_count = START_CHAR_NUM;
 struct mmo_charstatus *char_dat;
 int char_num,char_max;
 int max_connect_user = 0;
@@ -1283,56 +1283,34 @@ int mmo_char_sql_init(void) {
 	CREATE(char_dat, struct mmo_charstatus, 2);
 
 	memset(char_dat, 0, sizeof(struct mmo_charstatus)*2);
-/*	Initialized in inter.c already [Wizputer]
-	// DB connection initialized
-	// for char-server session only
-	mysql_init(&mysql_handle);
-	printf("Connect DB server....(char server)\n");
-	if(!mysql_real_connect(&mysql_handle, char_server_ip, char_server_id, char_server_pw, char_server_db ,char_server_port, (char *)NULL, 0)) {
-		// SQL connection pointer check
-		printf("%s\n",mysql_error(&mysql_handle));
-		exit(1);
-	} else {
-		printf("connect success! (char server)\n");
-	}
 
-*/       /*   Removed .. not needed now :P
-	sprintf(tmp_sql , "SELECT count(*) FROM `%s`", char_db);
+	//Check for max id (in case new chars would get their IDs set below 150K) [Skotlex]
+	sprintf(tmp_sql , "SELECT max(`char_id`) FROM `%s`", char_db);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-	}
-	sql_res = mysql_store_result(&mysql_handle) ;
-	sql_row = mysql_fetch_row(sql_res);
-	printf("total char data -> '%s'.......\n",sql_row[0]);
-	i = atoi (sql_row[0]);
-	mysql_free_result(sql_res);
-
-	if (i !=0) {
-		sprintf(tmp_sql , "SELECT max(`char_id`) FROM `%s`", char_db);
-		if (mysql_query(&mysql_handle, tmp_sql)) {
-			printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+	} else {
+		sql_res = mysql_store_result(&mysql_handle);
+		if (sql_res)
+		{
+			if ((sql_row = mysql_fetch_row(sql_res)) && atoi(sql_row[0]) >= char_id_count)
+				char_id_count = 0;	//No need for setting the char id.
+			mysql_free_result(sql_res);
 		}
-		sql_res = mysql_store_result(&mysql_handle) ;
-		sql_row = mysql_fetch_row(sql_res);
-		char_id_count = atoi (sql_row[0]);
+	}
 
-		mysql_free_result(sql_res);
-	} else
-		printf("set char_id_count: %d.......\n",char_id_count);
-         */
-         sprintf(tmp_sql, "SELECT `char_id` FROM `%s`", char_db);
-         if(mysql_query(&mysql_handle, tmp_sql)){
-         	//fail :(
-                 ShowSQL("SQL Error (in select the charid .. (all)): %s", mysql_error(&mysql_handle));
-         }else{
-         	sql_res = mysql_store_result(&mysql_handle);
-                 if(sql_res){
-                        charcount = mysql_num_rows(sql_res);
-                 	ShowStatus("total char data -> '%d'.......\n", charcount);
-                 	mysql_free_result(sql_res);
-                 }else{
-                 	ShowStatus("total char data -> '0'.......\n");
-                 }
+	sprintf(tmp_sql, "SELECT `char_id` FROM `%s`", char_db);
+	if(mysql_query(&mysql_handle, tmp_sql)){
+		//fail :(
+		ShowSQL("SQL Error (in select the charid .. (all)): %s", mysql_error(&mysql_handle));
+	}else{
+		sql_res = mysql_store_result(&mysql_handle);
+		if(sql_res){
+			charcount = mysql_num_rows(sql_res);
+			ShowStatus("total char data -> '%d'.......\n", charcount);
+			mysql_free_result(sql_res);
+		}else{
+			ShowStatus("total char data -> '0'.......\n");
+		}
 	}
 
 	if(char_per_account == 0){
@@ -1515,15 +1493,19 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		mysql_free_result(sql_res);
 	}
 
-	//char_id_count++;
-
 	//New Querys [Sirius]
 	//Insert the char to the 'chardb' ^^
-	sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", char_db, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.map, start_point.x, start_point.y, start_point.map, start_point.x, start_point.y);
+	if (char_id_count) //Force initial char id. [Skotlex]
+		sprintf(tmp_sql, "INSERT INTO `%s` (`char_id`,`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%d', '%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", char_db, char_id_count, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.map, start_point.x, start_point.y, start_point.map, start_point.x, start_point.y);
+	else
+		sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", char_db, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.map, start_point.x, start_point.y, start_point.map, start_point.x, start_point.y);
 	if(mysql_query(&mysql_handle, tmp_sql)){
 		ShowSQL("failed (insert in chardb), SQL error: %s\n", mysql_error(&mysql_handle));
 		return -2; //No, stop the procedure!
 	}
+
+	if (char_id_count) //Clear this out for future inserts.
+		char_id_count = 0;
 
 	//Now we need the charid from sql!
 	sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id , dat[30] , t_name);

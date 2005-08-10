@@ -285,7 +285,7 @@ int mmo_auth_sqldb_init(void) {
 	if (new_account_flag)
 	{	//Check if the next new account will need to have it's ID set (to avoid bad DBs which would otherwise insert
 		//new accounts with account_ids of less than 2M [Skotlex]
-		sprintf(tmp_sql, "SELECT `%s` from `%s` ORDER BY `account_id` DESC LIMIT 1", login_db_account_id, login_db);
+		sprintf(tmp_sql, "SELECT max(`%s`) from `%s`", login_db_account_id, login_db);
 		if(mysql_query(&mysql_handle, tmp_sql)){
 			ShowSQL("mmo_auth_sqldb_init: Error (get max account_id): %s\n", mysql_error(&mysql_handle));
 		} else {

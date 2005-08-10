@@ -98,7 +98,7 @@ int auth_fifo_pos = 0;
 
 int check_ip_flag = 1; // It's to check IP of a player between char-server and other servers (part of anti-hacking system)
 
-int char_id_count = 150000;
+int char_id_count = START_CHAR_NUM;
 struct mmo_charstatus *char_dat;
 int char_num, char_max;
 int max_connect_user = 0;

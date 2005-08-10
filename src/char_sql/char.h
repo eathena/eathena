@@ -8,6 +8,7 @@
 #ifndef _CHAR_H_
 #define _CHAR_H_
 
+#define START_CHAR_NUM 150000
 #define MAX_MAP_SERVERS 30
 
 #define LAN_CONF_NAME	"conf/lan_support.conf"

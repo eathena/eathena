@@ -1,5 +1,8 @@
 Date	Added
 08/10
+	* Updated Char-SQL server to guarantee that new chars are created with
+	  char_ids above 150K. [Skotlex]
+	  (note from last update applies too)
 	* Updated Login-SQL server to guarantee that new accounts (_M/_F reg) are
 	  created with account_ids above 2M. [Skotlex]
 	  (note it hasn't been tested yet, but I think it should work)
