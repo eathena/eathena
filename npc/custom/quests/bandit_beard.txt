@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Mega Man Expert & Lupus
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.1b
 //===== Compatible With: ===================================== 
 //= eAthena 0.5.2 +
 //===== Description: ========================================= 
@@ -12,6 +12,7 @@
 //= Fully working.
 //= 1.0 First release
 //= 1.1 Fixed some exploits, bugs and typos. Optimized 8) [Lupus]
+//= 1.1b fixed some typos
 //============================================================
 
 umbala.gat,126,129,4	script	Bearded Man	120,{
@@ -79,9 +80,9 @@ L_MAKE:
 	delitem 938, 100;
 	delitem 973, 1;
 	delitem 731, 1;
-	mes ""^8080FF~You see him cutting and sewing the beard together~^000000";
+	mes "^8080FF~You see him cutting and sewing the beard together~^000000";
 	next;
-	mes ""^8080FF~He hands you the finished beard~^000000";
+	mes "^8080FF~He hands you the finished beard~^000000";
 	next;
 	getitem 2237, 1;
 	set BEARD_QUEST, 5;
@@ -109,9 +110,9 @@ izlude_in.gat,123,175,4	script	Master Tailor	50,{
 	mes "What? A Bearded Man sent you...";
 	mes "Well I'm sorry to say that I am out of ^8080FFThread^000000.";
 	mes "But I have the address to where I get the shipments.";
-	mes "It is in Aldebaran Karfa Inc. warehouse area.";
-	mes "The address is: Aldebaran 59, 221";
-	mes "See you latter.";
+	mes "It is in Al de Baran Karfa Inc. warehouse area.";
+	mes "The address is: Al de Baran 59, 221";
+	mes "See you later.";
 	set BEARD_QUEST, 2;
 	close;
 }
@@ -159,7 +160,7 @@ alberta.gat,65,123,6	script	Man	85,{
 	if(BEARD_QUEST > 3) goto L_DONE;
 
 	mes "[Thread Merchant]";
-	mes "ARGGG!! I can never get my stuff to Aldebaran!";
+	mes "ARGGG!! I can never get my stuff to Al de Baran!";
 	mes "I keep getting mobbed by some bugs.";
 	mes "They steal all my supplies and ^8080FFThread^000000.";
 	next;
@@ -168,7 +169,7 @@ alberta.gat,65,123,6	script	Man	85,{
 	if(BEARD_QUEST != 3) mes "What am I to do?";
 	if(BEARD_QUEST != 3) close;
 
-	if($@beardmob > 0) mes "Kill! Kill them!!!";
+	if($@beardmob > 0) mes "Kill! Kill them already!!!";
 	if($@beardmob > 0) close;
 	mes "Are you here to help me?";
 	emotion 1;
@@ -206,7 +207,7 @@ M_NO:
 }
 
 //mobsummons -------
-alberta.gat,1,1,1	script	BRDQ_MOBS -1,{
+alberta.gat,1,1,1	script	BRDQ_MOBS	-1,{
 	set $@beardMob,10;
 	set $@beardMobD,0;
 	monster "alberta.gat",65,120,"Thef Bug Male",1054,1,"BRDQ_MOBS::OnDie";
@@ -224,5 +225,10 @@ OnDie:
 	set $@beardmob, $@beardmob - 1;
 	if($@beardmob > 0) end;
 	set $@beardMobD,1;
+	end;
+On1201:
+On0001:
+	set $@beardMob,0;
+	set $@beardMobD,0;
 	end;
 }
