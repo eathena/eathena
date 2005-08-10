@@ -830,7 +830,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	case SM_BASH:			/* バッシュ（急所攻?） */
 		if( sd && (skill=pc_checkskill(sd,SM_FATALBLOW))>0 ){
-			if( rand()%100 < 6*(skilllv-5)*sc_def_vit/100 )
+			if( rand()%100 < (6*(skilllv-5)+sd->status.base_level/10)*sc_def_vit/100 ) //TODO: How much % per base level it actually is?
 				status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(SM_FATALBLOW,skilllv),0);
 		}
 		break;
@@ -1566,10 +1566,10 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 				break;
 			}
 			case CH_TIGERFIST:
-			{
+			{	//Tigerfist is now a combo-only skill. [Skotlex]
 				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-				if(sd->sc_data[SC_COMBO].timer != -1)
-				{	//Avoid triggering combo status if not used in a combo. [Skotlex]
+//				if(sd->sc_data[SC_COMBO].timer != -1)
+//				{	//Avoid triggering combo status if not used in a combo. [Skotlex]
 					if(damage < status_get_hp(bl) &&
 					(
 					 	(pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 3 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
@@ -1577,7 +1577,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 					))
 						delay += 300 * battle_config.combo_delay_rate /100;
 					status_change_start(src,SC_COMBO,CH_TIGERFIST,skilllv,0,0,delay,0);
-				}
+//				}
 				sd->attackabletime = sd->canmove_tick = tick + delay;
 				clif_combo_delay(src,delay);
 				break;
@@ -4306,15 +4306,26 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				}
 			}
 			else {
-				int bl_skillid=0,bl_skilllv=0;
+				int bl_skillid=0,bl_skilllv=0,hp = 0;
 				if(bl->type == BL_PC) {
 					if(dstsd && dstsd->skilltimer != -1) {
 						bl_skillid = dstsd->skillid;
 						bl_skilllv = dstsd->skilllv;
+						if (map[bl->m].flag.pvp || map[bl->m].flag.gvg)
+							hp = status_get_max_hp(bl)/50; //Recover 2% HP [Skotlex]
 					}
 				}
 				else if(bl->type == BL_MOB) {
 					if(dstmd && dstmd->skilltimer != -1) {
+						if (status_get_mode(bl) & 0x20)
+						{	//Only 10% success chance against bosses. [Skotlex]
+							if (rand()%100 < 90)
+							{
+								clif_skill_fail(sd,skillid,0,0);
+								break;
+							}
+						} else
+							hp = status_get_max_hp(bl)/50; //Recover 2% HP [Skotlex]
 						bl_skillid = dstmd->skillid;
 						bl_skilllv = dstmd->skilllv;
 					}
@@ -4324,7 +4335,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					skill_castcancel(bl,0);
 					sp = skill_get_sp(bl_skillid,bl_skilllv);
 					if(dstsd)
-						pc_heal(dstsd,0,-sp);
+						pc_heal(dstsd,-hp,-sp);
 					if(sd) {
 						sp = sp*(25*(skilllv-1))/100;
 						if(skilllv > 1 && sp < 1) sp = 1;
@@ -4336,6 +4347,19 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 						}
 						else
 							sd->status.sp += sp;
+
+						if (hp && skilllv > 5)
+						{	//Recover half damaged HP at levels 6-10 [Skotlex]
+							hp /=2;
+							if(sd->status.hp + hp > sd->status.max_hp) {
+								hp = sd->status.max_hp - sd->status.hp;
+								sd->status.hp = sd->status.max_hp;
+							}
+							else
+								sd->status.hp += hp;
+
+							clif_heal(sd->fd,SP_HP,hp);
+						}
 						clif_heal(sd->fd,SP_SP,sp);
 					}
 				}
@@ -5242,8 +5266,8 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	}
 
 	if( ( skill_get_inf(sd->skillid) & INF_ATTACK_SKILL ||
-		sd->skillid == MO_EXTREMITYFIST ||
-		sd->skillid == CH_TIGERFIST) &&	// 彼我敵??係チェック
+		sd->skillid == MO_EXTREMITYFIST ) &&
+//		sd->skillid == CH_TIGERFIST) &&	// 彼我敵??係チェック
 		battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0 ) {
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
@@ -7136,7 +7160,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			return 0;
 		break;
 	case CH_TIGERFIST:						//伏虎拳
-		if((sd->sc_data[SC_COMBO].timer == -1 || sd->sc_data[SC_COMBO].val1 != MO_COMBOFINISH) && !sd->state.skill_flag)
+		if(sd->sc_data[SC_COMBO].timer == -1 || sd->sc_data[SC_COMBO].val1 != MO_COMBOFINISH)// && !sd->state.skill_flag)
 			return 0;
 		break;
 	case CH_CHAINCRUSH:						//連柱崩?
@@ -7792,7 +7816,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		skill_num != MO_EXTREMITYFIST &&
 		skill_num != CH_TIGERFIST &&
 		skill_num != CH_CHAINCRUSH) ||
-		(skill_num == CH_CHAINCRUSH && sd->state.skill_flag) ||
 		(skill_num == MO_EXTREMITYFIST && sd->state.skill_flag) )
 		pc_stopattack(sd);
 

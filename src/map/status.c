@@ -2132,7 +2132,7 @@ int status_get_hit(struct block_list *bl)
 			if (sc_data[SC_TRUESIGHT].timer != -1)	// トゥルーサイト
 				hit += 3 * sc_data[SC_TRUESIGHT].val1;
 			if (sc_data[SC_CONCENTRATION].timer != -1) //コンセントレーション
-				hit += hit * 10 * sc_data[SC_CONCENTRATION].val1 / 100;
+				hit += 10 * sc_data[SC_CONCENTRATION].val1; //+10 hit per level as per updates (?) [Skotlex]
 			if (sc_data[SC_GOSPEL].timer != -1 &&
 				sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
 				sc_data[SC_GOSPEL].val3 == 12)

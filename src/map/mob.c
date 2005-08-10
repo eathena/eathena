@@ -4170,7 +4170,7 @@ static int mob_readdb(void)
 					maxhp = maxhp * (double)battle_config.mvp_hp_rate /100.;
 			} else if (battle_config.monster_hp_rate != 100) //Normal mob
 				maxhp = maxhp * (double)battle_config.monster_hp_rate /100.;
-			if (maxhp < 0) maxhp = 1;
+			if (maxhp < 1) maxhp = 1;
 			else if (maxhp > 0x7fffffff) maxhp = 0x7fffffff;
 			mob_db_data[class_]->max_hp = (int)maxhp;
 

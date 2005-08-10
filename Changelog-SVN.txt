@@ -1,5 +1,13 @@
 Date	Added
 08/10
+	* Fixed mob's hp becoming zero after mob_hp_rate adjustments. [Skotlex]
+	* Skills update: [Skotlex]
+	- Changed concentration from +10% hit per level to +10 hit per level.
+	- Base level gives greater stun chance to Attack Weak Point (currently +1%
+	  every ten levels)
+	- Changed Tiger Knuckle Fist to be a combo-only skill.
+	- Updated Spell break to damage 2% of target's max hp, heals half that.
+	* Small debug change in clif.c which forces a disconnection upon dual-login [Skotlex]
 	* Updated char-sql deletion to take into consideration the mysql version [Skotlex]
 	  It should treat versions 4.1+ differently from the rest, please test and
 	  report if it is still failing.

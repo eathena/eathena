@@ -7598,7 +7598,6 @@ int clif_timedout(struct map_session_data *sd)
 	map_quit(sd);
 	clif_authfail_fd(sd->fd,3); // Even if player is not on we still send anyway
 	clif_setwaitclose(sd->fd); // Set session to EOF
-
 	return 0;
 }
 
@@ -8016,7 +8015,13 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			}
 			clif_authfail_fd(fd, 8); // still recognizes last connection
 			clif_authfail_fd(old_sd->fd, 2); // same id
-		} else {
+
+			//Temporal Debug case to figure our server frezes. [Skotlex]
+			if (session[fd])
+				session[fd]->eof = 1;
+			if (session[old_sd->fd])
+				session[old_sd->fd]->eof = 1;
+			} else {
 			sd = (struct map_session_data*)aCalloc(1, sizeof(struct map_session_data));
 			session[fd]->session_data = sd;
 			sd->fd = fd;
@@ -9360,7 +9365,9 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 					return;
 				}
 			}
-		} else if (skillnum == CH_TIGERFIST) {
+		}
+		/* TIGERFIST is no longer a stand-alone usable skill. [Skotlex]
+		else if (skillnum == CH_TIGERFIST) {
 			if (sd->sc_data[SC_COMBO].timer == -1 || sd->sc_data[SC_COMBO].val1 != MO_COMBOFINISH) {
 				if (!sd->state.skill_flag ) {
 					sd->state.skill_flag = 1;
@@ -9372,6 +9379,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 				}
 			}
 		}
+		*/
 		if ((lv = pc_checkskill(sd, skillnum)) > 0) {
 			if (skilllv > lv)
 				skilllv = lv;
@@ -10907,7 +10915,11 @@ int clif_parse(int fd) {
 			WFIFOSET(fd,23);
 
 			ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
-			RFIFOSKIP(fd, RFIFOREST(fd)); //No need to do any further parsing. [Skotlex]
+			if (packet_ver < 5)
+			{	//No need to do any further parsing. [Skotlex]
+				packet_len = RFIFOREST(fd);
+				RFIFOSKIP(fd, packet_len);
+			}
 			clif_setwaitclose(fd);
 			return 0;
 		}
