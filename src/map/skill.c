@@ -8419,7 +8419,7 @@ void skill_weaponrefine(struct map_session_data *sd,int idx)
 			}
 
 			per = percentrefinery [ditem->wlv][(int)item->refine];
-			per *= (75 + sd->status.job_level/2)/100;
+			per += (sd->status.job_level-50)/2; //Updated per the new kro descriptions. [Skotlex]
 
 			if (per > rand() % 100) {
 				item->refine++;

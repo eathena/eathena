@@ -1,5 +1,7 @@
 Date	Added
 08/10
+	* Removed sql loading of storage every time you open it as it's an open
+	  exploit on lagging servers. [Skotlex]
 	* Removed another "insufficient data" debug line. That should take care of
 	  incomplete packets spamming the console. [Skotlex]
 	* Alright, removed the "insufficient data" debug line as it was just

@@ -114,17 +114,17 @@ int storage_delete(int account_id)
  */
 int storage_storageopen(struct map_session_data *sd)
 {
-#ifdef TXT_ONLY
+//#ifdef TXT_ONLY
 	struct storage *stor;
-#endif
+//#endif
 	nullpo_retr(0, sd);
 
 	if(pc_isGM(sd) && pc_isGM(sd) < battle_config.gm_can_drop_lv) {
 		clif_displaymessage(sd->fd, msg_txt(246));
 		return 1;
 	}
-//Storage loading always from sql idea from Komurka [Skotlex]
-#ifdef TXT_ONLY
+//Storage loading always from sql idea from Komurka [Skotlex] - removed as it opens exploits when server lags.
+//#ifdef TXT_ONLY
 	if((stor = (struct storage *) numdb_search(storage_db,sd->status.account_id)) != NULL) {
 		if (stor->storage_status == 0) {
 			stor->storage_status = 1;
@@ -135,7 +135,7 @@ int storage_storageopen(struct map_session_data *sd)
 			return 0;
 		}
 	} else
-#endif
+//#endif
 		intif_request_storage(sd->status.account_id);
 
 	return 1;
