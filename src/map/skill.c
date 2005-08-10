@@ -3116,7 +3116,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case AL_DECAGI:			/* ë¨ìxå∏è≠ */
 		if (status_isimmune(bl))
 			break;
-		if (rand() % 100 < (50 + skilllv * 3 + (status_get_lv(src) + status_get_int(src) / 5) - sc_def_mdef)) {
+		if (rand() % 100 < (50 + skilllv * 3 + (status_get_lv(src) + status_get_int(src) / 5) +(sc_def_mdef-100))) { //0 defense is sc_def_mdef == 100! [Skotlex]
 			clif_skill_nodamage (src, bl, skillid, skilllv, 1);
 			status_change_start (bl, SkillStatusChangeTable[skillid], skilllv, 0, 0, 0, skill_get_time(skillid,skilllv), 0);
 		}
@@ -4231,9 +4231,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			int i;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if (rand()%100 >= (50+10*skilllv) -sc_def_mdef)
-			// Fixed & changed to use a proportionnal reduction (no info, but seems far more logical) [DracoRPG]
-			//-> Using *(100-def)/100 might be logical, but it is a more complex equation, and yields the same results when used on level 5 Dispel. -> Look at dec-agility for another skill with similar equation. [Skotlex]
+			if (rand()%100 >= (50+10*skilllv)*sc_def_mdef/100) // Fixed & changed to use a proportionnal reduction (no info, but seems far more logical) [DracoRPG]
 			{
 				if (sd)
 					clif_skill_fail(sd,skillid,0,0);

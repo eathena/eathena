@@ -8768,6 +8768,7 @@ int atcommand_readmail(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
+	int index;
 	if(!battle_config.mail_system)
 		return 0;
 
@@ -8778,10 +8779,16 @@ int atcommand_readmail(
 		return 0;
 	}
 
+	index = atoi(message);
+	if (index < 1) {
+		clif_displaymessage(sd->fd,"Message number cannot be negative or zero.");
+		return 0;
+	}
+
 	if(strlen(command)==11)
-		mail_delete(sd,atoi(message));
+		mail_delete(sd,index);
 	else
-		mail_read(sd,atoi(message));
+		mail_read(sd,index);
 
 	return 0;
 }
