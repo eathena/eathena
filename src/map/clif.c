@@ -10925,10 +10925,8 @@ int clif_parse(int fd) {
 	packet_len = packet_db[packet_ver][cmd].len;
 	if (packet_len == -1) {
 		if (RFIFOREST(fd) < 4)
-		{
-			ShowDebug("clif_parse: Session %d: Insufficient data for packet parsing, skipping.\n", fd);
 			return 0; // 可変長パケットで長さの所までデータが来てない
-		}
+
 		packet_len = RFIFOW(fd,2);
 		if (packet_len < 4 || packet_len > 32768) {
 			close(fd);
@@ -10938,10 +10936,7 @@ int clif_parse(int fd) {
 		}
 	}
 	if (RFIFOREST(fd) < packet_len)
-	{
-		ShowDebug("clif_parse: session %d: Insufficient packet data (need %d), skipping.\n", fd, packet_len);
 		return 0; // まだ1パケット分データが揃ってない
-	}
 
 	#if DUMP_ALL_PACKETS
 		dump = 1;

@@ -1,5 +1,7 @@
 Date	Added
 08/10
+	* Removed another "insufficient data" debug line. That should take care of
+	  incomplete packets spamming the console. [Skotlex]
 	* Alright, removed the "insufficient data" debug line as it was just
 	  causing mass lag. [Skotlex]
 08/09
