@@ -1,5 +1,6 @@
 Date	Added
 08/09
+	* Fixed Magnum Break's damage display. [Skotlex]
 	* Finished fixing and testing the sql char deletion update. [Skotlex]
 	  Deleted characters should now properly leave their party/guild.
 	* Throw Stone is now blocked by Kyrie and Pneuma [Skotlex]

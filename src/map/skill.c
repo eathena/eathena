@@ -1531,9 +1531,6 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		if( src == bl) type = 4;	// 反動はダメ?ジモ?ションなし
 	}
 
-	if(dmg.dmotion == 0) //If the damage motion is 0, consider this attack a 'endure' type attack. [Skotlex]
-		type = 9;
-
 //使用者がPCの場合の?理ここから
 	if(src->type == BL_PC) {
 		struct map_session_data *sd = (struct map_session_data *)src;
