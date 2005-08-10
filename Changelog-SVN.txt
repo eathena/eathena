@@ -1,5 +1,7 @@
 Date	Added
 08/10
+	* Fixed cultivation not being in the list of skills for GMs with
+	  gm_skill_all [Skotlex]
 	* Fixed mob's hp becoming zero after mob_hp_rate adjustments. [Skotlex]
 	* Skills update: [Skotlex]
 	- Changed concentration from +10% hit per level to +10 hit per level.
