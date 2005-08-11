@@ -1294,7 +1294,7 @@ int mmo_char_sql_init(void) {
 		{
 			if (mysql_num_rows(sql_res) > 0 &&
 				(sql_row = mysql_fetch_row(sql_res)) != NULL &&
-				sql_row[0] != NULL && atoi(sql_row[0] >= char_id_count))
+				sql_row[0] != NULL && atoi(sql_row[0]) >= char_id_count)
 				char_id_count = 0;	//No need for setting the char id.
 			mysql_free_result(sql_res);
 		}
