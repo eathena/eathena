@@ -1,5 +1,6 @@
 Date	Added
 08/10
+	* Removed use of settick_timer (fixes the "can't move!" bug) [Skotlex]
 	* Fixed (I think) being able to sit while casting. [Skotlex]
 	* Updated Char-SQL server to guarantee that new chars are created with
 	  char_ids above 150K. [Skotlex]

@@ -6683,8 +6683,10 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 			break;
 		}
 
-		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id) {
-			settick_timer(sc_data[type].timer, 20000+tick);
+		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id)
+		{
+			delete_timer(sc_data[type].timer, status_change_timer);
+			sc_data[type].timer = add_timer(20000+tick, status_change_timer, bl->id, type);
 		}
 		break;		
 
@@ -6698,7 +6700,10 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id) {
 			status_change_end(bl,SC_FOGWALL,-1);
 			if (sc_data && sc_data[SC_BLIND].timer!=-1)
-				settick_timer(sc_data[SC_BLIND].timer, tick+30000);
+			{
+				delete_timer(sc_data[type].timer, status_change_timer);
+				sc_data[type].timer = add_timer(30000+tick, status_change_timer, bl->id, type);
+			}
 			break;
 		}
 	case 0xb7:	/* スパイダ?ウェッブ */
