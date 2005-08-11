@@ -1,5 +1,6 @@
 Date	Added
 08/10
+	* Fixed PNEUMA blocking magic part of Soul Breaker, instead of physiacal attack one [Lupus]
 	* Fixed the Login/Char SQL crashing when determining the max id of empty
 	  tables. [Skotlex]
 	  Account and Char creation code tested, it is safe to use now.

@@ -379,7 +379,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		if(sc_data[SC_PNEUMA].timer!=-1 && damage>0 &&
 			((flag&BF_WEAPON && flag&BF_LONG && skill_num != NPC_GUIDEDATTACK) ||
 			(flag&BF_MISC && (skill_num ==  HT_BLITZBEAT || skill_num == SN_FALCONASSAULT || skill_num == TF_THROWSTONE)) ||
-			(flag&BF_MAGIC && skill_num == ASC_BREAKER))){ // [DracoRPG]
+			(flag&BF_WEAPON && skill_num == ASC_BREAKER))){ // It should block only physical part of Breaker! [Lupus]
 			// ÉjÉÖÅ[É}
 			damage=0;
 		}
