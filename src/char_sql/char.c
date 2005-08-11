@@ -1287,12 +1287,14 @@ int mmo_char_sql_init(void) {
 	//Check for max id (in case new chars would get their IDs set below 150K) [Skotlex]
 	sprintf(tmp_sql , "SELECT max(`char_id`) FROM `%s`", char_db);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error - %s\n", mysql_error(&mysql_handle));
+		printf("DB server Error (Select max char_id) - %s\n", mysql_error(&mysql_handle));
 	} else {
 		sql_res = mysql_store_result(&mysql_handle);
 		if (sql_res)
 		{
-			if ((sql_row = mysql_fetch_row(sql_res)) && atoi(sql_row[0]) >= char_id_count)
+			if (mysql_num_rows(sql_res) > 0 &&
+				(sql_row = mysql_fetch_row(sql_res)) != NULL &&
+				sql_row[0] != NULL && atoi(sql_row[0] >= char_id_count))
 				char_id_count = 0;	//No need for setting the char id.
 			mysql_free_result(sql_res);
 		}

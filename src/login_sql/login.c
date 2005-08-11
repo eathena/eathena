@@ -295,7 +295,9 @@ int mmo_auth_sqldb_init(void) {
 			sql_res = mysql_store_result(&mysql_handle) ;
 			if (sql_res)
 			{
-				if ((sql_row = mysql_fetch_row(sql_res)) && atoi(sql_row[0]) >= account_id_count)
+				if (mysql_num_rows(sql_res) > 0 &&
+					(sql_row = mysql_fetch_row(sql_res)) != NULL &&
+					sql_row[0] != NULL && atoi(sql_row[0]) >= account_id_count)
 				//Ok, chars already exist, no need to use this.
 					account_id_count = 0;
 				mysql_free_result(sql_res);

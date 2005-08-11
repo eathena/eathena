@@ -1,5 +1,8 @@
 Date	Added
 08/10
+	* Fixed the Login/Char SQL crashing when determining the max id of empty
+	  tables. [Skotlex]
+	  Account and Char creation code tested, it is safe to use now.
 	* Removed use of settick_timer (fixes the "can't move!" bug) [Skotlex]
 	* Fixed (I think) being able to sit while casting. [Skotlex]
 	* Updated Char-SQL server to guarantee that new chars are created with
