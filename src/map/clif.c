@@ -6337,6 +6337,11 @@ int clif_sendegg(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 
 	fd=sd->fd;
+	if (agit_flag && battle_config.pet_no_gvg && map[sd->bl.m].flag.gvg)
+	{	//Disable pet hatching in GvG grounds during Guild Wars [Skotlex]
+		clif_displaymessage(fd, "Pets are not allowed in Guild Wars.");
+		return 0;
+	}
 	WFIFOW(fd,0)=0x1a6;
 	if(sd->status.pet_id <= 0) {
 		for(i=0,n=0;i<MAX_INVENTORY;i++){
@@ -8015,13 +8020,7 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			}
 			clif_authfail_fd(fd, 8); // still recognizes last connection
 			clif_authfail_fd(old_sd->fd, 2); // same id
-
-			//Temporal Debug case to figure our server frezes. [Skotlex]
-			if (session[fd])
-				session[fd]->eof = 1;
-			if (session[old_sd->fd])
-				session[old_sd->fd]->eof = 1;
-			} else {
+		} else {
 			sd = (struct map_session_data*)aCalloc(1, sizeof(struct map_session_data));
 			session[fd]->session_data = sd;
 			sd->fd = fd;

@@ -332,8 +332,17 @@ int map_addblock (struct block_list *bl)
 		map[m].block[pos] = bl;
 		map[m].block_count[pos]++;
 		if (bl->type == BL_PC)
+		{
+			struct map_session_data* sd;
 			if (map[m].users++ == 0 && battle_config.dynamic_mobs)	//Skotlex
 				map_spawnmobs(m);
+			sd = (struct map_session_data*)bl;
+			if (agit_flag && battle_config.pet_no_gvg && map[m].flag.gvg && sd->pd)
+			{	//Return the pet to egg. [Skotlex]
+				clif_displaymessage(sd->fd, "Pets are not allowed in Guild Wars.");
+				pet_menu(sd, 3); //Option 3 is return to egg.
+			}
+		}
 	}
 
 	return 0;

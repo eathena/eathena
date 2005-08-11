@@ -14,7 +14,13 @@
 	 EX) If Goblin Archer card goes on a Katar-type weapon, the CRIT Bonus vs. Undeads become +14.
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
-	
+
+08/11
+	* Updated Zen's (Hyper Spirit Sphere) casting time to 3 secs as per the kro
+	  skilldesctable.txt file. [Skotlex]
+	* Updated Guardians to be BOSS types (their mode was changed to 165 from 133) [Skotlex]
+	  Report any problems from this (just make sure you have some sort of
+	  source to rely on).
 08/09
 	* Updated Enchanted Peach Tree, Owl Duke and Greatest General
 	  to have their auto-spell casted on themselves rather than the enemy [Skotlex]

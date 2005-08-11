@@ -167,6 +167,7 @@ extern struct Battle_Config {
 	unsigned short pet_max_stats; //[Skotlex]
 	unsigned short pet_max_atk1; //[Skotlex]
 	unsigned short pet_max_atk2; //[Skotlex]
+	unsigned short pet_no_gvg; //Disables pets in gvg. [Skotlex]
 	unsigned short skill_min_damage;
 	unsigned short finger_offensive_type;
 	unsigned short heal_exp;

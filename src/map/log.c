@@ -452,7 +452,7 @@ int log_atcommand(struct map_session_data *sd, const char *message)
 	FILE *logfp;
 #ifndef TXT_ONLY
 		char t_name[NAME_LENGTH*2];
-		char t_msg[100]; //These are the contents of an @ call, so there shouldn't be overflow danger here?
+		char t_msg[MESSAGE_SIZE*2+1]; //These are the contents of an @ call, so there shouldn't be overflow danger here?
 #endif
 
 	if(log_config.enable_logs <= 0)
@@ -484,6 +484,7 @@ int log_npc(struct map_session_data *sd, const char *message)
 	FILE *logfp;
 	#ifndef TXT_ONLY
 		char t_name[NAME_LENGTH*2];
+		char t_msg[MESSAGE_SIZE*2]; //Not sure what's the max input length, but assuming it is the same as a normal chat.. o.O
 	#endif
 
 	if(log_config.enable_logs <= 0)
@@ -493,7 +494,7 @@ int log_npc(struct map_session_data *sd, const char *message)
 	if(log_config.sql_logs > 0)
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`npc_date`, `account_id`, `char_id`, `char_name`, `map`, `mes`) VALUES(NOW(), '%d', '%d', '%s', '%s', '%s') ",
-			log_config.log_npc_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), sd->mapname, message);
+			log_config.log_npc_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), sd->mapname, jstrescapecpy(t_msg, (char *)message));
 		if(mysql_query(&logmysql_handle, tmp_sql))
 			ShowSQL("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
@@ -513,7 +514,7 @@ int log_npc(struct map_session_data *sd, const char *message)
 //ChatLogging
 int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, int x, int y, char *dst_charname, char *message){
 #ifndef TXT_ONLY
-	char t_msg[100]; //The chat line, 100 should be high enough above overflow...
+	char t_msg[MESSAGE_SIZE*2+1]; //Chat line fully escaped, with an extra space just in case.
 #endif
 #ifdef TXT_ONLY
 	FILE *logfp;
