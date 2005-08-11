@@ -27,7 +27,7 @@
 //============================================================
 
 
-prt_castle.gat,178,99,6	script	Lothar	752,{
+prt_castle.gat,45,169,6	script	Lothar	752,{
 	callfunc "F_BlockHigh",25,"Swordman High",38,"Paladin","^000080Lothar^000000";
 
 	mes "[^000080Lothar^000000]";

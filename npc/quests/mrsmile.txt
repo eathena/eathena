@@ -87,4 +87,4 @@ morocc.gat,158,97,4	duplicate(SmileAT)	Smile Assistance#5	92
 // Payon ------------------------------------------------------------------------------------
 payon.gat,187,104,4	duplicate(SmileAT)	Smile Assistance#6	92
 // Prontera ---------------------------------------------------------------------------------
-prontera.gat,186,104,4	duplicate(SmileAT)	Smile Assistance#7	92
+prontera.gat,157,187,4	duplicate(SmileAT)	Smile Assistance#7	92
