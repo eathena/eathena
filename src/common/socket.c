@@ -132,7 +132,6 @@ static int recv_to_fifo(int fd)
 		session[fd]->rdata_size+=len;
 		session[fd]->rdata_tick = last_tick;
 	} else if(len<=0){
-		//NOTE: I read the docs and recv/read return -1 on non-blocking sockets when there is nothing yet to read, WHY is -1 being disconnected here? Is the socket NOT non-blocking? That would be a serious error. [Skotlex]
 		// value of connection is not necessary the same
 //		ShowMessage("set eof : connection #%d\n", fd);
 		session[fd]->eof=1;
@@ -590,7 +589,7 @@ int WFIFOSET(int fd,int len)
 
 int do_sendrecv(int next)
 {
-	fd_set rfd,wfd;
+	fd_set rfd,wfd,efd; //Added the Error Set so that such sockets can be made eof. They are the same as the rfd for now. [Skotlex]
 	struct timeval timeout;
 	int ret,i;
 #ifdef TURBO
@@ -600,6 +599,7 @@ int do_sendrecv(int next)
 	last_tick = time(0);
 
 	memcpy(&rfd, &readfds, sizeof(rfd));
+	memcpy(&efd, &readfds, sizeof(rfd));
 #ifdef TURBO
 	memcpy(&wfd, &writefds, sizeof(wfd));
 #else
@@ -620,7 +620,13 @@ int do_sendrecv(int next)
 
 	timeout.tv_sec  = next/1000;
 	timeout.tv_usec = next%1000*1000;
-	ret = select(fd_max, &rfd, &wfd, NULL, &timeout);
+	ret = select(fd_max, &rfd, &wfd, &efd, &timeout);
+
+	if (ret == -1)
+	{	//Why we don't look out for this!? [Skotlex]
+		perror("do_sendrecv failed select: ");
+		return 0;
+	}
 
 #ifndef TURBO
 	if (ret <= 0)
@@ -688,6 +694,18 @@ int do_sendrecv(int next)
 				session[i]->func_parse(i);
 			ret--;
 #endif
+		}
+
+		if(FD_ISSET(i,&efd)){
+			//ShowMessage("error:%d\n",i);
+			session[i]->eof = 1;
+			if (session[i]->func_parse)
+				session[i]->func_parse(i);	//Parsing this should invoke closing the socket inmediately. [Skotlex]
+			else { //Just remove this session.
+				close(i);
+				delete_session(i);
+			}
+			ret--;
 		}
 
 #ifdef TURBO

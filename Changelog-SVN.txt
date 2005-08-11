@@ -1,5 +1,6 @@
 Date	Added
 08/12
+	* Added more reports and some fixes/optimizations to socket.c [Skotlex]
 	* Added reporting of error when a connection can't be made non-blocking. [Skotlex]
 	* Updated Logging Filter: [Lupus]
 		- Implemented refine_items_log condition. You may log only certain refine value items.
