@@ -1,5 +1,7 @@
 Date	Added
 08/11
+	* Fixed players clicking on players disguised as NPCs trying to execute the
+	  "npc". [Skotlex]
 	* Fixed possible overflows and exploits in log.c, thanks to Irmin [Skotlex]
 	* Probably fixed devotion's visual not updating. [Skotlex]
 	* Added flag pet_no_gvg, when set to yes/1 the pet is returned to an egg when
