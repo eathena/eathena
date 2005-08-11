@@ -1712,7 +1712,6 @@ static int clif_waitclose(int tid, unsigned int tick, int id, int data) {
 	if (session[id])
 		session[id]->eof = 1;
 
-//	close(id); //Quote from End of Exam: "And close(fd) in chrif_disconnect() and clif_waitclose() do not need since the socket will be closed in clif_parse() or chrif_parse(). This might be link to crash if you use lazy OS." [Skotlex]
 	return 0;
 }
 
@@ -10834,11 +10833,12 @@ int clif_parse(int fd) {
 			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]
 		else if (sd)
 			map_deliddb(&sd->bl); // account_id has been included in the DB before auth answer [Yor]
-		close(fd);
+		if (close(fd))
+			perror("Error closing session: ");
 		delete_session(fd);
 		return 0;
 	}
-	else if (session[fd]->eof) { // charŽI‚ÉŒq‚ª‚Á‚Ä‚È‚¢ŠÔ‚ÍÚ‘±‹ÖŽ~ (!chrif_isconnect())
+	else if (session[fd]->eof) {
 		if (sd && sd->state.auth) {
 			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]
 			if (sd->status.name != NULL)
@@ -10847,17 +10847,13 @@ int clif_parse(int fd) {
 				ShowInfo("%sCharacter with Account ID '"CL_WHITE"%d"CL_RESET"' logged off.\n", (pc_isGM(sd))?"GM ":"", sd->bl.id); // Player logout display [Yor]
 		} else if (sd) { // not authentified! (refused by char-server or disconnect before to be authentified)
 			ShowInfo("Player not authenticated (Account '"CL_WHITE"%d"CL_RESET"', Session '"CL_WHITE"%d"CL_RESET"', PacketVer '"CL_WHITE"%d"CL_RESET"') logged off.\n", sd->bl.id, fd, sd->packet_ver); // Player logout display [Yor]
-//			if (chrif_isconnect())
-//				clif_quitsave(fd, sd);
 			map_deliddb(&sd->bl); // account_id has been included in the DB before auth answer [Yor]
-//			sd = 0;
 		} else {
 			unsigned char *ip = (unsigned char *) &session[fd]->client_addr.sin_addr;
 			ShowInfo("Player not identified with IP '"CL_WHITE"%d.%d.%d.%d"CL_RESET"' logged off.\n", ip[0],ip[1],ip[2],ip[3]);
 		}
-		close(fd);
-//		if (sd) // ’Ç‰Á
-//			map_deliddb(&sd->bl); // ’Ç‰Á
+		if (close(fd))
+			perror("Error closing session: ");
 		delete_session(fd);
 		return 0;
 	}
@@ -10943,9 +10939,9 @@ int clif_parse(int fd) {
 
 		packet_len = RFIFOW(fd,2);
 		if (packet_len < 4 || packet_len > 32768) {
-			close(fd);
 			ShowWarning("clif_parse: Packet 0x%x specifies invalid packet_len (%d), disconnecting session #%d.\n", cmd, packet_len, fd);
 			session[fd]->eof =1;
+//			close(fd); <- I have a bad feeling about this close. [Skotlex]
 			return 0;
 		}
 	}
