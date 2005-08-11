@@ -8,7 +8,7 @@ COMMON_H =   ../common/core.h ../common/db.h ../common/plugins.h ../common/grfio
 
 LIBS = -lz -lm
 
-map-server_sql: sqlobj/map.o sqlobj/chrif.o sqlobj/clif.o sqlobj/pc.o sqlobj/npc.o sqlobj/chat.o sqlobj/path.o sqlobj/itemdb.o sqlobj/mob.o sqlobj/script.o sqlobj/storage.o sqlobj/skill.o sqlobj/atcommand.o sqlobj/charcommand.o sqlobj/battle.o sqlobj/intif.o sqlobj/trade.o sqlobj/party.o sqlobj/vending.o sqlobj/guild.o sqlobj/pet.o sqlobj/log.o sqlobj/status.o sqlobj/mail.o sqlobj/npc_chat.o sqlobj/mercenary.o $(COMMON_OBJ)
+map-server_sql: sqlobj/map.o sqlobj/chrif.o sqlobj/clif.o sqlobj/pc.o sqlobj/npc.o sqlobj/chat.o sqlobj/path.o sqlobj/itemdb.o sqlobj/mob.o sqlobj/script.o sqlobj/storage.o sqlobj/skill.o sqlobj/atcommand.o sqlobj/charcommand.o sqlobj/battle.o sqlobj/intif.o sqlobj/trade.o sqlobj/party.o sqlobj/vending.o sqlobj/guild.o sqlobj/pet.o sqlobj/log.o sqlobj/status.o sqlobj/npc_chat.o sqlobj/mercenary.o $(COMMON_OBJ)
 	$(CC) $> $(LIB_S) $(LIBS) -o ../../$@
 
 
@@ -38,7 +38,6 @@ sqlobj/guild.o: guild.c guild.h storage.h battle.h clif.h intif.h pc.h npc.h map
 sqlobj/pet.o: pet.c pet.h map.h clif.h chrif.h intif.h pc.h itemdb.h battle.h mob.h npc.h script.h $(COMMON_H)
 sqlobj/log.o: log.c log.h map.h $(COMMON_H)
 sqlobj/charcommand.o: charcommand.c charcommand.h itemdb.h pc.h map.h skill.h clif.h mob.h intif.h battle.h storage.h guild.h pet.h log.h $(COMMON_H)
-sqlobj/mail.o: mail.c mail.h $(COMMON_H)
 sqlobj/npc_chat.o: npc_chat.c map.h npc.h clif.h pc.h script.h mob.h itemdb.h battle.h $(COMMON_H)
 sqlobj/mercenary.o: mercenary.c mercenary.h $(COMMON_H)
 

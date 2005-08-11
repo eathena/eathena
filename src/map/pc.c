@@ -31,7 +31,6 @@
 #include "log.h"
 #include "showmsg.h"
 #include "core.h"
-#include "mail.h"
 
 
 #define PVP_CALCRANK_INTERVAL 1000	// PVP‡ˆÊŒvŽZ‚ÌŠÔŠu
@@ -865,9 +864,6 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 			ShowWarning("In function pc_atuhok() -> File '"CL_WHITE"%s"CL_RESET"' not found.\n", motd_txt);
 		}
 	}
-
-	if(battle_config.mail_system)
-		mail_check(*sd,1); // check mail at login [Valaris]
 
 	// message of the limited time of the account
 	if (connect_until_time != 0) { // don't display if it's unlimited or unknow value

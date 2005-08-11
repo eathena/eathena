@@ -29,7 +29,6 @@
 #include "showmsg.h"
 #include "utils.h"
 #include "malloc.h"
-#include "mail.h"
 
 #define STATE_BLIND 0x10
 
@@ -205,16 +204,6 @@ ACMD_FUNC(npctalk);
 ACMD_FUNC(pettalk);
 ACMD_FUNC(users);
 ACMD_FUNC(autoloot);  // by Upa-Kun
-ACMD_FUNC(checkmail); // [Valaris]
-ACMD_FUNC(listmail); // [Valaris]
-ACMD_FUNC(listnewmail); // [Valaris]
-ACMD_FUNC(readmail); // [Valaris]
-ACMD_FUNC(sendmail); // [Valaris]
-ACMD_FUNC(sendprioritymail); // [Valaris]
-ACMD_FUNC(deletemail); // [Valaris]
-//ACMD_FUNC(sound); // [Valaris]
-ACMD_FUNC(refreshonline); // [Valaris]
-
 
 ACMD_FUNC(skilltree); // by MouseJstr
 
@@ -493,15 +482,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Users,				"@users",			 0, atcommand_users },
 	{ AtCommand_ResetState,			"/reset",			40,	NULL },
 
-	{ AtCommand_CheckMail,			"@checkmail",		 1, atcommand_listmail }, // [Valaris]
-	{ AtCommand_ListMail,			"@listmail",		 1, atcommand_listmail }, // [Valaris]
-	{ AtCommand_ListNewMail,		"@listnewmail",		 1, atcommand_listmail }, // [Valaris]
-	{ AtCommand_ReadMail,			"@readmail",		 1, atcommand_readmail }, // [Valaris]
-	{ AtCommand_DeleteMail,			"@deletemail",		 1, atcommand_readmail }, // [Valaris]
-	{ AtCommand_SendMail,			"@sendmail",		 1, atcommand_sendmail }, // [Valaris]
-	{ AtCommand_SendPriorityMail,	"@sendprioritymail",80, atcommand_sendmail }, // [Valaris]
-	{ AtCommand_RefreshOnline,		"@refreshonline",	99, atcommand_refreshonline }, // [Valaris]
-
 	{ AtCommand_SkillTree,			"@skilltree",		40, atcommand_skilltree }, // [MouseJstr]
 	{ AtCommand_Marry,				"@marry",			40, atcommand_marry }, // [MouseJstr]
 	{ AtCommand_Divorce,			"@divorce",			40, atcommand_divorce }, // [MouseJstr]
@@ -661,7 +641,7 @@ char *msg_table[MAX_MSG]; // Server messages (0-499 reserved for GM commands, 50
 const char *msg_txt(size_t msg_number)
 {
 	if(msg_number < MAX_MSG &&
-	    msg_table[msg_number] != NULL && 
+	    msg_table[msg_number] != NULL &&
 		msg_table[msg_number][0] != '\0')
 		return msg_table[msg_number];
 	return "??";
@@ -822,7 +802,7 @@ AtCommandType atcommand(AtCommandInfo& info, const char* message, struct map_ses
 	if(*message == command_symbol)
 	{	// check first char.
 		char command[101];
-		
+
 		sscanf(message, "%100s", command);
 		command[sizeof(command)-1] = '\0';
 
@@ -954,7 +934,7 @@ bool atcommand_send(int fd, struct map_session_data &sd, const char* command, co
 	size_t i,type=0;
 	int info[20];
 	char output[128]="";
-	
+
    	if (!message || !*message || sscanf(message, "%x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &type, &info[1], &info[2], &info[3], &info[4], &info[5], &info[6], &info[7], &info[8], &info[9], &info[10], &info[11], &info[12], &info[13], &info[14], &info[15], &info[16], &info[17], &info[18], &info[19], &info[20]) < 1) {
 		clif_displaymessage(fd, "Please enter a packet number, and - if required - up to 20 additional values.");
 		return false;
@@ -1055,15 +1035,15 @@ bool atcommand_where(int fd, struct map_session_data &sd, const char* command, c
 	struct map_session_data *pl_sd = NULL;
 	char player_name[128]="";
 	char output[128]="";
-	
+
 	if (!message || !*message)
 		return false;
-		
+
 	if(sscanf(message, "%99[^\n]", player_name) < 1)
 		return false;
 	if(strncmp(sd.status.name,player_name,24)==0)
 		return false;
-	
+
 	if( battle_config.hide_GM_session && !(battle_config.who_display_aid > 0 && pc_isGM(sd)>=battle_config.who_display_aid) )
 	{
 		return false;
@@ -1137,8 +1117,8 @@ bool atcommand_jump(int fd, struct map_session_data &sd, const char* command, co
 		// just nothing
 	}
 
-	if( sd.bl.m >= map_num || 
-		map[sd.bl.m].flag.nowarp || 
+	if( sd.bl.m >= map_num ||
+		map[sd.bl.m].flag.nowarp ||
 		(map[sd.bl.m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) )
 	{
 		clif_displaymessage(fd, msg_table[248]);
@@ -1599,7 +1579,7 @@ bool atcommand_whozeny(int fd, struct map_session_data &sd, const char* command,
 		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth)
 		{
 			strcpytolower(player_name, pl_sd->status.name);
-			
+
 			if( NULL!= strstr(player_name, match_text) )
 			{	// search with no case sensitive
 					zeny[count]=pl_sd->status.zeny;
@@ -1862,7 +1842,7 @@ bool atcommand_option(int fd, struct map_session_data &sd, const char* command, 
  */
 bool atcommand_hide(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	if (sd.status.option & OPTION_HIDE) {
 		sd.status.option &= ~OPTION_HIDE;
 		clif_displaymessage(fd, msg_table[10]); // Invisible: Off
@@ -2036,7 +2016,7 @@ bool atcommand_jobchange(int fd, struct map_session_data &sd, const char* comman
  */
 bool atcommand_die(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	clif_specialeffect(sd.bl,450,1);
 	pc_damage(sd, sd.status.hp + 1,NULL);
 	clif_displaymessage(fd, msg_table[13]); // A pity! You've died.
@@ -2082,7 +2062,7 @@ bool atcommand_kill(int fd, struct map_session_data &sd, const char* command, co
  */
 bool atcommand_alive(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	if( pc_isdead(sd) )
 	{
 		sd.status.hp = sd.status.max_hp;
@@ -2329,7 +2309,7 @@ bool atcommand_itemreset(int fd, struct map_session_data &sd, const char* comman
  */
 bool atcommand_itemcheck(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	pc_checkitem(sd);
 
 	return true;
@@ -2372,7 +2352,7 @@ bool atcommand_baselevelup(int fd, struct map_session_data &sd, const char* comm
 			clif_displaymessage(fd, msg_table[158]); // Base level can't go any lower.
 			return false;
 		}
-		if((size_t)(-level) > battle_config.maximum_level || sd.status.base_level < (size_t)(1 - level)) 
+		if((size_t)(-level) > battle_config.maximum_level || sd.status.base_level < (size_t)(1 - level))
 			level = 1 - sd.status.base_level;
 		if( sd.status.status_point > 0 )
 		{
@@ -2604,7 +2584,7 @@ bool atcommand_pvpon(int fd, struct map_session_data &sd, const char* command, c
  */
 bool atcommand_gvgoff(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	if (map[sd.bl.m].flag.gvg) {
 		map[sd.bl.m].flag.gvg = 0;
 		clif_send0199(sd.bl.m, 0);
@@ -2623,7 +2603,7 @@ bool atcommand_gvgoff(int fd, struct map_session_data &sd, const char* command, 
  */
 bool atcommand_gvgon(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	if (!map[sd.bl.m].flag.gvg) {
 		map[sd.bl.m].flag.gvg = 1;
 		clif_send0199(sd.bl.m, 3);
@@ -2741,7 +2721,7 @@ bool atcommand_hair_style(int fd, struct map_session_data &sd, const char* comma
  */
 bool atcommand_charhairstyle(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
     return true;
 }
 
@@ -3473,8 +3453,8 @@ bool atcommand_memo(int fd, struct map_session_data &sd, const char* command, co
 		atcommand_memo_sub(sd);
 	else {
 		if (position >= MIN_PORTAL_MEMO && position <= MAX_PORTAL_MEMO) {
-			if( sd.bl.m < map_num && 
-				(map[sd.bl.m].flag.nowarpto || map[sd.bl.m].flag.nomemo) && 
+			if( sd.bl.m < map_num &&
+				(map[sd.bl.m].flag.nowarpto || map[sd.bl.m].flag.nomemo) &&
 				battle_config.any_warp_GM_min_level > pc_isGM(sd) )
 			{
 				clif_displaymessage(fd, msg_table[253]);
@@ -3542,7 +3522,7 @@ bool atcommand_packet(int fd, struct map_session_data &sd, const char* command, 
 		clif_displaymessage(fd, "Packet mode changed.");
 		return true;
 	}
-	
+
 	if (!message || !*message || (i = sscanf(message, "%d %d", &x, &y)) < 1) {
 		clif_displaymessage(fd, "Please, enter a status type/flag (usage: @packet <status type> <flag>).");
 		return false;
@@ -3870,7 +3850,7 @@ bool atcommand_makeegg(int fd, struct map_session_data &sd, const char* command,
  */
 bool atcommand_hatch(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	if (sd.status.pet_id <= 0)
 		clif_sendegg(sd);
 	else {
@@ -3970,7 +3950,7 @@ bool atcommand_pethungry(int fd, struct map_session_data &sd, const char* comman
  */
 bool atcommand_petrename(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	if (sd.status.pet_id > 0 && sd.pd) {
 		if (sd.pet.rename_flag != 0) {
 			sd.pet.rename_flag = 0;
@@ -4321,7 +4301,7 @@ bool atcommand_doom(int fd, struct map_session_data &sd, const char* command, co
 {
 	struct map_session_data *pl_sd;
 	size_t i;
-	
+
 	clif_specialeffect(sd.bl,450,2);
 	for(i = 0; i < fd_max; i++) {
 		if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth && i != (size_t)fd &&
@@ -4343,7 +4323,7 @@ bool atcommand_doommap(int fd, struct map_session_data &sd, const char* command,
 {
 	struct map_session_data *pl_sd;
 	size_t i;
-	
+
 	clif_specialeffect(sd.bl,450,3);
 	for (i = 0; i < fd_max; i++) {
 		if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth && i != (size_t)fd && sd.bl.m == pl_sd->bl.m &&
@@ -4388,7 +4368,7 @@ bool atcommand_raise(int fd, struct map_session_data &sd, const char* command, c
 	struct map_session_data *pl_sd;
 	size_t i;
 	for (i = 0; i < fd_max; i++)
-	{	
+	{
 		if(session[i] && (pl_sd=(struct map_session_data *)session[i]->session_data) && pl_sd->state.auth && sd.bl.m == pl_sd->bl.m)
 			atcommand_raise_sub(*pl_sd);
 	}
@@ -4619,7 +4599,7 @@ bool atcommand_kickall(int fd, struct map_session_data &sd, const char* command,
  */
 bool atcommand_allskill(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	pc_allskillup(sd); // all skills
 	sd.status.skill_point = 0; // 0 skill points
 	clif_updatestatus(sd, SP_SKILLPOINT); // update
@@ -4877,7 +4857,7 @@ bool atcommand_guild(int fd, struct map_session_data &sd, const char* command, c
  */
 bool atcommand_agitstart(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	if (agit_flag == 1) {
 		clif_displaymessage(fd, msg_table[73]); // Already it has started siege warfare.
 		return false;
@@ -4896,7 +4876,7 @@ bool atcommand_agitstart(int fd, struct map_session_data &sd, const char* comman
  */
 bool atcommand_agitend(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	if (agit_flag == 0) {
 		clif_displaymessage(fd, msg_table[75]); // Siege warfare hasn't started yet.
 		return false;
@@ -5307,7 +5287,7 @@ bool atcommand_partyrecall(int fd, struct map_session_data &sd, const char* comm
  */
 bool atcommand_reloaditemdb(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	itemdb_reload();
 	clif_displaymessage(fd, msg_table[97]); // Item database reloaded.
 
@@ -5320,7 +5300,7 @@ bool atcommand_reloaditemdb(int fd, struct map_session_data &sd, const char* com
  */
 bool atcommand_reloadmobdb(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	mob_reload();
 	do_final_pet();
 	read_petdb();
@@ -5335,7 +5315,7 @@ bool atcommand_reloadmobdb(int fd, struct map_session_data &sd, const char* comm
  */
 bool atcommand_reloadskilldb(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	skill_reload();
 	clif_displaymessage(fd, msg_table[99]); // Skill database reloaded.
 
@@ -5366,7 +5346,7 @@ bool atcommand_reloadbattleconf(int fd, struct map_session_data &sd, const char*
 }
 /*==========================================
  * @reloadstatusdb
- *   job_db1.txt job_db2.txt job_db2-2.txt 
+ *   job_db1.txt job_db2.txt job_db2-2.txt
  *   refine_db.txt size_fix.txt
  *   のリロード
  *------------------------------------------
@@ -5379,7 +5359,7 @@ bool atcommand_reloadstatusdb(int fd, struct map_session_data &sd, const char* c
 }
 /*==========================================
  * @reloadpcdb
- *   exp.txt skill_tree.txt attr_fix.txt 
+ *   exp.txt skill_tree.txt attr_fix.txt
  *   のリロード
  *------------------------------------------
  */
@@ -5396,7 +5376,7 @@ bool atcommand_reloadpcdb(int fd, struct map_session_data &sd, const char* comma
  */
 bool atcommand_reloadscript(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	atcommand_broadcast( fd, sd, "@broadcast", "eAthena Server is Rehashing..." );
 	atcommand_broadcast( fd, sd, "@broadcast", "You will feel a bit of lag at this point !" );
 	atcommand_broadcast( fd, sd, "@broadcast", "Reloading NPCs..." );
@@ -5419,7 +5399,7 @@ bool atcommand_reloadscript(int fd, struct map_session_data &sd, const char* com
 bool atcommand_reloadgmdb( // by [Yor]
 	int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	chrif_reloadGMdb();
 
 	clif_displaymessage(fd, msg_table[101]); // Login-server asked to reload GM accounts and their level.
@@ -5639,7 +5619,7 @@ bool atcommand_mapinfo(int fd, struct map_session_data &sd, const char* command,
  */
 bool atcommand_mount_peco(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 
 	if (!pc_isriding(sd)) { // if actually no peco
 		if (sd.status.class_ == 7 || sd.status.class_ == 14 || sd.status.class_ == 4008 || sd.status.class_ == 4015 || sd.status.class_ == 4030 || sd.status.class_ == 4036 || sd.status.class_ == 4037 || sd.status.class_ == 4044) {
@@ -6253,7 +6233,7 @@ bool atcommand_unjail(int fd, struct map_session_data &sd, const char* command, 
 bool atcommand_disguise(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	unsigned short mob_id = 0;
-	
+
 	if (!message || !*message)
 	{
 		clif_displaymessage(fd, "Please, enter a Monster/NPC name/id (usage: @disguise <monster_name_or_monster_ID>).");
@@ -6329,7 +6309,7 @@ bool atcommand_disguiseall(int fd, struct map_session_data &sd, const char* comm
  */
 bool atcommand_undisguise(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	if(sd.disguise_id)
 	{
 		pc_stop_walking(sd,0);
@@ -6594,7 +6574,7 @@ bool atcommand_character_storage_list(int fd, struct map_session_data &sd, const
 	char character[128]="";
 	char output[256];
 	char outputtmp[256];
-	
+
 
 	if(!message || !*message || sscanf(message, "%99[^\n]", character) < 1) {
 		clif_displaymessage(fd, "Please, enter a player name (usage: @charitemlist <char name>).");
@@ -6807,7 +6787,7 @@ bool atcommand_charkillable(int fd, struct map_session_data &sd, const char* com
  */
 bool atcommand_skillon(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	map[sd.bl.m].flag.noskill = 0;
 	clif_displaymessage(fd, msg_table[244]);
 	return true;
@@ -6820,7 +6800,7 @@ bool atcommand_skillon(int fd, struct map_session_data &sd, const char* command,
  */
 bool atcommand_skilloff(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	map[sd.bl.m].flag.noskill = 1;
 	clif_displaymessage(fd, msg_table[243]);
 	return true;
@@ -6914,7 +6894,7 @@ bool atcommand_follow(int fd, struct map_session_data &sd, const char* command, 
 			pc_follow(sd, pl_sd->bl.id);
 		return 0;
 	}
-	
+
 	return 1;
 }
 
@@ -6980,7 +6960,7 @@ bool atcommand_chardropall(int fd, struct map_session_data &sd, const char* comm
 bool atcommand_storeall(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int i;
-	
+
 	if (storage_storageopen(sd) == 1) {
 		clif_displaymessage(fd, "run this command again..");
 		return true;
@@ -7114,7 +7094,7 @@ bool atcommand_skilltree(int fd, struct map_session_data &sd, const char* comman
 	struct pc_base_job s_class;
 	char target[256];
 	struct skill_tree_entry *ent;
-	
+
 	if (!message || !*message)
 		return false;
 	if(sscanf(message, "%d %[^\r\n]", &skillnum, target) != 2)
@@ -7124,7 +7104,7 @@ bool atcommand_skilltree(int fd, struct map_session_data &sd, const char* comman
 	}
 	if((pl_sd=map_nick2sd(target)) == NULL)
 		return false;
-	
+
 	s_class = pc_calc_base_job(pl_sd->status.class_);
 	c = s_class.job;
 	s = s_class.upper;
@@ -7133,7 +7113,7 @@ bool atcommand_skilltree(int fd, struct map_session_data &sd, const char* comman
 		s_class.upper ? "upper" : "lower",
 		job_name(c), pc_checkskill(*pl_sd, 1));
 	clif_displaymessage(fd, output);
-	
+
 	for (j = 0; skill_tree[s][c][j].id != 0; j++)
 	{
 		if (skill_tree[s][c][j].id == skillnum)
@@ -7243,7 +7223,7 @@ bool atcommand_marry(int fd, struct map_session_data &sd, const char* command, c
 /*==========================================
  * @divorce by [MouseJstr], fixed by [Lupus]
  *
- * divorce two players 
+ * divorce two players
  *------------------------------------------
  */
 bool atcommand_divorce(int fd, struct map_session_data &sd, const char* command, const char* message)
@@ -7386,19 +7366,19 @@ bool atcommand_changelook(int fd, struct map_session_data &sd, const char* comma
  */
 bool atcommand_autoloot(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
-	if(sd.state.autoloot) 
+
+	if(sd.state.autoloot)
 	{
 		sd.state.autoloot = 0;
 		clif_displaymessage(fd, "Autoloot is now off.");
 	}
-	else 
+	else
 	{
 		sd.state.autoloot = 1;
 		clif_displaymessage(fd, "Autoloot is now on.");
 	}
-	return true;  
-}   
+	return true;
+}
 
 
 /*==========================================
@@ -7675,7 +7655,7 @@ bool atcommand_npctalk(int fd, struct map_session_data &sd, const char* command,
 
 	if (!(nd = npc_name2id(name)))
 		return false;
-	
+
 //	clif_message(&nd->bl, mes);
 	sscanf(name, "%[^#]#[^\n]", name);
 	sprintf(output, "%s: %s", name, mes);
@@ -7908,7 +7888,7 @@ bool atcommand_unmute(int fd, struct map_session_data &sd, const char* command, 
 {
 	struct map_session_data *pl_sd = NULL;
 
-	
+
 	if(!battle_config.muting_players) {
 		clif_displaymessage(fd, "Please enable the muting system before using it.");
 		return true;
@@ -7956,7 +7936,7 @@ bool atcommand_uptime(int fd, struct map_session_data &sd, const char* command, 
  */
 bool atcommand_changesex(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	chrif_char_ask_name(sd.status.account_id,sd.status.name, 5,0,0,0,0,0,0);
 	return true;
 }
@@ -7975,7 +7955,7 @@ bool atcommand_mute(int fd, struct map_session_data &sd, const char* command, co
 
 	struct map_session_data *pl_sd = NULL;
 	int manner;
-	
+
 	if(!message || !*message || sscanf(message, "%d %99[^\n]", &manner, player_name) < 1) {
 		clif_displaymessage(fd, "Usage: @mute <time> <character name>.");
 		return false;
@@ -8001,7 +7981,7 @@ bool atcommand_mute(int fd, struct map_session_data &sd, const char* command, co
  */
 bool atcommand_refresh(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	
+
 	//pc_setpos(sd, sd.mapname, sd.bl.x, sd.bl.y, 3);
 	clif_refresh(sd);
 	return true;
@@ -8083,7 +8063,7 @@ bool atcommand_gmotd(int fd, struct map_session_data &sd, const char* command, c
 {
 		char buf[256];
 		FILE *fp;
-	
+
 	if(	(fp = safefopen(motd_txt, "r"))!=NULL){
 			while (fgets(buf, 250, fp) != NULL){
 				int i;
@@ -8103,7 +8083,7 @@ bool atcommand_gmotd(int fd, struct map_session_data &sd, const char* command, c
 bool atcommand_misceffect(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int effect = 0;
-	
+
 	if (!message || !*message)
 		return false;
 	if (sscanf(message, "%d", &effect) < 1)
@@ -8634,88 +8614,6 @@ bool atcommand_charkillableid2(int fd, struct map_session_data &sd, const char* 
 
 
 /*==========================================
- * Mail System commands by [Valaris]
- *------------------------------------------
- */
-bool atcommand_listmail(int fd, struct map_session_data &sd, const char* command, const char* message)
-{
-	if(!battle_config.mail_system)
-		return true;
-
-
-
-	if(strlen(command)==12)
-		mail_check(sd,3);
-	else if(strlen(command)==9)
-		mail_check(sd,2);
-	else
-		mail_check(sd,1);
-	return true;
-}
-
-bool atcommand_readmail(int fd, struct map_session_data &sd, const char* command, const char* message)
-{
-	if(!battle_config.mail_system)
-		return true;
-
-
-
-	if (!message || !*message) {
-		clif_displaymessage(sd.fd,"You must specify a message number.");
-		return true;
-	}
-
-	if(strlen(command)==11)
-		mail_delete(sd,atoi(message));
-	else
-		mail_read(sd,atoi(message));
-
-	return true;
-}
-
-bool atcommand_sendmail(int fd, struct map_session_data &sd, const char* command, const char* message)
-{
-	char name[24],text[80];
-
-	if(!battle_config.mail_system)
-		return true;
-
-
-
-	if (!message || !*message) {
-		clif_displaymessage(sd.fd,"You must specify a recipient and a message.");
-		return true;
-	}
-
-	if ((sscanf(message, "\"%[^\"]\" %79[^\n]", name, text) < 2) &&
-		(sscanf(message, "%23s %79[^\n]", name, text) < 2)) {
-		clif_displaymessage(sd.fd,"You must specify a recipient and a message.");
-		return true;
-	}
-
-	if(strlen(command)==17)
-		mail_send(sd,name,text,1);
-	else
-		mail_send(sd,name,text,0);
-
-	return true;
-}
-
-/*==========================================
- * Refresh online command for SQL [Valaris]
- * Will refresh and check online column of
- * players and set correctly.
- *------------------------------------------
- */
-bool atcommand_refreshonline(int fd, struct map_session_data &sd, const char* command, const char* message)
-{
-	char_online_check();
-	return true;
-}
-
-
-
-/*==========================================
  * Show Monster DB Info   v 1.0
  * originally by [Lupus] eAthena
  *------------------------------------------
@@ -8725,7 +8623,7 @@ bool atcommand_mobinfo(int fd, struct map_session_data &sd, const char* command,
 	unsigned char msize[3][7] = {"Small", "Medium", "Large"};
 	unsigned char mrace[12][11] = {"Formless", "Undead", "Beast", "Plant", "Insect", "Fish", "Demon", "Demi-Human", "Angel", "Dragon", "Boss", "Non-Boss"};
 	unsigned char melement[11][8] = {"None", "Neutral", "Water", "Earth", "Fire", "Wind", "Poison", "Holy", "Dark", "Ghost", "Undead"};
-	
+
 	char output[128];
 	char output2[256];
 	struct item_data *item_data;
@@ -8842,14 +8740,14 @@ bool atcommand_iteminfo(int fd, struct map_session_data &sd, const char* command
 
 		sprintf(output, "Item: '%s'/'%s'[%d] (%d) Type: %s | Extra Effect: %s",
 			item_data->name,item_data->jname,item_data->flag.slot,item_id,
-			item_data->type < 12 ? itype[item_data->type] : "BUG!", 
+			item_data->type < 12 ? itype[item_data->type] : "BUG!",
 			(item_data->use_script==NULL && item_data->equip_script==NULL) ? "None" : (item_data->use_script==NULL ? "On Equip" : "On Usage")
 		);
 		clif_displaymessage(fd, output);
 
-		sprintf(output, "NPC Buy:%ldz%s, Sell:%ldz%s | Weight: %ld ", 
-			item_data->value_buy, item_data->flag.value_notdc ? "(No Discount!)":"", 
-			item_data->value_sell, item_data->flag.value_notoc ? "(No Overcharge!)":"", 
+		sprintf(output, "NPC Buy:%ldz%s, Sell:%ldz%s | Weight: %ld ",
+			item_data->value_buy, item_data->flag.value_notdc ? "(No Discount!)":"",
+			item_data->value_sell, item_data->flag.value_notoc ? "(No Overcharge!)":"",
 			item_data->weight );
 		clif_displaymessage(fd, output);
 
@@ -8873,7 +8771,7 @@ bool atcommand_adopt(int fd, struct map_session_data &sd, const char* command, c
 	struct map_session_data *pl_sd2 = NULL;
 	struct map_session_data *pl_sd3 = NULL;
 	char player1[128], player2[128], player3[128];
-	
+
 	if (!message || !*message)
 		return false;
 	if (sscanf(message, "%[^,],%[^,],%[^\r\n]", player1, player2, player3) != 3)
@@ -8882,7 +8780,7 @@ bool atcommand_adopt(int fd, struct map_session_data &sd, const char* command, c
 		return false;
 	}
 	ShowMessage("Adopting: --%s--%s--%s--\n",player1,player2,player3);
-	
+
 	if((pl_sd1=map_nick2sd((char *) player1)) == NULL)
 	{
 		sprintf(player2, "Cannot find player %s online", player1);
@@ -8924,7 +8822,7 @@ bool atcommand_version(int fd, struct map_session_data &sd, const char* command,
 		sprintf(tmp,"eAthena Version SVN r%s",revision);
 		clif_displaymessage(fd,tmp);
 	}
-	else 
+	else
           clif_displaymessage(fd,"Cannot determine SVN revision");
 	return true;
 }
@@ -8936,9 +8834,9 @@ int atcommand_mutearea_sub(struct block_list &bl,va_list ap)
 	struct map_session_data &sd = (struct map_session_data &)bl;
 	if(bl.type!=BL_PC)
 		return 1;
-	
+
 	id = va_arg(ap, unsigned long);
-	time = va_arg(ap, int);	
+	time = va_arg(ap, int);
 	if (id != bl.id && !pc_isGM(sd))
 	{
 		sd.status.manner -= time;
@@ -8964,8 +8862,8 @@ bool atcommand_mutearea(int fd, struct map_session_data &sd, const char* command
 	time = atoi(message);
 	if (time <= 0)
 		time = 15; // 15 minutes default
-	map_foreachinarea(atcommand_mutearea_sub,sd.bl.m, 
-		((int)sd.bl.x)-AREA_SIZE, ((int)sd.bl.y)-AREA_SIZE, 
+	map_foreachinarea(atcommand_mutearea_sub,sd.bl.m,
+		((int)sd.bl.x)-AREA_SIZE, ((int)sd.bl.y)-AREA_SIZE,
 		((int)sd.bl.x)+AREA_SIZE, ((int)sd.bl.y)+AREA_SIZE, BL_PC, sd.bl.id, time);
 
 	return true;
@@ -9000,7 +8898,7 @@ bool atcommand_shuffle(int fd, struct map_session_data &sd, const char* command,
 	{
     struct map_session_data *pl_sd;
 		size_t i;
-    for (i = 0; i < fd_max; i++) 
+    for (i = 0; i < fd_max; i++)
       if (session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) != NULL && pl_sd->state.auth)
 				atcommand_shuffle_sub(pl_sd->bl, 0);
 	}
@@ -9013,7 +8911,7 @@ bool atcommand_rates(int fd, struct map_session_data &sd, const char* command, c
 {
   char buf[255];
 
-  sprintf(buf, "base_exp_rate: %ld    job_exp_rate: %ld", 
+  sprintf(buf, "base_exp_rate: %ld    job_exp_rate: %ld",
     battle_config.base_exp_rate, battle_config.job_exp_rate);
 
   clif_displaymessage(fd, buf);
@@ -9024,7 +8922,7 @@ bool atcommand_rates(int fd, struct map_session_data &sd, const char* command, c
 
 /*==========================================
  * @me by lordalfa
- * => Displays the OUTPUT string on top of 
+ * => Displays the OUTPUT string on top of
  *    the Visible players Heads.
  *------------------------------------------
  */
@@ -9097,16 +8995,16 @@ bool atcommand_fakename(int fd, struct map_session_data &sd, const char* command
 	if (sscanf(message, "%23[^\n]", name) < 1) {
 		return true;
 	}
-	
+
 	if(strlen(name) < 2) {
 		clif_displaymessage(sd.fd,"Fake name must be at least two characters.");
 		return true;
 	}
-	
+
 	strcpy(sd.fakename,name);
 	clif_charnameack(-1, sd.bl, true);
 	clif_displaymessage(sd.fd,"Fake name enabled.");
-	
+
 	return true;
 
 }

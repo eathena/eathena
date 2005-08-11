@@ -34,7 +34,6 @@
 #include "atcommand.h"
 #include "charcommand.h"
 #include "log.h"
-#include "mail.h"
 
 
 MYSQL lmysql_handle;
@@ -3646,9 +3645,6 @@ int do_init(int argc, char *argv[]) {
 	do_init_skill();
 	do_init_pet();
 	do_init_npc();
-
-	if(battle_config.mail_system)
-		do_init_mail();
 
 	if (log_config.sql_logs && (log_config.branch || log_config.drop || log_config.mvpdrop ||
 		log_config.present || log_config.produce || log_config.refine || log_config.trade))
