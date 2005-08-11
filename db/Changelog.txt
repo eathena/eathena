@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 08/11
+	* Updated refine items for Damascus (thanks to Ishizu) [Skotlex]
 	* Updated Zen's (Hyper Spirit Sphere) casting time to 3 secs as per the kro
 	  skilldesctable.txt file. [Skotlex]
 	* Updated Guardians to be BOSS types (their mode was changed to 165 from 133) [Skotlex]
