@@ -1,5 +1,6 @@
 Date	Added
 08/12
+	* Added reporting of error when a connection can't be made non-blocking. [Skotlex]
 	* Updated Logging Filter: [Lupus]
 		- Implemented refine_items_log condition. You may log only certain refine value items.
 		- Added 'log_steal' option. It'd log stolen items in the drops log DB

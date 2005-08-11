@@ -132,6 +132,7 @@ static int recv_to_fifo(int fd)
 		session[fd]->rdata_size+=len;
 		session[fd]->rdata_tick = last_tick;
 	} else if(len<=0){
+		//NOTE: I read the docs and recv/read return -1 on non-blocking sockets when there is nothing yet to read, WHY is -1 being disconnected here? Is the socket NOT non-blocking? That would be a serious error. [Skotlex]
 		// value of connection is not necessary the same
 //		ShowMessage("set eof : connection #%d\n", fd);
 		session[fd]->eof=1;
@@ -218,10 +219,6 @@ static int connect_client(int listen_fd)
 	int fd;
 	struct sockaddr_in client_address;
 	int len;
-#ifndef _WIN32
-	int result;
-#endif
-
 	//ShowMessage("connect_client : %d\n",listen_fd);
 
 	len=sizeof(client_address);
@@ -229,12 +226,14 @@ static int connect_client(int listen_fd)
 	fd = (int)accept(listen_fd,(struct sockaddr*)&client_address,(socklen_t*)&len);
 	if(fd_max<=fd) fd_max=fd+1;
 
+	if(fd==-1) {
+		perror("accept ");
+		return -1;
+	}
+	
 	setsocketopts(fd);
 
-	if(fd==-1) {
-		perror("accept");
-		return -1;
-	} else if (ip_rules && !connect_check(*(unsigned int*)(&client_address.sin_addr))) {
+	if (ip_rules && !connect_check(*(unsigned int*)(&client_address.sin_addr))) {
 		close(fd);
 		return -1;
 	} else
@@ -243,10 +242,12 @@ static int connect_client(int listen_fd)
 #ifdef _WIN32
 	{
 		unsigned long val = 1;
-		ioctlsocket(fd, FIONBIO, &val);
+		if (ioctlsocket(fd, FIONBIO, &val) != 0);
+			ShowError("Couldn't set the socket to non-blocking mode!\n");
 	}
 #else
-	result = fcntl(fd, F_SETFL, O_NONBLOCK);
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
+		perror("Error: Unable to set the socket to non-blocking mode!");
 #endif
 
 	CREATE(session[fd], struct socket_data, 1);
@@ -276,12 +277,14 @@ int make_listen_port(int port)
 	if(fd_max<=fd) fd_max=fd+1;
 
 #ifdef _WIN32
-        {
-	  	unsigned long val = 1;
-  		ioctlsocket(fd, FIONBIO, &val);
-        }
+	{
+		unsigned long val = 1;
+		if (ioctlsocket(fd, FIONBIO, &val) != 0);
+			ShowError("Couldn't set the socket to non-blocking mode!\n");
+	}
 #else
-	result = fcntl(fd, F_SETFL, O_NONBLOCK);
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
+		perror("Error: Unable to set the socket to non-blocking mode!");
 #endif
 
 	setsocketopts(fd);
@@ -321,12 +324,14 @@ int make_listen_bind(long ip,int port)
 	if(fd_max<=fd) fd_max=fd+1;
 
 #ifdef _WIN32
-        {
+	{
 	  	unsigned long val = 1;
-  		ioctlsocket(fd, FIONBIO, &val);
-        }
+		if (ioctlsocket(fd, FIONBIO, &val) != 0);
+			ShowError("Couldn't set the socket to non-blocking mode!\n");
+	}
 #else
-	result = fcntl(fd, F_SETFL, O_NONBLOCK);
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
+		perror("Error: Unable to set the socket to non-blocking mode!");
 #endif
 
 	setsocketopts(fd);
@@ -462,7 +467,7 @@ int make_connection(long ip,int port)
 	}
 #else
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
-		perror("Error: Unable to set the socket to non-blocking mode!\n");
+		perror("Error: Unable to set the socket to non-blocking mode!");
 #endif
 
 	FD_SET(fd,&readfds);
