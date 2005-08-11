@@ -1,5 +1,8 @@
 Date	Added
 08/11
+	* Fixed bio-cannibalize's max hp issue. [Skotlex]
+	* Pneuma completely blocks Soul Breaker (as the forum consensus says it
+	  does so) [Skotlex]
 	* clif_parse will now print the error message in case close(fd) fails. [Skotlex]
 	* Fixed players clicking on players disguised as NPCs trying to execute the
 	  "npc". [Skotlex]

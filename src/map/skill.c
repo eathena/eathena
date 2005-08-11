@@ -5652,6 +5652,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 				md->master_id = sd->bl.id;
 				// different levels of HP according to skill level
 				md->hp = 1500 + skilllv * 200 + sd->status.base_level * 10;
+				md->max_hp = md->hp; //Update the max, too! [Skotlex]
 				md->state.special_mob_ai = 1;
 				//非移動でアクティブで反撃する[0x0:非移動 0x1:移動 0x4:ACT 0x8:非ACT 0x40:反撃無 0x80:反撃有]
 				md->mode = 0x0 + 0x4 + 0x80;
