@@ -2640,8 +2640,9 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 
 	// item drop
 	if (!(type&1)) {
-		int log_item[10] = {0}; //8 -> 10 Lupus
 		int drop_ore = -1, drop_items = 0; //slot N for DROP LOG, number of dropped items
+		int log_item[10]; //8 -> 10 Lupus
+		memset(&log_item,0,sizeof(log_item));
 		for (i = 0; i < 10; i++) { // 8 -> 10 Lupus
 			struct delay_item_drop *ditem;
 

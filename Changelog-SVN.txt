@@ -1,4 +1,9 @@
 Date	Added
+08/12
+	* Updated Logging Filter: [Lupus]
+		- Implemented refine_items_log condition. You may log only certain refine value items.
+		- Added 'log_steal' option. It'd log stolen items in the drops log DB
+	* Added msg string and announce on stealing of rare items [Lupus]
 08/11
 	* Fixed bio-cannibalize's max hp issue. [Skotlex]
 	* Pneuma completely blocks Soul Breaker (as the forum consensus says it
@@ -12,7 +17,6 @@ Date	Added
 	  you enter Guild Grounds and you aren't allowed to hatch pets as well. Note
 	  that it only does the check when the player changes maps (should be safe
 	  because players are kicked out of castles when WoE starts)
-
 08/10
 	* Fixed PNEUMA blocking magic part of Soul Breaker, instead of physiacal attack one [Lupus]
 	* Fixed the Login/Char SQL crashing when determining the max id of empty

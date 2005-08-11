@@ -2841,6 +2841,8 @@ int pc_show_steal(struct block_list *bl,va_list ap)
 //** pc.c: Small Steal Item fix by fritz
 int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 {
+	int log_item[10]; //for stolen items logging Lupus
+
 	if(sd != NULL && bl != NULL && bl->type == BL_MOB) {
 		int i,skill,itemid,flag, count;
 		struct mob_data *md;
@@ -2873,6 +2875,24 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 							tmp_item.amount = 1;
 							tmp_item.identify = 1;
 							flag = pc_additem(sd,&tmp_item,1);
+
+							//this drop log contains ALL stolen items [Lupus]
+							if(log_config.steal) { //we check were there any drops.. and if not - don't write the log
+								memset(&log_item,0,sizeof(log_item));
+								log_item[i] = itemid; //i == monster's drop slot
+								log_drop(sd, md->class_, log_item);
+							}
+
+							//A Rare Steal Global Announce by Lupus
+							if(md->db->dropitem[i].p<=battle_config.rare_drop_announce) {
+								struct item_data *i_data;
+								char message[128];
+								i_data = itemdb_exists(itemid);
+								sprintf (message, msg_txt(542), (sd->status.name != NULL)?sd->status.name :"???", md->db->jname, i_data->jname, (float)md->db->dropitem[i].p/100);
+								//MSG: "'%s' stole %s's %s (chance: %%%0.02f)"
+								intif_GMmessage(message,strlen(message)+1,0);
+							}
+
 							if(battle_config.show_steal_in_same_party)
 							{
 								party_foreachsamemap(pc_show_steal,sd,1,sd,tmp_item.nameid,0);

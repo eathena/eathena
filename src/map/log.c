@@ -54,7 +54,6 @@ int should_log_item(int filter, int nameid) {
 		(filter&64 && item_data->type == 6 ) ||	//cards
 		(filter&128 && (item_data->type == 7 || item_data->type == 8) ) ||	//eggs+pet access
 		(filter&256 && item_data->value_buy >= log_config.price_items_log )
-		//|| (filter&512 && item_data->refine >= log_config.refine_items_log )
 	) return item_data->nameid;
 
 	return 0;
@@ -234,10 +233,10 @@ int log_refine(struct map_session_data *sd, int n, int success)
 	nullpo_retr(0, sd);
 
 	if(success == 0)
-		item_level = 0;
+		item_level = sd->status.inventory[n].refine; //leaving there 0 wasn't informative! we have SUCCESS field anyways
 	else
 		item_level = sd->status.inventory[n].refine + 1;
-	if(!should_log_item(log_config.refine,sd->status.inventory[n].nameid)) return 0;	//filter [Lupus]
+	if(!should_log_item(log_config.refine,sd->status.inventory[n].nameid) || log_config.refine_items_log<item_level) return 0;	//filter [Lupus]
 	for(i=0;i<4;i++)
 		log_card[i] = sd->status.inventory[n].card[i];
 
@@ -560,7 +559,7 @@ void log_set_defaults(void)
 	memset(&log_config, 0, sizeof(log_config));
 
 	//LOG FILTER Default values
-	log_config.refine_items_log = 7; //log refined items, with refine >= +7
+	log_config.refine_items_log = 5; //log refined items, with refine >= +7
 	log_config.rare_items_log = 100; //log rare items. drop chance <= 1%
 	log_config.price_items_log = 1000; //1000z
 	log_config.amount_items_log = 100;	
@@ -606,6 +605,8 @@ int log_config_read(char *cfgName)
 				log_config.branch = (atoi(w2));
 			} else if(strcmpi(w1,"log_drop") == 0) {
 				log_config.drop = (atoi(w2));
+			} else if(strcmpi(w1,"log_steal") == 0) {
+				log_config.steal = (atoi(w2));
 			} else if(strcmpi(w1,"log_mvpdrop") == 0) {
 				log_config.mvpdrop = (atoi(w2));
 			} else if(strcmpi(w1,"log_present") == 0) {
