@@ -1,5 +1,6 @@
 Date	Added
 08/12
+	* Updated sql-files: mob_db.sql, item_db,sql, main.sql [Skotlex]
 	* Likely fixed mob reloading command. [Skotlex]
 	* Added more reports and some fixes/optimizations to socket.c [Skotlex]
 	* Added reporting of error when a connection can't be made non-blocking. [Skotlex]
