@@ -124,16 +124,15 @@ static int recv_to_fifo(int fd)
 	len=read(fd,session[fd]->rdata+session[fd]->rdata_size, RFIFOSPACE(fd));
 #endif
 
-//	ShowInfo (":::RECEIVE:::\n");
-//	dump(session[fd]->rdata, len); ShowMessage ("\n");
+	if(len == -1 && errno == EAGAIN)
+		return 0; //Should not happen, but who knows? [Skotlex]
 
-	//{ int i; ShowMessage("recv %d : ",fd); for(i=0;i<len;i++){ ShowMessage("%02x ",RFIFOB(fd,session[fd]->rdata_size+i)); } ShowMessage("\n");}
 	if(len>0){
 		session[fd]->rdata_size+=len;
 		session[fd]->rdata_tick = last_tick;
-	} else if(len<=0){
-		// value of connection is not necessary the same
-//		ShowMessage("set eof : connection #%d\n", fd);
+	} else { //End of connection 
+		if (len == -1)
+			perror("recv_to_fifo");
 		session[fd]->eof=1;
 	}
 	return 0;
