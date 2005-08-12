@@ -4729,6 +4729,7 @@ static int mob_read_sqldb(void)
 
 void mob_reload(void)
 {
+	int i;
 #ifndef TXT_ONLY
     if(db_use_sqldbs)
         mob_read_sqldb();
@@ -4738,6 +4739,14 @@ void mob_reload(void)
 
 	mob_readdb_mobavail();
 	mob_read_randommonster();
+
+	//Mob skills need to be cleared before re-reading them. [Skotlex]
+	for (i = 0; i < MAX_MOB_DB; i++)
+		if (mob_db_data[i])
+		{
+			memset(mob_db_data[i]->skill,0,sizeof(struct mob_skill));
+			mob_db_data[i]->maxskill=0;
+		}
 	mob_readskilldb();
 	mob_readdb_race();
 }

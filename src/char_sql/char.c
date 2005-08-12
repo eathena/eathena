@@ -2159,6 +2159,12 @@ int parse_tologin(int fd) {
 			unsigned char buf[4096];
 			int j, p, acc;
 			acc = RFIFOL(fd,4);
+			if (RFIFOW(fd,2) > 4096) //Bounds check! [Skotlex]
+			{
+				ShowError("parse_tologin: Packet command 0x2729 too long (size is %d)!\n", RFIFOW(fd,2));
+				RFIFOSKIP(fd, RFIFOW(fd,2));
+				break;
+			}
 			for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, j++) {
 				memcpy(reg[j].str, RFIFOP(fd,p), 32);
 				reg[j].value = RFIFOL(fd,p+32);
