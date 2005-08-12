@@ -226,7 +226,7 @@ static int connect_client(int listen_fd)
 	if(fd_max<=fd) fd_max=fd+1;
 
 	if(fd==-1) {
-		perror("accept ");
+		perror("accept");
 		return -1;
 	}
 	
@@ -246,7 +246,7 @@ static int connect_client(int listen_fd)
 	}
 #else
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
-		perror("Error: Unable to set the socket to non-blocking mode!");
+		perror("connect_client (set nonblock)");
 #endif
 
 	CREATE(session[fd], struct socket_data, 1);
@@ -283,7 +283,7 @@ int make_listen_port(int port)
 	}
 #else
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
-		perror("Error: Unable to set the socket to non-blocking mode!");
+		perror("make_listen_port (set nonblock)");
 #endif
 
 	setsocketopts(fd);
@@ -330,7 +330,7 @@ int make_listen_bind(long ip,int port)
 	}
 #else
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
-		perror("Error: Unable to set the socket to non-blocking mode!");
+		perror("make_listen_bind (set nonblock)");
 #endif
 
 	setsocketopts(fd);
@@ -453,7 +453,7 @@ int make_connection(long ip,int port)
 
 	result = connect(fd, (struct sockaddr *)(&server_address), sizeof(struct sockaddr_in));
 	if (result < 0) { //This is only used when the map/char server try to connect to each other, so it can be handled. [Skotlex]
-		perror("make_connection error");
+		perror("make_connection");
 		delete_session(fd);
 		return -1;
 	}
@@ -466,7 +466,7 @@ int make_connection(long ip,int port)
 	}
 #else
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
-		perror("Error: Unable to set the socket to non-blocking mode!");
+		perror("make_connection (set nonblock)");
 #endif
 
 	FD_SET(fd,&readfds);
@@ -624,7 +624,7 @@ int do_sendrecv(int next)
 
 	if (ret == -1)
 	{	//Why we don't look out for this!? [Skotlex]
-		perror("do_sendrecv failed select: ");
+		perror("do_sendrecv");
 		return 0;
 	}
 
