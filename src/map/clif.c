@@ -10833,9 +10833,9 @@ int clif_parse(int fd) {
 			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]
 		else if (sd)
 			map_deliddb(&sd->bl); // account_id has been included in the DB before auth answer [Yor]
+		delete_session(fd);
 		if (close(fd))
 			perror("Error closing session");
-		delete_session(fd);
 		return 0;
 	}
 	else if (session[fd]->eof) {
@@ -10852,9 +10852,9 @@ int clif_parse(int fd) {
 			unsigned char *ip = (unsigned char *) &session[fd]->client_addr.sin_addr;
 			ShowInfo("Player not identified with IP '"CL_WHITE"%d.%d.%d.%d"CL_RESET"' logged off.\n", ip[0],ip[1],ip[2],ip[3]);
 		}
+		delete_session(fd);
 		if (close(fd))
 			perror("Error closing session");
-		delete_session(fd);
 		return 0;
 	}
 
@@ -10882,7 +10882,7 @@ int clif_parse(int fd) {
 			break;
 		case 0x7532: // Ú‘±‚ÌØ’f
 			ShowWarning("clif_parse: session #%d disconnected for sending packet 0x%x\n", fd, cmd);
-			close(fd);
+//			close(fd); Double close can cause all sorts of problems, so the only allowed close client-side is in clif_parse [Skotlex]
 			session[fd]->eof=1;
 			break;
 		}
@@ -10895,7 +10895,7 @@ int clif_parse(int fd) {
 	if (sd) {
 		packet_ver = sd->packet_ver;
 		if (packet_ver < 0 || packet_ver > MAX_PACKET_VER) {	// This should never happen unless we have some corrupted memory issues :X [Skotlex]
-			close(fd);
+//			close(fd); Double close can cause all sorts of problems, so the only allowed close client-side is in clif_parse [Skotlex]
 			session[fd]->eof = 1;
 			return 0;
 		}
@@ -10927,7 +10927,7 @@ int clif_parse(int fd) {
 	if (cmd >= MAX_PACKET_DB || packet_db[packet_ver][cmd].len == 0) {	// if packet is not inside these values: session is incorrect?? or auth packet is unknown
 		ShowWarning("clif_parse: Received unsupported packet (packet 0x%x, %d bytes received), disconnecting session #%d.\n", cmd, RFIFOREST(fd), fd);
 		session[fd]->eof = 1;
-		close(fd);
+//		close(fd); Double close can cause all sorts of problems, so the only allowed close client-side is in clif_parse [Skotlex]
 		return 0;
 	}
 
@@ -10941,7 +10941,7 @@ int clif_parse(int fd) {
 		if (packet_len < 4 || packet_len > 32768) {
 			ShowWarning("clif_parse: Packet 0x%x specifies invalid packet_len (%d), disconnecting session #%d.\n", cmd, packet_len, fd);
 			session[fd]->eof =1;
-//			close(fd); <- I have a bad feeling about this close. [Skotlex]
+//			close(fd); Double close can cause all sorts of problems, so the only allowed close client-side is in clif_parse [Skotlex]
 			return 0;
 		}
 	}

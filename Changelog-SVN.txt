@@ -1,5 +1,7 @@
 Date	Added
 08/14
+	* Removed all close()'s in clif.c, made clif_parse the only one who closes
+	  a socket and deletes the session. [Skotlex]
 	* Updated socket.c to be much more verbose about connections and when they
 	  are ended. [Skotlex]
 	  (excuse all the extra messages, but they are to help track down the
