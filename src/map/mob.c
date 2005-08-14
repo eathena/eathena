@@ -4447,7 +4447,10 @@ static int mob_readskilldb(void)
 			//Skill ID
 			j=atoi(sp[3]);
 			if (j<=0 || j>MAX_SKILL_DB) //fixed Lupus
+			{
+				ShowWarning("Invalid Skill ID (%d) for mob %d (%s)\n", mob_id, mob_db_data[mob_id]->jname);
 				continue;
+			}
 			ms->skill_id=j;
 			//Skill lvl
 			j= atoi(sp[4])<=0 ? 1 : atoi(sp[4]);

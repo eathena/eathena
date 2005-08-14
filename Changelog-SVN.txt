@@ -1,4 +1,9 @@
 Date	Added
+08/14
+	* Updated socket.c to be much more verbose about connections and when they
+	  are ended. [Skotlex]
+	  (excuse all the extra messages, but they are to help track down the
+	  current map-freeze bug)
 08/12
 	* Updated sql-files: mob_db.sql, item_db,sql, main.sql [Skotlex]
 	* Likely fixed mob reloading command. [Skotlex]

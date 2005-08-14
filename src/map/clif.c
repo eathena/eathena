@@ -10834,7 +10834,7 @@ int clif_parse(int fd) {
 		else if (sd)
 			map_deliddb(&sd->bl); // account_id has been included in the DB before auth answer [Yor]
 		if (close(fd))
-			perror("Error closing session: ");
+			perror("Error closing session");
 		delete_session(fd);
 		return 0;
 	}
@@ -10853,7 +10853,7 @@ int clif_parse(int fd) {
 			ShowInfo("Player not identified with IP '"CL_WHITE"%d.%d.%d.%d"CL_RESET"' logged off.\n", ip[0],ip[1],ip[2],ip[3]);
 		}
 		if (close(fd))
-			perror("Error closing session: ");
+			perror("Error closing session");
 		delete_session(fd);
 		return 0;
 	}

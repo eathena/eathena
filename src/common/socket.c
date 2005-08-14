@@ -132,7 +132,9 @@ static int recv_to_fifo(int fd)
 		session[fd]->rdata_tick = last_tick;
 	} else { //End of connection 
 		if (len == -1)
-			perror("recv_to_fifo");
+			perror("closing session: recv_to_fifo");
+		else
+			ShowDebug("recv_to_fifo: Normal disconnection (session #%d)\n", fd);
 		session[fd]->eof=1;
 	}
 	return 0;
@@ -186,6 +188,7 @@ static int send_from_fifo(int fd)
 		}
 	} else if (errno != EAGAIN) {
 //		ShowMessage("set eof :%d\n",fd);
+		perror("closing session: send_from_fifo");
 		session[fd]->eof=1;
 	}
 	return 0;
@@ -675,6 +678,7 @@ int do_sendrecv(int next)
 				session[i]->func_send(i);
 #ifdef TURBO
 			if ((session[i]->rdata_tick != 0) && ((last_tick - session[i]->rdata_tick) > stall_time)) {
+				ShowDebug("do_sendrecv: Session %d timed out.\n", i);
 				session[i]->eof = 1;
 				if(session[i]->func_parse)
 					session[i]->func_parse(i);
@@ -697,6 +701,7 @@ int do_sendrecv(int next)
 
 		if(FD_ISSET(i,&efd)){
 			//ShowMessage("error:%d\n",i);
+			ShowDebug("do_sendrecv: Connection error on Session %d.\n", i);
 			session[i]->eof = 1;
 			if (session[i]->func_parse)
 				session[i]->func_parse(i);	//Parsing this should invoke closing the socket inmediately. [Skotlex]
