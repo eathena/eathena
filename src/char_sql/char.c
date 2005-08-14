@@ -2264,6 +2264,7 @@ int parse_tologin(int fd) {
 int parse_frommap(int fd) {
 	int i = 0, j = 0;
 	int id;
+	int auth_fifo_flag=0;
 
 	// Sometimes fd=0, and it will cause server crash. Don't know why. :(
 	if (fd <= 0) {
@@ -2384,6 +2385,7 @@ int parse_frommap(int fd) {
 				    (!check_ip_flag || auth_fifo[i].ip == RFIFOL(fd,18)) &&
 				    !auth_fifo[i].delflag) {
 					auth_fifo[i].delflag = 1;
+					auth_fifo_flag=1;
                                          if(charsave_method == 1){ //NEW ONE
                                         		WFIFOW(fd, 0) = 0x2b1e;
                                                  WFIFOL(fd, 2) = RFIFOL(fd, 2); //AID
@@ -2410,12 +2412,13 @@ int parse_frommap(int fd) {
                                          //AID SES2 CONNECT UNTIL TIME SEX
 				}
 			}
-			if (i == AUTH_FIFO_SIZE) {
+			if (auth_fifo_flag==0) {
 				WFIFOW(fd,0) = 0x2afe;
 				WFIFOL(fd,2) = RFIFOL(fd,2);
 				WFIFOSET(fd,6);
 				ShowError("Character request data search error! Character %d (account %d) not authentified.\n", RFIFOL(fd,6),  RFIFOL(fd,2));
 			}
+			auth_fifo_flag=0;
 			RFIFOSKIP(fd,22);
 			break;
 
