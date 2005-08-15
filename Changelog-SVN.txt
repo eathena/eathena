@@ -1,5 +1,6 @@
 Date	Added
 08/15
+	* Likely fixed the #fakename crash. [Skotlex]
 	* Updated the mob skill use code so that hopefully other players will be
 	  considered friends when using support skills. [Skotlex]
 	  NOTE: Not quite tested, use with care.

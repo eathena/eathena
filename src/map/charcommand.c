@@ -1217,25 +1217,22 @@ int charcommand_fakename(
 		return 0;
 	}
 
+	if(!(pl_sd = map_nick2sd(char_name))) {
+		clif_displaymessage(sd->fd,"Character not found.");
+		return -1;
+	}
+
 	if(strlen(name) < 1 || !name) {
-		if(!(pl_sd = map_nick2sd(char_name))) {
-			clif_displaymessage(sd->fd,"Character not found.");
-		}
 		if(strlen(pl_sd->fakename) > 1) {
 			pl_sd->fakename[0]='\0';
 			pc_setpos(pl_sd, pl_sd->mapname, pl_sd->bl.x, sd->bl.y, 3);
 			clif_displaymessage(sd->fd,"Returned to real name.");
 		} else {
-			clif_displaymessage(sd->fd,"Usage: #fakename <char name> <fake name>.");
+			clif_displaymessage(sd->fd,"Character does not has a fake name.");
 		}
 		return 0;
 	}
 
-	if(!(pl_sd = map_nick2sd(char_name))) {
-		clif_displaymessage(sd->fd,"Character not found.");
-		return -1;
-	}
-	
 	if(strlen(name) < 2) {
 		clif_displaymessage(sd->fd,"Fake name must be at least two characters.");
 		return 0;
