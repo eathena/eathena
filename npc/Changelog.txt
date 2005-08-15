@@ -28,10 +28,11 @@ TODO:
 
 Date		Added
 ======
-15/02
-	* Fixed onr more Novice Skill exploit, otpimized variables usege a bit. [Lupus]
+08/15
+	* Updated Ayathoya spawns as per the info given by Ishizu. [Skotlex]
+	* Fixed one more Novice Skill exploit, otpimized variables usege a bit. [Lupus]
 	  thanks to Mellowz, for pointing it out
-09/02
+08/09
 	* Fixed position of Lothar (from IRC), and MrSmile Girl pos at Prontera, txh to dshome [Lupus]
 	* Added some Acky's custom scrips (Lottery, MVM, Stock Market, Shifty Assassin, Morroc Raceway, Russian Roulette)
 	* Added custom quest on a Bandit Beard (by Mega Man Expert) [Lupus]

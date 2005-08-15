@@ -3,22 +3,21 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 1.0
+//= 1.1
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
-//=
+//= Currently using euRO data provided by Ishizu
 //============================================================
-// Mob IDs are right, need to check the amount, spawntime, etc.
-//(ayothana dungeon 01)?
-ayo_dun01.gat,0,0,0,0	monster	Whisper	1179,30,0,0,0
-ayo_dun01.gat,0,0,0,0	monster	Ghoul	1036,30,0,0,0
-ayo_dun01.gat,0,0,0,0	monster	Mime Monkey	1585,20,0,0,0
-ayo_dun01.gat,0,0,0,0	monster	Kraben	1587,20,0,0,0
 
-//(ayothana dungeon 02)?
-ayo_dun02.gat,0,0,0,0	monster	Kraben	1587,30,0,0,0
-ayo_dun02.gat,0,0,0,0	monster	Tamruan	1584,20,0,0,0
-ayo_dun02.gat,0,0,0,0	monster	Tao Gunka	1583,1,3600000,1800000,1
+//=== Ayothana Dungeon #1 ===
+ayo_dun01.gat,0,0,0,0 monster Whisper  1179,10,0,0,0
+ayo_dun01.gat,0,0,0,0 monster Ghoul  1036,30,0,0,0
+ayo_dun01.gat,0,0,0,0 monster Kraben  1587,5,0,0,0
+ayo_dun01.gat,0,0,0,0 monster Leaf Cat 1586,60,0,0,0
 
-
+//=== Ayothana Dungeon #2 ===
+ayo_dun02.gat,0,0,0,0 monster Whisper  1179,20,0,0,0
+ayo_dun02.gat,0,0,0,0 monster Kraben  1587,20,0,0,0
+ayo_dun02.gat,0,0,0,0 monster Tamruan  1584,70,0,0,0
+ayo_dun02.gat,0,0,0,0 monster Tao Gunka 1583,1,3600000,1800000,1

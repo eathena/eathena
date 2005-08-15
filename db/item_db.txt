@@ -70,9 +70,9 @@
 563,Double_Growing_Swiss_Pong_Tyu_,Doublecrust Swiss Fondue,0,20,0,150,,,,,10477567,3,,,,,,{ itemheal rand(100,200),0; },{}
 564,Meat_Dumpling,Meat Dumpling,0,20,0,30,,,,,0,2,,,,,,{ itemheal rand(175,234),0; },{}
 565,Vita_500_Bottle,Vita 500,0,2000,0,30,,,,,10477567,2,,,,,,{ itemheal 500,0; },{}
-566,Tom_Yum_Goong,Tom Yum Goong,0,20,0,150,,,,,10477567,2,,,,,,{ itemheal rand(100,200),0; },{}
-567,Shrimp,Shrimp,0,20,0,20,,,,,10477567,2,,,,,,{ itemheal rand(50,100),0; },{}
-568,Lemon,Lemon,0,20,0,20,,,,,10477567,2,,,,,,{ itemheal 0,rand(20,30); },{}
+566,Tom_Yum_Goong,Tom Yum Goong,0,10000,0,150,,,,,10477567,2,,,,,,{ itemheal rand(100,200),0; },{}
+567,Shrimp,Shrimp,0,500,0,20,,,,,10477567,2,,,,,,{ itemheal rand(50,100),0; },{}
+568,Lemon,Lemon,0,60,0,20,,,,,10477567,2,,,,,,{ itemheal 0,rand(20,30); },{}
 569,Novice's_Red_Potion,Novices Red Potion,0,50,0,70,,,,,10477567,2,,,,,,{ itemheal rand(45,64),0; },{}
 // St.Valentine's Day Items
 570,Fortune_Candy,Fortune Candy,0,10,0,30,,,,,10477567,2,,,,,,{ itemheal rand(45,64),0; },{}
@@ -1884,9 +1884,9 @@
 7282,Quiz_Participation_Certificate_3,3rd Quiz Entry,3,20,0,10,,,,,,,,,,,,{},{}
 7283,Quiz_Participation_Certificate_4,4th Quiz Entry,3,20,0,10,,,,,,,,,,,,{},{}
 7284,Quiz_Participation_Certificate_5,5th Quiz Entry,3,20,0,10,,,,,,,,,,,,{},{}
-7285,Holy_Threads,Holy Threads,3,20,0,10,,,,,,,,,,,,{},{}
+7285,Holy_Threads,Holy Threads,3,2,0,10,,,,,,,,,,,,{},{}
 7286,Red_Chili,Red Chili,3,20,0,10,,,,,,,,,,,,{},{}
-7287,Holier_Threads,Holier Threads,3,20,0,10,,,,,,,,,,,,{},{}
+7287,Holier_Threads,Holier Threads,3,2,0,10,,,,,,,,,,,,{},{}
 7288,Engagement_Ring,Engagement Ring,3,20,0,10,,,,,,,,,,,,{},{}
 7289,Peridot,Peridotite,3,20,0,100,,,,,,,,,,,,{},{}
 7290,Phlogopite,Phlogopite,3,20,0,100,,,,,,,,,,,,{},{}
@@ -1897,10 +1897,10 @@
 7295,Citrine,Citrine,3,20,0,100,,,,,,,,,,,,{},{}
 7296,Pyroxene,Pyroxene,3,20,0,100,,,,,,,,,,,,{},{}
 7297,Biotite,Biotite,3,20,0,100,,,,,,,,,,,,{},{}
-7298,Fig_Leaf,Fig Leaf,3,20,0,10,,,,,,,,,,,,{},{}
-7299,Straw_Basket,Straw Basket,3,20,0,10,,,,,,,,,,,,{},{}
+7298,Fig_Leaf,Fig Leaf,3,548,0,10,,,,,,,,,,,,{},{}
+7299,Straw_Basket,Straw Basket,3,632,0,10,,,,,,,,,,,,{},{}
 7300,Gemstone,Gemstone,3,20,0,10,,,,,,,,,,,,{},{}
-7301,Tassel,Tassel,3,20,0,10,,,,,,,,,,,,{},{}
+7301,Tassel,Tassel,3,798,0,10,,,,,,,,,,,,{},{}
 7302,Krathong,Krathong,3,20,0,10,,,,,,,,,,,,{},{}
 7303,Straw_Rice_Bag,Straw Rice Bag,3,20,0,800,,,,,,,,,,,,{},{}
 7304,Witchs_Spellbook,Witch's Spellbook,3,20,0,10,0,0,0,0,0,0,0,0,0,,0,{},{}

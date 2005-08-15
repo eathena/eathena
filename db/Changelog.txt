@@ -16,6 +16,10 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 08/15
+	* Made Kraben agressive and much faster [Skotlex]
+	  (info from Ishizu)
+	* Updated some Ayothaya loot prices [Skotlex]
+	  (thanks to Ishizu)
 	* Corrected the uptime for SA_AUTOSPELL [Skotlex]
 	  (thanks to HarmonySong)
 08/11
