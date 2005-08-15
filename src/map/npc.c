@@ -2047,12 +2047,13 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 		md->level = mob->level;
 		memcpy(md->name, mob->mobname, NAME_LENGTH-1);
 		md->n = i;
-		if(mob->class_ > 4000){ // large/tiny mobs [Valaris]
+		//FIXME: This implementation is not stable, npc scripts will stop working once MAX_MOB_DB changes value! [Skotlex]
+		if(mob->class_ > 2*MAX_MOB_DB){ // large/tiny mobs [Valaris]
 			md->size=2;
-			md->base_class = md->class_ = mob->class_-4000;
-		} else if (mob->class_ > 2000) {
+			md->base_class = md->class_ = mob->class_-2*MAX_MOB_DB;
+		} else if (mob->class_ > MAX_MOB_DB) {
 			md->size=1;
-			md->base_class = md->class_ = mob->class_-2000;
+			md->base_class = md->class_ = mob->class_-MAX_MOB_DB;
 		} else
 			md->base_class = md->class_ = mob->class_;
 		md->bl.id = npc_get_new_npc_id();

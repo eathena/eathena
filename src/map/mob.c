@@ -136,7 +136,7 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 	else
 		m = map_mapname2mapid(mapname);
 
-	if (m < 0 || amount <= 0 || (class_ >= 0 && class_ <= 1000) || class_ > MAX_MOB_DB + 4000)	// ’l‚ªˆÙí‚È‚ç¢Š«‚ğ~‚ß‚é
+	if (m < 0 || amount <= 0 || (class_ >= 0 && class_ <= 1000) || class_ > MAX_MOB_DB + 2*MAX_MOB_DB)	// ’l‚ªˆÙí‚È‚ç¢Š«‚ğ~‚ß‚é
 		return 0;
 
 	if (class_ < 0) {	// ƒ‰ƒ“ƒ_ƒ€‚É¢Š«
@@ -183,9 +183,9 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 	for (count = 0; count < amount; count++) {
 		md = (struct mob_data *)aCalloc(1,sizeof(struct mob_data));
 
-		if (class_ > MAX_MOB_DB + 2000) { // large/tiny mobs [Valaris]
+		if (class_ > 2*MAX_MOB_DB) { // large/tiny mobs [Valaris]
 			md->size = 2;
-			class_ -= (MAX_MOB_DB + 2000);
+			class_ -= 2*MAX_MOB_DB;
 		} else if (class_ > MAX_MOB_DB) {
 			md->size = 1;
 			class_ -= MAX_MOB_DB;

@@ -1,5 +1,10 @@
 Date	Added
 08/15
+	* Fixed @monsterbig/@monstersmall [Skotlex]
+	  Support for said monster in normal spawn scripts is also fixed, however
+	  the implementation is not stable (currently you add 10K to the ID to make
+	  it a tiny mob, add 20K to make it a big mob, but those values depend on
+	  MAX_MOB_DB which can change in the future. :/)
 	* When you drink a speed potion, the icon of the previous one will be
 	  removed (however, all speed potions are still in effect server-side). [Skotlex]
 08/14

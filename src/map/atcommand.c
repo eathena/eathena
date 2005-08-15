@@ -3297,14 +3297,14 @@ int atcommand_monstersmall(
 
 	if (!message || !*message) {
 		clif_displaymessage(fd, "Give a monster name/id please.");
-		return 0;
+		return -1;
 	}
 
 	if (sscanf(message, "\"%23[^\"]\" %23s %d %d %d", name, monster, &number, &x, &y) < 2 &&
 	    sscanf(message, "%23s \"%23[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
 	    sscanf(message, "%23s %d %23s %d %d", monster, &number, name, &x, &y) < 1) {
 		clif_displaymessage(fd, "Give a monster name/id please.");
-		return 0;
+		return -1;
 	}
 
 	// If monster identifier/name argument is a name
@@ -3313,17 +3313,17 @@ int atcommand_monstersmall(
 
 	if (mob_id == 0) {
 		clif_displaymessage(fd, "Monster name hasn't been found.");
-		return 0;
+		return -1;
 	}
 
 	if (mob_id == 1288) {
 		clif_displaymessage(fd, "Cannot spawn emperium.");
-		return 0;
+		return -1;
 	}
 
-	if (mob_id > 2000) {
+	if (mobdb_checkid(mob_id) == 0) {
 		clif_displaymessage(fd, "Invalid monster ID"); // Invalid Monster ID.
-		return 0;
+		return -1;
 	}
 
 	if (number <= 0)
@@ -3347,7 +3347,7 @@ int atcommand_monstersmall(
 			my = sd->bl.y + (rand() % 11 - 5);
 		else
 			my = y;
-		count += (mob_once_spawn((struct map_session_data*)sd, "this", mx, my, name, mob_id+2000, 1, "") != 0) ? 1 : 0;
+		count += (mob_once_spawn((struct map_session_data*)sd, "this", mx, my, name, mob_id+MAX_MOB_DB, 1, "") != 0) ? 1 : 0;
 	}
 
 	if (count != 0)
@@ -3374,14 +3374,14 @@ int atcommand_monsterbig(
 
 	if (!message || !*message) {
 		clif_displaymessage(fd, "Give a monster name/id please.");
-		return 0;
+		return -1;
 	}
 
 	if (sscanf(message, "\"%23[^\"]\" %23s %d %d %d", name, monster, &number, &x, &y) < 2 &&
 	    sscanf(message, "%23s \"%23[^\"]\" %d %d %d", monster, name, &number, &x, &y) < 2 &&
 	    sscanf(message, "%23s %d %23s %d %d", monster, &number, name, &x, &y) < 1) {
 		clif_displaymessage(fd, "Give a monster name/id please.");
-		return 0;
+		return -1;
 	}
 
 	// If monster identifier/name argument is a name
@@ -3390,17 +3390,17 @@ int atcommand_monsterbig(
 
 	if (mob_id == 0) {
 		clif_displaymessage(fd, "Monster name hasn't been found.");
-		return 0;
+		return -1;
 	}
 
 	if (mob_id == 1288) {
 		clif_displaymessage(fd, "Cannot spawn emperium.");
-		return 0;
+		return -1;
 	}
 
-	if (mob_id > 2000) {
+	if (mobdb_checkid(mob_id) == 0) {
 		clif_displaymessage(fd, "Invalid monster ID"); // Invalid Monster ID.
-		return 0;
+		return -1;
 	}
 
 	if (number <= 0)
@@ -3424,7 +3424,7 @@ int atcommand_monsterbig(
 			my = sd->bl.y + (rand() % 11 - 5);
 		else
 			my = y;
-		count += (mob_once_spawn((struct map_session_data*)sd, "this", mx, my, name, mob_id+4000, 1, "") != 0) ? 1 : 0;
+		count += (mob_once_spawn((struct map_session_data*)sd, "this", mx, my, name, mob_id+2*MAX_MOB_DB, 1, "") != 0) ? 1 : 0;
 	}
 
 	if (count != 0)
