@@ -124,17 +124,14 @@ static int recv_to_fifo(int fd)
 	len=read(fd,session[fd]->rdata+session[fd]->rdata_size, RFIFOSPACE(fd));
 #endif
 
-	if(len == -1 && errno == EAGAIN)
-		return 0; //Should not happen, but who knows? [Skotlex]
-
 	if(len>0){
 		session[fd]->rdata_size+=len;
 		session[fd]->rdata_tick = last_tick;
-	} else { //End of connection 
-		if (len == -1)
-			perror("closing session: recv_to_fifo");
-		else
-			ShowDebug("recv_to_fifo: Normal disconnection (session #%d)\n", fd);
+	} else if (len == 0) {	//Normal connection end.
+		ShowDebug("recv_to_fifo: Normal disconnection (session #%d)\n", fd);
+		session[fd]->eof=1;
+	} else if (errno != EAGAIN) {	//Connection error.
+		perror("closing session: recv_to_fifo");
 		session[fd]->eof=1;
 	}
 	return 0;
