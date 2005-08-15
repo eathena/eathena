@@ -79,7 +79,7 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 					clif_buyvending(sd,index,vsd->vending[j].amount, 4);
 					return;
 				}
-				if (amount <= vsd->vending[j].amount) break;
+				break;
 			}
 		}
 //ADD_end
@@ -148,7 +148,7 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
  */
 void vending_openvending(struct map_session_data *sd,int len,char *message,int flag,unsigned char *p)
 {
-	int i;
+	int i, j;
 
 	nullpo_retv(sd);
 
@@ -158,10 +158,16 @@ void vending_openvending(struct map_session_data *sd,int len,char *message,int f
 	}
 
 	if (flag) {
-		for(i = 0; (85 + 8 * i < len) && (i < MAX_VENDING); i++) {
-			sd->vending[i].index = *(short*)(p+8*i)-2;
-			sd->vending[i].amount = *(short*)(p+2+8*i);
-			sd->vending[i].value = *(int*)(p+4+8*i);
+		for(i = 0, j = 0; (85 + 8 * j < len) && (i < MAX_VENDING); i++, j++) {
+			sd->vending[i].index = *(short*)(p+8*j)-2;
+			if (sd->vending[i].index < 0 || sd->vending[i].index >= MAX_INVENTORY ||
+				!itemdb_cantrade(sd->status.inventory[sd->vending[i].index].nameid, pc_isGM(sd), pc_isGM(sd)))
+			{
+				i--; //Preserve the vending index, skip to the next item.
+				continue;
+			}
+			sd->vending[i].amount = *(short*)(p+2+8*j);
+			sd->vending[i].value = *(int*)(p+4+8*j);
 			if(sd->vending[i].value > battle_config.vending_max_value)
 				sd->vending[i].value=battle_config.vending_max_value;
 			else if(sd->vending[i].value == 0)
@@ -171,6 +177,10 @@ void vending_openvending(struct map_session_data *sd,int len,char *message,int f
 				clif_skill_fail(sd, MC_VENDING, 0, 0);
 				return;
 			}
+		}
+		if (i != j)
+		{	//Some items were not vended. [Skotlex]
+			clif_displaymessage (sd->fd, msg_txt(266));
 		}
 		sd->vender_id = sd->bl.id;
 		sd->vend_num = i;

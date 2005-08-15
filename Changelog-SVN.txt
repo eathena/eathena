@@ -1,5 +1,7 @@
 Date	Added
 08/15
+	* Updated vending code so that items that can't be traded can't be vended
+	  either. [Skotlex]
 	* Messed with socket.c, changing lots of stuff around using some earlier
 	  Freya SVN version as base, connection issues might hopefully get better. [Skotlex]
 	  (NOTE: I have yet to try to compile this under Windows/Cygwin, so report
