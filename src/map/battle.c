@@ -1111,7 +1111,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 				hitrate += (skill_lv>5?20:10);
 				break;
 			case SM_MAGNUM:
-				hitrate += hitrate*(10*skill_lv)/100;
+				hitrate += 10*skill_lv;
 				break;
 			case KN_AUTOCOUNTER:
 				hitrate += 20;
@@ -1331,7 +1331,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					break;
 				case SM_MAGNUM:
 					// 20*skill level+100? I think this will do for now [based on jRO info]
-					skillratio+= (wflag > 1 ? 5*skill_lv+15 : 30*skill_lv);
+					skillratio+= 20*skill_lv; 
 					break;
 				case MC_MAMMONITE:
 					skillratio+= 50*skill_lv;

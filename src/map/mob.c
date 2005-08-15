@@ -1029,7 +1029,11 @@ int mob_spawn (int id)
 	memset(md->skillunittick, 0, sizeof(md->skillunittick));
 
 	md->max_hp = md->db->max_hp;
-	md->hp = status_get_max_hp(&md->bl);
+	if(md->size==1) // change for sized monsters [Valaris]
+		md->max_hp/=2;
+	else if(md->size==2)
+		md->max_hp*=2;
+	md->hp = md->max_hp;
 
 	map_addblock(&md->bl);
 	skill_unit_move(&md->bl,tick,1);

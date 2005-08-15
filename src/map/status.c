@@ -1735,10 +1735,6 @@ int status_get_max_hp(struct block_list *bl)
 			if(battle_config.mobs_level_up) // mobs leveling up increase [Valaris]
 				max_hp += (md->level - md->db->lv) * status_get_vit(bl);
 
-			if(md->size==1) // change for sized monsters [Valaris]
-					max_hp/=2;
-			else if(md->size==2)
-					max_hp*=2;
 		}
 		else if(bl->type == BL_PET) {
 			struct pet_data *pd;

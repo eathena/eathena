@@ -1,5 +1,8 @@
 Date	Added
 08/15
+	* Updated Magnum Break: Target selectable, damage is (100+20*level)%, hit
+	  bonus +10 per level. 5x5 splash area. [Skotlex]
+	* Likely fixed the max hp display of tiny/big mobs. [Skotlex]
 	* Updated Cloaking. It'll fail if the level is less than 3 and there's not
 	  a wall nearby. [Skotlex]
 	  If cloak_check is set to ignore walls, the wall-type speed will be used all

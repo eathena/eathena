@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 08/15
+	* Changed Magnum break's inf to 1 (normal targetted skill) [Skotlex]
 	* Made Kraben agressive and much faster [Skotlex]
 	  (info from Ishizu)
 	* Updated some Ayothaya loot prices [Skotlex]
