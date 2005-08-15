@@ -1796,7 +1796,7 @@ int count_users(void) {
 	if (login_fd > 0 && session[login_fd]){
 		users = 0;
 		for(i = 0; i < MAX_MAP_SERVERS; i++) {
-			if (server_fd[i] >= 0) {
+			if (server_fd[i] > 0) {
 				users += server[i].users;
 			}
 		}
@@ -1953,7 +1953,7 @@ int parse_tologin(int fd) {
                 set_all_offline();
 				// if no map-server already connected, display a message...
 				for(i = 0; i < MAX_MAP_SERVERS; i++)
-					if (server_fd[i] >= 0 && server[i].map[0][0]) // if map-server online and at least 1 map
+					if (server_fd[i] > 0 && server[i].map[0][0]) // if map-server online and at least 1 map
 						break;
 				if (i == MAX_MAP_SERVERS)
 					ShowStatus("Awaiting maps from map-server.\n");
@@ -2351,7 +2351,7 @@ int parse_frommap(int fd) {
 				}
 				// Transmitting the maps of the other map-servers to the new map-server
 				for(x = 0; x < MAX_MAP_SERVERS; x++) {
-					if (server_fd[x] >= 0 && x != id) {
+					if (server_fd[x] > 0 && x != id) {
 						WFIFOW(fd,0) = 0x2b04;
 						WFIFOL(fd,4) = server[x].ip;
 						WFIFOW(fd,8) = server[x].port;
@@ -2862,7 +2862,7 @@ int search_mapserver(char *map) {
 
 	temp_map_len = strlen(temp_map);
 	for(i = 0; i < MAX_MAP_SERVERS; i++)
-		if (server_fd[i] >= 0)
+		if (server_fd[i] > 0)
 			for (j = 0; server[i].map[j][0]; j++)
 				//printf("%s : %s = %d\n", server[i].map[j], map, strncmp(server[i].map[j], temp_map, temp_map_len));
 				if (strncmp(server[i].map[j], temp_map, temp_map_len) == 0) {
@@ -3096,7 +3096,7 @@ int parse_char(int fd) {
 					// get first online server
 					i = 0;
 					for(j = 0; j < MAX_MAP_SERVERS; j++)
-						if (server_fd[j] >= 0 && server[j].map[0][0])  {
+						if (server_fd[j] > 0 && server[j].map[0][0])  {
 							i = j;
 							ShowDebug("Map-server #%d found with a map: '%s'.\n", j, server[j].map[0]);
 							break;
@@ -3330,7 +3330,7 @@ int parse_char(int fd) {
 				return 0;
 			WFIFOW(fd, 0) = 0x2af9;
 			for(i = 0; i < MAX_MAP_SERVERS; i++) {
-				if (server_fd[i] < 0)
+				if (server_fd[i] <= 0)
 					break;
 			}
 			if (i == MAX_MAP_SERVERS || strcmp((const char*)RFIFOP(fd,2), userid) || strcmp((const char*)RFIFOP(fd,26), passwd)) {
@@ -3425,7 +3425,7 @@ int mapif_sendall(unsigned char *buf, unsigned int len) {
 
 	c = 0;
 	for(i = 0; i < MAX_MAP_SERVERS; i++) {
-		if ((fd = server_fd[i]) >= 0) {
+		if ((fd = server_fd[i]) > 0) { //0 Should not be a valid server_fd [Skotlex]
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd,len);
 			c++;
@@ -3441,7 +3441,7 @@ int mapif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
 
 	c = 0;
 	for(i=0, c=0;i<MAX_MAP_SERVERS;i++){
-		if ((fd = server_fd[i]) >= 0 && fd != sfd) {
+		if ((fd = server_fd[i]) > 0 && fd != sfd) {
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd, len);
 			c++;

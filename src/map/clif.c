@@ -10811,6 +10811,7 @@ void clif_parse_debug(int fd,struct map_session_data *sd)
 int clif_parse(int fd) {
 	int packet_len = 0, cmd, packet_ver, dump = 0;
 	struct map_session_data *sd;
+	static int last_fd = 0; //Avoid spamming the console.
 
 	if (fd <= 0)
 	{	//Just in case, there are some checks for this later down below anyway which should be removed. [Skotlex]
@@ -10900,26 +10901,33 @@ int clif_parse(int fd) {
 			return 0;
 		}
 	} else {
-	// check authentification packet to know packet version
-		packet_ver = clif_guess_PacketVer(fd, 0);
-		// check if version is accepted
-		if (packet_ver < 5 ||	// reject really old client versions
-			(packet_ver <= 9 && (battle_config.packet_ver_flag & 1) == 0) ||	// older than 6sept04
-			(packet_ver > 9 && (battle_config.packet_ver_flag & 1<<(packet_ver-9)) == 0) ||
-			packet_ver > MAX_PACKET_VER)	// no packet version support yet
-		{
+		if (last_fd == fd) 
+		{	//This client was alcready kicked, do nothing.
+			//FIXME: There is something seriously broken here. The client never receives the "this game EXE is too old" message unless we SPAM it with this reply! [Skotlex]
 			WFIFOW(fd,0) = 0x6a;
 			WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
 			WFIFOSET(fd,23);
-
-			ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
-			if (packet_ver < 5)
-			{	//No need to do any further parsing. [Skotlex]
-				packet_len = RFIFOREST(fd);
-				RFIFOSKIP(fd, packet_len);
-			}
-			clif_setwaitclose(fd);
 			return 0;
+		} else {
+			// check authentification packet to know packet version
+			packet_ver = clif_guess_PacketVer(fd, 0);
+			// check if version is accepted
+			if (packet_ver < 5 ||	// reject really old client versions
+				(packet_ver <= 9 && (battle_config.packet_ver_flag & 1) == 0) ||	// older than 6sept04
+				(packet_ver > 9 && (battle_config.packet_ver_flag & 1<<(packet_ver-9)) == 0) ||
+				packet_ver > MAX_PACKET_VER)	// no packet version support yet
+			{
+				ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
+				WFIFOW(fd,0) = 0x6a;
+				WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
+				WFIFOSET(fd,23);
+			//	packet_len = RFIFOREST(fd); //If skipped, we don't spam the client, we need to do that or it won't get the message :/
+			//	RFIFOSKIP(fd, packet_len);
+				clif_setwaitclose(fd);
+				last_fd = fd;
+				return 0;
+			} else
+				last_fd = 0; //Clear fd
 		}
 	}
 

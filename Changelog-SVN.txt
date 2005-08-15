@@ -1,5 +1,7 @@
 Date	Added
 08/14
+	* Fixed the map-server spamming "Client does not has latest EXE message. [Skotlex]
+	* Updated char-sql to consider 0 an invalid map-server session number. [Skotlex]
 	* Fix in map->char auth request packet where char server spams data search error message, currently in testing. But works none the less. [Kevin]
 	* Removed all close()'s in clif.c, made clif_parse the only one who closes
 	  a socket and deletes the session. [Skotlex]
