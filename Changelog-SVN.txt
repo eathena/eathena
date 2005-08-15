@@ -1,4 +1,7 @@
 Date	Added
+08/15
+	* When you drink a speed potion, the icon of the previous one will be
+	  removed (however, all speed potions are still in effect server-side). [Skotlex]
 08/14
 	* Likely corrected the error printing in recv_to_fifo (reporting normal
 	  disconnections when they likely are not). [Skotlex]

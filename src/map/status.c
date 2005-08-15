@@ -3592,6 +3592,18 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			calc_flag = 1;
 			tick = 1000 * tick;
 			val2 = 5*(2+type-SC_SPEEDPOTION0);
+			// Since people complain so much about the various icons showing up, here we disable the visual of any other potions [Skotlex] 
+			if (sc_data[SC_SPEEDPOTION0].timer != -1)
+				clif_status_change(bl,SC_SPEEDPOTION0,0);
+			else
+			if (sc_data[SC_SPEEDPOTION1].timer != -1)
+				clif_status_change(bl,SC_SPEEDPOTION1,0);
+			else
+			if (sc_data[SC_SPEEDPOTION2].timer != -1)
+				clif_status_change(bl,SC_SPEEDPOTION2,0);
+			else
+			if (sc_data[SC_SPEEDPOTION3].timer != -1)
+				clif_status_change(bl,SC_SPEEDPOTION3,0);
 			break;
 
 		/* atk & matk potions [Valaris] */
@@ -4187,10 +4199,6 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_SERVICE4U:			/* サ?ビスフォ?ユ? */
 			case SC_EXPLOSIONSPIRITS:	// 爆裂波動
 			case SC_STEELBODY:			// 金剛
-			case SC_SPEEDPOTION0:		/* ?速ポ?ション */
-			case SC_SPEEDPOTION1:
-			case SC_SPEEDPOTION2:
-			case SC_SPEEDPOTION3:
 			case SC_APPLEIDUN:			/* イドゥンの林檎 */
 			case SC_RIDING:
 			case SC_BLADESTOP_WAIT:
@@ -4229,6 +4237,25 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_GUILDAURA:
 				calc_flag = 1;
 				break;
+			case SC_SPEEDPOTION0:		/* ?速ポ?ション */
+			case SC_SPEEDPOTION1:
+			case SC_SPEEDPOTION2:
+			case SC_SPEEDPOTION3:
+				calc_flag = 1;
+				//Restore the icon if another speed potion is still in effect.
+				if (sc_data[SC_SPEEDPOTION3].timer != -1)
+					clif_status_change(bl,SC_SPEEDPOTION3,1);
+				else
+				if (sc_data[SC_SPEEDPOTION2].timer != -1)
+					clif_status_change(bl,SC_SPEEDPOTION2,1);
+				else
+				if (sc_data[SC_SPEEDPOTION1].timer != -1)
+					clif_status_change(bl,SC_SPEEDPOTION1,1);
+				else
+				if (sc_data[SC_SPEEDPOTION0].timer != -1)
+					clif_status_change(bl,SC_SPEEDPOTION0,1);
+				break;
+
 			case SC_AUTOBERSERK:
 				if (sc_data[SC_PROVOKE].timer != -1)
 					status_change_end(bl,SC_PROVOKE,-1);
