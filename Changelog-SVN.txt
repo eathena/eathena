@@ -1,5 +1,8 @@
 Date	Added
 08/15
+	* Updated the mob skill use code so that hopefully other players will be
+	  considered friends when using support skills. [Skotlex]
+	  NOTE: Not quite tested, use with care.
 	* Fixed @monsterbig/@monstersmall [Skotlex]
 	  Support for said monster in normal spawn scripts is also fixed, however
 	  the implementation is not stable (currently you add 10K to the ID to make

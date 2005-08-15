@@ -3630,34 +3630,42 @@ int mobskill_use_pos( struct mob_data *md,
 int mob_getfriendhpltmaxrate_sub(struct block_list *bl,va_list ap)
 {
 	int rate;
-	struct mob_data **fr, *md, *mmd;
+	struct block_list **fr;
+	struct mob_data *md;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
-	nullpo_retr(0, mmd=va_arg(ap,struct mob_data *));
-
-	md=(struct mob_data *)bl;
-
-	if( mmd->bl.id == bl->id )
-		return 0;
-	if (battle_check_target(&mmd->bl,bl,BCT_ENEMY)>0)
-		return 0;
+	nullpo_retr(0, md=va_arg(ap,struct mob_data *));
 	rate=va_arg(ap,int);
-	fr=va_arg(ap,struct mob_data **);
-	if (md->hp < md->max_hp * rate / 100)
-		(*fr) = md;
+	fr=va_arg(ap,struct block_list **);
+
+	if( md->bl.id == bl->id )
+		return 0;
+
+	if ((*fr) != NULL) //A friend was already found.
+		return 0;
+	
+	if (battle_check_target(&md->bl,bl,BCT_ENEMY)>0)
+		return 0;
+	
+	if (status_get_hp(bl) < status_get_max_hp(bl) * rate / 100)
+		(*fr) = bl;
 	return 0;
 }
-struct mob_data *mob_getfriendhpltmaxrate(struct mob_data *md,int rate)
+struct block_list *mob_getfriendhpltmaxrate(struct mob_data *md,int rate)
 {
-	struct mob_data *fr=NULL;
+	struct block_list *fr=NULL;
 	const int r=8;
-
+	int type = BL_MOB;
+	
 	nullpo_retr(NULL, md);
 
+	if (md->state.special_mob_ai == 1) //Summoned creatures. [Skotlex]
+		type = BL_PC;
+	
 	map_foreachinarea(mob_getfriendhpltmaxrate_sub, md->bl.m,
 		md->bl.x-r ,md->bl.y-r, md->bl.x+r, md->bl.y+r,
-		BL_MOB,md,rate,&fr);
+		type,md,rate,&fr);
 	return fr;
 }
 /*==========================================
@@ -3728,8 +3736,8 @@ struct mob_data *mob_getfriendstatus(struct mob_data *md,int cond1,int cond2)
 int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 {
 	struct mob_skill *ms;
+	struct block_list *fbl = NULL; //Friend bl, which can either be a BL_PC or BL_MOB depending on the situation. [Skotlex]
 	struct mob_data *fmd = NULL;
-	struct map_session_data *fsd = NULL;
 	int i;
 
 	nullpo_retr (0, md);
@@ -3775,7 +3783,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					}
 					flag ^= (ms[i].cond1 == MSC_MYSTATUSOFF); break;
 				case MSC_FRIENDHPLTMAXRATE:	// friend HP < maxhp%
-					flag = ((fmd = mob_getfriendhpltmaxrate(md, ms[i].cond2)) != NULL); break;
+					flag = ((fbl = mob_getfriendhpltmaxrate(md, ms[i].cond2)) != NULL); break;
 				case MSC_FRIENDSTATUSON:	// friend status[num] on
 				case MSC_FRIENDSTATUSOFF:	// friend status[num] off
 					flag = ((fmd = mob_getfriendstatus(md, ms[i].cond1, ms[i].cond2)) != NULL); break;					
@@ -3794,16 +3802,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 					if (flag) md->attacked_count = 0;	//Rude attacked count should be reset after the skill condition is met. Thanks to Komurka [Skotlex]
 					break;
 				case MSC_MASTERHPLTMAXRATE:
-					{
-						struct block_list *bl = mob_getmasterhpltmaxrate(md, ms[i].cond2);
-						if (bl) {
-							if (bl->type == BL_MOB)
-								fmd=(struct mob_data *)bl;
-							else if (bl->type == BL_PC)
-								fsd=(struct map_session_data *)bl;
-						}
-						flag = (fmd || fsd); break;
-					}
+					flag = ((fbl = mob_getmasterhpltmaxrate(md, ms[i].cond2)) != NULL); break;
 				case MSC_MASTERATTACKED:
 					flag = (md->master_id > 0 && battle_counttargeted(map_id2bl(md->master_id), NULL, 0) > 0); break;
 				case MSC_ALCHEMIST:
@@ -3825,11 +3824,12 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 							bl = map_id2bl(md->target_id);
 							break;
 						case MST_FRIEND:
-							if (fmd) {
-								bl = &fmd->bl;
+							if (fbl)
+							{
+								bl = fbl;
 								break;
-							} else if (fsd) {
-								bl = &fsd->bl;
+							} else if (fmd) {
+								bl= &fmd->bl;
 								break;
 							} // else fall through
 						default:
@@ -3879,11 +3879,11 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 							bl = map_id2bl(md->target_id);
 							break;
 						case MST_FRIEND:
-							if (fmd) {
-								bl = &fmd->bl;
+							if (fbl) {
+								bl = fbl;
 								break;
-							} else if (fsd) {
-								bl = &fsd->bl;
+							} else if (fmd) {
+								bl = &fmd->bl;
 								break;
 							} // else fall through
 						default:
