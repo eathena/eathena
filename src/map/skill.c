@@ -3413,7 +3413,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case LK_AURABLADE:		/* オ?ラブレ?ド */
 	case LK_PARRYING:		/* パリイング */
 	case LK_CONCENTRATION:	/* コンセントレ?ション */
-	case HP_ASSUMPTIO:		/*  */
 	case WS_CARTBOOST:		/* カ?トブ?スト */
 	case SN_SIGHT:			/* トゥル?サイト */
 	case WS_MELTDOWN:		/* メルトダウン */
@@ -3426,6 +3425,19 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case CG_MOONLIT:		/* 月明りの泉に落ちる花びら */
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
+		break;
+
+	case HP_ASSUMPTIO:
+		if (flag&1)
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
+		else
+		{
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			map_foreachinarea(skill_area_sub,
+				bl->m, bl->x-1, bl->y-1, bl->x+1, bl->y+1, 0,
+				src, skillid, skilllv, tick, flag|BCT_NOENEMY|1,
+				skill_castend_nodamage_id);
+		}
 		break;
 
 	case SM_ENDURE:			/* インデュア */

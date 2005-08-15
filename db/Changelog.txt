@@ -15,6 +15,9 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+08/15
+	* Corrected the uptime for SA_AUTOSPELL [Skotlex]
+	  (thanks to HarmonySong)
 08/11
 	* Updated refine items for Damascus (thanks to Ishizu) [Skotlex]
 	* Updated Zen's (Hyper Spirit Sphere) casting time to 3 secs as per the kro

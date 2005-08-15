@@ -1,5 +1,7 @@
 Date	Added
 08/15
+	* Updated Assumptio. It will affect anyone in a 3x3 area around the target. [Skotlex]
+	  (where anyone is anyone the same way Benedictio chooses it's target)
 	* Updated the delay that a mob can't move after attacking to be 1/4th of
 	  the delay between attacks. [Skotlex]
 	  eg: The mob attacks once every 1000ms, that means it can start chasing

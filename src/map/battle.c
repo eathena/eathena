@@ -1852,7 +1852,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 			scfix=scfix*50/100;
 		
 		if(t_sc_data[SC_ASSUMPTIO].timer != -1){
-			if(map[target->m].flag.pvp)
+			if(map[target->m].flag.pvp || map[target->m].flag.gvg)
 				scfix=scfix*2/3; //Receive 66% damage
 			else
 				scfix=scfix/2; //Receive 50% damage
