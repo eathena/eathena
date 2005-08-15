@@ -3785,7 +3785,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				status_change_end(bl, sc, -1);
 			else
 				/* •t‰Á‚·‚é */
-				status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+			{	//Avoid cloaking with no wall and low skill level. [Skotlex]
+				if (sd && skilllv < 3 && skill_check_cloaking(bl))
+					clif_skill_fail(sd,skillid,0,0);
+				else
+					status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+			}
 		}
 		break;
 
@@ -7785,18 +7790,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 					clif_skill_fail(sd,skill_num,0,0);
 					return 0;
 				}
-				/*
-				int range = 1;
-				int c = 0;
-				map_foreachinarea (skill_check_condition_char_sub, sd->bl.m,
-					sd->bl.x-range, sd->bl.y-range, sd->bl.x+range,
-					sd->bl.y+range, BL_PC, &sd->bl, &c, skill_num);
-				if (c < 1) {
-					clif_skill_fail(sd,skill_num,0,0);
-					return 0;
-				} else
-					sd->skilllv = (c + skill_lv)/2;
-				*/
 			}
 			break;
 		}
@@ -9060,18 +9053,20 @@ int skill_check_cloaking(struct block_list *bl)
 
 	if (bl->type == BL_PC) {
 		nullpo_retr(1, sd = (struct map_session_data *)bl);
-		if (!battle_config.pc_cloak_check_type
-			|| battle_config.pc_cloak_check_type == 2) // If it's No it shouldn't be checked
-			return 0;
-	} else if (bl->type == BL_MOB && !battle_config.monster_cloak_check_type)
-		return 0;
-
-	for (i = 0; i < 8; i++) {
-		if (map_getcell(bl->m, bl->x+dx[i], bl->y+dy[i], CELL_CHKNOPASS)) {
-			end = 0;
-			break;
-		}
 	}
+	
+	if ((bl->type == BL_PC && battle_config.pc_cloak_check_type&1) ||
+		(bl->type != BL_PC && battle_config.monster_cloak_check_type&1))
+		{	//Check for walls.
+			for (i = 0; i < 8; i++)
+			if (map_getcell(bl->m, bl->x+dx[i], bl->y+dy[i], CELL_CHKNOPASS))
+			{
+				end = 0;
+				break;
+			}
+		} else
+			end = 0; //No wall check.
+			
 	if(end){
 		if ((sd && pc_checkskill(sd,AS_CLOAKING)<3) || bl->type == BL_MOB) {
 			status_change_end(bl, SC_CLOAKING, -1);

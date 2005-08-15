@@ -1,5 +1,12 @@
 Date	Added
 08/15
+	* Updated Cloaking. It'll fail if the level is less than 3 and there's not
+	  a wall nearby. [Skotlex]
+	  If cloak_check is set to ignore walls, the wall-type speed will be used all
+	  the time.
+	  (I don't see what all the fuss is about as a Lv2 Cloak is just as good as
+	  Hide, and you can't even use GrimTooth from it. And since lv2 won't let
+	  you move anyway, why would anyone use Clock lv2 over Hiding?)
 	* Updated Assumptio. It will affect anyone in a 3x3 area around the target. [Skotlex]
 	  (where anyone is anyone the same way Benedictio chooses it's target)
 	* Updated the delay that a mob can't move after attacking to be 1/4th of
