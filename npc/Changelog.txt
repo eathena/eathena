@@ -28,6 +28,9 @@ TODO:
 
 Date		Added
 ======
+15/02
+	* Fixed onr more Novice Skill exploit, otpimized variables usege a bit. [Lupus]
+	  thanks to Mellowz, for pointing it out
 09/02
 	* Fixed position of Lothar (from IRC), and MrSmile Girl pos at Prontera, txh to dshome [Lupus]
 	* Added some Acky's custom scrips (Lottery, MVM, Stock Market, Shifty Assassin, Morroc Raceway, Russian Roulette)
