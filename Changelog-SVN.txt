@@ -1,5 +1,9 @@
 Date	Added
 08/15
+	* Updated the delay that a mob can't move after attacking to be 1/4th of
+	  the delay between attacks. [Skotlex]
+	  eg: The mob attacks once every 1000ms, that means it can start chasing
+	  you 250ms after an attack.
 	* Likely fixed the #fakename crash. [Skotlex]
 	* Updated the mob skill use code so that hopefully other players will be
 	  considered friends when using support skills. [Skotlex]
