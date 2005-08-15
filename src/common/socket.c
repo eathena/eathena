@@ -5,10 +5,9 @@
 #include <sys/types.h>
 #include <errno.h>
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
+#ifdef __WIN32
+#define __USE_W32_SOCKETS
 #include <windows.h>
-#include <winsock2.h>
 #include <io.h>
 typedef int socklen_t;
 #else
@@ -90,6 +89,8 @@ void set_nonblocking(int fd, int yes) {
 static void setsocketopts(int fd)
 {
 	int yes = 1; // reuse fix
+	size_t buff;
+	int buff_size = sizeof (buff);	
 
 	setsockopt(fd,SOL_SOCKET,SO_REUSEADDR,(char *)&yes,sizeof yes);
 #ifdef SO_REUSEPORT
@@ -97,8 +98,23 @@ static void setsocketopts(int fd)
 #endif
 	setsockopt(fd,IPPROTO_TCP,TCP_NODELAY,(char *)&yes,sizeof yes);
 
-	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char *) &wfifo_size , sizeof(rfifo_size ));
+	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char *) &wfifo_size , sizeof(wfifo_size ));
+	if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &buff, &buff_size) == 0)
+	{
+		if (buff < wfifo_size) //We are not going to complain if we get more, aight? [Skotlex]
+			ShowError("setsocketopts: Requested send buffer size failed (requested %d bytes buffer, received a buffer of size %d)\n", wfifo_size, buff);
+	}
+	else
+		perror("setsocketopts: getsockopt wfifo");
 	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char *) &rfifo_size , sizeof(rfifo_size ));
+	buff_size = 10; //In case it was changed?
+	if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &buff, &buff_size) == 0)
+	{
+		if (buff < rfifo_size)
+			ShowError("setsocketopts: Requested receive buffer size failed (requested %d bytes buffer, received a buffer of size %d)\n", rfifo_size, buff);
+	}
+	else
+		perror("setsocketopts: getsockopt rfifo");
 }
 
 /*======================================
@@ -113,27 +129,37 @@ static int recv_to_fifo(int fd)
 	if( (fd<0) || (fd>=FD_SETSIZE) || (NULL==session[fd]) )
 		return -1;
 
-	//ShowMessage("recv_to_fifo : %d %d\n",fd,session[fd]->eof);
 	if(session[fd]->eof)
 		return -1;
 
-
-#ifdef _WIN32
+#ifdef __WIN32
 	len=recv(fd,(char *)session[fd]->rdata+session[fd]->rdata_size, RFIFOSPACE(fd), 0);
+	if (len == SOCKET_ERROR) {
+		if (WSAGetLastError() != WSAEWOULDBLOCK) {
+			ShowDebug("recv_to_fifo: error %d, ending connection #%d\n", WSAGetLastError(), fd);
+			session[fd]->eof=1;
+		}
+		return 0;
+	}
 #else
 	len=read(fd,session[fd]->rdata+session[fd]->rdata_size, RFIFOSPACE(fd));
-#endif
-
-	if(len>0){
-		session[fd]->rdata_size+=len;
-		session[fd]->rdata_tick = last_tick;
-	} else if (len == 0) {	//Normal connection end.
+	if (len == -1)
+	{
+		if (errno != EAGAIN) {	//Connection error.
+			perror("closing session: recv_to_fifo");
+			session[fd]->eof=1;
+		}
+		return 0;
+	}
+#endif	
+	if (len <= 0) {	//Normal connection end.
 		ShowDebug("recv_to_fifo: Normal disconnection (session #%d)\n", fd);
 		session[fd]->eof=1;
-	} else if (errno != EAGAIN) {	//Connection error.
-		perror("closing session: recv_to_fifo");
-		session[fd]->eof=1;
+		return 0;
 	}
+
+	session[fd]->rdata_size+=len;
+	session[fd]->rdata_tick = last_tick;
 	return 0;
 }
 
@@ -143,7 +169,10 @@ static int send_from_fifo(int fd)
 	if( !session_isValid(fd) )
 		return -1;
 
-	// clear write buffer if not connected
+//	if (s->eof) // if we close connection, we can not send last information (you're been disconnected, etc...) [Yor]
+//		return -1;
+/*
+	// clear write buffer if not connected <- I really like more the idea of sending the last information. [Skotlex]
 	if( session[fd]->eof )
 	{
 		session[fd]->wdata_size = 0;
@@ -152,8 +181,8 @@ static int send_from_fifo(int fd)
 #endif
 		return -1;
 	}
-
-	//ShowMessage("send_from_fifo : %d\n",fd);
+*/
+	
 	if (session[fd]->wdata_size == 0)
 	{
 #ifdef TURBO
@@ -162,15 +191,28 @@ static int send_from_fifo(int fd)
 		return 0;
 	}
 
-
-#ifdef _WIN32
+#ifdef __WIN32
 	len=send(fd, (const char *)session[fd]->wdata,session[fd]->wdata_size, 0);
+	if (len == SOCKET_ERROR) {
+		if (WSAGetLastError() != WSAEWOULDBLOCK) {
+			ShowDebug("recv_to_fifo: error %d, ending connection #%d\n", WSAGetLastError(), fd);
+			session[fd]->wdata_size = 0; //Clear the send queue as we can't send anymore. [Skotlex]
+			session[fd]->eof=1;
+		}
+		return 0;
+	}
 #else
 	len=write(fd,session[fd]->wdata,session[fd]->wdata_size);
+	if (len == -1)
+	{
+		if (errno != EAGAIN) {
+			perror("closing session: send_from_fifo");
+			session[fd]->wdata_size = 0; //Clear the send queue as we can't send anymore. [Skotlex]
+			session[fd]->eof=1;
+		}
+		return 0;
+	}
 #endif
-
-//	ShowInfo (":::SEND:::\n");
-//	dump(session[fd]->wdata, len); ShowMessage ("\n");
 
 	//{ int i; ShowMessage("send %d : ",fd);  for(i=0;i<len;i++){ ShowMessage("%02x ",session[fd]->wdata[i]); } ShowMessage("\n");}
 	if(len>0){
@@ -183,10 +225,6 @@ static int send_from_fifo(int fd)
 			FD_CLR(fd, &writefds);
 #endif
 		}
-	} else if (errno != EAGAIN) {
-//		ShowMessage("set eof :%d\n",fd);
-		perror("closing session: send_from_fifo");
-		session[fd]->eof=1;
 	}
 	return 0;
 }
@@ -194,7 +232,7 @@ static int send_from_fifo(int fd)
 void flush_fifos()
 {
 	int i;
-	for(i=1;i<fd_max;i++) //fd==0 is never a valid session, so let's skip it. [Skotlex]
+	for(i=0;i<fd_max;i++)
 		if(session[i] != NULL &&
 		   session[i]->func_send == send_from_fifo)
 			send_from_fifo(i);
@@ -221,7 +259,7 @@ static int connect_client(int listen_fd)
 
 	len=sizeof(client_address);
 
-	fd = (int)accept(listen_fd,(struct sockaddr*)&client_address,(socklen_t*)&len);
+	fd = accept(listen_fd,(struct sockaddr*)&client_address,(socklen_t*)&len);
 	if(fd_max<=fd) fd_max=fd+1;
 
 	if(fd==-1) {
@@ -237,7 +275,7 @@ static int connect_client(int listen_fd)
 	} else
 		FD_SET(fd,&readfds);
 
-#ifdef _WIN32
+#ifdef __WIN32
 	{
 		unsigned long val = 1;
 		if (ioctlsocket(fd, FIONBIO, &val) != 0);
@@ -271,10 +309,10 @@ int make_listen_port(int port)
 	int fd;
 	int result;
 
-	fd = (int)socket( AF_INET, SOCK_STREAM, 0 );
+	fd = socket( AF_INET, SOCK_STREAM, 0 );
 	if(fd_max<=fd) fd_max=fd+1;
 
-#ifdef _WIN32
+#ifdef __WIN32
 	{
 		unsigned long val = 1;
 		if (ioctlsocket(fd, FIONBIO, &val) != 0);
@@ -321,7 +359,7 @@ int make_listen_bind(long ip,int port)
 	fd = (int)socket( AF_INET, SOCK_STREAM, 0 );
 	if(fd_max<=fd) fd_max=fd+1;
 
-#ifdef _WIN32
+#ifdef __WIN32
 	{
 	  	unsigned long val = 1;
 		if (ioctlsocket(fd, FIONBIO, &val) != 0);
@@ -457,7 +495,7 @@ int make_connection(long ip,int port)
 		return -1;
 	}
 //Now the socket can be made non-blocking. [Skotlex]
-#ifdef _WIN32
+#ifdef __WIN32
 	{
 		unsigned long val = 1;
 		if (ioctlsocket(fd, FIONBIO, &val) != 0);
@@ -598,13 +636,13 @@ int do_sendrecv(int next)
 	last_tick = time(0);
 
 	memcpy(&rfd, &readfds, sizeof(rfd));
-	memcpy(&efd, &readfds, sizeof(rfd));
+	memcpy(&efd, &readfds, sizeof(efd));
 #ifdef TURBO
 	memcpy(&wfd, &writefds, sizeof(wfd));
 #else
 	FD_ZERO(&wfd);
 
-	for (i = 1; i < fd_max; i++){ //Session 0 is never a valid session, so it's best to skip it. [Skotlex
+	for (i = 1; i < fd_max; i++){ //Session 0 is never a valid session, so it's best to skip it. [Skotlex]
 		if(!session[i] && FD_ISSET(i, &readfds)){
 			ShowMessage("force clr fds %d\n", i);
 			FD_CLR(i, &readfds);
@@ -622,10 +660,52 @@ int do_sendrecv(int next)
 	ret = select(fd_max, &rfd, &wfd, &efd, &timeout);
 
 	if (ret == -1)
-	{	//Why we don't look out for this!? [Skotlex]
+	{	//if error, remove invalid connections
 		perror("do_sendrecv");
+		//Individual socket handling code shamelessly assimilated from Freya :3
+		// an error give invalid values in fd_set structures -> init them again
+		FD_ZERO(&rfd);
+		FD_ZERO(&wfd);
+		FD_ZERO(&efd);
+		for(i = 0; i < fd_max; i++) {
+			if (!session[i])
+				continue;
+			if (FD_ISSET(i, &readfds))
+				FD_SET(i, &rfd);
+			if (session[i]->wdata_size)
+				FD_SET(i, &wfd);
+			FD_SET(i, &efd);
+			timeout.tv_sec = 0;
+			timeout.tv_usec = 0;
+			if (select(i + 1, &rfd, &wfd, &efd, &timeout) >= 0) {
+				if (FD_ISSET(i, &wfd)) {
+					if (session[i]->func_send)
+						session[i]->func_send(i);
+					FD_CLR(i, &wfd);
+				}
+				if (FD_ISSET(i, &rfd)) {
+					if (session[i]->func_recv)
+						session[i]->func_recv(i);
+					FD_CLR(i, &rfd);
+				}
+				if (FD_ISSET(i, &efd)) {
+					ShowDebug("do_sendrecv: Connection error on Session %d.\n", i);
+					session[i]->eof = 1;
+					FD_CLR(i, &efd);
+				}
+			} else {
+				ShowDebug("do_sendrecv: Session #d caused error in select(), disconnecting.\n", i);
+				session[i]->eof = 1; // set eof
+				// an error gives invalid values in fd_set structures -> init them again
+				FD_ZERO(&rfd);
+				FD_ZERO(&wfd);
+				FD_ZERO(&efd);
+			}
+		}
 		return 0;
 	}
+	if (ret == 0) //Nothing to send/recv.
+		return 0;
 
 #ifndef TURBO
 	if (ret <= 0)
@@ -637,7 +717,7 @@ int do_sendrecv(int next)
 	#define __FDS_BITS(set) ((set)->fds_bits)
 #endif
 
-	for (i = 1; i < fd_max && ret > 0; i++){
+	for (i = 1; i < fd_max; i++){
 		if ((i & (NFDBITS - 1)) == 0) {
 			int off = i / NFDBITS;
 			if ((__FDS_BITS(&wfd)[off] == 0) && (__FDS_BITS(&rfd)[off] == 0))
@@ -1085,16 +1165,17 @@ void socket_final (void)
 void socket_init (void)
 {
 	char *SOCKET_CONF_FILENAME = "conf/packet_athena.conf";
-#ifdef _WIN32
+#ifdef __WIN32
 	char** a;
 	unsigned int i;
 	char fullhost[255];
 	struct hostent* hent;
 
 		/* Start up the windows networking */
+	WORD version_wanted = MAKEWORD(1, 1); //Demand at least WinSocket version 1.1 (from Freya)
 	WSADATA wsaData;
 
-	if ( WSAStartup(WINSOCK_VERSION, &wsaData) != 0 ) {
+	if ( WSAStartup(version_wanted, &wsaData) != 0 ) {
 		ShowFatalError("SYSERR: WinSock not available!\n");
 		exit(1);
 	}
@@ -1190,6 +1271,7 @@ void socket_init (void)
 
 bool session_isValid(int fd)
 {	//End of Exam has pointed out that fd==0 is actually an unconnected session! [Skotlex]
+	//But this is not so true, it is used... for... something. The console uses it, would this not cause problems? [Skotlex]
 	return ( (fd>0) && (fd<FD_SETSIZE) && (NULL!=session[fd]) );
 }
 

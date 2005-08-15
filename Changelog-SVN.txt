@@ -1,5 +1,9 @@
 Date	Added
 08/15
+	* Messed with socket.c, changing lots of stuff around using some earlier
+	  Freya SVN version as base, connection issues might hopefully get better. [Skotlex]
+	  (NOTE: I have yet to try to compile this under Windows/Cygwin, so report
+	  if it breaks)
 	* Updated Magnum Break: Target selectable, damage is (100+20*level)%, hit
 	  bonus +10 per level. 5x5 splash area. [Skotlex]
 	* Likely fixed the max hp display of tiny/big mobs. [Skotlex]

@@ -6,7 +6,8 @@
 #include <stdio.h>
 
 #ifdef __WIN32
-#include <winsock.h>
+#define __USE_W32_SOCKETS
+#include <windows.h>
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -41,18 +42,15 @@ extern time_t stall_time;
 #define WFIFOW(fd,pos) (*(unsigned short*)WFIFOP(fd,pos))
 #define WFIFOL(fd,pos) (*(unsigned int*)WFIFOP(fd,pos))
 // use function instead of macro.
-//#define WFIFOSET(fd,len) (session[fd]->wdata_size = (session[fd]->wdata_size+(len)+2048 < session[fd]->max_wdata) ? session[fd]->wdata_size+len : session[fd]->wdata_size)
-#define WBUFP(p,pos) (((unsigned char*)(p))+(pos))
-#define WBUFB(p,pos) (*(unsigned char*)WBUFP((p),(pos)))
-#define WBUFW(p,pos) (*(unsigned short*)WBUFP((p),(pos)))
-#define WBUFL(p,pos) (*(unsigned int*)WBUFP((p),(pos)))
+//#define WFIFOSET(fd,len) (session[fd]->wdata_size = (session[fd]->wdata_size + (len) + 2048 < session[fd]->max_wdata) ? session[fd]->wdata_size + len : session[fd]->wdata_size)
+#define WBUFP(p,pos) (((unsigned char*)(p)) + (pos))
+#define WBUFB(p,pos) (*(unsigned char*)((p) + (pos)))
+#define WBUFW(p,pos) (*(unsigned short*)((p) + (pos)))
+#define WBUFL(p,pos) (*(unsigned int*)((p) + (pos)))
 
-//#if defined(__INTERIX) || defined(CYGWIN) || defined(_WIN32) //This seems to not work! Let's try the following... [Skotlex]
-#if __INTERIX || CYGWIN || _WIN32
-	#undef FD_SETSIZE
-	#define FD_SETSIZE 4096
-#endif	// __INTERIX
-
+#ifdef __INTERIX
+#define FD_SETSIZE 4096
+#endif // __INTERIX
 
 /* Removed Cygwin FD_SETSIZE declarations, now are directly passed on to the compiler through Makefile [Valaris] */
 
@@ -68,7 +66,7 @@ enum SessionType {
 // Struct declaration
 
 struct socket_data{
-	int eof;
+	unsigned char eof;
 	unsigned char *rdata, *wdata;
 	int max_rdata, max_wdata;
 	int rdata_size, wdata_size;
