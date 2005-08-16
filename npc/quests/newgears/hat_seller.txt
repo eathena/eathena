@@ -4,7 +4,7 @@
 //= Halca (1.0)
 //= Mass Zero (1.1)
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.3
 //===== Compatible With: ===================================== 
 //= Any eAthena Version.
 //===== Description: ========================================= 
@@ -13,6 +13,7 @@
 //===== Additional Comments: ================================= 
 //= 1.2 Fixed wrong labels, added missing text
 //=	added missing delitem, fixed names, item amount [Lupus]
+//= 1.3 Fixed Straw Hat items by dshome [Lupus]
 //============================================================
 
 xmas_in.gat,36,25,4	script	Hat Seller	806,{
@@ -57,8 +58,8 @@ M_2:
  mes "[Hat Seller]";
  mes "For this item I require:";
  mes "1 Sakkat,";
- mes "300 Healthy Branch,";
- mes "300 Bamboo Trunk.";
+ mes "300 Tough Vines,";
+ mes "300 Bamboo Trunks.";
  next;
  mes "[Hat Seller]";
  mes "Bring those, and we got a deal.";
@@ -66,9 +67,9 @@ M_2:
  next;
  menu "Yes.",-,"No.",M_EXIT;
 
- if ((countitem(2280) < 1) || (countitem(7203) < 300) || (countitem(7150) < 300)) GOTO L_NOITEM;//Items: Sakkat, Healthy Branch, Bamboo Trunk,
+ if ((countitem(2280) < 1) || (countitem(7197) < 300) || (countitem(7150) < 300)) GOTO L_NOITEM;//Items: Sakkat, Healthy Branch, Bamboo Trunk,
  delitem 2280,1;//Items: Sakkat,
- delitem 7203,300;//Items: Healthy Branch,
+ delitem 7197,300;//Items: Tough Vine,
  delitem 7150,300;//Items: Bamboo Trunk,
  getitem 5062,1;//Items: Straw Hat,
  mes "[Hat Seller]";
