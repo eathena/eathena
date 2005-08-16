@@ -13,9 +13,9 @@ Note:		I cannot seem to find the correct formula spelled-out anywhere (English)
 
 
 Problem:	The // Set here which client version do you accept. part in battle_athena not working properly (not that its important, but some servers only want a certain packet range to come in)
-Assigned:
-Progess:
-Note:
+Assigned: Skotlex
+Progess: 100%?
+Note: Wasn't this fixed already? I've fixed every complain I've seen about the packet_ver_flag thingie. Before I touched clif.c the setting was completely useless :X [Skotlex]
 
 Problem:	The map server crashes when a session gets timed out. Like, a player suddenly dc's after doing something, then the session is removed. 
 Assigned:
@@ -199,6 +199,9 @@ Assigned:	N/A
 Progress:	0%
 Note:		Perhaps we should check the monster ID against an array holding the monster
 		IDs (perhaps load the monster IDs while loading the mob_db) [Codemaster]
+		This should be fixed already after the dynamic mob update. Asking for
+		random non-existing IDs just returns the mob data of a dummy mob (with
+		stats like that of a poring's) [Skotlex]
 
 Problem:	When 2 players try to pickup one dropped item at the same time
 		then both pickup the item, but 1st one gets ACTUAL item
@@ -289,9 +292,7 @@ Problem:	Bards songs do BLIND players...
 Assigned:	NA
 Progress:	?? (Fixed?)
 Notes:	It's only the client-side visual effect, not an actual blind state.
-			- If this is flawed, then it is the server not knowing the correct
-			  int value of the status change (SC_ASSNCROS,
-			  SC_POEMBRAGI, SC_APPLEIDUN, etc) [Skotlex]
+			Yes it's fixed, use an updated client xP [Skotlex]
 
 Problem:	Wedding Teleport Skills
 			Somehow.. just married could RECALL players from Prison
@@ -321,6 +322,10 @@ Problem:	New Guilds Active Skills Abuse.
 Assigned:	na
 Progress:	0%
 Note:		Perhaps move the guild skills delay into the guild itself? [Codemaster]
+			Actually, I suggest the "fix" I applied to pet support skills to
+			avoid this kind of abuse. When a Guild Master logs on, inmediately
+			block all guild-skills for their cool-down duration. That way logging
+			off-on is way worse than just waiting for the time to pass. [Skotlex]
 
 Problem:	Baby Merchant + Cart = Client Crash (when other players see him)
 Assigned:	na
@@ -351,7 +356,7 @@ Progress:	-
 
 Problem: Dynamic mobs needs fixing
 Assigned:	Skotlex
-Progress:	99%
+Progress:	100%
 	Changing the mob spawn/deletes to map_addblock/map_delblock seemed like the
 	best idea as that's where the number of users on the map goes up/down.
 	To only remove cached mobs, a mob.cached flag is used, guaranteeing correct
@@ -423,17 +428,22 @@ cast it on them?) [Skotlex]
 Problem:	Ghostring Card works everywhere (should work in GVG)
 Assigned:	na
 Progress:	0%
+			Wasn't the ghostring_fix battle switch fixed eons ago? [Skotlex]
 
 Problem:	Guilds (doesn't correctly save skills)
 			It floods SQL db with entries... ~6000 entries in that guild_skills DB within 2 hours (with 18 guilds)
 			and after reboot you lose learnt guild skills.
 Assigned:	na
 Progress:	0%
+			It's been along time since any guild skills bug reports, I believe
+			this has been fixed already. [Skotlex]
 
 Problem:	chat crash
 			instant crash if you change target person name with some packet hack tool. 
-Assigned:	na
-Progress:	0%
+Assigned:	Skotlex
+Progress:	100%
+			If by chat you mean normal speaking, then yes this has been fixed
+			like a month or two ago. [Skotlex]
 
 Problem:	Can't see players name, party name, guild name
 			On creating a party, you can see all names normally, when u teleport or go to another map
