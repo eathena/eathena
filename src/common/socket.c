@@ -107,8 +107,7 @@ static void setsocketopts(int fd)
 	else
 		perror("setsocketopts: getsockopt wfifo");
 	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char *) &rfifo_size , sizeof(rfifo_size ));
-	buff_size = 10; //In case it was changed?
-	if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &buff, &buff_size) == 0)
+	if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &buff, &buff_size) == 0)
 	{
 		if (buff < rfifo_size)
 			ShowError("setsocketopts: Requested receive buffer size failed (requested %d bytes buffer, received a buffer of size %d)\n", rfifo_size, buff);
