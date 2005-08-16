@@ -111,6 +111,7 @@ Problem:	This bug's appeared again: Permanent #Variables/Variables disappear.
 
 		We had no such a bug before, but Freya has it. Probably it soaked into eA with 
 		Freya optimizations code...
+Note:		Using no prefix (@, #, etc.) seems to make it permanant
 Assigned:	N/A
 Progress:	0%
 
@@ -147,6 +148,7 @@ Progress:	50%
 Note:	I added a check so that when you collect a trap during the 'Into the
 	Abyss' skill effect, you won't receive the item. It ain't perfect, but.. is it
 	good enough (other than disabling no-trap cost effect of the skill?) [Skotlex]
+	Perhaps we can just add a flag for being made during an Into the Abyss song or not? [Codemaster]
 
 Problem:	Speed hack and other proxy-like hacks
 		they change/double selected packets for different exploits:
@@ -160,6 +162,8 @@ Problem:	If a char has been saved with non-existing map name
 		then the server crashes on entering the game.
 		the wrong names e.g. prontera.gat.gat
 		could be generated on times when map server is disconnected with char server.
+Note:		Perhaps we can create an array of the maps we have loaded (during loading, maybe?)
+		And check the map names against that [Codemaster]
 Assigned:	N/A
 Progress:	0%
 
@@ -168,8 +172,10 @@ Assigned:	N/A
 Progress:	0%
 
 Problem:	Wedding TELEPORT skills now work on maps where TELEPORT was disabled
-Assigned:	N/A
-Progress:	0%
+Assigned:	Codemaster
+Progress:	100%
+Note:		the NOWARP flag disallows people warping FROM the map, NOWARPTO, disallows
+		people warping INTO the map [Codemaster]
 
 Problem:	Guilds Skill - Emergency Call doesn't work in castles (it somehow useless)
 Assigned:	N/A
@@ -191,6 +197,8 @@ Problem:	[Scripts] Mob spawn. If you set unexisting monster Id
 		for exapmple there was a mob with 1 HP and 22.000 Exp.
 Assigned:	N/A
 Progress:	0%
+Note:		Perhaps we should check the monster ID against an array holding the monster
+		IDs (perhaps load the monster IDs while loading the mob_db) [Codemaster]
 
 Problem:	When 2 players try to pickup one dropped item at the same time
 		then both pickup the item, but 1st one gets ACTUAL item
@@ -288,8 +296,10 @@ Notes:	It's only the client-side visual effect, not an actual blind state.
 Problem:	Wedding Teleport Skills
 			Somehow.. just married could RECALL players from Prison
 			(probably NOT all map flags are checked)
-Assigned:	NA
-Progress:	0%
+Assigned:	Codemaster
+Progress:	100%
+Note:		Fixed with the other Wedding Teleport Skill Fix; Jails should have the NOWARP
+		flag, disallowing people to warp from it (NOWARPTO would disallow warps to it)
 
 Problem:	Wedding Skills (thousand brides...)
 			The skills work even if PARTNER_ID of destination player doesn't coinside
@@ -300,12 +310,17 @@ Problem:	Wedding Skills (thousand brides...)
 			when they enter the server
 Assigned:	NA
 Progress:	0%
+Note:		Perhaps on server start-up or shut-down, we should run a query to make an
+		array of char IDs that are married and compare them against their Partner IDs,
+		and remove the partner IDs that are not available in the array of char IDs
+		that are married. [Codemaster]
 
 
 Problem:	New Guilds Active Skills Abuse.
 			You can re-enter the game and call guild skills again w/o delay since the delay is applied to the character
 Assigned:	na
 Progress:	0%
+Note:		Perhaps move the guild skills delay into the guild itself? [Codemaster]
 
 Problem:	Baby Merchant + Cart = Client Crash (when other players see him)
 Assigned:	na
@@ -317,6 +332,7 @@ Problem:	Guilds Breaking
 			Probably it isn't being deleted from memory.
 Assigned:	N/A
 Progress:	0%
+Note:		When breaking the guild, make sure to delete it completely from the guild table and such. [Codemaster]
 
 Problem:	Disconnected from server
 			Some players recieve this note and can't re-connect the server till its reboot.
