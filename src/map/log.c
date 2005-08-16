@@ -483,7 +483,7 @@ int log_npc(struct map_session_data *sd, const char *message)
 	FILE *logfp;
 	#ifndef TXT_ONLY
 		char t_name[NAME_LENGTH*2];
-		char t_msg[MESSAGE_SIZE*2]; //Not sure what's the max input length, but assuming it is the same as a normal chat.. o.O
+		char t_msg[255+1]; //it's 255 chars MAX. 
 	#endif
 
 	if(log_config.enable_logs <= 0)
@@ -526,7 +526,7 @@ int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, 
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0){
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_map_x`, `src_map_y`, `dst_charname`, `message`) VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s')", 
-		 	log_config.log_chat_db, type, type_id, src_charid, src_accid, map, x, y, dst_charname, jstrescapecpy(t_msg, message));
+		 	log_config.log_chat_db, type, type_id, src_charid, src_accid, map, x, y, dst_charname, jstrescapecpy(t_msg, (char *)message));
 	
 		if(mysql_query(&logmysql_handle, tmp_sql)){
 			ShowSQL("log_chat() -> SQL ERROR / FAIL: %s\n", mysql_error(&logmysql_handle));

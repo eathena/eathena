@@ -29,7 +29,7 @@ TODO:
 Date		Added
 ======
 	* Dropped Kobold Archer's Hat drop to 0.01% (it was left to 1% by an accident) [Lupus]
-	* Added Zealotus Mask Quest (untested) [Lupus]
+	* Added Zealotus Mask Quest with official items (now tested) [Lupus]
 	* Fixed hat_seller.txt items. thx 2dshome [Lupus]
 08/15
 	* Updated Ayathoya spawns as per the info given by Ishizu. [Skotlex]

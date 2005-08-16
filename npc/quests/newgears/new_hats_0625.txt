@@ -260,6 +260,7 @@ lighthalzen.gat,200,200,4	script	Gill Tass	818,{
 	delitem 7263,1;//Items: Piece of Cake,
 	delitem 7099,30;//Items: Old_Frying_Pan,
 	getnameditem 5121,strcharinfo(0);
+	logmes "Quest: Got Zealotus Mask";
 
 	mes "[Gill Tass]";
 	mes "Just let me sign your unique Zealotus Mask.";
@@ -272,7 +273,7 @@ L_NOITEM:
 	mes "^FF3300 369 Black Pieces of Cloth,^000000";
 	mes "^FF3300 1 Forbidden Red Candle,^000000";
 	mes "^FF3300 1 Cat's Eye,^000000";
-	mes "and ^FF3300 30 Old Magic Circles.^000000";
+	mes "and ^FF3300 30 Worn-out scrolls (Old Magic Circles).^000000";
 	close;
 
 L_EXIT:
