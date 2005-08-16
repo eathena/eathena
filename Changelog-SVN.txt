@@ -1,4 +1,6 @@
 Date	Added
+08/16
+	* Fixed Tomahawk not being considered a ranged attack. [Skotlex]
 08/15
 	* Added a few bug fix recommendations [Codemaster]
 	* Fixed a few problems with Wedding Skills [Codemaster]

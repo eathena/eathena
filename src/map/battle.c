@@ -868,6 +868,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 			case ASC_BREAKER:
 			case PA_SHIELDCHAIN:
 			case CR_GRANDCROSS:	//GrandCross really shouldn't count as short-range, aight?
+			case ITM_TOMAHAWK:	//Tomahawk is a ranged attack! [Skotlex]
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 				break;
 			case KN_PIERCE:
