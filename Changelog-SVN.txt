@@ -1,5 +1,6 @@
 Date	Added
 08/15
+	* Fixed the tabs in the ayothaya mobs :X [Skotlex]
 	* Likely fixed the setsocketops error that was showing on every connection. [Skotlex]
 	* Updated vending code so that items that can't be traded can't be vended
 	  either. [Skotlex]
