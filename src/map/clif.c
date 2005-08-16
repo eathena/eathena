@@ -10899,34 +10899,27 @@ int clif_parse(int fd) {
 			return 0;
 		}
 	} else {
-		if (last_fd == fd) 
-		{	//This client was alcready kicked, do nothing.
-			//FIXME: There is something seriously broken here. The client never receives the "this game EXE is too old" message unless we SPAM it with this reply! [Skotlex]
+		// check authentification packet to know packet version
+		packet_ver = clif_guess_PacketVer(fd, 0);
+		// check if version is accepted
+		if (packet_ver < 5 ||	// reject really old client versions
+			(packet_ver <= 9 && (battle_config.packet_ver_flag & 1) == 0) ||	// older than 6sept04
+			(packet_ver > 9 && (battle_config.packet_ver_flag & 1<<(packet_ver-9)) == 0) ||
+			packet_ver > MAX_PACKET_VER)	// no packet version support yet
+		{
+			if (last_fd != fd) //Because of socket reuse we don't know if this is the same client that failed last time, so we have 
+				//to do the version check every iteration! >.< [Skotlex]
+				ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
 			WFIFOW(fd,0) = 0x6a;
 			WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
 			WFIFOSET(fd,23);
+//			packet_len = RFIFOREST(fd); //If skipped, we don't spam the client, we need to do that or it won't get the message :/
+//			RFIFOSKIP(fd, packet_len);
+			clif_setwaitclose(fd);
+			last_fd = fd;
 			return 0;
-		} else {
-			// check authentification packet to know packet version
-			packet_ver = clif_guess_PacketVer(fd, 0);
-			// check if version is accepted
-			if (packet_ver < 5 ||	// reject really old client versions
-				(packet_ver <= 9 && (battle_config.packet_ver_flag & 1) == 0) ||	// older than 6sept04
-				(packet_ver > 9 && (battle_config.packet_ver_flag & 1<<(packet_ver-9)) == 0) ||
-				packet_ver > MAX_PACKET_VER)	// no packet version support yet
-			{
-				ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
-				WFIFOW(fd,0) = 0x6a;
-				WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
-				WFIFOSET(fd,23);
-			//	packet_len = RFIFOREST(fd); //If skipped, we don't spam the client, we need to do that or it won't get the message :/
-			//	RFIFOSKIP(fd, packet_len);
-				clif_setwaitclose(fd);
-				last_fd = fd;
-				return 0;
-			} else
-				last_fd = 0; //Clear fd
-		}
+		} else
+			last_fd = 0; //Clear fd
 	}
 
 	// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する

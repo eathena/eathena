@@ -1,5 +1,7 @@
 Date	Added
 08/15
+	* Fixed a bug with old clients connecting and socket reuse which would kick
+	  all new connections on the same socket before even checking the packet version. [Skotlex]
 	* Fixed the tabs in the ayothaya mobs :X [Skotlex]
 	* Likely fixed the setsocketops error that was showing on every connection. [Skotlex]
 	* Updated vending code so that items that can't be traded can't be vended
