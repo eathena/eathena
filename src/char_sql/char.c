@@ -2159,12 +2159,6 @@ int parse_tologin(int fd) {
 			unsigned char buf[4096];
 			int j, p, acc;
 			acc = RFIFOL(fd,4);
-			if (RFIFOW(fd,2) > 4096) //Bounds check! [Skotlex]
-			{
-				ShowError("parse_tologin: Packet command 0x2729 too long (size is %d)!\n", RFIFOW(fd,2));
-				RFIFOSKIP(fd, RFIFOW(fd,2));
-				break;
-			}
 			for(p = 8, j = 0; p < RFIFOW(fd,2) && j < ACCOUNT_REG2_NUM; p += 36, j++) {
 				memcpy(reg[j].str, RFIFOP(fd,p), 32);
 				reg[j].value = RFIFOL(fd,p+32);
@@ -3426,6 +3420,11 @@ int mapif_sendall(unsigned char *buf, unsigned int len) {
 	c = 0;
 	for(i = 0; i < MAX_MAP_SERVERS; i++) {
 		if ((fd = server_fd[i]) > 0) { //0 Should not be a valid server_fd [Skotlex]
+			if (WFIFOSPACE(fd) < len)
+			{	//Avoid overflow crash! [Skotlex]
+				ShowError("mapif_sendall: Cannot send to session %d, not enough space in buffer (data length: %d, remaining buffer: %d)\n", fd, len, WFIFOSPACE(fd));
+				continue;
+			}
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd,len);
 			c++;
@@ -3442,6 +3441,11 @@ int mapif_sendallwos(int sfd, unsigned char *buf, unsigned int len) {
 	c = 0;
 	for(i=0, c=0;i<MAX_MAP_SERVERS;i++){
 		if ((fd = server_fd[i]) > 0 && fd != sfd) {
+			if (WFIFOSPACE(fd) < len)
+			{	//Avoid overflow crash! [Skotlex]
+				ShowError("mapif_sendallwos: Cannot send to session %d, not enough space in buffer (data length: %d, remaining buffer: %d)\n", fd, len, WFIFOSPACE(fd));
+				continue;
+			}
 			memcpy(WFIFOP(fd,0), buf, len);
 			WFIFOSET(fd, len);
 			c++;
@@ -3457,6 +3461,11 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len) {
 	if (fd >= 0) {
 		for(i = 0; i < MAX_MAP_SERVERS; i++) {
 			if (fd == server_fd[i]) {
+				if (WFIFOSPACE(fd) < len)
+				{	//Avoid overflow crash! [Skotlex]
+					ShowError("mapif_send: Cannot send to session %d, not enough space in buffer (data length: %d, remaining buffer: %d)\n", fd, len, WFIFOSPACE(fd));
+					continue;
+				}
 				memcpy(WFIFOP(fd,0), buf, len);
 				WFIFOSET(fd,len);
 				return 1;

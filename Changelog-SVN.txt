@@ -1,5 +1,6 @@
 Date	Added
 08/16
+	* Likely fixed the char-server crashes on mapif_send* functions. [Skotlex]
 	* Fixed auto-counter's display (it was working correctly, however the skill
 	  was not being shown properly on the client) [Skotlex]
 	* Fixed Tomahawk not being considered a ranged attack. [Skotlex]
