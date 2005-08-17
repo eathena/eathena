@@ -1,4 +1,6 @@
 Date	Added
+08/17
+	* Cleaned up error messages related to packet parsing in the char servers. [Skotlex]
 08/16
 	* Likely fixed the char-server crashes on mapif_send* functions. [Skotlex]
 	* Fixed auto-counter's display (it was working correctly, however the skill

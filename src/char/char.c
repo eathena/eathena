@@ -1761,7 +1761,7 @@ int parse_tologin(int fd) {
 		session[fd]->eof = 1;
 	if(session[fd]->eof) {
 		if (fd == login_fd) {
-			ShowWarning("Char-server can't connect to login-server (connection #%d).\n", fd);
+			ShowWarning("Connection to login-server lost (connection #%d).\n", fd);
 			login_fd = -1;
 		}
 		close(fd);
@@ -2211,7 +2211,7 @@ int parse_tologin(int fd) {
 			break;
 
 		default:
-			ShowWarning("parse_tologin: unknown packet %x! \n", RFIFOW(fd,0));
+			ShowWarning("Unknown packet 0x%04x received from login-server, disconnecting.\n", RFIFOW(fd,0));
 			session[fd]->eof = 1;
 			return 0;
 		}
@@ -2786,7 +2786,7 @@ int parse_frommap(int fd) {
 					return 0;
 			}
 			// inter serverˆ—‚Å‚à‚È‚¢ê‡‚ÍØ’f
-			ShowError("char: unknown packet 0x%04x (%d bytes to read in buffer)! (from map).\n", RFIFOW(fd,0), RFIFOREST(fd));
+			ShowError("Unknown packet 0x%04x from map server, disconnecting.\n", RFIFOW(fd,0));
 			session[fd]->eof = 1;
 			return 0;
 		}

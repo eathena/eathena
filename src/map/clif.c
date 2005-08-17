@@ -7965,7 +7965,7 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 		}
 		return packet_ver; //This is our best guess.
 	}
-	ShowDebug("Unknown packet version (packet: cmd = 0x%x, len = %d)!\n", cmd, packet_len);
+	ShowDebug("Unknown packet version (packet: cmd = 0x%04x, len = %d)!\n", cmd, packet_len);
 	packet_ver = -1;
 	return -1;
 }
@@ -10882,11 +10882,11 @@ int clif_parse(int fd) {
 			RFIFOSKIP(fd,2);
 			break;
 		case 0x7532: // 接続の切断
-			ShowWarning("clif_parse: session #%d disconnected for sending packet 0x%x\n", fd, cmd);
+			ShowWarning("clif_parse: session #%d disconnected for sending packet 0x04%x\n", fd, cmd);
 			session[fd]->eof=1;
 			break;
 		}
-		ShowWarning("Ignoring incoming packet (command: 0x%x, session: %d)\n", cmd, fd);
+		ShowWarning("Ignoring incoming packet (command: 0x%04x, session: %d)\n", cmd, fd);
 		return 0;
 	}
 
@@ -10924,7 +10924,7 @@ int clif_parse(int fd) {
 
 	// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する
 	if (cmd >= MAX_PACKET_DB || packet_db[packet_ver][cmd].len == 0) {	// if packet is not inside these values: session is incorrect?? or auth packet is unknown
-		ShowWarning("clif_parse: Received unsupported packet (packet 0x%x, %d bytes received), disconnecting session #%d.\n", cmd, RFIFOREST(fd), fd);
+		ShowWarning("clif_parse: Received unsupported packet (packet 0x%04x, %d bytes received), disconnecting session #%d.\n", cmd, RFIFOREST(fd), fd);
 		session[fd]->eof = 1;
 		return 0;
 	}
@@ -10937,7 +10937,7 @@ int clif_parse(int fd) {
 
 		packet_len = RFIFOW(fd,2);
 		if (packet_len < 4 || packet_len > 32768) {
-			ShowWarning("clif_parse: Packet 0x%x specifies invalid packet_len (%d), disconnecting session #%d.\n", cmd, packet_len, fd);
+			ShowWarning("clif_parse: Packet 0x%04x specifies invalid packet_len (%d), disconnecting session #%d.\n", cmd, packet_len, fd);
 			session[fd]->eof =1;
 			return 0;
 		}
@@ -10996,7 +10996,7 @@ int clif_parse(int fd) {
 	if (dump) {
 		int i;
 		if (fd)
-			ShowDebug("\nclif_parse: session #%d, packet 0x%x, length %d, version %d\n", fd, cmd, packet_len, packet_ver);
+			ShowDebug("\nclif_parse: session #%d, packet 0x%04x, length %d, version %d\n", fd, cmd, packet_len, packet_ver);
 		printf("---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
 		for(i = 0; i < packet_len; i++) {
 			if ((i & 15) == 0)
