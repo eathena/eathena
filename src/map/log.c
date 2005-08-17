@@ -514,8 +514,7 @@ int log_npc(struct map_session_data *sd, const char *message)
 int log_chat(char *type, int type_id, int src_charid, int src_accid, char *map, int x, int y, char *dst_charname, char *message){
 #ifndef TXT_ONLY
 	char t_msg[MESSAGE_SIZE*2+1]; //Chat line fully escaped, with an extra space just in case.
-#endif
-#ifdef TXT_ONLY
+#else
 	FILE *logfp;
 #endif
 	
