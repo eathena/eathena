@@ -1,5 +1,7 @@
 Date	Added
 08/17
+	* Fixed the map-server disconnecting the char-server when kicking out all
+	  clients. (Thanks to End of Exam for pointing it out) [Skotlex]
 	* Cleaned up error messages related to packet parsing in the char servers. [Skotlex]
 08/16
 	* Likely fixed the char-server crashes on mapif_send* functions. [Skotlex]

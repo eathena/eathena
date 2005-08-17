@@ -491,6 +491,7 @@ int make_connection(long ip,int port)
 	if (result < 0) { //This is only used when the map/char server try to connect to each other, so it can be handled. [Skotlex]
 		perror("make_connection");
 		delete_session(fd);
+		close(fd);
 		return -1;
 	}
 //Now the socket can be made non-blocking. [Skotlex]

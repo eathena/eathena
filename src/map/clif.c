@@ -550,7 +550,7 @@ int clif_authok(struct map_session_data *sd) {
  *------------------------------------------
  */
 int clif_authfail_fd(int fd, int type) {
-	if (!fd || !session[fd])
+	if (!fd || !session[fd] || session[fd]->func_parse != clif_parse) //clif_authfail should only be invoked on players!
 		return 0;
 
 	WFIFOW(fd,0) = 0x81;
