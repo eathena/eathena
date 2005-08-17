@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 08/16
+	* Reverted Magnum Break to be self-centered... [Skotlex]
 	* Corrected Teleport cost (thanks to k3dt) [Skotlex]
 	* Updated Heirozoist card to have a 0.1% chance of converting mob class
 	  instead of 0.01% [Skotlex]

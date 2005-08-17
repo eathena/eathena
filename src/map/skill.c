@@ -2602,7 +2602,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	/* 武器系範?攻?スキル */
 	case AC_SHOWER:			/* アロ?シャワ? */
 	case AS_GRIMTOOTH:		/* グリムトゥ?ス */
-	case SM_MAGNUM:			/* マグナムブレイク [celest] */
+//	case SM_MAGNUM:			/* マグナムブレイク [celest] */
 	case MC_CARTREVOLUTION:	/* カ?トレヴォリュ?ション */
 	case NPC_SPLASHATTACK:	/* スプラッシュアタック */
 	case AS_SPLASHER:	/* [Valaris] */
@@ -2639,9 +2639,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				status_change_start (src,SC_FLAMELAUNCHER,0,0,0,0,10000,0);
 		}
 		break;
-/*
+
 	case SM_MAGNUM:	//This old implementation is no longer used. [Skotlex]
-		if(flag&1 && bl->id != skill_area_temp[1]){
+		if(flag&1){
 			int dist = distance (bl->x, bl->y, skill_area_temp[2], skill_area_temp[3]);
 			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,
 				0x0500|dist);
@@ -2657,7 +2657,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			clif_skill_nodamage (src,src,skillid,skilllv,1);
 		}
 		break;
-*/
+
 	case KN_BOWLINGBASH:	/* ボウリングバッシュ */
 		if(flag&1){
 			/* 個別にダメ?ジを?える */
