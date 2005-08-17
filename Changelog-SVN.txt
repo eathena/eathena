@@ -1,5 +1,7 @@
 Date	Added
 08/16
+	* Fixed auto-counter's display (it was working correctly, however the skill
+	  was not being shown properly on the client) [Skotlex]
 	* Fixed Tomahawk not being considered a ranged attack. [Skotlex]
 08/15
 	* Added a few bug fix recommendations [Codemaster]

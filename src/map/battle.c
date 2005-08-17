@@ -2672,23 +2672,20 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				clif_damage(src, src, tick, wd.amotion, wd.dmotion, rdamage, 1, 4, 0);
 		}
 
-		if (skill_num && skill_num != TF_DOUBLE) //Double attack must show as a normal attack
-		{	//Skill Attack
-			if (skill_num == MO_TRIPLEATTACK)
+		if (skill_num == MO_TRIPLEATTACK) //Apparently, Triple Blows is the only one that needs be displayed as a skill. Double attack, Auto Counter and Poison React are displayed as normal clif_damage!? [Skotlex]
 			{	//Triple Blows
-				//Isn't this the skill delay? It should happen regardless of enemy-killed or not. [Skotlex]
-				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-				
-				if (sd && wd.damage + wd.damage2 < status_get_hp(target) &&
-					pc_checkskill(sd, MO_CHAINCOMBO) > 0)
-					delay += 300 * battle_config.combo_delay_rate / 100;
-				
-				status_change_start(src, SC_COMBO, skill_num, skill_lv, 0, 0, delay, 0);
-				if (sd)
-					sd->attackabletime = sd->canmove_tick = tick + delay;
-				clif_combo_delay(src, delay);
-			}
+			//Isn't this the skill delay? It should happen regardless of enemy-killed or not. [Skotlex]
+			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
 			
+			if (sd && wd.damage + wd.damage2 < status_get_hp(target) &&
+				pc_checkskill(sd, MO_CHAINCOMBO) > 0)
+				delay += 300 * battle_config.combo_delay_rate / 100;
+			
+			status_change_start(src, SC_COMBO, skill_num, skill_lv, 0, 0, delay, 0);
+			if (sd)
+				sd->attackabletime = sd->canmove_tick = tick + delay;
+			clif_combo_delay(src, delay);
+		
 			clif_skill_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_,
 				skill_num, skill_lv, -1);
 		} else {
