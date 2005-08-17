@@ -1,5 +1,7 @@
 Date	Added
 08/17
+	* Implemented SC_SPEEDUP1 for Lightning Box effect [DracoRPG]
+	* Entirely replaced SC_DIVINA with SC_SILENCE (the 1st was an alias of the 2nd) [DracoRPG]
 	* Fixed the map-server disconnecting the char-server when kicking out all
 	  clients. (Thanks to End of Exam for pointing it out) [Skotlex]
 	* Cleaned up error messages related to packet parsing in the char servers. [Skotlex]

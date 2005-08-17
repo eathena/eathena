@@ -1450,7 +1450,7 @@
 4318,Stormy_Knight_Card,Stormy Knight Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus3 bAutoSpell,89,1,2; bonus2 bAddEffWhenHit,Eff_Freeze,2000; }
 4319,Freezer_Card,Freezer Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus bMaxHP,300; if(getrefine()>=9) bonus2 bSkillAtk,5,10; if(isequipped(4246,4311,4220,4331)==0) end; bonus bStr,10; bonus bMaxHPrate,20; bonus bHPrecovRate,50; bonus3 bAutoSpell,-112,1,1; bonus2 bAddMonsterDropItem,501,100; if(callfunc("Is_Sword_Class")==0) end; bonus2 bAddItemHealRate,1,50; }
 4320,Bloody_Knight_Card,Bloody Knight Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus3 bAutoSpell,83,1,2; }
-4321,Heirozoist_Card,Heirozoist Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus bClassChange,10; }
+4321,Heirozoist_Card,Heirozoist Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus bClassChange,300; }
 4322,High_Orc_Card,High Orc Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus bDef,1; bonus bShortWeaponDamageReturn,5; }
 4323,Garm_Baby_Card,Garm Baby Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus3 bAutoSpell,15,3,1+isequipped(4324); }
 4324,Garm_Card,Garm Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus2 bAddEffWhenHit,Eff_Freeze,5000; }
@@ -2131,13 +2131,13 @@
 12024,Red_Pouch,Red Pouch,2,20,0,50,,,,,10477567,2,,,,,,{ set Zeny,Zeny+rand(100,1000); },{}
 12025,Five_Paragraphs_Egg,Five Paragraphs Egg,2,20,0,10,,,,,,,,,,,{},{}
 12026,Five_Paragraphs_Egg_,Five Paragraphs Egg,2,20,0,10,,,,,,,,,,,{},{}
-//Effect Boxes
+// Effect Boxes
 12027,Giggling_Box,Giggling Box,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_Curse,30000,0; percentheal 9,0; },{} //the probablity is 100%
-12028,Lightning_Box,Lightning Box,2,20,0,200,,,,,10477567,2,,,,,,{},{} //increase moving speed for 20 seconds
-12029,Gloomy_Box,Gloomy Box,11,20,0,200,,,,,10477567,2,,,,,,{ itemskill 45,3,"Gloomy Box"; },{}
-12030,Grudge_Box,Box of Grudge,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_INCATK,60000,20; },{}
-12031,Sleepy_Box,Sleepy Box,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_INCMATK,60000,20; },{}
-12032,Downpour_Box,Box of Heavy Rain,2,20,0,200,,,,,10477567,2,,,,,,{},{} //increase attack speed by 20%
+12028,Lightning_Box,Lightning Box,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_SpeedUp1,20000,0; },{}
+12029,Gloomy_Box,Gloomy Box,11,20,0,200,,,,,10477567,2,,,,,,{ itemskill 45,3,"Improve Concentration"; },{}
+12030,Grudge_Box,Box of Grudge,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_ATKPot,60000,20; },{}
+12031,Sleepy_Box,Sleepy Box,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_MATKPot,60000,20; },{}
+12032,Downpour_Box,Box of Heavy Rain,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_Frost,180000,0; },{}
 12033,Sunshine_Box,Box of Sunshine,2,20,0,200,,,,,10477567,2,,,,,,{},{} //can see cloaked or hidden enemy
 12034,Gasping_Box,Gasping Box,2,20,0,200,,,,,10477567,2,,,,,,{ sc_start SC_Silence,30000,0; percentheal 0,9; },{} //the probablity is 100%
 12035,Ball_Box,Ball Box,2,20,0,20,,,,,10477567,2,,,,,,{ getitem rand(7361,7368),1; },{}
@@ -2146,7 +2146,7 @@
 12038,Ball_Box___,Ball Box,2,20,0,20,,,,,10477567,2,,,,,,{ getitem rand(7385,7392),1; },{}
 12039,Ball_Box____,Ball Box,2,20,0,20,,,,,10477567,2,,,,,,{ getitem rand(7393,7398),1; },{}
 12040,Philosopher's_Stone,Philosopher's Stone,2,20,0,10,,,,,10477567,2,,,,,,{},{}
-//Mixed Food, gives temp bonuses
+// Mixed Food
 12041,Boiled_Down_Locust,Boiled Locust,2,,,60,,,,,10477567,2,,,,,,{},{} //Str+1
 12042,Seasoned_Webs,Seasoned Webs,2,,,500,,,,,10477567,2,,,,,,{},{} //Str+2
 12043,Bomber_Steak,Bomber Steak,2,,,500,,,,,10477567,2,,,,,,{},{} //Str+3

@@ -1,5 +1,3 @@
-
-// ステータス計算、状態異常処理
 #include <time.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -74,7 +72,7 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	SC_KYRIE,			/* キリエエレイソン */
 	SC_MAGNIFICAT,		/* マグニフィカ?ト */
 	SC_GLORIA,			/* グロリア */
-	SC_DIVINA,			/* レックスディビ?ナ */
+	SC_SILENCE,			/* レックスディビ?ナ */
 	-1,
 	SC_AETERNA,			/* レックスエ?テルナ */
 	-1,
@@ -835,7 +833,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->speed = sd->speed * sd->sc_data[SC_CHASEWALK].val3 /100;
 		if(sd->sc_data[SC_SLOWDOWN].timer!=-1)
 			SPEED_ADD_RATE(-50);
-		if(sd->sc_data[SC_SPEEDUP0].timer!=-1 && sd->sc_data[SC_INCREASEAGI].timer==-1)
+		if(sd->sc_data[SC_SPEEDUP1].timer!=-1)
+			SPEED_ADD_RATE(50);
+		else if(sd->sc_data[SC_SPEEDUP0].timer!=-1 && sd->sc_data[SC_INCREASEAGI].timer==-1)
 			SPEED_ADD_RATE(25);
 		if(sd->sc_data[SC_BLESSING].timer!=-1){	// ブレッシング
 			sd->paramb[0]+= sd->sc_data[SC_BLESSING].val1;
@@ -2663,7 +2663,9 @@ int status_get_speed(struct block_list *bl)
 				speed = speed + 450;
 			if(sc_data[SC_SLOWDOWN].timer!=-1)
 				speed = speed*150/100;
-			if(sc_data[SC_SPEEDUP0].timer!=-1)
+			if(sc_data[SC_SPEEDUP1].timer!=-1)
+				speed -= speed*50/100;
+			else if(sc_data[SC_SPEEDUP0].timer!=-1 && sc_data[SC_INCREASEAGI].timer==-1)
 				speed -= speed*25/100;
 			if(sc_data[SC_GOSPEL].timer!=-1 &&
 				sc_data[SC_GOSPEL].val4 == BCT_ENEMY &&
@@ -3927,6 +3929,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_SPIDERWEB:		/* スパイダ?ウェッブ */
 		case SC_SLOWDOWN:
 		case SC_SPEEDUP0:
+		case SC_SPEEDUP1:
 		case SC_INCALLSTATUS:
 		case SC_INCHIT:			/* HIT上昇 */
 		case SC_INCFLEE:		/* FLEE上昇 */
@@ -4216,6 +4219,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_EDP:
 			case SC_SLOWDOWN:
 			case SC_SPEEDUP0:
+			case SC_SPEEDUP1:
 			case SC_INCALLSTATUS:
 			case SC_INCHIT:
 			case SC_INCFLEE:

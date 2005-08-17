@@ -3280,7 +3280,7 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 	md->skilltimer=-1;
 	//’¾–Ù‚âó‘ÔˆÙí‚È‚Ç
 	if(md->sc_data){
-		if(md->opt1>0 || md->sc_data[SC_DIVINA].timer != -1 ||
+		if(md->opt1>0 || md->sc_data[SC_SILENCE].timer != -1 ||
 			(!(md->db->mode & 0x20) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
 			md->sc_data[SC_STEELBODY].timer != -1)
 			return 0;
@@ -3366,7 +3366,7 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data )
 
 	md->skilltimer=-1;
 	if(md->sc_data){
-		if(md->opt1>0 || md->sc_data[SC_DIVINA].timer != -1 ||
+		if(md->opt1>0 || md->sc_data[SC_SILENCE].timer != -1 ||
 			(!(md->db->mode & 0x20) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
 			md->sc_data[SC_STEELBODY].timer != -1)
 			return 0;
@@ -3444,7 +3444,7 @@ int mobskill_use_id(struct mob_data *md,struct block_list *target,int skill_idx)
 
 	// ’¾–Ù‚âˆÙí
 	if(md->sc_data){
-		if(md->opt1>0 || md->sc_data[SC_DIVINA].timer != -1 ||
+		if(md->opt1>0 || md->sc_data[SC_SILENCE].timer != -1 ||
 			(!(md->db->mode & 0x20) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
 			md->sc_data[SC_STEELBODY].timer != -1)
 			return 0;
@@ -3561,7 +3561,7 @@ int mobskill_use_pos( struct mob_data *md,
 
 	//’¾–Ù‚âó‘ÔˆÙí‚È‚Ç
 	if(md->sc_data){
-		if(md->opt1>0 || md->sc_data[SC_DIVINA].timer != -1 ||
+		if(md->opt1>0 || md->sc_data[SC_SILENCE].timer != -1 ||
 			(!(md->db->mode & 0x20) && md->sc_data[SC_ROKISWEIL].timer != -1) ||
 			md->sc_data[SC_STEELBODY].timer != -1)
 			return 0;

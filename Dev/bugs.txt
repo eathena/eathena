@@ -1,4 +1,5 @@
 ** PLEASE WRITE CLEARLY WHAT THE PROBLEM IS AND HOW TO DUPLICATE IT SO IT CAN BE FIX0RED. THANK YOU **
+
 Problem:	Something with character data searching on connect to char server, prints out the line 
 	"[Error]: Character request data search error! Character 150227 (account 2051597) not authentified." thousands upon thousands of times and goes by SO fast,
 	then it never fixes its self.
@@ -167,7 +168,7 @@ Note:		Perhaps we can create an array of the maps we have loaded (during loading
 Assigned:	N/A
 Progress:	0%
 
-Problem:	[item exploit] Trade Window + Blacksmith's/Alchemyst's MAKE skills -> item exploit
+Problem:	[item exploit] Trade Window + Blacksmith's/Alchemist's MAKE skills -> item exploit
 Assigned:	N/A
 Progress:	0%
 
@@ -178,12 +179,6 @@ Note:		the NOWARP flag disallows people warping FROM the map, NOWARPTO, disallow
 		people warping INTO the map [Codemaster]
 
 Problem:	Guilds Skill - Emergency Call doesn't work in castles (it somehow useless)
-Assigned:	N/A
-Progress:	0%
-
-Problem:	Guilds Skill - GD_DEVELOPMENT (Extend_Guild)
-		has different description in korean desc table (some numbersm etc)
-		so it's different from the current implementation (Celest, plz check)
 Assigned:	N/A
 Progress:	0%
 
@@ -361,12 +356,14 @@ Problem:	Fame Lists
 Assigned:	na
 Progress:	50%
 Note:		The function works perfectly... but map_charid2nick is BROKEN, as well as other functions calling to a stringdb search
-	- Note: Are you sure the problem is not that the blacksmiths in question
-	  are not logged in? All map_*to* will not work if the character is not
-	  currently logged in (look at clif_friendslist_send to see how it is used
-	  to determine who is online or not).
-	  To have a fame list that will work regardless, the names should be sent
-	  directly from the char server. [Skotlex]
+		- Are you sure the problem is not that the blacksmiths in question
+		  are not logged in? All map_*to* will not work if the character is not
+		  currently logged in (look at clif_friendslist_send to see how it is used
+		  to determine who is online or not).
+		  To have a fame list that will work regardless, the names should be sent
+		  directly from the char server. [Skotlex]
+		- Then, what is the function used to find out produced items' maker name ? It works
+		  even when offline ^^ [DracoRPG]
 
 Problem:	Child + Papa + Mama EXP sharing exploit
 			adopt a child, make a party papa+mama+child, kill the child, and you can share EXP
@@ -386,6 +383,7 @@ Problem:	Shield Boomerang SKILL BUG
 			When you're on your foot, you have no that delay
 Assigned:	na
 Progress:	0%
+Notes:	??Still there??
 
 Problem:	GVG Enemy Healing BUG
 			During WOE, you can heal your enemy without SHIFT

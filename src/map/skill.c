@@ -3150,8 +3150,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_nodamage (src, bl, skillid, skilllv, 1);
 			if (status_isimmune(bl))
 				break;
-			if (sc_data && sc_data[SC_DIVINA].timer != -1)
-				status_change_end(bl,SC_DIVINA, -1);
+			if (sc_data && sc_data[SC_SILENCE].timer != -1)
+				status_change_end(bl,SC_SILENCE, -1);
 			else if (rand() % 100 < sc_def_vit) {
 				status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
 			}
@@ -5793,7 +5793,7 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 		return 0;
 	//ƒXƒLƒ‹‚ªŽg‚¦‚È‚¢?‘ÔˆÙí’†
 	if(sd->sc_count){
-		if( sd->sc_data[SC_DIVINA].timer!=-1 ||
+		if( sd->sc_data[SC_SILENCE].timer!=-1 ||
 			sd->sc_data[SC_ROKISWEIL].timer!=-1 ||
 			sd->sc_data[SC_AUTOCOUNTER].timer != -1 ||
 			sd->sc_data[SC_STEELBODY].timer != -1 ||
@@ -7083,7 +7083,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		return 0;
 	}
 	if(sd->sc_count){
-		if( sd->sc_data[SC_DIVINA].timer!=-1 ||
+		if( sd->sc_data[SC_SILENCE].timer!=-1 ||
 			sd->sc_data[SC_ROKISWEIL].timer!=-1 ||
 			(sd->sc_data[SC_AUTOCOUNTER].timer != -1 && sd->skillid != KN_AUTOCOUNTER) ||
 			sd->sc_data[SC_STEELBODY].timer != -1 ||
@@ -7698,7 +7698,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 				(sc_data[SC_AUTOCOUNTER].timer != -1 && sd->skillid != KN_AUTOCOUNTER) ||
 				(sc_data[SC_MARIONETTE].timer != -1 && sd->skillid != CG_MARIONETTE) ||
 				(sc_data[SC_MARIONETTE2].timer != -1 && sd->skillid == CG_MARIONETTE) ||
-				sc_data[SC_DIVINA].timer != -1 ||
+				sc_data[SC_SILENCE].timer != -1 ||
 				sc_data[SC_ROKISWEIL].timer != -1 ||			
 				sc_data[SC_STEELBODY].timer != -1 ||
 				sc_data[SC_BERSERK].timer != -1 ||
@@ -8052,7 +8052,7 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 	if (sd->opt1 > 0)
 		return 0;
 	if (sc_data){
-		if (sc_data[SC_DIVINA].timer != -1 ||
+		if (sc_data[SC_SILENCE].timer != -1 ||
 				sc_data[SC_ROKISWEIL].timer != -1 ||
 				sc_data[SC_AUTOCOUNTER].timer != -1 ||
 				sc_data[SC_STEELBODY].timer != -1 ||

@@ -15,6 +15,9 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+08/17
+	* Added and fixed effects of some boxes [DracoRPG]
+	* Changed Heirozoist Card to have same chance as Azoth (3%), seems better [DracoRPG]
 08/16
 	* Reverted Magnum Break to be self-centered... [Skotlex]
 	* Corrected Teleport cost (thanks to k3dt) [Skotlex]

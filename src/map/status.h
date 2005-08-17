@@ -46,8 +46,8 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_SPEEDPOTION1		= 38,
 	SC_SPEEDPOTION2		= 39,
 	SC_SPEEDPOTION3		= 40,
-	SC_SPEEDUP0			= 41, // for skill speedup
-	SC_SPEEDUP1			= 42, // for skill speedup
+	SC_SPEEDUP0			= 41,
+	SC_SPEEDUP1			= 42,
 	SC_ATKPOT			= 43,	// [Valaris]
 	SC_MATKPOT			= 44,	// [Valaris]
 	SC_WEDDING			= 45,	//結婚用(結婚衣裳になって?くのが?いとか)
@@ -89,7 +89,6 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_SILENCE			= 80,
 	SC_CONFUSION		= 81,
 	SC_BLIND			= 82,
-	SC_DIVINA			= SC_SILENCE,
 	SC_BLEEDING			= 83,
 	SC_DPOISON			= 84,		/* 猛毒 */
 
