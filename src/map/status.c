@@ -835,7 +835,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			SPEED_ADD_RATE(-50);
 		if(sd->sc_data[SC_SPEEDUP1].timer!=-1)
 			SPEED_ADD_RATE(50);
-		else if(sd->sc_data[SC_SPEEDUP0].timer!=-1 && sd->sc_data[SC_INCREASEAGI].timer==-1)
+		if(sd->sc_data[SC_SPEEDUP0].timer!=-1 && sd->sc_data[SC_SPEEDUP1].timer==-1 && sd->sc_data[SC_INCREASEAGI].timer==-1)
 			SPEED_ADD_RATE(25);
 		if(sd->sc_data[SC_BLESSING].timer!=-1){	// ブレッシング
 			sd->paramb[0]+= sd->sc_data[SC_BLESSING].val1;
@@ -2212,21 +2212,26 @@ int status_get_baseatk(struct block_list *bl)
 			batk += ((struct map_session_data *)bl)->weapon_atk[((struct map_session_data *)bl)->status.weapon];
 	} else { //それ以外なら
 		struct status_change *sc_data;
-		int str,dstr;
+		int str,dstr,skill;
 		str = status_get_str(bl); //STR
 		dstr = str/10;
 		batk = dstr*dstr + str; //base_atkを計算する
 		sc_data = status_get_sc_data(bl);
 
+        if(bl->type == BL_MOB && (struct mob_data *)bl && ((struct mob_data *)bl)->class_ >=1285 && ((struct mob_data *)bl)->class_ <=1287 &&
+		 ((struct mob_data *)bl)->guild_id && (skill = guild_checkskill(guild_search(((struct mob_data *)bl)->guild_id),GD_GUARDUP))){
+			batk += batk * 10*skill/100; // Strengthen Guardians - custom value +10% ATK / lv
+		}
+
 		if(sc_data) { //状態異常あり
 			if(sc_data[SC_PROVOKE].timer!=-1) //PCでプロボック(SM_PROVOKE)状態
-				batk = batk*(100+2*sc_data[SC_PROVOKE].val1)/100; //base_atk増加
+				batk += batk * 2*sc_data[SC_PROVOKE].val1/100; //base_atk増加
 			if(sc_data[SC_CURSE].timer!=-1) //呪われていたら
-				batk -= batk*25/100; //base_atkが25%減少
+				batk -= batk * 25/100; //base_atkが25%減少
 			if(sc_data[SC_CONCENTRATION].timer!=-1) //コンセントレーション
-				batk += batk*(5*sc_data[SC_CONCENTRATION].val1)/100;
+				batk += batk * (5*sc_data[SC_CONCENTRATION].val1)/100;
 			if(sc_data[SC_INCATK2].timer!=-1)
-				batk *= (100+ sc_data[SC_INCATK2].val1)/100;
+				batk += batk * sc_data[SC_INCATK2].val1/100;
 		}
 	}
 	if(batk < 1) batk = 1; //base_atkは最低でも1
@@ -2239,19 +2244,20 @@ int status_get_baseatk(struct block_list *bl)
  */
 int status_get_atk(struct block_list *bl)
 {
-	int atk = 0;
 	nullpo_retr(0, bl);
-
 	if(bl->type==BL_PC && (struct map_session_data *)bl)
 		return ((struct map_session_data*)bl)->right_weapon.watk;
 	else {
-		struct status_change *sc_data;
-		sc_data=status_get_sc_data(bl);
-		
-		if(bl->type == BL_MOB && (struct mob_data *)bl)
+		struct status_change *sc_data=status_get_sc_data(bl);
+		int atk=0;
+		if(bl->type == BL_MOB && (struct mob_data *)bl){
+			int skill;
 			atk = ((struct mob_data*)bl)->db->atk1;
-		else if(bl->type == BL_PET && (struct pet_data *)bl)
-		{	//<Skotlex> Use pet's stats
+  			if(((struct mob_data *)bl)->class_ >=1285 && ((struct mob_data *)bl)->class_ <=1287 &&
+		 	 ((struct mob_data *)bl)->guild_id && (skill = guild_checkskill(guild_search(((struct mob_data *)bl)->guild_id),GD_GUARDUP))){
+				atk += atk * 10*skill/100; // Strengthen Guardians - custom value +10% ATK / lv
+			}
+		} else if(bl->type == BL_PET && (struct pet_data *)bl) { //<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				atk = ((struct pet_data *)bl)->status->atk1;
 			else
@@ -2259,16 +2265,15 @@ int status_get_atk(struct block_list *bl)
 		}
 		if(sc_data) {
 			if(sc_data[SC_PROVOKE].timer!=-1)
-				atk = atk*(100+2*sc_data[SC_PROVOKE].val1)/100;
+				atk += atk * 2*sc_data[SC_PROVOKE].val1/100;
 			if(sc_data[SC_CURSE].timer!=-1)
-				atk -= atk*25/100;
+				atk -= atk * 25/100;
 			if(sc_data[SC_CONCENTRATION].timer!=-1) //コンセントレーション
-				atk += atk*(5*sc_data[SC_CONCENTRATION].val1)/100;
+				atk += atk * (5*sc_data[SC_CONCENTRATION].val1)/100;
 			if(sc_data[SC_EXPLOSIONSPIRITS].timer!=-1)
 				atk += (1000*sc_data[SC_EXPLOSIONSPIRITS].val1);
 			if(sc_data[SC_STRIPWEAPON].timer!=-1)
-				atk -= atk*10/100;
-
+				atk -= atk * 10/100;
 			if(sc_data[SC_GOSPEL].timer!=-1) {
 				if (sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
 					sc_data[SC_GOSPEL].val3 == 10)
@@ -2280,9 +2285,9 @@ int status_get_atk(struct block_list *bl)
 			if(sc_data[SC_INCATK2].timer!=-1)
 				atk += atk * sc_data[SC_INCATK2].val1 / 100;
 		}
-	}
 	if(atk < 0) atk = 0;
 	return atk;
+	}
 }
 /*==========================================
  * 対象の左手Atkを返す(汎用)
@@ -2312,37 +2317,40 @@ int status_get_atk2(struct block_list *bl)
 	else {
 		struct status_change *sc_data=status_get_sc_data(bl);
 		int atk2=0;
-		if(bl->type==BL_MOB && (struct mob_data *)bl)
+		if(bl->type==BL_MOB && (struct mob_data *)bl) {
+			int skill;
 			atk2 = ((struct mob_data*)bl)->db->atk2;
-		else if(bl->type==BL_PET && (struct pet_data *)bl)
-		{	//<Skotlex> Use pet's stats
+			if(((struct mob_data *)bl)->class_ >=1285 && ((struct mob_data *)bl)->class_ <=1287 &&
+		 	 ((struct mob_data *)bl)->guild_id && (skill = guild_checkskill(guild_search(((struct mob_data *)bl)->guild_id),GD_GUARDUP))){
+				atk2 += atk2 * 10*skill/100; // Strengthen Guardians - custom value +10% ATK / lv
+			}
+		} else if(bl->type==BL_PET && (struct pet_data *)bl) {	//<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				atk2 = ((struct pet_data *)bl)->status->atk2;
 			else
 				atk2 = ((struct pet_data*)bl)->db->atk2;
 		}		  
 		if(sc_data) {
+			if( sc_data[SC_PROVOKE].timer!=-1 )
+				atk2 += atk2 * 2*sc_data[SC_PROVOKE].val1/100;
+			if( sc_data[SC_CURSE].timer!=-1 )
+				atk2 -= atk2 * 25/100;
+			if(sc_data[SC_STRIPWEAPON].timer!=-1)
+				atk2 = atk2 * sc_data[SC_STRIPWEAPON].val2/100;
+			if(sc_data[SC_CONCENTRATION].timer!=-1) //コンセントレーション
+				atk2 += atk2 * (5*sc_data[SC_CONCENTRATION].val1)/100;
+			if(sc_data[SC_EXPLOSIONSPIRITS].timer!=-1)
+				atk2 += (1000*sc_data[SC_EXPLOSIONSPIRITS].val1);
 			if( sc_data[SC_IMPOSITIO].timer!=-1)
 				atk2 += sc_data[SC_IMPOSITIO].val1*5;
-			if( sc_data[SC_PROVOKE].timer!=-1 )
-				atk2 = atk2*(100+2*sc_data[SC_PROVOKE].val1)/100;
-			if( sc_data[SC_CURSE].timer!=-1 )
-				atk2 -= atk2*25/100;
 			if(sc_data[SC_DRUMBATTLE].timer!=-1)
 				atk2 += sc_data[SC_DRUMBATTLE].val2;
 			if(sc_data[SC_NIBELUNGEN].timer!=-1 && (status_get_element(bl)/10) >= 8 )
 				atk2 += sc_data[SC_NIBELUNGEN].val3;
-			if(sc_data[SC_STRIPWEAPON].timer!=-1)
-				atk2 = atk2*sc_data[SC_STRIPWEAPON].val2/100;
-			if(sc_data[SC_CONCENTRATION].timer!=-1) //コンセントレーション
-				atk2 += atk2*(5*sc_data[SC_CONCENTRATION].val1)/100;
-			if(sc_data[SC_EXPLOSIONSPIRITS].timer!=-1)
-				atk2 += (1000*sc_data[SC_EXPLOSIONSPIRITS].val1);
 		}
 		if(atk2 < 0) atk2 = 0;
 		return atk2;
 	}
-	return 0;
 }
 /*==========================================
  * 対象の左手Atk2を返す(汎用)
@@ -2440,7 +2448,6 @@ int status_get_def(struct block_list *bl)
 			//凍結、石化時は右シフト
 			if(sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2 == 0))
 				def >>= 1;
-
 			if (bl->type != BL_PC) {
 				//キーピング時はDEF100
 				if( sc_data[SC_KEEPING].timer!=-1)
@@ -2697,9 +2704,14 @@ int status_get_adelay(struct block_list *bl)
 	else {
 		struct status_change *sc_data=status_get_sc_data(bl);
 		int adelay=4000,aspd_rate = 100,i;
-		if(bl->type==BL_MOB && (struct mob_data *)bl)
+		if(bl->type==BL_MOB && (struct mob_data *)bl) {
+			int skill;
 			adelay = ((struct mob_data *)bl)->db->adelay;
-		else if(bl->type==BL_PET && (struct pet_data *)bl)
+  			if(((struct mob_data *)bl)->class_ >=1285 && ((struct mob_data *)bl)->class_ <=1287 &&
+			 ((struct mob_data *)bl)->guild_id && (skill = guild_checkskill(guild_search(((struct mob_data *)bl)->guild_id),GD_GUARDUP))){
+				aspd_rate -= 10*skill/100; // Strengthen Guardians - custom value +10% ASPD / lv
+			}
+		} else if(bl->type==BL_PET && (struct pet_data *)bl)
 			adelay = ((struct pet_data *)bl)->db->adelay;
 
 		if(sc_data) {
@@ -2766,9 +2778,14 @@ int status_get_amotion(struct block_list *bl)
 	else {
 		struct status_change *sc_data=status_get_sc_data(bl);
 		int amotion=2000,aspd_rate = 100,i;
-		if(bl->type==BL_MOB && (struct mob_data *)bl)
+		if(bl->type==BL_MOB && (struct mob_data *)bl) {
+			int skill;
 			amotion = ((struct mob_data *)bl)->db->amotion;
-		else if(bl->type==BL_PET && (struct pet_data *)bl)
+  			if(((struct mob_data *)bl)->class_ >=1285 && ((struct mob_data *)bl)->class_ <=1287 &&
+			 ((struct mob_data *)bl)->guild_id && (skill = guild_checkskill(guild_search(((struct mob_data *)bl)->guild_id),GD_GUARDUP))){
+				aspd_rate -= 10*skill/100; // Strengthen Guardians - custom value +10% ASPD / lv
+			}
+		} else if(bl->type==BL_PET && (struct pet_data *)bl)
 			amotion = ((struct pet_data *)bl)->db->amotion;
 
 		if(sc_data) {
@@ -2796,7 +2813,6 @@ int status_get_amotion(struct block_list *bl)
 				aspd_rate -= sc_data[i].val2;
 			if(sc_data[SC_DEFENDER].timer != -1)
 				aspd_rate += (25 - sc_data[SC_DEFENDER].val1*5);
-				//amotion += (550 - sc_data[SC_DEFENDER].val1*50);
 			if(sc_data[SC_GRAVITATION].timer!=-1)
 				aspd_rate += sc_data[SC_GRAVITATION].val2;
 		}

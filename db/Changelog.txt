@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 08/17
+	* Added IDs of Taekwon and its 2nd jobs to const.txt [DracoRPG]
 	* Added and fixed effects of some boxes [DracoRPG]
 	* Changed Heirozoist Card to have same chance as Azoth (3%), seems better [DracoRPG]
 08/16

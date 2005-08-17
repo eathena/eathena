@@ -1,4 +1,3 @@
-// $Id: mob.c,v 1.7 2004/09/25 05:32:18 MouseJstr Exp $
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -381,56 +380,6 @@ int mob_exclusion_check(struct mob_data *md,struct map_session_data *sd)
 	return 0;
 }
 
-/*==========================================
- * Appearance income of mob
- *------------------------------------------
- */
-/* These are no longer needed, replaced with #defines for speed. [Skotlex]
-int mob_get_viewclass(int class_)
-{
-	return mob_db_data[class_].view_class;
-}
-int mob_get_sex(int class_)
-{
-	return mob_db_data[class_].sex;
-}
-short mob_get_hair(int class_)
-{
-	return mob_db_data[class_].hair;
-}
-short mob_get_hair_color(int class_)
-{
-	return mob_db_data[class_].hair_color;
-}
-short mob_get_weapon(int class_)
-{
-	return mob_db_data[class_].weapon;
-}
-short mob_get_shield(int class_)
-{
-	return mob_db_data[class_].shield;
-}
-short mob_get_head_top(int class_)
-{
-	return mob_db_data[class_].head_top;
-}
-short mob_get_head_mid(int class_)
-{
-	return mob_db_data[class_].head_mid;
-}
-short mob_get_head_buttom(int class_)
-{
-	return mob_db_data[class_].head_buttom;
-}
-short mob_get_clothes_color(int class_) // Add for player monster dye - Valaris
-{
-	return mob_db_data[class_].clothes_color;  // End
-}
-int mob_get_equip(int class_) // mob equip [Valaris]
-{
-	return mob_db_data[class_].equip;
-}
-*/
 /*==========================================
  * Is MOB in the state in which the present movement is possible or not?
  *------------------------------------------
@@ -4026,21 +3975,6 @@ static int mob_makedummymobdb(int class_)
 	mob_dummy->adelay=1000;
 	mob_dummy->amotion=500;
 	mob_dummy->dmotion=500;
-	/* No need to zero data, it was allocated with 0s.
-	for(i=1;i<10;i++){ // 8-> 10 Lupus
-		mob_db_data[class_].dropitem[i].nameid=0;
-		mob_db_data[class_].dropitem[i].p=0;
-	}
-	// Item1,Item2
-	mob_dummy->mexp=0;
-	mob_dummy->mexpper=0;
-	for(i=0;i<3;i++){
-		mob_db_data[class_].mvpitem[i].nameid=0;
-		mob_db_data[class_].mvpitem[i].p=0;
-	}
-	for(i=0;i<MAX_RANDOMMONSTER;i++)
-		mob_dummy->summonper[i]=0;
-	*/
 	return 0;
 }
 

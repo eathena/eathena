@@ -116,13 +116,7 @@ static int guild_read_castledb(void)
 			p=strchr(p,',');
 			if(p) *p++=0;
 		}
-/*		Ahem... aCalloc already sets everything to 0! [Skotlex]
-		gc->guild_id=0; // <Agit> Clear Data for Initialize
-		gc->economy=0; gc->defense=0; gc->triggerE=0; gc->triggerD=0; gc->nextTime=0; gc->payTime=0;
-		gc->createTime=0; gc->visibleC=0; gc->visibleG0=0; gc->visibleG1=0; gc->visibleG2=0;
-		gc->visibleG3=0; gc->visibleG4=0; gc->visibleG5=0; gc->visibleG6=0; gc->visibleG7=0;
-		gc->Ghp0=0; gc->Ghp1=0; gc->Ghp2=0; gc->Ghp3=0; gc->Ghp4=0; gc->Ghp5=0; gc->Ghp6=0; gc->Ghp7=0; // guardian HP [Valaris]
-*/
+
 		gc->castle_id=atoi(str[0]);
 		memcpy(gc->map_name,str[1],MAP_NAME_LENGTH-1);
 		memcpy(gc->castle_name,str[2],NAME_LENGTH-1);

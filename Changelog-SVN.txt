@@ -1,5 +1,10 @@
 Date	Added
 08/17
+	* Fixed the vicious compile error I added with SC_SPEEDUP1 [DracoRPG]
+	* Implemented Strengthen Guardians with a custom +10% ATK & ASPD / lv value [DracoRPG]
+	  NOTE : It compiles, but I couldn't test the effect since guilds seem completely
+	  broken on my test server...
+	* Moved Weaponry Research hidden bonus a bit to get the exact effect [DracoRPG]
 	* Implemented SC_SPEEDUP1 for Lightning Box effect [DracoRPG]
 	* Entirely replaced SC_DIVINA with SC_SILENCE (the 1st was an alias of the 2nd) [DracoRPG]
 	* Fixed the map-server disconnecting the char-server when kicking out all

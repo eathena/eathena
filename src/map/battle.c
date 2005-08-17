@@ -1,4 +1,3 @@
-// $Id: battle.c,v 1.10 2004/09/29 21:08:17 Akitasha Exp $
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1097,14 +1096,8 @@ static struct Damage battle_calc_weapon_attack_sub(
 
 		hitrate+= status_get_hit(src) - flee;
 		
-		if(sd)
-		{	
-			if (flag.arrow)
-				hitrate += sd->arrow_hit;
-			// weapon research hidden bonus
-			if ((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
-				hitrate += hitrate * (2*skill)/100;
-		}
+		if(sd && flag.arrow)
+			hitrate += sd->arrow_hit;
 		if(skill_num)
 			switch(skill_num)
 		{	//Hit skill modifiers
@@ -1124,6 +1117,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 				hitrate += 20;
 				break;
 		}
+
+		// Weaponry Research hidden bonus
+		if (sd && (skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
+				hitrate += hitrate*(2*skill)/100;
 
 		if (hitrate > battle_config.max_hitrate)
 			hitrate = battle_config.max_hitrate;
@@ -1313,7 +1310,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 		}
 		if (!skill_num)
 		{
-			//Executioner card addition - Consider it as part of skill-based-damage
+			// Random chance to deal multiplied damage - Consider it as part of skill-based-damage
 			if(sd &&
 				sd->random_attack_increase_add > 0 &&
 				sd->random_attack_increase_per &&
@@ -1348,7 +1345,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 					break;
 				case KN_PIERCE:
 					skillratio+= wd.div_*(100+10*skill_lv) -100;
-					//div_flag=1;
 					break;
 				case KN_SPEARSTAB:
 					skillratio+= 15*skill_lv;
@@ -1375,7 +1371,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 					flag.idef= flag.idef2= 1;
 					break;
 				case TF_DOUBLE:
-					//skillratio += 100;	//Double Attack is double damage after all reductions? [Skotlex]
 					break;
 				case AS_GRIMTOOTH:
 					skillratio+= 20*skill_lv;
@@ -1460,7 +1455,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 					break;
 				case MO_FINGEROFFENSIVE:
 					if(battle_config.finger_offensive_type == 0)
-						//div_flag = 1;
 						skillratio+= wd.div_ * (125 + 25*skill_lv) -100;
 					else
 						skillratio+= 25 + 25 * skill_lv;
@@ -1479,7 +1473,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 					{	//Overflow check. [Skotlex]
 						int ratio = skillratio + 100*(8 + ((sd->status.sp)/10));
 						//You'd need something like 6K SP to reach this max, so should be fine for most purposes.
-						if (ratio > 60000) ratio = 60000; //We leave some room here in case skill_ratio gets further increased.
+						if (ratio > 60000) ratio = 60000; //We leave some room here in case skillratio gets further increased.
 						skillratio = ratio;
 						sd->status.sp = 0;
 						clif_updatestatus(sd,SP_SP);
@@ -1552,11 +1546,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 					break;
 				case PA_SHIELDCHAIN:
 					skillratio+= wd.div_*(100+30*skill_lv)-100;
-					//div_flag=1;
 					ele_flag=1;
 					break;
 				case WS_CARTTERMINATION:
-					if(sd && sd->cart_max_weight && sd->cart_weight > 0) //Why check for cart_max_weight? It is not used!
+					if(sd && sd->cart_weight > 0)
 						skillratio += sd->cart_weight / (10 * (16 - skill_lv)) - 100;
 					else if (!sd)
 						skillratio += 80000 / (10 * (16 - skill_lv));

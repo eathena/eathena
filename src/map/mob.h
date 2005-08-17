@@ -130,19 +130,6 @@ int mob_exclusion_check(struct mob_data *md,struct map_session_data *sd);
 #define mob_get_clothes_color(class_) mob_db(class_)->clothes_color
 #define mob_get_equip(class_) mob_db(class_)->equip
 
-/* Made defines for faster seek.
-int mob_get_viewclass(int);
-int mob_get_sex(int);
-short mob_get_hair(int);
-short mob_get_hair_color(int);
-short mob_get_weapon(int);
-short mob_get_shield(int);
-short mob_get_head_top(int);
-short mob_get_head_mid(int);
-short mob_get_head_buttom(int);
-short mob_get_clothes_color(int);	//player mob dye [Valaris]
-int mob_get_equip(int); // mob equip [Valaris]
-*/
 int do_init_mob(void);
 int do_final_mob(void);
 

@@ -69,6 +69,10 @@ Job_Baby_Dancer	4043
 Job_Baby_Crusader2	4044
 Job_Super_Baby	4045
 
+Job_Taekwon	4046
+Job_Star	4047
+Job_Soul	4048
+
 mf_nomemo	0
 mf_noteleport	1
 mf_nosave	2
