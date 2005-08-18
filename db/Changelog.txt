@@ -22,6 +22,7 @@
 	* Added IDs of Taekwon and its 2nd jobs to const.txt [DracoRPG]
 	* Added and fixed effects of some boxes [DracoRPG]
 	* Changed Heirozoist Card to have same chance as Azoth (3%), seems better [DracoRPG]
+	* Dropped Kobold Archer's Hat drop to 0.01% (it was left to 1% by an accident) [Lupus]
 08/16
 	* Reverted Magnum Break to be self-centered... [Skotlex]
 	* Corrected Teleport cost (thanks to k3dt) [Skotlex]

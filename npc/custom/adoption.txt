@@ -4,6 +4,8 @@
 //= Fredzilla
 //= Help from Kamari,Acky
 //===== Version ===========================================
+//= 1.3a - Added anti Taekwon Classes protection (they can't
+//= be adopted) [Lupus]
 //= 1.3 - Now it can teach parents/baby their missing skills.
 //=	 Your old families should talk to these NPCs to get
 //=  their family skills [Lupus]
@@ -38,10 +40,6 @@
 //= event_adopt = Put on the parents so they cannot adopt 
 //= again.
 //= event_adopted = Put on baby so it cant be adopted again.
-//=
-//= Removed useless Teacher. Because Baby Class can get any
-//= job with common Job quests NPCs now
-//= Made it to use new adopt command [Lupus]
 //=========================================================
 
 prt_church.gat,115,122,0	warp	prtch03	1,2,prt_church.gat,164,171
@@ -262,7 +260,7 @@ A_YesBaby:
 A_FinalTest:
 	deltimer "timeadopt";
 	addtimer 300000,"timeadopt";
-	if(event_adopted>0) goto A_AlreadyAdopted;
+	if(event_adopted>0 || Upper==2 || callfunc("Is_Taekwon_Class")!=0 ) goto A_AlreadyAdopted;
 	mes "[Inanna]";
 	mes "You must be "+$@Baby$+", its very nice to meet you.";
 	mes "Some very nice people, "+$@ParentOne$+" and "+$@ParentTwo$+", have asked to adopt you.";
