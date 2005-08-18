@@ -1709,7 +1709,7 @@ void clif_quitsave(int fd,struct map_session_data *sd)
  *------------------------------------------
  */
 static int clif_waitclose(int tid, unsigned int tick, int id, int data) {
-	if (session[id])
+	if (session[id] && session[id]->func_parse == clif_parse) //Avoid disconnecting non-players, as pointed out by End of Exam [Skotlex]
 		session[id]->eof = 1;
 
 	return 0;
