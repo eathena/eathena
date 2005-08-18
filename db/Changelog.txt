@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 08/17
+	* Changed back Soul Collect/Zen's casting time to 2 sec... [Skotlex]
 	* Changed Gloria Domini & Martyr's Reckogning from 'magic' to 'weapon', Battle Chant from
 	  'magic' to 'misc' [DracoRPG]
 	* Added IDs of Taekwon and its 2nd jobs to const.txt [DracoRPG]
