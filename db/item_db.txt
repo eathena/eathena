@@ -68,7 +68,7 @@
 561,Milk_Chocolate_Bar,Milk Chocolate,0,0,0,80,,,,,10477567,2,,,,,,{ itemheal rand(100,200),0; },{}
 562,Pizza,Pizza,0,20,0,150,,,,,10477567,2,,,,,,{ itemheal rand(100,200),0; },{}
 563,Double_Growing_Swiss_Pong_Tyu_,Doublecrust Swiss Fondue,0,20,0,150,,,,,10477567,3,,,,,,{ itemheal rand(100,200),0; },{}
-564,Meat_Dumpling,Meat Dumpling,0,20,0,30,,,,,0,2,,,,,,{ itemheal rand(175,234),0; },{}
+564,Meat_Dumpling,Meat Dumpling,0,20,0,30,,,,,10477567,2,,,,,,{ itemheal rand(175,234),0; },{}
 565,Vita_500_Bottle,Vita 500,0,2000,0,30,,,,,10477567,2,,,,,,{ itemheal 500,0; },{}
 566,Tom_Yum_Goong,Tom Yum Goong,0,10000,0,150,,,,,10477567,2,,,,,,{ itemheal rand(100,200),0; },{}
 567,Shrimp,Shrimp,0,500,0,20,,,,,10477567,2,,,,,,{ itemheal rand(50,100),0; },{}

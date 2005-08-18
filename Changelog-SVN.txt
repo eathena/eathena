@@ -1,5 +1,7 @@
 Date	Added
 08/19
+	* Fixed max level of some guilds skills 5->1 [Lupus]
+		according to http://eathena.deltaanime.net/board/index.php?showtopic=757 
 	* New items drops, new shop [Lupus]
 08/18
 	* Changed the way 'pl' works (in skill_db) : now 0 for 'weapon' attack skills means the
