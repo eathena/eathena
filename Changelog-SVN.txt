@@ -1,4 +1,6 @@
 Date	Added
+08/19
+	* New items drops, new shop [Lupus]
 08/18
 	* Modified mob_skilluse so that mobs NEVER use offensive heal. They'll now
 	  /swt if they try it (and the skill fails) [Skotlex]

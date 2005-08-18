@@ -28,6 +28,9 @@ TODO:
 
 Date		Added
 ======
+08/19
+	* Added new items, fixed items, added new official drops [Lupus]
+	* Added a temp shop of official sellable items 8) [Lupus]
 08/18
 	* Added anti-Taekwon Class protection into Valhalla, into Adoption NPC [Lupus]
 	* Added Zealotus Mask Quest with official items (now tested) [Lupus]
