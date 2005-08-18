@@ -15,6 +15,8 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+08/19
+	* Added new items, thanks to Landarma [Lupus]
 08/17
 	* Changed back Soul Collect/Zen's casting time to 2 sec... [Skotlex]
 	* Changed Gloria Domini & Martyr's Reckogning from 'magic' to 'weapon', Battle Chant from

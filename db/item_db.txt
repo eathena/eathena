@@ -2177,38 +2177,47 @@
 12068,Fried_Sweet_Potato_with_Syrup,Fried Sweet Potato with Syrup,2,,,500,,,,,10477567,2,,,,,,{},{}
 12069,Ancient_Fish_Dish,Ancient Fish Dish,2,,,500,,,,,10477567,2,,,,,,{},{}
 12070,Broiled_Down_Scorpion,Broiled Scorpion,2,,,400,,,,,10477567,2,,,,,,{},{} //Luk+5
-12071,Food_of_Vigor,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12072,Food_of_Vigor_,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12073,Food_of_Vigor__,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12074,Food_of_Vigor___,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12075,Food_of_Vigor____,Food of Vigor,2,,,10,,,,,10477567,2,,,,,,{},{}
-12076,Food_of_Intelligent,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12077,Food_of_Intelligent_,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12078,Food_of_Intelligent__,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12079,Food_of_Intelligent___,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12080,Food_of_Intelligent____,Food of Intelligent,2,,,10,,,,,10477567,2,,,,,,{},{}
-12081,Substantial_Food,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12082,Substantial_Food_,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12083,Substantial_Food__,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12084,Substantial_Food___,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12085,Substantial_Food____,Substantial Food,2,,,10,,,,,10477567,2,,,,,,{},{}
-12086,Food_of_Agility,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12087,Food_of_Agility_,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12088,Food_of_Agility__,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12089,Food_of_Agility___,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12090,Food_of_Agility____,Food of Agility,2,,,10,,,,,10477567,2,,,,,,{},{}
-12091,Food_of_Elaborateness,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12092,Food_of_Elaborateness_,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12093,Food_of_Elaborateness__,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12094,Food_of_Elaborateness___,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12095,Food_of_Elaborateness____,Food of Elaborateness,2,,,10,,,,,10477567,2,,,,,,{},{}
-12096,Food_of_Luck,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
-12097,Food_of_Luck_,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
-12098,Food_of_Luck___,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
-12099,Food_of_Luck____,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
-12100,Food_of_Luck_____,Food of Luck,2,,,10,,,,,10477567,2,,,,,,{},{}
+12071,Flavored_Grilled_Beef,Flavored Grilled Beef,2,,,80,,,,,10477567,2,,,,,,{},{} //Str+6
+12072,Barbecue,Barbecue,2,,,1000,,,,,10477567,2,,,,,,{},{}
+12073,Bear_Foot_Dish,Bear Foot Dish,2,,,500,,,,,10477567,2,,,,,,{},{}
+12074,Sauted_Meat_Strips,Sauted Meat Strips,2,,,1000,,,,,10477567,2,,,,,,{},{}
+12075,Tongue_Dish,Tongue Dish,2,,,1000,,,,,10477567,2,,,,,,{},{} //Str+10
+12076,Red_Mushroom_Wine,Red Mushroom Wine,2,,,300,,,,,10477567,2,,,,,,{},{} //Int+6
+12077,Royal_Jelly_and_Herb_Tea,Royal Jelly and Herb Tea,2,,,800,,,,,10477567,2,,,,,,{},{}
+12078,Royal_Tea,Royal Tea,2,,,1000,,,,,10477567,2,,,,,,{},{}
+12079,Tristan_12,Tristans 12 years wine,2,,,1000,,,,,10477567,2,,,,,,{},{}
+12080,Dragon_Breath_Cocktail,Dragon Breath Cocktail,2,,,1000,,,,,10477567,2,,,,,,{},{} //Int+10
+12081,Very_Bitter_Invigorant,Very Bitter Invigorant,2,,,500,,,,,10477567,2,,,,,,{},{} //Vit+6
+12082,Sumptuous_Feast,Sumptuous Feast,2,,,400,,,,,10477567,2,,,,,,{},{}
+12083,Huge_Stuffed_Leaves,Huge Stuffed Leaves,2,,,1000,,,,,10477567,2,,,,,,{},{}
+12084,Ascending_Dragon_Broth,Ascending Dragon Broth,2,,,1000,,,,,10477567,2,,,,,,{},{}
+12085,Stew_of_Immortality,Stew of Immortality,2,,,1000,,,,,10477567,2,,,,,,{},{} //Vit+10
+12086,Chili_and_Prawn_Gratin,Chili and Prawn Gratin,2,,,800,,,,,10477567,2,,,,,,{},{} //Agi+6
+12087,Boiled_Vegitable_stuffed_with_Roasted_Crocodile,Boiled Vegitable stuffed with Roasted Crocodile,2,,,800,,,,,10477567,2,,,,,,{},{}
+12088,Very_Hot_Curry,Very Hot Curry,2,,,1000,,,,,10477567,2,,,,,,{},{}
+12089,Delicious_Boiled_Meats,Delicious Boiled Meats,2,,,1000,,,,,10477567,2,,,,,,{},{}
+12090,Hot_Sand_Steamed_Scorpion,Hot Sand Steamed Scorpion,2,,,1000,,,,,10477567,2,,,,,,{},{} //Agi+10
+12091,Peach_Cake,Peach Cake,2,,,800,,,,,10477567,2,,,,,,{},{} //Dex+6
+12092,Soul_Hunt_Bread,Soul Hunt Bread,2,,,800,,,,,10477567,2,,,,,,{},{}
+12093,Special_Toast,Special Toast,2,,,1000,,,,,10477567,2,,,,,,{},{}
+12094,Ethereal_Fruit_Juice,Ethereal Fruit Juice,2,,,500,,,,,10477567,2,,,,,,{},{}
+12095,Wine_of_Bergelmir,Wine of Bergelmir,2,,,500,,,,,10477567,2,,,,,,{},{} //Dex+10
+12096,Soup_of_Great_Luck,Soup of Great Luck,2,,,300,,,,,10477567,2,,,,,,{},{} //Luk+6
+12097,Grilled_Meat_Skewer,Grilled Meat Skewer,2,,,800,,,,,10477567,2,,,,,,{},{}
+12098,Strawberry_Rice_Ball,Strawberry Rice Ball,2,,,400,,,,,10477567,2,,,,,,{},{}
+12099,Blood_Flavored_Sodapop,Blood Flavored Sodapop,2,,,1000,,,,,10477567,2,,,,,,{},{}
+12100,Nine_Tail_Dish,Nine Tail Dish,2,,,500,,,,,10477567,2,,,,,,{},{} //Luk+10
 12101,Citron,Citron,2,,,300,,,,,10477567,2,,,,,,{},{}
 12102,Grilled_Skewer,Grilled Skewer,2,,,300,,,,,10477567,2,,,,,,{},{}
+12103,Bloody_Branch,Bloody Branch,2,,,200,,,,,10477567,2,,,,,,{ monster "this",0,0,"--ja--",-3,1,""; },{}
+12104,Random_Quiver,Random Quiver,2,,,200,,,,,10477567,2,,,,,,{ getitem rand(12004,12015),1; },{}
+12105,Taming_Item_Giftset,Taming Item Giftset,2,,,200,,,,,10477567,2,,,,,,{},{} //gets 3 of any(?) taming items
+12106,Jewel_Box,Jewel Case,2,,,200,,,,,10477567,2,,,,,,{},{} //gets any accessary
+12107,Wrapped_Mask,Wrapped Mask,2,,,200,,,,,10477567,2,,,,,,{},{} //gets a mask
+12108,Bundle_of_Spells,Bundle of Spells,2,,,200,,,,,10477567,2,,,,,,{},{} // gets 5 of any(?) spell scrolls
+12109,Poring_Box,Poring Box,2,,,200,,,,,10477567,2,,,,,,{ monster "this",0,0,"--ja--",-2,1,""; },{}
+12110,First_Aid_Box,First Aid Box,2,,,200,,,,,10477567,2,,,,,,{},{} //gets 5 of any potions
+12111,Wrapped_Food,Wrapped Food,2,,,200,,,,,10477567,2,,,,,,{},{} //gets 3 of any food
 
 // More Weapons
 //===================================================================
