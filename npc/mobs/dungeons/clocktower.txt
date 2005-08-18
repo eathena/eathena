@@ -78,6 +78,7 @@ c_tower2.gat,99,242,0,0	monster	Clock	1269,1,400000,150000,1
 c_tower2.gat,0,0,0,0	monster	Rideword	1195,16,0,0,0
 c_tower2.gat,0,0,0,0	monster	Mimic	1191,3,0,0,0
 c_tower2.gat,0,0,0,0	monster	Punk	1199,40,0,0,0
+c_tower2.gat,0,0,0,0	monster	Elder	1377,2,7200000,3600000,0
 
 //(c_tower3.gat)*
 c_tower3.gat,0,0,0,0	monster	Mimic	1191,15,0,0,0

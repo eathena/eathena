@@ -1,4 +1,15 @@
 //id,range,hit,inf,pl,nk,max,list_num,castcancel,cast_defence_rate,inf2,maxcount,skill_type,blow_count
+// 01 ID
+// 02 range
+// 03 hit (8- repeated hitting, 6- single-hit)
+// 04 inf (0- passive, 1- enemy, 2- place, 4- self, 16- friend, 32- trap)
+// 05 pl attributes (0- nothing, 1- water, 2- earth, 3- fire, 4- wind, 5- poison, 6- saint, 7- darkness, 8- sense, 9- immortality)
+// 06 nk addition 1 effects 2 you blow and throw and
+// 07 MaxLv
+// 08 Hit frequency
+// 09 castcancelled (it is cancelled at 1. Are not cancelled with 0)
+// 10 ratio of the defensive power which decreases in 10 castings
+// 11 inf2 (skill information 2) (1- (afterwards additional schedule), 2- npc skill, 4- enemy, 8- place, 16- self, 32- friend, 64- skill where the damage enters into all ones which include by your with the trap and 128-PVP mode (only land skill), 256- the skill where the damage enter even by your (only land skill), 512- by your, the skill which cannot use.) (Active skill of part uses 4, 8, 16, 32 and 64. Now only the Asura supremacy fist use.)
 1,0,0,0,0,0,9,0,no,0,0,0,none,0	//NV_BASIC#Šî?ƒXƒLƒ‹#
 2,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//SM_SWORD#Œ•C—û#
 3,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//SM_TWOHAND#—¼èŒ•C—û#
