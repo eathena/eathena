@@ -2,6 +2,17 @@ Date	Added
 08/19
 	* New items drops, new shop [Lupus]
 08/18
+	* Changed the way 'pl' works (in skill_db) : now 0 for 'weapon' attack skills means the
+	  attack is always neutral. To make so that the skill takes the weapon's element, use -1
+	  instead: this removes the need of hardcoded ele_flag. [DracoRPG]
+	* Fixed damage bonus from Sage's elemental flooring skills by moving the checks which were
+	  totally wrong placed... Thanks to Antoine for pointing out they were broken. [DracoRPG]
+	* At the same time I had to change battle_calc_magic_attack quite alot. Maybe it won't work
+	  perfectly, but at least it'll compile. Also added (forgotten?) support for 'skillatk'
+	  bonus with magic skills. [DracoRPG]
+	* Rewritten most of Gloria Domini to make it be a BF_MISC skill that can hit and damage
+	  Emperium and plants (yes it does), igonres WoE damage adjustments and other changes I
+	  don't remember ^^ [DracoRPG]
 	* Modified mob_skilluse so that mobs NEVER use offensive heal. They'll now
 	  /swt if they try it (and the skill fails) [Skotlex]
 	  (there's still nothing that can be done about offensive Sanctuary)

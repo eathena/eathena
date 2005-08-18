@@ -3312,12 +3312,12 @@ int atcommand_monstersmall(
 		mob_id = atoi(monster);
 
 	if (mob_id == 0) {
-		clif_displaymessage(fd, "Monster name hasn't been found.");
+		clif_displaymessage(fd, msg_table[40]);
 		return -1;
 	}
 
 	if (mob_id == 1288) {
-		clif_displaymessage(fd, "Cannot spawn emperium.");
+		clif_displaymessage(fd, msg_table[83]);
 		return -1;
 	}
 
@@ -3389,12 +3389,12 @@ int atcommand_monsterbig(
 		mob_id = atoi(monster);
 
 	if (mob_id == 0) {
-		clif_displaymessage(fd, "Monster name hasn't been found.");
+		clif_displaymessage(fd, msg_table[40]);
 		return -1;
 	}
 
 	if (mob_id == 1288) {
-		clif_displaymessage(fd, "Cannot spawn emperium.");
+		clif_displaymessage(fd, msg_table[83]);
 		return -1;
 	}
 

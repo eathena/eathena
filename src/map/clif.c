@@ -7814,7 +7814,7 @@ int clif_charnameack (int fd, struct block_list *bl)
 			} else if (battle_config.show_mob_hp == 1) {
 				char mobhp[50];
 				WBUFW(buf, 0) = cmd = 0x195;
-				sprintf(mobhp, "hp: %d/%d", md->hp, md->max_hp);
+				sprintf(mobhp, "HP: %d/%d", md->hp, md->max_hp);
 				//Even thought mobhp ain't a name, we send it as one so the client
 				//can parse it. [Skotlex]
 				memcpy(WBUFP(buf,30), mobhp, NAME_LENGTH);

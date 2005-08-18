@@ -377,52 +377,21 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		}
 		if(sc_data[SC_PNEUMA].timer!=-1 && damage>0 &&
 			((flag&BF_WEAPON && flag&BF_LONG && skill_num != NPC_GUIDEDATTACK) ||
-			(flag&BF_MISC && (skill_num ==  HT_BLITZBEAT || skill_num == SN_FALCONASSAULT || skill_num == TF_THROWSTONE)) ||
+			(flag&BF_MISC && flag&BF_LONG && skill_num !=  PA_PRESSURE) ||
 			(flag&BF_MAGIC && skill_num == ASC_BREAKER))){ // It should block only physical part of Breaker! [Lupus], on the contrary, players all over the boards say it completely blocks Breaker x.x' [Skotlex]
-			// ニューマ
 			damage=0;
 		}
 
-		if(sc_data[SC_ROKISWEIL].timer!=-1 && damage>0 &&
-			flag&BF_MAGIC ){
-			// ニューマ
+		if(sc_data[SC_ROKISWEIL].timer!=-1 && damage>0 && flag&BF_MAGIC ){
 			damage=0;
 		}
 
-		if(sc_data[SC_AETERNA].timer!=-1 && damage>0){	// レックスエーテルナ
+		if(sc_data[SC_AETERNA].timer!=-1 && damage>0 && skill_num != PA_PRESSURE){
 			damage<<=1;
 			status_change_end( bl,SC_AETERNA,-1 );
 		}
 
-		//属性場のダメージ増加
-		if(sc_data[SC_VOLCANO].timer!=-1){	// ボルケーノ
-			if(flag&BF_SKILL && skill_get_pl(skill_num)==3)
-				//damage += damage*sc_data[SC_VOLCANO].val4/100;
-				damage += damage * enchant_eff[sc_data[SC_VOLCANO].val1-1] /100;
-			else if(!flag&BF_SKILL && status_get_attack_element(bl)==3)
-				//damage += damage*sc_data[SC_VOLCANO].val4/100;
-				damage += damage * enchant_eff[sc_data[SC_VOLCANO].val1-1] /100;
-		}
-
-		if(sc_data[SC_VIOLENTGALE].timer!=-1){	// バイオレントゲイル
-			if(flag&BF_SKILL && skill_get_pl(skill_num)==4)
-				//damage += damage*sc_data[SC_VIOLENTGALE].val4/100;
-				damage += damage * enchant_eff[sc_data[SC_VIOLENTGALE].val1-1] /100;
-			else if(!flag&BF_SKILL && status_get_attack_element(bl)==4)
-				//damage += damage*sc_data[SC_VIOLENTGALE].val4/100;
-				damage += damage * enchant_eff[sc_data[SC_VIOLENTGALE].val1-1] /100;
-		}
-
-		if(sc_data[SC_DELUGE].timer!=-1){	// デリュージ
-			if(flag&BF_SKILL && skill_get_pl(skill_num)==1)
-				//damage += damage*sc_data[SC_DELUGE].val4/100;
-				damage += damage * enchant_eff[sc_data[SC_DELUGE].val1-1] /100;
-			else if(!flag&BF_SKILL && status_get_attack_element(bl)==1)
-				//damage += damage*sc_data[SC_DELUGE].val4/100;
-				damage += damage * enchant_eff[sc_data[SC_DELUGE].val1-1] /100;
-		}
-
-		if(sc_data[SC_ENERGYCOAT].timer!=-1 && damage>0  && flag&BF_WEAPON){	// エナジーコート
+		if(sc_data[SC_ENERGYCOAT].timer!=-1 && damage>0  && flag&BF_WEAPON){
 			if(sd){
 				if(sd->status.sp>0){
 					int per = sd->status.sp * 5 / (sd->status.max_sp + 1);
@@ -438,10 +407,10 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				damage -= damage * (sc_data[SC_ENERGYCOAT].val1 * 6) / 100;
 		}
 
-		if(sc_data[SC_KYRIE].timer!=-1 && damage > 0){	// キリエエレイソン
+		if(sc_data[SC_KYRIE].timer!=-1 && damage > 0){
 			sc=&sc_data[SC_KYRIE];
 			sc->val2-=damage;
-			if(flag&BF_WEAPON || (flag&BF_MISC && skill_num == TF_THROWSTONE)){
+			if(flag&BF_WEAPON || skill_num == TF_THROWSTONE){
 				if(sc->val2>=0)	damage=0;
 				else damage=-sc->val2;
 			}
@@ -450,11 +419,9 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		}
 
 		if(sc_data[SC_BASILICA].timer!=-1 && damage > 0){
-			// ニューマ
 			damage=0;
 		}
 		if(sc_data[SC_LANDPROTECTOR].timer!=-1 && damage>0 && flag&BF_MAGIC){
-			// ニューマ
 			damage=0;
 		}
 
@@ -485,7 +452,6 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				clif_skill_nodamage(bl,bl,LK_PARRYING,sc_data[SC_PARRYING].val1,1);
 			}
 		}
-		// リジェクトソード
 		if(sc_data[SC_REJECTSWORD].timer!=-1 && damage > 0 && flag&BF_WEAPON &&
 			// Fixed the condition check [Aalye]
 			(src->type==BL_MOB || (src->type==BL_PC && (((struct map_session_data *)src)->status.weapon == 1 ||
@@ -515,16 +481,16 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	}
 
 	if(class_ == 1288 || class_ == 1287 || class_ == 1286 || class_ == 1285) {
-		if(class_ == 1288 && (flag&BF_SKILL || skill_num == ASC_BREAKER || skill_num == PA_SACRIFICE))
+		if(class_ == 1288 && ((flag&BF_SKILL && skill_num != PA_PRESSURE) || skill_num == PA_SACRIFICE)) // Pressure can hit Emperium
 			damage=0;
 		if(src->type == BL_PC) {
 			struct guild *g=guild_search(((struct map_session_data *)src)->status.guild_id);
 			struct guild_castle *gc=guild_mapname2gc(map[bl->m].name);
 			if(!((struct map_session_data *)src)->status.guild_id)
 				damage=0;
-			if(gc && agit_flag==0 && class_ != 1288)	// guardians cannot be damaged during non-woe [Valaris]
+			else if(gc && agit_flag==0 && class_ != 1288)	// guardians cannot be damaged during non-woe [Valaris]
 				damage=0;  // end woe check [Valaris]
-			if(g == NULL)
+			else if(g == NULL)
 				damage=0;//ギルド未加入ならダメージ無し
 			else if((gc != NULL) && guild_isallied(g, gc))
 				damage=0;//自占領ギルドのエンペならダメージ無し
@@ -538,7 +504,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		else damage = 0;
 	}
 
-	if (damage > 0) { // damage reductions
+	if (damage > 0 && skill_num != PA_PRESSURE) { // Pressure ignores WoE damage reductions
 		if (map[bl->m].flag.gvg) { //GvG
 			if (bl->type == BL_MOB){	//defenseがあればダメージが減るらしい？
 				struct guild_castle *gc = guild_mapname2gc(map[bl->m].name);
@@ -832,14 +798,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 	if(sd && skill_num != CR_GRANDCROSS)
 		sd->state.attack_type = BF_WEAPON;
 
-	//Set miscelanous data that needs be filled regardless of hit/miss
-	if(sd)
-	{
-		if (sd->status.weapon == 11)
-		{
-			wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
-			flag.arrow = 1;
-		}
+	//Set miscellaneous data that needs be filled regardless of hit/miss
+	if(sd && sd->status.weapon == 11) {
+		wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
+		flag.arrow = 1;
 	} else if (status_get_range(src) > 3)
 		wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 
@@ -870,6 +832,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 			case ITM_TOMAHAWK:	//Tomahawk is a ranged attack! [Skotlex]
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
 				break;
+
 			case KN_PIERCE:
 				wd.div_= t_size+1;
 				break;
@@ -980,11 +943,14 @@ static struct Damage battle_calc_weapon_attack_sub(
 	t_ele = status_get_elem_type(target);
 		
 	s_race = status_get_race(src);
-	s_ele=status_get_attack_element(src);
-	s_ele_=status_get_attack_element2(src);
+	s_ele = status_get_attack_element(src);
+	s_ele_ = status_get_attack_element2(src);
 
 	if (flag.arrow && sd && sd->arrow_ele)
 		s_ele = sd->arrow_ele;
+
+	if (skill_num && skill_get_pl(skill_num) != -1) // pl=-1 : the skill takes the weapon's element
+		s_ele = s_ele_ = skill_get_pl(skill_num);
 
 	if (sd)
 	{	//Set whether damage1 or damage2 (or both) will be used
@@ -1054,18 +1020,17 @@ static struct Damage battle_calc_weapon_attack_sub(
 			flag.hit = 1;
 		if (skill_num && !flag.hit)
 			switch(skill_num)
-		{
-			case NPC_GUIDEDATTACK:
-			case RG_BACKSTAP:
-			case CR_GRANDCROSS:
-			case AM_ACIDTERROR:
-			case MO_INVESTIGATE:
-			case MO_EXTREMITYFIST:
-			case PA_PRESSURE:
-			case PA_SACRIFICE:
-				flag.hit = 1;
-				break;
-		}
+			{
+				case NPC_GUIDEDATTACK:
+				case RG_BACKSTAP:
+				case CR_GRANDCROSS:
+				case AM_ACIDTERROR:
+				case MO_INVESTIGATE:
+				case MO_EXTREMITYFIST:
+				case PA_SACRIFICE:
+					flag.hit = 1;
+					break;
+			}
 		if ((t_sc_data && !flag.hit) &&
 			(t_sc_data[SC_SLEEP].timer!=-1 ||
 			t_sc_data[SC_STAN].timer!=-1 ||
@@ -1173,10 +1138,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 				}
 				break;
 			}
-			case PA_PRESSURE: //Since PRESSURE ignores everything, finish here
-				wd.damage=battle_calc_damage(src,target,500+300*skill_lv,wd.div_,skill_num,skill_lv,wd.flag);
-				wd.damage2=0;
-				return wd;	
 			default:
 			{
 				unsigned short baseatk=0, baseatk_=0, atkmin=0, atkmax=0, atkmin_=0, atkmax_=0;
@@ -1290,23 +1251,24 @@ static struct Damage battle_calc_weapon_attack_sub(
 		//Skill damage modifiers
 		if(sc_data && skill_num != PA_SACRIFICE)
 		{
-			if(sc_data[SC_OVERTHRUST].timer!=-1)
+			if(sc_data[SC_OVERTHRUST].timer != -1)
 				skillratio += 5*sc_data[SC_OVERTHRUST].val1;
-			if(sc_data[SC_TRUESIGHT].timer!=-1)
-				skillratio += 2*sc_data[SC_TRUESIGHT].val1;
-			if(sc_data[SC_BERSERK].timer!=-1)
-				skillratio += 100; // Although RagnaInfo says +200%, it's *200% so +100%
-			if(sc_data[SC_MAXOVERTHRUST].timer!=-1)
+			if(sc_data[SC_MAXOVERTHRUST].timer != -1)
 				skillratio += 20*sc_data[SC_MAXOVERTHRUST].val1;
-			if(sc_data[SC_EDP].timer != -1 &&
-//				skill_num != AS_SPLASHER && People keep saying it will work with all skills except the next two...
-				skill_num != ASC_BREAKER &&
-				skill_num != ASC_METEORASSAULT)
-			{	
-				//Since records say it does works with Sonic Blows, instead of pre-multiplying the damage,
-				//we take the number of hits in consideration. [Skotlex]
+			if(sc_data[SC_TRUESIGHT].timer != -1)
+				skillratio += 2*sc_data[SC_TRUESIGHT].val1;
+			if(sc_data[SC_BERSERK].timer != -1)
+				skillratio += 100;
+			// EDP : Since records say it does works with Sonic Blows, instead of pre-multiplying the damage,
+			// we take the number of hits in consideration. [Skotlex]
+			if(sc_data[SC_EDP].timer != -1 && skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
 				skillratio += (150 + sc_data[SC_EDP].val1 * 50)*(skill_num != TF_DOUBLE?wd.div_:1);
-			}
+			if(sc_data[SC_VOLCANO].timer!=-1 && s_ele == 3)
+				skillratio += enchant_eff[sc_data[SC_VOLCANO].val1-1];
+			if(sc_data[SC_VIOLENTGALE].timer!=-1 && s_ele == 4)
+				skillratio += enchant_eff[sc_data[SC_VIOLENTGALE].val1-1];
+			if(sc_data[SC_DELUGE].timer!=-1 && s_ele == 1)
+				skillratio += enchant_eff[sc_data[SC_DELUGE].val1-1];
 		}
 		if (!skill_num)
 		{
@@ -1320,15 +1282,12 @@ static struct Damage battle_calc_weapon_attack_sub(
 		
 			ATK_RATE(skillratio);
 		} else {	//Skills
-			char ele_flag=0;	//For skills that force the neutral element.
-
 			switch( skill_num )
 			{
 				case SM_BASH:
 					skillratio+= 30*skill_lv;
 					break;
 				case SM_MAGNUM:
-					// 20*skill level+100? I think this will do for now [based on jRO info]
 					skillratio+= 20*skill_lv; 
 					break;
 				case MC_MAMMONITE:
@@ -1375,9 +1334,8 @@ static struct Damage battle_calc_weapon_attack_sub(
 				case AS_GRIMTOOTH:
 					skillratio+= 20*skill_lv;
 					break;
-				case AS_POISONREACT: // celest
+				case AS_POISONREACT:
 					skillratio+= 30*skill_lv;
-					ele_flag=1;
 					break;
 				case AS_SONICBLOW:
 					skillratio+= 200+ 50*skill_lv;
@@ -1393,7 +1351,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 					break;
 				case NPC_COMBOATTACK:
 						skillratio += 100*wd.div_ -100;
-						//div_flag=1;
 					break;
 				case NPC_RANDOMATTACK:
 					skillratio+= rand()%150-50;
@@ -1430,11 +1387,9 @@ static struct Damage battle_calc_weapon_attack_sub(
 					break;
 				case CR_SHIELDCHARGE:
 					skillratio+= 20*skill_lv;
-					ele_flag=1;
 					break;
 				case CR_SHIELDBOOMERANG:
 					skillratio+= 30*skill_lv;
-					ele_flag=1;
 					break;
 				case CR_HOLYCROSS:
 					skillratio+= 35*skill_lv;
@@ -1449,7 +1404,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 					break;
 				case AM_ACIDTERROR:
 					skillratio+= 40*skill_lv;
-					ele_flag=1;
 					flag.idef = flag.idef2= 1;
 					flag.cardfix = 0;
 					break;
@@ -1466,7 +1420,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 						ATK_RATE(2*(def1 + def2));
 					}
 					flag.idef= flag.idef2= 1;
-					ele_flag=1;
 					break;
 				case MO_EXTREMITYFIST:
 					if (sd)
@@ -1479,7 +1432,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 						clif_updatestatus(sd,SP_SP);
 					}
 					flag.idef= flag.idef2= 1;
-					ele_flag=1;
 					break;
 				case MO_TRIPLEATTACK:
 					skillratio+= 20*skill_lv;
@@ -1542,11 +1494,9 @@ static struct Damage battle_calc_weapon_attack_sub(
 					//40% less effective on siege maps. [Skotlex]	
 					skillratio+= 10*skill_lv -map[src->m].flag.gvg?50:10;
 					flag.idef = flag.idef2 = 1;
-					ele_flag=1;
 					break;
 				case PA_SHIELDCHAIN:
 					skillratio+= wd.div_*(100+30*skill_lv)-100;
-					ele_flag=1;
 					break;
 				case WS_CARTTERMINATION:
 					if(sd && sd->cart_weight > 0)
@@ -1558,10 +1508,6 @@ static struct Damage battle_calc_weapon_attack_sub(
 					skillratio += wd.div_*100 - 100;
 					break;
 			}
-			if (ele_flag)
-				s_ele=s_ele_=0;
-			else if((skill=skill_get_pl(skill_num))>0) //Checking for the skill's element
-				s_ele=s_ele_=skill;
 
 			if (sd && sd->skillatk[0] != 0)
 			{
@@ -1865,7 +1811,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 		return wd;
 	}
 	
-	//Double is basicly a normal attack x2, so... [Skotlex]
+	//Double is basically a normal attack x2, so... [Skotlex]
 	if (skill_num == TF_DOUBLE)
 		wd.damage *=2;
 
@@ -1980,8 +1926,8 @@ struct Damage battle_calc_weapon_attack(
 		(wd.damage > 0 || wd.damage2 > 0)) {
 		struct map_session_data *sd = (struct map_session_data *)src;
 		if (battle_config.equip_self_break_rate && sd->status.weapon != 11)
-		{	//Self weapon breaking chance (Bows exempted)
-			int breakrate = battle_config.equip_natural_break_rate;	//default self weapon breaking chance [DracoRPG]
+		{	//Self weapon breaking chance
+			int breakrate = battle_config.equip_natural_break_rate;
 			if (sd->sc_count) {
 				if(sd->sc_data[SC_OVERTHRUST].timer!=-1)
 					breakrate += 10;
@@ -1995,29 +1941,27 @@ struct Damage battle_calc_weapon_attack(
 		if (battle_config.equip_skill_break_rate)
 		{	//Target equipment breaking
 			// weapon = 0, armor = 1
-			int breakrate_[2] = {0,0};	//target breaking chance [celest]
+			int breakrate[2] = {0,0};	//target breaking chance [celest]
 			int breaktime = 5000;
 
-			breakrate_[0] += sd->break_weapon_rate;
-			breakrate_[1] += sd->break_armor_rate;
+			breakrate[0] += sd->break_weapon_rate;
+			breakrate[1] += sd->break_armor_rate;
 
 			if (sd->sc_count) {
 				if (sd->sc_data[SC_MELTDOWN].timer!=-1) {
-					breakrate_[0] += 100*sd->sc_data[SC_MELTDOWN].val1;
-					breakrate_[1] = 70*sd->sc_data[SC_MELTDOWN].val1;
+					breakrate[0] += 100*sd->sc_data[SC_MELTDOWN].val1;
+					breakrate[1] += 70*sd->sc_data[SC_MELTDOWN].val1;
 					breaktime = skill_get_time2(WS_MELTDOWN,1);
 				}
 			}
 			
-			if(rand() % 10000 < breakrate_[0] * battle_config.equip_skill_break_rate / 100 || breakrate_[0] >= 10000) {
-				if (target->type == BL_PC) {
-					struct map_session_data *tsd = (struct map_session_data *)target;
-					if(tsd->status.weapon != 11)
-						pc_breakweapon(tsd);
-				} else
+			if(rand() % 10000 < breakrate[0] * battle_config.equip_skill_break_rate / 100 || breakrate[0] >= 10000) {
+				if (target->type == BL_PC)
+					pc_breakweapon((struct map_session_data *)target);
+				else
 					status_change_start(target,SC_STRIPWEAPON,1,75,0,0,breaktime,0);
 			}
-			if(rand() % 10000 < breakrate_[1] * battle_config.equip_skill_break_rate/100 || breakrate_[1] >= 10000) {
+			if(rand() % 10000 < breakrate[1] * battle_config.equip_skill_break_rate/100 || breakrate[1] >= 10000) {
 				if (target->type == BL_PC) {
 					struct map_session_data *tsd = (struct map_session_data *)target;
 					pc_breakarmor(tsd);
@@ -2041,12 +1985,14 @@ struct Damage battle_calc_magic_attack(
 	int ele=0, race=7, size=1, race2=7, t_ele=0, t_race=7, t_mode = 0, cardfix, t_class, i;
 	struct map_session_data *sd = NULL, *tsd = NULL;
 	struct mob_data *tmd = NULL;
+	struct status_change *sc_data = status_get_sc_data(bl);
 	struct Damage md;
 	int aflag;	
 	int normalmagic_flag = 1;
 	int matk_flag = 1;
 	int no_cardfix = 0;
 	int no_elefix = 0;
+	int skillratio = 100;
 
 	//return前の処理があるので情報出力部のみ変更
 	if( bl == NULL || target == NULL ){
@@ -2075,8 +2021,8 @@ struct Damage battle_calc_magic_attack(
 
 	md.amotion=status_get_amotion(bl);
 	md.dmotion=status_get_dmotion(target);
-#define MATK_FIX( a,b ) { matk1=matk1*(a)/(b); matk2=matk2*(a)/(b); }
 
+#define MATK_FIX( a,b ) { matk1=matk1*(a)/(b); matk2=matk2*(a)/(b); }
 	if( bl->type==BL_PC && (sd=(struct map_session_data *)bl) ){
 		sd->state.attack_type = BF_MAGIC;
 		if(sd->matk_rate != 100)
@@ -2089,6 +2035,15 @@ struct Damage battle_calc_magic_attack(
 		tmd=(struct mob_data *)target;
 
 	aflag=BF_MAGIC|BF_LONG|BF_SKILL;
+
+	if(sc_data){
+		if(sc_data[SC_VOLCANO].timer!=-1 && ele == 3)
+			skillratio += enchant_eff[sc_data[SC_VOLCANO].val1-1];
+		if(sc_data[SC_VIOLENTGALE].timer!=-1 && ele == 4)
+			skillratio += enchant_eff[sc_data[SC_VIOLENTGALE].val1-1];
+		if(sc_data[SC_DELUGE].timer!=-1 && ele == 1)
+			skillratio += enchant_eff[sc_data[SC_DELUGE].val1-1];
+	}
 
 	if(skill_num > 0){
 		switch(skill_num){	// 基本ダメージ計算(スキルごとに処理)
@@ -2128,7 +2083,7 @@ struct Damage battle_calc_magic_attack(
 			break;
 
 		case MG_NAPALMBEAT:	// ナパームビート（分散計算込み）
-			MATK_FIX(70+ skill_lv*10,100);
+			skillratio+= skill_lv*10-30;
 			if(flag>0){
 				MATK_FIX(1,flag);
 			}else {
@@ -2138,10 +2093,8 @@ struct Damage battle_calc_magic_attack(
 			break;
 
 		case MG_SOULSTRIKE:			/* ソウルストライク （対アンデッドダメージ補正）*/
-			if (battle_check_undead(t_race,t_ele)) {
-				matk1 = matk1*(20+skill_lv)/20;//MATKに補正じゃ駄目ですかね？
-				matk2 = matk2*(20+skill_lv)/20;
-			}
+			if (battle_check_undead(t_race,t_ele))
+				skillratio+= 5*skill_lv;//MATKに補正じゃ駄目ですかね？
 			break;
 
 		case MG_FIREBALL:	// ファイヤーボール
@@ -2161,48 +2114,45 @@ struct Damage battle_calc_magic_attack(
 				md.dmotion=0;
 			}	else
 				blewcount |= 0x10000;
-			MATK_FIX( 1,2 );
+			skillratio-= 50;
 			break;
 		case MG_THUNDERSTORM:	// サンダーストーム
-			MATK_FIX( 80,100 );
+			skillratio-= 20;
 			break;
 		case MG_FROSTDIVER:	// フロストダイバ
-			MATK_FIX( 100+skill_lv*10, 100);
+			skillratio+= skill_lv*10;
 			break;
 		case WZ_FROSTNOVA:	// フロストダイバ
-			MATK_FIX((100+skill_lv*10)*2/3, 100);
+			skillratio+= (100+skill_lv*10)*2/3-100;
 			break;
 		case WZ_FIREPILLAR:	// ファイヤーピラー
 			if(mdef1 < 1000000)
 				mdef1=mdef2=0;	// MDEF無視
-			MATK_FIX( 1,5 );
-			matk1+=50;
-			matk2+=50;
+			skillratio-= 80;
 			break;
 		case WZ_SIGHTRASHER:
-			MATK_FIX( 100+skill_lv*20, 100);
+			skillratio+= skill_lv*20;
 			break;
 		case WZ_METEOR:
 		case WZ_JUPITEL:	// ユピテルサンダー
 			break;
 		case WZ_VERMILION:	// ロードオブバーミリオン
-			MATK_FIX( skill_lv*20+80, 100 );
+			skillratio+= skill_lv*20-20;
 			break;
 		case WZ_WATERBALL:	// ウォーターボール
-			MATK_FIX( 100+skill_lv*30, 100 );
+			skillratio+= skill_lv*30;
 			break;
 		case WZ_STORMGUST:	// ストームガスト
-			MATK_FIX( skill_lv*40+100 ,100 );
-//			blewcount|=0x10000;
+			skillratio+= skill_lv*40;
 			break;
 		case AL_HOLYLIGHT:	// ホーリーライト
-			MATK_FIX( 125,100 );
+			skillratio+= 25;
 			break;
 		case AL_RUWACH:
-			MATK_FIX( 145,100 );
+			skillratio+= 45;
 			break;
 		case HW_NAPALMVULCAN:	// ナパームビート（分散計算込み）
-			MATK_FIX(70+ skill_lv*10,100);
+			skillratio+= skill_lv*10-30;
 			if(flag>0){
 				MATK_FIX(1,flag);
 			}else {
@@ -2230,6 +2180,23 @@ struct Damage battle_calc_magic_attack(
 			no_elefix = 1;
 			break;
 		}
+	}
+
+	if (sd && sd->skillatk[0] != 0)
+	{
+		for (i = 0; i < 5 && sd->skillatk[i][0] != 0 && sd->skillatk[i][0] != skill_num; i++);
+		if (i < 5 && sd->skillatk[i][0] == skill_num)
+			//If we apply skillatk[] as ATK_RATE, it will also affect other skills,
+			//unfortunately this way ignores a skill's constant modifiers...
+			skillratio += sd->skillatk[i][1];
+	}
+
+	MATK_FIX(skillratio,100);
+
+	//Constant/misc additions from skills
+	if (skill_num == WZ_FIREPILLAR) {
+			matk1+=50;
+			matk2+=50;
 	}
 
 	if(normalmagic_flag){	// 一般魔法ダメージ計算
@@ -2333,7 +2300,6 @@ struct Damage battle_calc_magic_attack(
 	if(div_>1 && skill_num != WZ_VERMILION)
 		damage*=div_;
 
-//	if(mdef1 >= 1000000 && damage > 0)
 	if(t_mode&0x40 && damage > 0)
 		damage = 1;
 
@@ -2467,24 +2433,25 @@ struct Damage  battle_calc_misc_attack(
 			}
 		}
 		break;
+
 	case SN_FALCONASSAULT:			/* ファルコンアサルト */
 		{
 		static int falcasspercent[]={
 			0,220,290,360,430,500 };
 
-#ifdef TWILIGHT
-		if( sd==NULL || (skill = pc_checkskill(sd,HT_BLITZBEAT)) <= 0)
-			skill=0;
- 		damage=(100+50*skill_lv+(dex/10+int_/2+skill*3+40)*2) * 2;
-#else
 		if( sd==NULL || (skill = pc_checkskill(sd,HT_STEELCROW)) <= 0)
 			skill=0;
 		damage=(falcasspercent[skill_lv]*(dex/10+int_/2+skill*3+40)*2)/100; // [Lupus] according desc
-#endif
 		if(flag > 1)
 			damage /= flag;
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		}
+		break;
+
+	case PA_PRESSURE:
+		damage=500+300*skill_lv;
+		damagefix=0;
+		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
 	}
 
@@ -2521,7 +2488,7 @@ struct Damage  battle_calc_misc_attack(
 		damage = div_;
 	}
 
-	if(t_mode&0x40 && damage>0)
+	if(t_mode&0x40 && damage>0 && skill_num != PA_PRESSURE)
 		damage = 1;
 
 	if(is_boss(target))
@@ -2538,7 +2505,6 @@ struct Damage  battle_calc_misc_attack(
 	md.blewcount=blewcount;
 	md.flag=aflag;
 	return md;
-
 }
 /*==========================================
  * ダメージ計算一括処理用

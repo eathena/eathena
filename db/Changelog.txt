@@ -16,9 +16,13 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 08/18
+	* Changed Emperium to Holy 1 / Angel [DracoRPG]
+	* Changed (again!) Gloria Domini to 'misc' [DracoRPG]
+	* Changed pl of all 'weapon' attack skills that take weapon's element from '0' to '-1',
+	  according to the new system. Also changed type of various skills. [DracoRPG]
 	* Bah, refixed Owl Duke Card/Enchanted Peach Tree. [Skotlex]
 	  The last value of bonus4 bAutoSpell defines target (0 = self, 1 = enemy)
-	* Added new items, thanks to Landarma [Lupus]
+	* Added new items, thanks to Landarma [Lupus
 08/17
 	* Changed back Soul Collect/Zen's casting time to 2 sec... [Skotlex]
 	* Changed Gloria Domini & Martyr's Reckogning from 'magic' to 'weapon', Battle Chant from

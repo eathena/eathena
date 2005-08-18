@@ -2478,7 +2478,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
 			if (bleed_time < 60000)
 				bleed_time = 60000;	// minimum time for pressure is?
-			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+			skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
 			if (rand()%100 < 50 * sc_def_vit / 100)	// is chance 50%?
 				status_change_start(bl, SC_STAN, skilllv, 0, 0, 0, skill_get_time2(PA_PRESSURE,skilllv), 0);
 			else if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit / 100)
@@ -2602,7 +2602,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	/* 武器系範?攻?スキル */
 	case AC_SHOWER:			/* アロ?シャワ? */
 	case AS_GRIMTOOTH:		/* グリムトゥ?ス */
-//	case SM_MAGNUM:			/* マグナムブレイク [celest] */
 	case MC_CARTREVOLUTION:	/* カ?トレヴォリュ?ション */
 	case NPC_SPLASHATTACK:	/* スプラッシュアタック */
 	case AS_SPLASHER:	/* [Valaris] */
@@ -2617,7 +2616,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			int x = bl->x, y = bl->y;
 			switch (skillid) {
 				case AC_SHOWER:
-				case SM_MAGNUM:
 					ar=2;
 					break;
 				case NPC_SPLASHATTACK:
@@ -2635,8 +2633,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				bl->m,x-ar,y-ar,x+ar,y+ar,0,
 				src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
 				skill_castend_damage_id);
-			if (skillid == SM_MAGNUM)	//Skotlex
-				status_change_start (src,SC_FLAMELAUNCHER,0,0,0,0,10000,0);
 		}
 		break;
 
@@ -3035,7 +3031,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		return 1;
 	if(dstsd && pc_isdead(dstsd) && skillid != ALL_RESURRECTION)
 		return 1;
-	if(status_get_class(bl) == 1288)
+	if(status_get_class(bl) == 1288 && skillid != PA_PRESSURE) // Pressure can hit Emperium
 		return 1;
 	if (sd && skillnotok(skillid, sd)) // [MouseJstr]
 		return 0;
