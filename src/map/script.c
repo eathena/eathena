@@ -242,6 +242,7 @@ int buildin_pvpoff(struct script_state *st);
 int buildin_gvgon(struct script_state *st);
 int buildin_gvgoff(struct script_state *st);
 int buildin_emotion(struct script_state *st);
+int buildin_pc_emotion(struct script_state *st);
 int buildin_maprespawnguildid(struct script_state *st);
 int buildin_agitstart(struct script_state *st);		// <Agit>
 int buildin_agitend(struct script_state *st);
@@ -505,6 +506,7 @@ struct {
 	{buildin_gvgon,"gvgon","s"},
 	{buildin_gvgoff,"gvgoff","s"},
 	{buildin_emotion,"emotion","i"},
+	{buildin_pc_emotion,"pc_emotion","i"},
 	{buildin_maprespawnguildid,"maprespawnguildid","sii"},
 	{buildin_agitstart,"agitstart",""},	// <Agit>
 	{buildin_agitend,"agitend",""},
@@ -5414,6 +5416,24 @@ int buildin_emotion(struct script_state *st)
 	clif_emotion(map_id2bl(st->oid),type);
 	return 0;
 }
+
+/*==========================================
+ *	Shows an emoticon on top of the player.
+ *------------------------------------------
+ */
+// Added by request as official npcs seem to use it. [Skotlex]
+int buildin_pc_emotion(struct script_state *st)
+{
+	int type;
+	struct map_session_data *sd = script_rid2sd(st);
+	
+	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	if(type < 0 || type > 100)
+		return 0;
+	clif_emotion(&sd->bl,type);
+	return 0;
+}
+
 
 int buildin_maprespawnguildid_sub(struct block_list *bl,va_list ap)
 {

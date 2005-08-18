@@ -1,5 +1,7 @@
 Date	Added
 08/17
+	* Added script command pc_emotion, works just like emotion, except the
+	  emotion is displayed on the character that's running the script. [Skotlex]
 	* Fixed the vicious compile error I added with SC_SPEEDUP1 [DracoRPG]
 	* Implemented Strengthen Guardians with a custom +10% ATK & ASPD / lv value [DracoRPG]
 	  NOTE : It compiles, but I couldn't test the effect since guilds seem completely
