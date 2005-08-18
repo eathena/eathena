@@ -8791,13 +8791,13 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 //   Lordalfa - Paperboy - To whisper NPC commands       //
 //-------------------------------------------------------//
 if ((strncasecmp((const char*)RFIFOP(fd,4),"NPC:",4) == 0) && (strlen((const char*)RFIFOP(fd,4)) >4))   {
-		whisper_tmp=(char *)aCallocA(strlen(RFIFOP(fd,4)-3),sizeof(char));
+		whisper_tmp=(char *)aCallocA(strlen((char *)(RFIFOP(fd,4)-3)),sizeof(char));
 		whisper_tmp[0]=0;
 		whisper_tmp = (char*) RFIFOP(fd,4) + 4;		
     if ((npc = npc_name2id(whisper_tmp)))	
 	{
 		aFree(whisper_tmp);
-		whisper_tmp=(char *)aCallocA(strlen(RFIFOP(fd,28))+1,sizeof(char));
+		whisper_tmp=(char *)aCallocA(strlen((char *)(RFIFOP(fd,28))+1),sizeof(char));
 		whisper_tmp[0]=0;
 	   
 		sprintf(whisper_tmp, "%s", (const char*)RFIFOP(fd,28));  
@@ -10705,11 +10705,11 @@ void clif_parse_Blacksmith(int fd,struct map_session_data *sd)
 			if (strcmp(smith_fame_list[i].name, "-") == 0 &&
 				(name = map_charid2nick(smith_fame_list[i].id)) != NULL)
 			{
-				strncpy(WFIFOP(fd, 2 + 24 * i), name, NAME_LENGTH);
+				strncpy((char *)(WFIFOP(fd, 2 + 24 * i)), name, NAME_LENGTH);
 			} else
-				strncpy(WFIFOP(fd, 2 + 24 * i), smith_fame_list[i].name, NAME_LENGTH);
+				strncpy((char *)(WFIFOP(fd, 2 + 24 * i)), smith_fame_list[i].name, NAME_LENGTH);
 		} else
-			strncpy(WFIFOP(fd, 2 + 24 * i), "None", 5);
+			strncpy((char *)(WFIFOP(fd, 2 + 24 * i)), "None", 5);
 		WFIFOL(fd, 242 + i * 4) = smith_fame_list[i].fame;
 	}
 	WFIFOSET(fd, packet_len_table[0x219]);

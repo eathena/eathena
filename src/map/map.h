@@ -522,7 +522,7 @@ struct npc_data {
 
 	union {
 		struct {
-			char *script;
+			unsigned char *script;
 			short xs,ys;
 			int guild_id;
 			int timer,timerid,timeramount,nexttimer,rid;

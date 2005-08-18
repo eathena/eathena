@@ -1356,7 +1356,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	int i, char_id, temp;
 
 	//Check for char name length overflows [Skotlex]
-	if (strlen(dat) > NAME_LENGTH-1)
+	if (strlen((char *)dat) > NAME_LENGTH-1)
 		dat[NAME_LENGTH-1] = '\0';
 	jstrescapecpy(t_name, (char*)dat);
 
