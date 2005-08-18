@@ -2640,7 +2640,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		}
 		break;
 
-	case SM_MAGNUM:	//This old implementation is no longer used. [Skotlex]
+	case SM_MAGNUM:
 		if(flag&1){
 			int dist = distance (bl->x, bl->y, skill_area_temp[2], skill_area_temp[3]);
 			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,

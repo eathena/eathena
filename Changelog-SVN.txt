@@ -1,4 +1,8 @@
 Date	Added
+08/18
+	* Modified mob_skilluse so that mobs NEVER use offensive heal. They'll now
+	  /swt if they try it (and the skill fails) [Skotlex]
+	  (there's still nothing that can be done about offensive Sanctuary)
 08/17
 	* Added script command pc_emotion, works just like emotion, except the
 	  emotion is displayed on the character that's running the script. [Skotlex]

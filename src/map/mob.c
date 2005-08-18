@@ -3281,7 +3281,8 @@ int mobskill_castend_id( int tid, unsigned int tick, int id,int data )
 	case NK_NO_DAMAGE:// Žx‰‡Œn
 		if(!md->db->skill[md->skillidx].val[0] &&
 			(md->skillid==AL_HEAL || (md->skillid==ALL_RESURRECTION && bl->type != BL_PC)) && battle_check_undead(status_get_race(bl),status_get_elem_type(bl)) )
-			skill_castend_damage_id(&md->bl,bl,md->skillid,md->skilllv,tick,0);
+			clif_emotion(&md->bl, 4); //Prevent mobs from casting offensive heal. [Skotlex]
+			//skill_castend_damage_id(&md->bl,bl,md->skillid,md->skilllv,tick,0);
 		else
 			skill_castend_nodamage_id(&md->bl,bl,md->skillid,md->skilllv,tick,0);
 		break;
