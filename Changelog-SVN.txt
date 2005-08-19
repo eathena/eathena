@@ -1,5 +1,7 @@
 Date	Added
 08/19
+	* Another update to battle_check_target, this time neutral targets should
+	  work correctly (non allied/partied people who should be affected) [Skotlex]
 	* More fixes to battle_check_target, skills should not hit yourself on
 	  pvp/gvg now. [Skotlex]
 	* Updated classchange to not change the class of bosses. [Skotlex]
