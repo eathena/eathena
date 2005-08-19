@@ -15,6 +15,8 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+08/19
+	* Fixed Double Attack's pl not being -1 (take weapon's element) [Skotlex]
 08/18
 	* Changed sell price of unknown test tube to 0 as it can be abused for a
 	  zeny exploit (thanks to Kayla for pointing it out) [Skotlex]
