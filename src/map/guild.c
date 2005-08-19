@@ -72,11 +72,11 @@ int guild_skill_get_max (int id)
 			return 3;
 		case GD_EXTENSION:
 			return 10;
-//		case GD_LEADERSHIP: //they have 1 max lvl, so come as default:
-//		case GD_GLORYWOUNDS:
-//		case GD_SOULCOLD:
-//		case GD_HAWKEYES:
-//			return 5;
+		case GD_LEADERSHIP: // Those aura skills DO HAVE 5 LV and give +1 stat/lv, don't listen to outdated sources ! [DracoRPG]
+		case GD_GLORYWOUNDS:
+		case GD_SOULCOLD:
+		case GD_HAWKEYES:
+			return 5;
 		case GD_REGENERATION:
 			return 3;
 		default:
