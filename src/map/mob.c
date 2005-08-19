@@ -2933,6 +2933,9 @@ int mob_class_change (struct mob_data *md, int class_)
 	clif_clearchar_area(&md->bl,0);
 	clif_spawnmob(md);
 
+	if (battle_config.show_mob_hp)
+		clif_charnameack(0, &md->bl);
+
 	return 0;
 }
 

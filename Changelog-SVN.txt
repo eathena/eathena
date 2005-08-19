@@ -1,5 +1,8 @@
 Date	Added
 08/19
+	* More fixes to battle_check_target, skills should not hit yourself on
+	  pvp/gvg now. [Skotlex]
+	* Updated classchange to not change the class of bosses. [Skotlex]
 	* Optimization/Fixes to battle_check_target, GrandCross should work now. [Skotlex]
 	* Reverted Lupus's change on guild auras' max lv... Please double check your sources and
 	  base yourself on kRO official website as much as possible, thanks. Link to kRO website:

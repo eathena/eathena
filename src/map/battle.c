@@ -1869,7 +1869,7 @@ static struct Damage battle_calc_weapon_attack_sub(
 		}
 	}
 
-	if(sd && sd->classchange && tmd && (rand()%10000 < sd->classchange))
+	if(sd && sd->classchange && tmd && !(t_mode&0x20) && (rand()%10000 < sd->classchange))
 	{	//Classchange:
 		struct mob_db *mob;
 		int k, class_;
@@ -2928,12 +2928,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	}
 
 	if (target == ss)
-	{
-		if (flag&BCT_SELF)
-			return 1;
-		if (flag == BCT_SELF) //In case that BCT_SELF was the only specified flag.
-			return -1;
-	}
+		state |= BCT_SELF;
 	
 	if (flag&BCT_ENEMY)
 	{	//Check default enemy settings of mob vs players
@@ -2987,9 +2982,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	}
 	
 	//Alliance state takes precedence over enemy one.
-	if (state&BCT_ENEMY && state&BCT_PARTY)
-		state&=~BCT_ENEMY;
-	else if (state&BCT_ENEMY && state&BCT_GUILD)
+	if (state&BCT_ENEMY && state&(BCT_SELF|BCT_PARTY|BCT_GUILD))
 		state&=~BCT_ENEMY;
 
 	return (flag&state)?1:-1;
