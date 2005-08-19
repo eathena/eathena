@@ -1507,7 +1507,7 @@
 5042,Hair_Protector,Dumpling Decoration,5,20,0,150,,0,,0,10477567,2,256,,14,1,127,{},{}
 5043,Opera_Ghost_Mask,Opera Ghost Mask,5,20,0,200,,1,,0,2088958,2,512,,20,0,128,{},{}
 5044,Wing_Of_Demon,Wings of Demon,5,20,0,350,,2,,0,10477567,2,256,,45,1,129,{},{}
-5045,Magician_Hat,Magic Hat,5,20,0,500,,3,,0,5,54319E+11,2,256,,50,1,130,{},{ bonus bDex,1; bonus bAgi,1; bonus bMaxSP,50; }
+5045,Magician_Hat,Magic Hat,5,20,0,500,,3,,0,5,99092,2,256,,50,1,130,{},{ bonus bDex,1; bonus bAgi,1; bonus bMaxSP,50; }
 5046,Bongun_Hat,Bongun Hat,5,20,0,300,,5,,0,10477567,2,769,,0,0,139,{},{}
 5047,Fashion_Sunglasses,Fashion Sunglasses,5,20,0,100,,0,,0,2088958,2,256,,0,1,131,{},{}
 5048,Cresent_Hairpin,Cresent Hairpin,5,20,0,100,,0,,0,10477567,2,256,,0,1,132,{},{}
@@ -2207,13 +2207,13 @@
 12100,Nine_Tail_Dish,Nine Tail Dish,2,,,500,,,,,10477567,2,,,,,,{},{} //Luk+10
 12101,Citron,Citron,2,,,300,,,,,10477567,2,,,,,,{},{}
 12102,Grilled_Skewer,Grilled Skewer,2,,,300,,,,,10477567,2,,,,,,{},{}
-12103,Bloody_Branch,Bloody Branch,2,,,200,,,,,10477567,2,,,,,,{ monster "this",0,0,"--ja--",-3,1,; },{}
+12103,Bloody_Branch,Bloody Branch,2,,,200,,,,,10477567,2,,,,,,{ monster "this",0,0,"--ja--",-3,1,""; },{}
 12104,Random_Quiver,Random Quiver,2,,,200,,,,,10477567,2,,,,,,{ getitem rand(12004,12015),1; },{}
 12105,Taming_Item_Giftset,Taming Item Giftset,2,,,200,,,,,10477567,2,,,,,,{},{} //gets 3 of any(?) taming items
 12106,Jewel_Box,Jewel Case,2,,,200,,,,,10477567,2,,,,,,{},{} //gets any accessary
 12107,Wrapped_Mask,Wrapped Mask,2,,,200,,,,,10477567,2,,,,,,{},{} //gets a mask
 12108,Bundle_of_Spells,Bundle of Spells,2,,,200,,,,,10477567,2,,,,,,{},{} // gets 5 of any(?) spell scrolls
-12109,Poring_Box,Poring Box,2,,,200,,,,,10477567,2,,,,,,{ monster "this",0,0,"--ja--",-2,1,; },{}
+12109,Poring_Box,Poring Box,2,,,200,,,,,10477567,2,,,,,,{ monster "this",0,0,"--ja--",-2,1,""; },{}
 12110,First_Aid_Box,First Aid Box,2,,,200,,,,,10477567,2,,,,,,{},{} //gets 5 of any potions
 12111,Wrapped_Food,Wrapped Food,2,,,200,,,,,10477567,2,,,,,,{},{} //gets 3 of any food
 
