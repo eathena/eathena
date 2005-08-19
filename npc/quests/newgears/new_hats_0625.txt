@@ -1,9 +1,9 @@
 //===== eAthena Script ============
 //= New hats from kRO Sakray on 2005-05-31
 //===== By: =========================
-//= Lorky
+//= Lorky, Lupus
 //===== Current Version: ===================
-//= 0.2
+//= 0.3
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -23,7 +23,7 @@
 // 		Could someone correct wrong info, names, coords, etc? ^___-
 // 0.1c Fixed hats shop. It shouldn't sell slotted hats.
 // 0.2 Fixed Detective Hat items (by Ishizu-chan) [Lupus]
-// Added Zealotus mask quest with correct items [Lupus]
+// 0.3 Added Zealotus mask quest with correct items [Lupus]
 //=====================================================================
 
 //Links (some info related to these headgears)
@@ -84,15 +84,15 @@ lighthalzen.gat,140,68,4 script Morris 818,{
 	mes "[Morris]";
 	mes "Ok then, I shall make one for you.";
 
-	if (countitem(611)<10 || countitem(7301)<1887 || countitem(5115)<1 || Zeny<50000) goto L_NOITEM;//Items: Magnifier, Black_Piece_of_Cloth, Soldier's_Felt_Hat,
+	if (countitem(611)<10 || countitem(7301)<1887 || countitem(5115)<1 || Zeny<50000) goto L_NOITEM;//Items: Magnifier, Tassel, Fashionable_Fur_Hat,
 	mes "[Morris]";
 	mes "Very well. Now I can make it...";
 	next;
 	mes "[Morris]";
 	mes "Enjoy.";
 	delitem 611,10;   //Items: Magnifier,
-	delitem 7301,1887;  //Tassel
-	delitem 5115,1;   //Items: Soldier's_Felt_Hat [1]
+	delitem 7301,1887;  //Tassel//Items: Tassel,
+	delitem 5115,1;   //Items: Fashionable_Fur_Hat,
 	set Zeny,Zeny-50000;
 	getitem 5108,1;//Items: Detective_Hat,
 	close;
@@ -219,9 +219,9 @@ lighthalzen.gat,224,116,4	script	Juneau Cho	818,{	//!!! WRONG name of NPC
 	mes "Good, thank you! Let me just take your items.";
 	delitem 519,50;//Items: Milk,
 	delitem 548,50;//Items: Cheese,
-	delitem 539,50;//Items: Piece of Cake,
+	delitem 539,50;//Items: Piece_of_Cake,
 	delitem 7031,50;//Items: Old_Frying_Pan,
-	getitem 5107,1;
+	getitem 5107,1;//Items: Well_Done_Toast,
 	next;
 	mes "[Juneau Cho]";	
 	mes "Well done. Be careful, it's hot.";
@@ -250,15 +250,15 @@ lighthalzen.gat,200,200,4	script	Gill Tass	818,{
 	next;
 	menu "Yes, I do!",-,"No, thanks",L_EXIT;
 
-	if (countitem(7205) < 369
-		|| countitem(660) < 1
-		|| countitem(7263) < 1
-		|| countitem(7099) < 30) goto L_NOITEM;
+	if (countitem(7205) < 369//Items: Black_Piece_of_Cloth,
+		|| countitem(660) < 1//Items: Forbidden_Red_Candle,
+		|| countitem(7263) < 1//Items: Cat's_Eye,
+		|| countitem(7099) < 30) goto L_NOITEM;//Items: Worn-out_Magic_Scroll,
 
-	delitem 7205,369;//Items: Milk,
-	delitem 660,1;//Items: Cheese,
-	delitem 7263,1;//Items: Piece of Cake,
-	delitem 7099,30;//Items: Old_Frying_Pan,
+	delitem 7205,369;//Items: Black_Piece_of_Cloth,
+	delitem 660,1;//Items: Forbidden_Red_Candle,
+	delitem 7263,1;//Items: Cat's_Eye,
+	delitem 7099,30;//Items: Worn-out_Magic_Scroll,
 	getnameditem 5121,strcharinfo(0);
 	logmes "Quest: Got Zealotus Mask";
 
@@ -270,10 +270,10 @@ lighthalzen.gat,200,200,4	script	Gill Tass	818,{
 L_NOITEM:
 	mes "[Gugex]";
 	mes "All right. Bring me these items:";
-	mes "^FF3300 369 Black Pieces of Cloth,^000000";
-	mes "^FF3300 1 Forbidden Red Candle,^000000";
-	mes "^FF3300 1 Cat's Eye,^000000";
-	mes "and ^FF3300 30 Worn-out scrolls (Old Magic Circles).^000000";
+	mes "^FF3300 369 Black Pieces of Cloth^000000,";
+	mes "^FF3300 1 Forbidden Red Candle^000000,";
+	mes "^FF3300 1 Cat's Eye^000000";
+	mes "and ^FF3300 30 Worn-out Magic scrolls.^000000";
 	close;
 
 L_EXIT:
@@ -314,5 +314,4 @@ L_EXIT:
 	mes "[Gugex]";
 	mes "Azzz youu wishhhh... Brr-r.";
 	close;
-	
 }
