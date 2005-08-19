@@ -29,6 +29,9 @@ TODO:
 Date		Added
 ======
 08/19
+	* Updated refine npc to stop it from making the server crash (features = 1,
+	  refining past safe level) [Skotlex]
+	* Updated Glastheim spawns
 	* Added new items, fixed items, added new official drops [Lupus]
 	* Added a temp shop of official sellable items 8) [Lupus]
 08/18

@@ -67,6 +67,20 @@ int battle_weapon_attack( struct block_list *bl,struct block_list *target,
 int battle_counttargeted(struct block_list *bl,struct block_list *src,int target_lv);
 struct block_list* battle_gettargeted(struct block_list *target);
 
+//New definitions [Skotlex]
+#define BCT_ENEMY 0x20000
+//This should be (~BCT_ENEMY&BCT_ALL)
+#define BCT_NOENEMY 0xd0000
+#define BCT_PARTY	0x40000
+//This should be (~BCT_PARTY&BCT_ALL)
+#define BCT_NOPARTY 0xb0000	
+#define BCT_GUILD	0x80000
+//This should be (~BCT_GUILD&BCT_ALL)
+#define BCT_NOGUILD 0x70000
+#define BCT_ALL 0xf0000
+#define BCT_NOONE 0x00000
+#define BCT_SELF 0x10000
+/*
 enum {
 	BCT_NOENEMY	=0x00000,
 	BCT_PARTY	=0x10000,
@@ -76,7 +90,7 @@ enum {
 	BCT_NOONE	=0x60000,
 	BCT_SELF	=0x60000,
 };
-
+*/
 int battle_check_undead(int race,int element);
 int battle_check_target( struct block_list *src, struct block_list *target,int flag);
 int battle_check_range(struct block_list *src,struct block_list *bl,int range);

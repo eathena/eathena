@@ -1708,6 +1708,34 @@ int guild_isallied(struct guild *g, struct guild_castle *gc)
 	return 0;
 }
 
+int guild_idisallied(int guild_id, int guild_id2)
+{
+	int i;
+	struct guild *g, *g2;
+
+	if (guild_id <= 0 || guild_id2 <= 0)
+		return 0;
+	
+	g = guild_search(guild_id);
+	g2 = guild_search(guild_id2);
+
+	nullpo_retr(0, g);
+	nullpo_retr(0, g2);
+
+	if(g->guild_id == g2->guild_id)
+		return 1;
+
+	for(i=0;i<MAX_GUILDALLIANCE;i++)
+		if(g->alliance[i].guild_id == g2->guild_id) {
+			if(g->alliance[i].opposition == 0)
+				return 1;
+			else
+				return 0;
+		}
+
+	return 0;
+}
+
 static int guild_db_final(void *key,void *data,va_list ap)
 {
 	struct guild *g=(struct guild *) data;

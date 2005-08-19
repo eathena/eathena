@@ -558,7 +558,7 @@ int battle_calc_drain(int damage, int rate, int per, int val)
 {
 	int diff = 0;
 
-	if (damage <= 0 || rate <= 0)
+	if (damage <= 0)
 		return 0;
 
 	if (per && rand()%100 < rate) {
@@ -571,7 +571,7 @@ int battle_calc_drain(int damage, int rate, int per, int val)
 		}
 	}
 
-	if (val && rand()%100 < rate) {
+	if (val /*&& rand()%100 < rate*/) { //Absolute leech/penalties have 100% chance. [Skotlex]
 		diff += val;
 	}
 	return diff;
@@ -1871,28 +1871,16 @@ static struct Damage battle_calc_weapon_attack_sub(
 
 	if(sd && sd->classchange && tmd && (rand()%10000 < sd->classchange))
 	{	//Classchange:
-		static int changeclass[]={
-			1001,1002,1004,1005,1007,1008,1009,1010,1011,1012,1013,1014,1015,1016,1018,1019,1020,
-			1021,1023,1024,1025,1026,1028,1029,1030,1031,1032,1033,1034,1035,1036,1037,1040,1041,
-			1042,1044,1045,1047,1048,1049,1050,1051,1052,1053,1054,1055,1056,1057,1058,1060,1061,
-			1062,1063,1064,1065,1066,1067,1068,1069,1070,1071,1076,1077,1078,1079,1080,1081,1083,
-			1084,1085,1094,1095,1097,1099,1100,1101,1102,1103,1104,1105,1106,1107,1108,1109,1110,
-			1111,1113,1114,1116,1117,1118,1119,1121,1122,1123,1124,1125,1126,1127,1128,1129,1130,
-			1131,1132,1133,1134,1135,1138,1139,1140,1141,1142,1143,1144,1145,1146,1148,1149,1151,
-			1152,1153,1154,1155,1156,1158,1160,1161,1163,1164,1165,1166,1167,1169,1170,1174,1175,
-			1176,1177,1178,1179,1180,1182,1183,1184,1185,1188,1189,1191,1192,1193,1194,1195,1196,
-			1197,1199,1200,1201,1202,1204,1205,1206,1207,1208,1209,1211,1212,1213,1214,1215,1216,
-			1219,1242,1243,1245,1246,1247,1248,1249,1250,1253,1254,1255,1256,1257,1258,1260,1261,
-			1263,1264,1265,1266,1267,1269,1270,1271,1273,1274,1275,1276,1277,1278,1280,1281,1282,
-			1291,1292,1293,1294,1295,1297,1298,1300,1301,1302,1304,1305,1306,1308,1309,1310,1311,
-			1313,1314,1315,1316,1317,1318,1319,1320,1321,1322,1323,1364,1365,1366,1367,1368,1369,
-			1370,1371,1372,1374,1375,1376,1377,1378,1379,1380,1381,1382,1383,1384,1385,1386,1387,
-			1390,1391,1392,1400,1401,1402,1403,1404,1405,1406,1408,1409,1410,1412,1413,1415,1416,
-			1417,1493,1494,1495,1497,1498,1499,1500,1502,1503,1504,1505,1506,1507,1508,1509,1510,
-			1511,1512,1513,1514,1515,1516,1517,1519,1520,1582,1584,1585,1586,1587 };
-		int class_ = mob_random_class (changeclass,sizeof(changeclass)/sizeof(changeclass[0]));
-		//if (class_ > 1000 && class_ < MAX_MOB_DB)	// skip checking since its hard coded
-			mob_class_change(((struct mob_data *)target),class_);
+		struct mob_db *mob;
+		int k, class_;
+		i = 0;
+			do {
+				class_ = rand() % MAX_MOB_DB;
+				k = rand() % 1000000;
+				mob = mob_db(class_);
+			} while ((mobdb_checkid(class_)==0 || mob->summonper[0] <= k || mob->mode&0x20) && (i++) < 2000);
+			if (i< 2000)
+				mob_class_change(((struct mob_data *)target),class_);
 	}
 	return wd;
 }
@@ -2883,6 +2871,129 @@ int battle_check_undead(int race,int element)
  */
 int battle_check_target( struct block_list *src, struct block_list *target,int flag)
 {
+	int state = BCT_NOONE; //Initial state neutral (0x00000)
+	struct block_list *ss= src;
+	
+	if (flag == BCT_ALL){ //All actually stands for all players/mobs
+		if (target->type == BL_MOB || target->type == BL_PC)
+			return 1;
+		else
+			return -1;
+	}
+	else if (flag & BCT_SELF)
+	{
+		if (target == src)
+			return 1;
+		else
+			return -1;
+	}
+
+	if (target->type == BL_PET ||	//Pets can't be targetted for anything.
+		(src->type == BL_SKILL && target->type == BL_SKILL))	//Skills can't target each other.
+		return -1;
+
+	if (target->type == BL_PC) {
+		struct map_session_data *tsd = NULL;
+		
+		nullpo_retr(-1, tsd = (struct map_session_data *)target);
+
+		if(tsd->invincible_timer != -1 || pc_isinvisible(tsd))
+			return -1; //Cannot be targeted yet.
+		
+		if (tsd->monster_ignore && src->type == BL_MOB)
+			return -1; //option to have monsters ignore GMs [Valaris]
+	}
+
+	
+	if (flag & (BCT_ENEMY|BCT_NOPARTY|BCT_NOGUILD) && !map[src->m].flag.gvg)	//Offensive stuff can't be casted on Basilica
+	{
+		struct status_change *sc_data, *tsc_data;
+		
+		// Celest
+		sc_data = status_get_sc_data(src);
+		tsc_data = status_get_sc_data(target);
+		if ((sc_data && sc_data[SC_BASILICA].timer != -1) ||
+		(tsc_data && tsc_data[SC_BASILICA].timer != -1))
+			return -1;
+	}
+	
+	if (src->type == BL_SKILL)
+	{
+		struct skill_unit *su = (struct skill_unit *)src;
+		if (su && su->group)
+		{
+			if (su->group->src_id == target->id && flag &(BCT_ENEMY | BCT_NOPARTY | BCT_NOGUILD))
+			{
+			int inf2;		
+			inf2 = skill_get_inf2(su->group->skill_id);
+			if (inf2&INF2_NO_DAMAGE_SELF ||
+				inf2&INF2_NO_TARGET_SELF)
+				return -1;
+			}
+			if ((ss = map_id2bl(su->group->src_id)) == NULL)
+				ss = src; //Fallback on the trap itself, otherwise consider this a "caster versus enemy" scenario.
+		}
+	}
+	if (flag & (BCT_ENEMY|BCT_NOGUILD|BCT_NOPARTY))
+	{	//Check default enemy settings of mob vs players
+		if ((ss->type == BL_MOB && target->type == BL_PC) ||
+			((ss->type == BL_PC || ss->type == BL_PET) && target->type == BL_MOB))
+			state |= BCT_ENEMY;
+	}
+	if (flag & (BCT_PARTY|BCT_NOPARTY|BCT_ENEMY))
+	{	//Identify party state
+		int s_party, t_party;
+		s_party = status_get_party_id(ss);
+		t_party = status_get_party_id(target);
+
+		if (!map[target->m].flag.pvp)
+		{
+			if (s_party && s_party == t_party)
+				state |= BCT_PARTY;
+		}
+		else
+		{
+			if (!map[target->m].flag.pvp_noparty && s_party && s_party == t_party)
+				state |= BCT_PARTY;
+			else
+				state |= BCT_ENEMY;
+		}
+	}
+	if (flag & (BCT_GUILD|BCT_NOGUILD|BCT_ENEMY))
+	{	//Identify guild state
+		int s_guild, t_guild;
+		s_guild = status_get_guild_id(ss);
+		t_guild = status_get_guild_id(target);
+
+		if (!map[target->m].flag.gvg && !map[target->m].flag.gvg_dungeon)
+		{
+			if (s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild)))
+				state |= BCT_GUILD;
+		}
+		else
+		{
+			if (!(map[target->m].flag.pvp && map[target->m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild)))
+				state |= BCT_GUILD;
+			else
+				state |= BCT_ENEMY;
+		}
+	}
+
+	if (state&BCT_ENEMY && ss->type == BL_MOB && (struct mob_data*)ss && target->type == BL_MOB && (struct mob_data*)target)
+	{	//Under no situation should normal mobs attempt to attack each other!
+		if (((struct mob_data*)ss)->state.special_mob_ai==0 && ((struct mob_data*)target)->state.special_mob_ai==0)
+			state &=~BCT_ENEMY;
+	}
+	
+	//Alliance state takes precedence over enemy one.
+	if (state&BCT_ENEMY && state&BCT_PARTY)
+		state&=~BCT_ENEMY;
+	else if (state&BCT_ENEMY && state&BCT_GUILD)
+		state&=~BCT_ENEMY;
+
+	return (flag&state)?1:-1;
+
+/* The previous implementation is left here for reference in case something breaks :X [Skotlex]
 	int s_p,s_g,t_p,t_g;
 	struct block_list *ss=src;
 	struct status_change *sc_data;
@@ -2934,9 +3045,9 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		struct skill_unit *tsu = (struct skill_unit *)target;
 		if (tsu && tsu->group) {
 			switch (tsu->group->unit_id) {
-			case 0x8d:
-			case 0x8f:
-			case 0x98:
+			case 0x8d: //IceWall
+			case 0x8f: //Blastmine
+			case 0x98: //Claymore trap
 				return 0;
 				break;
 			}
@@ -3087,8 +3198,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			return 0;
 		}
 	}
-
 	return 1;	// ŠY“–‚µ‚È‚¢‚Ì‚Å–³ŠÖŒWl•¨i‚Ü‚ “G‚¶‚á‚È‚¢‚Ì‚Å–¡•ûj
+*/
 }
 /*==========================================
  * Ë’ö”»’è

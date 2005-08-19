@@ -102,23 +102,25 @@ gl_knt01.gat,0,0,0,0	monster	Raydric Archer	1276,25,0,0,0
 
 //(gl_knt02.gat)*
 gl_knt02.gat,0,0,0,0	monster	Joker	1131,20,0,0,0
-gl_knt02.gat,114,194,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
-gl_knt02.gat,118,241,5,5	monster	Khalitzburg	1132,2,1800000,900000,1
-gl_knt02.gat,196,239,5,5	monster	Khalitzburg	1132,2,1800000,900000,1
-gl_knt02.gat,208,45,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
-gl_knt02.gat,232,132,5,5	monster	Khalitzburg	1132,2,1800000,900000,1
-gl_knt02.gat,243,74,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
-gl_knt02.gat,60,242,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
+gl_knt02.gat,149,26,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
+gl_knt02.gat,99,49,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
 gl_knt02.gat,62,80,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
 gl_knt02.gat,82,134,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
-gl_knt02.gat,99,49,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
-gl_knt02.gat,0,0,0,0	monster	Khalitzburg	1132,20,1800000,900000,1
-gl_knt02.gat,0,0,0,0	monster	Raydric	1163,55,0,0,0
-gl_knt02.gat,0,0,0,0	monster	Mysteltainn	1203,1,0,0,1
-gl_knt02.gat,149,26,5,5	monster	Knight of Abyss	1219,6,60000,30000,1
-gl_knt02.gat,0,0,0,0	monster	Blood Knight	1268,1,3600000,3600000,1
-gl_knt02.gat,0,0,0,0	monster	Alice	1275,1,0,0,1
-gl_knt02.gat,0,0,0,0	monster	Raydric Archer	1276,25,0,0,0
+gl_knt02.gat,60,242,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
+gl_knt02.gat,118,241,5	monster	Khalitzburg	1132,1,1800000,900000,1
+gl_knt02.gat,114,194,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
+gl_knt02.gat,196,239,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
+gl_knt02.gat,208,45,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
+gl_knt02.gat,243,74,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
+gl_knt02.gat,232,132,5,5	monster	Khalitzburg	1132,1,1800000,900000,1
+gl_knt02.gat,0,0,0,0	monster	Khalitzburg	1132,30,0,0,0
+gl_knt02.gat,0,0,0,0	monster	Raydric	1163,50,0,0,0
+gl_knt02.gat,0,0,0,0	monster	Mysteltainn	1203,1,1800000,1200000,0
+gl_knt02.gat,0,0,0,0	monster	Knight of Abyss	1219,5,0,0,0
+gl_knt02.gat,149,26,5,5	monster	Knight of Abyss	1219,1,3600000,1800000,1
+gl_knt02.gat,0,0,0,0	monster	Blood Knight	1268,1,3600000,1800000,1
+gl_knt02.gat,0,0,0,0	monster	Alice	1275,1,0,0,0
+gl_knt02.gat,0,0,0,0	monster	Raydric Archer	1276,20,0,0,0
 
 //(gl_prison.gat)*
 gl_prison.gat,0,0,0,0	monster	Zombie Prisoner	1197,40,0,0,0
@@ -145,9 +147,11 @@ gl_sew02.gat,0,0,0,0	monster	Cramp	1209,40,0,0,0
 gl_sew02.gat,0,0,0,0	monster	Gargoyle	1253,60,0,0,0
 
 //(gl_sew03.gat)*
-gl_sew03.gat,0,0,0,0	monster	Cramp	1209,25,0,0,0
-gl_sew03.gat,0,0,0,0	monster	Sting	1207,75,0,0,0
-gl_sew03.gat,0,0,0,0	monster	Gargoyle	1253,25,0,0,0
+gl_sew03.gat,0,0,0,0	monster	Sting	1207,70,0,0,0
+gl_sew03.gat,0,0,0,0	monster	Gargoyle	1253,37,0,0,0
+gl_sew03.gat,147,7,5,1	monster	Gargoyle	1253,1,2400000,1800000,0
+gl_sew03.gat,140,7,5,1	monster	Gargoyle	1253,1,3600000,1800000,0
+gl_sew03.gat,158,7,5,1	monster	Gargoyle	1253,1,3600000,1800000,0
 
 //(gl_sew04.gat)*
 gl_sew04.gat,0,0,0,0	monster	Anolian	1206,60,0,0,0

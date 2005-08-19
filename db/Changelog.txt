@@ -16,6 +16,9 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 08/18
+	* Changes to Immaterial Sword (drain 1SP, not 1%SP per attack)
+	* Fixed Battleground Textbook, Greatest General Card to cast on yourself
+	  (again) [Skotlex]
 	* Changed Emperium to Holy 1 / Angel [DracoRPG]
 	* Changed (again!) Gloria Domini to 'misc' [DracoRPG]
 	* Changed pl of all 'weapon' attack skills that take weapon's element from '0' to '-1',

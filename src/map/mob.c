@@ -1212,7 +1212,7 @@ static int mob_ai_sub_hard_activesearch(struct block_list *bl,va_list ap)
 		return 0;
 
 	//“G–¡•û”»’è
-	if(battle_check_target(&smd->bl,bl,BCT_ENEMY)==0)
+	if(battle_check_target(&smd->bl,bl,BCT_ENEMY)<=0)
 		return 0;
 
 	if(!smd->mode)
@@ -1618,7 +1618,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				asd = (struct map_session_data *)abl;
 			if (asd == NULL || md->bl.m != abl->m || abl->prev == NULL ||
 				(dist = distance(md->bl.x, md->bl.y, abl->x, abl->y)) >= 32 ||
-				battle_check_target(bl, abl, BCT_ENEMY) == 0 ||
+				battle_check_target(bl, abl, BCT_ENEMY) <= 0 ||
 				!mob_can_reach(md, abl, distance(md->bl.x, md->bl.y, abl->x, abl->y))) //added
 			{
 				md->attacked_id = 0;
@@ -2304,7 +2304,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			}
 			//Let mobs retaliate against the pet's master [Skotlex]
 			if(md->attacked_id <= 0 && md->state.special_mob_ai==0)
-				md->attacked_id = pd->msd->status.char_id;
+				md->attacked_id = pd->msd->bl.id;
 		}
 		if(src && src->type == BL_MOB && ((struct mob_data*)src)->state.special_mob_ai){
 			struct mob_data *md2 = (struct mob_data *)src;

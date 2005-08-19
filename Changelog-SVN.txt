@@ -1,5 +1,19 @@
 Date	Added
 08/19
+	* Fixed passive mobs incorrectly setting the attacked_id when hit by pets. [Skotlex]
+	* Rewrote battle_check_target. [Skotlex]
+	  - Positive side-effects: offensive stuff won't hit your guildmates on gvg
+	  (such as traps)
+	  - Negative side-effects: Unknown, but there's bound to be some because of
+	  the big change. I tested it with traps, spells, pets, passive and
+	  aggressive mobs, but it's probable there's stuff I am still missing.
+	* Updated mob spawns of Glast Heim (gl_sew3 and gk_knt2) [Skotlex]
+	* Updated classchange code (Azoth, Heiroloist) to get random classes the
+	  same way a dead branch does. Cannot convert to bosses. [Skotlex]
+	* Script/Npc/Item updates. [Skotlex]
+	* Bonus b(HP/SP)GainValue will always be considered 100% (the first
+	  parameter) this is done to avoid exploits when combining it with
+	  b(HP/SP)DrainValue (eg: Immaterial Sword) [Skotlex]
 	* Fixed max level of some guilds skills 5->1 [Lupus]
 		according to http://eathena.deltaanime.net/board/index.php?showtopic=757 
 	* New items drops, new shop [Lupus]

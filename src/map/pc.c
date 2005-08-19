@@ -1797,11 +1797,11 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		break;
 	case SP_HP_DRAIN_VALUE:
 		if(!sd->state.lr_flag) {
-			sd->right_weapon.hp_drain_rate += type2;
+//			sd->right_weapon.hp_drain_rate += type2;
 			sd->right_weapon.hp_drain_value += val;
 		}
 		else if(sd->state.lr_flag == 1) {
-			sd->left_weapon.hp_drain_rate += type2;
+//			sd->left_weapon.hp_drain_rate += type2;
 			sd->left_weapon.hp_drain_value += val;
 		}
 		break;
@@ -1816,13 +1816,13 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		}
 		sd->sp_drain_type = 0;
 		break;
-	case SP_SP_DRAIN_VALUE:
+	case SP_SP_DRAIN_VALUE: //Drain rate for these is always 100%, so it is not added to avoid exploits from combining with other leeches. [Skotlex]
 		if(!sd->state.lr_flag) {
-			sd->right_weapon.sp_drain_rate += type2;
+//			sd->right_weapon.sp_drain_rate += type2;
 			sd->right_weapon.sp_drain_value += val;
 		}
 		else if(sd->state.lr_flag == 1) {
-			sd->left_weapon.sp_drain_rate += type2;
+//			sd->left_weapon.sp_drain_rate += type2;
 			sd->left_weapon.sp_drain_value += val;
 		}
 		sd->sp_drain_type = 0;
@@ -2057,13 +2057,13 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 		}
 		sd->sp_drain_type = val;
 		break;
-	case SP_SP_DRAIN_VALUE:
+	case SP_SP_DRAIN_VALUE: //Drain rate for these is always 100%, so it is not added to avoid exploits from combining with other leeches. [Skotlex]
 		if(!sd->state.lr_flag) {
-			sd->right_weapon.sp_drain_rate += type2;
+//			sd->right_weapon.sp_drain_rate += type2;
 			sd->right_weapon.sp_drain_value += type3;
 		}
-		else if(sd->state.lr_flag == 1) {
-			sd->left_weapon.sp_drain_rate += type2;
+		else {
+//			sd->left_weapon.sp_drain_rate += type2;
 			sd->left_weapon.sp_drain_value += type3;
 		}
 		sd->sp_drain_type = val;

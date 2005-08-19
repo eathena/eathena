@@ -5295,7 +5295,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		int fail_flag = 1;
 		if(inf2 & INF2_PARTY_ONLY && battle_check_target(&sd->bl,bl, BCT_PARTY) > 0)
 			fail_flag = 0;
-		if(inf2 & INF2_GUILD_ONLY && sd->status.guild_id > 0 && sd->status.guild_id == status_get_guild_id(bl))
+		else if(inf2 & INF2_GUILD_ONLY && battle_check_target(&sd->bl,bl, BCT_GUILD) > 0)
 			fail_flag = 0;
 		
 		if (sd->skillid == PF_SOULCHANGE && (map[sd->bl.m].flag.gvg || map[sd->bl.m].flag.pvp))
@@ -5716,7 +5716,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 				if(sd->potion_hp > 0) {
 					map_foreachinarea(skill_area_sub,
 						src->m,x-3,y-3,x+3,y+3,0,
-						src,skillid,skilllv,tick,flag|BCT_PARTY|1,
+						src,skillid,skilllv,tick,flag|BCT_PARTY|BCT_GUILD|1,
 						skill_castend_nodamage_id);
 				}
 			}
@@ -6540,7 +6540,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	case 0xb3:	//PA_GOSPEL - Gospel
 		if (rand()%100 > sg->skill_lv*10)
 			break;
-		if (ss != bl && battle_check_target(ss,bl,BCT_PARTY)>0) 
+		if (ss != bl && battle_check_target(ss,bl,BCT_PARTY|BCT_GUILD)>0) 
 		{	//Support Effect
 			int i = rand()%14; //Positive buff count
 			switch (i)
@@ -8715,8 +8715,8 @@ int skill_frostjoke_scream(struct block_list *bl,va_list ap)
 			return 0;
 	}
 	if (map[src->m].flag.gvg || map[src->m].flag.pvp)
+		// we freeze everybody except of ourselfes on pvp/gvg [veider]
 		skill_additional_effect(src,bl,skillnum,skilllv,BF_MISC,tick);
-	// we freeze everybody except of ourselfes on pvp/gvg [veider]
 	else {
 		if(battle_check_target(src,bl,BCT_ENEMY) > 0)
 			skill_additional_effect(src,bl,skillnum,skilllv,BF_MISC,tick);

@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Syrus22 (1.1)
 //===== Current Version: =====================================
-//= 1.3
+//= 1.4
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Description: =========================================
@@ -22,6 +22,7 @@
 //= Fixed repairman prices [shadowlady]
 //= Fixed bug that skips requirements thanks to sir_loon [massdriller]
 //= Fixed itemid error thanks to -Vitamin- [massdriller]
+//= 1.4 Removed use of functions and replaced them by labels. [Skotlex]
 //============================================================
 
 
@@ -298,7 +299,7 @@ REFINE0:
 	set @material,985;
 	set @price,2000;
 	set @safe,4;
-	if(@features == 1) callfunc "refinefeatures";
+	if(@features == 1) goto L_refinefeatures;
 	goto L_refinenormal;
 //Refine Level 1 Weapon
 REFINE1:
@@ -307,7 +308,7 @@ REFINE1:
 	set @material,1010;
 	set @price,50;
 	set @safe,7;
-	if(@features == 1) callfunc "refinefeatures";
+	if(@features == 1) goto L_refinefeatures;
 	goto L_refinenormal;
 //Refine Level 2 Weapon
 REFINE2:
@@ -316,7 +317,7 @@ REFINE2:
 	set @material,1011;
 	set @price,200;
 	set @safe,6;
-	if(@features == 1) callfunc "refinefeatures";
+	if(@features == 1) goto L_refinefeatures;
 	goto L_refinenormal;
 //Refine Level 3 Weapon
 REFINE3:
@@ -325,7 +326,7 @@ REFINE3:
 	set @material,984;
 	set @price,5000;
 	set @safe,5;
-	if(@features == 1) callfunc "refinefeatures";
+	if(@features == 1) goto L_refinefeatures;
 	goto L_refinenormal;
 //Refine Level 4 Weapon
 REFINE4:
@@ -333,7 +334,7 @@ REFINE4:
 	set @material,984;
 	set @price,20000;
 	set @safe,4;
-	if(@features == 1) callfunc "refinefeatures";
+	if(@features == 1) callfunc L_refinefeatures;
 	goto L_refinenormal;
 
 L_refinenormal:
@@ -351,13 +352,12 @@ L_refinenormal:
 		mes "["+@name$+"]";
 		mes "Do you still wish you refine it? If so I will not be able to guarantee my work...";
 		next;
-		menu "Yes",L_Sub,"No",Lcancel1;
+		menu "Yes",-,"No",Lcancel1;
 
 		L_Sub:
 			if ((countitem(@material) < 1) || (Zeny < @price)) goto Lcancel2;
 			delitem @material,1;
 			set Zeny,Zeny-@price;
-
 
 Lrefine:
 	if (getequippercentrefinery(@part)<=rand(100)) goto Lfail;
@@ -401,10 +401,9 @@ Lcancel2:
 	mes "[" + @name$ + "]";
 	mes "Is that all you got? Unfortunately I can't work for you at a lower price.  Try putting yourself in my shoes.";
 	close;
-}
 
 // New Refining Functions ========================
-function	script	refinefeatures	{
+L_refinefeatures:
 	if(getequiprefinerycnt(@part) >= @safe) goto Lnosafe;
 	mes "[" + @name$ + "]";
 	mes "I can refine this to the safe limit or a desired number of times... it's your choice...";
@@ -421,8 +420,7 @@ Lsafe:
 	if((countitem(@material) < @refinecnt) || (Zeny < @fullprice)) goto Lcancel2;
 	delitem @material,@refinecnt;
 	set Zeny,Zeny - @fullprice;
-	callfunc "refinesafe";
-	break;
+	goto L_refinesafe;
 
 Lnosafe:
 	mes "[" + @name$ + "]";
@@ -441,8 +439,7 @@ Lnosafe:
 		if((countitem(@material) < @refinecnt) || (Zeny < @fullprice)) goto Lcancel2;
 		delitem @material,@refinecnt;
 		set Zeny,Zeny - @fullprice;
-		callfunc "refinenumber";
-		break;
+		goto L_refinenumber;
 
 		Lwarn:
 			set @refinecheck,@refinecheck - @safe;
@@ -453,60 +450,40 @@ Lnosafe:
 				if((countitem(@material) < @refinecnt) || (Zeny < @fullprice)) goto Lcancel2;
 				delitem @material,@refinecnt;
 				set Zeny,Zeny - @fullprice;
-				callfunc "refinenumber";
-				break;
-Lcancel:
-	mes "[" + @name$ + "]";
-	mes "If you say so... See you again soon I hope.";
-	close;
-Lcancel1:
-	mes "[" + @name$ + "]";
-	mes "Good... I don't like to break people's equipment...";
-	close;
-Lcancel2:
-	mes "[" + @name$ + "]";
-	mes "Sorry but you don't have everything I need...";
-	close;
+				goto L_refinenumber;
+
 Lcancel3:
 	mes "[" + @name$ + "]";
 	mes "I can't refine this item that many times.";
 	close;
-}
 
-// Function: Safe Refine ---------------------
-function	script	refinesafe	{
+// SubFunction: Safe Refine ---------------------
+L_refinesafe:
 	mes "Clang, clang!!!";
 	successrefitem @part;
 	emotion 21;
 	set @refinecnt,@refinecnt - 1;
 	next;
 	if(@refinecnt == 0) goto Lend;
-	callfunc "refinesafe";
-	break;
+	goto L_refinesafe;
 
 	Lend:
 		mes "[" + @name$ + "]";
 		mes "All finished... Come again soon.";
 		close;
-}
-// Function: Refine 
-function	script	refinenumber	{
+		
+// SubFunction: Refine 
+L_refinenumber:
 	mes "Clang, clang!!!";
-	if (getequippercentrefinery(@part)<=rand(100)) goto Lfail;
+	if (getequippercentrefinery(@part)<=rand(100)) goto Lfail_number;
 	successrefitem @part;
 	emotion 21;
 	set @refinecnt,@refinecnt - 1;
 	next;
 	if(@refinecnt == 0) goto Lend;
-	callfunc "refinenumber";
-	break;
+	goto L_refinenumber;
 
-	Lend:
-		mes "[" + @name$ + "]";
-		mes "All finished... Come again soon.";
-		close;
-
-	Lfail:
+	Lfail_number:
 		failedrefitem @part;
 		emotion 23;
 		mes "[" + @name$ + "]";

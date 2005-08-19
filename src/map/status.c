@@ -2940,24 +2940,42 @@ int status_get_party_id(struct block_list *bl)
 	nullpo_retr(0, bl);
 	if(bl->type==BL_PC && (struct map_session_data *)bl)
 		return ((struct map_session_data *)bl)->status.party_id;
+	else if(bl->type==BL_PET && (struct pet_data *)bl)
+		return ((struct pet_data *)bl)->msd->status.party_id;
 	else if(bl->type==BL_MOB && (struct mob_data *)bl){
 		struct mob_data *md=(struct mob_data *)bl;
 		if( md->master_id>0 )
-			return -md->master_id;
-		return -md->bl.id;
+		{
+			struct map_session_data *msd;
+			if (md->state.special_mob_ai >= 1 && (msd = map_id2sd(md->master_id)) != NULL)
+				return msd->status.party_id;
+			return md->master_id;
+		}
+		return md->class_;
 	}
 	else if(bl->type==BL_SKILL && (struct skill_unit *)bl)
 		return ((struct skill_unit *)bl)->group->party_id;
 	else
 		return 0;
 }
+
 int status_get_guild_id(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_PC && (struct map_session_data *)bl)
 		return ((struct map_session_data *)bl)->status.guild_id;
+	else if(bl->type==BL_PET && (struct pet_data *)bl)
+		return ((struct pet_data *)bl)->msd->status.guild_id;
 	else if(bl->type==BL_MOB && (struct mob_data *)bl)
-		return ((struct mob_data *)bl)->class_;
+	{
+		struct map_session_data *msd;
+		struct mob_data *md = (struct mob_data *)bl;
+		if (md->guild_id)	//Guardian's guild [Skotlex]
+			return md->guild_id;
+		if (md->state.special_mob_ai >= 1 && (msd = map_id2sd(md->master_id)) != NULL)
+			return msd->status.guild_id; //Alchemist's mobs [Skotlex]
+		return md->class_;
+	}
 	else if(bl->type==BL_SKILL && (struct skill_unit *)bl)
 		return ((struct skill_unit *)bl)->group->guild_id;
 	else
