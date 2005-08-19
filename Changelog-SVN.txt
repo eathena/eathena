@@ -1,5 +1,6 @@
 Date	Added
 08/19
+	* Optimization/Fixes to battle_check_target, GrandCross should work now. [Skotlex]
 	* Reverted Lupus's change on guild auras' max lv... Please double check your sources and
 	  base yourself on kRO official website as much as possible, thanks. Link to kRO website:
 	  http://guide.ragnarok.co.kr/GuildSystem.asp#ggg03 [DracoRPG]

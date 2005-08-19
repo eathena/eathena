@@ -2861,33 +2861,17 @@ int battle_check_undead(int race,int element)
 }
 
 /*==========================================
- * 敵味方判定(1=肯定,0=否定,-1=エラー)
- * flag&0xf0000 = 0x00000:敵じゃないか判定（ret:1＝敵ではない）
- *				= 0x10000:パーティー判定（ret:1=パーティーメンバ)
- *				= 0x20000:全て(ret:1=敵味方両方)
- *				= 0x40000:敵か判定(ret:1=敵)
- *				= 0x50000:パーティーじゃないか判定(ret:1=パーティでない)
+ * Checks the state between two targets (rewritten by Skotlex)
+ * (enemy, friend, party, guild, etc)
+ * See battle.h for possible values/combinations
+ * to be used here (BCT_* constants)
  *------------------------------------------
  */
 int battle_check_target( struct block_list *src, struct block_list *target,int flag)
 {
-	int state = BCT_NOONE; //Initial state neutral (0x00000)
+	int m,state = BCT_NOONE; //Initial state neutral (0x00000)
 	struct block_list *ss= src;
 	
-	if (flag == BCT_ALL){ //All actually stands for all players/mobs
-		if (target->type == BL_MOB || target->type == BL_PC)
-			return 1;
-		else
-			return -1;
-	}
-	else if (flag & BCT_SELF)
-	{
-		if (target == src)
-			return 1;
-		else
-			return -1;
-	}
-
 	if (target->type == BL_PET ||	//Pets can't be targetted for anything.
 		(src->type == BL_SKILL && target->type == BL_SKILL))	//Skills can't target each other.
 		return -1;
@@ -2904,8 +2888,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			return -1; //option to have monsters ignore GMs [Valaris]
 	}
 
-	
-	if (flag & (BCT_ENEMY|BCT_NOPARTY|BCT_NOGUILD) && !map[src->m].flag.gvg)	//Offensive stuff can't be casted on Basilica
+	m = target->m;
+	if (flag&BCT_ENEMY && !map[m].flag.gvg)	//Offensive stuff can't be casted on Basilica
 	{
 		struct status_change *sc_data, *tsc_data;
 		
@@ -2916,63 +2900,80 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		(tsc_data && tsc_data[SC_BASILICA].timer != -1))
 			return -1;
 	}
-	
+
+	if (flag == BCT_ALL){ //All actually stands for all players/mobs
+		if (target->type == BL_MOB || target->type == BL_PC)
+			return 1;
+		else
+			return -1;
+	}
+
 	if (src->type == BL_SKILL)
 	{
 		struct skill_unit *su = (struct skill_unit *)src;
 		if (su && su->group)
 		{
-			if (su->group->src_id == target->id && flag &(BCT_ENEMY | BCT_NOPARTY | BCT_NOGUILD))
+			if (su->group->src_id == target->id)
 			{
-			int inf2;		
-			inf2 = skill_get_inf2(su->group->skill_id);
-			if (inf2&INF2_NO_DAMAGE_SELF ||
-				inf2&INF2_NO_TARGET_SELF)
-				return -1;
+				int inf2;
+				inf2 = skill_get_inf2(su->group->skill_id);
+				if (inf2&INF2_NO_TARGET_SELF)
+					return -1;
+				if (inf2&INF2_TARGET_SELF)
+					return 1;
 			}
 			if ((ss = map_id2bl(su->group->src_id)) == NULL)
 				ss = src; //Fallback on the trap itself, otherwise consider this a "caster versus enemy" scenario.
 		}
 	}
-	if (flag & (BCT_ENEMY|BCT_NOGUILD|BCT_NOPARTY))
+
+	if (target == ss)
+	{
+		if (flag&BCT_SELF)
+			return 1;
+		if (flag == BCT_SELF) //In case that BCT_SELF was the only specified flag.
+			return -1;
+	}
+	
+	if (flag&BCT_ENEMY)
 	{	//Check default enemy settings of mob vs players
 		if ((ss->type == BL_MOB && target->type == BL_PC) ||
 			((ss->type == BL_PC || ss->type == BL_PET) && target->type == BL_MOB))
 			state |= BCT_ENEMY;
 	}
-	if (flag & (BCT_PARTY|BCT_NOPARTY|BCT_ENEMY))
+	if (flag&BCT_PARTY || (map[m].flag.pvp && flag&BCT_ENEMY))
 	{	//Identify party state
 		int s_party, t_party;
 		s_party = status_get_party_id(ss);
 		t_party = status_get_party_id(target);
 
-		if (!map[target->m].flag.pvp)
+		if (!map[m].flag.pvp)
 		{
 			if (s_party && s_party == t_party)
 				state |= BCT_PARTY;
 		}
 		else
 		{
-			if (!map[target->m].flag.pvp_noparty && s_party && s_party == t_party)
+			if (!map[m].flag.pvp_noparty && s_party && s_party == t_party)
 				state |= BCT_PARTY;
 			else
 				state |= BCT_ENEMY;
 		}
 	}
-	if (flag & (BCT_GUILD|BCT_NOGUILD|BCT_ENEMY))
+	if (flag&BCT_GUILD || ((map[m].flag.gvg || map[m].flag.gvg_dungeon) && flag&BCT_ENEMY))
 	{	//Identify guild state
 		int s_guild, t_guild;
 		s_guild = status_get_guild_id(ss);
 		t_guild = status_get_guild_id(target);
 
-		if (!map[target->m].flag.gvg && !map[target->m].flag.gvg_dungeon)
+		if (!map[m].flag.gvg && !map[m].flag.gvg_dungeon && !map[m].flag.pvp)
 		{
 			if (s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild)))
 				state |= BCT_GUILD;
 		}
 		else
 		{
-			if (!(map[target->m].flag.pvp && map[target->m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild)))
+			if (!(map[m].flag.pvp && map[m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild)))
 				state |= BCT_GUILD;
 			else
 				state |= BCT_ENEMY;
@@ -3071,7 +3072,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				!(target->type == BL_PC && pc_isinvisible(tsd)))
 					return 0;
 			if (ss == target) {
-				if (inf2&INF2_NO_DAMAGE_SELF)
+				if (inf2&INF2_TARGET_SELF)
 					return 0;
 				if (inf2&INF2_NO_TARGET_SELF)
 					return -1;
