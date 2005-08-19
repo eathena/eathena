@@ -16,6 +16,8 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 08/18
+	* Changed sell price of unknown test tube to 0 as it can be abused for a
+	  zeny exploit (thanks to Kayla for pointing it out) [Skotlex]
 	* Changes to Immaterial Sword (drain 1SP, not 1%SP per attack)
 	* Fixed Battleground Textbook, Greatest General Card to cast on yourself
 	  (again) [Skotlex]

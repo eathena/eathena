@@ -410,7 +410,7 @@
 1068,Barren_Trunk,Barren Trunk,3,2,0,10,,,,,,,,,,,,{},{}
 1069,Orange_Net_Mushroom,Orange Net Mushroom,3,2,0,10,,,,,,,,,,,,{},{}
 1070,Orange_Gooey_Mushroom_,Orange Gooey Mushroom,3,2,0,10,,,,,,,,,,,,{},{}
-1071,Unknown_Test_Tube,Unknown Testtube,3,2,0,30,,,,,,,,,,,,{},{}
+1071,Unknown_Test_Tube,Unknown Testtube,3,0,0,30,,,,,,,,,,,,{},{}
 1072,Delivery_Message,DEL Message,3,2,0,10,,,,,,,,,,,,{},{}
 1073,Voucher,Voucher,3,2,0,10,,,,,,,,,,,,{},{}
 1074,Voucher_,Voucher,3,2,0,10,,,,,,,,,,,,{},{}
@@ -424,12 +424,12 @@
 1082,Delivery_Box_,DEL Box,3,2,0,1200,,,,,,,,,,,,{},{}
 1083,Delivery_Box__,DEL Box,3,2,0,1200,,,,,,,,,,,,{},{}
 1084,Kafra_Pass,Kafra Pass,3,0,0,10,,,,,,,,,,,,{},{}
-1085,Unknown_Test_Tube_,Unknown Testtube,3,2,0,30,,,,,,,,,,,,{},{}
-1086,Unknown_Test_Tube__,Unknown Testtube,3,2,0,30,,,,,,,,,,,,{},{}
-1087,Unknown_Test_Tube___,Unknown Testtube,3,2,0,30,,,,,,,,,,,,{},{}
+1085,Unknown_Test_Tube_,Unknown Testtube,3,0,0,30,,,,,,,,,,,,{},{}
+1086,Unknown_Test_Tube__,Unknown Testtube,3,0,0,30,,,,,,,,,,,,{},{}
+1087,Unknown_Test_Tube___,Unknown Testtube,3,0,0,30,,,,,,,,,,,,{},{}
 1088,Morroc_Solution,Morocc Solution,3,2,0,30,,,,,,,,,,,,{},{}
 1089,Payon_Solution,Payon Solution,3,2,0,30,,,,,,,,,,,,{},{}
-1090,Unknown_Test_Tube____,Unknown Testtube,3,2,0,30,,,,,,,,,,,,{},{}
+1090,Unknown_Test_Tube____,Unknown Testtube,3,0,0,30,,,,,,,,,,,,{},{}
 1091,Wooden_Delivery_Box,Wooden Delivery Box,3,2,0,1200,,,,,,,,,,,,{},{}
 1092,Empty_Test_Tube,Empty Testtube,3,3,0,20,,,,,,,,,,,,{},{}
 1093,Empty_Potion_Bottle,Empty Potion Bottle,3,10,0,10,,,,,,,,,,,,{},{}
