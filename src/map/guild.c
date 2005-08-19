@@ -434,12 +434,22 @@ int guild_recv_info(struct guild *sg)
 	nullpo_retr(0, sg);
 
 	if((g=(struct guild *) numdb_search(guild_db,sg->guild_id))==NULL){
+		struct map_session_data *sd;
 		g=(struct guild *)aCalloc(1,sizeof(struct guild));
 		numdb_insert(guild_db,sg->guild_id,g);
 		before=*sg;
 
 		// 最初のロードなのでユーザーのチェックを行う
 		guild_check_member(sg);
+		//If the guild master is online the first time the guild_info is received, that means he was the first to join,
+		//and as such, his guild skills should be blocked to avoid login/logout abuse [Skotlex]
+		if ((sd = map_nick2sd(sg->master)) != NULL)
+		{
+			int skill_num[] = { GD_BATTLEORDER, GD_REGENERATION, GD_RESTORE, GD_EMERGENCYCALL };
+			for (i = 0; i < 4; i++)
+				if (guild_checkskill(sg, skill_num[i]))
+					pc_blockskill_start(sd, skill_num[i], 300000);
+		}
 	}else
 		before=*g;
 	memcpy(g,sg,sizeof(struct guild));

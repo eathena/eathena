@@ -1,5 +1,12 @@
 Date	Added
 08/19
+	* Removed pc_emotion, merged it with emotion. [Skotlex]
+	  Usage: emotion emotion_number <, target>
+	  - emotion number is the emotion's number (use e_* constants)
+	  - target is 1-> player, 0-> npc. If ommited defaults to zero.
+	* Updated code so that when a guild master joins the game, their guild
+	  skills are automatically blocked for 5 minutes. [Skotlex]
+	  (prevents avoiding the skill-lock by relogging)
 	* Another update to battle_check_target, this time neutral targets should
 	  work correctly (non allied/partied people who should be affected) [Skotlex]
 	* More fixes to battle_check_target, skills should not hit yourself on

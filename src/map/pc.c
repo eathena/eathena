@@ -772,8 +772,18 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 	// パ?ティ、ギルドデ?タの要求
 	if (sd->status.party_id > 0 && (p = party_search(sd->status.party_id)) == NULL)
 		party_request_info(sd->status.party_id);
-	if (sd->status.guild_id > 0 && (g = guild_search(sd->status.guild_id)) == NULL)
-		guild_request_info(sd->status.guild_id);
+	if (sd->status.guild_id > 0)
+	{
+		if ((g = guild_search(sd->status.guild_id)) == NULL)
+			guild_request_info(sd->status.guild_id);
+		else if (strcmp(sd->status.name,g->master) == 0)
+		{	//Block Guild Skills to prevent logout/login reuse exploiting. [Skotlex]
+			int skill_num[] = { GD_BATTLEORDER, GD_REGENERATION, GD_RESTORE, GD_EMERGENCYCALL };
+			for (i = 0; i < 4; i++)
+				if (guild_checkskill(g, skill_num[i]))
+					pc_blockskill_start(sd, skill_num[i], 300000);
+		}
+	}
 
 	// pvpの設定
 //	sd->pvp_rank = 0;

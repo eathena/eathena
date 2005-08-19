@@ -2869,7 +2869,7 @@ int battle_check_undead(int race,int element)
  */
 int battle_check_target( struct block_list *src, struct block_list *target,int flag)
 {
-	int m,state = BCT_NOONE; //Initial state neutral (0x00000)
+	int m,state = 0; //Initial state neutral (0x00000)
 	struct block_list *ss= src;
 	
 	if (target->type == BL_PET ||	//Pets can't be targetted for anything.

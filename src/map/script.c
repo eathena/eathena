@@ -242,7 +242,6 @@ int buildin_pvpoff(struct script_state *st);
 int buildin_gvgon(struct script_state *st);
 int buildin_gvgoff(struct script_state *st);
 int buildin_emotion(struct script_state *st);
-int buildin_pc_emotion(struct script_state *st);
 int buildin_maprespawnguildid(struct script_state *st);
 int buildin_agitstart(struct script_state *st);		// <Agit>
 int buildin_agitend(struct script_state *st);
@@ -505,8 +504,7 @@ struct {
 	{buildin_pvpoff,"pvpoff","s"},
 	{buildin_gvgon,"gvgon","s"},
 	{buildin_gvgoff,"gvgoff","s"},
-	{buildin_emotion,"emotion","i"},
-	{buildin_pc_emotion,"pc_emotion","i"},
+	{buildin_emotion,"emotion","i*"},
 	{buildin_maprespawnguildid,"maprespawnguildid","sii"},
 	{buildin_agitstart,"agitstart",""},	// <Agit>
 	{buildin_agitend,"agitend",""},
@@ -5403,37 +5401,29 @@ int buildin_gvgoff(struct script_state *st)
 	return 0;
 }
 /*==========================================
- *	NPCÉGÉÇÅ[ÉVÉáÉì
+ *	Shows an emoticon on top of the player/npc
+ *	emotion emotion#, <target: 0 - NPC, 1 - PC>
  *------------------------------------------
  */
-
+//Optional second parameter added by [Skotlex]
 int buildin_emotion(struct script_state *st)
 {
 	int type;
-	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
-	if(type < 0 || type > 100)
-		return 0;
-	clif_emotion(map_id2bl(st->oid),type);
-	return 0;
-}
-
-/*==========================================
- *	Shows an emoticon on top of the player.
- *------------------------------------------
- */
-// Added by request as official npcs seem to use it. [Skotlex]
-int buildin_pc_emotion(struct script_state *st)
-{
-	int type;
-	struct map_session_data *sd = script_rid2sd(st);
+	int player=0;
 	
 	type=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	if(type < 0 || type > 100)
 		return 0;
-	clif_emotion(&sd->bl,type);
+
+	if( st->end>st->start+3 )
+		player=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	
+	if (player)
+		clif_emotion(&(script_rid2sd(st)->bl),type);
+	else
+		clif_emotion(map_id2bl(st->oid),type);
 	return 0;
 }
-
 
 int buildin_maprespawnguildid_sub(struct block_list *bl,va_list ap)
 {
