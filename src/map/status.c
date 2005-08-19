@@ -2949,9 +2949,9 @@ int status_get_party_id(struct block_list *bl)
 			struct map_session_data *msd;
 			if (md->state.special_mob_ai >= 1 && (msd = map_id2sd(md->master_id)) != NULL)
 				return msd->status.party_id;
-			return md->master_id;
+			return -md->master_id;
 		}
-		return md->class_;
+		return -md->class_;
 	}
 	else if(bl->type==BL_SKILL && (struct skill_unit *)bl)
 		return ((struct skill_unit *)bl)->group->party_id;
@@ -2974,7 +2974,7 @@ int status_get_guild_id(struct block_list *bl)
 			return md->guild_id;
 		if (md->state.special_mob_ai >= 1 && (msd = map_id2sd(md->master_id)) != NULL)
 			return msd->status.guild_id; //Alchemist's mobs [Skotlex]
-		return md->class_;
+		return -md->class_;
 	}
 	else if(bl->type==BL_SKILL && (struct skill_unit *)bl)
 		return ((struct skill_unit *)bl)->group->guild_id;
