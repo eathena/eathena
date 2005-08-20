@@ -2986,7 +2986,17 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		state&=~BCT_ENEMY;
 
 	if (state==0) //Neutral target (needed because state&(anything) will never yield true)
-		return flag&(BCT_NOPARTY|BCT_NOENEMY|BCT_NOGUILD)?1:-1;
+	{	//Seems rather crude, but I can't come up with a better/simple/elegant solution... [Skotlex]
+		switch (flag)
+		{
+			case BCT_NOENEMY:
+			case BCT_NOPARTY:
+			case BCT_NOGUILD:
+				return 1;
+			default:
+				return -1;
+		}
+	}
 	
 	return (flag&state)?1:-1;
 

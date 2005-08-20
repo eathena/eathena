@@ -1,5 +1,6 @@
 Date	Added
 08/19
+	* Fixed "for sure" battle_check_target when it comes to neutral targets. [Skotlex]
 	* Removed pc_emotion, merged it with emotion. [Skotlex]
 	  Usage: emotion emotion_number <, target>
 	  - emotion number is the emotion's number (use e_* constants)
