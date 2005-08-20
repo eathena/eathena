@@ -418,22 +418,28 @@ Progress:	100%
 
 Problem:	Can't see players name, party name, guild name
 			On creating a party, you can see all names normally, when u teleport or go to another map
-			all names disappear.
-			You can see GUILD EMBLEM only.
+			all names disappear. You can see GUILD EMBLEM only.
 Assigned:	na
 Progress:	0%
 
-Problem:	Now boss' slaves do not drop any loot, but you can STEAL it from them.
+Problem:	[STEAL] Now boss' slaves do not drop any loot, but you can STEAL it from them.
 			It should be fixed.
 Assigned:	na
 Progress:	0%
 
-Problem:	@autoloot. Somehow... you get ITEMS when you're in CLOAKING (or in HIDA, when someone's finished your mob, or with Greemtooth)
+Problem:	[STEAL] in Official Servers your suppose to Appraise/Identify the Equipment after Stealing/Auto-Steal.
+			in Athena you just Steal/Auto-Steal the equipment instantly w/o the need to Appraise and Identify. 
+Assigned:	na
+Progress:	0%
+
+
+Problem:	[@autoloot]. Somehow... you get ITEMS when you're in CLOAKING (or in HIDA, when someone's finished your mob, or with Greemtooth)
 			Damn exploit should be fixed.
 Assigned:	na
 Progress:	0%
 
-Problem:	ONE SPOT exploit
+Problem:	ONE SAFE SPOT exploit
 			Wizard teleports with a portal, set a safety wall. Then other people warp on the wiz's cell. So people stack one over another. And one safety wall protects them all. Etc
 Assigned:	na
 Progress:	0%
+
