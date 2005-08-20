@@ -1,0 +1,23 @@
+//===== eAthena Script ======================================= 
+//= New Shops
+//===== By: ================================================== 
+//= eAthena Dev Team
+//===== Current Version: ===================================== 
+//= 1.0
+//===== Compatible With: ===================================== 
+//= eAthena 1.0
+//===== Description: ========================================= 
+//=
+//===== Additional Comments: ================================= 
+//= 1.0 New items which could be seen in NPC shops. [Lupus]
+//= 	Only official items! NPC sprite / coords are wrong 
+//= 1617 Wand of Survival[0], 1621 Wand of Hypnotist[1], 13003 Coward[1], 1245 Cinquedia[1], 1146 Towner's_Sword[1]
+//============================================================ 
+
+
+
+//=======================================================
+//LIGHTHALZEN
+//=======================================================
+//wrong sprite, wrong coords¡ gathered into 1 shop
+lighthalzen.gat,208,208,1	shop	Weapon Dealer	49,1617:-1,1621:-1,13003:-1,1245:-1,1146:-1
