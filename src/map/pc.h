@@ -203,8 +203,8 @@ int pc_setinvincibletimer(struct map_session_data *sd,int);
 int pc_delinvincibletimer(struct map_session_data *sd);
 int pc_addspiritball(struct map_session_data *sd,int,int);
 int pc_delspiritball(struct map_session_data *sd,int,int);
-int pc_addfame(struct map_session_data *sd,int count,int type);
-int pc_istop10fame(int char_id, int type);
+void pc_addfame(struct map_session_data *sd,int count);
+int pc_istop10fame(int char_id, int job);
 int pc_eventtimer(int tid,unsigned int tick,int id,int data); // for npc_dequeue
 
 extern struct fame_list smith_fame_list[10];

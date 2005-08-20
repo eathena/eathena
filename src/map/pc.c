@@ -244,36 +244,35 @@ int pc_delspiritball(struct map_session_data *sd,int count,int type) {
 	return 0;
 }
 
-// Increases a player's fame and displays a notice to him
-int pc_addfame(struct map_session_data *sd,int count,int type) {
+// Increases a player's  and displays a notice to him
+void pc_addfame(struct map_session_data *sd,int count) {
+    nullpo_retv(sd);
 	sd->status.fame += count;
 	if(sd->status.fame > MAX_FAME)
 	    sd->status.fame = MAX_FAME;
-	switch(type){
-		case 0: // Blacksmith
+	switch(pc_calc_base_job2(sd->status.class_)){
+		case JOB_BLACKSMITH: // Blacksmith
             clif_fame_blacksmith(sd,count);
             break;
-		case 1: // Alchemist
+		case JOB_ALCHEMIST: // Alchemist
             clif_fame_alchemist(sd,count);
             break;
 	}
 	chrif_save(sd); // Save to allow up-to-date fame list refresh
 	chrif_reqfamelist(); // Refresh the fame list
-	return 0;
 }
 
 // Check whether a player ID is in the Top 10 fame list of its job
-int pc_istop10fame(int char_id,int type) {
-	int i;
-
-	switch(type){
-	case 0: // Blacksmith
+int pc_istop10fame(int char_id,int job) {
+    int i;
+	switch(job){
+	case JOB_BLACKSMITH: // Blacksmith
 	    for(i=0;i<10;i++){
 			if(smith_fame_list[i].id==char_id)
 			    return 1;
 		}
 		break;
-	case 1: // Alchemist
+	case JOB_ALCHEMIST: // Alchemist
 	    for(i=0;i<10;i++){
 	        if(chemist_fame_list[i].id==char_id)
 	            return 1;
@@ -2659,7 +2658,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 			clif_useitemack(sd,n,amount-1,1);
 			pc_delitem(sd,n,1,1);
 		}
-		if(sd->status.inventory[n].card[0]==0x00fe && pc_istop10fame(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]),1))
+		if(sd->status.inventory[n].card[0]==0x00fe && pc_istop10fame(MakeDWord(sd->status.inventory[n].card[2],sd->status.inventory[n].card[3]),JOB_ALCHEMIST))
 		    sd->state.potion_flag = 2; // Famous player's potions have 50% more efficiency
 		sd->canuseitem_tick= gettick() + battle_config.item_use_interval; //Update item use time.
 		run_script(script,0,sd->bl.id,0);
@@ -3006,11 +3005,6 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		if(sd->sc_data[SC_DANCING].timer!=-1) // clear dance effect when warping [Valaris]
 			skill_stop_dancing(&sd->bl);
 		if (sd->sc_data[SC_BASILICA].timer!=-1) {
-			/*int i;
-			for (i=0;i<MAX_SKILLUNITGROUP;i++)
-				if (sd->skillunit[i].skill_id==HP_BASILICA)
-					skill_delunitgroup(&sd->skillunit[i]);*/
-
 			struct skill_unit_group *sg = (struct skill_unit_group *)sd->sc_data[SC_BASILICA].val4;
 			if (sg && sg->src_id == sd->bl.id)
 				skill_delunitgroup (sg);
@@ -3805,16 +3799,13 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 	if( sd->opt1>0 || sd->status.option&2 || pc_ischasewalk(sd))	// ˆÙí‚È‚Ç‚ÅU?‚Å‚«‚È‚¢
 		return 0;
 
-	if (sd->sc_count) {
-		if(sd->sc_data[SC_AUTOCOUNTER].timer != -1)
+	if (sd->sc_count &&
+ 		(sd->sc_data[SC_AUTOCOUNTER].timer != -1 ||
+		sd->sc_data[SC_BLADESTOP].timer != -1 ||
+		sd->sc_data[SC_GRAVITATION].timer != -1 ||
+		(sd->sc_data[SC_GOSPEL].timer != -1 && sd->sc_data[SC_GOSPEL].val4 == BCT_SELF)))
 			return 0;
-		if(sd->sc_data[SC_BLADESTOP].timer != -1)
-			return 0;
-		if(sd->sc_data[SC_GRAVITATION].timer != -1)
-			return 0;
-	}
 
-	//if((opt = status_get_option(bl)) != NULL && *opt&0x46)
 	if((opt = status_get_option(bl)) != NULL && *opt&0x42)
 		return 0;
 	if((sc_data = status_get_sc_data(bl)) != NULL) {

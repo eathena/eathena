@@ -707,10 +707,10 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
 }
 
 /*==========================================
- * battle_calc_weapon_attack_sub (by Skotlex)
+ * battle_calc_weapon_attack (by Skotlex)
  *------------------------------------------
  */
-static struct Damage battle_calc_weapon_attack_sub(
+static struct Damage battle_calc_weapon_attack(
 	struct block_list *src,struct block_list *target,int *skillnum,int *skilllv,int wflag)
 {
 	struct map_session_data *sd=NULL, *tsd=NULL;
@@ -1882,39 +1882,10 @@ static struct Damage battle_calc_weapon_attack_sub(
 			if (i< 2000)
 				mob_class_change(((struct mob_data *)target),class_);
 	}
-	return wd;
-}
-/*==========================================
- * 武器ダメージ計算
- *------------------------------------------
- */
-struct Damage battle_calc_weapon_attack(
-	struct block_list *src,struct block_list *target,int *skill_num,int *skill_lv,int wflag)
-{
-	struct Damage wd;
 
-	//return前の処理があるので情報出力部のみ変更
-	 if (src == NULL || target == NULL) {
-		nullpo_info(NLP_MARK);
-		memset(&wd,0,sizeof(wd));
-		return wd;
-	}
- /* Not needed (the map check should have been done previously, and for skills like grandcross, 
-	it is valid that the caster and target are in different maps because the skill is ground-based) [Skotlex]
-	if (src->m != target->m)  // [ShAPoNe] Src and target same map check
-	{
-		memset(&wd,0,sizeof(wd));
-		return wd;
-	}
-*/	
-	wd = battle_calc_weapon_attack_sub(src,target,skill_num,skill_lv,wflag);
-	
-	if ( src->type==BL_PC &&
-		( battle_config.equip_self_break_rate || battle_config.equip_skill_break_rate ) &&
+	if (sd && (battle_config.equip_self_break_rate || battle_config.equip_skill_break_rate) &&
 		(wd.damage > 0 || wd.damage2 > 0)) {
-		struct map_session_data *sd = (struct map_session_data *)src;
-		if (battle_config.equip_self_break_rate && sd->status.weapon != 11)
-		{	//Self weapon breaking chance
+		if (battle_config.equip_self_break_rate) {	// Self weapon breaking
 			int breakrate = battle_config.equip_natural_break_rate;
 			if (sd->sc_count) {
 				if(sd->sc_data[SC_OVERTHRUST].timer!=-1)
@@ -1923,26 +1894,21 @@ struct Damage battle_calc_weapon_attack(
 					breakrate += 10;
 			}
 			if(rand() % 10000 < breakrate * battle_config.equip_self_break_rate / 100 || breakrate >= 10000)
-				if (pc_breakweapon(sd))
-					wd = battle_calc_weapon_attack_sub(src,target,skill_num,skill_lv,wflag);
+				pc_breakweapon(sd);
 		}
-		if (battle_config.equip_skill_break_rate)
-		{	//Target equipment breaking
-			// weapon = 0, armor = 1
-			int breakrate[2] = {0,0};	//target breaking chance [celest]
+		if (battle_config.equip_skill_break_rate) {	// Target equipment breaking
+			int breakrate[2] = {0,0}; // weapon = 0, armor = 1
 			int breaktime = 5000;
 
-			breakrate[0] += sd->break_weapon_rate;
+			breakrate[0] += sd->break_weapon_rate; // Break rate from equipment
 			breakrate[1] += sd->break_armor_rate;
-
 			if (sd->sc_count) {
 				if (sd->sc_data[SC_MELTDOWN].timer!=-1) {
 					breakrate[0] += 100*sd->sc_data[SC_MELTDOWN].val1;
 					breakrate[1] += 70*sd->sc_data[SC_MELTDOWN].val1;
 					breaktime = skill_get_time2(WS_MELTDOWN,1);
 				}
-			}
-			
+			}	
 			if(rand() % 10000 < breakrate[0] * battle_config.equip_skill_break_rate / 100 || breakrate[0] >= 10000) {
 				if (target->type == BL_PC)
 					pc_breakweapon((struct map_session_data *)target);
@@ -1958,7 +1924,6 @@ struct Damage battle_calc_weapon_attack(
 			}
 		}
 	}
-
 	return wd;
 }
 

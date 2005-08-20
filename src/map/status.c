@@ -686,7 +686,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 						sd->left_weapon.star = (sd->status.inventory[index].card[1]>>8);	// 星のかけら
 						if(sd->left_weapon.star >= 15) sd->left_weapon.star = 40; // 3 Star Crumbs now give +40 dmg
 						wele_= (sd->status.inventory[index].card[1]&0x0f);	// ? 性
-						sd->left_weapon.fameflag = pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,0);
+						sd->left_weapon.fameflag = pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,JOB_BLACKSMITH);
 					}
 					sd->attackrange_ += sd->inventory_data[index]->range;
 					sd->state.lr_flag = 1;
@@ -704,7 +704,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 						sd->right_weapon.star += (sd->status.inventory[index].card[1]>>8);	// 星のかけら
 						if(sd->right_weapon.star >= 15) sd->right_weapon.star = 40; // 3 Star Crumbs now give +40 dmg
 						wele = (sd->status.inventory[index].card[1]&0x0f);	// ? 性
-						sd->right_weapon.fameflag = pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,0);
+						sd->right_weapon.fameflag = pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,JOB_BLACKSMITH);
 					}
 					sd->attackrange += sd->inventory_data[index]->range;
 					run_script(sd->inventory_data[index]->equip_script,0,sd->bl.id,0);
@@ -860,16 +860,12 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->paramb[5]+= 5;
 		}
 		if(sd->sc_data[SC_MARIONETTE].timer!=-1){
-			// skip partner checking -- should be handled in status_change_timer
-			//struct map_session_data *psd = map_id2sd(sd->sc_data[SC_MARIONETTE2].val3);
-			//if (psd) {	// if partner is found
 				sd->paramb[0]-= sd->status.str/2;	// bonuses not included
 				sd->paramb[1]-= sd->status.agi/2;
 				sd->paramb[2]-= sd->status.vit/2;
 				sd->paramb[3]-= sd->status.int_/2;
 				sd->paramb[4]-= sd->status.dex/2;
 				sd->paramb[5]-= sd->status.luk/2;
-			//}
 		}
 		else if(sd->sc_data[SC_MARIONETTE2].timer!=-1){
 			struct map_session_data *psd = map_id2sd(sd->sc_data[SC_MARIONETTE2].val3);
@@ -882,16 +878,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				sd->paramb[5] += sd->status.luk+psd->status.luk/2 > 99 ? 99-sd->status.luk : psd->status.luk/2;
 			}
 		}
-		if(sd->sc_data[SC_GOSPEL].timer!=-1 && sd->sc_data[SC_GOSPEL].val4 == BCT_PARTY){
-			if (sd->sc_data[SC_GOSPEL].val3 == 8) {
-				sd->paramb[0]+= 20;
-				sd->paramb[1]+= 20;
-				sd->paramb[2]+= 20;
-				sd->paramb[3]+= 20;
-				sd->paramb[4]+= 20;
-				sd->paramb[5]+= 20;
-			}
-		}
+
 		// New guild skills - Celest
 		if (sd->sc_data[SC_BATTLEORDERS].timer != -1) {
 			sd->paramb[0]+= 5;
@@ -1036,6 +1023,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	else if (s_class.upper==2)
 		sd->status.max_hp = sd->status.max_hp * 70/100;
 
+	if(s_class.job == JOB_SUPER_NOVICE && sd->status.base_level >= 99){
+		sd->status.max_hp = sd->status.max_hp + 2000;
+	}
+
 	if(sd->sc_count) {
 		if (sd->sc_data[SC_INCMHP2].timer!=-1){
 			sd->status.max_hp += sd->status.max_hp * sd->sc_data[SC_INCMHP2].val1 / 100;
@@ -1043,9 +1034,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if (sd->sc_data[SC_BERSERK].timer!=-1){	// バ?サ?ク
 			sd->status.max_hp = sd->status.max_hp * 3;			
 		}
-	}
-	if(s_class.job == JOB_SUPER_NOVICE && sd->status.base_level >= 99){
-		sd->status.max_hp = sd->status.max_hp + 2000;
 	}
 
 	if (sd->hprate <= 0)
@@ -1353,6 +1341,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			ASPD_ADD_RATE(sd->sc_data[SC_DEFENDER].val1*5-25);
 			SPEED_ADD_RATE(sd->sc_data[SC_DEFENDER].val1*5-55);
 		}
+		if(sd->sc_data[SC_GOSPEL].timer!=-1 && sd->sc_data[SC_GOSPEL].val4 == BCT_ENEMY){
+				SPEED_ADD_RATE(-25);
+				ASPD_ADD_RATE(-25);
+		}
 		if(sd->sc_data[SC_ENCPOISON].timer != -1)
 			sd->addeff[4] += sd->sc_data[SC_ENCPOISON].val2;
 
@@ -1374,7 +1366,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->speed += 450;
 
 		if(sd->sc_data[SC_TRUESIGHT].timer!=-1) //トゥル?サイト
-			//sd->critical += sd->critical*(sd->sc_data[SC_TRUESIGHT].val1)/100;
 			sd->critical += sd->sc_data[SC_TRUESIGHT].val1; // not +10% CRIT but +CRIT!! [Lupus] u can see it in any RO calc stats
 
 		if(sd->sc_data[SC_BERSERK].timer!=-1) {	//All Def/MDef reduced to 0 while in Berserk [DracoRPG]
@@ -1409,57 +1400,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				sd->def2 -= sd->def2*50/100;
 				sd->base_atk -= sd->base_atk*25/100;
 				break;
-			}
-		}
-
-		if(sd->sc_data[SC_GOSPEL].timer!=-1) {
-			if (sd->sc_data[SC_GOSPEL].val4 == BCT_PARTY){
-				switch (sd->sc_data[SC_GOSPEL].val3)
-				{
-				case 6:
-					sd->status.max_hp += sd->status.max_hp;
-					if(sd->status.max_hp > battle_config.max_hp)
-						sd->status.max_hp = battle_config.max_hp;
-					break;
-				case 7:
-					sd->status.max_sp += sd->status.max_sp;
-					if(sd->status.max_sp > battle_config.max_sp)
-						sd->status.max_sp = battle_config.max_sp;
-					break;
-				case 9:
-					sd->def += sd->def * 25 / 100;
-					sd->def2 += sd->def2 * 25 / 100;
-					break;
-				case 10:
-					sd->base_atk += sd->base_atk;
-					break;
-				case 11:
-					sd->flee += 50;
-					break;
-				case 12:
-					sd->hit += 50;
-					break;
-				}
-			} else if (sd->sc_data[SC_GOSPEL].val4 == BCT_ENEMY){
-				switch (sd->sc_data[SC_GOSPEL].val3)
-				{
-					case 5:
-						sd->def = 0;
-						sd->def2 = 0;
-						break;
-					case 6:
-						sd->base_atk = 0;
-						sd->right_weapon.watk = 0;
-						sd->right_weapon.watk2 = 0;
-						break;
-					case 7:
-						sd->flee = 0;
-						break;
-					case 8:
-						SPEED_ADD_RATE(-25);
-						ASPD_ADD_RATE(-25);
-						break;
-				}
 			}
 		}
 	}
@@ -1747,10 +1687,6 @@ int status_get_max_hp(struct block_list *bl)
 			if(sc_data[SC_APPLEIDUN].timer != -1)
 				max_hp += (5 + sc_data[SC_APPLEIDUN].val1 * 2 + ((sc_data[SC_APPLEIDUN].val2 + 1) >> 1) //Why is the Musical Lesson bonus halved? [Skotlex]
 					+ sc_data[SC_APPLEIDUN].val3 / 10) * max_hp/100;
-			if(sc_data[SC_GOSPEL].timer != -1 &&
-				sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-				sc_data[SC_GOSPEL].val3 == 6)
-				max_hp += max_hp;
 			if(sc_data[SC_INCMHP2].timer!=-1)
 				max_hp *= (100+ sc_data[SC_INCMHP2].val1)/100;
 		}
@@ -2089,14 +2025,6 @@ int status_get_flee(struct block_list *bl)
 				flee += flee*(sc_data[SC_WINDWALK].val2)/100;
 			if(sc_data[SC_SPIDERWEB].timer!=-1) //スパイダーウェブ
 				flee -= flee*50/100;
-			if(sc_data[SC_GOSPEL].timer!=-1) {
-				if (sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-					sc_data[SC_GOSPEL].val3 == 11)
-					flee += 50;
-				else if (sc_data[SC_GOSPEL].val4 == BCT_ENEMY &&
-					sc_data[SC_GOSPEL].val3 == 7)
-					flee = 0;
-			}
 			if(sc_data[SC_INCFLEE].timer!=-1)
 				flee += flee * sc_data[SC_INCFLEE].val1 / 100;
 		}
@@ -2129,10 +2057,6 @@ int status_get_hit(struct block_list *bl)
 				hit += 3 * sc_data[SC_TRUESIGHT].val1;
 			if (sc_data[SC_CONCENTRATION].timer != -1) //コンセントレーション
 				hit += 10 * sc_data[SC_CONCENTRATION].val1; //+10 hit per level as per updates (?) [Skotlex]
-			if (sc_data[SC_GOSPEL].timer != -1 &&
-				sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-				sc_data[SC_GOSPEL].val3 == 12)
-				hit += 50;
 			if (sc_data[SC_EXPLOSIONSPIRITS].timer != -1)
 				hit += 20 * sc_data[SC_EXPLOSIONSPIRITS].val1;
 			if (sc_data[SC_INCHIT].timer != -1)
@@ -2274,14 +2198,6 @@ int status_get_atk(struct block_list *bl)
 				atk += (1000*sc_data[SC_EXPLOSIONSPIRITS].val1);
 			if(sc_data[SC_STRIPWEAPON].timer!=-1)
 				atk -= atk * 10/100;
-			if(sc_data[SC_GOSPEL].timer!=-1) {
-				if (sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-					sc_data[SC_GOSPEL].val3 == 10)
-					atk += atk;
-				else if (sc_data[SC_GOSPEL].val4 == BCT_ENEMY &&
-					sc_data[SC_GOSPEL].val3 == 6)
-					atk = 0;
-			}
 			if(sc_data[SC_INCATK2].timer!=-1)
 				atk += atk * sc_data[SC_INCATK2].val1 / 100;
 		}
@@ -2473,15 +2389,6 @@ int status_get_def(struct block_list *bl)
 				//コンセントレーション時は減算
 				if( sc_data[SC_CONCENTRATION].timer!=-1)
 					def = (def*(100 - 5*sc_data[SC_CONCENTRATION].val1))/100;
-
-				if(sc_data[SC_GOSPEL].timer!=-1) {
-					if (sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-						sc_data[SC_GOSPEL].val3 == 9)
-						def += def*25/100;
-					else if (sc_data[SC_GOSPEL].val4 == BCT_ENEMY &&
-						sc_data[SC_GOSPEL].val3 == 5)
-						def = 0;
-				}
 				if(sc_data[SC_JOINTBEAT].timer!=-1) {
 					if (sc_data[SC_JOINTBEAT].val2 == 3)
 						def -= def*50/100;
@@ -2571,15 +2478,6 @@ int status_get_def2(struct block_list *bl)
 			//コンセントレーション時は減算
 			if( sc_data[SC_CONCENTRATION].timer!=-1)
 				def2 = def2*(100 - 5*sc_data[SC_CONCENTRATION].val1)/100;
-
-			if(sc_data[SC_GOSPEL].timer!=-1) {
-				if (sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-					sc_data[SC_GOSPEL].val3 == 9)
-					def2 += def2*25/100;
-				else if (sc_data[SC_GOSPEL].val4 == BCT_ENEMY &&
-					sc_data[SC_GOSPEL].val3 == 5)
-					def2 = 0;
-			}
 		}
 	}
 	if(def2 < 1) def2 = 1;
@@ -2674,9 +2572,7 @@ int status_get_speed(struct block_list *bl)
 				speed -= speed*50/100;
 			else if(sc_data[SC_SPEEDUP0].timer!=-1 && sc_data[SC_INCREASEAGI].timer==-1)
 				speed -= speed*25/100;
-			if(sc_data[SC_GOSPEL].timer!=-1 &&
-				sc_data[SC_GOSPEL].val4 == BCT_ENEMY &&
-				sc_data[SC_GOSPEL].val3 == 8)
+			if(sc_data[SC_GOSPEL].timer!=-1 && sc_data[SC_GOSPEL].val4 == BCT_ENEMY)
 				speed = speed*125/100;
 			if(sc_data[SC_JOINTBEAT].timer!=-1) {
 				if (sc_data[SC_JOINTBEAT].val2 == 0)
@@ -2750,9 +2646,7 @@ int status_get_adelay(struct block_list *bl)
 			if(sc_data[SC_DEFENDER].timer != -1)
 				aspd_rate += (25 - sc_data[SC_DEFENDER].val1*5);
 				//adelay += (1100 - sc_data[SC_DEFENDER].val1*100);
-			if(sc_data[SC_GOSPEL].timer!=-1 &&
-				sc_data[SC_GOSPEL].val4 == BCT_ENEMY &&
-				sc_data[SC_GOSPEL].val3 == 8)
+			if(sc_data[SC_GOSPEL].timer!=-1 && sc_data[SC_GOSPEL].val4 == BCT_ENEMY)
 				aspd_rate += 25;
 			if(sc_data[SC_JOINTBEAT].timer!=-1) {
 				if (sc_data[SC_JOINTBEAT].val2 == 1)
@@ -3181,9 +3075,7 @@ int status_get_sc_def(struct block_list *bl, int type)
 			sc_def = 50;
 	} else if(bl->type == BL_PC) {
 		struct status_change* sc_data = status_get_sc_data(bl);
-		if (sc_data && sc_data[SC_GOSPEL].timer != -1 &&
-			sc_data[SC_GOSPEL].val4 == BCT_PARTY &&
-			sc_data[SC_GOSPEL].val3 == 13)
+		if (sc_data && sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_PARTY)
 			sc_def = 0; //Status inmunity
 	}
 
@@ -3732,9 +3624,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_SILENCE:			/* 沈?（レックスデビ?ナ） */
 			if (sc_data && sc_data[SC_GOSPEL].timer!=-1) {
-				if (sc_data[SC_GOSPEL].val4 == BCT_SELF) //Clear Gospel [Skotlex]
+				if (sc_data[SC_GOSPEL].val4 == BCT_SELF) { //Clear Gospel [Skotlex]
 					skill_delunitgroup((struct skill_unit_group *)sc_data[SC_GOSPEL].val3);
-				status_change_end(bl,SC_GOSPEL,-1);
+					status_change_end(bl,SC_GOSPEL,-1);
+				}
 				break;
 			}
 			if(!(flag&2)) {
@@ -3884,10 +3777,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 		case SC_GOSPEL:
 			if (val4 == BCT_SELF) {	// self effect
-				if (sd) {
-					sd->canact_tick += tick;
-					sd->canmove_tick += tick;
-				}
 				val2 = tick;
 				tick = 1000;
 				status_change_clear_buffs(bl);

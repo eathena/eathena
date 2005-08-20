@@ -3391,13 +3391,13 @@ int buildin_successrefitem(struct script_state *st)
 		if(sd->status.inventory[i].refine == 10 && sd->status.inventory[i].card[0] == 0x00ff && sd->char_id == MakeDWord(sd->status.inventory[i].card[2],sd->status.inventory[i].card[3])){ // Fame point system [DracoRPG]
 	 		switch (sd->inventory_data[i]->wlv){
 				case 1:
-					pc_addfame(sd,1,0); // Success to refine to +10 a lv1 weapon you forged = +1 fame point
+					pc_addfame(sd,1); // Success to refine to +10 a lv1 weapon you forged = +1 fame point
 					break;
 				case 2:
-					pc_addfame(sd,25,0); // Success to refine to +10 a lv2 weapon you forged = +25 fame point
+					pc_addfame(sd,25); // Success to refine to +10 a lv2 weapon you forged = +25 fame point
 					break;
 				case 3:
-					pc_addfame(sd,1000,0); // Success to refine to +10 a lv3 weapon you forged = +1000 fame point
+					pc_addfame(sd,1000); // Success to refine to +10 a lv3 weapon you forged = +1000 fame point
 					break;
 	 	 	 }
 		}

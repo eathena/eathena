@@ -1,5 +1,7 @@
 Date	Added
 08/21
+	* Mostly rewrote Battle Chant, should be almost like the official one now... [DracoRPG]
+	* Added enums for skill units, makes the code really clearer (check skill.h) [DracoRPG]
 	* Fixed Acid Terror WEP breaking rate thx2 ShAPoNe [Lupus]
 08/19
 	* More updates to battle_check_target, now you can't target any
