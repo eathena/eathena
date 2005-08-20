@@ -3346,6 +3346,13 @@ int mapif_sendall(unsigned char *buf, unsigned int len) {
 	for(i = 0; i < MAX_MAP_SERVERS; i++) {
 		int fd;
 		if ((fd = server_fd[i]) >= 0) {
+			if (session[fd] == NULL)
+			{	//Could this be the crash's source? [Skotlex]
+				ShowError("mapif_sendall: Attempting to write to invalid session %d! Map Server #%d disconnected.\n", fd, i);
+				server_fd[i] = -1;
+				memset(&server[i], 0, sizeof(struct mmo_map_server));
+				continue;
+			}
 			if (WFIFOSPACE(fd) < len)
 			{	//Avoid overflow crash! [Skotlex]
 				ShowError("mapif_sendall: Cannot send to session %d, not enough space in buffer (data length: %d, remaining buffer: %d)\n", fd, len, WFIFOSPACE(fd));
