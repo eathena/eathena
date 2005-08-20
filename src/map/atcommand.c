@@ -7260,8 +7260,8 @@ atcommand_changegm(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	nullpo_retr(-1, sd);
 	struct guild *g;
+	nullpo_retr(-1, sd);
 	
 	if ((g=guild_search(sd->status.guild_id))!=NULL)
 	{
