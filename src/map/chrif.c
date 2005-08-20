@@ -1342,12 +1342,14 @@ int check_connect_char_server(int tid, unsigned int tick, int id, int data) {
 			srvinfo = 1;
 		}
 #endif /* not TXT_ONLY */
+/*		There is no need, the connection is TCP, so the packet is assured to arrive unless the connection dies [Skotlex]
 		//If for some reason the next iteration (10 secs) we are still not connected,
 		//assume the packets got lost, so we need to resend them. [Skotlex]
 		if (chrif_state == 0)
 			chrif_connect(char_fd);
 		else if (chrif_state == 1)
 			chrif_sendmap(char_fd);
+*/
 	}
 	if (chrif_isconnect()) displayed = 0;
 	return 0;
