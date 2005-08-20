@@ -2874,7 +2874,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	
 	if (target->type == BL_PET ||	//Pets can't be targetted for anything.
 		(src->type == BL_SKILL && target->type == BL_SKILL))	//Skills can't target each other.
-		return -1;
+		return 0;
 
 	if (target->type == BL_PC) {
 		struct map_session_data *tsd = NULL;
@@ -2908,6 +2908,12 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			return -1;
 	}
 
+	if (target->type == BL_SKILL)
+	{
+		struct skill_unit *su = (struct skill_unit *)target;
+		if (su && su->group && !(skill_get_inf2(su->group->skill_id)&INF2_TRAP || su->group->skill_id==WZ_ICEWALL))
+			return 0; //Excepting traps and icewall, you should not be able to target skills.
+	}
 	if (src->type == BL_SKILL)
 	{
 		struct skill_unit *su = (struct skill_unit *)src;
@@ -2922,6 +2928,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				if (inf2&INF2_TARGET_SELF)
 					return 1;
 			}
+			
 			if ((ss = map_id2bl(su->group->src_id)) == NULL)
 				ss = src; //Fallback on the trap itself, otherwise consider this a "caster versus enemy" scenario.
 		}

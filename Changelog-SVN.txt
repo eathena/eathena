@@ -1,5 +1,8 @@
 Date	Added
 08/19
+	* More updates to battle_check_target, now you can't target any
+	  ground-based skills that don't have a physical manifestation (ie:
+	  Everything except traps and icewall) [Skotlex]
 	* Fixed "for sure" battle_check_target when it comes to neutral targets. [Skotlex]
 	* Removed pc_emotion, merged it with emotion. [Skotlex]
 	  Usage: emotion emotion_number <, target>
