@@ -1,4 +1,6 @@
 Date	Added
+08/21
+	* Fixed Acid Terror WEP breaking rate thx2 ShAPoNe [Lupus]
 08/19
 	* More updates to battle_check_target, now you can't target any
 	  ground-based skills that don't have a physical manifestation (ie:

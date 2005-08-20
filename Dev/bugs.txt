@@ -422,3 +422,18 @@ Problem:	Can't see players name, party name, guild name
 			You can see GUILD EMBLEM only.
 Assigned:	na
 Progress:	0%
+
+Problem:	Now boss' slaves do not drop any loot, but you can STEAL it from them.
+			It should be fixed.
+Assigned:	na
+Progress:	0%
+
+Problem:	@autoloot. Somehow... you get ITEMS when you're in CLOAKING (or in HIDA, when someone's finished your mob, or with Greemtooth)
+			Damn exploit should be fixed.
+Assigned:	na
+Progress:	0%
+
+Problem:	ONE SPOT exploit
+			Wizard teleports with a portal, set a safety wall. Then other people warp on the wiz's cell. So people stack one over another. And one safety wall protects them all. Etc
+Assigned:	na
+Progress:	0%

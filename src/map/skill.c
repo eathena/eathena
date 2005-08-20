@@ -2529,7 +2529,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 
 	case AM_ACIDTERROR:		/* アシッドテラ? */
 		skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, flag);
-		if (tsd && rand()%100 < skill_get_time(skillid,skilllv) * battle_config.equip_skill_break_rate) {
+		if (tsd && rand()%100 < skill_get_time(skillid,skilllv) * battle_config.equip_skill_break_rate / 100) { //fixed
 			pc_breakarmor(tsd);
 			clif_emotion(bl, 23);
 		}
