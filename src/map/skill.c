@@ -2667,6 +2667,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
 				skill_castend_damage_id);
 			clif_skill_nodamage (src,src,skillid,skilllv,1);
+			//status_change_start (src,SC_FLAMELAUNCHER,0,0,0,0,10000,0); //FIXME: It's not quite this the actual effect...
 		}
 		break;
 

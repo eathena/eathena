@@ -1652,16 +1652,7 @@ static struct Damage battle_calc_weapon_attack(
 			short t_element = status_get_element(target);
 			if (wd.damage > 0)
 			{
-				if(skill_num==SM_MAGNUM)
-				{	//Magnum break causes 20% fire elemental damage. [Skotlex]
-					//TODO: The information is not complete, it is currently unknown whether 20% of the total damage counts as fire,
-					//or is it 20% additional damage, or what...
-					int damage = wd.damage;
-					wd.damage=battle_attr_fix(damage/5,3,t_element);
-					wd.damage+=battle_attr_fix(4*damage/5,s_ele,t_element);
-				}
-				else
-					wd.damage=battle_attr_fix(wd.damage,s_ele,t_element);
+				wd.damage=battle_attr_fix(wd.damage,s_ele,t_element);
 				if(skill_num==MC_CARTREVOLUTION) //Cart Revolution applies the element fix once more with neutral element
 					wd.damage=battle_attr_fix(wd.damage,0,t_element);
 			}

@@ -1,5 +1,7 @@
 Date	Added
 08/22	
+	* Reverted magnum break, removed the Flame Launcher status change until
+	  actual bonus can be implemented. [Skotlex]
 	* Skills update (mostly thanks to Vicious Pucca): [Skotlex]
 	  - Success chance and stats of Provoke, mental Break, Signum Crusis, Soul Burn
 	  - Decrease Agility duration halved for players.

@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance??
 
 08/22
+	* Reverted magnum break... it is supposed to be fire element :/ [Skotlex]
 	* Updated casting times and delays of Soul Strike & Napalm Beat, range of
 	  Ruwach/Sight (thanks to Vicious Pucca) [Skotlex]
 	* Updated Magnum Break's element (takes weapon), the fire part is hardcoded. [Skotlex]
