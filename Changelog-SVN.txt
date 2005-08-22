@@ -1,6 +1,6 @@
 Date	Added
 08/22	
-	* Fixed skill_db, Added perfect hit to TK_JUMPKICK [Dralnu]
+	* Fixed skill_db, Added perfect hit to TK_COUNTER [Dralnu]
 	* Changed skill_tree and job_db1 the same way I changed job_db2, it was necessary for
 	  clear implementation of Taekwon (which has a very unusual ID for a 1st job) and renders
 	  the code less messy (at least it's my humble opinion ^^) although it could be slightly,

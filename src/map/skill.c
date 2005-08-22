@@ -2454,6 +2454,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case CR_ACIDDEMONSTRATION:  // Acid Demonstration
 	case WS_CARTTERMINATION:	// Cart Termination
 	case TK_DOWNKICK:	// Taekwon Axe Kick
+	case TK_COUNTER:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 	case TK_TURNKICK:

@@ -994,7 +994,7 @@ static struct Damage battle_calc_weapon_attack(
 				case MO_INVESTIGATE:
 				case MO_EXTREMITYFIST:
 				case PA_SACRIFICE:
-    			case TK_JUMPKICK:
+    			case TK_COUNTER:
 					flag.hit = 1;
 					break;
 			}
