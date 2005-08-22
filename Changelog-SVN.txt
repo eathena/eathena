@@ -1,5 +1,6 @@
 Date	Added
 08/22
+	* Likely fixed SP consumption of Warp Portal. [Skotlex]
 	* Changed some default values in battle config to get the 'official gaming experience' by
 	  default [DracoRPG]
 	  - Noone can plagiarize advanced skills (from ragnainfo)

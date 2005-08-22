@@ -7151,8 +7151,10 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		if(sd->sc_data[SkillStatusChangeTable[skill]].timer!=-1)
 			return 1;			/* ‰ğœ‚·‚éê‡‚ÍSPÁ”ï‚µ‚È‚¢ */
 		break;
-	case AL_TELEPORT:
 	case AL_WARP:
+		if(!(type&2)) //Delete the item when the portal has been selected (type&2). [Skotlex]
+			delitem_flag = 0;
+	case AL_TELEPORT:
 		if(map[sd->bl.m].flag.noteleport) {
 			clif_skill_teleportmessage(sd,0);
 			return 0;
@@ -7506,8 +7508,6 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		return 1;
 
 	if(delitem_flag) {
-		if(skill == AL_WARP && !(type&2))
-			return 1;
 		for(i=0;i<10;i++) {
 			if(index[i] >= 0)
 				pc_delitem(sd,index[i],amount[i],0);		// ƒAƒCƒeƒ€Á”ï

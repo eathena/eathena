@@ -1847,9 +1847,10 @@ static struct Damage battle_calc_weapon_attack(
 		int k, class_;
 		i = 0;
 		do {
-			class_ = rand() % MAX_MOB_DB;
-			if (mobdb_checkid(class_)==0)
-				continue;
+			do {
+				class_ = rand() % MAX_MOB_DB;
+			} while (mobdb_checkid(class_)==0);
+			
 			k = rand() % 1000000;
 			mob = mob_db(class_);
 		} while ((mob->mode&0x20 || mob->summonper[0] <= k) && (i++) < 2000);
