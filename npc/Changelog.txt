@@ -28,6 +28,8 @@ TODO:
 
 Date		Added
 ======
+08/21
+	* Orc Hero Helm fixed items exploit [Lupus]
 08/19
 	* Fully updated Glastheim to real ep8.5 aegis spawns [MasterOfMuppets]
 	* Updated refine npc to stop it from making the server crash (features = 1,

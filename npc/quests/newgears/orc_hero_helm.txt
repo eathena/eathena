@@ -3,13 +3,14 @@
 //===== By: ================================================== 
 //= DracoRPG (1.0)
 //===== Current Version: ===================================== 
-//= 1.0
+//= 1.0b
 //===== Compatible With: ===================================== 
 //= Any eAthena Version with gmcommand function
 //===== Description: ========================================= 
 //= Orc Hero Helm quest
 //===== Additional Comments: ================================= 
 //= Only needed items and sprite/name are official
+//= 1.0b fixed items exploit [Lupus]
 //============================================================
 
 gef_fild10.gat,131,274,4	script	Orc Warrior	1023,{
@@ -85,13 +86,13 @@ Q3:
 Q3_allitem:
 	mes "Humph! Ya're really a powerful warrior! Maybe ya deserve to wear the Orc Hero Helm.";
 	mes "For the moment, take those items. Keep 'em well, ya'll need 'em to make your helm!";
+	set ORC_HERO_HELM_Q,4;
+	set ORC_HERO_HELM_Q2,0;
 	getitem 2299,1;
 	getitem 968,1;
 	next;
 	mes "[Orc Warrior]";
 	mes "Now, ya'll have to fight our best warlords and heroes! Bring me 100 Heroic Emblems and I'll give ya your helm.";
-	set ORC_HERO_HELM_Q,4;
-	set ORC_HERO_HELM_Q2,0;
 	close;
 Q3_noitem:
 	emotion 6;
