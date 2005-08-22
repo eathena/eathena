@@ -21,7 +21,7 @@ struct block_list;
 
 // É_ÉÅÅ[ÉWåvéZ
 
-struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag);
+struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct block_list *target,int *skill_num,int skill_lv,int flag);
 // ëÆê´èCê≥åvéZ
 int battle_attr_fix(int damage,int atk_elem,int def_elem);
 
@@ -58,18 +58,19 @@ int battle_counttargeted(struct block_list *bl,struct block_list *src,int target
 struct block_list* battle_gettargeted(struct block_list *target);
 
 //New definitions [Skotlex]
-#define BCT_ENEMY 0x20000
+#define BCT_ENEMY 0x02000
 //This should be (~BCT_ENEMY&BCT_ALL)
-#define BCT_NOENEMY 0xd0000
-#define BCT_PARTY	0x40000
+#define BCT_NOENEMY 0x1d000
+#define BCT_PARTY	0x04000
 //This should be (~BCT_PARTY&BCT_ALL)
-#define BCT_NOPARTY 0xb0000	
-#define BCT_GUILD	0x80000
+#define BCT_NOPARTY 0x1b000	
+#define BCT_GUILD	0x08000
 //This should be (~BCT_GUILD&BCT_ALL)
-#define BCT_NOGUILD 0x70000
-#define BCT_ALL 0xf0000
+#define BCT_NOGUILD 0x17000
+#define BCT_ALL 0x1f000
 #define BCT_NOONE 0x00000
-#define BCT_SELF 0x10000
+#define BCT_SELF 0x01000
+#define BCT_NEUTRAL 0x10000
 /*
 enum {
 	BCT_NOENEMY	=0x00000,

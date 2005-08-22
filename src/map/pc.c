@@ -2882,7 +2882,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 							memset(&tmp_item,0,sizeof(tmp_item));
 							tmp_item.nameid = itemid;
 							tmp_item.amount = 1;
-							tmp_item.identify = 1;
+							tmp_item.identify = !itemdb_isequip3(itemid);
 							flag = pc_additem(sd,&tmp_item,1);
 
 							//this drop log contains ALL stolen items [Lupus]

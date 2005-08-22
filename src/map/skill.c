@@ -1524,6 +1524,18 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		//from the actual code and I couldn't understand a thing anyway >.< [Skotlex]
 		switch(skillid)
 		{
+
+			case MO_TRIPLEATTACK:
+			{
+				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
+				if (damage < status_get_hp(bl) &&
+					pc_checkskill(sd, MO_CHAINCOMBO) > 0)
+					delay += 300 * battle_config.combo_delay_rate / 100;
+				status_change_start(src,SC_COMBO,MO_TRIPLEATTACK,skilllv,0,0,delay,0);
+				sd->attackabletime = sd->canmove_tick = tick + delay;
+				clif_combo_delay(src, delay);
+				break;
+			}
 			case MO_CHAINCOMBO:
 			{
 				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
@@ -2431,6 +2443,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case HW_MAGICCRASHER:		/* マジッククラッシャ? */
 	case ASC_METEORASSAULT:	/* メテオアサルト */
 	case ITM_TOMAHAWK:
+	case MO_TRIPLEATTACK:
 	case MO_COMBOFINISH:	/* 猛龍拳 */
 	case CH_CHAINCRUSH:		/* 連柱崩? */
 	case CH_TIGERFIST:		/* 伏虎拳 */

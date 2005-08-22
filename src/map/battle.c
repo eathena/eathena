@@ -711,7 +711,7 @@ int battle_addmastery(struct map_session_data *sd,struct block_list *target,int 
  *------------------------------------------
  */
 static struct Damage battle_calc_weapon_attack(
-	struct block_list *src,struct block_list *target,int *skillnum,int *skilllv,int wflag)
+	struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int wflag)
 {
 	struct map_session_data *sd=NULL, *tsd=NULL;
 	struct mob_data *md=NULL, *tmd=NULL;
@@ -720,8 +720,6 @@ static struct Damage battle_calc_weapon_attack(
 	short skill=0;
 	//Not very efficient, but it's the way to implement auto skills with minimum changes
 	//(or would I best modify struct Damage to hold the skill info as well?) [Skotlex].
-	int skill_num = *skillnum;
-	int skill_lv = *skilllv;
 	unsigned short skillratio = 100;	//Skill dmg modifiers.
 
 	short i;
@@ -894,38 +892,6 @@ static struct Damage battle_calc_weapon_attack(
 			t_sc_data[SC_POISONREACT].val3 = src->id;
 		}
 	}	//End counter-check
-
-	if(sd && !skill_num && !flag.cri)
-	{	//Check for conditions that convert an attack to a skill
-		char da=0;
-		skill = 0;
-		if(( (skill = 5*pc_checkskill(sd,TF_DOUBLE)) > 0 && sd->weapontype1 == 0x01) ||
-			sd->double_rate > 0) //Success chance is not added, the higher one is used? [Skotlex]
-			da = (rand()%100 < (skill>sd->double_rate?skill:sd->double_rate)) ? 1:0;
-		if((skill = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16) // triple blow works with bows ^^ [celest]
-			da = (rand()%100 < (30 - skill)) ? 2:da;
-		
-		if (da == 1)
-		{
-			*skillnum = skill_num = TF_DOUBLE;
-			*skilllv = skill_lv = pc_checkskill(sd, TF_DOUBLE);
-		} else if (da == 2) {
-			*skillnum = skill_num = MO_TRIPLEATTACK;
-			*skilllv = skill_lv = skill;
-		}
-		
-		if (da)
-		{
-			wd.div_ = skill_get_num(skill_num,skill_lv);
-			wd.type = 0x08;
-		}
-	}
-
-	if (!skill_num && !flag.cri && sc_data && sc_data[SC_SACRIFICE].timer != -1)
-	{
-		*skillnum = skill_num = PA_SACRIFICE;
-		*skilllv = skill_lv = sc_data[SC_SACRIFICE].val1;
-	}
 
 	if (!skill_num && (tsd || battle_config.enemy_perfect_flee))
 	{	//Check for Lucky Dodge
@@ -1262,7 +1228,7 @@ static struct Damage battle_calc_weapon_attack(
 			// EDP : Since records say it does works with Sonic Blows, instead of pre-multiplying the damage,
 			// we take the number of hits in consideration. [Skotlex]
 			if(sc_data[SC_EDP].timer != -1 && skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
-				skillratio += (150 + sc_data[SC_EDP].val1 * 50)*(skill_num != TF_DOUBLE?wd.div_:1);
+				skillratio += (150 + sc_data[SC_EDP].val1 * 50)*wd.div_;
 			if(sc_data[SC_VOLCANO].timer!=-1 && s_ele == 3)
 				skillratio += enchant_eff[sc_data[SC_VOLCANO].val1-1];
 			if(sc_data[SC_VIOLENTGALE].timer!=-1 && s_ele == 4)
@@ -1328,8 +1294,6 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case KN_AUTOCOUNTER:
 					flag.idef= flag.idef2= 1;
-					break;
-				case TF_DOUBLE:
 					break;
 				case AS_GRIMTOOTH:
 					skillratio+= 20*skill_lv;
@@ -1811,9 +1775,17 @@ static struct Damage battle_calc_weapon_attack(
 		return wd;
 	}
 	
-	//Double is basically a normal attack x2, so... [Skotlex]
-	if (skill_num == TF_DOUBLE)
-		wd.damage *=2;
+	if(sd && !skill_num && !flag.cri)
+	{	//Check for double attack.
+		if(( (skill_lv = 5*pc_checkskill(sd,TF_DOUBLE)) > 0 && sd->weapontype1 == 0x01) ||
+			sd->double_rate > 0) //Success chance is not added, the higher one is used? [Skotlex]
+			if (rand()%100 < (skill_lv>sd->double_rate?skill_lv:sd->double_rate))
+			{
+				wd.damage *=2;
+				wd.div_=skill_get_num(TF_DOUBLE,skill_lv?skill_lv:1);
+				wd.type = 0x08;
+			}
+	}
 
 	if(!flag.rh || wd.damage<1)
 		wd.damage=0;
@@ -2237,7 +2209,7 @@ struct Damage battle_calc_magic_attack(
 
 	if(skill_num == CR_GRANDCROSS) {	// グランドクロス
 		struct Damage wd;
-		wd=battle_calc_weapon_attack(bl,target,&skill_num,&skill_lv,flag);
+		wd=battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
 		damage = (damage + wd.damage) * (100 + 40*skill_lv)/100;
 		if(battle_config.gx_dupele) damage=battle_attr_fix(damage, ele, status_get_element(target) );	//属性2回かかる
 		if(bl==target){
@@ -2468,8 +2440,8 @@ struct Damage battle_calc_attack(	int attack_type,
 {
 	struct Damage d;
 	switch(attack_type){
-	case BF_WEAPON:
-		d = battle_calc_weapon_attack(bl,target,&skill_num,&skill_lv,flag);
+	case BF_WEAPON: //Skill_num is passed as a pointer to update it when the thing changes to Triple Blows, for example. [Skotlex]
+		d = battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
 		break;
 	case BF_MAGIC:
 		d = battle_calc_magic_attack(bl,target,skill_num,skill_lv,flag);
@@ -2562,7 +2534,12 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			skill_num = AS_POISONREACT;
 			skill_lv = sc_data[SC_POISONREACT].val1;
 		}
-		wd = battle_calc_weapon_attack(src,target, &skill_num, &skill_lv,0);
+		else if(sd && (skill_lv = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16 && rand()%100 < (30 - skill_lv)) // triple blow works with bows ^^ [celest]
+			return skill_attack(BF_WEAPON,src,src,target,MO_TRIPLEATTACK,skill_lv,tick,0);
+		else if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
+			return skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,sc_data[SC_SACRIFICE].val1,tick,0);
+
+		wd = battle_calc_weapon_attack(src,target, skill_num, skill_lv,0);
 	
 		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
 			if (wd.flag & BF_SHORT) {
@@ -2584,28 +2561,12 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				clif_damage(src, src, tick, wd.amotion, wd.dmotion, rdamage, 1, 4, 0);
 		}
 
-		if (skill_num == MO_TRIPLEATTACK) //Apparently, Triple Blows is the only one that needs be displayed as a skill. Double attack, Auto Counter and Poison React are displayed as normal clif_damage!? [Skotlex]
-			{	//Triple Blows
-			//Isn't this the skill delay? It should happen regardless of enemy-killed or not. [Skotlex]
-			int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-			
-			if (sd && wd.damage + wd.damage2 < status_get_hp(target) &&
-				pc_checkskill(sd, MO_CHAINCOMBO) > 0)
-				delay += 300 * battle_config.combo_delay_rate / 100;
-			
-			status_change_start(src, SC_COMBO, skill_num, skill_lv, 0, 0, delay, 0);
-			if (sd)
-				sd->attackabletime = sd->canmove_tick = tick + delay;
-			clif_combo_delay(src, delay);
-		
-			clif_skill_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_,
-				skill_num, skill_lv, -1);
-		} else {
-			clif_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_ , wd.type, wd.damage2);
-			//二刀流左手とカタール追撃のミス表示(無理やり～)
-			if(sd && sd->status.weapon >= 16 && wd.damage2 == 0)
-				clif_damage(src, target, tick+10, wd.amotion, wd.dmotion,0, 1, 0, 0);
-		}
+	
+		clif_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_ , wd.type, wd.damage2);
+		//二刀流左手とカタール追撃のミス表示(無理やり～)
+		if(sd && sd->status.weapon >= 16 && wd.damage2 == 0)
+			clif_damage(src, target, tick+10, wd.amotion, wd.dmotion,0, 1, 0, 0);
+
 		if (sd && sd->splash_range > 0 && (wd.damage > 0 || wd.damage2 > 0))
 			skill_castend_damage_id(src, target, 0, -1, tick, 0);
 
@@ -2830,16 +2791,32 @@ int battle_check_undead(int race,int element)
  * (enemy, friend, party, guild, etc)
  * See battle.h for possible values/combinations
  * to be used here (BCT_* constants)
+ * Return value is:
+ * 1: flag holds true (is enemy, party, etc)
+ * -1: flag fails
+ * 0: Invalid target (non-targetable ever)
  *------------------------------------------
  */
 int battle_check_target( struct block_list *src, struct block_list *target,int flag)
 {
 	int m,state = 0; //Initial state neutral (0x00000)
-	struct block_list *ss= src;
+	struct block_list *s_bl= src, *t_bl= target;
 	
-	if (target->type == BL_PET ||	//Pets can't be targetted for anything.
+	if ((target->type != BL_PC && target->type != BL_MOB && target->type != BL_SKILL) ||	//Only players, mobs or skills may be targeted.
 		(src->type == BL_SKILL && target->type == BL_SKILL))	//Skills can't target each other.
 		return 0;
+
+	m = target->m;
+	if (flag&BCT_ENEMY && !map[m].flag.gvg)	//Offensive stuff can't be casted on Basilica
+	{	// Celest
+		struct status_change *sc_data, *tsc_data;
+
+		sc_data = status_get_sc_data(src);
+		tsc_data = status_get_sc_data(target);
+		if ((sc_data && sc_data[SC_BASILICA].timer != -1) ||
+		(tsc_data && tsc_data[SC_BASILICA].timer != -1))
+			return -1;
+	}
 
 	if (target->type == BL_PC) {
 		struct map_session_data *tsd = NULL;
@@ -2850,41 +2827,27 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			return -1; //Cannot be targeted yet.
 		
 		if (tsd->monster_ignore && src->type == BL_MOB)
-			return -1; //option to have monsters ignore GMs [Valaris]
+			return 0; //option to have monsters ignore GMs [Valaris]
 	}
-
-	m = target->m;
-	if (flag&BCT_ENEMY && !map[m].flag.gvg)	//Offensive stuff can't be casted on Basilica
-	{
-		struct status_change *sc_data, *tsc_data;
-		
-		// Celest
-		sc_data = status_get_sc_data(src);
-		tsc_data = status_get_sc_data(target);
-		if ((sc_data && sc_data[SC_BASILICA].timer != -1) ||
-		(tsc_data && tsc_data[SC_BASILICA].timer != -1))
-			return -1;
-	}
-
-	if (flag == BCT_ALL){ //All actually stands for all players/mobs
-		if (target->type == BL_MOB || target->type == BL_PC)
-			return 1;
-		else
-			return -1;
-	}
-
-	if (target->type == BL_SKILL)
+	else if (target->type == BL_SKILL)
 	{
 		struct skill_unit *su = (struct skill_unit *)target;
-		if (su && su->group && !(skill_get_inf2(su->group->skill_id)&INF2_TRAP || su->group->skill_id==WZ_ICEWALL))
-			return 0; //Excepting traps and icewall, you should not be able to target skills.
+		if (su && su->group)
+		{
+			if (!(skill_get_inf2(su->group->skill_id)&INF2_TRAP || su->group->skill_id==WZ_ICEWALL))
+				return 0; //Excepting traps and icewall, you should not be able to target skills.
+
+			if ((t_bl = map_id2bl(su->group->src_id)) == NULL)
+				t_bl = target; //Fallback on the trap itself, otherwise consider this a "versus caster" scenario.
+		}
 	}
+
 	if (src->type == BL_SKILL)
 	{
 		struct skill_unit *su = (struct skill_unit *)src;
 		if (su && su->group)
 		{
-			if (su->group->src_id == target->id)
+			if (su->group->src_id == t_bl->id)
 			{
 				int inf2;
 				inf2 = skill_get_inf2(su->group->skill_id);
@@ -2894,25 +2857,35 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 					return 1;
 			}
 			
-			if ((ss = map_id2bl(su->group->src_id)) == NULL)
-				ss = src; //Fallback on the trap itself, otherwise consider this a "caster versus enemy" scenario.
+			if ((s_bl = map_id2bl(su->group->src_id)) == NULL)
+				s_bl = src; //Fallback on the trap itself, otherwise consider this a "caster versus enemy" scenario.
 		}
 	}
-
-	if (target == ss)
+	else if (src->type == BL_MOB && !agit_flag && (struct mob_data*)src && ((struct mob_data*)src)->guild_id)
+		return 0; //Disable guardian attacking on non-woe times.
+	
+	if (flag == BCT_ALL){ //All actually stands for all players/mobs
+		if (target->type == BL_MOB || target->type == BL_PC)
+			return 1;
+		else
+			return -1;
+	}	
+	
+	if (t_bl == s_bl)
 		state |= BCT_SELF;
 	
 	if (flag&BCT_ENEMY)
 	{	//Check default enemy settings of mob vs players
-		if ((ss->type == BL_MOB && target->type == BL_PC) ||
-			((ss->type == BL_PC || ss->type == BL_PET) && target->type == BL_MOB))
+		if ((s_bl->type == BL_MOB && t_bl->type == BL_PC) ||
+			((s_bl->type == BL_PC || s_bl->type == BL_PET) && t_bl->type == BL_MOB))
 			state |= BCT_ENEMY;
 	}
+	
 	if (flag&BCT_PARTY || (map[m].flag.pvp && flag&BCT_ENEMY))
 	{	//Identify party state
 		int s_party, t_party;
-		s_party = status_get_party_id(ss);
-		t_party = status_get_party_id(target);
+		s_party = status_get_party_id(s_bl);
+		t_party = status_get_party_id(t_bl);
 
 		if (!map[m].flag.pvp)
 		{
@@ -2930,8 +2903,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	if (flag&BCT_GUILD || ((map[m].flag.gvg || map[m].flag.gvg_dungeon) && flag&BCT_ENEMY))
 	{	//Identify guild state
 		int s_guild, t_guild;
-		s_guild = status_get_guild_id(ss);
-		t_guild = status_get_guild_id(target);
+		s_guild = status_get_guild_id(s_bl);
+		t_guild = status_get_guild_id(t_bl);
 
 		if (!map[m].flag.gvg && !map[m].flag.gvg_dungeon && !map[m].flag.pvp)
 		{
@@ -2947,29 +2920,22 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		}
 	}
 
-	if (state&BCT_ENEMY && ss->type == BL_MOB && (struct mob_data*)ss && target->type == BL_MOB && (struct mob_data*)target)
-	{	//Under no situation should normal mobs attempt to attack each other!
-		if (((struct mob_data*)ss)->state.special_mob_ai==0 && ((struct mob_data*)target)->state.special_mob_ai==0)
-			state &=~BCT_ENEMY;
-	}
-	
+	if (!state) //If not an enemy, nor a guild, nor party, nor yourself, it's neutral.
+		state = BCT_NEUTRAL;
 	//Alliance state takes precedence over enemy one.
-	if (state&BCT_ENEMY && state&(BCT_SELF|BCT_PARTY|BCT_GUILD))
+	else if (state&BCT_ENEMY && state&(BCT_SELF|BCT_PARTY|BCT_GUILD))
 		state&=~BCT_ENEMY;
 
-	if (state==0) //Neutral target (needed because state&(anything) will never yield true)
-	{	//Seems rather crude, but I can't come up with a better/simple/elegant solution... [Skotlex]
-		switch (flag)
-		{
-			case BCT_NOENEMY:
-			case BCT_NOPARTY:
-			case BCT_NOGUILD:
-				return 1;
-			default:
-				return -1;
-		}
+	if (t_bl->type == BL_MOB && (struct mob_data*)t_bl)
+	{
+		if (((struct mob_data*)t_bl)->state.special_mob_ai==2 && src->type == BL_PC && ((struct mob_data*)t_bl)->master_id == src->id)
+			state|=BCT_ENEMY; //Let the Alchemist hit their own sphere mine.
+		else if (state & BCT_ENEMY && s_bl->type == BL_MOB && (struct mob_data*)s_bl &&
+			((struct mob_data*)s_bl)->state.special_mob_ai==0 && ((struct mob_data*)t_bl)->state.special_mob_ai==0)
+			//Do not let mobs target each other.
+			state&=~BCT_ENEMY;
 	}
-	
+
 	return (flag&state)?1:-1;
 
 /* The previous implementation is left here for reference in case something breaks :X [Skotlex]
