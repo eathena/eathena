@@ -13,7 +13,7 @@
 //= Removed individual job check functions as they were redundant [kobra_k88]
 //= 1.3 Added Job Change Function for Baby/Normal Classes
 //= 1.3b a fix, due to const.txt change [Lupus]
-//= 1.4 Added Is_Tekwon_Class: Taekwondo, Star Knight(Gladiator),Soul Linker [Lupus]
+//= 1.4 Added Is_Taekwon_Class: Taekwondo, Star Knight(Gladiator),Soul Linker [Lupus]
 //============================================================ 
 
 
@@ -105,8 +105,8 @@ function	script	Is_Sword_Class	{
 	return ( BaseJob==Job_Swordman || BaseJob==Job_Knight || BaseJob==Job_Knight2 || BaseJob==Job_Crusader || BaseJob==Job_Crusader2 );
 }
 //-----------------------------------------------------
-// returns 1 if the player is either Taekwondo, Star Knight(Gladiator),Soul Linker, 0 otherwise
+// returns 1 if the player is either Taekwon, Star Gladiator,Soul Linker, 0 otherwise
 // these classes can't be adopted nor reborn ()
 function	script	Is_Taekwon_Class	{
-	return ( Class==Job_Taekwon || Class==Job_Star || BaseJob==Job_Soul );
+	return ( Class==Job_Taekwon || Class==Job_Star_Gladiator || Class==Job_Soul_Linker );
 }

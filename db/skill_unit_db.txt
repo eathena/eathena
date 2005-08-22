@@ -4,11 +4,11 @@
 // target = friend / party / all / enemy
 // flag 0x001(UF_DEFNOTENEMY)		Affected by 'defunit_not_enemy'
 //      0x002(UF_NOREITERRATION)	Spell cannot be stacked
-//      0x004(UF_NOFOOTSET)		Spell cannot be cast near/on players
+//      0x004(UF_NOFOOTSET)		Spell cannot be cast near/on targets
 //      0x008(UF_NOOVERLAP)		Spell effects do not overlap
 // 		0x100(UF_DANCE)		Dance skill
 //		0x200(UF_ENSEMBLE)	Ensemble skill
-// 	Example: 0x006 = 0x002+0x004 -> Cannot be stacked nor cast near players
+// 	Example: 0x006 = 0x002+0x004 -> Cannot be stacked nor cast near targets
 //
 // Notes:
 // ------
@@ -26,7 +26,7 @@
  80,0x87,0x88,  0, 1,2000,enemy, 0x002	//WZ_FIREPILLAR#ファイアーピラー
  83,0x86,    ,  0, 3,1000,enemy, 0x000	//WZ_METEOR#メテオストーム
  85,0x86,    ,  0, 6,1000,enemy, 0x008	//WZ_VERMILION#ロードオブヴァーミリオン
- 87,0x8d,    , -1, 0,  -1,all,   0x004	//WZ_ICEWALL#アイスウォール
+ 87,0x8d,    , -1, 0,  -1,all,   0x000	//WZ_ICEWALL#アイスウォール
  88,0x86,    ,  0, 2,1000,enemy, 0x000	//WZ_FROSTNOVA#フロストノヴァ
  89,0x86,    ,  0, 5, 450,enemy, 0x000	//WZ_STORMGUST#ストームガスト
  91,0x86,    ,  0, 2,1000,enemy, 0x000	//WZ_HEAVENDRIVE#ヘヴンズドライブ

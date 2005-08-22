@@ -309,43 +309,6 @@ int charcommand_jobchange(
 		int j;
 		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can change job only to lower or same level
 			if ((job >= 0 && job < MAX_PC_CLASS)) {
-				/* I don't think this is needed anymore. [Skotlex]
-				// fix pecopeco display
-				if ((job != 13 && job != 21 && job != 4014 && job != 4022 && job != 4030 && job != 4036 && job != 4037 && job != 4044 )) {
-					if (pc_isriding(sd)) {
-						if (pl_sd->status.class_ == 13)
-							pl_sd->status.class_ = pl_sd->view_class = 7;
-						if (pl_sd->status.class_ == 21)
-							pl_sd->status.class_ = pl_sd->view_class = 14;
-						if (pl_sd->status.class_ == 4014)
-							pl_sd->status.class_ = pl_sd->view_class = 4008;
-						if (pl_sd->status.class_ == 4022)
-							pl_sd->status.class_ = pl_sd->view_class = 4015;
-						if (pl_sd->status.class_ == 4036)
-							pl_sd->status.class_ = pl_sd->view_class = 4030;
-						if (pl_sd->status.class_ == 4044)
-							pl_sd->status.class_ = pl_sd->view_class = 4037;
-						pl_sd->status.option &= ~0x0020;
-						clif_changeoption(&pl_sd->bl);
-						status_calc_pc(pl_sd, 0);
-					}
-				} else {
-					if (!pc_isriding(sd)) {
-						if (job == 13)
-							job = 7;
-						if (job == 21)
-							job = 14;
-						if (job == 4014)
-							job = 4008;
-						if (job == 4022)
-							job = 4015;
-						if (job == 4036)
-							job = 4030;
-						if (job == 4044)
-							job = 4037;
-					}
-				}
-				*/
 				for (j=0; j < MAX_INVENTORY; j++) {
 					if(pl_sd->status.inventory[j].nameid>0 && pl_sd->status.inventory[j].equip!=0)
 						pc_unequipitem(pl_sd, j, 3);

@@ -595,7 +595,6 @@ int pc_break_equip(struct map_session_data *sd, unsigned short where)
 		{
 			sd->status.inventory[j].attribute = 1;
 			pc_unequipitem(sd, j, 3);
-			clif_emotion(&sd->bl, 23);
 			clif_equiplist(sd);
 			return 1;
 		}
@@ -3617,16 +3616,16 @@ int pc_checkallowskill(struct map_session_data *sd)
 		status_change_end(&sd->bl,SC_TWOHANDQUICKEN,-1);
 	}
 	if(!(skill_get_weapontype(LK_AURABLADE)&(1<<sd->status.weapon)) && sd->sc_data[SC_AURABLADE].timer!=-1) { // Aura Blade requires any weapon but bare fists
-		status_change_end(&sd->bl,SC_AURABLADE,-1);	// Aura
+		status_change_end(&sd->bl,SC_AURABLADE,-1);
 	}
 	if(!(skill_get_weapontype(LK_PARRYING)&(1<<sd->status.weapon)) && sd->sc_data[SC_PARRYING].timer!=-1) {	// Parrying requires a Two-handed sword
-		status_change_end(&sd->bl,SC_PARRYING,-1);	/* パリイングを解除 */
+		status_change_end(&sd->bl,SC_PARRYING,-1);
 	}
 	if(!(skill_get_weapontype(CR_SPEARQUICKEN)&(1<<sd->status.weapon)) && sd->sc_data[SC_SPEARSQUICKEN].timer!=-1){	// Spear Quicken requires a Two-handed spear
-		status_change_end(&sd->bl,SC_SPEARSQUICKEN,-1);	// スピアクイッケンを解除
+		status_change_end(&sd->bl,SC_SPEARSQUICKEN,-1);
 	}
-	if(!(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)) && sd->sc_data[SC_ADRENALINE].timer!=-1){	// Adrenaline Rush requires an Axe of a Mace
-		status_change_end(&sd->bl,SC_ADRENALINE,-1);	// アドレナリンラッシュを解除
+	if(!(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)) && sd->sc_data[SC_ADRENALINE].timer!=-1){	// Adrenaline Rush requires an Axe or a Mace
+		status_change_end(&sd->bl,SC_ADRENALINE,-1);
 	}
 
 	if(sd->status.shield <= 0) { // Skills requiring a shield
@@ -3669,12 +3668,12 @@ int pc_checkequip(struct map_session_data *sd,int pos)
 struct pc_base_job pc_calc_base_job(int b_class)
 {
 	struct pc_base_job bj;
-	if(b_class < JOB_NOVICE_HIGH){
+	if(b_class < JOB_NOVICE_HIGH || (b_class >= JOB_TAEKWON && b_class <= JOB_SOUL_LINKER)){
 		if (b_class == JOB_KNIGHT2)
 			bj.job = JOB_KNIGHT;
 		else if (b_class == JOB_CRUSADER2)
 			bj.job = JOB_CRUSADER;
-		else	
+		else
 			bj.job = b_class;
 		bj.upper = 0;
 	}else if(b_class >= JOB_NOVICE_HIGH && b_class <= JOB_PALADIN2){ //High Jobs
@@ -3699,7 +3698,7 @@ struct pc_base_job pc_calc_base_job(int b_class)
 
 	if(bj.job == JOB_NOVICE){
 		bj.type = 0;
-	}else if(bj.job <= JOB_THIEF){
+	}else if(bj.job <= JOB_THIEF || bj.job == JOB_TAEKWON){
 		bj.type = 1;
 	}else{
 		bj.type = 2;
@@ -3714,7 +3713,7 @@ struct pc_base_job pc_calc_base_job(int b_class)
  */
 int pc_calc_base_job2 (int b_class)
 {
-	if(b_class < JOB_NOVICE_HIGH)
+	if(b_class < JOB_NOVICE_HIGH || (b_class >= JOB_TAEKWON && b_class <= JOB_SOUL_LINKER))
 	{
 		if (b_class == JOB_KNIGHT2)
 			return JOB_KNIGHT;
@@ -3744,7 +3743,7 @@ int pc_calc_base_job2 (int b_class)
 
 int pc_calc_upper(int b_class)
 {
-	if(b_class < JOB_NOVICE_HIGH)
+	if(b_class < JOB_NOVICE_HIGH || (b_class >= JOB_TAEKWON && b_class <= JOB_SOUL_LINKER))
 		return 0;
 	else if(b_class >= JOB_NOVICE_HIGH && b_class < JOB_BABY)
 		return 1;
@@ -4100,8 +4099,8 @@ int pc_gainexp(struct map_session_data *sd,int base_exp,int job_exp)
 
 	if(sd->sc_data[SC_RICHMANKIM].timer != -1) { // added bounds checking [Valaris]
 		double base, job;
-		base = ((double)base_exp)*(125 + sd->sc_data[SC_RICHMANKIM].val1*25)/100;
-		job = ((double)job_exp)*(125 + sd->sc_data[SC_RICHMANKIM].val1*25)/100;
+		base = ((double)base_exp)*(125 + sd->sc_data[SC_RICHMANKIM].val1*11)/100;
+		job = ((double)job_exp)*(125 + sd->sc_data[SC_RICHMANKIM].val1*11)/100;
 		base_exp = (base > 0x7fffffff) ? 0x7fffffff : (int)base;
 		job_exp = (job > 0x7fffffff) ? 0x7fffffff : (int)job;
 	}
@@ -5533,7 +5532,10 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	// Min is SuperNovice +1 -> Becomes Novice High [Skotlex]
 	// Max is SuperBaby-NoviceHigh+1 -> Becomes Super Baby
 		b_class += JOB_NOVICE_HIGH - JOB_SUPER_NOVICE -1;
-	} else if (job < JOB_NOVICE_HIGH || job > JOB_SUPER_BABY) //Invalid value
+	} else if (job >= JOB_TAEKWON && job <= JOB_SOUL_LINKER) {
+		if (upper > 0)
+			return 1;
+	} else if (job < JOB_NOVICE_HIGH || job > JOB_SOUL_LINKER) //Invalid value
 		return 1;
 
 	job = pc_calc_base_job2 (b_class); // check base class [celest]
@@ -5542,8 +5544,8 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 		return 1;
 
 	// check if we are changing from 1st to 2nd job
-	if (job >= JOB_KNIGHT && job <= JOB_CRUSADER2) {
-		if (s_class.job > JOB_NOVICE && s_class.job < JOB_KNIGHT)
+	if ((job >= JOB_KNIGHT && job <= JOB_CRUSADER2) || job == JOB_STAR_GLADIATOR || job == JOB_SOUL_LINKER) {
+		if ((s_class.job > JOB_NOVICE && s_class.job < JOB_KNIGHT) || s_class.job == JOB_TAEKWON)
 			sd->change_level = sd->status.job_level;
 		else
 			sd->change_level = 40;

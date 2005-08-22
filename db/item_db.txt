@@ -1107,7 +1107,7 @@
 2644,The_Sign_,The Sign,5,20,0,0,,0,,0,10477567,2,136,,0,0,0,{},{ bonus bMatkRate,5; }
 2645,Moonlight_Ring,Moonlight Ring,5,20,0,200,,0,,0,135232,2,136,,60,0,0,{},{}
 2646,Bouquet_,Bunch of Carnations,5,20,0,100,,0,,0,10477567,2,136,,0,0,0,{},{ bonus bAllStats,3; }
-2647,Nile_Rose,Nile Rose,5,20,0,100,0,0,0,1,10477567,2,136,0,0,0,0,{},{ bonus bAllStats,5; }
+2647,Nile_Rose,Nile Rose,5,20,0,100,0,0,0,0,10477567,2,136,0,0,0,0,{},{ bonus bAllStats,5; }
 2648,Morphicious_Ring,Ring of Morphicious,5,20,0,100,0,0,0,0,2088958,2,136,0,33,0,0,{},{ bonus bInt,1; bonus bMaxSPrate,5; }
 2649,Morphicious_Bracelet,Bracelet of Morphicious,5,20,0,100,0,0,0,0,2088958,2,136,0,33,0,0,{},{ bonus bInt,1; bonus bMaxSPrate,5; }
 2650,Belt_of_Morrigan,Belt of Morrigan,5,20,0,200,0,0,0,0,2088958,2,136,0,61,0,0,{},{ bonus bAtk,5; bonus bCritical,3; }
@@ -1118,7 +1118,7 @@
 2655,Bloody_Irons,Blood-Stained Leg Irons,5,20,0,4000,0,0,0,0,414946,2,136,0,0,0,0,{},{ if (isequipped(2408)==0) end; bonus bAtk,100; bonus2 bAddDefClass,1196,20; bonus2 bAddDefClass,1197,20; }
 2656,Hyper_Mode_Changer,Hyper-mode Changer,5,20,0,1000,0,0,0,0,2088958,2,136,0,0,0,0,{},{ if((isequipped(2312) || isequipped(2313))==0) end; bonus bDef,6; bonus bMaxHP,200;}
 2657,Laboratory_Passport,Laboratory Passport,5,20,0,100,,0,,,10477567,2,136,,,,,{},{}
-2658,Nile_Rose_,Nile Rose,5,20,0,100,0,0,0,,10477567,2,136,0,0,0,0,{},{ bonus bMaxHP,10; }
+2658,Nile_Rose_,Nile Rose,5,20,0,100,0,0,0,1,10477567,2,136,0,0,0,0,{},{ bonus bMaxHP,10; }
 //These are for Advanced 2nd Jobs
 2659,Vesper_Core_01,Vesper Core 01,5,20,0,500,0,1,0,,2088832,2,136,0,0,0,0,{},{ bonus bDef,1; bonus bMdef,3; bonus bInt,2; bonus bMaxSPrate,5; }
 2660,Vesper_Core_02,Vesper Core 02,5,20,0,500,0,1,0,,2088832,2,136,0,0,0,0,{},{ bonus bDef,1; bonus bMdef,3; bonus bStr,3; bonus bAtk,10; }

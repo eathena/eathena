@@ -2040,6 +2040,11 @@ int atcommand_jobchange(
 			{ "baby bard",		4042 },
 			{ "baby dancer",	4043 },
 			{ "super baby",		4045 },
+			{ "taekwon",        4046 },
+			{ "taekwon boy",	4046 },
+			{ "taekwon girl",	4046 },
+			{ "star knight",	4047 },
+			{ "soul linker",	4048 },
 		};
 
 		for (i=0; i < (int)(sizeof(jobs) / sizeof(jobs[0])); i++) {
@@ -2064,61 +2069,6 @@ int atcommand_jobchange(
 	{
 		int j;
 
-/*		// fix pecopeco display <-- is this really needed? [Skotlex]
-		p_class = pc_calc_base_job2(job);
-		if (p_class == JOB_KNIGHT || p_class == JOB_PALADIN)
-		{
-			if (pc_isriding(sd))
-			{	//Mount
-				switch (sd->status.class_)
-				{
-					case JOB_KNIGHT:
-						sd->status.class_ = sd->view_class = JOB_KNIGHT2;
-						break;
-					case JOB_CRUSADER:
-						sd->status.class_ = sd->view_class = JOB_CRUSADER2;
-						break;
-					case JOB_LORD_KNIGHT:
-						sd->status.class_ = sd->view_class = JOB_LORD_KNIGHT2;
-						break;
-					case JOB_PALADIN:
-						sd->status.class_ = sd->view_class = JOB_PALADIN2;
-						break;
-					case JOB_BABY_KNIGHT:
-						sd->status.class_ = sd->view_class = JOB_BABY_KNIGHT2;
-						break;
-					case JOB_BABY_CRUSADER:
-						sd->status.class_ = sd->view_class = JOB_BABY_CRUSADER2;
-						break;
-					default:
-						sd->status.option &= ~0x0020;
-				}
-			} else
-			{	//Dismount
-				switch (sd->status.class_)
-				{
-					case JOB_KNIGHT2:
-						sd->status.class_ = sd->view_class = JOB_KNIGHT;
-						break;
-					case JOB_CRUSADER2:
-						sd->status.class_ = sd->view_class = JOB_CRUSADER;
-						break;
-					case JOB_LORD_KNIGHT2:
-						sd->status.class_ = sd->view_class = JOB_LORD_KNIGHT;
-						break;
-					case JOB_PALADIN2:
-						sd->status.class_ = sd->view_class = JOB_PALADIN;
-						break;
-					case JOB_BABY_KNIGHT2:
-						sd->status.class_ = sd->view_class = JOB_BABY_KNIGHT;
-						break;
-					case JOB_BABY_CRUSADER2:
-						sd->status.class_ = sd->view_class = JOB_BABY_CRUSADER;
-						break;
-				}
-			}
-		}
-*/
 		for (j=0; j < MAX_INVENTORY; j++) {
 			if(sd->status.inventory[j].nameid>0 && sd->status.inventory[j].equip!=0)
 				pc_unequipitem(sd, j, 3);

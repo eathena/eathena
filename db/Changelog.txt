@@ -15,6 +15,13 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
+08/22
+	* Added 0.5 sec delay to Aid Potion, 1 sec casting time & delay to Aid Condensed Potion
+	  (from kRO website, thanks to reddozen and vicious_pucca) [DracoRPG]
+	* Removed UF_NOFOOTSET from Ice Wall (I have several souces for that) [DracoRPG]
+	* Removed slot from nile_rose (All stats +5, event version), added slot to nile_rose_
+	  (MaxHP +10, permanent version) [DracoRPG]
+	* Added complete (except TK_MISSION) Taekwon skill tree & skill DBs entries [DracoRPG]
 08/19
 	* Fixed Double Attack's pl not being -1 (take weapon's element) [Skotlex]
 08/18

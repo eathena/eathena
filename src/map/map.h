@@ -5,7 +5,7 @@
 #include <stdarg.h>
 #include "mmo.h"
 
-#define MAX_PC_CLASS (1+6+6+1+6+1+1+1+1+4023)
+#define MAX_PC_CLASS 4048
 #define PC_CLASS_BASE 0
 #define PC_CLASS_BASE2 (PC_CLASS_BASE + 4001)
 #define PC_CLASS_BASE3 (PC_CLASS_BASE2 + 22)
@@ -107,6 +107,10 @@
 #define JOB_BABY_DANCER 4043
 #define JOB_BABY_CRUSADER2 4044
 #define JOB_SUPER_BABY 4045
+
+#define JOB_TAEKWON 4046
+#define JOB_STAR_GLADIATOR 4047
+#define JOB_SOUL_LINKER 4048
 
 //Don't change this, as the client seems to always send/receive 80 characters as it currently is. [Skotlex]
 #define MESSAGE_SIZE 80

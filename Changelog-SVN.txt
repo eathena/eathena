@@ -1,4 +1,16 @@
 Date	Added
+08/22
+	* Changed some default values in battle config to get the 'official gaming experience' by
+	  default [DracoRPG]
+	  - Noone can plagiarize advanced skills (from ragnainfo)
+	  - No rare drop announce
+	  - Riding a Peco does not increase one's size
+	* Allowed Dispell to dispell songs/dances/ensembles [DracoRPG]
+	* Updated SC IDs to get correct client-side status icons (used 0808 Sakexe) [DracoRPG]
+	* Prevented from casting Ice Wall under self, independantly of UF_NOFOOTSET [DracoRPG]
+	* Removed /omg from equipment breaking and added it to Acid Terror only [DracoRPG]
+	* You can now change to Taekwon, but lots of things are still to do [DracoRPG]
+	* Began implementation of Taekwon skills [DracoRPG]
 08/21
 	* Changed how triple blows/sacrificial ritual triggers to enable
 	  plagiarizing them. [Skotlex]
@@ -10,6 +22,7 @@ Date	Added
 	  while parsing packets from the char server. [Skotlex]
 	* Mostly rewrote Battle Chant, should be almost like the official one now... [DracoRPG]
 	* Added enums for skill units, makes the code really clearer (check skill.h) [DracoRPG]
+	* Merged battle_calc_weapon_attack_sub and battle_calc_weapon_attack [DracoRPG]
 	* Fixed Acid Terror WEP breaking rate thx2 ShAPoNe [Lupus]
 08/19
 	* More updates to battle_check_target, now you can't target any

@@ -76,10 +76,12 @@ const struct skill_name_db skill_names[] = {
  { AM_REST, "REST", "Vaporize" } ,
  { AM_RESURRECTHOMUN, "RESURRECTHOMUN", "Homunculus_Resurrection" } ,
  { AM_SPHEREMINE, "SPHEREMINE", "Summon_Marine_Sphere" } ,
+// { AM_TWILIGHT1, "TWILIGHT1", "Twilight_Pharmacy_1" } ,
+// { AM_TWILIGHT2, "TWILIGHT2", "Twilight_Pharmacy_2" } ,
+// { AM_TWILIGHT3, "TWILIGHT3", "Twilight_Pharmacy_3" } ,
  { ASC_BREAKER, "BREAKER", "Soul_Destroyer" } ,
  { ASC_CDP, "CDP", "Create_Deadly_Poison" } ,
  { ASC_EDP, "EDP", "Enchant_Deadly_Poison" } ,
- { ASC_HALLUCINATION, "HALLUCINATION", "Hallucination_Walk" } ,
  { ASC_KATAR, "KATAR", "Advanced_Katar_Mastery" } ,
  { ASC_METEORASSAULT, "METEORASSAULT", "Meteor_Assault" } ,
  { AS_CLOAKING, "CLOAKING", "Cloaking" } ,
@@ -106,7 +108,6 @@ const struct skill_name_db skill_names[] = {
  { BD_ETERNALCHAOS, "ETERNALCHAOS", "Down_Tempo" } ,
  { BD_INTOABYSS, "INTOABYSS", "Power_Cord" } ,
  { BD_LULLABY, "LULLABY", "Lullaby" } ,
- { BD_RAGNAROK, "RAGNAROK", "Ragnarok" } ,
  { BD_RICHMANKIM, "RICHMANKIM", "Mental_Sensing" } ,
  { BD_RINGNIBELUNGEN, "RINGNIBELUNGEN", "Harmonic_Lick" } ,
  { BD_ROKISWEIL, "ROKISWEIL", "Classical_Pluck" } ,
@@ -196,6 +197,7 @@ const struct skill_name_db skill_names[] = {
  { HT_FLASHER, "FLASHER", "Flasher" } ,
  { HT_FREEZINGTRAP, "FREEZINGTRAP", "Freezing_Trap" } ,
  { HT_LANDMINE, "LANDMINE", "Land_Mine" } ,
+// { HT_POWER, "POWER", "Beast_Strafing" } ,
  { HT_REMOVETRAP, "REMOVETRAP", "Remove_Trap" } ,
  { HT_SANDMAN, "SANDMAN", "Sandman" } ,
  { HT_SHOCKWAVE, "SHOCKWAVE", "Shockwave_Trap" } ,
@@ -214,6 +216,7 @@ const struct skill_name_db skill_names[] = {
  { KN_BOWLINGBASH, "BOWLINGBASH", "Bowling_Bash" } ,
  { KN_BRANDISHSPEAR, "BRANDISHSPEAR", "Brandish_Spear" } ,
  { KN_CAVALIERMASTERY, "CAVALIERMASTERY", "Cavalier_Mastery" } ,
+// { KN_ONEHAND, "ONEHAND", "Onehand_Quicken" } ,
  { KN_PIERCE, "PIERCE", "Pierce" } ,
  { KN_RIDING, "RIDING", "Peco_Peco_Ride" } ,
  { KN_SPEARBOOMERANG, "SPEARBOOMERANG", "Spear_Boomerang" } ,
@@ -223,7 +226,6 @@ const struct skill_name_db skill_names[] = {
  { LK_AURABLADE, "AURABLADE", "Aura_Blade" } ,
  { LK_BERSERK, "BERSERK", "Frenzy" } ,
  { LK_CONCENTRATION, "CONCENTRATION", "Spear_Dynamo" } ,
- { LK_FURY, "FURY", "Fury_2" } ,
  { LK_HEADCRUSH, "HEADCRUSH", "Traumatic_Blow" } ,
  { LK_JOINTBEAT, "JOINTBEAT", "Vital_Strike" } ,
  { LK_PARRYING, "PARRYING", "Parry" } ,
@@ -421,6 +423,7 @@ const struct skill_name_db skill_names[] = {
  { SL_BARDDANCER, "BARDDANCER", "Spirit_of_Bard_and_Dancer" } ,
  { SL_BLACKSMITH, "BLACKSMITH", "Spirit_of_Blacksmith" } ,
  { SL_CRUSADER, "CRUSADER", "Spirit_of_Crusader" } ,
+// { SL_HIGH, "HIGH", "Spirit_of_Advanced_1st_Class" } ,
  { SL_HUNTER, "HUNTER", "Spirit_of_Hunter" } ,
  { SL_KAAHI, "KAAHI", "Kaahi" } ,
  { SL_KAINA, "KAINA", "Kaina" } ,
@@ -458,7 +461,6 @@ const struct skill_name_db skill_names[] = {
  { SN_WINDWALK, "WINDWALK", "Wind_Walker" } ,
  { ST_CHASEWALK, "CHASEWALK", "Stealth" } ,
  { ST_REJECTSWORD, "REJECTSWORD", "Counter_Instinct" } ,
- { ST_STEALBACKPACK, "STEALBACKPACK", "Pickpocket" } ,
  { ST_PRESERVE, "PRESERVE", "Preserve" } ,
  { ST_FULLSTRIP, "FULLSTRIP", "Full_Divestment" } ,
  { TF_BACKSLIDING, "BACKSLIDING", "Back_Slide" } ,
@@ -477,6 +479,7 @@ const struct skill_name_db skill_names[] = {
  { TK_HIGHJUMP, "HIGHJUMP", "High_Jump" } ,
  { TK_HPTIME, "HPTIME", "HP_Time" } ,
  { TK_JUMPKICK, "JUMPKICK", "Jump_Kick" } ,
+// { TK_MISSION,  "MISSION", "Mission" } ,
  { TK_POWER, "POWER", "Power" } ,
  { TK_READYCOUNTER, "READYCOUNTER", "Ready_Counter" } ,
  { TK_READYDOWN, "READYDOWN", "Ready_Down" } ,
@@ -503,7 +506,6 @@ const struct skill_name_db skill_names[] = {
  { WS_WEAPONREFINE, "WEAPONREFINE", "Weapon_Refine" } ,
  { WZ_EARTHSPIKE, "EARTHSPIKE", "Earth_Spike" } ,
  { WZ_ESTIMATION, "ESTIMATION", "Sense" } ,
- { WZ_FIREIVY, "FIREIVY", "Fire_Ivy" } ,
  { WZ_FIREPILLAR, "FIREPILLAR", "Fire_Pillar" } ,
  { WZ_FROSTNOVA, "FROSTNOVA", "Frost_Nova" } ,
  { WZ_HEAVENDRIVE, "HEAVENDRIVE", "Heaven's_Drive" } ,
@@ -1925,7 +1927,7 @@ static int skill_check_unit_range2_sub( struct block_list *bl,va_list ap )
 int skill_check_unit_range2(struct block_list *bl, int m,int x,int y,int skillid, int skilllv)
 {
 	int c = 0, range, type;
-	
+
 	switch (skillid) {	// to be expanded later
 	case WZ_ICEWALL:
 		range = 2;
@@ -2528,8 +2530,8 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case AM_ACIDTERROR:		/* アシッドテラ? */
 		skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, flag);
 		if (tsd && rand()%100 < skill_get_time(skillid,skilllv) * battle_config.equip_skill_break_rate / 100) { //fixed
-			pc_breakarmor(tsd);
-			clif_emotion(bl, 23);
+			if(pc_breakarmor(tsd))
+				clif_emotion(bl,23);
 		}
 		break;
 
@@ -3421,6 +3423,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case PA_SACRIFICE:
 	case ASC_EDP:			// [Celest]
 	case CG_MOONLIT:		/* 月明りの泉に落ちる花びら */
+//	case TK_SEVENWIND:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
@@ -3443,18 +3446,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		if (sd)
 			pc_blockskill_start (sd, skillid, 10000);
-		break;
-
-	case SM_AUTOBERSERK:	// Celest
-		{
-			struct status_change *tsc_data = status_get_sc_data(bl);
-			int sc = SkillStatusChangeTable[skillid];
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if (tsc_data && tsc_data[sc].timer != -1)
-				status_change_end(bl, sc, -1);
-			else
-				status_change_start(bl,sc,skilllv,0,0,0,0,0);
-		}
 		break;
 
 	case AS_ENCHANTPOISON: // Prevent spamming [Valaris]
@@ -3745,7 +3736,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
-	/*（付加と解除が必要） */
 	case BS_MAXIMIZE:		/* マキシマイズパワ? */
 	case NV_TRICKDEAD:		/* 死んだふり */
 	case CR_DEFENDER:		/* ディフェンダ? */
@@ -3761,7 +3751,25 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
+	case SM_AUTOBERSERK:	// Celest
+	case TK_READYSTORM:
+	case TK_READYDOWN:
+	case TK_READYTURN:
+	case TK_READYCOUNTER:
+	case TK_DODGE:
+		{
+			struct status_change *tsc_data = status_get_sc_data(bl);
+			int sc = SkillStatusChangeTable[skillid];
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			if (tsc_data && tsc_data[sc].timer != -1)
+				status_change_end(bl, sc, -1);
+			else
+				status_change_start(bl,sc,skilllv,0,0,0,0,0);
+		}
+		break;
+
 	case TF_HIDING:			/* ハイディング */
+	case ST_CHASEWALK:			/* ハイディング */
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc = SkillStatusChangeTable[skillid];
@@ -3792,17 +3800,17 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
-	case ST_CHASEWALK:			/* ハイディング */
+ 	case TK_RUN:
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
-			int sc=SkillStatusChangeTable[skillid];
-			clif_skill_nodamage(src,bl,skillid,-1,1);
-			if(tsc_data && tsc_data[sc].timer!=-1 )
-				/* 解除する */
+			int sc = SkillStatusChangeTable[skillid];
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			if (tsc_data && tsc_data[sc].timer != -1) {
 				status_change_end(bl, sc, -1);
-			else
-				/* 付加する */
-				status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+//				if (tsc_data[sc].timer+2000 >= tick+skill_get_time(skillid,skilllv)) // If Run is stopped max 2sec (custom value) after it started, STR +10 bonus [DracoRPG]
+//					status_change_start(bl,SC_INCSTR,10,0,0,0,skill_get_time(skillid,skilllv),0);
+			} else
+				status_change_start(bl,sc,skilllv,0,0,0,0,0);
 		}
 		break;
 
@@ -4262,13 +4270,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if(i==SC_RIDING || i==SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50 || i==SC_WEIGHT90
 					|| i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR || i==SC_STRIPHELM
 					|| i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR || i==SC_CP_HELM
-					|| i==SC_COMBO || i==SC_GUILDAURA || i==SC_LULLABY || i==SC_RICHMANKIM
-					|| i==SC_ETERNALCHAOS || i==SC_DRUMBATTLE || i==SC_NIBELUNGEN || i==SC_ROKISWEIL
-					|| i==SC_INTOABYSS || i==SC_SIEGFRIED || i==SC_DISSONANCE || i==SC_WHISTLE
-					|| i==SC_ASSNCROS || i==SC_POEMBRAGI || i==SC_APPLEIDUN || i==SC_UGLYDANCE
-					|| i==SC_HUMMING || i==SC_DONTFORGETME || i==SC_FORTUNE || i==SC_SERVICE4U
-					|| i==SC_MOONLIT || i==SC_LONGING || i==SC_HERMODE || i== SC_DANCING
-					|| i==SC_STEELBODY || i==SC_EDP)
+					|| i==SC_COMBO || i==SC_DANCING || i==SC_GUILDAURA || i==SC_STEELBODY || i==SC_EDP)
 						continue;
 				status_change_end(bl,i,-1);
 			}
@@ -6097,12 +6099,16 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 			map_foreachinarea(skill_landprotector,src->m,ux,uy,ux,uy,BL_SKILL,skillid,&alive);
 
 		if(skillid==WZ_ICEWALL && alive){
-			val2=map_getcell(src->m,ux,uy,CELL_GETTYPE);
-			if(val2==5 || val2==1)
-				alive=0;
+			if(src->x == x && src->y==y) // Ice Wall not allowed on self [DracoRPG]
+			    alive=0;
 			else {
-				map_setcell(src->m,ux,uy,5);
-				clif_changemapcell(src->m,ux,uy,5,0);
+				val2=map_getcell(src->m,ux,uy,CELL_GETTYPE);
+				if(val2==5 || val2==1)
+					alive=0;
+				else {
+					map_setcell(src->m,ux,uy,5);
+					clif_changemapcell(src->m,ux,uy,5,0);
+				}
 			}
 		}
 
