@@ -21,7 +21,7 @@ struct block_list;
 
 // ƒ_ƒ[ƒWŒvZ
 
-struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct block_list *target,int *skill_num,int skill_lv,int flag);
+struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag);
 // ‘®«C³ŒvZ
 int battle_attr_fix(int damage,int atk_elem,int def_elem);
 
