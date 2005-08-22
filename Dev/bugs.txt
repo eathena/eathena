@@ -433,13 +433,22 @@ Assigned:	na
 Progress:	0%
 
 
-Problem:	[@autoloot]. Somehow... you get ITEMS when you're in CLOAKING (or in HIDA, when someone's finished your mob, or with Greemtooth)
+Problem:	[@autoloot]. Somehow... you get ITEMS when you're in CLOAKING (or in HIDE, when someone's 
+			finished your mob, or with Greemtooth)
 			Damn exploit should be fixed.
 Assigned:	na
 Progress:	0%
 
 Problem:	ONE SAFE SPOT exploit
-			Wizard teleports with a portal, set a safety wall. Then other people warp on the wiz's cell. So people stack one over another. And one safety wall protects them all. Etc
+			Wizard teleports with a portal, set a safety wall. Then other people warp on the
+			wiz's cell. So people stack one over another. And one safety wall protects them all. Etc
+Assigned:	na
+Progress:	0%
+
+
+Problem:	[TARO Cards Skill]
+			When your enemy starts walking randomly (due to some Taro Card), 
+			he gets a warning "Stop using bot"  abd gets MUTS for 20 minutes.
 Assigned:	na
 Progress:	0%
 
