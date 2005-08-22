@@ -6,6 +6,7 @@
 // そしてその敵がキャラクターの付近にいる間ログインできないので注意。
 
 0,Baphomet,1039
+1022,Werewolf,1000000
 1038,Osiris,1000000
 1039,Baphomet,1000000
 1046,Doppelganger,1000000
@@ -19,7 +20,15 @@
 1157,Pharaoh,1000000
 1159,Phreeoni,1000000
 1190,Orc Lord,1000000
+1251,Stormy Knight,1000000
+1252,Garm,1000000
 1272,Dark Lord,1000000
 1312,Turtle General,1000000
 1373,Lord of Death,1000000
+1389,Dracula,1000000
+1418,Evil Snake Lord,1000000
 1492,Incantation Samurai,1000000
+1511,Amon Ra,1000000
+1518,Bacsojin,1000000
+1583,Tao Gunka,1000000
+1623,RSX 0806,1000000
