@@ -3243,7 +3243,7 @@ int parse_char(int fd) {
 			memcpy(email, RFIFOP(fd,6), 40);
 			
 			/* Check if e-mail is correct */
-			if(strcmp(email, sd->email)){
+			if(strcmpi(email, sd->email)){
 				if(strcmp("a@a.com", sd->email) == 0){
 					if(strcmp("a@a.com", email) == 0 || strcmp("", email) == 0){
 						//ignore
