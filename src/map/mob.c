@@ -2881,25 +2881,24 @@ int mob_random_class (int *value, size_t count)
 int mob_class_change (struct mob_data *md, int class_)
 {
 	unsigned int tick = gettick();
-	int i, c, hp_rate, max_hp;
+	int i, c, hp_rate;
 
 	nullpo_retr(0, md);
 
 	if (md->bl.prev == NULL)
 		return 0;
 
-	max_hp = status_get_max_hp(&md->bl);
-	hp_rate = md->hp*100/max_hp;
+	hp_rate = md->hp*100/status_get_max_hp(&md->bl);
 	clif_mob_class_change(md,class_);
 	md->class_ = class_;
 	md->db = mob_db(class_);
-	max_hp = status_get_max_hp(&md->bl);
+	md->max_hp = md->db->max_hp; //Update the mob's max HP
 	if (battle_config.monster_class_change_full_recover) {
-		md->hp = max_hp;
+		md->hp = md->max_hp;
 		memset(md->dmglog, 0, sizeof(md->dmglog));
 	} else
-		md->hp = max_hp*hp_rate/100;
-	if(md->hp > max_hp) md->hp = max_hp;
+		md->hp = md->max_hp*hp_rate/100;
+	if(md->hp > md->max_hp) md->hp = md->max_hp;
 	else if(md->hp < 1) md->hp = 1;
 
 	memcpy(md->name,md->db->jname,NAME_LENGTH-1);

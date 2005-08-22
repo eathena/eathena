@@ -1,5 +1,7 @@
 Date	Added
 08/22	
+	* Fixed classchange not clearing on unequip, fixed the mob's max hp not
+	  being updated. [Skotlex]
 	* Basic implementation of Taekwon's kicks. [DracoRPG]
 	* Likely fixed SP consumption of Warp Portal. [Skotlex]
 	* Changed some default values in battle config to get the 'official gaming experience' by

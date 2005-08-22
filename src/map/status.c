@@ -597,6 +597,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	memset(sd->expaddrace,0,sizeof(sd->expaddrace));
 	memset(sd->sp_gain_race,0,sizeof(sd->sp_gain_race));
 	memset(sd->itemhealrate,0,sizeof(sd->itemhealrate));
+	sd->classchange = 0;
 	sd->setitem_hash = 0;
 
 	if(!sd->disguiseflag && sd->disguise) {
