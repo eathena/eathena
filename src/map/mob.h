@@ -6,7 +6,7 @@
 #define MAX_MOB_RACE_DB 6
 #define MAX_MOB_DB 10000
 	/* Change this to increase the table size in your mob_db to accomodate
-		a larger mob database. Be sure to note that IDs 4001 to 4047 are reserved for advanced classes.
+		a larger mob database. Be sure to note that IDs 4001 to 4048 are reserved for advanced/baby/expanded classes.
 	*/
 
 struct mob_skill {

@@ -1482,7 +1482,6 @@ static struct Damage battle_calc_weapon_attack(
     			    break;
 			    case TK_COUNTER:
 			        skillratio = 190 + (30*skill_lv);
-			        ATK_ADD(15*skill_lv);
 			        break;
        			case TK_JUMPKICK:
        			    skillratio = 30 + (10*skill_lv);

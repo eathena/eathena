@@ -1424,7 +1424,7 @@
 4293,Cookie_Card,Cookie Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus bLuk,2; bonus2 bSkillAtk,156,10; }
 4294,Quve_Card,Quve Card,6,20,0,10,,,,,,,136,,,,,{},{ if(BaseJob==Job_Novice||BaseJob==Job_SuperNovice) bonus4 bAutoSpellWhenHit,29,1,20,0; if(isequipped(4193)==0) end; bonus bMaxHP,300; } //removed bonus bMaxSP,60; from combo-card bonus
 4295,Kraben_Card,Kraben Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus2 bAddEffWhenHit,Eff_Blind,2000; }
-4296,Cramp_Card,Cramp Card,6,20,0,10,,,,,,,769,,,,,{},{ if(isequipped(4028)) bonus bStr,3; bonus bGetZenyNum,1;} //get zeny by some chance (temporary set to always 1z),,,,
+4296,Cramp_Card,Cramp Card,6,20,0,10,,,,,,,769,,,,,{},{ if(isequipped(4028)) bonus bStr,3; } //get zeny by some chance
 4297,Cruiser_Card,Cruiser Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,2,7; }
 4298,Creamy_Fear_Card,Creamy Fear Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus2 bAddEffWhenHit,Eff_Confusion,2000; }
 4299,Clock_Card,Clock Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus4 bAutoSpellWhenHit,249,3+7*(getskilllv(249)==10),1,0; }

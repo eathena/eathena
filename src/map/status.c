@@ -4989,48 +4989,40 @@ int status_readdb(void) {
 	FILE *fp;
 	char line[1024],*p;
 
-	// JOB補正?値１
-	fp=fopen("db/job_db1.txt","r");
+	fp=fopen("db/job_db1.txt","r"); // Job-specific values (weight, HP, SP, ASPD)
 	if(fp==NULL){
 		ShowError("can't read db/job_db1.txt\n");
 		return 1;
 	}
-	i=0;
 	while(fgets(line, sizeof(line)-1, fp)){
-		char *split[50];
+		char *split[23];
 		if(line[0]=='/' && line[1]=='/')
 			continue;
-		for(j=0,p=line;j<21 && p;j++){
+		for(j=0,p=line;j<22 && p;j++){
 			split[j]=p;
 			p=strchr(p,',');
 			if(p) *p++=0;
 		}
-		if(j<21)
+		if(j<22)
 			continue;
-		max_weight_base[i]=atoi(split[0]);
-		hp_coefficient[i]=atoi(split[1]);
-		hp_coefficient2[i]=atoi(split[2]);
-		sp_coefficient[i]=atoi(split[3]);
+       	if(atoi(split[0])>=MAX_PC_CLASS)
+		    continue;
+		max_weight_base[atoi(split[0])]=atoi(split[1]);
+		hp_coefficient[atoi(split[0])]=atoi(split[2]);
+		hp_coefficient2[atoi(split[0])]=atoi(split[3]);
+		sp_coefficient[atoi(split[0])]=atoi(split[4]);
 		for(j=0;j<17;j++)
-			aspd_base[i][j]=atoi(split[j+4]);
-		i++;
-// -- moonsoul (below two lines added to accommodate high numbered new class ids)
-		if(i==24)
-			i=4001;
-		if(i==MAX_PC_CLASS)
-			break;
+			aspd_base[atoi(split[0])][j]=atoi(split[j+5]);
 	}
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n","db/job_db1.txt");
 
-	// JOBボ?ナス
-	memset(job_bonus,0,sizeof(job_bonus));
+	memset(job_bonus,0,sizeof(job_bonus)); // Job-specific stats bonus
 	fp=fopen("db/job_db2.txt","r");
 	if(fp==NULL){
 		ShowError("can't read db/job_db2.txt\n");
 		return 1;
 	}
-
 	while(fgets(line, sizeof(line)-1, fp)){
        	char *split[MAX_LEVEL+1]; //Job Level is limited to MAX_LEVEL, so the bonuses should likewise be limited to it. [Skotlex]
 		if(line[0]=='/' && line[1]=='/')
@@ -5040,6 +5032,8 @@ int status_readdb(void) {
 			p=strchr(p,',');
 			if(p) *p++=0;
 		}
+		if(atoi(split[0])>=MAX_PC_CLASS)
+		    continue;
 		for(i=1;i<j && split[i];i++)
 			job_bonus[atoi(split[0])][i-1]=atoi(split[i]);
 	}

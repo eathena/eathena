@@ -1,5 +1,5 @@
 // Database for job-specific stat bonuses
-// JobNo,JobLv1,JobLv2,JobLv3,...,JobLv99
+// JobNo,JobLv1,JobLv2,JobLv3,...
 //
 // Legend for 'JobLvN' fields:
 //  0 = no stat bonus at this job level

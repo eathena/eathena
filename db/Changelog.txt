@@ -13,15 +13,17 @@
 	 at 2x rate when installed on a Katar-type weapon.
 	 EX) If Goblin Archer card goes on a Katar-type weapon, the CRIT Bonus vs. Undeads become +14.
 	4198,Maya_Purple_Card: intravision not working atm
-	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
+	4296,Cramp_Card: missing getzenybychance??
 
 08/22
+	* Removed the temp plug from Cramp Card as it seems it's way too powerful [DracoRPG]
+	* Updated skill_tree,job_db1 and job_db2 for new system and Taekwon support [DracoRPG]
 	* Moved MVPs from mob_branch.txt to mob_boss.txt (those that had yet to be
 	  moved, that is) [Skotlex]
 	* Added target flag "ally" to skill_unit_db [Skotlex]
 	* Added 0.5 sec delay to Aid Potion, 1 sec casting time & delay to Aid Condensed Potion
 	  (from kRO website, thanks to reddozen and vicious_pucca) [DracoRPG]
-	* Removed UF_NOFOOTSET from Ice Wall (I have several souces for that) [DracoRPG]
+	* Removed UF_NOFOOTSET from Ice Wall (I have several sources for that) [DracoRPG]
 	* Removed slot from nile_rose (All stats +5, event version), added slot to nile_rose_
 	  (MaxHP +10, permanent version) [DracoRPG]
 	* Added complete (except TK_MISSION) Taekwon skill tree & skill DBs entries [DracoRPG]

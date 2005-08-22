@@ -4025,9 +4025,9 @@ static int mob_readdb(void)
 			{
 				ShowWarning("Mob with ID: %d not loaded. ID must be in range [%d-%d]\n", class_, 1000, MAX_MOB_DB);
 				continue;
-			} else if (class_ >= JOB_NOVICE_HIGH && class_ <= JOB_SUPER_BABY)
+			} else if (class_ >= JOB_NOVICE_HIGH && class_ < MAX_PC_CLASS)
 			{
-				ShowWarning("Mob with ID: %d not loaded. That ID is reserved for Upper Classes.\n");
+				ShowWarning("Mob with ID: %d not loaded. That ID is reserved for player classes.\n");
 				continue;
 			}
 			if (mob_db_data[class_] == NULL)
@@ -4127,21 +4127,7 @@ static int mob_readdb(void)
 					? battle_config.item_drop_mvp_min : (rate > battle_config.item_drop_mvp_max) 
 					? battle_config.item_drop_mvp_max : rate;
 			}
-			/* No need to set up to 0 this (the data was called with aCalloc afterall) [Skotlex]
-			for(i=0;i<MAX_RANDOMMONSTER;i++)
-				mob_db_data[class_]->summonper[i]=0;
-			mob_db_data[class_]->maxskill=0;
 
-			mob_db_data[class_]->sex=0;
-			mob_db_data[class_]->hair=0;
-			mob_db_data[class_]->hair_color=0;
-			mob_db_data[class_]->weapon=0;
-			mob_db_data[class_]->shield=0;
-			mob_db_data[class_]->head_top=0;
-			mob_db_data[class_]->head_mid=0;
-			mob_db_data[class_]->head_buttom=0;
-			mob_db_data[class_]->clothes_color=0; //Add for player monster dye - Valaris
-			*/
 			if (mob_db_data[class_]->max_hp <= 0) {
 				ShowWarning ("Mob %d (%s) has no HP, using poring data for it\n", class_, mob_db_data[class_]->jname);
 				mob_makedummymobdb(class_);

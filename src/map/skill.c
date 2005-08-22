@@ -582,10 +582,9 @@ int	skill_get_unit_target( int id ){ skill_get (skill_db[id].unit_target, id, 1)
 int	skill_get_unit_flag( int id ){ skill_get (skill_db[id].unit_flag, id, 1); }
 
 int skill_tree_get_max(int id, int b_class){
-	struct pc_base_job s_class = pc_calc_base_job(b_class);
 	int i, skillid;
-	for(i=0;(skillid=skill_tree[s_class.upper][s_class.job][i].id)>0;i++)
-		if (id == skillid) return skill_tree[s_class.upper][s_class.job][i].max;
+	for(i=0;(skillid=skill_tree[b_class][i].id)>0;i++)
+		if (id == skillid) return skill_tree[b_class][i].max;
 	return skill_get_max (id);
 }
 
@@ -1046,7 +1045,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			if (bleed_time < 90000)
 				bleed_time = 90000;	// minimum 90 seconds
 			if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit/100)
-				status_change_start(bl, SkillStatusChangeTable[skillid], skilllv, 0, 0, 0, bleed_time, 0);
+				status_change_start(bl, SC_BLEEDING, skilllv, 0, 0, 0, bleed_time, 0);
 		}
 			break;
 	case LK_JOINTBEAT:				/* ジョイントビ?ト */
@@ -1060,15 +1059,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			if(map[src->m].flag.pvp) //PvPでは拘束時間半減？
 				sec = sec/2;
 			battle_stopwalking(bl,1);
-			status_change_start(bl,SC_SPIDERWEB,skilllv,0,0,0,sec,0);
+			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,sec,0);
 		}
 		break;
 	case ASC_METEORASSAULT:			/* メテオアサルト */
-/*		if( rand()%100 < (15 + skilllv*5)*sc_def_vit/100 ) //?態異常は詳細が分からないので適?に
-			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
-		if( rand()%100 < (10+3*skilllv)*sc_def_int/100 )
-			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
-*/
 		//Any enemies hit by this skill will receive Stun, Darkness, or external bleeding status ailment with a 5%+5*SkillLV% chance.
 		if( rand()%100 < (5+skilllv*5) ) //5%+5*SkillLV%
 			switch(rand()%3) {

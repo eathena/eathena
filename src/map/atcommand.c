@@ -656,6 +656,9 @@ char * job_name(int class_) {
 	case 4043: return "Baby Dancer";
 	case 4044: return "Baby Peco Crusader";
 	case 4045: return "Super Baby";
+	case 4046: return "Taekwon";
+	case 4047: return "Star Gladiator";
+	case 4048: return "Soul Linker";
 	}
 	return "Unknown Job";
 }
@@ -2043,7 +2046,7 @@ int atcommand_jobchange(
 			{ "taekwon",        4046 },
 			{ "taekwon boy",	4046 },
 			{ "taekwon girl",	4046 },
-			{ "star knight",	4047 },
+			{ "star gladiator",	4047 },
 			{ "soul linker",	4048 },
 		};
 
@@ -6893,8 +6896,7 @@ atcommand_skilltree(const int fd, struct map_session_data* sd,
 {
 	struct map_session_data *pl_sd = NULL;
 	int skillnum, skillidx = -1;
-	int meets = 1, j, c=0, s=0;
-	struct pc_base_job s_class;
+	int meets = 1, j, c=0;
 	char target[NAME_LENGTH], *tbl;
 	struct skill_tree_entry *ent;
 	nullpo_retr(-1, sd);
@@ -6909,21 +6911,16 @@ atcommand_skilltree(const int fd, struct map_session_data* sd,
 	if((pl_sd=map_nick2sd(target)) == NULL)
 		return -1;
 
-	s_class = pc_calc_base_job(pl_sd->status.class_);
-	c = s_class.job;
-	s = s_class.upper;
-
-	c = pc_calc_skilltree_normalize_job(c, pl_sd);
+	c = pc_calc_skilltree_normalize_job(pl_sd);
 
 	tbl = job_name(c);
 
-	sprintf(atcmd_output, "Player is using %s %s skill tree (%d basic points)",
-	s_class.upper ? "upper" : "lower",
+	sprintf(atcmd_output, "Player is using %s skill tree (%d basic points)",
 	tbl, pc_checkskill(pl_sd, 1));
 	clif_displaymessage(fd, atcmd_output);
 
-	for (j = 0; skill_tree[s][c][j].id != 0; j++) {
-		if (skill_tree[s][c][j].id == skillnum) {
+	for (j = 0; skill_tree[c][j].id != 0; j++) {
+		if (skill_tree[c][j].id == skillnum) {
 			skillidx = j;
 			break;
 		}
@@ -6935,7 +6932,7 @@ atcommand_skilltree(const int fd, struct map_session_data* sd,
 		return 0;
 	}
 
-	ent = &skill_tree[s][c][skillidx];
+	ent = &skill_tree[c][skillidx];
 
 	for(j=0;j<5;j++)
 		if( ent->need[j].id &&

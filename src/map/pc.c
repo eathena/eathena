@@ -44,7 +44,7 @@ static int exp_table[14][MAX_LEVEL];
 static short statp[MAX_LEVEL];
 
 // h-files are for declarations, not for implementations... [Shinomori]
-struct skill_tree_entry skill_tree[3][25][MAX_SKILL_TREE];
+struct skill_tree_entry skill_tree[MAX_PC_CLASS][MAX_SKILL_TREE];
 // timer for night.day implementation
 int day_timer_tid;
 int night_timer_tid;
@@ -955,21 +955,13 @@ static int pc_calc_skillpoint(struct map_session_data* sd)
 int pc_calc_skilltree(struct map_session_data *sd)
 {
 	int i,id=0,flag;
-	int c=0, s=0;
-	//?生や養子の場合の元の職業を算出する
-	struct pc_base_job s_class;
+	int c=0;
 
 	nullpo_retr(0, sd);
 
-	s_class = pc_calc_base_job(sd->status.class_);
-	c = s_class.job;
-	s = s_class.upper;
-
-	c = pc_calc_skilltree_normalize_job(c, sd);
+	c = pc_calc_skilltree_normalize_job(sd);
 
 	for(i=0;i<MAX_SKILL;i++){
-//                if(skill_get_inf2(i)&INF2_QUEST_SKILL)
-//                        continue;
 		if (sd->status.skill[i].flag != 13)
 		        sd->status.skill[i].id=0;
 		if (sd->status.skill[i].flag && sd->status.skill[i].flag != 13){	// cardスキルなら、
@@ -979,7 +971,6 @@ int pc_calc_skilltree(struct map_session_data *sd)
 	}
 
 	if (battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill){
-		// 全てのスキル
 		for(i=1;i<158;i++)
 			sd->status.skill[i].id=i;
 		for(i=210;i<291;i++)
@@ -995,21 +986,21 @@ int pc_calc_skilltree(struct map_session_data *sd)
 	} else {
             do {
                 flag=0;
-                for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[s][c][i].id)>0;i++){
+                for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[c][i].id)>0;i++){
                     int j,f=1;
                     if(!battle_config.skillfree) {
 						for(j=0;j<5;j++) {
-							if( skill_tree[s][c][i].need[j].id &&
-								pc_checkskill(sd,skill_tree[s][c][i].need[j].id) <
-								skill_tree[s][c][i].need[j].lv) {
+							if( skill_tree[c][i].need[j].id &&
+								pc_checkskill(sd,skill_tree[c][i].need[j].id) <
+								skill_tree[c][i].need[j].lv) {
 								f=0;
 								break;
 							}
 						}
-						if (sd->status.job_level < skill_tree[s][c][i].joblv)
+						if (sd->status.job_level < skill_tree[c][i].joblv)
 							f=0;
-						else if (id >= 2 && id <= 53 && pc_checkskill(sd, NV_BASIC) < 9)
-							f=0;						
+						else if (((id >= SM_SWORD && id <= TF_DETOXIFY) || (id >= TK_RUN && id <= TK_HIGHJUMP)) && pc_checkskill(sd, NV_BASIC) < 9)
+							f=0; // Do not unlock job1 skills when Basic Skills is not maxed out (can happen because of skill reset)
 					}
 					if(f && sd->status.skill[id].id==0 ){
 						sd->status.skill[id].id=id;
@@ -1018,8 +1009,6 @@ int pc_calc_skilltree(struct map_session_data *sd)
 				}
 			} while(flag);
 	}
-//	if(battle_config.etc_log)
-//		printf("calc skill_tree\n");
 	return 0;
 }
 
@@ -1038,103 +1027,58 @@ int pc_clean_skilltree(struct map_session_data *sd) {
 	return 0;
 }
 
-int pc_calc_skilltree_normalize_job(int c, struct map_session_data *sd) {
-	//if((battle_config.skillup_limit) && ((c >= 0 && c < 23) || (c >= 4001 && c < 4023) || (c >= 4023 && c < 4045))) {
-	if (battle_config.skillup_limit && c >= 0 && c < 23) {
+int pc_calc_skilltree_normalize_job(struct map_session_data *sd) {
+	struct pc_base_job s_class = pc_calc_base_job(sd->status.class_);
+	int c = s_class.job;
+
+	if (!battle_config.skillup_limit || !((c >= JOB_NOVICE && c < JOB_SUPER_NOVICE) || c == JOB_TAEKWON))
+		return sd->status.class_;
+	else {
 		int skill_point = pc_calc_skillpoint(sd);
 		if(skill_point < 9)
-			c = 0;
-		//else if((sd->status.skill_point >= sd->status.job_level && skill_point < 58) && ((c > 6 && c < 23) || (c > 4007 && c < 4023) || (c > 4029 && c < 4045))) {
-		//else if ((sd->status.skill_point >= sd->status.job_level && skill_point < 58) && (c > 6 && c < 23)) {
-		else if (sd->status.skill_point >= sd->status.job_level && ((sd->change_level > 0 && skill_point < sd->change_level+8) || skill_point < 58)  && (c > 6 && c < 23)) {
+			c = JOB_NOVICE;
+		else if (((c > JOB_THIEF && c < JOB_SUPER_NOVICE) || c == JOB_TAEKWON) && sd->status.skill_point >= sd->status.job_level && ((sd->change_level > 0 && skill_point < sd->change_level+8) || skill_point < 58)) {
 			switch(c) {
-				case 7:
-				case 13:
-				case 14:
-				case 21:
-					c = 1;
+				case JOB_KNIGHT:
+				case JOB_KNIGHT2:
+				case JOB_CRUSADER:
+				case JOB_CRUSADER2:
+					c = JOB_SWORDMAN;
 					break;
-				case 8:
-				case 15:
-					c = 4;
+				case JOB_PRIEST:
+				case JOB_MONK:
+					c = JOB_ACOLYTE;
 					break;
-				case 9:
-				case 16:
-					c = 2;
+				case JOB_WIZARD:
+				case JOB_SAGE:
+					c = JOB_MAGE;
 					break;
-				case 10:
-				case 18:
-					c = 5;
+				case JOB_BLACKSMITH:
+				case JOB_ALCHEMIST:
+					c = JOB_MERCHANT;
 					break;
-				case 11:
-				case 19:
-				case 20:
-					c = 3;
+				case JOB_HUNTER:
+				case JOB_BARD:
+				case JOB_DANCER:
+					c = JOB_ARCHER;
 					break;
-				case 12:
-				case 17:
-					c = 6;
+				case JOB_ASSASSIN:
+				case JOB_ROGUE:
+					c = JOB_THIEF;
 					break;
-#if 0
-				case 4008:
-				case 4014:
-				case 4015:
-				case 4022:
-					c = 4002;
+				case JOB_STAR_GLADIATOR:
+				case JOB_SOUL_LINKER:
+					c = JOB_TAEKWON;
 					break;
-				case 4009:
-				case 4016:
-					c = 4005;
-					break;
-				case 4010:
-				case 4017:
-					c = 4003;
-					break;
-				case 4011:
-				case 4019:
-					c = 4006;
-					break;
-				case 4012:
-				case 4020:
-				case 4021:
-					c = 4004;
-					break;
-				case 4013:
-				case 4018:
-					c = 4007;
-					break;
-				case 4030:
-				case 4036:
-				case 4037:
-				case 4044:
-					c = 4024;
-					break;
-				case 4031:
-				case 4038:
-					c = 4027;
-					break;
-				case 4032:
-				case 4039:
-					c = 4025;
-					break;
-				case 4033:
-				case 4040:
-					c = 4028;
-					break;
-				case 4034:
-				case 4041:
-				case 4042:
-					c = 4026;
-					break;
-				case 4035:
-				case 4043:
-					c = 4029;
-					break;
-#endif
 			}
 		}
+		if (s_class.upper == 1)
+		    c += JOB_NOVICE_HIGH;
+		else if (s_class.upper == 2)
+		    c += JOB_BABY;
+
+		return c;
 	}
-	return c;
 }
 
 /*==========================================
@@ -4475,15 +4419,8 @@ int pc_skillup(struct map_session_data *sd,int skill_num)
 int pc_allskillup(struct map_session_data *sd)
 {
 	int i,id;
-	int c=0, s=0;
-	//?生や養子の場合の元の職業を算出する
-	struct pc_base_job s_class;
 
 	nullpo_retr(0, sd);
-
-	s_class = pc_calc_base_job(sd->status.class_);
-	c = s_class.job;
-	s = (s_class.upper==1) ? 1 : 0 ; //?生以外は通常のスキル？
 
 	for(i=0;i<MAX_SKILL;i++){
 		sd->status.skill[i].id=0;
@@ -4510,11 +4447,10 @@ int pc_allskillup(struct map_session_data *sd)
 	}
 	else {
 		int inf2;
-		for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[s][c][i].id)>0;i++){
+		for(i=0;i < MAX_SKILL_TREE && (id=skill_tree[sd->status.class_][i].id)>0;i++){
 			inf2 = skill_get_inf2(id);
 			if(sd->status.skill[id].id==0 && (!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL)) {
 				sd->status.skill[id].id = id;	// celest
-				// sd->status.skill[id].lv=skill_get_max(id);
 				sd->status.skill[id].lv = skill_tree_get_max(id, sd->status.class_);	// celest
 			}
 		}
@@ -7383,8 +7319,7 @@ void pc_setstand(struct map_session_data *sd){
  */
 int pc_readdb(void)
 {
-	int i,j,k,u;
-	struct pc_base_job s_class;
+	int i,j,k;
 	FILE *fp;
 	char line[1024],*p;
 
@@ -7481,23 +7416,20 @@ int pc_readdb(void)
 			f=1;	// MinJobLvl has been added
 			m++;
 		}
-		s_class = pc_calc_base_job(atoi(split[0]));
-		i = s_class.job;
-		u = s_class.upper;
 		// check for bounds [celest]
-		if (i >= 25 || u >= 3) //Remember that if the array is defined as [25], the max is [24]	//[Skotlex]
+		if (atoi(split[0]) >= MAX_PC_CLASS)
 			continue;
 		k = atoi(split[1]); //This is to avoid adding two lines for the same skill. [Skotlex]
-		for(j = 0; j < MAX_SKILL_TREE && skill_tree[u][i][j].id && skill_tree[u][i][j].id != k; j++);
+		for(j = 0; j < MAX_SKILL_TREE && skill_tree[atoi(split[0])][j].id && skill_tree[atoi(split[0])][j].id != k; j++);
 		if (j == MAX_SKILL_TREE)
 			continue;
-		skill_tree[u][i][j].id=k;
-		skill_tree[u][i][j].max=atoi(split[2]);
-		if (f) skill_tree[u][i][j].joblv=atoi(split[3]);
+		skill_tree[atoi(split[0])][j].id=k;
+		skill_tree[atoi(split[0])][j].max=atoi(split[2]);
+		if (f) skill_tree[atoi(split[0])][j].joblv=atoi(split[3]);
 
 		for(k=0;k<5;k++){
-			skill_tree[u][i][j].need[k].id=atoi(split[k*2+m]);
-			skill_tree[u][i][j].need[k].lv=atoi(split[k*2+m+1]);
+			skill_tree[atoi(split[0])][j].need[k].id=atoi(split[k*2+m]);
+			skill_tree[atoi(split[0])][j].need[k].lv=atoi(split[k*2+m+1]);
 		}
 	}
 	fclose(fp);
@@ -7525,7 +7457,6 @@ int pc_readdb(void)
 		}
 		lv=atoi(split[0]);
 		n=atoi(split[1]);
-//		printf("%d %d\n",lv,n);
 
 		for(i=0;i<n;){
 			if( !fgets(line, sizeof(line)-1, fp) )

@@ -51,7 +51,7 @@ int pc_checkallowskill(struct map_session_data *sd);
 int pc_checkequip(struct map_session_data *sd,int pos);
 
 int pc_calc_skilltree(struct map_session_data *sd);
-int pc_calc_skilltree_normalize_job(int c, struct map_session_data *sd);
+int pc_calc_skilltree_normalize_job(struct map_session_data *sd);
 int pc_clean_skilltree(struct map_session_data *sd);
 
 int pc_checkoverhp(struct map_session_data*);
@@ -196,7 +196,7 @@ struct skill_tree_entry {
 		unsigned char lv;
 	} need[5];
 }; // Celest
-extern struct skill_tree_entry skill_tree[3][25][MAX_SKILL_TREE];
+extern struct skill_tree_entry skill_tree[MAX_PC_CLASS][MAX_SKILL_TREE];
 
 int pc_read_gm_account(int fd);
 int pc_setinvincibletimer(struct map_session_data *sd,int);

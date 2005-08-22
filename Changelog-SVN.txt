@@ -1,7 +1,11 @@
 Date	Added
 08/22	
-	* Fixed classchange not clearing on unequip, fixed the mob's max hp not
-	  being updated. [Skotlex]
+	* Changed skill_tree and job_db1 the same way I changed job_db2, it was necessary for
+	  clear implementation of Taekwon (which has a very unusual ID for a 1st job) and renders
+	  the code less messy (at least it's my humble opinion ^^) although it could be slightly,
+	  but really slightly, more RAM-consuming [DracoRPG]
+	* Fixed classchange not clearing on unequip, fixed the mob's max hp not being updated on
+	  class change [Skotlex]
 	* Basic implementation of Taekwon's kicks. [DracoRPG]
 	* Likely fixed SP consumption of Warp Portal. [Skotlex]
 	* Changed some default values in battle config to get the 'official gaming experience' by

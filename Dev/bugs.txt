@@ -12,12 +12,6 @@ Assigned:
 Progress:
 Note:		I cannot seem to find the correct formula spelled-out anywhere (English)
 
-
-Problem:	The // Set here which client version do you accept. part in battle_athena not working properly (not that its important, but some servers only want a certain packet range to come in)
-Assigned: Skotlex
-Progess: 100%?
-Note: Wasn't this fixed already? I've fixed every complain I've seen about the packet_ver_flag thingie. Before I touched clif.c the setting was completely useless :X [Skotlex]
-
 Problem:	The map server crashes when a session gets timed out. Like, a player suddenly dc's after doing something, then the session is removed. 
 Assigned:
 Progess:
@@ -45,10 +39,6 @@ Progess:	~90% (Bug prone)
 Note:		Lets make it reset completely when you do a leveldown.
 		I have no idea why we want this. Implemented anyway... for the GMs. (davidsiaw)
 
-Problem:	Pre skill requirements for new skills are wrong it makes you use 49 skills points before you can get the newer skills.
-Assigned:	Celest
-Progess:	~90% (Notes: not sure if it causes problems, need more testing =p)
-
 Problem:	Wierd login-server bug on sql, it displays that the server is full when map-server crashes, has something to do with anti double login feature?
 Assigned:	N/A
 Progress:	0%
@@ -75,12 +65,6 @@ Progress:       0%
                 1002,1039,1 // makes a poring a big bapho  
                 1002,1039,2 // makes a poring a small bapho
                 effect id or something
-
-Problem:	Storage BUGS! Items doubles/clones again any kinds of items! (due to "latest storage fix")
-Assigned:	Kevin
-Progress:	Done
-
-                Only happens during crashes.. 
 
 Problem:	status.weapon can be 16... which causes the accesses outside
 	        the bounds of the array
@@ -172,16 +156,6 @@ Problem:	[item exploit] Trade Window + Blacksmith's/Alchemist's MAKE skills -> i
 Assigned:	N/A
 Progress:	0%
 
-Problem:	Wedding TELEPORT skills now work on maps where TELEPORT was disabled
-Assigned:	Codemaster
-Progress:	100%
-Note:		the NOWARP flag disallows people warping FROM the map, NOWARPTO, disallows
-		people warping INTO the map [Codemaster]
-
-Problem:	Guilds Skill - Emergency Call doesn't work in castles (it somehow useless)
-Assigned:	N/A
-Progress:	0%
-
 Problem:	[Urgent!] Server doesn't save Variables (#global and global)
 		If you exit the client with Alt-F4 or lose connection to the server.
 Assigned:	N/A
@@ -262,14 +236,6 @@ Progress:	?? (Fixed?)
 Notes:	It's only the client-side visual effect, not an actual blind state.
 			Yes it's fixed, use an updated client xP [Skotlex]
 
-Problem:	Wedding Teleport Skills
-			Somehow.. just married could RECALL players from Prison
-			(probably NOT all map flags are checked)
-Assigned:	Codemaster
-Progress:	100%
-Note:		Fixed with the other Wedding Teleport Skill Fix; Jails should have the NOWARP
-		flag, disallowing people to warp from it (NOWARPTO would disallow warps to it)
-
 Problem:	Wedding Skills (thousand brides...)
 			The skills work even if PARTNER_ID of destination player doesn't coinside
 			to CALLER
@@ -322,20 +288,6 @@ Progress:	-
 	This should be marked as "not going to solve" as Lua should fix all script
 	related concerns once it's in place. [Skotlex]
 
-Problem: Dynamic mobs needs fixing
-Assigned:	Skotlex
-Progress:	100%
-	Changing the mob spawn/deletes to map_addblock/map_delblock seemed like the
-	best idea as that's where the number of users on the map goes up/down.
-	To only remove cached mobs, a mob.cached flag is used, guaranteeing correct
-	choice of mobs to delete. Mob Slaves are also marked as cached. [Skotlex]
-
-Problem: The skill_db.txt contents are under-utilized.
-Assigned:	Skotlex
-Progress:	99%
-Notes:	Forgot to update this... I already am pretty ok with the later inf2
-updates to the db. ^^ [Skotlex]
-
 Problem:	Select() sometimes returns a listening fd more than once when a client connects,
 			so the 2nd one will fail on accept() and keep spamming "accept: bad file descriptor".
 Assigned:
@@ -351,20 +303,6 @@ Assigned:	na
 Progress:	0%
 Note:		Alt-J works to open menu... just seems that the client management of pets has a lil bit changed (due to Homonculi ?)
 
-Problem:	Fame Lists
-			Both fame lists: Blacksmiths, alchemists show UNKNOWN instead of names.
-Assigned:	na
-Progress:	50%
-Note:		The function works perfectly... but map_charid2nick is BROKEN, as well as other functions calling to a stringdb search
-		- Are you sure the problem is not that the blacksmiths in question
-		  are not logged in? All map_*to* will not work if the character is not
-		  currently logged in (look at clif_friendslist_send to see how it is used
-		  to determine who is online or not).
-		  To have a fame list that will work regardless, the names should be sent
-		  directly from the char server. [Skotlex]
-		- Then, what is the function used to find out produced items' maker name ? It works
-		  even when offline ^^ [DracoRPG]
-
 Problem:	Child + Papa + Mama EXP sharing exploit
 			adopt a child, make a party papa+mama+child, kill the child, and you can share EXP
 			between both parents 50%/50%. Despite on their levels (should be >=70 tough)
@@ -377,13 +315,6 @@ Assigned:	na
 Progress:	0%
 Notes:	The code was already fixed (per milliage %10000 and not %1000), if
 mobs have quick cast times then the mob skill db needs to be updated. [Skotlex]
-
-Problem:	Shield Boomerang SKILL BUG
-			When you use it riding on peco, you have very big delay after cast.
-			When you're on your foot, you have no that delay
-Assigned:	na
-Progress:	0%
-Notes:	??Still there??
 
 Problem:	GVG Enemy Healing BUG
 			During WOE, you can heal your enemy without SHIFT
@@ -424,11 +355,6 @@ Progress:	0%
 
 Problem:	[STEAL] Now boss' slaves do not drop any loot, but you can STEAL it from them.
 			It should be fixed.
-Assigned:	na
-Progress:	0%
-
-Problem:	[STEAL] in Official Servers your suppose to Appraise/Identify the Equipment after Stealing/Auto-Steal.
-			in Athena you just Steal/Auto-Steal the equipment instantly w/o the need to Appraise and Identify. 
 Assigned:	na
 Progress:	0%
 
