@@ -1846,13 +1846,15 @@ static struct Damage battle_calc_weapon_attack(
 		struct mob_db *mob;
 		int k, class_;
 		i = 0;
-			do {
-				class_ = rand() % MAX_MOB_DB;
-				k = rand() % 1000000;
-				mob = mob_db(class_);
-			} while ((mobdb_checkid(class_)==0 || mob->summonper[0] <= k || mob->mode&0x20) && (i++) < 2000);
-			if (i< 2000)
-				mob_class_change(((struct mob_data *)target),class_);
+		do {
+			class_ = rand() % MAX_MOB_DB;
+			if (mobdb_checkid(class_)==0)
+				continue;
+			k = rand() % 1000000;
+			mob = mob_db(class_);
+		} while ((mob->mode&0x20 || mob->summonper[0] <= k) && (i++) < 2000);
+		if (i< 2000)
+			mob_class_change(((struct mob_data *)target),class_);
 	}
 
 	if (sd && (battle_config.equip_self_break_rate || battle_config.equip_skill_break_rate) &&

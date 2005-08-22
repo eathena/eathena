@@ -3951,8 +3951,8 @@ static int mob_makedummymobdb(int class_)
 	}
 	//Initialize dummy data.	
 	mob_dummy = (struct mob_db*)aCalloc(1, sizeof(struct mob_db)); //Initializing the dummy mob.
-	sprintf(mob_dummy->name,"mob%d",class_);
-	sprintf(mob_dummy->jname,"mob%d",class_);
+	sprintf(mob_dummy->name,"DUMMY",class_);
+	sprintf(mob_dummy->jname,"Dummy",class_);
 	mob_dummy->lv=1;
 	mob_dummy->max_hp=1000;
 	mob_dummy->max_sp=1;
