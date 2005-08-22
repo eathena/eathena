@@ -1,15 +1,16 @@
 //===== Athena Script ========================================
 //= Yuno Field Warp Script
 //===== By: ==================================================
-//= Nana (1.0)
+//= Nana (1.0), Sara
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= Any Athena Version; RO Episode 5+
 //===== Description: =========================================
 //= Warp Points for Yuno Field
 //===== Additional Comments: =================================
 //= 1.1 - Updated for the new Yuno Fields
+//= 1.2 New field update - Hugel Field by Sara - Version 1
 //============================================================
 
 //= Yuno Field ===============================================
@@ -63,3 +64,26 @@ yuno_fild05.gat,59,28,0	warp	newjun14a	1,1,yuno_fild04.gat,42,367
 //= Al de Baran <-> Yuno Connection ==========================
 aldebaran.gat,140,244,0	warp	alde-yunfild	1,1,yuno_fild01.gat,208,19
 yuno_fild01.gat,208,17,0	warp	yunfild-alde	1,1,aldebaran.gat,140,242
+
+//= Hugel Field
+//= Version 1
+yuno_fild05.gat,372,325,0	warp	hu001	1,1,yuno_fild06.gat,42,319
+yuno_fild06.gat,40,319,0	warp	hu001a	1,1,yuno_fild05.gat,370,325
+yuno_fild06.gat,217,27,0	warp	hu002	1,1,yuno_fild03.gat,214,381
+yuno_fild03.gat,214,383,0	warp	hu002a	1,1,yuno_fild06.gat,217,29
+yuno_fild06.gat,369,136,0	warp	hu003	1,1,hu_fild04.gat,28,126
+hu_fild04.gat,26,126,0	warp	hu003a	1,1,yuno_fild06.gat,367,136
+hu_fild04.gat,121,26,0	warp	hu004	1,1,yuno_fild02.gat,118,374
+yuno_fild02.gat,118,376,0	warp	hu004a	1,1,hu_fild04.gat,121,28
+yuno_fild06.gat,149,369,0	warp	hu005	1,1,hu_fild01.gat,139,37
+hu_fild01.gat,139,35,0	warp	hu005a	1,1,yuno_fild06.gat,151,369
+hu_fild04.gat,381,187,0	warp	hu006	1,1,hu_fild05.gat,34,202
+hu_fild05.gat,32,202,0	warp	hu006a	1,1,hu_fild04.gat,379,187
+hu_fild05.gat,91,42,0	warp	hu007	1,1,hu_fild07.gat,80,369
+hu_fild07.gat,80,371,0	warp	hu007a	1,1,hu_fild05.gat,91,44
+hu_fild07.gat,35,351,0	warp	hu008	1,1,yuno_fild02.gat,384,338
+yuno_fild02.gat,384,340,0	warp	hu008a	1,1,hu_fild07.gat,37,351
+hu_fild07.gat,56,36,0	warp	hu009	1,1,yuno_fild09.gat,47,375
+yuno_fild09.gat,47,377,0	warp	hu009a	1,1,hu_fild07.gat,56,38
+hu_fild07.gat,226,36,0	warp	hu010	1,1,yuno_fild09.gat,220,372
+yuno_fild09.gat,220,374,0	warp	hu010a	1,1,hu_fild07.gat,226,38

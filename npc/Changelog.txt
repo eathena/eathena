@@ -28,6 +28,8 @@ TODO:
 
 Date		Added
 ======
+08/23
+	* Added new Hugel Field Warps by Sara [Lupus]
 08/21
 	* Orc Hero Helm fixed items exploit [Lupus]
 08/19
