@@ -2666,7 +2666,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				src->m,src->x-2,src->y-2,src->x+2,src->y+2,0,
 				src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
 				skill_castend_damage_id);
-			status_change_start (src,SC_FLAMELAUNCHER,0,0,0,0,10000,0);
 			clif_skill_nodamage (src,src,skillid,skilllv,1);
 		}
 		break;
@@ -2903,7 +2902,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 
 	// Celest
 	case PF_SOULBURN:
-		if (rand()%100 < (skilllv < 5 ? 20 + skilllv * 10 : 60)) {
+		if (rand()%100 < (skilllv < 5 ? 30 + skilllv * 10 : 70)) {
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if (skilllv == 5)
 				skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,0 );
@@ -3133,9 +3132,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case AL_DECAGI:			/* ë¨ìxå∏è≠ */
 		if (status_isimmune(bl))
 			break;
-		if (rand() % 100 < (50 + skilllv * 3 + (status_get_lv(src) + status_get_int(src) / 5) +(sc_def_mdef-100))) { //0 defense is sc_def_mdef == 100! [Skotlex]
+		if (rand() % 100 < (40 + skilllv * 2 + (status_get_lv(src) + status_get_int(src) / 5) +(sc_def_mdef-100))) { //0 defense is sc_def_mdef == 100! [Skotlex]
 			clif_skill_nodamage (src, bl, skillid, skilllv, 1);
-			status_change_start (bl, SkillStatusChangeTable[skillid], skilllv, 0, 0, 0, skill_get_time(skillid,skilllv), 0);
+			i = skill_get_time(skillid,skilllv);
+			if (bl->type == BL_PC) i/=2; //Halved duration for Players
+			status_change_start (bl, SkillStatusChangeTable[skillid], skilllv, 0, 0, 0, i, 0);
 		}
 		break;
 
@@ -3144,7 +3145,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			int race = status_get_race (bl), ele = status_get_elem_type (bl);
 			if (battle_check_target (src, bl, BCT_ENEMY) && (race == 6 || battle_check_undead (race, ele))) {
 				int slv = status_get_lv (src),tlv = status_get_lv (bl);
-				int rate = 25 + skilllv*2 + slv - tlv;
+				int rate = 23 + skilllv*4 + slv - tlv;
 				if (rand()%100 < rate)
 					status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,0,0);
 			}
@@ -3514,6 +3515,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			if (rand()%100 > 50 + 3*skilllv + status_get_lv(bl) - status_get_lv(src)) //TODO: How much does base level affects? Dummy value of 1% per level difference used. [Skotlex]
+			{
+				if (sd) 
+					clif_skill_fail(sd,skillid,0,0);
+				map_freeblock_unlock();
+				return 0;
+			}
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 
 			if(dstmd && dstmd->skilltimer!=-1 && dstmd->state.skillcastcancel)	// ârè•ñWäQ
@@ -4888,6 +4896,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			if (rand()%100 > 55 + skilllv*5)
+			{	//Has a 55% + skilllv*5% success chance.
+				if (sd)
+					clif_skill_fail(sd,skillid,0,0);
+				map_freeblock_unlock();
+				return 0;
+			}
 			status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 
 			if(dstmd && dstmd->skilltimer!=-1 && dstmd->state.skillcastcancel)	// ârè•ñWäQ

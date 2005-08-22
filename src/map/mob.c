@@ -1600,7 +1600,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		struct map_session_data *asd = map_id2sd (md->attacked_id);
 		//If the invincible timer is active, then players are exploiting this,
 		//because how could they have attacked the mob and still have it? [Skotlex]
-		if (asd && !pc_isdead(asd)/*&& asd->invincible_timer == -1*/&& !pc_isinvisible(asd)) {
+		if (asd && !pc_isdead(asd) && !pc_isinvisible(asd)) {
 			map_foreachinarea(mob_ai_sub_hard_linksearch, md->bl.m,
 				md->bl.x-13, md->bl.y-13, md->bl.x+13, md->bl.y+13,
 				BL_MOB, md, &asd->bl);

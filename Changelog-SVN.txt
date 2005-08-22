@@ -1,5 +1,11 @@
 Date	Added
 08/22	
+	* Skills update (mostly thanks to Vicious Pucca): [Skotlex]
+	  - Success chance and stats of Provoke, mental Break, Signum Crusis, Soul Burn
+	  - Decrease Agility duration halved for players.
+	  - Magnum Break's final damage is splitted 80% weapon's element, 20% fire
+	    element. No longer causes weapon endow.
+	  - Bash's hit bonus (+5 per lv now)
 	* Fixed skill_db, Added perfect hit to TK_COUNTER [Dralnu]
 	* Changed skill_tree and job_db1 the same way I changed job_db2, it was necessary for
 	  clear implementation of Taekwon (which has a very unusual ID for a 1st job) and renders

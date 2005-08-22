@@ -1155,19 +1155,19 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				sd->left_weapon.watk += sd->sc_data[SC_IMPOSITIO].val1*5;
 		}
 		if(sd->sc_data[SC_PROVOKE].timer!=-1){	// プロボック
-			sd->def2 = sd->def2*(100-6*sd->sc_data[SC_PROVOKE].val1)/100;
-			sd->base_atk = sd->base_atk*(100+2*sd->sc_data[SC_PROVOKE].val1)/100;
-			sd->right_weapon.watk = sd->right_weapon.watk*(100+2*sd->sc_data[SC_PROVOKE].val1)/100;
+			sd->def2 -= sd->def2*(5+5*sd->sc_data[SC_PROVOKE].val1)/100;
+			sd->base_atk += sd->base_atk*(2+3*sd->sc_data[SC_PROVOKE].val1)/100;
+			sd->right_weapon.watk += sd->right_weapon.watk*(2+3*sd->sc_data[SC_PROVOKE].val1)/100;
 			index = sd->equip_index[8];
 			if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == 4)
-				sd->left_weapon.watk = sd->left_weapon.watk*(100+2*sd->sc_data[SC_PROVOKE].val1)/100;
+				sd->left_weapon.watk += sd->left_weapon.watk*(2+3*sd->sc_data[SC_PROVOKE].val1)/100;
 		}
 		if(sd->sc_data[SC_ENDURE].timer!=-1)
 			sd->mdef2 += sd->sc_data[SC_ENDURE].val1;
 		if(sd->sc_data[SC_MINDBREAKER].timer!=-1){	// プロボック
-			sd->mdef2 = sd->mdef2*(100-6*sd->sc_data[SC_MINDBREAKER].val1)/100;
-			sd->matk1 = sd->matk1*(100+2*sd->sc_data[SC_MINDBREAKER].val1)/100;
-			sd->matk2 = sd->matk2*(100+2*sd->sc_data[SC_MINDBREAKER].val1)/100;
+			sd->mdef2 -= sd->mdef2*(12*sd->sc_data[SC_MINDBREAKER].val1)/100;
+			sd->matk1 += sd->matk1*(20*sd->sc_data[SC_MINDBREAKER].val1)/100;
+			sd->matk2 += sd->matk2*(20*sd->sc_data[SC_MINDBREAKER].val1)/100;
 		}
 		if(sd->sc_data[SC_INCMATK2].timer!=-1)	// プロボック
 			sd->matk1 += sd->matk1*sd->sc_data[SC_INCMATK2].val1/100;
@@ -2160,7 +2160,7 @@ int status_get_baseatk(struct block_list *bl)
 
 		if(sc_data) { //状態異常あり
 			if(sc_data[SC_PROVOKE].timer!=-1) //PCでプロボック(SM_PROVOKE)状態
-				batk += batk * 2*sc_data[SC_PROVOKE].val1/100; //base_atk増加
+				batk += batk *(2+3*sc_data[SC_PROVOKE].val1)/100; //base_atk増加
 			if(sc_data[SC_CURSE].timer!=-1) //呪われていたら
 				batk -= batk * 25/100; //base_atkが25%減少
 			if(sc_data[SC_CONCENTRATION].timer!=-1) //コンセントレーション
@@ -2259,7 +2259,7 @@ int status_get_atk2(struct block_list *bl)
 		}		  
 		if(sc_data) {
 			if( sc_data[SC_PROVOKE].timer!=-1 )
-				atk2 += atk2 * 2*sc_data[SC_PROVOKE].val1/100;
+				atk2 += atk2 * (2+3*sc_data[SC_PROVOKE].val1)/100;
 			if( sc_data[SC_CURSE].timer!=-1 )
 				atk2 -= atk2 * 25/100;
 			if(sc_data[SC_STRIPWEAPON].timer!=-1)
@@ -2312,7 +2312,7 @@ int status_get_matk1(struct block_list *bl)
 		sc_data = status_get_sc_data(bl);
 		if(sc_data) {
 			if(sc_data[SC_MINDBREAKER].timer!=-1)
-				matk = matk*(100+2*sc_data[SC_MINDBREAKER].val1)/100;
+				matk += matk*(20*sc_data[SC_MINDBREAKER].val1)/100;
 			if(sc_data[SC_INCMATK2].timer!=-1)
 				matk += matk * sc_data[SC_INCMATK2].val1 / 100;
 		}
@@ -2338,7 +2338,7 @@ int status_get_matk2(struct block_list *bl)
 
 		if(sc_data) {
 			if(sc_data[SC_MINDBREAKER].timer!=-1)
-				matk = matk*(100+2*sc_data[SC_MINDBREAKER].val1)/100;
+				matk += matk*(20*sc_data[SC_MINDBREAKER].val1)/100;
 			if(sc_data[SC_INCMATK2].timer!=-1)
 				matk += matk * sc_data[SC_INCMATK2].val1 / 100;
 		}
@@ -2381,7 +2381,7 @@ int status_get_def(struct block_list *bl)
 					def = 100;
 				//プロボック時は減算
 				if( sc_data[SC_PROVOKE].timer!=-1)
-					def = (def*(100 - 6*sc_data[SC_PROVOKE].val1)+50)/100;
+					def -= def*(5+5*sc_data[SC_PROVOKE].val1)/100;
 				//戦太鼓の響き時は加算
 				if( sc_data[SC_DRUMBATTLE].timer!=-1)
 					def += sc_data[SC_DRUMBATTLE].val3;
@@ -2393,7 +2393,7 @@ int status_get_def(struct block_list *bl)
 					def = def*sc_data[SC_STRIPSHIELD].val2/100;
 				//シグナムクルシス時は減算
 				if(sc_data[SC_SIGNUMCRUCIS].timer!=-1)
-					def = def * (100 - sc_data[SC_SIGNUMCRUCIS].val2)/100;
+					def -= def * (10+4*sc_data[SC_SIGNUMCRUCIS].val2)/100;
 				//永遠の混沌時はDEF0になる
 				if(sc_data[SC_ETERNALCHAOS].timer!=-1)
 					def = 0;
@@ -2448,7 +2448,7 @@ int status_get_mdef(struct block_list *bl)
 			if(sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2 == 0))
 				mdef = mdef*125/100;
 			if( sc_data[SC_MINDBREAKER].timer!=-1 && bl->type != BL_PC)
-				mdef -= (mdef*6*sc_data[SC_MINDBREAKER].val1)/100;
+				mdef -= mdef*(12*sc_data[SC_MINDBREAKER].val1)/100;
 		}
 	}
 	if(mdef < 0) mdef = 0;
@@ -2483,7 +2483,7 @@ int status_get_def2(struct block_list *bl)
 			if(sc_data[SC_ANGELUS].timer != -1)
 				def2 = def2*(110+5*sc_data[SC_ANGELUS].val1)/100;
 			if(sc_data[SC_PROVOKE].timer!=-1)
-				def2 = (def2*(100 - 6*sc_data[SC_PROVOKE].val1)+50)/100;
+				def2 -= def2*(5+5*sc_data[SC_PROVOKE].val1)/100;
 			if(sc_data[SC_POISON].timer!=-1)
 				def2 = def2*75/100;
 			//コンセントレーション時は減算
@@ -2519,7 +2519,7 @@ int status_get_mdef2(struct block_list *bl)
 		}
 		if(sc_data) {
 			if(sc_data[SC_MINDBREAKER].timer!=-1)
-				mdef2 -= (mdef2*6*sc_data[SC_MINDBREAKER].val1)/100;
+				mdef2 -= mdef2*(12*sc_data[SC_MINDBREAKER].val1)/100;
 		}
 	}
 	if(mdef2 < 0) mdef2 = 0;
@@ -4523,8 +4523,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_SIGHT:	/* サイト */
 	case SC_RUWACH:	/* ルアフ */
 		{
-			int range = 5;
-			if ( type == SC_SIGHT ) range = 7;
+			int range = skill_get_range(type==SC_SIGHT?MG_SIGHT:AL_RUWACH, sc_data[type].val1);
 			map_foreachinarea( status_change_timer_sub,
 				bl->m, bl->x-range, bl->y-range, bl->x+range,bl->y+range,0,
 				bl,type,tick);

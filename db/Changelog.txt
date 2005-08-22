@@ -16,6 +16,9 @@
 	4296,Cramp_Card: missing getzenybychance??
 
 08/22
+	* Updated casting times and delays of Soul Strike & Napalm Beat, range of
+	  Ruwach/Sight (thanks to Vicious Pucca) [Skotlex]
+	* Updated Magnum Break's element (takes weapon), the fire part is hardcoded. [Skotlex]
 	* Removed the temp plug from Cramp Card as it seems it's way too powerful [DracoRPG]
 	* Updated skill_tree,job_db1 and job_db2 for new system and Taekwon support [DracoRPG]
 	* Moved MVPs from mob_branch.txt to mob_boss.txt (those that had yet to be

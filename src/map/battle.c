@@ -1034,7 +1034,7 @@ static struct Damage battle_calc_weapon_attack(
 			switch(skill_num)
 		{	//Hit skill modifiers
 			case SM_BASH:
-				hitrate += (skill_lv>5?20:10);
+				hitrate += 5*skill_lv;
 				break;
 			case SM_MAGNUM:
 				hitrate += 10*skill_lv;
@@ -1228,7 +1228,8 @@ static struct Damage battle_calc_weapon_attack(
 				skillratio += 100;
 			// EDP : Since records say it does works with Sonic Blows, instead of pre-multiplying the damage,
 			// we take the number of hits in consideration. [Skotlex]
-			if(sc_data[SC_EDP].timer != -1 && skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
+			// It is still not quite decided whether it works on bosses or not...
+			if(sc_data[SC_EDP].timer != -1 /*&& !(t_mode&0x20)*/ && skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
 				skillratio += (150 + sc_data[SC_EDP].val1 * 50)*wd.div_;
 			if(sc_data[SC_VOLCANO].timer!=-1 && s_ele == 3)
 				skillratio += enchant_eff[sc_data[SC_VOLCANO].val1-1];
@@ -1651,7 +1652,16 @@ static struct Damage battle_calc_weapon_attack(
 			short t_element = status_get_element(target);
 			if (wd.damage > 0)
 			{
-				wd.damage=battle_attr_fix(wd.damage,s_ele,t_element);
+				if(skill_num==SM_MAGNUM)
+				{	//Magnum break causes 20% fire elemental damage. [Skotlex]
+					//TODO: The information is not complete, it is currently unknown whether 20% of the total damage counts as fire,
+					//or is it 20% additional damage, or what...
+					int damage = wd.damage;
+					wd.damage=battle_attr_fix(damage/5,3,t_element);
+					wd.damage+=battle_attr_fix(4*damage/5,s_ele,t_element);
+				}
+				else
+					wd.damage=battle_attr_fix(wd.damage,s_ele,t_element);
 				if(skill_num==MC_CARTREVOLUTION) //Cart Revolution applies the element fix once more with neutral element
 					wd.damage=battle_attr_fix(wd.damage,0,t_element);
 			}
