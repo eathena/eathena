@@ -1471,7 +1471,23 @@ static struct Damage battle_calc_weapon_attack(
 				case CR_ACIDDEMONSTRATION:
 					skillratio += wd.div_*100 - 100;
 					break;
-			}
+				case TK_DOWNKICK:
+				    skillratio = 160 + (20*skill_lv);
+				    break;
+ 			    case TK_STORMKICK:
+ 			        skillratio = 160 + (20*skill_lv);
+ 			        break;
+    			case TK_TURNKICK:
+    			    skillratio = 190 + (30*skill_lv);
+    			    break;
+			    case TK_COUNTER:
+			        skillratio = 190 + (30*skill_lv);
+			        ATK_ADD(15*skill_lv);
+			        break;
+       			case TK_JUMPKICK:
+       			    skillratio = 30 + (10*skill_lv);
+       			    break;
+        	}
 
 			if (sd && sd->skillatk[0] != 0)
 			{

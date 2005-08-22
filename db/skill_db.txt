@@ -61,7 +61,8 @@
 49,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//TF_MISS#回避率増加#
 50,1,6,1,0,1,10,1,no,0,0,0,weapon,0	//TF_STEAL#スティ?ル#
 51,0,6,4,0,1,10,1,no,0,0,0,none,0	//TF_HIDING#ハイディング#
-52,3,6,1,5,0,10,1,no,0,0,0,weapon,0	//TF_POISON#インベナ?#
+//52,3,6,1,5,0,10,1,no,0,0,0,weapon,0
+52,-1,6,1,-1,0,7,0,no,0,0,0,weapon,0	//TF_POISON#インベナ?#
 53,10,6,16,5,1,1,1,no,0,0,0,weapon,0	//TF_DETOXIFY#解毒#
 54,8,6,16,6,1,4,1,yes,0,0,0,magic,0	//ALL_RESURRECTION#リザレクション#
 55,0,0,0,0,0,10,0,no,0,0,0,weapon,0	//KN_SPEARMASTERY#槍修練#
@@ -434,15 +435,15 @@
 
 411,0,0,0,0,0,0,0,yes,0,0,0,weapon,0	//TK_RUN##
 412,0,0,0,0,0,0,0,no,0,0,0,weapon,0	//TK_READYSTORM##
-413,0,0,0,0,0,0,0,no,0,0,0,weapon,0	//TK_STORMKICK##
+413,0,6,1,-1,0,7,1,no,0,0,0,weapon,0	//TK_STORMKICK##
 414,0,0,0,0,0,0,0,no,0,0,0,weapon,0	//TK_READYDOWN##
-415,0,0,0,0,0,0,0,no,0,0,0,weapon,0	//TK_DOWNKICK##
+415,-1,6,1,-1,0,7,1,no,0,0,0,weapon,0	//TK_DOWNKICK##
 416,0,0,0,0,0,0,0,no,0,0,0,weapon,0	//TK_READYTURN##
-417,0,0,0,0,0,0,0,no,0,0,0,weapon,0	//TK_TURNKICK##
+417,0,6,1,-1,0,7,1,no,0,0,0,weapon,0	//TK_TURNKICK##
 418,0,0,0,0,0,0,0,no,0,0,0,weapon,0	//TK_READYCOUNTER##
-419,0,0,0,0,0,0,0,no,0,0,0,weapon,0	//TK_COUNTER##
+419,-1,6,1,-1,0,7,1,no,0,0,0,weapon,0	//TK_COUNTER##
 420,0,0,0,0,0,0,0,no,0,0,0,weapon,0	//TK_DODGE##
-421,0,0,0,0,0,0,0,no,0,0,0,weapon,0	//TK_JUMPKICK##
+421,8,6,1,-1,0,7,0,no,0,0,0,weapon,0	//TK_JUMPKICK##
 422,0,0,0,0,0,0,0,no,0,0,0,none,0	//TK_HPTIME##
 423,0,0,0,0,0,0,0,no,0,0,0,none,0	//TK_SPTIME##
 424,0,0,0,0,0,0,0,no,0,0,0,weapon,0	//TK_POWER##

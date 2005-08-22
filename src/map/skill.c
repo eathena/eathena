@@ -1095,7 +1095,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	case WS_CARTTERMINATION:	// Cart termination
 		if (rand() % 10000 < 5 * skilllv * sc_def_vit)
-			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(WS_CARTTERMINATION,skilllv),0);
+			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
 
 	case CR_ACIDDEMONSTRATION:
@@ -1107,6 +1107,12 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				pc_breakarmor(dstsd);
 		}
 		break;
+// Taekwon skills
+	case TK_DOWNKICK:
+	    if(rand()%100< 100*sc_def_vit/100 ) {
+    	    status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
+	        }
+        break;
 	}
 
 	if(sd && skillid != MC_CARTREVOLUTION && attack_type&BF_WEAPON){	/* カ?ドによる追加?果 */
@@ -2453,9 +2459,25 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case PA_SACRIFICE:	// Sacrifice, Aru's style.
 	case CR_ACIDDEMONSTRATION:  // Acid Demonstration
 	case WS_CARTTERMINATION:	// Cart Termination
+	case TK_DOWNKICK:	// Taekwon Axe Kick
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
-
+	case TK_TURNKICK:
+	    {
+        /*int dist = distance(bl->x, bl->y, skill_area_temp[2], skill_area_temp[3]);
+			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,
+				0x0500|dist);*/
+		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+		}
+		break;		
+	case TK_STORMKICK:
+	    map_foreachinarea(skill_attack_area, src->m,
+		src->x-2, src->y-2, src->x+2, src->y+2, 0,
+		BF_WEAPON, src, src, skillid, skilllv, tick, flag, BCT_ENEMY);
+		break;
+	case TK_JUMPKICK:
+	    skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+	    break;
 	case ASC_BREAKER:				/* ソウルブレ?カ? */	// [DracoRPG]
 		// Separate weapon and magic attacks
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
