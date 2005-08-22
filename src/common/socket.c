@@ -134,6 +134,10 @@ static int recv_to_fifo(int fd)
 #ifdef __WIN32
 	len=recv(fd,(char *)session[fd]->rdata+session[fd]->rdata_size, RFIFOSPACE(fd), 0);
 	if (len == SOCKET_ERROR) {
+		if (WSAGetLastError() == WSAECONNABORTED) {
+			ShowFatalError("recv_to_fifo: Network broken (Software caused connection abort on session #%d)\n", fd);
+//			exit(1);
+		}
 		if (WSAGetLastError() != WSAEWOULDBLOCK) {
 			ShowDebug("recv_to_fifo: error %d, ending connection #%d\n", WSAGetLastError(), fd);
 			session[fd]->eof=1;
@@ -144,6 +148,11 @@ static int recv_to_fifo(int fd)
 	len=read(fd,session[fd]->rdata+session[fd]->rdata_size, RFIFOSPACE(fd));
 	if (len == -1)
 	{
+		if (errno == ECONNABORTED)
+		{
+			ShowFatalError("recv_to_fifo: Network broken (Software caused connection abort on session #%d)\n", fd);
+//			exit(1); //Temporal debug, maybe this can be fixed.
+		}
 		if (errno != EAGAIN) {	//Connection error.
 			perror("closing session: recv_to_fifo");
 			session[fd]->eof=1;
@@ -193,8 +202,12 @@ static int send_from_fifo(int fd)
 #ifdef __WIN32
 	len=send(fd, (const char *)session[fd]->wdata,session[fd]->wdata_size, 0);
 	if (len == SOCKET_ERROR) {
+		if (WSAGetLastError() == WSAECONNABORTED) {
+			ShowFatalError("send_from_fifo: Network broken (Software caused connection abort on session #%d)\n", fd);
+//			exit(1);
+		}
 		if (WSAGetLastError() != WSAEWOULDBLOCK) {
-			ShowDebug("recv_to_fifo: error %d, ending connection #%d\n", WSAGetLastError(), fd);
+			ShowDebug("send_from_fifo: error %d, ending connection #%d\n", WSAGetLastError(), fd);
 			session[fd]->wdata_size = 0; //Clear the send queue as we can't send anymore. [Skotlex]
 			session[fd]->eof=1;
 		}
@@ -204,6 +217,11 @@ static int send_from_fifo(int fd)
 	len=write(fd,session[fd]->wdata,session[fd]->wdata_size);
 	if (len == -1)
 	{
+		if (errno == ECONNABORTED)
+		{
+			ShowFatalError("send_from_fifo: Network broken (Software caused connection abort on session #%d)\n", fd);
+//			exit(1);
+		}
 		if (errno != EAGAIN) {
 			perror("closing session: send_from_fifo");
 			session[fd]->wdata_size = 0; //Clear the send queue as we can't send anymore. [Skotlex]
