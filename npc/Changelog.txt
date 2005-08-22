@@ -30,6 +30,8 @@ Date		Added
 ======
 08/23
 	* Added new Hugel Field Warps by Sara [Lupus]
+	* Updated mobs spawn of magmadun.txt by MasterOfMuppets
+	  Also updated KAHO's stats according to new kRO site info
 08/21
 	* Orc Hero Helm fixed items exploit [Lupus]
 08/19
