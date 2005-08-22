@@ -10496,6 +10496,7 @@ int skill_readdb(void)
 		if( strcmpi(split[6],"noenemy")==0 ) skill_db[i].unit_target=BCT_NOENEMY;
 		else if( strcmpi(split[6],"friend")==0 ) skill_db[i].unit_target=BCT_NOENEMY;
 		else if( strcmpi(split[6],"party")==0 ) skill_db[i].unit_target=BCT_PARTY;
+		else if( strcmpi(split[6],"ally")==0 ) skill_db[i].unit_target=BCT_PARTY|BCT_GUILD;
 		else if( strcmpi(split[6],"all")==0 ) skill_db[i].unit_target=BCT_ALL;
 		else if( strcmpi(split[6],"enemy")==0 ) skill_db[i].unit_target=BCT_ENEMY;
 		else if( strcmpi(split[6],"self")==0 ) skill_db[i].unit_target=BCT_SELF;

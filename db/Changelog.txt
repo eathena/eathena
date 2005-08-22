@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance?? (ADDED TEMP PLUG - GETS 1 ZENY ON KILL)
 
 08/22
+	* Added target flag "ally" to skill_unit_db [Skotlex]
 	* Added 0.5 sec delay to Aid Potion, 1 sec casting time & delay to Aid Condensed Potion
 	  (from kRO website, thanks to reddozen and vicious_pucca) [DracoRPG]
 	* Removed UF_NOFOOTSET from Ice Wall (I have several souces for that) [DracoRPG]

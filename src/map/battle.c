@@ -2847,7 +2847,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		struct skill_unit *su = (struct skill_unit *)src;
 		if (su && su->group)
 		{
-			if (su->group->src_id == t_bl->id)
+			if (su->group->src_id == target->id)
 			{
 				int inf2;
 				inf2 = skill_get_inf2(su->group->skill_id);
@@ -2864,7 +2864,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	else if (src->type == BL_MOB && !agit_flag && (struct mob_data*)src && ((struct mob_data*)src)->guild_id)
 		return 0; //Disable guardian attacking on non-woe times.
 	
-	if (flag == BCT_ALL){ //All actually stands for all players/mobs
+	if ((flag&BCT_ALL) == BCT_ALL) { //All actually stands for all players/mobs
 		if (target->type == BL_MOB || target->type == BL_PC)
 			return 1;
 		else
