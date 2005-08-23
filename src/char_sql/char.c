@@ -1933,7 +1933,7 @@ int parse_tologin(int fd) {
 
 	// hehe. no need to set user limit on SQL version. :P
 	// but char limitation is good way to maintain server. :D
-	while(RFIFOREST(fd) >= 2) {
+	while(RFIFOREST(fd) >= 2 && !session[fd]->eof) {
 //		printf("parse_tologin : %d %d %x\n", fd, RFIFOREST(fd), RFIFOW(fd, 0));
 
 		switch(RFIFOW(fd, 0)){
@@ -2286,7 +2286,7 @@ int parse_frommap(int fd) {
 		return 0;
 	}
 
-	while(RFIFOREST(fd) >= 2) {
+	while(RFIFOREST(fd) >= 2 && !session[fd]->eof) {
 //		printf("parse_frommap : %d %d %x\n", fd, RFIFOREST(fd), RFIFOW(fd,0));
 
 		switch(RFIFOW(fd, 0)) {
@@ -2921,7 +2921,7 @@ int parse_char(int fd) {
 		return 0;
 	}
 
-	while(RFIFOREST(fd) >= 2) {
+	while(RFIFOREST(fd) >= 2 && !session[fd]->eof) {
 		cmd = RFIFOW(fd,0);
 		// crc32のスキップ用
 		if(	sd==NULL			&&	// 未ログインor管理パケット

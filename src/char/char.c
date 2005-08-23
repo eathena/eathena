@@ -1771,7 +1771,7 @@ int parse_tologin(int fd) {
 
 	sd = (struct char_session_data*)session[fd]->session_data;
 
-	while(RFIFOREST(fd) >= 2) {
+	while(RFIFOREST(fd) >= 2 && !session[fd]->eof) {
 //		printf("parse_tologin: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 
 		switch(RFIFOW(fd,0)) {
@@ -2242,7 +2242,7 @@ int parse_frommap(int fd) {
 		return 0;
 	}
 
-	while(RFIFOREST(fd) >= 2) {
+	while(RFIFOREST(fd) >= 2 && !session[fd]->eof) {
 //		printf("parse_frommap: connection #%d, packet: 0x%x (with being read: %d bytes).\n", fd, RFIFOW(fd,0), RFIFOREST(fd));
 
 		switch(RFIFOW(fd,0)) {
@@ -2866,7 +2866,7 @@ int parse_char(int fd) {
 		return 0;
 	}
 
-	while (RFIFOREST(fd) >= 2) {
+	while(RFIFOREST(fd) >= 2 && !session[fd]->eof) {
 		cmd = RFIFOW(fd,0);
 		// crc32のスキップ用
 		if(	sd==NULL			&&	// 未ログインor管理パケット

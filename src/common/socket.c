@@ -120,6 +120,20 @@ static void setsocketopts(int fd)
  *	CORE : Socket Sub Function
  *--------------------------------------
  */
+static void set_eof(int fd)
+{	//Marks a connection eof and invokes the parse_function to disconnect it right away. [Skotlex]
+	if (session_isActive(fd))
+	{
+		session[fd]->eof=1;
+		if (session[fd]->func_parse)
+			session[fd]->func_parse(fd); //Cleanly end connection.
+		else
+		{	//Manual disconnect...
+			close(fd);
+			delete_session(fd);
+		}
+	}
+}
 
 static int recv_to_fifo(int fd)
 {
@@ -140,7 +154,7 @@ static int recv_to_fifo(int fd)
 		}
 		if (WSAGetLastError() != WSAEWOULDBLOCK) {
 			ShowDebug("recv_to_fifo: error %d, ending connection #%d\n", WSAGetLastError(), fd);
-			session[fd]->eof=1;
+			set_eof(fd);
 		}
 		return 0;
 	}
@@ -155,14 +169,13 @@ static int recv_to_fifo(int fd)
 		}
 		if (errno != EAGAIN) {	//Connection error.
 			perror("closing session: recv_to_fifo");
-			session[fd]->eof=1;
+			set_eof(fd);
 		}
 		return 0;
 	}
 #endif	
 	if (len <= 0) {	//Normal connection end.
-		ShowDebug("recv_to_fifo: Normal disconnection (session #%d)\n", fd);
-		session[fd]->eof=1;
+		set_eof(fd);
 		return 0;
 	}
 
@@ -209,7 +222,7 @@ static int send_from_fifo(int fd)
 		if (WSAGetLastError() != WSAEWOULDBLOCK) {
 			ShowDebug("send_from_fifo: error %d, ending connection #%d\n", WSAGetLastError(), fd);
 			session[fd]->wdata_size = 0; //Clear the send queue as we can't send anymore. [Skotlex]
-			session[fd]->eof=1;
+			set_eof(fd);
 		}
 		return 0;
 	}
@@ -225,7 +238,7 @@ static int send_from_fifo(int fd)
 		if (errno != EAGAIN) {
 			perror("closing session: send_from_fifo");
 			session[fd]->wdata_size = 0; //Clear the send queue as we can't send anymore. [Skotlex]
-			session[fd]->eof=1;
+			set_eof(fd);
 		}
 		return 0;
 	}
@@ -708,12 +721,12 @@ int do_sendrecv(int next)
 				}
 				if (FD_ISSET(i, &efd)) {
 					ShowDebug("do_sendrecv: Connection error on Session %d.\n", i);
-					session[i]->eof = 1;
+					set_eof(i);
 					FD_CLR(i, &efd);
 				}
 			} else {
 				ShowDebug("do_sendrecv: Session #d caused error in select(), disconnecting.\n", i);
-				session[i]->eof = 1; // set eof
+				set_eof(i); // set eof
 				// an error gives invalid values in fd_set structures -> init them again
 				FD_ZERO(&rfd);
 				FD_ZERO(&wfd);
@@ -774,9 +787,7 @@ int do_sendrecv(int next)
 #ifdef TURBO
 			if ((session[i]->rdata_tick != 0) && ((last_tick - session[i]->rdata_tick) > stall_time)) {
 				ShowDebug("do_sendrecv: Session %d timed out.\n", i);
-				session[i]->eof = 1;
-				if(session[i]->func_parse)
-					session[i]->func_parse(i);
+				set_eof(i);
 				continue;
 			}
 			ret--;
@@ -797,13 +808,7 @@ int do_sendrecv(int next)
 		if(FD_ISSET(i,&efd)){
 			//ShowMessage("error:%d\n",i);
 			ShowDebug("do_sendrecv: Connection error on Session %d.\n", i);
-			session[i]->eof = 1;
-			if (session[i]->func_parse)
-				session[i]->func_parse(i);	//Parsing this should invoke closing the socket inmediately. [Skotlex]
-			else { //Just remove this session.
-				close(i);
-				delete_session(i);
-			}
+			set_eof(i);
 			ret--;
 		}
 

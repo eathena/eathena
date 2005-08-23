@@ -1,4 +1,7 @@
 Date	Added
+08/23
+	* Added some checks to prevent infinite looping in the char servers. [Skotlex]
+	* Some updates to the way disconnections are handled in socket.c [Skotlex]
 08/22	
 	* Fixed typo in skill.c causing errors [Codemaster]
 	* Added Irmin's recommendation to allow item names in getitenname() [Skotlex]
