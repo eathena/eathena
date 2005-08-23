@@ -2453,26 +2453,50 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 	case PA_SACRIFICE:	// Sacrifice, Aru's style.
 	case CR_ACIDDEMONSTRATION:  // Acid Demonstration
 	case WS_CARTTERMINATION:	// Cart Termination
-	case TK_DOWNKICK:	// Taekwon Axe Kick
-	case TK_COUNTER:
+	case TK_JUMPKICK:	// Taekwon Jump kick waiting to be coded [Dralnu]
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
+	case TK_STORMKICK: // Taekwon kicks [Dralnu]
+	   {
+	   		if (sc_data && sc_data[SC_STORMKICK].timer != -1){
+ 				map_foreachinarea(skill_attack_area, src->m,
+				src->x-2, src->y-2, src->x+2, src->y+2, 0,
+				BF_WEAPON, src, src, skillid, skilllv, tick, flag, BCT_ENEMY);	
+				clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			}		
+		status_change_end(src, SC_STORMKICK, -1);		
+		}			
+		break;
+	case TK_DOWNKICK:
+	    {
+	   		if (sc_data && sc_data[SC_DOWNKICK].timer != -1){
+	   		    bl = map_id2bl(sc_data[SC_DOWNKICK].val2);
+	   		    skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+          		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+        	}
+        	status_change_end(src, SC_DOWNKICK, -1);
+     	}
+      	break;
 	case TK_TURNKICK:
 	    {
-        /*int dist = distance(bl->x, bl->y, skill_area_temp[2], skill_area_temp[3]);
-			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,
-				0x0500|dist);*/
-		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-		}
-		break;		
-	case TK_STORMKICK:
-	    map_foreachinarea(skill_attack_area, src->m,
-		src->x-2, src->y-2, src->x+2, src->y+2, 0,
-		BF_WEAPON, src, src, skillid, skilllv, tick, flag, BCT_ENEMY);
-		break;
-	case TK_JUMPKICK:
-	    skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-	    break;
+	   		if (sc_data && sc_data[SC_TURNKICK].timer != -1){
+	   		    bl = map_id2bl(sc_data[SC_TURNKICK].val2);
+	   		    skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+          		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+        	}
+        	status_change_end(src, SC_TURNKICK, -1);
+     	}
+      	break;   
+	case TK_COUNTER:
+	    {
+	   		if (sc_data && sc_data[SC_COUNTER].timer != -1){
+	   		    bl = map_id2bl(sc_data[SC_COUNTER].val2);
+	   		    skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
+          		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+        	}
+        	status_change_end(src, SC_COUNTER, -1);
+     	}
+      	break;   
 	case ASC_BREAKER:				/* ソウルブレ?カ? */	// [DracoRPG]
 		// Separate weapon and magic attacks
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
@@ -2573,7 +2597,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				status_change_end(src,SC_BLADESTOP,-1);
 		}
 		break;
-
 	case MO_EXTREMITYFIST:	/* 阿修羅覇鳳拳 */
 		{
 			if(sd) {
@@ -3808,10 +3831,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					status_change_end(bl, sc, -1);
 				else
 					status_change_start(bl,sc,skilllv,0,0,0,0,0);
-			}
+    		} 			
 		}
 		break;
-
 	case TF_HIDING:			/* ハイディング */
 	case ST_CHASEWALK:			/* ハイディング */
  	case TK_RUN:
@@ -5699,7 +5721,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 		}
 		break;
 	case TK_HIGHJUMP:
-		clif_skill_nodamage(src,src,skillid,0,0);
+		clif_skill_nodamage(src,src,skillid,skilllv,0);
 		if (sd) pc_setpos(sd,sd->mapname,x,y,0);
 		//TODO: Add mob implementation for this skill. [Skotlex]
      	break;    
@@ -7227,7 +7249,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		if (sd->sc_data[SC_EXPLOSIONSPIRITS].timer!=-1)
 			spiritball = 0;
 		break;
-	case MO_CHAINCOMBO:						//連打掌
+	case MO_CHAINCOMBO:			//連打掌			
 		if(sd->sc_data[SC_BLADESTOP].timer==-1){
 		if(sd->sc_data[SC_COMBO].timer == -1 || sd->sc_data[SC_COMBO].val1 != MO_TRIPLEATTACK)
 			return 0;
@@ -7894,7 +7916,6 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			target_id = tbl->id;
 		}
 		break;
-
 	case MO_COMBOFINISH:	/*猛龍拳*/
 	case CH_CHAINCRUSH:		/* 連柱崩? */
 		target_id = sd->attacktarget;

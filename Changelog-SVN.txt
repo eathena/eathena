@@ -1,5 +1,11 @@
 Date	Added
 08/23
+	* Implemented TK_STORMKICK, TK_DOWNKICK, TK_COUNTER and TK_TURNKICK.
+	  Note that at the moment if you use theses skills even if the corresponding
+	  SC is inactive, it will use SP and will stop you if you are attacking.
+	  Note too that because we don't know how it should work exactly, when a SC such as
+	  SC_STORMKICK will be launched, it will notice you by a little message over your 
+	  head : Hit now !!.  Finaly, TK_TURNKICK will not yet have the pushback effect.
 	* Fixed everyone having 20 flee... I hope. [Skotlex]
 	* Some corrections and updates to mob skill Metamorphosis [Skotlex]
 	  (don't know if it'll work now, but the way it was before definitely was
@@ -25,7 +31,8 @@ Date	Added
 	* Fixed Meteor Assault not displaying damage. [Skotlex]
 	* Fixed WE_CALLPARENT crashing the map server when either parent is
 	  offline. [Skotlex]
-	* Added TK_HIGHJUMP. Note : To be able to see properly the full jump animation, casting time will not depend on DEX. [Dralnu]
+	* Added TK_HIGHJUMP. Note : To be able to see properly the full jump animation,
+	  casting time will not depend on DEX. [Dralnu]
 	* Somes fixes in skill_db.txt and skill_cast_db.txt about Taekwon's skills. [Dralnu]
 	* Fully implemented the STR bonus part of TK_RUN [DracoRPG]
 	* Added activation/unactivation of TK stances, but not their specific effects [DracoRPG]

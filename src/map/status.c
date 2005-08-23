@@ -257,13 +257,13 @@ int SkillStatusChangeTable[]={	/* status.h‚Ìenum‚ÌSC_***‚Æ‚ ‚í‚¹‚é‚±‚Æ */
 	-1,
 	SC_RUN,
 	SC_READYSTORM,
-	-1,
+	SC_STORMKICK,
 	SC_READYDOWN,
-	-1,
+	SC_DOWNKICK,
 	SC_READYTURN,
-	-1,
+	SC_TURNKICK,
 	SC_READYCOUNTER,
-	-1,
+	SC_COUNTER,
 /* 420- */
 	SC_DODGE,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -3693,14 +3693,20 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_WEIGHT90:
 		case SC_BROKNWEAPON:
 		case SC_BROKNARMOR:
-        case SC_READYSTORM:
+        case SC_READYSTORM: // Taekwon Stances SC [Dralnu]
 		case SC_READYDOWN:
 		case SC_READYCOUNTER:
 		case SC_READYTURN:
 		case SC_DODGE:
-			tick=600*1000;
+			tick = 600*1000;
 			break;
-
+		case SC_STORMKICK: // Taekwon Kicks SC [Dralnu]
+  		case SC_DOWNKICK:
+    	case SC_COUNTER:
+ 		case SC_TURNKICK:
+		    tick = 1000;
+		    clif_displaymessage(sd->fd,"Hit now !!"); // Waiting to know how it should work [Dralnu]
+		    break;
 		case SC_AUTOGUARD:
 			if (!flag)
 			{

@@ -141,13 +141,13 @@ enum {	// struct map_session_data ‚Ì status_change‚Ì”Ô?ƒe?ƒuƒ‹
 // 133
 // 134 = wobbles the character's sprite when SC starts or ends
 	SC_READYSTORM		= 135,
-// 136
+	SC_STORMKICK		= 136,
 	SC_READYDOWN		= 137,
-// 138
+	SC_DOWNKICK			= 138,
 	SC_READYCOUNTER		= 139,
-// 140
+    SC_COUNTER			= 140,
 	SC_READYTURN		= 141,
-// 142
+	SC_TURNKICK			= 142,
 	SC_DODGE			= 143,
 // 144
 	SC_RUN				= 145,

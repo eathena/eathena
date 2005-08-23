@@ -2526,7 +2526,6 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		battle_stopattack(src);
 		return 0;
 	}
-
 	if (battle_check_target(src,target,BCT_ENEMY) <= 0 && !battle_check_range(src,target,0))
 		return 0;	// UŒ‚‘ÎÛŠO
 
@@ -2563,7 +2562,13 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			return skill_attack(BF_WEAPON,src,src,target,MO_TRIPLEATTACK,skill_lv,tick,0);
 		else if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
 			return skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,sc_data[SC_SACRIFICE].val1,tick,0);
-
+		else if(sd && (sc_data[SC_READYSTORM].timer != -1) && rand()%100 < 15 ) // Taekwon Strom Stance [Dralnu]
+			status_change_start(src,SC_STORMKICK,1,0,0,0,0,0);
+		else if(sd && (sc_data[SC_READYDOWN].timer != -1) && rand()%100 < 15 ) // Taekwon Axe Stance [Dralnu]
+			status_change_start(src,SC_DOWNKICK,1,sd->attacktarget,0,0,0,0);
+   		else if(sd && (sc_data[SC_READYTURN].timer != -1) && rand()%100 < 15 ) // Taekwon Round Stance [Dralnu]
+			status_change_start(src,SC_TURNKICK,1,sd->attacktarget,0,0,0,0);		
+			
 		wd = battle_calc_weapon_attack(src,target, skill_num, skill_lv,0);
 	
 		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
@@ -2768,6 +2773,8 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 					battle_weapon_attack(target, src, tick, 0x8000|tsc_data[SC_AUTOCOUNTER].val1);
 				status_change_end(target,SC_AUTOCOUNTER,-1);
 			}
+			if (tsc_data[SC_READYCOUNTER].timer != -1 && rand()%100 < 20) // Taekwon Counter Stance [Dralnu]
+				status_change_start(target,SC_COUNTER,1,src->id,0,0,tick,flag);				
 			if (tsc_data[SC_POISONREACT].timer != -1 && tsc_data[SC_POISONREACT].val4 > 0 && tsc_data[SC_POISONREACT].val3 == src->id) {   // poison react [Celest]
 				if (status_get_elem_type(src) == 5) {
 					tsc_data[SC_POISONREACT].val2 = 0;
