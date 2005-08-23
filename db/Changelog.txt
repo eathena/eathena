@@ -17,6 +17,9 @@
 
 08/23
 	* Updated Deviling's mode to make him count as a boss/miniboss. [Skotlex]
+	* Corrected Spring Rabbit card improving candy-type item healing rates [Skotlex]
+	  (should be meat type since that's what it makes mobs drop)
+	* Updated buy/sell prices of some Louyang Drops (thanks to Ishizu) [Skotlex]
 08/22
 	* Reverted magnum break... it is supposed to be fire element :/ [Skotlex]
 	* Updated casting times and delays of Soul Strike & Napalm Beat, range of

@@ -1355,7 +1355,7 @@
 4224,Stem_Worm_Card,Stem Worm Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAddMonsterDropItem,12032,2,10; }
 4225,Stone_Shooter_Card,Stone Shooter Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bAtk,10; bonus bHit,10; }
 4226,Sting_Card,Sting Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus bDef,2; if(getrefine()>8) bonus bMdef,5; }
-4227,Spring_Rabbit_Card,Spring Rabbit Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus2 bAddItemHealRate,5,50; bonus3 bAddMonsterDropItem,517,2,5000; bonus3 bAddMonsterDropItem,528,2,5000; }
+4227,Spring_Rabbit_Card,Spring Rabbit Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus2 bAddItemHealRate,4,50; bonus3 bAddMonsterDropItem,517,2,5000; bonus3 bAddMonsterDropItem,528,2,5000; }
 4228,Sleeper_Card,Sleeper Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus3 bAddMonsterDropItem,12031,5,10; }
 4229,Clock_Tower_Manager_Card,Clock Tower Manager Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus bInt,1; bonus bDelayrate,-5; if(isequipped(4244,4299,4313)==0) end; bonus bDef,3; bonus bMdef,3; }
 4230,Shinobi_Card,Shinobi Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus bAgi,1; bonus4 bAutoSpellWhenHit,135,5,1,0; }
@@ -1859,12 +1859,12 @@
 7259,Songwha_Orb4,Songwha Orb,3,20,0,10,,,,,,,,,,,,{},{}
 7260,Songwha_Orb5,Songwha Orb,3,20,0,10,,,,,,,,,,,,{},{}
 7261,Songwha_Orb6,Songwha Orb,3,20,0,10,,,,,,,,,,,,{},{}
-7262,Paper_Fan,Paper Fan,3,233,0,10,,,,,,,,,,,,{},{}
-7263,Cat's_Eye,Cat's-Eye,3,20,477,10,,,,,,,,,,,,{},{}
-7264,Dried_Sand,Dried Sand,3,20,161,10,,,,,,,,,,,,{},{}
-7265,Dragon_Horn,Dragon Horn,3,20,0,10,,,,,,,,,,,,{},{}
-7266,Dragon_Teeth,Dragon Teeth,3,218,0,10,,,,,,,,,,,,{},{}
-7267,Tigerskin_Underwear,Tigerskin Underwear,3,20,107,10,,,,,,,,,,,,{},{}
+7262,Paper_Fan,Paper Fan,3,466,233,10,,,,,,,,,,,,{},{}
+7263,Cat's_Eye,Cat's-Eye,3,954,477,10,,,,,,,,,,,,{},{}
+7264,Dried_Sand,Dried Sand,3,322,161,10,,,,,,,,,,,,{},{}
+7265,Dragon_Horn,Dragon Horn,3,544,272,10,,,,,,,,,,,,{},{}
+7266,Dragon_Teeth,Dragon Teeth,3,436,218,10,,,,,,,,,,,,{},{}
+7267,Tigerskin_Underwear,Tigerskin Underwear,3,298,149,10,,,,,,,,,,,,{},{}
 7268,Ghost_Doll,Ghost Doll,3,1210,605,10,,,,,,,,,,,,{},{}
 7269,Baby_Bib,Baby Bib,3,20,0,10,,,,,,,,,,,,{},{}
 7270,Baby_Bottle,Baby Bottle,3,20,0,10,,,,,,,,,,,,{},{}
@@ -1874,7 +1874,7 @@
 7274,Ancient_Language_Book,Translated Ancient Language,3,20,0,10,,,,,,,,,,,,{},{}
 7275,Ancient_Language_Document,Record of Ancient Language,3,20,0,10,,,,,,,,,,,,{},{}
 7276,Picture_Letter,Doodled Message,3,20,0,10,,,,,,,,,,,,{},{}
-7277,Munak_Doll,Munak Doll,3,20,0,10,,,,,,,,,,,,{},{}
+7277,Munak_Doll,Munak Doll,3,8900,4450,10,,,,,,,,,,,,{},{}
 7278,Welfare_Letter,Welfare Letter,3,20,0,10,,,,,,,,,,,,{},{}
 7279,Vita_500_Bottlecap,Vita 500 Bottlecap,3,20,0,10,,,,,,,,,,,,{},{}
 7280,Quiz_Participation_Certificate_1,1st Quiz Entry,3,20,0,10,,,,,,,,,,,,{},{}
