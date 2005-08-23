@@ -1,5 +1,7 @@
 Date	Added
 08/22	
+	* Fixed WE_CALLPARENT crashing the map server when either parent is
+	  offline. [Skotlex]
 	* Added TK_HIGHJUMP. Note : To be able to see properly the full jump animation, casting time will not depend on DEX. [Dralnu]
 	* Somes fixes in skill_db.txt and skill_cast_db.txt about Taekwon's skills. [Dralnu]
 	* Fully implemented the STR bonus part of TK_RUN [DracoRPG]
