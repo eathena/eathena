@@ -1230,7 +1230,7 @@ static struct Damage battle_calc_weapon_attack(
 			// we take the number of hits in consideration. [Skotlex]
 			// It is still not quite decided whether it works on bosses or not...
 			if(sc_data[SC_EDP].timer != -1 /*&& !(t_mode&0x20)*/ && skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
-				skillratio += (150 + sc_data[SC_EDP].val1 * 50)*wd.div_;
+				skillratio += (50 + sc_data[SC_EDP].val1 * 50)*wd.div_;
 			if(sc_data[SC_VOLCANO].timer!=-1 && s_ele == 3)
 				skillratio += enchant_eff[sc_data[SC_VOLCANO].val1-1];
 			if(sc_data[SC_VIOLENTGALE].timer!=-1 && s_ele == 4)
