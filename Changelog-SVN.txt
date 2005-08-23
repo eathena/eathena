@@ -1,5 +1,7 @@
 Date	Added
 08/22	
+	* Added Irmin's recommendation to allow item names in getitenname() [Skotlex]
+	  (kinda odd to use an item's name to get the item's name, isn't it?)
 	* Fixed Meteor Assault not displaying damage. [Skotlex]
 	* Fixed WE_CALLPARENT crashing the map server when either parent is
 	  offline. [Skotlex]

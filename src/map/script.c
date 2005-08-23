@@ -6091,11 +6091,21 @@ int buildin_guardianinfo(struct script_state *st)
  */
 int buildin_getitemname(struct script_state *st)
 {
-	int item_id;
+	int item_id=0;
 	struct item_data *i_data;
 	char *item_name;
+	struct script_data *data;
 
-	item_id=conv_num(st,& (st->stack->stack_data[st->start+2]));
+	data=&(st->stack->stack_data[st->start+2]);
+	get_val(st,data);
+
+	if( data->type==C_STR || data->type==C_CONSTSTR ){
+		const char *name=conv_str(st,data);
+		struct item_data *item_data = itemdb_searchname(name);
+		if( item_data )
+			item_id=item_data->nameid;
+	}else
+		item_id=conv_num(st,data);
 
 	i_data = itemdb_exists(item_id);
 	if (i_data == NULL)
