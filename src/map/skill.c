@@ -1526,7 +1526,6 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		//from the actual code and I couldn't understand a thing anyway >.< [Skotlex]
 		switch(skillid)
 		{
-
 			case MO_TRIPLEATTACK:
 			{
 				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
@@ -1657,6 +1656,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			dmg.blewcount = 10;
 		break;
 	case SN_SHARPSHOOTING:
+	case ASC_METEORASSAULT:
 		clif_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,0,0,0);
 		break;
 	default:
@@ -5698,10 +5698,9 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 		}
 		break;
 	case TK_HIGHJUMP:
-	    if (sd) {
-	        clif_skill_nodamage(sd,sd,skillid,0,0);
-	        pc_setpos(sd,sd->mapname,x,y,0);
-         }
+		clif_skill_nodamage(src,src,skillid,0,0);
+		if (sd) pc_setpos(sd,sd->mapname,x,y,0);
+		//TODO: Add mob implementation for this skill. [Skotlex]
      	break;    
 	case AM_CANNIBALIZE:	// バイオプラント
 		if(sd) {
