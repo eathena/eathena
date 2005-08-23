@@ -3658,7 +3658,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if(rand() % 100 < (20 + 10 * skilllv) * sc_def_vit / 100 )
 			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
-
 	case RG_RAID:			/* サプライズアタック */
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		map_foreachinarea(skill_area_sub,
@@ -3783,12 +3782,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			int sc = SkillStatusChangeTable[skillid];
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if (tsc_data && tsc_data[sc].timer != -1)
-				status_change_end(bl, sc, -1);
+				status_change_end(bl, sc, -1);				
 			else
-				status_change_start(bl,sc,skilllv,0,0,0,0,0);
+				status_change_start(bl,sc,skilllv,0,0,0,0,0);				
 		}
 		break;
-
 	case TK_READYSTORM:
 	case TK_READYDOWN:
 	case TK_READYTURN:
@@ -5699,7 +5697,12 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 			clif_spawnmob(md);
 		}
 		break;
-
+	case TK_HIGHJUMP:
+	    if (sd) {
+	        clif_skill_nodamage(sd,sd,skillid,0,0);
+	        pc_setpos(sd,sd->mapname,x,y,0);
+         }
+     	break;    
 	case AM_CANNIBALIZE:	// バイオプラント
 		if(sd) {
 			int id;

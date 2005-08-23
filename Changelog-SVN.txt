@@ -1,5 +1,7 @@
 Date	Added
 08/22	
+	* Added TK_HIGHJUMP. Note : To be able to see properly the full jump animation, casting time will not depend on DEX. [Dralnu]
+	* Somes fixes in skill_db.txt and skill_cast_db.txt about Taekwon's skills. [Dralnu]
 	* Fully implemented the STR bonus part of TK_RUN [DracoRPG]
 	* Added activation/unactivation of TK stances, but not their specific effects [DracoRPG]
 	* Reverted magnum break, removed the Flame Launcher status change until
