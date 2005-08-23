@@ -1,6 +1,6 @@
 Date	Added
 08/23
-	* Implemented TK_STORMKICK, TK_DOWNKICK, TK_COUNTER and TK_TURNKICK.
+	* Implemented TK_STORMKICK, TK_DOWNKICK, TK_COUNTER and TK_TURNKICK. [Dralnu]
 	  Note that at the moment if you use theses skills even if the corresponding
 	  SC is inactive, it will use SP and will stop you if you are attacking.
 	  Note too that because we don't know how it should work exactly, when a SC such as
