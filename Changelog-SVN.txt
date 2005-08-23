@@ -1,5 +1,6 @@
 Date	Added
 08/23
+	* Fixed everyone having 20 flee... I hope. [Skotlex]
 	* Some corrections and updates to mob skill Metamorphosis [Skotlex]
 	  (don't know if it'll work now, but the way it was before definitely was
 	  not working)
