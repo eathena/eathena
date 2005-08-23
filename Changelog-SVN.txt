@@ -1,5 +1,6 @@
 Date	Added
 08/22	
+	* Fixed typo in skill.c causing errors [Codemaster]
 	* Added Irmin's recommendation to allow item names in getitenname() [Skotlex]
 	  (kinda odd to use an item's name to get the item's name, isn't it?)
 	* Fixed Meteor Assault not displaying damage. [Skotlex]

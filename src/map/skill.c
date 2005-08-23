@@ -4750,6 +4750,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				return 0;
 			}
 			if(map[sd->bl.m].flag.nomemo || map[sd->bl.m].flag.nowarpto)
+			{
 				clif_skill_teleportmessage(sd,1);
 				map_freeblock_unlock();
 				return 0;
