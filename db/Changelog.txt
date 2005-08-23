@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance??
 
 08/23
+	* Changed Ghoul's race from 11 (unknown?) to 1 (undead). [Skotlex]
 	* Updated Deviling's mode to make him count as a boss/miniboss. [Skotlex]
 	* Corrected Spring Rabbit card improving candy-type item healing rates [Skotlex]
 	  (should be meat type since that's what it makes mobs drop)
