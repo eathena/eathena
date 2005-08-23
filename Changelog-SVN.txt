@@ -1,5 +1,8 @@
 Date	Added
 08/23
+	* Some corrections and updates to mob skill Metamorphosis [Skotlex]
+	  (don't know if it'll work now, but the way it was before definitely was
+	  not working)
 	* Probably fixed infinite endure wearing out when being hit. [Skotlex]
 	* Updated gvg range penalties to be as in official servers. [Skotlex]
 	  - Skills (weapon/magic/misc) get a 40% penalty

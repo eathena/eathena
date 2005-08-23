@@ -2861,8 +2861,10 @@ int mob_random_class (int *value, size_t count)
 {
 	nullpo_retr(0, value);
 
-	// no count specified, look into the array manually, but take only max 5 elements
-	if (count == 0) {
+	// no count specified, look into the array manually, but take only max 5 elements <-- are you nuts? Randomly accessing an array without knowing it's length!? [Skotlex]
+	if (count <= 1) {
+		return (mobdb_checkid(value[0]));
+/*
 		while(count < 5 && value[count] > 1000 && value[count] <= MAX_MOB_DB) count++;
 		if(count < 1)	// nothing found
 			return 0;
@@ -2870,8 +2872,10 @@ int mob_random_class (int *value, size_t count)
 		// check if at least the first value is valid
 		if(value[0] <= 1000 || value[0] > MAX_MOB_DB)
 			return 0;
+*/
 	}
-	return value[rand()%count];
+	//Pick a random value, hoping it exists. [Skotlex]
+	return mobdb_checkid(value[rand()%count]);
 }
 
 /*==========================================

@@ -51,7 +51,6 @@
 //	hiding		condition of being in hidden state
 //	sight		condition of being in unhidden state
 //
-
 1001,Scorpion@NPC_FIREATTACK,attack,186,1,200,0,5000,yes,target,always,0,,,,,,
 1001,Scorpion@NPC_POISON,attack,176,3,50,800,5000,no,target,always,0,,,,,,
 1002,Poring@NPC_EMOTION,loot,197,1,200,0,5000,yes,self,always,0,2,,,,,
@@ -63,9 +62,9 @@
 1005,Familiar@NPC_DARKNESSATTACK,angry,190,1,200,0,5000,yes,target,always,0,,,,,,
 1005,Familiar@NPC_DARKNESSATTACK,attack,190,1,200,0,5000,yes,target,always,0,,,,,,
 1007,Fabre@NPC_GROUNDATTACK,attack,185,1,200,0,5000,yes,target,always,0,,,,,,
-1007,Fabre@NPC_METAMORPHOSIS,idle,193,1,0,2000,5000,no,self,always,0,1008,,,,,
+1007,Fabre@NPC_METAMORPHOSIS,idle,193,1,50,2000,5000,no,self,always,0,1008,,,,,
 1008,Pupa@NPC_EMOTION,idle,197,1,20,0,5000,yes,self,always,0,19,,,,,
-1008,Pupa@NPC_METAMORPHOSIS,idle,193,1,0,2000,5000,no,self,always,0,1018,,,,,
+1008,Pupa@NPC_METAMORPHOSIS,idle,193,1,50,2000,5000,no,self,always,0,1018,,,,,
 1009,Condor@BS_ADRENALINE,attack,111,1,50,1500,300000,yes,self,always,0,,,,,,
 1009,Condor@NPC_EMOTION,idle,197,1,20,0,5000,yes,self,always,0,5,,,,,
 1009,Condor@NPC_WINDATTACK,attack,187,3,50,500,5000,no,target,always,0,,,,,,6
@@ -233,9 +232,9 @@
 1046,Doppelganger@NPC_SUMMONSLAVE,attack,196,1,1000,700,10000,no,self,slavele,3,1427,,,,,
 1046,Doppelganger@NPC_SUMMONSLAVE,idle,196,1,1000,700,10000,no,self,slavele,3,1427,,,,,
 1047,PecoPeco Egg@NPC_EMOTION,idle,197,1,20,0,5000,yes,self,always,0,19,,,,,
-1047,PecoPeco Egg@NPC_METAMORPHOSIS,idle,193,1,0,2000,5000,no,self,always,0,1049,1050,,,,
+1047,PecoPeco Egg@NPC_METAMORPHOSIS,idle,193,2,50,2000,5000,no,self,always,0,1049,1050,,,,
 1048,Thief Bug Egg@NPC_EMOTION,idle,197,1,20,0,5000,yes,self,always,0,19,,,,,
-1048,Thief Bug Egg@NPC_METAMORPHOSIS,idle,193,1,0,2000,5000,no,self,always,0,1051,,,,,
+1048,Thief Bug Egg@NPC_METAMORPHOSIS,idle,193,1,50,2000,5000,no,self,always,0,1051,,,,,
 1049,Picky@NPC_EMOTION,walk,197,1,20,0,5000,yes,self,always,0,2,,,,,
 1049,Picky@NPC_FIREATTACK,attack,186,1,200,0,5000,yes,target,always,0,,,,,,
 1050,Shell Picky@NPC_EMOTION,walk,197,1,20,0,5000,yes,self,always,0,2,,,,,
@@ -432,7 +431,7 @@
 1096,Angeling@SA_REVERSEORCISH,attack,294,1,50,0,30000,yes,target,always,0,,,,,,18
 1096,Angeling@SA_REVERSEORCISH,chase,294,1,50,0,30000,yes,target,always,0,,,,,,18
 1097,Ant Egg@NPC_EMOTION,idle,197,1,20,0,5000,yes,self,always,0,19,,,,,
-1097,Ant Egg@NPC_METAMORPHOSIS,idle,193,1,0,2000,5000,no,self,always,0,1095,1105,1160,,,
+1097,Ant Egg@NPC_METAMORPHOSIS,idle,193,3,50,2000,5000,no,self,always,0,1095,1105,1160,,,
 1099,Argiope@AS_VENOMDUST,attack,140,1,50,1500,5000,no,target,always,0,,,,,,
 1099,Argiope@NPC_EMOTION,chase,197,1,20,0,5000,yes,self,always,0,19,,,,,
 1099,Argiope@NPC_EMOTION,idle,197,1,20,0,5000,yes,self,always,0,7,,,,,
@@ -2325,7 +2324,7 @@
 1505,Loli Ruri@SA_REVERSEORCISH,attack,294,1,5,0,30000,yes,target,always,0,,,,,,18
 1505,Loli Ruri@SA_REVERSEORCISH,chase,294,1,5,0,30000,yes,target,always,0,,,,,,18
 1506,Disguise@NPC_COMBOATTACK,attack,171,1,100,700,5000,no,target,always,0,,,,,,9
-1506,Disguise@NPC_METAMORPHOSIS,attack,193,1,50,0,60000,no,self,myhpltmaxrate,10,1509,1508,,,,19
+1506,Disguise@NPC_METAMORPHOSIS,attack,193,2,50,0,60000,no,self,myhpltmaxrate,10,1509,1508,,,,19
 1506,Disguise@NPC_PIERCINGATT,attack,158,5,50,0,5000,yes,target,always,0,,,,,,
 1507,Bloody Murderer@AS_SONICBLOW,attack,136,5,50,800,5000,no,target,always,0,,,,,,29
 1507,Bloody Murderer@NPC_CURSEATTACK,attack,181,3,50,800,5000,no,target,always,0,,,,,,29

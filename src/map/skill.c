@@ -4628,8 +4628,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NPC_TRANSFORMATION:
 	case NPC_METAMORPHOSIS:
 		if(md) {
-			int class_ = mob_random_class (md->db->skill[md->skillidx].val,0);
-			if (class_ > 1000 && class_ < MAX_MOB_DB) mob_class_change(md, class_);
+			int class_ = mob_random_class (md->db->skill[md->skillidx].val,skilllv);
+			if (class_) mob_class_change(md, class_);
 		}
 		break;
 
