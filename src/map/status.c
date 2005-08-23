@@ -953,7 +953,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->matk1 = temp;
 	}
 	sd->hit += sd->paramc[4] + sd->status.base_level;
-	sd->flee += sd->paramc[1] + sd->status.base_level;
+	sd->flee += sd->paramc[1] + sd->status.base_level -map[sd->bl.m].flag.gvg?20:0; //20 flee penalty on GVG grounds [Skotlex]
 	sd->def2 += sd->paramc[2];
 	sd->mdef2 += sd->paramc[3];
 	sd->flee2 += sd->paramc[5]+10;

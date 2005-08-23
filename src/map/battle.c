@@ -510,16 +510,19 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				struct guild_castle *gc = guild_mapname2gc(map[bl->m].name);
 				if (gc) damage -= damage * (gc->defense / 100) * (battle_config.castle_defense_rate/100);
 			}
-			if (flag & BF_WEAPON) {
+			if (flag & BF_SKILL) { //Skills get a different reduction than non-skills. [Skotlex]
+				if (flag&BF_WEAPON)
+					damage = damage * battle_config.gvg_weapon_damage_rate/100;
+				if (flag&BF_MAGIC)
+					damage = damage * battle_config.gvg_magic_damage_rate/100;
+				if (flag&BF_MISC)
+					damage = damage * battle_config.gvg_misc_damage_rate/100;
+			} else { //Normal attacks get reductions based on range.
 				if (flag & BF_SHORT)
 					damage = damage * battle_config.gvg_short_damage_rate/100;
 				if (flag & BF_LONG)
 					damage = damage * battle_config.gvg_long_damage_rate/100;
 			}
-			if (flag&BF_MAGIC)
-				damage = damage * battle_config.gvg_magic_damage_rate/100;
-			if (flag&BF_MISC)
-				damage = damage * battle_config.gvg_misc_damage_rate/100;
 		} else if (battle_config.pk_mode && bl->type == BL_PC) {
 			if (flag & BF_WEAPON) {
 				if (flag & BF_SHORT)
@@ -3351,6 +3354,7 @@ static const struct battle_data_short {
 	{ "monster_cloak_check_type",          &battle_config.monster_cloak_check_type	},
 	{ "gvg_short_attack_damage_rate",      &battle_config.gvg_short_damage_rate	},
 	{ "gvg_long_attack_damage_rate",       &battle_config.gvg_long_damage_rate		},
+	{ "gvg_weapon_attack_damage_rate",     &battle_config.gvg_weapon_damage_rate	},
 	{ "gvg_magic_attack_damage_rate",      &battle_config.gvg_magic_damage_rate	},
 	{ "gvg_misc_attack_damage_rate",       &battle_config.gvg_misc_damage_rate		},
 	{ "mob_changetarget_byskill",          &battle_config.mob_changetarget_byskill},

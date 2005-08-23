@@ -1,5 +1,10 @@
 Date	Added
 08/23
+	* Updated gvg range penalties to be as in official servers. [Skotlex]
+	  - Skills (weapon/magic/misc) get a 40% penalty
+	  - Ranged normal attacks get a 20% penalty, melee receives no penatly.
+	  (battle flag gvg_weapon_attack_rate added to complete configuration)
+	* Added the -20 flee penalty on GVG grounds. [Skotlex]
 	* Fixed Enchant Deadly Poison's Damage (it was 500% - 5x at level 5, not 400%
 	  - 4x) [Skotlex]
 	* Fixed Soul Breaker's magical part of the attack taking element -1 rather

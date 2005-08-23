@@ -231,6 +231,7 @@ extern struct Battle_Config {
 	unsigned short monster_cloak_check_type;
 	unsigned short gvg_short_damage_rate;
 	unsigned short gvg_long_damage_rate;
+	unsigned short gvg_weapon_damage_rate;
 	unsigned short gvg_magic_damage_rate;
 	unsigned short gvg_misc_damage_rate;
 	int gvg_eliminate_time;
