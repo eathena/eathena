@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance??
 
 08/23
+	* Updated the skill delay from Breaker (thanks to Vicious Pucca) [Skotlex]
 	* Lowered Elder Willow's trunk drop rate from 35% to 3.5% [Skotlex]
 	* Changed Ghoul's race from 11 (unknown?) to 1 (undead). [Skotlex]
 	* Updated Deviling's mode to make him count as a boss/miniboss. [Skotlex]

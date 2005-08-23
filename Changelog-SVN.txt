@@ -1,5 +1,7 @@
 Date	Added
 08/23
+	* Fixed Soul Breaker's magical part of the attack taking element -1 rather
+	  than 0. [Skotlex]
 	* Login sql server will now only clear sstatus data of connected servers
 	  rather than clean the table. [Skotlex]
 	* Added some checks to prevent infinite looping in the char servers. [Skotlex]

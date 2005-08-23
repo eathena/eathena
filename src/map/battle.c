@@ -2318,6 +2318,8 @@ struct Damage  battle_calc_misc_attack(
 
 	t_mode = status_get_mode(target);
 	ele = skill_get_pl(skill_num);
+	if (ele == -1) //Attack that takes weapon's element for magical attacks? Make it neutral (applies to ASC_BREAKER at least) [Skotlex]
+		ele = 0;
 	race = status_get_race(bl);
 	size = status_get_size(bl);
 	race2 = status_get_race(bl);
