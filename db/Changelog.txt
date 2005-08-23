@@ -15,6 +15,8 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance??
 
+08/23
+	* Updated Deviling's mode to make him count as a boss/miniboss. [Skotlex]
 08/22
 	* Reverted magnum break... it is supposed to be fire element :/ [Skotlex]
 	* Updated casting times and delays of Soul Strike & Napalm Beat, range of
