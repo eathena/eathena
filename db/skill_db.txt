@@ -168,9 +168,6 @@
 155,0,6,4,0,1,1,1,no,0,1,0,weapon,0	//MC_LOUD#ラウド?イス#
 156,8,6,1,6,0,1,1,yes,0,1,0,magic,0	//AL_HOLYLIGHT#ホ?リ?ライト#
 157,0,6,4,0,1,1,1,yes,0,1,0,magic,0	//MG_ENERGYCOAT#エナジ?コ?ト#
-// 敵(NPC)スキル
-// 日?語解説参照元
-// http://rovc.at.infoseek.co.jp/o/2/oindex2.html
 158,3,6,1,-1,0,10,1,no,0,2,0,weapon,0	//NPC_PIERCINGATT#突き刺し攻撃#
 159,-1,6,1,-1,0,10,1,no,0,2,0,weapon,0	//NPC_MENTALBREAKER#精?破壊#
 160,9,6,1,0,0,10,1,no,0,2,0,weapon,0	//NPC_RANGEATTACK#遠距離攻撃#
@@ -223,7 +220,6 @@
 207,8,0,1,0,1,10,1,no,0,2,0,magic,0	//NPC_HALLUCINATION#錯覚#
 208,0,0,4,0,1,1,1,no,0,2,0,magic,0	//NPC_REBIRTH#リバ?ス#
 209,0,0,4,0,1,10,1,no,0,2,0,magic,0	//NPC_SUMMONMONSTER#モンス??召喚#
-
 210,0,0,0,-1,0,10,0,no,0,0,0,weapon,0	//RG_SNATCHER#スナッ?ャ?#
 211,1,6,1,0,1,10,1,no,0,0,0,weapon,0	//RG_STEALCOIN#スティ?ルコイン#
 212,-1,6,1,-1,0,10,1,no,0,0,0,weapon,0	//RG_BACKSTAP#バックス?ブ#
@@ -345,15 +341,12 @@
 328,0,6,4,0,1,10,1,no,0,32,0,misc,0	//DC_DONTFORGETME#私を忘れないで…#
 329,0,6,4,0,1,10,1,no,0,32,0,misc,0	//DC_FORTUNEKISS#幸?のキス#
 330,0,6,4,0,1,10,1,no,0,32,0,misc,0	//DC_SERVICEFORYOU#サ?ビスフォ?ユ?#
-
 331,0,6,4,0,1,10,0,no,0,2,0,none,0	//NPC_RANDOMMOVE
 332,0,6,4,0,1,10,0,no,0,2,0,none,0	//NPC_SPEEDUP
 333,0,6,4,0,1,1,0,no,0,2,0,none,0	//NPC_REVENGE
-
 334,8,6,4,0,1,1,1,yes,0,4,0,none,0	//WE_MALE#君だけは護るよ#
 335,8,6,4,0,1,1,1,yes,0,4,0,none,0	//WE_FEMALE#あなたに尽くします#
 336,8,6,4,0,1,1,1,yes,0,4,1,none,0	//WE_CALLPARTNER#あなたに逢いたい#
-
 337,9,6,1,-1,0,1,1,no,0,0,0,weapon,0	//ITM_TOMAHAWK#ｫﾈｫﾞｫﾛ?ｫｯｪｲ#
 338,0,0,0,-1,0,0,0,no,0,2,0,weapon,0	//NPC_DARKCROSS#ダーククロス#
 339,0,6,4,7,0,10,1,no,33,258,0,magic,0		//NPC_GRANDDARKNESS#闇グランドクロス#
@@ -372,7 +365,6 @@
 352,2,0,4,0,1,1,0,no,0,2,0,none,0	//NPC_CALLSLAVE
 353,0,0,0,0,1,0,0,no,0,2,0,none,0	//NPC_INVISIBLE
 354,2,6,4,0,1,20,0,no,0,2,0,magic,0	//NPC_RUN
-
 355,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//LK_AURABLADE#オ?ラブレ?ド#
 356,0,6,4,0,1,10,1,no,0,0,0,weapon,0	//LK_PARRYING#パリイング#
 357,0,6,4,0,1,5,1,no,0,0,0,weapon,0	//LK_CONCENTRATION#コンセントレ?ション#
@@ -494,7 +486,6 @@
 470,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SWOO##
 471,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SKE##
 472,0,0,0,0,0,0,0,no,0,0,0,none,0	//SL_SKA##
-
 473,0,0,0,0,0,0,0,no,0,0,0,none,0	//SM_SELFPROVOKE##
 474,0,0,4,0,1,10,1,no,0,2,0,none,0	//NPC_EMOTION_ON##
 475,0,0,4,0,1,1,1,yes,0,0,0,none,0	//ST_PRESERVE##

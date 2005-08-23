@@ -473,21 +473,21 @@ const struct skill_name_db skill_names[] = {
  { TF_SPRINKLESAND, "SPRINKLESAND", "Sand_Attack" } ,
  { TF_STEAL, "STEAL", "Steal" } ,
  { TF_THROWSTONE, "THROWSTONE", "Stone_Fling" } ,
- { TK_COUNTER, "COUNTER", "Counter" } ,
- { TK_DODGE, "DODGE", "Dodge" } ,
- { TK_DOWNKICK, "DOWNKICK", "Down_Kick" } ,
- { TK_HIGHJUMP, "HIGHJUMP", "High_Jump" } ,
- { TK_HPTIME, "HPTIME", "HP_Time" } ,
- { TK_JUMPKICK, "JUMPKICK", "Jump_Kick" } ,
+ { TK_COUNTER, "COUNTER", "Spin_Kick" } ,
+ { TK_DODGE, "DODGE", "Sprint" } ,
+ { TK_DOWNKICK, "DOWNKICK", "Heel_Drop" } ,
+ { TK_HIGHJUMP, "HIGHJUMP", "Taekwon_Jump" } ,
+ { TK_HPTIME, "HPTIME", "Peaceful_Break" } ,
+ { TK_JUMPKICK, "JUMPKICK", "Flying_Kick" } ,
 // { TK_MISSION,  "MISSION", "Mission" } ,
- { TK_POWER, "POWER", "Power" } ,
- { TK_READYCOUNTER, "READYCOUNTER", "Ready_Counter" } ,
- { TK_READYDOWN, "READYDOWN", "Ready_Down" } ,
- { TK_READYSTORM, "READYSTORM", "Ready_Storm" } ,
- { TK_READYTURN, "READYTURN", "Ready_Turn" } ,
- { TK_RUN, "RUN", "Run" } ,
- { TK_SEVENWIND, "SEVENWIND", "Seven_Wind" } ,
- { TK_SPTIME, "SPTIME", "SP_Time" } ,
+ { TK_POWER, "POWER", "Kihop" } ,
+ { TK_READYCOUNTER, "READYCOUNTER", "Spin_Kick_Stance" } ,
+ { TK_READYDOWN, "READYDOWN", "Heel_Drop_Stance" } ,
+ { TK_READYSTORM, "READYSTORM", "Tornado_Stance" } ,
+ { TK_READYTURN, "READYTURN", "Roundhouse_Stance" } ,
+ { TK_RUN, "RUN", "Sprint" } ,
+ { TK_SEVENWIND, "SEVENWIND", "Mild_Wind" } ,
+ { TK_SPTIME, "SPTIME", "Happy_Break" } ,
  { TK_STORMKICK, "STORMKICK", "Storm_Kick" } ,
  { TK_TURNKICK, "TURNKICK", "Turn_Kick" } ,
  { WE_BABY, "BABY", "Mom,_Dad,_I_love_you!" } ,
@@ -3778,11 +3778,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case SM_AUTOBERSERK:	// Celest
-	case TK_READYSTORM:
-	case TK_READYDOWN:
-	case TK_READYTURN:
-	case TK_READYCOUNTER:
-	case TK_DODGE:
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc = SkillStatusChangeTable[skillid];
@@ -3794,8 +3789,34 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		}
 		break;
 
+	case TK_READYSTORM:
+	case TK_READYDOWN:
+	case TK_READYTURN:
+	case TK_READYCOUNTER:
+	case TK_DODGE:
+		{
+			struct status_change *tsc_data = status_get_sc_data(bl);
+
+			if ((tsc_data[SC_READYSTORM].timer != -1 && skillid != TK_READYSTORM) ||
+				 (tsc_data[SC_READYDOWN].timer != -1 && skillid != TK_READYDOWN) ||
+                 (tsc_data[SC_READYTURN].timer != -1 && skillid != TK_READYTURN) ||
+                 (tsc_data[SC_READYCOUNTER].timer != -1 && skillid != TK_READYCOUNTER) ||
+                 (tsc_data[SC_DODGE].timer != -1 && skillid != TK_DODGE))
+				clif_skill_fail(sd,skillid,0,0);
+			else {
+               	int sc = SkillStatusChangeTable[skillid];
+				clif_skill_nodamage(src,bl,skillid,skilllv,1);
+				if (tsc_data && tsc_data[sc].timer != -1)
+					status_change_end(bl, sc, -1);
+				else
+					status_change_start(bl,sc,skilllv,0,0,0,0,0);
+			}
+		}
+		break;
+
 	case TF_HIDING:			/* ハイディング */
 	case ST_CHASEWALK:			/* ハイディング */
+ 	case TK_RUN:
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc = SkillStatusChangeTable[skillid];
@@ -3823,20 +3844,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				else
 					status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);
 			}
-		}
-		break;
-
- 	case TK_RUN:
-		{
-			struct status_change *tsc_data = status_get_sc_data(bl);
-			int sc = SkillStatusChangeTable[skillid];
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if (tsc_data && tsc_data[sc].timer != -1) {
-				status_change_end(bl, sc, -1);
-//				if (tsc_data[sc].timer+2000 >= tick+skill_get_time(skillid,skilllv)) // If Run is stopped max 2sec (custom value) after it started, STR +10 bonus [DracoRPG]
-//					status_change_start(bl,SC_INCSTR,10,0,0,0,skill_get_time(skillid,skilllv),0);
-			} else
-				status_change_start(bl,sc,skilllv,0,0,0,0,0);
 		}
 		break;
 
@@ -7181,6 +7188,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 	case CR_DEFENDER:				/* ディフェンダ? */
 	case ST_CHASEWALK:
 	case PA_GOSPEL:
+	case TK_RUN:
 		if(sd->sc_data[SkillStatusChangeTable[skill]].timer!=-1)
 			return 1;			/* 解除する場合はSP消費しない */
 		break;

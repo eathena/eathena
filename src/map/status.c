@@ -3693,6 +3693,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_WEIGHT90:
 		case SC_BROKNWEAPON:
 		case SC_BROKNARMOR:
+        case SC_READYSTORM:
+		case SC_READYDOWN:
+		case SC_READYCOUNTER:
+		case SC_READYTURN:
+		case SC_DODGE:
 			tick=600*1000;
 			break;
 
@@ -3910,11 +3915,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_AURABLADE:		/* オ?ラブレ?ド */
 		case SC_BABY:
 		case SC_RUN:
-		case SC_READYSTORM:
-		case SC_READYDOWN:
-		case SC_READYCOUNTER:
-		case SC_READYTURN:
-		case SC_DODGE:
 			break;
 
 		default:
@@ -4145,8 +4145,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_CARTBOOST:
 			case SC_MINDBREAKER:		/* マインドブレーカー */
 			case SC_BERSERK:
-			// Celest
-			case SC_EDP:
+			case SC_EDP:	// Celest
 			case SC_SLOWDOWN:
 			case SC_SPEEDUP0:
 			case SC_SPEEDUP1:
@@ -4274,6 +4273,11 @@ int status_change_end( struct block_list* bl , int type,int tid )
 					}
 				}
 				break;
+			case SC_RUN:
+				if (sc_data[SC_RUN].val1 >= 7 && !sc_data[SC_RUN].val2 && (bl->type != BL_PC || ((struct map_session_data *)bl)->status.weapon == 0))
+					status_change_start(bl, SC_INCSTR,10,0,0,0,skill_get_time2(TK_RUN,sc_data[SC_RUN].val1),0);
+				break;
+
 		/* option1 */
 			case SC_FREEZE:
 				sc_data[type].val3 = 0;
@@ -4495,11 +4499,10 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 				sd->status.sp -= sp; // update sp cost [Celest]
 				clif_updatestatus(sd,SP_SP);
 				if ((++sc_data[SC_CHASEWALK].val4) == 1) {
-					status_change_start(bl, SC_INCSTR, 1<<(sc_data[SC_CHASEWALK].val1-1), 0, 0, 0, 30000, 0);
-					status_calc_pc (sd, 0);
+					status_change_start(bl, SC_INCSTR, 1<<(sc_data[SC_CHASEWALK].val1-1), 0, 0, 0, skill_get_time2(ST_CHASEWALK,sc_data[SC_CHASEWALK].val1), 0);
 				}
 				sc_data[type].timer = add_timer( /* タイマ?再設定 */
-					sc_data[type].val2+tick, status_change_timer, bl->id, data);				
+					sc_data[type].val2+tick, status_change_timer, bl->id, data);
 				return 0;
 			}
 		}
@@ -4665,19 +4668,29 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		}
 		break;
 
-	/* 時間切れ無し？？ */
+	// Status changes that don't have a time limit
 	case SC_AETERNA:
 	case SC_TRICKDEAD:
 	case SC_RIDING:
 	case SC_FALCON:
 	case SC_WEIGHT50:
 	case SC_WEIGHT90:
-	case SC_MAGICPOWER:		/* 魔法力?幅 */
-	case SC_REJECTSWORD:	/* リジェクトソ?ド */
-	case SC_MEMORIZE:	/* メモライズ */
+	case SC_MAGICPOWER:
+	case SC_REJECTSWORD:
+	case SC_MEMORIZE:
 	case SC_BROKNWEAPON:
 	case SC_BROKNARMOR:
 	case SC_SACRIFICE:
+	case SC_READYSTORM:
+	case SC_READYDOWN:
+	case SC_READYTURN:
+	case SC_READYCOUNTER:
+	case SC_DODGE:
+		sc_data[type].timer=add_timer( 1000*600+tick,status_change_timer, bl->id, data );
+		return 0;
+
+	case SC_RUN:
+		sc_data[SC_RUN].val2 = 1; // Once the first second is spent, no more STR bonus when stopping
 		sc_data[type].timer=add_timer( 1000*600+tick,status_change_timer, bl->id, data );
 		return 0;
 
@@ -4860,11 +4873,11 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 					1000 + tick, status_change_timer,
 					bl->id, data);
 					return 0;
-			}// ugh, don't  forget the brackets
+			}
 		}
 		break;
 	}
-	
+
 	// default for all non-handled control paths
 	// security system to prevent forgetting timer removal
 

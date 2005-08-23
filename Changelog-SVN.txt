@@ -1,5 +1,7 @@
 Date	Added
 08/22	
+	* Fully implemented the STR bonus part of TK_RUN [DracoRPG]
+	* Added activation/unactivation of TK stances, but not their specific effects [DracoRPG]
 	* Reverted magnum break, removed the Flame Launcher status change until
 	  actual bonus can be implemented. [Skotlex]
 	* Skills update (mostly thanks to Vicious Pucca): [Skotlex]
