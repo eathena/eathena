@@ -1,5 +1,6 @@
 Date	Added
 08/23
+	* Probably fixed infinite endure wearing out when being hit. [Skotlex]
 	* Updated gvg range penalties to be as in official servers. [Skotlex]
 	  - Skills (weapon/magic/misc) get a 40% penalty
 	  - Ranged normal attacks get a 20% penalty, melee receives no penatly.

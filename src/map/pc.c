@@ -4660,7 +4660,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 	// ? ‚¢‚Ä‚¢‚½‚ç‘«‚ðŽ~‚ß‚é
 	if (sd->sc_data) {
 		if (sd->sc_data[SC_ENDURE].timer != -1 && (src != NULL && src->type == BL_MOB) && !map[sd->bl.m].flag.gvg) {
-			if ((--sd->sc_data[SC_ENDURE].val2) < 0) 
+			if (!sd->special_state.infinite_endure && (--sd->sc_data[SC_ENDURE].val2) < 0) 
 				status_change_end(&sd->bl, SC_ENDURE, -1);
 		} else if (delay) {
 			pc_stop_walking (sd,1);
