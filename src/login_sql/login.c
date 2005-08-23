@@ -331,20 +331,28 @@ void mmo_db_close(void) {
 			ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
 		}
 	}
+/*
 	//delete all server status
 	sprintf(tmpsql,"DELETE FROM `sstatus`");
 	//query
 	if (mysql_query(&mysql_handle, tmpsql)) {
 		ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
 	}
-
 	mysql_close(&mysql_handle);
 	ShowStatus("close DB connect....\n");
+*/
 
 	for (i = 0; i < MAX_SERVERS; i++) {
 		if ((fd = server_fd[i]) >= 0)
+		{	//Clean only data related to servers we are connected to. [Skotlex]
+			sprintf(tmpsql,"DELETE FROM `sstatus` WHERE `index` = '%d'", i);
+			if (mysql_query(&mysql_handle, tmpsql))
+				ShowSQL("DB server Error (deleting server status) - %s\n", mysql_error(&mysql_handle));
 			delete_session(fd);
+		}
 	}
+	mysql_close(&mysql_handle);
+	ShowStatus("close DB connect....\n");
 	delete_session(login_fd);
 }
 
