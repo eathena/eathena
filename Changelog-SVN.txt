@@ -1,4 +1,11 @@
 Date	Added
+08/24
+	* Added inter-server option "kick_on_disconnect" (defaults to yes) [Skotlex]
+	   - The only people who may want to change it are overcrowded servers where
+	  the char/map server link breaks due to overload and then everyone is
+	  kicked out until said connection is reestablished.
+	  - Of course, use at your own discretion until all possible exploits
+	  caused by this are resolved.
 08/23
 	* Fixed provoke's success chance. [Skotlex]
 	* Battle_check_target update, should fix party/guild skills failing when

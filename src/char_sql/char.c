@@ -2320,7 +2320,8 @@ int parse_frommap(int fd) {
 				ShowStatus("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
 				       id, j, p[0], p[1], p[2], p[3], server[id].port);
 				ShowStatus("Map-server %d loading complete.\n", id);
-//				set_all_offline(); Let map-server reconnect keeping their players. [Skotlex]
+				if (kick_on_disconnect)
+					set_all_offline();
 				if (max_account_id != DEFAULT_MAX_ACCOUNT_ID || max_char_id != DEFAULT_MAX_CHAR_ID)
 					mapif_send_maxid(max_account_id, max_char_id); //Send the current max ids to the server to keep in sync [Skotlex]
 			}

@@ -10776,8 +10776,7 @@ int clif_parse(int fd) {
 	sd = (struct map_session_data*)session[fd]->session_data;
 
 	// Ú‘±‚ªØ‚ê‚Ä‚é‚Ì‚ÅŒãŽn––
-	/*
-	if (!chrif_isconnect())
+	if (!chrif_isconnect() && kick_on_disconnect)
 	{
 		ShowInfo("Closing session #%d (Not connected to Char server)\n", fd);
 		if (sd && sd->state.auth)
@@ -10788,8 +10787,7 @@ int clif_parse(int fd) {
 		if (close(fd))
 			perror("Error closing session");
 		return 0;
-	}
-	else*/
+	} else
 	if (session[fd]->eof) {
 		if (sd && sd->state.autotrade) {
 			//Disassociate character from the socket connection.

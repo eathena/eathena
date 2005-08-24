@@ -1158,19 +1158,21 @@ int chrif_disconnect(int fd) {
 	if(fd == char_fd) {
 		char_fd = 0;
 		ShowWarning("Map Server disconnected from Char Server.\n\n");
-//		clif_foreachclient(chrif_disconnect_sub);
+		if (kick_on_disconnect)
+			clif_foreachclient(chrif_disconnect_sub);
 		chrif_connected = 0;
 		// 他のmap 鯖のデータを消す
 		map_eraseallipport();
 
 		// 倉庫キャッシュを消す
-		//Do not clean the storage if players are gonna be left inside. [Skotlex]
-//		do_final_storage();
-//		do_init_storage();
+		if (kick_on_disconnect)
+		{	//Do not clean the storage if players are gonna be left inside. [Skotlex]
+			do_final_storage();
+			do_init_storage();
+		}
 		//Attempt to reconnect in a second. [Skotlex]
 		add_timer(gettick() + 1000, check_connect_char_server, 0, 0);
 	}
-//	close(fd); //Quote from End of Exam: "And close(fd) in chrif_disconnect() and clif_waitclose() do not need since the socket will be closed in clif_parse() or chrif_parse(). This might be link to crash if you use lazy OS." [Skotlex]
 	return 0;
 }
 

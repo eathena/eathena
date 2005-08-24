@@ -168,6 +168,7 @@ int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 int charsave_method = 0; //Default 'OLD' Save method (SQL ONLY!) [Sirius]
 int agit_flag = 0;
 int night_flag = 0; // 0=day, 1=night [Yor]
+int kick_on_disconnect = 1;
 
 struct charid2nick {
 	char nick[NAME_LENGTH];
@@ -3118,9 +3119,8 @@ int inter_config_read(char *cfgName)
 		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
 		if(i!=2)
 			continue;
-		//support the import command, just like any other config
-		if(strcmpi(w1,"import")==0){
-			inter_config_read(w2);
+		if(strcmpi(w1,"kick_on_disconnect")==0){
+			kick_on_disconnect = battle_config_switch(w2);
 	#ifndef TXT_ONLY
 		} else if(strcmpi(w1,"item_db_db")==0){
 			strcpy(item_db_db,w2);
@@ -3196,6 +3196,9 @@ int inter_config_read(char *cfgName)
 		} else if(strcmpi(w1,"log_db_port")==0) {
 			log_db_port = atoi(w2);
 	#endif
+		//support the import command, just like any other config
+		} else if(strcmpi(w1,"import")==0){
+			inter_config_read(w2);
 		}
 	}
 	fclose(fp);
