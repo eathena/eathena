@@ -378,7 +378,7 @@ int storage_storage_save(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 
 	stor=(struct storage *) numdb_search(storage_db,sd->status.account_id);
-	if(stor && stor->dirty)  {
+	if(stor && stor->dirty && chrif_isconnect())  { //Only consider it clean if we are connected to the char server. [Skotlex]
 		intif_send_storage(stor);
 		stor->dirty = 0;
 	}

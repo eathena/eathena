@@ -1,5 +1,16 @@
 Date	Added
 08/23
+	* Updated map and char servers to allow them to reconnect without having to
+	  kick out all players. [Skotlex]
+	  - This is still experimental and what possible exploits may come from it
+	  are yet unknown (however, considering that the reconnection should take
+	  place in a few seconds after the disconnection...)
+	  - Note that storage contents and player contents are all kept in the map
+	  server's memory, unsaved data will be lost if player forces a
+	  disconnection, storage changes will also be lost if they are open/closed
+	  during said disconnection (and NOT reclosed after the connection is
+	  restablished)
+	  - These and more stuff might come up with time. Report away!
 	* Updated Gospel to not buff up Guildmates, only Party members. [Skotlex]
 	* Fixed @autotrade [Skotlex]
 	  (tested on a limited scenario with few characters, needs more testing.

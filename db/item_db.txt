@@ -1447,7 +1447,7 @@
 4316,False_Angel_Card,False Angel Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus2 bSPGainRace,8,5; bonus bLoseSPWhenUnequip,5; }
 4317,Mobster_Card,Mobster Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bCritAtkRate,15; if(callfunc("Is_Thief_Class")) bonus bCritical,4; }
 4318,Stormy_Knight_Card,Stormy Knight Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus3 bAutoSpell,89,1,2; bonus2 bAddEffWhenHit,Eff_Freeze,2000; }
-4319,Freezer_Card,Freezer Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus bMaxHP,300; if(getrefine()>=9) bonus2 bSkillAtk,5,10; if(isequipped(4246,4311,4220,4331)==0) end; bonus bStr,10; bonus bMaxHPrate,20; bonus bHPrecovRate,50; bonus3 bAutoSpell,-112,1,1; bonus2 bAddMonsterDropItem,501,100; if(callfunc("Is_Sword_Class")==0) end; bonus2 bAddItemHealRate,1,50; }
+4319,Freezer_Card,Freezer Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus bMaxHP,300; if(getrefine()>=9) bonus2 bSkillAtk,5,10; if(isequipped(4246,4311,4220,4331)==0) end; bonus bStr,10; bonus bMaxHPrate,20; bonus bHPrecovRate,50; bonus4 bAutoSpell,112,1,1,0; bonus2 bAddMonsterDropItem,501,100; if(callfunc("Is_Sword_Class")==0) end; bonus2 bAddItemHealRate,1,50; }
 4320,Bloody_Knight_Card,Bloody Knight Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus3 bAutoSpell,83,1,2; }
 4321,Heirozoist_Card,Heirozoist Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus bClassChange,300; }
 4322,High_Orc_Card,High Orc Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus bDef,1; bonus bShortWeaponDamageReturn,5; }
