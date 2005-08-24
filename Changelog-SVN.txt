@@ -1,5 +1,8 @@
 Date	Added
 08/24
+	* Updated battle_check_target to check using the master instead of the
+	  slaves (applies for mobs/pets) [Skotlex]
+	  - Should prevent slaves from attacking their master
 	* Implemented TK_HPTIME and TK_SPTIME exept the bonus provided by /doridori [Dralnu]
 	* Implemented delayed character logout [Skotlex]
 	  How it works: When a player quits the server when they shouldn't (force

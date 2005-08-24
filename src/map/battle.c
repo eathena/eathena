@@ -2861,6 +2861,12 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		if (tsd->monster_ignore && src->type == BL_MOB)
 			return 0; //option to have monsters ignore GMs [Valaris]
 	}
+	else if (target->type == BL_MOB)
+	{
+		struct mob_data *md = (struct mob_data *)target;
+		if (md && md->master_id && (t_bl = map_id2bl(md->master_id)) == NULL)
+			t_bl = target; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
+	}
 	else if (target->type == BL_SKILL)
 	{
 		struct skill_unit *su = (struct skill_unit *)target;
@@ -2893,8 +2899,23 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				s_bl = src; //Fallback on the trap itself, otherwise consider this a "caster versus enemy" scenario.
 		}
 	}
-	else if (src->type == BL_MOB && !agit_flag && (struct mob_data*)src && ((struct mob_data*)src)->guild_id)
-		return 0; //Disable guardian attacking on non-woe times.
+	else if (src->type == BL_MOB)
+	{
+		struct mob_data *md = (struct mob_data *)src;
+		
+		if (!agit_flag && md && md->guild_id)
+			return 0; //Disable guardian attacking on non-woe times.
+		
+		if (md && md->master_id && (s_bl = map_id2bl(md->master_id)) == NULL)
+			s_bl = src; //Fallback on the mob itself, otherwise consider this a "from master" scenario.
+	}
+	else if (src->type == BL_PET)
+	{
+		struct pet_data *pd = (struct pet_data *)src;
+		
+		if (pd && pd->msd)
+			s_bl = &pd->msd->bl; //"My master's enemies are my enemies..."
+	}
 	
 	if ((flag&BCT_ALL) == BCT_ALL) { //All actually stands for all players/mobs
 		if (target->type == BL_MOB || target->type == BL_PC)
@@ -2909,7 +2930,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	if (flag&BCT_ENEMY)
 	{	//Check default enemy settings of mob vs players
 		if ((s_bl->type == BL_MOB && t_bl->type == BL_PC) ||
-			((s_bl->type == BL_PC || s_bl->type == BL_PET) && t_bl->type == BL_MOB))
+			(s_bl->type == BL_PC && t_bl->type == BL_MOB))
 			state |= BCT_ENEMY;
 	}
 	
