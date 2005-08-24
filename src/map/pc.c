@@ -6873,7 +6873,11 @@ static int pc_natural_heal_hp(struct map_session_data *sd)
 
 	if(sd->nshealhp > 0) {
 		if(sd->inchealhptick >= battle_config.natural_heal_skill_interval && sd->status.hp < sd->status.max_hp) {
+			if(sd->doridori_counter && pc_checkskill(sd,TK_HPTIME)) //TK_HPTIME doridori provided bonus [Dralnu]
+				bonus = sd->nshealhp+30;
+			else
 			bonus = sd->nshealhp;
+			sd->doridori_counter = 0;
 			while(sd->inchealhptick >= battle_config.natural_heal_skill_interval) {
 				sd->inchealhptick -= battle_config.natural_heal_skill_interval;
 				if(sd->status.hp + bonus <= sd->status.max_hp)
@@ -6941,6 +6945,8 @@ static int pc_natural_heal_sp(struct map_session_data *sd)
 		if(sd->inchealsptick >= battle_config.natural_heal_skill_interval && sd->status.sp < sd->status.max_sp) {
 			if(sd->doridori_counter && pc_calc_base_job2(sd->status.class_) == JOB_SUPER_NOVICE)
 				bonus = sd->nshealsp*2;
+			if(sd->doridori_counter && pc_checkskill(sd,TK_SPTIME)) //TK_SPTIME doridori provided bonus [Dralnu]
+				bonus = sd->nshealsp+3;
 			else
 			bonus = sd->nshealsp;
 			sd->doridori_counter = 0;

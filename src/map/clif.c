@@ -10422,7 +10422,7 @@ void clif_parse_PMIgnoreList(int fd,struct map_session_data *sd)
 void clif_parse_NoviceDoriDori(int fd, struct map_session_data *sd) {
 	if (sd)
 		sd->doridori_counter = 1;
-
+	ShowDebug("clif_parse_NoviceDoriDori : sd->doridori_counter = %d\n",sd->doridori_counter);
 	return;
 }
 /*==========================================

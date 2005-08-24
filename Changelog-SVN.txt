@@ -1,5 +1,7 @@
 Date	Added
 08/24
+	* Added the bonus provided by the /doridori command to TKÁHPTIME and TK_SPTIME. [Dralnu]
+	  Thanks to Duduc.
 	* Updated battle_check_target to check using the master instead of the
 	  slaves (applies for mobs/pets) [Skotlex]
 	  - Should prevent slaves from attacking their master
