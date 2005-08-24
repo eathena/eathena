@@ -1637,23 +1637,20 @@ struct map_session_data * map_id2sd(int id) {
 //     point to a memory area that is not more a session_data and value are incorrect (or out of available memory) -> crash
 // replaced by searching in all session.
 // by searching in session, we are sure that fd, session, and account exist.
-/*
-	struct block_list *bl;
-
-	bl=numdb_search(id_db,id);
-	if(bl && bl->type==BL_PC)
-		return (struct map_session_data*)bl;
-	return NULL;
-*/
-	int i;
+// Unfortunately, this breaks autotrade since the player is NOT in the list of sessions, so we fallback to it when the socket search fails. [Skotlex]
 	struct map_session_data *sd;
-
+	struct block_list *bl;
+	int i;
+	
 	if (id <= 0) return 0;
 
 	for(i = 0; i < fd_max; i++)
 		if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->bl.id == id)
 			return sd;
 
+	bl=numdb_search(id_db,id);
+	if(bl && bl->type==BL_PC)
+		return (struct map_session_data*)bl;
 	return NULL;
 }
 

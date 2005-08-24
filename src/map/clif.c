@@ -556,32 +556,7 @@ int clif_authfail_fd(int fd, int type) {
 	WFIFOW(fd,0) = 0x81;
 	WFIFOL(fd,2) = type;
 	WFIFOSET(fd,packet_len_table[0x81]);
-
-	switch (type)
-	{	//NOTE: Remove these once the connection issues are solved. [Skotlex]
-		case 1: //Server closed
-			ShowDebug("clif_authfail_fd: Disconnecting session #%d (reason: Server Closed)\n", fd);
-			break;	
-		case 2: //Someone else logged on with this id
-			ShowDebug("clif_authfail_fd: Disconnecting session #%d (reason: Someone else logged in with this id)\n", fd);
-			break;	
-		case 8: //server recognizes your last connection
-			ShowDebug("clif_authfail_fd: Disconnecting session #%d (reason: Server still recognizes your last connection)\n", fd);
-			break;	
-		case 4: //Overpopulated
-			ShowDebug("clif_authfail_fd: Disconnecting session #%d (reason: Server is full)\n", fd);
-			break;	
-		case 10: //Out of Time Payd For
-			ShowDebug("clif_authfail_fd: Disconnecting session #%d (reason: Account banned)\n", fd);
-			break;	
-		case 15: //GM kick
-			ShowDebug("clif_authfail_fd: Disconnecting session #%d (reason: Kicked by a GM)\n", fd);
-			break;	
-		default:
-			ShowDebug("clif_authfail_fd (type %d): Disconnecting session #%d\n", type, fd);
-	}
 	clif_setwaitclose(fd);
-
 	return 0;
 }
 
@@ -8008,17 +7983,11 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			//Check for @AUTOTRADE ON [durf]
 			if (old_sd->state.autotrade) {
 				old_sd->state.autotrade=0;
-			//Let's try a short version for a while, until the double login issue is solved. [Skotlex]
-			/*
-				session[old_sd->fd]->eof = 1;
 				map_quit(old_sd);
-				//session[sd->fd]->rdata_tick = 1;
-				clif_authfail_fd(old_sd->fd, 15);
-				return;
-			*/
 			}
+			else 
+				clif_authfail_fd(old_sd->fd, 2); // same id
 			clif_authfail_fd(fd, 8); // still recognizes last connection
-			clif_authfail_fd(old_sd->fd, 2); // same id
 		} else {
 			sd = (struct map_session_data*)aCalloc(1, sizeof(struct map_session_data));
 			session[fd]->session_data = sd;
@@ -10806,12 +10775,8 @@ int clif_parse(int fd) {
 
 	sd = (struct map_session_data*)session[fd]->session_data;
 
-	if( sd && sd->state.autotrade) {
-		session[sd->fd]->eof = 0; //for @autotrade [Lupus]
-		session[sd->fd]->rdata_tick = 0; //to prevent TIMEOUT of SESSION
-	}
-
 	// Ú‘±‚ªØ‚ê‚Ä‚é‚Ì‚ÅŒãŽn––
+	/*
 	if (!chrif_isconnect())
 	{
 		ShowInfo("Closing session #%d (Not connected to Char server)\n", fd);
@@ -10824,8 +10789,14 @@ int clif_parse(int fd) {
 			perror("Error closing session");
 		return 0;
 	}
-	else if (session[fd]->eof) {
-		if (sd && sd->state.auth) {
+	else*/
+	if (session[fd]->eof) {
+		if (sd && sd->state.autotrade) {
+			//Disassociate character from the socket connection.
+			session[fd]->session_data = NULL;
+			sd->fd = 0;
+			ShowInfo("%sCharacter '"CL_WHITE"%s"CL_RESET"' logged off (using @autotrade).\n", (pc_isGM(sd))?"GM ":"",sd->status.name); // Player logout display [Valaris]
+		} else if (sd && sd->state.auth) {
 			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]
 			if (sd->status.name != NULL)
 				ShowInfo("%sCharacter '"CL_WHITE"%s"CL_RESET"' logged off.\n", (pc_isGM(sd))?"GM ":"",sd->status.name); // Player logout display [Valaris]

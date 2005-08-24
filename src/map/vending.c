@@ -138,8 +138,11 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 		}
 	}
 
-	//check for @AUTOTRADE users [durf] <-- I don't get this, sd bought an item from vsd's cart (or so it seems), and we have to save the buyer's STORAGE? What? o.O [Skotlex]
-		if (sd->state.autotrade) storage_storage_save(sd);
+	if (sd->state.autotrade)
+	{	//check for @AUTOTRADE users [durf]
+		chrif_save(vsd);
+		storage_storage_save(vsd);
+	}
 }
 
 /*==========================================
