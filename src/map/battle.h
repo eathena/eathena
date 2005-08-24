@@ -61,10 +61,12 @@ struct block_list* battle_gettargeted(struct block_list *target);
 #define BCT_ENEMY 0x02000
 //This should be (~BCT_ENEMY&BCT_ALL)
 #define BCT_NOENEMY 0x1d000
-#define BCT_PARTY	0x04000
+//Party includes self (0x04|0x01)
+#define BCT_PARTY	0x05000
 //This should be (~BCT_PARTY&BCT_ALL)
 #define BCT_NOPARTY 0x1b000	
-#define BCT_GUILD	0x08000
+//Guild includes self (0x08|0x01)
+#define BCT_GUILD	0x09000
 //This should be (~BCT_GUILD&BCT_ALL)
 #define BCT_NOGUILD 0x17000
 #define BCT_ALL 0x1f000

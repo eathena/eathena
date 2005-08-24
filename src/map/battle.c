@@ -2903,8 +2903,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			return -1;
 	}	
 	
-	if (t_bl == s_bl)
-		state |= BCT_SELF;
+	if (t_bl == s_bl) //No need for further testing.
+		return (flag&BCT_SELF)?1:-1;
 	
 	if (flag&BCT_ENEMY)
 	{	//Check default enemy settings of mob vs players

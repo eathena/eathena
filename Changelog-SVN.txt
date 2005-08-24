@@ -1,5 +1,7 @@
 Date	Added
 08/23
+	* Battle_check_target update, should fix party/guild skills failing when
+	  checking against yourself. [Skotlex]
 	* Updated map and char servers to allow them to reconnect without having to
 	  kick out all players. [Skotlex]
 	  - This is still experimental and what possible exploits may come from it
