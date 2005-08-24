@@ -1229,7 +1229,7 @@ static void read_constdb(void)
  * スクリプトの解析
  *------------------------------------------
  */
-char* parse_script(unsigned char *src,int line)
+unsigned char* parse_script(unsigned char *src,int line)
 {
 	unsigned char *p, *tmpp;
 	int i;
@@ -1342,7 +1342,7 @@ char* parse_script(unsigned char *src,int line)
 	printf("\n");
 #endif
 
-	return (char *) script_buf;
+	return (unsigned char *) script_buf;
 }
 
 //
