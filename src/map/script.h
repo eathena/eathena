@@ -41,7 +41,7 @@ struct script_state {
 	int defsp,new_pos,new_defsp;
 };
 
-char * parse_script(unsigned char *,int);
+unsigned char * parse_script(unsigned char *,int);
 int run_script(unsigned char *,int,int,int);
 
 int set_var(struct map_session_data *sd, char *name, void *val);
