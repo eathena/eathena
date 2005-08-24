@@ -1656,7 +1656,6 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			dmg.blewcount = 10;
 		break;
 	case SN_SHARPSHOOTING:
-	case ASC_METEORASSAULT:
 		clif_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,0,0,0);
 		break;
 	default:

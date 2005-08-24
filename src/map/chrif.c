@@ -1277,7 +1277,8 @@ int chrif_parse(int fd)
 			session[fd]->eof = 1;
 			return 0;
 		}
-		RFIFOSKIP(fd, packet_len);
+		if (fd == char_fd) //There's the slight chance we lost the connection during parse, in which case this would segfault if not checked [Skotlex]
+			RFIFOSKIP(fd, packet_len);
 	}
 
 	return 0;

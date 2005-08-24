@@ -58,21 +58,21 @@ int battle_counttargeted(struct block_list *bl,struct block_list *src,int target
 struct block_list* battle_gettargeted(struct block_list *target);
 
 //New definitions [Skotlex]
-#define BCT_ENEMY 0x02000
+#define BCT_ENEMY 0x020000
 //This should be (~BCT_ENEMY&BCT_ALL)
-#define BCT_NOENEMY 0x1d000
+#define BCT_NOENEMY 0x1d0000
 //Party includes self (0x04|0x01)
-#define BCT_PARTY	0x05000
+#define BCT_PARTY	0x050000
 //This should be (~BCT_PARTY&BCT_ALL)
-#define BCT_NOPARTY 0x1b000	
+#define BCT_NOPARTY 0x1b0000
 //Guild includes self (0x08|0x01)
-#define BCT_GUILD	0x09000
+#define BCT_GUILD	0x090000
 //This should be (~BCT_GUILD&BCT_ALL)
-#define BCT_NOGUILD 0x17000
-#define BCT_ALL 0x1f000
-#define BCT_NOONE 0x00000
-#define BCT_SELF 0x01000
-#define BCT_NEUTRAL 0x10000
+#define BCT_NOGUILD 0x170000
+#define BCT_ALL 0x1f0000
+#define BCT_NOONE 0x000000
+#define BCT_SELF 0x010000
+#define BCT_NEUTRAL 0x100000
 /*
 enum {
 	BCT_NOENEMY	=0x00000,
