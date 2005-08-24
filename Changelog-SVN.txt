@@ -1,5 +1,6 @@
 Date	Added
 08/23
+	* Updated Gospel to not buff up Guildmates, only Party members. [Skotlex]
 	* Fixed @autotrade [Skotlex]
 	  (tested on a limited scenario with few characters, needs more testing.
 	  Test and report!)

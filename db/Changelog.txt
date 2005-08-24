@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance??
 
 08/23
+	* Fixed Sacrificial Ritual requiring Endure LV5 instead of LV1 [Skotlex]
 	* Updated the mob skill database. When specifying Metamorphosis/Transformation, 
 	  use the skilllv to indicate how many alternatives there are (for example, an
 	  ant egg would use metamorphosis level 3 as it can convert to Andre, Deniro or 

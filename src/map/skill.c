@@ -6566,7 +6566,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	case UNT_GOSPEL:
 		if (rand()%100 > sg->skill_lv*10)
 			break;
-		if (ss != bl && battle_check_target(ss,bl,BCT_PARTY|BCT_GUILD)>0) { // Support Effect
+		if (ss != bl && battle_check_target(ss,bl,BCT_PARTY)>0) { // Support Effect only on party, not guild
 			int i = rand()%13; // Positive buff count
 			switch (i)
 			{
