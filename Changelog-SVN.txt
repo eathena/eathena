@@ -1,5 +1,7 @@
 Date	Added
 08/24
+	* Fixed Shield Chain's skill-type (it's short ranged, not long?) [Skotlex]
+	* Fixed Decrease Agility's equation. [Skotlex]
 	* Fixed root'ed monks not being able to use root skills. [Skotlex]
 	* Added inter-server option "kick_on_disconnect" (defaults to yes) [Skotlex]
 	   - The only people who may want to change it are overcrowded servers where

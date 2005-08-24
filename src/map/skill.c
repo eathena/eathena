@@ -3155,7 +3155,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case AL_DECAGI:			/* ë¨ìxå∏è≠ */
 		if (status_isimmune(bl))
 			break;
-		if (rand() % 100 < (40 + skilllv * 2 + (status_get_lv(src) + status_get_int(src) / 5) +(sc_def_mdef-100))) { //0 defense is sc_def_mdef == 100! [Skotlex]
+		if (rand() % 100 < (40 + skilllv * 2 + (status_get_lv(src) + status_get_int(src))/5 +(sc_def_mdef-100))) { //0 defense is sc_def_mdef == 100! [Skotlex]
 			clif_skill_nodamage (src, bl, skillid, skilllv, 1);
 			i = skill_get_time(skillid,skilllv);
 			if (bl->type == BL_PC) i/=2; //Halved duration for Players

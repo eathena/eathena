@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance??
 
 08/24
+	* Updated Shield Chain's cool-down to 1 sec. [Skotlex]
 	* Updated summon spirit sphere's casting time to 1sec (all over the place
 	it says Zen's casting is twice SSS, and everywhere we also read that Zen's
 	cast is 2 secs, so add both together...) [Skotlex]
