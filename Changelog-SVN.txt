@@ -1,5 +1,12 @@
 Date	Added
 08/24
+	* Implemented delayed character logout [Skotlex]
+	  How it works: When a player quits the server when they shouldn't (force
+	  disconnect before the 10 secs, or leave when the char server is not
+	  connected) his session is closed, but the player is left in-game just
+	  like in @autotrade, and a timer is added. Every 10 secs it'll check if
+	  the char server is online, and then save the character and delete it from
+	  the map server. NOT TESTED YET, so report any anomalies.
 	* Fixed Shield Chain's skill-type (it's short ranged, not long?) [Skotlex]
 	* Fixed Decrease Agility's equation. [Skotlex]
 	* Fixed root'ed monks not being able to use root skills. [Skotlex]

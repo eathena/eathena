@@ -1671,12 +1671,37 @@ int clif_movechar(struct map_session_data *sd) {
 }
 
 /*==========================================
+ * Delays the map_quit of a player after they are disconnected. [Skotlex]
+ *------------------------------------------
+ */
+static int clif_delayquit(int tid, unsigned int tick, int id, int data) {
+	struct map_session_data *sd = NULL;
+
+	if (chrif_isconnect())
+	{	//Remove player from map server
+		if ((sd = map_id2sd(id)) != NULL)
+			map_quit(sd);
+	} else //Save later.
+		add_timer(tick + 10000, clif_delayquit, id, 0);
+	return 0;
+}
+
+/*==========================================
  *
  *------------------------------------------
  */
 void clif_quitsave(int fd,struct map_session_data *sd)
 {
-	map_quit(sd);
+	if (chrif_isconnect() &&
+		(!battle_config.prevent_logout || gettick() - sd->canlog_tick >= 10000 || pc_isdead(sd)))
+		map_quit(sd);
+	else if (sd->fd)
+	{	//Disassociate session from player (session is deleted after this function was called)
+		//And set a timer to delete this player later.
+		session[fd] = NULL;
+		sd->fd =0;
+		add_timer(gettick() + 10000, clif_delayquit, sd->bl.id, 0);
+	}
 }
 
 /*==========================================
@@ -11261,6 +11286,7 @@ int do_init_clif(void) {
 
 	add_timer_func_list(clif_waitclose, "clif_waitclose");
 	add_timer_func_list(clif_clearchar_delay_sub, "clif_clearchar_delay_sub");
+	add_timer_func_list(clif_delayquit, "clif_delayquit");
 
 	return 0;
 }
