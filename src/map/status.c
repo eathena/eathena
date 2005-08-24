@@ -1086,6 +1086,22 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		sd->nshealhp = skill*5 + (sd->status.max_hp*skill/500);
 		if(sd->nshealhp > 0x7fff) sd->nshealhp = 0x7fff;
 	}
+	//TK_HPTIME regen enable [Dralnu]
+	if((skill=pc_checkskill(sd,TK_HPTIME)) > 0 && sd->state.rest == 1) {
+		sd->nshealhp = 30*skill;
+		if(sd->nshealhp > 0x7fff) sd->nshealhp = 0x7fff;
+	}
+	//TK_HPTIME regen disable [Dralnu]
+	if(pc_checkskill(sd,TK_HPTIME) > 0 && sd->state.rest != 1)
+		sd->nshealhp = 0;
+	//TK_SPTIME regen [Dralnu]
+	if((skill=pc_checkskill(sd,TK_SPTIME)) > 0 && sd->state.rest == 1) {
+		sd->nshealsp = skill*3;
+		if(sd->nshealsp > 0x7fff) sd->nshealsp = 0x7fff;
+	}
+	//TK_SPTIME regen disable [Dralnu]
+	if(pc_checkskill(sd,TK_SPTIME) > 0 && sd->state.rest != 1)
+		sd->nshealsp = 0;
 	//Ž©‘R‰ñ•œSP
 	sd->nhealsp = 1 + (sd->paramc[3]/6) + (sd->status.max_sp/100);
 	if(sd->paramc[3] >= 120)

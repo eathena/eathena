@@ -8674,7 +8674,6 @@ static int skill_gangster_count(struct block_list *bl,va_list ap)
 {
 	int *c;
 	struct map_session_data *sd;
-
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
 
@@ -8689,8 +8688,7 @@ static int skill_gangster_count(struct block_list *bl,va_list ap)
 static int skill_gangster_in(struct block_list *bl,va_list ap)
 {
 	struct map_session_data *sd;
-
-	nullpo_retr(0, bl);
+ 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
 
 	sd=(struct map_session_data*)bl;
@@ -8702,7 +8700,6 @@ static int skill_gangster_in(struct block_list *bl,va_list ap)
 static int skill_gangster_out(struct block_list *bl,va_list ap)
 {
 	struct map_session_data *sd;
-
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
 
@@ -8716,7 +8713,6 @@ int skill_gangsterparadise(struct map_session_data *sd ,int type)
 {
 	int range=1;
 	int c=0;
-
 	nullpo_retr(0, sd);
 
 	if(pc_checkskill(sd,RG_GANGSTER) <= 0)
@@ -8743,6 +8739,88 @@ int skill_gangsterparadise(struct map_session_data *sd ,int type)
 				sd->bl.x-range,sd->bl.y-range,
 				sd->bl.x+range,sd->bl.y+range,BL_PC);
 		sd->state.gangsterparadise = 0;
+		return 0;
+	}
+	return 0;
+}
+/*==========================================
+ * Taekwon TK_HPTIME and TK_SPTIME skills [Dralnu]
+ *------------------------------------------
+ */
+static int skill_rest_count(struct block_list *bl,va_list ap)
+{
+	int *c_r;
+	struct map_session_data *sd;
+	nullpo_retr(0, bl);
+	nullpo_retr(0, ap);
+
+	sd=(struct map_session_data*)bl;
+	c_r=va_arg(ap,int *);
+
+	if(sd && c_r && pc_issit(sd) && (pc_checkskill(sd,TK_HPTIME) > 0 || pc_checkskill(sd,TK_SPTIME) > 0  ))
+		(*c_r)++;
+	return 0;
+}
+
+static int skill_rest_in(struct block_list *bl,va_list ap)
+{
+	struct map_session_data *sd;
+	nullpo_retr(0, bl);
+	nullpo_retr(0, ap);
+
+	sd=(struct map_session_data*)bl;
+	if(sd && pc_issit(sd) && (pc_checkskill(sd,TK_HPTIME) > 0 || pc_checkskill(sd,TK_SPTIME) > 0 )){
+		sd->state.rest=1;
+		status_calc_pc(sd,0);
+	}		
+	return 0;
+}
+
+static int skill_rest_out(struct block_list *bl,va_list ap)
+{
+	struct map_session_data *sd;
+	nullpo_retr(0, bl);
+	nullpo_retr(0, ap);
+
+	sd=(struct map_session_data*)bl;
+	if(sd && sd->state.rest != 0){
+		sd->state.rest=0;
+		}		
+	return 0;
+}
+
+int skill_rest(struct map_session_data *sd ,int type)
+{
+	int range=1;
+	int c_r=0;
+	nullpo_retr(0, sd);
+
+	if(pc_checkskill(sd,TK_HPTIME) <= 0 && pc_checkskill(sd,TK_SPTIME) <= 0)
+		return 0;
+
+	if(type==1) {	//When you sit down
+		map_foreachinarea(skill_rest_count,sd->bl.m,
+			sd->bl.x-range,sd->bl.y-range,
+			sd->bl.x+range,sd->bl.y+range,BL_PC,&c_r);
+		if(c_r > 1) {
+			map_foreachinarea(skill_rest_in,sd->bl.m,
+				sd->bl.x-range,sd->bl.y-range,
+				sd->bl.x+range,sd->bl.y+range,BL_PC);
+			sd->state.rest = 1;
+			status_calc_pc(sd,0);
+		}
+		return 0;
+	}
+	else if(type==0) {	//When you stand up
+		map_foreachinarea(skill_rest_count,sd->bl.m,
+			sd->bl.x-range,sd->bl.y-range,
+			sd->bl.x+range,sd->bl.y+range,BL_PC,&c_r);
+		if(c_r < 2)
+			map_foreachinarea(skill_rest_out,sd->bl.m,
+				sd->bl.x-range,sd->bl.y-range,
+				sd->bl.x+range,sd->bl.y+range,BL_PC);
+		sd->state.rest = 0;
+		status_calc_pc(sd,0);
 		return 0;
 	}
 	return 0;

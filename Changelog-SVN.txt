@@ -1,5 +1,6 @@
 Date	Added
 08/24
+	* Implemented TK_HPTIME and TK_SPTIME exept the bonus provided by /doridori [Dralnu]
 	* Implemented delayed character logout [Skotlex]
 	  How it works: When a player quits the server when they shouldn't (force
 	  disconnect before the 10 secs, or leave when the char server is not

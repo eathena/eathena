@@ -194,6 +194,7 @@ int skill_guildaura_sub (struct block_list *bl,va_list ap);
 int skill_castcancel(struct block_list *bl,int type);
 
 int skill_gangsterparadise(struct map_session_data *sd ,int type);
+int skill_rest(struct map_session_data *sd ,int type);
 int skill_check_moonlit(struct block_list *bl, int dx, int dy);
 void skill_brandishspear_first(struct square *tc,int dir,int x,int y);
 void skill_brandishspear_dir(struct square *tc,int dir,int are);

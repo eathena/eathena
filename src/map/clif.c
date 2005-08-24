@@ -8688,6 +8688,7 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 			pc_stop_walking(sd, 1);
 			pc_setsit(sd);
 			skill_gangsterparadise(sd, 1); // ギャングスターパラダイス設定 fixed Valaris
+			skill_rest(sd, 1); // TK_HPTIME sitting down mode [Dralnu]
 			clif_sitting(sd);
 		} else
 			clif_skill_fail(sd, 1, 0, 2);
@@ -8695,6 +8696,7 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 	case 0x03: // standup
 		pc_setstand(sd);
 		skill_gangsterparadise(sd, 0); // ギャングスターパラダイス解除 fixed Valaris
+		skill_rest(sd, 0); // TK_HPTIME standing up mode [Dralnu]
 		WBUFW(buf, 0) = 0x8a;
 		WBUFL(buf, 2) = sd->bl.id;
 		WBUFB(buf,26) = 3;
