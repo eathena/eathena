@@ -3539,7 +3539,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if (rand()%100 > 50 + 3*skilllv + status_get_lv(bl) - status_get_lv(src)) //TODO: How much does base level affects? Dummy value of 1% per level difference used. [Skotlex]
+			if (rand()%100 > 50 + 3*skilllv + status_get_lv(src) - status_get_lv(bl)) //TODO: How much does base level affects? Dummy value of 1% per level difference used. [Skotlex]
 			{
 				if (sd) 
 					clif_skill_fail(sd,skillid,0,0);
