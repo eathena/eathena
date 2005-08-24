@@ -1,5 +1,6 @@
 Date	Added
 08/24
+	* Fixed root'ed monks not being able to use root skills. [Skotlex]
 	* Added inter-server option "kick_on_disconnect" (defaults to yes) [Skotlex]
 	   - The only people who may want to change it are overcrowded servers where
 	  the char/map server link breaks due to overload and then everyone is

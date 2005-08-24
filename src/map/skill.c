@@ -7760,7 +7760,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 				sc_data[SC_HERMODE].timer != -1)
 			return 0;	/* ?‘ÔˆÙí‚â’¾?‚È‚Ç */
 		if (sc_data[SC_BLADESTOP].timer != -1) {
-			if (sc_data[SC_BLADESTOP].val2 == 1) return 0;//”’‰H‚³‚ê‚½‘¤‚È‚Ì‚Åƒ_ƒ
+//			if (sc_data[SC_BLADESTOP].val2 == 1) return 0;//Bah, both should be able to use root skills! [Skotlex]
 			switch (sc_data[SC_BLADESTOP].val1) {
 				case 1: return 0;
 				case 2: if (skill_num != MO_FINGEROFFENSIVE) return 0; else break;

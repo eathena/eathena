@@ -15,6 +15,10 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance??
 
+08/24
+	* Updated summon spirit sphere's casting time to 1sec (all over the place
+	it says Zen's casting is twice SSS, and everywhere we also read that Zen's
+	cast is 2 secs, so add both together...) [Skotlex]
 08/23
 	* Fixed Sacrificial Ritual requiring Endure LV5 instead of LV1 [Skotlex]
 	* Updated the mob skill database. When specifying Metamorphosis/Transformation, 
