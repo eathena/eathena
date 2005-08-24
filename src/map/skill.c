@@ -3629,7 +3629,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			pc_delspiritball(dstsd,dstsd->spiritball,0);
 		} else if (dstmd && //?象がモンスタ?の場合
 			//20%の確率で?象のLv*2のSPを回復する。成功したときはタ?ゲット(σ?Д?)σ????!!
-			!(dstmd->db->mode & 20) && rand() % 100 < 20)
+			!(dstmd->db->mode&0x20) && rand() % 100 < 20)
 		{
 			i = 2 * dstmd->db->lv;
 			mob_target(dstmd,src,0);
