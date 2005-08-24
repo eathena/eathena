@@ -25,7 +25,7 @@ struct pet_db {
 	int attack_rate;
 	int defence_attack_rate;
 	int change_target_rate;
-	char *script;
+	unsigned char *script;
 };
 extern struct pet_db pet_db[MAX_PET_DB];
 

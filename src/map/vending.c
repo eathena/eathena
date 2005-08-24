@@ -7,6 +7,7 @@
 #include "itemdb.h"
 #include "atcommand.h"
 #include "map.h"
+#include "chrif.h"
 #include "vending.h"
 #include "pc.h"
 #include "skill.h"

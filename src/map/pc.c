@@ -2574,7 +2574,7 @@ int pc_useitem(struct map_session_data *sd,int n)
 	nullpo_retr(1, sd);
 
 	if(n >=0 && n < MAX_INVENTORY) {
-		char *script;
+		unsigned char *script;
 		sd->itemid = sd->status.inventory[n].nameid;
 		sd->itemindex = n;
 		amount = sd->status.inventory[n].amount;
