@@ -1,6 +1,18 @@
 Date	Added
 08/24
-	* Added the bonus provided by the /doridori command to TKçHPTIME and TK_SPTIME. [Dralnu]
+	* Updated the mob_skill_db with Komurka's translation (Aegis -> eA) [Skotlex]
+	  The max permilliage (rate) is now 10000 = 100%
+	* Various mob related summon/metamorphosis changes: [Skotlex]
+	  - Summon Mob/Slave's level is the total number of mobs to summon, when the
+	  skill definition offers multiple mobs, they are spawned in order
+	  (round-robin scheme).
+	  - Metamorphosis/Transformation level is the total number of mobs to
+	  multiply into. Uses the same criteria as summon mob and the original mob
+	  is deleted/killed (no loot drop). If the level is 1, then the mob transforms
+	  into one of the defined classes randomly.
+	  - Note that beyond code-proofreading and making sure it compiles, this
+	  has not been tested yet!
+	* Added the bonus provided by the /doridori command to TK_HPTIME and TK_SPTIME. [Dralnu]
 	  Thanks to Duduc.
 	* Updated battle_check_target to check using the master instead of the
 	  slaves (applies for mobs/pets) [Skotlex]

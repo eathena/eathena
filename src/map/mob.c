@@ -2861,18 +2861,16 @@ int mob_random_class (int *value, size_t count)
 {
 	nullpo_retr(0, value);
 
-	// no count specified, look into the array manually, but take only max 5 elements <-- are you nuts? Randomly accessing an array without knowing it's length!? [Skotlex]
-	if (count <= 1) {
-		return (mobdb_checkid(value[0]));
-/*
-		while(count < 5 && value[count] > 1000 && value[count] <= MAX_MOB_DB) count++;
+	// no count specified, look into the array manually, but take only max 5 elements
+	if (count < 1) {
+		count = 0;
+		while(count < 5 && mobdb_checkid(value[count])) count++;
 		if(count < 1)	// nothing found
 			return 0;
 	} else {
 		// check if at least the first value is valid
-		if(value[0] <= 1000 || value[0] > MAX_MOB_DB)
+		if(mobdb_checkid(value[0]) == 0)
 			return 0;
-*/
 	}
 	//Pick a random value, hoping it exists. [Skotlex]
 	return mobdb_checkid(value[rand()%count]);
@@ -3115,13 +3113,13 @@ int mob_countslave(struct mob_data *md)
 	return c;
 }
 /*==========================================
- * 手下MOB召喚
+ * Summons amount slaves contained in the value[5] array using round-robin. [adapted by Skotlex]
  *------------------------------------------
  */
-int mob_summonslave(struct mob_data *md2,int *value,int amount,int flag)
+int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id)
 {
 	struct mob_data *md;
-	int bx,by,m,count = 0,class_,k,a = amount;
+	int bx,by,m,count = 0,class_,k;
 
 	nullpo_retr(0, md2);
 	nullpo_retr(0, value);
@@ -3130,56 +3128,61 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int flag)
 	by=md2->bl.y;
 	m=md2->bl.m;
 
-	if(value[0]<=1000 || value[0]>MAX_MOB_DB)	// 値が異常なら召喚を止める
+	if(mobdb_checkid(value[0]) == 0)
 		return 0;
-	while(count < 5 && value[count] > 1000 && value[count] <= 2000) count++;
+
+	while(count < 5 && mobdb_checkid(value[count])) count++;
 	if(count < 1) return 0;
 
-	for(k=0;k<count;k++) {
-		amount = a;
-		class_ = value[k];
-		if(class_<=1000 || class_>MAX_MOB_DB) continue;
-		for(;amount>0;amount--){
-			int x=0,y=0,i=0;
-			md=(struct mob_data *)aCalloc(1,sizeof(struct mob_data));
-			if(mob_db(class_)->mode&0x02)
-				md->lootitem=(struct item *)aCalloc(LOOTITEM_SIZE,sizeof(struct item));
-//			else	Already NULL from the aCalloc! [Skotlex]
-//				md->lootitem=NULL;
+	for(k=0;k<amount;k++) {
+		int x=0,y=0,i=0;
+		class_ = value[k%count]; //Summon slaves in round-robin fashion. [Skotlex]
 
-			while((x<=0 || y<=0 || map_getcell(m,x,y,CELL_CHKNOPASS)) && (i++)<100){
-				x=rand()%9-4+bx;
-				y=rand()%9-4+by;
-			}
-			if(i>=100){
-				x=bx;
-				y=by;
-			}
+		if (mobdb_checkid(class_) == 0)
+			continue;
 
-			mob_spawn_dataset(md,"--ja--",class_);
-			md->bl.m=m;
-			md->bl.x=x;
-			md->bl.y=y;
+		md=(struct mob_data *)aCalloc(1,sizeof(struct mob_data));
+		if(mob_db(class_)->mode&0x02)
+			md->lootitem=(struct item *)aCalloc(LOOTITEM_SIZE,sizeof(struct item));
 
-			md->m =m;
-			md->x0=x;
-			md->y0=y;
-			md->xs=0;
-			md->ys=0;
-			md->speed=md2->speed;
-			md->cached= battle_config.dynamic_mobs;	//[Skotlex]
-			md->spawndelay1=-1;	// 一度のみフラグ
-			md->spawndelay2=-1;	// 一度のみフラグ
-
-			memset(md->npc_event,0,sizeof(md->npc_event));
-			md->bl.type=BL_MOB;
-			map_addiddb(&md->bl);
-			mob_spawn(md->bl.id);
-			clif_skill_nodamage(&md->bl,&md->bl,(flag)? NPC_SUMMONSLAVE:NPC_SUMMONMONSTER,a,1);
-
-			if(flag)
-				md->master_id=md2->bl.id;
+		while((x<=0 || y<=0 || map_getcell(m,x,y,CELL_CHKNOPASS)) && (i++)<100){
+			x=rand()%9-4+bx;
+			y=rand()%9-4+by;
 		}
+		if(i>=100){
+			x=bx;
+			y=by;
+		}
+
+		mob_spawn_dataset(md,"--ja--",class_);
+		md->bl.m=m;
+		md->bl.x=x;
+		md->bl.y=y;
+
+		md->m =m;
+		md->x0=x;
+		md->y0=y;
+		md->xs=0;
+		md->ys=0;
+		md->speed=md2->speed;
+		md->cached= battle_config.dynamic_mobs;	//[Skotlex]
+		md->spawndelay1=-1;	// 一度のみフラグ
+		md->spawndelay2=-1;	// 一度のみフラグ
+
+		if (!battle_config.monster_class_change_full_recover &&
+			(skill_id == NPC_TRANSFORMATION || skill_id == NPC_METAMORPHOSIS))
+		{	//Scale HP
+			md->hp = (md->max_hp*md2->hp)/md2->max_hp;
+		}
+		
+		memset(md->npc_event,0,sizeof(md->npc_event));
+		md->bl.type=BL_MOB;
+		map_addiddb(&md->bl);
+		mob_spawn(md->bl.id);
+		clif_skill_nodamage(&md->bl,&md->bl,skill_id,amount,1);
+
+		if(skill_id == NPC_SUMMONSLAVE)
+			md->master_id=md2->bl.id;
 	}
 	return 0;
 }
@@ -3774,7 +3777,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 		}
 
 		// 確率判定
-		if (flag && rand() % 1000 < ms[i].permillage) //Lupus (max value = 10000) <- WRONG. The max is 1000, the mob_skill_db uses frequencies of 1~1000 where 1000 is 100%, which means cast as often as possible! If you want to lower skill usage rate use the battle_config options or lower the rates (you can alternatively raise the after-cast delay) in the mob_skill_db [Skotlex]
+		if (flag && rand() % 10000 < ms[i].permillage) //Lupus (max value = 10000)
 		{
 			if (skill_get_inf(ms[i].skill_id) & INF_GROUND_SKILL) {
 				// 場所指定

@@ -4574,7 +4574,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NPC_SUMMONSLAVE:		/* Žè‰º¢Š« */
 	case NPC_SUMMONMONSTER:		/* MOB¢Š« */
 		if(md)
-			mob_summonslave(md,md->db->skill[md->skillidx].val,skilllv,(skillid==NPC_SUMMONSLAVE)?1:0);
+			mob_summonslave(md,md->db->skill[md->skillidx].val,skilllv,skillid);
 		break;
 
 	case NPC_CALLSLAVE:		//Žæ‚èŠª‚«ŒÄ‚Ñ–ß‚µ
@@ -4649,8 +4649,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NPC_TRANSFORMATION:
 	case NPC_METAMORPHOSIS:
 		if(md) {
-			int class_ = mob_random_class (md->db->skill[md->skillidx].val,skilllv);
-			if (class_) mob_class_change(md, class_);
+			if (skilllv > 1)
+			{	//Multiply skilllv times, the original instance must be silently killed. [Skotlex] 
+				mob_summonslave(md,md->db->skill[md->skillidx].val,skilllv,skillid);
+				mob_delete(md);
+			}
+			else
+			{	//Transform into another class.
+				int class_ = mob_random_class (md->db->skill[md->skillidx].val,0);
+				if (class_) mob_class_change(md, class_);
+			}
 		}
 		break;
 
