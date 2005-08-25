@@ -72,7 +72,7 @@ int strcasecmp(const char *arg1, const char *arg2)
   int chk, i;
 
   if (arg1 == NULL || arg2 == NULL) {
-    eprintf("SYSERR: str_cmp() passed a NULL pointer, %p or %p.\n", arg1, arg2);
+    ShowError("strcasecmp: received a NULL pointer, %p or %p.\n", arg1, arg2);
     return (0);
   }
 
@@ -88,7 +88,7 @@ int strncasecmp(const char *arg1, const char *arg2, int n)
   int chk, i;
 
   if (arg1 == NULL || arg2 == NULL) {
-    eprintf("SYSERR: strn_cmp() passed a NULL pointer, %p or %p.\n", arg1, arg2);
+    ShowErrorf("strncasecmp(): received a NULL pointer, %p or %p.\n", arg1, arg2);
     return (0);
   }
 
