@@ -1430,8 +1430,8 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 						dx = (rand()%1)? 1:-1;
 						dy = (rand()%1)? 1:-1;
 					}
-					dx += bl->x;
-					dy += bl->y;
+//					dx += bl->x; These HAVE to be wrong... o.O [Skotlex]
+//					dy += bl->y;
 
 					ret=mob_walktoxy(md,bl->x+dx,bl->y+dy,0);
 					i++;

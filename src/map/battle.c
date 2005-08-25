@@ -2397,7 +2397,7 @@ struct Damage  battle_calc_misc_attack(
 	case CR_ACIDDEMONSTRATION:
 		//FIXME: Find the correct damage equation for this skill. [Skotlex]
 		//Current data are estimates collected by Viccious Pucca.
-		damage = status_get_baseatk(bl) * int_ * status_get_vit(target) / (tsd?200:100);
+		damage = 45 * int_ * status_get_vit(target) / (tsd?200:100);
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
 	}
