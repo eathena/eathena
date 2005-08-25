@@ -7668,6 +7668,7 @@ atcommand_summon(
 	int x = 0;
 	int y = 0;
 	int id = 0;
+	int duration = 0;
 	struct mob_data *md;
 	unsigned int tick=gettick();
 
@@ -7675,9 +7676,14 @@ atcommand_summon(
 
 	if (!message || !*message)
 		return -1;
-	if (sscanf(message, "%23s", name) < 1)
+	if (sscanf(message, "%23s %d", name, &duration) < 1)
 		return -1;
 
+	if (duration < 1)
+		duration =1;
+	else if (duration > 60)
+		duration =60;
+	
 	if ((mob_id = atoi(name)) == 0)
 		mob_id = mobdb_searchname(name);
 	if(mob_id == 0)
@@ -7691,7 +7697,7 @@ atcommand_summon(
 		md->master_id=sd->bl.id;
 		md->state.special_mob_ai=1;
 		md->mode=md->db->mode|0x04;
-		md->deletetimer=add_timer(tick+60000,mob_timer_delete,id,0);
+		md->deletetimer=add_timer(tick+duration*1000,mob_timer_delete,id,0);
 		clif_misceffect2(&md->bl,344);
 	}
 	clif_skill_poseffect(&sd->bl,AM_CALLHOMUN,1,x,y,tick);

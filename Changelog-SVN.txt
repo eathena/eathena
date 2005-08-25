@@ -1,6 +1,9 @@
 Date	Added
 =======
 08/25
+	* Updated @summon to take a second parameter: duration. [Skotlex]
+	  eg: "@summon lunatic 40" will summon a lunatik that lasts 40 mins or
+	  until killed. Max duration is one hour.
 	* Updated Some Mobs Spawns, Drops check npc\changelog.txt [Lupus]
 	* Some toning down of the damage of Acid Demonstration (should /100, not
 	  /10) [Skotlex]
