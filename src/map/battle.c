@@ -2432,8 +2432,7 @@ struct Damage  battle_calc_misc_attack(
 	if(div_>1)
 		damage*=div_;
 
-	if(damage > 0 && skill_num != PA_PRESSURE &&
-		(damage < div_ || t_mode&0x40))
+	if(damage > 0 && (damage < div_ || t_mode&0x40))
 		damage = div_;	//Again, Ishizu noted that MISC skills do div damage to plants.
 
 	if(is_boss(target))
