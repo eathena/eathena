@@ -1402,7 +1402,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 
 		// Although there is the master, since it is somewhat far, it approaches.
 		if((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mob_can_move(md) &&
-			(md->walkpath.path_pos>=md->walkpath.path_len || md->walkpath.path_len==0) && md->master_dist<15){
+			md->master_dist<15 && (md->walkpath.path_pos>=md->walkpath.path_len || md->walkpath.path_len==0)){
 			int i=0,dx,dy,ret;
 			if(md->master_dist>4) {
 				do {
@@ -1650,7 +1650,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 
 	md->state.master_check = 0;
 	// Processing of slave monster
-	if (md->master_id > 0)// && md->state.special_mob_ai == 0)
+	if (md->master_id > 0)
 		mob_ai_sub_hard_slavemob(md, tick);
 
 	// アクティヴモンスターの策敵 (?? of a bitter taste TIVU monster)
@@ -1914,7 +1914,8 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 	}
 
 	// 取り巻きモンスターの処理（呼び戻しされた時）
-	if(mmd && md->state.special_mob_ai == 0 && mmd->recall_flag == 1) {
+//	if(mmd && md->state.special_mob_ai == 0 && mmd->recall_flag == 1) {
+	if (md->master_id > 0) {
 		mob_ai_sub_hard_slavemob (md,tick);
 		return 0;
 	}

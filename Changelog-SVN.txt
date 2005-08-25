@@ -1,5 +1,6 @@
 Date	Added
 08/25
+	* Likely fixed Blitzbeat from hitting neutral chars. [Skotlex]
 	* Updated Acid Demonstration to be a MISC skill who's damage is (base_Atk *
 	  caster's int * target's vit /10) (half that on players). It's much more
 	  closer to official values than the previous ones... [Skotlex]

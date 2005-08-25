@@ -2893,23 +2893,18 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 
 	/* その他 */
 	case HT_BLITZBEAT:			/* ブリッツビ?ト */
-		if (flag & 1) {
-			/* 個別にダメ?ジを?える */
-			if (bl->id != skill_area_temp[1])
-				skill_attack(BF_MISC, src, src, bl, skillid, skilllv, tick, skill_area_temp[0]|(flag&0xf00000));
+		if (flag & 1) {	//Invoked from map_foreachinarea, skill_area_temp[0] holds number of targets to divide damage by.
+			skill_attack(BF_MISC, src, src, bl, skillid, skilllv, tick, skill_area_temp[0]);
 		} else {
 			skill_area_temp[0] = 0;
 			skill_area_temp[1] = bl->id;
-			if (flag & 0xf00000)
+			if (flag & 0xf00000) //Warning, 0x100000 is currently BCT_NEUTRAL, so don't mix it when asking for the enemy. [Skotlex]
 				map_foreachinarea(skill_area_sub, bl->m, 
 					bl->x-1, bl->y-1, bl->x+1, bl->y+1, 0,
-					src, skillid, skilllv, tick, flag|BCT_ENEMY, skill_area_sub_count);
-			/* まずタ?ゲットに攻?を加える */
-			skill_attack(BF_MISC, src, src, bl, skillid, skilllv, tick, skill_area_temp[0]|(flag&0xf00000));
-			/* その後タ?ゲット以外の範??の敵全?に?理を行う */
+					src, skillid, skilllv, tick, BCT_ENEMY, skill_area_sub_count);
 			map_foreachinarea(skill_area_sub, bl->m,
 				bl->x-1, bl->y-1, bl->x+1, bl->y+1, 0,
-				src, skillid, skilllv, tick, flag|BCT_ENEMY|1,
+				src, skillid, skilllv, tick, BCT_ENEMY|1,
 				skill_castend_damage_id);
 		}
 		break;
