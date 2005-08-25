@@ -1,6 +1,9 @@
 Date	Added
 =======
 08/25
+	* Corrections to damage versus plants. [Skotlex]
+	  MAGIC and MISC attacks do 1 damage per hit.
+	  WEAPON attacks do 1 damage, display miss if they hit multiple times.
 	* Instead of knocking back (which wasn't even working), characters that are
 	  stepping on an icewall will cause that tile of the icewall to 'die' [Skotlex]
 	* Final damage equation update to Acid Demonstration. [Skotlex]
@@ -14,7 +17,7 @@ Date	Added
 	    client-side.
 	  (Now someone go and write down the script for the food items xP)
 	* Updated @summon to take a second parameter: duration. [Skotlex]
-	  eg: "@summon lunatic 40" will summon a lunatik that lasts 40 mins or
+	  eg: "@summon lunatic 40" will summon a lunatic that lasts 40 mins or
 	  until killed. Max duration is one hour.
 	* Updated Some Mobs Spawns, Drops check npc\changelog.txt [Lupus]
 	* Some toning down of the damage of Acid Demonstration (should /100, not

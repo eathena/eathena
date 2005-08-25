@@ -6334,6 +6334,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 		break;
 	
 	case UNT_ICEWALL: //Bah, destroy the cell. [Skotlex]
+	//	skill_blown(&src->bl,bl,1,2); //I prefer knockback, have to figure out how to make it work...
 		src->val1 = 0;
 		if(src->limit + sg->tick > tick + 700)
 			src->limit = DIFF_TICK(tick+700,sg->tick);
