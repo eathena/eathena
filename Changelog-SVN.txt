@@ -1,6 +1,8 @@
 Date	Added
 =======
 08/25
+	* Instead of knocking back (which wasn't even working), characters that are
+	  stepping on an icewall will cause that tile of the icewall to 'die' [Skotlex]
 	* Final damage equation update to Acid Demonstration. [Skotlex]
 	  (it still won't ignore the raydric card, but why that is official in
 	  itself is a big mystery)

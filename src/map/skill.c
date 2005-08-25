@@ -6333,8 +6333,10 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 			skill_get_time2(sg->skill_id,sg->skill_lv),0);
 		break;
 	
-	case UNT_ICEWALL: //To avoid having chars stuck inside an icewall, push them out. [Skotlex]
-		skill_blown(ss,bl,1,1);
+	case UNT_ICEWALL: //Bah, destroy the cell. [Skotlex]
+		src->val1 = 0;
+		if(src->limit + sg->tick > tick + 700)
+			src->limit = DIFF_TICK(tick+700,sg->tick);
 		break;
 	}
 
