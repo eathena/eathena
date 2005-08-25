@@ -407,7 +407,7 @@ N_Wand:
 	mes "[Ash]";
 	mes "This is what we have to offer.";
 	next;
-	menu "Mighty Staff - 90T",-,"Wizardry Staff - 90T",N_Wizardry,"Bone Wand - 100T",N_BoneW,"Staff of Soul - 110T",N_SOSoul,"Nevermind",N_NVM;
+	menu "Mighty Staff - 90T",-,"Wizardry Staff - 150T",N_Wizardry,"Bone Wand - 110T",N_BoneW,"Staff of Soul - 120T",N_SOSoul,"Nevermind",N_NVM;
 
 	if (#Treasure_Token < 90) goto N_NeedToken;
 	set #Treasure_Token,#Treasure_Token-90;

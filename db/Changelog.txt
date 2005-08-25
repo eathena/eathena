@@ -16,6 +16,7 @@
 	4296,Cramp_Card: missing getzenybychance??
 
 08/25
+	* Updated Mobs drops: Dancing Dragon,Civil Servant,Tao Gunka,Kraben by MasterOfMuppets
 	* Changed Acid Demonstration from a "weapon" type skill to "misc". [Skotlex]
 	* Updated Demonstration to not stack and not be placeable near enemies. [Skotlex]
 	* Updated max number of spider webs to 3. [Skotlex]

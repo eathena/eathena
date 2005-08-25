@@ -1,5 +1,7 @@
 Date	Added
+=======
 08/25
+	* Updated Some Mobs Spawns, Drops check npc\changelog.txt [Lupus]
 	* Some toning down of the damage of Acid Demonstration (should /100, not
 	  /10) [Skotlex]
 	* Likely fixed Blitzbeat from hitting neutral chars. [Skotlex]

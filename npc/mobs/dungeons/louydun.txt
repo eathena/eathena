@@ -3,37 +3,33 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
-//= 1.1 Updated by MasterOfMuppets
+//= 1.2 Updated by MasterOfMuppets
 //============================================================
 
-//lou_dun01
-lou_dun01.gat,0,0,0,0	monster	Sidewinder	1037,20,0,0,0
+//lou_dun01*
 lou_dun01.gat,0,0,0,0	monster	Horong	1129,15,0,0,0
 lou_dun01.gat,0,0,0,0	monster	Grizzly	1381,15,0,0,0
-lou_dun01.gat,0,0,0,0	monster	Leib Olmai	1306,5,0,0,0
 lou_dun01.gat,0,0,0,0	monster	Increase Soil	1516,15,0,0,0
-lou_dun01.gat,0,0,0,0	monster	Li Me Mang Ryang	1517,25,0,0,0
-lou_dun01.gat,246,155,2,2	monster	Black Mushroom	1084,1,180000,90000,0
-lou_dun01.gat,213,174,2,2	monster	Black Mushroom	1084,1,180000,90000,0
-lou_dun01.gat,249,224,3,3	monster	Black Mushroom	1084,1,180000,90000,0
-lou_dun01.gat,117,239,3,0	monster	Black Mushroom	1084,1,180000,90000,0
-lou_dun01.gat,63,226,3,3	monster	Black Mushroom	1084,1,180000,90000,0
-lou_dun01.gat,278,208,0,0	monster	Shining Plant	1083,1,1800000,900000,0
+lou_dun01.gat,0,0,0,0	monster	Leib Olmai	1306,1,300000,120000,0
+lou_dun01.gat,215,159,40,80	monster	Sidewinder	1037,10,300000,120000,0
+lou_dun01.gat,215,159,40,80	monster	Li Me Mang Ryang	1517,25,300000,120000,0
+lou_dun01.gat,197,77,10,10	monster	Black Mushroom	1084,5,0,0,0
+lou_dun01.gat,0,0,0,0	monster	Shining Plant	1083,5,0,0,0
 
-//lou_dun02
-lou_dun02.gat,0,0,0,0	monster	Mimic	1191,10,0,0,0
-lou_dun02.gat,0,0,0,0	monster	Munak	1026,30,0,0,0
-lou_dun02.gat,0,0,0,0	monster	Hyegun	1512,15,0,0,0
-lou_dun02.gat,0,0,0,0	monster	Dancing Dragon	1514,25,0,0,0
+//lou_dun02*
+lou_dun02.gat,0,0,0,0	monster	Mimic	1191,5,0,0,0
+lou_dun02.gat,0,0,0,0	monster	Munak	1026,25,0,0,0
+lou_dun02.gat,0,0,0,0	monster	Hyegun	1512,40,300000,120000,0
+lou_dun02.gat,0,0,0,0	monster	Dancing Dragon	1514,5,0,0,0
 
-//lou_dun03
-lou_dun03.gat,0,0,0,0	monster	Dancing Dragon	1514,30,0,0,0
-lou_dun03.gat,0,0,0,0	monster	Civil Servant	1513,25,0,0,0
-lou_dun03.gat,0,0,0,0	monster	Hyegun	1512,25,0,0,0
-lou_dun03.gat,0,0,0,0	monster	Gajomart	1309,10,0,0,0
+//lou_dun03*
+lou_dun03.gat,0,0,0,0	monster	Dancing Dragon	1514,25,120000,60000,0
+lou_dun03.gat,0,0,0,0	monster	Civil Servant	1513,15,0,0,0
+lou_dun03.gat,0,0,0,0	monster	Hyegun	1512,25,120000,60000,0
+lou_dun03.gat,0,0,0,0	monster	Gajomart	1309,1,300000,120000,0
 //lou_dun03.gat,0,0,0,0	monster	Chung E	1519,25,0,0,0
 //lou_dun03.gat,0,0,0,0	monster	Bacsojin	1518,1,3600000,7200000,0

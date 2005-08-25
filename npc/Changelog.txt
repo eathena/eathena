@@ -28,6 +28,13 @@ TODO:
 
 Date		Added
 ======
+08/25
+	* Updated Louyang spawns according to ep 8.5 by MasterOfMuppets [Lupus]
+	* Updated Lighthalzen Field 03 spawns by MasterOfMuppets [Lupus]
+	* Fixed THQ Shop menu prices, thx to NeatElves [Lupus]
+	* Added Hugel Mob Spawns by MasterOfMuppets [Lupus]
+08/24
+	* Updated refine.txt from Freya [Lupus]
 08/23
 	* Added new Hugel Field Warps by Sara [Lupus]
 	* Updated mobs spawn of magmadun.txt by MasterOfMuppets

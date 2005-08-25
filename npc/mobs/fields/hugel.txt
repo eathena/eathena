@@ -1,0 +1,27 @@
+//===== eAthena Script =======================================
+//= Hugel Field Monster Spawn Script
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 0.1
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Additional Comments: =================================
+//= Spawns for hu_fild05 and hu_fild04, numbers may not be correct [MasterOfMuppets]
+//============================================================
+
+//(hu_fild05.gat)
+hu_fild05.gat,0,0,0,0	monster	Sky Petit	1156,5,60000,30000,0
+hu_fild05.gat,0,0,0,0	monster	Sky Deleter	1384,15,120000,60000,0
+hu_fild05.gat,0,0,0,0	monster	Petit	1992,5,60000,30000,0
+hu_fild05.gat,0,0,0,0	monster	Earth Deleter	1385,5,120000,60000,0
+hu_fild05.gat,0,0,0,0	monster	Earth Deleter	1385,15,0,0,0
+hu_fild05.gat,0,0,0,0	monster	Mutant Dragonoid	1262,1,7200000,3600000,0
+
+//(hu_fild04.gat)
+hu_fild04.gat,0,0,0,0	monster	Sky Petit	1156,5,60000,30000,0
+hu_fild04.gat,0,0,0,0	monster	Sky Deleter	1384,15,120000,60000,0
+hu_fild04.gat,0,0,0,0	monster	Petit	1992,5,60000,30000,0
+hu_fild04.gat,0,0,0,0	monster	Earth Deleter	1385,5,120000,60000,0
+hu_fild04.gat,0,0,0,0	monster	Earth Deleter	1385,15,0,0,0
+hu_fild04.gat,0,0,0,0	monster	Red Plant	1078,10,180000,90000,0
