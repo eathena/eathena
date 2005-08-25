@@ -1467,10 +1467,6 @@ static struct Damage battle_calc_weapon_attack(
 					else if (!sd)
 						skillratio += 80000 / (10 * (16 - skill_lv));
 					break;
-				case CR_ACIDDEMONSTRATION:
-					//TODO: Find the correct damage equation for this skill. [Skotlex]
-					skillratio += wd.div_*(100 + status_get_int(src) + status_get_vit(target))/(tsd?2:1) - 100;
-					break;
 				case TK_DOWNKICK:
 					skillratio += 60 + (20*skill_lv);
 					break;
@@ -2395,6 +2391,13 @@ struct Damage  battle_calc_misc_attack(
 	case PA_PRESSURE:
 		damage=500+300*skill_lv;
 		damagefix=0;
+		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
+		break;
+
+	case CR_ACIDDEMONSTRATION:
+		//FIXME: Find the correct damage equation for this skill. [Skotlex]
+		//Current data are estimates collected by Viccious Pucca.
+		damage = status_get_baseatk(bl) * int_ * status_get_vit(target) / (tsd?20:10);
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
 	}

@@ -1,5 +1,8 @@
 Date	Added
 08/25
+	* Updated Acid Demonstration to be a MISC skill who's damage is (base_Atk *
+	  caster's int * target's vit /10) (half that on players). It's much more
+	  closer to official values than the previous ones... [Skotlex]
 	* Corrected Pressure sapping SP even if you hide from it. [Skotlex]
 	  (isn't Pressure a holy attack from the grand god himself? How can a thief
 	  HIDE from his eyes? o.O)
