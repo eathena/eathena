@@ -123,16 +123,7 @@ static void setsocketopts(int fd)
 static void set_eof(int fd)
 {	//Marks a connection eof and invokes the parse_function to disconnect it right away. [Skotlex]
 	if (session_isActive(fd))
-	{
 		session[fd]->eof=1;
-		if (session[fd]->func_parse)
-			session[fd]->func_parse(fd); //Cleanly end connection.
-		else
-		{	//Manual disconnect...
-			close(fd);
-			delete_session(fd);
-		}
-	}
 }
 
 static int recv_to_fifo(int fd)
@@ -675,7 +666,7 @@ int do_sendrecv(int next)
 
 	for (i = 1; i < fd_max; i++){ //Session 0 is never a valid session, so it's best to skip it. [Skotlex]
 		if(!session[i] && FD_ISSET(i, &readfds)){
-			ShowMessage("force clr fds %d\n", i);
+			ShowDebug("force clr fds %d\n", i);
 			FD_CLR(i, &readfds);
 			continue;
 		}
@@ -717,16 +708,35 @@ int do_sendrecv(int next)
 				if (FD_ISSET(i, &rfd)) {
 					if (session[i]->func_recv)
 						session[i]->func_recv(i);
+#ifdef TURBO
+					if (session[i]->func_parse)
+						session[i]->func_parse(i);
+#endif
 					FD_CLR(i, &rfd);
 				}
+#ifdef TURBO
+				else
+				if ((session[i]->rdata_tick != 0) && ((last_tick - session[i]->rdata_tick) > stall_time)) {
+					ShowDebug("do_sendrecv: Session %d timed out.\n", i);
+					set_eof(i);
+				}
+#endif
 				if (FD_ISSET(i, &efd)) {
 					ShowDebug("do_sendrecv: Connection error on Session %d.\n", i);
 					set_eof(i);
 					FD_CLR(i, &efd);
 				}
+#ifdef TURBO
+				if (session[i] && session[i]->func_parse)
+					session[i]->func_parse(i); //This should close the session inmediately.
+#endif
 			} else {
 				ShowDebug("do_sendrecv: Session #d caused error in select(), disconnecting.\n", i);
 				set_eof(i); // set eof
+#ifdef TURBO
+				if (session[i]->func_parse)
+					session[i]->func_parse(i); //This should close the session inmediately.
+#endif
 				// an error gives invalid values in fd_set structures -> init them again
 				FD_ZERO(&rfd);
 				FD_ZERO(&wfd);
@@ -784,14 +794,7 @@ int do_sendrecv(int next)
 			//ShowMessage("write:%d\n",i);
 			if(session[i]->func_send)
 				session[i]->func_send(i);
-#ifdef TURBO
-			if ((session[i]->rdata_tick != 0) && ((last_tick - session[i]->rdata_tick) > stall_time)) {
-				ShowDebug("do_sendrecv: Session %d timed out.\n", i);
-				set_eof(i);
-				continue;
-			}
 			ret--;
-#endif
 		}
 
 		if(FD_ISSET(i,&rfd)){
@@ -802,6 +805,10 @@ int do_sendrecv(int next)
 			if(session[i]->func_parse)
 				session[i]->func_parse(i);
 			ret--;
+		} else 
+		if ((session[i]->rdata_tick != 0) && ((last_tick - session[i]->rdata_tick) > stall_time)) {
+			ShowDebug("do_sendrecv: Session %d timed out.\n", i);
+			set_eof(i);
 #endif
 		}
 
@@ -813,6 +820,11 @@ int do_sendrecv(int next)
 		}
 
 #ifdef TURBO
+		if(session[i] && session[i]->eof) //The session check is for when the connection ended in func_parse
+		{	//Finally, even if there is no data to parse, connections signalled eof should be closed, so we call parse_func [Skotlex]
+			if (session[i]->func_parse)
+				session[i]->func_parse(i); //This should close the session inmediately.
+		}
 		} // for (j = 0;
 #endif
 	} // for (i = 0

@@ -1692,7 +1692,7 @@ static int clif_delayquit(int tid, unsigned int tick, int id, int data) {
  */
 void clif_quitsave(int fd,struct map_session_data *sd)
 {
-	if (chrif_isconnect() &&
+	if ((chrif_isconnect() || kick_on_disconnect) &&
 		(!battle_config.prevent_logout || gettick() - sd->canlog_tick >= 10000 || pc_isdead(sd)))
 		map_quit(sd);
 	else if (sd->fd)
@@ -8218,7 +8218,7 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
 		return;
 	}
 
-	if (sd->npc_id != 0 || sd->vender_id != 0)
+	if (sd->npc_id != 0 || sd->vender_id != 0 || sd->state.storage_flag)
 		return;
 
 	if (sd->skilltimer != -1 && pc_checkskill(sd, SA_FREECAST) <= 0) // フリーキャスト
@@ -8640,7 +8640,7 @@ void clif_parse_ActionRequest(int fd, struct map_session_data *sd) {
 		clif_clearchar_area(&sd->bl, 1);
 		return;
 	}
-	if (sd->npc_id != 0 || sd->opt1 > 0 || sd->status.option & 2 ||
+	if (sd->npc_id != 0 || sd->opt1 > 0 || sd->status.option & 2 || sd->state.storage_flag ||
 	    (sd->sc_data &&
 	     (sd->sc_data[SC_TRICKDEAD].timer != -1 ||
 		  sd->sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
@@ -9302,7 +9302,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd) {
 
 	nullpo_retv(sd);
 
-	if (sd->chatID || sd->npc_id != 0 || sd->vender_id != 0)
+	if (sd->chatID || sd->npc_id != 0 || sd->vender_id != 0 || sd->state.storage_flag)
 		return;
 
 	skilllv = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]);
@@ -9436,8 +9436,7 @@ void clif_parse_UseSkillToPos(int fd, struct map_session_data *sd) {
 
 	nullpo_retv(sd);
 
-	if (sd->npc_id != 0 || sd->vender_id != 0) return;
-	if (sd->chatID) return;
+	if (sd->npc_id != 0 || sd->vender_id != 0 || sd->chatID || sd->state.storage_flag) return;
 
 	clif_parse_UseSkillToPosSub(fd, sd,
 		RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]), //skill lv
@@ -9452,8 +9451,7 @@ void clif_parse_UseSkillToPosMoreInfo(int fd, struct map_session_data *sd) {
 
 	nullpo_retv(sd);
 
-	if (sd->npc_id != 0 || sd->vender_id != 0) return;
-	if (sd->chatID) return;
+	if (sd->npc_id != 0 || sd->vender_id != 0 || sd->chatID || sd->state.storage_flag) return;
 
 	clif_parse_UseSkillToPosSub(fd, sd,
 		RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0]), //Skill lv
@@ -9686,18 +9684,18 @@ void clif_parse_MoveToKafra(int fd, struct map_session_data *sd) {
 
 	nullpo_retv(sd);
 
-	if (sd->npc_id != 0 || sd->vender_id != 0)
+	if (sd->npc_id != 0 || sd->vender_id != 0 || !sd->state.storage_flag)
 		return;
-
+	
 	item_index = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])-2;
 	item_amount = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
 	if (item_index < 0 || item_index >= MAX_INVENTORY)
 		return;
 
-	if (sd->state.storage_flag)
-		storage_guild_storageadd(sd, item_index, item_amount);
-	else
+	if (sd->state.storage_flag == 1)
 		storage_storageadd(sd, item_index, item_amount);
+	else if (sd->state.storage_flag == 2)
+		storage_guild_storageadd(sd, item_index, item_amount);
 }
 
 /*==========================================
@@ -9709,15 +9707,16 @@ void clif_parse_MoveFromKafra(int fd,struct map_session_data *sd) {
 
 	nullpo_retv(sd);
 
+	if (sd->npc_id != 0 || sd->vender_id != 0 || !sd->state.storage_flag)
+		return;
+	
 	item_index = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])-1;
 	item_amount = RFIFOL(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
-	if (sd->npc_id != 0 || sd->vender_id != 0)
-		return;
 
-	if (sd->state.storage_flag)
-		storage_guild_storageget(sd, item_index, item_amount);
-	else
+	if (sd->state.storage_flag == 1)
 		storage_storageget(sd, item_index, item_amount);
+	else if(sd->state.storage_flag == 2)
+		storage_guild_storageget(sd, item_index, item_amount);
 }
 
 /*==========================================
@@ -9727,13 +9726,13 @@ void clif_parse_MoveFromKafra(int fd,struct map_session_data *sd) {
 void clif_parse_MoveToKafraFromCart(int fd, struct map_session_data *sd) {
 	nullpo_retv(sd);
 
-	if (sd->npc_id != 0 || sd->vender_id != 0 || sd->trade_partner != 0)
+	if (sd->npc_id != 0 || sd->vender_id != 0 || sd->trade_partner != 0 || !sd->state.storage_flag)
 		return;
 
-	if (sd->state.storage_flag)
-		storage_guild_storageaddfromcart(sd, RFIFOW(fd,2) - 2, RFIFOL(fd,4));
-	else
+	if (sd->state.storage_flag == 1)
 		storage_storageaddfromcart(sd, RFIFOW(fd,2) - 2, RFIFOL(fd,4));
+	else	if (sd->state.storage_flag == 2)
+		storage_guild_storageaddfromcart(sd, RFIFOW(fd,2) - 2, RFIFOL(fd,4));
 }
 
 /*==========================================
@@ -9743,12 +9742,12 @@ void clif_parse_MoveToKafraFromCart(int fd, struct map_session_data *sd) {
 void clif_parse_MoveFromKafraToCart(int fd, struct map_session_data *sd) {
 	nullpo_retv(sd);
 
-	if (sd->npc_id != 0 || sd->vender_id != 0)
+	if (sd->npc_id != 0 || sd->vender_id != 0 || !sd->state.storage_flag)
 		return;
-	if (sd->state.storage_flag)
-		storage_guild_storagegettocart(sd, RFIFOW(fd,2)-1, RFIFOL(fd,4));
-	else
+	if (sd->state.storage_flag == 1)
 		storage_storagegettocart(sd, RFIFOW(fd,2)-1, RFIFOL(fd,4));
+	else if (sd->state.storage_flag == 2)
+		storage_guild_storagegettocart(sd, RFIFOW(fd,2)-1, RFIFOL(fd,4));
 }
 
 /*==========================================
@@ -9758,10 +9757,10 @@ void clif_parse_MoveFromKafraToCart(int fd, struct map_session_data *sd) {
 void clif_parse_CloseKafra(int fd, struct map_session_data *sd) {
 	nullpo_retv(sd);
 
-	if (sd->state.storage_flag)
-		storage_guild_storageclose(sd);
-	else
+	if (sd->state.storage_flag == 1)
 		storage_storageclose(sd);
+	else if (sd->state.storage_flag == 2)
+		storage_guild_storageclose(sd);
 }
 
 /*==========================================

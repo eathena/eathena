@@ -9,7 +9,8 @@
 #define CART_MASK 0x788
 #define STATE_BLIND 0x10
 
-#define MAX_SKILL_TREE 51
+//Update this max as necessary. 53 is the value needed for Super Baby currently
+#define MAX_SKILL_TREE 53
 
 #define pc_setdead(sd) ((sd)->state.dead_sit = 1)
 #define pc_setsit(sd) ((sd)->state.dead_sit = 2)

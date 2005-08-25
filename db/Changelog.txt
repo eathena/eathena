@@ -15,6 +15,10 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance??
 
+08/25
+	* Updated Demonstration to not stack and not be placeable near enemies. [Skotlex]
+	* Updated max number of spider webs to 3. [Skotlex]
+	* Updated Full Strip's casting time to 0. [Skotlex]
 08/24
 	* Updated Shield Chain's cool-down to 1 sec. [Skotlex]
 	* Updated summon spirit sphere's casting time to 1sec (all over the place

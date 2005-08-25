@@ -2912,10 +2912,10 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 		chat_leavechat(sd);
 	if(sd->trade_partner)	// 取引を中?する
 		trade_tradecancel(sd);
-	if(sd->state.storage_flag)
-		storage_guild_storage_quit(sd,0);
-	else
+	if(sd->state.storage_flag == 1)
 		storage_storage_quit(sd);	// 倉庫を開いてるなら保存する
+	else if (sd->state.storage_flag == 2)
+		storage_guild_storage_quit(sd,0);
 
 	if(sd->party_invite>0)	// パ?ティ?誘を拒否する
 		party_reply_invite(sd,sd->party_invite_account,0);
@@ -3008,12 +3008,20 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 				sd->bl.y=y;
 				sd->state.waitingdisconnect=1;
 				pc_clean_skilltree(sd);
-				pc_makesavestatus(sd);
+
 				if(sd->status.pet_id > 0 && sd->pd)
 					intif_save_petdata(sd->status.account_id,&sd->pet);
-				chrif_save(sd);
-				storage_storage_save(sd);
-				storage_delete(sd->status.account_id);
+				//The storage close routines save the char data. [Skotlex]
+				if (!sd->state.storage_flag)
+					chrif_save(sd);
+				else if (sd->state.storage_flag == 1)
+				{
+					storage_storageclose(sd);
+					storage_delete(sd->status.account_id);
+				}
+				else if (sd->state.storage_flag == 2)
+					storage_guild_storageclose(sd);
+					
 				chrif_changemapserver(sd, mapname, x, y, ip, (short)port);
 				return 0;
 			}
@@ -3055,9 +3063,14 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 				if(battle_config.pet_status_support)
 					status_calc_pc(sd,2);
 				pc_clean_skilltree(sd);
-				pc_makesavestatus(sd);
-				chrif_save(sd);
-				storage_storage_save(sd);
+
+				//The storage functions will save the char. [Skotlex]
+				if (!sd->state.storage_flag)
+					chrif_save(sd);
+				else if (sd->state.storage_flag == 1)
+					storage_storageclose(sd);
+				else if (sd->state.storage_flag == 2)
+					storage_guild_storageclose(sd);
 			}
 			else if(sd->pet.intimate > 0) {
 				pet_stopattack(sd->pd);
@@ -5523,8 +5536,8 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	if(pc_isriding(sd)) {	// remove peco status if changing into invalid class [Valaris]
 		if(!(pc_checkskill(sd,KN_RIDING)))
 			pc_setoption(sd,sd->status.option|-0x0000);
-		if(pc_checkskill(sd,KN_RIDING)>0)
-			 pc_setriding(sd);
+		else
+			pc_setriding(sd);
 	}
 
 	return 0;
@@ -7170,20 +7183,13 @@ static int pc_autosave_sub(struct map_session_data *sd,va_list ap)
 
 	Assert((sd->status.pet_id == 0 || sd->pd == 0) || sd->pd->msd == sd);
 
-	if(save_flag==0 && sd->fd>last_save_fd && !sd->state.waitingdisconnect){
-
-//		if(battle_config.save_log)
-//			printf("autosave %d\n",sd->fd);
+	if(save_flag==0 && sd->fd>last_save_fd && !sd->state.waitingdisconnect)
+	{
 		// pet
 		if(sd->status.pet_id > 0 && sd->pd)
 			intif_save_petdata(sd->status.account_id,&sd->pet);
-		pc_makesavestatus(sd);
-		chrif_save(sd);
-		storage_storage_dirty(sd);
-		storage_storage_save(sd);
-		if(sd->state.storage_flag)
-			storage_guild_storagesave(sd);
 
+		chrif_save(sd);
 		save_flag=1;
 		last_save_fd = sd->fd;
 	}
@@ -7428,7 +7434,10 @@ int pc_readdb(void)
 		k = atoi(split[1]); //This is to avoid adding two lines for the same skill. [Skotlex]
 		for(j = 0; j < MAX_SKILL_TREE && skill_tree[atoi(split[0])][j].id && skill_tree[atoi(split[0])][j].id != k; j++);
 		if (j == MAX_SKILL_TREE)
+		{
+			ShowWarning("Unable to load skill %d into job %d's tree. Maximum number of skills per class has been reached.\n", k, atoi(split[0]));
 			continue;
+		}
 		skill_tree[atoi(split[0])][j].id=k;
 		skill_tree[atoi(split[0])][j].max=atoi(split[2]);
 		if (f) skill_tree[atoi(split[0])][j].joblv=atoi(split[3]);

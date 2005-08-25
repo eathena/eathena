@@ -36,3 +36,7 @@ use, and notifies the map server when said max has changed (using packet
 players. The initial values for said max are DEFAULT_MAX_ACCOUNT_ID and
 DEFAULT_MAX_CHAR_ID (which give room for 10K accounts and 100K players before
 it needs to be updated) [Skotlex]
+
+August 25
+struct guild_storage got added the "dirty" entry to know when to save it
+(shouldn't affect save/load, though). [Skotlex]

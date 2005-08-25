@@ -2216,7 +2216,7 @@ int status_get_atk(struct block_list *bl)
 		}
 		if(sc_data) {
 			if(sc_data[SC_PROVOKE].timer!=-1)
-				atk += atk * 2*sc_data[SC_PROVOKE].val1/100;
+				atk += atk * (2+3*sc_data[SC_PROVOKE].val1)/100;
 			if(sc_data[SC_CURSE].timer!=-1)
 				atk -= atk * 25/100;
 			if(sc_data[SC_CONCENTRATION].timer!=-1) //コンセントレーション
@@ -2386,53 +2386,52 @@ int status_get_def(struct block_list *bl)
 	else if(bl->type==BL_PET && (struct pet_data *)bl)
 		def = ((struct pet_data *)bl)->db->def;
 
-	if(def < 1000000) {
-		if(sc_data) {
-			//凍結、石化時は右シフト
-			if(sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2 == 0))
-				def >>= 1;
-			if (bl->type != BL_PC) {
-				//キーピング時はDEF100
-				if( sc_data[SC_KEEPING].timer!=-1)
-					def = 100;
-				//プロボック時は減算
-				if( sc_data[SC_PROVOKE].timer!=-1)
-					def -= def*(5+5*sc_data[SC_PROVOKE].val1)/100;
-				//戦太鼓の響き時は加算
-				if( sc_data[SC_DRUMBATTLE].timer!=-1)
-					def += sc_data[SC_DRUMBATTLE].val3;
-				//毒にかかっている時は減算
-				if(sc_data[SC_POISON].timer!=-1)
-					def = def*75/100;
-				//ストリップシールド時は減算
-				if(sc_data[SC_STRIPSHIELD].timer!=-1)
-					def = def*sc_data[SC_STRIPSHIELD].val2/100;
-				//シグナムクルシス時は減算
-				if(sc_data[SC_SIGNUMCRUCIS].timer!=-1)
-					def -= def * (10+4*sc_data[SC_SIGNUMCRUCIS].val2)/100;
-				//永遠の混沌時はDEF0になる
-				if(sc_data[SC_ETERNALCHAOS].timer!=-1)
-					def = 0;
-				//コンセントレーション時は減算
-				if( sc_data[SC_CONCENTRATION].timer!=-1)
-					def = (def*(100 - 5*sc_data[SC_CONCENTRATION].val1))/100;
-				if(sc_data[SC_JOINTBEAT].timer!=-1) {
-					if (sc_data[SC_JOINTBEAT].val2 == 3)
-						def -= def*50/100;
-					else if (sc_data[SC_JOINTBEAT].val2 == 4)
-						def -= def*25/100;
-				}
-				if(sc_data[SC_INCDEF2].timer!=-1)
-					def += def * sc_data[SC_INCDEF2].val1 / 100;
+	if(sc_data) {
+		//凍結、石化時は右シフト
+		if(sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2 == 0))
+			def >>= 1;
+		if (bl->type != BL_PC) {
+			//キーピング時はDEF100
+			if( sc_data[SC_KEEPING].timer!=-1)
+				def = 100;
+			//プロボック時は減算
+			if( sc_data[SC_PROVOKE].timer!=-1)
+				def -= def*(5+5*sc_data[SC_PROVOKE].val1)/100;
+			//戦太鼓の響き時は加算
+			if( sc_data[SC_DRUMBATTLE].timer!=-1)
+				def += sc_data[SC_DRUMBATTLE].val3;
+			//毒にかかっている時は減算
+			if(sc_data[SC_POISON].timer!=-1)
+				def = def*75/100;
+			//ストリップシールド時は減算
+			if(sc_data[SC_STRIPSHIELD].timer!=-1)
+				def = def*sc_data[SC_STRIPSHIELD].val2/100;
+			//シグナムクルシス時は減算
+			if(sc_data[SC_SIGNUMCRUCIS].timer!=-1)
+				def -= def * (10+4*sc_data[SC_SIGNUMCRUCIS].val2)/100;
+			//永遠の混沌時はDEF0になる
+			if(sc_data[SC_ETERNALCHAOS].timer!=-1)
+				def = 0;
+			//コンセントレーション時は減算
+			if( sc_data[SC_CONCENTRATION].timer!=-1)
+				def = (def*(100 - 5*sc_data[SC_CONCENTRATION].val1))/100;
+			if(sc_data[SC_JOINTBEAT].timer!=-1) {
+				if (sc_data[SC_JOINTBEAT].val2 == 3)
+					def -= def*50/100;
+				else if (sc_data[SC_JOINTBEAT].val2 == 4)
+					def -= def*25/100;
 			}
-		}
-		//詠唱中は詠唱時減算率に基づいて減算
-		if(skilltimer != -1) {
-			int def_rate = skill_get_castdef(skillid);
-			if(def_rate != 0)
-				def = (def * (100 - def_rate))/100;
+			if(sc_data[SC_INCDEF2].timer!=-1)
+				def += def * sc_data[SC_INCDEF2].val1 / 100;
 		}
 	}
+	//詠唱中は詠唱時減算率に基づいて減算
+	if(skilltimer != -1) {
+		int def_rate = skill_get_castdef(skillid);
+		if(def_rate != 0)
+			def = (def * (100 - def_rate))/100;
+	}
+	
 	if(def < 0) def = 0;
 	return def;
 }
@@ -2455,17 +2454,15 @@ int status_get_mdef(struct block_list *bl)
 	else if(bl->type==BL_PET && (struct pet_data *)bl)
 		mdef = ((struct pet_data *)bl)->db->mdef;
 
-	if(mdef < 1000000) {
-		if(sc_data) {
-			//バリアー状態時はMDEF100
-			if(sc_data[SC_BARRIER].timer != -1)
-				mdef = 100;
-			//凍結、石化時は1.25倍
-			if(sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2 == 0))
-				mdef = mdef*125/100;
-			if( sc_data[SC_MINDBREAKER].timer!=-1 && bl->type != BL_PC)
-				mdef -= mdef*(12*sc_data[SC_MINDBREAKER].val1)/100;
-		}
+	if(sc_data) {
+		//バリアー状態時はMDEF100
+		if(sc_data[SC_BARRIER].timer != -1)
+			mdef = 100;
+		//凍結、石化時は1.25倍
+		if(sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2 == 0))
+			mdef = mdef*125/100;
+		if( sc_data[SC_MINDBREAKER].timer!=-1 && bl->type != BL_PC)
+			mdef -= mdef*(12*sc_data[SC_MINDBREAKER].val1)/100;
 	}
 	if(mdef < 0) mdef = 0;
 	return mdef;

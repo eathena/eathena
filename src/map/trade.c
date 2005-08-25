@@ -66,7 +66,6 @@ void trade_traderequest(struct map_session_data *sd, int target_id) {
  */
 void trade_tradeack(struct map_session_data *sd, int type) {
 	struct map_session_data *target_sd;
-	struct storage *stor;
 	nullpo_retv(sd);
 
 	if ((target_sd = map_id2sd(sd->trade_partner)) != NULL) {
@@ -97,13 +96,10 @@ void trade_tradeack(struct map_session_data *sd, int type) {
 			npc_event_dequeue(target_sd);
 
 		//close STORAGE window if it's open. It protects from spooffing packets [Lupus]
-		stor=account2storage2(sd->status.account_id);
-		if(stor!=NULL && stor->storage_status == 1) {
-			if (sd->state.storage_flag) //is it Guild Storage or Common
-				storage_guild_storageclose(sd);
-			else
-				storage_storageclose(sd);
-		}//END OF STORAGE CLOSE
+		if (sd->state.storage_flag == 1)
+			storage_storageclose(sd);
+		else if (sd->state.storage_flag == 2)
+			storage_guild_storageclose(sd);
 	}
 }
 

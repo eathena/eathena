@@ -721,8 +721,6 @@ static struct Damage battle_calc_weapon_attack(
 	struct pet_data *pd=NULL;//, *tpd=NULL; (Noone can target pets)
 	struct Damage wd;
 	short skill=0;
-	//Not very efficient, but it's the way to implement auto skills with minimum changes
-	//(or would I best modify struct Damage to hold the skill info as well?) [Skotlex].
 	unsigned short skillratio = 100;	//Skill dmg modifiers.
 
 	short i;
@@ -737,7 +735,7 @@ static struct Damage battle_calc_weapon_attack(
 		unsigned cri : 1;		//Critical hit
 		unsigned idef : 1;	//Ignore defense
 		unsigned idef2 : 1;	//Ignore defense (left weapon)
-		unsigned infdef : 1;	//Infinite defense (plants?)
+		unsigned infdef : 1;	//Infinite defense (plants)
 		unsigned arrow : 1;	//Attack is arrow-based
 		unsigned rh : 1;		//Attack considers right hand (wd.damage)
 		unsigned lh : 1;		//Attack considers left hand (wd.damage2)
@@ -755,6 +753,7 @@ static struct Damage battle_calc_weapon_attack(
 	//Initial flag
 	flag.rh=1;
 	flag.cardfix=1;
+	flag.infdef=(t_mode&0x40);
 
 	//Initial Values
 	wd.type=0; //Normal attack
@@ -1071,7 +1070,7 @@ static struct Damage battle_calc_weapon_attack(
 	if(tsd && tsd->special_state.no_weapon_damage && skill_num != CR_GRANDCROSS)	
 		return wd;
 
-	if (flag.hit && !(t_mode&0x40)) //No need to do the math for plants
+	if (flag.hit && !flag.infdef) //No need to do the math for plants
 	{	//Hitting attack
 
 //Assuming that 99% of the cases we will not need to check for the flag.rh... we don't.
@@ -1085,8 +1084,6 @@ static struct Damage battle_calc_weapon_attack(
 #define ATK_ADD( a ) { wd.damage+= a; if (flag.lh) wd.damage2+= a; }
 #define ATK_ADD2( a , b ) { wd.damage+= a; if (flag.lh) wd.damage2+= b; }
 
-		if (status_get_def(target) >= 1000000)
-			flag.infdef =1;
 		def1 = status_get_def(target);
 		def2 = status_get_def2(target);
 		
@@ -1383,11 +1380,8 @@ static struct Damage battle_calc_weapon_attack(
 						skillratio+= 25 + 25 * skill_lv;
 					break;
 				case MO_INVESTIGATE:
-					if (!flag.infdef)
-					{
-						skillratio+=75*skill_lv;
-						ATK_RATE(2*(def1 + def2));
-					}
+					skillratio+=75*skill_lv;
+					ATK_RATE(2*(def1 + def2));
 					flag.idef= flag.idef2= 1;
 					break;
 				case MO_EXTREMITYFIST:
@@ -1461,7 +1455,7 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case PA_SACRIFICE:
 					//40% less effective on siege maps. [Skotlex]	
-					skillratio+= 10*skill_lv -map[src->m].flag.gvg?50:10;
+					skillratio+= 10*skill_lv -(map[src->m].flag.gvg)?50:10;
 					flag.idef = flag.idef2 = 1;
 					break;
 				case PA_SHIELDCHAIN:
@@ -1474,23 +1468,24 @@ static struct Damage battle_calc_weapon_attack(
 						skillratio += 80000 / (10 * (16 - skill_lv));
 					break;
 				case CR_ACIDDEMONSTRATION:
-					skillratio += wd.div_*100 - 100;
+					//TODO: Find the correct damage equation for this skill. [Skotlex]
+					skillratio += wd.div_*(100 + status_get_int(src) + status_get_vit(target))/(tsd?2:1) - 100;
 					break;
 				case TK_DOWNKICK:
-				    skillratio = 160 + (20*skill_lv);
-				    break;
- 			    case TK_STORMKICK:
- 			        skillratio = 160 + (20*skill_lv);
- 			        break;
-    			case TK_TURNKICK:
-    			    skillratio = 190 + (30*skill_lv);
-    			    break;
-			    case TK_COUNTER:
-			        skillratio = 190 + (30*skill_lv);
-			        break;
-       			case TK_JUMPKICK:
-       			    skillratio = 30 + (10*skill_lv);
-       			    break;
+					skillratio += 60 + (20*skill_lv);
+					break;
+				case TK_STORMKICK:
+					skillratio += 60 + (20*skill_lv);
+					break;
+				case TK_TURNKICK:
+					skillratio += 90 + (30*skill_lv);
+					break;
+				case TK_COUNTER:
+					skillratio += 90 + (30*skill_lv);
+					break;
+				case TK_JUMPKICK:
+					skillratio += -70 + (10*skill_lv);
+					break;
         	}
 
 			if (sd && sd->skillatk[0] != 0)
@@ -1537,7 +1532,7 @@ static struct Damage battle_calc_weapon_attack(
 
 		if(sd)
 		{
-			if (skill_num != PA_SACRIFICE && skill_num != MO_INVESTIGATE && !flag.cri && !flag.infdef)
+			if (skill_num != PA_SACRIFICE && skill_num != MO_INVESTIGATE && !flag.cri)
 			{	//Elemental/Racial adjustments
 				char raceele_flag=0, raceele_flag_=0;
 				if(sd->right_weapon.def_ratio_atk_ele & (1<<t_ele) ||
@@ -1574,7 +1569,7 @@ static struct Damage battle_calc_weapon_attack(
 				flag.idef2 = 1;
 		}
 
-		if (!flag.infdef && (!flag.idef || !flag.idef2))
+		if (!flag.idef || !flag.idef2)
 		{	//Defense reduction
 			short vit_def;
 			if(battle_config.vit_penalty_type)
@@ -1786,7 +1781,7 @@ static struct Damage battle_calc_weapon_attack(
 			ATK_RATE(scfix/10);
    }
 
-	if(t_mode&0x40)
+	if(flag.infdef)
 	{ //Plants receive 1 damage when hit
 		if (flag.rh && (flag.hit || wd.damage>0))
 			wd.damage = 1;
@@ -2074,8 +2069,7 @@ struct Damage battle_calc_magic_attack(
 			skillratio+= (100+skill_lv*10)*2/3-100;
 			break;
 		case WZ_FIREPILLAR:	// ファイヤーピラー
-			if(mdef1 < 1000000)
-				mdef1=mdef2=0;	// MDEF無視
+			mdef1=mdef2=0;	// MDEF無視
 			skillratio-= 80;
 			break;
 		case WZ_SIGHTRASHER:
@@ -2248,8 +2242,8 @@ struct Damage battle_calc_magic_attack(
 	if(div_>1 && skill_num != WZ_VERMILION)
 		damage*=div_;
 
-	if(t_mode&0x40 && damage > 0)
-		damage = 1;
+	if(t_mode&0x40 && damage > 0) //Ishizu pointed out that magical attacks do as much damage as their div on plants. [Skotlex]
+		damage = div_;
 
 	if(is_boss(target))
 		blewcount = 0;
@@ -2434,9 +2428,8 @@ struct Damage  battle_calc_misc_attack(
 	if(div_>1)
 		damage*=div_;
 
-	if(damage > 0 && (damage < div_ || (status_get_def(target) >= 1000000 && status_get_mdef(target) >= 1000000) ) ) {
+	if(damage > 0 && damage < div_)
 		damage = div_;
-	}
 
 	if(t_mode&0x40 && damage>0 && skill_num != PA_PRESSURE)
 		damage = 1;
@@ -2465,7 +2458,7 @@ struct Damage battle_calc_attack(	int attack_type,
 {
 	struct Damage d;
 	switch(attack_type){
-	case BF_WEAPON: //Skill_num is passed as a pointer to update it when the thing changes to Triple Blows, for example. [Skotlex]
+	case BF_WEAPON:
 		d = battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
 		break;
 	case BF_MAGIC:
@@ -2979,12 +2972,12 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	else if (state&BCT_ENEMY && state&(BCT_SELF|BCT_PARTY|BCT_GUILD))
 		state&=~BCT_ENEMY;
 
-	if (t_bl->type == BL_MOB && (struct mob_data*)t_bl)
+	if (target->type == BL_MOB && (struct mob_data*)target)
 	{
-		if (((struct mob_data*)t_bl)->state.special_mob_ai==2 && src->type == BL_PC && ((struct mob_data*)t_bl)->master_id == src->id)
+		if (((struct mob_data*)target)->state.special_mob_ai==2 && src->type == BL_PC && ((struct mob_data*)target)->master_id == src->id)
 			state|=BCT_ENEMY; //Let the Alchemist hit their own sphere mine.
 		else if (state & BCT_ENEMY && s_bl->type == BL_MOB && (struct mob_data*)s_bl &&
-			((struct mob_data*)s_bl)->state.special_mob_ai==0 && ((struct mob_data*)t_bl)->state.special_mob_ai==0)
+			((struct mob_data*)s_bl)->state.special_mob_ai==0 && ((struct mob_data*)target)->state.special_mob_ai==0)
 			//Do not let mobs target each other.
 			state&=~BCT_ENEMY;
 	}

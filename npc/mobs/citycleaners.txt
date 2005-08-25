@@ -16,7 +16,7 @@ geffen.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
 izlude.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
 payon.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
 alberta.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
-morroc.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
+morocc.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
 comodo.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
 yuno.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0
 aldebaran.gat,0,0,0,0	monster	Wild Rose	1261,1,1,3600000,0

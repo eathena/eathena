@@ -898,7 +898,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case HT_SHOCKWAVE:				//it can't affect mobs, because they have no SP...
-		if( bl->type == BL_PC && dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg) ){
+		if(dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg) ){
 			dstsd->status.sp -= dstsd->status.sp*(15*skilllv+5)/100;
 			status_calc_pc(dstsd,0);
 		}
@@ -945,9 +945,33 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		}
 		break;
 
+	case AM_DEMONSTRATION:
+		if (dstsd && rand()%100 * battle_config.equip_skill_break_rate/100 < skilllv)
+			pc_breakweapon(dstsd);
+		break;
+		
 	case CR_SHIELDCHARGE:		/* シ?ルドチャ?ジ */
 		if( rand()%100 < (15 + skilllv*5)*sc_def_vit/100 )
 			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
+		break;
+
+	case PA_PRESSURE:	/* プレッシャ? */
+		{
+			/* Official servers seem to indicate this causes neither stun nor bleeding. [Skotlex]
+			int race = status_get_race(bl);
+			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
+			if (bleed_time < 60000)
+				bleed_time = 60000;	// minimum time for pressure is?
+			if (rand()%100 < 50 * sc_def_vit / 100)	// is chance 50%?
+				status_change_start(bl, SC_STAN, skilllv, 0, 0, 0, skill_get_time2(PA_PRESSURE,skilllv), 0);
+			if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit / 100)
+				status_change_start(bl, SC_BLEEDING, skilllv, 0, 0, 0, bleed_time, 0);
+				*/
+			if (dstsd) {
+				dstsd->status.sp -= dstsd->status.sp * (15 + 5 * skilllv) / 100;
+				clif_updatestatus(dstsd,SP_SP);
+			}
+		}
 		break;
 
 	case RG_RAID:		/* サプライズアタック */
@@ -1094,10 +1118,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	case CR_ACIDDEMONSTRATION:
 		if (dstsd) {
-			if (rand() % 100 < skilllv)
+			if ((rand() % 100) * battle_config.equip_skill_break_rate/100  < skilllv)
 				pc_breakweapon(dstsd);
 			// separate chances?
-			if (rand() % 100 < skilllv)
+			if ((rand() % 100) * battle_config.equip_skill_break_rate/100 < skilllv)
 				pc_breakarmor(dstsd);
 		}
 		break;
@@ -2511,25 +2535,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 					BF_WEAPON,src,src,skillid,skilllv,tick,flag,BCT_ENEMY);	// varargs		
 		break;
 
-	case PA_PRESSURE:	/* プレッシャ? */
-		{
-			int race = status_get_race(bl);
-			int sc_def_vit = status_get_sc_def_vit(bl);
-			int bleed_time = skill_get_time2(skillid,skilllv) - status_get_vit(bl) * 1000;
-			if (bleed_time < 60000)
-				bleed_time = 60000;	// minimum time for pressure is?
-			skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
-			if (rand()%100 < 50 * sc_def_vit / 100)	// is chance 50%?
-				status_change_start(bl, SC_STAN, skilllv, 0, 0, 0, skill_get_time2(PA_PRESSURE,skilllv), 0);
-			else if (!(battle_check_undead(race, status_get_elem_type(bl)) || race == 6) && rand()%100 < 50 * sc_def_vit / 100)
-				status_change_start(bl, SC_BLEEDING, skilllv, 0, 0, 0, bleed_time, 0);
-			if (tsd) {
-				tsd->status.sp -= tsd->status.sp * (15 + 5 * skilllv) / 100;
-				clif_updatestatus(tsd,SP_SP);
-			}
-		}
-		break;
-
 	case NPC_DARKBREATH:
 		clif_emotion(src,7);
 		skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
@@ -2542,6 +2547,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		break;
 
 	case SN_FALCONASSAULT:			/* ファルコンアサルト */
+	case PA_PRESSURE:	/* プレッシャ? */
 		skill_attack(BF_MISC,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 
@@ -6331,6 +6337,10 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 		status_change_start(bl,type,sg->skill_lv,5*sg->skill_lv,BCT_ENEMY,sg->group_id,
 			skill_get_time2(sg->skill_id,sg->skill_lv),0);
 		break;
+	
+	case UNT_ICEWALL: //To avoid having chars stuck inside an icewall, push them out. [Skotlex]
+		skill_blown(ss,bl,1,1);
+		break;
 	}
 
 	return 0;
@@ -6565,9 +6575,6 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	case UNT_DEMONSTRATION:
 		skill_attack(BF_WEAPON, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
-		if (bl->type == BL_PC &&
-			rand()%100 * battle_config.equip_skill_break_rate/100 < sg->skill_lv )
-			pc_breakweapon((struct map_session_data *)bl);
 		break;
 
 	case UNT_GOSPEL:

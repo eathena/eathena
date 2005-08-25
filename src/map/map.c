@@ -1527,10 +1527,10 @@ int map_quit(struct map_session_data *sd) {
 
 		pc_cleareventtimer(sd);	// イベントタイマを破棄する
 
-		if(sd->state.storage_flag)
-			storage_guild_storage_quit(sd,0);
-		else
+		if(sd->state.storage_flag == 1)
 			storage_storage_quit(sd);	// 倉庫を開いてるなら保存する
+		else if(sd->state.storage_flag == 2)
+			storage_guild_storage_quit(sd,0);
 
 		// check if we've been authenticated [celest]
 		if (sd->state.auth)
@@ -1581,10 +1581,15 @@ int map_quit(struct map_session_data *sd) {
 			pc_setrestartvalue(sd,2);
 
 		pc_clean_skilltree(sd);
-		pc_makesavestatus(sd);
-		chrif_save(sd);
-		storage_storage_dirty(sd);
-		storage_storage_save(sd);
+
+		//The storage closing routines will save the char if needed. [Skotlex]
+		if (!sd->state.storage_flag)
+			chrif_save(sd);
+		else if (sd->state.storage_flag == 1)
+			storage_storageclose(sd);
+		else if (sd->state.storage_flag == 2)
+			storage_guild_storageclose(sd);
+
 		map_delblock(&sd->bl);
 	}
 

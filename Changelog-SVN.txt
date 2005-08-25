@@ -1,5 +1,26 @@
 Date	Added
+08/25
+	* Corrected Pressure sapping SP even if you hide from it. [Skotlex]
+	  (isn't Pressure a holy attack from the grand god himself? How can a thief
+	  HIDE from his eyes? o.O)
+	* Updated Acid Demonstration damage formula. It's still wrong, but at least
+	  it considers int and vit now. [Skotlex]
+	  Current dummy formula: (100 + caster's int + target's vit)*(number of hits)%
 08/24
+	* Updated pet skills database. [Skotlex]
+	* Some corrections to socket.c, should stop all the recent crashing... [Skotlex]
+	* Added a case to knockback enemies if they somehow end up stepping into an
+	  ice wall tile [Skotlex]
+	* Added checks to prevent walking, attacking or using skills while the
+	  storage is open. [Skotlex]
+	* Added Lupus's mob skills for Einbroch mobs [Skotlex]
+	* (almost) rewrite of the storage system. [Skotlex]
+	  Storages are marked dirty after an item is stored/retrieved from them and
+	  will not be marked clean until the char-server acks the save request.
+	  Upon map-server reconnection to the char, all storages that are currently
+	  closed and dirty are saved.
+	* Synched chrif_save with the storage save functions when either one is
+	  open to further prevent exploits. [Skotlex]
 	* Updated the mob_skill_db with Komurka's translation (Aegis -> eA) [Skotlex]
 	  The max permilliage (rate) is now 10000 = 100%
 	* Various mob related summon/metamorphosis changes: [Skotlex]

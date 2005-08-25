@@ -1346,29 +1346,30 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 
 	nullpo_retr(0, md);
 
-	if((bl=map_id2bl(md->master_id)) != NULL )
+	if((bl=map_id2bl(md->master_id)) != NULL && bl->type == BL_MOB)
 		mmd=(struct mob_data *)bl;
 
 	mode=md->db->mode;
 
-	if (!mmd || mmd->hp <= 0) {	//Žå‚ªŽ€–S‚µ‚Ä‚¢‚é‚©Œ©‚Â‚©‚ç‚È‚¢
+	if (!bl || (mmd && mmd->hp <= 0)) {	//Žå‚ªŽ€–S‚µ‚Ä‚¢‚é‚©Œ©‚Â‚©‚ç‚È‚¢
 		if(md->state.special_mob_ai>0)
 			mob_timer_delete(0, 0, md->bl.id, 0);
 		else
 			mob_damage(NULL,md,md->hp,0,0);
 		return 0;
 	}
+/* //Unneeded check.
 	if(md->state.special_mob_ai>0)		// Žå‚ªPC‚Ìê‡‚ÍAˆÈ~‚Ìˆ—‚Í—v‚ç‚È‚¢
 		return 0;
 
 	// It is not main monster/leader.
-	if (mmd->bl.type != BL_MOB || mmd->bl.id != md->master_id)
+	if (bl->type != BL_MOB || bl->id != md->master_id)
 		return 0;
-
+*/
 	// ŒÄ‚Ñ–ß‚µ
-	if(mmd->recall_flag == 1){
+	if(mmd && mmd->recall_flag == 1){
 		if (mmd->recallcount < (mmd->recallmob_count+2) ){
-			mob_warp(md,-1,mmd->bl.x,mmd->bl.y,3);
+			mob_warp(md,-1,bl->x,bl->y,3);
 			mmd->recallcount += 1;
 		} else{
 			mmd->recall_flag = 0;
@@ -1377,68 +1378,73 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		md->state.master_check = 1;
 		return 0;
 	}
-	// Since it is in the map on which the master is not, teleport is carried out and it pursues.
-	if( mmd->bl.m != md->bl.m ){
-		mob_warp(md,mmd->bl.m,mmd->bl.x,mmd->bl.y,3);
-		md->state.master_check = 1;
-		return 0;
-	}
 
-	// Distance with between slave and master is measured.
-	old_dist=md->master_dist;
-	md->master_dist=distance(md->bl.x,md->bl.y,mmd->bl.x,mmd->bl.y);
+	if(mode&0x01)
+	{	//If the mob can move, follow around. [Check by Skotlex]
+		// Since it is in the map on which the master is not, teleport is carried out and it pursues.
 
-	// Since the master was in near immediately before, teleport is carried out and it pursues.
-	if( old_dist<10 && md->master_dist>18){
-		mob_warp(md,-1,mmd->bl.x,mmd->bl.y,3);
-		md->state.master_check = 1;
-		return 0;
-	}
-
-	// Although there is the master, since it is somewhat far, it approaches.
-	if((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mob_can_move(md) &&
-		(md->walkpath.path_pos>=md->walkpath.path_len || md->walkpath.path_len==0) && md->master_dist<15){
-		int i=0,dx,dy,ret;
-		if(md->master_dist>4) {
-			do {
-				if(i<=5){
-					dx=mmd->bl.x - md->bl.x;
-					dy=mmd->bl.y - md->bl.y;
-					if(dx<0) dx+=(rand()%( (dx<-3)?3:-dx )+1);
-					else if(dx>0) dx-=(rand()%( (dx>3)?3:dx )+1);
-					if(dy<0) dy+=(rand()%( (dy<-3)?3:-dy )+1);
-					else if(dy>0) dy-=(rand()%( (dy>3)?3:dy )+1);
-				}else{
-					dx=mmd->bl.x - md->bl.x + rand()%7 - 3;
-					dy=mmd->bl.y - md->bl.y + rand()%7 - 3;
-				}
-
-				ret=mob_walktoxy(md,md->bl.x+dx,md->bl.y+dy,0);
-				i++;
-			} while(ret && i<10);
-		}
-		else {
-			do {
-				dx = rand()%9 - 5;
-				dy = rand()%9 - 5;
-				if( dx == 0 && dy == 0) {
-					dx = (rand()%1)? 1:-1;
-					dy = (rand()%1)? 1:-1;
-				}
-				dx += mmd->bl.x;
-				dy += mmd->bl.y;
-
-				ret=mob_walktoxy(md,mmd->bl.x+dx,mmd->bl.y+dy,0);
-				i++;
-			} while(ret && i<10);
+		if(bl->m != md->bl.m){
+			mob_warp(md,bl->m,bl->x,bl->y,3);
+			md->state.master_check = 1;
+			return 0;
 		}
 
-		md->next_walktime=tick+500;
-		md->state.master_check = 1;
-	}
+		// Distance with between slave and master is measured.
+		old_dist=md->master_dist;
+		md->master_dist=distance(md->bl.x,md->bl.y,bl->x,bl->y);
 
+		// Since the master was in near immediately before, teleport is carried out and it pursues.
+		if(old_dist<10 && md->master_dist>18){
+			mob_warp(md,-1,bl->x,bl->y,3);
+			md->state.master_check = 1;
+			return 0;
+		}
+
+		// Although there is the master, since it is somewhat far, it approaches.
+		if((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mob_can_move(md) &&
+			(md->walkpath.path_pos>=md->walkpath.path_len || md->walkpath.path_len==0) && md->master_dist<15){
+			int i=0,dx,dy,ret;
+			if(md->master_dist>4) {
+				do {
+					if(i<=5){
+						dx=bl->x - md->bl.x;
+						dy=bl->y - md->bl.y;
+						if(dx<0) dx+=(rand()%( (dx<-3)?3:-dx )+1);
+						else if(dx>0) dx-=(rand()%( (dx>3)?3:dx )+1);
+						if(dy<0) dy+=(rand()%( (dy<-3)?3:-dy )+1);
+						else if(dy>0) dy-=(rand()%( (dy>3)?3:dy )+1);
+					}else{
+						dx=bl->x - md->bl.x + rand()%7 - 3;
+						dy=bl->y - md->bl.y + rand()%7 - 3;
+					}
+
+					ret=mob_walktoxy(md,md->bl.x+dx,md->bl.y+dy,0);
+					i++;
+				} while(ret && i<10);
+			}
+			else {
+				do {
+					dx = rand()%9 - 5;
+					dy = rand()%9 - 5;
+					if( dx == 0 && dy == 0) {
+						dx = (rand()%1)? 1:-1;
+						dy = (rand()%1)? 1:-1;
+					}
+					dx += bl->x;
+					dy += bl->y;
+
+					ret=mob_walktoxy(md,bl->x+dx,bl->y+dy,0);
+					i++;
+				} while(ret && i<10);
+			}
+
+			md->next_walktime=tick+500;
+			md->state.master_check = 1;
+		}
+	}
+	
 	// There is the master, the master locks a target and he does not lock.
-	if( (mmd->target_id>0 && mmd->state.targettype == ATTACKABLE) && (!md->target_id || md->state.targettype == NONE_ATTACKABLE) ){
+	if( mmd && (mmd->target_id>0 && mmd->state.targettype == ATTACKABLE) && (!md->target_id || md->state.targettype == NONE_ATTACKABLE) ){
 		struct map_session_data *sd=map_id2sd(mmd->target_id);
 		if(sd!=NULL && !pc_isdead(sd) && sd->invincible_timer == -1 && !pc_isinvisible(sd)){
 
@@ -1454,24 +1460,6 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 			}
 		}
 	}
-
-	// There is the master, the master locks a target and he does not lock.
-/*	if( (md->target_id>0 && mmd->state.targettype == ATTACKABLE) && (!mmd->target_id || mmd->state.targettype == NONE_ATTACKABLE) ){
-		struct map_session_data *sd=map_id2sd(md->target_id);
-		if(sd!=NULL && !pc_isdead(sd) && sd->invincible_timer == -1 && !pc_isinvisible(sd)){
-
-			race=mmd->db->race;
-			if(mode&0x20 ||
-				(sd->sc_data[SC_TRICKDEAD].timer == -1 &&
-				(!(sd->status.option&0x06) || race==4 || race==6)
-				) ){	// It judges whether there is any disturbance.
-
-				mmd->target_id=sd->bl.id;
-				mmd->state.targettype = ATTACKABLE;
-				mmd->min_chase=5+distance(mmd->bl.x,mmd->bl.y,sd->bl.x,sd->bl.y);
-			}
-		}
-	}*/
 
 	return 0;
 }

@@ -256,7 +256,7 @@ struct map_session_data {
 		unsigned rest : 1;
 		unsigned produce_flag : 1;
 		unsigned potion_flag : 2;
-		unsigned storage_flag : 1;
+		unsigned storage_flag : 2; //0: closed, 1: Normal Storage open, 2: guild storage open [Skotlex]
 		unsigned snovice_flag : 4;
 		int gmaster_flag;
 		// originally by Qamera, adapted by celest

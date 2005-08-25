@@ -81,6 +81,32 @@ void do_final_storage(void) // by [MC Cameri]
 		numdb_final(guild_storage_db,guild_storage_db_final);
 }
 
+
+static int storage_reconnect_sub(void *key,void *data,va_list ap)
+{ //Parses storage and saves 'dirty' ones upon reconnect. [Skotlex]
+	int type = va_arg(ap, int);
+	if (type)
+	{	//Guild Storage
+		struct guild_storage* stor = (struct guild_storage*) data;
+		if (stor->dirty && stor->storage_status == 0) //Save closed storages.
+			storage_guild_storagesave(0, stor->guild_id);
+	}
+	else
+	{	//Account Storage
+		struct storage* stor = (struct storage*) data;
+		if (stor->dirty && stor->storage_status == 0) //Save closed storages.
+			storage_storage_save(stor->account_id);
+	}
+	return 0;
+}
+
+//Function to be invoked upon server reconnection to char. To save all 'dirty' storages [Skotlex
+void do_reconnect_storage(void)
+{
+	numdb_foreach(storage_db, storage_reconnect_sub, 0);
+	numdb_foreach(guild_storage_db, storage_reconnect_sub, 1);
+}
+
 struct storage *account2storage(int account_id)
 {
 	struct storage *stor = (struct storage *) numdb_search (storage_db,account_id);
@@ -128,7 +154,7 @@ int storage_storageopen(struct map_session_data *sd)
 	if((stor = (struct storage *) numdb_search(storage_db,sd->status.account_id)) != NULL) {
 		if (stor->storage_status == 0) {
 			stor->storage_status = 1;
-			sd->state.storage_flag = 0;
+			sd->state.storage_flag = 1;
 			clif_storageitemlist(sd,stor);
 			clif_storageequiplist(sd,stor);
 			clif_updatestorageamount(sd,stor);
@@ -153,8 +179,6 @@ int storage_additem(struct map_session_data *sd,struct storage *stor,struct item
 	nullpo_retr(1, sd);
 	nullpo_retr(1, stor);
 	nullpo_retr(1, item_data);
-
-	stor->dirty = 1;
 
 	if(item_data->nameid <= 0 || amount <= 0)
 		return 1;
@@ -195,6 +219,7 @@ int storage_additem(struct map_session_data *sd,struct storage *stor,struct item
 			return 1;
 	}
 
+	stor->dirty = 1;
 	return 0;
 }
 /*==========================================
@@ -218,7 +243,6 @@ int storage_delitem(struct map_session_data *sd,struct storage *stor,int n,int a
 	clif_storageitemremoved(sd,n,amount);
 
 	stor->dirty = 1;
-
 	return 0;
 }
 /*==========================================
@@ -331,14 +355,11 @@ int storage_storageclose(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 	nullpo_retr(0, stor=account2storage2(sd->status.account_id));
 
+	clif_storageclose(sd);
+	chrif_save(sd); //This will invoke the storage save function as well. [Skotlex]
+	
 	stor->storage_status=0;
 	sd->state.storage_flag = 0;
-	clif_storageclose(sd);
-
-	chrif_save(sd);
-	storage_storage_save(sd);	//items lost on crash/shutdown, by valaris
-
-	sortage_sortitem(stor);
 	return 0;
 }
 
@@ -352,10 +373,11 @@ int storage_storage_quit(struct map_session_data *sd)
 
 	nullpo_retr(0, sd);
 
-	stor = (struct storage *) numdb_search(storage_db,sd->status.account_id);
+	stor = account2storage2(sd->status.account_id);
 	if(stor)  {
+		chrif_save(sd); //Invokes the storage saving as well.
 		stor->storage_status = 0;
-		storage_storage_save(sd);
+		sd->state.storage_flag = 0;
 	}
 
 	return 0;
@@ -365,24 +387,40 @@ void storage_storage_dirty(struct map_session_data *sd)
 {
 	struct storage *stor;
 
-	stor=(struct storage *) numdb_search(storage_db,sd->status.account_id);
+	stor=account2storage2(sd->status.account_id);
 
 	if(stor)
 		stor->dirty = 1;
 }
 
-int storage_storage_save(struct map_session_data *sd)
+int storage_storage_save(int account_id)
 {
 	struct storage *stor;
 
-	nullpo_retr(0, sd);
-
-	stor=(struct storage *) numdb_search(storage_db,sd->status.account_id);
-	if(stor && stor->dirty && chrif_isconnect())  { //Only consider it clean if we are connected to the char server. [Skotlex]
+	stor=account2storage2(account_id);
+	if(stor && stor->dirty)
+	{
 		intif_send_storage(stor);
-		stor->dirty = 0;
+		return 1;
 	}
 
+	return 0;
+}
+
+//Ack from Char-server indicating the storage was saved. [Skotlex]
+int storage_storage_saved(int account_id)
+{
+	struct storage *stor;
+	
+	if((stor=account2storage2(account_id)) != NULL)
+	{	//Only mark it clean if it's not in use. [Skotlex]
+		if (stor->dirty && stor->storage_status == 0)
+		{
+			stor->dirty = 0;
+			sortage_sortitem(stor);
+		}
+		return 1;
+	}
 	return 0;
 }
 
@@ -404,7 +442,12 @@ struct guild_storage *guild2storage(int guild_id)
 	return gs;
 }
 
-int guild_storage_delete(int guild_id)
+struct guild_storage *guild2storage2(int guild_id)
+{	//For just locating a storage without creating one. [Skotlex]
+	return (struct guild_storage *) numdb_search(guild_storage_db,guild_id);
+}
+
+int guild_storage_delete(int guild_id)	
 {
 	struct guild_storage *gstor = (struct guild_storage *) numdb_search(guild_storage_db,guild_id);
 	if(gstor) {
@@ -422,11 +465,11 @@ int storage_guild_storageopen(struct map_session_data *sd)
 
 	if(sd->status.guild_id <= 0)
 		return 2;
-	if((gstor = (struct guild_storage *) numdb_search(guild_storage_db,sd->status.guild_id)) != NULL) {
+	if((gstor = guild2storage2(sd->status.guild_id)) != NULL) {
 		if(gstor->storage_status)
 			return 1;
 		gstor->storage_status = 1;
-		sd->state.storage_flag = 1;
+		sd->state.storage_flag = 2;
 		clif_guildstorageitemlist(sd,gstor);
 		clif_guildstorageequiplist(sd,gstor);
 		clif_updateguildstorageamount(sd,gstor);
@@ -488,6 +531,7 @@ int guild_storage_additem(struct map_session_data *sd,struct guild_storage *stor
 		if(i>=MAX_GUILD_STORAGE)
 			return 1;
 	}
+	stor->dirty = 1;
 	return 0;
 }
 
@@ -506,7 +550,7 @@ int guild_storage_delitem(struct map_session_data *sd,struct guild_storage *stor
 		clif_updateguildstorageamount(sd,stor);
 	}
 	clif_storageitemremoved(sd,n,amount);
-
+	stor->dirty = 1;
 	return 0;
 }
 
@@ -516,7 +560,7 @@ int storage_guild_storageadd(struct map_session_data *sd,int index,int amount)
 
 	nullpo_retr(0, sd);
 
-	if((stor=guild2storage(sd->status.guild_id)) != NULL) {
+	if((stor=guild2storage2(sd->status.guild_id)) != NULL) {
 		if( (stor->storage_amount <= MAX_GUILD_STORAGE) && (stor->storage_status == 1) ) { // storage not full & storage open
 			if(index>=0 && index<MAX_INVENTORY) { // valid index
 				if( (amount <= sd->status.inventory[index].amount) && (amount > 0) ) { //valid amount
@@ -539,7 +583,7 @@ int storage_guild_storageget(struct map_session_data *sd,int index,int amount)
 
 	nullpo_retr(0, sd);
 
-	if((stor=guild2storage(sd->status.guild_id)) != NULL) {
+	if((stor=guild2storage2(sd->status.guild_id)) != NULL) {
 		if(stor->storage_status == 1) { //  storage open
 			if(index>=0 && index<MAX_GUILD_STORAGE) { // valid index
 				if( (amount <= stor->storage_[index].amount) && (amount > 0) ) { //valid amount
@@ -562,7 +606,7 @@ int storage_guild_storageaddfromcart(struct map_session_data *sd,int index,int a
 
 	nullpo_retr(0, sd);
 
-	if((stor=guild2storage(sd->status.guild_id)) != NULL) {
+	if((stor=guild2storage2(sd->status.guild_id)) != NULL) {
 		if( (stor->storage_amount <= MAX_GUILD_STORAGE) && (stor->storage_status == 1) ) { // storage not full & storage open
 			if(index>=0 && index<MAX_INVENTORY) { // valid index
 				if( (amount <= sd->status.cart[index].amount) && (amount > 0) ) { //valid amount
@@ -582,7 +626,7 @@ int storage_guild_storagegettocart(struct map_session_data *sd,int index,int amo
 
 	nullpo_retr(0, sd);
 
-	if((stor=guild2storage(sd->status.guild_id)) != NULL) {
+	if((stor=guild2storage2(sd->status.guild_id)) != NULL) {
 		if(stor->storage_status == 1) { //  storage open
 			if(index>=0 && index<MAX_GUILD_STORAGE) { // valid index
 				if( (amount <= stor->storage_[index].amount) && (amount > 0) ) { //valid amount
@@ -597,14 +641,29 @@ int storage_guild_storagegettocart(struct map_session_data *sd,int index,int amo
 	return 0;
 }
 
-int storage_guild_storagesave(struct map_session_data *sd)
+int storage_guild_storagesave(int account_id, int guild_id)
+{
+	struct guild_storage *stor = guild2storage2(guild_id);
+
+	if(stor && stor->dirty)
+	{
+		intif_send_guild_storage(account_id,stor);
+		return 1;
+	}
+	return 0;
+}
+
+int storage_guild_storagesaved(int account_id, int guild_id)
 {
 	struct guild_storage *stor;
 
-	nullpo_retr(0, sd);
-
-	if((stor=guild2storage(sd->status.guild_id)) != NULL) {
-		intif_send_guild_storage(sd->status.account_id,stor);
+	if((stor=guild2storage2(guild_id)) != NULL) {
+		if (stor->dirty && stor->storage_status == 0)
+		{	//Storage has been correctly saved.
+			stor->dirty = 0;
+			sortage_gsortitem(stor);
+		}
+		return 1;
 	}
 	return 0;
 }
@@ -614,14 +673,13 @@ int storage_guild_storageclose(struct map_session_data *sd)
 	struct guild_storage *stor;
 
 	nullpo_retr(0, sd);
+	nullpo_retr(0, stor=guild2storage2(sd->status.guild_id));
 
-	if((stor=guild2storage(sd->status.guild_id)) != NULL) {
-		intif_send_guild_storage(sd->status.account_id,stor);
-		stor->storage_status = 0;
-		sd->state.storage_flag = 0;
-		sortage_gsortitem(stor);
-	}
 	clif_storageclose(sd);
+	chrif_save(sd); //This one also saves the storage. [Skotlex]
+
+	stor->storage_status=0;
+	sd->state.storage_flag = 0;
 
 	return 0;
 }
@@ -631,14 +689,16 @@ int storage_guild_storage_quit(struct map_session_data *sd,int flag)
 	struct guild_storage *stor;
 
 	nullpo_retr(0, sd);
+	nullpo_retr(0, stor=guild2storage2(sd->status.guild_id));
 
-	stor = (struct guild_storage *) numdb_search(guild_storage_db,sd->status.guild_id);
-	if(stor) {
-		if(!flag)
-			intif_send_guild_storage(sd->status.account_id,stor);
-		stor->storage_status = 0;
-		sd->state.storage_flag = 0;
-	}
+	sd->state.storage_flag = 0;
+	stor->storage_status = 0;
 
+	chrif_save(sd);
+	if(!flag) //Only during a guild break flag is 1.
+		storage_guild_storagesave(sd->status.account_id,sd->status.guild_id);
+	else	//When the guild was broken, close the storage of he who has it open.
+		clif_storageclose(sd);
+	
 	return 0;
 }

@@ -929,9 +929,7 @@ int pet_return_egg(struct map_session_data *sd)
 		}
 
 		intif_save_petdata(sd->status.account_id,&sd->pet);
-		pc_makesavestatus(sd);
 		chrif_save(sd);
-		storage_storage_save(sd);
 
 		sd->petDB = NULL;
 	}
@@ -1032,9 +1030,8 @@ int pet_birth_process(struct map_session_data *sd)
 	}
 
 	intif_save_petdata(sd->status.account_id,&sd->pet);
-	pc_makesavestatus(sd);
 	chrif_save(sd);
-	storage_storage_save(sd);
+
 	map_addblock(&sd->pd->bl);
 	clif_spawnpet(sd->pd);
 	clif_send_petdata(sd,0,0);
@@ -1731,8 +1728,8 @@ int pet_skill_bonus_timer(int tid,unsigned int tick,int id,int data)
 	} else if (pd->state.skillbonus == 1) {
 		// pet bonuses are already active, so,
 		pd->state.skillbonus = 0;
-		timer = (pd->bonus->delay - pd->bonus->duration)*1000;	// the duration until pet bonuses will be reactivated again
-		if (timer < 0) //Always active bonus
+		timer = pd->bonus->delay*1000;	// the duration until pet bonuses will be reactivated again
+		if (timer <= 0) //Always active bonus
 			timer = MIN_PETTHINKTIME; 
 	}
 

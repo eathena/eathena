@@ -155,22 +155,26 @@ int chrif_save(struct map_session_data *sd)
 
 	pc_makesavestatus(sd);
 
-         if(charsave_method == 1){ //New 'Local' save
-        	#ifndef TXT_ONLY
-				charsave_savechar(sd->char_id, &sd->status);
-			#else
-				ShowError("u cannot use charsave_method 1 in TXT servers!\n");
-			#endif
-         }else{
-	         WFIFOW(char_fd,0) = 0x2b01;
-	         WFIFOW(char_fd,2) = sizeof(sd->status) + 12;
-	         WFIFOL(char_fd,4) = sd->bl.id;
-	         WFIFOL(char_fd,8) = sd->char_id;
-	         memcpy(WFIFOP(char_fd,12), &sd->status, sizeof(sd->status));
-	         WFIFOSET(char_fd, WFIFOW(char_fd,2));
-         }
-	storage_storage_save(sd); // to synchronise storage with character [Yor]
-
+	if(charsave_method == 1){ //New 'Local' save
+#ifndef TXT_ONLY
+		charsave_savechar(sd->char_id, &sd->status);
+#else
+		ShowError("u cannot use charsave_method 1 in TXT servers!\n");
+#endif
+	}else{
+		WFIFOW(char_fd,0) = 0x2b01;
+		WFIFOW(char_fd,2) = sizeof(sd->status) + 12;
+		WFIFOL(char_fd,4) = sd->bl.id;
+		WFIFOL(char_fd,8) = sd->char_id;
+		memcpy(WFIFOP(char_fd,12), &sd->status, sizeof(sd->status));
+		WFIFOSET(char_fd, WFIFOW(char_fd,2));
+	}
+	//For data sync
+	if (sd->state.storage_flag == 1)
+		storage_storage_save(sd->status.account_id);
+	else if (sd->state.storage_flag == 2)
+		storage_guild_storagesave(sd->status.account_id, sd->status.guild_id);
+		
 	return 0;
 }
 
@@ -363,6 +367,9 @@ int chrif_sendmapack(int fd)
 	memcpy(wisp_server_name, RFIFOP(fd,3), NAME_LENGTH);
 	ShowStatus("Map sending complete. Map Server is now online.\n");
 	chrif_state = 2;
+
+	//Re-save any storages that were modified in the disconnection time. [Skotlex]
+	do_reconnect_storage();
 
 	return 0;
 }

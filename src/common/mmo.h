@@ -203,6 +203,7 @@ struct storage {
 };
 
 struct guild_storage {
+	int dirty;
 	int guild_id;
 	short storage_status;
 	short storage_amount;

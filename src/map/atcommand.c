@@ -1782,9 +1782,9 @@ int atcommand_save(
 	pc_setsavepoint(sd, sd->mapname, sd->bl.x, sd->bl.y);
 	if (sd->status.pet_id > 0 && sd->pd)
 		intif_save_petdata(sd->status.account_id, &sd->pet);
-	pc_makesavestatus(sd);
+
 	chrif_save(sd);
-	storage_storage_save(sd);
+	
 	clif_displaymessage(fd, msg_table[6]); // Character data respawn point saved.
 
 	return 0;
@@ -1865,7 +1865,7 @@ int atcommand_storage(
 	struct storage *stor; //changes from Freya/Yor
 	nullpo_retr(-1, sd);
 
-	if (sd->state.storage_flag == 1) {
+	if (sd->state.storage_flag) {
 		clif_displaymessage(fd, msg_table[250]);
 		return -1;
 	}
@@ -1893,7 +1893,7 @@ int atcommand_guildstorage(
 	nullpo_retr(-1, sd);
 
 	if (sd->status.guild_id > 0) {
-		if (sd->state.storage_flag == 1) {
+		if (sd->state.storage_flag) {
 			clif_displaymessage(fd, msg_table[251]);
 			return -1;
 		}
