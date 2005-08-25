@@ -5020,6 +5020,9 @@ int clif_status_change(struct block_list *bl,int type,int flag)
 {
 	unsigned char buf[16];
 
+	if (type >= SC_SENDMAX) //Status changes above this value are not displayed on the client. [Skotlex]
+		return 0;
+	
 	nullpo_retr(0, bl);
 
 	WBUFW(buf,0)=0x0196;

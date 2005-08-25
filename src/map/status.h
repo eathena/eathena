@@ -2,9 +2,9 @@
 #define _STATUS_H_
 
 enum {	// struct map_session_data の status_changeの番?テ?ブル
-// SC_SENDMAX未?はクライアントへの通知あり。
-// 2-2次職の値はなんかめちゃくちゃっぽいので暫定。たぶん?更されます。
-	SC_SENDMAX			= 200,
+// SC_SENDMAX indicates the max value to be sent to the client. Values above it are not sent to the client,
+// but can be handled by the server. [Skotlex]
+	SC_SENDMAX			= 250,
 	SC_PROVOKE			= 0,
 	SC_ENDURE			= 1,
 	SC_TWOHANDQUICKEN	= 2,
@@ -145,7 +145,7 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_READYDOWN		= 137,
 	SC_DOWNKICK			= 138,
 	SC_READYCOUNTER		= 139,
-    SC_COUNTER			= 140,
+	SC_COUNTER			= 140,
 	SC_READYTURN		= 141,
 	SC_TURNKICK			= 142,
 	SC_DODGE			= 143,
@@ -202,6 +202,10 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_INCDEF2			= 194,
 	SC_INCSTR			= 195,
 	SC_INCAGI			= 196,
+	SC_INCVIT			= 197,
+	SC_INCINT			= 198,
+	SC_INCDEX			= 199,
+	SC_INCLUK			= 200,
 };
 extern int SkillStatusChangeTable[];
 

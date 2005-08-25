@@ -824,6 +824,14 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->paramb[0] += sd->sc_data[SC_INCSTR].val1;
 		if(sd->sc_data[SC_INCAGI].timer!=-1)
 			sd->paramb[1] += sd->sc_data[SC_INCAGI].val1;
+		if(sd->sc_data[SC_INCVIT].timer!=-1)
+			sd->paramb[2] += sd->sc_data[SC_INCVIT].val1;
+		if(sd->sc_data[SC_INCINT].timer!=-1)
+			sd->paramb[3] += sd->sc_data[SC_INCINT].val1;
+		if(sd->sc_data[SC_INCDEX].timer!=-1)
+			sd->paramb[4] += sd->sc_data[SC_INCDEX].val1;
+		if(sd->sc_data[SC_INCLUK].timer!=-1)
+			sd->paramb[5] += sd->sc_data[SC_INCLUK].val1;
 		if(sd->sc_data[SC_CONCENTRATE].timer!=-1 && sd->sc_data[SC_QUAGMIRE].timer == -1){	// W’†—ÍŒüã
 			sd->paramb[1]+= (sd->status.agi+sd->paramb[1]+sd->parame[1]-sd->paramcard[1])*(2+sd->sc_data[SC_CONCENTRATE].val1)/100;
 			sd->paramb[4]+= (sd->status.dex+sd->paramb[4]+sd->parame[4]-sd->paramcard[4])*(2+sd->sc_data[SC_CONCENTRATE].val1)/100;
@@ -1868,6 +1876,8 @@ int status_get_vit(struct block_list *bl)
 				vit += 5;
 			if(sc_data[SC_INCALLSTATUS].timer!=-1)
 				vit += sc_data[SC_INCALLSTATUS].val1;
+			if(sc_data[SC_INCVIT].timer!=-1)
+				vit += sc_data[SC_INCVIT].val1;
 		}
 	}
 	if(vit < 0) vit = 0;
@@ -1919,6 +1929,8 @@ int status_get_int(struct block_list *bl)
 				int_ += 5;
 			if(sc_data[SC_INCALLSTATUS].timer!=-1)
 				int_ += sc_data[SC_INCALLSTATUS].val1;
+			if(sc_data[SC_INCINT].timer!=-1)
+				int_ += sc_data[SC_INCINT].val1;
 		}
 	}
 	if(int_ < 0) int_ = 0;
@@ -1975,6 +1987,8 @@ int status_get_dex(struct block_list *bl)
 				dex += 5;
 			if(sc_data[SC_INCALLSTATUS].timer!=-1)
 				dex += sc_data[SC_INCALLSTATUS].val1;
+			if(sc_data[SC_INCDEX].timer!=-1)
+				dex += sc_data[SC_INCDEX].val1;
 		}
 	}
 	if(dex < 0) dex = 0;
@@ -2020,6 +2034,8 @@ int status_get_luk(struct block_list *bl)
 				luk = 0;
 			if(sc_data[SC_INCALLSTATUS].timer!=-1)
 				luk += sc_data[SC_INCALLSTATUS].val1;
+			if(sc_data[SC_INCLUK].timer!=-1)
+				luk += sc_data[SC_INCLUK].val1;
 		}
 	}
 	if(luk < 0) luk = 0;
@@ -3706,7 +3722,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_WEIGHT90:
 		case SC_BROKNWEAPON:
 		case SC_BROKNARMOR:
-        case SC_READYSTORM: // Taekwon Stances SC [Dralnu]
+		case SC_READYSTORM: // Taekwon Stances SC [Dralnu]
 		case SC_READYDOWN:
 		case SC_READYCOUNTER:
 		case SC_READYTURN:
@@ -3890,6 +3906,10 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_INCDEF2:
 		case SC_INCSTR:
 		case SC_INCAGI:
+		case SC_INCVIT:
+		case SC_INCINT:
+		case SC_INCDEX:
+		case SC_INCLUK:
 			calc_flag = 1;
 			break;
 
@@ -4180,6 +4200,10 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_INCDEF2:
 			case SC_INCSTR:
 			case SC_INCAGI:
+			case SC_INCVIT:
+			case SC_INCINT:
+			case SC_INCDEX:
+			case SC_INCLUK:
 			case SC_BATTLEORDERS:
 			case SC_REGENERATION:
 			case SC_GUILDAURA:

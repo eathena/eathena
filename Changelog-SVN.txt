@@ -1,6 +1,16 @@
 Date	Added
 =======
 08/25
+	* Final damage equation update to Acid Demonstration. [Skotlex]
+	  (it still won't ignore the raydric card, but why that is official in
+	  itself is a big mystery)
+	* Added status change for temporary boosts of stats, plus added the
+	  following constants (db/const.txt): [Skotlex]
+	  - SC_IncAll, SC_IncStr, SC_IncAgi, SC_IncVit, SC_IncInt, SC_IncDex,
+	  SC_IncDex
+	  - It hasn't been tested yet what kind of visual these will cause
+	    client-side.
+	  (Now someone go and write down the script for the food items xP)
 	* Updated @summon to take a second parameter: duration. [Skotlex]
 	  eg: "@summon lunatic 40" will summon a lunatik that lasts 40 mins or
 	  until killed. Max duration is one hour.
