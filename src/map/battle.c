@@ -2395,11 +2395,9 @@ struct Damage  battle_calc_misc_attack(
 		break;
 
 	case CR_ACIDDEMONSTRATION:
-		//FIXME: Find the correct damage equation for this skill. [Skotlex]
-		//Current data are the closest estimates collected by Viccious Pucca.
-		//I hope a long sqrt is much faster than the normal one (anyone feeling lazy 
-		//and wants to write an apromximation of the sqrt function?
-		damage = 10 * int_ * (int)(sqrtl(status_get_vit(target))+1) / 3;
+		//This equation is not official, but it's the closest to the official one 
+		//that Viccious Pucca and the other folks at the forums could come up with. [Skotlex]
+		damage = int_ * (int)(sqrtl(100*status_get_vit(target))) / 3;
 		if (tsd) damage/=2;
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
