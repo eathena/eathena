@@ -1920,7 +1920,7 @@ static struct Damage battle_calc_weapon_attack(
 struct Damage battle_calc_magic_attack(
 	struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag)
 	{
-	int mdef1, mdef2, matk1, matk2, damage = 0, div_ = 1, blewcount, rdamage = 0;
+	int mdef1, mdef2, matk1, matk2, damage = 0, div_ = 1, blewcount;
 	int ele=0, race=7, size=1, race2=7, t_ele=0, t_race=7, t_mode = 0, cardfix, t_class, i;
 	struct map_session_data *sd = NULL, *tsd = NULL;
 	struct mob_data *tmd = NULL;
