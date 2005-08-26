@@ -1,6 +1,9 @@
 Date	Added
 =======
 08/25
+	* Cleaned up mob_db.txt and updated sql-files/mob_db.sql [Skotlex]
+	  Sql users can just feed mysql the .sql file and it will delete and refill
+	  the table with the most updated db data.
 	* Corrections to damage versus plants. [Skotlex]
 	  MAGIC and MISC attacks do 1 damage per hit.
 	  WEAPON attacks do 1 damage, display miss if they hit multiple times.
