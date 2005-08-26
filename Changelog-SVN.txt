@@ -1,6 +1,7 @@
 Date	Added
 =======
 08/26
+	* Fixed @reloadmobdb not properly erasing mob skills before re-reading. [Skotlex]
 	* Updated/fixed effect of most dances & songs according to kRO's website and ragnainfo's
 	  very good Bard/Dancer Guide [DracoRPG]
 	* Fixed Raging Trifecta Blows missing Emperiums, thanks to happylight [DracoRPG]
