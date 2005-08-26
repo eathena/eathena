@@ -10779,7 +10779,6 @@ void clif_parse_debug(int fd,struct map_session_data *sd)
 int clif_parse(int fd) {
 	int packet_len = 0, cmd, packet_ver, dump = 0;
 	struct map_session_data *sd;
-	static int last_fd = 0; //Avoid spamming the console.
 
 	if (fd <= 0)
 	{	//Just in case, there are some checks for this later down below anyway which should be removed. [Skotlex]
@@ -10875,20 +10874,17 @@ int clif_parse(int fd) {
 			(packet_ver > 9 && (battle_config.packet_ver_flag & 1<<(packet_ver-9)) == 0) ||
 			packet_ver > MAX_PACKET_VER)	// no packet version support yet
 		{
-			if (last_fd != fd)
-				//Because of socket reuse we don't know if this is the same client that
-				//failed last time, so we have to do the version check every iteration! >.< [Skotlex]
-				ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
+			ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
 			WFIFOW(fd,0) = 0x6a;
 			WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
 			WFIFOSET(fd,23);
-//			packet_len = RFIFOREST(fd); //If skipped, we don't spam the client, we need to do that or it won't get the message :/
-//			RFIFOSKIP(fd, packet_len);
+			packet_len = RFIFOREST(fd);
+			RFIFOSKIP(fd, packet_len);
 			clif_setwaitclose(fd);
-			last_fd = fd;
+			if (session[fd]->func_send)  //socket.c doesn't wants to send the data when left on it's own... [Skotlex]
+				session[fd]->func_send(fd);
 			return 0;
-		} else
-			last_fd = 0; //Clear fd
+		}
 	}
 
 	// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する

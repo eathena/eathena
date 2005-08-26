@@ -1,6 +1,11 @@
 Date	Added
 =======
 08/26
+	* Some rewrites to client version rejecting code [Skotlex]
+	  Should eliminate lag when players try to log-on with a rejected client,
+	  however there's the chance they won't be receiving the "your client is
+	  not latest EXE version" message, and that's why the previous, laggy,
+	  implementation was used :/
 	* Fixed Enchant Deadly Poison lasting forever after killed. [Skotlex]
 	* Fixed the duration argument of @summon [Skotlex]
 	* Now @summoned mobs will follow their master everywhere and that includes
