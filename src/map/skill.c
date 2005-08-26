@@ -2633,7 +2633,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				sd->attackabletime = sd->canmove_tick = tick + 100 + sd->speed * ((dx > dy)? dx:dy);
 				if(sd->canact_tick < sd->canmove_tick)
 					sd->canact_tick = sd->canmove_tick;
-				pc_movepos(sd,sd->to_x,sd->to_y);
+				pc_movepos(sd,sd->to_x,sd->to_y,1);
 				status_change_end(&sd->bl,SC_COMBO,-1);
 			}
 			else
@@ -4169,11 +4169,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case RG_STRIPHELM:			/* ストリップヘルム */
 	case ST_FULLSTRIP:			// Rewritten most of the code [DracoRPG]
 		{
-		struct status_change *tsc_data;
+		struct status_change *tsc_data = status_get_sc_data(bl);
 		int strip_fix, equip = 0;
 		int sclist[4] = {0,0,0,0};
-
-		tsc_data = status_get_sc_data(bl);
 
 		if (skillid == RG_STRIPWEAPON || skillid == ST_FULLSTRIP)
 		   equip |= EQP_WEAPON;
@@ -4898,7 +4896,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					case UNT_FREEZINGTRAP:
 					case UNT_CLAYMORETRAP:
 					case UNT_TALKIEBOX:
-						su->group->unit_id = 0x8c;
+						su->group->unit_id = UNT_USED_TRAPS;
 						clif_changelook(bl,LOOK_BASE,su->group->unit_id);
 						su->group->limit=DIFF_TICK(tick+1500,su->group->tick);
 						su->limit=DIFF_TICK(tick+1500,su->group->tick);
@@ -5720,7 +5718,7 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 
 	case MO_BODYRELOCATION:
 		if (sd) {
-			pc_movepos(sd, x, y);
+			pc_movepos(sd, x, y, 1);
 			pc_blockskill_start (sd, MO_EXTREMITYFIST, 2000);
 		} else if (src->type == BL_MOB) {
 			struct mob_data *md = (struct mob_data *)src;
@@ -5729,9 +5727,19 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 		}
 		break;
 	case TK_HIGHJUMP:
-		clif_skill_nodamage(src,src,skillid,skilllv,0);
-		if (sd) pc_setpos(sd,sd->mapname,x,y,0);
-		//TODO: Add mob implementation for this skill. [Skotlex]
+	    if (sd) {
+            if(map_getcell(src->m,x,y,CELL_CHKNOPASS))
+                clif_skill_fail(sd,skillid,0,0);
+            else {
+	        	pc_movepos(sd,x,y,0);
+         		clif_walkok(sd);
+         		clif_movechar(sd);
+			}
+        } else if (src->type == BL_MOB && !map_getcell(src->m,x,y,CELL_CHKNOPASS)) {
+			struct mob_data *md = (struct mob_data *)src;
+			mob_warp(md, -1, x, y, 0);
+			clif_spawnmob(md);
+		}
      	break;    
 	case AM_CANNIBALIZE:	// バイオプラント
 		if(sd) {
@@ -6074,45 +6082,45 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 
 	case BA_WHISTLE:			/* 口笛 */
 		if(src->type == BL_PC)
-			val1 = (pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON)+1)>>1;
-		val2 = ((status_get_agi(src)/10)&0xffff)<<16;
-		val2 |= (status_get_luk(src)/10)&0xffff;
+			val1 = (pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON))>>1;
+		val2 = (status_get_agi(src)/10)&0xffff;
+		val3 = (status_get_luk(src)/10)&0xffff;
 		break;
 	case DC_HUMMING:			/* ハミング */
 		if(src->type == BL_PC)
-			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON)+1)>>1;
+			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON))>>1;
 		val2 = status_get_dex(src)/10;
 		break;
 	case DC_DONTFORGETME:		/* 私を忘れないで… */
 		if(src->type == BL_PC)
-			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON)+1)>>1;
-		val2 = ((status_get_dex(src)/20)&0xffff)<<16;
-		val2 |= (status_get_agi(src)/10)&0xffff;
+			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON))>>1;
+		val2 = (status_get_dex(src)/10)&0xffff;
+		val3 = (status_get_agi(src)/10)&0xffff;
 		break;
 	case BA_POEMBRAGI:			/* ブラギの詩 */
 		if(src->type == BL_PC)
 			val1 = pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
-		val2 = ((status_get_dex(src)/10)&0xffff)<<16;
-		val2 |= (status_get_int(src)/5)&0xffff;
+		val2 = (status_get_dex(src)/10)&0xffff;
+		val3 = (status_get_int(src)/10)&0xffff;
 		break;
 	case BA_APPLEIDUN:			/* イドゥンの林檎 */
 		if(src->type == BL_PC)
 			val1 = pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
-		val2 = status_get_vit(src);
+		val2 = (status_get_vit(src)/10)&0xffff;
 		break;
 	case DC_SERVICEFORYOU:		/* サ?ビスフォ?ユ? */
 		if(src->type == BL_PC)
-			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON)+1)>>1;
-		val2 = status_get_int(src)/10;
+			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON))>>1;
+		val2 = (status_get_int(src)/10)&0xffff;
 		break;
 	case BA_ASSASSINCROSS:		/* 夕陽のアサシンクロス */
 		if(src->type == BL_PC)
-			val1 = (pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON)+1)>>1;
-		val2 = status_get_agi(src)/20;
+			val1 = (pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON))>>1;
+		val2 = status_get_agi(src)/10;
 		break;
 	case DC_FORTUNEKISS:		/* 幸運のキス */
 		if(src->type == BL_PC)
-			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON)+1)>>1;
+			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON))>>1;
 		val2 = status_get_luk(src)/10;
 		break;
 
@@ -6457,7 +6465,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 			if(map[bl->m].flag.gvg) c = 0;
 			for(i=0;i<c;i++)
 				skill_blown(&src->bl,bl,1|0x30000,2);
-			sg->unit_id = 0x8c;
+			sg->unit_id = UNT_USED_TRAPS;
 			clif_changelook(&src->bl,LOOK_BASE,sg->unit_id);
 			sg->limit=DIFF_TICK(tick,sg->tick)+1500;
 		}
@@ -6501,8 +6509,8 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	case UNT_LANDMINE:
 		skill_attack(BF_MISC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
-		sg->unit_id = 0x8c;
-		clif_changelook(&src->bl,LOOK_BASE,0x88);
+		sg->unit_id = UNT_USED_TRAPS;
+		clif_changelook(&src->bl,LOOK_BASE,UNT_FIREPILLAR_ACTIVE);
 		sg->limit=DIFF_TICK(tick,sg->tick)+1500;
 		break;
 
@@ -6520,7 +6528,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 					,src->bl.x-src->range,src->bl.y-src->range
 					,src->bl.x+src->range,src->bl.y+src->range
 					,0,&src->bl,tick,splash_count);
-		sg->unit_id = 0x8c;
+		sg->unit_id = UNT_USED_TRAPS;
 		clif_changelook(&src->bl,LOOK_BASE,sg->unit_id);
 		sg->limit=DIFF_TICK(tick,sg->tick)+1500;
 		break;
@@ -6530,7 +6538,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 			break;
 		if (sg->val2 == 0){
 			clif_talkiebox(&src->bl, sg->valstr);
-			sg->unit_id = 0x8c;
+			sg->unit_id = UNT_USED_TRAPS;
 			clif_changelook(&src->bl, LOOK_BASE, sg->unit_id);
 			sg->limit = DIFF_TICK(tick, sg->tick) + 5000;
 			sg->val2 = -1; //踏んだ
@@ -6552,7 +6560,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		int heal;
 		if (sg->src_id == bl->id)
 			break;
-		heal = 30 + sg->skill_lv * 5 + sg->val1 * 5 + (sg->val2/10) * 5;
+		heal = 30 + sg->skill_lv * 5 + sg->val1 * 5 + sg->val2 * 5;
 		clif_skill_nodamage(&src->bl, bl, AL_HEAL, heal, 1);
 		battle_heal(NULL, bl, heal, 0, 0);
 		break;	
@@ -7658,13 +7666,12 @@ int skill_castfix( struct block_list *bl, int time )
 	/* サフラギウム */
 	if (sc_data) {
 		if (sc_data[SC_SUFFRAGIUM].timer != -1) {
-			time = time * (100 - sc_data[SC_SUFFRAGIUM].val1 * 15) / 100;
+			time -= time * (sc_data[SC_SUFFRAGIUM].val1 * 15) / 100;
 			status_change_end(bl, SC_SUFFRAGIUM, -1);
 		}
 		/* ブラギの詩 */
 		if (sc_data[SC_POEMBRAGI].timer != -1)
-			time = time * (100 - (sc_data[SC_POEMBRAGI].val1 * 3 + sc_data[SC_POEMBRAGI].val2
-				+(sc_data[SC_POEMBRAGI].val3 >> 16))) / 100;
+			time -= time * (sc_data[SC_POEMBRAGI].val1 * 3 + sc_data[SC_POEMBRAGI].val2 + sc_data[SC_POEMBRAGI].val3) / 100;
 	}
 
 	// return final cast time
@@ -7715,8 +7722,7 @@ int skill_delayfix( struct block_list *bl, int time )
 	/* ブラギの詩 */
 	sc_data = status_get_sc_data(bl);
 	if (sc_data && sc_data[SC_POEMBRAGI].timer != -1)
-		time = time * (100 - (sc_data[SC_POEMBRAGI].val1 * 3 + sc_data[SC_POEMBRAGI].val2
-				+ (sc_data[SC_POEMBRAGI].val3 & 0xffff))) / 100;
+		time -= time * (sc_data[SC_POEMBRAGI].val1 * 3 + sc_data[SC_POEMBRAGI].val2 + sc_data[SC_POEMBRAGI].val4) / 100;
 
 	return (time > 0) ? time : 0;
 }
@@ -9677,7 +9683,7 @@ int skill_unit_timer_sub( struct block_list *bl, va_list ap )
 	if((DIFF_TICK(tick,group->tick)>=group->limit || DIFF_TICK(tick,group->tick)>=unit->limit)){
 		switch(group->unit_id){
 			case UNT_BLASTMINE:
-				group->unit_id = 0x8c;
+				group->unit_id = UNT_USED_TRAPS;
 				clif_changelook(bl,LOOK_BASE,group->unit_id);
 				group->limit=DIFF_TICK(tick+1500,group->tick);
 				unit->limit=DIFF_TICK(tick+1500,group->tick);

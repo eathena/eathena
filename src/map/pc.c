@@ -3479,7 +3479,7 @@ int pc_randomwalk (struct map_session_data *sd, int tick)
  *
  *------------------------------------------
  */
-int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y)
+int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y,int checkpath)
 {
 	int moveblock;
 	int dx,dy;
@@ -3489,7 +3489,7 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y)
 
 	nullpo_retr(0, sd);
 
-	if(path_search(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,dst_x,dst_y,0))
+	if(checkpath && path_search(&wpd,sd->bl.m,sd->bl.x,sd->bl.y,dst_x,dst_y,0))
 		return 1;
 
 	sd->dir = sd->head_dir = map_calc_dir(&sd->bl, dst_x,dst_y);

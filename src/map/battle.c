@@ -481,7 +481,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	}
 
 	if(class_ == 1288 || class_ == 1287 || class_ == 1286 || class_ == 1285) {
-		if(class_ == 1288 && ((flag&BF_SKILL && skill_num != PA_PRESSURE) || skill_num == PA_SACRIFICE)) // Pressure can hit Emperium
+		if(class_ == 1288 && (flag&BF_SKILL && skill_num != PA_PRESSURE && skill_num != MO_TRIPLEATTACK)) // Gloria Domini and Raging Trifecta Blows can hit Emperium
 			damage=0;
 		if(src->type == BL_PC) {
 			struct guild *g=guild_search(((struct map_session_data *)src)->status.guild_id);
@@ -504,7 +504,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		else damage = 0;
 	}
 
-	if (damage > 0 && skill_num != PA_PRESSURE) { // Pressure ignores WoE damage reductions
+	if (damage > 0 && skill_num != PA_PRESSURE) { // Gloria Domini ignores WoE damage reductions
 		if (map[bl->m].flag.gvg) { //GvG
 			if (bl->type == BL_MOB){	//defenseがあればダメージが減るらしい？
 				struct guild_castle *gc = guild_mapname2gc(map[bl->m].name);
@@ -1454,7 +1454,7 @@ static struct Damage battle_calc_weapon_attack(
 					flag.cardfix = 0;
 					break;
 				case PA_SACRIFICE:
-					//40% less effective on siege maps. [Skotlex]	
+					//40% less effective on siege maps. [Skotlex]
 					skillratio+= 10*skill_lv -(map[src->m].flag.gvg)?50:10;
 					flag.idef = flag.idef2 = 1;
 					break;
@@ -2252,14 +2252,11 @@ struct Damage battle_calc_magic_attack(
 
 	damage=battle_calc_damage(bl,target,damage,div_,skill_num,skill_lv,aflag);	// 最終修正
 
-	/* magic_damage_return by [AppleGirl] and [Valaris]		*/
-	if( target->type==BL_PC && tsd && tsd->magic_damage_return > 0 ){
-		rdamage += damage * tsd->magic_damage_return / 100;
-			if(rdamage < 1) rdamage = 1;
-			clif_damage(target,bl,gettick(),0,0,rdamage,0,0,0);
-			battle_damage(target,bl,rdamage,1,0);
+	// magic_damage_return by [AppleGirl] and [Valaris] - changed to x% chance to return 100% dmg instead of 100% chance to return x% dmg [DracoRPG]
+	if(damage > 0 && target->type==BL_PC && tsd && tsd->magic_damage_return > 0 && rand()%100 < tsd->magic_damage_return){
+			clif_damage(target,bl,gettick(),0,0,damage,0,0,0);
+			battle_damage(target,bl,damage,1,0);
 	}
-	/*			end magic_damage_return			*/
 
 	md.damage=damage;
 	md.div_=div_;
@@ -2567,19 +2564,15 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 	
 		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
 			if (wd.flag & BF_SHORT) {
-				if (tsd && tsd->short_weapon_damage_return > 0) {
-					rdamage += damage * tsd->short_weapon_damage_return / 100;
-					if (rdamage < 1) rdamage = 1;
-				}
+				if (tsd && tsd->short_weapon_damage_return > 0 && rand()%100 < tsd->short_weapon_damage_return)
+					rdamage = damage;
 				if (tsc_data && tsc_data[SC_REFLECTSHIELD].timer != -1) {
 					rdamage += damage * tsc_data[SC_REFLECTSHIELD].val2 / 100;
 					if (rdamage < 1) rdamage = 1;
 				}
 			} else if (wd.flag & BF_LONG) {
-				if (tsd && tsd->long_weapon_damage_return > 0) {
-					rdamage += damage * tsd->long_weapon_damage_return / 100;
-					if(rdamage < 1) rdamage = 1;
-				}
+				if (tsd && tsd->long_weapon_damage_return > 0 && rand()%100 < tsd->long_weapon_damage_return)
+					rdamage = damage;
 			}
 			if (rdamage > 0)
 				clif_damage(src, src, tick, wd.amotion, wd.dmotion, rdamage, 1, 4, 0);

@@ -61,7 +61,7 @@ int pc_checkoversp(struct map_session_data*);
 int pc_can_reach(struct map_session_data*,int,int);
 int pc_walktoxy(struct map_session_data*,int,int);
 int pc_stop_walking(struct map_session_data*,int);
-int pc_movepos(struct map_session_data*,int,int);
+int pc_movepos(struct map_session_data*,int,int,int);
 int pc_setpos(struct map_session_data*,char*,int,int,int);
 int pc_setsavepoint(struct map_session_data*,char*,int,int);
 int pc_randomwarp(struct map_session_data *sd,int type);

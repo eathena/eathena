@@ -1,6 +1,18 @@
 Date	Added
 =======
 08/26
+	* Updated/fixed effect of most dances & songs according to kRO's website and ragnainfo's
+	  very good Bard/Dancer Guide [DracoRPG]
+	* Fixed Raging Trifecta Blows missing Emperiums, thanks to happylight [DracoRPG]
+	* Changed the way short|long|magic_damage_return work : previously they gave 100% chance
+	  to return x% damage, now it is x% chance to return 100% damage (Maya and High Orc Cards
+	  should behave like this, I'm not sure for Orc Lord Card but it seems logical to be the
+	  same system...) [DracoRPG]
+	* Fixed bonuses from Wind Walker, thanks to vicious_puca [DracoRPG]
+	* I also reorganized the hit/flee calc in status_calc_pc to consider first absolute values,
+	  and then apply relative (percentage) modificators.. if you make a mix of both, it'll be
+	  completely fucked up, and be sure it won't be like on officials (although my system maybe
+	  isn't the good one neither...) [DracoRPG]
 	* Some rewrites to client version rejecting code [Skotlex]
 	  Should eliminate lag when players try to log-on with a rejected client,
 	  however there's the chance they won't be receiving the "your client is
