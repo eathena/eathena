@@ -4,7 +4,7 @@
 //= Halca (1.0)
 //= Mass Zero (1.1)
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.4
 //===== Compatible With: ===================================== 
 //= Any eAthena Version.
 //===== Description: ========================================= 
@@ -14,6 +14,7 @@
 //= 1.2 Fixed wrong labels, added missing text
 //=	added missing delitem, fixed names, item amount [Lupus]
 //= 1.3 Fixed Straw Hat items by dshome [Lupus]
+//= 1.4 Fixed Wool Hat items [Lupus]
 //============================================================
 
 xmas_in.gat,36,25,4	script	Hat Seller	806,{
@@ -21,7 +22,7 @@ xmas_in.gat,36,25,4	script	Hat Seller	806,{
  mes "What hat would you like information on?";
  mes "I can make all the hats I mention here";
  next;
- menu "Party Hat",M_1,"Straw Hat",M_2,"Cowboy Hat",M_3,"Sombrero",M_4,"Furry Hat",M_5,"Quit",M_EXIT;
+ menu "Party Hat",M_1,"Straw Hat",M_2,"Cowboy Hat",M_3,"Sombrero",M_4,"Wool Hat",M_5,"Quit",M_EXIT;
 
 M_1:
  mes "[Hat Seller]";
@@ -125,8 +126,8 @@ M_4:
 M_5:
  mes "[Hat Seller]";
  mes "For this item I require:";
- mes "1 Slotted Cap,";
- mes "300 Skin of the Black Bear.";
+ mes "1 Cap,";
+ mes "500 Yarn.";
  next;
  mes "[Hat Seller]";
  mes "Bring those, and we got a deal.";
@@ -134,9 +135,9 @@ M_5:
  next;
  menu "Yes.",-,"No.",M_EXIT;
 
- if ((countitem(2227) < 1) || (countitem(7161) < 300)) GOTO L_NOITEM;//Items: Cap, Bear Skin,
- delitem 2227,1;//Items: Cap,
- delitem 7161,300;//Items: Bear Skin,
+ if ((countitem(2226) < 1) || (countitem(7038) < 500)) GOTO L_NOITEM;//Items: Cap, Yarn,
+ delitem 2226,1;//Items: Cap,
+ delitem 7038,500;//Items: Yarn,
  getitem 5076,1;//Items: Wool Hat,
  mes "[Hat Seller]";
  mes "There you go... bye.";

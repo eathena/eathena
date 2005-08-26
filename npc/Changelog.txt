@@ -28,6 +28,8 @@ TODO:
 
 Date		Added
 ======
+08/26
+	* Fixed Wool Hat quest items. Thanx to the__android [Lupus]
 08/25
 	* Updated Louyang spawns according to ep 8.5 by MasterOfMuppets [Lupus]
 	* Updated Lighthalzen Field 03 spawns by MasterOfMuppets [Lupus]
