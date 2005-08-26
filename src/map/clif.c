@@ -7941,34 +7941,19 @@ static int clif_guess_PacketVer(int fd, int get_previous)
 			packet_len != packet_db[packet_ver][cmd].len)	//The size of the wantoconnection packet does not matches.
 			continue;
 	
-		if ((value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0])) < 700000 || value > max_account_id)
-		{
-			ShowDebug("Version check %d failed: invalid account id %d\n", packet_ver, value);
+		if (
+			(value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[0])) < 700000 || value > max_account_id
+			|| (value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1])) < 1 || value > max_char_id
+			//What is login 1? In my tests it is a very very high value.
+			|| (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) < 1
+			//This check seems redundant, all wanttoconnection packets have the gender on the very 
+			//last byte of the packet.
+			|| (value = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) < 0 || value > 1
+		)
 			continue;
-		}
-		if ((value = RFIFOL(fd, packet_db[packet_ver][cmd].pos[1])) < 1 || value > max_char_id)
-		{
-			ShowDebug("Version check %d failed: invalid char id %d\n", packet_ver, value);
-			continue;
-		}
-		//What is login 1? In my tests it is a very very high value.
-		if ((int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]) < 1)
-		{
-			ShowDebug("Version check %d failed: invalid login1 %d\n", packet_ver, (int)RFIFOL(fd, packet_db[packet_ver][cmd].pos[2]));
-			continue;
-		}
-		//Removed the tick check as it can be a very large value (it is an unsigned int, so all values are possible)
-
-		//This check seems redundant, all wanttoconnection packets have the gender on the very 
-		//last byte of the packet.
-		if ((value = RFIFOB(fd, packet_db[packet_ver][cmd].pos[4])) < 0 || value > 1)
-		{
-			ShowDebug("Version check %d failed: invalid gender %d\n", packet_ver, value);
-			continue;
-		}
+		
 		return packet_ver; //This is our best guess.
 	}
-	ShowDebug("Unknown packet version (packet: cmd = 0x%04x, len = %d)!\n", cmd, packet_len);
 	packet_ver = -1;
 	return -1;
 }
@@ -10890,8 +10875,9 @@ int clif_parse(int fd) {
 			(packet_ver > 9 && (battle_config.packet_ver_flag & 1<<(packet_ver-9)) == 0) ||
 			packet_ver > MAX_PACKET_VER)	// no packet version support yet
 		{
-			if (last_fd != fd) //Because of socket reuse we don't know if this is the same client that failed last time, so we have 
-				//to do the version check every iteration! >.< [Skotlex]
+			if (last_fd != fd)
+				//Because of socket reuse we don't know if this is the same client that
+				//failed last time, so we have to do the version check every iteration! >.< [Skotlex]
 				ShowInfo("clif_parse: Disconnecting session #%d for not having latest client version (has version %d).\n", fd, packet_ver);
 			WFIFOW(fd,0) = 0x6a;
 			WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
