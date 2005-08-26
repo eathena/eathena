@@ -1832,7 +1832,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 
 	// •àsˆ—
 	if (mode & 1 && mob_can_move(md) &&	// ˆÚ“®‰Â”\MOB&“®‚¯‚éó‘Ô‚É‚ ‚é
-		(md->master_id == 0 || md->state.special_mob_ai || md->master_dist > 10))	//Žæ‚èŠª‚«MOB‚¶‚á‚È‚¢
+		(md->master_id == 0 || /*md->state.special_mob_ai ||*/ md->master_dist > 10))	//Žæ‚èŠª‚«MOB‚¶‚á‚È‚¢
 	{
 		if (DIFF_TICK(md->next_walktime, tick) > 7000 &&
 			(md->walkpath.path_len == 0 || md->walkpath.path_pos >= md->walkpath.path_len))

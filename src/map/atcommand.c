@@ -7697,7 +7697,7 @@ atcommand_summon(
 		md->master_id=sd->bl.id;
 		md->state.special_mob_ai=1;
 		md->mode=md->db->mode|0x04;
-		md->deletetimer=add_timer(tick+duration*1000,mob_timer_delete,id,0);
+		md->deletetimer=add_timer(tick+(duration*60000),mob_timer_delete,id,0);
 		clif_misceffect2(&md->bl,344);
 	}
 	clif_skill_poseffect(&sd->bl,AM_CALLHOMUN,1,x,y,tick);

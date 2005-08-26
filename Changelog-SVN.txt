@@ -1,5 +1,11 @@
 Date	Added
 =======
+08/26
+	* Fixed the duration argument of @summon [Skotlex]
+	* Now @summoned mobs will follow their master everywhere and that includes
+	  warping from map to map. [Skotlex]
+	  (why? Because I think that's neat, and will probably be needed anyway
+	  once Homonculus get implemented)
 08/25
 	* Cleaned up mob_db.txt and updated sql-files/mob_db.sql [Skotlex]
 	  Sql users can just feed mysql the .sql file and it will delete and refill
