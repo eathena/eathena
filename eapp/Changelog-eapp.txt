@@ -1,0 +1,136 @@
+Date	Added
+07/22
+	- Removal of checks whether the client is LAN or WAN, Must be fixed ASAP, map, login, char
+	  updated to allow players to log in.[CLOWNISIUS]
+	- Completed Update of char.c/h for optimized SQL access.[CLOWNISIUS]
+	- Removal of PASSWORDENC from Login_sql comple, Cleaning of the code from login.c/h 
+	  now almost complete.[CLOWNISIUS]
+	- Removal of PASSWORDENC from Ladmin complete.[CLOWNISIUS]
+	- Cleansing of the directory structure almost complete.[CLOWNISIUS]
+	- Repair of Shino's IP structure from login workaround complete, using LANIP instead 
+	  of the blank WANIP that always seems to be blank, and LAN is a simple 
+	  workaround [CLOWNISIUS]
+07/21
+	- Added new md5.cc and md5.hh for usage in the PASSWORDENC and CLOWNPHOBIA sections
+	  of the login.c/h and in the ladmin for compiling of some other things.
+	  lAdmin at the meantime is bugged, and will be that way for a while, till things
+	  are stable.[CLOWNISIUS]
+	- Login server fixed to use PASSWORDENC properly, CLOWNPHOBIA updated also to use salted
+	  hashes.[CLOWNISIUS]
+07/18
+	- Fixed Makefiles for all SQL based compiles (login,char,map) [CLOWNISIUS]
+	- Implementation of the dbaccess.c/h files to help ease usage of SQL commands,
+	and allowing others to make a small dbaccess.c/h for any other type of SQL
+	API [CLOWNISIUS]
+	- Updated Login, Char and Map SQL server to use the new dbaccess.c/h [CLOWNISIUS]
+	- Updated the main Makefile to not touch TXT based servers, and simplified compiling options
+	for the login, char and map servers. [CLOWNISIUS]
+	
+07/17
+	modification on the ip storage and transfer,
+	removed the lan support stuff and integrated it directly to the server configs
+	corrections on the fame system
+	beautified some outputs [Shinomori]
+07/10
+	merges from stable
+	Paladin's new Sacrifical Ritual
+	adding chaos as additional characterisation variable (besides karma)
+	and some code reordering [Shinomori]
+07/3
+	* Updated NPCs [massdriller]
+06/18
+	just to note all the differences of eApp to stable branch
+	might be quite incomplete, though; there are lots of playgrounds 
+	that I don't explain in detail, just the basics:
+
+	converting function call parameters from pointers
+	to references as far as possible, initial step to 
+	compound all that stuff into classes
+
+	implemented 64bit compatible usage of time_t
+	corrected gettimeofday on windows builds
+
+	checking of comments in config files is
+	skipping all whitespace characters
+	the "//" is also detected when not at the beginning of the line
+
+	changed dynamic mobs to a different dataset
+	_all_ script mobs are created with a cache and each mob
+	gets an additional pointer to their corrosponding cache slot
+	on creation, allowing to share a common data set among multiple
+	mobs created from a common cache slot. this data is not necessary 
+	at the mob itself anymore
+	the cache is build with counter, so when a mob is spawned on
+	the map, the cache counter is decremented, if the mob
+	is unloaded, the corrosponding cache counter is incremented
+	thus preventing mob duplication
+	only non-delayed mobs with a cache are actually unloaded,
+	ensuring that guardians, quest mobs and spawned mobs
+	are not touched as they do not have a cache
+	if a cached master is unloaded, it's slaves are destroyed as well
+
+	introduced slight changes the character file format (txt)
+	so be sure to make a backup before trying this version
+	otherwise you might not be able to switch back to branch
+
+	change all data to real types for better type checking
+	and preperation of automatic transfer buffers
+
+	integrated the anti freeze system into the user count update messages
+	(which are already send between chat,login and map)
+
+	changes on map.gat structures and access
+	planning on reducing memory usage for this even more
+	but still testing the possibilities/effort
+	you will need to delete the map cache file from stable branch
+	since those are not compatible
+
+	removed parts of RoVeRT's npc timer system
+
+	added forcefull disconnect detection and let the pc online
+	for 10 seconds so Alt-F4 cannot be used to flee a fight
+	moved the clif_waitclose to the socket
+
+	changes packet processing interaction scheme between
+	core socket and parse_func's,
+	changed eof to a couple of flags that are used to hold
+	the status of the connection, also added access function
+
+	changed all usages of ip numbers to host byte order
+	for better consitency,
+
+	simplified and tighted timers a bit
+
+	fix for moving npcs with ontouch event
+
+	reading npcs recursively from folder
+	no need to spcify any single script file
+	just put path : <path name> to map config
+	and have any *.txt file read in
+
+	working npc duplication fix for multimap
+
+	fast socket access
+	replacing the loop with IS_FDSET
+	is much faster, still testing
+	adding different socket handling on WIN32
+	it is not exactly the same version I did for jAthena,
+
+	a "real" ShowMessage
+	includes a ansi sequence parser for windows and switchable
+	calling conventions depending on the compiler
+
+	vararray support for non-gnu compilers
+	actually not really a support for that but a macro
+	to create and free variable size buffers using
+	the fastest supported method for the given compiler
+
+	little/big endian support and memory allignment fixes
+	start to make types checking more tight
+
+	c++ compilable with VC and g++
+	the makefiles are for solaris,
+	so might need to edit linker options on linux
+06/10
+	* eA++ will now compile on VC.net 2003. Just prepare the appropriate conf files and run.
+	  read the README.txt for notes on compilation. [davidsiaw]
