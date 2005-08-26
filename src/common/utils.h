@@ -6,7 +6,7 @@
 
 int config_switch(const char *str);
 unsigned long str2ip(const char *str);
-bool e_mail_check(const char *email);
+bool email_check(const char *email);
 bool remove_control_chars(char *str);
 
 void dump(unsigned char *buffer, size_t num);
@@ -43,9 +43,24 @@ static inline const char *strcpytolower(char *tar, const char *str)
 		*p = tolower( (int)((unsigned char)*str) );
 		p++, str++;
 	}
-	*p=0;
+	if(p) *p=0;
 	return tar;
 }
+static inline const char *strcpytolower(char *tar, size_t sz, const char *str)
+{
+	char *p=tar;
+	if(str && p)
+	while(*str) 
+	{
+		*p = tolower( (int)((unsigned char)*str) );
+		p++, str++;
+		if(tar+sz-1<=p)
+			break;
+	}
+	if(p) *p=0;
+	return tar;
+}
+
 static inline const char *safestrcpy(char *tar, const char *src, size_t cnt)
 {
 	if(tar)
@@ -53,7 +68,7 @@ static inline const char *safestrcpy(char *tar, const char *src, size_t cnt)
 		if(src)
 		{
 			::strncpy(tar,src,cnt);
-			// systems strncpy doesnt append the trailing NULL if the string is too long.
+			// systems strncpy doesnt append the trailing 0 if the string is too long.
 			tar[cnt-1]=0;
 		}
 		else

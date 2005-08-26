@@ -103,9 +103,9 @@ enum AtCommandType {
 	AtCommand_CharSkReset,
 	AtCommand_CharStReset,
 	//by chbrules
-	AtCommand_CharModel,
+	AtCommand_CharModel, 
 	AtCommand_CharSKPoint,
-	AtCommand_CharSTPoint,
+	AtCommand_CharSTPoint, 
 //	AtCommand_CharZeny, //now #zeny
 	AtCommand_RecallAll,
 	AtCommand_ReloadItemDB,
@@ -198,6 +198,15 @@ enum AtCommandType {
 	AtCommand_PetTalk,
 	AtCommand_Users,
 
+	AtCommand_CheckMail, // [Valaris]
+	AtCommand_ListMail, // [Valaris]
+	AtCommand_ListNewMail, // [Valaris]
+	AtCommand_ReadMail, // [Valaris]
+	AtCommand_SendMail, // [Valaris]
+	AtCommand_DeleteMail, // [Valaris]
+	AtCommand_SendPriorityMail, // [Valaris]
+	AtCommand_RefreshOnline, // [Valaris]
+
 	AtCommand_SkillTree, // by MouseJstr
 	AtCommand_Marry, // by MouseJstr
 	AtCommand_Divorce, // by MouseJstr
@@ -240,6 +249,7 @@ enum AtCommandType {
 	AtCommand_Size, // [Valaris]
 	AtCommand_ShowDelay,
 	AtCommand_ShowExp,
+	AtCommand_MonsterIgnore,
 
 
 

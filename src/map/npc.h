@@ -13,6 +13,7 @@ void npc_chat_finalize(struct npc_data *nd);
 
 int npc_chat_sub(struct block_list &bl, va_list ap);
 int npc_event_dequeue(struct map_session_data &sd);
+int npc_event_enqueue(struct map_session_data &sd, const char *eventname);
 int npc_event_timer(int tid,unsigned long tick,int id,int data);
 int npc_event(struct map_session_data &sd,const char *npcname,int);
 int npc_timer_event(const char *eventname);				// Added by RoVeRT
@@ -20,7 +21,7 @@ int npc_command(struct map_session_data &sd,const char *npcname, const char *com
 int npc_touch_areanpc(struct map_session_data &sd,unsigned short m,int x,int y);
 int npc_click(struct map_session_data &sd,unsigned long npcid);
 int npc_scriptcont(struct map_session_data &sd,unsigned long id);
-bool npc_icNear(struct map_session_data &sd,unsigned long id);
+bool npc_isNear(struct map_session_data &sd, struct npc_data &nd);
 int npc_buysellsel(struct map_session_data &sd,unsigned long id,int type);
 int npc_buylist(struct map_session_data &sd,unsigned short n,unsigned char *buffer);
 int npc_selllist(struct map_session_data &sd,unsigned short n,unsigned char *buffer);
@@ -51,6 +52,7 @@ int npc_do_ontimer(unsigned long npc_id, struct map_session_data &sd, int option
 int npc_event_doall(const char *name);
 int npc_event_do(const char *name);
 int npc_event_doall_id(const char *name, int id);
+int npc_event_doall_id_map(const char *name, int rid, int map);
 
 int npc_timerevent_start(struct npc_data &nd, unsigned long rid);
 int npc_timerevent_stop(struct npc_data &nd);

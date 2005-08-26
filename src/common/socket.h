@@ -15,34 +15,11 @@ extern time_t last_tick;
 // IP number stuff
 ///////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////
-// virtual interface for ip numbers and operations
-///////////////////////////////////////////////////////////////////////////////
-class ipaddr
-{
-public:
-	ipaddr()			{}
-	virtual ~ipaddr()	{}
-	///////////////////////////////////////////////////////////////////////////
-	virtual const ulong addr() const { return INADDR_LOOPBACK; }
-	virtual ulong& addr() { static ulong dummy; dummy=INADDR_LOOPBACK; return dummy; }
-	///////////////////////////////////////////////////////////////////////////
-	virtual const ulong mask() const { return INADDR_BROADCAST; }
-	virtual ulong& mask() { static ulong dummy; dummy=INADDR_BROADCAST; return dummy; }
-	///////////////////////////////////////////////////////////////////////////
-	virtual const ushort port() const { return 0; }
-	virtual ushort& port() { static ushort dummy; dummy=0; return dummy; }
-	///////////////////////////////////////////////////////////////////////////
-
-	///////////////////////////////////////////////////////////////////////////
-	virtual const char *getstring(char *buffer=NULL) = 0;
-	///////////////////////////////////////////////////////////////////////////
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 // class for ip numbers and helpers
 ///////////////////////////////////////////////////////////////////////////////
-class ipaddress : public ipaddr
+class ipaddress
 {
 private:
 	///////////////////////////////////////////////////////////////////////////
@@ -96,7 +73,7 @@ private:
 #else//not W32
 			int pos;
 			int fdes = socket(AF_INET, SOCK_STREAM, 0);
-			char buf[16 * sizeof(struct ifreq)];
+			char buf[2*C * sizeof(struct ifreq)];
 			struct ifconf ic;
 			
 			// The ioctl call will fail with Invalid Argument if there are more
@@ -109,9 +86,8 @@ private:
 			}
 			for(pos = 0; pos < ic.ifc_len;   )
 			{
-				struct ifreq * ir = (struct ifreq *) (ic.ifc_buf + pos);
+				struct ifreq* ir = (struct ifreq *)(buf+pos);
 				struct sockaddr_in * a = (struct sockaddr_in *) &(ir->ifr_addr);
-				
 				if(a->sin_family == AF_INET) {
 					u_long ad = ntohl(a->sin_addr.s_addr);
 					if(ad != INADDR_LOOPBACK) {
@@ -120,13 +96,13 @@ private:
 							break;
 					}
 				}
-#if defined(_AIX) || defined(__APPLE__)
-				pos += ir->ifr_addr.sa_len;
-				pos += sizeof(ir->ifr_name);
+#if (defined(BSD) && BSD >= 199103) || defined(_AIX) || defined(__APPLE__)
+				pos += ir->ifr_addr.sa_len + sizeof(ir->ifr_name);
 #else// not AIX or APPLE
 				pos += sizeof(struct ifreq);
 #endif//not AIX or APPLE
 			}
+			closesocket(fdes);
 #endif//not W32	
 		}
 		///////////////////////////////////////////////////////////////////////
@@ -154,18 +130,25 @@ private:
 		static _ipset_helper<16> iphelp;
 		return iphelp;
 	}
-	
 public:
-	static ipaddress GetSystemIP(uint i=0) { return gethelper().GetSystemIP(i); }
-	static uint GetSystemIPCount()	{ return gethelper().GetSystemIPCount(); }
+	static ipaddress GetSystemIP(uint i=0)	{ return gethelper().GetSystemIP(i); }
+	static uint GetSystemIPCount()			{ return gethelper().GetSystemIPCount(); }
+
 	static bool isBindable(ipaddress ip)
 	{	// check if an given IP is part of the system IP that can be bound to
-		for(uint i=0; i<GetSystemIPCount(); i++)
-			if( ip==GetSystemIP(i) )
-				return true;
-		return false;
+		if( gethelper().GetSystemIPCount() > 0 )
+		{
+			for(uint i=0; i<GetSystemIPCount(); i++)
+				if( ip==GetSystemIP(i) )
+					return true;
+			return false;
+		}
+		else
+		{	// cannot determine system ip's, just accept all
+			return true;
+		}
 	}
-
+	bool isBindable()	{ return ipaddress::isBindable(*this); }
 
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -173,36 +156,36 @@ public:
     union
     {
         uchar   bdata[4];
-        ulong   ldata;
+        ulong   cAddr;
     };
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor/destructor
-    ipaddress():ldata(INADDR_ANY)	{}
+    ipaddress():cAddr(INADDR_ANY)	{}
 	~ipaddress()					{}
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assign (actually not really necessary)
-    ipaddress(const ipaddress& a) : ldata(a.ldata)	{}
-    ipaddress& operator= (const ipaddress& a)	{ this->ldata = a.ldata; return *this; }
+    ipaddress(const ipaddress& a) : cAddr(a.cAddr)	{}
+    ipaddress& operator= (const ipaddress& a)	{ this->cAddr = a.cAddr; return *this; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// construction set (needs explicite casts when initializing with 0)
-    ipaddress(ulong a):ldata(a)	{}
-	ipaddress(const char* str):ldata(str2ip(str))	{}
+    ipaddress(ulong a):cAddr(a)	{}
+	ipaddress(const char* str):cAddr(str2ip(str))	{}
     ipaddress(int a, int b, int c, int d)
 	{
-		ldata =	 (a&0xFF) << 0x18
+		cAddr =	 (a&0xFF) << 0x18
 				|(b&0xFF) << 0x10
 				|(c&0xFF) << 0x08
 				|(d&0xFF);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// assignment set (needs explicite casts when assigning 0)
-    ipaddress& operator= (ulong a)			{ ldata = a; return *this; }
-	ipaddress& operator= (const char* str)	{ ldata = str2ip(str); return *this; }
+    ipaddress& operator= (ulong a)			{ cAddr = a; return *this; }
+	ipaddress& operator= (const char* str)	{ cAddr = str2ip(str); return *this; }
 	bool init(const char *str)
 	{
-		ldata = str2ip(str);
+		cAddr = str2ip(str);
 		return true;
 	}
 
@@ -249,21 +232,35 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// pod access on the ip (host byte order)
-    operator ulong() const	{ return ldata; }
+    operator const ulong() const	{ return cAddr; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// virtual access interface
-	virtual const ulong addr() const { return ldata; }
-	virtual ulong& addr() { return ldata; }
+	virtual const ulong addr() const { return cAddr; }
+	virtual ulong& addr() { return cAddr; }
+	///////////////////////////////////////////////////////////////////////////
+	virtual const ulong mask() const { return INADDR_BROADCAST; }
+	virtual ulong& mask() { static ulong dummy; return dummy=INADDR_BROADCAST; }
+	///////////////////////////////////////////////////////////////////////////
+	virtual const ushort port() const { return 0; }
+	virtual ushort& port() { static ushort dummy; return dummy=0; }
+
 	///////////////////////////////////////////////////////////////////////////
 	// ip2string
 	virtual const char *getstring(char *buffer=NULL)
 	{	// usage of the static buffer is not threadsafe
 		static char tmp[16];
 		char *buf = (buffer) ? buffer : tmp;
-		sprintf(buf, "%d.%d.%d.%d",bdata[3],bdata[2],bdata[1],bdata[0]);
+		sprintf(buf, "%d.%d.%d.%d",
+			(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF);
 		return buf;
 	}
+	///////////////////////////////////////////////////////////////////////////
+	// boolean operators
+	bool operator == (const ipaddress s) const { return cAddr==s.cAddr; }
+	bool operator != (const ipaddress s) const { return cAddr!=s.cAddr; }
+	bool operator == (const ulong s) const { return cAddr==s; }
+	bool operator != (const ulong s) const { return cAddr!=s; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// converts a string to an ip (host byte order)
@@ -302,7 +299,7 @@ public:
 				}
 				else
 				{	// the mask seperator placement is wrong
-					mask = INADDR_BROADCAST;
+					mask = (ulong)INADDR_ANY;
 				}
 				// <port>
 				port = atoi(mp+1);
@@ -314,7 +311,7 @@ public:
 				buffer[mp-str]=0;
 				addr = ipaddress::str2ip(buffer);
 				// default mask
-				mask = INADDR_BROADCAST; // 255.255.255.255
+				mask = (ulong)INADDR_ANY; // 0.0.0.0
 				// <port>
 				port = atoi(mp+1);
 			}
@@ -336,7 +333,7 @@ public:
 				// <ip>
 				addr = ipaddress::str2ip(str);
 				// default mask
-				mask = INADDR_BROADCAST; // 255.255.255.255
+				mask = (ulong)INADDR_ANY; // 0.0.0.0
 				// don't change the port
 			}
 			ret = true;
@@ -350,29 +347,28 @@ public:
 // class for a network address (compound of an ip address and a port number)
 //
 ///////////////////////////////////////////////////////////////////////////////
-class netaddress : public ipaddr
+class netaddress : public ipaddress
 {
 	friend class ipset;
 protected:
 	///////////////////////////////////////////////////////////////////////////
 	// class data
-	ipaddress	cAddr;
 	ushort		cPort;
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor/destructor
-    netaddress():cAddr((ulong)INADDR_ANY),cPort(0)	{}
+    netaddress():ipaddress((ulong)INADDR_ANY),cPort(0)	{}
 	~netaddress()	{}
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assign (actually not really necessary)
-    netaddress(const netaddress& a):cAddr(a.cAddr),cPort(a.cPort){}
+    netaddress(const netaddress& a):ipaddress(a.cAddr),cPort(a.cPort){}
     netaddress& operator= (const netaddress& a)	{ this->cAddr = a.cAddr; this->cPort=a.cPort; return *this; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// construction set
-	netaddress(ulong a, ushort p):cAddr(a),cPort(p)	{}
-	netaddress(ushort p):cAddr((ulong)INADDR_ANY),cPort(p)	{}
-    netaddress(int a, int b, int c, int d, ushort p):cAddr(a,b,c,d),cPort(p) {}
+	netaddress(ulong a, ushort p):ipaddress(a),cPort(p)	{}
+	netaddress(ushort p):ipaddress((ulong)INADDR_ANY),cPort(p)	{}
+    netaddress(int a, int b, int c, int d, ushort p):ipaddress(a,b,c,d),cPort(p) {}
 	netaddress(const char* str)	{ init(str); }
 	///////////////////////////////////////////////////////////////////////////
 	// assignment set
@@ -382,13 +378,9 @@ public:
 	bool init(const char *str)
 	{	
 		ipaddress mask; // dummy
-		return ipaddress::str2ip(str, this->cAddr, mask, this->cPort);
+		return ipaddress::str2ip(str, *this, mask, this->cPort);
 	}
 
-	///////////////////////////////////////////////////////////////////////////
-	// virtual access interface
-	virtual const ulong addr() const { return cAddr.ldata; }
-	virtual ulong& addr() { return cAddr.ldata; }
 	///////////////////////////////////////////////////////////////////////////
 	virtual const ushort port() const { return cPort; }
 	virtual ushort& port()		 { return cPort; }
@@ -399,14 +391,14 @@ public:
 		static char tmp[32];
 		char *buf = (buffer) ? buffer : tmp;
 		sprintf(buf, "%d.%d.%d.%d:%d",
-			cAddr[3],cAddr[2],cAddr[1],cAddr[0],
+			(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF,
 			cPort);
 		return buf;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// boolean operators
-	bool operator == (const netaddress s) const { return cAddr==s.cAddr && cPort==s.cPort; }
-	bool operator != (const netaddress s) const { return cAddr!=s.cAddr || cPort!=s.cPort; }
+	bool operator == (const netaddress s) const { return this->cAddr==s.cAddr && this->cPort==s.cPort; }
+	bool operator != (const netaddress s) const { return this->cAddr!=s.cAddr || this->cPort!=s.cPort; }
 
 };
 ///////////////////////////////////////////////////////////////////////////////
@@ -424,7 +416,7 @@ protected:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor/destructor
-    subnetaddress():cMask(INADDR_BROADCAST)	{}
+    subnetaddress():cMask((ulong)INADDR_ANY)	{}
 	~subnetaddress()	{}
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assign (actually not really necessary)
@@ -441,28 +433,33 @@ public:
 	subnetaddress& operator= (const char* str)	{ init(str); return *this; }
 	bool init(const char *str)
 	{	// format: <ip>/<mask>:<port>
-		return ipaddress::str2ip(str, this->cAddr, this->cMask, this->cPort);
+		return ipaddress::str2ip(str, *this, this->cMask, this->cPort);
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// virtual access interface
-	virtual const ulong mask() const { return cMask.ldata; }
-	virtual ulong& mask() { return cMask.ldata; }
+	virtual const ulong mask() const { return cMask.cAddr; }
+	virtual ulong& mask() { return cMask.cAddr; }
 	///////////////////////////////////////////////////////////////////////////
 	// networkaddr2string
 	virtual const char *getstring(char *buffer=NULL)
 	{	// usage of the static buffer is not threadsafe
 		static char tmp[64];
 		char *buf = (buffer) ? buffer : tmp;
-		sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d",
-			this->cAddr[3],this->cAddr[2],this->cAddr[1],this->cAddr[0], 
-			this->cMask[3],this->cMask[2],this->cMask[1],this->cMask[0], 
-			this->cPort);
+		if(this->cMask.cAddr==INADDR_ANY)
+			sprintf(buf, "%d.%d.%d.%d:%d",
+				(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF, 
+				this->cPort);
+		else
+			sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d",
+				(cAddr>>0x18)&0xFF,(cAddr>>0x10)&0xFF,(cAddr>>0x8)&0xFF,(cAddr)&0xFF, 
+				this->cMask[3],this->cMask[2],this->cMask[1],this->cMask[0], 
+				this->cPort);
 		return buf;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// boolean operators
-	bool operator == (const subnetaddress s) const { return cMask==s.cMask && cAddr==s.cAddr && cPort==s.cPort; }
-	bool operator != (const subnetaddress s) const { return cMask!=s.cMask || cAddr!=s.cAddr || cPort!=s.cPort; }
+	bool operator == (const subnetaddress s) const { return this->cMask==s.cMask && this->cAddr==s.cAddr && this->cPort==s.cPort; }
+	bool operator != (const subnetaddress s) const { return this->cMask!=s.cMask || this->cAddr!=s.cAddr || this->cPort!=s.cPort; }
 
 };
 
@@ -472,38 +469,36 @@ public:
 // stores wan/lan ips with lan subnet and wan/lan ports
 // can automatically fill default values
 ///////////////////////////////////////////////////////////////////////////////
-class ipset : public ipaddr
+class ipset : public subnetaddress
 {
 	///////////////////////////////////////////////////////////////////////////
 	// class data
-	subnetaddress	lanaddr;
 	netaddress		wanaddr;
-	
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// construct/destruct
 	// init with 0, need to
 	ipset(const ipaddress lip = ipaddress::GetSystemIP(0),	// identify with the first System IP by default
-		  const ipaddress lsu = INADDR_BROADCAST,			// 255.255.255.255
+		  const ipaddress lsu = (ulong)INADDR_ANY,			// 0.0.0.0
 		  const ushort lpt    = 0,
 		  const ipaddress wip = (ulong)INADDR_ANY,			// 0.0.0.0
 		  const ushort wpt    = 0 )
-		: lanaddr(lip,lsu,lpt),wanaddr(wip,wpt)
+		: subnetaddress(lip,lsu,lpt),wanaddr(wip,wpt)
 	{}
 	ipset(const ulong lip,
 		  const ulong lsu,
 		  const ushort lpt,
 		  const ulong wip,
 		  const ushort wpt)
-		: lanaddr(lip,lsu,lpt),wanaddr(wip,wpt)
+		: subnetaddress(lip,lsu,lpt),wanaddr(wip,wpt)
 	{}
 
 	ipset(const ushort lpt,
 		  const ushort wpt)
-		: lanaddr(ipaddress::GetSystemIP(0),INADDR_BROADCAST,lpt),wanaddr(INADDR_ANY,wpt)
+		: subnetaddress(ipaddress::GetSystemIP(0),(ulong)INADDR_ANY,lpt),wanaddr((ulong)INADDR_ANY,wpt)
 	{}
 	ipset(const ushort pt)
-		: lanaddr(ipaddress::GetSystemIP(0),INADDR_BROADCAST,pt),wanaddr(INADDR_ANY,pt)
+		: subnetaddress(ipaddress::GetSystemIP(0),(ulong)INADDR_ANY,pt),wanaddr((ulong)INADDR_ANY,pt)
 	{}
 
 	~ipset()	{}
@@ -544,27 +539,32 @@ public:
 
 				//if( (jp&&kp) || (jp&&!kp) ) ->
 				if( jp )
-				{	// both have subnets 
-					// first has sub, second has none
+				{	// both have subnets or first has sub, second has none
 					// assume order: "lan,wan"
-					lanaddr = buffer;
-					wanaddr = ip;
+					subnetaddress::init(buffer);
+					wanaddr.init(ip);
 				}
 				else if(!jp && kp)
 				{	// first has none, second has sub
-					lanaddr = ip;
-					wanaddr = buffer;
+					subnetaddress::init(ip);
+					wanaddr.init(buffer);
 				}
 				else
 				{	// no subnets; only take the first ip, default the second
-					lanaddr = buffer;
-					wanaddr = netaddress((ulong)INADDR_ANY, lanaddr.cPort);
+					subnetaddress::init(buffer);
+					wanaddr = netaddress((ulong)INADDR_ANY, this->cPort);
 				}
 			}
 			else
 			{	// only one given, assume it the lanip
-				lanaddr = str;
-				wanaddr = netaddress((ulong)INADDR_ANY, lanaddr.cPort);
+				subnetaddress::init(str);
+				wanaddr = netaddress((ulong)INADDR_ANY, this->cPort);
+			}
+
+			if( !this->isBindable() && wanaddr.isBindable() )
+			{	// we assumed it wrong
+				swap(this->cAddr, wanaddr.cAddr);
+				swap(this->cPort, wanaddr.cPort);
 			}
 		}
 		checklocal();
@@ -577,88 +577,81 @@ public:
 	bool checklocal()
 	{
 		bool ret = true;
-		if(lanaddr.cAddr==INADDR_ANY) // not detected
-		{	// take the first system ip for wan and loopback for lan
-			lanaddr.cAddr = ipaddress::GetSystemIP(0);
+		if(this->cAddr==INADDR_ANY || !this->isBindable() ) // not detected or not local
+		{	// take the first system ip for lan
+			this->cAddr = ipaddress::GetSystemIP(0);
 			ret = false;
 		}
+
 		ret &= checkPorts();
 		return ret;
 	}
 	bool checkPorts()
 	{	// check for unset wan address/port
 		if( wanaddr.port() == 0 ) 
-			wanaddr.port() = lanaddr.port();
-		if( lanaddr.port() == 0 ) 
-			lanaddr.port() = wanaddr.port();
-		return (lanaddr.port() != 0) ;
+			wanaddr.port() = this->port();
+		if( this->port() == 0 ) 
+			this->port() = wanaddr.port();
+		return (this->port() != 0) ;
 	}
-
-
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// check if an given ip is LAN
 	bool isLAN(const ipaddress ip) const
 	{
-		return ( (lanaddr.addr()&lanaddr.mask()) == (ip.addr()&lanaddr.mask()) );
+		return ( (this->cAddr&this->cMask) == (ip.cAddr&this->cMask) );
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// check if an given ip is WAN
 	bool isWAN(const ipaddress ip) const
 	{
-		return ( (lanaddr.addr()&lanaddr.mask()) != (ip.addr()&lanaddr.mask()) );
+		return ( (this->cAddr&this->cMask) != (ip.cAddr&this->cMask) );
 	}
 	///////////////////////////////////////////////////////////////////////////
 	bool SetLANIP(const ipaddress ip)
 	{	// a valid lan address should be bindable
 		if( ipaddress::isBindable(ip) ) 
 		{
-			lanaddr.addr() = ip;
+			this->addr() = ip;
 			return true;
 		}
 		return false;
 	}
+	bool SetWANIP(const ipaddress ip)
+	{	
+		wanaddr.addr() = ip;
+		return true;
+	}
 	///////////////////////////////////////////////////////////////////////////
-	ipaddress LANIP() const	{ return lanaddr.cAddr; }
-	ipaddress& LANMask()	{ return lanaddr.cMask; }
-	ushort& LANPort()		{ return lanaddr.cPort; }
-	ipaddress& WANIP()		{ return wanaddr.cAddr; }
+	ipaddress LANIP() const	{ return this->cAddr; }
+	ipaddress& LANMask()	{ return this->cMask; }
+	ushort& LANPort()		{ return this->cPort; }
+	ipaddress WANIP()		{ return wanaddr.cAddr; }
 	ushort& WANPort()		{ return wanaddr.cPort; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// returning as netaddresses only
-	netaddress& LANAddr()	{ return lanaddr; }	
+	netaddress& LANAddr()	{ return *this;; }	
 	netaddress& WANAddr()	{ return wanaddr; }
 
-	///////////////////////////////////////////////////////////////////////////
-	// virtual interface
-	virtual const ulong addr() const { return lanaddr.cAddr; }
-	virtual ulong& addr() { return lanaddr.cAddr.ldata; }
-	///////////////////////////////////////////////////////////////////////////
-	virtual const ulong mask() const { return lanaddr.cMask; }
-	virtual ulong& mask() { return lanaddr.cMask.ldata; }
-	///////////////////////////////////////////////////////////////////////////
-	virtual const ushort port() const { return lanaddr.cPort; }
-	virtual ushort& port() { return lanaddr.cPort; }
 	///////////////////////////////////////////////////////////////////////////
 	virtual const char *getstring(char *buffer=NULL)
 	{	// usage of the static buffer is not threadsafe
 		static char tmp[64];
 		char *buf = (buffer) ? buffer : tmp;
-		if(lanaddr.cMask == INADDR_BROADCAST)
+		if(this->cMask.cAddr == INADDR_ANY)
 		{	// have only one accessable ip
-			sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d",
-				lanaddr.cAddr[3],lanaddr.cAddr[2],lanaddr.cAddr[1],lanaddr.cAddr[0], 
-				lanaddr.cMask[3],lanaddr.cMask[2],lanaddr.cMask[1],lanaddr.cMask[0], 
-				lanaddr.cPort);
+			sprintf(buf, "%d.%d.%d.%d:%d",
+				(this->cAddr>>0x18)&0xFF,(this->cAddr>>0x10)&0xFF,(this->cAddr>>0x8)&0xFF,(this->cAddr)&0xFF, 
+				this->cPort);
 		}
 		else
 		{	// have a full set
 			sprintf(buf, "%d.%d.%d.%d/%d.%d.%d.%d:%d, %d.%d.%d.%d:%d",
-				lanaddr.cAddr[3],lanaddr.cAddr[2],lanaddr.cAddr[1],lanaddr.cAddr[0], 
-				lanaddr.cMask[3],lanaddr.cMask[2],lanaddr.cMask[1],lanaddr.cMask[0], 
-				lanaddr.cPort,
-				wanaddr.cAddr[3],wanaddr.cAddr[2],wanaddr.cAddr[1],wanaddr.cAddr[0], 
+				(this->cAddr>>0x18)&0xFF,(this->cAddr>>0x10)&0xFF,(this->cAddr>>0x8)&0xFF,(this->cAddr)&0xFF,
+				(this->cMask>>0x18)&0xFF,(this->cMask>>0x10)&0xFF,(this->cMask>>0x8)&0xFF,(this->cMask)&0xFF,
+				this->cPort,
+				(wanaddr.cAddr>>0x18)&0xFF,(wanaddr.cAddr>>0x10)&0xFF,(wanaddr.cAddr>>0x8)&0xFF,(wanaddr.cAddr)&0xFF,
 				wanaddr.cPort);
 		}
 		return buf;
@@ -669,9 +662,8 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// boolean operators
-	bool operator == (const ipset s) const { return lanaddr==s.lanaddr && wanaddr==s.wanaddr; }
-	bool operator != (const ipset s) const { return lanaddr!=s.lanaddr || wanaddr!=s.wanaddr; }
-
+	bool operator == (const ipset s) const { return this->cAddr==s.cAddr && this->cMask==s.cMask && this->cPort==s.cPort && wanaddr==s.wanaddr; }
+	bool operator != (const ipset s) const { return this->cAddr!=s.cAddr || this->cMask!=s.cMask || this->cPort!=s.cPort || wanaddr!=s.wanaddr; }
 };
 
 
@@ -696,9 +688,9 @@ public:
 		: ipp(const_cast<unsigned char*>(b)), start(b), end(b+sz)
 	{}
 
-	bool eof()			{ return !(ipp && ipp<end); }
-	size_t size()		{ return ipp-start; }
-	size_t freesize()	{ return end-ipp; }
+	bool eof() const		{ return !(ipp && ipp<end); }
+	size_t size() const		{ return ipp-start; }
+	size_t freesize() const	{ return end-ipp; }
 
 	///////////////////////////////////////////////////////////////////////////
 	unsigned char operator = (const unsigned char ch)
@@ -714,13 +706,13 @@ public:
 		return ch;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	operator unsigned char ()
+	operator unsigned char () const
 	{	
 		if( ipp && ipp<end)
 			return *ipp++;
 		return 0;
 	}
-	operator char()
+	operator char() const
 	{	
 		if( ipp && ipp<end)
 			return *ipp++;
@@ -747,7 +739,7 @@ public:
 		return sr;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	operator unsigned short()
+	operator unsigned short() const
 	{	// implement little endian buffer format
 		unsigned short sr=0;
 		if( ipp && ipp+1<end)
@@ -757,7 +749,7 @@ public:
 		}
 		return sr;
 	}
-	operator short ()
+	operator short () const
 	{	// implement little endian buffer format
 		short sr=0;
 		if( ipp && ipp+1<end)
@@ -791,7 +783,7 @@ public:
 		return ln;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	operator unsigned long ()
+	operator unsigned long () const
 	{	// implement little endian buffer format
 		unsigned long ln=0;
 		if( ipp && ipp+3<end)
@@ -803,7 +795,7 @@ public:
 		}
 		return ln;
 	}
-	operator long ()
+	operator long () const
 	{	// implement little endian buffer format
 		long ln=0;
 		if( ipp && ipp+3<end)
@@ -829,7 +821,7 @@ public:
 		return ip;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	operator ipaddress ()
+	operator ipaddress () const
 	{	// implement little endian buffer format
 
 		if( ipp && ipp+3<end)
@@ -872,7 +864,7 @@ public:
 		return lx;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	operator int64 ()
+	operator int64 () const
 	{	// implement little endian buffer format
 		int64 lx=0;
 		if( ipp && ipp+7<end)
@@ -888,7 +880,7 @@ public:
 		}
 		return lx;
 	}
-	operator uint64 ()
+	operator uint64 () const
 	{	// implement little endian buffer format
 		uint64 lx=0;
 		if( ipp && ipp+7<end)
@@ -919,7 +911,7 @@ public:
 		}
 		return c;
 	}
-	operator const char*()
+	operator const char*() const
 	{	// find the EOS
 		// cannot do anything else then going through the array
 		unsigned char *ix = ipp;
@@ -953,7 +945,7 @@ public:
 		}
 		return false;
 	}
-	bool buffer2str(char *c, size_t sz)
+	bool buffer2str(char *c, size_t sz) const
 	{
 		if( c && ipp+sz < end )
 		{	
@@ -1042,7 +1034,7 @@ public:
 		}
 		return i;
 	}
-	operator int ()
+	operator int () const
 	{	// implement little endian buffer format
 		switch(sizeof(int))
 		{
@@ -1075,7 +1067,7 @@ public:
 		}
 		return i;
 	}
-	operator unsigned int ()
+	operator unsigned int () const
 	{	// implement little endian buffer format
 		switch(sizeof(int))
 		{
@@ -1385,19 +1377,14 @@ public:
 #define WBUFL(p,pos) (objL((p),(pos)))
 #define WBUFLIP(p,pos) (objLIP((p),(pos)))
 
-#if defined(__INTERIX) || defined(CYGWIN) || defined(_WIN32)
-	#undef FD_SETSIZE
-#define FD_SETSIZE 4096
-#endif	// __INTERIX
-
 
 // Struct declaration
 struct socket_data
 {
 	struct {
-		bool connected : 1;			// true when connected
-		bool remove : 1;			// true when to be removed
-		bool marked : 1;			// true when deleayed removal is initiated (optional)
+		bool connected : 1;		// true when connected
+		bool remove : 1;		// true when to be removed
+		bool marked : 1;		// true when deleayed removal is initiated (optional)
 	}flag;
 
 	unsigned char *rdata;		// buffer
@@ -1418,6 +1405,7 @@ struct socket_data
 	int (*func_parse)(int);
 	int (*func_term)(int);
 	int (*func_console)(char*);
+
 	void* session_data;
 };
 

@@ -123,6 +123,7 @@ MaxSp		8	1
 BaseJob		119	1
 Karma		4	1
 Manner		5	1
+Chaos		61	1
 
 bMaxHP		6
 bMaxSP		8
@@ -313,6 +314,13 @@ SC_Frost	91
 SC_Lightning	92
 SC_Seismic	93
 SC_Hallucination	34
+SC_IncAll	172
+SC_IncStr	195
+SC_IncAgi	196
+SC_IncVit	197
+SC_IncInt	198
+SC_IncDex	199
+SC_IncLuk	200
 
 e_gasp	0
 e_what	1

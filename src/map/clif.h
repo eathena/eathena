@@ -6,27 +6,10 @@
 #include "socket.h"
 #include "map.h"
 
-// protocol version
-#define PACKETVER			6
-
-// packet DB
-#define MAX_PACKET_DB		0x23a
-#define MAX_PACKET_VER		18
-
-struct packet_db {
-	short len;
-	int (*func)(int,struct map_session_data &);
-	short pos[20];
-};
-extern struct packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB];
-
+bool clif_packetsend(int fd, struct map_session_data &sd, unsigned short cmd, int info[], size_t sz);
 
 netaddress& getcharaddress();
 ipset& getmapaddress();
-//void clif_setip(unsigned long ip);
-//void clif_setport(unsigned short port);
-//unsigned long  clif_getip(void);
-//unsigned short clif_getport(void);
 
 int clif_countusers(void);
 

@@ -1,6 +1,8 @@
 // $Id: chrif.h,v 1.3 2004/09/25 11:39:17 MouseJstr Exp $
 #ifndef _CHRIF_H_
 #define _CHRIF_H_
+#include "base.h"
+#include "baseio.h"
 
 void chrif_setuserid(const char* user);
 void chrif_setpasswd(const char *pwd);
@@ -14,6 +16,9 @@ int chrif_isconnect(void);
 
 int chrif_authreq(struct map_session_data &sd);
 int chrif_save(struct map_session_data &sd);
+int chrif_save_sc(struct map_session_data &sd);
+int chrif_read_sc(struct map_session_data &sd);
+
 int chrif_charselectreq(struct map_session_data &sd);
 
 int chrif_changemapserver(struct map_session_data &sd, const char *name, unsigned short x, unsigned short y, ipset& mapset);
@@ -36,5 +41,7 @@ int do_final_chrif(void);
 int do_init_chrif(void);
 
 int chrif_flush_fifo(void);
+
+bool getAthentification(unsigned long accid, CAuth& auth);
 
 #endif

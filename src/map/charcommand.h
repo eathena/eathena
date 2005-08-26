@@ -33,7 +33,16 @@ enum CharCommandType {
 	CharCommandSTPoint,
 	CharCommandChangeSex,
 
+#ifdef TXT_ONLY
+/* TXT_ONLY */
 
+/* TXT_ONLY */
+#else
+/* SQL-only */
+
+/* SQL Only */
+#endif
+	
 	// End. No more commans after this line.
 	CharCommand_Unknown,
 	CharCommand_MAX

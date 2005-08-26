@@ -15,6 +15,7 @@ int guild_skill_get_max(unsigned short id);
 int guild_checkskill(struct guild &g,unsigned short id);
 unsigned int guild_checkcastles(struct guild &g); // [MouseJstr]
 bool guild_isallied(struct guild &g, struct guild_castle &gc);
+bool guild_isallied(unsigned long guild_id, unsigned long guild_id2);
 
 void do_init_guild(void);
 struct guild *guild_search(unsigned long guild_id);
@@ -77,6 +78,7 @@ int guild_agit_start(void);
 int guild_agit_end(void);
 int guild_agit_break(struct mob_data &md);
 
+void guild_send_xy(unsigned long tick);
 void do_final_guild(void);
 
 #endif

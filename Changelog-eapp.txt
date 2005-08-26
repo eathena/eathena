@@ -1,4 +1,61 @@
 Date	Added
+08/26	forked out the changes from cuteboi, they have to be merged in a more decent manner
+	changes for the current update compared with the 07/17 release include:
+	
+	* converting the servers to use a unified data interface so different database concepts can be added more easily
+	- login server is working but still need some modification on the sql side to be fully functional
+	  and also need cleaning of all unnecessary packets
+	- partially converted char server (party and guilds are missing) 
+	  txt is working but the complete sql implementation of the char database is missing (char_sql and login_sql is still working)
+	  the changes have enhanced txt to be orders of magnitude faster than sql now 
+	  (basically by replacing all searching for-loops with binary searches and throwing out the 
+	  braindead implementation of the friend.txt read/write)
+	* added new authentification system which will make any guessing on packetvers obsolete
+	- introduced temporary packets in login/char and char/map to emulate the targeted authentification
+	- cleaned clif_parse entry code (not finished), WantToConnection and packet version detection
+	* updated packetdb reading and internal structure
+	- put in defaults from current packet_db.txt, packet_db.txt reading can now be used optional
+	* rewrote the old script engine
+	- partially converted the script engine to fit the structure of the new execution machine 
+	  to simplify switching over/using them in parallel/getinf an idea for an interface to lua (if still of interest)
+	- fixed dangling pointers in stack elements
+	- added a script queue so scripts will be queued when starting multiple scripts on a character that is
+	  already running one (like starting both PCLoginEvent and PCMapLoadEvent on login)
+	  but need to rethink the attach_id stuff, since it might need a completely different scheme
+	- added a check to script command "input"
+	  this script command is only working when called with a visible npc, so eventscripts, equipscripts 
+	  will just freeze the pc; the script will be now terminated with a warning if this is detected,
+	  (example scripts included in npc/a_tests.txt), a better workaround is prepared
+	- fixed close command to now really close the script when the "close" button has been pressed by the pc 
+	  and not when the command is encountered
+	* other stuff from last week that I don't remember anymore [Shinomori]
+/////////////////////////////////////////////////////////////////
+changelog from devel/shinomori, which the above is based on
+08/10
+	minor changes/additions
+	still preparing the replacements for current data access and authentification
+	notice for Hinoko: I corrected your Multilist and made an modification
+	that is using pointer storage; check the comments at the classes
+	your fix for the system ip check on bsd type unix is working fine
+07/29
+	new makefiles (look for suitable compile options on your system)
+	fix for guild creation crash
+	some changes on freeing script allocated strings 
+	(possible source of some observed memory overwrites)
+	and added some block checking on memory manager [Shinomori]
+	changed sockets to use c++ allocation/deallocation
+	will use managed memory again when switched completely [Hinoko]
+07/23
+	Moving back to devel dir, since I've been efficiently thrown out 
+	of my own sources after beeing away for just some days and 
+	beeing fair enough to not do the same [Shinomori]
+	Start to integrate the baseio playground, it actually does nothing at the moment
+	but is aimed to store all the data operations of the servers [Shinomori]
+	Replacement for the initial ipaddress class from caldon project
+	with a better class hierarchy [Hinoko]	
+/////////////////////////////////////////////////////////////////
+changelog from cuteboi's changes on eapp which is forked to eapp_old
+code is basically reverted to 07/17 from here
 07/22
 	- Removal of checks whether the client is LAN or WAN, Must be fixed ASAP, map, login, char
 	  updated to allow players to log in.[CLOWNISIUS]
@@ -25,7 +82,7 @@ Date	Added
 	- Updated Login, Char and Map SQL server to use the new dbaccess.c/h [CLOWNISIUS]
 	- Updated the main Makefile to not touch TXT based servers, and simplified compiling options
 	for the login, char and map servers. [CLOWNISIUS]
-	
+/////////////////////////////////////////////////////////////////
 07/17
 	modification on the ip storage and transfer,
 	removed the lan support stuff and integrated it directly to the server configs

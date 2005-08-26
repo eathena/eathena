@@ -2,9 +2,8 @@
 #define _STATUS_H_
 
 enum {	// struct map_session_data の status_changeの番?テ?ブル
-// SC_SENDMAX未?はクライアントへの通知あり。
+// MAX_STATUSCHANGE未?はクライアントへの通知あり。
 // 2-2次職の値はなんかめちゃくちゃっぽいので暫定。たぶん?更されます。
-	SC_SENDMAX			= 200,	// note: max is now 182, but we'll need to do alot of moving around
 	SC_PROVOKE			= 0,
 	SC_ENDURE			= 1,
 	SC_TWOHANDQUICKEN	= 2,
@@ -120,7 +119,7 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_GOSPEL			= 109,
 	SC_ASSUMPTIO		= 110, /* アシャンプティオ */
 	SC_BASILICA			= 111,
-// <-- 112 = sage skill icon
+	SC_GUILDAURA        = 112,
 	SC_MAGICPOWER		= 113, /* 魔法力?幅 */
 	SC_EDP				= 114, /* エフェクトが判明したら移動 */
 	SC_TRUESIGHT		= 115, /* トゥル?サイト */
@@ -141,24 +140,22 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_DEVOTION			= 130,
 	SC_SACRIFICE		= 131,	/* サクリファイス */
 	SC_STEELBODY		= 132,
-
-//<-- 133 = gloria
-//<-- 134 = 1:gloria 0:wobble? o_O
-//<-- 135 = gloria
-// 136
-//<-- 137 = gloria
-// 138
-//<-- 139 = gloria
-// 140
-//<-- 141 = gloria
-// 142
-//<-- 143 = gloria
+// 133
+// 134 = wobbles the character's sprite when SC starts or ends
+	SC_READYSTORM		= 135,
+	SC_STORMKICK		= 136,
+	SC_READYDOWN		= 137,
+	SC_DOWNKICK			= 138,
+	SC_READYCOUNTER		= 139,
+    SC_COUNTER			= 140,
+	SC_READYTURN		= 141,
+	SC_TURNKICK			= 142,
+	SC_DODGE			= 143,
 // 144
-//-- 145 = 2nd Seismic weapon?
-//<-- 146 = trickdead
-//<-- 147 = peco peco
-//<-- 148 = falcon
-
+	SC_RUN				= 145,
+// 146 = korean letter
+	SC_ADRENALINE2      = 147,
+// 148 = another korean letter
 	SC_DANCING			= 149,
 	SC_LULLABY			= 150,	//0x96
 	SC_RICHMANKIM		= 151,
@@ -178,11 +175,10 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_DONTFORGETME		= 165,
 	SC_FORTUNE			= 166,	//0xA6
 	SC_SERVICE4U		= 167,
-
-//<-- 169 = gloria
-//<-- 170 = gloria
-//<-- 171 = gloria
-
+// 168
+// 169 = sun
+// 170 = moon
+// 171 = stars
 	SC_INCALLSTATUS		= 172,		/* 全てのステータスを上昇(今のところゴスペル用) */
 	SC_INCHIT			= 173,		/* HIT上昇(今のところゴスペル用) */
 	SC_INCFLEE			= 174,		/* FLEE上昇(今のところゴスペル用) */
@@ -194,22 +190,24 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_INCFLEE2			= 180,		/* FLEEを%上昇(今のところゴスペル用) */
 	SC_PRESERVE         = 181,
 	SC_BATTLEORDERS		= 182,	// unsure
-	SC_GUILDAURA		= 183,
 	SC_REGENERATION		= 184,
-	
+// 184
+// 185
 	SC_DOUBLECAST		= 186,
 	SC_GRAVITATION		= 187,
 	SC_MAXOVERTHRUST	= 188,
 	SC_LONGING			= 189,
 	SC_HERMODE			= 190,
 	SC_TAROT			= 191,	// unsure
-
 //<-- 192 = gloria
 //<-- 193 = gloria
-
 	SC_INCDEF2			= 194,
 	SC_INCSTR			= 195,
 	SC_INCAGI			= 196,
+	SC_INCVIT			= 197,
+	SC_INCINT			= 198,
+	SC_INCDEX			= 199,
+	SC_INCLUK			= 200,
 // <-- 201 = two hand quicken
 };
 extern int SkillStatusChangeTable[];

@@ -6,15 +6,15 @@
 
 #include "base.h"
 #include "socket.h"
+#include "utils.h"
 
-
+	
 #define FIFOSIZE_SERVERLINK	128*1024
 
 // set to 0 to not check IP of player between each server.
 // set to another value if you want to check (1)
 #define CMP_AUTHFIFO_IP 1
 #define CMP_AUTHFIFO_LOGIN2 1
-
 
 
 #define MAX_MAP_PER_SERVER 1024
@@ -29,6 +29,7 @@
 #define MAX_SKILL 650
 #define MAX_REFINE 10
 #define MAX_REFINE_BONUS 5
+#define MAX_MEMO 10
 #define GLOBAL_REG_NUM 96
 #define ACCOUNT_REG_NUM 16
 #define ACCOUNT_REG2_NUM 16
@@ -109,9 +110,9 @@ enum
 
 
 /////////////////////////////////////////////////////////////////////////////
-// char server definition for incomming map server connections
+// char server definition for incoming map server connections
 
-// currently only lanip/lanport are used for storing the ip/port
+// currently only lanip/lanport are used for storing the ip/port 
 // which are sent in connect packet
 // maybe it is not necessary to store extra lan/wan ip
 // since there is already the client ip in session_data
@@ -126,15 +127,15 @@ struct mmo_map_server
 };
 
 /////////////////////////////////////////////////////////////////////////////
-// login server definition for incomming char server connections
+// login server definition for incoming char server connections
 struct mmo_char_server
 {
 	int fd;
 	ipset			address;
 	char name[20];
 	size_t users;
-	int maintenance;
-	int new_;
+	unsigned short maintenance;
+	unsigned short new_display;
 };
 
 
@@ -142,20 +143,20 @@ struct mmo_char_server
 
 
 /////////////////////////////////////////////////////////////////////////////
-// simplified buffer functions with moving buffer pointer
+// simplified buffer functions with moving buffer pointer 
 // to enable secure continous inserting of data to a buffer
 // no pointer checking is implemented here, so make sure the calls are correct
 /////////////////////////////////////////////////////////////////////////////
 
 extern inline void _L_tobuffer(const unsigned long &valin, unsigned char *&buf)
-{
+{	
 	*buf++ = ((valin & 0x000000FF)        );
 	*buf++ = ((valin & 0x0000FF00)>> 0x08 );
 	*buf++ = ((valin & 0x00FF0000)>> 0x10 );
 	*buf++ = ((valin & 0xFF000000)>> 0x18 );
 }
 extern inline void _L_tobuffer(const long &valin, unsigned char *&buf)
-{
+{	
 	*buf++ = ((valin & 0x000000FF)        );
 	*buf++ = ((valin & 0x0000FF00)>> 0x08 );
 	*buf++ = ((valin & 0x00FF0000)>> 0x10 );
@@ -163,48 +164,48 @@ extern inline void _L_tobuffer(const long &valin, unsigned char *&buf)
 }
 
 extern inline void _W_tobuffer(const unsigned short &valin, unsigned char *&buf)
-{
+{	
 	*buf++ = ((valin & 0x00FF)        );
 	*buf++ = ((valin & 0xFF00)>> 0x08 );
 }
 extern inline void _W_tobuffer(const short &valin, unsigned char *&buf)
-{
+{	
 	*buf++ = ((valin & 0x00FF)        );
 	*buf++ = ((valin & 0xFF00)>> 0x08 );
 }
 
 extern inline void _B_tobuffer(const unsigned char &valin, unsigned char *&buf)
-{
+{	
 	*buf++ = ((valin & 0xFF)        );
 }
 extern inline void _B_tobuffer(const char &valin, unsigned char *&buf)
-{
+{	
 	*buf++ = ((valin & 0xFF)        );
 }
 
 extern inline void _S_tobuffer(const char *valin, unsigned char *&buf, const size_t sz)
-{
+{	
 	strncpy((char*)buf, valin, sz);
 	buf[sz-1]=0;
 	buf += sz;
 }
 extern inline void S_tobuffer(const char *valin, unsigned char *&buf, const size_t sz)
-{
+{	
 	strncpy((char*)buf, (char*)valin, sz);
 	buf[sz-1]=0;
 }
 extern inline void _X_tobuffer(const unsigned char *valin, unsigned char *&buf, const size_t sz)
-{
+{	
 	memcpy(buf, valin, sz);
 	buf += sz;
 }
 extern inline void X_tobuffer(const unsigned char *valin, unsigned char *&buf, const size_t sz)
-{
+{	
 	memcpy(buf, valin, sz);
 }
 
 extern inline void _L_frombuffer(unsigned long &valin, const unsigned char *&buf)
-{
+{	
 	valin = ( ((buf[0]))      )
 			|( ((buf[1])) << 0x08)
 			|( ((buf[2])) << 0x10)
@@ -212,7 +213,7 @@ extern inline void _L_frombuffer(unsigned long &valin, const unsigned char *&buf
 	buf += 4;
 }
 extern inline void _L_frombuffer(long &valin, const unsigned char *&buf)
-{
+{	
 	valin = ( ((buf[0]))      )
 			|( ((buf[1])) << 0x08)
 			|( ((buf[2])) << 0x10)
@@ -221,51 +222,47 @@ extern inline void _L_frombuffer(long &valin, const unsigned char *&buf)
 }
 
 extern inline void _W_frombuffer(unsigned short &valin, const unsigned char *&buf)
-{
+{	
 	valin = ( ((buf[0]))      )
 			|( ((buf[1])) << 0x08);
 	buf += 2;
 }
 extern inline void _W_frombuffer(short &valin, const unsigned char *&buf)
-{
+{	
 	valin = ( ((buf[0]))      )
 			|( ((buf[1])) << 0x08);
 	buf += 2;
 }
 
 extern inline void _B_frombuffer(unsigned char &valin, const unsigned char *&buf)
-{
+{	
 	valin	= *buf++;
 }
 extern inline void _B_frombuffer(char &valin, const unsigned char *&buf)
-{
+{	
 	valin	= (char)(*buf++);
 }
 
 extern inline void _S_frombuffer(char *valin, const unsigned char *&buf, const size_t sz)
-{
-	strncpy((char*)valin, (char*)buf, sz);
+{	
+	strncpy(valin, (char*)buf, sz);
 	valin[sz-1]=0;
 	buf += sz;
 }
 extern inline void S_frombuffer(char *valin, const unsigned char *buf, const size_t sz)
-{
-	strncpy((char*)valin, (char*)buf, sz);
+{	
+	strncpy(valin, (char*)buf, sz);
 	valin[sz-1]=0;
 }
 extern inline void _X_frombuffer(unsigned char *valin, const unsigned char *&buf, const size_t sz)
-{
+{	
 	memcpy(valin, buf, sz);
 	buf += sz;
 }
 extern inline void X_frombuffer(unsigned char *valin, const unsigned char *buf, const size_t sz)
-{
+{	
 	memcpy(valin, buf, sz);
 }
-
-
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -278,15 +275,15 @@ struct map_session_data;
 /////////////////////////////////////////////////////////////////////////////
 struct item
 {
-	unsigned short	id;				//
+	unsigned short	id;				// 
 	unsigned short	nameid;			// nameid of the corrosponding item_data
 
 	unsigned short	amount;			// number of items in this stash
 	unsigned short	equip;			//-> remove, make a better equip system
 
-	unsigned char	identify;		// :1; used as boolean only
+	unsigned char	identify;		// :1; used as boolean only 
 	unsigned char	refine;			// :4; stores number of refines (max 10)
-	unsigned char	attribute;		//
+	unsigned char	attribute;		// 
 
 // -> introduce, if it should be possible to introduce production of slotted items
 //	unsigned long	producer_id;	// the id of the producer or zero
@@ -306,7 +303,7 @@ struct item
 
 // card[0] == 0x00fe	forged something
 //					with
-// card[1] =0
+// card[1] =0	
 // (card[2], card[3]) = producer_id
 
 /*
@@ -463,37 +460,8 @@ extern inline void global_reg_frombuffer(struct global_reg &p, const unsigned ch
 	_global_reg_frombuffer(p, buf);
 }
 
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-struct friends
-{
-	char name[24];
-	unsigned long char_id;
-};
 
-extern inline void _friends_tobuffer(const struct friends &p, unsigned char *&buf)
-{
-	if( NULL==buf )	return;
-	_S_tobuffer( (p.name),			buf, 24);
-	_L_tobuffer( (p.char_id),		buf);
-}
 
-extern inline void friends_tobuffer(const struct friends &p, unsigned char *buf)
-{
-	_friends_tobuffer(p, buf);
-}
-
-extern inline void _friends_frombuffer(struct friends &p, const unsigned char *&buf)
-{
-	if( NULL==buf )	return;
-	_S_frombuffer( (p.name),		buf, 24);
-	_L_frombuffer( (p.char_id),		buf);
-}
-
-extern inline void friends_frombuffer(struct friends &p, const unsigned char *buf)
-{
-	_friends_frombuffer(p, buf);
-}
 
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
@@ -554,6 +522,12 @@ extern inline void s_pet_frombuffer(struct s_pet &p, const unsigned char *buf)
 }
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
+struct friends
+{	// Friends list vars
+	unsigned long friend_id;
+	char friend_name[24];
+};
+
 
 struct mmo_charstatus
 {
@@ -605,27 +579,21 @@ struct mmo_charstatus
 	unsigned short int_;
 	unsigned short dex;
 	unsigned short luk;
-	unsigned char char_num;
+	unsigned char slot;
 	unsigned char sex;
+	unsigned char gm_level;
+
 	unsigned long mapip;
 	unsigned short mapport;
 
 	struct point last_point;
 	struct point save_point;
-	struct point memo_point[10];
-
+	struct point memo_point[MAX_MEMO];
 	struct item inventory[MAX_INVENTORY];
 
 	struct item equipment[MAX_EQUIP];
 
 	struct item cart[MAX_CART];
-
-	#ifdef TEST_STORAGE
-	struct item storage[MAX_STORAGE];
-	short storage_amount;
-	short storage_status;
-	#endif
-
 	struct skill skill[MAX_SKILL];
 	unsigned long global_reg_num;
 	struct global_reg global_reg[GLOBAL_REG_NUM];
@@ -634,15 +602,10 @@ struct mmo_charstatus
 	unsigned long account_reg2_num;
 	struct global_reg account_reg2[ACCOUNT_REG2_NUM];
 
-
-
-
 	// Friends list vars
-
-	struct friends friends[MAX_FRIENDLIST];
-//	unsigned long friend_id[MAX_FRIENDLIST];
-//	char friend_name[MAX_FRIENDLIST][24];
+	struct friends	friendlist[MAX_FRIENDLIST];
 };
+
 extern inline void _mmo_charstatus_tobuffer(const struct mmo_charstatus &p, unsigned char *&buf)
 {
 	size_t i;
@@ -698,15 +661,16 @@ extern inline void _mmo_charstatus_tobuffer(const struct mmo_charstatus &p, unsi
 	_W_tobuffer( (p.dex),			buf);
 	_W_tobuffer( (p.luk),			buf);
 
-	_B_tobuffer( (p.char_num),		buf);
+	_B_tobuffer( (p.slot),		buf);
 	_B_tobuffer( (p.sex),			buf);
+	_B_tobuffer( (p.gm_level),		buf);
 
 	_L_tobuffer( (p.mapip),			buf);
 	_W_tobuffer( (p.mapport),		buf);
 
 	_point_tobuffer(             (p.last_point),		buf);
 	_point_tobuffer(             (p.save_point),		buf);
-	for(i=0; i<10; i++)
+	for(i=0; i<MAX_MEMO; i++)
 		_point_tobuffer(           p.memo_point[i],		buf);
 
 	for(i=0; i<MAX_INVENTORY; i++)
@@ -731,15 +695,11 @@ extern inline void _mmo_charstatus_tobuffer(const struct mmo_charstatus &p, unsi
 	for(i=0; i<ACCOUNT_REG2_NUM; i++)
 		_global_reg_tobuffer(      p.account_reg2[i],	buf);
 
+	// Friends list vars
 	for(i=0; i<MAX_FRIENDLIST; i++)
-		_friends_tobuffer(		   p.friends[i],		buf);
-
-//	// Friends list vars
-//	for(i=0; i<MAX_FRIENDLIST; i++)
-//		_L_tobuffer( (p.friend_id[i]),	buf);
-//	for(i=0; i<MAX_FRIENDLIST; i++)
-//		_S_tobuffer(               p.friend_name[i],	buf, 24);
-
+		_L_tobuffer( (p.friendlist[i].friend_id),	buf);
+	for(i=0; i<MAX_FRIENDLIST; i++)
+		_S_tobuffer(               p.friendlist[i].friend_name,	buf, 24);
 }
 extern inline void mmo_charstatus_tobuffer(const struct mmo_charstatus &p, unsigned char *buf)
 {
@@ -800,8 +760,9 @@ extern inline void _mmo_charstatus_frombuffer(struct mmo_charstatus &p, const un
 	_W_frombuffer( (p.dex),				buf);
 	_W_frombuffer( (p.luk),				buf);
 
-	_B_frombuffer( (p.char_num),		buf);
+	_B_frombuffer( (p.slot),			buf);
 	_B_frombuffer( (p.sex),				buf);
+	_B_frombuffer( (p.gm_level),		buf);
 
 	_L_frombuffer( (p.mapip),			buf);
 	_W_frombuffer( (p.mapport),			buf);
@@ -809,7 +770,7 @@ extern inline void _mmo_charstatus_frombuffer(struct mmo_charstatus &p, const un
 
 	_point_frombuffer(             (p.last_point),	buf);
 	_point_frombuffer(             (p.save_point),	buf);
-	for(i=0; i<10; i++)
+	for(i=0; i<MAX_MEMO; i++)
 		_point_frombuffer(           p.memo_point[i],	buf);
 
 	for(i=0; i<MAX_INVENTORY; i++)
@@ -836,14 +797,10 @@ extern inline void _mmo_charstatus_frombuffer(struct mmo_charstatus &p, const un
 
 	// Friends list vars
 	for(i=0; i<MAX_FRIENDLIST; i++)
-		_friends_frombuffer(      	 p.friends[i],		buf);
-
-//	for(i=0; i<MAX_FRIENDLIST; i++)
-//		_L_frombuffer( (p.friend_id[i]),buf);
-//	for(i=0; i<MAX_FRIENDLIST; i++)
-//		_S_frombuffer(               p.friend_name[i],	buf, 24);
+		_L_frombuffer( (p.friendlist[i].friend_id),buf);
+	for(i=0; i<MAX_FRIENDLIST; i++)
+		_S_frombuffer(               p.friendlist[i].friend_name,	buf, 24);
 }
-
 extern inline void mmo_charstatus_frombuffer(struct mmo_charstatus &p, const unsigned char *buf)
 {
 	_mmo_charstatus_frombuffer(p, buf);
@@ -942,7 +899,7 @@ struct party_member {
 	struct map_session_data *sd;
 };
 extern inline void _party_member_tobuffer(const struct party_member &p, unsigned char *&buf)
-{
+{	
 	if( NULL==buf )	return;
 	_L_tobuffer( (p.account_id),	buf);
 	_S_tobuffer( (p.name),			buf, 24);
@@ -968,8 +925,8 @@ extern inline void _party_member_frombuffer(struct party_member &p, const unsign
 	_B_frombuffer( (p.online),		buf);
 	_W_frombuffer( (p.lv),			buf);
 	//_L_frombuffer( (p.sd),		buf);
-	buf+=sizeof(struct map_session_data *);
-	p.sd = NULL;
+	buf+=sizeof(struct map_session_data *); 
+	p.sd = NULL; 
 	// skip the map_session_data *
 }
 extern inline void party_member_frombuffer(struct party_member &p, const unsigned char *buf)
@@ -1081,7 +1038,7 @@ extern inline void _guild_member_frombuffer(struct guild_member &p, const unsign
 	_S_frombuffer( (p.name),		buf, 24);
 	//_L_frombuffer( &(p.sd),		buf);
 	buf+=sizeof(struct map_session_data *);
-	p.sd = NULL;
+	p.sd = NULL; 
 	// skip the struct map_session_data *
 }
 extern inline void guild_member_frombuffer(struct guild_member &p, const unsigned char *buf)
@@ -1227,7 +1184,7 @@ struct guild {
 	unsigned long guild_id;
 	unsigned short guild_lv;
 	unsigned short connect_member;
-	unsigned short max_member;
+	unsigned short max_member; 
 	unsigned short average_lv;
 	unsigned long exp;
 	unsigned long next_exp;
@@ -1247,8 +1204,10 @@ struct guild {
 	struct guild_alliance alliance[MAX_GUILDALLIANCE];
 	struct guild_explusion explusion[MAX_GUILDEXPLUSION];
 	struct guild_skill skill[MAX_GUILDSKILL];
+//#ifndef TXT_ONLY
 	unsigned char save_flag;
 	int save_timer;
+//#endif
 };
 extern inline void _guild_tobuffer(const struct guild &p, unsigned char *&buf)
 {
@@ -1351,8 +1310,8 @@ struct guild_castle {
 	unsigned long Ghp4;
 	unsigned long Ghp5;
 	unsigned long Ghp6;
-	unsigned long Ghp7;
-	unsigned long GID0;
+	unsigned long Ghp7;	
+	unsigned long GID0;	
 	unsigned long GID1;
 	unsigned long GID2;
 	unsigned long GID3;

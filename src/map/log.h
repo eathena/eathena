@@ -1,8 +1,11 @@
 #ifndef _LOG_H_
 #define _LOG_H_
 
+#ifndef TXT_ONLY
 
 extern char db_server_logdb[32];
+
+#endif //NOT TXT_ONLY
 
 // predeclaration
 struct map_session_data;

@@ -67,18 +67,23 @@ int battle_weapon_attack( struct block_list *bl,struct block_list *target,unsign
 unsigned int battle_counttargeted(struct block_list &bl,struct block_list *src, unsigned short target_lv);
 struct block_list* battle_gettargeted(struct block_list &target);
 
+
 enum {
-	BCT_NOENEMY	=0x00000,
-	BCT_PARTY	=0x10000,
-	BCT_ENEMY	=0x40000,
-	BCT_NOPARTY	=0x50000,
-	BCT_ALL		=0x20000,
-	BCT_NOONE	=0x60000,
-	BCT_SELF	=0x60000,
+	BCT_NOONE	=0x000000,
+	BCT_SELF	=0x010000,
+	BCT_ENEMY	=0x020000,
+	BCT_NOENEMY	=0x1d0000,//(~BCT_ENEMY&BCT_ALL)
+	BCT_PARTY	=0x050000,//Party includes self (0x04|0x01)
+	BCT_NOPARTY	=0x1b0000,//(~BCT_PARTY&BCT_ALL)
+	BCT_GUILD	=0x090000,//Guild includes self (0x08|0x01)
+	BCT_NOGUILD	=0x170000,//(~BCT_GUILD&BCT_ALL)
+	BCT_ALL		=0x1f0000,
+	BCT_NEUTRAL =0x100000
 };
 
+
 bool battle_check_undead(int race,int element);
-int battle_check_target( struct block_list *src, struct block_list *target,int flag);
+int battle_check_target(struct block_list *src, struct block_list *target,int flag);
 bool battle_check_range(struct block_list *src,struct block_list *bl,unsigned int range);
 
 
@@ -98,6 +103,7 @@ struct Battle_Config
 	ulong atc_spawn_quantity_limit;
 	ulong attr_recover;
 	ulong backstab_bow_penalty;
+	ulong ban_bot;
 	ulong ban_hack_trade; // added by [Yor]
 	ulong ban_spoof_namer; // added by [Yor]
 	ulong base_exp_rate;
@@ -132,6 +138,7 @@ struct Battle_Config
 	ulong display_snatcher_skill_fail;
 	ulong display_version;
 	ulong drop_rate0item;
+	ulong drop_rare_announce;
 	ulong drops_by_luk;
 	ulong dynamic_mobs;
 	ulong enemy_critical;
@@ -307,6 +314,7 @@ struct Battle_Config
 	ulong pet_max_atk1; //[Skotlex]
 	ulong pet_max_atk2; //[Skotlex]
 	ulong pet_max_stats; //[Skotlex]
+	ulong pet_no_gvg; //Disables pets in gvg. [Skotlex]
 	ulong pet_random_move;
 	ulong pet_rename;
 	ulong pet_status_support;

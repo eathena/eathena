@@ -1,0 +1,123 @@
+
+prontera.gat,0,0,0 script PCLoginEvent -1,{
+set $@bot, rand(100000,999999);
+mes "Welcome to StarsRO";
+mes "Please input the following six digit number.";
+mes " ";
+mes "Number: "+$@bot;
+next;
+input @bot;
+next;
+if(@bot == $@bot) goto Lfree;
+mes "Your Answer was incorrect.";
+atcommand strcharinfo(0)+":@kick "+strcharinfo(0);
+end;
+
+Lfree:
+mes "You are free to go.";
+close;
+
+}
+
+prontera.gat,150,300,1	script	Test NPC	53,{
+end;
+
+OnPCLoginEvent:
+set $@bot, rand(100000,999999);
+mes "Welcome to StarsRO";
+mes "Please input the following six digit number.";
+mes " ";
+mes "Number: "+$@bot;
+next;
+input @bot;
+next;
+if(@bot == $@bot) goto Lfree;
+mes "Your Answer was incorrect.";
+atcommand strcharinfo(0)+":@kick "+strcharinfo(0);
+end;
+
+Lfree:
+mes "You are free to go.";
+close;
+end;
+
+OnPCLoadMapEvent:
+mes "[GM Helper]";
+mes "Please they choose a language to read the rules.";
+next;
+menu "German",rlanger,"English",rlangeng;
+rlanger:
+mes "[GM Helper]";
+mes "irgendwas in deutsch";
+next;
+mes "[GM Helper]";
+mes "Blalalalala";
+close;
+rlangeng:
+mes "[GM Helper]";
+mes "some stuff in english";
+next;
+mes "[GM Helper]";
+mes "whatever";
+close;
+}
+
+function	script	testtext	{
+	mes "hallo " + rand(2);
+Announce "Guild Base [" + GetCastleName(getarg(0)+".gat") + "] has been taken by the [" + GetGuildName(@GID) + "] guild.",0;
+	close;
+	return;
+}
+
+
+izlude.gat,128,107,4	script	test	116,1,1,{
+
+	input @message$;
+	mes ""+@message$+"?";
+
+callfunc "testtext","aldeg_cas01","A01",216,24;
+	mes "hallo " + rand(2);
+	mes "hallo " + rand(2);
+	mes "hallo " + rand(2);
+	mes "hallo " + rand(2);
+	mes "hallo " + rand(2);
+	mes "hallo " + rand(2);
+	mes "chaos " + Chaos;
+	mes "karma " + Karma;
+
+	set karma, karma-10;
+	set chaos, chaos+10;
+
+
+//	if(rand(2) == 1 ) callfunc "testtext";
+	close;
+
+OnTouch:
+	npctalk "Ouch !!";
+	npcwalkto 128-8+rand(4,16),107-8+rand(4,16);
+	break;
+}
+
+
+morocc.gat,79,112,2	script	Dude	797,{
+	npcspeed 100;
+	if($@Guy1==1) goto L_Stop;
+	initnpctimer;
+	set $@Guy1,1;
+	npcwalkto 161,184;
+	end;
+L_Stop:
+	set $@Guy1,0;
+	stopnpctimer;
+	setnpctimer 0;
+	npcstop;
+	end;
+
+OnTimer5000:
+	npcwalkto 60,100;
+	end;
+OnTimer10000:
+	setnpctimer 0;
+	npcwalkto 79,112;
+end;
+}

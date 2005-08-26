@@ -34,7 +34,7 @@
 #define INF2_ENSEMBLE_SKILL 64
 #define INF2_TRAP 128
 //Refers to ground placed skills that won't hurt the caster (like Grandcross)
-#define INF2_NO_DAMAGE_SELF 256
+#define INF2_TARGET_SELF 256
 #define INF2_NO_TARGET_SELF 512
 #define INF2_PARTY_ONLY 1024
 #define INF2_GUILD_ONLY 2048
@@ -214,6 +214,7 @@ int skill_guildaura_sub (struct block_list &bl,va_list ap);
 int skill_castcancel(struct block_list *bl,int type);
 
 int skill_gangsterparadise(struct map_session_data *sd ,int type);
+int skill_rest(struct map_session_data &sd ,int type);
 int skill_check_moonlit (struct block_list *bl, int dx, int dy);
 void skill_brandishspear_first(struct square *tc,int dir,int x,int y);
 void skill_brandishspear_dir(struct square *tc,int dir,int are);
@@ -244,7 +245,7 @@ int skill_castend_damage_id  ( struct block_list* src, struct block_list *bl,uns
 int skill_castend_pos2       ( struct block_list *src, int x,int y,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag);
 
 // ÉXÉLÉãçU?àÍäá?óù
-int skill_attack( int attack_type, struct block_list* src, struct block_list *dsrc,struct block_list *bl,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag );
+int skill_attack(int attack_type, struct block_list* src, struct block_list *dsrc,struct block_list *bl,unsigned short skillid,unsigned short skilllv,unsigned long tick,int flag );
 
 void skill_reload(void);
 
@@ -775,6 +776,63 @@ enum {
 	CG_TAROTCARD,
 	CR_ACIDDEMONSTRATION,
 	CR_CULTIVATION,
+};
+
+enum {
+	UNT_SAFETYWALL = 0x7e,
+	UNT_FIREWALL = 0x7f,
+	UNT_WARP = 0x80,
+	UNT_WARP_2 = 0x81,
+	UNT_SANCTUARY = 0x83,
+	UNT_MAGNUS = 0x84,
+	UNT_PNEUMA = 0x85,
+	UNT_MAGIC_SKILLS = 0x86,
+	UNT_FIREPILLAR_HIDDEN = 0x87,
+	UNT_FIREPILLAR_ACTIVE = 0x88,
+	UNT_ICEWALL = 0x8d,
+	UNT_QUAGMIRE = 0x8e,
+	UNT_BLASTMINE = 0x8f,
+	UNT_SKIDTRAP = 0x90,
+	UNT_ANKLESNARE = 0x91,
+	UNT_VENOMDUST = 0x92,
+	UNT_LANDMINE = 0x93,
+	UNT_SHOCKWAVE = 0x94,
+	UNT_SANDMAN = 0x95,
+	UNT_FLASHER = 0x96,
+	UNT_FREEZINGTRAP = 0x97,
+	UNT_CLAYMORETRAP = 0x98,
+	UNT_TALKIEBOX = 0x99,
+	UNT_VOLCANO = 0x9a,
+	UNT_DELUGE = 0x9b,
+	UNT_VIOLENTGALE = 0x9c,
+	UNT_LANDPROTECTOR = 0x9d,
+	UNT_LULLABY = 0x9e,
+	UNT_RICHMANKIM = 0x9f,
+	UNT_ETERNALCHAOS = 0xa0,
+	UNT_DRUMBATTLEFIELD = 0xa1,
+	UNT_RINGNIBELUNGEN = 0xa2,
+	UNT_ROKISWEIL = 0xa3,
+	UNT_INTOABYSS = 0xa4,
+	UNT_SIEGFRIED = 0xa5,
+	UNT_DISSONANCE = 0xa6,
+	UNT_WHISTLE = 0xa7,
+	UNT_ASSASSINCROSS = 0xa8,
+	UNT_POEMBRAGI = 0xa9,
+	UNT_APPLEIDUN = 0xaa,
+	UNT_UGLYDANCE = 0xab,
+	UNT_HUMMING = 0xac,
+	UNT_DONTFORGETME = 0xad,
+	UNT_FORTUNEKISS = 0xae,
+	UNT_SERVICEFORYOU = 0xaf,
+	UNT_GRAFFITI = 0xb0,
+	UNT_DEMONSTRATION = 0xb1,
+	UNT_CALLPARTNER = 0xb2,
+	UNT_GOSPEL = 0xb3,
+	UNT_BASILICA = 0xb4,
+	UNT_FOGWALL = 0xb6,
+	UNT_SPIDERWEB = 0xb7,
+	UNT_GRAVITATION = 0xb8,
+	UNT_HERMODE = 0xb9,
 };
 
 #endif

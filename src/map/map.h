@@ -2,13 +2,12 @@
 #ifndef _MAP_H_
 #define _MAP_H_
 
-#include <stdarg.h>
 #include "mmo.h"
 #include "socket.h"
+#include "script.h"
 
-
-
-#define MAX_PC_CLASS (1+6+6+1+6+1+1+1+1+4023)
+///////////////////////////////////////////////////////////////////////////////
+#define MAX_PC_CLASS 4048
 #define PC_CLASS_BASE 0
 #define PC_CLASS_BASE2 (PC_CLASS_BASE + 4001)
 #define PC_CLASS_BASE3 (PC_CLASS_BASE2 + 22)
@@ -20,7 +19,7 @@
 #define DAMAGELOG_SIZE 30
 #define LOOTITEM_SIZE 10
 #define MAX_SKILL_LEVEL 100
-#define MAX_STATUSCHANGE 200
+#define MAX_STATUSCHANGE 250
 #define MAX_SKILLUNITGROUP 32
 #define MAX_MOBSKILLUNITGROUP 8
 #define MAX_SKILLUNITGROUPTICKSET 32
@@ -39,16 +38,92 @@
 #define MAX_VENDING 12
 #define MAX_TRADING 10
 
+///////////////////////////////////////////////////////////////////////////////
+//Definitions for Jobs, this should help code be more readable. [Skotlex]
+#define JOB_NOVICE 0
+#define JOB_SWORDMAN 1
+#define JOB_MAGE 2
+#define JOB_ARCHER 3
+#define JOB_ACOLYTE 4
+#define JOB_MERCHANT 5
+#define JOB_THIEF 6
+#define JOB_KNIGHT 7
+#define JOB_PRIEST 8
+#define JOB_WIZARD 9
+#define JOB_BLACKSMITH 10
+#define JOB_HUNTER 11
+#define JOB_ASSASSIN 12
+#define JOB_KNIGHT2 13
+#define JOB_CRUSADER 14
+#define JOB_MONK 15
+#define JOB_SAGE 16
+#define JOB_ROGUE 17
+#define JOB_ALCHEMIST 18
+#define JOB_BARD 19
+#define JOB_DANCER 20
+#define JOB_CRUSADER2 21
+#define JOB_WEDDING 22
+#define JOB_SUPER_NOVICE 23
+
+#define JOB_NOVICE_HIGH 4001
+#define JOB_SWORDMAN_HIGH 4002
+#define JOB_MAGE_HIGH 4003
+#define JOB_ARCHER_HIGH 4004
+#define JOB_ACOLYTE_HIGH 4005
+#define JOB_MERCHANT_HIGH 4006
+#define JOB_THIEF_HIGH 4007
+#define JOB_LORD_KNIGHT 4008
+#define JOB_HIGH_PRIEST 4009
+#define JOB_HIGH_WIZARD 4010
+#define JOB_WHITESMITH 4011
+#define JOB_SNIPER 4012
+#define JOB_ASSASSIN_CROSS 4013
+#define JOB_LORD_KNIGHT2 4014
+#define JOB_PALADIN 4015
+#define JOB_CHAMPION 4016
+#define JOB_PROFESSOR 4017
+#define JOB_STALKER 4018
+#define JOB_CREATOR 4019
+#define JOB_CLOWN 4020
+#define JOB_GYPSY 4021
+#define JOB_PALADIN2 4022
+
+#define JOB_BABY 4023
+#define JOB_BABY_SWORDMAN 4024
+#define JOB_BABY_MAGE 4025
+#define JOB_BABY_ARCHER 4026
+#define JOB_BABY_ACOLYTE 4027
+#define JOB_BABY_MERCHANT 4028
+#define JOB_BABY_THIEF 4029
+#define JOB_BABY_KNIGHT 4030
+#define JOB_BABY_PRIEST 4031
+#define JOB_BABY_WIZARD 4032
+#define JOB_BABY_BLACKSMITH 4033
+#define JOB_BABY_HUNTER  4034
+#define JOB_BABY_ASSASSIN 4035
+#define JOB_BABY_KNIGHT2 4036
+#define JOB_BABY_CRUSADER 4037
+#define JOB_BABY_MONK 4038
+#define JOB_BABY_SAGE 4039
+#define JOB_BABY_ROGUE 4040
+#define JOB_BABY_ALCHEMIST 4041
+#define JOB_BABY_BARD 4042
+#define JOB_BABY_DANCER 4043
+#define JOB_BABY_CRUSADER2 4044
+#define JOB_SUPER_BABY 4045
+#define JOB_TAEKWON 4046
+#define JOB_STAR_GLADIATOR 4047
+#define JOB_SOUL_LINKER 4048
 
 
-
+///////////////////////////////////////////////////////////////////////////////
 #define OPTION_MASK 0xd7b8
 #define CART_MASK 0x788
 #define STATE_BLIND 0x10
-#define MAX_SKILL_TREE 51
+#define MAX_SKILL_TREE 53
 
 
-
+///////////////////////////////////////////////////////////////////////////////
 #define EFFECT_FOG		515
 #define EFFECT_SNOW		162
 #define EFFECT_LEAVES	333
@@ -64,19 +139,35 @@
 
 
 
-
+///////////////////////////////////////////////////////////////////////////////
 #define FLAG_DISGUISE	0x80000000 // set the msb of the acount_id to signal a disguise
 
 
-
-
+///////////////////////////////////////////////////////////////////////////////
 #define DEFAULT_AUTOSAVE_INTERVAL 60*1000
 
+///////////////////////////////////////////////////////////////////////////////
 #define OPTION_HIDE 0x40
 
-enum { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL , BL_PET };
+///////////////////////////////////////////////////////////////////////////////
+enum { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL, BL_PET };
 enum { WARP, SHOP, SCRIPT, MONS };
 
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// predeclarations
+struct skill_unit_group;
+struct npc_data;
+struct pet_db;
+struct item_data;
+struct square;
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 struct block_list
 {
 	struct block_list *next;
@@ -89,13 +180,16 @@ struct block_list
 	unsigned char subtype;
 };
 
-struct walkpath_data {
+///////////////////////////////////////////////////////////////////////////////
+struct walkpath_data
+{
 	unsigned char path_len;
 	unsigned char path_pos;
 	unsigned char path_half;
 	unsigned char path[MAX_WALKPATH];
 };
-struct shootpath_data {
+struct shootpath_data
+{
 	unsigned short rx;
 	unsigned short ry;
 	unsigned short len;
@@ -103,28 +197,40 @@ struct shootpath_data {
 	unsigned short y[MAX_WALKPATH];
 };
 
-struct script_reg {
+///////////////////////////////////////////////////////////////////////////////
+struct script_reg
+{
 	int index;
 	int data;
 };
-struct script_regstr {
+struct script_regstr
+{
 	int index;
 	char data[256];
 };
-struct status_change {
+
+
+///////////////////////////////////////////////////////////////////////////////
+struct status_change
+{
 	int timer;
 	long val1;
 	long val2;
 	long val3;
 	long val4;
 };
-struct vending {
+
+///////////////////////////////////////////////////////////////////////////////
+struct vending
+{
 	unsigned short index;
 	unsigned short amount;
 	unsigned long value;
 };
 
-struct weapon_data {
+///////////////////////////////////////////////////////////////////////////////
+struct weapon_data
+{
 	long watk;
 	long watk2;
 
@@ -154,8 +260,7 @@ struct weapon_data {
 	unsigned fameflag : 1;
 };
 
-struct skill_unit_group;
-
+///////////////////////////////////////////////////////////////////////////////
 struct skill_unit
 {
 	struct block_list bl;
@@ -209,11 +314,8 @@ struct skill_timerskill
 	long flag;
 };
 
-struct npc_data;
-struct pet_db;
-struct item_data;
-struct square;
 
+///////////////////////////////////////////////////////////////////////////////
 struct map_session_data
 {
 	struct block_list bl;
@@ -221,16 +323,16 @@ struct map_session_data
 		unsigned auth : 1;							// 0
 		unsigned change_walk_target : 1;			// 1
 		unsigned attack_continue : 1;				// 2
-		unsigned menu_or_input : 1;					// 3
+		unsigned monster_ignore :1;					// 3
 		unsigned dead_sit : 2;						// 4, 5
 		unsigned skillcastcancel : 1;				// 6
 		unsigned waitingdisconnect : 1;				// 7 - byte 1
-		unsigned lr_flag : 2;						// 8,9
+		unsigned lr_flag : 2;						// 8,9 
 		unsigned connect_new : 1;					// 10
 		unsigned arrow_atk : 1;						// 11
 		unsigned attack_type : 3;					// 12,13,14
 		unsigned skill_flag : 1;					// 15 - byte 2
-		unsigned gangsterparadise : 1;				// 16
+		unsigned gangsterparadise : 1;				// 16 
 		unsigned produce_flag : 1;					// 17
 		unsigned autoloot : 1; //by Upa-Kun			// 18
 		unsigned storage_flag : 1;					// 19
@@ -256,17 +358,17 @@ struct map_session_data
 		unsigned ignoreAll : 1;						// 39  - byte 5
 		unsigned nodelay :1;						// 40
 		unsigned noexp :1;							// 41
-	//	unsigned detach :1;							// 42
-		unsigned potion_flag : 2;					// 43,44
-		unsigned viewsize : 2;						// 45,46
-		unsigned abra_flag : 1;						// 47  - byte 6
-		unsigned perfect_hiding : 1;				// 48
+		unsigned potion_flag : 2;					// 42,43
+		unsigned viewsize : 2;						// 44,45
+		unsigned abra_flag : 1;						// 46
+		unsigned perfect_hiding : 1;				// 47  - byte 6
+		unsigned rest : 1;							// 48
 													// 7 bits left
 	} state;
-
+		
 	struct mmo_charstatus status;
 
-	unsigned long packet_ver;  // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
+	int packet_ver;  // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 	unsigned long login_id1;
 	unsigned long login_id2;
 
@@ -285,7 +387,6 @@ struct map_session_data
 	unsigned short cart_max_num;
 	char mapname[24];
 	int fd;
-	int new_fd;
 	unsigned short to_x;
 	unsigned short to_y;
 	unsigned short speed;
@@ -299,19 +400,20 @@ struct map_session_data
 	int walktimer;
 	unsigned long next_walktime;
 
-	unsigned long npc_id;
 	unsigned long areanpc_id;
 	unsigned long npc_shopid;
-	unsigned long npc_pos;
 	unsigned long npc_menu;
 	unsigned long npc_amount;
 
-	unsigned long npc_stack;
-	unsigned long npc_stackmax;
-	char *npc_stackbuf;
+//	char *npc_stackbuf;
+//	unsigned long npc_stack;
+//	unsigned long npc_stackmax;
+//	unsigned long npc_id;
+//	unsigned long npc_pos;
+//	const char *npc_script;
+//	const char *npc_scriptroot;
 
-	const char *npc_script;
-	const char *npc_scriptroot;
+	CScriptEngine ScriptEngine;
 
 
 	char npc_str[256];
@@ -325,7 +427,7 @@ struct map_session_data
 	unsigned short attacktarget_lv;
 	unsigned long attackabletime;
 
-	unsigned long attacktarget;
+	unsigned long attacktarget;	
 	unsigned long followtarget;
 	int attacktimer;
 	int followtimer; // [MouseJstr]
@@ -347,7 +449,7 @@ struct map_session_data
 	struct skill_unit_group skillunit[MAX_SKILLUNITGROUP];
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET];
 	struct skill_timerskill skilltimerskill[MAX_SKILLTIMERSKILL];
-	char blockskill[MAX_SKILL];	// [celest]
+	char blockskill[MAX_SKILL];	// [celest]	
 	unsigned short cloneskill_id;
 	unsigned short cloneskill_lv;
 	unsigned long potion_hp;
@@ -370,7 +472,6 @@ struct map_session_data
 	unsigned short view_class;
 	unsigned short disguise_id; // [Valaris]
 
-
 	unsigned short weapontype1;
 	unsigned short weapontype2;
 	unsigned short attackrange;
@@ -378,7 +479,6 @@ struct map_session_data
 
 	struct weapon_data right_weapon;
 	struct weapon_data left_weapon;
-
 
 	long paramb[6];
 	long paramc[6];
@@ -395,7 +495,7 @@ struct map_session_data
 	unsigned short  def2;
 	unsigned short  mdef;
 	unsigned short  mdef2;
-	long critical;
+	long			critical;
 	unsigned short  matk1;
 	unsigned short  matk2;
 
@@ -594,14 +694,13 @@ struct map_session_data
 	unsigned short eventcount; // [celest]
 
 	unsigned short change_level;	// [celest]
-
 	unsigned long canuseitem_tick;
-
 	char fakename[24];
-
 	unsigned long mail_counter;	// mail counter for mail system [Valaris]
 };
 
+
+///////////////////////////////////////////////////////////////////////////////
 struct npc_timerevent_list {
 	int timer;
 	int pos;
@@ -617,7 +716,7 @@ struct npc_item_list {
 struct npc_reference{
 	char *script;
 	struct npc_label_list *label_list;
-	int label_list_num;
+	int label_list_num;	
 	size_t refcnt;			//reference counter
 };
 struct npc_data {
@@ -675,7 +774,7 @@ struct npc_data {
 	short arenaflag;
 	void *chatdb;
 
-	npc_data() : chatdb(NULL)	{}
+	npc_data() : chatdb(NULL)	{} 
 };
 
 
@@ -684,7 +783,7 @@ struct npc_data {
 
 
 
-
+///////////////////////////////////////////////////////////////////////////////
 // Mob List Held in memory for Dynamic Mobs [Wizputer]
 struct mob_list
 {
@@ -705,8 +804,6 @@ struct mob_list
 
 	unsigned short num;
 };
-
-
 
 struct mob_data {
 	struct block_list bl;
@@ -762,7 +859,7 @@ struct mob_data {
 	unsigned long last_spawntime;
 	unsigned long last_thinktime;
 	unsigned long canmove_tick;
-
+	
 	struct mob_damage
 	{
 		unsigned long fromid;
@@ -805,7 +902,9 @@ struct mob_data {
 	unsigned short recallcount;
 };
 
-struct pet_data {
+///////////////////////////////////////////////////////////////////////////////
+struct pet_data
+{
 	struct block_list bl;
 
 	//char name[24];
@@ -814,7 +913,7 @@ struct pet_data {
 		unsigned state : 8 ;
 		unsigned skillstate : 8 ;
 		unsigned change_walk_target : 1 ;
-
+		
 		unsigned casting_flag : 1; //Skotlex: Used to identify when we are casting. I want a state.state value for that....
 
 		signed skillbonus : 2;
@@ -838,7 +937,7 @@ struct pet_data {
 	unsigned long next_walktime;
 	unsigned long last_thinktime;
 
-
+	
 	struct pet_status { //Pet Status data
 		unsigned short level;
 		unsigned short atk1;
@@ -856,7 +955,7 @@ struct pet_data {
 		unsigned short delay; //How long before curing (secs).
 		int timer;
 	} *recovery; //[Valaris] / Reimplemented by [Skotlex]
-
+	
 	struct pet_bonus {
 		unsigned short type; //bStr, bVit?
 		unsigned short val;	//Qty
@@ -864,7 +963,7 @@ struct pet_data {
 		unsigned short delay;	//Time before recasting (secs)
 		int timer;
 	} *bonus; //[Valaris] / Reimplemented by [Skotlex]
-
+	
 	struct pet_skill_attack { //Attack Skill
 		unsigned short id;
 		unsigned short lv;
@@ -872,7 +971,7 @@ struct pet_data {
 		unsigned short rate; //Base chance of skill ocurrance (10 = 10% of attacks)
 		unsigned short bonusrate; //How being 100% loyal affects cast rate (10 = At 1000 intimacy->rate+10%
 	} *a_skill;	//[Skotlex]
-
+	
 	struct pet_skill_support { //Support Skill
 		unsigned short id;
 		unsigned short lv;
@@ -889,7 +988,7 @@ struct pet_data {
 		unsigned short max;
 		unsigned long loottick;
 	} *loot; //[Valaris] / Rewritten by [Skotlex]
-
+	
 	struct skill_timerskill skilltimerskill[MAX_MOBSKILLTIMERSKILL]; // [Valaris]
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP]; // [Valaris]
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET]; // [Valaris]
@@ -912,8 +1011,19 @@ enum {
 
 
 
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+
 // map_getcell()/map_setcell()Ç≈égópÇ≥ÇÍÇÈÉtÉâÉO
-typedef enum {
+typedef enum { 
 	CELL_CHKWALL=0,		// ï«(ÉZÉãÉ^ÉCÉv1)
 	CELL_CHKWATER,		// êÖèÍ(ÉZÉãÉ^ÉCÉv3)
 	CELL_CHKGROUND,		// ínñ è·äQï®(ÉZÉãÉ^ÉCÉv5)
@@ -953,7 +1063,7 @@ enum {
 	GAT_UNUSED3		= 7,
 };
 
-struct mapgat // values from .gat &
+struct mapgat // values from .gat & 
 {
 	unsigned char type : 3;		// 3bit used for land,water,wall,(hole) (values 0,1,3,5,6 used)
 								// providing 4 bit space and interleave two cells in x dimension
@@ -967,10 +1077,12 @@ struct mapgat // values from .gat &
 // will alloc a short now
 
 
-struct map_data {
+struct map_data
+{
+	///////////////////////////////////////////////////////////////////////////
 	char mapname[24];
 	struct mapgat	*gat;	// NULLÇ»ÇÁâ∫ÇÃmap_data_other_serverÇ∆ÇµÇƒàµÇ§
-
+	///////////////////////////////////////////////////////////////////////////
 	char *alias; // [MouseJstr]
 	struct block_list **block;
 	struct block_list **block_mob;
@@ -983,7 +1095,8 @@ struct map_data {
 	unsigned short bys;
 	size_t npc_num;
 	size_t users;
-	struct {
+	struct
+	{
 		unsigned nomemo : 1;					//  0
 		unsigned noteleport : 1;				//  1
 		unsigned noreturn : 1;					//  2
@@ -1017,8 +1130,8 @@ struct map_data {
 		unsigned nogo : 1;						// 30
 		unsigned nobaseexp	: 1;				// 31 (byte 4) // [Lorky] added by Lupus
 		unsigned nojobexp	: 1;				// 32 // [Lorky]
-		unsigned nomobloot	: 1;				// 33 // [Lorky]
-		unsigned nomvploot	: 1;				// 34 // [Lorky]
+		unsigned nomobloot	: 1;				// 33 // [Lorky]				
+		unsigned nomvploot	: 1;				// 34 // [Lorky]		
 		unsigned _unused : 5;					// 35-39 (byte 5)
 	} flag;
 	struct point save;
@@ -1032,16 +1145,20 @@ struct map_data {
 	int mob_delete_timer;	// [Skotlex]
 };
 
-struct map_data_other_server {
+struct map_data_other_server
+{
+	///////////////////////////////////////////////////////////////////////////
 	char name[24];
 	struct mapgat *gat;	// NULLå≈íËÇ…ÇµÇƒîªíf
-//	unsigned long ip;
-//	unsigned short port;
+	///////////////////////////////////////////////////////////////////////////
 	ipset mapset;
 	struct map_data* map;
 };
 
-struct flooritem_data {
+
+///////////////////////////////////////////////////////////////////////////////
+struct flooritem_data
+{
 	struct block_list bl;
 	unsigned char subx;
 	unsigned char suby;
@@ -1094,7 +1211,7 @@ enum {
 	SP_HP_DRAIN_VALUE,SP_SP_DRAIN_VALUE, // 1079-1080
 	SP_WEAPON_ATK,SP_WEAPON_ATK_RATE, // 1081-1082
 	SP_DELAYRATE,	// 1083
-
+	
 	SP_RESTART_FULL_RECORVER=2000,SP_NO_CASTCANCEL,SP_NO_SIZEFIX,SP_NO_MAGIC_DAMAGE,SP_NO_WEAPON_DAMAGE,SP_NO_GEMSTONE, // 2000-2005
 	SP_NO_CASTCANCEL2,SP_INFINITE_ENDURE,SP_UNBREAKABLE_WEAPON,SP_UNBREAKABLE_ARMOR, SP_UNBREAKABLE_HELM, // 2006-2010
 	SP_UNBREAKABLE_SHIELD, SP_LONG_ATK_RATE, // 2011-2012
@@ -1114,7 +1231,7 @@ enum {
 
 
 
-
+///////////////////////////////////////////////////////////////////////////////
 struct chat_data
 {
 	struct block_list bl;	// block of the chatwindow
@@ -1136,6 +1253,9 @@ extern int autosave_interval;
 extern int agit_flag;
 extern int night_flag; // 0=day, 1=night [Yor]
 
+
+
+///////////////////////////////////////////////////////////////////////////////
 // gat?÷ß
 int map_getcell(unsigned short m,unsigned short x, unsigned short y,cell_t cellchk);
 int map_getcellp(struct map_data& m,unsigned short x, unsigned short y,cell_t cellchk);
@@ -1144,9 +1264,9 @@ void map_setcell(unsigned short m,unsigned short x, unsigned short y,int cellck)
 
 extern int map_read_flag; // 0: grf´’´°´§´Î 1: ´≠´„´√´∑´Â 2: ´≠´„´√´∑´Â(?ıÍ)
 enum {
-	READ_FROM_GAT,
+	READ_FROM_GAT, 
 	READ_FROM_AFM,
-	READ_FROM_BITMAP,
+	READ_FROM_BITMAP, 
 	READ_FROM_BITMAP_COMPRESSED
 };
 
@@ -1156,6 +1276,10 @@ extern char help_txt[];
 extern char talkie_mes[];
 
 extern char wisp_server_name[];
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 
 // éIëSëÃèÓïÒ
 void map_setusers(int fd);
@@ -1191,7 +1315,7 @@ int map_clearflooritem_timer(int tid,unsigned long tick,int id,int data);
 int map_removemobs_timer(int tid,unsigned long tick,int id,int data);
 #define map_clearflooritem(id) map_clearflooritem_timer(0,0,id,1)
 int map_addflooritem(struct item &item_data,unsigned short amount,unsigned short m,unsigned short x,unsigned short y,struct map_session_data *first_sd,struct map_session_data *second_sd,struct map_session_data *third_sd,int type);
-int map_searchrandfreecell(int,int,int,int);
+int map_searchrandfreecell(unsigned short m,int x,int y,int range);
 
 // ÉLÉÉÉâidÅÅÅÑÉLÉÉÉâñº ïœä∑ä÷òA
 void map_addchariddb(unsigned long charid,const char *name);
@@ -1265,6 +1389,8 @@ static inline int distance(int x0,int y0,int x1,int y1)
 }
 
 
+#ifndef TXT_ONLY
+
 // MySQL
 #include <mysql.h>
 
@@ -1280,6 +1406,13 @@ static inline int mysql_SendQuery(MYSQL *mysql, const char* q)
 #endif
 	return mysql_real_query(mysql, q, strlen(q));
 }
+
+
+
+extern MYSQL mmysql_handle;
+extern char tmp_sql[65535];
+extern MYSQL_RES* sql_res ;
+extern MYSQL_ROW	sql_row ;
 
 extern MYSQL lmysql_handle;
 extern char tmp_lsql[65535];
@@ -1310,9 +1443,10 @@ extern char gm_db[32];
 extern char gm_db_level[32];
 extern char gm_db_account_id[32];
 
+extern int lowest_gm_level;
 extern int read_gm_interval;
 
 extern char char_db[32];
-
+#endif /* not TXT_ONLY */
 
 #endif

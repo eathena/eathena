@@ -6,7 +6,7 @@
 #include "utils.h"		// safefopen
 #include "socket.h"		// buffer iterator
 #include "timer.h"		// timed config reload
-#include "dbaccess.h"	// SQL DB ACCESS includes
+#include "db.h"
 #include "strlib.h"
 #include "mmo.h"
 
@@ -25,7 +25,6 @@ public:
 	{}
 	virtual ~CConfig()
 	{}
-
 	//////////////////////////////////////////////////////////////////////
 	// Loading a file, stripping lines, splitting it to part1 : part2
 	// calling the derived function for processing
@@ -40,19 +39,19 @@ public:
 			return false;
 		}
 		ShowInfo("Reading configuration file '%s'\n", cfgName);
-		while(fgets(line, sizeof(line)-1, fp))
+		while(fgets(line, sizeof(line), fp)) 
 		{
 			// terminate buffer
 			line[sizeof(line)-1] = '\0';
 
 			// skip leading spaces
 			ip = line;
-			while( isspace((int)((unsigned char)*ip) ) ) ip++;
+			while( isspace((int)((unsigned char)*ip) ) ) ip++; 
 
 			// skipping comment lines
 			if( ip[0] == '/' && ip[1] == '/')
 				continue;
-
+			
 			memset(w2, 0, sizeof(w2));
 			// format: "name:value"
 			if (sscanf(ip, "%[^:]: %[^\r\n]", w1, w2) == 2)
@@ -61,7 +60,7 @@ public:
 				CleanControlChars(w2);
 
 				if( strcasecmp(w1, "import") == 0 )
-				{	// call recursive, prevent infinity loop
+				{	// call recursive, prevent infinity loop (first order only)
 					if( strcasecmp(cfgName,w2) !=0 )
 						LoadConfig(w2);
 				}
@@ -72,41 +71,42 @@ public:
 			}
 		}
 		fclose(fp);
-
 		ShowInfo("Reading configuration file '%s' finished\n", cfgName);
+		return true;
 	}
 	//////////////////////////////////////////////////////////////////////
 	// virtual function for processing/storing tokens
 	//////////////////////////////////////////////////////////////////////
 	virtual bool ProcessConfig(const char*w1,const char*w2) = 0;
 
-
 	//////////////////////////////////////////////////////////////////////
 	// some global data processings
 	//////////////////////////////////////////////////////////////////////
 	static ulong String2IP(const char* str)
-	{	// host byte order
+	{	// erturn value is host byte order
+		// look up the name, can take long for timeout looking up non-existing addresses
 		struct hostent *h = gethostbyname(str);
-		if (h != NULL)
-		{	// ip's are hostbyte order
+		if (h != NULL) 
+		{	// returned ip's are hostbyte order
 			return	  (((ulong)h->h_addr[3]) << 0x18 )
 					| (((ulong)h->h_addr[2]) << 0x10 )
 					| (((ulong)h->h_addr[1]) << 0x08 )
 					| (((ulong)h->h_addr[0])         );
 		}
 		else
+		{	// assume string is in ip format, just convert it
 			return ntohl(inet_addr(str));
+		}
 	}
 	static const char* IP2String(ulong ip, char*buffer=NULL)
-	{	// host byte order
+	{	// given ip is in host byte order
 		// usage of the static buffer here is not threadsave
-		static char temp[20], *pp= (buffer) ? buffer:temp;
-
+		static char temp[32], *pp= (buffer) ? buffer:temp;
 		sprintf(pp, "%d.%d.%d.%d", (ip>>24)&0xFF,(ip>>16)&0xFF,(ip>>8)&0xFF,(ip)&0xFF);
 		return pp;
 	}
 
-	static int SwitchValue(const char *str, int defaultval=0)
+	static int SwitchValue(const char *str, int defaultmin=INT_MIN, int defaultmax=0x7FFFFFFF)
 	{
 		if( str )
 		{
@@ -115,10 +115,13 @@ public:
 			else if (strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0)
 				return 0;
 			else
-				return atoi(str);
+			{
+				int ret = atoi(str);
+				return (ret<defaultmin) ? defaultmin : (ret>defaultmax) ? defaultmax : ret;
+			}
 		}
 		else
-			return defaultval;
+			return 0;
 	}
 	static bool Switch(const char *str, bool defaultval=false)
 	{
@@ -136,7 +139,7 @@ public:
 		bool change = false;
 		if(str)
 		while( *str )
-		{	// replace control chars
+		{	// replace control chars 
 			// but skip chars >0x7F which are negative in char representations
 			if ( (*str<32) && (*str>0) )
 			{
@@ -147,7 +150,6 @@ public:
 		}
 		return change;
 	}
-
 };
 
 
@@ -158,553 +160,503 @@ public:
 
 
 
-//////////////////////////////////////////////////////////////////////////
-// Basic Database Interfaces
-//////////////////////////////////////////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////
-// defaults for a sql database
-//////////////////////////////////////////////////////////////////////////
-class DBDefaults : public CConfig
-{
-protected:
-	const char *sql_conf_name;
-public:
-	// server
-	int	 server_port;
-	char server_ip[32];
-	char server_id[32];
-	char server_pw[32];
-	char server_db[32];
-
-	// tables
-	char table_login[256];
-	char table_loginlog[256];
-
-	// columns
-	char column_account_id[256];
-	char column_userid[256];
-	char column_user_pass[256];
-	char column_level[256];
-
-
-
-	DBDefaults() : sql_conf_name("conf/inter_athena.conf")
-	{	// setting defaults
-		// db server defaults
-		server_port = 3306;
-		strcpy(server_ip, "127.0.0.1");
-		strcpy(server_id, "ragnarok");
-		strcpy(server_pw, "ragnarok");
-		strcpy(server_db, "ragnarok");
-
-		// db table defaults
-		strcpy(table_login, "login");
-		strcpy(table_loginlog, "loginlog");
-
-		// db column defaults
-		strcpy(column_account_id, "account_id");
-		strcpy(column_userid, "userid");
-		strcpy(column_user_pass, "user_pass");
-		strcpy(column_level, "level");
-
-		// loading from default file
-		LoadConfig(sql_conf_name);
-	}
-
-	virtual bool ProcessConfig(const char*w1, const char*w2)
-	{
-		/////////////////////////////////////////////////////////////
-		//add for DB connection
-		/////////////////////////////////////////////////////////////
-		if(strcasecmp(w1,"login_server_ip")==0){
-			strcpy(server_ip, w2);
-			ShowMessage ("set Database Server IP: %s\n",w2);
-		}
-		else if(strcasecmp(w1,"login_server_port")==0){
-			server_port=atoi(w2);
-			ShowMessage ("set Database Server Port: %s\n",w2);
-		}
-		else if(strcasecmp(w1,"login_server_id")==0){
-			strcpy(server_id, w2);
-			ShowMessage ("set Database Server ID: %s\n",w2);
-		}
-		else if(strcasecmp(w1,"login_server_pw")==0){
-			strcpy(server_pw, w2);
-			ShowMessage ("set Database Server PW: %s\n",w2);
-		}
-
-		/////////////////////////////////////////////////////////////
-		// tables
-		/////////////////////////////////////////////////////////////
-		else if(strcasecmp(w1,"login_server_db")==0){
-			strcpy(table_login, w2);
-			ShowMessage ("set Database Server DB: %s\n",w2);
-		}
-		else if (strcasecmp(w1, "loginlog_db") == 0) {
-			strcpy(table_loginlog, w2);
-		}
-
-		/////////////////////////////////////////////////////////////
-		//added for custom column names for custom login table
-		/////////////////////////////////////////////////////////////
-		else if(strcasecmp(w1,"login_db_account_id")==0){
-			strcpy(column_account_id, w2);
-		}
-		else if(strcasecmp(w1,"login_db_userid")==0){
-			strcpy(column_userid, w2);
-		}
-		else if(strcasecmp(w1,"login_db_user_pass")==0){
-			strcpy(column_user_pass, w2);
-		}
-		else if(strcasecmp(w1,"login_db_level")==0){
-			strcpy(column_level, w2);
-		}
-
-		/////////////////////////////////////////////////////////////
-		//support the import command, just like any other config
-		/////////////////////////////////////////////////////////////
-		else if(strcasecmp(w1,"import")==0){
-			LoadConfig(w2);
-		}
-	}
-};
-
-//////////////////////////////////////////////////////////////////////////
-// basic interface to a sql database
-//////////////////////////////////////////////////////////////////////////
-
-class Database : public global, public noncopyable
-{
-protected:
-	DBDefaults& def;
-
-	Database(DBDefaults &d) : def(d)
-	{
-		Open();
-	}
-	~Database()
-	{
-		Close();
-	}
-	bool Open()
-	{
-		bool ret = true;
-		//DB connection start
-		ShowInfo("Connect DB Server (%s)....\n", def.server_db);
-		sql_connect(def.server_ip,def.server_id,def.server_pw,def.server_db,def.server_port)
-		ShowStatus("connect success!\n");
-
-		sql_query("INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver', '100','login server started')", def.table_loginlog);
-		return ret;
-	}
-
-	bool Close()
-	{
-		bool ret = true;
-		//set log.
-		sql_query("INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '', 'lserver','100', 'login server shutdown')", def.table_loginlog);
-
-		//query
-		//delete all server status
-		sql_query("DELETE FROM `sstatus`",NULL);
-
-		sql_close();
-		ShowMessage("Close DB Connection (%s)....\n", def.server_db);
-
-		return ret;
-	}
-
-};
-
-
-class Login_DB : public Database
-{
-public:
-	Login_DB(DBDefaults& d) : Database(d)
-	{
-	}
-	~Login_DB()
-	{
-	}
-
-	int isGM(unsigned long account_id) {
-		int level;
-
-		level = 0;
-		sql_query("SELECT `%s` FROM `%s` WHERE `%s`='%d'",
-			def.column_level, def.table_login, def.column_account_id, account_id);
-		if (sql_res)
-		{
-			sql_fetch_row();
-			level = atoi(sql_row[0]);
-			if (level > 99)
-				level = 99;
-		}
-		sql_free();
-		return level;
-	}
-
-
-	bool NewAccount(const char*userid, const char* passwd, const char *sex)
-	{
-		bool ret = false;
-		char t_uid[256], t_pass[256];
-
-		jstrescapecpy(t_uid,  userid);
-		jstrescapecpy(t_pass, passwd);
-
-		sql_query("SELECT `%s` FROM `%s` WHERE `userid` = '%s'",def.column_userid, def.table_login, t_uid);
-
-		if(sql_num_rows() == 0)
-		{	// ok no existing acc,
-
-			ShowMessage("Adding a new account user: %s with passwd: %s sex: %c\n",
-				userid, passwd, sex);
-
-			sql_query("INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')",
-				def.table_login, def.column_userid, def.column_user_pass,
-				t_uid, t_pass, sex, "a@a.com");
-			ret =false;
-
-		}//rownum check (0!)
-		sql_free();
-		//all values for NEWaccount ok ?
-		return ret;
-	}
-
-
-};
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////
-// Database Definitions
-//////////////////////////////////////////////////////////////////////////
 
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// GM Database
+// common structures
 ///////////////////////////////////////////////////////////////////////////////
-
-class GM_Database : public Database
+class CAuth
 {
-	//////////////////////////////////////////////////////////////////////////
-	// database entry structure
-	class gm_account
+public:
+	unsigned long account_id;
+	unsigned long login_id1;
+	unsigned long login_id2;
+	unsigned long client_ip;
+
+	CAuth(unsigned long aid=0) : account_id(aid)	{}
+	~CAuth()	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	// sorting by accountid
+	bool operator==(const CAuth& c) const { return this->account_id==c.account_id; }
+	bool operator!=(const CAuth& c) const { return this->account_id!=c.account_id; }
+	bool operator> (const CAuth& c) const { return this->account_id> c.account_id; }
+	bool operator>=(const CAuth& c) const { return this->account_id>=c.account_id; }
+	bool operator< (const CAuth& c) const { return this->account_id< c.account_id; }
+	bool operator<=(const CAuth& c) const { return this->account_id<=c.account_id; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// comparing
+	bool isEqual(const CAuth& a) const	{ return account_id==a.account_id && client_ip==a.client_ip && login_id1==a.login_id1 && login_id2==a.login_id2; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// buffer transfer
+	size_t size() const
 	{
-	public:
-		unsigned long account_id;
-		unsigned char level;
-
-		gm_account(int a=0, int l=0):account_id(a), level(l)	{}
-		bool operator==(const gm_account&g) const	{ return account_id==g.account_id; }
-		bool operator> (const gm_account&g) const	{ return account_id> g.account_id; }
-		bool operator< (const gm_account&g) const	{ return account_id< g.account_id; }
-	};
-	//////////////////////////////////////////////////////////////////////////
-	// database itself is just a sorted list
-	TslistDST<gm_account> gm_list;
-	//////////////////////////////////////////////////////////////////////////
-
-
-	GM_Database(DBDefaults& d) : Database(d)
-	{
-		read_gm_account();
+		return 4*sizeof(unsigned long); 
 	}
-	~GM_Database()
-	{}
-
-
-	void read_gm_account(void)
+	void _tobuffer(unsigned char* &buf) const
 	{
-		gm_list.clear();
-
-		sql_query("SELECT `%s`,`%s` FROM `%s`",
-			def.column_account_id, def.column_level, def.table_login);
-
-		size_t line_counter = 0;
-		if (sql_res) {
-
-			gm_list.realloc( (size_t)sql_num_rows() );
-
-			while( sql_fetch_row() && line_counter < 4000)
-			{
-				line_counter++;
-				gm_list.push( gm_account(atoi(sql_row[0]), atoi(sql_row[1])) );
-			}
-		}
-		sql_free();
+		if(!buf) return;
+		_L_tobuffer( account_id,	buf);
+		_L_tobuffer( login_id1, buf);
+		_L_tobuffer( login_id2, buf);
+		_L_tobuffer( client_ip, buf);
 	}
-
-	bool _tobuffer(unsigned char*buffer, size_t &btsz)
+	void _frombuffer(const unsigned char* &buf)
 	{
-		// sizeof(gm_account) might get wrong size
-		// we stuff 4byte account_id and 1byte level = 5
-		btsz = 5 * gm_list.size();
-		buffer_iterator bi(buffer, btsz);
-		gm_list.clear();
-		for(size_t i=0; i<gm_list.size() && !bi.eof(); i++ )
-		{
-			bi = gm_list[i].account_id;
-			bi = gm_list[i].level;
-		}
-		return true;
+		if(!buf) return;
+		_L_frombuffer( account_id,	buf);
+		_L_frombuffer( login_id1, buf);
+		_L_frombuffer( login_id2, buf);
+		_L_frombuffer( client_ip, buf);
 	}
-	bool _frombuffer(const unsigned char*buffer, size_t btsz)
+	void tobuffer(unsigned char* buf) const
 	{
-		unsigned long ac;
-		unsigned char lv;
-		buffer_iterator bi(buffer, btsz);
-		gm_list.clear();
-		while( !bi.eof() )
-		{
-			ac = bi;
-			lv = bi;
-			gm_list.push( gm_account(ac, lv) );
-		}
-		return true;
+		_tobuffer(buf);
 	}
-
-	unsigned char is_GM(unsigned long account_id)
+	void frombuffer(const unsigned char* buf)
 	{
-		size_t pos;
-		if( gm_list.find(account_id, 0, pos) )
-			return gm_list[pos].level;
-		return 0;
+		_frombuffer(buf);
 	}
 };
 
-
-
-
-
-
-
-void database_log_interal(ulong ip, const char*user_id, int code, char*msg)
-{	// log the message to database or txt
-
-}
-
-
-
-void database_log(ulong ip, const char*user_id, int code, char*msg,...)
-{
-	// initially using a static fixed buffer size
-	static char		tempbuf[4096];
-	// and make it multithread safe
-	static Mutex	mtx;
-	ScopeLock		sl(mtx);
-
-	size_t sz  = 4096; // initial buffer size
-	char *ibuf = tempbuf;
-	va_list argptr;
-	va_start(argptr, msg);
-
-	do{
-		// print
-		if( vsnprintf(ibuf, sz, msg, argptr) >=0 ) // returns -1 in case of error
-			break; // print ok, can break
-		// otherwise
-		// aFree the memory if it was dynamically alloced
-		if(ibuf!=tempbuf) delete[] ibuf;
-		// double the size of the buffer
-		sz *= 2;
-		ibuf = new char[sz];
-		// and loop in again
-	}while(1);
-
-	database_log_interal(ip,user_id,code,ibuf);
-
-	va_end(argptr);
-	if(ibuf!=tempbuf) delete[] ibuf;
-	//mutex will be released on scope exit
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////
-// Interface for objects that might be transfered via bytestream
-//////////////////////////////////////////////////////////////////////////
-
-class CGlobalReg : public streamable
+class CAccoutReg
 {
 public:
-	char str[32];
-	long value;
+	unsigned short account_reg2_num;
+	struct global_reg account_reg2[ACCOUNT_REG2_NUM];
 
+	CAccoutReg()	{ account_reg2_num=0; memset(account_reg2,0,sizeof(account_reg2)); }
+	~CAccoutReg()	{}
 
-	virtual bool toBuffer(buffer_iterator& bi) const
-	{
-		bi.str2buffer(str,32);
-		bi = value;
-		bi = (long)10;
+	///////////////////////////////////////////////////////////////////////////
+	// buffer transfer
+	size_t size() const
+	{ 
+		return sizeof(account_reg2_num)+ACCOUNT_REG2_NUM*sizeof(struct global_reg); 
 	}
-	virtual bool fromBuffer(buffer_iterator& bi)
+	void _tobuffer(unsigned char* &buf) const
 	{
-		bi.buffer2str(str,32);
-		value = bi;
+		size_t i;
+		if(!buf) return;
+		_W_tobuffer( (account_reg2_num),	buf);
+		for(i=0; i<account_reg2_num && i<ACCOUNT_REG2_NUM; i++)
+			_global_reg_tobuffer(account_reg2[i],buf);
 	}
+	void _frombuffer(const unsigned char* &buf)
+	{
+		size_t i;
+		if(!buf) return;
+		_W_frombuffer( (account_reg2_num),	buf);
+		for(i=0; i<account_reg2_num && i<ACCOUNT_REG2_NUM; i++)
+			_global_reg_frombuffer(account_reg2[i],buf);
+	}
+	void tobuffer(unsigned char* buf) const
+	{
+		_tobuffer(buf);
+	}
+	void frombuffer(const unsigned char* buf)
+	{
+		_frombuffer(buf);
+	}
+};
+class CMapAccount : public CAuth, public CAccoutReg
+{
+public:
+	unsigned char sex;
+	unsigned char gm_level;
+	time_t ban_until;
+	time_t valid_until;
 
+	CMapAccount():CAuth(0)	{}
+	~CMapAccount()	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	// creation and sorting by accountid
+	CMapAccount(unsigned long aid):CAuth(aid)	{}
+	bool operator==(const CMapAccount& c) const { return this->account_id==c.account_id; }
+	bool operator!=(const CMapAccount& c) const { return this->account_id!=c.account_id; }
+	bool operator> (const CMapAccount& c) const { return this->account_id> c.account_id; }
+	bool operator>=(const CMapAccount& c) const { return this->account_id>=c.account_id; }
+	bool operator< (const CMapAccount& c) const { return this->account_id< c.account_id; }
+	bool operator<=(const CMapAccount& c) const { return this->account_id<=c.account_id; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// buffer transfer
+	size_t size() const
+	{
+		return 
+		sizeof(sex) +
+		sizeof(gm_level) +
+		sizeof(ban_until) +
+		sizeof(valid_until) +
+		CAuth::size();
+		CAccoutReg::size();
+	}
+	void _tobuffer(unsigned char* &buf) const
+	{
+		unsigned long time;
+		if(!buf) return;
+		_B_tobuffer( sex,			buf);
+		_B_tobuffer( gm_level,		buf);
+		time = ban_until;	_L_tobuffer( time, buf);
+		time = valid_until;	_L_tobuffer( time, buf);
+		CAuth::_tobuffer(buf);
+		CAccoutReg::_tobuffer(buf);
+	}
+	void _frombuffer(const unsigned char* &buf)
+	{
+		unsigned long time;
+		if(!buf) return;
+		_B_frombuffer( sex,			buf);
+		_B_frombuffer( gm_level,	buf);
+		_L_frombuffer( time, buf);	ban_until=time;
+		_L_frombuffer( time, buf);	valid_until=time;
+		CAuth::_frombuffer(buf);
+		CAccoutReg::_frombuffer(buf);
+	}
+	void tobuffer(unsigned char* buf) const
+	{
+		_tobuffer(buf);
+	}
+	void frombuffer(const unsigned char* buf)
+	{
+		_frombuffer(buf);
+	}
+};
+class CCharAccount : public CMapAccount
+{
+public:
+	char email[40];
+
+	CCharAccount()	{}
+	CCharAccount(unsigned long aid):CMapAccount(aid)	{}
+	~CCharAccount()	{}
+	
+	///////////////////////////////////////////////////////////////////////////
+	// buffer transfer
+	size_t size() const
+	{
+		return 
+		sizeof(email) +
+		CMapAccount::size();
+	}
+	void _tobuffer(unsigned char* &buf) const
+	{
+		if(!buf) return;
+		_S_tobuffer( email,			buf, sizeof(email));
+		CMapAccount::_tobuffer(buf);
+	}
+	void _frombuffer(const unsigned char* &buf)
+	{
+		if(!buf) return;
+		_S_frombuffer( email,		buf, sizeof(email));
+		CMapAccount::_frombuffer(buf);
+	}
+	void tobuffer(unsigned char* buf) const
+	{
+		_tobuffer(buf);
+	}
+	void frombuffer(const unsigned char* buf)
+	{
+		_frombuffer(buf);
+	}
 };
 
-
-class CAuthData
+class CLoginAccount : public CCharAccount
 {
 public:
-	long account_id;
-	char sex;
 	char userid[24];
-	char pass[33]; // 33 for 32 + NULL terminated
-	char lastlogin[24];
-	long logincount;
-	long state; // packet 0x006a value + 1 (0: compte OK)
-	char email[40]; // e-mail (by default: a@a.com)
-	char error_message[20]; // Message of error code #6 = Your are Prohibited to log in until %s (packet 0x006a)
-	time_t ban_until_time; // # of seconds 1/1/1970 (timestamp): ban time limit of the account (0 = no ban)
-	time_t connect_until_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
-	char last_ip[16]; // save of last IP of connection
-	char memo[255]; // a memo field
-	long account_reg2_num;
+	char passwd[34];
+	unsigned char state;
+	unsigned char online;
+	unsigned long login_count;
+	char last_ip[16];
+	char last_login[24];
+	char error_message[24];
+	char memo[256];
 
-	CGlobalReg globalreg[ACCOUNT_REG2_NUM];
+	CLoginAccount()	{}
+	~CLoginAccount()	{}
+	///////////////////////////////////////////////////////////////////////////
+	// creation of a new account
+	CLoginAccount(unsigned long accid, const char* uid, const char* pwd, unsigned char s, const char* em)
+	{	// init account data
+		this->account_id = accid;
+		safestrcpy(this->userid, uid, 24);
+		safestrcpy(this->passwd, pwd, 34);
+		this->sex = sex;
+		if( !email_check(em) )
+			safestrcpy(this->email, "a@a.com", 40);
+		else
+			safestrcpy(this->email, em, 40);
+		this->gm_level=0;
+		this->login_count=0;
+		*this->last_login= 0;
+		this->ban_until = 0;
+		this->valid_until = 0;
+		this->account_reg2_num=0;
+	}
+	CLoginAccount(const char* uid)		{ safestrcpy(this->userid, uid, sizeof(this->userid));  }
+	CLoginAccount(unsigned long accid)	{ this->account_id=accid; }
 
-
-	void test()
+	const CLoginAccount& operator=(const CCharAccount&a)
 	{
-		unsigned char buffer[10];
-		buffer_iterator bi(buffer, 10);
+		this->CCharAccount::operator=(a);
+		return *this;
+	}
 
-		bi = globalreg[1];
+	///////////////////////////////////////////////////////////////////////////
+	// compare for Multilist
+	int compare(const CLoginAccount& c, size_t i=0) const	
+	{
+		if(i==0)
+			return (account_id - c.account_id);
+		else
+			return strcmp(this->userid, c.userid); 
+	}
 
+	// no buffer transfer necessary
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// char structures
+///////////////////////////////////////////////////////////////////////////////
+class CCharCharAccount : public CCharAccount
+{
+public:
+	unsigned long charlist[9];
+
+	CCharCharAccount()		{}
+	~CCharCharAccount()		{}
+	CCharCharAccount(const CCharAccount& c) : CCharAccount(c)	{ memset(charlist,0,sizeof(charlist)); }
+	
+
+	///////////////////////////////////////////////////////////////////////////
+	// creation and sorting by accountid
+	CCharCharAccount(unsigned long aid):CCharAccount(aid) {}
+	bool operator==(const CCharAccount& c) const { return this->account_id==c.account_id; }
+	bool operator!=(const CCharAccount& c) const { return this->account_id!=c.account_id; }
+	bool operator> (const CCharAccount& c) const { return this->account_id> c.account_id; }
+	bool operator>=(const CCharAccount& c) const { return this->account_id>=c.account_id; }
+	bool operator< (const CCharAccount& c) const { return this->account_id< c.account_id; }
+	bool operator<=(const CCharAccount& c) const { return this->account_id<=c.account_id; }
+};
+
+
+
+class CCharCharacter : public mmo_charstatus
+{
+	int	server;
+public:
+	CCharCharacter():server(-1)		{}
+	~CCharCharacter()		{}
+
+
+	CCharCharacter(const char* n)		{ memset(this, 0, sizeof(CCharCharacter)); server=-1; safestrcpy(this->name, n, sizeof(this->name)); }
+	CCharCharacter(unsigned long cid)	{ memset(this, 0, sizeof(CCharCharacter)); server=-1; this->char_id=cid; }
+
+	///////////////////////////////////////////////////////////////////////////
+	// creation and sorting by charid
+
+	bool operator==(const CCharCharacter& c) const { return this->char_id==c.char_id; }
+	bool operator!=(const CCharCharacter& c) const { return this->char_id!=c.char_id; }
+	bool operator> (const CCharCharacter& c) const { return this->char_id> c.char_id; }
+	bool operator>=(const CCharCharacter& c) const { return this->char_id>=c.char_id; }
+	bool operator< (const CCharCharacter& c) const { return this->char_id< c.char_id; }
+	bool operator<=(const CCharCharacter& c) const { return this->char_id<=c.char_id; }
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// compare for Multilist
+	int compare(const CCharCharacter& c, size_t i=0) const	
+	{
+		if(i==0)
+			return (this->char_id - c.char_id);
+		else
+			return strcmp(this->name, c.name); 
 	}
 
 };
 
-
-class logger : private Mutex
+///////////////////////////////////////////////////////////////////////////////
+// map structure
+///////////////////////////////////////////////////////////////////////////////
+class CMapCharacter : public CCharCharacter, public CAuth
 {
-	bool	cToScreen;
-	FILE*	cToFile;
+public:
+	CMapCharacter()			{}
+	~CMapCharacter()		{}
 
-	bool log_screen(const char* msg, va_list va)
-	{
-		if(cToScreen)
-		{
-			ScopeLock sl(*this);
-			vprintf(msg,va);
-			return true;
-		}
-		return false;
-	}
+};
 
-	bool log_file(const char* msg, va_list va)
-	{
-		if(cToFile)
-		{	ScopeLock sl(*this);
-			vfprintf(cToFile,msg,va);
-			return true;
-		}
-		return false;
-	}
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Account Database Interface
+// for storing accounts stuff in login
+///////////////////////////////////////////////////////////////////////////////
+class CAccountDBInterface : public global, public noncopyable
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CAccountDBInterface()			{}
+	virtual ~CAccountDBInterface()	{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()=0;
+	virtual CLoginAccount& operator[](size_t i)=0;
+
+	virtual bool existAccount(const char* userid) =0;
+	virtual bool searchAccount(const char* userid, CLoginAccount&account) =0;
+	virtual bool searchAccount(unsigned long accid, CLoginAccount&account) =0;
+	virtual bool insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount&account) =0;
+	virtual bool removeAccount(unsigned long accid) =0;
+	virtual bool saveAccount(const CLoginAccount& account) =0;
+};
+///////////////////////////////////////////////////////////////////////////////
+// Dynamic Account Database Implementation
+// does create a realisation of a specific database implementation internally
+//!! todo remove the txtonly/sqlonly options and combine it for config choosing; 
+//!! todo integrate it with the txt->sql/sql->txt converters
+///////////////////////////////////////////////////////////////////////////////
+class CAccountDB : public CAccountDBInterface
+{
+	CAccountDBInterface *db;
+
+	CAccountDBInterface* getDB(const char *dbcfgfile);
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CAccountDB():db(NULL)	{}
+	CAccountDB(const char *dbcfgfile):db(getDB(dbcfgfile))	{}
+	virtual ~CAccountDB()									{ delete db; }
+
 public:
 
-	logger(bool s=true) : cToScreen(s), cToFile(NULL)
+	bool init(const char *dbcfgfile)
 	{
+		if(db) delete db;
+		db = getDB(dbcfgfile);
+		return (NULL!=db);
 	}
-	logger(bool s, const char* n) : cToScreen(s), cToFile(NULL)
-	{
-		open(n);
-	}
-	logger(const char* n) : cToScreen(true), cToFile(NULL)
-	{
-		open(n);
-	}
-	~logger()
-	{
-		close();
-	}
-
-	bool open(const char* name)
-	{
-		close();
-		cToFile = fopen(name, "a");
-		return (NULL != cToFile);
-	}
-
 	bool close()
 	{
-		if(cToFile)
-		{
-			fclose(cToFile);
-			cToFile = NULL;
+		if(db)
+		{	delete db;
+			db=NULL;
 		}
 		return true;
 	}
 
-	bool SetLog(bool s)
-	{
-		bool x=cToScreen;
-		cToScreen = s;
-		return x;
-	}
-	bool isLog()
-	{
-		return cToScreen;
-	}
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()	{ return db->size(); }
+	virtual CLoginAccount& operator[](size_t i)	{ return (*db)[i]; }
 
-	bool log(const char* msg, ...)
-	{
-		bool ret;
-		va_list va;
-		va_start( va, msg );
-		ret  = log_screen(msg, va);
-		ret &= log_file(msg, va);
-		va_end( va );
-		return ret;
-	}
-	bool log_screen(const char* msg,...)
-	{
-		bool ret;
-		va_list va;
-		va_start( va, msg );
-		ret = log_screen(msg, va);
-		va_end( va );
-		return ret;
-	}
-	bool log_file(const char* msg,...)
-	{
-		bool ret;
-		va_list va;
-		va_start( va, msg );
-		ret = log_file(msg, va);
-		va_end( va );
-		return ret;
-	}
+	virtual bool existAccount(const char* userid)	{ return db->existAccount(userid); }
+	virtual bool searchAccount(const char* userid, CLoginAccount&account)	{ return db->searchAccount(userid, account); }
+	virtual bool searchAccount(unsigned long accid, CLoginAccount&account)	{ return db->searchAccount(accid, account); }
+	virtual bool insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount&account)	{ return db->insertAccount(userid, passwd, sex, email, account); }
+	virtual bool removeAccount(unsigned long accid)	{ return db->removeAccount(accid); }
+	virtual bool saveAccount(const CLoginAccount& account)	{ return db->saveAccount(account); }
 };
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Char Database Interface
+// for storing stuff in char
+///////////////////////////////////////////////////////////////////////////////
+class CCharDBInterface : public global, public noncopyable
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CCharDBInterface()			{}
+	virtual ~CCharDBInterface()	{}
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()=0;
+	virtual CCharCharacter& operator[](size_t i)=0;
+
+	virtual bool existChar(const char* name) =0;
+	virtual bool searchChar(const char* userid, CCharCharacter&character) =0;
+	virtual bool searchChar(unsigned long charid, CCharCharacter&character) =0;
+	virtual bool insertChar(CCharAccount &account, const char *name, unsigned char str, unsigned char agi, unsigned char vit, unsigned char int_, unsigned char dex, unsigned char luk, unsigned char slot, unsigned char hair_style, unsigned char hair_color, CCharCharacter&data) =0;
+	virtual bool removeChar(unsigned long charid) =0;
+	virtual bool saveChar(const CCharCharacter& character) =0;
+
+	virtual bool searchAccount(unsigned long accid, CCharCharAccount& account) =0;
+	virtual bool saveAccount(CCharAccount& account) =0;
+	virtual bool removeAccount(unsigned long accid)=0;
+
+};
+///////////////////////////////////////////////////////////////////////////////
+// Dynamic Account Database Implementation
+// does create a realisation of a specific database implementation internally
+//!! todo remove the txtonly/sqlonly options and combine it for config choosing; 
+//!! todo integrate it with the txt->sql/sql->txt converters
+///////////////////////////////////////////////////////////////////////////////
+class CCharDB : public CCharDBInterface
+{
+	CCharDBInterface *db;
+
+	CCharDBInterface* getDB(const char *dbcfgfile);
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CCharDB():db(NULL)	{}
+	CCharDB(const char *dbcfgfile):db(getDB(dbcfgfile))	{}
+	virtual ~CCharDB()									{ delete db; }
+
+public:
+
+	bool init(const char *dbcfgfile)
+	{
+		if(db) delete db;
+		db = getDB(dbcfgfile);
+		return (NULL!=db);
+	}
+	bool close()
+	{
+		if(db)
+		{	delete db;
+			db=NULL;
+		}
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// access interface
+	virtual size_t size()	{ return db->size(); }
+	virtual CCharCharacter& operator[](size_t i)	{ return (*db)[i]; }
+
+	virtual bool existChar(const char* name)	{ return db->existChar(name); }
+	virtual bool searchChar(const char* name, CCharCharacter&data)	{ return db->searchChar(name, data); }
+	virtual bool searchChar(unsigned long charid, CCharCharacter&data)	{ return db->searchChar(charid, data); }
+	virtual bool insertChar(CCharAccount &account, const char *name, unsigned char str, unsigned char agi, unsigned char vit, unsigned char int_, unsigned char dex, unsigned char luk, unsigned char slot, unsigned char hair_style, unsigned char hair_color, CCharCharacter&data)	{ return db->insertChar(account, name, str, agi, vit, int_, dex, luk, slot, hair_style, hair_color, data); }
+	virtual bool removeChar(unsigned long charid)	{ return db->removeChar(charid); }
+	virtual bool saveChar(const CCharCharacter& data)	{ return db->saveChar(data); }
+
+	virtual bool searchAccount(unsigned long accid, CCharCharAccount& account)	{ return db->searchAccount(accid, account); }
+	virtual bool saveAccount(CCharAccount& account)	{ return db->saveAccount(account); }
+	virtual bool removeAccount(unsigned long accid)	{ return db->removeAccount(accid); }
+};
 
 
 

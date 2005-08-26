@@ -1,0 +1,93 @@
+Following is a brief description of the next tasks that are necessary
+personal time plan for this was around 4 weeks for this when doing it straight forward
+and not running into problems; brackets will notice the actual tasks that are requred
+if anybody is willing to assign to then he could give me a hint, so I can
+give more detailed instructions if wished
+
+///////////////////////////////////////////////////////////////////////////////
+common:
+
+data interface (txt/sql)
+* adding party and guild to char_db (sql and txt)
+  [txt: creating the storage list, adding the function for read/write/search]
+[sql: adding the sql access for read/write/search functions]
+* checking the save functions for threadsafety, then deriving from CThread instead of CTimer
+  [txt: just deriving the class from CThread and modify the entry maybe with a semaphore and update the save sequence to "save temp->delete bak->rename save2bak->rename temp2save"]
+  [sql: add a searchable threadsave semaphored queue (read/write-lock is ready) and add the thread entry]
+* cleaning unnecessary datafields
+  [there are lots of useless stuff and the structure itself needs to be redone, too]
+* modify the conf reading/conf files to new structures
+  [conf reading class is ready just compound the initializing of configuration stuff there, extern variable declaration will be prohibited]
+* integrate database conversion into the database classes
+  [conversion of databases will be an option in configuration files like "read: txt, use: sql" would convert convert from txt to sql, (or other syntax, whatever), database classes need suitable assignment operators together with size() and operator[] or a forEach() to automatically do the conversion at creation time of the db-class]
+
+data interface (sql only)
+* checking database structure, cleaning unnecessary fields
+  [some data fields are quite useless though and could be removed]
+* adding missing data fields to login table
+  [account is stored completely including the login_id's]
+* implementation of the sql part of the char_db
+  [functional interface is ready, tested and already used in the char server, so just need to copy the CCharDB_txt to CCharDB_sql and implement the functions]
+* integrating check/update of database for missing tables/columns
+  [adding functionality that the server can itself check and add their db structure]
+* implementing size() and operator[] for sql
+  [see conversion above, size() gives the number of elements, operator[] accesses a specific element, optionally it there could be forEach tempate function, that takes a function pointer]
+* adding embedded sql base class 
+  [basically deriving from existing class and modifying the sql startup function]
+
+///////////////////////////////////////////////////////////////////////////////
+login:
+* cleaning packets
+  [removing obsolete packets, adding functionality to class transfer]
+
+///////////////////////////////////////////////////////////////////////////////
+char:
+* cleaning packets
+  [removing obsolete packets, adding functionality to class transfer]
+
+///////////////////////////////////////////////////////////////////////////////
+map:
+
+all
+* swap c style allocations to c++ style, convert storage models and add suitable construction/destruction
+  [new/delete instead of malloc/free, note that realloc will be a new-copy-delete then and that suitable assignments are necessary when copying objects with pointers and automatic destruction]
+* when fully converted, modify malloc.cpp to managed memory for overloading new/delete operators
+  and desiging a managed-memory class (concept ready)
+  [not much to mention now, it will just give the same functionality on c++ objects whith additional support for automatic construction/destruction, bye bye, memory leaks]
+* replace the red-black-tree from db.cpp with sorted-list classes from base.h,
+  add necessary functionality to make the conversion as simple as possible
+  [the tree is nice, a simple pointer list a suitable replacement, maybe think on having a tree class but then a order-N btree instead of the red-black-tree because of better performance and storage]
+* check on remove the variable arguments whenever possible (exeption could be the print class)
+  maybe exchange it with suitable template functions or whatever, proofen concept needed
+  [variable arguments only work with POD so using them with classes is not possible]
+
+clif/chrif/packets
+* cleaning on current code
+  [not much to do, just roll up and clean the code between packet version detection and calling of the clif functions]
+* rearranging packet communication for new authentification, storage classes and cached saving
+  [chrif packets for requesting/saving chars need to be rearranged, caching save is a needing more discussion]
+
+script engine conversion
+* rearranging current member function structure to a better hierarchy depending on the functionally
+  [like value conversion functions are members of the value class, just to name an example]
+* changing memory allocation/deallocations to c++ style (special attention to initial settings with memset)
+  [stack allocation/seallocation is c-style now, implement proper cleaning]
+* check command function/usage of a virtual npc for script binding
+  [like if a script is running on a pc without a visible npc then create a npc without a physical shape and bind the script on that npc, so all scripts could use all script commands]
+* encapsulate the script parser
+  [same as has been done with the engine]
+* adding a class for scripts with all suitable things
+  [script itself should not be just char* but something with more functionality to allow automatic deallocation and usage of smart pointer (which is currently implemented in c-style)]
+* deriving virtual interfaces by comparing with /devel/shinomori/eacompiler
+  [building an interface for how a script is called, how a script can call other things and how the other things can access data from the script environment]
+
+data reading
+* move all sql/txt stuff to baseio, encapsulate to classes, adding conversion
+  [easy to find]
+* mail system
+  [move the mail system to char by adding the necessary chrif functions, adding the necessary data to the databases and implement the read/write/search functions for the txt version possible usage of the txt_database class, this would just need a second index]
+
+
+testing and dump generation
+* more bt's are better than none
+  [no comment]

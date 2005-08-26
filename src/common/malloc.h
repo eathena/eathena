@@ -24,7 +24,7 @@
 //////////////////////////////////////////////////////////////////////
 // Whether to use Athena's built-in Memory Manager (enabled by default)
 // To disable just comment the following line
-//#define USE_MEMMGR
+#define USE_MEMMGR
 
 
 #define LOG_MEMMGR		// Whether to enable Memory Manager's logging
