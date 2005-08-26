@@ -29,6 +29,7 @@ TODO:
 Date		Added
 ======
 08/26
+	* Reupdated the refine npc to not use recursive functions. [Skotlex]
 	* Fixed Wool Hat quest items. Thanx to the__android [Lupus]
 08/25
 	* Updated Louyang spawns according to ep 8.5 by MasterOfMuppets [Lupus]

@@ -3,8 +3,9 @@
 //===== By: ==================================================
 //= Syrus22 (1.1)
 //= dafide18 (1.4)
+//= Skotlex (1.5)
 //===== Current Version: =====================================
-//= 1.4
+//= 1.5
 //===== Compatible With: =====================================
 //= Any Freya Version
 //===== Description: =========================================
@@ -25,6 +26,8 @@
 //=        Fixed itemid error thanks to -Vitamin- [massdriller]
 //= 1.4 - check again item in refining procedure to avoid
 //=        hacker that can change item [dafide18]
+//= 1.5 - Fixed crashing due to badly used callfunc's [Skotlex]
+//        Lupus, don't rollback this important fix again! >.<
 //============================================================
 
 
@@ -304,7 +307,7 @@ REFINE0:
 	set @material,985;
 	set @price,2000;
 	set @safe,4;
-	if(@features == 1) callfunc "refinefeatures";
+	if(@features == 1) goto L_refinefeatures;
 	goto L_refinenormal;
 //Refine Level 1 Weapon
 REFINE1:
@@ -313,7 +316,7 @@ REFINE1:
 	set @material,1010;
 	set @price,50;
 	set @safe,7;
-	if(@features == 1) callfunc "refinefeatures";
+	if(@features == 1) goto L_refinefeatures;
 	goto L_refinenormal;
 //Refine Level 2 Weapon
 REFINE2:
@@ -322,7 +325,7 @@ REFINE2:
 	set @material,1011;
 	set @price,200;
 	set @safe,6;
-	if(@features == 1) callfunc "refinefeatures";
+	if(@features == 1) goto L_refinefeatures;
 	goto L_refinenormal;
 //Refine Level 3 Weapon
 REFINE3:
@@ -331,7 +334,7 @@ REFINE3:
 	set @material,984;
 	set @price,5000;
 	set @safe,5;
-	if(@features == 1) callfunc "refinefeatures";
+	if(@features == 1) goto L_refinefeatures;
 	goto L_refinenormal;
 //Refine Level 4 Weapon
 REFINE4:
@@ -339,7 +342,7 @@ REFINE4:
 	set @material,984;
 	set @price,20000;
 	set @safe,4;
-	if(@features == 1) callfunc "refinefeatures";
+	if(@features == 1) goto L_refinefeatures;
 	goto L_refinenormal;
 
 L_refinenormal:
@@ -357,7 +360,7 @@ L_refinenormal:
 		mes "["+@name$+"]";
 		mes "Do you still wish you refine it? If so I will not be able to guarantee my work...";
 		next;
-		menu "Yes",L_Sub,"No",Lcancel1;
+		menu "Yes",-,"No",Lcancel1;
 
 		L_Sub:
 			if ((countitem(@material) < 1) || (Zeny < @price)) goto Lcancel2;
@@ -421,10 +424,9 @@ Lcancel2:
 	mes "[" + @name$ + "]";
 	mes "Is that all you got? Unfortunately I can't work for you at a lower price. Try putting yourself in my shoes.";
 	close;
-}
 
 // New Refining Functions ========================
-function	script	refinefeatures	{
+L_refinefeatures:
 	if(getequiprefinerycnt(@part) >= @safe) goto Lnosafe;
 	mes "[" + @name$ + "]";
 	mes "I can refine this to the safe limit or a desired number of times... it's your choice...";
@@ -441,8 +443,7 @@ Lsafe:
 	if((countitem(@material) < @refinecnt) || (Zeny < @fullprice)) goto Lcancel2;
 	delitem @material,@refinecnt;
 	set Zeny,Zeny - @fullprice;
-	callfunc "refinesafe";
-	break;
+	goto L_refinesafe;
 
 Lnosafe:
 	mes "[" + @name$ + "]";
@@ -462,6 +463,7 @@ Lnosafe:
 		delitem @material,@refinecnt;
 		set Zeny,Zeny - @fullprice;
 		callfunc "refinenumber";
+		goto L_refinenumber;
 		break;
 
 		Lwarn:
@@ -473,29 +475,15 @@ Lnosafe:
 				if((countitem(@material) < @refinecnt) || (Zeny < @fullprice)) goto Lcancel2;
 				delitem @material,@refinecnt;
 				set Zeny,Zeny - @fullprice;
-				callfunc "refinenumber";
-				break;
+				goto L_refinenumber;
 
-Lcancel:
-	mes "[" + @name$ + "]";
-	mes "If you say so... See you again soon I hope.";
-	close;
-Lcancel1:
-	mes "[" + @name$ + "]";
-	mes "Good... I don't like to break people's equipment...";
-	close;
-Lcancel2:
-	mes "[" + @name$ + "]";
-	mes "Sorry but you don't have everything I need...";
-	close;
 Lcancel3:
 	mes "[" + @name$ + "]";
 	mes "I can't refine this item that many times.";
 	close;
-}
 
-// Function: Safe Refine ---------------------
-function	script	refinesafe	{
+// SubFunction: Safe Refine ---------------------
+L_refinesafe:
 	if (getequipisequiped(@part) == 0) goto LNoItem; // hacker has removed the item (no changed, why?)
 	if (getequipid(@part) != @refineitemid) goto LNoFake; // hacker has changed the item
 	if (getequiprefinerycnt(@part) != @refinerycnt) goto LNoFake; // hacker has changed the item
@@ -505,37 +493,25 @@ function	script	refinesafe	{
 	set @refinecnt,@refinecnt - 1;
 	next;
 	if(@refinecnt == 0) goto Lend;
-	callfunc "refinesafe";
-	break;
+	goto L_refinesafe;
 
 	Lend:
 		mes "[" + @name$ + "]";
 		mes "All finished... Come again soon.";
 		close;
-
-	LNoItem:
-		mes "[" + @name$ + "]";
-		mes "Look here... you don't have any Items on...";
-		close;
-}
-// Function: Refine
-function	script	refinenumber	{
+		
+// SubFunction: Refine 
+L_refinenumber:
 	mes "Clang, clang!!!";
-	if (getequippercentrefinery(@part)<=rand(100)) goto Lfail;
+	if (getequippercentrefinery(@part)<=rand(100)) goto Lfail_number;
 	successrefitem @part;
 	emotion 21;
 	set @refinecnt,@refinecnt - 1;
 	next;
 	if(@refinecnt == 0) goto Lend;
-	callfunc "refinenumber";
-	break;
+	goto L_refinenumber;
 
-	Lend:
-		mes "[" + @name$ + "]";
-		mes "All finished... Come again soon.";
-		close;
-
-	Lfail:
+	Lfail_number:
 		failedrefitem @part;
 		emotion 23;
 		mes "[" + @name$ + "]";
@@ -548,18 +524,6 @@ function	script	refinenumber	{
 		set Zeny,Zeny + @fullprice;
 
 	Lend2:
-		close;
-
-	LNoItem:
-		mes "[" + @name$ + "]";
-		mes "Look here... you don't have any Items on...";
-		close;
-
-	LNoFake:
-		mes "[" + @name$ + "]";
-		mes "Clan... No, but Did you imagine I could be so stupid !?!";
-		mes "You have changed it...";
-		mes "Go out before I stun you with my Hammer!!!";
 		close;
 }
 
