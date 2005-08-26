@@ -1,6 +1,7 @@
 Date	Added
 =======
 08/26
+	* Fixed Enchant Deadly Poison lasting forever after killed. [Skotlex]
 	* Fixed the duration argument of @summon [Skotlex]
 	* Now @summoned mobs will follow their master everywhere and that includes
 	  warping from map to map. [Skotlex]

@@ -4088,8 +4088,11 @@ int status_change_clear(struct block_list *bl,int type)
 			sc_data[i].timer = -1;
 		}
 	}
-	//This is probably not true, some status are preserved even after death such as SC_RIDING! [Skotlex]
-	*sc_count = 0;
+	for(i = 0; i < MAX_STATUSCHANGE; i++)
+	{	//We can't assume the count is 0, some status don't end even when dead! [Skotlex]
+		if(sc_data[i].timer != -1)
+			(*sc_count)++;
+	}
 	*opt1 = 0;
 	*opt2 = 0;
 	*opt3 = 0;
