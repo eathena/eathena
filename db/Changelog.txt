@@ -8,6 +8,33 @@
 	Einbroch items == 5%
 	Skill databases == celest working on them I believe.
 
+	-- Items that need fixing/implementing
+	2355,Angel_Protection: Autospell rate is unknown
+	2417,Frico_Shoes: Missing Set bonus, and red,orange,yellow,white potion
+		heal rate 20% increasing bonus(if you want, edit db/item_group_db.txt, then
+		use bonus2 bAddItemHealRate) And I don't know if it's proper name.
+	2418,Boots_of_Vidar: Missing set bonus
+	2420,Second_Advent_of_Angel: Item description is not right, so it needs
+		correction through patch
+	2515,Wing_of_Eagle: the value is unknown, even if the bonus option is increasing speed or
+		speed rate
+	2520,Gebneys_Shoulder: maybe item name is wrong.  it doesn't have its own sprite yet(though file
+	exists)
+	2652,Brooch_of_Cursed_Fortune: Correct rate is unknown
+	2653,Sacrifice_Ring: seems eAthena doesn't have bonus option yet
+	4212,Bongun_Card: should blow target out for 5 cells using bash
+	5116,Banana_Hat: autospell rate is unknown
+	5125,Angel_Kiss,Angel's Kiss: Description miss.  This item is for Novice/Super Novice, like any other
+		'Angel' equipments.
+	5126,Morphicious_Hood: When using magic, it cannot be dispelled(Maybe it works like Phen card)
+	12033,Sunshine_Box: 
+	12105,Taming_Item_Giftset: gets 3 of any(?) taming item
+	12106,Jewel_Box: gets any accessary
+	12107,Wrapped_Mask: gets a mask
+	12108,Bundle_of_Spells: gets 5 of any(?) spell scrolls
+	12110,First_Aid_Box: gets 5 of any potions
+	12111,Wrapped_Food: gets 3 of any food
+
 	-- New Cards : Not Implemented
 	All cards that add CRIT bonus vs. specific race is now applied
 	 at 2x rate when installed on a Katar-type weapon.

@@ -1,6 +1,11 @@
 Date	Added
 =======
 08/27
+	* Cleaned up item_db.txt (format, commas, etc), added status bonuses to the
+	  cooked foods. [Skotlex]
+	* Updated sql-files/item_db.sql to match with the current contents of
+	  item_db.txt [Skotlex]
+	  (sql users just feed it to mysql, it will drop and recreate the table)
 	* Fixed IDs for Taekwon-class : 4047 is Star Gladiator, 4048 is a second Star Gladiator
 	  (probably used for a "Superman-mode" flying sprite) and 4049 is Soul Linker [DracoRPG]
 08/26
