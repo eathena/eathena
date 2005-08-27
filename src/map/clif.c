@@ -8402,7 +8402,11 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 	unsigned char *buf;
 
 	nullpo_retv(sd);
-	if (strncmp((char*)RFIFOP(fd,4), sd->status.name, strlen(sd->status.name)) != 0) {
+
+	message = (char*)RFIFOP(fd,4);
+	if (strlen(message) < strlen(sd->status.name) || //If the incoming string is too short...
+		strncmp(message, sd->status.name, strlen(sd->status.name)) != 0) //Or the name does not matches...
+	{
 		ShowWarning("Hack on global message: character '%s' (account: %d), use an other name to send a (normal) message.\n", sd->status.name, sd->status.account_id);
 		message = (char*)aCallocA(256, sizeof(char));
 		// information is sended to all online GM
@@ -8412,7 +8416,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 		if (strlen((char*)RFIFOP(fd,4)) == 0)
 			strcpy(message, " This player sends a void name and a void message.");
 		else
-			sprintf(message, " This player sends (name:message): '%s'.", RFIFOP(fd,4));
+			snprintf(message, 255, " This player sends (name:message): '%128s'.", RFIFOP(fd,4));
 		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message);
 		// message about the ban
 		if (battle_config.ban_spoof_namer > 0)
@@ -8433,14 +8437,13 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 		return;
 	}
 	
-	if ((is_atcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != AtCommand_None) ||
-		(is_charcommand(fd, sd, (char*)RFIFOP(fd,4),0) != CharCommand_None) ||
+	if ((is_atcommand(fd, sd, message, 0) != AtCommand_None) ||
+		(is_charcommand(fd, sd, message,0) != CharCommand_None) ||
 		(sd->sc_data &&
 		(sd->sc_data[SC_BERSERK].timer != -1 || //バーサーク時は会話も不可
 		sd->sc_data[SC_NOCHAT].timer != -1 ))) //チャット禁止
 		return;
 
-	message = (char*)aCallocA(RFIFOW(fd,2) + 128, sizeof(char));
 	buf = (unsigned char*)aCallocA(RFIFOW(fd,2) + 4, sizeof(char));
 
 	// send message to others
@@ -8467,9 +8470,11 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 			if (sd->state.snovice_flag == 0 && strstr(rfifo, msg_txt(504)))
 				sd->state.snovice_flag = 1;
 			else if (sd->state.snovice_flag == 1) {
+				message = (char*)aCallocA(128, sizeof(char));
 				sprintf(message, msg_txt(505), sd->status.name);
 				if (strstr(rfifo, message))
 					sd->state.snovice_flag = 2;
+				aFree(message);
 			}
 			else if (sd->state.snovice_flag == 2 && strstr(rfifo, msg_txt(506)))
 				sd->state.snovice_flag = 3;
@@ -8482,7 +8487,6 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 		}
 	}
 
-	if(message) aFree(message);
 	if(buf) aFree(buf);
 
 	return;
