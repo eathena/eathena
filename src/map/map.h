@@ -5,7 +5,7 @@
 #include <stdarg.h>
 #include "mmo.h"
 
-#define MAX_PC_CLASS 4049
+#define MAX_PC_CLASS 4050
 #define PC_CLASS_BASE 0
 #define PC_CLASS_BASE2 (PC_CLASS_BASE + 4001)
 #define PC_CLASS_BASE3 (PC_CLASS_BASE2 + 22)
@@ -111,6 +111,7 @@ enum {
 
 	JOB_TAEKWON,
 	JOB_STAR_GLADIATOR,
+	JOB_STAR_GLADIATOR2,
 	JOB_SOUL_LINKER,
 };
 

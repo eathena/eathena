@@ -1067,6 +1067,7 @@ int pc_calc_skilltree_normalize_job(struct map_session_data *sd) {
 					c = JOB_THIEF;
 					break;
 				case JOB_STAR_GLADIATOR:
+				case JOB_STAR_GLADIATOR2:
 				case JOB_SOUL_LINKER:
 					c = JOB_TAEKWON;
 					break;
@@ -5493,7 +5494,7 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 		return 1;
 
 	// check if we are changing from 1st to 2nd job
-	if ((job >= JOB_KNIGHT && job <= JOB_CRUSADER2) || job == JOB_STAR_GLADIATOR || job == JOB_SOUL_LINKER) {
+	if ((job >= JOB_KNIGHT && job <= JOB_CRUSADER2) || (job >= JOB_STAR_GLADIATOR && job <= JOB_SOUL_LINKER)) {
 		if ((s_class.job > JOB_NOVICE && s_class.job < JOB_KNIGHT) || s_class.job == JOB_TAEKWON)
 			sd->change_level = sd->status.job_level;
 		else

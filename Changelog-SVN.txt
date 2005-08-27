@@ -1,5 +1,8 @@
 Date	Added
 =======
+08/27
+	* Fixed IDs for Taekwon-class : 4047 is Star Gladiator, 4048 is a second Star Gladiator
+	  (probably used for a "Superman-mode" flying sprite) and 4049 is Soul Linker [DracoRPG]
 08/26
 	* Fixed being able to move during Encore skills when you did not need a
 	  partner. [Skotlex]

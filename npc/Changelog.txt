@@ -28,6 +28,8 @@ TODO:
 
 Date		Added
 ======
+08/27
+	* Updated Is_Taekwon_Class with Job_Star_Gladiator2 [DracoRPG]
 08/26
 	* Reupdated the refine npc to not use recursive functions. [Skotlex]
 	* Fixed Wool Hat quest items. Thanx to the__android [Lupus]

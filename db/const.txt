@@ -71,7 +71,8 @@ Job_Super_Baby	4045
 
 Job_Taekwon	4046
 Job_Star_Gladiator	4047
-Job_Soul_Linker	4048
+Job_Star_Gladiator2	4048
+Job_Soul_Linker	4049
 
 mf_nomemo	0
 mf_noteleport	1

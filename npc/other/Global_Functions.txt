@@ -108,5 +108,5 @@ function	script	Is_Sword_Class	{
 // returns 1 if the player is either Taekwon, Star Gladiator,Soul Linker, 0 otherwise
 // these classes can't be adopted nor reborn ()
 function	script	Is_Taekwon_Class	{
-	return ( Class==Job_Taekwon || Class==Job_Star_Gladiator || Class==Job_Soul_Linker );
+	return ( Class==Job_Taekwon || Class==Job_Star_Gladiator || Class==Job_Star_Gladiator2 || Class==Job_Soul_Linker );
 }

@@ -600,7 +600,7 @@ char * job_name(int class_) {
 	case 10:   return "Blacksmith";
 	case 11:   return "Hunter";
 	case 12:   return "Assassin";
-	case 13:   return "Knight 2";
+	case 13:   return "Peco Knight";
 	case 14:   return "Crusader";
 	case 15:   return "Monk";
 	case 16:   return "Sage";
@@ -608,7 +608,7 @@ char * job_name(int class_) {
 	case 18:   return "Alchemist";
 	case 19:   return "Bard";
 	case 20:   return "Dancer";
-	case 21:   return "Crusader 2";
+	case 21:   return "Peco Crusader";
 	case 22:   return "Wedding";
 	case 23:   return "Super Novice";
 	case 4001: return "Novice High";
@@ -658,7 +658,8 @@ char * job_name(int class_) {
 	case 4045: return "Super Baby";
 	case 4046: return "Taekwon";
 	case 4047: return "Star Gladiator";
-	case 4048: return "Soul Linker";
+	case 4048: return "Flying Star Gladiator";
+	case 4049: return "Soul Linker";
 	}
 	return "Unknown Job";
 }
@@ -2047,7 +2048,7 @@ int atcommand_jobchange(
 			{ "taekwon boy",	4046 },
 			{ "taekwon girl",	4046 },
 			{ "star gladiator",	4047 },
-			{ "soul linker",	4048 },
+			{ "soul linker",	4049 },
 		};
 
 		for (i=0; i < (int)(sizeof(jobs) / sizeof(jobs[0])); i++) {
