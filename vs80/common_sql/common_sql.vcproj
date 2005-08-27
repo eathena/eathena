@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\src\zlib"
+				AdditionalIncludeDirectories="..\..\src\zlib; ..\..\src\mysql\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;PACKETVER=6;NEW_006b"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -150,172 +150,68 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\src\common\core.c"
+				RelativePath="..\..\src\common\baseio.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\common\db.c"
+				RelativePath="..\..\src\common\core.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\common\grfio.c"
+				RelativePath="..\..\src\common\db.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\common\lock.c"
+				RelativePath="..\..\src\common\grfio.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\common\malloc.c"
+				RelativePath="..\..\src\common\lock.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\common\md5calc.c"
+				RelativePath="..\..\src\common\malloc.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\common\mmo.c"
+				RelativePath="..\..\src\common\md5calc.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\common\nullpo.c"
+				RelativePath="..\..\src\common\mmo.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\common\plugins.c"
+				RelativePath="..\..\src\common\nullpo.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\common\showmsg.c"
+				RelativePath="..\..\src\common\plugins.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\common\socket.c"
+				RelativePath="..\..\src\common\showmsg.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\common\strlib.c"
+				RelativePath="..\..\src\common\socket.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\common\timer.c"
+				RelativePath="..\..\src\common\sql.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\src\common\utils.c"
+				RelativePath="..\..\src\common\strlib.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\src\common\timer.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\utils.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
@@ -325,6 +221,10 @@
 			>
 			<File
 				RelativePath="..\..\src\common\base.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\baseio.h"
 				>
 			</File>
 			<File
@@ -373,6 +273,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\common\socket.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\sql.h"
 				>
 			</File>
 			<File

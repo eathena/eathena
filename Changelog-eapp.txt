@@ -1,4 +1,8 @@
 Date	Added
+08/27
+	* Fixed MS VC type coversion error in socket.h [Wizputer]
+	* Made Shinomori's CMySQL class little more friendly
+
 08/26	forked out the changes from cuteboi, they have to be merged in a more decent manner
 	changes for the current update compared with the 07/17 release include:
 	

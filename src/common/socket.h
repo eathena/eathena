@@ -280,7 +280,7 @@ public:
 		if(str)
 		{
 			char buffer[1024];
-			char *kp=NULL, *mp=NULL;
+			const char *kp=NULL, *mp=NULL;
 			kp = strchr(str,'/'); // the first ip/mask seperator
 			mp=strchr(str,':'); // the second ip/port seperator
 			if(kp && mp)
