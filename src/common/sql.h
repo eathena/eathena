@@ -25,4 +25,60 @@ protected:
 	char* tmpSql;					// Build query into here
 
 };
+
+
+class CAccountDB_sql : public CMySQL, private CConfig, public CAccountDBInterface
+{
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construct/destruct
+	CAccountDB_sql(const char* configfile);
+	~CAccountDB_sql() {	close(); }
+
+	///////////////////////////////////////////////////////////////////////////
+	// functions for db interface
+
+	//!! todo, add some functionality if needed
+	virtual size_t size()	{ return 0; }
+	virtual CLoginAccount& operator[](size_t i) { static CLoginAccount dummy; return dummy; }
+
+	virtual bool existAccount(const char* userid);
+	virtual bool searchAccount(const char* userid, CLoginAccount&account);
+	virtual bool searchAccount(unsigned long accid, CLoginAccount&account);
+	virtual bool insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount&account);
+	virtual bool removeAccount(unsigned long accid);
+	virtual bool saveAccount(const CLoginAccount& account);
+
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	// data
+
+	// table names
+	char login_db[128];
+	char log_db[128];
+
+	// field names
+	char login_db_userid[128];
+	char login_db_account_id[128];
+	char login_db_user_pass[128];
+	char login_db_level[128];
+
+	// options
+	bool case_sensitive;
+	bool log_login;
+
+	///////////////////////////////////////////////////////////////////////////
+	// functions internal access
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// Config processor
+	virtual bool ProcessConfig(const char*w1, const char*w2);
+
+	///////////////////////////////////////////////////////////////////////////
+	// normal function
+	bool init(const char* configfile);
+	bool close();
+
+};
+
 #endif //_SQL_H_

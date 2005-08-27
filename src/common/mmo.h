@@ -109,6 +109,15 @@ enum
 };
 
 
+struct mmo_server {
+public:
+	int fd;
+	ipset address;
+	size_t users;
+};
+
+
+
 /////////////////////////////////////////////////////////////////////////////
 // char server definition for incoming map server connections
 
@@ -117,23 +126,19 @@ enum
 // maybe it is not necessary to store extra lan/wan ip
 // since there is already the client ip in session_data
 
-struct mmo_map_server
+struct mmo_map_server : public mmo_server
 {
-	int fd;
-	ipset			address;
-	unsigned long	users;
+public:
 	unsigned long	maps;
 	char map[MAX_MAP_PER_SERVER][16];
 };
 
 /////////////////////////////////////////////////////////////////////////////
 // login server definition for incoming char server connections
-struct mmo_char_server
+struct mmo_char_server : public mmo_server
 {
-	int fd;
-	ipset			address;
+public:
 	char name[20];
-	size_t users;
 	unsigned short maintenance;
 	unsigned short new_display;
 };

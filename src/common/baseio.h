@@ -10,158 +10,26 @@
 #include "strlib.h"
 #include "mmo.h"
 
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////
 // basic interface for reading configs from file
 //////////////////////////////////////////////////////////////////////////
 class CConfig
 {
 public:
-	CConfig()
-	{}
-	virtual ~CConfig()
-	{}
-	//////////////////////////////////////////////////////////////////////
-	// Loading a file, stripping lines, splitting it to part1 : part2
-	// calling the derived function for processing
-	//////////////////////////////////////////////////////////////////////
-	bool LoadConfig(const char* cfgName)
-	{
-		char line[1024], w1[1024], w2[1024], *ip;
-		FILE *fp;
+	CConfig(){}
+	virtual ~CConfig(){}
 
-		if ((fp = safefopen(cfgName, "r")) == NULL) {
-			ShowError("Configuration file (%s) not found.\n", cfgName);
-			return false;
-		}
-		ShowInfo("Reading configuration file '%s'\n", cfgName);
-		while(fgets(line, sizeof(line), fp)) 
-		{
-			// terminate buffer
-			line[sizeof(line)-1] = '\0';
+	bool LoadConfig(const char* cfgName);							// Load and parse config
+	virtual bool ProcessConfig(const char*w1,const char*w2) = 0;	// Proccess config
 
-			// skip leading spaces
-			ip = line;
-			while( isspace((int)((unsigned char)*ip) ) ) ip++; 
+	static ulong String2IP(const char* str);						// Convert string to IP
+	static const char* IP2String(ulong ip, char*buffer=NULL);		// Convert IP to string
 
-			// skipping comment lines
-			if( ip[0] == '/' && ip[1] == '/')
-				continue;
-			
-			memset(w2, 0, sizeof(w2));
-			// format: "name:value"
-			if (sscanf(ip, "%[^:]: %[^\r\n]", w1, w2) == 2)
-			{
-				CleanControlChars(w1);
-				CleanControlChars(w2);
-
-				if( strcasecmp(w1, "import") == 0 )
-				{	// call recursive, prevent infinity loop (first order only)
-					if( strcasecmp(cfgName,w2) !=0 )
-						LoadConfig(w2);
-				}
-				else
-				{	// calling derived function to process
-					ProcessConfig(w1,w2);
-				}
-			}
-		}
-		fclose(fp);
-		ShowInfo("Reading configuration file '%s' finished\n", cfgName);
-		return true;
-	}
-	//////////////////////////////////////////////////////////////////////
-	// virtual function for processing/storing tokens
-	//////////////////////////////////////////////////////////////////////
-	virtual bool ProcessConfig(const char*w1,const char*w2) = 0;
-
-	//////////////////////////////////////////////////////////////////////
-	// some global data processings
-	//////////////////////////////////////////////////////////////////////
-	static ulong String2IP(const char* str)
-	{	// erturn value is host byte order
-		// look up the name, can take long for timeout looking up non-existing addresses
-		struct hostent *h = gethostbyname(str);
-		if (h != NULL) 
-		{	// returned ip's are hostbyte order
-			return	  (((ulong)h->h_addr[3]) << 0x18 )
-					| (((ulong)h->h_addr[2]) << 0x10 )
-					| (((ulong)h->h_addr[1]) << 0x08 )
-					| (((ulong)h->h_addr[0])         );
-		}
-		else
-		{	// assume string is in ip format, just convert it
-			return ntohl(inet_addr(str));
-		}
-	}
-	static const char* IP2String(ulong ip, char*buffer=NULL)
-	{	// given ip is in host byte order
-		// usage of the static buffer here is not threadsave
-		static char temp[32], *pp= (buffer) ? buffer:temp;
-		sprintf(pp, "%d.%d.%d.%d", (ip>>24)&0xFF,(ip>>16)&0xFF,(ip>>8)&0xFF,(ip)&0xFF);
-		return pp;
-	}
-
-	static int SwitchValue(const char *str, int defaultmin=INT_MIN, int defaultmax=0x7FFFFFFF)
-	{
-		if( str )
-		{
-			if (strcasecmp(str, "on") == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja") == 0 || strcasecmp(str, "si") == 0)
-				return 1;
-			else if (strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0)
-				return 0;
-			else
-			{
-				int ret = atoi(str);
-				return (ret<defaultmin) ? defaultmin : (ret>defaultmax) ? defaultmax : ret;
-			}
-		}
-		else
-			return 0;
-	}
-	static bool Switch(const char *str, bool defaultval=false)
-	{
-		if( str )
-		{
-			if (strcasecmp(str, "on") == 0 || strcasecmp(str, "yes") == 0 || strcasecmp(str, "oui") == 0 || strcasecmp(str, "ja") == 0 || strcasecmp(str, "si") == 0)
-				return true;
-			else if (strcasecmp(str, "off") == 0 || strcasecmp(str, "no" ) == 0 || strcasecmp(str, "non") == 0 || strcasecmp(str, "nein") == 0)
-				return false;
-		}
-		return defaultval;
-	}
-	static bool CleanControlChars(char *str)
-	{
-		bool change = false;
-		if(str)
-		while( *str )
-		{	// replace control chars 
-			// but skip chars >0x7F which are negative in char representations
-			if ( (*str<32) && (*str>0) )
-			{
-				*str = '_';
-				change = true;
-			}
-			str++;
-		}
-		return change;
-	}
+	static int SwitchValue(const char *str, int defaultmin=INT_MIN, int defaultmax=0x7FFFFFFF);  // Return 0/1 for no/yes
+	static bool Switch(const char *str, bool defaultval=false);		// Return true/false for yes/no, if unknown return defaultval
+	
+	static bool CleanControlChars(char *str);						// Replace control chars with '_' and return location of change
 };
-
-
-
-
-
-
-
-
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // common structures
@@ -192,77 +60,36 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// buffer transfer
-	size_t size() const
-	{
-		return 4*sizeof(unsigned long); 
-	}
-	void _tobuffer(unsigned char* &buf) const
-	{
-		if(!buf) return;
-		_L_tobuffer( account_id,	buf);
-		_L_tobuffer( login_id1, buf);
-		_L_tobuffer( login_id2, buf);
-		_L_tobuffer( client_ip, buf);
-	}
-	void _frombuffer(const unsigned char* &buf)
-	{
-		if(!buf) return;
-		_L_frombuffer( account_id,	buf);
-		_L_frombuffer( login_id1, buf);
-		_L_frombuffer( login_id2, buf);
-		_L_frombuffer( client_ip, buf);
-	}
-	void tobuffer(unsigned char* buf) const
-	{
-		_tobuffer(buf);
-	}
-	void frombuffer(const unsigned char* buf)
-	{
-		_frombuffer(buf);
-	}
+	size_t size() const	{ return 4*sizeof(unsigned long); }	// Return size of class
+
+	void _tobuffer(unsigned char* &buf) const;		// Put class into given buffer
+	void _frombuffer(const unsigned char* &buf);	// Get class from given buffer
+
+	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
+	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
 };
 
-class CAccoutReg
+class CAccountReg
 {
 public:
 	unsigned short account_reg2_num;
 	struct global_reg account_reg2[ACCOUNT_REG2_NUM];
 
-	CAccoutReg()	{ account_reg2_num=0; memset(account_reg2,0,sizeof(account_reg2)); }
-	~CAccoutReg()	{}
+	CAccountReg()	{ account_reg2_num=0; memset(account_reg2,0,sizeof(account_reg2)); }
+	~CAccountReg()	{}
 
 	///////////////////////////////////////////////////////////////////////////
 	// buffer transfer
-	size_t size() const
-	{ 
-		return sizeof(account_reg2_num)+ACCOUNT_REG2_NUM*sizeof(struct global_reg); 
-	}
-	void _tobuffer(unsigned char* &buf) const
-	{
-		size_t i;
-		if(!buf) return;
-		_W_tobuffer( (account_reg2_num),	buf);
-		for(i=0; i<account_reg2_num && i<ACCOUNT_REG2_NUM; i++)
-			_global_reg_tobuffer(account_reg2[i],buf);
-	}
-	void _frombuffer(const unsigned char* &buf)
-	{
-		size_t i;
-		if(!buf) return;
-		_W_frombuffer( (account_reg2_num),	buf);
-		for(i=0; i<account_reg2_num && i<ACCOUNT_REG2_NUM; i++)
-			_global_reg_frombuffer(account_reg2[i],buf);
-	}
-	void tobuffer(unsigned char* buf) const
-	{
-		_tobuffer(buf);
-	}
-	void frombuffer(const unsigned char* buf)
-	{
-		_frombuffer(buf);
-	}
+	size_t size() const	{ return sizeof(account_reg2_num)+ACCOUNT_REG2_NUM*sizeof(struct global_reg); }
+
+	void _tobuffer(unsigned char* &buf) const;		// Put class into given buffer
+	void _frombuffer(const unsigned char* &buf);	// Get class from given buffer
+
+	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
+	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
 };
-class CMapAccount : public CAuth, public CAccoutReg
+
+class CMapAccount : public CAuth, public CAccountReg
 {
 public:
 	unsigned char sex;
@@ -285,47 +112,15 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// buffer transfer
-	size_t size() const
-	{
-		return 
-		sizeof(sex) +
-		sizeof(gm_level) +
-		sizeof(ban_until) +
-		sizeof(valid_until) +
-		CAuth::size();
-		CAccoutReg::size();
-	}
-	void _tobuffer(unsigned char* &buf) const
-	{
-		unsigned long time;
-		if(!buf) return;
-		_B_tobuffer( sex,			buf);
-		_B_tobuffer( gm_level,		buf);
-		time = ban_until;	_L_tobuffer( time, buf);
-		time = valid_until;	_L_tobuffer( time, buf);
-		CAuth::_tobuffer(buf);
-		CAccoutReg::_tobuffer(buf);
-	}
-	void _frombuffer(const unsigned char* &buf)
-	{
-		unsigned long time;
-		if(!buf) return;
-		_B_frombuffer( sex,			buf);
-		_B_frombuffer( gm_level,	buf);
-		_L_frombuffer( time, buf);	ban_until=time;
-		_L_frombuffer( time, buf);	valid_until=time;
-		CAuth::_frombuffer(buf);
-		CAccoutReg::_frombuffer(buf);
-	}
-	void tobuffer(unsigned char* buf) const
-	{
-		_tobuffer(buf);
-	}
-	void frombuffer(const unsigned char* buf)
-	{
-		_frombuffer(buf);
-	}
+	size_t size() const;	// Return size of class
+
+	void _tobuffer(unsigned char* &buf) const;		// Put class into given buffer
+	void _frombuffer(const unsigned char* &buf);	// Get class from given buffer
+
+	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
+	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
 };
+
 class CCharAccount : public CMapAccount
 {
 public:
@@ -337,32 +132,13 @@ public:
 	
 	///////////////////////////////////////////////////////////////////////////
 	// buffer transfer
-	size_t size() const
-	{
-		return 
-		sizeof(email) +
-		CMapAccount::size();
-	}
-	void _tobuffer(unsigned char* &buf) const
-	{
-		if(!buf) return;
-		_S_tobuffer( email,			buf, sizeof(email));
-		CMapAccount::_tobuffer(buf);
-	}
-	void _frombuffer(const unsigned char* &buf)
-	{
-		if(!buf) return;
-		_S_frombuffer( email,		buf, sizeof(email));
-		CMapAccount::_frombuffer(buf);
-	}
-	void tobuffer(unsigned char* buf) const
-	{
-		_tobuffer(buf);
-	}
-	void frombuffer(const unsigned char* buf)
-	{
-		_frombuffer(buf);
-	}
+	size_t size() const	{ return sizeof(email)+CMapAccount::size();	}	// Return size of class
+
+	void _tobuffer(unsigned char* &buf) const;		// Put class into given buffer
+	void _frombuffer(const unsigned char* &buf);	// Get class from given buffer
+
+	void tobuffer(unsigned char* buf) const	{ _tobuffer(buf); }		// Put class into given buffer
+	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
 };
 
 class CLoginAccount : public CCharAccount
@@ -527,6 +303,7 @@ public:
 	virtual bool removeAccount(unsigned long accid) =0;
 	virtual bool saveAccount(const CLoginAccount& account) =0;
 };
+
 ///////////////////////////////////////////////////////////////////////////////
 // Dynamic Account Database Implementation
 // does create a realisation of a specific database implementation internally
