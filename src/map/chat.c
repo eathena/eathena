@@ -70,7 +70,7 @@ int chat_joinchat (struct map_session_data *sd, int chatid, char* pass)
  //a wrong chat id can be received. [Skotlex]
 	if (cd == NULL)
 		return 1;
-	if (cd->bl.m != sd->bl.m || cd->limit <= cd->users) {
+	if (cd->bl.m != sd->bl.m || sd->vender_id || cd->limit <= cd->users) {
 		clif_joinchatfail(sd,0);
 		return 0;
 	}
