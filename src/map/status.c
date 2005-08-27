@@ -4280,7 +4280,7 @@ int status_change_end( struct block_list* bl , int type,int tid )
 						skill_delunitgroup((struct skill_unit_group *)sc_data[type].val2);
 						sc_data[type].val2 = 0;
 					}
-					if(sc_data[type].val4 && (dsd=map_id2sd(sc_data[type].val4))){
+					if(sc_data[type].val4 && sc_data[type].val4 != BCT_SELF && (dsd=map_id2sd(sc_data[type].val4))){
 						d_sc_data = dsd->sc_data;
 						//‡‘t‚Å‘Šè‚ª‚¢‚éê‡‘Šè‚Ìval4‚ğ0‚É‚·‚é
 						if(d_sc_data && d_sc_data[type].timer!=-1)

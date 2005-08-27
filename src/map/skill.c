@@ -9273,7 +9273,8 @@ void skill_stop_dancing(struct block_list *src)
 	
 	if (sc_data[SC_DANCING].val4)
 	{
-		dsd = map_id2sd(sc_data[SC_DANCING].val4);
+		if (sc_data[SC_DANCING].val4 != BCT_SELF)
+			dsd = map_id2sd(sc_data[SC_DANCING].val4);
 		sc_data[SC_DANCING].val4 = 0;
 	}
 
@@ -9286,43 +9287,6 @@ void skill_stop_dancing(struct block_list *src)
 		status_change_end(&dsd->bl, SC_DANCING, -1);
 	}
 	status_change_end(src, SC_DANCING, -1);
-	/*		
-	//ダンスのスキルユニットIDはval2に入ってる
-		if (src->type == BL_PC) {
-			if (group && sc_data[SC_DANCING].val4){ //合奏中?
-				struct map_session_data* dsd = map_id2sd(sc_data[SC_DANCING].val4); //相方のsd取得
-				if (flag && dsd) { //ログアウトなど片方が落ちても演奏が??される
-					if (src->id == group->src_id) { //グル?プを持ってるPCが落ちる
-						group->src_id = sc_data[SC_DANCING].val4; //相方にグル?プを任せる
-						if (flag & 1) //ログアウト
-							dsd->sc_data[SC_DANCING].val4 = 0; //相方の相方を0にして合奏終了→通常のダンス?態
-						if(flag & 2) //ハエ飛びなど
-							return; //合奏もダンス?態も終了させない＆スキルユニットは置いてけぼり
-					} else if (dsd->bl.id == group->src_id) { //相方がグル?プを持っているPCが落ちる(自分はグル?プを持っていない)
-						if (flag & 1) //ログアウト
-							dsd->sc_data[SC_DANCING].val4 = 0; //相方の相方を0にして合奏終了→通常のダンス?態
-						if(flag & 2) //ハエ飛びなど
-							return; //合奏もダンス?態も終了させない＆スキルユニットは置いてけぼり
-					}
-					status_change_end(src, SC_DANCING, -1);	//自分のステ?タスを終了させる
-					//そしてグル?プは消さない＆消さないのでステ?タス計算もいらない？
-					return;
-				} else if (dsd) {
-					if (src->id == group->src_id)	//グル?プを持ってるPCが止める
-						status_change_end(&dsd->bl, SC_DANCING, -1);	//相手のステ?タスを終了させる
-					if(dsd->bl.id == group->src_id)	//相方がグル?プを持っているPCが止める(自分はグル?プを持っていない)
-						status_change_end(src, SC_DANCING, -1);	//自分のステ?タスを終了させる
-				}
-			}
-			if(flag & 2 && group) { //ハエで飛んだときとかはユニットも飛ぶ
-				struct map_session_data *sd = (struct map_session_data *)src;
-				if (sd) skill_unit_move_unit_group(group, sd->bl.m, (sd->to_x - sd->bl.x), (sd->to_y - sd->bl.y));
-				return;
-			}
-		}
-		skill_delunitgroup(group);
-	}
-	*/
 }
 
 /*==========================================
@@ -9464,15 +9428,16 @@ struct skill_unit_group *skill_initunitgroup(struct block_list *src,
 		group->tick += 1500;
 	group->valstr=NULL;
 
-	if (skill_get_unit_flag(skillid)&UF_DANCE) {
+	i = skill_get_unit_flag(skillid); //Reuse for faster access from here on. [Skotlex]
+	if (i&UF_DANCE) {
 		struct map_session_data *sd = NULL;
 		if(src->type==BL_PC && (sd=(struct map_session_data *)src) ){
 			sd->skillid_dance=skillid;
 			sd->skilllv_dance=skilllv;
 		}
-		status_change_start(src,SC_DANCING,skillid,(int)group,0,0,skill_get_time(skillid,skilllv)+1000,0);
+		status_change_start(src,SC_DANCING,skillid,(int)group,0,(i&UF_ENSEMBLE?BCT_SELF:0),skill_get_time(skillid,skilllv)+1000,0);
 		//合奏スキルは相方をダンス状態にする
-		if (sd && skill_get_unit_flag(skillid)&UF_ENSEMBLE &&
+		if (sd && i&UF_ENSEMBLE &&
 			battle_config.player_skill_partner_check) {
 				skill_check_pc_partner(sd, skillid, &skilllv, 1, 1);
 		}
