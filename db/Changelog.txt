@@ -9,6 +9,7 @@
 	Skill databases == celest working on them I believe.
 
 	-- Items that need fixing/implementing
+	1475,Cavalry_Lance: Missing stats
 	2355,Angel_Protection: Autospell rate is unknown
 	2417,Frico_Shoes: Missing Set bonus, and red,orange,yellow,white potion
 		heal rate 20% increasing bonus(if you want, edit db/item_group_db.txt, then
@@ -27,7 +28,7 @@
 	5125,Angel_Kiss,Angel's Kiss: Description miss.  This item is for Novice/Super Novice, like any other
 		'Angel' equipments.
 	5126,Morphicious_Hood: When using magic, it cannot be dispelled(Maybe it works like Phen card)
-	12033,Sunshine_Box: 
+	12033,Sunshine_Box: should allow seeing cloaked or hidden enemy
 	12105,Taming_Item_Giftset: gets 3 of any(?) taming item
 	12106,Jewel_Box: gets any accessary
 	12107,Wrapped_Mask: gets a mask
@@ -43,6 +44,7 @@
 	4296,Cramp_Card: missing getzenybychance??
 
 08/27
+	* Cleaned up the item_db.txt file, moved item comments to this file [Skotlex]
 	* Updated const.txt with correct Taekwon-class job IDs [DracoRPG]
 08/25
 	* Updated slots in Sage's diary to 2. [Skotlex]
