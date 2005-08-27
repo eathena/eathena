@@ -1864,7 +1864,7 @@ static struct Damage battle_calc_weapon_attack(
 			
 			k = rand() % 1000000;
 			mob = mob_db(class_);
-		} while ((mob->mode&0x20 || mob->summonper[0] <= k) && (i++) < 2000);
+		} while ((mob->mode&(0x20|0x40) || mob->summonper[0] <= k) && (i++) < 2000);
 		if (i< 2000)
 			mob_class_change(((struct mob_data *)target),class_);
 	}
