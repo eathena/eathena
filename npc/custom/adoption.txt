@@ -4,6 +4,8 @@
 //= Fredzilla
 //= Help from Kamari,Acky
 //===== Version ===========================================
+//= 1.3b - Slightly rewrote the anti-taekwon protection to
+//=        detect problems more easily [DracoRPG]
 //= 1.3a - Added anti Taekwon Classes protection (they can't
 //= be adopted) [Lupus]
 //= 1.3 - Now it can teach parents/baby their missing skills.
@@ -260,7 +262,8 @@ A_YesBaby:
 A_FinalTest:
 	deltimer "timeadopt";
 	addtimer 300000,"timeadopt";
-	if(event_adopted>0 || Upper==2 || callfunc("Is_Taekwon_Class")!=0 ) goto A_AlreadyAdopted;
+	if(event_adopted>0 || Upper==2) goto A_AlreadyAdopted;
+	if(callfunc("Is_Taekwon_Class")) goto A_CantBeAdopted 
 	mes "[Inanna]";
 	mes "You must be "+$@Baby$+", its very nice to meet you.";
 	mes "Some very nice people, "+$@ParentOne$+" and "+$@ParentTwo$+", have asked to adopt you.";
@@ -308,7 +311,12 @@ A_Ready:
 A_AlreadyAdopted:
 	mes "[Inanna]";
 	mes "Oh you are already adopted, so you cant be adopted again.";
-	callfunc "AdoptReset","the person that would be adoped, has already been adopted before";
+	callfunc "AdoptReset","the person that would be adopted has already been adopted before";
+	close;
+A_CantBeAdopted:
+	mes "[Inanna]";
+	mes "Sorry, but your job does not allow adoption.";
+	callfunc "AdoptReset","the person that would be adopted has a job that can't be adopted";
 	close;
 A_ParentOneEnd:
 	if (@regged>1) goto AlreadyReged;

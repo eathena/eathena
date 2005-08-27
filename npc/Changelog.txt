@@ -29,6 +29,8 @@ TODO:
 Date		Added
 ======
 08/27
+	* Splitted anti-taekwon protection from double-adopt protection in adoption.txt, should
+	  allow to see more easily what is the problem [DracoRPG]
 	* Updated Is_Taekwon_Class with Job_Star_Gladiator2 [DracoRPG]
 08/26
 	* Reupdated the refine npc to not use recursive functions. [Skotlex]
