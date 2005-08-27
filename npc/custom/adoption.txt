@@ -263,7 +263,7 @@ A_FinalTest:
 	deltimer "timeadopt";
 	addtimer 300000,"timeadopt";
 	if(event_adopted>0 || Upper==2) goto A_AlreadyAdopted;
-	if(callfunc("Is_Taekwon_Class")) goto A_CantBeAdopted 
+	if(callfunc("Is_Taekwon_Class")) goto A_CantBeAdopted;
 	mes "[Inanna]";
 	mes "You must be "+$@Baby$+", its very nice to meet you.";
 	mes "Some very nice people, "+$@ParentOne$+" and "+$@ParentTwo$+", have asked to adopt you.";
