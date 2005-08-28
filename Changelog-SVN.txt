@@ -1,6 +1,7 @@
 Date	Added
 =======
 08/28
+	* Added new maps, thanks to Poki#3 [DracoRPG]
 	* Switched SCs between two taekwon kicks to get the proper icon ^^ [DracoRPG]
 	* Added the falling animation to TK_HIGHJUMP, but now the client doesn't refresh the
 	  position u_u [DracoRPG]

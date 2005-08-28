@@ -36,10 +36,10 @@
 	--
 
 08/28
+	* Added job bonuses for Taekwon, thanks to RockmanEXE [DracoRPG]
 	* Changed appearance of some DBs, now they have more friendly (and ENGLISH) headers, this
 	  was initiated by Vedurin whose redesigned and updated skill_cast_db, produce_db and
 	  create_arrow_db are also included in this change, thanks to him ^^ [DracoRPG]
-	-> A such cleanup and standardization of the entire DB folder content would be nice, too
 	* Changed Acid Demonstration's element from fire to neutral. [Skotlex]
 08/27
 	* Cleaned up the item_db.txt file, moved item comments to this file [Skotlex]

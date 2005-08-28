@@ -2,7 +2,7 @@
 //
 // Structure of Database:
 // CastleID,MapName,CastleName,SwitchFlag(reserved)
-
+//
 0,aldeg_cas01.gat,Neuschwanstein,1		// kRO : Noisyubantian
 1,aldeg_cas02.gat,Hohenschwangau,1		// kRO : Hohensyubangawoo
 2,aldeg_cas03.gat,Nuenberg,1			// kRO : Nyirenverk
