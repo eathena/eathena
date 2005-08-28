@@ -1,6 +1,8 @@
-// 鉱石発見スキルでドロップされる鉱石
-// item ID, Jname (dummy), 確率を 1 万倍 (100% なら 1000000)
-// 0 はデフォルト項目
+// Ore Discovery Obtainable Items Database
+//
+// Structure of Database:
+// ItemID,DummyName,Rate
+
 0,Iron Ore,1002
 714,Emperium,30000
 756,Rough Oridecon,200000

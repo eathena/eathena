@@ -767,3 +767,11 @@ works for two cases:
 Pet Lures: The item is consumed after clicking on a mob. 
 skillitem: The item is consumed on skill_check_condition(type 1), which occurs
 after selecting a target (this also works when the target is yourself).
+**
+80.
+Description	Make Hunter traps attackable
+Status		0%
+Assignee		DracoRPG??
+
+We need to find the good HP value for them, but they SHOULD be attackable... they are currently
+way too powerful in WoE...

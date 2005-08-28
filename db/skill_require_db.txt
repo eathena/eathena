@@ -1,5 +1,22 @@
-//skill_require_db.txt?AthenaDB?? 2004/07/26 17:00:13 +0900 (JST)
-//id,list_hp,list_maxhp,list_sp,list_hp_rate,list_sp_rate,list_zeny,list_weapon,state,spiritball,itemid1,amount1,itemid2,amount2,itemid3,amount3,itemid4,amount4,itemid5,amount5,itemid6,amount6,itemid7,amount7,itemid8,amount8,itemid9,amount9,itemid10,amount10
+// Skill Requirements Database
+//
+// Structure of Database:
+// SkillID,HPCost,?MaxHP?,SPCost,MaxHPRateCost,MaxSPRateCost,ZenyCost,RequiredWeapons,RequiredState,SpiritSphereCost,RequiredItemID1,RequiredItemAmount1,...,RequiredItemID10,RequiredItemAmount10
+//
+// Legend for 'RequiredState' field:
+//  none = Nothing special
+//  move_enable = Requires to be able to move
+//  recover_weight_rate = Requires to be less than 50% weight
+//  water = Requires to be standing on a water cell
+//  cart = Requires a Pushcart
+//  riding = Requires to ride a Peco
+//  falcon = Requires a Falcon
+//  sight = Requires Sight skill activated
+//  hiding = Requires Hiding skill activated
+//  cloaking = Requires Cloaking skill activated
+//  explosionspirits = Requires Fury skill activated
+//  cartboost = Requires a Pushcart and Cart Boost skill activated
+//  shield = Requires a shield equipped
 
 5,0,0,8:8:8:8:8:15:15:15:15:15,0,0,0,0:1:2:3:4:5:6:7:8:9:10:12:13:14:15:16:17:18:19:20:21:22,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//SM_BASH#バッシュ#
 6,0,0,4:5:6:7:8:9:10:11:12:13,0,0,0,99,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//SM_PROVOKE#プロボック#
@@ -246,7 +263,6 @@
 357,0,0,14:18:22:26:30,0,0,0,99,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//LK_CONCENTRATION#コンセントレ?ション#
 358,0,0,15,0,0,0,99,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//LK_TENSIONRELAX#テンションリラックス#
 359,0,0,100,0,0,0,99,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//LK_BERSERK#バ?サ?ク#
-360,0,0,50,0,0,0,3,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//LK_FURY#フュ?リ?#
 361,0,0,25:30:35:40:45,0,0,0,99,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//HP_ASSUMPTIO#アスムプティオ#
 362,0,0,80:90:100:110:120,0,0,0,99,none,0,715,1,716,1,717,1,523,1,0,0,0,0,0,0,0,0,0,0,0,0	//HP_BASILICA#バジリカ#
 
@@ -263,7 +279,7 @@
 375,0,0,80:90:100:110:120,0,0,0,99,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//PF_SOULBURN#?ウルバ?ン#
 
 378,0,0,60:70:80:90:100,0,0,0,99,none,0,678,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//ASC_EDP#エンチャントデッドリ?ポイズン#
-379,0,0,20:20:20:20:20:30:30:30:30:30,0,0,0,99,weapon,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//ASC_BREAKER#ソウルブレ?カ?#
+379,0,0,20:20:20:20:20:30:30:30:30:30,0,0,0,99,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//ASC_BREAKER#ソウルブレ?カ?#
 380,0,0,20:20:25:25:30:30:35:35:40:40,0,0,0,99,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//SN_SIGHT#トゥル?サイト#
 381,0,0,30:34:38:42:46,0,0,0,99,falcon,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//SN_FALCONASSAULT#ファルコンアサルト#
 382,0,0,18:21:24:27:30,0,0,0,11,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0		//SN_SHARPSHOOTING#シャ?プシュ?ティング#
@@ -306,7 +322,7 @@
 421,0,0,70:60:50:40:30:20:10,0,0,0,99,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//TK_JUMPKICK
 
 425,0,0,20:20:20:20:50:50:50,0,0,0,99,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//TK_SEVENWIND
-426,0,0,50,0,0,0,99,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//TK_HIGHJUMP
+426,0,0,50,0,0,0,99,move_enable,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//TK_HIGHJUMP
 
 475,0,0,40,0,0,0,99,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//ST_PRESERVE##
 476,0,0,22:24:26:28:30,0,0,0,99,none,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0	//ST_FULLSTRIP##

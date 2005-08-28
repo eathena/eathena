@@ -1,7 +1,8 @@
-// 古い紫色の箱から得られるアイテムを設定。
-// nameid, item_name(dummy), rate
-// アイテムID、アイテムの名前(ダミー)、確率(*10000)をした物です。500000なら50%で1000000なら100%です。)
-// アイテムIDが0の場合確率をアイテムの選択に失敗した時に得られるデフォルトアイテムのIDとして認識します。(複数である場合最後の物だけ有効です。) 
+// Old Violet Box Obtainable Items Database
+//
+// Structure of Database:
+// ItemID,DummyName,Rate
+
 0,Guard,2102
 2102,Guard,10000
 2104,Buckler,10000

@@ -1,98 +1,227 @@
-//ID,ItemLV,RequireSkill,MaterialID1,MaterialAmount1,MaterialID2,MaterialAmount2,MaterialID3,MaterialAmount3,MaterialID4,MaterialAmount4,MaterialID5,MaterialAmount5
-//If MaterialAmount = 0, then u just need that item in your inventory (books)
+// Blacksmith and Alchemist Produce Database
+//
+// Structure of Database:
+// ProduceItemID,ItemLV,RequireSkill,MaterialID1,MaterialAmount1,...,MaterialID5,MaterialAmount5
+//
+// Comments:
+// If MaterialAmount = 0, then u just need that item in your inventory (books)
+// For example, Mine Bottle is 7138,32,228,7131,0,713,1,1050,1,1051,1
+// 7131 is the Book needed to create mine bottles and the amount needed of this item is 0 (.. ,7131,0, ..).
+//
+//=================================
+// Note:
+//  Comments describing are
+//  structured like:
+//  Product <-- Skill & Materials
+//  (Vedurin)
+//=================================
 
-// Stones and Metals ItemLV=16
+
+//===== Stones and Metals === ItemLV=16 ========
+
+//---- Metals ----------------------------------
+//-- Iron <-- BS_IRON & 1 Iron Ore
 998,16,94,1002,1
+//-- Steel <-- BS_STEEL & 5 Iron, 1 Coal
 999,16,95,998,5,1003,1
+//----------------------------------------------
+
+
+//---- Enchanted Stones ------------------------
+//-- Star Crumb <-- BS_ENCHANTSTONE & 10 Star Dust
 1000,16,96,1001,10
+//-- Flame Heart <-- BS_ENCHANTSTONE & 10 Red Blood
 994,16,96,990,10
+//-- Mystic Frozen <-- BS_ENCHANTSTONE & 10 Crystal Blue
 995,16,96,991,10
+//-- Rough Wind <-- BS_ENCHANTSTONE & 10 Wind of Verdure
 997,16,96,993,10
+//-- Great Nature <-- BS_ENCHANTSTONE & 10 Green Live
 996,16,96,992,10
-// Weapon ItemLV=wLV
+//----------------------------------------------
+
+//==============================================
+
+
+//===== Weapon === ItemLV=wLV ==================
+
+//---- One Handed Swords -----------------------
+//-- Sword <-- BS_SWORD & 2 Iron
 1101,1,99,998,2
+//-- Falchion <-- BS_SWORD & 30 Iron
 1104,1,99,998,30
+//-- Blade <-- BS_SWORD & 45 Iron, 25 Tooth of Bat
 1107,1,99,998,45,913,25
+//-- Rapier <-- BS_SWORD & 20 Steel
 1110,2,99,999,20
+//-- Scimiter <-- BS_SWORD & 35 Steel
 1113,2,99,999,35
+//-- Ring Pommel Saber <-- BS_SWORD & 40 Steel, 50 Wolf Claw
 1122,2,99,999,40,920,50
+//-- Saber <-- BS_SWORD & 5 Steel, 8 Oridecon, 1 Opal
 1126,3,99,999,5,984,8,727,1
+//-- Haedongum <-- BS_SWORD & 8 Oridecon, 10 Steel, 1 Topaz
 1123,3,99,984,8,999,10,728,1
+//-- Tsurugi <-- BS_SWORD & 8 Oridecon, 15 Steel, 1 Garnet
 1119,3,99,984,8,999,15,718,1
+//-- Flamberge <-- BS_SWORD & 16 Oridecon, 1 Cursed Ruby
 1129,3,99,984,16,724,1
+//----------------------------------------------
+
+//---- Daggers ---------------------------------
+//-- Knife <-- BS_DAGGER & 1 Iron, 10 Jellopies
 1201,1,98,998,1,909,10
+//-- Cutter <-- BS_DAGGER & 25 Iron
 1204,1,98,998,25
+//-- Main Gauge <-- BS_DAGGER & 50 Iron
 1207,1,98,998,50
+//-- Dirk <-- BS_DAGGER & 17 Steel
 1210,2,98,999,17
+//-- Dagger <-- BS_DAGGER & 30 Steel
 1213,2,98,999,30
+//-- Stiletto <-- BS_DAGGER & 40 Steel
 1216,2,98,999,40
-1219,3,98,984,4,999,40,726,1
+//-- Gladius <-- BS_DAGGER & 8 Oridecon, 40 Steel, 1 Sapphire
+1219,3,98,984,8,999,40,726,1
+//-- Damascus <-- BS_DAGGER & 16 Oridecon, 60 Steel, 1 Zircon
 1222,3,98,984,16,999,60,729,1
+//----------------------------------------------
+
+//---- To Handed Swords ------------------------
+//-- Katana <-- BS_TWOHANDSWORD & 35 Iron, 15 Horrendous Mouth
 1116,1,100,998,35,958,15
+//-- Slayer <-- BS_TWOHANDSWORD & 25 Steel, 20 Decayed Nail
 1151,2,100,999,25,957,20
+//-- Bastard Sword <-- BS_TWOHANDSWORD & 45 Steel
 1154,2,100,999,45
+//-- Two-Handed Sword <-- BS_TWOHANDSWORD & 12 Oridecon, 10 Steel
 1157,2,100,984,12,999,10
+//-- Broad Sword <-- BS_TWOHANDSWORD & 12 Oridecon, 20 Steel
 1160,3,100,984,12,999,20
+//-- Claymore <-- BS_TWOHANDSWORD & 16 Oridecon, 20 Steel, 1 Cracked Diamond
 1163,3,100,984,16,999,20,733,1
+//----------------------------------------------
+
+//---- Axes ------------------------------------
+//-- Axe <-- BS_AXE & 10 Iron
 1301,1,101,998,10
+//-- Battle Axe <-- BS_AXE & 110 Iron
 1351,1,101,998,110
+//-- Hammer <-- BS_AXE & 30 Steel
 1354,2,101,999,30
+//-- Buster <-- BS_AXE & 4 Oridecon, 20 Steel, 30 Orcish Fang
 1357,3,101,984,4,999,20,922,30
+//-- Two-Handed Axe <-- BS_AXE & 8 Oridecon, 10 Steel, 1 Amthyst
 1360,3,101,984,8,999,10,719,1
+//----------------------------------------------
+
+//---- Maces -----------------------------------
+//-- Club <-- BS_MACE & 3 Iron
 1501,1,102,998,3
+//-- Mace <-- BS_MACE & 30 Iron
 1504,1,102,998,30
+//-- Smasher <-- BS_MACE & 20 Steel
 1507,2,102,999,20
+//-- Flail <-- BS_MACE & 33 Steel
 1510,2,102,999,33
+//-- Chain <-- BS_MACE & 45 Steel
 1519,2,102,999,45
+//-- Morning Star <-- BS_MACE & 85 Steel, 1 1 Carat Diamond
 1513,3,102,999,85,730,1
+//-- Sword Mace <-- BS_MACE & 100 Steel, 20 Sharp Scale
 1516,3,102,999,100,963,20
+//-- Stunner <-- BS_MACE & 120 Steel, 1 Heroic Emblem
 1522,3,102,999,120,968,1
+//----------------------------------------------
+
+//---- Knucklebracers --------------------------
+//-- Waghnakh <-- BS_KNUCKLE & 160 Iron, 1 Pearl
 1801,1,103,998,160,722,1
+//-- Knuckle Duster <-- BS_KNUCKLE & 50 Steel
 1803,2,103,999,50
+//-- Hora <-- BS_KNUCKLE & 65 Steel
 1805,2,103,999,65
+//-- Fist <-- BS_KNUCKLE & 4 Oridecon, 10 Ruby
 1807,3,103,984,4,723,10
+//-- Claw <-- BS_KNUCKLE & 8 Oridecon, 10 Topaz
 1809,3,103,984,8,728,10
+//-- Finger <-- BS_KNUCKLE & 4 Oridecon, 10 Opal
 1811,3,103,984,4,727,10
+//----------------------------------------------
+
+//---- Spears ----------------------------------
+//-- Javelin <-- BS_SPEAR & 3 Iron
 1401,1,104,998,3
+//-- Spear <-- BS_SPEAR & 35 Iron
 1404,1,104,998,35
+//-- Pike <-- BS_SPEAR & 70 Iron
 1407,1,104,998,70
+//-- Guisarme <-- BS_SPEAR & 25 Steel
 1451,2,104,999,25
+//-- Glaive <-- BS_SPEAR & 40 Steel
 1454,2,104,999,40
+//-- Partizan <-- BS_SPEAR & 55 Steel
 1457,2,104,999,55
+//-- Trident <-- BS_SPEAR & 8 Oridecon, 10 Steel, 5 Aquamarine
 1460,3,104,984,8,999,10,720,5
+//-- Halberd <-- BS_SPEAR & 2 Oridecon, 10 Steel
 1463,3,104,984,12,999,10
+//-- Lance <-- BS_SPEAR & 12 Oridecon, 3 Ruby, 2 Evil Horn
 1410,3,104,984,12,723,3,923,2
-// Potions ItemLV=32 MaterialID1=?
+//----------------------------------------------
+
+//==============================================
+
+
+//===== Potions === ItemLV=32 ==================
+
+//---- Health Potions --------------------------
+//-- Red Potion <-- AM_PHARMACY & 1 Red Herb, 1 Empty Potion Bottle
 501,32,228,7144,0,507,1,1093,1
+//-- Yellow Potion <-- AM_PHARMACY & 1 Yellow Herb, 1 Empty Potion Bottle
 503,32,228,7144,0,508,1,1093,1
+//-- White Potion <-- AM_PHARMACY & 1 White Herb, 1 Empty Potion Bottle
 504,32,228,7144,0,509,1,1093,1
+//-- Blue Potion <-- AM_PHARMACY & 1 Blue Herb, 1 Scell, 1 Empty Potion Bottle
 505,32,228,7144,0,510,1,911,1,1093,1
-//Condensed Red Potion
+//-- Condensed Red Potion <-- AM_PHARMACY & 1 Red Potion, 1 Empty Testtube, 1 Cactus Needle
 545,32,228,7133,0,501,1,1092,1,952,1
-//Condensed Yellow Potion
+//-- Condensed Yellow Potion <-- AM_PHARMACY & 1 Yellow Potion, 1 Empty Testtube, 1 Mole Whiskers
 546,32,228,7133,0,503,1,1092,1,1017,1
-//Condensed White Potion
+//-- Condensed White Potion <-- AM_PHARMACY & 1 White Potion, 1 Empty Testtube, 1 Witched Starsand
 547,32,228,7133,0,504,1,1092,1,1061,1
-//Anodyne
+//----------------------------------------------
+
+//---- Misc ------------------------------------
+//-- Anodyne <-- AM_PHARMACY & 1 Ment, 1 Alcohol, 1 Empty Bottle
 605,32,228,7144,0,708,1,970,1,713,1
-//Aloevera
+//-- Aloevera <-- AM_PHARMACY & 1 Aloe, 1 Honey, 1 Empty Bottle
 606,32,228,7144,0,704,1,518,1,713,1
-//Alcohol
+//-- Alcohol <-- AM_PHARMACY & 1 Empty Bottle, 5 Poison Spore, 5 Stem, 1 Empty Testtube
 970,32,228,7127,0,713,1,7033,5,905,5,1092,1
-//Fire Bottle
+//----------------------------------------------
+
+//---- Skill related Mixtures ------------------
+//-- Fire Bottle <-- AM_PHARMACY & 1 Alcohol, 1 Fabric, 1 Empty Bottle
 7135,32,228,7128,0,970,1,1059,1,713,1
-//Hydrobolic Acid Bottle
+//-- Hydrobolic Acid Bottle <-- AM_PHARMACY & 1 Empty Bottle, 1 Immortal Heart
 7136,32,228,7129,0,713,1,929,1
-//Water Bottle (Plant Bottle)
+//-- Plant Bottle <-- AM_PHARMACY & 1 Empty Bottle, 2 Maneater Blossom
 7137,32,228,7130,0,713,1,1032,2
-//Mine Bottle
+//-- Mine Bottle <-- AM_PHARMACY & 1 Empty Bottle, 1 Tendon, 1 Detonator
 7138,32,228,7131,0,713,1,1050,1,1051,1
-//Coating Wax
+//-- Coating Wax <-- AM_PHARMACY & 1 Alcohol, 1 Heart of Mermaid, 1 Zenorcs Fang, 1 Empty Bottle
 7139,32,228,7132,0,970,1,950,1,1044,1,713,1
-// Monetary ItemLV=64 
-//Gold Coin
+//----------------------------------------------
+
+//==============================================
+
+
+//===== Monetary === ItemLV=64 =================
+//-- Gold Coin <-- WS_CREATECOIN & 1 Gold Ore
 671,64,385,7231,1
-//Silver Coin
-675,64,385,7232,1
-//Mysterious Ore Coin <- Mysterious Ore
+//-- Mithril Coin <-- WS_CREATECOIN & 1 Mithril Ore
 674,64,385,7233,1
+//-- Silver Coin <-- WS_CREATECOIN & 1 Silver Ore
+675,64,385,7232,1
+//==============================================

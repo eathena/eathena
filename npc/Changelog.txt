@@ -28,6 +28,8 @@ TODO:
 
 Date		Added
 ======
+08/28
+	* Added a Taekwon NPC (to get Taekwon Job). It's temp tough [Lupus]
 08/27
 	* Splitted anti-taekwon protection from double-adopt protection in adoption.txt, should
 	  allow to see more easily what is the problem [DracoRPG]

@@ -1,9 +1,7 @@
-// mob_branch.txtのポリン版
-// MobID, MobName(Dummy), Rate
-// モンスターID、モンスターの名前(ダミー)、確率(*10000)をした物です。500000なら50%で1000000なら100%です。)
-// モンスターIDが0の場合確率をモンスターの選択に失敗した時に召還されるモンスターのIDとして認識します。(複数である場合最後の物だけ有効です。) 
-// クライアント側で未実装のものを書くとクライアントが重力エラー
-// そしてその敵がキャラクターの付近にいる間ログインできないので注意。
+// Poring Box Summonable Monsters Database
+//
+// Structure of Database:
+// MobID,DummyName,Rate
 
 0,Poring,1002
 1002,Poring,700000

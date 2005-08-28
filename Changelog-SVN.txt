@@ -1,7 +1,12 @@
 Date	Added
 =======
 08/28
-	* Added a Taekwon NPC (to get Taekwon Job). It's temp tough [Lupus]
+	* Switched SCs between two taekwon kicks to get the proper icon ^^ [DracoRPG]
+	* Added the falling animation to TK_HIGHJUMP, but now the client doesn't refresh the
+	  position u_u [DracoRPG]
+	* Reverted default option to allow anyone to plagiarize advanced skill (vicious or
+	  someone else - I can't remember xD - told me it was like this on kRO, but not yet on
+	  iRO) [DracoRPG]
 08/27
 	* Fixed the cast-bar from autocounter not disappearing after triggering the
 	  skill. [Skotlex]

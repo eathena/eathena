@@ -1,9 +1,7 @@
-// Fixed [Lupus] (removed extra row which made all albums empty)
-// 古いカード帖から得られるアイテムを設定。			
-// ItemID		 ItemName(Dummy)	 Rate
-// アイテムID、アイテムの名前(ダミー)、確率(*10000)をした物です。500000なら50%で1000000なら100%です。)			
-// アイテムIDが0の場合確率をアイテムの選択に失敗した時に得られるデフォルトアイテムのIDとして認識します。(複数である場合最後の物だけ有効です。),,,
+// Old Card Album Obtainable Items Database
 //
+// Structure of Database:
+// ItemID,DummyName,Rate
 
 0,Poring Card,4001
 4001,Poring Card,70000

@@ -5575,7 +5575,8 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	if( skillid != WZ_METEOR &&
 		skillid != AM_CANNIBALIZE &&
 		skillid != AM_SPHEREMINE &&
-		skillid != CR_CULTIVATION)
+		skillid != CR_CULTIVATION &&
+		skillid != TK_HIGHJUMP)
 		clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
 
 	if (sd && skillnotok(skillid, sd)) // [MouseJstr]
@@ -5668,7 +5669,6 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	case SA_DELUGE:			/* デリュ?ジ */
 	case SA_VIOLENTGALE:	/* バイオレントゲイル */
 	case SA_LANDPROTECTOR:	/* ランドプロテクタ? */
-//		skill_clear_element_field(src); //This will be done on setting up the field.
 		skill_unitsetting(src,skillid,skilllv,x,y,0);
 		break;
 
@@ -5729,18 +5729,17 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	case TK_HIGHJUMP:
 	    if (sd) {
             if(map_getcell(src->m,x,y,CELL_CHKNOPASS))
-                clif_skill_fail(sd,skillid,0,0);
+                clif_skill_nodamage(src,src,skillid,skilllv,1);
             else {
-	        	pc_movepos(sd,x,y,0);
-         		clif_walkok(sd);
-         		clif_movechar(sd);
+				pc_movepos(sd, x, y, 0);
+				clif_skill_nodamage(src,src,skillid,skilllv,1);
 			}
         } else if (src->type == BL_MOB && !map_getcell(src->m,x,y,CELL_CHKNOPASS)) {
 			struct mob_data *md = (struct mob_data *)src;
 			mob_warp(md, -1, x, y, 0);
 			clif_spawnmob(md);
 		}
-     	break;    
+     	break;
 	case AM_CANNIBALIZE:	// バイオプラント
 		if(sd) {
 			int id;

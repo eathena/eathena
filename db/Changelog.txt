@@ -2,11 +2,7 @@
 
 	==== progress ====
 	
-	Ayothaya mobs == 50% All have correct stats now ? Nope!
-	Einbroch mobs == 85% But their stats could be wrong. No info about MVP RSX 0608
-	Ayothaya items == 70% Added but no effect ( all are "etc" itens)
-	Einbroch items == 5%
-	Skill databases == celest working on them I believe.
+	Where are us about new towns items/mobs ???
 
 	-- Items that need fixing/implementing
 	1475,Cavalry_Lance: Missing stats
@@ -35,15 +31,15 @@
 	12108,Bundle_of_Spells: gets 5 of any(?) spell scrolls
 	12110,First_Aid_Box: gets 5 of any potions
 	12111,Wrapped_Food: gets 3 of any food
-
-	-- New Cards : Not Implemented
-	All cards that add CRIT bonus vs. specific race is now applied
-	 at 2x rate when installed on a Katar-type weapon.
-	 EX) If Goblin Archer card goes on a Katar-type weapon, the CRIT Bonus vs. Undeads become +14.
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance??
+	--
 
 08/28
+	* Changed appearance of some DBs, now they have more friendly (and ENGLISH) headers, this
+	  was initiated by Vedurin whose redesigned and updated skill_cast_db, produce_db and
+	  create_arrow_db are also included in this change, thanks to him ^^ [DracoRPG]
+	-> A such cleanup and standardization of the entire DB folder content would be nice, too
 	* Changed Acid Demonstration's element from fire to neutral. [Skotlex]
 08/27
 	* Cleaned up the item_db.txt file, moved item comments to this file [Skotlex]

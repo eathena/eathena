@@ -1,8 +1,19 @@
-//ID,Name,Name,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Gender,Loc,wLV,eLV,Refineable,View,{UseScript},{EquipScript}
-//Type: 0 Healing, 2: Usable, 3: Misc, 4: Weapon, 5: Armor, 6: Card, 7: egg,
-//8: petequip, 10: arrow, 11: Usable with delayed consumption (all items with
-//script "pet" or "itemskill": Lures, Scrolls, Magnifier, Yggdrasil Leaf)
-//Elements: 0 Nothing, 1 Water, 2 Earth ,3 Fire, 4 Wind, 5 Poison, 6 Saint, 7 Darkness, 8 Sense, 9 Immortality
+// Items Additional Database
+//
+// Structure of Database:
+// ID,Name,Name,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Gender,Loc,wLV,eLV,Refineable,View,{UseScript},{EquipScript}
+//
+// Legend for 'Type' field:
+//  0 = Usable : healing
+//  2 = Usable : other
+//  3 = Misc
+//  4 = Weapon
+//  5 = Armor
+//  6 = Card
+//  7 = Pet Egg
+//  8 = Pet Equipment
+//  10 = Arrow
+//  11 = Usable : delayed consumption (items with script "pet" or "itemskill")
 
 // Custom Items go here
 //=============================================================
