@@ -378,3 +378,11 @@ Problem:	[TARO Cards Skill]
 Assigned:	na
 Progress:	0%
 
+
+Problem: [TK Boy Equipments] He can weild any WEAPON!! BUG!
+		TK Boy cannot equip ANY weapons.
+		However, he can equip EVERY other equipments available. 
+		Boots, Manteau, Sharp Headgear, Majestic Goat, you name it.
+ TK Boy can even equip shields, but shield graphic will not appear on TK Boy sprite.
+(á) kRO http://www.ragnainfo.net 
+
