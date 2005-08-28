@@ -1,6 +1,8 @@
 Date	Added
 =======
 08/28
+	* Fixed the whole sqrtl mess. Thanks to Shinomori for clearing things up.
+	  [Skotlex]
 	* Added new maps, thanks to Poki#3 [DracoRPG]
 	* Switched SCs between two taekwon kicks to get the proper icon ^^ [DracoRPG]
 	* Added the falling animation to TK_HIGHJUMP, but now the client doesn't refresh the

@@ -51,6 +51,20 @@ void dump(unsigned char *buffer, int num)
 }
 
 
+int newt_sqrt(int input)
+{
+	int new_value, value = 1, count = 0;
+	do
+	{
+		new_value = (value + input/value)>>1;
+		if (abs(value - new_value) <= 1)
+			return new_value;
+		value = new_value;
+	}
+	while (count++ < 10);
+	return new_value;
+}
+
 #ifdef _WIN32
 char *rindex(char *str, char c)
 {

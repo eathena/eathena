@@ -19,6 +19,7 @@
 #endif
 
 void dump(unsigned char *buffer, int num);
+int newt_sqrt(int value); //Newton aproximation for getting a fast sqrt.
 
 struct StringBuf {
 	char *buf_;
