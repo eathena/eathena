@@ -1,6 +1,10 @@
 Date	Added
 =======
 08/27
+	* Fixed the cast-bar from autocounter not disappearing after triggering the
+	  skill. [Skotlex]
+	* Updated battle_check_target to make marine spheres universal enemies, so
+	  anyone can attack them. [Skotlex]
 	* Cleaned up item_db.txt (format, commas, etc), added status bonuses to the
 	  cooked foods. [Skotlex]
 	* Updated sql-files/item_db.sql to match with the current contents of

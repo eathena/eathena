@@ -1193,7 +1193,7 @@ static struct Damage battle_calc_weapon_attack(
 					if (flag.arrow && sd->arrow_atk)
 						ATK_ADD(flag.cri?sd->arrow_atk:rand()%sd->arrow_atk);
 					
-					if(sd->status.weapon < 16 && (sd->atk_rate != 100 || sd->weapon_atk_rate != 0))
+					if(sd->status.weapon < 16 && (sd->atk_rate != 100 || sd->weapon_atk_rate[sd->status.weapon] != 0))
 						ATK_RATE(sd->atk_rate + sd->weapon_atk_rate[sd->status.weapon]);
 
 					if(flag.cri && sd->crit_atk_rate)
@@ -2758,6 +2758,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			if (tsc_data[SC_AUTOCOUNTER].timer != -1 && tsc_data[SC_AUTOCOUNTER].val4 > 0) {
 				if (tsc_data[SC_AUTOCOUNTER].val3 == src->id)
 					battle_weapon_attack(target, src, tick, 0x8000|tsc_data[SC_AUTOCOUNTER].val1);
+				clif_skillcastcancel(target); //Remove the little casting bar. [Skotlex]
 				status_change_end(target,SC_AUTOCOUNTER,-1);
 			}
 			if (tsc_data[SC_READYCOUNTER].timer != -1 && rand()%100 < 20) // Taekwon Counter Stance [Dralnu]
@@ -2851,6 +2852,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	else if (target->type == BL_MOB)
 	{
 		struct mob_data *md = (struct mob_data *)target;
+		if (md && md->state.special_mob_ai == 2) 
+			return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
 		if (md && md->master_id && (t_bl = map_id2bl(md->master_id)) == NULL)
 			t_bl = target; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
 	}
@@ -2965,17 +2968,15 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	//Alliance state takes precedence over enemy one.
 	else if (state&BCT_ENEMY && state&(BCT_SELF|BCT_PARTY|BCT_GUILD))
 		state&=~BCT_ENEMY;
-
-	if (target->type == BL_MOB && (struct mob_data*)target)
+/* Unneeded as aggressive mobs only search for BL_PCs to attack.
+	if (s_bl->type == BL_MOB && t_bl->type == BL_MOB && state&BCT_ENEMY)
 	{
-		if (((struct mob_data*)target)->state.special_mob_ai==2 && src->type == BL_PC && ((struct mob_data*)target)->master_id == src->id)
-			state|=BCT_ENEMY; //Let the Alchemist hit their own sphere mine.
-		else if (state & BCT_ENEMY && s_bl->type == BL_MOB && (struct mob_data*)s_bl &&
-			((struct mob_data*)s_bl)->state.special_mob_ai==0 && ((struct mob_data*)target)->state.special_mob_ai==0)
+		if ((struct mob_data*)s_bl && ((struct mob_data*)s_bl)->state.special_mob_ai==0 &&
+			(struct mob_data*)t_bl && ((struct mob_data*)t_bl)->state.special_mob_ai==0)
 			//Do not let mobs target each other.
 			state&=~BCT_ENEMY;
 	}
-
+*/
 	return (flag&state)?1:-1;
 
 /* The previous implementation is left here for reference in case something breaks :X [Skotlex]

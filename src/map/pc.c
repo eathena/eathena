@@ -1508,8 +1508,8 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		}
 		break;
 	case SP_LONG_ATK_RATE:
-		if(sd->status.weapon == 11 && sd->state.lr_flag != 2)
-			sd->atk_rate += val;
+		if(sd->state.lr_flag != 2) //Rather than adding atk_rate only when the weapon is 11 (bow), make it a weapon_atk_rate. [Skotlex]
+			sd->weapon_atk_rate[11]+=val;
 		break;
 	case SP_BREAK_WEAPON_RATE:
 		if(sd->state.lr_flag != 2)

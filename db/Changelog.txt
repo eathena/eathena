@@ -43,6 +43,8 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance??
 
+08/28
+	* Changed Acid Demonstration's element from fire to neutral. [Skotlex]
 08/27
 	* Cleaned up the item_db.txt file, moved item comments to this file [Skotlex]
 	* Updated const.txt with correct Taekwon-class job IDs [DracoRPG]
