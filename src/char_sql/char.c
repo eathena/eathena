@@ -3810,7 +3810,8 @@ int char_config_read(const char *cfgName) {
 		} else if (strcmpi(w1, "passwd") == 0) {
 			memcpy(passwd, w2, 24);
 		} else if (strcmpi(w1, "server_name") == 0) {
-			memcpy(server_name, w2, 20);
+			memcpy(server_name, w2, sizeof(server_name));
+			server_name[sizeof(server_name) - 1] = '\0';
 			ShowStatus("%s server has been initialized\n", w2);
 		} else if (strcmpi(w1, "wisp_server_name") == 0) {
 			if (strlen(w2) >= 4) {
@@ -3845,8 +3846,8 @@ int char_config_read(const char *cfgName) {
 				memcpy(bind_ip_str, w2, 16);
 		} else if (strcmpi(w1, "char_port") == 0) {
 			char_port = atoi(w2);
-                 } else if (strcmpi(w1, "charsave_method") == 0){
-                 	charsave_method = atoi(w2);
+		} else if (strcmpi(w1, "charsave_method") == 0){
+			charsave_method = atoi(w2);
 		} else if (strcmpi(w1, "char_maintenance") == 0) {
 			char_maintenance = atoi(w2);
 		} else if (strcmpi(w1, "char_new")==0){
