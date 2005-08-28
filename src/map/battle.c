@@ -753,7 +753,7 @@ static struct Damage battle_calc_weapon_attack(
 	//Initial flag
 	flag.rh=1;
 	flag.cardfix=1;
-	flag.infdef=(t_mode&0x40);
+	flag.infdef=(t_mode&0x40?1:0);
 
 	//Initial Values
 	wd.type=0; //Normal attack
