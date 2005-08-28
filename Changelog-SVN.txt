@@ -1,6 +1,7 @@
 Date	Added
 =======
 08/28
+	* Fixed demonstration/Bomb stacking. [Skotlex]
 	* Fixed damage versus plants in BF_WEAPON attacks. [Skotlex]
 	* Fixed the whole sqrtl mess. Thanks to Shinomori for clearing things up.
 	  [Skotlex]

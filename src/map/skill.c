@@ -1896,6 +1896,9 @@ static int skill_check_unit_range_sub( struct block_list *bl,va_list ap )
 	} else if (skillid==HW_GRAVITATION) {
 		if (unit_id!=UNT_GRAVITATION)
 			return 0;
+	} else if (skillid==AM_DEMONSTRATION) {
+		if (unit_id!=UNT_DEMONSTRATION)
+			return 0;
 	} else
 		return 0;
 
