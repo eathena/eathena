@@ -354,11 +354,17 @@ int status_calc_pet(struct map_session_data *sd, int first)
 			if (pd->status->atk2 > battle_config.pet_max_atk2) pd->status->atk2 = battle_config.pet_max_atk2;
 
 			if (pd->status->str > battle_config.pet_max_stats) pd->status->str = battle_config.pet_max_stats;
+			else if (pd->status->str < 1) pd->status->str = 1;
 			if (pd->status->agi > battle_config.pet_max_stats) pd->status->agi = battle_config.pet_max_stats;
+			else if (pd->status->agi < 1) pd->status->agi = 1;
 			if (pd->status->vit > battle_config.pet_max_stats) pd->status->vit = battle_config.pet_max_stats;
+			else if (pd->status->vit < 1) pd->status->vit = 1;
 			if (pd->status->int_ > battle_config.pet_max_stats) pd->status->int_ = battle_config.pet_max_stats;
+			else if (pd->status->int_ < 1) pd->status->int_ = 1;
 			if (pd->status->dex > battle_config.pet_max_stats) pd->status->dex = battle_config.pet_max_stats;
+			else if (pd->status->dex < 1) pd->status->dex = 1;
 			if (pd->status->luk > battle_config.pet_max_stats) pd->status->luk = battle_config.pet_max_stats;
+			else if (pd->status->luk < 1) pd->status->luk = 1;
 
 			if (!first)	//Not done the first time because the pet is not visible yet
 				clif_send_petstatus(sd);
