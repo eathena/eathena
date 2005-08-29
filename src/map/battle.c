@@ -2819,13 +2819,9 @@ int battle_check_undead(int race,int element)
  */
 int battle_check_target( struct block_list *src, struct block_list *target,int flag)
 {
-	int m,state = 0; //Initial state neutral (0x00000)
+	int m,state = 0; //Initial state none
 	struct block_list *s_bl= src, *t_bl= target;
 	
-	if ((target->type != BL_PC && target->type != BL_MOB && target->type != BL_SKILL) ||	//Only players, mobs or skills may be targeted.
-		(src->type == BL_SKILL && target->type == BL_SKILL))	//Skills can't target each other.
-		return 0;
-
 	m = target->m;
 	if (flag&BCT_ENEMY && !map[m].flag.gvg)	//Offensive stuff can't be casted on Basilica
 	{	// Celest
@@ -2838,43 +2834,89 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			return -1;
 	}
 
-	if (target->type == BL_PC) {
-		struct map_session_data *tsd = NULL;
-		
-		nullpo_retr(-1, tsd = (struct map_session_data *)target);
-
-		if(tsd->invincible_timer != -1 || pc_isinvisible(tsd))
-			return -1; //Cannot be targeted yet.
-		
-		if (tsd->monster_ignore && src->type == BL_MOB)
-			return 0; //option to have monsters ignore GMs [Valaris]
-	}
-	else if (target->type == BL_MOB)
+	switch (target->type)
 	{
-		struct mob_data *md = (struct mob_data *)target;
-		if (md && md->state.special_mob_ai == 2) 
-			return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
-		if (md && md->master_id && (t_bl = map_id2bl(md->master_id)) == NULL)
-			t_bl = target; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
-	}
-	else if (target->type == BL_SKILL)
-	{
-		struct skill_unit *su = (struct skill_unit *)target;
-		if (su && su->group)
+		case BL_PC:
 		{
+			struct map_session_data *sd = (struct map_session_data *)target;
+			if (!sd) //This really should never happen...
+				return 0;
+			if(sd->invincible_timer != -1 || pc_isinvisible(sd))
+				return -1; //Cannot be targeted yet.
+			if (sd->monster_ignore && src->type == BL_MOB)
+				return 0; //option to have monsters ignore GMs [Valaris]
+			if (sd->special_state.killable)
+				state |= BCT_ENEMY; //Universal Victim
+			break;
+		}
+		case BL_MOB:
+		{
+			struct mob_data *md = (struct mob_data *)target;
+			if (!md)
+				return 0;
+			if (md->state.special_mob_ai == 2) 
+				return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
+			if (md->master_id && (t_bl = map_id2bl(md->master_id)) == NULL)
+				t_bl = target; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
+			break;
+		}
+		case BL_PET:
+		{
+			return 0; //Pets cannot be targetted.
+		}
+		case BL_SKILL:
+		{
+			struct skill_unit *su = (struct skill_unit *)target;
+			if (!su || !su->group)
+				return 0;
+			if (src->type == BL_SKILL) //Cannot be hit by another skill.
+				return 0;
 			if (!(skill_get_inf2(su->group->skill_id)&INF2_TRAP || su->group->skill_id==WZ_ICEWALL))
 				return 0; //Excepting traps and icewall, you should not be able to target skills.
-
 			if ((t_bl = map_id2bl(su->group->src_id)) == NULL)
 				t_bl = target; //Fallback on the trap itself, otherwise consider this a "versus caster" scenario.
+			break;
 		}
+		default:	//Invalid target
+			return 0;
 	}
 
-	if (src->type == BL_SKILL)
+	switch (src->type)
 	{
-		struct skill_unit *su = (struct skill_unit *)src;
-		if (su && su->group)
+		case BL_PC:
 		{
+			struct map_session_data *sd = (struct map_session_data *) src;
+			if (!sd) //Should never happen...
+				return 0;
+			if (sd->special_state.killer)
+				state |= BCT_ENEMY; //Is on a killing rampage :O
+			break;
+		}
+		case BL_MOB:
+		{
+			struct mob_data *md = (struct mob_data *)src;
+			if (!md)
+				return 0;
+			if (!agit_flag && md->guild_id)
+				return 0; //Disable guardians on non-woe times.
+			if (md->master_id && (s_bl = map_id2bl(md->master_id)) == NULL)
+				s_bl = src; //Fallback on the mob itself, otherwise consider this a "from master" scenario.
+			break;
+		}
+		case BL_PET:
+		{
+			struct pet_data *pd = (struct pet_data *)src;
+			if (!pd)
+				return 0;
+			if (pd->msd)
+				s_bl = &pd->msd->bl; //"My master's enemies are my enemies..."
+			break;
+		}
+		case BL_SKILL:
+		{
+			struct skill_unit *su = (struct skill_unit *)src;
+			if (!su || !su->group)
+				return 0;
 			if (su->group->src_id == target->id)
 			{
 				int inf2;
@@ -2884,27 +2926,12 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				if (inf2&INF2_TARGET_SELF)
 					return 1;
 			}
-			
 			if ((s_bl = map_id2bl(su->group->src_id)) == NULL)
 				s_bl = src; //Fallback on the trap itself, otherwise consider this a "caster versus enemy" scenario.
+			break;
 		}
-	}
-	else if (src->type == BL_MOB)
-	{
-		struct mob_data *md = (struct mob_data *)src;
-		
-		if (!agit_flag && md && md->guild_id)
-			return 0; //Disable guardian attacking on non-woe times.
-		
-		if (md && md->master_id && (s_bl = map_id2bl(md->master_id)) == NULL)
-			s_bl = src; //Fallback on the mob itself, otherwise consider this a "from master" scenario.
-	}
-	else if (src->type == BL_PET)
-	{
-		struct pet_data *pd = (struct pet_data *)src;
-		
-		if (pd && pd->msd)
-			s_bl = &pd->msd->bl; //"My master's enemies are my enemies..."
+		default:	//Invalid source of attack?
+			return 0;
 	}
 	
 	if ((flag&BCT_ALL) == BCT_ALL) { //All actually stands for all players/mobs

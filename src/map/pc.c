@@ -84,15 +84,16 @@ int pc_iskiller(struct map_session_data *src, struct map_session_data *target) {
 
 	if(src->bl.type!=BL_PC )
 		return 0;
-        if (src->special_state.killer)
-                 return 1;
+	if (src->special_state.killer)
+		return 1;
 
 	if(target->bl.type!=BL_PC )
 		return 0;
-        if (target->special_state.killable)
-                 return 1;
+	
+	if (target->special_state.killable)
+		return 1;
 
-        return 0;
+	return 0;
 }
 
 

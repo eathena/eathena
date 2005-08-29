@@ -1,6 +1,8 @@
 Date	Added
 =======
 08/29
+	* Updated battle_check_target to take into consideration the special states
+	  killer/killable. [Skotlex]
 	* Corrected the Fury Guardian Angel not giving +50 critical. [Skotlex]
 	* Made mob_walktoxy fail when the mob is dead. [Skotlex]
 	  (may fix the phantom mob issue?)
