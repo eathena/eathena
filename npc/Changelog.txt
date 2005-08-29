@@ -28,6 +28,8 @@ TODO:
 
 Date		Added
 ======
+08/29
+	* Fixed Adoption.txt [Lupus]
 08/28
 	* Added a Taekwon NPC (to get Taekwon Job). It's temp tough [Lupus]
 08/27
