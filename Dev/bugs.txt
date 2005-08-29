@@ -384,5 +384,14 @@ Problem: [TK Boy Equipments] He can weild any WEAPON!! BUG!
 		However, he can equip EVERY other equipments available. 
 		Boots, Manteau, Sharp Headgear, Majestic Goat, you name it.
  TK Boy can even equip shields, but shield graphic will not appear on TK Boy sprite.
-(á) kRO http://www.ragnainfo.net 
 
+
+Problem:	[Kafra Storage]
+			Items aren't sorted any more
+Assigned:	na
+Progress:	0%
+
+Problem:	[Char Server]
+			Suddenly Freezes
+Assigned:	na
+Progress:	0%
