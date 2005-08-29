@@ -529,15 +529,10 @@ int pc_isequip(struct map_session_data *sd,int n)
 
 	if(item == NULL)
 		return 0;
-	if(item->sex != 2 && sd->status.sex != item->sex)
-		return 0;
 	if(item->elv > 0 && sd->status.base_level < item->elv)
 		return 0;
-
-	//Much cleaner now, ain't it? [Skotlex]
-	if ((1<<(pc_calc_base_job(sd->status.class_).job) & item->class_) == 0)
+	if(item->sex != 2 && sd->status.sex != item->sex)
 		return 0;
-
 	if(map[sd->bl.m].flag.pvp && (item->flag.no_equip&1)) //optimized by Lupus
 		return 0;
 	if(map[sd->bl.m].flag.gvg && (item->flag.no_equip>1)) //optimized by Lupus
@@ -550,6 +545,42 @@ int pc_isequip(struct map_session_data *sd,int n)
 		return 0;
 	if(item->equip & 0x0100 && sc_data && sc_data[SC_STRIPHELM].timer != -1)
 		return 0;
+
+	//Taekwon Class
+	if (sd->status.class_ == JOB_TAEKWON) { //[Lupus]
+		//cannot equip ANY weapons.
+		//Any equipments that can be equipped by 1) either by everybody, 2) or everybody except Novice, can be equipped 
+		if (item->type == 4 || (item->class_ & 126) != 126) //126 = all 1st classes but Novice
+			return 0;
+
+	} else
+	//Star Gladiator
+	if (sd->status.class_ == JOB_STAR_GLADIATOR || sd->status.class_ == JOB_STAR_GLADIATOR2) { //[Lupus]
+		//They can equip anything TK Boy can equip, plus,
+		//2nd-class specific items as well. In addition, they can equip these specific equipments:
+		//All book-type items, Manteau, Mink Coat, Mirror Shield, Sharp Headgear, Majestic Goat, Boots. 
+		if ( (item->nameid>=1550 && item->nameid<1599) //a Book type
+			|| item->nameid==2505 || item->nameid==2506 //Manteau[0] [1]
+			|| item->nameid==2107 || item->nameid==2108 //Mirror Shield [0] [1]
+			|| item->nameid==2405 || item->nameid==2406 //Boots [0] [1]
+			|| item->nameid==2256 //Majestic Goat
+//			|| item->nameid==2108 // What is ID of "Sharp Geadgear" ?
+			)
+			return 1; //You can equip these exceptions
+		if ( item->type == 4 || !(((item->class_ & 126) == 126) || ((item->class_ & 2088832) == 2088832)) )	//2088832 = all 2nd classes but Super Novice
+			return 0;
+	} else
+	//Soul Linker
+	if (sd->status.class_ == JOB_SOUL_LINKER) { //[Lupus]
+		//They can only equip equipments that Wizards can equip.
+		if ((1<< JOB_WIZARD & item->class_) == 0)
+			return 0;
+
+	} else
+	//Other Common Classes
+	if ((1<<(pc_calc_base_job(sd->status.class_).job) & item->class_) == 0) //[Skotlex]
+		return 0;
+
 	return 1;
 }
 

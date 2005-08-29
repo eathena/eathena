@@ -1,5 +1,9 @@
 Date	Added
 =======
+08/30
+	* According to the 23 Aug Patch added complete equipment check for 3 new classes. [Lupus]
+		Now they can't equip forbidden items 8)
+		TODO: What is Sharp Headgear? SG can equip it... i need its ID.
 08/29
 	* Added battle config option pet_hair_style and defaulted it to 24 [Skotlex]
 	  According to information relayed by End of Exam, this should fix the new
