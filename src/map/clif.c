@@ -7992,9 +7992,8 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			
 		if ((old_sd = map_id2sd(account_id)) != NULL)
 		{	// if same account already connected, we disconnect the 2 sessions
-
-			//Check for @AUTOTRADE ON [durf]
-			if (old_sd->state.autotrade) {
+			//Check for characters with no connection or that are using autotrade. [durf],[Skotlex]
+			if (!old_sd->fd || old_sd->state.autotrade) {
 				old_sd->state.autotrade=0;
 				map_quit(old_sd);
 			}
