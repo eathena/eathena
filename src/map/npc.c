@@ -2080,8 +2080,13 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 
 		if (strlen(mob->eventname) >= 4) {
 			memcpy(md->npc_event, mob->eventname, NAME_LENGTH-1);
-		}// else  // Err, ain't md->npc_event already 0 from the aCalloc? [Skotlex]
-//			memset(md->npc_event, 0, NAME_LENGTH);
+		} else if (strlen(mob->eventname) == 1) { //Portable monster big/small implementation. [Skotlex]
+			int size = atoi(mob->eventname);
+			if (size & 2)
+				md->size=1;
+			else if (size & 4)
+				md->size=2;
+		}
 
 		md->bl.type = BL_MOB;
 		map_addiddb(&md->bl);

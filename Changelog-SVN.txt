@@ -1,6 +1,11 @@
 Date	Added
 =======
 08/29
+	* Updated spawn parsing to identify small/big mobs. [Skotlex]
+	  Use the "event" field (last column, the one after the two spawn delays)
+	  to identify the mob's size: 2: small mob, 4: big mob. 1-2 is not used
+	  because a hella lot of plants/mobs already use 1 in it (even though eA
+	  completely ignores this value)
 	* Inverted the meaning of mapflags pvp_noparty/pvp_noguild [Skotlex]
 	  When the flag is set, then you should NOT be able to hit your
 	  party/guild-mates on pvp grounds.
