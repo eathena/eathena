@@ -1,5 +1,9 @@
 Date	Added
 =======
+08/29
+	* Inverted the meaning of mapflags pvp_noparty/pvp_noguild [Skotlex]
+	  When the flag is set, then you should NOT be able to hit your
+	  party/guild-mates on pvp grounds.
 08/28
 	* Fixed demonstration/Bomb stacking. [Skotlex]
 	* Fixed damage versus plants in BF_WEAPON attacks. [Skotlex]
