@@ -1,6 +1,7 @@
 Date	Added
 =======
 08/29
+	* Corrected the Fury Guardian Angel not giving +50 critical. [Skotlex]
 	* Made mob_walktoxy fail when the mob is dead. [Skotlex]
 	  (may fix the phantom mob issue?)
 	* Updated spawn parsing to identify small/big mobs. [Skotlex]

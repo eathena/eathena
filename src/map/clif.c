@@ -1679,7 +1679,7 @@ static int clif_delayquit(int tid, unsigned int tick, int id, int data) {
 
 	if (chrif_isconnect())
 	{	//Remove player from map server
-		if ((sd = map_id2sd(id)) != NULL)
+		if ((sd = map_id2sd(id)) != NULL && sd->fd == 0) //Should be a disconnected player.
 			map_quit(sd);
 	} else //Save later.
 		add_timer(tick + 10000, clif_delayquit, id, 0);
@@ -7602,7 +7602,7 @@ int clif_timedout(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 
 	ShowInfo("%sCharacter with Account ID '"CL_WHITE"%d"CL_RESET"' timed out.\n", (pc_isGM(sd))?"GM ":"", sd->bl.id);
-	map_quit(sd);
+//	map_quit(sd); //It will be saved anyway in clif_parse. [Skotlex]
 	clif_authfail_fd(sd->fd,3); // Even if player is not on we still send anyway
 	clif_setwaitclose(sd->fd); // Set session to EOF
 	return 0;
@@ -7992,11 +7992,9 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			
 		if ((old_sd = map_id2sd(account_id)) != NULL)
 		{	// if same account already connected, we disconnect the 2 sessions
-			//Check for characters with no connection or that are using autotrade. [durf],[Skotlex]
-			if (!old_sd->fd || old_sd->state.autotrade) {
-				old_sd->state.autotrade=0;
+			//Check for characters with no connection (includes those that are using autotrade) [durf],[Skotlex]
+			if (!old_sd->fd)
 				map_quit(old_sd);
-			}
 			else 
 				clif_authfail_fd(old_sd->fd, 2); // same id
 			clif_authfail_fd(fd, 8); // still recognizes last connection
@@ -8480,7 +8478,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data *sd) { // S 008c <
 			else if (sd->state.snovice_flag == 3) {
 				clif_skill_nodamage(&sd->bl,&sd->bl,MO_EXPLOSIONSPIRITS,-1,1);
 				status_change_start(&sd->bl,SkillStatusChangeTable[MO_EXPLOSIONSPIRITS],
-						1,0,0,0,skill_get_time(MO_EXPLOSIONSPIRITS,1),0 );
+						17,0,0,0,skill_get_time(MO_EXPLOSIONSPIRITS,1),0 ); //Lv17-> +50 critical (noted by Poki) [Skotlex]
 				sd->state.snovice_flag = 0;
 			}
 		}
