@@ -793,6 +793,9 @@ int mob_walktoxy(struct mob_data *md,int x,int y,int easy)
 
 	nullpo_retr(0, md);
 
+	if(md->bl.prev == NULL || md->state.state == MS_DEAD) //Just-in-case check to prevent dead mobs from moving. [Skotlex]
+		return 1;
+	
 	if(md->state.state == MS_WALK && path_search(&wpd,md->bl.m,md->bl.x,md->bl.y,x,y,easy) )
 		return 1;
 

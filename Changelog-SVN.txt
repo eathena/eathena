@@ -1,6 +1,8 @@
 Date	Added
 =======
 08/29
+	* Made mob_walktoxy fail when the mob is dead. [Skotlex]
+	  (may fix the phantom mob issue?)
 	* Updated spawn parsing to identify small/big mobs. [Skotlex]
 	  Use the "event" field (last column, the one after the two spawn delays)
 	  to identify the mob's size: 2: small mob, 4: big mob. 1-2 is not used
