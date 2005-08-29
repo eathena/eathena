@@ -3477,6 +3477,7 @@ static const struct battle_data_short {
 	{ "max_hair_color",                    &battle_config.max_hair_color	}, // added by [MouseJstr]
 	{ "min_cloth_color",                   &battle_config.min_cloth_color	}, // added by [MouseJstr]
 	{ "max_cloth_color",                   &battle_config.max_cloth_color	}, // added by [MouseJstr]
+	{ "pet_hair_style",                    &battle_config.pet_hair_style	}, // added by [Skotlex]
 	{ "castrate_dex_scale",                &battle_config.castrate_dex_scale	}, // added by [MouseJstr]
 	{ "area_size",                         &battle_config.area_size	}, // added by [MouseJstr]
 	{ "muting_players",                    &battle_config.muting_players}, // added by [Apple]
@@ -3819,11 +3820,12 @@ void battle_set_defaults() {
 	battle_config.any_warp_GM_min_level = 20; // added by [Yor]
 	battle_config.packet_ver_flag = 1023; // added by [Yor]
 	battle_config.min_hair_style = 0;
-	battle_config.max_hair_style = 20;
+	battle_config.max_hair_style = 23;
 	battle_config.min_hair_color = 0;
 	battle_config.max_hair_color = 9;
 	battle_config.min_cloth_color = 0;
 	battle_config.max_cloth_color = 4;
+	battle_config.pet_hair_style = battle_config.max_hair_style+1;
 	battle_config.zeny_from_mobs = 0;
 	battle_config.mobs_level_up = 0;
 	battle_config.pk_min_level = 55;

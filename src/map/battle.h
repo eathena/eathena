@@ -325,6 +325,7 @@ extern struct Battle_Config {
 	unsigned short max_hair_color; // added by [MouseJstr]
 	unsigned short min_cloth_color; // added by [MouseJstr]
 	unsigned short max_cloth_color; // added by [MouseJstr]
+	unsigned short pet_hair_style; // added by [Skotlex]
 
 	unsigned short castrate_dex_scale; // added by [MouseJstr]
 	unsigned short area_size; // added by [MouseJstr]

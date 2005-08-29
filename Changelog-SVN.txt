@@ -1,6 +1,10 @@
 Date	Added
 =======
 08/29
+	* Added battle config option pet_hair_style and defaulted it to 24 [Skotlex]
+	  According to information relayed by End of Exam, this should fix the new
+	  clients showing the sword cursor for pets (older clients will be the ones
+	  screwed instead, in said case you'll want to change pet_hair_style to 20)
 	* Updated battle_check_target to take into consideration the special states
 	  killer/killable. [Skotlex]
 	* Corrected the Fury Guardian Angel not giving +50 critical. [Skotlex]

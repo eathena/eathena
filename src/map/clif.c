@@ -1205,7 +1205,7 @@ static int clif_pet0078(struct pet_data *pd, unsigned char *buf) {
 		WBUFW(buf,30)=mob_get_clothes_color(pd->class_);	//Add for player pet dye - Valaris
 		WBUFB(buf,45)=mob_get_sex(pd->class_);
 	} else {
-		WBUFW(buf,16)=0x14;
+		WBUFW(buf,16)=battle_config.pet_hair_style;
 		if((view = itemdb_viewid(pd->equip)) > 0)
 			WBUFW(buf,20)=view;
 		else
@@ -1248,7 +1248,7 @@ static int clif_pet007b(struct pet_data *pd, unsigned char *buf) {
 		WBUFW(buf,34)=mob_get_clothes_color(pd->class_);	//Add for player pet dye - Valaris
 		WBUFB(buf,49)=mob_get_sex(pd->class_);
 	} else {
-		WBUFW(buf,16)=0x14;
+		WBUFW(buf,16)=battle_config.pet_hair_style;
 		if ((view = itemdb_viewid(pd->equip)) > 0)
 			WBUFW(buf,20)=view;
 		else
