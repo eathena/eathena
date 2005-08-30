@@ -65,7 +65,7 @@ int storage_fromsql(int account_id, struct storage *p){
 	p->account_id = account_id;
 
 	// storage {`account_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3`}
-	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `account_id`='%d'",storage_db, account_id);
+	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `account_id`='%d' ORDER BY `nameid`",storage_db, account_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		ShowSQL ("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
@@ -135,7 +135,7 @@ int guild_storage_fromsql(int guild_id, struct guild_storage *p){
 	p->guild_id = guild_id;
 
 	// storage {`guild_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3`}
-	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `guild_id`='%d'",guild_storage_db, guild_id);
+	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `guild_id`='%d' ORDER BY `nameid`",guild_storage_db, guild_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
