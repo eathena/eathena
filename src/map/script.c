@@ -336,7 +336,7 @@ int buildin_getstrlen(struct script_state *st); //strlen [valaris]
 int buildin_charisalpha(struct script_state *st);//isalpha [valaris]
 int buildin_fakenpcname(struct script_state *st); // [Lance]
 int buildin_compare(struct script_state *st); // Lordalfa, to bring strstr to Scripting Engine
-
+int buildin_getiteminfo(struct script_state *st); //[Lupus] returns Items Buy / sell Price, etc info
 void push_val(struct script_stack *stack,int type,int val);
 int run_func(struct script_state *st);
 
@@ -605,6 +605,7 @@ struct {
 	{buildin_charisalpha,"charisalpha","si"}, //isalpha [Valaris]
 	{buildin_fakenpcname,"fakenpcname","ssi"}, // [Lance]
 	{buildin_compare,"compare","ss"}, // Lordalfa - To bring strstr to scripting Engine.
+	{buildin_getiteminfo,"getiteminfo","ii"}, //[Lupus] returns Items Buy / sell Price, etc info
 	{NULL,NULL,NULL},
 };
 
@@ -6134,6 +6135,43 @@ int buildin_getitemslots(struct script_state *st)
 
 	if (i_data)
 		push_val(st->stack,C_INT,i_data->slot);
+	else
+		push_val(st->stack,C_INT,-1);
+	return 0;
+}
+
+/*==========================================
+ * Returns some values of an item [Lupus]
+ * Price, Weight, etc...
+	iteminfo(itemID,n), where n
+		0 value_buy;
+		1 value_sell;
+		2 type;
+		3 class;
+		4 sex;
+		5 equip;
+		6 weight;
+		7 atk;
+		8 def;
+		9 range;
+		10 slot;
+		11 look;
+		12 elv;
+		13 wlv;
+ *------------------------------------------
+ */
+int buildin_getiteminfo(struct script_state *st)
+{
+	int item_id,n,*item_arr[];
+	struct item_data *i_data;
+
+	item_id	= conv_num(st,& (st->stack->stack_data[st->start+2]));
+	n	= conv_num(st,& (st->stack->stack_data[st->start+3]));
+	i_data = itemdb_exists(item_id);
+
+	if (i_data && n>=0 && n<14)
+		item_arr = &i_data->value_buy;
+		push_val(st->stack,C_INT,item_arr[n]);
 	else
 		push_val(st->stack,C_INT,-1);
 	return 0;

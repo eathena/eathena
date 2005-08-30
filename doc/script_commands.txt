@@ -9,6 +9,8 @@
 //= Maeki Rika - A section on general concepts and lots of
 //=              other updates and additions.
 //===== Version ===========================================
+//= 2.2
+//=========================================================
 //= 1.0 - First release, filled will as much info as I could
 //=       remember or figure out, most likely there are errors,
 //=       and things I have missed out
@@ -21,6 +23,7 @@
 //=       Some important discoveries in item functions, the 
 //=       secret of making VVS weapons with 'getitem2' and 
 //=       other news. (Rika again) +10kb :) 
+//= 2.2 - added getItemInfo description [Lupus]
 //===== Compatible With ===================================
 //= LOL, can be used by anyone hopefully
 //===== Description =======================================
@@ -4658,5 +4661,19 @@ and return the number of slots this kind of items has - 0 if they are not
 slotted. It will also be 0 for all non-equippable items, naturally, unless 
 someone messed up the item database. It will return -1 if there is no such item.
 
+---------------------------------------
+
+*getiteminfo(<item ID>,<type>)
+
+This function will look up the item with the specified ID number in the database 
+and return the info set by TYPE agrument.
+It will return -1 if there is no such item.
+
+Valid types are:
+	0 - Buy Price; 1 - Sell Price; 2 - Item Type; 3 - Allowed Classes; 4 - sex;
+	5 - equip; 6 - weight; 7 - atk; 8 - def; 9 - range; 10 - slot;
+	11 - look; 12 - elv; 13 - wlv;
+
+
 Whew.
-That's about all of them.
+What's about all of them.
