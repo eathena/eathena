@@ -29,6 +29,7 @@ TODO:
 Date		Added
 ======
 08/29
+	* Added Dead Branch (and Bloody Branch) quest by GM-Yevon [Lupus]
 	* Fixed Adoption.txt [Lupus]
 08/28
 	* Added a Taekwon NPC (to get Taekwon Job). It's temp tough [Lupus]
