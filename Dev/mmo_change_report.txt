@@ -40,3 +40,12 @@ it needs to be updated) [Skotlex]
 August 25
 struct guild_storage got added the "dirty" entry to know when to save it
 (shouldn't affect save/load, though). [Skotlex]
+
+August 30
+The GMI_* enumeration was updated, make sure that
+mapif_parse_GuildMemberInfoChange and mapif_guild_memberinfochanged support
+them. The enumeration is now: GMI_POSITION, GMI_EXP, GMI_HAIR, GMI_HAIR_COLOR,
+GMI_GENDER, GMI_CLASS,GMI_LEVEL. [Skotlex]
+Also, the char server should report to map servers once it receives the ACK
+from the login server when someone change's their gender, so that
+guild_members can be updated.						
