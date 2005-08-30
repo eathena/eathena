@@ -7,6 +7,10 @@
 //= 2nd Job Quests again. It also guides adv classes where
 //= to go. [Lupus]
 
+//Note. In the real Bard quest
+// Job 40 Award - Violin [3]
+// Job 50 Award - Harp [2]
+
 //Dancer & Bard - Comodo 189 166 4_F_07
 comodo.gat,189,166,4	script	Performance Master	741,{
 	callfunc "F_BlockHigh",27,"High Archer",43,"Clown","Performance Master";

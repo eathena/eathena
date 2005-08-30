@@ -278,3 +278,4 @@
 1608,Staff,10000
 1611,Arc Wand,10000
 1613,Mighty Staff,10000
+1902,Violin,10000

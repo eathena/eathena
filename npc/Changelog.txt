@@ -28,6 +28,9 @@ TODO:
 
 Date		Added
 ======
+08/31
+	* Moved Tao Gunka to Comodo West Cave (made Megalithes as his slaves),
+		Placed Lady Tany in the 2F of Ayothaya Dungeon [Lupus]
 08/29
 	* Added Dead Branch (and Bloody Branch) quest by GM-Yevon [Lupus]
 	* Fixed Adoption.txt [Lupus]

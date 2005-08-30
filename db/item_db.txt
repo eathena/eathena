@@ -731,11 +731,11 @@
 1615,Bone_Wand,Bone Wand,4,20,0,700,40,,1,0,99092,2,2,3,24,1,10,{},{ bonus bInt,4; bonus bAtkEle,9; bonus bMatkRate,15; }
 1616,Staff_of_Wing,Staff of Wing,4,86000,0,500,60,,1,0,66052,2,2,4,40,1,10,{},{ bonus bMatkRate,15; bonus bCastrate,-5; }
 1617,Wand_of_Survival,Wand of Survival,4,86000,0,1000,50,,1,0,99092,2,2,3,24,1,10,{},{ bonus bDex,3; bonus bMatkRate,15; bonus bMaxHP,300; }
-1618,Wand_of_Survival,Wand of Survival,4,86000,0,1000,50,,1,1,99092,2,2,3,24,1,10,{},{ bonus bDex,3; bonus bMatkRate,15; bonus bMaxHP,400; }
-1619,Wand_of_Survival,Wand of Survival,4,86000,0,1000,50,,1,0,99092,2,2,3,24,1,10,{},{ bonus bInt,3; bonus bMatkRate,15; bonus bMaxHP,300; }
-1620,Wand_of_Survival,Wand of Survival,4,86000,0,1000,50,,1,1,99092,2,2,3,24,1,10,{},{ bonus bInt,3; bonus bMatkRate,15; bonus bMaxHP,400; }
+1618,Wand_of_Survival_,Wand of Survival,4,86000,0,1000,50,,1,1,99092,2,2,3,24,1,10,{},{ bonus bDex,3; bonus bMatkRate,15; bonus bMaxHP,400; }
+1619,Wand_of_Survival__,Wand of Survival,4,86000,0,1000,50,,1,0,99092,2,2,3,24,1,10,{},{ bonus bInt,3; bonus bMatkRate,15; bonus bMaxHP,300; }
+1620,Wand_of_Survival___,Wand of Survival,4,86000,0,1000,50,,1,1,99092,2,2,3,24,1,10,{},{ bonus bInt,3; bonus bMatkRate,15; bonus bMaxHP,400; }
 1621,Wand_of_Hypnotist,Wand of Hypnotist,4,86000,0,500,70,,1,1,8388609,2,2,3,30,1,10,{},{ bonus bInt,1; bonus bMatkRate,25; }
-1622,Wand_of_Hypnotist,Wand of Hypnotist,4,86000,0,500,70,,1,2,8388609,2,2,3,30,1,10,{},{ bonus bInt,1; bonus bMatkRate,25; }
+1622,Wand_of_Hypnotist_,Wand of Hypnotist,4,86000,0,500,70,,1,2,8388609,2,2,3,30,1,10,{},{ bonus bInt,1; bonus bMatkRate,25; }
 // Bows
 1701,Bow,Bow,4,1000,0,500,15,,5,3,1706056,2,34,1,4,1,11,{},{}
 1702,Bow_,Bow,4,1000,0,500,15,,5,4,1706056,2,34,1,4,1,11,{},{}
@@ -904,7 +904,7 @@
 2235,Crown,Crown,5,20,0,400,,4,,0,10477567,1,256,,45,1,45,{},{ bonus bInt,2; }
 2236,Santa's_Hat,Santa's Hat,5,20,0,100,,1,,0,10477567,2,256,,0,1,20,{},{ bonus bMdef,1; bonus bLuk,1; }
 2237,Bandit_Beard,Bandit Beard,5,2,0,100,,0,,0,10477567,2,1,,0,0,21,{},{}
-2238,Moustache,Moustache,5,2,0,100,,0,,0,10477567,2,1,,0,0,22,{},{}
+2238,Moustaches,Moustaches,5,2,0,100,,0,,0,10477567,2,1,,0,0,22,{},{}
 2239,Single_Glass,Single Glass,5,10000,0,100,,0,,0,10477567,2,512,,0,0,23,{},{}
 2240,Beard,Beard,5,2,0,100,,0,,0,10477567,2,1,,0,0,24,{},{}
 2241,Grandpa_Beard,Grandpa Beard,5,5000,0,100,,0,,0,10477567,2,1,,0,0,25,{},{}
@@ -1151,7 +1151,7 @@
 4008,Picky_Card,Picky Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus bStr,1; bonus bBaseAtk,10; }
 4009,Chonchon_Card,Chonchon Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus bAgi,1; bonus bFlee,2; }
 4010,Wilow_Card,Wilow Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus bMaxSP,80; }
-4011,Picky__Card,Picky  Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus bVit,1; bonus bMaxHP,100; }
+4011,Picky_Egg_Card,Picky Egg Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus bVit,1; bonus bMaxHP,100; }
 4012,Thief_Bug_Egg_Card,Thief Bug Egg Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus bMaxHP,400; }
 4013,Andre_Egg_Card,Andre Egg Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus bMaxHPrate,5; }
 4014,Roda_Frog_Card,Roda Frog Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus bMaxHP,400; bonus bMaxSP,50; }
@@ -1258,9 +1258,9 @@
 4115,Hunter_Fly_Card,Hunter Fly Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus2 bHpDrainRate,3,15; }
 4116,Isis_Card,Isis Card,6,20,0,10,,,,,,,4,,,,,{},{ bonus2 bSubEle,7,30; bonus bFlee,5; }
 4117,Side_Winder_Card,Side Winder Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bDoubleRate,5; }
-4118,Petit_Card,Petit Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus2 bAddRace,9,20; }
+4118,Earth_Petit_Card,Earth Petit Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus2 bAddRace,9,20; }
 4119,Bathory_Card,Bathory Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus bDefEle,7; }
-4120,Petit__Card,Petit  Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus2 bSubRace,9,30; }
+4120,Sky_Petit_Card,Sky Petit Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus2 bSubRace,9,30; }
 4121,Phreeoni_Card,Phreeoni Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bHit,100; }
 4122,Deviruchi_Card,Deviruchi Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus bStr,1; bonus2 bResEff,Eff_Blind,10000; }
 4123,Eddga_Card,Eddga Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus bInfiniteEndure,0; bonus bMaxHPrate,-25; }
@@ -1269,7 +1269,7 @@
 4126,Minorous_Card,Minorous Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus2 bAddSize,2,15; bonus bBaseAtk,5; }
 4127,Nightmare_Card,Nightmare Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus2 bResEff,Eff_Sleep,10000; bonus bAgi,1; }
 4128,Golden_Bug_Card,Golden Bug Card,6,20,0,10,,,,,,,32,,,,,{},{ bonus bNoMagicDamage,0; bonus bUseSPrate,100; }
-4129,Baphomet__Card,Baphomet Jr Card,6,20,0,10,,,,,,,4,,,,,{},{bonus bAgi,3; bonus bCritical,1; }
+4129,Baphomet_Jr_Card,Baphomet Jr Card,6,20,0,10,,,,,,,4,,,,,{},{bonus bAgi,3; bonus bCritical,1; }
 4130,Scorpion_King_Card,Scorpion King Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus2 bAddEle,9,20; }
 4131,Moonlight_Flower_Card,Moonlight Flower Card,6,20,0,10,,,,,,,64,,,,,{},{ bonus bSpeedRate,25; }
 4132,Mistress_Card,Mistress Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus bNoGemStone,0; bonus bUseSPrate,25; }
@@ -1690,7 +1690,7 @@
 7078,Wrath_of_Valkyrie,Wrath of Valkyrie,3,20,0,500,,,,,,,,,,,,{},{}
 7079,Feather_of_Angel_Wing,Feather of Angel Wing,3,20,0,500,,,,,,,,,,,,{},{}
 7080,Cat_Tread,Footprints of Cat,3,20,0,500,,,,,,,,,,,,{},{}
-7081,Woman's_Moustache,Woman's Moustache,3,20,0,500,,,,,,,,,,,,{},{}
+7081,Woman's_Moustaches,Woman's Moustaches,3,20,0,500,,,,,,,,,,,,{},{}
 7082,Root_of_Stone,Root of Stone,3,20,0,500,,,,,,,,,,,,{},{}
 7083,Spirit_of_Fish,Spirit of Fish,3,20,0,500,,,,,,,,,,,,{},{}
 7084,Sputum_of_Bird,Sputum of Bird,3,20,0,500,,,,,,,,,,,,{},{}
@@ -2009,7 +2009,7 @@
 7397,Number_37_Ball,Number_37_Ball,3,20,0,10,,,,,,,,,,,,{},{}
 7398,Number_38_Ball,Number_38_Ball,3,20,0,10,,,,,,,,,,,,{},{}
 //-Indonesian Independence Day Event
-7399,Selamat,Sselamat,3,20,0,10,,,,,,,,,,,,{},{}
+7399,Selamat,Selamat,3,20,0,10,,,,,,,,,,,,{},{}
 7400,Hari,Hari,3,20,0,10,,,,,,,,,,,,{},{}
 7401,Kemerdekaan,Kemerdekaan,3,20,0,10,,,,,,,,,,,,{},{}
 7402,Republik,Republik,3,20,0,10,,,,,,,,,,,,{},{}

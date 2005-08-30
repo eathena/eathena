@@ -2383,8 +2383,8 @@
 1583,Tao Gunka@NPC_CALLSLAVE,attack,352,1,10000,0,30000,yes,target,always,0,,,,,,
 1583,Tao Gunka@NPC_CALLSLAVE,idle,352,1,10000,0,30000,yes,self,always,0,,,,,,
 1583,Tao Gunka@NPC_ARMORBRAKE,attack,344,10,2000,0,5000,no,target,always,0,,,,,,
-1583,Tao Gunka@NPC_SUMMONSLAVE,attack,196,5,10000,700,60000,no,self,slavele,2,1584,,,,,
-1583,Tao Gunka@NPC_SUMMONSLAVE,idle,196,5,10000,700,60000,no,self,slavele,2,1584,,,,,
+1583,Tao Gunka@NPC_SUMMONSLAVE,attack,196,5,10000,700,60000,no,self,slavele,2,1274,,,,,
+1583,Tao Gunka@NPC_SUMMONSLAVE,idle,196,5,10000,700,60000,no,self,slavele,2,1274,,,,,
 1583,Tao Gunka@AL_TELEPORT,chase,26,1,10000,0,0,yes,self,skillused,18,,,,,,
 1583,Tao Gunka@NPC_MENTALBREAKER,attack,159,5,2000,0,5000,yes,target,always,0,,,,,,7
 1583,Tao Gunka@NPC_MENTALBREAKER,chase,159,5,2000,0,5000,yes,target,always,0,,,,,,7
@@ -2460,6 +2460,6 @@
 1624,Waste Stove@NPC_STUNATTACK,attack,179,4,1000,1000,10000,no,target,always,0,,,,,,
 1624,Waste Stove@TF_THROWSTONE,chase,152,1,300,10000,10000,yes,target,myhpltmaxrate,30,,,,,,
 1624,Waste Stove@TF_THROWSTONE,chase,152,1,100,10000,10000,yes,target,always,0,,,,,,
-// Easter Bunny (not in the db??)
+// Easter Bunny (not in the db?? it's in db2!)
 1921,Easter Bunny@NPC_SUMMONSLAVE,attack,196,5,10000,3000,10000,no,self,slavele,2,1063,,,,,
 1921,Easter Bunny@NPC_SUMMONSLAVE,idle,196,5,5000,2000,40000,no,self,always,2,1920,,,,,

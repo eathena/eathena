@@ -36,6 +36,9 @@
 	1771,Venom_Knife: Item type: Throwing Dagger. Consumable. Should it work as a scroll, or as an arrow, etc.
 	--
 08/30
+	* Added Violin[4] #1902 into OVB, into Violy Drops (0.1%). Probably some of new drops
+		have chance more than 0.01%, too [Lupus]
+	* Fixed some items names spelling. Thx2Erpirata [Lupus]
 	* Added new items thx 2Landarma. I've made Venom Knife as a ETC item atm. [Lupus]
 08/28
 	* Added job bonuses for Taekwon, thanks to RockmanEXE [DracoRPG]
