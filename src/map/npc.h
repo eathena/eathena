@@ -38,7 +38,7 @@ int npc_walktoxy(struct npc_data &nd,int x,int y,int easy); // npc walking [Vala
 int npc_stop_walking(struct npc_data &nd,int type);
 int npc_changestate(struct npc_data &nd,int state,int type);
 
-int npc_get_new_npc_id(void);
+unsigned long npc_get_new_npc_id(void);
 
 void npc_addsrcfile(const char *);
 void npc_delsrcfile(const char *);

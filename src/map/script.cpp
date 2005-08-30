@@ -80,11 +80,14 @@ static int parse_cmd;
 
 extern int current_equip_item_index; //for New CARS Scripts. It contains Inventory Index of the EQUIP_SCRIPT caller item. [Lupus]
 
+
+
+
 /*==========================================
  * ローカルプロトタイプ宣言 (必要な物のみ)
  *------------------------------------------
  */
-char* parse_subexpr(char *,int);
+
 int buildin_mes(CScriptEngine &st);
 int buildin_goto(CScriptEngine &st);
 int buildin_callsub(CScriptEngine &st);
@@ -336,10 +339,6 @@ int buildin_warpparty(CScriptEngine &st);
 int buildin_warpguild(CScriptEngine &st);
 int buildin_pc_emotion(CScriptEngine &st);
 
-
-
-int mapreg_setreg(int num,int val);
-int mapreg_setregstr(int num,const char *str);
 
 
 struct {
@@ -610,6 +609,10 @@ struct {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+char* parse_subexpr(char *p,int limit);
+int mapreg_setregstr(int num,const char *str);
+int mapreg_setregnum(int num,int val);
 /*==========================================
  * 文字列のハッシュを計算
  *------------------------------------------
@@ -1391,110 +1394,6 @@ char* parse_script(unsigned char *src, size_t line)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*==========================================
- * ridからsdへの解決
- *------------------------------------------
- */
-struct map_session_data *script_rid2sd(CScriptEngine &st)
-{
-	struct map_session_data *sd=map_id2sd(st.rid);
-	if(!sd)
-		ShowError("script_rid2sd: fatal error! player not attached!\n");
-	return sd;
-}
-
-
-/*==========================================
- * 変数の読み取り
- *------------------------------------------
- */
-void CScriptEngine::ConvertName(CScriptEngine::CValue &data)
-{
-	if(data.type==CScriptEngine::C_NAME)
-	{
-		char *name=str_buf+str_data[data.num&0x00ffffff].str;
-		char prefix=*name;
-		char postfix=name[strlen(name)-1];
-
-		if(postfix=='$')
-		{
-			data.type=CScriptEngine::C_CONSTSTR;
-			if( prefix=='@'/* || prefix=='l' */)
-			{
-				struct map_session_data *sd=script_rid2sd(*this);
-				if(sd)
-					data.str = pc_readregstr(*sd,data.num);
-			}
-			else if(prefix=='$')
-			{
-				data.str = (char *)numdb_search(mapregstr_db,data.num);
-			}
-			else
-			{
-				ShowError("script: get_val: illegal scope string variable.\n");
-				data.str = "!!ERROR!!";
-			}
-			if( data.str == NULL )
-				data.str = "";
-		}
-		else
-		{
-			data.type=CScriptEngine::C_INT;
-			if(str_data[data.num&0x00ffffff].type==CScriptEngine::C_INT)
-			{
-				data.num = str_data[data.num&0x00ffffff].val;
-			}
-			else if(str_data[data.num&0x00ffffff].type==CScriptEngine::C_PARAM)
-			{
-				struct map_session_data *sd=script_rid2sd(*this);
-				if(sd)
-					data.num = pc_readparam(*sd,str_data[data.num&0x00ffffff].val);
-			}
-			else if(prefix=='@'/* || prefix=='l'*/)
-			{
-				struct map_session_data *sd=script_rid2sd(*this);
-				if(sd)
-					data.num = pc_readreg(*sd,data.num);
-			}
-			else if(prefix=='$')
-			{
-				data.num = (int)numdb_search(mapreg_db,data.num);
-			}
-			else if(prefix=='#')
-			{
-				struct map_session_data *sd=script_rid2sd(*this);
-				if(sd)
-				{
-					if( name[1]=='#')
-						data.num = pc_readaccountreg2(*sd,name);
-					else
-						data.num = pc_readaccountreg(*sd,name);
-				}
-			}
-			else
-			{
-				struct map_session_data *sd=script_rid2sd(*this);
-				if(sd)
-					data.num = pc_readglobalreg(*sd,name);
-			}
-		}
-	}
-}
-/*==========================================
- * 変数の読み取り2
- *------------------------------------------
- */
-void* get_val2(CScriptEngine &st, int num)
-{
-	CScriptEngine::CValue dat;
-	dat.type=CScriptEngine::C_NAME;
-	dat.num=num;
-	st.ConvertName(dat);
-	if( dat.type==CScriptEngine::C_INT )
-		return (void*)dat.num;
-	else 
-		return (void*)dat.str;
-}
 
 /*==========================================
  * 変数設定用
@@ -1516,7 +1415,7 @@ int set_var(const char *name, void *v)
 			}
 			else
 			{
-				mapreg_setreg(num,(int)v);
+				mapreg_setregnum(num,(int)v);
 			}
 		}
 		else
@@ -1533,7 +1432,7 @@ int set_var(struct map_session_data &sd, const char *name, void *v)
 		int num = add_str(name);
 		char prefix =name[0];
 		char postfix=name[strlen(name)-1];
-		if( prefix=='@' || prefix=='l')
+		if( prefix=='@')
 		{
 			if( postfix=='$' )
 			{
@@ -1563,11 +1462,10 @@ int set_reg(CScriptEngine &st,int num,const char *name, void *v)
 		if( postfix=='$' )
 		{	// string variable
 			char *str=(char*)v;
-			if( prefix=='@' || prefix=='l')
+			if( prefix=='@')
 			{
-				struct map_session_data *sd = script_rid2sd(st);
-				if(sd)
-					pc_setregstr(*sd,num,str);
+				if(st.sd)
+					pc_setregstr(*st.sd,num,str);
 				else
 					ShowError("set_reg error name?:%s\n",name);
 					
@@ -1586,40 +1484,37 @@ int set_reg(CScriptEngine &st,int num,const char *name, void *v)
 			int val = (int)v;
 			if(str_data[num&0x00ffffff].type==CScriptEngine::C_PARAM)
 			{
-				struct map_session_data *sd=script_rid2sd(st);
-				if(sd) pc_setparam(*sd,str_data[num&0x00ffffff].val,val);
+				if(st.sd)
+					pc_setparam(*st.sd,str_data[num&0x00ffffff].val,val);
 			}
 			else if(prefix=='@' || prefix=='l')
 			{
-				struct map_session_data *sd=script_rid2sd(st);
-				if(sd)
-					pc_setreg(*sd,num,val);
+				if(st.sd)
+					pc_setreg(*st.sd,num,val);
 				else
 					ShowError("set_reg error name?:%s\n",name);
 					
 			}
 			else if(prefix=='$')
 			{
-				mapreg_setreg(num,val);
+				mapreg_setregnum(num,val);
 			}
 			else if(prefix=='#')
 			{
-				struct map_session_data *sd=script_rid2sd(st);
-				if(sd)
+				if(st.sd)
 				{
 					if( name[1]=='#' )
-						pc_setaccountreg2(*sd,name,val);
+						pc_setaccountreg2(*st.sd,name,val);
 					else
-						pc_setaccountreg(*sd,name,val);
+						pc_setaccountreg(*st.sd,name,val);
 				}
 				else
 					ShowError("set_reg error name?:%s\n",name);
 			}
 			else
 			{
-				struct map_session_data *sd=script_rid2sd(st);
-				if(sd)
-					pc_setglobalreg(*sd,name,val);
+				if(st.sd)
+					pc_setglobalreg(*st.sd,name,val);
 				else
 					ShowError("set_reg error name?:%s\n",name);
 			}
@@ -1630,9 +1525,205 @@ int set_reg(CScriptEngine &st,int num,const char *name, void *v)
 
 
 /*==========================================
- * 文字列への変換
+ * 変数の読み取り2
  *------------------------------------------
  */
+void* get_val2(CScriptEngine &st, int num)
+{
+	CScriptEngine::CValue dat;
+	dat.type=CScriptEngine::C_NAME;
+	dat.num=num;
+	st.ConvertName(dat);
+	if( dat.type==CScriptEngine::C_INT )
+		return (void*)dat.num;
+	else 
+		return (void*)dat.str;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// static class variable
+unsigned long CScriptEngine::defoid = npc_get_new_npc_id();
+
+unsigned long CScriptEngine::send_defaultnpc(bool send)
+{
+/*
+v5	2004-05-25	no text & no input
+v5  2004-06-28	text & input ok
+v6		...untested...
+v7		...untested...
+v8		...untested...
+v9		...untested...
+v10		text & input ok
+v11		text & input ok
+v12		...untested...
+v13		...untested...
+v14		...untested...
+v15		...untested...
+v16		text & input ok
+v17		text & input ok
+v18 	text & input ok
+*/
+
+	unsigned long ret = 0;
+	if( this->sd )
+	{	// a npc is only necessary in combination with a sd
+		static struct npc_data defnpc;
+		static bool needinit = true;
+		static Mutex mx;
+		ScopeLock sl(mx);	// lock the scope
+
+		if(needinit)	//!! integrate to a default constructor
+		{	// and initialize
+			needinit = false;
+
+			defnpc.bl.id = this->defoid;
+			defnpc.bl.type = BL_NPC;
+			defnpc.bl.subtype = 0;
+			defnpc.bl.prev = defnpc.bl.next = NULL;
+			defnpc.bl.id = defoid;
+			defnpc.dir = 0;
+			defnpc.flag = 0;
+			defnpc.class_ = 111; // hidden npc
+			defnpc.speed = 200;
+			defnpc.u.scr.ref=NULL;
+			defnpc.u.scr.timer_event=NULL;
+			defnpc.chat_id = 0;
+			defnpc.option = 0;
+			defnpc.opt1 = 0;
+			defnpc.opt2 = 0;
+			defnpc.opt3 = 0;
+			defnpc.walktimer = -1;
+			defnpc.u.scr.nexttimer=-1;
+			defnpc.u.scr.timerid=-1;
+			defnpc.canmove_tick=0;
+		}
+
+		if(send)
+		{
+			if( NONE==this->npcstate )
+			{	// determine what npc is to be used
+				struct npc_data* nd = (struct npc_data*)map_id2bl(this->oid);
+				if( nd && npc_isNear(*(this->sd), *nd) )
+				{	// npc is ok
+printf("npc ok ");
+					ret = this->oid;
+					this->npcstate = NPC_GIVEN;
+				}
+				else
+				{	// the targeted npc is not real or out of sight
+					// send a new one to the client
+					this->npcstate = NPC_DEFAULT;
+
+					// set current player position
+					defnpc.bl.m = this->sd->bl.m;
+					defnpc.bl.x = this->sd->bl.x;
+					defnpc.bl.y = this->sd->bl.y;
+					// spawn only on it's own client
+					clif_spawnnpc(*this->sd, defnpc);
+printf("send default npc (%i,%i,%i) ", defnpc.bl.m, defnpc.bl.x, defnpc.bl.y);
+
+					// tell the engine to refer the default npc
+					ret = this->defoid;
+				}
+			}
+			else if( NPC_GIVEN  ==this->npcstate )
+				ret = this->oid;
+			else if( NPC_DEFAULT==this->npcstate )
+				ret = this->defoid;
+		}
+		else
+		{
+			if( NPC_DEFAULT==this->npcstate )
+				clif_clearchar(*(this->sd), defnpc.bl);
+			this->npcstate = NONE;
+printf("npc clearing ");
+		}
+	}
+	else
+	{
+		printf("no sd ");
+	}
+printf("npc using %i\n", ret);
+	return ret;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// 変数の読み取り
+// converts a variable to a value
+void CScriptEngine::ConvertName(CScriptEngine::CValue &data)
+{
+	if(data.type==CScriptEngine::C_NAME)
+	{
+		char *name=str_buf+str_data[data.num&0x00ffffff].str;
+		char prefix=*name;
+		char postfix=name[strlen(name)-1];
+
+		if(postfix=='$')
+		{
+			data.type=CScriptEngine::C_CONSTSTR;
+			if( prefix=='@')
+			{
+				if(this->sd)
+					data.str = pc_readregstr(*sd,data.num);
+			}
+			else if(prefix=='$')
+			{
+				data.str = (char *)numdb_search(mapregstr_db,data.num);
+			}
+			else
+			{
+				ShowError("script: get_val: illegal scope string variable.\n");
+				data.str = "!!ERROR!!";
+			}
+			if( data.str == NULL )
+				data.str = "";
+		}
+		else
+		{
+			data.type=CScriptEngine::C_INT;
+			if(str_data[data.num&0x00ffffff].type==CScriptEngine::C_INT)
+			{
+				data.num = str_data[data.num&0x00ffffff].val;
+			}
+			else if(str_data[data.num&0x00ffffff].type==CScriptEngine::C_PARAM)
+			{
+				if(this->sd)
+					data.num = pc_readparam(*sd,str_data[data.num&0x00ffffff].val);
+			}
+			else if(prefix=='@')
+			{
+				if(this->sd)
+					data.num = pc_readreg(*sd,data.num);
+			}
+			else if(prefix=='$')
+			{
+				data.num = (int)numdb_search(mapreg_db,data.num);
+			}
+			else if(prefix=='#')
+			{
+				if(this->sd)
+				{
+					if( name[1]=='#')
+						data.num = pc_readaccountreg2(*sd,name);
+					else
+						data.num = pc_readaccountreg(*sd,name);
+				}
+			}
+			else
+			{
+				if(this->sd)
+					data.num = pc_readglobalreg(*sd,name);
+			}
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// 文字列への変換
+// returns a string from a stack value
+// does conversion when necessary
 const char* CScriptEngine::GetString(CScriptEngine::CValue &data)
 {
 	ConvertName(data);
@@ -1652,110 +1743,99 @@ const char* CScriptEngine::GetString(CScriptEngine::CValue &data)
 	return data.str;
 }
 
-/*==========================================
- * 数値へ変換
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+// 数値へ変換
+// returns an integer from a stack value
+// does conversion when necessary
 int CScriptEngine::GetInt(CScriptEngine::CValue &data)
 {
 	ConvertName(data);
 	if( data.isString() )
 	{
-		const char *p=data.str;
-		data.num = atoi(p);
-		if(data.type==CScriptEngine::C_STR)
-			aFree((void*)p);
+		int val = atoi( data.str );
+		data.clear();
+
 		data.type=CScriptEngine::C_INT;
+		data.num = val;
 	}
 	return data.num;
 }
 
 
-/*==========================================
- * スタックへ数値をプッシュ
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+// スタックへ数値をプッシュ
+// push integer on the stack
 void CScriptEngine::push_val(int type,int val)
 {
-	if(stack.sp >= stack.sp_max){
-		stack.sp_max += 64;
-		stack.stack_data = (CScriptEngine::CValue *)aRealloc(stack.stack_data, stack.sp_max*sizeof(CScriptEngine::CValue) );
-		memset(stack.stack_data + (stack.sp_max - 64), 0, 64 * sizeof(CScriptEngine::CValue));
-	}
+	alloc();
 //	if(battle_config.etc_log)
-//		ShowMessage("push (%d,%d)-> %d\n",type,val,stack.sp);
+//		ShowMessage("push (%d,%d)-> %d\n",type,val,stack_ptr);
 
-	// check if freeing the previous stack value needs clearing
-	if(stack.stack_data[stack.sp].type==CScriptEngine::C_STR)
-		aFree((void*)(stack.stack_data[stack.sp].str));
-	stack.stack_data[stack.sp].type=type;
-	stack.stack_data[stack.sp].num=val;
-	stack.sp++;
+	// previous stack value needs clearing
+	stack_data[stack_ptr].clear();
+
+	stack_data[stack_ptr].type=type;
+	stack_data[stack_ptr].num=val;
+	stack_ptr++;
 }
 
-/*==========================================
- * スタックへ文字列をプッシュ
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+// スタックへ文字列をプッシュ
+// push string on the stack
 void CScriptEngine::push_str(int type, const char *str)
 {
-	if((size_t)stack.sp >= stack.sp_max)
-	{
-		stack.sp_max += 64;
-		stack.stack_data = (CScriptEngine::CValue *)aRealloc(stack.stack_data, stack.sp_max * sizeof(CScriptEngine::CValue));
-		memset(stack.stack_data + (stack.sp_max - 64), 0, 64 * sizeof(CScriptEngine::CValue));
-	}
+	alloc();
 //	if(battle_config.etc_log)
-//		ShowMessage("push (%d,%x)-> %d\n",type,str,stack.sp);
-	// check if freeing the previous stack value needs clearing
-	if(stack.stack_data[stack.sp].type==CScriptEngine::C_STR)
-		aFree((void*)(stack.stack_data[stack.sp].str));
+//		ShowMessage("push (%d,%x)-> %d\n",type,str,stack_ptr);
 
-	stack.stack_data[stack.sp].type=type;
-	stack.stack_data[stack.sp].str=str;
-	stack.sp++;
+	// previous stack value needs clearing
+	stack_data[stack_ptr].clear();
+
+	stack_data[stack_ptr].type=type;
+	stack_data[stack_ptr].str=str;
+	stack_ptr++;
 }
 
-/*==========================================
- * スタックへ複製をプッシュ
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+// スタックへ複製をプッシュ
+// push a copy on the stack
 void CScriptEngine::push_copy(size_t pos)
 {
-	switch(stack.stack_data[pos].type){
+	switch(stack_data[pos].type){
 	case CScriptEngine::C_CONSTSTR:
-		push_str(CScriptEngine::C_CONSTSTR,stack.stack_data[pos].str);
+		push_str(CScriptEngine::C_CONSTSTR,stack_data[pos].str);
 		break;
 	case CScriptEngine::C_STR:
-		push_str(CScriptEngine::C_STR, aStrdup(stack.stack_data[pos].str));
+		push_str(CScriptEngine::C_STR, aStrdup(stack_data[pos].str));
 		break;
 	default:
-		push_val(stack.stack_data[pos].type,stack.stack_data[pos].num);
+		push_val(stack_data[pos].type,stack_data[pos].num);
 		break;
 	}
 }
 
-/*==========================================
- * スタックからポップ
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+// スタックからポップ
+// remove values from start to end from the stack
 void CScriptEngine::pop_stack(size_t start, size_t end)
 {
-	size_t i;
-	for(i=start;i<end;i++)
+	if(end>start)
+	{	
+		size_t i, k;
+		if(end>stack_ptr)
+			end = stack_ptr;
+		// move the values behine 'end' to 'start'
+		for(i=start,k=end; k<stack_ptr; i++,k++)
+			stack_data[i] << stack_data[k];
+		// reduce the stack pointer
+		stack_ptr -= end-start;
+	}
+	else if(end<start)
 	{
-		if(stack.stack_data[i].type==C_STR)
-		{
-			aFree( (void*)(stack.stack_data[i].str) );
-			stack.stack_data[i].type=C_INT;
-			stack.stack_data[i].num=0;
-		}
+		ShowError("Script: pop_stack called irregulary with %i, %i\n", start, end);
+		this->Quit();
 	}
-	if(stack.sp>end){
-		memmove(stack.stack_data+start,stack.stack_data+end,(stack.sp-end)*sizeof(CScriptEngine::CValue));
-		memset(stack.stack_data+start+(stack.sp-end),0,(end-start)*sizeof(CScriptEngine::CValue));
-	}
-	stack.sp -= end-start;
+
 }
 /*==========================================
  * スタックから値を取り出す
@@ -1763,17 +1843,10 @@ void CScriptEngine::pop_stack(size_t start, size_t end)
  */
 int CScriptEngine::pop_val()
 {
-	if(stack.sp <= 0)
-		return 0;
-	stack.sp--;
-	ConvertName(stack.stack_data[stack.sp]);
-	if(stack.stack_data[stack.sp].type==C_INT)
-		return stack.stack_data[stack.sp].num;
-	else if(stack.stack_data[stack.sp].type==C_STR)
+	if(stack_ptr > 0)
 	{
-		aFree( (void*)(stack.stack_data[stack.sp].str) );
-		stack.stack_data[stack.sp].type=C_INT;
-		stack.stack_data[stack.sp].num=0;
+		stack_ptr--;
+		return GetInt( stack_data[stack_ptr] );
 	}
 	return 0;
 }
@@ -1844,17 +1917,17 @@ void CScriptEngine::op_2str(int op)
 {
 	int a=0;
 	char *buf=NULL;
-	const char *s2 = GetString( stack.stack_data[stack.sp  ] );
-	const char *s1 = GetString( stack.stack_data[stack.sp-1] );
+	const char *s2 = GetString( stack_data[stack_ptr  ] );
+	const char *s1 = GetString( stack_data[stack_ptr-1] );
 
 	switch(op)
 	{
 	case C_AND:
 	case C_ADD:
-		buf=(char *)aMalloc((1+strlen(stack.stack_data[stack.sp-1].str)+
-							   strlen(stack.stack_data[stack.sp  ].str)) * sizeof(char));
-		strcpy(buf,stack.stack_data[stack.sp-1].str);
-		strcat(buf,stack.stack_data[stack.sp].str);
+		buf=(char *)aMalloc((1+strlen(stack_data[stack_ptr-1].str)+
+							   strlen(stack_data[stack_ptr  ].str)) * sizeof(char));
+		strcpy(buf,stack_data[stack_ptr-1].str);
+		strcat(buf,stack_data[stack_ptr].str);
 		break;
 	case C_EQ:
 		a= (strcmp(s1,s2)==0);
@@ -1879,36 +1952,27 @@ void CScriptEngine::op_2str(int op)
 		break;
 	}
 	// clear the stack values
-	if( stack.stack_data[stack.sp-1].type==C_STR )
-	{
-		aFree( (void*)(stack.stack_data[stack.sp-1].str) );
-		stack.stack_data[stack.sp-1].type=C_INT;
-		stack.stack_data[stack.sp-1].num=0;
-	}
-	if( stack.stack_data[stack.sp].type==C_STR )
-	{
-		aFree((void*)(stack.stack_data[stack.sp].str) );
-		stack.stack_data[stack.sp].type=C_INT;
-		stack.stack_data[stack.sp].num=0;
-	}
+	stack_data[stack_ptr-1].clear();
+	stack_data[stack_ptr  ].clear();
+
 	// set the return value of the operation
 	if(buf)
 	{
-		stack.stack_data[stack.sp-1].type= C_STR;
-		stack.stack_data[stack.sp-1].str = buf;
+		stack_data[stack_ptr-1].type= C_STR;
+		stack_data[stack_ptr-1].str = buf;
 	}
 	else
 	{
-		stack.stack_data[stack.sp-1].type= C_INT;
-		stack.stack_data[stack.sp-1].num = a;
+		stack_data[stack_ptr-1].type= C_INT;
+		stack_data[stack_ptr-1].num = a;
 	}
 }
 ///////////////////////////////////////////////////////////////////////////////
 // Binomial operators (numbers) 二項演算子(数値)
 void CScriptEngine::op_2int(int op)
 {
-	int i2 = GetInt( stack.stack_data[stack.sp  ] );
-	int i1 = GetInt( stack.stack_data[stack.sp-1] );
+	int i2 = GetInt( stack_data[stack_ptr  ] );
+	int i1 = GetInt( stack_data[stack_ptr-1] );
 
 	switch(op)
 	{
@@ -1981,19 +2045,22 @@ void CScriptEngine::op_2int(int op)
 		i1=i1<<i2;
 		break;
 	}
-	stack.stack_data[stack.sp-1].type= C_INT;
-	stack.stack_data[stack.sp-1].num = i1;
+	// stack values are ints and don't need clearing
+
+	// set the return value of the operation
+	stack_data[stack_ptr-1].type= C_INT;
+	stack_data[stack_ptr-1].num = i1;
 }
 ///////////////////////////////////////////////////////////////////////////////
 // Binomial Operator 二項演算子
 void CScriptEngine::op_2(int op)
 {	// 2 input values on the stack result in 1 output value
-	stack.sp--;
+	stack_ptr--;
 	// convert variables
-	ConvertName(stack.stack_data[stack.sp  ]);
-	ConvertName(stack.stack_data[stack.sp-1]);
+	ConvertName(stack_data[stack_ptr  ]);
+	ConvertName(stack_data[stack_ptr-1]);
 	// check for string or number operation
-	if( stack.stack_data[stack.sp].isString() || stack.stack_data[stack.sp-1].isString() )
+	if( stack_data[stack_ptr].isString() || stack_data[stack_ptr-1].isString() )
 	{	// at least one string, so let it be string operation
 		op_2str(op);
 	}
@@ -2023,16 +2090,15 @@ void CScriptEngine::op_1(int op)
 }
 
 
-/*==========================================
- * 関数の実行
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+// 関数の実行
+// run a buildin function
 int CScriptEngine::run_func()
 {
 	int i,start_sp,end_sp,func;
 
-	end_sp=stack.sp;
-	for(i=end_sp-1;i>=0 && stack.stack_data[i].type!=C_ARG;i--);
+	end_sp=stack_ptr;
+	for(i=end_sp-1;i>=0 && stack_data[i].type!=C_ARG;i--);
 	if(i==0)
 	{
 		if(battle_config.error_log)
@@ -2043,8 +2109,8 @@ int CScriptEngine::run_func()
 	this->start=start_sp=i-1;
 	this->end  =end_sp;
 	
-	func=stack.stack_data[this->start].num;
-	if( stack.stack_data[this->start].type!=C_NAME || str_data[func].type!=C_FUNC )
+	func=stack_data[this->start].num;
+	if( stack_data[this->start].type!=C_NAME || str_data[func].type!=C_FUNC )
 	{
 		ShowMessage ("run_func: '"CL_WHITE"%s"CL_RESET"' (type %d) is not function and command!\n",
 			str_buf + str_data[func].str, str_data[func].type);
@@ -2056,21 +2122,21 @@ int CScriptEngine::run_func()
 		ShowMessage("run_func : %s? (%d(%d))\n",str_buf+str_data[func].str,func,str_data[func].type);
 		ShowMessage("stack dump :");
 		for(i=0;i<end_sp;i++){
-			switch(stack.stack_data[i].type){
+			switch(stack_data[i].type){
 			case C_INT:
-				ShowMessage("| int(%d)", stack.stack_data[i].num);
+				ShowMessage("| int(%d)", stack_data[i].num);
 				break;
 			case C_NAME:
-				ShowMessage("| name(%s)",str_buf+str_data[stack.stack_data[i].num].str);
+				ShowMessage("| name(%s)",str_buf+str_data[stack_data[i].num].str);
 				break;
 			case C_ARG:
 				ShowMessage("| arg");
 				break;
 			case C_POS:
-				ShowMessage("| pos(%d)",stack.stack_data[i].num);
+				ShowMessage("| pos(%d)",stack_data[i].num);
 				break;
 			default:
-				ShowMessage("| %d,%d",stack.stack_data[i].type,stack.stack_data[i].num);
+				ShowMessage("| %d,%d",stack_data[i].type,stack_data[i].num);
 			}
 		}
 		ShowMessage("\n");
@@ -2082,10 +2148,10 @@ int CScriptEngine::run_func()
 	else
 	{
 		if(battle_config.error_log)
-			ShowMessage("run_func : %s? (%d(%d))\n",str_buf+str_data[func].str,func,str_data[func].type);
+			ShowError("run_func : %s? (%d(%d))\n",str_buf+str_data[func].str,func,str_data[func].type);
 		push_val(C_INT,0);
 	}
-	pop_stack(start_sp,end_sp);
+	pop_stack(start_sp, end_sp);
 
 	if(state==RETFUNC)
 	{	// ユーザー定義関数からの復帰
@@ -2093,237 +2159,298 @@ int CScriptEngine::run_func()
 		int i;
 
 		pop_stack(defsp,start_sp);	// 復帰に邪魔なスタック削除
-		if( defsp<4 || stack.stack_data[defsp-1].type!=C_RETINFO)
+		if( defsp<4 || stack_data[defsp-1].type!=C_RETINFO)
 		{
-			ShowMessage("script:run_func(return) return without callfunc or callsub!\n");
+			ShowError("script:run_func(return) return without callfunc or callsub (%i,%i)!\n", defsp, stack_data[defsp-1].type);
 			state=END;
-			return 0;
 		}
-		pos	  = GetInt   (stack.stack_data[this->defsp-1]);	// スクリプト位置の復元
-		script= GetString(stack.stack_data[this->defsp-2]);	// スクリプトを復元
-		defsp = GetInt   (stack.stack_data[this->defsp-3]);	// 基準スタックポインタを復元
-		i	  = GetInt   (stack.stack_data[this->defsp-4]);	// 引数の数所得
+		else
+		{	// get back the calling heap
+			pos	  = GetInt   (stack_data[this->defsp-1]);	// スクリプト位置の復元
+			script= GetString(stack_data[this->defsp-2]);	// スクリプトを復元
+			defsp = GetInt   (stack_data[this->defsp-3]);	// 基準スタックポインタを復元
+			i	  = GetInt   (stack_data[this->defsp-4]);	// 引数の数所得
 
-		pop_stack(olddefsp-4-i,olddefsp);		// 要らなくなったスタック(引数と復帰用データ)削除
+			pop_stack(olddefsp-4-i,olddefsp);		// 要らなくなったスタック(引数と復帰用データ)削除
 
-		state=GOTO;
+			state=GOTO;
+		}
 	}
-
 	return 0;
 }
 
-/*==========================================
- * スクリプトの実行メイン部分
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+// スクリプトの実行メイン部分
+// main script execution loop
 int CScriptEngine::run_main()
 {
-	int c=0, rerun_pos;
-	int cmdcount=script_config.check_cmdcount;
-	int gotocount=script_config.check_gotocount;
-
 	if(!script)
-		return END;
-
-	defsp = stack.sp;
-
-	rerun_pos=pos;
-
-	for(state=0; state==0;)
 	{
-		c = get_com(script, pos);
-
-		switch(c)
+		this->state=END;
+	}
+	else
+	{
+		int cmdcount=script_config.check_cmdcount;
+		int gotocount=script_config.check_gotocount;
+		int c=0;
+		size_t rerun_pos = this->pos;
+		this->defsp = this->stack_ptr;
+		this->state = RUN;
+		while( RUN == this->state )
 		{
-		case C_EOL:
-			if(stack.sp!=defsp)
+			c = get_com(script, pos);
+			switch(c)
+			{
+			case C_EOL:
+			{
+				if(stack_ptr!=defsp)
+				{
+					if(battle_config.error_log)
+					{
+						ShowMessage("stack_ptr(%d) != default(%d)\n",stack_ptr,defsp);
+						//!!
+						printf("(%d)\n", pos);
+						debug_script(script,((pos>32)?pos-32:0),((pos>32)?32:pos));
+					}
+					stack_ptr=defsp;
+				}
+				rerun_pos = pos;
+				break;
+			}
+			case C_INT:
+			{
+				push_val(C_INT,get_num(script,pos));
+				break;
+			}
+			case C_POS:
+			case C_NAME:
+			{
+				unsigned long tmp;
+				tmp = (0xFF&script[pos])
+					| (0xFF&script[pos+1])<<8
+					| (0xFF&script[pos+2])<<16;
+				push_val(c,tmp);
+				pos+=3;
+				break;
+			}
+			case C_ARG:
+			{
+				push_val(c,0);
+				break;
+			}
+			case C_STR:
+			{
+				push_str( C_CONSTSTR, (script+pos));
+				while(script[pos++]);
+				break;
+			}
+			case CScriptEngine::C_FUNC:
+			{
+				run_func();
+				if(state==GOTO)
+				{
+					if( gotocount>0 && (--gotocount)<=0 )
+					{
+						ShowMessage("run_script: infinity loop func!\n");
+						state=END;
+					}
+					else
+					{
+						rerun_pos=pos;
+						state=RUN;					
+					}
+				}
+				break;
+			}
+			case C_ADD:
+			case C_SUB:
+			case C_MUL:
+			case C_DIV:
+			case C_MOD:
+			case C_EQ:
+			case C_NE:
+			case C_GT:
+			case C_GE:
+			case C_LT:
+			case C_LE:
+			case C_AND:
+			case C_OR:
+			case C_XOR:
+			case C_LAND:
+			case C_LOR:
+			case C_R_SHIFT:
+			case C_L_SHIFT:
+			{
+				op_2(c);
+				break;
+			}
+			case C_NEG:
+			case C_NOT:
+			case C_LNOT:
+			{
+				op_1(c);
+				break;
+			}
+			case C_NOP:
+			{
+				pos++;
+				state=END;
+				break;
+			}
+			default:
 			{
 				if(battle_config.error_log)
-				{
-					ShowMessage("stack.sp(%d) != default(%d)\n",stack.sp,defsp);
-					//!!
-					printf("(%d)\n", pos);
-					debug_script(script,((pos>32)?pos-32:0),((pos>32)?32:pos));
-				}
-				stack.sp=defsp;
+					ShowMessage("unknown command : %d @ %d\n",c,pos);
+				state=END;
+				break;
 			}
-			rerun_pos = pos;
-			break;
-		case C_INT:
-			push_val(C_INT,get_num(script,pos));
-			break;
-		case C_POS:
-		case C_NAME:
-		{
-			unsigned long tmp;
-			tmp = (0xFF&script[pos])
-				| (0xFF&script[pos+1])<<8
-				| (0xFF&script[pos+2])<<16;
-			push_val(c,tmp);
-			pos+=3;
-			break;
-		}
-		case C_ARG:
-			push_val(c,0);
-			break;
-		case C_STR:
-			push_str( C_CONSTSTR, (script+pos));
-			while(script[pos++]);
-			break;
-		case CScriptEngine::C_FUNC:
-			run_func();
-			if(state==GOTO)
+			}//end switch
+			if( cmdcount>0 && (--cmdcount)<=0 )
 			{
-				rerun_pos=pos;
-				state=0;
-				if( gotocount>0 && (--gotocount)<=0 )
-				{
-					ShowMessage("run_script: infinity loop func!\n");
-					state=END;
-				}
+				ShowMessage("run_script: infinity loop cmd!\n");
+				state=END;
 			}
-			break;
-		case C_ADD:
-		case C_SUB:
-		case C_MUL:
-		case C_DIV:
-		case C_MOD:
-		case C_EQ:
-		case C_NE:
-		case C_GT:
-		case C_GE:
-		case C_LT:
-		case C_LE:
-		case C_AND:
-		case C_OR:
-		case C_XOR:
-		case C_LAND:
-		case C_LOR:
-		case C_R_SHIFT:
-		case C_L_SHIFT:
-			op_2(c);
-			break;
-		case C_NEG:
-		case C_NOT:
-		case C_LNOT:
-			op_1(c);
-			break;
-		case C_NOP:
-			pos++;
-			state=END;
-			break;
-		default:
-			if(battle_config.error_log)
-				ShowMessage("unknown command : %d @ %d\n",c,pos);
-			state=END;
-			break;
 		}
-		if( cmdcount>0 && (--cmdcount)<=0 ){
-			ShowMessage("run_script: infinity loop cmd!\n");
-			state=END;
-		}
+		if( state==RERUNLINE )
+			pos=rerun_pos;
 	}
-	if( state==RERUNLINE )
-		pos=rerun_pos;
 	return state;
 }
 
-/*==========================================
- * スクリプトの実行
- *------------------------------------------
- */
- int CScriptEngine::run(const char *rootscript, size_t pos, unsigned long rid, unsigned long oid)
+///////////////////////////////////////////////////////////////////////////////
+// スクリプトの実行
+// script entry point
+int CScriptEngine::run(const char *rootscript, size_t pos, unsigned long rid, unsigned long oid)
 {
-	if( rootscript!=NULL )
-	{
+	static CScriptEngine defaultengine;	
+	//!! change to nonstatic and give attention to attachrid on a multithread scheme
+
+	static Mutex mx;
+	if( rootscript )
+	{	// threadlock
+		mx.lock();
 		struct map_session_data *sd=map_id2sd(rid);
+		CScriptEngine &engine = (sd)? sd->ScriptEngine : defaultengine;
 
-		if( sd )
-		{	// running script within player environment
-			if( sd->ScriptEngine.script && (sd->ScriptEngine.script != rootscript || sd->ScriptEngine.pos != pos) )
-			{
-				ShowWarning("PlayerScript already started, queueing %p %i %i %i\n", rootscript, pos, rid, oid);
-				sd->ScriptEngine.enqueue(rootscript, pos, rid, oid);
-			}
-			else
-			{
-				if( !sd->ScriptEngine.script )
-				{	// start a new script
-
-					if( NULL==sd->ScriptEngine.stack.stack_data )
-					{	// create a new stack
-						sd->ScriptEngine.stack.sp_max	 = 64;
-						sd->ScriptEngine.stack.stack_data = (CScriptEngine::CValue *)aCalloc(sd->ScriptEngine.stack.sp_max,sizeof(CScriptEngine::CValue));
-					}
-					sd->ScriptEngine.stack.sp	= 0;
-					sd->ScriptEngine.script		= rootscript;
-					sd->ScriptEngine.pos		= pos;
-					sd->ScriptEngine.rid		= rid;
-					sd->ScriptEngine.oid		= oid;
-				}
-				if( END==sd->ScriptEngine.run_main() )
-				{
-					sd->ScriptEngine.state	= 0;
-					sd->ScriptEngine.script	= NULL;
-					sd->ScriptEngine.oid	= 0;
-
-					// dequeue the next script caller if any
-					CScriptEngine::CCallQueue* elem = sd->ScriptEngine.dequeue();
-					if(elem)
-					{
-						// run it
-						CScriptEngine::run(elem->script, elem->pos, elem->rid, elem->oid);
-						// delete the caller
-						delete elem;
-					}
-					else
-					{	// something I dont understand yet
-						npc_event_dequeue(*sd);
-					}
-				}
-				else
-				return sd->ScriptEngine.pos;
-			}
+		if( engine.script && (engine.script != rootscript || engine.pos != pos) )
+		{
+			ShowWarning("PlayerScript already started, queueing %p %i %i %i\n", rootscript, pos, rid, oid);
+			// will be queued automatically
+			new CScriptEngine::CCallScript(engine.queue, rootscript, pos, rid, oid);
 		}
 		else
-		{	// no player, using server environment
-			CScriptEngine st;
-			memset(&st,0,sizeof(st));
+		{
+			ShowWarning("Script start %p %i %i %i, state in %i\n", rootscript, pos, rid, oid, engine.state);
 
-			// create a new stack
-			st.stack.sp			= 0;
-			st.stack.sp_max		= 64;
-			st.stack.stack_data = (CScriptEngine::CValue *)aCalloc(st.stack.sp_max,sizeof(CScriptEngine::CValue));
+			if( !engine.script )
+			{	// start a new script
+				engine.stack_ptr= 0;
+				engine.script	= rootscript;
+				engine.pos		= pos;
+				engine.npcstate = NONE;
+			}
+			// else we continue the old one
+			engine.rid		= rid;
+			engine.sd		= sd;
+			engine.oid		= oid;
 
-			st.script	= rootscript;
-			st.pos		= pos;
-			st.rid		= rid;
-			st.oid		= oid;
+			// start the engine;
+			mx.unlock();
+			engine.run_main();
+			mx.lock();
 
-			if( END!=st.run_main() )
-				ShowWarning("ServerScript not finished with state 'End'\n");
+			if( ENVSWAP==engine.state && engine.sd )
+			{	// attach_rid has been called and we need to swap the engine environment
+				// local sd is the contest where the script was started in (possibly NULL)
+				// engine.sd is the context where the script is transfered to
+				if(engine.sd->ScriptEngine.isRunning() )
+				{	// the other script engine is either running or waiting for data
+					// so we need to queue in the complete stack and run parameters
 
-			st.stack.clear();
+					// will be queued automatically
+					new CScriptEngine::CCallStack(engine.sd->ScriptEngine.queue,// target queue
+						engine.script, engine.pos, engine.rid, engine.oid,		// script data
+						engine.stack_ptr, engine.stack_max, engine.stack_data);	// the stack
+					// clear this stack, it has been moved
+					engine.stack_ptr = 0;
+					engine.stack_max = 0;
+					engine.stack_data=NULL;
+
+					ShowWarning("PlayerScript already started, queueing stack for %p %i %i %i\n", rootscript, pos, rid, oid);
+				}
+				else
+				{	// the other script is OFF, so just swap
+
+					ShowWarning("Swap Environment for %p %i %i %i\n", rootscript, pos, rid, oid);
+					// swap the stack with the target
+					swap(engine.sd->ScriptEngine.stack_max,	engine.stack_max);
+					swap(engine.sd->ScriptEngine.stack_ptr,	engine.stack_ptr);
+					swap(engine.sd->ScriptEngine.stack_data,engine.stack_data);
+
+					// copy the run parameter
+					engine.sd->ScriptEngine.script = engine.script;
+					engine.sd->ScriptEngine.pos = engine.pos;
+					engine.sd->ScriptEngine.sd  = engine.sd;
+					engine.sd->ScriptEngine.rid = engine.rid;
+					engine.sd->ScriptEngine.oid = engine.oid;
+
+					// and run the copied script
+					CScriptEngine::run(engine.script, engine.pos, engine.rid, engine.oid);
+				}
+
+				// and stop this script here
+				engine.state=END;
+			}
+			else if( STOP==engine.state || RERUNLINE==engine.state )
+			{	// script has stoped to wait for a player responce
+				if(!sd)
+				{
+					ShowWarning("Server Script not finished with state 'End'. Terminating.\n");
+					engine.state = END;
+				}
+				else
+					engine.state = STOP;
+			}
+
+			if( STOP!=engine.state )
+			{	// any state other then STOP will terminate the script
+				engine.state	= OFF;
+				engine.script	= NULL;
+				engine.oid		= 0;
+				
+				// dequeue the next script caller if any
+				// will be dequeued automatically
+				CScriptEngine::CCallScript* elem = CCallScript::dequeue(engine.queue);
+				if(elem)
+				{
+					ShowWarning("start queued script with %p %i %i %i\n", elem->script, elem->pos, elem->rid, elem->oid);
+					// get the stack (if any)
+					elem->setStack(engine.stack_ptr, engine.stack_max, engine.stack_data);
+					// run the script
+					CScriptEngine::run(elem->script, elem->pos, elem->rid, elem->oid);
+					// delete the caller
+					delete elem;
+				}
+				else if(sd)
+				{	// something I dont understand yet
+					npc_event_dequeue(*sd);
+				}
+			}
+			if( OFF==engine.state )// clear
+			{
+				if(engine.npcstate == NPC_DEFAULT)
+					engine.send_defaultnpc(false);
+
+				//!! ... other necesary clearing
+			}
 		}
+		// and release the lock
+		mx.unlock();
+printf("script out with state %i\n", engine.state);
 	}
 	return 0;
 }
 
-void CScriptEngine::CStack::clear()
-{
-	if(stack_data)
-	{
-		for(size_t i = 0; i < sp; i++)
-		{
-			if (stack_data[i].type == CScriptEngine::C_STR)
-				aFree((void*)(stack_data[i].str));
-		}
-		aFree(stack_data);
-		stack_data=NULL;
-		sp=0;
-		sp_max=0;
-	}
-}
 
 
 
@@ -2345,16 +2472,273 @@ void CScriptEngine::CStack::clear()
 //
 // 埋め込み関数
 //
+
+///////////////////////////////////////////////////////////////////////////////
+// display message
+int buildin_mes(CScriptEngine &st)
+{
+	if(st.sd)
+	{
+printf("mes '%s'\n", st.GetString(st[2]));
+		clif_scriptmes(*st.sd,st.send_defaultnpc(),st.GetString(st[2]) );
+	}
+	return 0;
+}
+///////////////////////////////////////////////////////////////////////////////
+// display next button on the client
+// continue the script when button is pressed
+int buildin_next(CScriptEngine &st)
+{
+	if(st.sd)
+	{
+		
+printf("next\n");
+		st.Stop();
+		//clif_scriptnext(*st.sd,st.oid);
+		clif_scriptnext(*st.sd, st.send_defaultnpc());
+	}
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// display close button which closes the window on the client
+// terminate the script when pressed
+int buildin_close(CScriptEngine &st)
+{
+	if(st.sd)
+	{
+printf("close\n");
+		if( st.Rerun() )
+		{
+			//clif_scriptclose(*st.sd,st.oid);
+			clif_scriptclose(*st.sd, st.send_defaultnpc());
+			return 0;
+		}
+		//else nothing
+	}
+	st.Quit();
+	return 0;
+}
+///////////////////////////////////////////////////////////////////////////////
+// display close button which closes the window on the client
+// continue the script when button is pressed
+int buildin_close2(CScriptEngine &st)
+{
+	if(st.sd)
+	{
+printf("close2\n");
+		st.Stop();
+		//clif_scriptclose(*st.sd, st.oid);
+		clif_scriptclose(*st.sd, st.send_defaultnpc());
+	}
+	return 0;
+}
+
 /*==========================================
  *
  *------------------------------------------
  */
-int buildin_mes(CScriptEngine &st)
+int buildin_menu(CScriptEngine &st)
 {
-	map_session_data *sd = script_rid2sd(st);
-	if(sd) clif_scriptmes(*sd,st.oid,st.GetString(st[2]) );
+	if(st.sd)
+	{
+		if( st.Rerun() )
+		{
+printf("menu1\n");
+			size_t len,i;
+			char *buf;
+			for(i=st.start+2,len=16;i<st.end;i+=2)
+				len+=1+strlen( st.GetString(st.stack_data[i]) );
+			buf=(char *)aMalloc((len+1)*sizeof(char));
+			buf[0]=0;
+			for(i=st.start+2,len=0;i<st.end;i+=2){
+				strcat(buf,st.stack_data[i].str);
+				strcat(buf,":");
+			}
+			//clif_scriptmenu(*st.sd,st.oid,buf);
+			clif_scriptmenu(*st.sd, st.send_defaultnpc(), buf);
+			aFree(buf);
+		}
+		else
+		{
+			size_t menu = st.GetInt( st.cExtData );
+printf("menu2 %i\n", menu);
+			if(menu==0xff)
+			{	// cancel
+				st.Quit();
+			}
+			else
+			{	// goto動作
+				// ragemu互換のため
+				pc_setreg(*st.sd,add_str("l15"),menu);
+				pc_setreg(*st.sd,add_str("@menu"),menu);
+				if(menu>0 && menu<(st.end-st.start)/2)
+				{
+					if( st[menu*2+1].type==CScriptEngine::C_POS )
+					{
+printf("goto %i\n", st[menu*2+1].num);
+						st.Goto( st[menu*2+1].num );
+					}
+					else
+					{
+						ShowMessage("script: menu point %i is not a label !\n", menu);
+						st.Quit();
+					}
+				}
+			}
+		}
+	}
+	else
+	{	// menu without player is lame
+		st.Quit();
+	}
 	return 0;
 }
+
+int buildin_select(CScriptEngine &st)
+{
+	if(st.sd)
+	{
+printf("select\n");
+		if( st.Rerun() )
+		{
+			char *buf;
+			size_t len,i;
+			for(i=st.start+2,len=16;i<st.end;i++)
+				len+=1+strlen( st.GetString(st.stack_data[i]) );
+
+			buf=(char *)aMalloc((len+1)*sizeof(char));
+			buf[0]=0;
+			for(i=st.start+2,len=0;i<st.end;i++){
+				strcat(buf,st.stack_data[i].str);
+				strcat(buf,":");
+			}
+			//clif_scriptmenu(*st.sd,st.oid,buf);
+			clif_scriptmenu(*st.sd, st.send_defaultnpc(), buf);
+			aFree(buf);
+		}
+		else
+		{
+			size_t menu = st.GetInt( st.cExtData );
+		
+			if(menu==0xff)
+			{	// cancel
+				st.rerun_flag=0;
+				st.Quit();
+			}
+			else 
+			{
+				pc_setreg(*st.sd,add_str( "l15"),menu);
+				pc_setreg(*st.sd,add_str( "@menu"),menu);
+				st.rerun_flag=0;
+				st.push_val(CScriptEngine::C_INT,menu);
+			}
+		}
+	}
+	else
+	{	// select without a player is lame
+		st.Quit();
+	}
+	return 0;
+}
+/*==========================================
+ *
+ *------------------------------------------
+ */
+int buildin_input(CScriptEngine &st)
+{
+/*
+	int num=(st.end>st.start+2)?st[2].num:0;
+	char *name=(st.end>st.start+2)?str_buf+str_data[num&0x00ffffff].str:(char*)"";
+	char postfix=name[strlen(name)-1];
+	struct map_session_data *sd=st.sd;
+	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
+
+	if( sd && nd )
+	if( !npc_isNear(*sd, *nd) )
+	{	// display a warnin on the first pass through this function
+		if(!st.rerun_flag)
+			clif_scriptmes(*sd,st.oid, "Script is using input box with invisible or nonreachable npc and is terminated");
+		return buildin_close(st);
+	}
+	else
+	{
+printf("input\n");
+		if( st.Rerun() )
+		{
+			if(postfix=='$')clif_scriptinputstr(*sd,st.oid);
+			else			clif_scriptinput(*sd,st.oid);
+		}
+		else
+		{
+			if( postfix=='$' )
+			{	// 文字列
+				if(st.end>st.start+2)
+				{	// 引数1個
+					set_reg(st,num,name,(void*)st.GetString(st.cExtData) );
+				}
+				else
+				{
+					ShowError("buildin_input: string discarded !!\n");
+				}
+			}
+			else
+			{	// 数値
+				if(st.end>st.start+2)
+				{	// 引数1個
+					set_reg(st,num,name,(void*)st.GetInt(st.cExtData));
+				}
+				else
+				{	// ragemu互換のため
+					pc_setreg(*sd,add_str( "l14"),st.GetInt(st.cExtData));
+				}
+			}
+		}
+	}
+	return 0;
+*/
+	if( st.sd )
+	{
+		int num=(st.end>st.start+2)?st[2].num:0;
+		char *name=(st.end>st.start+2)?str_buf+str_data[num&0x00ffffff].str:(char*)"";
+		char postfix=name[strlen(name)-1];
+printf("input\n");
+		if( st.Rerun() )
+		{
+			unsigned long id = st.send_defaultnpc();
+			if(postfix=='$')clif_scriptinputstr(*st.sd, id);
+			else			clif_scriptinput(*st.sd, id);
+		}
+		else
+		{
+			if( postfix=='$' )
+			{	// 文字列
+				if(st.end>st.start+2)
+				{	// 引数1個
+					set_reg(st,num,name,(void*)st.GetString(st.cExtData) );
+				}
+				else
+				{
+					ShowError("buildin_input: string discarded !!\n");
+				}
+			}
+			else
+			{	// 数値
+				if(st.end>st.start+2)
+				{	// 引数1個
+					set_reg(st,num,name,(void*)st.GetInt(st.cExtData));
+				}
+				else
+				{	// ragemu互換のため
+					pc_setreg(*st.sd,add_str( "l14"),st.GetInt(st.cExtData));
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+
 
 /*==========================================
  *
@@ -2366,11 +2750,11 @@ int buildin_goto(CScriptEngine &st)
 	if (st[2].type != CScriptEngine::C_POS){
 		int func = st[2].num;
 		ShowMessage("script: goto '"CL_WHITE"%s"CL_RESET"': not label!\n", str_buf + str_data[func].str);
-		st.state = CScriptEngine::END;
+		st.Quit();
 		return 0;
 	}
-	st.pos = st.GetInt( st[2] );
-	st.state = CScriptEngine::GOTO;
+	st.Goto( st.GetInt(st[2]) );
+
 	return 0;
 }
 
@@ -2381,12 +2765,12 @@ int buildin_goto(CScriptEngine &st)
 int buildin_callfunc(CScriptEngine &st)
 {
 	char *scr;
-	const char *str=st.GetString((st[2]));
+	const char *str=st.GetString(st[2]);
 
 	if( (scr=(char *) strdb_search(script_get_userfunc_db(),str)) )
 	{
 		size_t i,j;
-		for(i=st.start+3,j=0;i<st.end;i++,j++)
+		for(i=st.start+3,j=0; i<st.end; i++,j++)
 			st.push_copy(i);
 
 		st.push_val(CScriptEngine::C_INT,j);				// 引数の数をプッシュ
@@ -2402,7 +2786,7 @@ int buildin_callfunc(CScriptEngine &st)
 	else
 	{
 		ShowError("script:callfunc: function not found! [%s]\n",str);
-		st.state=CScriptEngine::END;
+		st.Quit();
 	}
 	return 0;
 }
@@ -2412,7 +2796,7 @@ int buildin_callfunc(CScriptEngine &st)
  */
 int buildin_callsub(CScriptEngine &st)
 {
-	int pos=st.GetInt( (st[2]));
+	int pos=st.GetInt(st[2]);
 	size_t i,j;
 	for(i=st.start+3,j=0;i<st.end;i++,j++)
 		st.push_copy(i);
@@ -2424,225 +2808,90 @@ int buildin_callsub(CScriptEngine &st)
 
 	st.pos=pos;
 	st.defsp=st.start+4+j;
-	st.state=CScriptEngine::GOTO;
+	st.state=CScriptEngine::GOTO;	
+
 	return 0;
 }
 
-/*==========================================
- * 引数の所得
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+// 引数の所得
+// gets an argument from callfunc
 int buildin_getarg(CScriptEngine &st)
 {
-	int num=st.GetInt( st[2]);
-	int max,stsp;
-	if( st.defsp<4 || st.getDirectData(st.defsp-1).type!=CScriptEngine::C_RETINFO ){
+	if( st.defsp<4 || st.stack_data[st.defsp-1].type!=CScriptEngine::C_RETINFO )
+	{
 		ShowError("script:getarg without callfunc or callsub!\n");
-		st.state=CScriptEngine::END;
-		return 0;
+		st.Quit();
 	}
-	max=st.GetInt( (st.getDirectData(st.defsp-4)));
-	stsp=st.defsp - max -4;
-	if( num >= max ){
-		ShowError("script:getarg arg1(%d) out of range(%d) !\n",num,max);
-		st.state=CScriptEngine::END;
-		return 0;
+	else
+	{
+		int num = st.GetInt(st[2]);							// argument number
+		int max = st.GetInt( st.stack_data[st.defsp-4] );	// length of function heap
+		if( num < max )
+		{	// push the argument 
+			st.push_copy(st.defsp-4-max + num);
+		}
+		else
+		{	// out of range
+			ShowError("script:getarg arg1(%d) out of range(%d) !\n",num,max);
+			// push a default
+			st.push_str(CScriptEngine::C_CONSTSTR, "");
+		}
 	}
-	st.push_copy(stsp+num);
 	return 0;
 }
 
-/*==========================================
- * サブルーチン/ユーザー定義関数の終了
- *------------------------------------------
- */
+///////////////////////////////////////////////////////////////////////////////
+// サブルーチン/ユーザー定義関数の終了
+// returns a value from callfunction
 int buildin_return(CScriptEngine &st)
 {
-	if(st.end>st.start+2){	// 戻り値有り
+	if( st.Arguments() > 2 )
+	{	// 戻り値有り
 		st.push_copy(st.start+2);
 	}
-	st.state=CScriptEngine::RETFUNC;
+	st.Return();
 	return 0;
 }
 
 /*==========================================
- *
+ * RIDのアタッチ
  *------------------------------------------
  */
-int buildin_next(CScriptEngine &st)
+int buildin_attachrid(CScriptEngine &st)
 {
-	st.state=CScriptEngine::STOP;
-	map_session_data *sd = script_rid2sd(st);
-	if(sd) clif_scriptnext(*sd,st.oid);
-	return 0;
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-int buildin_close(CScriptEngine &st)
-{
-	map_session_data *sd = script_rid2sd(st);
+	unsigned long rid = st.GetInt(st[2]);
+	map_session_data *sd = map_id2sd(rid);
+	int val = 0;
 	if(sd)
-	{
-		if(st.rerun_flag==0)
-		{
-			st.rerun_flag=1;
-			st.state=CScriptEngine::RERUNLINE;
-			clif_scriptclose(*sd,st.oid);
-			return 0;
-		}
-		else
-		{
-			st.rerun_flag=0;
-		}
+	{	// need to swap the environment if not in the targeted context already
+		if(st.sd != sd)
+			st.EnvSwap();
+		val=1;
 	}
-	st.state=CScriptEngine::END;
+	// otherwise switch was not sucessful, 
+	// and we return "false" to the script
+	st.push_val(CScriptEngine::C_INT, val);
 	return 0;
 }
-int buildin_close2(CScriptEngine &st)
-{
-	st.state=CScriptEngine::STOP;
-	map_session_data *sd = script_rid2sd(st);
-	if(sd) clif_scriptclose(*sd,st.oid);
-	return 0;
-}
-
 /*==========================================
- *
+ * RIDのデタッチ
  *------------------------------------------
  */
-int buildin_menu(CScriptEngine &st)
-{
-	struct map_session_data *sd=script_rid2sd(st);
-	if(!sd)
-		return 0;
-
-	if(st.rerun_flag==0)
-	{
-		size_t len,i;
-		char *buf;
-		st.state=CScriptEngine::RERUNLINE;
-		st.rerun_flag=1;
-		for(i=st.start+2,len=16;i<st.end;i+=2){
-			st.GetString((st.getDirectData(i)));
-			len+=strlen(st.getDirectData(i).str)+1;
-		}
-		buf=(char *)aMalloc((len+1)*sizeof(char));
-		buf[0]=0;
-		for(i=st.start+2,len=0;i<st.end;i+=2){
-			strcat(buf,st.getDirectData(i).str);
-			strcat(buf,":");
-		}
-		clif_scriptmenu(*sd,st.oid,buf);
-		aFree(buf);
-	}
-	else if(sd->npc_menu==0xff)
-	{	// cansel
-		st.rerun_flag=0;
-		st.state=CScriptEngine::END;
-	}
-	else
-	{	// goto動作
-		// ragemu互換のため
-		pc_setreg(*sd,add_str("l15"),sd->npc_menu);
-		pc_setreg(*sd,add_str("@menu"),sd->npc_menu);
-		st.rerun_flag=0;
-		if(sd->npc_menu>0 && sd->npc_menu<(st.end-st.start)/2){
-			size_t pos;
-			if( st[sd->npc_menu*2+1].type!=CScriptEngine::C_POS ){
-				ShowMessage("script: menu: not label !\n");
-				st.state=CScriptEngine::END;
-				return 0;
-			}
-			pos=st.GetInt( (st[sd->npc_menu*2+1]));
-			st.pos=pos;
-			st.state=CScriptEngine::GOTO;
-		}
-	}
+int buildin_detachrid(CScriptEngine &st)
+{	// just clear the environment, 
+	// script will behave like a server script from this point
+	// even if it still runs within a player context
+	st.sd=NULL;
 	return 0;
 }
-
 /*==========================================
- *
+ * 存在チェック
  *------------------------------------------
  */
-int buildin_rand(CScriptEngine &st)
+int buildin_isloggedin(CScriptEngine &st)
 {
-	int range;
-	int min = 0;
-	if (st.end > st.start+3){
-		int max;
-		min = st.GetInt( (st[2]));
-		max = st.GetInt( (st[3]));
-		if(min>max)	swap(max, min);
-		range = max - min + 1;
-		if (range == 0) range = 1;
-	} else {
-		range = st.GetInt( (st[2]));
-		if (range == 0) range = 1;
-	}
-	min += rand()%range;
-	st.push_val(CScriptEngine::C_INT,min);
-	return 0;
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-int buildin_input(CScriptEngine &st)
-{
-	int num=(st.end>st.start+2)?st[2].num:0;
-	char *name=(st.end>st.start+2)?str_buf+str_data[num&0x00ffffff].str:(char*)"";
-	char postfix=name[strlen(name)-1];
-	struct map_session_data *sd=script_rid2sd(st);
-	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
-
-	if( sd && nd )
-	if( !npc_isNear(*sd, *nd) )
-	{
-		if(!st.rerun_flag)
-			clif_scriptmes(*sd,st.oid, "Script is using input box with invisible or nonreachable npc and is terminated");
-		return buildin_close(st);
-	}
-	else
-	{
-		if(st.rerun_flag)
-		{
-			st.rerun_flag=0;
-			if( postfix=='$' )
-			{	// 文字列
-				if(st.end>st.start+2)
-				{	// 引数1個
-					set_reg(st,num,name,(void*)sd->npc_str);
-				}
-				else
-				{
-					ShowError("buildin_input: string discarded !!\n");
-				}
-			}
-			else
-			{	// 数値
-				if(st.end>st.start+2)
-				{	// 引数1個
-					set_reg(st,num,name,(void*)sd->npc_amount);
-				}
-				else
-				{	// ragemu互換のため
-					pc_setreg(*sd,add_str( "l14"),sd->npc_amount);
-				}
-			}
-		}
-		else
-		{
-			st.state=CScriptEngine::RERUNLINE;
-			if(postfix=='$')clif_scriptinputstr(*sd,st.oid);
-			else			clif_scriptinput(*sd,st.oid);
-			st.rerun_flag=1;
-		}
-	}
+	st.push_val(CScriptEngine::C_INT, map_id2sd( st.GetInt(st[2]) )!=NULL );
 	return 0;
 }
 
@@ -2654,7 +2903,7 @@ int buildin_if(CScriptEngine &st)
 {
 	size_t sel,i;
 
-	sel=st.GetInt( (st[2]));
+	sel=st.GetInt(st[2]);
 	if(!sel)
 		return 0;
 
@@ -2671,7 +2920,55 @@ int buildin_if(CScriptEngine &st)
 	return 0;
 }
 
-
+int buildin_jump_zero(CScriptEngine &st)
+{
+	int sel;
+	sel=st.GetInt(st[2]);
+	if(!sel)
+	{
+		if( st[3].type!=CScriptEngine::C_POS )
+		{
+			ShowMessage("script: jump_zero: not label !\n");
+			st.Quit();
+		}
+		else
+		{
+			st.Goto( st.GetInt(st[3]) );
+			// ShowMessage("script: jump_zero: jumpto : %d\n",pos);
+		}
+	}
+	else
+	{
+		// ShowMessage("script: jump_zero: fail\n");
+	}
+	return 0;
+}
+/*==========================================
+ *
+ *------------------------------------------
+ */
+int buildin_rand(CScriptEngine &st)
+{
+	int range;
+	int min = 0;
+	if( st.Arguments() > 3 )
+	{
+		int max;
+		min = st.GetInt(st[2]);
+		max = st.GetInt(st[3]);
+		if(min>max)	swap(max, min);
+		range = max - min + 1;
+		if (range == 0) range = 1;
+	}
+	else
+	{
+		range = st.GetInt(st[2]);
+		if (range == 0) range = 1;
+	}
+	min += rand()%range;
+	st.push_val(CScriptEngine::C_INT,min);
+	return 0;
+}
 /*==========================================
  * 変数設定
  *------------------------------------------
@@ -2693,7 +2990,7 @@ int buildin_set(CScriptEngine &st)
 		set_reg(st,num,name,(void*)str);
 	}else{
 		// 数値
-		int val = st.GetInt( (st[3]));
+		int val = st.GetInt(st[3]);
 		set_reg(st,num,name,(void*)val);
 	}
 
@@ -2719,9 +3016,9 @@ int buildin_setarray(CScriptEngine &st)
 	for(j=0,i=st.start+3; i<st.end && j<128;i++,j++){
 		void *v;
 		if( postfix=='$' )
-			v=(void*)st.GetString((st.getDirectData(i)));
+			v=(void*)st.GetString(st.stack_data[i]);
 		else
-			v=(void*)st.GetInt( (st.getDirectData(i)));
+			v=(void*)st.GetInt(st.stack_data[i]);
 		set_reg(st, num+(j<<24), name, v);
 	}
 	return 0;
@@ -2736,7 +3033,7 @@ int buildin_cleararray(CScriptEngine &st)
 	char *name=str_buf+str_data[num&0x00ffffff].str;
 	char prefix=*name;
 	char postfix=name[strlen(name)-1];
-	int sz=st.GetInt( (st[4]));
+	int sz=st.GetInt(st[4]);
 	int i;
 	void *v;
 
@@ -2748,7 +3045,7 @@ int buildin_cleararray(CScriptEngine &st)
 	if( postfix=='$' )
 		v=(void*)st.GetString((st[3]));
 	else
-		v=(void*)st.GetInt( (st[3]));
+		v=(void*)st.GetInt(st[3]);
 
 	for(i=0;i<sz;i++)
 		set_reg(st,num+(i<<24),name,v);
@@ -2768,7 +3065,7 @@ int buildin_copyarray(CScriptEngine &st)
 	char *name2=str_buf+str_data[num2&0x00ffffff].str;
 	char prefix2=*name2;
 	char postfix2=name2[strlen(name2)-1];
-	int sz=st.GetInt( (st[4]));
+	int sz=st.GetInt(st[4]);
 	int i;
 
 	if( prefix!='$' && prefix!='@' && prefix2!='$' && prefix2!='@' ){
@@ -2827,8 +3124,8 @@ int buildin_deletearray(CScriptEngine &st)
 	int i,sz=getarraysize(st,num,postfix)-(num>>24)-count+1;
 
 
-	if( (st.end > st.start+3) )
-		count=st.GetInt( (st[3]));
+	if( st.Arguments() > 3 )
+		count=st.GetInt(st[3]);
 
 	if( prefix!='$' && prefix!='@' ){
 		ShowMessage("buildin_deletearray: illegal scope !\n");
@@ -2851,15 +3148,21 @@ int buildin_deletearray(CScriptEngine &st)
  */
 int buildin_getelementofarray(CScriptEngine &st)
 {
-	if( st[2].type==CScriptEngine::C_NAME ){
-		int i=st.GetInt( (st[3]));
-		if(i>127 || i<0){
+	if( st[2].type==CScriptEngine::C_NAME )
+	{
+		int i=st.GetInt(st[3]);
+		if(i>127 || i<0)
+		{
 			ShowMessage("script: getelementofarray (operator[]): param2 illegal number %d\n",i);
 			st.push_val(CScriptEngine::C_INT,0);
-		}else{
+		}
+		else
+		{
 			st.push_val(CScriptEngine::C_NAME, (i<<24) | st[2].num );
 		}
-	}else{
+	}
+	else
+	{
 		ShowMessage("script: getelementofarray (operator[]): param1 not name !\n");
 		st.push_val(CScriptEngine::C_INT,0);
 	}
@@ -2875,11 +3178,11 @@ int buildin_warp(CScriptEngine &st)
 {
 	int x,y;
 	const char *str;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	str=st.GetString((st[2]));
-	x=st.GetInt( (st[3]));
-	y=st.GetInt( (st[4]));
+	x=st.GetInt(st[3]);
+	y=st.GetInt(st[4]);
 
 	if(sd==NULL || str==NULL)
 		return 0;
@@ -2923,6 +3226,7 @@ int buildin_areawarp_sub(struct block_list &bl,va_list ap)
 		pc_setpos(((struct map_session_data &)bl),map,x,y,0);
 	return 0;
 }
+
 int buildin_areawarp(CScriptEngine &st)
 {
 	int x,y,m;
@@ -2931,13 +3235,13 @@ int buildin_areawarp(CScriptEngine &st)
 	int x0,y0,x1,y1;
 
 	mapname=st.GetString((st[2]));
-	x0=st.GetInt( (st[3]));
-	y0=st.GetInt( (st[4]));
-	x1=st.GetInt( (st[5]));
-	y1=st.GetInt( (st[6]));
+	x0=st.GetInt(st[3]);
+	y0=st.GetInt(st[4]);
+	x1=st.GetInt(st[5]);
+	y1=st.GetInt(st[6]);
 	str=st.GetString((st[7]));
-	x=st.GetInt( (st[8]));
-	y=st.GetInt( (st[9]));
+	x=st.GetInt(st[8]);
+	y=st.GetInt(st[9]);
 
 	if( (m=map_mapname2mapid(mapname))< 0)
 		return 0;
@@ -2954,12 +3258,12 @@ int buildin_areawarp(CScriptEngine &st)
  */
 int buildin_heal(CScriptEngine &st)
 {
-	int hp,sp;
-
-	hp=st.GetInt( (st[2]));
-	sp=st.GetInt( (st[3]));
-	map_session_data *sd = script_rid2sd(st);
-	if(sd) pc_heal(*sd,hp,sp);
+	if(st.sd)
+	{
+		int hp=st.GetInt(st[2]);
+		int sp=st.GetInt(st[3]);
+		pc_heal(*st.sd,hp,sp);
+	}
 	return 0;
 }
 /*==========================================
@@ -2968,12 +3272,12 @@ int buildin_heal(CScriptEngine &st)
  */
 int buildin_itemheal(CScriptEngine &st)
 {
-	int hp,sp;
-
-	hp=st.GetInt( (st[2]));
-	sp=st.GetInt( (st[3]));
-	map_session_data *sd = script_rid2sd(st);
-	if(sd) pc_itemheal(*sd,hp,sp);
+	if(st.sd)
+	{
+		int hp=st.GetInt(st[2]);
+		int sp=st.GetInt(st[3]);
+		pc_itemheal(*st.sd,hp,sp);
+	}
 	return 0;
 }
 /*==========================================
@@ -2982,12 +3286,12 @@ int buildin_itemheal(CScriptEngine &st)
  */
 int buildin_percentheal(CScriptEngine &st)
 {
-	int hp,sp;
-
-	hp=st.GetInt( (st[2]));
-	sp=st.GetInt( (st[3]));
-	map_session_data *sd = script_rid2sd(st);
-	if(sd) pc_percentheal(*sd,hp,sp);
+	if(st.sd)
+	{
+		int hp=st.GetInt(st[2]);
+		int sp=st.GetInt(st[3]);
+		pc_percentheal(*st.sd,hp,sp);
+	}
 	return 0;
 }
 
@@ -2997,16 +3301,15 @@ int buildin_percentheal(CScriptEngine &st)
  */
 int buildin_jobchange(CScriptEngine &st)
 {
-	int job, upper=-1;
-
-	job=st.GetInt( (st[2]));
-	if( st.end>st.start+3 )
-		upper=st.GetInt( (st[3]));
-
-	map_session_data *sd = script_rid2sd(st);
-	if( sd && job>=0 && job<MAX_PC_CLASS )
-		pc_jobchange(*sd,job, upper);
-
+	if(st.sd)
+	{
+		int upper=-1;
+		int job = st.GetInt(st[2]);
+		if( st.Arguments() > 3 )
+			upper=st.GetInt(st[3]);
+		if( job>=0 && job<MAX_PC_CLASS )
+			pc_jobchange(*st.sd,job, upper);
+	}
 	return 0;
 }
 
@@ -3016,14 +3319,12 @@ int buildin_jobchange(CScriptEngine &st)
  */
 int buildin_setlook(CScriptEngine &st)
 {
-	int type,val;
-
-	type=st.GetInt( (st[2]));
-	val=st.GetInt( (st[3]));
-
-	struct map_session_data *sd = script_rid2sd(st);
-	if(sd) pc_changelook(*sd,type,val);
-
+	if(st.sd)
+	{
+		int type=st.GetInt(st[2]);
+		int val =st.GetInt(st[3]);
+		pc_changelook(*st.sd,type,val);
+	}
 	return 0;
 }
 
@@ -3033,14 +3334,11 @@ int buildin_setlook(CScriptEngine &st)
  */
 int buildin_cutin(CScriptEngine &st)
 {
-	int type;
-
-	st.GetString((st[2]));
-	type=st.GetInt( (st[3]));
-
-	struct map_session_data *sd = script_rid2sd(st);
-	if(sd) clif_cutin(*sd,st[2].str,type);
-
+	if(st.sd)
+	{
+		int type=st.GetInt(st[3]);
+		clif_cutin(*st.sd, st.GetString(st[2]), type);
+	}
 	return 0;
 }
 /*==========================================
@@ -3049,13 +3347,13 @@ int buildin_cutin(CScriptEngine &st)
  */
 int buildin_cutincard(CScriptEngine &st)
 {
-	int itemid =st.GetInt( (st[2]));
-	map_session_data *sd = script_rid2sd(st);
-	if(sd)
-	{	struct item_data* idata = itemdb_exists(itemid);
-		if(idata) clif_cutin(*sd,idata->cardillustname,4);
+	if(st.sd)
+	{
+		int itemid =st.GetInt(st[2]);
+		struct item_data* idata = itemdb_exists(itemid);
+		if(idata)
+			clif_cutin(*st.sd, idata->cardillustname, 4);
 	}
-
 	return 0;
 }
 
@@ -3065,17 +3363,16 @@ int buildin_cutincard(CScriptEngine &st)
  */
 int buildin_viewpoint(CScriptEngine &st)
 {
-	int type,x,y,id,color;
-
-	type=st.GetInt( (st[2]));
-	x=st.GetInt( (st[3]));
-	y=st.GetInt( (st[4]));
-	id=st.GetInt( (st[5]));
-	color=st.GetInt( (st[6]));
-
-	map_session_data *sd = script_rid2sd(st);
-	if(sd) clif_viewpoint(*sd,st.oid,type,x,y,id,color);
-
+	if(st.sd)
+	{
+		int type=st.GetInt(st[2]);
+		int x	=st.GetInt(st[3]);
+		int y	=st.GetInt(st[4]);
+		int id	=st.GetInt(st[5]);
+		int color=st.GetInt(st[6]);
+		
+		clif_viewpoint(*st.sd, st.oid, type, x, y, id, color);
+	}
 	return 0;
 }
 
@@ -3086,9 +3383,8 @@ int buildin_viewpoint(CScriptEngine &st)
 int buildin_countitem(CScriptEngine &st)
 {
 	unsigned short nameid=0;
-	size_t count=0,i;
-	struct map_session_data *sd = script_rid2sd(st);
-	if(sd)
+	size_t count=0, i;
+	if(st.sd)
 	{
 		CScriptEngine::CValue &data = st[2];
 		st.ConvertName(data);
@@ -3107,8 +3403,8 @@ int buildin_countitem(CScriptEngine &st)
 		{
 			for(i=0;i<MAX_INVENTORY;i++)
 			{
-				if(sd->status.inventory[i].nameid==nameid)
-					count+=sd->status.inventory[i].amount;
+				if(st.sd->status.inventory[i].nameid==nameid)
+					count+=st.sd->status.inventory[i].amount;
 			}
 		}
 		else if(battle_config.error_log)
@@ -3125,12 +3421,10 @@ int buildin_countitem(CScriptEngine &st)
 int buildin_checkweight(CScriptEngine &st)
 {
 	int val = 1;
-	unsigned short nameid=0, amount;
-	CScriptEngine::CValue &data= st[2];
-	struct map_session_data *sd = script_rid2sd(st);
-
-	if(sd)
+	if(st.sd)
 	{
+		unsigned short nameid=0, amount;
+		CScriptEngine::CValue &data= st[2];
 		st.ConvertName(data);
 		if( data.isString() )
 		{
@@ -3141,13 +3435,12 @@ int buildin_checkweight(CScriptEngine &st)
 		}
 		else
 			nameid=st.GetInt(data);
-		amount=st.GetInt( (st[3]));
+
+		amount = st.GetInt(st[3]);
 		if( amount<MAX_AMOUNT && nameid>=500 && nameid<MAX_ITEMS)
 		{
-			if( itemdb_weight(nameid)*amount + sd->weight <= sd->max_weight )
-			{
+			if( itemdb_weight(nameid)*amount + st.sd->weight <= st.sd->max_weight )
 				val = 0;
-			}
 		}
 	}
 	st.push_val(CScriptEngine::C_INT,val);
@@ -3165,7 +3458,7 @@ int buildin_getitem(CScriptEngine &st)
 	int flag = 0;
 	struct item item_tmp;
 	CScriptEngine::CValue &data=st[2];
-	struct map_session_data *sd = script_rid2sd(st);
+	struct map_session_data *sd = st.sd;
 
 	st.ConvertName(data);
 	if( data.isString() )
@@ -3200,7 +3493,7 @@ int buildin_getitem(CScriptEngine &st)
 			item_tmp.identify=1;
 		else
 			item_tmp.identify = !itemdb_isEquipment(nameid);
-		if( st.end>st.start+5 ) //アイテムを指定したIDに渡す
+		if( st.Arguments() > 5 ) //アイテムを指定したIDに渡す
 			sd=map_id2sd(st.GetInt( (st[5])));
 		if(sd == NULL) //アイテムを渡す相手がいなかったらお帰り
 			return 0;
@@ -3229,7 +3522,7 @@ int buildin_getitem2(CScriptEngine &st)
 	struct item_data *item_data;
 	struct item item_tmp;
 	CScriptEngine::CValue &data= st[2];
-	struct map_session_data *sd = script_rid2sd(st);
+	struct map_session_data *sd = st.sd;
 
 	
 	st.ConvertName(data);
@@ -3242,16 +3535,16 @@ int buildin_getitem2(CScriptEngine &st)
 	}else
 		nameid=st.GetInt(data);
 
-	amount=st.GetInt( (st[3]));
-	iden=st.GetInt( (st[4]));
-	ref=st.GetInt( (st[5]));
-	attr=st.GetInt( (st[6]));
-	c1=st.GetInt( (st[7]));
-	c2=st.GetInt( (st[8]));
-	c3=st.GetInt( (st[9]));
-	c4=st.GetInt( (st[10]));
-	if( st.end>st.start+11 ) //アイテムを指定したIDに渡す
-		sd=map_id2sd(st.GetInt( (st[11])));
+	amount=st.GetInt(st[3]);
+	iden=st.GetInt(st[4]);
+	ref=st.GetInt(st[5]);
+	attr=st.GetInt(st[6]);
+	c1=st.GetInt(st[7]);
+	c2=st.GetInt(st[8]);
+	c3=st.GetInt(st[9]);
+	c4=st.GetInt(st[10]);
+	if( st.Arguments() > 11 ) //アイテムを指定したIDに渡す
+		sd=map_id2sd( st.GetInt(st[11]) );
 	if(sd == NULL) //アイテムを渡す相手がいなかったらお帰り
 		return 0;
 
@@ -3310,7 +3603,7 @@ int buildin_getnameditem(CScriptEngine &st)
 	CScriptEngine::CValue &data = st[2];
 
 
-	sd = script_rid2sd(st);
+	sd = st.sd;
 	if (sd == NULL)
 	{	//Player not attached!
 		st.push_val(CScriptEngine::C_INT,0);
@@ -3381,7 +3674,7 @@ int buildin_makeitem(CScriptEngine &st)
 	struct map_session_data *sd;
 	CScriptEngine::CValue &data=st[2];
 
-	sd = script_rid2sd(st);
+	sd = st.sd;
 
 	st.ConvertName(data);
 	if( data.isString() ){
@@ -3393,10 +3686,10 @@ int buildin_makeitem(CScriptEngine &st)
 	}else
 		nameid=st.GetInt(data);
 
-	amount=st.GetInt( (st[3]));
+	amount=st.GetInt(st[3]);
 	mapname	=st.GetString((st[4]));
-	x	=st.GetInt( (st[5]));
-	y	=st.GetInt( (st[6]));
+	x	=st.GetInt(st[5]);
+	y	=st.GetInt(st[6]);
 
 	if( sd && strcmp(mapname,"this")==0)
 		m=sd->bl.m;
@@ -3429,7 +3722,7 @@ int buildin_delitem(CScriptEngine &st)
 {
 	unsigned short nameid=0,amount;
 	int i,important_item=0;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	CScriptEngine::CValue &data = st[2];
 
 	st.ConvertName(data);
@@ -3443,7 +3736,7 @@ int buildin_delitem(CScriptEngine &st)
 	else
 		nameid=st.GetInt(data);
 
-	amount=st.GetInt( (st[3]));
+	amount=st.GetInt(st[3]);
 
 	if(sd && nameid>500 && nameid<20000 && amount<=MAX_AMOUNT)
 	{	//by Lupus. Don't run FOR if u got wrong item ID or amount<=0
@@ -3521,11 +3814,11 @@ int buildin_readparam(CScriptEngine &st)
 	int type;
 	struct map_session_data *sd;
 
-	type=st.GetInt( (st[2]));
-	if( st.end>st.start+3 )
+	type=st.GetInt(st[2]);
+	if( st.Arguments() > 3 )
 		sd=map_nick2sd(st.GetString((st[3])));
 	else
-		sd=script_rid2sd(st);
+		sd=st.sd;
 
 	st.push_val(CScriptEngine::C_INT, (sd) ? pc_readparam(*sd,type) : -1);
 	return 0;
@@ -3539,11 +3832,12 @@ int buildin_getcharid(CScriptEngine &st)
 	int num, val=-1;
 	struct map_session_data *sd;
 
-	num=st.GetInt( (st[2]));
-	if( st.end>st.start+3 )
+	num=st.GetInt(st[2]);
+	if( st.Arguments() > 3 )
 		sd=map_nick2sd(st.GetString((st[3])));
 	else
-		sd=script_rid2sd(st);
+		sd=st.sd;
+
 	if(sd)
 	{
 		if(num==0) val = sd->status.char_id;
@@ -3578,7 +3872,7 @@ int buildin_getpartyname(CScriptEngine &st)
 	char *name;
 	int party_id;
 
-	party_id=st.GetInt( (st[2]));
+	party_id=st.GetInt(st[2]);
 	name=buildin_getpartyname_sub(party_id);
 	if(name!=0)
 		st.push_str(CScriptEngine::C_STR, name);
@@ -3607,7 +3901,7 @@ int buildin_getpartymember(CScriptEngine &st)
 			}
 		}
 	}
-	mapreg_setreg(add_str( "$@partymembercount"),j);
+	mapreg_setregnum(add_str( "$@partymembercount"),j);
 
 	return 0;
 }
@@ -3631,7 +3925,7 @@ char *buildin_getguildname_sub(int guild_id)
 int buildin_getguildname(CScriptEngine &st)
 {
 	char *name;
-	int guild_id=st.GetInt( (st[2]));
+	int guild_id=st.GetInt(st[2]);
 	name=buildin_getguildname_sub(guild_id);
 	if(name!=0)
 		st.push_str(CScriptEngine::C_STR, name);
@@ -3659,7 +3953,7 @@ char *buildin_getguildmaster_sub(int guild_id)
 int buildin_getguildmaster(CScriptEngine &st)
 {
 	char *master;
-	int guild_id=st.GetInt( (st[2]));
+	int guild_id=st.GetInt(st[2]);
 	master=buildin_getguildmaster_sub(guild_id);
 	if(master!=0)
 		st.push_str(CScriptEngine::C_STR, master);
@@ -3673,7 +3967,7 @@ int buildin_getguildmasterid(CScriptEngine &st)
 	char *master;
 	struct map_session_data *sd=NULL;
 	int val=0;
-	int guild_id=st.GetInt( (st[2]));
+	int guild_id=st.GetInt(st[2]);
 	master=buildin_getguildmaster_sub(guild_id);
 	if( master &&  (sd=map_nick2sd(master)) != NULL )
 		val = sd->status.char_id;
@@ -3688,34 +3982,51 @@ int buildin_getguildmasterid(CScriptEngine &st)
  */
 int buildin_strcharinfo(CScriptEngine &st)
 {
-	struct map_session_data *sd;
-	int num;
+	char *buf=NULL;
+	int num=st.GetInt(st[2]);
 
-	sd=script_rid2sd(st);
-	num=st.GetInt( (st[2]));
-	if(num==0){
-		char *buf;
+	if(st.sd==NULL)
+	{	// nothing
+	}
+	else if(num==0)
+	{
 		buf=(char *)aMalloc(24*sizeof(char));
-		memcpy(buf,sd->status.name, 24);//EOS included
-		st.push_str(CScriptEngine::C_STR, buf);
+		memcpy(buf,st.sd->status.name, 24);//EOS included	
 	}
-	if(num==1){
-		char *buf;
-		buf=buildin_getpartyname_sub(sd->status.party_id);
-		if(buf!=0)
-			st.push_str(CScriptEngine::C_STR, buf);
-		else
-			st.push_str(CScriptEngine::C_CONSTSTR, "");
-	}
-	if(num==2){
-		char *buf;
-		buf=buildin_getguildname_sub(sd->status.guild_id);
-		if(buf!=0)
-			st.push_str(CScriptEngine::C_STR, buf);
-		else
-			st.push_str(CScriptEngine::C_CONSTSTR, "");
-	}
+	else if(num==1)
+		buf=buildin_getpartyname_sub(st.sd->status.party_id);
+	else if(num==2)
+		buf=buildin_getguildname_sub(st.sd->status.guild_id);
 
+	if(buf)
+		st.push_str(CScriptEngine::C_STR, buf);
+	else
+		st.push_str(CScriptEngine::C_CONSTSTR, "");
+	return 0;
+}
+
+int buildin_pcstrcharinfo(CScriptEngine &st)
+{
+	char *buf=NULL;
+	int aid=st.GetInt(st[2]);
+	int num=st.GetInt(st[3]);
+	struct map_session_data *sd=map_id2sd(aid);
+
+	if(sd==NULL)
+	{	// nothing
+	}
+	else if(num==0)
+	{
+		buf=(char*)aMalloc(24 * sizeof(char));
+		safestrcpy(buf,sd->status.name, 24);
+		st.push_str(CScriptEngine::C_STR,buf);
+	}
+	else if(num==1)
+		buf=buildin_getpartyname_sub(sd->status.party_id);
+	else if(num==2)
+		buf=buildin_getguildname_sub(sd->status.guild_id);
+
+	st.push_str( (buf)?CScriptEngine::C_STR:CScriptEngine::C_CONSTSTR, (buf)?buf:"" );
 	return 0;
 }
 
@@ -3728,7 +4039,7 @@ unsigned short equip[10]={0x0100,0x0010,0x0020,0x0002,0x0004,0x0040,0x0008,0x008
 int buildin_getequipid(CScriptEngine &st)
 {
 	unsigned short itempos,num;
-	struct map_session_data *sd = script_rid2sd(st);
+	struct map_session_data *sd = st.sd;
 	struct item_data* item;
 	int val = -1;
 
@@ -3755,7 +4066,7 @@ int buildin_getequipid(CScriptEngine &st)
  */
 int buildin_getequipname(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	struct item_data* item;
 	unsigned short num, itempos;
 	char *buf = (char *)aCalloc(128,sizeof(char)); // string is clear by default
@@ -3787,10 +4098,10 @@ int buildin_getbrokenid(CScriptEngine &st)
 	struct map_session_data *sd;
 	int itemid=0;
 
-	sd=script_rid2sd(st);
+	sd=st.sd;
 	if(sd)
 	{
-		count = st.GetInt( (st[2]));
+		count = st.GetInt(st[2]);
 		for(itempos=0; itempos<MAX_INVENTORY; itempos++)
 		{
 			if(sd->status.inventory[itempos].attribute==1)
@@ -3816,11 +4127,11 @@ int buildin_repair(CScriptEngine &st)
 {
 	unsigned short itempos;
 	size_t count, repaircounter=0;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	if(sd)
 	{
-		count=st.GetInt( (st[2]));
+		count=st.GetInt(st[2]);
 		for(itempos=0; itempos<MAX_INVENTORY; itempos++)
 		{
 			if(sd->status.inventory[itempos].attribute==1)
@@ -3848,7 +4159,7 @@ int buildin_repair(CScriptEngine &st)
 int buildin_getequipisequiped(CScriptEngine &st)
 {
 	unsigned short itempos,num;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	int val=0;
 
 	if(sd)
@@ -3873,7 +4184,7 @@ int buildin_getequipisequiped(CScriptEngine &st)
 int buildin_getequipisenableref(CScriptEngine &st)
 {
 	unsigned short itempos,num;
-	struct map_session_data *sd = script_rid2sd(st);
+	struct map_session_data *sd = st.sd;
 	int val=0;
 
 	if(sd)
@@ -3898,7 +4209,7 @@ int buildin_getequipisenableref(CScriptEngine &st)
 int buildin_getequipisidentify(CScriptEngine &st)
 {
 	unsigned short itempos, num;
-	struct map_session_data *sd = script_rid2sd(st);
+	struct map_session_data *sd = st.sd;
 	int val = 0;
 
 	if(sd)
@@ -3922,7 +4233,7 @@ int buildin_getequipisidentify(CScriptEngine &st)
 int buildin_getequiprefinerycnt(CScriptEngine &st)
 {
 	unsigned short itempos,num;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	int val = 0;
 
 	if(sd)
@@ -3946,7 +4257,7 @@ int buildin_getequiprefinerycnt(CScriptEngine &st)
 int buildin_getequipweaponlv(CScriptEngine &st)
 {
 	unsigned short itempos,num;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	int val = 0;
 
 	if(sd)
@@ -3970,7 +4281,7 @@ int buildin_getequipweaponlv(CScriptEngine &st)
 int buildin_getequippercentrefinery(CScriptEngine &st)
 {
 	unsigned short itempos,num;
-	struct map_session_data *sd = script_rid2sd(st);
+	struct map_session_data *sd = st.sd;
 	int val = 0;
 
 	if(sd)
@@ -3995,7 +4306,7 @@ int buildin_getequippercentrefinery(CScriptEngine &st)
 int buildin_successrefitem(CScriptEngine &st)
 {
 	unsigned short itempos,num, equippos;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	if(sd)
 	{
@@ -4049,7 +4360,7 @@ int buildin_successrefitem(CScriptEngine &st)
 int buildin_failedrefitem(CScriptEngine &st)
 {
 	unsigned short itempos,num;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	if(sd)
 	{
@@ -4083,8 +4394,8 @@ int buildin_statusup(CScriptEngine &st)
 	int type;
 	struct map_session_data *sd;
 
-	type=st.GetInt( (st[2]));
-	sd=script_rid2sd(st);
+	type=st.GetInt(st[2]);
+	sd=st.sd;
 	if(sd) pc_statusup(*sd,type);
 
 	return 0;
@@ -4098,9 +4409,9 @@ int buildin_statusup2(CScriptEngine &st)
 	int type,val;
 	struct map_session_data *sd;
 
-	type=st.GetInt( (st[2]));
-	val=st.GetInt( (st[3]));
-	sd=script_rid2sd(st);
+	type=st.GetInt(st[2]);
+	val=st.GetInt(st[3]);
+	sd=st.sd;
 	if(sd) pc_statusup2(*sd,type,val);
 
 	return 0;
@@ -4114,9 +4425,9 @@ int buildin_bonus(CScriptEngine &st)
 	int type,val;
 	struct map_session_data *sd;
 
-	type=st.GetInt( (st[2]));
-	val=st.GetInt( (st[3]));
-	sd=script_rid2sd(st);
+	type=st.GetInt(st[2]);
+	val=st.GetInt(st[3]);
+	sd=st.sd;
 	if(sd) pc_bonus(*sd,type,val);
 
 	return 0;
@@ -4130,10 +4441,10 @@ int buildin_bonus2(CScriptEngine &st)
 	int type,type2,val;
 	struct map_session_data *sd;
 
-	type=st.GetInt( (st[2]));
-	type2=st.GetInt( (st[3]));
-	val=st.GetInt( (st[4]));
-	sd=script_rid2sd(st);
+	type=st.GetInt(st[2]);
+	type2=st.GetInt(st[3]);
+	val=st.GetInt(st[4]);
+	sd=st.sd;
 	if(sd) pc_bonus2(*sd,type,type2,val);
 
 	return 0;
@@ -4147,11 +4458,11 @@ int buildin_bonus3(CScriptEngine &st)
 	int type,type2,type3,val;
 	struct map_session_data *sd;
 
-	type=st.GetInt( (st[2]));
-	type2=st.GetInt( (st[3]));
-	type3=st.GetInt( (st[4]));
-	val=st.GetInt( (st[5]));
-	sd=script_rid2sd(st);
+	type=st.GetInt(st[2]);
+	type2=st.GetInt(st[3]);
+	type3=st.GetInt(st[4]);
+	val=st.GetInt(st[5]);
+	sd=st.sd;
 	if(sd) pc_bonus3(*sd,type,type2,type3,val);
 
 	return 0;
@@ -4162,12 +4473,12 @@ int buildin_bonus4(CScriptEngine &st)
 	int type,type2,type3,type4,val;
 	struct map_session_data *sd;
 
-	type=st.GetInt( (st[2]));
-	type2=st.GetInt( (st[3]));
-	type3=st.GetInt( (st[4]));
-	type4=st.GetInt( (st[5]));
-	val=st.GetInt( (st[6]));
-	sd=script_rid2sd(st);
+	type=st.GetInt(st[2]);
+	type2=st.GetInt(st[3]);
+	type3=st.GetInt(st[4]);
+	type4=st.GetInt(st[5]);
+	val=st.GetInt(st[6]);
+	sd=st.sd;
 	if(sd) pc_bonus4(*sd,type,type2,type3,type4,val);
 
 	return 0;
@@ -4181,11 +4492,11 @@ int buildin_skill(CScriptEngine &st)
 	int id,level,flag=1;
 	struct map_session_data *sd;
 
-	id=st.GetInt( (st[2]));
-	level=st.GetInt( (st[3]));
-	if( st.end>st.start+4 )
-		flag=st.GetInt((st[4]) );
-	sd=script_rid2sd(st);
+	id=st.GetInt(st[2]);
+	level=st.GetInt(st[3]);
+	if( st.Arguments() > 4 )
+		flag=st.GetInt(st[4]);
+	sd=st.sd;
 	if(sd) pc_skill(*sd,id,level,flag);
 
 	return 0;
@@ -4197,11 +4508,11 @@ int buildin_addtoskill(CScriptEngine &st)
 	int id,level,flag=2;
 	struct map_session_data *sd;
 
-	id=st.GetInt( (st[2]));
-	level=st.GetInt( (st[3]));
-	if( st.end>st.start+4 )
+	id=st.GetInt(st[2]);
+	level=st.GetInt(st[3]);
+	if( st.Arguments() > 4 )
 		flag=st.GetInt((st[4]) );
-	sd=script_rid2sd(st);
+	sd=st.sd;
 	if(sd) pc_skill(*sd,id,level,flag);
 
 	return 0;
@@ -4217,11 +4528,11 @@ int buildin_guildskill(CScriptEngine &st)
 	struct map_session_data *sd;
 	int i=0;
 
-	id=st.GetInt( (st[2]));
-	level=st.GetInt( (st[3]));
-	if( st.end>st.start+4 )
+	id=st.GetInt(st[2]);
+	level=st.GetInt(st[3]);
+	if( st.Arguments() > 4 )
 		flag=st.GetInt((st[4]) );
-	sd=script_rid2sd(st);
+	sd=st.sd;
 	for(i=0;i<level;i++)
 		guild_skillup(*sd,id,flag);
 
@@ -4233,8 +4544,8 @@ int buildin_guildskill(CScriptEngine &st)
  */
 int buildin_getskilllv(CScriptEngine &st)
 {
-	int id=st.GetInt( (st[2]));
-	map_session_data *sd = script_rid2sd(st);
+	int id=st.GetInt(st[2]);
+	map_session_data *sd = st.sd;
 	st.push_val(CScriptEngine::C_INT, (sd)?pc_checkskill(*sd,id):0 );
 	return 0;
 }
@@ -4249,8 +4560,8 @@ int buildin_getskilllv(CScriptEngine &st)
  */
 int buildin_getgdskilllv(CScriptEngine &st)
 {
-	unsigned long guild_id=st.GetInt( (st[2]));
-	unsigned short skill_id=st.GetInt( (st[3]));    
+	unsigned long guild_id=st.GetInt(st[2]);
+	unsigned short skill_id=st.GetInt(st[3]);    
 	struct guild *g=guild_search(guild_id);
 	st.push_val( CScriptEngine::C_INT, (g==NULL)?-1:guild_checkskill(*g,skill_id) );
 	return 0;
@@ -4270,7 +4581,7 @@ int buildin_basicskillcheck(CScriptEngine &st)
  */
 int buildin_getgmlevel(CScriptEngine &st)
 {
-	map_session_data *sd = script_rid2sd(st);
+	map_session_data *sd = st.sd;
 	st.push_val(CScriptEngine::C_INT, ((sd) ? pc_isGM(*sd):0) );
 	return 0;
 }
@@ -4281,7 +4592,7 @@ int buildin_getgmlevel(CScriptEngine &st)
  */
 int buildin_end(CScriptEngine &st)
 {
-	st.state = CScriptEngine::END;
+	st.Quit();
 	return 0;
 }
 
@@ -4294,8 +4605,8 @@ int buildin_checkoption(CScriptEngine &st)
 	int type;
 	struct map_session_data *sd;
 
-	type=st.GetInt( (st[2]));
-	sd=script_rid2sd(st);
+	type=st.GetInt(st[2]);
+	sd=st.sd;
 
 	if(sd->status.option & type){
 		st.push_val(CScriptEngine::C_INT,1);
@@ -4314,8 +4625,8 @@ int buildin_checkoption1(CScriptEngine &st)
 	int type;
 	struct map_session_data *sd;
 
-	type=st.GetInt( (st[2]));
-	sd=script_rid2sd(st);
+	type=st.GetInt(st[2]);
+	sd=st.sd;
 
 	if(sd->opt1 & type){
 		st.push_val(CScriptEngine::C_INT,1);
@@ -4334,8 +4645,8 @@ int buildin_checkoption2(CScriptEngine &st)
 	int type;
 	struct map_session_data *sd;
 
-	type=st.GetInt( (st[2]));
-	sd=script_rid2sd(st);
+	type=st.GetInt(st[2]);
+	sd=st.sd;
 
 	if(sd->opt2 & type){
 		st.push_val(CScriptEngine::C_INT,1);
@@ -4353,8 +4664,8 @@ int buildin_checkoption2(CScriptEngine &st)
 int buildin_setoption(CScriptEngine &st)
 {
 	int type;
-	struct map_session_data *sd=script_rid2sd(st);
-	type=st.GetInt( (st[2]));
+	struct map_session_data *sd=st.sd;
+	type=st.GetInt(st[2]);
 	if(sd) pc_setoption(*sd,type);
 	return 0;
 }
@@ -4368,7 +4679,7 @@ int buildin_checkcart(CScriptEngine &st)
 {
 	struct map_session_data *sd;
 
-	sd=script_rid2sd(st);
+	sd=st.sd;
 
 	if(sd && pc_iscarton(*sd)){
 		st.push_val(CScriptEngine::C_INT,1);
@@ -4384,7 +4695,7 @@ int buildin_checkcart(CScriptEngine &st)
  */
 int buildin_setcart(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	if(sd) pc_setcart(*sd,1);
 
 	return 0;
@@ -4399,7 +4710,7 @@ int buildin_checkfalcon(CScriptEngine &st)
 {
 	struct map_session_data *sd;
 
-	sd=script_rid2sd(st);
+	sd=st.sd;
 
 	if(sd && pc_isfalcon(*sd)){
 		st.push_val(CScriptEngine::C_INT,1);
@@ -4417,7 +4728,7 @@ int buildin_checkfalcon(CScriptEngine &st)
  */
 int buildin_setfalcon(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	if(sd) pc_setfalcon(*sd);
 
 	return 0;
@@ -4430,7 +4741,7 @@ int buildin_setfalcon(CScriptEngine &st)
 
 int buildin_checkriding(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	if(sd && pc_isriding(*sd))
 		st.push_val(CScriptEngine::C_INT,1);
 	else
@@ -4446,7 +4757,7 @@ int buildin_checkriding(CScriptEngine &st)
  */
 int buildin_setriding(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	if(sd) pc_setriding(*sd);
 	return 0;
 }
@@ -4461,9 +4772,9 @@ int buildin_savepoint(CScriptEngine &st)
 	const char *str;
 
 	str=st.GetString((st[2]));
-	x=st.GetInt( (st[3]));
-	y=st.GetInt( (st[4]));
-	map_session_data *sd = script_rid2sd(st);
+	x=st.GetInt(st[3]);
+	y=st.GetInt(st[4]);
+	map_session_data *sd = st.sd;
 	if(sd) pc_setsavepoint(*sd,str,x,y);
 	return 0;
 }
@@ -4478,7 +4789,7 @@ int buildin_gettimetick(CScriptEngine &st)	/* Asgard Version */
 	time_t timer;
 	struct tm *t;
 
-	type=st.GetInt( (st[2]));
+	type=st.GetInt(st[2]);
 
 	switch(type){
 	case 1:
@@ -4509,7 +4820,7 @@ int buildin_gettime(CScriptEngine &st)	/* Asgard Version */
 	time_t timer;
 	struct tm *t;
 
-	type=st.GetInt( (st[2]));
+	type=st.GetInt(st[2]);
 
 	time(&timer);
 	t=localtime(&timer);
@@ -4555,7 +4866,7 @@ int buildin_gettimestr(CScriptEngine &st)
 	time_t now = time(NULL);
 
 	fmtstr=st.GetString((st[2]));
-	maxlen=st.GetInt( (st[3]));
+	maxlen=st.GetInt(st[3]);
 
 	tmpstr=(char *)aMalloc((maxlen+1)*sizeof(char));
 	strftime(tmpstr,maxlen,fmtstr,localtime(&now));
@@ -4571,7 +4882,7 @@ int buildin_gettimestr(CScriptEngine &st)
  */
 int buildin_openstorage(CScriptEngine &st)
 {
-	struct map_session_data *sd = script_rid2sd(st);
+	struct map_session_data *sd = st.sd;
 	int ret=0;
 	if(sd) ret = storage_storageopen(*sd);
 	st.push_val(CScriptEngine::C_INT,ret);
@@ -4580,7 +4891,7 @@ int buildin_openstorage(CScriptEngine &st)
 
 int buildin_guildopenstorage(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	int ret=0;
 	if(sd) ret = storage_guild_storageopen(*sd);
 	st.push_val(CScriptEngine::C_INT,ret);
@@ -4595,10 +4906,10 @@ int buildin_itemskill(CScriptEngine &st)
 {
 	int id,lv;
 	const char *str;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
-	id=st.GetInt( (st[2]));
-	lv=st.GetInt( (st[3]));
+	id=st.GetInt(st[2]);
+	lv=st.GetInt(st[3]);
 	str=st.GetString((st[4]));
 
 	if(sd)
@@ -4620,10 +4931,10 @@ int buildin_itemskill(CScriptEngine &st)
 int buildin_produce(CScriptEngine &st)
 {
 	int trigger;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	if(	sd->state.produce_flag == 1) return 0;
-	trigger=st.GetInt( (st[2]));
+	trigger=st.GetInt(st[2]);
 	clif_skill_produce_mix_list(*sd,trigger);
 	return 0;
 }
@@ -4633,7 +4944,7 @@ int buildin_produce(CScriptEngine &st)
  */
 int buildin_makepet(CScriptEngine &st)
 {
-	struct map_session_data *sd = script_rid2sd(st);
+	struct map_session_data *sd = st.sd;
 	CScriptEngine::CValue *data;
 	int id,pet_id;
 
@@ -4664,11 +4975,11 @@ int buildin_makepet(CScriptEngine &st)
  */
 int buildin_getexp(CScriptEngine &st)
 {
-	struct map_session_data *sd = script_rid2sd(st);
+	struct map_session_data *sd = st.sd;
 	int base=0,job=0;
 
-	base=st.GetInt( (st[2]));
-	job =st.GetInt( (st[3]));
+	base=st.GetInt(st[2]);
+	job =st.GetInt(st[3]);
 	if(base<0 || job<0)
 		return 0;
 	if(sd)
@@ -4682,10 +4993,10 @@ int buildin_getexp(CScriptEngine &st)
  */
 int buildin_guildgetexp(CScriptEngine &st)
 {
-	struct map_session_data *sd = script_rid2sd(st);
+	struct map_session_data *sd = st.sd;
 	int exp;
 
-	exp = st.GetInt( (st[2]));
+	exp = st.GetInt(st[2]);
 	if(exp < 0)
 		return 0;
 	if(sd && sd->status.guild_id > 0)
@@ -4704,16 +5015,15 @@ int buildin_monster(CScriptEngine &st)
 	const char *str,*map,*event="";
 
 	map	=st.GetString((st[2]));
-	x	=st.GetInt( (st[3]));
-	y	=st.GetInt( (st[4]));
+	x	=st.GetInt(st[3]);
+	y	=st.GetInt(st[4]);
 	str	=st.GetString((st[5]));
-	class_=st.GetInt( (st[6]));
-	amount=st.GetInt( (st[7]));
-	if( st.end>st.start+8 )
+	class_=st.GetInt(st[6]);
+	amount=st.GetInt(st[7]);
+	if( st.Arguments() > 8 )
 		event=st.GetString((st[8]));
 //!! broadcast command if not on this mapserver
-	map_session_data *sd = map_id2sd(st.rid);
-	mob_once_spawn(sd,map,x,y,str,class_,amount,event);
+	mob_once_spawn(st.sd,map,x,y,str,class_,amount,event);
 	return 0;
 }
 /*==========================================
@@ -4725,18 +5035,18 @@ int buildin_areamonster(CScriptEngine &st)
 	int class_,amount,x0,y0,x1,y1;
 	const char *str,*map,*event="";
 
-	map	=st.GetString( (st[2]));
-	x0	=st.GetInt( (st[3]));
-	y0	=st.GetInt( (st[4]));
-	x1	=st.GetInt( (st[5]));
-	y1	=st.GetInt( (st[6]));
-	str	=st.GetString( (st[7]));
-	class_=st.GetInt( (st[8]));
-	amount=st.GetInt( (st[9]));
-	if( st.end>st.start+10 )
-		event=st.GetString( (st[10]));
+	map	=st.GetString(st[2]);
+	x0	=st.GetInt(st[3]);
+	y0	=st.GetInt(st[4]);
+	x1	=st.GetInt(st[5]);
+	y1	=st.GetInt(st[6]);
+	str	=st.GetString(st[7]);
+	class_=st.GetInt(st[8]);
+	amount=st.GetInt(st[9]);
+	if( st.Arguments() > 10 )
+		event=st.GetString(st[10]);
 //!! broadcast command if not on this mapserver
-	mob_once_spawn_area(map_id2sd(st.rid),map,x0,y0,x1,y1,str,class_,amount,event);
+	mob_once_spawn_area(st.sd,map,x0,y0,x1,y1,str,class_,amount,event);
 	return 0;
 }
 /*==========================================
@@ -4766,8 +5076,8 @@ int buildin_killmonster(CScriptEngine &st)
 {
 	const char *mapname,*event;
 	int m,allflag=0;
-	mapname=st.GetString( (st[2]));
-	event=st.GetString( (st[3]));
+	mapname=st.GetString(st[2]);
+	event=st.GetString(st[3]);
 	if(strcmp(event,"All")==0)
 		allflag = 1;
 
@@ -4788,7 +5098,7 @@ int buildin_killmonsterall(CScriptEngine &st)
 {
 	const char *mapname;
 	int m;
-	mapname=st.GetString( (st[2]));
+	mapname=st.GetString(st[2]);
 
 	if( (m=map_mapname2mapid(mapname))<0 )
 		return 0;
@@ -4804,11 +5114,12 @@ int buildin_killmonsterall(CScriptEngine &st)
  */
 int buildin_doevent(CScriptEngine &st)
 {
-	const char *event;
-	event=st.GetString( (st[2]));
 //!! broadcast command if not on this mapserver
-	map_session_data *sd = map_id2sd(st.rid);
-	if(sd) npc_event(*sd,event,0);
+	if(st.sd)
+	{
+		const char *event=st.GetString(st[2]);
+		npc_event(*st.sd,event,0);
+	}
 	return 0;
 }
 /*==========================================
@@ -4818,7 +5129,7 @@ int buildin_doevent(CScriptEngine &st)
 int buildin_donpcevent(CScriptEngine &st)
 {
 	const char *event;
-	event=st.GetString( (st[2]));
+	event=st.GetString(st[2]);
 	npc_event_do(event);
 	return 0;
 }
@@ -4830,9 +5141,9 @@ int buildin_addtimer(CScriptEngine &st)
 {
 	const char *event;
 	unsigned long tick;
-	tick=st.GetInt( (st[2]));
-	event=st.GetString( (st[3]));
-	map_session_data *sd = script_rid2sd(st);
+	tick=st.GetInt(st[2]);
+	event=st.GetString(st[3]);
+	map_session_data *sd = st.sd;
 	if(sd) pc_addeventtimer(*sd,tick,event);
 	return 0;
 }
@@ -4843,8 +5154,8 @@ int buildin_addtimer(CScriptEngine &st)
 int buildin_deltimer(CScriptEngine &st)
 {
 	const char *event;
-	event=st.GetString( (st[2]));
-	map_session_data *sd = script_rid2sd(st);
+	event=st.GetString(st[2]);
+	map_session_data *sd = st.sd;
 	if(sd) pc_deleventtimer(*sd,event);
 	return 0;
 }
@@ -4856,9 +5167,9 @@ int buildin_addtimercount(CScriptEngine &st)
 {
 	const char *event;
 	unsigned long tick;
-	event=st.GetString( (st[2]));
-	tick=st.GetInt( (st[3]));
-	map_session_data *sd = script_rid2sd(st); 
+	event=st.GetString(st[2]);
+	tick=st.GetInt(st[3]);
+	map_session_data *sd = st.sd; 
 	if(sd) pc_addeventtimercount(*sd,event,tick);
 	return 0;
 }
@@ -4870,8 +5181,8 @@ int buildin_addtimercount(CScriptEngine &st)
 int buildin_initnpctimer(CScriptEngine &st)
 {
 	struct npc_data *nd;
-	if( st.end > st.start+2 )
-		nd=npc_name2id(st.GetString( (st[2])));
+	if( st.Arguments() > 2 )
+		nd=npc_name2id(st.GetString(st[2]));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
 
@@ -4889,8 +5200,8 @@ int buildin_initnpctimer(CScriptEngine &st)
 int buildin_startnpctimer(CScriptEngine &st)
 {
 	struct npc_data *nd;
-	if( st.end > st.start+2 )
-		nd=npc_name2id(st.GetString( (st[2])));
+	if( st.Arguments() > 2 )
+		nd=npc_name2id(st.GetString(st[2]));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
 
@@ -4907,7 +5218,7 @@ int buildin_startnpctimer(CScriptEngine &st)
 int buildin_stopnpctimer(CScriptEngine &st)
 {
 	struct npc_data *nd;
-	if( st.end > st.start+2 )
+	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
@@ -4922,9 +5233,9 @@ int buildin_stopnpctimer(CScriptEngine &st)
 int buildin_getnpctimer(CScriptEngine &st)
 {
 	struct npc_data *nd;
-	int type=st.GetInt( (st[2]));
+	int type=st.GetInt(st[2]);
 	int val=0;
-	if( st.end > st.start+3 )
+	if( st.Arguments() > 3 )
 		nd=npc_name2id(st.GetString( (st[3])));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
@@ -4948,8 +5259,8 @@ int buildin_setnpctimer(CScriptEngine &st)
 {
 	unsigned long tick;
 	struct npc_data *nd;
-	tick=st.GetInt( (st[2]));
-	if( st.end > st.start+3 )
+	tick=st.GetInt(st[2]);
+	if( st.Arguments() > 3 )
 		nd=npc_name2id(st.GetString( (st[3])));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
@@ -4971,11 +5282,11 @@ int buildin_attachnpctimer(CScriptEngine &st)
 	struct npc_data *nd;
 
 	nd=(struct npc_data *)map_id2bl(st.oid);
-	if( st.end > st.start+2 ) {
-		const char *name = st.GetString( (st[2]));
+	if( st.Arguments() > 2 ) {
+		const char *name = st.GetString(st[2]);
 		sd=map_nick2sd(name);
 	} else {
-		sd = script_rid2sd(st);
+		sd = st.sd;
 	}
 	if(sd) nd->u.scr.rid = sd->bl.id;
 		return 0;
@@ -4988,7 +5299,7 @@ int buildin_attachnpctimer(CScriptEngine &st)
 int buildin_detachnpctimer(CScriptEngine &st)
 {
 	struct npc_data *nd;
-	if( st.end > st.start+2 )
+	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
@@ -5005,12 +5316,12 @@ int buildin_announce(CScriptEngine &st)
 {
 	const char *str;
 	int flag;
-	str=st.GetString( (st[2]));
-	flag=st.GetInt( (st[3]));
+	str=st.GetString(st[2]);
+	flag=st.GetInt(st[3]);
 
 	if(flag&0x0f){
 		struct block_list *bl=(flag&0x08)? map_id2bl(st.oid) :
-			(struct block_list *)script_rid2sd(st);
+			(struct block_list *)st.sd;
 		clif_GMmessage(bl,str,flag);
 	}else
 		intif_GMmessage(str,flag);
@@ -5035,9 +5346,9 @@ int buildin_mapannounce(CScriptEngine &st)
 	const char *mapname,*str;
 	int flag,m;
 
-	mapname=st.GetString( (st[2]));
-	str=st.GetString( (st[3]));
-	flag=st.GetInt( (st[4]));
+	mapname=st.GetString(st[2]);
+	str=st.GetString(st[3]);
+	flag=st.GetInt(st[4]);
 
 	if( (m=map_mapname2mapid(mapname))<0 )
 		return 0;
@@ -5056,13 +5367,13 @@ int buildin_areaannounce(CScriptEngine &st)
 	int flag,m;
 	int x0,y0,x1,y1;
 
-	map=st.GetString( (st[2]));
-	x0=st.GetInt( (st[3]));
-	y0=st.GetInt( (st[4]));
-	x1=st.GetInt( (st[5]));
-	y1=st.GetInt( (st[6]));
-	str=st.GetString( (st[7]));
-	flag=st.GetInt( (st[8]));
+	map=st.GetString(st[2]);
+	x0=st.GetInt(st[3]);
+	y0=st.GetInt(st[4]);
+	x1=st.GetInt(st[5]);
+	y1=st.GetInt(st[6]);
+	str=st.GetString(st[7]);
+	flag=st.GetInt(st[8]);
 
 	if( (m=map_mapname2mapid(map))<0 )
 		return 0;
@@ -5077,10 +5388,11 @@ int buildin_areaannounce(CScriptEngine &st)
  */
 int buildin_getusers(CScriptEngine &st)
 {
-	int flag=st.GetInt( (st[2]));
-	struct block_list *bl=map_id2bl((flag&0x08)?st.oid:st.rid);
+	int flag=st.GetInt(st[2]);
+	struct block_list *bl = (flag&0x08)?map_id2bl(st.oid):(st.sd)?&(st.sd->bl):NULL;
 	int val=0;
-	switch(flag&0x07){
+	switch(flag&0x07)
+	{
 	case 0: val=map[bl->m].users; break;
 	case 1: val=map_getusers(); break;
 	}
@@ -5095,7 +5407,7 @@ int buildin_getusersname(CScriptEngine &st)
 {
 	struct map_session_data *pl_sd = NULL;
 	size_t i=0,disp_num=1;
-	map_session_data *sd = script_rid2sd(st);
+	map_session_data *sd = st.sd;
 	if(sd) 
 	for (i=0;i<fd_max;i++)
 		if(session[i] && (pl_sd=(struct map_session_data *) session[i]->session_data) && pl_sd->state.auth){
@@ -5115,7 +5427,7 @@ int buildin_getmapusers(CScriptEngine &st)
 {
 	const char *str;
 	int m;
-	str=st.GetString( (st[2]));
+	str=st.GetString(st[2]);
 	if( (m=map_mapname2mapid(str))< 0){
 		st.push_val(CScriptEngine::C_INT,-1);
 		return 0;
@@ -5138,11 +5450,11 @@ int buildin_getareausers(CScriptEngine &st)
 {
 	const char *str;
 	int m,x0,y0,x1,y1,users=0;
-	str=st.GetString( (st[2]));
-	x0=st.GetInt( (st[3]));
-	y0=st.GetInt( (st[4]));
-	x1=st.GetInt( (st[5]));
-	y1=st.GetInt( (st[6]));
+	str=st.GetString(st[2]);
+	x0=st.GetInt(st[3]);
+	y0=st.GetInt(st[4]);
+	x1=st.GetInt(st[5]);
+	y1=st.GetInt(st[6]);
 	if( (m=map_mapname2mapid(str))< 0){
 		st.push_val(CScriptEngine::C_INT,-1);
 		return 0;
@@ -5175,11 +5487,11 @@ int buildin_getareadropitem(CScriptEngine &st)
 	int m,x0,y0,x1,y1,item,amount=0;
 	CScriptEngine::CValue &data= st[7];
 
-	str = st.GetString( (st[2]));
-	x0  = st.GetInt( (st[3]));
-	y0  = st.GetInt( (st[4]));
-	x1  = st.GetInt( (st[5]));
-	y1  = st.GetInt( (st[6]));
+	str = st.GetString(st[2]);
+	x0  = st.GetInt(st[3]);
+	y0  = st.GetInt(st[4]);
+	x1  = st.GetInt(st[5]);
+	y1  = st.GetInt(st[6]);
 
 	st.ConvertName(data);
 	if( data.isString() ){
@@ -5208,7 +5520,7 @@ int buildin_getareadropitem(CScriptEngine &st)
 int buildin_enablenpc(CScriptEngine &st)
 {
 	const char *str;
-	str=st.GetString( (st[2]));
+	str=st.GetString(st[2]);
 	npc_enable(str,1);
 	return 0;
 }
@@ -5219,7 +5531,7 @@ int buildin_enablenpc(CScriptEngine &st)
 int buildin_disablenpc(CScriptEngine &st)
 {
 	const char *str;
-	str=st.GetString( (st[2]));
+	str=st.GetString(st[2]);
 	npc_enable(str,0);
 	return 0;
 }
@@ -5255,7 +5567,7 @@ int buildin_disablearena(CScriptEngine &st)	// Added by RoVeRT
 int buildin_hideoffnpc(CScriptEngine &st)
 {
 	const char *str;
-	str=st.GetString( (st[2]));
+	str=st.GetString(st[2]);
 	npc_enable(str,2);
 	return 0;
 }
@@ -5266,7 +5578,7 @@ int buildin_hideoffnpc(CScriptEngine &st)
 int buildin_hideonnpc(CScriptEngine &st)
 {
 	const char *str;
-	str=st.GetString( (st[2]));
+	str=st.GetString(st[2]);
 	npc_enable(str,4);
 	return 0;
 }
@@ -5280,15 +5592,15 @@ int buildin_sc_start(CScriptEngine &st)
 	int type;
 	unsigned long tick;
 	int val1;
-	type=st.GetInt( (st[2]));
-	tick=st.GetInt( (st[3]));
-	val1=st.GetInt( (st[4]));
-	if( st.end>st.start+5 ) //指定したキャラを状態異常にする
-		bl = map_id2bl(st.GetInt( (st[5])));
+	type=st.GetInt(st[2]);
+	tick=st.GetInt(st[3]);
+	val1=st.GetInt(st[4]);
+	if( st.Arguments() > 5 ) //指定したキャラを状態異常にする
+		bl = map_id2bl(st.GetInt(st[5]));
 	else
-		bl = map_id2bl(st.rid);
+		bl = (st.sd)?&(st.sd->bl):NULL;
 
-	if (bl != 0)
+	if(bl)
 	{
 		if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
 			bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
@@ -5307,18 +5619,18 @@ int buildin_sc_start2(CScriptEngine &st)
 	int type;
 	unsigned long tick;
 	int val1,per;
-	type=st.GetInt( (st[2]));
-	tick=st.GetInt( (st[3]));
-	val1=st.GetInt( (st[4]));
-	per=st.GetInt( (st[5]));
-	if( st.end>st.start+6 ) //指定したキャラを状態異常にする
-		bl = map_id2bl(st.GetInt( (st[6])));
+	type=st.GetInt(st[2]);
+	tick=st.GetInt(st[3]);
+	val1=st.GetInt(st[4]);
+	per=st.GetInt(st[5]);
+	if( st.Arguments() > 6 ) //指定したキャラを状態異常にする
+		bl = map_id2bl(st.GetInt(st[6]));
 	else
-	bl = map_id2bl(st.rid);
+		bl = (st.sd)?&(st.sd->bl):NULL;
 	if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
 		bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
 	if(rand()%10000 < per)
-	status_change_start(bl,type,val1,0,0,0,tick,0);
+		status_change_start(bl,type,val1,0,0,0,tick,0);
 	return 0;
 }
 
@@ -5328,18 +5640,18 @@ int buildin_sc_start2(CScriptEngine &st)
  */
 int buildin_sc_end(CScriptEngine &st)
 {
-	struct block_list *bl;
-	int type;
-	type=st.GetInt( (st[2]));
-	bl = map_id2bl(st.rid);
-	
-	nullpo_retr(0,bl);
+	if(st.sd)
+	{
+		struct block_list *bl = &(st.sd->bl);
 
-	if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
-		bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
-	status_change_end(bl,type,-1);
-//	if(battle_config.etc_log)
-//		ShowMessage("sc_end : %d %d\n",st.rid,type);
+		int type=st.GetInt(st[2]);
+		if(st.sd->bl.type == BL_PC && st.sd->state.potion_flag==1)
+			bl = map_id2bl(st.sd->skilltarget);
+
+		status_change_end(bl,type,-1);
+//		if(battle_config.etc_log)
+//			ShowMessage("sc_end : %d %d\n",st.rid,type);
+	}
 	return 0;
 }
 /*==========================================
@@ -5351,12 +5663,12 @@ int buildin_getscrate(CScriptEngine &st)
 	struct block_list *bl;
 	int sc_def,type,rate;
 
-	type=st.GetInt( (st[2]));
-	rate=st.GetInt( (st[3]));
-	if( st.end>st.start+4 ) //指定したキャラの耐性を計算する
-		bl = map_id2bl(st.GetInt( (st[6])));
+	type=st.GetInt(st[2]);
+	rate=st.GetInt(st[3]);
+	if( st.Arguments() > 4 ) //指定したキャラの耐性を計算する
+		bl = map_id2bl(st.GetInt(st[6]));
 	else
-		bl = map_id2bl(st.rid);
+		bl = (st.sd)?&(st.sd->bl):NULL;
 
 	sc_def = status_get_sc_def(bl,type);
 
@@ -5373,8 +5685,7 @@ int buildin_getscrate(CScriptEngine &st)
  */
 int buildin_debugmes(CScriptEngine &st)
 {
-	st.GetString( (st[2]));
-	ShowMessage("script debug : %d %d : %s\n",st.rid,st.oid,st[2].str);
+	ShowMessage("script debug : %d %d : %s\n", st.rid, st.oid, st.GetString(st[2]));
 	return 0;
 }
 
@@ -5384,8 +5695,8 @@ int buildin_debugmes(CScriptEngine &st)
  */
 int buildin_catchpet(CScriptEngine &st)
 {
-	int pet_id= st.GetInt( (st[2]));
-	struct map_session_data *sd=script_rid2sd(st);
+	int pet_id= st.GetInt(st[2]);
+	struct map_session_data *sd=st.sd;
 	if(sd) pet_catch_process1(*sd,pet_id);
 	return 0;
 }
@@ -5396,7 +5707,7 @@ int buildin_catchpet(CScriptEngine &st)
  */
 int buildin_birthpet(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	if(sd) clif_sendegg(*sd);
 	return 0;
 }
@@ -5407,8 +5718,8 @@ int buildin_birthpet(CScriptEngine &st)
  */
 int buildin_resetlvl(CScriptEngine &st)
 {
-	int type=st.GetInt( (st[2]));
-	struct map_session_data *sd=script_rid2sd(st);
+	int type=st.GetInt(st[2]);
+	struct map_session_data *sd=st.sd;
 	if(sd) pc_resetlvl(*sd,type);
 	return 0;
 }
@@ -5418,7 +5729,7 @@ int buildin_resetlvl(CScriptEngine &st)
  */
 int buildin_resetstatus(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	if(sd) pc_resetstate(*sd);
 	return 0;
 }
@@ -5429,7 +5740,7 @@ int buildin_resetstatus(CScriptEngine &st)
  */
 int buildin_resetskill(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	if(sd) pc_resetskill(*sd);
 	return 0;
 }
@@ -5443,15 +5754,15 @@ int buildin_changebase(CScriptEngine &st)
 	struct map_session_data *sd=NULL;
 	int vclass;
 
-	if( st.end>st.start+3 )
+	if( st.Arguments() > 3 )
 		sd=map_id2sd(st.GetInt( (st[3])));
 	else
-	sd=script_rid2sd(st);
+	sd=st.sd;
 
 	if(sd == NULL)
 		return 0;
 
-	vclass = st.GetInt( (st[2]));
+	vclass = st.GetInt(st[2]);
 	if( vclass == 22 && 
 		(!battle_config.wedding_modifydisplay ||					// Do not show the wedding sprites
 		(sd->status.class_ >= 4023 && sd->status.class_ <= 4045)) )	// Baby classes screw up when showing wedding sprites. [Skotlex]
@@ -5472,7 +5783,7 @@ int buildin_changebase(CScriptEngine &st)
  */
 int buildin_changesex(CScriptEngine &st) {
 	struct map_session_data *sd = NULL;
-	sd = script_rid2sd(st);
+	sd = st.sd;
 
 	if (sd->status.sex == 0) {
 		sd->status.sex = 1;
@@ -5496,27 +5807,29 @@ int buildin_waitingroom(CScriptEngine &st)
 {
 	const char *name,*ev="";
 	int limit, trigger = 0,pub=1;
-	name=st.GetString( (st[2]));
-	limit= st.GetInt( (st[3]));
+	name=st.GetString(st[2]);
+	limit= st.GetInt(st[3]);
 	if(limit==0)
 		pub=3;
 
-	if( (st.end > st.start+5) ){
+	if( st.Arguments() > 5)
+	{
 		CScriptEngine::CValue* data=&(st[5]);
 		st.ConvertName(*data);
 		if(data->type==CScriptEngine::C_INT){
 			// 新Athena仕様(旧Athena仕様と互換性あり)
-			ev=st.GetString( (st[4]));
-			trigger=st.GetInt( (st[5]));
+			ev=st.GetString(st[4]);
+			trigger=st.GetInt(st[5]);
 		}else{
 			// eathena仕様
-			trigger=st.GetInt( (st[4]));
-			ev=st.GetString( (st[5]));
+			trigger=st.GetInt(st[4]);
+			ev=st.GetString(st[5]);
 		}
-	}else{
-		// 旧Athena仕様
-		if( st.end > st.start+4 )
-			ev=st.GetString( (st[4]));
+	}
+	else
+	{	// 旧Athena仕様
+		if( st.Arguments() > 4 )
+			ev=st.GetString(st[4]);
 	}
 	struct npc_data *nd = (struct npc_data *)map_id2bl(st.oid);
 	if(nd) chat_createnpcchat(*nd,limit,pub,trigger,name,strlen(name)+1,ev);
@@ -5528,21 +5841,23 @@ int buildin_waitingroom(CScriptEngine &st)
  */
 int buildin_globalmes(CScriptEngine &st)
 {
-	struct block_list *bl = map_id2bl(st.oid);
-	struct npc_data *nd = (struct npc_data *)bl;
 	const char *name=NULL,*mes;
 
-	mes=st.GetString( (st[2]));	// メッセージの取得
-	if(mes==NULL) return 0;
-	
-	if(st.end>st.start+3){	// NPC名の取得(123#456)
-		name=st.GetString( (st[3]));
-	} else {
-		name=nd->name;
+	mes=st.GetString(st[2]);	// メッセージの取得
+	if(mes)
+	{
+		if( st.Arguments() > 3 )
+		{	// NPC名の取得(123#456)
+			name=st.GetString(st[3]);
+		}
+		else
+		{
+			struct npc_data *nd = (struct npc_data *)map_id2bl(st.oid);
+			name=nd->name;
+		}
+
+		npc_globalmessage(name,mes);	// グローバルメッセージ送信
 	}
-
-	npc_globalmessage(name,mes);	// グローバルメッセージ送信
-
 	return 0;
 }
 /*==========================================
@@ -5552,7 +5867,7 @@ int buildin_globalmes(CScriptEngine &st)
 int buildin_delwaitingroom(CScriptEngine &st)
 {
 	struct npc_data *nd;
-	if( st.end > st.start+2 )
+	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
@@ -5568,7 +5883,7 @@ int buildin_waitingroomkickall(CScriptEngine &st)
 	struct npc_data *nd;
 	struct chat_data *cd;
 
-	if( st.end > st.start+2 )
+	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
@@ -5588,7 +5903,7 @@ int buildin_enablewaitingroomevent(CScriptEngine &st)
 	struct npc_data *nd;
 	struct chat_data *cd;
 
-	if( st.end > st.start+2 )
+	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
@@ -5608,7 +5923,7 @@ int buildin_disablewaitingroomevent(CScriptEngine &st)
 	struct npc_data *nd;
 	struct chat_data *cd;
 
-	if( st.end > st.start+2 )
+	if( st.Arguments() > 2 )
 		nd=npc_name2id(st.GetString( (st[2])));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
@@ -5627,8 +5942,8 @@ int buildin_getwaitingroomstate(CScriptEngine &st)
 	struct npc_data *nd;
 	struct chat_data *cd;
 	int val=0,type;
-	type=st.GetInt( (st[2]));
-	if( st.end > st.start+3 )
+	type=st.GetInt(st[2]);
+	if( st.Arguments() > 3 )
 		nd=npc_name2id(st.GetString( (st[3])));
 	else
 		nd=(struct npc_data *)map_id2bl(st.oid);
@@ -5675,17 +5990,17 @@ int buildin_warpwaitingpc(CScriptEngine &st)
 		return 0;
 
 	n=cd->trigger&0x7f;
-	str=st.GetString( (st[2]));
-	x=st.GetInt( (st[3]));
-	y=st.GetInt( (st[4]));
+	str=st.GetString(st[2]);
+	x=st.GetInt(st[3]);
+	y=st.GetInt(st[4]);
 
-	if( st.end > st.start+5 )
-		n=st.GetInt( (st[5]));
+	if( st.Arguments() > 5 )
+		n=st.GetInt(st[5]);
 
 	for(i=0;i<n;i++){
 		struct map_session_data *sd=cd->usersd[0];	// リスト先頭のPCを次々に。
 
-		mapreg_setreg(add_str( "$@warpwaitingpc")+(i<<24),sd->bl.id);
+		mapreg_setregnum(add_str( "$@warpwaitingpc")+(i<<24),sd->bl.id);
 
 		if(strcmp(str,"Random")==0)
 			pc_randomwarp(*sd,3);
@@ -5697,39 +6012,9 @@ int buildin_warpwaitingpc(CScriptEngine &st)
 		}else
 			pc_setpos(*sd,str,x,y,0);
 	}
-	mapreg_setreg(add_str( "$@warpwaitingpcnum"),n);
+	mapreg_setregnum(add_str( "$@warpwaitingpcnum"),n);
 	return 0;
 }
-/*==========================================
- * RIDのアタッチ
- *------------------------------------------
- */
-int buildin_attachrid(CScriptEngine &st)
-{
-	st.rid=st.GetInt(st[2]);
-	st.push_val(CScriptEngine::C_INT, (map_id2sd(st.rid)!=NULL));
-	return 0;
-}
-/*==========================================
- * RIDのデタッチ
- *------------------------------------------
- */
-int buildin_detachrid(CScriptEngine &st)
-{
-	st.rid=0;
-	return 0;
-}
-/*==========================================
- * 存在チェック
- *------------------------------------------
- */
-int buildin_isloggedin(CScriptEngine &st)
-{
-	st.push_val(CScriptEngine::C_INT, map_id2sd(
-		st.GetInt( (st[2])) )!=NULL );
-	return 0;
-}
-
 
 /*==========================================
  *
@@ -5772,10 +6057,10 @@ int buildin_setmapflagnosave(CScriptEngine &st)
 	int m,x,y;
 	const char *str,*str2;
 
-	str=st.GetString( (st[2]));
-	str2=st.GetString( (st[3]));
-	x=st.GetInt( (st[4]));
-	y=st.GetInt( (st[5]));
+	str=st.GetString(st[2]);
+	str2=st.GetString(st[3]);
+	x=st.GetInt(st[4]);
+	y=st.GetInt(st[5]);
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
 	if(m >= 0) {
@@ -5793,8 +6078,8 @@ int buildin_setmapflag(CScriptEngine &st)
 	int m,i;
 	const char *str;
 
-	str=st.GetString( (st[2]));
-	i=st.GetInt( (st[3]));
+	str=st.GetString(st[2]);
+	i=st.GetInt(st[3]);
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
 	if(m >= 0) {
@@ -5884,8 +6169,8 @@ int buildin_removemapflag(CScriptEngine &st)
 	int m,i;
 	const char *str;
 
-	str=st.GetString( (st[2]));
-	i=st.GetInt( (st[3]));
+	str=st.GetString(st[2]);
+	i=st.GetInt(st[3]);
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
 	if(m >= 0) {
@@ -5978,7 +6263,7 @@ int buildin_pvpon(CScriptEngine &st)
 	const char *str;
 	struct map_session_data *pl_sd=NULL;
 
-	str=st.GetString( (st[2]));
+	str=st.GetString(st[2]);
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
 	if(m >= 0 && !map[m].flag.pvp && !map[m].flag.nopvp) {
@@ -6011,7 +6296,7 @@ int buildin_pvpoff(CScriptEngine &st)
 	const char *str;
 	struct map_session_data *pl_sd=NULL;
 
-	str=st.GetString( (st[2]));
+	str=st.GetString(st[2]);
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
 	if(m >= 0 && map[m].flag.pvp && map[m].flag.nopvp) {
@@ -6041,7 +6326,7 @@ int buildin_gvgon(CScriptEngine &st)
 	int m;
 	const char *str;
 
-	str=st.GetString( (st[2]));
+	str=st.GetString(st[2]);
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
 	if(m >= 0 && !map[m].flag.gvg) {
@@ -6056,7 +6341,7 @@ int buildin_gvgoff(CScriptEngine &st)
 	int m;
 	const char *str;
 
-	str=st.GetString( (st[2]));
+	str=st.GetString(st[2]);
 	m = map_mapname2mapid(str);
 //!! broadcast command if not on this mapserver
 	if(m >= 0 && map[m].flag.gvg) {
@@ -6073,7 +6358,7 @@ int buildin_gvgoff(CScriptEngine &st)
 int buildin_emotion(CScriptEngine &st)
 {
 	int type;
-	type=st.GetInt( (st[2]));
+	type=st.GetInt(st[2]);
 	if(type < 0 || type > 100)
 		return 0;
 	block_list *bl = map_id2bl(st.oid);
@@ -6110,9 +6395,9 @@ int buildin_maprespawnguildid_sub(struct block_list &bl,va_list ap)
 
 int buildin_maprespawnguildid(CScriptEngine &st)
 {
-	const char *mapname=st.GetString( (st[2]));
-	int g_id=st.GetInt( (st[3]));
-	int flag=st.GetInt( (st[4]));
+	const char *mapname=st.GetString(st[2]);
+	int g_id=st.GetInt(st[3]);
+	int flag=st.GetInt(st[4]);
 
 	int m=map_mapname2mapid(mapname);
 
@@ -6143,12 +6428,12 @@ int buildin_agitend(CScriptEngine &st)
  */
 int buildin_agitcheck(CScriptEngine &st)
 {
-	int cond=st.GetInt( (st[2]));
+	int cond=st.GetInt(st[2]);
 	if(cond == 0) {
 		if (agit_flag==1) st.push_val(CScriptEngine::C_INT,1);
 		if (agit_flag==0) st.push_val(CScriptEngine::C_INT,0);
 	} else {
-		struct map_session_data *sd=script_rid2sd(st);
+		struct map_session_data *sd=st.sd;
 		if (agit_flag==1) pc_setreg(*sd,add_str( "@agit_flag"),1);
 		if (agit_flag==0) pc_setreg(*sd,add_str( "@agit_flag"),0);
 	}
@@ -6157,7 +6442,7 @@ int buildin_agitcheck(CScriptEngine &st)
 
 int buildin_flagemblem(CScriptEngine &st)
 {
-	int g_id=st.GetInt( (st[2]));
+	int g_id=st.GetInt(st[2]);
 
 	if(g_id < 0) return 0;
 
@@ -6168,7 +6453,7 @@ int buildin_flagemblem(CScriptEngine &st)
 
 int buildin_getcastlename(CScriptEngine &st)
 {
-	const char *mapname=st.GetString( (st[2]));
+	const char *mapname=st.GetString(st[2]);
 	struct guild_castle *gc;
 	int i;
 	char *buf=NULL;
@@ -6194,8 +6479,8 @@ int buildin_getcastlename(CScriptEngine &st)
 
 int buildin_getcastledata(CScriptEngine &st)
 {
-	const char *mapname=st.GetString( (st[2]));
-	int index=st.GetInt( (st[3]));
+	const char *mapname=st.GetString(st[2]);
+	int index=st.GetInt(st[3]);
 	struct guild_castle *gc;
 	int i, val=0;
 
@@ -6206,9 +6491,9 @@ int buildin_getcastledata(CScriptEngine &st)
 			switch(index)
 			{
 			case  0:
-				if(st.end>st.start+4)
+				if( st.Arguments() > 4 )
 				{
-					const char *event = st.GetString( (st[4]));
+					const char *event = st.GetString(st[4]);
 					guild_addcastleinfoevent(i,17,event);
 				}
 				for(i=1;i<26;i++) guild_castledataload(gc->castle_id,i);
@@ -6249,9 +6534,9 @@ int buildin_getcastledata(CScriptEngine &st)
 
 int buildin_setcastledata(CScriptEngine &st)
 {
-	const char *mapname=st.GetString( (st[2]));
-	int index=st.GetInt( (st[3]));
-	int value=st.GetInt( (st[4]));
+	const char *mapname=st.GetString(st[2]);
+	int index=st.GetInt(st[3]);
+	int value=st.GetInt(st[4]);
 	struct guild_castle *gc;
 	int i;
 
@@ -6301,11 +6586,11 @@ int buildin_setcastledata(CScriptEngine &st)
  */
 int buildin_requestguildinfo(CScriptEngine &st)
 {
-	int guild_id=st.GetInt( (st[2]));
+	int guild_id=st.GetInt(st[2]);
 	const char *event=NULL;
 
-	if( st.end>st.start+3 )
-		event=st.GetString( (st[3]));
+	if( st.Arguments() > 3 )
+		event=st.GetString(st[3]);
 
 	if(guild_id>0)
 		guild_npc_request_info(guild_id,event);
@@ -6322,8 +6607,8 @@ int buildin_getequipcardcnt(CScriptEngine &st)
 	struct map_session_data *sd;
 	int c=4;
 
-	num=st.GetInt( (st[2]));
-	sd=script_rid2sd(st);
+	num=st.GetInt(st[2]);
+	sd=st.sd;
 	if(!sd)
 	{
 		st.push_val(CScriptEngine::C_INT,0);
@@ -6357,8 +6642,8 @@ int buildin_successremovecards(CScriptEngine &st)
 	struct item item_tmp;
 	int c=4;
 
-	num=st.GetInt( (st[2]));
-	sd=script_rid2sd(st);
+	num=st.GetInt(st[2]);
+	sd=st.sd;
 	i=pc_checkequip(*sd,equip[num-1]);
 	if(sd->status.inventory[i].card[0]==0x00ff){ // 製造武器は処理しない
 		return 0;
@@ -6410,9 +6695,9 @@ int buildin_failedremovecards(CScriptEngine &st)
 	struct item item_tmp;
 	int c=4;
 
-	num=st.GetInt( (st[2]));
-	typefail=st.GetInt( (st[3]));
-	sd=script_rid2sd(st);
+	num=st.GetInt(st[2]);
+	typefail=st.GetInt(st[3]);
+	sd=st.sd;
 	i=pc_checkequip(*sd,equip[num-1]);
 	if(sd->status.inventory[i].card[0]==0x00ff){ // 製造武器は処理しない
 		return 0;
@@ -6469,14 +6754,14 @@ int buildin_mapwarp(CScriptEngine &st)	// Added by RoVeRT
 	const char *mapname;
 	int x0,y0,x1,y1;
 
-	mapname=st.GetString( (st[2]));
+	mapname=st.GetString(st[2]);
 	x0=0;
 	y0=0;
 	x1=map[map_mapname2mapid(mapname)].xs;
 	y1=map[map_mapname2mapid(mapname)].ys;
-	str=st.GetString( (st[3]));
-	x=st.GetInt( (st[4]));
-	y=st.GetInt( (st[5]));
+	str=st.GetString(st[3]);
+	x=st.GetInt(st[4]);
+	y=st.GetInt(st[5]);
 
 	if( (m=map_mapname2mapid(mapname))< 0)
 		return 0;
@@ -6488,13 +6773,12 @@ int buildin_mapwarp(CScriptEngine &st)	// Added by RoVeRT
 
 int buildin_cmdothernpc(CScriptEngine &st)	// Added by RoVeRT
 {
-	const char *npc,*command;
-
-	npc=st.GetString( (st[2]));
-	command=st.GetString( (st[3]));
-
-	map_session_data *sd = map_id2sd(st.rid);
-	if(sd) npc_command(*sd,npc,command);
+	if(st.sd)
+	{
+		const char *npc=st.GetString(st[2]);
+		const char *command=st.GetString(st[3]);
+		npc_command(*st.sd,npc,command);
+	}
 	return 0;
 }
 
@@ -6503,8 +6787,7 @@ int buildin_inittimer(CScriptEngine &st)	// Added by RoVeRT
 //	struct npc_data *nd=(struct npc_data*)map_id2bl(st.oid);
 //	nd->lastaction=nd->timer=gettick();
 
-	map_session_data *sd = map_id2sd(st.rid);
-	if(sd) npc_do_ontimer(st.oid, *sd, 1);
+	if(st.sd) npc_do_ontimer(st.oid, *st.sd, 1);
 	return 0;
 }
 
@@ -6512,9 +6795,8 @@ int buildin_stoptimer(CScriptEngine &st)	// Added by RoVeRT
 {
 //	struct npc_data *nd=(struct npc_data*)map_id2bl(st.oid);
 //	nd->lastaction=nd->timer=-1;
-
-	map_session_data *sd = map_id2sd(st.rid);
-	if(sd) npc_do_ontimer(st.oid, *sd, 0);
+	if(st.sd)
+		npc_do_ontimer(st.oid, *st.sd, 0);
 
 	return 0;
 }
@@ -6533,8 +6815,8 @@ int buildin_mobcount(CScriptEngine &st)	// Added by RoVeRT
 {
 	const char *mapname,*event;
 	int m,c=0;
-	mapname=st.GetString( (st[2]));
-	event=st.GetString( (st[3]));
+	mapname=st.GetString(st[2]);
+	event=st.GetString(st[3]);
 
 	if( (m=map_mapname2mapid(mapname))<0 ) {
 		st.push_val(CScriptEngine::C_INT,-1);
@@ -6549,8 +6831,8 @@ int buildin_mobcount(CScriptEngine &st)	// Added by RoVeRT
 }
 int buildin_marriage(CScriptEngine &st)
 {
-	const char *partner=st.GetString( (st[2]));
-	struct map_session_data *sd=script_rid2sd(st);
+	const char *partner=st.GetString(st[2]);
+	struct map_session_data *sd=st.sd;
 	struct map_session_data *p_sd=map_nick2sd(partner);
 
 	st.push_val(CScriptEngine::C_INT, (sd!=NULL && p_sd!=NULL && pc_marriage(*sd,*p_sd)) );
@@ -6560,7 +6842,7 @@ int buildin_marriage(CScriptEngine &st)
 
 int buildin_wedding_effect(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	struct block_list *bl;
 
 	if(sd==NULL) {
@@ -6572,14 +6854,14 @@ int buildin_wedding_effect(CScriptEngine &st)
 }
 int buildin_divorce(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	st.push_val(CScriptEngine::C_INT, (sd && pc_divorce(*sd)) );
 	return 0;
 }
 
 int buildin_ispartneron(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	st.push_val(CScriptEngine::C_INT,
 		(sd && pc_ismarried(*sd) &&
 		NULL!=map_nick2sd(map_charid2nick(sd->status.partner_id)))
@@ -6589,7 +6871,7 @@ int buildin_ispartneron(CScriptEngine &st)
 
 int buildin_getpartnerid(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	if (sd == NULL) {
 		st.push_val(CScriptEngine::C_INT,0);
 		return 0;
@@ -6600,7 +6882,7 @@ int buildin_getpartnerid(CScriptEngine &st)
 
 int buildin_getchildid(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	if (sd == NULL) {
 		st.push_val(CScriptEngine::C_INT,0);
 		return 0;
@@ -6613,7 +6895,7 @@ int buildin_warppartner(CScriptEngine &st)
 {
 	int x,y;
 	const char *str;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	struct map_session_data *p_sd=NULL;
 
 	if( sd==NULL || !pc_ismarried(*sd) ||
@@ -6623,9 +6905,9 @@ int buildin_warppartner(CScriptEngine &st)
 		return 0;
 	}
 
-	str=st.GetString( (st[2]));
-	x=st.GetInt( (st[3]));
-	y=st.GetInt( (st[4]));
+	str=st.GetString(st[2]);
+	x=st.GetInt(st[3]);
+	y=st.GetInt(st[4]);
 
 	pc_setpos(*p_sd,str,x,y,0);
 
@@ -6640,8 +6922,8 @@ int buildin_warppartner(CScriptEngine &st)
 int buildin_strmobinfo(CScriptEngine &st)
 {
 
-	int num=st.GetInt( (st[2]));
-	int class_=st.GetInt( (st[3]));
+	int num=st.GetInt(st[2]);
+	int class_=st.GetInt(st[3]);
 
 	if((class_>=0 && class_<=1000) || class_ >2000)
 		return 0;
@@ -6691,17 +6973,17 @@ int buildin_guardian(CScriptEngine &st)
 	int class_=0,amount=1,x=0,y=0,guardian=0;
 	const char *str,*map,*event="";
 
-	map	=st.GetString( (st[2]));
-	x	=st.GetInt( (st[3]));
-	y	=st.GetInt( (st[4]));
-	str	=st.GetString( (st[5]));
-	class_=st.GetInt( (st[6]));
-	amount=st.GetInt( (st[7]));
-	event=st.GetString( (st[8]));
-	if( st.end>st.start+9 )
-		guardian=st.GetInt( (st[9]));
+	map	=st.GetString(st[2]);
+	x	=st.GetInt(st[3]);
+	y	=st.GetInt(st[4]);
+	str	=st.GetString(st[5]);
+	class_=st.GetInt(st[6]);
+	amount=st.GetInt(st[7]);
+	event=st.GetString(st[8]);
+	if( st.Arguments() > 9 )
+		guardian=st.GetInt(st[9]);
 
-	mob_spawn_guardian(map_id2sd(st.rid),map,x,y,str,class_,amount,event,guardian);
+	mob_spawn_guardian(st.sd,map,x,y,str,class_,amount,event,guardian);
 
 	return 0;
 }
@@ -6712,8 +6994,8 @@ int buildin_guardian(CScriptEngine &st)
  */
 int buildin_guardianinfo(CScriptEngine &st)
 {
-	int guardian=st.GetInt( (st[2]));
-	struct map_session_data *sd=script_rid2sd(st);
+	int guardian=st.GetInt(st[2]);
+	struct map_session_data *sd=st.sd;
 	struct guild_castle *gc=guild_mapname2gc(map[sd->bl.m].mapname);
 
 	if(guardian==0 && gc->visibleG0 == 1) st.push_val(CScriptEngine::C_INT,gc->Ghp0);
@@ -6769,7 +7051,7 @@ int buildin_petskillbonus(CScriptEngine &st)
 {
 	struct pet_data *pd;
 
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	if(sd==NULL || sd->pd==NULL)
 		return 0;
@@ -6782,10 +7064,10 @@ int buildin_petskillbonus(CScriptEngine &st)
 	} else //init
 		pd->bonus = (struct pet_data::pet_bonus *) aCalloc(1, sizeof(struct pet_data::pet_bonus));
 
-	pd->bonus->type=st.GetInt( (st[2]));
-	pd->bonus->val=st.GetInt( (st[3]));
-	pd->bonus->duration=st.GetInt( (st[4]));
-	pd->bonus->delay=st.GetInt( (st[5]));
+	pd->bonus->type=st.GetInt(st[2]);
+	pd->bonus->val=st.GetInt(st[3]);
+	pd->bonus->duration=st.GetInt(st[4]);
+	pd->bonus->delay=st.GetInt(st[5]);
 
 	if (pd->state.skillbonus == -1)
 		pd->state.skillbonus=0;	// waiting state
@@ -6807,12 +7089,12 @@ int buildin_petloot(CScriptEngine &st)
 {
 	int max;
 	struct pet_data *pd;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	
 	if(sd==NULL || sd->pd==NULL)
 		return 0;
 
-	max=st.GetInt( (st[2]));
+	max=st.GetInt(st[2]);
 
 	if(max < 1)
 		max = 1;	//Let'em loot at least 1 item.
@@ -6842,7 +7124,7 @@ int buildin_petloot(CScriptEngine &st)
  */
 int buildin_getinventorylist(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	int i,j=0;
 	if(!sd) return 0;
 	for(i=0;i<MAX_INVENTORY;i++){
@@ -6866,7 +7148,7 @@ int buildin_getinventorylist(CScriptEngine &st)
 
 int buildin_getskilllist(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	int i,j=0;
 	if(!sd) return 0;
 	for(i=0;i<MAX_SKILL;i++){
@@ -6883,7 +7165,7 @@ int buildin_getskilllist(CScriptEngine &st)
 
 int buildin_clearitem(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	int i;
 	if(sd==NULL) return 0;
 	for (i=0; i<MAX_INVENTORY; i++) {
@@ -6906,8 +7188,8 @@ int buildin_classchange(CScriptEngine &st)
 
 	if(bl)
 	{
-		class_=st.GetInt( (st[2]));
-		type=st.GetInt( (st[3]));
+		class_=st.GetInt(st[2]);
+		type=st.GetInt(st[3]);
 		clif_class_change(*bl,class_,type);
 	}
 	return 0;
@@ -6920,14 +7202,14 @@ int buildin_classchange(CScriptEngine &st)
 int buildin_misceffect(CScriptEngine &st)
 {
 	int type;
-	type=st.GetInt( (st[2]));
+	type=st.GetInt(st[2]);
 	if(st.oid)
 	{	block_list *bl = map_id2bl(st.oid);
 		if(bl) clif_misceffect2(*bl,type);
 	}
 	else
 	{
-		struct map_session_data *sd=script_rid2sd(st);
+		struct map_session_data *sd=st.sd;
 		if(sd) clif_misceffect2(sd->bl,type);
 //!! broadcast command if not on this mapserver
 	}
@@ -6939,11 +7221,11 @@ int buildin_misceffect(CScriptEngine &st)
  */
 int buildin_soundeffect(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	const char *name;
 	int type=0;
-	name=st.GetString( (st[2]));
-	type=st.GetInt( (st[3]));
+	name=st.GetString(st[2]);
+	type=st.GetInt(st[3]);
 	if(sd)
 	{
 		if(st.oid)
@@ -6960,13 +7242,13 @@ int buildin_soundeffect(CScriptEngine &st)
 
 int buildin_soundeffectall(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	block_list *bl;
 	const char *name;
 	int type=0;
 
-	name=st.GetString( (st[2]));
-	type=st.GetInt( (st[3]));
+	name=st.GetString(st[2]);
+	type=st.GetInt(st[3]);
 	
 	if(st.oid && (bl=map_id2bl(st.oid))!=NULL)
 		clif_soundeffectall(*bl,name,type);
@@ -6981,7 +7263,7 @@ int buildin_soundeffectall(CScriptEngine &st)
 int buildin_petrecovery(CScriptEngine &st)
 {
 	struct pet_data *pd;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	if(sd==NULL || sd->pd==NULL)
 		return 0;
@@ -6996,8 +7278,8 @@ int buildin_petrecovery(CScriptEngine &st)
 	else //Init
 		pd->recovery = (struct pet_data::pet_recovery *)aCalloc(1, sizeof(struct pet_data::pet_recovery));
 		
-	pd->recovery->type=st.GetInt( (st[2]));
-	pd->recovery->delay=st.GetInt( (st[3]));
+	pd->recovery->type=st.GetInt(st[2]);
+	pd->recovery->delay=st.GetInt(st[3]);
 	pd->recovery->timer=-1;
 
 	return 0;
@@ -7010,7 +7292,7 @@ int buildin_petrecovery(CScriptEngine &st)
 int buildin_petheal(CScriptEngine &st)
 {
 	struct pet_data *pd;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	if(sd==NULL || sd->pd==NULL)
 		return 0;
@@ -7027,10 +7309,10 @@ int buildin_petheal(CScriptEngine &st)
 	//This id identifies that it IS petheal rather than pet_skillsupport
 	pd->s_skill->id=0;
 	//Use the lv as the amount to heal
-	pd->s_skill->lv=st.GetInt( (st[2]));
-	pd->s_skill->delay=st.GetInt( (st[3]));
-	pd->s_skill->hp=st.GetInt( (st[4]));
-	pd->s_skill->sp=st.GetInt( (st[5]));
+	pd->s_skill->lv=st.GetInt(st[2]);
+	pd->s_skill->delay=st.GetInt(st[3]);
+	pd->s_skill->hp=st.GetInt(st[4]);
+	pd->s_skill->sp=st.GetInt(st[5]);
 
 	//Use delay as initial offset to avoid skill/heal exploits
 	if (battle_config.pet_equip_required && pd->equip_id == 0)
@@ -7048,7 +7330,7 @@ int buildin_petheal(CScriptEngine &st)
 int buildin_petskillattack(CScriptEngine &st)
 {
 	struct pet_data *pd;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	if(sd==NULL || sd->pd==NULL)
 		return 0;
@@ -7057,11 +7339,11 @@ int buildin_petskillattack(CScriptEngine &st)
 	if (pd->a_skill == NULL)
 		pd->a_skill = (struct pet_data::pet_skill_attack *)aCalloc(1, sizeof(struct pet_data::pet_skill_attack));
 				
-	pd->a_skill->id=st.GetInt( (st[2]));
-	pd->a_skill->lv=st.GetInt( (st[3]));
+	pd->a_skill->id=st.GetInt(st[2]);
+	pd->a_skill->lv=st.GetInt(st[3]);
 	pd->a_skill->div_ = 0;
-	pd->a_skill->rate=st.GetInt( (st[4]));
-	pd->a_skill->bonusrate=st.GetInt( (st[5]));
+	pd->a_skill->rate=st.GetInt(st[4]);
+	pd->a_skill->bonusrate=st.GetInt(st[5]);
 
 	return 0;
 }
@@ -7073,7 +7355,7 @@ int buildin_petskillattack(CScriptEngine &st)
 int buildin_petskillattack2(CScriptEngine &st)
 {
 	struct pet_data *pd;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	if(sd==NULL || sd->pd==NULL)
 		return 0;
@@ -7082,11 +7364,11 @@ int buildin_petskillattack2(CScriptEngine &st)
 	if (pd->a_skill == NULL)
 		pd->a_skill = (struct pet_data::pet_skill_attack *)aCalloc(1, sizeof(struct pet_data::pet_skill_attack));
 				
-	pd->a_skill->id=st.GetInt( (st[2]));
-	pd->a_skill->lv=st.GetInt( (st[3]));
-	pd->a_skill->div_ = st.GetInt( (st[4]));
-	pd->a_skill->rate=st.GetInt( (st[5]));
-	pd->a_skill->bonusrate=st.GetInt( (st[6]));
+	pd->a_skill->id=st.GetInt(st[2]);
+	pd->a_skill->lv=st.GetInt(st[3]);
+	pd->a_skill->div_ = st.GetInt(st[4]);
+	pd->a_skill->rate=st.GetInt(st[5]);
+	pd->a_skill->bonusrate=st.GetInt(st[6]);
 
 	return 0;
 }
@@ -7098,7 +7380,7 @@ int buildin_petskillattack2(CScriptEngine &st)
 int buildin_petskillsupport(CScriptEngine &st)
 {
 	struct pet_data *pd;
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	if(sd==NULL || sd->pd==NULL)
 		return 0;
@@ -7111,11 +7393,11 @@ int buildin_petskillsupport(CScriptEngine &st)
 	} else //init memory
 		pd->s_skill = (struct pet_data::pet_skill_support *) aCalloc(1, sizeof(struct pet_data::pet_skill_support)); 
 	
-	pd->s_skill->id=st.GetInt( (st[2]));
-	pd->s_skill->lv=st.GetInt( (st[3]));
-	pd->s_skill->delay=st.GetInt( (st[4]));
-	pd->s_skill->hp=st.GetInt( (st[5]));
-	pd->s_skill->sp=st.GetInt( (st[6]));
+	pd->s_skill->id=st.GetInt(st[2]);
+	pd->s_skill->lv=st.GetInt(st[3]);
+	pd->s_skill->delay=st.GetInt(st[4]);
+	pd->s_skill->hp=st.GetInt(st[5]);
+	pd->s_skill->sp=st.GetInt(st[6]);
 
 	//Use delay as initial offset to avoid skill/heal exploits
 	if (battle_config.pet_equip_required && pd->equip_id == 0)
@@ -7134,9 +7416,9 @@ int buildin_skilleffect(CScriptEngine &st)
 {
 	struct map_session_data *sd;
 
-	int skillid=st.GetInt( (st[2]));
-	int skilllv=st.GetInt( (st[3]));
-	sd=script_rid2sd(st);
+	int skillid=st.GetInt(st[2]);
+	int skilllv=st.GetInt(st[3]);
+	sd=st.sd;
 
 	clif_skill_nodamage(sd->bl,sd->bl,skillid,skilllv,1);
 
@@ -7151,10 +7433,10 @@ int buildin_npcskilleffect(CScriptEngine &st)
 {
 	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
 
-	int skillid=st.GetInt( (st[2]));
-	int skilllv=st.GetInt( (st[3]));
-	int x=st.GetInt( (st[4]));
-	int y=st.GetInt( (st[5]));
+	int skillid=st.GetInt(st[2]);
+	int skilllv=st.GetInt(st[3]);
+	int x=st.GetInt(st[4]);
+	int y=st.GetInt(st[5]);
 
 	clif_skill_poseffect(nd->bl,skillid,skilllv,x,y,gettick());
 
@@ -7176,7 +7458,7 @@ int buildin_specialeffect(CScriptEngine &st)
 
 int buildin_specialeffect2(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	if(sd) clif_specialeffect(sd->bl,st.GetInt( (st[2])), 0);
 		return 0;
@@ -7189,7 +7471,7 @@ int buildin_specialeffect2(CScriptEngine &st)
 
 int buildin_nude(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	if(sd)
 	{
 		size_t i;
@@ -7218,38 +7500,32 @@ int buildin_gmcommand(CScriptEngine &st)
 	struct map_session_data *sd;
 	const char *cmd;
 
-	sd = script_rid2sd(st);
+	sd = st.sd;
 	if (!sd)
 		return 0;
-	cmd = st.GetString( (st[2]));
+	cmd = st.GetString(st[2]);
 	is_atcommand(sd->fd, *sd, cmd, 99);
 	return 0;
 }
 
 int buildin_atcommand(CScriptEngine &st)
 {
-	struct map_session_data *sd;
-	const char *cmd;
-
-	sd = script_rid2sd(st);
-	if (!sd)
-		return 0;
-	cmd = st.GetString( (st[2]));
-	is_atcommand(sd->fd, *sd, cmd, 99);
+	if(st.sd)
+	{
+		const char *cmd = st.GetString(st[2]);
+printf("buildin_atcommand: '%s'\n",cmd);
+		is_atcommand(st.sd->fd, *st.sd, cmd, 99);
+	}
 	return 0;
 }
 
 int buildin_charcommand(CScriptEngine &st)
 {
-	struct map_session_data *sd;
-	const char *cmd;
-
-	sd = script_rid2sd(st);
-	if (!sd)
-		return 0;
-	cmd = st.GetString( (st[2]));
-	is_charcommand(sd->fd, *sd, cmd, 99);
-
+	if(st.sd)
+	{
+		const char *cmd = st.GetString(st[2]);
+		is_charcommand(st.sd->fd, *st.sd, cmd, 99);
+	}
 	return 0;
 }
 
@@ -7260,9 +7536,9 @@ int buildin_charcommand(CScriptEngine &st)
  */
 int buildin_dispbottom(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	const char *message;
-	message=st.GetString( (st[2]));
+	message=st.GetString(st[2]);
 	if(sd)
 		clif_disp_onlyself(*sd,message);
 	return 0;
@@ -7302,8 +7578,8 @@ int buildin_recovery(CScriptEngine &st)
  */
 int buildin_getpetinfo(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
-	int type=st.GetInt( (st[2]));
+	struct map_session_data *sd=st.sd;
+	int type=st.GetInt(st[2]);
 
 	if(sd && sd->status.pet_id){
 		switch(type){
@@ -7351,9 +7627,9 @@ int buildin_getpetinfo(CScriptEngine &st)
  */
 int buildin_checkequipedcard(CScriptEngine &st)
 {
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 	int n,i,c=0;
-	c=st.GetInt( (st[2]));
+	c=st.GetInt(st[2]);
 
 	if(sd){
 		for(i=0;i<MAX_INVENTORY;i++){
@@ -7371,62 +7647,6 @@ int buildin_checkequipedcard(CScriptEngine &st)
 	return 0;
 }
 
-int buildin_jump_zero(CScriptEngine &st) {
-	int sel;
-	sel=st.GetInt( (st[2]));
-	if(!sel) {
-		int pos;
-		if( st[3].type!=CScriptEngine::C_POS ){
-			ShowMessage("script: jump_zero: not label !\n");
-			st.state=CScriptEngine::END;
-			return 0;
-		}
-
-		pos=st.GetInt( (st[3]));
-		st.pos=pos;
-		st.state=CScriptEngine::GOTO;
-		// ShowMessage("script: jump_zero: jumpto : %d\n",pos);
-	} else {
-		// ShowMessage("script: jump_zero: fail\n");
-	}
-	return 0;
-}
-
-int buildin_select(CScriptEngine &st)
-{
-	char *buf;
-	size_t len,i;
-	struct map_session_data *sd;
-
-	sd=script_rid2sd(st);
-
-	if(st.rerun_flag==0){
-		st.state=CScriptEngine::RERUNLINE;
-		st.rerun_flag=1;
-		for(i=st.start+2,len=16;i<st.end;i++){
-			st.GetString( (st.getDirectData(i)));
-			len+=strlen(st.getDirectData(i).str)+1;
-		}
-		buf=(char *)aMalloc((len+1)*sizeof(char));
-		buf[0]=0;
-		for(i=st.start+2,len=0;i<st.end;i++){
-			strcat(buf,st.getDirectData(i).str);
-			strcat(buf,":");
-		}
-		map_session_data *sd = script_rid2sd(st);
-		if(sd) clif_scriptmenu(*sd,st.oid,buf);
-		aFree(buf);
-	} else if(sd->npc_menu==0xff){	// cansel
-		st.rerun_flag=0;
-		st.state=CScriptEngine::END;
-	} else {
-		pc_setreg(*sd,add_str( "l15"),sd->npc_menu);
-		pc_setreg(*sd,add_str( "@menu"),sd->npc_menu);
-		st.rerun_flag=0;
-		st.push_val(CScriptEngine::C_INT,sd->npc_menu);
-	}
-	return 0;
-}
 
 /*==========================================
  * GetMapMobs
@@ -7442,10 +7662,10 @@ int buildin_getmapmobs(CScriptEngine &st)
 	int count=0,c;
 	struct block_list *bl;
 
-	str=st.GetString( (st[2]));
+	str=st.GetString(st[2]);
 
 	if(strcmp(str,"this")==0){
-		struct map_session_data *sd=script_rid2sd(st);
+		struct map_session_data *sd=st.sd;
 		if(sd)
 			m=sd->bl.m;
 		else{
@@ -7485,12 +7705,12 @@ int buildin_movenpc(CScriptEngine &st)
 	const char *map,*npc;
 	int x,y;
 
-	sd = script_rid2sd(st);
+	sd = st.sd;
 
-	map = st.GetString( (st[2]));
-	x = st.GetInt( (st[3]));
-	y = st.GetInt( (st[4]));
-	npc = st.GetString( (st[5]));
+	map = st.GetString(st[2]);
+	x = st.GetInt(st[3]);
+	y = st.GetInt(st[4]);
+	npc = st.GetString(st[5]);
 
 	return 0;
 }
@@ -7506,10 +7726,10 @@ int buildin_message(CScriptEngine &st)
 	const char *msg,*player;
 	struct map_session_data *pl_sd = NULL;
 
-	sd = script_rid2sd(st);
+	sd = st.sd;
 
-	player = st.GetString( (st[2]));
-	msg = st.GetString( (st[3]));
+	player = st.GetString(st[2]);
+	msg = st.GetString(st[3]);
 
 	if((pl_sd=map_nick2sd((char *) player)) == NULL)
              return 1;
@@ -7530,7 +7750,7 @@ int buildin_npctalk(CScriptEngine &st)
 	char message[1024];
 
 	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
-	str=st.GetString( (st[2]));
+	str=st.GetString(st[2]);
 
 	if(nd) {
 		snprintf(message, sizeof(message), "%s: %s", nd->name, str);
@@ -7553,7 +7773,7 @@ int buildin_hasitems(CScriptEngine &st)
 	int i;
 	struct map_session_data *sd;
 
-	sd=script_rid2sd(st);
+	sd=st.sd;
 
 	for(i=0; i<MAX_INVENTORY; i++) {
 		if(sd->status.inventory[i].amount && sd->status.inventory[i].nameid!=2364 && sd->status.inventory[i].nameid!=2365)
@@ -7571,7 +7791,7 @@ int buildin_npcspeed(CScriptEngine &st)
 	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
 	int x=0;
 
-	x=st.GetInt( (st[2]));
+	x=st.GetInt(st[2]);
 
 	if(nd) {
 		nd->speed=x;
@@ -7585,8 +7805,8 @@ int buildin_npcwalkto(CScriptEngine &st)
 	struct npc_data *nd=(struct npc_data *)map_id2bl(st.oid);
 	int x=0,y=0;
 
-	x=st.GetInt( (st[2]));
-	y=st.GetInt( (st[3]));
+	x=st.GetInt(st[2]);
+	y=st.GetInt(st[3]);
 
 	if(nd)
 		npc_walktoxy(*nd,x,y,0);
@@ -7611,9 +7831,9 @@ int buildin_npcstop(CScriptEngine &st)
 int buildin_getlook(CScriptEngine &st){
         int type,val;
         struct map_session_data *sd;
-        sd=script_rid2sd(st);
+        sd=st.sd;
 
-        type=st.GetInt( (st[2]));
+        type=st.GetInt(st[2]);
         val=-1;
         switch(type){
         case LOOK_HAIR:	//1
@@ -7657,9 +7877,9 @@ int buildin_getsavepoint(CScriptEngine &st)
         char *mapname;
         struct map_session_data *sd;
 
-        sd=script_rid2sd(st);
+        sd=st.sd;
 
-        type=st.GetInt( (st[2]));
+        type=st.GetInt(st[2]);
 		mapname=(char*)aMalloc(24*sizeof(char));
 		memcpy(mapname,sd->status.save_point.map,24);//EOS included
 
@@ -7730,28 +7950,28 @@ int buildin_getmapxy(CScriptEngine &st)
 
 
 //??????????? >>>  Possible needly check function parameters on C_STR,CScriptEngine::C_INT,CScriptEngine::C_INT <<< ???????????//
-	type=st.GetInt( (st[5]));
+	type=st.GetInt(st[5]);
 
 	switch(type)
 	{
             case 0:                                             //Get Character Position
-		if( st.end>st.start+6 )
+		if( st.Arguments() > 6 )
 			sd=map_nick2sd(st.GetString( (st[6])));
-                    else
-                        sd=script_rid2sd(st);
+		else
+			sd=st.sd;
 		if( sd==NULL )
 		{	//wrong char name or char offline
 			st.push_val(CScriptEngine::C_INT,-1);
-                        return 0;
-                    }
+			return 0;
+		}
                     x=sd->bl.x;
                     y=sd->bl.y;
 		mapname = sd->mapname;
 		ShowMessage(">>>>%s %d %d\n",mapname,x,y);
                     break;
             case 1:                                             //Get NPC Position
-		if( st.end > st.start+6 )
-			nd=npc_name2id(st.GetString( (st[6])));
+		if( st.Arguments() > 6 )
+			nd=npc_name2id(st.GetString(st[6]));
                     else
 			nd=(struct npc_data *)map_id2bl(st.oid);
 		if( nd==NULL )
@@ -7765,10 +7985,10 @@ int buildin_getmapxy(CScriptEngine &st)
 		ShowMessage(">>>>%s %d %d\n",mapname,x,y);
                     break;
             case 2:                                             //Get Pet Position
-		if( st.end>st.start+6 )
-			sd=map_nick2sd(st.GetString( (st[6])));
+		if( st.Arguments() > 6 )
+			sd=map_nick2sd(st.GetString(st[6]));
                     else
-                        sd=script_rid2sd(st);
+                        sd=st.sd;
 		if( sd==NULL )
 		{	//wrong char name or char offline
 			st.push_val(CScriptEngine::C_INT,-1);
@@ -7793,7 +8013,7 @@ int buildin_getmapxy(CScriptEngine &st)
                         return 0;
 	}//end switch
 
-	sd=script_rid2sd(st);
+	sd=st.sd;
 	if(sd)
 	{
      //Set MapName$
@@ -7827,9 +8047,9 @@ int buildin_skilluseid (CScriptEngine &st)
 {
    int skid,sklv;
    struct map_session_data *sd;
-   skid=st.GetInt( (st[2]));
-   sklv=st.GetInt( (st[3]));
-   sd=script_rid2sd(st);
+   skid=st.GetInt(st[2]);
+   sklv=st.GetInt(st[3]);
+   sd=st.sd;
    if(sd) skill_use_id(sd,sd->status.account_id,skid,sklv);
    return 0;
 }
@@ -7842,11 +8062,11 @@ int buildin_skillusepos(CScriptEngine &st)
 {
    int skid,sklv,x,y;
    struct map_session_data *sd;
-   skid=st.GetInt( (st[2]));
-   sklv=st.GetInt( (st[3]));
-   x=st.GetInt( (st[4]));
-   y=st.GetInt( (st[5]));
-   sd=script_rid2sd(st);
+   skid=st.GetInt(st[2]);
+   sklv=st.GetInt(st[3]);
+   x=st.GetInt(st[4]);
+   y=st.GetInt(st[5]);
+   sd=st.sd;
    if(sd) skill_use_pos(sd,x,y,skid,sklv);
    return 0;
 }
@@ -7858,8 +8078,8 @@ int buildin_skillusepos(CScriptEngine &st)
 int buildin_logmes(CScriptEngine &st)
 {
 	if (log_config.npc <= 0 ) return 0;
-	st.GetString( (st[2]));
-	map_session_data *sd = script_rid2sd(st);
+	st.GetString(st[2]);
+	map_session_data *sd = st.sd;
 	if(sd) log_npc(*sd,st[2].str);
 	return 0;
 }
@@ -7871,13 +8091,13 @@ int buildin_summon(CScriptEngine &st)
 	struct map_session_data *sd;
 	struct mob_data *md;
 
-	sd=script_rid2sd(st);
+	sd=st.sd;
 	if (sd) {
 		unsigned long tick = gettick();
-		str	=st.GetString( (st[2]));
-		class_=st.GetInt( (st[3]));
-		if( st.end>st.start+4 )
-			event=st.GetString( (st[4]));
+		str	=st.GetString(st[2]);
+		class_=st.GetInt(st[3]);
+		if( st.Arguments() > 4 )
+			event=st.GetString(st[4]);
 
 		id=mob_once_spawn(sd, "this", 0, 0, str,class_,1,event);
 		if((md=(struct mob_data *)map_id2bl(id))){
@@ -7922,7 +8142,7 @@ int buildin_isequipped(CScriptEngine &st)
 	int i, j, k, id = 1;
 	int ret = -1;
 
-	sd = script_rid2sd(st);
+	sd = st.sd;
 	if(sd)
 	{
 	for (i=0; id!=0; i++) {
@@ -7982,51 +8202,54 @@ int buildin_isequipped(CScriptEngine &st)
  */
 int buildin_isequippedcnt(CScriptEngine &st)
 {
-	struct map_session_data *sd;
 	size_t i, j, k;
 	unsigned long id = 1;
 	int ret = 0;
 	int index, type;
 
-	sd = script_rid2sd(st);
-	
-	if(sd)
+	if(st.sd)
 	{
-	for (i=0; id!=0; i++) {
-
-			if(st.end > st.start+i+2)
-				id = st.GetInt((st[i+2]));
+		for (i=0; id!=0; i++)
+		{
+			if( st.Arguments() > i+2 )
+				id = st.GetInt(st[i+2]);
 			else 
 				id = 0;
-
-		if (id <= 0)
-			continue;
-		
-		for (j=0; j<10; j++) {
-			index = sd->equip_index[j];
-			if(index >= MAX_INVENTORY) continue;
-			if(j == 9 && sd->equip_index[8] == index) continue;
-			if(j == 5 && sd->equip_index[4] == index) continue;
-			if(j == 6 && (sd->equip_index[5] == index || sd->equip_index[4] == index)) continue;
-			type = itemdb_type(id);
-			
-			if(sd->inventory_data[index]) {
-				if (type == 4 || type == 5) {
-					if (sd->inventory_data[index]->nameid == id)
-						ret++; //[Lupus]
-				} else if (type == 6) {
-						for(k=0; k<sd->inventory_data[index]->flag.slot; k++) {
-						if (sd->status.inventory[index].card[0]!=0x00ff &&
-							sd->status.inventory[index].card[0]!=0x00fe &&
-								sd->status.inventory[index].card[0]!=0xff00 &&
-							sd->status.inventory[index].card[k] == id) {
+			if (id <= 0)
+				continue;
+			for (j=0; j<10; j++)
+			{
+				index = st.sd->equip_index[j];
+				if(index >= MAX_INVENTORY) continue;
+				if(j == 9 && st.sd->equip_index[8] == index) continue;
+				if(j == 5 && st.sd->equip_index[4] == index) continue;
+				if(j == 6 && (st.sd->equip_index[5] == index || st.sd->equip_index[4] == index)) continue;
+				
+				type = itemdb_type(id);
+				
+				if(st.sd->inventory_data[index])
+				{
+					if(type == 4 || type == 5)
+					{
+						if(st.sd->inventory_data[index]->nameid == id)
 							ret++; //[Lupus]
+					}
+					else if (type == 6)
+					{
+						for(k=0; k<st.sd->inventory_data[index]->flag.slot; k++)
+						{
+							if( st.sd->status.inventory[index].card[0]!=0x00ff &&
+								st.sd->status.inventory[index].card[0]!=0x00fe &&
+								st.sd->status.inventory[index].card[0]!=0xff00 &&
+								st.sd->status.inventory[index].card[k] == id)
+							{
+								ret++; //[Lupus]
+							}
 						}
 					}
-				}				
+				}
 			}
 		}
-	}
 	}
 	st.push_val(CScriptEngine::C_INT,ret);
 	return 0;
@@ -8041,96 +8264,87 @@ int buildin_isequippedcnt(CScriptEngine &st)
  */
 int buildin_isequipped(CScriptEngine &st)
 {
-	struct map_session_data *sd;
 	size_t i, j, k;
 	unsigned short id = 1;
 	int ret = -1;
-
-	sd = script_rid2sd(st);
 	
-	if(sd)
+	if(st.sd)
 	{
 		for (i=0; id!=0; i++)
 		{
-		int flag = 0;
-	
-			if(st.end>st.start+(i+2))
-				id=st.GetInt((st[(i+2)]));
+			int flag = 0;
+			if( st.Arguments() > (i+2) )
+				id=st.GetInt(st[(i+2)]);
 			else
 				id = 0;
-			
-		if (id <= 0)
-			continue;
-		
+			if (id <= 0)
+				continue;
 			for (j=0; j<10; j++)
 			{
-			int index, type;
-			index = sd->equip_index[j];
-			if(index >= MAX_INVENTORY) continue;
-			if(j == 9 && sd->equip_index[8] == index) continue;
-			if(j == 5 && sd->equip_index[4] == index) continue;
-			if(j == 6 && (sd->equip_index[5] == index || sd->equip_index[4] == index)) continue;
-			type = itemdb_type(id);
-			
-				if(sd->inventory_data[index])
+				int index, type;
+				index = st.sd->equip_index[j];
+				if(index >= MAX_INVENTORY) continue;
+				if(j == 9 && st.sd->equip_index[8] == index) continue;
+				if(j == 5 && st.sd->equip_index[4] == index) continue;
+				if(j == 6 && (st.sd->equip_index[5] == index || st.sd->equip_index[4] == index)) continue;
+				type = itemdb_type(id);
+				
+				if(st.sd->inventory_data[index])
 				{
 					if (type == 4 || type == 5)
 					{
-					if (sd->inventory_data[index]->nameid == id)
-						flag = 1;
+						if (st.sd->inventory_data[index]->nameid == id)
+							flag = 1;
 					}
 					else if (type == 6)
 					{	// Item Hash format:
-					// 1111 1111 1111 1111 1111 1111 1111 1111
-					// [ left  ] [ right ] [ NA ] [  armor  ]
-						for (k = 0; k < sd->inventory_data[index]->flag.slot; k++)
+						// 1111 1111 1111 1111 1111 1111 1111 1111
+						// [ left  ] [ right ] [ NA ] [  armor  ]
+						for (k = 0; k < st.sd->inventory_data[index]->flag.slot; k++)
 						{	// --- Calculate hash for current card ---
-						// Defense equipment
-						// They *usually* have only 1 slot, so we just assign 1 bit
-						int hash = 0;
-							if (sd->inventory_data[index]->type == 5)
+							// Defense equipment
+							// They *usually* have only 1 slot, so we just assign 1 bit
+							int hash = 0;
+							if (st.sd->inventory_data[index]->type == 5)
 							{
-							hash = sd->inventory_data[index]->equip;
-						}
-						// Weapons
+								hash = st.sd->inventory_data[index]->equip;
+							}
+							// Weapons
 							// right hand: slot 1 - 0x0010000 ... slot 4 - 0x0080000
-						// left hand: slot 1 - 0x1000000 ... slot 4 - 0x8000000
-						// We can support up to 8 slots each, just in case
-							else if (sd->inventory_data[index]->type == 4)
+							// left hand: slot 1 - 0x1000000 ... slot 4 - 0x8000000
+							// We can support up to 8 slots each, just in case
+							else if (st.sd->inventory_data[index]->type == 4)
 							{
-							if (sd->inventory_data[index]->equip & 2)	// right hand
+								if (st.sd->inventory_data[index]->equip & 2)	// right hand
 									hash = 0x00010000 * (1<<k);	// pow(2,k) x slot number
-							else if (sd->inventory_data[index]->equip & 32)	// left hand
+								else if (st.sd->inventory_data[index]->equip & 32)	// left hand
 									hash = 0x01000000 * (1<<k);	// pow(2,k) x slot number
 							}
 							else
-							continue;	// slotted item not armour nor weapon? we're not going to support it
-
-						if (sd->setitem_hash & hash)	// check if card is already used by another set
-							continue;	// this item is used, move on to next card
-
-						if (sd->status.inventory[index].card[0] != 0x00ff &&
-							sd->status.inventory[index].card[0] != 0x00fe &&
-								sd->status.inventory[index].card[0] != 0xff00 &&
-							sd->status.inventory[index].card[k] == id)
-						{
-							// We have found a match
-							flag = 1;
-							// Set hash so this card cannot be used by another
-							sd->setitem_hash |= hash;
-							break;
+								continue;	// slotted item not armour nor weapon? we're not going to support it
+							if (st.sd->setitem_hash & hash)	// check if card is already used by another set
+								continue;	// this item is used, move on to next card
+							if( st.sd->status.inventory[index].card[0] != 0x00ff &&
+								st.sd->status.inventory[index].card[0] != 0x00fe &&
+								st.sd->status.inventory[index].card[0] != 0xff00 &&
+								st.sd->status.inventory[index].card[k] == id )
+							{	// We have found a match
+								flag = 1;
+								// Set hash so this card cannot be used by another
+								st.sd->setitem_hash |= hash;
+								break;
+							}
 						}
 					}
+					if (flag) break;
 				}
-				if (flag) break;
 			}
+			if (ret == -1)
+				ret = flag;
+			else
+				ret &= flag;
+			if (!ret) break;
 		}
-		if (ret == -1)
-			ret = flag;
-		else
-			ret &= flag;
-		if (!ret) break;
-	}
 	}
 	st.push_val(CScriptEngine::C_INT,ret);
 	return 0;
@@ -8143,53 +8357,49 @@ int buildin_isequipped(CScriptEngine &st)
  */
 int buildin_cardscnt(CScriptEngine &st)
 {
-	struct map_session_data *sd;
 	size_t i, k;
 	unsigned short id = 1;
 	int ret = 0;
 	int index, type;
 
-	sd = script_rid2sd(st);
-	
-	if(sd)
+	if(st.sd)
 	{
 		for (i=0; id!=0; i++)
 		{
-			if(st.end>st.start+(i+2))
-				id=st.GetInt((st[(i+2)]));
+			if( st.Arguments() > (i+2) )
+				id=st.GetInt(st[(i+2)]);
 			else 
 				id = 0;
+			if (id <= 0)
+				continue;
 			
-		if (id <= 0)
-			continue;
-		
-		index = current_equip_item_index; //we get CURRENT WEAPON inventory index from status.c [Lupus]
-		if(index < 0) continue;
-
-		type = itemdb_type(id);
+			index = current_equip_item_index; //we get CURRENT WEAPON inventory index from status.c [Lupus]
+			if(index < 0) continue;
 			
-			if(sd->inventory_data[index])
+			type = itemdb_type(id);
+			
+			if(st.sd->inventory_data[index])
 			{
 				if (type == 4 || type == 5)
 				{
-				if (sd->inventory_data[index]->nameid == id)
-					ret++;
+					if (st.sd->inventory_data[index]->nameid == id)
+						ret++;
 				}
 				else if (type == 6)
 				{
-					for(k=0; k<sd->inventory_data[index]->flag.slot; k++)
+					for(k=0; k<st.sd->inventory_data[index]->flag.slot; k++)
 					{
-					if (sd->status.inventory[index].card[0]!=0x00ff &&
-						sd->status.inventory[index].card[0]!=0x00fe &&
-							sd->status.inventory[index].card[0]!=0xff00 &&
-							sd->status.inventory[index].card[k] == id )
+						if( st.sd->status.inventory[index].card[0]!=0x00ff &&
+							st.sd->status.inventory[index].card[0]!=0x00fe &&
+							st.sd->status.inventory[index].card[0]!=0xff00 &&
+							st.sd->status.inventory[index].card[k] == id )
 						{
-						ret++;
+							ret++;
+						}
 					}
 				}
-			}				
+			}
 		}
-	}
 	}
 	st.push_val(CScriptEngine::C_INT,ret);
 	return 0;
@@ -8202,9 +8412,8 @@ int buildin_cardscnt(CScriptEngine &st)
  */
 int buildin_getrefine(CScriptEngine &st)
 {
-	struct map_session_data *sd;
-	if ((sd = script_rid2sd(st))!= NULL)
-		st.push_val( CScriptEngine::C_INT, sd->status.inventory[current_equip_item_index].refine);
+	if(st.sd)
+		st.push_val( CScriptEngine::C_INT, st.sd->status.inventory[current_equip_item_index].refine);
 	return 0;
 }
 
@@ -8216,13 +8425,9 @@ int buildin_adopt(CScriptEngine &st)
 {
 	int ret=0;
 	
-	const char *parent1 = st.GetString( (st[2]));
-	const char *parent2 = st.GetString( (st[3]));
-	const char *child = st.GetString( (st[4]));
-
-	struct map_session_data *p1_sd = map_nick2sd(parent1);
-	struct map_session_data *p2_sd = map_nick2sd(parent2);
-	struct map_session_data *c_sd = map_nick2sd(child);
+	struct map_session_data *p1_sd = map_nick2sd( st.GetString(st[2]) );
+	struct map_session_data *p2_sd = map_nick2sd( st.GetString(st[3]) );
+	struct map_session_data *c_sd  = map_nick2sd( st.GetString(st[4]) );
 
 	if( p1_sd && p2_sd && c_sd &&
 		p1_sd->status.base_level >= 70 &&
@@ -8239,12 +8444,14 @@ int buildin_adopt(CScriptEngine &st)
  */
 int buildin_night(CScriptEngine &st)
 {
-	if (night_flag != 1) map_night_timer(night_timer_tid, 0, 0, 1);
+	if(night_flag != 1)
+		map_night_timer(night_timer_tid, 0, 0, 1);
 	return 0;
 }
 int buildin_day(CScriptEngine &st)
 {
-	if (night_flag != 0) map_day_timer(day_timer_tid, 0, 0, 1);
+	if(night_flag != 0)
+		map_day_timer(day_timer_tid, 0, 0, 1);
 	return 0;
 }
 
@@ -8254,54 +8461,11 @@ int buildin_day(CScriptEngine &st)
 int buildin_unequip(CScriptEngine &st)
 {
 	int i;
-	size_t num;
-	struct map_session_data *sd;
-	num = st.GetInt( (st[2])) - 1;
-	sd=script_rid2sd(st);
-	if(sd!=NULL && num<10)
+	size_t num = st.GetInt(st[2]) - 1;
+	if(st.sd && num<10)
 	{
-		i=pc_checkequip(*sd,equip[num]);
-		pc_unequipitem(*sd,i,2);
-		return 0;
-	}
-	return 0;
-}
-
-
-int buildin_pcstrcharinfo(CScriptEngine &st)
-{
-	int aid,num;
-	struct map_session_data *sd;
-	
-	aid=st.GetInt( (st[2]));
-	num=st.GetInt( (st[3]));
-	
-	sd=map_id2sd(aid);
-	if(sd==NULL){
-		st.push_str(CScriptEngine::C_CONSTSTR,"");
-		num=-1;
-	}
-	if(num==0){
-		char *buf;
-		buf=(char*)aMalloc(24 * sizeof(char));
-		safestrcpy(buf,sd->status.name, 24);
-		st.push_str(CScriptEngine::C_STR,buf);
-	}
-	else if(num==1){
-		char *buf;
-		buf=buildin_getpartyname_sub(sd->status.party_id);
-		if(buf!=NULL)
-			st.push_str(CScriptEngine::C_STR,buf);
-		else
-			st.push_str(CScriptEngine::C_CONSTSTR,"");
-	}
-	else if(num==2){
-		char *buf;
-		buf=buildin_getguildname_sub(sd->status.guild_id);
-		if(buf!=NULL)
-			st.push_str(CScriptEngine::C_STR,buf);
-		else
-			st.push_str(CScriptEngine::C_CONSTSTR,"");
+		i=pc_checkequip(*st.sd, equip[num]);
+		pc_unequipitem(*st.sd,i,2);
 	}
 	return 0;
 }
@@ -8311,7 +8475,7 @@ int buildin_pcstrcharinfo(CScriptEngine &st)
 //-------------------------------------------------------
 int buildin_getstrlen(CScriptEngine &st)
 {
-	const char *str=st.GetString( (st[2]));
+	const char *str=st.GetString(st[2]);
 	int len = (str) ? (int)strlen(str) : 0;
 	st.push_val(CScriptEngine::C_INT,len);
 	return 0;
@@ -8322,9 +8486,8 @@ int buildin_getstrlen(CScriptEngine &st)
 //-------------------------------------------------------
 int buildin_charisalpha(CScriptEngine &st)
 {
-	const char *str=st.GetString( (st[2]));
-	size_t pos =st.GetInt( (st[3]));
-
+	const char *str=st.GetString(st[2]);
+	size_t pos =st.GetInt(st[3]);
 	int val = ( str && pos>0 && pos<strlen(str) ) ? isalpha( (int)((unsigned char)str[pos]) ) : 0;
 	st.push_val(CScriptEngine::C_INT, val);
 	return 0;
@@ -8335,25 +8498,20 @@ int buildin_charisalpha(CScriptEngine &st)
 // [Lance]
 int buildin_fakenpcname(CScriptEngine &st)
 {
-	const char *name;
-	const char *newname;
-	unsigned long look;
-	name = st.GetString( (st[2]));
-	newname = st.GetString( (st[3]));
-	look = st.GetInt( (st[4]));
-	if(look > 0xFFFF) return 0; // Safety measure to prevent runtime errors
-	npc_changename(name, newname, look);
+	const char *name = st.GetString(st[2]);
+	const char *newname = st.GetString(st[3]);
+	unsigned long look = st.GetInt(st[4]);
+	if(look <= 0xFFFF)	// Safety measure to prevent runtime errors
+		npc_changename(name, newname, look);
 	return 0;
 }
 
 int buildin_compare(CScriptEngine &st)                                 
 {
 	char buf1[1024],buf2[1024];
-	const char *message;
-	const char *cmpstring;
 
-	message = st.GetString(st[2]);
-	cmpstring = st.GetString(st[3]);
+	const char *message = st.GetString(st[2]);
+	const char *cmpstring = st.GetString(st[3]);
 	
 	strcpytolower(buf1, 1024, message);
 	strcpytolower(buf2, 1024, cmpstring);
@@ -8376,7 +8534,7 @@ int buildin_warpparty(CScriptEngine &st)
 	int x			=st.GetInt(st[3]);
 	int y			=st.GetInt(st[4]);
 	unsigned long p	=st.GetInt(st[5]);
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	if(!sd || map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.noteleport || NULL==party_search(p))
 		return 0;
@@ -8388,8 +8546,6 @@ int buildin_warpparty(CScriptEngine &st)
 
 		if( 0==strcasecmp(str,"Random") )
 		{
-			if(map[sd->bl.m].flag.noteleport)
-				return 0;
 			for(i=0; i<fd_max; i++)
 			{
 				if(session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) && pl_sd->state.auth &&
@@ -8402,8 +8558,6 @@ int buildin_warpparty(CScriptEngine &st)
 		}
 		else if( 0==strcasecmp(str,"SavePointAll") )
 		{
-			if(map[sd->bl.m].flag.noreturn)
-				return 0;
 			for(i=0; i<fd_max; i++)
 			{
 				if(session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
@@ -8416,8 +8570,6 @@ int buildin_warpparty(CScriptEngine &st)
 		}
 		else if( 0==strcasecmp(str,"SavePoint") )
 		{
-			if(map[sd->bl.m].flag.noreturn)
-				return 0;
 			str=sd->status.save_point.map;
 			x=sd->status.save_point.x;
 			y=sd->status.save_point.y;
@@ -8457,7 +8609,7 @@ int buildin_warpguild(CScriptEngine &st)
 	int x			=st.GetInt(st[3]);
 	int y			=st.GetInt(st[4]);
 	unsigned long g	=st.GetInt(st[5]);
-	struct map_session_data *sd=script_rid2sd(st);
+	struct map_session_data *sd=st.sd;
 
 	if(!sd || map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.noteleport || NULL==guild_search(g) )
 		return 0;
@@ -8469,8 +8621,6 @@ int buildin_warpguild(CScriptEngine &st)
 
 		if( 0==strcasecmp(str,"Random") )
 		{
-			if(map[sd->bl.m].flag.noteleport)
-				return 0;
 			for(i=0; i<fd_max; i++)
 			{
 				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
@@ -8483,8 +8633,6 @@ int buildin_warpguild(CScriptEngine &st)
 		}
 		else if( 0==strcasecmp(str,"SavePointAll") )
 		{
-			if(map[sd->bl.m].flag.noreturn)
-				return 0;
 			for(i=0; i < fd_max; i++)
 			{
 				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
@@ -8497,8 +8645,6 @@ int buildin_warpguild(CScriptEngine &st)
 		}
 		else if( 0==strcasecmp(str,"SavePoint")==0 )
 		{
-			if(map[sd->bl.m].flag.noreturn)
-				return 0;
 			str=sd->status.save_point.map;
 			x=sd->status.save_point.x;
 			y=sd->status.save_point.y;
@@ -8534,10 +8680,12 @@ int buildin_warpguild(CScriptEngine &st)
 // Added by request as official npcs seem to use it. [Skotlex]
 int buildin_pc_emotion(CScriptEngine &st)
 {
-	struct map_session_data *sd = script_rid2sd(st);
-	int type=st.GetInt( st[2]);
-	if(sd && type >= 0 && type <= 100)
-		clif_emotion(sd->bl,type);
+	if(st.sd)
+	{
+		int type=st.GetInt(st[2]);
+		if(type >= 0 && type <= 100)
+			clif_emotion(st.sd->bl,type);
+	}
 	return 0;
 }
 
@@ -8546,7 +8694,7 @@ int buildin_pc_emotion(CScriptEngine &st)
  * マップ変数の変更
  *------------------------------------------
  */
-int mapreg_setreg(int num,int val)
+int mapreg_setregnum(int num,int val)
 {
 	if(val!=0)
 		numdb_insert(mapreg_db,num,val);

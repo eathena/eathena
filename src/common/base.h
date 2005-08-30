@@ -280,10 +280,6 @@ typedef int bool;
 #define strncasecmp			strnicmp
 
 
-static inline void sleep(unsigned long time)	
-{
-	Sleep(time);
-}
 static inline int read(SOCKET fd, char*buf, int sz)		
 {
 	return recv(fd,buf,sz,0); 
@@ -412,7 +408,17 @@ static inline unsigned long GetCurrentProcessId()
 //////////////////////////////
 
 
-
+extern inline uint sleep(uint milliseconds)
+{
+#if defined(WIN32)
+    Sleep(milliseconds);
+#elif defined(__sun__)
+    poll(0, 0, milliseconds);
+#else
+    usleep( ((useconds_t)milliseconds) * 1000 );
+#endif
+	return milliseconds;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -649,7 +655,6 @@ static inline unsigned long log2(unsigned long v)
 #ifdef pow2
 #undef pow2
 #endif
-
 static inline unsigned long pow2(unsigned long v)
 {
 	if(v<32)
@@ -657,6 +662,25 @@ static inline unsigned long pow2(unsigned long v)
 	return 0;
 }
 
+// newton approximation with additional start condition
+// start should be set to the middle of the expected interval for minimizing iterations in statistics
+// the given number asures this for T of types char...int64
+template<class T> static inline T sqrt(T n, T start=LLCONST(0x000000010001010F) )
+{
+	if(n>0)
+	{
+		T q=0, qx=start;
+
+		while( q!=qx )
+		{
+			q = qx;
+			qx = (q + n/q)/2;
+		}
+		return q;
+	}
+	// should set matherr or throw something in case of negative numbers
+	return 0;
+}
 
 
 
@@ -1323,10 +1347,12 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy constructor and assign (cannot be derived)
-	TArrayFST(const TArray<T>& arr):cCnt(0)					{ copy(arr); }
-	const TArrayFST& operator=(const TArray<T>& arr)		{ resize(0); copy(arr); return *this;}
-	TArrayFST(const TArrayFST<T,SZ>& arr):cCnt(0)			{ copy(arr); }
-	const TArrayFST& operator=(const TArrayFST<T,SZ>& arr)	{ resize(0); copy(arr); return *this;}
+	TArrayFST(const TArray<T>& arr):cCnt(0)					{ this->copy(arr); }
+	const TArrayFST& operator=(const TArray<T>& arr)		{ this->resize(0); this->copy(arr); return *this;}
+	TArrayFST(const TArrayFST<T,SZ>& arr):cCnt(0)			{ this->copy(arr); }
+	const TArrayFST& operator=(const TArrayFST<T,SZ>& arr)	{ this->resize(0); this->copy(arr); return *this;}
+
+	TArrayFST(const T* elem, size_t sz):cCnt(0)				{ this->copy(elem, sz); }
 
 	///////////////////////////////////////////////////////////////////////////
 	// direct access to the buffer, return Pointer/max buffer size
@@ -1870,11 +1896,12 @@ public:
 	virtual ~TslistFST() {}
 	///////////////////////////////////////////////////////////////////////////
 	// copy constructor and assign (cannot be derived)
-	TslistFST(const TArray<T>& arr,bool ad=false):cAllowDup(ad)			{ this->copy(arr); }
-	const TslistFST& operator=(const TArray<T>& arr)					{ this->resize(0); this->copy(arr); return *this; }
-	TslistFST(const TslistFST<T,SZ>& arr,bool ad=false):cAllowDup(ad)	{ this->copy(arr); }
-	const TslistFST& operator=(const TslistFST<T,SZ>& arr)				{ this->resize(0); this->copy(arr); return *this; }
+	TslistFST(const TArray<T>& arr,bool ad=false):cAscending(true),cAllowDup(ad)		{ this->copy(arr); }
+	const TslistFST& operator=(const TArray<T>& arr)									{ this->resize(0); this->copy(arr); return *this; }
+	TslistFST(const TslistFST<T,SZ>& arr,bool ad=false):cAscending(true),cAllowDup(ad)	{ this->copy(arr); }
+	const TslistFST& operator=(const TslistFST<T,SZ>& arr)								{ this->resize(0); this->copy(arr); return *this; }
 
+	TslistFST(const T* elem, size_t sz):cAscending(true),cAllowDup(false)				{ this->copy(elem, sz); }
 	///////////////////////////////////////////////////////////////////////////
 	// add an element to the list
 	virtual bool push(const T& elem) 				{ return insert(elem); }
@@ -2214,11 +2241,12 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy constructor and assign (cannot be derived)
-	TArrayDST(const TArray<T>& arr) : cField(NULL),cSZ(0),cCnt(0)	{ copy(arr); }
-	const TArrayDST& operator=(const TArray<T>& arr)				{ resize(0); copy(arr); return *this; }
-	TArrayDST(const TArrayDST<T>& arr) : cField(NULL),cSZ(0),cCnt(0){ copy(arr); }
-	const TArrayDST& operator=(const TArrayDST<T>& arr)				{ resize(0); copy(arr); return *this; }
+	TArrayDST(const TArray<T>& arr) : cField(NULL),cSZ(0),cCnt(0)	{ this->copy(arr); }
+	const TArrayDST& operator=(const TArray<T>& arr)				{ this->resize(0); this->copy(arr); return *this; }
+	TArrayDST(const TArrayDST<T>& arr) : cField(NULL),cSZ(0),cCnt(0){ this->copy(arr); }
+	const TArrayDST& operator=(const TArrayDST<T>& arr)				{ this->resize(0); this->copy(arr); return *this; }
 
+	TArrayDST(const T* elem, size_t sz):cField(NULL),cSZ(0),cCnt(0)	{ this->copy(elem, sz); }
 	///////////////////////////////////////////////////////////////////////////
 	// put a element to the list
 	virtual bool push(const T& elem)			{ return append(elem); }
@@ -2776,11 +2804,12 @@ public:
 	virtual ~TslistDST() {}
 	///////////////////////////////////////////////////////////////////////////
 	// copy constructor and assign (cannot be derived)
-	TslistDST(const TArray<T>& arr,bool ad=false):cAllowDup(ad)		{ this->copy(arr); }
-	const TslistDST& operator=(const TArray<T>& arr)				{ this->resize(0); this->copy(arr); return *this; }
-	TslistDST(const TslistDST<T>& arr,bool ad=false):cAllowDup(ad)	{ this->copy(arr); }
-	const TslistDST& operator=(const TslistDST<T>& arr)				{ this->resize(0); this->copy(arr); return *this; }
+	TslistDST(const TArray<T>& arr,bool ad=false):cAscending(true),cAllowDup(ad)	{ this->copy(arr); }
+	const TslistDST& operator=(const TArray<T>& arr)								{ this->resize(0); this->copy(arr); return *this; }
+	TslistDST(const TslistDST<T>& arr,bool ad=false):cAscending(true),cAllowDup(ad)	{ this->copy(arr); }
+	const TslistDST& operator=(const TslistDST<T>& arr)								{ this->resize(0); this->copy(arr); return *this; }
 
+	TslistDST(const T* elem, size_t sz):cAscending(true),cAllowDup(false)			{ this->copy(elem, sz); }
 	///////////////////////////////////////////////////////////////////////////
 	// add an element to the list
 	virtual bool push(const T& elem) 				{ return this->insert(elem); }
@@ -3853,7 +3882,200 @@ public:
 	virtual operator const X&() const throw()	{ const_cast<TPtrAutoCount<X>*>(this)->create(); return *this->itsCounter->ptr; }
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// Count-Auto-Pointer with copy-on-write scheme
+// pointer copies are counted
+// when reference counter becomes zero the object is automatically deleted
+// creates a default object if not exist
+/////////////////////////////////////////////////////////////////////////////////////////
+template <class X> class TPtrAutoRef : public TPtrCount<X>
+{
+	void create()
+	{	// check if we have an object to access, create one if not
+		if(!this->itsCounter)		this->itsCounter		= new (typename TPtrCount<X>::CCounter)(NULL);
+		// usable objects need a default constructor
+		if(!this->itsCounter->ptr)	this->itsCounter->ptr	= new X; 
+	}
+public:
+	explicit TPtrAutoRef(X* p = NULL) : TPtrCount<X>(p)		{}
+	virtual ~TPtrAutoRef()									{}
+	TPtrAutoRef(const TPtrCount<X>& r) : TPtrCount<X>(r)	{}
+	const TPtrAutoRef& operator=(const TPtrCount<X>& r)		{ this->acquire(r); return *this; }
+	TPtrAutoRef(const TPtrAutoRef<X>& r) : TPtrCount<X>(r)	{}
+	const TPtrAutoRef& operator=(const TPtrAutoRef<X>& r)	{ this->acquire(r); return *this; }
 
+	virtual const X& readaccess() const	
+	{ 
+		const_cast< TPtrAutoRef* >(this)->create();	
+		// no need to aquire, is done on reference creation
+		return *this->itsCounter->ptr;
+	}
+	virtual X& writeaccess()
+	{
+		(this)->create();
+		this->make_unique();
+		// no need to aquire, is done on reference creation
+		return *this->itsCounter->ptr;
+	}
+	virtual const X* get() const					{ this->readaccess(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
+	virtual const X& operator*()	const throw()	{ return this->readaccess(); }
+	virtual const X* operator->()	const throw()	{ this->readaccess(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
+	virtual X& operator*()	throw()					{ return this->writeaccess();}
+	virtual X* operator->()	throw()					{ this->writeaccess(); return this->itsCounter ? this->itsCounter->ptr : NULL; }
+	virtual operator const X&() const throw()		{ return this->readaccess(); }
+};
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// MiniString
+//
+/////////////////////////////////////////////////////////////////////////////
+class MiniString : public global
+{
+	TPtrAutoRef< TArrayDST<char> > cStrPtr;
+
+	void copy(const char *c)
+	{	
+		size_t sz = (c)?strlen(c):(0);
+		if( sz<1 )
+		{
+			clear();
+		}
+		else
+		{
+			cStrPtr->resize(0);
+			cStrPtr->copy(c,sz,0);
+			cStrPtr->append(0);
+		}
+	}
+
+	int compareTo(const MiniString &s) const 
+	{	// compare with memcmp including the End-of-String
+		// which is faster than doing a strcmp
+		if( cStrPtr != s.cStrPtr )
+		{
+			if(s.cStrPtr->size()>1 && cStrPtr->size()>1) 
+				return memcmp(s, cStrPtr->array(), cStrPtr->size());
+
+			if(s.cStrPtr->size()==0 && cStrPtr->size()==0) return 0;
+			if(s.cStrPtr->size()==0) return -1;
+			return 1;
+		}
+		return 0;
+	}
+	int compareTo(const char *c) const 
+	{	// compare with memcpy including the End-of-String
+		// which is faster than doing a strcmp
+		if(c && cStrPtr.exists()) return memcmp(c, cStrPtr->array(), cStrPtr->size());
+		if((!c || *c==0) && !cStrPtr.exists()) return 0;
+		if((!c || *c==0)) return -1;
+		return 1;
+	}
+public:
+	MiniString()						{  }
+	MiniString(const char *c)			{ copy(c); }
+	MiniString(const MiniString &str)	{ cStrPtr = str.cStrPtr; }
+	virtual ~MiniString()				{  }
+
+	const MiniString &operator=(const MiniString &str)
+	{
+		cStrPtr = str.cStrPtr;
+		return *this; 
+	}
+	const MiniString& operator=(const char *c)	{ copy(c); return *this; }
+	const char* get()							{ return cStrPtr->array(); }
+	operator const char*() const				{ return cStrPtr->array(); }
+
+	bool operator==(const char *b) const		{return (0==compareTo(b));}
+	bool operator==(const MiniString &b) const	{return (0==compareTo(b));}
+	bool operator!=(const char *b) const		{return (0!=compareTo(b));}
+	bool operator!=(const MiniString &b) const	{return (0!=compareTo(b));}
+	bool operator> (const char *b) const		{return (0> compareTo(b));}
+	bool operator> (const MiniString &b) const	{return (0> compareTo(b));}
+	bool operator< (const char *b) const		{return (0< compareTo(b));}
+	bool operator< (const MiniString &b) const	{return (0< compareTo(b));}
+	bool operator>=(const char *b) const		{return (0>=compareTo(b));}
+	bool operator>=(const MiniString &b) const	{return (0>=compareTo(b));}
+	bool operator<=(const char *b) const		{return (0<=compareTo(b));}
+	bool operator<=(const MiniString &b) const	{return (0<=compareTo(b));}
+
+	friend bool operator==(const char *a, const MiniString &b) {return (0==b.compareTo(a));}
+	friend bool operator!=(const char *a, const MiniString &b) {return (0!=b.compareTo(a));}
+
+	friend int compare(const MiniString &a,const MiniString &b){ return a.compareTo(b); }
+
+	void clear()
+	{
+		if(cStrPtr.exists())
+		{
+			cStrPtr->resize(0);
+			cStrPtr->append(0);
+		}
+	}
+	bool append(char c)
+	{
+		if(cStrPtr.exists())
+			cStrPtr->strip(1); //strip EOS
+		cStrPtr->append(c);
+		cStrPtr->append(0);
+		return true;
+	}
+	bool resize(size_t sz)
+	{
+		if(cStrPtr.exists())
+			cStrPtr->strip(1); //strip EOS
+		if(cStrPtr->size() > sz)
+		{
+			cStrPtr->resize(sz);
+		}
+		else
+		{
+			while(cStrPtr->size() < sz)
+				cStrPtr->append(' '); // append spaces
+		}
+		cStrPtr->append(0);
+		return true;
+	}
+	size_t Length() const	{ return (cStrPtr.exists() && cStrPtr->size()>0) ? ( cStrPtr->size()-1):0; }
+
+
+
+	//////////////////////////////////////////////////////
+	// type to string conversions
+	MiniString(double v)					{ assign(v); }
+	const MiniString &operator=(double v)	{ assign(v); return *this;}
+
+	MiniString(int v)						{ assign(v); }
+	const MiniString &operator=(int v)		{ assign(v); return *this;}
+
+	void assign(double v)
+	{
+		char buf[128];
+		snprintf(buf,sizeof(buf), "%.3lf", v);
+		copy(buf);
+	}
+	void assign(int v)
+	{
+		char buf[128];
+		snprintf(buf,sizeof(buf), "%i", v);
+		copy(buf);
+	}
+
+	//////////////////////////////////////////////////////
+	// string operations
+	MiniString& operator+=(const MiniString& str)
+	{	// append two strings
+		if(str.cStrPtr.exists())
+		{
+			if(cStrPtr.exists())
+				cStrPtr->strip(1); //strip EOS
+			cStrPtr->append( *str.cStrPtr );
+		}
+		return *this;
+	}
+};
 
 
 #endif//_BASE_H_

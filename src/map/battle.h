@@ -308,6 +308,7 @@ struct Battle_Config
 	ulong pet_defense_type;
 	ulong pet_equip_required;
 	ulong pet_friendly_rate;
+	ulong pet_hair_style; // added by [Skotlex]
 	ulong pet_hungry_delay_rate;
 	ulong pet_hungry_friendly_decrease;
 	ulong pet_lv_rate; //[Skotlex]

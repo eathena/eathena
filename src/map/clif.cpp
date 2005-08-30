@@ -202,10 +202,10 @@ enum {
 	GUILD_AREA_WOS,	// end additions [Valaris]
 	SELF
 };
-#define WBUFPOS(p,pos,x,y) { unsigned char *__p = (p); __p+=(pos); __p[0] = (unsigned char)((x)>>2); __p[1] = (unsigned char)(((x)<<6) | (((y)>>4)&0x3f)); __p[2] = (unsigned char)((y)<<4); }
+#define WBUFPOS(p,pos,x,y,d) { unsigned char *__p = (p); __p+=(pos); __p[0] = (unsigned char)((x)>>2); __p[1] = (unsigned char)(((x)<<6) | (((y)>>4)&0x3f)); __p[2] = (unsigned char)((y)<<4) | d&0xF; }
 #define WBUFPOS2(p,pos,x0,y0,x1,y1) { unsigned char *__p = (p); __p+=(pos); __p[0] = (unsigned char)((x0)>>2); __p[1] = (unsigned char)(((x0)<<6) | (((y0)>>4)&0x3f)); __p[2] = (unsigned char)(((y0)<<4) | (((x1)>>6)&0x0f)); __p[3]=(unsigned char)(((x1)<<2) | (((y1)>>8)&0x03)); __p[4]=(unsigned char)((y1)); }
 
-#define WFIFOPOS(fd,pos,x,y) { WBUFPOS (WFIFOP(fd,pos),0,x,y); }
+#define WFIFOPOS(fd,pos,x,y,d) { WBUFPOS (WFIFOP(fd,pos),0,x,y,d); }
 #define WFIFOPOS2(fd,pos,x0,y0,x1,y1) { WBUFPOS2(WFIFOP(fd,pos),0,x0,y0,x1,y1); }
 
 netaddress	charaddress(ipaddress::GetSystemIP(0), 6121);
@@ -368,8 +368,7 @@ void send_fake_id(int fd, struct map_session_data &sd)
 		WFIFOW(fd,42) = sd.status.manner;
 		WFIFOB(fd,44) = sd.status.karma;
 		WFIFOB(fd,45) = sd.status.sex;
-		WFIFOPOS(fd, 46, sd.bl.x, sd.bl.y);
-		WFIFOB(fd,48) = sd.dir&0x0f;
+		WFIFOPOS(fd, 46, sd.bl.x, sd.bl.y, sd.dir);
 		WFIFOB(fd,49) = 5;
 		WFIFOB(fd,50) = 5;
 		WFIFOB(fd,51) = sd.state.dead_sit;
@@ -411,8 +410,7 @@ void send_fake_id(int fd, struct map_session_data &sd)
 		WFIFOW(fd,42) = sd.opt3;
 		WFIFOB(fd,44) = sd.status.karma;
 		WFIFOB(fd,45) = sd.status.sex;
-		WFIFOPOS(fd, 46, sd.bl.x, sd.bl.y);
-		WFIFOB(fd,48) = sd.dir & 0x0f;
+		WFIFOPOS(fd, 46, sd.bl.x, sd.bl.y, sd.dir);
 		WFIFOB(fd,49) = 5;
 		WFIFOB(fd,50) = 5;
 		WFIFOB(fd,51) = sd.state.dead_sit;
@@ -428,7 +426,7 @@ void send_fake_id(int fd, struct map_session_data &sd)
 		WFIFOW(fd,10) = 0;
 		WFIFOW(fd,12) = OPTION_HIDE;
 		WFIFOW(fd,20) = get_fakemob_id(sd);
-		WFIFOPOS(fd, 36, sd.bl.x, sd.bl.y);
+		WFIFOPOS(fd, 36, sd.bl.x, sd.bl.y, sd.dir);
 		WFIFOSET(sd.fd, packet_len_table[0x7c]);
 	}
 }
@@ -794,7 +792,7 @@ int clif_authok(struct map_session_data &sd)
 
 	WFIFOW(fd, 0) = 0x73;
 	WFIFOL(fd, 2) = gettick();
-	WFIFOPOS(fd, 6, sd.bl.x, sd.bl.y);
+	WFIFOPOS(fd, 6, sd.bl.x, sd.bl.y, sd.dir);
 	WFIFOB(fd, 9) = 5;
 	WFIFOB(fd,10) = 5;
 	WFIFOSET(fd,packet_len_table[0x73]);
@@ -913,6 +911,23 @@ int clif_clearchar(struct block_list &bl, unsigned char type)
 
 	return 0;
 }
+int clif_clearchar(struct map_session_data &sd, struct block_list &bl)
+{
+	unsigned char buf[16];
+
+	WBUFW(buf,0) = 0x80;
+	WBUFL(buf,2) = bl.id;
+	WBUFB(buf,6) = 0;
+	clif_send(buf, packet_len_table[0x80], &sd.bl, SELF);
+
+	if(bl.type==BL_PC && ((struct map_session_data &)bl).disguise_id)
+	{
+		WBUFL(buf,2) = bl.id|FLAG_DISGUISE;
+		clif_send(buf, packet_len_table[0x80], &sd.bl, SELF);
+	}
+
+	return 0;
+}
 
 
 int clif_clearchar_delay_sub(int tid, unsigned long tick, int id, int data) 
@@ -974,8 +989,7 @@ int clif_set0078(struct map_session_data &sd, unsigned char *buf)
 		WBUFW(buf,14) = sd.disguise_id;
 		WBUFW(buf,42) = 0;
 		WBUFB(buf,44) = 0;
-		WBUFPOS(buf, 46, sd.bl.x, sd.bl.y);
-		WBUFB(buf,48) |= sd.dir & 0x0f;
+		WBUFPOS(buf, 46, sd.bl.x, sd.bl.y, sd.dir);
 		WBUFB(buf,49) = 5;
 		WBUFB(buf,50) = 5;
 		WBUFB(buf,51) = 0;
@@ -1013,8 +1027,7 @@ int clif_set0078(struct map_session_data &sd, unsigned char *buf)
 	WBUFW(buf,42)=sd.status.manner;
 	WBUFB(buf,44)=sd.status.karma;
 	WBUFB(buf,45)=sd.status.sex;
-	WBUFPOS(buf,46,sd.bl.x,sd.bl.y);
-	WBUFB(buf,48)|=sd.dir&0x0f;
+	WBUFPOS(buf,46,sd.bl.x,sd.bl.y, sd.dir);
 	WBUFB(buf,49)=5;
 	WBUFB(buf,50)=5;
 	WBUFB(buf,51)= sd.state.dead_sit;
@@ -1063,8 +1076,7 @@ int clif_set0078(struct map_session_data &sd, unsigned char *buf)
 	WBUFW(buf,42) = sd.opt3;
 	WBUFB(buf,44) = sd.status.karma;
 	WBUFB(buf,45) = sd.status.sex;
-	WBUFPOS(buf, 46, sd.bl.x, sd.bl.y);
-	WBUFB(buf,48) |= sd.dir & 0x0f;
+	WBUFPOS(buf, 46, sd.bl.x, sd.bl.y, sd.dir);
 	WBUFB(buf,49)=5;
 	WBUFB(buf,50)=5;
 	WBUFB(buf,51) = sd.state.dead_sit;
@@ -1089,8 +1101,7 @@ size_t clif_dis0078(struct map_session_data &sd, unsigned char *buf)
 	//WBUFL(buf,26)=sd->guild_emblem_id;
 	WBUFW(buf,42)=0;
 	WBUFB(buf,44)=0;
-	WBUFPOS(buf,46,sd.bl.x,sd.bl.y);
-	WBUFB(buf,48)|=sd.dir&0x0f;
+	WBUFPOS(buf,46,sd.bl.x,sd.bl.y, sd.dir);
 	WBUFB(buf,49)=5;
 	WBUFB(buf,50)=5;
 	WBUFB(buf,51)=sd.state.dead_sit;
@@ -1325,8 +1336,7 @@ int clif_mob0078(struct mob_data &md, unsigned char *buf)
 		}
 	}	// End addition
 
-	WBUFPOS(buf,46,md.bl.x,md.bl.y);
-	WBUFB(buf,48)|=md.dir&0x0f;
+	WBUFPOS(buf,46,md.bl.x,md.bl.y,md.dir);
 	WBUFB(buf,49)=5;
 	WBUFB(buf,50)=5;
 	WBUFW(buf,52)=((level = status_get_lv(&md.bl))>battle_config.max_base_level)? battle_config.max_base_level:level;
@@ -1403,8 +1413,7 @@ int clif_npc0078(struct npc_data &nd, unsigned char *buf)
 		WBUFL(buf,22)=g->emblem_id;
 		WBUFL(buf,26)=g->guild_id;
 	}
-	WBUFPOS(buf,46,nd.bl.x,nd.bl.y);
-	WBUFB(buf,48)|=nd.dir&0x0f;
+	WBUFPOS(buf,46,nd.bl.x,nd.bl.y,nd.dir);
 	WBUFB(buf,49)=5;
 	WBUFB(buf,50)=5;
 
@@ -1462,15 +1471,16 @@ int clif_pet0078(struct pet_data &pd, unsigned char *buf)
 		WBUFW(buf,28)=mob_get_hair_color(pd.class_);
 		WBUFW(buf,30)=mob_get_clothes_color(pd.class_);	//Add for player pet dye - Valaris
 		WBUFB(buf,45)=mob_get_sex(pd.class_);
-	} else {
-		WBUFW(buf,16)=0x14;
+	}
+	else
+	{
+		WBUFW(buf,16)=battle_config.pet_hair_style;
 		if((view = itemdb_viewid(pd.equip_id)) > 0)
 			WBUFW(buf,20)=view;
 		else
 			WBUFW(buf,20)=pd.equip_id;
 	}
-	WBUFPOS(buf,46,pd.bl.x,pd.bl.y);
-	WBUFB(buf,48)|=pd.dir&0x0f;
+	WBUFPOS(buf,46,pd.bl.x,pd.bl.y,pd.dir);
 	WBUFB(buf,49)=0;
 	WBUFB(buf,50)=0;
 	WBUFW(buf,52)=((level = status_get_lv(&pd.bl))>battle_config.max_base_level)? battle_config.max_base_level:level;
@@ -1491,7 +1501,8 @@ int clif_pet007b(struct pet_data &pd, unsigned char *buf)
 	WBUFL(buf,2)=pd.bl.id;
 	WBUFW(buf,6)=status_get_speed(&pd.bl);
 	WBUFW(buf,14)=mob_get_viewclass(pd.class_);
-	if((mob_get_viewclass(pd.class_) < 24) || (mob_get_viewclass(pd.class_) > 4000)) {
+	if((mob_get_viewclass(pd.class_) < 24) || (mob_get_viewclass(pd.class_) > 4000))
+	{
 		WBUFW(buf,12)=mob_db[pd.class_].option;
 		WBUFW(buf,16)=mob_get_hair(pd.class_);
 		WBUFW(buf,18)=mob_get_weapon(pd.class_);
@@ -1503,8 +1514,10 @@ int clif_pet007b(struct pet_data &pd, unsigned char *buf)
 		WBUFW(buf,32)=mob_get_hair_color(pd.class_);
 		WBUFW(buf,34)=mob_get_clothes_color(pd.class_);	//Add for player pet dye - Valaris
 		WBUFB(buf,49)=mob_get_sex(pd.class_);
-	} else {
-		WBUFW(buf,16)=0x14;
+	}
+	else
+	{
+		WBUFW(buf,16)=battle_config.pet_hair_style;
 		if((view = itemdb_viewid(pd.equip_id)) > 0)
 			WBUFW(buf,20)=view;
 		else
@@ -1605,7 +1618,7 @@ int clif_clearweather(unsigned short m)
 			WFIFOW(sd->fd,10)=0;
 			WFIFOW(sd->fd,12)=OPTION_HIDE;
 			WFIFOW(sd->fd,20)=100;
-			WFIFOPOS(sd->fd,36,sd->bl.x,sd->bl.y);
+			WFIFOPOS(sd->fd,36,sd->bl.x,sd->bl.y, sd->dir);
 			WFIFOSET(sd->fd,packet_len_table[0x7c]);
 
 			if (map[sd->bl.m].flag.snow)
@@ -1663,7 +1676,7 @@ int clif_spawnpc(struct map_session_data &sd)
 		WBUFW(buf,6)=status_get_speed(&sd.bl);
 		WBUFW(buf,12)=sd.status.option;
 		WBUFW(buf,20)=sd.disguise_id;
-		WBUFPOS(buf,36,sd.bl.x,sd.bl.y);
+		WBUFPOS(buf,36,sd.bl.x,sd.bl.y,sd.dir);
 		clif_send(buf,packet_len_table[0x7c],&sd.bl,AREA);
 
 		size_t len = clif_dis0078(sd,buf);
@@ -1694,7 +1707,7 @@ int clif_spawnpc(struct map_session_data &sd)
 	WFIFOW(fd,10)=0;
 	WFIFOW(fd,12)=OPTION_HIDE;
 	WFIFOW(fd,20)=100;
-	WFIFOPOS(fd,36,sd.bl.x,sd.bl.y);
+	WFIFOPOS(fd,36,sd.bl.x,sd.bl.y,sd.dir);
 	WFIFOSET(fd,packet_len_table[0x7c]);
 
 	if (map[sd.bl.m].flag.snow)
@@ -1741,7 +1754,7 @@ int clif_spawnnpc(struct npc_data &nd)
 	WBUFL(buf,2)=nd.bl.id;
 	WBUFW(buf,6)=status_get_speed(&nd.bl);
 	WBUFW(buf,20)=nd.class_;
-	WBUFPOS(buf,36,nd.bl.x,nd.bl.y);
+	WBUFPOS(buf,36,nd.bl.x,nd.bl.y,nd.dir);
 
 	clif_send(buf,packet_len_table[0x7c],&nd.bl,AREA);
 
@@ -1750,7 +1763,29 @@ int clif_spawnnpc(struct npc_data &nd)
 
 	return 0;
 }
+int clif_spawnnpc(struct map_session_data &sd, struct npc_data &nd)
+{
+	unsigned char buf[64];
+	int len;
 
+	if(nd.class_ < 0 || nd.flag&1 || nd.class_ == INVISIBLE_CLASS)
+		return 0;
+
+	memset(buf,0,packet_len_table[0x7c]);
+
+	WBUFW(buf,0)=0x7c;
+	WBUFL(buf,2)=nd.bl.id;
+	WBUFW(buf,6)=status_get_speed(&nd.bl);
+	WBUFW(buf,20)=nd.class_;
+	WBUFPOS(buf,36,nd.bl.x,nd.bl.y,nd.dir);
+
+	clif_send(buf,packet_len_table[0x7c],&sd.bl,SELF);
+
+	len = clif_npc0078(nd,buf);
+	clif_send(buf,len,&sd.bl,SELF);
+
+	return 0;
+}
 /*==========================================
  *
  *------------------------------------------
@@ -1771,7 +1806,7 @@ int clif_spawnmob(struct mob_data &md)
 		WBUFW(buf,10)=md.opt2;
 		WBUFW(buf,12)=md.option;
 		WBUFW(buf,20)=viewclass;
-		WBUFPOS(buf,36,md.bl.x,md.bl.y);
+		WBUFPOS(buf,36,md.bl.x,md.bl.y,md.dir);
 		clif_send(buf,packet_len_table[0x7c],&md.bl,AREA);
 	}
 
@@ -1808,7 +1843,7 @@ int clif_spawnpet(struct pet_data &pd)
 		WBUFL(buf,2)=pd.bl.id;
 		WBUFW(buf,6)=status_get_speed(&pd.bl);
 		WBUFW(buf,20)=mob_get_viewclass(pd.class_);
-		WBUFPOS(buf,36,pd.bl.x,pd.bl.y);
+		WBUFPOS(buf,36,pd.bl.x,pd.bl.y,pd.dir);
 
 		clif_send(buf,packet_len_table[0x7c],&pd.bl,AREA);
 	}
@@ -2104,7 +2139,7 @@ int clif_selllist(struct map_session_data &sd)
 int clif_scriptmes(struct map_session_data &sd, unsigned long npcid, const char *mes)
 {
 	int fd=sd.fd;
-	if( !session_isActive(fd) || !mes)
+	if( !session_isActive(fd) )
 		return 0;
 
 	size_t len = (mes) ? 1+strlen(mes) : 0;
@@ -8019,6 +8054,8 @@ int clif_parse_WantToConnection(int fd, struct map_session_data &sd)
 		plsd->fd = fd;
 		plsd->packet_ver = sd.packet_ver;
 
+		plsd->ScriptEngine.temporaty_init(); //!! call constructor explicitely until switched to c++ allocation
+
 		pc_setnewpc(fd, *plsd, account_id, char_id, login_id1, client_tick, sex);
 		WFIFOL(fd,0) = plsd->bl.id;
 		WFIFOSET(fd,4);
@@ -8187,7 +8224,6 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 	}
 	// ============================================ 
 	// Lance
-	// no running if already running the logineventscript
 	if( script_config.event_script_type == 0 )
 	{
 		struct npc_data *npc= npc_name2id(script_config.mapload_event_name);
@@ -8363,12 +8399,6 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 	}
 	RFIFOB(fd,size-1)=0; // add an eof marker in the buffer
 
-	if( (is_atcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != AtCommand_None) ||
-        (is_charcommand(fd, sd, (char*)RFIFOP(fd,4),0)!= CharCommand_None) ||
-	    sd.sc_data[SC_BERSERK].timer != -1 || //バーサーク時は会話も不可
-		sd.sc_data[SC_NOCHAT].timer != -1 ) //チャット禁止
-		return 0;
-
 	//ShowMessage("clif_parse_GlobalMessage: message: '%s'.\n", RFIFOP(fd,4));
 	if( strncmp((char*)RFIFOP(fd,4), sd.status.name, strlen(sd.status.name)) != 0 )
 	{
@@ -8398,6 +8428,12 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 		// but for the hacker, we display on his screen (he see/look no difference).
 		return 0;
 	}
+
+	if( (is_atcommand(fd, sd, (char*)RFIFOP(fd,4), 0) != AtCommand_None) ||
+        (is_charcommand(fd, sd, (char*)RFIFOP(fd,4),0)!= CharCommand_None) ||
+	    sd.sc_data[SC_BERSERK].timer != -1 || //バーサーク時は会話も不可
+		sd.sc_data[SC_NOCHAT].timer != -1 ) //チャット禁止
+		return 0;
 
 	
 	// send message to others
@@ -8431,7 +8467,7 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 			else if (sd.state.snovice_flag == 3) {
 				clif_skill_nodamage(sd.bl,sd.bl,MO_EXPLOSIONSPIRITS,0xFFFF,1);
 				status_change_start(&sd.bl,SkillStatusChangeTable[MO_EXPLOSIONSPIRITS],
-						1,0,0,0,skill_get_time(MO_EXPLOSIONSPIRITS,1),0 );
+						17,0,0,0,skill_get_time(MO_EXPLOSIONSPIRITS,1),0 ); //Lv17-> +50 critical (noted by Poki) [Skotlex]
 				sd.state.snovice_flag = 0;
 			}
 		}
@@ -9543,8 +9579,8 @@ int clif_parse_NpcSelectMenu(int fd,struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	sd.npc_menu=RFIFOB(fd,6);
-	npc_scriptcont(sd,RFIFOL(fd,2));
+	sd.ScriptEngine.cExtData = RFIFOB(fd,6);
+	npc_scriptcont(sd, RFIFOL(fd,2));
 	return 0;
 }
 
@@ -9556,7 +9592,7 @@ int clif_parse_NpcNextClicked(int fd,struct map_session_data &sd)
 {
 	if( !session_isActive(fd) )
 		return 0;
-
+	sd.ScriptEngine.cExtData = 0;
 	npc_scriptcont(sd,RFIFOL(fd,2));
 	return 0;
 }
@@ -9570,8 +9606,8 @@ int clif_parse_NpcAmountInput(int fd,struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	sd.npc_amount=RFIFOL(fd,6);
-	npc_scriptcont(sd,RFIFOL(fd,2));
+	sd.ScriptEngine.cExtData = RFIFOL(fd,6);
+	npc_scriptcont(sd, RFIFOL(fd,2));
 	return 0;
 }
 
@@ -9584,12 +9620,7 @@ int clif_parse_NpcStringInput(int fd,struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	if((size_t)RFIFOW(fd,2) >= 7+sizeof(sd.npc_str)){
-		ShowMessage("clif: input string too long !\n");
-		memcpy(sd.npc_str,RFIFOP(fd,8),sizeof(sd.npc_str));
-		sd.npc_str[sizeof(sd.npc_str)-1]=0;
-	} else
-		strcpy(sd.npc_str,(char*)RFIFOP(fd,8));
+	sd.ScriptEngine.cExtData = (char*)RFIFOP(fd,8);
 	npc_scriptcont(sd,RFIFOL(fd,4));
 	return 0;
 }
@@ -9603,6 +9634,7 @@ int clif_parse_NpcCloseClicked(int fd,struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
+	sd.ScriptEngine.cExtData = 1;
 	npc_scriptcont(sd,RFIFOL(fd,2));
 	return 0;
 }
@@ -11165,6 +11197,7 @@ int clif_parse(int fd)
 				(packet_ver == 16 && (battle_config.packet_ver_flag & 0x00800) == 0) ||
 				(packet_ver == 17 && (battle_config.packet_ver_flag & 0x01000) == 0)) ) )
 			{
+				ShowMessage("clif_parse: session #%d, packet 0x%x ver. %i (%d bytes received) -> disconnected (unknown packetver).\n", fd, cmd, packet_ver, RFIFOREST(fd));
 				WFIFOW(fd,0) = 0x6a;
 				WFIFOB(fd,2) = 5; // 05 = Game's EXE is not the latest version
 				WFIFOSET(fd,23);
@@ -11177,7 +11210,7 @@ int clif_parse(int fd)
 		// ゲーム用以外パケットか、認証を終える前に0072以外が来たら、切断する
 		if(cmd >= MAX_PACKET_DB || packet_ver>MAX_PACKET_VER || packet_db[packet_ver][cmd].len == 0)
 		{	// packet is not inside these values: session is incorrect?? or auth packet is unknown
-			ShowMessage("clif_parse: session #%d, packet 0x%x ver. %i (%d bytes received) -> disconnected.\n", fd, cmd, packet_ver, RFIFOREST(fd));
+			ShowMessage("clif_parse: session #%d, packet 0x%x ver. %i (%d bytes received) -> disconnected (unknown command).\n", fd, cmd, packet_ver, RFIFOREST(fd));
 			session_Remove(fd);
 			return 0;
 		}

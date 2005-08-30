@@ -667,6 +667,7 @@ public:
 };
 
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // predeclares
 class streamable;
@@ -1268,9 +1269,6 @@ public:
 	{
 		if(ip)
 		{	
-//			register unsigned long tmp;
-//			memcpy(&tmp,ip,4);
-//			return tmp;
 			return	 ( ((unsigned long)(ip[3]))        )
 					|( ((unsigned long)(ip[2])) << 0x08)
 					|( ((unsigned long)(ip[1])) << 0x10)
@@ -1292,8 +1290,6 @@ public:
 	{	
 		if(ip)
 		{
-//			memcpy(ip, &valin, 4);
-
 			ip[3] = (unsigned char)((valin & 0x000000FF)          );
 			ip[2] = (unsigned char)((valin & 0x0000FF00)  >> 0x08 );
 			ip[1] = (unsigned char)((valin & 0x00FF0000)  >> 0x10 );

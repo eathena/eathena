@@ -477,13 +477,10 @@ int pc_setequipindex(struct map_session_data &sd)
 }
 
 bool pc_isequipable(struct map_session_data &sd, unsigned short inx)
-{
-	struct item_data *item;
-	struct status_change *sc_data;
-	//?¶‚â—{Žq‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ðŽZo‚·‚é
-
-	item = sd.inventory_data[inx];
-	sc_data = status_get_sc_data(&sd.bl);
+{	//?¶‚â—{Žq‚Ìê‡‚ÌŒ³‚ÌE‹Æ‚ðŽZo‚·‚é
+	struct item_data *item = sd.inventory_data[inx];
+	struct status_change *sc_data = status_get_sc_data(&sd.bl);
+	
 	if( battle_config.gm_allequip>0 && pc_isGM(sd)>=battle_config.gm_allequip )
 		return true;
 
@@ -499,7 +496,7 @@ bool pc_isequipable(struct map_session_data &sd, unsigned short inx)
 //			 as it allows all advanced classes to equip items their normal versions
 //			 could equip)
 //
-
+/*
 	if( ((sd.status.class_ == 13 || sd.status.class_ == 4014) && ((1<<7)&item->class_array) == 0) || // have mounted classes use unmounted equipment [Valaris]
 		((sd.status.class_ == 21 || sd.status.class_ == 4022) && ((1<<14)&item->class_array) == 0))
 		return false;
@@ -511,7 +508,7 @@ bool pc_isequipable(struct map_session_data &sd, unsigned short inx)
 			(sd.status.class_ >= 4023 && ((1<<(sd.status.class_-4023))&item->class_array) == 0))
 			return false;
 	}
-
+*/
 	if(map[sd.bl.m].flag.pvp && (item->flag.no_equip&1)) //optimized by Lupus
 		return false;
 
@@ -529,6 +526,40 @@ bool pc_isequipable(struct map_session_data &sd, unsigned short inx)
 
 	if(item->equip & 0x0100 && sc_data && sc_data[SC_STRIPHELM].timer != -1)
 		return false;
+
+	// Taekwon Class
+	if (sd.status.class_ == JOB_TAEKWON)
+	{	// cannot equip ANY weapons. [Lupus]
+		// Any equipments that can be equipped by 1) either by everybody, 2) or everybody except Novice, can be equipped 
+		if( item->type == 4 || (item->class_array & 126) != 126 ) //126 = all 1st classes but Novice
+			return false;
+	}
+	// Star Gladiator
+	else if (sd.status.class_ == JOB_STAR_GLADIATOR || sd.status.class_ == JOB_STAR_GLADIATOR2)
+	{	// They can equip anything TK Boy can equip, plus, [Lupus]
+		// 2nd-class specific items as well. In addition, they can equip these specific equipments:
+		// All book-type items, Manteau, Mink Coat, Mirror Shield, Sharp Headgear, Majestic Goat, Boots.
+		if( (item->nameid>=1550 && item->nameid<1599) //a Book type
+			|| item->nameid==2505 || item->nameid==2506 //Manteau[0] [1]
+			|| item->nameid==2107 || item->nameid==2108 //Mirror Shield [0] [1]
+			|| item->nameid==2405 || item->nameid==2406 //Boots [0] [1]
+			|| item->nameid==2256 //Majestic Goat
+//			|| item->nameid==2108 // What is ID of "Sharp Geadgear" ?
+			)
+			return true; //You can equip these exceptions
+		if( item->type == 4 || !(((item->class_array & 126) == 126) || ((item->class_array & 2088832) == 2088832)) )	//2088832 = all 2nd classes but Super Novice
+			return false;
+	}
+	//Soul Linker
+	else if( sd.status.class_ == JOB_SOUL_LINKER ) { //[Lupus]
+		//They can only equip equipments that Wizards can equip.
+		if( (1<< JOB_WIZARD & item->class_array) == 0)
+			return false;
+	}
+	//Other Common Classes
+	else if ((1<<(pc_calc_base_job(sd.status.class_).job) & item->class_array) == 0) //[Skotlex]
+		return false;
+
 
 	return true;
 }
@@ -847,7 +878,7 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 			fclose(fp);
 		}
 		else if(battle_config.error_log) {
-			ShowWarning("In function pc_atuhok() -> File '"CL_WHITE"%s"CL_RESET"' not found.\n", motd_txt);
+			ShowWarning("In function pc_authok() -> File '"CL_WHITE"%s"CL_RESET"' not found.\n", motd_txt);
 		}
 		sprintf(buf,"You are using client packet version %i", sd->packet_ver);
 		clif_disp_onlyself(*sd,buf);
@@ -906,24 +937,22 @@ int pc_authfail(int id) {
 	return 0;
 }
 
-int pc_calc_skillpoint(struct map_session_data* sd)
+int pc_calc_skillpoint(struct map_session_data &sd)
 {
 	int i,inf2,skill,skill_point=0;
 
-	nullpo_retr(0, sd);
-
 	for(i=1;i<MAX_SKILL;i++)
 	{
-		if( (skill = pc_checkskill(*sd,i)) > 0)
+		if( (skill = pc_checkskill(sd,i)) > 0)
 		{
 			inf2 = skill_get_inf2(i);
 			if( ( !(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) &&
 				 !(inf2&INF2_WEDDING_SKILL) ) //Do not count wedding skills. [Skotlex]
 			{
-				if(!sd->status.skill[i].flag)
+				if(!sd.status.skill[i].flag)
 					skill_point += skill;
-				else if(sd->status.skill[i].flag > 2 && sd->status.skill[i].flag != 13)
-					skill_point += (sd->status.skill[i].flag - 2);
+				else if(sd.status.skill[i].flag > 2 && sd.status.skill[i].flag != 13)
+					skill_point += (sd.status.skill[i].flag - 2);
 			}
 		}
 	}
@@ -1033,106 +1062,62 @@ int pc_clean_skilltree(struct map_session_data &sd)
 
 int pc_calc_skilltree_normalize_job(struct map_session_data &sd, int c)
 {
-	//if((battle_config.skillup_limit) && ((c >= 0 && c < 23) || (c >= 4001 && c < 4023) || (c >= 4023 && c < 4045))) {
-	if (battle_config.skillup_limit && c >= 0 && c < 23) {
-		int skill_point = pc_calc_skillpoint(&sd);
+	struct pc_base_job s_class = pc_calc_base_job(sd.status.class_);
+
+	c = s_class.job;
+
+	if (!battle_config.skillup_limit || !((c >= JOB_NOVICE && c < JOB_SUPER_NOVICE) || c == JOB_TAEKWON))
+		return sd.status.class_;
+	else
+	{
+		int skill_point = pc_calc_skillpoint(sd);
 		if(skill_point < 9)
-			c = 0;
-		//else if((sd.status.skill_point >= sd.status.job_level && skill_point < 58) && ((c > 6 && c < 23) || (c > 4007 && c < 4023) || (c > 4029 && c < 4045)))
-		//else if ((sd.status.skill_point >= sd.status.job_level && skill_point < 58) && (c > 6 && c < 23))
-		else if( sd.status.skill_point >= sd.status.job_level && ((sd.change_level > 0 && skill_point < sd.change_level+8) || skill_point < 58)  && (c > 6 && c < 23))
+			c = JOB_NOVICE;
+		else if (((c > JOB_THIEF && c < JOB_SUPER_NOVICE) || c == JOB_TAEKWON) && sd.status.skill_point >= sd.status.job_level && ((sd.change_level > 0 && skill_point < sd.change_level+8) || skill_point < 58))
 		{
 			switch(c)
 			{
-				case 7:
-				case 13:
-				case 14:
-				case 21:
-					c = 1;
+				case JOB_KNIGHT:
+				case JOB_KNIGHT2:
+				case JOB_CRUSADER:
+				case JOB_CRUSADER2:
+					c = JOB_SWORDMAN;
 					break;
-				case 8:
-				case 15:
-					c = 4;
+				case JOB_PRIEST:
+				case JOB_MONK:
+					c = JOB_ACOLYTE;
 					break;
-				case 9:
-				case 16:
-					c = 2;
+				case JOB_WIZARD:
+				case JOB_SAGE:
+					c = JOB_MAGE;
 					break;
-				case 10:
-				case 18:
-					c = 5;
+				case JOB_BLACKSMITH:
+				case JOB_ALCHEMIST:
+					c = JOB_MERCHANT;
 					break;
-				case 11:
-				case 19:
-				case 20:
-					c = 3;
+				case JOB_HUNTER:
+				case JOB_BARD:
+				case JOB_DANCER:
+					c = JOB_ARCHER;
 					break;
-				case 12:
-				case 17:
-					c = 6;
+				case JOB_ASSASSIN:
+				case JOB_ROGUE:
+					c = JOB_THIEF;
 					break;
-#if 0
-				case 4008:
-				case 4014:
-				case 4015:
-				case 4022:
-					c = 4002;
+				case JOB_STAR_GLADIATOR:
+				case JOB_STAR_GLADIATOR2:
+				case JOB_SOUL_LINKER:
+					c = JOB_TAEKWON;
 					break;
-				case 4009:
-				case 4016:
-					c = 4005;
-					break;
-				case 4010:
-				case 4017:
-					c = 4003;
-					break;
-				case 4011:
-				case 4019:
-					c = 4006;
-					break;
-				case 4012:
-				case 4020:
-				case 4021:
-					c = 4004;
-					break;
-				case 4013:
-				case 4018:
-					c = 4007;
-					break;
-				case 4030:
-				case 4036:
-				case 4037:
-				case 4044:
-					c = 4024;
-					break;
-				case 4031:
-				case 4038:
-					c = 4027;
-					break;
-				case 4032:
-				case 4039:
-					c = 4025;
-					break;
-				case 4033:
-				case 4040:
-					c = 4028;
-					break;
-				case 4034:
-				case 4041:
-				case 4042:
-					c = 4026;
-					break;
-				case 4035:
-				case 4043:
-					c = 4029;
-					break;
-#endif
 			}
 		}
+		if (s_class.upper == 1)
+			c += JOB_NOVICE_HIGH;
+		else if (s_class.upper == 2)
+			c += JOB_BABY;
+		return c;
 	}
-	return c;
 }
-
 /*==========================================
  * d—ÊƒAƒCƒRƒ“‚ÌŠm”F
  *------------------------------------------
@@ -1575,8 +1560,10 @@ int pc_bonus(struct map_session_data &sd,int type,int val)
 		}
 		break;
 	case SP_LONG_ATK_RATE:
-		if(sd.status.weapon == 11 && sd.state.lr_flag != 2)
-			sd.atk_rate += val;
+		//if(sd.status.weapon == 11 && sd.state.lr_flag != 2)
+		//	sd.atk_rate += val;
+		if(sd.state.lr_flag != 2) //Rather than adding atk_rate only when the weapon is 11 (bow), make it a weapon_atk_rate. [Skotlex]
+			sd.weapon_atk_rate[11]+=val;
 		break;
 	case SP_BREAK_WEAPON_RATE:
 		if(sd.state.lr_flag != 2)
@@ -5702,7 +5689,7 @@ int pc_jobchange(struct map_session_data &sd,int job, int upper)
 		return 1;
 
 	// check if we are changing from 1st to 2nd job
-	if ((job >= JOB_KNIGHT && job <= JOB_CRUSADER2) || job == JOB_STAR_GLADIATOR || job == JOB_SOUL_LINKER) {
+	if ((job >= JOB_KNIGHT && job <= JOB_CRUSADER2) || (job >= JOB_STAR_GLADIATOR && job <= JOB_SOUL_LINKER)) {
 		if ((s_class.job > JOB_NOVICE && s_class.job < JOB_KNIGHT) || s_class.job == JOB_TAEKWON)
 			sd.change_level = sd.status.job_level;
 		else

@@ -1,6 +1,11 @@
 #ifndef _SQL_H_
 #define _SQL_H_
 
+#include "base.h"
+#include "baseio.h"
+
+#ifndef TXT_ONLY
+
 #include <mysql.h>
 
 class CMySQL : public global, public noncopyable
@@ -21,9 +26,6 @@ protected:
 	unsigned short mysqldb_port;	// Server Port
 	char mysqldb_id[32];			// Username
 	char mysqldb_pw[32];			// Password
-
-	char* tmpSql;					// Build query into here
-
 };
 
 
@@ -81,4 +83,5 @@ private:
 
 };
 
+#endif//!TXT_ONLY
 #endif //_SQL_H_

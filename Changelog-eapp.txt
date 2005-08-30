@@ -1,4 +1,10 @@
 Date	Added
+08/30
+	* renamed the sql class files to 'basesq.cpp/h' since having 'sql' within the name conflicts with the makefile build environment
+	* finished the functional rewrite of the script engine
+	  most notable features are multiple script support and working input functions for event and equip scripts (with the exeption of clients before 2004-06-28)
+	  will still need a clean up of the buildin functions since they only have been converted automatically and might lack efficiency
+	* some regular copies from stables updates
 08/27
 	* Fixed MS VC type coversion error in socket.h [Wizputer]
 	* Made Shinomori's CMySQL class little more friendly

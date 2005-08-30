@@ -38,7 +38,6 @@ typedef struct npc_mark* npc_mark_p;
 
 static struct npc_src_list *npc_src_first=NULL;
 static struct npc_src_list *npc_src_last=NULL;
-static size_t npc_id=START_NPC_NUM;
 static size_t npc_warp=0;
 static size_t npc_shop=0;
 static size_t npc_script=0;
@@ -46,7 +45,19 @@ static size_t npc_mob=0;
 static size_t npc_delay_mob=0;
 static size_t npc_cache_mob=0;
 
-int npc_get_new_npc_id(void){ return npc_id++; }
+unsigned long &get_npc_id()
+{
+	// simple singleton
+	// !! change id generation to support freeing/reloading of npc's
+	static unsigned long npc_id=START_NPC_NUM;
+	return npc_id;
+}
+
+unsigned long npc_get_new_npc_id(void)
+{	// simple singleton
+	// !! change id generation to support freeing/reloading of npc's
+	return (get_npc_id()++); 
+}
 
 static struct dbt *ev_db=NULL;
 static struct dbt *npcname_db=NULL;
@@ -730,7 +741,7 @@ int npc_command(struct map_session_data &sd,const char *npcname, const char *com
  * ÚGŒ^‚ÌNPCˆ—
  *------------------------------------------
  */
-int npc_touch_areanpc(struct map_session_data &sd,unsigned short m,int x,int y)
+int npc_touch_areanpc(struct map_session_data &sd, unsigned short m, int x,int y)
 {
 	size_t i,f=1;
 	int xs,ys;
@@ -863,7 +874,6 @@ int npc_click(struct map_session_data &sd,unsigned long npcid)
 	if (!nd || nd->flag&1)	// –³Œø‰»‚³‚ê‚Ä‚¢‚é
 		return 1;
 
-
 	switch(nd->bl.subtype) {
 	case SHOP:
 		clif_npcbuysell(sd,npcid);
@@ -884,16 +894,17 @@ int npc_click(struct map_session_data &sd,unsigned long npcid)
  */
 int npc_scriptcont(struct map_session_data &sd, unsigned long id)
 {
-	struct npc_data *nd;
+//	struct npc_data *nd;
 
-	if( id != sd.ScriptEngine.oid )
+	if( id != sd.ScriptEngine.oid && id != CScriptEngine::defoid )
 		return 1;
-	nd=(struct npc_data *)map_id2bl(id);
-	if( !nd )//|| !npc_icNear(sd,*nd) )
-		return 1;
-	if(nd && nd->u.scr.ref)
-		CScriptEngine::run(nd->u.scr.ref->script, sd.ScriptEngine.pos, sd.bl.id, id);
+//	nd=(struct npc_data *)map_id2bl(id);
+//	if( !nd )//|| !npc_icNear(sd,*nd) )
+//		return 1;
+//	if(nd && nd->u.scr.ref)
+//		CScriptEngine::run(nd->u.scr.ref->script, sd.ScriptEngine.pos, sd.bl.id, id);
 
+	sd.ScriptEngine.restart();
 	return 0;
 }
 
@@ -1846,7 +1857,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 			ev->nd = nd;
 			ev->pos = 0;
 			strdb_insert(ev_db, nd->exname, ev);
-	}
+		}
 		else
 			clif_spawnnpc(*nd);
 	}
@@ -2063,11 +2074,23 @@ int npc_parse_mob2(struct mob_list &mob)
 		else
 			md->lootitem = NULL;
 
-		if (strlen(mob.eventname) >= 4) {
+		if (strlen(mob.eventname) >= 4)
+		{
 			memcpy(md->npc_event, mob.eventname, 24);
-		} else
+		}
+		else
+		{
 			memset(md->npc_event, 0, 24);
-
+			if (strlen(mob.eventname) == 1)
+			{	//Portable monster big/small implementation. [Skotlex]
+				int size = atoi(mob.eventname);
+				if (size & 2)
+					md->state.size=1;
+				else if (size & 4)
+					md->state.size=2;
+			}
+		}
+			
 		map_addiddb(md->bl);
 		mob_spawn(md->bl.id);
 	}
@@ -2371,7 +2394,7 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 	}
 	else
 	{
-		ShowMessage("\rLoading NPCs [%d]: %s"CL_CLL,npc_id-START_NPC_NUM,filename);
+		ShowMessage("\rLoading NPCs [%d]: %s"CL_CLL,get_npc_id()-START_NPC_NUM,filename);
 		while( fgets(line, sizeof(line), fp) )
 		{
 			lines++;
@@ -2508,7 +2531,7 @@ void npc_parsesrcfiles()
 		CL_WHITE"%d"CL_RESET"' Mobs\n\t\t-'"
 		CL_WHITE"%d"CL_RESET"' Mobs on Map\n\t\t-'"
 		CL_WHITE"%d"CL_RESET"' Mobs cached\n",
-		npc_id-START_NPC_NUM,"",npc_warp,npc_shop,npc_script,npc_mob, npc_delay_mob, npc_cache_mob);
+		get_npc_id()-START_NPC_NUM,"",npc_warp,npc_shop,npc_script,npc_mob, npc_delay_mob, npc_cache_mob);
 
 	return;
 }
@@ -2716,7 +2739,7 @@ int do_final_npc(void)
 		ev_db = NULL;
 	}
 
-	for (i = START_NPC_NUM; i < npc_id; i++)
+	for (i = START_NPC_NUM; i < get_npc_id(); i++)
 	{
 		bl = map_id2bl(i);
 		if( bl )

@@ -2930,6 +2930,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 	//Initial flag
 	flag.rh=1;
 	flag.cardfix=1;
+	flag.infdef=(t_mode&0x40?1:0);
 
 	//Initial Values
 	wd.type=0; //Normal attack
@@ -3394,8 +3395,8 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 					//rodatazone says the range is 0~arrow_atk-1 for non crit
 					if (flag.arrow && sd->arrow_atk)
 						ATK_ADD(flag.cri?sd->arrow_atk:rand()%sd->arrow_atk);
-					
-					if(sd->status.weapon < 16 && (sd->atk_rate != 100 || sd->weapon_atk_rate != 0))
+
+					if(sd->status.weapon < 16 && (sd->atk_rate != 100 || sd->weapon_atk_rate[sd->status.weapon] != 0))
 						ATK_RATE(sd->atk_rate + sd->weapon_atk_rate[sd->status.weapon]);
 
 					if(flag.cri && sd->crit_atk_rate)
@@ -4639,7 +4640,7 @@ struct Damage  battle_calc_misc_attack(struct block_list *bl,struct block_list *
 	case CR_ACIDDEMONSTRATION:
 		//This equation is not official, but it's the closest to the official one 
 		//that Viccious Pucca and the other folks at the forums could come up with. [Skotlex]
-		damage = int_ * (int)(sqrt(100*status_get_vit(target))) / 3;
+		damage = int_ * sqrt(100*status_get_vit(target))/3;
 		if (tsd) damage/=2;
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
@@ -5048,6 +5049,7 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 			{
 				if( (unsigned long)tsc_data[SC_AUTOCOUNTER].val3 == src->id )
 					battle_weapon_attack(target, src, tick, 0x8000|tsc_data[SC_AUTOCOUNTER].val1);
+				clif_skillcastcancel(*target); //Remove the little casting bar. [Skotlex]
 				status_change_end(target,SC_AUTOCOUNTER,-1);
 			}
 			if (tsc_data[SC_READYCOUNTER].timer != -1 && rand()%100 < 20) // Taekwon Counter Stance [Dralnu]
@@ -5116,154 +5118,197 @@ bool battle_check_undead(int race,int element)
  */
 int battle_check_target(struct block_list *src, struct block_list *target,int flag)
 {
-	int m,state = 0; //Initial state neutral (0x00000)
+	int m,state = 0; //Initial state none
 	struct block_list *s_bl= src, *t_bl= target;
-
-	nullpo_retr(-1, target);
-	nullpo_retr(-1, src);
 	
-	if( (target->type!=BL_PC && target->type!=BL_MOB && target->type!=BL_SKILL) ||	//Only players, mobs or skills may be targeted.
-		(src->type==BL_SKILL && target->type==BL_SKILL))	//Skills can't target each other.
+	if(src==NULL || target==NULL)
 		return 0;
-	
+
 	m = target->m;
-	
-	if(flag&BCT_ENEMY && !map[m].flag.gvg)	//Offensive stuff can't be casted on Basilica
+	if (flag&BCT_ENEMY && !map[m].flag.gvg)	//Offensive stuff can't be casted on Basilica
 	{	// Celest
-		struct status_change *sc_data = status_get_sc_data(src);
-		struct status_change *tsc_data= status_get_sc_data(target);
-		if( (sc_data && sc_data[SC_BASILICA].timer != -1) ||
-			(tsc_data && tsc_data[SC_BASILICA].timer != -1) )
+		struct status_change *sc_data, *tsc_data;
+
+		sc_data = status_get_sc_data(src);
+		tsc_data = status_get_sc_data(target);
+		if ((sc_data && sc_data[SC_BASILICA].timer != -1) ||
+		(tsc_data && tsc_data[SC_BASILICA].timer != -1))
 			return -1;
 	}
 
-	if( target->type == BL_PC )
+	switch (target->type)
 	{
-		struct map_session_data *tsd = (struct map_session_data *)target;
-		if(tsd->invincible_timer != -1 || pc_isinvisible(*tsd))
-			return -1; //Cannot be targeted yet.
-		if (tsd->state.monster_ignore && src->type == BL_MOB)
-			return 0; //option to have monsters ignore GMs [Valaris]
-	}
-	else if (target->type == BL_MOB)
-	{
-		struct mob_data *md = (struct mob_data *)target;
-		if (md && md->master_id && (t_bl = map_id2bl(md->master_id)) == NULL)
-			t_bl = target; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
-	}
-	else if( target->type == BL_SKILL )
-	{
-		struct skill_unit *su = (struct skill_unit *)target;
-		if(su->group)
+		case BL_PC:
 		{
-			if( !(skill_get_inf2(su->group->skill_id)&INF2_TRAP || su->group->skill_id==WZ_ICEWALL) )
-				return 0; //Excepting traps and icewall, you should not be able to target skills.
-			if( (t_bl = map_id2bl(su->group->src_id)) == NULL )
-				t_bl = target; //Fallback on the trap itself, otherwise consider this a "versus caster" scenario.
+			struct map_session_data *sd = (struct map_session_data *)target;
+			if (!sd) //This really should never happen...
+				return 0;
+			if(sd->invincible_timer != -1 || pc_isinvisible(*sd))
+				return -1; //Cannot be targeted yet.
+			if (sd->state.monster_ignore && src->type == BL_MOB)
+
+				return 0; //option to have monsters ignore GMs [Valaris]
+			if (sd->state.killable)
+				state |= BCT_ENEMY; //Universal Victim
+			break;
 		}
+		case BL_MOB:
+		{
+			struct mob_data *md = (struct mob_data *)target;
+			if (!md)
+				return 0;
+			if (md->state.special_mob_ai == 2) 
+				return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
+			if (md->master_id && (t_bl = map_id2bl(md->master_id)) == NULL)
+				t_bl = target; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
+			break;
+		}
+		case BL_PET:
+		{
+			return 0; //Pets cannot be targetted.
+		}
+		case BL_SKILL:
+		{
+			struct skill_unit *su = (struct skill_unit *)target;
+			if (!su || !su->group)
+				return 0;
+			if (src->type == BL_SKILL) //Cannot be hit by another skill.
+				return 0;
+			if (!(skill_get_inf2(su->group->skill_id)&INF2_TRAP || su->group->skill_id==WZ_ICEWALL))
+				return 0; //Excepting traps and icewall, you should not be able to target skills.
+
+			if ((t_bl = map_id2bl(su->group->src_id)) == NULL)
+				t_bl = target; //Fallback on the trap itself, otherwise consider this a "versus caster" scenario.
+			break;
+		}
+		default:	//Invalid target
+			return 0;
 	}
 
-	if( src->type == BL_SKILL )
+	switch (src->type)
 	{
-		struct skill_unit *su = (struct skill_unit *)src;
-		if( su->group )
+		case BL_PC:
 		{
-			if( su->group->src_id == target->id )
+			struct map_session_data *sd = (struct map_session_data *) src;
+			if (!sd) //Should never happen...
+				return 0;
+			if (sd->state.killer)
+				state |= BCT_ENEMY; //Is on a killing rampage :O
+			break;
+		}
+		case BL_MOB:
+		{
+			struct mob_data *md = (struct mob_data *)src;
+			if (!md)
+				return 0;
+			if (!agit_flag && md->guild_id)
+				return 0; //Disable guardians on non-woe times.
+			if (md->master_id && (s_bl = map_id2bl(md->master_id)) == NULL)
+				s_bl = src; //Fallback on the mob itself, otherwise consider this a "from master" scenario.
+			break;
+		}
+		case BL_PET:
+		{
+			struct pet_data *pd = (struct pet_data *)src;
+			if (!pd)
+				return 0;
+			if (pd->msd)
+				s_bl = &pd->msd->bl; //"My master's enemies are my enemies..."
+			break;
+		}
+		case BL_SKILL:
+		{
+			struct skill_unit *su = (struct skill_unit *)src;
+			if (!su || !su->group)
+				return 0;
+			if (su->group->src_id == target->id)
 			{
-				int inf2 = skill_get_inf2(su->group->skill_id);
-				if( inf2&INF2_NO_TARGET_SELF )
+				int inf2;
+				inf2 = skill_get_inf2(su->group->skill_id);
+				if (inf2&INF2_NO_TARGET_SELF)
 					return -1;
-				if( inf2&INF2_TARGET_SELF )
+				if (inf2&INF2_TARGET_SELF)
 					return 1;
 			}
-			if( (s_bl = map_id2bl(su->group->src_id)) == NULL )
+
+			if ((s_bl = map_id2bl(su->group->src_id)) == NULL)
 				s_bl = src; //Fallback on the trap itself, otherwise consider this a "caster versus enemy" scenario.
+			break;
 		}
+		default:	//Invalid source of attack?
+			return 0;
 	}
-	else if (src->type == BL_MOB)
-	{
-		struct mob_data *md = (struct mob_data *)src;
-		
-		if(!agit_flag && md->guild_id)
-			return 0; //Disable guardian attacking on non-woe times.
-		if(md->master_id && (s_bl = map_id2bl(md->master_id)) == NULL)
-			s_bl = src; //Fallback on the mob itself, otherwise consider this a "from master" scenario.
-	}
-	else if (src->type == BL_PET)
-	{
-		struct pet_data *pd = (struct pet_data *)src;
-		
-		if (pd && pd->msd)
-			s_bl = &pd->msd->bl; //"My master's enemies are my enemies..."
-	}
-	
-	if( (flag&BCT_ALL) == BCT_ALL)
-	{	//All actually stands for all players/mobs
+
+	if ((flag&BCT_ALL) == BCT_ALL) { //All actually stands for all players/mobs
 		if (target->type == BL_MOB || target->type == BL_PC)
 			return 1;
 		else
 			return -1;
-	}
+	}	
+	
 	if (t_bl == s_bl) //No need for further testing.
 		return (flag&BCT_SELF)?1:-1;
-
-	if( flag&BCT_ENEMY )
+	
+	if (flag&BCT_ENEMY)
 	{	//Check default enemy settings of mob vs players
-		if( (s_bl->type == BL_MOB && t_bl->type == BL_PC) ||
-			(s_bl->type == BL_PC && t_bl->type == BL_MOB) )
+		if ((s_bl->type == BL_MOB && t_bl->type == BL_PC) ||
+			(s_bl->type == BL_PC && t_bl->type == BL_MOB))
 			state |= BCT_ENEMY;
 	}
 	
-	if( flag&BCT_PARTY || (map[m].flag.pvp && flag&BCT_ENEMY) )
+	if (flag&BCT_PARTY || (map[m].flag.pvp && flag&BCT_ENEMY))
 	{	//Identify party state
-		unsigned long s_party = status_get_party_id(s_bl);
-		unsigned long t_party = status_get_party_id(t_bl);
+		int s_party, t_party;
+		s_party = status_get_party_id(s_bl);
+		t_party = status_get_party_id(t_bl);
+
 		if (!map[m].flag.pvp)
 		{
-			if( s_party && s_party == t_party )
+			if (s_party && s_party == t_party)
 				state |= BCT_PARTY;
 		}
 		else
 		{
-			if( !map[m].flag.pvp_noparty && s_party && s_party == t_party )
+			if (map[m].flag.pvp_noparty && s_party && s_party == t_party)
 				state |= BCT_PARTY;
 			else
 				state |= BCT_ENEMY;
 		}
 	}
-	if( flag&BCT_GUILD || ((map[m].flag.gvg || map[m].flag.gvg_dungeon) && flag&BCT_ENEMY) )
+	if (flag&BCT_GUILD || ((map[m].flag.gvg || map[m].flag.gvg_dungeon) && flag&BCT_ENEMY))
 	{	//Identify guild state
-		unsigned long s_guild = status_get_guild_id(s_bl);
-		unsigned long t_guild = status_get_guild_id(t_bl);
-		if( !map[m].flag.gvg && !map[m].flag.gvg_dungeon && !map[m].flag.pvp )
+		int s_guild, t_guild;
+		s_guild = status_get_guild_id(s_bl);
+		t_guild = status_get_guild_id(t_bl);
+
+		if (!map[m].flag.gvg && !map[m].flag.gvg_dungeon && !map[m].flag.pvp)
 		{
-			if( s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)) )
+			if (s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)))
 				state |= BCT_GUILD;
 		}
 		else
 		{
-			if( !(map[m].flag.pvp && map[m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)) )
+			if ((!map[m].flag.pvp || map[m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)))
 				state |= BCT_GUILD;
 			else
 				state |= BCT_ENEMY;
 		}
 	}
-	if(!state) //If not an enemy, nor a guild, nor party, nor yourself, it's neutral.
-		state = BCT_NEUTRAL;
 
+	if (!state) //If not an enemy, nor a guild, nor party, nor yourself, it's neutral.
+		state = BCT_NEUTRAL;
 	//Alliance state takes precedence over enemy one.
-	else if( state&BCT_ENEMY && state&(BCT_SELF|BCT_PARTY|BCT_GUILD) )
+	else if (state&BCT_ENEMY && state&(BCT_SELF|BCT_PARTY|BCT_GUILD))
 		state&=~BCT_ENEMY;
-	
-	if( t_bl->type == BL_MOB )
+/* Unneeded as aggressive mobs only search for BL_PCs to attack.
+	if (s_bl->type == BL_MOB && t_bl->type == BL_MOB && state&BCT_ENEMY)
 	{
-		if( ((struct mob_data*)t_bl)->state.special_mob_ai==2 && src->type == BL_PC && ((struct mob_data*)t_bl)->master_id == src->id )
-			state|=BCT_ENEMY; //Let the Alchemist hit their own sphere mine.
-		else if( state & BCT_ENEMY && s_bl->type == BL_MOB && (struct mob_data*)s_bl &&
-				((struct mob_data*)s_bl)->state.special_mob_ai==0 && ((struct mob_data*)t_bl)->state.special_mob_ai==0 )
+		if ((struct mob_data*)s_bl && ((struct mob_data*)s_bl)->state.special_mob_ai==0 &&
+			(struct mob_data*)t_bl && ((struct mob_data*)t_bl)->state.special_mob_ai==0)
 			//Do not let mobs target each other.
 			state&=~BCT_ENEMY;
 	}
+*/
 	return (flag&state)?1:-1;
 	
 /* The previous implementation is left here for reference in case something breaks :X [Skotlex]
@@ -5528,8 +5573,7 @@ static struct {
 	{ "atcommand_spawn_quantity_limit",		&battle_config.atc_spawn_quantity_limit	},
 	{ "attribute_recover",					&battle_config.attr_recover				},
 	{ "backstab_bow_penalty",				&battle_config.backstab_bow_penalty		},
-	{ "ban_bot",							&battle_config.ban_bot					},
-	
+	{ "ban_bot",							&battle_config.ban_bot					},	
 	{ "ban_spoof_namer",					&battle_config.ban_spoof_namer			}, // added by [Yor]
 	{ "base_exp_rate",						&battle_config.base_exp_rate			},
 	{ "basic_skill_check",					&battle_config.basic_skill_check		},
@@ -5719,6 +5763,7 @@ static struct {
 	{ "pet_defense_type",                  &battle_config.pet_defense_type			},
 	{ "pet_equip_required",                &battle_config.pet_equip_required	},	// [Valaris]
 	{ "pet_friendly_rate",                 &battle_config.pet_friendly_rate		},
+	{ "pet_hair_style",						&battle_config.pet_hair_style			},
 	{ "pet_hungry_delay_rate",             &battle_config.pet_hungry_delay_rate	},
 	{ "pet_hungry_friendly_decrease",      &battle_config.pet_hungry_friendly_decrease},
 	{ "pet_lv_rate",                       &battle_config.pet_lv_rate				},	//Skotlex
@@ -5943,7 +5988,7 @@ void battle_set_defaults()
 	battle_config.max_cart_weight = 8000;
 	battle_config.max_cloth_color = 4;
 	battle_config.max_hair_color = 9;
-	battle_config.max_hair_style = 20;
+	battle_config.max_hair_style = 23;
 	battle_config.max_hitrate = 95;
 	battle_config.max_hp = 32500;
 	battle_config.max_job_level = 50; // [MouseJstr]
@@ -6028,6 +6073,7 @@ void battle_set_defaults()
 	battle_config.pet_defense_type = 0;
 	battle_config.pet_equip_required = 0; // [Valaris]
 	battle_config.pet_friendly_rate=100;
+	battle_config.pet_hair_style = battle_config.max_hair_style+1;
 	battle_config.pet_hungry_delay_rate=100;
 	battle_config.pet_hungry_friendly_decrease=5;
 	battle_config.pet_lv_rate=0;

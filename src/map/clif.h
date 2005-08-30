@@ -19,11 +19,13 @@ int clif_charselectok(unsigned long id);
 int clif_dropflooritem(struct flooritem_data &fitem);
 int clif_clearflooritem(struct flooritem_data &fitem, int fd=0);
 int clif_clearchar(struct block_list &bl, unsigned char type);
+int clif_clearchar(struct map_session_data &sd, struct block_list &bl); // self
 #define clif_clearchar_area(bl, type)	clif_clearchar(bl,type)
 int clif_clearchar_delay(unsigned long tick, struct block_list &bl, int type);
 int clif_clearchar_id(int fd, unsigned long id, unsigned char type);
 int clif_spawnpc(struct map_session_data &sd);	//area
 int clif_spawnnpc(struct npc_data &nd);	// area
+int clif_spawnnpc(struct map_session_data &sd, struct npc_data &nd);	// self
 int clif_spawnmob(struct mob_data &md);	// area
 int clif_spawnpet(struct pet_data &pd);	// area
 int clif_walkok(struct map_session_data &sd);	// self

@@ -818,9 +818,10 @@ int mob_walktoxy(struct mob_data &md,int x,int y,int easy)
 {
 	struct walkpath_data wpd;
 
-	if(md.state.state == MS_WALK && path_search(wpd,md.bl.m,md.bl.x,md.bl.y,x,y,easy) )
+	if( md.bl.prev == NULL || md.state.state == MS_DEAD || 
+		md.state.state == MS_WALK && path_search(wpd,md.bl.m,md.bl.x,md.bl.y,x,y,easy) )
 		return 1;
-
+	
 	md.state.walk_easy = easy;
 	md.to_x=x;
 	md.to_y=y;

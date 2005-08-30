@@ -1,6 +1,6 @@
-#include "base.h"
-#include "baseio.h"
-#include "sql.h"
+#include "basesq.h"
+
+#ifndef TXT_ONLY
 
 //////////////////////////////////////////////////////////////////////////////////////
 // CMySQL Class
@@ -12,14 +12,11 @@ CMySQL::CMySQL() {
 	mysqldb_port=3306;
 	safestrcpy(mysqldb_id, "ragnarok", sizeof(mysqldb_id));
 	safestrcpy(mysqldb_pw, "ragnarok", sizeof(mysqldb_pw));
-	
-	tmpSql = new char[65536];
 }
 
 // CMySQL Class Destructor
 // Code is executed a CMySQL var is destroyed
-CMySQL::~CMySQL() {
-	delete[] tmpSql;
+inline CMySQL::~CMySQL() {
 }
 
 // Send a MySQL query to get data
@@ -61,7 +58,7 @@ bool CMySQL::mysql_SendQuery(const char* q, size_t sz) {
 }
 
 // Make string MySQL safe
-const char* CMySQL::escape_string(char *target, const char* source, size_t len)	{
+inline const char* CMySQL::escape_string(char *target, const char* source, size_t len) {
 	
 	mysql_real_escape_string(&mysqldb_handle, target, source, len);
 	
@@ -379,3 +376,7 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 	}
 	return ret;
 }
+
+
+
+#endif//!TXT_ONLY

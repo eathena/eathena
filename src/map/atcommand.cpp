@@ -578,7 +578,7 @@ const char * job_name(int class_)
 	case 10:   return "Blacksmith";
 	case 11:   return "Hunter";
 	case 12:   return "Assassin";
-	case 13:   return "Knight 2";
+	case 13:   return "Peco Knight";
 	case 14:   return "Crusader";
 	case 15:   return "Monk";
 	case 16:   return "Sage";
@@ -586,7 +586,7 @@ const char * job_name(int class_)
 	case 18:   return "Alchemist";
 	case 19:   return "Bard";
 	case 20:   return "Dancer";
-	case 21:   return "Crusader 2";
+	case 21:   return "Peco Crusader";
 	case 22:   return "Wedding";
 	case 23:   return "Super Novice";
 	case 4001: return "Novice High";
@@ -634,6 +634,10 @@ const char * job_name(int class_)
 	case 4043: return "Baby Dancer";
 	case 4044: return "Baby Peco Crusader";
 	case 4045: return "Super Baby";
+	case 4046: return "Taekwon";
+	case 4047: return "Star Gladiator";
+	case 4048: return "Flying Star Gladiator";
+	case 4049: return "Soul Linker";
 	}
 	return "Unknown Job";
 }
@@ -1933,11 +1937,11 @@ bool atcommand_jobchange(int fd, struct map_session_data &sd, const char* comman
 			{ "baby bard",		4042 },
 			{ "baby dancer",	4043 },
 			{ "super baby",		4045 },
-			{ "taekwon",        4046 },
+			{ "taekwon",		4046 },
 			{ "taekwon boy",	4046 },
 			{ "taekwon girl",	4046 },
-			{ "star knight",	4047 },
-			{ "soul linker",	4048 },
+			{ "star gladiator",	4047 },
+			{ "soul linker",	4049 },
 		};
 
 		for (i=0; i < (int)(sizeof(jobs) / sizeof(jobs[0])); i++) {
@@ -2983,8 +2987,7 @@ bool atcommand_monster(int fd, struct map_session_data &sd, const char* command,
 		ShowMessage("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
 
 	count = 0;
-	range = (int)(sqrt((double)number) / 2);
-	range = range * 2 + 5; // calculation of an odd number (+ 4 area around)
+	range = sqrt(number) + 5; // calculation of an odd number (+ 4 area around)
 	for (i = 0; i < number; i++) {
 		j = 0;
 		k = 0;
@@ -3070,8 +3073,7 @@ bool atcommand_spawn(int fd, struct map_session_data &sd, const char* command, c
 		ShowMessage("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
 
 	count = 0;
-	range = (int)(sqrt((double)number) / 2);
-	range = range * 2 + 5; // calculation of an odd number (+ 4 area around)
+	range = sqrt(number) + 5; // calculation of an odd number (+ 4 area around)
 	for (i = 0; i < number; i++) {
 		j = 0;
 		k = 0;

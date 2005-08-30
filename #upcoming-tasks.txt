@@ -70,10 +70,13 @@ clif/chrif/packets
 script engine conversion
 * rearranging current member function structure to a better hierarchy depending on the functionally
   [like value conversion functions are members of the value class, just to name an example]
+  {20%}
 * changing memory allocation/deallocations to c++ style (special attention to initial settings with memset)
-  [stack allocation/seallocation is c-style now, implement proper cleaning]
+  [stack allocation/deallocation is c-style now, implement proper cleaning]
+  {50%}
 * check command function/usage of a virtual npc for script binding
   [like if a script is running on a pc without a visible npc then create a npc without a physical shape and bind the script on that npc, so all scripts could use all script commands]
+  {100%, but need some more testing}
 * encapsulate the script parser
   [same as has been done with the engine]
 * adding a class for scripts with all suitable things

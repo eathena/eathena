@@ -7,7 +7,7 @@
 #include "script.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-#define MAX_PC_CLASS 4048
+#define MAX_PC_CLASS 4050
 #define PC_CLASS_BASE 0
 #define PC_CLASS_BASE2 (PC_CLASS_BASE + 4001)
 #define PC_CLASS_BASE3 (PC_CLASS_BASE2 + 22)
@@ -113,7 +113,8 @@
 #define JOB_SUPER_BABY 4045
 #define JOB_TAEKWON 4046
 #define JOB_STAR_GLADIATOR 4047
-#define JOB_SOUL_LINKER 4048
+#define JOB_STAR_GLADIATOR2 4048
+#define JOB_SOUL_LINKER 4049
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -150,8 +151,8 @@
 #define OPTION_HIDE 0x40
 
 ///////////////////////////////////////////////////////////////////////////////
-enum { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL, BL_PET };
-enum { WARP, SHOP, SCRIPT, MONS };
+enum { BL_NUL, BL_PC, BL_NPC, BL_MOB, BL_ITEM, BL_CHAT, BL_SKILL, BL_PET };	// 0..7 -> 3bit
+enum { WARP, SHOP, SCRIPT, MONS };											// 0..3 -> 2bit
 
 
 
@@ -402,21 +403,9 @@ struct map_session_data
 
 	unsigned long areanpc_id;
 	unsigned long npc_shopid;
-	unsigned long npc_menu;
-	unsigned long npc_amount;
-
-//	char *npc_stackbuf;
-//	unsigned long npc_stack;
-//	unsigned long npc_stackmax;
-//	unsigned long npc_id;
-//	unsigned long npc_pos;
-//	const char *npc_script;
-//	const char *npc_scriptroot;
 
 	CScriptEngine ScriptEngine;
-
-
-	char npc_str[256];
+	
 	unsigned long chatID;
 	time_t idletime;
 
@@ -705,13 +694,13 @@ struct npc_timerevent_list {
 	int timer;
 	int pos;
 };
-struct npc_label_list {
-	char labelname[24];
-	int pos;
-};
 struct npc_item_list {
 	unsigned short nameid;
 	long value;
+};
+struct npc_label_list {
+	char labelname[24];
+	int pos;
 };
 struct npc_reference{
 	char *script;
