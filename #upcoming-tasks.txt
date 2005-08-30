@@ -10,7 +10,7 @@ common:
 data interface (txt/sql)
 * adding party and guild to char_db (sql and txt)
   [txt: creating the storage list, adding the function for read/write/search]
-[sql: adding the sql access for read/write/search functions]
+  [sql: adding the sql access for read/write/search functions]
 * checking the save functions for threadsafety, then deriving from CThread instead of CTimer
   [txt: just deriving the class from CThread and modify the entry maybe with a semaphore and update the save sequence to "save temp->delete bak->rename save2bak->rename temp2save"]
   [sql: add a searchable threadsave semaphored queue (read/write-lock is ready) and add the thread entry]
@@ -21,7 +21,7 @@ data interface (txt/sql)
 * integrate database conversion into the database classes
   [conversion of databases will be an option in configuration files like "read: txt, use: sql" would convert convert from txt to sql, (or other syntax, whatever), database classes need suitable assignment operators together with size() and operator[] or a forEach() to automatically do the conversion at creation time of the db-class]
 
-data interface (sql only)
+data interface (sql only)  // CLOWNISIUS is working on this section, hands off other people... grrr
 * checking database structure, cleaning unnecessary fields
   [some data fields are quite useless though and could be removed]
 * adding missing data fields to login table
