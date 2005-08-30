@@ -563,8 +563,7 @@ int pc_isequip(struct map_session_data *sd,int n)
 			|| item->nameid==2505 || item->nameid==2506 //Manteau[0] [1]
 			|| item->nameid==2107 || item->nameid==2108 //Mirror Shield [0] [1]
 			|| item->nameid==2405 || item->nameid==2406 //Boots [0] [1]
-			|| item->nameid==2256 //Majestic Goat
-//			|| item->nameid==2108 // What is ID of "Sharp Geadgear" ?
+			|| item->nameid==2256 || item->nameid==2258 //Majestic Goat | Spiky Band
 			)
 			return 1; //You can equip these exceptions
 		if ( item->type == 4 || !(((item->class_ & 126) == 126) || ((item->class_ & 2088832) == 2088832)) )	//2088832 = all 2nd classes but Super Novice
