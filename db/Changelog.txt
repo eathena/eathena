@@ -25,17 +25,17 @@
 		'Angel' equipments.
 	5126,Morphicious_Hood: When using magic, it cannot be dispelled(Maybe it works like Phen card)
 	12033,Sunshine_Box: should allow seeing cloaked or hidden enemy
-	12105,Taming_Item_Giftset: gets 3 of any(?) taming item
 	12106,Jewel_Box: gets any accessary
 	12107,Wrapped_Mask: gets a mask
-	12108,Bundle_of_Spells: gets 5 of any(?) spell scrolls
-	12110,First_Aid_Box: gets 5 of any potions
-	12111,Wrapped_Food: gets 3 of any food
+	12111,Wrapped_Food: gets 3 of any food<- food or mixed food? Need to know so it can be implemented. [Skotlex]
 	4198,Maya_Purple_Card: intravision not working atm
-	4296,Cramp_Card: missing getzenybychance??
+	4296,Cramp_Card: Temporal Plug: 10z per mob-level on a 3% chance.
 	1771,Venom_Knife: Item type: Throwing Dagger. Consumable. Should it work as a scroll, or as an arrow, etc.
 	--
 08/30
+	* Added item groups for Taming Items, Quivers and Scrolls [Skotlex]
+	* Implemented Taming_Item_Giftset, Bundle_of_Spells, First_Aid_Box [Skotlex]
+	* 'Fixed' Cramp Card. Gives +10z per mob level on a 3% success chance. [Skotlex]
 	* Added Violin[4] #1902 into OVB, into Violy Drops (0.1%). Probably some of new drops
 		have chance more than 0.01%, too [Lupus]
 	* Fixed some items names spelling. Thx2Erpirata [Lupus]

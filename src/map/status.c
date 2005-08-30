@@ -517,6 +517,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->sprecov_rate = 100;
 	sd->critical_def = 0;
 	sd->double_rate = 0;
+	sd->long_attack_atk_rate = 0;
 	sd->near_attack_def_rate = sd->long_attack_def_rate = 0;
 	sd->atk_rate = sd->matk_rate = 100;
 	sd->right_weapon.ignore_def_ele = sd->right_weapon.ignore_def_race = 0;
@@ -537,7 +538,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	sd->def_rate = sd->def2_rate = sd->mdef_rate = sd->mdef2_rate = 100;
 	sd->right_weapon.def_ratio_atk_ele = sd->left_weapon.def_ratio_atk_ele = 0;
 	sd->right_weapon.def_ratio_atk_race = sd->left_weapon.def_ratio_atk_race = 0;
-	sd->get_zeny_num = 0;
+	sd->get_zeny_num = sd->get_zeny_rate = 0;
 	sd->right_weapon.add_damage_class_count = sd->left_weapon.add_damage_class_count = sd->add_magic_damage_class_count = 0;
 	sd->add_def_class_count = sd->add_mdef_class_count = 0;
 	sd->monster_drop_item_count = 0;
@@ -549,7 +550,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	memset(sd->monster_drop_race,0,sizeof(sd->monster_drop_race));
 	memset(sd->monster_drop_itemrate,0,sizeof(sd->monster_drop_itemrate));
 	sd->speed_add_rate = sd->aspd_add_rate = 100;
-	sd->double_add_rate = sd->perfect_hit_add = sd->get_zeny_add_num = 0;
+	sd->double_add_rate = sd->perfect_hit_add = 0;
 	sd->splash_range = sd->splash_add_range = 0;
 	memset(sd->autospell_id,0,sizeof(sd->autospell_id));
 	memset(sd->autospell_lv,0,sizeof(sd->autospell_lv));
@@ -766,7 +767,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	}
 	sd->double_rate += sd->double_add_rate;
 	sd->perfect_hit += sd->perfect_hit_add;
-	sd->get_zeny_num += sd->get_zeny_add_num;
 	sd->splash_range += sd->splash_add_range;
 
 //The stacking functions are defined here. [Skotlex]

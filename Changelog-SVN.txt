@@ -1,6 +1,20 @@
 Date	Added
 =======
 08/30
+	* Splitted Char-sql status saving into status/status2, the later is for
+	  values that will seldomly change. [Skotlex]
+	* Updated servers so that when the player changes dye or hair color, the
+	  char-server is notified and the guild_member data is updated on all map
+	  servers. [Skotlex]
+	* Updated servers so they also report on sex change. [Skotlex]
+	  (altough this one I have no tested yet)
+	* Changed bGetZenyNum/bAddZenyNum to be a bonus2 type [Skotlex]
+	  (eg: bonus2 bGetZenyNum 10, 30 <- Receive 10z per mob level on 30% of
+	  your weapon-based kills)
+	* Added script function groupranditem(i), returns a random item_id from the
+	  specified item-group given. [Skotlex]
+	* Changed bLongAtkRate bonus to be more card-like (works just like
+	  bLongAtkDef, except it's for attack) [Skotlex]
 	* [SQL] Added Storage Items sorting by nameid. On loading. [Lupus]
 	* Added GetItemInfo(Item ID,n) script function. Returns Buy/Sell Price, Def, etc [Lupus]
 		added sample/getiteminfo.txt Tested, fully working!

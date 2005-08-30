@@ -336,14 +336,20 @@ struct fame_list {
 };
 
 enum {
-	GBI_EXP			=1,		// ギルドのEXP
-	GBI_GUILDLV		=2,		// ギルドのLv
-	GBI_SKILLPOINT	=3,		// ギルドのスキルポイント
-	GBI_SKILLLV		=4,		// ギルドスキルLv
+	GBI_EXP	=1,		// ギルドのEXP
+	GBI_GUILDLV,		// ギルドのLv
+	GBI_SKILLPOINT,		// ギルドのスキルポイント
+	GBI_SKILLLV,		// ギルドスキルLv
+};
 
+enum {
 	GMI_POSITION	=0,		// メンバーの役職変更
-	GMI_EXP			=1,		// メンバーのEXP
-
+	GMI_EXP,
+	GMI_HAIR,
+	GMI_HAIR_COLOR,
+	GMI_GENDER,
+	GMI_CLASS,
+	GMI_LEVEL,
 };
 
 enum {

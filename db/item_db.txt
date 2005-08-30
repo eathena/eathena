@@ -561,7 +561,7 @@
 1235,Azoth,Azoth,4,20,0,700,110,,1,0,262144,2,2,4,36,1,1,{},{ bonus bClassChange,300; }
 1236,Sucsamad,Sucsamad,4,20,0,800,140,,1,0,2055918,2,2,4,36,1,1,{},{ bonus2 bAddEle,2,10; bonus2 bAddEle,4,10; bonus bUnbreakableWeapon,0; }
 1237,Grimtooth_,Grimtooth,4,20,0,800,180,,1,0,2055918,2,2,4,36,1,1,{},{ bonus bFlee,10; bonus bFlee2,5; bonus bDefRate,-50; bonus bDef2Rate,-50; }
-1238,Zeny_Knife,Zeny Knife,4,20,0,1200,64,,1,0,2055918,2,2,3,40,1,1,{},{ bonus bGetZenyNum,100; }
+1238,Zeny_Knife,Zeny Knife,4,20,0,1200,64,,1,0,2055918,2,2,3,40,1,1,{},{ bonus2 bGetZenyNum,10,100; }
 1239,Poison_Knife,Poison Knife,4,20,0,800,64,,1,0,2055918,2,2,3,65,1,1,{},{ bonus bAtkEle,5; bonus2 bAddEff,Eff_Poison,3000; }
 1240,Princess_Knife,Princess Knife,4,20,0,400,84,,1,0,2055918,2,2,4,1,1,1,{},{ bonus bAllStats,1; }
 1241,Cursed_Dagger,Cursed Dagger,4,20,0,400,55,,1,0,66052,2,2,4,85,1,1,{},{ bonus2 bAddEff,Eff_Curse,500; }
@@ -1436,7 +1436,7 @@
 4293,Cookie_Card,Cookie Card,6,20,0,10,,,,,,,136,,,,,{},{ bonus bLuk,2; bonus2 bSkillAtk,156,10; }
 4294,Quve_Card,Quve Card,6,20,0,10,,,,,,,136,,,,,{},{ if(BaseJob==Job_Novice||BaseJob==Job_SuperNovice) bonus4 bAutoSpellWhenHit,29,1,20,0; if(isequipped(4193)==0) end; bonus bMaxHP,300; }
 4295,Kraben_Card,Kraben Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus2 bAddEffWhenHit,Eff_Blind,2000; }
-4296,Cramp_Card,Cramp Card,6,20,0,10,,,,,,,769,,,,,{},{ if(isequipped(4028)) bonus bStr,3; }
+4296,Cramp_Card,Cramp Card,6,20,0,10,,,,,,,769,,,,,{},{ bonus2 bGetZenyNum,10,3; if(isequipped(4028)) bonus bStr,3; }
 4297,Cruiser_Card,Cruiser Card,6,20,0,10,,,,,,,2,,,,,{},{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,2,7; }
 4298,Creamy_Fear_Card,Creamy Fear Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus2 bAddEffWhenHit,Eff_Confusion,2000; }
 4299,Clock_Card,Clock Card,6,20,0,10,,,,,,,16,,,,,{},{ bonus4 bAutoSpellWhenHit,249,3+7*(getskilllv(249)==10),1,0; }
@@ -2223,13 +2223,13 @@
 12101,Citron,Citron,2,20,0,300,,,,,10477567,2,,,,,,{},{}
 12102,Grilled_Skewer,Grilled Skewer,2,20,0,300,,,,,10477567,2,,,,,,{},{}
 12103,Bloody_Branch,Bloody Branch,2,20,0,200,,,,,10477567,2,,,,,,{ monster "this",0,0,"--ja--",-3,1,""; },{}
-12104,Random_Quiver,Random Quiver,2,20,0,200,,,,,10477567,2,,,,,,{ getitem rand(12004,12015),1; },{}
-12105,Taming_Item_Giftset,Taming Item Giftset,2,20,0,200,,,,,10477567,2,,,,,,{},{}
+12104,Random_Quiver,Random Quiver,2,20,0,200,,,,,10477567,2,,,,,,{ getitem groupranditem(17),1; },{}
+12105,Taming_Item_Giftset,Taming Item Giftset,2,20,0,200,,,,,10477567,2,,,,,,{ getitem groupranditem(15),3; },{}
 12106,Jewel_Box,Jewel Case,2,20,0,200,,,,,10477567,2,,,,,,{},{}
 12107,Wrapped_Mask,Wrapped Mask,2,20,0,200,,,,,10477567,2,,,,,,{},{}
-12108,Bundle_of_Spells,Bundle of Spells,2,20,0,200,,,,,10477567,2,,,,,,{},{}
+12108,Bundle_of_Spells,Bundle of Spells,2,20,0,200,,,,,10477567,2,,,,,,{ getitem groupranditem(16),5; },{}
 12109,Poring_Box,Poring Box,2,20,0,200,,,,,10477567,2,,,,,,{ monster "this",0,0,"--ja--",-2,1,""; },{}
-12110,First_Aid_Box,First Aid Box,2,20,0,200,,,,,10477567,2,,,,,,{ getitem rand(501,506),5; },{}
+12110,First_Aid_Box,First Aid Box,2,20,0,200,,,,,10477567,2,,,,,,{ getitem groupranditem(1),5; },{}
 12111,Wrapped_Food,Wrapped Food,2,20,0,200,,,,,10477567,2,,,,,,{},{}
 12112,Tropical_Sograt,Tropical Sograt,2,20,0,100,,,,,10477567,2,,,,,,{},{}
 12113,Vermilion_the_Beach,Vermilion the Beach,2,20,0,100,,,,,10477567,2,,,,,,{},{}

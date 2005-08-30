@@ -374,11 +374,13 @@ struct map_session_data {
 	int arrow_addele[10],arrow_addrace[12],arrow_addsize[3],arrow_addeff[10],arrow_addeff2[10];
 	int nhealhp,nhealsp,nshealhp,nshealsp,nsshealhp,nsshealsp;
 	int aspd_rate,speed_rate,hprecov_rate,sprecov_rate,critical_def,double_rate;
+	int long_attack_atk_rate; //Long range atk rate, not weapon based. [Skotlex]
 	int near_attack_def_rate,long_attack_def_rate,magic_def_rate,misc_def_rate;
 	int matk_rate;
 	int ignore_mdef_ele,ignore_mdef_race;
 	int magic_addele[10],magic_addrace[12],magic_subrace[12];
-	int perfect_hit,get_zeny_num;
+	int perfect_hit;
+	int get_zeny_rate, get_zeny_num; //Added Get Zeny Rate [Skotlex]
 	int critical_rate,hit_rate,flee_rate,flee2_rate,def_rate,def2_rate,mdef_rate,mdef2_rate;
 	int add_magic_damage_class_count,add_magic_damage_classrate[10];
 	short add_magic_damage_classid[10];
@@ -388,7 +390,7 @@ struct map_session_data {
 	short monster_drop_item_count;
 	short monster_drop_itemid[10];
 	int monster_drop_race[10],monster_drop_itemrate[10];
-	int double_add_rate,speed_add_rate,aspd_add_rate,perfect_hit_add, get_zeny_add_num;
+	int double_add_rate,speed_add_rate,aspd_add_rate,perfect_hit_add;
 	short splash_range,splash_add_range;
 	short autospell_id[10],autospell_lv[10],autospell_rate[10];
 	int short_weapon_damage_return,long_weapon_damage_return;

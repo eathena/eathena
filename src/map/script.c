@@ -127,6 +127,7 @@ int buildin_if(struct script_state *st);
 int buildin_getitem(struct script_state *st);
 int buildin_getitem2(struct script_state *st);
 int buildin_getnameditem(struct script_state *st);
+int buildin_grouprandomitem(struct script_state *st);
 int buildin_makeitem(struct script_state *st);
 int buildin_delitem(struct script_state *st);
 int buildin_viewpoint(struct script_state *st);
@@ -383,6 +384,7 @@ struct {
 	{buildin_getitem,"getitem","ii**"},
 	{buildin_getitem2,"getitem2","iiiiiiiii*"},
 	{buildin_getnameditem,"getnameditem","is"},
+	{buildin_grouprandomitem,"groupranditem","i"},
 	{buildin_makeitem,"makeitem","iisii"},
 	{buildin_delitem,"delitem","ii"},
 	{buildin_cutin,"cutin","si"},
@@ -2748,6 +2750,20 @@ int buildin_getnameditem(struct script_state *st)
 	}
 
 	push_val(st->stack,C_INT,1);
+	return 0;
+}
+
+/*==========================================
+ * gets a random item ID from an item group [Skotlex]
+ * groupranditem group_num
+ *------------------------------------------
+ */
+int buildin_grouprandomitem(struct script_state *st)
+{
+	int group;
+
+	group = conv_num(st,& (st->stack->stack_data[st->start+2]));
+	push_val(st->stack, C_INT, itemdb_searchrandomgroup(group));
 	return 0;
 }
 

@@ -1957,6 +1957,9 @@ int parse_tologin(int fd) {
 						char_dat[i].head_top = 0;
 						char_dat[i].head_mid = 0;
 						char_dat[i].head_bottom = 0;
+
+						if (char_dat[i].guild_id)	//If there is a guild, update the guild_member data [Skotlex]
+							inter_guild_sex_changed(char_dat[i].guild_id, acc, char_dat[i].char_id, sex);
 					}
 				}
 				// disconnect player if online on char-server

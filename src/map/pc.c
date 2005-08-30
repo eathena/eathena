@@ -1372,14 +1372,6 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		if(sd->state.lr_flag != 2)
 			sd->critical_rate+=val;
 		break;
-	case SP_GET_ZENY_NUM:
-		if(sd->state.lr_flag != 2 && sd->get_zeny_num < val)
-			sd->get_zeny_num = val;
-		break;
-	case SP_ADD_GET_ZENY_NUM:
-		if(sd->state.lr_flag != 2)
-			sd->get_zeny_add_num += val;
-		break;
 	case SP_DEF_RATIO_ATK_ELE:
 		if(!sd->state.lr_flag)
 			sd->right_weapon.def_ratio_atk_ele |= 1<<val;
@@ -1539,8 +1531,8 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		}
 		break;
 	case SP_LONG_ATK_RATE:
-		if(sd->state.lr_flag != 2) //Rather than adding atk_rate only when the weapon is 11 (bow), make it a weapon_atk_rate. [Skotlex]
-			sd->weapon_atk_rate[11]+=val;
+		if(sd->state.lr_flag != 2 && sd->long_attack_atk_rate < val)
+			sd->long_attack_atk_rate = val;
 		break;
 	case SP_BREAK_WEAPON_RATE:
 		if(sd->state.lr_flag != 2)
@@ -1810,6 +1802,20 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			sd->left_weapon.sp_drain_value += val;
 		}
 		sd->sp_drain_type = 0;
+		break;
+	case SP_GET_ZENY_NUM:
+		if(sd->state.lr_flag != 2 && sd->get_zeny_rate < val)
+		{
+			sd->get_zeny_rate = val;
+			sd->get_zeny_num = type2;
+		}
+		break;
+	case SP_ADD_GET_ZENY_NUM:
+		if(sd->state.lr_flag != 2)
+		{
+			sd->get_zeny_rate += val;
+			sd->get_zeny_num += type2;
+		}
 		break;
 	case SP_WEAPON_COMA_ELE:
 		if(sd->state.lr_flag != 2)
@@ -5611,7 +5617,13 @@ int pc_changelook(struct map_session_data *sd,int type,int val)
 			val = battle_config.min_hair_style;
 		else if (val > battle_config.max_hair_style)
 			val = battle_config.max_hair_style;
-		sd->status.hair=val;
+		if (sd->status.hair != val)
+		{
+			sd->status.hair=val;
+			if (sd->status.guild_id) //Update Guild Window. [Skotlex]
+				intif_guild_change_memberinfo(sd->status.guild_id,sd->status.account_id,sd->status.char_id,
+				GMI_HAIR,&sd->status.hair,sizeof(sd->status.hair));
+		}
 		break;
 	case LOOK_WEAPON:
 		sd->status.weapon=val;
@@ -5630,7 +5642,13 @@ int pc_changelook(struct map_session_data *sd,int type,int val)
 			val = battle_config.min_hair_color;
 		else if (val > battle_config.max_hair_color)
 			val = battle_config.max_hair_color;
-		sd->status.hair_color=val;
+		if (sd->status.hair_color != val)
+		{
+			sd->status.hair_color=val;
+			if (sd->status.guild_id) //Update Guild Window. [Skotlex]
+				intif_guild_change_memberinfo(sd->status.guild_id,sd->status.account_id,sd->status.char_id,
+				GMI_HAIR_COLOR,&sd->status.hair_color,sizeof(sd->status.hair_color));
+		}
 		break;
 	case LOOK_CLOTHES_COLOR:	//Use the battle_config limits! [Skotlex]
 		if (val < battle_config.min_cloth_color)

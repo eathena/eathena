@@ -1518,24 +1518,54 @@ int mapif_parse_GuildMemberInfoChange(int fd,int guild_id,int account_id,int cha
 	    guild_calcinfo(g);	// LvƒAƒbƒv”»’f
 	    mapif_guild_basicinfochanged(guild_id,GBI_EXP,&g->exp,4);
 	    mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
-#if 0
-	    sprintf(tmp_sql, "UPDATE `%s` SET `guild_lv`=%d,`connect_member`=%d,`max_member`=%d,`average_lv`=%d,`exp`=%d,`next_exp`=%d,`skill_point`=%d WHERE `guild_id`='%d'", guild_db, g->guild_lv, g->connect_member, g->max_member, g->average_lv, g->exp, g->next_exp, g->skill_point, g->guild_id);
-	    if(mysql_query(&mysql_handle, tmp_sql) )
-	      printf("DB server Error: %s - %s\n", tmp_sql, mysql_error(&mysql_handle) );
-
-	    sprintf(tmp_sql, "UPDATE `%s` SET `exp`=%d  WHERE `char_id`=%d", guild_member_db, g->member[i].exp, g->member[i].char_id);
-	    if(mysql_query(&mysql_handle, tmp_sql) )
-	      printf("DB server Error: %s - %s\n", tmp_sql, mysql_error(&mysql_handle) );
-	    break;
-#endif
 	    add_guild_save_timer(g,3);
 	    break;
 	  }
+	case GMI_HAIR:
+	{
+		g->member[i].hair=*((int *)data);
+		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
+		add_guild_save_timer(g,2); //Save new data.
+		break;
+	}
+	case GMI_HAIR_COLOR:
+	{
+		g->member[i].hair_color=*((int *)data);
+		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
+		add_guild_save_timer(g,2); //Save new data.
+		break;
+	}
+	case GMI_GENDER:
+	{
+		g->member[i].gender=*((int *)data);
+		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
+		add_guild_save_timer(g,2); //Save new data.
+		break;
+	}
+	case GMI_CLASS:
+	{
+		g->member[i].class_=*((int *)data);
+		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
+		add_guild_save_timer(g,2); //Save new data.
+		break;
+	}
+	case GMI_LEVEL:
+	{
+		g->member[i].lv=*((int *)data);
+		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
+		add_guild_save_timer(g,2); //Save new data.
+		break;
+	}
 	default:
 	  ShowError("int_guild: GuildMemberInfoChange: Unknown type %d\n",type);
 	  break;
 	}
 	return 0;
+}
+
+int inter_guild_sex_changed(int guild_id,int account_id,int char_id, int gender)
+{
+	return mapif_parse_GuildMemberInfoChange(0, guild_id, account_id, char_id, GMI_GENDER, (const char*)&gender, sizeof(gender));
 }
 
 // ƒMƒ‹ƒh–ğE–¼•ÏX—v‹

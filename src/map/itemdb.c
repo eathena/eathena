@@ -118,7 +118,7 @@ int itemdb_group (int nameid)
 {
 	int i, j;
 	for (i=0; i < MAX_ITEMGROUP; i++) {
-		for (j=0; j < 20 && itemgroup_db[i].id[j]; j++) {
+		for (j=0; j < itemgroup_db[i].qty && itemgroup_db[i].id[j]; j++) {
 			if (itemgroup_db[i].id[j] == nameid)
 				return i;
 		}
@@ -127,16 +127,11 @@ int itemdb_group (int nameid)
 }
 int itemdb_searchrandomgroup (int groupid)
 {
-	int nameid, i = 0;
-
 	if (groupid < 0 || groupid >= MAX_ITEMGROUP ||
-		itemgroup_db[groupid].id[0] == 0)
+		itemgroup_db[groupid].qty == 0 || itemgroup_db[groupid].id[0] == 0)
 		return 0;
-	do {
-		if ((nameid = itemgroup_db[groupid].id[ rand()%20 ]) > 0)
-			return nameid;		
-	} while ((i++) < 20);
-	return 0;
+	
+	return itemgroup_db[groupid].id[ rand()%itemgroup_db[groupid].qty ];
 }
 
 /*==========================================
@@ -448,7 +443,17 @@ static int itemdb_read_itemgroup(void)
 				continue;
 			//printf ("%d[%d] = %d\n", groupid, j-1, k);
 			itemgroup_db[groupid].id[j-1] = k;
-		}		
+			itemgroup_db[groupid].qty=j;
+		}
+		for (j=1; j<30; j++) { //Cleanup the contents. [Skotlex]
+			if (itemgroup_db[groupid].id[j-1] == 0 &&
+				itemgroup_db[groupid].id[j] != 0) 
+			{
+				itemgroup_db[groupid].id[j-1] = itemgroup_db[groupid].id[j];
+				itemgroup_db[groupid].id[j] = 0;
+				itemgroup_db[groupid].qty = j;
+			}
+		}
 		ln++;
 	}
 	fclose(fp);

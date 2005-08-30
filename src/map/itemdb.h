@@ -45,6 +45,7 @@ struct random_item_data {
 };
 
 struct item_group {
+	int qty; //Counts amount of items in the group.
 	int id[30];	// 120 bytes
 };
 

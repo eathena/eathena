@@ -987,6 +987,21 @@ int intif_parse_GuildMemberInfoChanged(int fd)
 	case GMI_EXP:
 		g->member[idx].exp=dd;
 		break;
+	case GMI_HAIR:
+		g->member[idx].hair=dd;
+		break;
+	case GMI_HAIR_COLOR:
+		g->member[idx].hair_color=dd;
+		break;
+	case GMI_GENDER:
+		g->member[idx].gender=dd;
+		break;
+	case GMI_CLASS:
+		g->member[idx].class_=dd;
+		break;
+	case GMI_LEVEL:
+		g->member[idx].lv=dd;
+		break;
 	}
 	return 0;
 }
