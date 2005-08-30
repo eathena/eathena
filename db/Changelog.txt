@@ -33,8 +33,10 @@
 	12111,Wrapped_Food: gets 3 of any food
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: missing getzenybychance??
+	1771,Venom_Knife: Item type: Throwing Dagger. Consumable. Should it work as a scroll, or as an arrow, etc.
 	--
-
+08/30
+	* Added new items thx 2Landarma. I've made Venom Knife as a ETC item atm. [Lupus]
 08/28
 	* Added job bonuses for Taekwon, thanks to RockmanEXE [DracoRPG]
 	* Changed appearance of some DBs, now they have more friendly (and ENGLISH) headers, this
