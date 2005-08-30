@@ -380,16 +380,13 @@ Progress:	0%
 
 
 Problem: [TK Boy Equipments] He can weild any WEAPON!! BUG!
-		TK Boy cannot equip ANY weapons.
-		However, he can equip EVERY other equipments available. 
-		Boots, Manteau, Sharp Headgear, Majestic Goat, you name it.
- TK Boy can even equip shields, but shield graphic will not appear on TK Boy sprite.
-
+Assigned:	Lupus
+Progress:	100%
 
 Problem:	[Kafra Storage]
 			Items aren't sorted any more
-Assigned:	na
-Progress:	0%
+Assigned:	Lupus
+Progress:	100%
 
 Problem:	[Char Server]
 			Suddenly Freezes
