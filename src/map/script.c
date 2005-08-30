@@ -6162,17 +6162,18 @@ int buildin_getitemslots(struct script_state *st)
  */
 int buildin_getiteminfo(struct script_state *st)
 {
-	int item_id,n,*item_arr[];
+	int item_id,n;
+	int *item_arr;
 	struct item_data *i_data;
 
 	item_id	= conv_num(st,& (st->stack->stack_data[st->start+2]));
 	n	= conv_num(st,& (st->stack->stack_data[st->start+3]));
 	i_data = itemdb_exists(item_id);
 
-	if (i_data && n>=0 && n<14)
-		item_arr = &i_data->value_buy;
+	if (i_data && n>=0 && n<14) {
+		item_arr = (int*)&i_data->value_buy;
 		push_val(st->stack,C_INT,item_arr[n]);
-	else
+	} else
 		push_val(st->stack,C_INT,-1);
 	return 0;
 }
