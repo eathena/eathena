@@ -3831,7 +3831,7 @@ void battle_set_defaults() {
 	battle_config.max_hair_color = 9;
 	battle_config.min_cloth_color = 0;
 	battle_config.max_cloth_color = 4;
-	battle_config.pet_hair_style = battle_config.max_hair_style+1;
+	battle_config.pet_hair_style = 100;
 	battle_config.zeny_from_mobs = 0;
 	battle_config.mobs_level_up = 0;
 	battle_config.pk_min_level = 55;

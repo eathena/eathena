@@ -1,6 +1,9 @@
 Date	Added
 =======
 08/31
+	* Changed 'pet_hair_style''s description and default value to 100 [Skotlex]
+	  (100 is the value being reported to work with current clients)
+	* Fixed Freeze 'counter' not resetting when killed. [Skotlex]
 	* Fixed Endure adding to mdef2 instead of mdef. [Skotlex]
 08/30
 	* Fixed Breaker's magical part of the damage having element -1 [Skotlex]

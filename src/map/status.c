@@ -4072,6 +4072,9 @@ int status_change_clear(struct block_list *bl,int type)
 
 	if (*sc_count == 0)
 		return 0;
+
+	sc_data[SC_FREEZE].val3 = 0; //Reset the Freeze counter (pointed out by Orn) [Skotlex]
+	
 	for(i = 0; i < MAX_STATUSCHANGE; i++)
 	{
 		//Type 0: PC killed -> EDP must not be dispelled. [Skotlex]
