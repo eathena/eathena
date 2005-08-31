@@ -125,19 +125,19 @@ protected:
 	DROP TABLE IF EXISTS login_account;
 
 	CREATE TABLE `login_account` (
-	  `account_id` INTEGER UNSIGNED AUTO_INCREMENT,
-	  `user_id` VARCHAR(24) NOT NULL,
-	  `user_pass` VARCHAR(34) NOT NULL,
-	  `sex` ENUM('M','F','S') default 'M',
-	  `gm_level` INT(3) UNSIGNED NOT NULL,
-	  `online` BOOL default 'false',
-	  `email` VARCHAR(40) NOT NULL,
-	  `login_ip` VARCHAR(15) NOT NULL,
-	  `login_id1` INTEGER UNSIGNED NOT NULL,
-	  `login_id2` INTEGER UNSIGNED NOT NULL,
-	  `last_login` INTEGER UNSIGNED NOT NULL,
-	  `ban_until` INTEGER UNSIGNED NOT NULL,
-	  `valid_until` INTEGER UNSIGNED NOT NULL,
+	  `account_id` 			INTEGER UNSIGNED AUTO_INCREMENT,
+	  `user_id` 			VARCHAR(24) NOT NULL,
+	  `user_pass` 			VARCHAR(34) NOT NULL,
+	  `sex` 				ENUM('M','F','S') default 'M',
+	  `gm_level` 			TINYINT UNSIGNED NOT NULL,
+	  `online`				BOOL default 'false',
+	  `email`				VARCHAR(40) NOT NULL,
+	  `login_ip`			VARCHAR(16) NOT NULL,
+	  `login_id1`			INTEGER UNSIGNED NOT NULL,
+	  `login_id2`			INTEGER UNSIGNED NOT NULL,
+	  `last_login`			INTEGER UNSIGNED NOT NULL,
+	  `ban_until`			INTEGER UNSIGNED NOT NULL,
+	  `valid_until`			INTEGER UNSIGNED NOT NULL,
 	  PRIMARY KEY(`account_id`)
 	);
 
@@ -1041,26 +1041,157 @@ private:
 		}
 /* data for sql tables:
 
-DROP TABLE IF EXISTS `char_list`;
-CREATE TABLE `eapp`.`char_list` (
-  `char_id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
-  `account_id` INTEGER UNSIGNED NOT NULL,
-  `slot` TINYINT UNSIGNED NOT NULL,
-  `base_exp` INTEGER UNSIGNED NOT NULL,
-  `job_exp` INTEGER UNSIGNED NOT NULL,
-  `zeny` INTEGER UNSIGNED NOT NULL,
-  `class` TINYINT UNSIGNED NOT NULL,
-  `status_point` TINYINT UNSIGNED NOT NULL,
-  `skill_point` TINYINT UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `char_char`;
+CREATE TABLE `char_char` (
+  `char_id` 		INTEGER UNSIGNED NOT NULL auto_increment,
+  `account_id`		INTEGER UNSIGNED NOT NULL default '0',
+  `slot`			TINYINT UNSIGNED NOT NULL default '0',
+  `name`			VARCHAR(24) NOT NULL default '',
+  `class`			MEDIUMINT UNSIGNED NOT NULL default '0',
+  `base_level`		TINYINT UNSIGNED NOT NULL default '1',
+  `job_level`		TINYINT UNSIGNED NOT NULL default '1',
+  `base_exp`		BIGINT UNSIGNED NOT NULL default '0',
+  `job_exp`			BIGINT UNSIGNED NOT NULL default '0',
+  `zeny` 			BIGINT UNSIGNED NOT NULL default '500',
+  `str` 			TINYINT UNSIGNED NOT NULL default '0',
+  `agi` 			TINYINT UNSIGNED NOT NULL default '0',
+  `vit` 			TINYINT UNSIGNED NOT NULL default '0',
+  `int`				TINYINT UNSIGNED NOT NULL default '0',
+  `dex` 			TINYINT UNSIGNED NOT NULL default '0',
+  `luk`				TINYINT UNSIGNED NOT NULL default '0',
+  `max_hp` 			MEDIUMINT UNSIGNED NOT NULL default '0',
+  `hp`				MEDIUMINT UNSIGNED NOT NULL default '0',
+  `max_sp`			MEDIUMINT UNSIGNED NOT NULL default '0',
+  `sp` 				MEDIUMINT UNSIGNED NOT NULL default '0',
+  `status_point`	MEDIUMINT UNSIGNED NOT NULL default '0',
+  `skill_point`		MEDIUMINT UNSIGNED NOT NULL default '0',
+  `option` 			INTEGER NOT NULL default '0',
+  `karma`			INTEGER NOT NULL default '0',
+  `manner`			INTEGER NOT NULL default '0',
+  `party_id`		MEDIUMINT UNSIGNED NOT NULL default '0',
+  `guild_id`		MEDIUMINT UNSIGNED NOT NULL default '0',
+  `pet_id`			MEDIUMINT UNSIGNED NOT NULL default '0',
+  `hair`			TINYINT UNSIGNED NOT NULL default '0',
+  `hair_color` 		TINYINT UNSIGNED NOT NULL default '0',
+  `clothes_color`	TINYINT UNSIGNED NOT NULL default '0',
+  `weapon`			MEDIUMINT UNSIGNED NOT NULL default '1',
+  `shield`			MEDIUMINT UNSIGNED NOT NULL default '0',
+  `head_top`		MEDIUMINT UNSIGNED NOT NULL default '0',
+  `head_mid`		MEDIUMINT UNSIGNED NOT NULL default '0',
+  `head_bottom`		MEDIUMINT UNSIGNED NOT NULL default '0',
+  `last_map`		VARCHAR(20) NOT NULL default 'new_5-1.gat',
+  `last_x`			MEDIUMINT(3) UNSIGNED NOT NULL default '53',
+  `last_y`			MEDIUMINT(3) UNSIGNED NOT NULL default '111',
+  `save_map`		VARCHAR(20) NOT NULL default 'new_5-1.gat',
+  `save_x`			MEDIUMINT(3) UNSIGNED NOT NULL default '53',
+  `save_y`			MEDIUMINT(3) UNSIGNED NOT NULL default '111',
+  `partner_id`		INTEGER UNSIGNED NOT NULL default '0',
+  `father_id`		INTEGER UNSIGNED NOT NULL default '0',
+  `mother_id`		INTEGER UNSIGNED NOT NULL default '0',
+  `child_id`		INTEGER UNSIGNED NOT NULL default '0',
+  `fame_points`		INTEGER UNSIGNED NOT NULL default '0',
+  `online`			BOOL NOT NULL default 'false',
+  PRIMARY KEY  (`char_id`),
+  KEY `account_id` (`account_id`),
+  KEY `party_id` (`party_id`),
+  KEY `guild_id` (`guild_id`)
+);
 
-  `partner_id` INTEGER UNSIGNED NOT NULL,
-  `father_id` INTEGER UNSIGNED NOT NULL,
-  `mother_id` INTEGER UNSIGNED NOT NULL,
-  `child_id` INTEGER UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `char_reg_value`;
+CREATE TABLE `char_reg_value` (
+  `char_id`			INTEGER UNSIGNED NOT NULL default '0',
+  `str`				VARCHAR(255) NOT NULL default '',
+  `value`			VARCHAR(255) NOT NULL default '0',
+  PRIMARY KEY  (`char_id`,`str`),
+  KEY `char_id` (`char_id`)
+);
 
-  PRIMARY KEY(`char_id`)
-)
+DROP TABLE IF EXISTS `char_friends`;
+CREATE TABLE `char_friends` (
+  `char_id` 		INTEGER UNSIGNED NOT NULL default '0',
+  `friend_id`		INTEGER UNSIGNED NOT NULL default '0',
+  PRIMARY KEY  (`char_id`,`friend_id`),
+  KEY `char_id` (`char_id`)
+);
 
+
+DROP TABLE IF EXISTS `char_inventory`;
+CREATE TABLE `char_inventory` (
+  `id`				BIGINT UNSIGNED NOT NULL auto_increment,
+  `char_id`			INTEGER UNSIGNED NOT NULL default '0',
+  `nameid`			MEDIUMINT UNSIGNED NOT NULL default '0',
+  `amount`			INTEGER UNSIGNED NOT NULL default '0',
+  `equip`			MEDIUMINT UNSIGNED NOT NULL default '0',
+  `identify`		BOOL default 'TRUE',
+  `refine`			TINYINT(2) UNSIGNED NOT NULL default '0',
+  `attribute`		TINYINT UNSIGNED NOT NULL default '0',
+  `card0` 			INTEGER NOT NULL default '0',
+  `card1` 			INTEGER UNSIGNED NOT NULL default '0',
+  `card2`			INTEGER UNSIGNED NOT NULL default '0',
+  `card3`			INTEGER UNSIGNED NOT NULL default '0',
+  `broken` 			BOOL default 'FALSE',
+  PRIMARY KEY  (`id`),
+  KEY `char_id` (`char_id`)
+);
+
+DROP TABLE IF EXISTS `char_cart`;
+CREATE TABLE `char_cart` (
+  `id`				BIGINT UNSIGNED NOT NULL auto_increment,
+  `char_id`			INTEGER UNSIGNED NOT NULL default '0',
+  `nameid`			MEDIUMINT UNSIGNED NOT NULL default '0',
+  `amount`			INTEGER UNSIGNED NOT NULL default '0',
+  `equip`			MEDIUMINT UNSIGNED NOT NULL default '0',
+  `identify`		BOOL default 'TRUE',
+  `refine`			TINYINT(2) UNSIGNED NOT NULL default '0',
+  `attribute`		TINYINT UNSIGNED NOT NULL default '0',
+  `card0` 			INTEGER NOT NULL default '0',
+  `card1` 			INTEGER UNSIGNED NOT NULL default '0',
+  `card2`			INTEGER UNSIGNED NOT NULL default '0',
+  `card3`			INTEGER UNSIGNED NOT NULL default '0',
+  `broken` 			BOOL default 'FALSE',
+  PRIMARY KEY  (`id`),
+  KEY `char_id` (`char_id`)
+);
+
+DROP TABLE IF EXISTS `char_storage`;
+CREATE TABLE `char_storage` (
+  `id`				BIGINT UNSIGNED NOT NULL auto_increment,
+  `account_id`		INTEGER UNSIGNED NOT NULL default '0',
+  `nameid`			MEDIUMINT UNSIGNED NOT NULL default '0',
+  `amount`			INTEGER UNSIGNED NOT NULL default '0',
+  `equip`			MEDIUMINT UNSIGNED NOT NULL default '0',
+  `identify`		BOOL default 'TRUE',
+  `refine`			TINYINT(2) UNSIGNED NOT NULL default '0',
+  `attribute`		TINYINT UNSIGNED NOT NULL default '0',
+  `card0` 			INTEGER NOT NULL default '0',
+  `card1` 			INTEGER UNSIGNED NOT NULL default '0',
+  `card2`			INTEGER UNSIGNED NOT NULL default '0',
+  `card3`			INTEGER UNSIGNED NOT NULL default '0',
+  `broken` 			BOOL default 'FALSE',
+  PRIMARY KEY  (`id`),
+  KEY `account_id` (`account_id`)
+);
+
+
+DROP TABLE IF EXISTS `char_memo`;
+CREATE TABLE `char_memo` (
+  `memo_id`			TINYINT UNSIGNED NOT NULL default '0',
+  `char_id` 		INTEGER UNSIGNED NOT NULL default '0',
+  `map` 			VARCHAR(20) NOT NULL default '',
+  `x` 				MEDIUMINT(3) UNSIGNED NOT NULL default '0',
+  `y`				MEDIUMINT(3) UNSIGNED NOT NULL default '0',
+  PRIMARY KEY  (`char_id`,`memo_id`),
+  KEY `char_id` (`char_id`)
+);
+
+DROP TABLE IF EXISTS `char_skill`;
+CREATE TABLE `char_skill` (
+  `char_id` 		INTEGER UNSIGNED NOT NULL default '0',
+  `id`				MEDIUMINT UNSIGNED NOT NULL default '0',
+  `lv` 				TINYINT UNSIGNED NOT NULL default '0',
+  PRIMARY KEY  (`char_id`,`id`),
+  KEY `char_id` (`char_id`)
+);
 
 	will continue when i have more rest.
 
