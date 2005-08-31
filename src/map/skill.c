@@ -6779,7 +6779,6 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 	case UNT_ROKISWEIL:
 	case UNT_INTOABYSS:
 	case UNT_SIEGFRIED:
-	case UNT_DONTFORGETME:
 	case UNT_HERMODE:
 		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id)
 			status_change_end(bl,type,-1);
@@ -6792,6 +6791,7 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 	case UNT_APPLEIDUN:
 	case UNT_HUMMING:
 	case UNT_FORTUNEKISS:
+	case UNT_DONTFORGETME:
 	case UNT_SERVICEFORYOU:
 		if (sg->src_id==bl->id) {
 			status_change_end(bl,type,-1);

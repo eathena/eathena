@@ -1,6 +1,8 @@
 Date	Added
 =======
 08/30
+	* Updated "Don't Forget Me"/"Slow Grace" to last 20 secs after you step out
+	  of the dance-zone. [Skotlex]
 	* Changed the default of defunit_noenemy to no, and added comments
 	  explaining what it REALLY does. [Skotlex]
 	* Fixed perfect tableture's lucky dodge bonus. [Skotlex]
