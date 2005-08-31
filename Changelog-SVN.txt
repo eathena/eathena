@@ -1,5 +1,7 @@
 Date	Added
 =======
+08/31
+	* Fixed Endure adding to mdef2 instead of mdef. [Skotlex]
 08/30
 	* Fixed Breaker's magical part of the damage having element -1 [Skotlex]
 	  (now it takes neutral element, because I don't think the magical part of

@@ -924,6 +924,8 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				guildflag ^= skill << i;
 			}
 		}
+		if(sd->sc_data[SC_ENDURE].timer!=-1)
+			sd->mdef += sd->sc_data[SC_ENDURE].val1; //Endure should add mdef, not mdef2! [Skotlex]
 	}
 
 	// If Super Novice / Super Baby Never Died till Job70 they get bonus: AllStats +10
@@ -1192,8 +1194,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == 4)
 				sd->left_weapon.watk += sd->left_weapon.watk*(2+3*sd->sc_data[SC_PROVOKE].val1)/100;
 		}
-		if(sd->sc_data[SC_ENDURE].timer!=-1)
-			sd->mdef2 += sd->sc_data[SC_ENDURE].val1;
 		if(sd->sc_data[SC_MINDBREAKER].timer!=-1){	// プロボック
 			sd->mdef2 -= sd->mdef2*(12*sd->sc_data[SC_MINDBREAKER].val1)/100;
 			sd->matk1 += sd->matk1*(20*sd->sc_data[SC_MINDBREAKER].val1)/100;
