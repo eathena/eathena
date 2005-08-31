@@ -1590,16 +1590,13 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			case CH_TIGERFIST:
 			{	//Tigerfist is now a combo-only skill. [Skotlex]
 				int delay = 1000 - 4 * status_get_agi(src) - 2 *  status_get_dex(src);
-//				if(sd->sc_data[SC_COMBO].timer != -1)
-//				{	//Avoid triggering combo status if not used in a combo. [Skotlex]
-					if(damage < status_get_hp(bl) &&
-					(
-					 	(pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 3 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
-						(pc_checkskill(sd, CH_CHAINCRUSH) > 0)
-					))
-						delay += 300 * battle_config.combo_delay_rate /100;
-					status_change_start(src,SC_COMBO,CH_TIGERFIST,skilllv,0,0,delay,0);
-//				}
+				if(damage < status_get_hp(bl) &&
+				(
+					(pc_checkskill(sd, MO_EXTREMITYFIST) > 0 && sd->spiritball >= 3 && sd->sc_data[SC_EXPLOSIONSPIRITS].timer != -1) ||
+					(pc_checkskill(sd, CH_CHAINCRUSH) > 0)
+				))
+					delay += 300 * battle_config.combo_delay_rate /100;
+				status_change_start(src,SC_COMBO,CH_TIGERFIST,skilllv,0,0,delay,0);
 				sd->attackabletime = sd->canmove_tick = tick + delay;
 				clif_combo_delay(src,delay);
 				break;
@@ -1685,11 +1682,18 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	default:
 		clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, skillid, (lv!=0)?lv:skilllv, (skillid==0)? 5:type );
 	}
+	
+	map_freeblock_lock();
+	/* ?際にダメ?ジ?理を行う */
+	if ((skillid || flag) && !(skillid == ASC_BREAKER && attack_type&BF_WEAPON)) {  // do not really deal damage for ASC_BREAKER's 1st attack
+		if (attack_type&BF_WEAPON)
+			battle_delay_damage(tick+dmg.amotion,src,bl,attack_type,skillid,skilllv,damage,dmg.dmotion,0);
+		else {
+			if (battle_damage(src,bl,damage,dmg.dmotion, 0) > 0 && !status_isdead(bl))
+				skill_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
+		}
+	}
 
-	//Deal the additional effect before knocking back to make StormGust + Firewall users Happy (TM) [Skotlex]. 
-	if(damage > 0 && damage < status_get_hp(bl))
-		skill_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
-		
 	/* 吹き飛ばし処理とそのパケット */
 	if (dmg.blewcount > 0 && bl->type!=BL_SKILL && !map[src->m].flag.gvg) {
 		skill_blown(dsrc,bl,dmg.blewcount, 1);
@@ -1700,15 +1704,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		else
 			clif_fixpos(bl);
 	}
-
-	map_freeblock_lock();
-	/* ?際にダメ?ジ?理を行う */
-	if ((skillid || flag) && !(skillid == ASC_BREAKER && attack_type&BF_WEAPON)) {  // do not really deal damage for ASC_BREAKER's 1st attack
-		if (attack_type&BF_WEAPON)
-			battle_delay_damage(tick+dmg.amotion,src,bl,damage,dmg.dmotion,0);
-		else
-			battle_damage(src,bl,damage,dmg.dmotion, 0);
-	}
+	
 	if(skillid == RG_INTIMIDATE && damage > 0 && !(status_get_mode(bl)&0x20) && !map[src->m].flag.gvg ) {
 		int s_lv = status_get_lv(src),t_lv = status_get_lv(bl);
 		int rate = 50 + skilllv * 5;
@@ -1747,8 +1743,6 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	/* ダメ?ジがあるなら追加?果判定 */	
 	if(bl->prev != NULL){
 		if(!status_isdead(bl)) {
-//			if(damage > 0)
-//				skill_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
 			if(bl->type==BL_MOB && src!=bl)	/* スキル使用?件のMOBスキル */
 			{
 				struct mob_data *md=(struct mob_data *)bl;
@@ -1800,7 +1794,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 
 	if ((skillid || flag) && rdamage>0) {
 		if (attack_type&BF_WEAPON)
-			battle_delay_damage(tick+dmg.amotion,bl,src,rdamage,dmg.dmotion,0);
+			battle_delay_damage(tick+dmg.amotion,bl,src,0,0,0,rdamage,dmg.dmotion,0);
 		else
 			battle_damage(bl,src,rdamage,dmg.dmotion,0);
 	}
@@ -4729,16 +4723,16 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if(sd && dstsd){
 			int hp_rate=(skilllv <= 0)? 0:skill_db[skillid].hp_rate[skilllv-1];
 			int gain_hp=dstsd->status.max_hp*abs(hp_rate)/100;// The earned is the same % of the target HP than it costed the caster. [Skotlex]
+			gain_hp = battle_heal(NULL,bl,gain_hp,0,0);
 			clif_skill_nodamage(src,bl,skillid,gain_hp,1);
-			battle_heal(NULL,bl,gain_hp,0,0);
 		}
 		break;
 	case WE_FEMALE:				/* あなたの?に?牲になります */
 		if(sd && dstsd){
 			int sp_rate=(skilllv <= 0)? 0:skill_db[skillid].sp_rate[skilllv-1];
 			int gain_sp=dstsd->status.max_sp*abs(sp_rate)/100;// The earned is the same % of the target SP than it costed the caster. [Skotlex]
+			gain_sp = battle_heal(NULL,bl,0,gain_sp,0);
 			clif_skill_nodamage(src,bl,skillid,gain_sp,1);
-			battle_heal(NULL,bl,0,gain_sp,0);
 		}
 		break;
 

@@ -1,6 +1,12 @@
 Date	Added
 =======
 08/31
+	* Synchronized additional status effects with the delayed damage [Skotlex]
+	  (this should fix eg: enemies freezing when you start the attack
+	  animation, and then breaking the ice when your attack animation finishes
+	  and the damage shows up)
+	* Moved knockback to effect after damage is applied. [Skotlex]
+	* Fixed the Wedding Skills not displaying the actual amount healed. [Skotlex]
 	* Moved skill induced status effects to take effect before knock back. [Skotlex]
 	* Refixed "Don't Forget Me" [Skotlex]
 	* Changed 'pet_hair_style''s description and default value to 100 [Skotlex]

@@ -1019,7 +1019,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 
 	if(bl_list_count>=BL_LIST_MAX) {
 		if(battle_config.error_log)
-			printf("map_foreachinarea: *WARNING* block count too many!\n");
+			printf("map_foreachinpath: *WARNING* block count too many!\n");
 	}
 
 	va_start(ap,type);
