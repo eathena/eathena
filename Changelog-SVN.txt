@@ -1,6 +1,8 @@
 Date	Added
 =======
 08/30
+	* Changed the default of defunit_noenemy to no, and added comments
+	  explaining what it REALLY does. [Skotlex]
 	* Fixed perfect tableture's lucky dodge bonus. [Skotlex]
 	* Updated slave ai code to let slaves wander freely on the screen (will
 	  wander as far as battle_config.view_area lets them) [Skotlex]

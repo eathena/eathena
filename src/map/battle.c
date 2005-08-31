@@ -3602,7 +3602,7 @@ void battle_set_defaults() {
 	battle_config.mob_skill_add_range=0;
 	battle_config.pc_damage_delay_rate=100;
 	battle_config.combo_damage_delay=230;
-	battle_config.defnotenemy=1;
+	battle_config.defnotenemy=0;
 	battle_config.random_monster_checklv=1;
 	battle_config.attr_recover=1;
 	battle_config.flooritem_lifetime=LIFETIME_FLOORITEM*1000;
