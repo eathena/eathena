@@ -29,6 +29,7 @@ TODO:
 Date		Added
 ======
 08/31
+	* Fixed Lighthalzen field <-> Lightalzen city warps, thanks to Poki#3 [DracoRPG]
 	* Moved Tao Gunka to Comodo West Cave (made Megalithes as his slaves),
 		Placed Lady Tany in the 2F of Ayothaya Dungeon [Lupus]
 08/29
