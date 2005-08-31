@@ -1,6 +1,7 @@
 Date	Added
 =======
 08/31
+	* Moved skill induced status effects to take effect before knock back. [Skotlex]
 	* Refixed "Don't Forget Me" [Skotlex]
 	* Changed 'pet_hair_style''s description and default value to 100 [Skotlex]
 	  (100 is the value being reported to work with current clients)

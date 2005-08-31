@@ -1685,6 +1685,11 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	default:
 		clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, skillid, (lv!=0)?lv:skilllv, (skillid==0)? 5:type );
 	}
+
+	//Deal the additional effect before knocking back to make StormGust + Firewall users Happy (TM) [Skotlex]. 
+	if(damage > 0 && damage < status_get_hp(bl))
+		skill_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
+		
 	/* 吹き飛ばし処理とそのパケット */
 	if (dmg.blewcount > 0 && bl->type!=BL_SKILL && !map[src->m].flag.gvg) {
 		skill_blown(dsrc,bl,dmg.blewcount, 1);
@@ -1742,8 +1747,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	/* ダメ?ジがあるなら追加?果判定 */	
 	if(bl->prev != NULL){
 		if(!status_isdead(bl)) {
-			if(damage > 0)
-				skill_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
+//			if(damage > 0)
+//				skill_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
 			if(bl->type==BL_MOB && src!=bl)	/* スキル使用?件のMOBスキル */
 			{
 				struct mob_data *md=(struct mob_data *)bl;
