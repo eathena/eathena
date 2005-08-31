@@ -1,6 +1,7 @@
 Date	Added
 =======
 08/31
+	* Refixed "Don't Forget Me" [Skotlex]
 	* Changed 'pet_hair_style''s description and default value to 100 [Skotlex]
 	  (100 is the value being reported to work with current clients)
 	* Fixed Freeze 'counter' not resetting when killed. [Skotlex]

@@ -1276,7 +1276,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 				ASPD_ADD_RATE(10+sd->sc_data[SC_ASSNCROS].val1+sd->sc_data[SC_ASSNCROS].val2+sd->sc_data[SC_ASSNCROS].val3);
 		if(sd->sc_data[SC_DONTFORGETME].timer!=-1){		// éÑÇñYÇÍÇ»Ç¢Ç≈
 			ASPD_ADD_RATE(-(sd->sc_data[SC_DONTFORGETME].val1*3 + sd->sc_data[SC_DONTFORGETME].val2 + sd->sc_data[SC_DONTFORGETME].val3));
-			SPEED_ADD_RATE(-(sd->sc_data[SC_DONTFORGETME].val1*2 + sd->sc_data[SC_DONTFORGETME].val2 + sd->sc_data[SC_DONTFORGETME].val4));
+			SPEED_ADD_RATE(-(sd->sc_data[SC_DONTFORGETME].val1*2 + sd->sc_data[SC_DONTFORGETME].val2 + sd->sc_data[SC_DONTFORGETME].val3));
 		}
 		if(sd->sc_data[i=SC_SPEEDPOTION3].timer!=-1 ||
 			sd->sc_data[i=SC_SPEEDPOTION2].timer!=-1 ||
@@ -2591,7 +2591,7 @@ int status_get_speed(struct block_list *bl)
 				speed = speed*3/2;
 			//éÑÇñYÇÍÇ»Ç¢Ç≈ÅcéûÇÕâ¡éZ
 			if(sc_data[SC_DONTFORGETME].timer!=-1)
-				speed = speed*(100+sc_data[SC_DONTFORGETME].val1*2 + sc_data[SC_DONTFORGETME].val2 + (sc_data[SC_DONTFORGETME].val3&0xffff))/100;
+				speed = speed*(100+sc_data[SC_DONTFORGETME].val1*2 + sc_data[SC_DONTFORGETME].val2 + sc_data[SC_DONTFORGETME].val3)/100;
 			//ã‡çÑéûÇÕ25%â¡éZ
 			if(sc_data[SC_STEELBODY].timer!=-1)
 				speed = speed*125/100;
@@ -2673,7 +2673,7 @@ int status_get_adelay(struct block_list *bl)
 				aspd_rate -= 5+sc_data[SC_ASSNCROS].val1+sc_data[SC_ASSNCROS].val2+sc_data[SC_ASSNCROS].val3;
 			//éÑÇñYÇÍÇ»Ç¢Ç≈ÅcéûÇÕâ¡éZ
 			if(sc_data[SC_DONTFORGETME].timer!=-1)		// éÑÇñYÇÍÇ»Ç¢Ç≈
-				aspd_rate += sc_data[SC_DONTFORGETME].val1*3 + sc_data[SC_DONTFORGETME].val2 + (sc_data[SC_DONTFORGETME].val3>>16);
+				aspd_rate += sc_data[SC_DONTFORGETME].val1*3 + sc_data[SC_DONTFORGETME].val2 + sc_data[SC_DONTFORGETME].val3;
 			//ã‡çÑéû25%â¡éZ
 			if(sc_data[SC_STEELBODY].timer!=-1)	// ã‡çÑ
 				aspd_rate += 25;
