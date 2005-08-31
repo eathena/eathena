@@ -1407,18 +1407,18 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 		if((!md->target_id || md->state.targettype == NONE_ATTACKABLE) && mob_can_move(md) &&
 			md->master_dist<15 && (md->walkpath.path_pos>=md->walkpath.path_len || md->walkpath.path_len==0)){
 			int i=0,dx,dy,ret;
-			if(md->master_dist>4) {
+			if(md->master_dist>AREA_SIZE/2) {
 				do {
 					if(i<=5){
 						dx=bl->x - md->bl.x;
 						dy=bl->y - md->bl.y;
-						if(dx<0) dx+=(rand()%( (dx<-3)?3:-dx )+1);
-						else if(dx>0) dx-=(rand()%( (dx>3)?3:dx )+1);
-						if(dy<0) dy+=(rand()%( (dy<-3)?3:-dy )+1);
-						else if(dy>0) dy-=(rand()%( (dy>3)?3:dy )+1);
+						if(dx<0) dx+=(rand()%-dx);
+						else if(dx>0) dx-=(rand()%dx);
+						if(dy<0) dy+=(rand()%-dy);
+						else if(dy>0) dy-=(rand()%dy);
 					}else{
-						dx=bl->x - md->bl.x + rand()%7 - 3;
-						dy=bl->y - md->bl.y + rand()%7 - 3;
+						dx=bl->x - md->bl.x + rand()%11- 5;
+						dy=bl->y - md->bl.y + rand()%11- 5;
 					}
 
 					ret=mob_walktoxy(md,md->bl.x+dx,md->bl.y+dy,0);
@@ -1427,14 +1427,12 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
 			}
 			else {
 				do {
-					dx = rand()%9 - 5;
-					dy = rand()%9 - 5;
+					dx = rand()%(AREA_SIZE/2 +1) - AREA_SIZE/2;
+					dy = rand()%(AREA_SIZE/2 +1) - AREA_SIZE/2;
 					if( dx == 0 && dy == 0) {
 						dx = (rand()%1)? 1:-1;
 						dy = (rand()%1)? 1:-1;
 					}
-//					dx += bl->x; These HAVE to be wrong... o.O [Skotlex]
-//					dy += bl->y;
 
 					ret=mob_walktoxy(md,bl->x+dx,bl->y+dy,0);
 					i++;

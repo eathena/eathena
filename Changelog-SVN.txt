@@ -1,6 +1,8 @@
 Date	Added
 =======
 08/30
+	* Updated slave ai code to let slaves wander freely on the screen (will
+	  wander as far as battle_config.view_area lets them) [Skotlex]
 	* Splitted Char-sql status saving into status/status2, the later is for
 	  values that will seldomly change. [Skotlex]
 	* Updated servers so that when the player changes dye or hair color, the
