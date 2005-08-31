@@ -1301,7 +1301,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 			sd->hit += 3 * sd->sc_data[SC_TRUESIGHT].val1;
 		if(sd->sc_data[SC_WHISTLE].timer!=-1){  // 口笛
 			sd->flee += sd->sc_data[SC_WHISTLE].val1+sd->sc_data[SC_WHISTLE].val2+sd->sc_data[SC_WHISTLE].val3;
-			sd->flee2 += (sd->sc_data[SC_WHISTLE].val1+sd->sc_data[SC_WHISTLE].val2+sd->sc_data[SC_WHISTLE].val4) * 10;
+			sd->flee2 += (sd->sc_data[SC_WHISTLE].val1+sd->sc_data[SC_WHISTLE].val2+sd->sc_data[SC_WHISTLE].val3) * 10;
 		}
 		if(sd->sc_data[SC_HUMMING].timer!=-1)  // ハミング
 			sd->hit += sd->sc_data[SC_HUMMING].val1*2+sd->sc_data[SC_HUMMING].val2*2+sd->sc_data[SC_HUMMING].val3;
@@ -2060,8 +2060,7 @@ int status_get_flee(struct block_list *bl)
 
 		if(sc_data){
 			if(sc_data[SC_WHISTLE].timer!=-1)
-				flee += flee*(sc_data[SC_WHISTLE].val1+sc_data[SC_WHISTLE].val2
-					+(sc_data[SC_WHISTLE].val3>>16))/100;
+				flee += sc_data[SC_WHISTLE].val1+sc_data[SC_WHISTLE].val2+(sc_data[SC_WHISTLE].val3);
 			if(sc_data[SC_BLIND].timer!=-1)
 				flee -= flee*25/100;
 			if(sc_data[SC_WINDWALK].timer!=-1) // ウィンドウォーク
@@ -2127,8 +2126,7 @@ int status_get_flee2(struct block_list *bl)
 
 		if (sc_data) {
 			if (sc_data[SC_WHISTLE].timer!=-1)
-				flee2 += (sc_data[SC_WHISTLE].val1 + sc_data[SC_WHISTLE].val2
-					+ (sc_data[SC_WHISTLE].val3&0xffff)) * 10;
+				flee2 += (sc_data[SC_WHISTLE].val1 + sc_data[SC_WHISTLE].val2 + sc_data[SC_WHISTLE].val3) * 10;
 		}
 	}
 	if (flee2 < 1) flee2 = 1;

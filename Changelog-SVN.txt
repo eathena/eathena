@@ -1,6 +1,7 @@
 Date	Added
 =======
 08/30
+	* Fixed perfect tableture's lucky dodge bonus. [Skotlex]
 	* Updated slave ai code to let slaves wander freely on the screen (will
 	  wander as far as battle_config.view_area lets them) [Skotlex]
 	* Splitted Char-sql status saving into status/status2, the later is for
