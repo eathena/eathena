@@ -2098,7 +2098,7 @@ int npc_parse_mob2 (struct mob_list *mob, int cached)
 
 int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 {
-	int level;
+	int level, mode;
 	char mapname[MAP_NAME_LENGTH];
 	char mobname[NAME_LENGTH];
 	struct mob_list mob;
@@ -2117,8 +2117,13 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 		ShowError("wrong map name : %s %s\n", w1,w3);
 		return 1;
 	}
-//	printf("map name : %i %s %s\n", mob.m, w1,w3);
-		
+
+	// check monster ID if exists!
+	if (mobdb_checkid(mob.class_)==0) {
+		ShowError("bad monster ID : %s %s\n", w3, w4);
+		return 1;
+	}
+
 	if (mob.num < 1 || mob.num>1000 ) {
 		ShowError("wrong number of monsters : %s %s\n", w3, w4);
 		return 1;
@@ -2127,16 +2132,31 @@ int npc_parse_mob (char *w1, char *w2, char *w3, char *w4)
 		if ((mob.num = mob.num * battle_config.mob_count_rate / 100) < 1)
 			mob.num = 1;
 	}
+
+	//Apply the spawn delay fix [Skotlex]
+	mode = mob_db(mob.class_)->mode;
+	if (mode & 0x20) {	//Bosses
+		if (battle_config.boss_spawn_delay != 100)
+		{
+			mob.delay1 = mob.delay1*battle_config.boss_spawn_delay/100;
+			mob.delay2 = mob.delay2*battle_config.boss_spawn_delay/100;
+		}
+	} else if (mode&0x40) {	//Plants
+		if (battle_config.plant_spawn_delay != 100)
+		{
+			mob.delay1 = mob.delay1*battle_config.plant_spawn_delay/100;
+			mob.delay2 = mob.delay2*battle_config.plant_spawn_delay/100;
+		}
+	} else if (battle_config.mob_spawn_delay != 100)
+	{	//Normal mobs
+		mob.delay1 = mob.delay1*battle_config.mob_spawn_delay/100;
+		mob.delay2 = mob.delay2*battle_config.mob_spawn_delay/100;
+	}
+
 	// parse MOB_NAME,[MOB LEVEL]
 	if (sscanf(w3, "%23[^,],%d", mobname, &level) > 1)
 		mob.level = level;
 	
-	// check monster ID if exists!
-	if (mobdb_checkid(mob.class_)==0) {
-		ShowError("bad monster ID : %s %s\n", w3, w4);
-		return 1;
-	}
-
 	if (strcmp(mobname, "--en--") == 0)
 		memcpy(mob.mobname, mob_db(mob.class_)->name, NAME_LENGTH-1);
 	else if (strcmp(mobname, "--ja--") == 0)

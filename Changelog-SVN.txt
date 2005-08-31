@@ -1,6 +1,9 @@
 Date	Added
 =======
 08/31
+	* Moved battle_config spawndelay adjustments from mob.c (calculating it
+	  each time they were killed) to npc.c (calculate it once during parsing).
+	  [Skotlex]
 	* Synchronized additional status effects with the delayed damage [Skotlex]
 	  (this should fix eg: enemies freezing when you start the attack
 	  animation, and then breaking the ice when your attack animation finishes
