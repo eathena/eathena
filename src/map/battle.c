@@ -1117,8 +1117,8 @@ static struct Damage battle_calc_weapon_attack(
 					if(skill_num==HW_MAGICCRASHER)
 					{		  
 						if (!flag.cri)
-							atkmin = status_get_matk1(src);
-						atkmax = status_get_matk2(src);
+							atkmin = status_get_matk2(src);
+						atkmax = status_get_matk1(src);
 					} else {
 						if (!flag.cri)
 							atkmin = status_get_atk(src);
@@ -1129,7 +1129,7 @@ static struct Damage battle_calc_weapon_attack(
 				} else {	//PCs
 					if(skill_num==HW_MAGICCRASHER)
 					{
-						baseatk = status_get_matk1(src);
+						baseatk = status_get_matk2(src);
 						if (flag.lh) baseatk_ = baseatk;
 					} else { 
 						baseatk = status_get_baseatk(src);
