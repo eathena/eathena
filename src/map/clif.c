@@ -8100,7 +8100,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		map_addblock(&sd->pd->bl);
 		clif_spawnpet(sd->pd);
 		clif_send_petdata(sd,0,0);
-		clif_send_petdata(sd,5,0x14);
+		clif_send_petdata(sd,5,battle_config.pet_hair_style);
 		clif_send_petstatus(sd);
 	}
 

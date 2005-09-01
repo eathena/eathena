@@ -1035,7 +1035,7 @@ int pet_birth_process(struct map_session_data *sd)
 	map_addblock(&sd->pd->bl);
 	clif_spawnpet(sd->pd);
 	clif_send_petdata(sd,0,0);
-	clif_send_petdata(sd,5,0x14);
+	clif_send_petdata(sd,5,battle_config.pet_hair_style);
 	clif_pet_equip(sd->pd,sd->pet.equip);
 	clif_send_petstatus(sd);
 
@@ -1064,7 +1064,7 @@ int pet_recv_petdata(int account_id,struct s_pet *p,int flag)
 			map_addblock(&sd->pd->bl);
 			clif_spawnpet(sd->pd);
 			clif_send_petdata(sd,0,0);
-			clif_send_petdata(sd,5,0x14);
+			clif_send_petdata(sd,5,battle_config.pet_hair_style);
 //			clif_pet_equip(sd->pd,sd->pet.equip);
 			clif_send_petstatus(sd);
 		}
@@ -1256,7 +1256,7 @@ int pet_change_name(struct map_session_data *sd,char *name)
 	clif_clearchar_area(&sd->pd->bl,0);
 	clif_spawnpet(sd->pd);
 	clif_send_petdata(sd,0,0);
-	clif_send_petdata(sd,5,0x14);
+	clif_send_petdata(sd,5,battle_config.pet_hair_style);
 	sd->pet.rename_flag = 1;
 	clif_pet_equip(sd->pd,sd->pet.equip);
 	clif_send_petstatus(sd);

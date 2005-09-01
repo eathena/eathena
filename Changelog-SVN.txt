@@ -1,6 +1,9 @@
 Date	Added
 =======
 08/31
+	* Rewrote map_foreachinpath, it should work mostly right now. [Skotlex]
+	  (the path 'stops' at the destination point rather than keep going
+	  forward, but it can probably be fixed later)
 	* Moved battle_config spawndelay adjustments from mob.c (calculating it
 	  each time they were killed) to npc.c (calculate it once during parsing).
 	  [Skotlex]

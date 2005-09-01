@@ -836,7 +836,6 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 
 */
 
-/*
 //////////////////////////////////////////////////////////////
 //
 // sharp shooting 1
@@ -878,7 +877,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 // might be not that realistic, so I changed to the other one
 // I take "range" as max distance from the line
 //////////////////////////////////////////////////////////////
-
+/*
 	va_list ap;
 	int i, blockcount = bl_list_count;
 	struct block_list *bl;
@@ -1036,7 +1035,6 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 
 */
 
-
 //////////////////////////////////////////////////////////////
 //
 // sharp shooting 2
@@ -1053,6 +1051,7 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 //   x
 //  S
 //////////////////////////////////////////////////////////////
+/*
 	va_list ap;
 	int i, blockcount = bl_list_count;
 	struct block_list *bl;
@@ -1149,6 +1148,180 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 	bl_list_count = blockcount;
 
 	return returnCount;
+*/
+//////////////////////////////////////////////////////////////
+//
+// sharp shooting 3 [Skotlex]
+//
+//////////////////////////////////////////////////////////////
+// problem:
+// Same as Sharp Shooting 1. Hits all targets within range of
+// the line.
+// (t1,t2 t3 and t4 get hit)
+//
+//     target 1
+//      x t4
+//     t2
+// t3 x
+//   x
+//  S
+//////////////////////////////////////////////////////////////
+// Methodology: 
+// My trigonometrics and math is a little rusty... so the approach I am writing 
+// here is basicly do a double for to check for all targets in the square that 
+// contains the initial and final positions (area range increased to match the 
+// radius given), then for each object to test, calculate the distance to the 
+// path and include it if the range fits and the target is in the line (0<k<1,
+// as they call it).
+// The implementation I took as reference is found at 
+// http://astronomy.swin.edu.au/~pbourke/geometry/pointline/ 
+// (they have a link to a C implementation, too)
+// This approach is a lot like #2 commented on this function, which I have no 
+// idea why it was commented. I won't use doubles/floats, but pure int math for speed purposes
+// The range considered is always the same no matter how close/far the target is because that's
+// how SharpShooting works currently in kRO.
+
+	//Generic map_foreach* variables.
+	va_list ap;
+	int i, blockcount = bl_list_count;
+	struct block_list *bl;
+	int c, bx, by;
+	//method specific variables
+	int magnitude2; //The square of the magnitude
+	int k, xi, yi, xu, yu;
+	int mx0 = x0, mx1 = x1, my0 = y0, my1 = y1;
+	
+	//Avoid needless calculations by not getting the sqrt right away.
+	#define MAGNITUDE2(x0, y0, x1, y1) (((x1)-(x0))*((x1)-(x0)) + ((y1)-(y0))*((y1)-(y0)))
+	
+	if (m < 0)
+		return 0;
+		
+	va_start(ap,type);
+
+	//Expand target area to cover range.
+	if (mx0 > mx1)
+	{
+		mx0+=range;
+		mx1-=range;
+	} else {
+		mx0-=range;
+		mx1+=range;
+	}
+	if (my0 > my1)
+	{
+		my0+=range;
+		my1-=range;
+	} else {
+		my0-=range;
+		my1+=range;
+	}
+
+	//The two fors assume mx0 < mx1 && my0 < my1
+	if (mx0 > mx1)
+	{
+		k = mx1;
+		mx1 = mx0;
+		mx0 = k;
+	}
+	if (my0 > my1)
+	{
+		k = my1;
+		my1 = my0;
+		my0 = k;
+	}
+	
+	if (mx0 < 0) mx0 = 0;
+	if (my0 < 0) my0 = 0;
+	if (mx1 >= map[m].xs) mx1 = map[m].xs-1;
+	if (my1 >= map[m].ys) my1 = map[m].ys-1;
+	
+	range*=range<<8; //Values are shifted later on for higher precision using int math.
+	magnitude2 = MAGNITUDE2(x0,y0, x1,y1);
+
+	if (type == 0 || type != BL_MOB)
+		for (by = my0 / BLOCK_SIZE; by <= my1 / BLOCK_SIZE; by++) {
+			for(bx=mx0/BLOCK_SIZE;bx<=mx1/BLOCK_SIZE;bx++){
+				bl = map[m].block[bx+by*map[m].bxs];
+				c = map[m].block_count[bx+by*map[m].bxs];
+				for(i=0;i<c && bl;i++,bl=bl->next){
+					if(bl && type && bl->type!=type)
+						continue;
+					if(bl && bl_list_count<BL_LIST_MAX)
+					{
+						xi = bl->x;
+						yi = bl->y;
+					
+						k = (xi-x0)*(x1-x0) + (yi-y0)*(y1-y0);
+						if (k < 0)// || k > magnitude2) //No check to see if it lies after the target's point.
+							continue;
+					
+						//All these shifts are to increase the precision of the intersection point and distance considering how it's
+						//int math.
+						k = (k<<4)/magnitude2; //k will be between 1~16 instead of 0~1
+						xi<<=4;
+						yi<<=4;
+						xu= (x0<<4) +k*(x1-x0);
+						yu= (y0<<4) +k*(y1-y0);
+						k = MAGNITUDE2(xi, yi, xu, yu);
+						
+						//If all dot coordinates were <<4 the square of the magnitude is <<8
+						if (k > range)
+							continue;
+
+						bl_list[bl_list_count++]=bl;
+					}
+				}
+			}
+		}
+	if(type==0 || type==BL_MOB)
+		for(by=my0/BLOCK_SIZE;by<=my1/BLOCK_SIZE;by++){
+			for(bx=mx0/BLOCK_SIZE;bx<=mx1/BLOCK_SIZE;bx++){
+				bl = map[m].block_mob[bx+by*map[m].bxs];
+				c = map[m].block_mob_count[bx+by*map[m].bxs];
+				for(i=0;i<c && bl;i++,bl=bl->next){
+					if(bl && bl_list_count<BL_LIST_MAX)
+					{
+						xi = bl->x;
+						yi = bl->y;
+						k = (xi-x0)*(x1-x0) + (yi-y0)*(y1-y0);
+						if (k < 0)// || k > magnitude2) //No check to see if it lies after the target's point.
+							continue;
+					
+						k = (k<<4)/magnitude2; //k will be between 1~16 instead of 0~1
+						xi<<=4;
+						yi<<=4;
+						xu= (x0<<4) +k*(x1-x0);
+						yu= (y0<<4) +k*(y1-y0);
+						k = MAGNITUDE2(xi, yi, xu, yu);
+						
+						//If all dot coordinates were <<4 the square of the magnitude is <<8
+						if (k > range)
+							continue;
+
+						bl_list[bl_list_count++]=bl;
+					}
+				}
+			}
+		}
+
+	if(bl_list_count>=BL_LIST_MAX) {
+		if(battle_config.error_log)
+			ShowWarning("map_foreachinpath: block count too many!\n");
+	}
+
+	map_freeblock_lock();	// メモリからの解放を禁止する
+
+	for(i=blockcount;i<bl_list_count;i++)
+		if(bl_list[i]->prev)	// 有?かどうかチェック
+			returnCount += func(bl_list[i],ap);
+
+	map_freeblock_unlock();	// 解放を許可する
+
+	va_end(ap);
+	bl_list_count = blockcount;
+	return returnCount;	//[Skotlex]
+
 }
 
 /*==========================================
