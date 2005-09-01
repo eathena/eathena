@@ -2402,7 +2402,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 	if(md->hp > 0){
 		if (battle_config.show_mob_hp)
 			clif_charnameack (0, &md->bl);
-		return 0;
+		return damage;
 	}
 
 	// ----- ‚±‚±‚©‚ç€–Sˆ— -----
@@ -2832,7 +2832,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 	mob_setdelayspawn(md->bl.id);
 	map_freeblock_unlock();
 
-	return 0;
+	return damage;
 }
 
 /*==========================================

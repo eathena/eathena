@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/01
+	* Fixed pc_damage/mob_damage returning 0 instead of damage dealt (which in
+	  turn made all attack/skills not trigger their additional effects) [Skotlex]
 	* Updated Assumptio to target everyone instead of "not enemies" [Skotlex]
 	* Fixed a fatal dangling pointer in the mob_setdelayspawn when handling
 	  mobs that don't respawn. [Skotlex]

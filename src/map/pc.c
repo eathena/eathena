@@ -4761,7 +4761,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 			if(p!=NULL) clif_party_hp(p,sd);
 		}	// end addition [Valaris]
 
-		return 0;
+		return damage;
 	}
 	sd->status.hp = 0;
 	//pc_setdead(sd);
@@ -5036,7 +5036,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 		pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,0);
 	}
 
-	return 0;
+	return damage;
 }
 
 //
