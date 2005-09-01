@@ -1,6 +1,8 @@
 Date	Added
 =======
 08/31
+	* Updated @npctalk to work as it should [Skotlex]
+	- Usage @npctalk NPC Name, Your Message Goes here
 	* Fixed Wind Walk's flee/speed bonus (as pointed out by Viccious Pucca). [Skotlex]
 	* Fixed a crash in pc.c when the last save point was not found (thanks to
 	  Foruken) [Skotlex]

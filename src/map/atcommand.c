@@ -7580,16 +7580,18 @@ atcommand_npctalk(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	char name[NAME_LENGTH],mes[100];
+	char name[NAME_LENGTH],mes[100],temp[100];
 	struct npc_data *nd;
 
-	if (sscanf(message, "%23s %99[^\n]", name, mes) < 2)
+	if (sscanf(message, "%23[^,],%99[^\n]", name, mes) < 2)
 		return -1;
 
 	if (!(nd = npc_name2id(name)))
 		return -1;
 	
-	clif_message(&nd->bl, mes);
+	snprintf(temp, sizeof temp ,"%s : %s",name,mes);
+	clif_message(&nd->bl, temp);
+
 	return 0;
 }
 int
