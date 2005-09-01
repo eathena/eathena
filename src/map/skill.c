@@ -6052,7 +6052,11 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 	case HT_FLASHER:			/* フラッシャ? */
 	case HT_FREEZINGTRAP:		/* フリ?ジングトラップ */
 	case HT_BLASTMINE:			/* ブラストマイン */
-		if (map[src->m].flag.gvg) limit *= 4; // longer trap times in WOE [celest]
+		if (map[src->m].flag.gvg)
+		{
+			limit *= 4; // longer trap times in WOE [celest]
+			target = BCT_ALL; //Hits everyone in WOE [Skotlex]
+		}
 		break;
 
 	case SA_LANDPROTECTOR:	/* グランドクロス */

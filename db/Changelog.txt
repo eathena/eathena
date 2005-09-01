@@ -34,6 +34,8 @@
 	--
 
 08/31
+	* Reverted traps to target "enemy", hardcoded to become "all" on gvg
+	  grounds. [Skotlex]
 	* Changed all traps to have target "all" (data from Viccious Pucca) [Skotlex]
 	* Updated SP costs and durations of Assumptio (thanks to Viccious Pucca)
 	  [Skotlex]
