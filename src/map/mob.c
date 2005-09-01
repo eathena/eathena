@@ -3146,7 +3146,7 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id)
 		md->y0=y;
 		md->xs=0;
 		md->ys=0;
-		md->speed=md2->speed;
+//		md->speed=md2->speed; Why mobs are supposed to have the master's speed? [Skotlex]
 		md->cached= battle_config.dynamic_mobs;	//[Skotlex]
 		md->spawndelay1=-1;	// 一度のみフラグ
 		md->spawndelay2=-1;	// 一度のみフラグ

@@ -6316,10 +6316,10 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	case UNT_HERMODE:
 		if (sg->src_id==bl->id)
 			break;
-		if (sc_data && sc_data[type].timer!=-1 && sc_data[type].val4 == sg->group_id)
+		if (sc_data && sc_data[type].timer!=-1)
 			break;
 		status_change_start(bl,type,sg->skill_lv,sg->val1,sg->val2,
-			sg->group_id,skill_get_time2(sg->skill_id,sg->skill_lv),0);
+			0,30000,0);
 		break;
 
 	case UNT_BASILICA:
@@ -6802,12 +6802,13 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 			status_change_end(bl,type,-1);
 			break;
 		}
-
-		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id)
+		/*
+		if (sc_data[type].timer!=-1)
 		{
 			delete_timer(sc_data[type].timer, status_change_timer);
 			sc_data[type].timer = add_timer(20000+tick, status_change_timer, bl->id, type);
 		}
+		*/
 		break;		
 
 	case UNT_BASILICA:

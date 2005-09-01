@@ -1,6 +1,15 @@
 Date	Added
 =======
 09/01
+	* Removed val4 from song/dances so that they won't be as bugged anymore.
+	  (still pending on Draco's status update, but at least now stuff like Poem
+	  of Bragi shouldn't cause insta-cast) [Skotlex]
+	* Changed the way song/dance status effects last. The first time you step
+	  in a tile the status starts for 30 secs, not refreshed until it times out.
+	  Not the way it really should be, but it's much better for performance
+	  issues.
+	* Fixed summoned slaves having the same walk-speed as their master (fixes
+	  metamorphosis-hatched mobs from having an egg's speed). [Skotlex]
 	* Added fix_timer_heap, should correct timer problems when the tick
 	  overflows. Does it works? We'll find out in 48 days when the next
 	  loop occurs. [Skotlex]
