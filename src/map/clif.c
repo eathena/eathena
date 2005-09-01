@@ -7567,9 +7567,14 @@ int clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd,int ty
 	WFIFOW(tsd->fd,0) = 0x18b;
 	WFIFOW(tsd->fd,2) = 0;
 	WFIFOSET(tsd->fd,packet_len_table[0x18b]);
-	
-	ShowDebug("clif_GM_kick: Disconnecting session #%d\n", tsd->fd);
-	clif_setwaitclose(tsd->fd);
+
+	if (tsd->fd)
+	{
+		ShowDebug("clif_GM_kick: Disconnecting session #%d\n", tsd->fd);
+		clif_setwaitclose(tsd->fd);
+	} else { //Player has no session attached, delete it right away. [Skotlex]
+		map_quit(tsd);
+	}
 
 	return 0;
 }

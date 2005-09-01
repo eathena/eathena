@@ -1,6 +1,9 @@
 Date	Added
 =======
 09/01
+	* clif_GM_kick will now invoke map_quit if the player doesn't has a session [Skotlex]
+	  (this should fix @kick and other such commands on autotrade chars and the
+	  like)
 	* Fixed pc_damage/mob_damage returning 0 instead of damage dealt (which in
 	  turn made all attack/skills not trigger their additional effects) [Skotlex]
 	* Updated Assumptio to target everyone instead of "not enemies" [Skotlex]
