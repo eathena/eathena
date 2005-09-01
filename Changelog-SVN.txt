@@ -1,6 +1,9 @@
 Date	Added
 =======
 09/01
+	* Added fix_timer_heap, should correct timer problems when the tick
+	  overflows. Does it works? We'll find out in 48 days when the next
+	  loop occurs. [Skotlex]
 	* Another update to battle_check_target [Skotlex]
 	  (Should fix slave-skills hitting a slave's master)
 	* Corrected magic_damage_return code being double-invoked. [Skotlex]

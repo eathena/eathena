@@ -280,8 +280,35 @@ int addtick_timer(int tid, unsigned int tick)
 //FIXME: DON'T use this function yet, it is not correctly reorganizing the timer stack causing unexpected problems later on!
 int settick_timer(int tid, unsigned int tick)
 {
+	int i,j;
+	if (timer_data[tid].tick == tick)
+		return tick;
+
+	//FIXME: This search is not all that effective... there doesn't seems to be a better way to locate an element in the heap.
+	for(i = timer_heap_num-1; i >= 0 && timer_heap[i] != tid; i--);
+
+	if (i < 0)
+		return -1; //Sort of impossible, isn't it?
+	if (timer_data[tid].tick > tick)
+	{	//Timer is accelerated, shift timer near the end of the heap.
+		if (i == timer_heap_num-1) //Nothing to shift.
+			j = timer_heap_num-1;
+		else {
+			for (j = i+1; j < timer_heap_num && timer_data[j].tick > tick; j++);
+			j--;
+			memmove(&timer_heap[i], &timer_heap[i+1], (j-i)*sizeof(int));
+		}
+	} else {	//Timer is delayed, shift timer near the beginning of the heap.
+		if (i == 0) //Nothing to shift.
+			j = 0;
+		else {
+			for (j = i-1; j >= 0 && timer_data[j].tick < tick; j--);
+			j++;
+			memmove(&timer_heap[j+1], &timer_heap[j], (i-j)*sizeof(int));
+		}
+	}
+	timer_heap[j] = tid;
 	timer_data[tid].tick = tick;
-	push_timer_heap(tid);
 	return tick;
 }
 
@@ -290,9 +317,38 @@ struct TimerData* get_timer(int tid)
 	return &timer_data[tid];
 }
 
+//Correcting the heap when the tick overflows is an idea taken from jA to
+//prevent timer problems. Thanks to [End of Exam] for providing the required data. [Skotlex]
+//This funtion will rearrange the heap and assign new tick values.
+static void fix_timer_heap(unsigned int tick)
+{
+	if (timer_heap_num >= 0 && tick < 0x00010000 && timer_data[timer_heap[0]].tick > 0xf0000000)
+	{	//The last timer is way too far into the future, and the current tick is too close to 0, overflow was very likely
+		//(not perfect, but will work as long as the timer is not expected to happen 50 or so days into the future)
+		int i;
+		int *tmp_heap;
+		unsigned int base_tick = timer_data[timer_heap[0]].tick;
+		for (i=0; i < timer_heap_num && timer_data[timer_heap[i]].tick > 0xf0000000; i++)
+		{	//Readjust the functions with very high tick values, basing around the first one.
+			timer_data[timer_heap[i]].tick -= base_tick;
+		}
+		//Move elements to readjust the heap.
+		//TODO: This method assumes all reassigned timer should happen before the functions added afterwards.
+		//A better merging method is in need.
+		tmp_heap = aCalloc(sizeof(int), i);
+		memmove(&tmp_heap[0], &timer_heap[0], i*sizeof(int));
+		memmove(&timer_heap[0], &timer_heap[i], (timer_heap_num-i)*sizeof(int));
+		memmove(&timer_heap[timer_heap_num-i], &tmp_heap[0], i*sizeof(int));
+		aFree(tmp_heap);
+	}
+}
+
 int do_timer(unsigned int tick)
 {
 	int i, nextmin = 1000;
+
+	if (tick < 0x010000)
+		fix_timer_heap(tick);
 
 	while(timer_heap_num) {
 		i = timer_heap[timer_heap_num - 1]; // next shorter element
