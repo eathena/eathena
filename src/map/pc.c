@@ -781,11 +781,9 @@ int pc_authok(int id, int login_id2, time_t connect_until_time, struct mmo_chars
 
 	// ˆÊ’u‚ÌÝ’è
 	if (pc_setpos(sd,sd->status.last_point.map, sd->status.last_point.x, sd->status.last_point.y, 0) != 0) {
-		if(battle_config.error_log) {
-			char buf[32];
-			sprintf(buf, "Last_point_map %s not found\n", sd->status.last_point.map);
-			ShowError (buf);
-		}
+		if(battle_config.error_log)
+			ShowError ("Last_point_map %s not found\n", sd->status.last_point.map);
+
 		// try warping to a default map instead
 		if (pc_setpos(sd, "prontera.gat", 273, 354, 0) != 0) {
 			// if we fail again

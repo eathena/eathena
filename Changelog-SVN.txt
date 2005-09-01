@@ -1,6 +1,8 @@
 Date	Added
 =======
 08/31
+	* Fixed a crash in pc.c when the last save point was not found (thanks to
+	  Foruken) [Skotlex]
 	* Rewrote map_foreachinpath, it should work mostly right now. [Skotlex]
 	  (the path 'stops' at the destination point rather than keep going
 	  forward, but it can probably be fixed later)
