@@ -1,6 +1,9 @@
 Date	Added
 =======
 09/01
+	* Updated Assumptio to target everyone instead of "not enemies" [Skotlex]
+	* Fixed a fatal dangling pointer in the mob_setdelayspawn when handling
+	  mobs that don't respawn. [Skotlex]
 	* Updated WE_CALLPARENT to not check for range (as it should?) [Skotlex]
 	* Added flag accreg_dirty to identify when account variables have not been
 	  saved yet, it'll retry then on every call to save the character (it will
