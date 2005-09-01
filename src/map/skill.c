@@ -1613,6 +1613,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			}
 		}	//Switch End
 	}
+/* Removed magic_damage_return code as it is currently implemented in battle_calc_magic_attack [Skotlex]
 //使用者がPCの場合の?理ここまで
 //武器スキル？ここから
 	//AppleGirl Was Here
@@ -1625,6 +1626,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			}
 		}
 	}
+*/
 		//Stop Here
 	if(attack_type&BF_WEAPON && damage > 0 && src != bl && src == dsrc) { //武器スキル＆ダメ?ジあり＆使用者と?象者が違う＆src=dsrc
 		if(dmg.flag&BF_SHORT) { //近距離攻?時？※
