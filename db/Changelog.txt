@@ -34,6 +34,7 @@
 	--
 
 08/31
+	* Changed all traps to have target "all" (data from Viccious Pucca) [Skotlex]
 	* Updated SP costs and durations of Assumptio (thanks to Viccious Pucca)
 	  [Skotlex]
 	* Updated range of Lord of Vermillion (changed to 5->11x11) and Storm Gust
