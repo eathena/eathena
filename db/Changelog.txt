@@ -34,6 +34,8 @@
 	--
 
 08/31
+	* Updated SP costs and durations of Assumptio (thanks to Viccious Pucca)
+	  [Skotlex]
 	* Updated range of Lord of Vermillion (changed to 5->11x11) and Storm Gust
 	  (changed to 4->9x9) [Skotlex]
 08/30

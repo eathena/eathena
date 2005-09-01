@@ -1286,7 +1286,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(sd->sc_data[SC_GRAVITATION].timer!=-1)
 			ASPD_ADD_RATE(-sd->sc_data[SC_GRAVITATION].val2);
 		if(sd->sc_data[SC_WINDWALK].timer!=-1 && sd->sc_data[SC_INCREASEAGI].timer==-1)	//ウィンドウォ?ク暫ﾍLv*2%減算
-			SPEED_ADD_RATE(sd->sc_data[SC_WINDWALK].val2);
+			SPEED_ADD_RATE(4*sd->sc_data[SC_WINDWALK].val2);
 		if(sd->sc_data[SC_CARTBOOST].timer!=-1)	// カ?トブ?スト
 			SPEED_ADD_RATE(20);
 		if(sd->sc_data[SC_BERSERK].timer!=-1)	//バ?サ?ク中はIAと同じぐらい速い？
@@ -1296,7 +1296,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 		// HIT/FLEE?化系
 		if(sd->sc_data[SC_WINDWALK].timer != -1) // ウィンドウォ?ク
-			sd->flee += 4 * sd->sc_data[SC_WINDWALK].val2;
+			sd->flee += sd->sc_data[SC_WINDWALK].val2;
 		if(sd->sc_data[SC_TRUESIGHT].timer != -1) //トゥル?サイト
 			sd->hit += 3 * sd->sc_data[SC_TRUESIGHT].val1;
 		if(sd->sc_data[SC_WHISTLE].timer!=-1){  // 口笛
@@ -2582,7 +2582,7 @@ int status_get_speed(struct block_list *bl)
 				speed -= speed*25/100;
 			//ウィンドウォーク時はLv*2%減算
 			else if(sc_data[SC_WINDWALK].timer!=-1)
-				speed -= (speed*(sc_data[SC_WINDWALK].val1*2))/100;
+				speed -= (speed*(sc_data[SC_WINDWALK].val1*4))/100;
 			//速度減少時は25%加算
 			if(sc_data[SC_DECREASEAGI].timer!=-1)
 				speed = speed*125/100;
@@ -3785,7 +3785,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 		case SC_WINDWALK:		/* ウインドウォ?ク */
 			calc_flag = 1;
-			val2 = (val1 / 2); // Flee bonus is 1/1/2/2/3/3/4/4/5/5, movement speed % increase is 4 times that
+			val2 = (val1+1)/2; // Flee bonus is 1/1/2/2/3/3/4/4/5/5, movement speed % increase is 4 times that
 			break;
 
 		case SC_JOINTBEAT: // Random break [DracoRPG]
