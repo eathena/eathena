@@ -268,6 +268,7 @@ struct map_session_data {
 		unsigned abra_flag : 1;
 		unsigned autoloot : 1; //by Upa-Kun <- Ya know, I originally wrote this code... [Skotlex]
 		unsigned autotrade : 1;	//By Fantik
+		unsigned accreg_dirty: 1; //By Skotlex (marks whether Account variables have been saved or not yet)
 	} state;
 	struct {
 		unsigned killer : 1;

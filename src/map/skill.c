@@ -8005,9 +8005,11 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			if (p_sd == NULL)
 				return 0;
 			target_id = p_sd->bl.id;
+		/* Peepz keep saying this skill shouldn't check range. [Skotlex]
 			//range‚ğ‚à‚¤1‰ñ?¸
 			if(!battle_check_range(&sd->bl, &p_sd->bl, skill_get_range(skill_num,skill_lv)))
 				return 0;
+		*/
 		}
 		break;
 

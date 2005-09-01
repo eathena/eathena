@@ -174,6 +174,9 @@ int chrif_save(struct map_session_data *sd)
 		storage_storage_save(sd->status.account_id);
 	else if (sd->state.storage_flag == 2)
 		storage_guild_storagesave(sd->status.account_id, sd->status.guild_id);
+	
+	if (sd->state.accreg_dirty) //Global accounts have not been saved yet, let's retry.
+		intif_saveaccountreg(sd);
 		
 	return 0;
 }

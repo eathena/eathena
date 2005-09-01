@@ -1,5 +1,11 @@
 Date	Added
 =======
+09/01
+	* Updated WE_CALLPARENT to not check for range (as it should?) [Skotlex]
+	* Added flag accreg_dirty to identify when account variables have not been
+	  saved yet, it'll retry then on every call to save the character (it will
+	  prevent account variables from being lost when the char/map connection is
+	  not established)
 08/31
 	* Updated @npctalk to work as it should [Skotlex]
 	- Usage @npctalk NPC Name, Your Message Goes here

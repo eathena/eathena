@@ -6000,6 +6000,8 @@ int pc_setaccountreg(struct map_session_data *sd,char *reg,int val)
 			ShowError("pc_setaccountreg : refusing to set until vars are received\n");
 		return 1;
 	}
+	
+	sd->state.accreg_dirty = 1; //Mark the registry dirty until saved. [Skotlex]
 
 	// delete reg
 	if (val == 0) {

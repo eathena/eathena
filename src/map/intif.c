@@ -731,6 +731,7 @@ int intif_parse_AccountReg(int fd) {
 		sd->status.account_reg[j].value=RFIFOL(fd,p+32);
 	}
 	sd->status.account_reg_num = j;
+	sd->state.accreg_dirty = 0; //Accounts are sync'd.
 //	printf("intif: accountreg\n");
 
 	return 0;
