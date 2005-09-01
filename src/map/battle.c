@@ -3339,6 +3339,7 @@ static const struct battle_data_short {
 	{ "mob_spawn_delay",                   &battle_config.mob_spawn_delay			},
 	{ "plant_spawn_delay",                 &battle_config.plant_spawn_delay			},
 	{ "boss_spawn_delay",                  &battle_config.boss_spawn_delay			},
+	{ "slaves_inherit_speed",              &battle_config.slaves_inherit_speed		},
 	{ "quest_skill_learn",                 &battle_config.quest_skill_learn		},
 	{ "quest_skill_reset",                 &battle_config.quest_skill_reset		},
 	{ "basic_skill_check",                 &battle_config.basic_skill_check		},
@@ -3669,6 +3670,7 @@ void battle_set_defaults() {
 	battle_config.mob_spawn_delay=100;
 	battle_config.plant_spawn_delay=100;
 	battle_config.boss_spawn_delay=100;
+	battle_config.slaves_inherit_speed=1;
 	battle_config.quest_skill_learn=0;
 	battle_config.quest_skill_reset=1;
 	battle_config.basic_skill_check=1;

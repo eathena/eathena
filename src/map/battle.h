@@ -149,6 +149,7 @@ extern struct Battle_Config {
 	unsigned short mob_skill_delay;	//[Skotlex]
 	unsigned short mob_count_rate;
 	unsigned short mob_spawn_delay, plant_spawn_delay, boss_spawn_delay;	// [Skotlex]
+	unsigned short slaves_inherit_speed;
 	unsigned short quest_skill_learn;
 	unsigned short quest_skill_reset;
 	unsigned short basic_skill_check;
