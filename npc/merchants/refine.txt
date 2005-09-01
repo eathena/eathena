@@ -5,7 +5,7 @@
 //= dafide18 (1.4)
 //= Skotlex (1.5)
 //===== Current Version: =====================================
-//= 1.5
+//= 1.5a
 //===== Compatible With: =====================================
 //= Any Freya Version
 //===== Description: =========================================
@@ -28,6 +28,8 @@
 //=        hacker that can change item [dafide18]
 //= 1.5 - Fixed crashing due to badly used callfunc's [Skotlex]
 //        Lupus, don't rollback this important fix again! >.<
+//= 1.5a - Corrected an unneeded callfunc, fixed the anti-bot 
+//=       exploit ruining the safe refine loop. [Skotlex]
 //============================================================
 
 
@@ -462,7 +464,6 @@ Lnosafe:
 		if((countitem(@material) < @refinecnt) || (Zeny < @fullprice)) goto Lcancel2;
 		delitem @material,@refinecnt;
 		set Zeny,Zeny - @fullprice;
-		callfunc "refinenumber";
 		goto L_refinenumber;
 		break;
 
@@ -486,7 +487,7 @@ Lcancel3:
 L_refinesafe:
 	if (getequipisequiped(@part) == 0) goto LNoItem; // hacker has removed the item (no changed, why?)
 	if (getequipid(@part) != @refineitemid) goto LNoFake; // hacker has changed the item
-	if (getequiprefinerycnt(@part) != @refinerycnt) goto LNoFake; // hacker has changed the item
+	if (getequippercentrefinery(@part) < 100) goto LNoFake; // hacker has changed the item (it is not safe anymore)
 	mes "Clang, clang!!!";
 	successrefitem @part;
 	emotion 21;
