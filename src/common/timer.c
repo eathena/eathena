@@ -29,7 +29,7 @@
 // If the server shows no reaction when processing thousands of monsters
 // or connected by many clients, please increase TIMER_MIN_INTERVAL.
 
-#define TIMER_MIN_INTERVAL 10
+#define TIMER_MIN_INTERVAL 25
 
 static struct TimerData* timer_data	= NULL;
 static int timer_data_max	= 0;

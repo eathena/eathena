@@ -2851,14 +2851,27 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			return -1;
 	}
 
-	switch (target->type)
+	if (target->type == BL_SKILL) //Needed out of the switch in case the ownership needs to be passed skill->mob->master
+	{
+		struct skill_unit *su = (struct skill_unit *)target;
+		if (!su || !su->group)
+			return 0;
+		if (src->type == BL_SKILL) //Cannot be hit by another skill.
+			return 0;
+		if (!(skill_get_inf2(su->group->skill_id)&INF2_TRAP || su->group->skill_id==WZ_ICEWALL))
+			return 0; //Excepting traps and icewall, you should not be able to target skills.
+		if ((t_bl = map_id2bl(su->group->src_id)) == NULL)
+			t_bl = target; //Fallback on the trap itself, otherwise consider this a "versus caster" scenario.
+	}
+
+	switch (t_bl->type)
 	{
 		case BL_PC:
 		{
-			struct map_session_data *sd = (struct map_session_data *)target;
+			struct map_session_data *sd = (struct map_session_data *)t_bl;
 			if (!sd) //This really should never happen...
 				return 0;
-			if(sd->invincible_timer != -1 || pc_isinvisible(sd))
+			if (sd->invincible_timer != -1 || pc_isinvisible(sd))
 				return -1; //Cannot be targeted yet.
 			if (sd->monster_ignore && src->type == BL_MOB)
 				return 0; //option to have monsters ignore GMs [Valaris]
@@ -2868,41 +2881,48 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		}
 		case BL_MOB:
 		{
-			struct mob_data *md = (struct mob_data *)target;
+			struct mob_data *md = (struct mob_data *)t_bl;
 			if (!md)
 				return 0;
 			if (md->state.special_mob_ai == 2) 
 				return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
 			if (md->master_id && (t_bl = map_id2bl(md->master_id)) == NULL)
-				t_bl = target; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
+				t_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
 			break;
 		}
 		case BL_PET:
 		{
 			return 0; //Pets cannot be targetted.
 		}
-		case BL_SKILL:
-		{
-			struct skill_unit *su = (struct skill_unit *)target;
-			if (!su || !su->group)
-				return 0;
-			if (src->type == BL_SKILL) //Cannot be hit by another skill.
-				return 0;
-			if (!(skill_get_inf2(su->group->skill_id)&INF2_TRAP || su->group->skill_id==WZ_ICEWALL))
-				return 0; //Excepting traps and icewall, you should not be able to target skills.
-			if ((t_bl = map_id2bl(su->group->src_id)) == NULL)
-				t_bl = target; //Fallback on the trap itself, otherwise consider this a "versus caster" scenario.
+		case BL_SKILL: //Skill with no owner? Kinda odd... but.. let it through.
 			break;
-		}
 		default:	//Invalid target
 			return 0;
 	}
 
-	switch (src->type)
+	if (src->type == BL_SKILL)
+	{
+		struct skill_unit *su = (struct skill_unit *)src;
+		if (!su || !su->group)
+			return 0;
+		if (su->group->src_id == target->id)
+		{
+			int inf2;
+			inf2 = skill_get_inf2(su->group->skill_id);
+			if (inf2&INF2_NO_TARGET_SELF)
+				return -1;
+			if (inf2&INF2_TARGET_SELF)
+				return 1;
+		}
+		if ((s_bl = map_id2bl(su->group->src_id)) == NULL)
+			s_bl = src; //Fallback on the trap itself, otherwise consider this a "caster versus enemy" scenario.
+	}
+
+	switch (s_bl->type)
 	{
 		case BL_PC:
 		{
-			struct map_session_data *sd = (struct map_session_data *) src;
+			struct map_session_data *sd = (struct map_session_data *) s_bl;
 			if (!sd) //Should never happen...
 				return 0;
 			if (sd->special_state.killer)
@@ -2911,42 +2931,26 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		}
 		case BL_MOB:
 		{
-			struct mob_data *md = (struct mob_data *)src;
+			struct mob_data *md = (struct mob_data *)s_bl;
 			if (!md)
 				return 0;
 			if (!agit_flag && md->guild_id)
 				return 0; //Disable guardians on non-woe times.
 			if (md->master_id && (s_bl = map_id2bl(md->master_id)) == NULL)
-				s_bl = src; //Fallback on the mob itself, otherwise consider this a "from master" scenario.
+				s_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "from master" scenario.
 			break;
 		}
 		case BL_PET:
 		{
-			struct pet_data *pd = (struct pet_data *)src;
+			struct pet_data *pd = (struct pet_data *)s_bl;
 			if (!pd)
 				return 0;
 			if (pd->msd)
 				s_bl = &pd->msd->bl; //"My master's enemies are my enemies..."
 			break;
 		}
-		case BL_SKILL:
-		{
-			struct skill_unit *su = (struct skill_unit *)src;
-			if (!su || !su->group)
-				return 0;
-			if (su->group->src_id == target->id)
-			{
-				int inf2;
-				inf2 = skill_get_inf2(su->group->skill_id);
-				if (inf2&INF2_NO_TARGET_SELF)
-					return -1;
-				if (inf2&INF2_TARGET_SELF)
-					return 1;
-			}
-			if ((s_bl = map_id2bl(su->group->src_id)) == NULL)
-				s_bl = src; //Fallback on the trap itself, otherwise consider this a "caster versus enemy" scenario.
+		case BL_SKILL: //Skill with no owner? Fishy, but let it through.
 			break;
-		}
 		default:	//Invalid source of attack?
 			return 0;
 	}

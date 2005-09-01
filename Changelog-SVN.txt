@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/01
+	* Another update to battle_check_target [Skotlex]
+	  (Should fix slave-skills hitting a slave's master)
 	* Corrected magic_damage_return code being double-invoked. [Skotlex]
 	* clif_GM_kick will now invoke map_quit if the player doesn't has a session [Skotlex]
 	  (this should fix @kick and other such commands on autotrade chars and the
