@@ -1,10 +1,8 @@
 #ifndef _STATUS_H_
 #define _STATUS_H_
 
-enum {	// struct map_session_data の status_changeの番?テ?ブル
-// SC_SENDMAX indicates the max value to be sent to the client. Values above it are not sent to the client,
-// but can be handled by the server. [Skotlex]
-	SC_SENDMAX			= 250,
+enum {
+// Status changes that are sent to the client for icon/effect display
 	SC_PROVOKE			= 0,
 	SC_ENDURE			= 1,
 	SC_TWOHANDQUICKEN	= 2,
@@ -48,8 +46,8 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_SPEEDPOTION3		= 40,
 	SC_SPEEDUP0			= 41,
 	SC_SPEEDUP1			= 42,
-	SC_ATKPOT			= 43,	// [Valaris]
-	SC_MATKPOT			= 44,	// [Valaris]
+	SC_ATKPOT			= 43,
+	SC_MATKPOT			= 44,
 	SC_WEDDING			= 45,
 	SC_SLOWDOWN			= 46,
 	SC_ANKLE			= 47,
@@ -65,7 +63,7 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_CP_HELM			= 57,
 	SC_AUTOGUARD		= 58,
 	SC_REFLECTSHIELD	= 59,
-	SC_SPLASHER			= 60,	/* ベナムスプラッシャ? */
+	SC_SPLASHER			= 60,
 	SC_PROVIDENCE		= 61,
 	SC_DEFENDER			= 62,
 	SC_MAGICROD			= 63,
@@ -102,9 +100,9 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_VOLCANO			= 94,
 	SC_DELUGE			= 95,
 	SC_VIOLENTGALE		= 96,
-// 97
+// 97 = empty
 	SC_LANDPROTECTOR	= 98,
-// 99
+// 99 = empty
 	SC_NOCHAT			= 100,
 	SC_BABY				= 101,
 // 102 = gloria - from what I saw on screenshots, I wonder if it isn't gospel... [DracoRPG]
@@ -138,7 +136,7 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_DEVOTION			= 130,
 	SC_SACRIFICE		= 131,
 	SC_STEELBODY		= 132,
-// 133
+// 133 = empty
 // 134 = wobbles the character's sprite when SC starts or ends
 	SC_READYSTORM		= 135,
 	SC_STORMKICK		= 136,
@@ -149,63 +147,104 @@ enum {	// struct map_session_data の status_changeの番?テ?ブル
 	SC_READYCOUNTER		= 141,
 	SC_COUNTER			= 142,
 	SC_DODGE			= 143,
-// 144
+// 144 = empty
 	SC_RUN				= 145,
 // 146 = korean letter
 	SC_ADRENALINE2      = 147,
 // 148 = another korean letter
-	SC_DANCING			= 149,
-	SC_LULLABY			= 150,
-	SC_RICHMANKIM		= 151,
-	SC_ETERNALCHAOS		= 152,
-	SC_DRUMBATTLE		= 153,
-	SC_NIBELUNGEN		= 154,
-	SC_ROKISWEIL		= 155,
-	SC_INTOABYSS		= 156,
-	SC_SIEGFRIED		= 157,
-	SC_DISSONANCE		= 158,
-	SC_WHISTLE			= 159,
-	SC_ASSNCROS			= 160,
-	SC_POEMBRAGI		= 161,
-	SC_APPLEIDUN		= 162,
-	SC_UGLYDANCE		= 163,
-	SC_HUMMING			= 164,
-	SC_DONTFORGETME		= 165,
-	SC_FORTUNE			= 166,
-	SC_SERVICE4U		= 167,
-// 168
+// 149 = empty
+// 150 = empty
+// 151 = empty
+// 152 = empty
+// 153 = makes some kind of strange effect on the character
+// 156 = tombstone-shape with a cross and a halo
+// 157 = 4 arrows converging to "HP"
+// 158 = empty
+// 159 = empty
+// 160 = empty
+	SC_ONEHAND          = 161,
+// 162 = empty
+// 163 = empty
+// 164 = empty
+// 165 = ultra-red character
+// 166 = ultra-red character
+// 167 = ultra-red character
+// 168 = empty
 // 169 = sun
 // 170 = moon
 // 171 = stars
-	SC_INCALLSTATUS		= 172,		/* 全てのステータスを上昇(今のところゴスペル用) */
-	SC_INCHIT			= 173,		/* HIT上昇(今のところゴスペル用) */
-	SC_INCFLEE			= 174,		/* FLEE上昇(今のところゴスペル用) */
-	SC_INCMHP2			= 175,		/* MHPを%上昇(今のところゴスペル用) */
-	SC_INCMSP2			= 176,		/* MSPを%上昇(今のところゴスペル用) */
-	SC_INCATK2			= 177,		/* ATKを%上昇(今のところゴスペル用) */
-	SC_INCMATK2			= 178,		/* ATKを%上昇(今のところゴスペル用) */
-	SC_INCHIT2			= 179,		/* HITを%上昇(今のところゴスペル用) */
-	SC_INCFLEE2			= 180,		/* FLEEを%上昇(今のところゴスペル用) */
+// 172 = empty
+// 173 = empty
+// 174 = empty
+// 175 = empty
+// 176 = empty
+// 177 = empty
+// 178 = empty
+// 179 = empty
+// 180 = empty
 	SC_PRESERVE         = 181,
 	SC_BATTLEORDERS		= 182,
 	SC_REGENERATION		= 183,
-// 184 = WTF creates the black shape of 4_m_02 NPC, with NPC talk cursor
-// 185
+// 184 = WTF?? creates the black shape of 4_m_02 NPC, with NPC talk cursor
+// 185 = empty
 	SC_DOUBLECAST		= 186,
 	SC_GRAVITATION		= 187,
 	SC_MAXOVERTHRUST	= 188,
 	SC_LONGING			= 189,
 	SC_HERMODE			= 190,
-	SC_TAROT			= 191,
-// 192
-// 193
-	SC_INCDEF2			= 194,
-	SC_INCSTR			= 195,
-	SC_INCAGI			= 196,
-	SC_INCVIT			= 197,
-	SC_INCINT			= 198,
-	SC_INCDEX			= 199,
-	SC_INCLUK			= 200,
+	SC_TAROT			= 191, // the icon allows no doubt... but what is it really used for ?? [DracoRPG]
+// 193 = empty
+// 194 = empty
+// 195 = empty
+// 196 = empty
+// 197 = empty
+// 198 = empty
+// 199 = empty
+
+	SC_SENDMAX			= 200, // 200 is enough at the moment to allow display of all client-side effects [DracoRPG]
+
+// Status changes that are handled by the server but not sent to the client
+	SC_DANCING			= 201,
+	SC_LULLABY			= 202,
+	SC_RICHMANKIM		= 203,
+	SC_ETERNALCHAOS		= 204,
+	SC_DRUMBATTLE		= 205,
+	SC_NIBELUNGEN		= 206,
+	SC_ROKISWEIL		= 207,
+	SC_INTOABYSS		= 208,
+	SC_SIEGFRIED		= 209,
+	SC_DISSONANCE		= 210,
+	SC_WHISTLE			= 211,
+	SC_ASSNCROS			= 212,
+	SC_POEMBRAGI		= 213,
+	SC_APPLEIDUN		= 214,
+	SC_UGLYDANCE		= 215,
+	SC_HUMMING			= 216,
+	SC_DONTFORGETME		= 217,
+	SC_FORTUNE			= 218,
+	SC_SERVICE4U		= 219,
+	SC_INCALLSTATUS		= 220,
+	SC_INCSTR			= 221,
+	SC_INCAGI			= 222,
+	SC_INCVIT			= 223,
+	SC_INCINT			= 224,
+	SC_INCDEX			= 225,
+	SC_INCLUK			= 226,
+	SC_INCHIT			= 227,
+	SC_INCHITRATE		= 228,
+	SC_INCFLEE			= 229,
+	SC_INCFLEERATE		= 230,
+	SC_INCMHPRATE		= 231,
+	SC_INCMSPRATE		= 232,
+	SC_INCATKRATE		= 233,
+	SC_INCMATKRATE		= 234,
+	SC_INCDEFRATE		= 235,
+	SC_STRFOOD			= 236,
+	SC_AGIFOOD			= 237,
+	SC_VITFOOD			= 238,
+	SC_INTFOOD			= 239,
+	SC_DEXFOOD			= 240,
+	SC_LUKFOOD			= 241,
 };
 extern int SkillStatusChangeTable[];
 
@@ -231,7 +270,7 @@ int status_get_mdef(struct block_list *bl);
 int status_get_flee2(struct block_list *bl);
 int status_get_def2(struct block_list *bl);
 int status_get_mdef2(struct block_list *bl);
-int status_get_baseatk(struct block_list *bl);
+int status_get_batk(struct block_list *bl);
 int status_get_atk(struct block_list *bl);
 int status_get_atk2(struct block_list *bl);
 int status_get_speed(struct block_list *bl);
@@ -284,11 +323,29 @@ int status_change_clear_buffs(struct block_list *bl);
 int status_change_clear_debuffs(struct block_list *bl);
 
 int status_calc_pet(struct map_session_data* sd, int first); // [Skotlex]
-// ステータス計算 pc.c から分離
-// pc_calcstatus
 int status_calc_pc(struct map_session_data* sd,int first);
-int status_calc_speed(struct map_session_data*, int, int, char); // [Celest] - modified by [Skotlex]
-// int status_calc_skilltree(struct map_session_data *sd);
+int status_calc_str(struct block_list *,int);
+int status_calc_agi(struct block_list *,int);
+int status_calc_vit(struct block_list *,int);
+int status_calc_int(struct block_list *,int);
+int status_calc_dex(struct block_list *,int);
+int status_calc_luk(struct block_list *,int);
+int status_calc_batk(struct block_list *,int);
+int status_calc_watk(struct block_list *,int);
+int status_calc_matk(struct block_list *,int);
+int status_calc_hit(struct block_list *,int);
+int status_calc_critical(struct block_list *,int);
+int status_calc_flee(struct block_list *,int);
+int status_calc_flee2(struct block_list *,int);
+int status_calc_def(struct block_list *,int);
+int status_calc_def2(struct block_list *,int);
+int status_calc_mdef(struct block_list *,int);
+int status_calc_mdef2(struct block_list *,int);
+int status_calc_speed(struct block_list *,int);
+int status_calc_aspd_rate(struct block_list *,int);
+int status_calc_maxhp(struct block_list *,int);
+int status_calc_maxsp(struct block_list *,int);
+int status_quick_recalc_speed(struct map_session_data*, int, int, char); // [Celest] - modified by [Skotlex]
 int status_getrefinebonus(int lv,int type);
 //Use this to refer the max refinery level [Skotlex]
 #define MAX_REFINE 10

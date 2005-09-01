@@ -1124,7 +1124,7 @@ static struct Damage battle_calc_weapon_attack(
 				{	//Mobs/Pets
 					if ((md && battle_config.enemy_str) ||
 						(pd && battle_config.pet_str))
-						baseatk = status_get_baseatk(src);
+						baseatk = status_get_batk(src);
 
 					if(skill_num==HW_MAGICCRASHER)
 					{		  
@@ -1144,7 +1144,7 @@ static struct Damage battle_calc_weapon_attack(
 						baseatk = status_get_matk2(src);
 						if (flag.lh) baseatk_ = baseatk;
 					} else { 
-						baseatk = status_get_baseatk(src);
+						baseatk = status_get_batk(src);
 						if (flag.lh) baseatk_ = baseatk;
 					}
 					//rodatazone says that Overrefine bonuses are part of baseatk
@@ -1981,8 +1981,6 @@ struct Damage battle_calc_magic_attack(
 #define MATK_FIX( a,b ) { matk1=matk1*(a)/(b); matk2=matk2*(a)/(b); }
 	if( bl->type==BL_PC && (sd=(struct map_session_data *)bl) ){
 		sd->state.attack_type = BF_MAGIC;
-		if(sd->matk_rate != 100)
-			MATK_FIX(sd->matk_rate,100);
 		sd->state.arrow_atk = 0;
 	}
 	if( target->type==BL_PC )

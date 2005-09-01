@@ -1410,7 +1410,7 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		if(sd->state.lr_flag != 2)
 			sd->mdef2_rate += val;
 		break;
-	case SP_RESTART_FULL_RECORVER:
+	case SP_RESTART_FULL_RECOVER:
 		if(sd->state.lr_flag != 2)
 			sd->special_state.restart_full_recover = 1;
 		break;

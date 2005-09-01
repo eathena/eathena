@@ -5082,7 +5082,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					if (dstsd) pc_heal(dstsd,0,-dstsd->status.sp);
 					break;
 				case 1:	// matk halved
-					status_change_start(bl,SC_INCMATK2,-50,0,0,0,30000,0);
+					status_change_start(bl,SC_INCMATKRATE,-50,0,0,0,30000,0);
 					break;
 				case 2:	// all buffs removed
 					status_change_clear_buffs(bl);
@@ -5096,7 +5096,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					}
 					break;
 				case 4:	// atk halved
-					status_change_start(bl,SC_INCATK2,-50,0,0,0,30000,0);
+					status_change_start(bl,SC_INCATKRATE,-50,0,0,0,30000,0);
 					break;
 				case 5:	// 2000HP heal, random teleported
 					if (sd) pc_heal(sd,2000,0);
@@ -5124,8 +5124,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				case 10:	// 6666 damage, atk matk halved, cursed
 					battle_damage(src, bl, 6666, 1, 0);
 					clif_damage(src,bl,tick,0,0,6666,0,0,0);
-					status_change_start(bl,SC_INCATK2,-50,0,0,0,30000,0);
-					status_change_start(bl,SC_INCMATK2,-50,0,0,0,30000,0);
+					status_change_start(bl,SC_INCATKRATE,-50,0,0,0,30000,0);
+					status_change_start(bl,SC_INCMATKRATE,-50,0,0,0,30000,0);
 					status_change_start(bl,SC_CURSE,skilllv,0,0,0,30000,0);
 					break;
 				case 11:	// 4444 damage
@@ -5136,11 +5136,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					status_change_start(bl,SC_STAN,skilllv,0,0,0,5000,0);
 					break;
 				case 13:	// atk,matk,hit,flee,def reduced
-					status_change_start(bl,SC_INCATK2,-20,0,0,0,30000,0);
-					status_change_start(bl,SC_INCMATK2,-20,0,0,0,30000,0);
-					status_change_start(bl,SC_INCHIT2,-20,0,0,0,30000,0);
-					status_change_start(bl,SC_INCFLEE2,-20,0,0,0,30000,0);
-					status_change_start(bl,SC_INCDEF2,-20,0,0,0,30000,0);
+					status_change_start(bl,SC_INCATKRATE,-20,0,0,0,30000,0);
+					status_change_start(bl,SC_INCMATKRATE,-20,0,0,0,30000,0);
+					status_change_start(bl,SC_INCHITRATE,-20,0,0,0,30000,0);
+					status_change_start(bl,SC_INCFLEERATE,-20,0,0,0,30000,0);
+					status_change_start(bl,SC_INCDEFRATE,-20,0,0,0,30000,0);
 					break;
 				default:
 					break;			
@@ -5319,7 +5319,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	}
 
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
-		status_calc_speed(sd, SA_FREECAST, range, 0); 
+		status_quick_recalc_speed(sd, SA_FREECAST, range, 0);
 
 	if(sd->skillid != SA_CASTCANCEL)
 		sd->skilltimer=-1;
@@ -5473,7 +5473,7 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 		return 0;
 	}
 	if(sd->skillid != SA_CASTCANCEL && sd->skilltimer != -1 && (range = pc_checkskill(sd,SA_FREECAST) > 0)) //Hope ya don't mind me borrowing range :X
-		status_calc_speed(sd, SA_FREECAST, range, 0); 
+		status_quick_recalc_speed(sd, SA_FREECAST, range, 0);
 
 	sd->skilltimer=-1;
 	if(pc_isdead(sd)) {
@@ -6089,18 +6089,18 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 
 	case BA_WHISTLE:			/* 口笛 */
 		if(src->type == BL_PC)
-			val1 = (pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON))>>1;
+			val1 = pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
 		val2 = (status_get_agi(src)/10)&0xffff;
 		val3 = (status_get_luk(src)/10)&0xffff;
 		break;
 	case DC_HUMMING:			/* ハミング */
 		if(src->type == BL_PC)
-			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON))>>1;
+			val1 = pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
 		val2 = status_get_dex(src)/10;
 		break;
 	case DC_DONTFORGETME:		/* 私を忘れないで… */
 		if(src->type == BL_PC)
-			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON))>>1;
+			val1 = pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
 		val2 = (status_get_dex(src)/10)&0xffff;
 		val3 = (status_get_agi(src)/10)&0xffff;
 		break;
@@ -6117,17 +6117,17 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		break;
 	case DC_SERVICEFORYOU:		/* サ?ビスフォ?ユ? */
 		if(src->type == BL_PC)
-			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON))>>1;
+			val1 = pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
 		val2 = (status_get_int(src)/10)&0xffff;
 		break;
 	case BA_ASSASSINCROSS:		/* 夕陽のアサシンクロス */
 		if(src->type == BL_PC)
-			val1 = (pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON))>>1;
+			val1 = pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
 		val2 = status_get_agi(src)/10;
 		break;
 	case DC_FORTUNEKISS:		/* 幸運のキス */
 		if(src->type == BL_PC)
-			val1 = (pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON))>>1;
+			val1 = pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
 		val2 = status_get_luk(src)/10;
 		break;
 
@@ -6620,19 +6620,19 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 					status_change_start(bl,SC_BENEDICTIO,1,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
 					break;
 				case 6: // MaxHP +100%
-					status_change_start(bl,SC_INCMHP2,100,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					status_change_start(bl,SC_INCMHPRATE,100,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
 				    break;
 				case 7: // MaxSP +100%
-					status_change_start(bl,SC_INCMSP2,100,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					status_change_start(bl,SC_INCMSPRATE,100,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
 				    break;
 				case 8: // All stats +20
 					status_change_start(bl,SC_INCALLSTATUS,20,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
 				    break;
    				case 9: // DEF +25%
-					status_change_start(bl,SC_INCDEF2,25,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					status_change_start(bl,SC_INCDEFRATE,25,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
 				    break;
 				case 10: // ATK +100%
-					status_change_start(bl,SC_INCATK2,100,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					status_change_start(bl,SC_INCATKRATE,100,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
 				    break;
 				case 11: // HIT/Flee +50
 					status_change_start(bl,SC_INCHIT,50,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
@@ -6667,13 +6667,13 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 					status_change_start(bl,SC_PROVOKE,10,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
 					break;
 				case 5: // DEF -100%
-					status_change_start(bl,SC_INCDEF2,-100,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					status_change_start(bl,SC_INCDEFRATE,-100,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
 					break;
    				case 6: // ATK -100%
-					status_change_start(bl,SC_INCATK2,-100,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					status_change_start(bl,SC_INCATKRATE,-100,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
 					break;
    				case 7: // Flee -100%
-					status_change_start(bl,SC_INCFLEE2,-100,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
+					status_change_start(bl,SC_INCFLEERATE,-100,0,0,0,skill_get_time2(sg->skill_id, sg->skill_lv),0);
 					break;
 				case 8: // Speed/ASPD -25%
 				    status_change_start(bl,SC_GOSPEL,1,0,0,BCT_ENEMY,skill_get_time2(sg->skill_id, sg->skill_lv),0);
@@ -8088,7 +8088,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		{
 			sd->skilltimer = add_timer (tick + casttime, skill_castend_id, sd->bl.id, 0);
 			if ((skill = pc_checkskill(sd,SA_FREECAST)) > 0)
-				status_calc_speed (sd, SA_FREECAST, skill, 1);
+				status_quick_recalc_speed (sd, SA_FREECAST, skill, 1);
 			else
 				pc_stop_walking(sd,0);
 		}
@@ -8233,7 +8233,7 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 	if (casttime > 0) {
 		sd->skilltimer = add_timer(tick + casttime, skill_castend_pos, sd->bl.id, 0);
 		if ((skill = pc_checkskill(sd,SA_FREECAST)) > 0)
-			status_calc_speed (sd, SA_FREECAST, skill, 1);
+			status_quick_recalc_speed (sd, SA_FREECAST, skill, 1);
 		else
 			pc_stop_walking(sd,0);
 	} else {
@@ -8267,9 +8267,7 @@ int skill_castcancel (struct block_list *bl, int type)
 		sd->canmove_tick = tick;
 		if (sd->skilltimer != -1) {
 			if ((ret = pc_checkskill(sd,SA_FREECAST)) > 0) {
-				status_calc_speed(sd, SA_FREECAST, ret, 0);	//Updated to use calc_speed [Skotlex] 
-			//	sd->speed = sd->prev_speed;
-			//	clif_updatestatus(sd,SP_SPEED);
+				status_quick_recalc_speed(sd, SA_FREECAST, ret, 0);	//Updated to use calc_speed [Skotlex]
 			}
 			if (!type) {
 				if (skill_get_inf( sd->skillid ) & INF_GROUND_SKILL)
@@ -9240,12 +9238,12 @@ int skill_check_cloaking(struct block_list *bl)
 			status_change_end(bl, SC_CLOAKING, -1);
 		}
 		else if (sd && sd->sc_data[SC_CLOAKING].val3 != 130) {
-			status_calc_speed (sd, AS_CLOAKING, 130, 1);
+			status_quick_recalc_speed (sd, AS_CLOAKING, 130, 1);
 		}
 	}
 	else {
 		if (sd && sd->sc_data[SC_CLOAKING].val3 != 103) {
-			status_calc_speed (sd, AS_CLOAKING, 103, 1);
+			status_quick_recalc_speed (sd, AS_CLOAKING, 103, 1);
 		}
 	}
 

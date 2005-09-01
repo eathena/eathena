@@ -1,6 +1,12 @@
 Date	Added
 =======
 09/01
+	* Entirely rewrote status_calc_pc and status_get_[stat] functions to have a clear code.
+	  They all use shared status_calc_[stat] functions to handle SC effects, this will avoid
+	  to have 2 almost identical codes in different places for those effects [DracoRPG]
+	  --> It compiles, it runs, it seems to work but I couldn't perform any extended testing
+	      as always, feel free to report bugs ;)
+	  --> I will fix songs/dances tomorrow, I'm tired now :p
 	* Added battle_option "slaves_inherit_speed" to decide whether slaves have
 	  or not the same walk speed as their master. Defaults to yes. [Skotlex]
 	* Removed val4 from song/dances so that they won't be as bugged anymore.

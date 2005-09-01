@@ -33,6 +33,9 @@
 	1771,Venom_Knife: Item type: Throwing Dagger. Consumable. Should it work as a scroll, or as an arrow, etc.
 	--
 
+09/01
+	* Fixed Taekwon's Fighting Chant max level, thanks to  [DracoRPG]
+	* Added specific status changes for cooked foods' stats bonuses [DracoRPG]
 08/31
 	* Reverted traps to target "enemy", hardcoded to become "all" on gvg
 	  grounds. [Skotlex]
