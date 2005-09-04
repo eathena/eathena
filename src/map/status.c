@@ -1113,16 +1113,16 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	if(pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0)
 		sd->speed -= sd->speed * 25/100;
 	if(pc_ishiding(sd) && (skill=pc_checkskill(sd,RG_TUNNELDRIVE))>0)
-		sd->speed += sd->speed * (100-16*skill);
+		sd->speed += sd->speed * (100-16*skill)/100;
 	if(pc_iscarton(sd) && (skill=pc_checkskill(sd,MC_PUSHCART))>0)
-		sd->speed += sd->speed * (100-10*skill);
+		sd->speed += sd->speed * (100-10*skill)/100;
  	if(sd->skilltimer != -1 && (skill=pc_checkskill(sd,SA_FREECAST))>0)
 		sd->speed += sd->speed * (75-5*skill)/100;
 	if(sd->sc_count && sd->sc_data[SC_DANCING].timer!=-1){
 			int s_rate = 500-40*pc_checkskill(sd,((s_class.job==JOB_BARD)?BA_MUSICALLESSON:DC_DANCINGLESSON));
 			if (sd->sc_data[SC_LONGING].timer!=-1)
 				s_rate -= 20 * sd->sc_data[SC_LONGING].val1;
-			sd->speed += sd->speed * s_rate;
+			sd->speed += sd->speed * s_rate/100;
 	}
 
 	// Apply relative modifiers from equipment

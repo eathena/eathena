@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/03
+	* Fixed speed calc for pushcart/stalk/dancing/singing. [Skotlex]
 	* Some crash-fixes introduced by the rewritten status system. [Skotlex]
 	* Adjusted the default gvg penalty values, added gvg_flee_penalty. [Skotlex]
 	* Fixed skill_blown causing a dangling pointer in the map data. [Skotlex]
