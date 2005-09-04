@@ -34,6 +34,7 @@
 	--
 
 09/04
+	* Added missing +60 SP bonus to the Quve+Lude Card Combo [Lupus]
 	* Changed Rich Man Kim's target from party to enemy. [Skotlex]
 	  (it is now a SC that inflicts the mob, and when it dies applies on the
 	  exp it gives)
