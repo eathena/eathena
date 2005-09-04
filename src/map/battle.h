@@ -370,6 +370,7 @@ extern struct Battle_Config {
 	unsigned short mob_max_skilllvl; // Max possible skill level [Lupus]
 	unsigned short rare_drop_announce; // chance <= to show rare drops global announces
 
+	unsigned short firewall_hits_on_undead; //Number of hits firewall does at a time on undead. [Skotlex]
 #ifndef TXT_ONLY /* SQL-only options */
 	unsigned short mail_system; // [Valaris]
 #endif

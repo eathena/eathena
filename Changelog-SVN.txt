@@ -1,6 +1,12 @@
 Date	Added
 =======
 09/04
+	* Now Safety Wall fails to protect against Acid Terror. [Skotlex]
+	* Added battle_config option firewall_hits_on_undead (defaults to 1) [Skotlex]
+	  The deal is that each time the skill triggers on an undead, this number
+	  of hits will be dealt instead of just one.
+	  PROs: With a value of 5 or so, vertical firewall will work completely.
+	  CONs: A high value means the whole tile can be wasted killing a single mob.
 	* Fixed working stealing with NOLOOT mapflag on. Thanks 2Lorky [Lupus]
 	* Now Knockback won't work when the target is already dead (prevents
 	  ghosts) [Skotlex]

@@ -376,7 +376,9 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 
 	if (sc_count && *sc_count > 0) {
 		if (sc_data[SC_SAFETYWALL].timer!=-1 && damage>0 && flag&BF_WEAPON &&
-			flag&BF_SHORT && skill_num != NPC_GUIDEDATTACK) {
+			flag&BF_SHORT && 
+			(skill_num != NPC_GUIDEDATTACK && skill_num != AM_DEMONSTRATION)
+		) {
 			// セーフティウォール
 			struct skill_unit_group *group = (struct skill_unit_group *)sc_data[SC_SAFETYWALL].val3;
 			if (group) {
@@ -1984,6 +1986,8 @@ struct Damage battle_calc_magic_attack(
 	}
 
 	blewcount = skill_get_blewcount(skill_num,skill_lv);
+	div_=skill_get_num(skill_num,skill_lv);
+
 	matk1=status_get_matk1(bl);
 	matk2=status_get_matk2(bl);
 	ele = skill_get_pl(skill_num);
@@ -2085,8 +2089,11 @@ struct Damage battle_calc_magic_attack(
 			break;
 
 		case MG_FIREWALL:	// ファイヤーウォール
-			if((t_ele==3 || battle_check_undead(t_race,t_ele)) && target->type!=BL_PC)
+			if(flag > 1 || t_ele==3 || battle_check_undead(t_race,t_ele))
+			{	//flag contains the number of hits against undead. [Skotlex]
+				div_ = flag;
 				blewcount = 0;
+			}
 			else
 				blewcount |= 0x10000;
 			md.dmotion=0; //Firewall's delay is always none. [Skotlex]
@@ -2269,8 +2276,6 @@ struct Damage battle_calc_magic_attack(
 				damage=damage/2;	//反動は半分
 		}
 	}
-
-	div_=skill_get_num( skill_num,skill_lv );
 
 	if(div_>1 && skill_num != WZ_VERMILION)
 		damage*=div_;
@@ -3563,6 +3568,7 @@ static const struct battle_data_short {
 	{ "headset_block_music",				&battle_config.headset_block_music}, // [Lupus]
 	{ "mob_max_skilllvl",				&battle_config.mob_max_skilllvl}, // [Lupus]
 	{ "rare_drop_announce",				&battle_config.rare_drop_announce}, // [Lupus]
+	{ "firewall_hits_on_undead",			&battle_config.firewall_hits_on_undead}, // [Skotlex]
 
 //SQL-only options start
 #ifndef TXT_ONLY
@@ -3912,6 +3918,7 @@ void battle_set_defaults() {
 	battle_config.headset_block_music = 0; //Do headsets block some sound skills like Frost Joke [Lupus]
 	battle_config.mob_max_skilllvl = 11; //max possible level of monsters skills [Lupus]
 	battle_config.rare_drop_announce = 10; //show global announces for rare items drops (<= 0.1% chance) [Lupus]
+	battle_config.firewall_hits_on_undead = 1;
 //SQL-only options start
 #ifndef TXT_ONLY
 	battle_config.mail_system = 0;
