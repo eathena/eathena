@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/04
+	* Fixed Trade Bug (when Trade Window indication was wrong). Thanks to k3dt
 	* Now Water Ball isn't affected by RAIN mapflag anymore. Also corrected
 		caclulation of number of WB shots (was broken by a typo) [Lupus]
 		- Rain has been removed from kRO long ago.

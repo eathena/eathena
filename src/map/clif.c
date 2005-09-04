@@ -3471,6 +3471,7 @@ int clif_tradeadditem(struct map_session_data *sd,struct map_session_data *tsd,i
 		WFIFOW(fd,17)= 0; //card (4w)
 	}
 	else{
+		index-=2; //index fix
 		if(sd->inventory_data[index] && sd->inventory_data[index]->view_id > 0)
 			WFIFOW(fd,6) = sd->inventory_data[index]->view_id;
 		else

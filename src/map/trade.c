@@ -242,7 +242,7 @@ void trade_tradeadditem(struct map_session_data *sd, int index, int amount) {
 	}
 
 	clif_tradeitemok(sd, index+2, 0); // Return the index as it was received
-	clif_tradeadditem(sd, target_sd, index, amount);
+	clif_tradeadditem(sd, target_sd, index+2, amount); //index fix
 }
 
 /*==========================================
