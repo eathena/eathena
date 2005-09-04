@@ -100,7 +100,7 @@ enum {
 	SC_VOLCANO			= 94,
 	SC_DELUGE			= 95,
 	SC_VIOLENTGALE		= 96,
-// 97 = empty
+	SC_WATK_ELEMENT	= 97,
 	SC_LANDPROTECTOR	= 98,
 // 99 = empty
 	SC_NOCHAT			= 100,

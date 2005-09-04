@@ -27,7 +27,8 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 /* 0- */
 	-1,-1,-1,-1,-1,-1,
 	SC_PROVOKE,			/* プロボック */
-	-1, 1,-1,
+	SC_WATK_ELEMENT,		//Converts part of your final attack into an elemental one. [Skotlex]
+	-1,-1,
 /* 10- */
 	SC_SIGHT,			/* サイト */
 	-1,
@@ -336,7 +337,7 @@ int status_calc_pet(struct map_session_data *sd, int first)
 		sd->pet.level = sd->status.base_level*battle_config.pet_lv_rate/100;
 		if (sd->pet.level < 0)
 			sd->pet.level = 1;
-		if (pd->status->level != sd->pet.level)
+		if (pd->status->level != sd->pet.level || first)
 		{
 			if (!first) //Lv Up animation
 				clif_misceffect(&pd->bl, 0);
@@ -990,7 +991,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 // ----- FLEE CALCULATION -----
 
 	// Basic Flee value
-	sd->flee += sd->paramc[1] + sd->status.base_level -(map[sd->bl.m].flag.gvg?20:0); // 20 flee penalty on GVG grounds [Skotlex]
+	sd->flee += sd->paramc[1] + sd->status.base_level;
 
 	// Absolute modifiers from passive skills
 	if((skill=pc_checkskill(sd,TF_MISS))>0)
@@ -1714,6 +1715,8 @@ int status_calc_flee(struct block_list *bl, int flee)
 			flee -= flee * 25/100;
 	}
 
+	if (bl->type == BL_PC && map[bl->m].flag.gvg) //GVG grounds flee penalty, placed here because it's "like" a status change. [Skotlex]
+		flee -= flee * battle_config.gvg_flee_penalty/100;
 	return flee;
 }
 
@@ -3979,6 +3982,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_AURABLADE:		/* オ?ラブレ?ド */
 		case SC_BABY:
 		case SC_RUN:
+		case SC_WATK_ELEMENT:
 			break;
 
 		default:

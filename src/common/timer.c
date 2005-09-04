@@ -327,14 +327,11 @@ static void fix_timer_heap(unsigned int tick)
 		//(not perfect, but will work as long as the timer is not expected to happen 50 or so days into the future)
 		int i;
 		int *tmp_heap;
-		unsigned int base_tick = timer_data[timer_heap[0]].tick;
 		for (i=0; i < timer_heap_num && timer_data[timer_heap[i]].tick > 0xf0000000; i++)
-		{	//Readjust the functions with very high tick values, basing around the first one.
-			timer_data[timer_heap[i]].tick -= base_tick;
+		{	//All functions with high tick value should had been executed already...
+			timer_data[timer_heap[i]].tick = 0;
 		}
 		//Move elements to readjust the heap.
-		//TODO: This method assumes all reassigned timer should happen before the functions added afterwards.
-		//A better merging method is in need.
 		tmp_heap = aCalloc(sizeof(int), i);
 		memmove(&tmp_heap[0], &timer_heap[0], i*sizeof(int));
 		memmove(&timer_heap[0], &timer_heap[i], (timer_heap_num-i)*sizeof(int));

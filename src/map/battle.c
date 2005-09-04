@@ -1656,13 +1656,36 @@ static struct Damage battle_calc_weapon_attack(
 		if	(!(!sd && tsd && battle_config.mob_ghostring_fix && t_ele==8))
 		{
 			short t_element = status_get_element(target);
+			int ratio=0, s_element=0, damage;
+			if(sc_data && sc_data[SC_WATK_ELEMENT].timer != -1)
+			{	//Part of the attack becomes elemental. [Skotlex]
+				ratio = sc_data[SC_WATK_ELEMENT].val1;
+				s_element = sc_data[SC_WATK_ELEMENT].val2;
+			}	
 			if (wd.damage > 0)
 			{
-				wd.damage=battle_attr_fix(wd.damage,s_ele,t_element);
+				if (ratio)
+				{
+					damage = wd.damage;
+					wd.damage = battle_attr_fix(damage*(100-ratio)/100,s_ele,t_element);
+					wd.damage+= battle_attr_fix(damage*(ratio)/100,s_element,t_element);
+				}
+				else 
+					wd.damage=battle_attr_fix(wd.damage,s_ele,t_element);
 				if(skill_num==MC_CARTREVOLUTION) //Cart Revolution applies the element fix once more with neutral element
-					wd.damage=battle_attr_fix(wd.damage,0,t_element);
+					wd.damage = battle_attr_fix(wd.damage,0,t_element);
 			}
-			if (flag.lh && wd.damage2 > 0) wd.damage2=battle_attr_fix(wd.damage2,s_ele_,t_element);
+			if (flag.lh && wd.damage2 > 0)
+			{
+				if (ratio)
+				{
+					damage = wd.damage2;
+					wd.damage2 = battle_attr_fix(damage*(100-ratio)/100,s_ele,t_element);
+					wd.damage2+= battle_attr_fix(damage*ratio/100,s_element,t_element);
+				}
+				else
+					wd.damage2 = battle_attr_fix(wd.damage2,s_ele_,t_element);
+			}
 		}
 	}
 
@@ -2063,11 +2086,10 @@ struct Damage battle_calc_magic_attack(
 
 		case MG_FIREWALL:	// ファイヤーウォール
 			if((t_ele==3 || battle_check_undead(t_race,t_ele)) && target->type!=BL_PC)
-			{
 				blewcount = 0;
-				md.dmotion=0;
-			}	else
+			else
 				blewcount |= 0x10000;
+			md.dmotion=0; //Firewall's delay is always none. [Skotlex]
 			skillratio-= 50;
 			break;
 		case MG_THUNDERSTORM:	// サンダーストーム
@@ -2986,7 +3008,20 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			if (map[m].flag.pvp_noparty && s_party && s_party == t_party)
 				state |= BCT_PARTY;
 			else
+			{
 				state |= BCT_ENEMY;
+			
+				if (battle_config.pk_mode)
+				{	//Prevent novice engagement on pk_mode (feature by Valaris)
+					struct map_session_data* sd;
+					if (s_bl->type == BL_PC && (sd = (struct map_session_data*)s_bl) != NULL &&
+						(pc_calc_base_job2(sd->status.class_) == JOB_NOVICE || sd->status.base_level < battle_config.pk_min_level))
+						state&=~BCT_ENEMY;
+					else if (t_bl->type == BL_PC && (sd = (struct map_session_data*)t_bl) != NULL &&
+						(pc_calc_base_job2(sd->status.class_) == JOB_NOVICE || sd->status.base_level < battle_config.pk_min_level))
+						state&=~BCT_ENEMY;
+				}
+			}
 		}
 	}
 	if (flag&BCT_GUILD || ((map[m].flag.gvg || map[m].flag.gvg_dungeon) && flag&BCT_ENEMY))
@@ -3420,6 +3455,7 @@ static const struct battle_data_short {
 	{ "gvg_weapon_attack_damage_rate",     &battle_config.gvg_weapon_damage_rate	},
 	{ "gvg_magic_attack_damage_rate",      &battle_config.gvg_magic_damage_rate	},
 	{ "gvg_misc_attack_damage_rate",       &battle_config.gvg_misc_damage_rate		},
+	{ "gvg_flee_penalty",                  &battle_config.gvg_flee_penalty			},
 	{ "mob_changetarget_byskill",          &battle_config.mob_changetarget_byskill},
 	{ "player_attack_direction_change",    &battle_config.pc_attack_direction_change },
 	{ "monster_attack_direction_change",   &battle_config.monster_attack_direction_change },
@@ -3753,10 +3789,11 @@ void battle_set_defaults() {
 	battle_config.pc_cloak_check_type = 1;
 	battle_config.monster_cloak_check_type = 0;
 	battle_config.gvg_short_damage_rate = 100;
-	battle_config.gvg_long_damage_rate = 80;
+	battle_config.gvg_long_damage_rate = 75;
 	battle_config.gvg_weapon_damage_rate = 60;
-	battle_config.gvg_magic_damage_rate = 60;
+	battle_config.gvg_magic_damage_rate = 50;
 	battle_config.gvg_misc_damage_rate = 60;
+	battle_config.gvg_flee_penalty = 20;
 	battle_config.gvg_eliminate_time = 7000;
 	battle_config.mob_changetarget_byskill = 0;
 	battle_config.pc_attack_direction_change = 1;

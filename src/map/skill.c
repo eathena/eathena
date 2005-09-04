@@ -1210,9 +1210,10 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	if (src->type == BL_PC){
 		nullpo_retr(0, sd = (struct map_session_data *)src);
 	} else if (src->type == BL_MOB){
-		nullpo_retr(0, md = (struct mob_data *)src); //未使用？
-	} else if (src->type == BL_PET){
-		nullpo_retr(0, pd = (struct pet_data *)src); // [Valaris]
+		nullpo_retr(0, md = (struct mob_data *)src);
+	} else// if (src->type == BL_PET){
+//		nullpo_retr(0, pd = (struct pet_data *)src);
+		return 0; //Only mobs/players can be affected. [Skotlex]
 	}
 
 	if(bl->type == BL_PC) {
@@ -1331,7 +1332,9 @@ int skill_blown( struct block_list *src, struct block_list *target,int count, in
 	ret=path_blownpos(target->m,x,y,dx,dy,count&0xffff);
 	nx=ret>>16;
 	ny=ret&0xffff;
-	moveblock=( x/BLOCK_SIZE != nx/BLOCK_SIZE || y/BLOCK_SIZE != ny/BLOCK_SIZE);
+	//Avoid "moving" a target that is not registered in the map (otherwise a dangling pointer is caused) [Skotlex]
+	//This happens when a skill knocks back an enemy and the same hit kills it, so we are pushing around a corpse.
+	moveblock= (target->prev!=NULL) && ( x/BLOCK_SIZE != nx/BLOCK_SIZE || y/BLOCK_SIZE != ny/BLOCK_SIZE);
 
 	if(count&0x20000) {
 		battle_stopwalking(target,1);
@@ -1696,7 +1699,6 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		}
 	}
 
-	/* 吹き飛ばし処理とそのパケット */
 	if (dmg.blewcount > 0 && bl->type!=BL_SKILL && !map[src->m].flag.gvg) {
 		skill_blown(dsrc,bl,dmg.blewcount, 1);
 		if(bl->type == BL_MOB)
@@ -2699,7 +2701,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 				src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
 				skill_castend_damage_id);
 			clif_skill_nodamage (src,src,skillid,skilllv,1);
-			//status_change_start (src,SC_FLAMELAUNCHER,0,0,0,0,10000,0); //FIXME: It's not quite this the actual effect...
+			status_change_start (src,SC_WATK_ELEMENT,3,10,0,0,10000,0); //Initiate 10% of your damage becomes fire element.
 		}
 		break;
 

@@ -237,6 +237,7 @@ extern struct Battle_Config {
 	unsigned short gvg_weapon_damage_rate;
 	unsigned short gvg_magic_damage_rate;
 	unsigned short gvg_misc_damage_rate;
+	unsigned short gvg_flee_penalty;
 	int gvg_eliminate_time;
 	unsigned short mob_changetarget_byskill;
 	unsigned short pc_attack_direction_change;
