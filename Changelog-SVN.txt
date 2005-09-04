@@ -1,5 +1,8 @@
 Date	Added
 =======
+09/04
+	* Pets now won't move while casting (unless their master is like a screen
+	  away or so) [Skotlex]
 09/03
 	* Fixed speed calc for pushcart/stalk/dancing/singing. [Skotlex]
 	* Some crash-fixes introduced by the rewritten status system. [Skotlex]
