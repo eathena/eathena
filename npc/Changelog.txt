@@ -28,6 +28,13 @@ TODO:
 
 Date		Added
 ======
+09/04
+	* Removed duplicate Lighthalzen dungeons/fields warps, thanks to our super moderator, T3H
+	  Manipulator! [DracoRPG]
+	* Updated mob spawns with Dr. Evil ones, they should all be correct and up-to-date,
+	  including Lighthalzen and Juperos dungeons. If something goes wrong, then let's revert,
+	  but I think there won't be any problem (Frugal advised me to use them, and Frugal is a
+	  good spawn expert IMHO :p) [DracoRPG]
 08/31
 	* Some fixes to the refine npc. [Skotlex]
 	* Fixed Lighthalzen field <-> Lightalzen city warps, thanks to Poki#3 [DracoRPG]

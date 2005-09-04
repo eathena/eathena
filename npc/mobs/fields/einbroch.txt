@@ -12,12 +12,6 @@
 //= maps, marked with * are correct
 //============================================================
 
-//(einbroch.gat)? added 1 for fun (this town NPCs aren't ready yet)
-einbroch.gat,0,0,0,0	monster	Metaling	1613,1,180000,180000
-
-//(einbech.gat)? added 1 for fun (this town NPCs aren't ready yet)
-einbech.gat,0,0,0,0	monster	Metaling	1613,1,180000,180000
-
 //(ein_fild06.gat)*
 ein_fild06.gat,0,0,0,0	monster	Goat		1372,30,0,0,0
 ein_fild06.gat,0,0,0,0	monster	Martin	1145,25,0,0

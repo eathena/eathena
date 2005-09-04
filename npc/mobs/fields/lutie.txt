@@ -10,8 +10,10 @@
 //= 1.1 added Hatii Baby according to May 10 patch
 //============================================================
 
-//xmas_fild01
+
+// Lutie Field
+
 xmas_fild01.gat,0,0,0,0	monster	Marin	1242,35,0,0,0
 xmas_fild01.gat,0,0,0,0	monster	Sasquatch	1243,20,0,0,0
-xmas_fild01.gat,0,0,0,0	monster	Hatii Baby	1515,10,30000,30000,0
-xmas_fild01.gat,0,0,0,0	monster	Garm	1252,1,3600000,7200000,0
+xmas_fild01.gat,0,0,0,0	monster	Garm	1252,1,7200000,3600000,1
+xmas_fild01.gat,0,0,0,0	monster	Hatii Baby	1515,1,1800000,0,0

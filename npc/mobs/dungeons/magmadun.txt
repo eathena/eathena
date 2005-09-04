@@ -12,16 +12,19 @@
 //= the Louyang patch [MasterOfMuppets]
 //============================================================
 
-//(mag_dun02.gat)*
+// mag_dun01
+
+//putmob "mag_dun01" 0 0 0 0 20 BLAZZER 0 0 0
+mag_dun01.gat,0,0,0,0	monster	Lava Golem	1366,20,600000,30000,0
+mag_dun01.gat,0,0,0,0	monster	Kaho	1072,20,0,0,0
+mag_dun01.gat,0,0,0,0	monster	Explosion	1383,30,0,0,0
+mag_dun01.gat,0,0,0,0	monster	Grizzly	1381,10,0,0,0
+
+// mag_dun02
+
+mag_dun02.gat,0,0,0,0	monster	Blazer	1367,20,0,0,0
 mag_dun02.gat,0,0,0,0	monster	Nightmare Terror	1379,30,0,0,0
-mag_dun02.gat,0,0,0,0	monster	Diabolic	1382,10,0,0,0
 mag_dun02.gat,0,0,0,0	monster	Sky Deleter	1384,10,0,0,0
 mag_dun02.gat,0,0,0,0	monster	Earth Deleter	1385,10,0,0,0
 mag_dun02.gat,0,0,0,0	monster	Gig	1387,20,0,0,0
-mag_dun02.gat,0,0,0,0	monster	Blazer	1367,20,0,0,0
-
-//(mag_dun01.gat)*
-mag_dun01.gat,0,0,0,0	monster	Lava Golem	1366,20,600000,30000,0
-mag_dun01.gat,0,0,0,0	monster	Grizzly	1381,10,0,0,0
-mag_dun01.gat,0,0,0,0	monster	Kaho	1072,20,0,0,0
-mag_dun01.gat,0,0,0,0	monster	Explosion	1383,30,0,0,0
+mag_dun02.gat,0,0,0,0	monster	Diabolic	1382,10,0,0,0
