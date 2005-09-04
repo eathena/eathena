@@ -2807,9 +2807,11 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 
 	case WZ_WATERBALL:			/* ウォ?タ?ボ?ル */
 		skill_attack(BF_MAGIC,src,src,bl,skillid,skilllv,tick,flag);
-		if (skilllv>1) {
+		if (skilllv>1 && sd) { //why do we check for SD?
 			int range = skilllv > 5 ? 2 : skilllv/2;
-			int cnt = (sd && !map[sd->bl.m].flag.rain) ? skill_count_water(src,range) - 1 : skill_get_num(skillid,skilllv) - 1;
+			//Rain doesn't affect WATERBALL (Rain has been removed at kRO) [Lupus]
+			//int cnt = (sd && !map[sd->bl.m].flag.rain) ? skill_count_water(src,range) - 1 : skill_get_num(skillid,skilllv) - 1;
+			int cnt = skill_count_water(src,range) - 1; //fixed correct N of Water Balls
 			if (cnt > 0)
 				skill_addtimerskill(src,tick+150,bl->id,0,0,
 					skillid,skilllv,cnt,flag);
@@ -7581,8 +7583,8 @@ int skill_check_condition(struct map_session_data *sd,int type)
 		break;
 	case ST_WATER:
 		//水場判定
-		if ((!map[sd->bl.m].flag.rain) &&
-			(sd->sc_data[SC_DELUGE].timer == -1) &&
+		//(!map[sd->bl.m].flag.rain) && //they have removed RAIN effect. [Lupus]
+		if ( (sd->sc_data[SC_DELUGE].timer == -1) &&
 			(!map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKWATER)))
 		{
 			clif_skill_fail(sd,skill,0,0);

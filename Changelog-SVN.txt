@@ -1,6 +1,9 @@
 Date	Added
 =======
 09/04
+	* Now Water Ball isn't affected by RAIN mapflag anymore. Also corrected
+		caclulation of number of WB shots (was broken by a typo) [Lupus]
+		- Rain has been removed from kRO long ago.
 	* Now Safety Wall fails to protect against Acid Terror. [Skotlex]
 	* Added battle_config option firewall_hits_on_undead (defaults to 1) [Skotlex]
 	  The deal is that each time the skill triggers on an undead, this number
