@@ -2984,13 +2984,11 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	
 	if (t_bl == s_bl) //No need for further testing.
 		return (flag&BCT_SELF)?1:-1;
-	
-	if (flag&BCT_ENEMY)
-	{	//Check default enemy settings of mob vs players
-		if ((s_bl->type == BL_MOB && t_bl->type == BL_PC) ||
-			(s_bl->type == BL_PC && t_bl->type == BL_MOB))
-			state |= BCT_ENEMY;
-	}
+
+	//Check default enemy settings.
+	if ((s_bl->type == BL_MOB && t_bl->type == BL_PC) ||
+		(s_bl->type == BL_PC && t_bl->type == BL_MOB))
+		state |= BCT_ENEMY;
 	
 	if (flag&BCT_PARTY || (map[m].flag.pvp && flag&BCT_ENEMY))
 	{	//Identify party state

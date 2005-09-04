@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/04
+	* battle_check_target update: Fixed BCT_NOENEMY checks. [Skotlex]
 	* Moved Mental Sensing bonus from pc_gainexp to mob_damage, it is now a
 	  status effect which the mob itself needs to be inflicted with to take
 	  effect (and everyone involved in killing it will benefit) [Skotlex]

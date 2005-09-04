@@ -1467,8 +1467,10 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 	// ペットによるルート
 	if(!pd->target_id && pd->loot && pd->loot->count < pd->loot->max && DIFF_TICK(gettick(),pd->loot->timer)>0)
 		map_foreachinarea(pet_ai_sub_hard_lootsearch,pd->bl.m,
-						  pd->bl.x-AREA_SIZE*2,pd->bl.y-AREA_SIZE*2,
-						  pd->bl.x+AREA_SIZE*2,pd->bl.y+AREA_SIZE*2,
+						  pd->bl.x-6,pd->bl.y-6, //If pet_ai_sub_hard_lootsearch limits itself to a range of 5, WHY use AREA_SIZE here? o.O [Skotlex]
+						  pd->bl.x+6,pd->bl.y+6,
+//						  pd->bl.x-AREA_SIZE*2,pd->bl.y-AREA_SIZE*2,
+//						  pd->bl.x+AREA_SIZE*2,pd->bl.y+AREA_SIZE*2,
 						  BL_ITEM,pd,&i);
 
 	if(sd->pet.intimate > 0) {
