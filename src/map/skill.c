@@ -1192,7 +1192,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	struct map_session_data *dstsd=NULL;
 	struct mob_data *md=NULL;
 	struct mob_data *dstmd=NULL;
-	struct pet_data *pd=NULL;
+//	struct pet_data *pd=NULL; Pet's can't be inflicted!
 
 	int sc_def_mdef,sc_def_vit,sc_def_int,sc_def_luk;
 

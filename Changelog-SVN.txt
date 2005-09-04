@@ -1,6 +1,9 @@
 Date	Added
 =======
 09/04
+	* Moved Mental Sensing bonus from pc_gainexp to mob_damage, it is now a
+	  status effect which the mob itself needs to be inflicted with to take
+	  effect (and everyone involved in killing it will benefit) [Skotlex]
 	* Pets now won't move while casting (unless their master is like a screen
 	  away or so) [Skotlex]
 09/03

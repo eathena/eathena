@@ -4090,14 +4090,6 @@ int pc_gainexp(struct map_session_data *sd,int base_exp,int job_exp)
 	if((battle_config.pvp_exp == 0) && map[sd->bl.m].flag.pvp)  // [MouseJstr]
 		return 0; // no exp on pvp maps
 
-	if(sd->sc_data[SC_RICHMANKIM].timer != -1) { // added bounds checking [Valaris]
-		double base, job;
-		base = ((double)base_exp)*(125 + sd->sc_data[SC_RICHMANKIM].val1*11)/100;
-		job = ((double)job_exp)*(125 + sd->sc_data[SC_RICHMANKIM].val1*11)/100;
-		base_exp = (base > 0x7fffffff) ? 0x7fffffff : (int)base;
-		job_exp = (job > 0x7fffffff) ? 0x7fffffff : (int)job;
-	}
-
 	if(sd->status.guild_id>0){	// ƒMƒ‹ƒh‚Éã”[
 		base_exp-=guild_payexp(sd,base_exp);
 		if(base_exp < 0)

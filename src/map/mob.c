@@ -2404,6 +2404,11 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 
 	// ----- ‚±‚±‚©‚çŽ€–Sˆ— -----
 
+
+	//changestate will clear all status effects, so we need to know if RICHMANKIM is in effect before then. [Skotlex]
+	//I just recycled ret because it isn't used until much later and I didn't want to add a new variable for it.
+	ret = (md->sc_data[SC_RICHMANKIM].timer != -1)?(25 + 11*sd->sc_data[SC_RICHMANKIM].val1):0;
+	
 	map_freeblock_lock();
 	mob_changestate(md,MS_DEAD,0);
 	mobskill_use(md,tick,-1);	// Ž€–SŽžƒXƒLƒ‹
@@ -2484,6 +2489,8 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 
 		base_exp = (unsigned long)md->db->base_exp;
 		job_exp = (unsigned long)md->db->job_exp;
+
+		per += ret/100.; //SC_RICHMANKIM bonus. [Skotlex]
 
 		if(sd) {
 			if (sd->expaddrace[race])

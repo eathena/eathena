@@ -33,6 +33,10 @@
 	1771,Venom_Knife: Item type: Throwing Dagger. Consumable. Should it work as a scroll, or as an arrow, etc.
 	--
 
+09/04
+	* Changed Rich Man Kim's target from party to enemy. [Skotlex]
+	  (it is now a SC that inflicts the mob, and when it dies applies on the
+	  exp it gives)
 09/02
 	* Changed Firewall's knockback to 1. [Skotlex]
 09/01
