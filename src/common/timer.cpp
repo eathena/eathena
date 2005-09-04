@@ -32,7 +32,7 @@ static size_t				timer_heap_pos	=0;
 // for debug
 struct timer_func_list
 {
-	int (*func)(int,unsigned long,int,int);
+	int (*func)(int,unsigned long,int,intptr);
 	struct timer_func_list* next;
 	char name[2];// will allocate larger from here and copy the name beyond this structure
 };
@@ -40,7 +40,7 @@ struct timer_func_list
 static struct timer_func_list* tfl_root=NULL;
 
 //
-int add_timer_func_list(int (*func)(int,unsigned long,int,int),char* name)
+int add_timer_func_list(int (*func)(int,unsigned long,int,intptr),char* name)
 {
 	if(name)
 	{	// pad a struct timer_func_list together with the name
@@ -54,7 +54,7 @@ int add_timer_func_list(int (*func)(int,unsigned long,int,int),char* name)
 	return 0;
 }
 
-char* search_timer_func_list(int (*func)(int,unsigned long,int,int))
+char* search_timer_func_list(int (*func)(int,unsigned long,int,intptr))
 {
 	struct timer_func_list* tfl;
 	for(tfl = tfl_root;tfl;tfl = tfl->next) {
@@ -92,13 +92,11 @@ unsigned long gettick(void)
  *--------------------------------------
  */
 
-inline int timer_data_diff_tick(size_t a, size_t b)
-{	// sort for tick count first
+inline long timer_data_diff_tick(size_t a, size_t b)
+{	// sort for tick count first, no index check here
 	unsigned long x = timer_data[a].tick - timer_data[b].tick;
 	// then sort for index number
-	if( x==0 ) return a-b;
-	unsigned long y = timer_data[b].tick - timer_data[a].tick;
-	return (x<y) ? ((int)x) : -((int)y);
+	return (x==0) ? a-b : x;
 }
 
 
@@ -154,7 +152,8 @@ int search_timer_heap(size_t* field, size_t count, size_t elem, size_t &pos)
 
 
 // デバッグ用関数群
-void dump_timer_heap(void) {
+void dump_timer_heap(void)
+{
 	size_t j;
 	for(j = 0; j < timer_heap_pos; j++) {
 		if( j != (timer_heap_pos-1) && 
@@ -181,8 +180,7 @@ int push_timer_heap(size_t index)
 
 	// push value to the heap
 	if( !search_timer_heap(timer_heap, timer_heap_pos, index, pos) )
-	{
-		// move all elements after pos for one step
+	{	// move all elements after pos for one step
 		memmove( timer_heap+pos+1, timer_heap+pos, (timer_heap_pos-pos)*sizeof(size_t) );
 		timer_heap[pos] = index;
 		timer_heap_pos++;
@@ -328,11 +326,10 @@ size_t aquire_timer(void)
 void release_timer(size_t tid)
 {
 	// clean the timer before putting it to the free timers
-	if( (timer_data[tid].type.pt) && (0 != timer_data[tid].data) )
+	if( (timer_data[tid].type.pt) && timer_data[tid].data.isptr && (NULL != timer_data[tid].data.ptr) )
 	{	// clear if pointer still exist
-		void *p = (void*)timer_data[tid].data;
-		aFree(p);
-		timer_data[tid].data	= 0;
+		aFree( timer_data[tid].data.ptr );
+		timer_data[tid].data = 0;
 	}
 	timer_data[tid].type.pt  = false;
 	timer_data[tid].func     = NULL;
@@ -352,7 +349,21 @@ void release_timer(size_t tid)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
-int add_timer(unsigned long tick, int (*func)(int,unsigned long,int,int),int id, int data)
+int add_timer(unsigned long tick, int (*func)(int,unsigned long,int,intptr),int id, int data)
+{
+	size_t tid = aquire_timer();
+	
+	timer_data[tid].tick	 = tick;
+	timer_data[tid].func	 = func;
+	timer_data[tid].id		 = id;
+	timer_data[tid].data.num = data;
+	timer_data[tid].type.pt  = false;
+	timer_data[tid].interval = 0;
+	
+	push_timer_heap(tid);
+	return tid;
+}
+int add_timer(unsigned long tick, int (*func)(int,unsigned long,int,intptr),int id, intptr data, bool ownptr)
 {
 	size_t tid = aquire_timer();
 	
@@ -360,27 +371,27 @@ int add_timer(unsigned long tick, int (*func)(int,unsigned long,int,int),int id,
 	timer_data[tid].func	 = func;
 	timer_data[tid].id		 = id;
 	timer_data[tid].data	 = data;
-	timer_data[tid].type.pt  = false;
+	timer_data[tid].type.pt  = ownptr;
 	timer_data[tid].interval = 0;
 	
 	push_timer_heap(tid);
 	return tid;
 }
-int add_timer_p(unsigned long tick, int (*func)(int,unsigned long,int,int),int id, void* pdata)
+int add_timer_interval(unsigned long tick, unsigned long interval,int (*func)(int,unsigned long,int,intptr),int id,int data)
 {
 	size_t tid = aquire_timer();
-	
+
 	timer_data[tid].tick	 = tick;
 	timer_data[tid].func	 = func;
 	timer_data[tid].id		 = id;
-	timer_data[tid].data	 = (int)pdata;
-	timer_data[tid].type.pt  = true;
-	timer_data[tid].interval = 0;
-	
+	timer_data[tid].data.num = data;
+	timer_data[tid].type.pt  = false;
+	timer_data[tid].interval = interval;
+
 	push_timer_heap(tid);
 	return tid;
 }
-int add_timer_interval(unsigned long tick, unsigned long interval,int (*func)(int,unsigned long,int,int),int id,int data)
+int add_timer_interval(unsigned long tick, unsigned long interval,int (*func)(int,unsigned long,int,intptr),int id, intptr data, bool ownptr)
 {
 	size_t tid = aquire_timer();
 
@@ -388,28 +399,13 @@ int add_timer_interval(unsigned long tick, unsigned long interval,int (*func)(in
 	timer_data[tid].func	 = func;
 	timer_data[tid].id		 = id;
 	timer_data[tid].data	 = data;
-	timer_data[tid].type.pt  = false;
-	timer_data[tid].interval = interval;
-
-	push_timer_heap(tid);
-	return tid;
-}
-int add_timer_interval_p(unsigned long tick, unsigned long interval,int (*func)(int,unsigned long,int,int),int id,void*pdata)
-{
-	size_t tid = aquire_timer();
-
-	timer_data[tid].tick	 = tick;
-	timer_data[tid].func	 = func;
-	timer_data[tid].id		 = id;
-	timer_data[tid].data	 = (int)pdata;
-	timer_data[tid].type.pt  = true;
 	timer_data[tid].interval = interval;
 
 	push_timer_heap(tid);
 	return tid;
 }
 
-int delete_timer(size_t tid, int (*func)(int,unsigned long,int,int))
+int delete_timer(size_t tid, int (*func)(int,unsigned long,int,intptr))
 {
 	
 	// a basic check
@@ -419,9 +415,9 @@ int delete_timer(size_t tid, int (*func)(int,unsigned long,int,int))
 	}
 	// more specific check
 	if( timer_data[tid].func != func ) {
-		ShowMessage("delete_timer error : function dismatch %08x(%s) != %08x(%s)\n",
-			(int)timer_data[tid].func, search_timer_func_list(timer_data[tid].func),
-			(int)func, search_timer_func_list(func));
+		ShowMessage("delete_timer error : function dismatch %p(%s) != %p(%s)\n",
+			timer_data[tid].func, search_timer_func_list(timer_data[tid].func),
+			func, search_timer_func_list(func));
 		return -2;
 	}
 
@@ -443,7 +439,9 @@ int addtick_timer(size_t tid, unsigned long tick)
 
 struct TimerData* get_timer(size_t tid)
 {
-	return &timer_data[tid];
+	if(tid<timer_data_pos)
+		return &timer_data[tid];
+	return NULL;
 }
 
 

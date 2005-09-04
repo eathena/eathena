@@ -215,10 +215,10 @@ struct script_regstr
 struct status_change
 {
 	int timer;
-	long val1;
-	long val2;
-	long val3;
-	long val4;
+	intptr val1;
+	intptr val2;
+	intptr val3;
+	intptr val4;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -678,9 +678,10 @@ struct map_session_data
 	unsigned long pvp_lastusers;
 	int pvp_timer;
 
-	char eventqueue[MAX_EVENTQUEUE][50];
 	long eventtimer[MAX_EVENTTIMER];
 	unsigned short eventcount; // [celest]
+
+//	char eventqueue[MAX_EVENTQUEUE][50];
 
 	unsigned short change_level;	// [celest]
 	unsigned long canuseitem_tick;
@@ -692,7 +693,7 @@ struct map_session_data
 ///////////////////////////////////////////////////////////////////////////////
 struct npc_timerevent_list {
 	int timer;
-	int pos;
+	size_t pos;
 };
 struct npc_item_list {
 	unsigned short nameid;
@@ -700,12 +701,12 @@ struct npc_item_list {
 };
 struct npc_label_list {
 	char labelname[24];
-	int pos;
+	size_t pos;
 };
 struct npc_reference{
 	char *script;
 	struct npc_label_list *label_list;
-	int label_list_num;	
+	size_t label_list_num;	
 	size_t refcnt;			//reference counter
 };
 struct npc_data {
@@ -745,7 +746,7 @@ struct npc_data {
 			int timerid;
 			int timeramount;
 			int nexttimer;
-			int rid;
+			unsigned long rid;
 			unsigned long timertick;
 			struct npc_timerevent_list *timer_event;
 		} scr;
@@ -1201,7 +1202,7 @@ enum {
 	SP_WEAPON_ATK,SP_WEAPON_ATK_RATE, // 1081-1082
 	SP_DELAYRATE,	// 1083
 	
-	SP_RESTART_FULL_RECORVER=2000,SP_NO_CASTCANCEL,SP_NO_SIZEFIX,SP_NO_MAGIC_DAMAGE,SP_NO_WEAPON_DAMAGE,SP_NO_GEMSTONE, // 2000-2005
+	SP_RESTART_FULL_RECOVER=2000,SP_NO_CASTCANCEL,SP_NO_SIZEFIX,SP_NO_MAGIC_DAMAGE,SP_NO_WEAPON_DAMAGE,SP_NO_GEMSTONE, // 2000-2005
 	SP_NO_CASTCANCEL2,SP_INFINITE_ENDURE,SP_UNBREAKABLE_WEAPON,SP_UNBREAKABLE_ARMOR, SP_UNBREAKABLE_HELM, // 2006-2010
 	SP_UNBREAKABLE_SHIELD, SP_LONG_ATK_RATE, // 2011-2012
 
@@ -1300,8 +1301,8 @@ int map_quit(struct map_session_data &sd);
 int map_addnpc(unsigned short m, struct npc_data *nd);
 
 // 床アイテム関連
-int map_clearflooritem_timer(int tid,unsigned long tick,int id,int data);
-int map_removemobs_timer(int tid,unsigned long tick,int id,int data);
+int map_clearflooritem_timer(int tid, unsigned long tick, int id, intptr data);
+int map_removemobs_timer(int tid, unsigned long tick, int id, intptr data);
 #define map_clearflooritem(id) map_clearflooritem_timer(0,0,id,1)
 int map_addflooritem(struct item &item_data,unsigned short amount,unsigned short m,unsigned short x,unsigned short y,struct map_session_data *first_sd,struct map_session_data *second_sd,struct map_session_data *third_sd,int type);
 int map_searchrandfreecell(unsigned short m,int x,int y,int range);

@@ -18,7 +18,7 @@
 
 static struct dbt* party_db;
 
-int party_send_xyhp_timer(int tid,unsigned long tick,int id,int data);
+int party_send_xyhp_timer(int tid, unsigned long tick, int id, intptr data);
 /*==========================================
  * I—¹
  *------------------------------------------
@@ -544,7 +544,7 @@ int party_send_xyhp_timer_sub(void *key,void *data,va_list ap)
 	return 0;
 }
 // ˆÊ’u‚â‚g‚o’Ê’m
-int party_send_xyhp_timer(int tid,unsigned long tick,int id,int data)
+int party_send_xyhp_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	numdb_foreach(party_db,party_send_xyhp_timer_sub,tick);
 	guild_send_xy(tick);

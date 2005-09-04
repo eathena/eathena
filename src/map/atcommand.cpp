@@ -1864,7 +1864,7 @@ bool atcommand_hide(int fd, struct map_session_data &sd, const char* command, co
  */
 bool atcommand_jobchange(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	int job = 0, upper = 0;
+	size_t job = 0, upper = 0;
 
 
 	if (!message || !*message || sscanf(message, "%d %d", &job, &upper) < 1) {
@@ -1944,7 +1944,7 @@ bool atcommand_jobchange(int fd, struct map_session_data &sd, const char* comman
 			{ "soul linker",	4049 },
 		};
 
-		for (i=0; i < (int)(sizeof(jobs) / sizeof(jobs[0])); i++) {
+		for (i=0; i < (sizeof(jobs) / sizeof(jobs[0])); i++) {
 			if(strncasecmp(message, jobs[i].name, 16) == 0) {
 				job = jobs[i].id;
 				upper = 0;
@@ -2425,7 +2425,7 @@ bool atcommand_joblevelup(int fd, struct map_session_data &sd, const char* comma
 			clif_displaymessage(fd, msg_table[159]); // Job level can't go any lower.
 			return false;
 		}
-		if (level < -(int)up_level || level < (1 - (int)sd.status.job_level)) // fix negativ overflow
+		if (level < -up_level || level < (1 - (int)sd.status.job_level)) // fix negativ overflow
 			level = 1 - sd.status.job_level;
 		sd.status.job_level += level;
 		clif_updatestatus(sd, SP_JOBLEVEL);
@@ -7723,7 +7723,7 @@ static int users_all;
 
 int atcommand_users_sub1(struct map_session_data &sd, va_list va)
 {
-	int users = (int)strdb_search(users_db,sd.mapname) + 1;
+	size_t users = (size_t)strdb_search(users_db,sd.mapname) + 1;
 	users_all++;
 	strdb_insert(users_db,sd.mapname,(void *)users);
 	return 0;
@@ -7735,7 +7735,7 @@ int atcommand_users_sub2(void* key,void* val,va_list va)
 	struct map_session_data* sd = va_arg(va,struct map_session_data*);
 	if(sd)
 	{
-	sprintf(buf,"%s : %d (%d%%)",(char *)key,(int)val,(int)val * 100 / users_all);
+	sprintf(buf,"%s : %d (%d%%)",(char *)key,(ssize_t)val,(ssize_t)val * 100 / users_all);
 	clif_displaymessage(sd->fd,buf);
 	}
 	return 0;

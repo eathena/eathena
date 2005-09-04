@@ -35,9 +35,9 @@ protected:
 	}
 	bool init(unsigned long interval)
 	{
-		if(interval<1000)
+		if(interval<1000) 
 			interval = 1000;
-		cTimer = add_timer_interval(gettick()+interval, interval, timercallback, 0, (int)this);
+		cTimer = add_timer_interval(gettick()+interval, interval, timercallback, 0, intptr(this), false);
 		return (cTimer>=0);
 	}
 
@@ -45,11 +45,11 @@ protected:
 	virtual bool timeruserfunc(unsigned long tick) = 0;
 
 	// external calling from external timer implementation
-	static int timercallback(int timer, unsigned long tick, int id, int data)
+	static int timercallback(int timer, unsigned long tick, int id, intptr data)
 	{
-		if(data)
+		if(data.ptr)
 		{
-			CTimerBase* base = (CTimerBase*)data;
+			CTimerBase* base = (CTimerBase*)data.ptr;
 			if(timer==base->cTimer)
 			{
 				if( !base->timeruserfunc(tick) )
@@ -95,7 +95,7 @@ protected:
 
 	///////////////////////////////////////////////////////////////////////////
 *	Account Data which holds the necessary data for an account
-
+	
 	unsigned long account_id;	// id to identify an account
 	char userid[24];			// user name
 	char passwd[34];			// user password
@@ -109,7 +109,7 @@ protected:
 	time_t ban_until;			// set to time(NULL)+delta for temporary ban
 	time_t valid_until;			// set to time(NULL) for disabling
 
-	the values state, error_message, memo are quite useless,
+	the values state, error_message, memo are quite useless, 
 	state might be usefull for debugging login of accounts
 	but it is easier to read the output then to dig in the db for that
 
@@ -180,7 +180,7 @@ public:
 		safestrcpy(GM_account_filename,"conf/GM_account.txt",sizeof(GM_account_filename));
 
 		init(configfile);
-	}
+	}	
 	virtual ~CAccountDB_txt()
 	{
 		close();
@@ -299,7 +299,7 @@ private:
 			///////////////////////////////////
 			TslistDST<CMapGM> gmlist;
 			readGMAccount(gmlist);
-
+			
 			while( fgets(line, sizeof(line), fp) )
 			{
 				if( !skip_empty_line(line) )
@@ -332,7 +332,7 @@ private:
 					next_account_id = account_id;
 					continue;
 				}
-
+				
 				/////////////////////////////////////
 				// Some checks
 				if (account_id > 10000000) //!!END_ACCOUNT_NUM
@@ -365,7 +365,7 @@ private:
 				else
 				{
 					CLoginAccount temp;
-
+					
 					temp.account_id = account_id;
 					safestrcpy(temp.userid, userid, sizeof(temp.userid));
 
@@ -444,10 +444,10 @@ private:
 						temp.account_reg2[j].value = v;
 					}
 					temp.account_reg2_num = j;
-
+					
 					if (next_account_id <= account_id)
 						next_account_id = account_id + 1;
-
+				
 					insert(temp);
 				}
 			}
@@ -544,18 +544,18 @@ private:
 						"%s\t"
 						"%s\t"
 						"%ld\t",
-						cList[i].account_id,
-						cList[i].userid,
-						cList[i].passwd,
+						cList[i].account_id, 
+						cList[i].userid, 
+						cList[i].passwd, 
 						(*cList[i].last_login)?cList[i].last_login:"-",
 						(cList[i].sex == 2) ? 'S' : (cList[i].sex ? 'M' : 'F'),
-						cList[i].login_count,
+						cList[i].login_count, 
 						cList[i].state,
-						(*cList[i].email)?cList[i].email:"a@a.com",
-						(*cList[i].error_message)?cList[i].error_message:"-",
+						(*cList[i].email)?cList[i].email:"a@a.com", 
+						(*cList[i].error_message)?cList[i].error_message:"-", 
 						(unsigned long)cList[i].valid_until,
-						(*cList[i].last_ip)?cList[i].last_ip:"-",
-						(*cList[i].memo)?cList[i].memo:"-",
+						(*cList[i].last_ip)?cList[i].last_ip:"-", 
+						(*cList[i].memo)?cList[i].memo:"-", 
 						(unsigned long)cList[i].ban_until);
 			for(k = 0; k< cList[i].account_reg2_num; k++)
 				if(cList[i].account_reg2[k].str[0])
@@ -700,11 +700,11 @@ bool CAccountDB_txt::removeAccount(unsigned long accid)
 	return false;
 }
 bool CAccountDB_txt::saveAccount(const CLoginAccount& account)
-{
+{	
 	size_t pos;
-
+	
 	if( cList.find(account, pos, 1) )
-	{
+	{	
 		cList(pos,1) = account;
 
 		savecount++;
@@ -800,7 +800,7 @@ private:
 			last_point.y = 354;
 		}
 
-		str_p += sprintf(str_p,
+		str_p += sprintf(str_p, 
 			"%ld"
 			"\t%ld,%d"
 			"\t%s"
@@ -818,8 +818,8 @@ private:
 			"\t%ld,%ld,%ld,%ld"
 			"\t%ld"
 			"\t",
-			p.char_id,
-			p.account_id, p.slot,
+			p.char_id, 
+			p.account_id, p.slot, 
 			p.name,
 			p.class_, p.base_level, p.job_level,
 			p.base_exp, p.job_exp, p.zeny,
@@ -887,7 +887,7 @@ private:
 		memset(&p, 0, sizeof(CCharCharacter));
 		memset(tmp_int, 0, sizeof(tmp_int));
 
-		if( sscanf(str,
+		if( sscanf(str, 
 			"%d\t%d,%d\t%[^\t]"
 			"\t%d,%d,%d"
 			"\t%d,%d,%d"
@@ -914,7 +914,7 @@ private:
 			&tmp_int[27], &tmp_int[28], &tmp_int[29],
 			&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
 			p.last_point.map, &tmp_int[35], &tmp_int[36], //
-			p.save_point.map, &tmp_int[37], &tmp_int[38], &tmp_int[39],
+			p.save_point.map, &tmp_int[37], &tmp_int[38], &tmp_int[39], 
 			&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) == 47 )
 		{
 			// my personal reordering
@@ -934,7 +934,7 @@ private:
 			&tmp_int[27], &tmp_int[28], &tmp_int[29],
 			&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
 			p.last_point.map, &tmp_int[35], &tmp_int[36], //
-			p.save_point.map, &tmp_int[37], &tmp_int[38], &tmp_int[39],
+			p.save_point.map, &tmp_int[37], &tmp_int[38], &tmp_int[39], 
 			&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) == 47 )
 		{
 			// Char structture of version 1488+
@@ -1033,7 +1033,7 @@ private:
 			tmp_int[43] = 0; // fame
 			//ShowMessage("char: old char data ver.1\n");
 		}
-		else
+		else 
 		{
 			ShowError(CL_BT_RED"Character line not recognized.\n"CL_NORM);
 			ShowMessage("           Line saved in log file.""\n");
@@ -1496,7 +1496,7 @@ CREATE TABLE `char_skill` (
 				// some error, message printed within
 				//!! log line
 				//char_log("%s", line);
-			}
+			}	
 
 		}
 		fclose(fp);
@@ -1553,7 +1553,7 @@ CREATE TABLE `char_skill` (
 			if(fb) lock_fclose(fp, backup_txt, &lock);
 			return true;
 		}
-
+		
 	}
 
 
@@ -1617,14 +1617,14 @@ CREATE TABLE `char_skill` (
 			slot >= 9 ||						// slots
 			account.charlist[slot]!=0 ||
 			hair_style >= 24 ||					// styles
-			hair_style >= 9)
+			hair_style >= 9)	
 		{
 			//char_log("Make new char error (invalid values): (connection #%d, account: %d) slot %d, name: %s, stats: %d+%d+%d+%d+%d+%d=%d, hair: %d, hair color: %d" RETCODE,
 			//		 fd, sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[24] + dat[25] + dat[26] + dat[27] + dat[28] + dat[29], dat[33], dat[31]);
 			return false;
 		}
 //!! adding name_ignoring_case
-
+		
 		if( cCharList.find(tempchar, pos, 1) )
 		{
 			//char_log("Make new char error (name already exists): (connection #%d, account: %d) slot %d, name: %s (actual name of other char: %d), stats: %d+%d+%d+%d+%d+%d=%d, hair: %d, hair color: %d." RETCODE,
@@ -1632,7 +1632,7 @@ CREATE TABLE `char_skill` (
 			return false;
 		}
 
-//!! testing wisp_server_name otherwise
+//!! testing wisp_server_name otherwise		
 
 
 		//char_log("Creation of New Character: (connection #%d, account: %d) slot %d, character Name: %s, stats: %d+%d+%d+%d+%d+%d=%d, hair: %d, hair color: %d." RETCODE,
@@ -1686,7 +1686,7 @@ CREATE TABLE `char_skill` (
 
 		account.charlist[slot] = tempchar.char_id;
 		cCharList.insert(tempchar);
-
+		
 		return true;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -1763,7 +1763,7 @@ CREATE TABLE `char_skill` (
 				&friendlist[19].friend_id,friendlist[19].friend_name);
 
 				if( cCharList.find( CCharCharacter(cid), pos, 0) )
-				{
+				{	
 					CCharCharacter &temp = cCharList(pos,0);
 					size_t i;
 					for (i=0; i<MAX_FRIENDLIST; i++)
@@ -2023,7 +2023,7 @@ CCharDBInterface* CCharDB::getDB(const char *dbcfgfile)
 ///////////////////////////////////////////////////////////////////////////////
 // a text based database with extra index
 // not much tested though and quite basic
-// but should be as fast as file access allows
+// but should be as fast as file access allows 
 // faster than sql anyway + threadsafe (not shareable though)
 ///////////////////////////////////////////////////////////////////////////////
 #define DB_OPCOUNTMAX 100	// # of db ops before forced cache flush
@@ -2072,19 +2072,19 @@ public:
 	{
 		ScopeLock sl(*this);
 		char *ip;
-
+		
 		if(NULL==name)
 			return false;
 
 		close();
 
 		// with some extra space for file extension
-		cName = new char[5+strlen(name)];
+		cName = new char[5+strlen(name)]; 
 		// copy and correct the path seperators
 		checkpath(cName, name);
 
 		ip = strrchr(cName, '.');		// find a point in the name
-		if(!ip || strchr(ip, PATHSEP) )	// if name had no point
+		if(!ip || strchr(ip, PATHSEP) )	// if name had no point					
 			ip = cName+strlen(cName);	// take all as name
 
 		strcpy(ip, ".txt");
@@ -2138,12 +2138,12 @@ public:
 		// rebuild at close either, but might need to test
 		rebuild();
 
-		if(cDB)
+		if(cDB) 
 		{
 			fclose(cDB);
 			cDB = NULL;
 		}
-		if(cIX)
+		if(cIX) 
 		{
 			fclose(cIX);
 			cIX = NULL;
@@ -2158,25 +2158,25 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// flushes cache to files
 	bool flush(bool force=false)
-	{
+	{	
 		ScopeLock sl(*this);
 		bool ret = true;
 		// check if necessary
 		cOpCount++;
 		if( force || cOpCount > DB_OPCOUNTMAX )
 		{	// need to flush
-			if(cDB)
+			if(cDB) 
 			{
 				// nothing to flush here right now
 			}
-			if(cIX)
+			if(cIX) 
 			{
 				// write index
 				fseek(cIX, 0, SEEK_SET);
 				fprintf(cIX,"%li\n", cIndex.size());
 				for(size_t i=0; i<cIndex.size(); i++)
 				{
-					fprintf(cIX,"%li,%li,%li\n",
+					fprintf(cIX,"%li,%li,%li\n", 
 						cIndex[i].cKey, cIndex[i].cPos, cIndex[i].cLen);
 				}
 				fflush(cIX);
@@ -2267,13 +2267,13 @@ public:
 
 		char *ip = cName+strlen(cName);
 		strcpy(ip, ".tmp");
-
+		
 		FILE* tmp=fopen(cName, "wb");
 		if(!tmp)
 			return false;
 
 		for(size_t i=0; i<cIndex.size(); i++)
-		{
+		{	
 			k=cIndex[i].cKey;
 			p=ftell(tmp);
 			l=cIndex[i].cLen;
@@ -2338,19 +2338,19 @@ bool CConfig::LoadConfig(const char* cfgName)
 	}
 
 	ShowInfo("Reading configuration file '%s'\n", cfgName);
-	while(fgets(line, sizeof(line), fp))
+	while(fgets(line, sizeof(line), fp)) 
 	{
 		// terminate buffer
 		line[sizeof(line)-1] = '\0';
 
 		// skip leading spaces
 		ip = line;
-		while( isspace((int)((unsigned char)*ip) ) ) ip++;
+		while( isspace((int)((unsigned char)*ip) ) ) ip++; 
 
 		// skipping comment lines
 		if( ip[0] == '/' && ip[1] == '/')
 			continue;
-
+			
 		memset(w2, 0, sizeof(w2));
 		// format: "name:value"
 		if (sscanf(ip, "%[^:]: %[^\r\n]", w1, w2) == 2)
@@ -2380,7 +2380,7 @@ ulong CConfig::String2IP(const char* str)
 	// look up the name, can take long for timeout looking up non-existing addresses
 
 	struct hostent *h = gethostbyname(str);
-	if (h != NULL)
+	if (h != NULL) 
 	{	// returned ip's are hostbyte order
 		return	  (((ulong)h->h_addr[3]) << 0x18 )
 				| (((ulong)h->h_addr[2]) << 0x10 )
@@ -2440,7 +2440,7 @@ bool CConfig::CleanControlChars(char *str)
 	bool change = false;
 	if(str)
 	while( *str )
-	{	// replace control chars
+	{	// replace control chars 
 		// but skip chars >0x7F which are negative in char representations
 		if ( (*str<32) && (*str>0) )
 		{
@@ -2511,7 +2511,7 @@ void CAccountReg::_frombuffer(const unsigned char* &buf)
 ////////////////////////////////////////////////////
 size_t CMapAccount::size() const
 {
-	return
+	return 
 	sizeof(sex) +
 	sizeof(gm_level) +
 	sizeof(ban_until) +

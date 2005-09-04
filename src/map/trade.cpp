@@ -88,10 +88,10 @@ void trade_tradeack(struct map_session_data &sd, int type)
 			target_sd->trade_partner = 0;
 		}
 
-		if( sd.ScriptEngine.isRunning() )
-			npc_event_dequeue(sd);
-		if( target_sd->ScriptEngine.isRunning() )
-			npc_event_dequeue(*target_sd);
+//		if( sd.ScriptEngine.isRunning() )
+//			npc_event_dequeue(sd);
+//		if( target_sd->ScriptEngine.isRunning() )
+//			npc_event_dequeue(*target_sd);
 
 		//close STORAGE window if it's open. It protects from spooffing packets [Lupus]
 		stor=account2storage2(sd.status.account_id);

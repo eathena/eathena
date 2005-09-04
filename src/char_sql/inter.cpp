@@ -313,7 +313,7 @@ int inter_sql_test (void)
 		"fame",		// version 1491
 	};	
 	char buf[1024] = "";
-	int i;
+	size_t i;
 
 	sprintf(tmp_sql, "EXPLAIN `%s`",char_db);
 	if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
@@ -329,7 +329,7 @@ int inter_sql_test (void)
 	}
 
 	// check DB strings
-	for (i = 0; i < (int)(sizeof(fields) / sizeof(fields[0])); i++) {
+	for (i = 0; i < (sizeof(fields) / sizeof(fields[0])); i++) {
 		if(!strstr(buf, fields[i])) {
 			ShowSQL ("Field `%s` not be found in `%s`. Consider updating your database!\n", fields[i], char_db);
 			exit(1);

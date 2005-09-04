@@ -1,44 +1,72 @@
 Date	Added
+09/03
+	* added types for combined transfer of pointers and number
+	  with some checking posibilities, 
+	* exchanged some more int usages with machine independend types
+	  so the whole thing now builds clean on my 64bit sparc
+	  login and char seem ok but map need some more twiddling
+	* continued on rewriting the old script enbedding/calling scheme
 08/30
-	* renamed the sql class files to 'basesq.cpp/h' since having 'sql' within the name conflicts with the makefile build environment
+	* renamed the sql class files to 'basesq.cpp/h' since having 'sql'
+	  within the name conflicts with the makefile build environment
 	* finished the functional rewrite of the script engine
-	  most notable features are multiple script support and working input functions for event and equip scripts (with the exeption of clients before 2004-06-28)
-	  will still need a clean up of the buildin functions since they only have been converted automatically and might lack efficiency
+	  most notable features are multiple script support and working input
+	  functions for event and equip scripts 
+	 (with the exeption of clients before 2004-06-28)
+	  will still need a clean up of the buildin functions since they
+	  only have been converted automatically and might lack efficiency
 	* some regular copies from stables updates
 08/27
 	* Fixed MS VC type coversion error in socket.h [Wizputer]
 	* Made Shinomori's CMySQL class little more friendly
-	- Cleaned up some of Shinomori's classes so they can be utilized more easily
+	- Cleaned up some of Shinomori's classes so they can be utilized
+	  more easily
 
-08/26	forked out the changes from cuteboi, they have to be merged in a more decent manner
+08/26	forked out the changes from cuteboi, they have to be merged in 
+	a more decent manner
 	changes for the current update compared with the 07/17 release include:
 	
-	* converting the servers to use a unified data interface so different database concepts can be added more easily
-	- login server is working but still need some modification on the sql side to be fully functional
+	* converting the servers to use a unified data interface
+	  so different database concepts can be added more easily
+	- login server is working but still need some modification on 
+	  the sql side to be fully functional
 	  and also need cleaning of all unnecessary packets
-	- partially converted char server (party and guilds are missing) 
-	  txt is working but the complete sql implementation of the char database is missing (char_sql and login_sql is still working)
-	  the changes have enhanced txt to be orders of magnitude faster than sql now 
-	  (basically by replacing all searching for-loops with binary searches and throwing out the 
-	  braindead implementation of the friend.txt read/write)
-	* added new authentification system which will make any guessing on packetvers obsolete
-	- introduced temporary packets in login/char and char/map to emulate the targeted authentification
-	- cleaned clif_parse entry code (not finished), WantToConnection and packet version detection
+	- partially converted char server (party and guilds are missing)
+	  txt is working but the complete sql implementation of 
+	  the char database is missing (char_sql and login_sql is still working)
+	  the changes have enhanced txt to be orders of magnitude faster than
+	  sql now 
+	  (basically by replacing all searching for-loops with 
+	  binary searches and throwing out the braindead implementation 
+	  of the friend.txt read/write)
+	* added new authentification system which will make any guessing 
+	  on packetvers obsolete
+	- introduced temporary packets in login/char and char/map 
+	  to emulate the targeted authentification
+	- cleaned clif_parse entry code (not finished), WantToConnection 
+	  and packet version detection
 	* updated packetdb reading and internal structure
-	- put in defaults from current packet_db.txt, packet_db.txt reading can now be used optional
+	- put in defaults from current packet_db.txt, 
+	  packet_db.txt reading can now be used optional
 	* rewrote the old script engine
-	- partially converted the script engine to fit the structure of the new execution machine 
-	  to simplify switching over/using them in parallel/getinf an idea for an interface to lua (if still of interest)
+	- partially converted the script engine to fit the structure of
+	  the new execution machine to simplify switching over/using them 
+	  in parallel/getinf an idea for an interface to lua 
+	  (if still of interest)
 	- fixed dangling pointers in stack elements
-	- added a script queue so scripts will be queued when starting multiple scripts on a character that is
-	  already running one (like starting both PCLoginEvent and PCMapLoadEvent on login)
-	  but need to rethink the attach_id stuff, since it might need a completely different scheme
+	- added a script queue so scripts will be queued when starting 
+	  multiple scripts on a character that is already running one 
+	  (like starting both PCLoginEvent and PCMapLoadEvent on login)
+	  but need to rethink the attach_id stuff, since it might need 
+	  a completely different scheme
 	- added a check to script command "input"
-	  this script command is only working when called with a visible npc, so eventscripts, equipscripts 
-	  will just freeze the pc; the script will be now terminated with a warning if this is detected,
+	  this script command is only working when called with a visible npc,
+	  so eventscripts, equipscripts will just freeze the pc;
+	  the script will be now terminated with a warning if this is detected
 	  (example scripts included in npc/a_tests.txt), a better workaround is prepared
-	- fixed close command to now really close the script when the "close" button has been pressed by the pc 
-	  and not when the command is encountered
+	- fixed close command to now really close the script when the 
+	  "close" button has been pressed by the pc and not when the command
+	  is encountered
 	* other stuff from last week that I don't remember anymore [Shinomori]
 /////////////////////////////////////////////////////////////////
 changelog from devel/shinomori, which the above is based on

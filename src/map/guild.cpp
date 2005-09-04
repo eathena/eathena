@@ -49,9 +49,9 @@ struct guild_expcache {
 #define GUILD_SAVE_INTERVAL 300000
 int guild_save_timer = -1;
 
-int guild_payexp_timer(int tid,unsigned long tick,int id,int data);
-int guild_gvg_eliminate_timer(int tid,unsigned long tick,int id,int data);
-int guild_save_sub(int tid,unsigned long tick,int id,int data);
+int guild_payexp_timer(int tid, unsigned long tick, int id, intptr data);
+int guild_gvg_eliminate_timer(int tid, unsigned long tick, int id, intptr data);
+int guild_save_sub(int tid, unsigned long tick, int id, intptr data);
 
 // ギルドスキルdbのアクセサ（今は直打ちで代用）
 
@@ -242,7 +242,8 @@ int guild_check_conflict(struct map_session_data &sd)
 // ギルドのEXPキャッシュをinter鯖にフラッシュする
 int guild_payexp_timer_sub(void *key, void *data, va_list ap)
 {
-	int i, *dellist, *delp, dataid = (int)key;
+	int i, *dellist, *delp;
+	ssize_t dataid = (ssize_t)key;
 	struct guild_expcache *c;
 	struct guild *g;
 	double exp2;
@@ -266,7 +267,7 @@ int guild_payexp_timer_sub(void *key, void *data, va_list ap)
 	aFree(c);
 	return 0;
 }
-int guild_payexp_timer(int tid,unsigned long tick,int id,int data)
+int guild_payexp_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	int dellist[GUILD_PAYEXP_LIST], delp = 0, i;
 	numdb_foreach(guild_expcache_db, guild_payexp_timer_sub, dellist, &delp);
@@ -1556,9 +1557,9 @@ int guild_agit_end(void)
 	return 0;
 }
 
-int guild_gvg_eliminate_timer(int tid,unsigned long tick,int id,int data)
+int guild_gvg_eliminate_timer(int tid, unsigned long tick, int id, intptr data)
 {	// Run One NPC_Event[OnAgitEliminate]
-	char *name = (char*)data;
+	char *name = (char*)data.ptr;
 	size_t len = (name) ? strlen(name) : 0; 
 	// the rest is dangerous, but let it crash,
 	// if this happens, it's ruined anyway
@@ -1576,7 +1577,7 @@ int guild_gvg_eliminate_timer(int tid,unsigned long tick,int id,int data)
 	return 0;
 }
 
-int guild_save_sub(int tid,unsigned long tick,int id,int data)
+int guild_save_sub(int tid, unsigned long tick, int id, intptr data)
 {
 	static unsigned long Ghp[MAX_GUILDCASTLE][8];	// so save only if HP are changed // experimental code [Yor]
 	static unsigned long Gid[MAX_GUILDCASTLE];
@@ -1640,7 +1641,7 @@ int guild_agit_break(struct mob_data &md)
 	// Maybe will be changed in the futher..
 	//      int c = npc_event_do(evname);
 	if(!agit_flag) return 0;	// Agit already End
-	add_timer(gettick()+battle_config.gvg_eliminate_time,guild_gvg_eliminate_timer,md.bl.m,(int)evname);//!!todo!!
+	add_timer(gettick()+battle_config.gvg_eliminate_time,guild_gvg_eliminate_timer,md.bl.m, intptr(evname), false);
 	return 0;
 }
 

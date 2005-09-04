@@ -257,7 +257,7 @@ int map_freeblock_unlock (void)
 // この関数は、do_timer() のトップレベルから呼ばれるので、
 // block_free_lock を直接いじっても支障無いはず。
 
-int map_freeblock_timer (int tid, unsigned long tick, int id, int data)
+int map_freeblock_timer (int tid, unsigned long tick, int id, intptr data)
 {
 	if (block_free_lock > 0) {
 		ShowError("map_freeblock_timer: block_free_lock(%d) is invalid.\n", block_free_lock);
@@ -1324,17 +1324,17 @@ void map_foreachobject(int (*func)(struct block_list*,va_list),int type,...)
  * map.h?で#defineしてある
  *------------------------------------------
  */
-int map_clearflooritem_timer(int tid,unsigned long tick,int id,int data)
+int map_clearflooritem_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	struct flooritem_data *fitem=NULL;
 
 	fitem = (struct flooritem_data *)objects[id];
-	if(fitem==NULL || fitem->bl.type!=BL_ITEM || (!data && fitem->cleartimer != tid)){
+	if(fitem==NULL || fitem->bl.type!=BL_ITEM || (!data.num && fitem->cleartimer != tid)){
 		if(battle_config.error_log)
 			ShowMessage("map_clearflooritem_timer : error\n");
 		return 1;
 	}
-	if(data)
+	if(data.num)
 		delete_timer(fitem->cleartimer,map_clearflooritem_timer);
 	else if(fitem->item_data.card[0] == 0xff00)
 		intif_delete_petdata( MakeDWord(fitem->item_data.card[1],fitem->item_data.card[2]) );
@@ -1913,7 +1913,7 @@ int mob_cache_cleanup_sub(struct block_list &bl, va_list ap)
 	return 1;
 }
 
-int map_removemobs_timer(int tid,unsigned long tick,int id,int data)
+int map_removemobs_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	int k;
 	
@@ -3371,7 +3371,7 @@ void char_online_check(void)
 	}
 }
 
-int online_timer(int tid,unsigned long tick,int id,int data)
+int online_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	char_online_check();
 	return 0;

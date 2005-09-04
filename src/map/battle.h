@@ -170,6 +170,7 @@ struct Battle_Config
 	ulong gvg_magic_damage_rate;
 	ulong gvg_misc_damage_rate;
 	ulong gvg_short_damage_rate;
+	ulong gvg_weapon_damage_rate;
 	ulong gx_allhit;
 	ulong gx_cardfix;
 	ulong gx_disptype;
@@ -247,6 +248,7 @@ struct Battle_Config
 	ulong mob_skill_delay;
 	ulong mob_skill_log;
 	ulong mob_skill_rate;
+	ulong mob_slaves_inherit_speed;
 	ulong mob_spawn_delay;
 	ulong mob_warpportal;
 	ulong mobs_level_up; // [Valaris]

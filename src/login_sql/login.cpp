@@ -1464,7 +1464,7 @@ int parse_console(char *buf) {
 //-----------------------------------------------------
 //BANNED IP CHECK.
 //-----------------------------------------------------
-int ip_ban_check(int tid, unsigned long tick, int id, int data){
+int ip_ban_check(int tid, unsigned long tick, int id, intptr data){
 
 	//query
 	if(mysql_SendQuery(&mysql_handle, "DELETE FROM `ipbanlist` WHERE `rtime` <= NOW()")) {

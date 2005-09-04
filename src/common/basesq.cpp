@@ -78,7 +78,6 @@ CAccountDB_sql::CAccountDB_sql(const char* configfile)
 	safestrcpy(login_db_level,"level",sizeof(login_db_level));
 	case_sensitive=true;
 	log_login=false;
-
 	init(configfile);
 }
 
@@ -294,6 +293,32 @@ bool CAccountDB_sql::init(const char* configfile)
 	CConfig::LoadConfig(configfile);
 
 	mysql_init(&mysqldb_handle);
+
+/*
+	// table check
+	char query[512];
+	//set log.
+	size_t sz = sprintf(query,
+		"DROP TABLE IF EXISTS login_account;"
+		"CREATE TABLE `login_account` ("
+		"`account_id` INTEGER UNSIGNED AUTO_INCREMENT,"
+		"`user` VARCHAR(24) NOT NULL,"
+		"`passwd` VARCHAR(34) NOT NULL,"
+		"`sex` ENUM('M','F','S') default 'M',"
+		"`gm_level` INT(3) UNSIGNED NOT NULL,"
+		"`online` BOOL default 'false',"
+		"`email` VARCHAR(40) NOT NULL,"
+		"`login_ip` VARCHAR(15) NOT NULL,"
+		"`login_id1` INTEGER UNSIGNED NOT NULL,"
+		"`login_id2` INTEGER UNSIGNED NOT NULL,"
+		"`last_login` INTEGER UNSIGNED NOT NULL,"
+		"`ban_until` INTEGER UNSIGNED NOT NULL,"
+		"`valid_until` INTEGER UNSIGNED NOT NULL,"
+		"PRIMARY KEY(`account_id`)"
+		");" );
+	this->mysql_SendQuery(query, sz);
+*/
+
 	// DB connection start
 	ShowMessage("Connect Login Database Server....\n");
 	if( mysql_real_connect(&mysqldb_handle, mysqldb_ip, mysqldb_id, mysqldb_pw, login_db, mysqldb_port, (char *)NULL, 0) )

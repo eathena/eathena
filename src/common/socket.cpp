@@ -880,7 +880,7 @@ public:
 		return connect_ok;
 	}
 
-	int connect_check_clear(int tid,unsigned long tick,int id,int data) {
+	int connect_check_clear(int tid,unsigned long tick,int id,intptr data) {
 		int i;
 		int clear = 0;
 		int list  = 0;
@@ -1002,7 +1002,7 @@ public:
 
 DDoS ddos;
 
-int connect_check_clear(int tid,unsigned long tick,int id,int data)
+int connect_check_clear(int tid,unsigned long tick,int id,intptr data)
 {
 	return ddos.connect_check_clear(tid, tick, id, data);
 }
@@ -2004,7 +2004,7 @@ int do_sendrecv(int next)
 ///////////////////////////////////////////////////////////////////////////////
 // delayed session removal timer entry
 ///////////////////////////////////////////////////////////////////////////////
-int session_WaitClose(int tid, unsigned long tick, int id, int data) 
+int session_WaitClose(int tid, unsigned long tick, int id, intptr data) 
 {
 	if( session_isValid(id) && session[id]->flag.marked )
 	{	// set session to offline

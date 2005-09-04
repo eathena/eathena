@@ -161,11 +161,20 @@ typedef unsigned long   ulong;
 typedef unsigned short  ushort;
 typedef unsigned char   uchar;
 typedef signed char     schar;
-typedef char*           pchar;	//conflict with shitty declarations from mysql
+typedef char*           pchar;	//conflict with declarations from mysql
 typedef unsigned char*  puchar;
 typedef const char*     cchar;
 typedef void*           ptr;
 typedef int*            pint;
+
+#ifdef WIN32 // does not have a signed size_t
+#if (defined _WIN64)  // naive 64bit windows platform
+typedef __int64			ssize_t;
+#else
+typedef int				ssize_t;
+#endif
+#endif
+
 
 
 /////////////////////////////
@@ -670,7 +679,6 @@ template<class T> static inline T sqrt(T n, T start=LLCONST(0x000000010001010F) 
 	if(n>0)
 	{
 		T q=0, qx=start;
-
 		while( q!=qx )
 		{
 			q = qx;

@@ -30,51 +30,82 @@ extern struct Script_Config
 
 ///////////////////////////////////////////////////////////////////////////////
 // a label marks a position within a script with a name
-//
-class CLabel
+class CLabel : public MiniString
 {
 public:
-	MiniString	cName;	// name of the label
+	///////////////////////////////////////////////////////////////////////////
+	// class data
+						// name of the label
 	size_t		cPos;	// position within the programm
 
+	///////////////////////////////////////////////////////////////////////////
+	// constructors/destructor
 	CLabel()	{}
+	CLabel(const MiniString& s) : MiniString(s)	{}
+	CLabel(const MiniString& s, size_t p) : MiniString(s), cPos(p)	{}
 	~CLabel()	{}
-
-	bool operator==(const CLabel& a) const { return this->cName==a.cName; }
+	///////////////////////////////////////////////////////////////////////////
+	// compare operators for sorting derived from MiniString
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 // a script data stub
 // contains the parsed programm and a label list
-//
-class _CScript
+class _CScript : public global, public noncopyable
 {
+	///////////////////////////////////////////////////////////////////////////
+	// friends
 	friend class CScript;
-	friend class TPtrAutoCount<_CScript>;
+	friend class TPtrCount<_CScript>;
+
+	///////////////////////////////////////////////////////////////////////////
+	// class data
+	MiniString					cName;		// name of the script
+	TArrayDST<unsigned char>	cProgramm;	// the programm
+	TslistDST<CLabel>			cLabels;	// list of labels
+
+	///////////////////////////////////////////////////////////////////////////
+	// construction only friends are allowed to create
 	_CScript(const char* n, const unsigned char* s, size_t sz, CLabel* l, size_t cnt)
 		: cName(n), cProgramm(s, sz), cLabels(l, cnt)
 	{ }
 public:
+	///////////////////////////////////////////////////////////////////////////
+	// normal destructor
 	~_CScript()	{ }
 
-
-	MiniString					cName;		// name of the script
-	TArrayDST<unsigned char>	cProgramm;	// the programm
-	TArrayDST<CLabel>			cLabels;	// list of labels
+	///////////////////////////////////////////////////////////////////////////
+	// class access done by the friends
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 // a script container
-// consists of a reference counted pointer to the script object
-// automatic destruction when 
-class CScript : private TPtrCount<_CScript>
+// consists of a reference counting pointer to the actual script object
+// automatic destruction when the script is not referenced
+class CScript : public global
 {
+	TPtrCount<_CScript>	cScript;
 public:
 	CScript(const char* n, const unsigned char* s, size_t sz, CLabel* l, size_t cnt)
-		: TPtrCount<_CScript>(new _CScript(n,s,sz,l,cnt))
+		: cScript(new _CScript(n,s,sz,l,cnt))
 	{}
 	~CScript() {}
 
+	void appendByte(unsigned char a);
+	void appendCommand(int a);
+	void appendInt(int a);
+	void appendL(int l);
+	void setLabel(size_t l, size_t pos);
+	int getInt(unsigned int &pos);
+	int getCommand(unsigned int &pos);
+
+	const char *skipSpaceComment(const char *p);
+	const char *skipWord(const char *p);
+	void ErrorMessage(const char *mes, const char *pos);
+	const char* parseSimpleExpr(const char *p);
+	const char* parseSubExpr(const char *p,int limit);
+	const char* parseExpr(const char *p);
+	const char* parseLine(const char *p);
 };
 
 
@@ -250,7 +281,7 @@ private:
 			}
 			return ret;
 		}
-		virtual void setStack(size_t &ptr, size_t max, CValue*&stack)
+		virtual void setStack(size_t &def,size_t &ptr, size_t max, CValue*&stack)
 		{	// dummy, used for transfering a queued stack on derived class
 		}
 	///////////////////////////////////////////////////////////////////////////
@@ -272,18 +303,20 @@ private:
 	class CCallStack : public CCallScript
 	{
 	public:
+		size_t defsp;
 		size_t stack_ptr;
 		size_t stack_max;
 		CValue* stack_data;
-		CCallStack(CCallScript *&root, const char* s, size_t p, unsigned long r, unsigned long o, size_t ptr, size_t max, CValue* data)
-			: CCallScript(root,s,p,r,o),stack_ptr(ptr), stack_max(max), stack_data(data)
+		CCallStack(CCallScript *&root, const char* s, size_t p, size_t d, unsigned long r, unsigned long o, size_t ptr, size_t max, CValue* data)
+			: CCallScript(root,s,p,r,o),defsp(d),stack_ptr(ptr), stack_max(max), stack_data(data)
 		{   }
 		virtual ~CCallStack()
 		{
 			if(stack_data) delete[] stack_data;
 		}
-		virtual void setStack(size_t &ptr, size_t max, CValue*&stack)
+		virtual void setStack(size_t &def, size_t &ptr, size_t &max, CValue*&stack)
 		{	// transfer the queued stack
+			def = defsp;
 			ptr = stack_ptr;
 			max = stack_max;
 			if(stack) delete[] stack;
@@ -304,23 +337,28 @@ private:
 
 	///////////////////////////////////////////////////////////////////////////
 
+	static unsigned long defoid;// id of the default npc
+
 	bool rerun_flag : 1;		// reruning line (used for inputs, menu, select and close)
 	NPCSTATE npcstate : 2;		// what npc is used
 	STATES state : 3;			// state of execution (externally visible states are OFF or STOP)
+	unsigned _unused : 2;
 
 	const char *script;			// the executed programm
 	size_t pos;					// position within the programm
 	size_t start;				// starting stack pointer for the current command
 	size_t end;					// end stack pointer for the current programm (end-start) = number of parameters
 	size_t defsp;				// starting sp before running the command (for checking stack violations)
+
+	
 public:
+	CValue	cExtData;			// additional data from external source
+
 	struct map_session_data* sd;// the mapsession of the caller
 	unsigned long rid;			// bl.id of the hosting pc
 	unsigned long oid;			// bl.id of the executed npc
 
-	static unsigned long defoid;// id of the default npc
 
-	CValue	cExtData;			// additional data from external source
 
 	///////////////////////////////////////////////////////////////////////////
 public:
@@ -373,7 +411,6 @@ public:
 	void push_str(int type, const char *str);
 	void push_copy(size_t pos);
 	void pop_stack(size_t start, size_t end);
-	int pop_val();
 private:
 	///////////////////////////////////////////////////////////////////////////
 	// check stacksize and reallocate if necessary
@@ -407,12 +444,13 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// main entry points
 	static int run(const char *rootscript, size_t pos, unsigned long rid, unsigned long oid);
-	int restart()
+	int restart(unsigned long npcid)
 	{	
-		if( this->state==STOP )
+		if( this->state==STOP && (npcid == this->oid || npcid == this->defoid) )
 			return CScriptEngine::run(this->script, this->pos, this->rid, this->oid);
 		return 0;
 	}
+
 	///////////////////////////////////////////////////////////////////////////
 	// checks the npc, create a default npc and spawn it when necessary
 	unsigned long send_defaultnpc(bool send=true);

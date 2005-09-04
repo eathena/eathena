@@ -81,9 +81,9 @@ int strdb_cmp (struct dbt* table, void* a, void* b)
 }
 
 // maybe change the void* to unsigned char* ???
-unsigned int strdb_hash (struct dbt* table, void* a)
+size_t strdb_hash (struct dbt* table, void* a)
 {
-	unsigned int h = 0;
+	size_t h = 0;
 	unsigned char *p = (unsigned char*)a;
 	int i = table->maxlen;
 
@@ -102,7 +102,7 @@ struct dbt* strdb_init_ (int maxlen, const char *file, int line)
 	CREATE(table, struct dbt, 1);
 
 	table->cmp = strdb_cmp;
-	table->hash = strdb_hash;
+	table->hashfunc = strdb_hash;
 	table->maxlen = maxlen;
 	for (i = 0; i < HASH_SIZE; i++)
 		table->ht[i] = NULL;
@@ -115,10 +115,10 @@ struct dbt* strdb_init_ (int maxlen, const char *file, int line)
 
 int numdb_cmp (struct dbt *table, void *a, void *b)
 {
-	int ia, ib;
+	size_t ia, ib;
 
-	ia = (int)a;
-	ib = (int)b;
+	ia = (size_t)a;
+	ib = (size_t)b;
 
 	if ((ia^ib) & 0x80000000)
 		return ia < 0 ? -1 : 1;
@@ -126,9 +126,9 @@ int numdb_cmp (struct dbt *table, void *a, void *b)
 	return ia - ib;
 }
 
-unsigned int numdb_hash (struct dbt *table, void *a)
+size_t numdb_hash (struct dbt *table, void *a)
 {
-	return (unsigned int)a;
+	return (size_t)a;
 }
 
 struct dbt* numdb_init_(const char *file,int line)
@@ -139,8 +139,8 @@ struct dbt* numdb_init_(const char *file,int line)
 	CREATE(table, struct dbt, 1);
 
 	table->cmp=numdb_cmp;
-	table->hash=numdb_hash;
-	table->maxlen=sizeof(int);
+	table->hashfunc=numdb_hash;
+	table->maxlen=sizeof(size_t);
 	for(i=0;i<HASH_SIZE;i++)
 		table->ht[i]=NULL;
 	table->alloc_file = file;
@@ -151,7 +151,7 @@ struct dbt* numdb_init_(const char *file,int line)
 
 void* db_search (struct dbt *table, void  *key)
 {
-	struct dbn *p = table->ht[table->hash(table,key) % HASH_SIZE];
+	struct dbn *p = table->ht[table->hashfunc(table,key) % HASH_SIZE];
 
 	while (p) {
 		int c = table->cmp(table, key, p->key);
@@ -437,14 +437,15 @@ void db_free_unlock(struct dbt *table) {
 struct dbn* db_insert(struct dbt *table,void* key,void* data)
 {
 	struct dbn *p,*priv;
-	int c,hash;
+	int c;
+	size_t hash;
 
 //	if(NULL==key || NULL==data)
 //	{
 //		ShowMessage("db insert 0: key=%p, data=%p\n", key, data);
 //	}
 
-	hash = table->hash(table,key) % HASH_SIZE;
+	hash = table->hashfunc(table,key) % HASH_SIZE;
 	for(c=0,priv=NULL ,p = table->ht[hash];p;){
 		c=table->cmp(table,key,p->key);
 		if(c==0){ // replace
@@ -534,9 +535,10 @@ void* db_erase(struct dbt *table,void* key)
 {
 	void *data;
 	struct dbn *p;
-	int c,hash;
+	int c;
+	size_t hash;
 
-	hash = table->hash(table,key) % HASH_SIZE;
+	hash = table->hashfunc(table,key) % HASH_SIZE;
 	for(c=0,p = table->ht[hash];p;){
 		c=table->cmp(table,key,p->key);
 		if(c==0)

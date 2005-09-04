@@ -313,7 +313,7 @@ int mail_send(struct map_session_data &sd, char *name, char *message, int flag)
 	return 0;
 }
 
-int mail_check_timer(int tid,unsigned long tick,int id,int data)
+int mail_check_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	struct map_session_data *sd = NULL;
 	size_t i;

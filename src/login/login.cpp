@@ -4039,7 +4039,7 @@ void mmo_auth_sync(void)
 //       immediatly and set  the minimum of
 //       authentifications to its initialization value.
 //-----------------------------------------------------
-int check_auth_sync(int tid, unsigned long tick, int id, int data)
+int check_auth_sync(int tid, unsigned long tick, int id, intptr data)
 {
 	// we only save if necessary:
 	// we have do some authentifications without do saving
@@ -4094,7 +4094,7 @@ void send_GM_accounts() {
 //-----------------------------------------------------
 // Check if GM file account have been changed
 //-----------------------------------------------------
-int check_GM_file(int tid, unsigned long tick, int id, int data)
+int check_GM_file(int tid, unsigned long tick, int id, intptr data)
 {
 	struct stat file_stat;
 	long new_time;

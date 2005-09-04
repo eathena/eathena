@@ -935,10 +935,10 @@ int itemdb_readdb(void)
 			if((p=strchr(np,'{'))!=NULL)
 				id->use_script = parse_script((unsigned char *) p,lines);
 			else
-			id->use_script=NULL;
+				id->use_script=NULL;
 
 			if((p=strchr(p+1,'{'))!=NULL)
-			id->equip_script = parse_script((unsigned char *) p,lines);
+				id->equip_script = parse_script((unsigned char *) p,lines);
 			else
 				id->equip_script=NULL;
 		}

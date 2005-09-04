@@ -52,7 +52,7 @@ struct petdb pet_db[MAX_PET_DB];
 static int dirx[8]={0,-1,-1,-1,0,1,1,1};
 static int diry[8]={1,1,0,-1,-1,-1,0,1};
 
-int pet_timer(int tid,unsigned long tick,int id,int data);
+int pet_timer(int tid, unsigned long tick, int id, intptr data);
 int pet_walktoxy_sub(struct pet_data &pd);
 
 
@@ -198,7 +198,7 @@ int pet_attack(struct pet_data &pd,unsigned int tick,int data)
 }
 
 
-int petskill_castend(struct pet_data &pd,unsigned long tick,int data);
+int petskill_castend(struct pet_data &pd,unsigned long tick,intptr data);
 int petskill_castend2(struct pet_data &pd, struct block_list &target, short skill_id, short skill_lv, short skill_x, short skill_y, unsigned int tick);
 
 /*==========================================
@@ -238,7 +238,11 @@ int petskill_use(struct pet_data &pd, struct block_list &target, short skill_id,
 		return 1;	//Will not interrupt an already casting skill.
 
 	if(pd.timer != -1)	//Cancel whatever else the pet is doing.
+	{	// clear pet data if any
+		if( get_timer(pd.timer)->data.isptr ) 
+			aFree(get_timer(pd.timer)->data.ptr);
 		delete_timer(pd.timer, pet_timer);
+	}
 	
 	if(battle_config.monster_attack_direction_change)
 		pd.dir=map_calc_dir(pd.bl, target.x, target.y );
@@ -270,7 +274,7 @@ int petskill_use(struct pet_data &pd, struct block_list &target, short skill_id,
 		else
 			clif_skillcasting(pd.bl, pd.bl.id, dat->target_id, 0,0, skill_id,casttime);
 		
-		pd.timer = add_timer(pd.attackabletime,pet_timer,pd.bl.id,(int)dat);
+		pd.timer = add_timer(pd.attackabletime,pet_timer,pd.bl.id, intptr(dat), false);
 	} else {
 		petskill_castend2(pd, target, skill_id, skill_lv, target.x, target.y, tick);
 	}	
@@ -281,9 +285,9 @@ int petskill_use(struct pet_data &pd, struct block_list &target, short skill_id,
  * Pet Attack Cast End [Skotlex]
  *------------------------------------------
  */
-int petskill_castend(struct pet_data &pd,unsigned long tick,int data)
+int petskill_castend(struct pet_data &pd,unsigned long tick,intptr data)
 {
-	struct castend_delay *dat = (struct castend_delay *)data;
+	struct castend_delay *dat = (struct castend_delay *)data.ptr;
 	if(dat)
 	{
 		struct block_list *target = map_id2bl(dat->target_id);
@@ -533,7 +537,7 @@ int pet_changestate(struct pet_data &pd,int state,int type)
 	return 0;
 }
 
-int pet_timer(int tid,unsigned long tick,int id,int data)
+int pet_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	struct pet_data *pd;
 
@@ -553,7 +557,7 @@ int pet_timer(int tid,unsigned long tick,int id,int data)
 
 	switch(pd->state.state){
 		case MS_WALK:
-			pet_walk(*pd,tick,data);
+			pet_walk(*pd,tick,data.num);
 			break;
 		case MS_ATTACK:
 			if (pd->msd == NULL) //Is this even possible?
@@ -574,10 +578,10 @@ int pet_timer(int tid,unsigned long tick,int id,int data)
 				(rand()%100 < (pd->a_skill->rate +pd->msd->pet.intimate*pd->a_skill->bonusrate/1000))
 				)
 			{	//Skotlex: Use pet's skill 
-				pet_attackskill(*pd,tick,data);
+				pet_attackskill(*pd,tick,data.num);
 				break;
 			}
-			pet_attack(*pd,tick,data);
+			pet_attack(*pd,tick,data.num);
 			break;
 		case MS_DELAY:
 			pet_changestate(*pd,MS_IDLE,0);
@@ -637,7 +641,7 @@ int pet_stop_walking(struct pet_data &pd,int type)
 	return 0;
 }
 
-int pet_hungry(int tid,unsigned long tick,int id,int data)
+int pet_hungry(int tid, unsigned long tick, int id, intptr data)
 {
 	struct map_session_data *sd;
 	int interval,t;
@@ -944,7 +948,7 @@ int pet_birth_process(struct map_session_data &sd)
 	map_addblock(sd.pd->bl);
 	clif_spawnpet(*sd.pd);
 	clif_send_petdata(sd,0,0);
-	clif_send_petdata(sd,5,0x14);
+	clif_send_petdata(sd,5,battle_config.pet_hair_style);
 	clif_pet_equip(*sd.pd,sd.pet.equip_id);
 	clif_send_petstatus(sd);
 
@@ -971,7 +975,7 @@ int pet_recv_petdata(unsigned long account_id,struct s_pet &p,int flag)
 			map_addblock(sd->pd->bl);
 			clif_spawnpet(*sd->pd);
 			clif_send_petdata(*sd,0,0);
-			clif_send_petdata(*sd,5,0x14);
+			clif_send_petdata(*sd,5,battle_config.pet_hair_style);
 //			clif_pet_equip(*sd->pd,sd->pet.equip);
 			clif_send_petstatus(*sd);
 		}
@@ -1154,7 +1158,7 @@ int pet_change_name(struct map_session_data &sd, const char *name)
 	clif_clearchar_area(sd.pd->bl,0);
 	clif_spawnpet(*sd.pd);
 	clif_send_petdata(sd,0,0);
-	clif_send_petdata(sd,5,0x14);
+	clif_send_petdata(sd,5,battle_config.pet_hair_style);
 	sd.pet.rename_flag = 1;
 	clif_pet_equip(*sd.pd,sd.pet.equip_id);
 	clif_send_petstatus(sd);
@@ -1363,8 +1367,8 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 	if(!pd.target_id && pd.loot && pd.loot->count < pd.loot->max && DIFF_TICK(gettick(),pd.loot->loottick)>0)
 	{
 		map_foreachinarea(pet_ai_sub_hard_lootsearch,pd.bl.m,
-						  ((int)pd.bl.x)-AREA_SIZE*2,((int)pd.bl.y)-AREA_SIZE*2,
-						  ((int)pd.bl.x)+AREA_SIZE*2,((int)pd.bl.y)+AREA_SIZE*2,
+						  ((int)pd.bl.x)-AREA_SIZE/2,((int)pd.bl.y)-AREA_SIZE/2,
+						  ((int)pd.bl.x)+AREA_SIZE/2,((int)pd.bl.y)+AREA_SIZE/2,
 						  BL_ITEM,&pd,&i);
 	}
 
@@ -1524,7 +1528,7 @@ int pet_ai_sub_foreachclient(struct map_session_data &sd,va_list ap)
 	return 0;
 }
 
-int pet_ai_hard(int tid,unsigned long tick,int id,int data)
+int pet_ai_hard(int tid, unsigned long tick, int id, intptr data)
 {
 
 	clif_foreachclient(pet_ai_sub_foreachclient,tick);
@@ -1584,7 +1588,7 @@ int pet_lootitem_drop(struct pet_data &pd,struct map_session_data *sd)
 				aFree(ditem);
 			}
 			else
-				add_timer(gettick()+540+i,pet_delay_item_drop2,(int)ditem,0);
+				add_timer(gettick()+540+i,pet_delay_item_drop2,0, intptr(ditem), false);
 		}
 		//The smart thing to do is use pd->loot->max (thanks for pointing it out, Shinomori)
 		memset(pd.loot->item,0,pd.loot->max * sizeof(struct item));
@@ -1595,11 +1599,11 @@ int pet_lootitem_drop(struct pet_data &pd,struct map_session_data *sd)
 	return 1;
 }
 
-int pet_delay_item_drop2(int tid,unsigned long tick,int id,int data)
+int pet_delay_item_drop2(int tid, unsigned long tick, int id, intptr data)
 {
 	struct delay_item_drop2 *ditem;
 
-	ditem=(struct delay_item_drop2 *)id;
+	ditem=(struct delay_item_drop2 *)data.ptr;
 
 	map_addflooritem(ditem->item_data,ditem->item_data.amount,ditem->m,ditem->x,ditem->y,ditem->first_sd,ditem->second_sd,ditem->third_sd,0);
 
@@ -1611,7 +1615,7 @@ int pet_delay_item_drop2(int tid,unsigned long tick,int id,int data)
  * pet bonus giving skills [Valaris] / Rewritten by [Skotlex]
  *------------------------------------------
  */ 
-int pet_skill_bonus_timer(int tid,unsigned long tick,int id,int data)
+int pet_skill_bonus_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	struct map_session_data *sd=map_id2sd(id);
 	struct pet_data *pd;
@@ -1649,7 +1653,7 @@ int pet_skill_bonus_timer(int tid,unsigned long tick,int id,int data)
 	return 0;
 }
 
-int pet_recovery_timer(int tid,unsigned long tick,int id,int data)
+int pet_recovery_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
 	struct pet_data *pd;
@@ -1682,7 +1686,7 @@ int pet_recovery_timer(int tid,unsigned long tick,int id,int data)
 	return 0;
 }
 
-int pet_heal_timer(int tid,unsigned long tick,int id,int data)
+int pet_heal_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
 	struct pet_data *pd;
@@ -1728,7 +1732,7 @@ int pet_heal_timer(int tid,unsigned long tick,int id,int data)
  * pet support skills [Skotlex]
  *------------------------------------------
  */ 
-int pet_skill_support_timer(int tid,unsigned long tick,int id,int data)
+int pet_skill_support_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	struct map_session_data *sd=(struct map_session_data*)map_id2bl(id);
 	struct pet_data *pd;

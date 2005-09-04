@@ -667,7 +667,7 @@ void* grfio_reads(const char *fname, int *size)
 			err=decode_zip(buf2,(uLongf*)&len,buf,entry->srclen);
 
 			if(len!=entry->declen) {
-				ShowError("decode_zip size miss match err: %d != %d\n",(int)len,entry->declen);
+				ShowError("decode_zip size miss match err: %d != %d\n", len,entry->declen);
 				goto errret;
 			}
 			if(err<0) {
@@ -720,12 +720,12 @@ char * decode_filename(unsigned char *buf,int len)
  * Grfio : Entry table read
  *------------------------------------------
  */
-int grfio_entryread(const char *gfname,int gentry)
+int grfio_entryread(const char *gfname, int gentry)
 {
 	FILE *fp;
 	long grf_size,list_size;
 	unsigned char grf_header[0x2e];
-	int lop,entry,entrys,ofs,grf_version;
+	ssize_t lop,entry,entrys,ofs,grf_version;
 	char *fname;
 	unsigned char *grf_filelist;
 
@@ -765,11 +765,10 @@ int grfio_entryread(const char *gfname,int gentry)
 			int ofs2,srclen,srccount,type;
 			char *period_ptr;
 			FILELIST aentry;
-
 			ofs2 = ofs+getlong(grf_filelist+ofs)+4;
 			type = grf_filelist[ofs2+12];
 			if( type!=0 ){	// Directory Index ... skip
-				fname = decode_filename(grf_filelist+ofs+6,grf_filelist[ofs]-6);
+				fname = decode_filename(grf_filelist+ofs+6, grf_filelist[ofs]-6);
 				if(strlen(fname)>sizeof(aentry.fn)-1){
 					ShowFatalError("file name too long : %s\n",fname);
 					aFree(grf_filelist);
@@ -813,7 +812,6 @@ int grfio_entryread(const char *gfname,int gentry)
 		unsigned char eheader[8];
 		unsigned char *rBuf;
 		long rSize,eSize;
-
 		fread(eheader,1,8,fp);
 		rSize = getlong(eheader);	// Read Size
 		eSize = getlong(eheader+4);	// Extend Size
@@ -839,6 +837,7 @@ int grfio_entryread(const char *gfname,int gentry)
 		}
 		fread(rBuf,1,rSize,fp);
 		fclose(fp);
+
 		decode_zip(grf_filelist,(uLongf*)&eSize,rBuf,rSize);	// Decode function
 		list_size = eSize;
 		aFree(rBuf);
@@ -846,10 +845,12 @@ int grfio_entryread(const char *gfname,int gentry)
 		entrys = getlong(grf_header+0x26) - 7;
 
 		// Get an entry
-		for(entry=0,ofs=0;entry<entrys;entry++){
-			int ofs2,srclen,srccount,type;
-			FILELIST aentry;
+		ssize_t ofs2,srclen,srccount,type;
+		FILELIST aentry;
 
+
+		for(entry=0,ofs=0;entry<entrys;entry++)
+		{
 			fname = (char*)(grf_filelist+ofs);
 			if (strlen(fname)>sizeof(aentry.fn)-1) {
 				ShowFatalError("grf : file name too long : %s\n",fname);
@@ -859,16 +860,21 @@ int grfio_entryread(const char *gfname,int gentry)
 			//ofs2 = ofs+strlen((char*)(grf_filelist+ofs))+1;
 			ofs2 = ofs+strlen(fname)+1;
 			type = grf_filelist[ofs2+12];
-			if(type==1 || type==3 || type==5) {
+			if(type==1 || type==3 || type==5)
+			{
 				srclen=getlong(grf_filelist+ofs2);
-				if (grf_filelist[ofs2+12]==3) {
+				if (grf_filelist[ofs2+12]==3)
+				{
 					for(lop=10,srccount=1;srclen>=lop;lop=lop*10,srccount++);
-				} else if (grf_filelist[ofs2+12]==5) {
+				}
+				else if (grf_filelist[ofs2+12]==5)
+				{
 					srccount = 0;
-				} else {	// if (grf_filelist[ofs2+12]==1) {
+				}
+				else
+				{	// if (grf_filelist[ofs2+12]==1) {
 					srccount = -1;
 				}
-
 				aentry.srclen         = srclen;
 				aentry.srclen_aligned = getlong(grf_filelist+ofs2+4);
 				aentry.declen         = getlong(grf_filelist+ofs2+8);

@@ -235,7 +235,7 @@ int skillnotok(int skillid, struct map_session_data &sd);
 
 // ÉAÉCÉeÉÄçÏê¨
 int skill_can_produce_mix(struct map_session_data &sd, unsigned short nameid, int trigger );
-int skill_produce_mix( struct map_session_data &sd, unsigned short nameid, int slot1, int slot2, int slot3 );
+int skill_produce_mix( struct map_session_data &sd, unsigned short nameid, unsigned short slot1, unsigned short slot2, unsigned short slot3 );
 
 int skill_arrow_create( struct map_session_data *sd,unsigned short nameid);
 
@@ -789,6 +789,7 @@ enum {
 	UNT_MAGIC_SKILLS = 0x86,
 	UNT_FIREPILLAR_HIDDEN = 0x87,
 	UNT_FIREPILLAR_ACTIVE = 0x88,
+	UNT_USEDTRAP = 0x8c,
 	UNT_ICEWALL = 0x8d,
 	UNT_QUAGMIRE = 0x8e,
 	UNT_BLASTMINE = 0x8f,

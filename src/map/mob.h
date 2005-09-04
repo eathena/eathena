@@ -140,7 +140,7 @@ int do_init_mob(void);
 
 void mob_unload(struct mob_data &md);
 int mob_remove_map(struct mob_data &md, int type);
-int mob_timer_delete(int tid, unsigned long tick, int id, int data);
+int mob_timer_delete(int tid, unsigned long tick, int id, intptr data);
 
 int mob_deleteslave(struct mob_data &md);
 
@@ -149,8 +149,8 @@ int mob_warp(struct mob_data &md,int m,int x,int y,int type);
 
 int mobskill_use(struct mob_data &md,unsigned long tick,int event);
 int mobskill_event(struct mob_data &md,int flag);
-int mobskill_castend_id( int tid, unsigned long tick, int id,int data );
-int mobskill_castend_pos( int tid, unsigned long tick, int id,int data );
+int mobskill_castend_id(int tid, unsigned long tick, int id, intptr data);
+int mobskill_castend_pos(int tid, unsigned long tick, int id, intptr data);
 int mob_summonslave(struct mob_data &md2,int *value,size_t amount,unsigned short skillid);
 unsigned int mob_countslave(struct mob_data &md);
 

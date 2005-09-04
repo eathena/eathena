@@ -320,7 +320,8 @@ int mapif_GMmessage(unsigned char *mes, int len, int sfd) {
 }
 
 // Wisp/page transmission to all map-server
-int mapif_wis_message(struct WisData *wd) {
+int mapif_wis_message(struct WisData *wd)
+{
 	CREATE_BUFFER(buf,unsigned char,56 + wd->len);
 
 	WBUFW(buf, 0) = 0x3801;

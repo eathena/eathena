@@ -1265,7 +1265,7 @@ int mapif_parse_GuildLeave(int fd,unsigned long guild_id,unsigned long account_i
 			if( g->member[i].account_id==account_id &&
 				g->member[i].char_id==char_id)
 			{
-				ShowMessage("%d %d\n",i, (int)(&g->member[i]));
+				ShowMessage("%d %p\n",i, (&g->member[i]));
 				ShowMessage("%d %s\n",i, g->member[i].name);
 
 				if(flag)

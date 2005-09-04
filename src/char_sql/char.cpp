@@ -1412,7 +1412,7 @@ void mmo_char_sync(void){
 // to do
 ///////////////////////////
 
-int mmo_char_sync_timer(int tid, unsigned long tick, int id, int data) {
+int mmo_char_sync_timer(int tid, unsigned long tick, int id, intptr data) {
 	ShowMessage("mmo_char_sync_timer() tic - no works to do\n");
 	return 0;
 }
@@ -3290,7 +3290,7 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len) {
 	return 0;
 }
 
-int send_users_tologin(int tid, unsigned long tick, int id, int data) {
+int send_users_tologin(int tid, unsigned long tick, int id, intptr data) {
 	int users = count_users();
 	unsigned char buf[16];
 
@@ -3309,7 +3309,7 @@ int send_users_tologin(int tid, unsigned long tick, int id, int data) {
 	return 0;
 }
 
-int check_connect_login_server(int tid, unsigned long tick, int id, int data) {
+int check_connect_login_server(int tid, unsigned long tick, int id, intptr data) {
 		
 	if ( !session_isActive(login_fd) ) 
 	{

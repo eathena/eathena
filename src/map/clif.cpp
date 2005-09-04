@@ -202,11 +202,6 @@ enum {
 	GUILD_AREA_WOS,	// end additions [Valaris]
 	SELF
 };
-#define WBUFPOS(p,pos,x,y,d) { unsigned char *__p = (p); __p+=(pos); __p[0] = (unsigned char)((x)>>2); __p[1] = (unsigned char)(((x)<<6) | (((y)>>4)&0x3f)); __p[2] = (unsigned char)((y)<<4) | d&0xF; }
-#define WBUFPOS2(p,pos,x0,y0,x1,y1) { unsigned char *__p = (p); __p+=(pos); __p[0] = (unsigned char)((x0)>>2); __p[1] = (unsigned char)(((x0)<<6) | (((y0)>>4)&0x3f)); __p[2] = (unsigned char)(((y0)<<4) | (((x1)>>6)&0x0f)); __p[3]=(unsigned char)(((x1)<<2) | (((y1)>>8)&0x03)); __p[4]=(unsigned char)((y1)); }
-
-#define WFIFOPOS(fd,pos,x,y,d) { WBUFPOS (WFIFOP(fd,pos),0,x,y,d); }
-#define WFIFOPOS2(fd,pos,x0,y0,x1,y1) { WBUFPOS2(WFIFOP(fd,pos),0,x0,y0,x1,y1); }
 
 netaddress	charaddress(ipaddress::GetSystemIP(0), 6121);
 ipset		mapaddress(5121);
@@ -219,6 +214,48 @@ ipset& getmapaddress()			{ return mapaddress; }
 
 
 
+
+
+
+/*
+#define WBUFPOS(p,pos,x,y,d) { unsigned char *__p = (p); __p+=(pos); __p[0] = (unsigned char)((x)>>2); __p[1] = (unsigned char)(((x)<<6) | (((y)>>4)&0x3f)); __p[2] = (unsigned char)((y)<<4) | d&0xF; }
+#define WBUFPOS2(p,pos,x0,y0,x1,y1) { unsigned char *__p = (p); __p+=(pos); __p[0] = (unsigned char)((x0)>>2); __p[1] = (unsigned char)(((x0)<<6) | (((y0)>>4)&0x3f)); __p[2] = (unsigned char)(((y0)<<4) | (((x1)>>6)&0x0f)); __p[3]=(unsigned char)(((x1)<<2) | (((y1)>>8)&0x03)); __p[4]=(unsigned char)((y1)); }
+
+#define WFIFOPOS(fd,pos,x,y,d) { WBUFPOS (WFIFOP(fd,pos),0,x,y,d); }
+#define WFIFOPOS2(fd,pos,x0,y0,x1,y1) { WBUFPOS2(WFIFOP(fd,pos),0,x0,y0,x1,y1); }
+*/
+
+inline void WBUFPOS(unsigned char* p, size_t pos, unsigned short x, unsigned short y, unsigned char d)
+{
+	if(p)
+	{
+		p += pos;
+		*p++ = (unsigned char)(x>>2);
+		*p++ = (unsigned char)((x<<6) | ((y>>4)&0x3f));
+		*p   = (unsigned char)(y<<4) | d&0xF;
+	}
+}
+inline void WBUFPOS2(unsigned char* p, size_t pos, unsigned short x0, unsigned short y0, unsigned short x1, unsigned short y1)
+{
+	if(p)
+	{
+		p += pos;
+		*p++ = (unsigned char)(x0>>2);
+		*p++ = (unsigned char)((x0<<6) | ((y0>>4)&0x3f));
+		*p++ = (unsigned char)((y0<<4) | ((x1>>6)&0x0f));
+		*p++ = (unsigned char)((x1<<2) | ((y1>>8)&0x03));
+		*p   = (unsigned char)(y1); 
+	}
+}
+
+inline void WFIFOPOS(int fd, size_t pos, unsigned short x, unsigned short y, unsigned char d)
+{
+	WBUFPOS(WFIFOP(fd,pos),0,x,y,d); 
+}
+inline void WFIFOPOS2(int fd, size_t pos, unsigned short x0, unsigned short y0, unsigned short x1, unsigned short y1)
+{
+	WBUFPOS2(WFIFOP(fd,pos),0,x0,y0,x1,y1); 
+}
 
 
 
@@ -930,13 +967,13 @@ int clif_clearchar(struct map_session_data &sd, struct block_list &bl)
 }
 
 
-int clif_clearchar_delay_sub(int tid, unsigned long tick, int id, int data) 
+int clif_clearchar_delay_sub(int tid, unsigned long tick, int id, intptr data) 
 {
-	struct block_list *bl = (struct block_list *)id;
+	struct block_list *bl = (struct block_list *)data.ptr;
 
 	if(bl)
 	{
-		clif_clearchar(*bl,data);
+		clif_clearchar(*bl,id);
 		map_freeblock(bl);
 	}
 
@@ -945,11 +982,9 @@ int clif_clearchar_delay_sub(int tid, unsigned long tick, int id, int data)
 
 int clif_clearchar_delay(unsigned long tick, struct block_list &bl, int type) 
 {
-	struct block_list *tmpbl;
-
-	tmpbl = (struct block_list*)aMalloc( sizeof(struct block_list) );
+	struct block_list *tmpbl = (struct block_list*)aMalloc( sizeof(struct block_list) );
 	memcpy(tmpbl, &bl, sizeof(struct block_list));
-	add_timer(tick, clif_clearchar_delay_sub, (int)tmpbl, type); // !!todo!!
+	add_timer(tick, clif_clearchar_delay_sub, type, intptr(tmpbl), false);
 
 	return 0;
 }
@@ -4170,9 +4205,9 @@ int clif_damage(struct block_list &src,struct block_list &dst,unsigned long tick
 		if(sc_data[SC_HALLUCINATION].timer != -1)
 		{
 			if(damage > 0)
-				damage = damage*(5+sc_data[SC_HALLUCINATION].val1) + rand()%100;
+				damage = damage*(5+sc_data[SC_HALLUCINATION].val1.num) + rand()%100;
 			if(damage2 > 0)
-				damage2 = damage2*(5+sc_data[SC_HALLUCINATION].val1) + rand()%100;
+				damage2 = damage2*(5+sc_data[SC_HALLUCINATION].val1.num) + rand()%100;
 		}
 	}
 	
@@ -4847,7 +4882,7 @@ int clif_skill_damage(struct block_list &src,struct block_list &dst,unsigned lon
 		if(type != 5 && sc_data[SC_ENDURE].timer != -1)
 			type = 9;
 		if(sc_data[SC_HALLUCINATION].timer != -1 && damage > 0)
-			damage = damage*(5+sc_data[SC_HALLUCINATION].val1) + rand()%100;
+			damage = damage*(5+sc_data[SC_HALLUCINATION].val1.num) + rand()%100;
 	}
 
 #if PACKETVER < 3
@@ -4908,7 +4943,7 @@ int clif_skill_damage2(struct block_list &src,struct block_list &dst,unsigned lo
 		if(type != 5 && sc_data[SC_ENDURE].timer != -1)
 			type = 9;
 		if(sc_data[SC_HALLUCINATION].timer != -1 && damage > 0)
-			damage = damage*(5+sc_data[SC_HALLUCINATION].val1) + rand()%100;
+			damage = damage*(5+sc_data[SC_HALLUCINATION].val1.num) + rand()%100;
 	}
 
 	WBUFW(buf,0)=0x115;
@@ -8153,7 +8188,7 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 		map_addblock(sd.pd->bl);
 		clif_spawnpet(*sd.pd);
 		clif_send_petdata(sd,0,0);
-		clif_send_petdata(sd,5,0x14);
+		clif_send_petdata(sd,5,battle_config.pet_hair_style);
 		clif_send_petstatus(sd);
 	}
 
@@ -8185,7 +8220,7 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 
 	//if(sd.status.hp<sd.status.max_hp>>2 && pc_checkskill(sd,SM_AUTOBERSERK)>0 &&
 	if(sd.status.hp<sd.status.max_hp>>2 && sd.sc_data[SC_AUTOBERSERK].timer != -1 &&
-		(sd.sc_data[SC_PROVOKE].timer==-1 || sd.sc_data[SC_PROVOKE].val2==0 ))
+		(sd.sc_data[SC_PROVOKE].timer==-1 || sd.sc_data[SC_PROVOKE].val2.num==0 ))
 		// オートバーサーク発動
 		status_change_start(&sd.bl,SC_PROVOKE,10,1,0,0,0,0);
 
@@ -8292,8 +8327,8 @@ int clif_parse_WalkToXY(int fd, struct map_session_data &sd)
 	     sd.sc_data[SC_TRICKDEAD].timer !=-1 || //死んだふり
 	     sd.sc_data[SC_BLADESTOP].timer !=-1 || //白刃取り
 	     sd.sc_data[SC_SPIDERWEB].timer !=-1 || //スパイダーウェッブ
-	     (sd.sc_data[SC_DANCING].timer !=-1 && sd.sc_data[SC_DANCING].val4) || //合奏スキル演奏中は動けない
-		 (sd.sc_data[SC_GOSPEL].timer !=-1 && sd.sc_data[SC_GOSPEL].val4 == BCT_SELF) ||	// cannot move while gospel is in effect
+	     (sd.sc_data[SC_DANCING].timer !=-1 && sd.sc_data[SC_DANCING].val4.num) || //合奏スキル演奏中は動けない
+		 (sd.sc_data[SC_GOSPEL].timer !=-1 && sd.sc_data[SC_GOSPEL].val4.num == BCT_SELF) ||	// cannot move while gospel is in effect
 		 sd.sc_data[SC_CONFUSION].timer !=-1)
 		return 0;
 	if ((sd.status.option & 2) && pc_checkskill(sd, RG_TUNNELDRIVE) <= 0)
@@ -8332,7 +8367,8 @@ int clif_parse_QuitGame(int fd, struct map_session_data &sd)
 	if ((!pc_isdead(sd) && (sd.opt1 || (sd.opt2 && !(night_flag == 1 && sd.opt2 == STATE_BLIND)))) ||
 	    sd.skilltimer != -1 ||
 	    (DIFF_TICK(tick, sd.canact_tick) < 0) ||
-	    (sd.sc_data && sd.sc_data[SC_DANCING].timer!=-1 && sd.sc_data[SC_DANCING].val4 && (sg=(struct skill_unit_group *)sd.sc_data[SC_DANCING].val2) && sg->src_id == sd.bl.id)) {
+	    (sd.sc_data && sd.sc_data[SC_DANCING].timer!=-1 && sd.sc_data[SC_DANCING].val2.isptr && (sg=(struct skill_unit_group *)sd.sc_data[SC_DANCING].val2.ptr) && sg->src_id == sd.bl.id))
+	{
 		WFIFOW(fd,2)=1;
 		WFIFOSET(fd,packet_len_table[0x18b]);
 		return 0;
@@ -9404,9 +9440,9 @@ int clif_parse_UseSkillToId(int fd, struct map_session_data &sd) {
 		sd.skillitem = sd.skillitemlv = 0xFFFF;
 		if (skillnum == MO_EXTREMITYFIST) {
 			if ((sd.sc_data[SC_COMBO].timer == -1 ||
-				(sd.sc_data[SC_COMBO].val1 != MO_COMBOFINISH &&
-				 sd.sc_data[SC_COMBO].val1 != CH_TIGERFIST &&
-				 sd.sc_data[SC_COMBO].val1 != CH_CHAINCRUSH)) )
+				(sd.sc_data[SC_COMBO].val1.num != MO_COMBOFINISH &&
+				 sd.sc_data[SC_COMBO].val1.num != CH_TIGERFIST &&
+				 sd.sc_data[SC_COMBO].val1.num != CH_CHAINCRUSH)) )
 			{
 				if (!sd.state.skill_flag )
 				{
@@ -9421,7 +9457,7 @@ int clif_parse_UseSkillToId(int fd, struct map_session_data &sd) {
 				}
 			}
 		} else if (skillnum == CH_TIGERFIST) {
-			if (sd.sc_data[SC_COMBO].timer == -1 || sd.sc_data[SC_COMBO].val1 != MO_COMBOFINISH) {
+			if (sd.sc_data[SC_COMBO].timer == -1 || sd.sc_data[SC_COMBO].val1.num != MO_COMBOFINISH) {
 				if (!sd.state.skill_flag ) {
 					sd.state.skill_flag = 1;
 					if (!sd.attacktarget) {
@@ -10001,8 +10037,8 @@ int clif_parse_VendingListReq(int fd, struct map_session_data &sd)
 		return 0;
 
 	vending_vendinglistreq(sd,RFIFOL(fd,2));
-	if( sd.ScriptEngine.isRunning() )
-		npc_event_dequeue(sd);
+//	if( sd.ScriptEngine.isRunning() )
+//		npc_event_dequeue(sd);
 	return 0;
 }
 

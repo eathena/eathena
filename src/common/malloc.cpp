@@ -217,7 +217,7 @@ static size_t memmgr_usage_bytes = 0;
 
 
 #ifdef MEMCHECKER
-TslistDST<int> memlist;
+TslistDST<size_t> memlist;
 #endif
 
 
@@ -259,7 +259,7 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 			unit_head_large_first = p;
 
 #ifdef MEMCHECKER
-			memlist.insert( (int)(((char *)p) + sizeof(struct unit_head_large)) );
+			memlist.insert( (size_t)(((char *)p) + sizeof(struct unit_head_large)) );
 #endif
 			return ((char *)p) + sizeof(struct unit_head_large);
 		}
@@ -341,7 +341,7 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 			head->line  = line;
 			head->file  = file;
 #ifdef MEMCHECKER
-			memlist.insert( (int)((char *)head) + sizeof(struct unit_head) );
+			memlist.insert( (size_t)((char *)head) + sizeof(struct unit_head) );
 #endif
 			return ((char *)head) + sizeof(struct unit_head);
 		}
@@ -369,7 +369,7 @@ void* _mrealloc(void *memblock, size_t size, const char *file, int line, const c
 	}
 #ifdef MEMCHECKER
 	size_t pos;
-	if( !memlist.find( (int)memblock, 0, pos ) )
+	if( !memlist.find( (size_t)memblock, 0, pos ) )
 	{	
 		ShowFatalError("Realloc on non-aquired memory");
 		// do crash explicitely
@@ -427,7 +427,7 @@ void _mfree(void *ptr, const char *file, int line, const char *func )
 {
 #ifdef MEMCHECKER
 	size_t pos;
-	if( !memlist.find( (int)ptr, 0, pos ) )
+	if( !memlist.find( (size_t)ptr, 0, pos ) )
 	{	
 		ShowFatalError("Free on non-aquired memory");
 		// do crash explicitely

@@ -2878,7 +2878,7 @@ int timesetaccount(char* param) {
 
 	WFIFOW(login_fd,0) = 0x7948;
 	memcpy(WFIFOP(login_fd,2), name, 24);
-	WFIFOL(login_fd,26) = (int)connect_until_time;
+	WFIFOL(login_fd,26) = connect_until_time;
 	WFIFOSET(login_fd,30);
 	bytes_to_read = 1;
 

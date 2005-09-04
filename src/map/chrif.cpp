@@ -1510,7 +1510,7 @@ int chrif_parse(int fd)
  * 今このmap鯖に繋がっているクライアント人数をchar鯖へ送る
  *------------------------------------------
  */
-int send_users_tochar(int tid, unsigned long tick, int id, int data) {
+int send_users_tochar(int tid, unsigned long tick, int id, intptr data) {
 	size_t i;
 	unsigned short users = 0;
 	struct map_session_data *sd;
@@ -1538,7 +1538,7 @@ int send_users_tochar(int tid, unsigned long tick, int id, int data) {
  * char鯖との接続を確認し、もし切れていたら再度接続する
  *------------------------------------------
  */
-int check_connect_char_server(int tid, unsigned long tick, int id, int data)
+int check_connect_char_server(int tid, unsigned long tick, int id, intptr data)
 {
 	if( !session_isActive(char_fd) )
 	{

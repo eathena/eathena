@@ -39,7 +39,7 @@ struct mob_db mob_db[MAX_MOB_DB+1];
  *------------------------------------------
  */
 int mob_makedummymobdb(int);
-int mob_timer(int tid,unsigned long tick,int id,int data);
+int mob_timer(int tid, unsigned long tick, int id, intptr data);
 int mobskill_deltimer(struct mob_data &md);
 int mob_skillid2skillidx(int class_,unsigned short skillid);
 int mobskill_use_id(struct mob_data &md,struct block_list *target,unsigned short skill_idx);
@@ -731,7 +731,7 @@ int mob_changestate(struct mob_data &md,int state,int type)
  * It branches to a walk and an attack.
  *------------------------------------------
  */
-int mob_timer(int tid,unsigned long tick,int id,int data)
+int mob_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	struct mob_data *md;
 	struct block_list *bl;
@@ -757,10 +757,10 @@ int mob_timer(int tid,unsigned long tick,int id,int data)
 	map_freeblock_lock();
 	switch(md->state.state){
 	case MS_WALK:
-		mob_walk(*md,tick,data);
+		mob_walk(*md,tick,data.num);
 		break;
 	case MS_ATTACK:
-		mob_attack(*md,tick,data);
+		mob_attack(*md,tick,data.num);
 		break;
 	case MS_DELAY:
 		mob_changestate(*md,MS_IDLE,0);
@@ -837,9 +837,9 @@ int mob_walktoxy(struct mob_data &md,int x,int y,int easy)
  * mob spawn with delay (timer function)
  *------------------------------------------
  */
-int mob_delayspawn(int tid,unsigned long tick,int m,int n)
+int mob_delayspawn(int tid, unsigned long tick, int id, intptr data)
 {
-	mob_spawn(m);
+	mob_spawn(id);
 	return 0;
 }
 
@@ -1417,28 +1417,34 @@ int mob_ai_sub_hard_slavemob(struct mob_data &md,unsigned long tick)
 	if((!md.target_id || md.state.targettype == NONE_ATTACKABLE) && mob_can_move(md) &&
 		md.master_dist<15 && (md.walkpath.path_pos>=md.walkpath.path_len || md.walkpath.path_len==0)){
 		int i=0,dx,dy,ret;
-		if(md.master_dist>4) {
-			do {
-				if(i<=5){
-					dx=mmd->bl.x - md.bl.x;
-					dy=mmd->bl.y - md.bl.y;
-					if(dx<0) dx+=(rand()%( (dx<-3)?3:-dx )+1);
-					else if(dx>0) dx-=(rand()%( (dx>3)?3:dx )+1);
-					if(dy<0) dy+=(rand()%( (dy<-3)?3:-dy )+1);
-					else if(dy>0) dy-=(rand()%( (dy>3)?3:dy )+1);
-				}else{
-					dx=mmd->bl.x - md.bl.x + rand()%7 - 3;
-					dy=mmd->bl.y - md.bl.y + rand()%7 - 3;
+		if(md.master_dist>AREA_SIZE/2)
+		{
+			do
+			{
+				if(i<=5)
+				{
+					dx=bl->x - md.bl.x;
+					dy=bl->y - md.bl.y;
+					if(dx<0) dx+=(rand()%-dx);
+					else if(dx>0) dx-=(rand()%dx);
+					if(dy<0) dy+=(rand()%-dy);
+					else if(dy>0) dy-=(rand()%dy);
 				}
-
+				else
+				{
+					dx=bl->x - md.bl.x + rand()%11- 5;
+					dy=bl->y - md.bl.y + rand()%11- 5;
+				}
 				ret=mob_walktoxy(md,md.bl.x+dx,md.bl.y+dy,0);
 				i++;
 			} while(ret && i<10);
 		}
-		else {
-			do {
-				dx = rand()%9 - 5;
-				dy = rand()%9 - 5;
+		else
+		{
+			do
+			{
+				dx = rand()%(AREA_SIZE/2 +1) - AREA_SIZE/2;
+				dy = rand()%(AREA_SIZE/2 +1) - AREA_SIZE/2;
 				if( dx == 0 && dy == 0) {
 					dx = (rand()%1)? 1:-1;
 					dy = (rand()%1)? 1:-1;
@@ -1950,7 +1956,7 @@ int mob_ai_sub_foreachclient(struct map_session_data &sd,va_list ap)
  * Serious processing for mob in PC field of view   (interval timer function)
  *------------------------------------------
  */
-int mob_ai_hard(int tid,unsigned long tick,int id,int data)
+int mob_ai_hard(int tid, unsigned long tick, int id, intptr data)
 {
 	clif_foreachclient(mob_ai_sub_foreachclient,tick);
 
@@ -1969,10 +1975,9 @@ int mob_ai_sub_lazy(void * key,void * data,va_list app)
 	va_list ap;
 
 	if(NULL==md)
-	{	int a=(int)key;
-		ShowMessage("md NULL pointer, key=%i\n", a);
+	{	
+		ShowError("md NULL pointer, key=%p\n", key);
 	}
-
 	nullpo_retr(0, md);
 	nullpo_retr(0, app);
 
@@ -2037,7 +2042,7 @@ int mob_ai_sub_lazy(void * key,void * data,va_list app)
  * Negligent processing for mob outside PC field of view   (interval timer function)
  *------------------------------------------
  */
-int mob_ai_lazy(int tid,unsigned long tick,int id,int data)
+int mob_ai_lazy(int tid, unsigned long tick, int id, intptr data)
 {
 	map_foreachiddb(mob_ai_sub_lazy,tick);
 
@@ -2070,9 +2075,9 @@ struct delay_item_drop2 {
  * item drop with delay (timer function)
  *------------------------------------------
  */
-int mob_delay_item_drop(int tid,unsigned long tick,int id,int data)
+int mob_delay_item_drop(int tid, unsigned long tick, int id, intptr data)
 {
-	struct delay_item_drop *ditem=(struct delay_item_drop *)id;
+	struct delay_item_drop *ditem=(struct delay_item_drop *)data.ptr;
 	struct item temp_item;
 	int flag, drop_flag = 1;
 
@@ -2135,9 +2140,9 @@ int mob_delay_item_drop(int tid,unsigned long tick,int id,int data)
  * item drop (timer function)-lootitem with delay
  *------------------------------------------
  */
-int mob_delay_item_drop2(int tid,unsigned long tick,int id,int data)
+int mob_delay_item_drop2(int tid, unsigned long tick, int id, intptr data)
 {
-	struct delay_item_drop2 *ditem=(struct delay_item_drop2 *)id;
+	struct delay_item_drop2 *ditem=(struct delay_item_drop2 *)data.ptr;
 	int flag, drop_flag = 1;
 
 	nullpo_retr(0, ditem);
@@ -2228,7 +2233,7 @@ void mob_unload(struct mob_data &md)
 	map_freeblock(&md);
 }
 
-int mob_timer_delete(int tid, unsigned long tick, int id, int data)
+int mob_timer_delete(int tid, unsigned long tick, int id, intptr data)
 {
 	struct mob_data *md=(struct mob_data *)map_id2bl(id);
 	nullpo_retr(0, md);
@@ -2512,7 +2517,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 	if(md.hp>0){
 		if (battle_config.show_mob_hp)
 			clif_update_mobhp (md);
-		return 0;
+		return damage;
 	}
 
 	// ----- ここから死亡処理 -----
@@ -2793,7 +2798,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			ditem->first_sd = mvp_sd;
 			ditem->second_sd = second_sd;
 			ditem->third_sd = third_sd;
-			add_timer(tick+500+i,mob_delay_item_drop,(int)ditem,0); //!!todo!!
+			add_timer(tick+500+i,mob_delay_item_drop,0,intptr(ditem),false); //!!todo!!
 
 			//Rare Drop Global Announce by Lupus
 			if(drop_rate<=(int)battle_config.drop_rare_announce)
@@ -2825,7 +2830,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			ditem->first_sd = mvp_sd;
 			ditem->second_sd = second_sd;
 			ditem->third_sd = third_sd;
-			add_timer(tick+500+i,mob_delay_item_drop,(int)ditem,0); //!!todo!!
+			add_timer(tick+500+i,mob_delay_item_drop,0,intptr(ditem),false); //!!todo!!
 		}
 
 		//this drop log contains ALL dropped items + ORE (if there was ORE Recovery) [Lupus]
@@ -2856,7 +2861,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 					ditem->first_sd = mvp_sd;
 					ditem->second_sd = second_sd;
 					ditem->third_sd = third_sd;
-					add_timer(tick+520+i,mob_delay_item_drop,(int)ditem,0); //!!todo!!
+					add_timer(tick+520+i,mob_delay_item_drop,0,intptr(ditem),false); //!!todo!!
 				}
 			}
 			if(sd->get_zeny_num > 0)
@@ -2876,7 +2881,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 				ditem->first_sd = mvp_sd;
 				ditem->second_sd = second_sd;
 				ditem->third_sd = third_sd;
-				add_timer(tick+540+i,mob_delay_item_drop2,(int)ditem,0);//!!todo!!
+				add_timer(tick+540+i,mob_delay_item_drop2,0, intptr(ditem), false);
 			}
 		}
 	}
@@ -2993,14 +2998,14 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 	else
 		clif_clearchar_area(md.bl,1);
 	
-	// reset levels for reborn moc
+	// reset levels for reborn mob
 	md.level=0;
 
 
 	mob_remove_map(md, 0);
 	map_freeblock_unlock();
 
-	return 0;
+	return damage;
 }
 
 /*==========================================
@@ -3251,7 +3256,7 @@ unsigned int mob_countslave(struct mob_data &md)
  * 手下MOB召喚
  *------------------------------------------
  */
-int mob_summonslave(struct mob_data &md2,int *value,size_t amount,unsigned short skillid)
+int mob_summonslave(struct mob_data &md2, int *value, size_t amount, unsigned short skillid)
 {
 	struct mob_data *md;
 	int bx,by,m, count = 0, class_, k;
@@ -3278,8 +3283,8 @@ int mob_summonslave(struct mob_data &md2,int *value,size_t amount,unsigned short
 				md->lootitem=NULL;
 
 			do{
-				x=bx + rand()%9-4;
-				y=by + rand()%9-4;
+				x=bx + rand()%15-7;
+				y=by + rand()%15-7;
 			}while( map_getcell(m,x,y,CELL_CHKNOPASS) && ((t++)<100));
 			if(t>=100){
 				x=bx;
@@ -3290,7 +3295,8 @@ int mob_summonslave(struct mob_data &md2,int *value,size_t amount,unsigned short
 			md->bl.m=m;
 			md->bl.x=x;
 			md->bl.y=y;
-			md->speed=md2.speed;
+			if(battle_config.mob_slaves_inherit_speed && (skillid != NPC_METAMORPHOSIS && skillid != NPC_TRANSFORMATION))
+				md->speed=md2.speed;
 
 			memset(md->npc_event,0,sizeof(md->npc_event));
 			md->bl.type=BL_MOB;
@@ -3335,7 +3341,7 @@ int mob_skillid2skillidx(int class_,unsigned short skillid)
  * スキル使用（詠唱完了、ID指定）
  *------------------------------------------
  */
-int mobskill_castend_id( int tid, unsigned long tick, int id,int data )
+int mobskill_castend_id(int tid, unsigned long tick, int id, intptr data)
 {
 	struct mob_data* md=NULL;
 	struct block_list *bl;
@@ -3381,7 +3387,7 @@ int mobskill_castend_id( int tid, unsigned long tick, int id,int data )
 
 	if(md->skillid == PR_LEXAETERNA) {
 		struct status_change *sc_data = status_get_sc_data(bl);
-		if(sc_data && (sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2 == 0)))
+		if(sc_data && (sc_data[SC_FREEZE].timer != -1 || (sc_data[SC_STONE].timer != -1 && sc_data[SC_STONE].val2.num == 0)))
 			return 0;
 	}
 	else if(md->skillid == RG_BACKSTAP) {
@@ -3429,7 +3435,7 @@ int mobskill_castend_id( int tid, unsigned long tick, int id,int data )
  * スキル使用（詠唱完了、場所指定）
  *------------------------------------------
  */
-int mobskill_castend_pos( int tid, unsigned long tick, int id,int data )
+int mobskill_castend_pos(int tid, unsigned long tick, int id, intptr data)
 {
 	struct mob_data* md=NULL;
 	int range,maxcount;

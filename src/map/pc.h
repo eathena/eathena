@@ -158,7 +158,7 @@ int pc_cleareventtimer(struct map_session_data &sd);
 int pc_addeventtimercount(struct map_session_data &sd,const char *name,unsigned long tick);
 
 int pc_calc_pvprank(struct map_session_data &sd);
-int pc_calc_pvprank_timer(int tid,unsigned long tick,int id,int data);
+int pc_calc_pvprank_timer(int tid, unsigned long tick, int id, intptr data);
 
 unsigned long pc_ismarried(struct map_session_data &sd);
 bool pc_marriage(struct map_session_data &sd1,struct map_session_data &sd2);
@@ -200,7 +200,7 @@ int pc_setinvincibletimer(struct map_session_data &sd,int);
 int pc_delinvincibletimer(struct map_session_data &sd);
 int pc_addspiritball(struct map_session_data &sd,int,int);
 int pc_delspiritball(struct map_session_data &sd,int,int);
-int pc_eventtimer(int tid,unsigned long tick,int id,int data);
+int pc_eventtimer(int tid, unsigned long tick, int id, intptr data);
 
 struct fame_list {
 	unsigned long id;
@@ -221,8 +221,8 @@ enum {ADDITEM_EXIST,ADDITEM_NEW,ADDITEM_OVERAMOUNT};
 // timer for night.day
 extern int day_timer_tid;
 extern int night_timer_tid;
-int map_day_timer(int tid,unsigned long tick,int id,int data); // by [yor]
-int map_night_timer(int tid,unsigned long tick,int id,int data); // by [yor]
+int map_day_timer(int tid, unsigned long tick, int id, intptr data); // by [yor]
+int map_night_timer(int tid, unsigned long tick, int id, intptr data); // by [yor]
 
 #endif
 
