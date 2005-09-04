@@ -1741,6 +1741,8 @@ int status_calc_def(struct block_list *bl, int def)
 	sc_data = status_get_sc_data(bl);
 
 	if(sc_data){
+		if(sc_data[SC_BERSERK].timer!=-1)
+			return 0;
 		if(sc_data[SC_DRUMBATTLE].timer!=-1)
 			def += sc_data[SC_DRUMBATTLE].val3;
 		if(sc_data[SC_INCDEFRATE].timer!=-1)
@@ -1761,7 +1763,11 @@ int status_calc_def2(struct block_list *bl, int def2)
 	sc_data = status_get_sc_data(bl);
 
 	if(sc_data){
-        if(sc_data[SC_ANGELUS].timer!=-1)
+		if(sc_data[SC_BERSERK].timer!=-1)
+			return 0;
+		if(sc_data[SC_ETERNALCHAOS].timer!=-1)
+			return 0;
+		if(sc_data[SC_ANGELUS].timer!=-1)
 			def2 += def2 * (10+5*sc_data[SC_ANGELUS].val1)/100;
 		if(sc_data[SC_PROVOKE].timer!=-1)
 			def2 -= def2 * (5+5*sc_data[SC_PROVOKE].val1)/100;
@@ -1782,13 +1788,14 @@ int status_calc_def2(struct block_list *bl, int def2)
 
 int status_calc_mdef(struct block_list *bl, int mdef)
 {
-/*	struct status_change *sc_data;
+	struct status_change *sc_data;
 	nullpo_retr(mdef,bl);
 	sc_data = status_get_sc_data(bl);
 
 	if(sc_data){
-		// No SC has an absolute/relative modifier at the moment
-	}*/
+		if(sc_data[SC_BERSERK].timer!=-1)
+		    return 0;
+	}
 
 	return mdef;
 }
@@ -1800,6 +1807,8 @@ int status_calc_mdef2(struct block_list *bl, int mdef2)
 	sc_data = status_get_sc_data(bl);
 
 	if(sc_data){
+		if(sc_data[SC_BERSERK].timer!=-1)
+			return 0;
 		if(sc_data[SC_ENDURE].timer!=-1)
 			mdef2 += sc_data[SC_ENDURE].val1;
 		if(sc_data[SC_MINDBREAKER].timer!=-1)
@@ -2578,22 +2587,15 @@ int status_get_def(struct block_list *bl)
 		def = ((struct map_session_data *)bl)->def;
 		if(((struct map_session_data *)bl)->skilltimer != -1)
 			def -= def * skill_get_castdef(((struct map_session_data *)bl)->skillid)/100;
-	} else {
-        struct status_change *sc_data = status_get_sc_data(bl);
-		// Special fixed values from status changes
-		if(sc_data[SC_BERSERK].timer!=-1)
-		    def = 0;
-		else {
-			if(bl->type==BL_MOB && (struct mob_data *)bl) {
-				def = ((struct mob_data *)bl)->db->def;
-				def -= def * skill_get_castdef(((struct mob_data *)bl)->skillid)/100;
-			} else if(bl->type==BL_PET && (struct pet_data *)bl)
-				def = ((struct pet_data *)bl)->db->def;
+	} else if(bl->type==BL_MOB && (struct mob_data *)bl) {
+		def = ((struct mob_data *)bl)->db->def;
+		def -= def * skill_get_castdef(((struct mob_data *)bl)->skillid)/100;
+	} else if(bl->type==BL_PET && (struct pet_data *)bl)
+		def = ((struct pet_data *)bl)->db->def;
 
-		def = status_calc_def(bl,def);
-		if(def < 0) def = 0;
-		}
-	}
+	def = status_calc_def(bl,def);
+	if(def < 0) def = 0;
+
 	return def;
 }
 /*==========================================
@@ -2603,33 +2605,24 @@ int status_get_def(struct block_list *bl)
  */
 int status_get_def2(struct block_list *bl)
 {
+	int def2 = 1;
 	nullpo_retr(1, bl);
 	
 	if(bl->type==BL_PC)
 		return ((struct map_session_data *)bl)->def2;
-	else {
-		int def2 = 1;
-		struct status_change *sc_data = status_get_sc_data(bl);
-		// Special fixed values from status changes
-		if(sc_data[SC_BERSERK].timer!=-1)
-		    return 0;
-		else if(sc_data[SC_ETERNALCHAOS].timer!=-1)
-		    return 0;
-		else {
-			if(bl->type==BL_MOB)
-				def2 = ((struct mob_data *)bl)->db->vit;
-			else if(bl->type==BL_PET) {	//<Skotlex> Use pet's stats
-				if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
-					def2 = ((struct pet_data *)bl)->status->vit;
-				else
-					def2 = ((struct pet_data *)bl)->db->vit;
-			}
-
-		def2 = status_calc_def2(bl,def2);
-		if(def2 < 1) def2 = 1;
-		return def2;
-		}
+	else if(bl->type==BL_MOB)
+		def2 = ((struct mob_data *)bl)->db->vit;
+	else if(bl->type==BL_PET) {	//<Skotlex> Use pet's stats
+		if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+			def2 = ((struct pet_data *)bl)->status->vit;
+		else
+			def2 = ((struct pet_data *)bl)->db->vit;
 	}
+
+	def2 = status_calc_def2(bl,def2);
+	if(def2 < 1) def2 = 1;
+	
+	return def2;
 }
 /*==========================================
  * 対象のMDefを返す(汎用)
@@ -2638,27 +2631,20 @@ int status_get_def2(struct block_list *bl)
  */
 int status_get_mdef(struct block_list *bl)
 {
+	int mdef=0;
 	nullpo_retr(0, bl);
 
 	if(bl->type==BL_PC && (struct map_session_data *)bl)
 		return ((struct map_session_data *)bl)->mdef;
-	else {
-        struct status_change *sc_data = status_get_sc_data(bl);
-		// Special fixed values from status changes
-		if(sc_data[SC_BERSERK].timer!=-1)
-		    return 0;
-		else {
-      	 	int mdef=0;
-			if(bl->type==BL_MOB && (struct mob_data *)bl)
-				mdef = ((struct mob_data *)bl)->db->mdef;
-			else if(bl->type==BL_PET && (struct pet_data *)bl)
-				mdef = ((struct pet_data *)bl)->db->mdef;
+	else if(bl->type==BL_MOB && (struct mob_data *)bl)
+		mdef = ((struct mob_data *)bl)->db->mdef;
+	else if(bl->type==BL_PET && (struct pet_data *)bl)
+		mdef = ((struct pet_data *)bl)->db->mdef;
 
-			mdef = status_calc_mdef(bl,mdef);
-			if(mdef < 0) mdef = 0;
-   			return mdef;
-		}
-	}
+	mdef = status_calc_mdef(bl,mdef);
+	if(mdef < 0) mdef = 0;
+
+   return mdef;
 }
 /*==========================================
  * 対象のMDef2を返す(汎用)
@@ -2667,31 +2653,24 @@ int status_get_mdef(struct block_list *bl)
  */
 int status_get_mdef2(struct block_list *bl)
 {
+	int mdef2=0;
 	nullpo_retr(0, bl);
 
 	if(bl->type == BL_PC)
 		return ((struct map_session_data *)bl)->mdef2 + (((struct map_session_data *)bl)->paramc[2]>>1);
-	else {
-		struct status_change *sc_data = status_get_sc_data(bl);
-		// Special fixed values from status changes
-		if(sc_data[SC_BERSERK].timer!=-1)
-		    return 0;
-		else {
-       		int mdef2=0;
-			if(bl->type == BL_MOB)
-				mdef2 = ((struct mob_data *)bl)->db->int_ + (((struct mob_data *)bl)->db->vit>>1);
-			else if(bl->type == BL_PET) {	//<Skotlex> Use pet's stats
-				if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
-					mdef2 = ((struct pet_data *)bl)->status->int_ +(((struct pet_data *)bl)->status->vit>>1);
-				else
-					mdef2 = ((struct pet_data *)bl)->db->int_ + (((struct pet_data *)bl)->db->vit>>1);
-			}
-
-			mdef2 = status_calc_mdef2(bl,mdef2);
- 			if(mdef2 < 0) mdef2 = 0;
-   			return mdef2;
-		}
+	else if(bl->type == BL_MOB)
+		mdef2 = ((struct mob_data *)bl)->db->int_ + (((struct mob_data *)bl)->db->vit>>1);
+	else if(bl->type == BL_PET) {	//<Skotlex> Use pet's stats
+		if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
+			mdef2 = ((struct pet_data *)bl)->status->int_ +(((struct pet_data *)bl)->status->vit>>1);
+		else
+			mdef2 = ((struct pet_data *)bl)->db->int_ + (((struct pet_data *)bl)->db->vit>>1);
 	}
+
+	mdef2 = status_calc_mdef2(bl,mdef2);
+	if(mdef2 < 0) mdef2 = 0;
+	
+	return mdef2;
 }
 /*==========================================
  * 対象のSpeed(移動速度)を返す(汎用)
@@ -2701,26 +2680,24 @@ int status_get_mdef2(struct block_list *bl)
  */
 int status_get_speed(struct block_list *bl)
 {
+	int speed = 1000;
 	nullpo_retr(1000, bl);
 	if(bl->type==BL_PC && (struct map_session_data *)bl)
 		return ((struct map_session_data *)bl)->speed;
-	else {
-		int speed = 1000;
-		if(bl->type==BL_MOB && (struct mob_data *)bl) {
-			speed = ((struct mob_data *)bl)->speed;
-			if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
-				speed-=((struct mob_data *)bl)->level - ((struct mob_data *)bl)->db->lv;
-		}
-		else if(bl->type==BL_PET && (struct pet_data *)bl) {
-			speed = ((struct pet_data *)bl)->msd->petDB->speed;
-		} else if(bl->type==BL_NPC && (struct npc_data *)bl)	//Added BL_NPC (Skotlex)
-			speed = ((struct npc_data *)bl)->speed;
-
-		speed = status_calc_speed(bl,speed);
-
-		if(speed < 1) speed = 1;
-		return speed;
+	else if(bl->type==BL_MOB && (struct mob_data *)bl) {
+		speed = ((struct mob_data *)bl)->speed;
+		if(battle_config.mobs_level_up) // increase from mobs leveling up [Valaris]
+			speed-=((struct mob_data *)bl)->level - ((struct mob_data *)bl)->db->lv;
 	}
+	else if(bl->type==BL_PET && (struct pet_data *)bl)
+		speed = ((struct pet_data *)bl)->msd->petDB->speed;
+	else if(bl->type==BL_NPC && (struct npc_data *)bl)	//Added BL_NPC (Skotlex)
+		speed = ((struct npc_data *)bl)->speed;
+
+	speed = status_calc_speed(bl,speed);
+
+	if(speed < 1) speed = 1;
+	return speed;
 }
 /*==========================================
  * 対象のaDelay(攻撃時ディレイ)を返す(汎用)
