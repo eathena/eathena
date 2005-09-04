@@ -1214,7 +1214,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	} else// if (src->type == BL_PET){
 //		nullpo_retr(0, pd = (struct pet_data *)src);
 		return 0; //Only mobs/players can be affected. [Skotlex]
-	}
+//	}
 
 	if(bl->type == BL_PC) {
 		nullpo_retr(0, dstsd=(struct map_session_data *)bl);
