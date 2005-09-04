@@ -375,6 +375,7 @@ Progress:	0%
 Problem:	[TARO Cards Skill]
 			When your enemy starts walking randomly (due to some Taro Card), 
 			he gets a warning "Stop using bot"  abd gets MUTS for 20 minutes.
+			Note: probably that's just client itself?
 Assigned:	na
 Progress:	0%
 
@@ -390,5 +391,10 @@ Progress:	100%
 
 Problem:	[Char Server]
 			Suddenly Freezes
+Assigned:	na
+Progress:	0%
+
+Problem:	[3020: Mob Spawn]
+			Mobs don't respawn after several deaths (~20 in my test)
 Assigned:	na
 Progress:	0%

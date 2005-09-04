@@ -29,6 +29,7 @@ TODO:
 Date		Added
 ======
 09/04
+	* Wizards Job Quest: Replcaced 2 Hodes with 2 Horongs (according to the official stuff) [Lupus]
 	* Removed duplicate Lighthalzen dungeons/fields warps, thanks to our super moderator, T3H
 	  Manipulator! [DracoRPG]
 	* Updated mob spawns with Dr. Evil ones, they should all be correct and up-to-date,
