@@ -1,6 +1,12 @@
 Date	Added
 =======
 09/04
+	* Now Knockback won't work when the target is already dead (prevents
+	  ghosts) [Skotlex]
+	* BSS now targets every player in the area of effect (might be updated to
+	  include mobs pending on further information) [Skotlex]
+	* Acid terror is now considered a ranged attack. [Skotlex]
+	* Crash fixes to the npc-whisper system. [Skotlex]
 	* Fixed classchange-able Emperium/Guardians/Treasure Boxes, thanks to alsimons [DracoRPG]
 	* Fixed songs/dances, updated Hip Shaker [DracoRPG]
 	* Fixed some fields in sql-files\main.sql... Who the hell added back `broken`? The field

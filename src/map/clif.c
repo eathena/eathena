@@ -8781,12 +8781,9 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 //   Lordalfa - Paperboy - To whisper NPC commands       //
 //-------------------------------------------------------//
 if ((strncasecmp((const char*)RFIFOP(fd,4),"NPC:",4) == 0) && (strlen((const char*)RFIFOP(fd,4)) >4))   {
-		whisper_tmp=(char *)aCallocA(strlen((char *)(RFIFOP(fd,4)-3)),sizeof(char));
-		whisper_tmp[0]=0;
 		whisper_tmp = (char*) RFIFOP(fd,4) + 4;		
     if ((npc = npc_name2id(whisper_tmp)))	
 	{
-		aFree(whisper_tmp);
 		whisper_tmp=(char *)aCallocA(strlen((char *)(RFIFOP(fd,28))+1),sizeof(char));
 		whisper_tmp[0]=0;
 	   
@@ -8825,8 +8822,8 @@ if ((strncasecmp((const char*)RFIFOP(fd,4),"NPC:",4) == 0) && (strlen((const cha
 		return;     
 
 		aFree(whisper_tmp); //I rewrote it a little to use memory allocation, a bit more stable =P  [Kevin]
+		whisper_tmp = NULL;
 	} //should have just removed the one below that was a my bad =P
-	if (whisper_tmp) aFree(whisper_tmp);
 }		
 			
 

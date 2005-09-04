@@ -1712,7 +1712,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		}
 	}
 
-	if (dmg.blewcount > 0 && bl->type!=BL_SKILL && !map[src->m].flag.gvg) {
+	//Only knockback if it's still alive, otherwise a "ghost" is left behind. [Skotlex]
+	if (dmg.blewcount > 0 && !status_isdead(bl) && bl->type!=BL_SKILL && !map[src->m].flag.gvg) {
 		skill_blown(dsrc,bl,dmg.blewcount, 1);
 		if(bl->type == BL_MOB)
 			clif_fixmobpos((struct mob_data *)bl);
@@ -5598,8 +5599,8 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 	case PR_BENEDICTIO:			/* ¹?~•Ÿ */
 		skill_area_temp[1] = src->id;
 		map_foreachinarea(skill_area_sub, 
-			src->m, x-1, y-1, x+1, y+1, 0,
-			src, skillid, skilllv, tick, flag|BCT_NOENEMY|1,
+			src->m, x-1, y-1, x+1, y+1, BL_PC,
+			src, skillid, skilllv, tick, flag|BCT_ALL|1,
 			skill_castend_nodamage_id);
 		map_foreachinarea(skill_area_sub,
 			src->m, x-1, y-1, x+1, y+1, 0,

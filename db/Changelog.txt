@@ -34,6 +34,9 @@
 	--
 
 09/04
+	* Changed B.Something Sacramenti's range from 1 to 9. [Skotlex]
+	  (9 is what I have in the descriptions, and it can't be more wrong than 1
+	  anyway)
 	* Added missing +60 SP bonus to the Quve+Lude Card Combo [Lupus]
 	* Changed Rich Man Kim's target from party to enemy. [Skotlex]
 	  (it is now a SC that inflicts the mob, and when it dies applies on the
