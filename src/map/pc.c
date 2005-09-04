@@ -2835,9 +2835,11 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 		int i,skill,itemid,flag, count;
 		struct mob_data *md;
 		md=(struct mob_data *)bl;
+
 		if(!md->state.steal_flag && md->db->mexp <= 0 && !(md->db->mode&0x20) &&
 			(!md->master_id) && //Prevent stealing from summoned creatures. [Skotlex]
-			(!(md->class_>=1324 && md->class_<1364))) // prevent stealing from treasure boxes [Valaris]
+			(!(md->class_>=1324 && md->class_<1364)) && // prevent stealing from treasure boxes [Valaris]
+			(!map[md->bl.m].flag.nomobloot))        // check noloot map flag [Lorky]
 		{
 			if (md->sc_data && (md->sc_data[SC_STONE].timer != -1 || md->sc_data[SC_FREEZE].timer != -1))
 				return 0;
@@ -2876,7 +2878,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 								struct item_data *i_data;
 								char message[128];
 								i_data = itemdb_exists(itemid);
-								sprintf (message, msg_txt(542), (sd->status.name != NULL)?sd->status.name :"???", md->db->jname, i_data->jname, (float)md->db->dropitem[i].p/100);
+								sprintf (message, msg_txt(542), (sd->status.name != NULL)?sd->status.name :"GM", md->db->jname, i_data->jname, (float)md->db->dropitem[i].p/100);
 								//MSG: "'%s' stole %s's %s (chance: %%%0.02f)"
 								intif_GMmessage(message,strlen(message)+1,0);
 							}

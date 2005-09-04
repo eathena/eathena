@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/04
+	* Fixed working stealing with NOLOOT mapflag on. Thanks 2Lorky [Lupus]
 	* Now Knockback won't work when the target is already dead (prevents
 	  ghosts) [Skotlex]
 	* BSS now targets every player in the area of effect (might be updated to
