@@ -1,9 +1,9 @@
 //===== Athena Script =======================================
 //= Simple Adoption Script
 //===== By ================================================
-//= Fredzilla
-//= Help from Kamari,Acky
+//= Fredzilla with help from Kamari,Acky
 //===== Version ===========================================
+//= 1.4 Got rid of useless "event_adoptXXX" variables [Lupus]
 //= 1.3c - Slightly rewrote the anti-taekwon protection to
 //=        detect problems more easily [DracoRPG]
 //= 1.3a - Added anti Taekwon Classes protection (they can't
@@ -39,9 +39,11 @@
 //= the adoption will take place and will be perminant.
 //= @regged = Stops the same person being counted twice 
 //= before the adoption is completed.
-//= event_adopt = Put on the parents so they cannot adopt 
-//= again.
-//= event_adopted = Put on baby so it cant be adopted again.
+//= Lupus removed:
+//= 	*event_adopt = Put on the parents so they cannot adopt again.
+//= 	*event_adopted = Put on baby so it cant be adopted again.
+//= 	Use "getchildid()>0" insread of event_adopt
+//= 	Use "Upper==2" insread of event_adopted
 //=========================================================
 
 prt_church.gat,115,122,0	warp	prtch03	1,2,prt_church.gat,164,171
@@ -179,7 +181,7 @@ A_Wedringpassed:
 	mes "[Inanna]";
 	mes "Awwwww, such a lovely ring, you must love your partner.";
 	next;
-	if (event_adopt>0) goto A_AlreadyHaveBaby;
+	if (getchildid()>0) goto A_AlreadyHaveBaby;
 	mes "[Inanna]";
 	mes "I need to see them, please tell me their name.";
 	next;
@@ -232,7 +234,7 @@ A_lvltwo:
 	callfunc "AdoptReset","the 2nd parent hasnt got a wedding ring as proof of marriage";
 	close;
 A_Wedringtwo:
-	if (event_adopt>0) goto A_AlreadyHaveBaby;
+	if (getchildid()>0) goto A_AlreadyHaveBaby;
 	mes "[Inanna]";
 	mes "You have checked out, and have passed all the requirments.";
 	mes "All you need is a novice to adopt.";
@@ -262,18 +264,15 @@ A_YesBaby:
 A_FinalTest:
 	deltimer "timeadopt";
 	addtimer 300000,"timeadopt";
-	if(event_adopted>0 || Upper==2) goto A_AlreadyAdopted;
+	if(Upper==2) goto A_AlreadyAdopted;
 	if(callfunc("Is_Taekwon_Class") != 0) goto A_CantBeAdopted;
 	mes "[Inanna]";
 	mes "You must be "+$@Baby$+", its very nice to meet you.";
 	mes "Some very nice people, "+$@ParentOne$+" and "+$@ParentTwo$+", have asked to adopt you.";
 	next;
-	if(sex==0) goto A_Girl;
-	set $@GenderBaby$,"boy";
-	goto A_BabyAsk;
-A_Girl:
-	set $@GenderBaby$,"girl";
-A_BabyAsk:
+	if(sex!=0) set $@GenderBaby$,"boy";
+	if(sex==0) set $@GenderBaby$,"girl";
+
 	mes "[Inanna]";
 	mes "Now can you be a good "+$@GenderBaby$+" and go with these nice people?";
 	next;
@@ -346,7 +345,6 @@ A_FinalYesP:
 	mes "[Inanna]";
 	mes "OK everything is ready to start this adoption";
 	mes "I will announce to everyone when it is complete";
-	set event_adopt,1;
 	set @regged,1;
 	set $@checkall,$@checkall+1;
 	if ($@checkall==3) goto THEEND;
@@ -395,7 +393,6 @@ A_FinalYesB:
 	mes "[Inanna]";
 	mes "OK everything is ready to start this adoption";
 	mes "I will announce to everyone when it is complete";
-	set event_adopted,1;
 	set @regged,1;
 	set $@checkall,$@checkall+1;
 	if ($@checkall==3) goto THEEND;

@@ -61,7 +61,7 @@ prt_church.gat,184,41,4	script	Father Mareusis	60,{
 
 			sR_3:
 				mes "Please Visit ^0000ffFather Yosuke^000000 and report back here.";
-				mes "He has been Practicing Asceticism on ^0000ffa very small island 1 map West, and 1 map North, of Prontera City.^000000.";
+				mes "He has been Practicing Asceticism on ^0000ffa very small island 2 maps West, and 1 map North, of Prontera City.^000000.";
 
 			sL_End:
 				next;

@@ -29,6 +29,8 @@ TODO:
 Date		Added
 ======
 09/04
+	* Minor fix of Acolyte Job Quest message. Thanx to andz for pointing it out [Lupus]
+	* Optimized ADOPTION.TXT again. Tested it with 3 clients. Fully working! [Lupus]
 	* Moved Fashion Quest into the proper folder: custom/quests . Also optimized the script [Lupus]
 	* Wizards Job Quest: Replcaced 2 Hodes with 2 Horongs (according to the official stuff) [Lupus]
 	* Removed duplicate Lighthalzen dungeons/fields warps, thanks to our super moderator, T3H
