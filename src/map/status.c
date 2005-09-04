@@ -1278,17 +1278,17 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	// Weight
 	if((skill=pc_checkskill(sd,MC_INCCARRY))>0)
-		sd->max_weight += skill*2000;
+		sd->max_weight += 2000*skill;
 	if(pc_isriding(sd) && pc_checkskill(sd,KN_RIDING)>0)
 		sd->max_weight += 10000;
 
 	// Skill SP cost
 	if((skill=pc_checkskill(sd,HP_MANARECHARGE))>0 )
-		sd->dsprate -= 4 * skill;
+		sd->dsprate -= 4*skill;
 
 	if(sd->sc_count){
 		if(sd->sc_data[SC_SERVICE4U].timer!=-1)
-			sd->dsprate-=(10+3*sd->sc_data[SC_SERVICE4U].val1+sd->sc_data[SC_SERVICE4U].val2+sd->sc_data[SC_SERVICE4U].val3);
+			sd->dsprate -= sd->sc_data[SC_SERVICE4U].val3;
 	}
 
 	if(sd->dsprate < 0) sd->dsprate = 0;
@@ -1656,7 +1656,7 @@ int status_calc_critical(struct block_list *bl, int critical)
 			//if(s_class.job==JOB_SUPER_NOVICE)
 			//	sd->critical += sd->sc_data[SC_EXPLOSIONSPIRITS].val1*100;
 		if (sc_data[SC_FORTUNE].timer!=-1)
-			critical += (10+sc_data[SC_FORTUNE].val1+sc_data[SC_FORTUNE].val2+sc_data[SC_FORTUNE].val3)*10;
+			critical += sc_data[SC_FORTUNE].val2*10;
 		if (sc_data[SC_TRUESIGHT].timer!=-1)
 			critical += critical * sc_data[SC_TRUESIGHT].val1 / 100;
 		if(sc_data[SC_CLOAKING].timer!=-1)
@@ -1678,7 +1678,7 @@ int status_calc_hit(struct block_list *bl, int hit)
 		if(sc_data[SC_TRUESIGHT].timer != -1)
 			hit += 3*sc_data[SC_TRUESIGHT].val1;
 		if(sc_data[SC_HUMMING].timer!=-1)
-			hit += 2*sc_data[SC_HUMMING].val1+2*sc_data[SC_HUMMING].val2+sc_data[SC_HUMMING].val3;
+			hit += sc_data[SC_HUMMING].val2;
 		if(sc_data[SC_INCHITRATE].timer != -1)
 			hit += hit * sc_data[SC_INCHITRATE].val1/100;
 		if(sc_data[SC_CONCENTRATION].timer != -1)
@@ -1702,7 +1702,7 @@ int status_calc_flee(struct block_list *bl, int flee)
 		if(sc_data[SC_WINDWALK].timer!=-1)
 			flee += sc_data[SC_WINDWALK].val2;
 		if(sc_data[SC_WHISTLE].timer!=-1)
-			flee += sc_data[SC_WHISTLE].val1+sc_data[SC_WHISTLE].val2+sc_data[SC_WHISTLE].val3;
+			flee += sc_data[SC_WHISTLE].val2;
 		if(sc_data[SC_INCFLEERATE].timer!=-1)
 			flee += flee * sc_data[SC_INCFLEERATE].val1/100;
 		if(sc_data[SC_VIOLENTGALE].timer!=-1 && status_get_elem_type(bl)==4)
@@ -1728,7 +1728,7 @@ int status_calc_flee2(struct block_list *bl, int flee2)
 
 	if(sc_data){
 		if(sc_data[SC_WHISTLE].timer!=-1)
-			flee2 += (sc_data[SC_WHISTLE].val1+sc_data[SC_WHISTLE].val2+sc_data[SC_WHISTLE].val3)*10;
+			flee2 += sc_data[SC_WHISTLE].val3*10;
 	}
 
 	return flee2;
@@ -1849,7 +1849,7 @@ int status_calc_speed(struct block_list *bl, int speed)
 			if(sc_data[SC_QUAGMIRE].timer!=-1)
 				speed += speed * 50/100;
 			if(sc_data[SC_DONTFORGETME].timer!=-1)
-				speed += speed * (2*sc_data[SC_DONTFORGETME].val1+sc_data[SC_DONTFORGETME].val2+sc_data[SC_DONTFORGETME].val4)/100;
+				speed += speed * sc_data[SC_DONTFORGETME].val3/100;
 			if(sc_data[SC_DEFENDER].timer!=-1)
 				speed += speed * (55-5*sc_data[SC_DEFENDER].val1)/100;
 			if(sc_data[SC_GOSPEL].timer!=-1 && sc_data[SC_GOSPEL].val4 == BCT_ENEMY)
@@ -1884,14 +1884,14 @@ int status_calc_aspd_rate(struct block_list *bl, int aspd_rate)
 				else if(sc_data[SC_SPEARSQUICKEN].timer!=-1)
 					aspd_rate -= sc_data[SC_SPEARSQUICKEN].val2;
 				else if(sc_data[SC_ASSNCROS].timer!=-1 && (bl->type!=BL_PC || ((struct map_session_data*)bl)->status.weapon != 11))
-					aspd_rate -= 10+sc_data[SC_ASSNCROS].val1+sc_data[SC_ASSNCROS].val2+sc_data[SC_ASSNCROS].val3;
+					aspd_rate -= sc_data[SC_ASSNCROS].val2;
 			}
 			if(sc_data[SC_BERSERK].timer!=-1)
 				aspd_rate -= 30;
 			if(sc_data[i=SC_SPEEDPOTION3].timer!=-1 || sc_data[i=SC_SPEEDPOTION2].timer!=-1 || sc_data[i=SC_SPEEDPOTION1].timer!=-1 || sc_data[i=SC_SPEEDPOTION0].timer!=-1)
 				aspd_rate -= sc_data[i].val2;
 			if(sc_data[SC_DONTFORGETME].timer!=-1)
-				aspd_rate += 3*sc_data[SC_DONTFORGETME].val1+sc_data[SC_DONTFORGETME].val2+sc_data[SC_DONTFORGETME].val3;
+				aspd_rate += sc_data[SC_DONTFORGETME].val2;
 			if(sc_data[SC_STEELBODY].timer!=-1)
 				aspd_rate += 25;
 			if(sc_data[SC_DEFENDER].timer != -1)
@@ -1920,7 +1920,7 @@ int status_calc_maxhp(struct block_list *bl, int maxhp)
 			if(sc_data[SC_INCMHPRATE].timer!=-1)
 				maxhp += maxhp * sc_data[SC_INCMHPRATE].val1/100;
 	 		if(sc_data[SC_APPLEIDUN].timer!=-1)
-				maxhp += maxhp * (5+2*sc_data[SC_APPLEIDUN].val1+sc_data[SC_APPLEIDUN].val2+sc_data[SC_APPLEIDUN].val3)/100;
+				maxhp += maxhp * sc_data[SC_APPLEIDUN].val2/100;
 			if(sc_data[SC_DELUGE].timer!=-1 && status_get_elem_type(bl)==1)
 				maxhp += maxhp * deluge_eff[sc_data[SC_DELUGE].val1-1]/100;
 			if(sc_data[SC_BERSERK].timer!=-1)
@@ -1939,7 +1939,7 @@ int status_calc_maxsp(struct block_list *bl, int maxsp)
 			if(sc_data[SC_INCMSPRATE].timer!=-1)
 				maxsp += maxsp * sc_data[SC_INCMSPRATE].val1/100;
 			if(sc_data[SC_SERVICE4U].timer!=-1)
-				maxsp += maxsp * (10+sc_data[SC_SERVICE4U].val1+sc_data[SC_SERVICE4U].val2+sc_data[SC_SERVICE4U].val3)/100;
+				maxsp += maxsp * sc_data[SC_SERVICE4U].val2/100;
 		}
 
 	return maxsp;

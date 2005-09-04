@@ -1008,7 +1008,7 @@ int pc_calc_skilltree(struct map_session_data *sd)
 			sd->status.skill[i].id=i;
 		for(i=334;i<338;i++)			
 			sd->status.skill[i].id=i;
-		for(i=355;i<411;i++)
+		for(i=355;i<473;i++)
 			sd->status.skill[i].id=i;
 		for(i=475;i<492;i++)
 			sd->status.skill[i].id=i;
@@ -4481,7 +4481,7 @@ int pc_allskillup(struct map_session_data *sd)
 			sd->status.skill[i].lv=skill_get_max(i);
 		for(i=334;i<338;i++)
 			sd->status.skill[i].lv=skill_get_max(i);
-		for(i=355;i<411;i++)
+		for(i=355;i<473;i++)
 			sd->status.skill[i].lv=skill_get_max(i);
 		for(i=475;i<492;i++)
 			sd->status.skill[i].lv=skill_get_max(i);

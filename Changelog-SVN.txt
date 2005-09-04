@@ -1,6 +1,11 @@
 Date	Added
 =======
 09/04
+	* Fixed classchange-able Emperium/Guardians/Treasure Boxes, thanks to alsimons [DracoRPG]
+	* Fixed songs/dances, updated Hip Shaker [DracoRPG]
+	* Fixed some fields in sql-files\main.sql... Who the hell added back `broken`? The field
+	  `attribute` is the good one! Also changed `fame` type to the same as `zeny` (same max
+	  value in the source code, so samemax value in the SQL saves !) [DracoRPG
 	* battle_check_target update: Fixed BCT_NOENEMY checks. [Skotlex]
 	* Moved Mental Sensing bonus from pc_gainexp to mob_damage, it is now a
 	  status effect which the mob itself needs to be inflicted with to take
@@ -29,7 +34,6 @@ Date	Added
 	  to have 2 almost identical codes in different places for those effects [DracoRPG]
 	  --> It compiles, it runs, it seems to work but I couldn't perform any extended testing
 	      as always, feel free to report bugs ;)
-	  --> I will fix songs/dances tomorrow, I'm tired now :p
 	* Added battle_option "slaves_inherit_speed" to decide whether slaves have
 	  or not the same walk speed as their master. Defaults to yes. [Skotlex]
 	* Removed val4 from song/dances so that they won't be as bugged anymore.

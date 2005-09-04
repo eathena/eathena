@@ -1890,7 +1890,7 @@ static struct Damage battle_calc_weapon_attack(
 		}
 	}
 
-	if(sd && sd->classchange && tmd && !(t_mode&0x20) && (rand()%10000 < sd->classchange))
+	if(sd && sd->classchange && tmd && !(t_mode&0x20) && (tmd->class_ < 1285 || tmd->class_ > 1288) && (tmd->class_ < 1324 || tmd->class_ > 1363) && (rand()%10000 < sd->classchange))
 	{	//Classchange:
 		struct mob_db *mob;
 		int k, class_;
@@ -2313,7 +2313,6 @@ struct Damage  battle_calc_misc_attack(
 	struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag)
 {
 	int int_=status_get_int(bl);
-//	int luk=status_get_luk(bl);
 	int dex=status_get_dex(bl);
 	int skill,ele,race,size,cardfix,race2,t_mode;
 	struct map_session_data *sd=NULL,*tsd=NULL;
@@ -2323,7 +2322,6 @@ struct Damage  battle_calc_misc_attack(
 
 	int aflag=BF_MISC|BF_SHORT|BF_SKILL;
 
-	//return前の処理があるので情報出力部のみ変更
 	if( bl == NULL || target == NULL ){
 		nullpo_info(NLP_MARK);
 		memset(&md,0,sizeof(md));
@@ -2380,7 +2378,7 @@ struct Damage  battle_calc_misc_attack(
 		break;
 
 	case BA_DISSONANCE:	// 不協和音
-		damage=30+(skill_lv)*10+pc_checkskill(sd,BA_MUSICALLESSON)*3;
+		damage=30+skill_lv*10+pc_checkskill(sd,BA_MUSICALLESSON)*3;
 		break;
 
 	case NPC_SELFDESTRUCTION:	// 自爆

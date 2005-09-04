@@ -19,7 +19,6 @@ CREATE TABLE `cart_inventory` (
   `card1` int(11) NOT NULL default '0',
   `card2` int(11) NOT NULL default '0',
   `card3` int(11) NOT NULL default '0',
-  `broken` int(11) NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `char_id` (`char_id`)
 ) TYPE=MyISAM;
@@ -77,7 +76,7 @@ CREATE TABLE `char` (
   `father` int(11) unsigned NOT NULL default '0',
   `mother` int(11) unsigned NOT NULL default '0',
   `child` int(11) unsigned NOT NULL default '0',
-  `fame` tinyint(11) NOT NULL default '0',
+  `fame` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`char_id`),
   KEY `party_id` (`party_id`),
   KEY `guild_id` (`guild_id`)
@@ -304,7 +303,6 @@ CREATE TABLE `guild_storage` (
   `card1` smallint(11) NOT NULL default '0',
   `card2` smallint(11) NOT NULL default '0',
   `card3` smallint(11) NOT NULL default '0',
-  `broken` tinyint(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `guild_id` (`guild_id`),
   CONSTRAINT `guild_storage_ibfk_1` FOREIGN KEY (`guild_id`) REFERENCES `guild` (`guild_id`) ON DELETE CASCADE
@@ -338,7 +336,6 @@ CREATE TABLE `inventory` (
   `card1` smallint(11) NOT NULL default '0',
   `card2` smallint(11) NOT NULL default '0',
   `card3` smallint(11) NOT NULL default '0',
-  `broken` tinyint(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `char_id` (`char_id`)
 ) TYPE=MyISAM;
@@ -527,7 +524,6 @@ CREATE TABLE `storage` (
   `card1` smallint(11) NOT NULL default '0',
   `card2` smallint(11) NOT NULL default '0',
   `card3` smallint(11) NOT NULL default '0',
-  `broken` tinyint(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `account_id` (`account_id`)
 ) TYPE=MyISAM;

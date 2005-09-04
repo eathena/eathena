@@ -900,7 +900,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case HT_SHOCKWAVE:				//it can't affect mobs, because they have no SP...
 		if(dstsd && (map[bl->m].flag.pvp || map[bl->m].flag.gvg) ){
 			dstsd->status.sp -= dstsd->status.sp*(15*skilllv+5)/100;
-			status_calc_pc(dstsd,0);
+			clif_updatestatus(dstsd,SP_SP);
 		}
 		break;
 
@@ -980,6 +980,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		if( rand()%100 < (10+3*skilllv)*sc_def_int/100 )
 			status_change_start(bl,SC_BLIND,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
+
 	case BA_FROSTJOKE:
 		if(rand()%100 < (15+5*skilllv)*sc_def_mdef/100)
 			status_change_start(bl,SC_FREEZE,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
@@ -994,6 +995,18 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		if( rand()%100 < 15*sc_def_int/100 )
 			status_change_start(bl,SC_SLEEP,skilllv,0,0,0,skill_get_time2(skillid,skilllv),0);
 		break;
+
+	case DC_UGLYDANCE:
+		if (dstsd) {
+				int skill, sp = 5+5*skilllv;
+				if(sd && (skill=pc_checkskill(sd,DC_DANCINGLESSON)))
+				    sp += 5+skill;
+				dstsd->status.sp -= sp;
+				if(dstsd->status.sp<0)
+					dstsd->status.sp=0;
+				clif_updatestatus(dstsd,SP_SP);
+		}
+  		break;
 
 	/* MOBの追加?果付きスキル */
 
@@ -1891,7 +1904,7 @@ static int skill_check_unit_range_sub( struct block_list *bl,va_list ap )
 		if ((unit_id<UNT_BLASTMINE || unit_id>UNT_TALKIEBOX) && unit_id!=UNT_VENOMDUST)
 			return 0;
 	} else if (skillid==WZ_FIREPILLAR) {
-		if (unit_id!=UNT_FIREPILLAR_HIDDEN)
+		if (unit_id!=UNT_FIREPILLAR_WAITING)
 			return 0;
 	} else if (skillid==HP_BASILICA) {
 		if ((unit_id<UNT_BLASTMINE || unit_id>UNT_TALKIEBOX) && unit_id!=UNT_VENOMDUST)
@@ -2485,45 +2498,37 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 		break;
 	case TK_STORMKICK: // Taekwon kicks [Dralnu]
-	   {
 	   		if (sc_data && sc_data[SC_STORMKICK].timer != -1){
  				map_foreachinarea(skill_attack_area, src->m,
 				src->x-2, src->y-2, src->x+2, src->y+2, 0,
 				BF_WEAPON, src, src, skillid, skilllv, tick, flag, BCT_ENEMY);	
 				clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			}		
-		status_change_end(src, SC_STORMKICK, -1);		
-		}			
+   				status_change_end(src, SC_STORMKICK, -1);
+			}
 		break;
 	case TK_DOWNKICK:
-	    {
 	   		if (sc_data && sc_data[SC_DOWNKICK].timer != -1){
 	   		    bl = map_id2bl(sc_data[SC_DOWNKICK].val2);
 	   		    skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
           		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+  		      	status_change_end(src, SC_DOWNKICK, -1);
         	}
-        	status_change_end(src, SC_DOWNKICK, -1);
-     	}
       	break;
 	case TK_TURNKICK:
-	    {
 	   		if (sc_data && sc_data[SC_TURNKICK].timer != -1){
 	   		    bl = map_id2bl(sc_data[SC_TURNKICK].val2);
 	   		    skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
           		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+      	 	 	status_change_end(src, SC_TURNKICK, -1);
         	}
-        	status_change_end(src, SC_TURNKICK, -1);
-     	}
       	break;   
 	case TK_COUNTER:
-	    {
 	   		if (sc_data && sc_data[SC_COUNTER].timer != -1){
 	   		    bl = map_id2bl(sc_data[SC_COUNTER].val2);
 	   		    skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
           		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+        		status_change_end(src, SC_COUNTER, -1);
         	}
-        	status_change_end(src, SC_COUNTER, -1);
-     	}
       	break;   
 	case ASC_BREAKER:				/* ソウルブレ?カ? */	// [DracoRPG]
 		// Separate weapon and magic attacks
@@ -6089,48 +6094,60 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		break;
 	}
 
-	case BA_WHISTLE:			/* 口笛 */
-		if(src->type == BL_PC)
-			val1 = pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
-		val2 = (status_get_agi(src)/10)&0xffff;
-		val3 = (status_get_luk(src)/10)&0xffff;
+	case BA_WHISTLE:
+		val1 = skilllv+(status_get_agi(src)/10); // Flee increase
+		val2 = ((skilllv+1)/2)+(status_get_luk(src)/10); // Perfect dodge increase
+		if(src->type == BL_PC){
+			val1 += pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
+			val2 += pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
+		}
 		break;
-	case DC_HUMMING:			/* ハミング */
+	case DC_HUMMING:
+        val1 = 2*skilllv+(status_get_dex(src)/10); // Hit increase
 		if(src->type == BL_PC)
-			val1 = pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
-		val2 = status_get_dex(src)/10;
+			val1 += 2*pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
 		break;
-	case DC_DONTFORGETME:		/* 私を忘れないで… */
-		if(src->type == BL_PC)
-			val1 = pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
-		val2 = (status_get_dex(src)/10)&0xffff;
-		val3 = (status_get_agi(src)/10)&0xffff;
+	case BA_POEMBRAGI:
+		val1 = 3*skilllv+(status_get_dex(src)/10); // Casting time reduction
+		val2 = 3*skilllv+(status_get_int(src)/10); // After-cast delay reduction
+		if(src->type == BL_PC){
+			val1 += pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
+			val2 += pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
+		}
 		break;
-	case BA_POEMBRAGI:			/* ブラギの詩 */
-		if(src->type == BL_PC)
-			val1 = pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
-		val2 = (status_get_dex(src)/10)&0xffff;
-		val3 = (status_get_int(src)/10)&0xffff;
+	case DC_DONTFORGETME:
+		val1 = 3*skilllv+(status_get_dex(src)/10); // ASPD decrease
+		val2 = 2*skilllv+(status_get_agi(src)/10); // Movement speed decrease
+		if(src->type == BL_PC){
+			val1 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
+			val2 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
+		}
 		break;
-	case BA_APPLEIDUN:			/* イドゥンの林檎 */
-		if(src->type == BL_PC)
-			val1 = pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
-		val2 = (status_get_vit(src)/10)&0xffff;
+	case BA_APPLEIDUN:
+		val1 = 5+2*skilllv+(status_get_vit(src)/10); // MaxHP percent increase
+		val2 = 30+5*skilllv+5*(status_get_vit(src)/10); // HP recovery
+		if(src->type == BL_PC){
+			val1 += pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
+			val2 += 5*pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
+		}
 		break;
-	case DC_SERVICEFORYOU:		/* サ?ビスフォ?ユ? */
-		if(src->type == BL_PC)
-			val1 = pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
-		val2 = (status_get_int(src)/10)&0xffff;
+	case DC_SERVICEFORYOU:
+		val1 = 10+skilllv+(status_get_int(src)/10); // MaxSP percent increase
+		val2 = 10+3*skilllv+(status_get_int(src)/10); // SP cost reduction
+		if(src->type == BL_PC){
+			val1 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
+			val2 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
+		}
 		break;
-	case BA_ASSASSINCROSS:		/* 夕陽のアサシンクロス */
+	case BA_ASSASSINCROSS:
+		val1 = 10+skilllv+(status_get_agi(src)/10); // ASPD increase
 		if(src->type == BL_PC)
-			val1 = pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
-		val2 = status_get_agi(src)/10;
+			val1 += pc_checkskill((struct map_session_data *)src,BA_MUSICALLESSON);
 		break;
-	case DC_FORTUNEKISS:		/* 幸運のキス */
+	case DC_FORTUNEKISS:
+		val1 = 10+skilllv+(status_get_luk(src)/10); // Critical increase
 		if(src->type == BL_PC)
-			val1 = pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
-		val2 = status_get_luk(src)/10;
+			val1 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
 		break;
 
 	case PF_FOGWALL:	/* フォグウォ?ル */
@@ -6262,7 +6279,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 			status_change_start(bl,type,sg->skill_lv,sg->group_id,0,0,sg->limit,0);
 		break;
 
-	case UNT_WARP:
+	case UNT_WARP_WAITING:
 		if(bl->type==BL_PC){
 			struct map_session_data *sd = (struct map_session_data *)bl;
 			if(sd && src->bl.m == bl->m && src->bl.x == bl->x && src->bl.y == bl->y &&
@@ -6458,7 +6475,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		skill_attack(BF_MAGIC,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick,0);
 		break;
 
-	case UNT_FIREPILLAR_HIDDEN:
+	case UNT_FIREPILLAR_WAITING:
 		skill_delunit(src);
 		skill_unitsetting(ss,sg->skill_id,sg->skill_lv,src->bl.x,src->bl.y,1);
 		break;
@@ -6560,6 +6577,13 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		skill_additional_effect(ss, bl, sg->skill_id, sg->skill_lv, BF_LONG|BF_SKILL|BF_MISC, tick);
 		break;
 
+	case UNT_UGLYDANCE:	//Ugly Dance [Skotlex]
+		if (ss->id == bl->id)
+			break;
+		if (bl->type == BL_PC)
+			skill_additional_effect(ss, bl, sg->skill_id, sg->skill_lv, BF_LONG|BF_SKILL|BF_MISC, tick);
+		break;
+
 	case UNT_DISSONANCE:
 		skill_attack(BF_MISC, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
 		break;
@@ -6569,24 +6593,11 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 		int heal;
 		if (sg->src_id == bl->id)
 			break;
-		heal = 30 + sg->skill_lv * 5 + sg->val1 * 5 + sg->val2 * 5;
+		heal = sg->val2;
 		clif_skill_nodamage(&src->bl, bl, AL_HEAL, heal, 1);
 		battle_heal(NULL, bl, heal, 0, 0);
 		break;	
 	}
-
-	case UNT_UGLYDANCE:	//Ugly Dance [Skotlex]
-		if (ss->id == bl->id)
-			break;
-		//Doing a skill attack would be the logically correct thing, but.. this skill only hurts sp, so let's do the thing here:
-//		skill_attack(BF_MISC, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
-		if (bl->type == BL_PC)
-		{	//This does not shows any 'damage' effects, or does it?
-			//It appears not because the guides I've read mentioned that your victims would not even notice.
-			int sp = sg->skill_lv*10;
-			pc_heal((struct map_session_data *)bl,0,-sp);
-		}
-		break;
 
 	case UNT_DEMONSTRATION:
 		skill_attack(BF_WEAPON, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
@@ -6894,7 +6905,7 @@ int skill_unit_onlimit(struct skill_unit *src,unsigned int tick)
 	nullpo_retr(0, sg=src->group);
 
 	switch(sg->unit_id){
-	case UNT_WARP_2:	/* ワ?プポ?タル(?動前) */
+	case UNT_WARP_ACTIVE:	/* ワ?プポ?タル(?動前) */
 		{
 			struct skill_unit_group *group=
 				skill_unitsetting(map_id2bl(sg->src_id),sg->skill_id,sg->skill_lv,
@@ -7681,7 +7692,7 @@ int skill_castfix( struct block_list *bl, int time )
 		}
 		/* ブラギの詩 */
 		if (sc_data[SC_POEMBRAGI].timer != -1)
-			time -= time * (sc_data[SC_POEMBRAGI].val1 * 3 + sc_data[SC_POEMBRAGI].val2 + sc_data[SC_POEMBRAGI].val3) / 100;
+			time -= time * sc_data[SC_POEMBRAGI].val2 / 100;
 	}
 
 	// return final cast time
@@ -7732,7 +7743,7 @@ int skill_delayfix( struct block_list *bl, int time )
 	/* ブラギの詩 */
 	sc_data = status_get_sc_data(bl);
 	if (sc_data && sc_data[SC_POEMBRAGI].timer != -1)
-		time -= time * (sc_data[SC_POEMBRAGI].val1 * 3 + sc_data[SC_POEMBRAGI].val2 + sc_data[SC_POEMBRAGI].val4) / 100;
+		time -= time * sc_data[SC_POEMBRAGI].val3 / 100;
 
 	return (time > 0) ? time : 0;
 }
