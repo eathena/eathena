@@ -2907,9 +2907,10 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			struct mob_data *md = (struct mob_data *)t_bl;
 			if (!md)
 				return 0;
-			if (md->state.special_mob_ai == 2) 
-				return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
-			if (md->master_id && (t_bl = map_id2bl(md->master_id)) == NULL)
+//			if (md->state.special_mob_ai == 2) 
+//				return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
+			//Don't fallback on the master in the case of summoned creaturess to enable hitting them.
+			if (md->master_id && !md->state.special_mob_ai && (t_bl = map_id2bl(md->master_id)) == NULL)
 				t_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
 			break;
 		}

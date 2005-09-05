@@ -1,6 +1,9 @@
 Date	Added
 =======
 09/05
+	* Battle check target update: Summoned creatures won't be checked versus
+	  their master, means you should be able to target them as if they were
+	  normal enemies. [Skotlex]
 	* Made Shield Chain long ranged (it has to be affected by pneuma/defender). [Skotlex]
 	* Fixed both trader/seller not being saved when using autotrade. [Skotlex]
 	* Added debug messages to figure out who is causing the rain of function
