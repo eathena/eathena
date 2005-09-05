@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.3
+//= 1.4
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -12,8 +12,8 @@
 //= Fully working
 //= +AntiNovice exploit fix [Lupus] 1.2 added baby novice check
 //= Spellchecked [massdriller]
+//= 1.4 Optimized. Novices > 20 BaseJob can go to Culvert, too [Lupus]
 //============================================================
-
 
 
 
@@ -40,9 +40,8 @@ prontera.gat,78,150,3	script	Dairenne	90,{
 	mes "[Town girl Dairenne]";
 	mes "Hmm... Anyway what is the matter?";
 	next;
-	menu "Talk",L0,"Cancel",LEnd;
+	menu "Talk",-,"Cancel",L_END;
 	
-	L0:
 		mes "[Town girl Dairenne]";
 		if(Sex == 1) mes "I'm not sure if your into Girllie Dress Stuff..Hohoho..but...";
 		mes "These days, the most interesting topic around here is beautiful dresses Dyed in various Colours.";
@@ -54,7 +53,7 @@ prontera.gat,78,150,3	script	Dairenne	90,{
 		mes "Ah... I wish I could wear a Dress like that just once in my life...";
 		close;
 
-	LEnd:
+	L_END:
 		mes "[Town girl Dairenne]";
 		mes "(Cough)....See you around.";
 		close;
@@ -126,59 +125,36 @@ prontera.gat,102,287,5	script	Shuger	98,{
 // ------------------------------------------------------------------------------------------- Culvert -------------------------------------------------------------------------------\\
 // Culvert Gaurdian ----------------------------------------------------
 prt_fild05.gat,270,212,5	script	Culvert Gaurdian	105,{
-	if(sewer_prt == 1) goto L0;
+	if(sewer_prt == 1) goto L_WARP;
 	mes "[Culvert Guardian]";
 	mes "Sorry, but only volunteers for the Culvert Campaign can go inside.";
 	mes "Speak with the ^000077Recruiter^000000 about volunteering.  He's located in the ^ff0000Prontera Chivalry^000000.";
 	close;
 
-	L0:
+	L_WARP:
 		mes "[Culvert Guardian]";
 		mes "Here you are. The entrance of the Culvert. Are you sure you want to Go inside?";
 		next;
-		menu "Sure.",L0a,"Quit.",L1a;
+		menu "Sure.",-,"Quit.",M_END;
 
-		L0a:
 			warp "prt_sewb1.gat",131,247;
-			close;
-		L1a:
+		M_END:
 			close;
 }
 
 // Recruiter -----------------------------------------------------------
 prt_in.gat,88,105,2	script	Recruiter	105,{
-	if(sewer_prt == 1) goto L0a;
+	if(sewer_prt == 1) goto L_WARP;
 	mes "[Recruiter]";
 	mes "Let me inform about the official Notice from the Capital Defence Headquarter of Rune-Midgard Kingdom";
 	next;
 	mes "[Recruiter]";
 	mes "We decided to recruit volunteers to deal with the 'issues' that have been plauging our cities' sewers.";
-	if (BaseJob==Job_Novice) mes "But you're a novice. Go get at least a job...";
-	if (BaseJob==Job_Novice) close;
+	if (BaseJob==Job_Novice && BaseJob<20) mes "But you're a novice. Go get at least a job...";
+	if (BaseJob==Job_Novice && BaseJob<20) close;
 	next;
-	menu "Volunteer.",L0,"Issues...?",L1,"Quit",LEnd;
+	menu "Volunteer.",M_VOL,"Issues...?",-,"Quit",L_END;
 	
-	L0:
-		mes "[Recruiter]";
-		mes "Very good!!! Your Registration is confirmed. We will try to maintain peace and order in Rune-Midgard Kingdom.";
-		mes "I appreciate your support of the Capital Defence Headquarter.  Here are some subsidies....";
-		next;
-		mes "[Recruiter]";
-		mes "3 Red Potions, 1 Milk, and 1 Orange Potion for an emergency.";
-		set sewer_prt,1;
-		getitem 501,3;
-		getitem 519,1;
-		getitem 502,1;
-		next;
-		
-		L0a:
-			mes "[Recruiter]";
-			mes "Are you ready? I will warp you to the Culvert.";
-			next;
-			warp "prt_fild05.gat",274,208;
-			close;
-
-	L1:
 		mes "[Recruiter]";
 		mes "Didn't you hear yet? The Culvert is infested with noxious insects. We found bugs, maggots, and other creatures there.";
 		mes "They've become a huge problem... You've Never heard of this?";
@@ -200,18 +176,31 @@ prt_in.gat,88,105,2	script	Recruiter	105,{
 		mes "[Recruiter]";
 		mes "WILL YOU volunteer????";
 		next;
-		menu "Volunteer.",L1a,"Quit.",L1aEnd;
+		menu "Volunteer.",M_VOL,"Quit.",-;
 		
-		L1a:
-			goto L0;
-			close;
-
-		L1aEnd:
 			mes "[Recruiter]";
-         			mes "..............";
+			mes "..............";
 			emotion 4;
-         			close;
-	LEnd:
+			close;
+	M_VOL:
+		mes "[Recruiter]";
+		mes "Very good!!! Your Registration is confirmed. We will try to maintain peace and order in Rune-Midgard Kingdom.";
+		mes "I appreciate your support of the Capital Defence Headquarter.  Here are some subsidies....";
+		next;
+		mes "[Recruiter]";
+		mes "3 Red Potions, 1 Milk, and 1 Orange Potion for an emergency.";
+		set sewer_prt,1;
+		getitem 501,3;
+		getitem 519,1;
+		getitem 502,1;
+		next;
+		
+	L_WARP:
+		mes "[Recruiter]";
+		mes "Are you ready? I will warp you to the Culvert.";
+		next;
+		warp "prt_fild05.gat",274,208;
+	L_END:
 		close;
 
 }
@@ -226,12 +215,11 @@ prt_church.gat,103,71,2	script	Benson	120,{
 	next;
 	mes "[Henson]";
 	mes "Well, what was it you wanted to ask me about?";
-qMenu:
+L_MENU:
 	next;
-	menu 	"About Divine Protection",L0, "About Demon Bane",L1, "About Decrease AGI",L2, "About Signum Crisis",L3, "About Pneuma",L4,
-		"About Ruwach",L5, "About Teleport",L6, "End conversation.",LEnd;
+	menu 	"About Divine Protection",-, "About Demon Bane",L1, "About Decrease AGI",L2, "About Signum Crisis",L3, "About Pneuma",L4,
+		"About Ruwach",L5, "About Teleport",L6, "End conversation.",L_END;
 
-	L0:
 		mes "[Henson]";
 		mes "If you want to improve your Defence against the Undead, it is a good idea to learn the skill called 'Divine Protection'.";
 		mes "It is the most basic skill you'll need, and it doesn't even have a time limit or anything, anyways....";
@@ -239,7 +227,7 @@ qMenu:
 		mes "[Henson]";
 		mes "If you raise it to level 3, then a skill called 'Deamon Bane' will be available for you.  'Demon Bane' increases your attack against the Undead.";
 		mes "With 'Divine Protection' as a foundation, several high class skills such as 'Angelus' and 'Blessing' will be available to you.";
-		goto qMenu;
+		goto L_MENU;
 	L1:
 		mes "[Henson]";
 		mes "'Demon Bane' improves your attack against the Undead.  You need 3 levels of 'Divine Protection' before you can learn Demon Bane.";
@@ -248,15 +236,15 @@ qMenu:
 		mes "[Henson]";
 		mes "Also, you have to acquire 3 levels of 'Demon Bane' to use a skill called, 'Signum Crisis', which lowers the Defence of Undead and Dark property monsters.";
 		next;
-		goto qMenu;
-		close;
+		goto L_MENU;
+
 	L2:
 		mes "[Henson]";
 		mes "When you use this skill, the movement speed, attack rate, and evasion rate of a targeted monster will be reduced.";
 		mes "You will need to get 1 level of 'Increase AGI' first, before you can learn 'Decrease AGI.";
 		next;
-		goto qMenu;
-		close;
+		goto L_MENU;
+
 	L3:
 		mes "[Henson]";
 		mes "You can lower the defence of Undead and Dark property monsters with this skill, and the range of attack is very wide.";
@@ -265,8 +253,8 @@ qMenu:
 		mes "[Henson]";
 		mes "Do not be disappointed even if you don't successfully use this skill all the time.  You need level 3 'Demon Bane' to acquire this skill.";
 		next;
-		goto qMenu;
-		close;
+		goto L_MENU;
+
 	L4:
 		mes "[Henson]";
 		mes "Once you master 'Warp Portal', you can learn this skill.";
@@ -274,22 +262,22 @@ qMenu:
 		mes "[Henson]";
 		mes "It generates a barrier that defends you perfectly from long-range attacks, such as archer attacks.";
 		next;
-		goto qMenu;
-		close;
+		goto L_MENU;
+
 	L5:
 		mes "[Henson]";
 		mes "Ruwach allows you to see hidden monsters or players.  You also need this skill to learn 'Teleport.";
 		next;
-		goto qMenu;
-		close;
+		goto L_MENU;
+
 	L6:
 		mes "[Henson]";
 		mes "At level 1, it allows you teleport to a random spot on the map you are in.  At level2 it allows you to teleport to your last save point.";
 		mes "You must learn Ruwach first in order to learn teleport.";
 		next;
-		goto qMenu;
-		close;
-	LEnd:
+		goto L_MENU;
+
+	L_END:
 		mes "[Henson]";
 		mes "If you're still not certain about all of this, you are always welcome to speak with me later!";
 		close;
@@ -307,10 +295,9 @@ prt_church.gat,103,76,2	script	Garnet	67,{
 	mes "[Garnet]";
 	mes "Feel free to ask me anything.  Although the priest scolds me for my lack of skill, I can assure you I have a VERY STRONG grasp of the theories.";
 	next;
-	qMenu:
-	menu "About Heal",L0,"About Cure",L1,"About Increase AGI",L2,"About Angelus",L3,"Abour Blessing",L4,"About Warp Portal",L5,"End conversation",LEnd;
+L_MENU:
+	menu "About Heal",-,"About Cure",L1,"About Increase AGI",L2,"About Angelus",L3,"Abour Blessing",L4,"About Warp Portal",L5,"End conversation",L_END;
 	
-	L0:
 		mes "[Garnet]";
 		mes "You can recover either your own, or someone else's HP with 'Heal'.";
 		next;
@@ -321,20 +308,20 @@ prt_church.gat,103,76,2	script	Garnet	67,{
 		mes "Here is a little secret... if you use 'Heal' on Undead monsters, it will actually inflict damage, not help them.";
 		mes "Ah~ Don't forget to hold the 'Shift' key when you use it though... Ahem~ shhhhh~~!";
 		next;
-		goto qMenu;
-		close;
+		goto L_MENU;
+
 	L1:
 		mes "[Garnet]";
 		mes "'Cure' can alleviate any abnormal status effects you may have.  You have to have level 2 'Heal' in order to learn Cure though.";
 		next;
-		goto qMenu;
-		close;
+		goto L_MENU;
+
 	L2:
 		mes "[Garnet]";
 		mes "'Increase AGI' increases your movement speed, attack rate, and evade rate.  You can learn it after you've learned 3 levels of 'Heal'.";
 		next;
-		goto qMenu;
-		close;
+		goto L_MENU;
+
 	L3:
 		mes "[Garnet]";
 		mes "You can use 'Angelus' in order to increase the Defence of either yourself or your party members.";
@@ -346,8 +333,8 @@ prt_church.gat,103,76,2	script	Garnet	67,{
 		mes "[Garnet]";
 		mes "If you practice 'Angelus' you'll be able to use 'Kyrie Eleison' as a Priest, which allows you to evade attacks for a short period of time.";
 		next;
-		goto qMenu;
-		close;
+		goto L_MENU;
+
 	L4:
 		mes "[Garnet]";
 		mes "'Blessing' temporarily increases STR, DEX and INT.  I am sure this skill will be of great advantage for your friends.";
@@ -355,8 +342,8 @@ prt_church.gat,103,76,2	script	Garnet	67,{
 		mes "[Garnet]";
 		mes "'Blessing', like 'Angelus', also requires you know 'Divine Protection'.  But you'll need to have 5 levels of 'Divine Protection' to learn it.";
 		next;
-		goto qMenu;
-		close;
+		goto L_MENU;
+
 	L5:
 		mes "[Garnet]";
 		mes "In order to open a 'Warp Portal' you first need to know how to 'Teleport', and in order to 'Teleport, you need 'Ruwach'.";
@@ -375,15 +362,13 @@ prt_church.gat,103,76,2	script	Garnet	67,{
 		mes "[Garnet]";
 		mes "One more thing, you cannot Warp to the inside of dungeons so don't even waste your time trying to.";
 		next;
-		goto qMenu;
-		close;
-	LEnd:
+		goto L_MENU;
+
+	L_END:
 		mes "[Garnet]";
 		mes "Hehehe, hope I wasn't showing off too much.  Well, be Happy in whatever you do~~!";
 		close;
-
 }
-
 
 // ----------------------------------------------------------------------------------------------- PUB -----------------------------------------------------------------------------------------------------\\
 // Sir Michael (West End Pub)
@@ -411,9 +396,8 @@ prt_in.gat,173,24,2	script	Shevild	85,{
 	mes "Do not judge me by the way I look... I've been everywhere you can imagine around Prontera.";
 	mes "I've been to places packed with monsters, but they also have the greatest view.";
 	next;
-	menu "Where can I find those places?",L0,"Never mind",LEnd;
+	menu "Where can I find those places?",-,"Never mind",L_END;
 	
-	L0:
 		mes "[Shevild]";
 		mes "In spite of how I look, I'm a all around-player~~!!!";
 		mes "I go hunting, I carry weapons and stuff... and I deliver this and that...";
@@ -431,10 +415,9 @@ prt_in.gat,173,24,2	script	Shevild	85,{
 		mes "Hm... Now... I'm suddenly reminded of a mysterious dungeon and a dangerous forest....";
 		emotion 20;
 		next;
-		qMenu:
-		menu "The mysterious Dungeon?",L00,"The dangerous forest?",L01,"End conversation",L00End;
+	L_MENU:
+		menu "The mysterious Dungeon?",-,"The dangerous forest?",M_L01,"End conversation",M_END0;
 		
-		L00:
 			mes "[Shevild]";
 			mes "Hm... yeah... yeah... a while ago I followed some hunters to a very mysterious dungeon to the north of Prontera.";
 			next;
@@ -446,36 +429,34 @@ prt_in.gat,173,24,2	script	Shevild	85,{
 			mes "No matter which direction you moved it seemed like you were ending up where you started.";
 			mes "So we just got out empty-handed. I really want to explore that dungeon again sometime.";
 			next;
-			menu "How can I get there?",L00a,"End conversation",L00End;
+			menu "How can I get there?",-,"End conversation",M_END0;
 			
-			L00a:
 				mes "[Shevild]";
 				mes "Huh? What? haven't you even wandered around just outside of Prontera yet, man?";
 				mes "Alright, alright. I'll tell you. If you go north from the castle of Prontera, the dungeon is at the edge of the north-west side of the forest.";
 				emotion 1;
 				next;
-				goto qMenu;
+				goto L_MENU;
 
-		L01:
+		M_L01:
 			mes "[Shevild]";
 			mes "There is a splendid ruin to the north-east of Prontera. I went there a while ago to deliver something to a priest there.";
 			mes "Before you get to the ruins, there is a forest full of monkeys called ^FF4444Yoyos^000000.";
 			next;
 			mes "You have to be very cautious. As once as you drop something on the ground, a Yoyo jumps out of nowhere and snatches it.";
 			next;
-			menu "How can I get there?",L01a,"End conversation",L00End;
+			menu "How can I get there?",-,"End conversation",M_END0;
 			
-			L01a:
 				mes "[Shevild]";
 				mes "The directions might sound a little confusing, but it really isn't, actually. Go out to the north and keep going to the east. Then you will find it.";
 				next;
-				goto qMenu;
+				goto L_MENU;
 
-		L00End:
+		M_END0:
 			mes "[Shevild]";
 			mes "Okay... Anyways watch out while you're travelling out here ~ pal!!";
 			close;
-	LEnd:
+	L_END:
 		mes "[Shevild]";
 		mes "Sure... if you wanna hear more, come back here any time. No problem~~";
 		close;
@@ -498,13 +479,12 @@ prt_in.gat,181,21,2	script	Bartender	61,{
 	mes "But it's getting very hard to get enough of what I need even from them";
 	next;
 	mes "[Bartender]";
-	mes "If thing's don't change... my special menu of 'Sour Crunches' and 'Tasty Yum-Yum' will disappear from people's memories, sob... sob...";
+	mes "If things don't change... my special menu of 'Sour Crunches' and 'Tasty Yum-Yum' will disappear from people's memories, sob... sob...";
 	emotion 28;
 	next;
-	qMenu:
-	menu "'Sour Crunches'?",L0,"'Tasty Yum-Yum?'",L1,"Better let him be....",LEnd;
+L_MENU:
+	menu "'Sour Crunches'?",-,"'Tasty Yum-Yum?'",L1,"Better let him be....",L_END;
 	
-	L0:
 		mes "[Bartender]";
 		mes "Special Ant is the essential ingredient in making Sour Crunches. It can be found in Ant Hell on the way to the desert city of Morocc.";
 		mes "The problem is that the number of ants grows exponentially and they also get very hostile. Most hunters don't even think about going near there.";
@@ -512,7 +492,7 @@ prt_in.gat,181,21,2	script	Bartender	61,{
 		mes "[Bartender]";
 		mes "I can already see the ill fate that awaits my beloved pub... (Sighs~~)";
 		next;
-		goto qMenu;
+		goto L_MENU;
 	L1:
 		mes "[Bartender]";
 		mes "It is a very tasty dish prepared with the legs of grasshopper creatures, called Rockers, that can be caught in the area past the forest to the west. ITS tHE BEST dish we have!";
@@ -521,8 +501,8 @@ prt_in.gat,181,21,2	script	Bartender	61,{
 		mes "[Bartender]";
 		mes "I can already see the ill fate that awaits my beloved pub... (Sighs~~)";
 		next;
-		goto qMenu;
-	LEnd:
+		goto L_MENU;
+	L_END:
 		mes "[Bartender]";
 		mes "(Sighs..) Anyways, be careful and take care of yourself~.";
 		close;
@@ -551,13 +531,10 @@ prt_in.gat,177,18,2	script	Marvin	80,{
 // Tensue -----------------------------------------------------
 prt_in.gat,177,20,2	script	TenSue	97,{
 	mes "[TenSue]";
-	set @TEMP,0;
 	set @TEMP,rand(3);
-	if(@TEMP == 2) goto Rmsg2;
-	if(@TEMP == 1) goto Rmsg1;
-	if(@TEMP == 0) goto Rmsg0;
+	if(@TEMP == 1) goto L_TMP1;
+	if(@TEMP == 0) goto L_TMP0;
 
-	Rmsg2:
 		mes "What? You're sick and tired of killing monsters in fields and dungeons?";
 		mes "Hahaha, it seems like you are very confident in your training. If you think so...";
 		mes "Why don't you visit Izlude, the satellite of Prontera.";
@@ -570,7 +547,7 @@ prt_in.gat,177,20,2	script	TenSue	97,{
 		mes "[TenSue]";
 		mes "Are you gonna give it a shot?";
 		close;
-	Rmsg1:
+	L_TMP1:
 		mes "One time I walked all the way to a place called 'Al de Barman. It was a very dangerous trip with all those monsters...";
 		mes "Some of monsters just kept following and attacking me although I did nothing to harm them.";
 		next;
@@ -581,7 +558,7 @@ prt_in.gat,177,20,2	script	TenSue	97,{
 		mes "[TenSue]";
 		mes "Also the Kafra Main Office is located there so you can expect great services. Haha. Don't forget to visit there once.";
 		close;
-	Rmsg0:
+	L_TMP0:
 		mes "Prontera is presently under the reign of Tristran the 3rd. Everything we have now is only available thanks to his Majesty.";
 		next;
 		mes "[TenSue]";
@@ -591,20 +568,19 @@ prt_in.gat,177,20,2	script	TenSue	97,{
 }
 
 
-//------------------------------------------------------------------------------------------------- Library ----------------------------------------------------------------------------------------\\
+//----------------------------------------------- Library -----------------------------------------------------\\
 
 // Library Girl Ellen ----------------------------------------------------
 prt_in.gat,175,50,2	script	Librarian Ellen	71,{
-	if(ttt_1==1)goto ttt;
+	if(@libtmp)goto L_1;
 	mes "[Librarian Ellen]";
 	mes "Welcome. You can find books about monsters, organized by their properties here. There are also books about Merchant and Blacksmith skills.";
 	next;
 	mes "[Librarian Ellen]";
 	mes "Ah~! The library next door also has many interesting reading materials so please visit there too.";
-	set ttt_1,1;
+	set @libtmp,1;
 	close;
-
-ttt:
+L_1:
 	mes "[Librarian Ellen]";
 	mes "What you think is what you get. From the seas to the air of the great";
 	mes "One who hears the bell of chime, he trades what life is left of time";
@@ -612,7 +588,7 @@ ttt:
 	mes "[Librarian Ellen]";
 	mes "You need the egg of blobs to seek the truth, the truth you seek is near it comes.";
 	mes "What you want is not far, but to get this far you have seek in par.";
-	set ttt_1,0;
+	set @libtmp,0;
 	close;
 
 }

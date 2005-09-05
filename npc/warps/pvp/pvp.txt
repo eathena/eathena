@@ -1,27 +1,24 @@
 //===== Athena Script ========================================
 //= Prontera Arena & PvP Warp Script
 //===== By: ==================================================
-//= Athena (1.0)
+//= Athena (any)
 //===== Current Version: =====================================
-//= 1.0
+//= 1.1
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Description: =========================================
 //= Warp Points for Prontera Arena and PvP Maps
 //===== Additional Comments: =================================
 //= Split off npc_warp.txt
+//= 1.1 Fixed Prontera Arena warp [Yor]
 //============================================================
 
 //Prontera Arena
-prt_are_in.gat,127,82,0	warp	warp1082	1,1,prt_are_in.gat,156,82
-prt_are_in.gat,152,82,0	warp	warp1083	1,1,prt_are_in.gat,123,82
-prt_are_in.gat,169,122,0	warp	warp1084	1,1,prt_are_in.gat,169,92
-prt_are_in.gat,31,122,0	warp	warp1076	1,1,prt_are_in.gat,31,92
-prt_are_in.gat,49,82,0	warp	warp1077	1,1,prt_are_in.gat,76,82
-prt_are_in.gat,72,82,0	warp	warp1078	1,1,prt_are_in.gat,44,82
-prt_are_in.gat,99,24,0	warp	warp1079	1,1,izlude.gat,127,221
-prt_are_in.gat,99,47,0	warp	warp1080	1,1,prt_are_in.gat,99,76
-prt_are_in.gat,99,72,0	warp	warp1081	1,1,prt_are_in.gat,99,43
+prt_are_in.gat,142,13,0	warp	warp1076	1,1,prt_are_in.gat,177,78
+prt_are_in.gat,177,75,0	warp	warp1077	1,1,prt_are_in.gat,139,13
+prt_are_in.gat,55,13,0	warp	warp1078	1,1,prt_are_in.gat,125,78
+prt_are_in.gat,125,75,0	warp	warp1079	1,1,prt_are_in.gat,58,13
+prt_are_in.gat,97,7,0	warp	warp1080	1,1,izlude.gat,128,222
 
 
 //Time Limit Mode

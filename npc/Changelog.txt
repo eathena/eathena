@@ -29,6 +29,8 @@ TODO:
 Date		Added
 ======
 09/04
+	* Optimized Prontera city script. Now Novices > 20 BaseJob Level can go in the Culvert [Lupus]
+	* Fixed minor coords issues of 19/20 warps of Monks Job Quest, Lutie Tool Shop, warps in PVP area, 1 Izlude warp. Thanks to Yor
 	* Minor fix of Bear Hat Quest: changed ingredients (Zipper>Bear Skin) [Lupus]
 	* Minor fix of Acolyte Job Quest message. Thanx to andz for pointing it out [Lupus]
 	* Optimized ADOPTION.TXT again. Tested it with 3 clients. Fully working! [Lupus]
