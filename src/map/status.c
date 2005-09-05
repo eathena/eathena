@@ -923,10 +923,10 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(sd->sc_data[SC_NIBELUNGEN].timer!=-1){
 			index = sd->equip_index[9];
 			if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->wlv == 4)
-				sd->right_weapon.watk2 += sd->sc_data[SC_NIBELUNGEN].val3;
+				sd->right_weapon.watk2 += sd->sc_data[SC_NIBELUNGEN].val2;
 			index = sd->equip_index[8];
 			if(index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->wlv == 4)
-				sd->left_weapon.watk2 += sd->sc_data[SC_NIBELUNGEN].val3;
+				sd->left_weapon.watk2 += sd->sc_data[SC_NIBELUNGEN].val2;
 		}
 	}
 
@@ -2508,7 +2508,7 @@ int status_get_atk2(struct block_list *bl)
 			if(sc_data[SC_EXPLOSIONSPIRITS].timer!=-1)
 				atk2 += (1000*sc_data[SC_EXPLOSIONSPIRITS].val1);
 			if(sc_data[SC_NIBELUNGEN].timer!=-1 && (status_get_element(bl)/10)>=8)
-				atk2 += sc_data[SC_NIBELUNGEN].val3;
+				atk2 += sc_data[SC_NIBELUNGEN].val2;
 		}
 
 		// Absolute, then relative modifiers from status changes (shared between PC and NPC)
@@ -3114,10 +3114,14 @@ int status_get_sc_def(struct block_list *bl, int type)
 			sc_def = 50;
 	} else if(bl->type == BL_PC) {
 		struct status_change* sc_data = status_get_sc_data(bl);
-		if (sc_data && sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_PARTY)
-			sc_def = 0; //Status inmunity
+		if (sc_data)
+		{
+			if (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_PARTY)
+				sc_def = 0; //Status inmunity
+			else if (sc_data[SC_SIEGFRIED].timer != -1)
+				sc_def -= sc_data[SC_SIEGFRIED].val2; //Status resistance.
+		}
 	}
-
 	return (sc_def < 0) ? 0 : sc_def;
 }
 
@@ -3445,48 +3449,20 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 
 		case SC_LULLABY:			/* 子守唄 */
-			val2 = 11;
-			break;
 		case SC_RICHMANKIM:
+		case SC_ROKISWEIL:			/* ロキの叫び */
+		case SC_INTOABYSS:			/* 深淵の中に */
+		case SC_DISSONANCE:			/* 不協和音 */
+		case SC_POEMBRAGI:			/* ブラギの詩 */
+		case SC_UGLYDANCE:			/* 自分勝手なダンス */
 			break;
 		case SC_ETERNALCHAOS:		/* エタ?ナルカオス */
-			calc_flag = 1;
-			break;
 		case SC_DRUMBATTLE:			/* ?太鼓の響き */
-			calc_flag = 1;
-			val2 = (val1+1)*25;
-			val3 = (val1+1)*2;
-			break;
 		case SC_NIBELUNGEN:			/* ニ?ベルングの指輪 */
-			calc_flag = 1;
-			val3 = (val1+2)*25;
-			break;
-		case SC_ROKISWEIL:			/* ロキの叫び */
-			break;
-		case SC_INTOABYSS:			/* 深淵の中に */
-			break;
 		case SC_SIEGFRIED:			/* 不死身のジ?クフリ?ド */
-			calc_flag = 1;
-			val2 = 55 + val1*5;
-			val3 = val1*10;
-			break;
-		case SC_DISSONANCE:			/* 不協和音 */
-			val2 = 10;
-			break;
 		case SC_WHISTLE:			/* 口笛 */
-			calc_flag = 1;
-			break;
 		case SC_ASSNCROS:			/* 夕陽のアサシンクロス */
-			calc_flag = 1;
-			break;
-		case SC_POEMBRAGI:			/* ブラギの詩 */
-			break;
 		case SC_APPLEIDUN:			/* イドゥンの林檎 */
-			calc_flag = 1;
-			break;
-		case SC_UGLYDANCE:			/* 自分勝手なダンス */
-			val2 = 10;
-			break;
 		case SC_HUMMING:			/* ハミング */
 			calc_flag = 1;
 			break;

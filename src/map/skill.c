@@ -6100,6 +6100,10 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		break;
 	}
 
+	case BA_DISSONANCE:
+	case DC_UGLYDANCE:
+		val1 = 10;	//FIXME: This value is not used anywhere, what is it for? [Skotlex]
+		break;
 	case BA_WHISTLE:
 		val1 = skilllv+(status_get_agi(src)/10); // Flee increase
 		val2 = ((skilllv+1)/2)+(status_get_luk(src)/10); // Perfect dodge increase
@@ -6155,7 +6159,20 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		if(src->type == BL_PC)
 			val1 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
 		break;
-
+	case BD_LULLABY:
+		val1 = 11;	//FIXME: This value is not used anywhere, what is it for? [Skotlex]
+		break;
+	case BD_DRUMBATTLEFIELD:
+		val1 = (skilllv+1)*25;	//Watk increase
+		val2 = (skilllv+1)*2;	//Def increase
+		break;
+	case BD_RINGNIBELUNGEN:
+		val1 = (skilllv+2)*25;	//Watk increase
+		break;
+	case BD_SIEGFRIED:
+		val1 = 55 + skilllv*5;	//Elemental Resistance
+		val2 = skilllv*10;	//Status ailment resistance
+		break;
 	case PF_FOGWALL:	/* フォグウォ?ル */
 		if(sc_data && sc_data[SC_DELUGE].timer!=-1) limit *= 2;
 		break;
@@ -6344,7 +6361,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 		if (sc_data && sc_data[type].timer!=-1)
 			break;
 		status_change_start(bl,type,sg->skill_lv,sg->val1,sg->val2,
-			0,30000,0);
+			0,20000,0);
 		break;
 
 	case UNT_BASILICA:

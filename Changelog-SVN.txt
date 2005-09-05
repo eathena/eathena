@@ -1,6 +1,11 @@
 Date	Added
 =======
 09/05
+	* Fixed Harmonic Lick not adding status change resistant. [Skotlex]
+	* Moved ensemble stats calculating from status_change_start to
+	  skill_unitsetting (performance purposes) [Skotlex]
+	* Fixed song/dance effects lasting 30 secs rather than 20. [Skotlex]
+	  (still somewhat inefficient, needs better handling method)
 	* Battle check target fix: Novices/Low levels being unable to target mobs. [Skotlex]
 	* Temporarily made traps not target allies on gvg (Still up for dabate) [Skotlex]
 	* Battle check target update: Summoned creatures won't be checked versus
