@@ -2315,7 +2315,8 @@ int skill_cleartimerskill(struct block_list *src)
 
 		for(i=0;i<MAX_SKILLTIMERSKILL && sd->timerskill_count > 0;i++) {
 			if(sd->skilltimerskill[i].timer != -1) {
-				delete_timer(sd->skilltimerskill[i].timer, skill_timerskill);
+				if (delete_timer(sd->skilltimerskill[i].timer, skill_timerskill) == -2)
+					ShowError("skill_cleartimerskill: Timer error [%d] for player.\n", i);
 				sd->skilltimerskill[i].timer = -1;
 				sd->timerskill_count--;
 			}
@@ -2326,7 +2327,8 @@ int skill_cleartimerskill(struct block_list *src)
 		nullpo_retr(0, md);
 		for(i=0;i<MAX_MOBSKILLTIMERSKILL;i++) {
 			if(md->skilltimerskill[i].timer != -1) {
-				delete_timer(md->skilltimerskill[i].timer, skill_timerskill);
+				if (delete_timer(md->skilltimerskill[i].timer, skill_timerskill) == -2)
+					ShowError("skill_cleartimerskill: Timer error [%d] for mob.\n", i);
 				md->skilltimerskill[i].timer = -1;
 			}
 		}
@@ -2336,7 +2338,8 @@ int skill_cleartimerskill(struct block_list *src)
 		nullpo_retr(1, pd);
 		for(i=0;i<MAX_MOBSKILLTIMERSKILL;i++) {
 			if(pd->skilltimerskill[i].timer != -1) {
-				delete_timer(pd->skilltimerskill[i].timer, skill_timerskill);
+				if (delete_timer(pd->skilltimerskill[i].timer, skill_timerskill)==-2)
+					ShowError("skill_cleartimerskill: Timer error [%d] for pet.\n", i);
 				pd->skilltimerskill[i].timer = -1;
 			}
 		}

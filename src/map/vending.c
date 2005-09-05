@@ -141,9 +141,8 @@ void vending_purchasereq(struct map_session_data *sd,int len,int id,unsigned cha
 
 	if (vsd->state.autotrade)
 	{	//check for @AUTOTRADE users [durf]
+		chrif_save(sd);
 		chrif_save(vsd);
-		//No need to touch the storage, only the cart contents/zeny have been modified. [Skotlex]
-//		storage_storage_save(vsd->status.account_id);
 	}
 }
 

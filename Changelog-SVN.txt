@@ -1,5 +1,9 @@
 Date	Added
 =======
+09/05
+	* Fixed both trader/seller not being saved when using autotrade. [Skotlex]
+	* Added debug messages to figure out who is causing the rain of function
+	  mismatches on deleting skill_timerskill. [Skotlex]
 09/04
 	* Fixed Trade Bug (when Trade Window indication was wrong). Thanks to k3dt
 	* Now Water Ball isn't affected by RAIN mapflag anymore. Also corrected
