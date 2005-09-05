@@ -28,6 +28,8 @@ TODO:
 
 Date		Added
 ======
+09/06
+	* Removed massdriller's "illuminaRO" part from the Merchant jobquest script. What was that good for? [Mass Zero]
 09/04
 	* Optimized Prontera city script. Now Novices > 20 BaseJob Level can go in the Culvert [Lupus]
 	* Fixed minor coords issues of 19/20 warps of Monks Job Quest, Lutie Tool Shop, warps in PVP area, 1 Izlude warp. Thanks to Yor
