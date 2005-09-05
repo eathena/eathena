@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/05
+	* Battle check target fix: Novices/Low levels being unable to target mobs. [Skotlex]
+	* Temporarily made traps not target allies on gvg (Still up for dabate) [Skotlex]
 	* Battle check target update: Summoned creatures won't be checked versus
 	  their master, means you should be able to target them as if they were
 	  normal enemies. [Skotlex]

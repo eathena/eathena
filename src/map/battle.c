@@ -3013,13 +3013,13 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			{
 				state |= BCT_ENEMY;
 			
-				if (battle_config.pk_mode)
+				if (battle_config.pk_mode && s_bl->type == BL_PC && t_bl->type == BL_PC)
 				{	//Prevent novice engagement on pk_mode (feature by Valaris)
 					struct map_session_data* sd;
-					if (s_bl->type == BL_PC && (sd = (struct map_session_data*)s_bl) != NULL &&
+					if ((sd = (struct map_session_data*)s_bl) != NULL &&
 						(pc_calc_base_job2(sd->status.class_) == JOB_NOVICE || sd->status.base_level < battle_config.pk_min_level))
 						state&=~BCT_ENEMY;
-					else if (t_bl->type == BL_PC && (sd = (struct map_session_data*)t_bl) != NULL &&
+					else if ((sd = (struct map_session_data*)t_bl) != NULL &&
 						(pc_calc_base_job2(sd->status.class_) == JOB_NOVICE || sd->status.base_level < battle_config.pk_min_level))
 						state&=~BCT_ENEMY;
 				}
