@@ -29,6 +29,7 @@ TODO:
 Date		Added
 ======
 09/04
+	* Minor fix of Bear Hat Quest: changed ingredients (Zipper>Bear Skin) [Lupus]
 	* Minor fix of Acolyte Job Quest message. Thanx to andz for pointing it out [Lupus]
 	* Optimized ADOPTION.TXT again. Tested it with 3 clients. Fully working! [Lupus]
 	* Moved Fashion Quest into the proper folder: custom/quests . Also optimized the script [Lupus]
