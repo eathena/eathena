@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/05
+	* Made Shield Chain long ranged (it has to be affected by pneuma/defender). [Skotlex]
 	* Fixed both trader/seller not being saved when using autotrade. [Skotlex]
 	* Added debug messages to figure out who is causing the rain of function
 	  mismatches on deleting skill_timerskill. [Skotlex]

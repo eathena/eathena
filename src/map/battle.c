@@ -841,7 +841,7 @@ static struct Damage battle_calc_weapon_attack(
 			case CR_SHIELDBOOMERANG:
 			case LK_SPIRALPIERCE:
 			case ASC_BREAKER:
-//			case PA_SHIELDCHAIN: //Reports indicate it's short ranged. [Skotlex]
+			case PA_SHIELDCHAIN: //Since Pneuma and Defending Aura block it, it has to be long range. [Skotlex]
 			case AM_ACIDTERROR:
 			case ITM_TOMAHAWK:	//Tomahawk is a ranged attack! [Skotlex]
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
