@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/06
+	* Changed Assumptio to target all players around target. Mobs are no longer
+	  affected. [Skotlex]
 	* Fixed battle_check_target fails on guild-mates in pvp maps. [Skotlex]
 	* Reverted battle_check_target to prevent floras from hitting themselves
 	  until a better scheme can be thought of. [Skotlex]

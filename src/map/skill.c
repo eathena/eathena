@@ -3493,7 +3493,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			map_foreachinarea(skill_area_sub,
-				bl->m, bl->x-1, bl->y-1, bl->x+1, bl->y+1, 0,
+				bl->m, bl->x-1, bl->y-1, bl->x+1, bl->y+1, BL_PC,
 				src, skillid, skilllv, tick, flag|BCT_ALL|1,
 				skill_castend_nodamage_id);
 		}
