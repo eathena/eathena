@@ -1,6 +1,9 @@
 Date	Added
 =======
 09/06
+	* Reorganized battle_weapon_attack to allow counter/root from blocking
+	  autotriggered skills (like TripleBlows/Sacrificial Ritual) [Skotlex]
+	* Fixed that crash on mob_spawn_guardian. [Skotlex]
 	* Added battle option gvg_traps_target_all, defaults to yes for now. [Skotlex]
 	* Added Zoc's fix to @autotrade (which made traders unable to login again..
 	  ever) [Skotlex]

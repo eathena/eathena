@@ -1692,8 +1692,9 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		if(src->type==BL_PC)
 			dmg.blewcount = 10;
 		break;
+	case KN_AUTOCOUNTER: //Skills that need be passed as a normal attack for the client to display correctly.
 	case SN_SHARPSHOOTING:
-		clif_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,0,0,0);
+		clif_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,1,0,0);
 		break;
 	default:
 		clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, skillid, (lv!=0)?lv:skilllv, (skillid==0)? 5:type );

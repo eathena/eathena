@@ -320,7 +320,7 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
 	else if(x<=0 || y<=0)
 		ShowWarning("mob_spawn_guardian: Invalid coordinates (%d,%d)\n",x,y);
 
-	gc=guild_mapname2gc(map[md->bl.m].name);
+	gc=guild_mapname2gc(map[m].name);
 	if (gc == NULL)
 	{
 		ShowError("mob_spawn_guardian: No castle set at map %s\n", map[m].name);

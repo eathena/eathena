@@ -860,37 +860,11 @@ static struct Damage battle_calc_weapon_attack(
 	}
 
 	//Check for counter 
-	if(skill_num != CR_GRANDCROSS &&
- 		(!skill_num ||
-		(tsd && battle_config.pc_auto_counter_type&2) ||
-		(tmd && battle_config.monster_auto_counter_type&2)))
+	if(!skill_num)
 	{
 		if(t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1)
-		{
-			int dir = map_calc_dir(src,target->x,target->y),t_dir = status_get_dir(target);
-			int dist = distance(src->x,src->y,target->x,target->y);
-			if(dist <= 0 || map_check_dir(dir,t_dir) )
-			{
-				memset(&wd,0,sizeof(wd));
-				t_sc_data[SC_AUTOCOUNTER].val3 = 0;
-				t_sc_data[SC_AUTOCOUNTER].val4 = 1;
-				if(sc_data && sc_data[SC_AUTOCOUNTER].timer == -1)
-				{ //How can the attacking char have Auto-counter active?
-					int range = status_get_range(target);
-					if((tsd && tsd->status.weapon != 11 && dist <= range+1) ||
-						(tmd && range <= 3 && dist <= range+1))
-						t_sc_data[SC_AUTOCOUNTER].val3 = src->id;
-				}
-				return wd;
-			} else
-				flag.cri = 1;
-		}
-		else if(t_sc_data && t_sc_data[SC_POISONREACT].timer != -1)
-		{	// poison react [Celest]
-			t_sc_data[SC_POISONREACT].val3 = 0;
-			t_sc_data[SC_POISONREACT].val4 = 1;
-			t_sc_data[SC_POISONREACT].val3 = src->id;
-		}
+		//If it got here and you had autocounter active, then the direction/range does not matches: critical
+			flag.cri = 1;
 	}	//End counter-check
 
 	if (!skill_num && (tsd || battle_config.enemy_perfect_flee))
@@ -2558,31 +2532,39 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				return 0;
 			}
 		}
-		if(flag&0x8000) {	//Counter Attack
-			if(sd && battle_config.pc_attack_direction_change)
-				sd->dir = sd->head_dir = map_calc_dir(src, target->x,target->y );
-			else if (src->type == BL_MOB && battle_config.monster_attack_direction_change) {
-				struct mob_data *md = (struct mob_data *)src;
-				if (md) md->dir = map_calc_dir(src, target->x, target->y);
+
+		//Check for counter attacks that block your attack. [Skotlex]
+		if(tsc_data)
+		{
+			if(tsc_data[SC_AUTOCOUNTER].timer != -1 &&
+				(!sc_data || sc_data[SC_AUTOCOUNTER].timer == -1))
+			{
+				int dir = map_calc_dir(src,target->x,target->y),t_dir = status_get_dir(target);
+				int dist = distance(src->x,src->y,target->x,target->y);
+				if(dist <= 0 || (!map_check_dir(dir,t_dir) && dist <= status_get_range(target)+1))
+				{
+					int skilllv = tsc_data[SC_AUTOCOUNTER].val1;
+					clif_skillcastcancel(target); //Remove the casting bar. [Skotlex]
+					clif_damage(src, target, tick, status_get_amotion(src), 1, 0, 1, 0, 0); //Display MISS.
+					status_change_end(target,SC_AUTOCOUNTER,-1);
+					skill_attack(BF_WEAPON,target,target,src,KN_AUTOCOUNTER,skilllv,tick,0);
+					return 0;
+				}
 			}
-			skill_num = KN_AUTOCOUNTER;
-			skill_lv = flag&0xff;
+			if (tsc_data[SC_BLADESTOP_WAIT].timer != -1 && !is_boss(src)) {
+				int skilllv = tsc_data[SC_BLADESTOP_WAIT].val1;
+				status_change_end(target, SC_BLADESTOP_WAIT, -1);
+				clif_damage(src, target, tick, status_get_amotion(src), 1, 0, 1, 0, 0); //Display MISS.
+				status_change_start(src, SC_BLADESTOP, skilllv, 1, (int)src, (int)target, skill_get_time2(MO_BLADESTOP,skilllv), 0);
+				status_change_start(target, SC_BLADESTOP, skilllv, 2, (int)target, (int)src, skill_get_time2(MO_BLADESTOP,skilllv), 0);
+				return 0;
+			}
+
 		}
-		else if (flag & AS_POISONREACT && sc_data && sc_data[SC_POISONREACT].timer != -1)
-		{	//Poison React
-			skill_num = AS_POISONREACT;
-			skill_lv = sc_data[SC_POISONREACT].val1;
-		}
-		else if(sd && (skill_lv = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16 && rand()%100 < (30 - skill_lv)) // triple blow works with bows ^^ [celest]
+		if(sd && (skill_lv = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16 && rand()%100 < (30 - skill_lv)) // triple blow works with bows ^^ [celest]
 			return skill_attack(BF_WEAPON,src,src,target,MO_TRIPLEATTACK,skill_lv,tick,0);
 		else if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
 			return skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,sc_data[SC_SACRIFICE].val1,tick,0);
-		else if(sd && (sc_data[SC_READYSTORM].timer != -1) && rand()%100 < 15 ) // Taekwon Strom Stance [Dralnu]
-			status_change_start(src,SC_STORMKICK,1,0,0,0,0,0);
-		else if(sd && (sc_data[SC_READYDOWN].timer != -1) && rand()%100 < 15 ) // Taekwon Axe Stance [Dralnu]
-			status_change_start(src,SC_DOWNKICK,1,sd->attacktarget,0,0,0,0);
-   		else if(sd && (sc_data[SC_READYTURN].timer != -1) && rand()%100 < 15 ) // Taekwon Round Stance [Dralnu]
-			status_change_start(src,SC_TURNKICK,1,sd->attacktarget,0,0,0,0);		
 			
 		wd = battle_calc_weapon_attack(src,target, skill_num, skill_lv,0);
 	
@@ -2617,8 +2599,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 
 		if (wd.damage > 0 || wd.damage2 > 0) //Added counter effect [Skotlex]
 			skill_counter_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
-		if (target->prev != NULL && (wd.damage > 0 || wd.damage2 > 0)) {
-			skill_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
+		if (!status_isdead(target) && (wd.damage > 0 || wd.damage2 > 0)) {
 			if (sd) {
 				int hp = status_get_max_hp(target);
 				if (sd->weapon_coma_ele[ele] > 0 && rand()%10000 < sd->weapon_coma_ele[ele])
@@ -2778,32 +2759,30 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		if (rdamage > 0) //By sending attack type "none" skill_additional_effect won't be invoked. [Skotlex]
 			battle_delay_damage(tick+wd.amotion, target, src, 0, 0, 0, rdamage, 0, 0);
 
+		if (sc_data) {
+			if (sc_data[SC_READYSTORM].timer != -1 && rand()%100 < 15) // Taekwon Strom Stance [Dralnu]
+				status_change_start(src,SC_STORMKICK,1,0,0,0,0,0);
+			if(sc_data[SC_READYDOWN].timer != -1 && rand()%100 < 15) // Taekwon Axe Stance [Dralnu]
+				status_change_start(src,SC_DOWNKICK,1,target->id,0,0,0,0);
+			if(sc_data[SC_READYTURN].timer != -1 && rand()%100 < 15) // Taekwon Round Stance [Dralnu]
+				status_change_start(src,SC_TURNKICK,1,target->id,0,0,0,0);
+		}
 		if (tsc_data) {
-			if (tsc_data[SC_AUTOCOUNTER].timer != -1 && tsc_data[SC_AUTOCOUNTER].val4 > 0) {
-				if (tsc_data[SC_AUTOCOUNTER].val3 == src->id)
-					battle_weapon_attack(target, src, tick, 0x8000|tsc_data[SC_AUTOCOUNTER].val1);
-				clif_skillcastcancel(target); //Remove the little casting bar. [Skotlex]
-				status_change_end(target,SC_AUTOCOUNTER,-1);
-			}
-			if (tsc_data[SC_READYCOUNTER].timer != -1 && rand()%100 < 20) // Taekwon Counter Stance [Dralnu]
-				status_change_start(target,SC_COUNTER,1,src->id,0,0,tick,flag);				
-			if (tsc_data[SC_POISONREACT].timer != -1 && tsc_data[SC_POISONREACT].val4 > 0 && tsc_data[SC_POISONREACT].val3 == src->id) {   // poison react [Celest]
+			if (tsc_data && tsc_data[SC_POISONREACT].timer != -1 && 
+				distance(src->x,src->y,target->x,target->y) <= status_get_range(target)+1)
+			{	//Poison React
 				if (status_get_elem_type(src) == 5) {
 					tsc_data[SC_POISONREACT].val2 = 0;
-					battle_weapon_attack(target, src, tick, flag|AS_POISONREACT);
+					skill_attack(BF_WEAPON,target,target,src,AS_POISONREACT,sc_data[SC_POISONREACT].val1,tick,0);
 				} else {
-					skill_castend_damage_id(target, src, TF_POISON, 5, tick, flag);
+					skill_attack(BF_WEAPON,target,target,src,TF_POISON, 5, tick, flag);
 					--tsc_data[SC_POISONREACT].val2;
 				}
 				if (tsc_data[SC_POISONREACT].val2 <= 0)
-					status_change_end(target,SC_POISONREACT,-1);
+					status_change_end(target, SC_POISONREACT, -1);
 			}
-			if (tsc_data[SC_BLADESTOP_WAIT].timer != -1 && !is_boss(src)) { // ボスには無効
-				int skilllv = tsc_data[SC_BLADESTOP_WAIT].val1;
-				status_change_end(target, SC_BLADESTOP_WAIT, -1);
-				status_change_start(src, SC_BLADESTOP, skilllv, 1, (int)src, (int)target, skill_get_time2(MO_BLADESTOP,skilllv), 0);
-				status_change_start(target, SC_BLADESTOP, skilllv, 2, (int)target, (int)src, skill_get_time2(MO_BLADESTOP,skilllv), 0);
-			}
+			if (tsc_data[SC_READYCOUNTER].timer != -1 && rand()%100 < 20) // Taekwon Counter Stance [Dralnu]
+				status_change_start(target,SC_COUNTER,1,src->id,0,0,tick,flag);				
 			if (tsc_data[SC_SPLASHER].timer != -1)	//殴ったので対象のベナムスプラッシャー状態を解除
 				status_change_end(target, SC_SPLASHER, -1);
 		}
@@ -2893,10 +2872,9 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				return 0;
 			if (!agit_flag && md->guardian_data)
 				return 0; //Disable guardians on non-woe times.
-//			if (md->state.special_mob_ai == 2) 
-//				return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
-			//Don't fallback on the master in the case of summoned creaturess to enable hitting them.
-			if (md->master_id && !md->state.special_mob_ai && (t_bl = map_id2bl(md->master_id)) == NULL)
+			if (md->state.special_mob_ai == 2) 
+				return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
+			if (md->master_id && (t_bl = map_id2bl(md->master_id)) == NULL)
 				t_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
 			break;
 		}
