@@ -100,6 +100,7 @@ int mob_once_spawn_area(struct map_session_data *sd,char *mapname,
 
 int mob_spawn_guardian(struct map_session_data *sd,char *mapname,	// Spawning Guardians [Valaris]
 	int x,int y,const char *mobname,int class_,int amount,const char *event,int guardian);	// Spawning Guardians [Valaris]
+int mob_guardian_guildchange(struct block_list *bl,va_list ap); //Change Guardian's ownership. [Skotlex]
 
 int mob_walktoxy(struct mob_data *md,int x,int y,int easy);
 int mob_randomwalk(struct mob_data *md,int tick);
@@ -114,8 +115,6 @@ int mob_setdelayspawn(int);
 int mob_damage(struct block_list *,struct mob_data*,int,int,int);
 int mob_changestate(struct mob_data *md,int state,int type);
 int mob_heal(struct mob_data*,int);
-int mob_exclusion_add(struct mob_data *md,int type,int id);
-int mob_exclusion_check(struct mob_data *md,struct map_session_data *sd);
 
 //Defines to speed up search.
 #define mob_get_viewclass(class_) mob_db(class_)->view_class
@@ -151,7 +150,6 @@ int mobskill_castend_pos( int tid, unsigned int tick, int id,int data );
 int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id);
 int mob_countslave(struct mob_data *md);
 
-int mob_gvmobcheck(struct map_session_data *sd, struct block_list *bl);
 void mob_reload(void);
 
 #endif

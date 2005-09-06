@@ -359,10 +359,11 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	int class_;
 
 	nullpo_retr(0, bl);
-	
+
+/* Redundant, already checked on the skill attack and weapon attack routines.
 	if(src->m != bl->m) // [ShAPoNe] Src and target same map check.
 		return 0;
-
+*/
 	class_ = status_get_class(bl);
 
 	if (bl->type == BL_MOB) {
@@ -494,36 +495,23 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				damage = 0;
 	}
 
-	if(class_ == 1288 || class_ == 1287 || class_ == 1286 || class_ == 1285) {
-		if(class_ == 1288 && (flag&BF_SKILL && skill_num != PA_PRESSURE && skill_num != MO_TRIPLEATTACK)) // Gloria Domini and Raging Trifecta Blows can hit Emperium
+	if(md && md->guardian_data) {
+		if(class_ == MOBID_EMPERIUM && (flag&BF_SKILL && skill_num != PA_PRESSURE && skill_num != MO_TRIPLEATTACK)) // Gloria Domini and Raging Trifecta Blows can hit Emperium
 			damage=0;
-		if(src->type == BL_PC) {
+		else if(src->type == BL_PC) {
 			struct guild *g=guild_search(((struct map_session_data *)src)->status.guild_id);
-			struct guild_castle *gc=guild_mapname2gc(map[bl->m].name);
-			if(!((struct map_session_data *)src)->status.guild_id)
+			if(g && class_ == MOBID_EMPERIUM && guild_checkskill(g,GD_APPROVAL) <= 0)
 				damage=0;
-			else if(gc && agit_flag==0 && class_ != 1288)	// guardians cannot be damaged during non-woe [Valaris]
-				damage=0;  // end woe check [Valaris]
-			else if(g == NULL)
-				damage=0;//ギルド未加入ならダメージ無し
-			else if((gc != NULL) && guild_isallied(g, gc))
-				damage=0;//自占領ギルドのエンペならダメージ無し
-			else if(g && guild_checkskill(g,GD_APPROVAL) <= 0)
-				damage=0;//正規ギルド承認がないとダメージ無し
 			else if (battle_config.guild_max_castles != 0 && guild_checkcastles(g)>=battle_config.guild_max_castles)
 				damage = 0; // [MouseJstr]
-			else if (g && gc && guild_check_alliance(gc->guild_id, g->guild_id, 0) == 1)
-				return 0;
 		}
-		else damage = 0;
 	}
 
 	if (damage > 0 && skill_num != PA_PRESSURE) { // Gloria Domini ignores WoE damage reductions
 		if (map[bl->m].flag.gvg) { //GvG
-			if (bl->type == BL_MOB){	//defenseがあればダメージが減るらしい？
-				struct guild_castle *gc = guild_mapname2gc(map[bl->m].name);
-				if (gc) damage -= damage * (gc->defense / 100) * (battle_config.castle_defense_rate/100);
-			}
+			if (md && md->guardian_data)
+				damage -= damage * (md->guardian_data->castle->defense/100) * (battle_config.castle_defense_rate/100);
+
 			if (flag & BF_SKILL) { //Skills get a different reduction than non-skills. [Skotlex]
 				if (flag&BF_WEAPON)
 					damage = damage * battle_config.gvg_weapon_damage_rate/100;
@@ -552,13 +540,9 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		if(damage < 1) damage  = 1;
 	}
 
-	if(battle_config.skill_min_damage || flag&BF_MISC) {
-		if(div_ < 255) {
-			if(damage > 0 && damage < div_)
-				damage = div_;
-		}
-		else if(damage > 0 && damage < 3)
-			damage = 3;
+	if(battle_config.skill_min_damage) {
+		if(damage > 0 && damage < div_)
+			damage = div_;
 	}
 
 	if( md!=NULL && md->hp>0 && damage > 0 )	// 反撃などのMOBスキル判定
@@ -1892,7 +1876,7 @@ static struct Damage battle_calc_weapon_attack(
 		}
 	}
 
-	if(sd && sd->classchange && tmd && !(t_mode&0x20) && (tmd->class_ < 1285 || tmd->class_ > 1288) && (tmd->class_ < 1324 || tmd->class_ > 1363) && (rand()%10000 < sd->classchange))
+	if(sd && sd->classchange && tmd && !(t_mode&0x20) && !tmd->guardian_data && (tmd->class_ < 1324 || tmd->class_ > 1363) && (rand()%10000 < sd->classchange))
 	{	//Classchange:
 		struct mob_db *mob;
 		int k, class_;
@@ -2907,6 +2891,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			struct mob_data *md = (struct mob_data *)t_bl;
 			if (!md)
 				return 0;
+			if (!agit_flag && md->guardian_data)
+				return 0; //Disable guardians on non-woe times.
 //			if (md->state.special_mob_ai == 2) 
 //				return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
 			//Don't fallback on the master in the case of summoned creaturess to enable hitting them.
@@ -2951,6 +2937,9 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				return 0;
 			if (sd->special_state.killer)
 				state |= BCT_ENEMY; //Is on a killing rampage :O
+			if (agit_flag && map[m].flag.gvg && !sd->status.guild_id &&
+				t_bl->type == BL_MOB && ((struct mob_data *)t_bl)->guardian_data)
+				return 0; //If you don't belong to a guild, can't target guardians/emperium.
 			break;
 		}
 		case BL_MOB:
@@ -2958,7 +2947,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			struct mob_data *md = (struct mob_data *)s_bl;
 			if (!md)
 				return 0;
-			if (!agit_flag && md->guild_id)
+			if (!agit_flag && md->guardian_data)
 				return 0; //Disable guardians on non-woe times.
 			if (md->master_id && (s_bl = map_id2bl(md->master_id)) == NULL)
 				s_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "from master" scenario.
@@ -3051,15 +3040,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 	//Alliance state takes precedence over enemy one.
 	else if (state&BCT_ENEMY && state&(BCT_SELF|BCT_PARTY|BCT_GUILD))
 		state&=~BCT_ENEMY;
-/* Unneeded as aggressive mobs only search for BL_PCs to attack.
-	if (s_bl->type == BL_MOB && t_bl->type == BL_MOB && state&BCT_ENEMY)
-	{
-		if ((struct mob_data*)s_bl && ((struct mob_data*)s_bl)->state.special_mob_ai==0 &&
-			(struct mob_data*)t_bl && ((struct mob_data*)t_bl)->state.special_mob_ai==0)
-			//Do not let mobs target each other.
-			state&=~BCT_ENEMY;
-	}
-*/
+
 	return (flag&state)?1:-1;
 
 /* The previous implementation is left here for reference in case something breaks :X [Skotlex]

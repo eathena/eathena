@@ -1052,16 +1052,9 @@ static int clif_mob0078(struct mob_data *md, unsigned char *buf)
 		WBUFB(buf,45)=mob_get_sex(md->class_);
 	}
 
-	if (md->class_ >= 1285 && md->class_ <= 1287 && md->guild_id) {	// Added guardian emblems [Valaris]
-		struct guild *g;
-		struct guild_castle *gc=guild_mapname2gc(map[md->bl.m].name);
-		if (gc && gc->guild_id > 0) {
-			g=guild_search(gc->guild_id);
-			if (g) {
-				WBUFL(buf,22)=g->emblem_id;
-				WBUFL(buf,26)=gc->guild_id;
-			}
-		}
+	if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris] (updated by [Skotlex])
+		WBUFL(buf,22)=md->guardian_data->emblem_id;
+		WBUFL(buf,26)=md->guardian_data->guild_id;
 	}	// End addition
 
 	WBUFPOS(buf,46,md->bl.x,md->bl.y);
@@ -1106,17 +1099,10 @@ static int clif_mob007b(struct mob_data *md, unsigned char *buf) {
 	} else
 		WBUFL(buf,22)=gettick();
 
-		if(md->class_ >= 1285 && md->class_ <= 1287 && md->guild_id)	{	// Added guardian emblems [Valaris]
-			struct guild *g;
-			struct guild_castle *gc=guild_mapname2gc(map[md->bl.m].name);
-			if(gc && gc->guild_id > 0){
-				g=guild_search(gc->guild_id);
-					if(g) {
-					WBUFL(buf,28)=gc->guild_id;
-					WBUFL(buf,24)=g->emblem_id;
-					}
-			}
-		}									// End addition
+	if (md->guardian_data && md->guardian_data->guild_id) { // Added guardian emblems [Valaris] (updated by [Skotlex])
+		WBUFL(buf,24)=md->guardian_data->emblem_id;
+		WBUFL(buf,28)=md->guardian_data->guild_id;
+	}	// End addition
 
 	WBUFPOS2(buf,50,md->bl.x,md->bl.y,md->to_x,md->to_y);
 	WBUFB(buf,56)=5;
@@ -7811,15 +7797,11 @@ int clif_charnameack (int fd, struct block_list *bl)
 			nullpo_retr(0, md);
 
 			memcpy(WBUFP(buf,6), md->name, NAME_LENGTH);
-			if (md->class_ >= 1285 && md->class_ <= 1288 && md->guild_id) {
-				struct guild *g;
-				struct guild_castle *gc = guild_mapname2gc(map[md->bl.m].name);
-				if (gc && gc->guild_id > 0 && (g = guild_search(gc->guild_id)) != NULL) {
-					WBUFW(buf, 0) = cmd = 0x195;
-					WBUFB(buf,30) = 0;
-					memcpy(WBUFP(buf,54), g->name, NAME_LENGTH);
-					memcpy(WBUFP(buf,78), gc->castle_name, NAME_LENGTH);
-				}
+			if (md->guardian_data && md->guardian_data->guild_id) {
+				WBUFW(buf, 0) = cmd = 0x195;
+				WBUFB(buf,30) = 0;
+				memcpy(WBUFP(buf,54), md->guardian_data->guild_name, NAME_LENGTH);
+				memcpy(WBUFP(buf,78), md->guardian_data->castle->castle_name, NAME_LENGTH);
 			} else if (battle_config.show_mob_hp == 1) {
 				char mobhp[50];
 				WBUFW(buf, 0) = cmd = 0x195;

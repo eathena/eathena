@@ -4939,8 +4939,8 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 			md->target_id=0;
 			mob_changestate(md,MS_WALK,0);
 		}
-		if(battle_config.mobs_level_up && md && md->state.state!=MS_DEAD && md->level < battle_config.max_base_level &&
-			(md->class_ < 1285 || md->class_ > 1288) // Guardians should not level. [Skotlex]
+		if(battle_config.mobs_level_up && md && md->state.state!=MS_DEAD &&
+			md->level < battle_config.max_base_level && !md->guardian_data // Guardians should not level. [Skotlex]
 		) { 	// monster level up [Valaris]
 			clif_misceffect(&md->bl,0);
 			md->level++;

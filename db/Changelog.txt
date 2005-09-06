@@ -37,6 +37,10 @@
 	--
 
 09/06
+	* Changed Magic Crasher and Pressure's nk to 0 [Skotlex]
+	  NOTE: nk=2 is for splash damage skills and 1 for "no damage" skills. This
+	  info is never sent to the client, so there's no reason we should deviate
+	  from that convention.
 	* Added effects to new items: [Lupus]
 	  - #12107,Wrapped Mask: You get 1 random mask (Mr.Smile,Mr.Scream,Phantom Opera Mask,all set of Expressionless,Surprised,etc masks)
 	  - #12106,Jewel Case: You get 1 random accessory (Ring,Clip,etc. Rogue's Treasure, Bow Timble, Fashion Hipsack. Excluding some overpowered and quests accessories)

@@ -1495,8 +1495,6 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		return 0;
 	if(dsrc->type == BL_PC && ((struct map_session_data *)dsrc)->chatID) //pŽÒ‚ªPC‚Åƒ`ƒƒƒbƒg’†‚È‚ç‰½‚à‚µ‚È‚¢
 		return 0;
-	if(src->type == BL_PC && bl && mob_gvmobcheck(((struct map_session_data *)src),bl)==0)
-		return 0;
 
 //‰½‚à‚µ‚È‚¢”»’è‚±‚±‚Ü‚Å
 
@@ -3088,7 +3086,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		return 1;
 	if(dstsd && pc_isdead(dstsd) && skillid != ALL_RESURRECTION)
 		return 1;
-	if(status_get_class(bl) == 1288 && skillid != PA_PRESSURE) // Pressure can hit Emperium
+	if(status_get_class(bl) == MOBID_EMPERIUM) //No damage skills cannot affect emperium.
 		return 1;
 	if (sd && skillnotok(skillid, sd)) // [MouseJstr]
 		return 0;

@@ -578,8 +578,9 @@ ShowDebug("Save guild_castle (%d)\n", gc->castle_id);
 		"`Ghp0`, `Ghp1`, `Ghp2`, `Ghp3`, `Ghp4`, `Ghp5`, `Ghp6`, `Ghp7`)"
 		"VALUES ('%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
 		guild_castle_db, gc->castle_id, gc->guild_id,  gc->economy, gc->defense, gc->triggerE, gc->triggerD, gc->nextTime, gc->payTime,
-		gc->createTime, gc->visibleC, gc->visibleG0, gc->visibleG1, gc->visibleG2, gc->visibleG3, gc->visibleG4, gc->visibleG5,
-		gc->visibleG6, gc->visibleG7, gc->Ghp0, gc->Ghp1, gc->Ghp2, gc->Ghp3, gc->Ghp4, gc->Ghp5, gc->Ghp6, gc->Ghp7);
+		gc->createTime, gc->visibleC,
+		gc->guardian[0].visible, gc->guardian[1].visible, gc->guardian[2].visible, gc->guardian[3].visible, gc->guardian[4].visible, gc->guardian[5].visible, gc->guardian[6].visible, gc->guardian[7].visible,
+		gc->guardian[0].hp, gc->guardian[1].hp, gc->guardian[2].hp, gc->guardian[3].hp, gc->guardian[4].hp, gc->guardian[5].hp, gc->guardian[6].hp, gc->guardian[7].hp);
 
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		ShowSQL("DB Server Error %s - %s\n",
@@ -643,22 +644,22 @@ int inter_guildcastle_fromsql(int castle_id,struct guild_castle *gc)
 		gc->payTime = atoi (sql_row[7]);
 		gc->createTime = atoi (sql_row[8]);
 		gc->visibleC = atoi (sql_row[9]);
-		gc->visibleG0 = atoi (sql_row[10]);
-		gc->visibleG1 = atoi (sql_row[11]);
-		gc->visibleG2 = atoi (sql_row[12]);
-		gc->visibleG3 = atoi (sql_row[13]);
-		gc->visibleG4 = atoi (sql_row[14]);
-		gc->visibleG5 = atoi (sql_row[15]);
-		gc->visibleG6 = atoi (sql_row[16]);
-		gc->visibleG7 = atoi (sql_row[17]);
-		gc->Ghp0 = atoi (sql_row[18]);
-		gc->Ghp1 = atoi (sql_row[19]);
-		gc->Ghp2 = atoi (sql_row[20]);
-		gc->Ghp3 = atoi (sql_row[21]);
-		gc->Ghp4 = atoi (sql_row[22]);
-		gc->Ghp5 = atoi (sql_row[23]);
-		gc->Ghp6 = atoi (sql_row[24]);
-		gc->Ghp7 = atoi (sql_row[25]);
+		gc->guardian[0].visible = atoi (sql_row[10]);
+		gc->guardian[1].visible = atoi (sql_row[11]);
+		gc->guardian[2].visible = atoi (sql_row[12]);
+		gc->guardian[3].visible = atoi (sql_row[13]);
+		gc->guardian[4].visible = atoi (sql_row[14]);
+		gc->guardian[5].visible = atoi (sql_row[15]);
+		gc->guardian[6].visible = atoi (sql_row[16]);
+		gc->guardian[7].visible = atoi (sql_row[17]);
+		gc->guardian[0].hp = atoi (sql_row[18]);
+		gc->guardian[1].hp = atoi (sql_row[19]);
+		gc->guardian[2].hp = atoi (sql_row[20]);
+		gc->guardian[3].hp = atoi (sql_row[21]);
+		gc->guardian[4].hp = atoi (sql_row[22]);
+		gc->guardian[5].hp = atoi (sql_row[23]);
+		gc->guardian[6].hp = atoi (sql_row[24]);
+		gc->guardian[7].hp = atoi (sql_row[25]);
 		
 		ShowInfo("Loaded Castle %d (guild %d)\n",castle_id,gc->guild_id);
 
@@ -1147,22 +1148,22 @@ int mapif_guild_castle_alldataload(int fd) {
 			gc->payTime = atoi(sql_row[7]);
 			gc->createTime = atoi(sql_row[8]);
 			gc->visibleC = atoi(sql_row[9]);
-			gc->visibleG0 = atoi(sql_row[10]);
-			gc->visibleG1 = atoi(sql_row[11]);
-			gc->visibleG2 = atoi(sql_row[12]);
-			gc->visibleG3 = atoi(sql_row[13]);
-			gc->visibleG4 = atoi(sql_row[14]);
-			gc->visibleG5 = atoi(sql_row[15]);
-			gc->visibleG6 = atoi(sql_row[16]);
-			gc->visibleG7 = atoi(sql_row[17]);
-			gc->Ghp0 = atoi(sql_row[18]);
-			gc->Ghp1 = atoi(sql_row[19]);
-			gc->Ghp2 = atoi(sql_row[20]);
-			gc->Ghp3 = atoi(sql_row[21]);
-			gc->Ghp4 = atoi(sql_row[22]);
-			gc->Ghp5 = atoi(sql_row[23]);
-			gc->Ghp6 = atoi(sql_row[24]);
-			gc->Ghp7 = atoi(sql_row[25]);
+			gc->guardian[0].visible = atoi(sql_row[10]);
+			gc->guardian[1].visible = atoi(sql_row[11]);
+			gc->guardian[2].visible = atoi(sql_row[12]);
+			gc->guardian[3].visible = atoi(sql_row[13]);
+			gc->guardian[4].visible = atoi(sql_row[14]);
+			gc->guardian[5].visible = atoi(sql_row[15]);
+			gc->guardian[6].visible = atoi(sql_row[16]);
+			gc->guardian[7].visible = atoi(sql_row[17]);
+			gc->guardian[0].visible = atoi(sql_row[18]);
+			gc->guardian[1].visible = atoi(sql_row[19]);
+			gc->guardian[2].visible = atoi(sql_row[20]);
+			gc->guardian[3].visible = atoi(sql_row[21]);
+			gc->guardian[4].visible = atoi(sql_row[22]);
+			gc->guardian[5].visible = atoi(sql_row[23]);
+			gc->guardian[6].visible = atoi(sql_row[24]);
+			gc->guardian[7].visible = atoi(sql_row[25]);
 			memcpy(WFIFOP(fd,len), gc, sizeof(struct guild_castle));
 			len += sizeof(struct guild_castle);
 		}
@@ -1696,22 +1697,24 @@ int mapif_parse_GuildCastleDataLoad(int fd,int castle_id,int index)     // <Agit
 	case 7: return mapif_guild_castle_dataload(gc->castle_id,index,gc->payTime); break;
 	case 8: return mapif_guild_castle_dataload(gc->castle_id,index,gc->createTime); break;
 	case 9: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleC); break;
-	case 10: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG0); break;
-	case 11: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG1); break;
-	case 12: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG2); break;
-	case 13: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG3); break;
-	case 14: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG4); break;
-	case 15: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG5); break;
-	case 16: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG6); break;
-	case 17: return mapif_guild_castle_dataload(gc->castle_id,index,gc->visibleG7); break;
-	case 18: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp0); break;	// guardian HP [Valaris]
-	case 19: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp1); break;
-	case 20: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp2); break;
-	case 21: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp3); break;
-	case 22: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp4); break;
-	case 23: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp5); break;
-	case 24: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp6); break;
-	case 25: return mapif_guild_castle_dataload(gc->castle_id,index,gc->Ghp7); break;	// end additions [Valaris]
+	case 10:
+	case 11:
+	case 12:
+	case 13:
+	case 14:
+	case 15:
+	case 16:
+	case 17:
+		return mapif_guild_castle_dataload(gc->castle_id,index,gc->guardian[index-10].visible); break;
+	case 18:
+	case 19:
+	case 20:
+	case 21:
+	case 22:
+	case 23:
+	case 24:
+	case 25:
+		return mapif_guild_castle_dataload(gc->castle_id,index,gc->guardian[index-18].hp); break;
 	default:
 		ShowError("mapif_parse_GuildCastleDataLoad ERROR!! (Not found index=%d)\n", index);
 		return 0;
@@ -1744,22 +1747,24 @@ int mapif_parse_GuildCastleDataSave(int fd,int castle_id,int index,int value)   
 	case 7: gc->payTime = value; break;
 	case 8: gc->createTime = value; break;
 	case 9: gc->visibleC = value; break;
-	case 10: gc->visibleG0 = value; break;
-	case 11: gc->visibleG1 = value; break;
-	case 12: gc->visibleG2 = value; break;
-	case 13: gc->visibleG3 = value; break;
-	case 14: gc->visibleG4 = value; break;
-	case 15: gc->visibleG5 = value; break;
-	case 16: gc->visibleG6 = value; break;
-	case 17: gc->visibleG7 = value; break;
-	case 18: gc->Ghp0 = value; break;	// guardian HP [Valaris]
-	case 19: gc->Ghp1 = value; break;
-	case 20: gc->Ghp2 = value; break;
-	case 21: gc->Ghp3 = value; break;
-	case 22: gc->Ghp4 = value; break;
-	case 23: gc->Ghp5 = value; break;
-	case 24: gc->Ghp6 = value; break;
-	case 25: gc->Ghp7 = value; break;	// end additions [Valaris]
+	case 10:
+	case 11:
+	case 12:
+	case 13:
+	case 14:
+	case 15:
+	case 16:
+	case 17:
+		gc->guardian[index-10].visible = value; break;
+	case 18:
+	case 19:
+	case 20:
+	case 21:
+	case 22:
+	case 23:
+	case 24:
+	case 25:
+		gc->guardian[index-18].hp = value; break;	// end additions [Valaris]
 	default:
 		ShowError("mapif_parse_GuildCastleDataSave ERROR!! (Not found index=%d)\n", index);
 		return 0;

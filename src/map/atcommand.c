@@ -3091,7 +3091,7 @@ int atcommand_monster(
 		return -1;
 	}
 
-	if (mob_id == 1288) {
+	if (mob_id == MOBID_EMPERIUM) {
 		clif_displaymessage(fd, msg_table[83]); // Cannot spawn emperium.
 		return -1;
 	}
@@ -3182,7 +3182,7 @@ int atcommand_spawn(
 		return -1;
 	}
 
-	if (mob_id == 1288) {
+	if (mob_id == MOBID_EMPERIUM) {
 		clif_displaymessage(fd, msg_table[83]); // Cannot spawn emperium.
 		return -1;
 	}
@@ -3270,7 +3270,7 @@ int atcommand_monstersmall(
 		return -1;
 	}
 
-	if (mob_id == 1288) {
+	if (mob_id == MOBID_EMPERIUM) {
 		clif_displaymessage(fd, msg_table[83]);
 		return -1;
 	}
@@ -3347,7 +3347,7 @@ int atcommand_monsterbig(
 		return -1;
 	}
 
-	if (mob_id == 1288) {
+	if (mob_id == MOBID_EMPERIUM) {
 		clif_displaymessage(fd, msg_table[83]);
 		return -1;
 	}

@@ -482,8 +482,7 @@ int pet_target_check(struct map_session_data *sd,struct block_list *bl,int type)
 	race=pd->db->race;
 
 	if(pd->bl.m != md->bl.m ||
-		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13 || 
-		(md->class_ >= 1285 && md->class_ <= 1288)) // Cannot attack Guardians/Emperium
+		distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13 || md->guardian_data) // Cannot attack Guardians/Emperium
 		return 0;
 
 	//What is this check for? TODO: Re-check it later [Skotlex]

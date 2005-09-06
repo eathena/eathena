@@ -34,6 +34,7 @@
 #define MAX_DROP_PER_MAP 48
 #define MAX_IGNORE_LIST 80
 #define MAX_VENDING 12
+#define MOBID_EMPERIUM 1288
 
 //Definitions for Jobs, this should help code be more readable. [Skotlex]
 enum {
@@ -558,6 +559,17 @@ struct npc_data {
 
 	void *chatdb;
 };
+
+//For quick linking to a guardian's info. [Skotlex]
+struct guardian_data {
+	int number; //0-MAX_GUARDIANS-1 = Guardians. MAX_GUARDIANS = Emperium.
+	int guild_id;
+	int emblem_id;
+	int guardup_lv; //Level of GD_GUARDUP skill.
+	char guild_name[NAME_LENGTH];
+	struct guild_castle* castle;
+};
+
 struct mob_data {
 	struct block_list bl;
 	short n;
@@ -607,7 +619,8 @@ struct mob_data {
 	short sc_count;
 	short opt1,opt2,opt3,option;
 	short min_chase;
-	int guild_id;
+//	int guild_id;
+	struct guardian_data* guardian_data; 
 	int deletetimer;
 
 	int skilltimer;
@@ -617,7 +630,6 @@ struct mob_data {
 	unsigned int skilldelay[MAX_MOBSKILL];
 	int def_ele;
 	int master_id,master_dist;
-	int exclusion_src,exclusion_party,exclusion_guild;
 	struct skill_timerskill skilltimerskill[MAX_MOBSKILLTIMERSKILL];
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP];
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET];

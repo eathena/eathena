@@ -215,11 +215,20 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 		map_addiddb (&md->bl);
 		mob_spawn (md->bl.id);
 
-		if(class_ == 1288) {	// emperium hp based on defense level [Valaris]
+		if(class_ == MOBID_EMPERIUM) {	// emperium hp based on defense level [Valaris]
 			struct guild_castle *gc = guild_mapname2gc(map[md->bl.m].name);
-			if(gc)	{
+			struct guild *g = gc?guild_search(gc->guild_id):NULL;
+			if(gc) {
 				md->max_hp += 2000 * gc->defense;
 				md->hp = md->max_hp;
+				md->guardian_data = aCalloc(1, sizeof(struct guardian_data));
+				md->guardian_data->number = MAX_GUARDIANS;
+				if (g)
+				{
+					md->guardian_data->guild_id = g->guild_id;
+					md->guardian_data->emblem_id = g->emblem_id;
+					memcpy(md->guardian_data->guild_name, g->name, NAME_LENGTH);
+				}
 			}
 		}	// end addition [Valaris]
 	}
@@ -277,6 +286,9 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
 	int x,int y,const char *mobname,int class_,int amount,const char *event,int guardian)
 {
 	struct mob_data *md=NULL;
+	struct guild *g;
+	struct guild_castle *gc;
+	
 	int m,count=1,lv=255;
 
 	if( sd )
@@ -293,17 +305,35 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
 	if(class_<0)
 		return 0;
 
+	if(guardian < 0 || guardian >= MAX_GUARDIANS)
+	{
+		ShowError("mob_spawn_guardian: Invalid guardian index %d for guardian %d (castle map %s)\n", guardian, class_, map[m].name);
+		return 0;
+	}
+	if (amount > 1)
+		ShowWarning("mob_spawn_guardian: Spawning %d guardians in position %d (castle map %s)\n", amount, map[m].name);
+	
 	if(sd){
 		if(x<=0) x=sd->bl.x;
 		if(y<=0) y=sd->bl.y;
 	}
-
 	else if(x<=0 || y<=0)
 		ShowWarning("mob_spawn_guardian: Invalid coordinates (%d,%d)\n",x,y);
 
+	gc=guild_mapname2gc(map[md->bl.m].name);
+	if (gc == NULL)
+	{
+		ShowError("mob_spawn_guardian: No castle set at map %s\n", map[m].name);
+		return 0;
+	}
+	g = guild_search(gc->guild_id);
+	if (g == NULL)
+		ShowWarning("mob_spawn_guardian: Spawning guardian %d on a castle with no guild (castle map %s)\n", class_, map[m].name);
 
+	if (gc->guardian[guardian].id)
+		ShowWarning("mob_spawn_guardian: Spawning guardian in position %d which already has a guardian (castle map %s)\n", guardian, map[m].name);
+	
 	for(count=0;count<amount;count++){
-		struct guild_castle *gc;
 		md=(struct mob_data *) aCalloc(1, sizeof(struct mob_data));
 		mob_spawn_dataset(md,mobname,class_);
 		md->bl.m=m;
@@ -325,59 +355,22 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
 		map_addiddb(&md->bl);
 		mob_spawn(md->bl.id);
 
-		gc=guild_mapname2gc(map[md->bl.m].name);
-		if(gc)	{
-			md->max_hp += 2000 * gc->defense;
-			if(guardian==0) { md->hp=gc->Ghp0; gc->GID0=md->bl.id; }
-			if(guardian==1) { md->hp=gc->Ghp1; gc->GID1=md->bl.id; }
-			if(guardian==2) { md->hp=gc->Ghp2; gc->GID2=md->bl.id; }
-			if(guardian==3) { md->hp=gc->Ghp3; gc->GID3=md->bl.id; }
-			if(guardian==4) { md->hp=gc->Ghp4; gc->GID4=md->bl.id; }
-			if(guardian==5) { md->hp=gc->Ghp5; gc->GID5=md->bl.id; }
-			if(guardian==6) { md->hp=gc->Ghp6; gc->GID6=md->bl.id; }
-			if(guardian==7) { md->hp=gc->Ghp7; gc->GID7=md->bl.id; }
+		md->max_hp += 2000 * gc->defense;
+		md->guardian_data = aCalloc(1, sizeof(struct guardian_data));
+		md->guardian_data->number = guardian;
+		if (g)
+		{
+			md->guardian_data->guild_id = g->guild_id;
+			md->guardian_data->emblem_id = g->emblem_id;
+			memcpy (md->guardian_data->guild_name, g->name, NAME_LENGTH);
+			md->guardian_data->guardup_lv = guild_checkskill(g,GD_GUARDUP);
 		}
+		md->guardian_data->castle = gc;
+		md->hp = gc->guardian[guardian].hp;
+		gc->guardian[guardian].id = md->bl.id;
 	}
 
 	return (amount>0)?md->bl.id:0;
-}
-
-/*==========================================
- * The disregard ID is added to mob.
- *------------------------------------------
- */
-int mob_exclusion_add(struct mob_data *md,int type,int id)
-{
-	nullpo_retr(0, md);
-
-	if(type==1)
-		md->exclusion_src=id;
-	if(type==2)
-		md->exclusion_party=id;
-	if(type==3)
-		md->exclusion_guild=id;
-
-	return 0;
-}
-
-/*==========================================
- * The disregard ID of mob is checked. (TAGE?)
- *------------------------------------------
- */
-int mob_exclusion_check(struct mob_data *md,struct map_session_data *sd)
-{
-	nullpo_retr(0, sd);
-	nullpo_retr(0, md);
-
-	if(sd->bl.type==BL_PC){
-		if(md->exclusion_src && md->exclusion_src==sd->bl.id)
-			return 1;
-		if(md->exclusion_party && md->exclusion_party==sd->status.party_id)
-			return 2;
-		if(md->exclusion_guild && md->exclusion_guild==sd->status.guild_id)
-			return 3;
-	}
-	return 0;
 }
 
 /*==========================================
@@ -842,6 +835,13 @@ int mob_setdelayspawn(int id)
 			aFree(md->lootitem);
 			md->lootitem = NULL;
 		}
+		if (md->guardian_data)
+		{	
+			if (md->guardian_data->number < MAX_GUARDIANS)
+				md->guardian_data->castle->guardian[md->guardian_data->number].id = 0;
+			aFree (md->guardian_data);
+			md->guardian_data = NULL;
+		}
 		map_delblock(bl); //In case it wasn't done before invoking the function.
 		map_freeblock(bl);
 		return 0;
@@ -936,12 +936,15 @@ int mob_spawn (int id)
 	md->attackabletime = tick;
 	md->canmove_tick = tick;
 
+	/* Guardians should be spawned using mob_spawn_guardian! [Skotlex]
+	 * and the Emperium is spawned using mob_once_spawn.
 	md->guild_id = 0;
 	if (md->class_ >= 1285 && md->class_ <= 1288) {
 		struct guild_castle *gc=guild_mapname2gc(map[md->bl.m].name);
 		if(gc)
 			md->guild_id = gc->guild_id;
 	}
+	*/
 
 	md->deletetimer = -1;
 
@@ -1071,35 +1074,6 @@ int mob_can_reach(struct mob_data *md,struct block_list *bl,int range)
 
 	if( md->bl.x==bl->x && md->bl.y==bl->y )	// 同じマス
 		return 1;
-
-	//=========== guildcastle guardian no search start===========
-	//when players are the guild castle member not attack them !
-	/*if(md->class_ >= 1285 && md->class_ <= 1287){
-		struct map_session_data *sd;
-		struct guild *g=NULL;
-		struct guild_castle *gc=guild_mapname2gc(map[bl->m].name);
-
-		if(gc && agit_flag==0)	// Guardians will not attack during non-woe time [Valaris]
-			return 0;  // end addition [Valaris]
-
-		if(gc && bl->type == BL_PC){
-			nullpo_retr(0, sd=(struct map_session_data *)bl);
-			if(gc && sd->status.guild_id > 0) {
-				g=guild_search(sd->status.guild_id);	// don't attack guild members [Valaris]
-				if(g && g->guild_id == gc->guild_id)
-						return 0;
-				if(g && gc && guild_isallied(g,gc))
-						return 0;
-			}
-		}
-	}*/
-	//========== guildcastle guardian no search eof==============
-
-	/*if(bl->type == BL_PC && battle_config.monsters_ignore_gm) {	 // option to have monsters ignore GMs [Valaris]
-		struct map_session_data *sd;
-		if((sd=(struct map_session_data *)bl) != NULL && pc_isGM(sd) >= battle_config.monsters_ignore_gm)
-			return 0;
-  	}*/
 
 	// Obstacle judging
 	wpd.path_len=0;
@@ -2106,7 +2080,11 @@ int mob_remove_map(struct mob_data *md, int type)
 		aFree(md->lootitem);
 		md->lootitem = NULL;
 	}
-
+	if (md->guardian_data)
+	{
+		aFree(md->guardian_data);
+		md->guardian_data = NULL;
+	}
 	return 0;
 }
 int mob_delete(struct mob_data *md)
@@ -2319,69 +2297,13 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 
 	md->hp-=damage;
 
-	if(md->class_ >= 1285 && md->class_ <=1287) {	// guardian hp update [Valaris]
-		struct guild_castle *gc=guild_mapname2gc(map[md->bl.m].name);
-		if(gc) {
-
-				if(md->bl.id==gc->GID0) {
-					gc->Ghp0=md->hp;
-					if(gc->Ghp0<=0) {
-					        guild_castledatasave(gc->castle_id,10,0);
-						guild_castledatasave(gc->castle_id,18,0);
-					}
-				}
-				if(md->bl.id==gc->GID1) {
-					gc->Ghp1=md->hp;
-					if(gc->Ghp1<=0) {
-					        guild_castledatasave(gc->castle_id,11,0);
-						guild_castledatasave(gc->castle_id,19,0);
-					}
-				}
-				if(md->bl.id==gc->GID2) {
-					gc->Ghp2=md->hp;
-					if(gc->Ghp2<=0) {
-					        guild_castledatasave(gc->castle_id,12,0);
-						guild_castledatasave(gc->castle_id,20,0);
-					}
-				}
-				if(md->bl.id==gc->GID3) {
-					gc->Ghp3=md->hp;
-					if(gc->Ghp3<=0) {
-					        guild_castledatasave(gc->castle_id,13,0);
-						guild_castledatasave(gc->castle_id,21,0);
-					}
-				}
-				if(md->bl.id==gc->GID4) {
-					gc->Ghp4=md->hp;
-					if(gc->Ghp4<=0) {
-					        guild_castledatasave(gc->castle_id,14,0);
-						guild_castledatasave(gc->castle_id,22,0);
-					}
-				}
-				if(md->bl.id==gc->GID5) {
-					gc->Ghp5=md->hp;
-					if(gc->Ghp5<=0) {
-					        guild_castledatasave(gc->castle_id,15,0);
-						guild_castledatasave(gc->castle_id,23,0);
-					}
-				}
-				if(md->bl.id==gc->GID6) {
-					gc->Ghp6=md->hp;
-					if(gc->Ghp6<=0) {
-					        guild_castledatasave(gc->castle_id,16,0);
-						guild_castledatasave(gc->castle_id,24,0);
-					}
-				}
-				if(md->bl.id==gc->GID7) {
-					gc->Ghp7=md->hp;
-					if(gc->Ghp7<=0) {
-					        guild_castledatasave(gc->castle_id,17,0);
-						guild_castledatasave(gc->castle_id,25,0);
-
-					}
-				}
+	if(md->guardian_data && md->guardian_data->number < MAX_GUARDIANS) { // guardian hp update [Valaris] (updated by [Skotlex])
+		if ((md->guardian_data->castle->guardian[md->guardian_data->number].hp = md->hp) <= 0)
+		{
+			guild_castledatasave(md->guardian_data->castle->castle_id, 10+md->guardian_data->number,0);
+			guild_castledatasave(md->guardian_data->castle->castle_id, 18+md->guardian_data->number,0);
 		}
-	}	// end addition [Valaris]
+	}	// end addition
 
 	if(md->option&2 )
 		status_change_end(&md->bl, SC_HIDING, -1);
@@ -2396,11 +2318,11 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		mobskill_use(md, tick, MSC_ALCHEMIST);
 	}
 
-	if(md->hp > 0){
-		if (battle_config.show_mob_hp)
-			clif_charnameack (0, &md->bl);
+	if (battle_config.show_mob_hp)
+		clif_charnameack (0, &md->bl);
+		
+	if(md->hp > 0)
 		return damage;
-	}
 
 	// ----- ここから死亡処理 -----
 
@@ -2839,6 +2761,35 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 	return damage;
 }
 
+int mob_guardian_guildchange(struct block_list *bl,va_list ap)
+{
+	struct mob_data *md;
+	struct guild* g;
+
+	nullpo_retr(0, bl);
+	nullpo_retr(0, md = (struct mob_data *)bl);
+
+	if (!md->guardian_data)
+		return 0;
+
+	g = guild_search(md->guardian_data->guild_id);
+
+	if (g == NULL)
+	{
+		ShowError("mob_guardian_guildchange: New Guild (id %d) does not exists!\n", md->guardian_data->guild_id);
+		mob_delete(md);
+		return 0;
+	}
+
+	md->guardian_data->guild_id = md->guardian_data->castle->guild_id;
+	md->guardian_data->emblem_id = g->emblem_id;
+	md->guardian_data->guardup_lv = guild_checkskill(g,GD_GUARDUP);
+	memcpy(md->guardian_data->guild_name, g->name, NAME_LENGTH);
+
+	return 1;	
+}
+
+	
 /*==========================================
  * Pick a random class for the mob
  *------------------------------------------
@@ -2941,19 +2892,13 @@ int mob_heal(struct mob_data *md,int heal)
 	if( max_hp < md->hp )
 		md->hp = max_hp;
 
-	if(md->class_ >= 1285 && md->class_ <=1287) {	// guardian hp update [Valaris]
-		struct guild_castle *gc=guild_mapname2gc(map[md->bl.m].name);
-		if(gc) {
-			if(md->bl.id==gc->GID0) gc->Ghp0=md->hp;
-			if(md->bl.id==gc->GID1) gc->Ghp1=md->hp;
-			if(md->bl.id==gc->GID2) gc->Ghp2=md->hp;
-			if(md->bl.id==gc->GID3) gc->Ghp3=md->hp;
-			if(md->bl.id==gc->GID4) gc->Ghp4=md->hp;
-			if(md->bl.id==gc->GID5) gc->Ghp5=md->hp;
-			if(md->bl.id==gc->GID6) gc->Ghp6=md->hp;
-			if(md->bl.id==gc->GID7) gc->Ghp7=md->hp;
+	if(md->guardian_data && md->guardian_data->number < MAX_GUARDIANS) { // guardian hp update [Valaris] (updated by [Skotlex])
+		if ((md->guardian_data->castle->guardian[md->guardian_data->number].hp = md->hp) <= 0)
+		{
+			guild_castledatasave(md->guardian_data->castle->castle_id, 10+md->guardian_data->number,0);
+			guild_castledatasave(md->guardian_data->castle->castle_id, 18+md->guardian_data->number,0);
 		}
-	}	// end addition [Valaris]
+	}	// end addition
 
 	if (battle_config.show_mob_hp)
 		clif_charnameack(0, &md->bl);
@@ -3872,39 +3817,7 @@ int mobskill_event(struct mob_data *md, int flag)
 		return 1;
 	return 0;
 }
-/*==========================================
- * Mobがエンペリウムなどの場合の判定
- *------------------------------------------
- */
-int mob_gvmobcheck(struct map_session_data *sd, struct block_list *bl)
-{
-	struct mob_data *md=NULL;
 
-	nullpo_retr(0,sd);
-	nullpo_retr(0,bl);
-
-	if(bl->type==BL_MOB && (md=(struct mob_data *)bl) &&
-		(md->class_ == 1288 || md->class_ == 1287 || md->class_ == 1286 || md->class_ == 1285))
-	{
-		struct guild_castle *gc=guild_mapname2gc(map[sd->bl.m].name);
-		struct guild *g=guild_search(sd->status.guild_id);
-
-		if(g == NULL && md->class_ == 1288)
-			return 0;//ギルド未加入ならダメージ無し
-		else if(gc != NULL && !map[sd->bl.m].flag.gvg)
-			return 0;//砦内でGvじゃないときはダメージなし
-		else if(g) {
-			if (gc != NULL && g->guild_id == gc->guild_id)
-				return 0;//自占領ギルドのエンペならダメージ無し
-			else if(guild_checkskill(g,GD_APPROVAL) <= 0 && md->class_ == 1288)
-				return 0;//正規ギルド承認がないとダメージ無し
-			else if (gc && guild_check_alliance(gc->guild_id, g->guild_id, 0) == 1)
-				return 0;	// 同盟ならダメージ無し
-		}
-	}
-
-	return 1;
-}
 /*==========================================
  * スキル用タイマー削除
  *------------------------------------------

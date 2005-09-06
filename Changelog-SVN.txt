@@ -1,5 +1,11 @@
 Date	Added
 =======
+09/06
+	* Massive Guardian update. [Skotlex]
+	- Rewrote the guardian stat-passing system to minimize the need of db
+	  lookups. Should greatly reduce the heavy lagging during WoE.
+	- Not properly tested (lack of resources), update at your own risk AND 
+	  PLEASE report any crashes/problems.
 09/05
 	* Fixed Endure. [Skotlex]
 	* Fixed Harmonic Lick not adding status change resistant. [Skotlex]

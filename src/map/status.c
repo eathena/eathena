@@ -2401,15 +2401,13 @@ int status_get_batk(struct block_list *bl)
 		if (((struct map_session_data *)bl)->status.weapon < 16)
 			batk += ((struct map_session_data *)bl)->weapon_atk[((struct map_session_data *)bl)->status.weapon];
 	} else {
-		int str,dstr,skill;
+		int str,dstr;
 		str = status_get_str(bl); //STR
 		dstr = str/10;
 		batk = dstr*dstr + str; //base_atk‚ðŒvŽZ‚·‚é
 
-        if(bl->type == BL_MOB && (struct mob_data *)bl && ((struct mob_data *)bl)->class_ >=1285 && ((struct mob_data *)bl)->class_ <=1287 &&
-		 ((struct mob_data *)bl)->guild_id && (skill = guild_checkskill(guild_search(((struct mob_data *)bl)->guild_id),GD_GUARDUP))){
-			batk += batk * 10*skill/100; // Strengthen Guardians - custom value +10% ATK / lv
-		}
+		if(bl->type == BL_MOB && (struct mob_data *)bl && ((struct mob_data *)bl)->guardian_data)
+			batk += batk * 10*((struct mob_data *)bl)->guardian_data->guardup_lv/100; // Strengthen Guardians - custom value +10% ATK / lv
 
 		batk = status_calc_batk(bl,batk);
 	}
@@ -2430,12 +2428,10 @@ int status_get_atk(struct block_list *bl)
 		struct status_change *sc_data=status_get_sc_data(bl);
 		int atk=0;
 		if(bl->type == BL_MOB && (struct mob_data *)bl){
-			int skill;
 			atk = ((struct mob_data*)bl)->db->atk1;
-  			if(((struct mob_data *)bl)->class_ >=1285 && ((struct mob_data *)bl)->class_ <=1287 &&
-		 	 ((struct mob_data *)bl)->guild_id && (skill = guild_checkskill(guild_search(((struct mob_data *)bl)->guild_id),GD_GUARDUP))){
-				atk += atk * 10*skill/100; // Strengthen Guardians - custom value +10% ATK / lv
-			}
+
+			if(((struct mob_data *)bl)->guardian_data)
+				atk += atk * 10*((struct mob_data *)bl)->guardian_data->guardup_lv/100; // Strengthen Guardians - custom value +10% ATK / lv
 		} else if(bl->type == BL_PET && (struct pet_data *)bl) { //<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				atk = ((struct pet_data *)bl)->status->atk1;
@@ -2491,12 +2487,10 @@ int status_get_atk2(struct block_list *bl)
 		struct status_change *sc_data=status_get_sc_data(bl);
 		int atk2=0;
 		if(bl->type==BL_MOB && (struct mob_data *)bl) {
-			int skill;
 			atk2 = ((struct mob_data*)bl)->db->atk2;
-			if(((struct mob_data *)bl)->class_ >=1285 && ((struct mob_data *)bl)->class_ <=1287 &&
-		 	 ((struct mob_data *)bl)->guild_id && (skill = guild_checkskill(guild_search(((struct mob_data *)bl)->guild_id),GD_GUARDUP))){
-				atk2 += atk2 * 10*skill/100; // Strengthen Guardians - custom value +10% ATK / lv
-			}
+			
+			if(((struct mob_data *)bl)->guardian_data)
+				atk2 += atk2 * 10*((struct mob_data *)bl)->guardian_data->guardup_lv/100; // Strengthen Guardians - custom value +10% ATK / lv
 		} else if(bl->type==BL_PET && (struct pet_data *)bl) {	//<Skotlex> Use pet's stats
 			if (battle_config.pet_lv_rate && ((struct pet_data *)bl)->status)
 				atk2 = ((struct pet_data *)bl)->status->atk2;
@@ -2713,12 +2707,10 @@ int status_get_adelay(struct block_list *bl)
 	else {
 		int adelay=4000,aspd_rate = 100;
 		if(bl->type==BL_MOB && (struct mob_data *)bl) {
-			int skill;
 			adelay = ((struct mob_data *)bl)->db->adelay;
-  			if(((struct mob_data *)bl)->class_ >=1285 && ((struct mob_data *)bl)->class_ <=1287 &&
-			 ((struct mob_data *)bl)->guild_id && (skill = guild_checkskill(guild_search(((struct mob_data *)bl)->guild_id),GD_GUARDUP))){
-				aspd_rate -= 10*skill/100; // Strengthen Guardians - custom value +10% ASPD / lv
-			}
+
+			if(((struct mob_data *)bl)->guardian_data)
+				aspd_rate -= aspd_rate * 10*((struct mob_data *)bl)->guardian_data->guardup_lv/100; // Strengthen Guardians - custom value +10% ASPD / lv
 		} else if(bl->type==BL_PET && (struct pet_data *)bl)
 			adelay = ((struct pet_data *)bl)->db->adelay;
 
@@ -2739,12 +2731,10 @@ int status_get_amotion(struct block_list *bl)
 	else {
 		int amotion=2000,aspd_rate = 100;
 		if(bl->type==BL_MOB && (struct mob_data *)bl) {
-			int skill;
 			amotion = ((struct mob_data *)bl)->db->amotion;
-  			if(((struct mob_data *)bl)->class_ >=1285 && ((struct mob_data *)bl)->class_ <=1287 &&
-			 ((struct mob_data *)bl)->guild_id && (skill = guild_checkskill(guild_search(((struct mob_data *)bl)->guild_id),GD_GUARDUP))){
-				aspd_rate -= 10*skill/100; // Strengthen Guardians - custom value +10% ASPD / lv
-			}
+
+			if(((struct mob_data *)bl)->guardian_data)
+				aspd_rate -= aspd_rate * 10*((struct mob_data *)bl)->guardian_data->guardup_lv/100; // Strengthen Guardians - custom value +10% ASPD / lv
 		} else if(bl->type==BL_PET && (struct pet_data *)bl)
 			amotion = ((struct pet_data *)bl)->db->amotion;
 
@@ -2904,8 +2894,8 @@ int status_get_guild_id(struct block_list *bl)
 	{
 		struct map_session_data *msd;
 		struct mob_data *md = (struct mob_data *)bl;
-		if (md->guild_id)	//Guardian's guild [Skotlex]
-			return md->guild_id;
+		if (md->guardian_data)	//Guardian's guild [Skotlex]
+			return md->guardian_data->guild_id;
 		if (md->state.special_mob_ai >= 1 && (msd = map_id2sd(md->master_id)) != NULL)
 			return msd->status.guild_id; //Alchemist's mobs [Skotlex]
 		return -md->class_;
@@ -3109,7 +3099,7 @@ int status_get_sc_def(struct block_list *bl, int type)
 
 	if(bl->type == BL_MOB) {
 		struct mob_data *md = (struct mob_data *)bl;
-		if (md && md->class_ == 1288)
+		if (md && md->class_ == MOBID_EMPERIUM)
 			return 0;
 		if (sc_def < 50)
 			sc_def = 50;

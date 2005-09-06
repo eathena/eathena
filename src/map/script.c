@@ -5463,7 +5463,7 @@ int buildin_maprespawnguildid_sub(struct block_list *bl,va_list ap)
 			pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);	// end addition [Valaris]
 	}
 	if(md && flag&4){
-		if(md->class_ < 1285 || md->class_ > 1288)
+		if(!md->guardian_data && md->class_ != MOBID_EMPERIUM)
 			mob_delete(md);
 	}
 	return 0;
@@ -5584,22 +5584,24 @@ int buildin_getcastledata(struct script_state *st)
 				case 7: push_val(st->stack,C_INT,gc->payTime); break;
 				case 8: push_val(st->stack,C_INT,gc->createTime); break;
 				case 9: push_val(st->stack,C_INT,gc->visibleC); break;
-				case 10: push_val(st->stack,C_INT,gc->visibleG0); break;
-				case 11: push_val(st->stack,C_INT,gc->visibleG1); break;
-				case 12: push_val(st->stack,C_INT,gc->visibleG2); break;
-				case 13: push_val(st->stack,C_INT,gc->visibleG3); break;
-				case 14: push_val(st->stack,C_INT,gc->visibleG4); break;
-				case 15: push_val(st->stack,C_INT,gc->visibleG5); break;
-				case 16: push_val(st->stack,C_INT,gc->visibleG6); break;
-				case 17: push_val(st->stack,C_INT,gc->visibleG7); break;
-				case 18: push_val(st->stack,C_INT,gc->Ghp0); break;
-				case 19: push_val(st->stack,C_INT,gc->Ghp1); break;
-				case 20: push_val(st->stack,C_INT,gc->Ghp2); break;
-				case 21: push_val(st->stack,C_INT,gc->Ghp3); break;
-				case 22: push_val(st->stack,C_INT,gc->Ghp4); break;
-				case 23: push_val(st->stack,C_INT,gc->Ghp5); break;
-				case 24: push_val(st->stack,C_INT,gc->Ghp6); break;
-				case 25: push_val(st->stack,C_INT,gc->Ghp7); break;
+				case 10:
+				case 11:
+				case 12:
+				case 13:
+				case 14:
+				case 15:
+				case 16:
+				case 17:
+					push_val(st->stack,C_INT,gc->guardian[index-10].visible); break;
+				case 18:
+				case 19:
+				case 20:
+				case 21:
+				case 22:
+				case 23:
+				case 24:
+				case 25:
+					push_val(st->stack,C_INT,gc->guardian[index-18].hp); break;
 				default:
 					push_val(st->stack,C_INT,0); break;
 				}
@@ -5633,22 +5635,24 @@ int buildin_setcastledata(struct script_state *st)
 				case 7: gc->payTime = value; break;
 				case 8: gc->createTime = value; break;
 				case 9: gc->visibleC = value; break;
-				case 10: gc->visibleG0 = value; break;
-				case 11: gc->visibleG1 = value; break;
-				case 12: gc->visibleG2 = value; break;
-				case 13: gc->visibleG3 = value; break;
-				case 14: gc->visibleG4 = value; break;
-				case 15: gc->visibleG5 = value; break;
-				case 16: gc->visibleG6 = value; break;
-				case 17: gc->visibleG7 = value; break;
-				case 18: gc->Ghp0 = value; break;
-				case 19: gc->Ghp1 = value; break;
-				case 20: gc->Ghp2 = value; break;
-				case 21: gc->Ghp3 = value; break;
-				case 22: gc->Ghp4 = value; break;
-				case 23: gc->Ghp5 = value; break;
-				case 24: gc->Ghp6 = value; break;
-				case 25: gc->Ghp7 = value; break;
+				case 10:
+				case 11:
+				case 12:
+				case 13:
+				case 14:
+				case 15:
+				case 16:
+				case 17:
+					gc->guardian[index-10].visible = value; break;
+				case 18:
+				case 19:
+				case 20:
+				case 21:
+				case 22:
+				case 23:
+				case 24:
+				case 25:
+					gc->guardian[index-18].hp = value; break;
 				default: return 0;
 				}
 				guild_castledatasave(gc->castle_id,index,value);
@@ -6090,14 +6094,14 @@ int buildin_guardianinfo(struct script_state *st)
 	struct map_session_data *sd=script_rid2sd(st);
 	struct guild_castle *gc=guild_mapname2gc(map[sd->bl.m].name);
 
-	if(guardian==0 && gc->visibleG0 == 1) push_val(st->stack,C_INT,gc->Ghp0);
-	if(guardian==1 && gc->visibleG1 == 1) push_val(st->stack,C_INT,gc->Ghp1);
-	if(guardian==2 && gc->visibleG2 == 1) push_val(st->stack,C_INT,gc->Ghp2);
-	if(guardian==3 && gc->visibleG3 == 1) push_val(st->stack,C_INT,gc->Ghp3);
-	if(guardian==4 && gc->visibleG4 == 1) push_val(st->stack,C_INT,gc->Ghp4);
-	if(guardian==5 && gc->visibleG5 == 1) push_val(st->stack,C_INT,gc->Ghp5);
-	if(guardian==6 && gc->visibleG6 == 1) push_val(st->stack,C_INT,gc->Ghp6);
-	if(guardian==7 && gc->visibleG7 == 1) push_val(st->stack,C_INT,gc->Ghp7);
+	if (guardian < 0 || guardian >= MAX_GUARDIANS || gc==NULL)
+	{
+		push_val(st->stack,C_INT,-1);
+		return 0;
+	}
+
+	if(gc->guardian[guardian].visible)
+		push_val(st->stack,C_INT,gc->guardian[guardian].hp);
 	else push_val(st->stack,C_INT,-1);
 
 	return 0;

@@ -63,6 +63,7 @@
 #define MAX_GUILDSKILL	15 // increased max guild skills because of new skills [Sara-chan]
 #define MAX_GUILDCASTLE 24	// increased to include novice castles [Valaris]
 #define MAX_GUILDLEVEL 50
+#define MAX_GUARDIANS 8	//Local max per castle. [Skotlex]
 
 #define MIN_HAIR_STYLE battle_config.min_hair_style
 #define MAX_HAIR_STYLE battle_config.max_hair_style
@@ -299,6 +300,12 @@ struct guild_castle {
 	int payTime;
 	int createTime;
 	int visibleC;
+	struct {
+		unsigned visible : 1;
+		int hp;
+		int id;
+	} guardian[MAX_GUARDIANS]; //New simplified structure. [Skotlex]
+/*
 	int visibleG0;
 	int visibleG1;
 	int visibleG2;
@@ -323,6 +330,7 @@ struct guild_castle {
 	int GID5;
 	int GID6;
 	int GID7;	// end addition [Valaris]
+*/
 };
 struct square {
 	int val1[5];

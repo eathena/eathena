@@ -375,9 +375,9 @@
 362,4,6,4,0,1,5,1,yes,0,0,0,magic,2	//HP_BASILICA#バジリカ#
 363,0,0,0,0,0,10,0,no,0,0,0,magic,0	//HP_MEDITATIO#メディテイティオ#
 364,0,0,0,0,0,10,1,no,0,0,0,magic,0	//HW_SOULDRAIN#?ウルドレイン#
-365,8,8,1,0,2,1,1,yes,0,0,0,magic,0	//HW_MAGICCRASHER#?ジッククラッシャ?#
+365,8,8,1,0,0,1,1,yes,0,0,0,magic,0	//HW_MAGICCRASHER#?ジッククラッシャ?#
 366,0,6,4,0,1,10,1,no,0,0,0,magic,0	//HW_MAGICPOWER#魔?力増幅#
-367,8,8,1,0,2,5,1,no,0,0,0,misc,0	//PA_PRESSURE#プレッシャ?#
+367,8,8,1,0,0,5,1,no,0,0,0,misc,0	//PA_PRESSURE#プレッシャ?#
 //The kRO official Sacrifice (self skill, works for 5 hits)
 368,0,6,4,0,1,5,1,yes,0,0,0,weapon,0	//PA_SACRIFICE# Old Style
 //Aru's Sacrifice style (target selected skill)

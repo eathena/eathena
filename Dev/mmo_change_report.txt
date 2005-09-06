@@ -49,3 +49,13 @@ GMI_GENDER, GMI_CLASS,GMI_LEVEL. [Skotlex]
 Also, the char server should report to map servers once it receives the ACK
 from the login server when someone change's their gender, so that
 guild_members can be updated.						
+
+September 06:
+Is Sirius alive and I should keep updating this?
+Changed struct guild_castle so that instead of having the braindead
+GID/visibleG/Ghp fields, it instead has a structure of the form:
+struct {
+ unsigned visible : 1 ,
+ int id;
+ int hp;
+} guardian[MAX_GUARDIANS];

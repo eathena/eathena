@@ -1453,22 +1453,24 @@ int guild_castledataloadack(int castle_id,int index,int value)
 	case 7: gc->payTime = value; break;
 	case 8: gc->createTime = value; break;
 	case 9: gc->visibleC = value; break;
-	case 10: gc->visibleG0 = value; break;
-	case 11: gc->visibleG1 = value; break;
-	case 12: gc->visibleG2 = value; break;
-	case 13: gc->visibleG3 = value; break;
-	case 14: gc->visibleG4 = value; break;
-	case 15: gc->visibleG5 = value; break;
-	case 16: gc->visibleG6 = value; break;
-	case 17: gc->visibleG7 = value; break;
-	case 18: gc->Ghp0 = value; break;	// guardian HP [Valaris]
-	case 19: gc->Ghp1 = value; break;
-	case 20: gc->Ghp2 = value; break;
-	case 21: gc->Ghp3 = value; break;
-	case 22: gc->Ghp4 = value; break;
-	case 23: gc->Ghp5 = value; break;
-	case 24: gc->Ghp6 = value; break;
-	case 25: gc->Ghp7 = value; break;	// end additions [Valaris]
+	case 10:
+	case 11:
+	case 12:
+	case 13:
+	case 14:
+	case 15:
+	case 16:
+	case 17:
+		gc->guardian[index-10].visible = value; break;
+	case 18:
+	case 19:
+	case 20:
+	case 21:
+	case 22:
+	case 23:
+	case 24:
+	case 25:
+		gc->guardian[index-18].hp = value; break;
 	default:
 		ShowError("guild_castledataloadack ERROR!! (Not found index=%d)\n", index);
 		return 0;
@@ -1487,6 +1489,14 @@ int guild_castledataloadack(int castle_id,int index,int value)
 // ギルド城データ変更要求
 int guild_castledatasave(int castle_id,int index,int value)
 {
+	if (index == 1)
+	{	//The castle's owner has changed? Update Guardian ownership, too. [Skotlex]
+		struct guild_castle *gc = guild_castle_search(castle_id);
+		int m = -1;
+		if (gc) m = map_mapname2mapid(gc->map_name);
+		if (m != -1)
+			map_foreachinarea(mob_guardian_guildchange, m, 0,0,map[m].xs,map[m].ys, BL_MOB);
+	}
 	return intif_guild_castle_datasave(castle_id,index,value);
 }
 
@@ -1507,22 +1517,24 @@ int guild_castledatasaveack(int castle_id,int index,int value)
 	case 7: gc->payTime = value; break;
 	case 8: gc->createTime = value; break;
 	case 9: gc->visibleC = value; break;
-	case 10: gc->visibleG0 = value; break;
-	case 11: gc->visibleG1 = value; break;
-	case 12: gc->visibleG2 = value; break;
-	case 13: gc->visibleG3 = value; break;
-	case 14: gc->visibleG4 = value; break;
-	case 15: gc->visibleG5 = value; break;
-	case 16: gc->visibleG6 = value; break;
-	case 17: gc->visibleG7 = value; break;
-	case 18: gc->Ghp0 = value; break;	// guardian HP [Valaris]
-	case 19: gc->Ghp1 = value; break;
-	case 20: gc->Ghp2 = value; break;
-	case 21: gc->Ghp3 = value; break;
-	case 22: gc->Ghp4 = value; break;
-	case 23: gc->Ghp5 = value; break;
-	case 24: gc->Ghp6 = value; break;
-	case 25: gc->Ghp7 = value; break;	// end additions [Valaris]
+	case 10:
+	case 11:
+	case 12:
+	case 13:
+	case 14:
+	case 15:
+	case 16:
+	case 17:
+		gc->guardian[index-10].visible = value; break;
+	case 18:
+	case 19:
+	case 20:
+	case 21:
+	case 22:
+	case 23:
+	case 24:
+	case 25:
+		gc->guardian[index-18].hp = value; break;
 	default:
 		ShowError("guild_castledatasaveack ERROR!! (Not found index=%d)\n", index);
 		return 0;
@@ -1604,55 +1616,26 @@ int guild_gvg_eliminate_timer(int tid,unsigned int tick,int id,int data)
 	return 0;
 }
 
-static int Ghp[MAX_GUILDCASTLE][8];	// so save only if HP are changed // experimental code [Yor]
+static int Ghp[MAX_GUILDCASTLE][MAX_GUARDIANS];	// so save only if HP are changed // experimental code [Yor]
 static int Gid[MAX_GUILDCASTLE];
 int guild_save_sub(int tid,unsigned int tick,int id,int data)
 {
 	struct guild_castle *gc;
-	int i;
+	int i,j;
 
 	for(i = 0; i < MAX_GUILDCASTLE; i++) {	// [Yor]
 		gc = guild_castle_search(i);
 		if (!gc) continue;
 		if (gc->guild_id != Gid[i]) {
 			// Re-save guild id if its owner guild has changed
-			// This should already be done in gldfunc_ev_agit.txt,
-			// but since people have complained... Well x3
 			guild_castledatasave(gc->castle_id, 1, gc->guild_id);
 			Gid[i] = gc->guild_id;
 		}
-		if (gc->visibleG0 == 1 && Ghp[i][0] != gc->Ghp0) {
-			guild_castledatasave(gc->castle_id, 18, gc->Ghp0);
-			Ghp[i][0] = gc->Ghp0;
+		for (j = 0; j < MAX_GUARDIANS; j++)
+		{
+			if (gc->guardian[j].visible && Ghp[i][j] != gc->guardian[j].hp)
+				guild_castledatasave(gc->castle_id, 18+j, gc->guardian[j].hp);
 		}
-		if (gc->visibleG1 == 1 && Ghp[i][1] != gc->Ghp1) {
-			guild_castledatasave(gc->castle_id, 19, gc->Ghp1);
-			Ghp[i][1] = gc->Ghp1;
-		}
-		if (gc->visibleG2 == 1 && Ghp[i][2] != gc->Ghp2) {
-			guild_castledatasave(gc->castle_id, 20, gc->Ghp2);
-			Ghp[i][2] = gc->Ghp2;
-		}
-		if (gc->visibleG3 == 1 && Ghp[i][3] != gc->Ghp3) {
-			guild_castledatasave(gc->castle_id, 21, gc->Ghp3);
-			Ghp[i][3] = gc->Ghp3;
-		}
-		if (gc->visibleG4 == 1 && Ghp[i][4] != gc->Ghp4) {
-			guild_castledatasave(gc->castle_id, 22, gc->Ghp4);
-			Ghp[i][4] = gc->Ghp4;
-		}
-		if (gc->visibleG5 == 1 && Ghp[i][5] != gc->Ghp5) {
-			guild_castledatasave(gc->castle_id, 23, gc->Ghp5);
-			Ghp[i][5] = gc->Ghp5;
-		}
-		if (gc->visibleG6 == 1 && Ghp[i][6] != gc->Ghp6) {
-			guild_castledatasave(gc->castle_id, 24, gc->Ghp6);
-			Ghp[i][6] = gc->Ghp6;
-		}
-		if (gc->visibleG7 == 1 && Ghp[i][7] != gc->Ghp7) {
-			guild_castledatasave(gc->castle_id, 25, gc->Ghp7);
-			Ghp[i][7] = gc->Ghp7;
-		}		
 	}
 
 	return 0;
@@ -1721,22 +1704,21 @@ int guild_isallied(struct guild *g, struct guild_castle *gc)
 int guild_idisallied(int guild_id, int guild_id2)
 {
 	int i;
-	struct guild *g, *g2;
+	struct guild *g;
 
 	if (guild_id <= 0 || guild_id2 <= 0)
 		return 0;
 	
-	g = guild_search(guild_id);
-	g2 = guild_search(guild_id2);
-
-	nullpo_retr(0, g);
-	nullpo_retr(0, g2);
-
-	if(g->guild_id == g2->guild_id)
+	if(guild_id == guild_id2)
 		return 1;
 
+	g = guild_search(guild_id);
+
+	nullpo_retr(0, g);
+
+
 	for(i=0;i<MAX_GUILDALLIANCE;i++)
-		if(g->alliance[i].guild_id == g2->guild_id) {
+		if(g->alliance[i].guild_id == guild_id2) {
 			if(g->alliance[i].opposition == 0)
 				return 1;
 			else
