@@ -6072,7 +6072,8 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		if (map[src->m].flag.gvg)
 		{
 			limit *= 4; // longer trap times in WOE [celest]
-//			target = BCT_ALL; //Will there ever be a consensus whether they target all or not? [Skotlex]
+			if (battle_config.gvg_traps_bctall)
+				target = BCT_ALL; //Change target to all [Skotlex]
 		}
 		break;
 

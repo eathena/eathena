@@ -107,6 +107,7 @@ extern struct Battle_Config {
 	unsigned short pc_damage_delay_rate;
 	unsigned short combo_damage_delay;	//[Skotlex]
 	unsigned short defnotenemy;
+	unsigned short gvg_traps_bctall;	
 	unsigned short random_monster_checklv;
 	unsigned short attr_recover;
 	unsigned short flooritem_lifetime;

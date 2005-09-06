@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/06
+	* Added battle option gvg_traps_target_all, defaults to yes for now. [Skotlex]
 	* Added Zoc's fix to @autotrade (which made traders unable to login again..
 	  ever) [Skotlex]
 	* Massive Guardian update. [Skotlex]
