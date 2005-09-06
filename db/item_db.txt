@@ -2029,6 +2029,7 @@
 7416,Letter_of_Recommentation,Letter of Recommentation,3,,,0,,,,,,,,,,,,{},{}
 7417,Written_Request_A,Written Request A,3,,,0,,,,,,,,,,,,{},{}
 7418,Written_Request_B,Written Request B,3,,,0,,,,,,,,,,,,{},{}
+7419,Embryo_Creation_Guide,Embryo Creation Book,3,,,0,,,,,,,,,,,,{},{}
 
 //THQ Quest Items
 7500,THG_Membership,THG Membership,3,20,0,10,,,,,,,,,,,,{},{}
@@ -2225,14 +2226,22 @@
 12103,Bloody_Branch,Bloody Branch,2,20,0,200,,,,,10477567,2,,,,,,{ monster "this",0,0,"--ja--",-3,1,""; },{}
 12104,Random_Quiver,Random Quiver,2,20,0,200,,,,,10477567,2,,,,,,{ getitem groupranditem(17),1; },{}
 12105,Taming_Item_Giftset,Taming Item Giftset,2,20,0,200,,,,,10477567,2,,,,,,{ getitem groupranditem(15),3; },{}
-12106,Jewel_Box,Jewel Case,2,20,0,200,,,,,10477567,2,,,,,,{},{}
-12107,Wrapped_Mask,Wrapped Mask,2,20,0,200,,,,,10477567,2,,,,,,{},{}
+12106,Jewel_Box,Jewel Case,2,20,0,200,,,,,10477567,2,,,,,,{ getitem groupranditem(19),1; },{}
+12107,Wrapped_Mask,Wrapped Mask,2,20,0,200,,,,,10477567,2,,,,,,{ getitem groupranditem(18),1; },{}
 12108,Bundle_of_Spells,Bundle of Spells,2,20,0,200,,,,,10477567,2,,,,,,{ getitem groupranditem(16),5; },{}
 12109,Poring_Box,Poring Box,2,20,0,200,,,,,10477567,2,,,,,,{ monster "this",0,0,"--ja--",-2,1,""; },{}
 12110,First_Aid_Box,First Aid Box,2,20,0,200,,,,,10477567,2,,,,,,{ getitem groupranditem(1),5; },{}
-12111,Wrapped_Food,Wrapped Food,2,20,0,200,,,,,10477567,2,,,,,,{},{}
+12111,Wrapped_Food,Wrapped Food,2,20,0,200,,,,,10477567,2,,,,,,{ getitem groupranditem(3),1; getitem groupranditem(4),1; getitem groupranditem(7),1; },{}
 12112,Tropical_Sograt,Tropical Sograt,2,20,0,100,,,,,10477567,2,,,,,,{},{}
 12113,Vermilion_the_Beach,Vermilion the Beach,2,20,0,100,,,,,10477567,2,,,,,,{},{}
+12114,Elemental_Converter,Flame Elemental Converter,2,,,10,,,,,10477567,2,,,,,,{ sc_start SC_FLAMELAUNCHER,120000,0; },{}
+12115,Elemental_Converter_,Frost Elemental Converter,2,,,10,,,,,10477567,2,,,,,,{ sc_start SC_FROSTWEAPON,120000,0; },{}
+12116,Elemental_Converter__,Seismic Elemental Converter,2,,,10,,,,,10477567,2,,,,,,{ sc_start SC_SEISMICWEAPON,120000,0; },{}
+12117,Elemental_Converter___,Lighting Elemental Converter,2,,,10,,,,,10477567,2,,,,,,{ sc_start SC_LIGHTNINGLOADER,120000,0; },{}
+12118,Resist_Fire,Resist Fire Potion,2,,,10,,,,,10477567,2,,,,,,{},{}
+12119,Resist_Cold,Resist Cold Potion,2,,,10,,,,,10477567,2,,,,,,{},{}
+12120,Resist_Earth,Resist Earth Potion,2,,,10,,,,,10477567,2,,,,,,{},{}
+12121,Resist_Thunder,Resist Thunder Potion,2,,,10,,,,,10477567,2,,,,,,{},{}
 // More Weapons
 //===================================================================
 // Daggers

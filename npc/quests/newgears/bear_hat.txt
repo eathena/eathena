@@ -47,12 +47,12 @@ M_REQ:
  mes "[Bora]";
  mes "Bring me...";
  mes "1 Panda Hat,";
- mes "100 Pin Cusion,";
- mes "100 Spool of Thread";
- mes "300 Bear Skin.";
+ mes "100 Pin Cushion,";
+ mes "100 Spool of Thread,";
+ mes "300 Bear Skins.";
  next;
  mes "[Bora]";
- mes "For the Pin Cusion (Stabbing Needles) and Spool of Thread,";
+ mes "For the Pin Cushion and Spool of Thread,";
  mes "Hyzoloists in Niflheim drop those, I believe.";
  close;
 

@@ -25,14 +25,23 @@
 		'Angel' equipments.
 	5126,Morphicious_Hood: When using magic, it cannot be dispelled(Maybe it works like Phen card)
 	12033,Sunshine_Box: should allow seeing cloaked or hidden enemy
-	12106,Jewel_Box: gets any accessary
-	12107,Wrapped_Mask: gets a mask
 	12111,Wrapped_Food: gets 3 of any food<- food or mixed food? Need to know so it can be implemented. [Skotlex]
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: Temporal Plug: 10z per mob-level on a 3% chance.
-	1771,Venom_Knife: Item type: Throwing Dagger. Consumable. Should it work as a scroll, or as an arrow, etc.
+	1771,Venom_Knife: For new Asassins skill
+		Item type: Throwing Dagger. Consumable? Should it work as a scroll, or as an arrow, etc.
+	12118,Resist_Fire, //Resist Fire element, but opposite(incompatible) elements can give more damage
+	12119,Resist_Cold, //Resist Water element, same as above
+	12120,Resist_Earth //Resist Earth element, same as above
+	12121,Resist_Thunder //Resist Wind element, same as above
 	--
 
+09/06
+	* Added effects to new items: [Lupus]
+	  - #12107,Wrapped Mask: You get 1 random mask (Mr.Smile,Mr.Scream,Phantom Opera Mask,all set of Expressionless,Surprised,etc masks)
+	  - #12106,Jewel Case: You get 1 random accessory (Ring,Clip,etc. Rogue's Treasure, Bow Timble, Fashion Hipsack. Excluding some overpowered and quests accessories)
+	  - TEMP PLUG: #12111 Warpped Food: (You get 1 meat, 1 raw fish, 1 fruit)
+	* Added new items, thanks to Landarma [Lupus]
 09/04
 	* Changed B.Something Sacramenti's range from 1 to 9. [Skotlex]
 	  (9 is what I have in the descriptions, and it can't be more wrong than 1
