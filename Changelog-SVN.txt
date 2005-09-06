@@ -1,6 +1,9 @@
 Date	Added
 =======
 09/06
+	* Fixed battle_check_target fails on guild-mates in pvp maps. [Skotlex]
+	* Reverted battle_check_target to prevent floras from hitting themselves
+	  until a better scheme can be thought of. [Skotlex]
 	* Reorganized battle_weapon_attack to allow counter/root from blocking
 	  autotriggered skills (like TripleBlows/Sacrificial Ritual) [Skotlex]
 	* Fixed that crash on mob_spawn_guardian. [Skotlex]

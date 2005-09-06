@@ -3006,7 +3006,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		}
 		else
 		{
-			if ((!map[m].flag.pvp || map[m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild)))
+			if (!(map[m].flag.pvp && map[m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild)))
 				state |= BCT_GUILD;
 			else
 				state |= BCT_ENEMY;

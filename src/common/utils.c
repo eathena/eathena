@@ -53,7 +53,7 @@ void dump(unsigned char *buffer, int num)
 
 int newt_sqrt(int input)
 {
-	int new_value, value = 1, count = 0;
+	int new_value, value = input/2, count = 0;
 	do
 	{
 		new_value = (value + input/value)>>1;
