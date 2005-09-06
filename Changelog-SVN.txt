@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/05
+	* Fixed Endure. [Skotlex]
 	* Fixed Harmonic Lick not adding status change resistant. [Skotlex]
 	* Moved ensemble stats calculating from status_change_start to
 	  skill_unitsetting (performance purposes) [Skotlex]

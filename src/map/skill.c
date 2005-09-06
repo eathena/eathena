@@ -4203,7 +4203,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if(strip_fix < 0)
 			strip_fix=0;
 		if (rand()%100 >= 5+2*skilllv+strip_fix/5)
+		{
+			if (sd)
+				clif_skill_fail(sd,skillid,0,0);
 			break;
+		}
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 
 		if (dstsd) {

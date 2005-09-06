@@ -28,7 +28,8 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	-1,-1,-1,-1,-1,-1,
 	SC_PROVOKE,			/* プロボック */
 	SC_WATK_ELEMENT,		//Converts part of your final attack into an elemental one. [Skotlex]
-	-1,-1,
+	SC_ENDURE,
+	-1,
 /* 10- */
 	SC_SIGHT,			/* サイト */
 	-1,
