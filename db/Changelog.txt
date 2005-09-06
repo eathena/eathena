@@ -37,6 +37,8 @@
 	--
 
 09/06
+	* Changed in the skill_tree the mysterious value 4 that somehow slipped in
+	  as a skillrequirement for WE_CALLBABY. [Skotlex]
 	* Changed Magic Crasher and Pressure's nk to 0 [Skotlex]
 	  NOTE: nk=2 is for splash damage skills and 1 for "no damage" skills. This
 	  info is never sent to the client, so there's no reason we should deviate

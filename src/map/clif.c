@@ -10792,6 +10792,7 @@ int clif_parse(int fd) {
 			//Disassociate character from the socket connection.
 			session[fd]->session_data = NULL;
 			sd->fd = 0;
+			chrif_char_offline(sd); //Set character offline or the login server will reject all future login attempts. [Zoc]
 			ShowInfo("%sCharacter '"CL_WHITE"%s"CL_RESET"' logged off (using @autotrade).\n", (pc_isGM(sd))?"GM ":"",sd->status.name); // Player logout display [Valaris]
 		} else if (sd && sd->state.auth) {
 			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]

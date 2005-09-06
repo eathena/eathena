@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/06
+	* Added Zoc's fix to @autotrade (which made traders unable to login again..
+	  ever) [Skotlex]
 	* Massive Guardian update. [Skotlex]
 	- Rewrote the guardian stat-passing system to minimize the need of db
 	  lookups. Should greatly reduce the heavy lagging during WoE.
