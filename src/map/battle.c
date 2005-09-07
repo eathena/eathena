@@ -2974,7 +2974,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		}
 		else
 		{
-			if (map[m].flag.pvp_noparty && s_party && s_party == t_party)
+			if (!map[m].flag.pvp_noparty && s_party && s_party == t_party)
 				state |= BCT_PARTY;
 			else
 			{
