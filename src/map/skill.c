@@ -6292,7 +6292,7 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	nullpo_retr(0, sg=src->group);
 	nullpo_retr(0, ss=map_id2bl(sg->src_id));
 	
-	type = skill_get_unit_flag(skillid); //Just recycling the variable rather than using a brand new one.
+	type = skill_get_unit_flag(sg->skill_id); //Just recycling the variable rather than using a brand new one.
 
 	if ((bl->type == BL_PC && type&UF_NOPC) || (bl->type == BL_MOB && type&UF_NOMOB))
 		return 0;
@@ -9669,7 +9669,7 @@ int skill_unit_timer_sub_onplace( struct block_list *bl, va_list ap )
 
 	nullpo_retr(0, group=unit->group);
 
-	flag = skill_get_unit_flag(skillid);
+	flag = skill_get_unit_flag(group->skill_id);
 	if ((bl->type == BL_PC && flag&UF_NOPC) || (bl->type == BL_MOB && flag&UF_NOMOB))
 		return 0;
 	

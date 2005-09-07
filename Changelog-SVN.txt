@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/07
+	* Cleared up some of the warning messages on mob_spawn_guardian. [Skotlex]
+	* Fixed the compile error on skill.c... [Skotlex]
 	* Changed offensive song/dances target to BCT_ALL when invoked in pvp/gvg
 	  grounds. [Skotlex]
 	* Added unit flags UF_NOMOB, UF_NOPC to give better control on who gets

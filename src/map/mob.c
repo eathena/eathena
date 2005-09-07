@@ -286,13 +286,10 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
 	int x,int y,const char *mobname,int class_,int amount,const char *event,int guardian)
 {
 	struct mob_data *md=NULL;
-	struct guild *g;
+	struct guild *g=NULL;
 	struct guild_castle *gc;
 	
-	int m,count=1,lv=255;
-
-	if( sd )
-		lv=sd->status.base_level;
+	int m,count=1;
 
 	if( sd && strcmp(mapname,"this")==0)
 		m=sd->bl.m;
@@ -326,9 +323,14 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
 		ShowError("mob_spawn_guardian: No castle set at map %s\n", map[m].name);
 		return 0;
 	}
-	g = guild_search(gc->guild_id);
-	if (g == NULL)
+	if (!gc->guild_id)
 		ShowWarning("mob_spawn_guardian: Spawning guardian %d on a castle with no guild (castle map %s)\n", class_, map[m].name);
+	else
+	{
+		g = guild_search(gc->guild_id);
+		if (g == NULL)
+			ShowWarning("mob_spawn_guardian: Guild (%d) not found for guardian %d (castle map %s)\n", gc->guild_id, class_, map[m].name);
+	}
 
 	if (gc->guardian[guardian].id)
 		ShowWarning("mob_spawn_guardian: Spawning guardian in position %d which already has a guardian (castle map %s)\n", guardian, map[m].name);
