@@ -85,6 +85,8 @@ enum {
 	UF_NOREITERATION	= 0x0002,	// 重複置き禁止 
 	UF_NOFOOTSET		= 0x0004,	// 足元置き禁止
 	UF_NOOVERLAP		= 0x0008,	// ユニット効果が重複しない
+	UF_NOPC		= 0x0010,	//May not target players
+	UF_NOMOB		= 0x0020,	//May not target mobs
 	UF_DANCE			= 0x0100,	// ダンススキル
 	UF_ENSEMBLE			= 0x0200,	// 合奏スキル
 };

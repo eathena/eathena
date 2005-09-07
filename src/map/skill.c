@@ -6107,6 +6107,8 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 	case BA_DISSONANCE:
 	case DC_UGLYDANCE:
 		val1 = 10;	//FIXME: This value is not used anywhere, what is it for? [Skotlex]
+		if (map[src->m].flag.gvg || map[src->m].flag.pvp)
+			target = BCT_ALL;	//On versus grounds it affects everyone. [Skotlex]
 		break;
 	case BA_WHISTLE:
 		val1 = skilllv+(status_get_agi(src)/10); // Flee increase
@@ -6136,6 +6138,8 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 			val1 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
 			val2 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
 		}
+		if (map[src->m].flag.gvg || map[src->m].flag.pvp)
+			target = BCT_ALL;	//On versus grounds it affects everyone. [Skotlex]
 		break;
 	case BA_APPLEIDUN:
 		val1 = 5+2*skilllv+(status_get_vit(src)/10); // MaxHP percent increase
@@ -6176,6 +6180,10 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 	case BD_SIEGFRIED:
 		val1 = 55 + skilllv*5;	//Elemental Resistance
 		val2 = skilllv*10;	//Status ailment resistance
+		break;
+	case BD_ETERNALCHAOS:
+		if (map[src->m].flag.gvg || map[src->m].flag.pvp)
+			target = BCT_ALL;	//On versus grounds it affects everyone. [Skotlex]
 		break;
 	case PF_FOGWALL:	/* フォグウォ?ル */
 		if(sc_data && sc_data[SC_DELUGE].timer!=-1) limit *= 2;
@@ -6284,11 +6292,16 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	nullpo_retr(0, sg=src->group);
 	nullpo_retr(0, ss=map_id2bl(sg->src_id));
 	
-	sc_data = status_get_sc_data(bl);
-	type = SkillStatusChangeTable[sg->skill_id];
+	type = skill_get_unit_flag(skillid); //Just recycling the variable rather than using a brand new one.
 
+	if ((bl->type == BL_PC && type&UF_NOPC) || (bl->type == BL_MOB && type&UF_NOMOB))
+		return 0;
+	
 	if (battle_check_target(&src->bl,bl,sg->target_flag)<=0)
 		return 0;
+	
+	sc_data = status_get_sc_data(bl);
+	type = SkillStatusChangeTable[sg->skill_id];
 
 	// 対象がLP上に居る場合は無効
 	if (map_find_skill_unit_oncell(bl,bl->x,bl->y,SA_LANDPROTECTOR,NULL))
@@ -9642,6 +9655,7 @@ int skill_unit_timer_sub_onplace( struct block_list *bl, va_list ap )
 	struct skill_unit *unit;
 	struct skill_unit_group *group;
 	unsigned int tick;
+	int flag;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
@@ -9655,6 +9669,10 @@ int skill_unit_timer_sub_onplace( struct block_list *bl, va_list ap )
 
 	nullpo_retr(0, group=unit->group);
 
+	flag = skill_get_unit_flag(skillid);
+	if ((bl->type == BL_PC && flag&UF_NOPC) || (bl->type == BL_MOB && flag&UF_NOMOB))
+		return 0;
+	
 	if (battle_check_target(&unit->bl,bl,group->target_flag)<=0)
 		return 0;
 

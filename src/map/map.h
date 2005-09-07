@@ -3,7 +3,7 @@
 #define _MAP_H_
 
 #include <stdarg.h>
-#include "mmo.h"
+#include "../common/mmo.h"
 
 #define MAX_PC_CLASS 4050
 #define PC_CLASS_BASE 0

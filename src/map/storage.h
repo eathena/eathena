@@ -2,7 +2,7 @@
 #ifndef _STORAGE_H_
 #define _STORAGE_H_
 
-#include "mmo.h"
+#include "../common/mmo.h"
 
 int storage_storageopen(struct map_session_data *sd);
 int storage_storageadd(struct map_session_data *sd,int index,int amount);

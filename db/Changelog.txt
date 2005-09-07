@@ -36,6 +36,9 @@
 	12121,Resist_Thunder //Resist Wind element, same as above
 	--
 
+09/07
+	* Added new flags to ground units: UF_NOPC, UF_NOMOB, adjusted accordingly
+	  on song/dances that affect everyone except mobs. [Skotlex]
 09/06
 	* Changed in the skill_tree the mysterious value 4 that somehow slipped in
 	  as a skillrequirement for WE_CALLBABY. [Skotlex]
