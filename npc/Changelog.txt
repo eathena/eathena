@@ -28,6 +28,8 @@ TODO:
 
 Date		Added
 ======
+09/07
+	* Fixed Super Novice job quest. Now a Baby can become a Super Baby. [Lupus]
 09/06
 	* Removed massdriller's "illuminaRO" part from the Merchant jobquest script. What was that good for? [Mass Zero]
 09/04

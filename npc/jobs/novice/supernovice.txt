@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Darkchild
 //===== Current Version: ===================================== 
-//= 1.6
+//= 1.7
 //===== Compatible With: ===================================== 
 //= Any eAthena
 //===== Description: ========================================= 
@@ -16,6 +16,7 @@
 //= renter, too) [Lupus]
 //= 1.6 Added a fix which prevent High Novices passing
 //= this Job Quests again. [Lupus]
+//= 1.7 Fixed Baby Class Support. [Lupus]
 //============================================================ 
 
 
@@ -23,7 +24,7 @@
 aldeba_in.gat,223,167,3	script	Tozel	709,{
 	if(SUPNOV_Q == 1) goto L_Start2;
 	if(BaseJob == 23) goto L_Twice;
-	if(Class != 0) goto L_Otherjob;
+	if(BaseJob != 0 || Upper==1) goto L_Otherjob;
 	mes "[Tozel]";
 	mes "Hello, Novice!";
 	mes "Are you enjoying yourself as a novice, the preferred class of the common man?";
