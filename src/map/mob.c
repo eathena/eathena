@@ -1853,12 +1853,9 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 	struct mob_data *md = (struct mob_data *)data;
 	struct mob_data *mmd = NULL;
 	unsigned int tick;
-	va_list ap;
 
 	nullpo_retr(0, md);
 	nullpo_retr(0, app);
-	ap = va_arg(app,va_list);
-	nullpo_retr(0, ap);
 
 	if(md->bl.type!=BL_MOB)
 		return 0;
@@ -1868,7 +1865,7 @@ static int mob_ai_sub_lazy(void * key,void * data,va_list app)
 		if (mbl && mbl->type == BL_MOB) mmd = (struct mob_data *)mbl;	//Ž©•ª‚ÌBOSS‚Ìî•ñ
 	}
 
-	tick=va_arg(ap,unsigned int);
+	tick=va_arg(app,unsigned int);
 
 	if(DIFF_TICK(tick,md->last_thinktime)<MIN_MOBTHINKTIME*10)
 		return 0;
