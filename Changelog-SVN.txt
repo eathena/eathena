@@ -1,5 +1,9 @@
 Date	Added
 =======
+09/07
+	* Fixed the possible crash in map_foreachinpath. [Skotlex]
+	* Removed the error message in mob_guardian_changeguild when the new guild
+	  has ID 0, the mob will just be removed instead. [Skotlex]
 09/06
 	* Changed Assumptio to target all players around target. Mobs are no longer
 	  affected. [Skotlex]

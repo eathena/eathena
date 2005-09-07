@@ -1238,7 +1238,9 @@ if you want to keep this that way then check and swap x0,y0 with x1,y1
 	
 	range*=range<<8; //Values are shifted later on for higher precision using int math.
 	magnitude2 = MAGNITUDE2(x0,y0, x1,y1);
-
+	if (magnitude2 < 1) //Same begin and ending point, can't trace path.
+		return 0;
+	
 	if (type == 0 || type != BL_MOB)
 		for (by = my0 / BLOCK_SIZE; by <= my1 / BLOCK_SIZE; by++) {
 			for(bx=mx0/BLOCK_SIZE;bx<=mx1/BLOCK_SIZE;bx++){

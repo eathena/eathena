@@ -2772,8 +2772,13 @@ int mob_guardian_guildchange(struct block_list *bl,va_list ap)
 	if (!md->guardian_data)
 		return 0;
 
+	if (md->guardian_data->guild_id == 0)
+	{	//Castle with no owner? Delete the guardians.
+		mob_delete(md);
+		return 0;
+	}
+	
 	g = guild_search(md->guardian_data->guild_id);
-
 	if (g == NULL)
 	{
 		ShowError("mob_guardian_guildchange: New Guild (id %d) does not exists!\n", md->guardian_data->guild_id);
