@@ -59,3 +59,5 @@ struct {
  int id;
  int hp;
 } guardian[MAX_GUARDIANS];
+--
+changed MAX_GUILD from 16+10*6 to 16+10*4 [Lupus]

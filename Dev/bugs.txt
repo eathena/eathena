@@ -332,14 +332,6 @@ Assigned:	na
 Progress:	0%
 			Wasn't the ghostring_fix battle switch fixed eons ago? [Skotlex]
 
-Problem:	Guilds (doesn't correctly save skills)
-			It floods SQL db with entries... ~6000 entries in that guild_skills DB within 2 hours (with 18 guilds)
-			and after reboot you lose learnt guild skills.
-Assigned:	na
-Progress:	0%
-			It's been along time since any guild skills bug reports, I believe
-			this has been fixed already. [Skotlex]
-
 Problem:	chat crash
 			instant crash if you change target person name with some packet hack tool. 
 Assigned:	Skotlex
@@ -365,36 +357,27 @@ Problem:	[@autoloot]. Somehow... you get ITEMS when you're in CLOAKING (or in HI
 Assigned:	na
 Progress:	0%
 
-Problem:	ONE SAFE SPOT exploit
-			Wizard teleports with a portal, set a safety wall. Then other people warp on the
-			wiz's cell. So people stack one over another. And one safety wall protects them all. Etc
-Assigned:	na
-Progress:	0%
-
-
 Problem:	[TARO Cards Skill]
 			When your enemy starts walking randomly (due to some Taro Card), 
 			he gets a warning "Stop using bot"  abd gets MUTS for 20 minutes.
-			Note: probably that's just client itself?
+			Note: probably that's just client itself? Proved, it is.
+			Probably server should send special packets "you arent'a bot"
 Assigned:	na
 Progress:	0%
 
-
-Problem: [TK Boy Equipments] He can weild any WEAPON!! BUG!
-Assigned:	Lupus
-Progress:	100%
-
-Problem:	[Kafra Storage]
-			Items aren't sorted any more
-Assigned:	Lupus
-Progress:	100%
-
-Problem:	[Char Server]
-			Suddenly Freezes
-Assigned:	na
-Progress:	0%
-
-Problem:	[3020: Mob Spawn]
+Problem:	[3020+: Mob Spawn]
 			Mobs don't respawn after several deaths (~20 in my test)
+Assigned:	na
+Progress:	0%
+
+Problem:	[3020+: Mob Spawn]
+			Mobs don't respawn after several deaths (~20 in my test)
+Assigned:	na
+Progress:	0%
+
+Problem:	[3020+: Status Change Lock]
+		During WOE, when you recieve status change (Stun, Freeze, etc)
+		You can't be cured at all. Neither the time nor Priests can help you.
+		Re-entering the game donesn't help. (Timers lost, options saved)
 Assigned:	na
 Progress:	0%
