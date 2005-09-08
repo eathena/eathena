@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/08
+	* Fixed the crash when attempting to target a Emperium. [Skotlex]
 	* mob_spawn_guardian will now 'retry' to load the guild data five seconds
 	  later if the guild info is not available at spawn time. [Skotlex]
 	* Fixed disconnected chars appearing as GMs on the console. [Skotlex]

@@ -222,10 +222,11 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 				md->max_hp += 2000 * gc->defense;
 				md->hp = md->max_hp;
 				md->guardian_data = aCalloc(1, sizeof(struct guardian_data));
+				md->guardian_data->castle = gc;
 				md->guardian_data->number = MAX_GUARDIANS;
+				md->guardian_data->guild_id = gc->guild_id;
 				if (g)
 				{
-					md->guardian_data->guild_id = g->guild_id;
 					md->guardian_data->emblem_id = g->emblem_id;
 					memcpy(md->guardian_data->guild_name, g->name, NAME_LENGTH);
 				}
