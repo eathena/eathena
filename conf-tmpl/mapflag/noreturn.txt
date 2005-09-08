@@ -2,9 +2,10 @@
 //= Map flags that disable use of Butterfly wings
 //===== By: ==================================================
 //= eAthena Dev Team
-//= 1.2 [Lupus]
+//= 1.3 [Lupus]
 //===== Notes: ===============================================
 //= For disabling Fly wings use noteleport
+//= 1.3 According to the patch, enabled Butterfly wings in the Castles [Lupus]
 //===== Current Version: =====================================
 
 // Cities ========================
@@ -89,30 +90,31 @@ que_god01.gat	mapflag	noreturn
 que_god02.gat	mapflag	noreturn
 
 // Guild Castles =================
-aldeg_cas01.gat	mapflag	noreturn
-aldeg_cas02.gat	mapflag	noreturn
-aldeg_cas03.gat	mapflag	noreturn
-aldeg_cas04.gat	mapflag	noreturn
-aldeg_cas05.gat	mapflag	noreturn
-gefg_cas01.gat	mapflag	noreturn
-gefg_cas02.gat	mapflag	noreturn
-gefg_cas03.gat	mapflag	noreturn
-gefg_cas04.gat	mapflag	noreturn
-gefg_cas05.gat	mapflag	noreturn
-payg_cas01.gat	mapflag	noreturn
-payg_cas02.gat	mapflag	noreturn
-payg_cas03.gat	mapflag	noreturn
-payg_cas04.gat	mapflag	noreturn
-payg_cas05.gat	mapflag	noreturn
-prtg_cas01.gat	mapflag	noreturn
-prtg_cas02.gat	mapflag	noreturn
-prtg_cas03.gat	mapflag	noreturn
-prtg_cas04.gat	mapflag	noreturn
-prtg_cas05.gat	mapflag	noreturn
-nguild_alde.gat	mapflag	noreturn
-nguild_gef.gat	mapflag	noreturn
-nguild_pay.gat	mapflag	noreturn
-nguild_prt.gat	mapflag	noreturn
+//= 1.3 According to the kRO patch, enabled Butterfly wings in the Castles
+//aldeg_cas01.gat	mapflag	noreturn
+//aldeg_cas02.gat	mapflag	noreturn
+//aldeg_cas03.gat	mapflag	noreturn
+//aldeg_cas04.gat	mapflag	noreturn
+//aldeg_cas05.gat	mapflag	noreturn
+//gefg_cas01.gat	mapflag	noreturn
+//gefg_cas02.gat	mapflag	noreturn
+//gefg_cas03.gat	mapflag	noreturn
+//gefg_cas04.gat	mapflag	noreturn
+//gefg_cas05.gat	mapflag	noreturn
+//payg_cas01.gat	mapflag	noreturn
+//payg_cas02.gat	mapflag	noreturn
+//payg_cas03.gat	mapflag	noreturn
+//payg_cas04.gat	mapflag	noreturn
+//payg_cas05.gat	mapflag	noreturn
+//prtg_cas01.gat	mapflag	noreturn
+//prtg_cas02.gat	mapflag	noreturn
+//prtg_cas03.gat	mapflag	noreturn
+//prtg_cas04.gat	mapflag	noreturn
+//prtg_cas05.gat	mapflag	noreturn
+//nguild_alde.gat	mapflag	noreturn
+//nguild_gef.gat	mapflag	noreturn
+//nguild_pay.gat	mapflag	noreturn
+//nguild_prt.gat	mapflag	noreturn
 
 // GvG Arenas ===================
 guild_vs1.gat	mapflag	noreturn

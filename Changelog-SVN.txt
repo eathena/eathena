@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/07
+	* According to the patch, enabled Butterfly wings in the Castles [Lupus]
 	* Adjusted MAX_GUILD constant according to Skotlex's changes [Lupus]
 	* Now when the castle owner guild id is loaded, and the guild is not in
 	  memory, the map server will request it right away from the char server. [Skotlex]
