@@ -37,6 +37,9 @@
 	--
 
 09/08
+	* Since the Lighthalzen mobs don't have accurate stats, but accurate
+	  HP/Atk/Exp, their stats have been bumped to 75 all (and luk 99) to avoid
+	  abusers until their correct stats can be figured out. [Skotlex]
 	* Updated/corrected the header information of skill_db.txt
 	* Reverted LoV and Storm Gust's range to 6 and 5 respectively as
 	  empirically tested by Ishizu [Skotlex]
