@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/07
+	* Corrected Guild Extension to be +4 to the max guildmates per level. [Skotlex]
+	* Changed the default max vending value to 1 Billion [Skotlex]
 	* Inverted meaning of pvp_noguild and pvp_noparty flags. the default then
 	  for all maps where they are not set is: You can't attack parties/guildmates
 	  on pvp maps. [Skotlex]
