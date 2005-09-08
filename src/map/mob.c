@@ -277,6 +277,35 @@ int mob_once_spawn_area(struct map_session_data *sd,char *mapname,
 	}
 	return id;
 }
+/*==========================================
+ * Set a Guardian's guild data [Skotlex]
+ *------------------------------------------
+ */
+static int mob_spawn_guardian_sub(int tid,unsigned int tick,int id,int data)
+{	//Needed because the guild_data may not be available at guardian spawn time.
+	struct block_list* bl = map_id2bl(id);
+	struct mob_data* md; 
+	struct guild* g;
+	nullpo_retr(0, bl);
+	if (bl->type != BL_MOB || (md = (struct mob_data*)bl) == NULL)
+	{
+		ShowError("mob_spawn_guardian_sub: Block error!\n");
+		return 0;
+	}
+	
+	nullpo_retr(0, md->guardian_data);
+	g = guild_search(data);
+
+	if (g == NULL)
+	{
+		ShowError("mob_spawn_guardian_sub: Couldn't load guild %d!\n",data);
+		return 0;
+	}
+	md->guardian_data->emblem_id = g->emblem_id;
+	memcpy (md->guardian_data->guild_name, g->name, NAME_LENGTH);
+	md->guardian_data->guardup_lv = guild_checkskill(g,GD_GUARDUP);
+	return 0;
+}
 
 /*==========================================
  * Summoning Guardians [Valaris]
@@ -326,11 +355,7 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
 	if (!gc->guild_id)
 		ShowWarning("mob_spawn_guardian: Spawning guardian %d on a castle with no guild (castle map %s)\n", class_, map[m].name);
 	else
-	{
 		g = guild_search(gc->guild_id);
-		if (g == NULL)
-			ShowWarning("mob_spawn_guardian: Guild (%d) not found for guardian %d (castle map %s)\n", gc->guild_id, class_, map[m].name);
-	}
 
 	if (gc->guardian[guardian].id)
 		ShowWarning("mob_spawn_guardian: Spawning guardian in position %d which already has a guardian (castle map %s)\n", guardian, map[m].name);
@@ -360,16 +385,17 @@ int mob_spawn_guardian(struct map_session_data *sd,char *mapname,
 		md->max_hp += 2000 * gc->defense;
 		md->guardian_data = aCalloc(1, sizeof(struct guardian_data));
 		md->guardian_data->number = guardian;
-		if (g)
-		{
-			md->guardian_data->guild_id = g->guild_id;
-			md->guardian_data->emblem_id = g->emblem_id;
-			memcpy (md->guardian_data->guild_name, g->name, NAME_LENGTH);
-			md->guardian_data->guardup_lv = guild_checkskill(g,GD_GUARDUP);
-		}
+		md->guardian_data->guild_id = gc->guild_id;
 		md->guardian_data->castle = gc;
 		md->hp = gc->guardian[guardian].hp;
 		gc->guardian[guardian].id = md->bl.id;
+		if (g)
+		{
+			md->guardian_data->emblem_id = g->emblem_id;
+			memcpy (md->guardian_data->guild_name, g->name, NAME_LENGTH);
+			md->guardian_data->guardup_lv = guild_checkskill(g,GD_GUARDUP);
+		} else if (md->guardian_data->guild_id)
+			add_timer(gettick()+5000,mob_spawn_guardian_sub,md->bl.id,md->guardian_data->guild_id);
 	}
 
 	return (amount>0)?md->bl.id:0;
@@ -4627,6 +4653,7 @@ int do_init_mob(void)
 	add_timer_func_list(mobskill_castend_id,"mobskill_castend_id");
 	add_timer_func_list(mobskill_castend_pos,"mobskill_castend_pos");
 	add_timer_func_list(mob_timer_delete,"mob_timer_delete");
+	add_timer_func_list(mob_spawn_guardian_sub,"mob_spawn_guardian_sub");
 	add_timer_interval(gettick()+MIN_MOBTHINKTIME,mob_ai_hard,0,0,MIN_MOBTHINKTIME);
 	add_timer_interval(gettick()+MIN_MOBTHINKTIME*10,mob_ai_lazy,0,0,MIN_MOBTHINKTIME*10);
 

@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/08
+	* mob_spawn_guardian will now 'retry' to load the guild data five seconds
+	  later if the guild info is not available at spawn time. [Skotlex]
 	* Fixed disconnected chars appearing as GMs on the console. [Skotlex]
 	* clif_send_sub won't try to send any data to disconnected chars now. [Skotlex]
 	  (may fix possible buffer overflow crashes)
