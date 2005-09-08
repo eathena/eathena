@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/07
+	* Now when the castle owner guild id is loaded, and the guild is not in
+	  memory, the map server will request it right away from the char server. [Skotlex]
 	* Corrected Guild Extension to be +4 to the max guildmates per level. [Skotlex]
 	* Changed the default max vending value to 1 Billion [Skotlex]
 	* Inverted meaning of pvp_noguild and pvp_noparty flags. the default then

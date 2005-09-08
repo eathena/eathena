@@ -1444,7 +1444,11 @@ int guild_castledataloadack(int castle_id,int index,int value)
 		return 0;
 	}
 	switch(index){
-	case 1: gc->guild_id = value; break;
+	case 1:
+		gc->guild_id = value;
+		if (value && guild_search(value)==NULL) //Request guild data which will be required for spawned guardians. [Skotlex]
+			guild_request_info(value);
+		break;
 	case 2: gc->economy = value; break;
 	case 3: gc->defense = value; break;
 	case 4: gc->triggerE = value; break;
