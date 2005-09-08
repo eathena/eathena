@@ -1182,6 +1182,48 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			}
 		}
 	}
+
+	//Reports say that autospell effects get triggered on skills and pretty much everything including splash attacks. [Skotlex]
+	//Here we use the nk value to trigger spells only on damage causing skills (otherwise stuff like AL_HEAL will trigger them)
+	if(sd && !status_isdead(bl) && (!skillid || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
+	{
+		struct block_list *tbl;
+		int i, skillid, skilllv, rate;
+
+		for (i = 0; i < 10; i++) {
+			if (sd->autospell_id[i] == 0)
+				break;
+
+			skillid = (sd->autospell_id[i] > 0) ? sd->autospell_id[i] : -sd->autospell_id[i];
+			skilllv = (sd->autospell_lv[i] > 0) ? sd->autospell_lv[i] : 1;
+			rate = (!sd->state.arrow_atk) ? sd->autospell_rate[i] : sd->autospell_rate[i] / 2;
+			
+			if (rand()%100 > rate)
+				continue;
+			if (sd->autospell_id[i] < 0)
+				tbl = src;
+			else
+				tbl = bl;
+			
+			if (skill_get_inf(skillid) & INF_GROUND_SKILL)
+				skill_castend_pos2(src, tbl->x, tbl->y, skillid, skilllv, tick, 0);
+			else {
+				switch (skill_get_nk(skillid)) {
+					case NK_NO_DAMAGE:
+						if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
+							battle_check_undead(status_get_race(tbl),status_get_elem_type(tbl)))
+							skill_castend_damage_id(src, tbl, skillid, skilllv, tick, 0);
+						else
+							skill_castend_nodamage_id(src, tbl, skillid, skilllv, tick, 0);
+						break;
+					case NK_SPLASH_DAMAGE:
+					default:
+						skill_castend_damage_id(src, tbl, skillid, skilllv, tick, 0);
+						break;
+				}
+			}
+		}
+	}
 	return 0;
 }
 
@@ -1292,6 +1334,48 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 				if(battle_config.battle_log)
 					ShowInfo("PC %d skill_addeff: counter inflicted effect (pos %d): %d\n",src->id,i,dstsd->addeff3[type]);
 				status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 17000:skill_get_time2(sc2[type],7),0);
+			}
+		}
+	}
+
+	//Trigger counter-spells to retaliate against damage causing skills. [Skotlex]
+	if (dstsd && !status_isdead(bl) && (!skillid || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
+	{
+		struct block_list *tbl;
+		int i, skillid, skilllv, rate;
+
+		for (i = 0; i < 10; i++) {
+			if (dstsd->autospell2_id[i] == 0)
+				break;
+
+			skillid = (dstsd->autospell2_id[i] > 0) ? dstsd->autospell2_id[i] : -dstsd->autospell2_id[i];
+			skilllv = (dstsd->autospell2_lv[i] > 0) ? dstsd->autospell2_lv[i] : 1;
+			rate = ((sd && !sd->state.arrow_atk) || (status_get_range(src)<=2)) ?
+				dstsd->autospell2_rate[i] : dstsd->autospell2_rate[i] / 2;
+			
+			if (rand()%100 > rate)
+				continue;
+			if (dstsd->autospell2_id[i] < 0)
+				tbl = bl;
+			else
+				tbl = src;
+
+			if (skill_get_inf(skillid) & INF_GROUND_SKILL)
+				skill_castend_pos2(bl, tbl->x, tbl->y, skillid, skilllv, tick, 0);
+			else {
+				switch (skill_get_nk(skillid)) {
+					case NK_NO_DAMAGE:
+						if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
+							battle_check_undead(status_get_race(tbl), status_get_elem_type(tbl)))
+							skill_castend_damage_id(bl, tbl, skillid, skilllv, tick, 0);
+						else
+							skill_castend_nodamage_id(bl, tbl, skillid, skilllv, tick, 0);
+						break;
+					case NK_SPLASH_DAMAGE:
+					default:
+						skill_castend_damage_id(bl, tbl, skillid, skilllv, tick, 0);
+						break;
+				}
 			}
 		}
 	}
@@ -9219,7 +9303,7 @@ int skill_trap_splash (struct block_list *bl, va_list ap)
 		switch(sg->unit_id){
 			case UNT_SHOCKWAVE:
 			case UNT_SANDMAN:
-      		case UNT_FLASHER:        
+			case UNT_FLASHER:        
 				skill_additional_effect(ss,bl,sg->skill_id,sg->skill_lv,BF_MISC,tick);
 				break;
 			case UNT_BLASTMINE:

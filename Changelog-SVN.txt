@@ -1,6 +1,14 @@
 Date	Added
 =======
 09/08
+	* Moved the auto-spell code from weapon attacks to skill_additional_effect
+	  and skill_counter_additional_effect. [Skotlex]
+	- The autospells will trigger for all skills/normal-attacks except those
+	  with nk =1 (no damage skill) which is needed to prevent stuff like
+	  heal, traps or dances from triggering it.
+	- Does not affect SC_HINDSIGHT triggered spells.
+	- NOT properly tested as of yet, report any abnormalities and skills it
+	  should/should-not be working with.
 	* Fixed the crash when attempting to target a Emperium. [Skotlex]
 	* mob_spawn_guardian will now 'retry' to load the guild data five seconds
 	  later if the guild info is not available at spawn time. [Skotlex]
