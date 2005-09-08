@@ -68,9 +68,10 @@ int pc_isGM(struct map_session_data *sd) {
 	if(sd->bl.type!=BL_PC )
 		return 0;
 
-	//For console [Wizputer]
-	if ( sd->fd == 0 )
-	    return 99;
+
+	//For console [Wizputer] //Unfortunately the console is "broken" because it shares fd 0 with disconnected players. [Skotlex]
+//	if ( sd->fd == 0 )
+//	    return 99;
 
 	for(i = 0; i < GM_num; i++)
 		if (gm_account[i].account_id == sd->status.account_id)

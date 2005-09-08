@@ -1,5 +1,9 @@
 Date	Added
 =======
+09/08
+	* Fixed disconnected chars appearing as GMs on the console. [Skotlex]
+	* clif_send_sub won't try to send any data to disconnected chars now. [Skotlex]
+	  (may fix possible buffer overflow crashes)
 09/07
 	* According to the patch, enabled Butterfly wings in the Castles [Lupus]
 	* Adjusted MAX_GUILD constant according to Skotlex's changes [Lupus]

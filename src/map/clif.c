@@ -266,6 +266,9 @@ int clif_send_sub(struct block_list *bl, va_list ap)
 	nullpo_retr(0, ap);
 	nullpo_retr(0, sd = (struct map_session_data *)bl);
 
+	if (!sd->fd) //Avoid attempting to send to disconnected chars (may prevent buffer overrun errors?) [Skotlex]
+		return 0;
+	
 	buf = va_arg(ap,unsigned char*);
 	len = va_arg(ap,int);
 	nullpo_retr(0, src_bl = va_arg(ap,struct block_list*));

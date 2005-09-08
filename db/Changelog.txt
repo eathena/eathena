@@ -36,6 +36,9 @@
 	12121,Resist_Thunder //Resist Wind element, same as above
 	--
 
+09/08
+	* Reverted LoV and Storm Gust's range to 6 and 5 respectively as
+	  empirically tested by Ishizu [Skotlex]
 09/07
 	* Added new flags to ground units: UF_NOPC, UF_NOMOB, adjusted accordingly
 	  on song/dances that affect everyone except mobs. [Skotlex]

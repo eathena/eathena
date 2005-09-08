@@ -1006,7 +1006,7 @@ int parse_fromchar(int fd){
 						charif_sendallwos(-1, buf, 11);
 					}
 					ShowNotice("Account: %d Banned until: %ld\n", acc, timestamp);
-					sprintf(tmpsql, "UPDATE `%s` SET `ban_until` = '%ld', `state`='7' WHERE `%s` = '%d'", login_db, timestamp, login_db_account_id, acc);
+					sprintf(tmpsql, "UPDATE `%s` SET `ban_until` = '%ld', `state`='7' WHERE `%s` = '%d'", login_db, (unsigned long)timestamp, login_db_account_id, acc);
 					// query
 					if (mysql_query(&mysql_handle, tmpsql)) {
 						ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
