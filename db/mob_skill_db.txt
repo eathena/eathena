@@ -475,6 +475,7 @@
 1118,Flora@NPC_BLOODDRAIN,attack,199,1,500,0,5000,yes,target,always,0,,,,,,
 1118,Flora@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,2,,,,,
 1118,Flora@NPC_GROUNDATTACK,attack,185,1,2000,0,5000,yes,target,always,0,,,,,,
+1118,Flora@NPC_REVENGE,idle,333,1,10000,0,0,yes,target,masterattacked,,,,,,,
 1319,Freezer@MG_COLDBOLT,attack,14,3,500,1500,5000,yes,target,always,0,,,,,,
 1319,Freezer@MG_COLDBOLT,chase,14,3,500,1500,5000,yes,target,always,0,,,,,,
 1319,Freezer@MG_FROSTDIVER,attack,15,9,500,1000,5000,yes,target,always,0,,,,,,
@@ -617,6 +618,10 @@
 1369,Grand Peco@NPC_EMOTION_ON,attack,474,1,10000,0,30000,yes,self,always,0,,,,,,6
 1369,Grand Peco@NPC_EMOTION,idle,197,1,20,0,30000,yes,self,always,0,9,,,,,
 1277,Greatest General@NPC_FIREATTACK,attack,186,2,500,500,5000,no,target,always,0,,,,,,
+1277,Greatest General@NPC_BLINDATTACK,idle,177,3,10000,1500,5000,no,target,longrangeattacked,,,,,,,6
+1277,Greatest General@NPC_BLINDATTACK,idle,177,3,10000,1500,5000,no,target,casttargeted,,,,,,,6
+1277,Greatest General@WZ_EARTHSPIKE,idle,90,3,500,1500,5000,no,target,longrangeattacked,,,,,,,6
+1277,Greatest General@WZ_EARTHSPIKE,idle,90,3,500,1500,5000,no,target,casttargeted,,,,,,,6
 1381,Grizzly@KN_SPEARSTAB,attack,58,10,500,800,5000,no,target,always,0,,,,,,6
 1381,Grizzly@NPC_EMOTION,chase,197,1,200,0,5000,yes,self,always,0,19,,,,,
 1381,Grizzly@NPC_EMOTION,idle,197,1,200,0,5000,yes,self,always,0,6,,,,,

@@ -37,6 +37,8 @@
 	--
 
 09/08
+	* Added some of the missing mob skills that Komurka claims don't work on eA
+	  yet. These will be tested and debugged at a later date. [Skotlex]
 	* Small fix to the self-destruction skill of Marine Sphere as pointed out
 	  by Komurka [Skotlex]
 	* Fixed the alchemist related skills for marine sphere from rate 10% to
