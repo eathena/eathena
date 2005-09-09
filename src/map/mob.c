@@ -300,6 +300,7 @@ static int mob_spawn_guardian_sub(int tid,unsigned int tick,int id,int data)
 	if (g == NULL)
 	{
 		ShowError("mob_spawn_guardian_sub: Couldn't load guild %d!\n",data);
+		mob_delete(md); //Remove guardian.
 		return 0;
 	}
 	md->guardian_data->emblem_id = g->emblem_id;

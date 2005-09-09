@@ -1,5 +1,9 @@
 Date	Added
 =======
+09/09
+	* Fix to battle_check_target, should correct guardians/emperium [Skotlex]
+	* Guardians will now be deleted if their guild is not found in
+	  mob_spawn_guardian_sub. [Skotlex]
 09/08
 	* Added filter into chat log. Check log_athena.conf for more info [Lupus]
 	- Now you can turn off logs during WOE, etc
