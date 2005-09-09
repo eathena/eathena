@@ -1,6 +1,11 @@
 Date	Added
 =======
 09/09
+	* General fixes to guardian spawning code. [Skotlex]
+	  (includes setting a timer so the Emperium gets it's guild data if not
+	  available at spawn time).
+	* When the Emperium's guild is not found (in mob_spawn_sub, 5 secs after
+	  trying to spawn it) the Castle will be reset back to no guild owning. [Skotlex]
 	* Fix to battle_check_target, should correct guardians/emperium [Skotlex]
 	* Guardians will now be deleted if their guild is not found in
 	  mob_spawn_guardian_sub. [Skotlex]

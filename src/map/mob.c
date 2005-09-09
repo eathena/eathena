@@ -45,6 +45,7 @@ struct mob_db *mob_db(int index) { if (index < 0 || index > MAX_MOB_DB || mob_db
 static int distance(int,int,int,int);
 static int mob_makedummymobdb(int);
 static int mob_timer(int,unsigned int,int,int);
+static int mob_spawn_guardian_sub(int,unsigned int,int,int);
 int mobskill_use(struct mob_data *md,unsigned int tick,int event);
 int mobskill_deltimer(struct mob_data *md );
 int mob_skillid2skillidx(int class_,int skillid);
@@ -230,6 +231,8 @@ int mob_once_spawn (struct map_session_data *sd, char *mapname,
 					md->guardian_data->emblem_id = g->emblem_id;
 					memcpy(md->guardian_data->guild_name, g->name, NAME_LENGTH);
 				}
+				else if (gc->guild_id) //Guild not yet available, retry in 5.
+					add_timer(gettick()+5000,mob_spawn_guardian_sub,md->bl.id,md->guardian_data->guild_id);
 			}
 		}	// end addition [Valaris]
 	}
@@ -287,7 +290,10 @@ static int mob_spawn_guardian_sub(int tid,unsigned int tick,int id,int data)
 	struct block_list* bl = map_id2bl(id);
 	struct mob_data* md; 
 	struct guild* g;
-	nullpo_retr(0, bl);
+
+	if (bl == NULL) //It is possible mob was already removed from map when the castle has no owner. [Skotlex]
+		return 0;
+	
 	if (bl->type != BL_MOB || (md = (struct mob_data*)bl) == NULL)
 	{
 		ShowError("mob_spawn_guardian_sub: Block error!\n");
@@ -298,9 +304,18 @@ static int mob_spawn_guardian_sub(int tid,unsigned int tick,int id,int data)
 	g = guild_search(data);
 
 	if (g == NULL)
-	{
+	{	//Liberate castle, if the guild is not found this is an error! [Skotlex]
 		ShowError("mob_spawn_guardian_sub: Couldn't load guild %d!\n",data);
-		mob_delete(md); //Remove guardian.
+		if (md->class_ == MOBID_EMPERIUM)
+		{	//Not sure this is the best way, but otherwise we'd be invoking this for ALL guardians spawned later on.
+			md->guardian_data->guild_id = 0;
+			if (md->guardian_data->castle->guild_id) //Free castle up.
+			{
+				ShowNotice("Clearing ownership of castle %d (%s)\n", md->guardian_data->castle->castle_id, md->guardian_data->castle->castle_name);
+				guild_castledatasave(md->guardian_data->castle->castle_id, 1, 0);
+			}
+		} else
+			mob_delete(md); //Remove guardian.
 		return 0;
 	}
 	md->guardian_data->emblem_id = g->emblem_id;
@@ -2800,13 +2815,20 @@ int mob_guardian_guildchange(struct block_list *bl,va_list ap)
 	if (!md->guardian_data)
 		return 0;
 
-	if (md->guardian_data->guild_id == 0)
+	if (md->guardian_data->castle->guild_id == 0)
 	{	//Castle with no owner? Delete the guardians.
-		mob_delete(md);
+		if (md->class_ == MOBID_EMPERIUM)
+		{	//But don't delete the emperium, just clear it's guild-data
+			md->guardian_data->guild_id = 0;
+			md->guardian_data->emblem_id = 0;
+			md->guardian_data->guild_name[0] = '\0';
+		}
+		else
+			mob_delete(md);
 		return 0;
 	}
 	
-	g = guild_search(md->guardian_data->guild_id);
+	g = guild_search(md->guardian_data->castle->guild_id);
 	if (g == NULL)
 	{
 		ShowError("mob_guardian_guildchange: New Guild (id %d) does not exists!\n", md->guardian_data->guild_id);
