@@ -50,10 +50,12 @@ void dump(unsigned char *buffer, int num)
    printf("\n");
 }
 
-
+//NOTE: There is no need to use this function as the standard sqrt is plenty fast as it is. [Skotlex]
 int newt_sqrt(int input)
 {
 	int new_value, value = input/2, count = 0;
+	if (!value) //Division by zero fix, pointed out by Shinomori. [Skotlex]
+		return input;
 	do
 	{
 		new_value = (value + input/value)>>1;
@@ -61,7 +63,7 @@ int newt_sqrt(int input)
 			return new_value;
 		value = new_value;
 	}
-	while (count++ < 10);
+	while (count++ < 25);
 	return new_value;
 }
 

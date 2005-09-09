@@ -37,6 +37,8 @@
 	--
 
 09/08
+	* Fixed the alchemist related skills for marine sphere from rate 10% to
+	  rate 100% [Skotlex]
 	* Fixed some songs/dances's target (changed it from "all  " to "all") [Skotlex]
 	* Readded the mob skills NPC_RANDOMMOVE and NPC_SELFDESTRUCTION to the
 	  Marine Sphere (which were lost on Komurka's last update to mob_skill_db)
