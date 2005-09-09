@@ -416,7 +416,7 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 					    (sd->bl.x < x0 || sd->bl.y < y0 ||
 					     sd->bl.x > x1 || sd->bl.y > y1))
 						continue;
-					if (sd->fd && packet_db[sd->packet_ver][RBUFW(buf,0)].len) // packet must exist for the client version
+					if (sd->fd && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
 					}
@@ -428,7 +428,7 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 			for (i = 0; i < fd_max; i++){
 				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth) {
 					if (sd->partyspy == p->party_id) {
-						if (sd->fd && packet_db[sd->packet_ver][RBUFW(buf,0)].len) // packet must exist for the client version
+						if (sd->fd && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
 							memcpy(WFIFOP(sd->fd,0), buf, len);
 							WFIFOSET(sd->fd,len);
 						}
