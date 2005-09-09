@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/09
+	* Added checks to prevent dropped items from stacking (they can still
+	  stack, but at max 2 items per cell). [Skotlex]
 	* Added Guild removing from memory upon guild break to Char SQL server
 	  (TXT already had this correctly) [Skotlex]
 	* Changed Provoke to reduce armor defense, not vit defense. [Skotlex]

@@ -954,7 +954,7 @@ int map_foreachinmovearea(int (*)(struct block_list*,va_list),int,int,int,int,in
 int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y0,int x1,int y1,int range,int type,...); // Celest
 int map_countnearpc(int,int,int);
 //blockŠÖ˜A‚É’Ç‰Á
-int map_count_oncell(int m,int x,int y);
+int map_count_oncell(int m,int x,int y,int type);
 struct skill_unit *map_find_skill_unit_oncell(struct block_list *,int x,int y,int skill_id,struct skill_unit *);
 // ˆê“IobjectŠÖ˜A
 int map_addobject(struct block_list *);

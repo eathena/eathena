@@ -427,31 +427,37 @@ int map_countnearpc (int m, int x, int y)
 }
 
 /*==========================================
- * セル上のPCとMOBの?を?える (グランドクロス用)
+ * Counts specified number of objects on given cell.
  *------------------------------------------
  */
-int map_count_oncell(int m, int x, int y) {
+int map_count_oncell(int m, int x, int y, int type) {
 	int bx,by;
 	struct block_list *bl=NULL;
 	int i,c;
 	int count = 0;
 
 	if (x < 0 || y < 0 || (x >= map[m].xs) || (y >= map[m].ys))
-		return 1;
+		return 0;
 	bx = x/BLOCK_SIZE;
 	by = y/BLOCK_SIZE;
 
-	bl = map[m].block[bx+by*map[m].bxs];
-	c = map[m].block_count[bx+by*map[m].bxs];
-	for(i=0;i<c && bl;i++,bl=bl->next){
-		if(bl->x == x && bl->y == y && bl->type == BL_PC) count++;
+	if (type == 0 || type != BL_MOB)
+	{
+		bl = map[m].block[bx+by*map[m].bxs];
+		c = map[m].block_count[bx+by*map[m].bxs];
+		for(i=0;i<c && bl;i++,bl=bl->next){
+			if(bl->x == x && bl->y == y && bl->type == BL_PC) count++;
+		}
 	}
-	bl = map[m].block_mob[bx+by*map[m].bxs];
-	c = map[m].block_mob_count[bx+by*map[m].bxs];
-	for(i=0;i<c && bl;i++,bl=bl->next){
-		if(bl->x == x && bl->y == y) count++;
+	
+	if (type == 0 || type == BL_MOB)
+	{
+		bl = map[m].block_mob[bx+by*map[m].bxs];
+		c = map[m].block_mob_count[bx+by*map[m].bxs];
+		for(i=0;i<c && bl;i++,bl=bl->next){
+			if(bl->x == x && bl->y == y) count++;
+		}
 	}
-	if(!count) count = 1;
 	return count;
 }
 /*
@@ -1473,7 +1479,14 @@ int map_clearflooritem_timer(int tid,unsigned int tick,int id,int data) {
  */
 int map_searchrandfreecell(int m,int x,int y,int range) {
 	int free_cell,i,j;
+	int* free_cells;
 
+	if (range < 0)
+		return -1;
+	
+	//FIXME: Would it be quicker to hardcode an array of 9 since this function is always called with range 1?
+	free_cells = aCalloc((2*range+1)*(2*range+1), sizeof(int)); //better use more memory than having to wipe twice the cells. [Skotlex]
+	
 	for(free_cell=0,i=-range;i<=range;i++){
 		if(i+y<0 || i+y>=map[m].ys)
 			continue;
@@ -1482,12 +1495,20 @@ int map_searchrandfreecell(int m,int x,int y,int range) {
 				continue;
 			if(map_getcell(m,j+x,i+y,CELL_CHKNOPASS))
 				continue;
-			free_cell++;
+			if(map_count_oncell(m,j+x,i+y, BL_ITEM) > 1) //Avoid item stacking to prevent against exploits. [Skotlex]
+				continue;
+			free_cells[free_cell++] = j+x+((i+y)<<16);
 		}
 	}
 	if(free_cell==0)
+	{
+		aFree(free_cells);
 		return -1;
-	free_cell=rand()%free_cell;
+	}
+	free_cell=free_cells[rand()%free_cell];
+	aFree(free_cells);
+	return free_cell;
+/*
 	for(i=-range;i<=range;i++){
 		if(i+y<0 || i+y>=map[m].ys)
 			continue;
@@ -1495,6 +1516,8 @@ int map_searchrandfreecell(int m,int x,int y,int range) {
 			if(j+x<0 || j+x>=map[m].xs)
 				continue;
 			if(map_getcell(m,j+x,i+y,CELL_CHKNOPASS))
+				continue;
+			if(map_count_oncell(m,j+x,i+y, BL_ITEM) > 1) //Avoid item stacking to prevent against exploits. [Skotlex]
 				continue;
 			if(free_cell==0){
 				x+=j;
@@ -1507,6 +1530,7 @@ int map_searchrandfreecell(int m,int x,int y,int range) {
 	}
 
 	return x+(y<<16);
+*/
 }
 
 /*==========================================

@@ -2163,9 +2163,6 @@ static int skill_timerskill(int tid, unsigned int tick, int id,int data )
 
 	nullpo_retr(0, src);
 
-	if(src->prev == NULL)
-		return 0;
-
 	if(src->type == BL_PC) {
 		nullpo_retr(0, sd = (struct map_session_data *)src);
 		skl = &sd->skilltimerskill[data];
@@ -2185,6 +2182,12 @@ static int skill_timerskill(int tid, unsigned int tick, int id,int data )
 	nullpo_retr(0, skl);
 
 	skl->timer = -1;
+	
+	//Check moved here because otherwise the timer is not reset to -1 and later on we'll see problems when clearing. [Skotlex]
+	if(src->prev == NULL)
+		return 0;
+
+
 	if (sd) {
 		sd->timerskill_count--;
 	}
@@ -6555,7 +6558,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	// GX‚Íd‚È‚Á‚Ä‚¢‚½‚ç3HIT‚µ‚È‚¢
 	if (sg->skill_id==CR_GRANDCROSS && !battle_config.gx_allhit)
-		ts->tick += sg->interval*(map_count_oncell(bl->m,bl->x,bl->y)-1);
+		ts->tick += sg->interval*(map_count_oncell(bl->m,bl->x,bl->y,0));
 
 	switch (sg->unit_id) {
 	case UNT_FIREWALL:

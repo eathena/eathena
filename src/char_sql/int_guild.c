@@ -1393,6 +1393,7 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		ShowSQL("DB server Error (delete `guild`)- %s\n", mysql_error(&mysql_handle) );
 	}
+//the following is not needed as the foregin keys handle the cascading delete.
 #if 0
 	//printf("- Delete guild %d from guild_member\n",guild_id);
 	sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%d'",guild_member_db, guild_id);
@@ -1427,7 +1428,6 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 	
 	}
 #endif
-
 //        db_foreach(castle_db_, _erase_guild, guild_id);
 
 	//printf("- Update guild %d of char\n",guild_id);
