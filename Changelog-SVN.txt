@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/09
+	* Added Guild removing from memory upon guild break to Char SQL server
+	  (TXT already had this correctly) [Skotlex]
 	* Changed Provoke to reduce armor defense, not vit defense. [Skotlex]
 	* Likely fixed the direction check in Auto Counter. [Skotlex]
 	* Removed the console functionality from socket.c (it was no good on the

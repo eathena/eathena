@@ -1436,7 +1436,10 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 		ShowSQL("DB server Error (delete `guild_position`)- %s\n", mysql_error(&mysql_handle) );
 	}
 
+	//Remove the guild from memory. [Skotlex]
+	numdb_erase(guild_db_, guild_id);
 	mapif_guild_broken(guild_id,0);
+	aFree(g);
 
 	if(log_inter)
 		inter_log("guild %s (id=%d) broken" RETCODE,g->name,guild_id);
