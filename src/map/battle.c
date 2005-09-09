@@ -2054,7 +2054,7 @@ struct Damage battle_calc_magic_attack(
 			}
 			else
 				blewcount |= 0x10000;
-			md.dmotion=0; //Firewall's delay is always none. [Skotlex]
+//			md.dmotion=0; //Firewall's delay is always none. [Skotlex], or maybe not?
 			skillratio-= 50;
 			break;
 		case MG_THUNDERSTORM:	// サンダーストーム

@@ -1,6 +1,12 @@
 Date	Added
 =======
 09/09
+	* Readded the damage delay to firewall. [Skotlex]
+	* Added an extra db (pc_db) to hold players, it should speed up map_id2sd
+	  lookups. [Skotlex]
+	  (note that all functions which do a search on all connected players do a
+	  linear search on the connection sessions, and porting this to use the new
+	  system will take a pretty annoyingly long time)
 	* Added checks to prevent dropped items from stacking (they can still
 	  stack, but at max 2 items per cell). [Skotlex]
 	* Added Guild removing from memory upon guild break to Char SQL server

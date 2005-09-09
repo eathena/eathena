@@ -36,13 +36,14 @@
 	12121,Resist_Thunder //Resist Wind element, same as above
 	--
 
-09/08
+09/09
 	* Added some of the missing mob skills that Komurka claims don't work on eA
 	  yet. These will be tested and debugged at a later date. [Skotlex]
 	* Small fix to the self-destruction skill of Marine Sphere as pointed out
 	  by Komurka [Skotlex]
 	* Fixed the alchemist related skills for marine sphere from rate 10% to
 	  rate 100% [Skotlex]
+09/08
 	* Fixed some songs/dances's target (changed it from "all  " to "all") [Skotlex]
 	* Readded the mob skills NPC_RANDOMMOVE and NPC_SELFDESTRUCTION to the
 	  Marine Sphere (which were lost on Komurka's last update to mob_skill_db)

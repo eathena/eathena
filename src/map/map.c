@@ -141,6 +141,7 @@ char *GRF_PATH_FILENAME;
 
 // ‹É—Í static‚Åƒ?ƒJƒ‹‚É?‚ß‚é
 static struct dbt * id_db=NULL;
+static struct dbt * pc_db=NULL;
 static struct dbt * map_db=NULL;
 static struct dbt * nick_db=NULL;
 static struct dbt * charid_db=NULL;
@@ -1658,6 +1659,8 @@ int map_reqchariddb(struct map_session_data * sd,int charid) {
 void map_addiddb(struct block_list *bl) {
 	nullpo_retv(bl);
 
+	if (bl->type == BL_PC)
+		numdb_insert(pc_db,bl->id,bl);
 	numdb_insert(id_db,bl->id,bl);
 }
 
@@ -1669,6 +1672,8 @@ void map_deliddb(struct block_list *bl) {
 	nullpo_retv(bl);
 
 	numdb_erase(id_db,bl->id);
+	if (bl->type == BL_PC)
+		numdb_erase(pc_db,bl->id);
 }
 
 /*==========================================
@@ -1810,6 +1815,7 @@ int map_quit(struct map_session_data *sd) {
 	strdb_erase(nick_db,sd->status.name);
 	numdb_erase(charid_db,sd->status.char_id);
 	numdb_erase(id_db,sd->bl.id);
+	numdb_erase(pc_db,sd->bl.id);
 
 	// Notify friends that this char logged out. [Skotlex]
 	clif_foreachclient(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 0);
@@ -1843,12 +1849,16 @@ struct map_session_data * map_id2sd(int id) {
 // replaced by searching in all session.
 // by searching in session, we are sure that fd, session, and account exist.
 // Unfortunately, this breaks autotrade since the player is NOT in the list of sessions, so we fallback to it when the socket search fails. [Skotlex]
+//
+// Update: Now using pc_db to handle all players, should be quicker than both previous methods at a small expense of more memory. [Skotlex]
 	struct map_session_data *sd;
-	struct block_list *bl;
-	int i;
+//	struct block_list *bl;
+//	int i;
 	
 	if (id <= 0) return 0;
-
+	sd=(struct map_session_data*)numdb_search(pc_db,id);
+	return sd;
+/*	
 	for(i = 0; i < fd_max; i++)
 		if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->bl.id == id)
 			return sd;
@@ -1857,6 +1867,7 @@ struct map_session_data * map_id2sd(int id) {
 	if(bl && bl->type==BL_PC)
 		return (struct map_session_data*)bl;
 	return NULL;
+	*/
 }
 
 /*==========================================
@@ -1936,6 +1947,39 @@ struct block_list * map_id2bl(int id)
 		bl = (struct block_list*)numdb_search(id_db,id);
 
 	return bl;
+}
+
+static int map_foreachpc_sub(void * key,void * data,va_list ap)
+{
+	struct map_session_data *sd = (struct map_session_data*) data;
+	struct map_session_data *total_sd = va_arg(ap, struct map_session_data**);
+	int *count = va_arg(app, int*);
+	if (*count => map_getusers)
+	{
+		ShowError("map_foreachpc_sub: More players than those specified by map_getusers()!\n");
+		return 0;
+	}
+	*total_sd[(*count)++] = sd;
+	return 0;
+}
+
+/*==========================================
+ * Invokes a function that receives a list of all connected players. [Skotlex]
+ *------------------------------------------
+ */
+void map_foreachpc(int (*func)(struct map_session_data **, int, va_list ap),...) {
+	struct map_session_data **total_sd;
+	int count =0;
+	va_list ap;
+
+	total_sd = aCalloc(map_getusers(), sizeof(map_session_data*)); //it's actually just the size of a pointer.
+
+	va_start(ap,func);
+	numdb_foreach(pc_db,map_foreach_pc_sub,&total_sd, &count);
+	func(total_sd, count, ap);
+	va_end(ap);
+	aFree(total_sd);
+	return 0;
 }
 
 /*==========================================
@@ -3517,6 +3561,7 @@ int online_timer (int tid,unsigned int tick,int id,int data)
 }
 
 int id_db_final(void *k,void *d,va_list ap) { return 0; }
+int pc_db_final(void *k,void *d,va_list ap) { return 0; }
 int map_db_final(void *k,void *d,va_list ap) { return 0; }
 int nick_db_final(void *k,void *d,va_list ap)
 {
@@ -3603,6 +3648,7 @@ void do_final(void) {
 	}
 
 	numdb_final(id_db, id_db_final);
+	numdb_final(pc_db, pc_db_final);
 	strdb_final(map_db, map_db_final);
 	strdb_final(nick_db, nick_db_final);
 	numdb_final(charid_db, charid_db_final);
@@ -3756,6 +3802,7 @@ int do_init(int argc, char *argv[]) {
 	log_config_read(LOG_CONF_NAME);
 
 	id_db = numdb_init();
+	pc_db = numdb_init();	//Added for reliable map_id2sd() use. [Skotlex]
 	map_db = strdb_init(MAP_NAME_LENGTH);
 	nick_db = strdb_init(NAME_LENGTH);
 	charid_db = numdb_init();
