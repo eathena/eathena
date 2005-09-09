@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/09
+	* Added check to prevent skills from triggering auto-skills of the same id
+	  (prevents unlimited chain-reactions) [Skotlex]
 	* General fixes to guardian spawning code. [Skotlex]
 	  (includes setting a timer so the Emperium gets it's guild data if not
 	  available at spawn time).

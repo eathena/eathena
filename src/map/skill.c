@@ -1188,14 +1188,18 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	if(sd && !status_isdead(bl) && (!skillid || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
 	{
 		struct block_list *tbl;
-		int i, skillid, skilllv, rate;
+		int i, auto_skillid, auto_skilllv, rate;
 
 		for (i = 0; i < 10; i++) {
 			if (sd->autospell_id[i] == 0)
 				break;
 
-			skillid = (sd->autospell_id[i] > 0) ? sd->autospell_id[i] : -sd->autospell_id[i];
-			skilllv = (sd->autospell_lv[i] > 0) ? sd->autospell_lv[i] : 1;
+			auto_skillid = (sd->autospell_id[i] > 0) ? sd->autospell_id[i] : -sd->autospell_id[i];
+
+			if (auto_skillid == skillid) //Prevents skill from retriggering themselves. [Skotlex]
+				continue;
+			
+			auto_skilllv = (sd->autospell_lv[i] > 0) ? sd->autospell_lv[i] : 1;
 			rate = (!sd->state.arrow_atk) ? sd->autospell_rate[i] : sd->autospell_rate[i] / 2;
 			
 			if (rand()%100 > rate)
@@ -1205,20 +1209,20 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			else
 				tbl = bl;
 			
-			if (skill_get_inf(skillid) & INF_GROUND_SKILL)
-				skill_castend_pos2(src, tbl->x, tbl->y, skillid, skilllv, tick, 0);
+			if (skill_get_inf(auto_skillid) & INF_GROUND_SKILL)
+				skill_castend_pos2(src, tbl->x, tbl->y, auto_skillid, auto_skilllv, tick, 0);
 			else {
-				switch (skill_get_nk(skillid)) {
+				switch (skill_get_nk(auto_skillid)) {
 					case NK_NO_DAMAGE:
-						if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
+						if ((auto_skillid == AL_HEAL || (auto_skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
 							battle_check_undead(status_get_race(tbl),status_get_elem_type(tbl)))
-							skill_castend_damage_id(src, tbl, skillid, skilllv, tick, 0);
+							skill_castend_damage_id(src, tbl, auto_skillid, auto_skilllv, tick, 0);
 						else
-							skill_castend_nodamage_id(src, tbl, skillid, skilllv, tick, 0);
+							skill_castend_nodamage_id(src, tbl, auto_skillid, auto_skilllv, tick, 0);
 						break;
 					case NK_SPLASH_DAMAGE:
 					default:
-						skill_castend_damage_id(src, tbl, skillid, skilllv, tick, 0);
+						skill_castend_damage_id(src, tbl, auto_skillid, auto_skilllv, tick, 0);
 						break;
 				}
 			}
