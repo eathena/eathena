@@ -8760,9 +8760,11 @@ void clif_parse_Wis(int fd, struct map_session_data *sd) { // S 0096 <len>.w <ni
 
 	if(gm_command) aFree(gm_command);
 
-
 	//Chat Logging type 'W' / Whisper
-	log_chat("W", 0, sd->status.char_id, sd->status.account_id, (char*)sd->mapname, sd->bl.x, sd->bl.y, (char*)RFIFOP(fd, 4), (char*)RFIFOP(fd, 28));
+	if(log_config.chat&1 //we log everything then
+		|| ( log_config.chat&2 //if Whisper bit is on
+		&& ( !agit_flag || !(log_config.chat&16) ))) //if WOE ONLY flag is off or AGIT is OFF
+		log_chat("W", 0, sd->status.char_id, sd->status.account_id, (char*)sd->mapname, sd->bl.x, sd->bl.y, (char*)RFIFOP(fd, 4), (char*)RFIFOP(fd, 28));
 
 
 //-------------------------------------------------------//
