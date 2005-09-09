@@ -2483,7 +2483,6 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 	struct map_session_data *sd = NULL, *tsd = NULL;
 	struct status_change *sc_data, *tsc_data;
 	int race, ele, damage, rdamage = 0;
-	int skill_num = 0, skill_lv = 0; //For attacks that convert to a skill [Skotlex]
 	struct Damage wd;
 	short *opt1;
 
@@ -2561,14 +2560,16 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			}
 
 		}
-		if(sd && (skill_lv = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16 && rand()%100 < (30 - skill_lv)) // triple blow works with bows ^^ [celest]
-			return skill_attack(BF_WEAPON,src,src,target,MO_TRIPLEATTACK,skill_lv,tick,0);
+		//Recycled the rdamage variable rather than use a new one... [Skotlex]
+		if(sd && (rdamage = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0 && sd->status.weapon <= 16 && rand()%100 < (30 - rdamage)) // triple blow works with bows ^^ [celest]
+			return skill_attack(BF_WEAPON,src,src,target,MO_TRIPLEATTACK,rdamage,tick,0);
 		else if (sc_data && sc_data[SC_SACRIFICE].timer != -1)
 			return skill_attack(BF_WEAPON,src,src,target,PA_SACRIFICE,sc_data[SC_SACRIFICE].val1,tick,0);
 			
-		wd = battle_calc_weapon_attack(src,target, skill_num, skill_lv,0);
+		wd = battle_calc_weapon_attack(src,target, 0, 0,0);
 	
 		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
+			rdamage = 0;
 			if (wd.flag & BF_SHORT) {
 				if (tsd && tsd->short_weapon_damage_return > 0 && rand()%100 < tsd->short_weapon_damage_return)
 					rdamage = damage;
@@ -4054,6 +4055,11 @@ void battle_validate_conf() {
 		battle_config.dynamic_mobs = 1;	//The flag will be used in assignations
 	if (battle_config.mob_max_skilllvl> 11 || battle_config.mob_max_skilllvl<1 )
 		battle_config.mob_max_skilllvl = 11;
+
+	if (battle_config.firewall_hits_on_undead < 1)
+		battle_config.firewall_hits_on_undead = 1;
+	else if (battle_config.firewall_hits_on_undead > 255) //The flag passed to battle_calc_damage is limited to 0xff
+		battle_config.firewall_hits_on_undead = 255;
 }
 
 /*==========================================
