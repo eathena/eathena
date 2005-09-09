@@ -1952,14 +1952,14 @@ struct block_list * map_id2bl(int id)
 static int map_foreachpc_sub(void * key,void * data,va_list ap)
 {
 	struct map_session_data *sd = (struct map_session_data*) data;
-	struct map_session_data *total_sd = va_arg(ap, struct map_session_data**);
-	int *count = va_arg(app, int*);
-	if (*count => map_getusers)
+	struct map_session_data **total_sd = va_arg(ap, struct map_session_data**);
+	int *count = va_arg(ap, int*);
+	if (*count >= map_getusers())
 	{
 		ShowError("map_foreachpc_sub: More players than those specified by map_getusers()!\n");
 		return 0;
 	}
-	*total_sd[(*count)++] = sd;
+	(*total_sd)[(*count)++] = *sd;
 	return 0;
 }
 
@@ -1972,14 +1972,14 @@ void map_foreachpc(int (*func)(struct map_session_data **, int, va_list ap),...)
 	int count =0;
 	va_list ap;
 
-	total_sd = aCalloc(map_getusers(), sizeof(map_session_data*)); //it's actually just the size of a pointer.
+	total_sd = aCalloc(map_getusers(), sizeof(struct map_session_data*)); //it's actually just the size of a pointer.
 
 	va_start(ap,func);
-	numdb_foreach(pc_db,map_foreach_pc_sub,&total_sd, &count);
+	numdb_foreach(pc_db,map_foreachpc_sub,&total_sd, &count);
 	func(total_sd, count, ap);
 	va_end(ap);
 	aFree(total_sd);
-	return 0;
+	return;
 }
 
 /*==========================================
