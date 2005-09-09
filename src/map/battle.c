@@ -2538,7 +2538,8 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			if(tsc_data[SC_AUTOCOUNTER].timer != -1 &&
 				(!sc_data || sc_data[SC_AUTOCOUNTER].timer == -1))
 			{
-				int dir = map_calc_dir(src,target->x,target->y),t_dir = status_get_dir(target);
+				int dir = map_calc_dir(src,target->x,target->y);
+				int t_dir = (status_get_dir(target)+4)%8; //Direction must be inverted 180% for this to work correctly. [Skotlex]
 				int dist = distance(src->x,src->y,target->x,target->y);
 				if(dist <= 0 || (!map_check_dir(dir,t_dir) && dist <= status_get_range(target)+1))
 				{

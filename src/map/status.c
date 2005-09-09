@@ -1752,6 +1752,8 @@ int status_calc_def(struct block_list *bl, int def)
 			def -= def * sc_data[SC_SIGNUMCRUCIS].val2/100;
 		if(sc_data[SC_CONCENTRATION].timer!=-1)
 			def -= def * 5*sc_data[SC_CONCENTRATION].val1/100;
+		if(sc_data[SC_PROVOKE].timer!=-1)
+			def -= def * (5+5*sc_data[SC_PROVOKE].val1)/100;
 	}
 
 	return def;
@@ -1770,8 +1772,6 @@ int status_calc_def2(struct block_list *bl, int def2)
 			return 0;
 		if(sc_data[SC_ANGELUS].timer!=-1)
 			def2 += def2 * (10+5*sc_data[SC_ANGELUS].val1)/100;
-		if(sc_data[SC_PROVOKE].timer!=-1)
-			def2 -= def2 * (5+5*sc_data[SC_PROVOKE].val1)/100;
 		if(sc_data[SC_CONCENTRATION].timer!=-1)
 			def2 -= def2 * 5*sc_data[SC_CONCENTRATION].val1/100;
 		if(sc_data[SC_POISON].timer!=-1)
