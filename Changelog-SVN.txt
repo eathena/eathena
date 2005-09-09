@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/08
+	* Made Musical Strike/Slinging Arrow work while in ensembles. [Skotlex]
 	* Oops, fixed the compile error. [Skotlex]
 	* Various checks to prevent trying to send data to disconnected players in
 	  clif_send [Skotlex]

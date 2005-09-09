@@ -7949,8 +7949,8 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		}
 		/* 演奏/ダンス中 */
 		if (sc_data[SC_DANCING].timer != -1) {
-			if (sc_data[SC_DANCING].val4 && skill_num != BD_ADAPTATION) //合奏中はアドリブ以外不可
-				return 0;
+//			if (sc_data[SC_DANCING].val4 && skill_num != BD_ADAPTATION) //Viccious reported that this restriction does not applies. [Skotlex]
+//				return 0;
 			if (skill_num != BD_ADAPTATION && skill_num != BA_MUSICALSTRIKE && skill_num != DC_THROWARROW)
 				return 0;
 		}
