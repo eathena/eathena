@@ -253,7 +253,7 @@ static int send_from_fifo(int fd)
 void flush_fifos()
 {
 	int i;
-	for(i=0;i<fd_max;i++)
+	for(i=1;i<fd_max;i++)
 		if(session[i] != NULL &&
 		   session[i]->func_send == send_from_fifo)
 			send_from_fifo(i);
@@ -433,7 +433,10 @@ int console_recieve(int i) {
 	if ( n < 0 )
 		ShowError("Console input read error\n");
 	else
-		session[0]->func_console(buf);
+	{
+		ShowNotice ("Sorry, the console is currently non-functional.\n");
+//		session[0]->func_console(buf);
+	}
 
 	aFree(buf);
 	return 0;
@@ -477,6 +480,11 @@ void func_parse_check (struct socket_data *sd)
 
 // Console Input [Wizputer]
 int start_console(void) {
+
+	//Until a better plan is came up with... can't be using session[0] anymore! [Skotlex]
+	ShowNotice("The console is currently nonfunctional.\n");
+	return 0;
+	
 	FD_SET(0,&readfds);
 
 	if (!session[0]) {	// dummy socket already uses fd 0
@@ -689,7 +697,7 @@ int do_sendrecv(int next)
 		FD_ZERO(&rfd);
 		FD_ZERO(&wfd);
 		FD_ZERO(&efd);
-		for(i = 0; i < fd_max; i++) {
+		for(i = 1; i < fd_max; i++) { //Session 0 is not parsed, it's a 'vacuum' for disconnected sessions. [Skotlex]
 			if (!session[i])
 				continue;
 			if (FD_ISSET(i, &readfds))
@@ -836,7 +844,7 @@ int do_parsepacket(void)
 {
 	int i;
 	struct socket_data *sd;
-	for(i = 0; i < fd_max; i++){
+	for(i = 1; i < fd_max; i++){
 		sd = session[i];
 		if(!sd)
 			continue;
@@ -1285,12 +1293,13 @@ void socket_init (void)
 	// initialise last send-receive tick
 	last_tick = time(0);
 
-	// session[0] にダミーデータを確保する
+	// session[0] Was for the console (whatever that was?), but is now currently used for disconnected sessions of the map
+	// server, and as such, should hold enough buffer (it is a vacuum so to speak) as it is never flushed. [Skotlex]
 	CREATE(session[0], struct socket_data, 1);
-	CREATE_A(session[0]->rdata, unsigned char, rfifo_size);
-	CREATE_A(session[0]->wdata, unsigned char, wfifo_size);
-	session[0]->max_rdata   = (int)rfifo_size;
-	session[0]->max_wdata   = (int)wfifo_size;
+	CREATE_A(session[0]->rdata, unsigned char, 2*rfifo_size);
+	CREATE_A(session[0]->wdata, unsigned char, 2*wfifo_size);
+	session[0]->max_rdata   = (int)2*rfifo_size;
+	session[0]->max_wdata   = (int)2*wfifo_size;
 
 	memset (func_parse_table, 0, sizeof(func_parse_table));
 	func_parse_table[SESSION_RAW].check = default_func_check;

@@ -37,6 +37,8 @@
 	--
 
 09/08
+	* Small fix to the self-destruction skill of Marine Sphere as pointed out
+	  by Komurka [Skotlex]
 	* Fixed the alchemist related skills for marine sphere from rate 10% to
 	  rate 100% [Skotlex]
 	* Fixed some songs/dances's target (changed it from "all  " to "all") [Skotlex]

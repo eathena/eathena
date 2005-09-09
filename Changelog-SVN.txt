@@ -1,6 +1,9 @@
 Date	Added
 =======
 09/09
+	* Removed the console functionality from socket.c (it was no good on the
+	  map server since that session is used on disconnected players), also added
+	  more checks to prevent parsing session 0. [Skotlex]
 	* Added check to prevent skills from triggering auto-skills of the same id
 	  (prevents unlimited chain-reactions) [Skotlex]
 	* General fixes to guardian spawning code. [Skotlex]
