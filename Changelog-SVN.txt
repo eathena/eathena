@@ -1,6 +1,10 @@
 Date	Added
 =======
 09/10
+	* Fixed Defender's aspd bonus. [Skotlex]
+	* Fixed rooted character's root level (instead of using the caster's level) [Skotlex]
+	* Windows builds will now abort and exit when there's a "Software Caused
+	  Connection Abort" error since it seems unrecoverable.. [Skotlex]
 	* Reverted back my char.c/sql char.c changes 8) Have to re-check [Lupus]
 	* Added official Louyang city (thanks to MasterOfMuppets), fixed some Kafra bugs [Lupus]
 	  check npc/changelog.txt

@@ -1896,7 +1896,7 @@ int status_calc_aspd_rate(struct block_list *bl, int aspd_rate)
 			if(sc_data[SC_STEELBODY].timer!=-1)
 				aspd_rate += 25;
 			if(sc_data[SC_DEFENDER].timer != -1)
-				aspd_rate += (2 -sc_data[SC_DEFENDER].val1*5);
+				aspd_rate += 25 -sc_data[SC_DEFENDER].val1*5;
 			if(sc_data[SC_GOSPEL].timer!=-1 && sc_data[SC_GOSPEL].val4 == BCT_ENEMY)
 				aspd_rate += 25;
 			if(sc_data[SC_GRAVITATION].timer!=-1)

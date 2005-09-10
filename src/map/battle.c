@@ -2555,8 +2555,9 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				int skilllv = tsc_data[SC_BLADESTOP_WAIT].val1;
 				status_change_end(target, SC_BLADESTOP_WAIT, -1);
 				clif_damage(src, target, tick, status_get_amotion(src), 1, 0, 1, 0, 0); //Display MISS.
-				status_change_start(src, SC_BLADESTOP, skilllv, 1, (int)src, (int)target, skill_get_time2(MO_BLADESTOP,skilllv), 0);
 				status_change_start(target, SC_BLADESTOP, skilllv, 2, (int)target, (int)src, skill_get_time2(MO_BLADESTOP,skilllv), 0);
+				skilllv = sd?pc_checkskill(sd, MO_BLADESTOP):1;
+				status_change_start(src, SC_BLADESTOP, skilllv, 1, (int)src, (int)target, skill_get_time2(MO_BLADESTOP,skilllv), 0);
 				return 0;
 			}
 

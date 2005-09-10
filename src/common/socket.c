@@ -141,7 +141,7 @@ static int recv_to_fifo(int fd)
 	if (len == SOCKET_ERROR) {
 		if (WSAGetLastError() == WSAECONNABORTED) {
 			ShowFatalError("recv_to_fifo: Network broken (Software caused connection abort on session #%d)\n", fd);
-//			exit(1);
+			exit(1);	//Windows can't really recover from this one. [Skotlex]
 		}
 		if (WSAGetLastError() != WSAEWOULDBLOCK) {
 //			ShowDebug("recv_to_fifo: error %d, ending connection #%d\n", WSAGetLastError(), fd);
