@@ -181,7 +181,7 @@ void usercheck(void){
 		printf("Sorry, but eAthena do not run as SuperUser (root)\n");
 		printf("Please use an user-account to host a Server!\n");
 		printf("Never use root, root is only for sys-configuration and sys-maintenances!\n");
-		//exit(1);
+		exit(1);
 	}
 }
 
