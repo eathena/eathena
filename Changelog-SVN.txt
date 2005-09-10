@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/10
+	* Another change to autocounter, I think it will work now. [Skotlex]
 	* Fixed Defender's aspd bonus. [Skotlex]
 	* Fixed rooted character's root level (instead of using the caster's level) [Skotlex]
 	* Windows builds will now abort and exit when there's a "Software Caused
