@@ -1752,7 +1752,7 @@ int status_calc_def(struct block_list *bl, int def)
 			def -= def * sc_data[SC_SIGNUMCRUCIS].val2/100;
 		if(sc_data[SC_CONCENTRATION].timer!=-1)
 			def -= def * 5*sc_data[SC_CONCENTRATION].val1/100;
-		if(sc_data[SC_PROVOKE].timer!=-1)
+		if(sc_data[SC_PROVOKE].timer!=-1 && bl->type != BL_PC) //Provoke doesn't alters player defense.
 			def -= def * (5+5*sc_data[SC_PROVOKE].val1)/100;
 	}
 
@@ -1776,6 +1776,8 @@ int status_calc_def2(struct block_list *bl, int def2)
 			def2 -= def2 * 5*sc_data[SC_CONCENTRATION].val1/100;
 		if(sc_data[SC_POISON].timer!=-1)
 			def2 -= def2 * 25/100;
+		if(sc_data[SC_PROVOKE].timer!=-1)
+			def2 -= def2 * (5+5*sc_data[SC_PROVOKE].val1)/100;
 		if(sc_data[SC_JOINTBEAT].timer!=-1){
 			if(sc_data[SC_JOINTBEAT].val2==3)
 				def2 -= def2 * 50/100;

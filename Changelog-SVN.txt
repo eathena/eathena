@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/10
+	* Change Provoke to affect armor def of mobs, and vit def of mobs/players. [Skotlex]
 	* Another change to autocounter, I think it will work now. [Skotlex]
 	* Fixed Defender's aspd bonus. [Skotlex]
 	* Fixed rooted character's root level (instead of using the caster's level) [Skotlex]
