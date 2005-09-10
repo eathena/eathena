@@ -9817,7 +9817,7 @@ int skill_unit_timer_sub( struct block_list *bl, va_list ap )
 				unit->limit=DIFF_TICK(tick+1500,group->tick);
 				break;
 			case UNT_SKIDTRAP:
-   			case UNT_ANKLESNARE:
+			case UNT_ANKLESNARE:
 			case UNT_LANDMINE:
 			case UNT_SHOCKWAVE:
 			case UNT_SANDMAN:
