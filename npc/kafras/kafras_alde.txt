@@ -3,7 +3,7 @@
 //===== By: ============================
 //= eAthena Dev Team
 //===== Current Version: =======================
-//= 2.1b
+//= 2.2
 //===== Compatible With: ============================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -17,6 +17,7 @@
 //= v1.1 Now using functions :)
 //= v2.1b Minor changes to function calls. Using arguments.
 //= This version uses arrays .[kobra_k88]
+//= 2.2 Fixed Kafra, not giving you Save services [Lupus]
 //=====================================================================
 
 

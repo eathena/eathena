@@ -3,7 +3,7 @@
 //===== By: =========================
 //= eAthena Dev Team
 //===== Current Version: ===================
-//= 2.1b
+//= 2.2
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -18,6 +18,7 @@
 //= v2.1 Added Niflheim Kafra by Dizzy
 //= v2.1b Minor changes to function calls.  Using arguments.
 //= This version uses arrays .[kobra_k88]
+//= 2.2 Added Louyang Kafra, fixed other kafras not saving players coords [Lupus]
 //==========================================================================
 
 
@@ -29,6 +30,16 @@ gonryun.gat,159,122,4	script	Kafra	116,{
 
 	M_Save:
 		savepoint "gonryun.gat",160,62;
+		callfunc "F_KafEnd",0,1;
+}
+
+// Louyang -----------------------------------------------------------------
+louyang.gat,210,104,5	script	Kafra	115,{
+	cutin "kafra_03",2;
+	callfunc "F_Kafra",0,1,1;
+
+	M_Save:
+		savepoint "louyang.gat",217,92;
 		callfunc "F_KafEnd",0,1;
 }
 
@@ -45,8 +56,8 @@ umbala.gat,128,133,4	script	Kafra	115,{
 
 // Niflheim ----------------------------------------------------------------
 niflheim.gat,190,180,5	script	Kafra	791,{
-	callfunc "F_Kafra",1,1,1;
-
+	callfunc "F_Kafra",1,2,1;
+//this SAVE isn't used. Niflheim Kafra doesn't SAVE
 	M_Save:
 		savepoint "niflheim.gat",192,182;
 		callfunc "F_KafEnd",1,1;

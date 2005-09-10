@@ -1635,8 +1635,8 @@
 7023,Blade_Lost_in_Darkness,Blade Lost in Darkness,3,12000,0,40,,,,,,,,,,,,{},{}
 7024,Bloody_Edge,Bloody Edge,3,10000,0,40,,,,,,,,,,,,{},{}
 7025,Lucifer's_Lament,Lucifer's Lament,3,30000,0,50,,,,,,,,,,,,{},{}
-7026,Key_of_Clock_Tower,Key of Clock Tower,3,2,0,30,,,,,,,,,,,,{},{}
-7027,Key_of_Underground,Key of Underground,3,2,0,30,,,,,,,,,,,,{},{}
+7026,Key_of_Clock_Tower,Key of Clock Tower,3,100,0,30,,,,,,,,,,,,{},{}
+7027,Key_of_Underground,Key of Underground,3,100,0,30,,,,,,,,,,,,{},{}
 7028,Invite_for_Duel,Invite for Duel,3,0,0,10,,,,,,,,,,,,{},{}
 7029,Admission_for_Duel,Admission for Duel,3,20,0,10,,,,,,,,,,,,{},{}
 7030,Claw_of_Desert_Wolf,Claw of Desert Wolf,3,208,0,10,,,,,,,,,,,,{},{}
@@ -1647,7 +1647,7 @@
 7035,Matchstick,Matchstick,3,100,0,10,,,,,,,,,,,,{},{}
 7036,Fang_of_Garm,Fang of Garm,3,100,0,10,,,,,,,,,,,,{},{}
 7037,Coupon,Coupon,3,2000,0,10,,,,,,,,,,,,{},{}
-7038,Yarn,Yarn,3,20,0,10,,,,,,,,,,,,{},{}
+7038,Yarn,Yarn,3,100,0,10,,,,,,,,,,,,{},{}
 7039,Novice_Nametag,Novice Nametag,3,20,0,10,,,,,,,,,,,,{},{}
 7040,Megaphone,Megaphone,3,20,0,10,,,,,,,,,,,,{},{}
 7041,Fine_Grit,Fine Grit,3,20,0,10,,,,,,,,,,,,{},{}
@@ -1778,7 +1778,7 @@
 7166,Soft_Silk_Fabric,Soft Silk Fabric,3,1200,0,10,,,,,,,,,,,,{},{}
 7167,Strange_Piece_of_Iron,Strange Piece of Iron,3,430,0,10,,,,,,,,,,,,{},{}
 7168,Big_Wing_of_Butterfly,Big Wing of Butterfly,3,614,0,10,,,,,,,,,,,,{},{}
-7169,Tae_Guk_Tablet,Tae Guk Tablet,3,280,0,10,,,,,,,,,,,,{},{}
+7169,Tae_Guk_Tablet,Tae Guk Tablet,3,2800,0,10,,,,,,,,,,,,{},{}
 7170,Tuxedo,Tuxedo,5,43000,0,10,,0,,0,10477566,1,16,,0,1,0,{},{ changebase 22; }
 7171,Skin_of_Panther,Skin of Panther,3,282,0,10,,,,,,,,,,,,{},{}
 7172,Claw_of_Panther,Claw of Panther,3,290,0,10,,,,,,,,,,,,{},{}
@@ -1878,8 +1878,8 @@
 7266,Dragon_Teeth,Dragon Teeth,3,436,0,10,,,,,,,,,,,,{},{}
 7267,Tigerskin_Underwear,Tigerskin Underwear,3,298,0,10,,,,,,,,,,,,{},{}
 7268,Ghost_Doll,Ghost Doll,3,1210,0,10,,,,,,,,,,,,{},{}
-7269,Baby_Bib,Baby Bib,3,20,0,10,,,,,,,,,,,,{},{}
-7270,Baby_Bottle,Baby Bottle,3,20,0,10,,,,,,,,,,,,{},{}
+7269,Baby_Bib,Baby Bib,3,960,0,10,,,,,,,,,,,,{},{}
+7270,Baby_Bottle,Baby Bottle,3,1100,0,10,,,,,,,,,,,,{},{}
 7271,Novice_Statue,Novice Statue,3,20,0,10,,,,,,,,,,,,{},{}
 7272,Dumpling_Doll,Dumpling Doll,3,20,0,10,,,,,,,,,,,,{},{}
 7273,RWC_Necklace,RWC Necklace,3,20,0,10,,,,,,,,,,,,{},{}
@@ -1898,18 +1898,18 @@
 7286,Red_Chili,Red Chili,3,20,0,10,,,,,,,,,,,,{},{}
 7287,Holier_Threads,Holier Threads,3,2,0,10,,,,,,,,,,,,{},{}
 7288,Engagement_Ring,Engagement Ring,3,20,0,10,,,,,,,,,,,,{},{}
-7289,Peridot,Peridotite,3,20,0,100,,,,,,,,,,,,{},{}
-7290,Phlogopite,Phlogopite,3,20,0,100,,,,,,,,,,,,{},{}
-7291,Agate,Agate,3,20,0,100,,,,,,,,,,,,{},{}
-7292,Muscovite,Muscovite,3,20,0,100,,,,,,,,,,,,{},{}
-7293,Rose_Quartz,Rose Quartz,3,20,0,100,,,,,,,,,,,,{},{}
-7294,Turquoise,Turquoise,3,20,0,100,,,,,,,,,,,,{},{}
-7295,Citrine,Citrine,3,20,0,100,,,,,,,,,,,,{},{}
-7296,Pyroxene,Pyroxene,3,20,0,100,,,,,,,,,,,,{},{}
-7297,Biotite,Biotite,3,20,0,100,,,,,,,,,,,,{},{}
-7298,Fig_Leaf,Fig Leaf,3,548,0,10,,,,,,,,,,,,{},{}
+7289,Peridot,Peridotite,3,3000,0,100,,,,,,,,,,,,{},{}
+7290,Phlogopite,Phlogopite,3,3000,0,100,,,,,,,,,,,,{},{}
+7291,Agate,Agate,3,3000,0,100,,,,,,,,,,,,{},{}
+7292,Muscovite,Muscovite,3,3000,0,100,,,,,,,,,,,,{},{}
+7293,Rose_Quartz,Rose Quartz,3,3000,0,100,,,,,,,,,,,,{},{}
+7294,Turquoise,Turquoise,3,3000,0,100,,,,,,,,,,,,{},{}
+7295,Citrine,Citrine,3,3000,0,100,,,,,,,,,,,,{},{}
+7296,Pyroxene,Pyroxene,3,3000,0,100,,,,,,,,,,,,{},{}
+7297,Biotite,Biotite,3,3000,0,100,,,,,,,,,,,,{},{}
+7298,Fig_Leaf,Fig Leaf,3,538,0,10,,,,,,,,,,,,{},{}
 7299,Straw_Basket,Straw Basket,3,632,0,10,,,,,,,,,,,,{},{}
-7300,Gemstone,Gemstone,3,20,0,10,,,,,,,,,,,,{},{}
+7300,Gemstone,Gemstone,3,1420,0,10,,,,,,,,,,,,{},{}
 7301,Tassel,Tassel,3,798,0,10,,,,,,,,,,,,{},{}
 7302,Krathong,Krathong,3,20,0,10,,,,,,,,,,,,{},{}
 7303,Straw_Rice_Bag,Straw Rice Bag,3,20,0,800,,,,,,,,,,,,{},{}

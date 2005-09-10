@@ -3,7 +3,7 @@
 //===== By: ============================
 //= eAthena Dev Team
 //===== Current Version: =======================
-//= 2.1b
+//= 2.2
 //===== Compatible With: ============================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -19,6 +19,7 @@
 //= v2.1 Fixed bug with Merc job quest kafra.[Lupus]
 //= v2.1b Minor changes to function calls.  Using arguments.
 //= Added ant hell kafras.  This version uses arrays .[kobra_k88]
+//= Fixed Kafras, not giving you Save menu [Lupus]
 //===============================================================
 
 

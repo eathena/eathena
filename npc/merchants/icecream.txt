@@ -1,16 +1,16 @@
-// $Id: IceCream.txt,v 1.1.1.1 2004/09/10 17:26:42 MagicalTux Exp $
 //===== eAthena Script =======================================
 //= Ice Cream Maker
 //===== By: ==================================================
 //= KOOK SWU
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= eAthena 1.0
 //===== Description: =========================================
 //= A man makes you ice-cream
 //===== Additional Comments: =================================
 //= 1.1 Optimized, changed overlapping coords in Alberta [Lupus]
+//= 1.2 According to the patch, IceCream seller has been removed from Morocc [Lupus]
 //============================================================
 
 //ALBERTA
@@ -61,4 +61,4 @@ alberta.gat,120,45,2	script	Ice Cream Maker::IceCreamer	85,{
 moc_fild16.gat,88,304,4	duplicate(IceCreamer)	Ice Cream Maker#2	85
 
 //MORROC
-morocc.gat,160,144,4	duplicate(IceCreamer)	Ice Cream Maker#3	85
+//morocc.gat,160,144,4	duplicate(IceCreamer)	Ice Cream Maker#3	85

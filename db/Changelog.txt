@@ -36,6 +36,8 @@
 	12121,Resist_Thunder //Resist Wind element, same as above
 	--
 
+09/10
+	* Added missing official prices to Louyang (mostly) items. Thanks to MasterOfMuppets [Lupus]
 09/09
 	* Added some of the missing mob skills that Komurka claims don't work on eA
 	  yet. These will be tested and debugged at a later date. [Skotlex]

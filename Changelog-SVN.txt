@@ -1,5 +1,8 @@
 Date	Added
 =======
+09/10
+	* Added official Louyang city (thanks to MasterOfMuppets), fixed some Kafra bugs [Lupus]
+	  check npc/changelog.txt
 09/09
 	* Fixed TXT/SQL char servers not reading properly their command line arguments [Lupus]
 	* Refixed those compiler errors >.< [Skotlex]

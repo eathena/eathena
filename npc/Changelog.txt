@@ -28,6 +28,15 @@ TODO:
 
 Date		Added
 ======
+09/10
+	* Fixed some Kafras not allowing you to save your Position [Lupus]
+	* Updated missing Louyang warps. [Lupus]
+	- Replaced custom Louyang with official one. Thanks to MasterOfMuppets
+	- Added Louyang official Kafra (only Storage, Save) [Lupus]
+	* Added official Hair Styler [Lupus]
+	- Thanks to Muad Dib for the script. Thanks to Dr.Evil for a nice conversion.
+	TODO: optimize Louyang and Hair Styler scripts 8)) [Lupus]
+	* Removed Ice-Cream dealer from Morocc (according to patch) [Lupus]
 09/07
 	* Fixed Super Novice job quest. Now a Baby can become a Super Baby. [Lupus]
 09/06
