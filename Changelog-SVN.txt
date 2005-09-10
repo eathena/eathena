@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/10
+	* Reverted back my char.c/sql char.c changes 8) Have to re-check [Lupus]
 	* Added official Louyang city (thanks to MasterOfMuppets), fixed some Kafra bugs [Lupus]
 	  check npc/changelog.txt
 09/09

@@ -3951,13 +3951,13 @@ int do_init(int argc, char **argv){
 		server_fd[i] = -1;
 	}
 
-	char_config_read((argc < 1) ? CHAR_CONF_NAME : argv[1]);
-	char_lan_config_read((argc > 1) ? argv[2] : LAN_CONF_NAME);
+	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
+	char_lan_config_read((argc > 1) ? argv[1] : LAN_CONF_NAME);
 	sql_config_read(SQL_CONF_NAME);
 
 	ShowInfo("charserver configuration reading done.\n");
 
-	inter_init((argc > 2) ? argv[3] : inter_cfgName); // inter server 초기화
+	inter_init((argc > 2) ? argv[2] : inter_cfgName); // inter server 초기화
 	ShowInfo("interserver configuration reading done.\n");
 
 	//Read ItemDB
