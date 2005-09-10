@@ -1185,7 +1185,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	//Reports say that autospell effects get triggered on skills and pretty much everything including splash attacks. [Skotlex]
 	//Here we use the nk value to trigger spells only on damage causing skills (otherwise stuff like AL_HEAL will trigger them)
-	if(sd && !status_isdead(bl) && (!skillid || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
+	if(sd && !status_isdead(bl) && src != bl &&(!skillid || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
 	{
 		struct block_list *tbl;
 		int i, auto_skillid, auto_skilllv, rate;
@@ -1343,7 +1343,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	}
 
 	//Trigger counter-spells to retaliate against damage causing skills. [Skotlex]
-	if (dstsd && !status_isdead(bl) && (!skillid || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
+	if(dstsd && !status_isdead(bl) && src != bl &&(!skillid || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
 	{
 		struct block_list *tbl;
 		int i, skillid, skilllv, rate;

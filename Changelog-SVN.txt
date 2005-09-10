@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/10
+	* Added check to prevent auto-spells from being casted when the source and
+	  target are the same (normally you can't hit yourself, though....) [Skotlex]
 	* Fixed Root [Skotlex]
 	* Fixed the issue which made mobs do nothing. [Skotlex]
 	* Change Provoke to affect armor def of mobs, and vit def of mobs/players. [Skotlex]
