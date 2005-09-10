@@ -44,7 +44,6 @@
 09/10
 	* 2647,Nile_Rose now gives only +10 MaxHP (each event item loses its bonuses after awhile) [Lupus]
 	* Added missing official prices to Louyang (mostly) items. Thanks to MasterOfMuppets [Lupus]
-	* Added missing official prices to Louyang (mostly) items. Thanks to MasterOfMuppets [Lupus]
 09/09
 	* Added some of the missing mob skills that Komurka claims don't work on eA
 	  yet. These will be tested and debugged at a later date. [Skotlex]
