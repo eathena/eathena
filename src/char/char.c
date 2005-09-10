@@ -3755,8 +3755,8 @@ void set_server_type(void)
 int do_init(int argc, char **argv) {
 	int i;
 
-	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
-	lan_config_read((argc > 1) ? argv[1] : LOGIN_LAN_CONF_NAME);
+	char_config_read((argc < 1) ? CHAR_CONF_NAME : argv[1]);
+	lan_config_read((argc > 1) ? argv[2] : LOGIN_LAN_CONF_NAME);
 
 	// a newline in the log...
 	char_log("");

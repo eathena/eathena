@@ -1,6 +1,7 @@
 Date	Added
 =======
 09/09
+	* Fixed TXT/SQL char servers not reading properly their command line arguments [Lupus]
 	* Refixed those compiler errors >.< [Skotlex]
 	* Readded the damage delay to firewall. [Skotlex]
 	* Added an extra db (pc_db) to hold players, it should speed up map_id2sd
