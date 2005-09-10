@@ -1119,7 +1119,7 @@
 2644,The_Sign_,The Sign,5,20,0,0,,0,,0,10477567,2,136,,0,0,0,{},{ bonus bMatkRate,5; }
 2645,Moonlight_Ring,Moonlight Ring,5,20,0,200,,0,,0,135232,2,136,,60,0,0,{},{}
 2646,Bouquet_,Bunch of Carnations,5,20,0,100,,0,,0,10477567,2,136,,0,0,0,{},{ bonus bAllStats,3; }
-2647,Nile_Rose,Nile Rose,5,20,0,100,,0,,0,10477567,2,136,,0,0,0,{},{ bonus bAllStats,5; }
+2647,Nile_Rose,Nile Rose,5,20,0,100,,0,,0,10477567,2,136,,0,0,0,{},{ bonus bMaxHP,10; }
 2648,Morphicious_Ring,Ring of Morphicious,5,20,0,100,,0,,0,2088958,2,136,,33,0,0,{},{ bonus bInt,1; bonus bMaxSPrate,5; }
 2649,Morphicious_Bracelet,Bracelet of Morphicious,5,20,0,100,,0,,0,2088958,2,136,,33,0,0,{},{ bonus bInt,1; bonus bMaxSPrate,5; }
 2650,Belt_of_Morrigan,Belt of Morrigan,5,20,0,200,,0,,0,2088958,2,136,,61,0,0,{},{ bonus bAtk,5; bonus bCritical,3; }
