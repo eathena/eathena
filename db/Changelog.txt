@@ -38,7 +38,7 @@
 
 09/11
 	* Increased movement speed of 1516,INCREASE_SOIL (checked it on the official servers) [MasterOfMuppets]
-	* 
+	* Drooping Cat now can be upgradeable (proved by some official servers) [Lupus]
 	* Temporary made Lighthalzen (Juperos) mobs aggressive to prevent abuse. Till we get their real stats/skills [Lupus]
 	* Fixed some monsters names to Aegis compatible format (should be useful for some spawn/ mobs skills convertors) [Lupus]
 09/10
