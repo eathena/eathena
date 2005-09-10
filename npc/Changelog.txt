@@ -29,6 +29,7 @@ TODO:
 Date		Added
 ======
 09/11
+	* Added Belts to Prontera/Aldebaran shops, thanks to reddozen [Lupus]
 	* Optimized Louyang city NPCs. Made Louyang quests vars unique [Lupus]
 09/10
 	* Fixed some Kafras not allowing you to save your Position [Lupus]

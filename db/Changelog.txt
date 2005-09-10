@@ -37,6 +37,9 @@
 	--
 
 09/11
+	* Increased movement speed of 1516,INCREASE_SOIL (checked it on the official servers) [MasterOfMuppets]
+	* 
+	* Temporary made Lighthalzen (Juperos) mobs aggressive to prevent abuse. Till we get their real stats/skills [Lupus]
 	* Fixed some monsters names to Aegis compatible format (should be useful for some spawn/ mobs skills convertors) [Lupus]
 09/10
 	* 2647,Nile_Rose now gives only +10 MaxHP (each event item loses its bonuses after awhile) [Lupus]
