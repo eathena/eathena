@@ -1,0 +1,12 @@
+This is the production branch of eAthena used at www.clownphobia.com.
+It was splitt off from stable at revision 1887, so lacks namy of the 
+features that have prevented "stable" from living up to its name. 
+(including, unfortunately, Taekwon) But is capable of 24hour+ uptimes 
+with userloads of up to 1000.
+
+The most important change is the login-server, which is customized to 
+read its accounts from an Invision Power Board accounts table, allowing 
+additional security (IPB uses one-way password encryption) and 
+server-forum inegration.
+
+This branch is SQL-Only, text databases not supported.

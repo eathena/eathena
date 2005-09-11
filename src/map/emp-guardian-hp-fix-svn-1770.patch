@@ -1,0 +1,75 @@
+diff -uNr src.svn/map/clif.c src/map/clif.c
+--- src.svn/map/clif.c	2005-05-16 00:10:48.000000000 -0700
++++ src/map/clif.c	2005-05-16 12:25:45.865910408 -0700
+@@ -8047,7 +8047,7 @@
+ 				}
+ 			} else if (battle_config.show_mob_hp == 1) {
+ 				char mobhp[50];
+-				sprintf(mobhp, "hp: %d/%d", md->hp, mob_db[md->class_].max_hp);
++				sprintf(mobhp, "hp: %d/%d", md->hp, md->max_hp);
+ 				WFIFOW(fd, 0) = 0x195;
+ 				memcpy(WFIFOP(fd,30), mobhp, 24);
+ 				WFIFOB(fd,54) = 0;
+diff -uNr src.svn/map/map.h src/map/map.h
+--- src.svn/map/map.h	2005-05-16 00:10:48.000000000 -0700
++++ src/map/map.h	2005-05-16 12:25:59.662812960 -0700
+@@ -484,6 +484,7 @@
+ 	short target_dir;
+ 	short speed;
+ 	int hp;
++	int max_hp;
+ 	int target_id,attacked_id;
+ 	short attacked_count;
+ 	short target_lv;
+diff -uNr src.svn/map/mob.c src/map/mob.c
+--- src.svn/map/mob.c	2005-05-16 13:28:41.717893656 -0700
++++ src/map/mob.c	2005-05-16 13:28:21.813919520 -0700
+@@ -206,8 +206,8 @@
+ 		if(class_ == 1288) {	// emperium hp based on defense level [Valaris]
+ 			struct guild_castle *gc = guild_mapname2gc(map[md->bl.m].name);
+ 			if(gc)	{
+-				mob_db[class_].max_hp += 2000 * gc->defense;
+-				md->hp = mob_db[class_].max_hp;
++				md->max_hp += 2000 * gc->defense;
++				md->hp = md->max_hp;
+ 			}
+ 		}	// end addition [Valaris]
+ 	}
+@@ -315,7 +315,7 @@
+ 
+ 		gc=guild_mapname2gc(map[md->bl.m].name);
+ 		if(gc)	{
+-			mob_db[class_].max_hp+=2000*gc->defense;
++			md->max_hp+=2000*gc->defense;
+ 			if(guardian==0) { md->hp=gc->Ghp0; gc->GID0=md->bl.id; }
+ 			if(guardian==1) { md->hp=gc->Ghp1; gc->GID1=md->bl.id; }
+ 			if(guardian==2) { md->hp=gc->Ghp2; gc->GID2=md->bl.id; }
+@@ -1025,6 +1025,7 @@
+ 	memset(md->skillunit,0,sizeof(md->skillunit));
+ 	memset(md->skillunittick,0,sizeof(md->skillunittick));
+ 
++	md->max_hp = mob_db[md->class_].max_hp;
+ 	md->hp = status_get_max_hp(&md->bl);
+ 	if(md->hp<=0){
+ 		mob_makedummymobdb(md->class_);
+@@ -3585,7 +3586,7 @@
+ 		return 0;
+ 	rate=va_arg(ap,int);
+ 	fr=va_arg(ap,struct mob_data **);
+-	if (md->hp < mob_db[md->class_].max_hp * rate / 100)
++	if (md->hp < md->max_hp * rate / 100)
+ 		(*fr) = md;
+ 	return 0;
+ }
+diff -uNr src.svn/map/status.c src/map/status.c
+--- src.svn/map/status.c	2005-05-16 00:10:48.000000000 -0700
++++ src/map/status.c	2005-05-16 12:23:45.553200720 -0700
+@@ -1785,7 +1785,7 @@
+ 		if(bl->type == BL_MOB) {
+ 			struct mob_data *md;
+ 			nullpo_retr(1, md = (struct mob_data *)bl);
+-			max_hp = mob_db[md->class_].max_hp;
++			max_hp = ((struct mob_data*)bl)->max_hp;
+ 
+ 			if(battle_config.mobs_level_up) // mobs leveling up increase [Valaris]
+ 				max_hp += (md->level - mob_db[md->class_].lv) * status_get_vit(bl);
