@@ -29,6 +29,9 @@ TODO:
 Date		Added
 ======
 09/11
+	* Added temp Ayothaya Kafra (wrong sprite, wrong coords yet) [Lupus]
+	- Made all dungeons Kafras not saving your coords again (re-checked sources)
+	* Added official Bulletin Boards script by MasterOfMuppets
 	* Resticted entrance of 3F Lighthalzen dungeonby Azazel [Lupus]
 	* Added Belts to Prontera/Aldebaran shops, thanks to reddozen [Lupus]
 	* Optimized Louyang city NPCs. Made Louyang quests vars unique [Lupus]

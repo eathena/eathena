@@ -5,7 +5,7 @@
 //= eAthena Dev Team
 //= Darlskies, Darkchild, Syrus22, Lupus, kobra_k88 (2.0)
 //===== Current Version: ===================================== 
-//= 2.5
+//= 2.6
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ===============================================
@@ -27,6 +27,7 @@
 //= Removed annoying storage feature where u had to close dialog
 //= window to be able to use your storage [Lupus]
 //= 2.5 Added Louyang official Kafra, fixes some Kafras, not letting you to Save your position [Lupus]
+//= 2.6 Reverted Dungeons Kafras (they should offer only Storage). Added temp Ayothaya Kafra
 //============================================================ 
 
 
@@ -45,11 +46,11 @@ function	script	F_Kafra	{
 	M_Menu:
 //Guilds Kafra
 	if(getarg(0)==2) menu "-Use Storage",M_Storage, "-Use Guild Storage",M_GStorage, "-Rent a Cart",M_Cart, "-Use Teleport Service",M_Teleport, "-Cancel",M_End;
-//for Louyang, North Prontera and the rest Kafras with SAVE, but w/o Teleport/Rent Cart
+//only Save & Storage
 	if(getarg(1)==1) menu "-Save",M_Save,"-Use Storage",M_Storage, "-Cancel",M_End;
-//For Niflheim (only Storage)
+//only Storage)
 	if(getarg(1)==2) menu "-Use Storage",M_Storage, "-Cancel",M_End;
-//Common
+//Common Kafra
 	menu	"-Save",M_Save, "-Use Storage",M_Storage, "-Use Teleport Service",M_Teleport, "-Rent a Cart",M_Cart, "-Kafra Pass",M_Pass, 
 		"-Other Information Check",M_Info, "-Cancel",M_End;
 

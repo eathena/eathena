@@ -3,7 +3,7 @@
 //===== By: =========================
 //= eAthena Dev Team
 //===== Current Version: ===================
-//= 2.2
+//= 2.3
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -19,8 +19,18 @@
 //= v2.1b Minor changes to function calls.  Using arguments.
 //= This version uses arrays .[kobra_k88]
 //= 2.2 Added Louyang Kafra, fixed other kafras not saving players coords [Lupus]
+//= 2.3 Added temp Ayothaya Kafra (wrong coords and sprite) [Lupus]
 //==========================================================================
 
+// Ayothaya -----------------------------------------------------------------
+ayothaya.gat,143,69,6	script	Kafra	721,{
+	cutin "kafra_07",2;
+	callfunc "F_Kafra",0,1,1;
+
+	M_Save:
+		savepoint "ayothaya.gat",149,69;
+		callfunc "F_KafEnd",0,1;
+}
 
 // Gonryun -----------------------------------------------------------------
 gonryun.gat,159,122,4	script	Kafra	116,{

@@ -3,7 +3,7 @@
 //===== By: ============================
 //= eAthena Dev Team
 //===== Current Version: =======================
-//= 2.2
+//= 2.3
 //===== Compatible With: ============================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -18,13 +18,14 @@
 //= v2.1b Minor changes to function calls. Using arguments.
 //= This version uses arrays .[kobra_k88]
 //= 2.2 Fixed Kafra, not giving you Save services [Lupus]
+//= 2.3 Reverted back 2.2 [Lupus]
 //=====================================================================
 
 
 // Kafra Main Office (Kafra Leilah) ------------------------------------
 aldeba_in.gat,96,181,4	script	Kafra Leilah	113,{
 	cutin "kafra_05",2;
-	callfunc "F_Kafra",0,1,1;
+	callfunc "F_Kafra",0,2,1;
 
 	M_Save:
 		savepoint "aldeba_in.gat",96,179;
