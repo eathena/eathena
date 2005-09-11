@@ -396,7 +396,7 @@ L_BQ4:
 	mes "prepared all trunks yet?";
 	mes "Do you want to just change jobs";
 	mes "anyways?";	
-	menu "Yes",-,"Wait, not yet",M_NO;
+	menu "Yes",-,"Wait, not yet",M_NO2;
 
 	if(skillpoint != 0) goto L_SKILLSLEFT;
 
@@ -409,7 +409,7 @@ L_CLOSE:
 	mes "See you next time!";
 	close;
 
-M_NO:
+M_NO2:
 	mes "Ok I'll just wait here.";
 	close;
 
