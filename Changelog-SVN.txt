@@ -1,5 +1,7 @@
 Date	Added
 =======
+09/11
+	* Added check to prevent ensemble skills from changing position. [Skotlex]
 09/10
 	* Removed the changing of targets for offensive songs in gvg grounds. [Skotlex]
 	* Corrected Grand Cross not always hitting 3 times. [Skotlex]

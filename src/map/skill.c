@@ -9962,6 +9962,9 @@ int skill_unit_move_unit_group( struct skill_unit_group *group, int m,int dx,int
 			group->skill_id!=HT_CLAYMORETRAP && group->skill_id!=HT_BLASTMINE)
 		return 0;
 
+	if (skill_get_unit_flag(group->skill_id)&UF_ENSEMBLE) //Ensemble skills can't be moved!
+		return 0;
+		
 	m_flag = (int *) aMalloc(sizeof(int)*group->unit_count);
 	memset(m_flag,0,sizeof(int)*group->unit_count);// 移動フラグ
 	// 先にフラグを全部決める
