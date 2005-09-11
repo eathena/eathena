@@ -1,0 +1,408 @@
+// Navise - pun on "novice"
+
+// names from Legend GMs
+// Antonia - Anthony "clownisius" Hernandez
+// Kelli - Kelly "Aru" Youngblood
+// Shawna - James "Mo0gLe" Shaw
+// Justine - Justin "Gunstar"
+// Neximova - "Vladimir Nexium"
+// Talbe - "Blatt" pronounced backwards
+
+// Lumiera - sugested by "Spot", lightside GM
+
+// Novice Shop
+ama_in01.gat,181,124,2	shop	Nicole	745,1243:2400,2112:500,2340:-1,2352:1000,2414:400,2510:1000,2628:-1,5055:1000
+
+// Novice Master
+ama_in01.gat,182,131,3	script	Navise	23,{
+	close;
+}
+// How do you make a player sprite clickable?
+// Create an invisible NPC on the same location.
+ama_in01.gat,182,131,0	script	Navise	111,{
+	if(Class==23) goto L_SuperNovice;
+	if(Class==0) goto L_Novice;
+
+	mes "[Navise]";
+	mes "...";
+	close;
+
+L_Novice:
+	mes "[Navise]";
+	mes "Hello "+strcharinfo(0)+". Did you come here to learn the secrets of the ^0000FFSuper Novice^000000?";
+	next;
+	menu "Yes",L_Yes,
+		"No",L_No;
+	close;
+
+L_No:
+	mes "[Navise]";
+	mes "Really? That's too bad. There's so much you could learn.";
+	close; 
+
+L_SuperNovice:
+	mes "[Navise]";
+	if(gender == 1) goto L_Male;
+	mes "How are you, sister?";
+	close;
+	
+L_Male:
+	mes "How are you, brother?";
+	close;
+
+L_Yes:
+	mes "[Navise]";
+	mes "Good. There are three requirements to becoming a Super Novice. You must have a ^0000FFBase Level^000000 of ^00800045^000000 or higher. You must know all your ^0000FFBasic Skills^000000, and you must pass the ^0000FFNovice Guild test^000000.";
+	next;
+	menu "Make me a super novice",L_Check,"Never mind",-;
+	mes "[Navise]";
+	mes "Very well then...";
+	close;
+
+L_Check:
+	set @disqualified, 0;
+	mes "[Navise]";
+	if (BaseLevel<45) goto Low_Level;
+	mes "Your base level is OK.";
+L_Check2:
+	if (getskilllv(1) < 9) goto Low_Basic;
+	mes "You know all your basic skills.";
+L_Check3:
+	if (SN_passed < 1) goto No_Test;
+L_CheckDone:
+	if(@disqualified > 0) close;
+	next;
+	mes "[Navise]";
+	mes "Congratulations!";
+	mes "Welcome to the elite few, the Super Novices.";
+	jobchange 23;
+	close;
+
+Low_Level:
+	set @disqualified,1;
+	mes "Your base level is too low.";
+	goto L_Check2;
+
+Low_Basic:
+	set @disqualified,1;
+	mes "Your basic skills are lacking.";
+	goto L_Check3;
+
+No_Test:
+	set @disqualified,1;
+	mes "You haven't passed the test. Speak to ^FF0000Antonia^000000 here to take it.";
+	goto L_CheckDone;
+}
+
+ama_in01.gat,172,131,4	script	Antonia	729,{
+	if((Class==23) || (SN_passed==1)) goto L_Passed;
+	if(SN_reg==1) goto L_Evaluate;
+	if(Class==0) goto L_Enter;
+
+	mes "[Antonia]";
+	mes "...";
+	close;
+
+L_Passed:
+	mes "[Antonia]";
+	mes "Congratulations on passing the test.";
+	close;
+
+L_Enter:
+	mes "[Antonia]";
+	mes "Hello "+strcharinfo(0)+", would you like to register for the Novice Guild Test?";
+	next;
+	menu "Yes",L_Yes,"No",-;
+	mes "[Antonia]";
+	mes "Ok, talk to me again if you change your mind.";
+	close;
+
+L_Yes:
+	mes "[Antonia]";
+	mes "Ok, I have you registered.";
+	set SN_reg, 1;
+	next;
+L_Explain:
+	mes "[Antonia]";
+	mes "Ok, here's what you have to do.";
+	mes "As you may know, Super Novices have the combined skills of ^0000FFSwordsmen^000000, ^0000FFMerchants^000000, ^0000FFThieves^000000, ^0000FFArchers^000000, ^0000FFAcolytes^000000, and ^0000FFMages^000000.";
+	next;
+	mes "[Antonia]";
+	mes "If you want to pass the test and become a Super Novice, you'll need to visit each of these six guilds and talk to our agents in them.";
+	mes "They'll be dressed like me, so you can recognise them easily. Good Luck.";
+	close;
+
+L_Evaluate:
+	set @SN_points, 0;
+	if (SN_sword == 1) set @SN_points, @SN_points+1;
+	if (SN_merch == 1) set @SN_points, @SN_points+1;
+	if (SN_thief == 1) set @SN_points, @SN_points+1;
+	if (SN_mage == 1) set @SN_points, @SN_points+1;
+	if (SN_aco == 1) set @SN_points, @SN_points+1;
+	if (SN_archer == 1) set @SN_points, @SN_points+1;
+	mes "[Antonia]";
+	mes "Let's see, you've spoken to "+@SN_points+" of our 6 agents.";
+	if (@SN_points < 6) goto L_Fail;
+	mes "That's all of them.";
+	next;
+	mes "[Antonia]";
+	mes "Congratulations, you've passed!";
+	set SN_passed, 1;
+	mes "I'll tell ^0000FFNavise^000000 the good news.";
+	close;
+	
+
+L_Fail:
+	mes "You're not finished yet.";
+	next;
+	menu "What do I need to do again?",L_Explain,
+		"Ok, I'l keep looking.",-;
+
+	mes "[Antonia]";
+	mes "Good luck.";
+	close;
+}
+
+prt_church.gat,90,107,0	script	Lumiera	729,{
+	if ((Class==23) || (SN_passed==1)) goto L_passed;
+	if (Class==0) goto L_novice;
+
+	mes "[Lumiera]";
+	mes "I'm praying.";
+	mes "Please don't interrupt.";
+	close;
+
+L_passed:
+	mes "[Lumiera]";
+	mes "Congratulations on passing our test.";
+	close;
+
+L_novice:
+	mes "[Lumiera]";
+	mes "Did you come here to become an Acolyte?";
+	next;
+	menu "Yes",L_yes,"No",L_no;
+	close;
+
+L_yes:
+	mes "[Lumiera]";
+	mes "Why? What's wrong with being a Novice?";
+	mes "Oh well.";
+	mes "Anyway, Acolyte training is being held in the right side room.";
+	close;
+
+L_no:
+	mes "[Lumiera]";
+	mes "That's good, there's nothing wrong with being a Novice.";
+	if (SN_reg == 1) goto L_quest;
+	close;
+
+L_quest:
+	next;
+	mes "[Lumiera]";
+	mes "I'll tell the the Novice guild you found me.";
+	set SN_aco, 1;
+	close;
+}
+
+moc_prydb1.gat,163,133,4	script	Kelli	729,{
+	if ((Class==23) || (SN_passed==1)) goto L_passed;
+	if (Class==0) goto L_novice;
+
+	mes "[Kelli]";
+	mes "I'm practicing hiding.";
+	mes "Don't tell anyone you found me.";
+	close;
+
+L_passed:
+	mes "[Kelli]";
+	mes "Congratulations on passing our test.";
+	close;
+
+L_novice:
+	mes "[Kelli]";
+	mes "Did you come here to become a Thief?";
+	next;
+	menu "Yes",L_yes,"No",L_no;
+	close;
+
+L_yes:
+	mes "[Kelli]";
+	mes "Why? What's wrong with being a Novice?";
+	mes "Thief training's being held in the other room you jerk.";
+	close;
+
+L_no:
+	mes "[Kelli]";
+	mes "That's good, there's nothing wrong with being a Novice.";
+	if (SN_reg == 1) goto L_quest;
+	close;
+
+L_quest:
+	next;
+	mes "[Kelli]";
+	mes "I'll tell the the Novice guild you found me.";
+	set SN_thief, 1;
+	close;
+}
+
+payon_in02.gat,22,31,4	script	Shawna	729,{
+	if ((Class==23) || (SN_passed==1)) goto L_passed;
+	if (Class==0) goto L_novice;
+
+	mes "[Shawna]";
+	mes "I'm preparing my lecture on basic RO ettiquette.";
+	mes "Not that any of these damn archers ever bother listening.";
+	close;
+
+L_passed:
+	mes "[Shawna]";
+	mes "Congratulations on passing our test.";
+	close;
+
+L_novice:
+	mes "[Shawna]";
+	mes "Did you come here to become an Archer?";
+	next;
+	menu "Yes",L_yes,"No",L_no;
+	close;
+
+L_yes:
+	mes "[Shawna]";
+	mes "Why? What's wrong with being a Novice?";
+	mes "Go ahead, be another rude, kill-stealing Archer!";
+	close;
+
+L_no:
+	mes "[Shawna]";
+	mes "That's good, there's nothing wrong with being a Novice.";
+	if (SN_reg == 1) goto L_quest;
+	close;
+
+L_quest:
+	next;
+	mes "[Shawna]";
+	mes "I'll tell the the Novice guild you found me.";
+	set SN_archer, 1;
+	close;
+}
+
+alberta_in.gat,12,72,6	script	Justine	729,{
+	if ((Class==23) || (SN_passed==1)) goto L_passed;
+	if (Class==0) goto L_novice;
+
+	mes "[Justine]";
+	mes "Don't bother me. I have to inventory these crates.";
+	close;
+
+L_passed:
+	mes "[Justine]";
+	mes "Congratulations on passing our test.";
+	close;
+
+L_novice:
+	mes "[Justine]";
+	mes "Did you come here to become a Merchant?";
+	next;
+	menu "Yes",L_yes,"No",L_no;
+	close;
+
+L_yes:
+	mes "[Justine]";
+	mes "Well, I guess merchants aren't so bad, but I wouldn't want to be one.";
+	mes "Merchant training's being held in the other room. No scamming now.";
+	close;
+
+L_no:
+	mes "[Justine]";
+	mes "That's good, there's nothing wrong with being a Novice.";
+	if (SN_reg == 1) goto L_quest;
+	close;
+
+L_quest:
+	next;
+	mes "[Justine]";
+	mes "I'll tell the the Novice guild you found me.";
+	set SN_merch, 1;
+	close;
+}
+
+geffen_in.gat,176,105,2	script	Neximova	729,{
+	if ((Class==23) || (SN_passed==1)) goto L_passed;
+	if (Class==0) goto L_novice;
+
+	mes "[Neximova]";
+	mes "Mage quest? I just came in here to get out of the sun.";
+	close;
+
+L_passed:
+	mes "[Neximova]";
+	mes "Congratulations on passing our test.";
+	close;
+
+L_novice:
+	mes "[Neximova]";
+	mes "Did you come here to become a Mage?";
+	next;
+	menu "Yes",L_yes,"No",L_no;
+	close;
+
+L_yes:
+	mes "[Neximova]";
+	mes "Why? What's wrong with being a Novice? You'll never see a Novice begging for a Phen card.";
+	close;
+
+L_no:
+	mes "[Neximova]";
+	mes "That's good, there's nothing wrong with being a Novice.";
+	if (SN_reg == 1) goto L_quest;
+	close;
+
+L_quest:
+	next;
+	mes "[Neximova]";
+	mes "I'll tell the the Novice guild you found me.";
+	set SN_mage, 1;
+	close;
+}
+
+izlude_in.gat,123,175,4	script	Talbe	729,{
+	if ((Class==23) || (SN_passed==1)) goto L_passed;
+	if (Class==0) goto L_novice;
+
+	mes "[Talbe]";
+	mes "I'm just checking out the cute swordie guys. Don't mind me.";
+	close;
+
+L_passed:
+	mes "[Talbe]";
+	mes "Congratulations on passing our test.";
+	close;
+
+L_novice:
+	mes "[Talbe]";
+	mes "Did you come here to become a Swordsman?";
+	next;
+	menu "Yes",L_yes,"No",L_no;
+	close;
+
+L_yes:
+	mes "[Talbe]";
+	mes "Aww, I think you're cuter as a Novice.";
+	mes "Anyway, training's n the other room.";
+	close;
+
+L_no:
+	mes "[Talbe]";
+	mes "That's good, there's nothing wrong with being a Novice.";
+	if (SN_reg == 1) goto L_quest;
+	close;
+
+L_quest:
+	next;
+	mes "[Talbe]";
+	mes "I'll tell the the Novice guild you found me.";
+	set SN_sword, 1;
+	close;
+}
+

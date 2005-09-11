@@ -1,0 +1,517 @@
+//===== Athena Script =======================================
+//= Ayothaya
+//===== By ================================================
+//= Mega Man Expert
+//===== Version ===========================================
+//= 1.0
+//===== Compatible With ===================================
+//= eAthena 0.52
+//===== Description =======================================
+//= Town foke, Dungen Quest, Ring Quest
+//===== Comments ==========================================
+//= 
+//=========================================================
+
+//sailor
+ayothaya.gat,134,64,5	script	Sailor	100,{
+
+	mes "[Aurther]";
+	mes "Hmmm Jawaii needs a new shipment of supplies.";
+	mes "Maybe I could get some cargo here first.";
+	close;
+}
+
+//Item Sign
+ayothaya.gat,136,92,1	script	Sign	111,{
+
+	mes "^FF8000Item Shop of Ayothaya^000000";
+	mes "Buy your Ayothaya items here!";
+	close;
+}
+
+//Random Sign
+ayothaya.gat,112,148,1	script	Sign	111,{
+
+	mes "Shaman house right ahead.";
+	mes "~You see some writing on the sign~";
+	next;
+	mes "''Don't call HAL.'' is carved in the sign.";
+	close;
+}		
+
+//Weapon Shop sign
+ayothaya.gat,163,83,1	script	Sign	111,{
+
+	mes "^FF8000Weapon and Armor Shop^000000";
+	mes "Buy your Ayothaya weapons and armor here!";
+	close;
+}	
+
+//Fisher Bobby~~~Like to turn into mini-quest
+ayothaya.gat,225,175,3	script	Towns Fisher Man	843,{
+
+	mes "[Fisher Bobby]";
+	mes "To catch fish you need bait.";
+	mes "I know that fish tail work wonders.";
+	next;
+	mes "[Fisher Bobby]";
+	mes "I have heard of two worms that could catch any fish.";
+	mes "One day I will go and find these worms.";
+	close;
+} 
+
+//Towns men
+ayothaya.gat,116,163,3	script	Towns Person	841,{
+
+	mes "[Gundor]";
+	mes "This town has been here for over 200 years.";
+	mes "It was founded by an ancient people.";
+	mes "They where made by the gods to show there might.";
+	mes "The temple in the pit is there offering to the gods.";
+	close;
+}
+
+// Temple Guards
+ayothaya.gat,150,173,3	script	Guard	825,{
+
+	mes "[Guard]";
+	mes "Halt! Who goes there?";
+	next;
+	mes "[Guard]";
+	mes "Please leave.";
+	mes "Our mayor is busy with some city problems.";
+	close;
+}
+
+ayothaya.gat,280,276,3	duplicate(Guard)	Guard#2	825
+ayo_in02.gat,104,152,3	duplicate(Guard)	Guard#2	825
+ayo_in02.gat,95,152,6	duplicate(Guard)	Guard#2	825
+
+
+//Priest
+ayothaya.gat,150,173,3	script	Priest	834,{
+
+	mes "[Priest]";
+	mes "May you be enlighten by our god.";
+	heal 500,100;
+	next;
+	mes "[Priest]";
+	mes "Pray to the gods to be enlightened.";
+	close;
+}
+
+//Road Sign
+ayothaya.gat,150,89,1	script	Sign Post	111,{
+
+	mes "[Sign]";
+	mes "North to Temple.";
+	mes "South to Dock.";
+	mes "East to Ayothaya field and weapon shop.";
+	mes "West to item shop and shaman hut.";
+	close;
+}
+
+// Mayor of Ayothaya
+ayo_in02.gat,100,75,6	script Mayor	838,{
+
+	mes "[Mayor Ja-Ha_Lo]";
+	mes "I'm busy and waiting for some guest to get here.";
+	close;
+}
+
+//Explorer
+ayo_in01,135,18,3	script Explorer	832,{
+
+	mes "[Explorer Mike]";
+	mes I am traveling the world to see the sites and ruins.";
+	next;
+	mes "Did you know there is no way down to the ruins?
+mes “Also there are powerful monsters in it.";
+	close;
+}
+
+//Ayothaya Inn Keeper
+ayo_in01,30,95,3	script Inn keeper	839,{
+
+	mes "[Inn Keeper]";
+	mes "What can I do for you?";
+	close;
+}
+
+//Restraint Cook
+ayo_in01,140,165,3	script Cook	820,{
+
+	mes "[Cook]";
+	mes "Sorry where not open yet.";
+	mes "You can come back tomorrow.";
+	close:
+}
+
+//=====================================================================
+//=Dungeon Quest========================================================
+//=====================================================================
+
+ayothaya.gat,83,133,5	script	Dusit	120,{
+
+	if(D_Q >= 1 ) goto happy;
+
+	mes "[Dusit]";
+	mes "No one listens to me...";
+	mes "I really saw the ^00FF00Sa-mhing Tiger^000000!";
+	mes "Its a mad man eating tiger and it lives in the old temple";
+	mes "Do you believe that I saw it?";
+	next;
+	menu "Yes",yes,"Your a crack pot!",no;
+  
+	yes:
+	
+	mes "[Dusit]";
+	mes "The legend says that one who slays the tiger gets blessed from the gods.";
+	next;
+	mes "[Dusit]";
+	mes "You can learn more by our shaman ^00FF00Boomthom^000000.";
+	mes "She’s in a hut near here and she will tell you the legend more clearly.";
+	mes "Good Luck!";
+	set D_Q,1;
+	close;
+
+	no:
+	mes "[Dusit]";
+	mes "You are just like the others...";
+	close;
+
+	happy:
+	mes "[Dusit]";
+	mes "Well thanks for believing me.";
+	close;
+}
+
+ayo_in01.gat,182,171,5	script	Shamen	120,{
+
+	if(D_Q == 1 ) goto legend;
+	if(D_Q == 2 ) goto holy;
+	if(D_Q == 11 ) goto holier;
+	if(D_Q == 15 ) goto questend;
+
+	mes "[Shaman]";
+	mes "My bones hurt and the fish is no good.";
+	mes "Maybe I could tell you a story?";
+	close;
+
+	legend:
+	mes "[Boonthom]";
+	mes "I see you ran into old Dusit.";
+	next;
+	mes "[Boonthom]";
+	mes "I am Boonthom the wise Shaman and I see you want to hear a story";
+	mes "Well long ago when the village was new and had only three huts, there lived a man.";
+	mes "That man was named ^00FF00Sa-mhing^000000!";
+	mes "He angered the gods one day and the gods decided to punish him.";
+	mes "Well ^00FF00Sa-mhing^000000 knew he angered the gods and he devised a way to be blessed then cursed.";
+	mes "when the gods came for him, he ask them one favor.";
+	next;
+	mes "[Boonthom]";
+	mes "The gods asked him what was the favor and ^00FF00Sa-mhing^000000 said...";
+	next;
+	mes "[Boonthom]";
+	mes "'May I be turned in to this small beetle?' The gods went and cast their magic but they failed to see ^00FF00Sa-mhing^000000 holding a baby tiger.";
+	mes "^00FF00Sa-mhing^000000 held up the tiger and blocked the magic and he him self was transformed into a Half-man Half-Tigtr and disappeared.";
+	mes "The gods searched for him and never found him...";
+	mes "They say who ever slays the ^00FF00Sa-mhing Tiger^000000 will be made a god.";
+	next;
+	mes "[Boonthom]";
+	mes "But that happened 4000 years ago...";
+	mes "Any way it has been said that he lives in the old temple.";
+	mes "I have some thing to aid you on your quest to kill the ^00FF00Sa-mhing Tiger^000000.";
+	next;
+	mes "[Boonthom]";
+	mes "I will make a Holy thread that will show you the way.";
+	mes "You will need:";
+	mes "^00FF001 Broken Needle, 1 Spool,1 Solid Husk, and Holy Water^000000";
+	next;
+	mes "[Boonthom]";
+	mes "Please bring me these items.";
+	set D_Q,2;
+	close;
+
+	holy:
+	mes "[Boonthom]";
+	mes "Did you bring the items?";
+	if(countitem(7215)>=1) goto sorry;
+	if(countitem(7217)>=1) goto sorry;
+	if(countitem(7190)>=1) goto sorry;
+	if(countitem(523)>=1) goto sorry;
+	next;
+	mes "[Boonthom]";
+	mes "Thanks you now let me make your Holy Thread...";
+	delitem 7215,1; 
+	delitem 7217,1;
+	delitem 523,1;
+	delitem 7190,1; 
+	next;
+	mes "~5 Minutes later~";
+	next;
+	mes "[Boonthom]";
+	mes "Here you go.";
+	next;
+	mes "Your handed the Holy Thread.";
+	next;
+	mes "[Boonthom]";
+	mes "Go to Puriam at the edge of the old temple.";
+	mes "He will tell you what you must do.";
+	set D_Q,3;
+	close;
+
+	sorry:
+	mes "[Boonthom]";
+	mes "you don’t have all the items.";
+	mes "Bring me:^00FF001 Broken Needle, 1 Spool,1 Solid Husk, and Holy Water^000000";
+	close;
+
+		holier:
+		mes "[Boonthom]";
+		mes "You have returned!";
+		mes "You will need the Holier Thread to find ^00FF00Sa-mhing^000000";
+		next;
+		mes "Please bring me:";
+		mes "^00FF002 Broken Needles, 2 Spools,1 Yggdrasil Leaf, and 2 Holy Waters^000000";
+		set D_Q,12;
+		close;
+
+		holier2:
+		mes "[Boonthom]";
+		mes "Did you bring the items?";
+		if(countitem(7215)>=2) goto sorry2;
+		if(countitem(7217)>=2) goto sorry2;
+		if(countitem(610)>=1) goto sorry2;
+		if(countitem(523)>=2) goto sorry2;
+		next;
+		mes "[Boonthom]";
+		mes "Thanks you now let me make your Holier Thread...";
+		delitem 7215,2; 
+		delitem 7217,2;
+		delitem 523,2;
+		delitem 610,1;
+		next;
+		mes "~5 Minuets later~";
+		next;
+		mes "[Boonthom]";
+		mes "Here you go.";
+		next;
+		mes "Your handed the Holier Thread.";
+		next;
+		mes "[Boonthom]";
+		mes "Go to the second level and slay the beast.";
+		mes " the Holier Thread will tell you where he is.";
+		set D_Q,13;
+		close;
+
+			sorry2:
+			mes "[Boonthom]";
+			mes "you don’t have all the items.";
+			mes "^00FF002 Broken Needles, 2 Spools,1 Yggdrasil Leaf, and 2 Holy Waters^000000";
+			close;
+
+	questend:
+	mes "[Boonthom]";
+	mes "What’s this? A letter for me?";
+	mes "This letter was from my sister that died long ago...";
+	mes "Thank you and keep the Old Blue Box as a gift.";
+	mes "I guess there is no ^00FF00Sa-mhing Tiger^000000...";
+	getexp 153000,0;
+	set D_Q,16;
+	close;
+}
+
+ayo_fild01.gat,129,196,5	script	Puriam	120,{
+
+	if(D_Q == 3 ) goto first;
+	if(D_Q >= 4 ) goto second;
+
+	mes "[Puriam]";
+	mes "That temple looks scary... I wonder if there treasure in it?";
+	close;
+
+	first:
+	mes "[Puriam]";
+	mes "So Boonthom sent you.";
+	next;
+	mes "[Puriam]";
+	mes "Well all you need to do is walk in the temple and the Holy thread will guide you.";
+	mes "The dungeon has 6 tiles you must press on the floor to open the second level.";
+	mes "Your goal is in the second level and there you will find your monster.";
+	next;
+	mes "[Puriam]";
+	mes "Good luck!";
+	set D_Q,4;
+	next;
+	mes "~Puriam hits you so hard you fall down the hill into the temple.~";
+	next;
+	npctalk "Sorry!";
+	warp "ayo_fild02.gat",20,138;
+	end;
+
+	second:
+	mes "[Puriam]";
+	mes "Sorry about pushing you down there.";
+	mes "Would you like to go back?";
+	next;
+	menu "Yes",yes,"No",no;
+
+	yes:
+	warp "ayo_fild02.gat",20,138;
+	end;
+
+	no:
+	mes "[Puriam]";
+	mes "Ok suits me.";
+	close;
+
+}
+
+ayo_dun01.gat,275,14,1 script B_Plates	-1,10,10,{
+
+	if(D_Q == 4 ) goto spot1;
+	if(D_Q == 5 ) goto spot2;
+	if(D_Q == 6 ) goto spot3;
+	if(D_Q == 7 ) goto spot4;
+	if(D_Q == 8 ) goto spot5;
+	if(D_Q == 9 ) goto spot6;	
+	if(D_Q != 4 ) end;	
+
+	spot1:
+	announce "The thread glows and a spot is marked on your map",3;
+	viewpoint 1,193,163,1,0xFF0000;
+	set D_Q,5;
+	end;
+
+	spot2:
+	announce "Also the thread glows and a spot is marked on your map again",3;
+	viewpoint 1,83,16,2,0xFF0000;
+	end;
+
+	spot3:
+	announce "Also the thread glows and a spot is marked on your map again",3;
+	viewpoint 1,263,209,3,0xFF0000;
+	end;
+
+	spot4:
+	announce "Also the thread glows and a spot is marked on your map again",3;
+	viewpoint 1,143,266,4,0xFF0000;
+	end;
+
+	spot5:
+	announce "Also the thread glows and a spot is marked on your map again",3;
+	viewpoint 1,100,119,5,0xFF0000;
+	end;
+
+	spot6:
+	announce "Also the thread glows and a spot is marked on your map again",3;
+	viewpoint 1,20,188,6,0xFF0000;
+	end;
+}
+
+ayo_dun01.gat,193,163,1 script	Plate1	-1,4,4,{
+
+	if(D_Q == 5 ) goto spot2;	
+	if(D_Q != 5 ) end;	
+
+	spot2:
+	announce "You hear a faint grinding noise.",3;
+	announce "Also the thread glows and a spot is marked on your map again",3;
+	viewpoint 1,83,16,2,0xFF0000;
+	set D_Q,6;
+	end;
+}
+
+ayo_dun01.gat,83,16,1 script	Plate2	-1,4,4,{
+
+	if(D_Q == 6 ) goto spot3;	
+	if(D_Q != 6 ) end;	
+
+	spot3:
+	announce "You hear a faint grinding noise.",3;
+	announce "Also the thread glows and a spot is marked on your map again",3;
+	viewpoint 1,263,209,3,0xFF0000;
+	set D_Q,7;
+	end;
+}
+
+ayo_dun01.gat,263,209,1 script	Plate3	-1,4,4,{
+
+	if(D_Q == 7 ) goto spot4;	
+	if(D_Q != 7 ) end;	
+
+	spot4:
+	announce "You hear a faint grinding noise.",3;
+	announce "Also the thread glows and a spot is marked on your map again",3;
+	viewpoint 1,143,266,4,0xFF0000;
+	set D_Q,8;
+	end;
+}
+
+ayo_dun01.gat,143,266,1 script	Plate4	-1,4,4,{
+
+	if(D_Q == 8 ) goto spot5;	
+	if(D_Q != 8 ) end;	
+
+	spot5:
+	announce "You hear a faint grinding noise.",3;
+	announce "Also the thread glows and a spot is marked on your map again",3;
+	viewpoint 1,100,119,5,0xFF0000;
+	set D_Q,9;
+	end;
+}
+
+ayo_dun01.gat,100,119,1 script	Plate5	-1,4,4,{
+
+	if(D_Q == 9 ) goto spot6;	
+	if(D_Q != 9 ) end;	
+
+	spot6:
+	announce "You hear a faint grinding noise.",3;
+	announce "Also the thread glows and a spot is marked on your map again",3;
+	viewpoint 1,20,188,6,0xFF0000;
+	set D_Q,10;
+	end;
+}
+
+ayo_dun01.gat,20,188,1 script	Plate6	-1,4,4,{
+
+	if(D_Q == 10 ) goto spot7;	
+	if(D_Q != 10 ) end;	
+
+	spot7:
+	announce "You hear a faint grinding noise.",3;
+	announce "Also the Holy thread disappears and you hear a lot of grinding noise",3;
+	announce "The second level is now open to you!",3;
+	announce "You hear a voice: ''This is Boonthom. Please come back. I got one last thing for you.",3;
+	set D_Q,11;
+	end;
+}
+
+ayo_dun02.gat,230,234,1	script	Holier	-1,10,10,{
+
+	if(D_Q == 13 ) goto spot8;	
+	if(D_Q != 13 ) end;
+
+	spot8:
+	announce "The thread glows and a spot is marked on your map",3;
+	viewpoint 1,266,106,1,0xFF0000;
+	set D_Q,14;
+	end;
+}
+
+ayo_dun02.gat,230,234,1	script	OBB	-1,3,3,{
+
+	if(D_Q == 14 ) goto summon;	
+	if(D_Q != 14 ) end;
+
+	summon:
+	announce "As you get closer you see a Old Blue Box and a letter",3;
+	makeitem 603,1,266,106,"ayo_dun02.gat";
+	makeitem 7183,1,266,106,"ayo_dun02.gat";
+	announce "You see the letter is addressed to Boonthom.",3;
+	set D_Q,15;
+	end;
+}

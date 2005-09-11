@@ -1,0 +1,275 @@
+function	script	F_SkillReset	{
+	ResetSkill;
+	setoption 0x00;	
+	set PS_ID, 0;
+	set PS_LEV, 0;
+	next;
+	mes "[Status Sage]";
+	mes "Remember, you must use 39 skill points on 1st-job skills before you may learn 2nd-job skills.";
+	return;
+}
+
+function	script	Reset_CalcPrice	{
+	set @basejob, class;
+	set @skillprice, 3000*BaseLevel;
+	set @skillprice, @skillprice+3000;
+	set @statprice, 4000*BaseLevel;
+	set @statprice, @statprice+4000;
+	set @fullprice, 6000*BaseLevel;
+	set @fullprice, @fullprice+6000;
+	set @qprice, 5000;
+	if (class > 4000) goto High_Job;
+	return;
+
+High_Job:
+	set @basejob, class-4001;
+	set @skillprice, @skillprice+100000;
+	set @statprice, @statprice+100000;
+	set @fullprice, @fullprice+150000;
+	set @qprice, 50000;
+	return;
+}
+
+prontera.gat,164,170,3	script	Status Sage	756,{
+	cutin "son",2;
+	if(four_qset==5 && countitem(667)>0) callfunc "THQ_sage";
+	mes "[Girl]";
+	mes "I may not look it, but I'm a mighty sage with power over stats and skills.";
+	next;
+	if(class==13) goto L_Dismount;
+	if(class==21) goto L_Dismount;
+	if(class==4014) goto L_Dismount;
+	if(class==4022) goto L_Dismount;
+	mes "[Status Sage]";
+	mes "I can reset your stats or skills, or teach you special skills, for a price.";
+	next;
+	callfunc "Reset_CalcPrice";
+	menu "Learn Special Skills", L_Quest,
+		"Reset Skills - "+@skillprice, L_Skill,
+		"Reset Stats - "+@statprice, L_Stats,
+		"Reset Both - "+@fullprice, L_Full,
+		"Nothing today", L_Close2;
+
+L_Skill:
+	if (@basejob == 0 && (getskilllv(1) < 9)) goto No_Basic;
+	if (Zeny < @skillprice) goto No_Cash;
+	set Zeny, Zeny-@skillprice;
+	callfunc "F_SkillReset";
+	goto L_Close;
+
+L_Stats:
+	if (getskilllv(1) < 9) goto No_Basic;
+	if (Zeny < @statprice) goto No_Cash;
+	set Zeny, Zeny-@statprice;
+	ResetStatus;
+	mes "[Status Sage]";
+	mes "There, use your Stat Points better this time.";
+	goto L_Close;
+
+L_Full:
+	if (getskilllv(1) < 9) goto No_Basic;
+	if (Zeny < @fullprice) goto No_Cash;
+	set Zeny, Zeny-@fullprice;
+	ResetStatus;
+	callfunc "F_SkillReset";
+	goto L_Close;
+
+L_Quest:
+	if (getskilllv(142) < 1) goto L_EC;
+	mes "[Status Sage]";
+	mes "Special skills are "+@qprice+" each.";
+	next;
+L_QMenu:
+	menu "Act Dead",L_ActDead,
+		"Moving HP Recovery",L_Moving,
+		"Attack Weak Point",L_StunBash,
+		"Auto Berserk",L_Berserk,
+		"Arrow Creation",L_MakeArrow,
+		"Charge Arrow",L_ChargeArrow,
+		"Throw Sand",L_ThrowSand,
+		"Backslide",L_BackSlide,
+		"Take & Throw Stone",L_Stone,
+		"Cart Revolution",L_CartSpin,
+		"Change Cart",L_ChangeCart,
+		"Loud Exclamation",L_Loud,
+		"Holy Light",L_HolyLight,
+		"Energy Coat",L_EnergyCoat,
+		"nothing",L_Close2;
+
+	L_ActDead:
+		if(@basejob != 0) goto Not_Novice;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 143,1,0;
+		goto L_Got;
+
+	L_Moving:
+		if((@basejob != 1) && (@basejob != 7) && (@basejob != 14)) goto Not_Swordie;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 144,1,0;
+		goto L_Got;
+
+	L_StunBash:
+		if((@basejob != 1) && (@basejob != 7) && (@basejob != 14)) goto Not_Swordie;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 145,1,0;
+		goto L_Got;
+
+	L_Berserk:
+		if((@basejob != 1) && (@basejob != 7) && (@basejob != 14)) goto Not_Swordie;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 146,1,0;
+		goto L_Got;
+
+	L_MakeArrow:
+		if((@basejob != 3) && (@basejob != 11) && (@basejob != 19) && (@basejob != 20)) goto Not_Archer;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 147,1,0;
+		goto L_Got;
+
+	L_ChargeArrow:
+		if((@basejob != 3) && (@basejob != 11) && (@basejob != 19) && (@basejob != 20)) goto Not_Archer;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 148,1,0;
+		goto L_Got;
+
+	L_ThrowSand:
+		if((@basejob != 6) && (@basejob != 12) && (@basejob != 17)) goto Not_Thief;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 149,1,0;
+		goto L_Got;
+
+	L_BackSlide:
+		if((@basejob != 6) && (@basejob != 12) && (@basejob != 17)) goto Not_Thief;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 150,1,0;
+		goto L_Got;
+
+	L_Stone:
+		if((@basejob != 6) && (@basejob != 12) && (@basejob != 17)) goto Not_Thief;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 151,1,0;
+		skill 152,1,0;
+		goto L_Got;
+
+	L_CartSpin:
+		if((@basejob != 5) && (@basejob != 10) && (@basejob != 18)) goto Not_Merchant;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 153,1,0;
+		goto L_Got;
+
+	L_ChangeCart:
+		if((@basejob != 5) && (@basejob != 10) && (@basejob != 18)) goto Not_Merchant;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 154,1,0;
+		goto L_Got;
+
+	L_Loud:
+		if((@basejob != 5) && (@basejob != 10) && (@basejob != 18)) goto Not_Merchant2;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 155,1,0;
+		goto L_Got;
+
+	L_HolyLight:
+		if((@basejob != 4) && (@basejob != 8) && (@basejob != 15)) goto Not_Aco;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 156,1,0;
+		goto L_Got;
+
+	L_EnergyCoat:
+		if((@basejob != 2) && (@basejob != 9) && (@basejob != 16)) goto Not_Mage;
+		if(Zeny < @qprice) goto No_Cash;
+		set Zeny, Zeny-@qprice;
+		skill 157,1,0;
+		goto L_Got;
+
+L_Got:
+	mes "[Status Sage]";
+	mes "There you go, just don't spam it in town.";
+	goto L_Close;
+
+No_Cash:
+	mes "[Status Sage]";
+	mes "Sorry, you don't have enough Zeny.";
+	goto L_Close;
+
+No_Basic:
+	mes "[Status Sage]";
+	mes "You can't reset without Level 9 Basic Skill.";
+	goto L_Close;
+
+Not_Novice:
+	mes "[Status Sage]";
+	mes "Don't be silly, only Novices can learn that.";
+	goto L_Close;
+
+Not_Swordie:
+	mes "[Status Sage]";
+	mes "Don't be silly, only Swordsman-based classes can learn that.";
+	goto L_Close;
+
+Not_Archer:
+	mes "[Status Sage]";
+	mes "Don't be silly, only Archer-based classes can learn that.";
+	goto L_Close;
+
+Not_Thief:
+	mes "[Status Sage]";
+	mes "Don't be silly, only Thief-bases classes can learn that.";
+	goto L_Close;
+
+Not_Merchant:
+	if (@basejob == 23) goto Not_Merchant2;
+	mes "[Status Sage]";
+	mes "Don't be silly, you can't even use a cart.";
+	goto L_Close;
+
+Not_Merchant2:
+	mes "[Status Sage]";
+	mes "Don't be silly, only Merchant-based classes can learn that.";
+	goto L_Close;
+
+Not_Mage:
+	mes "[Status Sage]";
+	mes "Don't be silly, only Magician-based classes can learn that.";
+	goto L_Close;
+
+Not_Aco:
+	mes "[Status Sage]";
+	mes "Don't be silly, only Acolyte-based classes can learn that.";
+	goto L_Close;
+	
+L_EC:
+	mes "[Status Sage]";
+	mes "There, I'll give you 'Emergency Care' for free.";
+	mes "Anything else is "+@qprice+" each.";
+	skill 142,1,0;
+	next;
+	goto L_QMenu;
+
+L_Dismount:
+	mes "[Status Sage]";
+	mes "^FF0000Achoo!^000000";
+	mes "I'm sorry, but I'm allergic to feathers. Please keep your Peco away from me.";
+	goto L_Close;
+
+L_Close2:
+	mes "[Status Sage]";
+	mes "Perhaps another time.";
+
+L_Close:
+	cutin "son",255;
+	close;
+}

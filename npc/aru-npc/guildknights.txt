@@ -1,0 +1,83 @@
+function	script	F_GldKnt	{
+	set @GID, GetCastleData(getarg(0)+".gat",1);
+
+	mes "[Knight]";
+	if (@GID==0) goto L_Wait;
+	if (getcharid(2)==@GID) goto L_Same;
+	if(checkallied(getcharid(2),@GID)) goto L_Ally;
+
+	mes "You are not an ally of ^5533FF" + getguildmaster(@GID) + "^000000! Where are the guardians?";
+	close;
+
+	L_Wait:
+	mes "I am waiting for my master, Brave adventurer, follow your destiny!";
+	close;
+
+	L_Ally:
+	mes "The allies of ^5533FF" + getguildmaster(@GID) + "^000000 may enter the dungeon.";
+
+	L_Same:
+	mes "Will you enter the dungeon?";
+	next;
+	menu "Yes",-,"No",M_No;
+	warp "gld_dun0"+getarg(1)+".gat",getarg(2),getarg(3);
+	close;
+
+	M_No:
+		close;
+}
+
+aldeg_cas01.gat,31,238,7	script	Knight	728,{
+	callfunc "F_GldKnt","aldeg_cas01",02,32,122;
+}
+
+aldeg_cas02.gat,81,167,5	script	Knight	733,{
+	callfunc "F_GldKnt","aldeg_cas02",02,79,30;
+}
+
+aldeg_cas03.gat,108,288,5	script	Knight	734,{
+	callfunc "F_GldKnt","aldeg_cas03",02,165,38;
+}
+
+aldeg_cas04.gat,155,10,7	script	Knight	745,{
+	callfunc "F_GldKnt","aldeg_cas04",02,160,148;
+}
+
+aldeg_cas05.gat,209,99,6	script	Knight	751,{
+	callfunc "F_GldKnt","aldeg_cas05",02,103,169;
+}
+
+gefg_cas01.gat,32,159,5	script	Knight	728,{
+	callfunc "F_GldKnt","gefg_cas01",04,39,258;
+}
+gefg_cas01.gat,83,171,5	script	Knight	728,{
+	callfunc "F_GldKnt","gefg_cas01",04,39,258;
+}
+
+gefg_cas02.gat,63,145,5	script	Knight	733,{
+	callfunc "F_GldKnt","gefg_cas02",04,125,270;
+}
+
+gefg_cas03.gat,52,282,3	script	Knight	734,{
+	callfunc "F_GldKnt","gefg_cas03",04,268,251;
+}
+gefg_cas03.gat,97,269,7	script	Knight	734,{
+	callfunc "F_GldKnt","gefg_cas03",04,268,251;
+}
+gefg_cas03.gat,121,237,7	script	Knight	734,{
+	callfunc "F_GldKnt","gefg_cas03",04,268,251;
+}
+gefg_cas03.gat,58,160,5	script	Knight	734,{
+	callfunc "F_GldKnt","gefg_cas03",04,268,251;
+}
+
+gefg_cas04.gat,25,165,5	script	Knight	745,{
+	callfunc "F_GldKnt","gefg_cas04",04,268,108;
+}
+
+gefg_cas05.gat,80,18,7	script	Knight	751,{
+	callfunc "F_GldKnt","gefg_cas05",04,230,35;
+}
+gefg_cas05.gat,26,144,2	script	Knight	751,{
+	callfunc "F_GldKnt","gefg_cas05",04,230,35;
+}

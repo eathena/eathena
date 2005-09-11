@@ -1,0 +1,161 @@
+function	script	F_WoS	{
+	set @penalty, BaseLevel+1;
+	set @penalty, @penalty + PC_WOS_COUNT;
+	set @jpenalty, JobLevel+1+PC_WOS_COUNT;
+	set @bexpgain, NextBaseExp/@penalty;
+	set @jexpgain, NextJobExp/@jpenalty;
+	if(class<4000) goto Give_Exp;
+	set @bexpgain, @bexpgain/3;
+	set @bexpgain, @bexpgain*2;
+	set @jexpgain, @jexpgain/3;
+	set @jexpgain, @jexpgain*2;
+
+	Give_Exp:
+		if(@bexpgain<1) set @bexpgain, 1;
+		if(@jexpgain<1) set @jexpgain, 1;
+
+//		set BaseExp,BaseExp+@bexpgain; 
+//		set JobExp,JobExp+@jexpgain;
+		getexp @bexpgain, @jexpgain;
+		set PC_WOS_COUNT, PC_WOS_COUNT+1;
+}
+
+function	script	F_OCA	{
+	set #PC_OCA_COUNT, #PC_OCA_COUNT+1;
+	getitem -3,1;
+}
+
+function	script	F_Options	{
+	L_Start:
+	menu	"Show Base Exp",L_ShowBase,
+		"Show Job Exp",L_ShowJob,
+		"Done",-;
+	return;
+	
+	L_AutoLoot:
+		menu	"On",L_AL_ON,"Off",-;
+		set #autoloot,0;
+		set autoloot,0;
+		reloadoptions;
+		goto L_Start;
+
+		L_AL_ON:
+			set #autoloot,1;
+			set autoloot,1;
+			reloadoptions;
+		goto L_Start;
+
+	L_ShowBase:
+		menu	"On",L_SB_ON,"Off",-;
+		set #showbase,0;
+		set showbase,0;
+		reloadoptions;
+		goto L_Start;
+
+		L_SB_ON:
+			set #showbase,1;
+			set showbase,1;
+			reloadoptions;
+		goto L_Start;
+
+	L_ShowJob:
+		menu	"On",L_SJ_ON,"Off",-;
+		set #showjob,0;
+		set showjob,0;
+		reloadoptions;
+		goto L_Start;
+
+		L_SJ_ON:
+			set #showjob,1;
+			set showjob,1;
+			reloadoptions;
+		goto L_Start;
+}
+
+prontera.gat,0,0,0	script	PCLoginEvent	-1,{
+	set showjob,#showjob;
+	set showbase,#showbase;
+	set autoloot,#autoloot;
+	reloadoptions;
+	end;
+}
+
+function	script	F_GemStone	{
+	set @count,2+rand(5);
+L_Loop:
+	L1:
+		getitem 718,1;
+		goto L_Loop;
+	L2:
+		getitem 719,1;
+		goto L_Loop;
+	L3:
+		getitem 720,1;
+		goto L_Loop;
+	L4:
+		getitem 721,1;
+		goto L_Loop;
+	L5:
+		getitem 722,1;
+		goto L_Loop;
+	L6:
+		getitem 723,1;
+		goto L_Loop;
+	L7:
+		getitem 724,1;
+		goto L_Loop;
+	L8:
+		getitem 725,1;
+		goto L_Loop;
+	L9:
+		getitem 726,1;
+		goto L_Loop;
+	L10:
+		getitem 727,1;
+		goto L_Loop;
+	L11:
+		getitem 728,1;
+		goto L_Loop;
+	L12:
+		getitem 729,1;
+		goto L_Loop;
+	L13:
+		getitem 730,1;
+		goto L_Loop;
+	L14:
+		getitem 731,1;
+		goto L_Loop;
+	L15:
+		getitem 732,1;
+		goto L_Loop;
+	L16:
+		getitem 733,1;
+		goto L_Loop;
+	L17:
+		getitem 7289,1;
+		goto L_Loop;
+	L18:
+		getitem 7290,1;
+		goto L_Loop;
+	L19:
+		getitem 7291,1;
+		goto L_Loop;
+	L20:
+		getitem 7292,1;
+		goto L_Loop;
+	L21:
+		getitem 7293,1;
+		goto L_Loop;
+	L22:
+		getitem 7294,1;
+		goto L_Loop;
+	L23:
+		getitem 7295,1;
+		goto L_Loop;
+	L24:
+		getitem 7296,1;
+		goto L_Loop;
+	L25:
+		getitem 7297,1;
+		goto L_Loop;
+}

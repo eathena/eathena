@@ -1,0 +1,123 @@
+-	script	WoEStats	-1,{
+OnAgitStart:
+	announce "The War of Emperium has begun!",0;
+	disablenpc "WoeOff";
+	enablenpc "WoeOn";
+	break;
+OnAgitEnd:
+	announce "The War of Emperium is over.",0;
+	disablenpc "WoeOn";
+	enablenpc "WoeOff";
+	break;
+OnAgitInit:
+	disablenpc "WoeOn";
+	enablenpc "WoeOff";
+	break;
+}
+
+prontera.gat,158,187,4	script	Knight::WoeOn	751,{
+	set @npcname$,"[Knight]";
+	mes @npcname$;
+	mes "The War of Emperium is upon us!";
+	next;
+	menu "Castle Status",C_Status,
+		"Quit",-;
+	mes @npcname$;
+	mes "May you win honor on the field of battle.";
+	close;
+
+	C_Status:
+		callfunc "F_WoEStats";
+		close;
+}
+
+prontera.gat,158,187,4	script	Scholar::WoeOff	744,{
+	set @npcname$,"[Scholar]";
+	mes @npcname$;
+	mes "I'm a student of statistics.";
+	mes "Would you like to hear my report on the guild castles?";
+	next;
+	menu "Yes",C_Status,
+		"No",-;
+	mes @npcname$;
+	mes "Ok, I won't bore you with it then.";
+	close;
+
+	C_Status:
+		callfunc "F_WoEStats";
+		close;
+}
+
+function	script	Namestring	{
+	set @GID, GetCastleData(getarg(0)+".gat",1);
+	if (@GID != 0) goto L_Guild;
+	
+	set @gstr$,"^00FF00unoccupied^000000";
+	return;
+
+	L_Guild:
+		set @gstr$,"^FF0000"+GetGuildName(@GID)+"^000000";
+		return;
+}
+
+function	script	F_WoEStats	{
+
+	// Valkyire Realms (Prontera)
+	mes @npcname$;
+	mes "^0000FFValkyrie Realms^000000";
+	callfunc "Namestring","prtg_cas01";
+	mes "Creamhilt: "+@gstr$;
+	callfunc "Namestring","prtg_cas02";
+	mes "Sbanhealt: "+@gstr$;
+	callfunc "Namestring","prtg_cas03";
+	mes "Lazrigees: "+@gstr$;
+	callfunc "Namestring","prtg_cas04";
+	mes "Squagul: "+@gstr$;
+	callfunc "Namestring","prtg_cas05";
+	mes "Guindull: "+@gstr$;
+	next;
+
+	// Britoniah (Geffen)
+	mes @npcname$;
+	mes "^0000FFBritoniah^000000";
+	callfunc "Namestring","gefg_cas01";
+	mes "Reprion: "+@gstr$;
+	callfunc "Namestring","gefg_cas02";
+	mes "Yolbriger: "+@gstr$;
+	callfunc "Namestring","gefg_cas03";
+	mes "Isinlife: "+@gstr$;
+	callfunc "Namestring","gefg_cas04";
+	mes "Berigel: "+@gstr$;
+	callfunc "Namestring","gefg_cas05";
+	mes "Melsedetsu: "+@gstr$;
+	next;
+
+	// Chung-Rim (Payon)
+	mes @npcname$;
+	mes "^0000FFChung-Rim^000000";
+	callfunc "Namestring","payg_cas01";
+	mes "Mingting: "+@gstr$;
+	callfunc "Namestring","payg_cas02";
+	mes "Tiantan: "+@gstr$;
+	callfunc "Namestring","payg_cas03";
+	mes "Fuying: "+@gstr$;
+	callfunc "Namestring","payg_cas04";
+	mes "Honglou: "+@gstr$;
+	callfunc "Namestring","payg_cas05";
+	mes "Zhulinxian: "+@gstr$;
+	next;
+
+	mes @npcname$;
+	mes "^0000FFLuina^000000";
+	Callfunc "Namestring","aldeg_cas01";
+	mes "Noisyubantian: "+@gstr$;
+	Callfunc "Namestring","aldeg_cas02";
+	mes "Hohensyubangawoo: "+@gstr$;
+	Callfunc "Namestring","aldeg_cas03";
+	mes "Nyirenverk: "+@gstr$;
+	Callfunc "Namestring","aldeg_cas04";
+	mes "Byirtsburi: "+@gstr$;
+	Callfunc "Namestring","aldeg_cas05";
+	mes "Rotenburk: "+@gstr$;
+	return;
+}

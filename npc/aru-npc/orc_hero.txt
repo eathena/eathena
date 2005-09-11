@@ -1,0 +1,175 @@
+//===== eAthena Script =======================================
+//= Quest for Orc Hero Helm
+//===== By: ==================================================
+//= Arutema
+//===== Current Version: =====================================
+//= 0.9
+//===== Compatible With: =====================================
+//= eAthena 1.0
+//= 628 sakexe with up-to-date restables
+//===== Description: =========================================
+//= Orc Hero Helm Quest
+//= Official Location?
+//===== Additional Comments: =================================
+//= Orc names from Lord of the Rings
+//= Thanks to Nekosume's forger script for showing how to
+//= attach a char's name to an armor.
+//============================================================
+
+in_orcs01.gat,162,33,0	script	Ugluk	1213,{
+	if (OH_OnQuest == 1) callfunc "OH_Main";
+	mes "[Ugluk]";
+	mes "Hmmm...";
+	next;
+	mes "[Ugluk]";
+	mes "You are not afraid of me.";
+	next;
+	menu "No, I'm not",L_Begin,
+		"Yes I am!",-;
+	mes "[Ugluk]";
+	mes "Hm. I see I was wrong then.";
+	close;
+
+L_Begin:
+	mes "[Ugluk]";
+	mes "Hmm..";
+	mes "The ancient ones say that even a human may be born with the soul of an orcish hero.";
+	next;
+	mes "[Ugluk]";
+	mes "Do you believe you have the soul of an orcish hero?";
+	next;
+	menu "Yes",L_Assign,
+		"No",-;
+	mes "[Ugluk]";
+	mes "I see...";
+	close;
+
+L_Assign:
+	mes "[Ugluk]";
+	mes "Then ... I will test you to see if you truly do have an orc hero's soul.";
+	next;
+	callfunc "OH_Require";
+	mes "[Ugluk]";
+	mes "Do you accept this quest?";
+	next;
+	menu "I do.",L_Inform,
+		"That's impossible.",-;
+	mes "[Ugluk]";
+	mes "An true orc hero believes nothing is impossible.";
+	close;
+
+L_Inform:
+	mes "[Ugluk]";
+	mes "Good.";
+
+	next;
+	set OH_OnQuest,1;
+	callfunc "OH_Main";
+}
+
+function	script	OH_Require	{
+	mes "[Ugluk]";
+	mes "An orcish hero is strong in 3 virtues: Endurance, Strength, and Courage.";
+	next;
+	mes "[Ugluk]";
+	mes "If you wish to wear the helm of an orcish hero, you must bring me:";
+	mes "^0000FF10,000 Jellopies^000000 to prove your endurance.";
+	mes "^0000FF10,000 Orcish Vouchers^000000 to prove your strength.";
+	mes "and ^0000FF100^000000 Heroic Emblems to prove your courage.";
+	next;
+	mes "[Ugluk]";
+	mes "As even the strongest orc cannot carry so much at once, I will let you bring me the jellopies and vouchers in multiple trips, and keep note of how many you have brought.";
+	next;
+	return;
+}
+
+function	script	OH_Main	{
+L_Menu:
+	mes "[Ugluk]";
+	if ((OH_Jello > 0) || (OH_Voucher > 0)) callfunc "OH_Status";
+	if ((OH_Jello==10000) && (OH_Voucher==10000)) goto L_Finish;
+	mes "What will you do?";
+	next;
+	menu "Give jellopies",L_Jello,
+		"Give orcish vouchers",L_Voucher,
+		"'What do I need again?'",L_Require,
+		"cancel",-;
+	close;
+
+L_Require:
+	callfunc "OH_Require";
+	goto L_Menu;
+
+L_Jello:
+	set @OH_Count, OH_Jello;
+	set @OH_Item, 909;
+	set @OH_Name$, "jellopies";
+	callfunc "OH_ItemHandle";
+	set OH_Jello, @OH_Count;
+	next;
+	goto L_Menu;
+
+L_Voucher:
+	set @OH_Count, OH_Voucher;
+	set @OH_Item, 931;
+	set @OH_Name$, "orcish vouchers";
+	callfunc "OH_ItemHandle";
+	set OH_Voucher, @OH_Count;
+	next;
+	goto L_Menu;
+
+L_Finish:
+	if (countitem(968) > 99) goto L_Make; 
+	mes "All you need now is 100 Heroic Emblems.";
+	close;
+
+L_Make:
+	mes "And I see you have brought the 100 Heroic Emblems.";
+	next;
+	mes "[Ugluk]";
+	mes "You have proven your worthiness to wear the helm of an orcish hero.";
+	next;
+	delitem 968, 100;
+        getitem2 5094,1,1,0,0,255,0,getcharid(0),2;
+	set OH_Jello, 0;
+	set OH_Voucher, 0;
+	set OH_OnQuest, 0;
+	mes "[Ugluk]";
+	mes "Here, wear it with pride as a true hero of the orcs.";
+	close;
+}
+
+function	script	OH_ItemHandle	{
+	if (@OH_Count==10000) goto L_Enough;
+	if (countitem(@OH_Item)<1) goto L_No;
+	mes "[Ugluk]";
+	mes "Then I will take your "+@OH_Name$+".";
+//	next;
+	set @OH_Count, (@OH_Count + countitem (@OH_Item));
+	delitem @OH_Item, countitem(@OH_Item);
+	if (@OH_Count > 10000) goto L_Back;
+	return;
+
+L_Enough:
+	mes "[Ugluk]";
+	mes "You have already given me enough "+@OH_Name$+".";
+	return;
+
+L_No:
+	mes "[Ugluk]";
+	mes "You have no "+@OH_Name$+".";
+	return;
+
+L_Back:
+//	mes "That's too many. I'll give you back the extra.";
+	getitem @OH_Item, (@OH_Count-10000);
+	set @OH_Count, 10000;
+	return;
+}
+
+function	script	OH_Status	{
+	mes "You have given me:";
+	if (OH_Jello > 0) mes OH_Jello+" Jellopies";
+	if (OH_Voucher > 0) mes OH_Voucher+" Orcish Vouchers";
+	return;
+}

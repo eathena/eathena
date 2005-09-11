@@ -1,0 +1,85 @@
+prt_church.gat,99,128,4	script	Mary	71,{
+	mes "[Mary]";
+	mes "Can I help you?";
+	next;
+	if (getpartnerid(0) > 1) goto L_Married;
+	menu "I want to get married!",L_Marry,
+		"No, just saying hi.",-;
+
+	mes "[Mary]";
+	mes "Well... Have a nice day.";
+	close;
+
+L_Marry:
+	mes "[Mary]";
+	mes "To get married, you need 100,000z, and a Gold, Silver or Diamond Ring for each partner.";
+	mes "You will also need a GM to perform the ceremony.";
+	next;
+	mes "[Mary]";
+	mes "To get a GM to marry you, post on the forums with the names of your and your spouse's characters, and the time and place you would like to hold the wedding.";
+	mes "A GM will reply to your post if he or she is able to hold it.";
+	close;
+
+L_Married:
+	menu "I lost my ring!",L_Ring,
+		"I want a divorce!",L_Divorce;
+	close;
+
+L_Ring:
+	if (sex==1) goto L_Male;
+	if (countitem(2635) > 0) goto L_HaveRing;
+	set @ringitem,2635;
+	goto L_Replace;
+	
+L_Male:
+	if (countitem(2634) > 0) goto L_HaveRing;
+	set @ringitem,2634;
+	goto L_Replace;
+
+L_HaveRing:
+	mes "[Mary]";
+	mes "No you haven't, look closely, you still have it.";
+	close;
+
+L_Replace:
+	mes "[Mary]";
+	mes "That's terrible!";
+	mes "I'm afraid it will cost 50,000 zeny to replace it.";
+	if (zeny < 50000) close;
+	next;
+	menu "Pay",L_Buy,
+		"Don't",-;
+
+	mes "[Mary]";
+	mes "Well, come back if you change your mind.";
+	close;
+
+L_Buy:
+	mes "[Mary]";
+	mes "There you go.";
+	set zeny, zeny-50000;
+        getitem2 @ringitem,1,1,0,0,255,0,getpartnerid(0),2;
+	close;
+
+L_Divorce:
+	mes "[Mary]";
+	mes "Oh dear!";
+	mes "Are you sure?";
+	next;
+	menu "Yes, I want a divorce!",L_Divorce2,
+		"No, I change my mind.",-;
+	mes "[Mary]";
+	mes "That's it, don't give up so easily.";
+	close;
+
+L_Divorce2:
+	mes "[Mary]";
+	if(!ispartneron(0)) goto L_DivFail;
+	divorce;
+	mes "*sigh* So be it.";
+	close;
+
+L_DivFail:
+	mes "Sorry, but you can only get divorced if your ex-to-be is online.";
+	close;
+}

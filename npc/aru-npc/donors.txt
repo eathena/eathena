@@ -1,0 +1,5 @@
+prontera.gat,158,192,4	script	Help Hurricane Victims!	831,{
+	mes "[Girl]";
+	mes "See the latest announcements on www.clownphobia.com to see how you can get LLRO items and privledges for donating to the Red Cross.";
+	close;
+}
