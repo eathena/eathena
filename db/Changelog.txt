@@ -39,6 +39,7 @@
 09/12
 	* Updated drops of Myst,Bloody Butterfly,Disguise,Goblin Leader (All thanks to MasterOfMuppets) [Lupus]
 	- Updated items prices
+	- Lighthalzen monsters call up to 5 slaves now, added their drops with temp rates (thanks to Azazel)
 09/11
 	* Changed Wand of Hermod's target to ally (party+guildmates) [Skotlex]
 	* Added/Updated some items sell prices (All thanks to MasterOfMuppets) [Lupus]

@@ -1,0 +1,22 @@
+//===== Athena Script ========================================
+//= Juperos Dungeon Warp Script
+//===== By: ==================================================
+//= Muad-Dib (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version; RO Episode 8+
+//===== Description: =========================================
+//= Warp Points for Juperos Dungeon
+//===== Additional Comments: =================================
+//= No Comment!
+//= 1.0 Converted bu Dr.Evil [Lupus]
+//============================================================
+	
+//not all yet
+yuno_fild07.gat,207,175,0	warp	juperosdunwarp001	1,1,jupe_cave.gat,143,52
+jupe_cave.gat,148,52,0	warp	juperosdunwarp002	1,1,yuno_fild07.gat,212,175
+jupe_gate.gat,49,21,0	warp	juperosdunwarp003	1,1,jupe_cave.gat,29,52
+jupe_cave.gat,26,52,0	warp	juperosdunwarp004	1,1,jupe_gate.gat,49,24
+jupe_gate.gat,49,55,0	warp	juperosdunwarp005	1,1,jupe_ele_r.gat,49,30
+jupe_ele_r.gat,49,27,0	warp	juperosdunwarp006	1,1,jupe_gate.gat,49,52

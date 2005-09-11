@@ -2490,12 +2490,12 @@
 1656,Kavac@NPC_WINDATTACK,attack,187,1,2000,0,5000,yes,target,always,0,,,,,,
 1656,Kavac@AC_DOUBLE,attack,46,10,500,1000,5000,no,target,always,0,,,,,,
 //not sure if these summon like the advanced classes(commented out for now)
-//1653,Whikebain@NPC_SUMMONSLAVE,attack,196,16,10000,2000,10000,no,self,slavele,0,1658,1661,1663,1660,1662,0
-//1652,Ygnizem@NPC_SUMMONSLAVE,attack,196,16,10000,2000,10000,no,self,slavele,0,1659,1661,1663,1660,1662,0
-//1655,Erend@NPC_SUMMONSLAVE,attack,196,16,10000,2000,10000,no,self,slavele,0,1659,1658,1663,1660,1662,0
-//1657,Rawrel@NPC_SUMMONSLAVE,attack,196,16,10000,2000,10000,no,self,slavele,0,1659,1658,1661,1660,1662,0
-//1654,Armaia@NPC_SUMMONSLAVE,attack,196,16,10000,2000,10000,no,self,slavele,0,1659,1658,1661,1663,1662,0
-//1656,Kavac@NPC_SUMMONSLAVE,attack,196,16,10000,2000,10000,no,self,slavele,0,1659,1658,1661,1663,1660,0
+//1653,Whikebain@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1658,1661,1663,1660,1662,0
+//1652,Ygnizem@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1659,1661,1663,1660,1662,0
+//1655,Erend@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1659,1658,1663,1660,1662,0
+//1657,Rawrel@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1659,1658,1661,1660,1662,0
+//1654,Armaia@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1659,1658,1661,1663,1662,0
+//1656,Kavac@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1659,1658,1661,1663,1660,0
 //first class slaves?
 1659,Whikebain@TF_DOUBLE,attack,48,10,500,0,10000,no,target,always,0,,,,,,
 1659,Whikebain@TF_POISON,attack,52,10,500,0,10000,no,target,always,0,,,,,,
@@ -2595,13 +2595,13 @@
 1651,Katrinn@WZ_VERMILION,chase,85,10,2000,500,2000,no,target,always,0,,,,,,29
 1651,Katrinn@WZ_WATERBALL,chase,86,3,2000,1000,5000,yes,target,always,0,,,,,,
 1651,Katrinn@WZ_WATERBALL,attack,86,5,1000,0,5000,yes,target,always,0,,,,,,
-1651,Katrinn@NPC_SUMMONSLAVE,attack,196,16,10000,2000,10000,no,self,slavele,1,1644,1642,1641,1643,1640,0
+1651,Katrinn@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,1,1644,1642,1641,1643,1640,0
 1638,Seyren@BS_MAXIMIZE,chase,114,5,500,1000,5000,no,self,always,0,,,,,,
 1638,Seyren@BS_MAXIMIZE,attack,114,5,500,1000,5000,no,self,always,0,,,,,,
 1646,Seyren@SM_MAGNUM,attack,7,10,500,500,5000,no,target,always,0,,,,,,
 1646,Seyren@KN_BOWLINGBASH,angry,62,7,500,800,5000,no,target,always,0,,,,,,
 1646,Seyren@KN_BRANDISHSPEAR,attack,57,10,2000,0,5000,yes,target,always,0,,,,,,29
-1646,Seyren@NPC_SUMMONSLAVE,attack,196,16,10000,2000,10000,no,self,slavele,1,1644,1642,1641,1643,1645,0
+1646,Seyren@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,1,1644,1642,1641,1643,1645,0
 1649,Magaleta@PR_LEXAETERNA,chase,78,1,1000,1000,5000,yes,target,always,0,,,,,,6
 1649,Magaleta@PR_LEXAETERNA,attack,78,1,1000,1000,5000,yes,target,always,0,,,,,,6
 1649,Magaleta@PR_LEXDIVINA,chase,76,10,500,1000,5000,yes,target,always,0,,,,,,2
@@ -2612,25 +2612,25 @@
 1649,Magaleta@MG_SAFETYWALL,attack,12,5,1000,1000,5000,no,self,always,0,,,,,,18
 1649,Magaleta@AL_HEAL,chase,28,5,10000,500,5000,no,self,myhpltmaxrate,30,,,,,,18
 1649,Magaleta@AL_HEAL,attack,28,8,10000,500,5000,no,self,myhpltmaxrate,30,,,,,,18
-1649,Magaleta@NPC_SUMMONSLAVE,attack,196,16,10000,2000,10000,no,self,slavele,1,1644,1642,1641,1640,1645,0
+1649,Magaleta@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,1,1644,1642,1641,1640,1645,0
 1647,Eremes@BS_MAXIMIZE,chase,114,5,500,1000,5000,no,self,always,0,,,,,,
 1647,Eremes@BS_MAXIMIZE,attack,114,5,500,1000,5000,no,self,always,0,,,,,,
 1647,Eremes@ASC_EDP,attack,378,5,500,1000,5000,no,self,always,0,,,,,,
 1647,Eremes@AS_SONICBLOW,attack,136,10,300,0,0,no,target,always,0,,,,,,
-1647,Eremes@NPC_SUMMONSLAVE,attack,196,16,10000,2000,10000,no,self,slavele,1,1644,1642,1643,1640,1645,0
+1647,Eremes@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,1,1644,1642,1643,1640,1645,0
 1648,Harword@MC_MAMMONITE,angry,42,5,500,800,5000,no,target,always,0,,,,,,
 1648,Harword@BS_MAXIMIZE,chase,114,5,500,1000,5000,no,self,always,0,,,,,,
 1648,Harword@BS_MAXIMIZE,attack,114,5,500,1000,5000,no,self,always,0,,,,,,
 1648,Harword@WS_MELTDOWN,attack,384,5,500,1000,5000,no,self,always,0,,,,,,
 1648,Harword@MC_CARTREVOLUTION,attack,153,10,500,800,5000,no,target,always,0,,,,,,
-1648,Harword@NPC_SUMMONSLAVE,attack,196,16,10000,2000,10000,no,self,slavele,1,1644,1641,1643,1640,1645,0
+1648,Harword@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,1,1644,1641,1643,1640,1645,0
 1650,Shecil@AC_DOUBLE,attack,46,10,500,1000,5000,no,target,always,0,,,,,,
 1650,Shecil@AC_SHOWER,attack,47,8,2000,1000,5000,no,target,attackpcgt,2,,,,,,
 1650,Shecil@BS_MAXIMIZE,chase,114,5,500,1000,5000,no,self,always,0,,,,,,
 1650,Shecil@BS_MAXIMIZE,attack,114,5,500,1000,5000,no,self,always,0,,,,,,
 1650,Shecil@AL_INCAGI,chase,29,5,500,700,5000,no,self,always,0,,,,,
 1650,Shecil@SN_SHARPSHOOTING,attack,382,5,500,1000,5000,no,target,always,0,,,,,,
-1650,Shecil@NPC_SUMMONSLAVE,attack,196,16,10000,2000,10000,no,self,slavele,1,1642,1641,1643,1640,1645,0
+1650,Shecil@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,1,1642,1641,1643,1640,1645,0
 //mvp slaves
 1644,Shecil@AC_DOUBLE,attack,46,10,500,1000,5000,no,target,always,0,,,,,,
 1644,Shecil@AC_SHOWER,attack,47,8,2000,1000,5000,no,target,attackpcgt,2,,,,,
