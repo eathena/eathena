@@ -6198,8 +6198,10 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 	case BA_DISSONANCE:
 	case DC_UGLYDANCE:
 		val1 = 10;	//FIXME: This value is not used anywhere, what is it for? [Skotlex]
+/*
 		if (map[src->m].flag.gvg || map[src->m].flag.pvp)
 			target = BCT_ALL;	//On versus grounds it affects everyone. [Skotlex]
+*/
 		break;
 	case BA_WHISTLE:
 		val1 = skilllv+(status_get_agi(src)/10); // Flee increase
@@ -6229,8 +6231,10 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 			val1 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
 			val2 += pc_checkskill((struct map_session_data *)src,DC_DANCINGLESSON);
 		}
+/*
 		if (map[src->m].flag.gvg || map[src->m].flag.pvp)
 			target = BCT_ALL;	//On versus grounds it affects everyone. [Skotlex]
+*/
 		break;
 	case BA_APPLEIDUN:
 		val1 = 5+2*skilllv+(status_get_vit(src)/10); // MaxHP percent increase
@@ -6273,8 +6277,10 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 		val2 = skilllv*10;	//Status ailment resistance
 		break;
 	case BD_ETERNALCHAOS:
+/*
 		if (map[src->m].flag.gvg || map[src->m].flag.pvp)
 			target = BCT_ALL;	//On versus grounds it affects everyone. [Skotlex]
+*/
 		break;
 	case PF_FOGWALL:	/* フォグウォ?ル */
 		if(sc_data && sc_data[SC_DELUGE].timer!=-1) limit *= 2;
