@@ -41,6 +41,7 @@
 	- Updated items prices
 	- Lighthalzen monsters call up to 5 slaves now, added their drops with temp rates (thanks to Azazel)
 09/11
+	* Fixed target of NPC_KEEPEING skills. [Skotlex]
 	* Changed Wand of Hermod's target to ally (party+guildmates) [Skotlex]
 	* Added/Updated some items sell prices (All thanks to MasterOfMuppets) [Lupus]
 	- Added missing slot to Coif_(ex Nuns Hat). Dark Lord now has it as a MVP drop 10%

@@ -68,7 +68,7 @@
 1301,Am Mut@NPC_EMOTION,walk,197,1,200,0,5000,yes,self,always,0,2,,,,,
 1301,Am Mut@NPC_SUMMONSLAVE,idle,196,2,10000,2000,60000,no,self,slavele,0,1110,,,,,
 1094,Ambernite@NPC_EMOTION,walk,197,1,200,0,5000,yes,self,always,0,19,,,,,
-1094,Ambernite@NPC_KEEPING,attack,201,1,2000,0,5000,yes,target,attackpcgt,2,,,,,,9
+1094,Ambernite@NPC_KEEPING,attack,201,1,2000,0,5000,yes,self,attackpcgt,2,,,,,,9
 1094,Ambernite@NPC_WATERATTACK,attack,184,1,2000,0,5000,yes,target,always,0,,,,,,
 1030,Anacondaq@NPC_POISON,attack,176,3,500,800,5000,no,target,always,0,,,,,,
 1030,Anacondaq@NPC_POISONATTACK,attack,188,1,2000,0,5000,yes,target,always,0,,,,,,
@@ -188,7 +188,7 @@
 1188,Bon Gun@KN_SPEARSTAB,attack,58,5,500,800,5000,no,target,always,0,,,,,,
 1188,Bon Gun@NPC_STUNATTACK,attack,179,3,500,1500,5000,no,target,always,0,,,,,,0
 1211,Brilight@NPC_FIREATTACK,attack,186,2,500,500,5000,no,target,always,0,,,,,,
-1211,Brilight@NPC_KEEPING,attack,201,1,2000,0,5000,yes,target,myhpltmaxrate,20,,,,,,9
+1211,Brilight@NPC_KEEPING,attack,201,1,2000,0,5000,yes,self,myhpltmaxrate,20,,,,,,9
 1211,Brilight@NPC_PIERCINGATT,attack,158,2,500,0,5000,yes,target,always,0,,,,,,
 1211,Brilight@NPC_SILENCEATTACK,attack,178,3,500,700,5000,no,target,always,0,,,,,,
 1270,Tower Keeper@AL_TELEPORT,idle,26,1,50,0,5000,yes,self,always,0,,,,,,
@@ -280,7 +280,7 @@
 1246,Christmas Cookie@PR_LEXAETERNA,chase,78,1,500,1000,5000,yes,target,always,0,,,,,,6
 1246,Christmas Cookie@SA_REVERSEORCISH,attack,294,1,50,0,30000,yes,target,always,0,,,,,,18
 1246,Christmas Cookie@SA_REVERSEORCISH,chase,294,1,50,0,30000,yes,target,always,0,,,,,,18
-1067,Cornutus@NPC_KEEPING,attack,201,1,2000,0,5000,yes,target,myhpltmaxrate,30,,,,,,9
+1067,Cornutus@NPC_KEEPING,attack,201,1,2000,0,5000,yes,self,myhpltmaxrate,30,,,,,,9
 1067,Cornutus@NPC_WATERATTACK,attack,184,2,500,500,5000,no,target,always,0,,,,,,6
 1067,Cornutus@CR_AUTOGUARD,attack,249,2,500,0,300000,yes,self,always,0,,,,,,
 1067,Cornutus@CR_AUTOGUARD,chase,249,2,2000,0,300000,yes,self,longrangeattacked,,,,,,,
@@ -515,7 +515,7 @@
 1253,Gargoyle@AC_CHARGEARROW,attack,148,1,500,0,5000,yes,target,always,0,,,,,,
 1253,Gargoyle@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
 1253,Gargoyle@NPC_BLINDATTACK,attack,177,5,500,0,5000,yes,target,always,0,,,,,,
-1253,Gargoyle@NPC_KEEPING,attack,201,1,2000,0,5000,yes,target,myhpltmaxrate,30,,,,,,9
+1253,Gargoyle@NPC_KEEPING,attack,201,1,2000,0,5000,yes,self,myhpltmaxrate,30,,,,,,9
 1253,Gargoyle@NPC_WINDATTACK,attack,187,1,2000,0,5000,yes,target,always,0,,,,,,
 1368,Geographer@AL_HEAL,attack,28,9,10000,500,5000,yes,friend,friendhpltmaxrate,60,,,,,,
 1368,Geographer@AL_HEAL,idle,28,9,10000,500,5000,yes,friend,friendhpltmaxrate,60,,,,,,
@@ -760,7 +760,7 @@
 1294,Killer Mantis@NPC_SUMMONSLAVE,idle,196,2,10000,2000,60000,no,self,slavele,0,1139,,,,,
 1494,Kind of Beetle@NPC_COMBOATTACK,attack,171,1,500,700,5000,no,target,always,0,,,,,,
 1494,Kind of Beetle@NPC_GROUNDATTACK,attack,185,2,500,500,5000,no,target,always,0,,,,,,6
-1494,Kind of Beetle@NPC_KEEPING,attack,201,1,2000,0,5000,yes,target,myhpltmaxrate,30,,,,,,19
+1494,Kind of Beetle@NPC_KEEPING,attack,201,1,2000,0,5000,yes,self,myhpltmaxrate,30,,,,,,19
 1219,Knight of Abyss@AC_CHARGEARROW,chase,148,1,500,0,5000,yes,target,always,0,,,,,,
 1219,Knight of Abyss@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
 1219,Knight of Abyss@KN_BRANDISHSPEAR,attack,57,10,500,1000,5000,no,target,always,0,,,,,,9
@@ -1269,7 +1269,7 @@
 1322,Spring Rabbit@NPC_EMOTION,chase,197,1,200,0,5000,yes,self,always,0,19,,,,,
 1322,Spring Rabbit@SM_BASH,attack,5,10,500,0,5000,yes,target,always,0,,,,,,6
 1322,Spring Rabbit@TF_THROWSTONE,chase,152,1,2000,0,5000,yes,target,always,0,,,,,,
-1174,Stainer@NPC_KEEPING,attack,201,1,2000,0,5000,yes,target,attackpcgt,2,,,,,,19
+1174,Stainer@NPC_KEEPING,attack,201,1,2000,0,5000,yes,self,attackpcgt,2,,,,,,19
 1174,Stainer@NPC_SILENCEATTACK,attack,178,2,500,700,5000,no,target,always,0,,,,,,
 1174,Stainer@NPC_WINDATTACK,attack,187,1,2000,0,5000,yes,target,always,0,,,,,,
 1278,Stalactite Golem@NPC_STUNATTACK,attack,179,4,500,1500,5000,no,target,always,0,,,,,,6

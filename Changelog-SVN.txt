@@ -4,6 +4,7 @@ Date	Added
 09/12
 	* Added an official Bards Job Quest (check npc\changelog.txt) [Lupus]
 09/11
+	* Changed back the default of gx_all_hit to no. [Skotlex]
 	* Added check to prevent ensemble skills from changing position. [Skotlex]
 09/10
 	* Removed the changing of targets for offensive songs in gvg grounds. [Skotlex]
