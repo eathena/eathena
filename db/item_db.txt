@@ -205,7 +205,7 @@
 705,Clover,Clover,3,10,0,10,,,,,,,,,,,,{},{}
 706,Four_Leaf_Clover,Four-Leaf Clover,3,80000,0,10,,,,,,,,,,,,{},{}
 707,Singing_Plant,Singing Plant,3,500,0,10,,,,,,,,,,,,{},{}
-708,Ment,Ment,3,2,0,10,,,,,,,,,,,,{},{}
+708,Ment,Ment,3,500,0,10,,,,,,,,,,,,{},{}
 709,Izidor,Izidor,3,500,0,10,,,,,,,,,,,,{},{}
 710,Illusion_Flower,Illusion Flower,3,1000,0,10,,,,,,,,,,,,{},{}
 711,Shoot,Shoot,3,16,0,10,,,,,,,,,,,,{},{}
@@ -1726,8 +1726,8 @@
 7114,Masque_of_Tutankhamen,Sphinx Mask,3,20,0,10,,,,,,,,,,,,{},{}
 7115,Harpy_Feather,Blood Feather,3,1142,0,10,,,,,,,,,,,,{},{}
 7116,Harpy_Talon,Tooth of Lowblood,3,1210,0,10,,,,,,,,,,,,{},{}
-7117,Torn_Magic_Book,Torn Spell Book,3,20,0,10,,,,,,,,,,,,{},{}
-7118,Torn_Scroll,Torn Scroll,3,20,0,10,,,,,,,,,,,,{},{}
+7117,Torn_Magic_Book,Torn Spell Book,3,1142,0,10,,,,,,,,,,,,{},{}
+7118,Torn_Scroll,Torn Scroll,3,1361,0,10,,,,,,,,,,,,{},{}
 7119,Bacillus,Hypha Body,3,1024,0,10,,,,,,,,,,,,{},{}
 7120,Burning_Horseshoe,Burning Horseshoe,3,822,0,10,,,,,,,,,,,,{},{}
 7121,Honey_Pot,Honey Jar,3,622,0,10,,,,,,,,,,,,{},{}
