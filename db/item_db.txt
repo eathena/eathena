@@ -200,14 +200,14 @@
 //===================================================================
 701,Ora_Ora,Ora Ora,3,55000,0,200,,,,,,,,,,,,{},{}
 702,Animal_Gore,Animal Gore,3,2,0,100,,,,,,,,,,,,{},{}
-703,Hinalle,Hinalle,3,2,0,10,,,,,,,,,,,,{},{}
-704,Aloe,Aloe,3,2,0,10,,,,,,,,,,,,{},{}
+703,Hinalle,Hinalle,3,500,0,10,,,,,,,,,,,,{},{}
+704,Aloe,Aloe,3,500,0,10,,,,,,,,,,,,{},{}
 705,Clover,Clover,3,10,0,10,,,,,,,,,,,,{},{}
 706,Four_Leaf_Clover,Four-Leaf Clover,3,80000,0,10,,,,,,,,,,,,{},{}
-707,Singing_Plant,Singing Plant,3,2,0,10,,,,,,,,,,,,{},{}
+707,Singing_Plant,Singing Plant,3,500,0,10,,,,,,,,,,,,{},{}
 708,Ment,Ment,3,2,0,10,,,,,,,,,,,,{},{}
-709,Izidor,Izidor,3,2,0,10,,,,,,,,,,,,{},{}
-710,Illusion_Flower,Illusion Flower,3,2,0,10,,,,,,,,,,,,{},{}
+709,Izidor,Izidor,3,500,0,10,,,,,,,,,,,,{},{}
+710,Illusion_Flower,Illusion Flower,3,1000,0,10,,,,,,,,,,,,{},{}
 711,Shoot,Shoot,3,16,0,10,,,,,,,,,,,,{},{}
 712,Flower,Flower,3,2,0,10,,,,,,,,,,,,{},{}
 713,Empty_Bottle,Empty Bottle,3,6,0,20,,,,,,,,,,,,{},{}
@@ -1566,8 +1566,8 @@
 5089,Annoyed_Mask,Annoyed Mask,5,20,0,100,,1,,0,10477567,2,513,,0,0,173,{},{}
 5090,Goblin_Leader_Mask,Goblin Leader Mask,5,20,0,100,,2,,0,10477567,2,513,,0,0,174,{},{}
 5091,Golden_Bells,Golden Bells,5,20,0,200,,2,,0,10477567,2,768,,35,1,175,{},{}
-5092,Nun_Hat,Nun Hat,5,20,0,300,,5,,0,33024,0,768,,65,1,176,{},{}
-5093,Nun_Hat_,Nun Hat,5,20,0,300,,5,,0,33024,0,768,,65,1,177,{},{ bonus bMaxSP,100; }
+5092,Coif,Coif,5,20,0,300,,5,,0,33024,0,768,,65,1,176,{},{ bonus bMaxSP,100; }
+5093,Coif_,Coif,5,20,0,300,,5,,1,33024,0,768,,65,1,177,{},{ bonus bMaxSP,100; }
 5094,Orc_Hero_Helm,Orc Hero Helm,5,20,0,900,,5,,0,10477567,2,768,,55,1,178,{},{ bonus bStr,2; bonus bVit,1; }
 5096,Assassin_Mask,Assassin Mask,5,20,0,100,,0,,0,4352,2,1,,70,0,180,{},{}
 5097,Annual_Commemoration_Hat,3rd Annual Commemoration Hat,5,20,0,300,,3,,0,10477567,2,256,,0,1,144,{},{ bonus bAllStat,3; bonus bMdef,3; }
@@ -1702,13 +1702,13 @@
 7090,Ripple,Ripple,3,20,0,500,,,,,,,,,,,,{},{}
 7091,Billow,Billow,3,20,0,500,,,,,,,,,,,,{},{}
 7092,Drifting_Air,Drifting Air,3,20,0,500,,,,,,,,,,,,{},{}
-7093,Cogwheel,Metal Wheel,3,20,0,10,,,,,,,,,,,,{},{}
-7094,Fragment,Cabinet Chip,3,20,0,10,,,,,,,,,,,,{},{}
+7093,Cogwheel,Metal Wheel,3,1512,0,10,,,,,,,,,,,,{},{}
+7094,Fragment,Cabinet Chip,3,1344,0,10,,,,,,,,,,,,{},{}
 7095,Metal_Fragment,Tooth Fragment,3,20,0,10,,,,,,,,,,,,{},{}
 7096,Lava,Hardened Lava,3,1108,0,10,,,,,,,,,,,,{},{}
 7097,Burning_Heart,Burning Heart,3,924,0,10,,,,,,,,,,,,{},{}
 7098,Live_Coal,Fire Seed,3,638,0,10,,,,,,,,,,,,{},{}
-7099,Worn-out_Magic_Scroll,Old Magical Circle,3,20,0,10,,,,,,,,,,,,{},{}
+7099,Worn-out_Magic_Scroll,Old Magical Circle,3,773,0,10,,,,,,,,,,,,{},{}
 7100,Sharp_Leaf,Sharpened Leaf,3,20,0,10,,,,,,,,,,,,{},{}
 7101,PecoPeco_Feather,Peco Feather,3,454,0,10,,,,,,,,,,,,{},{}
 7102,Nightmare,Nightmare,3,20,0,10,,,,,,,,,,,,{},{}
@@ -1717,7 +1717,7 @@
 7105,Fake_Heaven_Ring,Imitation Soul's Band,3,924,0,10,,,,,,,,,,,,{},{}
 7106,Antelope_Horn,Antelope Horn,3,672,0,10,,,,,,,,,,,,{},{}
 7107,Antelope_Skin,Antelope Skin,3,756,0,10,,,,,,,,,,,,{},{}
-7108,Piece_of_Shield,Broken Shield,3,20,0,10,,,,,,,,,,,,{},{}
+7108,Piece_of_Shield,Broken Shield,3,1680,0,10,,,,,,,,,,,,{},{}
 7109,Shining_Spear_Blade,Shiny Spear Tip,3,20,0,10,,,,,,,,,,,,{},{}
 7110,Broken_Sword,Broken Sword,3,588,0,10,,,,,,,,,,,,{},{}
 7111,Slick_Paper,Slick Paper,3,706,0,10,,,,,,,,,,,,{},{}
@@ -1816,10 +1816,10 @@
 7204,Gun_Powder,Gun Powder,3,20,0,10,,,,,,,,,,,,{},{}
 7205,Black_Piece_of_Cloth,Black Piece of Cloth,3,526,0,10,,,,,,,,,,,,{},{}
 7206,Cat_Doll,Black Cat Doll,3,1440,0,10,,,,,,,,,,,,{},{}
-7207,Old_Mantle,Old Manteau,3,1050,0,10,,,,,,,,,,,,{},{}
+7207,Old_Mantle,Old Manteau,3,1280,0,10,,,,,,,,,,,,{},{}
 7208,Rusted_Knife,Rusty Kitchen Knife,3,1780,0,10,,,,,,,,,,,,{},{}
 7209,Dullahan's_Helm,Dullahan's Helm,3,1350,0,10,,,,,,,,,,,,{},{}
-7210,Piece_of_Dullahan's_Armor,Dullahan's Armor Piece,3,750,0,10,,,,,,,,,,,,{},{}
+7210,Piece_of_Dullahan's_Armor,Dullahan's Armor Piece,3,790,0,10,,,,,,,,,,,,{},{}
 7211,Rosetta_Stone_Fragment,Fragment of Rossata Stone,3,2600,0,10,,,,,,,,,,,,{},{}
 7212,Hanging_Doll,Hung Doll,3,1020,0,10,,,,,,,,,,,,{},{}
 7213,Pin_Cusion,Pin Cusion,3,832,0,10,,,,,,,,,,,,{},{}

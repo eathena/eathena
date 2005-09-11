@@ -37,6 +37,10 @@
 	--
 
 09/11
+	* Added/Updated some items sell prices (All thanks to MasterOfMuppets) [Lupus]
+	- Added missing slot to Coif_(ex Nuns Hat). Dark Lord now has it as a MVP drop 10%
+	- 1072#KAHO drops burning hearts instead of stone hearts
+	- Added common weapons of Bard/Dancer into OBB/OVVB
 	* Added temp mob skills to all Lighthalzen mobs by Azazel [Lupus]
 	* Increased movement speed of 1516,INCREASE_SOIL (checked it on the official servers) [MasterOfMuppets]
 	* Drooping Cat now can be upgradeable (proved by some official servers) [Lupus]
