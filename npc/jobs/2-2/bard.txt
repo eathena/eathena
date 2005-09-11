@@ -427,7 +427,6 @@ L_GIFT0:
 	next;
 	delitem 1066,60;	//Fine-grained_Trunk + 50 JobLvl --> Harp [2]
 	getitem 1910,1;
-	set BARD_Q,5;
 	mes "[Lalo]";
 	mes "Here you go, a souvenir. It is";
 	mes "useful when you sing.";
@@ -451,7 +450,6 @@ L_GIFT1:
 	next;
 	delitem 1066,60;	//Fine-grained_Trunk --> Lute [2]
 	getitem 1905,1;
-	set BARD_Q,5;
 	mes "[Lalo]";
 	mes "Here you go, a souvenir. It is";
 	mes "useful when you sing.";
@@ -475,7 +473,6 @@ L_GIFT2:
 	next;
 	delitem 1067,60;	//Solid_Trunk --> Mandolin [2]
 	getitem 1903,1;
-	set BARD_Q,5;
 	mes "[Lalo]";
 	mes "Here you go, a souvenir. It is";
 	mes "useful when you sing.";
@@ -499,7 +496,6 @@ L_GIFT3:
 	next;
 	delitem 1068,60;	//Barren_Trunk --> Mandolin [2]
 	getitem 1903,1;
-	set BARD_Q,5;
 	mes "[Lalo]";
 	mes "Here you go, a souvenir. It is";
 	mes "useful when you sing.";
@@ -523,7 +519,6 @@ L_GIFT4:
 	next;
 	delitem 1019,60;	//Trunk --> Violin [3]
 	getitem 1901,1;
-	set BARD_Q,5;
 	mes "[Lalo]";
 	mes "Here you go, a souvenir. It is";
 	mes "useful when you sing.";
