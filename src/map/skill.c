@@ -1782,7 +1782,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		break;
 	case KN_AUTOCOUNTER: //Skills that need be passed as a normal attack for the client to display correctly.
 	case SN_SHARPSHOOTING:
-		clif_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,1,0,0);
+		clif_damage(src,bl,tick,dmg.amotion,dmg.dmotion,damage,dmg.div_,dmg.type,dmg.damage2);
 		break;
 	default:
 		clif_skill_damage(dsrc,bl,tick,dmg.amotion,dmg.dmotion, damage, dmg.div_, skillid, (lv!=0)?lv:skilllv, (skillid==0)? 5:type );
@@ -6558,7 +6558,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 
 	// GX‚Íd‚È‚Á‚Ä‚¢‚½‚ç3HIT‚µ‚È‚¢
 	if (sg->skill_id==CR_GRANDCROSS && !battle_config.gx_allhit)
-		ts->tick += sg->interval*(map_count_oncell(bl->m,bl->x,bl->y,0));
+		ts->tick += sg->interval*(map_count_oncell(bl->m,bl->x,bl->y,0)-1);
 
 	switch (sg->unit_id) {
 	case UNT_FIREWALL:

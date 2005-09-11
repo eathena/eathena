@@ -1,6 +1,8 @@
 Date	Added
 =======
 09/10
+	* Corrected Grand Cross not always hitting 3 times. [Skotlex]
+	* Fixed the display of Auto Counter. [Skotlex]
 	* Added check to prevent auto-spells from being casted when the source and
 	  target are the same (normally you can't hit yourself, though....) [Skotlex]
 	* Fixed Root [Skotlex]

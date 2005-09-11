@@ -3790,7 +3790,7 @@ void battle_set_defaults() {
 	battle_config.pc_attack_attr_none = 0;
 	battle_config.mob_attack_attr_none = 0;
 	battle_config.mob_ghostring_fix = 1;
-	battle_config.gx_allhit = 0;
+	battle_config.gx_allhit = 1;
 	battle_config.gx_cardfix = 0;
 	battle_config.gx_dupele = 1;
 	battle_config.gx_disptype = 1;
