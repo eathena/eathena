@@ -28,6 +28,14 @@ TODO:
 
 Date		Added
 ======
+09/12
+	* Lutie town bugfix (fixed some items exploit, found due to Bard Quest optimization 8) [Lupus]
+	* Added an official Bards Job Quest. [Lupus]
+	- Basical conversion from Muad-Dib's Prometeus format by Dr.Evil
+	- Implementation of 4 official Bards weapon prizes by Dr.Evil
+	- Final optimization and bug fix by Lupus
+		NOTE: Don't forget to update your old Lutie.txt and Global_Functions.txt
+	* Added temp Amatsu Kafra (wrong sprite, wrong coords yet) [Lupus]
 09/11
 	* Added temp Ayothaya Kafra (wrong sprite, wrong coords yet) [Lupus]
 	- Made all dungeons Kafras not saving your coords again (re-checked sources)

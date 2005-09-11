@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //=
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -11,6 +11,7 @@
 //===== Additional Comments: ================================= 
 //= 1.1 Edited some text and updated/enabled some triggers
 //= for the quest.[kobra_k88]
+//= 1.2 Fixed exploit. Checked for Bard Job Quest compatibility [Lupus]
 //============================================================
 
 
@@ -663,6 +664,10 @@ Xmas10:
 	next;
 	mes "^3355FF- Stir the gift bag -^000000";
 	next;
+
+	//it's a part of Bard Job Quest also
+	set xmas_npc,11;
+
 	set @temp, rand(1,8);
 	if(@temp == 2) goto L_Prize2;
 	if(@temp == 3) goto L_Prize3;
@@ -673,7 +678,6 @@ Xmas10:
 	if(@temp == 8) goto L_Prize8;
 
 	L_Prize1:
-		set xmas_npc,1;
 		getitem 529,5;
 		mes "[Jack Frost]";
 		mes "Wow -Congratulations!!";
@@ -684,7 +688,6 @@ Xmas10:
 		mes "Merry Christmas!!";
 		close;
 	L_Prize2:
-		set xmas_npc,1;
 		getitem 529,10;
 		mes "[Jack Frost]";
 		mes "Wow -Congratulations!!";
@@ -695,7 +698,6 @@ Xmas10:
 		mes "Merry Christmas!!";
 		close;
 	L_Prize3:
-		set xmas_npc,1;
 		getitem 530,5;
 		mes "[Jack Frost]";
 		mes "Wow -Congratulations!!";
@@ -706,7 +708,6 @@ Xmas10:
 		mes "Merry Christmas!!";
 		close;
 	L_Prize4:
-		set xmas_npc,11;
 		getitem 530,10;
 		mes "[Jack Frost]";
 		mes "Wow -Congratulations!!";
@@ -717,7 +718,6 @@ Xmas10:
 		mes "Merry Christmas!!";
 		close;
 	L_Prize5:
-		set xmas_npc,1;
 		getitem 539,1;
 		mes "[Jack Frost]";
 		mes "Wow -Congratulations!!";
@@ -728,7 +728,6 @@ Xmas10:
 		mes "Merry Christmas!!";
 		close;
 	L_Prize6:
-		set xmas_npc,1;
 		getitem 539,2;
 		mes "[Jack Frost]";
 		mes "Wow -Congratulations!!";
@@ -739,7 +738,6 @@ Xmas10:
 		mes "Merry Christmas!!";
 		close;
 	L_Prize7:
-		set xmas_npc,11;
 		getitem 538,5;
 		mes "[Jack Frost]";
 		mes "Wow -Congratulations!!";
@@ -750,7 +748,6 @@ Xmas10:
 		mes "Merry Christmas!!";
 		close;
 	L_Prize8:
-		set xmas_npc,11;
 		getitem 538,10;
 		mes "[Jack Frost]";
 		mes "Wow -Congratulations!!";

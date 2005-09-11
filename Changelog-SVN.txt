@@ -1,5 +1,8 @@
 Date	Added
 =======
+
+09/12
+	* Added an official Bards Job Quest (check npc\changelog.txt) [Lupus]
 09/11
 	* Added check to prevent ensemble skills from changing position. [Skotlex]
 09/10

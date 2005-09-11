@@ -19,8 +19,18 @@
 //= v2.1b Minor changes to function calls.  Using arguments.
 //= This version uses arrays .[kobra_k88]
 //= 2.2 Added Louyang Kafra, fixed other kafras not saving players coords [Lupus]
-//= 2.3 Added temp Ayothaya Kafra (wrong coords and sprite) [Lupus]
+//= 2.3 Added temp Amatsu + Ayothaya Kafra (wrong coords and sprite) [Lupus]
 //==========================================================================
+
+// Amatsu -----------------------------------------------------------------
+amatsu.gat,192,89,5	script	Kafra	116,{
+	cutin "kafra_02",2;
+	callfunc "F_Kafra",0,1,1;
+
+	M_Save:
+		savepoint "amatsu.gat",197,86;
+		callfunc "F_KafEnd",0,1;
+}
 
 // Ayothaya -----------------------------------------------------------------
 ayothaya.gat,143,69,6	script	Kafra	721,{
