@@ -93,6 +93,12 @@
 574,Egg,Egg,0,20,0,30,,,,,10477567,2,,,,,,{ itemheal rand(16,21),0; },{}
 575,2nd_Anniversary_Cake,2nd Anniversary Cake,0,20,0,100,,,,,10477567,2,,,,,,{ itemheal rand(270,329),0; },{}
 576,Thorned_Fruit,Thorned Fruit,0,20,0,40,,,,,10477567,2,,,,,,{ itemheal rand(10,15),rand(10,15); },{}
+577,Grain,Grain,0,20,0,20,,,,,16777215,2,,,,,,{ itemheal rand(10,14),0; },{}
+578,Strawberry,Strawberry,0,20,0,20,,,,,16777215,2,,,,,,{ itemheal 0,rand(10,14); },{}
+579,Yummy_Fish,Yummy_Fish,0,20,0,20,,,,,16777215,2,,,,,,{ itemheal rand(40,54),0; },{}
+580,Bread,Bread,0,20,0,20,,,,,16777215,2,,,,,,{ itemheal rand(20,34),0; },{}
+581,Mushroom,Mushroom,0,20,0,20,,,,,16777215,2,,,,,,{ itemheal rand(10,14),0; },{}
+582,Orange,Orange,0,20,0,20,,,,,16777215,2,,,,,,{ itemheal rand(10,15),rand(10,15); },{}
 
 // Usable Items
 //===================================================================
@@ -2026,10 +2032,48 @@
 7413,Yuebing_______,Lettered Moon Cake,3,20,0,10,,,,,,,,,,,,{},{}
 7414,Yuebing________,Lettered Moon Cake,3,20,0,10,,,,,,,,,,,,{},{}
 7415,Summoning_Stone,Summoning Stone,3,20,0,10,,,,,,,,,,,,{},{}
-7416,Letter_of_Recommentation,Letter of Recommentation,3,,,0,,,,,,,,,,,,{},{}
-7417,Written_Request_A,Written Request A,3,,,0,,,,,,,,,,,,{},{}
-7418,Written_Request_B,Written Request B,3,,,0,,,,,,,,,,,,{},{}
-7419,Embryo_Creation_Guide,Embryo Creation Book,3,,,0,,,,,,,,,,,,{},{}
+7416,Letter_of_Recommentation,Letter of Recommentation,3,20,0,0,,,,,,,,,,,,{},{}
+7417,Written_Request_A,Written Request A,3,20,0,0,,,,,,,,,,,,{},{}
+7418,Written_Request_B,Written Request B,3,20,0,0,,,,,,,,,,,,{},{}
+7419,Embryo_Creation_Guide,Embryo Creation Book,3,20,0,0,,,,,,,,,,,,{},{}
+7420,Skull,Skull,3,20,0,0,,,,,,,,,,,,{},{}
+7421,Red_Key,Red Key,3,20,0,0,,,,,,,,,,,,{},{}
+7422,Yellow_Key,Yellow Key,3,20,0,0,,,,,,,,,,,,{},{}
+7423,Blue_Key,Blue Key,3,20,0,0,,,,,,,,,,,,{},{}
+7424,Green_Key,Green Key,3,20,0,0,,,,,,,,,,,,{},{}
+7425,Black_Key,Black Key,3,20,0,0,,,,,,,,,,,,{},{}
+7426,Red_Magic_Stone,Red Magic Stone,3,20,0,0,,,,,,,,,,,,{},{}
+7427,Yellow_Magic_Stone,Yellow Magic Stone,3,20,0,0,,,,,,,,,,,,{},{}
+7428,Blue_Magic_Stone,Blue Magic Stone,3,20,0,0,,,,,,,,,,,,{},{}
+7429,Green_Magic_Stone,Green Magic Stone,3,20,0,0,,,,,,,,,,,,{},{}
+7430,Black_Magic_Stone,Black Magic Stone,3,20,0,0,,,,,,,,,,,,{},{}
+7431,Books,Books,3,20,0,0,,,,,,,,,,,,{},{}
+7432,Leather_Pouch,Leather Pouch,3,20,0,0,,,,,,,,,,,,{},{}
+7433,Empty_Scroll,Blank Scroll,3,20,0,0,,,,,,,,,,,,{},{}
+7434,Elemental_Potion_Creation_Guide,Elemental Potion Creation Manual,3,20,0,0,,,,,,,,,,,,{},{}
+7435,Golden_Accessory,Golden Accessory,3,20,0,0,,,,,,,,,,,,{},{}
+7436,Fragment_of_Agony,Fragment of Agony,3,20,0,0,,,,,,,,,,,,{},{}
+7437,Fragment_of_Sorrow,Fragment of Sorrow,3,20,0,0,,,,,,,,,,,,{},{}
+7438,Fragment_of_Hatred,Fragment of Hatred,3,20,0,0,,,,,,,,,,,,{},{}
+7439,Fragment_of_Dispair,Fragment of Dispair,3,20,0,0,,,,,,,,,,,,{},{}
+7440,Red_Feather,Red tinted Feather,3,20,0,0,,,,,,,,,,,,{},{}
+7441,Blue_Feather,Blue tinted Feather,3,20,0,0,,,,,,,,,,,,{},{}
+7442,Cursed_Seal,Cursed Seal,3,20,0,0,,,,,,,,,,,,{},{}
+7443,Head_of_Three_Headed_Dragon,3-Headed Dragon's Head,3,20,0,0,,,,,,,,,,,,{},{}
+7444,Treasure_Box,Treasure Box,3,20,0,0,,,,,,,,,,,,{},{}
+7445,Green_Orb,Green Orb,3,20,0,0,,,,,,,,,,,,{},{}
+7446,Blue_Orb,Blue Orb,3,20,0,0,,,,,,,,,,,,{},{}
+7447,Red_Orb,Red Orb,3,20,0,0,,,,,,,,,,,,{},{}
+7448,Yellow_Orb,Yellow Orb,3,20,0,0,,,,,,,,,,,,{},{}
+7449,Bloodstained_Page,Bloodstained Page,3,20,0,0,,,,,,,,,,,,{},{}
+7450,Bone_Armor_Piece,Bone Armor Piece,3,20,0,0,,,,,,,,,,,,{},{}
+7451,Scale_of_Fire_Dragon,Scale of Fire Dragon,3,20,0,0,,,,,,,,,,,,{},{}
+7452,Yellow_Spice,Yellow Spice,3,20,0,0,,,,,,,,,,,,{},{}
+7453,Sweet_Sauce,Sweet Sauce,3,20,0,0,,,,,,,,,,,,{},{}
+7454,Plain_Sauce,Plain Sauce,3,20,0,0,,,,,,,,,,,,{},{}
+7455,Hot_Sauce,Hot Sauce,3,20,0,0,,,,,,,,,,,,{},{}
+7456,Red_Spice,Red Spice,3,20,0,0,,,,,,,,,,,,{},{}
+7457,Cooking_Oil,Cooking Oil,3,20,0,0,,,,,,,,,,,,{},{}
 
 //THQ Quest Items
 7500,THG_Membership,THG Membership,3,20,0,10,,,,,,,,,,,,{},{}
@@ -2234,14 +2278,23 @@
 12111,Wrapped_Food,Wrapped Food,2,20,0,200,,,,,10477567,2,,,,,,{ getitem groupranditem(3),1; getitem groupranditem(4),1; getitem groupranditem(7),1; },{}
 12112,Tropical_Sograt,Tropical Sograt,2,20,0,100,,,,,10477567,2,,,,,,{},{}
 12113,Vermilion_the_Beach,Vermilion the Beach,2,20,0,100,,,,,10477567,2,,,,,,{},{}
-12114,Elemental_Converter,Flame Elemental Converter,2,,,10,,,,,10477567,2,,,,,,{ sc_start SC_FLAMELAUNCHER,120000,0; },{}
-12115,Elemental_Converter_,Frost Elemental Converter,2,,,10,,,,,10477567,2,,,,,,{ sc_start SC_FROSTWEAPON,120000,0; },{}
-12116,Elemental_Converter__,Seismic Elemental Converter,2,,,10,,,,,10477567,2,,,,,,{ sc_start SC_SEISMICWEAPON,120000,0; },{}
-12117,Elemental_Converter___,Lighting Elemental Converter,2,,,10,,,,,10477567,2,,,,,,{ sc_start SC_LIGHTNINGLOADER,120000,0; },{}
-12118,Resist_Fire,Resist Fire Potion,2,,,10,,,,,10477567,2,,,,,,{},{}
-12119,Resist_Cold,Resist Cold Potion,2,,,10,,,,,10477567,2,,,,,,{},{}
-12120,Resist_Earth,Resist Earth Potion,2,,,10,,,,,10477567,2,,,,,,{},{}
-12121,Resist_Thunder,Resist Thunder Potion,2,,,10,,,,,10477567,2,,,,,,{},{}
+12114,Elemental_Converter,Flame Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_FLAMELAUNCHER,120000,0; },{}
+12115,Elemental_Converter_,Frost Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_FROSTWEAPON,120000,0; },{}
+12116,Elemental_Converter__,Seismic Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_SEISMICWEAPON,120000,0; },{}
+12117,Elemental_Converter___,Lighting Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_LIGHTNINGLOADER,120000,0; },{}
+12118,Resist_Fire,Resist Fire Potion,2,20,0,10,,,,,10477567,2,,,,,,{},{}
+12119,Resist_Cold,Resist Cold Potion,2,20,0,10,,,,,10477567,2,,,,,,{},{}
+12120,Resist_Earth,Resist Earth Potion,2,20,0,10,,,,,10477567,2,,,,,,{},{}
+12121,Resist_Thunder,Resist Thunder Potion,2,20,0,10,,,,,10477567,2,,,,,,{},{}
+12122,Dasik,Dasik,2,20,0,70,,,,,10477567,2,,,,,,{},{}
+12123,Oil_and_Honey_Pastry,Oil and Honey Pastry,2,20,0,70,,,,,10477567,2,,,,,,{},{}
+12124,Various_colored_Rice_Cake,Rainbow colord Rice Cake,2,20,0,70,,,,,10477567,2,,,,,,{},{}
+12125,Outdoor_Cooker,Outdoor Cooker,2,20,0,20,,,,,10477567,2,,,,,,{},{}
+12126,Home_Cooking_Set,Home Cooking Set,2,20,0,30,,,,,10477567,2,,,,,,{},{}
+12127,Deluxe_Cooking_Set,Deluxe Cooking Set,2,20,0,30,,,,,10477567,2,,,,,,{},{}
+12128,Court_Cooking_Set,Court Cooking Set,2,20,0,70,,,,,10477567,2,,,,,,{},{}
+12129,Legendary_Cooking_Set,Legendary Cooking Set,2,20,0,70,,,,,10477567,2,,,,,,{},{}
+
 // More Weapons
 //===================================================================
 // Daggers

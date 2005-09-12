@@ -34,8 +34,12 @@
 	12119,Resist_Cold, //Resist Water element, same as above
 	12120,Resist_Earth //Resist Earth element, same as above
 	12121,Resist_Thunder //Resist Wind element, same as above
+	7420,Skull //PvP Item(maybe drop item?) maybe like that custom bone drop?
+
 	--
 
+09/13
+	* Added new items, thanks to Landarma [Lupus]
 09/12
 	* Corrected job_db1 hp-factor for Advanced Classes. [Skotlex]
 	* Updated drops of Myst,Bloody Butterfly,Disguise,Goblin Leader (All thanks to MasterOfMuppets) [Lupus]

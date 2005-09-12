@@ -28,6 +28,10 @@ TODO:
 
 Date		Added
 ======
+09/13
+	* Added new scripts. Thanks Muad-Dib for his scripts, Dr.Evil for their conversion : [Lupus]
+	- White Day, Temp Geffenia Event, Valentines day, Zondaman Warper
+	- Quivers Maker NPC
 09/12
 	* Minor fix of Bard quest, added GM Reset menu to Adoption. Fixed Guides [Lupus]
 	* Added Juperos warps (thanks to Muad-Dib, Dr.Evil) [Lupus]
