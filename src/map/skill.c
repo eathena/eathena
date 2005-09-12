@@ -943,6 +943,11 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				bleed_time = 50000;	// minimum 50 seconds
 			status_change_start(bl,SC_BLEEDING,skilllv,0,0,0,bleed_time,0);
 		}
+		if (dstsd && rand()%100 < skill_get_time(skillid,skilllv) * battle_config.equip_skill_break_rate / 100) { //fixed
+			if(pc_breakarmor(dstsd))
+				clif_emotion(bl,23);
+		}
+
 		break;
 
 	case AM_DEMONSTRATION:
@@ -2049,6 +2054,9 @@ static int skill_check_unit_range2_sub( struct block_list *bl,va_list ap )
 	if (skillid==HP_BASILICA && bl->type==BL_PC)
 		return 0;
 
+	if (skillid==AM_DEMONSTRATION && bl->type==BL_MOB && ((struct mob_data*)bl)->class_ == MOBID_EMPERIUM)
+		return 0; //Allow casting Bomb/Demonstration Right under emperium
+	
 	(*c)++;
 
 	return 0;
@@ -2680,10 +2688,6 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 
 	case AM_ACIDTERROR:		/* アシッドテラ? */
 		skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, flag);
-		if (tsd && rand()%100 < skill_get_time(skillid,skilllv) * battle_config.equip_skill_break_rate / 100) { //fixed
-			if(pc_breakarmor(tsd))
-				clif_emotion(bl,23);
-		}
 		break;
 
 	case MO_FINGEROFFENSIVE:	/* 指? */
@@ -5498,6 +5502,8 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		range = status_get_range(&sd->bl) - (range + 1);
 	range += battle_config.pc_skill_add_range;
 
+	/* This piece of code is quite broken... it was originally meant to add range to follow up your enemy when
+	 * Combo Finish used to knock back. No longer needed. [Skotlex]
 	if (sd->sc_data[SC_COMBO].timer != -1 &&
 		((sd->skillid == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
 		(sd->skillid == CH_TIGERFIST && sd->sc_data[SC_COMBO].val1 == MO_COMBOFINISH) ||
@@ -5506,6 +5512,7 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		(sd->skillid == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == CH_TIGERFIST) ||
 		(sd->skillid == MO_EXTREMITYFIST && sd->sc_data[SC_COMBO].val1 == CH_CHAINCRUSH)))
 		range += skill_get_blewcount(MO_COMBOFINISH,sd->sc_data[SC_COMBO].val2);
+	*/
 
 	if(battle_config.skill_out_range_consume) { // changed to allow casting when target walks out of range [Valaris]
 		if(range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y)) {
@@ -7444,7 +7451,7 @@ int skill_check_condition(struct map_session_data *sd,int type)
 			return 0;
 		break;
 	case CH_TIGERFIST:						//伏虎拳
-		if(sd->sc_data[SC_COMBO].timer == -1 || sd->sc_data[SC_COMBO].val1 != MO_COMBOFINISH)// && !sd->state.skill_flag)
+		if(sd->sc_data[SC_COMBO].timer == -1 || sd->sc_data[SC_COMBO].val1 != MO_COMBOFINISH)
 			return 0;
 		break;
 	case CH_CHAINCRUSH:						//連柱崩?
@@ -8100,12 +8107,8 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 		break;
 	case MO_COMBOFINISH:	/*猛龍拳*/
 	case CH_CHAINCRUSH:		/* 連柱崩? */
-		target_id = sd->attacktarget;
-		break;
-
 	case CH_TIGERFIST:		/* 伏虎拳 */
-		if (sc_data && sc_data[SC_COMBO].timer != -1 && sc_data[SC_COMBO].val1 == MO_COMBOFINISH)
-			target_id = sd->attacktarget;
+		target_id = sd->attacktarget;
 		break;
 
 // -- moonsoul	(altered to allow proper usage of extremity from new champion combos)

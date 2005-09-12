@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/12
+	* Bomb/Demonstration should now be cast-able under the Emperium. [Skotlex]
+	* Acid Terror now knows ignores armor defense, but not vit defense. [Skotlex]
 	* Added an official Bards Job Quest (check npc\changelog.txt) [Lupus]
 09/11
 	* Changed back the default of gx_all_hit to no. [Skotlex]

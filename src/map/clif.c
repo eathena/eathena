@@ -9379,7 +9379,8 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 
 	if (sd->skilltimer != -1)
 		return;
-	else if (DIFF_TICK(tick, sd->canact_tick) < 0 &&
+	else if (DIFF_TICK(tick, sd->canact_tick) < 0)
+		/* Eh, these are POSITION skills, combos are not casted on the ground :P [Skotlex]
 		// allow monk combos to ignore this delay [celest]
 		!(sd->sc_count && sd->sc_data[SC_COMBO].timer!=-1 &&
 		(skillnum == MO_EXTREMITYFIST ||
@@ -9387,7 +9388,9 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 		skillnum == MO_COMBOFINISH ||
 		skillnum == CH_PALMSTRIKE ||
 		skillnum == CH_TIGERFIST ||
-		skillnum == CH_CHAINCRUSH))) {
+		skillnum == CH_CHAINCRUSH)))
+		*/
+	{
 		clif_skill_fail(sd, skillnum, 4, 0);
 		return;
 	}

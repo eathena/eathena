@@ -115,7 +115,7 @@ enum {
 	SC_GOSPEL			= 109,
 	SC_ASSUMPTIO		= 110,
 	SC_BASILICA			= 111,
-	SC_GUILDAURA        = 112,
+	SC_GUILDAURA		= 112,
 	SC_MAGICPOWER		= 113,
 	SC_EDP				= 114,
 	SC_TRUESIGHT		= 115,
@@ -156,11 +156,11 @@ enum {
 // 150 = empty
 // 151 = empty
 // 152 = empty
-// 153 = makes some kind of strange effect on the character
+// 153 = causes character after-image effect.
 // 156 = tombstone-shape with a cross and a halo
 // 157 = 4 arrows converging to "HP"
-// 158 = empty
-// 159 = empty
+// 158 = icon of a person with two afterimages.
+// 159 = causes a blue-dust effect (refresher?)
 // 160 = empty
 	SC_ONEHAND          = 161,
 // 162 = empty

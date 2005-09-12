@@ -1342,7 +1342,6 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case AM_ACIDTERROR:
 					skillratio+= 40*skill_lv;
-					flag.idef = flag.idef2= 1;
 					flag.cardfix = 0;
 					break;
 				case MO_FINGEROFFENSIVE:
@@ -1553,7 +1552,7 @@ static struct Damage battle_calc_weapon_attack(
 						def2 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
 					}
 				}
-				if(def1 < 0) def1 = 0;
+				if(def1 < 0 || skill_num == AM_ACIDTERROR) def1 = 0; //Acid Terror ignores only armor defense. [Skotlex]
 				if(def2 < 1) def2 = 1;
 			}
 			//Vitality reduction from rodatazone: http://rodatazone.simgaming.net/mechanics/substats.php#def	
