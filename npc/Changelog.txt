@@ -29,6 +29,7 @@ TODO:
 Date		Added
 ======
 09/12
+	* Minor fix of Bard quest, added GM Reset menu to Adoption. Fixed Guides [Lupus]
 	* Added Juperos warps (thanks to Muad-Dib, Dr.Evil) [Lupus]
 	* Lutie town bugfix (fixed some items exploit, found due to Bard Quest optimization 8) [Lupus]
 	* Added an official Bards Job Quest. [Lupus]

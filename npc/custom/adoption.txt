@@ -3,6 +3,7 @@
 //===== By ================================================
 //= Fredzilla with help from Kamari,Acky
 //===== Version ===========================================
+//= 1.5 Added GM menu to reset current adoption [Lupus]
 //= 1.4 Got rid of useless "event_adoptXXX" variables [Lupus]
 //= 1.3c - Slightly rewrote the anti-taekwon protection to
 //=        detect problems more easily [DracoRPG]
@@ -50,6 +51,19 @@ prt_church.gat,115,122,0	warp	prtch03	1,2,prt_church.gat,164,171
 prt_church.gat,162,171,0	warp	prtch01-3	1,2,prt_church.gat,113,122
 
 prt_church.gat,166,176,3	script	Adoption Man	61,{
+
+//GM Menu: Start
+//If u're a GM you can always reset current Adoption process
+	if(getgmlevel(99)<90) goto L_SKIP;
+	mes "[GM Menu]";
+	mes "Would you like to reset curent adoption?";
+	next;
+	menu "Yes",-,"No",L_SKIP;	
+	callfunc "AdoptReset","GM reset";
+	close;
+L_SKIP:
+//GM Menu: End
+
 	if($@AdoptionActive == 1) goto A_Cannot;
 	mes "[Oliver]";
 	if (Upper==2) goto A_YouBaby;

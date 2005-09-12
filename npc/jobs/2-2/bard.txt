@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Muad_Dib(The Prometheus Project)
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.1a
 //===== Compatible With: ===================================== 
 //= eAthena Final
 //===== Description: ========================================= 
@@ -14,6 +14,7 @@
 // Converted to eAthena format by Dr.Evil
 // Info about gifts and other info --> http://www.ragnainfo.net/forums/viewtopic.php?t=51467&start=0 
 // 1.1 Optimized, changed some stuff, fixed some bugs [Lupus]
+// 1.1a minor song test fix [Lupus]
 //============================================================
 
 
@@ -296,7 +297,7 @@ L_SINGING:
 	mes "Eden,";
 	mes "Odin's daugther-in-law and Bragis";
 	mes "wife";
-	mes "Her sweet apples in here basket,";
+	mes "Her sweet apples in her basket,";
 	mes "All thanks to her sweet apples.";
 	
 	set @score,0;
@@ -332,7 +333,7 @@ M_S7:
 	
 	set @score,@score+10;
 M_S8:
-	menu "Her sweet apple in here basket,",M_S9,"Her sweet apples in here basket,",-;
+	menu "Her sweet apple in her basket,",M_S9,"Her sweet apples in her basket,",-;
 	
 	set @score,@score+10;
 M_S9:
@@ -340,7 +341,7 @@ M_S9:
 	
 	set @score,@score+10;
 M_S10:
-	if(@score == 90) goto L_GOODWORK;
+	if(@score >= 90) goto L_GOODWORK;
 	mes "[Lalo]";
 	mes "Oy, You got the lyrics wrong!";
 	mes "Can't you even sing along...?";
