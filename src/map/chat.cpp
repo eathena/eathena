@@ -62,7 +62,7 @@ int chat_createchat(struct map_session_data &sd,unsigned short limit,unsigned ch
  * 既存チャットルームに参加
  *------------------------------------------
  */
-int chat_joinchat(struct map_session_data &sd,unsigned long chatid,const char* pass)
+int chat_joinchat(struct map_session_data &sd,uint32 chatid,const char* pass)
 {
 	struct chat_data *cd;
 

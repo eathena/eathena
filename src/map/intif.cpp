@@ -35,7 +35,7 @@ extern int char_fd;		// inter serverのfdはchar_fdを使う
 
 
 // pet
-int intif_create_pet(unsigned long account_id,unsigned long char_id,short pet_class,short pet_lv,short pet_egg_id,
+int intif_create_pet(uint32 account_id,uint32 char_id,short pet_class,short pet_lv,short pet_egg_id,
 	short pet_equip,short intimate,short hungry,char rename_flag,char incuvate,const char *pet_name)
 {
 	if( !session_isActive(char_fd) )
@@ -57,7 +57,7 @@ int intif_create_pet(unsigned long account_id,unsigned long char_id,short pet_cl
 	return 0;
 }
 
-int intif_request_petdata(unsigned long account_id,unsigned long char_id,unsigned long pet_id)
+int intif_request_petdata(uint32 account_id,uint32 char_id,uint32 pet_id)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -70,7 +70,7 @@ int intif_request_petdata(unsigned long account_id,unsigned long char_id,unsigne
 	return 0;
 }
 
-int intif_save_petdata(unsigned long account_id,struct s_pet &pet)
+int intif_save_petdata(uint32 account_id,struct s_pet &pet)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -85,7 +85,7 @@ int intif_save_petdata(unsigned long account_id,struct s_pet &pet)
 	return 0;
 }
 
-int intif_delete_petdata(unsigned long pet_id)
+int intif_delete_petdata(uint32 pet_id)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -209,7 +209,7 @@ int intif_request_accountreg(struct map_session_data &sd)
 }
 
 // 倉庫データ要求
-int intif_request_storage(unsigned long account_id)
+int intif_request_storage(uint32 account_id)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -233,7 +233,7 @@ int intif_send_storage(struct pc_storage &stor)
 	return 0;
 }
 
-int intif_request_guild_storage(unsigned long account_id,unsigned long guild_id)
+int intif_request_guild_storage(uint32 account_id,uint32 guild_id)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -243,7 +243,7 @@ int intif_request_guild_storage(unsigned long account_id,unsigned long guild_id)
 	WFIFOSET(char_fd,10);
 	return 0;
 }
-int intif_send_guild_storage(unsigned long account_id,struct guild_storage &gstor)
+int intif_send_guild_storage(uint32 account_id,struct guild_storage &gstor)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -277,7 +277,7 @@ int intif_create_party(struct map_session_data &sd,const char *name,int item,int
 	return 0;
 }
 // パーティ情報要求
-int intif_request_partyinfo(unsigned long party_id)
+int intif_request_partyinfo(uint32 party_id)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -289,7 +289,7 @@ int intif_request_partyinfo(unsigned long party_id)
 	return 0;
 }
 // パーティ追加要求
-int intif_party_addmember(unsigned long party_id,unsigned long account_id)
+int intif_party_addmember(uint32 party_id,uint32 account_id)
 {
 	struct map_session_data *sd;
 	if( !session_isActive(char_fd) )
@@ -309,7 +309,7 @@ int intif_party_addmember(unsigned long party_id,unsigned long account_id)
 	return 0;
 }
 // パーティ設定変更
-int intif_party_changeoption(unsigned long party_id,unsigned long account_id,unsigned short expshare,unsigned short itemshare)
+int intif_party_changeoption(uint32 party_id,uint32 account_id,unsigned short expshare,unsigned short itemshare)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -322,7 +322,7 @@ int intif_party_changeoption(unsigned long party_id,unsigned long account_id,uns
 	return 0;
 }
 // パーティ脱退要求
-int intif_party_leave(unsigned long party_id,unsigned long account_id)
+int intif_party_leave(uint32 party_id,uint32 account_id)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -363,7 +363,7 @@ int intif_break_party(int party_id)
 	return 0;
 }
 // パーティ会話送信
-int intif_party_message(unsigned long party_id,unsigned long account_id,const char *mes,size_t len)
+int intif_party_message(uint32 party_id,uint32 account_id,const char *mes,size_t len)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -382,7 +382,7 @@ int intif_party_message(unsigned long party_id,unsigned long account_id,const ch
 	return 0;
 }
 // パーティ競合チェック要求
-int intif_party_checkconflict(unsigned long party_id,unsigned long account_id,char *nick)
+int intif_party_checkconflict(uint32 party_id,uint32 account_id,char *nick)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -412,7 +412,7 @@ int intif_guild_create(const char *name,const struct guild_member &master)
 	return 0;
 }
 // ギルド情報要求
-int intif_guild_request_info(unsigned long guild_id)
+int intif_guild_request_info(uint32 guild_id)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -422,7 +422,7 @@ int intif_guild_request_info(unsigned long guild_id)
 	return 0;
 }
 // ギルドメンバ追加要求
-int intif_guild_addmember(unsigned long guild_id,struct guild_member &member)
+int intif_guild_addmember(uint32 guild_id,struct guild_member &member)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -438,7 +438,7 @@ int intif_guild_addmember(unsigned long guild_id,struct guild_member &member)
 	return 0;
 }
 // ギルドメンバ脱退/追放要求
-int intif_guild_leave(unsigned long guild_id,unsigned long account_id,unsigned long char_id,int flag,const char *mes)
+int intif_guild_leave(uint32 guild_id,uint32 account_id,uint32 char_id,int flag,const char *mes)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -452,7 +452,7 @@ int intif_guild_leave(unsigned long guild_id,unsigned long account_id,unsigned l
 	return 0;
 }
 // ギルドメンバのオンライン状況/Lv更新要求
-int intif_guild_memberinfoshort(unsigned long guild_id, unsigned long account_id,unsigned long char_id,int online,int lv,int class_)
+int intif_guild_memberinfoshort(uint32 guild_id, uint32 account_id,uint32 char_id,int online,int lv,int class_)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -467,7 +467,7 @@ int intif_guild_memberinfoshort(unsigned long guild_id, unsigned long account_id
 	return 0;
 }
 // ギルド解散通知
-int intif_guild_break(unsigned long guild_id)
+int intif_guild_break(uint32 guild_id)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -477,7 +477,7 @@ int intif_guild_break(unsigned long guild_id)
 	return 0;
 }
 // ギルド会話送信
-int intif_guild_message(unsigned long guild_id,unsigned long account_id,const char *mes,size_t len)
+int intif_guild_message(uint32 guild_id,uint32 account_id,const char *mes,size_t len)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -494,7 +494,7 @@ int intif_guild_message(unsigned long guild_id,unsigned long account_id,const ch
 	return 0;
 }
 // ギルド競合チェック要求
-int intif_guild_checkconflict(unsigned long guild_id,unsigned long account_id,unsigned long char_id)
+int intif_guild_checkconflict(uint32 guild_id,uint32 account_id,uint32 char_id)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -506,7 +506,7 @@ int intif_guild_checkconflict(unsigned long guild_id,unsigned long account_id,un
 	return 0;
 }
 // ギルド基本情報変更要求
-int intif_guild_change_basicinfo(unsigned long guild_id,int type, unsigned long data)
+int intif_guild_change_basicinfo(uint32 guild_id,int type, uint32 data)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -519,7 +519,7 @@ int intif_guild_change_basicinfo(unsigned long guild_id,int type, unsigned long 
 	return 0;
 }
 // ギルドメンバ情報変更要求
-int intif_guild_change_memberinfo(unsigned long guild_id,unsigned long account_id,unsigned long char_id, unsigned short type, unsigned long data)
+int intif_guild_change_memberinfo(uint32 guild_id,uint32 account_id,uint32 char_id, unsigned short type, uint32 data)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -535,7 +535,7 @@ int intif_guild_change_memberinfo(unsigned long guild_id,unsigned long account_i
 	return 0;
 }
 // ギルド役職変更要求
-int intif_guild_position(unsigned long guild_id,unsigned long idx,struct guild_position &pos)
+int intif_guild_position(uint32 guild_id,uint32 idx,struct guild_position &pos)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -548,7 +548,7 @@ int intif_guild_position(unsigned long guild_id,unsigned long idx,struct guild_p
 	return 0;
 }
 // ギルドスキルアップ要求
-int intif_guild_skillup(unsigned long guild_id,unsigned short skillid,unsigned long account_id,int flag)
+int intif_guild_skillup(uint32 guild_id,unsigned short skillid,uint32 account_id,int flag)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -561,7 +561,7 @@ int intif_guild_skillup(unsigned long guild_id,unsigned short skillid,unsigned l
 	return 0;
 }
 // ギルド同盟/敵対要求
-int intif_guild_alliance(unsigned long guild_id1,unsigned long guild_id2,unsigned long account_id1,unsigned long account_id2,int flag)
+int intif_guild_alliance(uint32 guild_id1,uint32 guild_id2,uint32 account_id1,uint32 account_id2,int flag)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -575,7 +575,7 @@ int intif_guild_alliance(unsigned long guild_id1,unsigned long guild_id2,unsigne
 	return 0;
 }
 // ギルド告知変更要求
-int intif_guild_notice(unsigned long guild_id,const char *mes1,const char *mes2)
+int intif_guild_notice(uint32 guild_id,const char *mes1,const char *mes2)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -587,7 +587,7 @@ int intif_guild_notice(unsigned long guild_id,const char *mes1,const char *mes2)
 	return 0;
 }
 // ギルドエンブレム変更要求
-int intif_guild_emblem(unsigned long guild_id,const unsigned char *data, size_t len)
+int intif_guild_emblem(uint32 guild_id,const unsigned char *data, size_t len)
 {
 	if( !session_isActive(char_fd) )
 		return 0;
@@ -822,7 +822,7 @@ int intif_parse_SaveGuildStorage(int fd)
 int intif_parse_PartyCreated(int fd)
 {
 	if(battle_config.etc_log)
-		ShowInfo("intif: party created by account %d\n\n", (unsigned long)RFIFOL(fd,2));
+		ShowInfo("intif: party created by account %d\n\n", (uint32)RFIFOL(fd,2));
 	party_created(RFIFOL(fd,2),RFIFOB(fd,6),RFIFOL(fd,7),(char*)RFIFOP(fd,11));
 	return 0;
 }
@@ -973,10 +973,10 @@ int intif_parse_GuildBasicInfoChanged(int fd)
 int intif_parse_GuildMemberInfoChanged(int fd)
 {
 	unsigned short type=RFIFOW(fd,16);
-	unsigned long guild_id=RFIFOL(fd,4);
-	unsigned long account_id=RFIFOL(fd,8);
-	unsigned long char_id=RFIFOL(fd,12);
-	unsigned long dd = RFIFOL(fd,18);
+	uint32 guild_id=RFIFOL(fd,4);
+	uint32 account_id=RFIFOL(fd,8);
+	uint32 char_id=RFIFOL(fd,12);
+	uint32 dd = RFIFOL(fd,18);
 	struct guild *g=guild_search(guild_id);
 	int idx;
 	if( g )

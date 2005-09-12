@@ -29,7 +29,7 @@ void vending_closevending(struct map_session_data &sd)
  * ˜I“XƒAƒCƒeƒ€ƒŠƒXƒg—v‹
  *------------------------------------------
  */
-void vending_vendinglistreq(struct map_session_data &sd, unsigned long id)
+void vending_vendinglistreq(struct map_session_data &sd, uint32 id)
 {
 	struct map_session_data *vsd;
 
@@ -44,10 +44,10 @@ void vending_vendinglistreq(struct map_session_data &sd, unsigned long id)
  * ˜I“XƒAƒCƒeƒ€w“ü
  *------------------------------------------
  */
-void vending_purchasereq(struct map_session_data &sd,unsigned short len,unsigned long id,unsigned char *buffer)
+void vending_purchasereq(struct map_session_data &sd,unsigned short len,uint32 id,unsigned char *buffer)
 {
 	size_t i, j, w;
-	unsigned long z;
+	uint32 z;
 	unsigned short blank, vend_list[12];
 	unsigned short amount, index, new_ = 0;
 	struct map_session_data *vsd = map_id2sd(id);

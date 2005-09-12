@@ -16,13 +16,13 @@ int mapif_sendall(unsigned char *buf, unsigned int len);
 int mapif_sendallwos(int fd,unsigned char *buf, unsigned int len);
 int mapif_send(int fd,unsigned char *buf, unsigned int len);
 
-bool char_married(unsigned long p1_id, unsigned long p2_id);
+bool char_married(uint32 p1_id, uint32 p2_id);
 bool char_married(const char* p1_name, const char* p2_name);
-bool char_child(unsigned long parent_id, unsigned long child_id);
+bool char_child(uint32 parent_id, uint32 child_id);
 bool char_child(const char* parent_name, const char* child_name);
-bool char_family(unsigned long id1, unsigned long id2, unsigned long id3);
+bool char_family(uint32 id1, uint32 id2, uint32 id3);
 bool char_family(const char* name1, const char* name2, const char* name3);
-bool char_exist(unsigned long id);
+bool char_exist(uint32 id);
 bool char_exist(const char* name);
 
 int char_log(char *fmt, ...);

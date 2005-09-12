@@ -128,7 +128,7 @@ int config_switch(const char *str) {
 }
 ///////////////////////////////////////////////////////////////////////////
 // converts a string to an ip (host byte order)
-unsigned long str2ip(const char *str)
+uint32 str2ip(const char *str)
 {
 	struct hostent*h;
 	while( isspace( ((unsigned char)(*str)) ) ) str++;

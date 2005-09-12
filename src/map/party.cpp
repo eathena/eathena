@@ -45,7 +45,7 @@ void do_init_party(void)
 }
 
 // 検索
-struct party *party_search(unsigned long party_id)
+struct party *party_search(uint32 party_id)
 {
 	return (struct party *)numdb_search(party_db,party_id);
 }
@@ -77,7 +77,7 @@ int party_create(struct map_session_data &sd,const char *name,int item,int item2
 }
 
 // 作成可否
-int party_created(unsigned long account_id,int fail,unsigned long party_id,const char *name)
+int party_created(uint32 account_id,int fail,uint32 party_id,const char *name)
 {
 	struct map_session_data *sd = map_id2sd(account_id);
 
@@ -107,7 +107,7 @@ int party_created(unsigned long account_id,int fail,unsigned long party_id,const
 }
 
 // 情報要求
-int party_request_info(unsigned long party_id)
+int party_request_info(uint32 party_id)
 {
 	return intif_request_partyinfo(party_id);
 }
@@ -148,7 +148,7 @@ int party_check_member(struct party &p)
 }
 
 // 情報所得失敗（そのIDのキャラを全部未所属にする）
-int party_recv_noinfo(unsigned long party_id)
+int party_recv_noinfo(uint32 party_id)
 {
 	size_t i;
 	struct map_session_data *sd;
@@ -198,7 +198,7 @@ int party_recv_info(struct party &sp)
 }
 
 // パーティへの勧誘
-int party_invite(struct map_session_data &sd,unsigned long account_id)
+int party_invite(struct map_session_data &sd,uint32 account_id)
 {
 	struct map_session_data *tsd= map_id2sd(account_id);
 	struct party *p=party_search(sd.status.party_id);
@@ -230,7 +230,7 @@ int party_invite(struct map_session_data &sd,unsigned long account_id)
 	return 0;
 }
 // パーティ勧誘への返答
-int party_reply_invite(struct map_session_data &sd,unsigned long account_id,int flag)
+int party_reply_invite(struct map_session_data &sd,uint32 account_id,int flag)
 {
 	struct map_session_data *tsd= map_id2sd(account_id);
 
@@ -249,7 +249,7 @@ int party_reply_invite(struct map_session_data &sd,unsigned long account_id,int 
 	return 0;
 }
 // パーティが追加された
-int party_member_added(unsigned long party_id,unsigned long account_id,int flag)
+int party_member_added(uint32 party_id,uint32 account_id,int flag)
 {
 	struct map_session_data *sd = map_id2sd(account_id),*sd2;
 	if(sd == NULL){
@@ -284,7 +284,7 @@ int party_member_added(unsigned long party_id,unsigned long account_id,int flag)
 	return 0;
 }
 // パーティ除名要求
-int party_removemember(struct map_session_data &sd,unsigned long account_id,const char *name)
+int party_removemember(struct map_session_data &sd,uint32 account_id,const char *name)
 {
 	struct party *p;
 	int i;
@@ -326,7 +326,7 @@ int party_leave(struct map_session_data &sd)
 	return 0;
 }
 // パーティメンバが脱退した
-int party_member_leaved(unsigned long party_id,unsigned long account_id,const char *name)
+int party_member_leaved(uint32 party_id,uint32 account_id,const char *name)
 {
 	struct map_session_data *sd=map_id2sd(account_id);
 	struct party *p=party_search(party_id);
@@ -347,7 +347,7 @@ int party_member_leaved(unsigned long party_id,unsigned long account_id,const ch
 	return 0;
 }
 // パーティ解散通知
-int party_broken(unsigned long party_id)
+int party_broken(uint32 party_id)
 {
 	struct party *p;
 	int i;
@@ -386,7 +386,7 @@ int party_changeoption(struct map_session_data &sd,unsigned short expshare,unsig
 	return 0;
 }
 // パーティの設定変更通知
-int party_optionchanged(unsigned long party_id,unsigned long account_id,unsigned short expshare,unsigned short itemshare,unsigned char flag)
+int party_optionchanged(uint32 party_id,uint32 account_id,unsigned short expshare,unsigned short itemshare,unsigned char flag)
 {
 	struct party *p;
 	struct map_session_data *sd=map_id2sd(account_id);
@@ -400,7 +400,7 @@ int party_optionchanged(unsigned long party_id,unsigned long account_id,unsigned
 }
 
 // パーティメンバの移動通知
-int party_recv_movemap(unsigned long party_id,unsigned long account_id,const char *map,int online,unsigned short lv)
+int party_recv_movemap(uint32 party_id,uint32 account_id,const char *map,int online,unsigned short lv)
 {
 	struct party *p;
 	int i;
@@ -489,13 +489,16 @@ int party_send_message(struct map_session_data &sd,const char *mes,size_t len)
 	intif_party_message(sd.status.party_id,sd.status.account_id,mes,len);
 	party_recv_message (sd.status.party_id,sd.status.account_id,mes,len);
 	//Chat Logging support Type 'P'
-	log_chat("P", sd.status.party_id, sd.status.char_id, sd.status.account_id, sd.mapname, sd.bl.x, sd.bl.y, "", mes);
+	if(log_config.chat&1 //we log everything then
+		|| ( log_config.chat&4 //if Party bit is on
+		&& ( !agit_flag || !(log_config.chat&16) ))) //if WOE ONLY flag is off or AGIT is OFF
+		log_chat("P", sd.status.party_id, sd.status.char_id, sd.status.account_id, sd.mapname, sd.bl.x, sd.bl.y, "", mes);
 	
 	return 0;
 }
 
 // パーティメッセージ受信
-int party_recv_message(unsigned long party_id,unsigned long account_id,const char *mes,size_t len)
+int party_recv_message(uint32 party_id,uint32 account_id,const char *mes,size_t len)
 {
 	struct party *p;
 	if( (p=party_search(party_id))==NULL)
@@ -568,12 +571,12 @@ int party_send_xy_clear(struct party &p)
 // HP通知の必要性検査用（map_foreachinmoveareaから呼ばれる）
 int party_send_hp_check(struct block_list &bl,va_list ap)
 {
-	unsigned long party_id;
+	uint32 party_id;
 	int *flag;
 	struct map_session_data &sd = (struct map_session_data &)bl;
 
 	nullpo_retr(0, ap);
-	party_id=va_arg(ap,unsigned long);
+	party_id=va_arg(ap,uint32);
 	flag=va_arg(ap,int *);
 	
 	if(sd.status.party_id==party_id){
@@ -584,7 +587,7 @@ int party_send_hp_check(struct block_list &bl,va_list ap)
 }
 
 // exp share and added zeny share [Valaris]
-int party_exp_share(struct party &p,unsigned short map, unsigned long base_exp,unsigned long job_exp,unsigned long zeny)
+int party_exp_share(struct party &p,unsigned short map, uint32 base_exp,uint32 job_exp,uint32 zeny)
 {
 	struct map_session_data *sd;
 	size_t i;
@@ -647,7 +650,7 @@ int party_exp_share(struct party &p,unsigned short map, unsigned long base_exp,u
 // the lvl 99 gets 99 and the lvl 1 get 1 point
 // this way it won't be necessary to block exp sharing of lvl differences
 ///////////////////////////////////////////////////////////////////////////////
-int party_exp_share2(struct party &p, unsigned short map, unsigned long base_exp, unsigned long job_exp, unsigned long zeny)
+int party_exp_share2(struct party &p, unsigned short map, uint32 base_exp, uint32 job_exp, uint32 zeny)
 {
 	struct map_session_data *sd;
 	size_t i;
@@ -690,9 +693,9 @@ int party_exp_share2(struct party &p, unsigned short map, unsigned long base_exp
 	{
 		if( (sd=p.member[memberpos[i]].sd)!=NULL )
 		{
-			pc_gainexp(*sd,(unsigned long)(base_exp_div * p.member[i].lv),(unsigned long)(job_exp_div * p.member[i].lv));
+			pc_gainexp(*sd,(uint32)(base_exp_div * p.member[i].lv),(uint32)(job_exp_div * p.member[i].lv));
 			if(battle_config.zeny_from_mobs) // zeny from mobs [Valaris]
-				pc_getzeny(*sd,(unsigned long)(zeny_div*p.member[i].lv));
+				pc_getzeny(*sd,(uint32)(zeny_div*p.member[i].lv));
 		}
 	}
 	return 0;

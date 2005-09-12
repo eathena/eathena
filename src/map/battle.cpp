@@ -30,7 +30,7 @@ struct Battle_Config battle_config;
  */
 int battle_counttargeted_sub(struct block_list &bl, va_list ap)
 {
-	unsigned long id;
+	uint32 id;
 	int *c;
 	unsigned short target_lv;
 	struct block_list *src;
@@ -344,8 +344,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	if(sc_data)
 	{
 		if (sc_data[SC_SAFETYWALL].timer!=-1 && damage>0 && flag&BF_WEAPON &&
-			flag&BF_SHORT && skill_num != NPC_GUIDEDATTACK) {
-			// セーフティウォール
+			flag&BF_SHORT && skill_num != NPC_GUIDEDATTACK && skill_num != AM_DEMONSTRATION)
+		{	// セーフティウォール
 			struct skill_unit *unit = (struct skill_unit *)sc_data[SC_SAFETYWALL].val2.ptr;
 			// temporary check to prevent access on wrong val2
 			if (unit && unit->bl.m == bl->m) {
@@ -495,15 +495,15 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 				damage = 0;
 	}
 
-	if(class_ == 1288 || class_ == 1287 || class_ == 1286 || class_ == 1285) {
-		if(class_ == 1288 && (flag&BF_SKILL || skill_num == ASC_BREAKER || skill_num == PA_SACRIFICE))
+	if(class_ == MOBID_EMPERIUM || class_ == 1287 || class_ == 1286 || class_ == 1285) {
+		if(class_ == MOBID_EMPERIUM && (flag&BF_SKILL || skill_num == ASC_BREAKER || skill_num == PA_SACRIFICE))
 			damage=0;
 		if(src->type == BL_PC) {
 			struct guild *g=guild_search(((struct map_session_data *)src)->status.guild_id);
 			struct guild_castle *gc=guild_mapname2gc(map[bl->m].mapname);
 			if(!((struct map_session_data *)src)->status.guild_id)
 				damage=0;
-			if(gc && agit_flag==0 && class_ != 1288)	// guardians cannot be damaged during non-woe [Valaris]
+			if(gc && agit_flag==0 && class_ != MOBID_EMPERIUM)	// guardians cannot be damaged during non-woe [Valaris]
 				damage=0;  // end woe check [Valaris]
 			if(g == NULL)
 				damage=0;//ギルド未加入ならダメージ無し
@@ -3008,6 +3008,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 			case LK_SPIRALPIERCE:
 			case ASC_BREAKER:
 			case PA_SHIELDCHAIN:
+			case AM_ACIDTERROR:
 			case CR_GRANDCROSS:	//GrandCross really shouldn't count as short-range, aight?
 			case ITM_TOMAHAWK:	//Tomahawk is a ranged attack! [Skotlex]
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
@@ -3048,7 +3049,8 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 	{
 		if(t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1)
 		{
-			int dir = map_calc_dir(*src,target->x,target->y),t_dir = status_get_dir(target);
+			int dir = map_calc_dir(*target,src->x,src->y);
+			int t_dir = status_get_dir(target);
 			int dist = distance(src->x,src->y,target->x,target->y);
 			if(dist <= 0 || map_check_dir(dir,t_dir) )
 			{
@@ -4326,7 +4328,7 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 			}
 			else
 				blewcount |= 0x10000;
-			md.dmotion=0; //Firewall's delay is always none. [Skotlex]
+			//md.dmotion=0; //Firewall's delay is always none. [Skotlex]
 			MATK_FIX( 1,2 );
 			break;
 		case MG_THUNDERSTORM:	// サンダーストーム
@@ -5068,18 +5070,28 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 		if (rdamage > 0)
 			battle_delay_damage(tick+wd.amotion, *target, *src, rdamage, 0);
 
+
+		if(sc_data)
+		{
+			if (sc_data[SC_READYSTORM].timer != -1 && rand()%100 < 15) // Taekwon Strom Stance [Dralnu]
+				status_change_start(src,SC_STORMKICK,1,0,0,0,0,0);
+			if(sc_data[SC_READYDOWN].timer != -1 && rand()%100 < 15) // Taekwon Axe Stance [Dralnu]
+				status_change_start(src,SC_DOWNKICK,1,target->id,0,0,0,0);
+			if(sc_data[SC_READYTURN].timer != -1 && rand()%100 < 15) // Taekwon Round Stance [Dralnu]
+				status_change_start(src,SC_TURNKICK,1,target->id,0,0,0,0);
+		}
 		if(tsc_data)
 		{
 			if(tsc_data[SC_AUTOCOUNTER].timer != -1 && tsc_data[SC_AUTOCOUNTER].val4.num > 0)
 			{
-				if( (unsigned long)tsc_data[SC_AUTOCOUNTER].val3.num == src->id )
+				if( (uint32)tsc_data[SC_AUTOCOUNTER].val3.num == src->id )
 					battle_weapon_attack(target, src, tick, 0x8000|tsc_data[SC_AUTOCOUNTER].val1.num);
 				clif_skillcastcancel(*target); //Remove the little casting bar. [Skotlex]
 				status_change_end(target,SC_AUTOCOUNTER,-1);
 			}
 			if (tsc_data[SC_READYCOUNTER].timer != -1 && rand()%100 < 20) // Taekwon Counter Stance [Dralnu]
 				status_change_start(target,SC_COUNTER,1,src->id,0,0,tick,flag);
-			if(tsc_data[SC_POISONREACT].timer != -1 && tsc_data[SC_POISONREACT].val4.num > 0 && (unsigned long)tsc_data[SC_POISONREACT].val3.num == src->id)
+			if(tsc_data[SC_POISONREACT].timer != -1 && tsc_data[SC_POISONREACT].val4.num > 0 && (uint32)tsc_data[SC_POISONREACT].val3.num == src->id)
 			{   // poison react [Celest]
 				if(status_get_elem_type(src) == 5)
 				{
@@ -5096,9 +5108,11 @@ int battle_weapon_attack(struct block_list *src, struct block_list *target, unsi
 			}
 			if (tsc_data[SC_BLADESTOP_WAIT].timer != -1 && !is_boss(src)) { // ボスには無効
 				int skilllv = tsc_data[SC_BLADESTOP_WAIT].val1.num;
+				int duration = skill_get_time2(MO_BLADESTOP,skilllv);
 				status_change_end(target, SC_BLADESTOP_WAIT, -1);
-				status_change_start(src, SC_BLADESTOP, skilllv, 1, intptr(src), intptr(target), skill_get_time2(MO_BLADESTOP,skilllv), 0);
-				status_change_start(target, SC_BLADESTOP, skilllv, 2, intptr(target), intptr(src), skill_get_time2(MO_BLADESTOP,skilllv), 0);
+				status_change_start(target, SC_BLADESTOP, skilllv, 2, intptr(target), intptr(src), duration, 0);
+				skilllv = sd?pc_checkskill(*sd, MO_BLADESTOP):1;
+				status_change_start(src, SC_BLADESTOP, skilllv, 1, intptr(src), intptr(target), duration, 0);
 			}
 			if (tsc_data[SC_SPLASHER].timer != -1)	//殴ったので対象のベナムスプラッシャー状態を解除
 				status_change_end(target, SC_SPLASHER, -1);
@@ -5193,7 +5207,8 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 				return 0;
 			if (md->state.special_mob_ai == 2) 
 				return (flag&BCT_ENEMY)?1:-1; //Mines are sort of universal enemies.
-			if (md->master_id && (t_bl = map_id2bl(md->master_id)) == NULL)
+			//Don't fallback on the master in the case of summoned creaturess to enable hitting them.
+			if (md->master_id && !md->state.special_mob_ai && (t_bl = map_id2bl(md->master_id)) == NULL)
 				t_bl = &md->bl; //Fallback on the mob itself, otherwise consider this a "versus master" scenario.
 			break;
 		}
@@ -5278,7 +5293,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 		(s_bl->type == BL_PC && t_bl->type == BL_MOB))
 		state |= BCT_ENEMY;
 	
-	if (flag&BCT_PARTY || (map[m].flag.pvp && flag&BCT_ENEMY))
+	if(flag&BCT_PARTY || (map[m].flag.pvp && flag&BCT_ENEMY))
 	{	//Identify party state
 		int s_party, t_party;
 		s_party = status_get_party_id(s_bl);
@@ -5291,7 +5306,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 		}
 		else
 		{
-			if (map[m].flag.pvp_noparty && s_party && s_party == t_party)
+			if (!map[m].flag.pvp_noparty && s_party && s_party == t_party)
 				state |= BCT_PARTY;
 			else
 			{
@@ -5310,7 +5325,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 			}
 		}
 	}
-	if (flag&BCT_GUILD || ((map[m].flag.gvg || map[m].flag.gvg_dungeon) && flag&BCT_ENEMY))
+	if(flag&BCT_GUILD || ((map[m].flag.gvg || map[m].flag.gvg_dungeon) && flag&BCT_ENEMY))
 	{	//Identify guild state
 		int s_guild, t_guild;
 		s_guild = status_get_guild_id(s_bl);
@@ -5323,7 +5338,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 		}
 		else
 		{
-			if ((!map[m].flag.pvp || map[m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)))
+			if (!(map[m].flag.pvp && map[m].flag.pvp_noguild) && s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)))
 				state |= BCT_GUILD;
 			else
 				state |= BCT_ENEMY;
@@ -5347,7 +5362,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 	return (flag&state)?1:-1;
 	
 /* The previous implementation is left here for reference in case something breaks :X [Skotlex]
-	unsigned long s_p,s_g,t_p,t_g;
+	uint32 s_p,s_g,t_p,t_g;
 	struct block_list *ss=src;
 	struct status_change *sc_data;
 	struct status_change *tsc_data;
@@ -5593,7 +5608,7 @@ bool battle_check_range(struct block_list *src,struct block_list *bl,unsigned in
 
 static struct {
 	const char *str;
-	ulong *val;
+	uint32 *val;
 } battle_data[] = {
 	{ "agi_penalty_count",					&battle_config.agi_penalty_count		},
 	{ "agi_penalty_count_lv",				&battle_config.agi_penalty_count_lv		},
@@ -5974,7 +5989,7 @@ void battle_set_defaults()
 	battle_config.gvg_misc_damage_rate = 60;
 	battle_config.gvg_short_damage_rate = 100;
 	battle_config.gvg_weapon_damage_rate = 60;
-	battle_config.gx_allhit = 0;
+	battle_config.gx_allhit = 1;
 	battle_config.gx_cardfix = 0;
 	battle_config.gx_disptype = 1;
 	battle_config.gx_dupele = 1;

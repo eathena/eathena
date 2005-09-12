@@ -26,7 +26,7 @@
 
 struct castend_delay { //[Skotlex] For passing skill info after casting
 	struct pet_data *src;
-	unsigned long target_id;
+	uint32 target_id;
 	unsigned short skill_id;
 	unsigned short skill_lv;
 	short x;
@@ -108,7 +108,7 @@ int pet_calc_pos(struct pet_data &pd,int tx,int ty,int dir)
 {
 	int x,y,dx,dy;
 	int i,j=0,k;
-	unsigned long vary = rand();
+	uint32 vary = rand();
 
 	pd.to_x = tx;
 	pd.to_y = ty;
@@ -955,7 +955,7 @@ int pet_birth_process(struct map_session_data &sd)
 	return 0;
 }
 
-int pet_recv_petdata(unsigned long account_id,struct s_pet &p,int flag)
+int pet_recv_petdata(uint32 account_id,struct s_pet &p,int flag)
 {
 	struct map_session_data *sd;
 
@@ -1012,7 +1012,7 @@ int pet_catch_process1(struct map_session_data &sd,int target_class)
 	return 0;
 }
 
-int pet_catch_process2(struct map_session_data &sd,unsigned long target_id)
+int pet_catch_process2(struct map_session_data &sd,uint32 target_id)
 {
 	struct mob_data *md;
 	int pet_catch_rate=0;
@@ -1080,7 +1080,7 @@ int pet_catch_process2(struct map_session_data &sd,unsigned long target_id)
 	return 0;
 }
 
-int pet_get_egg(unsigned long account_id,unsigned long pet_id,int flag)
+int pet_get_egg(uint32 account_id,uint32 pet_id,int flag)
 {
 	struct map_session_data *sd;
 	struct item tmp_item;
@@ -1519,9 +1519,8 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 int pet_ai_sub_foreachclient(struct map_session_data &sd,va_list ap)
 {
 	unsigned long tick;
-
 	nullpo_retr(0, ap);
-	tick=(unsigned long)va_arg(ap,int);
+	tick=(unsigned long)va_arg(ap,unsigned long);
 	if(sd.status.pet_id && sd.pd && sd.petDB)
 		pet_ai_sub_hard(*sd.pd, tick);
 

@@ -132,7 +132,7 @@ int char_log(char *fmt, ...)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Set Character online/offline [Wizputer]
-void set_char_online(unsigned long char_id, unsigned long account_id)
+void set_char_online(uint32 char_id, uint32 account_id)
 {
 	if( !session_isActive(login_fd) )
 		return;
@@ -141,7 +141,7 @@ void set_char_online(unsigned long char_id, unsigned long account_id)
 	WFIFOSET(login_fd,6);
 	//ShowMessage ("set online\n");
 }
-void set_char_offline(unsigned long char_id, unsigned long account_id)
+void set_char_offline(uint32 char_id, uint32 account_id)
 {
 	if( !session_isActive(login_fd) )
 		return;
@@ -255,7 +255,7 @@ void create_online_files(void)
 {
 //!! rewrite
 /*	size_t i, j, k, l; // for loops
-	unsigned long sv;
+	uint32 sv;
 	size_t players;    // count the number of players
 	FILE *fptext;       // for the txt file
 	FILE *fphtmˆ;      // for the html file
@@ -575,15 +575,13 @@ int count_users(void)
 // Function to send characters to a player
 int mmo_char_send006b(int fd, struct char_session_data &sd)
 {
-	size_t i, j, found_num;
+	size_t i, j, found_num = 0;
 	const int offset = 24;
 	CCharCharacter character;
 
 	if( !session_isActive(fd) )
 		return 0;
-
 	set_char_online(99, sd.account_id);
-	found_num = 0;
 
 	memset(WFIFOP(fd,0), 0, offset + 9*106);
 	WFIFOW(fd,0) = 0x6b;
@@ -647,7 +645,6 @@ int mmo_char_send006b(int fd, struct char_session_data &sd)
 	}
 	WFIFOW(fd,2) = offset+found_num*106;
 	WFIFOSET(fd, offset+found_num*106);
-
 	return 0;
 }
 
@@ -688,7 +685,7 @@ bool char_divorce(CCharCharacter &character)
 	return true;
 }
 ///////////////////////////////////////////////////////////////////////////////
-bool char_married(unsigned long p1_id, unsigned long p2_id)
+bool char_married(uint32 p1_id, uint32 p2_id)
 {
 	CCharCharacter partner1, partner2;
 	return ( char_db.searchChar(p1_id, partner1) &&
@@ -705,7 +702,7 @@ bool char_married(const char* p1_name, const char* p2_name)
 			 partner2.char_id == partner1.partner_id );
 }
 ///////////////////////////////////////////////////////////////////////////////
-bool char_child(unsigned long parent_id, unsigned long child_id)
+bool char_child(uint32 parent_id, uint32 child_id)
 {
 	CCharCharacter parent, child;
 	return ( char_db.searchChar(parent_id, parent) &&
@@ -722,7 +719,7 @@ bool char_child(const char* parent_name, const char* child_name)
 			 (parent.char_id == child.father_id || parent.char_id == child.mother_id) );
 }
 ///////////////////////////////////////////////////////////////////////////////
-bool char_family(unsigned long id1, unsigned long id2, unsigned long id3)
+bool char_family(uint32 id1, uint32 id2, uint32 id3)
 {
 	CCharCharacter ch1, ch2, ch3;
 	return ( char_db.searchChar(id1, ch1) &&
@@ -747,7 +744,7 @@ bool char_exist(const char* name)
 {
 	return ( char_db.existChar(name) );
 }
-bool char_exist(unsigned long id)
+bool char_exist(uint32 id)
 {
 	CCharCharacter ch;
 	return ( char_db.searchChar(id, ch) );
@@ -757,7 +754,7 @@ bool char_exist(unsigned long id)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Force disconnection of an online player (with account value) by [Yor]
-bool disconnect_player(unsigned long accound_id)
+bool disconnect_player(uint32 accound_id)
 {
 	size_t fd;
 	struct char_session_data *sd;
@@ -777,7 +774,7 @@ bool disconnect_player(unsigned long accound_id)
 }
 ///////////////////////////////////////////////////////////////////////////////
 // ÉLÉÉÉâçÌèúÇ…î∫Ç§ÉfÅ[É^çÌèú
-bool char_delete(unsigned long char_id)
+bool char_delete(uint32 char_id)
 {
 	CCharCharacter character;
 	if( char_db.searchChar(char_id,character) )
@@ -1012,7 +1009,7 @@ int parse_tologin(int fd)
 			if (RFIFOREST(fd) < 7)
 				return 0;
 /*
-			unsigned long acc;
+			uint32 acc;
 			int sex;
 			size_t i, j;
 			unsigned char buf[7];
@@ -1162,7 +1159,7 @@ int parse_tologin(int fd)
 				return 0;
 
 			size_t j,p,sz = RFIFOW(fd,2);
-			unsigned long accid = RFIFOL(fd,4);
+			uint32 accid = RFIFOL(fd,4);
 			CCharCharAccount account;
 			if( char_db.searchAccount(accid,account) )
 			{
@@ -1306,8 +1303,8 @@ int parse_tologin(int fd)
 				}
 				if (new_level == 1) {
 					int len;
-					ShowInfo("From login-server: receiving a GM account information (%d: level %d).\n", (unsigned long)RFIFOL(fd,2), (unsigned char)RFIFOB(fd,6));
-					char_log("From login-server: receiving a GM account information (%d: level %d)." RETCODE, (unsigned long)RFIFOL(fd,2), (unsigned char)RFIFOB(fd,6));
+					ShowInfo("From login-server: receiving a GM account information (%d: level %d).\n", (uint32)RFIFOL(fd,2), (unsigned char)RFIFOB(fd,6));
+					char_log("From login-server: receiving a GM account information (%d: level %d)." RETCODE, (uint32)RFIFOL(fd,2), (unsigned char)RFIFOB(fd,6));
 					//create_online_files(); // not change online file for only 1 player (in next timer, that will be done
 					// send gm acccounts level to map-servers
 					len = 4;
@@ -1547,9 +1544,10 @@ int parse_frommap(int fd)
 				WFIFOW(fd,2) = 16 + sizeof(struct mmo_charstatus);
 				WFIFOL(fd,4) = RFIFOL(fd,2);
 				WFIFOL(fd,8) = account.login_id2;
-				WFIFOL(fd,12) = (unsigned long)account.valid_until;
+				WFIFOL(fd,12) = (uint32)account.valid_until;
 				character.sex = account.sex;
 				character.gm_level = account.gm_level;
+
 				mmo_charstatus_tobuffer(character, WFIFOP(fd,16));
 				WFIFOSET(fd, 16 + sizeof(struct mmo_charstatus));
 				//ShowMessage("auth_fifo search success (auth #%d, account %ld, character: %ld %i).\n", i, (unsigned long)RFIFOL(fd,2), (unsigned long)RFIFOL(fd,6),gm_level);
@@ -1640,7 +1638,7 @@ int parse_frommap(int fd)
 				return 0;
 			CCharCharAccount account;
 
-			//ShowMessage("auth_fifo set (auth #%d) - account: %d, secure: %08x-%08x\n", auth_fifo_pos, (unsigned long)RFIFOL(fd,2), (unsigned long)RFIFOL(fd,6), (unsigned long)RFIFOL(fd,10));
+			//ShowMessage("auth_fifo set (auth #%d) - account: %d, secure: %08x-%08x\n", auth_fifo_pos, (uint32)RFIFOL(fd,2), (uint32)RFIFOL(fd,6), (uint32)RFIFOL(fd,10));
 			if( char_db.searchAccount( RFIFOL(fd,2), account) )
 			{
 				account.account_id = RFIFOL(fd,2);
@@ -1675,7 +1673,7 @@ int parse_frommap(int fd)
 				return 0;
 
 			CCharCharAccount account;
-			//ShowMessage("auth_fifo set (auth#%d) - account: %d, secure: 0x%08x-0x%08x\n", auth_fifo_pos, (unsigned long)RFIFOL(fd,2), (unsigned long)RFIFOL(fd,6), (unsigned long)RFIFOL(fd,10));
+			//ShowMessage("auth_fifo set (auth#%d) - account: %d, secure: 0x%08x-0x%08x\n", auth_fifo_pos, (uint32)RFIFOL(fd,2), (uint32)RFIFOL(fd,6), (uint32)RFIFOL(fd,10));
 
 			if( char_db.searchAccount( RFIFOL(fd,2), account) )
 			{
@@ -1778,7 +1776,7 @@ int parse_frommap(int fd)
 			if (RFIFOREST(fd) < 44)
 				return 0;
 
-			unsigned long accid = RFIFOL(fd,2); // account_id of who ask (-1 if nobody)
+			uint32 accid = RFIFOL(fd,2); // account_id of who ask (-1 if nobody)
 			char *character_name = (char *)RFIFOP(fd,6);
 			character_name[24] = '\0';
 			
@@ -1881,7 +1879,7 @@ int parse_frommap(int fd)
 				return 0;
 
 			size_t j, p, sz=RFIFOW(fd,2);
-			unsigned long accid = RFIFOL(fd,4);
+			uint32 accid = RFIFOL(fd,4);
 			CCharCharAccount account;
 			if( char_db.searchAccount(accid,account) )
 			{
@@ -2105,7 +2103,7 @@ int parse_char(int fd)
 	}
 
 	unsigned short cmd;
-	unsigned long client_ip = session[fd]->client_ip;
+	uint32 client_ip = session[fd]->client_ip;
 	struct char_session_data *sd = (struct char_session_data *)session[fd]->session_data;
 
 	while (RFIFOREST(fd) >= 2)
@@ -2156,12 +2154,6 @@ int parse_char(int fd)
 				safestrcpy(sd->email, "no mail", 40); // put here a mail without '@' to refuse deletion if we don't receive the e-mail
 				sd->valid_until = 0; // unknow or illimited (not displaying on map-server)
 			}
-			sd->account_id = RFIFOL(fd,2);
-			sd->login_id1 = RFIFOL(fd,6);
-			sd->login_id2 = RFIFOL(fd,10);
-			sd->client_ip = client_ip;
-			sd->sex = RFIFOB(fd,16);
-
 			// send back account_id
 			WFIFOL(fd,0) = RFIFOL(fd,2);
 			WFIFOSET(fd,4);
@@ -2169,57 +2161,51 @@ int parse_char(int fd)
 			// search authentification
 			if(max_connect_user == 0 || count_users() < max_connect_user)
 			{
-				CCharCharAccount account;
-				if( char_db.searchAccount(sd->account_id, account) )
+				if( char_db.searchAccount(RFIFOL(fd,2), *sd) &&
+					client_ip     == sd->client_ip &&
+					RFIFOL(fd,2)  == sd->account_id &&
+					RFIFOL(fd,6)  == sd->login_id1 &&
+					RFIFOL(fd,10) == sd->login_id2 && 
+					RFIFOB(fd,16) == sd->sex ) 
+				{	// send characters to player
+					// make a local copy of the whole account data
+					if( sd->gm_level )
+						ShowMessage("Account Logged On; Account ID: %ld (GM level %d).\n", (unsigned long)sd->account_id, sd->gm_level);
+					else
+						ShowMessage("Account Logged On; Account ID: %ld.\n", (unsigned long)sd->account_id);
+
+					// obsolete, data is already there
+					if( session_isActive(login_fd) )
+					{	// don't send request if no login-server
+						// request to login-server to obtain e-mail/time limit
+						WFIFOW(login_fd,0) = 0x2716;
+						WFIFOL(login_fd,2) = sd->account_id;
+						WFIFOSET(login_fd,6);
+					}
+					// send characters to player
+					mmo_char_send006b(fd, *sd);
+
+				}
+				else
 				{
-					if( account.client_ip == sd->client_ip &&
-						account.account_id == sd->account_id &&
-						account.login_id1 == sd->login_id1 &&
-						account.login_id2 == sd->login_id2 && 
-						account.sex == sd->sex ) 
-					{	// send characters to player
-
-						// make a local copy of the whole account data
-						sd->CCharCharAccount::operator=(account);
-
-						if( account.gm_level )
-							ShowMessage("Account Logged On; Account ID: %ld (GM level %d).\n", sd->account_id, account.gm_level);
-						else
-							ShowMessage("Account Logged On; Account ID: %ld.\n", sd->account_id);
-
-						// obsolete, data is already there
-						if( session_isActive(login_fd) )
-						{	// don't send request if no login-server
-							// request to login-server to obtain e-mail/time limit
-							WFIFOW(login_fd,0) = 0x2716;
-							WFIFOL(login_fd,2) = sd->account_id;
-							WFIFOSET(login_fd,6);
-						}
-						// send characters to player
-						mmo_char_send006b(fd, *sd);
-
+					if( session_isActive(login_fd) )
+					{	// don't send request if no login-server
+						WFIFOW(login_fd,0) = 0x2712; // ask login-server to authentify an account
+						WFIFOL(login_fd,2) = sd->account_id;
+						WFIFOL(login_fd,6) = sd->login_id1;
+						WFIFOL(login_fd,10) = sd->login_id2; // relate to the versions higher than 18
+						WFIFOB(login_fd,14) = sd->sex;
+						WFIFOLIP(login_fd,15) = client_ip;
+						WFIFOSET(login_fd,19);
 					}
 					else
-					{
-						if( session_isActive(login_fd) )
-						{	// don't send request if no login-server
-							WFIFOW(login_fd,0) = 0x2712; // ask login-server to authentify an account
-							WFIFOL(login_fd,2) = sd->account_id;
-							WFIFOL(login_fd,6) = sd->login_id1;
-							WFIFOL(login_fd,10) = sd->login_id2; // relate to the versions higher than 18
-							WFIFOB(login_fd,14) = sd->sex;
-							WFIFOLIP(login_fd,15) = client_ip;
-							WFIFOSET(login_fd,19);
-						}
-						else
-						{	// if no login-server, we must refuse connection
-							WFIFOW(fd,0) = 0x6c;
-							WFIFOW(fd,2) = 0;
-							WFIFOSET(fd,3);
-						}
-					
-					}		
-				}
+					{	// if no login-server, we must refuse connection
+						WFIFOW(fd,0) = 0x6c;
+						WFIFOW(fd,2) = 0;
+						WFIFOSET(fd,3);
+					}
+				
+				}		
 			}
 			else
 			{
@@ -2256,7 +2242,7 @@ int parse_char(int fd)
 						char_db.searchChar(account.charlist[slot], character) )
 					{
 						char_log("Character Selected, Account ID: %d, Character Slot: %d, Character ID: %ld, Name: %s." RETCODE,
-							sd->account_id, slot, character.char_id, character.name);
+							(unsigned long)sd->account_id, slot, (unsigned long)character.char_id, character.name);
 						// searching map server
 						int j = search_mapserver(character.last_point.map);
 						// if map is not found, we check major cities
@@ -2314,7 +2300,7 @@ int parse_char(int fd)
 						WFIFOL(fd,2) = character.char_id;
 						memcpy(WFIFOP(fd,6), character.last_point.map, 16);
 						ShowMessage("Character selection '%s' (account: %ld, charid: %ld, slot: %d).\n", 
-							character.name, character.account_id, character.char_id, slot);
+							character.name, (unsigned long)character.account_id, (unsigned long)character.char_id, slot);
 						
 						if( server[j].address.isLAN(client_ip) )
 						{
@@ -2967,11 +2953,11 @@ int log_char = 1;	// loggin char or not [devil]
 int log_inter = 1;	// loggin inter or not [devil]
 
 struct char_session_data{
-	unsigned long account_id;
-	unsigned long login_id1;
-	unsigned long login_id2;
+	uint32 account_id;
+	uint32 login_id1;
+	uint32 login_id2;
 	int sex;
-	unsigned long found_char[9];
+	uint32 found_char[9];
 	char email[40]; // e-mail (default: a@a.com) by [Yor]
 	time_t connect_until_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
 };
@@ -2985,11 +2971,11 @@ int flush_time=100;
 
 #define AUTH_FIFO_SIZE 256
 struct {
-	unsigned long account_id;
-	unsigned long char_id;
-	unsigned long login_id1;
-	unsigned long login_id2;
-	unsigned long client_ip;
+	uint32 account_id;
+	uint32 char_id;
+	uint32 login_id1;
+	uint32 login_id2;
+	uint32 client_ip;
 	int char_pos;
 	int delflag;
 	int sex;
@@ -3014,7 +3000,7 @@ int start_armor = 2301;
 struct point start_point = {"new_1-1.gat", 53, 111};
 
 struct gm_account *gm_account = NULL;
-unsigned long GM_num = 0;
+uint32 GM_num = 0;
 
 // online players by [Yor]
 char online_txt_filename[1024] = "online.txt";
@@ -3026,8 +3012,8 @@ size_t online_refresh_html = 20; // refresh time (in sec) of the html file in th
 size_t online_gm_display_min_level = 20; // minimum GM level to display 'GM' when we want to display it
 
 struct online_chars {
-	unsigned long char_id;
-	unsigned long server;
+	uint32 char_id;
+	uint32 server;
 } *online_chars;
 
 time_t update_online; // to update online files when we receiving information from a server (not less than 8 seconds)
@@ -3072,7 +3058,7 @@ int char_log(char *fmt, ...)
 // Determine if an account (id) is a GM account
 // and returns its level (or 0 if it isn't a GM account or if not found)
 //----------------------------------------------------------------------
-int isGM(unsigned long account_id) {
+int isGM(uint32 account_id) {
 	size_t i;
 	for(i = 0; i < GM_num; i++)
 		if (gm_account[i].account_id == account_id)
@@ -3127,7 +3113,7 @@ char * search_character_name(size_t index) {
 // Set Character online/offline [Wizputer]
 //-------------------------------------------------
 
-void set_char_online(unsigned long char_id, unsigned long account_id)
+void set_char_online(uint32 char_id, uint32 account_id)
 {
 	if( !session_isActive(login_fd) )
 		return;
@@ -3137,7 +3123,7 @@ void set_char_online(unsigned long char_id, unsigned long account_id)
 
 	//ShowMessage ("set online\n");
 }
-void set_char_offline(unsigned long char_id, unsigned long account_id)
+void set_char_offline(uint32 char_id, uint32 account_id)
 {
 	if( !session_isActive(login_fd) )
 		return;
@@ -3610,7 +3596,7 @@ int parse_friend_txt(struct mmo_charstatus &p)
 {
 	char line[1024];
 	size_t i;
-	unsigned long cid=0, temp[20];
+	uint32 cid=0, temp[20];
 	FILE *fp;
 
 	// initialize
@@ -3692,7 +3678,7 @@ int mmo_char_init(void)
 
 	line_count = 0;
 	while(fgets(line, sizeof(line), fp)) {
-		unsigned long i;
+		uint32 i;
 		int j;
 		line_count++;
 
@@ -4106,7 +4092,7 @@ char * job_name(int class_) {
 //-------------------------------------------------------------
 void create_online_files(void) {
 	size_t i, j, k, l; // for loops
-	unsigned long sv;
+	uint32 sv;
 	size_t players;    // count the number of players
 	FILE *fp;       // for the txt file
 	FILE *fp2;      // for the html file
@@ -4514,7 +4500,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	return 0;
 }
 
-int set_account_reg2(unsigned long acc, unsigned long num, struct global_reg *reg) {
+int set_account_reg2(uint32 acc, uint32 num, struct global_reg *reg) {
 	size_t i;
 	int c;
 
@@ -4556,7 +4542,7 @@ int char_divorce(struct mmo_charstatus *cs) {
 //----------------------------------------------------------------------
 // Force disconnection of an online player (with account value) by [Yor]
 //----------------------------------------------------------------------
-int disconnect_player(unsigned long accound_id) {
+int disconnect_player(uint32 accound_id) {
 	size_t fd;
 	struct char_session_data *sd;
 
@@ -4779,7 +4765,7 @@ int parse_tologin(int fd)
 			if (RFIFOREST(fd) < 7)
 				return 0;
 
-			unsigned long acc;
+			uint32 acc;
 			int sex;
 			size_t i, j;
 			unsigned char buf[7];
@@ -4919,7 +4905,7 @@ int parse_tologin(int fd)
 		  {
 			struct global_reg reg[ACCOUNT_REG2_NUM];
 			size_t j,p,sz = RFIFOW(fd,2);
-			unsigned long acc = RFIFOL(fd,4);
+			uint32 acc = RFIFOL(fd,4);
 			for(p = 8, j = 0; p < sz && j < ACCOUNT_REG2_NUM; p += 36, j++) {
 				memcpy(reg[j].str, RFIFOP(fd,p), 32);
 				reg[j].value = RFIFOL(fd,p+32);
@@ -5066,8 +5052,8 @@ int parse_tologin(int fd)
 				}
 				if (new_level == 1) {
 					int len;
-					ShowInfo("From login-server: receiving a GM account information (%d: level %d).\n", (unsigned long)RFIFOL(fd,2), (unsigned char)RFIFOB(fd,6));
-					char_log("From login-server: receiving a GM account information (%d: level %d)." RETCODE, (unsigned long)RFIFOL(fd,2), (unsigned char)RFIFOB(fd,6));
+					ShowInfo("From login-server: receiving a GM account information (%d: level %d).\n", (uint32)RFIFOL(fd,2), (unsigned char)RFIFOB(fd,6));
+					char_log("From login-server: receiving a GM account information (%d: level %d)." RETCODE, (uint32)RFIFOL(fd,2), (unsigned char)RFIFOB(fd,6));
 					//create_online_files(); // not change online file for only 1 player (in next timer, that will be done
 					// send gm acccounts level to map-servers
 					len = 4;
@@ -5283,7 +5269,7 @@ int parse_frommap(int fd)
 				gm_level = accountauth[pos].gm_level;
 			}
 
-			//ShowMessage("auth_fifo search: account: %ld, char: %ld, secure: %08lX-%08lX\n", (unsigned long)RFIFOL(fd,2), (unsigned long)RFIFOL(fd,6), (unsigned long)RFIFOL(fd,10), (unsigned long)RFIFOL(fd,14));
+			//ShowMessage("auth_fifo search: account: %ld, char: %ld, secure: %08lX-%08lX\n", (uint32)RFIFOL(fd,2), (uint32)RFIFOL(fd,6), (uint32)RFIFOL(fd,10), (uint32)RFIFOL(fd,14));
 			for(i = 0; i < AUTH_FIFO_SIZE; i++)
 			{
 				if (auth_fifo[i].account_id == RFIFOL(fd,2) &&
@@ -5301,14 +5287,14 @@ int parse_frommap(int fd)
 					WFIFOW(fd,2) = 16 + sizeof(struct mmo_charstatus);
 					WFIFOL(fd,4) = RFIFOL(fd,2);
 					WFIFOL(fd,8) = auth_fifo[i].login_id2;
-					WFIFOL(fd,12) = (unsigned long)auth_fifo[i].connect_until_time;
+					WFIFOL(fd,12) = (uint32)auth_fifo[i].connect_until_time;
 					set_char_online(auth_fifo[i].char_id, auth_fifo[i].account_id);
 					char_dat[auth_fifo[i].char_pos].sex = auth_fifo[i].sex;
 					//memcpy(WFIFOP(fd,16), &char_dat[auth_fifo[i].char_pos], sizeof(struct mmo_charstatus));
 					char_dat[auth_fifo[i].char_pos].gm_level = gm_level;
 					mmo_charstatus_tobuffer(char_dat[auth_fifo[i].char_pos], WFIFOP(fd,16));
 					WFIFOSET(fd, WFIFOW(fd,2));
-					ShowMessage("auth_fifo search success (auth #%d, account %ld, character: %ld %i).\n", i, (unsigned long)RFIFOL(fd,2), (unsigned long)RFIFOL(fd,6),gm_level);
+					ShowMessage("auth_fifo search success (auth #%d, account %ld, character: %ld %i).\n", i, (uint32)RFIFOL(fd,2), (uint32)RFIFOL(fd,6),gm_level);
 					break;
 				}
 			}
@@ -5316,7 +5302,7 @@ int parse_frommap(int fd)
 				WFIFOW(fd,0) = 0x2afe;
 				WFIFOL(fd,2) = RFIFOL(fd,2);
 				WFIFOSET(fd,6);
-				ShowMessage("auth_fifo search error! account %ld not authentified.\n", (unsigned long)RFIFOL(fd,2));
+				ShowMessage("auth_fifo search error! account %ld not authentified.\n", (uint32)RFIFOL(fd,2));
 			}
 
 			RFIFOSKIP(fd,22);
@@ -5391,7 +5377,7 @@ int parse_frommap(int fd)
 
 			if (auth_fifo_pos >= AUTH_FIFO_SIZE)
 				auth_fifo_pos = 0;
-			//ShowMessage("auth_fifo set (auth #%d) - account: %d, secure: %08x-%08x\n", auth_fifo_pos, (unsigned long)RFIFOL(fd,2), (unsigned long)RFIFOL(fd,6), (unsigned long)RFIFOL(fd,10));
+			//ShowMessage("auth_fifo set (auth #%d) - account: %d, secure: %08x-%08x\n", auth_fifo_pos, (uint32)RFIFOL(fd,2), (uint32)RFIFOL(fd,6), (uint32)RFIFOL(fd,10));
 			auth_fifo[auth_fifo_pos].account_id = RFIFOL(fd,2);
 			auth_fifo[auth_fifo_pos].char_id = 0;
 			auth_fifo[auth_fifo_pos].login_id1 = RFIFOL(fd,6);
@@ -5420,7 +5406,7 @@ int parse_frommap(int fd)
 
 			if (auth_fifo_pos >= AUTH_FIFO_SIZE)
 				auth_fifo_pos = 0;
-			//ShowMessage("auth_fifo set (auth#%d) - account: %d, secure: 0x%08x-0x%08x\n", auth_fifo_pos, (unsigned long)RFIFOL(fd,2), (unsigned long)RFIFOL(fd,6), (unsigned long)RFIFOL(fd,10));
+			//ShowMessage("auth_fifo set (auth#%d) - account: %d, secure: 0x%08x-0x%08x\n", auth_fifo_pos, (uint32)RFIFOL(fd,2), (uint32)RFIFOL(fd,6), (uint32)RFIFOL(fd,10));
 			auth_fifo[auth_fifo_pos].account_id = RFIFOL(fd,2);
 			auth_fifo[auth_fifo_pos].char_id = RFIFOL(fd,14);
 			auth_fifo[auth_fifo_pos].login_id1 = RFIFOL(fd,6);
@@ -5829,7 +5815,7 @@ int parse_char(int fd)
 
 	unsigned short cmd;
 	char email[40];
-	unsigned long client_ip = session[fd]->client_ip;
+	uint32 client_ip = session[fd]->client_ip;
 	struct char_session_data *sd = (struct char_session_data *)session[fd]->session_data;
 
 
@@ -5873,9 +5859,9 @@ int parse_char(int fd)
 
 			int GM_value;
 			if ((GM_value = isGM(RFIFOL(fd,2))))
-				ShowMessage("Account Logged On; Account ID: %ld (GM level %d).\n", (unsigned long)RFIFOL(fd,2), GM_value);
+				ShowMessage("Account Logged On; Account ID: %ld (GM level %d).\n", (uint32)RFIFOL(fd,2), GM_value);
 			else
-				ShowMessage("Account Logged On; Account ID: %ld.\n", (unsigned long)RFIFOL(fd,2));
+				ShowMessage("Account Logged On; Account ID: %ld.\n", (uint32)RFIFOL(fd,2));
 
 			if (sd == NULL) {
 				sd = (struct char_session_data*)(session[fd]->session_data = aCalloc(1, sizeof(struct char_session_data)));

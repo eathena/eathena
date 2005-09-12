@@ -29,18 +29,18 @@ static int guild_newid=10000;
 
 static int guild_exp[100];
 
-int mapif_parse_GuildLeave(int fd,int guild_id,unsigned long account_id,unsigned long char_id,int flag,const char *mes);
-int mapif_guild_broken(unsigned long guild_id,int flag);
+int mapif_parse_GuildLeave(int fd,uint32 guild_id,uint32 account_id,uint32 char_id,int flag,const char *mes);
+int mapif_guild_broken(uint32 guild_id,int flag);
 int guild_check_empty(struct guild *g);
 int guild_calcinfo(struct guild *g);
-int mapif_guild_basicinfochanged(unsigned long guild_id,int type, unsigned long data);
+int mapif_guild_basicinfochanged(uint32 guild_id,int type, uint32 data);
 int mapif_guild_info(int fd,struct guild *g);
 int guild_break_sub(void *key,void *data,va_list ap);
 
 
 int _erase_guild(void *key, void *data, va_list ap)
 {
-    unsigned long guild_id = (unsigned long )va_arg(ap, int);
+    uint32 guild_id = (uint32 )va_arg(ap, int);
     struct guild_castle * castle = (struct guild_castle *) data;
     if (castle->guild_id == guild_id)
 	{
@@ -68,12 +68,12 @@ int inter_guild_tosql(struct guild *g,int flag)
 
 	if (g->guild_id<=0) return -1;
 
-	ShowMessage("("CL_BT_MAGENTA"%d"CL_NORM")  Request save guild -(flag 0x%x) ",g->guild_id, flag);
+	ShowMessage("("CL_BT_MAGENTA"%ld"CL_NORM")  Request save guild -(flag 0x%x) ",(unsigned long)g->guild_id, flag);
 
 	jstrescapecpy(t_name, g->name);
 
 	//ShowMessage("- Check if guild %d exists\n",g->guild_id);
-	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id`='%ld'",guild_db,g->guild_id);
+	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id`='%ld'",guild_db,(unsigned long)g->guild_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (delete `guild`)- %s\n", mysql_error(&mysql_handle) );
 	}
@@ -87,7 +87,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 
 	if (guild_exist >0){
 		// Check members in party
-		sprintf(tmp_sql,"SELECT count(*) FROM `%s` WHERE `guild_id`='%ld'",guild_member_db, g->guild_id);
+		sprintf(tmp_sql,"SELECT count(*) FROM `%s` WHERE `guild_id`='%ld'",guild_member_db, (unsigned long)g->guild_id);
 		if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 			ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle) );
 			return -1;
@@ -105,60 +105,60 @@ int inter_guild_tosql(struct guild *g,int flag)
 		// Delete old guild from sql
 		if (flag&1||guild_member==0){
 		//	ShowMessage("- Delete guild %d from guild\n",g->guild_id);
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_db, g->guild_id);
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_db, (unsigned long)g->guild_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (delete `guild`)- %s\n", mysql_error(&mysql_handle) );
 			}
 		}
 		if (flag&2||guild_member==0){
-		//	ShowMessage("- Delete guild %ld from guild_member\n",g->guild_id);
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_member_db, g->guild_id);
+		//	ShowMessage("- Delete guild %ld from guild_member\n",(unsigned long)g->guild_id);
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_member_db, (unsigned long)g->guild_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (delete `guild_member`)- %s\n", mysql_error(&mysql_handle) );
 			}
-			sprintf(tmp_sql, "UPDATE `%s` SET `guild_id`='0' WHERE `guild_id`='%ld'",char_db, g->guild_id);
+			sprintf(tmp_sql, "UPDATE `%s` SET `guild_id`='0' WHERE `guild_id`='%ld'",char_db, (unsigned long)g->guild_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
 			}
 		}
 		if (flag&32||guild_member==0){
-		//	ShowMessage("- Delete guild %ld from guild_skill\n",g->guild_id);
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_skill_db, g->guild_id);
+		//	ShowMessage("- Delete guild %ld from guild_skill\n",(unsigned long)g->guild_id);
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_skill_db, (unsigned long)g->guild_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (delete `guild_skill`)- %s\n", mysql_error(&mysql_handle) );
 			}
 		}
 		if (flag&4||guild_member==0){
-		//	ShowMessage("- Delete guild %ld from guild_position\n",g->guild_id);
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_position_db, g->guild_id);
+		//	ShowMessage("- Delete guild %ld from guild_position\n",(unsigned long)g->guild_id);
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_position_db, (unsigned long)g->guild_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (delete `guild_position`)- %s\n", mysql_error(&mysql_handle) );
 			}
 		}
 		if (flag&16||guild_member==0){
-		//	ShowMessage("- Delete guild %ld from guild_expulsion\n",g->guild_id);
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_expulsion_db, g->guild_id);
+		//	ShowMessage("- Delete guild %ld from guild_expulsion\n",(unsigned long)g->guild_id);
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_expulsion_db, (unsigned long)g->guild_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (delete `guild_expulsion`)- %s\n", mysql_error(&mysql_handle) );
 			}
 		}
 		if (flag&8||guild_member==0){
-		//	ShowMessage("- Delete guild %ld from guild_alliance\n",g->guild_id);
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld' OR `alliance_id`='%ld'",guild_alliance_db, g->guild_id,g->guild_id);
+		//	ShowMessage("- Delete guild %ld from guild_alliance\n",(unsigned long)g->guild_id);
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld' OR `alliance_id`='%ld'",guild_alliance_db, (unsigned long)g->guild_id,(unsigned long)g->guild_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (delete `guild_alliance`)- %s\n", mysql_error(&mysql_handle) );
 			}
 		}
 		if (flag&2||guild_member==0){
-		//	ShowMessage("- Delete guild %ld from char\n",g->guild_id);
-			sprintf(tmp_sql, "UPDATE `%s` SET `guild_id`='0' WHERE `guild_id`='%ld'",char_db, g->guild_id);
+		//	ShowMessage("- Delete guild %ld from char\n",(unsigned long)g->guild_id);
+			sprintf(tmp_sql, "UPDATE `%s` SET `guild_id`='0' WHERE `guild_id`='%ld'",char_db, (unsigned long)g->guild_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (delete `guild_alliance`)- %s\n", mysql_error(&mysql_handle) );
 			}
 		}
 		if (guild_member==0){
-		//	ShowMessage("- Delete guild %ld from guild_castle\n",g->guild_id);
-			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_castle_db, g->guild_id);
+		//	ShowMessage("- Delete guild %ld from guild_castle\n",(unsigned long)g->guild_id);
+			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_castle_db, (unsigned long)g->guild_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (delete `guild_castle`)- %s\n", mysql_error(&mysql_handle) );
 			}
@@ -193,9 +193,9 @@ int inter_guild_tosql(struct guild *g,int flag)
 		sprintf(tmp_sql,"INSERT INTO `%s` "
 			"(`guild_id`, `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`castle_id`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`) "
 			"VALUES ('%ld', '%s', '%s', '%d', '%d', '%d', '%d', '%ld', '%ld', '%d', '%d', '%s', '%s', '%d', '%ld', '%s')",
-			guild_db, g->guild_id,t_name,jstrescapecpy(t_master,g->master),
-			g->guild_lv,g->connect_member,g->max_member,g->average_lv,g->exp,g->next_exp,g->skill_point,g->castle_id,
-			jstrescapecpy(t_mes1,g->mes1),jstrescapecpy(t_mes2,g->mes2),g->emblem_len,g->emblem_id,emblem_data);
+			guild_db, (unsigned long)g->guild_id,t_name,jstrescapecpy(t_master,g->master),
+			g->guild_lv,g->connect_member,g->max_member,g->average_lv,(unsigned long)g->exp,(unsigned long)g->next_exp,g->skill_point,g->castle_id,
+			jstrescapecpy(t_mes1,g->mes1),jstrescapecpy(t_mes2,g->mes2),g->emblem_len,(unsigned long)g->emblem_id,emblem_data);
 		//ShowMessage(" %s\n",tmp_sql);
 		if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 			ShowMessage("DB server Error (insert `guild`)- %s\n", mysql_error(&mysql_handle) );
@@ -250,7 +250,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 		for(i=0;i<MAX_GUILDPOSITION;i++){
 			struct guild_position *p = &g->position[i];
 			sprintf(tmp_sql,"INSERT INTO `%s` (`guild_id`,`position`,`name`,`mode`,`exp_mode`) VALUES ('%ld','%d', '%s','%ld','%ld')",
-				guild_position_db, g->guild_id, i, jstrescapecpy(t_position,p->name),p->mode,p->exp_mode);
+				guild_position_db, (unsigned long)g->guild_id, i, jstrescapecpy(t_position,p->name),(unsigned long)p->mode,(unsigned long)p->exp_mode);
 			//ShowMessage(" %s\n",tmp_sql);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (insert `guild_position`)- %s\n", mysql_error(&mysql_handle) );
@@ -265,14 +265,14 @@ int inter_guild_tosql(struct guild *g,int flag)
 			if(a->guild_id>0){
 				sprintf(tmp_sql,"INSERT INTO `%s` (`guild_id`,`opposition`,`alliance_id`,`name`) "
 					"VALUES ('%ld','%ld','%ld','%s')",
-					guild_alliance_db, g->guild_id,a->opposition,a->guild_id,jstrescapecpy(t_alliance,a->name));
+					guild_alliance_db, (unsigned long)g->guild_id,(unsigned long)a->opposition,(unsigned long)a->guild_id,jstrescapecpy(t_alliance,a->name));
 				//ShowMessage(" %s\n",tmp_sql);
 				if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 					ShowMessage("DB server Error (insert `guild_alliance`)- %s\n", mysql_error(&mysql_handle) );
 				}
 				sprintf(tmp_sql,"INSERT INTO `%s` (`guild_id`,`opposition`,`alliance_id`,`name`) "
 					"VALUES ('%ld','%ld','%ld','%s')",
-					guild_alliance_db, a->guild_id,a->opposition,g->guild_id,t_name);
+					guild_alliance_db, (unsigned long)a->guild_id,(unsigned long)a->opposition,(unsigned long)g->guild_id,t_name);
 				//ShowMessage(" %s\n",tmp_sql);
 				if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 					ShowMessage("DB server Error (insert `guild_alliance`)- %s\n", mysql_error(&mysql_handle) );
@@ -288,8 +288,8 @@ int inter_guild_tosql(struct guild *g,int flag)
 			if(e->account_id>0){
 				sprintf(tmp_sql,"INSERT INTO `%s` (`guild_id`,`name`,`mes`,`acc`,`account_id`,`rsv1`,`rsv2`,`rsv3`) "
 					"VALUES ('%ld','%s','%s','%s','%ld','%ld','%ld','%ld')",
-					guild_expulsion_db, g->guild_id,
-					jstrescapecpy(t_ename,e->name),jstrescapecpy(t_emes,e->mes),e->acc,e->account_id,e->rsv1,e->rsv2,e->rsv3 );
+					guild_expulsion_db, (unsigned long)g->guild_id,
+					jstrescapecpy(t_ename,e->name),jstrescapecpy(t_emes,e->mes),e->acc,(unsigned long)e->account_id,(unsigned long)e->rsv1,(unsigned long)e->rsv2,(unsigned long)e->rsv3 );
 				//ShowMessage(" %s\n",tmp_sql);
 				if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 					ShowMessage("DB server Error (insert `guild_expulsion`)- %s\n", mysql_error(&mysql_handle) );
@@ -303,7 +303,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 		for(i=0;i<MAX_GUILDSKILL;i++){
 			if (g->skill[i].id>0 && g->skill[i].lv>0){
 				sprintf(tmp_sql,"INSERT INTO `%s` (`guild_id`,`id`,`lv`) VALUES ('%ld','%d','%d')",
-					guild_skill_db, g->guild_id,g->skill[i].id,g->skill[i].lv);
+					guild_skill_db, (unsigned long)g->guild_id,g->skill[i].id,g->skill[i].lv);
 				//ShowMessage("%s\n",tmp_sql);
 				if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 					ShowMessage("DB server Error (insert `guild_skill`)- %s\n", mysql_error(&mysql_handle) );
@@ -518,7 +518,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 
 int _set_guild_castle(void *key, void *data, va_list ap) {
     unsigned short castle_id = (unsigned short)va_arg(ap, int);
-    unsigned long guild_id   = va_arg(ap, unsigned long);
+    uint32 guild_id   = va_arg(ap, uint32);
     struct guild * g = (struct guild *) data;
 
     if (g->castle_id == castle_id)
@@ -550,9 +550,9 @@ int inter_guildcastle_tosql(struct guild_castle *gc)
 		"`visibleC`, `visibleG0`, `visibleG1`, `visibleG2`, `visibleG3`, `visibleG4`, `visibleG5`, `visibleG6`, `visibleG7`,"
 		"`Ghp0`, `Ghp1`, `Ghp2`, `Ghp3`, `Ghp4`, `Ghp5`, `Ghp6`, `Ghp7`)"
 		"VALUES ('%d','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld','%ld')", 
-		guild_castle_db, gc->castle_id, gc->guild_id,  gc->economy, gc->defense, gc->triggerE, gc->triggerD, gc->nextTime, gc->payTime, 
-		gc->createTime, gc->visibleC, gc->visibleG0, gc->visibleG1, gc->visibleG2, gc->visibleG3, gc->visibleG4, gc->visibleG5,
-		gc->visibleG6, gc->visibleG7, gc->Ghp0, gc->Ghp1, gc->Ghp2, gc->Ghp3, gc->Ghp4, gc->Ghp5, gc->Ghp6, gc->Ghp7);
+		guild_castle_db, gc->castle_id, (unsigned long)gc->guild_id,  (unsigned long)gc->economy, (unsigned long)gc->defense, (unsigned long)gc->triggerE, (unsigned long)gc->triggerD, (unsigned long)gc->nextTime, (unsigned long)gc->payTime, 
+		(unsigned long)gc->createTime, (unsigned long)gc->visibleC, (unsigned long)gc->visibleG0, (unsigned long)gc->visibleG1, (unsigned long)gc->visibleG2, (unsigned long)gc->visibleG3, (unsigned long)gc->visibleG4, (unsigned long)gc->visibleG5,
+		(unsigned long)gc->visibleG6, (unsigned long)gc->visibleG7, (unsigned long)gc->Ghp0, (unsigned long)gc->Ghp1, (unsigned long)gc->Ghp2, (unsigned long)gc->Ghp3, (unsigned long)gc->Ghp4, (unsigned long)gc->Ghp5, (unsigned long)gc->Ghp6, (unsigned long)gc->Ghp7);
 
 
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
@@ -798,7 +798,7 @@ int guild_calcinfo(struct guild *g)
 	if(g)
 	{
 		size_t i,c;
-		unsigned long nextexp;
+		uint32 nextexp;
 		struct guild before=*g;
 
 		// スキルIDの設定
@@ -820,7 +820,7 @@ int guild_calcinfo(struct guild *g)
 		g->next_exp = guild_nextexp(g->guild_lv);
 
 		// メンバ上限（ギルド拡張適用）
-		g->max_member = 16 + guild_checkskill(*g, GD_EXTENSION) * 6; //  Guild Extention skill - adds by 6 people per level to Max Member [Lupus]
+		g->max_member = 16 + guild_checkskill(*g, GD_EXTENSION) * 4; //  Guild Extention skill - adds by 4 people per level to Max Member [Lupus]
 
 		// 平均レベルとオンライン人数
 		g->average_lv=0;
@@ -851,7 +851,7 @@ int guild_calcinfo(struct guild *g)
 // map serverへの通信
 
 // ギルド作成可否
-int mapif_guild_created(int fd,unsigned long account_id,struct guild *g)
+int mapif_guild_created(int fd,uint32 account_id,struct guild *g)
 {
 	if( !session_isActive(fd) )
 		return 0;
@@ -899,7 +899,7 @@ int mapif_guild_info(int fd,struct guild *g)
 }
 
 // メンバ追加可否
-int mapif_guild_memberadded(int fd,unsigned long guild_id,unsigned long account_id,unsigned long char_id,int flag)
+int mapif_guild_memberadded(int fd,uint32 guild_id,uint32 account_id,uint32 char_id,int flag)
 {
 	if( !session_isActive(fd) )
 		return 0;
@@ -913,7 +913,7 @@ int mapif_guild_memberadded(int fd,unsigned long guild_id,unsigned long account_
 	return 0;
 }
 // 脱退/追放通知
-int mapif_guild_leaved(unsigned long guild_id,unsigned long account_id,unsigned long char_id,int flag,
+int mapif_guild_leaved(uint32 guild_id,uint32 account_id,uint32 char_id,int flag,
 	const char *name,const char *mes)
 {
 	unsigned char buf[128];
@@ -945,7 +945,7 @@ int mapif_guild_memberinfoshort(struct guild *g,int idx)
 }
 
 // 解散通知
-int mapif_guild_broken(unsigned long guild_id,int flag)
+int mapif_guild_broken(uint32 guild_id,int flag)
 {
 	unsigned char buf[16];
 	WBUFW(buf,0)=0x3836;
@@ -957,7 +957,7 @@ int mapif_guild_broken(unsigned long guild_id,int flag)
 }
 
 // ギルド内発言
-int mapif_guild_message(unsigned long guild_id,unsigned long account_id,char *mes,size_t len, int sfd)
+int mapif_guild_message(uint32 guild_id,uint32 account_id,char *mes,size_t len, int sfd)
 {
 	unsigned char buf[512];
 	WBUFW(buf,0)=0x3837;
@@ -970,7 +970,7 @@ int mapif_guild_message(unsigned long guild_id,unsigned long account_id,char *me
 }
 
 // ギルド基本情報変更通知
-int mapif_guild_basicinfochanged(unsigned long guild_id,int type,unsigned long data)
+int mapif_guild_basicinfochanged(uint32 guild_id,int type,uint32 data)
 {
 	unsigned char buf[2048];
 	WBUFW(buf, 0)=0x3839;
@@ -982,7 +982,7 @@ int mapif_guild_basicinfochanged(unsigned long guild_id,int type,unsigned long d
 	return 0;
 }
 // ギルドメンバ情報変更通知
-int mapif_guild_memberinfochanged(unsigned long guild_id,unsigned long account_id,unsigned long char_id,int type,unsigned long data)
+int mapif_guild_memberinfochanged(uint32 guild_id,uint32 account_id,uint32 char_id,int type,uint32 data)
 {
 	unsigned char buf[2048];
 	WBUFW(buf, 0)=0x383a;
@@ -996,7 +996,7 @@ int mapif_guild_memberinfochanged(unsigned long guild_id,unsigned long account_i
 	return 0;
 }
 // ギルドスキルアップ通知
-int mapif_guild_skillupack(unsigned long guild_id,unsigned long skill_num,unsigned long account_id)
+int mapif_guild_skillupack(uint32 guild_id,uint32 skill_num,uint32 account_id)
 {
 	unsigned char buf[16];
 	WBUFW(buf, 0)=0x383c;
@@ -1007,7 +1007,7 @@ int mapif_guild_skillupack(unsigned long guild_id,unsigned long skill_num,unsign
 	return 0;
 }
 // ギルド同盟/敵対通知
-int mapif_guild_alliance(unsigned long guild_id1,unsigned long guild_id2,unsigned long account_id1,unsigned long account_id2,
+int mapif_guild_alliance(uint32 guild_id1,uint32 guild_id2,uint32 account_id1,uint32 account_id2,
 	int flag,const char *name1,const char *name2)
 {
 	unsigned char buf[128];
@@ -1159,7 +1159,7 @@ int mapif_guild_castle_alldataload(int fd)
 
 
 // ギルド作成要求
-int mapif_parse_CreateGuild(int fd,unsigned long account_id,char *name,unsigned char *buf)
+int mapif_parse_CreateGuild(int fd,uint32 account_id,char *name,unsigned char *buf)
 {
 	struct guild tempguild;
 	struct guild *g;
@@ -1255,7 +1255,7 @@ int mapif_parse_GuildAddMember(int fd,int guild_id,unsigned char *buf)
 	return 0;
 }
 // Delete member from guild
-int mapif_parse_GuildLeave(int fd,unsigned long guild_id,unsigned long account_id,unsigned long char_id,int flag,const char *mes)
+int mapif_parse_GuildLeave(int fd,uint32 guild_id,uint32 account_id,uint32 char_id,int flag,const char *mes)
 {
 	struct guild *g= inter_guild_fromsql(guild_id);
 
@@ -1305,7 +1305,7 @@ int mapif_parse_GuildLeave(int fd,unsigned long guild_id,unsigned long account_i
 		guild_calcinfo(g);
 		inter_guild_tosql(g,19); // Change guild & guild_member & guild_expulsion
 	}else{
-		sprintf(tmp_sql, "UPDATE `%s` SET `guild_id`='0' WHERE `account_id`='%ld' AND `char_id`='%ld'",char_db, account_id,char_id);
+		sprintf(tmp_sql, "UPDATE `%s` SET `guild_id`='0' WHERE `account_id`='%ld' AND `char_id`='%ld'",char_db, (unsigned long)account_id,(unsigned long)char_id);
 		if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 			ShowMessage("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
 		}
@@ -1315,8 +1315,8 @@ int mapif_parse_GuildLeave(int fd,unsigned long guild_id,unsigned long account_i
 	return 0;
 }
 // Change member info
-int mapif_parse_GuildChangeMemberInfoShort(int fd,unsigned long guild_id,
-	unsigned long account_id,unsigned long char_id,int online,int lv,int class_)
+int mapif_parse_GuildChangeMemberInfoShort(int fd,uint32 guild_id,
+	uint32 account_id,uint32 char_id,int online,int lv,int class_)
 {
 	// Could speed up by manipulating only guild_member
 	struct guild * g= inter_guild_fromsql(guild_id);
@@ -1351,11 +1351,11 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd,unsigned long guild_id,
 		// 平均レベル
 		g->average_lv=alv/c;
 
-	sprintf(tmp_sql, "UPDATE `%s` SET `connect_member`=%d,`average_lv`=%d WHERE `guild_id`='%ld'", guild_db,  g->connect_member, g->average_lv,  g->guild_id);
+	sprintf(tmp_sql, "UPDATE `%s` SET `connect_member`=%d,`average_lv`=%d WHERE `guild_id`='%ld'", guild_db,  g->connect_member, g->average_lv,  (unsigned long)g->guild_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) )
 	  ShowMessage("DB server Error: %s - %s\n", tmp_sql, mysql_error(&mysql_handle) );
 
-	sprintf(tmp_sql, "UPDATE `%s` SET `online`=%d,`lv`=%d,`class`=%d WHERE `char_id`=%ld", guild_member_db, g->member[idx].online, g->member[idx].lv, g->member[idx].class_, g->member[idx].char_id);
+	sprintf(tmp_sql, "UPDATE `%s` SET `online`=%d,`lv`=%d,`class`=%d WHERE `char_id`=%ld", guild_member_db, g->member[idx].online, g->member[idx].lv, g->member[idx].class_, (unsigned long)g->member[idx].char_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) )
 	  ShowMessage("DB server Error: %s - %s\n", tmp_sql, mysql_error(&mysql_handle) );
 
@@ -1421,16 +1421,19 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 	if(log_inter)
 		inter_log("guild %s (id=%d) broken" RETCODE,g->name,guild_id);
 
+	//Remove the guild from memory. [Skotlex]
+	numdb_erase(guild_db_, guild_id);
+	aFree(g);
 	return 0;
 }
 
 // ギルドメッセージ送信
-int mapif_parse_GuildMessage(int fd,unsigned long guild_id,unsigned long account_id,char *mes,size_t len)
+int mapif_parse_GuildMessage(int fd,uint32 guild_id,uint32 account_id,char *mes,size_t len)
 {
 	return mapif_guild_message(guild_id,account_id,mes,len, fd);
 }
 // ギルド基本データ変更要求
-int mapif_parse_GuildBasicInfoChange(int fd,unsigned long guild_id,int type, unsigned long data)
+int mapif_parse_GuildBasicInfoChange(int fd,uint32 guild_id,int type, uint32 data)
 {
 	struct guild * g = inter_guild_fromsql(guild_id);
 
@@ -1457,7 +1460,7 @@ int mapif_parse_GuildBasicInfoChange(int fd,unsigned long guild_id,int type, uns
 }
 
 // ギルドメンバデータ変更要求
-int mapif_parse_GuildMemberInfoChange(int fd,unsigned long guild_id,unsigned long account_id,unsigned long char_id, unsigned short type, unsigned long data)
+int mapif_parse_GuildMemberInfoChange(int fd,uint32 guild_id,uint32 account_id,uint32 char_id, unsigned short type, uint32 data)
 {
 	// Could make some improvement in speed, because only change guild_member
 	int i;
@@ -1498,7 +1501,7 @@ int mapif_parse_GuildMemberInfoChange(int fd,unsigned long guild_id,unsigned lon
 	    if(mysql_SendQuery(&mysql_handle, tmp_sql) )
 	      ShowMessage("DB server Error: %s - %s\n", tmp_sql, mysql_error(&mysql_handle) );
 
-	    sprintf(tmp_sql, "UPDATE `%s` SET `exp`=%ld  WHERE `char_id`=%ld", guild_member_db, g->member[i].exp, g->member[i].char_id);
+	    sprintf(tmp_sql, "UPDATE `%s` SET `exp`=%ld  WHERE `char_id`=%ld", guild_member_db, (unsigned long)g->member[i].exp, (unsigned long)g->member[i].char_id);
 	    if(mysql_SendQuery(&mysql_handle, tmp_sql) )
 	      ShowMessage("DB server Error: %s - %s\n", tmp_sql, mysql_error(&mysql_handle) );
 	    break;
@@ -1511,7 +1514,7 @@ int mapif_parse_GuildMemberInfoChange(int fd,unsigned long guild_id,unsigned lon
 }
 
 // ギルド役職名変更要求
-int mapif_parse_GuildPosition(int fd, unsigned long guild_id, unsigned long idx, unsigned char *buf)
+int mapif_parse_GuildPosition(int fd, uint32 guild_id, uint32 idx, unsigned char *buf)
 {
 	// Could make some improvement in speed, because only change guild_position
 	struct guild * g = inter_guild_fromsql(guild_id);
@@ -1526,7 +1529,7 @@ int mapif_parse_GuildPosition(int fd, unsigned long guild_id, unsigned long idx,
 	return 0;
 }
 // ギルドスキルアップ要求
-int mapif_parse_GuildSkillUp(int fd,unsigned long guild_id,int skill_num,int account_id)
+int mapif_parse_GuildSkillUp(int fd,uint32 guild_id,int skill_num,int account_id)
 {
 	// Could make some improvement in speed, because only change guild_position
 	struct guild *g = inter_guild_fromsql(guild_id);
@@ -1550,8 +1553,8 @@ int mapif_parse_GuildSkillUp(int fd,unsigned long guild_id,int skill_num,int acc
 	return 0;
 }
 // ギルド同盟要求
-int mapif_parse_GuildAlliance(int fd,unsigned long guild_id1,unsigned long guild_id2,
-	unsigned long account_id1,unsigned long account_id2,int flag)
+int mapif_parse_GuildAlliance(int fd,uint32 guild_id1,uint32 guild_id2,
+	uint32 account_id1,uint32 account_id2,int flag)
 {
 	// Could speed up
 	struct guild *g[2];
@@ -1665,7 +1668,7 @@ int mapif_parse_GuildCastleDataSave(int fd,int castle_id,int index,int value)   
 
 	switch(index){
 	case 1:
-		if( gc.guild_id!=(unsigned long)value ){
+		if( gc.guild_id!=(uint32)value ){
 			int gid=(value)?value:gc.guild_id;
 			struct guild *g=inter_guild_fromsql(gid);
 			if(log_inter)
@@ -1707,7 +1710,7 @@ int mapif_parse_GuildCastleDataSave(int fd,int castle_id,int index,int value)   
 }
 
 // ギルドチェック要求 == Guild Check Request
-int mapif_parse_GuildCheck(int fd,unsigned long guild_id,unsigned long account_id,unsigned long char_id)
+int mapif_parse_GuildCheck(int fd,uint32 guild_id,uint32 account_id,uint32 char_id)
 {
 	// What does this mean? Check if belong to another guild?
 	return 0;
@@ -1754,7 +1757,7 @@ int inter_guild_mapif_init(int fd)
 }
 
 // サーバーから脱退要求（キャラ削除用）
-int inter_guild_leave(unsigned long guild_id,unsigned long account_id,unsigned long char_id)
+int inter_guild_leave(uint32 guild_id,uint32 account_id,uint32 char_id)
 {
 	return mapif_parse_GuildLeave(-1,guild_id,account_id,char_id,0,"**サーバー命令**");
 }

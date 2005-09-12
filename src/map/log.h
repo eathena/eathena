@@ -11,14 +11,14 @@ extern char db_server_logdb[32];
 struct map_session_data;
 
 int log_branch(struct map_session_data &sd);
-int log_drop(struct map_session_data &sd, unsigned long monster_id, int log_drop[]);
-int log_mvpdrop(struct map_session_data &sd, unsigned long monster_id, int log_mvp[]);
+int log_drop(struct map_session_data &sd, uint32 monster_id, int log_drop[]);
+int log_mvpdrop(struct map_session_data &sd, uint32 monster_id, int log_mvp[]);
 int log_present(struct map_session_data &sd, int source_type, unsigned short nameid);
 int log_produce(struct map_session_data &sd, unsigned short nameid, int slot1, int slot2, int slot3, int success);
 int log_refine(struct map_session_data &sd, int n, int success);
 int log_trade(struct map_session_data &sd,struct map_session_data &target_sd,int n,int amount);
-int log_tostorage(struct map_session_data &sd,int n, unsigned long guild);
-int log_fromstorage(struct map_session_data &sd,int n, unsigned long guild);
+int log_tostorage(struct map_session_data &sd,int n, uint32 guild);
+int log_fromstorage(struct map_session_data &sd,int n, uint32 guild);
 
 int log_vend(struct map_session_data &sd,struct map_session_data &vsd,int n,int amount,int zeny);
 int log_zeny(struct map_session_data &sd, struct map_session_data &target_sd,int amount);

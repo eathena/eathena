@@ -17,19 +17,19 @@
 
 static int party_newid = 100;
 
-int mapif_party_broken(unsigned long party_id,int flag);
+int mapif_party_broken(uint32 party_id,int flag);
 
 
-bool inter_party_tosql(unsigned long party_id, struct party &p)
+bool inter_party_tosql(uint32 party_id, struct party &p)
 {	// 'party' ('party_id','name','exp','item','leader')
 	char t_name[128], t_member[64];
 	int party_member = 0;
 	int party_exist = 0;
 	size_t i = 0;
 	int party_new = 0;
-	unsigned long leader_id = 0;
+	uint32 leader_id = 0;
 
-	ShowMessage("("CL_BT_BLUE"%ld"CL_NORM")    Request save party - ", party_id);
+	ShowMessage("("CL_BT_BLUE"%ld"CL_NORM")    Request save party - ", (unsigned long)party_id);
 	
 	if(party_id == 0 || p.party_id == 0 || party_id != p.party_id) {
 		ShowMessage("- party_id error \n");
@@ -37,7 +37,7 @@ bool inter_party_tosql(unsigned long party_id, struct party &p)
 	}
 
 	// Check if party exists
-	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id`='%ld'", party_db, party_id); // TBR
+	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id`='%ld'", party_db, (unsigned long)party_id); // TBR
 	if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
 		ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle) );
 		return false;
@@ -56,18 +56,18 @@ bool inter_party_tosql(unsigned long party_id, struct party &p)
 				leader_id = p.member[i].account_id;
 			
 			sprintf(tmp_sql,"INSERT INTO `%s`  (`party_id`, `name`, `exp`, `item`, `leader_id`) VALUES ('%ld', '%s', '%d', '%d', '%ld')",
-				party_db, party_id, t_name, p.expshare, p.itemshare, leader_id);
+				party_db, (unsigned long)party_id, t_name, p.expshare, p.itemshare, (unsigned long)leader_id);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (inset/update `party` 1)- %s\n", mysql_error(&mysql_handle) );
 				return false;
 			}
 			
 			sprintf(tmp_sql,"UPDATE `%s` SET `party_id`='%ld'  WHERE `account_id`='%ld' AND `name`='%s'",
-				char_db, party_id, leader_id, jstrescapecpy(t_member,p.member[i].name));
+				char_db, (unsigned long)party_id, (unsigned long)leader_id, jstrescapecpy(t_member,p.member[i].name));
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) )
 				ShowMessage("DB server Error (inset/update `party` 2)- %s\n", mysql_error(&mysql_handle) );
 
-			ShowMessage("- Insert new party %ld  \n",party_id);
+			ShowMessage("- Insert new party %ld  \n", (unsigned long)party_id);
 			party_new = 1;
 		}
 	}
@@ -76,7 +76,7 @@ bool inter_party_tosql(unsigned long party_id, struct party &p)
 	// Check members in party
 	if( !party_new )
 	{
-		sprintf(tmp_sql,"SELECT count(*) FROM `%s` WHERE `party_id`='%ld'",char_db, party_id); // TBR
+		sprintf(tmp_sql,"SELECT count(*) FROM `%s` WHERE `party_id`='%ld'",char_db, (unsigned long)party_id); // TBR
 		if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 			ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle) );
 			return false;
@@ -92,7 +92,7 @@ bool inter_party_tosql(unsigned long party_id, struct party &p)
 
 		if( !party_member )
 		{	// Delete the party, it has no member.
-			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `party_id`='%ld'",party_db, party_id);
+			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `party_id`='%ld'",party_db, (unsigned long)party_id);
 			if( mysql_SendQuery(&mysql_handle, tmp_sql) )
 				ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle) );
 			ShowMessage("No member in party %d, break it \n",party_id);
@@ -100,8 +100,8 @@ bool inter_party_tosql(unsigned long party_id, struct party &p)
 			return false;
 		}
 		else
-		{	unsigned long leader_id=0;
-			unsigned long lastaccount_id=0;
+		{	uint32 leader_id=0;
+			uint32 lastaccount_id=0;
 			char *tmp = tmp_sql;
 			tmp_sql[0] = '\0';
 			// Update party information, if exists
@@ -115,12 +115,12 @@ bool inter_party_tosql(unsigned long party_id, struct party &p)
 					if(tmp_sql[0] == '\0')
 					{
 						tmp += sprintf(tmp_sql, "UPDATE `%s` SET `party_id`='%ld' WHERE (`account_id` = '%ld' AND `name` = '%s')",
-									char_db, party_id, p.member[i].account_id, jstrescapecpy(t_member, p.member[i].name));
+									char_db, (unsigned long)party_id, (unsigned long)p.member[i].account_id, jstrescapecpy(t_member, p.member[i].name));
 					}
 					else
 					{
 						tmp += sprintf(tmp, " OR (`account_id` = '%ld' AND `name` = '%s')",
-							p.member[i].account_id, jstrescapecpy(t_member, p.member[i].name));
+							(unsigned long)p.member[i].account_id, jstrescapecpy(t_member, p.member[i].name));
 					}
 				}
 			}
@@ -132,7 +132,7 @@ bool inter_party_tosql(unsigned long party_id, struct party &p)
 			
 			//Sasuke- Updates Party db correct info
 			sprintf(tmp_sql,"UPDATE `%s` SET `name`='%s', `exp`='%d', `item`='%d', `leader_id`='%ld' WHERE `party_id`='%ld'",
-				party_db, t_name, p.expshare, p.itemshare, leader_id, party_id);
+				party_db, t_name, p.expshare, p.itemshare, (unsigned long)leader_id, (unsigned long)party_id);
 			if( mysql_SendQuery(&mysql_handle, tmp_sql) )
 				ShowMessage("DB server Error (insert/update `party` 3)- %s\n", mysql_error(&mysql_handle) );
 			//ShowMessage("- Update party %d information \n",party_id);
@@ -145,7 +145,7 @@ bool inter_party_tosql(unsigned long party_id, struct party &p)
 // Read party from mysql
 bool inter_party_fromsql(int party_id, struct party &p)
 {
-	unsigned long leader_id=0;
+	uint32 leader_id=0;
 	//ShowMessage("("CL_BT_BLUE"%d"CL_NORM")    Request load party - ",party_id);
 
 	memset(&p, 0, sizeof(struct party));
@@ -245,7 +245,7 @@ void inter_party_sql_final()
 bool search_partyname(const char *str)
 {
 	char t_name[64];
-	unsigned long party_id;
+	uint32 party_id;
 
 	sprintf(tmp_sql,"SELECT `party_id` FROM `%s` WHERE `name`='%s'", party_db, jstrescapecpy(t_name,str));
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
@@ -262,7 +262,7 @@ bool search_partyname(const char *str)
 
 	///////////// debug purpose only
 	// Load members
-	sprintf(tmp_sql,"SELECT `account_id`, `online` FROM `%s` WHERE `party_id`='%ld'",char_db, party_id);
+	sprintf(tmp_sql,"SELECT `account_id`, `online` FROM `%s` WHERE `party_id`='%ld'",char_db, (unsigned long)party_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (select `party`)- %s\n", mysql_error(&mysql_handle) );
 		return false;
@@ -327,7 +327,7 @@ bool party_check_exp_share(struct party &p)
 bool party_isempty(struct party &p)
 {
 	int i;
-	//ShowMessage("party check empty %ld\n",p.party_id);
+	//ShowMessage("party check empty %ld\n",(unsigned long)p.party_id);
 	if (p.party_id==0)
 		return true;
 	for(i=0;i<MAX_PARTY;i++){
@@ -344,7 +344,7 @@ bool party_isempty(struct party &p)
 
 
 // Check if a member is in two party, not necessary :)
-int party_check_conflict(int party_id,unsigned long account_id,char *nick)
+int party_check_conflict(int party_id,uint32 account_id,char *nick)
 {
 	return 0;
 }
@@ -353,7 +353,7 @@ int party_check_conflict(int party_id,unsigned long account_id,char *nick)
 // map serverへの通信
 
 // パーティ作成可否
-int mapif_party_created(int fd,unsigned long account_id,struct party *p)
+int mapif_party_created(int fd,uint32 account_id,struct party *p)
 {
 	if( !session_isActive(fd) )
 		return 0;
@@ -406,7 +406,7 @@ int mapif_party_info(int fd,struct party *p)
 	return 0;
 }
 // パーティメンバ追加可否
-int mapif_party_memberadded(int fd,unsigned long party_id,unsigned long account_id,int flag)
+int mapif_party_memberadded(int fd,uint32 party_id,uint32 account_id,int flag)
 {
 	if( !session_isActive(fd) )
 		return 0;
@@ -419,7 +419,7 @@ int mapif_party_memberadded(int fd,unsigned long party_id,unsigned long account_
 	return 0;
 }
 // パーティ設定変更通知
-int mapif_party_optionchanged(int fd,struct party *p,unsigned long account_id, unsigned char flag)
+int mapif_party_optionchanged(int fd,struct party *p,uint32 account_id, unsigned char flag)
 {
 	if(p)
 	{
@@ -434,12 +434,12 @@ int mapif_party_optionchanged(int fd,struct party *p,unsigned long account_id, u
 			mapif_sendall(buf,15);
 		else
 			mapif_send(fd,buf,15);
-		ShowMessage("int_party: option changed %ld %ld %d %d %d\n",p->party_id,account_id,p->expshare,p->itemshare,flag);
+		ShowMessage("int_party: option changed %ld %ld %d %d %d\n",(unsigned long)p->party_id,(unsigned long)account_id,p->expshare,p->itemshare,flag);
 	}
 	return 0;
 }
 // パーティ脱退通知
-int mapif_party_leaved(unsigned long party_id,unsigned long account_id,const char *name)
+int mapif_party_leaved(uint32 party_id,uint32 account_id,const char *name)
 {
 	unsigned char buf[64];
 	WBUFW(buf,0)=0x3824;
@@ -447,7 +447,7 @@ int mapif_party_leaved(unsigned long party_id,unsigned long account_id,const cha
 	WBUFL(buf,6)=account_id;
 	safestrcpy((char*)WBUFP(buf,10),name,24);
 	mapif_sendall(buf,34);
-	ShowMessage("int_party: party leaved %ld %ld %s\n",party_id,account_id,name);
+	ShowMessage("int_party: party leaved %ld %ld %s\n",(unsigned long)party_id,(unsigned long)account_id,name);
 	return 0;
 }
 // パーティマップ更新通知
@@ -467,18 +467,18 @@ int mapif_party_membermoved(struct party *p,int idx)
 	return 0;
 }
 // パーティ解散通知
-int mapif_party_broken(unsigned long party_id,int flag)
+int mapif_party_broken(uint32 party_id,int flag)
 {
 	unsigned char buf[16];
 	WBUFW(buf,0)=0x3826;
 	WBUFL(buf,2)=party_id;
 	WBUFB(buf,6)=flag;
 	mapif_sendall(buf,7);
-	ShowMessage("int_party: broken %ld\n",party_id);
+	ShowMessage("int_party: broken %ld\n", (unsigned long)party_id);
 	return 0;
 }
 // パーティ内発言
-int mapif_party_message(unsigned long party_id,unsigned long account_id,char *mes,int len, int sfd)
+int mapif_party_message(uint32 party_id,uint32 account_id,char *mes,int len, int sfd)
 {
 	unsigned char buf[512];
 	WBUFW(buf,0)=0x3827;
@@ -495,7 +495,7 @@ int mapif_party_message(unsigned long party_id,unsigned long account_id,char *me
 
 
 // Create Party
-int mapif_parse_CreateParty(int fd,unsigned long account_id,char *name,char *nick,char *map,int lv, int item, int item2)
+int mapif_parse_CreateParty(int fd,uint32 account_id,char *name,char *nick,char *map,int lv, int item, int item2)
 {
 	if( search_partyname(name) )
 	{
@@ -543,7 +543,7 @@ int mapif_parse_PartyInfo(int fd,int party_id)
 	return 0;
 }
 // パーティ追加要求
-int mapif_parse_PartyAddMember(int fd,unsigned long party_id,unsigned long account_id,char *nick,char *map,int lv)
+int mapif_parse_PartyAddMember(int fd,uint32 party_id,uint32 account_id,char *nick,char *map,int lv)
 {
 	struct party p;
 	int i;
@@ -582,7 +582,7 @@ int mapif_parse_PartyAddMember(int fd,unsigned long party_id,unsigned long accou
 	return 0;
 }
 // パーティー設定変更要求
-int mapif_parse_PartyChangeOption(int fd,unsigned long party_id,unsigned long account_id,unsigned short expshare,unsigned short itemshare)
+int mapif_parse_PartyChangeOption(int fd,uint32 party_id,uint32 account_id,unsigned short expshare,unsigned short itemshare)
 {
 	int flag=0;
 	struct party p;
@@ -606,7 +606,7 @@ int mapif_parse_PartyChangeOption(int fd,unsigned long party_id,unsigned long ac
 	return 0;
 }
 // パーティ脱退要求
-int mapif_parse_PartyLeave(int fd, unsigned long party_id, unsigned long account_id)
+int mapif_parse_PartyLeave(int fd, uint32 party_id, uint32 account_id)
 {
 	char t_member[64];
 	struct party p;
@@ -623,7 +623,7 @@ int mapif_parse_PartyLeave(int fd, unsigned long party_id, unsigned long account
 
 				// Update char information
 				sprintf (tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%ld' AND `name`='%s'",
-					char_db, party_id, jstrescapecpy(t_member,p.member[i].name));
+					char_db, (unsigned long)party_id, jstrescapecpy(t_member,p.member[i].name));
 				if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 					ShowMessage("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
 				}
@@ -678,12 +678,12 @@ int mapif_parse_PartyLeave(int fd, unsigned long party_id, unsigned long account
 								}
 							}
 							// we'll skip name-checking and just reset everyone with the same party id [celest]
-							sprintf (tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%ld'", char_db, party_id);
+							sprintf (tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%ld'", char_db, (unsigned long)party_id);
 							if (mysql_SendQuery(&mysql_handle, tmp_sql)) {
 								ShowError("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
 							}
 							// Delete the party, t has no member.
-							sprintf(tmp_sql, "DELETE FROM `%s` WHERE `party_id`='%ld'", party_db, party_id);
+							sprintf(tmp_sql, "DELETE FROM `%s` WHERE `party_id`='%ld'", party_db, (unsigned long)party_id);
 							if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 								ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle) );
 							}
@@ -700,7 +700,7 @@ int mapif_parse_PartyLeave(int fd, unsigned long party_id, unsigned long account
 	else
 	{
 		sprintf(tmp_sql, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%ld' AND `account_id`='%ld' AND `online`='1'",
-			char_db, party_id, account_id);
+			char_db, (unsigned long)party_id, (unsigned long)account_id);
 		if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 			ShowMessage("DB server Error (update `char`)- %s\n", mysql_error(&mysql_handle) );
 		}
@@ -708,7 +708,7 @@ int mapif_parse_PartyLeave(int fd, unsigned long party_id, unsigned long account
 	return 0;
 }
 // When member goes to other map
-int mapif_parse_PartyChangeMap(int fd,unsigned long party_id,unsigned long account_id,char *map,int online,int lv)
+int mapif_parse_PartyChangeMap(int fd,uint32 party_id,uint32 account_id,char *map,int online,int lv)
 {
 	struct party p;
 	int i;
@@ -739,7 +739,7 @@ int mapif_parse_PartyChangeMap(int fd,unsigned long party_id,unsigned long accou
 	return 0;
 }
 // パーティ解散要求
-int mapif_parse_BreakParty(int fd,unsigned long party_id)
+int mapif_parse_BreakParty(int fd,uint32 party_id)
 {
 	struct party p;
 
@@ -753,12 +753,12 @@ int mapif_parse_BreakParty(int fd,unsigned long party_id)
 	return 0;
 }
 // パーティメッセージ送信
-int mapif_parse_PartyMessage(int fd,unsigned long party_id,unsigned long account_id,char *mes,size_t len)
+int mapif_parse_PartyMessage(int fd,uint32 party_id,uint32 account_id,char *mes,size_t len)
 {
 	return mapif_party_message(party_id,account_id,mes,len, fd);
 }
 // パーティチェック要求
-int mapif_parse_PartyCheck(int fd,unsigned long party_id,unsigned long account_id,char *nick)
+int mapif_parse_PartyCheck(int fd,uint32 party_id,uint32 account_id,char *nick)
 {
 	return party_check_conflict(party_id,account_id,nick);
 }
@@ -790,7 +790,7 @@ int inter_party_parse_frommap(int fd)
 }
 
 // サーバーから脱退要求（キャラ削除用）
-int inter_party_leave(unsigned long party_id,unsigned long account_id)
+int inter_party_leave(uint32 party_id,uint32 account_id)
 {
 	return mapif_parse_PartyLeave(-1,party_id,account_id);
 }

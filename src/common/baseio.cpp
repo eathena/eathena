@@ -86,9 +86,9 @@ protected:
 *	Authentification Data used to authentify that clients are going from
 	login through char to map.
 
-	unsigned long login_id1;	// just a random id given by login
-	unsigned long login_id2;	// just a random id given by login
-	unsigned long client_ip;	// the current ip of the client
+	uint32 login_id1;	// just a random id given by login
+	uint32 login_id2;	// just a random id given by login
+	uint32 client_ip;	// the current ip of the client
 
 	a client has to show these three values to get autentified
 	(gets it in login process)
@@ -96,14 +96,14 @@ protected:
 	///////////////////////////////////////////////////////////////////////////
 *	Account Data which holds the necessary data for an account
 	
-	unsigned long account_id;	// id to identify an account
+	uint32 account_id;			// id to identify an account
 	char userid[24];			// user name
 	char passwd[34];			// user password
 	unsigned char sex;			// gender
 	unsigned char gm_level;		// gm_level
 	unsigned char online;		// true when online (actually only usefull when adding datamining onto the storing data and not onto the server)
 	char email[40];				// email address for confiming char deletion
-	unsigned long login_count;	// number of logins
+	uint32 login_count;			// number of logins
 	char last_ip[16];			// ip from last login (as string)
 	char last_login[24];		// timestamp of last login
 	time_t ban_until;			// set to time(NULL)+delta for temporary ban
@@ -156,7 +156,7 @@ class CAccountDB_txt : public CTimerBase, private CConfig, public CAccountDBInte
 {
 	///////////////////////////////////////////////////////////////////////////
 	// config stuff
-	unsigned long next_account_id;
+	uint32 next_account_id;
 	char account_filename[1024];
 	char GM_account_filename[1024];
 	time_t creation_time_GM_account_file;
@@ -191,11 +191,11 @@ private:
 	class CMapGM
 	{
 	public:
-		unsigned long account_id;
+		uint32 account_id;
 		unsigned char gm_level;
 
-		CMapGM(unsigned long accid=0) : account_id(accid), gm_level(0)	{}
-		CMapGM(unsigned long accid, unsigned char lv) : account_id(accid), gm_level(lv)	{}
+		CMapGM(uint32 accid=0) : account_id(accid), gm_level(0)	{}
+		CMapGM(uint32 accid, unsigned char lv) : account_id(accid), gm_level(lv)	{}
 
 		bool operator==(const CMapGM& c) const { return this->account_id==c.account_id; }
 		bool operator!=(const CMapGM& c) const { return this->account_id!=c.account_id; }
@@ -231,8 +231,8 @@ private:
 				line_counter++;
 				if( !skip_empty_line(line) )
 					continue;
-				is_range = (sscanf(line, "%ld%*[-~]%ld %d",&start_range,&end_range,&level)==3); // ID Range [MC Cameri]
-				if (!is_range && sscanf(line, "%ld %d", &account_id, &level) != 2 && sscanf(line, "%ld: %d", &account_id, &level) != 2)
+				is_range = (sscanf(line, "%lu%*[-~]%lu %d",&start_range,&end_range,&level)==3); // ID Range [MC Cameri]
+				if (!is_range && sscanf(line, "%lu %d", &account_id, &level) != 2 && sscanf(line, "%ld: %d", &account_id, &level) != 2)
 					ShowError("read_gm_account: file [%s], invalid 'acount_id|range level' format (line #%d).\n", GM_account_filename, line_counter);
 				else if (level <= 0)
 					ShowError("read_gm_account: file [%s] %dth account (line #%d) (invalid level [0 or negative]: %d).\n", GM_account_filename, gmlist.size()+1, line_counter, level);
@@ -544,13 +544,13 @@ private:
 						"%s\t"
 						"%s\t"
 						"%ld\t",
-						cList[i].account_id, 
+						(unsigned long)cList[i].account_id, 
 						cList[i].userid, 
 						cList[i].passwd, 
 						(*cList[i].last_login)?cList[i].last_login:"-",
 						(cList[i].sex == 2) ? 'S' : (cList[i].sex ? 'M' : 'F'),
-						cList[i].login_count, 
-						cList[i].state,
+						(unsigned long)cList[i].login_count, 
+						(unsigned long)cList[i].state,
 						(*cList[i].email)?cList[i].email:"a@a.com", 
 						(*cList[i].error_message)?cList[i].error_message:"-", 
 						(unsigned long)cList[i].valid_until,
@@ -559,10 +559,10 @@ private:
 						(unsigned long)cList[i].ban_until);
 			for(k = 0; k< cList[i].account_reg2_num; k++)
 				if(cList[i].account_reg2[k].str[0])
-					fprintf(fp, "%s,%ld ", cList[i].account_reg2[k].str, cList[i].account_reg2[k].value);
+					fprintf(fp, "%s,%ld ", cList[i].account_reg2[k].str, (long)cList[i].account_reg2[k].value);
 			fprintf(fp, RETCODE);
 		}
-		fprintf(fp, "%ld\t%%newid%%"RETCODE, next_account_id);
+		fprintf(fp, "%ld\t%%newid%%"RETCODE, (unsigned long)next_account_id);
 		lock_fclose(fp, account_filename, &lock);
 		return true;
 	}
@@ -575,9 +575,9 @@ public:
 
 	virtual bool existAccount(const char* userid);
 	virtual bool searchAccount(const char* userid, CLoginAccount&account);
-	virtual bool searchAccount(unsigned long accid, CLoginAccount&account);
+	virtual bool searchAccount(uint32 accid, CLoginAccount&account);
 	virtual bool insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount&account);
-	virtual bool removeAccount(unsigned long accid);
+	virtual bool removeAccount(uint32 accid);
 	virtual bool saveAccount(const CLoginAccount& account);
 
 private:
@@ -660,7 +660,7 @@ bool CAccountDB_txt::searchAccount(const char* userid, CLoginAccount&account)
 	}
 	return false;
 }
-bool CAccountDB_txt::searchAccount(unsigned long accid, CLoginAccount&account)
+bool CAccountDB_txt::searchAccount(uint32 accid, CLoginAccount&account)
 {	// get account by account_id
 	size_t pos;
 	if( cList.find( CLoginAccount(accid), pos, 0) )
@@ -674,7 +674,7 @@ bool CAccountDB_txt::insertAccount(const char* userid, const char* passwd, unsig
 {	// insert a new account
 	CLoginAccount temp;
 	size_t pos;
-	unsigned long accid = next_account_id++;
+	uint32 accid = next_account_id++;
 	if( cList.find( CLoginAccount(userid), pos, 1) )
 	{	// remove an existing account
 		cList.removeindex(pos, 1);
@@ -690,7 +690,7 @@ bool CAccountDB_txt::insertAccount(const char* userid, const char* passwd, unsig
 	}
 	return false;
 }
-bool CAccountDB_txt::removeAccount(unsigned long accid)
+bool CAccountDB_txt::removeAccount(uint32 accid)
 {
 	size_t pos;
 	if( cList.find(CLoginAccount(accid),pos, 0) )
@@ -734,7 +734,7 @@ class CCharDB_txt : public CTimerBase, private CConfig, public CCharDBInterface
 {
 	///////////////////////////////////////////////////////////////////////////
 	// config stuff
-	unsigned long next_char_id;
+	uint32 next_char_id;
 
 	char char_txt[1024];
 	char backup_txt[1024];
@@ -744,7 +744,7 @@ class CCharDB_txt : public CTimerBase, private CConfig, public CCharDBInterface
 	bool name_ignoring_case;
 	int char_name_option;
 	char char_name_letters[256];
-	unsigned long start_zeny;
+	uint32 start_zeny;
 	unsigned short start_weapon;
 	unsigned short start_armor;
 	struct point start_point;
@@ -818,23 +818,23 @@ private:
 			"\t%ld,%ld,%ld,%ld"
 			"\t%ld"
 			"\t",
-			p.char_id, 
-			p.account_id, p.slot, 
+			(unsigned long)p.char_id, 
+			(unsigned long)p.account_id, p.slot, 
 			p.name,
 			p.class_, p.base_level, p.job_level,
-			p.base_exp, p.job_exp, p.zeny,
-			p.hp, p.max_hp, p.sp, p.max_sp,
+			(unsigned long)p.base_exp, (unsigned long)p.job_exp, (unsigned long)p.zeny,
+			(unsigned long)p.hp, (unsigned long)p.max_hp, (unsigned long)p.sp, (unsigned long)p.max_sp,
 			p.str, p.agi, p.vit, p.int_, p.dex, p.luk,
 			p.status_point, p.skill_point,
 			p.option, MakeWord(p.karma, p.chaos), p.manner,
-			p.party_id, p.guild_id, p.pet_id,
+			(unsigned long)p.party_id, (unsigned long)p.guild_id, (unsigned long)p.pet_id,
 			p.hair, p.hair_color, p.clothes_color,
 			p.weapon, p.shield, p.head_top, p.head_mid, p.head_bottom,
 			// store the checked lastpoint
 			last_point.map, last_point.x, last_point.y,
 			p.save_point.map, p.save_point.x, p.save_point.y,
-			p.partner_id,p.father_id,p.mother_id,p.child_id,
-			p.fame_points);
+			(unsigned long)p.partner_id,(unsigned long)p.father_id,(unsigned long)p.mother_id,(unsigned long)p.child_id,
+			(unsigned long)p.fame_points);
 		for(i = 0; i < MAX_MEMO; i++)
 			if (p.memo_point[i].map[0]) {
 				str_p += sprintf(str_p, "%s,%d,%d", p.memo_point[i].map, p.memo_point[i].x, p.memo_point[i].y);
@@ -867,7 +867,7 @@ private:
 
 		for(i = 0; i < p.global_reg_num; i++)
 			if (p.global_reg[i].str[0])
-				str_p += sprintf(str_p, "%s,%ld ", p.global_reg[i].str, p.global_reg[i].value);
+				str_p += sprintf(str_p, "%s,%ld ", p.global_reg[i].str, (long)p.global_reg[i].value);
 		*(str_p++) = '\t';
 
 		*str_p = '\0';
@@ -1248,7 +1248,7 @@ CREATE TABLE `char_skill` (
 		if( cCharList.find(p, pos, 0) )
 		{
 			ShowError(CL_BT_RED"Character has an identical id to another.\n"CL_NORM);
-			ShowMessage("           Character id #%ld -> new character not read.\n", p.char_id);
+			ShowMessage("           Character id #%ld -> new character not read.\n", (unsigned long)p.char_id);
 			ShowMessage("           Character saved in log file.\n");
 			return false;
 		}
@@ -1300,7 +1300,7 @@ CREATE TABLE `char_skill` (
 			{
 				if (sscanf(str+next, "%[^,],%d,%d%n", p.memo_point[i].map, &tmp_int[0], &tmp_int[1], &len) != 3)
 				{
-					ShowError(CL_BT_RED"Character Memo points invalid (id #%ld, name '%s').\n"CL_NORM, p.char_id, p.name);
+					ShowError(CL_BT_RED"Character Memo points invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
 					ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
 					ret = false;
 					break;
@@ -1332,7 +1332,7 @@ CREATE TABLE `char_skill` (
 				}
 				else // invalid structure
 				{
-					ShowError(CL_BT_RED"Character Inventory invalid (id #%ld, name '%s').\n"CL_NORM, p.char_id, p.name);
+					ShowError(CL_BT_RED"Character Inventory invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
 					ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
 					ret = false;
 					break;
@@ -1375,7 +1375,7 @@ CREATE TABLE `char_skill` (
 				}
 				else // invalid structure
 				{
-					ShowError(CL_BT_RED"Character Cart Items invalid (id #%ld, name '%s').\n"CL_NORM, p.char_id, p.name);
+					ShowError(CL_BT_RED"Character Cart Items invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
 					ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
 					ret = false;
 					break;
@@ -1404,7 +1404,7 @@ CREATE TABLE `char_skill` (
 			for(i = 0; str[next] && str[next] != '\t'; i++) {
 				if (sscanf(str + next, "%d,%d%n", &tmp_int[0], &tmp_int[1], &len) != 2)
 				{
-					ShowError(CL_BT_RED"Character skills invalid (id #%ld, name '%s').\n"CL_NORM, p.char_id, p.name);
+					ShowError(CL_BT_RED"Character skills invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
 					ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
 					ret = false;
 					break;
@@ -1419,24 +1419,26 @@ CREATE TABLE `char_skill` (
 
 		if(ret)
 		{	// start with the next char after the delimiter
+			unsigned long val;
 			next++;
 			for(i = 0; str[next] && str[next] != '\t' && str[next] != '\n' && str[next] != '\r'; i++)
 			{	// global_reg実装以前のathena.txt互換のため一応'\n'チェック
-				if(sscanf(str + next, "%[^,],%ld%n", p.global_reg[i].str, &p.global_reg[i].value, &len) != 2)
+				if(sscanf(str + next, "%[^,],%ld%n", p.global_reg[i].str, &val, &len) != 2)
 				{	// because some scripts are not correct, the str can be "". So, we must check that.
 					// If it's, we must not refuse the character, but just this REG value.
 					// Character line will have something like: nov_2nd_cos,9 ,9 nov_1_2_cos_c,1 (here, ,9 is not good)
-					if(str[next] == ',' && sscanf(str + next, ",%ld%n", &p.global_reg[i].value, &len) == 1)
+					if(str[next] == ',' && sscanf(str + next, ",%ld%n", &val, &len) == 1)
 						i--;
 					else
 					{
-						ShowError(CL_BT_RED"Character Char Variable invalid (id #%ld, name '%s').\n"CL_NORM, p.char_id, p.name);
+						ShowError(CL_BT_RED"Character Char Variable invalid (id #%ld, name '%s').\n"CL_NORM, (unsigned long)p.char_id, p.name);
 						ShowMessage("           Rest skipped, line saved to log file.\n", p.name);
 						ret = false;
 						break;
 					}
 
 				}
+				p.global_reg[i].value = val;
 				next += len;
 				if (str[next] == ' ')
 					next++;
@@ -1705,11 +1707,11 @@ CREATE TABLE `char_skill` (
 				}
 				if(k<MAX_FRIENDLIST)
 				{	// at least one friend exist
-					fprintf(fp, "%ld", cCharList[i].char_id);
+					fprintf(fp, "%ld", (unsigned long)cCharList[i].char_id);
 					for (k=0;k<MAX_FRIENDLIST;k++)
 					{
 						if (cCharList[i].friendlist[k].friend_id > 0 && cCharList[i].friendlist[k].friend_name[0])
-							fprintf(fp, ",%ld,%s", cCharList[i].friendlist[k].friend_id,cCharList[i].friendlist[k].friend_name);
+							fprintf(fp, ",%ld,%s", (unsigned long)cCharList[i].friendlist[k].friend_id,cCharList[i].friendlist[k].friend_name);
 						else
 							fprintf(fp,",,");
 					}
@@ -1730,6 +1732,7 @@ CREATE TABLE `char_skill` (
 		if(fp)
 		{
 			unsigned long cid=0;
+			unsigned long fid[20];
 			struct friends friendlist[20];
 			size_t pos;
 
@@ -1741,26 +1744,27 @@ CREATE TABLE `char_skill` (
 				memset(friendlist,0,sizeof(friendlist));
 				sscanf(line, "%ld,%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%24[^,],%ld,%s",
 					&cid,
-				&friendlist[ 0].friend_id,friendlist[ 0].friend_name,
-				&friendlist[ 1].friend_id,friendlist[ 1].friend_name,
-				&friendlist[ 2].friend_id,friendlist[ 2].friend_name,
-				&friendlist[ 3].friend_id,friendlist[ 3].friend_name,
-				&friendlist[ 4].friend_id,friendlist[ 4].friend_name,
-				&friendlist[ 5].friend_id,friendlist[ 5].friend_name,
-				&friendlist[ 6].friend_id,friendlist[ 6].friend_name,
-				&friendlist[ 7].friend_id,friendlist[ 7].friend_name,
-				&friendlist[ 8].friend_id,friendlist[ 8].friend_name,
-				&friendlist[ 9].friend_id,friendlist[ 9].friend_name,
-				&friendlist[10].friend_id,friendlist[10].friend_name,
-				&friendlist[11].friend_id,friendlist[11].friend_name,
-				&friendlist[12].friend_id,friendlist[12].friend_name,
-				&friendlist[13].friend_id,friendlist[13].friend_name,
-				&friendlist[14].friend_id,friendlist[14].friend_name,
-				&friendlist[15].friend_id,friendlist[15].friend_name,
-				&friendlist[16].friend_id,friendlist[16].friend_name,
-				&friendlist[17].friend_id,friendlist[17].friend_name,
-				&friendlist[18].friend_id,friendlist[18].friend_name,
-				&friendlist[19].friend_id,friendlist[19].friend_name);
+				&fid[ 0],friendlist[ 0].friend_name,
+				&fid[ 1],friendlist[ 1].friend_name,
+				&fid[ 2],friendlist[ 2].friend_name,
+				&fid[ 3],friendlist[ 3].friend_name,
+				&fid[ 4],friendlist[ 4].friend_name,
+				&fid[ 5],friendlist[ 5].friend_name,
+				&fid[ 6],friendlist[ 6].friend_name,
+				&fid[ 7],friendlist[ 7].friend_name,
+				&fid[ 8],friendlist[ 8].friend_name,
+				&fid[ 9],friendlist[ 9].friend_name,
+				&fid[10],friendlist[10].friend_name,
+				&fid[11],friendlist[11].friend_name,
+				&fid[12],friendlist[12].friend_name,
+				&fid[13],friendlist[13].friend_name,
+				&fid[14],friendlist[14].friend_name,
+				&fid[15],friendlist[15].friend_name,
+				&fid[16],friendlist[16].friend_name,
+				&fid[17],friendlist[17].friend_name,
+				&fid[18],friendlist[18].friend_name,
+				&fid[19],friendlist[19].friend_name);
+				// cannot give the pointer to the struct member since the type can vary plattform dependend
 
 				if( cCharList.find( CCharCharacter(cid), pos, 0) )
 				{	
@@ -1769,6 +1773,8 @@ CREATE TABLE `char_skill` (
 					for (i=0; i<MAX_FRIENDLIST; i++)
 					{
 						temp.friendlist[i] = friendlist[i];
+						temp.friendlist[i].friend_id = fid[i];
+
 					}
 				}
 			}//end while
@@ -1787,14 +1793,14 @@ public:
 
 	virtual bool existChar(const char* name);
 	virtual bool searchChar(const char* name, CCharCharacter&data);
-	virtual bool searchChar(unsigned long charid, CCharCharacter&data);
+	virtual bool searchChar(uint32 charid, CCharCharacter&data);
 	virtual bool insertChar(CCharAccount &account, const char *name, unsigned char str, unsigned char agi, unsigned char vit, unsigned char int_, unsigned char dex, unsigned char luk, unsigned char slot, unsigned char hair_style, unsigned char hair_color, CCharCharacter&data);
-	virtual bool removeChar(unsigned long charid);
+	virtual bool removeChar(uint32 charid);
 	virtual bool saveChar(const CCharCharacter& data);
 
-	virtual bool searchAccount(unsigned long accid, CCharCharAccount& account);
+	virtual bool searchAccount(uint32 accid, CCharCharAccount& account);
 	virtual bool saveAccount(CCharAccount& account);
-	virtual bool removeAccount(unsigned long accid);
+	virtual bool removeAccount(uint32 accid);
 
 private:
 	///////////////////////////////////////////////////////////////////////////
@@ -1907,7 +1913,7 @@ bool CCharDB_txt::searchChar(const char* name, CCharCharacter&data)
 	}
 	return false;
 }
-bool CCharDB_txt::searchChar(unsigned long charid, CCharCharacter&data)
+bool CCharDB_txt::searchChar(uint32 charid, CCharCharacter&data)
 {
 	size_t pos;
 	if( cCharList.find( CCharCharacter(charid), pos, 0) )
@@ -1928,7 +1934,7 @@ bool CCharDB_txt::insertChar(CCharAccount &account, const char *name, unsigned c
 	}
 	return false;
 }
-bool CCharDB_txt::removeChar(unsigned long charid)
+bool CCharDB_txt::removeChar(uint32 charid)
 {
 	size_t posc, posa;
 	if( cCharList.find(CCharCharacter(charid),posc, 0) )
@@ -1954,7 +1960,7 @@ bool CCharDB_txt::saveChar(const CCharCharacter& data)
 	}
 	return false;
 }
-bool CCharDB_txt::searchAccount(unsigned long accid, CCharCharAccount& account)
+bool CCharDB_txt::searchAccount(uint32 accid, CCharCharAccount& account)
 {
 	size_t pos;
 	if( cAccountList.find(CCharCharAccount(accid),0,pos) )
@@ -1977,7 +1983,7 @@ bool CCharDB_txt::saveAccount(CCharAccount& account)
 		return cAccountList.insert(account);
 	}
 }
-bool CCharDB_txt::removeAccount(unsigned long accid)
+bool CCharDB_txt::removeAccount(uint32 accid)
 {
 	size_t pos;
 	if( cAccountList.find(CCharAccount(accid),0,pos) )
@@ -2173,11 +2179,11 @@ public:
 			{
 				// write index
 				fseek(cIX, 0, SEEK_SET);
-				fprintf(cIX,"%li\n", cIndex.size());
+				fprintf(cIX,"%li\n", (unsigned long)cIndex.size());
 				for(size_t i=0; i<cIndex.size(); i++)
 				{
 					fprintf(cIX,"%li,%li,%li\n", 
-						cIndex[i].cKey, cIndex[i].cPos, cIndex[i].cLen);
+						(unsigned long)cIndex[i].cKey, (unsigned long)cIndex[i].cPos, (unsigned long)cIndex[i].cLen);
 				}
 				fflush(cIX);
 			}
@@ -2462,7 +2468,6 @@ bool CConfig::CleanControlChars(char *str)
 void CAuth::_tobuffer(unsigned char* &buf) const
 {
 	if(!buf) return;
-
 	_L_tobuffer( account_id,	buf);
 	_L_tobuffer( login_id1, buf);
 	_L_tobuffer( login_id2, buf);
@@ -2472,7 +2477,6 @@ void CAuth::_tobuffer(unsigned char* &buf) const
 void CAuth::_frombuffer(const unsigned char* &buf)
 {
 	if(!buf) return;
-
 	_L_frombuffer( account_id,	buf);
 	_L_frombuffer( login_id1, buf);
 	_L_frombuffer( login_id2, buf);
@@ -2521,8 +2525,8 @@ size_t CMapAccount::size() const
 }
 
 void CMapAccount::_tobuffer(unsigned char* &buf) const
-{
-	unsigned long time;
+{	// only take 32bits of the timer
+	uint32 time;
 
 	if(!buf) return;
 
@@ -2535,8 +2539,8 @@ void CMapAccount::_tobuffer(unsigned char* &buf) const
 }
 
 void CMapAccount::_frombuffer(const unsigned char* &buf)
-{
-	unsigned long time;
+{	// only take 32bits of the timer
+	uint32 time;
 
 	if(!buf) return;
 

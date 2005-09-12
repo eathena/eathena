@@ -122,7 +122,7 @@
 #define CART_MASK 0x788
 #define STATE_BLIND 0x10
 #define MAX_SKILL_TREE 53
-
+#define MOBID_EMPERIUM 1288
 
 ///////////////////////////////////////////////////////////////////////////////
 #define EFFECT_FOG		515
@@ -173,7 +173,7 @@ struct block_list
 {
 	struct block_list *next;
 	struct block_list *prev;
-	unsigned long id;
+	uint32 id;
 	unsigned short m;
 	unsigned short x;
 	unsigned short y;
@@ -226,7 +226,7 @@ struct vending
 {
 	unsigned short index;
 	unsigned short amount;
-	unsigned long value;
+	uint32 value;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -275,9 +275,9 @@ struct skill_unit
 };
 struct skill_unit_group
 {
-	unsigned long src_id;
-	unsigned long party_id;
-	unsigned long guild_id;
+	uint32 src_id;
+	uint32 party_id;
+	uint32 guild_id;
 	unsigned short map;
 	long target_flag;
 	unsigned long tick;
@@ -303,8 +303,8 @@ struct skill_unit_group_tickset
 };
 struct skill_timerskill
 {
-	unsigned long src_id;
-	unsigned long target_id;
+	uint32 src_id;
+	uint32 target_id;
 	unsigned short map;
 	unsigned short x;
 	unsigned short y;
@@ -370,8 +370,8 @@ struct map_session_data
 	struct mmo_charstatus status;
 
 	int packet_ver;  // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
-	unsigned long login_id1;
-	unsigned long login_id2;
+	uint32 login_id1;
+	uint32 login_id2;
 
 	struct item_data *inventory_data[MAX_INVENTORY];
 	unsigned short itemindex;
@@ -380,10 +380,10 @@ struct map_session_data
 	unsigned short unbreakable_equip;
 	unsigned short unbreakable;	// chance to prevent equipment breaking [celest]
 
-	unsigned long weight;
-	unsigned long max_weight;
-	unsigned long cart_weight;
-	unsigned long cart_max_weight;
+	uint32 weight;
+	uint32 max_weight;
+	uint32 cart_weight;
+	uint32 cart_max_weight;
 	unsigned short cart_num;
 	unsigned short cart_max_num;
 	char mapname[24];
@@ -396,17 +396,17 @@ struct map_session_data
 	short opt3;
 	unsigned char dir;
 	unsigned char head_dir;
-	unsigned long client_tick;
+	uint32 client_tick;
 	struct walkpath_data walkpath;
 	int walktimer;
-	unsigned long next_walktime;
+	uint32 next_walktime;
 
-	unsigned long areanpc_id;
-	unsigned long npc_shopid;
+	uint32 areanpc_id;
+	uint32 npc_shopid;
 
 	CScriptEngine ScriptEngine;
 	
-	unsigned long chatID;
+	uint32 chatID;
 	time_t idletime;
 
 	struct{
@@ -416,15 +416,15 @@ struct map_session_data
 	unsigned short attacktarget_lv;
 	unsigned long attackabletime;
 
-	unsigned long attacktarget;	
-	unsigned long followtarget;
+	uint32 attacktarget;	
+	uint32 followtarget;
 	int attacktimer;
 	int followtimer; // [MouseJstr]
 	int skilltimer;
 
 	time_t emotionlasttime; // to limit flood with emotion packets
 
-	unsigned long skilltarget;
+	uint32 skilltarget;
 	unsigned short skillx;
 	unsigned short skilly;
 	unsigned short skillid;
@@ -441,18 +441,18 @@ struct map_session_data
 	char blockskill[MAX_SKILL];	// [celest]	
 	unsigned short cloneskill_id;
 	unsigned short cloneskill_lv;
-	unsigned long potion_hp;
-	unsigned long potion_sp;
-	unsigned long potion_per_hp;
-	unsigned long potion_per_sp;
+	uint32 potion_hp;
+	uint32 potion_sp;
+	uint32 potion_per_hp;
+	uint32 potion_per_sp;
 
 	int invincible_timer;
 	unsigned long canact_tick;
 	unsigned long canmove_tick;
 	unsigned long canlog_tick;
 	unsigned long canregen_tick;
-	unsigned long hp_sub;
-	unsigned long sp_sub;
+	uint32 hp_sub;
+	uint32 sp_sub;
 	unsigned long inchealhptick;
 	unsigned long inchealsptick;
 	unsigned long inchealspirithptick;
@@ -477,8 +477,8 @@ struct map_session_data
 	unsigned short flee;
 	unsigned short flee2;
 	unsigned short aspd;
-	unsigned long amotion;
-	unsigned long dmotion;
+	uint32 amotion;
+	uint32 dmotion;
 
 	unsigned short  def;
 	unsigned short  def2;
@@ -594,13 +594,13 @@ struct map_session_data
 	short hp_gain_value;
 	short sp_drain_type;
 
-	unsigned long hp_loss_tick;
-	unsigned long hp_loss_rate;
+	uint32 hp_loss_tick;
+	uint32 hp_loss_rate;
 	short hp_loss_value;
 	short hp_loss_type;
 
-	unsigned long sp_loss_tick;
-	unsigned long sp_loss_rate;
+	uint32 sp_loss_tick;
+	uint32 sp_loss_rate;
 	short sp_loss_value;
 
 	long addrace2[12],addrace2_[12];
@@ -630,37 +630,37 @@ struct map_session_data
 	short doridori_counter;
 	char potion_success_counter;
 
-	long reg_num;
+	unsigned short reg_num;
 	struct script_reg *reg;
-	long regstr_num;
+	unsigned short regstr_num;
 	struct script_regstr *regstr;
 
 	struct status_change sc_data[MAX_STATUSCHANGE];
 	struct square dev;
 
-	unsigned long trade_partner;
+	uint32 trade_partner;
 	unsigned short deal_item_index[MAX_TRADING];
 	unsigned short deal_item_amount[MAX_TRADING];
-	unsigned long deal_zeny;
+	uint32 deal_zeny;
 	unsigned short deal_locked;
 
-	unsigned long party_sended;
-	unsigned long party_invite;
-	unsigned long party_invite_account;
-	long party_hp;
+	uint32 party_sended;
+	uint32 party_invite;
+	uint32 party_invite_account;
+	sint32 party_hp;
 	short party_x;
 	short party_y;
 
-	unsigned long guild_sended;
-	unsigned long guild_invite;
-	unsigned long guild_invite_account;
-	unsigned long guild_emblem_id;
-	unsigned long guild_alliance;
-	unsigned long guild_alliance_account;
-	unsigned long guildspy; // [Syrus22]
-	unsigned long partyspy; // [Syrus22]
+	uint32 guild_sended;
+	uint32 guild_invite;
+	uint32 guild_invite_account;
+	uint32 guild_emblem_id;
+	uint32 guild_alliance;
+	uint32 guild_alliance_account;
+	uint32 guildspy; // [Syrus22]
+	uint32 partyspy; // [Syrus22]
 
-	unsigned long vender_id;
+	uint32 vender_id;
 	unsigned short vend_num;
 	char message[80];
 	struct vending vending[MAX_VENDING];
@@ -671,22 +671,22 @@ struct map_session_data
 	struct pet_data *pd;
 	int pet_hungry_timer;
 
-	unsigned long pvp_won;
-	unsigned long pvp_lost;
-	unsigned long pvp_point;
-	unsigned long pvp_rank;
-	unsigned long pvp_lastusers;
+	uint32 pvp_won;
+	uint32 pvp_lost;
+	uint32 pvp_point;
+	uint32 pvp_rank;
+	uint32 pvp_lastusers;
 	int pvp_timer;
 
-	long eventtimer[MAX_EVENTTIMER];
+	int eventtimer[MAX_EVENTTIMER];
 	unsigned short eventcount; // [celest]
 
 //	char eventqueue[MAX_EVENTQUEUE][50];
 
 	unsigned short change_level;	// [celest]
-	unsigned long canuseitem_tick;
+	uint32 canuseitem_tick;
 	char fakename[24];
-	unsigned long mail_counter;	// mail counter for mail system [Valaris]
+	uint32 mail_counter;	// mail counter for mail system [Valaris]
 };
 
 
@@ -746,7 +746,7 @@ struct npc_data {
 			int timerid;
 			int timeramount;
 			int nexttimer;
-			unsigned long rid;
+			uint32 rid;
 			unsigned long timertick;
 			struct npc_timerevent_list *timer_event;
 		} scr;
@@ -795,7 +795,8 @@ struct mob_list
 	unsigned short num;
 };
 
-struct mob_data {
+struct mob_data
+{
 	struct block_list bl;
 	unsigned short base_class;
 	unsigned short class_;
@@ -838,9 +839,9 @@ struct mob_data {
 	unsigned short target_dir;
 	unsigned short target_lv;
 
-	unsigned long provoke_id; // Celest
-	unsigned long target_id;
-	unsigned long attacked_id;
+	uint32 provoke_id; // Celest
+	uint32 target_id;
+	uint32 attacked_id;
 	struct walkpath_data walkpath;
 
 	unsigned long next_walktime;
@@ -852,7 +853,7 @@ struct mob_data {
 	
 	struct mob_damage
 	{
-		unsigned long fromid;
+		uint32 fromid;
 		long dmg;
 	} dmglog[DAMAGELOG_SIZE];
 	struct item *lootitem;
@@ -867,10 +868,10 @@ struct mob_data {
 	short min_chase;
 	int deletetimer;
 
-	unsigned long guild_id; // for guardians
+	uint32 guild_id; // for guardians
 
 	int skilltimer;
-	unsigned long skilltarget;
+	uint32 skilltarget;
 	unsigned short skillx;
 	unsigned short skilly;
 	unsigned short skillid;
@@ -878,11 +879,11 @@ struct mob_data {
 	unsigned short skillidx;
 	unsigned long skilldelay[MAX_MOBSKILL];
 	int def_ele;
-	unsigned long master_id;
+	uint32 master_id;
 	int master_dist;
-	unsigned long exclusion_src;
-	unsigned long exclusion_party;
-	unsigned long exclusion_guild;
+	uint32 exclusion_src;
+	uint32 exclusion_party;
+	uint32 exclusion_guild;
 	struct skill_timerskill skilltimerskill[MAX_MOBSKILLTIMERSKILL];
 	struct skill_unit_group skillunit[MAX_MOBSKILLUNITGROUP];
 	struct skill_unit_group_tickset skillunittick[MAX_SKILLUNITGROUPTICKSET];
@@ -916,13 +917,13 @@ struct pet_data
 	unsigned short speed;
 	unsigned short equip_id;
 
-	unsigned long target_id;
+	uint32 target_id;
 	unsigned short target_lv;
 	unsigned short to_x;
 	unsigned short to_y;
 	short rate_fix;	//Support rate as modified by intimacy (1000 = 100%) [Skotlex]
 	struct walkpath_data walkpath;
-	unsigned long move_fail_count;
+	uint32 move_fail_count;
 	unsigned long attackabletime;
 	unsigned long next_walktime;
 	unsigned long last_thinktime;
@@ -973,7 +974,7 @@ struct pet_data
 
 	struct pet_loot {
 		struct item *item;
-		unsigned long weight;
+		uint32 weight;
 		unsigned short count;
 		unsigned short max;
 		unsigned long loottick;
@@ -1153,12 +1154,12 @@ struct flooritem_data
 	unsigned char subx;
 	unsigned char suby;
 	int cleartimer;
-	unsigned long first_get_id;
-	unsigned long second_get_id;
-	unsigned long third_get_id;
-	unsigned long first_get_tick;
-	unsigned long second_get_tick;
-	unsigned long third_get_tick;
+	uint32 first_get_id;
+	uint32 second_get_id;
+	uint32 third_get_id;
+	uint32 first_get_tick;
+	uint32 second_get_tick;
+	uint32 third_get_tick;
 	struct item item_data;
 };
 
@@ -1281,6 +1282,34 @@ int map_freeblock_unlock(void);
 // block関連
 int map_addblock(struct block_list &bl);
 int map_delblock(struct block_list &bl);
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// new 
+//
+///////////////////////////////////////////////////////////////////////////////
+class CMapElements
+{
+
+public:
+	CMapElements()	{}
+	virtual ~CMapElements()	{}
+
+	virtual int callback(struct block_list& bl) = 0;
+
+	int foreachinarea(unsigned short m, int x0,int y0,int x1,int y1,int type);
+	int foreachincell(unsigned short m,int x,int y,int type);
+	int foreachinmovearea(unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type);
+	int foreachinpath(unsigned short m,int x0,int y0,int x1,int y1,int range,int type);
+};
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+
 int map_foreachinarea(int (*func)(struct block_list&,va_list),unsigned short m,int x0,int y0,int x1,int y1,int type,...);
 // -- moonsoul (added map_foreachincell)
 int map_foreachincell(int (*func)(struct block_list&,va_list),unsigned short m,int x,int y,int type,...);
@@ -1288,7 +1317,7 @@ int map_foreachinmovearea(int (*func)(struct block_list&,va_list),unsigned short
 int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,int x0,int y0,int x1,int y1,int range,int type,...); // Celest
 int map_countnearpc(int,int,int);
 //block関連に追加
-int map_count_oncell(unsigned short m,int x,int y);
+int map_count_oncell(unsigned short m,int x,int y, int type);
 struct skill_unit *map_find_skill_unit_oncell(struct block_list *,int x,int y,unsigned short skill_id,struct skill_unit *);
 // 一時的object関連
 int map_addobject(struct block_list &bl);
@@ -1305,16 +1334,16 @@ int map_clearflooritem_timer(int tid, unsigned long tick, int id, intptr data);
 int map_removemobs_timer(int tid, unsigned long tick, int id, intptr data);
 #define map_clearflooritem(id) map_clearflooritem_timer(0,0,id,1)
 int map_addflooritem(struct item &item_data,unsigned short amount,unsigned short m,unsigned short x,unsigned short y,struct map_session_data *first_sd,struct map_session_data *second_sd,struct map_session_data *third_sd,int type);
-int map_searchrandfreecell(unsigned short m,int x,int y,int range);
+int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y, unsigned short range);
 
 // キャラid＝＞キャラ名 変換関連
-void map_addchariddb(unsigned long charid,const char *name);
-void map_delchariddb(unsigned long charid);
-int map_reqchariddb(struct map_session_data &sd,unsigned long charid);
-char * map_charid2nick(unsigned long id);
-struct map_session_data * map_charid2sd(unsigned long id);
-struct map_session_data * map_id2sd(unsigned long id);
-struct block_list * map_id2bl(unsigned long id);
+void map_addchariddb(uint32 charid,const char *name);
+void map_delchariddb(uint32 charid);
+int map_reqchariddb(struct map_session_data &sd,uint32 charid);
+char * map_charid2nick(uint32 id);
+struct map_session_data * map_charid2sd(uint32 id);
+struct map_session_data * map_id2sd(uint32 id);
+struct block_list * map_id2bl(uint32 id);
 
 int map_mapname2mapid(const char *name);
 bool map_mapname2ipport(const char *name, ipset &mapset);

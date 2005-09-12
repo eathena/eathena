@@ -196,7 +196,7 @@ public:
 
 #ifdef __GNUC__ // GCC has variable length arrays
 
-	#define CREATE_BUFFER(name, type, size) type name[size]
+	#define CREATE_BUFFER(name, type, size) type name[size]; memset(name,0,size*sizeof(type))
 	#define DELETE_BUFFER(name)
 
 #else // others don't, so we emulate them

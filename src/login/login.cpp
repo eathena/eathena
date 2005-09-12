@@ -42,7 +42,7 @@ CAccountDB account_db;
 
 ///////////////////////////////////////////////////////////////////////////////
 // account registration
-unsigned long new_account_flag = 0;
+uint32 new_account_flag = 0;
 unsigned int new_reg_tick=0;
 int allowed_regs=1;
 int num_regs=0;
@@ -270,7 +270,7 @@ const char* timestamp2string(char* string, size_t sz)
 // Test of the IP mask
 // (ip: IP to be tested, str: mask x.x.x.x/# or x.x.x.x/y.y.y.y)
 //--------------------------------------------------------------
-int check_ipmask(unsigned long ip, const unsigned char *str) {
+int check_ipmask(uint32 ip, const unsigned char *str) {
 	unsigned int mask = 0, i = 0, m, ip2, a0, a1, a2, a3;
 	unsigned char *p = (unsigned char *)&ip2, *p2 = (unsigned char *)&mask;
 
@@ -294,7 +294,7 @@ int check_ipmask(unsigned long ip, const unsigned char *str) {
 //---------------------
 // Access control by IP
 //---------------------
-int check_ip(unsigned long ip) {
+int check_ip(uint32 ip) {
 	int i;
 	unsigned char *p = (unsigned char *)&ip;
 	char buf[16];
@@ -343,7 +343,7 @@ int check_ip(unsigned long ip) {
 //--------------------------------
 // Access control by IP for ladmin
 //--------------------------------
-int check_ladminip(unsigned long ip) {
+int check_ladminip(uint32 ip) {
 	int i;
 	unsigned char *p = (unsigned char *)&ip;
 	char buf[16];
@@ -402,8 +402,8 @@ int parse_fromchar(int fd)
 {
 	size_t id;
 	char ip_str[16];
-	unsigned long client_ip = (session[fd]) ? session[fd]->client_ip : 0;
-	sprintf(ip_str, "%ld.%ld.%ld.%ld", (client_ip>>24)&0xFF, (client_ip>>16)&0xFF, (client_ip>>8)&0xFF, (client_ip)&0xFF);
+	uint32 client_ip = (session[fd]) ? session[fd]->client_ip : 0;
+	sprintf(ip_str, "%d.%d.%d.%d", (unsigned char)(client_ip>>24)&0xFF, (unsigned char)(client_ip>>16)&0xFF, (unsigned char)(client_ip>>8)&0xFF, (unsigned char)(client_ip)&0xFF);
 
 	for(id = 0; id < MAX_SERVERS; id++)
 		if (server[id].fd == fd)
@@ -448,7 +448,7 @@ int parse_fromchar(int fd)
 			if (RFIFOREST(fd) < 19)
 				return 0;
 
-			unsigned long accid = RFIFOL(fd,2);
+			uint32 accid = RFIFOL(fd,2);
 			CLoginAccount account;
 
 			if( account_db.searchAccount(accid, account) &&
@@ -484,7 +484,7 @@ int parse_fromchar(int fd)
 				WFIFOL(fd,2) = accid;
 				WFIFOB(fd,6) = 0;
 				memcpy(WFIFOP(fd, 7), account.email, 40);
-				WFIFOL(fd,47) = (unsigned long)account.valid_until;
+				WFIFOL(fd,47) = (uint32)account.valid_until;
 				WFIFOSET(fd,51);
 /////
 			}
@@ -549,7 +549,7 @@ int parse_fromchar(int fd)
 			if (RFIFOREST(fd) < 46)
 				return 0;
 
-			unsigned long accid = RFIFOL(fd,2);
+			uint32 accid = RFIFOL(fd,2);
 			char *email = (char*)RFIFOP(fd,6);			
 			email[39] = '\0';
 			remove_control_chars(email);
@@ -585,23 +585,23 @@ int parse_fromchar(int fd)
 			if (RFIFOREST(fd) < 6)
 				return 0;
 
-			unsigned long accid = RFIFOL(fd,2);
+			uint32 accid = RFIFOL(fd,2);
 			CLoginAccount account;
 
-			//ShowMessage("parse_fromchar: E-mail/limited time request from '%s' server (concerned account: %ld)\n", server[id].name, accid);
+			//ShowMessage("parse_fromchar: E-mail/limited time request from '%s' server (concerned account: %ld)\n", server[id].name, (unsigned long)accid);
 
 			if( account_db.searchAccount(accid, account) )
 			{
-				login_log("Char-server '%s': e-mail of the account %d found (ip: %s)." RETCODE, server[id].name, (unsigned long)RFIFOL(fd,2), ip_str);
+				login_log("Char-server '%s': e-mail of the account %d found (ip: %s)." RETCODE, server[id].name, (uint32)RFIFOL(fd,2), ip_str);
 				WFIFOW(fd,0) = 0x2717;
 				WFIFOL(fd,2) = RFIFOL(fd,2);
 				memcpy(WFIFOP(fd, 6), account.email, 40);
-				WFIFOL(fd,46) = (unsigned long)account.valid_until;
+				WFIFOL(fd,46) = (uint32)account.valid_until;
 				WFIFOSET(fd,50);
 			}
 			else
 			{
-				login_log("Char-server '%s': e-mail of the account %d NOT found (ip: %s)." RETCODE, server[id].name, (unsigned long)RFIFOL(fd,2), ip_str);
+				login_log("Char-server '%s': e-mail of the account %d NOT found (ip: %s)." RETCODE, server[id].name, (uint32)RFIFOL(fd,2), ip_str);
 			}
 			RFIFOSKIP(fd,6);
 			break;
@@ -624,7 +624,7 @@ int parse_fromchar(int fd)
 				return 0;
 
 			unsigned char buf[10];
-			unsigned long accid = RFIFOL(fd,4);
+			uint32 accid = RFIFOL(fd,4);
 			CLoginAccount account;
 			//ShowMessage("parse_fromchar: Request to become a GM acount from %d account.\n", accid);
 			
@@ -675,7 +675,7 @@ int parse_fromchar(int fd)
 			if (RFIFOREST(fd) < 86)
 				return 0;
 
-			unsigned long accid = RFIFOL(fd,2);
+			uint32 accid = RFIFOL(fd,2);
 			CLoginAccount account;
 			
 			char* cur_email = (char*)RFIFOP(fd, 6);
@@ -730,8 +730,8 @@ int parse_fromchar(int fd)
 			if (RFIFOREST(fd) < 10)
 				return 0;
 			
-			unsigned long accid = RFIFOL(fd,2);
-			unsigned long status= RFIFOL(fd,6);
+			uint32 accid = RFIFOL(fd,2);
+			uint32 status= RFIFOL(fd,6);
 			CLoginAccount account;
 
 			if( account_db.searchAccount(accid, account) )
@@ -779,7 +779,7 @@ int parse_fromchar(int fd)
 			if (RFIFOREST(fd) < 18)
 				return 0;
 
-			unsigned long accid = RFIFOL(fd,2);
+			uint32 accid = RFIFOL(fd,2);
 			CLoginAccount account;
 
 			if( account_db.searchAccount(accid, account) )
@@ -858,7 +858,7 @@ int parse_fromchar(int fd)
 			if (RFIFOREST(fd) < 6)
 				return 0;
 			
-			unsigned long accid = RFIFOL(fd,2);
+			uint32 accid = RFIFOL(fd,2);
 			CLoginAccount account;
 
 			if( account_db.searchAccount(accid, account) )
@@ -903,7 +903,7 @@ int parse_fromchar(int fd)
 
 			size_t p, j;
 			size_t sz = RFIFOW(fd,2);
-			unsigned long accid = RFIFOL(fd,4);
+			uint32 accid = RFIFOL(fd,4);
 			CLoginAccount account;
 
 			if( account_db.searchAccount(accid, account) )
@@ -944,7 +944,7 @@ int parse_fromchar(int fd)
 			if (RFIFOREST(fd) < 6)
 				return 0;
 			
-			unsigned long accid = RFIFOL(fd,2);
+			uint32 accid = RFIFOL(fd,2);
 			CLoginAccount account;
 
 			if( account_db.searchAccount(accid, account) )
@@ -979,7 +979,7 @@ int parse_fromchar(int fd)
 		{
 			if (RFIFOREST(fd) < 6)
 				return 0;
-			unsigned long accid = RFIFOL(fd,2);
+			uint32 accid = RFIFOL(fd,2);
 			CLoginAccount account;
 			if( account_db.searchAccount(accid, account) )
 			{
@@ -997,7 +997,7 @@ int parse_fromchar(int fd)
 		{
 			if (RFIFOREST(fd) < 6)
 				return 0;
-			unsigned long accid = RFIFOL(fd,2);
+			uint32 accid = RFIFOL(fd,2);
 			CLoginAccount account;
 			if( account_db.searchAccount(accid, account) )
 			{
@@ -1016,7 +1016,7 @@ int parse_fromchar(int fd)
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 
-			unsigned long accid = RFIFOL(fd,4);
+			uint32 accid = RFIFOL(fd,4);
 			unsigned char sex = RFIFOB(fd,8);
 			CLoginAccount account;
 			if( account_db.searchAccount(accid, account) )
@@ -1060,8 +1060,8 @@ int parse_fromchar(int fd)
 int parse_admin(int fd)
 {
 	char ip_str[16];
-	unsigned long client_ip = session[fd]->client_ip;
-	sprintf(ip_str, "%ld.%ld.%ld.%ld", (client_ip>>24)&0xFF, (client_ip>>16)&0xFF, (client_ip>>8)&0xFF, (client_ip)&0xFF);
+	uint32 client_ip = session[fd]->client_ip;
+	sprintf(ip_str, "%ld.%ld.%ld.%ld", (unsigned long)(client_ip>>24)&0xFF, (unsigned long)(client_ip>>16)&0xFF, (unsigned long)(client_ip>>8)&0xFF, (unsigned long)(client_ip)&0xFF);
 
 	if( !session_isActive(fd) )
 	{
@@ -1112,8 +1112,8 @@ int parse_admin(int fd)
 				return 0;
 
 			size_t i, len;
-			unsigned long st = RFIFOL(fd,2);
-			unsigned long ed = RFIFOL(fd,6);
+			uint32 st = RFIFOL(fd,2);
+			uint32 ed = RFIFOL(fd,6);
 			
 
 			if(st>ed) swap(st,ed);
@@ -1298,7 +1298,7 @@ int parse_admin(int fd)
 				char*userid = (char*)RFIFOP(fd,2);
 				userid[23] = '\0';
 				remove_control_chars(userid);
-				unsigned long status = RFIFOL(fd,26);
+				uint32 status = RFIFOL(fd,26);
 				char* error_message = (char*)RFIFOP(fd,30);
 				error_message[19] = '\0';
 				remove_control_chars(error_message);
@@ -1686,12 +1686,12 @@ int parse_admin(int fd)
 			{
 				memcpy(WFIFOP(fd,6), account.userid, 24);
 				login_log("'ladmin': Request (by id) of an account name (account: %s, id: %d, ip: %s)" RETCODE,
-					account.userid, (unsigned long)RFIFOL(fd,2), ip_str);
+					account.userid, (uint32)RFIFOL(fd,2), ip_str);
 			}
 			else
 			{
 				login_log("'ladmin': Name request (by id) of an unknown account (id: %d, ip: %s)" RETCODE,
-					(unsigned long)RFIFOL(fd,2), ip_str);
+					(uint32)RFIFOL(fd,2), ip_str);
 			}
 			WFIFOSET(fd,30);
 			RFIFOSKIP(fd,6);
@@ -1735,7 +1735,7 @@ int parse_admin(int fd)
 				login_log("'ladmin': Attempt to change the validity limit of an unknown account (account: %s, received validity: %d (%s), ip: %s)" RETCODE,
 					userid, timestamp, (timestamp == 0 ? "unlimited" : tmpstr), ip_str);
 			}
-			WFIFOL(fd,30) = (unsigned long)timestamp;
+			WFIFOL(fd,30) = (uint32)timestamp;
 			WFIFOSET(fd,34);
 			RFIFOSKIP(fd,30);
 			break;
@@ -1864,7 +1864,7 @@ int parse_admin(int fd)
 						login_log("'ladmin': Impossible to adjust the final date of a banishment (account: %s, %d (%s) + (%+d y %+d m %+d d %+d h %+d mn %+d s) -> ???, ip: %s)" RETCODE,
 						          account.userid, account.ban_until, (account.ban_until == 0 ? "no banishment" : tmpstr), (short)RFIFOW(fd,26), (short)RFIFOW(fd,28), (short)RFIFOW(fd,30), (short)RFIFOW(fd,32), (short)RFIFOW(fd,34), (short)RFIFOW(fd,36), ip_str);
 					}
-					WFIFOL(fd,30) = (unsigned long)account.ban_until;
+					WFIFOL(fd,30) = (uint32)account.ban_until;
 				}
 				else
 				{
@@ -1981,7 +1981,7 @@ int parse_admin(int fd)
 						
 						account_db.saveAccount(account);
 						
-						WFIFOL(fd,30) = (unsigned long)timestamp;
+						WFIFOL(fd,30) = (uint32)timestamp;
 					}
 					else
 					{
@@ -2030,8 +2030,8 @@ int parse_admin(int fd)
 				memcpy(WFIFOP(fd,60), account.last_login, 24);
 				memcpy(WFIFOP(fd,84), account.last_ip, 16);
 				memcpy(WFIFOP(fd,100), account.email, 40);
-				WFIFOL(fd,140) = (unsigned long)account.valid_until;
-				WFIFOL(fd,144) = (unsigned long)account.ban_until;
+				WFIFOL(fd,140) = (uint32)account.valid_until;
+				WFIFOL(fd,144) = (uint32)account.ban_until;
 				WFIFOW(fd,148) = strlen(account.memo);
 				if(account.memo[0])
 				{
@@ -2068,7 +2068,7 @@ int parse_admin(int fd)
 			{
 				
 				login_log("'ladmin': Sending information of an account (request by the id; account: %s, id: %d, ip: %s)" RETCODE,
-					account.userid, (unsigned long)RFIFOL(fd,2), ip_str);
+					account.userid, (uint32)RFIFOL(fd,2), ip_str);
 				WFIFOB(fd,6) = account.gm_level;
 				memcpy(WFIFOP(fd,7), account.userid, 24);
 				WFIFOB(fd,31) = account.sex;
@@ -2078,8 +2078,8 @@ int parse_admin(int fd)
 				memcpy(WFIFOP(fd,60), account.last_login, 24);
 				memcpy(WFIFOP(fd,84), account.last_ip, 16);
 				memcpy(WFIFOP(fd,100), account.email, 40);
-				WFIFOL(fd,140) = (unsigned long)account.valid_until;
-				WFIFOL(fd,144) = (unsigned long)account.ban_until;
+				WFIFOL(fd,140) = (uint32)account.valid_until;
+				WFIFOL(fd,144) = (uint32)account.ban_until;
 				WFIFOW(fd,148) = strlen(account.memo);
 				if(account.memo[0])
 				{
@@ -2090,7 +2090,7 @@ int parse_admin(int fd)
 			else
 			{
 				login_log("'ladmin': Attempt to obtain information (by the id) of an unknown account (id: %d, ip: %s)" RETCODE,
-					(unsigned long)RFIFOL(fd,2), ip_str);
+					(uint32)RFIFOL(fd,2), ip_str);
 				safestrcpy((char*)WFIFOP(fd,7), "", 24);
 				WFIFOW(fd,148) = 0;
 				WFIFOSET(fd,150);
@@ -2126,8 +2126,8 @@ int parse_admin(int fd)
 int parse_login(int fd)
 {
 	char ip_str[16];
-	unsigned long client_ip = session[fd]->client_ip;
-	sprintf(ip_str, "%ld.%ld.%ld.%ld", (client_ip>>24)&0xFF, (client_ip>>16)&0xFF, (client_ip>>8)&0xFF, (client_ip)&0xFF);
+	uint32 client_ip = session[fd]->client_ip;
+	sprintf(ip_str, "%ld.%ld.%ld.%ld", (unsigned long)(client_ip>>24)&0xFF, (unsigned long)(client_ip>>16)&0xFF, (unsigned long)(client_ip>>8)&0xFF, (unsigned long)(client_ip)&0xFF);
 
 	if ( !session_isActive(fd) )
 	{
@@ -2193,7 +2193,7 @@ int parse_login(int fd)
 				return 0;
 
 			CLoginAccount account;
-			unsigned long version = RFIFOL(fd, 2);	//for exe version check [Sirius]
+			uint32 version = RFIFOL(fd, 2);	//for exe version check [Sirius]
 			char* userid = (char*)RFIFOP(fd,6);
 			userid[23] = '\0';
 			remove_control_chars(userid);
@@ -3154,9 +3154,9 @@ int do_init(int argc, char **argv)
 #include "login.h"
 
 
-unsigned long account_id_count = START_ACCOUNT_NUM;
+uint32 account_id_count = START_ACCOUNT_NUM;
 unsigned short server_num;
-unsigned long new_account_flag = 0;
+uint32 new_account_flag = 0;
 
 netaddress loginaddress(INADDR_ANY, 6900);
 
@@ -3220,23 +3220,23 @@ struct login_session_data {
 
 #define AUTH_FIFO_SIZE 256
 struct {
-	unsigned long account_id;
-	unsigned long login_id1;
-	unsigned long login_id2;
-	unsigned long client_ip;
+	uint32 account_id;
+	uint32 login_id1;
+	uint32 login_id2;
+	uint32 client_ip;
 	int sex;
 	int delflag;
 } auth_fifo[AUTH_FIFO_SIZE];
 int auth_fifo_pos = 0;
 
 struct auth_dat {
-	unsigned long account_id;
+	uint32 account_id;
 	int sex;
 	char userid[24];
 	char pass[33]; // 33 for 32 + NULL terminated
 	char lastlogin[24]; 
-	unsigned long logincount;
-	unsigned long state; // packet 0x006a value + 1 (0: compte OK)
+	uint32 logincount;
+	uint32 state; // packet 0x006a value + 1 (0: compte OK)
 	char email[40]; // e-mail (by default: a@a.com)
 	char error_message[20]; // Message of error code #6 = Your are Prohibited to log in until %s (packet 0x006a)
 	time_t ban_until_time; // # of seconds 1/1/1970 (timestamp): ban time limit of the account (0 = no ban)
@@ -3320,29 +3320,29 @@ int login_log(char *fmt, ...)
 
 int online_db_final(void *key,void *data,va_list ap)
 {
-	unsigned long *p = (unsigned long *) data;
+	uint32 *p = (uint32 *) data;
 	if (p) aFree(p);
 	return 0;
 }
-void add_online_user (unsigned long account_id) {
-	unsigned long *p = (unsigned long*)numdb_search(online_db, account_id);
+void add_online_user (uint32 account_id) {
+	uint32 *p = (uint32*)numdb_search(online_db, account_id);
 	if (p == NULL) {
-		p = (unsigned long *)aMalloc(sizeof(unsigned long));
+		p = (uint32 *)aMalloc(sizeof(uint32));
 		*p = account_id;
 		numdb_insert(online_db, account_id, p);
 	}
 }
-int is_user_online (unsigned long account_id) {
-	unsigned long *p = (unsigned long*)numdb_search(online_db, account_id);
+int is_user_online (uint32 account_id) {
+	uint32 *p = (uint32*)numdb_search(online_db, account_id);
 	return (p != NULL);
 }
-void remove_online_user (unsigned long account_id) {
-	unsigned long *p;
+void remove_online_user (uint32 account_id) {
+	uint32 *p;
 	if (account_id == 99) {	// reset all to offline
 		numdb_final(online_db, online_db_final);	// purge db
 		online_db = numdb_init();	// reinitialise
 	}
-	p = (unsigned long*)numdb_erase(online_db, account_id);
+	p = (uint32*)numdb_erase(online_db, account_id);
 	aFree(p);
 }
 
@@ -3350,7 +3350,7 @@ void remove_online_user (unsigned long account_id) {
 // Determine if an account (id) is a GM account
 // and returns its level (or 0 if it isn't a GM account or if not found)
 //----------------------------------------------------------------------
-int isGM(unsigned long account_id)
+int isGM(uint32 account_id)
 {
 	int i;
 	for(i=0; i < GM_num; i++)
@@ -3362,7 +3362,7 @@ int isGM(unsigned long account_id)
 //----------------------------------------------------------------------
 // Adds a new GM using accid id and level
 //----------------------------------------------------------------------
-void addGM(unsigned long account_id, unsigned long level)
+void addGM(uint32 account_id, uint32 level)
 {
 	int i;
 	int do_add = 0;
@@ -3474,7 +3474,7 @@ int read_gm_account(void)
 // Test of the IP mask
 // (ip: IP to be tested, str: mask x.x.x.x/# or x.x.x.x/y.y.y.y)
 //--------------------------------------------------------------
-int check_ipmask(unsigned long ip, const unsigned char *str) {
+int check_ipmask(uint32 ip, const unsigned char *str) {
 	unsigned int mask = 0, i = 0, m, ip2, a0, a1, a2, a3;
 	unsigned char *p = (unsigned char *)&ip2, *p2 = (unsigned char *)&mask;
 
@@ -3498,7 +3498,7 @@ int check_ipmask(unsigned long ip, const unsigned char *str) {
 //---------------------
 // Access control by IP
 //---------------------
-int check_ip(unsigned long ip) {
+int check_ip(uint32 ip) {
 	int i;
 	unsigned char *p = (unsigned char *)&ip;
 	char buf[16];
@@ -3547,7 +3547,7 @@ int check_ip(unsigned long ip) {
 //--------------------------------
 // Access control by IP for ladmin
 //--------------------------------
-int check_ladminip(unsigned long ip) {
+int check_ladminip(uint32 ip) {
 	int i;
 	unsigned char *p = (unsigned char *)&ip;
 	char buf[16];
@@ -3624,8 +3624,8 @@ int mmo_auth_tostr(char *str, struct auth_dat *p)
 	                 p->account_id, p->userid, p->pass, p->lastlogin,
 	                 (p->sex == 2) ? 'S' : (p->sex ? 'M' : 'F'),
 	                 p->logincount, p->state,
-							p->email, p->error_message, (unsigned long)p->connect_until_time,
-							p->last_ip, p->memo, (unsigned long)p->ban_until_time);
+							p->email, p->error_message, (uint32)p->connect_until_time,
+							p->last_ip, p->memo, (uint32)p->ban_until_time);
 
 	for(i = 0; i < p->account_reg2_num; i++)
 		if (p->account_reg2[i].str[0])
@@ -3640,11 +3640,11 @@ int mmo_auth_tostr(char *str, struct auth_dat *p)
 int mmo_auth_init(void)
 {
 	FILE *fp;
-	unsigned long account_id;
+	uint32 account_id;
 	int logincount, state, n, i, j, v;
 	char line[2048], *p, userid[2048], pass[2048], lastlogin[2048], sex, email[2048], error_message[2048], last_ip[2048], memo[2048];
-	unsigned long ban_until_time;
-	unsigned long connect_until_time;
+	uint32 ban_until_time;
+	uint32 connect_until_time;
 	char str[2048];
 	int GM_count = 0;
 	int server_count = 0;
@@ -3972,7 +3972,7 @@ void mmo_auth_sync(void)
 {
 	FILE *fp;
 	int i, j, k, lock;
-	unsigned long account_id;
+	uint32 account_id;
 	char line[65536];
 	CREATE_BUFFER(id, int, auth_num);
 
@@ -4201,7 +4201,7 @@ int mmo_auth(struct mmo_account* account, int fd)
 	char md5str[64], md5bin[32];
 	char user_password[256];
 	char ip_str[16];
-	unsigned long client_ip = session[fd]->client_ip;
+	uint32 client_ip = session[fd]->client_ip;
 
 	sprintf(ip_str, "%ld.%ld.%ld.%ld", (client_ip>>24)&0xFF, (client_ip>>16)&0xFF, (client_ip>>8)&0xFF, (client_ip)&0xFF);
 
@@ -4405,9 +4405,9 @@ int mmo_auth(struct mmo_account* account, int fd)
 int parse_fromchar(int fd)
 {
 	int i, j, id;
-	unsigned long accid;
+	uint32 accid;
 	char ip_str[16];
-	unsigned long client_ip = session[fd]->client_ip;
+	uint32 client_ip = session[fd]->client_ip;
 	sprintf(ip_str, "%ld.%ld.%ld.%ld", (client_ip>>24)&0xFF, (client_ip>>16)&0xFF, (client_ip>>8)&0xFF, (client_ip)&0xFF);
 
 
@@ -4447,7 +4447,7 @@ int parse_fromchar(int fd)
 			if (RFIFOREST(fd) < 19)
 				return 0;
 		  {
-			unsigned long accid = RFIFOL(fd,2);
+			uint32 accid = RFIFOL(fd,2);
 			for(i = 0; i < AUTH_FIFO_SIZE; i++) 
 			{
 				if (auth_fifo[i].account_id == accid &&
@@ -4479,7 +4479,7 @@ int parse_fromchar(int fd)
 							WFIFOL(fd,2) = accid;
 							WFIFOB(fd,6) = 0;
 							memcpy(WFIFOP(fd, 7), auth_dat[k].email, 40);
-							WFIFOL(fd,47) = (unsigned long)auth_dat[k].connect_until_time;
+							WFIFOL(fd,47) = (uint32)auth_dat[k].connect_until_time;
 							WFIFOSET(fd,51);
 							break;
 						}
@@ -4505,7 +4505,7 @@ int parse_fromchar(int fd)
 		case 0x2714:
 			if (RFIFOREST(fd) < 6)
 				return 0;
-			//ShowMessage("parse_fromchar: Receiving of the users number of the server '%s': %ld\n", server[id].name, (unsigned long)RFIFOL(fd,2));
+			//ShowMessage("parse_fromchar: Receiving of the users number of the server '%s': %ld\n", server[id].name, (uint32)RFIFOL(fd,2));
 			server[id].users = RFIFOL(fd,2);
 
 			// send some answer
@@ -4553,24 +4553,24 @@ int parse_fromchar(int fd)
 		case 0x2716:
 			if (RFIFOREST(fd) < 6)
 				return 0;
-			//ShowMessage("parse_fromchar: E-mail/limited time request from '%s' server (concerned account: %ld)\n", server[id].name, (unsigned long)RFIFOL(fd,2));
+			//ShowMessage("parse_fromchar: E-mail/limited time request from '%s' server (concerned account: %ld)\n", server[id].name, (uint32)RFIFOL(fd,2));
 			for(i = 0; i < auth_num; i++)
 			{
 				if (auth_dat[i].account_id == RFIFOL(fd,2))
 				{
 					login_log("Char-server '%s': e-mail of the account %d found (ip: %s)." RETCODE,
-					          server[id].name, (unsigned long)RFIFOL(fd,2), ip_str);
+					          server[id].name, (uint32)RFIFOL(fd,2), ip_str);
 					WFIFOW(fd,0) = 0x2717;
 					WFIFOL(fd,2) = RFIFOL(fd,2);
 					memcpy(WFIFOP(fd, 6), auth_dat[i].email, 40);
-					WFIFOL(fd,46) = (unsigned long)auth_dat[i].connect_until_time;
+					WFIFOL(fd,46) = (uint32)auth_dat[i].connect_until_time;
 					WFIFOSET(fd,50);
 					break;
 				}
 			}
 			if (i == auth_num)
 				login_log("Char-server '%s': e-mail of the account %d NOT found (ip: %s)." RETCODE,
-				          server[id].name, (unsigned long)RFIFOL(fd,2), ip_str);
+				          server[id].name, (uint32)RFIFOL(fd,2), ip_str);
 			RFIFOSKIP(fd,6);
 			break;
 
@@ -4686,7 +4686,7 @@ int parse_fromchar(int fd)
 			if (RFIFOREST(fd) < 10)
 				return 0;
 			{
-				unsigned long accid, statut;
+				uint32 accid, statut;
 				accid = RFIFOL(fd,2);
 				statut = RFIFOL(fd,6);
 				for(i = 0; i < auth_num; i++) {
@@ -4995,7 +4995,7 @@ int parse_admin(int fd) {
 	int i, j;
 	char* account_name;
 	char ip_str[16];
-	unsigned long client_ip = session[fd]->client_ip;
+	uint32 client_ip = session[fd]->client_ip;
 	sprintf(ip_str, "%ld.%ld.%ld.%ld", (client_ip>>24)&0xFF, (client_ip>>16)&0xFF, (client_ip>>8)&0xFF, (client_ip)&0xFF);
 
 	if( !session_isActive(fd) ) {
@@ -5033,9 +5033,9 @@ int parse_admin(int fd) {
 			if (RFIFOREST(fd) < 10)
 				return 0;
 			{
-				unsigned long st, ed;
+				uint32 st, ed;
 				size_t len;
-				CREATE_BUFFER(id, unsigned long, auth_num);
+				CREATE_BUFFER(id, uint32, auth_num);
 
 				st = RFIFOL(fd,2);
 				ed = RFIFOL(fd,6);
@@ -5063,7 +5063,7 @@ int parse_admin(int fd) {
 				// Sending accounts information
 				len = 4;
 				for(i = 0; i < auth_num && len < 30000; i++) {
-					unsigned long account_id = auth_dat[id[i]].account_id; // use sorted index
+					uint32 account_id = auth_dat[id[i]].account_id; // use sorted index
 					if (account_id >= st && account_id <= ed) {
 						j = id[i];
 						WFIFOL(fd,len) = account_id;
@@ -5206,7 +5206,7 @@ int parse_admin(int fd) {
 				return 0;
 			{
 				char error_message[20];
-				unsigned long statut;
+				uint32 statut;
 				WFIFOW(fd,0) = 0x7937;
 				WFIFOL(fd,2) = ~0;
 				account_name = (char*)RFIFOP(fd,2);
@@ -5556,13 +5556,13 @@ int parse_admin(int fd) {
 				if (auth_dat[i].account_id == RFIFOL(fd,2)) {
 					safestrcpy((char*)WFIFOP(fd,6), auth_dat[i].userid, 24);
 					login_log("'ladmin': Request (by id) of an account name (account: %s, id: %d, ip: %s)" RETCODE,
-					          auth_dat[i].userid, (unsigned long)RFIFOL(fd,2), ip_str);
+					          auth_dat[i].userid, (uint32)RFIFOL(fd,2), ip_str);
 					break;
 				}
 			}
 			if (i == auth_num) {
 				login_log("'ladmin': Name request (by id) of an unknown account (id: %d, ip: %s)" RETCODE,
-				          (unsigned long)RFIFOL(fd,2), ip_str);
+				          (uint32)RFIFOL(fd,2), ip_str);
 				safestrcpy((char*)WFIFOP(fd,6), "", 24);
 			}
 			WFIFOSET(fd,30);
@@ -5702,7 +5702,7 @@ int parse_admin(int fd) {
 						login_log("'ladmin': Impossible to adjust the final date of a banishment (account: %s, %d (%s) + (%+d y %+d m %+d d %+d h %+d mn %+d s) -> ???, ip: %s)" RETCODE,
 						          auth_dat[i].userid, auth_dat[i].ban_until_time, (auth_dat[i].ban_until_time == 0 ? "no banishment" : tmpstr), (short)RFIFOW(fd,26), (short)RFIFOW(fd,28), (short)RFIFOW(fd,30), (short)RFIFOW(fd,32), (short)RFIFOW(fd,34), (short)RFIFOW(fd,36), ip_str);
 					}
-					WFIFOL(fd,30) = (unsigned long)auth_dat[i].ban_until_time;
+					WFIFOL(fd,30) = (uint32)auth_dat[i].ban_until_time;
 				} else {
 					memcpy(WFIFOP(fd,6), account_name, 24);
 					login_log("'ladmin': Attempt to adjust the final date of a banishment of an unknown account (account: %s, ip: %s)" RETCODE,
@@ -5800,7 +5800,7 @@ int parse_admin(int fd) {
 							          auth_dat[i].userid, auth_dat[i].connect_until_time, (auth_dat[i].connect_until_time == 0 ? "unlimited" : tmpstr), (short)RFIFOW(fd,26), (short)RFIFOW(fd,28), (short)RFIFOW(fd,30), (short)RFIFOW(fd,32), (short)RFIFOW(fd,34), (short)RFIFOW(fd,36), timestamp, (timestamp == 0 ? "unlimited" : tmpstr2), ip_str);
 							auth_dat[i].connect_until_time = timestamp;
 							mmo_auth_sync();
-							WFIFOL(fd,30) = (unsigned long)auth_dat[i].connect_until_time;
+							WFIFOL(fd,30) = (uint32)auth_dat[i].connect_until_time;
 						} else {
 							strftime(tmpstr, 24, date_format, localtime(&auth_dat[i].connect_until_time));
 							login_log("'ladmin': Impossible to adjust a validity limit (account: %s, %d (%s) + (%+d y %+d m %+d d %+d h %+d mn %+d s) -> ???, ip: %s)" RETCODE,
@@ -5839,8 +5839,8 @@ int parse_admin(int fd) {
 				memcpy(WFIFOP(fd,60), auth_dat[i].lastlogin, 24);
 				memcpy(WFIFOP(fd,84), auth_dat[i].last_ip, 16);
 				memcpy(WFIFOP(fd,100), auth_dat[i].email, 40);
-				WFIFOL(fd,140) = (unsigned long)auth_dat[i].connect_until_time;
-				WFIFOL(fd,144) = (unsigned long)auth_dat[i].ban_until_time;
+				WFIFOL(fd,140) = (uint32)auth_dat[i].connect_until_time;
+				WFIFOL(fd,144) = (uint32)auth_dat[i].ban_until_time;
 				WFIFOW(fd,148) = strlen(auth_dat[i].memo);
 				if (auth_dat[i].memo[0]) {
 					memcpy(WFIFOP(fd,150), auth_dat[i].memo, strlen(auth_dat[i].memo));
@@ -5867,7 +5867,7 @@ int parse_admin(int fd) {
 			for(i = 0; i < auth_num; i++) {
 				if (auth_dat[i].account_id == RFIFOL(fd,2)) {
 					login_log("'ladmin': Sending information of an account (request by the id; account: %s, id: %d, ip: %s)" RETCODE,
-					          auth_dat[i].userid, (unsigned long)RFIFOL(fd,2), ip_str);
+					          auth_dat[i].userid, (uint32)RFIFOL(fd,2), ip_str);
 					WFIFOB(fd,6) = (unsigned char)isGM(auth_dat[i].account_id);
 					memcpy(WFIFOP(fd,7), auth_dat[i].userid, 24);
 					WFIFOB(fd,31) = auth_dat[i].sex;
@@ -5877,8 +5877,8 @@ int parse_admin(int fd) {
 					memcpy(WFIFOP(fd,60), auth_dat[i].lastlogin, 24);
 					memcpy(WFIFOP(fd,84), auth_dat[i].last_ip, 16);
 					memcpy(WFIFOP(fd,100), auth_dat[i].email, 40);
-					WFIFOL(fd,140) = (unsigned long)auth_dat[i].connect_until_time;
-					WFIFOL(fd,144) = (unsigned long)auth_dat[i].ban_until_time;
+					WFIFOL(fd,140) = (uint32)auth_dat[i].connect_until_time;
+					WFIFOL(fd,144) = (uint32)auth_dat[i].ban_until_time;
 					WFIFOW(fd,148) = strlen(auth_dat[i].memo);
 					if (auth_dat[i].memo[0]) {
 						memcpy(WFIFOP(fd,150), auth_dat[i].memo, strlen(auth_dat[i].memo));
@@ -5889,7 +5889,7 @@ int parse_admin(int fd) {
 			}
 			if (i == auth_num) {
 				login_log("'ladmin': Attempt to obtain information (by the id) of an unknown account (id: %d, ip: %s)" RETCODE,
-				          (unsigned long)RFIFOL(fd,2), ip_str);
+				          (uint32)RFIFOL(fd,2), ip_str);
 				safestrcpy((char*)WFIFOP(fd,7), "", 24);
 				WFIFOW(fd,148) = 0;
 				WFIFOSET(fd,150);
@@ -5963,7 +5963,7 @@ int parse_login(int fd) {
 	struct mmo_account account;
 	int result, i, j;
 	char ip_str[16];
-	unsigned long client_ip = session[fd]->client_ip;
+	uint32 client_ip = session[fd]->client_ip;
 	sprintf(ip_str, "%ld.%ld.%ld.%ld", (client_ip>>24)&0xFF, (client_ip>>16)&0xFF, (client_ip>>8)&0xFF, (client_ip)&0xFF);
 
 	if ( !session_isActive(fd) ) {

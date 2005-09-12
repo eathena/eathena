@@ -5,7 +5,7 @@
 #include "map.h"
 
 int chat_createchat(struct map_session_data &sd,unsigned short limit,unsigned char pub,char* pass,char* title,size_t titlelen);
-int chat_joinchat(struct map_session_data &sd,unsigned long chatid,const char* pass);
+int chat_joinchat(struct map_session_data &sd,uint32 chatid,const char* pass);
 int chat_leavechat(struct map_session_data &sd);
 int chat_changechatowner(struct map_session_data &sd,const char *nextownername);
 int chat_changechatstatus(struct map_session_data &sd,unsigned short limit,unsigned char pub,const char* pass,const char* title, size_t titlelen);

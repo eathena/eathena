@@ -1,4 +1,11 @@
 Date	Added
+09/12
+	* debugged and fixed the apparent 64bit issues, so the servers should
+	  also run on 64bit machines now, but still more issues might exist
+	* temporary introduced some new types for portablility 
+	  checking a possible switch to a portable stdint.h
+	* some more additions to the script engine to prevent unclean scripts
+	  breaking the execution, but still under investigation
 09/03
 	* added types for combined transfer of pointers and number
 	  with some checking posibilities, 

@@ -2119,9 +2119,9 @@ void* get_val2(CScriptEngine &st, int num)
 
 ///////////////////////////////////////////////////////////////////////////////
 // static class variable
-unsigned long CScriptEngine::defoid = npc_get_new_npc_id();
+uint32 CScriptEngine::defoid = npc_get_new_npc_id();
 
-unsigned long CScriptEngine::send_defaultnpc(bool send)
+uint32 CScriptEngine::send_defaultnpc(bool send)
 {
 /*
 v5	2004-05-25	no text & no input
@@ -2141,7 +2141,7 @@ v17		text & input ok
 v18 	text & input ok
 */
 
-	unsigned long ret = 0;
+	uint32 ret = 0;
 	if( this->sd )
 	{	// a npc is only necessary in combination with a sd
 		static struct npc_data defnpc;
@@ -2487,7 +2487,7 @@ void CScriptEngine::op_2int(int op)
 		break;
 	case C_MUL:
 	{
-		int64 res = (int64)i1 * (int64)i2;
+		sint64 res = (sint64)i1 * (sint64)i2;
 		if (res >  LLCONST( 2147483647 ) )
 			i1 = INT_MAX;
 		else if (res <  LLCONST(-2147483648) )
@@ -2711,8 +2711,9 @@ int CScriptEngine::run_main()
 			case C_EOL:
 			{
 				if(stack_ptr!=defsp)
-				{
-					if(battle_config.error_log)
+				{	// possibly the function pushed a value on the heap which is not used
+					// just clear silently in this case, print error log otherwise
+					if(stack_ptr!=defsp+1 && battle_config.error_log)
 					{
 						ShowMessage("stack_ptr(%d) != default(%d)\n",stack_ptr,defsp);
 						//!!
@@ -2741,7 +2742,7 @@ int CScriptEngine::run_main()
 			case C_POS:
 			case C_NAME:
 			{
-				unsigned long tmp;
+				uint32 tmp;
 				tmp = (0xFF&script[pos])
 					| (0xFF&script[pos+1])<<8
 					| (0xFF&script[pos+2])<<16;
@@ -2836,7 +2837,7 @@ int CScriptEngine::run_main()
 ///////////////////////////////////////////////////////////////////////////////
 // スクリプトの実行
 // script entry point
-int CScriptEngine::run(const char *rootscript, size_t pos, unsigned long rid, unsigned long oid)
+int CScriptEngine::run(const char *rootscript, size_t pos, uint32 rid, uint32 oid)
 {
 	static CScriptEngine defaultengine;	
 	//!! change to nonstatic and give attention to attachrid on a multithread scheme
@@ -2955,10 +2956,22 @@ int CScriptEngine::run(const char *rootscript, size_t pos, unsigned long rid, un
 			}
 			if( OFF==engine.state )// clear
 			{
+				// send a close button in case of finishing with an open message window,
+				// so the client can close it
+//!! this might be reconsidered generally since the window might still be open when a new script is dequeued
+				if( engine.sd && engine.isMessage() )
+				{	
+					ShowWarning("script: open textwindow not closed before quiting the script.\n");
+					clif_scriptclose(*engine.sd, engine.send_defaultnpc());
+					engine.clearMessage();
+				}
+
+				// clear the npc, if the default npc was used
 				if(engine.npcstate == NPC_DEFAULT)
 					engine.send_defaultnpc(false);
 
-				//!! ... other necesary clearing
+				//!! ... other necessary clearing
+
 			}
 		}
 		// and release the lock
@@ -2970,21 +2983,14 @@ int CScriptEngine::run(const char *rootscript, size_t pos, unsigned long rid, un
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 //
+// buildin functions
 // 埋め込み関数
-//
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // display message
@@ -2992,23 +2998,20 @@ int buildin_mes(CScriptEngine &st)
 {
 	if(st.sd)
 	{
-//printf("mes '%s'\n", st.GetString(st[2]));
 		clif_scriptmes(*st.sd,st.send_defaultnpc(),st.GetString(st[2]) );
+		st.setMessage();
 	}
-	
 	return 0;
 }
 ///////////////////////////////////////////////////////////////////////////////
 // display next button on the client
 // continue the script when button is pressed
+// skip command if no message window exists
 int buildin_next(CScriptEngine &st)
 {
-	if(st.sd)
-	{
-		
-//printf("next\n");
+	if(st.sd && st.isMessage())
+	{	// halt the script and run the next command when restarted
 		st.Stop();
-		//clif_scriptnext(*st.sd,st.oid);
 		clif_scriptnext(*st.sd, st.send_defaultnpc());
 	}
 	
@@ -3017,38 +3020,45 @@ int buildin_next(CScriptEngine &st)
 
 ///////////////////////////////////////////////////////////////////////////////
 // display close button which closes the window on the client
-// terminate the script when pressed
+// terminate the script when pressed 
+// or terminate immediately if no message window exists
 int buildin_close(CScriptEngine &st)
 {
-	if(st.sd)
+	if(st.sd && st.isMessage() )
 	{
-//printf("close\n");
 		if( st.Rerun() )
 		{
-			//clif_scriptclose(*st.sd,st.oid);
 			clif_scriptclose(*st.sd, st.send_defaultnpc());
 			return 0;
 		}
-		//else nothing
+		else
+		{	// message window is now closed
+			st.clearMessage();
+		}
 	}
-	
 	// always quit here
 	st.Quit();
 	return 0;
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 // display close button which closes the window on the client
 // continue the script when button is pressed
+// skip command if no message window exists
 int buildin_close2(CScriptEngine &st)
 {
-	if(st.sd)
+	if(st.sd && st.isMessage() )
 	{
-//printf("close2\n");
-		st.Stop();
-		//clif_scriptclose(*st.sd, st.oid);
-		clif_scriptclose(*st.sd, st.send_defaultnpc());
+		if( st.Rerun() )
+		{
+			clif_scriptclose(*st.sd, st.send_defaultnpc());
+		}
+		else
+		{	// message window is now closed
+			st.clearMessage();
+		}
 	}
-	
+	// always continue here
 	return 0;
 }
 
@@ -3062,7 +3072,6 @@ int buildin_menu(CScriptEngine &st)
 	{
 		if( st.Rerun() )
 		{
-//printf("menu1\n");
 			size_t len,i;
 			char *buf;
 			for(i=st.start+2,len=16;i<st.end;i+=2)
@@ -3073,16 +3082,15 @@ int buildin_menu(CScriptEngine &st)
 				strcat(buf,st.stack_data[i].str);
 				strcat(buf,":");
 			}
-			//clif_scriptmenu(*st.sd,st.oid,buf);
 			clif_scriptmenu(*st.sd, st.send_defaultnpc(), buf);
 			aFree(buf);
 		}
 		else
 		{
 			size_t menu = st.GetInt( st.cExtData );
-//printf("menu2 %i\n", menu);
 			if(menu==0xff)
 			{	// cancel
+				st.clearMessage();
 				st.Quit();
 			}
 			else
@@ -3094,7 +3102,6 @@ int buildin_menu(CScriptEngine &st)
 				{
 					if( st[menu*2+1].type==CScriptEngine::C_POS )
 					{
-//printf("goto %i\n", st[menu*2+1].num);
 						st.Goto( st[menu*2+1].num );
 					}
 					else
@@ -3117,7 +3124,6 @@ int buildin_select(CScriptEngine &st)
 {
 	if(st.sd)
 	{
-//printf("select\n");
 		if( st.Rerun() )
 		{
 			char *buf;
@@ -3131,24 +3137,21 @@ int buildin_select(CScriptEngine &st)
 				strcat(buf,st.stack_data[i].str);
 				strcat(buf,":");
 			}
-			//clif_scriptmenu(*st.sd,st.oid,buf);
 			clif_scriptmenu(*st.sd, st.send_defaultnpc(), buf);
 			aFree(buf);
 		}
 		else
 		{
 			size_t menu = st.GetInt( st.cExtData );
-		
 			if(menu==0xff)
 			{	// cancel
-				st.rerun_flag=0;
+				st.clearMessage();
 				st.Quit();
 			}
 			else 
 			{
 				pc_setreg(*st.sd,add_str( "l15"),menu);
 				pc_setreg(*st.sd,add_str( "@menu"),menu);
-				st.rerun_flag=0;
 				st.push_val(CScriptEngine::C_INT,menu);
 			}
 		}
@@ -3170,10 +3173,9 @@ int buildin_input(CScriptEngine &st)
 		int num=(st.end>st.start+2)?st[2].num:0;
 		char *name=(st.end>st.start+2)?str_buf+str_data[num&0x00ffffff].str:(char*)"";
 		char postfix=name[strlen(name)-1];
-//printf("input\n");
 		if( st.Rerun() )
 		{
-			unsigned long id = st.send_defaultnpc();
+			uint32 id = st.send_defaultnpc();
 			if(postfix=='$')clif_scriptinputstr(*st.sd, id);
 			else			clif_scriptinput(*st.sd, id);
 		}
@@ -3204,7 +3206,7 @@ int buildin_input(CScriptEngine &st)
 		}
 	}
 	else
-	{
+	{	// input without a player is lame
 		st.Quit();
 	}
 	return 0;
@@ -3336,7 +3338,7 @@ int buildin_return(CScriptEngine &st)
  */
 int buildin_attachrid(CScriptEngine &st)
 {
-	unsigned long rid = st.GetInt(st[2]);
+	uint32 rid = st.GetInt(st[2]);
 	map_session_data *sd = map_id2sd(rid);
 	int val = 0;
 	if(sd)
@@ -4336,7 +4338,7 @@ int buildin_getcharid(CScriptEngine &st)
  *指定IDのPT名取得
  *------------------------------------------
  */
-char *buildin_getpartyname_sub(unsigned long party_id)
+char *buildin_getpartyname_sub(uint32 party_id)
 {
 	struct party *p;
 
@@ -4556,15 +4558,14 @@ int buildin_getequipname(CScriptEngine &st)
 	char *buf = (char *)aCalloc(128,sizeof(char)); // string is clear by default
 	if(sd)
 	{
-		num = st.GetInt( (st[2])) - 1;
+		num = st.GetInt(st[2]) - 1;
 		if(num<10)
 		{
 			itempos=pc_checkequip(*sd,equip[num]);
 			if(itempos < MAX_INVENTORY && (item=sd->inventory_data[itempos])!=NULL)
-				snprintf(buf,sizeof(buf),"%s-[%s]",positions[num],item->jname);
+				snprintf(buf,128,"%s-[%s+%i]",positions[num],item->jname, sd->status.inventory[itempos].refine);
 			else
-				snprintf(buf,sizeof(buf),"%s-[%s]",positions[num],positions[10]);
-			buf[sizeof(buf)-1]=0;
+				snprintf(buf,128,"%s-[%s]",positions[num],positions[10]);
 		}
 	}
 	st.push_str(CScriptEngine::C_STR, buf);
@@ -5025,7 +5026,7 @@ int buildin_getskilllv(CScriptEngine &st)
  */
 int buildin_getgdskilllv(CScriptEngine &st)
 {
-	unsigned long guild_id=st.GetInt(st[2]);
+	uint32 guild_id=st.GetInt(st[2]);
 	unsigned short skill_id=st.GetInt(st[3]);    
 	struct guild *g=guild_search(guild_id);
 	st.push_val( CScriptEngine::C_INT, (g==NULL)?-1:guild_checkskill(*g,skill_id) );
@@ -6760,7 +6761,7 @@ int buildin_emotion(CScriptEngine &st)
 
 int buildin_maprespawnguildid_sub(struct block_list &bl,va_list ap)
 {
-	unsigned long g_id=va_arg(ap,unsigned long);
+	uint32 g_id=va_arg(ap,uint32);
 	int flag=va_arg(ap,int);
 	struct map_session_data *sd=NULL;
 	struct mob_data *md=NULL;
@@ -7178,8 +7179,8 @@ int buildin_inittimer(CScriptEngine &st)	// Added by RoVeRT
 {
 //	struct npc_data *nd=(struct npc_data*)map_id2bl(st.oid);
 //	nd->lastaction=nd->timer=gettick();
-
-	if(st.sd) npc_do_ontimer(st.oid, *st.sd, 1);
+	if(st.sd)
+		npc_do_ontimer(st.oid, *st.sd, 1);
 	return 0;
 }
 
@@ -8571,7 +8572,7 @@ int buildin_isequipped(CScriptEngine &st)
 int buildin_isequippedcnt(CScriptEngine &st)
 {
 	size_t i, j, k;
-	unsigned long id = 1;
+	uint32 id = 1;
 	int ret = 0;
 	int index, type;
 
@@ -8868,7 +8869,7 @@ int buildin_fakenpcname(CScriptEngine &st)
 {
 	const char *name = st.GetString(st[2]);
 	const char *newname = st.GetString(st[3]);
-	unsigned long look = st.GetInt(st[4]);
+	uint32 look = st.GetInt(st[4]);
 	if(look <= 0xFFFF)	// Safety measure to prevent runtime errors
 		npc_changename(name, newname, look);
 	return 0;
@@ -8901,7 +8902,7 @@ int buildin_warpparty(CScriptEngine &st)
 	const char *str =st.GetString(st[2]);
 	int x			=st.GetInt(st[3]);
 	int y			=st.GetInt(st[4]);
-	unsigned long p	=st.GetInt(st[5]);
+	uint32 p	=st.GetInt(st[5]);
 	struct map_session_data *sd=st.sd;
 
 	if(!sd || map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.noteleport || NULL==party_search(p))
@@ -8976,7 +8977,7 @@ int buildin_warpguild(CScriptEngine &st)
 	const char *str =st.GetString(st[2]);
 	int x			=st.GetInt(st[3]);
 	int y			=st.GetInt(st[4]);
-	unsigned long g	=st.GetInt(st[5]);
+	uint32 g	=st.GetInt(st[5]);
 	struct map_session_data *sd=st.sd;
 
 	if(!sd || map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.noteleport || NULL==guild_search(g) )

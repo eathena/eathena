@@ -8,7 +8,7 @@ int inter_party_save();
 
 int inter_party_parse_frommap(int fd);
 
-int inter_party_leave(unsigned long party_id,unsigned long account_id);
+int inter_party_leave(uint32 party_id, uint32 account_id);
 
 extern char party_txt[1024];
 

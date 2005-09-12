@@ -37,12 +37,12 @@ public:
 class CAuth
 {
 public:
-	unsigned long account_id;
-	unsigned long login_id1;
-	unsigned long login_id2;
-	unsigned long client_ip;
+	uint32 account_id;
+	uint32 login_id1;
+	uint32 login_id2;
+	uint32 client_ip;
 
-	CAuth(unsigned long aid=0) : account_id(aid)	{}
+	CAuth(uint32 aid=0) : account_id(aid)	{}
 	~CAuth()	{}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// buffer transfer
-	size_t size() const	{ return 4*sizeof(unsigned long); }	// Return size of class
+	size_t size() const	{ return 4*sizeof(uint32); }	// Return size of class
 
 	void _tobuffer(unsigned char* &buf) const;		// Put class into given buffer
 	void _frombuffer(const unsigned char* &buf);	// Get class from given buffer
@@ -72,7 +72,7 @@ public:
 class CAccountReg
 {
 public:
-	unsigned short account_reg2_num;
+	uint16 account_reg2_num;
 	struct global_reg account_reg2[ACCOUNT_REG2_NUM];
 
 	CAccountReg()	{ account_reg2_num=0; memset(account_reg2,0,sizeof(account_reg2)); }
@@ -102,7 +102,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// creation and sorting by accountid
-	CMapAccount(unsigned long aid):CAuth(aid)	{}
+	CMapAccount(uint32 aid):CAuth(aid)	{}
 	bool operator==(const CMapAccount& c) const { return this->account_id==c.account_id; }
 	bool operator!=(const CMapAccount& c) const { return this->account_id!=c.account_id; }
 	bool operator> (const CMapAccount& c) const { return this->account_id> c.account_id; }
@@ -127,7 +127,7 @@ public:
 	char email[40];
 
 	CCharAccount()	{}
-	CCharAccount(unsigned long aid):CMapAccount(aid)	{}
+	CCharAccount(uint32 aid):CMapAccount(aid)	{}
 	~CCharAccount()	{}
 	
 	///////////////////////////////////////////////////////////////////////////
@@ -148,7 +148,7 @@ public:
 	char passwd[34];
 	unsigned char state;
 	unsigned char online;
-	unsigned long login_count;
+	uint32 login_count;
 	char last_ip[16];
 	char last_login[24];
 	char error_message[24];
@@ -158,7 +158,7 @@ public:
 	~CLoginAccount()	{}
 	///////////////////////////////////////////////////////////////////////////
 	// creation of a new account
-	CLoginAccount(unsigned long accid, const char* uid, const char* pwd, unsigned char s, const char* em)
+	CLoginAccount(uint32 accid, const char* uid, const char* pwd, unsigned char s, const char* em)
 	{	// init account data
 		this->account_id = accid;
 		safestrcpy(this->userid, uid, 24);
@@ -176,7 +176,7 @@ public:
 		this->account_reg2_num=0;
 	}
 	CLoginAccount(const char* uid)		{ safestrcpy(this->userid, uid, sizeof(this->userid));  }
-	CLoginAccount(unsigned long accid)	{ this->account_id=accid; }
+	CLoginAccount(uint32 accid)	{ this->account_id=accid; }
 
 	const CLoginAccount& operator=(const CCharAccount&a)
 	{
@@ -204,7 +204,7 @@ public:
 class CCharCharAccount : public CCharAccount
 {
 public:
-	unsigned long charlist[9];
+	uint32 charlist[9];
 
 	CCharCharAccount()		{}
 	~CCharCharAccount()		{}
@@ -213,7 +213,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// creation and sorting by accountid
-	CCharCharAccount(unsigned long aid):CCharAccount(aid) {}
+	CCharCharAccount(uint32 aid):CCharAccount(aid) {}
 	bool operator==(const CCharAccount& c) const { return this->account_id==c.account_id; }
 	bool operator!=(const CCharAccount& c) const { return this->account_id!=c.account_id; }
 	bool operator> (const CCharAccount& c) const { return this->account_id> c.account_id; }
@@ -233,7 +233,7 @@ public:
 
 
 	CCharCharacter(const char* n)		{ memset(this, 0, sizeof(CCharCharacter)); server=-1; safestrcpy(this->name, n, sizeof(this->name)); }
-	CCharCharacter(unsigned long cid)	{ memset(this, 0, sizeof(CCharCharacter)); server=-1; this->char_id=cid; }
+	CCharCharacter(uint32 cid)	{ memset(this, 0, sizeof(CCharCharacter)); server=-1; this->char_id=cid; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// creation and sorting by charid
@@ -298,9 +298,9 @@ public:
 
 	virtual bool existAccount(const char* userid) =0;
 	virtual bool searchAccount(const char* userid, CLoginAccount&account) =0;
-	virtual bool searchAccount(unsigned long accid, CLoginAccount&account) =0;
+	virtual bool searchAccount(uint32 accid, CLoginAccount&account) =0;
 	virtual bool insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount&account) =0;
-	virtual bool removeAccount(unsigned long accid) =0;
+	virtual bool removeAccount(uint32 accid) =0;
 	virtual bool saveAccount(const CLoginAccount& account) =0;
 };
 
@@ -346,9 +346,9 @@ public:
 
 	virtual bool existAccount(const char* userid)	{ return db->existAccount(userid); }
 	virtual bool searchAccount(const char* userid, CLoginAccount&account)	{ return db->searchAccount(userid, account); }
-	virtual bool searchAccount(unsigned long accid, CLoginAccount&account)	{ return db->searchAccount(accid, account); }
+	virtual bool searchAccount(uint32 accid, CLoginAccount&account)	{ return db->searchAccount(accid, account); }
 	virtual bool insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount&account)	{ return db->insertAccount(userid, passwd, sex, email, account); }
-	virtual bool removeAccount(unsigned long accid)	{ return db->removeAccount(accid); }
+	virtual bool removeAccount(uint32 accid)	{ return db->removeAccount(accid); }
 	virtual bool saveAccount(const CLoginAccount& account)	{ return db->saveAccount(account); }
 };
 
@@ -373,15 +373,14 @@ public:
 
 	virtual bool existChar(const char* name) =0;
 	virtual bool searchChar(const char* userid, CCharCharacter&character) =0;
-	virtual bool searchChar(unsigned long charid, CCharCharacter&character) =0;
+	virtual bool searchChar(uint32 charid, CCharCharacter&character) =0;
 	virtual bool insertChar(CCharAccount &account, const char *name, unsigned char str, unsigned char agi, unsigned char vit, unsigned char int_, unsigned char dex, unsigned char luk, unsigned char slot, unsigned char hair_style, unsigned char hair_color, CCharCharacter&data) =0;
-	virtual bool removeChar(unsigned long charid) =0;
+	virtual bool removeChar(uint32 charid) =0;
 	virtual bool saveChar(const CCharCharacter& character) =0;
 
-	virtual bool searchAccount(unsigned long accid, CCharCharAccount& account) =0;
+	virtual bool searchAccount(uint32 accid, CCharCharAccount& account) =0;
 	virtual bool saveAccount(CCharAccount& account) =0;
-	virtual bool removeAccount(unsigned long accid)=0;
-
+	virtual bool removeAccount(uint32 accid)=0;
 };
 ///////////////////////////////////////////////////////////////////////////////
 // Dynamic Account Database Implementation
@@ -425,14 +424,14 @@ public:
 
 	virtual bool existChar(const char* name)	{ return db->existChar(name); }
 	virtual bool searchChar(const char* name, CCharCharacter&data)	{ return db->searchChar(name, data); }
-	virtual bool searchChar(unsigned long charid, CCharCharacter&data)	{ return db->searchChar(charid, data); }
+	virtual bool searchChar(uint32 charid, CCharCharacter&data)	{ return db->searchChar(charid, data); }
 	virtual bool insertChar(CCharAccount &account, const char *name, unsigned char str, unsigned char agi, unsigned char vit, unsigned char int_, unsigned char dex, unsigned char luk, unsigned char slot, unsigned char hair_style, unsigned char hair_color, CCharCharacter&data)	{ return db->insertChar(account, name, str, agi, vit, int_, dex, luk, slot, hair_style, hair_color, data); }
-	virtual bool removeChar(unsigned long charid)	{ return db->removeChar(charid); }
+	virtual bool removeChar(uint32 charid)	{ return db->removeChar(charid); }
 	virtual bool saveChar(const CCharCharacter& data)	{ return db->saveChar(data); }
 
-	virtual bool searchAccount(unsigned long accid, CCharCharAccount& account)	{ return db->searchAccount(accid, account); }
+	virtual bool searchAccount(uint32 accid, CCharCharAccount& account)	{ return db->searchAccount(accid, account); }
 	virtual bool saveAccount(CCharAccount& account)	{ return db->saveAccount(account); }
-	virtual bool removeAccount(unsigned long accid)	{ return db->removeAccount(accid); }
+	virtual bool removeAccount(uint32 accid)	{ return db->removeAccount(accid); }
 };
 
 

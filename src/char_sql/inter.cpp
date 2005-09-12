@@ -27,7 +27,7 @@
 
 
 struct accreg {
-	unsigned long account_id;
+	uint32 account_id;
 	size_t reg_num;
 	struct global_reg reg[ACCOUNT_REG_NUM];
 };
@@ -99,7 +99,7 @@ int inter_sql_test (void);
 
 //--------------------------------------------------------
 // Save account_reg to sql (type=2)
-int inter_accreg_tosql(unsigned long account_id,struct accreg *reg){
+int inter_accreg_tosql(uint32 account_id,struct accreg *reg){
 
 	size_t j;
 	char temp_str[64]; //Needs be twice the source to ensure it fits [Skotlex]
@@ -107,7 +107,7 @@ int inter_accreg_tosql(unsigned long account_id,struct accreg *reg){
 	reg->account_id=account_id;
 
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
-	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%ld'",reg_db, account_id);
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%ld'",reg_db, (unsigned long)account_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (delete `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 	}
@@ -117,7 +117,7 @@ int inter_accreg_tosql(unsigned long account_id,struct accreg *reg){
 	for(j=0;j<reg->reg_num;j++){
 		if(reg->reg[j].str != NULL){
 			sprintf(tmp_sql,"INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES (2,'%ld', '%s','%ld')",
-				reg_db, reg->account_id, jstrescapecpy(temp_str,reg->reg[j].str), reg->reg[j].value);
+				reg_db, reg->account_id, jstrescapecpy(temp_str,reg->reg[j].str), (long)reg->reg[j].value);
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (insert `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 			}
@@ -127,7 +127,7 @@ int inter_accreg_tosql(unsigned long account_id,struct accreg *reg){
 }
 
 // Load account_reg from sql (type=2)
-int inter_accreg_fromsql(unsigned long account_id,struct accreg *reg)
+int inter_accreg_fromsql(uint32 account_id,struct accreg *reg)
 {
 	int j=0;
 	if (reg==NULL) return 0;
@@ -135,7 +135,7 @@ int inter_accreg_fromsql(unsigned long account_id,struct accreg *reg)
 	reg->account_id=account_id;
 
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
-	sprintf (tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%ld'",reg_db, reg->account_id);
+	sprintf (tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%ld'",reg_db, (unsigned long)reg->account_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (select `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 	}
@@ -430,7 +430,7 @@ int mapif_account_reg(int fd,unsigned char *src)
 }
 
 // Send the requested account_reg
-int mapif_account_reg_reply(int fd,unsigned long account_id)
+int mapif_account_reg_reply(int fd,uint32 account_id)
 {
 	struct accreg *reg=accreg_pt;
 	inter_accreg_fromsql(account_id,reg);
@@ -482,7 +482,7 @@ int mapif_send_gmaccounts()
 int check_ttl_wisdata_sub(void *key, void *data, va_list ap) {
 	unsigned long tick;
 	struct WisData *wd = (struct WisData *)data;
-	tick = (unsigned long)va_arg(ap, int);
+	tick = (uint32)va_arg(ap, int);
 
 	if (DIFF_TICK(tick, wd->tick) > WISDATA_TTL && wis_delnum < WISDELLIST_MAX)
 		wis_dellist[wis_delnum++] = wd->id;
@@ -637,7 +637,7 @@ int mapif_parse_AccReg(int fd)
 
 	int j,p;
 	struct accreg *reg=accreg_pt;
-	unsigned long account_id = RFIFOL(fd,4);
+	uint32 account_id = RFIFOL(fd,4);
 	memset(accreg_pt,0,sizeof(struct accreg));
 
 	for(j=0,p=8;j<ACCOUNT_REG_NUM && p<RFIFOW(fd,2);j++,p+=36){

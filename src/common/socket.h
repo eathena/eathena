@@ -27,7 +27,7 @@ private:
 	// does network initialisation and gets available system ips
 	template <uint C> class _ipset_helper
 	{	
-		ulong	cAddr[C];	// ip addresses of local host (host byte order)
+		uint32	cAddr[C];	// ip addresses of local host (host byte order)
 		uint	cCnt;		// # of ip addresses
 
 	public:
@@ -155,8 +155,8 @@ public:
 	// class data
     union
     {
-        uchar   bdata[4];
-        ulong   cAddr;
+        uchar	bdata[4];
+        uint32	cAddr;
     };
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -170,7 +170,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// construction set (needs explicite casts when initializing with 0)
-    ipaddress(ulong a):cAddr(a)	{}
+    ipaddress(uint32 a):cAddr(a)	{}
 	ipaddress(const char* str):cAddr(str2ip(str))	{}
     ipaddress(int a, int b, int c, int d)
 	{
@@ -181,7 +181,7 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// assignment set (needs explicite casts when assigning 0)
-    ipaddress& operator= (ulong a)			{ cAddr = a; return *this; }
+    ipaddress& operator= (uint32 a)			{ cAddr = a; return *this; }
 	ipaddress& operator= (const char* str)	{ cAddr = str2ip(str); return *this; }
 	bool init(const char *str)
 	{
@@ -232,15 +232,15 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// pod access on the ip (host byte order)
-    operator const ulong() const	{ return cAddr; }
+    operator const uint32() const	{ return cAddr; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// virtual access interface
-	virtual const ulong addr() const { return cAddr; }
-	virtual ulong& addr() { return cAddr; }
+	virtual const uint32 addr() const { return cAddr; }
+	virtual uint32& addr() { return cAddr; }
 	///////////////////////////////////////////////////////////////////////////
-	virtual const ulong mask() const { return INADDR_BROADCAST; }
-	virtual ulong& mask() { static ulong dummy; return dummy=INADDR_BROADCAST; }
+	virtual const uint32 mask() const { return INADDR_BROADCAST; }
+	virtual uint32& mask() { static uint32 dummy; return dummy=INADDR_BROADCAST; }
 	///////////////////////////////////////////////////////////////////////////
 	virtual const ushort port() const { return 0; }
 	virtual ushort& port() { static ushort dummy; return dummy=0; }
@@ -259,8 +259,8 @@ public:
 	// boolean operators
 	bool operator == (const ipaddress s) const { return cAddr==s.cAddr; }
 	bool operator != (const ipaddress s) const { return cAddr!=s.cAddr; }
-	bool operator == (const ulong s) const { return cAddr==s; }
-	bool operator != (const ulong s) const { return cAddr!=s; }
+	bool operator == (const uint32 s) const { return cAddr==s; }
+	bool operator != (const uint32 s) const { return cAddr!=s; }
 
 	///////////////////////////////////////////////////////////////////////////
 	// converts a string to an ip (host byte order)
@@ -299,7 +299,7 @@ public:
 				}
 				else
 				{	// the mask seperator placement is wrong
-					mask = (ulong)INADDR_ANY;
+					mask = (uint32)INADDR_ANY;
 				}
 				// <port>
 				port = atoi(mp+1);
@@ -311,7 +311,7 @@ public:
 				buffer[mp-str]=0;
 				addr = ipaddress::str2ip(buffer);
 				// default mask
-				mask = (ulong)INADDR_ANY; // 0.0.0.0
+				mask = (uint32)INADDR_ANY; // 0.0.0.0
 				// <port>
 				port = atoi(mp+1);
 			}
@@ -333,7 +333,7 @@ public:
 				// <ip>
 				addr = ipaddress::str2ip(str);
 				// default mask
-				mask = (ulong)INADDR_ANY; // 0.0.0.0
+				mask = (uint32)INADDR_ANY; // 0.0.0.0
 				// don't change the port
 			}
 			ret = true;
@@ -357,7 +357,7 @@ protected:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor/destructor
-    netaddress():ipaddress((ulong)INADDR_ANY),cPort(0)	{}
+    netaddress():ipaddress((uint32)INADDR_ANY),cPort(0)	{}
 	~netaddress()	{}
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assign (actually not really necessary)
@@ -366,13 +366,13 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// construction set
-	netaddress(ulong a, ushort p):ipaddress(a),cPort(p)	{}
-	netaddress(ushort p):ipaddress((ulong)INADDR_ANY),cPort(p)	{}
+	netaddress(uint32 a, ushort p):ipaddress(a),cPort(p)	{}
+	netaddress(ushort p):ipaddress((uint32)INADDR_ANY),cPort(p)	{}
     netaddress(int a, int b, int c, int d, ushort p):ipaddress(a,b,c,d),cPort(p) {}
 	netaddress(const char* str)	{ init(str); }
 	///////////////////////////////////////////////////////////////////////////
 	// assignment set
-    netaddress& operator= (ulong a)			{ this->cAddr = a; return *this; }
+    netaddress& operator= (uint32 a)		{ this->cAddr = a; return *this; }
 	netaddress& operator= (ushort p)		{ this->cPort = p; return *this; }
 	netaddress& operator= (const char* str)	{ init(str); return *this; }
 	bool init(const char *str)
@@ -416,7 +416,7 @@ protected:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor/destructor
-    subnetaddress():cMask((ulong)INADDR_ANY)	{}
+    subnetaddress():cMask((uint32)INADDR_ANY)	{}
 	~subnetaddress()	{}
 	///////////////////////////////////////////////////////////////////////////
 	// copy/assign (actually not really necessary)
@@ -425,7 +425,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// construction set
-	subnetaddress(ulong a, ulong m, ushort p):netaddress(a,p),cMask(m)	{}
+	subnetaddress(uint32 a, uint32 m, ushort p):netaddress(a,p),cMask(m)	{}
 	subnetaddress(netaddress a, ipaddress m):netaddress(a),cMask(m)	{}
 	subnetaddress(const char* str)	{ init(str); }
 	///////////////////////////////////////////////////////////////////////////
@@ -437,8 +437,8 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// virtual access interface
-	virtual const ulong mask() const { return cMask.cAddr; }
-	virtual ulong& mask() { return cMask.cAddr; }
+	virtual const uint32 mask() const { return cMask.cAddr; }
+	virtual uint32& mask() { return cMask.cAddr; }
 	///////////////////////////////////////////////////////////////////////////
 	// networkaddr2string
 	virtual const char *getstring(char *buffer=NULL)
@@ -479,26 +479,26 @@ public:
 	// construct/destruct
 	// init with 0, need to
 	ipset(const ipaddress lip = ipaddress::GetSystemIP(0),	// identify with the first System IP by default
-		  const ipaddress lsu = (ulong)INADDR_ANY,			// 0.0.0.0
+		  const ipaddress lsu = (uint32)INADDR_ANY,			// 0.0.0.0
 		  const ushort lpt    = 0,
-		  const ipaddress wip = (ulong)INADDR_ANY,			// 0.0.0.0
+		  const ipaddress wip = (uint32)INADDR_ANY,			// 0.0.0.0
 		  const ushort wpt    = 0 )
 		: subnetaddress(lip,lsu,lpt),wanaddr(wip,wpt)
 	{}
-	ipset(const ulong lip,
-		  const ulong lsu,
+	ipset(const uint32 lip,
+		  const uint32 lsu,
 		  const ushort lpt,
-		  const ulong wip,
+		  const uint32 wip,
 		  const ushort wpt)
 		: subnetaddress(lip,lsu,lpt),wanaddr(wip,wpt)
 	{}
 
 	ipset(const ushort lpt,
 		  const ushort wpt)
-		: subnetaddress(ipaddress::GetSystemIP(0),(ulong)INADDR_ANY,lpt),wanaddr((ulong)INADDR_ANY,wpt)
+		: subnetaddress(ipaddress::GetSystemIP(0),(uint32)INADDR_ANY,lpt),wanaddr((uint32)INADDR_ANY,wpt)
 	{}
 	ipset(const ushort pt)
-		: subnetaddress(ipaddress::GetSystemIP(0),(ulong)INADDR_ANY,pt),wanaddr((ulong)INADDR_ANY,pt)
+		: subnetaddress(ipaddress::GetSystemIP(0),(uint32)INADDR_ANY,pt),wanaddr((uint32)INADDR_ANY,pt)
 	{}
 
 	~ipset()	{}
@@ -552,13 +552,13 @@ public:
 				else
 				{	// no subnets; only take the first ip, default the second
 					subnetaddress::init(buffer);
-					wanaddr = netaddress((ulong)INADDR_ANY, this->cPort);
+					wanaddr = netaddress((uint32)INADDR_ANY, this->cPort);
 				}
 			}
 			else
 			{	// only one given, assume it the lanip
 				subnetaddress::init(str);
-				wanaddr = netaddress((ulong)INADDR_ANY, this->cPort);
+				wanaddr = netaddress((uint32)INADDR_ANY, this->cPort);
 			}
 
 			if( !this->isBindable() && wanaddr.isBindable() )
@@ -761,7 +761,7 @@ public:
 		return sr;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	unsigned long operator = (const unsigned long ln)
+	uint32 operator = (const uint32 ln)
 	{	// implement little endian buffer format
 		if( ipp && ipp+3<end)
 		{
@@ -772,7 +772,7 @@ public:
 		}
 		return ln;
 	}
-	long operator = (const long ln)
+	sint32 operator = (const sint32 ln)
 	{	// implement little endian buffer format
 		if( ipp && ipp+3<end)
 		{
@@ -784,30 +784,97 @@ public:
 		return ln;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	operator unsigned long () const
+	operator uint32 () const
 	{	// implement little endian buffer format
 		unsigned long ln=0;
 		if( ipp && ipp+3<end)
 		{	
-			ln  = ((unsigned long)(*ipp++)        ); 
-			ln |= ((unsigned long)(*ipp++) << 0x08);
-			ln |= ((unsigned long)(*ipp++) << 0x10);
-			ln |= ((unsigned long)(*ipp++) << 0x18);
+			ln  = ((uint32)(*ipp++)        ); 
+			ln |= ((uint32)(*ipp++) << 0x08);
+			ln |= ((uint32)(*ipp++) << 0x10);
+			ln |= ((uint32)(*ipp++) << 0x18);
+		}
+		return ln;
+	}
+	operator sint32 () const
+	{	// implement little endian buffer format
+		long ln=0;
+		if( ipp && ipp+3<end)
+		{	
+			ln  = ((sint32)(*ipp++)        ); 
+			ln |= ((sint32)(*ipp++) << 0x08);
+			ln |= ((sint32)(*ipp++) << 0x10);
+			ln |= ((sint32)(*ipp++) << 0x18);
+		}
+		return ln;
+	}
+// 64bit unix defines long/ulong as 64bit
+#if (defined _M_X64)
+	///////////////////////////////////////////////////////////////////////////
+	unsigned long operator = (const unsigned long ln)
+	{	// implement little endian buffer format
+		if( ipp && ipp+7<end)
+		{
+			*ipp++ = (unsigned char)(ln          );
+			*ipp++ = (unsigned char)(ln  >> 0x08 );
+			*ipp++ = (unsigned char)(ln  >> 0x10 );
+			*ipp++ = (unsigned char)(ln  >> 0x18 );
+			*ipp++ = (unsigned char)(ln  >> 0x20 );
+			*ipp++ = (unsigned char)(ln  >> 0x28 );
+			*ipp++ = (unsigned char)(ln  >> 0x30 );
+			*ipp++ = (unsigned char)(ln  >> 0x38 );
+		}
+		return ln;
+	}
+	long operator = (const long ln)
+	{	// implement little endian buffer format
+		if( ipp && ipp+7<end)
+		{
+			*ipp++ = (unsigned char)(ln          );
+			*ipp++ = (unsigned char)(ln  >> 0x08 );
+			*ipp++ = (unsigned char)(ln  >> 0x10 );
+			*ipp++ = (unsigned char)(ln  >> 0x18 );
+			*ipp++ = (unsigned char)(ln  >> 0x20 );
+			*ipp++ = (unsigned char)(ln  >> 0x28 );
+			*ipp++ = (unsigned char)(ln  >> 0x30 );
+			*ipp++ = (unsigned char)(ln  >> 0x38 );
+		}
+		return ln;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	operator unsigned long () const
+	{	// implement little endian buffer format
+		unsigned long ln=0;
+		if( ipp && ipp+7<end)
+		{	
+			lx  = ((unsigned long)(*ipp++)        ); 
+			lx |= ((unsigned long)(*ipp++) << 0x08);
+			lx |= ((unsigned long)(*ipp++) << 0x10);
+			lx |= ((unsigned long)(*ipp++) << 0x18);
+			lx |= ((unsigned long)(*ipp++) << 0x20);
+			lx |= ((unsigned long)(*ipp++) << 0x28);
+			lx |= ((unsigned long)(*ipp++) << 0x30);
+			lx |= ((unsigned long)(*ipp++) << 0x38);
 		}
 		return ln;
 	}
 	operator long () const
 	{	// implement little endian buffer format
 		long ln=0;
-		if( ipp && ipp+3<end)
+		if( ipp && ipp+7<end)
 		{	
-			ln  = ((unsigned long)(*ipp++)        ); 
-			ln |= ((unsigned long)(*ipp++) << 0x08);
-			ln |= ((unsigned long)(*ipp++) << 0x10);
-			ln |= ((unsigned long)(*ipp++) << 0x18);
+			lx  = ((unsigned long)(*ipp++)        ); 
+			lx |= ((unsigned long)(*ipp++) << 0x08);
+			lx |= ((unsigned long)(*ipp++) << 0x10);
+			lx |= ((unsigned long)(*ipp++) << 0x18);
+			lx |= ((unsigned long)(*ipp++) << 0x20);
+			lx |= ((unsigned long)(*ipp++) << 0x28);
+			lx |= ((unsigned long)(*ipp++) << 0x30);
+			lx |= ((unsigned long)(*ipp++) << 0x38);
 		}
 		return ln;
 	}
+#endif
 	///////////////////////////////////////////////////////////////////////////
 	ipaddress operator = (const ipaddress ip)
 	{	// implement little endian buffer format
@@ -831,10 +898,10 @@ public:
 			ipp+=4;
 			return  ip;
 		}
-		return ((ulong)0);
+		return ((uint32)0);
 	}
 	///////////////////////////////////////////////////////////////////////////
-	int64 operator = (const int64 lx)
+	sint64 operator = (const sint64 lx)
 	{	// implement little endian buffer format
 		if( ipp && ipp+7<end)
 		{
@@ -865,9 +932,9 @@ public:
 		return lx;
 	}
 	///////////////////////////////////////////////////////////////////////////
-	operator int64 () const
+	operator sint64 () const
 	{	// implement little endian buffer format
-		int64 lx=0;
+		sint64 lx=0;
 		if( ipp && ipp+7<end)
 		{	
 			lx  = ((uint64)(*ipp++)        ); 
@@ -1029,7 +1096,7 @@ public:
 			(*this) = (long)i;
 			break;
 		case 8:	// 64bits are rising
-			(*this) = (int64)i;
+			(*this) = (sint64)i;
 			break;
 				// the rest is far future
 		}
@@ -1046,7 +1113,7 @@ public:
 		case 4:
 			return (long)(*this);
 		case 8:
-			return (int64)(*this);
+			return (sint64)(*this);
 		}
 	}
 	unsigned int operator = (const unsigned int i)
@@ -1063,7 +1130,7 @@ public:
 			(*this) = (long)i;
 			break;
 		case 8:
-			(*this) = (int64)i;
+			(*this) = (sint64)i;
 			break;
 		}
 		return i;
@@ -1079,7 +1146,7 @@ public:
 		case 4:
 			return (long)(*this);
 		case 8:
-			return (int64)(*this);
+			return (sint64)(*this);
 		}
 	}
 */

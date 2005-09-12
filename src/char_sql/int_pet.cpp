@@ -40,11 +40,11 @@ int inter_pet_tosql(int pet_id, struct s_pet *p)
 	if (sql_res!=NULL && mysql_num_rows(sql_res)>0)
 		//row reside -> updating
 		sprintf(tmp_sql, "UPDATE `%s` SET `class`='%d',`name`='%s',`account_id`='%ld',`char_id`='%ld',`level`='%d',`egg_id`='%d',`equip`='%d',`intimate`='%d',`hungry`='%d',`rename_flag`='%d',`incuvate`='%d' WHERE `pet_id`='%ld'",
-			pet_db, p->class_, t_name, p->account_id, p->char_id, p->level, p->egg_id,
-			p->equip_id, p->intimate, p->hungry, p->rename_flag, p->incuvate, p->pet_id);
+			pet_db, p->class_, t_name, (unsigned long)p->account_id, (unsigned long)p->char_id, p->level, p->egg_id,
+			p->equip_id, p->intimate, p->hungry, p->rename_flag, p->incuvate, (unsigned long)p->pet_id);
 	else //no row -> insert
 		sprintf(tmp_sql,"INSERT INTO `%s` (`pet_id`, `class`,`name`,`account_id`,`char_id`,`level`,`egg_id`,`equip`,`intimate`,`hungry`,`rename_flag`,`incuvate`) VALUES ('%d', '%d', '%s', '%ld', '%ld', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-			pet_db, pet_id, p->class_, t_name, p->account_id, p->char_id, p->level, p->egg_id,
+			pet_db, (unsigned long)pet_id, p->class_, t_name, (unsigned long)p->account_id, (unsigned long)p->char_id, p->level, p->egg_id,
 			p->equip_id, p->intimate, p->hungry, p->rename_flag, p->incuvate);
 	mysql_free_result(sql_res) ; //resource free
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
@@ -152,7 +152,7 @@ int inter_pet_delete(int pet_id){
 	return 0;
 }
 //------------------------------------------------------
-int mapif_pet_created(int fd, unsigned long account_id, struct s_pet *p)
+int mapif_pet_created(int fd, uint32 account_id, struct s_pet *p)
 {
 	if( !session_isActive(fd) )
 		return 0;
@@ -172,7 +172,7 @@ int mapif_pet_created(int fd, unsigned long account_id, struct s_pet *p)
 	return 0;
 }
 
-int mapif_pet_info(int fd, unsigned long account_id, struct s_pet *p)
+int mapif_pet_info(int fd, uint32 account_id, struct s_pet *p)
 {
 	if( !session_isActive(fd) )
 		return 0;
@@ -190,7 +190,7 @@ int mapif_pet_info(int fd, unsigned long account_id, struct s_pet *p)
 	return 0;
 }
 
-int mapif_pet_noinfo(int fd, unsigned long account_id)
+int mapif_pet_noinfo(int fd, uint32 account_id)
 {
 	if( !session_isActive(fd) )
 		return 0;
@@ -205,7 +205,7 @@ int mapif_pet_noinfo(int fd, unsigned long account_id)
 	return 0;
 }
 
-int mapif_save_pet_ack(int fd, unsigned long account_id, int flag)
+int mapif_save_pet_ack(int fd, uint32 account_id, int flag)
 {
 	if( !session_isActive(fd) )
 		return 0;
@@ -230,7 +230,7 @@ int mapif_delete_pet_ack(int fd, int flag)
 	return 0;
 }
 
-int mapif_create_pet(int fd, unsigned long account_id, unsigned long char_id, short pet_class, short pet_lv, short pet_egg_id,
+int mapif_create_pet(int fd, uint32 account_id, uint32 char_id, short pet_class, short pet_lv, short pet_egg_id,
 	short pet_equip, short intimate, short hungry, char rename_flag, char incuvate, char *pet_name)
 {
 	struct s_pet pet;
@@ -269,7 +269,7 @@ int mapif_create_pet(int fd, unsigned long account_id, unsigned long char_id, sh
 	return 0;
 }
 
-int mapif_load_pet(int fd, unsigned long account_id, unsigned long char_id, unsigned long pet_id)
+int mapif_load_pet(int fd, uint32 account_id, uint32 char_id, uint32 pet_id)
 {
 	struct s_pet pet;
 	memset(&pet, 0, sizeof(struct s_pet));
@@ -291,7 +291,7 @@ int mapif_load_pet(int fd, unsigned long account_id, unsigned long char_id, unsi
 	return 0;
 }
 
-int mapif_save_pet(int fd, unsigned long account_id, unsigned char* buf) {
+int mapif_save_pet(int fd, uint32 account_id, unsigned char* buf) {
 	//here process pet save request.
 	struct s_pet pet;
 	if( !session_isActive(fd) )

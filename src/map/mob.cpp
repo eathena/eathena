@@ -68,7 +68,7 @@ int mobdb_searchname(const char *str)
  * Id Mob is checked.
  *------------------------------------------
  */
-int mobdb_checkid(const unsigned long id)
+int mobdb_checkid(const uint32 id)
 {
 	if (id <= 0 || id >= (sizeof(mob_db) / sizeof(mob_db[0])) || mob_db[id].name[0] == '\0')
 		return 0;
@@ -209,7 +209,7 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 
 		mob_spawn(md->bl.id);
 
-		if(class_ == 1288)
+		if(class_ == MOBID_EMPERIUM)
 		{	// emperium hp based on defense level [Valaris]
 			struct guild_castle *gc = guild_mapname2gc(map[md->bl.m].mapname);
 			if(gc)
@@ -285,7 +285,7 @@ int mob_spawn_guardian(struct map_session_data *sd,const char *mapname,
 	else
 		m=map_mapname2mapid(mapname);
 
-	if(m<0 || amount<=0 || (class_>=0 && class_<=1000) || class_>MAX_MOB_DB)	// Invalid monster classes
+	if(m<0 || m>=(int)map_num || amount<=0 || (class_>=0 && class_<=1000) || class_>MAX_MOB_DB)	// Invalid monster classes
 		return 0;
 
 	if(class_<0)
@@ -314,7 +314,7 @@ int mob_spawn_guardian(struct map_session_data *sd,const char *mapname,
 		safestrcpy(md->npc_event,event, sizeof(md->npc_event));
 		mob_spawn(md->bl.id);
 
-		gc=guild_mapname2gc(map[md->bl.m].mapname);
+		gc=guild_mapname2gc(map[m].mapname);
 		if(gc)
 		{
 			md->max_hp += 2000 * gc->defense;
@@ -336,7 +336,7 @@ int mob_spawn_guardian(struct map_session_data *sd,const char *mapname,
  * The disregard ID is added to mob.
  *------------------------------------------
  */
-int mob_exclusion_add(struct mob_data &md,int type,unsigned long id)
+int mob_exclusion_add(struct mob_data &md,int type,uint32 id)
 {
 	if(type==1)
 		md.exclusion_src=id;
@@ -452,7 +452,7 @@ int calc_next_walk_step(struct mob_data &md)
  * Mob Walk processing
  *------------------------------------------
  */
-int mob_walk(struct mob_data &md,unsigned long tick,int data)
+int mob_walk(struct mob_data &md, unsigned long tick, int data)
 {
 	int moveblock;
 	int i;
@@ -654,10 +654,10 @@ int mob_attack(struct mob_data &md,unsigned long tick,int data)
  */
 int mob_stopattacked(struct map_session_data &sd,va_list ap)
 {
-	unsigned long id;
+	uint32 id;
 
 	nullpo_retr(0, ap);
-	id=va_arg(ap,unsigned long);
+	id=va_arg(ap,uint32);
 	if(sd.attacktarget==id)
 		pc_stopattack(sd);
 	return 0;
@@ -847,7 +847,7 @@ int mob_delayspawn(int tid, unsigned long tick, int id, intptr data)
  * spawn timing calculation
  *------------------------------------------
  */
-int mob_setdelayspawn(unsigned long id)
+int mob_setdelayspawn(uint32 id)
 {
 	unsigned long spawntime,spawntime1,spawntime2,spawntime3;
 	unsigned short mode, delayrate = 100; //for battle config delays
@@ -894,7 +894,7 @@ int mob_setdelayspawn(unsigned long id)
  * Mob spawning. Initialization is also variously here.
  *------------------------------------------
  */
-int mob_spawn(unsigned long id)
+int mob_spawn(uint32 id)
 {
 	int x=0,y=0,i=0;
 	unsigned long c, tick = gettick();
@@ -1587,7 +1587,7 @@ int mob_ai_sub_hard(struct block_list &bl,va_list ap)
 	if(bl.type!=BL_MOB)
 		return 0;
 
-	tick=(unsigned long)va_arg(ap,int);
+	tick=(unsigned long)va_arg(ap,unsigned long);
 
 	if( DIFF_TICK(tick, md.last_thinktime) < MIN_MOBTHINKTIME )
 		return 0;
@@ -1880,7 +1880,7 @@ int mob_ai_sub_hard(struct block_list &bl,va_list ap)
 					if (md.state.state == MS_WALK)
 						mob_stop_walking(md,1);	// 歩行中なら停止
 					fitem = (struct flooritem_data *)tbl;
-					if (md.lootitem_count < LOOTITEM_SIZE)
+					if(md.lootitem_count < LOOTITEM_SIZE)
 					{
 						memcpy (&md.lootitem[md.lootitem_count++], &fitem->item_data, sizeof(md.lootitem[0]));
 					}
@@ -1943,7 +1943,7 @@ int mob_ai_sub_foreachclient(struct map_session_data &sd,va_list ap)
 	unsigned long tick;
 
 	nullpo_retr(0, ap);
-	tick=(unsigned long)va_arg(ap,int);
+	tick=(unsigned long)va_arg(ap,unsigned long);
 
 	map_foreachinarea(mob_ai_sub_hard,sd.bl.m,
 					  ((int)sd.bl.x)-AREA_SIZE*2,((int)sd.bl.y)-AREA_SIZE*2,
@@ -1967,12 +1967,11 @@ int mob_ai_hard(int tid, unsigned long tick, int id, intptr data)
  * Negligent mode MOB AI (PC is not in near)
  *------------------------------------------
  */
-int mob_ai_sub_lazy(void * key,void * data,va_list app)
+int mob_ai_sub_lazy(void *key,void *data, va_list app)
 {
 	struct mob_data *md=(struct mob_data *)data;
 	struct mob_data *mmd=NULL;
 	unsigned long tick;
-	va_list ap;
 
 	if(NULL==md)
 	{	
@@ -1980,9 +1979,6 @@ int mob_ai_sub_lazy(void * key,void * data,va_list app)
 	}
 	nullpo_retr(0, md);
 	nullpo_retr(0, app);
-
-	ap=va_arg(app,va_list);
-	nullpo_retr(0, ap);
 
 	if(md->bl.type!=BL_MOB)
 		return 0;
@@ -1993,7 +1989,7 @@ int mob_ai_sub_lazy(void * key,void * data,va_list app)
 			mmd = (struct mob_data *)mbl;	//自分のBOSSの情報
 	}
 
-	tick=(unsigned long)va_arg(ap,int);
+	tick=(unsigned long)va_arg(app,unsigned long);
 
 	if(DIFF_TICK(tick,md->last_thinktime)<MIN_MOBTHINKTIME*10)
 		return 0;
@@ -2033,7 +2029,7 @@ int mob_ai_sub_lazy(void * key,void * data,va_list app)
 				mob_db[md->class_].mexp <= 0 && !(mob_db[md->class_].mode & 0x20))
 				mob_warp(*md,-1,-1,-1,-1);
 		}
-		md->next_walktime = tick+rand()%10000+5000;
+		md->next_walktime = tick+(unsigned long)rand()%10000+5000;
 	}
 	return 0;
 }
@@ -2044,8 +2040,7 @@ int mob_ai_sub_lazy(void * key,void * data,va_list app)
  */
 int mob_ai_lazy(int tid, unsigned long tick, int id, intptr data)
 {
-	map_foreachiddb(mob_ai_sub_lazy,tick);
-
+	map_foreachiddb(mob_ai_sub_lazy, tick);
 	return 0;
 }
 
@@ -2254,7 +2249,7 @@ int mob_timer_delete(int tid, unsigned long tick, int id, intptr data)
 int mob_deleteslave_sub(struct block_list &bl,va_list ap)
 {
 	struct mob_data &md = (struct mob_data &)bl;
-	unsigned long id;
+	uint32 id;
 
 	nullpo_retr(0, ap);
 	id=va_arg(ap,int);
@@ -2288,10 +2283,10 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 	struct map_session_data *sd = NULL,*tmpsd[DAMAGELOG_SIZE];
 	struct {
 		struct party *p;
-		unsigned long id;
-		unsigned long base_exp;
-		unsigned long job_exp;
-		unsigned long zeny;
+		uint32 id;
+		uint32 base_exp;
+		uint32 job_exp;
+		uint32 zeny;
 	} pt[DAMAGELOG_SIZE];
 	int pnum=0;
 	int mvp_damage,max_hp;
@@ -2619,7 +2614,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 	for(i=0;i<DAMAGELOG_SIZE;i++)
 	{
 		unsigned short pid;
-		unsigned long base_exp,job_exp;
+		uint32 base_exp,job_exp;
 		int flag=1,zeny=0;
 		double per;
 		struct party *p;
@@ -2630,9 +2625,9 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			// jAthena's exp formula
 			per = ((double)md.dmglog[i].dmg)*(9.+(double)((count > 6)? 6:count))/10./tdmg;
 			temp = (double)mob_db[md.class_].base_exp * per;
-			base_exp = (temp > double(INT_MAX)) ? INT_MAX : (unsigned long)temp;
+			base_exp = (temp > double(INT_MAX)) ? INT_MAX : (uint32)temp;
 			temp = (double)mob_db[md.class_].job_exp * per;
-			job_exp = (temp > double(INT_MAX)) ? INT_MAX : (unsigned long)temp;
+			job_exp = (temp > double(INT_MAX)) ? INT_MAX : (uint32)temp;
 		}
 		else if (battle_config.exp_calc_type == 1) {
 			//eAthena's exp formula rather than jAthena's
@@ -2640,9 +2635,9 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			if (per > 512) per = 512;
 			if (per < 1) per = 1;
 			temp = ((double)mob_db[md.class_].base_exp*per/256.);
-			base_exp = (temp > double(INT_MAX)) ? INT_MAX : (unsigned long)temp;
+			base_exp = (temp > double(INT_MAX)) ? INT_MAX : (uint32)temp;
 			temp = ((double)mob_db[md.class_].job_exp*per/256);
-			job_exp = (temp > double(INT_MAX)) ? INT_MAX : (unsigned long)temp;
+			job_exp = (temp > double(INT_MAX)) ? INT_MAX : (uint32)temp;
 		}
 		else {
 			//eAthena's exp formula rather than jAthena's, but based on total damage dealt
@@ -2650,9 +2645,9 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 			if (per > 512) per = 512;
 			if (per < 1) per = 1;
 			temp = ((double)mob_db[md.class_].base_exp*per/256.);
-			base_exp = (temp > double(INT_MAX)) ? INT_MAX : (unsigned long)temp;
+			base_exp = (temp > double(INT_MAX)) ? INT_MAX : (uint32)temp;
 			temp = ((double)mob_db[md.class_].job_exp*per/256);
-			job_exp = (temp > double(INT_MAX)) ? INT_MAX : (unsigned long)temp;			
+			job_exp = (temp > double(INT_MAX)) ? INT_MAX : (uint32)temp;			
 		}
 
 		if (base_exp < 1) base_exp = 1;
@@ -2661,13 +2656,13 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		if(sd) {
 			int rate;
 			if ((rate = sd->expaddrace[race]) > 0) {
-				base_exp += (unsigned long)((uint64)base_exp* rate/100);
-				job_exp  += (unsigned long)((uint64)job_exp * rate/100);
+				base_exp += (uint32)((uint64)base_exp* rate/100);
+				job_exp  += (uint32)((uint64)job_exp * rate/100);
 			}
 			if (battle_config.pk_mode && (mob_db[md.class_].lv - sd->status.base_level >= 20)) {
 				// pk_mode additional exp if monster >20 levels [Valaris]
-				base_exp += (unsigned long)((uint64)base_exp* 15/100);
-				job_exp  += (unsigned long)((uint64)job_exp * 15/100);
+				base_exp += (uint32)((uint64)base_exp* 15/100);
+				job_exp  += (uint32)((uint64)job_exp * 15/100);
 			}			
 		}
 		if(md.state.size==1) { // change experience for different sized monsters [Valaris]
@@ -2815,7 +2810,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		}
 
 		// Ore Discovery [Celest]
-		if(sd && sd == mvp_sd && map[md.bl.m].flag.nomobloot==0 && pc_checkskill(*sd,BS_FINDINGORE)>0 && battle_config.finding_ore_rate/100 >= (unsigned long)(rand()%1000))
+		if(sd && sd == mvp_sd && map[md.bl.m].flag.nomobloot==0 && pc_checkskill(*sd,BS_FINDINGORE)>0 && battle_config.finding_ore_rate/100 >= (uint32)(rand()%1000))
 		{
 			struct delay_item_drop *ditem;
 			ditem=(struct delay_item_drop *)aCalloc(1,sizeof(struct delay_item_drop));
@@ -3128,10 +3123,10 @@ int mob_heal(struct mob_data &md,int heal)
 int mob_warpslave_sub(struct block_list &bl,va_list ap)
 {
 	struct mob_data &md=(struct mob_data &)bl;
-	unsigned long id,x,y;
-	id=va_arg(ap,unsigned long);
-	x=va_arg(ap,unsigned long);
-	y=va_arg(ap,unsigned long);
+	uint32 id,x,y;
+	id=va_arg(ap,uint32);
+	x=va_arg(ap,uint32);
+	y=va_arg(ap,uint32);
 	if( md.master_id==id ) {
 		mob_warp(md,-1,x,y,2);
 	}
@@ -3227,11 +3222,11 @@ int mob_warp(struct mob_data &md,int m,int x,int y,int type)
  */
 int mob_countslave_sub(struct block_list &bl,va_list ap)
 {
-	unsigned long id;
+	uint32 id;
 	int *c;
 	struct mob_data &md = (struct mob_data &)bl;
 
-	id=va_arg(ap,unsigned long);
+	id=va_arg(ap,uint32);
 
 	nullpo_retr(0, ap);
 	nullpo_retr(0, c=va_arg(ap,int *));
@@ -4033,19 +4028,19 @@ int mob_gvmobcheck(struct map_session_data &sd, struct block_list *bl)
 	nullpo_retr(0,bl);
 
 	if(bl->type==BL_MOB && (md=(struct mob_data *)bl) &&
-		(md->class_ == 1288 || md->class_ == 1287 || md->class_ == 1286 || md->class_ == 1285))
+		(md->class_ == MOBID_EMPERIUM || md->class_ == 1287 || md->class_ == 1286 || md->class_ == 1285))
 	{
 		struct guild_castle *gc=guild_mapname2gc(map[sd.bl.m].mapname);
 		struct guild *g=guild_search(sd.status.guild_id);
 
-		if(g == NULL && md->class_ == 1288)
+		if(g == NULL && md->class_ == MOBID_EMPERIUM)
 			return 0;//ギルド未加入ならダメージ無し
 		else if(gc != NULL && !map[sd.bl.m].flag.gvg)
 			return 0;//砦内でGvじゃないときはダメージなし
 		else if(g) {
 			if (gc != NULL && g->guild_id == gc->guild_id)
 				return 0;//自占領ギルドのエンペならダメージ無し
-			else if(guild_checkskill(*g,GD_APPROVAL) <= 0 && md->class_ == 1288)
+			else if(guild_checkskill(*g,GD_APPROVAL) <= 0 && md->class_ == MOBID_EMPERIUM)
 				return 0;//正規ギルド承認がないとダメージ無し
 			else if (gc && guild_check_alliance(gc->guild_id, g->guild_id, 0) == 1)
 				return 0;	// 同盟ならダメージ無し
@@ -4297,7 +4292,7 @@ int mob_readdb_mobavail(void)
 {
 	FILE *fp;
 	char line[1024];
-	unsigned long ln=0;
+	uint32 ln=0;
 	int class_,j,k;
 	char *str[20],*p,*np;
 
@@ -4631,7 +4626,7 @@ int mob_read_sqldb(void)
 	char line[1024];
 	int i, j, class_;
 	double exp, maxhp;
-	unsigned long ln=0;
+	uint32 ln=0;
 	char *str[60], *p, *np; // 55->60 Lupus
 	char *mob_db_name[] = { mob_db_db, mob_db2_db };
 
@@ -4801,7 +4796,7 @@ int mob_read_sqldb(void)
 				mob_db[class_].head_buttom = 0;
 			}
 			mysql_free_result(sql_res);
-			ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, mob_db_name[i]);
+			ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", (unsigned long)ln, mob_db_name[i]);
 			ln = 0;
 		}
 	}

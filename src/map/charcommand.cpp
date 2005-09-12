@@ -740,9 +740,9 @@ bool charcommand_stats_all(int fd, struct map_session_data &sd,const char *comma
 			else
 				sprintf(gmlevel, " ");
 
-			sprintf(output, "Name: %s | BLvl: %d | Job: %s (Lvl: %d) | HP: %ld/%ld | SP: %ld/%ld", pl_sd->status.name, pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level, pl_sd->status.hp, pl_sd->status.max_hp, pl_sd->status.sp, pl_sd->status.max_sp);
+			sprintf(output, "Name: %s | BLvl: %d | Job: %s (Lvl: %d) | HP: %ld/%ld | SP: %ld/%ld", pl_sd->status.name, pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level, (unsigned long)pl_sd->status.hp, (unsigned long)pl_sd->status.max_hp, (unsigned long)pl_sd->status.sp, (unsigned long)pl_sd->status.max_sp);
 			clif_displaymessage(fd, output);
-			sprintf(output, "STR: %d | AGI: %d | VIT: %d | INT: %d | DEX: %d | LUK: %d | Zeny: %ld %s", pl_sd->status.str, pl_sd->status.agi, pl_sd->status.vit, pl_sd->status.int_, pl_sd->status.dex, pl_sd->status.luk, pl_sd->status.zeny, gmlevel);
+			sprintf(output, "STR: %d | AGI: %d | VIT: %d | INT: %d | DEX: %d | LUK: %d | Zeny: %ld %s", pl_sd->status.str, pl_sd->status.agi, pl_sd->status.vit, pl_sd->status.int_, pl_sd->status.dex, pl_sd->status.luk, (unsigned long)pl_sd->status.zeny, gmlevel);
 			clif_displaymessage(fd, output);
 			clif_displaymessage(fd, "--------");
 			count++;
@@ -1054,7 +1054,7 @@ bool charcommand_item(int fd, struct map_session_data &sd,const char *command, c
 	struct item item_tmp;
 	struct item_data *item_data;
 	int flag;
-	unsigned long item_id, pet_id;
+	uint32 item_id, pet_id;
 	size_t i, get_count, number = 0;
 
 	memset(item_name, '\0', sizeof(item_name));
@@ -1640,7 +1640,7 @@ bool charcommand_streset(int fd, struct map_session_data &sd,const char *command
  */
 bool charcommand_model(int fd, struct map_session_data &sd,const char *command, const char *message)
 {
-	ulong hair_style = 0, hair_color = 0, cloth_color = 0;
+	unsigned long hair_style = 0, hair_color = 0, cloth_color = 0;
 	struct map_session_data *pl_sd;
 	char player[64];
 	char output[128];

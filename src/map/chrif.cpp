@@ -83,7 +83,7 @@ static int chrif_state = 0;
 
 
 
-bool getAthentification(unsigned long accid, CAuth& auth)
+bool getAthentification(uint32 accid, CAuth& auth)
 {
 	size_t pos;
 	if( cAuthList.find(CAuth(accid),0,pos) )
@@ -295,7 +295,7 @@ int chrif_save_sc(struct map_session_data &sd)
 		{
 			td = get_timer(sd.sc_data[i].timer);
 			if(td && tick > td->tick)
-				p += sprintf( (char*)WFIFOP(char_fd,p), "(%u,%lu)", i, (tick-td->tick));
+				p += sprintf( (char*)WFIFOP(char_fd,p), "(%u,%lu)", i, (unsigned long)(tick-td->tick));
 		}
 	}
 	WFIFOW(char_fd,0) = 0x2b22;
@@ -375,7 +375,7 @@ int chrif_sendmap(int fd)
 int chrif_recvmap(int fd)
 {
 	int i, j;
-	unsigned long ip;
+	uint32 ip;
 	unsigned short port;
 
 	if( !session_isActive(char_fd) || !chrif_isconnect() )	// まだ準備中
@@ -402,7 +402,7 @@ int chrif_recvmap(int fd)
 int chrif_removemap(int fd)
 {
 	int i, j;
-//	unsigned long ip;
+//	uint32 ip;
 //	unsigned short port;
 	
 
@@ -431,7 +431,7 @@ int chrif_removemap(int fd)
 int chrif_changemapserver(struct map_session_data &sd, const char *name, unsigned short x, unsigned short y, ipset& mapset)
 {
 	size_t i;
-	unsigned long s_ip=0;
+	uint32 s_ip=0;
 
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
@@ -589,7 +589,7 @@ int chrif_authreq(struct map_session_data &sd)
 int chrif_charselectreq(struct map_session_data &sd)
 {
 	size_t i; 
-	unsigned long s_ip;
+	uint32 s_ip;
 
 	if( !sd.bl.id || !sd.login_id1 )
 		return -1;
@@ -618,7 +618,7 @@ int chrif_charselectreq(struct map_session_data &sd)
  * キャラ名問い合わせ
  *------------------------------------------
  */
-int chrif_searchcharid(unsigned long id)
+int chrif_searchcharid(uint32 id)
 {
 	if( !id )
 		return -1;
@@ -636,7 +636,7 @@ int chrif_searchcharid(unsigned long id)
  * GMに変化要求
  *------------------------------------------
  */
-int chrif_changegm(unsigned long id, const char *pass, size_t len)
+int chrif_changegm(uint32 id, const char *pass, size_t len)
 {
 	if (battle_config.etc_log)
 		ShowMessage("chrif_changegm: account: %d, password: '%s'.\n", id, pass);
@@ -657,7 +657,7 @@ int chrif_changegm(unsigned long id, const char *pass, size_t len)
  * Change Email
  *------------------------------------------
  */
-int chrif_changeemail(unsigned long id, const char *actual_email, const char *new_email)
+int chrif_changeemail(uint32 id, const char *actual_email, const char *new_email)
 {
 	if (battle_config.etc_log)
 		ShowMessage("chrif_changeemail: account: %d, actual_email: '%s', new_email: '%s'.\n", id, actual_email, new_email);
@@ -713,7 +713,7 @@ int chrif_char_ask_name(long id, const char *character_name, unsigned short oper
  * 性別変化要求
  *------------------------------------------
  */
-int chrif_changesex(unsigned long id, unsigned char sex)
+int chrif_changesex(uint32 id, unsigned char sex)
 {
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
@@ -954,7 +954,7 @@ int chrif_changedsex(int fd)
 int chrif_saveaccountreg2(struct map_session_data &sd)
 {
 	unsigned short p;
-	unsigned long j;
+	uint32 j;
 
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
@@ -1003,7 +1003,7 @@ int chrif_accountreg2(int fd)
  * 離婚情報同期要求
  *------------------------------------------
  */
-int chrif_divorce(unsigned long char_id, unsigned long partner_id)
+int chrif_divorce(uint32 char_id, uint32 partner_id)
 {
 	struct map_session_data *sd = NULL;
 

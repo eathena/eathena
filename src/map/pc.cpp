@@ -36,11 +36,11 @@
 
 #define PVP_CALCRANK_INTERVAL 1000	// PVP順位計算の間隔
 
-static unsigned long exp_table[14][MAX_LEVEL];
+static uint32 exp_table[14][MAX_LEVEL];
 static unsigned short statp[MAX_LEVEL];
 
-// h-files are for declarations, not for implementations... [Shinomori]
-struct skill_tree_entry skill_tree[3][25][MAX_SKILL_TREE];
+
+
 // timer for night.day implementation
 int day_timer_tid;
 int night_timer_tid;
@@ -56,6 +56,23 @@ static unsigned int equip_pos[11]={0x0080,0x0008,0x0040,0x0004,0x0001,0x0200,0x0
 
 static struct gm_account *gm_account = NULL;
 static size_t GM_num = 0;
+
+
+
+
+
+
+
+
+struct skill_tree_entry skill_tree[MAX_PC_CLASS][MAX_SKILL_TREE];
+int skill_tree_get_max(int id, int b_class){
+	int i, skillid;
+	for(i=0;(skillid=skill_tree[b_class][i].id)>0;i++)
+		if (id == skillid) return skill_tree[b_class][i].max;
+	return skill_get_max (id);
+}
+
+
 
 unsigned char pc_isGM(struct map_session_data &sd)
 {
@@ -95,7 +112,7 @@ bool pc_iskiller(struct map_session_data &src, struct map_session_data &target)
 }
 
 
-int pc_set_gm_level(unsigned long account_id, unsigned long level)
+int pc_set_gm_level(uint32 account_id, uint32 level)
 {
     size_t i;
     for (i = 0; i < GM_num; i++) {
@@ -169,9 +186,7 @@ int pc_spiritball_timer(int tid, unsigned long tick, int id, intptr data)
 	}
 
 	sd->spiritball--;
-	// I leave this here as bad example [Shinomori]
-	//memcpy( &sd->spirit_timer[0], &sd->spirit_timer[1], sizeof(sd->spirit_timer[0]) * sd->spiritball );
-	memmove( sd->spirit_timer+0, sd->spirit_timer+1, (sd->spiritball)*sizeof(int) );
+	memmove( sd->spirit_timer+0, sd->spirit_timer+1, (sd->spiritball)*sizeof(sd->spirit_timer[0]) );
 	sd->spirit_timer[sd->spiritball]=-1;
 
 	clif_spiritball(*sd);
@@ -189,7 +204,7 @@ int pc_addspiritball(struct map_session_data &sd,int interval,int max)
 	if(sd.spiritball >= max) {
 		if(sd.spirit_timer[0] != -1)
 			delete_timer(sd.spirit_timer[0],pc_spiritball_timer);
-		memmove( sd.spirit_timer+0, sd.spirit_timer+1, (sd.spiritball - 1)*sizeof(int) );
+		memmove( sd.spirit_timer+0, sd.spirit_timer+1, (sd.spiritball - 1)*sizeof(sd.spirit_timer[0]) );
 		//sd->spirit_timer[sd->spiritball-1] = -1; // intentionally, but will be overwritten
 	}
 	else
@@ -234,7 +249,7 @@ int pc_delspiritball(struct map_session_data &sd,int count,int type)
 }
 
 // Increases a player's fame and displays a notice to him
-int pc_addfame(struct map_session_data &sd, unsigned long count,int type)
+int pc_addfame(struct map_session_data &sd, uint32 count,int type)
 {
 	sd.status.fame_points += count;
 	if(sd.status.fame_points > MAX_FAME)
@@ -254,7 +269,7 @@ int pc_addfame(struct map_session_data &sd, unsigned long count,int type)
 }
 
 // Check whether a player ID is in the Top 10 fame list of its job
-bool pc_istop10fame(unsigned long char_id,int type)
+bool pc_istop10fame(uint32 char_id,int type)
 {
 	size_t i;
 	switch(type){
@@ -626,7 +641,7 @@ bool pc_break_equip(struct map_session_data &sd, unsigned short where)
  * 接?暫ﾌ初期化
  *------------------------------------------
  */
-int pc_setnewpc(int fd, struct map_session_data &sd, unsigned long account_id, unsigned long char_id, unsigned long login_id1, unsigned long client_tick, unsigned char sex)
+int pc_setnewpc(int fd, struct map_session_data &sd, uint32 account_id, uint32 char_id, uint32 login_id1, uint32 client_tick, unsigned char sex)
 {
 	size_t i;
 	unsigned long tick = gettick();
@@ -735,7 +750,7 @@ int pc_setnewpc(int fd, struct map_session_data &sd, unsigned long account_id, u
  * char鯖から送られてきたステ?タスを設定
  *------------------------------------------
  */
-int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_time, unsigned char *buf)
+int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned char *buf)
 {
 	struct party *p;
 	struct guild *g;
@@ -788,6 +803,7 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 			return 1;
 		}
 	}
+
 	// pet
 	if (sd->status.pet_id > 0)
 		intif_request_petdata(sd->status.account_id, sd->status.char_id, sd->status.pet_id);
@@ -807,7 +823,6 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 					pc_blockskill_start(*sd, skill_num[i], 300000);
 		}
 	}
-
 
 	// Automated script events
 	if (script_config.event_requires_trigger) {
@@ -833,7 +848,6 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 
 	//スパノビ用死にカウンタ?のスクリプト??からの?み出しとsdへのセット
 	sd->die_counter = pc_readglobalreg(*sd,"PC_DIE_COUNTER");
-
 	if ((i = pc_checkskill(*sd,RG_PLAGIARISM)) > 0) {
 		sd->cloneskill_id = pc_readglobalreg(*sd,"CLONE_SKILL");
 		if (sd->cloneskill_id > 0) {
@@ -856,7 +870,6 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 
 	// Send friends list
 	clif_friendslist_send(*sd);
-
 	if (battle_config.display_version == 1){
 		char buf[256];
 		sprintf(buf, "eAthena SVN version: %s", get_svn_revision());
@@ -898,6 +911,8 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 
 	// ステ?タス初期計算など
 	status_calc_pc(*sd,1);
+
+
 	if (pc_isGM(*sd))
 		ShowInfo("GM Character '"CL_WHITE"%s"CL_RESET"' logged in. (Acc. ID: '"CL_WHITE"%d"CL_RESET"', GM Level '"CL_WHITE"%d"CL_RESET"') [connection %i, ver. %i].\n", sd->status.name, sd->status.account_id, pc_isGM(*sd), sd->fd, sd->packet_ver);
 	else
@@ -918,6 +933,7 @@ int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_ti
 		ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
 			npc_event_doall_id("OnPCLoginEvent", sd->bl.id), "OnPCLoginEvent");
 	}
+
 	return 0;
 }
 
@@ -966,23 +982,13 @@ int pc_calc_skillpoint(struct map_session_data &sd)
 int pc_calc_skilltree(struct map_session_data &sd)
 {
 	int i,id=0,flag;
-	int c=0, s=0;
-	//?生や養子の場合の元の職業を算出する
-	struct pc_base_job s_class;
 
-	s_class = pc_calc_base_job(sd.status.class_);
-	c = s_class.job;
-	//s = (s_class.upper==1) ? 1 : 0 ; //?生以外は通常のスキル？
-	s = s_class.upper;
-
-	c = pc_calc_skilltree_normalize_job(sd, c);
-
+	int c= pc_calc_skilltree_normalize_job(sd);
+	
 	for(i=0;i<MAX_SKILL;i++)
 	{
-//                if(skill_get_inf2(i) & 0x01)
-//                        continue;
 		if (sd.status.skill[i].flag != 13)
-		        sd.status.skill[i].id=0;
+			sd.status.skill[i].id=0;
 		if (sd.status.skill[i].flag && sd.status.skill[i].flag != 13)
 		{	// cardスキルなら、
 			sd.status.skill[i].lv=(sd.status.skill[i].flag==1)?0:sd.status.skill[i].flag-2;	// 本?のlvに
@@ -1010,36 +1016,38 @@ int pc_calc_skilltree(struct map_session_data &sd)
 	{
 		do
 		{
-                flag=0;
-			for(i=0; i<MAX_SKILL && (id=skill_tree[s][c][i].id)>0; i++)
+			flag=0; id=0;
+			for(i=0; i<MAX_SKILL && (id=skill_tree[c][i].id)>0; i++)
 			{
-                    int j,f=1;
+				int j,f=1;
 				if(!battle_config.skillfree)
 				{
 					for(j=0;j<5;j++)
 					{
-							if( skill_tree[s][c][i].need[j].id &&
-							pc_checkskill(sd,skill_tree[s][c][i].need[j].id) < skill_tree[s][c][i].need[j].lv )
+						if( skill_tree[c][i].need[j].id &&
+							pc_checkskill(sd,skill_tree[c][i].need[j].id) < skill_tree[c][i].need[j].lv )
 						{
-								f=0;
-								break;
-							}
-						}
-					if( sd.status.job_level < skill_tree[s][c][i].joblv )
 							f=0;
-						else if (id >= 2 && id <= 53 && pc_checkskill(sd, NV_BASIC) < 9)
-							f=0;						
+							break;
+						}
 					}
+					if( sd.status.job_level < skill_tree[c][i].joblv )
+					{
+						f=0;
+					}
+					else if (id >= 2 && id <= 53 && pc_checkskill(sd, NV_BASIC) < 9)
+					{
+						f=0;
+					}
+				}
 				if(f && sd.status.skill[id].id==0 )
 				{
 					sd.status.skill[id].id=id;
-						flag=1;
-					}
+					flag=1;
 				}
-			} while(flag);
+			}
+		} while(flag);
 	}
-//	if(battle_config.etc_log)
-	//	ShowMessage("calc skill_tree\n");
 	return 0;
 }
 
@@ -1060,11 +1068,10 @@ int pc_clean_skilltree(struct map_session_data &sd)
 	return 0;
 }
 
-int pc_calc_skilltree_normalize_job(struct map_session_data &sd, int c)
+int pc_calc_skilltree_normalize_job(struct map_session_data &sd)
 {
 	struct pc_base_job s_class = pc_calc_base_job(sd.status.class_);
-
-	c = s_class.job;
+	int c = s_class.job;
 
 	if (!battle_config.skillup_limit || !((c >= JOB_NOVICE && c < JOB_SUPER_NOVICE) || c == JOB_TAEKWON))
 		return sd.status.class_;
@@ -2138,7 +2145,6 @@ int pc_bonus4(struct map_session_data &sd,int type,int type2,int type3,int type4
  */
 int pc_skill(struct map_session_data &sd,unsigned short skillid,unsigned short skilllvl,int flag)
 {
-
 	if(skilllvl > MAX_SKILL_LEVEL){
 		if(battle_config.error_log)
 			ShowMessage("support card skill only!\n");
@@ -2154,10 +2160,12 @@ int pc_skill(struct map_session_data &sd,unsigned short skillid,unsigned short s
 		status_calc_pc(sd,0);
 		clif_skillinfoblock(sd);
 	}
-	else if(sd.status.skill[skillid].lv < skilllvl){	// ?えられるがlvが小さいなら
+	else if(sd.status.skill[skillid].lv < skilllvl)
+	{	// ?えられるがlvが小さいなら
 		if(sd.status.skill[skillid].id==skillid)
 			sd.status.skill[skillid].flag=sd.status.skill[skillid].lv+2;	// lvを記憶
-		else {
+		else
+		{
 			sd.status.skill[skillid].id=skillid;
 			sd.status.skill[skillid].flag=1;	// cardスキルとする
 		}
@@ -2326,7 +2334,7 @@ size_t pc_inventoryblank(struct map_session_data &sd)
  * お金を?う
  *------------------------------------------
  */
-bool pc_payzeny(struct map_session_data &sd,unsigned long zeny)
+bool pc_payzeny(struct map_session_data &sd,uint32 zeny)
 {
 	if( sd.status.zeny < zeny )
 		return false;
@@ -2340,9 +2348,9 @@ bool pc_payzeny(struct map_session_data &sd,unsigned long zeny)
  * お金を得る
  *------------------------------------------
  */
-bool pc_getzeny(struct map_session_data &sd,unsigned long zeny)
+bool pc_getzeny(struct map_session_data &sd,uint32 zeny)
 {
-	unsigned long z = sd.status.zeny+zeny;
+	uint32 z = sd.status.zeny+zeny;
 	if( z > MAX_ZENY || z<sd.status.zeny) // max or overflow
 	{
 		sd.status.zeny = MAX_ZENY;
@@ -2476,8 +2484,10 @@ int pc_dropitem(struct map_session_data &sd,unsigned short inx, size_t amount)
 		return 1;
 	}
 
-	map_addflooritem(sd.status.inventory[inx], amount, sd.bl.m, sd.bl.x, sd.bl.y, NULL, NULL, NULL, 0);
-	pc_delitem(sd, inx, amount, 0);
+	if( map_addflooritem(sd.status.inventory[inx], amount, sd.bl.m, sd.bl.x, sd.bl.y, NULL, NULL, NULL, 0) )
+		pc_delitem(sd, inx, amount, 0);
+	else
+		clif_delitem(sd,inx,0);
 	return 0;
 }
 
@@ -2978,8 +2988,10 @@ int pc_steal_item(struct map_session_data &sd,struct block_list *bl)
 		if( !md->state.steal_flag && 
 			mob_db[md->class_].mexp <= 0 && 
 			!(mob_db[md->class_].mode&0x20) &&
-			md->cache &&							// prevent stealing from summoned creatures. [Skotlex]
-			!(md->class_>=1324 && md->class_<1364) ) // prevent stealing from treasure boxes [Valaris]
+			md->cache &&								// prevent stealing from summoned creatures. [Skotlex]
+			!(md->class_>=1324 && md->class_<1364) &&	// prevent stealing from treasure boxes [Valaris]
+			!map[md->bl.m].flag.nomobloot )				// check noloot map flag [Lorky]
+
 		{
 			if (md->sc_data && (md->sc_data[SC_STONE].timer != -1 || md->sc_data[SC_FREEZE].timer != -1))
 				return 0;
@@ -3287,6 +3299,9 @@ bool pc_setpos(struct map_session_data &sd, const char *mapname_org, unsigned sh
 		sd.pd->bl.y = sd.pd->to_y = y;
 		sd.pd->dir  = sd.dir;
 	}
+
+	// warp is closing a text window opend by script
+	sd.ScriptEngine.clearMessage();
 
 //	map_addblock(sd.bl);	/// ブロック登?とspawnは
 //	clif_spawnpc(&sd);
@@ -4057,7 +4072,7 @@ int pc_attack_timer(int tid, unsigned long tick, int id, intptr data)
  * typeが1なら??攻?
  *------------------------------------------
  */
-int pc_attack(struct map_session_data &sd,unsigned long target_id,int type)
+int pc_attack(struct map_session_data &sd,uint32 target_id,int type)
 {
 	struct block_list *bl;
 	int d;
@@ -4152,7 +4167,7 @@ int pc_stop_following (struct map_session_data &sd)
 	return 0;
 }
 
-int pc_follow(struct map_session_data &sd, unsigned long target_id)
+int pc_follow(struct map_session_data &sd, uint32 target_id)
 {
 	struct block_list *bl=map_id2bl(target_id);
 	if(bl==NULL)
@@ -4171,7 +4186,7 @@ int pc_follow(struct map_session_data &sd, unsigned long target_id)
 
 int pc_checkbaselevelup(struct map_session_data &sd)
 {
-	unsigned long next = pc_nextbaseexp(sd);
+	uint32 next = pc_nextbaseexp(sd);
 
 	if(sd.status.base_exp >= next && next > 0){
 		struct pc_base_job s_class = pc_calc_base_job(sd.status.class_);
@@ -4228,7 +4243,7 @@ int pc_checkbaselevelup(struct map_session_data &sd)
 
 int pc_checkjoblevelup(struct map_session_data &sd)
 {
-	unsigned long next = pc_nextjobexp(sd);
+	uint32 next = pc_nextjobexp(sd);
 
 	if(sd.status.job_exp >= next && next > 0){
 		// job側レベルアップ?理
@@ -4251,10 +4266,10 @@ int pc_checkjoblevelup(struct map_session_data &sd)
  * ??値取得
  *------------------------------------------
  */
-int pc_gainexp(struct map_session_data &sd,unsigned long base_exp,unsigned long job_exp)
+int pc_gainexp(struct map_session_data &sd,uint32 base_exp,uint32 job_exp)
 {
 	char output[256];
-	unsigned long nextb=0, nextj=0;
+	uint32 nextb=0, nextj=0;
 
 	if(sd.bl.prev == NULL || pc_isdead(sd))
 		return 0;
@@ -4270,7 +4285,7 @@ int pc_gainexp(struct map_session_data &sd,unsigned long base_exp,unsigned long 
 
 	if(sd.status.guild_id>0)
 	{	// ギルドに上納
-		unsigned long payexp=guild_payexp(sd,base_exp);
+		uint32 payexp=guild_payexp(sd,base_exp);
 		if(base_exp > payexp)
 			base_exp-=payexp;
 		else
@@ -4314,7 +4329,7 @@ int pc_gainexp(struct map_session_data &sd,unsigned long base_exp,unsigned long 
 		if(nextj > 0)
 			nextjp = 100. * job_exp / nextj;
 
-		sprintf(output, "Experienced Gained Base:%ld (%.2f%%) Job:%ld (%.2f%%)",base_exp,nextbp,job_exp,nextjp);
+		sprintf(output, "Experienced Gained Base:%ld (%.2f%%) Job:%ld (%.2f%%)",(unsigned long)base_exp,nextbp,(unsigned long)job_exp,nextjp);
 		clif_disp_onlyself(sd,output);
 	}
 
@@ -4325,7 +4340,7 @@ int pc_gainexp(struct map_session_data &sd,unsigned long base_exp,unsigned long 
  * base level側必要??値計算
  *------------------------------------------
  */
-unsigned long pc_nextbaseexp(struct map_session_data &sd)
+uint32 pc_nextbaseexp(struct map_session_data &sd)
 {
 	int i;
 
@@ -4347,7 +4362,7 @@ unsigned long pc_nextbaseexp(struct map_session_data &sd)
  * job level側必要??値計算
  *------------------------------------------
  */
-unsigned long pc_nextjobexp(struct map_session_data &sd)
+uint32 pc_nextjobexp(struct map_session_data &sd)
 {
 	size_t i;
 	if(sd.status.job_level>=MAX_LEVEL || sd.status.job_level<=0)
@@ -4368,7 +4383,7 @@ unsigned long pc_nextjobexp(struct map_session_data &sd)
  * base level after next [Valaris]
  *------------------------------------------
  */
-unsigned long pc_nextbaseafter(struct map_session_data &sd)
+uint32 pc_nextbaseafter(struct map_session_data &sd)
 {
 	int i;
 
@@ -4390,7 +4405,7 @@ unsigned long pc_nextbaseafter(struct map_session_data &sd)
  * job level after next [Valaris]
  *------------------------------------------
  */
-unsigned long pc_nextjobafter(struct map_session_data &sd)
+uint32 pc_nextjobafter(struct map_session_data &sd)
 {
 	int i;
 	if(sd.status.job_level>=MAX_LEVEL || sd.status.job_level<=0)
@@ -4512,7 +4527,7 @@ int pc_statusup2(struct map_session_data &sd,int type,int val)
 	{
 	case SP_STR:
 		val += sd.status.str;
-		if((unsigned long)val >= battle_config.max_parameter)
+		if((uint32)val >= battle_config.max_parameter)
 			val = battle_config.max_parameter;
 		else if(val < 1)
 			val = 1;
@@ -4520,7 +4535,7 @@ int pc_statusup2(struct map_session_data &sd,int type,int val)
 		break;
 	case SP_AGI:
 		val += sd.status.agi;
-		if((unsigned long)val >= battle_config.max_parameter)
+		if((uint32)val >= battle_config.max_parameter)
 			val = battle_config.max_parameter;
 		else if(val < 1)
 			val = 1;
@@ -4528,7 +4543,7 @@ int pc_statusup2(struct map_session_data &sd,int type,int val)
 		break;
 	case SP_VIT:
 		val += sd.status.vit;
-		if((unsigned long)val >= battle_config.max_parameter)
+		if((uint32)val >= battle_config.max_parameter)
 			val = battle_config.max_parameter;
 		else if(val < 1)
 			val = 1;
@@ -4536,7 +4551,7 @@ int pc_statusup2(struct map_session_data &sd,int type,int val)
 		break;
 	case SP_INT:
 		val += sd.status.int_;
-		if((unsigned long)val >= battle_config.max_parameter)
+		if((uint32)val >= battle_config.max_parameter)
 			val = battle_config.max_parameter;
 		else if(val < 1)
 			val = 1;
@@ -4544,7 +4559,7 @@ int pc_statusup2(struct map_session_data &sd,int type,int val)
 		break;
 	case SP_DEX:
 		val += sd.status.dex;
-		if((unsigned long)val >= battle_config.max_parameter)
+		if((uint32)val >= battle_config.max_parameter)
 			val = battle_config.max_parameter;
 		else if(val < 1)
 			val = 1;
@@ -4552,7 +4567,7 @@ int pc_statusup2(struct map_session_data &sd,int type,int val)
 		break;
 	case SP_LUK:
 		val += sd.status.luk;
-		if((unsigned long)val >= battle_config.max_parameter)
+		if((uint32)val >= battle_config.max_parameter)
 			val = battle_config.max_parameter;
 		else if(val < 1)
 			val = 1;
@@ -4601,13 +4616,6 @@ int pc_allskillup(struct map_session_data &sd)
 {
 	size_t i;
 	unsigned short id;
-	size_t c=0, s=0;
-	//?生や養子の場合の元の職業を算出する
-	struct pc_base_job s_class;
-
-	s_class = pc_calc_base_job(sd.status.class_);
-	c = s_class.job;
-	s = (s_class.upper==1) ? 1 : 0 ; //?生以外は通常のスキル？
 
 	for(i=0;i<MAX_SKILL;i++)
 	{
@@ -4637,7 +4645,7 @@ int pc_allskillup(struct map_session_data &sd)
 	else
 	{
 		int inf2;
-		for(i=0;i<MAX_SKILL&&(id=skill_tree[s][c][i].id)>0;i++)
+		for(i=0;i<MAX_SKILL&&(id=skill_tree[sd.status.class_][i].id)>0;i++)
 		{
 			inf2 = skill_get_inf2(id);
 			if(sd.status.skill[id].id==0 && (!(inf2&INF2_QUEST_SKILL) || battle_config.quest_skill_learn) && !(inf2&INF2_WEDDING_SKILL))
@@ -4825,7 +4833,7 @@ int pc_resetskill(struct map_session_data &sd)
 		else
 		{
 			sd.status.skill[i].lv = 0;
-	}
+		}
 	}
 	clif_updatestatus(sd,SP_SKILLPOINT);
 	clif_skillinfoblock(sd);
@@ -6665,7 +6673,7 @@ int pc_calc_pvprank_sub(struct block_list &bl,va_list ap)
  */
 int pc_calc_pvprank(struct map_session_data &sd)
 {
-	unsigned long old=sd.pvp_rank;
+	uint32 old=sd.pvp_rank;
 	struct map_data &m=map[sd.bl.m];
 
 	if( !(m.flag.pvp) )
@@ -6702,7 +6710,7 @@ int pc_calc_pvprank_timer(int tid, unsigned long tick, int id, intptr data)
  * sdは結婚しているか(?婚の場合は相方のchar_idを返す)
  *------------------------------------------
  */
-unsigned long pc_ismarried(struct map_session_data &sd)
+uint32 pc_ismarried(struct map_session_data &sd)
 {
 	return sd.status.partner_id;
 }
@@ -6844,7 +6852,7 @@ struct map_session_data *pc_get_child (struct map_session_data &sd)
  * SP回復量計算
  *------------------------------------------
  */
-static unsigned long natural_heal_tick, natural_heal_prev_tick, natural_heal_diff_tick;
+static uint32 natural_heal_tick, natural_heal_prev_tick, natural_heal_diff_tick;
 
 int pc_spheal(struct map_session_data *sd)
 {
@@ -7072,7 +7080,7 @@ int pc_natural_heal_sp(struct map_session_data *sd)
 int pc_spirit_heal_hp(struct map_session_data *sd)
 {
 	int bonus_hp;
-	unsigned long interval = battle_config.natural_heal_skill_interval;
+	uint32 interval = battle_config.natural_heal_skill_interval;
 
 	nullpo_retr(0, sd);
 
@@ -7113,7 +7121,7 @@ int pc_spirit_heal_hp(struct map_session_data *sd)
 int pc_spirit_heal_sp(struct map_session_data *sd)
 {
 	int bonus_sp;
-	unsigned long interval = battle_config.natural_heal_skill_interval;
+	uint32 interval = battle_config.natural_heal_skill_interval;
 
 	nullpo_retr(0, sd);
 
@@ -7201,7 +7209,7 @@ int pc_natural_heal_sub(struct map_session_data &sd,va_list ap)
 	unsigned long tick;
 
 	nullpo_retr(0, ap);
-	tick = (unsigned long)va_arg(ap,int);
+	tick = (unsigned long)va_arg(ap,unsigned long);
 
 // -- moonsoul (if conditions below altered to disallow natural healing if under berserk status)
 	if((battle_config.natural_heal_weight_rate > 100 || sd.weight*100 < sd.max_weight * battle_config.natural_heal_weight_rate) &&
@@ -7438,8 +7446,7 @@ void pc_setstand(struct map_session_data &sd)
  */
 int pc_readdb(void)
 {
-	size_t i,j,k,u;
-	struct pc_base_job s_class;
+	size_t i,j,k;
 	FILE *fp;
 	char *p, line[1024];
 
@@ -7490,9 +7497,10 @@ int pc_readdb(void)
 	while(fgets(line, sizeof(line), fp))
 	{
 		char *split[50];
-		int f=0, m=3;
+		int f=0, m=3, jobid;
 		if( !skip_empty_line(line) )
 			continue;
+		memset(split,0,sizeof(split));
 		for(j=0,p=line;j<14 && p;j++)
 		{
 			split[j]=p;
@@ -7506,24 +7514,25 @@ int pc_readdb(void)
 			f=1;
 			m++;
 		}
-		s_class = pc_calc_base_job(atoi(split[0]));
-		i = s_class.job;
-		u = s_class.upper;
-		if (i < 25 || u < 3)
-		{	// check for bounds [celest]
-			for(j=0; j<MAX_SKILL_TREE && skill_tree[u][i][j].id; j++);
-			if( j<MAX_SKILL_TREE )
-			{
-				skill_tree[u][i][j].id=atoi(split[1]);
-				skill_tree[u][i][j].max=atoi(split[2]);
-				if(f)
-					skill_tree[u][i][j].joblv=atoi(split[3]);
-				for(k=0;k<5;k++)
-				{
-					skill_tree[u][i][j].need[k].id=atoi(split[k*2+m]);
-					skill_tree[u][i][j].need[k].lv=atoi(split[k*2+m+1]);
-				}
-			}
+		// check for bounds [celest]
+		jobid = atoi(split[0]);
+		if ( jobid>= MAX_PC_CLASS)
+			continue;
+		k = atoi(split[1]); //This is to avoid adding two lines for the same skill. [Skotlex]
+		for(j = 0; j < MAX_SKILL_TREE && skill_tree[jobid][j].id && skill_tree[jobid][j].id != k; j++);
+		if (j == MAX_SKILL_TREE)
+		{
+			ShowWarning("Unable to load skill %d into job %d's tree. Maximum number of skills per class has been reached.\n", k, jobid);
+			continue;
+		}
+		skill_tree[jobid][j].id=k;
+		skill_tree[jobid][j].max=atoi(split[2]);
+		if(f) 
+			skill_tree[jobid][j].joblv=atoi(split[3]);
+
+		for(k=0;k<5;k++){
+			skill_tree[jobid][j].need[k].id=atoi(split[k*2+m]);
+			skill_tree[jobid][j].need[k].lv=atoi(split[k*2+m+1]);
 		}
 	}
 	fclose(fp);

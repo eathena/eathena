@@ -18,7 +18,7 @@ struct pc_storage *storage_pt=NULL;
 struct guild_storage *guild_storage_pt=NULL;
 
 // storage data -> DB conversion
-int storage_tosql(unsigned long account_id,struct pc_storage *p){
+int storage_tosql(uint32 account_id,struct pc_storage *p){
 	int i;
 //	int eqcount=1;
 //	int noteqcount=1;
@@ -49,7 +49,7 @@ int storage_tosql(unsigned long account_id,struct pc_storage *p){
 }
 
 // DB -> storage data conversion
-int storage_fromsql(unsigned long account_id, struct pc_storage *p){
+int storage_fromsql(uint32 account_id, struct pc_storage *p){
 	int i=0;
 
 	memset(p,0,sizeof(struct pc_storage)); //clean up memory
@@ -57,7 +57,7 @@ int storage_fromsql(unsigned long account_id, struct pc_storage *p){
 	p->account_id = account_id;
 
 	// storage {`account_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3`}
-	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `account_id`='%ld'",storage_db, account_id);
+	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `account_id`='%ld'",storage_db, (unsigned long)account_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 			ShowMessage("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
@@ -175,17 +175,17 @@ void inter_storage_sql_final()
 	return;
 }
 // q?f[^?
-int inter_storage_delete(unsigned long account_id)
+int inter_storage_delete(uint32 account_id)
 {
-		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id`='%ld'",storage_db, account_id);
+	sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id`='%ld'",storage_db, (unsigned long)account_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (delete `storage`)- %s\n", mysql_error(&mysql_handle) );
 	}
 	return 0;
 }
-int inter_guild_storage_delete(unsigned long guild_id)
+int inter_guild_storage_delete(uint32 guild_id)
 {
-	sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_storage_db, guild_id);
+	sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%ld'",guild_storage_db, (unsigned long)guild_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (delete `guild_storage`)- %s\n", mysql_error(&mysql_handle) );
 	}
@@ -196,7 +196,7 @@ int inter_guild_storage_delete(unsigned long guild_id)
 // packet from map server
 
 // recive packet about storage data
-int mapif_load_storage(int fd,unsigned long account_id)
+int mapif_load_storage(int fd,uint32 account_id)
 {
 	if( !session_isActive(fd) )
 		return 0;
@@ -215,7 +215,7 @@ int mapif_load_storage(int fd,unsigned long account_id)
 	return 0;
 }
 // send ack to map server which is "storage data save ok."
-int mapif_save_storage_ack(int fd,unsigned long account_id)
+int mapif_save_storage_ack(int fd,uint32 account_id)
 {
 	if( !session_isActive(fd) )
 		return 0;
@@ -227,7 +227,7 @@ int mapif_save_storage_ack(int fd,unsigned long account_id)
 	return 0;
 }
 
-int mapif_load_guild_storage(int fd,unsigned long account_id,unsigned long guild_id)
+int mapif_load_guild_storage(int fd,uint32 account_id,uint32 guild_id)
 {
 	int guild_exist=1;
 	if( !session_isActive(fd) )
@@ -238,7 +238,7 @@ int mapif_load_guild_storage(int fd,unsigned long account_id,unsigned long guild
 #if 0	// innodb guilds should render this check unnecessary [Aru]
 	// Check if guild exists, I may write a function for this later, coz I use it several times.
 	//ShowMessage("- Check if guild %d exists\n",g->guild_id);
-	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id`='%ld'",guild_db, guild_id);
+	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id`='%ld'",guild_db, (unsigned long)guild_id);
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (delete `guild`)- %s\n", mysql_error(&mysql_handle) );
 	}
@@ -270,7 +270,7 @@ int mapif_load_guild_storage(int fd,unsigned long account_id,unsigned long guild
 	WFIFOSET(fd,12);
 	return 0;
 }
-int mapif_save_guild_storage_ack(int fd,unsigned long account_id,unsigned long guild_id,int fail)
+int mapif_save_guild_storage_ack(int fd,uint32 account_id,uint32 guild_id,int fail)
 {
 	if( !session_isActive(fd) )
 		return 0;
@@ -301,7 +301,7 @@ int mapif_parse_SaveStorage(int fd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	unsigned long account_id=RFIFOL(fd,4);
+	uint32 account_id=RFIFOL(fd,4);
 	int len=RFIFOW(fd,2);
 
 	if(sizeof(struct pc_storage)!=len-8)

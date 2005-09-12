@@ -5,7 +5,7 @@
 
 
 int config_switch(const char *str);
-unsigned long str2ip(const char *str);
+uint32 str2ip(const char *str);
 bool email_check(const char *email);
 bool remove_control_chars(char *str);
 

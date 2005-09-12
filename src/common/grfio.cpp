@@ -123,7 +123,7 @@ static unsigned char NibbleData[4][64]={
 /*-----------------
  *	long data get
  */
-unsigned long getlong(unsigned char *p)
+uint32 getlong(unsigned char *p)
 {
 //	return *p+p[1]*256+(p[2]+p[3]*256)*65536;
 	return    p[0]
@@ -251,7 +251,7 @@ int decode_zip(unsigned char *dest, unsigned long* destLen, const unsigned char*
 
 	stream.next_out = (Bytef*) dest;
 	stream.avail_out = (uInt)*destLen;
-	if ((uLong)stream.avail_out != *destLen) return Z_BUF_ERROR;
+	if ((unsigned long)stream.avail_out != *destLen) return Z_BUF_ERROR;
 
 	stream.zalloc = (alloc_func)0;
 	stream.zfree = (free_func)0;
@@ -383,7 +383,7 @@ int decode_file (FILE *source, FILE *dest)
  */
 unsigned char filehash(unsigned char *fname)
 {
-	unsigned long hash=0;
+	size_t hash=0;
 	while(*fname) {
 		hash = ((hash<<1)+(hash>>7)*9+tolower(*fname));
 		fname++;
@@ -659,14 +659,15 @@ void* grfio_reads(const char *fname, int *size)
 			goto errret;
 		}
 		if(entry->type==1 || entry->type==3 || entry->type==5) {
-			int len, err;
+			unsigned long len;
+			int err;
 			if (entry->cycle>=0) {
 				decode_des_etc(buf,entry->srclen_aligned,entry->cycle==0,entry->cycle);
 			}
 			len=entry->declen;
-			err=decode_zip(buf2,(uLongf*)&len,buf,entry->srclen);
+			err=decode_zip(buf2,&len,buf,entry->srclen);
 
-			if(len!=entry->declen) {
+			if((long)len!=entry->declen) {
 				ShowError("decode_zip size miss match err: %d != %d\n", len,entry->declen);
 				goto errret;
 			}
@@ -811,12 +812,12 @@ int grfio_entryread(const char *gfname, int gentry)
 	} else if (grf_version==0x02) {	//****** Grf version 02xx ******
 		unsigned char eheader[8];
 		unsigned char *rBuf;
-		long rSize,eSize;
+		unsigned long rSize,eSize;
 		fread(eheader,1,8,fp);
 		rSize = getlong(eheader);	// Read Size
 		eSize = getlong(eheader+4);	// Extend Size
 
-		if (rSize > grf_size-ftell(fp)) {
+		if((long)rSize > grf_size-ftell(fp)) {
 			fclose(fp);
 			ShowError("Illegal data format : grf compress entry size\n");
 			return 4;
@@ -838,7 +839,7 @@ int grfio_entryread(const char *gfname, int gentry)
 		fread(rBuf,1,rSize,fp);
 		fclose(fp);
 
-		decode_zip(grf_filelist,(uLongf*)&eSize,rBuf,rSize);	// Decode function
+		decode_zip(grf_filelist,&eSize,rBuf,rSize);	// Decode function
 		list_size = eSize;
 		aFree(rBuf);
 

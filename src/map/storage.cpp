@@ -91,7 +91,7 @@ int do_init_storage(void) // map.c::do_init()‚©‚çŒÄ‚Î‚ê‚é
 	return 1;
 }
 
-struct pc_storage *account2storage(unsigned long account_id)
+struct pc_storage *account2storage(uint32 account_id)
 {
 	struct pc_storage *stor = (struct pc_storage *)numdb_search(storage_db,account_id);
 	if(stor == NULL)
@@ -104,12 +104,12 @@ struct pc_storage *account2storage(unsigned long account_id)
 }
 
 // Just to ask storage, without creation
-struct pc_storage *account2storage2(unsigned long account_id)
+struct pc_storage *account2storage2(uint32 account_id)
  {
 	return (struct pc_storage *)numdb_search(storage_db, account_id);
 }
 
-int storage_delete(unsigned long account_id)
+int storage_delete(uint32 account_id)
 {
 	struct pc_storage *stor = (struct pc_storage *)numdb_search(storage_db,account_id);
 	if(stor)
@@ -393,7 +393,7 @@ int storage_storage_save(struct map_session_data &sd)
 	return 0;
 }
 
-struct guild_storage *guild2storage(unsigned long guild_id)
+struct guild_storage *guild2storage(uint32 guild_id)
 {
 	struct guild_storage *gs = NULL;
 	if(guild_search(guild_id) != NULL)
@@ -409,7 +409,7 @@ struct guild_storage *guild2storage(unsigned long guild_id)
 	return gs;
 }
 
-int guild_storage_delete(unsigned long guild_id)
+int guild_storage_delete(uint32 guild_id)
 {
 	struct guild_storage *gstor = (struct guild_storage *)numdb_search(guild_storage_db,guild_id);
 	if(gstor)

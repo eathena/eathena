@@ -27,7 +27,7 @@ char accreg_txt[1024] = "save/accreg.txt";
 static struct dbt *accreg_db = NULL;
 
 struct accreg {
-	unsigned long account_id;
+	uint32 account_id;
 	size_t reg_num;
 	struct global_reg reg[ACCOUNT_REG_NUM];
 };
@@ -78,9 +78,9 @@ int inter_accreg_tostr(char *str, struct accreg *reg) {
 	size_t j;
 	char *p = str;
 
-	p += sprintf(p, "%ld\t", reg->account_id);
+	p += sprintf(p, "%ld\t", (unsigned long)reg->account_id);
 	for(j = 0; j < reg->reg_num; j++) {
-		p += sprintf(p,"%s,%ld ", reg->reg[j].str, reg->reg[j].value);
+		p += sprintf(p,"%s,%ld ", reg->reg[j].str, (long)reg->reg[j].value);
 	}
 
 	return 0;
@@ -91,10 +91,12 @@ int inter_accreg_fromstr(const char *str, struct accreg *reg) {
 	int j, v, n;
 	char buf[128];
 	const char *p = str;
+	int accid;
 
-	if (sscanf(p, "%ld\t%n", &reg->account_id, &n ) != 1 || reg->account_id <= 0)
+	if (sscanf(p, "%ld\t%n", &accid, &n ) != 1 || accid <= 0)
 		return 1;
 
+	reg->account_id = accid;
 	for(j = 0, p += n; j < ACCOUNT_REG_NUM; j++, p += n) {
 		if (sscanf(p, "%[^,],%d %n", buf, &v, &n) != 2)
 			break;
@@ -363,7 +365,7 @@ int mapif_account_reg(int fd, unsigned char *src)
 }
 
 // アカウント変数要求返信
-int mapif_account_reg_reply(int fd, unsigned long account_id) {
+int mapif_account_reg_reply(int fd, uint32 account_id) {
 	struct accreg *reg = (struct accreg*)numdb_search(accreg_db,account_id);
 	if( !session_isActive(fd) )
 		return 0;
@@ -392,7 +394,7 @@ int mapif_account_reg_reply(int fd, unsigned long account_id) {
 int check_ttl_wisdata_sub(void *key, void *data, va_list ap) {
 	unsigned long tick;
 	struct WisData *wd = (struct WisData *)data;
-	tick = (unsigned long)va_arg(ap, int);
+	tick = (unsigned long)va_arg(ap, unsigned long);
 
 	if (DIFF_TICK(tick, wd->tick) > WISDATA_TTL && wis_delnum < WISDELLIST_MAX)
 		wis_dellist[wis_delnum++] = wd->id;
@@ -535,7 +537,7 @@ int mapif_parse_AccReg(int fd)
 		return 0;
 
 	int j, p;
-	struct accreg *reg = (struct accreg *)numdb_search(accreg_db, (unsigned long)RFIFOL(fd,4));
+	struct accreg *reg = (struct accreg *)numdb_search(accreg_db, (uint32)RFIFOL(fd,4));
 
 	if (reg == NULL) {
 		reg = (struct accreg*)aCalloc(1, sizeof(struct accreg));

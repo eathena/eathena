@@ -42,7 +42,7 @@ const char *uptime::getstring(char *buffer)
 	getvalues(day, minute, hour, seconds);
 
 	sprintf(buf, "%ld days, %ld hours, %ld minutes, %ld seconds",
-		day, minute, hour, seconds);
+		(unsigned long)day, (unsigned long)minute, (unsigned long)hour, (unsigned long)seconds);
 	return buf;
 }
 
@@ -82,7 +82,7 @@ void pid_create(const char* file)
 		fp = safefopen(pid_file,"w");
 		if(fp)
 		{
-			fprintf(fp,"%ld",GetCurrentProcessId());
+			fprintf(fp,"%ld", (unsigned long)GetCurrentProcessId());
 			fclose(fp);
 		}
 	}

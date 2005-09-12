@@ -6,6 +6,6 @@ int inter_guild_sql_init();
 void inter_guild_sql_final();
 int inter_guild_mapif_init(int fd);
 
-int inter_guild_leave(unsigned long guild_id,unsigned long account_id,unsigned long char_id);
+int inter_guild_leave(uint32 guild_id, uint32 account_id, uint32 char_id);
 
 #endif

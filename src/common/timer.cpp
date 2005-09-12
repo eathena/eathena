@@ -162,7 +162,7 @@ void dump_timer_heap(void)
 		} else {
 			printf(" ");
 		}
-		printf("%4d : %4d %ld\n", j, timer_heap[j], timer_data[timer_heap[j]].tick);
+		printf("%4d : %4d %ld\n", j, timer_heap[j], (unsigned long)timer_data[timer_heap[j]].tick);
 	}
 }
 
@@ -447,15 +447,19 @@ struct TimerData* get_timer(size_t tid)
 
 int do_timer(unsigned long tick)
 {
-	int tid, nextmin = 1000;
-
+	int tid;
+	long nextmin = 1000;
 /*
 // Timer Display, list status and first 5 ticks
 size_t sz, end = (timer_heap_pos > 5) ? 5 : timer_heap_pos;
-printf("timer %d (heap %d + free %d): ",timer_data_pos,timer_heap_pos,timer_free_pos);
+printf("timer %d (heap %d + free %d) (%lX): ",timer_data_pos,timer_heap_pos,timer_free_pos,gettick());
 for(sz=0; sz<end; sz++)
-	printf("%ld  ",timer_data[ timer_heap[timer_heap_pos-1-sz] ].tick);
-printf("\r");
+	printf("%lX (%i %lX) ", 
+		timer_data[ timer_heap[timer_heap_pos-1-sz] ].tick,
+		timer_data[ timer_heap[timer_heap_pos-1-sz] ].data.isptr,
+		(unsigned long)timer_data[ timer_heap[timer_heap_pos-1-sz] ].data.ptr
+	);
+printf(CL_CLL"\r");
 fflush(stdout);
 */
 

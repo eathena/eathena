@@ -257,7 +257,7 @@ private:
 		CCallScript* next;
 		///////////////////////////////////////////////////////////////////////
 		// fully construction with automatic enqueueing
-		CCallScript(CCallScript *&root, const char* s, size_t p, unsigned long r, unsigned long o)
+		CCallScript(CCallScript *&root, const char* s, size_t p, uint32 r, uint32 o)
 			: next(NULL),script(s), pos(p), rid(r), oid(o)
 		{	// queue the element at the end of the list starting at root
 			if(!root)
@@ -294,8 +294,8 @@ private:
 		// public data
 		const char* script;
 		size_t pos;
-		unsigned long rid;
-		unsigned long oid;
+		uint32 rid;
+		uint32 oid;
 	};
 	///////////////////////////////////////////////////////////////////////////
 	// helper for queueing calling scripts with associated stack
@@ -307,7 +307,7 @@ private:
 		size_t stack_ptr;
 		size_t stack_max;
 		CValue* stack_data;
-		CCallStack(CCallScript *&root, const char* s, size_t p, size_t d, unsigned long r, unsigned long o, size_t ptr, size_t max, CValue* data)
+		CCallStack(CCallScript *&root, const char* s, size_t p, size_t d, uint32 r, uint32 o, size_t ptr, size_t max, CValue* data)
 			: CCallScript(root,s,p,r,o),defsp(d),stack_ptr(ptr), stack_max(max), stack_data(data)
 		{   }
 		virtual ~CCallStack()
@@ -337,12 +337,13 @@ private:
 
 	///////////////////////////////////////////////////////////////////////////
 
-	static unsigned long defoid;// id of the default npc
+	static uint32 defoid;// id of the default npc
 
 	bool rerun_flag : 1;		// reruning line (used for inputs, menu, select and close)
+	bool messageopen : 1;		// set when the client has got some message window to display
 	NPCSTATE npcstate : 2;		// what npc is used
 	STATES state : 3;			// state of execution (externally visible states are OFF or STOP)
-	unsigned _unused : 2;
+	unsigned _unused : 1;
 
 	const char *script;			// the executed programm
 	size_t pos;					// position within the programm
@@ -355,15 +356,15 @@ public:
 	CValue	cExtData;			// additional data from external source
 
 	struct map_session_data* sd;// the mapsession of the caller
-	unsigned long rid;			// bl.id of the hosting pc
-	unsigned long oid;			// bl.id of the executed npc
+	uint32 rid;			// bl.id of the hosting pc
+	uint32 oid;			// bl.id of the executed npc
 
 
 
 	///////////////////////////////////////////////////////////////////////////
 public:
 	CScriptEngine() : queue(NULL), stack_ptr(0),stack_max(0),stack_data(NULL),
-		rerun_flag(false), npcstate(NONE), state(OFF), script(NULL), sd(NULL)
+		rerun_flag(false), messageopen(false), npcstate(NONE), state(OFF), script(NULL), sd(NULL)
 	{ }
 	CScriptEngine::~CScriptEngine()
 	{
@@ -443,8 +444,8 @@ private:
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// main entry points
-	static int run(const char *rootscript, size_t pos, unsigned long rid, unsigned long oid);
-	int restart(unsigned long npcid)
+	static int run(const char *rootscript, size_t pos, uint32 rid, uint32 oid);
+	int restart(uint32 npcid)
 	{	
 		if( this->state==STOP && (npcid == this->oid || npcid == this->defoid) )
 			return CScriptEngine::run(this->script, this->pos, this->rid, this->oid);
@@ -453,11 +454,14 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// checks the npc, create a default npc and spawn it when necessary
-	unsigned long send_defaultnpc(bool send=true);
+	uint32 send_defaultnpc(bool send=true);
 
 	///////////////////////////////////////////////////////////////////////////
 	// status access/query
 	bool isRunning()	{ return OFF!=this->state; }
+	bool isMessage()	{ return this->messageopen; }
+	bool setMessage()	{ return (this->messageopen=true); }
+	bool clearMessage()	{ return (this->messageopen=false); }
 	void Quit()			{ this->state = END; }
 	void Stop()			{ this->state = STOP; }
 	void Return()		{ this->state = RETFUNC; }

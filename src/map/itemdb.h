@@ -15,9 +15,9 @@ struct item_data
 	long value_buy;
 	long value_sell;
 
-	unsigned long weight;
-	unsigned long atk;
-	unsigned long def;
+	uint32 weight;
+	uint32 atk;
+	uint32 def;
 
 	unsigned char type;
 //0 Healing, 2: Usable, 3: Misc, 4: Weapon, 5: Armor, 6: Card, 7: Pet Egg,
@@ -25,7 +25,7 @@ struct item_data
 
 	unsigned char gm_lv_trade_override;
 
-	unsigned long class_array;
+	uint32 class_array;
 	unsigned short equip;
 	unsigned short range;
 	unsigned short look;

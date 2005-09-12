@@ -46,9 +46,9 @@ public:
 
 	virtual bool existAccount(const char* userid);
 	virtual bool searchAccount(const char* userid, CLoginAccount&account);
-	virtual bool searchAccount(unsigned long accid, CLoginAccount&account);
+	virtual bool searchAccount(uint32 accid, CLoginAccount&account);
 	virtual bool insertAccount(const char* userid, const char* passwd, unsigned char sex, const char* email, CLoginAccount&account);
-	virtual bool removeAccount(unsigned long accid);
+	virtual bool removeAccount(uint32 accid);
 	virtual bool saveAccount(const CLoginAccount& account);
 
 protected:

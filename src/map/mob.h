@@ -100,7 +100,7 @@ enum {
 };
 
 int mobdb_searchname(const char *str);
-int mobdb_checkid(const unsigned long id);
+int mobdb_checkid(const uint32 id);
 int mob_once_spawn(struct map_session_data *sd,const char *mapname,
 	int x,int y,const char *mobname,int class_,int amount,const char *event);
 int mob_once_spawn_area(struct map_session_data *sd,const char *mapname,
@@ -118,12 +118,12 @@ int mob_target(struct mob_data &md,struct block_list *bl,int dist);
 int mob_unlocktarget(struct mob_data &md,unsigned long tick);
 int mob_stop_walking(struct mob_data &md,int type);
 int mob_stopattack(struct mob_data &md);
-int mob_spawn(unsigned long id);
-int mob_setdelayspawn(unsigned long id);
+int mob_spawn(uint32 id);
+int mob_setdelayspawn(uint32 id);
 int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src);
 int mob_changestate(struct mob_data &md,int state,int type);
 int mob_heal(struct mob_data &md,int heal);
-int mob_exclusion_add(struct mob_data &md,int type,unsigned long id);
+int mob_exclusion_add(struct mob_data &md,int type,uint32 id);
 int mob_exclusion_check(struct mob_data &md,struct map_session_data *sd);
 int mob_get_viewclass(int);
 int mob_get_sex(int);

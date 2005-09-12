@@ -186,7 +186,7 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 				account.gm_level = sql_row[10]?atoi( sql_row[10]):0;
 				safestrcpy(account.email, sql_row[11]?sql_row[11]:"" , 40);
 
-				sz = sprintf(query, "SELECT `str`,`value` FROM `global_reg_value` WHERE `type`='1' AND `account_id`='%ld'", account.account_id);
+				sz = sprintf(query, "SELECT `str`,`value` FROM `global_reg_value` WHERE `type`='1' AND `account_id`='%ld'", (unsigned long)account.account_id);
 				if( this->mysql_SendQuery(sql_res2, query, sz) )
 				{
 					size_t i=0;
@@ -207,7 +207,7 @@ bool CAccountDB_sql::searchAccount(const char* userid, CLoginAccount& account)
 	return ret;
 }
 
-bool CAccountDB_sql::searchAccount(unsigned long accid, CLoginAccount& account)
+bool CAccountDB_sql::searchAccount(uint32 accid, CLoginAccount& account)
 {	// get account by account_id
 	bool ret = false;
 	size_t sz;
@@ -237,7 +237,7 @@ bool CAccountDB_sql::searchAccount(unsigned long accid, CLoginAccount& account)
 			safestrcpy(account.email, sql_row[11]?sql_row[11]:"" , 40);
 
 
-			sz = sprintf(query, "SELECT `str`,`value` FROM `global_reg_value` WHERE `type`='1' AND `account_id`='%ld'", account.account_id);
+			sz = sprintf(query, "SELECT `str`,`value` FROM `global_reg_value` WHERE `type`='1' AND `account_id`='%ld'", (unsigned long)account.account_id);
 			if( this->mysql_SendQuery(sql_res2, query, sz) )
 			{
 				size_t i=0;
@@ -274,7 +274,7 @@ bool CAccountDB_sql::insertAccount(const char* userid, const char* passwd, unsig
 	return false;
 }
 
-bool CAccountDB_sql::removeAccount(unsigned long accid)
+bool CAccountDB_sql::removeAccount(uint32 accid)
 {
 	bool ret;
 	size_t sz;
@@ -379,13 +379,13 @@ bool CAccountDB_sql::saveAccount(const CLoginAccount& account)
 		login_db, 
 		login_db_user_pass, account.passwd,
 		login_db_level, account.gm_level,
-		account.login_count,
+		(unsigned long)account.login_count,
 		(account.sex==1)? 'M':'F',
 		account.last_ip,
 		(unsigned long)account.valid_until,
 		(unsigned long)account.ban_until,
 		account.email,
-		login_db_account_id, account.account_id);
+		login_db_account_id, (unsigned long)account.account_id);
 	ret = this->mysql_SendQuery(query, sz);
 
 	sz=sprintf(query,"DELETE FROM `global_reg_value` WHERE `type`='1' AND `account_id`='%d';",account.account_id);

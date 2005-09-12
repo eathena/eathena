@@ -813,7 +813,7 @@ int itemdb_read_sqldb(void)
 				}
 				else
 				{
-					ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, item_db_name[i]);
+					ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", (unsigned long)ln, item_db_name[i]);
 				}
 				ln = 0;
 			}

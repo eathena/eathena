@@ -647,13 +647,13 @@ const char * job_name(int class_)
 // compare function for sorting high to lowest
 int hightolow_compare (const void * a, const void * b)
 {
-  return ( *(unsigned long*)b - *(unsigned long*)a );
+  return ( *(uint32*)b - *(uint32*)a );
 }
 
 // compare function for sorting lowest to highest
 int lowtohigh_compare (const void * a, const void * b)
 {
-  return ( *(unsigned long*)a - *(unsigned long*)b );
+  return ( *(uint32*)a - *(uint32*)b );
 }
 
 
@@ -1174,9 +1174,9 @@ bool atcommand_who(int fd, struct map_session_data &sd, const char* command, con
 				{	// search with no case sensitive
 					if (battle_config.who_display_aid > 0 && pc_isGM(sd) >= battle_config.who_display_aid) {
 						if (pl_GM_level > 0)
-							sprintf(output, "(CID:%ld/AID:%ld) Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.char_id, pl_sd->status.account_id, pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
+							sprintf(output, "(CID:%ld/AID:%ld) Name: %s (GM:%d) | Location: %s %d %d", (unsigned long)pl_sd->status.char_id, (unsigned long)pl_sd->status.account_id, pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
 						else
-							sprintf(output, "(CID:%ld/AID:%ld) Name: %s | Location: %s %d %d", pl_sd->status.char_id, pl_sd->status.account_id, pl_sd->status.name, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
+							sprintf(output, "(CID:%ld/AID:%ld) Name: %s | Location: %s %d %d", (unsigned long)pl_sd->status.char_id, (unsigned long)pl_sd->status.account_id, pl_sd->status.name, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
 					}
 					else {
 						if (pl_GM_level > 0)
@@ -1570,7 +1570,7 @@ bool atcommand_whozeny(int fd, struct map_session_data &sd, const char* command,
 	char match_text[128]="";
 	char player_name[24];
 	char output[128];
-	CREATE_BUFFER(zeny, unsigned long, clif_countusers());
+	CREATE_BUFFER(zeny, uint32, clif_countusers());
 	CREATE_BUFFER(counted, size_t, clif_countusers());
 
 	if (sscanf(message, "%99[^\n]", match_text) < 1)
@@ -1591,7 +1591,7 @@ bool atcommand_whozeny(int fd, struct map_session_data &sd, const char* command,
 				}
 		}
 	}
-	qsort(zeny, count, sizeof(unsigned long), hightolow_compare);
+	qsort(zeny, count, sizeof(uint32), hightolow_compare);
 
 	for(c=0; c<count && c<50; c++)
 	{
@@ -1603,7 +1603,7 @@ bool atcommand_whozeny(int fd, struct map_session_data &sd, const char* command,
 			{
 				if(pl_sd->status.zeny==zeny[c])
 				{
-					sprintf(output, "Name: %s | Zeny: %ld", pl_sd->status.name, pl_sd->status.zeny);
+					sprintf(output, "Name: %s | Zeny: %ld", pl_sd->status.name, (unsigned long)pl_sd->status.zeny);
 					clif_displaymessage(fd, output);
 					zeny[c]=0;
 					counted[i]=1;
@@ -2112,10 +2112,7 @@ bool atcommand_kami(int fd, struct map_session_data &sd, const char* command, co
 bool atcommand_heal(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	long hp = 0, sp = 0; // [Valaris] thanks to fov
-
-
 	sscanf(message, "%ld %ld", &hp, &sp);
-
 	if (hp == 0 && sp == 0)
 	{
 		hp = sd.status.max_hp - sd.status.hp;
@@ -2637,7 +2634,7 @@ bool atcommand_model(int fd, struct map_session_data &sd, const char* command, c
 
 	if (!message || !*message || sscanf(message, "%d %d %d", &hair_style, &hair_color, &cloth_color) < 1) {
 		sprintf(output, "Please, enter at least a value (usage: @model <hair ID: %ld-%ld> <hair color: %ld-%ld> <clothes color: %ld-%ld>).",
-		        MIN_HAIR_STYLE, MAX_HAIR_STYLE, MIN_HAIR_COLOR, MAX_HAIR_COLOR, MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
+		        (unsigned long)MIN_HAIR_STYLE, (unsigned long)MAX_HAIR_STYLE, (unsigned long)MIN_HAIR_COLOR, (unsigned long)MAX_HAIR_COLOR, (unsigned long)MIN_CLOTH_COLOR, (unsigned long)MAX_CLOTH_COLOR);
 		clif_displaymessage(fd, output);
 		return false;
 	}
@@ -2675,7 +2672,7 @@ bool atcommand_dye(int fd, struct map_session_data &sd, const char* command, con
 
 
 	if (!message || !*message || sscanf(message, "%d", &cloth_color) < 1) {
-		sprintf(output, "Please, enter a clothes color (usage: @dye/@ccolor <clothes color: %ld-%ld>).", MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
+		sprintf(output, "Please, enter a clothes color (usage: @dye/@ccolor <clothes color: %ld-%ld>).", (unsigned long)MIN_CLOTH_COLOR, (unsigned long)MAX_CLOTH_COLOR);
 		clif_displaymessage(fd, output);
 		return false;
 	}
@@ -2702,7 +2699,7 @@ bool atcommand_hair_style(int fd, struct map_session_data &sd, const char* comma
 
 
 	if (!message || !*message || sscanf(message, "%d", &hair_style) < 1) {
-		sprintf(output, "Please, enter a hair style (usage: @hairstyle/@hstyle <hair ID: %ld-%ld>).", MIN_HAIR_STYLE, MAX_HAIR_STYLE);
+		sprintf(output, "Please, enter a hair style (usage: @hairstyle/@hstyle <hair ID: %ld-%ld>).", (unsigned long)MIN_HAIR_STYLE, (unsigned long)MAX_HAIR_STYLE);
 		clif_displaymessage(fd, output);
 		return false;
 	}
@@ -2744,7 +2741,7 @@ bool atcommand_hair_color(int fd, struct map_session_data &sd, const char* comma
 
 
 	if (!message || !*message || sscanf(message, "%d", &hair_color) < 1) {
-		sprintf(output, "Please, enter a hair color (usage: @haircolor/@hcolor <hair color: %ld-%ld>).", MIN_HAIR_COLOR, MAX_HAIR_COLOR);
+		sprintf(output, "Please, enter a hair color (usage: @haircolor/@hcolor <hair color: %ld-%ld>).", (unsigned long)MIN_HAIR_COLOR, (unsigned long)MAX_HAIR_COLOR);
 		clif_displaymessage(fd, output);
 		return false;
 	}
@@ -2944,7 +2941,7 @@ bool atcommand_monster(int fd, struct map_session_data &sd, const char* command,
 	char name[128]="";
 	char monster[128]="";
 	char output[128];
-	unsigned long mob_id;
+	uint32 mob_id;
 	unsigned int number = 0;
 	unsigned int x = 0, y = 0;
 	unsigned int count;
@@ -2968,7 +2965,7 @@ bool atcommand_monster(int fd, struct map_session_data &sd, const char* command,
 		clif_displaymessage(fd, msg_table[40]); // Invalid monster ID or name.
 		return false;
 	}
-	if (mob_id == 1288) {
+	if (mob_id == MOBID_EMPERIUM) {
 		clif_displaymessage(fd, msg_table[83]); // Cannot spawn emperium.
 		return false;
 	}
@@ -3028,7 +3025,7 @@ bool atcommand_spawn(int fd, struct map_session_data &sd, const char* command, c
 	char name[128]="";
 	char monster[128]="";
 	char output[128];
-	unsigned long mob_id;
+	uint32 mob_id;
 	unsigned int number = 0;
 	unsigned int x = 0, y = 0;
 	unsigned int count;
@@ -3054,7 +3051,7 @@ bool atcommand_spawn(int fd, struct map_session_data &sd, const char* command, c
 		return false;
 	}
 
-	if (mob_id == 1288) {
+	if (mob_id == MOBID_EMPERIUM) {
 		clif_displaymessage(fd, msg_table[83]); // Cannot spawn emperium.
 		return false;
 	}
@@ -3112,7 +3109,7 @@ bool atcommand_spawn(int fd, struct map_session_data &sd, const char* command, c
 bool atcommand_monstersmall(int fd, struct map_session_data &sd, const char* command, const char* message) {
 	char name[128] = "";
 	char monster[128] = "";
-	unsigned long mob_id = 0;
+	uint32 mob_id = 0;
 	unsigned int number = 0;
 	unsigned int x = 0;
 	unsigned int y = 0;
@@ -3142,7 +3139,7 @@ bool atcommand_monstersmall(int fd, struct map_session_data &sd, const char* com
 		return true;
 	}
 
-	if (mob_id == 1288) {
+	if (mob_id == MOBID_EMPERIUM) {
 		clif_displaymessage(fd, "Cannot spawn emperium.");
 		return true;
 	}
@@ -3187,7 +3184,7 @@ bool atcommand_monstersmall(int fd, struct map_session_data &sd, const char* com
 bool atcommand_monsterbig(int fd, struct map_session_data &sd, const char* command, const char* message) {
 	char name[128] = "";
 	char monster[128] = "";
-	unsigned long mob_id = 0;
+	uint32 mob_id = 0;
 	unsigned int number = 0;
 	unsigned int x = 0;
 	unsigned int y = 0;
@@ -3217,7 +3214,7 @@ bool atcommand_monsterbig(int fd, struct map_session_data &sd, const char* comma
 		return true;
 	}
 
-	if (mob_id == 1288) {
+	if (mob_id == MOBID_EMPERIUM) {
 		clif_displaymessage(fd, "Cannot spawn emperium.");
 		return true;
 	}
@@ -3634,7 +3631,7 @@ bool atcommand_skillpoint(int fd, struct map_session_data &sd, const char* comma
 bool atcommand_zeny(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	long zeny;
-	unsigned long new_zeny;
+	uint32 new_zeny;
 
 	if (!message || !*message || (zeny = atoi(message)) == 0)
 	{
@@ -5031,7 +5028,7 @@ bool atcommand_charmodel(int fd, struct map_session_data &sd, const char* comman
 
 	if(!message || !*message || sscanf(message, "%d %d %d %99[^\n]", &hair_style, &hair_color, &cloth_color, player_name) < 4 || hair_style < 0 || hair_color < 0 || cloth_color < 0) {
 		sprintf(output, "Please, enter a valid model and a player name (usage: @charmodel <hair ID: %ld-%ld> <hair color: %ld-%ld> <clothes color: %ld-%ld> <name>).",
-		        MIN_HAIR_STYLE, MAX_HAIR_STYLE, MIN_HAIR_COLOR, MAX_HAIR_COLOR, MIN_CLOTH_COLOR, MAX_CLOTH_COLOR);
+		        (unsigned long)MIN_HAIR_STYLE, (unsigned long)MAX_HAIR_STYLE, (unsigned long)MIN_HAIR_COLOR, (unsigned long)MAX_HAIR_COLOR, (unsigned long)MIN_CLOTH_COLOR, (unsigned long)MAX_CLOTH_COLOR);
 		clif_displaymessage(fd, output);
 		return false;
 	}
@@ -5964,10 +5961,12 @@ bool atcommand_unloadnpc(int fd, struct map_session_data &sd, const char* comman
 
 /*==========================================
  * time in txt for time command (by [Yor])
+ //!! not threadsave
  *------------------------------------------
  */
-char * txt_time(unsigned int duration) {
-	int days, hours, minutes, seconds;
+char * txt_time(unsigned long duration)
+{
+	unsigned long days, hours, minutes, seconds;
 	char temp[256];
 	static char temp1[256];
 
@@ -6054,9 +6053,9 @@ bool atcommand_servertime(int fd, struct map_session_data &sd, const char* comma
 			sprintf(temp, msg_table[235], txt_time((timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in daylight for %s.
 			clif_displaymessage(fd, temp);
 			if (timer_data->tick > timer_data2->tick)
-				sprintf(temp, msg_table[237], txt_time((timer_data->interval - (unsigned long)abs((long)(timer_data->tick - timer_data2->tick))) / 1000)); // Game time: After, the game will be in night for %s.
+				sprintf(temp, msg_table[237], txt_time((timer_data->interval - (uint32)abs((long)(timer_data->tick - timer_data2->tick))) / 1000)); // Game time: After, the game will be in night for %s.
 			else
-				sprintf(temp, msg_table[237], txt_time((unsigned long)abs((long)(timer_data->tick - timer_data2->tick)) / 1000)); // Game time: After, the game will be in night for %s.
+				sprintf(temp, msg_table[237], txt_time((uint32)abs((long)(timer_data->tick - timer_data2->tick)) / 1000)); // Game time: After, the game will be in night for %s.
 			clif_displaymessage(fd, temp);
 			sprintf(temp, msg_table[238], txt_time(timer_data->interval / 1000)); // Game time: A day cycle has a normal duration of %s.
 			clif_displaymessage(fd, temp);
@@ -6066,9 +6065,9 @@ bool atcommand_servertime(int fd, struct map_session_data &sd, const char* comma
 			sprintf(temp, msg_table[233], txt_time((timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in night for %s.
 			clif_displaymessage(fd, temp);
 			if (timer_data->tick > timer_data2->tick)
-				sprintf(temp, msg_table[239], txt_time((timer_data->interval - (unsigned long)abs((long)(timer_data->tick - timer_data2->tick))) / 1000)); // Game time: After, the game will be in daylight for %s.
+				sprintf(temp, msg_table[239], txt_time((timer_data->interval - (uint32)abs((long)(timer_data->tick - timer_data2->tick))) / 1000)); // Game time: After, the game will be in daylight for %s.
 			else
-				sprintf(temp, msg_table[239], txt_time((unsigned long)abs((long)(timer_data->tick - timer_data2->tick)) / 1000)); // Game time: After, the game will be in daylight for %s.
+				sprintf(temp, msg_table[239], txt_time((uint32)abs((long)(timer_data->tick - timer_data2->tick)) / 1000)); // Game time: After, the game will be in daylight for %s.
 			clif_displaymessage(fd, temp);
 			sprintf(temp, msg_table[238], txt_time(timer_data->interval / 1000)); // Game time: A day cycle has a normal duration of %s.
 			clif_displaymessage(fd, temp);
@@ -7096,8 +7095,7 @@ bool atcommand_skilltree(int fd, struct map_session_data &sd, const char* comman
 	char output[128];
 	struct map_session_data *pl_sd = NULL;
 	int skillnum, skillidx = -1;
-	int meets = 1, j, c=0, s=0;
-	struct pc_base_job s_class;
+	int meets = 1, j, c=0;
 	char target[256];
 	struct skill_tree_entry *ent;
 	
@@ -7111,18 +7109,15 @@ bool atcommand_skilltree(int fd, struct map_session_data &sd, const char* comman
 	if((pl_sd=map_nick2sd(target)) == NULL)
 		return false;
 	
-	s_class = pc_calc_base_job(pl_sd->status.class_);
-	c = s_class.job;
-	s = s_class.upper;
-	c = pc_calc_skilltree_normalize_job(*pl_sd, c);
-	sprintf(output, "Player is using %s %s skill tree (%d basic points)",
-		s_class.upper ? "upper" : "lower",
+	c = pc_calc_skilltree_normalize_job(*pl_sd);
+
+	sprintf(output, "Player is using %s skill tree (%d basic points)",
 		job_name(c), pc_checkskill(*pl_sd, 1));
 	clif_displaymessage(fd, output);
 	
-	for (j = 0; skill_tree[s][c][j].id != 0; j++)
+	for (j = 0; skill_tree[c][j].id != 0; j++)
 	{
-		if (skill_tree[s][c][j].id == skillnum)
+		if (skill_tree[c][j].id == skillnum)
 		{
 			skillidx = j;
 			break;
@@ -7134,7 +7129,7 @@ bool atcommand_skilltree(int fd, struct map_session_data &sd, const char* comman
 		clif_displaymessage(fd, output);
 		return false;
 	}
-	ent = &skill_tree[s][c][skillidx];
+	ent = &skill_tree[c][skillidx];
 	for(j=0;j<5;j++)
 	{
 		if( ent->need[j].id && pc_checkskill(sd,ent->need[j].id) < ent->need[j].lv)
@@ -7264,7 +7259,7 @@ bool atcommand_divorce(int fd, struct map_session_data &sd, const char* command,
 }
 
 #ifdef DMALLOC
-unsigned long dmark_;
+uint32 dmark_;
 bool atcommand_dmstart(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
   dmark_ = dmalloc_mark();
@@ -7761,10 +7756,10 @@ bool atcommand_users(int fd, struct map_session_data &sd, const char* command, c
 bool atcommand_summon(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char name[128];
-	unsigned long mob_id = 0;
+	uint32 mob_id = 0;
 	int x = 0;
 	int y = 0;
-	unsigned long id = 0;
+	uint32 id = 0;
 	size_t duration = 0;
 	struct mob_data *md;
 	unsigned long tick=gettick();
@@ -8130,7 +8125,7 @@ bool atcommand_misceffect(int fd, struct map_session_data &sd, const char* comma
 	return true;
 }
 
-int charid2sessionid(unsigned long charid)
+int charid2sessionid(uint32 charid)
 {
 	size_t session_id;
    struct map_session_data *pl_sd = NULL;
@@ -8145,7 +8140,7 @@ int charid2sessionid(unsigned long charid)
    return session_id;
 }
 
-int accountid2sessionid(unsigned long accountid)
+int accountid2sessionid(uint32 accountid)
 {
 	size_t session_id;
    struct map_session_data *pl_sd = NULL;
@@ -8586,8 +8581,8 @@ bool atcommand_killid2(int fd, struct map_session_data &sd, const char* command,
 bool atcommand_charkillableid(int fd, struct map_session_data& sd,const char* command, const char* message)
 {
    struct map_session_data *pl_sd = NULL;
-	unsigned long cid=0;
-	unsigned long session_id=0;
+	uint32 cid=0;
+	uint32 session_id=0;
 
    if (!message || (cid = atoi(message)) == 0  || !*message)
 		return false;
@@ -8869,9 +8864,9 @@ bool atcommand_iteminfo(int fd, struct map_session_data &sd, const char* command
 		clif_displaymessage(fd, output);
 
 		sprintf(output, "NPC Buy:%ldz%s, Sell:%ldz%s | Weight: %ld ", 
-			item_data->value_buy, item_data->flag.value_notdc ? "(No Discount!)":"", 
-			item_data->value_sell, item_data->flag.value_notoc ? "(No Overcharge!)":"", 
-			item_data->weight );
+			(unsigned long)item_data->value_buy, item_data->flag.value_notdc ? "(No Discount!)":"", 
+			(unsigned long)item_data->value_sell, item_data->flag.value_notoc ? "(No Overcharge!)":"", 
+			(unsigned long)item_data->weight );
 		clif_displaymessage(fd, output);
 
 		return true;
@@ -8953,12 +8948,12 @@ bool atcommand_version(int fd, struct map_session_data &sd, const char* command,
 int atcommand_mutearea_sub(struct block_list &bl,va_list ap)
 {
 	int time;
-	unsigned long id;
+	uint32 id;
 	struct map_session_data &sd = (struct map_session_data &)bl;
 	if(bl.type!=BL_PC)
 		return 1;
 	
-	id = va_arg(ap, unsigned long);
+	id = va_arg(ap, uint32);
 	time = va_arg(ap, int);	
 	if (id != bl.id && !pc_isGM(sd))
 	{
@@ -9032,14 +9027,11 @@ bool atcommand_shuffle(int fd, struct map_session_data &sd, const char* command,
 
 bool atcommand_rates(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-  char buf[255];
-
-  sprintf(buf, "base_exp_rate: %ld    job_exp_rate: %ld", 
-    battle_config.base_exp_rate, battle_config.job_exp_rate);
-
-  clif_displaymessage(fd, buf);
-
-  return true;
+	char buf[256];
+	snprintf(buf, sizeof(buf), "base_exp_rate: %ld    job_exp_rate: %ld", 
+		(unsigned long)battle_config.base_exp_rate, (unsigned long)battle_config.job_exp_rate);
+	clif_displaymessage(fd, buf);
+	return true;
 }
 
 

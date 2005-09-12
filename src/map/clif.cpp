@@ -277,11 +277,11 @@ inline unsigned short get_fakemob_id(map_session_data &sd)
 	return ( mobdb_checkid(id) >0 ) ? id : 1002; // poring in case of error
 }
 
-unsigned long server_char_id    = 0;
-unsigned long server_fake_mob_id= 0;
+uint32 server_char_id    = 0;
+uint32 server_fake_mob_id= 0;
 
 
-void check_fake_id(int fd, struct map_session_data &sd, unsigned long target_id)
+void check_fake_id(int fd, struct map_session_data &sd, uint32 target_id)
 {
 
 	// if player asks for the fake player (only bot and modified client can see a hiden player)
@@ -842,7 +842,7 @@ int clif_authok(struct map_session_data &sd)
  *------------------------------------------
  */
 int clif_parse(int fd);
-int clif_authfail_fd(int fd, unsigned long type)
+int clif_authfail_fd(int fd, uint32 type)
 {
 	if( !session_isActive(fd) && session[fd]->func_parse==clif_parse)
 		return 0;
@@ -861,7 +861,7 @@ int clif_authfail_fd(int fd, unsigned long type)
  *
  *------------------------------------------
  */
-int clif_charselectok(unsigned long id)
+int clif_charselectok(uint32 id)
 {
 	struct map_session_data *sd;
 	int fd;
@@ -993,7 +993,7 @@ int clif_clearchar_delay(unsigned long tick, struct block_list &bl, int type)
  *
  *------------------------------------------
  */
-int clif_clearchar_id(int fd, unsigned long id, unsigned char type)
+int clif_clearchar_id(int fd, uint32 id, unsigned char type)
 {
 	if( !session_isActive(fd) )
 		return 0;
@@ -2026,7 +2026,7 @@ int clif_changemap(struct map_session_data &sd, const char *mapname, unsigned sh
  *
  *------------------------------------------
  */
-int clif_changemapserver(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y, unsigned long ip, unsigned short port)
+int clif_changemapserver(struct map_session_data &sd, const char *mapname, unsigned short x, unsigned short y, uint32 ip, unsigned short port)
 {
 	int fd = sd.fd;
 	if( !session_isActive(fd) )
@@ -2084,7 +2084,7 @@ int clif_fixpos(struct block_list &bl)
  *
  *------------------------------------------
  */
-int clif_npcbuysell(struct map_session_data& sd, unsigned long id)
+int clif_npcbuysell(struct map_session_data& sd, uint32 id)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -2171,7 +2171,7 @@ int clif_selllist(struct map_session_data &sd)
  *
  *------------------------------------------
  */
-int clif_scriptmes(struct map_session_data &sd, unsigned long npcid, const char *mes)
+int clif_scriptmes(struct map_session_data &sd, uint32 npcid, const char *mes)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -2191,7 +2191,7 @@ int clif_scriptmes(struct map_session_data &sd, unsigned long npcid, const char 
  *
  *------------------------------------------
  */
-int clif_scriptnext(struct map_session_data &sd,unsigned long npcid)
+int clif_scriptnext(struct map_session_data &sd,uint32 npcid)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -2208,7 +2208,7 @@ int clif_scriptnext(struct map_session_data &sd,unsigned long npcid)
  *
  *------------------------------------------
  */
-int clif_scriptclose(struct map_session_data &sd, unsigned long npcid)
+int clif_scriptclose(struct map_session_data &sd, uint32 npcid)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -2225,7 +2225,7 @@ int clif_scriptclose(struct map_session_data &sd, unsigned long npcid)
  *
  *------------------------------------------
  */
-int clif_scriptmenu(struct map_session_data &sd, unsigned long npcid, const char *mes)
+int clif_scriptmenu(struct map_session_data &sd, uint32 npcid, const char *mes)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -2246,7 +2246,7 @@ int clif_scriptmenu(struct map_session_data &sd, unsigned long npcid, const char
  *
  *------------------------------------------
  */
-int clif_scriptinput(struct map_session_data &sd, unsigned long npcid)
+int clif_scriptinput(struct map_session_data &sd, uint32 npcid)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -2263,7 +2263,7 @@ int clif_scriptinput(struct map_session_data &sd, unsigned long npcid)
  *
  *------------------------------------------
  */
-int clif_scriptinputstr(struct map_session_data &sd, unsigned long npcid)
+int clif_scriptinputstr(struct map_session_data &sd, uint32 npcid)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -2280,7 +2280,7 @@ int clif_scriptinputstr(struct map_session_data &sd, unsigned long npcid)
  *
  *------------------------------------------
  */
-int clif_viewpoint(struct map_session_data &sd, unsigned long npc_id, unsigned long id, unsigned long x, unsigned long y, unsigned char type, unsigned long color)
+int clif_viewpoint(struct map_session_data &sd, uint32 npc_id, uint32 id, uint32 x, uint32 y, unsigned char type, uint32 color)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -3051,7 +3051,7 @@ int clif_updatestatus(struct map_session_data &sd,unsigned short type)
 
 	return 0;
 }
-int clif_changestatus(struct block_list &bl, unsigned short type, unsigned long val)
+int clif_changestatus(struct block_list &bl, unsigned short type, uint32 val)
 {
 	unsigned char buf[12];
 	if(bl.type == BL_PC)
@@ -3357,7 +3357,7 @@ int clif_unequipitemack(struct map_session_data &sd,unsigned short n,unsigned sh
  *
  *------------------------------------------
  */
-int clif_misceffect(struct block_list &bl, unsigned long type)
+int clif_misceffect(struct block_list &bl, uint32 type)
 {
 	unsigned char buf[32];
 
@@ -3368,7 +3368,7 @@ int clif_misceffect(struct block_list &bl, unsigned long type)
 	return clif_send(buf,packet_len_table[0x19b],&bl,AREA);
 }
 
-int clif_misceffect2(struct block_list &bl, unsigned long type)
+int clif_misceffect2(struct block_list &bl, uint32 type)
 {
 	unsigned char buf[24];
 	memset(buf, 0, packet_len_table[0x1f3]);
@@ -3706,7 +3706,7 @@ int clif_tradestart(struct map_session_data &sd,unsigned char type)
  * 相手方からのアイテム追加
  *------------------------------------------
  */
-int clif_tradeadditem(struct map_session_data &sd, struct map_session_data &tsd,unsigned short index, unsigned long amount)
+int clif_tradeadditem(struct map_session_data &sd, struct map_session_data &tsd,unsigned short index, uint32 amount)
 {
 	unsigned short j;
 	int fd=tsd.fd;
@@ -3856,7 +3856,7 @@ int clif_updatestorageamount(struct map_session_data &sd,struct pc_storage &stor
  * カプラ倉庫にアイテムを追加する
  *------------------------------------------
  */
-int clif_storageitemadded(struct map_session_data &sd,struct pc_storage &stor,unsigned short index,unsigned long amount)
+int clif_storageitemadded(struct map_session_data &sd,struct pc_storage &stor,unsigned short index,uint32 amount)
 {
 	int view,fd,j;
 
@@ -3924,7 +3924,7 @@ int clif_updateguildstorageamount(struct map_session_data &sd,struct guild_stora
  *
  *------------------------------------------
  */
-int clif_guildstorageitemadded(struct map_session_data &sd,struct guild_storage &stor,unsigned short index,unsigned long amount)
+int clif_guildstorageitemadded(struct map_session_data &sd,struct guild_storage &stor,unsigned short index,uint32 amount)
 {
 	int view,fd,j;
 
@@ -3974,7 +3974,7 @@ int clif_guildstorageitemadded(struct map_session_data &sd,struct guild_storage 
  * カプラ倉庫からアイテムを取り去る
  *------------------------------------------
  */
-int clif_storageitemremoved(struct map_session_data &sd,unsigned short index,unsigned long amount)
+int clif_storageitemremoved(struct map_session_data &sd,unsigned short index,uint32 amount)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -4188,7 +4188,7 @@ int clif_fixnpcpos(struct npc_data &nd)
  * 通常攻撃エフェクト＆ダメージ
  *------------------------------------------
  */
-int clif_damage(struct block_list &src,struct block_list &dst,unsigned long tick,unsigned long sdelay,unsigned long ddelay,unsigned short damage,unsigned short div,unsigned char type,unsigned short damage2)
+int clif_damage(struct block_list &src,struct block_list &dst,unsigned long tick,uint32 sdelay,uint32 ddelay,unsigned short damage,unsigned short div,unsigned char type,unsigned short damage2)
 {
 	unsigned char buf[256];
 	struct status_change *sc_data;
@@ -4808,7 +4808,7 @@ int clif_skillup(struct map_session_data &sd, unsigned short skill_num)
  * スキル詠唱エフェクトを送信する
  *------------------------------------------
  */
-int clif_skillcasting(struct block_list &bl,unsigned long src_id,unsigned long dst_id,unsigned short dst_x,unsigned short dst_y,unsigned short skill_id,unsigned long casttime)
+int clif_skillcasting(struct block_list &bl,uint32 src_id,uint32 dst_id,unsigned short dst_x,unsigned short dst_y,unsigned short skill_id,uint32 casttime)
 {
 	unsigned char buf[32];
 	WBUFW(buf,0) = 0x13e;
@@ -4869,7 +4869,7 @@ int clif_skill_fail(struct map_session_data &sd,unsigned short skill_id,unsigned
  * スキル攻撃エフェクト＆ダメージ
  *------------------------------------------
  */
-int clif_skill_damage(struct block_list &src,struct block_list &dst,unsigned long tick,unsigned long sdelay,unsigned long ddelay,unsigned long damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type)
+int clif_skill_damage(struct block_list &src,struct block_list &dst,unsigned long tick,uint32 sdelay,uint32 ddelay,uint32 damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type)
 {
 	unsigned char buf[64];
 	struct status_change *sc_data;
@@ -4930,7 +4930,7 @@ int clif_skill_damage(struct block_list &src,struct block_list &dst,unsigned lon
  * 吹き飛ばしスキル攻撃エフェクト＆ダメージ
  *------------------------------------------
  */
-int clif_skill_damage2(struct block_list &src,struct block_list &dst,unsigned long tick,unsigned long sdelay,unsigned long ddelay,unsigned long damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type)
+int clif_skill_damage2(struct block_list &src,struct block_list &dst,unsigned long tick,uint32 sdelay,uint32 ddelay,uint32 damage,unsigned short div,unsigned short skill_id,unsigned short skill_lv,int type)
 {
 	unsigned char buf[64];
 	struct status_change *sc_data;
@@ -5333,7 +5333,7 @@ int clif_set0199(int fd,unsigned short type)
  * PVP実装？(仮)
  *------------------------------------------
  */
-int clif_pvpset(struct map_session_data &sd,unsigned long pvprank,unsigned long pvpnum,int type)
+int clif_pvpset(struct map_session_data &sd,uint32 pvprank,uint32 pvpnum,int type)
 {
 	if( !session_isActive(sd.fd) )
 		return 0;
@@ -5440,7 +5440,7 @@ int clif_wis_end(int fd, unsigned short flag)
  * キャラID名前引き結果を送信する
  *------------------------------------------
  */
-int clif_solved_charname(struct map_session_data &sd, unsigned long char_id)
+int clif_solved_charname(struct map_session_data &sd, uint32 char_id)
 {
 	char *p= map_charid2nick(char_id);
 	int fd=sd.fd;
@@ -5688,7 +5688,7 @@ int clif_item_skill(struct map_session_data &sd,unsigned short skillid,unsigned 
  * カートにアイテム追加
  *------------------------------------------
  */
-int clif_cart_additem(struct map_session_data &sd,unsigned short n,unsigned long amount,unsigned char fail)
+int clif_cart_additem(struct map_session_data &sd,unsigned short n,uint32 amount,unsigned char fail)
 {
 	int view,j,fd;
 	unsigned char *buf;
@@ -5742,7 +5742,7 @@ int clif_cart_additem(struct map_session_data &sd,unsigned short n,unsigned long
  * カートからアイテム削除
  *------------------------------------------
  */
-int clif_cart_delitem(struct map_session_data &sd,unsigned short n,unsigned long amount)
+int clif_cart_delitem(struct map_session_data &sd,unsigned short n,uint32 amount)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -5951,7 +5951,7 @@ int clif_closevendingboard(struct block_list &bl,int fd)
  * 露店アイテムリスト
  *------------------------------------------
  */
-int clif_vendinglist(struct map_session_data &sd,unsigned long id,struct vending vending[])
+int clif_vendinglist(struct map_session_data &sd,uint32 id,struct vending vending[])
 {
 	struct item_data *data;
 	int i,j,n,index,fd;
@@ -6042,7 +6042,7 @@ int clif_buyvending(struct map_session_data &sd,unsigned short index,unsigned sh
  * 露店開設成功
  *------------------------------------------
 */
-int clif_openvending(struct map_session_data &sd,unsigned long id,struct vending vending[])
+int clif_openvending(struct map_session_data &sd,uint32 id,struct vending vending[])
 {
 	struct item_data *data;
 	int i,j,n,index,fd;
@@ -6250,7 +6250,7 @@ int clif_party_option(struct party &p,struct map_session_data *sd, int flag)
  * パーティ脱退（脱退前に呼ぶこと）
  *------------------------------------------
  */
-int clif_party_leaved(struct party &p,struct map_session_data *sd,unsigned long account_id,const char *name,unsigned char flag)
+int clif_party_leaved(struct party &p,struct map_session_data *sd,uint32 account_id,const char *name,unsigned char flag)
 {
 	unsigned char buf[64];
 	int i;
@@ -6279,7 +6279,7 @@ int clif_party_leaved(struct party &p,struct map_session_data *sd,unsigned long 
  * パーティメッセージ送信
  *------------------------------------------
  */
-int clif_party_message(struct party &p,unsigned long account_id, const char *mes,size_t len)
+int clif_party_message(struct party &p,uint32 account_id, const char *mes,size_t len)
 {
 	struct map_session_data *sd=NULL;
 	int i;
@@ -6406,7 +6406,7 @@ int clif_update_mobhp(struct mob_data &md)
 	WBUFL(buf,2) = md.bl.id;
 
 	memcpy(WBUFP(buf,6), md.name, 24);
-	sprintf(mobhp, "hp: %ld/%d", md.hp, mob_db[md.class_].max_hp);
+	sprintf(mobhp, "hp: %ld/%ld", (unsigned long)md.hp, (unsigned long)mob_db[md.class_].max_hp);
 
 	WBUFW(buf, 0) = 0x195;
 	memcpy(WBUFP(buf,30), mobhp, 24);
@@ -6539,7 +6539,7 @@ int clif_sendegg(struct map_session_data &sd)
 	return 0;
 }
 
-int clif_send_petdata(struct map_session_data &sd,unsigned char type,unsigned long param)
+int clif_send_petdata(struct map_session_data &sd,unsigned char type,uint32 param)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) || !sd.pd)
@@ -6576,7 +6576,7 @@ int clif_send_petstatus(struct map_session_data &sd)
  *
  *------------------------------------------
  */
-int clif_pet_emotion(struct pet_data &pd,unsigned long param)
+int clif_pet_emotion(struct pet_data &pd,uint32 param)
 {
 	unsigned char buf[16];
 	struct map_session_data *sd = pd.msd;
@@ -6600,7 +6600,7 @@ int clif_pet_emotion(struct pet_data &pd,unsigned long param)
 	return clif_send(buf,packet_len_table[0x1aa],&pd.bl,AREA);
 }
 
-int clif_pet_performance(struct block_list &bl,unsigned long param)
+int clif_pet_performance(struct block_list &bl,uint32 param)
 {
 	unsigned char buf[16];
 
@@ -6695,7 +6695,7 @@ int clif_autospell(struct map_session_data &sd,unsigned short skilllv)
  * ディボーションの青い糸
  *------------------------------------------
  */
-int clif_devotion(struct map_session_data &sd,unsigned long target_id)
+int clif_devotion(struct map_session_data &sd,uint32 target_id)
 {
 	unsigned char buf[56];
 	int n;
@@ -6729,7 +6729,7 @@ int clif_spiritball(struct map_session_data &sd)
  *
  *------------------------------------------
  */
-int clif_combo_delay(struct block_list &bl,unsigned long wait)
+int clif_combo_delay(struct block_list &bl,uint32 wait)
 {
 	unsigned char buf[32];
 
@@ -6743,7 +6743,7 @@ int clif_combo_delay(struct block_list &bl,unsigned long wait)
  *白刃取り
  *------------------------------------------
  */
-int clif_bladestop(struct block_list &src,struct block_list &dst, unsigned long _bool)
+int clif_bladestop(struct block_list &src,struct block_list &dst, uint32 _bool)
 {
 	unsigned char buf[32];
 
@@ -6810,7 +6810,7 @@ int clif_mvp_item(struct map_session_data &sd,unsigned short nameid)
  * MVP経験値所得
  *------------------------------------------
  */
-int clif_mvp_exp(struct map_session_data &sd, unsigned long exp)
+int clif_mvp_exp(struct map_session_data &sd, uint32 exp)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -6862,7 +6862,7 @@ int clif_guild_belonginfo(struct map_session_data &sd,struct guild &g)
  * ギルドメンバログイン通知
  *------------------------------------------
  */
-int clif_guild_memberlogin_notice(struct guild &g,unsigned long idx,unsigned long flag)
+int clif_guild_memberlogin_notice(struct guild &g,uint32 idx,uint32 flag)
 {
 	unsigned char buf[64];
 
@@ -7122,7 +7122,7 @@ int clif_guild_positioninfolist(struct map_session_data &sd)
  * ギルド役職変更通知
  *------------------------------------------
  */
-int clif_guild_positionchanged(struct guild &g,unsigned long idx)
+int clif_guild_positionchanged(struct guild &g,uint32 idx)
 {
 	struct map_session_data *sd;
 	unsigned char buf[128];
@@ -7147,7 +7147,7 @@ int clif_guild_positionchanged(struct guild &g,unsigned long idx)
  * ギルドメンバ変更通知
  *------------------------------------------
  */
-int clif_guild_memberpositionchanged(struct guild &g,unsigned long idx)
+int clif_guild_memberpositionchanged(struct guild &g,uint32 idx)
 {
 	struct map_session_data *sd;
 	unsigned char buf[64];
@@ -7337,7 +7337,7 @@ int clif_guild_leave(struct map_session_data &sd,const char *name,const char *me
  * ギルドメンバ追放通知
  *------------------------------------------
  */
-int clif_guild_explusion(struct map_session_data &sd,const char *name,const char *mes,unsigned long account_id)
+int clif_guild_explusion(struct map_session_data &sd,const char *name,const char *mes,uint32 account_id)
 {
 	unsigned char buf[128];
 
@@ -7383,7 +7383,7 @@ int clif_guild_explusionlist(struct map_session_data &sd)
  * ギルド会話
  *------------------------------------------
  */
-int clif_guild_message(struct guild &g,unsigned long account_id,const char *mes,size_t len)
+int clif_guild_message(struct guild &g,uint32 account_id,const char *mes,size_t len)
 {
 	struct map_session_data *sd;
 	unsigned char buf[512];
@@ -7422,7 +7422,7 @@ int clif_guild_skillup(struct map_session_data &sd,unsigned short skillid,unsign
  * ギルド同盟要請
  *------------------------------------------
  */
-int clif_guild_reqalliance(struct map_session_data &sd,unsigned long account_id,const char *name)
+int clif_guild_reqalliance(struct map_session_data &sd,uint32 account_id,const char *name)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -7438,7 +7438,7 @@ int clif_guild_reqalliance(struct map_session_data &sd,unsigned long account_id,
  * ギルド同盟結果
  *------------------------------------------
  */
-int clif_guild_allianceack(struct map_session_data &sd,unsigned long flag)
+int clif_guild_allianceack(struct map_session_data &sd,uint32 flag)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -7453,7 +7453,7 @@ int clif_guild_allianceack(struct map_session_data &sd,unsigned long flag)
  * ギルド関係解消通知
  *------------------------------------------
  */
-int clif_guild_delalliance(struct map_session_data &sd,unsigned long guild_id,unsigned long flag)
+int clif_guild_delalliance(struct map_session_data &sd,uint32 guild_id,uint32 flag)
 {
 	int fd = sd.fd;
 	if( !session_isActive(fd) )
@@ -7485,7 +7485,7 @@ int clif_guild_oppositionack(struct map_session_data &sd,unsigned char flag)
  * ギルド解散通知
  *------------------------------------------
  */
-int clif_guild_broken(struct map_session_data &sd,unsigned long flag)
+int clif_guild_broken(struct map_session_data &sd,uint32 flag)
 {
 	int fd=sd.fd;
 	if( !session_isActive(fd) )
@@ -7675,7 +7675,7 @@ int clif_disp_onlyself(struct map_session_data &sd, const char *mes)
  *------------------------------------------
  */
 
-int clif_GM_kickack(struct map_session_data &sd, unsigned long id)
+int clif_GM_kickack(struct map_session_data &sd, uint32 id)
 {
 	int fd = sd.fd;
 	if( !session_isActive(fd) )
@@ -7800,7 +7800,7 @@ int clif_soundeffectall(struct block_list &bl, const char *name, unsigned char t
 }
 
 // displaying special effects (npcs, weather, etc) [Valaris]
-int clif_specialeffect(struct block_list &bl, unsigned long type, int flag)
+int clif_specialeffect(struct block_list &bl, uint32 type, int flag)
 {
 	unsigned char buf[24];
 
@@ -7999,7 +7999,7 @@ int clif_charnameack(int fd, struct block_list &bl, bool clear)
 		{
 			char mobhp[50];
 			cmd = 0x195;
-			sprintf(mobhp, "hp: %ld/%ld", md.hp, md.max_hp);
+			sprintf(mobhp, "hp: %ld/%ld", (unsigned long)md.hp, (unsigned long)md.max_hp);
 			memcpy(WBUFP(buf,30), mobhp, 24);
 			WBUFB(buf,54) = 0;
 			WBUFB(buf,78) = 0;
@@ -8008,7 +8008,7 @@ int clif_charnameack(int fd, struct block_list &bl, bool clear)
 		}
 	default:
 		if (battle_config.error_log)
-			ShowError("clif_parse_GetCharNameRequest : bad type %d(%ld)\n", bl.type, bl.id);
+			ShowError("clif_parse_GetCharNameRequest : bad type %d(%ld)\n", bl.type, (unsigned long)bl.id);
 		return 0;
 	}
 
@@ -8066,10 +8066,10 @@ int clif_parse_WantToConnection(int fd, struct map_session_data &sd)
 
 	struct map_session_data *old_sd;
 	unsigned short cmd			= RFIFOW(fd,0);
-	unsigned long account_id	= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[0]);
-	unsigned long char_id		= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[1]);
-	unsigned long login_id1		= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[2]);
-	unsigned long client_tick	= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[3]);
+	uint32 account_id	= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[0]);
+	uint32 char_id		= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[1]);
+	uint32 login_id1		= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[2]);
+	uint32 client_tick	= RFIFOL(fd, packet_db[sd.packet_ver][cmd].pos[3]);
 	unsigned char sex			= RFIFOB(fd, packet_db[sd.packet_ver][cmd].pos[4]);
 
 	//ShowMessage("WantToConnection: Received %d bytes with packet 0x%X -> ver %i\n", RFIFOREST(fd), cmd, sd.packet_ver);
@@ -8395,7 +8395,7 @@ int clif_parse_QuitGame(int fd, struct map_session_data &sd)
 int clif_parse_GetCharNameRequest(int fd, struct map_session_data &sd)
 {
 	struct block_list* bl;
-	unsigned long account_id;
+	uint32 account_id;
 	if( !session_isActive(fd) )
 		return 0;
 	
@@ -8438,7 +8438,7 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 	//ShowMessage("clif_parse_GlobalMessage: message: '%s'.\n", RFIFOP(fd,4));
 	if( strncmp((char*)RFIFOP(fd,4), sd.status.name, strlen(sd.status.name)) != 0 )
 	{
-		snprintf(message,size+16, "Hack on global message (normal message): character '%s' (account: %ld) uses another name.", sd.status.name, sd.status.account_id);
+		snprintf(message,size+16, "Hack on global message (normal message): character '%s' (account: %ld) uses another name.", sd.status.name, (unsigned long)sd.status.account_id);
 		// information is send to all online GM
 		ShowMessage(message);
 		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message);
@@ -8451,7 +8451,7 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 
 		// message about the ban
 		if (battle_config.ban_spoof_namer > 0)
-			snprintf(message,sizeof(message), " Player has been banned for %ld minute(s).", battle_config.ban_spoof_namer);
+			snprintf(message,sizeof(message), " Player has been banned for %ld minute(s).", (unsigned long)battle_config.ban_spoof_namer);
 		else
 			snprintf(message,sizeof(message), " Player hasn't been banned (Ban option is disabled).");
 		intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message);
@@ -8655,7 +8655,7 @@ int clif_parse_ActionRequest(int fd, struct map_session_data &sd)
 	unsigned long tick;
 	unsigned char buf[64];
 	int action_type;
-	unsigned long target_id;
+	uint32 target_id;
 
 	if( !session_isActive(fd) )
 		return 0;
@@ -8803,7 +8803,10 @@ int clif_parse_Wis(int fd, struct map_session_data &sd)
 	if(gm_command) aFree(gm_command);
 
 	//Chat Logging type 'W' / Whisper
-	log_chat("W", 0, sd.status.char_id, sd.status.account_id, (char*)sd.mapname, sd.bl.x, sd.bl.y, (char*)RFIFOP(fd, 4), (char*)RFIFOP(fd, 28));
+	if(log_config.chat&1 //we log everything then
+		|| ( log_config.chat&2 //if Whisper bit is on
+		&& ( !agit_flag || !(log_config.chat&16) ))) //if WOE ONLY flag is off or AGIT is OFF
+		log_chat("W", 0, sd.status.char_id, sd.status.account_id, (char*)sd.mapname, sd.bl.x, sd.bl.y, (char*)RFIFOP(fd, 4), (char*)RFIFOP(fd, 28));
 
 	//-------------------------------------------------------//
 	//   Lordalfa - Paperboy - To whisper NPC commands       //
@@ -8825,7 +8828,7 @@ int clif_parse_Wis(int fd, struct map_session_data &sd)
 			}
 			else
 				kp = "";
-			sprintf(tempmes, "@whispervar%d$", i);
+			snprintf(tempmes, sizeof(tempmes),"@whispervar%d$", i);
 			set_var(sd,tempmes,kp);
 		}//Sets Variables to use in the NPC
 		
@@ -9386,7 +9389,7 @@ int clif_parse_SkillUp(int fd,struct map_session_data &sd)
  */
 int clif_parse_UseSkillToId(int fd, struct map_session_data &sd) {
 	unsigned short skillnum, skilllv, lv;
-	unsigned long target_id;
+	uint32 target_id;
 	unsigned long tick = gettick();
 
 	if( !session_isActive(fd) )
@@ -10515,7 +10518,7 @@ int clif_parse_GMReqNoChat(int fd,struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	unsigned long tid = RFIFOL(fd,2);
+	uint32 tid = RFIFOL(fd,2);
 	int type = RFIFOB(fd,6);
 	int limit = RFIFOW(fd,7);
 	struct block_list *bl = map_id2bl(tid);
@@ -10619,7 +10622,7 @@ int clif_parse_PMIgnore(int fd, struct map_session_data &sd)
 					WFIFOSET(fd, packet_len_table[0x0d1]);
 					clif_wis_message(fd, wisp_server_name, "This player is already blocked.", strlen("This player is already blocked.") + 1);
 					if (strcmp(wisp_server_name, nick) == 0) { // to found possible bot users who automaticaly ignore people.
-						sprintf(output, "Character '%s' (account: %ld) has tried AGAIN to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, sd.status.account_id, wisp_server_name);
+						sprintf(output, "Character '%s' (account: %ld) has tried AGAIN to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
 						intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
 					}
 					return 0;
@@ -10632,7 +10635,7 @@ int clif_parse_PMIgnore(int fd, struct map_session_data &sd)
 				WFIFOB(fd,3) = 0; // success
 				WFIFOSET(fd, packet_len_table[0x0d1]);
 				if (strcmp(wisp_server_name, nick) == 0) { // to found possible bot users who automaticaly ignore people.
-					sprintf(output, "Character '%s' (account: %ld) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, sd.status.account_id, wisp_server_name);
+					sprintf(output, "Character '%s' (account: %ld) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
 					intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
 					// send something to be inform and force bot to ignore twice... ifGM receiving block + block again, it's a bot :)
 					clif_wis_message(fd, wisp_server_name, "Add me in your ignore list, doesn't block my wisps.", strlen("Add me in your ignore list, doesn't block my wisps.") + 1);
@@ -10642,7 +10645,7 @@ int clif_parse_PMIgnore(int fd, struct map_session_data &sd)
 				WFIFOSET(fd, packet_len_table[0x0d1]);
 				clif_wis_message(fd, wisp_server_name, "You can not block more people.", strlen("You can not block more people.") + 1);
 				if (strcmp(wisp_server_name, nick) == 0) { // to found possible bot users who automaticaly ignore people.
-					sprintf(output, "Character '%s' (account: %ld) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, sd.status.account_id, wisp_server_name);
+					sprintf(output, "Character '%s' (account: %ld) has tried to block wisps from '%s' (wisp name of the server). Bot user?", sd.status.name, (unsigned long)sd.status.account_id, wisp_server_name);
 					intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, output);
 				}
 			}
@@ -10859,7 +10862,7 @@ int clif_parse_FriendsListAdd(int fd, struct map_session_data &sd)
 int clif_parse_FriendsListReply(int fd, struct map_session_data &sd)
 {	//<W: id> <L: Player 1 chara ID> <L: Player 1 AID> <B: Response>
 	struct map_session_data *f_sd;
-	unsigned long char_id, id;
+	uint32 char_id, id;
 	char reply;
 
 	if( !session_isActive(fd) )
@@ -10906,7 +10909,7 @@ int clif_parse_FriendsListRemove(int fd, struct map_session_data &sd)
 	if( !session_isActive(fd) )
 		return 0;
 
-	unsigned long id = RFIFOL(fd,6);
+	uint32 id = RFIFOL(fd,6);
 	struct map_session_data *f_sd = map_charid2sd(id);
 
 	// Search friend
@@ -11007,7 +11010,7 @@ int clif_parse_Blacksmith(int fd,struct map_session_data &sd)
 	return 0;
 }
 
-int clif_fame_blacksmith(struct map_session_data &sd, unsigned long points)
+int clif_fame_blacksmith(struct map_session_data &sd, uint32 points)
 {
 	int fd = sd.fd;
 	if( !session_isActive(fd) )
@@ -11054,7 +11057,7 @@ int clif_parse_Alchemist(int fd,struct map_session_data &sd)
 	return 0;
 }
 
-int clif_fame_alchemist(struct map_session_data &sd, unsigned long points)
+int clif_fame_alchemist(struct map_session_data &sd, uint32 points)
 {
 	int fd = sd.fd;
 	if( !session_isActive(fd) )
@@ -11142,7 +11145,7 @@ int clif_terminate(int fd)
 		} 
 		else
 		{
-			unsigned long ip = session[fd]->client_ip;
+			uint32 ip = session[fd]->client_ip;
 			ShowWarning("Player not identified with IP '"CL_WHITE"%d.%d.%d.%d"CL_RESET"' logged off.\n", (ip>>24)&0xFF,(ip>>16)&0xFF,(ip>>8)&0xFF,(ip)&0xFF);
 		}
 	}
@@ -11313,14 +11316,14 @@ int clif_parse(int fd)
 				{
 					if (sd->status.name != NULL)
 						fprintf(fp, "%sPlayer with account ID %ld (character ID %ld, player name %s) sent wrong packet:\n",
-								asctime(localtime(&now)), sd->status.account_id, sd->status.char_id, sd->status.name);
+								asctime(localtime(&now)), (unsigned long)sd->status.account_id, (unsigned long)sd->status.char_id, sd->status.name);
 					else
 						fprintf(fp, "%sPlayer with account ID %ld sent wrong packet:\n",
-								asctime(localtime(&now)), sd->bl.id);
+								asctime(localtime(&now)), (unsigned long)sd->bl.id);
 				}
 				else if (sd) // not authentified! (refused by char-server or disconnect before to be authentified)
 					fprintf(fp, "%sPlayer with account ID %ld sent wrong packet:\n", 
-							asctime(localtime(&now)), sd->bl.id);
+							asctime(localtime(&now)), (unsigned long)sd->bl.id);
 				
 				fprintf(fp, "\t---- 00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F");
 				for(i = 0; i < packet_len; i++)

@@ -153,20 +153,31 @@
 
 
 
+
+
 //////////////////////////////////////////////////////////////////////////
 // useful typedefs
 //////////////////////////////////////////////////////////////////////////
-typedef unsigned int    uint;
-typedef unsigned long   ulong;
+typedef   signed int    sint;	// don't use (only for ie. scanf)
+typedef unsigned int    uint;	// don't use
+typedef   signed long   slong;	// don't use (only for ie. file-io)
+typedef unsigned long   ulong;	// don't use
+typedef   signed short  sshort;
 typedef unsigned short  ushort;
 typedef unsigned char   uchar;
-typedef signed char     schar;
-typedef char*           pchar;	//conflict with declarations from mysql
+typedef   signed char   schar;
+
+typedef char*           pschar;
 typedef unsigned char*  puchar;
-typedef const char*     cchar;
+typedef const char*     pcschar;
 typedef void*           ptr;
 typedef int*            pint;
 
+
+//////////////////////////////////////////////////////////////////////////
+// integer with exact processor width (and best speed)
+
+//						size_t already defined in stdio.h
 #ifdef WIN32 // does not have a signed size_t
 #if (defined _WIN64)  // naive 64bit windows platform
 typedef __int64			ssize_t;
@@ -176,8 +187,53 @@ typedef int				ssize_t;
 #endif
 
 
+//////////////////////////////////////////////////////////////////////////
+// we need to define our own fixed byte types
+typedef   signed char	sint08;
+typedef unsigned char	uint08;
+typedef   signed short	sint16;
+typedef unsigned short	uint16;
+//////////////////////////////////////////////////////////////////////////
+// IMPORTANT: 
+// ints beeing regular machine dependend type is over starting with 64bit arch
+// 64bit gnu will define ints as 32bit but long as 64bit,
+// while 64bit windows will define both int and long as 4 byte long, introducing __int64 as 64bit integer type
+// other platforms vary int size dependend on machine width but keep long constant
+#ifdef WIN32
+typedef long			sint32;
+typedef unsigned long	uint32;
+#else
+typedef int				sint32;
+typedef unsigned int	uint32;
+#endif
 
-/////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// portable 64-bit integers
+//////////////////////////////////////////////////////////////////////////
+#if defined(_MSC_VER) || defined(__BORLANDC__)
+ typedef __int64             sint64;
+ typedef unsigned __int64    uint64;
+#define LLCONST(a) (a##i64)
+#else
+ typedef long long           sint64;
+ typedef unsigned long long  uint64;
+#define LLCONST(a) (a##ll)
+#endif
+
+#ifndef INT64_MIN
+#define INT64_MIN  (LLCONST(-9223372036854775807)-1)
+#endif
+#ifndef INT64_MAX
+#define INT64_MAX  (LLCONST(9223372036854775807))
+#endif
+#ifndef UINT64_MAX
+#define UINT64_MAX (LLCONST(18446744073709551615u))
+#endif
+
+
+
+//////////////////////////////
 #ifdef __cplusplus
 //////////////////////////////
 
@@ -430,29 +486,6 @@ extern inline uint sleep(uint milliseconds)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-// portable 64-bit integers
-//////////////////////////////////////////////////////////////////////////
-#if defined(_MSC_VER) || defined(__BORLANDC__)
- typedef __int64             int64;
- typedef unsigned __int64    uint64;
-#define LLCONST(a) (a##i64)
-#else
- typedef long long           int64;
- typedef unsigned long long  uint64;
-#define LLCONST(a) (a##ll)
-#endif
-
-#ifndef INT64_MIN
-#define INT64_MIN  (LLCONST(-9223372036854775807)-1)
-#endif
-#ifndef INT64_MAX
-#define INT64_MAX  (LLCONST(9223372036854775807))
-#endif
-#ifndef UINT64_MAX
-#define UINT64_MAX (LLCONST(18446744073709551615u))
-#endif
-
 
 
 
@@ -533,7 +566,7 @@ static inline char tolower(char val)	{ return tolower((int)((unsigned char)val))
 // byte word dword access
 //////////////////////////////////////////////////////////////////////////
 
-static inline unsigned char GetByte(unsigned long val, size_t num)
+static inline unsigned char GetByte(uint32 val, size_t num)
 {
 	switch(num)
 	{
@@ -549,7 +582,7 @@ static inline unsigned char GetByte(unsigned long val, size_t num)
 		return 0;	//better throw something here
 	}
 }
-static inline unsigned short GetWord(unsigned long val, size_t num)
+static inline unsigned short GetWord(uint32 val, size_t num)
 {
 	switch(num)
 	{
@@ -565,18 +598,18 @@ static inline unsigned short MakeWord(unsigned char byte0, unsigned char byte1)
 {
 	return byte0 | (byte1<<0x08);
 }
-static inline unsigned long MakeDWord(unsigned short word0, unsigned short word1)
+static inline uint32 MakeDWord(unsigned short word0, unsigned short word1)
 {
-	return 	  ((unsigned long)word0)
-			| ((unsigned long)word1<<0x10);
+	return 	  ((uint32)word0)
+			| ((uint32)word1<<0x10);
 }
 
-static inline unsigned long MakeDWord(unsigned char byte0, unsigned char byte1, unsigned char byte2, unsigned char byte3)
+static inline uint32 MakeDWord(unsigned char byte0, unsigned char byte1, unsigned char byte2, unsigned char byte3)
 {
-	return 	  ((unsigned long)byte0)
-			| ((unsigned long)byte1<<0x08)
-			| ((unsigned long)byte2<<0x10)
-			| ((unsigned long)byte3<<0x18);
+	return 	  ((uint32)byte0)
+			| ((uint32)byte1<<0x08)
+			| ((uint32)byte2<<0x10)
+			| ((uint32)byte3<<0x18);
 }
 
 // Check the byte-order of the CPU.
@@ -615,7 +648,7 @@ static inline void SwapFourBytes(char *p)
 		p[2] = tmp;
 	}
 }
-static inline unsigned long SwapFourBytes(unsigned long w)
+static inline uint32 SwapFourBytes(uint32 w)
 {
     return	  ((w & 0x000000FF) << 0x18)
 			| ((w & 0x0000FF00) << 0x08)
@@ -630,11 +663,11 @@ static inline unsigned long SwapFourBytes(unsigned long w)
 #endif
 // Find the log base 2 of an N-bit integer in O(lg(N)) operations
 // in this case for 32bit input it would be 11 operations
-static inline unsigned long log2(unsigned long v)
+static inline unsigned long log2(unsigned long  v)
 {
-//	static const unsigned long b[] = 
+//	static const uint32 b[] = 
 //		{0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
-//	static const unsigned long S[] = 
+//	static const uint32 S[] = 
 //		{1, 2, 4, 8, 16};
 	// result of log2(v) will go here
 	register unsigned long c = 0; 
@@ -654,6 +687,10 @@ static inline unsigned long log2(unsigned long v)
 //	if (v & b[1]) { v >>= S[1]; c |= S[1]; }
 //	if (v & b[0]) { v >>= S[0]; c |= S[0]; }
 	// put values in for more speed...
+// 64bit unix defines long as 64bit
+#if (defined _M_X64)
+	if (v & LLCONST(0xFFFFFFFF00000000)) { v >>= 0x20; c |= 0x20; } 
+#endif
 	if (v & 0xFFFF0000) { v >>= 0x10; c |= 0x10; } 
 	if (v & 0x0000FF00) { v >>= 0x08; c |= 0x08; }
 	if (v & 0x000000F0) { v >>= 0x04; c |= 0x04; }
@@ -666,7 +703,7 @@ static inline unsigned long log2(unsigned long v)
 #endif
 static inline unsigned long pow2(unsigned long v)
 {
-	if(v<32)
+	if( v < 8*sizeof(v) )
 		return 1<<v;
 	return 0;
 }
@@ -674,7 +711,7 @@ static inline unsigned long pow2(unsigned long v)
 // newton approximation with additional start condition
 // start should be set to the middle of the expected interval for minimizing iterations in statistics
 // the given number asures this for T of types char...int64
-template<class T> static inline T sqrt(T n, T start=LLCONST(0x000000010001010F) )
+template<class T> static inline T sqrt(T n, T start=(((T)LLCONST(0x000000010001010F))>>2) )
 {
 	if(n>0)
 	{
@@ -689,14 +726,6 @@ template<class T> static inline T sqrt(T n, T start=LLCONST(0x000000010001010F) 
 	// should set matherr or throw something in case of negative numbers
 	return 0;
 }
-
-
-
-
-
-
-
-
 
 
 //////////////////////////////////////////////////////////////////////////

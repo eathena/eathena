@@ -104,6 +104,8 @@ enum {
 	UF_NOREITERATION	= 0x0002,	// 重複置き禁止 
 	UF_NOFOOTSET		= 0x0004,	// 足元置き禁止
 	UF_NOOVERLAP		= 0x0008,	// ユニット効果が重複しない
+	UF_NOPC				= 0x0010,	//May not target players
+	UF_NOMOB			= 0x0020,	//May not target mobs
 	UF_DANCE			= 0x0100,	// ダンススキル
 	UF_ENSEMBLE			= 0x0200,	// 合奏スキル
 };
@@ -169,10 +171,10 @@ int	skill_get_inf2( int id );
 int	skill_get_maxcount( int id );
 int	skill_get_blewcount( int id ,int lv );
 int	skill_get_unit_flag( int id );
-int	skill_tree_get_max( int id, int b_class );	// Celest
+
 
 // スキルの使用
-int skill_use_id( struct map_session_data *sd, unsigned long target_id,unsigned short skill_num, unsigned short skill_lv);
+int skill_use_id( struct map_session_data *sd, uint32 target_id,unsigned short skill_num, unsigned short skill_lv);
 int skill_use_pos( struct map_session_data *sd,int skill_x, int skill_y, unsigned short skill_num, unsigned short skill_lv);
 
 int skill_castend_map( struct map_session_data *sd,int skill_num, const char *map);
@@ -219,10 +221,10 @@ int skill_check_moonlit (struct block_list *bl, int dx, int dy);
 void skill_brandishspear_first(struct square *tc,int dir,int x,int y);
 void skill_brandishspear_dir(struct square *tc,int dir,int are);
 int skill_autospell(struct map_session_data *md,int skillid);
-void skill_devotion(struct map_session_data *md,unsigned long target);
-void skill_devotion2(struct block_list *bl,unsigned long crusader);
-int skill_devotion3(struct block_list *bl,unsigned long target);
-void skill_devotion_end(struct map_session_data *md,struct map_session_data *sd,unsigned long target);
+void skill_devotion(struct map_session_data *md,uint32 target);
+void skill_devotion2(struct block_list *bl,uint32 crusader);
+int skill_devotion3(struct block_list *bl,uint32 target);
+void skill_devotion_end(struct map_session_data *md,struct map_session_data *sd,uint32 target);
 
 #define skill_calc_heal(bl,skill_lv) (( status_get_lv(bl)+status_get_int(bl) )/8 *(4+ skill_lv*8))
 

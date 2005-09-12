@@ -38,7 +38,7 @@
 #define	howmany(x, y)	(((x) + ((y) - 1)) / (y))
 #endif  
 #ifndef NFDBITS
-#define	NFDBITS	(sizeof (unsigned long) * NBBY)	// bits per mask
+#define	NFDBITS	(sizeof(unsigned long) * NBBY)	// bits per mask
 #endif
 #ifndef __FDS_BITS
 # define __FDS_BITS(set) ((set)->fds_bits)
@@ -705,7 +705,7 @@ class DDoS
 		struct _connect_history *prev;
 		int    status;
 		int    count;
-		ulong ip;
+		uint32 ip;
 		unsigned long tick;
 	};
 
@@ -768,7 +768,7 @@ public:
 	//   true  : ê⁄ë±NG
 
 	// ip is host byte order
-	int connect_check(ulong ip) 
+	int connect_check(uint32 ip) 
 	{
 		int result = connect_check_(ip);
 		if(access_debug) {
@@ -778,7 +778,7 @@ public:
 		return result;
 	}
 	// ip is host byte order
-	int connect_check_(ulong ip) 
+	int connect_check_(uint32 ip) 
 	{
 		struct _connect_history *hist     = connect_history[ip & 0xFFFF];
 		struct _connect_history *hist_new;
@@ -1909,7 +1909,7 @@ void debug_output()
 {
 	if( 0!=strcmp(temp_buffer1,temp_buffer2) )
 	{
-		printf("[%ld]%s\n",last_tick,temp_buffer1);
+		printf("[%ld]%s\n",(unsigned long)last_tick, temp_buffer1);
 		fflush(stdout);
 		memcpy(temp_buffer2, temp_buffer1,sizeof(temp_buffer1));
 	}
@@ -1931,7 +1931,7 @@ int do_sendrecv(int next)
 	FD_ZERO(&wfd);
 	FD_ZERO(&rfd);
 #ifdef SOCKET_DEBUG_PRINT
-	printf("\r[%ld]",last_tick);
+	printf("\r[%ld]", (unsigned long)last_tick);
 #endif
 	for(fd=0; fd<fd_max; fd++)
 	{

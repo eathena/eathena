@@ -144,7 +144,7 @@ int flush_time=100;
 
 struct charid2nick {
 	char nick[24];
-	unsigned long req_id;
+	uint32 req_id;
 };
 
 // ｫﾞｫﾃｫﾗｫｭｫ罩ﾃｫｷｫ袮ﾗ鯑ｫﾕｫ鬮ｰ(map_athana.conf?ｪﾎread_map_from_cacheｪﾇ・)
@@ -426,28 +426,35 @@ int map_countnearpc (unsigned short m, size_t x, size_t y)
  * セル上のPCとMOBの?を?える (グランドクロス用)
  *------------------------------------------
  */
-int map_count_oncell(unsigned short m, int x, int y) {
+int map_count_oncell(unsigned short m, int x, int y, int type)
+{
 	int bx,by;
 	struct block_list *bl=NULL;
 	int i,c;
 	int count = 0;
 
 	if (x < 0 || y < 0 || (x >= map[m].xs) || (y >= map[m].ys))
-		return 1;
+		return 0;
+
 	bx = x/BLOCK_SIZE;
 	by = y/BLOCK_SIZE;
 
-	bl = map[m].block[bx+by*map[m].bxs];
-	c = map[m].block_count[bx+by*map[m].bxs];
-	for(i=0;i<c && bl;i++,bl=bl->next){
-		if(bl->x == x && bl->y == y && bl->type == BL_PC) count++;
+	if (type == 0 || type != BL_MOB)
+	{
+		bl = map[m].block[bx+by*map[m].bxs];
+		c = map[m].block_count[bx+by*map[m].bxs];
+		for(i=0;i<c && bl;i++,bl=bl->next){
+			if(bl->x == x && bl->y == y && bl->type == BL_PC) count++;
+		}
 	}
-	bl = map[m].block_mob[bx+by*map[m].bxs];
-	c = map[m].block_mob_count[bx+by*map[m].bxs];
-	for(i=0;i<c && bl;i++,bl=bl->next){
-		if(bl->x == x && bl->y == y) count++;
+	if (type == 0 || type == BL_MOB)
+	{
+		bl = map[m].block_mob[bx+by*map[m].bxs];
+		c = map[m].block_mob_count[bx+by*map[m].bxs];
+		for(i=0;i<c && bl;i++,bl=bl->next){
+			if(bl->x == x && bl->y == y) count++;
+		}
 	}
-	if(!count) count = 1;
 	return count;
 }
 /*
@@ -481,6 +488,76 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list *target,int x,in
 	return NULL;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+
+int CMapElements::foreachincell(unsigned short m,int x,int y,int type)
+{return 0;}
+int CMapElements::foreachinmovearea(unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type)
+{return 0;}
+int CMapElements::foreachinpath(unsigned short m,int x0,int y0,int x1,int y1,int range,int type)
+{return 0;}
+
+int CMapElements::foreachinarea(unsigned short m, int x0,int y0,int x1,int y1,int type)
+{
+	int bx,by;
+	int returnCount =0;	//total sum of returned values of func() [Skotlex]
+	struct block_list *bl=NULL;
+	int blockcount=bl_list_count,i,c;
+
+	if(m >= map_num)
+		return 0;
+	
+	if(x0>x1) swap(x0,x1);
+	if(y0>y1) swap(y0,y1);
+
+	if (x0 < 0) x0 = 0;
+	if (y0 < 0) y0 = 0;
+	if (x1 >= map[m].xs) x1 = map[m].xs-1;
+	if (y1 >= map[m].ys) y1 = map[m].ys-1;
+	if (type == 0 || type != BL_MOB)
+		for(by = y0/BLOCK_SIZE; by <= y1/BLOCK_SIZE; by++)
+		for(bx = x0/BLOCK_SIZE; bx <= x1/BLOCK_SIZE; bx++)
+		{
+			bl = map[m].block[bx+by*map[m].bxs];
+			c = map[m].block_count[bx+by*map[m].bxs];
+			for(i=0;i<c && bl;i++,bl=bl->next)
+			{
+				if(bl && type && bl->type!=type)
+					continue;
+				if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
+					bl_list[bl_list_count++]=bl;
+			}
+		}
+	if(type==0 || type==BL_MOB)
+		for(by = y0/BLOCK_SIZE; by <= y1/BLOCK_SIZE; by++)
+		for(bx = x0/BLOCK_SIZE; bx <= x1/BLOCK_SIZE; bx++)
+		{
+			bl = map[m].block_mob[bx+by*map[m].bxs];
+			c = map[m].block_mob_count[bx+by*map[m].bxs];
+			for(i=0;i<c && bl;i++,bl=bl->next)
+			{
+				if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
+					bl_list[bl_list_count++]=bl;
+			}
+		}
+
+	if(bl_list_count>=BL_LIST_MAX) {
+		if(battle_config.error_log)
+			ShowMessage("map_foreachinarea: *WARNING* block count too many!\n");
+	}
+
+	map_freeblock_lock();	// メモリからの解放を禁止する
+
+	for(i=blockcount;i<bl_list_count;i++)
+		if(bl_list[i] && bl_list[i]->prev)	// 有?かどうかチェック
+			returnCount += this->callback(*bl_list[i]);
+
+	map_freeblock_unlock();	// 解放を許可する
+	bl_list_count = blockcount;
+
+	return returnCount;	//[Skotlex]
+}
 /*==========================================
  * map m (x0,y0)-(x1,y1)?の全objに?して
  * funcを呼ぶ
@@ -1352,8 +1429,37 @@ int map_clearflooritem_timer(int tid, unsigned long tick, int id, intptr data)
  * 現?range=1でアイテムドロップ用途のみ
  *------------------------------------------
  */
-int map_searchrandfreecell(unsigned short m,int x,int y,int range)
+int map_searchrandfreecell(unsigned short m, unsigned short x, unsigned short y, unsigned short range)
 {
+	int free_cell,i,j;
+
+	if (range > 15)
+		return -1;
+	
+	CREATE_BUFFER(free_cells, int, (2*range+1)*(2*range+1));
+
+	for(free_cell=0,i=-range;i<=range;i++){
+		if(i+y<0 || i+y>=map[m].ys)
+			continue;
+		for(j=-range;j<=range;j++){
+			if(j+x<0 || j+x>=map[m].xs)
+				continue;
+			if(map_getcell(m,j+x,i+y,CELL_CHKNOPASS))
+				continue;
+			if(map_count_oncell(m,j+x,i+y, BL_ITEM) > 1) //Avoid item stacking to prevent against exploits. [Skotlex]
+				continue;
+			free_cells[free_cell++] = j+x+((i+y)<<16);
+		}
+	}
+	if(free_cell==0)
+	{
+		DELETE_BUFFER(free_cells);
+		return -1;
+	}
+	free_cell=free_cells[rand()%free_cell];
+	DELETE_BUFFER(free_cells);
+	return free_cell;
+/*
 	int free_cell,i,j;
 
 	if(m<map_num)
@@ -1391,6 +1497,7 @@ int map_searchrandfreecell(unsigned short m,int x,int y,int range)
 		}
 	}
 	return x+(y<<16);
+*/
 }
 
 /*==========================================
@@ -1468,7 +1575,7 @@ int map_addflooritem(struct item &item_data,unsigned short amount,unsigned short
  * charid_dbへ追加(返信待ちがあれば返信)
  *------------------------------------------
  */
-void map_addchariddb(unsigned long charid, const char *name)
+void map_addchariddb(uint32 charid, const char *name)
 {
 	struct charid2nick *p;
 	int req = 0;
@@ -1501,7 +1608,7 @@ void map_addchariddb(unsigned long charid, const char *name)
  * charid_dbへ追加（返信要求のみ）
  *------------------------------------------
  */
-int map_reqchariddb(struct map_session_data &sd, unsigned long charid) 
+int map_reqchariddb(struct map_session_data &sd, uint32 charid) 
 {
 	struct charid2nick *p= (struct charid2nick*)numdb_search(charid_db,charid);
 	if(p==NULL)
@@ -1673,7 +1780,7 @@ int map_quit(struct map_session_data &sd)
  * id番?のPCを探す。居なければNULL
  *------------------------------------------
  */
-struct map_session_data * map_id2sd(unsigned long id)
+struct map_session_data * map_id2sd(uint32 id)
 {
 // remove search from db, because:
 // 1 - all players, npc, items and mob are in this db (to search, it's not speed, and search in session is more sure)
@@ -1703,7 +1810,7 @@ struct map_session_data * map_id2sd(unsigned long id)
  * char_id番?の名前を探す
  *------------------------------------------
  */
-char * map_charid2nick(unsigned long id)
+char * map_charid2nick(uint32 id)
 {
 	struct charid2nick *p = (struct charid2nick*)numdb_search(charid_db,id);
 
@@ -1714,7 +1821,7 @@ char * map_charid2nick(unsigned long id)
 	return p->nick;
 }
 
-struct map_session_data * map_charid2sd(unsigned long id)
+struct map_session_data * map_charid2sd(uint32 id)
 {
 	size_t i;
 	struct map_session_data *sd;
@@ -1770,7 +1877,7 @@ struct map_session_data * map_nick2sd(const char *nick) {
  * 一三bjectの場合は配列を引くのみ
  *------------------------------------------
  */
-struct block_list * map_id2bl(unsigned long id)
+struct block_list * map_id2bl(uint32 id)
 {
 	struct block_list *bl=NULL;
 	if((size_t)id<sizeof(objects)/sizeof(objects[0]))
@@ -1785,9 +1892,9 @@ struct block_list * map_id2bl(unsigned long id)
  * id_db?の全てにfuncを?行
  *------------------------------------------
  */
-int map_foreachiddb(int (*func)(void*,void*,va_list),...) {
+int map_foreachiddb(int (*func)(void*,void*,va_list),...)
+{
 	va_list ap;
-
 	va_start(ap,func);
 	numdb_foreach(id_db,func,ap);
 	va_end(ap);
@@ -2500,7 +2607,7 @@ bool map_cache_read(struct map_data &m)
 				m.xs = 0; 
 				m.ys = 0; 
 				return false;
-				}
+			}
 			m.gat = (struct mapgat *)aMalloc( dest_len );				
 			decode_zip((unsigned char*)m.gat, &dest_len, buf, size_compress);
 			if(dest_len != map_cache.map[i].xs * map_cache.map[i].ys * sizeof(struct mapgat))
@@ -2527,7 +2634,7 @@ bool map_cache_read(struct map_data &m)
 bool map_cache_write(struct map_data &m)
 {
 	size_t i;
-	unsigned long len_new , len_old;
+	unsigned long len_new, len_old;
 	unsigned char *write_buf;
 
 	if(!map_cache.fp)
@@ -2774,12 +2881,12 @@ int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap)
 	if( map_cache_read(map[m]) )
 	{	// キャッシュから読み甲ﾟた
 		(*map_cache)++;
-			}
+	}
 	else
 	{	// read from grf
 		int wh;
 		int x,y;
-		struct gat_1cell {float high[4]; long type;};
+		struct gat_1cell {float high[4]; int type;};
 		unsigned char *gat, *p;
 
 		// read & convert fn
@@ -2805,13 +2912,13 @@ int map_readmap(int m,char *fn, char *alias, int *map_cache, int maxmap)
 
 			if(MSB_FIRST==CheckByteOrder()) // little/big endian
 			{	// need to correct the whole struct since we have no suitable buffer assigns
-				// gat_1cell contains 4 floats and one long (4byte each) so swapping these is enough
+				// gat_1cell contains 4 floats and one int (4byte each) so swapping these is enough
 				// the structure is memory alligned so it is safe to use just the pointers
-				SwapFourBytes(((char*)(&pp)) + sizeof(long)*0);
-				SwapFourBytes(((char*)(&pp)) + sizeof(long)*1);
-				SwapFourBytes(((char*)(&pp)) + sizeof(long)*2);
-				SwapFourBytes(((char*)(&pp)) + sizeof(long)*3);
-				SwapFourBytes(((char*)(&pp)) + sizeof(long)*4);
+				SwapFourBytes(((char*)(&pp)) + sizeof(float)*0);
+				SwapFourBytes(((char*)(&pp)) + sizeof(float)*1);
+				SwapFourBytes(((char*)(&pp)) + sizeof(float)*2);
+				SwapFourBytes(((char*)(&pp)) + sizeof(float)*3);
+				SwapFourBytes(((char*)(&pp)) + sizeof(int)*4);
 			}
 
 			if(wh!=NO_WATER && pp.type==0)

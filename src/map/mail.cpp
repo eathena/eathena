@@ -32,7 +32,7 @@ int mail_check(struct map_session_data &sd, int type)
 
 	sprintf(tmp_msql,"SELECT `message_id`,`to_account_id`,`from_char_name`,`read_flag`,`priority`,`check_flag` "
 		"FROM `%s` WHERE `to_account_id` = \"%ld\" ORDER by `message_id`", 
-		mail_db, sd.status.account_id);
+		mail_db, (unsigned long)sd.status.account_id);
 
 	if (mysql_SendQuery(&mail_handle, tmp_msql)) 
 	{
@@ -126,11 +126,11 @@ int mail_check(struct map_session_data &sd, int type)
 	return 0;
 }
 
-int mail_read(struct map_session_data &sd, unsigned long message_id)
+int mail_read(struct map_session_data &sd, uint32 message_id)
 {
 	char message[80];
 
-	sprintf(tmp_msql,"SELECT `message_id`,`to_account_id`,`from_char_name`,`message`,`read_flag`,`priority`,`check_flag` from `%s` WHERE `to_account_id` = \"%ld\" ORDER by `message_id` LIMIT %ld, 1",mail_db,sd.status.account_id,message_id-1);
+	sprintf(tmp_msql,"SELECT `message_id`,`to_account_id`,`from_char_name`,`message`,`read_flag`,`priority`,`check_flag` from `%s` WHERE `to_account_id` = \"%ld\" ORDER by `message_id` LIMIT %ld, 1",mail_db,(unsigned long)sd.status.account_id,(unsigned long)message_id-1);
 
 	if (mysql_SendQuery(&mail_handle, tmp_msql))
 	{
@@ -183,9 +183,9 @@ int mail_read(struct map_session_data &sd, unsigned long message_id)
 	return 0;
 }
 
-int mail_delete(struct map_session_data &sd, unsigned long message_id)
+int mail_delete(struct map_session_data &sd, uint32 message_id)
 {
-	sprintf(tmp_msql,"SELECT `message_id`,`to_account_id`,`read_flag`,`priority`,`check_flag` from `%s` WHERE `to_account_id` = \"%ld\" ORDER by `message_id` LIMIT %ld, 1",mail_db,sd.status.account_id,message_id-1);
+	sprintf(tmp_msql,"SELECT `message_id`,`to_account_id`,`read_flag`,`priority`,`check_flag` from `%s` WHERE `to_account_id` = \"%ld\" ORDER by `message_id` LIMIT %ld, 1",mail_db,(unsigned long)sd.status.account_id,(unsigned long)message_id-1);
 
 	if (mysql_SendQuery(&mail_handle, tmp_msql)) 
 	{
@@ -261,7 +261,7 @@ int mail_send(struct map_session_data &sd, char *name, char *message, int flag)
 			return 0;
 		}
 		else
-			sprintf(tmp_msql,"SELECT DISTINCT `account_id` FROM `%s` WHERE `account_id` <> '%ld' ORDER BY `account_id`", char_db, sd.status.account_id);
+			sprintf(tmp_msql,"SELECT DISTINCT `account_id` FROM `%s` WHERE `account_id` <> '%ld' ORDER BY `account_id`", char_db, (unsigned long)sd.status.account_id);
 	}
 	else
 		sprintf(tmp_msql,"SELECT `account_id`,`name` FROM `%s` WHERE `name` = \"%s\"", char_db, jstrescape(name));
@@ -288,12 +288,12 @@ int mail_send(struct map_session_data &sd, char *name, char *message, int flag)
 			if(strcmp(name,"*")==0) 
 			{
 				sprintf(tmp_msql, "INSERT DELAYED INTO `%s` (`to_account_id`,`from_account_id`,`from_char_name`,`message`,`priority`)"
-					" VALUES ('%d', '%ld', '%s', '%s', '%d')",mail_db, atoi(mail_row[0]), sd.status.account_id, sd.status.name, jstrescape(message), flag);
+					" VALUES ('%d', '%ld', '%s', '%s', '%d')",mail_db, atoi(mail_row[0]), (unsigned long)sd.status.account_id, sd.status.name, jstrescape(message), flag);
 			}
 			else 
 			{
 				sprintf(tmp_msql, "INSERT DELAYED INTO `%s` (`to_account_id`,`to_char_name`,`from_account_id`,`from_char_name`,`message`,`priority`)"
-					" VALUES ('%d', '%s', '%ld', '%s', '%s', '%d')",mail_db, atoi(mail_row[0]), mail_row[1], sd.status.account_id, sd.status.name, jstrescape(message), flag);
+					" VALUES ('%d', '%s', '%ld', '%s', '%s', '%d')",mail_db, atoi(mail_row[0]), mail_row[1], (unsigned long)sd.status.account_id, sd.status.name, jstrescape(message), flag);
 				if(pc_isGM(sd) < 80)
 					sd.mail_counter=5;
 			}
@@ -345,7 +345,7 @@ int mail_check_timer(int tid, unsigned long tick, int id, intptr data)
 				{
 					if(pc_isGM(*sd) < 80 && sd->mail_counter > 0)
 						sd->mail_counter--;
-					if(sd->status.account_id == (unsigned long)atoi(mail_row[0]))
+					if(sd->status.account_id == (uint32)atoi(mail_row[0]))
 						//clif_displaymessage(sd->fd, "You have new mail.");
 						clif_displaymessage(sd->fd, msg_txt(526));
 				}

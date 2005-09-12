@@ -12,15 +12,15 @@ int storage_storagegettocart(struct map_session_data &sd,size_t index,size_t amo
 int storage_storageclose(struct map_session_data &sd);
 int do_init_storage(void);
 void do_final_storage(void);
-struct pc_storage *account2storage(unsigned long account_id);
-struct pc_storage *account2storage2(unsigned long account_id);
-int storage_delete(unsigned long account_id);
+struct pc_storage *account2storage(uint32 account_id);
+struct pc_storage *account2storage2(uint32 account_id);
+int storage_delete(uint32 account_id);
 int storage_storage_quit(struct map_session_data &sd);
 int storage_storage_save(struct map_session_data &sd);
 void storage_storage_dirty(struct map_session_data &sd);
 
-struct guild_storage *guild2storage(unsigned long guild_id);
-int guild_storage_delete(unsigned long guild_id);
+struct guild_storage *guild2storage(uint32 guild_id);
+int guild_storage_delete(uint32 guild_id);
 int storage_guild_storageopen(struct map_session_data &sd);
 int guild_storage_additem(struct map_session_data &sd,struct guild_storage &stor,struct item &item_data,size_t amount);
 int guild_storage_delitem(struct map_session_data &sd,struct guild_storage &stor,size_t n,size_t amount);

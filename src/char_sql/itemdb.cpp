@@ -177,7 +177,7 @@ int itemdb_read_sqldb(void) // sql item_db read, shortened version of map-server
 			ShowMessage("Database server error (retrieving rows from %s): %s\n", item_db_db, mysql_error(&mysql_handle));
 		}
 
-		ShowMessage("read %s done (count = %lu)\n", item_db_db, (unsigned long) mysql_num_rows(sql_res));
+		ShowMessage("read %s done (count = %lu)\n", item_db_db, (unsigned long)mysql_num_rows(sql_res));
 
 		// Free the query result
 		mysql_free_result(sql_res);

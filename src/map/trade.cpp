@@ -18,7 +18,7 @@
  * 取引要請を相手に送る
  *------------------------------------------
  */
-void trade_traderequest(struct map_session_data &sd, unsigned long target_id)
+void trade_traderequest(struct map_session_data &sd, uint32 target_id)
 {
 	struct map_session_data *target_sd;
 	unsigned char level, level2;
@@ -172,7 +172,7 @@ int impossible_trade_check(struct map_session_data &sd)
  * アイテム追加
  *------------------------------------------
  */
-void trade_tradeadditem(struct map_session_data &sd, unsigned short index, unsigned long amount)
+void trade_tradeadditem(struct map_session_data &sd, unsigned short index, uint32 amount)
 {
 	size_t trade_i, trade_weight = 0;
 	size_t c;
@@ -276,7 +276,7 @@ void trade_tradeok(struct map_session_data &sd)
 	}
 
 	// check zeny
-	if(sd.deal_zeny < 0 || sd.deal_zeny > MAX_ZENY || sd.deal_zeny > (unsigned long)sd.status.zeny)
+	if(sd.deal_zeny < 0 || sd.deal_zeny > MAX_ZENY || sd.deal_zeny > (uint32)sd.status.zeny)
 	{	// check amount
 		trade_tradecancel(sd);
 		return;
@@ -367,9 +367,9 @@ void trade_tradecommit(struct map_session_data &sd)
 					return;
 				}
 				// check zenys value against hackers
-				if( sd.deal_zeny >= 0 && sd.deal_zeny <= MAX_ZENY && sd.deal_zeny <= (unsigned long)sd.status.zeny &&
+				if( sd.deal_zeny >= 0 && sd.deal_zeny <= MAX_ZENY && sd.deal_zeny <= (uint32)sd.status.zeny &&
 				    (target_sd->status.zeny + sd.deal_zeny) <= MAX_ZENY && // fix positiv overflow
-				    target_sd->deal_zeny >= 0 && target_sd->deal_zeny <= MAX_ZENY && target_sd->deal_zeny <= (unsigned long)target_sd->status.zeny &&
+				    target_sd->deal_zeny >= 0 && target_sd->deal_zeny <= MAX_ZENY && target_sd->deal_zeny <= (uint32)target_sd->status.zeny &&
 				    (sd.status.zeny + target_sd->deal_zeny) <= MAX_ZENY) // fix positiv overflow
 				{
 					// trade is accepted

@@ -26,7 +26,8 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	-1,-1,-1,-1,-1,-1,
 	SC_PROVOKE,			/* プロボック */
 	SC_WATK_ELEMENT,		//Converts part of your final attack into an elemental one. [Skotlex]
-	-1,-1,
+	SC_ENDURE,
+	-1,
 /* 10- */
 	SC_SIGHT,			/* サイト */
 	-1,
@@ -405,10 +406,12 @@ int status_calc_pet(struct map_session_data &sd, bool first)
 
 int status_calc_pc(struct map_session_data& sd, int first)
 {
-	int b_speed,b_max_hp,b_max_sp,b_hp,b_sp,b_weight,b_max_weight,b_paramb[6],b_parame[6],b_hit,b_flee;
+	int b_speed,b_max_hp,b_max_sp,b_hp,b_sp,b_weight,b_max_weight,b_hit,b_flee;
 	int b_aspd,b_watk,b_def,b_watk2,b_def2,b_flee2,b_critical,b_attackrange,b_matk1,b_matk2,b_mdef,b_mdef2,b_class;
 	int b_base_atk;
 	struct skill b_skill[MAX_SKILL];
+	long b_paramb[6];
+	long b_parame[6];
 	int i;
 	size_t j;
 	int bl,index;
@@ -427,9 +430,9 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	b_sp = sd.status.sp;
 	b_weight = sd.weight;
 	b_max_weight = sd.max_weight;
-	memcpy(b_paramb,&sd.paramb,sizeof(b_paramb));
-	memcpy(b_parame,&sd.paramc,sizeof(b_parame));
-	memcpy(b_skill,&sd.status.skill,sizeof(b_skill));
+	memcpy(b_paramb,sd.paramb,sizeof(sd.paramb));
+	memcpy(b_parame,sd.paramc,sizeof(sd.paramc));
+	memcpy(b_skill,sd.status.skill,sizeof(sd.status.skill));
 	b_hit = sd.hit;
 	b_flee = sd.flee;
 	b_aspd = sd.aspd;
@@ -631,9 +634,6 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	memset(sd.expaddrace,0,sizeof(sd.expaddrace));
 	memset(sd.sp_gain_race,0,sizeof(sd.sp_gain_race));
 	sd.setitem_hash = 0;
-
-
-	
 
 	for(i=0;i<10;i++)
 	{	//We pass INDEX to current_equip_item_index - for EQUIP_SCRIPT (new cards solution) [Lupus]
@@ -1272,10 +1272,10 @@ int status_calc_pc(struct map_session_data& sd, int first)
 	if(sd.sc_data[SC_NIBELUNGEN].timer!=-1) {	// ニ?ベルングの指輪
 		index = sd.equip_index[9];
 		if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->wlv == 4)
-			sd.right_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].val3.num;
+			sd.right_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].val2.num;
 		index = sd.equip_index[8];
 		if(index < MAX_INVENTORY && sd.inventory_data[index] && sd.inventory_data[index]->wlv == 4)
-			sd.left_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].val3.num;
+			sd.left_weapon.watk2 += sd.sc_data[SC_NIBELUNGEN].val2.num;
 	}
 
 	if(sd.sc_data[SC_VOLCANO].timer != -1 && sd.def_ele == 3)	// ボルケ?ノ
@@ -1607,7 +1607,7 @@ int status_calc_pc(struct map_session_data& sd, int first)
 			clif_changelook(sd.bl,LOOK_CLOTHES_COLOR,sd.status.clothes_color);
 	}
 
-	if( memcmp(b_skill,sd.status.skill,sizeof(sd.status.skill)) || b_attackrange != sd.attackrange)
+	if( 0!=memcmp(b_skill,sd.status.skill,sizeof(sd.status.skill)) || b_attackrange != sd.attackrange)
 		clif_skillinfoblock(sd);	// スキル送信
 
 	if(b_speed != sd.speed)
@@ -2570,7 +2570,7 @@ int status_get_atk2(struct block_list *bl)
 			if(sc_data[SC_DRUMBATTLE].timer!=-1)
 				atk2 += sc_data[SC_DRUMBATTLE].val2.num;
 			if(sc_data[SC_NIBELUNGEN].timer!=-1 && (status_get_element(bl)/10) >= 8 )
-				atk2 += sc_data[SC_NIBELUNGEN].val3.num;
+				atk2 += sc_data[SC_NIBELUNGEN].val2.num;
 			if(sc_data[SC_STRIPWEAPON].timer!=-1)
 				atk2 = atk2*sc_data[SC_STRIPWEAPON].val2.num/100;
 			if(sc_data[SC_CONCENTRATION].timer!=-1) //コンセントレーション
@@ -2687,7 +2687,7 @@ int status_get_def(struct block_list *bl)
 			if( sc_data[SC_KEEPING].timer!=-1)
 				def = 100;
 			//プロボック時は減算
-			if( sc_data[SC_PROVOKE].timer!=-1)
+			if(sc_data[SC_PROVOKE].timer!=-1 && bl->type != BL_PC) //Provoke doesn't alters player defense.
 				def -= def*(5+5*sc_data[SC_PROVOKE].val1.num)/100;
 			//戦太鼓の響き時は加算
 			if( sc_data[SC_DRUMBATTLE].timer!=-1)
@@ -3204,7 +3204,7 @@ int status_get_attack_element2(struct block_list *bl)
 	return 0;
 }
 
-unsigned long status_get_party_id(struct block_list *bl)
+uint32 status_get_party_id(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_PC)
@@ -3228,7 +3228,7 @@ unsigned long status_get_party_id(struct block_list *bl)
 	else
 		return 0;
 }
-unsigned long status_get_guild_id(struct block_list *bl)
+uint32 status_get_guild_id(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
 	if(bl->type==BL_PC)
@@ -3441,16 +3441,19 @@ int status_get_sc_def(struct block_list *bl, int type)
 
 	if(bl->type == BL_MOB) {
 		struct mob_data *md = (struct mob_data *)bl;
-		if (md && md->class_ == 1288)
+		if (md && md->class_ == MOBID_EMPERIUM)
 			return 0;
 		if (sc_def < 50)
 			sc_def = 50;
 	} else if(bl->type == BL_PC) {
 		struct status_change* sc_data = status_get_sc_data(bl);
-		if (sc_data && sc_data[SC_GOSPEL].timer != -1 &&
-			sc_data[SC_GOSPEL].val4.num == BCT_PARTY &&
-			sc_data[SC_GOSPEL].val3.num == 3)
-			sc_def -= 25;
+		if (sc_data)
+		{
+			if( sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4.num == BCT_PARTY )
+				sc_def = 0; //Status inmunity
+			else if (sc_data[SC_SIEGFRIED].timer != -1)
+				sc_def -= sc_data[SC_SIEGFRIED].val2.num; //Status resistance.
+		}
 	}
 
 	return (sc_def < 0) ? 0 : sc_def;
@@ -3776,8 +3779,6 @@ int status_change_start(struct block_list *bl,int type, intptr val1,intptr val2,
 			break;
 
 		case SC_BLADESTOP:		/* 白刃取り */
-
-
 			if(val2.num==2 && val3.isptr && val4.isptr)
 				clif_bladestop(*((struct block_list *)val3.ptr),*((struct block_list *)val4.ptr),1);
 			*opt3 |= 32;
@@ -3801,35 +3802,30 @@ int status_change_start(struct block_list *bl,int type, intptr val1,intptr val2,
 			//val2 = (val1.num+2)*50;
 			val3 = (val1.num+2)*25;
 			break;
-		case SC_ROKISWEIL:			/* ロキの叫び */
-			break;
-		case SC_INTOABYSS:			/* 深淵の中に */
-			break;
 		case SC_SIEGFRIED:			/* 不死身のジ?クフリ?ド */
 			calc_flag = 1;
 			val2 = 55 + val1.num*5;
 			val3 = val1.num*10;
 			break;
 		case SC_DISSONANCE:			/* 不協和音 */
-			val2 = 10;
-			break;
-		case SC_WHISTLE:			/* 口笛 */
-			calc_flag = 1;
-			break;
-		case SC_ASSNCROS:			/* 夕陽のアサシンクロス */
-			calc_flag = 1;
-			break;
-		case SC_POEMBRAGI:			/* ブラギの詩 */
-			break;
-		case SC_APPLEIDUN:			/* イドゥンの林檎 */
-			calc_flag = 1;
-			break;
 		case SC_UGLYDANCE:			/* 自分勝手なダンス */
 			val2 = 10;
 			break;
+
+		case SC_ROKISWEIL:			/* ロキの叫び */
+		case SC_INTOABYSS:			/* 深淵の中に */
+		case SC_POEMBRAGI:			/* ブラギの詩 */
+			break;
+		
+		case SC_WHISTLE:			/* 口笛 */
+		case SC_ASSNCROS:			/* 夕陽のアサシンクロス */
+		case SC_APPLEIDUN:			/* イドゥンの林檎 */
 		case SC_HUMMING:			/* ハミング */
+		case SC_FORTUNE:			/* 幸運のキス */
+		case SC_SERVICE4U:			/* サ?ビスフォ?ユ? */
 			calc_flag = 1;
 			break;
+
 		case SC_DONTFORGETME:		/* 私を忘れないで */
 			calc_flag = 1;
 			if(sc_data[SC_INCREASEAGI].timer!=-1 )	/* 速度上昇解除 */
@@ -3848,12 +3844,6 @@ int status_change_start(struct block_list *bl,int type, intptr val1,intptr val2,
 				status_change_end(bl,SC_WINDWALK,-1);
 			if(sc_data[SC_CARTBOOST].timer!=-1 )	/* カ?トブ?スト */
 				status_change_end(bl,SC_CARTBOOST,-1);
-			break;
-		case SC_FORTUNE:			/* 幸運のキス */
-			calc_flag = 1;
-			break;
-		case SC_SERVICE4U:			/* サ?ビスフォ?ユ? */
-			calc_flag = 1;
 			break;
 		case SC_MOONLIT:
 			val2 = bl->id;
@@ -4623,7 +4613,7 @@ int status_change_end( struct block_list* bl, int type, int tid )
 					if (sc_data[type].val3.num == BCT_SELF) {
 						struct map_session_data *sd = (struct map_session_data *)bl;
 						if (sd) {
-							int tick = gettick();
+							unsigned long tick = gettick();
 							sd->canmove_tick = tick;
 							sd->canact_tick = tick;
 						}
@@ -5074,7 +5064,7 @@ int status_change_timer(int tid, unsigned long tick, int id, intptr data)
 	case SC_SPLASHER:
 		if (sc_data[type].val4.num % 1000 == 0) {
 			char timer[2];
-			sprintf (timer, "%ld", sc_data[type].val4.num/1000);
+			sprintf (timer, "%ld", (unsigned long)(sc_data[type].val4.num/1000));
 			clif_message(*bl, timer);
 		}
 		if((sc_data[type].val4.num -= 500) > 0) {
@@ -5294,7 +5284,7 @@ int status_change_timer_sub(struct block_list &bl, va_list ap )
 	nullpo_retr(0, ap);
 	nullpo_retr(0, src=va_arg(ap,struct block_list*));
 	type=va_arg(ap,int);
-	tick=(unsigned long)va_arg(ap,int);
+	tick=(unsigned long)va_arg(ap,unsigned long);
 
 	if(bl.type!=BL_PC && bl.type!=BL_MOB)
 		return 0;

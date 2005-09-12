@@ -45,15 +45,15 @@ static size_t npc_mob=0;
 static size_t npc_delay_mob=0;
 static size_t npc_cache_mob=0;
 
-unsigned long &get_npc_id()
+uint32 &get_npc_id()
 {
 	// simple singleton
 	// !! change id generation to support freeing/reloading of npc's
-	static unsigned long npc_id=START_NPC_NUM;
+	static uint32 npc_id=START_NPC_NUM;
 	return npc_id;
 }
 
-unsigned long npc_get_new_npc_id(void)
+uint32 npc_get_new_npc_id(void)
 {	// simple singleton
 	// !! change id generation to support freeing/reloading of npc's
 	return (get_npc_id()++); 
@@ -492,7 +492,7 @@ int npc_do_ontimer_sub(void *key,void *data,va_list ap)
 	char temp[10];
 	char event[50];
 
-	if(ev->nd->bl.id==(unsigned long)*c && (p=strchr(p,':')) && p && strncasecmp("::OnTimer",p,8)==0 ){
+	if(ev->nd->bl.id==(uint32)*c && (p=strchr(p,':')) && p && strncasecmp("::OnTimer",p,8)==0 ){
 		sscanf(&p[9], "%s", temp);
 		tick = atoi(temp);
 
@@ -507,7 +507,7 @@ int npc_do_ontimer_sub(void *key,void *data,va_list ap)
 	}
 	return 0;
 }
-int npc_do_ontimer(unsigned long npc_id, struct map_session_data &sd, int option)
+int npc_do_ontimer(uint32 npc_id, struct map_session_data &sd, int option)
 {
 	strdb_foreach(ev_db,npc_do_ontimer_sub,&npc_id,&sd,option);
 	return 0;
@@ -577,7 +577,7 @@ int npc_timerevent(int tid, unsigned long tick, int id, intptr data)
  * タイマーイベント開始
  *------------------------------------------
  */
-int npc_timerevent_start(struct npc_data &nd, unsigned long rid)
+int npc_timerevent_start(struct npc_data &nd, uint32 rid)
 {
 	int j,n, next;
 
@@ -623,9 +623,7 @@ int npc_timerevent_stop(struct npc_data &nd)
  */
 int npc_gettimerevent_tick(struct npc_data &nd)
 {
-	unsigned long tick;
-
-	tick=nd.u.scr.timer;
+	unsigned long tick=nd.u.scr.timer;
 	if( nd.u.scr.nexttimer>=0 )
 		tick += gettick() - nd.u.scr.timertick;
 	return tick;
@@ -637,7 +635,7 @@ int npc_gettimerevent_tick(struct npc_data &nd)
 int npc_settimerevent_tick(struct npc_data &nd,int newtimer)
 {
 	int flag;
-	unsigned long rid;
+	uint32 rid;
 
 	flag= nd.u.scr.nexttimer;
 	rid = nd.u.scr.timerid;
@@ -856,7 +854,7 @@ int npc_globalmessage(const char *name, const char *mes)
  * クリック時のNPC処理
  *------------------------------------------
  */
-int npc_click(struct map_session_data &sd,unsigned long npcid)
+int npc_click(struct map_session_data &sd,uint32 npcid)
 {
 	struct npc_data *nd;
 
@@ -889,7 +887,7 @@ int npc_click(struct map_session_data &sd,unsigned long npcid)
  *
  *------------------------------------------
  */
-int npc_scriptcont(struct map_session_data &sd, unsigned long id)
+int npc_scriptcont(struct map_session_data &sd, uint32 id)
 {
 //	struct npc_data *nd;
 
@@ -907,7 +905,7 @@ int npc_scriptcont(struct map_session_data &sd, unsigned long id)
  *
  *------------------------------------------
  */
-int npc_buysellsel(struct map_session_data &sd,unsigned long id,int type)
+int npc_buysellsel(struct map_session_data &sd,uint32 id,int type)
 {
 	struct npc_data *nd;
 
@@ -939,7 +937,7 @@ int npc_buysellsel(struct map_session_data &sd,unsigned long id,int type)
 int npc_buylist(struct map_session_data &sd,unsigned short n,unsigned char *buffer)
 {
 	struct npc_data *nd;
-	unsigned long z;
+	uint32 z;
 	size_t i,j,w,skill,itemamount=0,new_=0;
 	unsigned short amount, itemid;
 
@@ -955,7 +953,7 @@ int npc_buylist(struct map_session_data &sd,unsigned short n,unsigned char *buff
 	for(i=0,w=0,z=0;i<n;i++) {
 
 		// amount fix
-		if( (unsigned long)RBUFW(buffer,2*(i*2)) > battle_config.vending_max_value )
+		if( (uint32)RBUFW(buffer,2*(i*2)) > battle_config.vending_max_value )
 			RBUFW(buffer,2*(i*2)) = 0;	// clear it directly in the buffer
 
 		amount = RBUFW(buffer,2*(i*2));
@@ -1031,7 +1029,7 @@ int npc_buylist(struct map_session_data &sd,unsigned short n,unsigned char *buff
  */
 int npc_selllist(struct map_session_data &sd,unsigned short n,unsigned char *buffer)
 {
-	unsigned long z;
+	uint32 z;
 	size_t i,skill,itemamount=0;
 	unsigned short amount,itemid,nameid;
 
@@ -1044,7 +1042,7 @@ int npc_selllist(struct map_session_data &sd,unsigned short n,unsigned char *buf
 	for(i=0,z=0;i<n;i++)
 	{
 		// amount fix
-		if( (unsigned long)RBUFW(buffer,2*(i*2+1)) > battle_config.vending_max_value )
+		if( (uint32)RBUFW(buffer,2*(i*2+1)) > battle_config.vending_max_value )
 			RBUFW(buffer,2*(i*2+1)) = 0;	// clear the amount
 		
 		amount = RBUFW(buffer,2*(i*2+1));
@@ -2378,7 +2376,7 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 	int m, lines = 0;
 	char line[1024];
 	char w1[1024], w2[1024], w3[1024], w4[1024], mapname[1024];
-	size_t i, j;
+	unsigned int i, j;
 	int count, w4pos;
 	FILE *fp;
 

@@ -3,9 +3,9 @@
 #define	_TRADE_H_
 
 #include "map.h"
-void trade_traderequest(struct map_session_data &sd,unsigned long target_id);
+void trade_traderequest(struct map_session_data &sd,uint32 target_id);
 void trade_tradeack(struct map_session_data &sd,int type);
-void trade_tradeadditem(struct map_session_data &sd,unsigned short index,unsigned long amount);
+void trade_tradeadditem(struct map_session_data &sd,unsigned short index,uint32 amount);
 void trade_tradeok(struct map_session_data &sd);
 void trade_tradecancel(struct map_session_data &sd);
 void trade_tradecommit(struct map_session_data &sd);

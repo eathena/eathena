@@ -90,290 +90,290 @@ bool battle_check_range(struct block_list *src,struct block_list *bl,unsigned in
 // ê›íË
 struct Battle_Config
 {
-	ulong agi_penalty_count;
-	ulong agi_penalty_count_lv;
-	ulong agi_penalty_num;
-	ulong agi_penalty_type;
-	ulong alchemist_summon_reward;
-	ulong allow_atcommand_when_mute; // [celest]
-	ulong any_warp_GM_min_level; // added by [Yor]
-	ulong area_size; // added by [MouseJstr]
-	ulong arrow_decrement;
-	ulong atc_gmonly;
-	ulong atc_spawn_quantity_limit;
-	ulong attr_recover;
-	ulong backstab_bow_penalty;
-	ulong ban_bot;
-	ulong ban_hack_trade; // added by [Yor]
-	ulong ban_spoof_namer; // added by [Yor]
-	ulong base_exp_rate;
-	ulong basic_skill_check;
-	ulong battle_log;
-	ulong berserk_cancels_buffs;
-	ulong bone_drop;
-	ulong boss_spawn_delay;
-	ulong buyer_name;
-	ulong cardillust_read_grffile;
-	ulong cast_rate;
-	ulong castle_defense_rate;
-	ulong castrate_dex_scale; // added by [MouseJstr]
-	ulong character_size; // if riders have size=2, and baby class riders size=1 [Lupus]
-	ulong chat_warpportal;
-	ulong combo_delay_rate;
-	ulong copyskill_restrict;
-	ulong day_duration; // added by [Yor]
-	ulong dead_branch_active;
-	ulong death_penalty_base;
-	ulong death_penalty_job;
-	ulong death_penalty_type;
-	ulong defnotenemy;
-	ulong delay_battle_damage;
-	ulong delay_dependon_dex;
-	ulong delay_rate;
-	ulong devotion_level_difference;
-	ulong disp_experience;
-	ulong disp_hpmeter;
-	ulong display_delay_skill_fail;
-	ulong display_hallucination;
-	ulong display_snatcher_skill_fail;
-	ulong display_version;
-	ulong drop_rate0item;
-	ulong drop_rare_announce;
-	ulong drops_by_luk;
-	ulong dynamic_mobs;
-	ulong enemy_critical;
-	ulong enemy_critical_rate;
-	ulong enemy_perfect_flee;
-	ulong enemy_str;
-	ulong equip_natural_break_rate;
-	ulong equip_self_break_rate;
-	ulong equip_skill_break_rate;
-	ulong error_log;
-	ulong etc_log;
-	ulong exp_calc_type;
-	ulong finding_ore_rate; // orn
-	ulong finger_offensive_type;
-	ulong flooritem_lifetime;
-	ulong gm_allequip;
-	ulong gm_allskill;
-	ulong gm_allskill_addabra;
-	ulong gm_can_drop_lv;
-	ulong gm_join_chat;
-	ulong gm_kick_chat;
-	ulong gm_skilluncond;
-	ulong gtb_pvp_only;  // [MouseJstr]
-	ulong guild_emperium_check;
-	ulong guild_exp_limit;
-	ulong guild_max_castles;
-	ulong gvg_eliminate_time;
-	ulong gvg_long_damage_rate;
-	ulong gvg_magic_damage_rate;
-	ulong gvg_misc_damage_rate;
-	ulong gvg_short_damage_rate;
-	ulong gvg_weapon_damage_rate;
-	ulong gx_allhit;
-	ulong gx_cardfix;
-	ulong gx_disptype;
-	ulong gx_dupele;
-	ulong hack_info_GM_level; // added by [Yor]
-	ulong headset_block_music; // do headsets block Frost Joke, etc [Lupus]
-	ulong heal_exp;
-	ulong hide_GM_session;
-	ulong holywater_name_input;
-	ulong hp_rate;
-	ulong idle_no_share;
-	ulong ignore_items_gender; //[Lupus]
-	ulong indoors_override_grffile;
-	ulong invite_request_check;
-	ulong item_auto_get;
-	ulong item_check;
-	ulong item_drop_card_max;
-	ulong item_drop_card_min;
-	ulong item_drop_common_max;
-	ulong item_drop_common_min;
-	ulong item_drop_equip_max;
-	ulong item_drop_equip_min;
-	ulong item_drop_heal_max;
-	ulong item_drop_heal_min;
-	ulong item_drop_mvp_max;
-	ulong item_drop_mvp_min;
-	ulong item_drop_use_max;
-	ulong item_drop_use_min;
-	ulong item_equip_override_grffile;
-	ulong item_first_get_time;
-	ulong item_name_override_grffile;
-	ulong item_rate_card;
-	ulong item_rate_common;
-	ulong item_rate_equip;
-	ulong item_rate_heal;
-	ulong item_rate_use;
-	ulong item_second_get_time;
-	ulong item_slots_override_grffile;
-	ulong item_third_get_time;
-	ulong item_use_interval;
-	ulong job_exp_rate;
-	ulong left_cardfix_to_right;
-	ulong magic_defense_type;
-	ulong mail_system; // [Valaris]
-	ulong making_arrow_name_input;
-	ulong max_adv_level;
-	ulong max_aspd;
-	ulong max_aspd_interval; // not writable
-	ulong max_base_level;
-	ulong max_cart_weight;
-	ulong max_cloth_color; // added by [MouseJstr]
-	ulong max_hair_color; // added by [MouseJstr]
-	ulong max_hair_style; // added by [MouseJstr]
-	ulong max_hitrate;
-	ulong max_hp;
-	ulong max_job_level;
-	ulong max_parameter;
-	ulong max_sn_level;
-	ulong max_sp;
-	ulong max_walk_speed;
-	ulong maximum_level;
-	ulong min_cloth_color; // added by [MouseJstr]
-	ulong min_hair_color; // added by [MouseJstr]
-	ulong min_hair_style; // added by [MouseJstr]
-	ulong min_hitrate;
-	ulong min_skill_delay_limit;
-	ulong mob_attack_attr_none;
-	ulong mob_changetarget_byskill;
-	ulong mob_clear_delay;
-	ulong mob_count_rate;
-	ulong mob_ghostring_fix;
-	ulong mob_remove_damaged;
-	ulong mob_remove_delay;
-	ulong mob_skill_add_range;
-	ulong mob_skill_delay;
-	ulong mob_skill_log;
-	ulong mob_skill_rate;
-	ulong mob_slaves_inherit_speed;
-	ulong mob_spawn_delay;
-	ulong mob_warpportal;
-	ulong mobs_level_up; // [Valaris]
-	ulong monster_active_enable;
-	ulong monster_attack_direction_change;
-	ulong monster_auto_counter_type;
-	ulong monster_class_change_full_recover;
-	ulong monster_cloak_check_type;
-	ulong monster_damage_delay;
-	ulong monster_damage_delay_rate;
-	ulong monster_defense_type;
-	ulong monster_hp_rate;
-	ulong monster_land_skill_limit;
-	ulong monster_loot_type;
-	ulong monster_max_aspd;
-	ulong monster_max_aspd_interval;// not writable, 
-	ulong monster_skill_nofootset;
-	ulong monster_skill_reiteration;
-	ulong monsters_ignore_gm;
-	ulong motd_type; // [celest]
-	ulong multi_level_up;
-	ulong muting_players; // added by [PoW]
-	ulong mvp_exp_rate;
-	ulong mvp_hp_rate;
-	ulong mvp_item_first_get_time;
-	ulong mvp_item_rate;
-	ulong mvp_item_second_get_time;
-	ulong mvp_item_third_get_time;
-	ulong natural_heal_skill_interval;
-	ulong natural_heal_weight_rate;
-	ulong natural_healhp_interval;
-	ulong natural_healsp_interval;
-	ulong new_attack_function; //For testing purposes [Skotlex]
-	ulong night_at_start; // added by [Yor]
-	ulong night_darkness_level; // [celest]
-	ulong night_duration; // added by [Yor]
-	ulong packet_ver_flag; // added by [Yor]
-	ulong party_bonus;
-	ulong party_share_mode;
-	ulong party_skill_penalty;
-	ulong pc_attack_attr_none;
-	ulong pc_attack_direction_change;
-	ulong pc_auto_counter_type;
-	ulong pc_cloak_check_type;
-	ulong pc_damage_delay;
-	ulong pc_damage_delay_rate;
-	ulong pc_invincible_time;
-	ulong pc_land_skill_limit;
-	ulong pc_skill_add_range;
-	ulong pc_skill_log;
-	ulong pc_skill_nofootset;
-	ulong pc_skill_reiteration;
-	ulong pet_attack_attr_none;
-	ulong pet_attack_exp_rate;
-	ulong pet_attack_exp_to_master;
-	ulong pet_attack_support;
-	ulong pet_catch_rate;
-	ulong pet_damage_support;
-	ulong pet_defense_type;
-	ulong pet_equip_required;
-	ulong pet_friendly_rate;
-	ulong pet_hair_style; // added by [Skotlex]
-	ulong pet_hungry_delay_rate;
-	ulong pet_hungry_friendly_decrease;
-	ulong pet_lv_rate; //[Skotlex]
-	ulong pet_max_atk1; //[Skotlex]
-	ulong pet_max_atk2; //[Skotlex]
-	ulong pet_max_stats; //[Skotlex]
-	ulong pet_no_gvg; //Disables pets in gvg. [Skotlex]
-	ulong pet_random_move;
-	ulong pet_rename;
-	ulong pet_status_support;
-	ulong pet_str;
-	ulong pet_support_min_friendly;
-	ulong pet_support_rate;
-	ulong pk_min_level; // [celest]
-	ulong pk_mode;
-	ulong plant_spawn_delay;
-	ulong player_defense_type;
-	ulong player_skill_partner_check;
-	ulong pp_rate;
-	ulong prevent_logout;
-	ulong produce_item_name_input;
-	ulong produce_potion_name_input;
-	ulong pvp_exp;  // [MouseJstr]
-	ulong quest_skill_learn;
-	ulong quest_skill_reset;
-	ulong rainy_waterball;
-	ulong random_monster_checklv;
-	ulong require_glory_guild;
-	ulong restart_hp_rate;
-	ulong restart_sp_rate;
-	ulong resurrection_exp;
-	ulong save_clothcolor;
-	ulong save_log;
-	ulong sdelay_attack_enable;
-	ulong shop_exp;
-	ulong show_hp_sp_drain;
-	ulong show_hp_sp_gain;
-	ulong show_mob_hp;  // end additions [Valaris]
-	ulong show_steal_in_same_party;
-	ulong skill_min_damage;
-	ulong skill_out_range_consume;
-	ulong skill_removetrap_type;
-	ulong skill_sp_override_grffile;
-	ulong skill_steal_rate; // [celest]
-	ulong skill_steal_type; // [celest]
-	ulong skillfree;
-	ulong skillup_limit;
-	ulong sp_rate;
-	ulong undead_detect_type;
-	ulong unit_movement_type;
-	ulong use_statpoint_table;
-	ulong vending_max_value;
-	ulong vit_penalty_count;
-	ulong vit_penalty_count_lv;
-	ulong vit_penalty_num;
-	ulong vit_penalty_type;
-	ulong warp_point_debug;
-	ulong wedding_ignorepalette;
-	ulong wedding_modifydisplay;
-	ulong who_display_aid;
-	ulong wp_rate;
-	ulong zeny_from_mobs; // [Valaris]
-	ulong zeny_penalty;
+	uint32 agi_penalty_count;
+	uint32 agi_penalty_count_lv;
+	uint32 agi_penalty_num;
+	uint32 agi_penalty_type;
+	uint32 alchemist_summon_reward;
+	uint32 allow_atcommand_when_mute; // [celest]
+	uint32 any_warp_GM_min_level; // added by [Yor]
+	uint32 area_size; // added by [MouseJstr]
+	uint32 arrow_decrement;
+	uint32 atc_gmonly;
+	uint32 atc_spawn_quantity_limit;
+	uint32 attr_recover;
+	uint32 backstab_bow_penalty;
+	uint32 ban_bot;
+	uint32 ban_hack_trade; // added by [Yor]
+	uint32 ban_spoof_namer; // added by [Yor]
+	uint32 base_exp_rate;
+	uint32 basic_skill_check;
+	uint32 battle_log;
+	uint32 berserk_cancels_buffs;
+	uint32 bone_drop;
+	uint32 boss_spawn_delay;
+	uint32 buyer_name;
+	uint32 cardillust_read_grffile;
+	uint32 cast_rate;
+	uint32 castle_defense_rate;
+	uint32 castrate_dex_scale; // added by [MouseJstr]
+	uint32 character_size; // if riders have size=2, and baby class riders size=1 [Lupus]
+	uint32 chat_warpportal;
+	uint32 combo_delay_rate;
+	uint32 copyskill_restrict;
+	uint32 day_duration; // added by [Yor]
+	uint32 dead_branch_active;
+	uint32 death_penalty_base;
+	uint32 death_penalty_job;
+	uint32 death_penalty_type;
+	uint32 defnotenemy;
+	uint32 delay_battle_damage;
+	uint32 delay_dependon_dex;
+	uint32 delay_rate;
+	uint32 devotion_level_difference;
+	uint32 disp_experience;
+	uint32 disp_hpmeter;
+	uint32 display_delay_skill_fail;
+	uint32 display_hallucination;
+	uint32 display_snatcher_skill_fail;
+	uint32 display_version;
+	uint32 drop_rate0item;
+	uint32 drop_rare_announce;
+	uint32 drops_by_luk;
+	uint32 dynamic_mobs;
+	uint32 enemy_critical;
+	uint32 enemy_critical_rate;
+	uint32 enemy_perfect_flee;
+	uint32 enemy_str;
+	uint32 equip_natural_break_rate;
+	uint32 equip_self_break_rate;
+	uint32 equip_skill_break_rate;
+	uint32 error_log;
+	uint32 etc_log;
+	uint32 exp_calc_type;
+	uint32 finding_ore_rate; // orn
+	uint32 finger_offensive_type;
+	uint32 flooritem_lifetime;
+	uint32 gm_allequip;
+	uint32 gm_allskill;
+	uint32 gm_allskill_addabra;
+	uint32 gm_can_drop_lv;
+	uint32 gm_join_chat;
+	uint32 gm_kick_chat;
+	uint32 gm_skilluncond;
+	uint32 gtb_pvp_only;  // [MouseJstr]
+	uint32 guild_emperium_check;
+	uint32 guild_exp_limit;
+	uint32 guild_max_castles;
+	uint32 gvg_eliminate_time;
+	uint32 gvg_long_damage_rate;
+	uint32 gvg_magic_damage_rate;
+	uint32 gvg_misc_damage_rate;
+	uint32 gvg_short_damage_rate;
+	uint32 gvg_weapon_damage_rate;
+	uint32 gx_allhit;
+	uint32 gx_cardfix;
+	uint32 gx_disptype;
+	uint32 gx_dupele;
+	uint32 hack_info_GM_level; // added by [Yor]
+	uint32 headset_block_music; // do headsets block Frost Joke, etc [Lupus]
+	uint32 heal_exp;
+	uint32 hide_GM_session;
+	uint32 holywater_name_input;
+	uint32 hp_rate;
+	uint32 idle_no_share;
+	uint32 ignore_items_gender; //[Lupus]
+	uint32 indoors_override_grffile;
+	uint32 invite_request_check;
+	uint32 item_auto_get;
+	uint32 item_check;
+	uint32 item_drop_card_max;
+	uint32 item_drop_card_min;
+	uint32 item_drop_common_max;
+	uint32 item_drop_common_min;
+	uint32 item_drop_equip_max;
+	uint32 item_drop_equip_min;
+	uint32 item_drop_heal_max;
+	uint32 item_drop_heal_min;
+	uint32 item_drop_mvp_max;
+	uint32 item_drop_mvp_min;
+	uint32 item_drop_use_max;
+	uint32 item_drop_use_min;
+	uint32 item_equip_override_grffile;
+	uint32 item_first_get_time;
+	uint32 item_name_override_grffile;
+	uint32 item_rate_card;
+	uint32 item_rate_common;
+	uint32 item_rate_equip;
+	uint32 item_rate_heal;
+	uint32 item_rate_use;
+	uint32 item_second_get_time;
+	uint32 item_slots_override_grffile;
+	uint32 item_third_get_time;
+	uint32 item_use_interval;
+	uint32 job_exp_rate;
+	uint32 left_cardfix_to_right;
+	uint32 magic_defense_type;
+	uint32 mail_system; // [Valaris]
+	uint32 making_arrow_name_input;
+	uint32 max_adv_level;
+	uint32 max_aspd;
+	uint32 max_aspd_interval; // not writable
+	uint32 max_base_level;
+	uint32 max_cart_weight;
+	uint32 max_cloth_color; // added by [MouseJstr]
+	uint32 max_hair_color; // added by [MouseJstr]
+	uint32 max_hair_style; // added by [MouseJstr]
+	uint32 max_hitrate;
+	uint32 max_hp;
+	uint32 max_job_level;
+	uint32 max_parameter;
+	uint32 max_sn_level;
+	uint32 max_sp;
+	uint32 max_walk_speed;
+	uint32 maximum_level;
+	uint32 min_cloth_color; // added by [MouseJstr]
+	uint32 min_hair_color; // added by [MouseJstr]
+	uint32 min_hair_style; // added by [MouseJstr]
+	uint32 min_hitrate;
+	uint32 min_skill_delay_limit;
+	uint32 mob_attack_attr_none;
+	uint32 mob_changetarget_byskill;
+	uint32 mob_clear_delay;
+	uint32 mob_count_rate;
+	uint32 mob_ghostring_fix;
+	uint32 mob_remove_damaged;
+	uint32 mob_remove_delay;
+	uint32 mob_skill_add_range;
+	uint32 mob_skill_delay;
+	uint32 mob_skill_log;
+	uint32 mob_skill_rate;
+	uint32 mob_slaves_inherit_speed;
+	uint32 mob_spawn_delay;
+	uint32 mob_warpportal;
+	uint32 mobs_level_up; // [Valaris]
+	uint32 monster_active_enable;
+	uint32 monster_attack_direction_change;
+	uint32 monster_auto_counter_type;
+	uint32 monster_class_change_full_recover;
+	uint32 monster_cloak_check_type;
+	uint32 monster_damage_delay;
+	uint32 monster_damage_delay_rate;
+	uint32 monster_defense_type;
+	uint32 monster_hp_rate;
+	uint32 monster_land_skill_limit;
+	uint32 monster_loot_type;
+	uint32 monster_max_aspd;
+	uint32 monster_max_aspd_interval;// not writable, 
+	uint32 monster_skill_nofootset;
+	uint32 monster_skill_reiteration;
+	uint32 monsters_ignore_gm;
+	uint32 motd_type; // [celest]
+	uint32 multi_level_up;
+	uint32 muting_players; // added by [PoW]
+	uint32 mvp_exp_rate;
+	uint32 mvp_hp_rate;
+	uint32 mvp_item_first_get_time;
+	uint32 mvp_item_rate;
+	uint32 mvp_item_second_get_time;
+	uint32 mvp_item_third_get_time;
+	uint32 natural_heal_skill_interval;
+	uint32 natural_heal_weight_rate;
+	uint32 natural_healhp_interval;
+	uint32 natural_healsp_interval;
+	uint32 new_attack_function; //For testing purposes [Skotlex]
+	uint32 night_at_start; // added by [Yor]
+	uint32 night_darkness_level; // [celest]
+	uint32 night_duration; // added by [Yor]
+	uint32 packet_ver_flag; // added by [Yor]
+	uint32 party_bonus;
+	uint32 party_share_mode;
+	uint32 party_skill_penalty;
+	uint32 pc_attack_attr_none;
+	uint32 pc_attack_direction_change;
+	uint32 pc_auto_counter_type;
+	uint32 pc_cloak_check_type;
+	uint32 pc_damage_delay;
+	uint32 pc_damage_delay_rate;
+	uint32 pc_invincible_time;
+	uint32 pc_land_skill_limit;
+	uint32 pc_skill_add_range;
+	uint32 pc_skill_log;
+	uint32 pc_skill_nofootset;
+	uint32 pc_skill_reiteration;
+	uint32 pet_attack_attr_none;
+	uint32 pet_attack_exp_rate;
+	uint32 pet_attack_exp_to_master;
+	uint32 pet_attack_support;
+	uint32 pet_catch_rate;
+	uint32 pet_damage_support;
+	uint32 pet_defense_type;
+	uint32 pet_equip_required;
+	uint32 pet_friendly_rate;
+	uint32 pet_hair_style; // added by [Skotlex]
+	uint32 pet_hungry_delay_rate;
+	uint32 pet_hungry_friendly_decrease;
+	uint32 pet_lv_rate; //[Skotlex]
+	uint32 pet_max_atk1; //[Skotlex]
+	uint32 pet_max_atk2; //[Skotlex]
+	uint32 pet_max_stats; //[Skotlex]
+	uint32 pet_no_gvg; //Disables pets in gvg. [Skotlex]
+	uint32 pet_random_move;
+	uint32 pet_rename;
+	uint32 pet_status_support;
+	uint32 pet_str;
+	uint32 pet_support_min_friendly;
+	uint32 pet_support_rate;
+	uint32 pk_min_level; // [celest]
+	uint32 pk_mode;
+	uint32 plant_spawn_delay;
+	uint32 player_defense_type;
+	uint32 player_skill_partner_check;
+	uint32 pp_rate;
+	uint32 prevent_logout;
+	uint32 produce_item_name_input;
+	uint32 produce_potion_name_input;
+	uint32 pvp_exp;  // [MouseJstr]
+	uint32 quest_skill_learn;
+	uint32 quest_skill_reset;
+	uint32 rainy_waterball;
+	uint32 random_monster_checklv;
+	uint32 require_glory_guild;
+	uint32 restart_hp_rate;
+	uint32 restart_sp_rate;
+	uint32 resurrection_exp;
+	uint32 save_clothcolor;
+	uint32 save_log;
+	uint32 sdelay_attack_enable;
+	uint32 shop_exp;
+	uint32 show_hp_sp_drain;
+	uint32 show_hp_sp_gain;
+	uint32 show_mob_hp;  // end additions [Valaris]
+	uint32 show_steal_in_same_party;
+	uint32 skill_min_damage;
+	uint32 skill_out_range_consume;
+	uint32 skill_removetrap_type;
+	uint32 skill_sp_override_grffile;
+	uint32 skill_steal_rate; // [celest]
+	uint32 skill_steal_type; // [celest]
+	uint32 skillfree;
+	uint32 skillup_limit;
+	uint32 sp_rate;
+	uint32 undead_detect_type;
+	uint32 unit_movement_type;
+	uint32 use_statpoint_table;
+	uint32 vending_max_value;
+	uint32 vit_penalty_count;
+	uint32 vit_penalty_count_lv;
+	uint32 vit_penalty_num;
+	uint32 vit_penalty_type;
+	uint32 warp_point_debug;
+	uint32 wedding_ignorepalette;
+	uint32 wedding_modifydisplay;
+	uint32 who_display_aid;
+	uint32 wp_rate;
+	uint32 zeny_from_mobs; // [Valaris]
+	uint32 zeny_penalty;
 };
 
 extern struct Battle_Config battle_config;

@@ -28,8 +28,8 @@ int pc_getrefinebonus(int lv,int type);
 
 int pc_setrestartvalue(struct map_session_data &sd,int type);
 int pc_makesavestatus(struct map_session_data &sd);
-int pc_setnewpc(int fd, struct map_session_data &sd, unsigned long account_id, unsigned long char_id, unsigned long login_id1, unsigned long client_tick, unsigned char sex);
-int pc_authok(unsigned long id, unsigned long login_id2, time_t connect_until_time, unsigned char *buf);
+int pc_setnewpc(int fd, struct map_session_data &sd, uint32 account_id, uint32 char_id, uint32 login_id1, uint32 client_tick, unsigned char sex);
+int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned char *buf);
 int pc_authfail(int fd);
 
 bool pc_isequipable(struct map_session_data &sd, unsigned short inx);
@@ -46,7 +46,7 @@ bool pc_checkallowskill(struct map_session_data &sd);
 unsigned short pc_checkequip(struct map_session_data &sd, unsigned short pos);
 
 int pc_calc_skilltree(struct map_session_data &sd);
-int pc_calc_skilltree_normalize_job(struct map_session_data &sd, int c);
+int pc_calc_skilltree_normalize_job(struct map_session_data &sd);
 int pc_clean_skilltree(struct map_session_data &sd);
 
 int pc_checkoverhp(struct map_session_data &sd);
@@ -65,8 +65,8 @@ int pc_randomwalk(struct map_session_data &sd,unsigned long tick);
 int pc_checkadditem(struct map_session_data &sd,unsigned short nameid,unsigned short amount);
 size_t pc_inventoryblank(struct map_session_data &sd);
 int pc_search_inventory(struct map_session_data &sd,int item_id);
-bool pc_payzeny(struct map_session_data &sd,unsigned long zeny);
-bool pc_getzeny(struct map_session_data &sd,unsigned long zeny);
+bool pc_payzeny(struct map_session_data &sd,uint32 zeny);
+bool pc_getzeny(struct map_session_data &sd,uint32 zeny);
 int pc_additem(struct map_session_data &sd,struct item &item_data,size_t amount);
 int pc_delitem(struct map_session_data &sd, unsigned short inx, size_t amount, int type);
 int pc_checkitem(struct map_session_data &sd);
@@ -101,19 +101,19 @@ int pc_steal_coin(struct map_session_data &sd,struct block_list *bl);
 int pc_modifybuyvalue(struct map_session_data &sd,size_t orig_value);
 int pc_modifysellvalue(struct map_session_data &sd,size_t orig_value);
 
-int pc_attack(struct map_session_data &sd,unsigned long target_id,int type);
+int pc_attack(struct map_session_data &sd,uint32 target_id,int type);
 int pc_stopattack(struct map_session_data &sd);
 
-int pc_follow(struct map_session_data &sd, unsigned long target_id); // [MouseJstr]
+int pc_follow(struct map_session_data &sd, uint32 target_id); // [MouseJstr]
 int pc_stop_following(struct map_session_data &sd);
 
 int pc_checkbaselevelup(struct map_session_data &sd);
 int pc_checkjoblevelup(struct map_session_data &sd);
-int pc_gainexp(struct map_session_data &sd, unsigned long base_exp, unsigned long job_exp);
-unsigned long pc_nextbaseexp(struct map_session_data &sd);
-unsigned long pc_nextbaseafter(struct map_session_data &sd); // [Valaris]
-unsigned long pc_nextjobexp(struct map_session_data &sd);
-unsigned long pc_nextjobafter(struct map_session_data &sd); // [Valaris]
+int pc_gainexp(struct map_session_data &sd, uint32 base_exp, uint32 job_exp);
+uint32 pc_nextbaseexp(struct map_session_data &sd);
+uint32 pc_nextbaseafter(struct map_session_data &sd); // [Valaris]
+uint32 pc_nextjobexp(struct map_session_data &sd);
+uint32 pc_nextjobafter(struct map_session_data &sd); // [Valaris]
 unsigned char pc_need_status_point(struct map_session_data &sd,int type);
 int pc_statusup(struct map_session_data &sd,int type);
 int pc_statusup2(struct map_session_data &sd,int type,int val);
@@ -160,7 +160,7 @@ int pc_addeventtimercount(struct map_session_data &sd,const char *name,unsigned 
 int pc_calc_pvprank(struct map_session_data &sd);
 int pc_calc_pvprank_timer(int tid, unsigned long tick, int id, intptr data);
 
-unsigned long pc_ismarried(struct map_session_data &sd);
+uint32 pc_ismarried(struct map_session_data &sd);
 bool pc_marriage(struct map_session_data &sd1,struct map_session_data &sd2);
 bool pc_divorce(struct map_session_data &sd);
 bool pc_adoption(struct map_session_data &sd1,struct map_session_data &sd2, struct map_session_data &sd3);
@@ -169,7 +169,7 @@ struct map_session_data *pc_get_father(struct map_session_data &sd);
 struct map_session_data *pc_get_mother(struct map_session_data &sd);
 struct map_session_data *pc_get_child(struct map_session_data &sd);
 
-int pc_set_gm_level(unsigned long account_id, unsigned long level);
+int pc_set_gm_level(uint32 account_id, uint32 level);
 void pc_setstand(struct map_session_data &sd);
 bool pc_break_equip(struct map_session_data &sd, unsigned short where);
 
@@ -184,16 +184,18 @@ int pc_calc_base_job2(int b_class);	// Celest
 int pc_calc_upper(int b_class);
 
 struct skill_tree_entry {
-	short id;
+	unsigned short id;
 	unsigned char max;
 	unsigned char joblv;
 	struct {
-		short id;
+		unsigned short id;
 		unsigned char lv;
 	} need[5];
 }; // Celest
-	
-extern struct skill_tree_entry skill_tree[3][25][MAX_SKILL_TREE];
+extern struct skill_tree_entry skill_tree[MAX_PC_CLASS][MAX_SKILL_TREE];
+
+int	skill_tree_get_max( int id, int b_class );	// Celest
+
 
 int pc_read_gm_account(int fd);
 int pc_setinvincibletimer(struct map_session_data &sd,int);
@@ -203,14 +205,14 @@ int pc_delspiritball(struct map_session_data &sd,int,int);
 int pc_eventtimer(int tid, unsigned long tick, int id, intptr data);
 
 struct fame_list {
-	unsigned long id;
-	unsigned long fame;
+	uint32 id;
+	uint32 fame;
 	char name[24];
 };
 extern struct fame_list smith_fame_list[MAX_FAMELIST];
 extern struct fame_list chemist_fame_list[MAX_FAMELIST];
-int pc_addfame(struct map_session_data &sd, unsigned long count,int type);
-bool pc_istop10fame(unsigned long char_id,int type);
+int pc_addfame(struct map_session_data &sd, uint32 count,int type);
+bool pc_istop10fame(uint32 char_id,int type);
 
 int pc_readdb(void);
 int do_init_pc(void);
