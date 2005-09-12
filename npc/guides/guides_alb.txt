@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena  0.5.2 +
 //===== Description: ========================================= 
@@ -11,6 +11,7 @@
 //===== Additional Comments: ================================= 
 //= Fully working
 //= v1.1 Now using duplicate command.
+//= 1.2 Fixed Armory coords, thanks to Fteya team
 //============================================================ 
 
 
@@ -56,7 +57,7 @@ M_Menu:
 		sM_2b:
 			mes "[Alberta Soldier]";
 			mes "The 'Armory' is located in the Southern part of town.  Go there to buy weapons and armor.";
-			viewpoint 1,148,57,2,0x6666FF;
+			viewpoint 1,117,42,2,0x6666FF;
 			goto sL_Wipe;
 		sM_2c:
 			mes "[Alberta Soldier]";
