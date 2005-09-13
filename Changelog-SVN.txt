@@ -2,6 +2,13 @@ Date	Added
 =======
 
 09/12
+	* Party even share code won't try to give dead players their share of the
+	  exp (since pc_gainexp would refuse so anyway) [Skotlex]
+	* Added trim() usage to char servers to prevent creation of characters with
+	  spaces at the beginning or end of name. [Skotlex]
+	  (the client won't let me create chars with said names so I can't really
+	  test it, but on the very least valid names are not crashing it as far as
+	  I can see)
 	* Expansion/optimization of the skill unit code. Now it should be correctly
 	  identified when a character walks into a skill cell, walks out of a skill
 	  cell, and walks out of the skill group (performance optimization,

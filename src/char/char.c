@@ -980,6 +980,8 @@ int make_new_char(int fd, unsigned char *dat) {
 
 	// remove control characters from the name
 	dat[NAME_LENGTH-1] = '\0'; //Trunc name to max possible value (23)
+	dat = trim(dat); //Trim character name. [Skotlex]
+	
 	if (remove_control_chars((unsigned char *)(char*)dat)) {
 		char_log("Make new char error (control char received in the name): (connection #%d, account: %d)." RETCODE,
 		         fd, sd->account_id);
