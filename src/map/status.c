@@ -1272,9 +1272,14 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 // ----- MISC CALCULATIONS -----
 
+	/* It's universally reported that this equation is TOO slow! Trying out an alternative... [Skotlex]
 	sd->dmotion = 800-sd->paramc[1]*4;
 	if(sd->dmotion<400)	sd->dmotion = 400;
+	*/
 
+	sd->dmotion = 200-sd->paramc[1];
+	if(sd->dmotion<100)	sd->dmotion = 100;
+	
 	// Weight
 	if((skill=pc_checkskill(sd,MC_INCCARRY))>0)
 		sd->max_weight += 2000*skill;

@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/13
+	* Changed the damage motion equation to 1/4th of what it was before (now
+	  using player_damage_delay_rate: 100 is what was player_damage_delay_rate:
+	  25 in previous revisions) [Skotlex]
 	* The login servers will now notify when a player has an account ID under
 	  700000 (which won't let them connect to the map server) [Skotlex]
 	* Added support for SC_BLEEDING in skill_counter_additional_effect &
