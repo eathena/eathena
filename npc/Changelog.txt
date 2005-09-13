@@ -29,6 +29,8 @@ TODO:
 Date		Added
 ======
 09/13
+	* Added correct Ayothaya, Louyang & amatsu Kafras. Thanks to Muad-Dib for info [Lupus]
+	* Fixed 'Gaurdian' typo, Added real coords and sprite to amatsu Kafra [Lupus]
 	* Added new scripts. Thanks Muad-Dib for his scripts, Dr.Evil for their conversion : [Lupus]
 	- White Day, Temp Geffenia Event, Valentines day, Zondaman Warper
 	- Quivers Maker NPC

@@ -28,6 +28,7 @@
 //= window to be able to use your storage [Lupus]
 //= 2.5 Added Louyang official Kafra, fixes some Kafras, not letting you to Save your position [Lupus]
 //= 2.6 Reverted Dungeons Kafras (they should offer only Storage). Added temp Ayothaya Kafra
+//= 2.7 Added correct Ayothaya, Louyang & Amatsu Kafras. [Lupus]
 //============================================================ 
 
 
@@ -40,16 +41,31 @@ function	script	F_Kafra	{
 	set @kafPass, 0;
 	mes "[Kafra]";
 	if(getarg(0)==0) mes "Welcome to Kafra Corp.  We will stay with you wherever you go.";
+	//Niflheim
 	if(getarg(0)==1) mes "Welcome... Kafra Services.... Will be with you even if you die.....";
+	//Guilds Castles
 	if(getarg(0)==2) mes "Welcome, ^5533FF" + GetGuildName(@GID) + "^000000 members.  We will stay with you wherever you go";
+	//Amatsu
+	if(getarg(0)==3) mes "So, have you come from a faraway land to study our culture, or are you just sightseeing?";
+	if(getarg(0)==3) mes "In either case, why not stay awhile?";
+	if(getarg(0)==3) mes "The air is eternally heavy with the";
+	if(getarg(0)==3) mes "scent of pleasant wildflowers.";
+	//Louyang, Ayothaya
+	if(getarg(0)==4) mes "With our many Kafra";
+	if(getarg(0)==4) mes "service locations, you're never";
+	if(getarg(0)==4) mes "far from home.";
 	next;
+
 	M_Menu:
 //Guilds Kafra
 	if(getarg(0)==2) menu "-Use Storage",M_Storage, "-Use Guild Storage",M_GStorage, "-Rent a Cart",M_Cart, "-Use Teleport Service",M_Teleport, "-Cancel",M_End;
 //only Save & Storage
 	if(getarg(1)==1) menu "-Save",M_Save,"-Use Storage",M_Storage, "-Cancel",M_End;
-//only Storage)
+//only Storage
 	if(getarg(1)==2) menu "-Use Storage",M_Storage, "-Cancel",M_End;
+//Common w/o teleport
+	if(getarg(1)==3) menu	"-Save",M_Save, "-Use Storage",M_Storage, "-Rent a Cart",M_Cart, "-Kafra Pass",M_Pass, 
+		"-Other Information Check",M_Info, "-Cancel",M_End;
 //Common Kafra
 	menu	"-Save",M_Save, "-Use Storage",M_Storage, "-Use Teleport Service",M_Teleport, "-Rent a Cart",M_Cart, "-Kafra Pass",M_Pass, 
 		"-Other Information Check",M_Info, "-Cancel",M_End;

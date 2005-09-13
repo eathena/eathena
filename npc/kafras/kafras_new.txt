@@ -20,22 +20,23 @@
 //= This version uses arrays .[kobra_k88]
 //= 2.2 Added Louyang Kafra, fixed other kafras not saving players coords [Lupus]
 //= 2.3 Added temp Amatsu + Ayothaya Kafra (wrong coords and sprite) [Lupus]
+//= 2.4 Added correct Ayothaya, Louyang & Amatsu Kafras. [Lupus]
 //==========================================================================
 
 // Amatsu -----------------------------------------------------------------
-amatsu.gat,192,89,5	script	Kafra	116,{
+amatsu.gat,102,149,4	script	Kafra	116,{
 	cutin "kafra_02",2;
-	callfunc "F_Kafra",0,1,1;
+	callfunc "F_Kafra",3,3,1;
 
 	M_Save:
-		savepoint "amatsu.gat",197,86;
+		savepoint "amatsu.gat",116,94;
 		callfunc "F_KafEnd",0,1;
 }
 
 // Ayothaya -----------------------------------------------------------------
-ayothaya.gat,143,69,6	script	Kafra	721,{
-	cutin "kafra_07",2;
-	callfunc "F_Kafra",0,1,1;
+ayothaya.gat,212,169,5	script	Kafra	116,{
+	cutin "kafra_02",2;
+	callfunc "F_Kafra",4,3,1;
 
 	M_Save:
 		savepoint "ayothaya.gat",149,69;
@@ -54,9 +55,9 @@ gonryun.gat,159,122,4	script	Kafra	116,{
 }
 
 // Louyang -----------------------------------------------------------------
-louyang.gat,210,104,5	script	Kafra	115,{
-	cutin "kafra_03",2;
-	callfunc "F_Kafra",0,1,1;
+louyang.gat,210,104,5	script	Kafra	117,{
+	cutin "kafra_04",2;
+	callfunc "F_Kafra",4,3,1;
 
 	M_Save:
 		savepoint "louyang.gat",217,92;
@@ -75,7 +76,7 @@ umbala.gat,128,133,4	script	Kafra	115,{
 }
 
 // Niflheim ----------------------------------------------------------------
-niflheim.gat,190,180,5	script	Kafra	791,{
+niflheim.gat,202,180,3	script	Kafra	791,{
 	callfunc "F_Kafra",1,2,1;
 //this SAVE isn't used. Niflheim Kafra doesn't SAVE
 	M_Save:

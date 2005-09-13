@@ -123,8 +123,8 @@ prontera.gat,102,287,5	script	Shuger	98,{
 }
  
 // ------------------------------------------------------------------------------------------- Culvert -------------------------------------------------------------------------------\\
-// Culvert Gaurdian ----------------------------------------------------
-prt_fild05.gat,270,212,5	script	Culvert Gaurdian	105,{
+// Culvert Guardian ----------------------------------------------------
+prt_fild05.gat,270,212,5	script	Culvert Guardian	105,{
 	if(sewer_prt == 1) goto L_WARP;
 	mes "[Culvert Guardian]";
 	mes "Sorry, but only volunteers for the Culvert Campaign can go inside.";
