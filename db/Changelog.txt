@@ -39,6 +39,7 @@
 	--
 
 09/13
+	* Added new monsters with poring stats, thanks to Freya [Lupus]
 	* Added skill_unit flag 0x80 (UF_DUALMODE) for skills that trigger both
 	  interval effects and onout/onplace events (by default, if a skill has a
 	  interval such as Apple of Idun, then the routines when you step in/out of

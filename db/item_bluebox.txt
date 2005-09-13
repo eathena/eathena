@@ -434,11 +434,11 @@
 1808,Fist,10000
 1810,Claw,10000
 1812,Finger,10000
-1902,Violin,10000
+//1902,Violin,10000 //only trough Bard Job Quest (+Violy drops)
 1904,Mandolin,10000
 1906,Lute,10000
 1908,Guitar,10000
-1910,Harp,10000
+//1910,Harp,10000 //only trough Bard Job Quest
 1912,Gumoongoh,10000
 1951,Rope,10000
 1953,Line,10000
