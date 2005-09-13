@@ -206,7 +206,6 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage, in
 	struct map_session_data *sd = NULL;
 	struct status_change *sc_data;
 	short *sc_count;
-	int i;
 
 	nullpo_retr(0, target); //blはNULLで呼ばれることがあるので他でチェック
 	
@@ -250,16 +249,13 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage, in
 			return 0;
 		if (sc_data[SC_DEVOTION].val1) {	// ディボーションをかけられている
 			struct map_session_data *sd2 = map_id2sd(tsd->sc_data[SC_DEVOTION].val1);
-			if (sd2 && skill_devotion3(&sd2->bl, target->id)) {
-				skill_devotion(sd2, target->id);
-			} else if (sd2 && bl) {
-				for (i = 0; i < 5; i++)
-					if (sd2->dev.val1[i] == target->id) {
-						clif_damage(bl, &sd2->bl, gettick(), 0, 0, damage, delay, 0, 0);
-						pc_damage(&sd2->bl, sd2, damage, delay);
-						return 0;
-					}
-			}
+			if (sd2 && sd2->devotion[sc_data[SC_DEVOTION].val2] == target->id)
+			{
+				clif_damage(bl, &sd2->bl, gettick(), 0, 0, damage, delay, 0, 0);
+				pc_damage(&sd2->bl, sd2, damage, delay);
+				return 0;
+			} else
+				status_change_end(target, SC_DEVOTION, -1);
 		}
 
 		if (tsd->skilltimer != -1) {	// 詠唱妨害

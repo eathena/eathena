@@ -2945,7 +2945,7 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *bl)
 int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrtype)
 {
 	char mapname[MAP_NAME_LENGTH];
-	int i, m;
+	int m;
 
 	nullpo_retr(0, sd);
 
@@ -2969,13 +2969,14 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 	pc_stop_walking(sd,0);		// ?行中?
 	pc_stopattack(sd);			// 攻?中?
 
+/* Unneeded by the new devotion methodology. [Skotlex]
 	for (i = 0; i < 5; i++){
 		if(sd->dev.val1[i]){
 			struct map_session_data *tsd = map_id2sd(sd->dev.val1[i]);
 			skill_devotion_end(sd,tsd,i);
 		}
 	}
-
+*/
 	if(pc_issit(sd)) {
 		pc_setstand(sd);
 		skill_gangsterparadise(sd,0);
@@ -3358,20 +3359,23 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 		if (pc_iscloaking(sd))	// クロ?キングの消滅?査
 			skill_check_cloaking(&sd->bl);
 		/* ディボ?ション?査 */
+/* Unneeded by the new devotion methodology. [Skotlex]
 		for (i = 0; i < 5; i++)
 			if (sd->dev.val1[i]) {
 				skill_devotion3(&sd->bl, sd->dev.val1[i]);
 				break;
 			}
-
+*/
 		/* 被ディボ?ション?査 */
 		if (sd->sc_count) {
 			if (sd->sc_data[SC_DANCING].timer != -1)
 				skill_unit_move_unit_group((struct skill_unit_group *)sd->sc_data[SC_DANCING].val2, sd->bl.m, dx, dy);
 
+			/* Unneeded by the new devotion methodology. [Skotlex]
 			if (sd->sc_data[SC_DEVOTION].val1)
 				skill_devotion2(&sd->bl, sd->sc_data[SC_DEVOTION].val1);
-
+			*/
+			
 			if (sd->sc_data[SC_BASILICA].timer != -1) { // Basilica cancels if caster moves [celest]
 				struct skill_unit_group *sg = (struct skill_unit_group *)sd->sc_data[SC_BASILICA].val4;
 				if (sg && sg->src_id == sd->bl.id)
@@ -4888,10 +4892,9 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 	}
 
 	for(i = 0; i < 5; i++)
-		if (sd->dev.val1[i]){
-			struct map_session_data *devsd = map_id2sd(sd->dev.val1[i]);
+		if (sd->devotion[i]){
+			struct map_session_data *devsd = map_id2sd(sd->devotion[i]);
 			if (devsd) status_change_end(&devsd->bl,SC_DEVOTION,-1);
-			sd->dev.val1[i] = sd->dev.val2[i]=0;
 		}
 
 	pc_setdead(sd);

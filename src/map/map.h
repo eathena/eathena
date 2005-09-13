@@ -448,7 +448,7 @@ struct map_session_data {
 
 	struct status_change sc_data[MAX_STATUSCHANGE];
 	short sc_count;
-	struct square dev;
+	int devotion[5]; //Stores the char IDs of chars devoted to.
 
 	int trade_partner;
 	int deal_item_index[10];

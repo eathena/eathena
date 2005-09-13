@@ -205,9 +205,11 @@ void skill_repairweapon(struct map_session_data *sd, int idx);
 void skill_identify(struct map_session_data *sd,int idx);
 void skill_weaponrefine(struct map_session_data *sd,int idx); // [Celest]
 int skill_autospell(struct map_session_data *md,int skillid);
+/* Unneeded by the new devotion methodology. [Skotlex]
 void skill_devotion(struct map_session_data *md,int target);
 void skill_devotion2(struct block_list *bl,int crusader);
 int skill_devotion3(struct block_list *bl,int target);
+*/
 void skill_devotion_end(struct map_session_data *md,struct map_session_data *sd,int target);
 
 #define skill_calc_heal(bl,skill_lv) (( status_get_lv(bl)+status_get_int(bl) )/8 *(4+ skill_lv*8))

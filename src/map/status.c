@@ -3716,9 +3716,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 					val2 += (t < 0)? 1:t;
 				}
 				if (sd)
-					for (i = 0; i < 5 && sd->dev.val1[i]; i++)
+					for (i = 0; i < 5; i++)
 					{	//Pass the status to the other affected chars. [Skotlex]
-						if ((tsd = map_id2sd(sd->dev.val1[i])))
+						if (sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])))
 							status_change_start(&tsd->bl,SC_AUTOGUARD,val1,val2,0,0,tick,1);
 					}
 			}
@@ -3732,9 +3732,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				int i;
 				val2 = 5 + val1*15;
 				if (sd)
-					for (i = 0; i < 5 && sd->dev.val1[i]; i++)
+					for (i = 0; i < 5; i++)
 					{	//See if there are devoted characters, and pass the status to them. [Skotlex]
-						if ((tsd = map_id2sd(sd->dev.val1[i])))
+						if (sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])))
 							status_change_start(&tsd->bl,SC_DEFENDER,val1,val2,0,0,tick,1);
 					}
 			}
@@ -3892,15 +3892,16 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_DEVOTION:			/* ディボ?ション */
 		{
 			struct map_session_data *src;
-			calc_flag = 1;
-			if (sd && (src = map_id2sd(val1)) && src->sc_count)
+			if ((src = map_id2sd(val1)) && src->sc_count)
 			{	//Try to inherit the status from the Crusader [Skotlex]
 			//Ideally, we should calculate the remaining time and use that, but we'll trust that
 			//once the Crusader's status changes, it will reflect on the others. 
 				if (src->sc_data[SC_AUTOGUARD].timer != -1)
-					status_change_start(bl,SC_AUTOGUARD,src->sc_data[SC_AUTOGUARD].val1,0,0,0,tick,0);
+					status_change_start(bl,SC_AUTOGUARD,src->sc_data[SC_AUTOGUARD].val1,0,0,0,
+						skill_get_time(CR_AUTOGUARD,src->sc_data[SC_AUTOGUARD].val1),0);
 				if (src->sc_data[SC_DEFENDER].timer != -1)
-					status_change_start(bl,SC_DEFENDER,src->sc_data[SC_DEFENDER].val1,0,0,0,tick,0);
+					status_change_start(bl,SC_DEFENDER,src->sc_data[SC_DEFENDER].val1,0,0,0,
+						skill_get_time(CR_DEFENDER,src->sc_data[SC_DEFENDER].val1),0);
 			}
 			break;
 		}
@@ -4226,9 +4227,9 @@ int status_change_end( struct block_list* bl , int type,int tid )
 				struct map_session_data *sd, *tsd;
 				int i;
 				if (bl->type == BL_PC && (sd= (struct map_session_data *)bl))
-					for (i = 0; i < 5 && sd->dev.val1[i]; i++)
+					for (i = 0; i < 5; i++)
 					{	//Clear the status from the others too [Skotlex]
-						if ((tsd = map_id2sd(sd->dev.val1[i])) && tsd->sc_data[type].timer != -1)
+						if (sd->devotion[i] && (tsd = map_id2sd(sd->devotion[i])) && tsd->sc_data[type].timer != -1)
 							status_change_end(&tsd->bl,type,-1);
 					}
 				break;
@@ -4237,16 +4238,17 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_DEVOTION:		/* ディボ?ション */
 				{
 					struct map_session_data *md = map_id2sd(sc_data[type].val1);
-					sc_data[type].val1=sc_data[type].val2=0;
 					//The status could have changed because the Crusader left the game. [Skotlex]
-					if (md) skill_devotion(md,bl->id);
+					if (md)
+					{
+						md->devotion[sc_data[type].val2] = 0;
+						clif_devotion(md);
+					}
 					//Remove AutoGuard and Defender [Skotlex]
 					if (sc_data[SC_AUTOGUARD].timer != -1)
 						status_change_end(bl,SC_AUTOGUARD,-1);
 					if (sc_data[SC_DEFENDER].timer != -1)
 						status_change_end(bl,SC_DEFENDER,-1);
-
-					calc_flag = 1;
 				}
 				break;
 			case SC_BLADESTOP:
@@ -4778,6 +4780,18 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		}
 		break;
 
+	case SC_DEVOTION:
+		{	//Check range and timeleft to preserve status [Skotlex]
+			//This implementation won't work for mobs because of map_id2sd, but it's a small cost in exchange of the speed of map_id2sd over map_id2sd
+			struct map_session_data *md = map_id2sd(sc_data[type].val1);
+			if (md && battle_check_range(bl, &md->bl, sc_data[type].val3) && (sc_data[type].val4-=1000)>0)
+			{
+				sc_data[type].timer = add_timer(1000+tick, status_change_timer, bl->id, data);
+					return 0;
+			}
+		}
+		break;
+		
 	case SC_BERSERK:		/* バ?サ?ク */
 		if(sd){		/* HPが100以上なら?? */
 			if( (sd->status.hp - sd->status.max_hp*5/100) > 100 ){	// 5% every 10 seconds [DracoRPG]

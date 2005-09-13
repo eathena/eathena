@@ -39,6 +39,8 @@
 	--
 
 09/13
+	* Added Range of Devotion/Sacrifice to skill_db, likewise, added the
+	  effect's duration to skill_cast_db [Skotlex]
 	* Added new monsters with poring stats, thanks to Freya [Lupus]
 	* Added skill_unit flag 0x80 (UF_DUALMODE) for skills that trigger both
 	  interval effects and onout/onplace events (by default, if a skill has a

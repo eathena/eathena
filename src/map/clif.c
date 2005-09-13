@@ -6525,7 +6525,7 @@ int clif_autospell(struct map_session_data *sd,int skilllv)
  * ディボーションの青い糸
  *------------------------------------------
  */
-int clif_devotion(struct map_session_data *sd,int target)
+int clif_devotion(struct map_session_data *sd)
 {
 	unsigned char buf[56];
 	int n;
@@ -6534,10 +6534,8 @@ int clif_devotion(struct map_session_data *sd,int target)
 
 	WBUFW(buf,0)=0x1cf;
 	WBUFL(buf,2)=sd->bl.id;
-//	WBUFL(buf,6)=target;
 	for(n=0;n<5;n++)
-		WBUFL(buf,6+4*n)=sd->dev.val2[n];
-//		WBUFL(buf,10+4*n)=0;
+		WBUFL(buf,6+4*n)=sd->devotion[n];
 	WBUFB(buf,26)=8;
 	WBUFB(buf,27)=0;
 

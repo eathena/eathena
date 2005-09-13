@@ -3208,8 +3208,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					heal = heal*2;	//スパノビの嫁が旦那にヒ?ルすると2倍になる
 			}
 
+			heal = battle_heal(NULL,bl,heal,0,0);
 			clif_skill_nodamage (src, bl, skillid, heal, 1);
-			heal_get_jobexp = battle_heal(NULL,bl,heal,0,0);
+			heal_get_jobexp = heal;
 
 			// JOB??値獲得
 			if(sd && dstsd && heal > 0 && sd != dstsd && battle_config.heal_exp > 0){
@@ -3683,7 +3684,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case CR_DEVOTION:		/* ディボ?ション */
-		if(sd && dstsd){
+		if(sd && dstsd)
+		{
 			//?生や養子の場合の元の職業を算出する
 
 			int lv = sd->status.base_level - dstsd->status.base_level;
@@ -3694,22 +3696,22 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				map_freeblock_unlock();
 				return 1;
 			}
-			for (i = 0; i < skilllv; i++) {
-				if (!sd->dev.val1[i]) {		// 空きがあったら入れる
-					sd->dev.val1[i] = bl->id;
-					sd->dev.val2[i] = bl->id;
-					break;
-				} else if (i == skilllv - 1) {		// 空きがなかった
-					clif_skill_fail(sd,skillid,0,0);
-					map_freeblock_unlock();
-					return 1;
-				}
+			//Look for an empty slot (or reuse in case you cast it twice in the same char. [Skotlex]
+			for (i = 0; i < skilllv && i < 5 && sd->devotion[i]!=bl->id && sd->devotion[i]; i++);
+			if (i == skilllv)
+			{
+				clif_skill_fail(sd,skillid,0,0);
+				map_freeblock_unlock();
+				return 1;
 			}
+			sd->devotion[i] = bl->id;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			clif_devotion(sd,bl->id);
-			status_change_start(bl,SkillStatusChangeTable[skillid],src->id,1,0,0,1000*(15+15*skilllv),0 );
+			clif_devotion(sd);
+			status_change_start(bl,SkillStatusChangeTable[skillid],src->id,i,skill_get_range(skillid,skilllv),skill_get_time2(skillid, skilllv),1000,0);
 		}
-		else clif_skill_fail(sd,skillid,0,0);
+		else
+			if (sd)
+				clif_skill_fail(sd,skillid,0,0);
 		break;
 
 	case MO_CALLSPIRITS:	// ?功
@@ -8791,6 +8793,7 @@ void skill_weaponrefine(struct map_session_data *sd,int idx)
  * ディボ?ション 有?確認
  *------------------------------------------
  */
+/* Unneeded by the new devotion methodology. [Skotlex]
 void skill_devotion(struct map_session_data *md,int target)
 {
 	// ?確認
@@ -8858,6 +8861,7 @@ void skill_devotion_end(struct map_session_data *md,struct map_session_data *sd,
 	//	clif_status_change(&sd->bl,SC_DEVOTION,0);
 	}
 }
+*/
 /*==========================================
  * オ?トスペル
  *------------------------------------------

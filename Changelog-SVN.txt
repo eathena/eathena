@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/13
+	* Rewrote the mechanics of how Devotion works. [Skotlex]
+	* Updated Heal so that it displays on-screen the actual amount that was
+	  healed. [Skotlex]
 	* Changed the damage motion equation to 1/4th of what it was before (now
 	  using player_damage_delay_rate: 100 is what was player_damage_delay_rate:
 	  25 in previous revisions) [Skotlex]
