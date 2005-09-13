@@ -10,6 +10,20 @@
 #define MAX_SKILL_ARROW_DB		150
 #define MAX_SKILL_ABRA_DB		350
 
+//Constants to identify the skill's inf value:
+#define INF_ATTACK_SKILL 1
+//For the time being, all trap-targetted skills ARE ground based:
+#define INF_GROUND_SKILL (2|32)
+// Skills casted on self where target is automatically chosen:
+#define INF_SELF_SKILL 4
+#define INF_SUPPORT_SKILL 16
+#define INF_TARGET_TRAP 32
+
+//Constants to identify a skill's nk value.
+//The NK value applies only to non INF_GROUND_SKILL skills.
+#define NK_NO_DAMAGE 1
+#define NK_SPLASH_DAMAGE 2
+
 // スキルデ?タベ?ス
 struct skill_db {
 	int range[MAX_SKILL_LEVEL],hit,inf,pl,nk,max;

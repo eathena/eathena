@@ -1,0 +1,10 @@
+Changes are Aru's unless noted.
+
+2005-09-23:
+	Fixed up the Makefile.
+	Fixed a plagiarism bug.
+	Fixed Killer Mantis, Various Jur not causing bleeding.
+	Changed Autocasts, damage return to match stable.	
+	
+2005-09-11:
+	Removed the obsolete Clownphobia branch and added a working one {Aru}

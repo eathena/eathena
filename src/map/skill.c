@@ -625,9 +625,6 @@ int is_ally(struct map_session_data *sd1, struct map_session_data *sd2)
 // Making plagirize check its own function [Aru]
 int can_copy(struct map_session_data *sd, int skillid)
 {
-	// Can't plagiraize while dead
-	if(pc_isdead(sd))
-		return 0;
 	// NPC Skills, never ok to copy
 	if(skillid >= NPC_PIERCINGATT && skillid <= NPC_SUMMONMONSTER)
 		return 0;
@@ -646,6 +643,38 @@ int can_copy(struct map_session_data *sd, int skillid)
 	}
 
 	return 1;
+}
+
+void skill_check_plag(struct map_session_data *tsd, int skillid, int skilllv)
+{
+	int lv;
+	if (!tsd) return;
+	// Can't plagiraize while dead
+	if(pc_isdead(tsd)) return;
+	
+	lv = pc_checkskill(tsd,RG_PLAGIARISM);
+	if (!lv) return;
+
+	if(tsd->sc_data[SC_PRESERVE].timer != -1) return;
+	
+	if ((!tsd->status.skill[skillid].id || tsd->status.skill[skillid].flag >= 13) &&
+		can_copy(tsd,skillid))
+	{
+		if(skilllv < lv) lv = skilllv;
+		//?に?んでいるスキルがあれば該?スキルを消す
+		if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag == 13){
+			tsd->status.skill[tsd->cloneskill_id].id = 0;
+			tsd->status.skill[tsd->cloneskill_id].lv = 0;
+			tsd->status.skill[tsd->cloneskill_id].flag = 0;
+		}
+		tsd->cloneskill_id = skillid;
+		tsd->status.skill[skillid].id = skillid;
+		tsd->status.skill[skillid].lv = lv;
+		tsd->status.skill[skillid].flag = 13; //cloneskill flag
+		pc_setglobalreg(tsd, "CLONE_SKILL", tsd->cloneskill_id);
+		clif_skillinfoblock(tsd);
+		
+	}
 }
 
 int skill_gethitbonus(int id, int lv)
@@ -1201,6 +1230,12 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					break;
 				case SC_CURSE:
 					sc_def_card=sc_def_luk;
+					break;
+				case SC_BLEEDING2:
+					sc_def_card=100;
+					break;
+				default: 
+					printf ("Addeff, what status is %d?\n",i);
 			}
 
 			if (sd && skillid != MC_CARTREVOLUTION && 
@@ -1210,7 +1245,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					if(rand()%10000 < (sd->addeff[type])*sc_def_card/100 ){
 						if(battle_config.battle_log)
 							printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",sd->bl.id,i,sd->addeff[type]);
-						if(i==SC_BLEEDING) status_change_start(src,i,7,0,0,0,120000,0);
+						if(i==SC_BLEEDING2) status_change_start(src,SC_BLEEDING,7,0,0,0,120000,0);
 						else
 						status_change_start(bl,i,7,0,0,0,(i==SC_CONFUSION || i==SC_BLEEDING)? 10000+7000:skill_get_time2(sc2[type],7),0);
 					}
@@ -1219,7 +1254,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					if(rand()%10000 < (sd->addeff[type]+sd->arrow_addeff[type])*sc_def_card/100 ){
 						if(battle_config.battle_log)
 							printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",sd->bl.id,i,sd->addeff[type]);
-						if(i==SC_BLEEDING) status_change_start(src,i,7,0,0,0,120000,0);
+						if(i==SC_BLEEDING2) status_change_start(src,SC_BLEEDING,7,0,0,0,120000,0);
 						else
 						status_change_start(bl,i,7,0,0,0,(i==SC_CONFUSION || i==SC_BLEEDING)? 10000+7000:skill_get_time2(sc2[type],7),0);
 					}
@@ -1243,6 +1278,12 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					break;
 				case SC_CURSE:
 					sc_def_card=sc_def_luk2;
+					break;
+				case SC_BLEEDING2:
+					sc_def_card=100;
+					break;
+				default: 
+					printf ("Addeff, what status is %d?\n",i);
 			}
 
 			if (sd && skillid != AM_DEMONSTRATION) {
@@ -1250,7 +1291,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					if(rand()%10000 < (sd->addeff2[type])*sc_def_card/100 ){
 						if(battle_config.battle_log)
 							printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",src->id,i,sd->addeff2[type]);
-						if(i==SC_BLEEDING) status_change_start(src,i,7,0,0,0,120000,0);
+						if(i==SC_BLEEDING2) status_change_start(src,SC_HEADCRUSH,7,0,0,0,120000,0);
 						else
 						status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
 					}
@@ -1259,7 +1300,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					if(rand()%10000 < (sd->addeff2[type]+sd->arrow_addeff2[type])*sc_def_card/100 ){
 						if(battle_config.battle_log)
 							printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",src->id,i,sd->addeff2[type]);
-						if(i==SC_BLEEDING) status_change_start(src,i,7,0,0,0,120000,0);
+						if(i==SC_BLEEDING2) status_change_start(src,SC_HEADCRUSH,7,0,0,0,120000,0);
 						else
 						status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION || i==SC_BLEEDING)? 10000+7000:skill_get_time2(sc2[type],7),0);
 					}
@@ -1270,12 +1311,63 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					continue;
 				if(battle_config.battle_log)
 					printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",src->id,i,dstsd->addeff3[type]);
-				if(i==SC_BLEEDING) status_change_start(src,i,7,0,0,0,120000,0);
+				if(i==SC_BLEEDING2) status_change_start(src,SC_HEADCRUSH,7,0,0,0,120000,0);
 				else
 				status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION || i==SC_BLEEDING)? 10000+7000:skill_get_time2(sc2[type],7),0);
 			}
 		}
 	}
+	//Reports say that autospell effects get triggered on skills and pretty much everything including splash attacks. [Skotlex]
+	//Here we use the nk value to trigger spells only on damage causing skills (otherwise stuff like AL_HEAL will trigger them)
+	if(sd && !sd->state.autocast && !status_isdead(bl) && src != bl &&(!skillid || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
+	{
+		struct block_list *tbl;
+		int i, auto_skillid, auto_skilllv, rate;
+
+		sd->state.autocast = 1;
+		for (i = 0; i < 10; i++) {
+			if (sd->autospell_id[i] == 0)
+				break;
+
+			auto_skillid = (sd->autospell_id[i] > 0) ? sd->autospell_id[i] : -sd->autospell_id[i];
+
+			if (auto_skillid == skillid) //Prevents skill from retriggering themselves. [Skotlex]
+				continue;
+			
+			auto_skilllv = ((sd->autospell_lv[i] > 0) ? sd->autospell_lv[i] : 1);
+			rate = sd->autospell_rate[i];
+			if(attack_type & (BF_LONG)) rate /= 2;
+			if(skill_get_inf(skillid) & INF_GROUND_SKILL) rate /= 2;
+
+			
+			if (rand()%100 > rate)
+				continue;
+			if (sd->autospell_id[i] < 0)
+				tbl = src;
+			else
+				tbl = bl;
+			
+			if (skill_get_inf(auto_skillid) & INF_GROUND_SKILL)
+				skill_castend_pos2(src, tbl->x, tbl->y, auto_skillid, auto_skilllv, tick, 0);
+			else {
+				switch (skill_get_nk(auto_skillid)) {
+					case NK_NO_DAMAGE:
+						if ((auto_skillid == AL_HEAL || (auto_skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
+							battle_check_undead(status_get_race(tbl),status_get_elem_type(tbl)))
+							skill_castend_damage_id(src, tbl, auto_skillid, auto_skilllv, tick, 0);
+						else
+							skill_castend_nodamage_id(src, tbl, auto_skillid, auto_skilllv, tick, 0);
+						break;
+					case NK_SPLASH_DAMAGE:
+					default:
+						skill_castend_damage_id(src, tbl, auto_skillid, auto_skilllv, tick, 0);
+						break;
+				}
+			}
+		}
+		sd->state.autocast = 0;
+	}
+
 	return 0;
 }
 #if 1
@@ -1817,28 +1909,9 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		if(rand()%100 < rate)
 			skill_addtimerskill(src,tick + 800,bl->id,0,0,skillid,skilllv,0,flag);
 	}
-	if(damage > 0 && dmg.flag&BF_SKILL && bl->type==BL_PC && pc_checkskill((struct map_session_data *)bl,RG_PLAGIARISM) && sc_data[SC_PRESERVE].timer == -1){
+	if(damage > 0 && dmg.flag&BF_SKILL && bl->type==BL_PC){
 		struct map_session_data *tsd = (struct map_session_data *)bl;
-		if (tsd && 
-			(!tsd->status.skill[skillid].id || tsd->status.skill[skillid].flag >= 13) &&
-			can_copy(tsd,skillid))
-		{
-			
-			//?に?んでいるスキルがあれば該?スキルを消す
-			if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag == 13){
-				tsd->status.skill[tsd->cloneskill_id].id = 0;
-				tsd->status.skill[tsd->cloneskill_id].lv = 0;
-				tsd->status.skill[tsd->cloneskill_id].flag = 0;
-			}
-			tsd->cloneskill_id = skillid;
-			tsd->status.skill[skillid].id = skillid;
-			tsd->status.skill[skillid].lv = skilllv;
-			if ((lv = pc_checkskill(tsd,RG_PLAGIARISM)) < skilllv)
-				tsd->status.skill[skillid].lv = lv;
-			tsd->status.skill[skillid].flag = 13;//cloneskill flag
-			pc_setglobalreg(tsd, "CLONE_SKILL", tsd->cloneskill_id);
-			clif_skillinfoblock(tsd);
-		}
+		skill_check_plag(tsd,skillid,skilllv);
 	}
 	/* ダメ?ジがあるなら追加?果判定 */
 	if(bl->prev != NULL){

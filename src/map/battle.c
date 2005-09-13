@@ -4497,8 +4497,8 @@ struct Damage battle_calc_magic_attack(
 	damage=battle_calc_damage(bl,target,damage,div_,skill_num,skill_lv,aflag);	// ÅIC³
 
 	/* magic_damage_return by [AppleGirl] and [Valaris]		*/
-	if( target->type==BL_PC && tsd && tsd->magic_damage_return > 0 ){
-		rdamage += damage * tsd->magic_damage_return / 100;
+	if( target->type==BL_PC && tsd && (rand()%100 < tsd->magic_damage_return)){
+			rdamage += damage;
 			if(rdamage < 1) rdamage = 1;
 			clif_damage(target,bl,gettick(),0,0,rdamage,0,0,0);
 			battle_damage(target,bl,rdamage,0);
@@ -4814,8 +4814,8 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 	
 		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
 			if (wd.flag & BF_SHORT) {
-				if (tsd && tsd->short_weapon_damage_return > 0) {
-					rdamage += damage * tsd->short_weapon_damage_return / 100;
+				if (tsd && (rand()%100 < tsd->short_weapon_damage_return)) {
+					rdamage += damage;
 					if (rdamage < 1) rdamage = 1;
 				}
 				if (tsc_data && tsc_data[SC_REFLECTSHIELD].timer != -1) {
@@ -4823,8 +4823,8 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 					if (rdamage < 1) rdamage = 1;
 				}
 			} else if (wd.flag & BF_LONG) {
-				if (tsd && tsd->long_weapon_damage_return > 0) {
-					rdamage += damage * tsd->long_weapon_damage_return / 100;
+				if (tsd && (rand()%100 < tsd->long_weapon_damage_return)) {
+					rdamage += damage;
 					if(rdamage < 1) rdamage = 1;
 				}
 			}
@@ -4908,6 +4908,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		}
 		if (sd) {
 			int i;
+#if 0
 			for (i = 0; i < 10; i++) {
 				if (sd->autospell_id[i] != 0) {
 					struct block_list *tbl;
@@ -4938,6 +4939,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 					}
 				} else break;
 			}
+#endif
 			if (wd.flag & BF_WEAPON && src != target && (wd.damage > 0 || wd.damage2 > 0)) {
 				int hp = 0, sp = 0;
 				if (!battle_config.left_cardfix_to_right) { // “ñ“—¬¶èƒJ[ƒh‚Ì‹zûŒnŒø‰Ê‚ğ‰Eè‚É’Ç‰Á‚µ‚È‚¢ê‡

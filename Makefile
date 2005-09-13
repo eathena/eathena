@@ -101,14 +101,6 @@ conf:
 	cp -r save-tmpl save
 	rm -rf save/.svn
 
-txt : src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile conf
-	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd ..
-	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd ..
-	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd ..
-	cd src ; cd map ; $(MAKE) $(MKDEF) $@ ; cd ..
-	cd src ; cd addons ; $(MAKE) $(MKDEF) $@ ; cd ..
-	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd ..
-
 
 ifdef SQLFLAG
 sql: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile conf
@@ -122,18 +114,6 @@ sql:
 	$(MAKE) CC="$(CC)" OPT="$(OPT)" SQLFLAG=1 $@
 endif
 
-
-ifdef SQLFLAG
-converters: src/common/GNUmakefile src/txt-converter/login/GNUmakefile src/txt-converter/char/GNUmakefile
-	cd src ; cd common ; $(MAKE) $(MKDEF) sql ; cd ..
-	cd src ; cd txt-converter ; cd login ; $(MAKE) $(MYLIB) ; cd ..
-	cd src ; cd txt-converter ; cd char ; $(MAKE) $(MYLIB) ; cd ..
-else
-converters:
-	$(MAKE) CC="$(CC)" OPT="$(OPT)" SQLFLAG=1 $@
-endif
-
-
 tools: 
 	cd src ; cd tool && $(MAKE) $(MKDEF) && cd ..
 
@@ -141,17 +121,12 @@ webserver:
 	cd src ; cd webserver && $(MAKE) $(MKDEF) && cd ..
 
 
-clean: src/common/GNUmakefile src/login/GNUmakefile src/char/GNUmakefile src/map/GNUmakefile src/ladmin/GNUmakefile src/txt-converter/login/GNUmakefile src/txt-converter/char/GNUmakefile
+clean: src/common/GNUmakefile src/map/GNUmakefile
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd ..
-	cd src ; cd login ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd login_sql ; $(MAKE) $(MKLIB) $@ ; cd ..
-	cd src ; cd char ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd char_sql ; $(MAKE) $(MKLIB) $@ ; cd ..
 	cd src ; cd map ; $(MAKE) $(MKLIB) $@ ; cd ..
-	cd src ; cd ladmin ; $(MAKE) $(MKDEF) $@ ; cd ..
 	cd src ; cd addons ; $(MAKE) $(MKDEF) $@ ; cd ..
-	cd src ; cd txt-converter ; cd login ; $(MAKE) $(MKLIB) $@ ; cd ..
-	cd src ; cd txt-converter ; cd char ; $(MAKE) $(MKLIB) $@ ; cd ..
 
 src/common/GNUmakefile: src/common/Makefile 
 	sed -e 's/$$>/$$^/' src/common/Makefile > src/common/GNUmakefile
@@ -169,7 +144,3 @@ src/addons/GNUmakefile: src/addons/Makefile
 	sed -e 's/$$>/$$^/' src/addons/Makefile > src/addons/GNUmakefile
 src/ladmin/GNUmakefile: src/ladmin/Makefile 
 	sed -e 's/$$>/$$^/' src/ladmin/Makefile > src/ladmin/GNUmakefile
-src/txt-converter/login/GNUmakefile: src/txt-converter/login/Makefile 
-	sed -e 's/$$>/$$^/' src/txt-converter/login/Makefile > src/txt-converter/login/GNUmakefile
-src/txt-converter/char/GNUmakefile: src/txt-converter/char/Makefile 
-	sed -e 's/$$>/$$^/' src/txt-converter/char/Makefile > src/txt-converter/char/GNUmakefile

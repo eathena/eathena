@@ -7645,6 +7645,12 @@ int run_func(struct script_state *st)
 
 	func=st->stack->stack_data[st->start].u.num;
 	if( st->stack->stack_data[st->start].type!=C_NAME || str_data[func].type!=C_FUNC ){
+		struct map_session_data *sd = script_rid2sd(st);
+		if(sd)
+		{
+			printf("Player %s: ",sd->status.name);
+//			clif_setwaitclose(sd->fd);
+		}
 		ShowMessage ("run_func: '"CL_WHITE"%s"CL_RESET"' (type %d) is not function and command!\n",
 				str_buf + str_data[func].str, str_data[func].type);
 //		st->stack->sp=0;

@@ -180,6 +180,7 @@ struct map_session_data {
 		unsigned abra_flag : 1;
 		unsigned god : 1;
 		unsigned quit : 1;
+		unsigned autocast : 1;
 	} state;
 	struct {
 		unsigned killer : 1;

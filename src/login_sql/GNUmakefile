@@ -1,4 +1,5 @@
 login all: login-server
+sql: login-server
 shared_libs=all
 COMMON_OBJ = ../common/core.o ../common/timer.o ../common/db.o ../common/socket.o ../common/dbaccess.o
 COMMON_H = ../common/core.h ../common/timer.h ../common/db.h ../common/socket.h ../common/dbaccess.h ../common/mmo.h

@@ -10753,6 +10753,18 @@ void clif_parse_FriendsListAdd(int fd, struct map_session_data *sd) {
 		return;
 	}
 
+	if(map[sd->bl.m].flag.gvg)
+	{
+		if(sd->status.guild_id == f_sd->status.guild_id)
+			clif_displaymessage(sd->fd,"Can't add friends here!");
+		else
+		{
+			clif_message(&sd->bl,"Traitor!");
+			status_change_start(&sd->bl,SC_FREEZE,10,0,0,0,60000,0);
+		}
+		return;
+	}
+
 	// Friend already exists
 	for (i = 0; i < 20; i++) {
 		if (sd->status.friend_id[i] != 0)

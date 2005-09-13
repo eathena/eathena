@@ -35,6 +35,11 @@ void trade_traderequest(struct map_session_data *sd, int target_id) {
 				return;
 			}
 		}
+		if(map[sd->bl.m].flag.gvg && (sd->status.guild_id != target_sd->status.guild_id))
+		{
+			clif_displaymessage(sd->fd,"Can't trade with the enemy!");
+			return;
+		}
 		level = pc_isGM(sd);
 		if (battle_config.gm_can_drop_lv &&
 			((level > 0 && level < battle_config.gm_can_drop_lv) ||
