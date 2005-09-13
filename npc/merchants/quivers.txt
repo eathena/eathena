@@ -17,7 +17,6 @@
 
 payon_in01.gat,5,134,4	script	Inventor Jaax	89,{
 	mes "[Inventor Jaax]";
-	mes "[Inventor Jaax]";
 	mes "My name is Jaax.";
 	mes "Without ego, I can";
 	mes "sat that I am perhaps the";
@@ -50,7 +49,7 @@ payon_in01.gat,5,134,4	script	Inventor Jaax	89,{
 
 // Arguments
 //===========
-		callsub sF_Make, 1750,500, 12004, "Arrow Quiver";
+		callsub sF_Make, 1750,500,12004, "Arrow Quiver";
 			goto M_Menu;
 Q2:
 		callsub sF_Make, 1770,500,12005, "Iron Arrow Quiver";
@@ -67,27 +66,21 @@ Q5:
 Q6:
 		callsub sF_Make, 1751,500,12009, "Silver Arrow Quiver";
 			goto M_Menu;
-
 Q7:
 		callsub sF_Make, 1755,500,12010, "Wind Arrow Quiver";
 			goto M_Menu;
-
 Q8:
 		callsub sF_Make, 1756,500,12011, "Stone Arrow Quiver";
 			goto M_Menu;
-
 Q9:
 		callsub sF_Make, 1754,500,12012, "Crystal Arrow Quiver";
 			goto M_Menu;
-
 Q10:
 		callsub sF_Make, 1767,500,12013, "Shadow Arrow Quiver";
 			goto M_Menu;
-
 Q11:
 		callsub sF_Make, 1757,500,12014, "Immaterial Arrow Quiver";
 			goto M_Menu;
-
 Q12:
 		callsub sF_Make, 1762,500,12015, "Rusty Arrow Quiver";
 			goto M_Menu;
@@ -104,7 +97,7 @@ sF_Make:
 	menu "Give me as many as you can.",-, "I want to set the amount.",sM_0b, "Nevermind",M_End;
 
 		set @amount,100;
-		if(zeny/getarg(2) < @amount) set @amount, zeny/getarg(2);
+		if(zeny/getarg(1) < @amount) set @amount, zeny/getarg(1);
 		if(countitem(getarg(0))/@arrownum < @amount) set @amount, countitem(getarg(0))/@arrownum;
 		if(@amount > 0) goto L_End;
 		mes "[Inventor Jaax]";
@@ -115,31 +108,31 @@ sF_Make:
 		input @amount;
 		if(@amount<1 || @amount>100) goto L_BadAmnt;
 		if(countitem(getarg(0))/@arrownum < @amount) goto L_NdArrows;
-		if(Zeny < (getarg(2)*@amount)) goto L_NdZeny;
+		if(Zeny < (getarg(1)*@amount)) goto L_NdZeny;
 
 	L_End:
 		mes "[Inventor Jaax]";
 		mes "There you go~!";
 		mes "Here are your " +getarg(3)+ ".";
 		delitem getarg(0), (@amount*@arrownum);
-		set Zeny, Zeny - (getarg(2)*@amount);
+		set Zeny, Zeny - (getarg(1)*@amount);
 		getitem getarg(2), @amount;
 		close;
 
 	L_NdArrows:
 		mes "[Inventor Jaax]";
 		mes "Sorry, but you need 500 Arrows and 500 Zeny to make 1 Arrow Quiver.";
-		return;
+		close;
 		
 	L_NdZeny:
 		mes "[Inventor Jaax]";
 		mes "You don't have enough zeny for that many.";
-		return;
+		close;
 
 	L_BadAmnt:
 		mes "[Inventor Jaax]";
 		mes "Please choose a number between 1 and 100.";	
-		return;
+		close;
 
 L_Come:
 	mes "[Inventor Jaax]";
