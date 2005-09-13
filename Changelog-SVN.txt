@@ -1,6 +1,12 @@
 Date	Added
 =======
 
+09/13
+	* Added support for SC_BLEEDING in skill_counter_additional_effect &
+	  skill_additional_effect [Skotlex]
+	* Changed bonuses bAtkRate, bWeaponAtkRate and bCritRate to modify
+	  base+watk damage, not just watk. [Skotlex]
+	* Corrected coma-effect killing bosses. [Skotlex]
 09/12
 	* Party even share code won't try to give dead players their share of the
 	  exp (since pc_gainexp would refuse so anyway) [Skotlex]

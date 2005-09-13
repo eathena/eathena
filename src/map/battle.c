@@ -1165,12 +1165,6 @@ static struct Damage battle_calc_weapon_attack(
 					if (flag.arrow && sd->arrow_atk)
 						ATK_ADD(flag.cri?sd->arrow_atk:rand()%sd->arrow_atk);
 					
-					if(sd->status.weapon < 16 && (sd->atk_rate != 100 || sd->weapon_atk_rate[sd->status.weapon] != 0))
-						ATK_RATE(sd->atk_rate + sd->weapon_atk_rate[sd->status.weapon]);
-
-					if(flag.cri && sd->crit_atk_rate)
-						ATK_ADDRATE(sd->crit_atk_rate);
-				
 					//SizeFix only for players
 					if (!(
 						/*!tsd || //rodatazone claims that target human players don't have a size! -- I really don't believe it... removed until we find some evidence*/
@@ -1183,6 +1177,16 @@ static struct Damage battle_calc_weapon_attack(
 				
 				//Finally, add baseatk
 				ATK_ADD2(baseatk, baseatk_);
+
+				//Add any bonuses that modify the base baseatk+watk (pre-skills)
+				if(sd)
+				{
+					if (sd->status.weapon < 16 && (sd->atk_rate != 100 || sd->weapon_atk_rate[sd->status.weapon] != 0))
+						ATK_RATE(sd->atk_rate + sd->weapon_atk_rate[sd->status.weapon]);
+
+					if(flag.cri && sd->crit_atk_rate)
+						ATK_ADDRATE(sd->crit_atk_rate);
+				}
 				break;
 			}	//End default case
 		} //End switch(skill_num)
@@ -2604,18 +2608,14 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			skill_counter_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
 		if (!status_isdead(target) && (wd.damage > 0 || wd.damage2 > 0)) {
 			if (sd) {
+				int boss = is_boss(target);
 				int hp = status_get_max_hp(target);
-				if (sd->weapon_coma_ele[ele] > 0 && rand()%10000 < sd->weapon_coma_ele[ele])
+				if (!boss && sd->weapon_coma_ele[ele] > 0 && rand()%10000 < sd->weapon_coma_ele[ele])
 					battle_damage(src, target, hp, 1, 1);
-				if (sd->weapon_coma_race[race] > 0 && rand()%10000 < sd->weapon_coma_race[race])
+				if (!boss && sd->weapon_coma_race[race] > 0 && rand()%10000 < sd->weapon_coma_race[race])
 					battle_damage(src, target, hp, 1, 1);
-				if (is_boss(target)) {
-					if(sd->weapon_coma_race[10] > 0 && rand()%10000 < sd->weapon_coma_race[10])
-						battle_damage(src, target, hp, 1, 1);
-				} else {
-					if (sd->weapon_coma_race[11] > 0 && rand()%10000 < sd->weapon_coma_race[11])
-						battle_damage(src, target, hp, 1, 1);
-				}
+				if(sd->weapon_coma_race[boss?10:11] > 0 && rand()%10000 < sd->weapon_coma_race[boss?10:11])
+					battle_damage(src, target, hp, 1, 1);
 			}
 		}
 

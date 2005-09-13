@@ -731,10 +731,11 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		SC_POISON, SC_BLIND, SC_SILENCE, SC_STAN,
 		SC_STONE, SC_CURSE, SC_SLEEP
 	};
-	const int sc2[]={
+	const int sc2[]={ //Note: We use Sonic Blow's stun duration for the confusion lasting time (dummy value): 12 secs at lv7
 		MG_STONECURSE,MG_FROSTDIVER,NPC_STUNATTACK,
 		NPC_SLEEPATTACK,TF_POISON,NPC_CURSEATTACK,
-		NPC_SILENCEATTACK,0,NPC_BLINDATTACK
+		NPC_SILENCEATTACK,AS_SONICBLOW,NPC_BLINDATTACK,
+		LK_HEADCRUSH
 	};
 
 	struct map_session_data *sd=NULL;
@@ -1156,7 +1157,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		int i, type;
 		int sc_def_card=100;
 
-		for(i=SC_STONE;i<=SC_BLIND;i++){
+		for(i=SC_STONE;i<=SC_BLEEDING;i++){
 			type=i-SC_STONE;
 			if (!sd->addeff[type] && (!sd->state.arrow_atk || !sd->arrow_addeff[type]))
 				continue; //Code Speedup.
@@ -1169,6 +1170,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				case SC_STAN:
 				case SC_POISON:
 				case SC_SILENCE:
+				case SC_BLEEDING:
 					sc_def_card=sc_def_vit;
 					break;
 				case SC_SLEEP:
@@ -1184,7 +1186,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			{	//Inflicted status effect.
 				if(battle_config.battle_log)
 					ShowInfo("PC %d skill_additional_effect: caused status effect (pos %d): %d\n",sd->bl.id,i,sd->addeff[type]);
-				status_change_start(bl,i,7,0,0,0,(i==SC_CONFUSION)? 17000:skill_get_time2(sc2[type],7),0);
+				status_change_start(bl,i,7,0,0,0,skill_get_time2(sc2[type],7),0);
 			}
 		}
 	}
@@ -1250,7 +1252,8 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	const int sc2[]={
 		MG_STONECURSE,MG_FROSTDIVER,NPC_STUNATTACK,
 		NPC_SLEEPATTACK,TF_POISON,NPC_CURSEATTACK,
-		NPC_SILENCEATTACK,0,NPC_BLINDATTACK
+		NPC_SILENCEATTACK,AS_SONICBLOW,NPC_BLINDATTACK,
+		LK_HEADCRUSH
 	};
 
 	struct map_session_data *sd=NULL;
@@ -1309,7 +1312,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		int i, type;
 		int sc_def_card=100;
 
-		for(i=SC_STONE;i<=SC_BLIND;i++){
+		for(i=SC_STONE;i<=SC_BLEEDING;i++){
 			type=i-SC_STONE;
 					
 			switch (i) {
@@ -1320,6 +1323,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 				case SC_STAN:
 				case SC_POISON:
 				case SC_SILENCE:
+				case SC_BLEEDING:
 					sc_def_card=sc_def_vit;
 					break;
 				case SC_SLEEP:
@@ -1335,7 +1339,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 			{	//Self infliced status from attacking.
 				if(battle_config.battle_log)
 					ShowInfo("PC %d skill_addeff: self inflicted effect (pos %d): %d\n",src->id,i,sd->addeff2[type]);
-				status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 17000:skill_get_time2(sc2[type],7),0);
+				status_change_start(src,i,7,0,0,0,skill_get_time2(sc2[type],7),0);
 			}
 			if (dstsd &&
 				(dstsd->addeff3_type[type] == 1 || ((sd && sd->state.arrow_atk) || (status_get_range(src)>2))) &&
@@ -1343,7 +1347,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 			) {	//Counter status effect.
 				if(battle_config.battle_log)
 					ShowInfo("PC %d skill_addeff: counter inflicted effect (pos %d): %d\n",src->id,i,dstsd->addeff3[type]);
-				status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 17000:skill_get_time2(sc2[type],7),0);
+				status_change_start(src,i,7,0,0,0,skill_get_time2(sc2[type],7),0);
 			}
 		}
 	}
@@ -7062,7 +7066,6 @@ int skill_unit_effect(struct block_list *bl,va_list ap)
 	struct skill_unit_group *group;
 	int flag;
 	unsigned int tick;
-	static int called = 0;
 
 	nullpo_retr(0, bl);
 	nullpo_retr(0, ap);
