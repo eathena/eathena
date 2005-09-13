@@ -213,7 +213,7 @@ enum {
 	SC_ROKISWEIL		= 207,
 	SC_INTOABYSS		= 208,
 	SC_SIEGFRIED		= 209,
-	SC_DISSONANCE		= 210,
+//	SC_DISSONANCE		= 210, //Removed as this does nothing!
 	SC_WHISTLE			= 211,
 	SC_ASSNCROS			= 212,
 	SC_POEMBRAGI		= 213,

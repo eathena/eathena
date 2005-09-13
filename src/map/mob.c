@@ -520,12 +520,12 @@ static int mob_walk(struct mob_data *md,unsigned int tick,int data)
 		if(md->min_chase>13)
 			md->min_chase--;
 
-		skill_unit_move(&md->bl,tick,0);
+		skill_unit_move(&md->bl,tick,2);
 		if(moveblock) map_delblock(&md->bl);
 		md->bl.x = x;
 		md->bl.y = y;
 		if(moveblock) map_addblock(&md->bl);
-		skill_unit_move(&md->bl,tick,1);
+		skill_unit_move(&md->bl,tick,3);
 
 		map_foreachinmovearea(clif_mobinsight,md->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC,md);
 		md->state.state=MS_IDLE;
@@ -719,7 +719,7 @@ int mob_changestate(struct mob_data *md,int state,int type)
 		md->last_deadtime=gettick();
 		// Since it died, all aggressors' attack to this mob is stopped.
 		clif_foreachclient(mob_stopattacked,md->bl.id);
-		skill_unit_move(&md->bl,gettick(),0);
+		skill_unit_move(&md->bl,gettick(),4);
 		status_change_clear(&md->bl,2);	// ステータス異常を解除する
 		skill_clear_unitgroup(&md->bl);	// 全てのスキルユニットグループを削除する
 		skill_cleartimerskill(&md->bl);
@@ -3015,7 +3015,7 @@ int mob_warp(struct mob_data *md,int m,int x,int y,int type)
 			return 0;
 		clif_clearchar_area(&md->bl,type);
 	}
-	skill_unit_move(&md->bl,tick,0);
+	skill_unit_move(&md->bl,tick,4);
 	map_delblock(&md->bl);
 
 	if(bx>0 && by>0){	// 位置指定の場合周囲９セルを探索

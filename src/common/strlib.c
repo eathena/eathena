@@ -98,3 +98,19 @@ int remove_control_chars(unsigned char *str) {
 
 	return change;
 }
+
+//Quick & Dirty function to trim leading/trailing spaces. [Skotlex]
+//Core shamelessly stolen from the net, then fixed so it works :P
+char *trim(char *str)
+{
+	char ptr[strlen(str)+1];
+	int i,j=0;
+	for(i=0;str[i]!='\0' && (str[i]==' ' || str[i]=='\t');i++); //Skip leading spaces.
+	j = strlen(str[i]);
+	memcpy(&ptr[0],&str[i], j); //Copy string
+	for(i=j-1;i>=0 && (ptr[i]==' ' || ptr[i]=='\t'); i--); //Skip trailing spaces.
+	ptr[i+1] = '\0'; //Add terminator.
+
+	memcpy(str,ptr,sizeof(ptr)+1); //Update array.
+	return str;
+} 

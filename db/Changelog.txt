@@ -39,6 +39,12 @@
 	--
 
 09/13
+	* Added skill_unit flag 0x80 (UF_DUALMODE) for skills that trigger both
+	  interval effects and onout/onplace events (by default, if a skill has a
+	  interval such as Apple of Idun, then the routines when you step in/out of
+	  the skill cells won't be called). Applied flag to Apple of Idun and
+	  Gravitation. [Skotlex]
+	* Changed Basilica's interval to -1. [Skotlex]
 	* Added new items, thanks to Landarma [Lupus]
 09/12
 	* Corrected job_db1 hp-factor for Advanced Classes. [Skotlex]

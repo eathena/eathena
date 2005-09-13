@@ -3023,7 +3023,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 			int ip,port;
 			if(map_mapname2ipport(mapname,&ip,&port)==0){
 				skill_stop_dancing(&sd->bl);
-				skill_unit_move(&sd->bl,gettick(),0);
+				skill_unit_move(&sd->bl,gettick(),4);
 				clif_clearchar_area(&sd->bl,clrtype&0xffff);
 				skill_gangsterparadise(sd,0);
 				map_delblock(&sd->bl);
@@ -3088,7 +3088,7 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 	}
 
 	if(sd->mapname[0] && sd->bl.prev != NULL){
-		skill_unit_move(&sd->bl,gettick(),0);
+		skill_unit_move(&sd->bl,gettick(),4);
 		clif_clearchar_area(&sd->bl,clrtype&0xffff);
 		skill_gangsterparadise(sd,0);
 		
@@ -3330,12 +3330,12 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 		y += dy;
 
 		sd->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
-		skill_unit_move(&sd->bl,tick,0);
+		skill_unit_move(&sd->bl,tick,2);
 		if (moveblock) map_delblock(&sd->bl);
 		sd->bl.x = x;
 		sd->bl.y = y;
 		if (moveblock) map_addblock(&sd->bl);
-		skill_unit_move(&sd->bl,tick,1);
+		skill_unit_move(&sd->bl,tick,3);
 
 		sd->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
 		map_foreachinmovearea (clif_pcinsight, sd->bl.m,
@@ -3542,12 +3542,12 @@ int pc_movepos(struct map_session_data *sd,int dst_x,int dst_y,int checkpath)
 
 	map_foreachinmovearea(clif_pcoutsight,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,dx,dy,0,sd);
 
-	skill_unit_move(&sd->bl,tick,0);
+	skill_unit_move(&sd->bl,tick,2);
 	if(moveblock) map_delblock(&sd->bl);
 	sd->bl.x = dst_x;
 	sd->bl.y = dst_y;
 	if(moveblock) map_addblock(&sd->bl);
-	skill_unit_move(&sd->bl,tick,1);
+	skill_unit_move(&sd->bl,tick,3);
 
 	map_foreachinmovearea(clif_pcinsight,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,-dx,-dy,0,sd);
 
@@ -4895,7 +4895,7 @@ int pc_damage(struct block_list *src,struct map_session_data *sd,int damage, int
 		}
 
 	pc_setdead(sd);
-	skill_unit_move(&sd->bl,gettick(),0);
+	skill_unit_move(&sd->bl,gettick(),4);
 	if(sd->sc_data[SC_BLADESTOP].timer!=-1)//白刃は事前に解除
 		status_change_end(&sd->bl,SC_BLADESTOP,-1);
 	pc_setglobalreg(sd,"PC_DIE_COUNTER",++sd->die_counter); //死にカウンタ?書き?み

@@ -1759,7 +1759,7 @@ int map_quit(struct map_session_data *sd) {
 		}
 		pc_delspiritball(sd,sd->spiritball,1);
 		skill_gangsterparadise(sd,0);
-		skill_unit_move(&sd->bl,gettick(),0);
+		skill_unit_move(&sd->bl,gettick(),4);
 
 		if (sd->state.auth)
 			status_calc_pc(sd,4);

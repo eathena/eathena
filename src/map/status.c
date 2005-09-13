@@ -190,9 +190,7 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	SC_ROKISWEIL,
 	SC_INTOABYSS,
 	SC_SIEGFRIED,
-	-1,-1,-1,
-	SC_DISSONANCE,
-	-1,
+	-1,-1,-1,-1,-1,
 	SC_WHISTLE,
 /* 320- */
 	SC_ASSNCROS,
@@ -3445,7 +3443,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_RICHMANKIM:
 		case SC_ROKISWEIL:			/* ロキの叫び */
 		case SC_INTOABYSS:			/* 深淵の中に */
-		case SC_DISSONANCE:			/* 不協和音 */
 		case SC_POEMBRAGI:			/* ブラギの詩 */
 		case SC_UGLYDANCE:			/* 自分勝手なダンス */
 			break;

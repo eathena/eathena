@@ -2,6 +2,13 @@ Date	Added
 =======
 
 09/12
+	* Expansion/optimization of the skill unit code. Now it should be correctly
+	  identified when a character walks into a skill cell, walks out of a skill
+	  cell, and walks out of the skill group (performance optimization,
+	  client-side: songs and dance effects will work correctly, and Quagmire
+	  won't spam "speed up/down" messages). [Skotlex]
+	- Got basic testing only (casting, amp/encore, walking, being knocked back,
+	  warping), so report any problems found.
 	* Bomb/Demonstration should now be cast-able under the Emperium. [Skotlex]
 	* Acid Terror now knows ignores armor defense, but not vit defense. [Skotlex]
 	* Added an official Bards Job Quest (check npc\changelog.txt) [Lupus]
