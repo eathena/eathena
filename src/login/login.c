@@ -1291,6 +1291,9 @@ int mmo_auth(struct mmo_account* account, int fd) {
 	memcpy(account->lastlogin, auth_dat[i].lastlogin, 24);
 	memcpy(auth_dat[i].lastlogin, tmpstr, 24);
 	account->sex = auth_dat[i].sex;
+	if (account->sex != 2 && account->account_id < 700000)
+		ShowWarning("Account %s has account id %d! Account IDs must be over 700000 to work properly!\n", account->userid, account->account_id);
+
 	strncpy(auth_dat[i].last_ip, ip, 16);
 	auth_dat[i].logincount++;
 

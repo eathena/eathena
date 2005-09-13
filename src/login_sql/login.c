@@ -679,6 +679,8 @@ int mmo_auth( struct mmo_account* account , int fd){
 	memcpy(account->lastlogin, tmpstr, 24);
 	account->sex = sql_row[5][0] == 'S' ? 2 : sql_row[5][0]=='M';
 
+	if (account->sex != 2 && account->account_id < 700000)
+		ShowWarning("Account %s has account id %d! Account IDs must be over 700000 to work properly!\n", account->userid, account->account_id);
 	sprintf(tmpsql, "UPDATE `%s` SET `lastlogin` = NOW(), `logincount`=`logincount` +1, `last_ip`='%s'  WHERE %s  `%s` = '%s'",
 	        login_db, ip, case_sensitive ? "BINARY" : "", login_db_userid, sql_row[1]);
 	mysql_free_result(sql_res) ; //resource free

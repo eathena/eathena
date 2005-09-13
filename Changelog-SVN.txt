@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/13
+	* The login servers will now notify when a player has an account ID under
+	  700000 (which won't let them connect to the map server) [Skotlex]
 	* Added support for SC_BLEEDING in skill_counter_additional_effect &
 	  skill_additional_effect [Skotlex]
 	* Changed bonuses bAtkRate, bWeaponAtkRate and bCritRate to modify
