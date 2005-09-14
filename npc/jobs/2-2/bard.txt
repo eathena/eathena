@@ -70,8 +70,8 @@ L_GONOW:
 	mes "[Lalo]"; 
 	mes "It doesn't really matter which Flower, but try to bring one that I like.";
 	mes "And don't just buy any random Flower, Ok?";
-	set BARD_Q,1;
 	set BARD_Q2,rand(1,5); //pick a flower type
+	set BARD_Q,1;
 	close;
 
 M_ICANT:
@@ -192,7 +192,8 @@ L_FLOWER1:
 	menu "Yes",-,"No",L_NEXT2;
 
 	delitem 520,1;	//Item: Hinalle_Leaflet
-	goto L_GOOD;
+	if(BARD_Q2==1) goto L_GOOD;
+	goto L_WRONG;
 
 L_FLOWER2:
 	mes "[Lalo]";
@@ -200,7 +201,8 @@ L_FLOWER2:
 	menu "Yes",-,"No",L_NEXT3;
 
 	delitem 708,1;	//Item: Ment
-	goto L_GOOD;
+	if(BARD_Q2==2) goto L_GOOD;
+	goto L_WRONG;
 
 L_FLOWER3:
 	mes "[Lalo]";
@@ -208,7 +210,8 @@ L_FLOWER3:
 	menu "Yes",-,"No",L_NEXT4;
 
 	delitem 629,1;	//Item: Singing Flower
-	goto L_GOOD;
+	if(BARD_Q2==3) goto L_GOOD;
+	goto L_WRONG;
 
 L_FLOWER4:
 	mes "[Lalo]";
@@ -216,7 +219,8 @@ L_FLOWER4:
 	menu "Yes",-,"No",L_NEXT5;
 
 	delitem 710,1;	//Item: Illusion_Flower
-	goto L_GOOD;
+	if(BARD_Q2==4) goto L_GOOD;
+	goto L_WRONG;
 
 L_FLOWER5:
 	mes "[Lalo]";
@@ -224,7 +228,22 @@ L_FLOWER5:
 	menu "Yes",-,"No",L_NEXT6;
 
 	delitem 748,1;	//Item: Witherless_Rose
-	//goto L_GOOD;
+	if(BARD_Q2==5) goto L_GOOD;
+	goto L_WRONG;
+
+L_WRONG:
+	mes "[Lalo]";
+	mes "I like it... Yeah, I really like this pretty flower.";
+	mes "But...";
+	next;
+	mes "[Lalo]";
+	mes "I don't like its scent.";
+	mes "Please bring me a different flower.";
+	next;
+	mes "[Lalo]";
+	mes "As I promised, I'll help you become a Bard.";
+	mes "But it's not easy my friend. Haha!";
+	close;
 
 L_GOOD:
 	mes "[Lalo]";
@@ -279,6 +298,7 @@ L_SINGING:
 	mes "Ehem *clears throat*";
 	mes "1, 2, 3, 4";
 	next;
+	mes "[Lalo]";
 //this should text input
 	mes "All Gods never age.";
 	mes "The ever so beautiful Goddess";
@@ -347,6 +367,7 @@ L_GOODWORK:
 	mes "Wonderful! Finish it in one try!";
 	mes "You can become a great Bard.";
 	next;
+	mes "[Lalo]";
 	mes "Do you want to just change jobs now?";
 	mes "Or do you want a present?";
 	menu "Just change my job please.",-,"I'd be thankful for a present.",M_PRESENTPLZ;
@@ -372,36 +393,32 @@ L_SKILLSLEFT:
 	close;
 
 L_BQ4:
-	if (JBLVL == 50 && countitem(1066) >=60) goto L_GIFT0;	// Fine-grained_Trunk
-	if (countitem(1066) >= 60) goto L_GIFT1;	// Fine-grained_Trunk
-	if (countitem(1067) >= 60) goto L_GIFT2;	// Solid_Trunk
-	if (countitem(1068) >= 60) goto L_GIFT3;	// Barren_Trunk
-	if (countitem(1019) >= 60) goto L_GIFT4;	// Trunk
+	set @gift,0;
+	if (JBLVL == 50 && countitem(1066) >=60) set @gift,1;	// Fine-grained_Trunk
+	if (countitem(1066) >= 60) set @gift,2;	// Fine-grained_Trunk
+	if (countitem(1067) >= 60) set @gift,3;	// Solid_Trunk / Barren_Trunk
+	if (countitem(1068) >= 60) set @gift,4;	// Solid_Trunk / Barren_Trunk
+	if (countitem(1019) >= 60) set @gift,5;	// Trunk
+
+	if (@gift!=0) goto L_CHANGE;
+
 	mes "[Lalo]";
 	mes "Mmm? Seems like you haven't prepared all trunks yet?";
 	mes "Do you want to just change jobs anyways?";	
-	menu "Yes",-,"Wait, not yet",M_NO2;
+	menu "Yes",L_CHANGE,"Wait, not yet",-;
 
-	if(skillpoint != 0) goto L_SKILLSLEFT;
-
-L_CHANGE:
-	callfunc "Job_Change",Job_Bard;
-	callfunc "F_ClearJobVar";
-
-L_CLOSE:
 	mes "[Lalo]";
-	mes "See you next time!";
-	close;
-
-M_NO2:
 	mes "Ok I'll just wait here.";
 	close;
 
-L_GIFT0: 
+L_CHANGE:
 	if(skillpoint != 0) goto L_SKILLSLEFT;
 	callfunc "Job_Change",Job_Bard;
 	callfunc "F_ClearJobVar";
+
 	mes "[Lalo]";
+	if (@gift==0) goto L_CHANGE3;
+
 	mes "Good job. I will make you a";
 	mes "job change with this souvenir.";
 	mes "Wait just a moment.";
@@ -409,105 +426,44 @@ L_GIFT0:
 	mes "Scrape Scrape Tang Tang";
 	mes "Squeak Squeak Scratch Scratch";
 	next;
+
+	if(@gift==2) goto L_GIFT2;
+	if(@gift==3) goto L_GIFT3;
+	if(@gift==4) goto L_GIFT4;
+	if(@gift==5) goto L_GIFT5;
+
 	delitem 1066,60;	//Fine-grained_Trunk + 50 JobLvl --> Harp [2]
 	getitem 1910,1;
-	mes "[Lalo]";
-	mes "Here you go, a souvenir. It is";
-	mes "useful when you sing.";
-	mes "Hope you sing happy songs.";
-	next;
-	mes "[Lalo]";
-	mes "See you next time!";
-	close;
-
-L_GIFT1: 
-	if(skillpoint != 0) goto L_SKILLSLEFT;
-	callfunc "Job_Change",Job_Bard;
-	callfunc "F_ClearJobVar";
-	mes "[Lalo]";
-	mes "Good job. I will make you a";
-	mes "job change with this souvenir.";
-	mes "Wait just a moment.";
-	next;
-	mes "Scrape Scrape Tang Tang";
-	mes "Squeak Squeak Scratch Scratch";
-	next;
-	delitem 1066,60;	//Fine-grained_Trunk --> Lute [2]
-	getitem 1905,1;
-	mes "[Lalo]";
-	mes "Here you go, a souvenir. It is";
-	mes "useful when you sing.";
-	mes "Hope you sing happy songs.";
-	next;
-	mes "[Lalo]";
-	mes "See you next time!";
-	close;
+	goto L_CHANGE2;
 
 L_GIFT2: 
-	if(skillpoint != 0) goto L_SKILLSLEFT;
-	callfunc "Job_Change",Job_Bard;
-	callfunc "F_ClearJobVar";
-	mes "[Lalo]";
-	mes "Good job. I will make you a";
-	mes "job change with this souvenir.";
-	mes "Wait just a moment.";
-	next;
-	mes "Scrape Scrape Tang Tang";
-	mes "Squeak Squeak Scratch Scratch";
-	next;
+	delitem 1066,60;	//Fine-grained_Trunk --> Lute [2]
+	getitem 1905,1;
+	goto L_CHANGE2;
+
+L_GIFT3: 
 	delitem 1067,60;	//Solid_Trunk --> Mandolin [2]
 	getitem 1903,1;
-	mes "[Lalo]";
-	mes "Here you go, a souvenir. It is";
-	mes "useful when you sing.";
-	mes "Hope you sing happy songs.";
-	next;
-	mes "[Lalo]";
-	mes "See you next time!";
-	close;
+	goto L_CHANGE2;
 
-L_GIFT3:
-	if(skillpoint != 0) goto L_SKILLSLEFT;
-	callfunc "Job_Change",Job_Bard;
-	callfunc "F_ClearJobVar";
-	mes "[Lalo]";
-	mes "Good job. I will make you a";
-	mes "job change with this souvenir.";
-	mes "Wait just a moment.";
-	next;
-	mes "Scrape Scrape Tang Tang";
-	mes "Squeak Squeak Scratch Scratch";
-	next;
+L_GIFT4:
 	delitem 1068,60;	//Barren_Trunk --> Mandolin [2]
 	getitem 1903,1;
-	mes "[Lalo]";
-	mes "Here you go, a souvenir. It is";
-	mes "useful when you sing.";
-	mes "Hope you sing happy songs.";
-	next;
-	mes "[Lalo]";
-	mes "See you next time!";
-	close;
+	goto L_CHANGE2;
 
-L_GIFT4: 
-	if(skillpoint != 0) goto L_SKILLSLEFT;
-	callfunc "Job_Change",Job_Bard;
-	callfunc "F_ClearJobVar";
-	mes "[Lalo]";
-	mes "Good job. I will make you a";
-	mes "job change with this souvenir.";
-	mes "Wait just a moment.";
-	next;
-	mes "Scrape Scrape Tang Tang";
-	mes "Squeak Squeak Scratch Scratch";
-	next;
+L_GIFT5:
 	delitem 1019,60;	//Trunk --> Violin [3]
 	getitem 1901,1;
+	//goto L_CHANGE2;
+
+L_CHANGE2:
 	mes "[Lalo]";
 	mes "Here you go, a souvenir. It is";
 	mes "useful when you sing.";
+L_CHANGE3:
 	mes "Hope you sing happy songs.";
 	next;
+L_CLOSE:
 	mes "[Lalo]";
 	mes "See you next time!";
 	close;
