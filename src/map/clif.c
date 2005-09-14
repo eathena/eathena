@@ -10151,8 +10151,9 @@ void clif_parse_Recall(int fd, struct map_session_data *sd) {	// Added by RoVeRT
  *------------------------------------------
  */
 void clif_parse_GM_Monster_Item(int fd, struct map_session_data *sd) {
-	char monster_item_name[25];
-
+	char monster_item_name[NAME_LENGTH+10]; //Additional space is for logging, eg: "@monster Poring"
+	int level;
+	
 	nullpo_retv(sd);
 
 	memset(monster_item_name, '\0', sizeof(monster_item_name));
@@ -10161,13 +10162,26 @@ void clif_parse_GM_Monster_Item(int fd, struct map_session_data *sd) {
 		memcpy(monster_item_name, RFIFOP(fd,2), NAME_LENGTH);
 
 		if (mobdb_searchname(monster_item_name) != 0) {
-			if (pc_isGM(sd) >= get_atcommand_level(AtCommand_Monster))
+			if (pc_isGM(sd) >= (level =get_atcommand_level(AtCommand_Monster)))
+			{
 				atcommand_spawn(fd, sd, "@spawn", monster_item_name); // as @spawn
+				if(log_config.gm && level >= log_config.gm)
+				{	//Log action. [Skotlex]
+					snprintf(monster_item_name, sizeof(monster_item_name)-1, "@spawn %s", RFIFOP(fd,2));
+					log_atcommand(sd, monster_item_name);
+				}
+			}
 		} else if (itemdb_searchname(monster_item_name) != NULL) {
-			if (pc_isGM(sd) >= get_atcommand_level(AtCommand_Item))
+			if (pc_isGM(sd) >= (level = get_atcommand_level(AtCommand_Item)))
+			{
 				atcommand_item(fd, sd, "@item", monster_item_name); // as @item
+				if(log_config.gm && level >= log_config.gm)
+				{	//Log action. [Skotlex]
+					snprintf(monster_item_name, sizeof(monster_item_name)-1, "@item %s", RFIFOP(fd,2));
+					log_atcommand(sd, monster_item_name);
+				}
+			}
 		}
-
 	}
 }
 
@@ -10214,8 +10228,12 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 	limit = RFIFOW(fd,7);
 	if (type == 0)
 		limit = 0 - limit;
+
+	//Temporarily disable chars from muting themselves due to the mysterious "DON'T USE BOT!" message. [Skotlex]
+	if (type == 2 && sd->bl.id == dstsd->bl.id)
+		return;
 	
-	if (dstsd && (((level = pc_isGM(sd)) > pc_isGM(dstsd)) || (type == 2 && !level))) {
+	if (((level = pc_isGM(sd)) > pc_isGM(dstsd)) || (type == 2 && !level)) {
 		clif_GM_silence(sd, dstsd, ((type == 2) ? 1 : type));
 		dstsd->status.manner -= limit;
 		if(dstsd->status.manner < 0)

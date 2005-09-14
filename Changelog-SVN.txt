@@ -1,10 +1,15 @@
 Date	Added
 =======
 
-09/13
+09/14
+	* Disabled chars from muting themselves (as a temporary measure against the
+	  mysterious "don't use bot!" message) [Skotlex]
+	* Added atcommand logging for /monster and /item (not quite tested yet, but
+	  I think it'll work) [Skotlex]
 	* Changed autospell rates so that the max (100%) is 1000. Adjusted item
 	  database accordingly. [Skotlex]
 	* Reverted displayed heal value. [Skotlex]
+09/13
 	* Fixed Basilica [Skotlex]
 	* Rewrote the mechanics of how Devotion works. [Skotlex]
 	* Updated Heal so that it displays on-screen the actual amount that was
