@@ -15,6 +15,7 @@
 // Info about gifts and other info --> http://www.ragnainfo.net/forums/viewtopic.php?t=51467&start=0 
 // 1.1 Optimized, changed some stuff, fixed some bugs [Lupus]
 // 1.1a minor song test fix [Lupus]
+// THIS VERSION ISN'T FINISHED YET, use the previous one [Lupus]
 //============================================================
 
 
@@ -60,17 +61,17 @@ L_ARCHER:
 	close;
 
 L_GONOW:
+	set JBLVL, JobLevel; // used to determine what item to get at the end
 	mes "[Lalo]";
-	mes "But before that... do you think you";
-	mes "can bring me a Flower?";
+	mes "But before that... do you think you can bring me a Flower?";
 	mes "I need to smell the scent of a";
 	mes "Flower to feel like teaching.";
 	next;
 	mes "[Lalo]"; 
-	mes "It doesn't really matter which";
-	mes "Flower, but try to bring one that I like.";
-	mes "And don't just buy any random Flower, ok?";
+	mes "It doesn't really matter which Flower, but try to bring one that I like.";
+	mes "And don't just buy any random Flower, Ok?";
 	set BARD_Q,1;
+	set BARD_Q2,rand(1,5); //pick a flower type
 	close;
 
 M_ICANT:
@@ -162,12 +163,17 @@ L_BQ1:
 	mes "Did you bring a Flower? Let me see.";
 	next;
 	if(countitem(520) >= 1) goto L_FLOWER1; //Item: Hinalle_Leaflet
-	if(countitem(521) >= 1) goto L_FLOWER2; //Item: Aloe_Leaflet
-	if(countitem(708) >= 1) goto L_FLOWER3; //Item: Ment
-	if(countitem(709) >= 1) goto L_FLOWER4; //Item: Izidor
-	if(countitem(710) >= 1) goto L_FLOWER5; //Item: Illusion_Flower
-	if(countitem(748) >= 1) goto L_FLOWER6; //Item: Witherless_Rose
-	if(countitem(749) >= 1) goto L_FLOWER7; //Item: Frozen_Rose
+L_NEXT2:
+	if(countitem(708) >= 1) goto L_FLOWER2; //Item: Ment
+L_NEXT3:
+	if(countitem(629) >= 1) goto L_FLOWER3; //Item: Singing Flower
+L_NEXT4:
+	if(countitem(710) >= 1) goto L_FLOWER4; //Item: Illusion_Flower
+L_NEXT5:
+	if(countitem(748) >= 1) goto L_FLOWER5; //Item: Witherless_Rose
+L_NEXT6:
+	if(countitem(712) < 1) goto M_NOTHAVE:; //Item: Flower
+
 	mes "[Lalo]";
 	mes "Eh? This is just a normal flower.";
 	mes "I like it... but it's not enough.";
@@ -183,57 +189,41 @@ M_NOTHAVE:
 L_FLOWER1:
 	mes "[Lalo]";
 	mes "Can I have that Hinalle?";
-	menu "Yes",-,"No",M_NOTHAVE;
+	menu "Yes",-,"No",L_NEXT2;
 
 	delitem 520,1;	//Item: Hinalle_Leaflet
 	goto L_GOOD;
 
 L_FLOWER2:
 	mes "[Lalo]";
-	mes "Can I have that Aloe?";
-	menu "Yes",-,"No",M_NOTHAVE;
-
-	delitem 521,1;	//Item: Aloe_Leaflet
-	goto L_GOOD;
-
-L_FLOWER3:
-	mes "[Lalo]";
 	mes "Can I have that Ment?";
-	menu "Yes",-,"No",M_NOTHAVE;
+	menu "Yes",-,"No",L_NEXT3;
 
 	delitem 708,1;	//Item: Ment
 	goto L_GOOD;
 
-L_FLOWER4:
+L_FLOWER3:
 	mes "[Lalo]";
-	mes "Can I have that Izidor?";
-	menu "Yes",-,"No",M_NOTHAVE;
+	mes "Can I have that Singing Flower?";
+	menu "Yes",-,"No",L_NEXT4;
 
-	delitem 709,1;	//Item: Izidor
+	delitem 629,1;	//Item: Singing Flower
 	goto L_GOOD;
 
-L_FLOWER5:
+L_FLOWER4:
 	mes "[Lalo]";
 	mes "Can I have that Illusion Flower?";
-	menu "Yes",-,"No",M_NOTHAVE;
+	menu "Yes",-,"No",L_NEXT5;
 
 	delitem 710,1;	//Item: Illusion_Flower
 	goto L_GOOD;
 
-L_FLOWER6:
+L_FLOWER5:
 	mes "[Lalo]";
 	mes "Can I have that Witherless_Rose?";
-	menu "Yes",-,"No",M_NOTHAVE;
+	menu "Yes",-,"No",L_NEXT6;
 
 	delitem 748,1;	//Item: Witherless_Rose
-	goto L_GOOD;
-
-L_FLOWER7:
-	mes "[Lalo]";
-	mes "Can I have that Frozen_Rose?";
-	menu "Yes",-,"No",M_NOTHAVE;
-
-	delitem 749,1;	//Item: Frozen_Rose
 	//goto L_GOOD;
 
 L_GOOD:
@@ -303,41 +293,41 @@ L_SINGING:
 	set @score,0;
 	next;
 	
-	menu "All Gods never age.",-,"All Gods never age?",M_S2;
+	menu "All Gods never age.",-,"All Gods never age?",M_S2,"All Gods never age,",M_S2,"Are Gods never age?",M_S2;
 	
 	set @score,@score+10;
 
 M_S2:
-	menu "The ever so beautiful Goddess",-,"The ever so beautiful Goddess.",M_S3;
+	menu "The ever so beautiful Goddess,",M_S3,"The ever so beautiful Goddess.",M_S3,"The never beautiful Goddess.",M_S3,"The ever so beautiful Goddess",-;
 	
 	set @score,@score+10;
 
 M_S3:	
-	menu "Odin,",M_S4,"Eden,",-;
+	menu "Odins,",M_S4,"Odin.",M_S4,"Odin,",M_S4,"Eden,",-;
 	
 	set @score,@score+10;
 M_S4:
-	menu "Beatuful and graceful Goddess",-,"Beatuful and the graceful Goddess",M_S5;
+	menu "Very beatuful Goddess",M_S5,"Beatuful and Graceful Goddess",M_S5,"Beatuful and graceful Goddess",-,"Beatuful and the graceful Goddess",M_S5;
 	
 	set @score,@score+10;
 M_S5:
-	menu "Odin,",M_S6,"Eden,",-;
+	menu "Eden.",M_S6,"Odins,",M_S6,"Eden,",-,"Edens,",M_S6;
 	
 	set @score,@score+10;
 M_S6:
-	menu "Odin's daugther-in-law and Bragis",-,"Odin's daugther-in-law and Brags",M_S7;
+	menu "Brags daugther-in-law and Odin's",M_S7,"Brags and Odin's daugther-in-law",M_S7,"Odin's daugther-in-law and Bragis",-,"Odin's daugther-in-law and Brags",M_S7;
 	
 	set @score,@score+10;
 M_S7:
-	menu "wifes",M_S8,"wife",-;
+	menu "whales",M_S8,"wifes",M_S8,"wife",-,"waffels",M_S8;
 	
 	set @score,@score+10;
 M_S8:
-	menu "Her sweet apple in her basket,",M_S9,"Her sweet apples in her basket,",-;
+	menu "Her sweet apple in her basket,",M_S9,"Her sweet apple in her basket",M_S9,"Her sweet apples in her basket,",-;
 	
 	set @score,@score+10;
 M_S9:
-	menu "All thanks to her sweet apples.",-,"All thanks to her sweet apples!",M_S10;
+	menu "All thanks to her sweet apple!",M_S10,"All thanks to her sweet apples.",-,"All thanks to her sweet apples!",M_S10;
 	
 	set @score,@score+10;
 M_S10:
@@ -366,37 +356,30 @@ L_GOODWORK:
 
 M_PRESENTPLZ:
 	mes "[Lalo]";
-	mes "Hmmm...very well, bring some";
-	mes "trunks.";
+	mes "Hmmm...very well, bring some trunks.";
 	mes "It doesn't matter what kind, as";
-	mes "long they are 60 of the same";
-	mes "kind...";
+	mes "long they are ^FF000060 of the same kind^000000...";
 	next;
 	mes "[Lalo]";
 	mes "I will give you a gift once you";
-	mes "bring them";
-	mes "have a safe trip.";
+	mes "bring them have a safe trip.";
 	close;
 
 L_SKILLSLEFT:
 	mes "[Lalo]";
-	mes "Hmmm... you seems to have some";
-	mes "skill left.";
-	mes "Use them all and come back to me";
-	mes "again.";
+	mes "Hmmm... you seems to have some skill points left.";
+	mes "Use them all and come back to me again.";
 	close;
 
 L_BQ4:
-	if (JobLevel == 50 && countitem(1066) >=60) goto L_GIFT0;	// Fine-grained_Trunk
+	if (JBLVL == 50 && countitem(1066) >=60) goto L_GIFT0;	// Fine-grained_Trunk
 	if (countitem(1066) >= 60) goto L_GIFT1;	// Fine-grained_Trunk
 	if (countitem(1067) >= 60) goto L_GIFT2;	// Solid_Trunk
 	if (countitem(1068) >= 60) goto L_GIFT3;	// Barren_Trunk
 	if (countitem(1019) >= 60) goto L_GIFT4;	// Trunk
 	mes "[Lalo]";
-	mes "Mmm? Seems like you haven't";
-	mes "prepared all trunks yet?";
-	mes "Do you want to just change jobs";
-	mes "anyways?";	
+	mes "Mmm? Seems like you haven't prepared all trunks yet?";
+	mes "Do you want to just change jobs anyways?";	
 	menu "Yes",-,"Wait, not yet",M_NO2;
 
 	if(skillpoint != 0) goto L_SKILLSLEFT;
