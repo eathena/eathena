@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/13
+	* Changed autospell rates so that the max (100%) is 1000. Adjusted item
+	  database accordingly. [Skotlex]
+	* Reverted displayed heal value. [Skotlex]
 	* Fixed Basilica [Skotlex]
 	* Rewrote the mechanics of how Devotion works. [Skotlex]
 	* Updated Heal so that it displays on-screen the actual amount that was

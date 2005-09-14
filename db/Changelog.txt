@@ -39,6 +39,9 @@
 	--
 
 09/13
+	* Multiplied all autospell rates x10 (100% casting rate is now 1000) [Skotlex]
+	* Weapons that had autospell rates of 25% have been reduced to 9% (seems to
+	  be that way from the data gathered by Viccious) [Skotlex]
 	* Added Range of Devotion/Sacrifice to skill_db, likewise, added the
 	  effect's duration to skill_cast_db [Skotlex]
 	* Added new monsters with poring stats, thanks to Freya [Lupus]

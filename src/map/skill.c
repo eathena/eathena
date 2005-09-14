@@ -1210,7 +1210,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			auto_skilllv = (sd->autospell_lv[i] > 0) ? sd->autospell_lv[i] : 1;
 			rate = (!sd->state.arrow_atk) ? sd->autospell_rate[i] : sd->autospell_rate[i] / 2;
 			
-			if (rand()%100 > rate)
+			if (rand()%1000 > rate)
 				continue;
 			if (sd->autospell_id[i] < 0)
 				tbl = src;
@@ -1367,7 +1367,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 			rate = ((sd && !sd->state.arrow_atk) || (status_get_range(src)<=2)) ?
 				dstsd->autospell2_rate[i] : dstsd->autospell2_rate[i] / 2;
 			
-			if (rand()%100 > rate)
+			if (rand()%1000 > rate)
 				continue;
 			if (dstsd->autospell2_id[i] < 0)
 				tbl = bl;
@@ -3208,9 +3208,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					heal = heal*2;	//ƒXƒpƒmƒr‚Ì‰Å‚ª’U“ß‚Éƒq?ƒ‹‚·‚é‚Æ2”{‚É‚È‚é
 			}
 
-			heal = battle_heal(NULL,bl,heal,0,0);
 			clif_skill_nodamage (src, bl, skillid, heal, 1);
-			heal_get_jobexp = heal;
+			heal_get_jobexp = battle_heal(NULL,bl,heal,0,0);
 
 			// JOB??’lŠl“¾
 			if(sd && dstsd && heal > 0 && sd != dstsd && battle_config.heal_exp > 0){
