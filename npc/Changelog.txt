@@ -30,6 +30,7 @@ Date		Added
 ======
 09/14
 	* Updated Yuno fields mobs spawn, thanks to MasterOfMuppets [Lupus]
+	- Updated Lighthalzen and Einbroch fields, too
 	* Made some parts of Bards Quest more official ^_-. WIP: Adding Bard's NPC pics (like Kafras) [Lupus]
 09/13
 	* Added correct Ayothaya, Louyang & amatsu Kafras. Thanks to Muad-Dib for info [Lupus]

@@ -39,6 +39,7 @@
 	--
 
 09/13
+	* Updated mobs stats (mostly Einbroch) thanks to MasterOfMuppets,Viccious Pucca [Lupus]
 	* Multiplied all drain rates x10 (100% leech rate is now 1000) [Skotlex]
 	* Immaterial sword now drains 30% of target's sp on a 0.1% rate (info from
 	  Viccious Pucca). [Skotlex]
