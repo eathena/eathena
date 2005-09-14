@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/14
+	* Lex Divina can now be casted on allies as long as they are silenced.
+	  [Skotlex]
+	* Fixed crashes on GVG grounds involving characters with no guild. [Skotlex]
 	* Added a few socket features from Freya which hopefully will help
 	  stabilize eA on Windows (testing needed!) [Skotlex]
 	* Miscellanous fixes and rewrites to memitemdata_to_sql, it'll probably

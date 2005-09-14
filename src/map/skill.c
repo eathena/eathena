@@ -5455,10 +5455,22 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		}
 	}
 
-	if( ( skill_get_inf(sd->skillid) & INF_ATTACK_SKILL ||
+	if (sd->skillid == PR_LEXDIVINA)
+	{
+		struct status_change *sc_data = status_get_sc_data(bl);
+		if (battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0 ||
+			(sc_data && sc_data[SC_SILENCE].timer == -1))	//Prevent Casting Lex Divina on unsilenced chars. [Skotlex]
+		{
+			sd->canact_tick = tick;
+			sd->canmove_tick = tick;
+			sd->skillitem = sd->skillitemlv = -1;
+			return 0;
+		}
+	}
+	else if( ( skill_get_inf(sd->skillid) & INF_ATTACK_SKILL ||
 		sd->skillid == MO_EXTREMITYFIST ) &&
-//		sd->skillid == CH_TIGERFIST) &&	// ”Þ‰ä“G??ŒWƒ`ƒFƒbƒN
-		battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0 ) {
+		battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0
+	) {
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
 		sd->skillitem = sd->skillitemlv = -1;
