@@ -2,6 +2,7 @@ Date	Added
 =======
 
 09/13
+	* Fixed Basilica [Skotlex]
 	* Rewrote the mechanics of how Devotion works. [Skotlex]
 	* Updated Heal so that it displays on-screen the actual amount that was
 	  healed. [Skotlex]

@@ -4011,7 +4011,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			skill_clear_unitgroup(src);
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			sg = skill_unitsetting(src,skillid,skilllv,src->x,src->y,0);
-			status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,(int)sg,
+			status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,BCT_SELF,sg->group_id,
 				skill_get_time(skillid,skilllv),0);
 		}
 		break;
@@ -6471,7 +6471,8 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 
 	case UNT_BASILICA:
 		if (battle_check_target(&src->bl,bl,BCT_NOENEMY)>0) {
-			if (sc_data && sc_data[type].timer!=-1 && sc_data[type].val4 == sg->group_id)
+			if (sc_data && sc_data[type].timer!=-1 &&
+				(sc_data[type].val4 == sg->group_id || sc_data[type].val3==BCT_SELF))
 					break;
 			status_change_start(bl,type,sg->skill_lv,0,0,sg->group_id,sg->limit,0);
 		} else if (!status_get_mode(bl)&0x20)
@@ -6961,8 +6962,11 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 		}
 */
 		break;		
+	case UNT_BASILICA: //Clear basilica if the owner moved [Skotlex]
+		if(sc_data[type].timer!=-1 && sc_data[type].val3==BCT_SELF)
+			status_change_end(bl,type,-1);
+		break;
 /*
-	case UNT_BASILICA:
 	case UNT_GRAVITATION:
 		if (sc_data[type].timer!=-1 && sc_data[type].val4==sg->group_id)
 			status_change_end(bl,type,-1);
@@ -8009,9 +8013,8 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 			}
 		}
 		if (sc_data[SC_BASILICA].timer != -1) { // Disallow all other skills in Basilica [celest]
-			struct skill_unit_group *sg = (struct skill_unit_group *)sc_data[SC_BASILICA].val4;
 			// if caster is the owner of basilica
-			if (sg && sg->src_id == sd->bl.id &&
+			if (sc_data[SC_BASILICA].val3 == BCT_SELF &&
 				skill_num == HP_BASILICA) ;	// do nothing
 			// otherwise...
 			else return 0;
@@ -8226,6 +8229,7 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 
 	case HP_BASILICA:		/* ƒoƒWƒŠƒJ */
 		{
+			/* utterly redundant!
 			if (skill_check_unit_range(sd->bl.m,sd->bl.x,sd->bl.y,sd->skillid,sd->skilllv)) {
 				clif_skill_fail(sd,sd->skillid,0,0);
 				return 0;
@@ -8234,14 +8238,11 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 				clif_skill_fail(sd,sd->skillid,0,0);
 				return 0;
 			}
+			*/
 			// cancel Basilica if already in effect
-			if (sc_data && sc_data[SC_BASILICA].timer != -1) {
-				struct skill_unit_group *sg = (struct skill_unit_group *)sd->sc_data[SC_BASILICA].val4;
-				if (sg && sg->src_id == sd->bl.id) {
-					status_change_end(&sd->bl,SC_BASILICA,-1);
-					skill_delunitgroup (sg);
-					return 0;
-				}
+			if (sc_data && sc_data[SC_BASILICA].timer != -1 && sc_data[SC_BASILICA].val3 == BCT_SELF) {
+				status_change_end(&sd->bl,SC_BASILICA,-1);
+				return 0;
 			}
 		}
 		break;
@@ -8355,17 +8356,9 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 				sc_data[SC_BLADESTOP].timer != -1 ||
 				sc_data[SC_HERMODE].timer != -1 ||
 				sc_data[SC_CHASEWALK].timer != -1 ||
-                (sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF))
+				sc_data[SC_BASILICA].timer != -1 ||
+				(sc_data[SC_GOSPEL].timer != -1 && sc_data[SC_GOSPEL].val4 == BCT_SELF))
 			return 0;
-
-		if (sc_data[SC_BASILICA].timer != -1) {
-			struct skill_unit_group *sg = (struct skill_unit_group *)sc_data[SC_BASILICA].val4;
-			// if caster is the owner of basilica
-			if (sg && sg->src_id == sd->bl.id &&
-				skill_num == HP_BASILICA) ;	// do nothing
-			// otherwise...
-			else return 0;
-		}		
 	}
 
 	if(sd->status.option & 2)
