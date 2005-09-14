@@ -4,7 +4,7 @@
 //= Nana, fixes by Poki
 //= finished, optimized and tested by Lupus
 //===== Current Version: ===================================== 
-//= 1.7
+//= 1.9
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -22,6 +22,7 @@
 //= to go. [Lupus]
 //= 1.7 On reborn reset some Job Quest Vars and Reset Girls Counter [Lupus]
 //= 1.8 Added Taekwondo classes check [Lupus]
+//= 1.9 Added support for Job NPC Fase pics, sorrected one dialogue stuff [Lupus]
 //============================================================ 
 
 
@@ -516,7 +517,8 @@ function	script	F_BlockHigh	{
 //this player is a High Novice
 	if(Class == 4001) mes "Hello, Novice High! If you are going to became a "+getarg(1)+", then go visit your very first job teacher.";
 //this player has 1st advanced job, but from wrong guild
-	if(Class != 4001) mes "A "+getarg(1)+"? Rumors say only Valhallana knows your way...";
+	if(Class == (3977+getarg(0))) mes "A "+getarg(1)+"?";
+	if(Class != 4001) mes "Rumors say only Valhallana knows your way...";
 	emotion 17;
 	close;
 

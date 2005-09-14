@@ -379,6 +379,7 @@ L_GOODWORK:
 	mes "[Lalo]";
 	mes "Do you want to just change jobs now?";
 	mes "Or do you want a present?";
+	next;
 	menu "Just change my job please.",-,"I'd be thankful for a present.",M_PRESENTPLZ;
 	
 	if(skillpoint != 0) goto L_SKILLSLEFT;
@@ -405,8 +406,8 @@ L_BQ4:
 	set @gift,0;
 	if (JBLVL == 50 && countitem(1066) >=60) set @gift,1;	// Fine-grained_Trunk
 	if (countitem(1066) >= 60) set @gift,2;	// Fine-grained_Trunk
-	if (countitem(1067) >= 60) set @gift,3;	// Solid_Trunk / Barren_Trunk
-	if (countitem(1068) >= 60) set @gift,4;	// Solid_Trunk / Barren_Trunk
+	if (countitem(1067) >= 60) set @gift,3;	// Solid_Trunk
+	if (countitem(1068) >= 60) set @gift,4;	// Barren_Trunk
 	if (countitem(1019) >= 60) set @gift,5;	// Trunk
 
 	if (@gift!=0) goto L_CHANGE;
@@ -414,6 +415,7 @@ L_BQ4:
 	mes "[Lalo]";
 	mes "Mmm? Seems like you haven't prepared all trunks yet?";
 	mes "Do you want to just change jobs anyways?";	
+	next;
 	menu "Yes",L_CHANGE,"Wait, not yet",-;
 
 	mes "[Lalo]";
