@@ -558,7 +558,7 @@ int battle_calc_drain(int damage, int rate, int per, int val)
 	if (damage <= 0)
 		return 0;
 
-	if (per && rand()%100 < rate) {
+	if (per && rand()%1000 < rate) {
 		diff = (damage * per) / 100;
 		if (diff == 0) {
 			if (per > 0)
@@ -568,7 +568,7 @@ int battle_calc_drain(int damage, int rate, int per, int val)
 		}
 	}
 
-	if (val /*&& rand()%100 < rate*/) { //Absolute leech/penalties have 100% chance. [Skotlex]
+	if (val /*&& rand()%1000 < rate*/) { //Absolute leech/penalties have 100% chance. [Skotlex]
 		diff += val;
 	}
 	return diff;

@@ -1574,6 +1574,22 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		if(sd->state.lr_flag != 2)
 			sd->unstripable_equip |= EQP_SHIELD;
 		break;
+	case SP_HP_DRAIN_VALUE:
+		if(!sd->state.lr_flag) {
+			sd->right_weapon.hp_drain_value += val;
+		}
+		else if(sd->state.lr_flag == 1) {
+			sd->left_weapon.hp_drain_value += val;
+		}
+		break;
+	case SP_SP_DRAIN_VALUE:
+		if(!sd->state.lr_flag) {
+			sd->right_weapon.sp_drain_value += val;
+		}
+		else if(sd->state.lr_flag == 1) {
+			sd->left_weapon.sp_drain_value += val;
+		}
+		break;
 	case SP_SP_GAIN_VALUE:
 		if(!sd->state.lr_flag)
 			sd->sp_gain_value += val;
@@ -1772,13 +1788,12 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		break;
 	case SP_HP_DRAIN_VALUE:
 		if(!sd->state.lr_flag) {
-//			sd->right_weapon.hp_drain_rate += type2;
-			sd->right_weapon.hp_drain_value += val;
+			sd->right_weapon.hp_drain_value += type2;
 		}
 		else if(sd->state.lr_flag == 1) {
-//			sd->left_weapon.hp_drain_rate += type2;
-			sd->left_weapon.hp_drain_value += val;
+			sd->left_weapon.hp_drain_value += type2;
 		}
+		sd->sp_drain_type = val;
 		break;
 	case SP_SP_DRAIN_RATE:
 		if(!sd->state.lr_flag) {
@@ -1791,16 +1806,14 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		}
 		sd->sp_drain_type = 0;
 		break;
-	case SP_SP_DRAIN_VALUE: //Drain rate for these is always 100%, so it is not added to avoid exploits from combining with other leeches. [Skotlex]
+	case SP_SP_DRAIN_VALUE:
 		if(!sd->state.lr_flag) {
-//			sd->right_weapon.sp_drain_rate += type2;
-			sd->right_weapon.sp_drain_value += val;
+			sd->right_weapon.sp_drain_value += type2;
 		}
 		else if(sd->state.lr_flag == 1) {
-//			sd->left_weapon.sp_drain_rate += type2;
-			sd->left_weapon.sp_drain_value += val;
+			sd->left_weapon.sp_drain_value += type2;
 		}
-		sd->sp_drain_type = 0;
+		sd->sp_drain_type = val;
 		break;
 	case SP_GET_ZENY_NUM:
 		if(sd->state.lr_flag != 2 && sd->get_zeny_rate < val)
@@ -2043,17 +2056,6 @@ int pc_bonus3(struct map_session_data *sd,int type,int type2,int type3,int val)
 		else if(sd->state.lr_flag == 1) {
 			sd->left_weapon.sp_drain_rate += type2;
 			sd->left_weapon.sp_drain_per += type3;
-		}
-		sd->sp_drain_type = val;
-		break;
-	case SP_SP_DRAIN_VALUE: //Drain rate for these is always 100%, so it is not added to avoid exploits from combining with other leeches. [Skotlex]
-		if(!sd->state.lr_flag) {
-//			sd->right_weapon.sp_drain_rate += type2;
-			sd->right_weapon.sp_drain_value += type3;
-		}
-		else {
-//			sd->left_weapon.sp_drain_rate += type2;
-			sd->left_weapon.sp_drain_value += type3;
 		}
 		sd->sp_drain_type = val;
 		break;

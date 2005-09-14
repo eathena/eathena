@@ -1881,22 +1881,22 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		struct map_session_data *sd = (struct map_session_data *)src;
 		int hp = 0,sp = 0;
 		nullpo_retr(0, sd);
-		if(sd->right_weapon.hp_drain_rate && sd->right_weapon.hp_drain_per > 0 && dmg.damage > 0 && rand()%100 < sd->right_weapon.hp_drain_rate) {
+		if(sd->right_weapon.hp_drain_rate && sd->right_weapon.hp_drain_per > 0 && dmg.damage > 0 && rand()%1000 < sd->right_weapon.hp_drain_rate) {
 			hp += (dmg.damage * sd->right_weapon.hp_drain_per)/100;
 			if(sd->right_weapon.hp_drain_rate > 0 && hp < 1) hp = 1;
 			else if(sd->right_weapon.hp_drain_rate < 0 && hp > -1) hp = -1;
 		}
-		if(sd->left_weapon.hp_drain_rate && sd->left_weapon.hp_drain_per > 0 && dmg.damage2 > 0 && rand()%100 < sd->left_weapon.hp_drain_rate) {
+		if(sd->left_weapon.hp_drain_rate && sd->left_weapon.hp_drain_per > 0 && dmg.damage2 > 0 && rand()%1000 < sd->left_weapon.hp_drain_rate) {
 			hp += (dmg.damage2 * sd->left_weapon.hp_drain_per)/100;
 			if(sd->left_weapon.hp_drain_rate > 0 && hp < 1) hp = 1;
 			else if(sd->left_weapon.hp_drain_rate < 0 && hp > -1) hp = -1;
 		}
-		if(sd->right_weapon.sp_drain_rate > 0 && sd->right_weapon.sp_drain_per > 0 && dmg.damage > 0 && rand()%100 < sd->right_weapon.sp_drain_rate) {
+		if(sd->right_weapon.sp_drain_rate > 0 && sd->right_weapon.sp_drain_per > 0 && dmg.damage > 0 && rand()%1000 < sd->right_weapon.sp_drain_rate) {
 			sp += (dmg.damage * sd->right_weapon.sp_drain_per)/100;
 			if(sd->right_weapon.sp_drain_rate > 0 && sp < 1) sp = 1;
 			else if(sd->right_weapon.sp_drain_rate < 0 && sp > -1) sp = -1;
 		}
-		if(sd->left_weapon.sp_drain_rate > 0 && sd->left_weapon.sp_drain_per > 0 && dmg.damage2 > 0 && rand()%100 < sd->left_weapon.sp_drain_rate) {
+		if(sd->left_weapon.sp_drain_rate > 0 && sd->left_weapon.sp_drain_per > 0 && dmg.damage2 > 0 && rand()%1000 < sd->left_weapon.sp_drain_rate) {
 			sp += (dmg.damage2 * sd->left_weapon.sp_drain_per)/100;
 			if(sd->left_weapon.sp_drain_rate > 0 && sp < 1) sp = 1;
 			else if(sd->left_weapon.sp_drain_rate < 0 && sp > -1) sp = -1;

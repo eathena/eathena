@@ -690,12 +690,10 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 
 	//=======================================mysql database data > memory===============================================
 
-         sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` "
+	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` "
 		"FROM `%s` WHERE `%s`='%d'", tablename, selectoption, char_id);
 
-
-
-         if (mysql_query(&mysql_handle, tmp_sql)) {
+	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB server Error (select `%s` to Memory)- %s\n",tablename ,mysql_error(&mysql_handle));
 		return 1;
 	}
@@ -707,37 +705,45 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 			for(i = 0; i < count; i++) {
 				if(mapitem[i].flag == 1)
 					continue;
-				if(mapitem[i].nameid == atoi(sql_row[1])) { // produced items fixup
-					if((mapitem[i].equip == atoi(sql_row[3])) &&
-						(mapitem[i].identify == atoi(sql_row[4])) &&
-						(mapitem[i].amount == atoi(sql_row[2])) &&
-						(mapitem[i].refine == atoi(sql_row[5])) &&
-						(mapitem[i].attribute == atoi(sql_row[6])) &&
-						(mapitem[i].card[0] == atoi(sql_row[7])) &&
-						(mapitem[i].card[1] == atoi(sql_row[8])) &&
-						(mapitem[i].card[2] == atoi(sql_row[9])) &&
-						(mapitem[i].card[3] == atoi(sql_row[10]))) {
-						//printf("the same item : %d , equip : %d , i : %d , flag :  %d\n", mapitem.equip[i].nameid,mapitem.equip[i].equip , i, mapitem.equip[i].flag); //DEBUG-STRING
-					} else {
+				if(mapitem[i].nameid == atoi(sql_row[1]) && mapitem[i].card[0] == atoi(sql_row[7]))
+				{	//They are the same item.
+					if (
+						mapitem[i].amount == atoi(sql_row[2]) &&
+						mapitem[i].equip == atoi(sql_row[3]) &&
+						mapitem[i].identify == atoi(sql_row[4]) &&
+						mapitem[i].refine == atoi(sql_row[5]) &&
+						mapitem[i].attribute == atoi(sql_row[6]) &&
+						mapitem[i].card[1] == atoi(sql_row[8]) &&
+						mapitem[i].card[2] == atoi(sql_row[9]) &&
+						mapitem[i].card[3] == atoi(sql_row[10]))
+					{ //Do nothing.
+					} else
 //==============================================Memory data > SQL ===============================
-						if(itemdb_isequip(mapitem[i].nameid) || (mapitem[i].card[0] == atoi(sql_row[7]))) {
-							sprintf(tmp_sql,"UPDATE `%s` SET `equip`='%d', `identify`='%d', `refine`='%d',"
-								"`attribute`='%d', `card0`='%d', `card1`='%d', `card2`='%d', `card3`='%d', `amount`='%d' WHERE `id`='%d' LIMIT 1",
-								tablename, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine, mapitem[i].attribute, mapitem[i].card[0],
-								mapitem[i].card[1], mapitem[i].card[2], mapitem[i].card[3], mapitem[i].amount, id);
-							if(mysql_query(&mysql_handle, tmp_sql))
-								ShowSQL("DB server Error (UPdate `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
-						}
-						//printf("not the same item : %d ; i : %d ; flag :  %d\n", mapitem.equip[i].nameid, i, mapitem.equip[i].flag);
+					if(itemdb_isequip(mapitem[i].nameid))
+					{	//Quick update of stackable items. Update Qty and Equip should be enough, but in case we are also updating identify
+						sprintf(tmp_sql,"UPDATE `%s` SET `equip`='%d', `identify`='%d', `amount`='%d' WHERE `id`='%d' LIMIT 1",
+							tablename, mapitem[i].equip, mapitem[i].identify,mapitem[i].amount, id);
+						if(mysql_query(&mysql_handle, tmp_sql))
+							ShowSQL("DB server Error (Update `stackable items in %s`)- %s\n", tablename, mysql_error(&mysql_handle));
+					} else 
+					{	//Equipment or Misc item, just update all fields.
+						sprintf(tmp_sql,"UPDATE `%s` SET `equip`='%d', `identify`='%d', `refine`='%d',"
+							"`attribute`='%d', `card0`='%d', `card1`='%d', `card2`='%d', `card3`='%d',"
+							"`amount`='%d' WHERE `id`='%d' LIMIT 1",
+							tablename, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine,
+							mapitem[i].attribute, mapitem[i].card[0],mapitem[i].card[1], mapitem[i].card[2], mapitem[i].card[3],
+							mapitem[i].amount, id);
+						if(mysql_query(&mysql_handle, tmp_sql))
+							ShowSQL("DB server Error (Update `misc in %s`)- %s\n", tablename, mysql_error(&mysql_handle));
 					}
-					flag = mapitem[i].flag = 1;
-					break;
+					flag = mapitem[i].flag = 1; //Item dealt with,
+					break; //skip to next item in the db.
 				}
 			}
-			if(!flag) {
+			if(!flag) { //Item not updated, remove it.
 				sprintf(tmp_sql,"DELETE from `%s` where `id`='%d'", tablename, id);
-					if(mysql_query(&mysql_handle, tmp_sql))
-						ShowSQL("DB server Error (DELETE `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
+				if(mysql_query(&mysql_handle, tmp_sql))
+					ShowSQL("DB server Error (DELETE `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
 			}
 		}
 		mysql_free_result(sql_res);
@@ -753,30 +759,9 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 				ShowSQL("DB server Error (INSERT `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
 		}
 	}
-
-		//======================================DEBUG=================================================
-
-//		gettimeofday(&tv,NULL);
-//		strftime(tmpstr,24,"%Y-%m-%d %H:%M:%S",localtime(&(tv.tv_sec)));
-//		printf("\n\n");
-//		printf("Working Table Name : Not EQU %s,  Count : map %3d | db %3d \n",tablename ,noteqcount ,dbnoteqcount);
-//		printf("*********************************************************************************\n");
-//		printf("======================================MAP===================Char ID %10d===\n",char_id);
-//		printf("==flag ===name ===equip===ident===refin===attri===card0===card1===card2===card3==\n");
-//		for(j=1;j<noteqcount;j++)
-//			printf("| %5d | %5d | %5d | %5d | %5d | %5d | %5d | %5d | %5d | %5d |\n", mapitem.notequip[j].flag,mapitem.notequip[j].nameid, mapitem.notequip[j].equip, mapitem.notequip[j].identify, mapitem.notequip[j].refine,mapitem.notequip[j].attribute, mapitem.notequip[j].card[0], mapitem.notequip[j].card[1], mapitem.notequip[j].card[2], mapitem.notequip[j].card[3]);
-//		printf("======================================DB=========================================\n");
-//		printf("==flag ===name ===equip===ident===refin===attri===card0===card1===card2===card3==\n");
-//		for(j=1;j<dbnoteqcount;j++)
-//			printf("| %5d | %5d | %5d | %5d | %5d | %5d | %5d | %5d | %5d | %5d |\n", dbitem.notequip[j].flag ,dbitem.notequip[j].nameid, dbitem.notequip[j].equip, dbitem.notequip[j].identify, dbitem.notequip[j].refine,dbitem.notequip[j].attribute, dbitem.notequip[j].card[0], dbitem.notequip[j].card[1], dbitem.notequip[j].card[2], dbitem.notequip[j].card[3]);
-//		printf("=================================================================================\n");
-//		printf("=================================================Data Time %s===\n", tmpstr);
-//		printf("=================================================================================\n");
-//
-
 	return 0;
 }
-
+/* What's this? It looks just like memitemdataNEW_to_sql (and just as buggy) and is not used anywhere! x.x [Skotlex]
 int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int tableswitch)
 {
 	int i, flag;
@@ -801,12 +786,10 @@ int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int 
 
 	//=======================================mysql database data > memory===============================================
 
-         sprintf(tmp_sql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` "
+	sprintf(tmp_sql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` "
 		"FROM `%s` WHERE `%s`='%d'", tablename, selectoption, char_id);
 
-
-
-         if (mysql_query(&mysql_handle, tmp_sql)) {
+	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB server Error (select `%s` to Memory)- %s\n",tablename ,mysql_error(&mysql_handle));
 		return 1;
 	}
@@ -815,10 +798,10 @@ int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int 
 		while ((sql_row = mysql_fetch_row(sql_res))) {
 			flag = 0;
 			//id = atoi(sql_row[0]);
-                         nameid = atoi(sql_row[0]);
-                         amount = atoi(sql_row[1]);
-                         equip = atoi(sql_row[2]);
-                         identify = atoi(sql_row[3]);
+			nameid = atoi(sql_row[0]);
+			amount = atoi(sql_row[1]);
+			equip = atoi(sql_row[2]);
+			identify = atoi(sql_row[3]);
 			for(i = 0; i < count; i++) {
 				if(mapitem[i].flag == 1)
 					continue;
@@ -891,6 +874,7 @@ int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int 
 
 	return 0;
 }
+*/
 //=====================================================================================================
 int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	int i, n;

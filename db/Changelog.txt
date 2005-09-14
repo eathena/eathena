@@ -39,6 +39,11 @@
 	--
 
 09/13
+	* Multiplied all drain rates x10 (100% leech rate is now 1000) [Skotlex]
+	* Immaterial sword now drains 30% of target's sp on a 0.1% rate (info from
+	  Viccious Pucca). [Skotlex]
+	* Updated bDrainValue bonuses to be bonus2/bonus3 (they don't take a "rate"
+	  parameter anymore) [Skotlex]
 	* Multiplied all autospell rates x10 (100% casting rate is now 1000) [Skotlex]
 	* Weapons that had autospell rates of 25% have been reduced to 9% (seems to
 	  be that way from the data gathered by Viccious) [Skotlex]

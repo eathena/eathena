@@ -2,6 +2,12 @@ Date	Added
 =======
 
 09/14
+	* Miscellanous fixes and rewrites to memitemdata_to_sql, it'll probably
+	  fixed the stackable named items duplication exploit. [Skotlex]
+	  (note that it is not tested, so there's the chance I broke everything
+	  instead, so upgrade for testing purposes only and report back!)
+	* Changed HP/SP drain rates so that the max (100%) is 1000. Adjusted item
+	  db accordingly. [Skotlex]
 	* Disabled chars from muting themselves (as a temporary measure against the
 	  mysterious "don't use bot!" message) [Skotlex]
 	* Added atcommand logging for /monster and /item (not quite tested yet, but
