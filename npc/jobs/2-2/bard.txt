@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Muad_Dib(The Prometheus Project)
 //===== Current Version: ===================================== 
-//= 1.1a
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena Final
 //===== Description: ========================================= 
@@ -15,7 +15,7 @@
 // Info about gifts and other info --> http://www.ragnainfo.net/forums/viewtopic.php?t=51467&start=0 
 // 1.1 Optimized, changed some stuff, fixed some bugs [Lupus]
 // 1.1a minor song test fix [Lupus]
-// THIS VERSION ISN'T FINISHED YET, use the previous one [Lupus]
+// 1.2 Fixed wrong item ID, added missing commands [Lupus]
 //============================================================
 
 
@@ -162,7 +162,7 @@ L_BQ1:
 	mes "Welcome! Archer friend.";
 	mes "Did you bring a Flower? Let me see.";
 	next;
-	if(countitem(520) >= 1) goto L_FLOWER1; //Item: Hinalle_Leaflet
+	if(countitem(703) >= 1) goto L_FLOWER1; //Item: Hinalle
 L_NEXT2:
 	if(countitem(708) >= 1) goto L_FLOWER2; //Item: Ment
 L_NEXT3:
@@ -189,15 +189,17 @@ M_NOTHAVE:
 L_FLOWER1:
 	mes "[Lalo]";
 	mes "Can I have that Hinalle?";
+	next;
 	menu "Yes",-,"No",L_NEXT2;
 
-	delitem 520,1;	//Item: Hinalle_Leaflet
+	delitem 703,1;	//Item: Hinalle
 	if(BARD_Q2==1) goto L_GOOD;
 	goto L_WRONG;
 
 L_FLOWER2:
 	mes "[Lalo]";
 	mes "Can I have that Ment?";
+	next;
 	menu "Yes",-,"No",L_NEXT3;
 
 	delitem 708,1;	//Item: Ment
@@ -207,6 +209,7 @@ L_FLOWER2:
 L_FLOWER3:
 	mes "[Lalo]";
 	mes "Can I have that Singing Flower?";
+	next;
 	menu "Yes",-,"No",L_NEXT4;
 
 	delitem 629,1;	//Item: Singing Flower
@@ -216,6 +219,7 @@ L_FLOWER3:
 L_FLOWER4:
 	mes "[Lalo]";
 	mes "Can I have that Illusion Flower?";
+	next;
 	menu "Yes",-,"No",L_NEXT5;
 
 	delitem 710,1;	//Item: Illusion_Flower
@@ -225,6 +229,7 @@ L_FLOWER4:
 L_FLOWER5:
 	mes "[Lalo]";
 	mes "Can I have that Witherless_Rose?";
+	next;
 	menu "Yes",-,"No",L_NEXT6;
 
 	delitem 748,1;	//Item: Witherless_Rose
@@ -351,6 +356,7 @@ M_S9:
 	
 	set @score,@score+10;
 M_S10:
+	next;
 	if(@score >= 90) goto L_GOODWORK;
 	mes "[Lalo]";
 	mes "Oy, You got the lyrics wrong!";
