@@ -143,6 +143,7 @@ int RFIFOSKIP(int fd,int len);
 
 int do_sendrecv(int next);
 int do_parsepacket(void);
+void do_close(int fd);
 void socket_init(void);
 void socket_final(void);
 

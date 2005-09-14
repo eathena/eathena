@@ -10808,9 +10808,7 @@ int clif_parse(int fd) {
 			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]
 		else if (sd)
 			map_deliddb(&sd->bl); // account_id has been included in the DB before auth answer [Yor]
-		delete_session(fd);
-		if (close(fd))
-			perror("Error closing session");
+		do_close(fd);
 		return 0;
 	} else
 	if (session[fd]->eof) {
@@ -10833,9 +10831,7 @@ int clif_parse(int fd) {
 			unsigned char *ip = (unsigned char *) &session[fd]->client_addr.sin_addr;
 			ShowInfo("Player not identified with IP '"CL_WHITE"%d.%d.%d.%d"CL_RESET"' logged off.\n", ip[0],ip[1],ip[2],ip[3]);
 		}
-		delete_session(fd);
-		if (close(fd))
-			perror("Error closing session");
+		do_close(fd);
 		return 0;
 	}
 

@@ -1329,8 +1329,7 @@ int parse_fromchar(int fd) {
 			server_fd[id] = -1;
 			memset(&server[id], 0, sizeof(struct mmo_char_server));
 		}
-		close(fd);
-		delete_session(fd);
+		do_close(fd);
 		return 0;
 	}
 
@@ -1892,8 +1891,7 @@ int parse_admin(int fd) {
 	sprintf(ip, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
 
 	if (session[fd]->eof) {
-		close(fd);
-		delete_session(fd);
+		do_close(fd);
 		ShowInfo("Remote administration has disconnected (session #%d).\n", fd);
 		return 0;
 	}
@@ -2880,8 +2878,7 @@ int parse_login(int fd) {
         memset(&account, 0, sizeof(account));
 
 	if (session[fd]->eof) {
-		close(fd);
-		delete_session(fd);
+		do_close(fd);
 		return 0;
 	}
 
@@ -3920,12 +3917,10 @@ void do_final(void) {
 		if ((fd = server_fd[i]) >= 0) {
 			server_fd[i] = -1;
 			memset(&server[i], 0, sizeof(struct mmo_char_server));
-			close(fd);
-			delete_session(fd);
+			do_close(fd);
 		}
 	}
-	close(login_fd);
-	delete_session(login_fd);
+	do_close(login_fd);
 
 	login_log("----End of login-server (normal end with closing of all files)." RETCODE);
 

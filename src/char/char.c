@@ -1766,8 +1766,7 @@ int parse_tologin(int fd) {
 			ShowWarning("Connection to login-server lost (connection #%d).\n", fd);
 			login_fd = -1;
 		}
-		close(fd);
-		delete_session(fd);
+		do_close(fd);
 		return 0;
 	}
 
@@ -2241,8 +2240,7 @@ int parse_frommap(int fd) {
 				ShowStatus("Map-server %d has disconnected.\n", i);
 				server_fd[i] = -1;
 			}
-		close(fd);
-		delete_session(fd);
+		do_close(fd);
 		create_online_files();
 		return 0;
 	}
@@ -2867,8 +2865,7 @@ int parse_char(int fd) {
 			login_fd = -1;
 		if (sd != NULL)
 			set_char_offline(99,sd->account_id);
-		close(fd);
-		delete_session(fd);
+		do_close(fd);
 		return 0;
 	}
 

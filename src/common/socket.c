@@ -98,6 +98,17 @@ static void setsocketopts(int fd)
 #endif
 	setsockopt(fd,IPPROTO_TCP,TCP_NODELAY,(char *)&yes,sizeof yes);
 
+#ifdef __WIN32
+{	//set SO_LINGER option (from Freya)
+	//(http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winsock/winsock/closesocket_2.asp)
+	struct linger opt;
+	opt.l_onoff = 1;
+	opt.l_linger = 0;
+	if (setsockopt(fd, SOL_SOCKET, SO_LINGER, (char*)&opt, sizeof(opt)))
+		ShowWarning("setsocketopts: Unable to set SO_LINGER mode for connection %d!\n",fd);
+}
+#endif
+
 	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char *) &wfifo_size , sizeof(wfifo_size ));
 	if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &buff, &buff_size) == 0)
 	{
@@ -281,17 +292,21 @@ static int connect_client(int listen_fd)
 	len=sizeof(client_address);
 
 	fd = accept(listen_fd,(struct sockaddr*)&client_address,(socklen_t*)&len);
-	if(fd_max<=fd) fd_max=fd+1;
-
+#ifdef __WIN32                                               
+	if (fd == SOCKET_ERROR || fd == INVALID_SOCKET || fd < 0) {
+#else                                                        
 	if(fd==-1) {
+#endif   
 		perror("accept");
 		return -1;
 	}
 	
+	if(fd_max<=fd) fd_max=fd+1;
+
 	setsocketopts(fd);
 
 	if (ip_rules && !connect_check(*(unsigned int*)(&client_address.sin_addr))) {
-		close(fd);
+		do_close(fd);
 		return -1;
 	} else
 		FD_SET(fd,&readfds);
@@ -356,11 +371,16 @@ int make_listen_port(int port)
 		exit(1);
 	}
 	result = listen( fd, 5 );
-	if( result == -1 ) { /* error */
+	if( result != 0 ) { /* error */
 		perror("listen");
 		exit(1);
 	}
-
+	if ( fd < 0 || fd > FD_SETSIZE ) 
+	{ //Crazy error that can happen in Windows? (info from Freya)
+		ShowFatalError("listen() returned invalid fd %d!\n",fd);
+		exit(1);
+	}
+	
 	FD_SET(fd, &readfds );
 
 	CREATE(session[fd], struct socket_data, 1);
@@ -403,8 +423,13 @@ int make_listen_bind(long ip,int port)
 		exit(1);
 	}
 	result = listen( fd, 5 );
-	if( result == -1 ) { /* error */
+	if( result != 0) { /* error */
 		perror("listen");
+		exit(1);
+	}
+	if ( fd < 0 || fd > FD_SETSIZE ) 
+	{ //Crazy error that can happen in Windows? (info from Freya)
+		ShowFatalError("listen() returned invalid fd %d!\n",fd);
 		exit(1);
 	}
 
@@ -520,8 +545,7 @@ int make_connection(long ip,int port)
 	result = connect(fd, (struct sockaddr *)(&server_address), sizeof(struct sockaddr_in));
 	if (result < 0) { //This is only used when the map/char server try to connect to each other, so it can be handled. [Skotlex]
 		perror("make_connection");
-		delete_session(fd);
-		close(fd);
+		do_close(fd);
 		return -1;
 	}
 //Now the socket can be made non-blocking. [Skotlex]
@@ -1203,6 +1227,21 @@ void socket_final (void)
 	aFree(session[0]->rdata);
 	aFree(session[0]->wdata);
 	aFree(session[0]);
+}
+
+//Closes a socket.
+//Needed to simplify shutdown code as well as manage the subtle differences in socket management from Windows and *nix.
+void do_close(int fd)
+{
+//We don't really care if these closing functions return an error, we are just shutting down and not reusing this socket.
+#ifdef __WIN32
+	shutdown(fd, SD_BOTH);
+	closesocket(fd);
+else
+	close(fd);
+#endif
+	if (session[fd])
+		delete_session(fd);
 }
 
 void socket_init (void)

@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/14
+	* Added a few socket features from Freya which hopefully will help
+	  stabilize eA on Windows (testing needed!) [Skotlex]
 	* Miscellanous fixes and rewrites to memitemdata_to_sql, it'll probably
 	  fixed the stackable named items duplication exploit. [Skotlex]
 	  (note that it is not tested, so there's the chance I broke everything

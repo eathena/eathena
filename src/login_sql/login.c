@@ -739,8 +739,7 @@ int parse_fromchar(int fd){
 				ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
 		}
-		close(fd);
-		delete_session(fd);
+		do_close(fd);
 		return 0;
 	}
 
@@ -1227,8 +1226,7 @@ int parse_login(int fd) {
 		for(i = 0; i < MAX_SERVERS; i++)
 			if (server_fd[i] == fd)
 				server_fd[i] = -1;
-		close(fd);
-		delete_session(fd);
+		do_close(fd);
 		return 0;
 	}
 

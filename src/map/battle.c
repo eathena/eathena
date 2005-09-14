@@ -498,7 +498,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			struct guild *g=guild_search(((struct map_session_data *)src)->status.guild_id);
 			if(g && class_ == MOBID_EMPERIUM && guild_checkskill(g,GD_APPROVAL) <= 0)
 				damage=0;
-			else if (battle_config.guild_max_castles != 0 && guild_checkcastles(g)>=battle_config.guild_max_castles)
+			else if (g && battle_config.guild_max_castles != 0 && guild_checkcastles(g)>=battle_config.guild_max_castles)
 				damage = 0; // [MouseJstr]
 		}
 	}

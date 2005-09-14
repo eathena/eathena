@@ -1233,8 +1233,7 @@ int chrif_parse(int fd)
 		else if (fd != char_fd)
 			ShowDebug("chrif_parse: Disconnecting invalid session #%d (is not the char-server)\n", fd);
 
-		close(fd);
-		delete_session(fd);
+		do_close(fd);
 		return 0;
 	}
 
