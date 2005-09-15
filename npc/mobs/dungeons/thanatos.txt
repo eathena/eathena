@@ -1,0 +1,27 @@
+//===== eAthena Script =======================================
+//= Thanatos Tower Monster Spawn Script
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Additional Comments: =================================
+//= 1.0 temp spawns by Azazel
+//============================================================
+
+// tha_t01
+tha_t01.gat,0,0,0,0	monster	Plasma Green	1695,10,0,0,0
+tha_t01.gat,0,0,0,0	monster	Rideword	1195,20,0,0,0
+tha_t01.gat,0,0,0,0	monster	Mimic	1191,35,0,0,0
+tha_t01.gat,0,0,0,0	monster	Alice	1275,1,0,0,0
+tha_t01.gat,0,0,0,0	monster	Solace	1703,10,0,0,0
+
+// tha_t02
+tha_t02.gat,0,0,0,0	monster	Rideword	1195,20,0,0,0
+tha_t02.gat,0,0,0,0	monster	Death Word	1698,25,0,0,0
+tha_t02.gat,0,0,0,0	monster	Mimic	1191,35,0,0,0
+tha_t02.gat,0,0,0,0	monster	Plasma Blue	1697,10,0,0,0
+tha_t02.gat,0,0,0,0	monster	Alice	1275,1,0,0,0
+tha_t02.gat,0,0,0,0	monster	Retribution	1702,10,0,0,0
+tha_t02.gat,0,0,0,0	monster	Ancient Mimic	1699,20,0,0,0

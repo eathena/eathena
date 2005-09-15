@@ -1,14 +1,15 @@
 //===== eAthena Script =======================================
 //= Official scripts for beginners from iRO
 //===== By: ==================================================
-//= MasterOfMuppets (1.0)
+//= MasterOfMuppets (1.1)
 //===== Current Version: =====================================
-//= 1.0
+//= 1.1
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
 //= 1.0 Added Alberta, Prontera, Izlude, Payon, Byalan Island,
 //= 	Archer Village, Payon Cave and Coal Mine
+//= 1.1 Geffen, Orc Dungeon
 //============================================================
 
 alberta.gat,111,59,5	script	Bulletin Board	837,{
@@ -35,7 +36,41 @@ alberta.gat,111,59,5	script	Bulletin Board	837,{
 	mes "Enjoy your travels."; 
 	close;
 }
-	
+
+geffen.gat,124,65,5	script	Bulletin Board	837,{
+	mes "[Geffen: The City of Magic]";
+	mes "Welcome to Geffen, the City of Magic. Geffen is well known for its various legends related to magic.";
+	next;
+	mes "[Geffen: The City of Magic]";
+	mes "Points of interest in the city include the Forge, where people can change their jobs to Blacksmith, the Magic Academy for aspiring mages, and the Geffen Tower for the Wizard job change.";
+	next;
+	mes "[Geffen: The City of Magic]";
+	mes "Underneath the Geffen Tower lies a dungeon in which dreadful monsters are rumored to appear.";
+	next;
+	mes "[Geffen: The City of Magic]";
+	mes "It is said that the lost city of Gefenia, a place of elven lore and legend, is hidden within the depths of this dungeon.";
+	next;
+	mes "[Geffen: The City of Magic]";
+	mes "From Geffen, the ^828E28Orc Village^000000 is located to the South, ^4C6055Glast Heim^000000 to the West, ^6D6FE0Prontera^000000 to the far East, and ^744B2DMt. Mjolnir^000000 to the North. Enjoy your stay here in Geffen.";
+	close;
+}
+
+gef_fild10.gat,69,340,5	script	Bulletin Board	837,{
+	mes "[Orc Dungeon]";
+	mes "^6B1312Caution!^000000";
+	mes "The Orc Dungeon is comprised of 2 levels. Although not very strong individually, the monsters here attack in groups. Be careful.";
+	next;
+	mes "[Orc Dungeon]";
+	mes "Only in this dungeon will you be able to encounter Orc Skeletons, Zenorcs and Orc Zombies.";
+	next;
+	mes "[Orc Dungeon]";
+	mes "Holy attribute weapons will greatly aid you in this place, since most of the monsters in this dungeon are Undead.";
+	next;
+	mes "[Orc Dungeon]";
+	mes "If you don't have a Holy Weapon and you're teamed with a Priest, the Priest's Aspersio spell would be of tremendous help.";
+	close;
+}	
+
 izlu2dun.gat,104,92,5	script	Bulletin Board	837,{
 	mes "[Byalan Island]";
 	mes "^6B1312Caution!^000000";
@@ -150,4 +185,3 @@ mjolnir_02.gat,76,362,5	script	Bulletin Board	837,{
 	mes "In the third level, monsters tend to attack adventurers in swarms, so avoid being surrounded. Since this area is a mine, many Ores can be found within the depths of this dungeon.";
 	close;
 }
-

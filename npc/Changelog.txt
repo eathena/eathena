@@ -28,6 +28,11 @@ TODO:
 
 Date		Added
 ======
+09/16
+	* Updated some monsters stats (Lighthalzen, Einbroch) thanx to MasterOfMuppets [Lupus]
+	- Also updated bulletin_boards.txt
+	* Added temp mobs spawn of Thanatos Tower/Abyss Lake dungeons thanx to Azazel
+	- Based on limited info. All the new mobs come with poring stats ^_-
 09/15
 	* Added new maps, temp warps for Abyss Lake Dungeon (thanks to Muad-Dib) [Lupus]
 	- I recommend closing that dungeon and new monsters yet,

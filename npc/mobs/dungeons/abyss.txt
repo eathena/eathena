@@ -1,0 +1,17 @@
+//===== eAthena Script =======================================
+//= Abyss Lake Dungeon Monster Spawn Script
+//===== By: ==================================================
+//= Athena (1.0)
+//===== Current Version: =====================================
+//= 1.0
+//===== Compatible With: =====================================
+//= Any Athena Version
+//===== Additional Comments: =================================
+//= 1.0 temp spawns by Azazel
+//============================================================
+
+// abyss_01
+abyss_01.gat,0,0,0,0	monster	Acidus	1716,10,0,0,0
+abyss_01.gat,0,0,0,0	monster	Ferus	1717,15,0,0,0
+abyss_01.gat,0,0,0,0	monster	Mimic	1191,35,0,0,0
+abyss_01.gat,0,0,0,0	monster	Novus	1715,25,0,0,0
