@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/15
+	* Added log support to N slots. Now all cards should be logged [Skotlex]
+	- Note that I have not been able to test it yet, so report back any
+	  problems caused by it.
 	* Fixed a memory leak when removing disconnected chars. [Skotlex]
 	* Re-enabled the Memory Manager by default. [Skotlex]
 	* Updated atcommand @rates so that it displays current exp rates in x form

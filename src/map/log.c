@@ -243,8 +243,21 @@ int log_refine(struct map_session_data *sd, int n, int success)
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`refine_date`, `account_id`, `char_id`, `char_name`, `nameid`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `success`, `item_level`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d', '%d')",
-			log_config.log_refine_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), sd->status.inventory[n].nameid, sd->status.inventory[n].refine, log_card[0], log_card[1], log_card[2], log_card[3], sd->mapname, success, item_level);
+		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`refine_date`, `account_id`, `char_id`, `char_name`, `nameid`, `refine`"
+			",`map`, `success`, `item_level`", log_config.log_refine_db);
+		
+		for (i=0; i < MAX_SLOTS; i++)
+			sprintf(tmp_sql, "%s, `card%d`", tmp_sql, i);
+		
+		sprintf(tmp_sql, "%s) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d'",
+			tmp_sql, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name),
+			sd->status.inventory[n].nameid, sd->status.inventory[n].refine, sd->mapname, success, item_level);
+		
+		for(i=0; i<MAX_SLOTS; i++)
+			sprintf(tmp_sql, ", '%d'", log_card[i]);
+
+		strcat(tmp_sql,")");
+
 		if(mysql_query(&logmysql_handle, tmp_sql))
 			ShowSQL("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
@@ -252,7 +265,14 @@ int log_refine(struct map_session_data *sd, int n, int success)
 		if((logfp=fopen(log_config.log_refine,"a+")) != NULL) {
 			time(&curtime);
 			strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%d:%d]\t%d,%d\t%d%d%d%d\t%d,%d%s", timestring, sd->status.name, sd->status.account_id, sd->status.char_id, sd->status.inventory[n].nameid, sd->status.inventory[n].refine, log_card[0], log_card[1], log_card[2], log_card[3], success, item_level, RETCODE);
+			fprintf(logfp,"%s - %s[%d:%d]\t%d,%d\t",
+				timestring, sd->status.name, sd->status.account_id, sd->status.char_id,
+				sd->status.inventory[n].nameid, sd->status.inventory[n].refine);
+
+			for (i=0; i<MAX_SLOTS; i++)
+				fprintf(logfp,"%d,",log_card[i]);
+		
+			fprintf(logfp,"\t%d,%d%s", success, item_level, RETCODE);
 			fclose(logfp);
 		}
 #ifndef TXT_ONLY
@@ -264,6 +284,7 @@ int log_refine(struct map_session_data *sd, int n, int success)
 int log_tostorage(struct map_session_data *sd,int n, int guild) 
 {
   FILE *logfp;
+  int i;
 
   if(log_config.enable_logs <= 0 || log_config.storage == 0 || log_config.log_storage[0] == '\0')
     return 0;
@@ -276,16 +297,16 @@ int log_tostorage(struct map_session_data *sd,int n, int guild)
     return 1;
 
   if((logfp=fopen(log_config.log_trade,"a+")) != NULL) {
-    time(&curtime);
-    strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-    fprintf(logfp,"%s - to %s: %s[%d:%d]\t%d\t%d\t%d\t%d,%d,%d,%d%s", timestring, guild ? "guild_storage": "storage", sd->status.name, sd->status.account_id, sd->status.char_id, 
-      sd->status.inventory[n].nameid,
-      sd->status.inventory[n].amount,
-      sd->status.inventory[n].refine,
-      sd->status.inventory[n].card[0],
-      sd->status.inventory[n].card[1],
-      sd->status.inventory[n].card[2],
-      sd->status.inventory[n].card[3], RETCODE);
+		time(&curtime);
+		strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+		fprintf(logfp,"%s - to %s: %s[%d:%d]\t%d\t%d\t%d\t",
+		timestring, guild ? "guild_storage": "storage", sd->status.name, sd->status.account_id, sd->status.char_id, 
+      sd->status.inventory[n].nameid, sd->status.inventory[n].amount, sd->status.inventory[n].refine);
+	 
+	 for (i=0; i<MAX_SLOTS; i++)
+		 fprintf(logfp, "%d,", sd->status.inventory[n].card[i]);
+	
+	 fprintf(logfp, "%s", RETCODE);
     fclose(logfp);
   }
   return 0;
@@ -294,6 +315,7 @@ int log_tostorage(struct map_session_data *sd,int n, int guild)
 int log_fromstorage(struct map_session_data *sd,int n, int guild) 
 {
   FILE *logfp;
+  int i;
 
   if(log_config.enable_logs <= 0 || log_config.storage == 0 || log_config.log_storage[0] == '\0')
     return 0;
@@ -307,16 +329,16 @@ int log_fromstorage(struct map_session_data *sd,int n, int guild)
     return 1;
 
   if((logfp=fopen(log_config.log_trade,"a+")) != NULL) {
-    time(&curtime);
-    strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-    fprintf(logfp,"%s - from %s: %s[%d:%d]\t%d\t%d\t%d\t%d,%d,%d,%d%s", timestring, guild ? "guild_storage": "storage", sd->status.name, sd->status.account_id, sd->status.char_id, 
-      sd->status.inventory[n].nameid,
-      sd->status.inventory[n].amount,
-      sd->status.inventory[n].refine,
-      sd->status.inventory[n].card[0],
-      sd->status.inventory[n].card[1],
-      sd->status.inventory[n].card[2],
-      sd->status.inventory[n].card[3], RETCODE);
+	time(&curtime);
+	fprintf(logfp,"%s - from %s: %s[%d:%d]\t%d\t%d\t%d\t",
+		timestring, guild ? "guild_storage": "storage", sd->status.name, sd->status.account_id, sd->status.char_id, 
+      sd->status.inventory[n].nameid, sd->status.inventory[n].amount, sd->status.inventory[n].refine);
+	 
+	 for (i=0; i<MAX_SLOTS; i++)
+		 fprintf(logfp, "%d,", sd->status.inventory[n].card[i]);
+	
+	 fprintf(logfp, "%s", RETCODE);
+
     fclose(logfp);
   }
   return 0;
@@ -352,8 +374,22 @@ int log_trade(struct map_session_data *sd, struct map_session_data *target_sd, i
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s')",
-			log_config.log_trade_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), target_sd->status.account_id, target_sd->status.char_id, jstrescapecpy(t_name2, target_sd->status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd->mapname);
+		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`trade_date`, `src_account_id`, `src_char_id`, `src_char_name`, `des_account_id`, `des_char_id`, `des_char_name`, `nameid`, `amount`, `refine`, `map`",
+			log_config.log_trade_db);
+
+		for (i=0; i < MAX_SLOTS; i++)
+			sprintf(tmp_sql, "%s, `card%d`", tmp_sql, i);
+		
+		sprintf(tmp_sql, "%s) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%s'",
+			tmp_sql, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name),
+			target_sd->status.account_id, target_sd->status.char_id, jstrescapecpy(t_name2, target_sd->status.name),
+			log_nameid, log_amount, log_refine, sd->mapname);
+		
+		for(i=0; i<MAX_SLOTS; i++)
+			sprintf(tmp_sql, ", '%d'", log_card[i]);
+
+		strcat(tmp_sql, ")");
+		
 		if(mysql_query(&logmysql_handle, tmp_sql))
 			ShowSQL("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
@@ -361,7 +397,16 @@ int log_trade(struct map_session_data *sd, struct map_session_data *target_sd, i
 		if((logfp=fopen(log_config.log_trade,"a+")) != NULL) {
 			time(&curtime);
 			strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%d:%d]\t%s[%d:%d]\t%d\t%d\t%d\t%d,%d,%d,%d%s", timestring, sd->status.name, sd->status.account_id, sd->status.char_id, target_sd->status.name, target_sd->status.account_id, target_sd->status.char_id, log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], RETCODE);
+			fprintf(logfp,"%s - %s[%d:%d]\t%s[%d:%d]\t%d\t%d\t%d\t",
+				timestring, sd->status.name, sd->status.account_id, sd->status.char_id,
+				target_sd->status.name, target_sd->status.account_id, target_sd->status.char_id,
+				log_nameid, log_amount, log_refine);
+
+			for (i=0; i<MAX_SLOTS; i++)
+				fprintf(logfp, "%d,", sd->status.inventory[n].card[i]);
+	
+			fprintf(logfp, "%s", RETCODE);
+
 			fclose(logfp);
 		}
 #ifndef TXT_ONLY
@@ -397,16 +442,38 @@ int log_vend(struct map_session_data *sd,struct map_session_data *vsd,int n,int 
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-			sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`vend_date`, `vend_account_id`, `vend_char_id`, `vend_char_name`, `buy_account_id`, `buy_char_id`, `buy_char_name`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`, `zeny`) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%d')",
-				log_config.log_vend_db, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name), vsd->status.account_id, vsd->status.char_id, jstrescapecpy(t_name2, vsd->status.name), log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], sd->mapname, zeny);
-			if(mysql_query(&logmysql_handle, tmp_sql))
-				ShowSQL("DB server Error - %s\n",mysql_error(&logmysql_handle));
+		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`vend_date`, `vend_account_id`, `vend_char_id`, `vend_char_name`, `buy_account_id`, `buy_char_id`, `buy_char_name`, `nameid`, `amount`, `refine`, `map`, `zeny`",
+			log_config.log_vend_db); 	
+
+		for (i=0; i < MAX_SLOTS; i++)
+			sprintf(tmp_sql, "%s, `card%d`", tmp_sql, i);
+
+		sprintf(tmp_sql, "%s) VALUES (NOW(), '%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%s', '%d'",
+			tmp_sql, sd->status.account_id, sd->status.char_id, jstrescapecpy(t_name, sd->status.name),
+			vsd->status.account_id, vsd->status.char_id, jstrescapecpy(t_name2, vsd->status.name),
+			log_nameid, log_amount, log_refine, sd->mapname, zeny);
+		
+		for(i=0; i<MAX_SLOTS; i++)
+			sprintf(tmp_sql, ", '%d'", log_card[i]);
+
+		strcat(tmp_sql, ")");
+		
+		if(mysql_query(&logmysql_handle, tmp_sql))
+			ShowSQL("DB server Error - %s\n",mysql_error(&logmysql_handle));
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_vend,"a+")) != NULL) {
 			time(&curtime);
 			strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			fprintf(logfp,"%s - %s[%d:%d]\t%s[%d:%d]\t%d\t%d\t%d\t%d,%d,%d,%d\t%d%s", timestring, sd->status.name, sd->status.account_id, sd->status.char_id, vsd->status.name, vsd->status.account_id, vsd->status.char_id, log_nameid, log_amount, log_refine, log_card[0], log_card[1], log_card[2], log_card[3], zeny, RETCODE);
+			fprintf(logfp,"%s - %s[%d:%d]\t%s[%d:%d]\t%d\t%d\t%d\t",
+				timestring, sd->status.name, sd->status.account_id, sd->status.char_id,
+				vsd->status.name, vsd->status.account_id, vsd->status.char_id,
+				log_nameid, log_amount, log_refine);
+
+			for(i=0; i<MAX_SLOTS; i++)
+				fprintf(logfp, "%d,", sd->status.inventory[n].card[i]);
+			
+			fprintf(logfp, "\t%d%s", zeny, RETCODE);
 			fclose(logfp);
 		}
 #ifndef TXT_ONLY
