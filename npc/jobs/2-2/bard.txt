@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Muad_Dib(The Prometheus Project), Lupus
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.2a
 //===== Compatible With: ===================================== 
 //= eAthena Final
 //===== Description: ========================================= 
@@ -172,7 +172,7 @@ L_NEXT4:
 L_NEXT5:
 	if(countitem(748) >= 1) goto L_FLOWER5; //Item: Witherless_Rose
 L_NEXT6:
-	if(countitem(712) < 1) goto M_NOTHAVE:; //Item: Flower
+	if(countitem(712) < 1) goto M_NOTHAVE; //Item: Flower
 
 	mes "[Lalo]";
 	mes "Eh? This is just a normal flower.";
