@@ -720,7 +720,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 					if(sd->status.inventory[index].card[0]==0x00ff){	// Forged weapon
 						sd->right_weapon.star += (sd->status.inventory[index].card[1]>>8);	// ¯‚Ì‚©‚¯‚ç
-						if(sd->right_weapon.star >= 15) sd->right_weapon.star = 40; // 3 Star Crumbs now give +40 dmg
+						if(sd->right_weapon.star >= 15) sd->right_weapon.star = 50; // 3 Star Crumbs now give +50 dmg
 						wele = (sd->status.inventory[index].card[1]&0x0f);	// ? «
 						sd->right_weapon.fameflag = pc_istop10fame( MakeDWord(sd->status.inventory[index].card[2],sd->status.inventory[index].card[3]) ,JOB_BLACKSMITH);
 					}
@@ -3090,11 +3090,13 @@ int status_get_sc_def(struct block_list *bl, int type)
 		break;	
 	case SC_SLEEP:
 	case SC_CONFUSION:
-	case SC_BLIND:
 		sc_def = 100 - (3 + status_get_int(bl) + status_get_luk(bl)/3);
 		break;
+	case SC_BLIND:
+		sc_def = 100 - (3 + status_get_int(bl) + status_get_vit(bl)/3);
+		break;
 	case SC_CURSE:
-		sc_def = 100 - (3 + status_get_luk(bl));
+		sc_def = 100 - (3 + status_get_luk(bl) + status_get_vit(bl)/3);
 		break;	
 
 	default:

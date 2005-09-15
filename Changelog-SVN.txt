@@ -2,6 +2,13 @@ Date	Added
 =======
 
 09/15
+	* Corrected resetskill messing up with Wedding Skills. [Skotlex]
+	* Some adjustment to the status change defense (as per data provided by
+	  Viccious Pucca) [Skotlex]
+	* VVVS weapons now give +50 damage instead of +40 (again thanks to
+	  Viccious) [Skotlex]
+	* Success rate of making Star Crumbs now is 100% (regardless of skill
+	  level?) [Skotlex]
 	* Couple of crash fixes on the map-server char saving method
 	  (char_save_method: 1) [Skotlex]
 09/14

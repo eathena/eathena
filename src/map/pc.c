@@ -4672,8 +4672,10 @@ int pc_resetskill(struct map_session_data* sd)
 					sd->status.skill[i].lv = 0;
 			}
 			else if (battle_config.quest_skill_reset && (inf2&INF2_QUEST_SKILL))
+			{
 				sd->status.skill[i].lv = 0;
-			sd->status.skill[i].flag = 0;
+				sd->status.skill[i].flag = 0;
+			}
 		} else {
 			sd->status.skill[i].lv = 0;
 		}

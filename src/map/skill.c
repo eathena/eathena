@@ -10274,6 +10274,9 @@ int skill_produce_mix( struct map_session_data *sd,
 					case 999: // Steel
 						make_per += 3000+skill*500; // Temper Steel bonus: +35/+40/+45/+50/+55
 						break;
+					case 1000: //Star Crumb
+						make_per = 20000; //Star Crumbs are 100% success crafting rate? (made 200% so it succeeds even after penalties) [Skotlex]
+						break;
 					default: // Enchanted Stones
 						make_per += 1000+skill*500; // Enchantedstone Craft bonus: +15/+20/+25/+30/+35
 					break;
