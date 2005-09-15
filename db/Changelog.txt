@@ -39,6 +39,9 @@
 	--
 
 09/15
+	* Removed inf2 128 (trap) from Quagmire, Sphere Mine and Demonstration as
+	  they are not really traps (all ground based skills with trap mode can be
+	  targetted) [Skotlex]
 	* Updated WE_BABY to cost 10% of Baby's max SP (thanks again to Viccious
 	  Pucca). [Skotlex]
 	* Updated Venom Knife's stats, has the stats of an arrow now and is

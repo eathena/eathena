@@ -1640,7 +1640,7 @@ int mapif_parse_GuildAlliance(int fd,int guild_id1,int guild_id2,
 	}else{	// ŠÖŒW‰ğÁ
 		for(i=0;i<2-(flag&1);i++){
 			for(j=0;j<MAX_GUILDALLIANCE;j++)
-				if(	g[i]->alliance[j].guild_id==g[1-i]->guild_id &&
+				if(g[i]->alliance[j].guild_id==g[1-i]->guild_id &&
 					g[i]->alliance[j].opposition==(flag&1)){
 					g[i]->alliance[j].guild_id=0;
 					break;
@@ -1649,8 +1649,6 @@ int mapif_parse_GuildAlliance(int fd,int guild_id1,int guild_id2,
 	}
 	mapif_guild_alliance(guild_id1,guild_id2,account_id1,account_id2,flag,
 		g[0]->name,g[1]->name);
-//	inter_guild_tosql(g[0],8); // Change guild_alliance
-//	inter_guild_tosql(g[1],8); // Change guild_alliance
 	add_guild_save_timer(g[0],8);
 	add_guild_save_timer(g[1],8);
 	return 0;

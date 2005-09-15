@@ -1173,34 +1173,30 @@ int guild_reply_reqalliance(struct map_session_data *sd,int account_id,int flag)
 	if(flag==1){	// ³‘ø
 		int i;
 
-		struct guild *g;	// “¯–¿”ÄŠm”F
-		if( (g=guild_search(sd->status.guild_id))==NULL ||
-			guild_get_alliance_count(g,0)>3 ){
+		struct guild *g,*tg;	// “¯–¿”ÄŠm”F
+		g=guild_search(sd->status.guild_id);
+		tg=guild_search(tsd->status.guild_id);
+		
+		if(g==NULL || guild_get_alliance_count(g,0)>3){
 			clif_guild_allianceack(sd,4);
 			clif_guild_allianceack(tsd,3);
 			return 0;
 		}
-		if( (g=guild_search(tsd->status.guild_id))==NULL ||
-			guild_get_alliance_count(g,0)>3 ){
+		if(tg==NULL || guild_get_alliance_count(tg,0)>3){
 			clif_guild_allianceack(sd,3);
 			clif_guild_allianceack(tsd,4);
 			return 0;
 		}
 
-		// “G‘ÎŠÖŒW‚È‚ç“G‘Î‚ğ~‚ß‚é
-		if((g=guild_search(sd->status.guild_id)) == NULL)
-			return 0;
 		for(i=0;i<MAX_GUILDALLIANCE;i++){
-			if(	g->alliance[i].guild_id==tsd->status.guild_id &&
+			if(g->alliance[i].guild_id==tsd->status.guild_id &&
 				g->alliance[i].opposition==1)
 				intif_guild_alliance( sd->status.guild_id,tsd->status.guild_id,
 					sd->status.account_id,tsd->status.account_id,9 );
 		}
-		if((g=guild_search(tsd->status.guild_id)) == NULL)
-			return 0;
 		for(i=0;i<MAX_GUILDALLIANCE;i++){
-			if(	g->alliance[i].guild_id==sd->status.guild_id &&
-				g->alliance[i].opposition==1)
+			if(tg->alliance[i].guild_id==sd->status.guild_id &&
+				tg->alliance[i].opposition==1)
 				intif_guild_alliance( tsd->status.guild_id,sd->status.guild_id,
 					tsd->status.account_id,sd->status.account_id,9 );
 		}
