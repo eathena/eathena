@@ -1,6 +1,9 @@
 Date	Added
 =======
 
+09/15
+	* Couple of crash fixes on the map-server char saving method
+	  (char_save_method: 1) [Skotlex]
 09/14
 	* Yet another correction to SQL char saving. [Skotlex]
 	* Added support for N slots. [Skotlex]

@@ -221,6 +221,7 @@ struct mmo_charstatus *charsave_loadchar(int charid){
                         c->global_reg[i].value = atoi(charsql_row[2]);
                  }
                  mysql_free_result(charsql_res);
+				c->global_reg_num = i;
          }
 
 	//Shamelessly stolen from its_sparky (ie: thanks) and then assimilated by [Skotlex]
@@ -236,9 +237,12 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 	{
 		for(i = 0; (sql_row = mysql_fetch_row(sql_res)) && i<MAX_FRIENDS; i++)
 		{
-			c->friends[i].account_id = atoi(sql_row[0]);
-			c->friends[i].char_id = atoi(sql_row[1]);
-			strncpy(c->friends[i].name, sql_row[2], NAME_LENGTH-1); //The -1 is to avoid losing the ending \0 [Skotlex]
+			if (sql_row[2] != NULL)
+			{
+				c->friends[i].account_id = atoi(sql_row[0]);
+				c->friends[i].char_id = atoi(sql_row[1]);
+				strncpy(c->friends[i].name, sql_row[2], NAME_LENGTH-1); //The -1 is to avoid losing the ending \0 [Skotlex]
+			}
 		}
 		mysql_free_result(sql_res);
 	}
