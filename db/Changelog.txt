@@ -38,6 +38,8 @@
 
 	--
 
+09/15
+	* Updated 1617,Wand_of_Survival and 1619,Wand_of_Survival__ to give 2 instead of 3 (to DEX and INT) [Lupus]
 09/13
 	* Updated mobs stats (mostly Einbroch) thanks to MasterOfMuppets,Viccious Pucca [Lupus]
 	* Multiplied all drain rates x10 (100% leech rate is now 1000) [Skotlex]
