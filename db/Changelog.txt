@@ -39,6 +39,13 @@
 	--
 
 09/15
+	* Updated WE_BABY to cost 10% of Baby's max SP (thanks again to Viccious
+	  Pucca). [Skotlex]
+	* Updated Venom Knife's stats, has the stats of an arrow now and is
+	  equippable only by Assassin. It probably won't work right yet as
+	  eA will demand the sin to use a bow. [Skotlex]
+	* Corrected the base exp requirement for level 99 advanced classes (it's
+	  supposed to be 343210000 exp), thanks to Viccious Pucca. [Skotlex]
 	* Changed uptime2 of dance/song skills, these are now used to determine how
 	  long the effect lasts after you've walked out of the skill's area of
 	  effect, so they were all set to 20 secs. [Skotlex]
