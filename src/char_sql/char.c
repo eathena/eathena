@@ -707,8 +707,11 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 			for(i = 0; i < count; i++) {
 				if(mapitem[i].flag == 1)
 					continue;
-				if(mapitem[i].nameid == atoi(sql_row[1]) && mapitem[i].card[0] == atoi(sql_row[7]))
-				{	//They are the same item.
+				if(mapitem[i].nameid == atoi(sql_row[1])
+					&& mapitem[i].card[0] == atoi(sql_row[7])
+					&& mapitem[i].card[2] == atoi(sql_row[9])
+					&& mapitem[i].card[3] == atoi(sql_row[10])
+				) {	//They are the same item.
 					for (j = 0; j<MAX_SLOTS && mapitem[i].card[j] == atoi(sql_row[7+j]); j++);
 					if (j == MAX_SLOTS &&
 						mapitem[i].amount == atoi(sql_row[2]) &&
@@ -719,7 +722,7 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 					{ //Do nothing.
 					} else
 //==============================================Memory data > SQL ===============================
-					if(itemdb_isequip(mapitem[i].nameid))
+					if(!itemdb_isequip(mapitem[i].nameid))
 					{	//Quick update of stackable items. Update Qty and Equip should be enough, but in case we are also updating identify
 						sprintf(tmp_sql,"UPDATE `%s` SET `equip`='%d', `identify`='%d', `amount`='%d' WHERE `id`='%d' LIMIT 1",
 							tablename, mapitem[i].equip, mapitem[i].identify,mapitem[i].amount, id);

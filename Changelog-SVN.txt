@@ -2,6 +2,7 @@ Date	Added
 =======
 
 09/14
+	* Yet another correction to SQL char saving. [Skotlex]
 	* Added support for N slots. [Skotlex]
 	- By changing the constant MAX_SLOTS in common/mmo.h, the server can be
 	  configured to support items with more than 4 slots. Saving/Loading and
