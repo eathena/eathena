@@ -9146,8 +9146,8 @@ int atcommand_rates(
 
   nullpo_retr(0, sd);
 
-  sprintf(buf, "base_exp_rate: %d    job_exp_rate: %d", 
-    battle_config.base_exp_rate, battle_config.job_exp_rate);
+  sprintf(buf, "Experience rates: Base %f.1x / Job %f.1x", 
+    battle_config.base_exp_rate/100., battle_config.job_exp_rate/100.);
 
   clif_displaymessage(fd, buf);
 

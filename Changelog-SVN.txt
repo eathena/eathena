@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/15
+	* Updated atcommand @rates so that it displays current exp rates in x form
+	  (eg: "Current rates: Base 4.5x, Job 8.0x") as suggested by Mellowz.
+	  [Skotlex]
 	* Corrected resetskill messing up with Wedding Skills. [Skotlex]
 	* Some adjustment to the status change defense (as per data provided by
 	  Viccious Pucca) [Skotlex]
