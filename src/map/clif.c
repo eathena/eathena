@@ -1689,8 +1689,8 @@ void clif_quitsave(int fd,struct map_session_data *sd)
 	else if (sd->fd)
 	{	//Disassociate session from player (session is deleted after this function was called)
 		//And set a timer to delete this player later.
-		session[fd] = NULL;
-		sd->fd =0;
+		session[fd]->session_data = NULL;
+		sd->fd = 0;
 		add_timer(gettick() + 10000, clif_delayquit, sd->bl.id, 0);
 	}
 }
