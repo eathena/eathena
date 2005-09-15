@@ -28,6 +28,10 @@ TODO:
 
 Date		Added
 ======
+09/15
+	* Added new maps, temp warps for Abyss Lake Dungeon (thanks to Muad-Dib) [Lupus]
+	- I recommend closing that dungeon and new monsters yet,
+		they have temp stats and could cause some exploits in the future
 09/14
 	* Updated Yuno fields mobs spawn, thanks to MasterOfMuppets [Lupus]
 	- Updated Lighthalzen and Einbroch fields, too

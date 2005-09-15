@@ -9,8 +9,7 @@
 //===== Description: =========================================
 //= Warp Points for Juperos Dungeon
 //===== Additional Comments: =================================
-//= No Comment!
-//= 1.0 Converted bu Dr.Evil [Lupus]
+//= 1.0 Converted by Dr.Evil [Lupus]
 //============================================================
 	
 //not all yet
