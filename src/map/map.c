@@ -3869,15 +3869,17 @@ int do_init(int argc, char *argv[]) {
 }
 
 int compare_item(struct item *a, struct item *b) {
-	return (
-		(a->nameid == b->nameid) &&
-		(a->identify == b->identify) &&
-		(a->refine == b->refine) &&
-		(a->attribute == b->attribute) &&
-		(a->card[0] == b->card[0]) &&
-		(a->card[1] == b->card[1]) &&
-		(a->card[2] == b->card[2]) &&
-		(a->card[3] == b->card[3]));
+
+	if (a->nameid == b->nameid &&
+		a->identify == b->identify &&
+		a->refine == b->refine &&
+		a->attribute == b->attribute)
+	{
+		int i;
+		for (i = 0; i < MAX_SLOTS && (a->card[i] == b->card[i]); i++);
+		return (i == MAX_SLOTS);
+	}
+	return 0;
 }
 
 #ifndef TXT_ONLY

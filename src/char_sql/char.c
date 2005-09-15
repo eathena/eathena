@@ -284,22 +284,24 @@ void read_gm_account(void) {
 
 
 int compare_item(struct item *a, struct item *b) {
-  return (
-	  (a->id == b->id) &&
-	  (a->nameid == b->nameid) &&
-	  (a->amount == b->amount) &&
-	  (a->equip == b->equip) &&
-	  (a->identify == b->identify) &&
-	  (a->refine == b->refine) &&
-	  (a->attribute == b->attribute) &&
-	  (a->card[0] == b->card[0]) &&
-	  (a->card[1] == b->card[1]) &&
-	  (a->card[2] == b->card[2]) &&
-	  (a->card[3] == b->card[3]));
+
+	if(a->id == b->id &&
+		a->nameid == b->nameid &&
+		a->amount == b->amount &&
+		a->equip == b->equip &&
+		a->identify == b->identify &&
+		a->refine == b->refine &&
+		a->attribute == b->attribute)
+	{
+		int i;
+		for (i=0; i<MAX_SLOTS && a->card[i]==b->card[i]; i++);
+		return (i == MAX_SLOTS);
+	}
+	return 0;
 }
 
 int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
-	int i=0,party_exist,guild_exist;
+	int i=0,j,party_exist,guild_exist;
 	int count = 0;
 	int diff = 0;
 	char temp_str[64]; //2x the value of the string before jstrescapecpy [Skotlex]
@@ -335,10 +337,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			mapitem[count].identify = p->inventory[i].identify;
 			mapitem[count].refine = p->inventory[i].refine;
 			mapitem[count].attribute = p->inventory[i].attribute;
-			mapitem[count].card[0] = p->inventory[i].card[0];
-			mapitem[count].card[1] = p->inventory[i].card[1];
-			mapitem[count].card[2] = p->inventory[i].card[2];
-			mapitem[count].card[3] = p->inventory[i].card[3];
+			for (j=0; j<MAX_SLOTS; j++)
+				mapitem[count].card[j] = p->inventory[i].card[j];
 			count++;
 		}
 	}
@@ -363,10 +363,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			mapitem[count].identify = p->cart[i].identify;
 			mapitem[count].refine = p->cart[i].refine;
 			mapitem[count].attribute = p->cart[i].attribute;
-			mapitem[count].card[0] = p->cart[i].card[0];
-			mapitem[count].card[1] = p->cart[i].card[1];
-			mapitem[count].card[2] = p->cart[i].card[2];
-			mapitem[count].card[3] = p->cart[i].card[3];
+			for (j=0; j<MAX_SLOTS; j++)
+				mapitem[count].card[j] = p->cart[i].card[j];
 			count++;
 		}
 	}
@@ -662,7 +660,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 // [Ilpalazzo-sama]
 int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tableswitch)
 {
-	int i, flag, id;
+	int i,j, flag, id;
 	char *tablename;
 	char selectoption[16];
 
@@ -690,8 +688,12 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 
 	//=======================================mysql database data > memory===============================================
 
-	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` "
-		"FROM `%s` WHERE `%s`='%d'", tablename, selectoption, char_id);
+	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+
+	for (j=0; j<MAX_SLOTS; j++)
+		sprintf(tmp_sql, "%s, `card%d`", tmp_sql, j);
+
+	sprintf(tmp_sql, "%s FROM `%s` WHERE `%s`='%d'", tmp_sql, tablename, selectoption, char_id);
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB server Error (select `%s` to Memory)- %s\n",tablename ,mysql_error(&mysql_handle));
@@ -707,15 +709,13 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 					continue;
 				if(mapitem[i].nameid == atoi(sql_row[1]) && mapitem[i].card[0] == atoi(sql_row[7]))
 				{	//They are the same item.
-					if (
+					for (j = 0; j<MAX_SLOTS && mapitem[i].card[j] == atoi(sql_row[7+j]); j++);
+					if (j == MAX_SLOTS &&
 						mapitem[i].amount == atoi(sql_row[2]) &&
 						mapitem[i].equip == atoi(sql_row[3]) &&
 						mapitem[i].identify == atoi(sql_row[4]) &&
 						mapitem[i].refine == atoi(sql_row[5]) &&
-						mapitem[i].attribute == atoi(sql_row[6]) &&
-						mapitem[i].card[1] == atoi(sql_row[8]) &&
-						mapitem[i].card[2] == atoi(sql_row[9]) &&
-						mapitem[i].card[3] == atoi(sql_row[10]))
+						mapitem[i].attribute == atoi(sql_row[6]))
 					{ //Do nothing.
 					} else
 //==============================================Memory data > SQL ===============================
@@ -727,12 +727,15 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 							ShowSQL("DB server Error (Update `stackable items in %s`)- %s\n", tablename, mysql_error(&mysql_handle));
 					} else 
 					{	//Equipment or Misc item, just update all fields.
-						sprintf(tmp_sql,"UPDATE `%s` SET `equip`='%d', `identify`='%d', `refine`='%d',"
-							"`attribute`='%d', `card0`='%d', `card1`='%d', `card2`='%d', `card3`='%d',"
-							"`amount`='%d' WHERE `id`='%d' LIMIT 1",
-							tablename, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine,
-							mapitem[i].attribute, mapitem[i].card[0],mapitem[i].card[1], mapitem[i].card[2], mapitem[i].card[3],
-							mapitem[i].amount, id);
+						sprintf(tmp_sql,"UPDATE `%s` SET `equip`='%d', `identify`='%d', `refine`='%d',`attribute`='%d'",
+							tablename, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine, mapitem[i].attribute);
+						
+						for(j=0; j<MAX_SLOTS; j++)
+							sprintf(tmp_sql, "%s, `card%d`=%d", tmp_sql, j, mapitem[i].card[j]);
+						
+						sprintf(tmp_sql,"%s, `amount`='%d' WHERE `id`='%d' LIMIT 1",
+							tmp_sql, mapitem[i].amount, id);
+						
 						if(mysql_query(&mysql_handle, tmp_sql))
 							ShowSQL("DB server Error (Update `misc in %s`)- %s\n", tablename, mysql_error(&mysql_handle));
 					}
@@ -751,10 +754,19 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 
 	for(i = 0; i < count; i++) {
 		if(!mapitem[i].flag) {
-			sprintf(tmp_sql,"INSERT INTO `%s`(`%s`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` )"
-				" VALUES ( '%d','%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d' )",
-				tablename, selectoption,  char_id, mapitem[i].nameid, mapitem[i].amount, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine,
-				mapitem[i].attribute, mapitem[i].card[0], mapitem[i].card[1], mapitem[i].card[2], mapitem[i].card[3]);
+			sprintf(tmp_sql,"INSERT INTO `%s`(`%s`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`",
+				tablename, selectoption);
+			for(j=0; j<MAX_SLOTS; j++)
+				sprintf(tmp_sql,"%s, `card%d`",tmp_sql, j);
+			
+			sprintf(tmp_sql,"%s) VALUES ( '%d','%d', '%d', '%d', '%d', '%d', '%d'",
+				tmp_sql, char_id, mapitem[i].nameid, mapitem[i].amount, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine,
+				mapitem[i].attribute);
+			
+			for(j=0; j<MAX_SLOTS; j++)
+				sprintf(tmp_sql,"%s, '%d'",tmp_sql, mapitem[i].card[j]);
+		
+			strcat(tmp_sql, ")");
 			if(mysql_query(&mysql_handle, tmp_sql))
 				ShowSQL("DB server Error (INSERT `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
 		}
@@ -877,7 +889,7 @@ int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int 
 */
 //=====================================================================================================
 int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
-	int i, n;
+	int i,j, n;
 	int friends;
 	char t_msg[128];
 	//char *tmp_p = tmp_sql;
@@ -1003,8 +1015,13 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 
 	//read inventory
 	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
-	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`"
-		"FROM `%s` WHERE `char_id`='%d'",inventory_db, char_id); // TBR
+	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+
+	for (j=0; j<MAX_SLOTS; j++)
+		sprintf(tmp_sql, "%s, `card%d`", tmp_sql, j);
+
+	sprintf(tmp_sql, "%s FROM `%s` WHERE `char_id`='%d'", tmp_sql, inventory_db, char_id);
+
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB server Error (select `inventory`)- %s\n", mysql_error(&mysql_handle));
 	}
@@ -1018,10 +1035,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 			p->inventory[i].identify = atoi(sql_row[4]);
 			p->inventory[i].refine = atoi(sql_row[5]);
 			p->inventory[i].attribute = atoi(sql_row[6]);
-			p->inventory[i].card[0] = atoi(sql_row[7]);
-			p->inventory[i].card[1] = atoi(sql_row[8]);
-			p->inventory[i].card[2] = atoi(sql_row[9]);
-			p->inventory[i].card[3] = atoi(sql_row[10]);
+			for (j=0; j<MAX_SLOTS; j++)
+				p->inventory[i].card[j] = atoi(sql_row[7+j]);
 		}
 		mysql_free_result(sql_res);
 		strcat (t_msg, " inventory");
@@ -1029,8 +1044,13 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 
 	//read cart.
 	//`cart_inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
-	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`"
-		"FROM `%s` WHERE `char_id`='%d'",cart_db, char_id); // TBR
+	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+
+	for (j=0; j<MAX_SLOTS; j++)
+		sprintf(tmp_sql, "%s, `card%d`", tmp_sql, j);
+
+	sprintf(tmp_sql, "%s FROM `%s` WHERE `char_id`='%d'", tmp_sql, cart_db, char_id);
+
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		ShowSQL("DB server Error (select `cart_inventory`)- %s\n", mysql_error(&mysql_handle));
 	}
@@ -1044,10 +1064,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 			p->cart[i].identify = atoi(sql_row[4]);
 			p->cart[i].refine = atoi(sql_row[5]);
 			p->cart[i].attribute = atoi(sql_row[6]);
-			p->cart[i].card[0] = atoi(sql_row[7]);
-			p->cart[i].card[1] = atoi(sql_row[8]);
-			p->cart[i].card[2] = atoi(sql_row[9]);
-			p->cart[i].card[3] = atoi(sql_row[10]);
+			for(j=0; j<MAX_SLOTS; j++)
+				p->cart[i].card[j] = atoi(sql_row[7+j]);
 		}
 		mysql_free_result(sql_res);
 		strcat (t_msg, " cart");

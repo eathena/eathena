@@ -27,7 +27,7 @@ struct guild_storage *guild_storage_pt=NULL;
 
 // storage data -> DB conversion
 int storage_tosql(int account_id,struct storage *p){
-	int i;
+	int i,j;
 //	int eqcount=1;
 //	int noteqcount=1;
 	int count=0;
@@ -42,10 +42,8 @@ int storage_tosql(int account_id,struct storage *p){
 			mapitem[count].identify = p->storage_[i].identify;
 			mapitem[count].refine = p->storage_[i].refine;
 			mapitem[count].attribute = p->storage_[i].attribute;
-			mapitem[count].card[0] = p->storage_[i].card[0];
-			mapitem[count].card[1] = p->storage_[i].card[1];
-			mapitem[count].card[2] = p->storage_[i].card[2];
-			mapitem[count].card[3] = p->storage_[i].card[3];
+			for(j=0; j<MAX_SLOTS; j++)
+				mapitem[count].card[j] = p->storage_[i].card[j];
 			count++;
 		}
 	}
@@ -58,14 +56,20 @@ int storage_tosql(int account_id,struct storage *p){
 
 // DB -> storage data conversion
 int storage_fromsql(int account_id, struct storage *p){
-	int i=0;
+	int i=0,j;
 
 	memset(p,0,sizeof(struct storage)); //clean up memory
 	p->storage_amount = 0;
 	p->account_id = account_id;
 
 	// storage {`account_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3`}
-	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `account_id`='%d' ORDER BY `nameid`",storage_db, account_id);
+	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`");
+	
+	for (j=0; j<MAX_SLOTS; j++)
+		sprintf(tmp_sql, "%s, `card%d`", tmp_sql, j);
+	
+	sprintf(tmp_sql,"%s FROM `%s` WHERE `account_id`='%d' ORDER BY `nameid`",tmp_sql, storage_db, account_id);
+	
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		ShowSQL ("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
@@ -80,10 +84,8 @@ int storage_fromsql(int account_id, struct storage *p){
 			p->storage_[i].identify= atoi(sql_row[4]);
 			p->storage_[i].refine= atoi(sql_row[5]);
 			p->storage_[i].attribute= atoi(sql_row[6]);
-			p->storage_[i].card[0]= atoi(sql_row[7]);
-			p->storage_[i].card[1]= atoi(sql_row[8]);
-			p->storage_[i].card[2]= atoi(sql_row[9]);
-			p->storage_[i].card[3]= atoi(sql_row[10]);
+			for (j=0; j<MAX_SLOTS; j++)
+				p->storage_[i].card[j]= atoi(sql_row[7+j]);
 			p->storage_amount = ++i;
 		}
 		mysql_free_result(sql_res);
@@ -95,7 +97,7 @@ int storage_fromsql(int account_id, struct storage *p){
 
 // Save guild_storage data to sql
 int guild_storage_tosql(int guild_id, struct guild_storage *p){
-	int i;
+	int i,j;
 //	int eqcount=1;
 //	int noteqcount=1;
 	int count=0;
@@ -110,10 +112,8 @@ int guild_storage_tosql(int guild_id, struct guild_storage *p){
 			mapitem[count].identify = p->storage_[i].identify;
 			mapitem[count].refine = p->storage_[i].refine;
 			mapitem[count].attribute = p->storage_[i].attribute;
-			mapitem[count].card[0] = p->storage_[i].card[0];
-			mapitem[count].card[1] = p->storage_[i].card[1];
-			mapitem[count].card[2] = p->storage_[i].card[2];
-			mapitem[count].card[3] = p->storage_[i].card[3];
+			for (j=0; j<MAX_SLOTS; j++)
+				mapitem[count].card[j] = p->storage_[i].card[j];
 			count++;
 		}
 	}
@@ -126,7 +126,7 @@ int guild_storage_tosql(int guild_id, struct guild_storage *p){
 
 // Load guild_storage data to mem
 int guild_storage_fromsql(int guild_id, struct guild_storage *p){
-	int i=0;
+	int i=0,j;
 	struct guild_storage *gs=guild_storage_pt;
 	p=gs;
 
@@ -135,7 +135,13 @@ int guild_storage_fromsql(int guild_id, struct guild_storage *p){
 	p->guild_id = guild_id;
 
 	// storage {`guild_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3`}
-	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `guild_id`='%d' ORDER BY `nameid`",guild_storage_db, guild_id);
+	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`");
+	
+	for (j=0; j<MAX_SLOTS; j++)
+		sprintf(tmp_sql, "%s, `card%d`", tmp_sql, j);
+	
+	sprintf(tmp_sql,"%s FROM `%s` WHERE `guild_id`='%d' ORDER BY `nameid`",tmp_sql, guild_storage_db, guild_id);
+	
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle) );
 	}
@@ -150,10 +156,8 @@ int guild_storage_fromsql(int guild_id, struct guild_storage *p){
 			p->storage_[i].identify= atoi(sql_row[4]);
 			p->storage_[i].refine= atoi(sql_row[5]);
 			p->storage_[i].attribute= atoi(sql_row[6]);
-			p->storage_[i].card[0]= atoi(sql_row[7]);
-			p->storage_[i].card[1]= atoi(sql_row[8]);
-			p->storage_[i].card[2]= atoi(sql_row[9]);
-			p->storage_[i].card[3]= atoi(sql_row[10]);
+			for (j=0; j<MAX_SLOTS; j++)
+				p->storage_[i].card[j] = atoi(sql_row[7+j]);
 			p->storage_amount = ++i;
 			if (i >= MAX_GUILD_STORAGE)
 				break;

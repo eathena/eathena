@@ -289,7 +289,7 @@ int mmo_friends_list_data_str(char *str, struct mmo_charstatus *p) {
 // Function to create the character line (for save)
 //-------------------------------------------------
 int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
-	int i;
+	int i,j;
 	char *str_p = str;
 
 	// on multi-map server, sometimes it's posssible that last_point become void. (reason???) We check that to not lost character at restart.
@@ -323,19 +323,23 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
 
 	for(i = 0; i < MAX_INVENTORY; i++)
 		if (p->inventory[i].nameid) {
-			str_p += sprintf(str_p, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
-			         p->inventory[i].id, p->inventory[i].nameid, p->inventory[i].amount, p->inventory[i].equip,
-			         p->inventory[i].identify, p->inventory[i].refine, p->inventory[i].attribute,
-			         p->inventory[i].card[0], p->inventory[i].card[1], p->inventory[i].card[2], p->inventory[i].card[3]);
+			str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d",
+				p->inventory[i].id,p->inventory[i].nameid,p->inventory[i].amount,p->inventory[i].equip,
+				p->inventory[i].identify,p->inventory[i].refine,p->inventory[i].attribute);
+			for(j=0; j<MAX_SLOTS; j++)
+				str_p += sprintf(str_p,",%d",p->inventory[i].card[j]);
+			str_p += sprintf(str_p," ");
 		}
 	*(str_p++) = '\t';
 
 	for(i = 0; i < MAX_CART; i++)
 		if (p->cart[i].nameid) {
-			str_p += sprintf(str_p, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ",
-			         p->cart[i].id, p->cart[i].nameid, p->cart[i].amount, p->cart[i].equip,
-			         p->cart[i].identify, p->cart[i].refine, p->cart[i].attribute,
-			         p->cart[i].card[0], p->cart[i].card[1], p->cart[i].card[2], p->cart[i].card[3]);
+			str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d",
+				p->cart[i].id,p->cart[i].nameid,p->cart[i].amount,p->cart[i].equip,
+				p->cart[i].identify,p->cart[i].refine,p->cart[i].attribute);
+			for(j=0; j<MAX_SLOTS; j++)
+				str_p += sprintf(str_p,",%d",p->cart[i].card[j]);
+			str_p += sprintf(str_p," ");
 		}
 	*(str_p++) = '\t';
 
@@ -360,7 +364,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p) {
 int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	char tmp_str[3][128]; //To avoid deleting chars with too long names.
 	int tmp_int[256];
-	int set, next, len, i;
+	int set, next, len, i, j;
 
 	// initilialise character
 	memset(p, '\0', sizeof(struct mmo_charstatus));
@@ -570,61 +574,50 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p) {
 	next++;
 
 	for(i = 0; str[next] && str[next] != '\t'; i++) {
-		if (sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
-		    &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-		    &tmp_int[4], &tmp_int[5], &tmp_int[6],
-		    &tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &tmp_int[10], &len) == 12) {
-			// do nothing, it's ok
-		} else if (sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
-		          &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-		          &tmp_int[4], &tmp_int[5], &tmp_int[6],
-		          &tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &len) == 11) {
+		if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d%[0-9,-]%n",
+		      &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
+		      &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str[0], &len) == 8)
+		{
+			p->inventory[i].id = tmp_int[0];
+			p->inventory[i].nameid = tmp_int[1];
+			p->inventory[i].amount = tmp_int[2];
+			p->inventory[i].equip = tmp_int[3];
+			p->inventory[i].identify = tmp_int[4];
+			p->inventory[i].refine = tmp_int[5];
+			p->inventory[i].attribute = tmp_int[6];
+
+			for(j = 0; j < MAX_SLOTS && tmp_str[0] && sscanf(tmp_str[0], ",%d%[0-9,-]",&tmp_int[0], tmp_str[0]) > 0; j++)
+				p->inventory[i].card[j] = tmp_int[0];
+
+			next += len;
+			if (str[next] == ' ')
+				next++;
 		} else // invalid structure
 			return -4;
-		p->inventory[i].id = tmp_int[0];
-		p->inventory[i].nameid = tmp_int[1];
-		p->inventory[i].amount = tmp_int[2];
-		p->inventory[i].equip = tmp_int[3];
-		p->inventory[i].identify = tmp_int[4];
-		p->inventory[i].refine = tmp_int[5];
-		p->inventory[i].attribute = tmp_int[6];
-		p->inventory[i].card[0] = tmp_int[7];
-		p->inventory[i].card[1] = tmp_int[8];
-		p->inventory[i].card[2] = tmp_int[9];
-		p->inventory[i].card[3] = tmp_int[10];
-		next += len;
-		if (str[next] == ' ')
-			next++;
 	}
-
 	next++;
 
 	for(i = 0; str[next] && str[next] != '\t'; i++) {
-		if (sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
-		    &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-		    &tmp_int[4], &tmp_int[5], &tmp_int[6],
-		    &tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &tmp_int[10], &len) == 12) {
-			// do nothing, it's ok
-		} else if (sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%n",
-		           &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-		           &tmp_int[4], &tmp_int[5], &tmp_int[6],
-		           &tmp_int[7], &tmp_int[8], &tmp_int[9], &tmp_int[10], &len) == 11) {
+		if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d%[0-9,-]%n",
+		      &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
+		      &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str[0], &len) == 8)
+		{
+			p->cart[i].id = tmp_int[0];
+			p->cart[i].nameid = tmp_int[1];
+			p->cart[i].amount = tmp_int[2];
+			p->cart[i].equip = tmp_int[3];
+			p->cart[i].identify = tmp_int[4];
+			p->cart[i].refine = tmp_int[5];
+			p->cart[i].attribute = tmp_int[6];
+			
+			for(j = 0; j < MAX_SLOTS && tmp_str && sscanf(tmp_str[0], ",%d%[0-9,-]",&tmp_int[0], tmp_str[0]) > 0; j++)
+				p->cart[i].card[j] = tmp_int[0];
+			
+			next += len;
+			if (str[next] == ' ')
+				next++;
 		} else // invalid structure
 			return -5;
-		p->cart[i].id = tmp_int[0];
-		p->cart[i].nameid = tmp_int[1];
-		p->cart[i].amount = tmp_int[2];
-		p->cart[i].equip = tmp_int[3];
-		p->cart[i].identify = tmp_int[4];
-		p->cart[i].refine = tmp_int[5];
-		p->cart[i].attribute = tmp_int[6];
-		p->cart[i].card[0] = tmp_int[7];
-		p->cart[i].card[1] = tmp_int[8];
-		p->cart[i].card[2] = tmp_int[9];
-		p->cart[i].card[3] = tmp_int[10];
-		next += len;
-		if (str[next] == ' ')
-			next++;
 	}
 
 	next++;

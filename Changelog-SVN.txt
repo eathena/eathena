@@ -2,6 +2,24 @@ Date	Added
 =======
 
 09/14
+	* Added support for N slots. [Skotlex]
+	- By changing the constant MAX_SLOTS in common/mmo.h, the server can be
+	  configured to support items with more than 4 slots. Saving/Loading and
+	  inserting of cards should be working correctly. Features still missing
+	  are including the extra slots in the log functions and updating clif.c to
+	  send the extra cards to the client (This is still work in progress).
+	- SQL Users interested in using this, need to manually add columns card4,
+	  card5 and so on to the relevant tables (cart_inventory, guild_storage,
+	  inventory, storage), example query:
+	  ALTER TABLE inventory ADD COLUMN card4 int(11) NOT NULL default
+	  '0' AFTER card3;
+	- TXT users need do nothing, the char server handles the
+	  expanding/contracting of slots internally (if the number of slots is
+	  shrinked, the additional slotted cards are lost)
+	- Never set the amount of slots to less than 4, as they are needed for
+	  forged equipment.
+	* Likely fixed Lex Divina. [Skotlex]
+	* Likely fixed sql char-saving, too. [Skotlex]
 	* Lex Divina can now be casted on allies as long as they are silenced.
 	  [Skotlex]
 	* Fixed crashes on GVG grounds involving characters with no guild. [Skotlex]

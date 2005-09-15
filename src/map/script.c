@@ -5688,7 +5688,7 @@ int buildin_getequipcardcnt(struct script_state *st)
 {
 	int i,num;
 	struct map_session_data *sd;
-	int c=4;
+	int c=MAX_SLOTS;
 
 	num=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	sd=script_rid2sd(st);
@@ -5715,10 +5715,10 @@ int buildin_getequipcardcnt(struct script_state *st)
  */
 int buildin_successremovecards(struct script_state *st)
 {
-	int i,num,cardflag=0,flag;
+	int i,j,num,cardflag=0,flag;
 	struct map_session_data *sd;
 	struct item item_tmp;
-	int c=4;
+	int c=MAX_SLOTS;
 
 	num=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	sd=script_rid2sd(st);
@@ -5735,7 +5735,8 @@ int buildin_successremovecards(struct script_state *st)
 			item_tmp.id=0,item_tmp.nameid=sd->status.inventory[i].card[c-1];
 			item_tmp.equip=0,item_tmp.identify=1,item_tmp.refine=0;
 			item_tmp.attribute=0;
-			item_tmp.card[0]=0,item_tmp.card[1]=0,item_tmp.card[2]=0,item_tmp.card[3]=0;
+			for (j = 0; j < MAX_SLOTS; j++)
+				item_tmp.card[j]=0;
 
 			if((flag=pc_additem(sd,&item_tmp,1))){	// 持てないならドロップ
 				clif_additem(sd,0,0,flag);
@@ -5749,7 +5750,8 @@ int buildin_successremovecards(struct script_state *st)
 		item_tmp.id=0,item_tmp.nameid=sd->status.inventory[i].nameid;
 		item_tmp.equip=0,item_tmp.identify=1,item_tmp.refine=sd->status.inventory[i].refine;
 		item_tmp.attribute=sd->status.inventory[i].attribute;
-		item_tmp.card[0]=0,item_tmp.card[1]=0,item_tmp.card[2]=0,item_tmp.card[3]=0;
+		for (j = 0; j < MAX_SLOTS; j++)
+			item_tmp.card[j]=0;
 		pc_delitem(sd,i,1,0);
 		if((flag=pc_additem(sd,&item_tmp,1))){	// もてないならドロップ
 			clif_additem(sd,0,0,flag);
@@ -5768,10 +5770,10 @@ int buildin_successremovecards(struct script_state *st)
  */
 int buildin_failedremovecards(struct script_state *st)
 {
-	int i,num,cardflag=0,flag,typefail;
+	int i,j,num,cardflag=0,flag,typefail;
 	struct map_session_data *sd;
 	struct item item_tmp;
-	int c=4;
+	int c=MAX_SLOTS;
 
 	num=conv_num(st,& (st->stack->stack_data[st->start+2]));
 	typefail=conv_num(st,& (st->stack->stack_data[st->start+3]));
@@ -5791,7 +5793,8 @@ int buildin_failedremovecards(struct script_state *st)
 				item_tmp.id=0,item_tmp.nameid=sd->status.inventory[i].card[c-1];
 				item_tmp.equip=0,item_tmp.identify=1,item_tmp.refine=0;
 				item_tmp.attribute=0;
-				item_tmp.card[0]=0,item_tmp.card[1]=0,item_tmp.card[2]=0,item_tmp.card[3]=0;
+				for (j = 0; j < MAX_SLOTS; j++)
+					item_tmp.card[j]=0;
 				if((flag=pc_additem(sd,&item_tmp,1))){
 					clif_additem(sd,0,0,flag);
 					map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
@@ -5812,7 +5815,8 @@ int buildin_failedremovecards(struct script_state *st)
 			item_tmp.id=0,item_tmp.nameid=sd->status.inventory[i].nameid;
 			item_tmp.equip=0,item_tmp.identify=1,item_tmp.refine=sd->status.inventory[i].refine;
 			item_tmp.attribute=sd->status.inventory[i].attribute;
-			item_tmp.card[0]=0,item_tmp.card[1]=0,item_tmp.card[2]=0,item_tmp.card[3]=0;
+			for (j = 0; j < MAX_SLOTS; j++)
+				item_tmp.card[j]=0;
 			pc_delitem(sd,i,1,0);
 			if((flag=pc_additem(sd,&item_tmp,1))){
 				clif_additem(sd,0,0,flag);
@@ -6283,7 +6287,9 @@ int buildin_petloot(struct script_state *st)
 int buildin_getinventorylist(struct script_state *st)
 {
 	struct map_session_data *sd=script_rid2sd(st);
-	int i,j=0;
+	unsigned char card_var[NAME_LENGTH];
+	
+	int i,j=0,k;
 	if(!sd) return 0;
 	for(i=0;i<MAX_INVENTORY;i++){
 		if(sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].amount > 0){
@@ -6293,10 +6299,11 @@ int buildin_getinventorylist(struct script_state *st)
 			pc_setreg(sd,add_str((unsigned char *) "@inventorylist_refine")+(j<<24),sd->status.inventory[i].refine);
 			pc_setreg(sd,add_str((unsigned char *) "@inventorylist_identify")+(j<<24),sd->status.inventory[i].identify);
 			pc_setreg(sd,add_str((unsigned char *) "@inventorylist_attribute")+(j<<24),sd->status.inventory[i].attribute);
-			pc_setreg(sd,add_str((unsigned char *) "@inventorylist_card1")+(j<<24),sd->status.inventory[i].card[0]);
-			pc_setreg(sd,add_str((unsigned char *) "@inventorylist_card2")+(j<<24),sd->status.inventory[i].card[1]);
-			pc_setreg(sd,add_str((unsigned char *) "@inventorylist_card3")+(j<<24),sd->status.inventory[i].card[2]);
-			pc_setreg(sd,add_str((unsigned char *) "@inventorylist_card4")+(j<<24),sd->status.inventory[i].card[3]);
+			for (k = 0; k < MAX_SLOTS; k++)
+			{
+				sprintf(card_var, "@inventorylist_card%d",k+1);
+				pc_setreg(sd,add_str(card_var)+(j<<24),sd->status.inventory[i].card[k]);
+			}
 			j++;
 		}
 	}
@@ -6816,7 +6823,7 @@ int buildin_checkequipedcard(struct script_state *st)
 	if(sd){
 		for(i=0;i<MAX_INVENTORY;i++){
 			if(sd->status.inventory[i].nameid > 0 && sd->status.inventory[i].amount){
-				for(n=0;n<4;n++){
+				for(n=0;n<MAX_SLOTS;n++){
 					if(sd->status.inventory[i].card[n]==c){
 						push_val(st->stack,C_INT,1);
 						return 0;

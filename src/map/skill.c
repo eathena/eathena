@@ -5458,8 +5458,8 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 	if (sd->skillid == PR_LEXDIVINA)
 	{
 		struct status_change *sc_data = status_get_sc_data(bl);
-		if (battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0 ||
-			(sc_data && sc_data[SC_SILENCE].timer == -1))	//Prevent Casting Lex Divina on unsilenced chars. [Skotlex]
+		if (battle_check_target(&sd->bl,bl, BCT_ENEMY)<=0 &&
+			(!sc_data || sc_data[SC_SILENCE].timer == -1)) //If it's not an enemy, and not silenced, you can't use the skill on them. [Skotlex]
 		{
 			sd->canact_tick = tick;
 			sd->canmove_tick = tick;
@@ -10312,13 +10312,13 @@ int skill_produce_mix( struct map_session_data *sd,
 			tmp_item.card[0]=0x00ff; /* »‘¢•Šíƒtƒ‰ƒO */
 			tmp_item.card[1]=((sc*5)<<8)+ele;	/* ?«‚Æ‚Â‚æ‚³ */
 			tmp_item.card[2]=GetWord(sd->char_id,0); // CharId
-            tmp_item.card[3]=GetWord(sd->char_id,1);
+			tmp_item.card[3]=GetWord(sd->char_id,1);
 		} else if((battle_config.produce_item_name_input && skill_produce_db[idx].req_skill!=AM_PHARMACY) ||
 			(battle_config.produce_potion_name_input && skill_produce_db[idx].req_skill==AM_PHARMACY)) {
 			tmp_item.card[0]=0x00fe;
 			tmp_item.card[1]=0;
-            tmp_item.card[2]=GetWord(sd->char_id,0); // CharId
-            tmp_item.card[3]=GetWord(sd->char_id,1);
+			tmp_item.card[2]=GetWord(sd->char_id,0); // CharId
+			tmp_item.card[3]=GetWord(sd->char_id,1);
 		}
 
 		if(log_config.produce > 0)
@@ -10406,7 +10406,7 @@ int skill_arrow_create( struct map_session_data *sd,int nameid)
 			tmp_item.card[0]=0x00fe;
 			tmp_item.card[1]=0;
 			tmp_item.card[2]=GetWord(sd->char_id,0); // CharId
-            tmp_item.card[3]=GetWord(sd->char_id,1);
+			tmp_item.card[3]=GetWord(sd->char_id,1);
 		}
 		if(tmp_item.nameid <= 0 || tmp_item.amount <= 0)
 			continue;

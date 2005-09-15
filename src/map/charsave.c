@@ -16,7 +16,7 @@
 #ifndef TXT_ONLY
 
 struct mmo_charstatus *charsave_loadchar(int charid){
-         int i, friends;
+         int i,j, friends;
          struct mmo_charstatus *c;
          friends = 0;
 
@@ -132,7 +132,10 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 
 
          //read inventory...
-         sprintf(charsql_tmpsql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` FROM `inventory` WHERE `char_id` = '%d'", charid);
+         sprintf(charsql_tmpsql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+			for (i = 0; i < MAX_SLOTS; i++)
+				sprintf(charsql_tmpsql, "%s, `card%d`", charsql_tmpsql, i);
+			sprintf(charsql_tmpsql, "%s FROM `inventory` WHERE `char_id` = '%d'", charsql_tmpsql, charid);
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
          	ShowSQL("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
 				aFree(c);
@@ -149,17 +152,19 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 	                 c->inventory[i].identify = atoi(charsql_row[3]);
 	                 c->inventory[i].refine = atoi(charsql_row[4]);
 	                 c->inventory[i].attribute = atoi(charsql_row[5]);
-	                 c->inventory[i].card[0] = atoi(charsql_row[6]);
-	                 c->inventory[i].card[1] = atoi(charsql_row[7]);
-	                 c->inventory[i].card[2] = atoi(charsql_row[8]);
-	                 c->inventory[i].card[3] = atoi(charsql_row[9]);
+						  for (j = 0; j < MAX_SLOTS; j++)
+							c->inventory[i].card[j] = atoi(charsql_row[6+j]);
 	         }
 	         mysql_free_result(charsql_res);
          }
 
 
          //cart inventory ..
-         sprintf(charsql_tmpsql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` FROM `cart_inventory` WHERE `char_id` = '%d'", charid);
+         sprintf(charsql_tmpsql, "SELECT `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+			for (i = 0; i < MAX_SLOTS; i++)
+				sprintf(charsql_tmpsql, "%s, `card%d`", charsql_tmpsql, i);
+			sprintf(charsql_tmpsql, "%s FROM `cart_inventory` WHERE `char_id` = '%d'", charsql_tmpsql, charid);
+
          if(mysql_query(&charsql_handle, charsql_tmpsql)){
          	ShowSQL("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
 				aFree(c);
@@ -176,10 +181,8 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 	                 c->cart[i].identify = atoi(charsql_row[3]);
 	                 c->cart[i].refine = atoi(charsql_row[4]);
 	                 c->cart[i].attribute = atoi(charsql_row[5]);
-	                 c->cart[i].card[0] = atoi(charsql_row[6]);
-	                 c->cart[i].card[1] = atoi(charsql_row[7]);
-	                 c->cart[i].card[2] = atoi(charsql_row[8]);
-	                 c->cart[i].card[3] = atoi(charsql_row[9]);
+						  for (j = 0; j < MAX_SLOTS; j++)
+							c->cart[i].card[j] = atoi(charsql_row[6+j]);
 	         }
 	         mysql_free_result(charsql_res);
          }
@@ -292,7 +295,7 @@ return c;
 
 
 int charsave_savechar(int charid, struct mmo_charstatus *c){
-	int i;
+	int i,j;
          char tmp_str[128];
          //First save the 'char'
 	sprintf(charsql_tmpsql ,"UPDATE `char` SET `class`='%d', `base_level`='%d', `job_level`='%d',"
@@ -320,40 +323,57 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
          }
 
 
-         //Save the inventory
-         sprintf(charsql_tmpsql, "DELETE FROM `inventory` WHERE `char_id` = '%d'", charid);
-         if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	ShowSQL("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-         }
-         for(i = 0; i < MAX_INVENTORY; i++){
-         	if(c->inventory[i].nameid > 0){
-		       	//sprintf(charsql_tmpsql, "INSERT INTO `inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')", charid, c->inventory[i].nameid, c->inventory[i].amount, c->inventory[i].equip, c->inventory[i].identify, c->inventory[i].refine, c->inventory[i].attribute, c->inventory[i].card[0], c->inventory[i].card[1], c->inventory[i].card[2], c->inventory[i].card[3]);
-		       	sprintf(charsql_tmpsql, "INSERT INTO `inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES "
-		       	                        "('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-		       	                        charid, c->inventory[i].nameid, c->inventory[i].amount, c->inventory[i].equip, c->inventory[i].identify, c->inventory[i].refine,
-		       	                        c->inventory[i].attribute, c->inventory[i].card[0], c->inventory[i].card[1], c->inventory[i].card[2], c->inventory[i].card[3]
-		       	                        );
-                           if(mysql_query(&charsql_handle, charsql_tmpsql)){
-                         	ShowSQL("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-                         }
-                 }
-         }
+		//Save the inventory
+		sprintf(charsql_tmpsql, "DELETE FROM `inventory` WHERE `char_id` = '%d'", charid);
+		if(mysql_query(&charsql_handle, charsql_tmpsql)){
+			ShowSQL("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+		}
+		for(i = 0; i < MAX_INVENTORY; i++){
+			if(c->inventory[i].nameid > 0){
+				sprintf(charsql_tmpsql, "INSERT INTO `inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+			for (j = 0; j < MAX_SLOTS; j++)
+				sprintf(charsql_tmpsql, "%s, `card%d`", charsql_tmpsql, j);
+				
+			sprintf(charsql_tmpsql, "%s) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d'",
+				charsql_tmpsql, charid, c->inventory[i].nameid, c->inventory[i].amount, c->inventory[i].equip,
+				c->inventory[i].identify, c->inventory[i].refine, c->inventory[i].attribute);
 
+			for (j = 0; j < MAX_SLOTS; j++)
+				sprintf(charsql_tmpsql, "%s, '%d'", charsql_tmpsql, c->inventory[i].card[j]);
+			
+			strcat(charsql_tmpsql,")");
+			
+			if(mysql_query(&charsql_handle, charsql_tmpsql)){
+				ShowSQL("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+			}
+		}
+	}
 
+		//Save the cart
+		sprintf(charsql_tmpsql, "DELETE FROM `cart_inventory` WHERE `char_id` = '%d'", charid);
+		if(mysql_query(&charsql_handle, charsql_tmpsql)){
+			ShowSQL("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+		}
+		for(i = 0; i < MAX_CART; i++){
+			if(c->cart[i].nameid > 0){
+				sprintf(charsql_tmpsql, "INSERT INTO `cart_inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+				for (j = 0; j < MAX_SLOTS; j++)
+					sprintf(charsql_tmpsql, "%s, `card%d`", charsql_tmpsql, j);
+				
+				sprintf(charsql_tmpsql, "%s) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d'",
+					charsql_tmpsql, charid, c->cart[i].nameid, c->cart[i].amount, c->cart[i].equip,
+					c->cart[i].identify, c->cart[i].refine, c->cart[i].attribute);
 
-         //Save the cart
-         sprintf(charsql_tmpsql, "DELETE FROM `cart_inventory` WHERE `char_id` = '%d'", charid);
-         if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	ShowSQL("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-         }
-         for(i = 0; i < MAX_CART; i++){
-         	if(c->cart[i].nameid > 0){
-		       	sprintf(charsql_tmpsql, "INSERT INTO `cart_inventory` (`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')", charid, c->cart[i].nameid, c->cart[i].amount, c->cart[i].equip, c->cart[i].identify, c->cart[i].refine, c->cart[i].attribute, c->cart[i].card[0], c->cart[i].card[1], c->cart[i].card[2], c->cart[i].card[3]);
-                         if(mysql_query(&charsql_handle, charsql_tmpsql)){
-                         	ShowSQL("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-                         }
-                 }
-         }
+				for (j = 0; j < MAX_SLOTS; j++)
+					sprintf(charsql_tmpsql, "%s, '%d'", charsql_tmpsql, c->cart[i].card[j]);
+			
+				strcat(charsql_tmpsql,")");
+				
+				if(mysql_query(&charsql_handle, charsql_tmpsql)){
+					ShowSQL("charsave_savechar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
+				}
+			}
+		}
 
 
          //Save memo points

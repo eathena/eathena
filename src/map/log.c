@@ -220,7 +220,7 @@ int log_produce(struct map_session_data *sd, int nameid, int slot1, int slot2, i
 int log_refine(struct map_session_data *sd, int n, int success)
 {
 	FILE *logfp;
-	int log_card[4];
+	int log_card[MAX_SLOTS];
 	int item_level;
 	int i;
 #ifndef TXT_ONLY
@@ -237,7 +237,7 @@ int log_refine(struct map_session_data *sd, int n, int success)
 	else
 		item_level = sd->status.inventory[n].refine + 1;
 	if(!should_log_item(log_config.refine,sd->status.inventory[n].nameid) || log_config.refine_items_log<item_level) return 0;	//filter [Lupus]
-	for(i=0;i<4;i++)
+	for(i=0;i<MAX_SLOTS;i++)
 		log_card[i] = sd->status.inventory[n].card[i];
 
 #ifndef TXT_ONLY
@@ -325,7 +325,7 @@ int log_fromstorage(struct map_session_data *sd,int n, int guild)
 int log_trade(struct map_session_data *sd, struct map_session_data *target_sd, int n,int amount)
 {
 	FILE *logfp;
-	int log_nameid, log_amount, log_refine, log_card[4];
+	int log_nameid, log_amount, log_refine, log_card[MAX_SLOTS];
 	int i;
 #ifndef TXT_ONLY
 		char t_name[NAME_LENGTH*2],t_name2[NAME_LENGTH*2];
@@ -346,7 +346,7 @@ int log_trade(struct map_session_data *sd, struct map_session_data *target_sd, i
 	log_amount = sd->status.inventory[n].amount;
 	log_refine = sd->status.inventory[n].refine;
 
-	for(i=0;i<4;i++)
+	for(i=0;i<MAX_SLOTS;i++)
 		log_card[i] = sd->status.inventory[n].card[i];
 
 #ifndef TXT_ONLY
@@ -373,7 +373,7 @@ int log_trade(struct map_session_data *sd, struct map_session_data *target_sd, i
 int log_vend(struct map_session_data *sd,struct map_session_data *vsd,int n,int amount, int zeny)
 {
 	FILE *logfp;
-	int log_nameid, log_amount, log_refine, log_card[4];
+	int log_nameid, log_amount, log_refine, log_card[MAX_SLOTS];
 	int i;
 #ifndef TXT_ONLY
 		char t_name[NAME_LENGTH*2],t_name2[NAME_LENGTH*2];
@@ -391,7 +391,7 @@ int log_vend(struct map_session_data *sd,struct map_session_data *vsd,int n,int 
 	log_nameid = sd->status.inventory[n].nameid;
 	log_amount = sd->status.inventory[n].amount;
 	log_refine = sd->status.inventory[n].refine;
-	for(i=0;i<4;i++)
+	for(i=0;i<MAX_SLOTS;i++)
 		log_card[i] = sd->status.inventory[n].card[i];
 
 #ifndef TXT_ONLY

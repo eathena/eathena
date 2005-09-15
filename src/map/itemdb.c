@@ -589,6 +589,11 @@ static int itemdb_read_itemslotcounttable(void)
 	for (p = buf; p - buf < s;){
 		int nameid, slot;
 		sscanf(p, "%d#%d#", &nameid, &slot);
+		if (slot > MAX_SLOTS)
+		{
+			ShowWarning("itemdb_read_itemslotcounttable: Item %d specifies %d slots, but the server only supports up to %d\n", nameid, slot, MAX_SLOTS);
+			slot = MAX_SLOTS;
+		}
 		itemdb_slot(nameid) = slot;
 		p = strchr(p,10);
 		if(!p) break;
@@ -776,6 +781,11 @@ static int itemdb_read_sqldb(void)
 					id->def		= (sql_row[8] != NULL) ? atoi(sql_row[8]) : 0;
 					id->range	= (sql_row[9] != NULL) ? atoi(sql_row[9]) : 0;
 					id->slot	= (sql_row[10] != NULL) ? atoi(sql_row[10]) : 0;
+					if (id->slot > MAX_SLOTS)
+					{
+						ShowWarning("itemdb_read_sqldb: Item %d (%s) specifies %d slots, but the server only supports up to %d\n", nameid, id->jname, id->slot, MAX_SLOTS);
+						id->slot = MAX_SLOTS;
+					}
 					id->class_	= (sql_row[11] != NULL) ? atoi(sql_row[11]) : 0;
 					id->sex	= (battle_config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 :
 									( (sql_row[12] != NULL) ? atoi(sql_row[12]) : 0);
@@ -915,6 +925,11 @@ static int itemdb_readdb(void)
 			id->def=atoi(str[8]);
 			id->range=atoi(str[9]);
 			id->slot=atoi(str[10]);
+			if (id->slot > MAX_SLOTS)
+			{
+				ShowWarning("itemdb_readdb: Item %d (%s) specifies %d slots, but the server only supports up to %d\n", nameid, id->jname, id->slot, MAX_SLOTS);
+				id->slot = MAX_SLOTS;
+			}
 			id->class_=atoi(str[11]);
 			id->sex=atoi(str[12]);
 			id->sex	= (battle_config.ignore_items_gender && nameid!=2634 && nameid!=2635) ? 2 : atoi(str[12]);
