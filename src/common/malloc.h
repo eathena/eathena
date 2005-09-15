@@ -15,10 +15,9 @@
 //////////////////////////////////////////////////////////////////////
 // Whether to use Athena's built-in Memory Manager (enabled by default)
 // To disable just comment the following line
-// Disabled by default until the matrix bug is annihilated >.< [Skotlex]
-//#if !defined(DMALLOC) && !defined(BCHECK)
-//#define USE_MEMMGR
-//#endif
+#if !defined(DMALLOC) && !defined(BCHECK)
+	#define USE_MEMMGR
+#endif
 // Whether to enable Memory Manager's logging
 #define LOG_MEMMGR
 

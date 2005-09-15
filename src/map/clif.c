@@ -7597,7 +7597,6 @@ int clif_timedout(struct map_session_data *sd)
 	nullpo_retr(0, sd);
 
 	ShowInfo("%sCharacter with Account ID '"CL_WHITE"%d"CL_RESET"' timed out.\n", (pc_isGM(sd))?"GM ":"", sd->bl.id);
-//	map_quit(sd); //It will be saved anyway in clif_parse. [Skotlex]
 	clif_authfail_fd(sd->fd,3); // Even if player is not on we still send anyway
 	clif_setwaitclose(sd->fd); // Set session to EOF
 	return 0;

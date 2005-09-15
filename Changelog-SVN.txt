@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/15
+	* Fixed a memory leak when removing disconnected chars. [Skotlex]
+	* Re-enabled the Memory Manager by default. [Skotlex]
 	* Updated atcommand @rates so that it displays current exp rates in x form
 	  (eg: "Current rates: Base 4.5x, Job 8.0x") as suggested by Mellowz.
 	  [Skotlex]

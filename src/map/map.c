@@ -1834,6 +1834,8 @@ int map_quit(struct map_session_data *sd) {
 		sd->regstr_num = 0;
 	}
 
+	if(!sd->fd) //There is no session connected, and as such socket.c won't free the data, we must do it. [Skotlex]
+		aFree(sd);
 	return 0;
 }
 
