@@ -1238,7 +1238,8 @@ void do_close(int fd)
 	shutdown(fd, SD_BOTH);
 	closesocket(fd);
 #else
-	close(fd);
+	if (close(fd))
+		perror("do_close: close");
 #endif
 	if (session[fd])
 		delete_session(fd);

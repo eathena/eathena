@@ -6402,7 +6402,7 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 
 // -- moonsoul	(if player is berserk then cannot unequip)
 //
-	if(flag<2 && sd->sc_count && (sd->sc_data[SC_BLADESTOP].timer!=-1 || sd->sc_data[SC_BERSERK].timer!=-1)){
+	if(!(flag&2) && sd->sc_count && (sd->sc_data[SC_BLADESTOP].timer!=-1 || sd->sc_data[SC_BERSERK].timer!=-1)){
 		clif_unequipitemack(sd,n,0,0);
 		return 0;
 	}
