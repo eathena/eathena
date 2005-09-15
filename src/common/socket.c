@@ -1237,7 +1237,7 @@ void do_close(int fd)
 #ifdef __WIN32
 	shutdown(fd, SD_BOTH);
 	closesocket(fd);
-else
+#else
 	close(fd);
 #endif
 	if (session[fd])
