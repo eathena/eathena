@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/15
+	* Now @allskill and it's ilk will give you ALL skills except the ones
+	  marked as "npc skills" (those have an inf2 value of 2). [Skotlex]
 	* Some code optimization around song/dances, now the ensemble should be
 	  cancelled if you walk (or are knocked out or whatever) out of it.
 	  [Skotlex]

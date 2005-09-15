@@ -4482,18 +4482,10 @@ int pc_allskillup(struct map_session_data *sd)
 
 	if (battle_config.gm_allskill > 0 && pc_isGM(sd) >= battle_config.gm_allskill){
 		// ‘S‚Ä‚ÌƒXƒLƒ‹
-		for(i=1;i<158;i++)
-			sd->status.skill[i].lv=skill_get_max(i);
-		for(i=210;i<291;i++)
-			sd->status.skill[i].lv=skill_get_max(i);
-		for(i=304;i<331;i++)
-			sd->status.skill[i].lv=skill_get_max(i);
-		for(i=334;i<338;i++)
-			sd->status.skill[i].lv=skill_get_max(i);
-		for(i=355;i<473;i++)
-			sd->status.skill[i].lv=skill_get_max(i);
-		for(i=475;i<492;i++)
-			sd->status.skill[i].lv=skill_get_max(i);
+		for(i=0;i<MAX_SKILL;i++){
+			if(!(skill_get_inf2(i)&INF2_NPC_SKILL)) //Get ALL skills except npc ones. [Skotlex]
+				sd->status.skill[i].lv=skill_get_max(i); //Nonexistant skills should return a max of 0 anyway.
+		}
 	}
 	else {
 		int inf2;
