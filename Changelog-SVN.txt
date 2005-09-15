@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/15
+	* Some code optimization around song/dances, now the ensemble should be
+	  cancelled if you walk (or are knocked out or whatever) out of it.
+	  [Skotlex]
 	* Added log support to N slots. Now all cards should be logged [Skotlex]
 	- Note that I have not been able to test it yet, so report back any
 	  problems caused by it.

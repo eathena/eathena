@@ -6465,6 +6465,12 @@ int skill_unit_onplace(struct skill_unit *src,struct block_list *bl,unsigned int
 	case UNT_ROKISWEIL:
 	case UNT_INTOABYSS:
 	case UNT_SIEGFRIED:
+		if (sg->src_id==bl->id) //Needed to check when a dancer/bard leaves their ensemble area.
+			return sg->skill_id;
+		if (sc_data && sc_data[type].timer==-1)
+			status_change_start(bl,type,sg->skill_lv,sg->val1,sg->val2,0,sg->limit,0);
+		break;
+	
 	case UNT_WHISTLE:
 	case UNT_ASSASSINCROSS:
 	case UNT_POEMBRAGI:
@@ -6953,6 +6959,7 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 			status_change_end(bl,type,-1);
 		break;	
 */
+/*
 	case UNT_WHISTLE:
 	case UNT_ASSASSINCROSS:
 	case UNT_POEMBRAGI:
@@ -6962,9 +6969,10 @@ int skill_unit_onout(struct skill_unit *src,struct block_list *bl,unsigned int t
 	case UNT_DONTFORGETME:
 	case UNT_SERVICEFORYOU:
 		if (sg->src_id==bl->id) {
-			status_change_end(bl,type,-1);
+			status_change_end(bl,type,-1); //Silly check, the owner/caster cannot be affected by their own song/dance!
 			break;
 		}
+*/
 /*
 		if (sc_data[type].timer!=-1)
 		{
@@ -7019,20 +7027,15 @@ static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int ti
 	sc_data = status_get_sc_data(bl);
 	type = SkillStatusChangeTable[skill_id];
 
-	//Simplification since we use this only for status changing effects. [Skotlex]
-	if (!sc_data || type < 0 || sc_data[type].timer == -1)
-		return 0;
-
 	switch (skill_id)
 	{
 		case WZ_QUAGMIRE:
 			if (bl->type==BL_MOB)
 				return 0;
-		case MG_SAFETYWALL:
-		case AL_PNEUMA:
-		case SA_VOLCANO:
-		case SA_DELUGE:
-		case SA_VIOLENTGALE:
+			if (sc_data && sc_data[type].timer == -1)
+				status_change_end(bl, type, -1);
+			break;
+
 		case BD_RICHMANKIM:
 		case BD_ETERNALCHAOS:
 		case BD_DRUMBATTLEFIELD:
@@ -7040,30 +7043,53 @@ static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int ti
 		case BD_ROKISWEIL:
 		case BD_INTOABYSS:
 		case BD_SIEGFRIED:
+			if(sc_data && sc_data[SC_DANCING].timer != -1 && sc_data[SC_DANCING].val1 == skill_id)
+			{	//Check if you just stepped out of your ensemble skill to cancel dancing. [Skotlex]
+				//We don't check for SC_LONGING because someone could always have knocked you back and out of the song/dance.
+				//FIXME: This code is not perfect, it doesn't checks for the real ensemble's owner,
+				//it only checks if you are doing the same ensemble. So if there's two chars doing an ensemble
+				//which overlaps, by stepping outside of the other parther's ensemble will cause you to cancel 
+				//your own. Let's pray that scenario is pretty unlikely and noone will complain too much about it.
+				skill_stop_dancing(bl);
+			}
+		case MG_SAFETYWALL:
+		case AL_PNEUMA:
+		case SA_VOLCANO:
+		case SA_DELUGE:
+		case SA_VIOLENTGALE:
 		case CG_HERMODE:
 		case HP_BASILICA:
 		case HW_GRAVITATION:
-			status_change_end(bl, type, -1);
+			if (sc_data && sc_data[type].timer == -1)
+				status_change_end(bl, type, -1);
 			break;
 			
-		case BA_DISSONANCE:			/* 不協和音 */
-		case BA_POEMBRAGI:			/* ブラギの詩 */
-		case BA_WHISTLE:			/* 口笛 */
-		case BA_ASSASSINCROSS:		/* 夕陽のアサシンクロス */
-		case BA_APPLEIDUN:			/* イドゥンの林檎 */
-		case DC_HUMMING:			/* ハミング */
-		case DC_DONTFORGETME:		/* 私を忘れないで… */
-		case DC_FORTUNEKISS:		/* 幸運のキス */
-		case DC_SERVICEFORYOU:		/* サ?ビスフォ?ユ? */
-			delete_timer(sc_data[type].timer, status_change_timer);
-			sc_data[type].timer = add_timer(tick+20000, status_change_timer, bl->id, type);
-			break;
-		case PF_FOGWALL:
-			status_change_end(bl,type,-1);
-			if (sc_data[SC_BLIND].timer!=-1)
+		case BA_DISSONANCE:
+		case BA_POEMBRAGI:
+		case BA_WHISTLE:
+		case BA_ASSASSINCROSS:
+		case BA_APPLEIDUN:
+		case DC_HUMMING:
+		case DC_DONTFORGETME:
+		case DC_FORTUNEKISS:	
+		case DC_SERVICEFORYOU:
+			if (sc_data && sc_data[type].timer != -1)
 			{
 				delete_timer(sc_data[type].timer, status_change_timer);
-				sc_data[type].timer = add_timer(30000+tick, status_change_timer, bl->id, type);
+				//NOTE: It'd be nice if we could get the skill_lv for a more accurate extra time, but alas...
+				//not possible on our current implementation.
+				sc_data[type].timer = add_timer(tick+skill_get_time2(skill_id,1), status_change_timer, bl->id, type);
+			}
+			break;
+		case PF_FOGWALL:
+			if (sc_data && sc_data[type].timer != -1)
+			{
+				status_change_end(bl,type,-1);
+				if (sc_data[SC_BLIND].timer!=-1)
+				{
+					delete_timer(sc_data[type].timer, status_change_timer);
+					sc_data[type].timer = add_timer(30000+tick, status_change_timer, bl->id, type);
+				}
 			}
 			break;
 	}
