@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/16
+	* Fixed some status effects not being correctly ended/recalculated when you
+	  stepped out of quagmire/song/dances. [Skotlex]
+	* Made quagmire be affected by the "gvg_traps_target_all" battle switch. [Skotlex]
 	* Added Bloody Branch log (along with Dead Branch) [Lupus]
 09/15
 	* The skill Vending will now fail on GM characters who do not satisfy the

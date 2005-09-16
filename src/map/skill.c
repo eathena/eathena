@@ -6155,7 +6155,7 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 			range = 25;
 		break;
 	case WZ_QUAGMIRE:	//The target changes to "all" if used in a gvg map. [Skotlex]
-		if (map[src->m].flag.gvg)
+		if (map[src->m].flag.gvg && battle_config.gvg_traps_bctall)
 			target = BCT_ALL;
 		break;
 	case HT_SHOCKWAVE:			/* ショックウェ?ブトラップ */
@@ -7031,7 +7031,7 @@ static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int ti
 		case WZ_QUAGMIRE:
 			if (bl->type==BL_MOB)
 				return 0;
-			if (sc_data && sc_data[type].timer == -1)
+			if (sc_data && sc_data[type].timer != -1)
 				status_change_end(bl, type, -1);
 			break;
 
@@ -7059,7 +7059,7 @@ static int skill_unit_onleft(int skill_id, struct block_list *bl,unsigned int ti
 		case CG_HERMODE:
 		case HP_BASILICA:
 		case HW_GRAVITATION:
-			if (sc_data && sc_data[type].timer == -1)
+			if (sc_data && sc_data[type].timer != -1)
 				status_change_end(bl, type, -1);
 			break;
 			
