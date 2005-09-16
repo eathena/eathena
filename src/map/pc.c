@@ -2586,7 +2586,8 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	}
 	if(nameid == 602 && map[sd->bl.m].flag.noreturn)
 		return 0;
-	if(nameid == 604 && (map[sd->bl.m].flag.nobranch || map[sd->bl.m].flag.gvg))
+	//Dead Branch & Bloody Branch
+	if((nameid == 604 || nameid == 12103) && (map[sd->bl.m].flag.nobranch || map[sd->bl.m].flag.gvg))
 		return 0;
 	if(item->sex != 2 && sd->status.sex != item->sex)
 		return 0;
@@ -2597,8 +2598,8 @@ int pc_isUseitem(struct map_session_data *sd,int n)
 	//Note that items for mounted chars alone will never be usable as items for non-mounted chars apply to both mounted/non-mounted chars.
 	if ((1<<(pc_calc_base_job2(sd->status.class_)) & item->class_) == 0)
 		return 0;
-
-	if((log_config.branch > 0) && (nameid == 604))
+	//Dead Branch & Bloody Branch
+	if((log_config.branch > 0) && (nameid == 604 || nameid == 12103))
 		log_branch(sd);
 
 	return 1;

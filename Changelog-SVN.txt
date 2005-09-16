@@ -1,6 +1,8 @@
 Date	Added
 =======
 
+09/16
+	* Added Bloody Branch log (along with Dead Branch) [Lupus]
 09/15
 	* The skill Vending will now fail on GM characters who do not satisfy the
 	  gm_can_drop level requirement. [Skotlex]
