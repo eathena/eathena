@@ -4185,7 +4185,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case MC_VENDING:			/* 露店開設 */
 		if(sd)
-			clif_openvendingreq(sd,2+sd->skilllv);
+		{	//Prevent vending of GMs with unnecessary Level to trade/drop. [Skotlex]
+			if (pc_isGM(sd) && pc_isGM(sd) < battle_config.gm_can_drop_lv)
+				clif_skill_fail(sd,skillid,0,0);
+			else
+				clif_openvendingreq(sd,2+sd->skilllv);
+		}
 		break;
 
 	case AL_TELEPORT:			/* テレポ?ト */

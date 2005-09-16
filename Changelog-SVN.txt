@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/15
+	* The skill Vending will now fail on GM characters who do not satisfy the
+	  gm_can_drop level requirement. [Skotlex]
 	* Updated the sql-files mob_db.sql and item_db.sql files to the current
 	  version (just feed'em to sql to have your item_db and mob_db tables
 	  updated). [Skotlex]
