@@ -3298,7 +3298,6 @@ static const struct battle_data_short {
 	{ "attribute_recover",                 &battle_config.attr_recover				},
 	{ "flooritem_lifetime",                &battle_config.flooritem_lifetime		},
 	{ "item_auto_get",                     &battle_config.item_auto_get			},
-//	{ "item_rate",	                        &battle_config.item_rate				}, //unused [Skotlex]
 	{ "drop_rate0item",                    &battle_config.drop_rate0item			},
 	{ "pvp_exp",                           &battle_config.pvp_exp		},
 	{ "gtb_pvp_only",                      &battle_config.gtb_pvp_only		},
@@ -3459,6 +3458,7 @@ static const struct battle_data_short {
 	{ "buyer_name",                        &battle_config.buyer_name		},
 
 // eAthena additions
+	{ "item_logarithmic_drops",            &battle_config.logarithmic_drops	},
 	{ "item_drop_common_min",              &battle_config.item_drop_common_min	},	// Added by TyrNemesis^
 	{ "item_drop_common_max",              &battle_config.item_drop_common_max	},
 	{ "item_drop_equip_min",               &battle_config.item_drop_equip_min	},
@@ -3807,6 +3807,7 @@ void battle_set_defaults() {
 	battle_config.item_rate_card = 100;
 	battle_config.item_rate_heal = 100;		// Added by Valaris
 	battle_config.item_rate_use = 100;		// End
+	battle_config.logarithmic_drops = 0;
 	battle_config.item_drop_common_min=1;	// Added by TyrNemesis^
 	battle_config.item_drop_common_max=10000;
 	battle_config.item_drop_equip_min=1;

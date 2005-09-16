@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/16
+	* Added Ishizu's logarithmic drops equation. [Skotlex]
+	  (see battle_athena.conf for full details)
 	* Added a sub-function call to clear Castle owners when their guild is
 	  broken. [Skotlex]
 	* Added a char-server call to clear the alliance when a guild is broken

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <math.h>
 
 #include "timer.h"
 #include "socket.h"
@@ -2706,11 +2707,6 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			drop_rate = md->db->mvpitem[i].p;
 			if(drop_rate <= 0 && !battle_config.drop_rate0item)
 				drop_rate = 1;
-/*			if(drop_rate < battle_config.item_drop_mvp_min)
-				drop_rate = battle_config.item_drop_mvp_min;
-			else if(drop_rate > battle_config.item_drop_mvp_max) //fixed
-				drop_rate = battle_config.item_drop_mvp_max;
-*/
 			if(drop_rate <= rand()%10000+1) //if ==0, then it doesn't drop
 				continue;
 			memset(&item,0,sizeof(item));
@@ -3944,6 +3940,17 @@ static int mob_makedummymobdb(int class_)
 	return 0;
 }
 
+//Adjusts the drop rate of item according to the criteria given. [Skotlex]
+static int mob_drop_adjust(int rate, int rate_adjust, int rate_min, int rate_max)
+{
+	if (battle_config.logarithmic_drops && rate_adjust > 0) //Logarithmic drops equation by Ishizu-Chan
+		//Equation: Droprate(x,y) = x * (5 - log(x)) ^ (ln(y) / ln(5))
+		//x is the normal Droprate, y is the Modificator.
+		rate = (int)(rate * pow((5.0 - log10(rate)), (log(rate_adjust/100.) / log(5.0))) + 0.5);
+	else	//Classical linear rate adjustment.
+		rate = rate*rate_adjust/100;
+	return (rate>rate_max)?rate_max:((rate<rate_min)?rate_min:rate);
+}
 /*==========================================
  * db/mob_db.txt reading
  *------------------------------------------
@@ -4036,35 +4043,45 @@ static int mob_readdb(void)
 			mob_db_data[class_]->dmotion=atoi(str[28]);
 
 			for(i=0;i<10;i++){ // 8 -> 10 Lupus
-				int rate = 0,type,ratemin,ratemax;
+				int rate = 0,rate_adjust,type,ratemin,ratemax;
 				mob_db_data[class_]->dropitem[i].nameid=atoi(str[29+i*2]);
 				type = itemdb_type(mob_db_data[class_]->dropitem[i].nameid);
-				if (type == 0) {
-					rate = battle_config.item_rate_heal * atoi(str[30+i*2]) / 100; //fix by Yor
+				switch (type)
+				{
+				case 0:
+					rate = atoi(str[30+i*2]);
+					rate_adjust = battle_config.item_rate_heal; 
 					ratemin = battle_config.item_drop_heal_min;
 					ratemax = battle_config.item_drop_heal_max;
-				}
-				else if (type == 2) {
-					rate = battle_config.item_rate_use * atoi(str[30+i*2]) / 100; //fix by Yor
+					break;
+				case 2:
+					rate = atoi(str[30+i*2]);
+					rate_adjust = battle_config.item_rate_use;
 					ratemin = battle_config.item_drop_use_min;
-					ratemax = battle_config.item_drop_use_max;	// End
-				}
-				else if (type == 4 || type == 5 || type == 8) {		// Changed to include Pet Equip
-					rate = battle_config.item_rate_equip * atoi(str[30+i*2]) / 100;
+					ratemax = battle_config.item_drop_use_max;
+					break;
+				case 4:
+				case 5:
+				case 8:		// Changed to include Pet Equip
+					rate = atoi(str[30+i*2]);
+					rate_adjust = battle_config.item_rate_equip;
 					ratemin = battle_config.item_drop_equip_min;
 					ratemax = battle_config.item_drop_equip_max;
-				}
-				else if (type == 6) {
-					rate = battle_config.item_rate_card * atoi(str[30+i*2]) / 100;
+					break;
+				case 6:
+					rate = atoi(str[30+i*2]);
+					rate_adjust = battle_config.item_rate_card;
 					ratemin = battle_config.item_drop_card_min;
 					ratemax = battle_config.item_drop_card_max;
-				}
-				else {
-					rate = battle_config.item_rate_common * atoi(str[30+i*2]) / 100;
+					break;
+				default:
+					rate = atoi(str[30+i*2]);
+					rate_adjust = battle_config.item_rate_common;
 					ratemin = battle_config.item_drop_common_min;
 					ratemax = battle_config.item_drop_common_max;
+					break;
 				}
-				mob_db_data[class_]->dropitem[i].p = (rate < ratemin) ? ratemin : (rate > ratemax) ? ratemax: rate;
+				mob_db_data[class_]->dropitem[i].p = mob_drop_adjust(rate, rate_adjust, ratemin, ratemax);
 			}
 			// MVP EXP Bonus, Chance: MEXP,ExpPer
 			mob_db_data[class_]->mexp=atoi(str[49])*battle_config.mvp_exp_rate/100;
@@ -4084,11 +4101,10 @@ static int mob_readdb(void)
 
 			// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
 			for(i=0;i<3;i++){
-				int rate=atoi(str[52+i*2])*battle_config.mvp_item_rate/100; //idea of the fix from Freya
+				int rate=atoi(str[52+i*2]);
 				mob_db_data[class_]->mvpitem[i].nameid=atoi(str[51+i*2]);
-				mob_db_data[class_]->mvpitem[i].p= (rate < battle_config.item_drop_mvp_min) 
-					? battle_config.item_drop_mvp_min : (rate > battle_config.item_drop_mvp_max) 
-					? battle_config.item_drop_mvp_max : rate;
+				mob_db_data[class_]->mvpitem[i].p= mob_drop_adjust(rate, battle_config.mvp_item_rate,
+					battle_config.item_drop_mvp_min, battle_config.item_drop_mvp_max);
 			}
 
 			if (mob_db_data[class_]->max_hp <= 0) {
