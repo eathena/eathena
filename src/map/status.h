@@ -100,9 +100,9 @@ enum {
 	SC_VOLCANO			= 94,
 	SC_DELUGE			= 95,
 	SC_VIOLENTGALE		= 96,
-	SC_WATK_ELEMENT	= 97,
+	SC_WATK_ELEMENT	= 97, //Has no visual
 	SC_LANDPROTECTOR	= 98,
-// 99 = empty
+	SC_ARMOR_ELEMENT	= 99, //Has no visual
 	SC_NOCHAT			= 100,
 	SC_BABY				= 101,
 // 102 = gloria - from what I saw on screenshots, I wonder if it isn't gospel... [DracoRPG]

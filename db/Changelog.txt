@@ -20,7 +20,6 @@
 	2652,Brooch_of_Cursed_Fortune: Correct rate is unknown
 	2653,Sacrifice_Ring: seems eAthena doesn't have bonus option yet
 	4212,Bongun_Card: should blow target out for 5 cells using bash
-	5116,Banana_Hat: autospell rate is unknown
 	5125,Angel_Kiss,Angel's Kiss: Description miss.  This item is for Novice/Super Novice, like any other
 		'Angel' equipments.
 	5126,Morphicious_Hood: When using magic, it cannot be dispelled(Maybe it works like Phen card)
@@ -29,14 +28,21 @@
 	4198,Maya_Purple_Card: intravision not working atm
 	4296,Cramp_Card: Temporal Plug: 10z per mob-level on a 3% chance.
 	1771,Venom_Knife: For new Asassins skill
-		Item type: Throwing Dagger. Consumable? Should it work as a scroll, or as an arrow, etc.
-	12118,Resist_Fire, //Resist Fire element, but opposite(incompatible) elements can give more damage
-	12119,Resist_Cold, //Resist Water element, same as above
-	12120,Resist_Earth //Resist Earth element, same as above
-	12121,Resist_Thunder //Resist Wind element, same as above
+		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
+		like gemstones when the skill is used.
+	12118,Resist_Fire, //Need duration, custom value: 3 mins.
+	12119,Resist_Cold, //Need duration, custom value: 3 mins.
+	12120,Resist_Earth //Need duration, custom value: 3 mins.
+	12121,Resist_Thunder //Need duration, custom value: 3 mins.
 	7420,Skull //PvP Item(maybe drop item?) maybe like that custom bone drop?
 
 	--
+
+09/16
+	* Added constants to const.txt to identify Elements and Race. Lupus could
+	  you give it a look and see if any of them need a name change? (these
+	  constants are brand new and as such not yet in use by the dbs). [Skotlex]
+	* Added effects for Resist Element items. Temporal duration: 3 mins. [Skotlex]
 
 09/15
 	* Removed inf2 128 (trap) from Quagmire, Sphere Mine and Demonstration as

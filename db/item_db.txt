@@ -2278,14 +2278,14 @@
 12111,Wrapped_Food,Wrapped Food,2,20,0,200,,,,,10477567,2,,,,,,{ getitem groupranditem(3),1; getitem groupranditem(4),1; getitem groupranditem(7),1; },{}
 12112,Tropical_Sograt,Tropical Sograt,2,20,0,100,,,,,10477567,2,,,,,,{},{}
 12113,Vermilion_the_Beach,Vermilion the Beach,2,20,0,100,,,,,10477567,2,,,,,,{},{}
-12114,Elemental_Converter,Flame Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_FLAMELAUNCHER,120000,0; },{}
-12115,Elemental_Converter_,Frost Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_FROSTWEAPON,120000,0; },{}
-12116,Elemental_Converter__,Seismic Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_SEISMICWEAPON,120000,0; },{}
-12117,Elemental_Converter___,Lighting Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_LIGHTNINGLOADER,120000,0; },{}
-12118,Resist_Fire,Resist Fire Potion,2,20,0,10,,,,,10477567,2,,,,,,{},{}
-12119,Resist_Cold,Resist Cold Potion,2,20,0,10,,,,,10477567,2,,,,,,{},{}
-12120,Resist_Earth,Resist Earth Potion,2,20,0,10,,,,,10477567,2,,,,,,{},{}
-12121,Resist_Thunder,Resist Thunder Potion,2,20,0,10,,,,,10477567,2,,,,,,{},{}
+12114,Elemental_Converter,Flame Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_Flame,120000,1; },{}
+12115,Elemental_Converter_,Frost Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_Frost,120000,1; },{}
+12116,Elemental_Converter__,Seismic Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_Seismic,120000,1; },{}
+12117,Elemental_Converter___,Lighting Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_Lightning,120000,1; },{}
+12118,Resist_Fire,Resist Fire Potion,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start4 SC_DefEle,120000,Ele_Fire,20,Ele_Water,-15; },{}
+12119,Resist_Cold,Resist Cold Potion,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start4 SC_DefEle,120000,Ele_Water,20,Ele_Wind,-15; },{}
+12120,Resist_Earth,Resist Earth Potion,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start4 SC_DefEle,120000,Ele_Earth,20,Ele_Fire,-15; },{}
+12121,Resist_Thunder,Resist Thunder Potion,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start4 SC_DefEle,120000,Ele_Wind,20,Ele_Earth,-15; },{}
 12122,Dasik,Dasik,2,20,0,70,,,,,10477567,2,,,,,,{},{}
 12123,Oil_and_Honey_Pastry,Oil and Honey Pastry,2,20,0,70,,,,,10477567,2,,,,,,{},{}
 12124,Various_colored_Rice_Cake,Rainbow colord Rice Cake,2,20,0,70,,,,,10477567,2,,,,,,{},{}

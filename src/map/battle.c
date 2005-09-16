@@ -318,18 +318,22 @@ int battle_stopwalking(struct block_list *bl,int type)
 
 
 /*==========================================
- * ダメージの属性修正
+ * Does attribute fix modifiers. 
+ * Added passing of the chars so that the status changes can affect it. [Skotlex]
+ * Note: Passing src/target == NULL is perfectly valid, it skips SC_ checks.
  *------------------------------------------
  */
-int battle_attr_fix(int damage,int atk_elem,int def_elem)
+int battle_attr_fix(struct block_list *src, struct block_list *target, int damage,int atk_elem,int def_elem)
 {
 	int def_type = def_elem % 10, def_lv = def_elem / 10 / 2;
-
+	struct status_change *sc_data=NULL, *tsc_data=NULL;
+	int ratio;
+	
+	if (src) sc_data = status_get_sc_data(src);
+	if (target) tsc_data = status_get_sc_data(target);
+	
 	if (atk_elem < 0 || atk_elem > 9)
 		atk_elem = rand()%9;	//武器属性ランダムで付加
-
-	//if (def_type < 0 || def_type > 9)
-		//def_type = rand()%9;	// change 装備属性? // celest
 
 	if (def_type < 0 || def_type > 9 ||
 		def_lv < 1 || def_lv > 4) {	// 属 性値がおかしいのでとりあえずそのまま返す
@@ -337,8 +341,38 @@ int battle_attr_fix(int damage,int atk_elem,int def_elem)
 			ShowError("battle_attr_fix: unknown attr type: atk=%d def_type=%d def_lv=%d\n",atk_elem,def_type,def_lv);
 		return damage;
 	}
-
-	return damage*attr_fix_table[def_lv-1][atk_elem][def_type]/100;
+	
+	ratio = attr_fix_table[def_lv-1][atk_elem][def_type];
+	if (sc_data)
+	{
+		if(sc_data[SC_WATK_ELEMENT].timer != -1 && sc_data[SC_WATK_ELEMENT].val4 == 0)
+		{	//Part of the attack becomes elemental. [Skotlex]
+			int percent = sc_data[SC_WATK_ELEMENT].val1;
+			sc_data[SC_WATK_ELEMENT].val4 = 1;
+			damage = battle_attr_fix(src, target, damage*percent/100, sc_data[SC_WATK_ELEMENT].val2, def_elem)
+				+ battle_attr_fix(src, target, damage*(100-percent)/100, atk_elem, def_elem);
+			sc_data[SC_WATK_ELEMENT].val4 = 0;
+			return damage;
+		}	
+		if(sc_data[SC_VOLCANO].timer!=-1 && atk_elem == 3)
+			ratio += enchant_eff[sc_data[SC_VOLCANO].val1-1];
+		if(sc_data[SC_VIOLENTGALE].timer!=-1 && atk_elem == 4)
+			ratio += enchant_eff[sc_data[SC_VIOLENTGALE].val1-1];
+		if(sc_data[SC_DELUGE].timer!=-1 && atk_elem == 1)
+			ratio += enchant_eff[sc_data[SC_DELUGE].val1-1];
+	}
+	if (tsc_data)
+	{
+		if(tsc_data[SC_ARMOR_ELEMENT].timer!=-1)
+		{
+			if (tsc_data[SC_ARMOR_ELEMENT].val1 == atk_elem)
+				ratio -= tsc_data[SC_ARMOR_ELEMENT].val2;
+			else
+			if (tsc_data[SC_ARMOR_ELEMENT].val3 == atk_elem)
+				ratio -= tsc_data[SC_ARMOR_ELEMENT].val4;
+		}
+	}
+	return damage*ratio/100;
 }
 
 
@@ -1203,12 +1237,6 @@ static struct Damage battle_calc_weapon_attack(
 			// It is still not quite decided whether it works on bosses or not...
 			if(sc_data[SC_EDP].timer != -1 /*&& !(t_mode&0x20)*/ && skill_num != ASC_BREAKER && skill_num != ASC_METEORASSAULT)
 				skillratio += (50 + sc_data[SC_EDP].val1 * 50)*wd.div_;
-			if(sc_data[SC_VOLCANO].timer!=-1 && s_ele == 3)
-				skillratio += enchant_eff[sc_data[SC_VOLCANO].val1-1];
-			if(sc_data[SC_VIOLENTGALE].timer!=-1 && s_ele == 4)
-				skillratio += enchant_eff[sc_data[SC_VIOLENTGALE].val1-1];
-			if(sc_data[SC_DELUGE].timer!=-1 && s_ele == 1)
-				skillratio += enchant_eff[sc_data[SC_DELUGE].val1-1];
 		}
 		if (!skill_num)
 		{
@@ -1615,36 +1643,14 @@ static struct Damage battle_calc_weapon_attack(
 		if	(!(!sd && tsd && battle_config.mob_ghostring_fix && t_ele==8))
 		{
 			short t_element = status_get_element(target);
-			int ratio=0, s_element=0, damage;
-			if(sc_data && sc_data[SC_WATK_ELEMENT].timer != -1)
-			{	//Part of the attack becomes elemental. [Skotlex]
-				ratio = sc_data[SC_WATK_ELEMENT].val1;
-				s_element = sc_data[SC_WATK_ELEMENT].val2;
-			}	
 			if (wd.damage > 0)
 			{
-				if (ratio)
-				{
-					damage = wd.damage;
-					wd.damage = battle_attr_fix(damage*(100-ratio)/100,s_ele,t_element);
-					wd.damage+= battle_attr_fix(damage*(ratio)/100,s_element,t_element);
-				}
-				else 
-					wd.damage=battle_attr_fix(wd.damage,s_ele,t_element);
+				wd.damage=battle_attr_fix(src,target,wd.damage,s_ele,t_element);
 				if(skill_num==MC_CARTREVOLUTION) //Cart Revolution applies the element fix once more with neutral element
-					wd.damage = battle_attr_fix(wd.damage,0,t_element);
+					wd.damage = battle_attr_fix(src,target,wd.damage,0,t_element);
 			}
 			if (flag.lh && wd.damage2 > 0)
-			{
-				if (ratio)
-				{
-					damage = wd.damage2;
-					wd.damage2 = battle_attr_fix(damage*(100-ratio)/100,s_ele,t_element);
-					wd.damage2+= battle_attr_fix(damage*ratio/100,s_element,t_element);
-				}
-				else
-					wd.damage2 = battle_attr_fix(wd.damage2,s_ele_,t_element);
-			}
+				wd.damage2 = battle_attr_fix(src,target,wd.damage2,s_ele_,t_element);
 		}
 	}
 
@@ -1921,7 +1927,6 @@ struct Damage battle_calc_magic_attack(
 	int ele=0, race=7, size=1, race2=7, t_ele=0, t_race=7, t_mode = 0, cardfix, t_class, i;
 	struct map_session_data *sd = NULL, *tsd = NULL;
 	struct mob_data *tmd = NULL;
-	struct status_change *sc_data = status_get_sc_data(bl);
 	struct Damage md;
 	int aflag;	
 	int normalmagic_flag = 1;
@@ -1973,15 +1978,6 @@ struct Damage battle_calc_magic_attack(
 		tmd=(struct mob_data *)target;
 
 	aflag=BF_MAGIC|BF_LONG|BF_SKILL;
-
-	if(sc_data){
-		if(sc_data[SC_VOLCANO].timer!=-1 && ele == 3)
-			skillratio += enchant_eff[sc_data[SC_VOLCANO].val1-1];
-		if(sc_data[SC_VIOLENTGALE].timer!=-1 && ele == 4)
-			skillratio += enchant_eff[sc_data[SC_VIOLENTGALE].val1-1];
-		if(sc_data[SC_DELUGE].timer!=-1 && ele == 1)
-			skillratio += enchant_eff[sc_data[SC_DELUGE].val1-1];
-	}
 
 	if(skill_num > 0){
 		switch(skill_num){	// 基本ダメージ計算(スキルごとに処理)
@@ -2219,13 +2215,13 @@ struct Damage battle_calc_magic_attack(
 	if(damage < 0) damage = 0;
 
 	if (!no_elefix)
-		damage=battle_attr_fix(damage, ele, status_get_element(target) );		// 属 性修正
+		damage=battle_attr_fix(bl, target, damage, ele, status_get_element(target) );		// 属 性修正
 
 	if(skill_num == CR_GRANDCROSS) {	// グランドクロス
 		struct Damage wd;
 		wd=battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
 		damage = (damage + wd.damage) * (100 + 40*skill_lv)/100;
-		if(battle_config.gx_dupele) damage=battle_attr_fix(damage, ele, status_get_element(target) );	//属性2回かかる
+		if(battle_config.gx_dupele) damage=battle_attr_fix(bl, target, damage, ele, status_get_element(target) );	//属性2回かかる
 		if(bl==target){
 			if(bl->type == BL_MOB)
 				damage = 0;		//MOBが使う場合は反動無し
@@ -2419,7 +2415,7 @@ struct Damage  battle_calc_misc_attack(
 		}
 
 		if(damage < 0) damage = 0;
-		damage=battle_attr_fix(damage, ele, status_get_element(target) );		// 属性修正
+		damage=battle_attr_fix(bl, target, damage, ele, status_get_element(target) );		// 属性修正
 	}
 
 	div_=skill_get_num( skill_num,skill_lv );

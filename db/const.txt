@@ -292,6 +292,30 @@ Eff_Blind	8
 Eff_Bleeding	9
 Eff_DPoison	10
 
+Ele_Neutral	0
+Ele_Water	1
+Ele_Earth	2
+Ele_Fire	3
+Ele_Wind	4
+Ele_Poison	5
+Ele_Holy	6
+Ele_Dark	7
+Ele_Sense	8
+Ele_Immortality	9
+
+RC_Formless	0
+RC_Undead	1
+RC_Brute	2
+RC_Plant	3
+RC_Insect	4
+RC_Fish	5
+RC_Demon	6
+RC_DemiHuman	7
+RC_Angel	8
+RC_Dragon	9
+RC_Boss	10
+RC_NonBoss	11
+
 SC_Stone	74
 SC_Freeze	75
 SC_Stan		76
@@ -318,6 +342,7 @@ SC_Flame	90
 SC_Frost	91
 SC_Lightning	92
 SC_Seismic	93
+SC_EleDef	99
 SC_STRFood	236
 SC_AGIFood	237
 SC_VITFood	238

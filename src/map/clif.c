@@ -4965,7 +4965,7 @@ int clif_skill_estimation(struct map_session_data *sd,struct block_list *dst)
 	WBUFW(buf,16)=status_get_mdef2(&md->bl) - (md->db->vit>>1);
 	WBUFW(buf,18)=status_get_elem_type(&md->bl);
 	for(i=0;i<9;i++)
-		WBUFB(buf,20+i)= battle_attr_fix(100,i+1,md->def_ele);
+		WBUFB(buf,20+i)= battle_attr_fix(NULL,dst,100,i+1,md->def_ele);
 
 	if(sd->status.party_id>0)
 		clif_send(buf,packet_len_table[0x18c],&sd->bl,PARTY_AREA);

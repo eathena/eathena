@@ -2,6 +2,16 @@ Date	Added
 =======
 
 09/16
+	* Added script function sc_start4, starts an status change with all four
+	  values. [Skotlex]
+	  Use: sc_start4 TYPE, DURATION, VAL1, VAL2, VAL3, VAL4, <target ID>
+	* Added SC_ARMOR_ELEMENT/SC_DefEle, specifies elemental defense bonus
+	  against two elements at a time. For example:
+	  sc_start4 SC_DefEle, 60000, Ele_Fire, 20, Ele_Wind, -15;
+	  Gives 20% additional fire resistance and reduces 15% Wind resistance for
+	  60 seconds.
+	* Expanded battle_attr_fix to consider the status changes of the involved
+	  chars that affect elemental modifiers. [Skotlex]
 	* Fixed some status effects not being correctly ended/recalculated when you
 	  stepped out of quagmire/song/dances. [Skotlex]
 	* Made quagmire be affected by the "gvg_traps_target_all" battle switch. [Skotlex]
