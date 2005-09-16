@@ -1914,12 +1914,6 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			battle_damage(bl,src,rdamage,dmg.dmotion,0);
 	}
 
-	if(attack_type&BF_WEAPON && sc_data && sc_data[SC_AUTOCOUNTER].timer != -1 && sc_data[SC_AUTOCOUNTER].val4 > 0) {
-		if(sc_data[SC_AUTOCOUNTER].val3 == dsrc->id)
-			battle_weapon_attack(bl,dsrc,tick,0x8000|sc_data[SC_AUTOCOUNTER].val1);
-		status_change_end(bl,SC_AUTOCOUNTER,-1);
-	}
-	
 	if ((skillid == MG_NAPALMBEAT || skillid == MG_SOULSTRIKE ||
 		skillid == MG_COLDBOLT || skillid == MG_FROSTDIVER ||		
 		skillid == MG_FIREBOLT || skillid == MG_FIREBALL ||
