@@ -2,6 +2,12 @@ Date	Added
 =======
 
 09/16
+	* Added a sub-function call to clear Castle owners when their guild is
+	  broken. [Skotlex]
+	* Added a char-server call to clear the alliance when a guild is broken
+	  (when a guild breaks, the alliance/opposition is removed from memory on the
+	  map server, so it seems said change is not sent/saved on the char-server
+	  side?) [Skotlex]
 	* Added script function sc_start4, starts an status change with all four
 	  values. [Skotlex]
 	  Use: sc_start4 TYPE, DURATION, VAL1, VAL2, VAL3, VAL4, <target ID>

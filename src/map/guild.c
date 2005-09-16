@@ -1350,11 +1350,29 @@ int guild_broken_sub(void *key,void *data,va_list ap)
 			for(j=0;j<g->max_member;j++)
 				if( (sd=g->member[j].sd)!=NULL )
 					clif_guild_delalliance(sd,guild_id,g->alliance[i].opposition);
+			intif_guild_alliance(g->guild_id, guild_id,0,0,g->alliance[i].opposition|8);
 			g->alliance[i].guild_id=0;
 		}
 	}
 	return 0;
 }
+
+//Invoked on Castles when a guild is broken. [Skotlex]
+int castle_guild_broken_sub(void *key,void *data,va_list ap)
+{
+	struct guild_castle *gc=(struct guild_castle *)data;
+	int guild_id=va_arg(ap,int);
+
+	nullpo_retr(0, gc);
+
+	if (gc->guild_id == guild_id)
+	{	//Save the new 'owner', this should invoke guardian clean up and other such things.
+		gc->guild_id = 0;
+		guild_castledatasave(gc->castle_id, 1, 0);
+	}
+	return 0;
+}
+
 // ƒMƒ‹ƒh‰ğU’Ê’m
 int guild_broken(int guild_id,int flag)
 {
@@ -1375,6 +1393,7 @@ int guild_broken(int guild_id,int flag)
 	}
 
 	numdb_foreach(guild_db,guild_broken_sub,guild_id);
+	numdb_foreach(castle_db,castle_guild_broken_sub,guild_id);
 	numdb_erase(guild_db,guild_id);
 	guild_storage_delete(guild_id);
 	aFree(g);
