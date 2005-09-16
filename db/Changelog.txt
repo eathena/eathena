@@ -39,9 +39,8 @@
 	--
 
 09/16
-	* Added constants to const.txt to identify Elements and Race. Lupus could
-	  you give it a look and see if any of them need a name change? (these
-	  constants are brand new and as such not yet in use by the dbs). [Skotlex]
+	* Added constants to const.txt to identify Elements and Race. [Skotlex]
+		^^^^ they are pretty fine [Lupus]
 	* Added effects for Resist Element items. Temporal duration: 3 mins. [Skotlex]
 
 09/15
