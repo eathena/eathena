@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.4
+//= 1.5
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -13,6 +13,7 @@
 //= v1.1 Added instant job change for High Novice [Lupus]
 //= v1.3 Added Baby Class support [Lupus]
 //= v1.4 Optimised and moved first checker to Jfunc1-1 [massdriller]
+//= 1.5 Changed Prontera->Izlude teleport price to 600 [Lupus]
 //============================================================ 
 
 
@@ -691,14 +692,14 @@ prontera.gat,248,42,8	script	Kafra	115,{
 L_Other:
 	mes "[Kafra]";
 	mes "Hello.  I am a Kafra Service Agent.  As you can see, the ^3355FFSwordsman Association^000000 has moved to Izlude.";
-	mes "I can warp you there for a small fee of 900 zeny however.";
+	mes "I can warp you there for a small fee of 600 zeny however.";
 	next;
 	menu "Warp.",M_Warp, "Cancel.",M_End;
 
 	M_Warp:
-		if(Zeny < 900) goto sL_NdZeny;
-		set Zeny, Zeny - 900;
-		set RESRVPTS, RESRVPTS + 54;
+		if(Zeny < 600) goto sL_NdZeny;
+		set Zeny, Zeny - 600;
+		set RESRVPTS, RESRVPTS + 37;
 		warp "izlude.gat",91,105;
 		cutin "kafra_03",255;
 		end;

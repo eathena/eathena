@@ -33,13 +33,14 @@
 	7420,Skull //PvP Item(maybe drop item?) maybe like that custom bone drop?
 
 	--
-
+09/18
+	* Removed Apple-Plugs (512,0%) drops from the monsters [Lupus]
+	* Updated Leaf Cat's walkspeed (now faster, thx2 MasterOfMuppets) [Lupus]
 09/16
 	* Corrected the duration of the resist potions. [Skotlex]
 	* Added constants to const.txt to identify Elements and Race. [Skotlex]
 		^^^^ they are pretty fine [Lupus]
 	* Added effects for Resist Element items. Temporal duration: 3 mins. [Skotlex]
-
 09/15
 	* Removed inf2 128 (trap) from Quagmire, Sphere Mine and Demonstration as
 	  they are not really traps (all ground based skills with trap mode can be

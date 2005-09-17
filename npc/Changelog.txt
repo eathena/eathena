@@ -28,6 +28,9 @@ TODO:
 
 Date		Added
 ======
+09/17
+	* Updated teleport service prices in the Prontera & Alberta. Thanks to MasterOfMuppets for info [Lupus]
+	- Also Merchant Job Quest Kafra's warp price has been updated.
 09/16
 	* Updated some monsters stats (Lighthalzen, Einbroch) thanx to MasterOfMuppets [Lupus]
 	- Also updated bulletin_boards.txt

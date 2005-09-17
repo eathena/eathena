@@ -3,7 +3,7 @@
 //===== By: =========================
 //= eAthena Dev Team
 //===== Current Version: ===================
-//= 2.2
+//= 2.3
 //===== Compatible With: =====================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -18,6 +18,7 @@
 //= v2.1b Minor changes to function calls. Using arguments.
 //= This version uses arrays .[kobra_k88]
 //= 2.2 North Kafra allows you save your position
+//= 2.3 New Teleport list, new prices [Lupus]
 //=====================================================================
 
 
@@ -85,9 +86,8 @@ prontera.gat,282,200,4	script	Kafra	115,{
 
 // Function: Sets variables for Prontera Kafras ----------------------------
 function	script	F_KafSetPront	{
-
-	setarray @wrpD$[0], "Izlude", "Geffen", "Payon", "Morroc", "Comodo", "Orc Dungeon";
-	setarray @wrpP[0], 900, 1400, 1700, 1800, 2100, 1700;
+	setarray @wrpD$[0], "Izlude", "Geffen", "Payon", "Morroc", "Orc Dungeon", "Alberta",;
+	setarray @wrpP[0], 600, 1200, 1200, 1200, 1700, 1800;
 	set @wrpC$[0], @wrpD$[0]+" -> "+@wrpP[0];
 	set @wrpC$[1], @wrpD$[1]+" -> "+@wrpP[1];
 	set @wrpC$[2], @wrpD$[2]+" -> "+@wrpP[2];
