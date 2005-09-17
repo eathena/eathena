@@ -5,7 +5,7 @@
 //= eAthena Dev Team
 //= Darlskies, Darkchild, Syrus22, Lupus, kobra_k88 (2.0)
 //===== Current Version: ===================================== 
-//= 2.6
+//= 2.8
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ===============================================
@@ -29,6 +29,7 @@
 //= 2.5 Added Louyang official Kafra, fixes some Kafras, not letting you to Save your position [Lupus]
 //= 2.6 Reverted Dungeons Kafras (they should offer only Storage). Added temp Ayothaya Kafra
 //= 2.7 Added correct Ayothaya, Louyang & Amatsu Kafras. [Lupus]
+//= 2.8 Fixed Amatsu Storage problems [Lupus]
 //============================================================ 
 
 
@@ -73,11 +74,11 @@ function	script	F_Kafra	{
 	M_Save:
 		return;
 	M_Storage:
-		callfunc "F_KafStor",getarg(0);
+		callfunc "F_KafStor",0;
 		next;
 		goto M_Menu;
 	M_GStorage:
-		callfunc "F_KafStor",3;
+		callfunc "F_KafStor",1;
 		next;
 		goto M_Menu;
 	M_Teleport:
@@ -100,11 +101,11 @@ function	script	F_Kafra	{
 
 // Storage Function =======================================================
 function	script	F_KafStor	{
-	if(getarg(0) == 3) goto L_Guild;
+	if(getarg(0) == 1) goto L_Guild;
 	if((BaseJob ==Job_Novice) && (JobLevel<6)) goto sL_JbLvl;
 	if(BaseJob == Job_Novice) set @fee, 30;
 	if(BaseJob != Job_Novice) set @fee, 60;
-	if(@kafPass==1 || getarg(0)==2) set @fee, 0;
+	if(@kafPass==1) set @fee, 0;
 	if(Zeny<@fee) goto sL_Zeny;
 	set Zeny, Zeny-@fee;
 	set RESRVPTS, RESRVPTS + (@fee/5);
