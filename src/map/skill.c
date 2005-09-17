@@ -1546,8 +1546,8 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	if(skillid > 0 && skilllv <= 0) return 0;
 
 	rdamage = 0;
-	nullpo_retr(0, src);	//Source is the one who originated the attack (can be a player or a ground skill)
-	nullpo_retr(0, dsrc); //dsrc is the owner of the source, the same player or the owner of the ground skill.
+	nullpo_retr(0, src);	//Source is the master behind the attack (player/mob/pet)
+	nullpo_retr(0, dsrc); //dsrc is the actual originator of the damage, can be the same as src, or a skill casted by src.
 	nullpo_retr(0, bl); //Target to be attacked.
 
 	sc_data = status_get_sc_data(bl);
@@ -1556,26 +1556,20 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	if(src->prev == NULL || dsrc->prev == NULL || bl->prev == NULL) //prevよくわからない※
 		return 0;
 
-	//This check should not be needed anymore as the map was checked before invoked (or by using map_foreachinarea) [Skotlex]
-	//if(src->m != bl->m) //The source/trap is the one that should be in the same map, even if the caster has moved to another map.
-	//	return 0;
-
 	//uncomment the following to do a check between caster and target. [Skotlex]
 	//eg: if you want storm gust to do no damage if the caster runs to another map after invoking the skill.
-//	if(dsrc->m != bl->m) 
+//	if(src->m != bl->m) 
 //		return 0;
 
-	if(src->type == BL_PC && pc_isdead((struct map_session_data *)src)) //術者？がPCですでに死んでいたら何もしない
+	if(status_isdead(dsrc) || status_isdead(bl))
 		return 0;
 
 	//Uncomment the following to disable trap-ground skills from hitting when the caster is dead [Skotlex]
 	//eg: You cast meteor and then are killed, if you uncomment the following the meteors that fall afterwards cause no damage.
-//	if(src != dsrc && dsrc->type == BL_PC && pc_isdead((struct map_session_data *)dsrc))
+//	if(src != dsrc && status_isdead(src))
 //		return 0;
 
-	if(bl->type == BL_PC && pc_isdead((struct map_session_data *)bl)) //?象がPCですでに死んでいたら何もしない
-		return 0;
-	if(src->type == BL_PC && skillnotok(skillid, (struct map_session_data *)src))
+	if(dsrc->type == BL_PC && skillnotok(skillid, (struct map_session_data *)dsrc))
 		return 0; // [MouseJstr]
 	if(sc_data && sc_data[SC_HIDING].timer != -1) { //ハイディング?態で
 		if(skill_get_pl(skillid) != 2) //スキルの?性が地?性でなければ何もしない
@@ -1590,8 +1584,6 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	if(skillid == WZ_FROSTNOVA && dsrc->x == bl->x && dsrc->y == bl->y) //使用スキルがフロストノヴァで、dsrcとblが同じ場所なら何もしない
 		return 0;
 	if(src->type == BL_PC && ((struct map_session_data *)src)->chatID) //術者がPCでチャット中なら何もしない
-		return 0;
-	if(dsrc->type == BL_PC && ((struct map_session_data *)dsrc)->chatID) //術者がPCでチャット中なら何もしない
 		return 0;
 
 //何もしない判定ここまで
@@ -2865,7 +2857,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 		}
 		break;
 	case CH_PALMSTRIKE: //	Palm Strike takes effect 1sec after casting. [Skotlex]
-		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		clif_skill_nodamage(src,bl,skillid,skilllv,0);
 		skill_addtimerskill(src, tick + 1000, bl->id, 0, 0, skillid, skilllv, BF_WEAPON, flag);
 		break;	
 

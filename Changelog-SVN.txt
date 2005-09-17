@@ -2,6 +2,7 @@ Date	Added
 =======
 
 09/17
+	* Miscellanous corrections to skill_attack. [Skotlex]
 	* Corrected the AutoSpellWhenHit rate of all items in the db (TXT + SQL)
 	  [Skotlex]
 09/16
