@@ -5724,16 +5724,9 @@ int skill_castend_pos2( struct block_list *src, int x,int y,int skillid,int skil
 		break;
 
 	case HT_DETECTING:				/* ディテクティング */
-		{
-			int range=skilllv*2+1;
-			if(src->x!=x)
-				x+=(src->x-x>0)?-range:range;
-			if(src->y!=y)
-				y+=(src->y-y>0)?-range:range;
-			map_foreachinarea( status_change_timer_sub,
-				src->m, x-range, y-range, x+range,y+range,0,
-				src,SC_SIGHT,tick);
-		}
+		map_foreachinarea( status_change_timer_sub,
+			src->m, x-1, y-1, x+1,y+1,0,
+			src,SC_SIGHT,tick);
 		break;
 
 	case MG_SAFETYWALL:			/* セイフティウォ?ル */

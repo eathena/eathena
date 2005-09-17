@@ -34,6 +34,7 @@
 
 	--
 09/18
+	* Corrected range of Hunter's Detect skill
 	* Removed Apple-Plugs (512,0%) drops from the monsters [Lupus]
 	* Updated Leaf Cat's walkspeed (now faster, thx2 MasterOfMuppets) [Lupus]
 09/16
