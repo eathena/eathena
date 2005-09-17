@@ -29,6 +29,8 @@ TODO:
 Date		Added
 ======
 09/17
+	* Changed Yuno guide soldiers to use Schwartzhald Republic ones [DracoRPG]
+	* Removed useless 1.3MB 'old' folder in guild scripts [DracoRPG]
 	* Fixed Amatsu Kafra Storage Issue, thanks to zlider for pointing out [Lupus]
 	* Updated teleport service prices in the Prontera & Alberta. Thanks to MasterOfMuppets for info [Lupus]
 	- Also Merchant Job Quest Kafra's warp price has been updated.

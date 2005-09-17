@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= KitsuneStarwind, usul, kobra_k88
 //===== Current Version: ===================================== 
-//= 1.1
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 1.0 +
 //===== Description: ========================================= 
@@ -11,6 +11,7 @@
 //===== Additional Comments: ================================= 
 //= Edited Miss Yoon text. Added town soldiers by usul. Edited town soldiers
 //= and added map location option for them. [kobra_k88]
+//= 1.2 Changed sprites and cutins to Schwartzald Republic ones
 //============================================================ 
 
 
@@ -26,8 +27,8 @@ yuno.gat,153,47,4	script	Yuno Guide	700,{
 }
 
 //=====================================================================
-yuno.gat,333,182,2	script	Yuno Soldier	105,{
-	cutin "prt_soldier",2;
+yuno.gat,333,182,2	script	Yuno Soldier	852,{
+	cutin "ein_soldier",2;
 	set @name$, "[Yuno Soldier]";
 	set @menu1$, "^5533FF'Dagger of Counter'^000000.....";
 	callfunc "F_YunoLoc",0;
@@ -41,13 +42,13 @@ yuno.gat,333,182,2	script	Yuno Soldier	105,{
 }
 
 //=====================================================================
-yuno.gat,264,320,2	script	Yuno Soldier	105,{
-	cutin "prt_soldier",2;
+yuno.gat,264,320,2	script	Yuno Soldier	852,{
+	cutin "ein_soldier",2;
 	set @name$, "[Yuno Soldier]";
 	set @menu1$, "Holy shield, ^5533FF'Sacred Mission'^000000.....";
 	callfunc "F_YunoLoc",0;
 	mes "[Yuno Soldier]";
-	mes "There is a holy shield named ^5533FF'Sacred Mission'^000000, that can only be used by Cusadors.";
+	mes "There is a holy shield named ^5533FF'Sacred Mission'^000000, that can only be used by Cusaders.";
 	mes "The shield itself is long and narrow and has the wings of an angel engraved on its front.";
 	next;
 	mes "[Yuno Soldier]";
@@ -56,8 +57,8 @@ yuno.gat,264,320,2	script	Yuno Soldier	105,{
 }
 
 //=====================================================================
-yuno.gat,228,292,2	script	Yuno Soldier	105,{
-	cutin "prt_soldier",2;
+yuno.gat,228,292,2	script	Yuno Soldier	852,{
+	cutin "ein_soldier",2;
 	set @name$, "[Yuno Soldier]";
 	set @menu1$, "^FF3355'False Angel'^000000.....";
 	callfunc "F_YunoLoc",0;
@@ -71,8 +72,8 @@ yuno.gat,228,292,2	script	Yuno Soldier	105,{
 }
 
 //=====================================================================
-yuno.gat,164,283,4	script	Yuno Soldier	105,{
-	cutin "prt_soldier",2;
+yuno.gat,164,283,4	script	Yuno Soldier	852,{
+	cutin "ein_soldier",2;
 	set @name$, "[Yuno Soldier]";
 	set @menu1$, "^FF3355'Geographer'^000000.....";
 	callfunc "F_YunoLoc",0;
@@ -87,8 +88,8 @@ yuno.gat,164,283,4	script	Yuno Soldier	105,{
 }
 
 //=====================================================================
-yuno.gat,151,283,4	script	Yuno Soldier	105,{
-	cutin "prt_soldier",2;
+yuno.gat,151,283,4	script	Yuno Soldier	852,{
+	cutin "ein_soldier",2;
 	set @name$, "[Yuno Soldier]";
 	set @menu1$, "^FF3355'Lava Golem'^000000.....";
 	callfunc "F_YunoLoc",0;
@@ -106,8 +107,8 @@ yuno.gat,151,283,4	script	Yuno Soldier	105,{
 }
 
 //=====================================================================
-yuno.gat,164,228,4	script	Yuno Soldier	105,{
-	cutin "prt_soldier",2;
+yuno.gat,164,228,4	script	Yuno Soldier	852,{
+	cutin "ein_soldier",2;
 	set @name$, "[Yuno Soldier]";
 	set @menu1$, "Killer ^FF3355'Goats'^000000.....";
 	callfunc "F_YunoLoc",0;
@@ -121,8 +122,8 @@ yuno.gat,164,228,4	script	Yuno Soldier	105,{
 }
 
 //=====================================================================
-yuno.gat,151,228,4	script	Yuno Soldier	105,{
-	cutin "prt_soldier",2;
+yuno.gat,151,228,4	script	Yuno Soldier	852,{
+	cutin "ein_soldier",2;
 	set @name$, "[Yuno Soldier]";
 	set @menu1$, "Large Jellopy.....";
 	callfunc "F_YunoLoc",0;
@@ -204,13 +205,13 @@ function	script	F_YunoLoc	{
 			viewpoint 2,278,291,8,0xFFFFFF;
 			mes @name$; 
 			mes "All indications have been wiped.";
-			cutin "prt_soldier",255;
+			cutin "ein_soldier",255;
 			close;
 	M_1:
 		return;
 	M_End:
 		mes @name$;
 		mes "Have a nice day.";
-		cutin "prt_soldier",255;
+		cutin "ein_soldier",255;
 		close;
 }
