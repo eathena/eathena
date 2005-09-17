@@ -7206,37 +7206,26 @@ atcommand_changegm(
 	const char* command, const char* message)
 {
 	struct guild *g;
+	struct map_session_data *pl_sd;
 	nullpo_retr(-1, sd);
-	
-	if ((g=guild_search(sd->status.guild_id))!=NULL)
+
+	if (sd->status.guild_id == 0 || (g = guild_search(sd->status.guild_id)) == NULL || strcmp(g->master,sd->status.name))
 	{
-	//printf("guild...%s....%s\n",sd->status.name,g->master);
-	if (strcmp(g->master,sd->status.name)) 
-	{
-		clif_displaymessage(fd, "You aren't a guild master.");
+		clif_displaymessage(fd, "You need to be a Guild Master to use this command.");
 		return -1;
-	} 
+	}
 	if (strlen(message)==0)
 	{
-		clif_displaymessage(fd, "Command usage: @changegm <guildmember>");
+		clif_displaymessage(fd, "Command usage: @changegm <guildmember name>");
 		return -1;
 	}
 	
-	/*sprintf(tmp_sql, "SELECT `account_id` FROM `guild` WHERE `guildid`=%d",sd->status.guild_id);
-	if (mysql_query(&mmysql_handle, tmp_sql)) {
-		printf("DB server Error- \n");
-	}*/
-	guild_change_memberposition(sd->status.guild_id,2000000,sd->char_id,0);
-	//temp plug: 
-	strcpy(g->master,"gggg");
+	if((pl_sd=map_nick2sd((char *) message)) == NULL || pl_sd->status.guild_id != sd->status.guild_id) {
+		clif_displaymessage(fd, "Target character must be online and be a guildmate.");
+		return -1;
+	}
 
-	}
-	else
-	{
-		clif_displaymessage(fd, "You aren't a guild member.");
-		return -1;
-	}
-	
+	guild_gm_change(sd->status.guild_id, pl_sd);
 	return 0;  
 }   
 

@@ -37,6 +37,7 @@ int intif_guild_memberinfoshort(int guild_id, int account_id, int char_id, int o
 int intif_guild_break(int guild_id);
 int intif_guild_message(int guild_id, int account_id, char *mes, int len);
 int intif_guild_checkconflict(int guild_id, int account_id, int char_id);
+int intif_guild_change_gm(int guild_id, const char* name, int len);
 int intif_guild_change_basicinfo(int guild_id, int type, const void *data, int len);
 int intif_guild_change_memberinfo(int guild_id, int account_id, int char_id, int type, const void *data, int len);
 int intif_guild_position(int guild_id, int idx, struct guild_position *p);

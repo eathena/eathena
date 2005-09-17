@@ -311,6 +311,7 @@ int buildin_getmapxy(struct script_state *st);  //get map position for player/np
 int buildin_checkoption1(struct script_state *st); // [celest]
 int buildin_checkoption2(struct script_state *st); // [celest]
 int buildin_guildgetexp(struct script_state *st); // [celest]
+int buildin_guildchangegm(struct script_state *st); // [Skotlex]
 int buildin_skilluseid(struct script_state *st); // originally by Qamera [celest]
 int buildin_skillusepos(struct script_state *st); // originally by Qamera [celest]
 int buildin_logmes(struct script_state *st); // [Lupus]
@@ -575,6 +576,7 @@ struct {
 	{buildin_checkoption1,"checkoption1","i"},
 	{buildin_checkoption2,"checkoption2","i"},
 	{buildin_guildgetexp,"guildgetexp","i"},
+	{buildin_guildchangegm,"guildchangegm","is"},
 	{buildin_skilluseid,"skilluseid","ii"}, // originally by Qamera [Celest]
 	{buildin_skilluseid,"doskill","ii"}, // since a lot of scripts would already use 'doskill'...
 	{buildin_skillusepos,"skillusepos","iiii"}, // [Celest]
@@ -4089,6 +4091,28 @@ int buildin_guildgetexp(struct script_state *st)
 		return 0;
 	if(sd && sd->status.guild_id > 0)
 		guild_getexp (sd, exp);
+
+	return 0;
+}
+
+/*==========================================
+ * Changes the guild master of a guild [Skotlex]
+ *------------------------------------------
+ */
+int buildin_guildchangegm(struct script_state *st)
+{
+	struct map_session_data *sd;
+	int guild_id;
+	char *name;
+
+	guild_id = conv_num(st,& (st->stack->stack_data[st->start+2]));
+	name = conv_str(st,& (st->stack->stack_data[st->start+3]));
+	sd=map_nick2sd(name);
+
+	if (!sd)
+		push_val(st->stack,C_INT,0);
+	else
+		push_val(st->stack,C_INT,guild_gm_change(guild_id, sd));
 
 	return 0;
 }

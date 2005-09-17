@@ -2,6 +2,11 @@ Date	Added
 =======
 
 09/16
+	* Rewrote the guild gm changing system. [Skotlex]
+	- @changegm works now (tested in SQL, TXT should also be working)
+	- Added script command "guildchangegm <guild id>,<new master's name>". Now
+	  go write some Guild Master changing npc if you want it to cost money, have
+	  a minimum guild level requirement, etc.
 	* Added Ishizu's logarithmic drops equation. [Skotlex]
 	  (see battle_athena.conf for full details)
 	* Added a sub-function call to clear Castle owners when their guild is
