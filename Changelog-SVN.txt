@@ -2,6 +2,7 @@ Date	Added
 =======
 
 09/17
+	* Fixed the packet issues on the char txt server. [Skotlex]
 	* Miscellanous corrections to skill_attack. [Skotlex]
 	* Corrected the AutoSpellWhenHit rate of all items in the db (TXT + SQL)
 	  [Skotlex]
