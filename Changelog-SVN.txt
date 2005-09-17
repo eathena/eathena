@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/16
+	* Reverted some of the contents of skill_unit_move_unit_group since the
+	  previous algorithm was optimized. Walking during a Song/Dance should be
+	  smooth again. [Skotlex]
 	* Rewrote the guild gm changing system. [Skotlex]
 	- @changegm works now (tested in SQL, TXT should also be working)
 	- Added script command "guildchangegm <guild id>,<new master's name>". Now

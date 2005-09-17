@@ -10112,14 +10112,42 @@ int skill_unit_move_unit_group( struct skill_unit_group *group, int m,int dx,int
 			map_foreachincell(skill_unit_effect,unit1->bl.m,
 				unit1->bl.x,unit1->bl.y,0,&unit1->bl,tick,4);
 		}
-		//Move Cell
-		map_delblock(&unit1->bl);
-		unit1->bl.m = m;
-		unit1->bl.x += dx;
-		unit1->bl.y += dy;
-		map_addblock(&unit1->bl);
-		clif_skill_setunit(unit1);
-		if (!(m_flag[i]&0x1)) {
+		//Move Cell using "smart" criteria (avoid useless moving around)
+		switch(m_flag[i])
+		{
+			case 0:
+			//Cell moves independently, safely move it.
+				map_delblock(&unit1->bl);
+				unit1->bl.m = m;
+				unit1->bl.x += dx;
+				unit1->bl.y += dy;
+				map_addblock(&unit1->bl);
+				clif_skill_setunit(unit1);
+				break;
+			case 1:
+			//Cell moves unto another cell, look for a replacement cell that won't collide
+			//and has no cell moving into it (flag == 2)
+				for(;j<group->unit_count;j++)
+				{
+					if(m_flag[j]!=2 || !group->unit[j].alive)
+						continue;
+					//Move to where this cell would had moved.
+					unit2 = &group->unit[j];
+					map_delblock(&unit1->bl);
+					unit1->bl.m = m;
+					unit1->bl.x = unit2->bl.x + dx;
+					unit1->bl.y = unit2->bl.y + dy;
+					map_addblock(&unit1->bl);
+					clif_skill_setunit(unit1);
+					j++; //Skip this cell as we have used it.
+					break;
+				}
+				break;
+			case 2:
+			case 3:
+				break; //Don't move the cell as a cell will end on this tile anyway.
+		}
+		if (!(m_flag[i]&2)) { //We only moved the cell in 0-1
 			map_foreachincell(skill_unit_effect,unit1->bl.m,
 				unit1->bl.x,unit1->bl.y,0,&unit1->bl,tick,1);
 		}

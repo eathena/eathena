@@ -30,15 +30,12 @@
 	1771,Venom_Knife: For new Asassins skill
 		Item type: Throwing Dagger. Has to be equipped as an arrow, is consumed
 		like gemstones when the skill is used.
-	12118,Resist_Fire, //Need duration, custom value: 3 mins.
-	12119,Resist_Cold, //Need duration, custom value: 3 mins.
-	12120,Resist_Earth //Need duration, custom value: 3 mins.
-	12121,Resist_Thunder //Need duration, custom value: 3 mins.
 	7420,Skull //PvP Item(maybe drop item?) maybe like that custom bone drop?
 
 	--
 
 09/16
+	* Corrected the duration of the resist potions. [Skotlex]
 	* Added constants to const.txt to identify Elements and Race. [Skotlex]
 		^^^^ they are pretty fine [Lupus]
 	* Added effects for Resist Element items. Temporal duration: 3 mins. [Skotlex]

@@ -2282,10 +2282,10 @@
 12115,Elemental_Converter_,Frost Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_Frost,120000,1; },{}
 12116,Elemental_Converter__,Seismic Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_Seismic,120000,1; },{}
 12117,Elemental_Converter___,Lighting Elemental Converter,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start SC_Lightning,120000,1; },{}
-12118,Resist_Fire,Resist Fire Potion,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start4 SC_DefEle,120000,Ele_Fire,20,Ele_Water,-15; },{}
-12119,Resist_Cold,Resist Cold Potion,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start4 SC_DefEle,120000,Ele_Water,20,Ele_Wind,-15; },{}
-12120,Resist_Earth,Resist Earth Potion,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start4 SC_DefEle,120000,Ele_Earth,20,Ele_Fire,-15; },{}
-12121,Resist_Thunder,Resist Thunder Potion,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start4 SC_DefEle,120000,Ele_Wind,20,Ele_Earth,-15; },{}
+12118,Resist_Fire,Resist Fire Potion,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start4 SC_DefEle,1200000,Ele_Fire,20,Ele_Water,-15; },{}
+12119,Resist_Cold,Resist Cold Potion,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start4 SC_DefEle,1200000,Ele_Water,20,Ele_Wind,-15; },{}
+12120,Resist_Earth,Resist Earth Potion,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start4 SC_DefEle,1200000,Ele_Earth,20,Ele_Fire,-15; },{}
+12121,Resist_Thunder,Resist Thunder Potion,2,20,0,10,,,,,10477567,2,,,,,,{ sc_start4 SC_DefEle,1200000,Ele_Wind,20,Ele_Earth,-15; },{}
 12122,Dasik,Dasik,2,20,0,70,,,,,10477567,2,,,,,,{},{}
 12123,Oil_and_Honey_Pastry,Oil and Honey Pastry,2,20,0,70,,,,,10477567,2,,,,,,{},{}
 12124,Various_colored_Rice_Cake,Rainbow colord Rice Cake,2,20,0,70,,,,,10477567,2,,,,,,{},{}
