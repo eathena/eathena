@@ -1,0 +1,16 @@
+The mob_db.sxc and item_db.sxc files contained here are meant to make db
+updating easier by letting all devs access the same source. These files also
+contain an additional tab to make it extremely easy to export and generate the
+sql files that can be used to populate the SQL tables.
+
+These files are editable by OpenOffice.org, which is a free Office suite
+available to anyone. These files should perhaps be updated to the OASIS
+document format in the near future.
+
+Whenever you want to update the dbs, use these files and then export (export
+the txt or sql version that you want, export them as a CSV file, just change
+the extension afterwards).
+
+You may want to edit the exported file before commiting as some lines will
+have additional commas. In a good editor it would the painless to remove all
+extra commas by using a single search/replace-type of query.
