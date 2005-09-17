@@ -1,6 +1,9 @@
 Date	Added
 =======
 
+09/17
+	* Corrected the AutoSpellWhenHit rate of all items in the db (TXT + SQL)
+	  [Skotlex]
 09/16
 	* Reverted some of the contents of skill_unit_move_unit_group since the
 	  previous algorithm was optimized. Walking during a Song/Dance should be
