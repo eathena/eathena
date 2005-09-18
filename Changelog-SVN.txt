@@ -1,5 +1,9 @@
 Changes are Aru's unless noted.
 
+2005-09-19:
+	Added the gm_made to all item structs so we can track the GM made items (cuteboi)
+	
+
 2005-09-18:
 	Commited several changes, see 
 	http://www.clownphobia.com/forum/index.php?showforum=45
