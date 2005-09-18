@@ -71,7 +71,7 @@
 1721,Repeating_Crossbow		,10000
 1233,Excorssize			,10000
 1288,Combat_Knife		,10000
-2460,Kafra Ring			,10000
+2640,Kafra Ring			,10000
 5104,Black blindfold		,10000
 5099,Neko Mimi			,10000
 5108,Detective Hat		,10000

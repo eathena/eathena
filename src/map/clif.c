@@ -10492,8 +10492,14 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 	if (type == 0)
 		limit = 0 - limit;
 
-	if (type == 2 && limit < (-10))
-		return;
+	if (type == 2)
+	{
+		char logbuf[200];
+		sprintf(logbuf,"req mute - limit:%d",limit);
+		log_npc(sd,logbuf);
+		return;		
+	}
+
 	
 	if (dstsd && (((level = pc_isGM(sd)) > pc_isGM(dstsd)) || (type == 2 && !level))) {
 		clif_GM_silence(sd, dstsd, ((type == 2) ? 1 : type));
