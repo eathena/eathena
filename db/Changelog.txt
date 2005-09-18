@@ -33,6 +33,9 @@
 	7420,Skull //PvP Item(maybe drop item?) maybe like that custom bone drop?
 
 	--
+09/19
+	* Thx2MasterOfMuppets: Fixed some items prices [Lupus]
+	- Sorry, Skotlex, we can't merge OpenOffice Sheets, let's switch them in some TXT format for SVN merging [Lupus]
 09/18
 	* produce_db.txt corrected Halberd / Damascus ingredients [Lupus]
 	  according to 13th Sept kRO desc, thanks to andz

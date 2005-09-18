@@ -5,6 +5,7 @@ Lupus
 	* Adding new cards, checking/adding mobs/items
 Mass Zero
 	* Fixing gramatical errors.
+		^^^^^^^^^^^^^^^^^^^ it's graMMatical [Lupus]
 	* Fixing small bugs.
 	* Adding small stuff.
 	* Redoing lots of the custom scripts.
@@ -19,7 +20,7 @@ Massdriller
 	  guide book so, probably unofficial
 
 TODO:
-	* Redo all NPCs to work with BABY CLASSES.
+	* Re-check how does it work (any client crashes)
 		(Super Baby + CART, Baby Merchant + Cart, Baby Blacksmith + Cart, Baby alchemist +Cart = client crash)
 		It's not a script, but the server issue.
 		
@@ -28,6 +29,13 @@ TODO:
 
 Date		Added
 ======
+09/19
+	* Minor fix of Louyang by MasterOfMuppets [Lupus]
+	* Added official Ayothaya shops by MasterOfMuppets
+	* Added 1 Choco to Ayothaya field, thx to vicious_pucca
+	* Official Ayothaya sailor warper by MasterOfMuppets
+	* New number of Treasure Boxes per castle: 20 -> 25 at 100 Economic pts [Lupus]
+	  So you get your first chest only when your Economic Pts >= 4
 09/18
 	* Fixed Guilds Kafras charging player for their Kafra Storage usage [Lupus]
 09/17

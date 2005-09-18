@@ -7,7 +7,7 @@
 //= Mass Zero (1.3)
 //= MasterOfMuppets (2.0)
 //===== Current Version: ===================================== 
-//= 2.1
+//= 2.1a
 //===== Compatible With: ===================================== 
 //= Any eAthena Version
 //===== Description: ========================================= 
@@ -20,6 +20,7 @@
 //= 2.0 - Completely rewrote the current scripts based on iRO.
 //        Added the 'Shouting Quest' and the 'Medicine Quest'
 //= 2.1 Optimized, made quest vars unique [Lupup]
+//= 2.1a minor fix
 //============================================================
 
 alberta.gat,245,45,4	script	Girl	815,{
@@ -930,7 +931,7 @@ lou_in02.gat,58,183,4	script	Chef Assistant	823,{
 	close;
 }
 
-lou_in02.gat,58,181,2	script	Lounpc	-1,{
+lou_in02.gat,58,181,2	script	Lounpc	139,{
 OnEffect:
 	misceffect 122;
 	end;

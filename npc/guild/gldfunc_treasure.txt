@@ -4,7 +4,7 @@
 //= holyAngelX (1.0)
 //= 1.1 by Akaru and ho|yAnge|X
 //===== Current Version: =====================================
-//= 1.3
+//= 1.4
 //===== Compatible With: =====================================
 //= eAthena 0.1+; RO Episode 4+
 //===== Description: =========================================
@@ -33,6 +33,8 @@
 //= Changed back to using specific global variables for number of boxes and the box id. [kobra_k88]
 //= v1.2b Added a check to allow un broken treasure chests to respawn after map server restart.[kobra_k88]
 //= 1.3 Fixed treasure boxes spawn. (Unrolled one loop a bit) [Lupus]
+//= 1.4 New number of Treasure Boxes per castle: 25 at 100 Economic pts [Lupus]
+//=		So you get your first chest only when your Economic Pts >= 4
 //============================================================
 
 
@@ -47,7 +49,10 @@ function	script	F_GldTreas	{
 	KillMonster getarg(0)+".gat","Treasure_"+getarg(1)+"::OnDied";
 	if (GetCastleData(getarg(0)+".gat",2) > 100) return;
 	if (GetCastleData(getarg(0)+".gat",1) == 0) return;
-	set getarg(2),GetCastleData(getarg(0)+".gat",2)/5+4;
+//Old Formula for 20 Boxes at 100 pts:
+	//set getarg(2),GetCastleData(getarg(0)+".gat",2)/5+4;
+//New, correct formula for 25 boxes at 100 pts:
+	set getarg(2),GetCastleData(getarg(0)+".gat",2)/4;
 	if (getarg(2) <= 0) return;
 	set getarg(3), getarg(2);	//sets the counter variable = to the box number amount
 

@@ -60,9 +60,9 @@
 542,Festive_Cookie,Festive Cookie,0,10,0,10,,,,,10477567,2,,,,,,{ itemheal rand(325,404),0; },{}
 543,Festive_Rainbow_Cake,Festive Rainbow Cake,0,20,0,10,,,,,10477567,2,,,,,,{ itemheal rand(325,404),0; },{}
 544,Raw_Fish,Raw Fish,0,20,0,30,,,,,10477567,2,,,,,,{ itemheal rand(25,59),0; },{}
-545,Condensed_Red_Potion,Condensed Red Potion,0,20,0,20,,,,,10477567,2,,,,,,{ itemheal rand(45,64),0; },{}
-546,Condensed_Yellow_Potion,Condensed Yellow Potion,0,20,0,30,,,,,10477567,2,,,,,,{ itemheal rand(175,234),0; },{}
-547,Condensed_White_Potion,Condensed White Potion,0,20,0,50,,,,,10477567,2,,,,,,{ itemheal rand(325,404),0; },{}
+545,Condensed_Red_Potion,Condensed Red Potion,0,150,0,20,,,,,10477567,2,,,,,,{ itemheal rand(45,64),0; },{}
+546,Condensed_Yellow_Potion,Condensed Yellow Potion,0,600,0,30,,,,,10477567,2,,,,,,{ itemheal rand(175,234),0; },{}
+547,Condensed_White_Potion,Condensed White Potion,0,1650,0,50,,,,,10477567,2,,,,,,{ itemheal rand(325,404),0; },{}
 548,Cheese,Cheese,0,2800,0,50,,,,,10477567,2,,,,,,{ itemheal 0,rand(10,14); },{}
 549,Yam,Hot Potato,0,180,0,80,,,,,10477567,2,,,,,,{ itemheal rand(50,99),0; },{}
 550,Rice_Cake,Rice Popper,0,20,5,10,,,,,10477567,2,,,,,,{ itemheal 10,0; },{}
@@ -158,13 +158,13 @@
 659,Her_Heart,Her Heart,11,500,0,50,,,,,10477567,2,,,,,,{ pet 1188; },{}
 660,Forbidden_Red_Candle,Forbidden Red Candle,11,20,0,50,,,,,10477567,2,,,,,,{ pet 1200; },{}
 661,Soft_Apron,Soft Apron,11,20,0,50,,,,,10477567,2,,,,,,{ pet 1275; },{}
-662,Horse_Crest,Crest of the Horse,2,3000,0,30,,,,,10477567,2,,,,,,{ skilleffect 507,5; sc_start SC_SpeedUp0,240000,0; },{}
+662,Horse_Crest,Crest of the Horse,2,1450,0,30,,,,,10477567,2,,,,,,{ skilleffect 507,5; sc_start SC_SpeedUp0,240000,0; },{}
 663,Songpyun,Songpyun,0,20,0,10,,,,,10477567,2,,,,,,{ percentheal 10,0; },{}
 // Item Givers
-664,Gift_Box_,Gift Box,2,20,0,200,,,,,10477567,2,,,,,,{ getitem -4,1; },{}
-665,Gift_Box__,Gift Box,2,20,0,200,,,,,10477567,2,,,,,,{ getitem -4,1; },{}
-666,Gift_Box___,Gift Box,2,20,0,200,,,,,10477567,2,,,,,,{ getitem -4,1; },{}
-667,Gift_Box____,Gift Box,2,20,0,200,,,,,10477567,2,,,,,,{ getitem -4,1; },{}
+664,Gift_Box_,Gift Box,2,1000,0,200,,,,,10477567,2,,,,,,{ getitem -4,1; },{}
+665,Gift_Box__,Gift Box,2,1000,0,200,,,,,10477567,2,,,,,,{ getitem -4,1; },{}
+666,Gift_Box___,Gift Box,2,1000,0,200,,,,,10477567,2,,,,,,{ getitem -4,1; },{}
+667,Gift_Box____,Gift Box,2,1000,0,200,,,,,10477567,2,,,,,,{ getitem -4,1; },{}
 668,Angpow,Angpow,0,1,0,2,,,,,10477567,2,,,,,,{ set Zeny,Zeny+rand(1000,10000); },{}
 669,Rice_Cake_Soup,Rice Cake Soup,2,20,0,100,,,,,10477567,2,,,,,,{ percentheal -100,-100; },{}
 // Coins
@@ -176,8 +176,8 @@
 675,Silver_Coin,Silver Coin,2,20,0,40,,,,,10477567,3,,,,,,{},{}
 676,Silver_Coin_Pouch,Bag of Silver Coins,2,20,0,400,,,,,10477567,3,,,,,,{},{}
 677,Platinum_Coin,Platinum Coin,2,20,0,40,,,,,10477567,3,,,,,,{},{}
-678,Deadly_Poison_Bottle,Poison Bottle,2,20,0,100,,,,,10477567,2,,,,,,{ if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_SpeedPot3,30,0; end; Not_ASC: percentheal -100,0; },{}
-679,Pilule,Pilule,2,20,0,300,,,,,10477567,3,,,,,,{ itemheal 50,50; },{}
+678,Deadly_Poison_Bottle,Poison Bottle,2,5000,0,100,,,,,10477567,2,,,,,,{ if(Class!=4013) goto Not_ASC; sc_start SC_Poison,600000,0; sc_start SC_SpeedPot3,30,0; end; Not_ASC: percentheal -100,0; },{}
+679,Pilule,Pilule,2,5000,0,300,,,,,10477567,3,,,,,,{ itemheal 50,50; },{}
 680,Carnation,Magical Carnation,2,20,0,1000,,,,,10477567,3,,,,,,{ itemheal 25,0; },{}
 681,Wedding_Photo_Album,Wedding Photo Album,2,20,0,10,,,,,10477567,3,,,,,,{},{}
 // ATK/MATK Potions
@@ -1018,14 +1018,14 @@
 2341,Legion_Plate_Armor,Legion Plate Armor,5,94000,0,5500,,11,,0,16384,2,16,,70,1,0,{},{}
 2342,Legion_Plate_Armor_,Legion Plate Armor,5,94000,0,5500,,11,,1,16384,2,16,,70,1,0,{},{}
 2343,Robe_of_Casting,Casting Robe,5,20,0,1100,,5,,0,66048,2,16,,75,1,0,{},{ bonus bCastrate,-3; }
-2344,Armor_of_Fire,Lucias's Volcano Armor,5,20,0,2200,,4,,0,279714,2,16,,45,1,0,{},{ bonus bDefEle,3; }
-2345,Armor_of_Fire_,Lucias's Volcano Armor,5,20,0,2200,,4,,1,279714,2,16,,45,1,0,{},{ bonus bDefEle,3; }
-2346,Armor_of_Water,Sapien's Ocean Armor,5,20,0,2200,,4,,0,279714,2,16,,45,1,0,{},{ bonus bDefEle,1; }
-2347,Armor_of_Water_,Sapien's Ocean Armor,5,20,0,2200,,4,,1,279714,2,16,,45,1,0,{},{ bonus bDefEle,1; }
-2348,Armor_of_Wind,Ebeshi's Typhoon Armor,5,20,0,2200,,4,,0,279714,2,16,,45,1,0,{},{ bonus bDefEle,4; }
-2349,Armor_of_Wind_,Ebeshi's Typhoon Armor,5,20,0,2200,,4,,1,279714,2,16,,45,1,0,{},{ bonus bDefEle,4; }
-2350,Armor_of_Land,Kreitos's Earth Armor,5,20,0,2200,,4,,0,279714,2,16,,45,1,0,{},{ bonus bDefEle,2; }
-2351,Armor_of_Land_,Kreitos's Earth Armor,5,20,0,2200,,4,,1,279714,2,16,,45,1,0,{},{ bonus bDefEle,2; }
+2344,Armor_of_Fire,Lucias's Volcano Armor,5,136000,0,2200,,4,,0,279714,2,16,,45,1,0,{},{ bonus bDefEle,3; }
+2345,Armor_of_Fire_,Lucias's Volcano Armor,5,136000,0,2200,,4,,1,279714,2,16,,45,1,0,{},{ bonus bDefEle,3; }
+2346,Armor_of_Water,Sapien's Ocean Armor,5,136000,0,2200,,4,,0,279714,2,16,,45,1,0,{},{ bonus bDefEle,1; }
+2347,Armor_of_Water_,Sapien's Ocean Armor,5,136000,0,2200,,4,,1,279714,2,16,,45,1,0,{},{ bonus bDefEle,1; }
+2348,Armor_of_Wind,Ebeshi's Typhoon Armor,5,136000,0,2200,,4,,0,279714,2,16,,45,1,0,{},{ bonus bDefEle,4; }
+2349,Armor_of_Wind_,Ebeshi's Typhoon Armor,5,136000,0,2200,,4,,1,279714,2,16,,45,1,0,{},{ bonus bDefEle,4; }
+2350,Armor_of_Land,Kreitos's Earth Armor,5,136000,0,2200,,4,,0,279714,2,16,,45,1,0,{},{ bonus bDefEle,2; }
+2351,Armor_of_Land_,Kreitos's Earth Armor,5,136000,0,2200,,4,,1,279714,2,16,,45,1,0,{},{ bonus bDefEle,2; }
 2352,Armor_For_Novice,Novice Ninja Suit,5,20,0,1,,4,,0,8388609,2,16,,0,0,0,{},{}
 2353,Blessing_of_Odin,Blessing of Odin,5,20,0,2500,,6,,1,2088958,2,16,,65,1,0,{},{}
 2354,Gebney_Armor,Gebney's Armor,5,20,0,3500,,7,,0,2088958,2,16,,54,1,0,{},{ bonus bVit,2; bonus bMaxHPrate,10; }
@@ -1099,7 +1099,7 @@
 2616,Critical_Ring,Critical Ring,5,75000,0,100,,0,,0,10477567,2,136,,40,0,0,{},{ bonus bCritical,5; }
 2617,Celebrant's_Mitten,Celebrant's Mitten,5,20,0,100,,1,,0,10477567,2,136,,35,0,0,{},{ bonus bInt,1; }
 2618,Matyr's_Leash,Matyr's Leash,5,20,0,100,,1,,0,10477567,2,136,,35,0,0,{},{ bonus bAgi,1; }
-2619,Thimble_Of_Archer,Bow Thimble,5,30000,0,100,,0,,0,1574920,2,136,,65,0,0,{},{ bonus bLongAtkRate,3; }
+2619,Thimble_Of_Archer,Bow Thimble,5,10000,0,100,,0,,0,1574920,2,136,,65,0,0,{},{ bonus bLongAtkRate,3; }
 2620,Ring_Of_Rogue,Rogue's Treasure,5,30000,0,100,,0,,0,135232,2,136,,70,0,0,{},{ bonus bAddStealRate,100; }
 2621,Ring_,Ring,5,30000,0,200,,0,,1,10477567,2,136,,90,0,0,{},{ bonus bStr,1; }
 2622,Earring_,Earring,5,30000,0,200,,0,,1,10477567,2,136,,90,0,0,{},{ bonus bInt,1; }
