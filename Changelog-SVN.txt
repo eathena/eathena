@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/17
+	* Added a check that should prevent fighting against other guilds outside
+	  of WoE times. [Skotlex]
 	* Hopefully fixed Hunter's Dectect skill. [Skotlex]
 	* Fixed the packet issues on the char txt server. [Skotlex]
 	* Miscellanous corrections to skill_attack. [Skotlex]
