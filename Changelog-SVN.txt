@@ -1,6 +1,11 @@
 Changes are Aru's unless noted.
 
-2005-09-23:
+2005-09-18:
+	Commited several changes, see 
+	http://www.clownphobia.com/forum/index.php?showforum=45
+	for more info.
+
+2005-09-13:
 	Fixed up the Makefile.
 	Fixed a plagiarism bug.
 	Fixed Killer Mantis, Various Jur not causing bleeding.

@@ -4813,6 +4813,9 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 			wd = battle_calc_weapon_attack(src,target,0,0,0);
 	
 		if ((damage = wd.damage + wd.damage2) > 0 && src != target) {
+			if(battle_config.pet_attack_support && sd && sd->status.pet_id > 0 && sd->pd && sd->petDB)
+				pet_target_check(sd,target,0);
+
 			if (wd.flag & BF_SHORT) {
 				if (tsd && (rand()%100 < tsd->short_weapon_damage_return)) {
 					rdamage += damage;
@@ -4857,6 +4860,9 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 
 		battle_delay_damage(tick+wd.amotion, src, target, (wd.damage+wd.damage2), 0);
 
+		if (wd.damage > 0 || wd.damage2 > 0) //Added counter effect [Skotlex]
+			skill_counter_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
+
 		if (target->prev != NULL && (wd.damage > 0 || wd.damage2 > 0)) {
 			skill_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
 			if (sd) {
@@ -4887,6 +4893,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 
 			if (sd) sp = skill_get_sp(skillid,skilllv) * 2 / 3;
 
+			sd->state.autocast = 1;
 			if ((sd && sd->status.sp >= sp) || !sd) {
 				if ((i = skill_get_inf(skillid) == 2) || i == 32)
 					f = skill_castend_pos2(src, target->x, target->y, skillid, skilllv, tick, flag);
@@ -4905,41 +4912,10 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				}
 				if (sd && !f) { pc_heal(sd, 0, -sp); }
 			}
+			sd->state.autocast = 0;
 		}
 		if (sd) {
 			int i;
-#if 0
-			for (i = 0; i < 10; i++) {
-				if (sd->autospell_id[i] != 0) {
-					struct block_list *tbl;
-					int skillid = (sd->autospell_id[i] > 0) ? sd->autospell_id[i] : -sd->autospell_id[i];
-					int skilllv = (sd->autospell_lv[i] > 0) ? sd->autospell_lv[i] : 1;
-					int j, rate = (!sd->state.arrow_atk) ? sd->autospell_rate[i] : sd->autospell_rate[i] / 2;
-					
-					if (rand()%100 > rate)
-						continue;
-					if (sd->autospell_id[i] < 0)
-						tbl = src;
-					else tbl = target;
-					
-					if ((j = skill_get_inf(skillid) == 2) || j == 32)
-						skill_castend_pos2(src, tbl->x, tbl->y, skillid, skilllv, tick, flag);
-					else {
-						switch (skill_get_nk(skillid)) {
-							case 0:	case 2:
-								skill_castend_damage_id(src, tbl, skillid, skilllv, tick, flag);
-								break;
-							case 1:/* Žx‰‡Œn */
-								if (tbl != src && (skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) && battle_check_undead(race,ele))
-									skill_castend_damage_id(src, tbl, skillid, skilllv, tick, flag);
-								else
-									skill_castend_nodamage_id(src, tbl, skillid, skilllv, tick, flag);
-								break;
-						}
-					}
-				} else break;
-			}
-#endif
 			if (wd.flag & BF_WEAPON && src != target && (wd.damage > 0 || wd.damage2 > 0)) {
 				int hp = 0, sp = 0;
 				if (!battle_config.left_cardfix_to_right) { // “ñ“—¬¶ŽèƒJ[ƒh‚Ì‹zŽûŒnŒø‰Ê‚ð‰EŽè‚É’Ç‰Á‚µ‚È‚¢ê‡
@@ -4961,41 +4937,6 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				if (hp || sp) pc_heal(sd, hp, sp);
 				if (tsd && sd->sp_drain_type)
 					pc_heal(tsd, 0, -sp);
-			}
-		}
-		if (tsd) {
-			int i;
-			for (i = 0; i < 10; i++) {
-				if (tsd->autospell2_id[i] != 0) {
-					struct block_list *tbl;
-					int skillid = (tsd->autospell2_id[i] > 0) ? tsd->autospell2_id[i] : -tsd->autospell2_id[i];
-					int skilllv = (tsd->autospell2_lv[i] > 0) ? tsd->autospell2_lv[i] : 1;
-					int j, rate = ((sd && !sd->state.arrow_atk) || (status_get_range(src)<=2)) ?
-						tsd->autospell2_rate[i] : tsd->autospell2_rate[i] / 2;
-					
-					if (rand()%100 > rate)
-						continue;
-					if (tsd->autospell2_id[i] < 0)
-						tbl = target;
-					else tbl = src;
-
-					if ((j = skill_get_inf(skillid) == 2) || j == 32)
-						skill_castend_pos2(target, tbl->x, tbl->y, skillid, skilllv, tick, flag);
-					else {
-						switch (skill_get_nk(skillid)) {
-							case 0:	case 2:
-								skill_castend_damage_id(target, tbl, skillid, skilllv, tick, flag);
-								break;
-							case 1:/* Žx‰‡Œn */
-								if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
-									battle_check_undead(status_get_race(tbl), status_get_elem_type(tbl)))
-									skill_castend_damage_id(target, tbl, skillid, skilllv, tick, flag);
-								else
-									skill_castend_nodamage_id(target, tbl, skillid, skilllv, tick, flag);
-									break;
-						}
-					}
-				} else break;
 			}
 		}
 		if (rdamage > 0)

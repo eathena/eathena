@@ -3038,8 +3038,8 @@ int status_get_size(struct block_list *bl)
 		struct map_session_data *sd = (struct map_session_data *)bl;
 		int eff_class = pc_get_view_class(sd);
 		if (pc_calc_upper(eff_class)==2) //[Lupus]
-			return (pc_isriding(sd)!=0); //Baby Class Peco Rider + enabled option -> size = 1, else 0
-		return 1+(pc_isriding(sd)!=0);	//Peco Rider + enabled option -> size = 2, else 1
+			return 0;
+		return 1;
 	
 	} else
 		return 1;
@@ -3314,16 +3314,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				return 0;
 			}
 		}
-		if(sd->disguise > 23 && sd->disguise < 4001)
-			switch(type)
-			{
-				case SC_ENERGYCOAT:
-				case SC_TWOHANDQUICKEN:
-				case SC_SPEARSQUICKEN:
-				case SC_ADRENALINE:
-					return 0;
-				default: break;
-			}
 	}
 	else if(bl->type == BL_MOB) {		
 	}
@@ -3520,6 +3510,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			if (bl->type == BL_PC) {
 				pc_stopattack((struct map_session_data *)sd);
 			}
+			if(sd && sd->pd) 
+				pet_stopattack(sd->pd);
 			break;
 		case SC_QUAGMIRE:			/* クァグマイア */
 			calc_flag = 1;
@@ -3858,6 +3850,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 		/* option */
 		case SC_HIDING:		/* ハイディング */
+			if(sd && sd->pd) 
+				pet_stopattack(sd->pd);
 			calc_flag = 1;
 			if(bl->type == BL_PC) {
 				val2 = tick / 1000;		/* 持?時間 */
@@ -3866,6 +3860,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_CHASEWALK:
 		case SC_CLOAKING:		/* クロ?キング */
+			if(sd && sd->pd) 
+				pet_stopattack(sd->pd);
 			if(bl->type == BL_PC) {
 				calc_flag = 1; // [Celest]
 				val2 = tick;

@@ -4856,6 +4856,13 @@ int clif_status_change(struct block_list *bl,int type,int flag)
 
 	nullpo_retr(0, bl);
 
+	if(flag && bl->type == BL_PC)
+	{
+		struct map_session_data *sd = (struct map_session_data *)bl;
+		if(sd != NULL && sd->disguise)
+			return 0;
+	}
+
 	if(type == SC_BABY) return 0; 
 	if(type == SC_MEMORIZE) type = SC_SUFFRAGIUM;
 	if(type == SC_POEMBRAGI) type = SC_SUFFRAGIUM;

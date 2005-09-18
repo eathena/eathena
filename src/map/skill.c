@@ -1177,6 +1177,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case WS_CARTTERMINATION:	// Cart termination
 		if (rand() % 10000 < 5 * skilllv * sc_def_vit)
 			status_change_start(bl,SC_STAN,skilllv,0,0,0,skill_get_time2(WS_CARTTERMINATION,skilllv),0);
+//		status_change_end(src,SC_CARTBOOST,-1);
 		break;
 
 	case CR_ACIDDEMONSTRATION:
@@ -1221,6 +1222,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				case SC_STAN:
 				case SC_POISON:
 				case SC_SILENCE:
+				case SC_BLEEDING2:
 					sc_def_card=sc_def_vit;
 					break;
 				case SC_SLEEP:
@@ -1230,9 +1232,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					break;
 				case SC_CURSE:
 					sc_def_card=sc_def_luk;
-					break;
-				case SC_BLEEDING2:
-					sc_def_card=100;
 					break;
 				default: 
 					printf ("Addeff, what status is %d?\n",i);
@@ -1245,18 +1244,14 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					if(rand()%10000 < (sd->addeff[type])*sc_def_card/100 ){
 						if(battle_config.battle_log)
 							printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",sd->bl.id,i,sd->addeff[type]);
-						if(i==SC_BLEEDING2) status_change_start(src,SC_BLEEDING,7,0,0,0,120000,0);
-						else
-						status_change_start(bl,i,7,0,0,0,(i==SC_CONFUSION || i==SC_BLEEDING)? 10000+7000:skill_get_time2(sc2[type],7),0);
+						status_change_start(bl,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
 					}
 				}
 				else {
 					if(rand()%10000 < (sd->addeff[type]+sd->arrow_addeff[type])*sc_def_card/100 ){
 						if(battle_config.battle_log)
 							printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",sd->bl.id,i,sd->addeff[type]);
-						if(i==SC_BLEEDING2) status_change_start(src,SC_BLEEDING,7,0,0,0,120000,0);
-						else
-						status_change_start(bl,i,7,0,0,0,(i==SC_CONFUSION || i==SC_BLEEDING)? 10000+7000:skill_get_time2(sc2[type],7),0);
+						status_change_start(bl,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
 					}
 				}
 			}
@@ -1269,6 +1264,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				case SC_STAN:
 				case SC_POISON:
 				case SC_SILENCE:
+				case SC_BLEEDING2:
 					sc_def_card=sc_def_vit2;
 					break;
 				case SC_SLEEP:
@@ -1279,9 +1275,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				case SC_CURSE:
 					sc_def_card=sc_def_luk2;
 					break;
-				case SC_BLEEDING2:
-					sc_def_card=100;
-					break;
 				default: 
 					printf ("Addeff, what status is %d?\n",i);
 			}
@@ -1291,8 +1284,6 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					if(rand()%10000 < (sd->addeff2[type])*sc_def_card/100 ){
 						if(battle_config.battle_log)
 							printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",src->id,i,sd->addeff2[type]);
-						if(i==SC_BLEEDING2) status_change_start(src,SC_HEADCRUSH,7,0,0,0,120000,0);
-						else
 						status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
 					}
 				}
@@ -1300,9 +1291,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					if(rand()%10000 < (sd->addeff2[type]+sd->arrow_addeff2[type])*sc_def_card/100 ){
 						if(battle_config.battle_log)
 							printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",src->id,i,sd->addeff2[type]);
-						if(i==SC_BLEEDING2) status_change_start(src,SC_HEADCRUSH,7,0,0,0,120000,0);
-						else
-						status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION || i==SC_BLEEDING)? 10000+7000:skill_get_time2(sc2[type],7),0);
+						status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
 					}
 				}
 			}
@@ -1311,9 +1300,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 					continue;
 				if(battle_config.battle_log)
 					printf("PC %d skill_addeff: cardによる異常?動 %d %d\n",src->id,i,dstsd->addeff3[type]);
-				if(i==SC_BLEEDING2) status_change_start(src,SC_HEADCRUSH,7,0,0,0,120000,0);
-				else
-				status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION || i==SC_BLEEDING)? 10000+7000:skill_get_time2(sc2[type],7),0);
+				status_change_start(src,i,7,0,0,0,(i==SC_CONFUSION)? 10000+7000:skill_get_time2(sc2[type],7),0);
 			}
 		}
 	}
@@ -1370,6 +1357,124 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	return 0;
 }
+
+/* Splitted off from skill_additional_effect, which is never called when the
+ * attack skill kills the enemy. Place in this function counter status effects 
+ * when using skills (eg: Asura's sp regen penalty, or counter-status effects 
+ * from cards) that will take effect on the source, not the target. [Skotlex]
+ * Note: Currently this function only applies to Extremity Fist and BF_WEAPON 
+ * type of skills, so not every instance of skill_additional_effect needs a call
+ * to this one.
+ */
+int skill_counter_additional_effect (struct block_list* src, struct block_list *bl, int skillid, int skilllv, int attack_type, unsigned int tick)
+{
+	const int sc2[]={
+		MG_STONECURSE,MG_FROSTDIVER,NPC_STUNATTACK,
+		NPC_SLEEPATTACK,TF_POISON,NPC_CURSEATTACK,
+		NPC_SILENCEATTACK,AS_SONICBLOW,NPC_BLINDATTACK,
+		LK_HEADCRUSH
+	};
+
+	struct map_session_data *sd=NULL;
+	struct map_session_data *dstsd=NULL;
+	struct mob_data *md=NULL;
+	struct mob_data *dstmd=NULL;
+//	struct pet_data *pd=NULL; Pet's can't be inflicted!
+
+	int sc_def_mdef,sc_def_vit,sc_def_int,sc_def_luk;
+
+	nullpo_retr(0, src);
+	nullpo_retr(0, bl);
+
+	if(skillid < 0) 
+	{	// remove the debug print when this case is finished
+		ShowDebug("skill_counter_additional_effect: skillid=%i\ncall: %p %p %i %i %i %i",skillid,
+						src, bl,skillid,skilllv,attack_type,tick);
+		return 0;
+	}
+	if(skillid > 0 && skilllv <= 0) return 0;	// don't forget auto attacks! - celest
+
+	if (src->type == BL_PC){
+		nullpo_retr(0, sd = (struct map_session_data *)src);
+	} else if (src->type == BL_MOB){
+		nullpo_retr(0, md = (struct mob_data *)src);
+	} else// if (src->type == BL_PET){
+//		nullpo_retr(0, pd = (struct pet_data *)src);
+		return 0; //Only mobs/players can be affected. [Skotlex]
+//	}
+
+	if(bl->type == BL_PC) {
+		nullpo_retr(0, dstsd=(struct map_session_data *)bl);
+	} else if(bl->type == BL_MOB) {
+		nullpo_retr(0, dstmd=(struct mob_data *)bl); //????
+	} else {
+		//PC,MOB???????????
+		return 0;
+	}
+
+	//?????
+	sc_def_mdef = status_get_sc_def_mdef(src);
+	sc_def_vit = status_get_sc_def_vit(src);
+	sc_def_int = status_get_sc_def_int(src);
+	sc_def_luk = status_get_sc_def_luk(src);
+
+	switch(skillid){
+	case 0: //Normal Attack - Nothing here yet.
+		break;
+	case MO_EXTREMITYFIST:			/* ?????? */
+		//???????5??????????????
+		status_change_start(src,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time2(skillid,skilllv),0 );
+		break;
+	}
+
+	//Trigger counter-spells to retaliate against damage causing skills. [Skotlex]
+	if(dstsd && src != bl &&(!skillid || skill_get_nk(skillid)!=NK_NO_DAMAGE)) 
+	{
+		struct block_list *tbl;
+		int i, skillid, skilllv, rate;
+
+		dstsd->state.autocast=1;
+
+		for (i = 0; i < 10; i++) {
+			if (dstsd->autospell2_id[i] == 0)
+				break;
+
+			skillid = (dstsd->autospell2_id[i] > 0) ? dstsd->autospell2_id[i] : -dstsd->autospell2_id[i];
+			skilllv = (dstsd->autospell2_lv[i] > 0) ? dstsd->autospell2_lv[i] : 1;
+			rate = ((sd && !sd->state.arrow_atk) || (status_get_range(src)<=2)) ?
+				dstsd->autospell2_rate[i] : dstsd->autospell2_rate[i] / 2;
+			
+			if (rand()%1000 > rate)
+				continue;
+			if (dstsd->autospell2_id[i] < 0)
+				tbl = bl;
+			else
+				tbl = src;
+
+			if (skill_get_inf(skillid) & INF_GROUND_SKILL)
+				skill_castend_pos2(bl, tbl->x, tbl->y, skillid, skilllv, tick, 0);
+			else if(!status_isdead(bl)) {
+				switch (skill_get_nk(skillid)) {
+					case NK_NO_DAMAGE:
+						if ((skillid == AL_HEAL || (skillid == ALL_RESURRECTION && tbl->type != BL_PC)) &&
+							battle_check_undead(status_get_race(tbl), status_get_elem_type(tbl)))
+							skill_castend_damage_id(bl, tbl, skillid, skilllv, tick, 0);
+						else
+							skill_castend_nodamage_id(bl, tbl, skillid, skilllv, tick, 0);
+						break;
+					case NK_SPLASH_DAMAGE:
+					default:
+						skill_castend_damage_id(bl, tbl, skillid, skilllv, tick, 0);
+						break;
+				}
+			}
+		}
+		dstsd->state.autocast=0;
+	}
+	return 0;
+}
+
+
 #if 1
 /*=========================================================================
  スキル攻?吹き飛ばし?理
@@ -1399,7 +1504,10 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 	}else return 0;
 
 	if(md && md->hp < 1) //dead
-		return 0;	
+		return 0;
+	
+	if(target->prev==NULL)
+		return 0;
 
 	if (count&0xf00000)
 		dir = (count>>20)&0xf;
@@ -1415,7 +1523,7 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 	ret=path_blownpos(target->m,x,y,dx,dy,count&0xffff);
 	nx=ret>>16;
 	ny=ret&0xffff;
-#if 0
+#if 1
 	moveblock=( x/BLOCK_SIZE != nx/BLOCK_SIZE || y/BLOCK_SIZE != ny/BLOCK_SIZE);
 #else
 	//Avoid "moving" a target that is not registered in the map (otherwise a dangling pointer is caused) [Skotlex]
@@ -1490,129 +1598,6 @@ int skill_blown( struct block_list *src, struct block_list *target,int count)
 
 	return 0;
 }
-#else
-int skill_blown( struct block_list *src, struct block_list *target,int count, int flag)
-{
-	int dx=0,dy=0,nx,ny;
-	int x=target->x,y=target->y;
-	int dir,ret,prev_state=MS_IDLE;
-	int moveblock;
-	struct map_session_data *sd=NULL;
-	struct mob_data *md=NULL;
-	struct pet_data *pd=NULL;
-	struct skill_unit *su=NULL;
-	struct status_change* sc_data=NULL;
-
-	nullpo_retr(0, src);
-	nullpo_retr(0, target);
-
-	if(target->type==BL_PC){
-		sd=(struct map_session_data *)target;
-	}else if(target->type==BL_MOB){
-		md=(struct mob_data *)target;
-		if (md->db->mode&(0x40)) //Avoid Pushing inmobile Plants [Skotlex]
-			return 0;
-	}else if(target->type==BL_PET){
-		pd=(struct pet_data *)target;
-	}else if(target->type==BL_SKILL){
-		su=(struct skill_unit *)target;
-	}else return 0;
-
-	if (target->type != BL_SKILL)
-		sc_data = status_get_sc_data(target);
-
-	if (count&0xf00000)
-		dir = (count>>20)&0xf;
-	else if (count&0x10000 || (target->x==src->x && target->y==src->y))
-		dir = status_get_dir(target);
-	else
-		dir = map_calc_dir(target,src->x,src->y);
-	if (dir>=0 && dir<8){
-		dx = -dirx[dir];
-		dy = -diry[dir];
-	}
-
-	ret=path_blownpos(target->m,x,y,dx,dy,count&0xffff);
-	nx=ret>>16;
-	ny=ret&0xffff;
-	//Avoid "moving" a target that is not registered in the map (otherwise a dangling pointer is caused) [Skotlex]
-	//This happens when a skill knocks back an enemy and the same hit kills it, so we are pushing around a corpse.
-	moveblock= (target->prev!=NULL) && ( x/BLOCK_SIZE != nx/BLOCK_SIZE || y/BLOCK_SIZE != ny/BLOCK_SIZE);
-
-	if(count&0x20000) {
-		battle_stopwalking(target,1);
-		if(sd){
-			sd->to_x=nx;
-			sd->to_y=ny;
-			sd->walktimer = 1;
-			clif_walkok(sd);
-			clif_movechar(sd);
-			sd->walktimer = -1;  // set back so not to disturb future pc_stop_walking calls
-		}
-		else if(md) {
-			md->to_x=nx;
-			md->to_y=ny;
-			prev_state = md->state.state;
-			md->state.state = MS_WALK;
-			clif_fixmobpos(md);
-		}
-		else if(pd) {
-			pd->to_x=nx;
-			pd->to_y=ny;
-			prev_state = pd->state.state;
-			pd->state.state = MS_WALK;
-			clif_fixpetpos(pd);
-		}
-	}
-	else
-		//if the 2 is hardcoded, it causes conflicts with the div combo-delay,
-		//so it's best to pass it to the function the flag value. [Skotlex]
-		//(or perhaps would it be safe to just use 1 here? I am not risking it....
-		battle_stopwalking(target,flag);
-
-	dx = nx - x;
-	dy = ny - y;
-
-	if(sd)	/* ?????????? */
-		map_foreachinmovearea(clif_pcoutsight,target->m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,0,sd);
-	else if(md)
-		map_foreachinmovearea(clif_moboutsight,target->m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,md);
-	else if(pd)
-		map_foreachinmovearea(clif_petoutsight,target->m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,pd);
-
-	if (sc_data && sc_data[SC_DANCING].timer != -1) //Move the song/dance [Skotlex]
-		skill_unit_move_unit_group((struct skill_unit_group *)sc_data[SC_DANCING].val2, target->m, dx, dy);
-		
-	if(su){
-		skill_unit_move_unit_group(su->group,target->m,dx,dy);
-	}else{
-		int tick = gettick();
-		skill_unit_move(target,tick,0);
-		if(moveblock) map_delblock(target);
-		target->x=nx;
-		target->y=ny;
-		if(moveblock) map_addblock(target);
-		skill_unit_move(target,tick,1);
-	}
-
-	if(sd) {	/* ????????????? */
-		map_foreachinmovearea(clif_pcinsight,target->m,nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,0,sd);
-		if(count&0x20000)
-			sd->walktimer = -1;
-	}
-	else if(md) {
-		map_foreachinmovearea(clif_mobinsight,target->m,nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,BL_PC,md);
-		if(count&0x20000)
-			md->state.state = prev_state;
-	}
-	else if(pd) {
-		map_foreachinmovearea(clif_petinsight,target->m,nx-AREA_SIZE,ny-AREA_SIZE,nx+AREA_SIZE,ny+AREA_SIZE,-dx,-dy,BL_PC,pd);
-		if(count&0x20000)
-			pd->state.state = prev_state;
-	}
-
-	return 0;
-}
 #endif
 
 
@@ -1634,7 +1619,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	struct Damage dmg;
 	struct status_change *sc_data;
 	int type,lv,damage;
-	static int tmpdmg = 0;
+//	static int tmpdmg = 0;
 
 	if(skillid > 0 && skilllv <= 0) return 0;
 
@@ -1913,6 +1898,9 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 		struct map_session_data *tsd = (struct map_session_data *)bl;
 		skill_check_plag(tsd,skillid,skilllv);
 	}
+	if (damage > 0) //Counter status effects [Skotlex] 
+		skill_counter_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
+
 	/* ダメ?ジがあるなら追加?果判定 */
 	if(bl->prev != NULL){
 		if(!status_isdead(bl)) {
@@ -3926,7 +3914,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			struct status_change *tsc_data = status_get_sc_data(bl);
 			int sc = SkillStatusChangeTable[skillid];
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if (tsc_data && tsc_data[sc].timer != -1)
+			if ((sd && !sd->state.autocast) && tsc_data && tsc_data[sc].timer != -1)
 				status_change_end(bl, sc, -1);
 			else
 				status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0);				
@@ -7549,10 +7537,14 @@ int skill_castfix( struct block_list *bl, int time )
 		if (sd->castrate != 100)
 			time -= time * (100 - sd->castrate) / 100;
 	} else if (bl->type == BL_PET) { //Skotlex: Simple scaling
+#if 0
 		int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
 		if (scale > 0)	// not instant cast
-			time = time * scale / battle_config.castrate_dex_scale;
+		time = time * scale / battle_config.castrate_dex_scale;
 		else return 0;	// instant cast
+#else
+		return 0;
+#endif
 		
 		if (battle_config.cast_rate != 100)
 			time = time * battle_config.cast_rate / 100;

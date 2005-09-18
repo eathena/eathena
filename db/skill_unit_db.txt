@@ -43,7 +43,7 @@
 125,0x99,    ,  0, 1,1000,all,   0x002	//HT_TALKIEBOX#トーキーボックス
 140,0x92,    , -1, 0,1000,enemy, 0x000	//AS_VENOMDUST#ベナムダスト
 220,0xb0,    ,  0, 0,  -1,all,   0x002	//RG_GRAFFITI#グラフィティ
-229,0xb1,    ,  0, 1,1000,enemy, 0x000	//AM_DEMONSTRATION#デモンストレーション
+229,0xb1,    ,  0, 1,1000,enemy, 0x002	//AM_DEMONSTRATION#デモンストレーション
 254,0x86,    , -1, 0, 300,enemy, 0x000	//CR_GRANDCROSS#グランドクロス
 285,0x9a,    ,  3, 0,  -1,all,   0x000	//SA_VOLCANO#ボルケーノ
 286,0x9b,    ,  3, 0,  -1,all,   0x000	//SA_DELUGE#デリュージ

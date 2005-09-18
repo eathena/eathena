@@ -4102,8 +4102,10 @@ int pc_attack_timer(int tid,unsigned int tick,int id,int data)
 			// &2 = ? - Celest
 			if(!(battle_config.pc_cloak_check_type&2) && sd->sc_data[SC_CLOAKING].timer != -1)
 				status_change_end(&sd->bl,SC_CLOAKING,-1);
+#if 0
 			if(sd->status.pet_id > 0 && sd->pd && sd->petDB && battle_config.pet_attack_support)
 				pet_target_check(sd,bl,0);
+#endif
 			map_freeblock_unlock();
 			if(sd->skilltimer != -1 && (skill = pc_checkskill(sd,SA_FREECAST)) > 0 ) // フリ?キャスト
 				sd->attackabletime = tick + ((sd->aspd<<1)*(150 - skill*5)/100);
