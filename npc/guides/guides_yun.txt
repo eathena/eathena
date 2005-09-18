@@ -180,7 +180,7 @@ function	script	F_YunoLoc	{
 			viewpoint 1,157,327,5,0x00ffff;
 			goto sM_Menu;
 		sM_6: 
-			mes "[Miss Yoon]"; 
+			mes @name$;
 			mes "The Library of Republic houses an extensive collection of important historical books.";
 			viewpoint 1,335,204,6,0x0000ff;
 			goto sM_Menu;

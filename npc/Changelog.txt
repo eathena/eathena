@@ -28,6 +28,8 @@ TODO:
 
 Date		Added
 ======
+09/18
+	* Fixed Guilds Kafras charging player for their Kafra Storage usage [Lupus]
 09/17
 	* Changed Yuno guide soldiers to use Schwartzhald Republic ones [DracoRPG]
 	* Removed useless 1.3MB 'old' folder in guild scripts [DracoRPG]
