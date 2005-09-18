@@ -2972,14 +2972,6 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 	pc_stop_walking(sd,0);		// ?s’†?
 	pc_stopattack(sd);			// U?’†?
 
-/* Unneeded by the new devotion methodology. [Skotlex]
-	for (i = 0; i < 5; i++){
-		if(sd->dev.val1[i]){
-			struct map_session_data *tsd = map_id2sd(sd->dev.val1[i]);
-			skill_devotion_end(sd,tsd,i);
-		}
-	}
-*/
 	if(pc_issit(sd)) {
 		pc_setstand(sd);
 		skill_gangsterparadise(sd,0);
@@ -6442,15 +6434,6 @@ int pc_unequipitem(struct map_session_data *sd,int n,int flag)
 		}
 		if(sd->status.inventory[n].equip & 0x0040)
 			clif_changelook(&sd->bl,LOOK_SHOES,0);
-
-		if(sd->sc_count) {
-			if (sd->sc_data[SC_BROKNWEAPON].timer != -1 && sd->status.inventory[n].equip & 0x0002 &&
-				sd->status.inventory[n].attribute == 1)
-				status_change_end(&sd->bl,SC_BROKNWEAPON,-1);
-			if(sd->sc_data[SC_BROKNARMOR].timer != -1 && sd->status.inventory[n].equip & 0x0010 &&
-				sd->status.inventory[n].attribute == 1)
-				status_change_end(&sd->bl,SC_BROKNARMOR,-1);
-		}
 
 		clif_unequipitemack(sd,n,sd->status.inventory[n].equip,1);
 		sd->status.inventory[n].equip=0;

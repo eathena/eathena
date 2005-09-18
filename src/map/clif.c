@@ -8012,20 +8012,15 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
  */
 void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 {
-//	struct item_data* item;
-	int i;
 	struct npc_data *npc;
 	nullpo_retv(sd);
 
 	if(sd->bl.prev != NULL)
 		return;
 
-	// 接続ok時
-	//clif_authok();
 	if(sd->npc_id) npc_event_dequeue(sd);
 	clif_skillinfoblock(sd);
 	pc_checkitem(sd);
-	//guild_info();
 
 	// loadendack時
 	// next exp
@@ -8129,9 +8124,6 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		// オートバーサーク発動
 		status_change_start(&sd->bl,SC_PROVOKE,10,1,0,0,0,0);
 
-//	if(time(&timer) < ((weddingtime=pc_readglobalreg(sd,"PC_WEDDING_TIME")) + 3600))
-//		status_change_start(&sd->bl,SC_WEDDING,0,weddingtime,0,0,36000,0);
-
 	if(battle_config.muting_players && sd->status.manner < 0)
 		status_change_start(&sd->bl,SC_NOCHAT,0,0,0,0,0,0);
 
@@ -8156,12 +8148,6 @@ if ((npc = npc_name2id("PCLoadMapEvent"))) {
 		status_change_end(&sd->bl,SC_SIGNUMCRUCIS,-1);
 	if(sd->special_state.infinite_endure && sd->sc_data[SC_ENDURE].timer == -1)
 		status_change_start(&sd->bl,SC_ENDURE,10,1,0,0,0,0);
-	for(i=0;i<MAX_INVENTORY;i++){
-		if(sd->status.inventory[i].equip && sd->status.inventory[i].equip & 0x0002 && sd->status.inventory[i].attribute==1)
-			status_change_start(&sd->bl,SC_BROKNWEAPON,0,0,0,0,0,0);
-		if(sd->status.inventory[i].equip && sd->status.inventory[i].equip & 0x0010 && sd->status.inventory[i].attribute==1)
-			status_change_start(&sd->bl,SC_BROKNARMOR,0,0,0,0,0,0);
-	}
 
 	map_foreachinarea(clif_getareachar,sd->bl.m,sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,sd->bl.x+AREA_SIZE,sd->bl.y+AREA_SIZE,0,sd);
 }
@@ -8892,7 +8878,6 @@ void clif_parse_TakeItem(int fd, struct map_session_data *sd) {
 		pc_iscloaking(sd) || pc_ischasewalk(sd) || //Disable cloaking/chasewalking characters from looting [Skotlex]
 		(sd->sc_data && (sd->sc_data[SC_TRICKDEAD].timer != -1 || //死んだふり
 		sd->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
-		sd->sc_data[SC_BERSERK].timer!=-1 ||	//バーサーク
 		sd->sc_data[SC_NOCHAT].timer!=-1 )) )	//会話禁止
 		{
 			clif_additem(sd,0,0,6); // send fail packet! [Valaris]
@@ -8920,8 +8905,7 @@ void clif_parse_DropItem(int fd, struct map_session_data *sd) {
 	}
 	if (sd->npc_id != 0 || sd->vender_id != 0 || sd->opt1 > 0 ||
 		(sd->sc_data && (sd->sc_data[SC_AUTOCOUNTER].timer != -1 || //オートカウンター
-		sd->sc_data[SC_BLADESTOP].timer != -1 || //白刃取り
-		sd->sc_data[SC_BERSERK].timer != -1)) ) //バーサーク
+		sd->sc_data[SC_BLADESTOP].timer != -1)) )//白刃取り
 		return;
 
 	item_index = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])-2;
@@ -9006,13 +8990,6 @@ void clif_parse_UnequipItem(int fd,struct map_session_data *sd)
 	if(sd->npc_id!=0 || sd->vender_id != 0 || sd->opt1 > 0)
 		return;
 	index = RFIFOW(fd,2)-2;
-
-	/*if(sd->status.inventory[index].attribute == 1 && sd->sc_data && sd->sc_data[SC_BROKNWEAPON].timer!=-1)
-		status_change_end(&sd->bl,SC_BROKNWEAPON,-1);
-	if(sd->status.inventory[index].attribute == 1 && sd->sc_data && sd->sc_data[SC_BROKNARMOR].timer!=-1)
-		status_change_end(&sd->bl,SC_BROKNARMOR,-1);
-	if(sd->sc_count && ( sd->sc_data[SC_BLADESTOP].timer!=-1 || sd->sc_data[SC_BERSERK].timer!=-1 ))
-		return;*/
 
 	pc_unequipitem(sd,index,1);
 }

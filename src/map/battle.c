@@ -2758,14 +2758,6 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		if (rdamage > 0) //By sending attack type "none" skill_additional_effect won't be invoked. [Skotlex]
 			battle_delay_damage(tick+wd.amotion, target, src, 0, 0, 0, rdamage, 0, 0);
 
-		if (sc_data) {
-			if (sc_data[SC_READYSTORM].timer != -1 && rand()%100 < 15) // Taekwon Strom Stance [Dralnu]
-				status_change_start(src,SC_STORMKICK,1,0,0,0,0,0);
-			if(sc_data[SC_READYDOWN].timer != -1 && rand()%100 < 15) // Taekwon Axe Stance [Dralnu]
-				status_change_start(src,SC_DOWNKICK,1,target->id,0,0,0,0);
-			if(sc_data[SC_READYTURN].timer != -1 && rand()%100 < 15) // Taekwon Round Stance [Dralnu]
-				status_change_start(src,SC_TURNKICK,1,target->id,0,0,0,0);
-		}
 		if (tsc_data) {
 			if (tsc_data && tsc_data[SC_POISONREACT].timer != -1 && 
 				distance(src->x,src->y,target->x,target->y) <= status_get_range(target)+1)
@@ -2780,8 +2772,6 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 				if (tsc_data[SC_POISONREACT].val2 <= 0)
 					status_change_end(target, SC_POISONREACT, -1);
 			}
-			if (tsc_data[SC_READYCOUNTER].timer != -1 && rand()%100 < 20) // Taekwon Counter Stance [Dralnu]
-				status_change_start(target,SC_COUNTER,1,src->id,0,0,tick,flag);				
 			if (tsc_data[SC_SPLASHER].timer != -1)	//殴ったので対象のベナムスプラッシャー状態を解除
 				status_change_end(target, SC_SPLASHER, -1);
 		}

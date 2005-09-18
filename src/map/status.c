@@ -167,10 +167,10 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	SC_MAGICROD,
 	-1,-1,-1,
 /* 280- */
-	SC_FLAMELAUNCHER,
-	SC_FROSTWEAPON,
-	SC_LIGHTNINGLOADER,
-	SC_SEISMICWEAPON,
+	SC_FIREWEAPON,
+	SC_WATERWEAPON,
+	SC_WINDWEAPON,
+	SC_EARTHWEAPON,
 	-1,
 	SC_VOLCANO,
 	SC_DELUGE,
@@ -215,7 +215,7 @@ int SkillStatusChangeTable[]={	/* status.hのenumのSC_***とあわせること */
 	SC_TENSIONRELAX,
 	SC_BERSERK,
 /* 360- */
-	SC_BERSERK,
+	-1,
 	SC_ASSUMPTIO,
 	SC_BASILICA,
 	-1,-1,-1,
@@ -1331,12 +1331,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		}
 	}
 
-	// Really misc things
-	if(sd->sc_count){
-		if(sd->sc_data[SC_ENCPOISON].timer != -1)
-			sd->addeff[4] += sd->sc_data[SC_ENCPOISON].val2;
-	}
-
 // ----- CLIENT-SIDE REFRESH -----
 
 	if(first&4)
@@ -1585,8 +1579,8 @@ int status_calc_batk(struct block_list *bl, int batk)
 	sc_data = status_get_sc_data(bl);
 
 	if(sc_data){
-		if(sc_data[SC_ATKPOT].timer!=-1)
-			batk += sc_data[SC_ATKPOT].val1;
+		if(sc_data[SC_ATKPOTION].timer!=-1)
+			batk += sc_data[SC_ATKPOTION].val1;
 		if(sc_data[SC_INCATKRATE].timer!=-1)
 			batk += batk * sc_data[SC_INCATKRATE].val1/100;
 		if(sc_data[SC_PROVOKE].timer!=-1)
@@ -1635,8 +1629,8 @@ int status_calc_matk(struct block_list *bl, int matk)
 	sc_data = status_get_sc_data(bl);
 
 	if(sc_data){
-		if(sc_data[SC_MATKPOT].timer!=-1)
-			matk += sc_data[SC_MATKPOT].val1;
+		if(sc_data[SC_MATKPOTION].timer!=-1)
+			matk += sc_data[SC_MATKPOTION].val1;
 		if(sc_data[SC_MAGICPOWER].timer!=-1)
 			matk += matk * 5*sc_data[SC_MAGICPOWER].val1/100;
 		if(sc_data[SC_MINDBREAKER].timer!=-1)
@@ -1894,7 +1888,7 @@ int status_calc_aspd_rate(struct block_list *bl, int aspd_rate)
 			}
 			if(sc_data[SC_BERSERK].timer!=-1)
 				aspd_rate -= 30;
-			if(sc_data[i=SC_SPEEDPOTION3].timer!=-1 || sc_data[i=SC_SPEEDPOTION2].timer!=-1 || sc_data[i=SC_SPEEDPOTION1].timer!=-1 || sc_data[i=SC_SPEEDPOTION0].timer!=-1)
+			if(sc_data[i=SC_ASPDPOTION3].timer!=-1 || sc_data[i=SC_ASPDPOTION2].timer!=-1 || sc_data[i=SC_ASPDPOTION1].timer!=-1 || sc_data[i=SC_ASPDPOTION0].timer!=-1)
 				aspd_rate -= sc_data[i].val2;
 			if(sc_data[SC_DONTFORGETME].timer!=-1)
 				aspd_rate += sc_data[SC_DONTFORGETME].val2;
@@ -2774,7 +2768,7 @@ int status_get_dmotion(struct block_list *bl)
 	else
 		return 2000;
 
-	if((sc_data && (sc_data[SC_ENDURE].timer!=-1 || sc_data[SC_CONCENTRATION].timer!=-1 ||  sc_data[SC_BERSERK].timer!=-1)) ||
+	if((sc_data && (sc_data[SC_ENDURE].timer!=-1 || sc_data[SC_CONCENTRATION].timer!=-1 || sc_data[SC_BERSERK].timer!=-1)) ||
 		(bl->type == BL_PC && ((struct map_session_data *)bl)->special_state.infinite_endure))
 		if (!map[bl->m].flag.gvg) //Only works on non-gvg grounds. [Skotlex]
 			return 0;
@@ -2823,18 +2817,22 @@ int status_get_attack_element(struct block_list *bl)
 		ret=0;
 
 	if(sc_data) {
-		if( sc_data[SC_FROSTWEAPON].timer!=-1)	// フロストウェポン
+		if( sc_data[SC_WATERWEAPON].timer!=-1)	// フロストウェポン
 			ret=1;
-		if( sc_data[SC_SEISMICWEAPON].timer!=-1)	// サイズミックウェポン
+		if( sc_data[SC_EARTHWEAPON].timer!=-1)	// サイズミックウェポン
 			ret=2;
-		if( sc_data[SC_FLAMELAUNCHER].timer!=-1)	// フレームランチャー
+		if( sc_data[SC_FIREWEAPON].timer!=-1)	// フレームランチャー
 			ret=3;
-		if( sc_data[SC_LIGHTNINGLOADER].timer!=-1)	// ライトニングローダー
+		if( sc_data[SC_WINDWEAPON].timer!=-1)	// ライトニングローダー
 			ret=4;
 		if( sc_data[SC_ENCPOISON].timer!=-1)	// エンチャントポイズン
 			ret=5;
 		if( sc_data[SC_ASPERSIO].timer!=-1)		// アスペルシオ
 			ret=6;
+		if( sc_data[SC_SHADOWWEAPON].timer!=-1)
+			ret=7;
+		if( sc_data[SC_GHOSTWEAPON].timer!=-1)
+			ret=8;
 	}
 
 	return ret;
@@ -2847,18 +2845,22 @@ int status_get_attack_element2(struct block_list *bl)
 		struct status_change *sc_data = ((struct map_session_data *)bl)->sc_data;
 
 		if(sc_data) {
-			if( sc_data[SC_FROSTWEAPON].timer!=-1)	// フロストウェポン
+			if( sc_data[SC_WATERWEAPON].timer!=-1)	// フロストウェポン
 				ret=1;
-			if( sc_data[SC_SEISMICWEAPON].timer!=-1)	// サイズミックウェポン
+			if( sc_data[SC_EARTHWEAPON].timer!=-1)	// サイズミックウェポン
 				ret=2;
-			if( sc_data[SC_FLAMELAUNCHER].timer!=-1)	// フレームランチャー
+			if( sc_data[SC_FIREWEAPON].timer!=-1)	// フレームランチャー
 				ret=3;
-			if( sc_data[SC_LIGHTNINGLOADER].timer!=-1)	// ライトニングローダー
+			if( sc_data[SC_WINDWEAPON].timer!=-1)	// ライトニングローダー
 				ret=4;
 			if( sc_data[SC_ENCPOISON].timer!=-1)	// エンチャントポイズン
 				ret=5;
 			if( sc_data[SC_ASPERSIO].timer!=-1)		// アスペルシオ
 				ret=6;
+			if( sc_data[SC_SHADOWWEAPON].timer!=-1)
+				ret=7;
+			if( sc_data[SC_GHOSTWEAPON].timer!=-1)
+				ret=8;
 		}
 		return ret;
 	}
@@ -3229,8 +3231,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 	if(sc_data[type].timer != -1){	/* すでに同じ異常になっている場合タイマ解除 */
 		if(sc_data[type].val1 > val1 && type != SC_COMBO && type != SC_DANCING && type != SC_DEVOTION &&
-			type != SC_SPEEDPOTION0 && type != SC_SPEEDPOTION1 && type != SC_SPEEDPOTION2 && type != SC_SPEEDPOTION3
-			&& type != SC_ATKPOT && type != SC_MATKPOT) // added atk and matk potions [Valaris]
+			type != SC_ASPDPOTION0 && type != SC_ASPDPOTION1 && type != SC_ASPDPOTION2 && type != SC_ASPDPOTION3
+			&& type != SC_ATKPOTION && type != SC_MATKPOTION) // added atk and matk potions [Valaris]
 			return 0;
 
 		if ((type >=SC_STAN && type <= SC_BLIND) || type == SC_DPOISON)
@@ -3341,9 +3343,6 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_POISONREACT:	/* ポイズンリアクト */
 			val2=val1/2 + val1%2; // [Celest]
 			break;
-		case SC_ASPERSIO:			/* アスペルシオ */
-			skill_enchant_elemental_end(bl,SC_ASPERSIO);
-			break;
 		case SC_ENERGYCOAT:			/* エナジ?コ?ト */
 			*opt3 |= 4;
 			break;
@@ -3391,17 +3390,26 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_SACRIFICE:
 			val2 = 5;
 			break;
-		case SC_FLAMELAUNCHER:		/* フレ?ムランチャ? */
-			skill_enchant_elemental_end(bl,SC_FLAMELAUNCHER);
+		case SC_ASPERSIO:			/* アスペルシオ */
+			skill_enchant_elemental_end(bl,SC_ASPERSIO);
 			break;
-		case SC_FROSTWEAPON:		/* フロストウェポン */
-			skill_enchant_elemental_end(bl,SC_FROSTWEAPON);
+		case SC_FIREWEAPON:		/* フレ?ムランチャ? */
+			skill_enchant_elemental_end(bl,SC_FIREWEAPON);
 			break;
-		case SC_LIGHTNINGLOADER:	/* ライトニングロ?ダ? */
-			skill_enchant_elemental_end(bl,SC_LIGHTNINGLOADER);
+		case SC_WATERWEAPON:		/* フロストウェポン */
+			skill_enchant_elemental_end(bl,SC_WATERWEAPON);
 			break;
-		case SC_SEISMICWEAPON:		/* サイズミックウェポン */
-			skill_enchant_elemental_end(bl,SC_SEISMICWEAPON);
+		case SC_WINDWEAPON:	/* ライトニングロ?ダ? */
+			skill_enchant_elemental_end(bl,SC_WINDWEAPON);
+			break;
+		case SC_EARTHWEAPON:		/* サイズミックウェポン */
+			skill_enchant_elemental_end(bl,SC_EARTHWEAPON);
+			break;
+		case SC_SHADOWWEAPON:
+			skill_enchant_elemental_end(bl,SC_SHADOWWEAPON);
+			break;
+		case SC_GHOSTWEAPON:
+			skill_enchant_elemental_end(bl,SC_GHOSTWEAPON);
 			break;
 		case SC_PROVIDENCE:			/* プロヴィデンス */
 			calc_flag = 1;
@@ -3511,30 +3519,29 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			val3 = val4 = 0;
 			break;
 
-		case SC_SPEEDPOTION0:		/* ?速ポ?ション */
-		case SC_SPEEDPOTION1:
-		case SC_SPEEDPOTION2:
-		case SC_SPEEDPOTION3:
+		case SC_ASPDPOTION0:		/* ?速ポ?ション */
+		case SC_ASPDPOTION1:
+		case SC_ASPDPOTION2:
+		case SC_ASPDPOTION3:
 			calc_flag = 1;
 			tick = 1000 * tick;
-			val2 = 5*(2+type-SC_SPEEDPOTION0);
+			val2 = 5*(2+type-SC_ASPDPOTION0);
 			// Since people complain so much about the various icons showing up, here we disable the visual of any other potions [Skotlex] 
-			if (sc_data[SC_SPEEDPOTION0].timer != -1)
-				clif_status_change(bl,SC_SPEEDPOTION0,0);
+			if (sc_data[SC_ASPDPOTION0].timer != -1)
+				clif_status_change(bl,SC_ASPDPOTION0,0);
 			else
-			if (sc_data[SC_SPEEDPOTION1].timer != -1)
-				clif_status_change(bl,SC_SPEEDPOTION1,0);
+			if (sc_data[SC_ASPDPOTION1].timer != -1)
+				clif_status_change(bl,SC_ASPDPOTION1,0);
 			else
-			if (sc_data[SC_SPEEDPOTION2].timer != -1)
-				clif_status_change(bl,SC_SPEEDPOTION2,0);
+			if (sc_data[SC_ASPDPOTION2].timer != -1)
+				clif_status_change(bl,SC_ASPDPOTION2,0);
 			else
-			if (sc_data[SC_SPEEDPOTION3].timer != -1)
-				clif_status_change(bl,SC_SPEEDPOTION3,0);
+			if (sc_data[SC_ASPDPOTION3].timer != -1)
+				clif_status_change(bl,SC_ASPDPOTION3,0);
 			break;
 
-		/* atk & matk potions [Valaris] */
-		case SC_ATKPOT:
-		case SC_MATKPOT:
+		case SC_ATKPOTION: // Valaris
+		case SC_MATKPOTION:
 			calc_flag = 1;
 			tick = 1000 * tick;
 			break;
@@ -3692,21 +3699,31 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_FALCON:
 		case SC_WEIGHT50:
 		case SC_WEIGHT90:
-		case SC_BROKNWEAPON:
-		case SC_BROKNARMOR:
-		case SC_READYSTORM: // Taekwon Stances SC [Dralnu]
+		case SC_BROKENWEAPON:
+		case SC_BROKENARMOR:
+		case SC_READYSTORM: // Taekwon stances SCs [Dralnu]
 		case SC_READYDOWN:
 		case SC_READYCOUNTER:
 		case SC_READYTURN:
 		case SC_DODGE:
 			tick = 600*1000;
 			break;
-		case SC_STORMKICK: // Taekwon Kicks SC [Dralnu]
+// Taekwon kicks SCs, waiting to know how they should work [Dralnu]
+		case SC_STORMKICK:
+		    tick = 1000;
+		    clif_displaymessage(sd->fd,"Whirlwind Kick now !!");
+		    break;
   		case SC_DOWNKICK:
+		    tick = 1000;
+		    clif_displaymessage(sd->fd,"Axe Kick now !!");
+		    break;
     	case SC_COUNTER:
+		    tick = 1000;
+		    clif_displaymessage(sd->fd,"Counter Kick now !!");
+		    break;
  		case SC_TURNKICK:
 		    tick = 1000;
-		    clif_displaymessage(sd->fd,"Hit now !!"); // Waiting to know how it should work [Dralnu]
+		    clif_displaymessage(sd->fd,"Round Kick now !!");
 		    break;
 		case SC_AUTOGUARD:
 			if (!flag)
@@ -4161,8 +4178,8 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_SPIDERWEB:		/* スパイダ?ウェッブ */
 			case SC_MAGICPOWER:		/* 魔法力?幅 */
 			case SC_CHASEWALK:
-			case SC_ATKPOT:		/* attack potion [Valaris] */
-			case SC_MATKPOT:		/* magic attack potion [Valaris] */
+			case SC_ATKPOTION:		// [Valaris]
+			case SC_MATKPOTION:		// [Valaris]
 			case SC_WEDDING:	//結婚用(結婚衣裳になって?くのが?いとか)
 			case SC_MELTDOWN:		/* メルトダウン */
 			case SC_CARTBOOST:
@@ -4199,23 +4216,23 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			case SC_GUILDAURA:
 				calc_flag = 1;
 				break;
-			case SC_SPEEDPOTION0:		/* ?速ポ?ション */
-			case SC_SPEEDPOTION1:
-			case SC_SPEEDPOTION2:
-			case SC_SPEEDPOTION3:
+			case SC_ASPDPOTION0:		/* ?速ポ?ション */
+			case SC_ASPDPOTION1:
+			case SC_ASPDPOTION2:
+			case SC_ASPDPOTION3:
 				calc_flag = 1;
 				//Restore the icon if another speed potion is still in effect.
-				if (sc_data[SC_SPEEDPOTION3].timer != -1)
-					clif_status_change(bl,SC_SPEEDPOTION3,1);
+				if (sc_data[SC_ASPDPOTION3].timer != -1)
+					clif_status_change(bl,SC_ASPDPOTION3,1);
 				else
-				if (sc_data[SC_SPEEDPOTION2].timer != -1)
-					clif_status_change(bl,SC_SPEEDPOTION2,1);
+				if (sc_data[SC_ASPDPOTION2].timer != -1)
+					clif_status_change(bl,SC_ASPDPOTION2,1);
 				else
-				if (sc_data[SC_SPEEDPOTION1].timer != -1)
-					clif_status_change(bl,SC_SPEEDPOTION1,1);
+				if (sc_data[SC_ASPDPOTION1].timer != -1)
+					clif_status_change(bl,SC_ASPDPOTION1,1);
 				else
-				if (sc_data[SC_SPEEDPOTION0].timer != -1)
-					clif_status_change(bl,SC_SPEEDPOTION0,1);
+				if (sc_data[SC_ASPDPOTION0].timer != -1)
+					clif_status_change(bl,SC_ASPDPOTION0,1);
 				break;
 
 			case SC_AUTOBERSERK:
@@ -4715,8 +4732,8 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_MAGICPOWER:
 	case SC_REJECTSWORD:
 	case SC_MEMORIZE:
-	case SC_BROKNWEAPON:
-	case SC_BROKNARMOR:
+	case SC_BROKENWEAPON:
+	case SC_BROKENARMOR:
 	case SC_SACRIFICE:
 	case SC_READYSTORM:
 	case SC_READYDOWN:

@@ -1,6 +1,11 @@
 Date	Added
 =======
 
+09/18
+	* More updates to status change IDs [DracoRPG]
+	* Implemented TK_SEVENWIND, allowed simultaneous use of several stances, thanks to
+	  reddozen for all the info about that [DracoRPG]
+	* Allowed to pickup/drop items while in Frenzy [DracoRPG]
 09/17
 	* Added a check that should prevent fighting against other guilds outside
 	  of WoE times. [Skotlex]

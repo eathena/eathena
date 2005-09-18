@@ -786,8 +786,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	switch(skillid){
 	case 0: // Normal attacks (no skill used)
 		if(sd) {
-			// Automatic trigger of Blitz Beat
 			struct status_change *sc_data = status_get_sc_data(bl);
+			// Automatic trigger of Blitz Beat
 			if (pc_isfalcon(sd) && sd->status.weapon == 11 && (skill=pc_checkskill(sd,HT_BLITZBEAT))>0 &&
 				rand()%1000 <= sd->paramc[5]*10/3+1 ) {
 				int lv=(sd->status.job_level+9)/10;
@@ -804,15 +804,24 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			// Enchant Poison gives a chance to poison attacked enemies
 			if (sd->sc_data[SC_ENCPOISON].timer != -1 && sc_data && sc_data[SC_POISON].timer == -1 &&
 				rand() % 100 < sd->sc_data[SC_ENCPOISON].val1 * sc_def_vit / 100) {
-				status_change_start(bl,SC_POISON,sd->sc_data[SC_ENCPOISON].val1,
-					0,0,0,skill_get_time2(AS_ENCHANTPOISON,sd->sc_data[SC_ENCPOISON].val1),0);
+				status_change_start(bl,SC_POISON,sd->sc_data[SC_ENCPOISON].val1,0,0,0,skill_get_time2(AS_ENCHANTPOISON,sd->sc_data[SC_ENCPOISON].val1),0);
 			}
 			// Enchant Deadly Poison gives a chance to deadly poison attacked enemies
 			if (sd->sc_data[SC_EDP].timer != -1 && !(status_get_mode(bl) & 0x20) &&
 				sc_data && sc_data[SC_DPOISON].timer == -1 &&
 				rand() % 100 < sd->sc_data[SC_EDP].val2 * sc_def_vit / 100)
-				status_change_start(bl,SC_DPOISON,sd->sc_data[SC_EDP].val1,
-					0,0,0,skill_get_time2(ASC_EDP,sd->sc_data[SC_EDP].val1),0);			
+				status_change_start(bl,SC_DPOISON,sd->sc_data[SC_EDP].val1,0,0,0,skill_get_time2(ASC_EDP,sd->sc_data[SC_EDP].val1),0);
+			// Chance to trigger Taekwon kicks
+			if (sd->sc_data[SC_READYSTORM].timer != -1 && rand()%100 < 15) // Storm Kick Stance [Dralnu]
+				status_change_start(src,SC_STORMKICK,1,0,0,0,0,0);
+			if(sd->sc_data[SC_READYDOWN].timer != -1 && rand()%100 < 15) // Axe Kick Stance [Dralnu]
+				status_change_start(src,SC_DOWNKICK,1,bl->id,0,0,0,0);
+			if(sd->sc_data[SC_READYTURN].timer != -1 && rand()%100 < 15) // Round Kick Stance [Dralnu]
+				status_change_start(src,SC_TURNKICK,1,bl->id,0,0,0,0);
+		}
+		if(dstsd){
+        	if (dstsd->sc_data[SC_READYCOUNTER].timer != -1 && rand()%100 < 20) // Counter Kick Stance [Dralnu]
+				status_change_start(bl,SC_COUNTER,1,src->id,0,0,0,0);
 		}
 		break;
 
@@ -3482,10 +3491,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 			if(dstsd->status.weapon == 0 ||
 				(sd && sd->status.party_id > 0 && sd->status.party_id != dstsd->status.party_id) ||
-				dstsd->sc_data[SC_FLAMELAUNCHER].timer != -1 ||
-				dstsd->sc_data[SC_FROSTWEAPON].timer != -1 ||
-				dstsd->sc_data[SC_LIGHTNINGLOADER].timer != -1 ||
-				dstsd->sc_data[SC_SEISMICWEAPON].timer != -1 ||
+				dstsd->sc_data[SC_FIREWEAPON].timer != -1 ||
+				dstsd->sc_data[SC_WATERWEAPON].timer != -1 ||
+				dstsd->sc_data[SC_WINDWEAPON].timer != -1 ||
+				dstsd->sc_data[SC_EARTHWEAPON].timer != -1 ||
+				dstsd->sc_data[SC_SHADOWWEAPON].timer != -1 ||
+				dstsd->sc_data[SC_GHOSTWEAPON].timer != -1 ||
 				dstsd->sc_data[SC_ENCPOISON].timer != -1) {
 				if (sd) clif_skill_fail(sd,skillid,0,0);
 				clif_skill_nodamage(src,bl,skillid,skilllv,0);
@@ -3520,6 +3531,37 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if (status_isimmune(bl) || dstmd)
 			break;
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
+		break;
+
+	case TK_SEVENWIND:
+		{
+		int sc=-1;
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		switch(skilllv){
+			case 1:
+				sc=SC_EARTHWEAPON;
+				break;
+			case 2:
+				sc=SC_WINDWEAPON;
+				break;
+			case 3:
+				sc=SC_WATERWEAPON;
+				break;
+			case 4:
+				sc=SC_FIREWEAPON;
+				break;
+			case 5:
+				sc=SC_GHOSTWEAPON;
+				break;
+			case 6:
+				sc=SC_SHADOWWEAPON;
+				break;
+			case 7:
+				sc=SC_ASPERSIO;
+				break;
+		}
+		status_change_start(bl,sc,skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
+		}
 		break;
 
 	case PR_KYRIE:			/* キリエエレイソン */
@@ -3562,7 +3604,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case PA_SACRIFICE:
 	case ASC_EDP:			// [Celest]
 	case CG_MOONLIT:		/* 月明りの泉に落ちる花びら */
-//	case TK_SEVENWIND:
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		status_change_start(bl,SkillStatusChangeTable[skillid],skilllv,0,0,0,skill_get_time(skillid,skilllv),0 );
 		break;
@@ -3589,10 +3630,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case AS_ENCHANTPOISON: // Prevent spamming [Valaris]
 		if (dstsd) {
-			if(dstsd->sc_data[SC_FLAMELAUNCHER].timer != -1 ||
-				dstsd->sc_data[SC_FROSTWEAPON].timer != -1 ||
-				dstsd->sc_data[SC_LIGHTNINGLOADER].timer != -1 ||
-				dstsd->sc_data[SC_SEISMICWEAPON].timer != -1 ||
+			if(dstsd->sc_data[SC_FIREWEAPON].timer != -1 ||
+				dstsd->sc_data[SC_WATERWEAPON].timer != -1 ||
+				dstsd->sc_data[SC_WINDWEAPON].timer != -1 ||
+				dstsd->sc_data[SC_EARTHWEAPON].timer != -1 ||
+				dstsd->sc_data[SC_SHADOWWEAPON].timer != -1 ||
+				dstsd->sc_data[SC_GHOSTWEAPON].timer != -1 ||
 				dstsd->sc_data[SC_ENCPOISON].timer != -1) {
 					clif_skill_nodamage(src,bl,skillid,skilllv,0);
 					clif_skill_fail(sd,skillid,0,0);
@@ -3916,20 +3959,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			struct status_change *tsc_data = status_get_sc_data(bl);
 
-			if ((tsc_data[SC_READYSTORM].timer != -1 && skillid != TK_READYSTORM) ||
-				 (tsc_data[SC_READYDOWN].timer != -1 && skillid != TK_READYDOWN) ||
-                 (tsc_data[SC_READYTURN].timer != -1 && skillid != TK_READYTURN) ||
-                 (tsc_data[SC_READYCOUNTER].timer != -1 && skillid != TK_READYCOUNTER) ||
-                 (tsc_data[SC_DODGE].timer != -1 && skillid != TK_DODGE))
-				clif_skill_fail(sd,skillid,0,0);
-			else {
-               	int sc = SkillStatusChangeTable[skillid];
-				clif_skill_nodamage(src,bl,skillid,skilllv,1);
-				if (tsc_data && tsc_data[sc].timer != -1)
-					status_change_end(bl, sc, -1);
-				else
-					status_change_start(bl,sc,skilllv,0,0,0,0,0);
-    		} 			
+           	int sc = SkillStatusChangeTable[skillid];
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			if (tsc_data && tsc_data[sc].timer != -1)
+				status_change_end(bl, sc, -1);
+			else
+				status_change_start(bl,sc,skilllv,0,0,0,0,0);
 		}
 		break;
 	case TF_HIDING:			/* ハイディング */
@@ -4706,9 +4741,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NPC_SPEEDUP:
 		{
 			// or does it increase casting rate? just a guess xD
-			int i = SC_SPEEDPOTION0 + skilllv - 1;
-			if (i > SC_SPEEDPOTION3)
-				i = SC_SPEEDPOTION3;
+			int i = SC_ASPDPOTION0 + skilllv - 1;
+			if (i > SC_ASPDPOTION3)
+				i = SC_ASPDPOTION3;
 			status_change_start(bl,i,skilllv,0,0,0,skilllv * 60000,0);
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		}
@@ -9419,15 +9454,18 @@ int skill_enchant_elemental_end (struct block_list *bl, int type)
 		status_change_end(bl, SC_ENCPOISON, -1);
 	if (type != SC_ASPERSIO && sc_data[SC_ASPERSIO].timer != -1)			/* アスペルシオ解除 */
 		status_change_end(bl, SC_ASPERSIO, -1);
-	if (type != SC_FLAMELAUNCHER && sc_data[SC_FLAMELAUNCHER].timer != -1)	/* フレイムランチャ解除 */
-		status_change_end(bl, SC_FLAMELAUNCHER, -1);
-	if (type != SC_FROSTWEAPON && sc_data[SC_FROSTWEAPON].timer != -1)		/* フロストウェポン解除 */
-		status_change_end(bl, SC_FROSTWEAPON, -1);
-	if (type != SC_LIGHTNINGLOADER && sc_data[SC_LIGHTNINGLOADER].timer != -1)	/* ライトニングロ?ダ?解除 */
-		status_change_end(bl, SC_LIGHTNINGLOADER, -1);
-	if (type != SC_SEISMICWEAPON && sc_data[SC_SEISMICWEAPON].timer != -1)	/* サイスミックウェポン解除 */
-		status_change_end(bl, SC_SEISMICWEAPON, -1);
-
+	if (type != SC_FIREWEAPON && sc_data[SC_FIREWEAPON].timer != -1)	/* フレイムランチャ解除 */
+		status_change_end(bl, SC_FIREWEAPON, -1);
+	if (type != SC_WATERWEAPON && sc_data[SC_WATERWEAPON].timer != -1)		/* フロストウェポン解除 */
+		status_change_end(bl, SC_WATERWEAPON, -1);
+	if (type != SC_WINDWEAPON && sc_data[SC_WINDWEAPON].timer != -1)	/* ライトニングロ?ダ?解除 */
+		status_change_end(bl, SC_WINDWEAPON, -1);
+	if (type != SC_EARTHWEAPON && sc_data[SC_EARTHWEAPON].timer != -1)	/* サイスミックウェポン解除 */
+		status_change_end(bl, SC_EARTHWEAPON, -1);
+	if (type != SC_SHADOWWEAPON && sc_data[SC_SHADOWWEAPON].timer != -1)
+		status_change_end(bl, SC_SHADOWWEAPON, -1);
+	if (type != SC_GHOSTWEAPON && sc_data[SC_GHOSTWEAPON].timer != -1)
+		status_change_end(bl, SC_GHOSTWEAPON, -1);
 	return 0;
 }
 
