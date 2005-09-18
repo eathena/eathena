@@ -30,6 +30,7 @@ struct itemtmp {
 	char refine;
 	char attribute;
 	short card[4];
+	short gm_made;
 };
 enum {
 	TABLE_INVENTORY,
