@@ -34,6 +34,8 @@
 
 	--
 09/18
+	* produce_db.txt corrected Halberd / Damascus ingredients [Lupus]
+	  according to 13th Sept kRO desc, thanks to andz
 	* Corrected range of Hunter's Detect skill
 	* Removed Apple-Plugs (512,0%) drops from the monsters [Lupus]
 	* Updated Leaf Cat's walkspeed (now faster, thx2 MasterOfMuppets) [Lupus]

@@ -83,8 +83,8 @@
 1216,2,98,999,40
 //-- Gladius <-- BS_DAGGER & 8 Oridecon, 40 Steel, 1 Sapphire
 1219,3,98,984,8,999,40,726,1
-//-- Damascus <-- BS_DAGGER & 16 Oridecon, 60 Steel, 1 Zircon
-1222,3,98,984,16,999,60,729,1
+//-- Damascus <-- BS_DAGGER & 4 Oridecon, 60 Steel, 1 Zircon
+1222,3,98,984,4,999,60,729,1
 //----------------------------------------------
 
 //---- To Handed Swords ------------------------
@@ -164,8 +164,8 @@
 1457,2,104,999,55
 //-- Trident <-- BS_SPEAR & 8 Oridecon, 10 Steel, 5 Aquamarine
 1460,3,104,984,8,999,10,720,5
-//-- Halberd <-- BS_SPEAR & 2 Oridecon, 10 Steel
-1463,3,104,984,12,999,10
+//-- Halberd <-- BS_SPEAR & 3 Oridecon, 10 Steel
+1463,3,104,984,3,999,10
 //-- Lance <-- BS_SPEAR & 12 Oridecon, 3 Ruby, 2 Evil Horn
 1410,3,104,984,12,723,3,923,2
 //----------------------------------------------
