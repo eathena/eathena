@@ -37,6 +37,7 @@ int storage_tosql(int account_id,struct storage *p){
 			mapitem[count].card[1] = p->storage_[i].card[1];
 			mapitem[count].card[2] = p->storage_[i].card[2];
 			mapitem[count].card[3] = p->storage_[i].card[3];
+			mapitem[count].gm_made = p->storage_[i].gm_made;
 			count++;
 		}
 	}
@@ -51,8 +52,8 @@ int storage_tosql(int account_id,struct storage *p){
 int storage_fromsql(int account_id, struct storage *p){
 	int i=0;
 
-	// storage {`account_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3`}
-	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3` FROM `%s` WHERE `account_id`='%d'",storage_db, account_id);
+	// storage {`account_id`/`id`/`nameid`/`amount`/`equip`/`identify`/`refine`/`attribute`/`card0`/`card1`/`card2`/`card3` `gm_made`}
+	sprintf(tmp_sql,"SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3`, `gm_made` FROM `%s` WHERE `account_id`='%d'",storage_db, account_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 			printf("DB server Error - %s\n", mysql_error(&mysql_handle) );
 //			return -1;
@@ -68,17 +69,18 @@ int storage_fromsql(int account_id, struct storage *p){
 
 	if (sql_res) {
 		while((sql_row = mysql_fetch_row(sql_res))) {	//start to fetch
-			p->storage_[i].id= atoi(sql_row[0]);
-			p->storage_[i].nameid= atoi(sql_row[1]);
-			p->storage_[i].amount= atoi(sql_row[2]);
-			p->storage_[i].equip= atoi(sql_row[3]);
+			p->storage_[i].id     = atoi(sql_row[0]);
+			p->storage_[i].nameid = atoi(sql_row[1]);
+			p->storage_[i].amount = atoi(sql_row[2]);
+			p->storage_[i].equip  = atoi(sql_row[3]);
 			p->storage_[i].identify= atoi(sql_row[4]);
-			p->storage_[i].refine= atoi(sql_row[5]);
+			p->storage_[i].refine  = atoi(sql_row[5]);
 			p->storage_[i].attribute= atoi(sql_row[6]);
-			p->storage_[i].card[0]= atoi(sql_row[7]);
-			p->storage_[i].card[1]= atoi(sql_row[8]);
-			p->storage_[i].card[2]= atoi(sql_row[9]);
-			p->storage_[i].card[3]= atoi(sql_row[10]);
+			p->storage_[i].card[0] = atoi(sql_row[7]);
+			p->storage_[i].card[1] = atoi(sql_row[8]);
+			p->storage_[i].card[2] = atoi(sql_row[9]);
+			p->storage_[i].card[3] = atoi(sql_row[10]);
+			p->storage_[i].gm_made = atoi(sql_row[11]);
 			p->storage_amount = ++i;
 		}
 		mysql_free_result(sql_res);
@@ -110,6 +112,7 @@ int guild_storage_tosql(int guild_id, struct guild_storage *p){
 			mapitem[count].card[1] = p->storage_[i].card[1];
 			mapitem[count].card[2] = p->storage_[i].card[2];
 			mapitem[count].card[3] = p->storage_[i].card[3];
+			mapitem[count].gm_made = p->storage_[i].gm_made;
 			count++;
 		}
 	}
@@ -151,6 +154,7 @@ int guild_storage_fromsql(int guild_id, struct guild_storage *p){
 			p->storage_[i].card[1]= atoi(sql_row[8]);
 			p->storage_[i].card[2]= atoi(sql_row[9]);
 			p->storage_[i].card[3]= atoi(sql_row[10]);
+			p->storage_[i].gm_made = atoi(sql_row[11]);
 			p->storage_amount = ++i;
 			if (i >= MAX_GUILD_STORAGE)
 				break;
@@ -178,7 +182,7 @@ int inter_storage_sql_init(){
 void inter_storage_sql_final()
 {
 	if (storage_pt) aFree(storage_pt);
-	if (guild_storage_pt) aFree(guild_storage_pt);	 
+	if (guild_storage_pt) aFree(guild_storage_pt);
 	return;
 }
 // q?f[^?

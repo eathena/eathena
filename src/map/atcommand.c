@@ -908,7 +908,7 @@ AtCommandType atcommand(struct map_session_data* sd, const int level, const char
 static int atkillmonster_sub(struct block_list *bl, va_list ap) {
 	struct mob_data *md;
 	int flag;
-	
+
 	nullpo_retr(0, ap);
 	nullpo_retr(0, md=(struct mob_data *)bl);
 	flag = va_arg(ap, int);
@@ -917,7 +917,7 @@ static int atkillmonster_sub(struct block_list *bl, va_list ap) {
 		mob_damage(NULL, md, md->hp, 2);
 	else
 		mob_delete(md);
-	
+
 	return 0;
 }
 /*==========================================
@@ -1074,7 +1074,7 @@ int atcommand_send(
 {
 	int i,type=0;
 	int info[20];
-	
+
    	if (!message || !*message || sscanf(message, "%x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &type, &info[1], &info[2], &info[3], &info[4], &info[5], &info[6], &info[7], &info[8], &info[9], &info[10], &info[11], &info[12], &info[13], &info[14], &info[15], &info[16], &info[17], &info[18], &info[19], &info[20]) < 1) {
 		clif_displaymessage(fd, "Please enter a packet number, and - if required - up to 20 additional values.");
 		return -1;
@@ -1187,7 +1187,7 @@ int atcommand_where(
 		return -1;
 	if(strncmp(sd->status.name,atcmd_player_name,24)==0)
 		return -1;
-		
+
 	GM_level = pc_isGM(sd);//also hide gms depending on settings in battle_athena.conf, show if they are aid [Kevin]
 	if (battle_config.hide_GM_session) {
 		if (!(battle_config.who_display_aid > 0 && pc_isGM(sd) >= battle_config.who_display_aid)) {
@@ -2420,6 +2420,7 @@ int atcommand_item(
 				memset(&item_tmp, 0, sizeof(item_tmp));
 				item_tmp.nameid = item_id;
 				item_tmp.identify = 1;
+				item_tmp.gm_made = 1;
 				if ((flag = pc_additem((struct map_session_data*)sd, &item_tmp, get_count)))
 					clif_additem((struct map_session_data*)sd, 0, 0, flag);
 			}
@@ -2496,6 +2497,7 @@ int atcommand_item2(
 			item_tmp.card[1] = c2;
 			item_tmp.card[2] = c3;
 			item_tmp.card[3] = c4;
+			item_tmp.gm_made = 1;
 			if ((flag = pc_additem(sd, &item_tmp, get_count)))
 				clif_additem(sd, 0, 0, flag);
 		}
@@ -3787,7 +3789,7 @@ int atcommand_packet(
 		clif_displaymessage(fd, "Packet mode changed.");
 		return 0;
 	}
-	
+
 	if (!message || !*message || (i = sscanf(message, "%d %d", &x, &y)) < 1) {
 		clif_displaymessage(fd, "Please, enter a status type/flag (usage: @packet <status type> <flag>).");
 		return -1;
@@ -5258,7 +5260,7 @@ int atcommand_mapexit(
 		}
 	}
 	clif_GM_kick(sd, sd, 0);
-	
+
 	flush_fifos();
 
 	runflag = 0;
@@ -5742,7 +5744,7 @@ atcommand_reloadbattleconf(
 }
 /*==========================================
  * @reloadstatusdb
- *   job_db1.txt job_db2.txt job_db2-2.txt 
+ *   job_db1.txt job_db2.txt job_db2-2.txt
  *   refine_db.txt size_fix.txt
  *   のリロード
  *------------------------------------------
@@ -5758,7 +5760,7 @@ atcommand_reloadstatusdb(
 }
 /*==========================================
  * @reloadpcdb
- *   exp.txt skill_tree.txt attr_fix.txt 
+ *   exp.txt skill_tree.txt attr_fix.txt
  *   のリロード
  *------------------------------------------
  */
@@ -7775,7 +7777,7 @@ atcommand_marry(const int fd, struct map_session_data* sd,
 /*==========================================
  * @divorce by [MouseJstr], fixed by [Lupus]
  *
- * divorce two players 
+ * divorce two players
  *------------------------------------------
  */
 int
@@ -7960,18 +7962,18 @@ atcommand_autoloot(
 	const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	if (sd->autoloot) 
+	if (sd->autoloot)
 	{
 		sd->autoloot = 0;
 		clif_displaymessage(fd, "Autoloot is now off.");
 	}
-	else 
+	else
 	{
 		sd->autoloot = 1;
 		clif_displaymessage(fd, "Autoloot is now on.");
 	}
-	return 0;  
-}   
+	return 0;
+}
 
 
 /*==========================================
@@ -8271,7 +8273,7 @@ atcommand_npctalk(
 
 	if (!(nd = npc_name2id(name)))
 		return -1;
-	
+
 	clif_message(&nd->bl, mes);
 	return 0;
 }
@@ -8512,7 +8514,7 @@ int atcommand_unmute(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	
+
 	if(!battle_config.muting_players) {
 		clif_displaymessage(fd, "Please enable the muting system before using it.");
 		return 0;
@@ -8583,12 +8585,12 @@ int atcommand_mute(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	
+
 	if(!battle_config.muting_players) {
 		clif_displaymessage(fd, "Please enable the muting system before using it.");
 		return 0;
 	}
-	
+
 	struct map_session_data *pl_sd = NULL;
 	int manner;
 	nullpo_retr(-1, sd);
@@ -9594,7 +9596,7 @@ int atcommand_iteminfo(
 
 		sprintf(atcmd_output, "Item: '%s'/'%s'[%d] (%d) Type: %s | Extra Effect: %s",
 			item_data->name,item_data->jname,item_data->slot,item_id,
-			item_data->type < 12 ? itype[item_data->type] : "BUG!", 
+			item_data->type < 12 ? itype[item_data->type] : "BUG!",
 			(item_data->use_script==NULL && item_data->equip_script==NULL) ? "None" : (item_data->use_script==NULL ? "On Equip" : "On Usage")
 		);
 		clif_displaymessage(fd, atcmd_output);
@@ -9682,7 +9684,7 @@ const char* command, const char* message)
                 clif_displaymessage(fd, player1);
                 return -1;
 	}
- 
+
        if((pl_sd3=map_nick2sd((char *) player3)) == NULL) {
                 sprintf(player1, "Cannot find player %s online", player3);
                 clif_displaymessage(fd, player1);
@@ -9711,7 +9713,7 @@ int atcommand_version(
  	if ((revision = get_svn_revision()) != 0) {
  		sprintf(atcmd_output,"eAthena Version SVN r%s",revision);
             clif_displaymessage(fd,atcmd_output);
- 	} else 
+ 	} else
           clif_displaymessage(fd,"Cannot determine SVN revision");
 
 	return 0;
@@ -9720,14 +9722,14 @@ int atcommand_version(
 
 static int atcommand_mutearea_sub(struct block_list *bl,va_list ap)
 {
-	
+
 	int time, id;
 	struct map_session_data *pl_sd = (struct map_session_data *)bl;
 	if (pl_sd == NULL)
 		return 0;
 
 	id = va_arg(ap, int);
-	time = va_arg(ap, int);	
+	time = va_arg(ap, int);
 
 	if (id != bl->id && !pc_isGM(pl_sd)) {
 		pl_sd->status.manner -= time;
@@ -9745,20 +9747,20 @@ int atcommand_mutearea(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	
+
 	if(!battle_config.muting_players) {
 		clif_displaymessage(fd, "Please enable the muting system before using it.");
 		return 0;
 	}
-	
+
 	int time;
 	nullpo_retr(0, sd);
 
 	time = atoi(message);
 	if (time <= 0)
 		time = 15; // 15 minutes default
-	map_foreachinarea(atcommand_mutearea_sub,sd->bl.m, 
-		sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE, 
+	map_foreachinarea(atcommand_mutearea_sub,sd->bl.m,
+		sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,
 		sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_PC, sd->bl.id, time);
 
 	return 0;
@@ -9770,7 +9772,7 @@ static int atcommand_shuffle_sub(struct block_list *bl,va_list ap)
   if (bl == NULL)
     return 0;
 
-  if (!pc_isGM(pl_sd)) 
+  if (!pc_isGM(pl_sd))
     pc_setpos(pl_sd, pl_sd->mapname, rand() % 399 + 1, rand() % 399 + 1, 3);
 
   return 0;
@@ -9787,19 +9789,19 @@ int atcommand_shuffle(
   nullpo_retr(0, sd);
 
   if (strcmp(message, "area")== 0) {
-    map_foreachinarea(atcommand_shuffle_sub,sd->bl.m, 
-      sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE, 
-      sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_PC);  
+    map_foreachinarea(atcommand_shuffle_sub,sd->bl.m,
+      sd->bl.x-AREA_SIZE,sd->bl.y-AREA_SIZE,
+      sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_PC);
   } else if (strcmp(message, "map")== 0) {
-    map_foreachinarea(atcommand_shuffle_sub,sd->bl.m, 
+    map_foreachinarea(atcommand_shuffle_sub,sd->bl.m,
       0, 399, 0, 399, BL_PC);
   } else if (strcmp(message, "world") == 0) {
     struct map_session_data *pl_sd;
     int i;
-    for (i = 0; i < fd_max; i++) 
+    for (i = 0; i < fd_max; i++)
       if (session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) != NULL && pl_sd->state.auth)
         atcommand_shuffle_sub(&pl_sd->bl, 0);
-  } else 
+  } else
     clif_displaymessage(fd, "options are area, map, or world");
 
   return 0;
@@ -9813,7 +9815,7 @@ int atcommand_rates(
 
   nullpo_retr(0, sd);
 
-  sprintf(buf, "base_exp_rate: %d    job_exp_rate: %d", 
+  sprintf(buf, "base_exp_rate: %d    job_exp_rate: %d",
     battle_config.base_exp_rate, battle_config.job_exp_rate);
 
   clif_displaymessage(fd, buf);

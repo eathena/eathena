@@ -95,6 +95,7 @@ struct item {
 	char refine;
 	char attribute;
 	short card[4];
+	short gm_made;
 };
 
 struct point{
@@ -289,8 +290,8 @@ struct guild_castle {
 	int Ghp4;
 	int Ghp5;
 	int Ghp6;
-	int Ghp7;	
-	int GID0;	
+	int Ghp7;
+	int GID0;
 	int GID1;
 	int GID2;
 	int GID3;

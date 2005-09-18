@@ -167,7 +167,7 @@ int console = 0;
 
 #define mysql_query(_x, _y) mysql_real_query(_x, _y, strlen(_y)) //supports ' in names and runs faster [Kevin]
 
-#else 
+#else
 
 #define mysql_query(_x, _y) debug_mysql_query(__FILE__, __LINE__, _x, _y)
 
@@ -182,18 +182,18 @@ int console = 0;
 int delete_char_sql(int char_id, int partner_id)
 {
 	char function_name[] = "delete_char_sql";
-	
+
 	sprintf(tmp_sql, "SELECT `name`,`partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, char_id);
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		printf("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 	}
-	
+
 	sql_res = mysql_store_result(&mysql_handle);
-		
+
 	if(sql_res)
 		sql_row = mysql_fetch_row(sql_res);
-	
+
 	/* Divorce [Wizputer] */
 	if (partner_id) {
 		sprintf(tmp_sql,"UPDATE `%s` SET `partner_id`='0' WHERE `char_id`='%d'",char_db,partner_id);
@@ -205,7 +205,7 @@ int delete_char_sql(int char_id, int partner_id)
 			printf("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 	}
-		
+
 	if (sql_res && sql_row[0]) {
 		/* delete char's pet */
 		//Delete the hatched pet if you have one...
@@ -219,7 +219,7 @@ int delete_char_sql(int char_id, int partner_id)
 		sprintf(tmp_sql,
 		"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
 			pet_db, char_db, inventory_db, pet_db, char_id);
-		
+
 		if(mysql_query(&mysql_handle, tmp_sql)) {
 			printf("%s - DB server Error (pets from inventory): %s\n", function_name, mysql_error(&mysql_handle));
 		}
@@ -228,12 +228,12 @@ int delete_char_sql(int char_id, int partner_id)
 		sprintf(tmp_sql,
 		"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
 			pet_db, char_db, cart_db, pet_db, char_id);
-		
+
 		if(mysql_query(&mysql_handle, tmp_sql)) {
 			printf("%s - DB server Error (pets from cart): %s\n", function_name, mysql_error(&mysql_handle));
 		}
 
-		
+
 		/* delete inventory */
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",inventory_db, char_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
@@ -257,11 +257,11 @@ int delete_char_sql(int char_id, int partner_id)
 		if(mysql_query(&mysql_handle, tmp_sql)) {
 				printf("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
-		
+
 		/* Also delete info from guildtables. */
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",guild_member_db, char_id);
 		if (mysql_query(&mysql_handle, tmp_sql)) {
-			
+
 			printf("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
 
@@ -271,11 +271,11 @@ int delete_char_sql(int char_id, int partner_id)
 		if(mysql_query(&mysql_handle, tmp_sql)) {
 				printf("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 		}
-		
+
 		mysql_free_result(sql_res);
 #ifdef DUMB_GUILD_DATABASE
 		sprintf(tmp_sql, "SELECT `guild_id` FROM `%s` WHERE `master` = '%s'", guild_db, sql_row[0]);
-		
+
 		if (mysql_query(&mysql_handle, tmp_sql) == 0) {
 			sql_res = mysql_store_result(&mysql_handle);
 
@@ -325,25 +325,25 @@ int delete_char_sql(int char_id, int partner_id)
 
 					mysql_free_result(sql_res);
 				}
-			} 
+			}
 			else /* sql_res != NULL */
 			{
 				if (mysql_errno(&mysql_handle) != 0) {
 					printf("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 				}
-				return -1;			
+				return -1;
 			}
-			
-			
-			
-		} 
+
+
+
+		}
 		else /* mysql_query(&mysql_handle, tmp_sql) == 0 */
 		{
 			printf("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
 			return -1;
 		}
 #endif
-		
+
 	}
 	return 0;
 }
@@ -594,7 +594,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	char temp_str[1024];
 	char *tmp_p = tmp_sql;
 	struct mmo_charstatus *cp;
-	struct itemtmp mapitem[MAX_GUILD_STORAGE];	
+	struct itemtmp mapitem[MAX_GUILD_STORAGE];
 
 	if (char_id!=p->char_id) return 0;
 
@@ -638,6 +638,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			mapitem[count].card[1] = p->inventory[i].card[1];
 			mapitem[count].card[2] = p->inventory[i].card[2];
 			mapitem[count].card[3] = p->inventory[i].card[3];
+			mapitem[count].gm_made = p->inventory[i].gm_made;
+
 			count++;
 		}
 	}
@@ -668,6 +670,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			mapitem[count].card[1] = p->cart[i].card[1];
 			mapitem[count].card[2] = p->cart[i].card[2];
 			mapitem[count].card[3] = p->cart[i].card[3];
+			mapitem[count].gm_made = p->cart[i].gm_made;
 			count++;
 		}
 	}
@@ -877,7 +880,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		tmp_p += sprintf(tmp_p, "UPDATE `%s` SET ",friend_db);
 
 		diff = 0;
-		
+
 		for (i=0;i<20;i++) {
 			if (i>0)
 				tmp_p += sprintf(tmp_p, ", ");
@@ -945,14 +948,14 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 	if(!count)
 		return 0;
 
-	sprintf(tmp_sql,"INSERT INTO `%s`(`%s`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` ) VALUES",
+	sprintf(tmp_sql,"INSERT INTO `%s`(`%s`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`,`gm_made` ) VALUES",
 		tablename, selectoption);
 
 	for(i = 0; (i < count) && (i < 300); i++) {
 		if(1) {
-			sprintf(eos(tmp_sql),"( '%d','%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d' ) ",
+			sprintf(eos(tmp_sql),"( '%d','%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d' ) ",
 				  char_id, mapitem[i].nameid, mapitem[i].amount, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine,
-				mapitem[i].attribute, mapitem[i].card[0], mapitem[i].card[1], mapitem[i].card[2], mapitem[i].card[3]);
+				mapitem[i].attribute, mapitem[i].card[0], mapitem[i].card[1], mapitem[i].card[2], mapitem[i].card[3], mapitem[i].gm_made);
 			if(i!=(count-1)) sprintf (eos(tmp_sql),",");
 		}
 	}
@@ -1098,8 +1101,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 #endif
 
 	//read inventory
-	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
-	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`"
+	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`, `gm_made`)
+	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`, `gm_made`"
 		"FROM `%s` WHERE `char_id`='%d'",inventory_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		printf("DB server Error (select `inventory`)- %s\n", mysql_error(&mysql_handle));
@@ -1118,6 +1121,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 			p->inventory[i].card[1] = atoi(sql_row[8]);
 			p->inventory[i].card[2] = atoi(sql_row[9]);
 			p->inventory[i].card[3] = atoi(sql_row[10]);
+			p->inventory[i].gm_made = atoi(sql_row[11]);
 		}
 		mysql_free_result(sql_res);
 	}
@@ -1127,7 +1131,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 
 	//read cart.
 	//`cart_inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
-	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`"
+	sprintf(tmp_sql, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`, `gm_made`"
 		"FROM `%s` WHERE `char_id`='%d'",cart_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		printf("DB server Error (select `cart_inventory`)- %s\n", mysql_error(&mysql_handle));
@@ -1146,6 +1150,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 			p->cart[i].card[1] = atoi(sql_row[8]);
 			p->cart[i].card[2] = atoi(sql_row[9]);
 			p->cart[i].card[3] = atoi(sql_row[10]);
+			p->cart[i].gm_made = atoi(sql_row[11]);
 		}
 		mysql_free_result(sql_res);
 	}
@@ -1310,7 +1315,7 @@ int mmo_char_sql_init(void) {
                  	printf("total char data -> '0'.......\n");
                  }
 	}
-	
+
 	if(char_per_account == 0){
 	  printf("Chars per Account: 'Unlimited'.......\n");
         }else{
@@ -1355,7 +1360,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		return -2;
 
 	printf("[CHAR] Add - ");
-		
+
 	//check for charcount (maxchars) :)
 	if(char_per_account != 0){
 		sprintf(tmp_sql, "SELECT `account_id` FROM `%s` WHERE `account_id` = '%d'", char_db, sd->account_id);
@@ -1364,7 +1369,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		}
 		sql_res = mysql_store_result(&mysql_handle);
 		if(sql_res){
-			//ok 
+			//ok
 			temp = mysql_num_rows(sql_res);
 			if(temp >= char_per_account){
 				//hehe .. limit exceeded :P
@@ -1375,7 +1380,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			mysql_free_result(sql_res);
 		}
 	}
-	
+
 	// Check Authorised letters/symbols in the name of the character
 	if (char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
 		for (i = 0; i < strlen((const char*)dat); i++)
@@ -1392,13 +1397,13 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		(dat[30] >= 9) || // slots (dat[30] can not be negativ)
 		(dat[33] <= 0) || (dat[33] >= 24) || // hair style
 		(dat[31] >= 9)) { // hair color (dat[31] can not be negativ)
-		if (log_char) {	
+		if (log_char) {
 			// char.log to charlog
 			sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
 				"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
 				charlog_db,"make new char error", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 			//query
-			mysql_query(&mysql_handle, tmp_sql);		
+			mysql_query(&mysql_handle, tmp_sql);
 		}
 		printf("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
 		return -2;
@@ -1432,7 +1437,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		printf("fail (aid: %d), stats error(bot cheat?!)\n", sd->account_id);
 		return -2;
 	} // now when we have passed all stat checks
-		
+
 	if (log_char) {
 		// char.log to charlog
 		sprintf(tmp_sql,"INSERT INTO `%s`(`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
@@ -1455,7 +1460,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	sql_res = mysql_store_result(&mysql_handle);
 	if(sql_res){
 		temp = mysql_num_rows(sql_res);
-	
+
 		if (temp > 0) {
 			mysql_free_result(sql_res);
 			printf("fail, charname already in use\n");
@@ -1470,7 +1475,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		printf("fail (charslot check), SQL error: %s\n", mysql_error(&mysql_handle));
 	}
 	sql_res = mysql_store_result(&mysql_handle);
-	
+
 	if(sql_res){
 		temp = mysql_num_rows(sql_res);
 
@@ -1481,7 +1486,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 		}
 		mysql_free_result(sql_res);
 	}
-	
+
 	//char_id_count++;
 
 	// make new char.
@@ -2036,7 +2041,7 @@ int parse_tologin(int fd) {
 						if (GM_num == 0) {
 							gm_account = (struct gm_account*)aMalloc(sizeof(struct gm_account));
 						} else {
-							gm_account = (struct gm_account*)aRealloc(gm_account, sizeof(struct gm_account) * (GM_num + 1));						
+							gm_account = (struct gm_account*)aRealloc(gm_account, sizeof(struct gm_account) * (GM_num + 1));
 						}
 						gm_account[GM_num].account_id = RFIFOL(fd,2);
 						gm_account[GM_num].level = (int)RFIFOB(fd,6);
@@ -2312,14 +2317,14 @@ int parse_frommap(int fd) {
 				printf("Error, aborted\n");
 				return 0;
 			}
-			
+
 			if(i == 0){
 				WFIFOW(fd, 6) = 0;
 			}
-			
+
 			WFIFOSET(fd, 44);
 			RFIFOSKIP(fd, 49);
-			printf(" done.\n");			
+			printf(" done.\n");
 			/*
 			if (( sql_row = mysql_fetch_row(sql_res))) {
 				i = atoi(sql_row[0]);
@@ -2340,7 +2345,7 @@ int parse_frommap(int fd) {
 			*/
 
 		break;
-		
+
 		// char name check
 		case 0x2b08:
 			if (RFIFOREST(fd) < 6)
@@ -2880,7 +2885,7 @@ int parse_char(int fd) {
 					memcpy(char_dat[0].last_point.map, "izlude.gat", 16);
 					char_dat[0].last_point.x = 94; // savepoint coordonates
 					char_dat[0].last_point.y = 103;
-				} else 
+				} else
 #endif
 				{
 					int j;
@@ -2936,7 +2941,7 @@ int parse_char(int fd) {
 //			printf("0x67>request make new char\n");
 			if (RFIFOREST(fd) < 37)
 				return 0;
-				
+
 			if(char_new == 0) //turn character creation on/off [Kevin]
 				i = -2;
 			else
@@ -2962,8 +2967,8 @@ int parse_char(int fd) {
                             //denied
                             WFIFOW(fd, 0) = 0x6e;
                             WFIFOB(fd, 2) = 0x02;
-                            WFIFOSET(fd, 3); 
-                            RFIFOSKIP(fd, 37);                           
+                            WFIFOSET(fd, 3);
+                            RFIFOSKIP(fd, 37);
                             break;
                         }else if(i == -3){
                             //underaged XD
@@ -3061,7 +3066,7 @@ int parse_char(int fd) {
 			}
 
 ------------- END REMOVED -------- */
-			//Remove recoded by Sirius 
+			//Remove recoded by Sirius
 			if(strcmp(email, sd->email) != 0){
 				if(strcmp("a@a.com", sd->email) == 0){
 					if(strcmp("a@a.com", email) == 0 || strcmp("", email) == 0){
@@ -3071,7 +3076,7 @@ int parse_char(int fd) {
 						WFIFOW(fd, 0) = 0x70;
 						WFIFOB(fd, 2) = 0;
 						WFIFOSET(fd, 3);
-						RFIFOSKIP(fd, 46);	
+						RFIFOSKIP(fd, 46);
 						break;
 					}
 				}else{
@@ -3081,7 +3086,7 @@ int parse_char(int fd) {
 					WFIFOSET(fd, 3);
 					RFIFOSKIP(fd, 46);
 					break;
-				}			
+				}
 			}
 
 
@@ -3249,7 +3254,7 @@ int parse_char(int fd) {
 				return 0;
 			printf("\033[1;31m Request Char Deletion:\033[0m \033[1;32m%d\033[0m(\033[1;32m%d\033[0m)\n", sd->account_id, RFIFOL(fd, 2));
 			memcpy(email, RFIFOP(fd,6), 40);
-			
+
 			/* Check if e-mail is correct */
 			if(strcmp(email, sd->email)){
 				if(strcmp("a@a.com", sd->email) == 0){
@@ -3272,11 +3277,11 @@ int parse_char(int fd) {
 					break;
 				}
 			}
-			
+
 			for(i = 0; i < 9; i++) {
 				/* Debug:
 				printf("Checking if char to be deleted: %d - %d (%d)\n", sd->found_char[i], RFIFOL(fd, 2), sd->account_id);
-				*/				
+				*/
 				if (sd->found_char[i] == RFIFOL(fd, 2)) {
 					for(ch = i; ch < 9-1; ch++)
 						sd->found_char[ch] = sd->found_char[ch+1];
@@ -3286,27 +3291,27 @@ int parse_char(int fd) {
 			}
 			/* Such a character does not exist in the account */
 			/* If so, you are so screwed. */
-			if (i == 9) { 
+			if (i == 9) {
 				WFIFOW(fd, 0) = 0x70;
 				WFIFOB(fd, 2) = 0;
 				WFIFOSET(fd, 3);
 				break;
 			}
-			
-			/* Grab the partner id */ 
+
+			/* Grab the partner id */
 			sprintf(tmp_sql, "SELECT `name`,`partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, RFIFOL(fd,2));
-	
+
 			if (mysql_query(&mysql_handle, tmp_sql)) {
 				printf("%s - DB server Error: %s\n", tmp_sql, mysql_error(&mysql_handle));
 			}
-	
+
 			sql_res = mysql_store_result(&mysql_handle);
-			
+
 			if(sql_res)
 			{	//sql_res2 is necessary because sql_res can (and will) be used inside delete_char_sql! [Skotlex]
 				MYSQL_RES* sql_res2 = sql_res;
 				sql_row = mysql_fetch_row(sql_res);
-			
+
 				/* Delete character and partner (if any) */
 				if (sql_row[1] != 0)
 				{	/* If there is partner */
@@ -3326,7 +3331,7 @@ int parse_char(int fd) {
 			/* Char successfully deleted. <- For sure? There could had been an sql db error, what is done then?. [Skotlex] */
 			WFIFOW(fd, 0) = 0x6f;
 			WFIFOSET(fd, 2);
-				
+
 			RFIFOSKIP(fd, 46);
 			break;
 #endif
