@@ -1,6 +1,7 @@
 Changes are Aru's unless noted.
 
 2005-09-19:
+	Added the dbaccess.c/h files needed to compile the login-server
 	Removed text item and mob DBs. We use SQL dbs, and don't really 
 		support text DBs.
 	Added the gm_made to all item structs so we can track the GM made items (cuteboi)
