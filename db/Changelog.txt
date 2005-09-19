@@ -34,6 +34,8 @@
 
 	--
 09/19
+	* Removed Whisper Card drop from Giant Whisper. Only mini-bosses could carry 2 cards. Now Giant Whisper has its own card [Lupus]
+	- Why Giant Whisper's size - SMALL ? Any info?
 	* Thx2MasterOfMuppets: Fixed some items prices [Lupus]
 	- Sorry, Skotlex, we can't merge OpenOffice Sheets, let's switch them in some TXT format for SVN merging [Lupus]
 09/18
