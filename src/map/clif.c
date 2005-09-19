@@ -405,7 +405,7 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 		if (p) {
 			for(i=0;i<MAX_PARTY;i++){
 				if ((sd = p->member[i].sd) != NULL) {
-					if ((session[sd->fd] == NULL) || (session[sd->fd]->session_data == NULL))
+					if (!sd->fd || (session[sd->fd] == NULL) || (session[sd->fd]->session_data == NULL))
 						continue;
 					if (sd->bl.id == bl->id && (type == PARTY_WOS ||
 					    type == PARTY_SAMEMAP_WOS || type == PARTY_AREA_WOS))
@@ -416,7 +416,7 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 					    (sd->bl.x < x0 || sd->bl.y < y0 ||
 					     sd->bl.x > x1 || sd->bl.y > y1))
 						continue;
-					if (sd->fd && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
+					if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
 						memcpy(WFIFOP(sd->fd,0), buf, len);
 						WFIFOSET(sd->fd,len);
 					}
@@ -425,7 +425,7 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 
 				}
 			}
-			for (i = 0; i < fd_max; i++){
+			for (i = 1; i < fd_max; i++){
 				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth) {
 					if (sd->partyspy == p->party_id) {
 						if (sd->fd && packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
@@ -464,8 +464,8 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 		if (g) {
 			for(i = 0; i < g->max_member; i++) {
 				if ((sd = g->member[i].sd) != NULL) {
-                                        if (session[sd->fd] == NULL || sd->state.auth == 0 || session[sd->fd]->session_data == NULL)
-                                                continue;
+					if (!sd->fd || session[sd->fd] == NULL || sd->state.auth == 0 || session[sd->fd]->session_data == NULL)
+						continue;
 					if (type == GUILD_WOS && sd->bl.id == bl->id)
 						continue;
 					if (sd->packet_ver > MAX_PACKET_VER)
@@ -476,7 +476,7 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 					}
 				}
 			}
-			for (i = 0; i < fd_max; i++){
+			for (i = 1; i < fd_max; i++){
 				if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) != NULL && sd->state.auth) {
 					if (sd->guildspy == g->guild_id) {
 						if (packet_db[sd->packet_ver][RBUFW(buf,0)].len) { // packet must exist for the client version
@@ -496,6 +496,8 @@ int clif_send (unsigned char *buf, int len, struct block_list *bl, int type) {
 		if (g) {
 			for(i = 0; i < g->max_member; i++) {
 				if ((sd = g->member[i].sd) != NULL) {
+					if (!sd->fd || session[sd->fd] == NULL || sd->state.auth == 0 || session[sd->fd]->session_data == NULL)
+						continue;
 					if (sd->bl.id == bl->id && (type == GUILD_WOS ||
 					    type == GUILD_SAMEMAP_WOS || type == GUILD_AREA_WOS))
 						continue;
