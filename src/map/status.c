@@ -3571,7 +3571,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				time_t timer;
 
 				if(!battle_config.muting_players)
-					break;
+					return 0;
 
 				tick = 60000;
 				if(!val2)
