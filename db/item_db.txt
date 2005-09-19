@@ -612,7 +612,7 @@
 1353,Battle_Axe__,Battle Axe,4,5400,0,1500,80,,1,0,279714,2,34,1,3,1,7,{},{}
 1354,Hammer,Hammer,4,15500,0,2000,120,,1,2,279714,2,34,2,16,1,7,{},{}
 1355,Hammer_,Hammer,4,15500,0,2000,120,,1,3,279714,2,34,2,16,1,7,{},{}
-1356,Hammer__,Hammer,4,15500,0,2200,120,,1,0,279714,2,34,2,16,1,7,{},{}
+1356,Hammer__,Hammer,4,15500,0,2000,120,,1,0,279714,2,34,2,16,1,7,{},{}
 1357,Buster,Buster,4,34000,0,2200,155,,1,1,279714,2,34,3,30,1,7,{},{}
 1358,Buster_,Buster,4,34000,0,2200,155,,1,2,279714,2,34,3,30,1,7,{},{}
 1359,Buster__,Buster,4,34000,0,2200,155,,1,0,279714,2,34,3,30,1,7,{},{}
@@ -1605,7 +1605,7 @@
 5123,Wool_Cap,Wool Cap,5,20,0,500,,3,,0,2088958,2,256,,65,1,202,{},{ bonus bDex,2; bonus bAgi,1;  if(isequipped(2353)==0) end; if(bDex>=70) bonus bUseSPrate,-10; }
 5124,Frica_Circlet,Frica Circlet,5,20,0,300,,3,,0,2088958,2,256,,65,1,203,{},{ bonus bMdef,10; bonus bInt,2; bonus bMaxSP,50; if(isequipped(2115,2353)==0) end; bonus bDef,2; bonus bMdef,25; }
 5125,Angel_Kiss,Angel's Kiss,5,20,0,300,,2,,0,2088958,2,256,,50,1,204,{},{ bonus bSPrecovRate,3; }
-5126,Morphicious_Hood,Hood of Morphicious,5,20,0,200,,3,,0,2088958,2,256,,33,1,205,{},{ bonus bInt,2; if(isequipped(2518,2648,2649)==0) end; bonus bInt,5; bonus bMdef,11; bonus bMaxSPrate,20; bonus bDelayrate,25; }
+5126,Morphicious_Hood,Hood of Morphicious,5,20,0,200,,3,,0,2088958,2,256,,33,1,205,{},{ bonus bInt,2; if(isequipped(2518,2648,2649)==0) end; bonus bInt,5; bonus bMdef,11; bonus bMaxSPrate,20; if(Class>4000 && Class<4023) bonus bDelayrate,25; }
 5127,Helm_of_Morrigan,Helm of Morrigan,5,20,0,500,,4,,0,2088958,2,256,,61,1,206,{},{ bonus bLuk,2; bonus bAtk,3; if(isequipped(2519,2650,2651)==0) end; bonus bStr,2; bonus bLuk,9; bonus bCritical,13; bonus bAtk,18; bonus bFlee2,13; }
 5128,Goibniu_Helm,Helm of Goibniu,5,20,0,500,,5,,0,2088958,2,256,,54,1,207,{},{ bonus bVit,3; bonus bMdef,3; if(isequipped(2354,2419,2520)==0) end; bonus bVit,5; bonus bMaxHPrate,15; bonus bMaxSPrate,5; bonus bDef,5; bonus bMdef,15; bonus2 bSubEle,1,10; bonus2 bSubEle,2,10; bonus2 bSubEle,3,10; bonus2 bSubEle,4,10; }
 //the name which I wrote as 'Gebney' can be Goibniu who is Celtic smith god

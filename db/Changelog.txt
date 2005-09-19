@@ -34,6 +34,8 @@
 
 	--
 09/19
+	* Thanx to mrmagoo: item #1356, fixed weight. #5126 delayrate change applies to Advanced Classes only [Lupus]
+	- It could be also interpreted as "For Advanced Classes Magic Scills". But then we'd have to add a special flag....
 	* Removed Whisper Card drop from Giant Whisper. Only mini-bosses could carry 2 cards. Now Giant Whisper has its own card [Lupus]
 	- Why Giant Whisper's size - SMALL ? Any info?
 	* Thx2MasterOfMuppets: Fixed some items prices [Lupus]
