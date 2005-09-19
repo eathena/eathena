@@ -462,6 +462,7 @@ struct map_session_data {
 
 	int guild_sended,guild_invite,guild_invite_account;
 	int guild_emblem_id,guild_alliance,guild_alliance_account;
+	int guild_x,guild_y; //For guildmate position display. [Skotlex]
 	int guildspy; // [Syrus22]
 	int partyspy; // [Syrus22]
 

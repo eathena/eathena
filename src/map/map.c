@@ -1729,6 +1729,8 @@ int map_quit(struct map_session_data *sd) {
 
 		guild_send_memberinfoshort(sd,0);	// ギルドのログアウトメッセ?ジ送信
 
+		guild_send_dot_remove(sd);
+		 
 		pc_cleareventtimer(sd);	// イベントタイマを破棄する
 
 		if(sd->state.storage_flag == 1)

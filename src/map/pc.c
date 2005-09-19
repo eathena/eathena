@@ -3120,7 +3120,10 @@ int pc_setpos(struct map_session_data *sd,char *mapname_org,int x,int y,int clrt
 	}
 		
 	if (strcmp(sd->mapname,mapname)!=0) //minimap dot fix [Kevin]
+	{
 		party_send_dot_remove(sd);
+		guild_send_dot_remove(sd);
+	}
 
 	memcpy(sd->mapname, mapname, MAP_NAME_LENGTH-1);
 	sd->bl.m = m;

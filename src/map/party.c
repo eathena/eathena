@@ -672,6 +672,7 @@ void party_foreachsamemap(int (*func)(struct block_list*,va_list),
 }
 int party_send_dot_remove(struct map_session_data *sd)
 {
-	clif_party_xy_remove(sd);
+	if (sd->status.party_id)
+		clif_party_xy_remove(sd);
 	return 0;
 }

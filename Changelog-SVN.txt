@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/19
+	* Added timers for displaying guildmates position. [Skotlex]
+	- All the packet related code was already there by Valaris, so I wonder why
+	  this wasn't finished before?
 	* Added battle_athena options max_def/over_def_bonus (read
 	  battle_athena.conf for desc) [Skotlex]
 	* Added error reporting when the magreg file fails to be saved. [Skotlex]
