@@ -3370,7 +3370,9 @@ static const struct battle_data_short {
 	{ "max_walk_speed",                    &battle_config.max_walk_speed			},
 	{ "max_lv",                            &battle_config.max_lv					},
 	{ "max_parameter",                     &battle_config.max_parameter			},
-	{ "player_skill_log",                  &battle_config.pc_skill_log				},
+	{ "max_def",                           &battle_config.max_def					},
+	{ "over_def_bonus",                    &battle_config.over_def_bonus			},
+	{ "player_skill_log",                  &battle_config.pc_skill_log			},
 	{ "monster_skill_log",                 &battle_config.mob_skill_log			},
 	{ "battle_log",                        &battle_config.battle_log				},
 	{ "save_log",                          &battle_config.save_log					},
@@ -3711,6 +3713,8 @@ void battle_set_defaults() {
 	battle_config.max_lv = 99; // [MouseJstr]
 	battle_config.max_parameter = 99;
 	battle_config.max_cart_weight = 8000;
+	battle_config.max_def = 99;	// [Skotlex]
+	battle_config.over_def_bonus = 0;	// [Skotlex]
 	battle_config.pc_skill_log = 0;
 	battle_config.mob_skill_log = 0;
 	battle_config.battle_log = 0;
@@ -3937,6 +3941,11 @@ void battle_validate_conf() {
 	if(battle_config.max_cart_weight < 100)
 		battle_config.max_cart_weight = 100;
 	battle_config.max_cart_weight *= 10;
+	
+	if(battle_config.max_def > 100 && !battle_config.player_defense_type)	 // added by [Skotlex]
+		battle_config.max_def = 100;
+	if(battle_config.over_def_bonus > 1000)
+		battle_config.over_def_bonus = 1000;
 
 	if(battle_config.min_hitrate > battle_config.max_hitrate)
 		battle_config.min_hitrate = battle_config.max_hitrate;

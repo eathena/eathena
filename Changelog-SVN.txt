@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/19
+	* Added battle_athena options max_def/over_def_bonus (read
+	  battle_athena.conf for desc) [Skotlex]
 	* Added error reporting when the magreg file fails to be saved. [Skotlex]
 	* Made berserk castable during the no-regen period when it expires. [Skotlex]
 	* Fixed a query error on sql refine logging. [Skotlex]

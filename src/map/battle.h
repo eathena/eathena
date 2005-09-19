@@ -334,6 +334,8 @@ extern struct Battle_Config {
 	unsigned short castrate_dex_scale; // added by [MouseJstr]
 	unsigned short area_size; // added by [MouseJstr]
 
+	unsigned short max_def, over_def_bonus; //added by [Skotlex]
+	
 	unsigned short zeny_from_mobs; // [Valaris]
 	unsigned short mobs_level_up; // [Valaris]
 	unsigned short pk_min_level; // [celest]

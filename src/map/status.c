@@ -1021,26 +1021,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	if(sd->flee2 < 10) sd->flee2 = 10;
 
-// ----- EQUIPMENT-DEF CALCULATION -----
-
-	// Special fixed values from status changes
-	if(sd->sc_count && sd->sc_data[SC_KEEPING].timer!=-1)
-		sd->def = 100;
-	else if(sd->sc_count && sd->sc_data[SC_STEELBODY].timer!=-1)
-		sd->def = 90;
-	else if(sd->sc_count && sd->sc_data[SC_BERSERK].timer!=-1)
-		sd->def = 0;
-	else {
-		// Absolute, then relative modifiers from status changes (shared between PC and NPC)
-		sd->def = status_calc_def(&sd->bl,sd->def);
-
-		// Apply relative modifiers from equipment
-		if(sd->def_rate != 100)
-			sd->def = sd->def * sd->def_rate/100;
-
-		if(sd->def < 0) sd->def = 0;
-	}
-
 // ----- VIT-DEF CALCULATION -----
 
 	// Special fixed values from status changes
@@ -1062,24 +1042,29 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(sd->def2 < 1) sd->def2 = 1;
 	}
 
-// ----- EQUIPMENT-MDEF CALCULATION -----
+// ----- EQUIPMENT-DEF CALCULATION -----
 
 	// Special fixed values from status changes
-	if(sd->sc_count && sd->sc_data[SC_BARRIER].timer!=-1)
-		sd->mdef = 100;
+	if(sd->sc_count && sd->sc_data[SC_KEEPING].timer!=-1)
+		sd->def = 100;
 	else if(sd->sc_count && sd->sc_data[SC_STEELBODY].timer!=-1)
-		sd->mdef = 90;
+		sd->def = 90;
 	else if(sd->sc_count && sd->sc_data[SC_BERSERK].timer!=-1)
-		sd->mdef = 0;
+		sd->def = 0;
 	else {
 		// Absolute, then relative modifiers from status changes (shared between PC and NPC)
-		sd->mdef = status_calc_mdef(&sd->bl,sd->mdef);
+		sd->def = status_calc_def(&sd->bl,sd->def);
 
 		// Apply relative modifiers from equipment
-		if(sd->mdef_rate != 100)
-			sd->mdef = sd->mdef * sd->mdef_rate/100;
+		if(sd->def_rate != 100)
+			sd->def = sd->def * sd->def_rate/100;
 
-		if(sd->mdef < 0) sd->mdef = 0;
+		if(sd->def < 0) sd->def = 0;
+		else if (!battle_config.player_defense_type && sd->def > battle_config.max_def)
+		{
+			sd->def2 += battle_config.over_def_bonus*(sd->def -battle_config.max_def);
+			sd->def = battle_config.max_def;
+		}
 	}
 
 // ----- INT-MDEF CALCULATION -----
@@ -1101,6 +1086,32 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(sd->mdef2 < 1) sd->mdef2 = 1;
 	}
 
+
+// ----- EQUIPMENT-MDEF CALCULATION -----
+
+	// Special fixed values from status changes
+	if(sd->sc_count && sd->sc_data[SC_BARRIER].timer!=-1)
+		sd->mdef = 100;
+	else if(sd->sc_count && sd->sc_data[SC_STEELBODY].timer!=-1)
+		sd->mdef = 90;
+	else if(sd->sc_count && sd->sc_data[SC_BERSERK].timer!=-1)
+		sd->mdef = 0;
+	else {
+		// Absolute, then relative modifiers from status changes (shared between PC and NPC)
+		sd->mdef = status_calc_mdef(&sd->bl,sd->mdef);
+
+		// Apply relative modifiers from equipment
+		if(sd->mdef_rate != 100)
+			sd->mdef = sd->mdef * sd->mdef_rate/100;
+
+		if(sd->mdef < 0) sd->mdef = 0;
+		else if (!battle_config.player_defense_type && sd->mdef > battle_config.max_def)
+		{
+			sd->mdef2 += battle_config.over_def_bonus*(sd->mdef -battle_config.max_def);
+			sd->mdef = battle_config.max_def;
+		}
+	}
+	
 // ----- WALKING SPEED CALCULATION -----
 
 	// Relative, then absolute modifiers from status changes (shared between PC and NPC)
