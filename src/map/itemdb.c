@@ -884,6 +884,11 @@ static int itemdb_readdb(void)
 			nameid=atoi(str[0]);
 			if(nameid<=0 || nameid>=20000)
 				continue;
+			if (j < 18)
+			{	//Crash-fix on broken item lines. [Skotlex]
+				ShowWarning("Reading %s: Insufficient fields for item with id %d, skipping.\n", filename[i], nameid);
+				continue;
+			}
 			ln++;
 
 			//ID,Name,Jname,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Gender,Loc,wLV,eLV,refineable,View

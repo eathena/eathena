@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/19
+	* Added error reporting an item in the item_db.txt file has insufficient
+	  fields (rather than just crashing) [Skotlex]
+	* Updated the item_db to use the new race and element constants. [Skotlex]
 	* Fixed (I think) battle option muting_players. Defaulted it to yes. [Skotlex]
 	* Added timers for displaying guildmates position. [Skotlex]
 	- All the packet related code was already there by Valaris, so I wonder why

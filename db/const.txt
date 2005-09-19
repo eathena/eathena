@@ -300,8 +300,8 @@ Ele_Wind	4
 Ele_Poison	5
 Ele_Holy	6
 Ele_Dark	7
-Ele_Sense	8
-Ele_Immortality	9
+Ele_Ghost	8
+Ele_Undead	9
 
 RC_Formless	0
 RC_Undead	1
