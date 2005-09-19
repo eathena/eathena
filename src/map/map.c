@@ -1798,8 +1798,7 @@ int map_quit(struct map_session_data *sd) {
 	}
 
 	if (sd->stack) {
-		aFree (sd->stack->stack_data);
-		aFree (sd->stack);
+		script_free_stack(sd->stack);
 		sd->stack= NULL;
 	}
 	

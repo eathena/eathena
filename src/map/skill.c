@@ -4100,7 +4100,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			// Level 6-10 doesn't consume a red gem if it fails [celest]
 			int i, gem_flag = 1, fail_flag = 0;
 			if (dstmd && status_get_mode(bl)&0x20) {
-				clif_skill_fail(sd,sd->skillid,0,0);
+				if (sd) clif_skill_fail(sd,sd->skillid,0,0);
 				break;
 			}
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);

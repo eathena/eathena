@@ -1,6 +1,9 @@
 Date	Added
 =======
 
+09/19
+	* General checks to the script engine string management. Should fix a bunch
+	  of memory leaks. [Skotlex]
 09/18
 	* More updates to status change IDs [DracoRPG]
 	* Implemented TK_SEVENWIND, allowed simultaneous use of several stances, thanks to

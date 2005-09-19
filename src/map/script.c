@@ -1599,12 +1599,32 @@ void pop_stack(struct script_stack* stack,int start,int end)
 	for(i=start;i<end;i++){
 		if(stack->stack_data[i].type==C_STR){
 			aFree(stack->stack_data[i].u.str);
+			stack->stack_data[i].type=C_INT;  //Might not be correct, but it's done in case to prevent pointer errors later on. [Skotlex]
 		}
 	}
 	if(stack->sp>end){
 		memmove(&stack->stack_data[start],&stack->stack_data[end],sizeof(stack->stack_data[0])*(stack->sp-end));
 	}
 	stack->sp-=end-start;
+}
+
+/*==========================================
+ * Free's the whole stack. Invoked when clearing a character. [Skotlex]
+ *------------------------------------------
+ */
+void script_free_stack(struct script_stack* stack)
+{
+	int i;
+	for (i = 0; i < stack->sp_max; i++)
+	{
+		if(stack->stack_data[i].type==C_STR)
+		{
+			aFree(stack->stack_data[i].u.str);
+			stack->stack_data[i].type = C_INT;
+		}
+	}
+	aFree (stack->stack_data);
+	aFree (stack);
 }
 
 //
@@ -7894,10 +7914,16 @@ void op_add(struct script_state* st)
 				strlen(st->stack->stack_data[st->stack->sp].u.str)+1,sizeof(char));
 		strcpy(buf,st->stack->stack_data[st->stack->sp-1].u.str);
 		strcat(buf,st->stack->stack_data[st->stack->sp].u.str);
-		if(st->stack->stack_data[st->stack->sp-1].type==C_STR)
+		if(st->stack->stack_data[st->stack->sp-1].type==C_STR) 
+		{
 			aFree(st->stack->stack_data[st->stack->sp-1].u.str);
+			st->stack->stack_data[st->stack->sp-1].type=C_INT;
+		}
 		if(st->stack->stack_data[st->stack->sp].type==C_STR)
+		{
 			aFree(st->stack->stack_data[st->stack->sp].u.str);
+			st->stack->stack_data[st->stack->sp].type=C_INT;
+		}
 		st->stack->stack_data[st->stack->sp-1].type=C_STR;
 		st->stack->stack_data[st->stack->sp-1].u.str=buf;
 	}
@@ -7939,8 +7965,16 @@ void op_2str(struct script_state *st,int op,int sp1,int sp2)
 
 	push_val(st->stack,C_INT,a);
 
-	if(st->stack->stack_data[sp1].type==C_STR)	aFree(s1);
-	if(st->stack->stack_data[sp2].type==C_STR)	aFree(s2);
+	if(st->stack->stack_data[sp1].type==C_STR)
+	{
+		aFree(s1);
+		st->stack->stack_data[sp1].type=C_INT;
+	}
+	if(st->stack->stack_data[sp2].type==C_STR)
+	{
+		aFree(s2);
+		st->stack->stack_data[sp2].type=C_INT;
+	}
 }
 /*==========================================
  * “ñ€‰‰Zq(”’l)
@@ -8318,7 +8352,10 @@ int run_script(unsigned char *script,int pos,int rid,int oid)
 	} else {
 		for (i = 0; i < st.stack->sp; i++)
 			if (st.stack->stack_data[i].type == C_STR)
+			{
 				aFree(st.stack->stack_data[i].u.str);
+				st.stack->stack_data[i].type = C_INT;
+			}
 		aFree(st.stack->stack_data);
 		aFree(st.stack);
 	}

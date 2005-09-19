@@ -52,6 +52,7 @@ struct dbt* script_get_label_db();
 struct dbt* script_get_userfunc_db();
 
 int script_config_read(char *cfgName);
+void script_free_stack(struct script_stack*); 
 int do_init_script();
 int do_final_script();
 
