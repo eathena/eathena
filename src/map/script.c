@@ -8487,7 +8487,8 @@ static int script_save_mapreg()
 static int script_autosave_mapreg(int tid,unsigned int tick,int id,int data)
 {
 	if(mapreg_dirty)
-		script_save_mapreg();
+		if (script_save_mapreg() == -1)
+			ShowError("Failed to save the mapreg data!\n");
 	return 0;
 }
 

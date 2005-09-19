@@ -50,7 +50,7 @@ int mail_check(struct map_session_data *sd,int type)
 		"FROM `%s` WHERE `to_account_id` = \"%d\" ORDER by `message_id`", mail_db, sd->status.account_id);
 
 	if (mysql_query(&mail_handle, tmp_msql)) {
-		ShowSQL("Database server error (executing query for %s): %s\n", mail_db, mysql_error(&mail_handle));
+		ShowSQL("DB server error (executing query for %s): %s\n", mail_db, mysql_error(&mail_handle));
 		return 0;
    	}
 
@@ -69,7 +69,7 @@ int mail_check(struct map_session_data *sd,int type)
 			if(!atoi(mail_row[5])) {
 				sprintf(tmp_msql,"UPDATE `%s` SET `check_flag`='1' WHERE `message_id`= \"%d\"", mail_db, atoi(mail_row[0]));
 				if(mysql_query(&mail_handle, tmp_msql) ) {
-					ShowSQL("DB server Error (update Read `%s`)- %s\n", mail_db, mysql_error(&mail_handle) );
+					ShowSQL("DB server error (update Read `%s`)- %s\n", mail_db, mysql_error(&mail_handle) );
 				}
 			}
 
@@ -131,7 +131,7 @@ int mail_read(struct map_session_data *sd, int message_id)
 	sprintf(tmp_msql,"SELECT `message_id`,`to_account_id`,`from_char_name`,`message`,`read_flag`,`priority`,`check_flag` from `%s` WHERE `to_account_id` = \"%d\" ORDER by `message_id` LIMIT %d, 1",mail_db,sd->status.account_id,message_id-1);
 
 	if (mysql_query(&mail_handle, tmp_msql)) {
-		ShowSQL("Database server error (executing query for %s): %s\n", mail_db, mysql_error(&mail_handle));
+		ShowSQL("DB server error (executing query for %s): %s\n", mail_db, mysql_error(&mail_handle));
 		return 0;
    	}
 
@@ -148,7 +148,7 @@ int mail_read(struct map_session_data *sd, int message_id)
 			if(!atoi(mail_row[6])) {
 				sprintf(tmp_msql,"UPDATE `%s` SET `check_flag`='1' WHERE `message_id`= \"%d\"", mail_db, atoi(mail_row[0]));
 				if(mysql_query(&mail_handle, tmp_msql) ) {
-					ShowSQL("DB server Error (update Read `%s`)- %s\n", mail_db, mysql_error(&mail_handle) );
+					ShowSQL("DB server error (update Read `%s`)- %s\n", mail_db, mysql_error(&mail_handle) );
 				}
 			}
 
@@ -161,7 +161,7 @@ int mail_read(struct map_session_data *sd, int message_id)
 
 			sprintf(tmp_msql,"UPDATE `%s` SET `read_flag`='1' WHERE `message_id`= \"%d\"", mail_db, atoi(mail_row[0]));
 			if(mysql_query(&mail_handle, tmp_msql) ) {
-				ShowSQL("DB server Error (update Read `%s`)- %s\n", mail_db, mysql_error(&mail_handle) );
+				ShowSQL("DB server error (update Read `%s`)- %s\n", mail_db, mysql_error(&mail_handle) );
 			}
 		}
 
@@ -181,7 +181,7 @@ int mail_delete(struct map_session_data *sd, int message_id)
 	sprintf(tmp_msql,"SELECT `message_id`,`to_account_id`,`read_flag`,`priority`,`check_flag` from `%s` WHERE `to_account_id` = \"%d\" ORDER by `message_id` LIMIT %d, 1",mail_db,sd->status.account_id,message_id-1);
 
 	if (mysql_query(&mail_handle, tmp_msql)) {
-		ShowSQL("Database server error (executing query for %s): %s\n", mail_db, mysql_error(&mail_handle));
+		ShowSQL("DB server error (executing query for %s): %s\n", mail_db, mysql_error(&mail_handle));
 		return 0;
    	}
 
@@ -211,7 +211,7 @@ int mail_delete(struct map_session_data *sd, int message_id)
 			sprintf(tmp_msql,"DELETE FROM `%s` WHERE `message_id` = \"%d\"", mail_db, atoi(mail_row[0]));
 		        if(mysql_query(&mail_handle, tmp_msql) ) {
 				mysql_free_result(mail_res);
-				ShowSQL("DB server Error (update Read `%s`)- %s\n", mail_db, mysql_error(&mail_handle) );
+				ShowSQL("DB server error (update Read `%s`)- %s\n", mail_db, mysql_error(&mail_handle) );
 				return 0;
 		        }
 			//else clif_displaymessage(sd->fd,"Message deleted.");
@@ -250,7 +250,7 @@ int mail_send(struct map_session_data *sd, char *name, char *message, int flag)
 		sprintf(tmp_msql,"SELECT `account_id`,`name` FROM `%s` WHERE `name` = \"%s\"", char_db, jstrescape(name));
 
 	if (mysql_query(&mail_handle, tmp_msql)) {
-		ShowSQL("Database server error (executing query for %s): %s\n", char_db, mysql_error(&mail_handle));
+		ShowSQL("DB server error (executing query for %s): %s\n", char_db, mysql_error(&mail_handle));
 		return 0;
    	}
 
@@ -277,7 +277,7 @@ int mail_send(struct map_session_data *sd, char *name, char *message, int flag)
 
 			if(mysql_query(&mail_handle, tmp_msql) ) {
 				mysql_free_result(mail_res);
-				ShowSQL("DB server Error (insert `mail_db`)- %s\n", mysql_error(&mail_handle) );
+				ShowSQL("DB server error (insert `mail_db`)- %s\n", mysql_error(&mail_handle) );
 				return 0;
 			}
 		}
@@ -300,7 +300,7 @@ int mail_check_timer(int tid,unsigned int tick,int id,int data)
 	sprintf(tmp_msql,"SELECT DISTINCT `to_account_id` FROM `%s` WHERE `read_flag` = '0' AND `check_flag` = '0'", mail_db);
 
 	if (mysql_query(&mail_handle, tmp_msql)) {
-		ShowSQL("Database server error (executing query for %s): %s\n", char_db, mysql_error(&mail_handle));
+		ShowSQL("DB server error (executing query for %s): %s\n", char_db, mysql_error(&mail_handle));
 		mail_timer=add_timer(gettick()+MAIL_CHECK_TIME,mail_check_timer,0,0);
 		return 0;
    	}
@@ -329,7 +329,7 @@ int mail_check_timer(int tid,unsigned int tick,int id,int data)
 
 	sprintf(tmp_msql,"UPDATE `%s` SET `check_flag`='1' WHERE `check_flag`= '0' ", mail_db);
 	if(mysql_query(&mail_handle, tmp_msql) ) {
-		ShowSQL("DB server Error (update Read `%s`)- %s\n", mail_db, mysql_error(&mail_handle) );
+		ShowSQL("DB server error (update Read `%s`)- %s\n", mail_db, mysql_error(&mail_handle) );
 	}
 
 	mail_timer=add_timer(gettick()+MAIL_CHECK_TIME,mail_check_timer,0,0);

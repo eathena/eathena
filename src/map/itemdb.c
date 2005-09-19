@@ -825,7 +825,7 @@ static int itemdb_read_sqldb(void)
 
 				// If the retrieval failed, output an error
 				if (mysql_errno(&mmysql_handle)) {
-					ShowSQL("Database server error (retrieving rows from %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
+					ShowSQL("DB server error (retrieving rows from %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
 				}
 				ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, item_db_name[i]);
 				ln = 0;
@@ -835,7 +835,7 @@ static int itemdb_read_sqldb(void)
 			// Free the query result
 			mysql_free_result(sql_res);
 		} else
-			ShowSQL("Database server error (executing query for %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
+			ShowSQL("DB server error (executing query for %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
 	}
 
 	return 0;

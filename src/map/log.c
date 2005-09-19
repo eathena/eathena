@@ -244,7 +244,7 @@ int log_refine(struct map_session_data *sd, int n, int success)
 	if(log_config.sql_logs > 0)
 	{
 		sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`refine_date`, `account_id`, `char_id`, `char_name`, `nameid`, `refine`"
-			",`map`, `success`, `item_level`", log_config.log_refine_db);
+			", `map`, `success`, `item_level`", log_config.log_refine_db);
 		
 		for (i=0; i < MAX_SLOTS; i++)
 			sprintf(tmp_sql, "%s, `card%d`", tmp_sql, i);
@@ -254,7 +254,7 @@ int log_refine(struct map_session_data *sd, int n, int success)
 			sd->status.inventory[n].nameid, sd->status.inventory[n].refine, sd->mapname, success, item_level);
 		
 		for(i=0; i<MAX_SLOTS; i++)
-			sprintf(tmp_sql, ", '%d'", log_card[i]);
+			sprintf(tmp_sql, "%s, '%d'", tmp_sql, log_card[i]);
 
 		strcat(tmp_sql,")");
 

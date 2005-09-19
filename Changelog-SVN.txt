@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/19
+	* Added error reporting when the magreg file fails to be saved. [Skotlex]
+	* Made berserk castable during the no-regen period when it expires. [Skotlex]
+	* Fixed a query error on sql refine logging. [Skotlex]
 	* General checks to the script engine string management. Should fix a bunch
 	  of memory leaks. [Skotlex]
 09/18

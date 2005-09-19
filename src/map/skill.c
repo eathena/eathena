@@ -669,8 +669,8 @@ int skillnotok(int skillid, struct map_session_data *sd)
 	if (battle_config.pk_mode && !map[sd->bl.m].flag.nopvp && skill_get_nocast (skillid) & 16)
 		return 1;
 
-	if(skillid == LK_BERSERK && sd->canregen_tick>gettick())
-		return 1;
+//	if(skillid == LK_BERSERK && sd->canregen_tick>gettick())
+//		return 1;
 	
 	switch (skillid) {
 		case AL_WARP:
