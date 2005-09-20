@@ -370,14 +370,17 @@ Problem:	[3020+: Mob Spawn]
 Assigned:	na
 Progress:	0%
 
-Problem:	[3020+: Mob Spawn]
-			Mobs don't respawn after several deaths (~20 in my test)
-Assigned:	na
-Progress:	0%
-
 Problem:	[3020+: Status Change Lock]
 		During WOE, when you recieve status change (Stun, Freeze, etc)
 		You can't be cured at all. Neither the time nor Priests can help you.
 		Re-entering the game donesn't help. (Timers lost, options saved)
 Assigned:	na
+Progress:	0%
+
+Problem:	SQL Query errors (example: someone with the name Accutane-)
+		It errors, I am sure, because of the tailing -
+		I am presuming that someone didn't run the query as a mysql_real_query
+		but ran it as a mysql_query instead. I am unsure where or why this is 
+		occuring, but it is a MAJOR problem (perhaps logs?)
+Assigned:	N/A
 Progress:	0%
