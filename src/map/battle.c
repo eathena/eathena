@@ -1310,10 +1310,11 @@ static struct Damage battle_calc_weapon_attack(
 					skillratio+= 30;
 					break;
 				case MC_CARTREVOLUTION:
+					skillratio += 50;
 					if(sd && sd->cart_max_weight > 0 && sd->cart_weight > 0)
-						skillratio+= 50+sd->cart_weight/800; // +1% every 80 weight units
-					else
-						skillratio+= 50;
+						skillratio+= 100*sd->cart_weight/sd->cart_max_weight; // +1% every 1% weight
+					else if (!sd)
+						skillratio+= 150; //Max damage for non players.
 					break;
 				case NPC_COMBOATTACK:
 						skillratio += 100*wd.div_ -100;
@@ -1464,7 +1465,7 @@ static struct Damage battle_calc_weapon_attack(
 					if(sd && sd->cart_weight > 0)
 						skillratio += sd->cart_weight / (10 * (16 - skill_lv)) - 100;
 					else if (!sd)
-						skillratio += 80000 / (10 * (16 - skill_lv));
+						skillratio += battle_config.max_cart_weight / (10 * (16 - skill_lv));
 					break;
 				case TK_DOWNKICK:
 					skillratio += 60 + (20*skill_lv);

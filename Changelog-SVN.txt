@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/20
+	* Adjusted Cart Revolution's damage to be based on the Cart's Max Weight
+	  (instead of the hardcoded 8000w value) [Skotlex]
 	* Fixed a memory leak when pets cancel their casting. [Skotlex]
 09/19
 	* Added error reporting an item in the item_db.txt file has insufficient
