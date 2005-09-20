@@ -29,6 +29,9 @@ TODO:
 
 Date		Added
 ======
+09/20
+	* Removed Choco from Ayo_fild1, Fixed Petits IDs at Hugel field [Lupus]
+	  thanks to MasterOfMuppets, Vicious_Puca, akusarujin
 09/19
 	* Minor fix of Louyang by MasterOfMuppets [Lupus]
 	* Added official Ayothaya shops by MasterOfMuppets
