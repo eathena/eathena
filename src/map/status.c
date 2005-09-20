@@ -2779,8 +2779,7 @@ int status_get_dmotion(struct block_list *bl)
 	else
 		return 2000;
 
-	if((sc_data && (sc_data[SC_ENDURE].timer!=-1 || sc_data[SC_CONCENTRATION].timer!=-1 || sc_data[SC_BERSERK].timer!=-1)) ||
-		(bl->type == BL_PC && ((struct map_session_data *)bl)->special_state.infinite_endure))
+	if(sc_data && (sc_data[SC_ENDURE].timer!=-1 || sc_data[SC_CONCENTRATION].timer!=-1 || sc_data[SC_BERSERK].timer!=-1))
 		if (!map[bl->m].flag.gvg) //Only works on non-gvg grounds. [Skotlex]
 			return 0;
 

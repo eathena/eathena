@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/20
+	* Changed Palm Strike's initial animation display. [Skotlex]
+	  (it will show as a normal attack that misses instead of an skill, but at
+	  least the animation delay is correct and the skill can be chained now)
 	* Adjusted Cart Revolution's damage to be based on the Cart's Max Weight
 	  (instead of the hardcoded 8000w value) [Skotlex]
 	* Fixed a memory leak when pets cancel their casting. [Skotlex]
