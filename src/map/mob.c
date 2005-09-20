@@ -4463,13 +4463,16 @@ static int mob_readdb_race(void)
  */
 static int mob_read_sqldb(void)
 {
-	char line[1024];
+	const char unknown_str[NAME_LENGTH] ="unknown";
 	int i, j, class_;
 	double exp, maxhp;
 	long unsigned int ln = 0;
-	char *str[60], *p, *np; // 55->60 Lupus
 	char *mob_db_name[] = { mob_db_db, mob_db2_db };
 
+	//For easier handling of converting. [Skotlex]
+#define TO_INT(a) (sql_row[a]==NULL?0:atoi(sql_row[a]))
+#define TO_STR(a) (sql_row[a]==NULL?unknown_str:sql_row[a])
+	
     for (i = 0; i < 2; i++) {
 		sprintf (tmp_sql, "SELECT * FROM `%s`", mob_db_name[i]);
 		if (mysql_query(&mmysql_handle, tmp_sql)) {
@@ -4479,32 +4482,7 @@ static int mob_read_sqldb(void)
 		sql_res = mysql_store_result(&mmysql_handle);
 		if (sql_res) {
 			while((sql_row = mysql_fetch_row(sql_res))){
-				sprintf(line,"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
-							"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
-							"%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-							sql_row[0],sql_row[1],sql_row[2],sql_row[3],sql_row[4],
-							sql_row[5],sql_row[6],sql_row[7],sql_row[8],sql_row[9],
-							sql_row[10],sql_row[11],sql_row[12],sql_row[13],sql_row[14],
-							sql_row[15],sql_row[16],sql_row[17],sql_row[18],sql_row[19],
-							sql_row[20],sql_row[21],sql_row[22],sql_row[23],sql_row[24],
-							sql_row[25],sql_row[26],sql_row[27],sql_row[28],sql_row[29],
-							sql_row[30],sql_row[31],sql_row[32],sql_row[33],sql_row[34],
-							sql_row[35],sql_row[36],sql_row[37],sql_row[38],sql_row[39],
-							sql_row[40],sql_row[41],sql_row[42],sql_row[43],sql_row[44],
-							sql_row[45],sql_row[46],sql_row[47],sql_row[48],sql_row[49],
-							sql_row[50],sql_row[51],sql_row[52],sql_row[53],sql_row[54],
-							sql_row[55],sql_row[56]);
-
-				for (j = 0, p = line; j < 57; j++){
-					if ((np = strchr(p,',')) != NULL){
-						str[j] = p;
-						*np = 0;
-						p = np+1;
-					} else
-						str[j] = p;
-				}
-
-				class_ = atoi(str[0]);
+				class_ = TO_INT(0);
 				if (class_ <= 1000 || class_ > MAX_MOB_DB)
 				{
 					ShowWarning("Mob with ID: %d not loaded. ID must be in range [%d-%d]\n", class_, 1000, MAX_MOB_DB);
@@ -4520,70 +4498,70 @@ static int mob_read_sqldb(void)
 				ln++;
 
 				mob_db_data[class_]->view_class = class_;
-				memcpy(mob_db_data[class_]->name, str[1], NAME_LENGTH-1);
-				memcpy(mob_db_data[class_]->jname, str[2], NAME_LENGTH-1);
-				mob_db_data[class_]->lv = atoi(str[3]);
-				mob_db_data[class_]->max_hp = atoi(str[4]);
-				mob_db_data[class_]->max_sp = atoi(str[5]);
+				memcpy(mob_db_data[class_]->name, TO_STR(1), NAME_LENGTH-1);
+				memcpy(mob_db_data[class_]->jname, TO_STR(2), NAME_LENGTH-1);
+				mob_db_data[class_]->lv = TO_INT(3);
+				mob_db_data[class_]->max_hp = TO_INT(4);
+				mob_db_data[class_]->max_sp = TO_INT(5);
 
-				exp = (double)atoi(str[6]) * (double)battle_config.base_exp_rate / 100.;
+				exp = (double)TO_INT(6) * (double)battle_config.base_exp_rate / 100.;
 				if (exp < 0) exp = 0;
 				else if (exp > 0x7fffffff) exp = 0x7fffffff;
 				mob_db_data[class_]->base_exp = (int)exp;
 
-				exp = (double)atoi(str[7]) * (double)battle_config.job_exp_rate / 100.;
+				exp = (double)TO_INT(7) * (double)battle_config.job_exp_rate / 100.;
 				if (exp < 0) exp = 0;
 				else if (exp > 0x7fffffff) exp = 0x7fffffff;
 				mob_db_data[class_]->job_exp = (int)exp;
 				
-				mob_db_data[class_]->range = atoi(str[8]);
-				mob_db_data[class_]->atk1 = atoi(str[9]);
-				mob_db_data[class_]->atk2 = atoi(str[10]);
-				mob_db_data[class_]->def = atoi(str[11]);
-				mob_db_data[class_]->mdef = atoi(str[12]);
-				mob_db_data[class_]->str = atoi(str[13]);
-				mob_db_data[class_]->agi = atoi(str[14]);
-				mob_db_data[class_]->vit = atoi(str[15]);
-				mob_db_data[class_]->int_ = atoi(str[16]);
-				mob_db_data[class_]->dex = atoi(str[17]);
-				mob_db_data[class_]->luk = atoi(str[18]);
-				mob_db_data[class_]->range2 = atoi(str[19]);
-				mob_db_data[class_]->range3 = atoi(str[20]);
-				mob_db_data[class_]->size = atoi(str[21]);
-				mob_db_data[class_]->race = atoi(str[22]);
-				mob_db_data[class_]->element = atoi(str[23]);
-				mob_db_data[class_]->mode = atoi(str[24]);
-				mob_db_data[class_]->speed = atoi(str[25]);
-				mob_db_data[class_]->adelay = atoi(str[26]);
-				mob_db_data[class_]->amotion = atoi(str[27]);
-				mob_db_data[class_]->dmotion = atoi(str[28]);
+				mob_db_data[class_]->range = TO_INT(8);
+				mob_db_data[class_]->atk1 = TO_INT(9);
+				mob_db_data[class_]->atk2 = TO_INT(10);
+				mob_db_data[class_]->def = TO_INT(11);
+				mob_db_data[class_]->mdef = TO_INT(12);
+				mob_db_data[class_]->str = TO_INT(13);
+				mob_db_data[class_]->agi = TO_INT(14);
+				mob_db_data[class_]->vit = TO_INT(15);
+				mob_db_data[class_]->int_ = TO_INT(16);
+				mob_db_data[class_]->dex = TO_INT(17);
+				mob_db_data[class_]->luk = TO_INT(18);
+				mob_db_data[class_]->range2 = TO_INT(19);
+				mob_db_data[class_]->range3 = TO_INT(20);
+				mob_db_data[class_]->size = TO_INT(21);
+				mob_db_data[class_]->race = TO_INT(22);
+				mob_db_data[class_]->element = TO_INT(23);
+				mob_db_data[class_]->mode = TO_INT(24);
+				mob_db_data[class_]->speed = TO_INT(25);
+				mob_db_data[class_]->adelay = TO_INT(26);
+				mob_db_data[class_]->amotion = TO_INT(27);
+				mob_db_data[class_]->dmotion = TO_INT(28);
 
 				for (j = 0; j < 10; j++){ // 8 -> 10 Lupus
 					int rate = 0, type, ratemin, ratemax;
-					mob_db_data[class_]->dropitem[j].nameid=atoi(str[29+j*2]);
+					mob_db_data[class_]->dropitem[j].nameid=TO_INT(29+j*2);
 					type = itemdb_type(mob_db_data[class_]->dropitem[j].nameid);
 					if (type == 0) {							// Added by Valaris
-						rate = battle_config.item_rate_heal * atoi(str[30+j*2]) / 100;
+						rate = battle_config.item_rate_heal * TO_INT(30+j*2) / 100;
 						ratemin = battle_config.item_drop_heal_min;
 						ratemax = battle_config.item_drop_heal_max;
 					}
 					else if (type == 2) {
-						rate = battle_config.item_rate_use * atoi(str[30+j*2]) / 100;
+						rate = battle_config.item_rate_use * TO_INT(30+j*2) / 100;
 						ratemin = battle_config.item_drop_use_min;
 						ratemax = battle_config.item_drop_use_max;	// End
 					}
 					else if (type == 4 || type == 5 || type == 8) {		// Changed to include Pet Equip
-						rate = battle_config.item_rate_equip * atoi(str[30+j*2]) / 100;
+						rate = battle_config.item_rate_equip * TO_INT(30+j*2) / 100;
 						ratemin = battle_config.item_drop_equip_min;
 						ratemax = battle_config.item_drop_equip_max;
 					}
 					else if (type == 6) {
-						rate = battle_config.item_rate_card * atoi(str[30+j*2]) / 100;
+						rate = battle_config.item_rate_card * TO_INT(30+j*2) / 100;
 						ratemin = battle_config.item_drop_card_min;
 						ratemax = battle_config.item_drop_card_max;
 					}
 					else {
-						rate = battle_config.item_rate_common * atoi(str[30+j*2]) / 100;
+						rate = battle_config.item_rate_common * TO_INT(30+j*2) / 100;
 						ratemin = battle_config.item_drop_common_min;
 						ratemax = battle_config.item_drop_common_max;
 					}
@@ -4591,8 +4569,8 @@ static int mob_read_sqldb(void)
 					mob_db_data[class_]->dropitem[j].p = (rate < ratemin) ? ratemin : (rate > ratemax) ? ratemax: rate;
 				}
 				// MVP EXP Bonus, Chance: MEXP,ExpPer
-				mob_db_data[class_]->mexp = atoi(str[49]) * battle_config.mvp_exp_rate / 100;
-				mob_db_data[class_]->mexpper = atoi(str[50]);
+				mob_db_data[class_]->mexp = TO_INT(49) * battle_config.mvp_exp_rate / 100;
+				mob_db_data[class_]->mexpper = TO_INT(50);
 				//Now that we know if it is an mvp or not,
 				//apply battle_config modifiers [Skotlex]
 				maxhp = (double)mob_db_data[class_]->max_hp;
@@ -4608,23 +4586,9 @@ static int mob_read_sqldb(void)
 
 				// MVP Drops: MVP1id,MVP1per,MVP2id,MVP2per,MVP3id,MVP3per
 				for (j = 0; j < 3; j++) {
-					mob_db_data[class_]->mvpitem[j].nameid = atoi(str[51+j*2]);
-					mob_db_data[class_]->mvpitem[j].p = atoi(str[52+j*2]) * battle_config.mvp_item_rate / 100;
+					mob_db_data[class_]->mvpitem[j].nameid = TO_INT(51+j*2);
+					mob_db_data[class_]->mvpitem[j].p = TO_INT(52+j*2) * battle_config.mvp_item_rate / 100;
 				}
-				/* No need to initialize this, it was summoned with aCalloc.
-				for (j = 0; j < MAX_RANDOMMONSTER; j++)
-					mob_db_data[class_]->summonper[j] = 0;
-				mob_db_data[class_]->maxskill = 0;
-
-				mob_db_data[class_]->sex = 0;
-				mob_db_data[class_]->hair = 0;
-				mob_db_data[class_]->hair_color = 0;
-				mob_db_data[class_]->weapon = 0;
-				mob_db_data[class_]->shield = 0;
-				mob_db_data[class_]->head_top = 0;
-				mob_db_data[class_]->head_mid = 0;
-				mob_db_data[class_]->head_buttom = 0;
-				*/
 				if (mob_db_data[class_]->max_hp <= 0) {
 					ShowWarning ("Mob %d (%s) has no HP, using poring data for it\n", class_, mob_db_data[class_]->jname);
 					mob_makedummymobdb(class_);
