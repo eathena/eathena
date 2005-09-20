@@ -545,10 +545,8 @@ int pet_changestate(struct pet_data *pd,int state,int type)
 	pd->timer=-1;
 	pd->state.state=state;
 	if (pd->state.casting_flag)
-	{//Skotlex: Cancel casting
-		pd->state.casting_flag = 0;
-		clif_skillcastcancel(&pd->bl);
-	}
+		skill_castcancel(&pd->bl, 0);
+
 	switch(state) {
 		case MS_WALK:
 			if((i=calc_next_walk_step(pd)) > 0){
@@ -1490,11 +1488,9 @@ static int pet_ai_sub_hard(struct pet_data *pd,unsigned int tick)
 			mode=pd->db->mode;
 			race=pd->db->race;
 			md=(struct mob_data *)map_id2bl(pd->target_id);
-			if(md == NULL /*|| md->bl.type != BL_MOB*/ || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
+			if(md == NULL || pd->bl.m != md->bl.m || md->bl.prev == NULL ||
 				distance(pd->bl.x,pd->bl.y,md->bl.x,md->bl.y) > 13)
 				pet_unlocktarget(pd);
-/*			else if(pd->db->mexp <= 0 && !(mode&0x20) && (md->option & 0x06 && race!=4 && race!=6) )
-				pet_unlocktarget(pd);*/
 			else if(!battle_check_range(&pd->bl,&md->bl,pd->db->range && !pd->state.casting_flag)){ //Skotlex Don't interrupt a casting spell when targed moved
 				if(pd->timer != -1 && pd->state.state == MS_WALK && distance(pd->to_x,pd->to_y,md->bl.x,md->bl.y) < 2)
 					return 0;

@@ -1,6 +1,8 @@
 Date	Added
 =======
 
+09/20
+	* Fixed a memory leak when pets cancel their casting. [Skotlex]
 09/19
 	* Added error reporting an item in the item_db.txt file has insufficient
 	  fields (rather than just crashing) [Skotlex]
