@@ -35,6 +35,7 @@
 	--
 09/19
 	* Thanks to MasterOfMuppets: Fixed drop rate of minerals [Lupus]
+	- Fixed some Niflheim mobs range and speed, re-fixed Increase Soil walk speed, Kind of Beetle mode.
 	* Thanx to mrmagoo: item #1356, fixed weight. #5126 delayrate change applies to Advanced Classes only [Lupus]
 	- It could be also interpreted as "For Advanced Classes Magic Scills". But then we'd have to add a special flag....
 	* Removed Whisper Card drop from Giant Whisper. Only mini-bosses could carry 2 cards. Now Giant Whisper has its own card [Lupus]
