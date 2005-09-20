@@ -7269,6 +7269,7 @@ int pc_read_gm_account(int fd)
 	sprintf (tmp_lsql, "SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",gm_db_account_id,gm_db_level,gm_db,gm_db_level,lowest_gm_level);
 	if(mysql_query(&lmysql_handle, tmp_lsql) ) {
 		ShowSQL("DB server Error (select %s to Memory)- %s\n",login_db,mysql_error(&lmysql_handle) );
+		return 0;
 	}
 	lsql_res = mysql_store_result(&lmysql_handle);
 	if (lsql_res) {

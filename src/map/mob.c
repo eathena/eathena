@@ -4474,6 +4474,7 @@ static int mob_read_sqldb(void)
 		sprintf (tmp_sql, "SELECT * FROM `%s`", mob_db_name[i]);
 		if (mysql_query(&mmysql_handle, tmp_sql)) {
 			ShowSQL("DB server Error (select %s to Memory)- %s\n", mob_db_name[i], mysql_error(&mmysql_handle));
+			continue;
 		}
 		sql_res = mysql_store_result(&mmysql_handle);
 		if (sql_res) {

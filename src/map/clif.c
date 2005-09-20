@@ -3946,8 +3946,6 @@ int clif_fixnpcpos(struct npc_data *nd)
  */
 static int clif_calc_delay(struct block_list *dst, int type, int delay)
 {
-	struct status_change *sc_data;
-
 	if (type == 1 || type == 4) //Type 1 is the crouching animation, type 4 are non-flinching attacks. 
 		return type;
 	
@@ -3956,6 +3954,8 @@ static int clif_calc_delay(struct block_list *dst, int type, int delay)
 	
 	//Delay should be 0 when used on endure characters, so the checks below are unneeded. [Skotlex]
 /*
+	struct status_change *sc_data;
+
 	if	(map[dst->m].flag.gvg)	//Can't be endure-type attacks on gvg maps. [Skotlex]
 		return type;
 	sc_data = status_get_sc_data(dst);

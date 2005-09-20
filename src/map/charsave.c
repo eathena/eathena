@@ -32,7 +32,7 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          sprintf(charsql_tmpsql, "SELECT `char_id`,`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`, `str`,`agi`,`vit`,`int`,`dex`,`luk`, `max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point`, `option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`hair`,`hair_color`, `clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`, `last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`, `partner_id`, `father`, `mother`, `child`, `fame` FROM `char` WHERE `char_id` = '%d'", charid);
     	if(mysql_query(&charsql_handle, charsql_tmpsql)){
          	ShowSQL("charsave_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-                 aFree(c);
+				aFree(c);
          	return NULL;
          }
 
@@ -230,9 +230,11 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 
 	if(mysql_query(&charsql_handle, tmp_sql)){
 		ShowSQL("fromsql() SQL ERROR (reading friends): %s\n", mysql_error(&charsql_handle));
+		sql_res = NULL; //To avoid trying to read data.
 	}
-
-	sql_res = mysql_store_result(&charsql_handle);
+	else
+		sql_res = mysql_store_result(&charsql_handle);
+	
 	if(sql_res)
 	{
 		for(i = 0; (sql_row = mysql_fetch_row(sql_res)) && i<MAX_FRIENDS; i++)
@@ -246,52 +248,9 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 		}
 		mysql_free_result(sql_res);
 	}
-/*	Previous implementation...
-         //Friend list 'ids'
-         sprintf(charsql_tmpsql, "SELECT `char_id`, `friend_account`, `friend_id` FROM `friends` WHERE `char_id` = '%d'", charid);
-         if(mysql_query(&charsql_handle, charsql_tmpsql)){
-         	ShowSQL("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-				aFree(c);
-				return NULL;
-         }
 
-         charsql_res = mysql_store_result(&charsql_handle);
-         if(charsql_res){
-         	for(i = 0; (charsql_row = mysql_fetch_row(charsql_res)); i++){
-                 	c->friend_id[i] = atoi(charsql_row[1]);
-                         //NEW ONE:
-                         //c->friends[i].id = atoi(charsql_res[1]);
-                 }
-                 friends = i;
-                 mysql_free_result(charsql_res);
-         }
-
-
-        	//Friend list 'names'
-         for(i = 0; i < friends; i++){
-         	sprintf(charsql_tmpsql, "SELECT `char_id`, `name` FROM `char` WHERE `char_id` = '%d'", c->friend_id[i]);
-                 //NEW
-                 //sprintf(charsql_tmpsql, "SELECT `char_id`, `name` FROM `char` WHERE `char_id` = '%d'", c->friends[i].id);
-	        if(mysql_query(&charsql_handle, charsql_tmpsql)){
-					ShowSQL("charsql_loadchar() SQL ERROR: %s\n", mysql_error(&charsql_handle));
-					aFree(c);
-					return NULL;
-	        }
-
-                 charsql_res = mysql_store_result(&charsql_handle);
-                 if(charsql_res){
-                 	charsql_row = mysql_fetch_row(charsql_res);
-                         strcpy(c->friend_name[i], charsql_row[1]);
-                         //NEW:
-                         //strcpy(c->friends[i].name, charsql_row[1]);
-                 	mysql_free_result(charsql_res);
-                 }
-         }
-*/
-
-      	ShowInfo("charsql_loadchar(): loading of '%d' (%s) complete.\n", charid, c->name);
-
-return c;
+	ShowInfo("charsql_loadchar(): loading of '%d' (%s) complete.\n", charid, c->name);
+	return c;
 }
 
 
