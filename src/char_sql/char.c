@@ -97,6 +97,8 @@ int char_new_display;
 int name_ignoring_case = 0; // Allow or not identical name for characters but with a different case by [Yor]
 int char_name_option = 0; // Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
 char char_name_letters[1024] = ""; // list of letters/symbols used to authorise or not a name of a character. by [Yor]
+//The following are characters that are trimmed regardless because they cause confusion and problems on the servers. [Skotlex]
+#define TRIM_CHARS "\032\t\n "
 int char_per_account = 0; //Maximum charas per account (default unlimited) [Sirius]
 
 int charsave_method = 0; //.. 0 saves over me .. 1 mapserver makes it 'local'
@@ -1429,7 +1431,7 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	if (strlen((char *)dat) > NAME_LENGTH-1)
 		dat[NAME_LENGTH-1] = '\0';
 
-	dat = trim(dat); //Trim character name. [Skotlex]
+	dat = trim(dat,TRIM_CHARS); //Trim character name. [Skotlex]
 	jstrescapecpy(t_name, (char*)dat);
 
 	// disabled until fixed >.>

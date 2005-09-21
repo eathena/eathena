@@ -2,6 +2,11 @@ Date	Added
 =======
 
 09/21
+	* Replaced the trim() function with Furoken's implementation (it should
+	  remove tabs, consecutive spaces and other such unwanted characters from a
+	  char's name) [Skotlex]
+	* Updated doc/script_commands.txt to explain the upper parameter of the
+	  function jobchange. [Skotlex]
 	* Corrected sql query errors when logging trades and vending. [Skotlex]
 	* Updated doc/script_commands.txt with the script commands I've modified
 	  or added that are not yet described within. [Skotlex]

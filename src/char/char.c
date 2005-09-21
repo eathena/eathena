@@ -77,6 +77,8 @@ int subneti[4];
 int subnetmaski[4];
 int name_ignoring_case = 0; // Allow or not identical name for characters but with a different case by [Yor]
 int char_name_option = 0; // Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
+//The following are characters that are trimmed regardless because they cause confusion and problems on the servers. [Skotlex]
+#define TRIM_CHARS "\032\t\n "
 char char_name_letters[1024] = ""; // list of letters/symbols authorised (or not) in a character name. by [Yor]
 
 int log_char = 1;	// loggin char or not [devil]
@@ -973,7 +975,7 @@ int make_new_char(int fd, unsigned char *dat) {
 
 	// remove control characters from the name
 	dat[NAME_LENGTH-1] = '\0'; //Trunc name to max possible value (23)
-	dat = trim(dat); //Trim character name. [Skotlex]
+	dat = trim(dat,TRIM_CHARS); //Trim character name. [Skotlex]
 	
 	if (remove_control_chars((unsigned char *)(char*)dat)) {
 		char_log("Make new char error (control char received in the name): (connection #%d, account: %d)." RETCODE,

@@ -10,5 +10,5 @@ int jmemescapecpy (char* pt,char* spt, int size);
 
 // custom functions
 int remove_control_chars(unsigned char *);
-char *trim(char *str);
+char *trim(char *str, const char *delim);
 #endif

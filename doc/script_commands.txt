@@ -9,7 +9,7 @@
 //= Maeki Rika - A section on general concepts and lots of
 //=              other updates and additions.
 //===== Version ===========================================
-//= 2.3
+//= 2.4
 //=========================================================
 //= 1.0 - First release, filled will as much info as I could
 //=       remember or figure out, most likely there are errors,
@@ -26,6 +26,7 @@
 //= 2.2 - added getItemInfo description [Lupus]
 //= 2.3 - added plenty of info for recent (and not so) script commands I added
 //        [Skotlex]
+//= 2.4 - Explained the upper parameter of jobchange. [Skotlex]
 //===== Compatible With ===================================
 //= LOL, can be used by anyone hopefully
 //===== Description =======================================
@@ -1187,9 +1188,13 @@ list of job names and the numbers they correspond to can be found in
     // This would change your player into a Swordman High
     jobchange Job_Swordman_High; 
 
-'upper flag' is an optional parameter. It is not quite clear how exactly it 
-works, but it is unnecessary for most common jobchange operations, so we suggest 
-you just don't use it.
+'upper flag' can alternatively be used to specify the type of job one changes
+to. For example, jobchange Job_Swordman,1; will change the character to a high
+swordsman. The upper values are:
+-1 (or when omitted): preserves the current job type.
+0: Normal/standard classes
+1: High/Advanced classes
+2: Baby classes
 
 This command will also set a permanent character-based variable 
 'jobchange_level' which will contain the job level at the time right before 
