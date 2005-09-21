@@ -990,7 +990,7 @@ int map_eraseipport(char *name,unsigned long ip,int port);
 int map_eraseallipport(void);
 void map_addiddb(struct block_list *);
 void map_deliddb(struct block_list *bl);
-void map_foreachpc(int (*)(struct map_session_data **, int, va_list ap),...);
+struct map_session_data** map_getallusers(int *users);
 int map_foreachiddb(int (*)(void*,void*,va_list),...);
 void map_addnickdb(struct map_session_data *);
 struct map_session_data * map_nick2sd(char*);

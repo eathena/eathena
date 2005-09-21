@@ -3356,29 +3356,10 @@ static int pc_walk(int tid,unsigned int tick,int id,int data)
 
 		if (pc_iscloaking(sd))	// クロ?キングの消滅?査
 			skill_check_cloaking(&sd->bl);
-		/* ディボ?ション?査 */
-/* Unneeded by the new devotion methodology. [Skotlex]
-		for (i = 0; i < 5; i++)
-			if (sd->dev.val1[i]) {
-				skill_devotion3(&sd->bl, sd->dev.val1[i]);
-				break;
-			}
-*/
 		/* 被ディボ?ション?査 */
 		if (sd->sc_count) {
 			if (sd->sc_data[SC_DANCING].timer != -1)
 				skill_unit_move_unit_group((struct skill_unit_group *)sd->sc_data[SC_DANCING].val2, sd->bl.m, dx, dy);
-
-/* Unneeded now. [Skotlex]
-			if (sd->sc_data[SC_DEVOTION].val1)
-				skill_devotion2(&sd->bl, sd->sc_data[SC_DEVOTION].val1);
-			if (sd->sc_data[SC_BASILICA].timer != -1) { // Basilica cancels if caster moves [celest]
-				struct skill_unit_group *sg = (struct skill_unit_group *)sd->sc_data[SC_BASILICA].val4;
-				if (sg && sg->src_id == sd->bl.id)
-					skill_delunitgroup (sg);
-				status_change_end(&sd->bl,SC_BASILICA,-1);
-			}
-*/
 		}
 		if (map_getcell(sd->bl.m,x,y,CELL_CHKNPC))
 			npc_touch_areanpc(sd,sd->bl.m,x,y);

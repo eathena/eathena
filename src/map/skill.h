@@ -205,12 +205,6 @@ void skill_repairweapon(struct map_session_data *sd, int idx);
 void skill_identify(struct map_session_data *sd,int idx);
 void skill_weaponrefine(struct map_session_data *sd,int idx); // [Celest]
 int skill_autospell(struct map_session_data *md,int skillid);
-/* Unneeded by the new devotion methodology. [Skotlex]
-void skill_devotion(struct map_session_data *md,int target);
-void skill_devotion2(struct block_list *bl,int crusader);
-int skill_devotion3(struct block_list *bl,int target);
-*/
-void skill_devotion_end(struct map_session_data *md,struct map_session_data *sd,int target);
 
 #define skill_calc_heal(bl,skill_lv) (( status_get_lv(bl)+status_get_int(bl) )/8 *(4+ skill_lv*8))
 
@@ -772,6 +766,43 @@ enum {
 	AM_TWILIGHT1,
 	AM_TWILIGHT2,
 	AM_TWILIGHT3,
+	//Need to figure out the actual number for the following... [Skotlex]
+	HLIF_HEAL,
+	HLIF_AVOID,
+	HLIF_BRAIN,
+	HLIF_CHANGE,
+	HAMI_CASTLE,
+	HAMI_DEFENCE,
+	HAMI_SKIN,
+	HAMI_BLOODLUST,
+	HFLI_MOON,
+	HFLI_FLEET,
+	HFLI_SPEED,
+	HFLI_SBR44,
+	HVAN_CAPRICE,
+	HVAN_CHAOTIC,
+	HVAN_INSTRUCT,
+	HVAN_EXPLOSION,
+	
+	KN_CHARGEATK,
+	CR_SHRINK,
+	AS_SONICACCEL,
+	AS_VENOMKNIFE,
+	RG_CLOSECONFINE,
+	WZ_SIGHTBLASTER,
+	SA_CREATECON,
+	SA_ELEMENTWATER,
+	SA_ELEMENTGROUND,
+	SA_ELEMENTFIRE,
+	SA_ELEMENTWIND,
+	HT_PHANTASMIC,
+	BA_PANGVOICE,
+	DC_WINKCHARM,
+	BS_UNFAIRLYTRICK,
+	BS_GREED,
+	PR_REDEMPTIO,
+	MO_KITRANSLATION,
+	MO_BALKYOUNG,
 };
 
 enum {

@@ -1952,32 +1952,44 @@ static int map_foreachpc_sub(void * key,void * data,va_list ap)
 	struct map_session_data *sd = (struct map_session_data*) data;
 	struct map_session_data **total_sd = va_arg(ap, struct map_session_data**);
 	int *count = va_arg(ap, int*);
-	if (*count >= map_getusers())
-	{
-		ShowError("map_foreachpc_sub: More players than those specified by map_getusers()!\n");
-		return 0;
-	}
+
 	(*total_sd)[(*count)++] = *sd;
 	return 0;
 }
 
 /*==========================================
- * Invokes a function that receives a list of all connected players. [Skotlex]
+ * Returns an array of all players in the server (includes non connected ones) [Skotlex]
+ * The int pointer given returns the count of elements in the array.
+ * If null is passed, it is requested that the memory be freed (for shutdown), and null is returned.
  *------------------------------------------
  */
-void map_foreachpc(int (*func)(struct map_session_data **, int, va_list ap),...) {
-	struct map_session_data **total_sd;
-	int count =0;
-	va_list ap;
+struct map_session_data** map_getallusers(int *users) {
+	static struct map_session_data **all_sd=NULL;
+	static int all_count = 0;
+	
+	if (users == NULL)
+	{	//Free up data
+		if (all_sd) aFree(all_sd);
+		all_sd = NULL;
+		return NULL;
+	}
 
-	total_sd = aCalloc(map_getusers(), sizeof(struct map_session_data*)); //it's actually just the size of a pointer.
+	if (all_sd == NULL)
+	{	//Init data
+		all_count = map_getusers();
+		if (all_count < 1)
+			all_count = 10; //Allow room for at least 10 chars.
+		all_sd = aCalloc(all_count, sizeof(struct map_session_data*)); //it's actually just the size of a pointer.
+	}
 
-	va_start(ap,func);
-	numdb_foreach(pc_db,map_foreachpc_sub,&total_sd, &count);
-	func(total_sd, count, ap);
-	va_end(ap);
-	aFree(total_sd);
-	return;
+	if (all_count < map_getusers())
+	{
+		all_count = map_getusers();
+		all_sd = aRealloc(all_sd, all_count*sizeof(struct map_session_data*));
+	}
+	*users = 0;
+	numdb_foreach(pc_db,map_foreachpc_sub,&all_sd, users);
+	return all_sd;
 }
 
 /*==========================================
@@ -3633,6 +3645,8 @@ void do_final(void) {
 	do_final_mob();
 	do_final_msg();
 
+	map_getallusers(NULL); //Clear the memory allocated for this array.
+	
 	for (i=0; i<map_num; i++) {
 		if(map[i].gat) aFree(map[i].gat);
 		if(map[i].block) aFree(map[i].block);
