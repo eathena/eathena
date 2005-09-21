@@ -9,7 +9,7 @@
 //= Maeki Rika - A section on general concepts and lots of
 //=              other updates and additions.
 //===== Version ===========================================
-//= 2.2
+//= 2.3
 //=========================================================
 //= 1.0 - First release, filled will as much info as I could
 //=       remember or figure out, most likely there are errors,
@@ -24,6 +24,8 @@
 //=       secret of making VVS weapons with 'getitem2' and 
 //=       other news. (Rika again) +10kb :) 
 //= 2.2 - added getItemInfo description [Lupus]
+//= 2.3 - added plenty of info for recent (and not so) script commands I added
+//        [Skotlex]
 //===== Compatible With ===================================
 //= LOL, can be used by anyone hopefully
 //===== Description =======================================
@@ -1688,6 +1690,17 @@ eggs, and may hatch from either, although, I'm not sure what kind of a mess will
 this really cause.
 
 ---------------------------------------
+*groupranditem <group id>;
+
+Returns the item_id of a random item picked from the group specified. The
+different groups and their group number are specified in db/item_group_db.txt
+
+When used in conjunction with other functions, you can get a random item. For
+example, for a random pet lure:
+
+getitem groupranditem(15),1;
+
+---------------------------------------
 
 *makeitem <item id>,<amount>,<X>,<Y>,"<map name>";
 *makeitem "<item name>",<amount>,<X>,<Y>,"<map name>";
@@ -1992,7 +2005,14 @@ Maybe you want to make a room only guildmasters can enter:
 
 
 ---------------------------------------
+*guildchangegm(<guild id>,<new master's name>)
 
+This function will change the Guild Master of a guild. The ID is the guild's
+id, and the new guildmaster's name must be passed.
+
+Returns 1 on success, 0 otherwise.
+
+---------------------------------------
 *getguildmasterid(<guild id>)
 
 This function will return the character ID number of the guildmaster of the 
@@ -3212,6 +3232,7 @@ sprite location and other accompanying data from memory when it is not used.
 
 *sc_start <effect type>,<ticks>,<extra argument>{,<target ID number>};
 *sc_start2 <effect type>,<ticks>,<extra argument>,<percent chance>{,<target ID number>};
+*sc_start4 <effect type>,<ticks>,<value 1>,<value 2>,<value 3>,<value 4>{,<target ID number>};
 *sc_end <effect type>{,<target ID number>};
 
 These command bestow a status effect on the invoking character. This command is 
@@ -3240,6 +3261,14 @@ not been properly tested.
 'sc_start2' is perfectly equivalent, but unlike 'sc_start', a status change 
 effect will only occur with a specified percentage chance. 10000 given as the 
 chance is equivalent to a 100% chance, 0 is a zero.
+
+'sc_start4' is just like sc_start, however it takes four parameters for the
+status change instead of one. What these values are depends on the status
+change in question. For example, elemental armor defense takes the following
+four values:
+- val1 is the first element, val2 is the resistance to the element val1.
+- val3 is the second element, val4 is the resistance to said element.
+eg: sc_start4 SC_DefEle,60000,Ele_Fire,20,Ele_Water,-15;
 
 'sc_end' will remove a specified status effect.
 
@@ -3578,12 +3607,16 @@ even though WoE itself may or may not actually be in effect.
 
 ---------------------------------------
 
-*emotion <emotion number>;
+*emotion <emotion number> <, target>;
 
-This command makes the NPC object display an emoticon sprite above their own as 
-if they were a player doing that emotion. For a full list of emotion numbers, 
+This command makes an object display an emoticon sprite above their own as 
+if they were doing that emotion. For a full list of emotion numbers, 
 see 'db/const.txt' under 'e_'. The inobvious ones are 'e_what' (a question mark) 
 and 'e_gasp' (the exclamation mark).
+
+The optional target parameter specifies who will get the emotion on top of
+their head. If 0 (the default if omitted), the NPC in current use will show
+the emotion, if 1, the player that is running the script will display it.
 
 ---------------------------------------
 

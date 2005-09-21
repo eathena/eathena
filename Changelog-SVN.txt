@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/21
+	* Updated doc/script_commands.txt with the script commands I've modified
+	  or added that are not yet described within. [Skotlex]
 	* Small fix to clif.c which corrects characters that can't log in again if
 	  they log out when the char and map server are not connected. [Skotlex]
 	* Cleaned up all SQL error reporting. It now follows the same standard
