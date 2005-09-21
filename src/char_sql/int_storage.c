@@ -71,7 +71,7 @@ int storage_fromsql(int account_id, struct storage *p){
 	sprintf(tmp_sql,"%s FROM `%s` WHERE `account_id`='%d' ORDER BY `nameid`",tmp_sql, storage_db, account_id);
 	
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowSQL ("DB server Error - %s\n", mysql_error(&mysql_handle) );
+		ShowSQL ("DB server Error (select `storage`) - %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
 
@@ -143,7 +143,7 @@ int guild_storage_fromsql(int guild_id, struct guild_storage *p){
 	sprintf(tmp_sql,"%s FROM `%s` WHERE `guild_id`='%d' ORDER BY `nameid`",tmp_sql, guild_storage_db, guild_id);
 	
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB server Error (select `guild_storage`) - %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
 

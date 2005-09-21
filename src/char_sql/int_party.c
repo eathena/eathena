@@ -51,7 +51,7 @@ int inter_party_tosql(int party_id,struct party *p)
 	// Check if party exists
 	sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id`='%d'", party_db, party_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB server Error (select count `party`) - %s\n", mysql_error(&mysql_handle) );
 		return 0;
 	}
 	sql_res = mysql_store_result(&mysql_handle);
@@ -66,7 +66,7 @@ int inter_party_tosql(int party_id,struct party *p)
 		// Check members in party
 		sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id`='%d'", char_db, party_id); // TBR
 		if (mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+			ShowSQL("DB server Error (select count `party`)- %s\n", mysql_error(&mysql_handle));
 			return 0;
 		}
 		sql_res = mysql_store_result(&mysql_handle) ;
@@ -89,7 +89,7 @@ int inter_party_tosql(int party_id,struct party *p)
 			// Delete the party, if has no member.
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `party_id`='%d'", party_db, party_id);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowSQL("DB server Error (delete `party`) - %s\n", mysql_error(&mysql_handle));
 			}
 		//	printf("No member in party %d, break it \n",party_id);
 			memset(p, 0, sizeof(struct party));
@@ -158,7 +158,7 @@ int inter_party_fromsql(int party_id, struct party *p)
 	sprintf(tmp_sql, "SELECT `party_id`, `name`,`exp`,`item`, `leader_id` FROM `%s` WHERE `party_id`='%d'",
 		party_db, party_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select `party`)- %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB server Error (select `party`) - %s\n", mysql_error(&mysql_handle));
 		return 0;
 	}
 

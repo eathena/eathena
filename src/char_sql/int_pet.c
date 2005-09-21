@@ -44,7 +44,7 @@ int inter_pet_tosql(int pet_id, struct s_pet *p) {
 		p->intimate = 1000;
 	sprintf(tmp_sql,"SELECT * FROM `%s` WHERE `pet_id`='%d'",pet_db, pet_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-			ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle) );
+			ShowSQL("DB server Error (select `pet`) - %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
 	if (sql_res!=NULL && mysql_num_rows(sql_res)>0)
@@ -58,7 +58,7 @@ int inter_pet_tosql(int pet_id, struct s_pet *p) {
 			p->equip, p->intimate, p->hungry, p->rename_flag, p->incuvate);
 	mysql_free_result(sql_res) ; //resource free
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowSQL("DB server Error (inset/update `pet`)- %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB server Error (insert/update `pet`)- %s\n", mysql_error(&mysql_handle) );
 	}
 
 	ShowInfo("Pet saved (%d). \n", pet_id);
@@ -120,7 +120,7 @@ int inter_pet_sql_init(){
 
 	sprintf (tmp_sql , "SELECT count(*) FROM `%s`", pet_db);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB server Error (select `pet` count) - %s\n", mysql_error(&mysql_handle) );
 		exit(0);
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
@@ -133,7 +133,7 @@ int inter_pet_sql_init(){
 		//set pet_newid
 		sprintf (tmp_sql , "SELECT max(`pet_id`) FROM `%s`",pet_db );
 		if(mysql_query(&mysql_handle, tmp_sql) ) {
-			ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle) );
+			ShowSQL("DB server Error (select max `pet`) - %s\n", mysql_error(&mysql_handle) );
 		}
 
 		sql_res = mysql_store_result(&mysql_handle) ;
@@ -157,7 +157,7 @@ int inter_pet_delete(int pet_id){
 
 	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `pet_id`='%d'",pet_db, pet_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-			ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle) );
+			ShowSQL("DB server Error (delete `pet`) - %s\n", mysql_error(&mysql_handle) );
 	}
 	return 0;
 }

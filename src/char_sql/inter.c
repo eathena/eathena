@@ -531,7 +531,7 @@ int mapif_parse_WisRequest(int fd) {
 	sprintf (tmp_sql, "SELECT `name` FROM `%s` WHERE `name`='%s'",
 		char_db, jstrescapecpy(t_name, (char *)RFIFOP(fd,28)));
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB server Error (mapif_parse_WisRequest) - %s\n", mysql_error(&mysql_handle) );
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 

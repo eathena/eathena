@@ -1,6 +1,9 @@
 Date	Added
 =======
 
+09/21
+	* Corrected an sql logs error when selecting a character with special
+	  characters (eg: single quotes) on it. [Skotlex]
 09/20
 	* Changed Palm Strike's initial animation display. [Skotlex]
 	  (it will show as a normal attack that misses instead of an skill, but at

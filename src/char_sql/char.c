@@ -1343,23 +1343,6 @@ int mmo_char_sql_init(void) {
           ShowStatus("Chars per Account: '%d'.......\n", char_per_account);
         }
 
-        /*
-
-	//sprintf(tmp_sql , "REPLACE INTO `%s` SET `online`=0", char_db);   //OLD QUERY ! BUGGED
-	sprintf(tmp_sql, "UPDATE `%s` SET `online` = '0'", char_db);//fixed the on start 0 entrys!
-	if (mysql_query(&mysql_handle, tmp_sql))
-		printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-
-	//sprintf(tmp_sql , "REPLACE INTO `%s` SET `online`=0", guild_member_db); //OLD QUERY ! BUGGED
-        sprintf(tmp_sql, "UPDATE `%s` SET `online` = '0'", guild_member_db);//fixed the 0 entrys in start ..
-	if (mysql_query(&mysql_handle, tmp_sql))
-		printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-
-	//sprintf(tmp_sql , "REPLACE INTO `%s` SET `connect_member`=0", guild_db); //OLD QUERY BUGGED!
-	sprintf(tmp_sql, "UPDATE `%s` SET `connect_member` = '0'", guild_db);//fixed the 0 entrys in start.....
-	if (mysql_query(&mysql_handle, tmp_sql))
-		printf("DB server Error - %s\n", mysql_error(&mysql_handle));
-	*/
 	//the 'set offline' part is now in check_login_conn ...
 	//if the server connects to loginserver
 	//it will dc all off players
@@ -1849,7 +1832,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	//search char.
 	sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%d'",char_db, sd->account_id);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB server Error (select - mmo_char_send006b)- %s\n", mysql_error(&mysql_handle));
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
@@ -2303,7 +2286,7 @@ int parse_frommap(int fd) {
 			ShowStatus("Map-server %d (session #%d) has disconnected.\n", id, fd);
 			sprintf(tmp_sql, "DELETE FROM `ragsrvinfo` WHERE `index`='%d'", server_fd[id]);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowSQL("DB server Error (delete from `ragsrvinfo`) - %s\n", mysql_error(&mysql_handle));
 			}
 			server_fd[id] = -1;
 		}
@@ -2460,7 +2443,7 @@ int parse_frommap(int fd) {
 			//check account
 			sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `account_id` = '%d' AND `char_id`='%d'",char_db, RFIFOL(fd,4),RFIFOL(fd,8)); // TBR
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowSQL("DB server Error (select `char` count) - %s\n", mysql_error(&mysql_handle));
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 			if (sql_res) {
@@ -2527,7 +2510,7 @@ int parse_frommap(int fd) {
 
 			sprintf(tmp_sql, "SELECT `char_id`, `name` FROM `%s` WHERE `account_id` = '%d' AND `char_id`='%d'", char_db, RFIFOL(fd,2), RFIFOL(fd,14));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowSQL("Change map server: DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 			if(sql_res){
@@ -2577,7 +2560,7 @@ int parse_frommap(int fd) {
 
 			sprintf(tmp_sql, "SELECT `name` FROM `%s` WHERE `char_id`='%d'", char_db, RFIFOL(fd,2));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowSQL("char name check: DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 
@@ -2768,7 +2751,7 @@ int parse_frommap(int fd) {
 			sprintf(tmp_sql, "INSERT INTO `ragsrvinfo` SET `index`='%d',`name`='%s',`exp`='%d',`jexp`='%d',`drop`='%d',`motd`='%s'",
 			        fd, server_name, RFIFOW(fd,2), RFIFOW(fd,4), RFIFOW(fd,6), RFIFOP(fd,10));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowSQL("receive rates: DB server Error - %s\n", mysql_error(&mysql_handle));
 			}
 			RFIFOSKIP(fd,RFIFOW(fd,8));
 			break;
@@ -3058,7 +3041,7 @@ int parse_char(int fd) {
 
 			sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'",char_db, sd->account_id, RFIFOB(fd, 2));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowSQL("DB server Error (char select) - %s\n", mysql_error(&mysql_handle));
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 
@@ -3073,11 +3056,12 @@ int parse_char(int fd) {
 			}
 
 			if (log_char) {
+				char escaped_name[NAME_LENGTH*2];
 				sprintf(tmp_sql,"INSERT INTO `%s`(`time`, `account_id`,`char_num`,`name`) VALUES (NOW(), '%d', '%d', '%s')",
-					charlog_db, sd->account_id, RFIFOB(fd, 2), char_dat[0].name);
+					charlog_db, sd->account_id, RFIFOB(fd, 2), jstrescapecpy(escaped_name, char_dat[0].name));
 				//query
 				if(mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("DB server Error - %s\n", mysql_error(&mysql_handle));
+					ShowSQL("DB server Error (log char select) - %s\n", mysql_error(&mysql_handle));
 				}
 			}
 			ShowInfo("Selected char: (Account %d: %d - %s)" RETCODE, sd->account_id, RFIFOB(fd, 2), char_dat[0].name);
