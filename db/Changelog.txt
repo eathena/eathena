@@ -43,6 +43,7 @@
 		+ Orc Lord, 74 2.5%		+ Osiris, 78, 3%		+ Pharaoh, 93, 5.5%
 		+ Zherlthsh. 63, 1%
 		- Golden Thief Bug		- Mimic				- Werewolf
+	* Fixed drops of Abyss Knight (2 kinds of Broad Swords) [Lupus]
 	* Added some notes to Lighthalzen Monsters. Should be revised, thanks to persian69 for the info [Lupus]
 09/21
 	* Added Mr.Smile to 1405#Tengu drops. Also!!! Removed Mr.Smile Quest! [Lupus]
