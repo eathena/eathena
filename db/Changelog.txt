@@ -33,6 +33,17 @@
 	7420,Skull //PvP Item(maybe drop item?) maybe like that custom bone drop?
 
 	--
+09/22
+	* Added 2 new items (thanks to Landarma) [Lupus]
+	* According to Einbroch updates, changed Emperium drops: [Lupus]
+		(Mob name, Mob Lvl, Chance%) '-' = Removed drop, '+' = added drop
+		Angelring, 20 0.4		Baphomet, 81 5%		Ghostring, 18 0.3%
+		Orc Zombie, 24 0.01		Requiem, 35 0.01	Shining Plant, 1 0.01
+		+ Abyss Knight, 79 3%	+ Gryphon, 72 2%	+ Maya, 81 4%
+		+ Orc Lord, 74 2.5%		+ Osiris, 78, 3%		+ Pharaoh, 93, 5.5%
+		+ Zherlthsh. 63, 1%
+		- Golden Thief Bug		- Mimic				- Werewolf
+	* Added some notes to Lighthalzen Monsters. Should be revised, thanks to persian69 for the info [Lupus]
 09/21
 	* Added Mr.Smile to 1405#Tengu drops. Also!!! Removed Mr.Smile Quest! [Lupus]
 	* Added Assassin Mask into Inc.Samurai drops (0.4%) [Lupus]

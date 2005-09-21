@@ -99,7 +99,7 @@
 580,Bread,Bread,0,20,0,20,,,,,16777215,2,,,,,,{ itemheal rand(20,34),0; },{}
 581,Mushroom,Mushroom,0,20,0,20,,,,,16777215,2,,,,,,{ itemheal rand(10,14),0; },{}
 582,Orange,Orange,0,20,0,20,,,,,16777215,2,,,,,,{ itemheal rand(10,15),rand(10,15); },{}
-583,KETUPAT_SAYUR,KETUPAT_SAYUR,0,,,150,,,,,16777215,2,,,,,,{},{}
+583,KETUPAT_SAYUR,KETUPAT SAYUR,0,,,150,,,,,16777215,2,,,,,,{},{}
 
 // Usable Items
 //===================================================================
@@ -2081,6 +2081,8 @@ bonus bIgnoreDefRace,RC_DemiHuman; bonus2 bAddRace,RC_DemiHuman,20; bonus2 bSubR
 7455,Hot_Sauce,Hot Sauce,3,20,0,0,,,,,,,,,,,,{},{}
 7456,Red_Spice,Red Spice,3,20,0,0,,,,,,,,,,,,{},{}
 7457,Cooking_Oil,Cooking Oil,3,20,0,0,,,,,,,,,,,,{},{}
+7458,Unknown_item,Unknown Item,3,20,0,0,,,,,,,,,,,,{},{}
+7459,RAMADAN,RAMADAN,3,20,0,0,,,,,,,,,,,,{},{}
 
 //THQ Quest Items
 7500,THG_Membership,THG Membership,3,20,0,10,,,,,,,,,,,,{},{}
