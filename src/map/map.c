@@ -62,7 +62,6 @@ char tmp_sql[65535]="";
 MYSQL lmysql_handle;
 MYSQL_RES* lsql_res ;
 MYSQL_ROW  lsql_row ;
-char tmp_lsql[65535]="";
 
 MYSQL logmysql_handle; //For the log database - fix by [Maeki]
 MYSQL_RES* logsql_res ;
@@ -71,7 +70,6 @@ MYSQL_ROW  logsql_row ;
 MYSQL mail_handle; // mail system [Valaris]
 MYSQL_RES* 	mail_res ;
 MYSQL_ROW	mail_row ;
-char tmp_msql[65535]="";
 
 int map_server_port = 3306;
 char map_server_ip[16] = "127.0.0.1";
@@ -117,9 +115,6 @@ char charsql_db[40] = "ragnarok";
 MYSQL charsql_handle;
 MYSQL_RES* charsql_res;
 MYSQL_ROW charsql_row;
-char charsql_tmpsql[65335];
-
-
 
 #endif /* not TXT_ONLY */
 
@@ -3472,7 +3467,7 @@ int map_sql_init(void){
 	if(!mysql_real_connect(&mmysql_handle, map_server_ip, map_server_id, map_server_pw,
 		map_server_db ,map_server_port, (char *)NULL, 0)) {
 			//pointer check
-			ShowSQL("%s\n",mysql_error(&mmysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
 			exit(1);
 	}
 	else {
@@ -3486,7 +3481,7 @@ int map_sql_init(void){
     if(!mysql_real_connect(&lmysql_handle, login_server_ip, login_server_id, login_server_pw,
         login_server_db ,login_server_port, (char *)NULL, 0)) {
 	        //pointer check
-			ShowSQL("%s\n",mysql_error(&lmysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&lmysql_handle));
 			exit(1);
 	}
 	 else {
@@ -3497,7 +3492,7 @@ int map_sql_init(void){
 		mysql_init(&mail_handle);
 		if(!mysql_real_connect(&mail_handle, map_server_ip, map_server_id, map_server_pw,
 			map_server_db ,map_server_port, (char *)NULL, 0)) {
-				ShowSQL("%s\n",mysql_error(&mail_handle));
+				ShowSQL("DB error - %s\n",mysql_error(&mail_handle));
 				exit(1);
 		}
 	}
@@ -3533,7 +3528,7 @@ int log_sql_init(void){
 	if(!mysql_real_connect(&logmysql_handle, log_db_ip, log_db_id, log_db_pw,
 		log_db ,log_db_port, (char *)NULL, 0)) {
 			//pointer check
-			ShowSQL(""CL_WHITE"[SQL Error]"CL_RESET": %s\n",mysql_error(&logmysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&logmysql_handle));
 			exit(1);
 	} else {
 		ShowStatus(""CL_WHITE"[SQL]"CL_RESET": Successfully '"CL_GREEN"connected"CL_RESET"' to Database '"CL_WHITE"%s"CL_RESET"'.\n", log_db);
@@ -3894,7 +3889,7 @@ int charsql_db_init(int method){
 	         mysql_init(&charsql_handle);
 
 	         if(!mysql_real_connect(&charsql_handle, charsql_host, charsql_user, charsql_pass, charsql_db, charsql_port, (char *)NULL, 0)){
-	                 ShowSQL("fail, %s\n", mysql_error(&charsql_handle));
+							ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
 	                 exit(1);
 	         }else{
 	                 printf("success.\n");

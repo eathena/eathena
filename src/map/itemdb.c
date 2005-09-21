@@ -823,19 +823,19 @@ static int itemdb_read_sqldb(void)
 					id->flag.value_notoc	= 0;
 				}
 
-				// If the retrieval failed, output an error
-				if (mysql_errno(&mmysql_handle)) {
-					ShowSQL("DB server error (retrieving rows from %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
-				}
 				ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, item_db_name[i]);
 				ln = 0;
-			} else
-				ShowSQL("MySQL error (storing query result for %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
+			} else {
+				ShowSQL("DB error (%s) - %s\n",item_db_name[i], mysql_error(&mmysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 
 			// Free the query result
 			mysql_free_result(sql_res);
-		} else
-			ShowSQL("DB server error (executing query for %s): %s\n", item_db_name[i], mysql_error(&mmysql_handle));
+		} else {
+			ShowSQL("DB error (%s) - %s\n",item_db_name[i], mysql_error(&mmysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
 	}
 
 	return 0;

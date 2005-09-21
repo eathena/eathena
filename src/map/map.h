@@ -1050,7 +1050,6 @@ extern MYSQL_RES* sql_res ;
 extern MYSQL_ROW	sql_row ;
 
 extern MYSQL lmysql_handle;
-extern char tmp_lsql[65535];
 extern MYSQL_RES* lsql_res ;
 extern MYSQL_ROW	lsql_row ;
 
@@ -1061,7 +1060,6 @@ extern MYSQL_ROW logsql_row ;
 extern MYSQL mail_handle;
 extern MYSQL_RES* 	mail_res ;
 extern MYSQL_ROW	mail_row ;
-extern char tmp_msql[65535];
 
 extern int db_use_sqldbs;
 
@@ -1086,8 +1084,6 @@ extern int read_gm_interval;
 extern MYSQL charsql_handle;
 extern MYSQL_RES* charsql_res;
 extern MYSQL_ROW charsql_row;
-extern char charsql_tmpsql[65335];
-
 
 extern char char_db[32];
 #endif /* not TXT_ONLY */

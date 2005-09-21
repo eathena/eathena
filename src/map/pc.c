@@ -7266,9 +7266,10 @@ int pc_read_gm_account(int fd)
 		GM_num++;
 	}
 #else
-	sprintf (tmp_lsql, "SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",gm_db_account_id,gm_db_level,gm_db,gm_db_level,lowest_gm_level);
-	if(mysql_query(&lmysql_handle, tmp_lsql) ) {
-		ShowSQL("DB server Error (select %s to Memory)- %s\n",login_db,mysql_error(&lmysql_handle) );
+	sprintf (tmp_sql, "SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",gm_db_account_id,gm_db_level,gm_db,gm_db_level,lowest_gm_level);
+	if(mysql_query(&lmysql_handle, tmp_sql) ) {
+		ShowSQL("DB error - %s\n",mysql_error(&lmysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		return 0;
 	}
 	lsql_res = mysql_store_result(&lmysql_handle);

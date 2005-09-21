@@ -28,7 +28,6 @@ extern MYSQL_ROW	sql_row ;
 extern int 	sql_cnt;
 
 extern MYSQL lmysql_handle;
-extern char tmp_lsql[65535];
 extern MYSQL_RES* 	lsql_res ;
 extern MYSQL_ROW	lsql_row ;
 

@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/21
+	* Cleaned up all SQL error reporting. It now follows the same standard
+	  everywhere, and is followed by a debug line which includes the file, line
+	  number and contents of the attempted query which caused the error. [Skotlex]
 	* Corrected an sql logs error when selecting a character with special
 	  characters (eg: single quotes) on it. [Skotlex]
 09/20

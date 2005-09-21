@@ -71,7 +71,8 @@ int storage_fromsql(int account_id, struct storage *p){
 	sprintf(tmp_sql,"%s FROM `%s` WHERE `account_id`='%d' ORDER BY `nameid`",tmp_sql, storage_db, account_id);
 	
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowSQL ("DB server Error (select `storage`) - %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
 
@@ -143,7 +144,8 @@ int guild_storage_fromsql(int guild_id, struct guild_storage *p){
 	sprintf(tmp_sql,"%s FROM `%s` WHERE `guild_id`='%d' ORDER BY `nameid`",tmp_sql, guild_storage_db, guild_id);
 	
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowSQL("DB server Error (select `guild_storage`) - %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	sql_res = mysql_store_result(&mysql_handle) ;
 
@@ -193,7 +195,8 @@ int inter_storage_delete(int account_id)
 {
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id`='%d'",storage_db, account_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowSQL("DB server Error (delete `storage`)- %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	return 0;
 }
@@ -201,7 +204,8 @@ int inter_guild_storage_delete(int guild_id)
 {
 	sprintf(tmp_sql, "DELETE FROM `%s` WHERE `guild_id`='%d'",guild_storage_db, guild_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
-		ShowSQL("DB server Error (delete `guild_storage`)- %s\n", mysql_error(&mysql_handle) );
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	return 0;
 }

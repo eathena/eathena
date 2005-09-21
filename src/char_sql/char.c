@@ -171,7 +171,8 @@ void set_char_online(int char_id, int account_id) {
     if ( char_id != 99 ) {
         sprintf(tmp_sql, "UPDATE `%s` SET `online`='1' WHERE `char_id`='%d'",char_db,char_id);
 		if (mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("DB server Error (set char online)- %s\n", mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 	
 		if (max_account_id < account_id || max_char_id < char_id)
@@ -208,7 +209,10 @@ void set_char_offline(int char_id, int account_id) {
 		sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `char_id`='%d'", char_db, char_id);
 
 		if (mysql_query(&mysql_handle, tmp_sql))
-			ShowSQL("DB server Error (set_char_offline)- %s\n", mysql_error(&mysql_handle));
+		{
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
 	}
 
    if (login_fd <= 0 || session[login_fd]->eof)
@@ -222,7 +226,8 @@ void set_char_offline(int char_id, int account_id) {
 void set_all_offline(void) {
 	sprintf(tmp_sql, "SELECT `account_id` FROM `%s` WHERE `online`='1'",char_db);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select all online)- %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	ShowNotice("Sending all users offline.\n");
 	sql_res = mysql_store_result(&mysql_handle);
@@ -240,7 +245,8 @@ void set_all_offline(void) {
    	mysql_free_result(sql_res);
     sprintf(tmp_sql,"UPDATE `%s` SET `online`='0' WHERE `online`='1'", char_db);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (set_all_offline)- %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
 }
@@ -263,9 +269,10 @@ void read_gm_account(void) {
 		aFree(gm_account);
 	GM_num = 0;
 
-	sprintf(tmp_lsql, "SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",login_db_account_id,login_db_level,login_db,login_db_level,lowest_gm_level);
-	if (mysql_query(&lmysql_handle, tmp_lsql)) {
-		ShowSQL("DB server Error (select %s to Memory)- %s\n",login_db,mysql_error(&lmysql_handle));
+	sprintf(tmp_sql, "SELECT `%s`,`%s` FROM `%s` WHERE `%s`>='%d'",login_db_account_id,login_db_level,login_db,login_db_level,lowest_gm_level);
+	if (mysql_query(&lmysql_handle, tmp_sql)) {
+		ShowSQL("DB error - %s\n",mysql_error(&lmysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	lsql_res = mysql_store_result(&lmysql_handle);
 	if (lsql_res) {
@@ -394,7 +401,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		party_exist=1;
 		sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `party_id` = '%d'",party_db, p->party_id); // TBR
 		if (mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("DB Error - %s\n", mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		} else { //In case of failure, don't touch the data. [Skotlex
 			sql_res = mysql_store_result(&mysql_handle);
 			sql_row = mysql_fetch_row(sql_res);
@@ -407,7 +415,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		guild_exist=1;
 		sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `guild_id` = '%d'",guild_db, p->guild_id); // TBR
 		if (mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("DB Error (select guild): %s\n", mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		} else { //If we fail to confirm, don't touch the data.
 			sql_res = mysql_store_result(&mysql_handle);
 			sql_row = mysql_fetch_row(sql_res);
@@ -440,8 +449,10 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		);
 
 		if(mysql_query(&mysql_handle, tmp_sql))
-			ShowSQL("DB Error (update char): %s\n", mysql_error(&mysql_handle));
-		else
+		{
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		} else
 			strcat(save_status, " status");
 	}
 
@@ -467,8 +478,10 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 			p->account_id, p->char_id
 		);
 		if(mysql_query(&mysql_handle, tmp_sql))
-			ShowSQL("DB Error (update char2): %s\n", mysql_error(&mysql_handle));
-		else
+		{
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		} else
 			strcat(save_status, " status2");
 	}
 	
@@ -487,7 +500,10 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",memo_db, p->char_id);
 		if(mysql_query(&mysql_handle, tmp_sql))
-			ShowSQL("DB Error (delete memo): %s\n", mysql_error(&mysql_handle));
+		{
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
 
 		//insert here.
 		tmp_ptr = tmp_sql;
@@ -504,8 +520,10 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		{	//Dangerous? Only if none of the above sprintf worked. [Skotlex]
 			tmp_ptr[-1] = '\0'; //Remove the trailing comma.
 			if(mysql_query(&mysql_handle, tmp_sql))
-				ShowSQL("DB Error (insert memo): %s\n", mysql_error(&mysql_handle));
-			else
+			{
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			} else
 				strcat(save_status, " memo");
 		} else //Memo Points cleared (how is this possible?).
 			strcat(save_status, " memo");
@@ -530,8 +548,10 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		//`skill` (`char_id`, `id`, `lv`)
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",skill_db, p->char_id);
 		if(mysql_query(&mysql_handle, tmp_sql))
-			ShowSQL("DB Error (delete skill): %s\n", mysql_error(&mysql_handle));
-
+		{
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
 		tmp_ptr = tmp_sql;
 		tmp_ptr += sprintf(tmp_ptr,"INSERT INTO `%s`(`char_id`,`id`,`lv`) VALUES ", skill_db);
 		count = 0;
@@ -549,8 +569,10 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		{
 			tmp_ptr[-1] = '\0';	//Remove trailing comma.
 			if(mysql_query(&mysql_handle, tmp_sql))
-				ShowSQL("DB Error (insert skill): %s\n", mysql_error(&mysql_handle));
-			else
+			{
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			} else
 				strcat(save_status, " skills");
 		} else //Skills removed (reset?)
 			strcat(save_status, " skills");
@@ -575,7 +597,10 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, p->char_id);
 		if (mysql_query(&mysql_handle, tmp_sql))
-			ShowSQL("DB Error (delete global_reg_value): %s\n", mysql_error(&mysql_handle));
+		{
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
 
 		//insert here.
 		tmp_ptr = tmp_sql;
@@ -591,8 +616,10 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 				{ //Save every X registers to avoid overflowing tmp_sql [Skotlex]
 					tmp_ptr[-1] = '\0';
 					if(mysql_query(&mysql_handle, tmp_sql))
-						ShowSQL("DB Error (insert global_reg_value sub): %s\n", mysql_error(&mysql_handle));
-					else
+					{
+						ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+						ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+					} else
 						strcat(save_status, " global_reg");
 						
 					tmp_ptr = tmp_sql;
@@ -606,8 +633,10 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		{
 			tmp_ptr[-1] = '\0';
 			if(mysql_query(&mysql_handle, tmp_sql))
-				ShowSQL("DB Error (insert global_reg_value): %s\n", mysql_error(&mysql_handle));
-			else
+			{
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			} else
 				strcat(save_status, " global_reg");
 		} else //Values cleared.
 			strcat(save_status, " global_reg");
@@ -626,7 +655,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	{	//Save friends	
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id`='%d'", friend_db, char_id);
 		if(mysql_query(&mysql_handle, tmp_sql)){
-			ShowSQL("DB Error (delete friend): %s\n", mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		  
 		tmp_ptr = tmp_sql;
@@ -643,8 +673,10 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		{
 			tmp_ptr[-1] = '\0';	//Remove the last comma. [Skotlex]
 			if(mysql_query(&mysql_handle, tmp_sql))
-				ShowSQL("DB Error (insert friend): %s\n", mysql_error(&mysql_handle));
-			else
+			{
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			} else
 				strcat(save_status, " friends");
 		} else //Friend list cleared.
 			strcat(save_status, " friends");
@@ -696,7 +728,8 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 	sprintf(tmp_sql, "%s FROM `%s` WHERE `%s`='%d'", tmp_sql, tablename, selectoption, char_id);
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select `%s` to Memory)- %s\n",tablename ,mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		return 1;
 	}
 	sql_res = mysql_store_result(&mysql_handle);
@@ -727,7 +760,10 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 						sprintf(tmp_sql,"UPDATE `%s` SET `equip`='%d', `identify`='%d', `amount`='%d' WHERE `id`='%d' LIMIT 1",
 							tablename, mapitem[i].equip, mapitem[i].identify,mapitem[i].amount, id);
 						if(mysql_query(&mysql_handle, tmp_sql))
-							ShowSQL("DB server Error (Update `stackable items in %s`)- %s\n", tablename, mysql_error(&mysql_handle));
+						{
+							ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+							ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+						}
 					} else 
 					{	//Equipment or Misc item, just update all fields.
 						sprintf(tmp_sql,"UPDATE `%s` SET `equip`='%d', `identify`='%d', `refine`='%d',`attribute`='%d'",
@@ -740,7 +776,10 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 							tmp_sql, mapitem[i].amount, id);
 						
 						if(mysql_query(&mysql_handle, tmp_sql))
-							ShowSQL("DB server Error (Update `misc in %s`)- %s\n", tablename, mysql_error(&mysql_handle));
+						{
+							ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+							ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+						}
 					}
 					flag = mapitem[i].flag = 1; //Item dealt with,
 					break; //skip to next item in the db.
@@ -749,7 +788,10 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 			if(!flag) { //Item not updated, remove it.
 				sprintf(tmp_sql,"DELETE from `%s` where `id`='%d'", tablename, id);
 				if(mysql_query(&mysql_handle, tmp_sql))
-					ShowSQL("DB server Error (DELETE `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
+				{
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+				}
 			}
 		}
 		mysql_free_result(sql_res);
@@ -771,7 +813,10 @@ int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id, int tab
 		
 			strcat(tmp_sql, ")");
 			if(mysql_query(&mysql_handle, tmp_sql))
-				ShowSQL("DB server Error (INSERT `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
+			{
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 		}
 	}
 	return 0;
@@ -805,7 +850,8 @@ int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int 
 		"FROM `%s` WHERE `%s`='%d'", tablename, selectoption, char_id);
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select `%s` to Memory)- %s\n",tablename ,mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		return 1;
 	}
 	sql_res = mysql_store_result(&mysql_handle);
@@ -839,7 +885,10 @@ int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int 
 								tablename, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine, mapitem[i].attribute, mapitem[i].card[0],
 								mapitem[i].card[1], mapitem[i].card[2], mapitem[i].card[3], mapitem[i].amount, char_id, nameid, amount, equip, identify);
 							if(mysql_query(&mysql_handle, tmp_sql))
-								ShowSQL("DB server Error (Update `equip %s`)- %s\n", tablename, mysql_error(&mysql_handle));
+							{
+								ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+								ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+							}
 						}
 						//printf("not the same item : %d ; i : %d ; flag :  %d\n", mapitem.equip[i].nameid, i, mapitem.equip[i].flag);
 					}
@@ -850,7 +899,10 @@ int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int 
 			if(!flag) {
 				sprintf(tmp_sql,"DELETE from `%s` WHERE `char_id` = '%d' AND `nameid` = '%d' AND `amount` = '%d' AND `equip` = '%d' AND `identify` = '%d' LIMIT 1", tablename, char_id, nameid, amount, equip, identify);
 					if(mysql_query(&mysql_handle, tmp_sql))
-						ShowSQL("DB server Error (DELETE `equip %s`)- %s\n", tablename, mysql_error(&mysql_handle));
+					{
+						ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+						ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+					}
 			}
 		}
 		mysql_free_result(sql_res);
@@ -863,7 +915,10 @@ int memitemdataNEW_to_sql(struct itemtmp mapitem[], int count, int char_id, int 
 				tablename, selectoption,  char_id, mapitem[i].nameid, mapitem[i].amount, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine,
 				mapitem[i].attribute, mapitem[i].card[0], mapitem[i].card[1], mapitem[i].card[2], mapitem[i].card[3]);
 			if(mysql_query(&mysql_handle, tmp_sql))
-				ShowSQL("DB server Error (INSERT `equ %s`)- %s\n", tablename, mysql_error(&mysql_handle));
+			{
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 		}
 	}
 
@@ -920,7 +975,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 		"`str`,`agi`,`vit`,`int`,`dex`,`luk`, `max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point` FROM `%s` WHERE `char_id` = '%d'",char_db, char_id); // TBR
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
 	sql_res = mysql_store_result(&mysql_handle);
@@ -966,7 +1022,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 		"`last_map`,`last_x`,`last_y`,`save_map`,`save_x`,`save_y`, `partner_id`, `father`, `mother`, `child`, `fame`"
 		"FROM `%s` WHERE `char_id` = '%d'",char_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select `char2`)- %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
 	sql_res = mysql_store_result(&mysql_handle);
@@ -1001,7 +1058,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
 	sprintf(tmp_sql, "SELECT `map`,`x`,`y` FROM `%s` WHERE `char_id`='%d' ORDER by `memo_id`",memo_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select `memo`)- %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 
@@ -1026,7 +1084,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	sprintf(tmp_sql, "%s FROM `%s` WHERE `char_id`='%d'", tmp_sql, inventory_db, char_id);
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select `inventory`)- %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
@@ -1055,7 +1114,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	sprintf(tmp_sql, "%s FROM `%s` WHERE `char_id`='%d'", tmp_sql, cart_db, char_id);
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select `cart_inventory`)- %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
@@ -1078,7 +1138,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	//`skill` (`char_id`, `id`, `lv`)
 	sprintf(tmp_sql, "SELECT `id`, `lv` FROM `%s` WHERE `char_id`='%d'",skill_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select `skill`)- %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
@@ -1095,7 +1156,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	//`global_reg_value` (`char_id`, `str`, `value`)
 	sprintf(tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	i = 0;
 	sql_res = mysql_store_result(&mysql_handle);
@@ -1160,7 +1222,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 	sprintf(tmp_sql, "SELECT f.friend_account, f.friend_id, c.name FROM `%s` f LEFT JOIN `char` c ON f.friend_account=c.account_id AND f.friend_id=c.char_id WHERE f.char_id='%d'", friend_db, char_id);
 
 	if(mysql_query(&mysql_handle, tmp_sql)){
-		ShowSQL("fromsql() SQL ERROR (reading friends): %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
 	sql_res = mysql_store_result(&mysql_handle);
@@ -1220,7 +1283,8 @@ int mmo_char_fromsql_short(int char_id, struct mmo_charstatus *p){
 		"`str`,`agi`,`vit`,`int`,`dex`,`luk`, `max_hp`,`hp`,`max_sp`,`sp`,`status_point`,`skill_point` FROM `%s` WHERE `char_id` = '%d'",char_db, char_id); // TBR
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
 	sql_res = mysql_store_result(&mysql_handle);
@@ -1264,7 +1328,8 @@ int mmo_char_fromsql_short(int char_id, struct mmo_charstatus *p){
 		"`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`"
 		"FROM `%s` WHERE `char_id` = '%d'",char_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select `char2`)- %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
 	sql_res = mysql_store_result(&mysql_handle);
@@ -1324,8 +1389,8 @@ int mmo_char_sql_init(void) {
 
 	sprintf(tmp_sql, "SELECT `char_id` FROM `%s`", char_db);
 	if(mysql_query(&mysql_handle, tmp_sql)){
-		//fail :(
-		ShowSQL("SQL Error (in select the charid .. (all)): %s", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}else{
 		sql_res = mysql_store_result(&mysql_handle);
 		if(sql_res){
@@ -1460,7 +1525,8 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			charlog_db,"make new char", sd->account_id, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
 		//query
 		if (mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("fail(log error), SQL error: %s\n", mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 	}
 	//printf("make new char %d-%d %s %d, %d, %d, %d, %d, %d - %d, %d" RETCODE,
@@ -1469,7 +1535,8 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	//Check Name (already in use?)
 	sprintf(tmp_sql, "SELECT `name` FROM `%s` WHERE `name` = '%s'",char_db, t_name);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("fail (namecheck!), SQL error: %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		return -2;
 	}
 	sql_res = mysql_store_result(&mysql_handle);
@@ -1487,7 +1554,8 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	// check char slot.
 	sprintf(tmp_sql, "SELECT `account_id`, `char_num` FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d'",char_db, sd->account_id, dat[30]);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("fail (charslot check), SQL error: %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 
@@ -1509,7 +1577,8 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	else
 		sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`, `max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ('%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')", char_db, sd->account_id , dat[30] , t_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], (40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31], start_point.map, start_point.x, start_point.y, start_point.map, start_point.x, start_point.y);
 	if(mysql_query(&mysql_handle, tmp_sql)){
-		ShowSQL("failed (insert in chardb), SQL error: %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		return -2; //No, stop the procedure!
 	}
 
@@ -1519,7 +1588,8 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	//Now we need the charid from sql!
 	sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id , dat[30] , t_name);
 	if(mysql_query(&mysql_handle, tmp_sql)){
-		ShowSQL("failed (get char_id), SQL error: %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		//delete the char ..(no trash in DB!)
 		sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 		mysql_query(&mysql_handle, tmp_sql);
@@ -1539,7 +1609,8 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 			}
 		}else{
 			//prevent to crash (if its false, and we want to free -> segfault :)
-			ShowSQL("failed (get char id.. res), SQL error: %s\n", mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 			mysql_query(&mysql_handle, tmp_sql);
 			return -2; //end ...... -> charcreate failed :)
@@ -1551,7 +1622,8 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	if (start_weapon > 0) { //add Start Weapon (Knife?)
 		sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, start_weapon,1,0x02,1);
 		if (mysql_query(&mysql_handle, tmp_sql)){
-			ShowSQL("fail (insert in inventory default weapon), SQL error: %s\n", mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 			mysql_query(&mysql_handle, tmp_sql);
 			return -2;//end XD
@@ -1560,7 +1632,8 @@ int make_new_char_sql(int fd, unsigned char *dat) {
 	if (start_armor > 0) { //Add default armor (cotton shirt?)
 		sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`,`nameid`, `amount`, `equip`, `identify`) VALUES ('%d', '%d', '%d', '%d', '%d')", inventory_db, char_id, start_armor,1,0x10,1);
 		if (mysql_query(&mysql_handle, tmp_sql)){
-			ShowSQL("fail (insert in inventory the default armor), SQL error: %s\n", mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d' AND `name` = '%s'", char_db, sd->account_id, dat[30], t_name);
 			mysql_query(&mysql_handle, tmp_sql);
 			sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'", inventory_db, char_id);
@@ -1593,14 +1666,14 @@ int make_new_char_sql(int fd, unsigned char *dat) {
  */
 int delete_char_sql(int char_id, int partner_id)
 {
-	char function_name[] = "delete_char_sql";
 	char char_name[NAME_LENGTH];
 	int account_id=0, party_id=0, guild_id=0;
 	
 	sprintf(tmp_sql, "SELECT `name`,`account_id`,`party_id`,`guild_id` FROM `%s` WHERE `char_id`='%d'",char_db, char_id);
 
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	
 	sql_res = mysql_store_result(&mysql_handle);
@@ -1623,11 +1696,13 @@ int delete_char_sql(int char_id, int partner_id)
 	if (partner_id) {
 		sprintf(tmp_sql,"UPDATE `%s` SET `partner_id`='0' WHERE `char_id`='%d'",char_db,partner_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		sprintf(tmp_sql,"DELETE FROM `%s` WHERE (`nameid`='%d' OR `nameid`='%d') AND `char_id`='%d'",inventory_db,WEDDING_RING_M,WEDDING_RING_F,partner_id);
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 	}
 
@@ -1639,7 +1714,8 @@ int delete_char_sql(int char_id, int partner_id)
 	//Delete the hatched pet if you have one...
 	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d' AND `incuvate` = '0'",pet_db, char_id);
 	if(mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("%s - DB server Error (hatched pet): %s\n", function_name, mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
 	// Komurka's suggested way to clear pets, modified by [Skotlex] (because I always personalize what I do :X)
@@ -1653,7 +1729,8 @@ int delete_char_sql(int char_id, int partner_id)
 			(mysql_version<4.1?pet_db:"p"), char_db, inventory_db, pet_db, char_id);
 		
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error (pets from inventory): %s\n", function_name, mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 
 		//Removing pets that are in the char's cart....
@@ -1662,71 +1739,85 @@ int delete_char_sql(int char_id, int partner_id)
 			(mysql_version<4.1?pet_db:"p"), char_db, cart_db, pet_db, char_id);
 		
 		if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error (pets from cart): %s\n", function_name, mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 	}
 
 	/* delete char's friends list */
 	sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d'",friend_db, char_id);
 	if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
 	/* delete char from other's friend list */
 	//NOTE: Won't this cause problems for people who are already online? [Skotlex]
 	sprintf(tmp_sql, "DELETE FROM `%s` WHERE `friend_id` = '%d'",friend_db, char_id);
 	if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	
 	/* delete inventory */
 	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",inventory_db, char_id);
 	if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
 	/* delete cart inventory */
 	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",cart_db, char_id);
 	if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
 	/* delete memo areas */
 	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",memo_db, char_id);
 	if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
 	/* delete skills */
 	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",skill_db, char_id);
 	if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	
 	/* delete character */
 	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",char_db, char_id);
 	if(mysql_query(&mysql_handle, tmp_sql)) {
-			ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 
 	/* No need as we used inter_guild_leave [Skotlex]
 	// Also delete info from guildtables.
 	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",guild_member_db, char_id);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	*/
 
 	sprintf(tmp_sql, "SELECT `guild_id` FROM `%s` WHERE `master` = '%s'", guild_db, char_name);
 	
 	if (mysql_query(&mysql_handle, tmp_sql))
-		ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
-	else {
+	{
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+	} else {
 		sql_res = mysql_store_result(&mysql_handle);
 
 		if (sql_res == NULL) {
 			if (mysql_errno(&mysql_handle) != 0)
-				ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+			{
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
 			return -1;			
 		} else {
 			int rows = mysql_num_rows(sql_res);
@@ -1736,42 +1827,50 @@ int delete_char_sql(int char_id, int partner_id)
 
 				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, guild_id);
 				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 				}
 
 				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_member_db, guild_id);
 				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 				}
 
 				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_castle_db, guild_id);
 				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 				}
 
 				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_storage_db, guild_id);
 				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 				}
 
 				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d' OR `alliance_id` = '%d'", guild_alliance_db, guild_id, guild_id);
 				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 				}
 
 				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_position_db, guild_id);
 				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 				}
 
 				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_skill_db, guild_id);
 				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 				}
 
 				sprintf(tmp_sql,"DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_expulsion_db, guild_id);
 				if (mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 				}
 				inter_guild_broken(guild_id); //Signal the map server that this guild has been deleted.
 			}
@@ -1832,7 +1931,8 @@ int mmo_char_send006b(int fd, struct char_session_data *sd) {
 	//search char.
 	sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%d'",char_db, sd->account_id);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
-		ShowSQL("DB server Error (select - mmo_char_send006b)- %s\n", mysql_error(&mysql_handle));
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
 	sql_res = mysql_store_result(&mysql_handle);
 	if (sql_res) {
@@ -2089,7 +2189,8 @@ int parse_tologin(int fd) {
 			if (acc > 0) {
 				sprintf(tmp_sql, "SELECT `char_id`,`class`,`skill_point`,`guild_id` FROM `%s` WHERE `account_id` = '%d'",char_db, acc);
 				if (mysql_query(&mysql_handle, tmp_sql)) {
-						ShowSQL("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 				}
 				sql_res = mysql_store_result(&mysql_handle);
 
@@ -2114,7 +2215,8 @@ int parse_tologin(int fd) {
 							// remove specifical skills of classes 19,20 4020,4021 and 4042,4043
 							sprintf(tmp_sql, "SELECT `lv` FROM `%s` WHERE `char_id` = '%d' AND `id` >= '315' AND `id` <= '330'",skill_db, char_id);
 							if (mysql_query(&mysql_handle, tmp_sql)) {
-								ShowSQL("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+								ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+								ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 							}
 							sql_res = mysql_store_result(&mysql_handle);
 							if (sql_res) {
@@ -2124,17 +2226,20 @@ int parse_tologin(int fd) {
 							}
 							sprintf(tmp_sql, "DELETE FROM `%s` WHERE `char_id` = '%d' AND `id` >= '315' AND `id` <= '330'",skill_db, char_id);
 							if (mysql_query(&mysql_handle, tmp_sql)) {
-								ShowSQL("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+								ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+								ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 							}
 						}
 						// to avoid any problem with equipment and invalid sex, equipment is unequiped.
 						sprintf(tmp_sql, "UPDATE `%s` SET `equip` = '0' WHERE `char_id` = '%d'",inventory_db, char_id);
 						if (mysql_query(&mysql_handle, tmp_sql)) {
-							ShowSQL("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+							ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+							ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 						}
 						sprintf(tmp_sql, "UPDATE `%s` SET `class`='%d' , `skill_point`='%d' , `weapon`='0' , `shield='0' , `head_top`='0' , `head_mid`='0' , `head_bottom`='0' WHERE `char_id` = '%d'",char_db, class_, skill_point, char_id);
 						if (mysql_query(&mysql_handle, tmp_sql)) {
-							ShowSQL("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+							ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+							ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 						}
 						
 						if (guild_id)	//If there is a guild, update the guild_member data [Skotlex]
@@ -2286,7 +2391,8 @@ int parse_frommap(int fd) {
 			ShowStatus("Map-server %d (session #%d) has disconnected.\n", id, fd);
 			sprintf(tmp_sql, "DELETE FROM `ragsrvinfo` WHERE `index`='%d'", server_fd[id]);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB server Error (delete from `ragsrvinfo`) - %s\n", mysql_error(&mysql_handle));
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 			server_fd[id] = -1;
 		}
@@ -2443,7 +2549,8 @@ int parse_frommap(int fd) {
 			//check account
 			sprintf(tmp_sql, "SELECT count(*) FROM `%s` WHERE `account_id` = '%d' AND `char_id`='%d'",char_db, RFIFOL(fd,4),RFIFOL(fd,8)); // TBR
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB server Error (select `char` count) - %s\n", mysql_error(&mysql_handle));
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 			if (sql_res) {
@@ -2510,7 +2617,8 @@ int parse_frommap(int fd) {
 
 			sprintf(tmp_sql, "SELECT `char_id`, `name` FROM `%s` WHERE `account_id` = '%d' AND `char_id`='%d'", char_db, RFIFOL(fd,2), RFIFOL(fd,14));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("Change map server: DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 			if(sql_res){
@@ -2560,7 +2668,8 @@ int parse_frommap(int fd) {
 
 			sprintf(tmp_sql, "SELECT `name` FROM `%s` WHERE `char_id`='%d'", char_db, RFIFOL(fd,2));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("char name check: DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 
@@ -2649,7 +2758,8 @@ int parse_frommap(int fd) {
 			WFIFOW(fd,30) = RFIFOW(fd, 30); // type of operation: 1-block, 2-ban, 3-unblock, 4-unban
 			sprintf(tmp_sql, "SELECT `account_id`,`name` FROM `%s` WHERE `name` = '%s'",char_db, character_name);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB server Error (select `char`)- %s\n", mysql_error(&mysql_handle));
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 
 			sql_res = mysql_store_result(&mysql_handle);
@@ -2751,7 +2861,8 @@ int parse_frommap(int fd) {
 			sprintf(tmp_sql, "INSERT INTO `ragsrvinfo` SET `index`='%d',`name`='%s',`exp`='%d',`jexp`='%d',`drop`='%d',`motd`='%s'",
 			        fd, server_name, RFIFOW(fd,2), RFIFOW(fd,4), RFIFOW(fd,6), RFIFOP(fd,10));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("receive rates: DB server Error - %s\n", mysql_error(&mysql_handle));
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 			RFIFOSKIP(fd,RFIFOW(fd,8));
 			break;
@@ -2791,7 +2902,8 @@ int parse_frommap(int fd) {
 			WBUFW(buf,0) = 0x2b1b;
 			sprintf(tmp_sql, "SELECT `char_id`,`fame`, `name` FROM `%s` WHERE `class`='10' OR `class`='4011'OR `class`='4033' ORDER BY `fame` DESC LIMIT 0,10", char_db);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB server Error (select fame)- %s\n", mysql_error(&mysql_handle));
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 			if (sql_res) {
@@ -2813,7 +2925,8 @@ int parse_frommap(int fd) {
 			sprintf(tmp_sql, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `class`='18' OR `class`='4019'"
 				"OR `class`='4041' ORDER BY `fame` DESC LIMIT 0,10", char_db);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB server Error (select fame)- %s\n", mysql_error(&mysql_handle));
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 			if (sql_res) {
@@ -2910,7 +3023,6 @@ int lan_ip_check(unsigned char *p){
 int parse_char(int fd) {
 	int i, ch = 0;
 	char email[40];	
-	char function_name[] = "parse_char";
 	unsigned char buf[64];
 	unsigned short cmd;
 	struct char_session_data *sd;
@@ -3041,7 +3153,8 @@ int parse_char(int fd) {
 
 			sprintf(tmp_sql, "SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'",char_db, sd->account_id, RFIFOB(fd, 2));
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("DB server Error (char select) - %s\n", mysql_error(&mysql_handle));
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 			sql_res = mysql_store_result(&mysql_handle);
 
@@ -3061,7 +3174,8 @@ int parse_char(int fd) {
 					charlog_db, sd->account_id, RFIFOB(fd, 2), jstrescapecpy(escaped_name, char_dat[0].name));
 				//query
 				if(mysql_query(&mysql_handle, tmp_sql)) {
-					ShowSQL("DB server Error (log char select) - %s\n", mysql_error(&mysql_handle));
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 				}
 			}
 			ShowInfo("Selected char: (Account %d: %d - %s)" RETCODE, sd->account_id, RFIFOB(fd, 2), char_dat[0].name);
@@ -3298,7 +3412,8 @@ int parse_char(int fd) {
 			sprintf(tmp_sql, "SELECT `partner_id` FROM `%s` WHERE `char_id`='%d'",char_db, RFIFOL(fd,2));
 	
 			if (mysql_query(&mysql_handle, tmp_sql)) {
-				ShowSQL("%s - DB server Error: %s\n", function_name, mysql_error(&mysql_handle));
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			}
 	
 			sql_res = mysql_store_result(&mysql_handle);
@@ -3550,7 +3665,8 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 
 		sprintf(tmp_sql, "SELECT `account_id`, `online` FROM `%s` WHERE `online` = '1'", char_db);
 		if(mysql_query(&mysql_handle, tmp_sql)){
-			ShowSQL("SQL Error: check_conn_loginserver '1', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			return -1;
 		}
 
@@ -3584,23 +3700,26 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data) {
 			}
 			mysql_free_result(sql_res);
 		}else{
-			//fail
-			ShowSQL("SQL ERROR: check_conn_loginserver '2', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 			return -1;
 		}
 
 		//Now Update all players to 'OFFLINE'
 		sprintf(tmp_sql, "UPDATE `%s` SET `online` = '0'", char_db);
 		if(mysql_query(&mysql_handle, tmp_sql)){
-			ShowSQL("SQL ERROR: check_conn_loginserver '3', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		sprintf(tmp_sql, "UPDATE `%s` SET `online` = '0'", guild_member_db);
 		if(mysql_query(&mysql_handle, tmp_sql)){
-			ShowSQL("SQL ERROR: check_conn_loginserver '4', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		sprintf(tmp_sql, "UPDATE `%s` SET `connect_member` = '0'", guild_db);
 		if(mysql_query(&mysql_handle, tmp_sql)){
-			ShowSQL("SQL ERROR: check_conn_loginserver '5', delete all players where ONLINE: %s", mysql_error(&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 
 	}
@@ -3688,7 +3807,10 @@ void do_final(void) {
 
 	sprintf(tmp_sql,"DELETE FROM `ragsrvinfo");
 	if (mysql_query(&mysql_handle, tmp_sql))
-		ShowSQL("DB server Error (insert `char`)- %s\n", mysql_error(&mysql_handle));
+	{
+		ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+	}
 
 	if(gm_account)  {
 		aFree(gm_account);
@@ -4062,7 +4184,8 @@ int char_child(int parent_id, int child_id) {
 		int tmp_id = 0;
 		sprintf (tmp_sql, "SELECT `child` FROM `%s` WHERE `char_id` = '%d'", char_db, parent_id);
 		if (mysql_query (&mysql_handle, tmp_sql)) {
-			ShowSQL ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		sql_res = mysql_store_result (&mysql_handle);
 		if (sql_res && (sql_row = mysql_fetch_row (sql_res))) {
@@ -4081,7 +4204,8 @@ int char_married(int pl1,int pl2) {
 		int tmp_id = 0;
 		sprintf (tmp_sql, "SELECT `partner_id` FROM `%s` WHERE `char_id` = '%d'", char_db, pl1);
 		if (mysql_query (&mysql_handle, tmp_sql)) {
-				ShowSQL ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		sql_res = mysql_store_result (&mysql_handle);
 		if (sql_res && (sql_row = mysql_fetch_row (sql_res))) {
@@ -4100,7 +4224,8 @@ int char_nick2id (char *name) {
 		int char_id = 0;
 		sprintf (tmp_sql, "SELECT `char_id` FROM `%s` WHERE `name` = '%s'", char_db, name);
 		if (mysql_query (&mysql_handle, tmp_sql)) {
-				ShowSQL ("DB server Error (select `char2`)- %s\n", mysql_error (&mysql_handle));
+			ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 		}
 		sql_res = mysql_store_result (&mysql_handle);
 		if (sql_res && (sql_row = mysql_fetch_row (sql_res))) {
