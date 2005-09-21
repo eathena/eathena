@@ -33,6 +33,9 @@
 	7420,Skull //PvP Item(maybe drop item?) maybe like that custom bone drop?
 
 	--
+09/21
+	* Added Mr.Smile to 1405#Tengu drops. Also!!! Removed Mr.Smile Quest! [Lupus]
+	* Added Assassin Mask into Inc.Samurai drops (0.4%) [Lupus]
 09/19
 	* Thanks to MasterOfMuppets: Fixed drop rate of minerals [Lupus]
 	- Fixed some Niflheim mobs range and speed, re-fixed Increase Soil walk speed, Kind of Beetle mode.

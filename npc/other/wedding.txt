@@ -7,7 +7,7 @@
 //=====By================================================
 // AppleGirl and Evera(version 1.0)
 //=====Current Version===================================
-// 1.45b
+// 1.46
 //=====Compatible With:==================================
 // Any eAthena Version; RO Episode 6+
 //=====Description=======================================
@@ -29,8 +29,10 @@
 // Fixed some minor bugs. Same-sex is disabled by default now.
 // Change $progress variable to $@progress, so it dont screw up the ceremony on a server crash.
 // Added a Special GM Menu to enable/disable same-sex weddings and reset most variables.
-////======= Version 1.45b By Aria =====================
+//======= Version 1.45b By Aria =====================
 // Added the $progress to $@progress variable change that ShadowLady put in notes, but not in code.
+// 1.46 Turned Sad Mary -> Deviruchi, set correct coords for the NPC [Lupus]
+// TODO: 2.5kk divorce fee, wrong Divorce NPC Sprite
 //=======================================================
 // Variable Notes:
 //
@@ -572,21 +574,22 @@ L_YouCantMarryYourself:
 	close;
 }
 
-prt_church.gat,95,95,4	script	Marry	71,{
-	mes "[Marry Sad]";
+//Wrong Sprite N
+nif_in.gat,190,112,4	script	Deviruchi	71,{
+	mes "[Deviruchi]";
 	mes "Getting divorce can bring a lot of sorrow.";
 	mes "By any chance, you you want to get divorced?";
 	next;
 	menu "I came to get a divorce",L_FirstDivorce,"What do I need for a divorce",L_DivorceSystem;
 L_FirstDivorce:
 	if(divorce > 0) goto L_AlreadyDivorced;
-	mes "[Marry Sad]";
+	mes "[Deviruchi]";
 	mes "So you came for a divorce, i have been divorced 2 times myself.";
 	mes "Life will continue whoever said you need a partner was wrong.";
 	mes "Dont forget that you and your partner must be online!";
 	next;
 	menu "Are you sure",-,"No i'm not ready",L_No;
-	mes "[Marry Sad]";
+	mes "[Deviruchi]";
 	mes "You have made your choice,";
 	mes "now you must live with it.";
 	next;
@@ -597,12 +600,12 @@ L_FirstDivorce:
 	divorce;
 	close;
 L_AlreadyDivorced:
-	mes "[Marry Sad]";
+	mes "[Deviruchi]";
 	mes "So you came for another divorce,wow you must be trying to find true love.";
 	mes "Dont worry about it, it's not you, it's their fault.";
 	next;
 	menu "Are you sure",-,"No i'm not ready",L_No;
-	mes "[Marry Sad]";
+	mes "[Deviruchi]";
 	mes "You have made your choice,";
 	mes "now you must live with it.";
 	next;
@@ -613,11 +616,11 @@ L_AlreadyDivorced:
 	divorce;
 	close;
 L_No:
-	mes "[Marry Sad]";
+	mes "[Deviruchi]";
 	mes "You should always be sure about what step you take in life.";
 	close;
 L_DivorceSystem:
-	mes "[Marry Sad]";
+	mes "[Deviruchi]";
 	mes "You just need to wish to not be married again and i will perform the divorce.";
 	mes "Both you and your partner must be online.";
 	close;

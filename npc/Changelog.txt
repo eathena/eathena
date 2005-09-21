@@ -29,6 +29,9 @@ TODO:
 
 Date		Added
 ======
+09/21
+	* Commented out Mr.Smile Quest (now Tengu drops that mask) [Lupus]
+	* Fixed Bunny Band NPC location, removed NPC dupes [Lupus]
 09/20
 	* Removed Choco from Ayo_fild1, Fixed Petits IDs at Hugel field [Lupus]
 	  thanks to MasterOfMuppets, Vicious_Puca, akusarujin
