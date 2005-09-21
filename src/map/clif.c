@@ -1685,8 +1685,7 @@ static int clif_delayquit(int tid, unsigned int tick, int id, int data) {
  */
 void clif_quitsave(int fd,struct map_session_data *sd)
 {
-	if ((chrif_isconnect() || kick_on_disconnect) &&
-		(!battle_config.prevent_logout || gettick() - sd->canlog_tick >= 10000 || pc_isdead(sd)))
+	if (chrif_isconnect() && (!battle_config.prevent_logout || gettick() - sd->canlog_tick >= 10000 || pc_isdead(sd)))
 		map_quit(sd);
 	else if (sd->fd)
 	{	//Disassociate session from player (session is deleted after this function was called)
