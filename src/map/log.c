@@ -404,7 +404,7 @@ int log_trade(struct map_session_data *sd, struct map_session_data *target_sd, i
 			log_nameid, log_amount, log_refine, sd->mapname);
 		
 		for(i=0; i<MAX_SLOTS; i++)
-			sprintf(tmp_sql, ", '%d'", log_card[i]);
+			sprintf(tmp_sql, "%s, '%d'", tmp_sql, log_card[i]);
 
 		strcat(tmp_sql, ")");
 		
@@ -475,7 +475,7 @@ int log_vend(struct map_session_data *sd,struct map_session_data *vsd,int n,int 
 			log_nameid, log_amount, log_refine, sd->mapname, zeny);
 		
 		for(i=0; i<MAX_SLOTS; i++)
-			sprintf(tmp_sql, ", '%d'", log_card[i]);
+			sprintf(tmp_sql, "%s, '%d'", tmp_sql, log_card[i]);
 
 		strcat(tmp_sql, ")");
 		

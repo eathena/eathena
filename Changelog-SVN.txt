@@ -2,6 +2,7 @@ Date	Added
 =======
 
 09/21
+	* Corrected sql query errors when logging trades and vending. [Skotlex]
 	* Updated doc/script_commands.txt with the script commands I've modified
 	  or added that are not yet described within. [Skotlex]
 	* Small fix to clif.c which corrects characters that can't log in again if
