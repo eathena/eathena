@@ -2,6 +2,11 @@ Date	Added
 =======
 
 09/22
+	* Corrected map_getallusers to depend on the actual count of players in the
+	  db rather than the variable users (prevents possible crashes if the two
+	  differ) [Skotlex]
+	* Updated the player counting function so that it correctly accounts for
+	  all players (including those not connected like in autotrade) [Skotlex]
 	* Characters will now automatically stand if Soul Drain is triggered while
 	  sitting. [Skotlex]
 	* Set default option gvg_traps_target_all: no [Lupus]

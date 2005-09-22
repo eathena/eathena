@@ -1303,16 +1303,18 @@ int chrif_parse(int fd)
  *------------------------------------------
  */
 int send_users_tochar(int tid, unsigned int tick, int id, int data) {
-	int users = 0, i;
-	struct map_session_data *sd;
+	int count, users=0, i;
+	struct map_session_data **all_sd;
 
 	chrif_check(-1);
 
+	all_sd = map_getallusers(&count);
 	WFIFOW(char_fd,0) = 0x2aff;
-	for (i = 0; i < fd_max; i++) {
-		if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->state.auth &&
-		    !((battle_config.hide_GM_session || (sd->status.option & OPTION_HIDE)) && pc_isGM(sd))) {
-			WFIFOL(char_fd,6+4*users) = sd->status.char_id;
+	for (i = 0; i < count; i++) {
+		if (all_sd[i] && 
+			!((battle_config.hide_GM_session || (all_sd[i]->status.option & OPTION_HIDE)) && pc_isGM(all_sd[i])))
+		{
+			WFIFOL(char_fd,6+4*users) = all_sd[i]->status.char_id;
 			users++;
 		}
 	}

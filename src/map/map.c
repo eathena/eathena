@@ -1952,6 +1952,9 @@ static int map_foreachpc_sub(void * key,void * data,va_list ap)
 	struct map_session_data *sd = (struct map_session_data*) data;
 	struct map_session_data ***total_sd = va_arg(ap, struct map_session_data***);
 	int *count = va_arg(ap, int*);
+	
+	if (!sd->state.auth)
+		return 0; //Do not count in not-yet authenticated characters.
 
 	(*total_sd)[(*count)++] = sd;
 	return 0;
@@ -1976,15 +1979,15 @@ struct map_session_data** map_getallusers(int *users) {
 
 	if (all_sd == NULL)
 	{	//Init data
-		all_count = map_getusers();
+		all_count = pc_db->item_count; //This is the real number of chars in the db, better use this than the actual "online" count.
 		if (all_count < 1)
 			all_count = 10; //Allow room for at least 10 chars.
 		all_sd = aCalloc(all_count, sizeof(struct map_session_data*)); //it's actually just the size of a pointer.
 	}
 
-	if (all_count < map_getusers())
+	if (all_count < pc_db->item_count)
 	{
-		all_count = map_getusers();
+		all_count = pc_db->item_count;
 		all_sd = aRealloc(all_sd, all_count*sizeof(struct map_session_data*));
 	}
 	*users = 0;
