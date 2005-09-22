@@ -1,5 +1,9 @@
 Changes are Aru's unless noted.
 
+2005-09-21:
+	Added new tables and new options for the inter_athena.conf
+		account_reg_db and char_reg_db
+
 2005-09-19:
 	Added the dbaccess.c/h files needed to compile the login-server
 	Removed text item and mob DBs. We use SQL dbs, and don't really 

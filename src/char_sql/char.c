@@ -48,7 +48,12 @@ char inventory_db[256] = "inventory";
 char charlog_db[256] = "charlog";
 char storage_db[256] = "storage";
 char interlog_db[256] = "interlog";
+// Soon to be removed
 char reg_db[256] = "global_reg_value";
+// These are the new tables to replace the old system
+char char_reg_db[256] = "char_reg";
+char account_reg_db[256] = "account_reg";
+//
 char skill_db[256] = "skill";
 char memo_db[256] = "memo";
 char guild_db[256] = "guild";
@@ -837,7 +842,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 	if (diff) {
 	//printf("- Save global_reg_value data to MySQL!\n");
 	//`global_reg_value` (`char_id`, `str`, `value`)
-	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, p->char_id);
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `char_id`='%d'",char_reg_db, p->char_id);
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 			printf("DB server Error (delete `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
 	}
@@ -847,7 +852,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p){
 		if (p->global_reg[i].str) {
 			if(p->global_reg[i].value !=0){
 					sprintf(tmp_sql,"INSERT INTO `%s` (`char_id`, `str`, `value`) VALUES ('%d', '%s','%d')",
-					         reg_db, char_id, jstrescapecpy(temp_str,p->global_reg[i].str), p->global_reg[i].value);
+					         char_reg_db, char_id, jstrescapecpy(temp_str,p->global_reg[i].str), p->global_reg[i].value);
 					if(mysql_query(&mysql_handle, tmp_sql)) {
 						printf("DB server Error (insert `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
 					}
@@ -1178,7 +1183,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 
 	//global_reg
 	//`global_reg_value` (`char_id`, `str`, `value`)
-	sprintf(tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=3 AND `char_id`='%d'",reg_db, char_id); // TBR
+	sprintf(tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `char_id`='%d'",char_reg_db, char_id); // TBR
 	if (mysql_query(&mysql_handle, tmp_sql)) {
 		printf("DB server Error (select `global_reg_value`)- %s\n", mysql_error(&mysql_handle));
 	}
@@ -3651,8 +3656,15 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 			strcpy(charlog_db,w2);
 		}else if(strcmpi(w1,"storage_db")==0){
 			strcpy(storage_db,w2);
+		// To be removed soon
 		}else if(strcmpi(w1,"reg_db")==0){
 			strcpy(reg_db,w2);
+		// These will replace old system
+		}else if(strcmpi(w1,"char_reg_db")==0){
+			strcpy(char_reg_db,w2);
+		}else if(strcmpi(w1,"account_reg_db")==0){
+			strcpy(account_reg_db,w2);
+		//
 		}else if(strcmpi(w1,"skill_db")==0){
 			strcpy(skill_db,w2);
 		}else if(strcmpi(w1,"interlog_db")==0){

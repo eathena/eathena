@@ -96,7 +96,7 @@ int inter_accreg_tosql(int account_id,struct accreg *reg){
 	reg->account_id=account_id;
 
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
-	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%d'",reg_db, account_id);
+	sprintf(tmp_sql,"DELETE FROM `%s` WHERE `account_id`='%d'",account_reg_db, account_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		printf("DB server Error (delete `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 	}
@@ -105,8 +105,8 @@ int inter_accreg_tosql(int account_id,struct accreg *reg){
 
 	for(j=0;j<reg->reg_num;j++){
 		if(reg->reg[j].str != NULL){
-			sprintf(tmp_sql,"INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES (2,'%d', '%s','%d')",
-				reg_db, reg->account_id, jstrescapecpy(temp_str,reg->reg[j].str), reg->reg[j].value);
+			sprintf(tmp_sql,"INSERT INTO `%s` (`account_id`, `str`, `value`) VALUES ('%d', '%s','%d')",
+				account_reg_db, reg->account_id, jstrescapecpy(temp_str,reg->reg[j].str), reg->reg[j].value);
 			if(mysql_query(&mysql_handle, tmp_sql) ) {
 				printf("DB server Error (insert `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 			}
@@ -303,7 +303,7 @@ int inter_sql_test (void)
 	const char fields[][24] = {
 		"father",	// version 1363
 		"fame",		// version 1491
-	};	
+	};
 	char buf[1024] = "";
 	int i;
 
@@ -346,7 +346,7 @@ void inter_final() {
 	inter_storage_sql_final();
 	inter_party_sql_final();
 	inter_pet_sql_final();
-	
+
 	if (accreg_pt) aFree(accreg_pt);
 	return;
 }
@@ -438,7 +438,7 @@ int mapif_send_gmaccounts()
 	// forward the gm accounts to the map server
 	len = 4;
 	WBUFW(buf,0) = 0x2b15;
-				
+
 	for(i = 0; i < GM_num; i++) {
 		WBUFL(buf, len) = gm_account[i].account_id;
 		WBUFB(buf, len+4) = (unsigned char)gm_account[i].level;
@@ -524,7 +524,7 @@ int mapif_parse_WisRequest(int fd) {
 		WBUFB(buf,26) = 1; // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
 		mapif_send(fd, buf, 27);
 	// Character exists. So, ask all map-servers
-	} else 
+	} else
 #endif
 	{
 #if 0
@@ -557,12 +557,12 @@ int mapif_parse_WisRequest(int fd) {
 			mapif_wis_message(wd);
 		}
 	}
-#if 0	
-	//Freeing ... O.o 
+#if 0
+	//Freeing ... O.o
 	if(sql_res){
 		mysql_free_result(sql_res);
 	}
-#endif	
+#endif
 	return 0;
 }
 
