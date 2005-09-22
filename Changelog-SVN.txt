@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/21
+	* Corrected an error in the way guild alliances were being counted, as
+	  pointed out by Viccious Pucca. [Skotlex]
 	* Fixed and deployed map_getallusers() on atcommands @who, @who2, @who3.
 	  [Skotlex]
 	- This function should enable the aforementioned commands to work even on

@@ -1180,9 +1180,9 @@ int guild_reqalliance(struct map_session_data *sd,int account_id)
 	if(g[0]==NULL || g[1]==NULL)
 		return 0;
 
-	if( guild_get_alliance_count(g[0],0)>3 )	// 同盟数確認
+	if( guild_get_alliance_count(g[0],0)>=3 )	// 同盟数確認
 		clif_guild_allianceack(sd,4);
-	if( guild_get_alliance_count(g[1],0)>3 )
+	if( guild_get_alliance_count(g[1],0)>=3 )
 		clif_guild_allianceack(sd,3);
 
 	if( tsd->guild_alliance>0 ){	// 相手が同盟要請状態かどうか確認
@@ -1222,12 +1222,12 @@ int guild_reply_reqalliance(struct map_session_data *sd,int account_id,int flag)
 		g=guild_search(sd->status.guild_id);
 		tg=guild_search(tsd->status.guild_id);
 		
-		if(g==NULL || guild_get_alliance_count(g,0)>3){
+		if(g==NULL || guild_get_alliance_count(g,0)>=3){
 			clif_guild_allianceack(sd,4);
 			clif_guild_allianceack(tsd,3);
 			return 0;
 		}
-		if(tg==NULL || guild_get_alliance_count(tg,0)>3){
+		if(tg==NULL || guild_get_alliance_count(tg,0)>=3){
 			clif_guild_allianceack(sd,3);
 			clif_guild_allianceack(tsd,4);
 			return 0;
@@ -1285,7 +1285,7 @@ int guild_opposition(struct map_session_data *sd,int char_id)
 	if(g==NULL || tsd==NULL)
 		return 0;
 
-	if( guild_get_alliance_count(g,1)>3 )	// 敵対数確認
+	if( guild_get_alliance_count(g,1)>=3 )	// 敵対数確認
 		clif_guild_oppositionack(sd,1);
 
 	for(i=0;i<MAX_GUILDALLIANCE;i++){	// すでに関係を持っているか確認
