@@ -1938,8 +1938,9 @@ int buildin_warpparty(struct script_state *st)
 	char *str;
 	int p;
 	int i;
-	struct map_session_data *pl_sd;
+	struct map_session_data *pl_sd, **pl_allsd;
 	struct map_session_data *sd;
+	int users;
 	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	x=conv_num(st,& (st->stack->stack_data[st->start+3]));
 	y=conv_num(st,& (st->stack->stack_data[st->start+4]));
@@ -1947,59 +1948,72 @@ int buildin_warpparty(struct script_state *st)
 	sd=script_rid2sd(st);
 	if(map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.noteleport){
 	return 0; }
-if(p!=0) {
-	if(strcmp(str,"Random")==0)	{
-		if(map[sd->bl.m].flag.noteleport){
-			return 0; }
-		for (i = 0; i < fd_max; i++) 	{
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
-			pl_sd->status.party_id == p)	{
-			if(map[pl_sd->bl.m].flag.noteleport){}
-			pc_randomwarp(pl_sd,3);
-							}
-						}
-					}
-	else if(strcmp(str,"SavePointAll")==0)	{
-		if(map[sd->bl.m].flag.noreturn){
-			return 0; }
-		for (i = 0; i < fd_max; i++)		{
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
-			    pl_sd->status.party_id == p)	{
-				if(map[pl_sd->bl.m].flag.noreturn){ }
-				else	{
-				pc_setpos(pl_sd,pl_sd->status.save_point.map,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
-					}
-								}
-							}
-						}
-	else if(strcmp(str,"SavePoint")==0)	{
-		if(map[sd->bl.m].flag.noreturn){
-		return 0; }
-	str=sd->status.save_point.map;
-	x=sd->status.save_point.x;
-	y=sd->status.save_point.y;
-		for (i = 0; i < fd_max; i++)		{
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
-			    pl_sd->status.party_id == p)	{
-				if(map[pl_sd->bl.m].flag.noreturn){}
-				else	{
-					pc_setpos(pl_sd,str,x,y,3);
-					}
-								}
-							}
-						}
-	else	{
-		for (i = 0; i < fd_max; i++)	{
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
-			    pl_sd->status.party_id == p)	{
-				if(map[pl_sd->bl.m].flag.noreturn){}
-				else	{
-					pc_setpos(pl_sd,str,x,y,3);
-					}
-								}
-						}
+
+	if(p < 1)
+		return 0;
+
+	pl_allsd = map_getallusers(&users);
+
+	if(strcmp(str,"Random")==0)
+	{
+		if(map[sd->bl.m].flag.noteleport)
+			return 0;
+		
+		for (i = 0; i < users; i++)
+		{
+			if ((pl_sd = pl_allsd[i]) && pl_sd->status.party_id == p)
+			{
+				if(map[pl_sd->bl.m].flag.noteleport)
+					continue;
+				pc_randomwarp(pl_sd,3);
+			}
 		}
-	 }
+	}
+	else if(strcmp(str,"SavePointAll")==0)
+	{
+		if(map[sd->bl.m].flag.noreturn)
+			return 0;
+		
+		for (i = 0; i < users; i++)
+		{
+			if ((pl_sd = pl_allsd[i]) && pl_sd->status.party_id == p)
+			{
+				if(map[pl_sd->bl.m].flag.noreturn)
+					continue;
+				pc_setpos(pl_sd,pl_sd->status.save_point.map,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
+			}
+		}
+	}
+	else if(strcmp(str,"SavePoint")==0)
+	{
+		if(map[sd->bl.m].flag.noreturn)
+			return 0;
+	
+		str=sd->status.save_point.map;
+		x=sd->status.save_point.x;
+		y=sd->status.save_point.y;
+		for (i = 0; i < users; i++)
+		{
+			if ((pl_sd = pl_allsd[i]) && pl_sd->status.party_id == p)
+			{
+				if(map[pl_sd->bl.m].flag.noreturn)
+					continue;			
+				pc_setpos(pl_sd,str,x,y,3);
+			}
+		}
+	}
+	else
+	{
+		for (i = 0; i < users; i++)
+		{
+			if ((pl_sd = pl_allsd[i]) && pl_sd->status.party_id == p)
+			{
+				if(map[pl_sd->bl.m].flag.noreturn)
+					continue;
+				pc_setpos(pl_sd,str,x,y,3);
+			}
+		}
+	}
 	return 0;
 }
 /*==========================================
@@ -2013,68 +2027,83 @@ int buildin_warpguild(struct script_state *st)
 	char *str;
 	int g;
 	int i;
-	struct map_session_data *pl_sd;
+	struct map_session_data *pl_sd, **pl_allsd;
+	int users;
 	struct map_session_data *sd;
 	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	x=conv_num(st,& (st->stack->stack_data[st->start+3]));
 	y=conv_num(st,& (st->stack->stack_data[st->start+4]));
 	g=conv_num(st,& (st->stack->stack_data[st->start+5]));
 	sd=script_rid2sd(st);
-	if(map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.noteleport){
-	return 0; }
-if(g!=0) {
-	if(strcmp(str,"Random")==0)	{
-		if(map[sd->bl.m].flag.noteleport){
-			return 0; }
-		for (i = 0; i < fd_max; i++) 	{
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
-			pl_sd->status.guild_id == g)	{
-			if(map[pl_sd->bl.m].flag.noteleport){}
-			pc_randomwarp(pl_sd,3);
-							}
-						}
-					}
-	else if(strcmp(str,"SavePointAll")==0)	{
-		if(map[sd->bl.m].flag.noreturn){
-			return 0; }
-		for (i = 0; i < fd_max; i++)		{
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
-			    pl_sd->status.guild_id == g)	{
-				if(map[pl_sd->bl.m].flag.noreturn){ }
-				else	{
-				pc_setpos(pl_sd,pl_sd->status.save_point.map,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
-					}
-								}
-							}
-						}
-	else if(strcmp(str,"SavePoint")==0)	{
-		if(map[sd->bl.m].flag.noreturn){
-		return 0; }
-	str=sd->status.save_point.map;
-	x=sd->status.save_point.x;
-	y=sd->status.save_point.y;
-		for (i = 0; i < fd_max; i++)		{
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
-			    pl_sd->status.guild_id == g)	{
-				if(map[pl_sd->bl.m].flag.noreturn){}
-				else	{
-					pc_setpos(pl_sd,str,x,y,3);
-					}
-								}
-							}
-						}
-	else	{
-		for (i = 0; i < fd_max; i++)	{
-			if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth &&
-			    pl_sd->status.guild_id == g)	{
-				if(map[pl_sd->bl.m].flag.noreturn){}
-				else	{
-					pc_setpos(pl_sd,str,x,y,3);
-					}
-								}
-						}
+	
+	if(map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.noteleport)
+		return 0;
+	
+	if(g < 1)
+		return 0;
+
+	pl_allsd = map_getallusers(&users);
+
+	if(strcmp(str,"Random")==0)
+	{
+		if(map[sd->bl.m].flag.noteleport)
+			return 0;
+		
+		for (i = 0; i < users; i++)
+		{
+			if ((pl_sd = pl_allsd[i]) && pl_sd->status.guild_id == g)
+			{
+				if(map[pl_sd->bl.m].flag.noteleport)
+					continue;
+				pc_randomwarp(pl_sd,3);
+			}
 		}
-	 }
+	}
+	else if(strcmp(str,"SavePointAll")==0)
+	{
+		if(map[sd->bl.m].flag.noreturn)
+			return 0;
+		
+		for (i = 0; i < users; i++)
+		{
+			if ((pl_sd = pl_allsd[i]) && pl_sd->status.guild_id == g)
+			{
+				if(map[pl_sd->bl.m].flag.noreturn)
+					continue;
+				pc_setpos(pl_sd,pl_sd->status.save_point.map,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
+			}
+		}
+	}
+	else if(strcmp(str,"SavePoint")==0)
+	{
+		if(map[sd->bl.m].flag.noreturn)
+			return 0;
+		
+		str=sd->status.save_point.map;
+		x=sd->status.save_point.x;
+		y=sd->status.save_point.y;
+		for (i = 0; i < users; i++)
+		{
+			if ((pl_sd = pl_allsd[i]) && pl_sd->status.guild_id == g)
+			{
+				if(map[pl_sd->bl.m].flag.noreturn)
+					continue;
+				pc_setpos(pl_sd,str,x,y,3);
+			}
+		}
+	}
+	else
+	{
+		for (i = 0; i < users; i++)
+		{
+			if ((pl_sd = pl_allsd[i]) && pl_sd->status.guild_id == g)
+			{
+				if(map[pl_sd->bl.m].flag.noreturn)
+					continue;
+				pc_setpos(pl_sd,str,x,y,3);
+			}
+		}
+	}
 	return 0;
 }
 /*==========================================
@@ -4516,17 +4545,21 @@ int buildin_getusers(struct script_state *st)
  */
 int buildin_getusersname(struct script_state *st)
 {
-	struct map_session_data *pl_sd = NULL;
-	int i=0,disp_num=1;
+	struct map_session_data *pl_sd = NULL, **pl_allsd;
+	int i=0,disp_num=1, users;
 	
-	for (i=0;i<fd_max;i++)
-		if(session[i] && (pl_sd=(struct map_session_data *) session[i]->session_data) && pl_sd->state.auth){
-			if( !(battle_config.hide_GM_session && pc_isGM(pl_sd)) ){
-				if((disp_num++)%10==0)
-					clif_scriptnext(script_rid2sd(st),st->oid);
-				clif_scriptmes(script_rid2sd(st),st->oid,pl_sd->status.name);
-			}
+	pl_allsd = map_getallusers(&users);
+	
+	for (i=0;i<users;i++)
+	{
+		pl_sd = pl_allsd[i];
+		if( !(battle_config.hide_GM_session && pc_isGM(pl_sd)) )
+		{
+			if((disp_num++)%10==0)
+				clif_scriptnext(script_rid2sd(st),st->oid);
+			clif_scriptmes(script_rid2sd(st),st->oid,pl_sd->status.name);
 		}
+	}
 	return 0;
 }
 /*==========================================
@@ -5403,9 +5436,9 @@ int buildin_removemapflag(struct script_state *st)
 
 int buildin_pvpon(struct script_state *st)
 {
-	int m,i;
+	int m,i,users;
 	char *str;
-	struct map_session_data *pl_sd=NULL;
+	struct map_session_data *pl_sd=NULL, **pl_allsd;
 
 	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	m = map_mapname2mapid(str);
@@ -5416,28 +5449,29 @@ int buildin_pvpon(struct script_state *st)
 		if(battle_config.pk_mode) // disable ranking functions if pk_mode is on [Valaris]
 			return 0;
 
-		for(i=0;i<fd_max;i++){	//人数分ループ
-			if(session[i] && (pl_sd=(struct map_session_data *) session[i]->session_data) && pl_sd->state.auth){
-				if(m == pl_sd->bl.m && pl_sd->pvp_timer == -1) {
-					pl_sd->pvp_timer=add_timer(gettick()+200,pc_calc_pvprank_timer,pl_sd->bl.id,0);
-					pl_sd->pvp_rank=0;
-					pl_sd->pvp_lastusers=0;
-					pl_sd->pvp_point=5;
-					pl_sd->pvp_won = 0;
-					pl_sd->pvp_lost = 0;
-				}
+		pl_allsd = map_getallusers(&users);
+		
+		for(i=0;i<users;i++)
+		{
+			if ((pl_sd = pl_allsd[i]) && m == pl_sd->bl.m && pl_sd->pvp_timer == -1)
+			{
+				pl_sd->pvp_timer=add_timer(gettick()+200,pc_calc_pvprank_timer,pl_sd->bl.id,0);
+				pl_sd->pvp_rank=0;
+				pl_sd->pvp_lastusers=0;
+				pl_sd->pvp_point=5;
+				pl_sd->pvp_won = 0;
+				pl_sd->pvp_lost = 0;
 			}
 		}
 	}
-
 	return 0;
 }
 
 int buildin_pvpoff(struct script_state *st)
 {
-	int m,i;
+	int m,i,users;
 	char *str;
-	struct map_session_data *pl_sd=NULL;
+	struct map_session_data *pl_sd=NULL, **pl_allsd;
 
 	str=conv_str(st,& (st->stack->stack_data[st->start+2]));
 	m = map_mapname2mapid(str);
@@ -5448,14 +5482,16 @@ int buildin_pvpoff(struct script_state *st)
 		if(battle_config.pk_mode) // disable ranking options if pk_mode is on [Valaris]
 			return 0;
 
-		for(i=0;i<fd_max;i++){	//人数分ループ
-			if(session[i] && (pl_sd=(struct map_session_data *) session[i]->session_data) && pl_sd->state.auth){
-				if(m == pl_sd->bl.m) {
-					clif_pvpset(pl_sd,0,0,2);
-					if(pl_sd->pvp_timer != -1) {
-						delete_timer(pl_sd->pvp_timer,pc_calc_pvprank_timer);
-						pl_sd->pvp_timer = -1;
-					}
+		pl_allsd = map_getallusers(&users);
+		
+		for(i=0;i<users;i++)
+		{
+			if((pl_sd=pl_allsd[i]) && m == pl_sd->bl.m)
+			{
+				clif_pvpset(pl_sd,0,0,2);
+				if(pl_sd->pvp_timer != -1) {
+					delete_timer(pl_sd->pvp_timer,pc_calc_pvprank_timer);
+					pl_sd->pvp_timer = -1;
 				}
 			}
 		}
@@ -6817,22 +6853,23 @@ int buildin_dispbottom(struct script_state *st)
  */
 int buildin_recovery(struct script_state *st)
 {
-	int i = 0;
-	for (i = 0; i < fd_max; i++) {
-		if (session[i]){
-			struct map_session_data *sd = (struct map_session_data *) session[i]->session_data;
-			if (sd && sd->state.auth) {
-				sd->status.hp = sd->status.max_hp;
-				sd->status.sp = sd->status.max_sp;
-				clif_updatestatus(sd, SP_HP);
-				clif_updatestatus(sd, SP_SP);
-				if(pc_isdead(sd)){
-					pc_setstand(sd);
-					clif_resurrection(&sd->bl, 1);
-				}
-				clif_displaymessage(sd->fd,"You have been recovered!");
-			}
+	struct map_session_data *sd, **all_sd;
+	int i = 0, users;
+
+	all_sd = map_getallusers(&users);
+	
+	for (i = 0; i < users; i++)
+	{
+		sd = all_sd[i];
+		sd->status.hp = sd->status.max_hp;
+		sd->status.sp = sd->status.max_sp;
+		clif_updatestatus(sd, SP_HP);
+		clif_updatestatus(sd, SP_SP);
+		if(pc_isdead(sd)){
+			pc_setstand(sd);
+			clif_resurrection(&sd->bl, 1);
 		}
+		clif_displaymessage(sd->fd,"You have been recovered!");
 	}
 	return 0;
 }

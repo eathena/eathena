@@ -429,13 +429,15 @@ int guild_npc_request_info(int guild_id,const char *event)
 // 所属キャラの確認
 int guild_check_member(const struct guild *g)
 {
-	int i;
-	struct map_session_data *sd;
+	int i, users;
+	struct map_session_data *sd, **all_sd;
 
 	nullpo_retr(0, g);
 
-	for(i=0;i<fd_max;i++){
-		if(session[i] && (sd=(struct map_session_data *) session[i]->session_data) && sd->state.auth && !sd->state.waitingdisconnect){
+	all_sd = map_getallusers(&users);
+	
+	for(i=0;i<users;i++){
+		if((sd=all_sd[i]) && !sd->state.waitingdisconnect){
 			if(sd->status.guild_id==g->guild_id){
 				int j,f=1;
 				for(j=0;j<MAX_GUILD;j++){	// データがあるか
@@ -458,10 +460,13 @@ int guild_check_member(const struct guild *g)
 // 情報所得失敗（そのIDのキャラを全部未所属にする）
 int guild_recv_noinfo(int guild_id)
 {
-	int i;
-	struct map_session_data *sd;
-	for(i=0;i<fd_max;i++){
-		if(session[i] && (sd=(struct map_session_data *) session[i]->session_data) && sd->state.auth && !sd->state.waitingdisconnect){
+	int i, users;
+	struct map_session_data *sd, **all_sd;
+
+	all_sd = map_getallusers(&users);
+	
+	for(i=0;i<users;i++){
+		if((sd=all_sd[i]) && !sd->state.waitingdisconnect){
 			if(sd->status.guild_id==guild_id)
 				sd->status.guild_id=0;
 		}

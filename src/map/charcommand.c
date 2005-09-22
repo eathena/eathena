@@ -630,16 +630,17 @@ int charcommand_stats_all(const int fd, struct map_session_data* sd, const char*
 {
 	char output[1024], gmlevel[1024];
 	int i;
-	int count;
-	struct map_session_data *pl_sd;
+	int count, users;
+	struct map_session_data *pl_sd, **pl_allsd;
 
 	memset(output, '\0', sizeof(output));
 	memset(gmlevel, '\0', sizeof(gmlevel));
 
 	count = 0;
-	for(i = 0; i < fd_max; i++) {
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
-
+	pl_allsd = map_getallusers(&users);
+	for(i = 0; i < users; i++) {
+		if ((pl_sd = pl_allsd[i]))
+		{
 			if (pc_isGM(pl_sd) > 0)
 				sprintf(gmlevel, "| GM Lvl: %d", pc_isGM(pl_sd));
 			else
@@ -1026,8 +1027,11 @@ int charcommand_item(
 				return -1;
 			}
 		} else if(/* from jA's @giveitem */strcmpi(character,"all")==0 || strcmpi(character,"everyone")==0){
-			for (i = 0; i < fd_max; i++) {
-				if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data)){
+			struct map_session_data **pl_allsd;
+			int users;
+			pl_allsd = map_getallusers(&users);
+			for (i = 0; i < users; i++) {
+				if ((pl_sd = pl_allsd[i])) {
 					charcommand_giveitem_sub(pl_sd,item_data,number);
 					snprintf(tmp_cmdoutput, sizeof(tmp_cmdoutput), "You got %s %d.", item_name,number);
 					clif_displaymessage(pl_sd->fd, tmp_cmdoutput);

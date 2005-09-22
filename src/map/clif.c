@@ -202,7 +202,7 @@ int clif_getport(void)
 }
 
 /*==========================================
- *
+ * Counts connected players.
  *------------------------------------------
  */
 int clif_countusers(void)
@@ -239,13 +239,6 @@ int clif_foreachclient(int (*func)(struct map_session_data*, va_list),...) //rec
 				func(sd, ap);
 		}
 	}
-
-/* Let's try the above! [Sasuke]
-for(i = 0; i < fd_max; i++) {
- if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->state.auth)
-  func(sd, ap);
-}
-*/
 
 	va_end(ap);
 	return 0;
@@ -5033,9 +5026,10 @@ int clif_displaymessage(const int fd, char* mes)
 	// invalid pointer?
 	nullpo_retr(-1, mes);
 	
-	//Console [Wizputer]
+	//Console [Wizputer] //Scrapped, as these are shared by disconnected players =X [Skotlex]
 	if (fd == 0)
-		printf("\033[0;36mConsole: \033[0m\033[1m%s\033[0m\n", mes);
+//		printf("\033[0;36mConsole: \033[0m\033[1m%s\033[0m\n", mes);
+		return 0;
 	else {
 		int len_mes = strlen(mes);
 

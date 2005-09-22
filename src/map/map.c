@@ -141,7 +141,7 @@ static struct dbt * map_db=NULL;
 static struct dbt * nick_db=NULL;
 static struct dbt * charid_db=NULL;
 
-static int users=0;
+static int map_users=0;
 static struct block_list *objects[MAX_FLOORITEM];
 static int first_free_object_id=0,last_object_id=0;
 
@@ -190,7 +190,7 @@ int console = 0;
  */
 void map_setusers(int fd)
 {
-	users = RFIFOL(fd,2);
+	map_users = RFIFOL(fd,2);
 	// send some anser
 	WFIFOW(fd,0) = 0x2718;
 	WFIFOSET(fd,2);
@@ -201,7 +201,7 @@ void map_setusers(int fd)
  *------------------------------------------
  */
 int map_getusers(void) {
-	return users;
+	return map_users;
 }
 
 //
@@ -1840,32 +1840,9 @@ int map_quit(struct map_session_data *sd) {
  *------------------------------------------
  */
 struct map_session_data * map_id2sd(int id) {
-// remove search from db, because:
-// 1 - all players, npc, items and mob are in this db (to search, it's not speed, and search in session is more sure)
-// 2 - DB seems not always correct. Sometimes, when a player disconnects, its id (account value) is not removed and structure
-//     point to a memory area that is not more a session_data and value are incorrect (or out of available memory) -> crash
-// replaced by searching in all session.
-// by searching in session, we are sure that fd, session, and account exist.
-// Unfortunately, this breaks autotrade since the player is NOT in the list of sessions, so we fallback to it when the socket search fails. [Skotlex]
-//
-// Update: Now using pc_db to handle all players, should be quicker than both previous methods at a small expense of more memory. [Skotlex]
-	struct map_session_data *sd;
-//	struct block_list *bl;
-//	int i;
-	
-	if (id <= 0) return 0;
-	sd=(struct map_session_data*)numdb_search(pc_db,id);
-	return sd;
-/*	
-	for(i = 0; i < fd_max; i++)
-		if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->bl.id == id)
-			return sd;
-
-	bl=numdb_search(id_db,id);
-	if(bl && bl->type==BL_PC)
-		return (struct map_session_data*)bl;
-	return NULL;
-	*/
+// Now using pc_db to handle all players, should be quicker than both previous methods at a small expense of more memory. [Skotlex]
+	if (id <= 0) return NULL;
+	return (struct map_session_data*)numdb_search(pc_db,id);
 }
 
 /*==========================================
@@ -1883,14 +1860,15 @@ char * map_charid2nick(int id) {
 }
 
 struct map_session_data * map_charid2sd(int id) {
-	int i;
-	struct map_session_data *sd;
+	int i, users;
+	struct map_session_data **all_sd;
 
 	if (id <= 0) return 0;
 
-	for(i = 0; i < fd_max; i++)
-		if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->status.char_id == id)
-			return sd;
+	all_sd = map_getallusers(&users);
+	for(i = 0; i < users; i++)
+		if (all_sd[i] && all_sd[i]->status.char_id == id)
+			return all_sd[i];
 
 	return NULL;
 }
@@ -1902,25 +1880,27 @@ struct map_session_data * map_charid2sd(int id) {
  *------------------------------------------
  */
 struct map_session_data * map_nick2sd(char *nick) {
-	int i, quantity=0, nicklen;
+	int i, quantity=0, nicklen, users;
 	struct map_session_data *sd = NULL;
-	struct map_session_data *pl_sd = NULL;
+	struct map_session_data *pl_sd = NULL, **pl_allsd;
 
 	if (nick == NULL)
 		return NULL;
 
     nicklen = strlen(nick);
 
-	for (i = 0; i < fd_max; i++) {
-		if (session[i] && (pl_sd = (struct map_session_data*)session[i]->session_data) && pl_sd->state.auth)
-			// Without case sensitive check (increase the number of similar character names found)
-			if (strnicmp(pl_sd->status.name, nick, nicklen) == 0) {
-				// Strict comparison (if found, we finish the function immediatly with correct value)
-				if (strcmp(pl_sd->status.name, nick) == 0)
-					return pl_sd;
-				quantity++;
-				sd = pl_sd;
-			}
+	 pl_allsd = map_getallusers(&users);
+	 
+	for (i = 0; i < users; i++) {
+		pl_sd = pl_allsd[i];
+		// Without case sensitive check (increase the number of similar character names found)
+		if (strnicmp(pl_sd->status.name, nick, nicklen) == 0) {
+			// Strict comparison (if found, we finish the function immediatly with correct value)
+			if (strcmp(pl_sd->status.name, nick) == 0)
+				return pl_sd;
+			quantity++;
+			sd = pl_sd;
+		}
 	}
 	// Here, the exact character name is not found
 	// We return the found index of a similar account ONLY if there is 1 similar character
@@ -3555,14 +3535,15 @@ int log_sql_init(void){
 
 void char_online_check(void)
 {
-	int i;
-	struct map_session_data *sd;
+	int i, users;
+	struct map_session_data *sd, **all_sd;
 
 	chrif_char_reset_offline();
 
-	for (i = 0; i < fd_max; i++) {
-		if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->state.auth &&
-			!(battle_config.hide_GM_session && pc_isGM(sd)))
+	all_sd = map_getallusers(&users);
+
+	for (i = 0; i < users; i++) {
+		if ((sd = all_sd[i]) && !(battle_config.hide_GM_session && pc_isGM(sd)))
 			if(sd->status.char_id)
 				 chrif_char_online(sd);
 	}

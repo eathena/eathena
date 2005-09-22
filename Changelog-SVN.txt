@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/22
+	* Deployed use of map_getallusers all over the map server where it makes
+	  sense to include disconnected players. [Skotlex]
 	* Corrected map_getallusers to depend on the actual count of players in the
 	  db rather than the variable users (prevents possible crashes if the two
 	  differ) [Skotlex]

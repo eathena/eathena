@@ -115,28 +115,30 @@ int party_request_info(int party_id)
 // 所属キャラの確認
 int party_check_member(struct party *p)
 {
-	int i;
-	struct map_session_data *sd;
+	int i, users;
+	struct map_session_data *sd, **all_sd;
 
 	nullpo_retr(0, p);
 
-	for(i=0;i<fd_max;i++){
-		if(session[i] && (sd=(struct map_session_data *) session[i]->session_data) && sd->state.auth){
-			if(sd->status.party_id==p->party_id){
-				int j,f=1;
-				for(j=0;j<MAX_PARTY;j++){	// パーティにデータがあるか確認
-					if(	p->member[j].account_id==sd->status.account_id){
-						if(	strcmp(p->member[j].name,sd->status.name)==0 )
-							f=0;	// データがある
-						else
-							p->member[j].sd=NULL;	// 同垢別キャラだった
-					}
+	all_sd = map_getallusers(&users);
+	
+	for(i=0;i<users;i++)
+	{
+		if((sd = all_sd[i]) && sd->status.party_id==p->party_id)
+		{
+			int j,f=1;
+			for(j=0;j<MAX_PARTY;j++){	// パーティにデータがあるか確認
+				if(	p->member[j].account_id==sd->status.account_id){
+					if(	strcmp(p->member[j].name,sd->status.name)==0 )
+						f=0;	// データがある
+					else
+						p->member[j].sd=NULL;	// 同垢別キャラだった
 				}
-				if(f){
-					sd->status.party_id=0;
-					if(battle_config.error_log)
-						ShowWarning("party: check_member %d[%s] is not member\n",sd->status.account_id,sd->status.name);
-				}
+			}
+		if(f){
+			sd->status.party_id=0;
+			if(battle_config.error_log)
+				ShowWarning("party: check_member %d[%s] is not member\n",sd->status.account_id,sd->status.name);
 			}
 		}
 	}
@@ -146,13 +148,14 @@ int party_check_member(struct party *p)
 // 情報所得失敗（そのIDのキャラを全部未所属にする）
 int party_recv_noinfo(int party_id)
 {
-	int i;
-	struct map_session_data *sd;
-	for(i=0;i<fd_max;i++){
-		if(session[i] && (sd=(struct map_session_data *) session[i]->session_data) && sd->state.auth){
-			if(sd->status.party_id==party_id)
-				sd->status.party_id=0;
-		}
+	int i, users;
+	struct map_session_data *sd, **all_sd;
+
+	all_sd = map_getallusers(&users);
+	
+	for(i=0;i<users;i++){
+		if((sd = all_sd[i]) && sd->status.party_id==party_id)
+			sd->status.party_id=0;
 	}
 	return 0;
 }
@@ -181,7 +184,6 @@ int party_recv_info(struct party *sp)
 	clif_party_info(p,-1);
 
 	for(i=0;i<MAX_PARTY;i++){	// 設定情報の送信
-//		struct map_session_data *sd = map_id2sd(p->member[i].account_id);
 		struct map_session_data *sd = p->member[i].sd;
 		if(sd!=NULL && sd->party_sended==0){
 			clif_party_option(p,sd,0x100);
