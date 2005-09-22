@@ -6588,7 +6588,7 @@ int skill_unit_onplace_timer(struct skill_unit *src,struct block_list *bl,unsign
 	ts->tick = tick+sg->interval;
 
 	// GX‚Íd‚È‚Á‚Ä‚¢‚½‚ç3HIT‚µ‚È‚¢
-	if (sg->skill_id==CR_GRANDCROSS && !battle_config.gx_allhit)
+	if ((sg->skill_id==CR_GRANDCROSS || sg->skill_id==NPC_GRANDDARKNESS) && !battle_config.gx_allhit)
 		ts->tick += sg->interval*(map_count_oncell(bl->m,bl->x,bl->y,0)-1);
 
 	switch (sg->unit_id) {

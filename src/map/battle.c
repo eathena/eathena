@@ -994,6 +994,7 @@ static struct Damage battle_calc_weapon_attack(
 				case NPC_GUIDEDATTACK:
 				case RG_BACKSTAP:
 				case CR_GRANDCROSS:
+				case NPC_GRANDDARKNESS:
 				case AM_ACIDTERROR:
 				case MO_INVESTIGATE:
 				case MO_EXTREMITYFIST:
@@ -1362,6 +1363,7 @@ static struct Damage battle_calc_weapon_attack(
 					skillratio+= 35*skill_lv;
 					break;
 				case CR_GRANDCROSS:
+				case NPC_GRANDDARKNESS:
 					if(!battle_config.gx_cardfix)
 						flag.cardfix = 0;
 					break;
@@ -1840,7 +1842,7 @@ static struct Damage battle_calc_weapon_attack(
 		}
 	}
 
-	if(skill_num != CR_GRANDCROSS && (wd.damage > 0 || wd.damage2 > 0) )
+	if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && (wd.damage > 0 || wd.damage2 > 0) )
 	{
 		if(wd.damage2<1)
 			wd.damage=battle_calc_damage(src,target,wd.damage,wd.div_,skill_num,skill_lv,wd.flag);
@@ -2218,7 +2220,7 @@ struct Damage battle_calc_magic_attack(
 	if (!no_elefix)
 		damage=battle_attr_fix(bl, target, damage, ele, status_get_element(target) );		// 属 性修正
 
-	if(skill_num == CR_GRANDCROSS) {	// グランドクロス
+	if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS) {	// グランドクロス
 		struct Damage wd;
 		wd=battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
 		damage = (damage + wd.damage) * (100 + 40*skill_lv)/100;

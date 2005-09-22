@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/22
+	* Added consideration of GrandDarkness in various code sections that were
+	  only checking for Grand Cross [Skotlex]
 	* Deployed use of map_getallusers all over the map server where it makes
 	  sense to include disconnected players. [Skotlex]
 	* Corrected map_getallusers to depend on the actual count of players in the
