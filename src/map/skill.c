@@ -6025,6 +6025,8 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 	if( skill_num != sd->skillid)	/* 不正パケットらしい */
 		return 0;
 
+	sd->skillid = 0; //Clear it up to prevent resent packets through! [Skotlex]
+	
 	if (strlen(map) > MAP_NAME_LENGTH-1)
 	{	//Map_length check, as it is sent by the client and we shouldn't trust it [Skotlex]
 		if (battle_config.error_log)
@@ -6061,14 +6063,14 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 			p[2] = &sd->status.memo_point[1];
 			p[3] = &sd->status.memo_point[2];
 
-			if((maxcount = skill_get_maxcount(sd->skillid)) > 0) {
+			if((maxcount = skill_get_maxcount(skill_num)) > 0) {
 				int c;
 				for(i=c=0;i<MAX_SKILLUNITGROUP;i++) {
-					if(sd->skillunit[i].alive_count > 0 && sd->skillunit[i].skill_id == sd->skillid)
+					if(sd->skillunit[i].alive_count > 0 && sd->skillunit[i].skill_id == skill_num)
 						c++;
 				}
 				if(c >= maxcount) {
-					clif_skill_fail(sd,sd->skillid,0,0);
+					clif_skill_fail(sd,skill_num,0,0);
 					sd->canact_tick = gettick();
 					sd->canmove_tick = gettick();
 					sd->skillitem = sd->skillitemlv = -1;
@@ -6087,17 +6089,22 @@ int skill_castend_map( struct map_session_data *sd,int skill_num, const char *ma
 			if(x==0 || y==0)	/* 不正パケット？ */
 				return 0;
 
+			sd->skillid = skill_num;
 			if(!skill_check_condition(sd,3))
+			{
+				sd->skillid = 0;
 				return 0;
-
-			if(skill_check_unit_range2(&sd->bl,sd->bl.m,sd->skillx,sd->skilly,sd->skillid,sd->skilllv) > 0) {
+			}
+			sd->skillid = 0;
+			
+			if(skill_check_unit_range2(&sd->bl,sd->bl.m,sd->skillx,sd->skilly,skill_num,sd->skilllv) > 0) {
 				clif_skill_fail(sd,0,0,0);
 				sd->canact_tick = tick;
 				sd->canmove_tick = tick;
 				sd->skillitem = sd->skillitemlv = -1;
 				return 0;
 			}
-			if((group=skill_unitsetting(&sd->bl,sd->skillid,sd->skilllv,sd->skillx,sd->skilly,0))==NULL)
+			if((group=skill_unitsetting(&sd->bl,skill_num,sd->skilllv,sd->skillx,sd->skilly,0))==NULL)
 				return 0;
 			group->valstr=(char *)aCallocA(MAP_NAME_LENGTH,sizeof(char));
 			memcpy(group->valstr,map,MAP_NAME_LENGTH-1);
@@ -8023,6 +8030,8 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 
 	nullpo_retr(0, sd);
 
+	if (skill_lv <= 0)
+		return 0;
 	if ((bl = map_id2bl(target_id)) == NULL)
 		return 0;
 	if (bl->type == BL_PC) {
@@ -8383,9 +8392,11 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 
 	if (pc_isdead(sd))
 		return 0;
+	if (skill_lv <= 0)
+		return 0;
 	if (sd->skilltimer != -1) //Normally not needed since clif.c checks for it, but at/char/script commands don't! [Skotlex]
 		return 0;
-	if (skillnotok(skill_num, sd)) // [MoueJstr]
+	if (skillnotok(skill_num, sd)) // [MouseJstr]
 		return 0;
 	if (skill_num == WZ_ICEWALL && map[sd->bl.m].flag.noicewall && !map[sd->bl.m].flag.pvp)  { // noicewall flag [Valaris]
 		clif_skill_fail(sd,sd->skillid,0,0);
@@ -8423,7 +8434,6 @@ int skill_use_pos (struct map_session_data *sd, int skill_x, int skill_y, int sk
 
 	sd->skillid = skill_num;
 	sd->skilllv = skill_lv;
-	if (skill_lv <= 0) return 0;
 	sd->skillx = skill_x;
 	sd->skilly = skill_y;
 	if (!skill_check_condition(sd,0)) return 0;
