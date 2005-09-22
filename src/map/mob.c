@@ -2392,6 +2392,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 	if(sd) {
 		int sp = 0, hp = 0;
 		if (sd->state.attack_type == BF_MAGIC && (i=pc_checkskill(sd,HW_SOULDRAIN))>0){	/* ソウルドレイン */
+			if (pc_issit(sd)) pc_setstand(sd); //Character stuck in attacking animation while 'sitting' fix. [Skotlex]
 			clif_skill_nodamage(src,&md->bl,HW_SOULDRAIN,i,1);
 			sp += (status_get_lv(&md->bl))*(65+15*i)/100;
 		}

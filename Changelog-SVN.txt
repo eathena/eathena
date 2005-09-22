@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/22
+	* Characters will now automatically stand if Soul Drain is triggered while
+	  sitting. [Skotlex]
 	* Set default option gvg_traps_target_all: no [Lupus]
 	- In kRO it used to be 'yes' some time ago but has been reverted back to 'no'
 09/21
