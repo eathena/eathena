@@ -760,12 +760,16 @@ enum {
 	CG_TAROTCARD,
 	CR_ACIDDEMONSTRATION,
 	CR_CULTIVATION,
-//492,493 missing?
-	SL_HIGH = 494,
+//492,missing?
+	TK_MISSION = 493,
+	SL_HIGH,
 	KN_ONEHAND,
 	AM_TWILIGHT1,
 	AM_TWILIGHT2,
 	AM_TWILIGHT3,
+	HT_POWER,
+	
+	//500 unknown
 	//Need to figure out the actual number for the following... [Skotlex]
 	HLIF_HEAL,
 	HLIF_AVOID,

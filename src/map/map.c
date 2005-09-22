@@ -1950,10 +1950,10 @@ struct block_list * map_id2bl(int id)
 static int map_foreachpc_sub(void * key,void * data,va_list ap)
 {
 	struct map_session_data *sd = (struct map_session_data*) data;
-	struct map_session_data **total_sd = va_arg(ap, struct map_session_data**);
+	struct map_session_data ***total_sd = va_arg(ap, struct map_session_data***);
 	int *count = va_arg(ap, int*);
 
-	(*total_sd)[(*count)++] = *sd;
+	(*total_sd)[(*count)++] = sd;
 	return 0;
 }
 

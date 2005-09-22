@@ -1218,8 +1218,8 @@ int atcommand_who(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	struct map_session_data *pl_sd;
-	int i, j, count;
+	struct map_session_data *pl_sd, **pl_allsd;
+	int i, j, count, users;
 	int pl_GM_level, GM_level;
 	char match_text[100];
 	char player_name[NAME_LENGTH];
@@ -1237,8 +1237,9 @@ int atcommand_who(
 
 	count = 0;
 	GM_level = pc_isGM(sd);
-	for (i = 0; i < fd_max; i++) {
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
+	pl_allsd = map_getallusers(&users);
+	for (i = 0; i < users; i++) {
+		if ((pl_sd = pl_allsd[i]) && pl_sd->state.auth) {
 			pl_GM_level = pc_isGM(pl_sd);
 			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
@@ -1284,8 +1285,8 @@ int atcommand_who2(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
-	struct map_session_data *pl_sd;
-	int i, j, count;
+	struct map_session_data *pl_sd, **pl_allsd;
+	int i, j, count, users;
 	int pl_GM_level, GM_level;
 	char match_text[100];
 	char player_name[NAME_LENGTH];
@@ -1303,8 +1304,9 @@ int atcommand_who2(
 
 	count = 0;
 	GM_level = pc_isGM(sd);
-	for (i = 0; i < fd_max; i++) {
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
+	pl_allsd = map_getallusers(&users);
+	for (i = 0; i < users; i++) {
+		if ((pl_sd = pl_allsd[i]) && pl_sd->state.auth) {
 			pl_GM_level = pc_isGM(pl_sd);
 			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);
@@ -1321,7 +1323,7 @@ int atcommand_who2(
 			}
 		}
 	}
-
+	
 	if (count == 0)
 		clif_displaymessage(fd, msg_table[28]); // No player found.
 	else if (count == 1)
@@ -1344,8 +1346,8 @@ int atcommand_who3(
 {
 	char temp0[100];
 	char temp1[100];
-	struct map_session_data *pl_sd;
-	int i, j, count;
+	struct map_session_data *pl_sd, **pl_allsd;
+	int i, j, count, users;
 	int pl_GM_level, GM_level;
 	char match_text[100];
 	char player_name[NAME_LENGTH];
@@ -1367,8 +1369,9 @@ int atcommand_who3(
 
 	count = 0;
 	GM_level = pc_isGM(sd);
-	for (i = 0; i < fd_max; i++) {
-		if (session[i] && (pl_sd = (struct map_session_data *) session[i]->session_data) && pl_sd->state.auth) {
+	pl_allsd = map_getallusers(&users);
+	for (i = 0; i < users; i++) {
+		if ((pl_sd = pl_allsd[i]) && pl_sd->state.auth) {
 			pl_GM_level = pc_isGM(pl_sd);
 			if (!((battle_config.hide_GM_session || (pl_sd->status.option & OPTION_HIDE)) && (pl_GM_level > GM_level))) { // you can look only lower or same level
 				memcpy(player_name, pl_sd->status.name, NAME_LENGTH);

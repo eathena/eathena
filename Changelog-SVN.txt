@@ -2,6 +2,13 @@ Date	Added
 =======
 
 09/21
+	* Fixed and deployed map_getallusers() on atcommands @who, @who2, @who3.
+	  [Skotlex]
+	- This function should enable the aforementioned commands to work even on
+	  players who are in the server but are not connected (eg: autotrade
+	  players). It is temporarily only deployed on the @who functions pending on
+	  feedback (bug reports, anything) before going ahead and implementing it on
+	  all relevant atcommand/charcommand/script functions.
 	* Replaced the trim() function with Furoken's implementation (it should
 	  remove tabs, consecutive spaces and other such unwanted characters from a
 	  char's name) [Skotlex]
