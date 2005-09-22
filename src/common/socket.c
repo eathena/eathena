@@ -152,7 +152,7 @@ static int recv_to_fifo(int fd)
 	if (len == SOCKET_ERROR) {
 		if (WSAGetLastError() == WSAECONNABORTED) {
 			ShowFatalError("recv_to_fifo: Network broken (Software caused connection abort on session #%d)\n", fd);
-			exit(1);	//Windows can't really recover from this one. [Skotlex]
+//			exit(1);	//Windows can't really recover from this one. [Skotlex]
 		}
 		if (WSAGetLastError() != WSAEWOULDBLOCK) {
 //			ShowDebug("recv_to_fifo: error %d, ending connection #%d\n", WSAGetLastError(), fd);
@@ -713,9 +713,14 @@ int do_sendrecv(int next)
 	timeout.tv_usec = next%1000*1000;
 	ret = select(fd_max, &rfd, &wfd, &efd, &timeout);
 
-	if (ret == -1)
-	{	//if error, remove invalid connections
+#ifdef __WIN32
+	if (ret == SOCKET_ERROR) {
+		ShowError("do_sendrecv: select error (code %d)\n", WSAGetLastError());
+#else
+	if (ret == -1) {
 		perror("do_sendrecv");
+#endif
+		//if error, remove invalid connections
 		//Individual socket handling code shamelessly assimilated from Freya :3
 		// an error give invalid values in fd_set structures -> init them again
 		FD_ZERO(&rfd);
