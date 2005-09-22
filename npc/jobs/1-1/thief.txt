@@ -37,7 +37,7 @@ moc_prydb1.gat,39,129,5	script	Thief Guide	69,{
 	if(Sex == 1)mes "Heh... You look like a well to do girl... what brought you down to this rat hole?";
 	next;
 M_Menu:
-	menu "'I didn't come here for the atomosphere.....",M_0,"Me? I'm just looking around...",M_End,"Just looking for the one truth",M_Truth;
+	menu "'I didn't come here for the atmosphere.....",M_0,"Me? I'm just looking around...",M_End,"Just looking for the one truth",M_Truth;
 
 		M_0:
 		mes "[Thief Guide]";

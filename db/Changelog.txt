@@ -34,6 +34,9 @@
 
 	--
 09/22
+	* Corrected 1562#Textbook on Battlefield: Chance of Bless = 1% [Lupus]
+	- Fixed Banana Hat: Now 3% chance of Provoke lvl3
+	- Bow Thimble doesn't work as it should (core issue, to be revised soon)
 	* Added 2 new items (thanks to Landarma) [Lupus]
 	* According to Einbroch updates, changed Emperium drops: [Lupus]
 		(Mob name, Mob Lvl, Chance%) '-' = Removed drop, '+' = added drop
