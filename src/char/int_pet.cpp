@@ -105,7 +105,7 @@ int inter_pet_init()
 	return 0;
 }
 
-int pet_db_final (void *k, void *data, va_list ap) {
+int pet_db_final (void *k, void *data, va_list &ap) {
 	struct s_pet *p = (struct s_pet *)data;
 	if (p) aFree(p);
 	return 0;
@@ -120,12 +120,12 @@ void inter_pet_final()
 	return;
 }
 
-int inter_pet_save_sub(void *key,void *data,va_list ap)
+int inter_pet_save_sub(void *key,void *data,va_list &ap)
 {
 	char line[8192];
 	FILE *fp;
 	inter_pet_tostr(line,(struct s_pet *)data);
-	fp=va_arg(ap,FILE *);
+	fp=va_arg(ap,FILE*);
 	fprintf(fp,"%s" RETCODE,line);
 	return 0;
 }

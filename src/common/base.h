@@ -708,22 +708,33 @@ static inline unsigned long pow2(unsigned long v)
 	return 0;
 }
 
-// newton approximation with additional start condition
-// start should be set to the middle of the expected interval for minimizing iterations in statistics
-// the given number asures this for T of types char...int64
-template<class T> static inline T sqrt(T n, T start=(((T)LLCONST(0x000000010001010F))>>2) )
+// newton approximation
+// starting condition calculated with two approximations
+// sqrt(n) = n^1/2 = n / n^1/2 = n / 2^log2(n^1/2) = n / 2^(log2(n)/2)
+// and calculating a/2^b with left shift as a>>b
+// which results in a larger value than necessary 
+// because the integer log2 returns the floored logarism and is smaller than the real log2
+// second approximation is
+// sqrt(n) = n^1/2 = 2^(log2(n)/2) which is calculated as 1<<(log2(n)/2)
+// resulting in a value smaller than necessary because of the integer log2 
+// calculation the mean of those two approximations gets closer to the real value, 
+#ifdef isqrt
+#undef isqrt
+#endif
+template<class T> static inline T isqrt(T n)
 {
 	if(n>0)
 	{
-		T q=0, qx=start;
-		while( q!=qx )
+		T q=0, xx = (log2(n)/2), qx = ((n>>xx) + (1<<xx))/2;
+		do
 		{
-			q = qx;
+			q  = qx;
 			qx = (q + n/q)/2;
 		}
+		while( q!=qx && q+1!=qx );
 		return q;
 	}
-	// should set matherr or throw something in case of negative numbers
+	// should set matherr or throw something when negative
 	return 0;
 }
 
@@ -733,7 +744,10 @@ template<class T> static inline T sqrt(T n, T start=(((T)LLCONST(0x0000000100010
 //////////////////////////////////////////////////////////////////////////
 class noncopyable
 {
-
+// looks like some gcc really insists on having this members readable
+// even if not used and not disturbing in any way, 
+// stupid move, but ok, go on, read it
+protected:
 	noncopyable(const noncopyable&);					// no copy
 	const noncopyable& operator=(const noncopyable&);	// no assign
 public:
@@ -1033,6 +1047,37 @@ public:
 		}
 		return cField!=NULL;
 	}
+	virtual bool realloc()
+	{
+		if(cCnt != cSZ)
+		{	
+			if(cCnt)
+			{
+				// need to resize
+				cSZ = cCnt;
+				pT* newfield = new T[cSZ];
+				if(newfield)
+				{
+					if(cField) 
+					{
+						memcpy(newfield,cField,cSZ*sizeof(pT));
+						delete[] cField;
+					}
+					cField = newfield;
+				}
+			}
+			else
+			{	// just clear all
+				if(cField)
+				{
+					delete[] cField;
+					cField=NULL;
+					cSZ = 0;
+				}
+			}
+		}
+		return cField!=NULL;
+	}
 	bool resize(size_t cnt)
 	{
 		if(cnt >= cSZ)
@@ -1220,6 +1265,7 @@ protected:
 public:
 	virtual bool realloc(size_t newsize) = 0;
 	virtual bool realloc(size_t expectaddition, size_t growsize) = 0;
+	virtual bool realloc() = 0;
 
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -1375,6 +1421,7 @@ protected:
 public:
 	virtual bool  realloc(size_t newsize) { return false; }
 	virtual bool realloc(size_t expectaddition, size_t growsize)	{ return false; }
+	virtual bool realloc()	{ return false; }
 
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -2000,7 +2047,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy the given list
-	virtual bool copy(const TArray<T>& list)
+	virtual bool copy(const TArray<T>& list, size_t pos=0)
 	{
 		if(this!=&list)
 		{
@@ -2012,7 +2059,7 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// copy the given list
-	virtual bool copy(const T* elem, size_t cnt)
+	virtual bool copy(const T* elem, size_t cnt, size_t pos=0)
 	{
 		ScopeLock scopelock(*this);
 		this->clear();
@@ -2264,6 +2311,36 @@ public:
 					delete[] cField;
 				}
 				cField = newfield;
+			}
+		}
+		return cField!=NULL;
+	}
+	virtual bool realloc()
+	{
+		if(cCnt != cSZ)
+		{	
+			if(cCnt)
+			{	// need to resize
+				cSZ = cCnt;
+				T* newfield = new T[cSZ];
+				if(newfield)
+				{
+					if(cField) 
+					{
+						copy(newfield,cField,cCnt);
+						delete[] cField;
+					}
+					cField = newfield;
+				}
+			}
+			else
+			{	// just clear all
+				if(cField)
+				{
+					delete[] cField;
+					cField=NULL;
+					cSZ = 0;
+				}
 			}
 		}
 		return cField!=NULL;
@@ -2864,16 +2941,14 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// add an element at position pos (at the end by default)
 	virtual bool insert(const T& elem, size_t pos=~0)
-	{
+	{	// ignore position, insert sorted
 		ScopeLock scopelock(*this);
-
-		// ignore position, insert sorted
-		if( this->cCnt >= this->cSZ )
-			this->realloc(this->cSZ+1);
-
 		bool f = find(elem, 0, pos);
 		if( !f || cAllowDup )
 		{
+			if( this->cCnt >= this->cSZ )
+				this->realloc(this->cSZ+1);
+
 			this->move(this->cField+pos+1, this->cField+pos, this->cCnt-pos);
 			this->cCnt++;
 			this->cField[pos] = elem;
@@ -2915,7 +2990,7 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy the given list
-	virtual bool copy(const TArray<T>& list)
+	virtual bool copy(const TArray<T>& list, size_t pos=0)
 	{
 		if(this!=&list)
 		{
@@ -2927,7 +3002,7 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	// copy the given list
-	virtual bool copy(const T* elem, size_t cnt)
+	virtual bool copy(const T* elem, size_t cnt, size_t pos=0)
 	{
 		ScopeLock scopelock(*this);
 		this->clear();
@@ -3178,10 +3253,10 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy constructor and assign (cannot be derived)
-	TfifoDCT(const TArray<T>& arr)							{ TArrayDST<T>::copy(arr); }
-	const TfifoDCT& operator=(const TArray<T>& arr)			{ this->resize(0); TArrayDST<T>::copy(arr); return *this; }
-	TfifoDCT(const TfifoDCT<T>& arr)						{ TArrayDST<T>::copy(arr); }
-	const TfifoDCT& operator=(const TfifoDCT<T>& arr)		{ this->resize(0); TArrayDST<T>::copy(arr); return *this; }
+	TfifoDCT(const TArray<T>& arr)							{ TfifoDST<T>::copy(arr); }
+	const TfifoDCT& operator=(const TArray<T>& arr)			{ this->resize(0); TfifoDST<T>::copy(arr); return *this; }
+	TfifoDCT(const TfifoDCT<T>& arr)						{ TfifoDST<T>::copy(arr); }
+	const TfifoDCT& operator=(const TfifoDCT<T>& arr)		{ this->resize(0); TfifoDST<T>::copy(arr); return *this; }
 
 };
 template <class T> class TstackDCT : public TstackDST<T>
@@ -3223,17 +3298,17 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy constructor and assign (cannot be derived)
-	TstackDCT(const TArray<T>& arr)						{ TArrayDST<T>::copy(arr); }
-	const TstackDCT& operator=(const TArray<T>& arr)	{ this->resize(0); TArrayDST<T>::copy(arr); return *this; }
-	TstackDCT(const TstackDCT<T>& arr)					{ TArrayDST<T>::copy(arr); }
-	const TstackDCT& operator=(const TstackDCT<T>& arr)	{ this->resize(0); TArrayDST<T>::copy(arr); return *this; }
+	TstackDCT(const TArray<T>& arr)						{ TstackDST<T>::copy(arr); }
+	const TstackDCT& operator=(const TArray<T>& arr)	{ this->resize(0); TstackDST<T>::copy(arr); return *this; }
+	TstackDCT(const TstackDCT<T>& arr)					{ TstackDST<T>::copy(arr); }
+	const TstackDCT& operator=(const TstackDCT<T>& arr)	{ this->resize(0); TstackDST<T>::copy(arr); return *this; }
 
 };
 template <class T> class TslistDCT : public TslistDST<T>
 {
 protected:
 	///////////////////////////////////////////////////////////////////////////
-	// copy and move for simple data types
+	// copy and move for complex data types
 	virtual void copy(T* tar, const T* src, size_t cnt)
 	{
 		for(size_t i=0; i<cnt; i++)
@@ -3241,7 +3316,6 @@ protected:
 	}
 	virtual void move(T* tar, const T* src, size_t cnt)
 	{
-
 		if(tar>src)
 		{	// last to first run
 			register size_t i=cnt;
@@ -3268,10 +3342,10 @@ public:
 
 	///////////////////////////////////////////////////////////////////////////
 	// copy constructor and assign (cannot be derived)
-	TslistDCT(const TArray<T>& arr)						{ TArrayDST<T>::copy(arr); }
-	const TslistDCT& operator=(const TArray<T>& arr)	{ this->resize(0); TArrayDST<T>::copy(arr); return *this; }
-	TslistDCT(const TslistDST<T>& arr)					{ TArrayDST<T>::copy(arr); }
-	const TslistDCT& operator=(const TslistDST<T>& arr)	{ this->resize(0); TArrayDST<T>::copy(arr); return *this; }
+	TslistDCT(const TArray<T>& arr)						{ TslistDST<T>::copy(arr); }
+	const TslistDCT& operator=(const TArray<T>& arr)	{ this->resize(0); TslistDST<T>::copy(arr); return *this; }
+	TslistDCT(const TslistDCT<T>& arr)					{ TslistDST<T>::copy(arr); }
+	const TslistDCT& operator=(const TslistDST<T>& arr)	{ this->resize(0); TslistDST<T>::copy(arr); return *this; }
 };
 
 
@@ -3781,9 +3855,8 @@ protected:
 			if( atomicdecrement( &count ) == 0 )
 			{
 				delete this;
-				return NULL;
 			}
-			return this;
+			return NULL;
 		}
 	}* itsCounter;
 
@@ -3809,7 +3882,7 @@ protected:
 		}
 	}
 	void release()
-	{	// decrement the count,
+	{	// decrement the count, clear the handle
 		if(this->itsCounter) itsCounter = itsCounter->release();
 	}
 
@@ -3973,9 +4046,9 @@ class MiniString : public global
 {
 	TPtrAutoRef< TArrayDST<char> > cStrPtr;
 
-	void copy(const char *c)
+	void copy(const char *c, size_t len=~0)
 	{	
-		size_t sz = (c)?strlen(c):(0);
+		size_t sz = (len&&c)?min(len,strlen(c)):(0);
 		if( sz<1 )
 		{
 			clear();
@@ -3984,8 +4057,8 @@ class MiniString : public global
 		{
 			cStrPtr->resize(0);
 			cStrPtr->copy(c,sz,0);
-			cStrPtr->append(0);
 		}
+		cStrPtr->append(0);
 	}
 
 	int compareTo(const MiniString &s) const 
@@ -4003,7 +4076,7 @@ class MiniString : public global
 		return 0;
 	}
 	int compareTo(const char *c) const 
-	{	// compare with memcpy including the End-of-String
+	{	// compare with memcmp including the end-of-string
 		// which is faster than doing a strcmp
 		if(c && cStrPtr.exists()) return memcmp(c, cStrPtr->array(), cStrPtr->size());
 		if((!c || *c==0) && !cStrPtr.exists()) return 0;
@@ -4013,6 +4086,7 @@ class MiniString : public global
 public:
 	MiniString()						{  }
 	MiniString(const char *c)			{ copy(c); }
+	MiniString(const char *c, size_t len){ copy(c, len); }
 	MiniString(const MiniString &str)	{ cStrPtr = str.cStrPtr; }
 	virtual ~MiniString()				{  }
 

@@ -22,17 +22,20 @@ public:
 	bool LoadConfig(const char* cfgName);							// Load and parse config
 	virtual bool ProcessConfig(const char*w1,const char*w2) = 0;	// Proccess config
 
-	static ulong String2IP(const char* str);						// Convert string to IP
-	static const char* IP2String(ulong ip, char*buffer=NULL);		// Convert IP to string
-
-	static int SwitchValue(const char *str, int defaultmin=INT_MIN, int defaultmax=0x7FFFFFFF);  // Return 0/1 for no/yes
+	static int SwitchValue(const char *str, int defaultmin=INT_MIN, int defaultmax=INT_MAX);  // Return 0/1 for no/yes
 	static bool Switch(const char *str, bool defaultval=false);		// Return true/false for yes/no, if unknown return defaultval
 	
 	static bool CleanControlChars(char *str);						// Replace control chars with '_' and return location of change
 };
 
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // common structures
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// Authentification
 ///////////////////////////////////////////////////////////////////////////////
 class CAuth
 {
@@ -69,6 +72,9 @@ public:
 	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Account Reg
+///////////////////////////////////////////////////////////////////////////////
 class CAccountReg
 {
 public:
@@ -89,6 +95,9 @@ public:
 	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Account related data for map server
+///////////////////////////////////////////////////////////////////////////////
 class CMapAccount : public CAuth, public CAccountReg
 {
 public:
@@ -121,6 +130,9 @@ public:
 	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Account related data for char server
+///////////////////////////////////////////////////////////////////////////////
 class CCharAccount : public CMapAccount
 {
 public:
@@ -141,6 +153,9 @@ public:
 	void frombuffer(const unsigned char* buf) {	_frombuffer(buf); } // Get class from given buffer
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Account related data for login server
+///////////////////////////////////////////////////////////////////////////////
 class CLoginAccount : public CCharAccount
 {
 public:
@@ -196,6 +211,7 @@ public:
 
 	// no buffer transfer necessary
 };
+
 
 
 ///////////////////////////////////////////////////////////////////////////////

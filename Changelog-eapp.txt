@@ -1,4 +1,13 @@
 Date	Added
+09/22
+	* try to temporarily overcome the vararg issue on the amd64
+	  appearently the changed structures and storing on the amd64 
+	  make a gained va_list only usable once, you cannot just make a copy 
+	  of the original for having it usable again, but need to va_start it again 
+	  so (if it works) the fix is quite a drawback on speed
+	  but varargs are to be generally removed, so it's ok
+	* wrapped the parser, but have it running in parallel until I'm sure it is safe
+	  need to rethink the str_data/str_buf thing as it is not very efficient and quite inconvinient
 09/12
 	* debugged and fixed the apparent 64bit issues, so the servers should
 	  also run on 64bit machines now, but still more issues might exist

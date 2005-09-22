@@ -55,13 +55,13 @@ void sortage_gsortitem(struct guild_storage& gstor)
  * ‰Šú‰»‚Æ‚©
  *------------------------------------------
  */
-int guild_storage_db_final(void *key,void *data,va_list ap)
+int guild_storage_db_final(void *key,void *data,va_list &ap)
 {
 	struct guild_storage *gstor = (struct guild_storage *)data;
 	if(gstor) aFree(gstor);
 	return 0;
 }
-int storage_db_final(void *key,void *data,va_list ap)
+int storage_db_final(void *key,void *data,va_list &ap)
 {
 	struct storage *stor = (struct storage *)data;
 	if(stor) aFree(stor);

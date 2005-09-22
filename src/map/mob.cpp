@@ -652,7 +652,7 @@ int mob_attack(struct mob_data &md,unsigned long tick,int data)
  * The callback function of clif_foreachclient
  *------------------------------------------
  */
-int mob_stopattacked(struct map_session_data &sd,va_list ap)
+int mob_stopattacked(struct map_session_data &sd,va_list &ap)
 {
 	uint32 id;
 
@@ -896,7 +896,7 @@ int mob_setdelayspawn(uint32 id)
  */
 int mob_spawn(uint32 id)
 {
-	int x=0,y=0,i=0;
+	size_t i;
 	unsigned long c, tick = gettick();
 	struct mob_data *md;
 	struct block_list *bl;
@@ -994,35 +994,36 @@ int mob_spawn(uint32 id)
 		md->hp = status_get_max_hp(&md->bl);
 	}
 
-	i=0;
-	do
-	{
-		if(!md->cache)
+	if(md->cache)
+	{	// server mobs
+		int x=0,y=0;
+		i=0;
+		do
 		{
-			x=md->bl.x;
-			y=md->bl.y;
-		}
-		else if( md->cache->x0==0 && md->cache->y0==0 )
-		{
-			x = rand()%(map[md->bl.m].xs-2)+1;
-			y = rand()%(map[md->bl.m].ys-2)+1;
-		}
-		else
-		{
-			x = md->cache->x0+rand()%(md->cache->xs+1)-md->cache->xs/2;
-			y = md->cache->y0+rand()%(md->cache->ys+1)-md->cache->ys/2;
-		}
-		i++;
-	} while(map_getcell(md->bl.m,x,y,CELL_CHKNOPASS) && i < 50);
+			if( md->cache->x0==0 && md->cache->y0==0 )
+			{	// no spawning limit on the map
+				x = rand()%(map[md->bl.m].xs-2)+1;
+				y = rand()%(map[md->bl.m].ys-2)+1;
+			}
+			else
+			{	// spawning rectangle
+				x = md->cache->x0+rand()%(md->cache->xs+1)-md->cache->xs/2;
+				y = md->cache->y0+rand()%(md->cache->ys+1)-md->cache->ys/2;
+			}
+			i++;
+		} while(map_getcell(md->bl.m,x,y,CELL_CHKNOPASS) && i < 50);
 
-	if (i >= 50) {
-		// retry again later
-		add_timer(tick+5000,mob_delayspawn,id,0);
-		return 1;
+		if (i >= 50) {
+			// retry again later
+			add_timer(tick+5000,mob_delayspawn,id,0);
+			return 1;
+		}
+		md->bl.x = x;
+		md->bl.y = y;
 	}
+	md->to_x = md->bl.x;
+	md->to_y = md->bl.y;
 
-	md->to_x = md->bl.x = x;
-	md->to_y = md->bl.y = y;
 	md->dir=rand()%8;
 
 	map_addblock(md->bl);
@@ -1221,12 +1222,12 @@ int mob_target(struct mob_data &md,struct block_list *bl,int dist)
  * The ?? routine of an active monster
  *------------------------------------------
  */
-int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list ap)
+int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list &ap)
 {
 	int mode,race,dist,*pcc;
 	struct mob_data *smd;
 	nullpo_retr(0, ap);
-	nullpo_retr(0, smd=va_arg(ap,struct mob_data *));
+	nullpo_retr(0, smd=va_arg(ap,struct mob_data*));
 	nullpo_retr(0, pcc=va_arg(ap,int *));
 
 	if(bl.type!=BL_PC && bl.type!=BL_MOB)
@@ -1255,6 +1256,7 @@ int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list ap)
 				tsd.bl.m == smd->bl.m &&
 				tsd.invincible_timer == -1 &&
 				!pc_isinvisible(tsd) &&
+				!tsd.ScriptEngine.isRunning() &&
 				(dist=distance(smd->bl.x,smd->bl.y,tsd.bl.x,tsd.bl.y))<9 )
 			if( mode&0x20 ||
 				(tsd.sc_data[SC_TRICKDEAD].timer == -1 && tsd.sc_data[SC_BASILICA].timer == -1 &&
@@ -1295,13 +1297,13 @@ int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list ap)
  * loot monster item search
  *------------------------------------------
  */
-int mob_ai_sub_hard_lootsearch(struct block_list &bl,va_list ap)
+int mob_ai_sub_hard_lootsearch(struct block_list &bl,va_list &ap)
 {
 	struct mob_data* md;
 	int mode,dist,*itc;
 
 	nullpo_retr(0, ap);
-	nullpo_retr(0, md=va_arg(ap,struct mob_data *));
+	nullpo_retr(0, md=va_arg(ap,struct mob_data*));
 	nullpo_retr(0, itc=va_arg(ap,int *));
 
 	if(!md->mode)
@@ -1329,15 +1331,15 @@ int mob_ai_sub_hard_lootsearch(struct block_list &bl,va_list ap)
  * The ?? routine of a link monster
  *------------------------------------------
  */
-int mob_ai_sub_hard_linksearch(struct block_list &bl,va_list ap)
+int mob_ai_sub_hard_linksearch(struct block_list &bl,va_list &ap)
 {
 	struct mob_data &tmd = (struct mob_data &)bl;
 	struct mob_data* md;
 	struct block_list *target;
 
 	nullpo_retr(0, ap);
-	nullpo_retr(0, md=va_arg(ap,struct mob_data *));
-	nullpo_retr(0, target=va_arg(ap,struct block_list *));
+	nullpo_retr(0, md=va_arg(ap,struct mob_data*));
+	nullpo_retr(0, target=va_arg(ap,struct block_list*));
 
 	if( md->attacked_id > 0 && mob_db[md->class_].mode&0x08){
 		if (tmd.class_ == md->class_ && tmd.bl.m == md->bl.m && (!tmd.target_id || md->state.targettype == NONE_ATTACKABLE)){
@@ -1568,7 +1570,7 @@ int mob_randomwalk(struct mob_data &md,unsigned long tick)
  * AI of MOB whose is near a Player
  *------------------------------------------
  */
-int mob_ai_sub_hard(struct block_list &bl,va_list ap)
+int mob_ai_sub_hard(struct block_list &bl,va_list &ap)
 {
 	struct mob_data &md = (struct mob_data&)bl;
 	struct mob_data *tmd = NULL;
@@ -1587,7 +1589,7 @@ int mob_ai_sub_hard(struct block_list &bl,va_list ap)
 	if(bl.type!=BL_MOB)
 		return 0;
 
-	tick=(unsigned long)va_arg(ap,unsigned long);
+	tick=va_arg(ap,unsigned long);
 
 	if( DIFF_TICK(tick, md.last_thinktime) < MIN_MOBTHINKTIME )
 		return 0;
@@ -1938,12 +1940,12 @@ int mob_ai_sub_hard(struct block_list &bl,va_list ap)
  * Serious processing for mob in PC field of view (foreachclient)
  *------------------------------------------
  */
-int mob_ai_sub_foreachclient(struct map_session_data &sd,va_list ap)
+int mob_ai_sub_foreachclient(struct map_session_data &sd,va_list &ap)
 {
 	unsigned long tick;
 
 	nullpo_retr(0, ap);
-	tick=(unsigned long)va_arg(ap,unsigned long);
+	tick=va_arg(ap,unsigned long);
 
 	map_foreachinarea(mob_ai_sub_hard,sd.bl.m,
 					  ((int)sd.bl.x)-AREA_SIZE*2,((int)sd.bl.y)-AREA_SIZE*2,
@@ -1967,10 +1969,11 @@ int mob_ai_hard(int tid, unsigned long tick, int id, intptr data)
  * Negligent mode MOB AI (PC is not in near)
  *------------------------------------------
  */
-int mob_ai_sub_lazy(void *key,void *data, va_list app)
+int mob_ai_sub_lazy(void *key,void *data, va_list &app)
 {
 	struct mob_data *md=(struct mob_data *)data;
 	struct mob_data *mmd=NULL;
+	va_list ap;
 	unsigned long tick;
 
 	if(NULL==md)
@@ -1988,8 +1991,8 @@ int mob_ai_sub_lazy(void *key,void *data, va_list app)
 		if (mbl && mbl->type == BL_MOB) 
 			mmd = (struct mob_data *)mbl;	//自分のBOSSの情報
 	}
-
-	tick=(unsigned long)va_arg(app,unsigned long);
+	ap  =va_arg(app,va_list);
+	tick=va_arg(ap,unsigned long);
 
 	if(DIFF_TICK(tick,md->last_thinktime)<MIN_MOBTHINKTIME*10)
 		return 0;
@@ -2246,7 +2249,7 @@ int mob_timer_delete(int tid, unsigned long tick, int id, intptr data)
  *
  *------------------------------------------
  */
-int mob_deleteslave_sub(struct block_list &bl,va_list ap)
+int mob_deleteslave_sub(struct block_list &bl,va_list &ap)
 {
 	struct mob_data &md = (struct mob_data &)bl;
 	uint32 id;
@@ -2530,9 +2533,12 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		mob_unlocktarget(*((struct mob_data *)src),tick);
 
 	
-	if(sd) {
+	if(sd)
+	{
 		int sp = 0, hp = 0;
-		if(src && sd->state.attack_type == BF_MAGIC && (i=pc_checkskill(*sd,HW_SOULDRAIN))>0){	/* ソウルドレイン */
+		if(src && sd->state.attack_type == BF_MAGIC && (i=pc_checkskill(*sd,HW_SOULDRAIN))>0)
+		{	// ソウルドレイン 
+			if( pc_issit(*sd) ) pc_setstand(*sd); //Character stuck in attacking animation while 'sitting' fix. [Skotlex]
 			clif_skill_nodamage(*src,md.bl,HW_SOULDRAIN,i,1);
 			sp += (status_get_lv(&md.bl))*(65+15*i)/100;
 		}
@@ -2983,8 +2989,8 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		}
 		else
 		{
-			ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-				npc_event_doall_id("NPCKillEvent", mvp_sd->bl.id), "NPCKillEvent");
+			int evt = npc_event_doall_id("OnNPCKillEvent", mvp_sd->bl.id, sd->bl.m);
+			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnNPCKillEvent");
 		}
 	}
 	//lordalfa 
@@ -3120,7 +3126,7 @@ int mob_heal(struct mob_data &md,int heal)
  * Added by RoVeRT
  *------------------------------------------
  */
-int mob_warpslave_sub(struct block_list &bl,va_list ap)
+int mob_warpslave_sub(struct block_list &bl,va_list &ap)
 {
 	struct mob_data &md=(struct mob_data &)bl;
 	uint32 id,x,y;
@@ -3220,7 +3226,7 @@ int mob_warp(struct mob_data &md,int m,int x,int y,int type)
  * 画面内の取り巻きの数計算用(foreachinarea)
  *------------------------------------------
  */
-int mob_countslave_sub(struct block_list &bl,va_list ap)
+int mob_countslave_sub(struct block_list &bl,va_list &ap)
 {
 	uint32 id;
 	int *c;
@@ -3717,21 +3723,21 @@ int mobskill_use_pos( struct mob_data *md, int skill_x, int skill_y, unsigned sh
  * Friendly Mob whose HP is decreasing by a nearby MOB is looked for.
  *------------------------------------------
  */
-int mob_getfriendhpltmaxrate_sub(struct block_list &bl,va_list ap)
+int mob_getfriendhpltmaxrate_sub(struct block_list &bl,va_list &ap)
 {
 	int rate;
 	struct mob_data **fr, *mmd;
 	struct mob_data &md=(struct mob_data &)bl;
 
 	nullpo_retr(0, ap);
-	nullpo_retr(0, mmd=va_arg(ap,struct mob_data *));
+	nullpo_retr(0, mmd=va_arg(ap,struct mob_data*));
 
 	if( mmd->bl.id == bl.id )
 		return 0;
 	if (battle_check_target(&mmd->bl,&bl,BCT_ENEMY)>0)
 		return 0;
 	rate=va_arg(ap,int);
-	fr=va_arg(ap,struct mob_data **);
+	fr=va_arg(ap,struct mob_data**);
 	if (md.hp < md.max_hp * rate / 100)
 		(*fr) = &md;
 	return 0;
@@ -3764,7 +3770,7 @@ struct block_list *mob_getmasterhpltmaxrate(struct mob_data &md,int rate)
  * What a status state suits by nearby MOB is looked for.
  *------------------------------------------
  */
-int mob_getfriendstatus_sub(struct block_list &bl,va_list ap)
+int mob_getfriendstatus_sub(struct block_list &bl,va_list &ap)
 {
 	int cond1,cond2;
 	struct mob_data **fr, *mmd;
@@ -3772,7 +3778,7 @@ int mob_getfriendstatus_sub(struct block_list &bl,va_list ap)
 	int flag=0;
 
 	nullpo_retr(0, ap);
-	nullpo_retr(0, mmd=va_arg(ap,struct mob_data *));
+	nullpo_retr(0, mmd=va_arg(ap,struct mob_data*));
 
 	if( mmd->bl.id == bl.id )
 		return 0;
@@ -3780,7 +3786,7 @@ int mob_getfriendstatus_sub(struct block_list &bl,va_list ap)
 		return 0;
 	cond1=va_arg(ap,int);
 	cond2=va_arg(ap,int);
-	fr=va_arg(ap,struct mob_data **);
+	fr=va_arg(ap,struct mob_data**);
 	if( cond2==-1 ){
 		int j;
 		for(j=SC_STONE;j<=SC_BLIND && !flag;j++){

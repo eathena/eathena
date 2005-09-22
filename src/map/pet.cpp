@@ -509,10 +509,8 @@ int pet_changestate(struct pet_data &pd,int state,int type)
 	}
 	pd.state.state=state;
 	if( pd.state.casting_flag )
-	{//Skotlex: Cancel casting
-		pd.state.casting_flag = 0;
-		clif_skillcastcancel(pd.bl);
-	}
+		skill_castcancel(&pd.bl, 0);
+
 	switch(state)
 	{
 		case MS_WALK:
@@ -1516,11 +1514,11 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 	return 0;
 }
 
-int pet_ai_sub_foreachclient(struct map_session_data &sd,va_list ap)
+int pet_ai_sub_foreachclient(struct map_session_data &sd,va_list &ap)
 {
 	unsigned long tick;
 	nullpo_retr(0, ap);
-	tick=(unsigned long)va_arg(ap,unsigned long);
+	tick=va_arg(ap,unsigned long);
 	if(sd.status.pet_id && sd.pd && sd.petDB)
 		pet_ai_sub_hard(*sd.pd, tick);
 
@@ -1535,13 +1533,14 @@ int pet_ai_hard(int tid, unsigned long tick, int id, intptr data)
 	return 0;
 }
 
-int pet_ai_sub_hard_lootsearch(struct block_list &bl,va_list ap)
+int pet_ai_sub_hard_lootsearch(struct block_list &bl,va_list &ap)
 {
 	struct pet_data* pd;
 	int dist,*itc;
 
 	nullpo_retr(0, ap);
-	nullpo_retr(0, pd=va_arg(ap,struct pet_data *));
+	pd=va_arg(ap,struct pet_data*);
+	nullpo_retr(0, pd);
 	nullpo_retr(0, itc=va_arg(ap,int *));
 
 	if(!pd->target_id){

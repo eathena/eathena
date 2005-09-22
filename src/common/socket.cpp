@@ -589,7 +589,7 @@ bool SessionRemoveSocket(const SOCKET elem)
 	{
 		// be sure to clear session[]
 		// we do not care for that here
-
+		shutdown(elem,SD_BOTH);
 		closesocket(elem);
 		socket_pos[session_pos[pos]] = (SOCKET)-1;
 

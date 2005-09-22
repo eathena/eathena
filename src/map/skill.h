@@ -106,6 +106,8 @@ enum {
 	UF_NOOVERLAP		= 0x0008,	// ユニット効果が重複しない
 	UF_NOPC				= 0x0010,	//May not target players
 	UF_NOMOB			= 0x0020,	//May not target mobs
+	_UF_UNUSED			= 0x0040,
+	UF_DUALMODE			= 0x0080,	//Spells should trigger both ontimer and onplace/onout/onleft effects.
 	UF_DANCE			= 0x0100,	// ダンススキル
 	UF_ENSEMBLE			= 0x0200,	// 合奏スキル
 };
@@ -210,7 +212,7 @@ struct skill_unit_group *skill_check_dancing( struct block_list *src );
 void skill_stop_dancing(struct block_list *src, int flag);
 
 // Guild skills [celest]
-int skill_guildaura_sub (struct block_list &bl,va_list ap);
+int skill_guildaura_sub (struct block_list &bl,va_list &ap);
 
 // 詠唱キャンセル
 int skill_castcancel(struct block_list *bl,int type);

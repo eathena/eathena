@@ -159,6 +159,7 @@ int buildin_hideoffnpc(CScriptEngine &st);
 int buildin_hideonnpc(CScriptEngine &st);
 int buildin_sc_start(CScriptEngine &st);
 int buildin_sc_start2(CScriptEngine &st);
+int buildin_sc_start4(CScriptEngine &st);
 int buildin_sc_end(CScriptEngine &st);
 int buildin_getscrate(CScriptEngine &st);
 int buildin_debugmes(CScriptEngine &st);
@@ -420,6 +421,7 @@ struct {
 	{buildin_hideonnpc,"hideonnpc","s"},
 	{buildin_sc_start,"sc_start","iii*"},
 	{buildin_sc_start2,"sc_start2","iiii*"},
+	{buildin_sc_start4,"sc_start4","iiiiii*"},
 	{buildin_sc_end,"sc_end","i"},
 	{buildin_getscrate,"getscrate","ii*"},
 	{buildin_debugmes,"debugmes","s"},
@@ -551,6 +553,7 @@ struct {
 	{buildin_pc_emotion,"pc_emotion","i"},
 	{buildin_getiteminfo,"getiteminfo","i"},
 
+	// array terminator
 	{NULL,NULL,NULL},
 };
 
@@ -564,7 +567,7 @@ struct {
 
 
 
-enum { LABEL_NEXTLINE=1,LABEL_START };
+enum { LABEL_NEXTLINE=1, LABEL_START };
 
 
 
@@ -577,36 +580,204 @@ enum { LABEL_NEXTLINE=1,LABEL_START };
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-//!! dummies, integrate to parse module
-class CStrData
+CScript::CStringBuffer	CScript::cStrData;
+
+///////////////////////////////////////////////////////////////////////////
+// initialisation members
+///////////////////////////////////////////////////////////////////////////
+void CScript::CStringBuffer::loadBuildinFunc(void)
 {
-public:
-
-	int type;
-	int strpos;
-	int backpatch;
-	int label;
-	int val;
-	int next;
-	int (*func)(CScriptEngine &);
-};
-int addString(const char*str, size_t len)	{ return 0; }
-int searchString(const char*str)			{ return 0; }
-
-CStrData*	cStrData; 
-size_t		cScriptPos;
-size_t		cStartline;
-const char *cStartPtr;
-int parseCommandIf=0;
-int parseCommand;
-
-
-
-void CScript::appendByte(unsigned char a)
-{
-	cScript->cProgramm.append(a);
+	size_t i,n;
+	for(i=0; buildin_func[i].func; i++)
+	{
+		n=addString(buildin_func[i].name);
+		cStrData[n].type=CScriptEngine::C_FUNC;
+		cStrData[n].val=i;
+		cStrData[n].func=buildin_func[i].func;
+	}
 }
-void CScript::appendCommand(int a)
+void CScript::CStringBuffer::loadConstDB(void)
+{
+	FILE *fp;
+	char line[1024];
+	char name[1024];
+	int val,n,type;
+
+	fp=safefopen("db/const.txt","r");
+	if(fp==NULL)
+	{
+		ShowError("can't read %s\n","db/const.txt");
+	}
+	else
+	{
+		while(fgets(line,sizeof(line),fp))
+		{
+			if( !skip_empty_line(line) )
+				continue;
+			type=0;
+			if( sscanf(line,"%[A-Za-z0-9_],%d,%d",name,&val,&type)>=2 ||
+				sscanf(line,"%[A-Za-z0-9_] %d %d",name,&val,&type)>=2 )
+			{
+				tolower(name);
+				n=addString(name);
+				if(type==0)
+					cStrData[n].type=CScriptEngine::C_INT;
+				else
+					cStrData[n].type=CScriptEngine::C_PARAM;
+				cStrData[n].val=val;
+			}
+		}
+		fclose(fp);
+	}
+}
+void CScript::CStringBuffer::loadMapReg(void)
+{
+	char line[1024];
+	FILE *fp=safefopen(mapreg_txt,"rt");
+
+	if( fp )
+	{
+		while(fgets(line,sizeof(line),fp))
+		{
+			char buf1[256],buf2[1024],*p;
+			int n,v,s,i;
+			if( sscanf(line,"%255[^,],%d\t%n",buf1,&i,&n)!=2 &&
+				(i=0,sscanf(line,"%[^\t]\t%n",buf1,&n)!=1) )
+				continue;
+			if( buf1[strlen(buf1)-1]=='$' )
+			{
+				if( sscanf(line+n,"%[^\n\r]",buf2)!=1 ){
+					ShowMessage("%s: %s broken data !\n",mapreg_txt,buf1);
+					continue;
+				}
+				p=(char *)aMalloc( (strlen(buf2) + 1)*sizeof(char));
+				strcpy(p,buf2);
+				s= addString(buf1);
+//!!				numdb_insert(mapregstr_db,(i<<24)|s,p);
+			}
+			else
+			{
+				if( sscanf(line+n,"%d",&v)!=1 )
+				{
+					ShowMessage("%s: %s broken data !\n",mapreg_txt,buf1);
+					continue;
+				}
+				s= addString( buf1);
+//!!				numdb_insert(mapreg_db,(i<<24)|s,v);
+			}
+		}
+		fclose(fp);
+	}
+	return;
+}
+
+CScript::CStringBuffer::CStringBuffer()
+{
+	memset(cStrHash,0, sizeof(cStrHash));
+	// strdata starts with two label elements
+	cStrData.resize(LABEL_START);	
+
+	loadMapReg();
+
+	// then insert the buildin functions
+	loadBuildinFunc();
+	// then inser the script constants/parameters
+	loadConstDB();
+	
+}
+void CScript::CStringBuffer::init()
+{
+	size_t i;
+	cStrData[LABEL_NEXTLINE].type = CScriptEngine::C_NOP;
+	cStrData[LABEL_NEXTLINE].backpatch = -1;
+	cStrData[LABEL_NEXTLINE].label = -1;
+	for(i=LABEL_START; i<cStrData.size(); i++)
+	{
+		if( cStrData[i].type==CScriptEngine::C_POS || cStrData[i].type==CScriptEngine::C_NAME )
+		{
+			cStrData[i].type = CScriptEngine::C_NOP;
+			cStrData[i].backpatch = -1;
+			cStrData[i].label = -1;
+		}
+	}
+}
+///////////////////////////////////////////////////////////////////////////
+// StrData members
+///////////////////////////////////////////////////////////////////////////
+unsigned char CScript::CStringBuffer::calcHash(const char *str)
+{
+	size_t h=0;
+	if(str)
+	{	
+		while(*str)
+		{	// do hash calculation with lower case inputs
+			h=(h<<1)+(h>>3)+(h>>5)+(h>>8);
+			h+= tolower((unsigned char)(*str++));
+		}
+	}
+	// returns values in interval [0..15] only
+	return h&0xF;
+}
+
+int CScript::CStringBuffer::searchString(const char *p)
+{
+	size_t i=cStrHash[calcHash(p)];
+	while(i && i<cStrData.size())
+	{	// function names could be case-insensitive
+		//bool casesens = (cStrData[i].type!=CScriptEngine::C_FUNC);
+		bool casesens = false;
+		if( 0==( (casesens)?strcmp(cStrData[i].str, p):strcasecmp(cStrData[i].str, p) ) )
+			return i;
+		i=cStrData[i].next;
+	}
+	return -1;
+}
+
+int CScript::CStringBuffer::addString(const MiniString& str)
+{
+	// try a case-insensitive search
+	int i=searchString(str);
+	if(i < 0)
+	{	// not found; need to insert
+		i=calcHash(str);
+		if(cStrHash[i]==0)
+		{	// the new string starts a hash entry
+			cStrHash[i]=cStrData.size();
+		}
+		else
+		{	// reusing hash index variable for strdata index here
+			i=cStrHash[i];
+			for(;;)
+			{
+				if( cStrData[i].str==str )
+					return i;
+				if(cStrData[i].next && cStrData[i].next<(int)cStrData.size())
+					i=cStrData[i].next;
+				else
+					break;
+			}
+			// the new string is appended at an existing hash entry
+			cStrData[i].next=cStrData.size();
+		}
+
+		// return the insertion position
+		i=cStrData.size();
+		// append the strdata
+		cStrData.append( CStrData(	CScriptEngine::C_NOP,	// type
+									str,					// str
+									-1,						// backpatch
+									-1,						// label
+									0,						// val
+									0,						// next
+									NULL					// func
+									) );
+	}
+	return i;
+}
+///////////////////////////////////////////////////////////////////////////
+// parsing members
+///////////////////////////////////////////////////////////////////////////
+void CParser::appendCommand(int a)
 {
 	while(a>=0x40){
 		this->appendByte((a&0x3f)|0x40);
@@ -614,7 +785,8 @@ void CScript::appendCommand(int a)
 	}
 	this->appendByte(a&0x3f);
 }
-void CScript::appendInt(int a)
+
+void CParser::appendInt(int a)
 {
 	while(a>=0x40){
 		this->appendByte(a|0xc0);
@@ -622,11 +794,13 @@ void CScript::appendInt(int a)
 	}
 	this->appendByte(a|0x80);
 }
-void CScript::appendL(int l)
+
+void CParser::appendL(int l)
 {
 	int backpatch = cStrData[l].backpatch;
 
-	switch(cStrData[l].type){
+	switch(cStrData[l].type)
+	{
 	case CScriptEngine::C_POS:
 		this->appendCommand(CScriptEngine::C_POS);
 		this->appendByte(cStrData[l].label);
@@ -636,7 +810,7 @@ void CScript::appendL(int l)
 	case CScriptEngine::C_NOP:
 		// ラベルの可能性があるのでbackpatch用データ埋め込み
 		this->appendCommand(CScriptEngine::C_NAME);
-		cStrData[l].backpatch=cScriptPos;
+		cStrData[l].backpatch = this->cScript->getCurrentPos();
 		this->appendByte(backpatch);
 		this->appendByte(backpatch>>8);
 		this->appendByte(backpatch>>16);
@@ -653,15 +827,18 @@ void CScript::appendL(int l)
 		break;
 	}
 }
-void CScript::setLabel(size_t l, size_t pos)
+
+void CParser::setLabel(size_t l, size_t pos)
 {
-	int i,next;
+	sint32 i,next;
 
 	cStrData[l].type=CScriptEngine::C_POS;
 	cStrData[l].label=pos;
 
+	this->cScript->cLabels.append( CLabel(cStrData[l].str,pos) );
+
 	i=cStrData[l].backpatch;
-	while(i>=0 && i!=0x00ffffff)
+	while(i>0 && i!=0x00ffffff)
 	{
 		next = (0xFF&cScript->cProgramm[i  ])
 			 | (0xFF&cScript->cProgramm[i+1])<<8
@@ -673,36 +850,10 @@ void CScript::setLabel(size_t l, size_t pos)
 		i=next;
 	}
 }
-int CScript::getInt(unsigned int &pos)
-{
-	int i=0,j=0;
-	while( cScript->cProgramm[pos]>=0xc0 )
-	{
-		i+=( cScript->cProgramm[pos++]&0x7f )<<j;
-		j+=6;
-	}
-	return i+((cScript->cProgramm[pos++]&0x7f)<<j);
-}
-int CScript::getCommand(unsigned int &pos)
-{
-	if(cScript->cProgramm[pos]>=0x80){
-		return CScriptEngine::C_INT;
-	}
-	else
-	{
-		int i=0, j=0;
-		while(cScript->cProgramm[pos]>=0x40){
-			i=cScript->cProgramm[pos++]<<j;
-			j+=6;
-		}
-		return i+(cScript->cProgramm[pos++]<<j);
-	}
-}
 
-
-const char *CScript::skipSpaceComment(const char *p)
+bool CParser::skipSpaceComment(const char *&p)
 {
-	while(1)
+	while(p)
 	{
 		while( isspace((int)((unsigned char)*p)) )
 			p++;
@@ -721,11 +872,12 @@ const char *CScript::skipSpaceComment(const char *p)
 		else
 			break;
 	}
-	return p;
+	return true;
 }
 
-const char *CScript::skipWord(const char *p)
+bool CParser::skipWord(const char *&p)
 {
+	const char *tmp=p;
 	if(p)
 	{	// prefix
 		if(*p=='$') p++;	// MAP鯖内共有変数用
@@ -744,159 +896,169 @@ const char *CScript::skipWord(const char *p)
 		// postfix
 		if(*p=='$') p++;	// 文字列変数
 	}
-	return (const char*)p;
+	// true when skipping was successful
+	return (tmp!=p);
 }
 
-void CScript::ErrorMessage(const char *mes, const char *pos)
+void CParser::ErrorMessage(const char *mes, const char *pos)
 {
-	int line,c=0,i;
-	char *p,*linestart,*lineend;
-	//!! conversion from const, use a better way to strip out a line from script
-	for(line=cStartline, p=(char*)cStartPtr; p && *p; line++)
+	int on=0, line=cStartLine;
+	const char *lineend, *linestart=cStartPtr;
+	
+	while(linestart && *linestart)
 	{
-		linestart=p;
-		lineend=strchr(p,'\n');
-		if(lineend){
-			c=*lineend;
-			*lineend=0;
-		}
+		lineend=strchr(linestart,'\n');
 		if(lineend==NULL || pos<lineend)
 		{
-			ShowMessage("%s line "CL_WHITE"\'%d\'"CL_RESET" : ", mes, line);
-			for(i=0;(linestart[i]!='\r') && (linestart[i]!='\n') && linestart[i];i++){
-				if(linestart+i!=pos)
-					ShowMessage("%c",linestart[i]);
-				else
-					ShowMessage("\'%c\'",linestart[i]);
+			ShowMessage("\n%s at line "CL_WHITE"\'%d\'"CL_RESET" :\n", mes, line);
+			while( *linestart!='\r' && *linestart!='\n' && *linestart )
+			{
+				if(linestart==pos)
+				{
+					on=1;
+					ShowMessage("\'"CL_BT_RED);
+				}
+				else if( on && !(*linestart=='_' || isalnum(((unsigned char)*linestart))) )
+				{
+					on=0;
+					ShowMessage(CL_RESET"\'");
+				}
+				ShowMessage("%c",*linestart);
+				
+				linestart++;
 			}
-			ShowMessage("\a\n");
-			if(lineend)
-				*lineend=c;
-			return;
+			ShowMessage(CL_RESET"\a\n");
+			break;
 		}
-		*lineend=c;
-		p=lineend+1;
+		linestart=lineend+1;
+		line++;
 	}
 }
 
-const char* CScript::parseSimpleExpr(const char *p)
+bool CParser::parseSimpleExpr(const char *&p)
 {
-	p = skipSpaceComment(p);
+	if(p)
+	{
+		skipSpaceComment(p);
 
-#ifdef DEBUG_FUNCIN
-	if(battle_config.etc_log)
-		ShowMessage("parse_simpleexpr %s\n",p);
-#endif
-	if(*p==';' || *p==',')
-	{
-		this->ErrorMessage("unexpected expr end", p);
-		exit(1);
-	}
-	if(*p=='(')
-	{
-		p = this->parseSubExpr(p+1,-1);
-		p=skipSpaceComment(p);
-		if((*p++)!=')')
+		if(*p==';' || *p==',')
 		{
-			this->ErrorMessage("unmatch ')'",p);
-			exit(1);
+			this->ErrorMessage("unexpected expr end", p);
+			return false;
 		}
-	}
-	else if(isdigit((int)((unsigned char)*p)) || ((*p=='-' || *p=='+') && isdigit((int)((unsigned char)p[1]))))
-	{
-		char *np;
-		int i=strtoul(p,&np,0);
-		appendInt(i);
-		p= np;
-	}
-	else if(*p=='"'){
-		appendCommand(CScriptEngine::C_STR);
-		p++;
-		while(*p && *p!='"'){
-			if(p[-1]<=0x7e && *p=='\\')
-				p++;
-			else if(*p=='\n'){
-				ErrorMessage("unexpected newline @ string",p);
-				exit(1);
+		if(*p=='(')
+		{	// new expression
+			p++;
+			parseSubExpr(p,-1);
+			skipSpaceComment(p);
+			if((*p++)!=')')
+			{
+				this->ErrorMessage("unmatch ')'",p);
+				return false;
 			}
-			appendByte(*p++);
 		}
-		if(!*p){
-			ErrorMessage("unexpected eof @ string",p);
-			exit(1);
+		else if( isdigit((int)((unsigned char)*p)) || ((*p=='-' || *p=='+') && isdigit((int)((unsigned char)p[1]))))
+		{	// number
+			char *np;
+			int i=strtol(p,&np,0);
+			appendInt(i);
+			p= np;
 		}
-		appendByte(0);
-		p++;	//'"'
-	}
-	else
-	{
-		int l;
-		const char *p2;
-		// label , register , function etc
-		if(skipWord(p)==p && !(*p==')' && p[-1]=='(')){
-			ErrorMessage("unexpected character",p);
-			exit(1);
-		}
-		p2 = skipWord(p);
-		l=addString(p, p2-p);
-
-		parseCommand=l;	// warn_*_mismatch_paramnumのために必要
-		if(l==searchString("if"))	// warn_cmd_no_commaのために必要
-			parseCommandIf++;
-
-		p=p2;
-
-		if(cStrData[l].type!=CScriptEngine::C_FUNC && *p=='['){
-			// array(name[i] => getelementofarray(name,i) )
-			appendL( searchString("getelementofarray") );
-			appendCommand(CScriptEngine::C_ARG);
-			appendL(l);
-			p=parseSubExpr(p+1,-1);
-			p=skipSpaceComment(p);
-			if((*p++)!=']'){
-				ErrorMessage("unmatch ']'",p);
-				exit(1);
+		else if(*p=='"')
+		{	// string
+			appendCommand(CScriptEngine::C_STR);
+			p++;	// skip the leading '"'
+			while(*p && *p!='"')
+			{
+				if(p[-1]<=0x7e && *p=='\\')
+					p++;
+				else if(*p=='\n')
+				{
+					ErrorMessage("unexpected newline @ string",p);
+					return false;
+				}
+				appendByte(*p++);
 			}
-			appendCommand(CScriptEngine::C_FUNC);
+			if(!*p)
+			{
+				ErrorMessage("unexpected eof @ string", p);
+				return false;
+			}
+			appendByte(0);
+			p++;	// skip the trailing '"'
 		}
 		else
-			appendL(l);
-	}
+		{	// label, register, function etc
+			int l;
+			const char *p2=p;
+			skipWord(p2);
+			if( p2==p && !(*p==')' && p[-1]=='(') )
+			{
+				ErrorMessage("unexpected character", p);
+				return false;
+			}
+			l=cStrData.addString( MiniString(p, p2-p) );
+			p=p2;
 
-#ifdef DEBUG_FUNCIN
-	if(battle_config.etc_log)
-		ShowMessage("parse_simpleexpr end %s\n",p);
-#endif
-	return p;
+			cParseCommand=l;	// warn_*_mismatch_paramnumのために必要
+			if(l==cStrData.searchString("if"))	// warn_cmd_no_commaのために必要
+				cParseCommandIf++;
+
+			if( cStrData[l].type!=CScriptEngine::C_FUNC && *p=='[' )
+			{	// array(name[i] => getelementofarray(name,i) )
+				appendL( cStrData.searchString("getelementofarray") );
+				appendCommand(CScriptEngine::C_ARG);
+				appendL(l);
+				p++;
+				parseSubExpr(p,-1);
+				skipSpaceComment(p);
+				if((*p++)!=']')
+				{
+					ErrorMessage("unmatch ']'",p);
+					return false;
+				}
+				appendCommand(CScriptEngine::C_FUNC);
+			}
+			else
+				appendL(l);
+		}
+		return true;
+	}
+	return false;
 }
 
-const char* CScript::parseSubExpr(const char *p,int limit)
+bool CParser::parseSubExpr(const char *&p, int limit)
 {
 	int op,opl,len;
 	const char *tmpp;
 
-#ifdef DEBUG_FUNCIN
-	if(battle_config.etc_log)
-		ShowMessage("parse_subexpr %s\n",p);
-#endif
-	p=skipSpaceComment(p);
+	if( !p )
+		return false;
 
-	if(*p=='-'){
-		tmpp = skipSpaceComment(p+1);
+	skipSpaceComment(p);
+	
+	if(*p=='-')
+	{
+		tmpp = p+1;
+		skipSpaceComment(tmpp);
 		if(*tmpp==';' || *tmpp==',')
 		{
 			appendL(LABEL_NEXTLINE);
 			p++;
-			return p;
+			return skipSpaceComment(p);
 		}
 	}
 	tmpp = p;
-	if((op=CScriptEngine::C_NEG,*p=='-') || (op=CScriptEngine::C_LNOT,*p=='!') || (op=CScriptEngine::C_NOT,*p=='~')){
-		p=parseSubExpr(p+1,100);
+	if((op=CScriptEngine::C_NEG,*p=='-') || (op=CScriptEngine::C_LNOT,*p=='!') || (op=CScriptEngine::C_NOT,*p=='~'))
+	{
+		p++;
+		parseSubExpr(p,100);
 		appendCommand(op);
-	} else
-		p = parseSimpleExpr(p);
-	p=skipSpaceComment(p);
+	}
+	else
+		parseSimpleExpr(p);
+
+	skipSpaceComment(p);
 	while(((op=CScriptEngine::C_ADD,opl=6,len=1,*p=='+') ||
 		   (op=CScriptEngine::C_SUB,opl=6,len=1,*p=='-') ||
 		   (op=CScriptEngine::C_MUL,opl=7,len=1,*p=='*') ||
@@ -920,33 +1082,42 @@ const char* CScript::parseSubExpr(const char *p,int limit)
 		p+=len;
 		if(op==CScriptEngine::C_FUNC)
 		{
-			int i=0,func=parseCommand;
+			int i=0,func=cParseCommand;
 			const char *plist[128];
 
-			if( cStrData[func].type!=CScriptEngine::C_FUNC ){
+			if( cStrData[func].type!=CScriptEngine::C_FUNC )
+			{
 				ErrorMessage("expect function",tmpp);
-				exit(0);
+				return false;
 			}
 			appendCommand(CScriptEngine::C_ARG);
 			do
 			{
 				plist[i]=p;
-				p=parseSubExpr(p,-1);
-				p=skipSpaceComment(p);
-				if(*p==',') p++;
-				else if(*p!=')' && script_config.warn_func_no_comma){
-					ErrorMessage("expect ',' or ')' at func params",p);
+				parseSubExpr(p,-1);
+				skipSpaceComment(p);
+				if(*p==',')
+				{
+					p++;
+					skipSpaceComment(p);
 				}
-				p=skipSpaceComment(p);
+				else if(*p!=')' && script_config.warn_func_no_comma)
+				{
+					ErrorMessage("expect ',' or ')' at func params", p);
+					return false;
+				}
 				i++;
-			} while(*p && *p!=')' && i<128);
+			}
+			while(*p && *p!=')' && i<128);
 			plist[i]=p;
-			if(*(p++)!=')'){
+			if(*(p++)!=')')
+			{
 				ErrorMessage("func request '(' ')'",p);
-				exit(1);
+				return false;;
 			}
 
-			if (cStrData[func].type == CScriptEngine::C_FUNC && script_config.warn_func_mismatch_paramnum) {
+			if (cStrData[func].type == CScriptEngine::C_FUNC && script_config.warn_func_mismatch_paramnum)
+			{
 				const char *arg = buildin_func[cStrData[func].val].arg;
 				int j = 0;
 				for (; arg[j]; j++) if (arg[j] == '*') break;
@@ -954,96 +1125,248 @@ const char* CScript::parseSubExpr(const char *p,int limit)
 					ErrorMessage("illegal number of parameters",plist[(i<j)?i:j]);
 				}
 			}
-		} else {
-			p=parseSubExpr(p,opl);
+		}
+		else
+		{
+			parseSubExpr(p,opl);
 		}
 		appendCommand(op);
-		p=skipSpaceComment(p);
+		skipSpaceComment(p);
 	}
-#ifdef DEBUG_FUNCIN
-	if(battle_config.etc_log)
-		ShowMessage("parse_subexpr end %s\n",p);
-#endif
-	return p;  /* return first untreated operator */
+	return true;
 }
 
-const char* CScript::parseExpr(const char *p)
+bool CParser::parseExpr(const char *&p)
 {
-#ifdef DEBUG_FUNCIN
-	if(battle_config.etc_log)
-		ShowMessage("parse_expr %s\n",p);
-#endif
-	switch(*p){
-	case ')': case ';': case ':': case '[': case ']':
+	switch(*p)
+	{
+	case ')':
+	case ';':
+	case ':':
+	case '[':
+	case ']':
 	case '}':
 		ErrorMessage("unexpected char",p);
-		exit(1);
+		return false;
 	}
-	p=parseSubExpr(p,-1);
-#ifdef DEBUG_FUNCIN
-	if(battle_config.etc_log)
-		ShowMessage("parse_expr end %s\n",p);
-#endif
-	return p;
+	return parseSubExpr(p,-1);
 }
 
-const char* CScript::parseLine(const char *p)
+bool CParser::parseLine(const char *&p)
 {
-	int i=0,cmd;
+	size_t i=0;
+	int cmd;
 	const char *plist[128];
 	const char *p2;
 
-	p=skipSpaceComment(p);
-	if(*p==';')
-		return p;
+	if( !p )
+		return false;
 
-	parseCommandIf=0;	// warn_cmd_no_commaのために必要
+	skipSpaceComment(p);
+	if(*p==';')
+	{	p++;
+		return true;
+	}
+
+	cParseCommandIf=0;	// warn_cmd_no_commaのために必要
 
 	// 最初は関数名
 	p2 = p;
-	p=parseSimpleExpr(p);
-	p=skipSpaceComment(p);
+	if( !parseSimpleExpr(p) )
+		return false;
+	skipSpaceComment(p);
 
-	cmd=parseCommand;
-	if( cStrData[cmd].type!=CScriptEngine::C_FUNC ){
-		ErrorMessage("expect command", p2);
-		return p;
+	cmd=cParseCommand;
+	if( cStrData[cmd].type!=CScriptEngine::C_FUNC )
+	{
+		this->ErrorMessage("expect command", p2);
+		return false;
 	}
 
-	appendCommand(CScriptEngine::C_ARG);
-	while(p && *p && *p!=';' && i<128){
+	this->appendCommand(CScriptEngine::C_ARG);
+	while(p && *p && *p!=';' && i<128)
+	{
 		plist[i]=p;
+		if( !parseExpr(p) )
+			return false;
+		skipSpaceComment(p);
 
-		p=parseExpr(p);
-		p=skipSpaceComment(p);
 		// 引数区切りの,処理
 		if(*p==',')
+		{
 			p++;
-		else if(*p!=';' && script_config.warn_cmd_no_comma && parseCommandIf*2<=i )
+			skipSpaceComment(p);
+		}
+		else if( *p!=';' && script_config.warn_cmd_no_comma && cParseCommandIf*2<=i )
+		{
 			ErrorMessage("expect ',' or ';' at cmd params",p);
-		p=skipSpaceComment(p);
+			return false;
+		}
 		i++;
 	}
-	plist[i]=(char *) p;
-	if(!p || *(p++)!=';'){
+	plist[i] = p;
+	if( !p || *(p++)!=';' )
+	{
 		ErrorMessage("need ';'",p);
-		exit(1);
+		return false;
 	}
 	appendCommand(CScriptEngine::C_FUNC);
 
-	if( cStrData[cmd].type==CScriptEngine::C_FUNC && script_config.warn_cmd_mismatch_paramnum){
+	if( cStrData[cmd].type==CScriptEngine::C_FUNC && script_config.warn_cmd_mismatch_paramnum)
+	{
 		const char *arg=buildin_func[cStrData[cmd].val].arg;
-		int j=0;
-		for(j=0;arg[j];j++) if(arg[j]=='*')break;
-		if( (arg[j]==0 && i!=j) || (arg[j]=='*' && i<j) ){
-			ErrorMessage("illegal number of parameters",plist[(i<j)?i:j]);
+		size_t j;
+		for(j=0; arg[j]; j++) if(arg[j]=='*') break;
+		if( (arg[j]==0 && i!=j) || (arg[j]=='*' && i<j) )
+		{
+			ErrorMessage("illegal number of parameters", plist[(i<j)?i:j]);
+			return false;
 		}
 	}
-	return p;
+	return true;
+}
+
+CScript CParser::parseScript(const char *name, const char *src, size_t line)
+{
+	if(src)
+	{
+		const char *p, *tmpp, *cp;
+		size_t i;
+
+		//////////////////////////////////////////////
+		// check the input to filter empty scripts ("{}" and "{ }") 
+		p = src;
+		skipSpaceComment(p);
+		if(*p!='{')
+		{
+			ErrorMessage("script block start '{' not found", p);
+			// just return an empty script
+			return CScript();
+		}
+		p++;
+		skipSpaceComment(p);
+		if(*p=='}')
+		{	// an empty function, just return without filling something to the script
+			return CScript();
+		}
+
+		//////////////////////////////////////////////
+		// start a new script
+		CScript::init(name);
+
+		// set members for displaying error messages
+		cStartPtr  = src;
+		cStartLine = line;
+
+		// the parsing loop
+		while(p && *p && *p!='}')
+		{
+			skipSpaceComment(p);
+			// labelだけ特殊処理
+			tmpp = p;
+			skipWord(tmpp);
+			cp = tmpp;
+			skipSpaceComment(tmpp);
+			if(*tmpp==':')
+			{	// a label
+				int label = cStrData.addString( MiniString(p, cp-p) );
+				if( cStrData[label].label != -1)
+				{
+					ErrorMessage("duplicated label", p);
+					return CScript();
+				}
+				setLabel(label, cScript->getCurrentPos());
+				p = tmpp+1;
+			}
+			else
+			{	// 他は全部一緒くた
+				if( !parseLine(p) )
+					return CScript();
+				skipSpaceComment(p);
+				// eol equals the pop_stack command
+				appendCommand(CScriptEngine::C_EOL);
+				// set the next jump target for the '-' label
+				setLabel(LABEL_NEXTLINE, cScript->getCurrentPos());
+				cStrData[LABEL_NEXTLINE].type = CScriptEngine::C_NOP;
+				cStrData[LABEL_NEXTLINE].backpatch = -1;
+				cStrData[LABEL_NEXTLINE].label = -1;
+			}
+		}
+		// finalizing with a nop command
+		appendCommand(CScriptEngine::C_NOP);
+		
+		// fill in jump targets of unprocessed labels
+		for(i=LABEL_START; i<cStrData.size(); i++)
+		{
+			if (cStrData[i].type == CScriptEngine::C_NOP)
+			{
+				sint32 j, next;
+				cStrData[i].type = CScriptEngine::C_NAME;
+				cStrData[i].label = i;
+				j = cStrData[i].backpatch;
+				while(j>0 && j!=0x00ffffff)
+				{
+					next = (0xFF&cScript->cProgramm[j  ])
+						 | (0xFF&cScript->cProgramm[j+1])<<8
+						 | (0xFF&cScript->cProgramm[j+2])<<16;
+					cScript->cProgramm[j  ] = i;
+					cScript->cProgramm[j+1] = i>>8;
+					cScript->cProgramm[j+2] = i>>16;
+					j = next;
+				}
+			}
+		}
+		// finalize the script and return it
+		cScript->finalize();
+		return *this;
+	}
+	return CScript();
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
+// Script implementation
+///////////////////////////////////////////////////////////////////////////////
 
+void CScript::init(const MiniString& name)
+{
+	// start a new script
+	this->cScript.make_unique();
+	this->cScript->clear();
+
+	// set script name
+	this->cScript->cName = name;
+
+	// init the string buffer
+	CScript::cStrData.init();
+}
+
+int CScript::getInt(unsigned int &pos)
+{
+	int i=0,j=0;
+	while( cScript->cProgramm[pos]>=0xc0 )
+	{
+		i+=( cScript->cProgramm[pos++]&0x7f )<<j;
+		j+=6;
+	}
+	return i+((cScript->cProgramm[pos++]&0x7f)<<j);
+}
+
+int CScript::getCommand(unsigned int &pos)
+{
+	if(cScript->cProgramm[pos]>=0x80){
+		return CScriptEngine::C_INT;
+	}
+	else
+	{
+		int i=0, j=0;
+		while(cScript->cProgramm[pos]>=0x40){
+			i=cScript->cProgramm[pos++]<<j;
+			j+=6;
+		}
+		return i+(cScript->cProgramm[pos++]<<j);
+	}
+}
 
 
 
@@ -1060,7 +1383,7 @@ const char* CScript::parseLine(const char *p)
 
 #define SCRIPT_BLOCK_SIZE 256
 static char * script_buf = NULL;
-static size_t script_pos,script_size;
+static size_t script_pos, script_size;
 
 char *str_buf;
 size_t str_pos;
@@ -1095,7 +1418,7 @@ static struct dbt *userfunc_db=NULL;
 struct dbt* script_get_label_db(){ return scriptlabel_db; }
 struct dbt* script_get_userfunc_db(){ if(!userfunc_db) userfunc_db=strdb_init(50); return userfunc_db; }
 
-int scriptlabel_final(void *k,void *d,va_list ap){ return 0; }
+int scriptlabel_final(void *k,void *d,va_list &ap){ return 0; }
 static char positions[11][64] = {"頭","体","左手","右手","ローブ","靴","アクセサリー1","アクセサリー2","頭2","頭3","装着していない"};
 
 struct Script_Config script_config;
@@ -1128,12 +1451,11 @@ unsigned char calc_hash(const char *str)
 {
 	size_t h=0;
 	if(str)
-	{	// we need it unsigned here
-		const unsigned char *p = (const unsigned char *)str;
-		while(*p)
-		{
+	{	
+		while(*str)
+		{	// calculate hash on lowercase inputs
 			h=(h<<1)+(h>>3)+(h>>5)+(h>>8);
-			h+=*p++;
+			h+= tolower( (unsigned char)(*str++) );
 		}
 	}
 	return h&0xF;
@@ -1149,8 +1471,10 @@ int search_str(const char *p)
 	int i;
 	i=str_hash[calc_hash(p)];
 	while(i)
-	{
-		if(strcasecmp(str_buf+str_data[i].str,p)==0)
+	{	// function names could be case-insensitive
+		//bool casesens = (str_data[i].type!=CScriptEngine::C_FUNC);
+		bool casesens = false;
+		if( 0==( (casesens)?strcmp(str_buf+str_data[i].str, p):strcasecmp(str_buf+str_data[i].str, p) ) )
 			return i;
 		i=str_data[i].next;
 	}
@@ -1165,18 +1489,12 @@ int search_str(const char *p)
 int add_str(const char *p)
 {
 	int i;
-	// maybe a fixed size buffer would be sufficient
-	char *lowcase;
-
 	if(NULL==p) return -1; // should not happen
 
-	lowcase=(char *)aMalloc((strlen(p)+1)*sizeof(char));
-	strcpytolower(lowcase, p);
-	i=search_str(lowcase);
-	aFree(lowcase);
-
+	i=search_str(p);
 	if(i >= 0)
 		return i;
+	// else need to insert it
 
 	i=calc_hash(p);
 	if(str_hash[i]==0)
@@ -1186,10 +1504,10 @@ int add_str(const char *p)
 	else
 	{
 		i=str_hash[i];
-		for(;;){
-			if(strcmp(str_buf+str_data[i].str,p)==0){
+		for(;;)
+		{
+			if(strcmp(str_buf+str_data[i].str,p)==0)
 				return i;
-			}
 			if(str_data[i].next==0)
 				break;
 			i=str_data[i].next;
@@ -1197,8 +1515,8 @@ int add_str(const char *p)
 		str_data[i].next=str_num;
 	}
 
-
-	if(str_num>=str_data_size){
+	if(str_num>=str_data_size)
+	{
 		str_data_size+=128;
 		str_data=(struct s_str_data*)aRealloc(str_data,str_data_size*sizeof(struct s_str_data));
 		memset(str_data + (str_data_size - 128), 0, 128*sizeof(struct s_str_data));
@@ -1241,6 +1559,8 @@ void check_script_buf(int size)
  */
 void add_scriptb(int a)
 {
+	if(a==27)
+		a=27;
 	check_script_buf(1);
 	script_buf[script_pos++]=a;
 }
@@ -1321,7 +1641,7 @@ void set_label(int l,int pos)
 	str_data[l].label=pos;
 
 	i=str_data[l].backpatch;
-	while(i>=0 && i!=0x00ffffff)
+	while(i>0 && i!=0x00ffffff)
 	{
 		next = (0xFF&script_buf[i])
 			 | (0xFF&script_buf[i+1])<<8
@@ -1456,7 +1776,7 @@ static int startline;
  */
 void disp_error_message(const char *mes,const char *pos)
 {
-	int line,c=0,i;
+	int line,c=0,i,on=0;
 	char *p,*linestart,*lineend;
 
 	for(line=startline,p=startptr;p && *p;line++){
@@ -1467,14 +1787,22 @@ void disp_error_message(const char *mes,const char *pos)
 			*lineend=0;
 		}
 		if(lineend==NULL || pos<lineend){
-			ShowMessage("%s line "CL_WHITE"\'%d\'"CL_RESET" : ", mes, line);
-			for(i=0;(linestart[i]!='\r') && (linestart[i]!='\n') && linestart[i];i++){
-				if(linestart+i!=pos)
-					ShowMessage("%c",linestart[i]);
-				else
-					ShowMessage("\'%c\'",linestart[i]);
+			ShowMessage("\n%s line "CL_WHITE"\'%d\'"CL_RESET" :\n", mes, line);
+			for(i=0;(linestart[i]!='\r') && (linestart[i]!='\n') && linestart[i];i++)
+			{
+				if(linestart+i==pos)
+				{
+					on=1;
+					ShowMessage("\'"CL_BT_RED);
+				}
+				else if( on && !(linestart[i]=='_' || isalnum(((unsigned char)linestart[i]))) )
+				{
+					on=0;
+					ShowMessage(CL_RESET"\'");
+				}
+				ShowMessage("%c",linestart[i]);
 			}
-			ShowMessage("\a\n");
+			ShowMessage(CL_RESET"\a\n");
 			if(lineend)
 				*lineend=c;
 			return;
@@ -1532,15 +1860,15 @@ char* parse_simpleexpr(char *p)
 		add_scriptb(0);
 		p++;	//'"'
 	} else {
-		int c,l;
-		char *p2;
 		// label , register , function etc
-		if(skip_word(p)==p && !(*p==')' && p[-1]=='(')){
+		int c,l;
+		char *p2 = skip_word(p);
+		if(p2==p && !(*p==')' && p[-1]=='(')){
 			disp_error_message("unexpected character",p);
 			exit(1);
 		}
-		p2 = skip_word(p);
-		c=*p2;	*p2=0;	// 名前をadd_strする
+		c=*p2;
+		*p2=0;	// 名前をadd_strする
 		l=add_str(p);
 
 		parse_cmd=l;	// warn_*_mismatch_paramnumのために必要
@@ -1597,7 +1925,8 @@ char* parse_subexpr(char *p,int limit)
 #endif
 	p=skip_space(p);
 
-	if(*p=='-'){
+	if(*p=='-')
+	{
 		tmpp = skip_space(p+1);
 		if(*tmpp==';' || *tmpp==','){
 			add_scriptl(LABEL_NEXTLINE);
@@ -1606,10 +1935,12 @@ char* parse_subexpr(char *p,int limit)
 		}
 	}
 	tmpp = p;
-	if((op=CScriptEngine::C_NEG,*p=='-') || (op=CScriptEngine::C_LNOT,*p=='!') || (op=CScriptEngine::C_NOT,*p=='~')){
+	if((op=CScriptEngine::C_NEG,*p=='-') || (op=CScriptEngine::C_LNOT,*p=='!') || (op=CScriptEngine::C_NOT,*p=='~'))
+	{
 		p=parse_subexpr(p+1,100);
 		add_scriptc(op);
-	} else
+	}
+	else
 		p=parse_simpleexpr(p);
 	p=skip_space(p);
 	while(((op=CScriptEngine::C_ADD,opl=6,len=1,*p=='+') ||
@@ -1903,9 +2234,10 @@ char* parse_script(unsigned char *src, size_t line)
 			c = *skip_word(p);
 			*skip_word(p) = 0;
 			l = add_str(p);
-			if (str_data[l].label != -1) {
+			if (str_data[l].label != -1)
+			{
 				*skip_word(p) = c;
-				disp_error_message("dup label ", p);
+				disp_error_message("duplicated label ", p);
 				exit(1);
 			}
 			set_label(l, script_pos);
@@ -1935,7 +2267,9 @@ char* parse_script(unsigned char *src, size_t line)
 			int j, next;
 			str_data[i].type = CScriptEngine::C_NAME;
 			str_data[i].label = i;
-			for (j = str_data[i].backpatch; j >= 0 && j != 0x00ffffff; ) {
+			j = str_data[i].backpatch;
+			while(j>0 && j != 0x00ffffff)
+			{
 				next = (0xFF&script_buf[j])
 					 | (0xFF&script_buf[j+1])<<8
 					 | (0xFF&script_buf[j+2])<<16;
@@ -1955,6 +2289,46 @@ char* parse_script(unsigned char *src, size_t line)
 	}
 	ShowMessage("\n");
 #endif
+
+/*
+//!! 
+	{
+	
+		CParser parser;
+		CScript scr = parser.parseScript("",(char*)src,startline);
+
+		size_t i, err=0;
+		for(i=0;i<scr.size(); i++)
+		{
+			if((unsigned char)script_buf[i] != scr[i])
+			{
+				err=1;
+				break;
+			}
+		}
+		if(err)
+		{
+			ShowMessage("\n");
+			err = min(scr.size(),(size_t)26);
+			for(i=0;i<err; i++)
+			{
+				if((unsigned char)script_buf[i] != scr[i])
+				ShowMessage(CL_BT_RED"%2X "CL_RESET, (unsigned char)script_buf[i]);
+				else
+				ShowMessage("%2X ", (unsigned char)script_buf[i]);
+			}
+			ShowMessage("\n");
+			for(i=0;i<err; i++)
+			{
+				if((unsigned char)script_buf[i] != scr[i])
+				ShowMessage(CL_BT_RED"%2X "CL_RESET, scr[i]);
+				else
+				ShowMessage("%2X ", scr[i]);
+			}
+			ShowMessage("\n");
+		}
+	}
+*/
 
 	char *local = script_buf;
 	script_buf = NULL;
@@ -3702,7 +4076,7 @@ int buildin_warp(CScriptEngine &st)
  * エリア指定ワープ
  *------------------------------------------
  */
-int buildin_areawarp_sub(struct block_list &bl,va_list ap)
+int buildin_areawarp_sub(struct block_list &bl,va_list &ap)
 {
 	int x,y;
 	char *map;
@@ -5441,7 +5815,7 @@ int buildin_areamonster(CScriptEngine &st)
  * モンスター削除
  *------------------------------------------
  */
-int buildin_killmonster_sub(struct block_list &bl,va_list ap)
+int buildin_killmonster_sub(struct block_list &bl,va_list &ap)
 {
 	struct mob_data &md =(struct mob_data&)bl;
 	char *event=va_arg(ap,char *);
@@ -5477,7 +5851,7 @@ int buildin_killmonster(CScriptEngine &st)
 	return 0;
 }
 
-int buildin_killmonsterall_sub(struct block_list &bl,va_list ap)
+int buildin_killmonsterall_sub(struct block_list &bl,va_list &ap)
 {
 	mob_remove_map((struct mob_data &)bl, 1);
 	return 0;
@@ -5720,7 +6094,7 @@ int buildin_announce(CScriptEngine &st)
  * 天の声アナウンス（特定マップ）
  *------------------------------------------
  */
-int buildin_mapannounce_sub(struct block_list &bl,va_list ap)
+int buildin_mapannounce_sub(struct block_list &bl,va_list &ap)
 {
 	char *str;
 	int len,flag;
@@ -5835,7 +6209,7 @@ int buildin_getmapusers(CScriptEngine &st)
  * エリア指定ユーザー数所得
  *------------------------------------------
  */
-int buildin_getareausers_sub(struct block_list &bl,va_list ap)
+int buildin_getareausers_sub(struct block_list &bl,va_list &ap)
 {
 	int *users=va_arg(ap,int *);
 	(*users)++;
@@ -5865,7 +6239,7 @@ int buildin_getareausers(CScriptEngine &st)
  * エリア指定ドロップアイテム数所得
  *------------------------------------------
  */
-int buildin_getareadropitem_sub(struct block_list &bl,va_list ap)
+int buildin_getareadropitem_sub(struct block_list &bl,va_list &ap)
 {
 	int item=va_arg(ap,int);
 	int *amount=va_arg(ap,int *);
@@ -6017,10 +6391,41 @@ int buildin_sc_start2(CScriptEngine &st)
 		bl = map_id2bl(st.GetInt(st[6]));
 	else
 		bl = (st.sd)?&(st.sd->bl):NULL;
-	if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
-		bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
-	if(rand()%10000 < per)
-		status_change_start(bl,type,val1,0,0,0,tick,0);
+	if(bl)
+	{
+		if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
+			bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
+		if(rand()%10000 < per)
+			status_change_start(bl,type,val1,0,0,0,tick,0);
+	}
+	return 0;
+}
+/*==========================================
+ * Starts a SC_ change with the four values passed. [Skotlex]
+ * Final optional argument is the ID of player to affect.
+ * sc_start4 type, duration, val1, val2, val3, val4, <id>;
+ *------------------------------------------
+ */
+int buildin_sc_start4(CScriptEngine &st)
+{
+	int type=st.GetInt(st[2]);
+	int tick=st.GetInt(st[3]);
+	int val1=st.GetInt(st[4]);
+	int val2=st.GetInt(st[5]);
+	int val3=st.GetInt(st[6]);
+	int val4=st.GetInt(st[7]);
+	struct block_list *bl;
+	if( st.Arguments() > 8 )
+		bl = map_id2bl( st.GetInt(st[8]) );
+	else
+		bl = (st.sd)?&(st.sd->bl):NULL;
+
+	if (bl)
+	{
+		if(bl->type == BL_PC && ((struct map_session_data *)bl)->state.potion_flag==1)
+			bl = map_id2bl(((struct map_session_data *)bl)->skilltarget);
+		status_change_start(bl,type,val1,val2,val3,val4,tick,0);
+	}
 	return 0;
 }
 
@@ -6759,7 +7164,7 @@ int buildin_emotion(CScriptEngine &st)
 	return 0;
 }
 
-int buildin_maprespawnguildid_sub(struct block_list &bl,va_list ap)
+int buildin_maprespawnguildid_sub(struct block_list &bl,va_list &ap)
 {
 	uint32 g_id=va_arg(ap,uint32);
 	int flag=va_arg(ap,int);
@@ -7194,7 +7599,7 @@ int buildin_stoptimer(CScriptEngine &st)	// Added by RoVeRT
 	return 0;
 }
 
-int buildin_mobcount_sub(struct block_list &bl,va_list ap)	// Added by RoVeRT
+int buildin_mobcount_sub(struct block_list &bl,va_list &ap)	// Added by RoVeRT
 {
 	char *event=va_arg(ap,char *);
 	int *c=va_arg(ap,int *);
@@ -9188,7 +9593,7 @@ int script_load_mapreg()
  * 永続的マップ変数の書き込み
  *------------------------------------------
  */
-int script_save_mapreg_intsub(void *key,void *data,va_list ap)
+int script_save_mapreg_intsub(void *key,void *data,va_list &ap)
 {
 	FILE *fp=va_arg(ap,FILE*);
 	int num=((size_t)key)&0x00FFFFFF, i=(((size_t)key)>>24)&0xFF;
@@ -9201,7 +9606,7 @@ int script_save_mapreg_intsub(void *key,void *data,va_list ap)
 	}
 	return 0;
 }
-int script_save_mapreg_strsub(void *key,void *data,va_list ap)
+int script_save_mapreg_strsub(void *key,void *data,va_list &ap)
 {
 	FILE *fp=va_arg(ap,FILE*);
 	int num=((size_t)key)&0x00FFFFFF, i=(((size_t)key)>>24)&0xFF;
@@ -9347,20 +9752,20 @@ int script_config_read(const char *cfgName)
  * 終了
  *------------------------------------------
  */
-int mapreg_db_final(void *key,void *data,va_list ap)
+int mapreg_db_final(void *key,void *data,va_list &ap)
 {
 	return 0;
 }
-int mapregstr_db_final(void *key,void *data,va_list ap)
+int mapregstr_db_final(void *key,void *data,va_list &ap)
 {
 	aFree(data);
 	return 0;
 }
-int scriptlabel_db_final(void *key,void *data,va_list ap)
+int scriptlabel_db_final(void *key,void *data,va_list &ap)
 {
 	return 0;
 }
-int userfunc_db_final(void *key,void *data,va_list ap)
+int userfunc_db_final(void *key,void *data,va_list &ap)
 {
 	aFree(key);
 	aFree(data);
@@ -9434,8 +9839,7 @@ int do_init_script()
 	script_load_mapreg();
 
 	add_timer_func_list(script_autosave_mapreg,"script_autosave_mapreg");
-	add_timer_interval(gettick()+MAPREG_AUTOSAVE_INTERVAL,MAPREG_AUTOSAVE_INTERVAL,
-		script_autosave_mapreg,0,0);
+	add_timer_interval(gettick()+MAPREG_AUTOSAVE_INTERVAL,MAPREG_AUTOSAVE_INTERVAL,script_autosave_mapreg,0,0);
 
 	if (scriptlabel_db == NULL)
 	  scriptlabel_db=strdb_init(50);

@@ -8,6 +8,7 @@
 char* jstrescape (char* pt);
 char* jstrescapecpy (char* pt, const char* spt);
 size_t jmemescapecpy (char* pt, const char* spt, int size);
-
+char* trim(char* str);
+char* checktrim(char* str, bool removeall=false);
 
 #endif

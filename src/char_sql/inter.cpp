@@ -252,14 +252,15 @@ int inter_log(char *fmt,...)
 	char temp_str[510]; //Needs be twice as long as str[] //Skotlex
 	va_list ap;
 	va_start(ap,fmt);
-
 	vsprintf(str,fmt,ap);
+	va_end(ap);
+
 	sprintf(tmp_sql,"INSERT INTO `%s` (`time`, `log`) VALUES (NOW(),  '%s')",interlog_db, jstrescapecpy(temp_str,str));
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (insert `interlog`)- %s\n", mysql_error(&mysql_handle) );
 	}
 
-	va_end(ap);
+	
 	return 0;
 }
 
@@ -274,7 +275,7 @@ int inter_init(const char *file)
 
 	//DB connection initialized
 	mysql_init(&mysql_handle);
-	ShowMessage("Connect Character DB server.... (Character Server)\n");
+	ShowMessage("Connect Database server on %s:%u....(Character Server)\n", char_server_ip,char_server_port);
 	if(!mysql_real_connect(&mysql_handle, char_server_ip, char_server_id, char_server_pw,
 		char_server_db ,char_server_port, (char *)NULL, 0)) {
 			//pointer check
@@ -286,7 +287,7 @@ int inter_init(const char *file)
 	}
 
 	mysql_init(&lmysql_handle);
-	ShowMessage("Connect Character DB server.... (login server)\n");
+	ShowMessage("Connect Database server on %s:%u (Login Server)....\n", login_server_ip,login_server_port);
 	if(!mysql_real_connect(&lmysql_handle, login_server_ip, login_server_id, login_server_pw,
 		login_server_db ,login_server_port, (char *)NULL, 0)) {
 			//pointer check
@@ -342,7 +343,7 @@ int inter_sql_test (void)
 }
 
 // finalize
-int wis_db_final (void *k, void *data, va_list ap) {
+int wis_db_final (void *k, void *data, va_list &ap) {
 	struct WisData *p = (struct WisData *)data;
 	if (p) aFree(p);
 	return 0;
@@ -479,7 +480,7 @@ int mapif_send_gmaccounts()
 //--------------------------------------------------------
 
 // Existence check of WISP data
-int check_ttl_wisdata_sub(void *key, void *data, va_list ap) {
+int check_ttl_wisdata_sub(void *key, void *data, va_list &ap) {
 	unsigned long tick;
 	struct WisData *wd = (struct WisData *)data;
 	tick = (uint32)va_arg(ap, int);

@@ -11,7 +11,7 @@
 
 void npc_chat_finalize(struct npc_data *nd);
 
-int npc_chat_sub(struct block_list &bl, va_list ap);
+int npc_chat_sub(struct block_list &bl, va_list &ap);
 //int npc_event_dequeue(struct map_session_data &sd);
 //int npc_event_enqueue(struct map_session_data &sd, const char *eventname);
 int npc_event_timer(int tid, unsigned long tick, int id, intptr data);
@@ -51,8 +51,7 @@ int npc_do_ontimer(uint32 npc_id, struct map_session_data &sd, int option);
 
 int npc_event_doall(const char *name);
 int npc_event_do(const char *name);
-int npc_event_doall_id(const char *name, int id);
-int npc_event_doall_id_map(const char *name, int rid, int map);
+int npc_event_doall_id(const char *name, int rid, int map);
 
 int npc_timerevent_start(struct npc_data &nd, uint32 rid);
 int npc_timerevent_stop(struct npc_data &nd);
@@ -64,7 +63,7 @@ int npc_reload(void);
 
 // ============================================
 // ADDITION Qamera death/disconnect/connect event mod
-int npc_event_doall_attached_sub(void *key,void *data,va_list ap);
+int npc_event_doall_attached_sub(void *key,void *data,va_list &ap);
 int npc_event_doall_attached(const char *name, struct map_session_data &sd);
 struct npc_att_data {
 	struct map_session_data * sd;

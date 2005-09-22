@@ -930,8 +930,8 @@ int pc_authok(uint32 id, uint32 login_id2, time_t connect_until_time, unsigned c
 	}
 	else
 	{
-		ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-			npc_event_doall_id("OnPCLoginEvent", sd->bl.id), "OnPCLoginEvent");
+		int evt = npc_event_doall_id("OnPCLoginEvent", sd->bl.id, sd->bl.m);
+		if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCLoginEvent");
 	}
 
 	return 0;
@@ -2943,7 +2943,7 @@ int pc_item_refine(struct map_session_data &sd, unsigned short idx)
  * スティル品公開
  *------------------------------------------
  */
-int pc_show_steal(struct block_list &bl,va_list ap)
+int pc_show_steal(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data *sd;
 	int itemid;
@@ -2953,7 +2953,8 @@ int pc_show_steal(struct block_list &bl,va_list ap)
 	char output[100];
 
 	nullpo_retr(0, ap);
-	nullpo_retr(0, sd=va_arg(ap,struct map_session_data *));
+	sd=va_arg(ap,struct map_session_data*);
+	nullpo_retr(0, sd);
 
 	itemid=va_arg(ap,int);
 	type=va_arg(ap,int);
@@ -4230,8 +4231,8 @@ int pc_checkbaselevelup(struct map_session_data &sd)
 		}
 		else
 		{
-			ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", 
-				npc_event_doall_id_map("OnPCBaseUpEvent", sd.bl.id,sd.bl.m), "PCBaseUpEvent");
+			int evt = npc_event_doall_id("OnPCBaseUpEvent", sd.bl.id, sd.bl.m);
+			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "PCBaseUpEvent");
 		}
 		//LORDALFA - LVLUPEVENT
 
@@ -4827,8 +4828,10 @@ int pc_resetskill(struct map_session_data &sd)
 				sd.status.skill[i].lv = 0;
 			}
 			else if (battle_config.quest_skill_reset && (inf2&INF2_QUEST_SKILL))
+			{
 				sd.status.skill[i].lv = 0;
-			sd.status.skill[i].flag = 0;
+				sd.status.skill[i].flag = 0;
+			}
 		}
 		else
 		{
@@ -4965,8 +4968,8 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 				}
 				else
 				{
-					ShowStatus ("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-						npc_event_doall_id("OnPCKillEvent", sd.bl.id), "OnPCKillEvent");
+					int evt = npc_event_doall_id("OnPCKillEvent", sd.bl.id, sd.bl.m);
+					if(evt) ShowStatus ("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCKillEvent");
 				}
 			}
 			if (battle_config.pk_mode && ssd->status.manner >= 0)
@@ -5025,8 +5028,8 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 		}
 		else
 		{
-			ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-				npc_event_doall_id("OnPCDieEvent", sd.bl.id), "OnPCDieEvent");
+			int evt = npc_event_doall_id("OnPCDieEvent", sd.bl.id, sd.bl.m);
+			if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCDieEvent");
 		}
 	}
 
@@ -5083,6 +5086,8 @@ int pc_damage(struct map_session_data &sd, long damage, struct block_list *src)
 		}
 
 	pc_setdead(sd);
+	sd.ScriptEngine.clearAll();
+
 	skill_unit_move(sd.bl,gettick(),0);
 	if(sd.sc_data[SC_BLADESTOP].timer!=-1)//白刃は事前に解除
 		status_change_end(&sd.bl,SC_BLADESTOP,-1);
@@ -6449,8 +6454,8 @@ int pc_unequipitem(struct map_session_data &sd,unsigned short inx, int flag)
 	long hp = 0, sp = 0;
 // -- moonsoul	(if player is berserk then cannot unequip)
 //
-	if( flag<2 && 
-		(sd.sc_data[SC_BLADESTOP].timer!=-1 || sd.sc_data[SC_BERSERK].timer!=-1))
+	if( !(flag&2) && 
+		(sd.sc_data[SC_BLADESTOP].timer!=-1 || sd.sc_data[SC_BERSERK].timer!=-1) )
 	{
 		clif_unequipitemack(sd,inx,0,0);
 		return 0;
@@ -6655,13 +6660,14 @@ int pc_checkoversp(struct map_session_data &sd)
  * PVP順位計算用(foreachinarea)
  *------------------------------------------
  */
-int pc_calc_pvprank_sub(struct block_list &bl,va_list ap)
+int pc_calc_pvprank_sub(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data *sd1,*sd2=NULL;
 
-	nullpo_retr(0, ap);
 	nullpo_retr(0, sd1=(struct map_session_data *)&bl);
-	nullpo_retr(0, sd2=va_arg(ap,struct map_session_data *));
+	nullpo_retr(0, ap);
+	sd2=va_arg(ap,struct map_session_data*);
+	nullpo_retr(0, sd2);
 
 	if( sd1->pvp_point > sd2->pvp_point )
 		sd2->pvp_rank++;
@@ -7203,13 +7209,13 @@ int pc_bleeding (struct map_session_data *sd)
  *------------------------------------------
  */
 
-int pc_natural_heal_sub(struct map_session_data &sd,va_list ap)
+int pc_natural_heal_sub(struct map_session_data &sd,va_list &ap)
 {
 	int skill;
 	unsigned long tick;
 
 	nullpo_retr(0, ap);
-	tick = (unsigned long)va_arg(ap,unsigned long);
+	tick = va_arg(ap,unsigned long);
 
 // -- moonsoul (if conditions below altered to disallow natural healing if under berserk status)
 	if((battle_config.natural_heal_weight_rate > 100 || sd.weight*100 < sd.max_weight * battle_config.natural_heal_weight_rate) &&
@@ -7281,7 +7287,7 @@ int pc_setsavepoint(struct map_session_data &sd,const char *mapname,unsigned sho
  */
 static int last_save_fd,save_flag;
 
-int pc_autosave_sub(struct map_session_data &sd,va_list ap)
+int pc_autosave_sub(struct map_session_data &sd,va_list &ap)
 {
 
 	if(save_flag==0 && sd.fd>last_save_fd && !sd.state.waitingdisconnect)

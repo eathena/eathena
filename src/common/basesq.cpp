@@ -320,7 +320,7 @@ bool CAccountDB_sql::init(const char* configfile)
 */
 
 	// DB connection start
-	ShowMessage("Connect Login Database Server....\n");
+	ShowMessage("Connect Database Server on %s%u....\n", mysqldb_ip, mysqldb_port);
 	if( mysql_real_connect(&mysqldb_handle, mysqldb_ip, mysqldb_id, mysqldb_pw, login_db, mysqldb_port, (char *)NULL, 0) )
 	{
 		ShowMessage("connect success!\n");

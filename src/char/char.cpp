@@ -101,28 +101,30 @@ int char_log(char *fmt, ...)
 {
 	if(log_char)
 	{
-		FILE *logfp;
-		va_list ap;
 		struct timeval tv;
 		time_t unixtime;
 		char tmpstr[2048];
-
-		va_start(ap, fmt);
-
-		logfp = safefopen(char_log_filename, "a");
-		if (logfp) {
+		FILE *logfp = safefopen(char_log_filename, "a");
+		if (logfp)
+		{
 			if (fmt[0] == '\0') // jump a line if no message
 				fprintf(logfp, RETCODE);
-			else {
+			else
+			{
+				va_list ap;
+
 				gettimeofday(&tv, NULL);
 				unixtime = tv.tv_sec;
 				strftime(tmpstr, 24, "%d-%m-%Y %H:%M:%S", localtime(&unixtime));
 				sprintf(tmpstr + 19, ".%03ld: %s", tv.tv_usec / 1000, fmt);
+				
+				va_start(ap, fmt);
 				vfprintf(logfp, tmpstr, ap);
+				va_end(ap);
 			}
 			fclose(logfp);
 		}
-		va_end(ap);
+		
 	}
 	return 0;
 }
@@ -2304,13 +2306,13 @@ int parse_char(int fd)
 						
 						if( server[j].address.isLAN(client_ip) )
 						{
-							ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.LANIP().getstring(), server[j].address.LANPort(), CL_LT_GREEN"LAN"CL_NORM);
+							ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.LANIP().getstring(), server[j].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
 							WFIFOLIP(fd, 22) = server[j].address.LANIP();
 							WFIFOW(fd,26)    = server[j].address.LANPort();
 						}
 						else
 						{
-							ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.WANIP().getstring(), server[j].address.WANPort(), CL_LT_CYAN"WAN"CL_NORM);
+							ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.WANIP().getstring(), server[j].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
 							WFIFOLIP(fd, 22) = server[j].address.WANIP();
 							WFIFOW(fd,26)    = server[j].address.WANPort();
 						}
@@ -6106,13 +6108,13 @@ printf("found\n");
 						
 						if( server[j].address.isLAN(client_ip) )
 						{
-							ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.LANIP().getstring(), server[j].address.LANPort(), CL_LT_GREEN"LAN"CL_NORM);
+							ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.LANIP().getstring(), server[j].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
 							WFIFOLIP(fd, 22) = server[j].address.LANIP();
 							WFIFOW(fd,26)    = server[j].address.LANPort();
 						}
 						else
 						{
-							ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.WANIP().getstring(), server[j].address.WANPort(), CL_LT_CYAN"WAN"CL_NORM);
+							ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.WANIP().getstring(), server[j].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
 							WFIFOLIP(fd, 22) = server[j].address.WANIP();
 							WFIFOW(fd,26)    = server[j].address.WANPort();
 						}

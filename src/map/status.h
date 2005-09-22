@@ -282,7 +282,7 @@ int status_get_sc_def(struct block_list *bl, int type);
 int status_change_start(struct block_list *bl,int type,intptr val1,intptr val2,intptr val3,intptr val4,unsigned long tick,int flag);
 int status_change_end(struct block_list* bl, int type,int tid );
 int status_change_timer(int tid, unsigned long tick, int id, intptr data);
-int status_change_timer_sub(struct block_list &bl, va_list ap );
+int status_change_timer_sub(struct block_list &bl, va_list &ap );
 int status_change_clear(struct block_list *bl,int type);
 int status_change_clear_buffs(struct block_list *bl);
 int status_change_clear_debuffs(struct block_list *bl);

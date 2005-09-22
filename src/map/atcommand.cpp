@@ -927,7 +927,7 @@ AtCommandType is_atcommand(const int fd, struct map_session_data &sd, const char
  *
  *------------------------------------------
  */
-int atkillmonster_sub(struct block_list &bl, va_list ap)
+int atkillmonster_sub(struct block_list &bl, va_list &ap)
 {
 	struct mob_data &md = (struct mob_data &)bl;
 	int flag;
@@ -2984,7 +2984,7 @@ bool atcommand_monster(int fd, struct map_session_data &sd, const char* command,
 		ShowMessage("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
 
 	count = 0;
-	range = sqrt(number) + 5; // calculation of an odd number (+ 4 area around)
+	range = (unsigned int)sqrt(number) + 5; // calculation of an odd number (+ 4 area around)
 	for (i = 0; i < number; i++) {
 		j = 0;
 		k = 0;
@@ -3070,7 +3070,7 @@ bool atcommand_spawn(int fd, struct map_session_data &sd, const char* command, c
 		ShowMessage("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, x, y);
 
 	count = 0;
-	range = sqrt(number) + 5; // calculation of an odd number (+ 4 area around)
+	range = (unsigned int)sqrt(number) + 5; // calculation of an odd number (+ 4 area around)
 	for (i = 0; i < number; i++) {
 		j = 0;
 		k = 0;
@@ -7578,7 +7578,7 @@ bool atcommand_sound(int fd, struct map_session_data &sd, const char *command, c
  * Mob search
  *------------------------------------------
  */
-int atmobsearch_sub(struct block_list &bl,va_list ap)
+int atmobsearch_sub(struct block_list &bl,va_list &ap)
 {
 	int mob_id,fd;
 	static int number=0;
@@ -7631,7 +7631,8 @@ bool atcommand_mobsearch(int fd, struct map_session_data& sd, const char* comman
 	map_foreachinarea(atmobsearch_sub, map_id, 0, 0,
 		map[map_id].xs-1, map[map_id].ys-1, BL_MOB, mob_id, fd);
 
-	atmobsearch_sub(sd.bl,0);		// 番号リセット
+	va_list ap=NULL;
+	atmobsearch_sub(sd.bl,ap);		// 番号リセット
 
 	return true;
 }
@@ -7643,7 +7644,7 @@ bool atcommand_mobsearch(int fd, struct map_session_data& sd, const char* comman
  * cleanmap
  *------------------------------------------
  */
-int atcommand_cleanmap_sub(struct block_list &bl, va_list ap)
+int atcommand_cleanmap_sub(struct block_list &bl, va_list &ap)
 {
 	map_clearflooritem(bl.id);
 	return 0;
@@ -7716,7 +7717,7 @@ bool atcommand_pettalk(int fd, struct map_session_data &sd, const char* command,
 static struct dbt *users_db;
 static int users_all;
 
-int atcommand_users_sub1(struct map_session_data &sd, va_list va)
+int atcommand_users_sub1(struct map_session_data &sd, va_list &va)
 {
 	size_t users = (size_t)strdb_search(users_db,sd.mapname) + 1;
 	users_all++;
@@ -7724,7 +7725,7 @@ int atcommand_users_sub1(struct map_session_data &sd, va_list va)
 	return 0;
 }
 
-int atcommand_users_sub2(void* key,void* val,va_list va)
+int atcommand_users_sub2(void* key,void* val,va_list &va)
 {
 	char buf[256];
 	struct map_session_data* sd = va_arg(va,struct map_session_data*);
@@ -8945,7 +8946,7 @@ bool atcommand_version(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
-int atcommand_mutearea_sub(struct block_list &bl,va_list ap)
+int atcommand_mutearea_sub(struct block_list &bl,va_list &ap)
 {
 	int time;
 	uint32 id;
@@ -8987,7 +8988,7 @@ bool atcommand_mutearea(int fd, struct map_session_data &sd, const char* command
 	return true;
 }
 
-int atcommand_shuffle_sub(struct block_list &bl,va_list ap)
+int atcommand_shuffle_sub(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data &sd = (struct map_session_data &) bl;
 	if( bl.type==BL_PC && !pc_isGM(sd))
@@ -9014,22 +9015,25 @@ bool atcommand_shuffle(int fd, struct map_session_data &sd, const char* command,
 	}
 	else if (strcmp(message, "world") == 0)
 	{
-    struct map_session_data *pl_sd;
+		struct map_session_data *pl_sd;
 		size_t i;
-    for (i = 0; i < fd_max; i++) 
-      if (session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) != NULL && pl_sd->state.auth)
-				atcommand_shuffle_sub(pl_sd->bl, 0);
+		va_list ap=NULL;
+		for (i = 0; i < fd_max; i++) 
+			if (session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) != NULL && pl_sd->state.auth)
+			{
+				atcommand_shuffle_sub(pl_sd->bl, ap);
+			}
 	}
 	else
-    clif_displaymessage(fd, "options are area, map, or world");
+		clif_displaymessage(fd, "options are area, map, or world");
 	return true;
 }
 
 bool atcommand_rates(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char buf[256];
-	snprintf(buf, sizeof(buf), "base_exp_rate: %ld    job_exp_rate: %ld", 
-		(unsigned long)battle_config.base_exp_rate, (unsigned long)battle_config.job_exp_rate);
+	snprintf(buf, sizeof(buf), "Experience rates: Base %lf.1x / Job %lf.1x",
+		(double)battle_config.base_exp_rate/100., (double)battle_config.job_exp_rate/100.);
 	clif_displaymessage(fd, buf);
 	return true;
 }

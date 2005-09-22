@@ -240,16 +240,12 @@ int list_first, list_last, list_type, list_count; // parameter to display a list
 //------------------------------
 // Writing function of logs file
 //------------------------------
-int ladmin_log(char *fmt, ...) {
-	FILE *logfp;
-	va_list ap;
+int ladmin_log(char *fmt, ...)
+{
 	struct timeval tv;
 	time_t unixtime;
 	char tmpstr[2048];
-
-	va_start(ap, fmt);
-
-	logfp = safefopen(ladmin_log_filename, "a");
+	FILE *logfp = safefopen(ladmin_log_filename, "a");
 	if (logfp)
 	{
 		if (fmt[0] == '\0') // jump a line if no message
@@ -260,12 +256,14 @@ int ladmin_log(char *fmt, ...) {
 			unixtime=tv.tv_sec;
 			strftime(tmpstr, 24, date_format, localtime(&unixtime));
 			sprintf(tmpstr + strlen(tmpstr), ".%03ld: %s", tv.tv_usec / 1000, fmt);
+
+			va_list ap;
+			va_start(ap, fmt);
 			vfprintf(logfp, tmpstr, ap);
+			va_end(ap);
 		}
 		fclose(logfp);
 	}
-
-	va_end(ap);
 	return 0;
 }
 
@@ -2957,10 +2955,10 @@ int prompt() {
 	while (bytes_to_read == 0) {
 		ShowMessage("\n");
 		if (defaultlanguage == 'F')
-			ShowMessage(CL_GREEN"Pour afficher les commandes, tapez 'Entrée'."CL_NORM"\n");
+			ShowMessage(CL_BT_GREEN"Pour afficher les commandes, tapez 'Entrée'."CL_NORM"\n");
 		else
-			ShowMessage(CL_GREEN"To list the commands, type 'enter'."CL_NORM"\n");
-		ShowMessage(CL_LT_CYAN"Ladmin-> "CL_NORM);
+			ShowMessage(CL_BT_GREEN"To list the commands, type 'enter'."CL_NORM"\n");
+		ShowMessage(CL_BT_CYAN"Ladmin-> "CL_NORM);
 		ShowMessage(CL_BOLD);
 		fflush(stdout);
 

@@ -56,12 +56,13 @@ int StringBuf_Printf(struct StringBuf *sbuf,const char *fmt,...)
 	va_list ap;
 	int n, size, off;
 	
-	va_start(ap, fmt);
+	
 	while (1) {
 		/* Try to print in the allocated space. */
-		
 		size = sbuf->max_ - (sbuf->ptr_ - sbuf->buf_);
+		va_start(ap, fmt);
 		n = vsnprintf (sbuf->ptr_, size, fmt, ap);
+		va_end(ap);
 
 		/* If that worked, return the length. */
 		if (n > -1 && n < size) {
@@ -74,7 +75,7 @@ int StringBuf_Printf(struct StringBuf *sbuf,const char *fmt,...)
 		sbuf->buf_ = (char *) aRealloc(sbuf->buf_, (sbuf->max_ + 1)*sizeof(char));
 		sbuf->ptr_ = sbuf->buf_ + off;
 	}
-	va_end(ap);
+	
 	return sbuf->ptr_ - sbuf->buf_;
 }
 

@@ -62,8 +62,8 @@ void* db_search(struct dbt *table,void* key);
 void* db_search2(struct dbt *table, const char *key); // [MouseJstr]
 struct dbn* db_insert(struct dbt *table,void* key,void* data);
 void* db_erase(struct dbt *table,void* key);
-void db_foreach(struct dbt*,int(*)(void*,void*,va_list),...);
-void db_final(struct dbt*,int(*)(void*,void*,va_list),...);
+void db_foreach(struct dbt*,int(*)(void*,void*,va_list &),...);
+void db_final(struct dbt*,int(*)(void*,void*,va_list &),...);
 void exit_dbn(void);
 
 #endif

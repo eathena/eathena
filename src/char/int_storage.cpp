@@ -273,12 +273,12 @@ int inter_storage_init()
 	return 0;
 }
 
-int storage_db_final (void *k, void *data, va_list ap) {
+int storage_db_final (void *k, void *data, va_list &ap) {
 	struct pc_storage *p = (struct pc_storage *)data;
 	if (p) aFree(p);
 	return 0;
 }
-int guild_storage_db_final (void *k, void *data, va_list ap) {
+int guild_storage_db_final (void *k, void *data, va_list &ap) {
 	struct guild_storage *p = (struct guild_storage *) data;
 	if (p) aFree(p);
 	return 0;
@@ -298,12 +298,12 @@ void inter_storage_final()
 	return;
 }
 
-int inter_storage_save_sub(void *key,void *data,va_list ap)
+int inter_storage_save_sub(void *key,void *data,va_list &ap)
 {
 	char line[65536];
 	FILE *fp;
 	storage_tostr(line,(struct pc_storage *)data);
-	fp=va_arg(ap,FILE *);
+	fp=va_arg(ap,FILE*);
 	if(*line)
 		fprintf(fp,"%s" RETCODE,line);
 	return 0;
@@ -324,13 +324,13 @@ int inter_storage_save()
 	return 0;
 }
 
-int inter_guild_storage_save_sub(void *key,void *data,va_list ap)
+int inter_guild_storage_save_sub(void *key,void *data,va_list &ap)
 {
 	char line[65536];
 	FILE *fp;
 	if(inter_guild_search(((struct guild_storage *)data)->guild_id) != NULL) {
 		guild_storage_tostr(line,(struct guild_storage *)data);
-		fp=va_arg(ap,FILE *);
+		fp=va_arg(ap,FILE*);
 		if(*line)
 			fprintf(fp,"%s" RETCODE,line);
 	}

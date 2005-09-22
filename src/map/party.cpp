@@ -23,7 +23,7 @@ int party_send_xyhp_timer(int tid, unsigned long tick, int id, intptr data);
  * 終了
  *------------------------------------------
  */
-int party_db_final(void *key,void *data,va_list ap)
+int party_db_final(void *key,void *data,va_list &ap)
 {
 	aFree(data);
 	return 0;
@@ -49,12 +49,12 @@ struct party *party_search(uint32 party_id)
 {
 	return (struct party *)numdb_search(party_db,party_id);
 }
-int party_searchname_sub(void *key,void *data,va_list ap)
+int party_searchname_sub(void *key,void *data,va_list &ap)
 {
 	struct party *p=(struct party *)data,**dst;
 	char *str;
 	str=va_arg(ap,char *);
-	dst=va_arg(ap,struct party **);
+	dst=va_arg(ap,struct party**);
 	if(strcasecmp(p->name,str)==0)
 		*dst=p;
 	return 0;
@@ -515,7 +515,7 @@ int party_check_conflict(struct map_session_data &sd)
 
 
 // 位置やＨＰ通知用
-int party_send_xyhp_timer_sub(void *key,void *data,va_list ap)
+int party_send_xyhp_timer_sub(void *key,void *data,va_list &ap)
 {
 	struct party *p=(struct party *)data;
 	int i;
@@ -569,7 +569,7 @@ int party_send_xy_clear(struct party &p)
 	return 0;
 }
 // HP通知の必要性検査用（map_foreachinmoveareaから呼ばれる）
-int party_send_hp_check(struct block_list &bl,va_list ap)
+int party_send_hp_check(struct block_list &bl,va_list &ap)
 {
 	uint32 party_id;
 	int *flag;
@@ -596,10 +596,11 @@ int party_exp_share(struct party &p,unsigned short map, uint32 base_exp,uint32 j
 
 	for (i=c=0; i < MAX_PARTY; i++)
 	{	
-		if((sd=p.member[i].sd)!=NULL && p.member[i].online && sd->bl.m==map && session[sd->fd] != NULL)
+		if((sd=p.member[i].sd)!=NULL && p.member[i].online && sd->bl.m==map && session[sd->fd] != NULL )
 		{
 			if( !( sd->chatID                            && battle_config.party_share_mode>=2 ) &&	// don't count chatting
-				!( difftime(last_tick, sd->idletime)>120 && battle_config.party_share_mode>=1) )	// don't count idle
+				!( difftime(last_tick, sd->idletime)>120 && battle_config.party_share_mode>=1) &&	// don't count idle
+				!pc_isdead(*sd) )
 				memberpos[c++] = i;
 		}
 	}
@@ -664,7 +665,8 @@ int party_exp_share2(struct party &p, unsigned short map, uint32 base_exp, uint3
 		if((sd=p.member[i].sd)!=NULL && p.member[i].online && sd->bl.m==map && session[sd->fd] != NULL)
 		{
 			if( !( sd->chatID                             && battle_config.party_share_mode>=2 ) &&	// don't count chatting
-				!( difftime(last_tick, sd->idletime)>120  && battle_config.party_share_mode>=1) )	// don't count idle
+				!( difftime(last_tick, sd->idletime)>120  && battle_config.party_share_mode>=1) &&	// don't count idle
+				!pc_isdead(*sd) )
 				memberpos[c++] = i;
 				lvlsum += p.member[i].lv;
 		}
@@ -704,10 +706,9 @@ int party_exp_share2(struct party &p, unsigned short map, uint32 base_exp, uint3
 // 同じマップのパーティメンバー全体に処理をかける
 // type==0 同じマップ
 //     !=0 画面内
-void party_foreachsamemap(int (*func)(struct block_list&,va_list), struct map_session_data &sd, int type,...)
+void party_foreachsamemap(int (*func)(struct block_list&,va_list &), struct map_session_data &sd, int type,...)
 {
 	struct party *p;
-	va_list ap;
 	int x0,y0,x1,y1;
 	struct block_list *list[MAX_PARTY];
 	size_t i, blockcount=0;
@@ -720,8 +721,6 @@ void party_foreachsamemap(int (*func)(struct block_list&,va_list), struct map_se
 	x1=sd.bl.x+AREA_SIZE;
 	y1=sd.bl.y+AREA_SIZE;
 
-	va_start(ap,type);
-	
 	for(i=0;i<MAX_PARTY;i++)
 	{
 		struct party_member *m=&p->member[i];
@@ -738,14 +737,18 @@ void party_foreachsamemap(int (*func)(struct block_list&,va_list), struct map_se
 	}
 
 	map_freeblock_lock();	// メモリからの解放を禁止する
-	
 	for(i=0;i<blockcount;i++)
+	{
 		if(list[i] && list[i]->prev)	// 有効かどうかチェック
+		{
+			va_list ap;
+			va_start(ap,type);
 			func(*list[i],ap);
-
+			va_end(ap);
+		}
+	}
 	map_freeblock_unlock();	// 解放を許可する
 
-	va_end(ap);
 }
 
 int party_send_dot_remove(struct map_session_data &sd)

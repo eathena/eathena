@@ -116,7 +116,7 @@ int inter_party_init()
 	return 0;
 }
 
-int party_db_final (void *k, void *data, va_list ap) {
+int party_db_final (void *k, void *data, va_list &ap) {
 	struct party *p = (struct party *) data;
 	if (p) aFree(p);
 	return 0;
@@ -132,12 +132,12 @@ void inter_party_final()
 }
 
 // パ?ティ?デ?タのセ?ブ用
-int inter_party_save_sub(void *key, void *data, va_list ap) {
+int inter_party_save_sub(void *key, void *data, va_list &ap) {
 	char line[8192];
 	FILE *fp;
 
 	inter_party_tostr(line, (struct party *)data);
-	fp = va_arg(ap, FILE *);
+	fp = va_arg(ap, FILE*);
 	fprintf(fp, "%s" RETCODE, line);
 
 	return 0;
@@ -161,7 +161,7 @@ int inter_party_save() {
 }
 
 // パーティ名検索用
-int search_partyname_sub(void *key,void *data,va_list ap) {
+int search_partyname_sub(void *key,void *data,va_list &ap) {
 	struct party *p = (struct party *)data,**dst;
 	char *str;
 
@@ -241,7 +241,7 @@ bool party_isempty(struct party *p)
 }
 
 // キャラの競合がないかチェック用
-int party_check_conflict_sub(void *key, void *data, va_list ap)
+int party_check_conflict_sub(void *key, void *data, va_list &ap)
 {
 	struct party *p = (struct party *)data;
 	uint32 party_id, account_id;

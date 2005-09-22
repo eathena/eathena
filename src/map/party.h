@@ -38,11 +38,11 @@ int party_recv_message(uint32 party_id,uint32 account_id,const char *mes,size_t 
 int party_check_conflict(struct map_session_data &sd);
 
 int party_send_xy_clear(struct party &p);
-int party_send_hp_check(struct block_list &bl,va_list ap);
+int party_send_hp_check(struct block_list &bl,va_list &ap);
 
 int party_exp_share(struct party &p,unsigned short map,uint32 base_exp,uint32 job_exp,uint32 zeny);
 
-void party_foreachsamemap(int (*func)(struct block_list&,va_list),struct map_session_data &sd,int type,...);
+void party_foreachsamemap(int (*func)(struct block_list&,va_list &),struct map_session_data &sd,int type,...);
 
 int party_send_dot_remove(struct map_session_data &sd);
 

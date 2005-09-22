@@ -116,14 +116,14 @@ int clif_guildstorageequiplist(struct map_session_data &sd,struct guild_storage 
 int clif_updateguildstorageamount(struct map_session_data &sd,struct guild_storage &stor);
 int clif_guildstorageitemadded(struct map_session_data &sd,struct guild_storage &stor,unsigned short index,uint32 amount);
 
-int clif_pcinsight(struct block_list &bl,va_list ap);	// map_forallinmovearea callback
-int clif_pcoutsight(struct block_list &bl,va_list ap);	// map_forallinmovearea callback
-int clif_mobinsight(struct block_list &bl,va_list ap);	// map_forallinmovearea callback
-int clif_moboutsight(struct block_list &bl,va_list ap);	// map_forallinmovearea callback
-int clif_petoutsight(struct block_list &bl,va_list ap);
-int clif_petinsight(struct block_list &bl,va_list ap);
-int clif_npcoutsight(struct block_list &bl,va_list ap);
-int clif_npcinsight(struct block_list &bl,va_list ap);
+int clif_pcinsight(struct block_list &bl,va_list &ap);	// map_forallinmovearea callback
+int clif_pcoutsight(struct block_list &bl,va_list &ap);	// map_forallinmovearea callback
+int clif_mobinsight(struct block_list &bl,va_list &ap);	// map_forallinmovearea callback
+int clif_moboutsight(struct block_list &bl,va_list &ap);	// map_forallinmovearea callback
+int clif_petoutsight(struct block_list &bl,va_list &ap);
+int clif_petinsight(struct block_list &bl,va_list &ap);
+int clif_npcoutsight(struct block_list &bl,va_list &ap);
+int clif_npcinsight(struct block_list &bl,va_list &ap);
 
 int clif_class_change(struct block_list &bl,unsigned short class_,unsigned char type);
 int clif_mob_class_change(struct mob_data &md,unsigned short class_);
@@ -282,7 +282,7 @@ int clif_GM_kick(struct map_session_data &sd,struct map_session_data &tsd,int ty
 int clif_GM_silence(struct map_session_data &sd,struct map_session_data &tsd,int type);
 int clif_timedout(struct map_session_data &sd);
 
-int clif_foreachclient(int (*)(struct map_session_data&,va_list),...);
+int clif_foreachclient(int (*)(struct map_session_data&,va_list &),...);
 int clif_disp_overhead(struct map_session_data &sd, const char* mes);
 
 

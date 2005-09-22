@@ -1142,6 +1142,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	// disabled until fixed >.>
 	// Note: escape characters should be added to jstrescape()!
 	t_name[24-1] = '\0';
+	checktrim(t_name);
 
 	if (!session_isValid(fd) || !(sd = (struct char_session_data*)session[fd]->session_data))
 		return -2;
@@ -2799,13 +2800,13 @@ int parse_char(int fd)
 			memcpy(WFIFOP(fd, 6), char_dat[0].last_point.map, 24);
 			if( server[j].address.isLAN(client_ip) )
 			{
-				ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.LANIP().getstring(), server[j].address.LANPort(), CL_LT_GREEN"LAN"CL_NORM);
+				ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.LANIP().getstring(), server[j].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
 				WFIFOLIP(fd, 22) = server[j].address.LANIP();
 				WFIFOW(fd, 26)   = server[j].address.LANPort();
 			}
 			else
 			{
-				ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.WANIP().getstring(), server[j].address.WANPort(), CL_LT_CYAN"WAN"CL_NORM);
+				ShowMessage("Send IP of map-server: %s:%d (%s)\n", server[j].address.WANIP().getstring(), server[j].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
 				WFIFOLIP(fd, 22) = server[j].address.WANIP();
 				WFIFOW(fd, 26)   = server[j].address.WANPort();
 			}
@@ -3416,7 +3417,7 @@ int check_connect_login_server(int tid, unsigned long tick, int id, intptr data)
 	return 0;
 }
 
-int char_db_final(void *key,void *data,va_list ap)
+int char_db_final(void *key,void *data,va_list &ap)
 {
 	struct mmo_charstatus *p = (struct mmo_charstatus *) data;
 	if (p) aFree(p);
@@ -3753,7 +3754,7 @@ int do_init(int argc, char **argv){
 	else
 		ShowMessage(" done.\n");
 
-	ShowStatus("The char-server is "CL_LT_GREEN"ready"CL_NORM" (listening on %s:%d).\n\n", charaddress.LANIP().getstring(),charaddress.LANPort());
+	ShowStatus("The char-server is "CL_BT_GREEN"ready"CL_NORM" (listening on %s:%d).\n\n", charaddress.LANIP().getstring(),charaddress.LANPort());
 	return 0;
 }
 

@@ -138,7 +138,7 @@ int inter_accreg_init(void) {
 }
 
 // アカウント変数のセーブ用
-int inter_accreg_save_sub(void *key, void *data, va_list ap) {
+int inter_accreg_save_sub(void *key, void *data, va_list &ap) {
 	char line[8192];
 	FILE *fp;
 	struct accreg *reg = (struct accreg *)data;
@@ -223,18 +223,18 @@ int inter_config_read(const char *cfgName) {
 }
 
 // ログ書き出し
-int inter_log(char *fmt,...) {
-	FILE *logfp;
-	va_list ap;
-
-	va_start(ap,fmt);
-	logfp = safefopen(inter_log_filename, "a");
-	if (logfp && fmt) {
+int inter_log(char *fmt,...)
+{
+	FILE *logfp = safefopen(inter_log_filename, "a");
+	if (logfp && fmt)
+	{
+		va_list ap;
+		va_start(ap,fmt);
 		vfprintf(logfp, fmt, ap);
+		va_end(ap);
+
 		fclose(logfp);
 	}
-	va_end(ap);
-
 	return 0;
 }
 
@@ -267,12 +267,12 @@ int inter_init(const char *file) {
 }
 
 // finalize
-int accreg_db_final (void *k, void *data, va_list ap) {	
+int accreg_db_final (void *k, void *data, va_list &ap) {	
 	struct accreg *p = (struct accreg *) data;
 	if (p) aFree(p);
 	return 0;
 }
-int wis_db_final (void *k, void *data, va_list ap) {
+int wis_db_final (void *k, void *data, va_list &ap) {
 	struct WisData *p = (struct WisData *) data;
 	if (p) aFree(p);
 	return 0;
@@ -391,7 +391,7 @@ int mapif_account_reg_reply(int fd, uint32 account_id) {
 //--------------------------------------------------------
 
 // Existence check of WISP data
-int check_ttl_wisdata_sub(void *key, void *data, va_list ap) {
+int check_ttl_wisdata_sub(void *key, void *data, va_list &ap) {
 	unsigned long tick;
 	struct WisData *wd = (struct WisData *)data;
 	tick = (unsigned long)va_arg(ap, unsigned long);

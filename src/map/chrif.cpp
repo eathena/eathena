@@ -1369,7 +1369,7 @@ int chrif_char_online(struct map_session_data &sd)
  *------------------------------------------
  */
 /*
-int chrif_disconnect_sub(struct map_session_data& sd, va_list va)
+int chrif_disconnect_sub(struct map_session_data& sd, va_list &va)
 {
 	clif_authfail_fd(sd.fd,1);
 	//map_quit(*sd);

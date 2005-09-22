@@ -35,6 +35,15 @@ data interface (sql only)  // CLOWNISIUS is working on this section, hands off o
 * adding embedded sql base class 
   [basically deriving from existing class and modifying the sql startup function]
 
+other code
+* capsualting and reworking the current code
+  [just as topic, also need to check what functions are really necessary and what not, a lot of the current stuff is not threadsafe and could be dome far more efficient]
+  {grfio in progress}
+
+* addign real server control with webinterface for ie. managing accounts/editing chars etc
+  [to be honest; this is to completely replace the sql database back infusion php control stuff]
+  {conception/case study in progress}
+
 ///////////////////////////////////////////////////////////////////////////////
 login:
 * cleaning packets
@@ -70,19 +79,22 @@ clif/chrif/packets
 script engine conversion
 * rearranging current member function structure to a better hierarchy depending on the functionally
   [like value conversion functions are members of the value class, just to name an example]
-  {20%}
+  {30%}
 * changing memory allocation/deallocations to c++ style (special attention to initial settings with memset)
   [stack allocation/deallocation is c-style now, implement proper cleaning]
-  {50%}
+  {80%}
 * check command function/usage of a virtual npc for script binding
   [like if a script is running on a pc without a visible npc then create a npc without a physical shape and bind the script on that npc, so all scripts could use all script commands]
-  {100%, but need some more testing}
+  {100%, does not work with 20040525 but looks fine starting from 20040628}
 * encapsulate the script parser
   [same as has been done with the engine]
+  {100%, run in parallel right now, need some more testing before swapping}
 * adding a class for scripts with all suitable things
   [script itself should not be just char* but something with more functionality to allow automatic deallocation and usage of smart pointer (which is currently implemented in c-style)]
+  {50%, but final structure depends on the interface}
 * deriving virtual interfaces by comparing with /devel/shinomori/eacompiler
   [building an interface for how a script is called, how a script can call other things and how the other things can access data from the script environment]
+  {0%, not really but still need to work on that}
 
 data reading
 * move all sql/txt stuff to baseio, encapsulate to classes, adding conversion
@@ -90,6 +102,21 @@ data reading
 * mail system
   [move the mail system to char by adding the necessary chrif functions, adding the necessary data to the databases and implement the read/write/search functions for the txt version possible usage of the txt_database class, this would just need a second index]
 
+inventory system
+* change the currents structs to classes with the necessary functionality included
+  [add automatic item_db access and buffer conformity, rewrite equip stuff, make cart optional]
+
+skill/battle system
+* in short: "throw away, write new"
+  [concept is ready, but to extensive to explain here]
+
+map 
+* add the needed functionality to the map itself
+  [such as foreach..., cellaccess etc.; check if adding the height from the grf is suitable i.e. to decrease speed if walking the slope up and increasing when walking down, modifiying the shoot range]
+
+blocks and objects
+* derive all objects existing on a map from base classes providing the functionality to interact
+  [naming as existing stuff; have a block with basic functions, derive a pc/mob/npc/.. and add the specific functions]
 
 testing and dump generation
 * more bt's are better than none

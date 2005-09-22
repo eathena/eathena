@@ -354,7 +354,7 @@ void npc_chat_finalize(struct npc_data *nd)
 /**
  * Handler called whenever a global message is spoken in a NPC's area
  */
-int npc_chat_sub(struct block_list &bl, va_list ap)
+int npc_chat_sub(struct block_list &bl, va_list &ap)
 {
     struct npc_data &nd = (struct npc_data &)bl;
     struct npc_parse *npcParse = (struct npc_parse *) nd->chatdb;
@@ -370,7 +370,7 @@ int npc_chat_sub(struct block_list &bl, va_list ap)
 
     msg = va_arg(ap,unsigned char*);
     len = va_arg(ap,int);
-    sd = va_arg(ap,struct map_session_data *);
+    sd = va_arg(ap,struct map_session_data*);
 
     // grab the active list
     pcreset = npcParse->active_;
@@ -503,7 +503,7 @@ int buildin_deletepset(CScriptEngine &st)
 #else
 
 void npc_chat_finalize(struct npc_data *nd)			{}
-int npc_chat_sub(struct block_list &bl, va_list ap)	{ return 0; }
+int npc_chat_sub(struct block_list &bl, va_list &ap){ return 0; }
 int buildin_defpattern(CScriptEngine &st)			{ return 0; }
 int buildin_activatepset(CScriptEngine &st)			{ return 0; }
 int buildin_deactivatepset(CScriptEngine &st)		{ return 0; }

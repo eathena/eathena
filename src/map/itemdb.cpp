@@ -33,12 +33,12 @@ static struct item_group itemgroup_db[MAX_ITEMGROUP];
  *------------------------------------------
  */
 // name = item alias, so we should find items aliases first. if not found then look for "jname" (full name)
-int itemdb_searchname_sub(void *key,void *data,va_list ap)
+int itemdb_searchname_sub(void *key,void *data,va_list &ap)
 {
 	struct item_data *item=(struct item_data *)data,**dst;
 	char *str;
 	str=va_arg(ap,char *);
-	dst=va_arg(ap,struct item_data **);
+	dst=va_arg(ap,struct item_data**);
 	if( strcasecmp(item->name,str)==0 ) //by lupus
 		*dst=item;
 	return 0;
@@ -48,12 +48,12 @@ int itemdb_searchname_sub(void *key,void *data,va_list ap)
  * –¼‘O‚ÅŒŸõ—p
  *------------------------------------------
  */
-int itemdb_searchjname_sub(void *key,void *data,va_list ap)
+int itemdb_searchjname_sub(void *key,void *data,va_list &ap)
 {
 	struct item_data *item=(struct item_data *)data,**dst;
 	char *str;
 	str=va_arg(ap,char *);
-	dst=va_arg(ap,struct item_data **);
+	dst=va_arg(ap,struct item_data**);
 	if( strcasecmp(item->jname,str)==0 )
 		*dst=item;
 	return 0;
@@ -867,7 +867,7 @@ int itemdb_readdb(void)
 				p=strchr(p,',');
 				if(p){ *p++=0; np=p; }
 			}
-			if( j<17 )
+			if( j<18 )
 				continue;
 
 			nameid=atoi(str[0]);
@@ -989,7 +989,7 @@ void itemdb_read(void)
  * Initialize / Finalize
  *------------------------------------------
  */
-int itemdb_final_sub (void *key,void *data,va_list ap)
+int itemdb_final_sub (void *key,void *data,va_list &ap)
 {
 	struct item_data *id = (struct item_data *)data;
 

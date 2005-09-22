@@ -268,6 +268,8 @@ public:
 	{	// format: <ip>
 		struct hostent*h;
 		while( isspace( ((unsigned char)(*str)) ) ) str++;
+		// look up the name
+		// this can take long time (i.e. until timeout looking up non-existing addresses)
 		h = gethostbyname(str);
 		if (h != NULL)
 			return ipaddress( MakeDWord((unsigned char)h->h_addr[3], (unsigned char)h->h_addr[2], (unsigned char)h->h_addr[1], (unsigned char)h->h_addr[0]) );

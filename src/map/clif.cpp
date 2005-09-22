@@ -526,18 +526,21 @@ int clif_countusers(void)
  *------------------------------------------
  */
  
-int clif_foreachclient(int (*func)(struct map_session_data&, va_list),...)
+int clif_foreachclient(int (*func)(struct map_session_data&, va_list &),...)
 {
 	size_t i;
 	struct map_session_data *sd;
 	va_list ap;
-	va_start(ap,func);
 	for(i = 0; i < fd_max; i++)
 	{
 		if (session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->state.auth)
+		{
+			va_start(ap,func);
 			func(*sd, ap);
+			va_end(ap);
+		}
 	}
-	va_end(ap);
+	
 	return 0;
 }
 
@@ -545,7 +548,7 @@ int clif_foreachclient(int (*func)(struct map_session_data&, va_list),...)
  * clif_send‚ÅAREA*Žw’èŽž—p
  *------------------------------------------
  */
-int clif_send_sub(block_list &bl, va_list ap)
+int clif_send_sub(block_list &bl, va_list &ap)
 {
 	struct map_session_data& sd = (struct map_session_data&)bl;
 	struct block_list *src_bl;
@@ -4440,14 +4443,11 @@ int clif_01ac(struct block_list &bl)
  *
  *------------------------------------------
  */
- int clif_getareachar(struct block_list& bl,va_list ap)
+ int clif_getareachar(struct block_list& bl,va_list &ap)
 {
 	struct map_session_data *sd;
-
 	nullpo_retr(0, ap);
-
 	sd=va_arg(ap,struct map_session_data*);
-
 	if (sd == NULL || session[sd->fd] == NULL)
 		return 0;
 
@@ -4485,7 +4485,7 @@ int clif_01ac(struct block_list &bl)
  *
  *------------------------------------------
  */
-int clif_pcoutsight(struct block_list &bl,va_list ap)
+int clif_pcoutsight(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data *sd;
 
@@ -4544,7 +4544,7 @@ int clif_pcoutsight(struct block_list &bl,va_list ap)
  *
  *------------------------------------------
  */
-int clif_pcinsight(struct block_list &bl,va_list ap)
+int clif_pcinsight(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data *sd;
 
@@ -4585,7 +4585,7 @@ int clif_pcinsight(struct block_list &bl,va_list ap)
  *
  *------------------------------------------
  */
-int clif_moboutsight(struct block_list &bl,va_list ap)
+int clif_moboutsight(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data &sd = (struct map_session_data&)bl;
 	struct mob_data *md;
@@ -4605,7 +4605,7 @@ int clif_moboutsight(struct block_list &bl,va_list ap)
  *
  *------------------------------------------
  */
-int clif_mobinsight(struct block_list &bl,va_list ap)
+int clif_mobinsight(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data &sd=(struct map_session_data&)bl;
 	struct mob_data *md;
@@ -4624,7 +4624,7 @@ int clif_mobinsight(struct block_list &bl,va_list ap)
  *
  *------------------------------------------
  */
-int clif_petoutsight(struct block_list &bl,va_list ap)
+int clif_petoutsight(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data &sd=(struct map_session_data&)bl;
 	struct pet_data *pd;
@@ -4640,7 +4640,7 @@ int clif_petoutsight(struct block_list &bl,va_list ap)
 }
 
 // npc walking [Valaris]
-int clif_npcoutsight(struct block_list &bl,va_list ap)
+int clif_npcoutsight(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data &sd=(struct map_session_data&)bl;
 	struct npc_data *nd;
@@ -4659,7 +4659,7 @@ int clif_npcoutsight(struct block_list &bl,va_list ap)
  *
  *------------------------------------------
  */
-int clif_petinsight(struct block_list &bl,va_list ap)
+int clif_petinsight(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data &sd=(struct map_session_data&)bl;
 	struct pet_data *pd;
@@ -4675,7 +4675,7 @@ int clif_petinsight(struct block_list &bl,va_list ap)
 }
 
 // npc walking [Valaris]
-int clif_npcinsight(struct block_list &bl,va_list ap)
+int clif_npcinsight(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data &sd=(struct map_session_data&)bl;
 	struct npc_data *nd;
@@ -8270,9 +8270,8 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 	}
 	else
 	{
-		// ============================================ 
-		ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n",
-			npc_event_doall_id_map("OnPCLoadMapEvent", sd.bl.id, sd.bl.m), "OnPCLoadMapEvent");
+		int evt = npc_event_doall_id("OnPCLoadMapEvent", sd.bl.id, sd.bl.m);
+		if(evt) ShowStatus("%d '"CL_WHITE"%s"CL_RESET"' events executed.\n", evt, "OnPCLoadMapEvent");
 		// ============================================ 
 	}
 
@@ -10540,9 +10539,10 @@ int clif_parse_GMReqNoChat(int fd,struct map_session_data &sd)
 	if (type == 0)
 		limit = 0 - limit;
 	
-	if(bl->type == BL_PC && (dstsd =(struct map_session_data *)bl))
+	
+	if( bl->type == BL_PC && (dstsd =(struct map_session_data *)bl) )
 	{
-		if( tid==bl->id && type==2 && pc_isGM(sd)>pc_isGM(*dstsd) )
+		if( tid==bl->id && type==2 && sd.bl.id != bl->id && pc_isGM(sd)>pc_isGM(*dstsd) )
 		{
 			dstfd = dstsd->fd;
 			if( session_isActive(dstfd) )

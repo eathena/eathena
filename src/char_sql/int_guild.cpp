@@ -35,12 +35,12 @@ int guild_check_empty(struct guild *g);
 int guild_calcinfo(struct guild *g);
 int mapif_guild_basicinfochanged(uint32 guild_id,int type, uint32 data);
 int mapif_guild_info(int fd,struct guild *g);
-int guild_break_sub(void *key,void *data,va_list ap);
+int guild_break_sub(void *key,void *data,va_list &ap);
 
 
-int _erase_guild(void *key, void *data, va_list ap)
+int _erase_guild(void *key, void *data, va_list &ap)
 {
-    uint32 guild_id = (uint32 )va_arg(ap, int);
+    uint32 guild_id = va_arg(ap, uint32);
     struct guild_castle * castle = (struct guild_castle *) data;
     if (castle->guild_id == guild_id)
 	{
@@ -516,7 +516,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 	return g;
 }
 
-int _set_guild_castle(void *key, void *data, va_list ap) {
+int _set_guild_castle(void *key, void *data, va_list &ap) {
     unsigned short castle_id = (unsigned short)va_arg(ap, int);
     uint32 guild_id   = va_arg(ap, uint32);
     struct guild * g = (struct guild *) data;
@@ -700,7 +700,7 @@ int inter_guild_sql_init()
 	return 0;
 }
 
-int guild_db_final (void *k, void *data, va_list ap)
+int guild_db_final (void *k, void *data, va_list &ap)
 {
 	struct guild *g = (struct guild *)data;
 	if(g)
@@ -716,7 +716,7 @@ int guild_db_final (void *k, void *data, va_list ap)
 	}
 	return 0;
 }
-int castle_db_final (void *k, void *data, va_list ap)
+int castle_db_final (void *k, void *data, va_list &ap)
 {
 	struct guild_castle *gc = (struct guild_castle *)data;
 	if (gc) aFree(gc);

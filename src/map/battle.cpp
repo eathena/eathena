@@ -28,7 +28,7 @@ struct Battle_Config battle_config;
  * 自分をロックしているMOBの?を?える(foreachclient)
  *------------------------------------------
  */
-int battle_counttargeted_sub(struct block_list &bl, va_list ap)
+int battle_counttargeted_sub(struct block_list &bl, va_list &ap)
 {
 	uint32 id;
 	int *c;
@@ -38,7 +38,7 @@ int battle_counttargeted_sub(struct block_list &bl, va_list ap)
 	nullpo_retr(0, ap);
 	id = va_arg(ap,int);
 	nullpo_retr(0, c = va_arg(ap, int *));
-	src = va_arg(ap,struct block_list *);
+	src = va_arg(ap,struct block_list*);
 	target_lv = (unsigned short)va_arg(ap,int);
 
 	if (id == bl.id || (src && id == src->id))
@@ -86,7 +86,7 @@ unsigned int battle_counttargeted(struct block_list &bl,struct block_list *src, 
  * Get random targetting enemy
  *------------------------------------------
  */
-int battle_gettargeted_sub(struct block_list &bl, va_list ap)
+int battle_gettargeted_sub(struct block_list &bl, va_list &ap)
 {
 	struct block_list **bl_list;
 	struct block_list *target;
@@ -195,7 +195,7 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage,int
 		if (bl->prev == NULL)
 			return 0;
 		if (bl->type == BL_PC) {
-			nullpo_retr(0, sd = (struct map_session_data *)bl);
+			sd = (struct map_session_data *)bl;
 		}
 	}
 
@@ -213,20 +213,25 @@ int battle_damage(struct block_list *bl,struct block_list *target,int damage,int
 			status_change_end(target,SC_SLEEP,-1);
 	}
 
-	if (target->type == BL_MOB) {	// MOB
+	if (target->type == BL_MOB)
+	{	// MOB
 		struct mob_data *md = (struct mob_data *)target;
 		if (md->skilltimer != -1 && md->state.skillcastcancel)	// 詠唱妨害
 			skill_castcancel(target,0);
 		return mob_damage(*md,damage,0,bl);
-	} else if (target->type == BL_PC) {	// PC
+	}
+	else if (target->type == BL_PC)
+	{	// PC
 		struct map_session_data *tsd = (struct map_session_data *)target;
-		if (!tsd)
-			return 0;
-		if(sc_data && NULL!=sc_data[SC_DEVOTION].val1.num) {	// ディボーションをかけられている
-			struct map_session_data *sd2 = map_id2sd(tsd->sc_data[SC_DEVOTION].val1.num);
-			if (sd2 && skill_devotion3(&sd2->bl, target->id)) {
+		if(sc_data && sc_data[SC_DEVOTION].val1.num)
+		{	// ディボーションをかけられている
+			struct map_session_data *sd2 = map_id2sd(sc_data[SC_DEVOTION].val1.num);
+			if (sd2 && skill_devotion3(&sd2->bl, target->id))
+			{
 				skill_devotion(sd2, target->id);
-			} else if (sd2 && bl) {
+			}
+			else if (sd2 && bl)
+			{
 				for (i = 0; i < 5; i++)
 					if (sd2->dev.val1[i] == target->id) {
 						clif_damage(*bl, sd2->bl, gettick(), 0, 0, damage, 0 , 0, 0);
@@ -498,14 +503,16 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	if(class_ == MOBID_EMPERIUM || class_ == 1287 || class_ == 1286 || class_ == 1285) {
 		if(class_ == MOBID_EMPERIUM && (flag&BF_SKILL || skill_num == ASC_BREAKER || skill_num == PA_SACRIFICE))
 			damage=0;
-		if(src->type == BL_PC) {
+		if(src->type == BL_PC)
+		{
 			struct guild *g=guild_search(((struct map_session_data *)src)->status.guild_id);
 			struct guild_castle *gc=guild_mapname2gc(map[bl->m].mapname);
+
 			if(!((struct map_session_data *)src)->status.guild_id)
 				damage=0;
-			if(gc && agit_flag==0 && class_ != MOBID_EMPERIUM)	// guardians cannot be damaged during non-woe [Valaris]
+			else if(gc && agit_flag==0 && class_ != MOBID_EMPERIUM)	// guardians cannot be damaged during non-woe [Valaris]
 				damage=0;  // end woe check [Valaris]
-			if(g == NULL)
+			else if(g == NULL)
 				damage=0;//ギルド未加入ならダメージ無し
 			else if(g && gc && guild_isallied(*g, *gc))
 				damage=0;//自占領ギルドのエンペならダメージ無し
@@ -3522,9 +3529,9 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 					break;
 				case MC_CARTREVOLUTION:
 					if(sd && sd->cart_max_weight > 0 && sd->cart_weight > 0)
-						skillratio+= 50+sd->cart_weight/800; // +1% every 80 weight units
-					else
-						skillratio+= 50;
+						skillratio+= 50+100*sd->cart_weight/sd->cart_max_weight; // +1% every 1% weight
+					else if (!sd)
+						skillratio+= 50+150; //Max damage for non players.
 					break;
 				case NPC_COMBOATTACK:
 						skillratio += 100*wd.div_ -100;
@@ -3686,7 +3693,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 					if(sd && sd->cart_max_weight > 0 && sd->cart_weight > 0)
 						skillratio += sd->cart_weight / (10 * (16 - skill_lv)) - 100;
 					else if (!sd)
-						skillratio += 80000 / (10 * (16 - skill_lv));
+						skillratio += battle_config.max_cart_weight / (10 * (16 - skill_lv));
 					break;
 			}
 			if (ele_flag)
@@ -4667,7 +4674,7 @@ struct Damage battle_calc_misc_attack(struct block_list *bl,struct block_list *t
 	case CR_ACIDDEMONSTRATION:
 		//This equation is not official, but it's the closest to the official one 
 		//that Viccious Pucca and the other folks at the forums could come up with. [Skotlex]
-		damage = int_ * sqrt(100*status_get_vit(target))/3;
+		damage = int_ * (int)sqrt(100*status_get_vit(target))/3;
 		if (tsd) damage/=2;
 		aflag |= (flag&~BF_RANGEMASK)|BF_LONG;
 		break;
@@ -5192,7 +5199,7 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 			struct map_session_data *sd = (struct map_session_data *)t_bl;
 			if (!sd) //This really should never happen...
 				return 0;
-			if (sd->invincible_timer != -1 || pc_isinvisible(*sd))
+			if (sd->invincible_timer != -1 || pc_isinvisible(*sd) || sd->ScriptEngine.isRunning())
 				return -1; //Cannot be targeted yet.
 			if (sd->state.monster_ignore && src->type == BL_MOB)
 				return 0; //option to have monsters ignore GMs [Valaris]
@@ -5325,7 +5332,8 @@ int battle_check_target(struct block_list *src, struct block_list *target,int fl
 			}
 		}
 	}
-	if(flag&BCT_GUILD || ((map[m].flag.gvg || map[m].flag.gvg_dungeon) && flag&BCT_ENEMY))
+
+	if (flag&BCT_GUILD || (agit_flag && (map[m].flag.gvg || map[m].flag.gvg_dungeon) && flag&BCT_ENEMY))
 	{	//Identify guild state
 		int s_guild, t_guild;
 		s_guild = status_get_guild_id(s_bl);

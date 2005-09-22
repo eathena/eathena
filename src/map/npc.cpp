@@ -75,7 +75,7 @@ int npc_walktoxy_sub(struct npc_data &nd); // [Valaris]
 
 // ============================================
 // ADDITION Qamera death/disconnect/connect event mod
-int npc_event_doall_attached_sub(void *key,void *data,va_list ap)
+int npc_event_doall_attached_sub(void *key,void *data,va_list &ap)
 {
 	char *p=(char *)key;
 	struct event_data *ev;
@@ -85,7 +85,7 @@ int npc_event_doall_attached_sub(void *key,void *data,va_list ap)
 	nullpo_retr(0, ev=(struct event_data *)data);
 	nullpo_retr(0, ap);
 	nullpo_retr(0, c=va_arg(ap,int *));
-	nad=va_arg(ap,struct npc_att_data *);
+	nad=va_arg(ap,struct npc_att_data*);
 
 	if( (p=strchr(p,':')) && p && strcasecmp(nad->buf,p)==0 )
 	if(c && ev && ev->nd && ev->nd->u.scr.ref)
@@ -120,12 +120,13 @@ int npc_event_doall_attached(const char *name, struct map_session_data &sd)
  * npc_enable_sub 有効時にOnTouchイベントを実行
  *------------------------------------------
  */
-int npc_enable_sub( struct block_list &bl, va_list ap )
+int npc_enable_sub( struct block_list &bl, va_list &ap)
 {
 	struct npc_data *nd;
 
 	nullpo_retr(0, ap);
-	nullpo_retr(0, nd=va_arg(ap,struct npc_data *));
+	nd=va_arg(ap,struct npc_data*);
+	nullpo_retr(0, nd);
 	if(bl.type == BL_PC )
 	{
 		struct map_session_data &sd=(struct map_session_data &)bl;
@@ -306,11 +307,11 @@ int npc_timer_event(const char *eventname)	// Added by RoVeRT
  * npc_parse_script->strdb_foreachから呼ばれる
  *------------------------------------------
  */
-int npc_event_export(void *key,void *data,va_list ap)
+int npc_event_export(void *key,void *data,va_list &ap)
 {
 	char *lname=(char *)key;
 	size_t pos=(size_t)data;
-	struct npc_data *nd=va_arg(ap,struct npc_data *);
+	struct npc_data *nd=va_arg(ap,struct npc_data*);
 
 	if ((lname[0]=='O' || lname[0]=='o')&&(lname[1]=='N' || lname[1]=='n')) {
 		char *p=strchr(lname,':');
@@ -339,7 +340,7 @@ int npc_event_export(void *key,void *data,va_list ap)
  * 全てのNPCのOn*イベント実行
  *------------------------------------------
  */
-int npc_event_doall_sub(void *key,void *data,va_list ap)
+int npc_event_doall_sub(void *key,void *data,va_list &ap)
 {
 	char *p=(char *)key;
 	struct event_data *ev=(struct event_data *)data;
@@ -358,7 +359,7 @@ int npc_event_doall_sub(void *key,void *data,va_list ap)
 
 	nullpo_retr(0, c);
 
-	if( (p=strchr(p,':')) && p && strcasecmp(name,p)==0 && (map<0 || map==ev->nd->bl.m))
+	if( (p=strchr(p,':')) && p && strcasecmp(name,p)==0 && (map<0 || ev->nd->bl.m>=map_num || map==ev->nd->bl.m))
 	{
 		if(ev->nd->u.scr.ref)
 			CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos, rid, ev->nd->bl.id);
@@ -371,18 +372,10 @@ int npc_event_doall(const char *name)
 	int c=0;
 	char buf[128]="::";
 	safestrcpy(buf+2,name,sizeof(buf)-2);
-	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf,0, -1);
+	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf, 0, -1);
 	return c;
 }
-int npc_event_doall_id(const char *name, int rid)
-{
-	int c=0;
-	char buf[128]="::";
-	safestrcpy(buf+2,name,sizeof(buf)-2);
-	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf,rid, -1);
-	return c;
-}
-int npc_event_doall_id_map(const char *name, int rid, int map)
+int npc_event_doall_id(const char *name, int rid, int map)
 {
 	int c=0;
 	char buf[128]="::";
@@ -390,7 +383,7 @@ int npc_event_doall_id_map(const char *name, int rid, int map)
 	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf,rid, map);
 	return c;
 }
-int npc_event_do_sub(void *key,void *data,va_list ap)
+int npc_event_do_sub(void *key,void *data,va_list &ap)
 {
 	char *p=(char *)key;
 	struct event_data *ev=(struct event_data *)data;
@@ -481,12 +474,12 @@ int npc_event_do_oninit(void)
 }
 
 
-int npc_do_ontimer_sub(void *key,void *data,va_list ap)
+int npc_do_ontimer_sub(void *key,void *data,va_list &ap)
 {
 	char *p = (char *)key;
 	struct event_data *ev = (struct event_data *)data;
 	int *c = va_arg(ap,int *);
-	struct map_session_data *sd=va_arg(ap,struct map_session_data *);
+	struct map_session_data *sd=va_arg(ap,struct map_session_data*);
 	int option = va_arg(ap,int);
 	unsigned long tick=0;
 	char temp[10];
@@ -517,11 +510,11 @@ int npc_do_ontimer(uint32 npc_id, struct map_session_data &sd, int option)
  * npc_parse_script->strdb_foreachから呼ばれる
  *------------------------------------------
  */
-int npc_timerevent_import(void *key,void *data,va_list ap)
+int npc_timerevent_import(void *key,void *data,va_list &ap)
 {
 	char *lname=(char *)key;
 	size_t pos=(size_t)data;
-	struct npc_data *nd=va_arg(ap,struct npc_data *);
+	struct npc_data *nd = va_arg(ap,struct npc_data*);
 	int t=0,i=0;
 
 	if(sscanf(lname,"OnTimer%d%n",&t,&i)==1 && lname[i]==':') {
@@ -709,7 +702,7 @@ int npc_event(struct map_session_data &sd,const char *eventname,int mob_kill)
 }
 
 
-int npc_command_sub(void *key,void *data,va_list ap)
+int npc_command_sub(void *key,void *data,va_list &ap)
 {
 	char *p=(char *)key;
 	struct event_data *ev=(struct event_data *)data;
@@ -1601,7 +1594,7 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
  * NPCのラベルデータコンバート
  *------------------------------------------
  */
-int npc_convertlabel_db (void *key, void *data, va_list ap)
+int npc_convertlabel_db(void *key, void *data, va_list &ap)
 {
 	char *lname = (char *)key;
 	size_t pos = (size_t)data;
@@ -1614,7 +1607,8 @@ int npc_convertlabel_db (void *key, void *data, va_list ap)
 	if(NULL==p)	return 0;
 	
 	nullpo_retr(0, ap);
-	nd = va_arg(ap,struct npc_data *);
+	nd = va_arg(ap, struct npc_data *);
+
 	nullpo_retr(0, nd);
 
 	if(NULL==nd->u.scr.ref) return 0;
@@ -1723,7 +1717,9 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 		ref->refcnt= 0; 
 		ref->label_list = NULL;
 		ref->label_list_num=0;
+
 		ref->script  = parse_script(srcbuf,startline);
+
 		if (ref->script==NULL) 
 		{
 			// script parse error?
@@ -1863,7 +1859,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	{	// script本体がある場合の処理
 		// ラベルデータのコンバート
 		if(!dummy_npc)
-		strdb_foreach(script_get_label_db(), npc_convertlabel_db, nd);
+			strdb_foreach(script_get_label_db(), npc_convertlabel_db, nd);
 
 		// もう使わないのでバッファ解放
 		aFree(srcbuf);
@@ -2050,12 +2046,6 @@ int npc_parse_mob2(struct mob_list &mob)
 		memcpy(md->name, mob.mobname, 24);
 		md->base_class = md->class_ = mob.class_;
 
-//		md->x0 = mob.x0;
-//		md->y0 = mob.y0;
-//		md->xs = mob.xs;
-//		md->ys = mob.ys;
-//		md->spawndelay1 = mob.delay1;
-//		md->spawndelay2 = mob.delay2;
 		md->cache = &mob;
 
 		md->speed=mob_db[mob.class_].speed;
@@ -2394,7 +2384,7 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 			if( !skip_empty_line(line) )
 				continue;
 
-		// 不要なスペースやタブの連続は詰める
+			// 不要なスペースやタブの連続は詰める
 			for (i = j = 0; line[i]; i++)
 			{
 				if (line[i]==' ')
@@ -2410,48 +2400,47 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 				}
 				else
 				line[j++]=line[i];
-		}
-		// 最初はタブ区切りでチェックしてみて、ダメならスペース区切りで確認
-		if ((count = sscanf(line,"%[^\t]\t%[^\t]\t%[^\t\r\n]\t%n%[^\t\r\n]", w1, w2, w3, &w4pos, w4)) < 3 &&
-				(count = sscanf(line,"%s%s%s%n%s", w1, w2, w3, &w4pos, w4)) < 3)
+			}
+			// 最初はタブ区切りでチェックしてみて、ダメならスペース区切りで確認
+			if ((count = sscanf(line,"%[^\t]\t%[^\t]\t%[^\t\r\n]\t%n%[^\t\r\n]", w1, w2, w3, &w4pos, w4)) < 3 &&
+					(count = sscanf(line,"%s%s%s%n%s", w1, w2, w3, &w4pos, w4)) < 3)
 			{
-			continue;
-		}
+				continue;
+			}
 
-		// マップの存在確認
+			// マップの存在確認
 			if( strcmp(w1,"-")!=0 && strcasecmp(w1,"function")!=0 )
 			{
-			sscanf(w1,"%[^,]",mapname);
-			m = map_mapname2mapid(mapname);
+				sscanf(w1,"%[^,]",mapname);
+				m = map_mapname2mapid(mapname);
 				if( strlen(mapname)>16 || m<0 )
 				{	// "mapname" is not assigned to this server
 					m = -1;
-					//continue;
+				}
 			}
-		}
 			else
 				m=0;
+
 			if (strcasecmp(w2,"warp")==0 && count > 3 && m>=0)
 			{
-			npc_parse_warp(w1,w2,w3,w4);
+				npc_parse_warp(w1,w2,w3,w4);
 			}
 			else if (strcasecmp(w2,"shop")==0 && count > 3 && m>=0)
 			{
-			npc_parse_shop(w1,w2,w3,w4);
+				npc_parse_shop(w1,w2,w3,w4);
 			}
 			else if (strcasecmp(w2,"script")==0 && count > 3)
 			{
 				if( strcasecmp(w1,"function")==0 )
 				{
-					if( m>=0 )
-				npc_parse_function(w1,w2,w3,w4,line+w4pos,fp,&lines);
-			}
+					npc_parse_function(w1,w2,w3,w4,line+w4pos,fp,&lines);
+				}
 				else
 				{
 					if( m>=0 )
 						npc_parse_script(w1,w2,w3,w4,line+w4pos,fp,&lines, NULL);
 					else
-					{	// pre-load the npc, delete it if it it is not used
+					{	// pre-load the npc, delete it if not used
 						struct npc_data *nd=NULL;
 						struct npc_mark *marker=NULL;
 						int ret = npc_parse_script(w1,w2,w3,w4,line+w4pos,fp,&lines, &nd);
@@ -2472,18 +2461,18 @@ void npc_parsesinglefile(const char *filename, struct npc_mark*& npcmarkerbase)
 			}
 			else if (strcasecmp(w2,"monster")==0 && count > 3 && m>=0)
 			{
-			npc_parse_mob(w1,w2,w3,w4);
+				npc_parse_mob(w1,w2,w3,w4);
 			}
 			else if (strcasecmp(w2,"mapflag")==0 && count >= 3 && m>=0)
 			{
-			npc_parse_mapflag(w1,w2,w3,w4);
+				npc_parse_mapflag(w1,w2,w3,w4);
 			}
 			else if (strcasecmp(w2,"setcell") == 0 && count >= 3)
 			{
-			npc_parse_mapcell(w1,w2,w3,w4);
+				npc_parse_mapcell(w1,w2,w3,w4);
+			}
 		}
-	}
-	fclose(fp);
+		fclose(fp);
 	}
 }
 
@@ -2583,7 +2572,7 @@ int npc_read_indoors (void)
 	return -1;
 }
 
-int ev_db_final (void *key,void *data,va_list ap)
+int ev_db_final (void *key,void *data,va_list &ap)
 {
 	if(data) aFree(data);
 	if(key && strstr((char*)key,"::")!=NULL)
@@ -2592,7 +2581,7 @@ int ev_db_final (void *key,void *data,va_list ap)
 }
 
 
-int npcname_db_final (void *key,void *data,va_list ap)
+int npcname_db_final (void *key,void *data,va_list &ap)
 {
 	struct npc_data *nd = (struct npc_data *) data;
 	npc_unload(nd, false);// we are inside the db function and cannot call erase from here
@@ -2603,7 +2592,7 @@ int npcname_db_final (void *key,void *data,va_list ap)
  * 
  *------------------------------------------
  */
-int npc_cleanup_sub (struct block_list &bl, va_list ap)
+int npc_cleanup_sub (struct block_list &bl, va_list &ap)
 {
 	switch(bl.type) {
 	case BL_NPC:

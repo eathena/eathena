@@ -80,7 +80,7 @@
 
 
 
-int	VPRINTF(const char *fmt, va_list argptr)
+int	VPRINTF(const char *fmt, va_list &argptr)
 {
 	static char		tempbuf[4096]; // initially using a static fixed buffer size 
 	static Mutex	mtx;
@@ -262,7 +262,7 @@ int	PRINTF(const char *fmt, ...)
 
 
 
-int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
+int _vShowMessage(enum msg_type flag, const char *string, va_list &ap)
 {	// Return: 0 = Successful, 1 = Failed.
 	const char *prefix = "";
 
@@ -283,13 +283,13 @@ int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 			prefix = CL_BT_MAGENTA"[SQL]"CL_RESET":    ";
 			break;
 		case MSG_INFORMATION: //Bright White (Variable information)
-			prefix = CL_BT_WHITE"[Info]"CL_RESET":   ";
+			prefix = CL_WHITE"[Info]"CL_RESET":   ";
 			break;
 		case MSG_CONSOLE: //
-			prefix = CL_LT_CYAN"[Console]"CL_RESET":";
+			prefix = CL_BT_CYAN"[Console]"CL_RESET":";
 			break;
 		case MSG_NOTICE: //Bright White (Less than a warning)
-			prefix = CL_BT_WHITE"[Notice]"CL_RESET": ";
+			prefix = CL_WHITE"[Notice]"CL_RESET": ";
 			break;
 		case MSG_WARNING: //Bright Yellow
 			prefix = CL_BT_YELLOW"[Warning]"CL_RESET":";

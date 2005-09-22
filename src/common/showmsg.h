@@ -19,6 +19,7 @@
 
 // font settings
 #define	CL_BOLD			"\033[1m"
+#define	CL_STD			"\033[0m"
 // foreground color
 #define	CL_BLACK		"\033[30m"
 #define	CL_RED			"\033[31m"
@@ -67,7 +68,7 @@
 
 enum msg_type {MSG_NONE,MSG_STATUS,MSG_SQL,MSG_INFORMATION,MSG_CONSOLE,MSG_NOTICE,MSG_WARNING,MSG_DEBUG,MSG_ERROR,MSG_FATALERROR};
 
-extern int _vShowMessage(enum msg_type flag, const char *string, va_list va);
+extern int _vShowMessage(enum msg_type flag, const char *string, va_list &va);
 extern int _ShowMessage(enum msg_type flag, const char *string, ...);
 
 #ifdef __GNUC__ 

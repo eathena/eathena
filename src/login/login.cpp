@@ -130,7 +130,7 @@ int login_log(char *fmt, ...)
 {
 	if (log_login)
 	{
-		va_list ap;
+		
 		time_t unixtime;
 		struct timeval tv;
 		char tmpstr[2048];
@@ -142,11 +142,14 @@ int login_log(char *fmt, ...)
 			if (fmt[0] == '\0') // jump a line if no message
 				fprintf(log_fp, RETCODE);
 			else {
-				va_start(ap, fmt);
+				
 				gettimeofday(&tv, NULL);
 				unixtime = tv.tv_sec;
 				strftime(tmpstr, 24, date_format, localtime(&unixtime));
 				sprintf(tmpstr + strlen(tmpstr), ".%03ld: %s", tv.tv_usec / 1000, fmt);
+
+				va_list ap;
+				va_start(ap, fmt);
 				vfprintf(log_fp, tmpstr, ap);
 				va_end(ap);
 			}
@@ -2276,13 +2279,13 @@ int parse_login(int fd)
 						{
 							if( server[i].address.isLAN(client_ip) )
 							{
-								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().getstring(), server[i].address.LANPort(), CL_LT_GREEN"LAN"CL_NORM);
+								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().getstring(), server[i].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.LANIP();
 								WFIFOW(fd,47+server_num*32+4) = server[i].address.LANPort();
 							}
 							else
 							{
-								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.WANIP().getstring(), server[i].address.WANPort(), CL_LT_CYAN"WAN"CL_NORM);
+								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.WANIP().getstring(), server[i].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.WANIP();
 								WFIFOW(fd,47+server_num*32+4) = server[i].address.WANPort();
 							}
@@ -2569,7 +2572,7 @@ int parse_console(char *buf)
 		ShowConsole(CL_BOLD"I'm Alive.\n"CL_NORM);
 
 	else if(strcasecmp("help", command) == 0) {
-		ShowMessage(CL_GREEN"Help of commands:\n"CL_NORM);
+		ShowMessage(CL_BT_GREEN"Help of commands:\n"CL_NORM);
 		ShowMessage("  To shutdown the server:\n");
 		ShowMessage("  'shutdown|exit|qui|end'\n");
 		ShowMessage("  To know if server is alive:\n");
@@ -3318,7 +3321,7 @@ int login_log(char *fmt, ...)
 // Online User Database [Wizputer]
 //-----------------------------------------------------
 
-int online_db_final(void *key,void *data,va_list ap)
+int online_db_final(void *key,void *data,va_list &ap)
 {
 	uint32 *p = (uint32 *) data;
 	if (p) aFree(p);
@@ -6055,13 +6058,13 @@ int parse_login(int fd) {
 						{
 							if( server[i].address.isLAN(client_ip) )
 							{
-								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().getstring(), server[i].address.LANPort(), CL_LT_GREEN"LAN"CL_NORM);
+								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().getstring(), server[i].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.LANIP();
 								WFIFOW(fd,47+server_num*32+4) = server[i].address.LANPort();
 							}
 							else
 							{
-								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.WANIP().getstring(), server[i].address.WANPort(), CL_LT_CYAN"WAN"CL_NORM);
+								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.WANIP().getstring(), server[i].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.WANIP();
 								WFIFOW(fd,47+server_num*32+4) = server[i].address.WANPort();
 							}
@@ -6386,7 +6389,7 @@ int parse_console(char *buf) {
 		ShowConsole(CL_BOLD"I'm Alive.\n"CL_NORM);
 
 	else if(strcasecmp("help", command) == 0) {
-		ShowMessage(CL_GREEN"Help of commands:\n"CL_NORM);
+		ShowMessage(CL_BT_GREEN"Help of commands:\n"CL_NORM);
 		ShowMessage("  To shutdown the server:\n");
 		ShowMessage("  'shutdown|exit|qui|end'\n");
 		ShowMessage("  To know if server is alive:\n");

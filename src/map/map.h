@@ -1244,15 +1244,6 @@ extern int autosave_interval;
 extern int agit_flag;
 extern int night_flag; // 0=day, 1=night [Yor]
 
-
-
-///////////////////////////////////////////////////////////////////////////////
-// gat?Ö§
-int map_getcell(unsigned short m,unsigned short x, unsigned short y,cell_t cellchk);
-int map_getcellp(struct map_data& m,unsigned short x, unsigned short y,cell_t cellchk);
-void map_setcell(unsigned short m,unsigned short x, unsigned short y,int cellck);
-
-
 extern int map_read_flag; // 0: grf«Õ«¡«¤«ë 1: «­«ã«Ã«·«å 2: «­«ã«Ã«·«å(?õê)
 enum {
 	READ_FROM_GAT, 
@@ -1267,6 +1258,15 @@ extern char help_txt[];
 extern char talkie_mes[];
 
 extern char wisp_server_name[];
+
+
+///////////////////////////////////////////////////////////////////////////////
+// gat?Ö§
+int map_getcell(unsigned short m,unsigned short x, unsigned short y,cell_t cellchk);
+int map_getcellp(struct map_data& m,unsigned short x, unsigned short y,cell_t cellchk);
+void map_setcell(unsigned short m,unsigned short x, unsigned short y,int cellck);
+
+
 
 
 
@@ -1287,22 +1287,30 @@ int map_delblock(struct block_list &bl);
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// new 
-//
+// new foreach... implementation without needing varargs
+//!! integrate to mapdata and spare giving the map argument
 ///////////////////////////////////////////////////////////////////////////////
-class CMapElements
+
+///////////////////////////////////////////////////////////////////////////////
+// virtual base class which is called for each block
+///////////////////////////////////////////////////////////////////////////////
+class CMapElements : public noncopyable
 {
-
 public:
-	CMapElements()	{}
+	CMapElements()			{}
 	virtual ~CMapElements()	{}
+	virtual int process(struct block_list& bl) const = 0;
+};
 
-	virtual int callback(struct block_list& bl) = 0;
-
-	int foreachinarea(unsigned short m, int x0,int y0,int x1,int y1,int type);
-	int foreachincell(unsigned short m,int x,int y,int type);
-	int foreachinmovearea(unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type);
-	int foreachinpath(unsigned short m,int x0,int y0,int x1,int y1,int range,int type);
+class CMap
+{
+public:
+	CMap()	{}
+	~CMap()	{}
+static int foreachinarea(const CMapElements& elem, unsigned short m, int x0,int y0,int x1,int y1,int type);
+static int foreachincell(const CMapElements& elem, unsigned short m,int x,int y,int type);
+static int foreachinmovearea(const CMapElements& elem, unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type);
+static int foreachinpath(const CMapElements& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,int type);
 };
 
 
@@ -1310,12 +1318,12 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int map_foreachinarea(int (*func)(struct block_list&,va_list),unsigned short m,int x0,int y0,int x1,int y1,int type,...);
+int map_foreachinarea(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int type,...);
 // -- moonsoul (added map_foreachincell)
-int map_foreachincell(int (*func)(struct block_list&,va_list),unsigned short m,int x,int y,int type,...);
-int map_foreachinmovearea(int (*func)(struct block_list&,va_list),unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type,...);
-int map_foreachinpath(int (*func)(struct block_list&,va_list),unsigned short m,int x0,int y0,int x1,int y1,int range,int type,...); // Celest
-int map_countnearpc(int,int,int);
+int map_foreachincell(int (*func)(struct block_list&,va_list &),unsigned short m,int x,int y,int type,...);
+int map_foreachinmovearea(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type,...);
+int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int range,int type,...); // Celest
+int map_countnearpc(unsigned short m, int x, int y);
 //blockŠÖ˜A‚É’Ç‰Á
 int map_count_oncell(unsigned short m,int x,int y, int type);
 struct skill_unit *map_find_skill_unit_oncell(struct block_list *,int x,int y,unsigned short skill_id,struct skill_unit *);
@@ -1323,7 +1331,7 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list *,int x,int y,un
 int map_addobject(struct block_list &bl);
 int map_delobject(int);
 int map_delobjectnofree(int id);
-void map_foreachobject(int (*)(struct block_list*,va_list),int,...);
+void map_foreachobject(int (*)(struct block_list*,va_list &),int,...);
 //
 int map_quit(struct map_session_data &sd);
 // npc
@@ -1352,7 +1360,7 @@ int map_eraseipport(const char *name, ipset &mapset);
 int map_eraseallipport(void);
 void map_addiddb(struct block_list &bl);
 void map_deliddb(struct block_list &bl);
-int map_foreachiddb(int (*)(void*,void*,va_list),...);
+int map_foreachiddb(int (*)(void*,void*,va_list &),...);
 void map_addnickdb(struct map_session_data &sd);
 struct map_session_data * map_nick2sd(const char *nick);
 int compare_item(struct item *a, struct item *b);
@@ -1368,7 +1376,7 @@ int path_blownpos(unsigned short m,int x0,int y0,int dx,int dy,int count);
 
 int map_who(int fd);
 
-int cleanup_sub(struct block_list &bl, va_list ap);
+int cleanup_sub(struct block_list &bl, va_list &ap);
 
 void map_helpscreen(); // [Valaris]
 int map_delmap(const char *mapname);

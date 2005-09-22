@@ -149,12 +149,12 @@ struct guild *guild_search(uint32 guild_id)
 {
 	return (struct guild *)numdb_search(guild_db,guild_id);
 }
-int guild_searchname_sub(void *key,void *data,va_list ap)
+int guild_searchname_sub(void *key,void *data,va_list &ap)
 {
 	struct guild *g=(struct guild *)data,**dst;
 	char *str;
 	str=va_arg(ap,char *);
-	dst=va_arg(ap,struct guild **);
+	dst=va_arg(ap,struct guild**);
 	if(strcasecmp(g->name,str)==0)
 		*dst=g;
 	return 0;
@@ -240,7 +240,7 @@ int guild_check_conflict(struct map_session_data &sd)
 }
 
 // ƒMƒ‹ƒh‚ÌEXPƒLƒƒƒbƒVƒ…‚ğinterI‚Éƒtƒ‰ƒbƒVƒ…‚·‚é
-int guild_payexp_timer_sub(void *key, void *data, va_list ap)
+int guild_payexp_timer_sub(void *key, void *data, va_list &ap)
 {
 	int i, *dellist, *delp;
 	ssize_t dataid = (ssize_t)key;
@@ -1302,7 +1302,7 @@ int guild_allianceack(uint32 guild_id1,uint32 guild_id2,uint32 account_id1,uint3
 	return 0;
 }
 // ƒMƒ‹ƒh‰ğU’Ê’m—p
-int guild_broken_sub(void *key,void *data,va_list ap)
+int guild_broken_sub(void *key,void *data,va_list &ap)
 {
 	struct guild *g=(struct guild *)data;
 	uint32 guild_id=va_arg(ap,uint32);
@@ -1316,11 +1316,28 @@ int guild_broken_sub(void *key,void *data,va_list ap)
 			for(j=0;j<g->max_member;j++)
 				if( (sd=g->member[j].sd)!=NULL )
 					clif_guild_delalliance(*sd,guild_id,g->alliance[i].opposition);
+			intif_guild_alliance(g->guild_id, guild_id,0,0,g->alliance[i].opposition|8);
 			g->alliance[i].guild_id=0;
 		}
 	}
 	return 0;
 }
+//Invoked on Castles when a guild is broken. [Skotlex]
+int castle_guild_broken_sub(void *key,void *data,va_list &ap)
+{
+	struct guild_castle *gc=(struct guild_castle *)data;
+	uint32 guild_id=va_arg(ap,uint32);
+
+	nullpo_retr(0, gc);
+
+	if (gc->guild_id == guild_id)
+	{	//Save the new 'owner', this should invoke guardian clean up and other such things.
+		gc->guild_id = 0;
+		guild_castledatasave(gc->castle_id, 1, 0);
+	}
+	return 0;
+}
+
 // ƒMƒ‹ƒh‰ğU’Ê’m
 int guild_broken(uint32 guild_id,int flag)
 {
@@ -1341,6 +1358,7 @@ int guild_broken(uint32 guild_id,int flag)
 	}
 
 	numdb_foreach(guild_db,guild_broken_sub,guild_id);
+	numdb_foreach(castle_db,castle_guild_broken_sub,guild_id);
 	numdb_erase(guild_db,guild_id);
 	guild_storage_delete(guild_id);
 	aFree(g);
@@ -1725,7 +1743,7 @@ bool guild_isallied(uint32 guild_id, uint32 guild_id2)
 	}
 	return false;
 }
-int guild_send_xy_sub(void *key,void *data,va_list ap)
+int guild_send_xy_sub(void *key,void *data,va_list &ap)
 {
 	struct guild *g=(struct guild *)data;
 	size_t i;
@@ -1751,7 +1769,7 @@ void guild_send_xy(unsigned long tick)
 	numdb_foreach(guild_db,guild_send_xy_sub,tick);
 }
 
-int guild_db_final(void *key,void *data,va_list ap)
+int guild_db_final(void *key,void *data,va_list &ap)
 {
 	struct guild *g=(struct guild *) data;
 
@@ -1759,7 +1777,7 @@ int guild_db_final(void *key,void *data,va_list ap)
 
 	return 0;
 }
-int castle_db_final(void *key,void *data,va_list ap)
+int castle_db_final(void *key,void *data,va_list &ap)
 {
 	struct guild_castle *gc=(struct guild_castle *) data;
 
@@ -1767,7 +1785,7 @@ int castle_db_final(void *key,void *data,va_list ap)
 
 	return 0;
 }
-int guild_expcache_db_final(void *key,void *data,va_list ap)
+int guild_expcache_db_final(void *key,void *data,va_list &ap)
 {
 	struct guild_expcache *c=(struct guild_expcache *) data;
 
@@ -1775,7 +1793,7 @@ int guild_expcache_db_final(void *key,void *data,va_list ap)
 
 	return 0;
 }
-int guild_infoevent_db_final(void *key,void *data,va_list ap)
+int guild_infoevent_db_final(void *key,void *data,va_list &ap)
 {
 	struct eventlist *ev, *ev2;
 	ev =(struct eventlist *) data;

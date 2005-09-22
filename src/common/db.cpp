@@ -591,15 +591,14 @@ void* db_erase(struct dbt *table,void* key)
 	return data;
 }
 
-void db_foreach(struct dbt *table,int (*func)(void*,void*,va_list),...)
+void db_foreach(struct dbt *table,int (*func)(void*,void*,va_list &),...)
 {
-	int i,sp;
+	size_t i,sp;
 	int count = table->item_count;
 	// red-black tree‚È‚Ì‚Å64ŒÂstack‚ª‚ ‚ê‚Î2^32ŒÂƒm[ƒh‚Ü‚Å‘åä•v
-	struct dbn *p,*pn,*stack[64];
-	va_list ap;
-
-	va_start(ap,func);
+	struct dbn *p,*pn,*stack[128];
+	
+	
 	db_free_lock(table);
 	for(i=0;i<HASH_SIZE;i++){
 		if((p=table->ht[i])==NULL)
@@ -607,14 +606,22 @@ void db_foreach(struct dbt *table,int (*func)(void*,void*,va_list),...)
 		sp=0;
 		while(1){
 			if(!p->deleted)
+			{
+				va_list ap;
+				va_start(ap,func);
 				func(p->key, p->data, ap);
+				va_end(ap);
+			}
 			count--;
-			if((pn=p->left)!=NULL){
+			if((pn=p->left)!=NULL)
+			{
 				if(p->right){
 					stack[sp++]=p->right;
 				}
 				p=pn;
-			} else {
+			}
+			else
+			{
 				if(p->right){
 					p=p->right;
 				} else {
@@ -632,16 +639,12 @@ void db_foreach(struct dbt *table,int (*func)(void*,void*,va_list),...)
 			count,table->alloc_file,table->alloc_line
 		);
 	}
-	va_end(ap);
 }
 
-void db_final(struct dbt *table,int (*func)(void*,void*,va_list),...)
+void db_final(struct dbt *table,int (*func)(void*,void*,va_list &),...)
 {
 	int i,sp;
 	struct dbn *p,*pn,*stack[64];
-	va_list ap;
-
-	va_start(ap,func);
 	db_free_lock(table);
 	for(i=0;i<HASH_SIZE;i++){
 		if((p=table->ht[i])==NULL)
@@ -650,7 +653,10 @@ void db_final(struct dbt *table,int (*func)(void*,void*,va_list),...)
 		while(1){
 			if(func && !p->deleted)
 			{
+				va_list ap;
+				va_start(ap,func);
 				func(p->key,p->data,ap);
+				va_end(ap);
 				p->key=NULL;
 				p->data=NULL;
 			}
@@ -694,5 +700,4 @@ void db_final(struct dbt *table,int (*func)(void*,void*,va_list),...)
 		aFree(table);
 		table=NULL;
 	}
-	va_end(ap);
 }

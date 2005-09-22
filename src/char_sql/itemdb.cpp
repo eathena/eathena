@@ -188,7 +188,7 @@ int itemdb_read_sqldb(void) // sql item_db read, shortened version of map-server
 	return 0;
 }
 
-int itemdb_final(void *key,void *data,va_list ap)
+int itemdb_final(void *key,void *data,va_list &ap)
 {
 	struct item_data *id;
 

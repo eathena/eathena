@@ -193,7 +193,7 @@ void init_signal()
 // revision
 // would make it inline but dll wants it on a fixed position
 // to get it's function pointer
-const char* get_svn_revision()	{ return "Shinomori's Modified Version (2005-09-03)"; }
+const char* get_svn_revision()	{ return "Shinomori's Modified Version (2005-09-22)"; }
 /*
 {
 	static char version[10]="";

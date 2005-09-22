@@ -35,7 +35,7 @@ class CLabel : public MiniString
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// class data
-						// name of the label
+						// name of the label (the lable itself if the string)
 	size_t		cPos;	// position within the programm
 
 	///////////////////////////////////////////////////////////////////////////
@@ -51,24 +51,49 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // a script data stub
 // contains the parsed programm and a label list
-class _CScript : public global, public noncopyable
+class _CScript : public global
 {
+protected:
 	///////////////////////////////////////////////////////////////////////////
 	// friends
 	friend class CScript;
-	friend class TPtrCount<_CScript>;
+	friend class CParser;
+	friend class TPtrAutoCount<_CScript>;
+	friend class CScriptEngine;
 
 	///////////////////////////////////////////////////////////////////////////
 	// class data
-	MiniString					cName;		// name of the script
-	TArrayDST<unsigned char>	cProgramm;	// the programm
-	TslistDST<CLabel>			cLabels;	// list of labels
+	MiniString			cName;		// name of the script
+	TArrayDST<uchar>	cProgramm;	// the programm
+	TslistDCT<CLabel>	cLabels;	// list of labels (sorted by name)
 
 	///////////////////////////////////////////////////////////////////////////
-	// construction only friends are allowed to create
-	_CScript(const char* n, const unsigned char* s, size_t sz, CLabel* l, size_t cnt)
-		: cName(n), cProgramm(s, sz), cLabels(l, cnt)
+	// construction, only friends are allowed to create
+	_CScript()
 	{ }
+
+	void clear()	
+	{
+		cName.clear();
+		cProgramm.clear();
+		cLabels.clear();
+	}
+	void finalize()
+	{	// remove non-callable labels 
+		size_t i=0;
+		while( i<cLabels.size() )
+		{
+			if( cLabels[i] && tolower( ((uchar)cLabels[i][0]) ) == 'o' && tolower( ((uchar)cLabels[i][1]) ) == 'n' )
+				i++;
+			else
+				cLabels.removeindex(i);
+		}
+		// resize the program and label buffer to fit the actual program size
+		cLabels.realloc();
+		cProgramm.realloc();
+	}
+	size_t getCurrentPos()			{ return cProgramm.size(); }
+
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// normal destructor
@@ -81,33 +106,134 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // a script container
 // consists of a reference counting pointer to the actual script object
-// automatic destruction when the script is not referenced
+// which is automatically destructed when the script is not referenced anymore
 class CScript : public global
 {
-	TPtrCount<_CScript>	cScript;
-public:
-	CScript(const char* n, const unsigned char* s, size_t sz, CLabel* l, size_t cnt)
-		: cScript(new _CScript(n,s,sz,l,cnt))
-	{}
-	~CScript() {}
+	///////////////////////////////////////////////////////////////////////////
+	// friends
+	friend class CScriptEngine;
+	friend class CParser;
 
-	void appendByte(unsigned char a);
+	///////////////////////////////////////////////////////////////////////////
+	// internal memory
+	///////////////////////////////////////////////////////////////////////////
+	class CStringBuffer
+	{
+		class CStrData
+		{
+		public:
+			int			type;
+			MiniString	str;
+			int			backpatch;
+			int			label;
+			int			val;
+			int			next;
+			int (*func)(CScriptEngine &);
+
+			CStrData() : type(0),backpatch(0),label(0),val(0),next(0),func(NULL)	{}
+			CStrData(int t, const MiniString& s, int b, int l, int v, int n,  int (*f)(CScriptEngine &))
+				: type(t),str(s),backpatch(b),label(l),val(v),next(n),func(f)	{}
+
+			// unused but necessary for list template
+			bool operator==(const CStrData a) const { return this->str==a.str; }
+		};
+
+		int					cStrHash[16];
+		TArrayDCT<CStrData>	cStrData;
+	public:
+		CStringBuffer();
+		~CStringBuffer()
+		{  }
+
+		///////////////////////////////////////////////////////////////////////
+		// initialisation members
+		///////////////////////////////////////////////////////////////////////
+		void loadBuildinFunc(void);
+		void loadConstDB(void);
+		void loadMapReg(void);
+		void init();
+		///////////////////////////////////////////////////////////////////////
+		// access members
+		///////////////////////////////////////////////////////////////////////
+		size_t size()					{ return cStrData.size(); }
+		CStrData& operator[](size_t i)	{ return cStrData[i]; }
+
+		///////////////////////////////////////////////////////////////////////
+		// StrData members
+		///////////////////////////////////////////////////////////////////////
+	private:
+		unsigned char calcHash(const char *str);
+	public:
+		int searchString(const char *p);
+		int addString(const MiniString& str);
+	};
+
+	static CStringBuffer	cStrData;			// static string buffer
+
+protected:
+	///////////////////////////////////////////////////////////////////////////
+	// data
+	TPtrAutoCount<_CScript>	cScript;
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construction/destruction
+	CScript()
+	{  }
+	~CScript()
+	{  }
+
+	size_t size()	{return cScript->cProgramm.size(); }	
+	uchar& operator[](size_t i)	{ return cScript->cProgramm[i]; }
+	void init(const MiniString& name);
+
+	int getInt(unsigned int &pos);
+	int getCommand(unsigned int &pos);
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Script Parser
+// behaves like a script internally
+class CParser : private CScript
+{
+private:
+	///////////////////////////////////////////////////////////////////////////
+	// parse data
+	///////////////////////////////////////////////////////////////////////////
+	size_t				cStartLine;
+	const char*			cStartPtr;
+	size_t				cParseCommandIf;
+	int					cParseCommand;
+
+public:
+	///////////////////////////////////////////////////////////////////////////
+	// construction/destruction
+	///////////////////////////////////////////////////////////////////////////
+	CParser() : cStartLine(0), cStartPtr(NULL), cParseCommandIf(0), cParseCommand(0) {  }
+	~CParser()	{}
+
+	///////////////////////////////////////////////////////////////////////////
+	// parsing members
+	///////////////////////////////////////////////////////////////////////////
+	CScript parseScript(const char *name, const char *src, size_t line);
+private:
+	void appendByte(unsigned char a)
+	{
+		cScript->cProgramm.append(a);
+	}
 	void appendCommand(int a);
 	void appendInt(int a);
 	void appendL(int l);
 	void setLabel(size_t l, size_t pos);
-	int getInt(unsigned int &pos);
-	int getCommand(unsigned int &pos);
-
-	const char *skipSpaceComment(const char *p);
-	const char *skipWord(const char *p);
+	bool skipSpaceComment(const char *&p);
+	bool skipWord(const char *&p);
+	bool parseSimpleExpr(const char *&p);
+	bool parseSubExpr(const char *&p, int limit);
+	bool parseExpr(const char *&p);
+	bool parseLine(const char *&p);
 	void ErrorMessage(const char *mes, const char *pos);
-	const char* parseSimpleExpr(const char *p);
-	const char* parseSubExpr(const char *p,int limit);
-	const char* parseExpr(const char *p);
-	const char* parseLine(const char *p);
 };
-
 
 
 
@@ -115,7 +241,8 @@ public:
 // simple class only since we use c-style allocation and clearing at the moment
 class CScriptEngine : public noncopyable
 {
-
+	///////////////////////////////////////////////////////////////////////////
+	// friends
 	friend class CValue;
 private:
 	///////////////////////////////////////////////////////////////////////////
@@ -459,6 +586,23 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	// status access/query
 	bool isRunning()	{ return OFF!=this->state; }
+
+	bool clearAll()
+	{	// stop and clear running/queued scripts (OnDeath)
+		if( this->isRunning() )
+		{
+			if(this->queue) delete(this->queue);
+			this->state	= OFF;
+			this->script	= NULL;
+			this->oid		= 0;
+			this->clearMessage();
+			// clear the npc, if the default npc was used
+			if(this->npcstate == NPC_DEFAULT)
+				this->send_defaultnpc(false);
+		}
+		return true;
+	}
+
 	bool isMessage()	{ return this->messageopen; }
 	bool setMessage()	{ return (this->messageopen=true); }
 	bool clearMessage()	{ return (this->messageopen=false); }

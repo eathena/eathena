@@ -202,7 +202,7 @@ int mmo_auth_sqldb_init(void) {
 	mysql_init(&mysql_handle);
 
 	// DB connection start
-	ShowMessage("Connect Login Database Server....\n");
+	ShowMessage("Connect Database Server on %s:%u....\n",login_server_ip,login_server_port );
 	if (!mysql_real_connect(&mysql_handle, login_server_ip, login_server_id, login_server_pw,
 	    login_server_db, login_server_port, (char *)NULL, 0)) {
 		// pointer check
@@ -1171,13 +1171,13 @@ int parse_login(int fd)
 						{	
 							if( server[i].address.isLAN(client_ip) )
 							{
-								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().getstring(), server[i].address.LANPort(), CL_LT_GREEN"LAN"CL_NORM);
+								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.LANIP().getstring(), server[i].address.LANPort(), CL_BT_GREEN"LAN"CL_NORM);
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.LANIP();
 								WFIFOW(fd,47+server_num*32+4) = server[i].address.LANPort();
 							}
 							else
 							{
-								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.WANIP().getstring(), server[i].address.WANPort(), CL_LT_CYAN"WAN"CL_NORM);
+								ShowMessage("Send IP of char-server: %s:%d (%s)\n", server[i].address.WANIP().getstring(), server[i].address.WANPort(), CL_BT_CYAN"WAN"CL_NORM);
 								WFIFOLIP(fd,47+server_num*32) = server[i].address.WANIP();
 								WFIFOW(fd,47+server_num*32+4) = server[i].address.WANPort();
 							}
@@ -1654,7 +1654,7 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 //--------------------------------------
 // Function called at exit of the server
 //--------------------------------------
-int online_db_final(void *key,void *data,va_list ap)
+int online_db_final(void *key,void *data,va_list &ap)
 {
 	int *p = (int *) data;
 	if (p) aFree(p);
