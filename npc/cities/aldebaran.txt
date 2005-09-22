@@ -3,9 +3,9 @@
 //===== By: ================================================== 
 //= eAthena dev team
 //===== Current Version: ===================================== 
-//= 1.4
+//= 1.5
 //===== Compatible With: ===================================== 
-//= eAthena 0.5.2 +
+//= eAthena 1.0
 //===== Description: ========================================= 
 //=
 //===== Additional Comments: ================================= 
@@ -16,6 +16,9 @@
 //= 1.3 Gatekeeper's bug fixed (wrong check and wrong item ID 
 //=     for underground), fixed some typos [Lupus]
 //= 1.4 Fixed Typos & Spellcheck [massdriller]
+//= 1.5 Finally added the Special Reserve 2 Lotto 8))
+//=  with official prizes (80% official, 4-5 entries are made up)
+//=  also changed typo Orange Potions -> Red Potions [Lupus]
 //============================================================
 
 
@@ -938,63 +941,63 @@ M_Menu:
 			if(RESRVPTS < 1100) goto sL_LowPts2;
 			mes "[Kafra]";
 			mes "Here you are.";
-			getitem 502, 7;
+			getitem 501, 7;
 			set RESRVPTS, RESRVPTS - 1100;
 			close;
 		M_2b:
 			if(RESRVPTS < 1300) goto sL_LowPts2;
 			mes "[Kafra]";
 			mes "Here you are.";
-			getitem 502, 15;
+			getitem 501, 15;
 			set RESRVPTS, RESRVPTS - 1300;
 			close;
 		M_2c:
 			if(RESRVPTS < 1500) goto sL_LowPts2;
 			mes "[Kafra]";
 			mes "Here you are.";
-			getitem 502, 25;
+			getitem 501, 25;
 			set RESRVPTS, RESRVPTS - 1500;
 			close;
 		M_2d:
 			if(RESRVPTS < 1700) goto sL_LowPts2;
 			mes "[Kafra]";
 			mes "Here you are.";
-			getitem 502, 35;
+			getitem 501, 35;
 			set RESRVPTS, RESRVPTS - 1700;
 			close;
 		M_2e:
 			if(RESRVPTS < 1900) goto sL_LowPts2;
 			mes "[Kafra]";
 			mes "Here you are.";
-			getitem 502, 50;
+			getitem 501, 50;
 			set RESRVPTS, RESRVPTS - 1900;
 			close;
 		M_2f:
 			if(RESRVPTS < 2100) goto sL_LowPts2;
 			mes "[Kafra]";
 			mes "Here you are.";
-			getitem 502, 60;
+			getitem 501, 60;
 			set RESRVPTS, RESRVPTS - 2100;
 			close;
 		M_2g:
 			if(RESRVPTS < 2300) goto sL_LowPts2;
 			mes "[Kafra]";
 			mes "Here you are.";
-			getitem 502, 75;
+			getitem 501, 75;
 			set RESRVPTS, RESRVPTS - 2300;
 			close;
 		M_2h:
 			if(RESRVPTS < 2500) goto sL_LowPts2;
 			mes "[Kafra]";
 			mes "Here you are.";
-			getitem 502, 85;
+			getitem 501, 85;
 			set RESRVPTS, RESRVPTS - 2500;
 			close;
 		M_2i:
 			if(RESRVPTS < 2800) goto sL_LowPts2;
 			mes "[Kafra]";
 			mes "Here you are.";
-			getitem 502, 100;
+			getitem 501, 100;
 			set RESRVPTS, RESRVPTS - 2800;
 			close;
 		M_2j:
@@ -1022,13 +1025,6 @@ M_Menu:
 
 // Special Reserve 2 ----------------------------------------------
 aldeba_in.gat,88,161,3	script	Kafra	115,{
-	cutin "kafra_03",2;
-	mes "[Kafra]";
-	mes "Hello and welcome to the Kafra Corp. Main office.";
-	cutin "",255;
-	close;
-
-// will implement this part when I find out what items to use for the prizes
 	cutin "kafra_03",2;
 	mes "[Kafra]";
 	mes "Welcome ^5577FF"+strcharinfo(0)+"^000000.  We are currently having a special event for our customers.";
@@ -1097,35 +1093,58 @@ function	script	F_Lottery	{
 	mes "[Kafra]";
 	mes "^FF0000Lets see.... This is...!!^000000";
 	next;
-	if(@temp <= 4) goto sL_Prize3;
-	if(@temp <= 7) goto sL_Prize2;
+	if(@temp <  1) goto sL_Prize1;
+	if(@temp <  2) goto sL_Prize2;
+	if(@temp <  3) goto sL_Prize3;
+	if(@temp <=  4) goto sL_Prize4;
+	goto sL_Prize5;
 
 	sL_Prize1:
 		mes "[Kafra]";
 		mes "WOW!!!!..... You win!!! 1st Prize~! Congratulations~~ You got the 1st prize~~";
-		if(@Lotto == 1) getitem, 2328,1;
-		if(@Lotto == 2) getitem, 2307,1;	//don't know if this is the correct item
-		//if(@Lotto == 3) getitem, ,1
-		//if(@Lotto == 4) getitem, ,1
-		//if(@Lotto == 5) getitem, ,1
+		if(@Lotto == 1) getitem 2328,1;//Items: Wooden_Mail,
+		if(@Lotto == 2) getitem 2307,1;//Items: Mantle,
+		if(@Lotto == 3) getitem 657,10;//Items: Berserk_Potion,
+		if(@Lotto == 4) getitem 607,2;//Items: Yggdrasilberry,
+		if(@Lotto == 4) getitem 608,1;//Items: Yggdrasil_Seed,
+		if(@Lotto == 5) getitem 607,3;//Items: Yggdrasilberry,
 		return;
 	sL_Prize2:
 		mes "[Kafra]";
-		mes "Oh wow! You've won the 2nd prize! Congratulations!!";
-		if(@Lotto == 1) getitem 2220, 1;
-		if(@Lotto == 2) getitem 2403, 1;	//don't know if this is the correct item
-		//if(@Lotto == 3) getitem, ,1
-		//if(@Lotto == 4) getitem, ,1
-		//if(@Lotto == 5) getitem, ,1
+		mes "Oh! WOW! You've won the 2nd prize! Congratulations!!";
+		if(@Lotto == 1) getitem 2403,1;//Items: Shoes,
+		if(@Lotto == 2) getitem 2226,1;//Items: Cap,
+		if(@Lotto == 3) getitem 2201,1;//Items: Sunglasses,
+		if(@Lotto == 4) getitem 526,3;//Items: Royal_Jelly,
+		if(@Lotto == 5) getitem 608,1;//Items: Yggdrasil_Seed,
+		if(@Lotto == 5) getitem 526,10;//Items: Royal_Jelly,
 		return;
 	sL_Prize3:
 		mes "[Kafra]";
 		mes "Congratulations! You've won the 3rd prize.";
-		if(@Lotto == 1) getitem 516, 100;
-		if(@Lotto == 2) getitem 502, 100;
-		//if(@Lotto == 3) getitem, ,1
-		//if(@Lotto == 4) getitem, ,1
-		//if(@Lotto == 5) getitem, ,1
+		if(@Lotto == 1) getitem 602,4;//Items: Butterfly_Wing,
+		if(@Lotto == 2) getitem 505,3;//Items: Blue_Potion,
+		if(@Lotto == 3) getitem 2203,1;//Items: Glasses,
+		if(@Lotto == 4) getitem 504,15;//Items: White_Potion,
+		if(@Lotto == 5) getitem 504,30;//Items: White_Potion,
+		return;
+	sL_Prize4:
+		mes "[Kafra]";
+		mes "You've won the 4th prize.";
+		if(@Lotto == 1) getitem 516,100;//Items: Sweet_Potato,
+		if(@Lotto == 2) getitem 501,150;//Items: Red_Potion,
+		if(@Lotto == 3) getitem 502,150;//Items: Orange_Potion,
+		if(@Lotto == 4) getitem 505,5;//Items: Blue_Potion,
+		if(@Lotto == 5) getitem 505,10;//Items: Blue_Potion,
+		return;
+	sL_Prize5:
+		mes "[Kafra]";
+		mes "You've won the 5th prize.";
+		if(@Lotto == 1) getitem 516,50;//Items: Sweet_Potato,
+		if(@Lotto == 2) getitem 501,100;//Items: Red_Potion,
+		if(@Lotto == 3) getitem 501,200;//Items: Red_Potion,
+		if(@Lotto == 4) getitem 501,250;//Items: Red_Potion,
+		if(@Lotto == 5) getitem 501,300;//Items: Red_Potion,
 		return;
 
 sF_Spin:

@@ -29,6 +29,9 @@ TODO:
 
 Date		Added
 ======
+09/23
+	* Al De Baran: Finally added the Kafras Special Reserve 2 Lotto with official prizes [Lupus]
+	  (80% official, 4-5 entries are made up) also changed typo Orange Potions -> Red Potions 
 09/21
 	* Commented out Mr.Smile Quest (now Tengu drops that mask) [Lupus]
 	* Fixed Bunny Band NPC location, removed NPC dupes [Lupus]
