@@ -46,6 +46,11 @@
 	* Fixed drops of Abyss Knight (2 kinds of Broad Swords) [Lupus]
 	* Added some notes to Lighthalzen Monsters. Should be revised, thanks to persian69 for the info [Lupus]
 09/21
+	* Fixed a few cards having wrong setting. Doppelganger, Mobster, Zherlthsh Cards and others all work correctly now.[Nexon]
+	* Fixed weapons not having correct attributes and status boosters.[Nexon]
+	* Added a few new items, thanks to Landarma.[Nexon]
+
+09/21
 	* Added Mr.Smile to 1405#Tengu drops. Also!!! Removed Mr.Smile Quest! [Lupus]
 	* Added Assassin Mask into Inc.Samurai drops (0.4%) [Lupus]
 09/19

@@ -496,8 +496,8 @@
 1133,Fire_Brand,Fireblend,4,20,0,500,100,,1,0,414946,2,2,4,40,1,2,{},{ bonus bAtkEle,Ele_Fire; skill 19,3; bonus3 bAutoSpell,19,3,90; }
 1134,Caesar's_Sword,Caesar's Sword,4,20,0,700,140,,1,0,414946,2,2,4,40,1,2,{},{ bonus2 bAddRace,RC_Plant,25; bonus bIgnoreDefRace,RC_Plant; }
 1135,Cutlas,Cutlas,4,20,0,900,150,,1,0,414946,2,2,4,40,1,2,{},{ skill 5,5; bonus bStr,2; bonus bDef,1; }
-1136,Solar_Sword,Solar Sword,4,20,0,1200,85,,1,0,414946,2,2,4,40,1,2,{},{ bonus2 bHPDrainRate,1000,1; bonus2 bSPLossRate,15,10000; }
-1137,Excalibur,Excalibur,4,20,0,1200,150,,1,0,414946,2,2,4,40,1,2,{},{ bonus bInt,5; bonus bLuk,10; bonus bDex,-1; bonus bAtkEle,Ele_Holy; }
+1136,Solar_Sword,Solar Sword,4,20,0,1200,85,,1,0,414946,2,2,4,40,1,2,{},{ bonus bAtkEle,Ele_Fire; bonus bHitRate,30; bonus2 bHPDrainRate,1000,1; bonus2 bSPLossRate,15,10000; }
+1137,Excalibur,Excalibur,4,20,0,1200,150,,1,0,414946,2,2,4,40,1,2,{},{ bonus bLuk,10; bonus bDex,-1; bonus bAtkEle,Ele_Holy; }
 1138,Mysteltainn_,Mysteltainn,4,20,0,1000,170,,1,0,414946,2,2,4,40,1,2,{},{ bonus bAtkEle,Ele_Dark; bonus2 bAddEle,Ele_Ghost,15; bonus2 bAddEff,Eff_Stone,100; bonus bDex,3; }
 1139,Talefing_,Talefing,4,20,0,1000,200,,1,0,414946,2,2,4,40,1,2,{},{ bonus bAtkEle,Ele_Dark; bonus2 bSPDrainRate,50,-35; }
 1140,Byeollungum,Byeollungum,4,20,0,900,150,,1,0,414946,2,2,4,40,1,2,{},{ bonus2 bSubRace,RC_NonBoss,-10; bonus2 bAddRace,RC_Boss,50; bonus bAllStats,2; }
@@ -588,7 +588,7 @@ bonus bIgnoreDefRace,RC_DemiHuman; bonus2 bAddRace,RC_DemiHuman,20; bonus2 bSubR
 1253,Katar_,Katar,4,41000,0,1200,148,,1,2,4096,2,34,3,33,1,16,{},{ bonus bDex,1; }
 1254,Jamadhar,Jamadhar,4,37200,0,1500,165,,1,0,4096,2,34,3,33,1,16,{},{}
 1255,Jamadhar_,Jamadhar,4,37200,0,1500,165,,1,1,4096,2,34,3,33,1,16,{},{}
-1256,Katar_of_Cold_Icicle,Katar of Cold Icicle,4,45000,0,1200,105,,1,0,4096,2,34,3,55,1,16,{},{ bonus bAtkEle,Ele_Water; bonus2 bAddEff,Eff_Freeze,500; }
+1256,Katar_of_Cold_Icicle,Katar of Frozen Icicle,4,45000,0,1200,105,,1,0,4096,2,34,3,55,1,16,{},{ bonus bAtkEle,Ele_Water; bonus2 bAddEff,Eff_Freeze,500; }
 1257,Katar_of_Thornbush,Katar of Dusty Thornbush,4,45000,0,1200,105,,1,0,4096,2,34,3,55,1,16,{},{ bonus bAtkEle,Ele_Earth; bonus2 bAddEff,Eff_Blind,500; }
 1258,Katar_of_Raging_Blaze,Katar of Raging Blaze,4,45000,0,1200,105,,1,0,4096,2,34,3,55,1,16,{},{ bonus bAtkEle,Ele_Fire; bonus2 bAddEff,Eff_Silence,500; }
 1259,Katar_of_Piercing_Wind,Katar of Piercing Wind,4,45000,0,1200,105,,1,0,4096,2,34,3,55,1,16,{},{ bonus bAtkEle,Ele_Wind; bonus2 bAddEff,Eff_Sleep,500; }
@@ -645,7 +645,7 @@ bonus bIgnoreDefRace,RC_DemiHuman; bonus2 bAddRace,RC_DemiHuman,20; bonus2 bSubR
 1414,Gelerdria,Gelerdria,4,20,0,700,145,,3,0,16514,2,2,4,48,1,4,{},{ bonus bAtkEle,Ele_Earth; bonus bMaxHP,500; bonus bMaxSP,-50; }
 1415,Skewer,Brocca,4,20,0,850,100,,3,0,16514,2,2,4,48,1,4,{},{ bonus bIgnoreDefRace,RC_NonBoss; bonus2 bAddEle,Ele_Neutral,25; }
 1416,Tjungkuletti,Tjungkuletti,4,20,0,1000,95,,3,0,16514,2,2,4,48,1,4,{},{ bonus2 bSPDrainValue,1,1; bonus bSPGainValue,5; }
-1417,Pole_Axe,Pole Axe,4,20,0,3800,160,,3,1,16514,2,2,3,71,1,4,{},{ bonus bStr,1; bonus bInt,2; bonus bDex,1; }
+1417,Pole_Axe,Pole Axe,4,20,0,3800,160,,3,1,16514,2,2,3,71,1,4,{},{ bonus bStr,1; bonus bInt,2; bonus bDex,2; }
 // 2-Handed Spears
 1451,Guisarme,Guisarme,4,13000,0,1000,84,,3,2,16514,2,34,2,18,1,5,{},{}
 1452,Guisarme_,Guisarme,4,13000,0,1000,84,,3,3,16514,2,34,2,18,1,5,{},{}
@@ -762,7 +762,7 @@ bonus bIgnoreDefRace,RC_DemiHuman; bonus2 bAddRace,RC_DemiHuman,20; bonus2 bSubR
 1715,Arbalest_,Arbalest,4,48000,0,1000,90,,5,2,1706056,2,34,3,33,1,11,{},{ bonus bDex,2; }
 1716,Gakkung_,Gakkung,4,42000,0,1100,100,,5,2,1706056,2,34,3,33,1,11,{},{}
 1718,Hunter_Bow,Hunter Bow,4,64000,0,1500,125,,5,0,2048,2,34,3,33,1,11,{},{}
-1719,Bow_of_Roguemaster,Roguemaster's Bow,4,20,0,500,75,,11,0,131136,2,34,4,48,1,11,{},{}
+1719,Bow_of_Roguemaster,Roguemaster's Bow,4,20,0,500,75,,11,0,131136,2,34,4,48,1,11,{},{ bonus bAtkRange,11; }
 1720,Bow_of_Rudra,Rudra's Bow,4,20,0,1200,150,,5,0,1705992,2,34,4,48,1,11,{},{ bonus bAtkEle,Ele_Holy; bonus bInt,5; skill 35,1; skill 28,1; bonus2 bResEff,Eff_Poison,5000; bonus2 bResEff,Eff_Curse,5000; bonus2 bResEff,Eff_Silence,5000; bonus2 bResEff,Eff_Confusion,5000; bonus2 bResEff,Eff_Blind,5000; }
 1721,Repeating_Crossbow,Repeating Crossbow,4,89000,0,2000,95,,9,1,133184,2,34,3,65,1,11,{},{}
 1722,Ballista,Ballista,4,20,0,3500,145,,5,0,1574912,2,34,4,77,1,11,{},{}
