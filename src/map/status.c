@@ -4684,8 +4684,6 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		if (sc_data[type].val3 > 0 && !status_isdead(bl))
 		{
 			sc_data[type].timer = add_timer (1000 + tick, status_change_timer, bl->id, data );
-			// hmm setting up a timer and breaking then to call status_change_end just right away?
-			// I think you're missing brackets and a:
 			return 0;
 		}
 		break;
@@ -4701,9 +4699,6 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			if(sd->status.max_hp <= sd->status.hp)
 			{
 				status_change_end(&sd->bl,SC_TENSIONRELAX,-1);
-				// calling status_change_end then break and call it again might not be that what is necessary
-				// or am I wrong?
-				// so I just add brackets and a:
 				return 0;
 			}
 		}
@@ -4754,7 +4749,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 		return 0;
 
 	case SC_RUN:
-		sc_data[SC_RUN].val2 = 1; // Once the first second is spent, no more STR bonus when stopping
+		sc_data[type].val2 = 1; // Once the first second is spent, no more STR bonus when stopping
 		sc_data[type].timer=add_timer( 1000*600+tick,status_change_timer, bl->id, data );
 		return 0;
 
@@ -4822,7 +4817,7 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			if (md && battle_check_range(bl, &md->bl, sc_data[type].val3) && (sc_data[type].val4-=1000)>0)
 			{
 				sc_data[type].timer = add_timer(1000+tick, status_change_timer, bl->id, data);
-					return 0;
+				return 0;
 			}
 		}
 		break;

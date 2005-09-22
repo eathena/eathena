@@ -16,30 +16,13 @@ Note:		Noone knows the real formula, but the current one is a very good
 Problem:	The map server crashes when a session gets timed out. Like, a player suddenly dc's after doing something, then the session is removed. 
 Assigned:
 Progess:
-Note:		I believe the map server thinks its still there and tries to access it and then it just faults.
-
-Problem:	Timer stack has PROBLEMS!!! wow!
-[Status]: Map pay_dun04.gat: Removed '121' mobs.
-delete_timer error : function mismatch 00453ee0(mob_delayspawn) != 00474250(skill_timerskill)
-delete_timer error : function mismatch 00453ee0(mob_delayspawn) != 00474250(skill_timerskill)
-delete_timer error : function mismatch 00402c90(map_clearflooritem_timer) != 00474250(skill_timerskill)
-delete_timer error : function mismatch 00000000(unknown timer function) != 00474250(skill_timerskill)
-delete_timer error : function mismatch 00000000(unknown timer function) != 00474250(skill_timerskill)
-delete_timer error : function mismatch 00000000(unknown timer function) != 00474250(skill_timerskill)
-delete_timer error : function mismatch 00453b50(mob_timer) != 00474250(skill_timerskill)
-delete_timer error : function mismatch 00000000(unknown timer function) != 00474250(skill_timerskill)
-delete_timer error : function mismatch 00453b50(mob_timer) != 00474250(skill_timerskill)
-delete_timer error : function mismatch 00453ee0(mob_delayspawn) != 00474250(skill_timerskill)
-Assigned: Skotlex
-Progess: 100%
-Note:	Fixed as far as I know. timerskills were not being cleared if the caster
-was "out of a map" (during map loading) when it came time for the skill to
-trigger, causing dangling skill_timerskill data (which was never invoked until
-they logout and all the danging skills tried to be cleared) [Skotlex]
+Note:		There hasn't been this kind of crash in decades? The current only
+	connection problems are the map server dying under windows when a client
+	causes 'software caused connection abort' errors. [Skotlex]
 
 Problem:	Stats nor skills don't downgrade when your level gets reverted due to exp loss.
 Assigned:	davidsiaw
-Progess:	~90% (Bug prone)
+Progress:	~90% (Bug prone)
 Note:		Lets make it reset completely when you do a leveldown.
 		I have no idea why we want this. Implemented anyway... for the GMs. (davidsiaw)
 
@@ -47,13 +30,7 @@ Problem:	Wierd login-server bug on sql, it displays that the server is full when
 Assigned:	N/A
 Progress:	0%
 
-Problem:        Chars with ' in their name.. is legal.. and messes up sql
-Assigned:       Kevin
-Progress:       done
-Note:           I used a sql query instead of escaping the string, works better, causes less lag on the server, puts less stress on mysql.
-Information:	http://dev.mysql.com/doc/mysql/en/mysql_real_escape_string.html
-
-Problem:	mob_aval clone bug crashes client
+Problem:	mob_avail clone bug crashes client
 Assigned:       N/A
 Progress:       0%
 
@@ -69,31 +46,9 @@ Progress:       0%
                 1002,1039,1 // makes a poring a big bapho  
                 1002,1039,2 // makes a poring a small bapho
                 effect id or something
-
-Problem:	status.weapon can be 16... which causes the accesses outside
-	        the bounds of the array
-Assigned:	N/A
-Progress:	0%
-
-	battle.c:549:Bounds error: array reference (16) outside bounds of the array.
-	battle.c:549:  Pointer value: 0x1ceda808
-	battle.c:549:  Object `calloc':
-	battle.c:549:    Address in memory:    0x1ceda7c8 .. 0x1ceda807
-	battle.c:549:    Size:                 64 bytes
-	battle.c:549:    Element size:         4 bytes
-	battle.c:549:    Number of elements:   16
-	battle.c:549:    Created at:           malloc.c, line 23
-	battle.c:549:    Storage class:        heap
-	battle.c:3078:Bounds error: array reference (16) outside bounds of the array.
-	battle.c:3078:  Pointer value: 0x1ceda848
-	battle.c:3078:  Object `calloc':
-	battle.c:3078:    Address in memory:    0x1ceda808 .. 0x1ceda847
-	battle.c:3078:    Size:                 64 bytes
-	battle.c:3078:    Element size:         4 bytes
-	battle.c:3078:    Number of elements:   16
-	battle.c:3078:    Created at:           malloc.c, line 23
-	battle.c:3078:    Storage class:        heap
-
+Note: The current mob spawn scripts should be good enough. The last field,
+	"event", use 2 for small mobs, 4 for big ones. Also, this is fixed? I couldn't
+	reproduce it. [Skotlex]
 
 Problem:	This bug's appeared again: Permanent #Variables/Variables disappear.
 			Quests, Banks, etc wipe when you create a new character
@@ -115,6 +70,8 @@ Problem:	Guilds alliances
 		You can have any number of alliances entried in SQL db. Sometimes it glitches and you get > 4 alliances
 Assigned:	N/A
 Progress:	0%
+Note:		Might be fixed? There was an incorrect check for limiting alliances
+to 4, not 3. Which is the actual limit anyway? [Skotlex]
 
 Problem:	Disguise Stats Bonus bug.
 		try @disguise 1002 or 'bonus bDisguise,1002;' as a script in a wearable item. And then go in hide.
@@ -155,6 +112,7 @@ Note:		Perhaps we can create an array of the maps we have loaded (during loading
 		And check the map names against that [Codemaster]
 Assigned:	N/A
 Progress:	0%
+Notes: Still exists? I thought this was a non-issue currently. [Skotlex]
 
 Problem:	[item exploit] Trade Window + Blacksmith's/Alchemist's MAKE skills -> item exploit
 Assigned:	N/A
@@ -164,17 +122,6 @@ Problem:	[Urgent!] Server doesn't save Variables (#global and global)
 		If you exit the client with Alt-F4 or lose connection to the server.
 Assigned:	N/A
 Progress:	0%
-
-Problem:	[Scripts] Mob spawn. If you set unexisting monster Id
-		then you have "novice" looking mobs with random EXP
-		for exapmple there was a mob with 1 HP and 22.000 Exp.
-Assigned:	N/A
-Progress:	0%
-Note:		Perhaps we should check the monster ID against an array holding the monster
-		IDs (perhaps load the monster IDs while loading the mob_db) [Codemaster]
-		This should be fixed already after the dynamic mob update. Asking for
-		random non-existing IDs just returns the mob data of a dummy mob (with
-		stats like that of a poring's) [Skotlex]
 
 Problem:	When 2 players try to pickup one dropped item at the same time
 		then both pickup the item, but 1st one gets ACTUAL item
@@ -188,12 +135,16 @@ Problem:	[script.c] script command DOEVENT now doesn't work...
 		I (Lupus) have script-wise solution. But it isn't good! 8((( DOEVENT used to work fine!
 Assigned:	N/A
 Progress:	0%
+Note: Is this still broken? I can look into it. [Skotlex]
 
 Problem:	Skill Delays Bug (Hunters)
 		When you use a skill then Equip Another kind of arrows,
 		you can immediately cast another SKILL. (Bind skills on hot keys and... u get a killing machine)
 Assigned:	N/A
 Progress:	0%
+Note: Skill's delay is not affected by changing equipment from what I read.
+	Apparently the bug is in the fact that certain skills have a way too low delay
+	while the client normally doesn't lets you trigger said skills as fast? [Skotlex]
 
 Problem:	Scripts prob
 		We can't use jA's new commands: FOR, WHILE, ELSE, etc
@@ -207,6 +158,7 @@ Problem:	Sniper
 		but the 2ns one dismounts BOTH types of traps: yours and enemies
 Assigned:	N/A
 Progress:	0%
+Note:	Was this fixed by the battle_check_target rewrite? [Skotlex]
 
 Problem:	Arrows Dupe (or random amount change)
 		You should prepare/remove arrows while trade. And have both - names and unnamed arrows ^_-
@@ -233,12 +185,6 @@ Problem:	Character global VARS save with delay. (BTW Account #vars are fine!)
 			and you lose your vars saving. So you can complete the quest again, etc)
 Assigned:	N/A
 Progress:	0%
-
-Problem:	Bards songs do BLIND players...
-Assigned:	NA
-Progress:	?? (Fixed?)
-Notes:	It's only the client-side visual effect, not an actual blind state.
-			Yes it's fixed, use an updated client xP [Skotlex]
 
 Problem:	Wedding Skills (thousand brides...)
 			The skills work even if PARTNER_ID of destination player doesn't coinside
@@ -300,25 +246,11 @@ Note:		Seems to happen a lot to the login server... And no it doesn't have anyth
 			ip changed, sockets timing out, read/writing to a non existant fd... it's just
 			select() somehow keeps thinking there's a connection on listen_fd even after accepting it >.<
 
-Problem:	Pets
-			Pets now look like an enemy (you have a sword cursor over them)
-			you can't feed them, etc (you can't pop-up that menu)
-Assigned:	Skotlex
-Progress:	100%
-Note:		Fixed with the battle_config option pet_hair_dye. [Skotlex]
-
 Problem:	Child + Papa + Mama EXP sharing exploit
 			adopt a child, make a party papa+mama+child, kill the child, and you can share EXP
 			between both parents 50%/50%. Despite on their levels (should be >=70 tough)
 Assigned:	na
 Progress:	0%
-
-Problem:	Instant, non stop mobs cast
-			They cast instantly, too fast. All of the monsters
-Assigned:	na
-Progress:	0%
-Notes:	The code was already fixed (per milliage %10000 and not %1000), if
-mobs have quick cast times then the mob skill db needs to be updated. [Skotlex]
 
 Problem:	GVG Enemy Healing BUG
 			During WOE, you can heal your enemy without SHIFT
@@ -336,30 +268,22 @@ Assigned:	na
 Progress:	0%
 			Wasn't the ghostring_fix battle switch fixed eons ago? [Skotlex]
 
-Problem:	chat crash
-			instant crash if you change target person name with some packet hack tool. 
-Assigned:	Skotlex
-Progress:	100%
-			If by chat you mean normal speaking, then yes this has been fixed
-			like a month or two ago. [Skotlex]
-
 Problem:	Can't see players name, party name, guild name
 			On creating a party, you can see all names normally, when u teleport or go to another map
 			all names disappear. You can see GUILD EMBLEM only.
 Assigned:	na
 Progress:	0%
-
-Problem:	[STEAL] Now boss' slaves do not drop any loot, but you can STEAL it from them.
-			It should be fixed.
-Assigned:	na
-Progress:	0%
-
+Note:	Is this still valid? There's no info on how to reproduce it and it's
+	obviously not a common problem or people would be calling foul all over the
+	place. [Skotlex]
 
 Problem:	[@autoloot]. Somehow... you get ITEMS when you're in CLOAKING (or in HIDE, when someone's 
 			finished your mob, or with Greemtooth)
 			Damn exploit should be fixed.
 Assigned:	na
 Progress:	0%
+Note:	I don't see why it has to be fixed. How can it be exploitable when the
+  one that gets the item is the one that could pick it up anyway? [Skotlex]
 
 Problem:	[TARO Cards Skill]
 			When your enemy starts walking randomly (due to some Taro Card), 
@@ -388,3 +312,6 @@ Problem:	SQL Query errors (example: someone with the name Accutane-)
 		occuring, but it is a MAJOR problem (perhaps logs?)
 Assigned:	N/A
 Progress:	0%
+Note: Recent SVN revisions printout SQL errors including their file/line where
+	it was caused. Any and all future sql-query based errors should be reported
+	and fixed briefly afterwards. [Skotlex]
