@@ -1,6 +1,9 @@
 Date	Added
 =======
 
+09/22
+	* Set default option gvg_traps_target_all: no [Lupus]
+	- In kRO it used to be 'yes' some time ago but has been reverted back to 'no'
 09/21
 	* Corrected an error in the way guild alliances were being counted, as
 	  pointed out by Viccious Pucca. [Skotlex]
