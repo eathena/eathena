@@ -3027,6 +3027,7 @@ int parse_char(int fd) {
 	char email[40];	
 	unsigned char buf[64];
 	unsigned short cmd;
+	int map_fd;
 	struct char_session_data *sd;
 	unsigned char *p = (unsigned char *) &session[fd]->client_addr.sin_addr;
 
@@ -3262,6 +3263,30 @@ int parse_char(int fd) {
 			auth_fifo[auth_fifo_pos].sex = sd->sex;
 			auth_fifo[auth_fifo_pos].connect_until_time = sd->connect_until_time;
 			auth_fifo[auth_fifo_pos].ip = session[fd]->client_addr.sin_addr.s_addr;
+
+			//Send NEW auth packet [Kevin]
+			for(i = 0; i < MAX_MAP_SERVERS; i++) {
+				if ((map_fd = server_fd[i]) > 0) { //0 Should not be a valid server_fd [Skotlex]
+					if (session[map_fd] == NULL)
+					{	//Could this be the crash's source? [Skotlex]
+						ShowError("mapif_sendall: Attempting to write to invalid session %d! Map Server #%d disconnected.\n", map_fd, i);
+						server_fd[i] = -1;
+						memset(&server[i], 0, sizeof(struct mmo_map_server));
+						continue;
+					}	
+
+					WFIFOW(map_fd,0) = 0x2afd;
+					WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
+					WFIFOL(map_fd,4) = auth_fifo[auth_fifo_pos].account_id;
+					WFIFOL(map_fd,8) = auth_fifo[auth_fifo_pos].login_id1;
+					WFIFOL(map_fd,16) = auth_fifo[auth_fifo_pos].login_id2;
+					WFIFOL(map_fd,12) = (unsigned long)auth_fifo[auth_fifo_pos].connect_until_time;
+					mmo_char_fromsql(auth_fifo[auth_fifo_pos].char_id, char_dat, 1);
+					char_dat[0].sex = auth_fifo[auth_fifo_pos].sex;
+					memcpy(WFIFOP(map_fd,20), &char_dat[0], sizeof(struct mmo_charstatus));
+					WFIFOSET(map_fd, WFIFOW(map_fd,2));
+				}
+			}
 			auth_fifo_pos++;
 //			printf("0x66> end\n");
 			RFIFOSKIP(fd, 3);

@@ -2,6 +2,13 @@
 #ifndef _CHRIF_H_
 #define _CHRIF_H_
 
+struct auth_node{
+	int account_id, login_id1, login_id2, sex;
+	time_t connect_until_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
+	struct mmo_charstatus char_dat;
+	unsigned int node_created;
+};
+
 void chrif_setuserid(char*);
 void chrif_setpasswd(char*);
 void chrif_setip(char*);
@@ -12,6 +19,7 @@ int chrif_isconnect(void);
 extern int chrif_connected;
 
 int chrif_authreq(struct map_session_data *);
+void chrif_authok(int fd);
 int chrif_save(struct map_session_data*);
 int chrif_charselectreq(struct map_session_data *);
 void check_fake_id(int fd, struct map_session_data *sd, int target_id);

@@ -1,7 +1,8 @@
 Date	Added
 =======
 
-09/22
+09/22	* Finished first part of new auth system, fully tested. Will reduce char->map
+	  lag by whatever it is you are haveing. [Kevin]
 	* Added consideration of GrandDarkness in various code sections that were
 	  only checking for Grand Cross [Skotlex]
 	* Deployed use of map_getallusers all over the map server where it makes

@@ -25,10 +25,13 @@
 #include "nullpo.h"
 #include "showmsg.h"
 #include "charsave.h"
+#include "db.h"
 
 //Updated table (only doc^^) [Sirius]
 //Used Packets: U->2af8
 //Free Packets: F->2af8
+
+struct dbt *auth_db;
 
 static const int packet_len_table[0x3d] = {
 	60, 3,-1,27,22,-1, 6,-1,	// 2af8-2aff: U->2af8, U->2af9, U->2afa, U->2afb, U->2afc, U->2afd, U->2afe, U->2aff
@@ -44,8 +47,8 @@ static const int packet_len_table[0x3d] = {
 //2af9: Incomming, chrif_connectack -> 'awnser of the 2af8 login(ok / fail)'
 //2afa: Outgoing, chrif_sendmap -> 'sending our maps'
 //2afb: Incomming, chrif_sendmapack -> 'Maps received successfully / or not ..'
-//2afc: Outgoing, chrif_authreq -> 'validate the incomming client' ? (not sure)
-//2afd: Incomming, pc_authok -> 'ok awnser of the 2afc'
+//2afc: Outgoing, chrif_authreq -> 'check auth_db for client and de/authenticate'
+//2afd: Incomming, chrif_authok -> 'character selected, add to auth db'
 //2afe: Incomming, pc_authfail -> 'fail awnser of the 2afc' ? (not sure)
 //2aff: Outgoing, send_users_tochar -> 'sends all actual connected charactersids to charserver'
 //2b00: Incomming, map_setusers -> 'set the actual usercount? PACKET.2B COUNT.L.. ?' (not sure)
@@ -378,12 +381,12 @@ int chrif_sendmapack(int fd)
 }
 
 /*==========================================
- *
+ * new auth system [Kevin]
  *------------------------------------------
  */
 int chrif_authreq(struct map_session_data *sd)
 {
-	int i;
+	struct auth_node *search_node;
 
 	nullpo_retr(-1, sd);
 
@@ -391,17 +394,59 @@ int chrif_authreq(struct map_session_data *sd)
 		return -1;
 	chrif_check(-1);
 
-	for(i = 0; i < fd_max; i++)
-		if (session[i] && session[i]->session_data == sd) {
-			WFIFOW(char_fd, 0) = 0x2afc;
-			WFIFOL(char_fd, 2) = sd->bl.id;
-			WFIFOL(char_fd, 6) = sd->char_id;
-			WFIFOL(char_fd,10) = sd->login_id1;
-			WFIFOL(char_fd,14) = sd->login_id2;
-			WFIFOL(char_fd,18) = session[i]->client_addr.sin_addr.s_addr;
-			WFIFOSET(char_fd,22);
-			break;
+	search_node=(struct auth_node *)numdb_search(auth_db, sd->bl.id);
+
+	if(search_node) {
+
+		if(search_node->account_id==sd->bl.id &&
+			search_node->login_id1 == sd->login_id1) {
+
+			pc_authok(search_node->account_id, search_node->login_id2, search_node->connect_until_time, &search_node->char_dat);
+			numdb_erase(auth_db, sd->bl.id);
+
+		} else {
+			pc_authfail(sd->bl.id);
+			numdb_erase(auth_db, sd->bl.id);
 		}
+	} else {
+		pc_authfail(sd->bl.id);
+	}
+
+
+	return 0;
+}
+
+
+//character selected, insert into auth db
+void chrif_authok(int fd) {
+	struct auth_node *new_node=(struct auth_node *)malloc(sizeof(struct auth_node));
+
+	new_node->account_id=RFIFOL(fd, 4);
+	new_node->login_id1=RFIFOL(fd, 8);
+	new_node->connect_until_time=RFIFOL(fd, 12);
+	new_node->login_id2=RFIFOL(fd, 16);
+	memcpy(&new_node->char_dat,RFIFOP(fd, 20),sizeof(struct mmo_charstatus));
+	new_node->node_created=gettick();
+
+	numdb_insert(auth_db, RFIFOL(fd, 4), new_node);
+}
+
+
+int auth_db_cleanup_sub(void *key,void *data,va_list ap)
+{
+	struct auth_node *node=(struct auth_node*)data;
+
+	if(gettick()>node->node_created+30000) {
+		ShowNotice("Character not authed within 30 seconds of character select!\n");
+		numdb_erase(auth_db, node->account_id);
+	}
+
+	return 0;
+}
+
+int auth_db_cleanup(int tid, unsigned int tick, int id, int data) {
+
+	numdb_foreach(auth_db, auth_db_cleanup_sub);
 
 	return 0;
 }
@@ -1263,7 +1308,7 @@ int chrif_parse(int fd)
 		switch(cmd) {
 		case 0x2af9: chrif_connectack(fd); break;
 		case 0x2afb: chrif_sendmapack(fd); chrif_reqfamelist(); break;
-		case 0x2afd: pc_authok(RFIFOL(fd,4), RFIFOL(fd,8), (time_t)RFIFOL(fd,12), (struct mmo_charstatus*)RFIFOP(fd,16)); break;
+		case 0x2afd: chrif_authok(fd); break;
 		case 0x2afe: pc_authfail(RFIFOL(fd,2)); break;
 		case 0x2b00: map_setusers(fd); break;
 		case 0x2b03: clif_charselectok(RFIFOL(fd,2)); break;
@@ -1389,8 +1434,13 @@ int do_init_chrif(void)
 {
 	add_timer_func_list(check_connect_char_server, "check_connect_char_server");
 	add_timer_func_list(send_users_tochar, "send_users_tochar");
+	add_timer_func_list(auth_db_cleanup, "auth_db_cleanup");
 	add_timer_interval(gettick() + 1000, check_connect_char_server, 0, 0, 10 * 1000);
 	add_timer_interval(gettick() + 1000, send_users_tochar, 0, 0, 5 * 1000);
+	add_timer_interval(gettick() + 1000, auth_db_cleanup, 0, 0, 10 * 1000);
+
+
+	auth_db = numdb_init();
 
 	return 0;
 }
