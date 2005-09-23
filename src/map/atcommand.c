@@ -581,6 +581,7 @@ static AtCommandInfo atcommand_info[] = {
  */
 char atcmd_output[200];
 char atcmd_player_name[100];
+char atcmd_temp[100];
 
 /*====================================================
  * This function return the name of the job (by [Yor])
@@ -706,33 +707,32 @@ char * msg_txt(int msg_number) {
 // Returns Players title (from msg_athena.conf) [Lupus]
 //-----------------------------------------------------------
 char * player_title_txt(int level) {
-	char temp0[100];
 	if (level < battle_config.title_lvl1)
 		return ""; //w/o any titles
 
 	if (level >= battle_config.title_lvl8)
-		sprintf(temp0, msg_table[332], level);
+		sprintf(atcmd_temp, msg_table[332], level);
 	else
 	if (level >= battle_config.title_lvl7)
-		sprintf(temp0, msg_table[331], level);
+		sprintf(atcmd_temp, msg_table[331], level);
 	else
 	if (level >= battle_config.title_lvl6)
-		sprintf(temp0, msg_table[330], level);
+		sprintf(atcmd_temp, msg_table[330], level);
 	else
 	if (level >= battle_config.title_lvl5)
-		sprintf(temp0, msg_table[329], level);
+		sprintf(atcmd_temp, msg_table[329], level);
 	else
 	if (level >= battle_config.title_lvl4)
-		sprintf(temp0, msg_table[328], level);
+		sprintf(atcmd_temp, msg_table[328], level);
 	else
 	if (level >= battle_config.title_lvl3)
-		sprintf(temp0, msg_table[327], level);
+		sprintf(atcmd_temp, msg_table[327], level);
 	else
 	if (level >= battle_config.title_lvl2)
-		sprintf(temp0, msg_table[326], level);
+		sprintf(atcmd_temp, msg_table[326], level);
 	else
-		sprintf(temp0, msg_table[325], level); //lvl1
-	return temp0;
+		sprintf(atcmd_temp, msg_table[325], level); //lvl1
+	return atcmd_temp;
 }
 
 //------------------------------------------------------------
