@@ -290,6 +290,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_Jump,				"@jump",			40, atcommand_jump },
 	{ AtCommand_Who,				"@who",				20, atcommand_who },
 	{ AtCommand_Who,				"@whois",			20, atcommand_who },
+	{ AtCommand_Who,				"@w",				20, atcommand_who },
 	{ AtCommand_Who2,				"@who2",			20, atcommand_who2 },
 	{ AtCommand_Who3,				"@who3",			20, atcommand_who3 },
 	{ AtCommand_WhoMap,				"@whomap",			20, atcommand_whomap },
@@ -699,6 +700,29 @@ char * msg_txt(int msg_number) {
 		return msg_table[msg_number];
 
 	return "??";
+}
+
+//-----------------------------------------------------------
+// Returns Players title (from msg_athena.conf) [Lupus]
+//-----------------------------------------------------------
+char * player_title_txt(int level) {
+	if (level < battle_config.title_lvl1)
+		return ""; //w/o any titles
+	if (level >= battle_config.title_lvl8)
+		return msg_table[332];
+	if (level >= battle_config.title_lvl7)
+		return msg_table[331];
+	if (level >= battle_config.title_lvl6)
+		return msg_table[330];
+	if (level >= battle_config.title_lvl5)
+		return msg_table[329];
+	if (level >= battle_config.title_lvl4)
+		return msg_table[328];
+	if (level >= battle_config.title_lvl3)
+		return msg_table[327];
+	if (level >= battle_config.title_lvl2)
+		return msg_table[326];
+	return msg_table[325]; //lvl1
 }
 
 //------------------------------------------------------------
@@ -1380,16 +1404,16 @@ int atcommand_who(
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 					g = guild_search(pl_sd->status.guild_id);
 					if (g == NULL)
-						sprintf(temp1, "None");
+						sprintf(temp1, msg_txt(333)); //None
 					else
 						sprintf(temp1, "%s", g->name);
 					p = party_search(pl_sd->status.party_id);
 					if (p == NULL)
-						sprintf(temp0, "None");
+						sprintf(temp0, msg_txt(333)); //None
 					else
 						sprintf(temp0, "%s", p->name);
 					if (pl_GM_level > 0)
-						sprintf(atcmd_output, "Name: %s (GM:%d) | Party: '%s' | Guild: '%s'", pl_sd->status.name, pl_GM_level, temp0, temp1);
+						//sprintf(atcmd_output, "Name: %s (GM:%d) | Party: '%s' | Guild: '%s'", pl_sd->status.name, pl_GM_level, temp0, temp1);
 					else
 						sprintf(atcmd_output, "Name: %s | Party: '%s' | Guild: '%s'", pl_sd->status.name, temp0, temp1);
 					clif_displaymessage(fd, atcmd_output);
