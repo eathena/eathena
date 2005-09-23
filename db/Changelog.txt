@@ -33,6 +33,12 @@
 	7420,Skull //PvP Item(maybe drop item?) maybe like that custom bone drop?
 
 	--
+09/23
+	* Updated Lighthalzen mobs.[Nexon]
+	- Some still need to be implemented.
+	* Updated const.txt with new emotes.[Nexon]
+	- Skotlex told me to.
+	
 09/22
 	* Updated the item_db file, now the sell column is used. Those items that
 	  had buy price 20 and sell price blank now have buy price blanka nd sell
@@ -58,8 +64,6 @@
 	* Fixed a few cards having wrong setting. Doppelganger, Mobster, Zherlthsh Cards and others all work correctly now.[Nexon]
 	* Fixed weapons not having correct attributes and status boosters.[Nexon]
 	* Added a few new items, thanks to Landarma.[Nexon]
-
-09/21
 	* Added Mr.Smile to 1405#Tengu drops. Also!!! Removed Mr.Smile Quest! [Lupus]
 	* Added Assassin Mask into Inc.Samurai drops (0.4%) [Lupus]
 09/19

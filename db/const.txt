@@ -402,3 +402,10 @@ e_philippines	48
 e_usa	49
 e_indonesia	50
 e_brazil	51
+e_flash	52
+e_turn	53
+e_sigh	54
+e_proud	55
+e_loud	56
+e_ohnoes	57
+e_dice	58
