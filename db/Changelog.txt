@@ -34,6 +34,12 @@
 
 	--
 09/22
+	* Updated the item_db file, now the sell column is used. Those items that
+	  had buy price 20 and sell price blank now have buy price blanka nd sell
+	  price sell. Likewise, all etc items got their buy price removed and placed
+	  in the sell price column (price halved, obviously) [Skotlex]
+	- I recommend following this new recommendation unless someone comes up
+	  with a better idea (well someone had to use the sell column eventually :P)
 	* Corrected 1562#Textbook on Battlefield: Chance of Bless = 1% [Lupus]
 	- Fixed Banana Hat: Now 3% chance of Provoke lvl3
 	- Bow Thimble doesn't work as it should (core issue, to be revised soon)
