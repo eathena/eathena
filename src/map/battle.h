@@ -370,11 +370,20 @@ extern struct Battle_Config {
 	unsigned short mob_clear_delay; // [Valaris]
 
 	unsigned short character_size; // if riders have size=2, and baby class riders size=1 [Lupus]
-	unsigned short headset_block_music; // do headsets block Frost Joke, etc [Lupus]
 	unsigned short mob_max_skilllvl; // Max possible skill level [Lupus]
 	unsigned short rare_drop_announce; // chance <= to show rare drops global announces
 
 	unsigned short firewall_hits_on_undead; //Number of hits firewall does at a time on undead. [Skotlex]
+
+	unsigned short title_lvl1; // Players titles [Lupus]
+	unsigned short title_lvl2; // Players titles [Lupus]
+	unsigned short title_lvl3; // Players titles [Lupus]
+	unsigned short title_lvl4; // Players titles [Lupus]
+	unsigned short title_lvl5; // Players titles [Lupus]
+	unsigned short title_lvl6; // Players titles [Lupus]
+	unsigned short title_lvl7; // Players titles [Lupus]
+	unsigned short title_lvl8; // Players titles [Lupus]
+	
 #ifndef TXT_ONLY /* SQL-only options */
 	unsigned short mail_system; // [Valaris]
 #endif

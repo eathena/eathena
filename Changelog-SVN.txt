@@ -1,6 +1,9 @@
 Date	Added
 =======
 
+09/23
+	* Started adding adjustable players titles for @who, etc commands [Lupus]
+	- e.g. Super Player, GM, GM+, etc
 09/22
 	* Updated sql-files/item_db.sql to have the most current version. [Skotlex]
 	* Finished first part of new auth system, fully tested. Will reduce char->map

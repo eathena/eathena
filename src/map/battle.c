@@ -3520,10 +3520,17 @@ static const struct battle_data_short {
 	{ "show_hp_sp_gain",                   &battle_config.show_hp_sp_gain}, // [Skotlex]
 	{ "mob_clear_delay",                   &battle_config.mob_clear_delay}, // [Valaris]
 	{ "character_size",						&battle_config.character_size}, // [Lupus]
-	{ "headset_block_music",				&battle_config.headset_block_music}, // [Lupus]
 	{ "mob_max_skilllvl",				&battle_config.mob_max_skilllvl}, // [Lupus]
 	{ "rare_drop_announce",				&battle_config.rare_drop_announce}, // [Lupus]
 	{ "firewall_hits_on_undead",			&battle_config.firewall_hits_on_undead}, // [Skotlex]
+	{ "title_lvl1",				&battle_config.title_lvl1}, // [Lupus]
+	{ "title_lvl2",				&battle_config.title_lvl2}, // [Lupus]
+	{ "title_lvl3",				&battle_config.title_lvl3}, // [Lupus]
+	{ "title_lvl4",				&battle_config.title_lvl4}, // [Lupus]
+	{ "title_lvl5",				&battle_config.title_lvl5}, // [Lupus]
+	{ "title_lvl6",				&battle_config.title_lvl6}, // [Lupus]
+	{ "title_lvl7",				&battle_config.title_lvl7}, // [Lupus]
+	{ "title_lvl8",				&battle_config.title_lvl8}, // [Lupus]
 
 //SQL-only options start
 #ifndef TXT_ONLY
@@ -3874,10 +3881,18 @@ void battle_set_defaults() {
 	battle_config.show_hp_sp_gain = 1;	//Display gained hp/sp from mob-kills
 	battle_config.mob_clear_delay = 0;
 	battle_config.character_size = 3; //3: Peco riders Size=2, Baby Class Riders Size=1 [Lupus]
-	battle_config.headset_block_music = 0; //Do headsets block some sound skills like Frost Joke [Lupus]
 	battle_config.mob_max_skilllvl = 11; //max possible level of monsters skills [Lupus]
-	battle_config.rare_drop_announce = 10; //show global announces for rare items drops (<= 0.1% chance) [Lupus]
+	battle_config.rare_drop_announce = 1; //show global announces for rare items drops (<= 0.01% chance) [Lupus]
 	battle_config.firewall_hits_on_undead = 1;
+	battle_config.title_lvl1 = 1;	//Players Titles for @who, etc commands [Lupus]
+	battle_config.title_lvl2 = 10;
+	battle_config.title_lvl3 = 20;
+	battle_config.title_lvl4 = 40;
+	battle_config.title_lvl5 = 50;
+	battle_config.title_lvl6 = 60;
+	battle_config.title_lvl7 = 80;
+	battle_config.title_lvl8 = 99;
+
 //SQL-only options start
 #ifndef TXT_ONLY
 	battle_config.mail_system = 0;
