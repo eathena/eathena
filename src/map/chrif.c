@@ -398,17 +398,20 @@ int chrif_authreq(struct map_session_data *sd)
 
 	if(search_node) {
 
+		ShowDebug("Found search_node!\n");
+
 		if(search_node->account_id==sd->bl.id &&
 			search_node->login_id1 == sd->login_id1) {
 
 			pc_authok(search_node->account_id, search_node->login_id2, search_node->connect_until_time, &search_node->char_dat);
-			numdb_erase(auth_db, sd->bl.id);
 
 		} else {
 			pc_authfail(sd->bl.id);
-			numdb_erase(auth_db, sd->bl.id);
 		}
+		free(search_node);
+		numdb_erase(auth_db, sd->bl.id);
 	} else {
+		ShowDebug("Didn't find search_node!\n");
 		pc_authfail(sd->bl.id);
 	}
 
@@ -439,6 +442,7 @@ int auth_db_cleanup_sub(void *key,void *data,va_list ap)
 	if(gettick()>node->node_created+30000) {
 		ShowNotice("Character not authed within 30 seconds of character select!\n");
 		numdb_erase(auth_db, node->account_id);
+		free(node);
 	}
 
 	return 0;
