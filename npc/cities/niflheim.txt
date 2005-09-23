@@ -4,7 +4,7 @@
 //= Fyrien, Dizzy, PKGINGO
 //= Official NPCs translated and re-edited by Celest
 //===== Current Version: ===================================== 
-//= 1.06
+//= 1.07
 //===== Compatible With: ===================================== 
 //= Any eAthena Version; Niflheim Required
 //===== Description: ========================================= 
@@ -16,6 +16,7 @@
 //=	in Piano Keys quest
 //=     fixed zeny/item, exploit in Sairin, some optimizations [Lupus]
 //= 1.06 some typos in some variables fixed (thx 2 Dr.Evil) [Lupus]
+//= 1.07 Fixed typo’s [Nexon]
 //=
 //=  TODO: remove any save points from Niflheim (from Kafra)
 //=        remove or commetn Warpers (they make Niflheim Piano Quest meaningless)
@@ -23,9 +24,9 @@
 
 prontera.gat,164,161,4	script	Traveler::NifTrav	68,{
 	mes "[Traveler]";
-	mes "I've come across some strange things in my time. Things you'd have to see to belive. Have you heard of Niffleheim, the City of the Dead?";
+	mes "I've come across some strange things in my time. Things you'd have to see to believe. Have you heard of Niffleheim, the City of the Dead?";
 	next;
-	menu "Show me, please...",M_show, "Sounds scarey...Nevermind...",-;
+	menu "Show me, please...",M_show, "Sounds scary...Never mind...",-;
 
 	mes "[Traveler]";
 	mes "A wise choice by any means...";
@@ -153,7 +154,7 @@ nif_in.gat,16,27,1	script	Dead Cock	800,{
 	mes "[Dead Cock]";
 	mes "I was eaten by humans when alive,";
 	mes "now it's my turn to eat you! Gugugugu~";
-	mes "Aaah, i can't believe there's such a world after death, gugugu";
+	mes "Aaah, I can't believe there's such a world after death, gugugu";
 	percentheal -5,0;
 	close;
 }
@@ -180,8 +181,8 @@ nif_in.gat,156,93,5	script	Child	793,{
 L_Wizzard:
 	mes "[Anne]";
 	mes "A witch? I don't know any witches...";
-	mes "although i read about them in storybooks,";
-	mes "but i don't know if they're real or not,";
+	mes "although I read about them in storybooks,";
+	mes "but I don't know if they're real or not,";
 	mes "must be really scary if she is real...";
 	next;
 	mes "[Anne]";
@@ -207,13 +208,13 @@ L_Curse:
 	mes "[Anne]";
 	mes "She said if you can pronounce these magic words";
 	mes "to escape a cursed fate.";
-	mes "Now i can't remember what she said was important...";
-	mes "looks like i forgot them too.";
+	mes "Now I can't remember what she said was important...";
+	mes "looks like I forgot them too.";
 	close;
    
 L_end:
 	mes "[Anne]";
-	mes "So cold... so cold... i wish i could";
+	mes "So cold... so cold... I wish I could";
 	mes "go home... if you can please take me with you...";
 	mes "it's too scary here...";
 	mes "please.... help me....";
@@ -233,7 +234,7 @@ niflheim.gat,350,258,5	script	Cursed Soul	802,{
 L_book1:
 	mes "[Aesop]";
 	mes "Don't you touch my bookssssahhh!!";
-	mes "Ahahaha, i curse you for being bitten, torn and clawed at!!";
+	mes "Ahahaha, I curse you for being bitten, torn and clawed at!!";
 	mes "Forever binded to this curse!!";
 	monster "niflheim.gat",350,258,"Rideword",1478,1,"mymob";
 	close;
@@ -250,7 +251,7 @@ L_book3:
 	set nif_t,0;
 	set @nif_random1,rand(1,10);
 	mes "[Aesop Bruce]";
-	mes "Ahahaha.... i see you are brave!!";
+	mes "Ahahaha.... I see you are brave!!";
 	mes "Start reading your prayersahahahah!!";
 	next;
 L_MENU1:
@@ -334,7 +335,7 @@ L_back:
 
 niflheim.gat,224,243,3	script	Alager	795,{
 	mes "[Alager]";
-	mes "Muahaha, i love to eat meat...";
+	mes "Muahaha, I love to eat meat...";
 	mes "You look... delicious!";
 	next;
 	mes "[Alager]";
@@ -345,7 +346,7 @@ niflheim.gat,224,243,3	script	Alager	795,{
 	percentheal -60,0;
 	next;
 	mes "[Alager]";
-	mes "Ahhh, it's been some time since i had such delicious meat!";
+	mes "Ahhh, it's been some time since I had such delicious meat!";
 	// 50% made up, not the slightest idea how to translate these ^^;
 	mes "as an ex-barbeque chef, my favourite meat";
 	mes "would be like preparing beef fillet,";
@@ -416,7 +417,7 @@ nif_in.gat,105,81,3	script	Grey	794,{
 		mes "[Grey]";
 		mes "Hoho... I see you have paid attention!";
 		mes "I am Grey, a wandering poet of yore,";
-		mes "you are the best audience i have had so far,";
+		mes "you are the best audience I have had so far,";
 		mes "here, take this as a reward.";
 		getitem 7184,1;//Items: Piano Key,
 		set nif_quest2, 1;
@@ -431,7 +432,7 @@ L_end:
 	mes "I wonder what does it mean...";
 	mes "If you read it carefully,";
 	mes "it seems to have a deep meaning,";
-	mes "as if there is a myterious secret";
+	mes "as if there is a mysterious secret";
 	mes "hidden within these words...";
 	close;
 }
@@ -439,7 +440,7 @@ L_end:
 nif_in.gat,31,20,3	script	Kurtz	794,{
 	mes "[Kurtz]";
 	mes "Business nowadays is really bad...";
-	mes "Back when i used to be alive,";
+	mes "Back when I used to be alive,";
 	mes "my business was this bad too~!";
 	if (nif_quest3 == 1 || nif_q_done == 1) close;
 	next;
@@ -523,7 +524,7 @@ L_event:
 	set nif_random1,0; //clear garbage
 	mes "- You slide the 6 piano keys one -";
 	mes "- by one into the missing slots  -";
-	mes "- on the piano, but you realise  -";
+	mes "- on the piano, but you realize  -";
 	mes "- the left-most side seems to be -";
 	mes "- missing one more key. -";
 	close;

@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //=
 //===== Current Version: ===================================== 
-//= 1.2
+//= 1.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -12,6 +12,7 @@
 //= 1.1 Edited some text and updated/enabled some triggers
 //= for the quest.[kobra_k88]
 //= 1.2 Fixed exploit. Checked for Bard Job Quest compatibility [Lupus]
+//= 1.3 Fixed typo’s [Nexon]
 //============================================================
 
 
@@ -72,7 +73,7 @@ xmas_in.gat,27,103,4	script	Mima	701,{
 	mes "[Mima]";
 	mes "Merry Christmas!";
 	mes "I can feel the spirit of Christmas surrounding me whenever I look,";
-	mes "at the young strangers out there... I wish you a merry christmas!";
+	mes "at the young strangers out there... I wish you a merry Christmas!";
 	next;
 	mes "[Mima]";
 	mes "There is an abandoned ^5533FFToy Factory^000000 here in town.  It";
@@ -85,7 +86,7 @@ xmas_in.gat,27,103,4	script	Mima	701,{
 	next;
 	mes "[Mima]";
 	mes "Even though they look similar, they actually are not the same.  For";
-	mes "some reason these mosters have different characteristics from the";
+	mes "some reason these monsters have different characteristics from the";
 	mes "ones found outside.  Some of them are very unique and it seems that";
 	mes "their offspring are adapting to the environment here.";
 	next;
@@ -104,7 +105,7 @@ Xmas5:
 	mes "Hmmm? Hairy Uncle Ken told you about me, didn't he? Well well, I";
 	mes "know what he's thinking... Hoo hoo! He intends to make me feel";
 	mes "happy and expects me to give him some free jars of kimchi!";
-	mes "Hoo hoo, oh well well.";
+	mes "Hoo hoo, oh well.";
 	next;
 	mes "[Mima]";
 	mes "He knows too much about me... I can't stop him from getting some";
@@ -130,10 +131,10 @@ Xmas5:
 Xmas6:
 	mes "[Mima]";
 	mes "Hohohoho -";
-	mes "Let's see... Huh ? Didn't you yet bring it?";
+	mes "Let's see... Huh? Didn't you yet bring it?";
 	mes "Oh my goodness, my cabbages will get sour soon!";
 	mes "( ? )";
-	mes "Hurry up,Chop Chop -!!";
+	mes "Hurry up, Chop Chop -!!";
 	next;
 	mes "[Mima]";
 	mes "*sigh* You are really a scatterbrained person, my dear...";
@@ -160,7 +161,7 @@ Xmas7:
 	mes "a thick-grass filed of magical force,";
 	next;
 	mes "[Mima]";
-	mes "I can't tell you what the reason was,but I figured out Jack Frost";
+	mes "I can't tell you what the reason was, but I figured out Jack Frost";
 	mes "came to possess the gift bag within, due to the strange reaction";
 	mes "between alchemy items used by Great alchemist and its original";
 	mes "structure material, the mysterious snow.";
@@ -196,7 +197,7 @@ xmas_in.gat,100,96,4	script	Father Christmas::Santa1	718,{
 	next;
 	mes "[Santa Claus]";
 	mes "Ho Ho Ho~";
-	mes "If for some reason you wish to leave the wonderfull town of Lutie,";
+	mes "If for some reason you wish to leave the wonderful town of Lutie,";
 	mes "just head south of town.  You'll find a warp that will lead you";
 	mes "back to Al De Baran.";
 	next;
@@ -257,11 +258,11 @@ xmas_in.gat,165,173,4	script	Debra	711,{
 	next;
 	mes "[Debra]";
 	mes "Have you ever talked to the snowman in front of this town?";
-	mes "Snowman in sloitude, made of White Snow....";
+	mes "Snowman in solitude, made of White Snow....";
 	next;
 	mes "[Debra]";
 	mes "However he got a warm heart.  Sometimes I talk to ' Jack Frost '";
-	mes "the snowman.  Without reason ..even though he is a snowman,";
+	mes "the snowman.  Without reason.. even though he is a snowman,";
 	mes "He can understand and stand to listen to us";
 	next;
 	mes "[Debra]";
@@ -313,7 +314,7 @@ xmas_in.gat,165,173,4	script	Debra	711,{
 		next;
 		mes "[Debra]";
 		mes "Yet you didn't meet Jack Frost yet? I think you should try to";
-		mes "talk to him at least once...  Well then, Merry Christmas !!";
+		mes "talk to him at least once...  Well then, Merry Christmas!!";
 		set xmas_npc,2;
 		close;
 }
@@ -353,10 +354,10 @@ Xmas34:
 	next;
 	mes "[Peterson]";
 	mes "There is a man who knows about Jack Frost's secret.....";
-	mes "That man is ^3355FF'Hairy Uncle Ken'^000000... Yes, he definately knows...";	
+	mes "That man is ^3355FF'Hairy Uncle Ken'^000000... Yes, he definitely knows...";	
 	next;
 	mes "[Peterson]";
-	mes "One day when an apprentice of the great alchemist visted Lutie,";
+	mes "One day when an apprentice of the great alchemist visited Lutie,";
 	mes "I listened to the conversation between Hairy Uncle Ken and";
 	mes "Jack Frost.";
 	next;
@@ -366,7 +367,7 @@ Xmas34:
 	mes "him with several ores of magic and some other things.....";
 	next;
 	mes "[Peterson]";
-	mes "Well, as far as the details of the story, I recomend you listen";
+	mes "Well, as far as the details of the story, I recommend you listen";
 	mes "to what ^3355FF'Hairy Uncle Ken'^000000 has to say.";
 	set xmas_npc,4;
 	close;
@@ -424,14 +425,14 @@ Xmas4:
 	next;
 	mes "[Hairy Uncle Ken]";
 	mes "Wahhahaha! Don't look at me like that! My tastes are none of your";
-	mes "business!!! Start finding a way to get me what I wan't, otherwise";
+	mes "business!!! Start finding a way to get me what I want, otherwise";
 	mes "...... you won't get what YOU want.... *Chuckles*";
 	close;
 
 	XmasL0:
 		mes "[Hairy Uncle Ken]";
 		mes "Oh ?! *Chuckles* !! You seem to be a reliable person..";
-		mes "Gooooooood! Ok, first I need something to drink....";
+		mes "Good! Ok, first I need something to drink....";
 		next;
 		delitem 1024,1;
 		delitem 938,1;
@@ -457,7 +458,7 @@ Xmas4:
 		next;
 		mes "[Hairy Uncle Ken]";
 		mes "As immediately came inside the village he encountered a grim";
-		mes "scene..... Everything was destoryed.... there was nothing left.";
+		mes "scene..... Everything was destroyed.... there was nothing left.";
 		mes "People groaned and moaned in pain, and were dying...";
 		mes "It was the worst scene he'd ever witnessed.";
 		next;
@@ -466,7 +467,7 @@ Xmas4:
 		mes "strange thing was a snowman that was melting down into water";
 		mes "....^3355FF' Jack Frost '^000000! Even more astonishing was";
 		mes "the fact that it held 2 crying babies in its arms.  So the";
-		mes "great alchemist could assumed the snowman sacficed itself to";
+		mes "great alchemist could assumed the snowman sacrificed itself to";
 		mes "protect them from great danger.";
 		next;
 		mes "[Hairy Uncle Ken]";
@@ -518,7 +519,7 @@ xmas.gat,134,112,4	script	Jack Frost	710,{
 	if(xmas_npc==9) goto Xmas9;
 	if(xmas_npc==10) goto Xmas10;
 	if(xmas_npc==11) goto Xmas11;
-	mes "*sob*sob*........ I'm sooo lonely..... I can't go anywhere! I";
+	mes "*sob*sob*........ I'm so lonely..... I can't go anywhere! I";
 	mes "am stuck here day and night... frozen to this cold earth....";
 	emotion 28;
 	next;
@@ -534,20 +535,20 @@ xmas.gat,134,112,4	script	Jack Frost	710,{
 		next;
 		mes "[Jack Frost]";
 		mes "On day a horrible old lady came to my village...... Her name was.... ^790079'Mariposum'^000000......";
-		mes "I heard she came from some place extremely hot..... some weird village in some kind of cave.";
+		mes "I heard she came from some place extremely hot..... Some weird village in some kind of cave.";
 		next;
 		mes "[Jack Frost]";
 		mes "On the fourth night after she arrived here, she went to central square.......";
 		mes "Without warning she started casting horrible spells....... Suddenly a huge storm emerged.....";
 		next;
 		mes "[Jack Frost]";
-		mes "Almost immediately the powerfull storm knocked my friend and I unconscious........";
+		mes "Almost immediately the powerful storm knocked my friend and I unconscious........";
 		next;
 		mes "[Jack Frost]";
 		mes "I don't know how long I was out, but when I woke up I found myself right here in Lutie..........";
 		next;
 		mes "[Jack Frost]";
-		mes "But my friends were not...... I have lost all of my friends.......... I feel soooo lonely.......";
+		mes "But my friends were not...... I have lost all of my friends.......... I feel so lonely.......";
 		emotion 28;
 		close;
 	L1:
@@ -562,7 +563,7 @@ xmas.gat,134,112,4	script	Jack Frost	710,{
 		next;
 		mes "[Jack Frost]";
 		mes "Part of me is intrigued by this place and I would like to see it";
-		mes "just once..... but part of me is also a little frighten of the";
+		mes "just once..... But part of me is also a little frighten of the";
 		mes "possessed toys.....";
 		close;
 	LEnd:
@@ -591,14 +592,14 @@ Xmas2:
 	mes "How did I get here...? Why can I communicate with humans...?";
 	mes "How can I......??";
 	next;
-	mes "^3355FF- Jack Frost falls deep into his thouhgts -^000000";
+	mes "^3355FF- Jack Frost falls deep into his thoughts -^000000";
 	mes "^3355FF- He is looking at 'Peterson's' name card -^000000";
 	set xmas_npc,3;
 	close;
 Xmas3:
 	mes ". . . . . . . . . . . . . . .";
 	next;
-	mes "^3355FF- Jack Frost falls deep into his thouhgts -^000000";
+	mes "^3355FF- Jack Frost falls deep into his thoughts -^000000";
 	mes "^3355FF- He is looking at 'Peterson's' name card -^000000";
 	close;
 Xmas4:
@@ -619,7 +620,7 @@ Xmas5:
 	next;
 	mes "[Jack Frost]";
 	mes "He enjoys drinking some strange kind of drink......";
-	mes "They say it is a miracle that he doesn't have a stomachahe.";
+	mes "They say it is a miracle that he doesn't have a stomachache.";
 	mes "Heh~ . .I love this guy too . .";
 	close;
 Xmas6:
@@ -631,7 +632,7 @@ Xmas6:
 	mes "^3355FF' Got the roughest salt in the world'^000000.";
 	next;
 	mes "[Jack Frost]";
-	mes "I like her cooking because it is soooo delicious.";
+	mes "I like her cooking because it is so delicious.";
 	mes "Sometimes she offers me cups of ice flakes with grape syrup...";
 	next;
 	mes "[Jack Frost]";
@@ -641,7 +642,7 @@ Xmas7:
 	close;
 Xmas8:
 	mes "Boring Clown 'Howie'... At first glance, he looks a dumb,";
-	mes "talentless clown..... But he has a pure heart and is always";
+	mes "talent less clown..... But he has a pure heart and is always";
 	mes "taking care of the 2 orphans...";
 	close;
 Xmas9:
@@ -683,7 +684,7 @@ Xmas10:
 		mes "Wow -Congratulations!!";
 		mes "^3355FF- 5 Candy  -^000000!";
 		mes "Dear my friend,";
-		mes "Please visit me from time to time,and take a chitchat with me.";
+		mes "Please visit me from time to time, and take a chitchat with me.";
 		mes "See you soon -";
 		mes "Merry Christmas!!";
 		close;
@@ -693,7 +694,7 @@ Xmas10:
 		mes "Wow -Congratulations!!";
 		mes "^3355FF- 10 Candy  -^000000!";
 		mes "Dear my friend,";
-		mes "Please visit me from time to time,and take a chitchat with me.";
+		mes "Please visit me from time to time, and take a chitchat with me.";
 		mes "See you soon -";
 		mes "Merry Christmas!!";
 		close;
@@ -703,7 +704,7 @@ Xmas10:
 		mes "Wow -Congratulations!!";
 		mes "^3355FF- 5 Candy  Cane-^000000!";
 		mes "Dear my friend,";
-		mes "Please visit me from time to time,and take a chitchat with me.";
+		mes "Please visit me from time to time, and take a chitchat with me.";
 		mes "See you soon -";
 		mes "Merry Christmas!!";
 		close;
@@ -713,7 +714,7 @@ Xmas10:
 		mes "Wow -Congratulations!!";
 		mes "^3355FF- 10 Candy  Cane-^000000!";
 		mes "Dear my friend,";
-		mes "Please visit me from time to time,and take a chitchat with me.";
+		mes "Please visit me from time to time, and take a chitchat with me.";
 		mes "See you soon -";
 		mes "Merry Christmas!!";
 		close;
@@ -723,7 +724,7 @@ Xmas10:
 		mes "Wow -Congratulations!!";
 		mes "^3355FF- 1 Piece_of_Cake-^000000!";
 		mes "Dear my friend,";
-		mes "Please visit me from time to time,and take a chitchat with me.";
+		mes "Please visit me from time to time, and take a chitchat with me.";
 		mes "See you soon -";
 		mes "Merry Christmas!!";
 		close;
@@ -733,7 +734,7 @@ Xmas10:
 		mes "Wow -Congratulations!!";
 		mes "^3355FF- 2 Piece_of_Cake-^000000!";
 		mes "Dear my friend,";
-		mes "Please visit me from time to time,and take a chitchat with me.";
+		mes "Please visit me from time to time, and take a chitchat with me.";
 		mes "See you soon -";
 		mes "Merry Christmas!!";
 		close;
@@ -743,7 +744,7 @@ Xmas10:
 		mes "Wow -Congratulations!!";
 		mes "^3355FF- 5 Cookie-^000000!";
 		mes "Dear my friend,";
-		mes "Please visit me from time to time,and take a chitchat with me.";
+		mes "Please visit me from time to time, and take a chitchat with me.";
 		mes "See you soon -";
 		mes "Merry Christmas!!";
 		close;
@@ -753,7 +754,7 @@ Xmas10:
 		mes "Wow -Congratulations!!";
 		mes "^3355FF- 10 Cookie-^000000!";
 		mes "Dear my friend,";
-		mes "Please visit me from time to time,and take a chitchat with me.";
+		mes "Please visit me from time to time, and take a chitchat with me.";
 		mes "See you soon -";
 		mes "Merry Christmas!!";
 		close;
@@ -828,7 +829,7 @@ xmas.gat,146,136,4	script	Howie the Clown	715,{
 			mes "chance?";
 			next;
 			mes "[Howie]";
-			mes ". . . . . Then hopefully you will remeber the 2 babies, whom";
+			mes ". . . . . Then hopefully you will remember the 2 babies, whom";
 			mes "Jack Frost carried in his arms...while his body melted away...";
 			next;
 			mes "[Howie]";
@@ -838,7 +839,7 @@ xmas.gat,146,136,4	script	Howie the Clown	715,{
 			mes "the 2 babies....";
 			next;
 			mes "[Howie]";
-			mes "Jack Frost made the ulimate sacrifce for Charlie and Marsha....";
+			mes "Jack Frost made the ultimate sacrifice for Charlie and Marsha....";
 			mes "I can see you are quite interested in the story of Jack Frost,";
 			mes "why don't you go meet those 2 children for more information?";
 			next;
@@ -859,7 +860,7 @@ xmas.gat,146,136,4	script	Howie the Clown	715,{
 xmas.gat,206,168,4	script	Charlie	706,{
 	if(xmas_npc==9) goto Xmas9;
 	mes "[Charlie]";
-	mes "Merry Merry Christmas! Did you talk to that clown, ^5533FFHowie^000000 yet? Man that";
+	mes "Merry, Merry Christmas! Did you talk to that clown, ^5533FFHowie^000000 yet? Man that";
 	mes "clown is REALLY boring......";
 	next;
 	mes "[Charlie]";
@@ -947,14 +948,14 @@ Xmas9a:
 	next;
 Xmas10:
 	mes "[Marsha]";
-	mes "Oh? Now I see.... You've come to know alot about Jack Frost....";
+	mes "Oh? Now I see.... You've come to know a lot about Jack Frost....";
 	mes "Maybe even more than any one person in this town.  Please try to";
 	mes "talk to Mr. Jack Frost.  He will probably be delighted that you";
 	mes "are so interested in him.  Maybe you will even be able to get a";
 	mes "present from him.";
 	next;
 	mes "[Marsha]";
-	mes "I wish you the best of luck.  Merry Christmas !!";
+	mes "I wish you the best of luck.  Merry Christmas!!";
 	set xmas_npc,10;
 	close;
 }

@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Some people & eAthena Dev Team
 //===== Current Version: ===================================== 
-//= 1.03
+//= 1.04
 //===== Compatible With: ===================================== 
 //= Any eAthena Version; Niflheim Required
 //===== Description: ========================================= 
@@ -14,6 +14,7 @@
 //      and other fixes, thanks to Shinomori
 // 1.02 Fixed & Spell Checked [massdriller]
 // 1.03 Fixed 2 NPC names, slight optimization [Lupus]
+// 1.04 Fixed a few typo's [Nexon]
 //=====================================================================
 alberta.gat,245,93,4	script	Captain	709,{
 	mes "[Carter Moores]";
@@ -253,7 +254,7 @@ ama_in01.gat,162,17,0	script	Iron Chef	765,{
 	mes "Everyday more customers come,";
 	mes "but I can never get";
 	mes "enough material, even today.";
-	mes "A lot of customers surely will be huntry?";
+	mes "A lot of customers surely will be hungry?";
 	next;
 	mes "[ShabuShabu]";
 	mes "*Sigh*, a customer. Welcome.";
@@ -382,7 +383,7 @@ L0:
 	mes "Hanging Under the Blue Sky's Blue Roof";
 	mes "Shining on Blue Wall's Reflection on the Blue Lake";
 	mes "Blue Hearting Containing a Blue Desire";
-	mes "Blue Blue Every thing's Blue";
+	mes "Blue, Blue Every thing's Blue";
 	next;
 	goto LEnd;
 L1:
@@ -395,7 +396,7 @@ L1:
 	goto LEnd;
 L2:
 	mes "[Kuruchi]";
-	mes "Monk,Monk, The Fox Is Following Me";
+	mes "Monk, Monk, The Fox Is Following Me";
 	mes "Shout At Him To Scare It Off!";
 	mes "Voice Too Small So It Didn't Run Off";
 	mes "Followed All The Way To North Side's Shrine!";
@@ -403,7 +404,7 @@ L2:
 	goto LEnd;
 L3:
 	mes "[Kuruchi]";
-	mes "Monk,Monk, The Fox Is Following Me";
+	mes "Monk, Monk, The Fox Is Following Me";
 	mes "Ramen noodles My Favorite";
 	mes "But Now I am No Longer Afraid?";
 	mes "I Shouted Loudly To Scare It Off!";
@@ -563,7 +564,7 @@ amatsu.gat,112,164,4	script	Guard Soldier	767,{
 	mes "[Guard Soldier]";
 	mes "From your clothes, it looks like you are from another continent.";
 	mes "In the past, the Master specifically";
-	mes "permitted the travellers to come in and out.";
+	mes "permitted the travelers to come in and out.";
 	mes "Now you may go in.";
 	close;
 }
@@ -623,7 +624,7 @@ LStart2:
 Lfail:
 	mes "[...]";
 	mes "^FF0066Clang Clannng! Haha! Clang Clannng! Hahahaha!";
-	mes "How dare you,wanting to throw me out!";
+	mes "How dare you, wanting to throw me out!";
 	mes "Get out of here!! Clang Clannng!^000000";
 	next;
 	warp "amatsu",167,197;
@@ -793,7 +794,7 @@ LError:
 		close;
 L2:
 		mes "[Kyro]";
-		mes "This will be difficult,you can";
+		mes "This will be difficult, you can";
 		mes "freely move around, but the master";
 		mes "hasn't considered anything about immigration.";
 		mes "But, you can stay as long as you want";
@@ -823,7 +824,7 @@ ama_in02.gat,37,157,4	script	Soldier	767,{
 	mes "And I also frequently see strange people.";
 	mes "I've heard that the customers upstairs are";
 	mes "from far away, but because of their";
-	mes "auspicious behaviours.  I already command the soldiers";
+	mes "auspicious behaviors.  I already command the soldiers";
 	mes "to monitor their movements...";
 	next;
 	mes "[Sbarro]";
@@ -836,7 +837,7 @@ ama_in02.gat,37,157,4	script	Soldier	767,{
 //=====================================================================
 ama_in02.gat,32,51,6	script	Shiro	767,{
 	mes "[Shiro]";
-	mes "Cough cOugh, cough cough, what... leave me alone";
+	mes "Cough cough, cough cough, what... leave me alone";
 	mes "Go visit another place...";
 	mes "Cough cough, cough cough... ouch, my throat";
 	next;
@@ -860,7 +861,7 @@ ama_in02.gat,40,167,3	script	Soldier	767,{
 	mes "I will tell you a story";
 	next;
 	mes "[Kuro]";
-	mes "In Amatsu there is this rumour.";
+	mes "In Amatsu there is this rumor.";
 	mes "The truth is the current master";
 	mes "is not the real master of the town... shh, quiet!";
 	mes "Don't panic, please continue to listen.";
@@ -947,7 +948,7 @@ ama_in02.gat,195,156,4	script	Soldier	767,{
 	mes "Usually he's a very nice guy...";
 	next;
 	mes "[Kuro]";
-	mes "There are strange rumours going around,";
+	mes "There are strange rumors going around,";
 	mes "but I still trust my master,";
 	mes "because he was the one who";
 	mes "transformed our town. So I became";
@@ -1068,7 +1069,7 @@ ama_in02.gat,200,176,4	script	Castle Owner	768,{
 	close;
 LStart2:
 	mes "[Ishida Yoshinaku]";
-	mes "What! A visitor...? Oh,sorry";
+	mes "What! A visitor...? Oh, sorry";
 	mes "But today I am not in the mood";
 	mes "of seeing a visitor!";
 	next;
@@ -1222,7 +1223,7 @@ LStart2:
 	mes "[Takikuwi]";
 	mes "It is very hard to get rid of a fox in a person's body";
 	mes "If there's alcohol and ramen noodle,";
-	mes "Iit might be a little easier,";
+	mes "It might be a little easier,";
 	mes "But they are hard to find!";
 	next;
 	mes "[Takikuwi]";
@@ -1241,7 +1242,7 @@ LStart2:
 	mes "and to friend and family as well!";
 	next;
 	mes "[Takikuwi]";
-	mes "Anyway,I've heard that when";
+	mes "Anyway, I've heard that when";
 	mes "there's a strong animal then a fox will chased,";
 	mes "away from the human.";
 	mes "So try hard, and try summoning the animal spirit!";
@@ -1329,7 +1330,7 @@ amatsu.gat,287,266,3	script	Jyaburo	766,{
 	mes "for my wife and me";
 	next;
 	mes "[Jyaburo]";
-	mes "..When I was here Proposing";
+	mes "..When I was here proposing";
 	mes "to her here under the tree..";
 	mes "I didn't know that she";
 	mes "liked me as well";
@@ -1337,7 +1338,7 @@ amatsu.gat,287,266,3	script	Jyaburo	766,{
 	mes "[Jyaburo]";
 	mes "After that, we talked a lot here under this tree,";
 	mes "this is the ideal location";
-	mes "because of its tranquillity and harmony,";
+	mes "because of its tranquility and harmony,";
 	mes "an everlasting moment of happiness";
 	next;
 	mes "[Jyaburo]";

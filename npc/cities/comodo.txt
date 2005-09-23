@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= eAthena dev team
 //===== Current Version: ===================================== 
-//= 1.2b
+//= 1.4
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
@@ -14,6 +14,7 @@
 //= Implemented the 'Cheese'/Stone of Awakening quest.  Re-organized stuff. [kobra_k88]
 //= 1.2b Added Baby Class support [Lupus]
 //= 1.3 Spell Checked and Fixed [massdriller]
+//= 1.4 Fixed typo’s [Nexon]
 //============================================================
 
 
@@ -26,7 +27,7 @@
 comodo.gat,216,310,4	script	BBQ Papa	85,{
 OnStart:
 	mes "[BBQ Son]";
-	mes "Daddy! Daddy!........ Is it true that an ^FF4444Evil Witch^000000 once lived in our village?? Does she still live here???";
+	mes "Daddy! Daddy!... Is it true that an ^FF4444Evil Witch^000000 once lived in our village?? Does she still live here???";
 	next;
 	mes "[BBQ Mama]";
 	mes "Son, where did you hear about that?";
@@ -35,14 +36,14 @@ OnStart:
 	mes "Ha ha... are you scared of the Evil Witch? It's just an old story......";
 	next;
 	mes "[BBQ Son]";
-	mes "No daddy! If the Witch really lived on our island, her home must be around here still.... She had to have a place to sleep in... right??";
+	mes "No daddy! If the Witch really lived on our island, her home must be around here still.... She had to have a place to sleep in... Right??";
 	next;
 	mes "[BBQ Mama]";
 	mes "Ho ho ho... now if all of this were true don't you think the ^5555FFChief^000000 would know about it?";
 	mes "Anyway, we better start eating before the meat gets overcooked.";
 	next;
 	mes "[BBQ Son]";
-	mes "Okay.... (~crunch~chew~) Yum Yum!!. I'm... I'm...... (~chomp~chomp~).... gonna find out the truth!! (~crunch~chomp~) Mmmmm......";
+	mes "Okay.... (~crunch~chew~) Yum Yum!!. I'm... I'm...... (~chomp~chomp~).... going to find out the truth!! (~crunch~chomp~) Mmmmm......";
 	close;
 }
 
@@ -102,7 +103,7 @@ cmd_in02.gat,172,105,4	script	G . J	86,{
 	mes "You would want your friend to buy you dinner or even lend you some of the prize money right?";
 	next;
 	mes "[G . J]";
-	mes "After all it's not like your friend EARNED the money.... he/she just got lucky thats all.";
+	mes "After all it's not like your friend EARNED the money.... he/she just got lucky that’s all.";
 	mes "Your friend shouldn't mind sharing money that really isn't his/hers.";
 	next;
 	mes "[G . J]";
@@ -174,7 +175,7 @@ cmd_in02.gat,73,81,4	script	Martine	48,{
 	mes "You know what I mean?? (~wink~)";
 	next;
 	mes "[Martine]";
-	mes "What?......... Don't look at me like that!.................";
+	mes "What?......... Don't look at me like that!...";
 	emotion 0;
 	next;
 	mes "[Martine]";
@@ -186,7 +187,7 @@ cmd_in02.gat,73,81,4	script	Martine	48,{
 	mes "But no worries here cause after I've made some zeny, I'll be right back were I left off!!";
 	next;
 	mes "[Martine]";
-	mes "WOO HOO!! I'm gonna have a blast!! HAHAHA!";
+	mes "WOO HOO!! I'm going to have a blast!! HAHAHA!";
 	emotion 29;
 	close;
 }
@@ -243,7 +244,7 @@ cmd_in02.gat,48,55,4	script	Scoursege	51,{
 	emotion 19;
 	next;
 	mes "[Scoursege]";
-	mes "He was positive that he could double my money and make a little for himself! Where is he?...............";
+	mes "He was positive that he could double my money and make a little for himself! Where is he!...";
 	next;
 	mes "[Scoursege]";
 	mes "Have I been scammed!?? On no! What should I do?? My zeny..... (~sob~sob~)";
@@ -280,7 +281,7 @@ L_0:
 		emotion 21;
 		next;
 		mes "[Rochito]";
-		mes "Look at all of this meat in front of me! I don't know what to do with all of this meat! What should I do?? Oh no!....................";
+		mes "Look at all of this meat in front of me! I don't know what to do with all of this meat! What should I do?? Oh no!...";
 		emotion 19;
 		next;
 		mes "[Rochito]";
@@ -342,7 +343,7 @@ L_2:
 	mes ".........................";
  	next;
 	mes "[Rochito]";
-	mes "We should give him something in return as a thank you.  But what can we give him?..........";
+	mes "We should give him something in return as a thank you.  But what can we give him?...";
 	mes "should we give him that wonderful ^5555FFWine^000000 we've been saving? It has a very nice aroma....";
 	next;
 	mes "[Rochito]";
@@ -465,7 +466,7 @@ L_1:
 	mes "Wow!! This is Comodo's famous seasoning!! The Captain's friend is truly a good person.  To be this generous is unbelievable!";
 	emotion 0;
 	next;
-	mes "[Rotute";
+	mes "[Rotute]";
 	mes "I can only hope that I find a friend that is as loyal as he on this quest.....";
 	close;
 
@@ -540,7 +541,7 @@ comodo.gat,209,305,4	script	Emralhandas	70,{
 		mes "It was ^5555FFTausupa^000000.";
 		next;
 		mes "[Emralhandas]";
-		mes "Of course we are greatfull to all the brave warriors who fought and lost their lives that day.";
+		mes "Of course we are great full to all the brave warriors who fought and lost their lives that day.";
 		mes "Especially to 'Rotute's' father who cannot be with us today, may he rest in peace.";
 		next;
 		mes "[Emralhandas]";
@@ -548,7 +549,7 @@ comodo.gat,209,305,4	script	Emralhandas	70,{
 		close;
 	M_End:
 		mes "[Emralhandas]";
-		mes "Our quest has not yet been completed.  Rockha we must eat all of the meat in Rune Midgard until there is none left!!";
+		mes "Our quest has not yet been completed.  Rockha, we must eat all of the meat in Rune Midgard until there is none left!!";
 		mes "We must eat and eat, for the pride of our Meat Club!!! (~hiccup~)";
 		close;
 }
@@ -658,7 +659,7 @@ L_2:
 
 	sL_2:
 		mes "[Chief Tausupa]";
-		mes "I would like to thank you for helping my friends and I.  I am truly greatfull.";
+		mes "I would like to thank you for helping my friends and I.  I am truly great full.";
 		close;
 }
 
@@ -753,7 +754,7 @@ M_Menu:
 		emotion 3;
 		next;
 		mes "[TORUNA]";
-		mes "Oh if I could just have one piece.... I'd be soooo happy I'd dance all night on that ^5555FFHula Dancing Stage^000000!!";
+		mes "Oh if I could just have one piece.... I'd be so happy I'd dance all night on that ^5555FFHula Dancing Stage^000000!!";
 		close;
 }
 
@@ -763,7 +764,7 @@ comodo.gat,164,291,2	script	Rakusa	73,{
 	if(dmdswrd_Q == 8) goto L_2;
 
 	mes "[Rakusa]";
-	mes "Comodo is often reffered to as the town of 'recreation and relaxation'.......";
+	mes "Comodo is often referred to as the town of 'recreation and relaxation'.......";
 	next;
 	mes "[Rakusa]";
 	mes "This can be misleading however, for Comodo is not only the home of fun tourist attractions, but two very ^FF4444dangerous dungeons^000000 as well.";
@@ -800,7 +801,7 @@ comodo.gat,169,284,4	script	Kichiri	99,{
 	next;
 	mes "[Kichiri]";
 	mes "Many of the residents just dance and dance without much skill.";
-	mes "But for the few who show some talent, there is the possiblity of being recruited by the local ^5555FFDancers Guild^000000.";
+	mes "But for the few who show some talent, there is the possibility of being recruited by the local ^5555FFDancers Guild^000000.";
 	close;
 L_1:
 	mes "The guy sitting near me just won't stop talking about Comodo ^5533FFCheese^000000...... It's going to drive me insane!";
@@ -831,7 +832,7 @@ comodo.gat,163,280,4	script	Magatu	55,{
 	emotion 21;
 	next;
 	mes "[Magatu]";
-	mes "Cheese! CHEESE!! WONDERFULL Comodo CHEESE!!!.... soooo.... tas... ty.... (~drooools~)";
+	mes "Cheese! CHEESE!! WONDERFULL Comodo CHEESE!!!.... so.... tas... ty.... (~drooools~)";
 	emotion 3;
 	close;
 L_1:
@@ -850,10 +851,10 @@ L_1:
 	set dmdswrd_Q, 10;
 	close;
 L_2:
-	mes "Oh yeah, I gotta tell you my friend's name.....";
+	mes "Oh yeah, I got to tell you my friend's name.....";
 	next;
 	mes "[Magatu]";
-	mes "O? I already told you? Bah, I am sooo drunk....... ^5533FFManzi^000000... he's in the ^009500Casino^000000, got it?";
+	mes "O? I already told you? Bah, I am so drunk....... ^5533FFManzi^000000... He’s in the ^009500Casino^000000, got it?";
 	emotion 20;
 	close;
 }
@@ -1093,7 +1094,7 @@ L_2:
 	mes "You will be given some real Comodo cheese to eat.  If you are strong enough you will have no problems with the cheese.";
 	next;
 	mes "[Nigirboran]";
-	mes "If you start to feel nauscious and start having hallucinations, that means you have succumb to the poison and are not worthy of the Stone of Awakening.";
+	mes "If you start to feel noxious and start having hallucinations, that means you have succumb to the poison and are not worthy of the Stone of Awakening.";
 	next;
 	mes "[Nigirboran]";
 	mes "Ready?";

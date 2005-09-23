@@ -4,7 +4,7 @@
 //= jAthena (1.0)
 //= DNett123 (1.1 - 1.5)
 //===== Current Version: =====================================
-//= 1.6c
+//= 1.7
 //===== Compatible With: =====================================
 //= Latest eAthena SVN
 //===== Description: =========================================
@@ -17,7 +17,8 @@
 //= 1.4 - Edited Dancer, Thanks ceskil [DNett123]
 //= 1.5 - Fixed Script, and spelling errors, some thanks to Sparkles [DNett123]
 //= 1.6 - Final corrections (not complete), thanks to the public, and DNett123!
-//= 1.6c added missing monsters. still 1 type is missing [Lupus]
+//= 1.6c - added missing monsters. Still 1 type is missing [Lupus]
+//= 1.7 – Fixed a lot of typo’s [Nexon]
 //============================================================
 
 //===== Mobs: ================================================
@@ -44,10 +45,10 @@ izlude.gat,171,185,4	script	Marriage Companion	71,{
 	next;
 	menu "^3355ffJawaii^000000?",-,"Go To ^3355ffJawaii^000000",Lwarp,"Cancel",Lend;
 		mes "[Happy Wedding]";
-		mes "It is widely different from the rest of the Rune-Midgart Kingdom.";
+		mes "It is widely different from the rest of the Rune-Midgard Kingdom.";
 		mes "An island far away from the rest. People have always wanted to go there on vacation.";
-		mes "It is very famous amoungst the newlyweds, and many go there on their honeymoon.";
-		mes "A cute rest area. Due to it being such a popular place, we can only allow married coulples to visit.";
+		mes "It is very famous amongst the newlyweds, and many go there on their honeymoon.";
+		mes "A cute rest area. Due to it being such a popular place, we can only allow married couples to visit.";
 		next;
 		mes "[Happy Wedding]";
 		mes "Because this is such a special travel area, the cost is high.";
@@ -139,7 +140,7 @@ jawaii.gat,214,168,4	script	Marriage Companion	71,{
 	next;
 	mes "[Happy Wedding]";
 	mes "There is no place better for newlyweds than Jawaii!";
-	mes "You came with the the recollection of yout marriage.";
+	mes "You came with the recollection of your marriage.";
 	mes "It is better, now, that you leave here with lots of happy memories.";
 	next;
 	mes "[Happy Wedding]";
@@ -208,7 +209,7 @@ jawaii.gat,112,173,0	script	Inn Care-Taker	93,{
 			close;  
 	Later:
 		mes "[Inn Care-taker]"; 
-		mes "Allright, please come back later."; 
+		mes "Alright, please come back later."; 
 		close; 
 }
 

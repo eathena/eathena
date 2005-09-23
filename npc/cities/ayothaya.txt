@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //=
 //===== Current Version: =====================================
-//= 0.4
+//= 0.5
 //===== Compatible With: ===================================== 
 //= Any eAthena +
 //===== Description: ========================================= 
@@ -14,6 +14,7 @@
 //= 0.3 Fixed Warp name, ayotaya.gat doesnt exist, even though iRO 
 //=  decided to call it Ayotaya, it really is Ayothaya, like that Yuno/Juno thing
 //= 0.4 Added the official warp npc for Ayothaya. [MasterOfMuppets]
+//= 0.5 Fixed typo’s [Nexon]
 //============================================================ 
 
 ayothaya.gat,152,68,1	script	Aibakthing	843,{
@@ -31,7 +32,7 @@ ayothaya.gat,152,68,1	script	Aibakthing	843,{
 
 L_Cancel:
 	mes "[Aibakthing]";
-	mes "Ah yes. I unsderstand that it is difficult to take leave of such a beautiful place. Do not worry and take your time.";
+	mes "Ah yes. I understand that it is difficult to take leave of such a beautiful place. Do not worry and take your time.";
 	close;
 } 
 

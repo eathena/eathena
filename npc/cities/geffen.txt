@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.1 
+//= 1.2
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -11,6 +11,7 @@
 //===== Additional Comments: ================================= 
 //= Fully working
 //= 1.1 - Spell Checked [massdriller]
+//= 1.2 Fixed more typo’s [Nexon]
 //============================================================
 
 
@@ -20,7 +21,7 @@ geffen.gat,59,143,8	script	Lady	91,{
 	mes "Oh, you must be a Stranger here.";
 	next;
 	mes "[Lady]";
-	mes "Welcome to geffen, the City of Magic.  You Must be very tired? Why don't you eat Some ^ffaa00Honey^000000? It will relieve of your fatigue";
+	mes "Welcome to Geffen, the City of Magic.  You Must be very tired? Why don't you eat Some ^ffaa00Honey^000000? It will relieve of your fatigue";
 	next;
 	mes "[Lady]";
 	mes "Honey is very sweet and highly nutritious.  It will allow you to ^0000ffregain^000000 some of your ^0000ffHP as well as SP^000000.";
@@ -100,7 +101,7 @@ geffen_in.gat,34,170,0	script	"Young man"	47,{
 	next;
 	mes "[Young Man]";
 	mes "Darn! It was really annoying when I encountered that long-ranged enemy last time. It disrupted magic casting.";
-	mes "After all I realised I need a weapon to counter Such a long-ranged attack from an enemy....But geez..It is not easy to make such a weapon I wish.";
+	mes "After all I realized I need a weapon to counter Such a long-ranged attack from an enemy....But geez.. It is not easy to make such a weapon I wish.";
 	next;
 	mes "There should be another way.....Should be.....";
 	mes "Any ideas for me?";
@@ -113,7 +114,7 @@ geffen_in.gat,34,170,0	script	"Young man"	47,{
 geffen_in.gat,70,67,5	script	Waitress	80,{
 	mes "[Waitress]";
 	mes "Ugh!! SO annoying! Why would you drink here when you could drink at the pub!? This is an Inn, not a pub!!";
-	mes "That man!... everytime he drinks... he gets like that! Ugh!!";
+	mes "That man!... every time he drinks... he gets like that! Ugh!!";
 	emotion 6;
 	next;
 	mes "[Waitress]";
@@ -194,7 +195,7 @@ M_Menu:
 		mes "It's just not possible to be a Blacksmith and not be dirty and smelly.  Unfortunately it's part of the job.";
 		next;
 		mes "[Merchant Daven]";
-		mes "Weapons forged by Blacksmiths can be much more unique then those sold in Armouries.";
+		mes "Weapons forged by Blacksmiths can be much more unique then those sold in Armories.";
 		mes "The actual ores and stones used by the Blacksmiths are of a much higher quality and are often scarce.";
 		mes "This can give their weapons special qualities that are very beneficial to a character.";
 		goto M_Menu;
@@ -203,7 +204,7 @@ M_Menu:
 		mes "Me?.... Oh I'm the world's PRETTIEST street merchant!!..... the he he...";
 		emotion 30;
 		next;
-		menu "..... I'm gonna puke....",sM_0, ".... SLAPP him upside his head!!!",sM_1;		
+		menu "..... I'm going to puke....",sM_0, ".... SLAPP him upside his head!!!",sM_1;		
 
 		sM_0:
 			mes "[Merchant Daven]";
@@ -297,7 +298,7 @@ geffen_in.gat,28,134,4	script	Waitress	69,{
 	emotion 32;
 M_Menu:
 	next;
-	menu "Could I get drink?",M_0, "Anything interesting goin on lately?",M_1, "End Conversation",M_End;
+	menu "Could I get drink?",M_0, "Anything interesting going on lately?",M_1, "End Conversation",M_End;
 
 	M_0:
 		mes "[Waitress]";
@@ -309,7 +310,7 @@ M_Menu:
 		goto M_Menu;
 	M_1:
 		mes "[Waitress]";
-		mes "Hmm... there really hasn't been anything new going on lately.... there haven't been any rumours from the customers either....";
+		mes "Hmm... there really hasn't been anything new going on lately.... there haven't been any rumors from the customers either....";
 		mes "Come to think of it.... you yourself are a person of few words....";
 		next;
 		mes "[Waitress]";
@@ -457,7 +458,7 @@ M_Menu:
 			goto R1_End;
 		R1_End:
 			mes "[Friend of Youth]";
-			mes "Even in this bleek world, love is all around you! Love can be fun so treasure the heart and come back for another reading!";
+			mes "Even in this bleak world, love is all around you! Love can be fun so treasure the heart and come back for another reading!";
 			emotion 22;
 			goto M_Menu;
 

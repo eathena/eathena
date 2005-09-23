@@ -4,7 +4,7 @@
 //= Muad Dib (1.0) Darkchild (1.1) Muad Dib (1.2)
 //= Darkchild (1.3) DracoRPG (1.5)
 //===== Current Version: ===================================== 
-//= 1.5c
+//= 1.6
 //===== Compatible With: ===================================== 
 //= Any eAthena Mod
 //===== Description: ========================================= 
@@ -16,6 +16,7 @@
 //= 1.5b - Used Dino9021's script for the Gemstone exchanger [DracoRPG]
 //= 1.5b1 fixed Gemstone Exchanger NPC [Lupus]
 //= 1.5b2 added adv.classes/baby classes support [Lupus]
+//= 1.6 Fixed typo’s [Nexon]
 //============================================================ 
 
 payon.gat,190,115,0	script	Lady	90,{
@@ -28,11 +29,11 @@ payon.gat,190,115,0	script	Lady	90,{
 	mes "Because of this many people chose to simply place the dead corpses in the Cave near the village.";
 	next;
 	mes "[Lady]";
-	mes "Not only was this a terrible way to treat those that passed away but it would later prove to have grave consiquences for this town."; 
+	mes "Not only was this a terrible way to treat those that passed away but it would later prove to have grave consequences for this town."; 
 	next;
 	mes "[Lady]";
-	mes "You see, because they were not given a proper burrial, the dead were not able to leave this world and pass on to the other world.";
-	mes "Instead they became mindless zombies, wrethced souls that were forced to walk the earth for all eternity.";
+	mes "You see, because they were not given a proper burial, the dead were not able to leave this world and pass on to the other world.";
+	mes "Instead they became mindless zombies, wretched souls that were forced to walk the earth for all eternity.";
 	next;
 	mes "[Lady]";
 	mes "Their rotten bodies filled with pain and suffering, yearned for the taste of human flesh.  Any living person who came near the cave would fall victim to these zombies.";
@@ -50,7 +51,7 @@ payon_in01.gat,177,91,5	script	Young Man	88,{
 	next;
 	mes "[Young Man]";
 	mes "Sometimes you will encounter some creatures with a hard-shell body which can't be damaged by physical attacks. Only psychic power like magic can defeat them at ease.";
-	mes "If you study magics, works will be easier... If you don't,you'd better accompany with somebody using magic.";
+	mes "If you study magic’s, works will be easier... If you don't, you'd better accompany with somebody using magic.";
 	close;
 }
 
@@ -76,12 +77,12 @@ payon.gat,104,62,5	script	Young Man	88,{
 payon_in01.gat,180,7,0	script	Waitress	90,{
 	mes "[Waitress]";
 	mes "People in this place seem to be busy all the time, they come and go to be Archers or to buy arrows, I have to stick with this small shop.";
-	mes "I feell so melancholy and bored.";
+	mes "I feel so melancholy and bored.";
 	   emotion 28;
  	next;
 	mes "[Waitress]";
 	mes "I am sick and tired of noodle soup. I have to take too many showers to get rid of the smell.";
-	mes "But it isn't easy to deodorize..sigh...";
+	mes "But it isn't easy to deodorize. sigh...";
 	next;
 	mes "[Waitress]";
 	mes "Where can I find the right person who is a really hot, sexy hunk, and who can take me out of this small place?";
@@ -96,13 +97,13 @@ L_Start:
 	next;
 	mes "[Waitress]";
 	mes "Grandma the fortuneteller told me that I would meet great luck in the near future!"; 
-	mes "But look at me, what's wrong with me!! I am leaving a managable life everyday!!";
-	mes "Oh..boy. What a dumb wishy-washy person I am.";
+	mes "But look at me, what's wrong with me!! I am leaving a manageable life everyday!!";
+	mes "Oh.. boy. What a dumb wishy-washy person I am.";
 	emotion 6;
 	next;
 	mes "[Waitress]";
 	mes "I am so sorry, I should haven't said this to you. Now I am acting like i'm stupid.";  
- 	mes "I am sorry dear, please forgive my misbehaviour.";
+ 	mes "I am sorry dear, please forgive my misbehavior.";
 	emotion 4;
 	next;
 	mes "[Waitress]";
@@ -134,7 +135,7 @@ L_Menu2:
 	close;
 L_Menu3:
 	mes "[Waitress]";
-	mes "I am so sorry they're all sold out and we can't afford to prepare alchohol anymore due to hostile creatures out there.";
+	mes "I am so sorry they're all sold out and we can't afford to prepare alcohol anymore due to hostile creatures out there.";
 	mes "My master built a very strict rule of his own, that is we only provide the best drinks to customers.";
 	next;
 	mes "[Waitress]";
@@ -192,10 +193,10 @@ L_Menu1:
 	close;
 L_Menu2:
 	mes "[Woman]";
-	mes "No need to worry about prepapring yourself.  There is an excellent tool dealer in front of town where you can purchase the items you need.";
+	mes "No need to worry about preparing yourself.  There is an excellent tool dealer in front of town where you can purchase the items you need.";
 	next;
 	mes "[Woman]";
-	mes "I know because he's my husban... oops... I mean an aquantence of mine... heh heh..";
+	mes "I know because he's my husband... oops... I mean an acquaintance of mine... heh heh..";
 	   emotion 4;
 	close;
 L_Menu3:
@@ -234,7 +235,7 @@ L_Menu:
 L_Menu1:
 	mes "[Jim's Mother]";
 	mes "Oh yes, there is an extraordinary fortune teller here in town.  You can find her in the central palace.";
-	mes "The more money you pay her the more acurate your fortune will be told.";
+	mes "The more money you pay her the more accurate your fortune will be told.";
 	next;
 	mes "[Jim's Mother]";
 	mes "I saw her recently and she told me that I would meet a handsome young man this month............";
@@ -257,7 +258,7 @@ payon.gat,210,110,4	script	Drunk	120,{
 	   emotion 18;
 L_Menu1_F1:
 	mes "[Drunk]";
-	mes "Yoyo! Archer brother! Salute to your fingers stratching bowstring!";
+	mes "Yoyo! Archer brother! Salute to your fingers stretching bowstring!";
 	   emotion 2;
 	next;
 	mes "[Drunk]";
@@ -280,7 +281,7 @@ L2L:
 	mes "Thanks brother! Strangers are always generous without exception! Archer guys are pinch-pennies nowadays!";
 	mes "Muhahahaha! I wasn't like that when I was young.";
 	mes "Back then I was young, I used to fool around with girls! One of the grannies in this village and I was really hot back then!";
-	mes "She still acts like a young lady in taste for consmetics and stuff!";
+	mes "She still acts like a young lady in taste for cosmetics and stuff!";
 	next;
 	mes "[Drunk]";
 	mes "Gulp~Gulp~Man! This is great! Thank you may man! Thank you! Muhahahahaha!";
@@ -329,7 +330,7 @@ L_Menu2:
 L_Menu3:
 	mes "[Archer Zakk]";
 	mes "You know a big mouth is the person who is much talkative and who doesn't stop talking.";
-	mes "He never stops talking as I said, one day he started to talk while we did laundry at the riverbank, he stopped talking when we realised our shirts tunrned out to get tattered.";
+	mes "He never stops talking as I said, one day he started to talk while we did laundry at the riverbank, he stopped talking when we realized our shirts tunrned out to get tattered.";
 	mes "He became a kind of legend, people used to call him as Bowing Mouth or Chatterbox instead of his real name.";
 	mes "I've never seen a person talk as much as him.";
 	next;
@@ -337,7 +338,7 @@ L_Menu3:
 	mes "I've been many places, but I didn't see any guy who likes talking or being talkative.";
 	mes "Maybe other people agree on my opinion. Oh yes, I think you are with me.";
 	mes "As I see your face, you've got friends of few words so far! Hmm Hmm!!";
-	mes "Tactiturnity is bliss, you know.";
+	mes "Taciturnity is bliss, you know.";
 	next;
 	mes "[Archer Zakk]";
 	mes "Ah, My friend Wolt? He doesn't have his place so he always stay at inn.";
@@ -360,7 +361,7 @@ L_Menu1:
 	mes "Hmm... You don't? You are born to be an archer then.";
 	next;
 	mes "[Archer Wolt]";
-	mes "We Archers are constantly practicing and rarely have time to just sit around.  So we hate people who are not dilligent.";
+	mes "We Archers are constantly practicing and rarely have time to just sit around.  So we hate people who are not diligent.";
 	next;
 	mes "[Archer Wolt]";
 	mes "Are you curious about HOW we practice?";
@@ -388,22 +389,22 @@ L_sub1:
 	next;
 	mes "[Archer Wolt]";
 	mes "This is because they are made out of high quality wood found only in the Payon Forest!";
-	mes "My bow was made from a Walnut tree and will last for gererations to come.";
+	mes "My bow was made from a Walnut tree and will last for generations to come.";
 	next;
 	mes "[Archer Wolt]";
-	mes "Unfortunatley many of the wonderfull trees in Payon forest have been affected by the evil force that has spread throughout Rune-Midgard and have turned into horrible creatures.";
+	mes "Unfortunately many of the wonderful trees in Payon forest have been affected by the evil force that has spread throughout Rune-Midgard and have turned into horrible creatures.";
 	next;
 	mes "[Archer Wolt]";
-	mes "It's a pitty to see such beatifull trees become tools of evil...";
+	mes "It's a pitty to see such beautiful trees become tools of evil...";
 	next;
 	mes "[Archer Wolt]";
 	mes "Strange as it may sound, even as monsters the trees still provide high quality wood that can be used for bows.";
 	mes "Maybe the trees seek to help us fight the evils in the land?...";
 	next;
-	menu "I didn't realise the forest was so dangerous",L_case,"(This guy talks way to much)",L_End;
+	menu "I didn't realize the forest was so dangerous",L_case,"(This guy talks way to much)",L_End;
 L_case:
 	mes "[Archer Wolt]";
-	mes "But you know monsters don't appear only in the forest. Don't you realise why the archer village was established in this place?";
+	mes "But you know monsters don't appear only in the forest. Don't you realize why the archer village was established in this place?";
 	mes "Heading west, you can see a cave. Inside the cave, enormous monsters keep spawning without limit.";
 	mes "We are here, to protect our territory against them in obedience to our chief's order.";
 	next;
@@ -436,13 +437,13 @@ L_para2:
 	close;
 L_para3:
 	mes "[Archer Wolt]";
-	mes "Well thats not very nice!";
+	mes "Well that’s not very nice!";
 	mes "If you don't like our humble town then you should leave, bastard!";
 	close;
 L_Menu2:
 	mes "[Archer Wolt]";
 	mes "Hmm...sometimes you need rest.";
-	mes "Do you want to listen to my story? I set fire on my house during my last holiday~ hahaha~ I fell a sleep while I heated the bath.Hahaha!";
+	mes "Do you want to listen to my story? I set fire on my house during my last holiday~ hahaha~ I fell a sleep while I heated the bath. Hahaha!";
 	next;
 	menu "Is it ok to take a rest?",L_temp1,"But how about my training?",L_temp2,"...Blah see ya.",L_temp3;
 L_temp1:
@@ -453,7 +454,7 @@ L_temp1:
 L_sub_para1:
 	mes "[Archer Wolt]";
 	mes "Chief? Ah he is such a great guy. Well, he always scolds me because I talk too much talking.";
-	mes "He always trys to keep us in safety. Lately it seems he doesn't come out of his palace.";
+	mes "He always tries to keep us in safety. Lately it seems he doesn't come out of his palace.";
 	mes "He is inside a room guarded by a warrior.";
 	next;
 	mes "[Archer Wolt]";
@@ -466,7 +467,7 @@ L_sub_para2:
 	mes "Ah that guy in the pub. When I get spare money I buy him a drink sometimes, I am so worried about his drinking disorder.";
 	mes "He is one of my villagers, I don't want to see him dead.";
 	mes "Hmm...he reminds me of a jug full of beer...";
-	mes "I gotta go to the pub! Ok then, See you later!";
+	mes "I got to go to the pub! Ok then, See you later!";
 	close;
 L_sub_para3:
 	mes "[Archer Wolt]";
@@ -476,7 +477,7 @@ L_temp2:
 	mes "[Archer Wolt]";
 	mes "Hmm...You don't? You are born to be an archer then.";
 	mes "We, archers should not idle away without practice.";
-	mes "So we hate people who are not dilligent.";
+	mes "So we hate people who are not diligent.";
 	next;
 	mes "[Archer Wolt]";
 	mes "It is so amazing that lazy guy like me could be an archer.";
@@ -545,7 +546,7 @@ L_Menu2:
 	   emotion 23;
 	next;
 	mes "[Archer Joe]";
-	mes "Please come back later when you become more skillfull! Let's talk about what makes archers of Payon so attractive later!";
+	mes "Please come back later when you become more skillful! Let's talk about what makes archers of Payon so attractive later!";
 	close;
 L_Menu3:
 	mes "[Archer Joe]";
@@ -557,7 +558,7 @@ L_Menu3:
 
 payon.gat,132,235,2	script	Monster Scholar	98,{
 	mes "[Monster Scholar Vuicokk]";
-	mes "Nice to meet you. I am Vuicokk the cholar in the monster research organization of Rune Midgard.";
+	mes "Nice to meet you. I am Vuicokk the scholar in the monster research organization of Rune Midgard.";
 	mes "Do you have any questions about monsters of Rune Midgard?";
 	next;
 	menu "Late News.",L_Menu1,"Undead Monster.",L_Menu2,"Monster Research Organization.",L_Menu3,"Good day",L_End;
@@ -568,7 +569,7 @@ L_Menu1:
 	next;
 	mes "[Monster Scholar Vuicokk]";
 	mes "Especially in the cave, monsters of undead attribute are spotted here and there, monster academic world is paying attention on the cave.";
-	mes "My mission in here is analysing their characters.";
+	mes "My mission in here is analyzing their characters.";
 	close;
 L_Menu2:
 	mes "[Monster Scholar Vuicokk]";
@@ -578,7 +579,7 @@ L_Menu2:
 	mes "Now they are but lost, tortured, souls seeking release from their painful existence....";
 	next;
 	mes "[Monster Scholar Vuicokk]";
-	mes "Undead monsters are of a totaly different classification then the other monsters because of the fact that they used to be humans.";
+	mes "Undead monsters are of a totally different classification then the other monsters because of the fact that they used to be humans.";
 	next;
 	mes "[Monster Scholar Vuicokk]";
 	mes "It is for this reason that the King of Rune Midgard has a great deal of interest in our research on Undead monsters. ";
@@ -596,16 +597,16 @@ L_Menu3:
 	mes "The Monster Research Organization was formed to find ways to counteract the sudden and rapid growth of monsters in Rune Midgard.";
 	next;
 	mes "[Monster Scholar Vuicokk]";
-	mes "Talented scientest from all over the land have been called forth to participate in this research.";
+	mes "Talented scientist from all over the land have been called forth to participate in this research.";
 	next;
 	mes "[Monster Scholar Vuicokk]";
 	mes "Of course this work is not as easy as one might expect.  We are constantly risking our lives when we go out into the field.";
 	next;
 	mes "[Monster Scholar Vuicokk]";
-	mes "There have already been countless injuries and fatalities suffered by the reaserch team.";
+	mes "There have already been countless injuries and fatalities suffered by the research team.";
 	next;
 	mes "[Monster Scholar Vuicokk]";
-	mes "However NOTHING can stop us!  We will continue to perservere for the bennifit of the people of RUNE MIDGARD!!!";
+	mes "However NOTHING can stop us!  We will continue to persevere for the benefit of the people of RUNE MIDGARD!!!";
 	   emotion 0;
 	next;
 	mes "[Monster Scholar Vuicokk]";
@@ -669,8 +670,8 @@ T_LEVEL:
 L_Menu1:
 	mes "[Chief]";
 	mes "Payon is the city of highlanders, who'be been self-supporting and self-sufficient.";
-	mes "Although our ancestors couldn't take civillized cultural benefits as much as farmers or citizens did, they knew how to make their living without help.";
-	mes "Young acting power motivated them to survive from the elemetal forces. We, payon people including females have learned how to go hunt and how to protect ourselves from danger.";
+	mes "Although our ancestors couldn't take civilized cultural benefits as much as farmers or citizens did, they knew how to make their living without help.";
+	mes "Young acting power motivated them to survive from the elemental forces. We, payon people including females have learned how to go hunt and how to protect ourselves from danger.";
 	next;
 	mes "[Chief]";
 	mes "I heard of weak young people who fear fields or dungeons filled with monsters. But to us, battle against monsters is a part of our lives.";
@@ -688,7 +689,7 @@ L_Menu2:
 	close;
 L_Menu3:
 	mes "[Chief]";
-	mes "The cave up North is the place I used to goto sometimes.";
+	mes "The cave up North is the place I used to go to sometimes.";
 	mes "It was harder then now, evil creatures that I'd never seen kept respawning inside without limit.";
 	mes "Present monsters are...different from the monsters we used to fight with.";
 	next;
@@ -707,7 +708,7 @@ L_Menu4:
 	mes "It is a natural benefit that we own excellent archers. You might think Forest welcomes archers to practice bowing, but it takes the side opposite yours.";
 	next;
 	mes "[Chief]";
-	mes "The forest aids you in hiding yourself, blocking the way of enemies who must approch to attack.";
+	mes "The forest aids you in hiding yourself, blocking the way of enemies who must approach to attack.";
 	mes "Archers are dexterous to attack dull enemies from a long distance.";
 	next;
 	mes "[Chief]";
@@ -902,7 +903,7 @@ payon_in03.gat,117,128,4	script	Fortune Teller	704,{
 	if(@TEMP == 1) mes "His navel is very pretty. You have to meet someone with that type of navel to be happy.";
 	if(@TEMP == 2) mes "Hmm. How about giving a cute puppy as a gift? One with a round nose.";
 	if(@TEMP == 2) mes "Then they will surely be happy.";
-	if(@TEMP == 3) mes "No matter how fearful the bull may be, if it has a nose ring, it has already been tamed by humans. No matter how astonishing that person may be, taming is your resposiblity.";
+	if(@TEMP == 3) mes "No matter how fearful the bull may be, if it has a nose ring, it has already been tamed by humans. No matter how astonishing that person may be, taming is your responsibility.";
 	if(@TEMP == 4) mes "Who is he so fiercely gazing at with those grand muscles? He is looking at someone else for sure.";
 	if(@TEMP == 5) mes "They may seem dreary and ominous, but their attire is spotless. They show devotion to the other.";
 	if(@TEMP == 5) mes "Even though you are not satisfied with your love right now, take a look at they attire.";
@@ -918,7 +919,7 @@ payon_in03.gat,117,128,4	script	Fortune Teller	704,{
 	if(@TEMP == 5) mes "heart for you can be seen in it as well..";
 	next;
 	mes "[Lhimetorra]";
-	mes "You seeked advice about love.";
+	mes "You seek advice about love.";
 	mes "Even if you may not pleased with it, consider it calmly and make an effort to find true happiness.";
 	next;
 	mes "[Lhimetorra]";
@@ -974,7 +975,7 @@ payon_in03.gat,117,128,4	script	Fortune Teller	704,{
 	next;
 	set @TEMP,0;
 	mes "[Lhimetorra]";
-	if(@TEMP == 0) mes "The pirate is warning you of your beauty. Don't show off your beauty too much. Pirates are very jealous of aparence, as well.";
+	if(@TEMP == 0) mes "The pirate is warning you of your beauty. Don't show off your beauty too much. Pirates are very jealous of appearance, as well.";
 	next;
 	mes "[Lhimetorra]";
 	if(@TEMP == 0) mes "A warning is always a useful fortune. You can never lose anything.";

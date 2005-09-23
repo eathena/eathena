@@ -7,7 +7,7 @@
 //= Mass Zero (1.3)
 //= MasterOfMuppets (2.0)
 //===== Current Version: ===================================== 
-//= 2.1a
+//= 2.1b
 //===== Compatible With: ===================================== 
 //= Any eAthena Version
 //===== Description: ========================================= 
@@ -19,8 +19,9 @@
 //	  texts celest? xD)
 //= 2.0 - Completely rewrote the current scripts based on iRO.
 //        Added the 'Shouting Quest' and the 'Medicine Quest'
-//= 2.1 Optimized, made quest vars unique [Lupup]
+//= 2.1 Optimized, made quest vars unique [Lupus]
 //= 2.1a minor fix
+//= 2.1b Fixed Typo’s [Nexon]
 //============================================================
 
 alberta.gat,245,45,4	script	Girl	815,{
@@ -28,7 +29,7 @@ alberta.gat,245,45,4	script	Girl	815,{
 	mes "La la la la~";
 	mes "I feel so good today~";
 	mes "I'm in the mood to go";
-	mes "on a picning somewhere~";
+	mes "on a picnic somewhere~";
 	mes "La la la la~";
 	next;
 	menu "About Louyang.",-,"Go to Louyang.",M_GOTO,"Cancel.",M_CANCEL;
@@ -44,7 +45,7 @@ alberta.gat,245,45,4	script	Girl	815,{
 	mes "with stories of ancient magic and warriors. It's also rumored that many evil beasts roam the Louyang area";
 	next;
 	mes "[Girl]";
-	mes "You can find cure-all medicines, mysterious occurences, and martial artists all in one place!";
+	mes "You can find cure-all medicines, mysterious occurrences, and martial artists all in one place!";
 	next;
 	mes "[Girl]";
 	mes "I used to train in the martial arts every morning back when I was in Louyang. I might not look like it, but I'm pretty strong!";
@@ -133,10 +134,10 @@ louyang.gat,224,104,4	script	Representative	818,{
 	mes "of bravery.";
 	next;
 	mes "[Representative]";
-	mes "We now provide an ocean lane to accomodate foreign travelers and intercultural exchange from which all can benefit.";
+	mes "We now provide an ocean lane to accommodate foreign travelers and intercultural exchange from which all can benefit.";
 	next;	
 	mes "[Representative]";
-	mes "Louyang is famous for it's eleaborate history, as well as specialities that are unique to this nation. Please take your time and enjoy your stay.";
+	mes "Louyang is famous for it's elaborate history, as well as specialties that are unique to this nation. Please take your time and enjoy your stay.";
 	next;
 	menu "Ask Building Locations.",-,"Remove all marks from mini-map.",M_REMOVE,"Cancel",M_CANCEL;
 	
@@ -161,14 +162,14 @@ M_DOC:
 	next;
 	viewpoint 1,263,93,2,0xFFFF00;
 	mes "[Representative]";
-	mes "Is is said that there";
+	mes "It is said that there";
 	mes "is no disease she cannot cure.";
 	mes "Well, I can't guarantee if that's true or not.";
 	close;
 
 M_CHALL:
 	mes "[Representative]";
-	mes "We have a City Hall where the federal governemtn operates.";
+	mes "We have a City Hall where the federal government operates.";
 	mes "It is located at ^AFAFAF+^000000.";
 	next;
 	viewpoint 1,310,79,3,0xAFAFAF;
@@ -225,10 +226,10 @@ louyang.gat,213,214,4	script	Soldier	825,{
 	mes "Welcome to louyang, a city with a long and colorful history.";
 	next;
 	mes "[Soldier]";
-	mes "Recently we've developed an ocean lane to accomodate positive exchange with foreign nations.";
+	mes "Recently we've developed an ocean lane to accommodate positive exchange with foreign nations.";
 	next;	
 	mes "[Soldier]";
-	mes "Louyang is well-known for various specialities in addition to its right. Here you can find many things unique to our land.";
+	mes "Louyang is well-known for various specialties in addition to its right. Here you can find many things unique to our land.";
 	next;
 	mes "[Soldier]";
 	mes "Please take your time and we invite you to enjoy your trip here in Louyang.";
@@ -256,14 +257,14 @@ M_DOC:
 	next;
 	viewpoint 1,263,93,2,0xFFFF00;
 	mes "[Soldier]";
-	mes "Is is said that there";
+	mes "It is said that there";
 	mes "is no disease she cannot cure.";
 	mes "Well, I can't guarantee if that's true or not.";
 	close;
 
 M_CHALL:
 	mes "[Soldier]";
-	mes "We have a City Hall where the federal governemtn operates.";
+	mes "We have a City Hall where the federal government operates.";
 	mes "It is located at ^AFAFAF+^000000.";
 	next;
 	viewpoint 1,310,79,3,0xAFAFAF;
@@ -324,7 +325,7 @@ lou_fild01.gat,195,177,4	script	Jiu Lian Bu	819,{
 	mes "What's up?";
 	next;
 	mes "[Jiu Lian Bu]";
-	mes "I don't like hangning around too many people, so I came here. Listening to this strean really puts my mind to ease.";
+	mes "I don't like hanging around too many people, so I came here. Listening to this strean really puts my mind to ease.";
 	next;
 	mes "[Jiu Lian Bu]";
 	mes "No offense, but I'm upset";
@@ -332,7 +333,7 @@ lou_fild01.gat,195,177,4	script	Jiu Lian Bu	819,{
 	mes "Sure, I can understand that our town is attractive and has beautiful sights.";
 	next;
 	mes "[Jiu Lian Bu]";
-	mes "But I just can't stand crowds of peopel. People gather like sheep to any place they hear is popular, and that really bugs me!";
+	mes "But I just can't stand crowds of people. People gather like sheep to any place they hear is popular, and that really bugs me!";
 	next;
 	mes "[Jiu Lian Bu]";
 	mes "Speaking of which, there's even";
@@ -348,7 +349,7 @@ lou_fild01.gat,195,177,4	script	Jiu Lian Bu	819,{
 	mes "Oh sure, the food and flavors";
 	mes "there have a long history, but I";
 	mes "don't think that justifies how they";
-	mes "charge their partrons!";
+	mes "charge their patrons!";
 	next;
 	mes "[Jiu Lian Bu]";
 	mes "As a young man";
@@ -357,7 +358,7 @@ lou_fild01.gat,195,177,4	script	Jiu Lian Bu	819,{
 	mes "people like that!";
 	next;
 	mes "[Jiu Lian Bu]";
-	mes "But everyone here already knows who I am, so I can't do anything! I've allready had one too many, shall we say, 'incidents' with the people living here allready.";
+	mes "But everyone here already knows who I am, so I can't do anything! I've already had one too many, shall we say, 'incidents' with the people living here already.";
 	next;
 	mes "[Jiu Lian Bu]";
 	mes "I've been caught for tagging walls, shoplifting, camming, stealing a few girlfriends... So yeah, I'm not exactly known as a sterling citizen.";
@@ -376,8 +377,8 @@ lou_fild01.gat,195,177,4	script	Jiu Lian Bu	819,{
 	mes "owner's secret recipe.";
 	next;
 	mes "[Jiu Lian Bu]";
-	mes "But they're been cheating their";
-	mes "customers bu watering that broth";
+	mes "But they've been cheating their";
+	mes "customers by watering that broth";
 	mes "down and selling it for a";
 	mes "ridiculous price! Serves them right";
 	mes "if their secrets were stolen!";
@@ -389,12 +390,12 @@ lou_fild01.gat,195,177,4	script	Jiu Lian Bu	819,{
 	menu "I'll do it!",-,"No, stealing is wrong.",M_NO;
 
 	mes "[Jiu Lian Bu]";
-	mes "grrrrreat!";
+	mes "Great!";
 	mes "I knew you'd";
 	mes "see things my way!";
 	next;
 	mes "[Jiu Lian Bu]";
-	mes "Okay, the restaurant is at the East side of Louyang. But you gotta be careful. The workers there watch over that broth like freakin' hawks!";
+	mes "Okay, the restaurant is at the East side of Louyang. But you got to be careful. The workers there watch over that broth like freakin' hawks!";
 	set QL_ACCEPTSOUP,1;
 	close;
 
@@ -432,7 +433,7 @@ L_FAKE:
 	next;
 	mes "[Jiu Lian Bu]";
 	mes "Ohhhh man....";
-	mes "This is soooo not Dragon Soup Broth. Sorry, but would you go and try to get it again?";
+	mes "This is so not Dragon Soup Broth. Sorry, but would you go and try to get it again?";
 	close;
 	set QL_GOTFAKESOUP,0;
 
@@ -462,7 +463,7 @@ L_DONE:
 	mes "[Jiu Lian Bu]";
 	mes "Hey~";
 	mes "So how ya been, ya smooth criminal?";
-	mes "You wanna visit that place again?";
+	mes "You want to visit that place again?";
 	next;
 	menu "Sure, let's go~",-,"Nah, maybe next time.",M_NAH;
 
@@ -489,7 +490,7 @@ lou_fild01.gat,175,174,4	script	Jiu Lian Bu	819,{
 	if(QL_SOUP2 < 1) goto L_1STTIME;
 	mes "[Jiu Lian Bu]";
 	mes "So...";
-	mes "Whaddya wanna do?";
+	mes "Whaddya want to do?";
 	emotion 18;
 	next;
 	menu "Shout.",-,"Leave.",M_LEAVE;
@@ -524,7 +525,7 @@ L_DOQUEST:
 L_1STTIME:
 	mes "[Jiu Lian Bu]";
 	mes "So...";
-	mes "Whaddya thing?";
+	mes "Whaddya think?";
 	mes "Prettiest place in Louyang, isn't it?";
 	next;
 	mes "[Jiu Lian Bu]";
@@ -578,7 +579,7 @@ L_1STTIME:
 	next;
 	mes "[Jiu Lian Bu]";
 	mes "So from now on, whenever you";
-	mes "wanna relieve yourself of stress,";
+	mes "want to relieve yourself of stress,";
 	mes "come see me and we'll come back to";
 	mes "this place. Call it my way of";
 	mes "saying thanks.";
@@ -741,7 +742,7 @@ lou_in02.gat,62,183,4	script	Chef	820,{
 	mes "Our specialty, Dragon Soup,";
 	mes "won especially high praise from";
 	mes "Lord Bai Long, who is known for";
-	mes "his extremly discerning sense of taste.";
+	mes "his extremely discerning sense of taste.";
 	next;
 	mes "[Wang Shi Long]";
 	mes "I'm also proud to say that we cook";
@@ -846,7 +847,7 @@ lou_in02.gat,80,173,2	script	Li Min	746,{
 	next;
 	mes "[Li Min]";
 	mes "I just returned";
-	mes "becayse I've got";
+	mes "because I've got";
 	mes "a huge craving for the";
 	mes "food I tasted here";
 	mes "a while ago.";
@@ -952,7 +953,7 @@ louyang.gat,174,150,4	script	Liu Chi Ling	815,{
 	next;
 	mes "[Jiu Chi Ling]";
 	mes "^6A6A6A*Sigh~~*^000000";
-	mes "I'm not gonna let him";
+	mes "I'm not going to let him get";
 	mes "away this time!";
 	close;
 
@@ -995,7 +996,7 @@ L_QUEST:
 	next;
 	mes "[Jin Chiyuan]";
 	mes "^6A6A6A*whispers*";
-	mes "^2A2A2AWell, there is a way that you can, shall we say, expediate our processing of your request...^000000";
+	mes "^2A2A2AWell, there is a way that you can, shall we say, expedite our processing of your request...^000000";
 	next;
 	menu "Huh? Come again?",-,"A little zeny to cut the red tape, eh?",M_BRIBE;
 
@@ -1232,7 +1233,7 @@ lou_in02.gat,201,166,5	script	Storage Keeper	819,{
 	mes "[Jiang Xiayou]";
 	mes "^6A6A6A*Yawn...*^000000";
 	mes "This is boring...";
-	mes "So boring, it's ridiculous. I don't wanna waste any more time here, I've got important things to do...";
+	mes "So boring, it's ridiculous. I don't want to waste any more time here, I've got important things to do...";
 	close;
 
 L_QUEST:
@@ -1303,7 +1304,7 @@ L_LAZY:
 	mes "[Jiang Xiayou]";
 	mes "Huh?";
 	mes "Haven't you gone to City Hall yet?";
-	mes "Whaaaat a lazy ass";
+	mes "What a lazy ass";
 	next;
 	mes "[Jiang Xiayou]";
 	mes "Shouldn't you hurry to get that medicine to the doc? We're talking a man's life at stake, that mean anything to you?";
@@ -1364,7 +1365,7 @@ louyang.gat,274,136,4	script	Powerful-looking guy	819,{
 	mes "[Akiira]";
 	mes "If you are considering";
 	mes "studying the martial arts, you";
-	mes "should first attaing knowledge";
+	mes "should first attain knowledge";
 	mes "before jumping into the";
 	mes "physical training.";
 	next;
@@ -1399,11 +1400,11 @@ louyang.gat,276,136,4	script	Fist Master	819,{
 	next;
 	mes "[Zhiang Xiau Ji]";
 	mes "I'm very proud that I've";
-	mes "mastered this art ten yearse arlier";
+	mes "mastered this art ten years earlier";
 	mes "than I expected. Now I need to";
 	mes "study this form and improve it by";
 	mes "correcting its weak points and";
-	mes "enhancing its strenghts.";
+	mes "enhancing its strengths.";
 	next;
 	mes "[Zhiang Xiau Ji]";
 	mes "I guess that would take me about";
@@ -1501,7 +1502,7 @@ L_QUOT10:
 L_QUOT11:
 	mes "[Trainee]";
 	mes "Yeeah~!";
-	mes "Ah i'm so tired~~!!";
+	mes "Ah I’m so tired~~!!";
 	mes "(faints).....";
 	close;
 }
@@ -1605,7 +1606,7 @@ L_MED:
 	if(countitem(7252) == 0)goto L_NOMED;
 	mes "[Hua Tuo]";
 	mes "Ah, finally...";
-	mes "You've brought what I need. Thank you so much, it's such a relief to have this medicine onhand again.";
+	mes "You've brought what I need. Thank you so much, it's such a relief to have this medicine on hand again.";
 	delitem 7252,1; //Herbal Medicine
 	next;
 	mes "[Hua Tuo]";
@@ -1618,7 +1619,7 @@ L_MED:
 	mes "I've just run out of other medicines that my patients will be needing. I don't need too much, but you would be doing me a great favor.";
 	next;		
 	mes "[Hua Tuo]";
-	mes "The medicines I need are ^0000FF2 Claw of Panther^000000 which supports the bones, ^0000FF10 Very Hard Peach^000000 which strenghthens the muscle, ^0000FF5 Poisonus Toad Skin which replenishes the skin...";
+	mes "The medicines I need are ^0000FF2 Claw of Panther^000000 which supports the bones, ^0000FF10 Very Hard Peach^000000 which strengthens the muscle, ^0000FF5 Poisonous Toad Skin which replenishes the skin...";
 	next;
 	mes "[Hua Tuo]";
 	mes "^0000FF20 Brown Root^000000 which regulates the heart, ^0000FF10 Sprout^000000 which eases the abdomen and ^0000FF5 Honey Jar^000000 which provides nutrition.";

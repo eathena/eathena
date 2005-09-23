@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.3c
+//= 1.4
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
@@ -14,6 +14,7 @@
 //= (in both NPC/Warps) [Lupus]. Removed it from NPC and put in Warp
 //= 1.3 Removed some NPC due to Assassin Job Quest [kobra_k88]
 //= 1.3b mobs name corrected [Lupus], 1.3c - Adv classes support
+//= 1.4 Fixed typo’s [Nexon]
 //============================================================
 
 
@@ -22,7 +23,7 @@
 // Old Scholar ===============================
 morocc_in.gat,112,122,2	script	Old Scholar	61,{
 	mes "[Old Scholar]";
-	mes "I've devoted my Life to researching the Pyramids.  Although I not found anything significant yet, I am confindent that I will find the Tomb of Ancient King, Osiris!";
+	mes "I've devoted my Life to researching the Pyramids.  Although I not found anything significant yet, I am confident that I will find the Tomb of Ancient King, Osiris!";
 	next;
 	mes "[Old Scholar]";
 	mes "It is within the largest of the Morroc Pyramids, that the Greatest King in History sleeps the eternal sleep.  That is... if my memory serves me correctly......";
@@ -73,10 +74,10 @@ M_Menu:
 	M_Anthell:
 		mes "[Ant Man Akira]";
 		mes "Anthell gets it's name from the fact that the cave is home to the largest colony of giant ants in Rune-Midgard.";
-		mes "There are litterally thousands of ants performing work for the colony while their queens lay hundreds and hundreds of eggs.";
+		mes "There are literally thousands of ants performing work for the colony while their queens lay hundreds and hundreds of eggs.";
 		next;
 		mes "[Ant Man Akira]";
-		mes "Many people go there to traine because of the numerous amounts of ant eggs.  But be carefull...";
+		mes "Many people go there to train because of the numerous amounts of ant eggs.  But be careful...";
 		next;
 		mes "[Ant Man Akira]";
 		mes "Attack an ant by mistake, and you'll find yourself surrounded by a swarm of them before you can even use a fly wing!";
@@ -88,11 +89,11 @@ M_Menu:
 		mes "Andres are white, Pieres are green, and Deniros are red colored.  Their differences are not merely cosmetic however.";
 		next;
 		mes "[Ant Man Akira]";
-		mes "Andres are the weakest of the ants while Deniros are the most fiercesome of the ants.  Pieres lay somewhere in the middle.";
+		mes "Andres are the weakest of the ants while Deniros are the most fierce some of the ants.  Pieres lay somewhere in the middle.";
 		next;
 		mes "[Ant Man Akira]";
-		mes "Becarefull when your around them.  If you hit 1 Andre the other Andres in the area with swarm and attack you.";
-		mes "The same goes for Deniros and Pieres.  You should also know that ants are looters so watchout for your items.";
+		mes "Be careful when your around them.  If you hit 1 Andre the other Andres in the area with swarm and attack you.";
+		mes "The same goes for Deniros and Pieres.  You should also know that ants are looters so watch out for your items.";
 		goto M_Menu;
 	M_End:
 		mes "[Ant Man Akira]";
@@ -107,10 +108,10 @@ M_Menu:
 // Poring Lady Syvia ==================================
 morocc.gat,79,111,2	script	Poring Lady Syvia	700,{
 	mes "[Poring Lady Syvia]";
-	mes "All over Rune-Midgard you can see lots of cute monsters such as Spores, the musroom type creature....";
+	mes "All over Rune-Midgard you can see lots of cute monsters such as Spores, the mushroom type creature....";
 	next;
 	mes "[Poring Lady Syvia]";
-	mes "Or Pickys, desert chicks that wear egg shells on their heads and jump around in the Morrc Desert..!";
+	mes "Or Pickys, desert chicks that wear egg shells on their heads and jump around in the Morroc Desert..!";
 	mes "However you can't deny that the ^FF8888Poring^000000 is the cutest and most popular creature in all of Rune-Midgard.";
 	next;
 	mes "[Poring Lady Syvia]";
@@ -128,7 +129,7 @@ M_Menu:
 		mes "It is a high level monster armed with the Holy property.  It is immune to almost all magic attacks except those of the neutral & shadow property.";
 		next;
 		mes "[Poring Lady Syvia]";
-		mes "Physical attacks are definately the way to go against these monsters.";
+		mes "Physical attacks are definitely the way to go against these monsters.";
 		next;
 		mes "[Poring Lady Syvia]";
 		mes "Don't I know a lot about porings?  Quite frankly I'm in love with them.... =P";
@@ -139,8 +140,8 @@ M_Menu:
 		mes "The Ghostring is an evil ghost poring.  It is rarely seen and luckly so.";
 		next;
 		mes "[Poring Lady Syvia]";
-		mes "It is a high-level monster armed with the ghost property.  This makes it immume to physical attacks.  So Archers, Swordsman, and Thieves beware!";
-		mes "Only weapons with elemental properites will work on Ghostrings.  Of course magic attacks work very well on them also.";
+		mes "It is a high-level monster armed with the ghost property.  This makes it immune to physical attacks.  So Archers, Swordsman, and Thieves beware!";
+		mes "Only weapons with elemental properties will work on Ghostrings.  Of course magic attacks work very well on them also.";
 		next;
 		mes "[Poring Lady Syvia]";
 		mes "Don't I know a lot about porings?  Quite frankly I'm in love with them.... =P";
@@ -216,7 +217,7 @@ morocc.gat,180,155,4	script	Uncle Dimitri	49,{
 	mes "The avarage temperature in the Morroc Desert is many times higher than anywhere else in the Rune-Midgard Kingdom.";
 	next;
 	mes "[Uncle Dimitrii]";
-	mes "Be carefull of where you choose to sit down and rest.  Choose the wrong spot and your butt may catch on fire!!";
+	mes "Be careful of where you choose to sit down and rest.  Choose the wrong spot and your butt may catch on fire!!";
 M_Menu:
 	next;
 	menu "About the Desert sand",M_1,"About the remedy for Fatigue",M_2,"End conversation",M_End;
@@ -240,7 +241,7 @@ M_Menu:
 		mes "Aaaaahhh!!!!";
 		next;
 		mes "[Uncle Dimitri]";
-		mes "Nothing beats desert fatigue like a couple of potions! The ^ff0000Red^000000 ones are especially populare because of their low cost and light weight.";
+		mes "Nothing beats desert fatigue like a couple of potions! The ^ff0000Red^000000 ones are especially popular because of their low cost and light weight.";
 		next;
 		mes "[Uncle Dimitri]";
 		mes "They only recover a small amount of hp, but combined with a dip in a desert oasis, a couple ^ff0000Reds^000000 are all you need.";
@@ -272,7 +273,7 @@ morocc.gat,208,85,7	script	Trader Joe	83,{
 	mes "I figured out later that it wasn't a normal cactus that attacked me but it was ^00cc00Muka^000000, the cactus monster.";
 	next;
 	mes "[Trader Joe]";
-	mes "So be carefull the next time you're out in the desert.  You don't want to make the same mistake I made. (~Sigh~)";
+	mes "So be careful the next time you're out in the desert.  You don't want to make the same mistake I made. (~Sigh~)";
 	close;
 }
 
@@ -289,12 +290,12 @@ morocc.gat,234,273,3	script	Fly Man Armani	54,{
 	
 	M_0:
 		mes "[Fly Man Armani]";
-		mes "It is the boss of desert flies and its much stronger than any other ordanary fly.";
+		mes "It is the boss of desert flies and its much stronger than any other ordinary fly.";
 		mes "It's a rare sight to behold, and for anybody strong enough and lucky enough to defeat it.... ";
 		next;
 		mes "[Fly Man Armani]";
 		mes "The Dragon Fly may even drop an UTLRA RARE item called a ^0000ddClip^000000!";
-		mes "Clips are items that you can attach to weapons, armor, and almost everykind of accessory.";
+		mes "Clips are items that you can attach to weapons, armor, and almost every kind of accessory.";
 		next;
 		mes "[Fly Man Armani]";
 		mes "Clips are ^ffaa00slotted^000000 and therefore you can insert cards into them.  That's what makes them so valuable.";
@@ -310,14 +311,14 @@ morocc.gat,234,273,3	script	Fly Man Armani	54,{
 		emotion 23;
 		next;
 		mes "[Fly Man Armani]";
-		mes "Do you dare underestimate the Dragon Fly??  Bleh! It may be a fly, but I gaurantee you THIS FLY is more than you can handle!";
+		mes "Do you dare underestimate the Dragon Fly??  Bleh! It may be a fly, but I guarantee you THIS FLY is more than you can handle!";
 		emotion 32;
 		next;
 		mes "[Fly Man Armani]";
-		mes "No matter.  If you ARE fortunate enough to run into it, you'll quickly see what I mean.  Afterall, it IS the FLY of ALL FLIES!!!!";
+		mes "No matter.  If you ARE fortunate enough to run into it, you'll quickly see what I mean.  After all, it IS the FLY of ALL FLIES!!!!";
 		next;
 		mes "[Fly Man Armani]";
-		mes "^ff0000Dragon Fly^000000.  Remeber this name well!!";
+		mes "^ff0000Dragon Fly^000000.  Remember this name well!!";
 		close;
 }
 
@@ -338,11 +339,11 @@ M_Menu:
 		mes "Even so there are plants that seem to thrive in the desert.  And where there are plants, there are animals.";
 		next;
 		mes "[Uncle Phlanette]";
-		mes "So even with the high temperatutres, and limited water, living creatures still find a way to survive in the desert."; 
+		mes "So even with the high temperatures, and limited water, living creatures still find a way to survive in the desert."; 
 		next;
 		mes "[Uncle Phlanette]";
-		mes "Unfortunately, for unkown reasons, some of the plants and animals in the desert have turned into dangerous monsters.";
-		mes "The ^00cc00'Mukas'^000000 are one of those mosters.  They were originaly cactus plants.";
+		mes "Unfortunately, for unknown reasons, some of the plants and animals in the desert have turned into dangerous monsters.";
+		mes "The ^00cc00'Mukas'^000000 are one of those monsters.  They were originally cactus plants.";
 		goto M_Menu;
 	M_End:
 		mes "[Uncle Phlanette]";
@@ -373,11 +374,11 @@ moc_fild16.gat,199,212,4	script	Hashisid	48,{
 		mes "Let me tell you a little bit about Assassins";
 		next;
 		mes "[Hashisid]";
-		mes "Assassin's are hired to infiltrate, gather intellegence, and even commit murder without being seen or heard.";
+		mes "Assassin's are hired to infiltrate, gather intelligence, and even commit murder without being seen or heard.";
 		mes "Stealth and speed are vital to Assassins.  Assassins live in the shadows and never get praise or congratulations.";
 		next;
 		mes "[Hashisid]";
-		mes "It's their job to go unoticed.  Though an Assassin may seem like a cruel and heartless individual....";
+		mes "It's their job to go unnoticed.  Though an Assassin may seem like a cruel and heartless individual....";
 		mes "An Assassin will never do any harm to an innocent being.  The main purpose of the Assassin to seek out and destroy evil forces!";
 		close;
 	M_End:

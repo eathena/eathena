@@ -3,13 +3,14 @@
 //===== By: ================================================== 
 //=  edited by x[tsk] 4/30/04
 //===== Current Version: ===================================== 
-//= 1.0 
+//= 1.1
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: ========================================= 
 //
 //===== Additional Comments: ================================= 
 // May be missing npc's and dialogue.
+//= 1.1 Fixed Typo’s [Nexon]
 //============================================================
 
 
@@ -34,7 +35,7 @@ alberta.gat,245,69,4	script	Gonryun Public Relations Official	776,{
 		goto M_Menu;
 	M_2:
 		mes "[Waba]";
-		mes "The traveling expenses are ^0000ff10,000 zeny^000000.  The fee is a bit pricy but this is beacuse of the dangerous nature of the trip.";
+		mes "The traveling expenses are ^0000ff10,000 zeny^000000.  The fee is a bit pricy but this is because of the dangerous nature of the trip.";
 		mes "The return trip is free, however. Are you prepared to go?";
 		next;
 		menu "Let's Go!",-, "Actually... I changed my mind, sorry.",M_End;
@@ -45,7 +46,7 @@ alberta.gat,245,69,4	script	Gonryun Public Relations Official	776,{
 			end;
 		L_NoZeny:
 			mes "[Waba]";
-			mes "I am sorry if it seems like alot, but the ^0000ff10,000 zeny^000000 we request is necessary in order to make the trip.";
+			mes "I am sorry if it seems like a lot, but the ^0000ff10,000 zeny^000000 we request is necessary in order to make the trip.";
 			close;
 	M_End:
 		mes "[Waba]";	
@@ -153,7 +154,7 @@ gonryun.gat,139,142,6	script	Girl	772,{
 	mes "It's been great having new visitors come to the village, but........ ever since I was robbed by that Thief.......";
 	next;
 	mes "[Sanfayon]";
-	mes "I have been sooooo afraid of the foreigners.....";
+	mes "I have been so afraid of the foreigners.....";
 	emotion 16;
 	close;
 }
