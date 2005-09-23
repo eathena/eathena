@@ -962,7 +962,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case AM_DEMONSTRATION:
-		if (dstsd && rand()%100 * battle_config.equip_skill_break_rate/100 < skilllv)
+		if (dstsd && rand()%10000 < skilllv * battle_config.equip_skill_break_rate )
 			pc_breakweapon(dstsd);
 		break;
 		
