@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/23
+	* Software Caused Connection Abort errors will now cause said socket to be
+	  removed inmediately from the listening list of sockets, this may help with
+	  the lag issues that arise when said error occurs. [Skotlex]
 	* Fixed Demonstration having 100% breaking chance if you set skill breaking
 	  chance to 0. [Skotlex]
 	* Swapped functions of @who and @who3 commands. Because it's a spoil [Lupus]

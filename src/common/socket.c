@@ -151,7 +151,11 @@ static int recv_to_fifo(int fd)
 	len=recv(fd,(char *)session[fd]->rdata+session[fd]->rdata_size, RFIFOSPACE(fd), 0);
 	if (len == SOCKET_ERROR) {
 		if (WSAGetLastError() == WSAECONNABORTED) {
-			ShowFatalError("recv_to_fifo: Network broken (Software caused connection abort on session #%d)\n", fd);
+			ShowWarning("recv_to_fifo: Software caused connection abort on session #%d\n", fd);
+			FD_CLR(fd, &readfds); //Remove the socket so the select() won't hang on it.
+#ifdef TURBO
+			FD_CLR(fd, &writefds);
+#endif
 //			exit(1);	//Windows can't really recover from this one. [Skotlex]
 		}
 		if (WSAGetLastError() != WSAEWOULDBLOCK) {
@@ -218,7 +222,11 @@ static int send_from_fifo(int fd)
 	len=send(fd, (const char *)session[fd]->wdata,session[fd]->wdata_size, 0);
 	if (len == SOCKET_ERROR) {
 		if (WSAGetLastError() == WSAECONNABORTED) {
-			ShowFatalError("send_from_fifo: Network broken (Software caused connection abort on session #%d)\n", fd);
+			ShowWarning("send_from_fifo: Software caused connection abort on session #%d\n", fd);
+			FD_CLR(fd, &readfds); //Remove the socket so the select() won't hang on it.
+#ifdef TURBO
+			FD_CLR(fd, &writefds);
+#endif
 //			exit(1);
 		}
 		if (WSAGetLastError() != WSAEWOULDBLOCK) {
