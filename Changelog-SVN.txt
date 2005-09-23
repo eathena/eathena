@@ -1,6 +1,9 @@
 Date	Added
 =======
 
+09/24
+	* Done: Adjustable players titles for @who, @who2, @who3 commands [Lupus]
+	- Check msg_athena.conf for new lines
 09/23
 	* Software Caused Connection Abort errors will now cause said socket to be
 	  removed inmediately from the listening list of sockets, this may help with

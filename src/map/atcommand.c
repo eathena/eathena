@@ -1252,6 +1252,7 @@ int atcommand_who3(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
+	char temp0[100];
 	struct map_session_data *pl_sd, **pl_allsd;
 	int i, j, count, users;
 	int pl_GM_level, GM_level;
@@ -1280,18 +1281,26 @@ int atcommand_who3(
 				for (j = 0; player_name[j]; j++)
 					player_name[j] = tolower(player_name[j]);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
+
 					if (battle_config.who_display_aid > 0 && pc_isGM(sd) >= battle_config.who_display_aid) {
-						if (pl_GM_level > 0)
-							sprintf(atcmd_output, "(CID:%d/AID:%d) Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.char_id, pl_sd->status.account_id, pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
-						else
-							sprintf(atcmd_output, "(CID:%d/AID:%d) Name: %s | Location: %s %d %d", pl_sd->status.char_id, pl_sd->status.account_id, pl_sd->status.name, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
+						sprintf(atcmd_output, "(CID:%d/AID:%d) ", pl_sd->status.char_id, pl_sd->status.account_id);
+					} else {
+						atcmd_output[0]=0;
 					}
-					else {
-						if (pl_GM_level > 0)
-							sprintf(atcmd_output, "Name: %s (GM:%d) | Location: %s %d %d", pl_sd->status.name, pl_GM_level, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
-						else
-							sprintf(atcmd_output, "Name: %s | Location: %s %d %d", pl_sd->status.name, pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
+					//Player name
+					sprintf(temp0, msg_txt(333), pl_sd->status.name);
+					strcat(atcmd_output,temp0);
+					//Player title, if exists
+					if (pl_GM_level > 0) {
+						//sprintf(temp0, "(%s) ", player_title_txt(pl_GM_level) );
+						sprintf(temp0, msg_txt(334), player_title_txt(pl_GM_level) );
+						strcat(atcmd_output,temp0);
 					}
+					//Players Location: map x y
+					//sprintf(temp0, "Location: %s %d %d", pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
+					sprintf(temp0, msg_txt(338), pl_sd->mapname, pl_sd->bl.x, pl_sd->bl.y);
+					strcat(atcmd_output,temp0);
+
 					clif_displaymessage(fd, atcmd_output);
 					count++;
 				}
@@ -1319,6 +1328,7 @@ int atcommand_who2(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
+	char temp0[100];
 	struct map_session_data *pl_sd, **pl_allsd;
 	int i, j, count, users;
 	int pl_GM_level, GM_level;
@@ -1347,10 +1357,20 @@ int atcommand_who2(
 				for (j = 0; player_name[j]; j++)
 					player_name[j] = tolower(player_name[j]);
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
-					if (pl_GM_level > 0)
-						sprintf(atcmd_output, "Name: %s (GM:%d) | BLvl: %d | Job: %s (Lvl: %d)", pl_sd->status.name, pl_GM_level, pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level);
-					else
-						sprintf(atcmd_output, "Name: %s | BLvl: %d | Job: %s (Lvl: %d)", pl_sd->status.name, pl_sd->status.base_level, job_name(pl_sd->status.class_), pl_sd->status.job_level);
+					//Players Name
+					//sprintf(atcmd_output, "Name: %s ", pl_sd->status.name);
+					sprintf(atcmd_output, msg_txt(333), pl_sd->status.name);
+					//Player title, if exists
+					if (pl_GM_level > 0) {
+						//sprintf(temp0, "(%s) ", player_title_txt(pl_GM_level) );
+						sprintf(temp0, msg_txt(334), player_title_txt(pl_GM_level) );
+						strcat(atcmd_output,temp0);
+					}
+					//Players Base Level / Job name
+					//sprintf(temp0, "| L:%d/%d | Job: %s", pl_sd->status.base_level, pl_sd->status.job_level, job_name(pl_sd->status.class_) );
+					sprintf(temp0, msg_txt(337), pl_sd->status.base_level, pl_sd->status.job_level, job_name(pl_sd->status.class_) );
+					strcat(atcmd_output,temp0);
+
 					clif_displaymessage(fd, atcmd_output);
 					count++;
 				}
@@ -1359,11 +1379,11 @@ int atcommand_who2(
 	}
 	
 	if (count == 0)
-		clif_displaymessage(fd, msg_table[28]); // No player found.
+		clif_displaymessage(fd, msg_txt(28)); // No player found.
 	else if (count == 1)
-		clif_displaymessage(fd, msg_table[29]); // 1 player found.
+		clif_displaymessage(fd, msg_txt(29)); // 1 player found.
 	else {
-		sprintf(atcmd_output, msg_table[30], count); // %d players found.
+		sprintf(atcmd_output, msg_txt(30), count); // %d players found.
 		clif_displaymessage(fd, atcmd_output);
 	}
 
@@ -1379,7 +1399,6 @@ int atcommand_who(
 	const char* command, const char* message)
 {
 	char temp0[100];
-	char temp1[100];
 	struct map_session_data *pl_sd, **pl_allsd;
 	int i, j, count, users;
 	int pl_GM_level, GM_level;
@@ -1391,7 +1410,6 @@ int atcommand_who(
 	nullpo_retr(-1, sd);
 
 	memset(temp0, '\0', sizeof(temp0));
-	memset(temp1, '\0', sizeof(temp1));
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 	memset(match_text, '\0', sizeof(match_text));
 	memset(player_name, '\0', sizeof(player_name));
@@ -1414,29 +1432,15 @@ int atcommand_who(
 				if (strstr(player_name, match_text) != NULL) { // search with no case sensitive
 					g = guild_search(pl_sd->status.guild_id);
 					p = party_search(pl_sd->status.party_id);
-/*
-					if (g == NULL)
-						sprintf(temp1, msg_txt(333)); //None
-					else
-						sprintf(temp1, "%s", g->name);
-					if (p == NULL)
-						sprintf(temp0, msg_txt(333)); //None
-					else
-						sprintf(temp0, "%s", p->name);
-					if (pl_GM_level > 0)
-						sprintf(atcmd_output, "Name: %s (GM:%d) | Party: '%s' | Guild: '%s'", pl_sd->status.name, pl_GM_level, temp0, temp1);
-					else
-						sprintf(atcmd_output, "Name: %s | Party: '%s' | Guild: '%s'", pl_sd->status.name, temp0, temp1);
-*/
-					if (pl_GM_level > 0) //Player title, if exists
-						//sprintf(atcmd_output, "(%s) ", player_title_txt(pl_GM_level) );
-						sprintf(atcmd_output, msg_txt(333), player_title_txt(pl_GM_level) );
-					else
-						atcmd_output[0]=0;
 					//Players Name
-					//sprintf(temp0, "Name: %s ", pl_sd->status.name);
-					sprintf(temp0, msg_txt(334), pl_sd->status.name);
-					strcat(atcmd_output,temp0);
+					//sprintf(atcmd_output, "Name: %s ", pl_sd->status.name);
+					sprintf(atcmd_output, msg_txt(333), pl_sd->status.name);
+					//Player title, if exists
+					if (pl_GM_level > 0) {
+						//sprintf(temp0, "(%s) ", player_title_txt(pl_GM_level) );
+						sprintf(temp0, msg_txt(334), player_title_txt(pl_GM_level) );
+						strcat(atcmd_output,temp0);
+					}
 					//Players Party if exists
 					if (p != NULL) {
 						//sprintf(temp0," | Party: '%s'", p->name);
@@ -1457,11 +1461,11 @@ int atcommand_who(
 	}
 
 	if (count == 0)
-		clif_displaymessage(fd, msg_table[28]); // No player found.
+		clif_displaymessage(fd, msg_txt(28)); // No player found.
 	else if (count == 1)
-		clif_displaymessage(fd, msg_table[29]); // 1 player found.
+		clif_displaymessage(fd, msg_txt(29)); // 1 player found.
 	else {
-		sprintf(atcmd_output, msg_table[30], count); // %d players found.
+		sprintf(atcmd_output, msg_txt(30), count); // %d players found.
 		clif_displaymessage(fd, atcmd_output);
 	}
 
@@ -1515,11 +1519,11 @@ int atcommand_whomap3(
 	}
 
 	if (count == 0)
-		sprintf(atcmd_output, msg_table[54], map[map_id].name); // No player found in map '%s'.
+		sprintf(atcmd_output, msg_txt(54), map[map_id].name); // No player found in map '%s'.
 	else if (count == 1)
-		sprintf(atcmd_output, msg_table[55], map[map_id].name); // 1 player found in map '%s'.
+		sprintf(atcmd_output, msg_txt(55), map[map_id].name); // 1 player found in map '%s'.
 	else {
-		sprintf(atcmd_output, msg_table[56], count, map[map_id].name); // %d players found in map '%s'.
+		sprintf(atcmd_output, msg_txt(56), count, map[map_id].name); // %d players found in map '%s'.
 	}
 	clif_displaymessage(fd, atcmd_output);
 
