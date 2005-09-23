@@ -1440,13 +1440,13 @@ int atcommand_who(
 					//Players Party if exists
 					if (p != NULL) {
 						//sprintf(temp0," | Party: '%s'", p->name);
-						sprintf(temp0, msg_txt(334), p->name);
+						sprintf(temp0, msg_txt(335), p->name);
 						strcat(atcmd_output,temp0);
 					}
 					//Players Guild if exists
 					if (g != NULL) {
 						//sprintf(temp0," | Guild: '%s'", g->name);
-						sprintf(temp0, msg_txt(335), g->name);
+						sprintf(temp0, msg_txt(336), g->name);
 						strcat(atcmd_output,temp0);
 					}
 					clif_displaymessage(fd, atcmd_output);
