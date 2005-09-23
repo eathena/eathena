@@ -3077,6 +3077,8 @@ int parse_char(int fd) {
 							WFIFOL(map_fd,8) = auth_fifo[auth_fifo_pos].login_id1;
 							WFIFOL(map_fd,16) = auth_fifo[auth_fifo_pos].login_id2;
 							WFIFOL(map_fd,12) = (unsigned long)auth_fifo[auth_fifo_pos].connect_until_time;
+							set_char_online(auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
+							char_dat[auth_fifo[auth_fifo_pos].char_pos].sex = auth_fifo[i].sex;
 							memcpy(WFIFOP(map_fd,20), &char_dat[auth_fifo[auth_fifo_pos].char_pos], sizeof(struct mmo_charstatus));
 							WFIFOSET(map_fd, WFIFOW(map_fd,2));
 						}
