@@ -1211,10 +1211,10 @@ int atcommand_jump(
 }
 
 /*==========================================
- *
+ * @who3 = Player name, his location
  *------------------------------------------
  */
-int atcommand_who(
+int atcommand_who3(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
@@ -1278,7 +1278,7 @@ int atcommand_who(
 }
 
 /*==========================================
- *
+ * Player name, BLevel, Job, 
  *------------------------------------------
  */
 int atcommand_who2(
@@ -1337,10 +1337,10 @@ int atcommand_who2(
 }
 
 /*==========================================
- *
+ * Player name, Playrs Party / Guild name
  *------------------------------------------
  */
-int atcommand_who3(
+int atcommand_who(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
@@ -1415,7 +1415,7 @@ int atcommand_who3(
  *
  *------------------------------------------
  */
-int atcommand_whomap(
+int atcommand_whomap3(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {
@@ -1533,7 +1533,7 @@ int atcommand_whomap2(
  *
  *------------------------------------------
  */
-int atcommand_whomap3(
+int atcommand_whomap(
 	const int fd, struct map_session_data* sd,
 	const char* command, const char* message)
 {

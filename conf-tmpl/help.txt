@@ -10,9 +10,9 @@
  40:/nlb <message> - Broadcasts a GM message without name of the GM (in yellow) ONLY on your map
   0: 
   0:--- INFORMATION CMD ---
- 20:@who/@whois [match_text] - Display a listing of who is online and where
+ 20:@who/@whois [match_text] - Display a listing of who is online and their party/guild
  20:@who2 [match_text] - Display a listing of who is online and their job
- 20:@who3 [match_text] - Display a listing of who is online and their party/guild
+ 20:@who3 [match_text] - Display a listing of who is online and where
  20:@whomap/@whomap2/@whomap3 [map] - like @who/@who2/@who3 but only for specifical map
  20:@whogm [match_text] - Like @who+@who2+who3, but only for GM.
   1:@where [char name] - Tells you the location of a character
