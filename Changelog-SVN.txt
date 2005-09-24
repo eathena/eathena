@@ -1,5 +1,12 @@
 Changes are Aru's unless noted.
 
+2005-09-23:
+	Char-server now reads account and char ger_vras from different 
+		tables, allowing us to use innodb foreign keys to keep 
+		the reg_value table clean. (Cuteboi)
+	Removed non-compileable login-server, hopefully tomorrow i'll 
+		have somethign working up. (Aru)	
+
 2005-09-21:
 	Added new tables and new options for the inter_athena.conf
 		account_reg_db and char_reg_db
