@@ -398,8 +398,6 @@ int chrif_authreq(struct map_session_data *sd)
 
 	if(search_node) {
 
-		ShowDebug("Found search_node!\n");
-
 		if(search_node->account_id==sd->bl.id &&
 			search_node->login_id1 == sd->login_id1) {
 
@@ -411,7 +409,6 @@ int chrif_authreq(struct map_session_data *sd)
 		free(search_node);
 		numdb_erase(auth_db, sd->bl.id);
 	} else {
-		ShowDebug("Didn't find search_node!\n");
 		pc_authfail(sd->bl.id);
 	}
 
