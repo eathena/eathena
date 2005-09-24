@@ -48,12 +48,8 @@ char inventory_db[256] = "inventory";
 char charlog_db[256] = "charlog";
 char storage_db[256] = "storage";
 char interlog_db[256] = "interlog";
-// Soon to be removed
-char reg_db[256] = "global_reg_value";
-// These are the new tables to replace the old system
 char char_reg_db[256] = "char_reg";
 char account_reg_db[256] = "account_reg";
-//
 char skill_db[256] = "skill";
 char memo_db[256] = "memo";
 char guild_db[256] = "guild";
@@ -3656,15 +3652,10 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 			strcpy(charlog_db,w2);
 		}else if(strcmpi(w1,"storage_db")==0){
 			strcpy(storage_db,w2);
-		// To be removed soon
-		}else if(strcmpi(w1,"reg_db")==0){
-			strcpy(reg_db,w2);
-		// These will replace old system
 		}else if(strcmpi(w1,"char_reg_db")==0){
 			strcpy(char_reg_db,w2);
 		}else if(strcmpi(w1,"account_reg_db")==0){
 			strcpy(account_reg_db,w2);
-		//
 		}else if(strcmpi(w1,"skill_db")==0){
 			strcpy(skill_db,w2);
 		}else if(strcmpi(w1,"interlog_db")==0){

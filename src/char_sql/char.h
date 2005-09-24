@@ -58,11 +58,7 @@ extern char inventory_db[256];
 extern char charlog_db[256];
 extern char storage_db[256];
 extern char interlog_db[256];
-// To be removed after all has been setup
-extern char reg_db[256];
-// replacement for the above
 extern char account_reg_db[256];
-//
 extern char skill_db[256];
 extern char memo_db[256];
 extern char guild_db[256];
