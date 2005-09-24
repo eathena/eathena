@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/24
+	* Updated several mob stats for the Lighthalzen and later mobs from the
+	  data provided by Viccious Pucca. [Skotlex]
+	* Updated sql-files/mob_db.sql to contain the most recent mob_db. [Skotlex]
 	* Added support for saving/loading status changes when characters log
 	  in/out. [Skotlex]
 	- TXT users: the file used by default is scdata.txt, can be changed by
