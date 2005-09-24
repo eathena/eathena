@@ -23,7 +23,7 @@ data interface (txt/sql)
 
 data interface (sql only)  // CLOWNISIUS is working on this section, hands off other people... grrr
 * checking database structure, cleaning unnecessary fields
-  [some data fields are quite useless though and could be removed]
+  [some data fields are quite useless though and could be removed] (25% done... login complete working on char now)
 * adding missing data fields to login table
   [account is stored completely including the login_id's]
 * implementation of the sql part of the char_db
@@ -42,7 +42,7 @@ other code
 
 * addign real server control with webinterface for ie. managing accounts/editing chars etc
   [to be honest; this is to completely replace the sql database back infusion php control stuff]
-  {conception/case study in progress}
+  {conception/case study in progress} (from CLOWNISIUS: Please send me, clownisius, a copy of what ever white papers you have on this please, i would like to keep track of what is going on.)
 
 ///////////////////////////////////////////////////////////////////////////////
 login:
