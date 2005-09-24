@@ -9,7 +9,7 @@ COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/mmo.h
 	../common/malloc.h ../common/showmsg.h ../common/utils.h ../common/strlib.h \
 	../common/graph.h ../common/grfio.h
 
-char-server: char.o inter.o int_party.o int_guild.o int_storage.o int_pet.o $(COMMON_OBJ)
+char-server: char.o inter.o int_party.o int_guild.o int_status.o int_storage.o int_pet.o $(COMMON_OBJ)
 	$(CC) -o ../../$@ $> $(LIB_S)
 
 clean:
@@ -22,4 +22,5 @@ inter.o: inter.c inter.h int_party.h int_guild.h int_storage.h int_pet.h char.h 
 int_party.o: int_party.c int_party.h inter.h char.h $(COMMON_H)
 int_guild.o: int_guild.c int_guild.h int_storage.h inter.h char.h $(COMMON_H)
 int_storage.o: int_storage.c int_storage.h int_guild.h inter.h char.h $(COMMON_H)
+int_status.o: int_status.c int_status.h char.h $(COMMON_H)
 int_pet.o: int_pet.c int_pet.h inter.h char.h $(COMMON_H)

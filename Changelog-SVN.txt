@@ -2,6 +2,27 @@ Date	Added
 =======
 
 09/24
+	* Added support for saving/loading status changes when characters log
+	  in/out. [Skotlex]
+	- TXT users: the file used by default is scdata.txt, can be changed by
+	  setting scdata_txt to something else in inter_athena.txt.
+	- SQL users the table used by default is sc_data, can be changed by setting
+	  scdata_db to something else in inter_athena.txt. Use upgrade_svn3273.sql to
+	  generate the new table.
+	- It is currently unknown the behaviour of restoring some status changes,
+	  if any anomality shows up, do report.
+	- Currently, even thought the sc data is restored, the client does not
+	  receives the packet telling them that the effect started (like Gloria, you
+	  can see you have +30 luk, but the message is never there) nor the visual
+	  effects are in neither. This is a side effect of starting the status
+	  effects on a player before the client finished loading the maps and spawns
+	  in the map. Will be fixed later.
+	* Some memory optimizations tothe new auth system. [Skotlex]
+	* Moved the charsave_method config to inter_athena.txt [Skotlex]
+	* Fixed Demonstration/Bomb getting 100% breaking chance on low skill break
+	  rates [Skotlex]
+	* Fixed chars being able to cast skills while rooted if they didn't have at
+	  least root lv1 [Skotlex]
 	* Removed Assert in pet_walk, use a less unstable debugging tool, causes
 	  errors in remote shells. [Kevin]
 	* Fixed TXT char login with new auth system. [Kevin]

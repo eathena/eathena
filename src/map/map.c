@@ -1742,9 +1742,8 @@ int map_quit(struct map_session_data *sd) {
 		if(sd->sc_data && sd->sc_data[SC_BERSERK].timer!=-1) //バ?サ?ク中の終了はHPを100に
 			sd->status.hp = 100;
 
-		status_change_clear(&sd->bl,1);	// ステ?タス異常を解除する
+//		status_change_clear(&sd->bl,1);	// ステ?タス異常を解除する
 		skill_clear_unitgroup(&sd->bl);	// スキルユニットグル?プの削除
-//		skill_cleartimerskill(&sd->bl);	//These are not initialized to -1 until pc_auth_ok, so it should not be called yet. [Skotlex]
 
 		// check if we've been authenticated [celest]
 		if (sd->state.auth) {
@@ -1765,6 +1764,9 @@ int map_quit(struct map_session_data *sd) {
 		if (!(sd->status.option & OPTION_HIDE))
 			clif_clearchar_area(&sd->bl,2);
 
+		chrif_save_scdata(sd); //Save status changes, then clear'em out from memory. [Skotlex]
+		status_change_clear(&sd->bl,1);
+		
 		if(sd->status.pet_id && sd->pd) {
 			pet_lootitem_drop(sd->pd,sd);
 			pet_remove_map(sd);
@@ -3304,13 +3306,6 @@ int map_config_read(char *cfgName) {
 				autosave_interval = atoi(w2) * 1000;
 				if (autosave_interval <= 0)
 					autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
-			} else if(strcmpi(w1, "charsave_method") == 0){
-#ifndef TXT_ONLY
-				charsave_method = atoi(w2);
-#else
-				charsave_method = 0; //TXT dont support it..
-#endif
-
 			} else if (strcmpi(w1, "motd_txt") == 0) {
 				strcpy(motd_txt, w2);
 			} else if (strcmpi(w1, "help_txt") == 0) {
@@ -3363,6 +3358,8 @@ int inter_config_read(char *cfgName)
 		if(strcmpi(w1,"kick_on_disconnect")==0){
 			kick_on_disconnect = battle_config_switch(w2);
 	#ifndef TXT_ONLY
+		} else if(strcmpi(w1,"charsave_method")==0){
+			charsave_method = atoi(w2); //New char saving method.
 		} else if(strcmpi(w1,"item_db_db")==0){
 			strcpy(item_db_db,w2);
 		} else if(strcmpi(w1,"mob_db_db")==0){
@@ -3414,17 +3411,17 @@ int inter_config_read(char *cfgName)
 			lowest_gm_level = atoi(w2);
 		} else if(strcmpi(w1,"read_gm_interval")==0){
 			read_gm_interval = ( atoi(w2) * 60 * 1000 ); // Minutes multiplied by 60 secs per min by 1000 milliseconds per second
-                 }else if(strcmpi(w1, "char_server_ip") == 0){
-                 	strcpy(charsql_host, w2);
-                 }else if(strcmpi(w1, "char_server_port") == 0){
-                 	charsql_port = atoi(w2);
-                 }else if(strcmpi(w1, "char_server_id") == 0){
-                 	strcpy(charsql_user, w2);
-                 }else if(strcmpi(w1, "char_server_pw") == 0){
-                 	strcpy(charsql_pass, w2);
-                 }else if(strcmpi(w1, "char_server_db") == 0){
-                 	strcpy(charsql_db, w2);
-                 } else if(strcmpi(w1,"log_db")==0) {
+		}else if(strcmpi(w1, "char_server_ip") == 0){
+			strcpy(charsql_host, w2);
+		}else if(strcmpi(w1, "char_server_port") == 0){
+			charsql_port = atoi(w2);
+		}else if(strcmpi(w1, "char_server_id") == 0){
+			strcpy(charsql_user, w2);
+		}else if(strcmpi(w1, "char_server_pw") == 0){
+			strcpy(charsql_pass, w2);
+		}else if(strcmpi(w1, "char_server_db") == 0){
+			strcpy(charsql_db, w2);
+		} else if(strcmpi(w1,"log_db")==0) {
 			strcpy(log_db, w2);
 		} else if(strcmpi(w1,"log_db_ip")==0) {
 			strcpy(log_db_ip, w2);

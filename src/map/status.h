@@ -1,6 +1,8 @@
 #ifndef _STATUS_H_
 #define _STATUS_H_
 
+#include "map.h"
+
 enum {
 // Status changes that are sent to the client for icon/effect display
 	SC_PROVOKE			= 0,

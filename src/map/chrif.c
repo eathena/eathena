@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <time.h>
 
+#include "../common/malloc.h"
 #include "socket.h"
 #include "timer.h"
 #include "map.h"
@@ -22,6 +23,7 @@
 #include "intif.h"
 #include "npc.h"
 #include "pc.h"
+#include "status.h"
 #include "nullpo.h"
 #include "showmsg.h"
 #include "charsave.h"
@@ -34,20 +36,23 @@
 struct dbt *auth_db;
 
 static const int packet_len_table[0x3d] = {
-	60, 3,-1,27,22,-1, 6,-1,	// 2af8-2aff: U->2af8, U->2af9, U->2afa, U->2afb, U->2afc, U->2afd, U->2afe, U->2aff
+	60, 3,-1,27,10,-1, 6,-1,	// 2af8-2aff: U->2af8, U->2af9, U->2afa, U->2afb, U->2afc, U->2afd, U->2afe, U->2aff
 	 6,-1,18, 7,-1,49,44,10,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, U->2b07
 	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	-1,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
-	-1,-1,-1,-1,-1,-1,20, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, F->2b1c, F->2b1d, U->2b1e, U->2b1f
+	-1,-1,-1,-1,-1,-1,20, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, U->2b1c, U->2b1d, U->2b1e, U->2b1f
 	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b20-2b27: U->2b20, F->2b21, F->2b22, F->2b23, F->2b24, F->2b25, F->2b26, F->2b27
 };
 
 //Used Packets:
 //2af8: Outgoing, chrif_connect -> 'connect to charserver / auth @ charserver'
-//2af9: Incomming, chrif_connectack -> 'awnser of the 2af8 login(ok / fail)'
+//2af9: Incomming, chrif_connectack -> 'answer of the 2af8 login(ok / fail)'
 //2afa: Outgoing, chrif_sendmap -> 'sending our maps'
 //2afb: Incomming, chrif_sendmapack -> 'Maps received successfully / or not ..'
-//2afc: Outgoing, chrif_authreq -> 'check auth_db for client and de/authenticate'
+
+//2afc: Outgoing, chrif_authreq -> 'check auth_db for client and de/authenticate' <- obsoleted by Kevin's new auth system.
+//2afc: Outgoing, chrif_scdata_request -> request sc_data for pc_authok'ed char. <- new command reuses previous one.
+
 //2afd: Incomming, chrif_authok -> 'character selected, add to auth db'
 //2afe: Incomming, pc_authfail -> 'fail awnser of the 2afc' ? (not sure)
 //2aff: Outgoing, send_users_tochar -> 'sends all actual connected charactersids to charserver'
@@ -78,9 +83,9 @@ static const int packet_len_table[0x3d] = {
 //2b18: Outgoing, chrif_chardisconnect/chrif_char_reset_offline -> 'same as 2b17 LOL!/set all players OFF!'
 //2b19: Outgoing, chrif_char_online -> 'tell the charserver that the char .. is online'
 //2b1a: Outgoing, chrif_reqfamelist -> 'Request the fame list (top10)'
-//2b1b: Incomming, chrif_recvfamelist -> 'awnser of 2b1a ..... the famelist top10^^'
-//2b1c: FREE
-//2b1d: FREE
+//2b1b: Incomming, chrif_recvfamelist -> 'answer of 2b1a ..... the famelist top10^^'
+//2b1c: Outgoing, chrif_save_scdata -> 'Send sc_data of player for saving.'
+//2b1d: Incomming, chrif_load_scdata -> 'received sc_data of player for loading.'
 //2b1e: Incomming, chrif_pcauthok -> 'ack when player connects' NOTE: this is the newone (the mapserver loads / save the char itself!) (SQL ONLY)
 //2b1f: Incomming, chrif_disconnectplayer -> 'disconnects a player (aid X) with the message XY ... 0x81 ..' [Sirius]
 //2b20: Incomming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
@@ -158,20 +163,20 @@ int chrif_save(struct map_session_data *sd)
 
 	pc_makesavestatus(sd);
 
-	if(charsave_method == 1){ //New 'Local' save
 #ifndef TXT_ONLY
+	if(charsave_method){ //New 'Local' save
 		charsave_savechar(sd->char_id, &sd->status);
-#else
-		ShowError("u cannot use charsave_method 1 in TXT servers!\n");
-#endif
 	}else{
+#endif
 		WFIFOW(char_fd,0) = 0x2b01;
 		WFIFOW(char_fd,2) = sizeof(sd->status) + 12;
 		WFIFOL(char_fd,4) = sd->bl.id;
 		WFIFOL(char_fd,8) = sd->char_id;
 		memcpy(WFIFOP(char_fd,12), &sd->status, sizeof(sd->status));
 		WFIFOSET(char_fd, WFIFOW(char_fd,2));
+#ifndef TXT_ONLY
 	}
+#endif
 	//For data sync
 	if (sd->state.storage_flag == 1)
 		storage_storage_save(sd->status.account_id);
@@ -381,6 +386,25 @@ int chrif_sendmapack(int fd)
 }
 
 /*==========================================
+ * Request sc_data from charserver [Skotlex]
+ *------------------------------------------
+ */
+int chrif_scdata_request(int account_id, int char_id)
+{
+#ifndef TXT_ONLY
+	if (charsave_method)
+		return charsave_load_scdata(account_id, char_id);
+#endif
+	chrif_check(-1);
+
+	WFIFOW(char_fd, 0) = 0x2afc;
+	WFIFOL(char_fd, 2) = account_id;
+	WFIFOL(char_fd, 6) = char_id;
+	WFIFOSET(char_fd,10);
+	return 0;
+}
+
+/*==========================================
  * new auth system [Kevin]
  *------------------------------------------
  */
@@ -402,11 +426,12 @@ int chrif_authreq(struct map_session_data *sd)
 			search_node->login_id1 == sd->login_id1) {
 
 			pc_authok(search_node->account_id, search_node->login_id2, search_node->connect_until_time, &search_node->char_dat);
+			chrif_scdata_request(search_node->account_id, search_node->char_dat.char_id);
 
 		} else {
 			pc_authfail(sd->bl.id);
 		}
-		free(search_node);
+		aFree(search_node);
 		numdb_erase(auth_db, sd->bl.id);
 	} else {
 		pc_authfail(sd->bl.id);
@@ -416,10 +441,9 @@ int chrif_authreq(struct map_session_data *sd)
 	return 0;
 }
 
-
 //character selected, insert into auth db
 void chrif_authok(int fd) {
-	struct auth_node *new_node=(struct auth_node *)malloc(sizeof(struct auth_node));
+	struct auth_node *new_node=(struct auth_node *)aCalloc(1, sizeof(struct auth_node));
 
 	new_node->account_id=RFIFOL(fd, 4);
 	new_node->login_id1=RFIFOL(fd, 8);
@@ -431,7 +455,6 @@ void chrif_authok(int fd) {
 	numdb_insert(auth_db, RFIFOL(fd, 4), new_node);
 }
 
-
 int auth_db_cleanup_sub(void *key,void *data,va_list ap)
 {
 	struct auth_node *node=(struct auth_node*)data;
@@ -439,7 +462,7 @@ int auth_db_cleanup_sub(void *key,void *data,va_list ap)
 	if(gettick()>node->node_created+30000) {
 		ShowNotice("Character not authed within 30 seconds of character select!\n");
 		numdb_erase(auth_db, node->account_id);
-		free(node);
+		aFree(node);
 	}
 
 	return 0;
@@ -1101,6 +1124,88 @@ int chrif_recvfamelist(int fd)
 	return 0;
 }
 
+int chrif_save_scdata(struct map_session_data *sd)
+{	//parses the sc_data of the player and sends it to the char-server for saving. [Skotlex]
+	int i, count=0;
+	unsigned int tick;
+	struct status_change_data data;
+	struct TimerData *timer;
+
+#ifndef TXT_ONLY
+	if(charsave_method) //New 'Local' save
+	{
+		charsave_save_scdata(sd->status.account_id, sd->status.char_id, sd->sc_data, MAX_STATUSCHANGE);
+		return 0;
+	}
+#endif
+	
+	chrif_check(-1);
+	tick = gettick();
+	
+	WFIFOW(char_fd,0) = 0x2b1c;
+	WFIFOL(char_fd,4) = sd->status.account_id;
+	WFIFOL(char_fd,8) = sd->status.char_id;
+	for (i = 0; i < MAX_STATUSCHANGE; i++)
+	{
+		if (sd->sc_data[i].timer == -1)
+			continue;
+		timer = get_timer(sd->sc_data[i].timer);
+		if (timer == NULL || timer->tick < tick)
+			continue;
+		data.tick = timer->tick - tick; //Duration that is left before ending.
+		data.type = i;
+		data.val1 = sd->sc_data[i].val1;
+		data.val2 = sd->sc_data[i].val2;
+		data.val3 = sd->sc_data[i].val3;
+		data.val4 = sd->sc_data[i].val4;
+		memcpy(WFIFOP(char_fd,14 +count*sizeof(struct status_change_data)),
+			&data, sizeof(struct status_change_data));
+		count++;
+	}
+	if (count == 0)
+		return 0; //Nothing to save.
+	WFIFOW(char_fd,12) = count;
+	WFIFOW(char_fd,2) = 14 +count*sizeof(struct status_change_data); //Total packet size
+	WFIFOSET(char_fd,WFIFOW(char_fd,2));
+	return 0;
+}
+
+int chrif_load_scdata(int fd)
+{	//Retrieve and load sc_data for a player. [Skotlex]
+	struct map_session_data *sd;
+	struct status_change_data data;
+	int aid, cid, i, count;
+
+	if (charsave_method)
+	{
+		ShowFatalError("Char server is using charsave_method=0 while mapserver is using charsave_method=1! Correct this inmediately.\n");
+		exit(1);
+	}
+
+	aid = RFIFOL(fd,4); //Player Account ID
+	cid = RFIFOL(fd,8); //Player Char ID
+	
+	sd = map_id2sd(aid);
+	if (!sd)
+	{
+		ShowError("chrif_load_scdata: Player of AID %d not found!\n", aid);
+		return -1;
+	}
+	if (sd->status.char_id != cid)
+	{
+		ShowError("chrif_load_scdata: Receiving data for account %d, char id does not matches (%d != %d)!\n", aid, sd->status.char_id, cid);
+		return -1;
+	}
+	count = RFIFOW(fd,12); //sc_count
+	for (i = 0; i < count; i++)
+	{
+		memcpy(&data, RFIFOP(fd,14 + i*sizeof(struct status_change_data)), sizeof(struct status_change_data));
+		status_change_start(&sd->bl, data.type, data.val1, data.val2, data.val3, data.val4, data.tick, 3);
+		//Flag 3 is 1&2, 1: Force status start, 2: Do not modify the tick value sent.
+	}
+	return 0;
+}
+
 /*==========================================
  * Send rates and motd to char server [Wizputer]
  *------------------------------------------
@@ -1234,33 +1339,28 @@ int chrif_disconnect(int fd) {
 
 //The New-One char LOAD/SAVE system (SQL)
 int chrif_pcauthok(int fd){
-	#ifndef TXT_ONLY
+#ifndef TXT_ONLY
 	struct mmo_charstatus *temp;
-	#endif
-	//..
- 	//OLD: pc_authok(RFIFOL(fd,4), RFIFOL(fd,8), (time_t)RFIFOL(fd,12),
-         //		(struct mmo_charstatus*)RFIFOP(fd,16)); break;
+#endif
 
-	if(charsave_method != 1){
-		printf("WARNING!! your settings ARE WRONG\n");
-		printf("Youre trying to use the new savesystem @ charserver\n");
-		printf("and @ mapserver the old-one is configured!\n");
+	if(!charsave_method){
+		ShowFatalError("Char server is using charsave_method=1 while mapserver is using charsave_method=0! Correct this inmediately.\n");
+		exit(1);
 	}
 
-        #ifndef TXT_ONLY
-        temp = charsave_loadchar(RFIFOL(fd, 14));
+#ifndef TXT_ONLY
+	temp = charsave_loadchar(RFIFOL(fd, 14));
 
-        if(temp == NULL){
-        	ShowError("Cannot accept the client due an internal fault @ charsave_loadchar!\n");
-         pc_authfail(RFIFOL(fd, 2));
-        }else{
-        	temp->sex = RFIFOW(fd, 18);
-        	pc_authok(RFIFOL(fd, 2), RFIFOL(fd, 6), (time_t)RFIFOL(fd, 10), temp);
-        	aFree(temp);
-        }
-        #endif
-
-  return 0; //temp ;P
+	if(temp == NULL) {
+		pc_authfail(RFIFOL(fd, 2));
+	} else {
+		temp->sex = RFIFOW(fd, 18);
+		pc_authok(RFIFOL(fd, 2), RFIFOL(fd, 6), (time_t)RFIFOL(fd, 10), temp);
+		chrif_scdata_request(temp->account_id, temp->char_id);
+		aFree(temp);
+	}
+#endif
+  return 0;
 }
 
 /*==========================================
@@ -1326,6 +1426,7 @@ int chrif_parse(int fd)
 		case 0x2b14: chrif_accountban(fd); break;
 		case 0x2b15: chrif_recvgmaccounts(fd); break;
 		case 0x2b1b: chrif_recvfamelist(fd); break;
+		case 0x2b1d: chrif_load_scdata(fd); break;
 		case 0x2b1e: chrif_pcauthok(fd); break;
 		case 0x2b1f: chrif_disconnectplayer(fd); break;
 		case 0x2b20: chrif_removemap(fd); break; //Remove maps of a server [Sirius]
@@ -1417,6 +1518,13 @@ int check_connect_char_server(int tid, unsigned int tick, int id, int data) {
 	if (chrif_isconnect()) displayed = 0;
 	return 0;
 }
+
+int auth_db_final(void *k,void *d,va_list ap) {
+	struct auth_node *node=(struct auth_node*)d;
+	aFree (node);
+	return 0;
+}
+
 /*==========================================
  * èIóπ
  *------------------------------------------
@@ -1424,6 +1532,7 @@ int check_connect_char_server(int tid, unsigned int tick, int id, int data) {
 int do_final_chrif(void)
 {
 	delete_session(char_fd);
+	numdb_final(auth_db, auth_db_final);
 	return 0;
 }
 
@@ -1439,7 +1548,6 @@ int do_init_chrif(void)
 	add_timer_interval(gettick() + 1000, check_connect_char_server, 0, 0, 10 * 1000);
 	add_timer_interval(gettick() + 1000, send_users_tochar, 0, 0, 5 * 1000);
 	add_timer_interval(gettick() + 1000, auth_db_cleanup, 0, 0, 10 * 1000);
-
 
 	auth_db = numdb_init();
 

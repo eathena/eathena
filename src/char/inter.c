@@ -15,6 +15,7 @@
 #include "inter.h"
 #include "int_party.h"
 #include "int_guild.h"
+#include "int_status.h"
 #include "int_storage.h"
 #include "int_pet.h"
 
@@ -37,7 +38,7 @@ int kick_on_disconnect = 1;
 
 // 送信パケット長リスト
 int inter_send_packet_length[] = {
-	-1,-1,27,-1, -1, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
+	-1,-1,27,-1, -1, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3000-0x300f
 	-1, 7, 0, 0,  0, 0, 0, 0, -1,11, 0, 0,  0, 0,  0, 0,
 	35,-1,11,15, 34,29, 7,-1,  0, 0, 0, 0,  0, 0,  0, 0,
 	10,-1,15, 0, 79,19, 7,-1,  0,-1,-1,-1, 14,67,186,-1,
@@ -242,6 +243,7 @@ int inter_log(char *fmt,...) {
 
 // セーブ
 int inter_save() {
+	inter_status_save();
 	inter_party_save();
 	inter_guild_save();
 	inter_storage_save();

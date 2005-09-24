@@ -2,6 +2,8 @@
 #ifndef _CHAR_H_
 #define _CHAR_H_
 
+#include "../common/mmo.h"
+
 #define START_CHAR_NUM 150000
 #define MAX_MAP_SERVERS 30
 

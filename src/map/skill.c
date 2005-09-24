@@ -8069,13 +8069,13 @@ int skill_use_id (struct map_session_data *sd, int target_id, int skill_num, int
 				sc_data[SC_HERMODE].timer != -1)
 			return 0;	/* ?ë‘àŸèÌÇ‚íæ?Ç»Ç« */
 		if (sc_data[SC_BLADESTOP].timer != -1) {
-//			if (sc_data[SC_BLADESTOP].val2 == 1) return 0;//Bah, both should be able to use root skills! [Skotlex]
 			switch (sc_data[SC_BLADESTOP].val1) {
 				case 1: return 0;
-				case 2: if (skill_num != MO_FINGEROFFENSIVE) return 0; else break;
-				case 3: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE) return 0; else break;
-				case 4: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE && skill_num != MO_CHAINCOMBO) return 0; else break;
-				case 5: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE && skill_num != MO_CHAINCOMBO && skill_num!=MO_EXTREMITYFIST) return 0; else break;
+				case 2: if (skill_num != MO_FINGEROFFENSIVE) return 0; break;
+				case 3: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE) return 0; break;
+				case 4: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE && skill_num != MO_CHAINCOMBO) return 0; break;
+				case 5: if (skill_num != MO_FINGEROFFENSIVE && skill_num != MO_INVESTIGATE && skill_num != MO_CHAINCOMBO && skill_num!=MO_EXTREMITYFIST) return 0; break;
+				default: return 0;
 			}
 		}
 		if (sc_data[SC_BASILICA].timer != -1) { // Disallow all other skills in Basilica [celest]

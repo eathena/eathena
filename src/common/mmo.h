@@ -43,7 +43,7 @@
 #define MAX_MAP_PER_SERVER 1024
 #define MAX_INVENTORY 100
 //Number of slots carded equipment can have. Never set to less than 4 as they are also used to keep the data of forged items/equipment. [Skotlex]
-//Note: This is still work in progress.
+//Note: The client seems unable to receive data for more than 4 slots due to all related packets having a fixed size.
 #define MAX_SLOTS 4
 #define MAX_AMOUNT 30000
 #define MAX_ZENY 1000000000	// 1G zeny
@@ -133,6 +133,12 @@ struct skill {
 struct global_reg {
 	char str[32];
 	int value;
+};
+
+//For saving status changes across sessions. [Skotlex]
+struct status_change_data {
+	unsigned short type; //SC_type
+	int val1, val2, val3, val4, tick; //Remaining duration.
 };
 
 struct s_pet {

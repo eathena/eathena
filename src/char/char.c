@@ -40,6 +40,7 @@ typedef long in_addr_t;
 #include "int_pet.h"
 #include "int_guild.h"
 #include "int_party.h"
+#include "int_status.h"
 #include "int_storage.h"
 
 struct mmo_map_server server[MAX_MAP_SERVERS];
@@ -102,6 +103,7 @@ int check_ip_flag = 1; // It's to check IP of a player between char-server and o
 
 int char_id_count = START_CHAR_NUM;
 struct mmo_charstatus *char_dat;
+
 int char_num, char_max;
 int max_connect_user = 0;
 int gm_allow_level = 99;
@@ -2325,6 +2327,7 @@ int parse_frommap(int fd) {
 			RFIFOSKIP(fd,RFIFOW(fd,2));
 			break;
 
+/* This packet is deprecated by Kevin's new auth system.
 		// îFèÿóvã
 		// Send character data to map-serverÅ
 		case 0x2afc:
@@ -2363,7 +2366,35 @@ int parse_frommap(int fd) {
 			}
 			RFIFOSKIP(fd,22);
 			break;
-
+*/
+		//Packet command is now used for sc_data request. [Skotlex]
+		case 0x2afc:
+			if (RFIFOREST(fd) < 10)
+				return 0;
+		{
+			int aid, cid;
+			struct scdata *data;
+			aid = RFIFOL(fd,2);
+			cid = RFIFOL(fd,6);
+			RFIFOSKIP(fd, 10);
+			data = status_search_scdata(aid, cid);
+			if (data->count > 0)
+			{	//Deliver status change data.
+				int i;
+				
+				WFIFOW(fd,0) = 0x2b1d;
+				WFIFOW(fd,2) = 14 + data->count*sizeof(struct status_change_data);
+				WFIFOL(fd,4) = aid;
+				WFIFOL(fd,8) = cid;
+				WFIFOW(fd,12) = data->count;
+				for (i = 0; i < data->count; i++)
+					memcpy(WFIFOP(fd,14+i*sizeof(struct status_change_data)), &data->data[i], sizeof(struct status_change_data));
+				WFIFOSET(fd, WFIFOW(fd,2));
+				status_delete_scdata(aid, cid); //Data sent, so it needs be discarded now.
+			}
+			break;
+		}
+		
 		// MAPÉTÅ[ÉoÅ[è„ÇÃÉÜÅ[ÉUÅ[êîéÛêM
 		// Recieve alive message from map-server
 		case 0x2aff:
@@ -2773,8 +2804,30 @@ int parse_frommap(int fd) {
 			DELETE_BUFFER(id);
 			RFIFOSKIP(fd,2);
 			break;
-		}			
+		}
+		//Request to save status change data. [Skotlex]
+		case 0x2b1c:
+			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
+				return 0;
+		{
+			int count, aid, cid, i;
+			struct scdata *data;
+			aid = RFIFOL(fd, 4);
+			cid = RFIFOL(fd, 8);
+			count = RFIFOW(fd, 12);
+			
+			data = status_search_scdata(aid, cid);
+			if (data->count != count)
+			{
+				data->count = count;
+				data->data = aRealloc(data->data, count*sizeof(struct status_change_data));
+			}
+			for (i = 0; i < count; i++)
+				memcpy (&data->data[i], RFIFOP(fd, 14+i*sizeof(struct status_change_data)), sizeof(struct status_change_data));
 
+			RFIFOSKIP(fd, RFIFOW(fd, 2));
+			break;
+		}
 		default:
 			// inter serverèàóùÇ…ìnÇ∑
 			{
@@ -3653,6 +3706,8 @@ int char_config_read(const char *cfgName) {
 			email_creation = config_switch(w2);
 		} else if (strcmpi(w1, "char_txt") == 0) {
 			strcpy(char_txt, w2);
+		} else if (strcmpi(w1, "scdata_txt") == 0) { //By Skotlex
+			strcpy(scdata_txt, w2);
 		} else if (strcmpi(w1, "backup_txt") == 0) { //By zanetheinsane
 			strcpy(backup_txt, w2);
 		} else if (strcmpi(w1, "friends_txt") == 0) { //By davidsiaw
@@ -3762,6 +3817,7 @@ void do_final(void) {
 	delete_session(login_fd);
 	delete_session(char_fd);
 
+	status_final();
 	inter_final();
 
 	char_log("----End of char-server (normal end with closing of all files)." RETCODE);
@@ -3820,9 +3876,8 @@ int do_init(int argc, char **argv) {
 		online_chars[i].char_id = -1;
 		online_chars[i].server = -1;
 	}
-
 	mmo_char_init();
-
+	status_init();
 	update_online = time(NULL);
 	create_online_files(); // update online players files at start of the server
 

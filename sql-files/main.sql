@@ -65,12 +65,12 @@ CREATE TABLE `char` (
   `head_top` smallint(11) unsigned NOT NULL default '0',
   `head_mid` smallint(11) unsigned NOT NULL default '0',
   `head_bottom` smallint(11) unsigned NOT NULL default '0',
-  `last_map` varchar(20) NOT NULL default 'monk_test.gat',
-  `last_x` smallint(11) unsigned NOT NULL default '321',
-  `last_y` smallint(11) unsigned NOT NULL default '140',
-  `save_map` varchar(20) NOT NULL default 'monk_test.gat',
-  `save_x` smallint(11) unsigned NOT NULL default '321',
-  `save_y` smallint(11) unsigned NOT NULL default '140',
+  `last_map` varchar(20) NOT NULL default 'new_1-1.gat',
+  `last_x` smallint(11) unsigned NOT NULL default '53',
+  `last_y` smallint(11) unsigned NOT NULL default '111',
+  `save_map` varchar(20) NOT NULL default 'new_1-1.gat',
+  `save_x` smallint(11) unsigned NOT NULL default '53',
+  `save_y` smallint(11) unsigned NOT NULL default '111',
   `partner_id` int(11) unsigned NOT NULL default '0',
   `online` tinyint(4) NOT NULL default '0',
   `father` int(11) unsigned NOT NULL default '0',
@@ -81,6 +81,24 @@ CREATE TABLE `char` (
   KEY `party_id` (`party_id`),
   KEY `guild_id` (`guild_id`)
 ) TYPE=InnoDB AUTO_INCREMENT=150000; 
+
+--
+-- Table structure for table `sc_data`
+--
+
+DROP TABLE IF EXISTS `sc_data`;
+CREATE TABLE `sc_data` (
+  `account_id` int(11) unsigned NOT NULL,
+  `char_id` int(11) unsigned NOT NULL,
+  `type` smallint(11) unsigned NOT NULL,
+  `tick` bigint(11) unsigned NOT NULL,
+  `val1` int(11) NOT NULL default '0',
+  `val2` int(11) NOT NULL default '0',
+  `val3` int(11) NOT NULL default '0',
+  `val4` int(11) NOT NULL default '0',
+  CONSTRAINT `scdata_ibfk_1` FOREIGN KEY (`account_id`) REFERENCES `login` (`account_id`) ON DELETE CASCADE,
+  CONSTRAINT `scdata_ibfk_2` FOREIGN KEY (`char_id`) REFERENCES `char` (`char_id`) ON DELETE CASCADE
+) TYPE=InnoDB;
 
 --
 -- Table structure for table `charlog`

@@ -41,7 +41,7 @@ struct mmo_charstatus *charsave_loadchar(int charid){
          if(mysql_num_rows(charsql_res) <= 0){
          	ShowWarning("charsave_loadchar() -> CHARACTER NOT FOUND! (id: %d)\n", charid);
          	mysql_free_result(charsql_res);
-                 aFree(c);
+				aFree(c);
          	return NULL;
          }
 
@@ -260,10 +260,6 @@ struct mmo_charstatus *charsave_loadchar(int charid){
 	return c;
 }
 
-
-
-
-
 int charsave_savechar(int charid, struct mmo_charstatus *c){
 	int i,j;
          char tmp_str[128];
@@ -425,4 +421,80 @@ int charsave_savechar(int charid, struct mmo_charstatus *c){
     return 0;
 }
 
+int charsave_load_scdata(int account_id, int char_id)
+{	//Loads character's sc_data
+	struct map_session_data *sd;
+	
+	sd = map_id2sd(account_id);
+	if (!sd)
+	{
+		ShowError("charsave_load_scdata: Player of AID %d not found!\n", account_id);
+		return -1;
+	}
+	if (sd->status.char_id != char_id)
+	{
+		ShowError("charsave_load_scdata: Receiving data for account %d, char id does not matches (%d != %d)!\n", account_id, sd->status.char_id, char_id);
+		return -1;
+	}
+	sprintf(tmp_sql, "SELECT `type`, `tick`, `val1`, `val2`, `val3`, `val4` FROM `sc_data`"
+		"WHERE `account_id`='%d' AND `char_id`='%d'", account_id, char_id);
+	
+	if(mysql_query(&charsql_handle, tmp_sql)){
+		ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		return -1;
+	}
+
+	sql_res = mysql_store_result(&charsql_handle);
+	if(sql_res)
+	{
+		while ((sql_row = mysql_fetch_row(sql_res)))
+		{
+			status_change_start(&sd->bl, atoi(sql_row[0]), atoi(sql_row[2]), atoi(sql_row[3]),
+				atoi(sql_row[4]), atoi(sql_row[5]), atoi(sql_row[1]), 3);
+			//Flag 3 is 1&2, 1: Force status start, 2: Do not modify the tick value sent.
+		}
+	}
+
+	//Once loaded, sc_data must be disposed.
+	sprintf(tmp_sql, "DELETE FROM `sc_data` WHERE `account_id`='%d' AND `char_id`='%d'", account_id, char_id);
+	if(mysql_query(&charsql_handle, tmp_sql)){
+		ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
+		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+	}
+	return 0;
+}
+
+void charsave_save_scdata(int account_id, int char_id, struct status_change* sc_data, int max_sc)
+{	//Saves character's sc_data.
+	int i,count =0;
+	struct TimerData *timer;
+	unsigned int tick = gettick();
+
+	sprintf(tmp_sql, "INSERT INTO `sc_data` (`account_id`, `char_id`, `type`, `tick`, `val1`, `val2`, `val3`, `val4`) VALUES ");
+			
+	for(i = 0; i < max_sc; i++)
+	{
+		if (sc_data[i].timer == -1)
+			continue;
+		timer = get_timer(sc_data[i].timer);
+		if (timer == NULL || timer->tick < tick)
+			continue;
+		
+		sprintf (tmp_sql, "%s ('%d','%d','%hu','%d','%d','%d','%d','%d'),", tmp_sql, account_id, char_id,
+			i, timer->tick- tick, sc_data[i].val1, sc_data[i].val2, sc_data[i].val3, sc_data[i].val4);
+		
+		count++;
+	}
+	if (count > 0)
+	{
+		tmp_sql[strlen(tmp_sql)-1] = '\0'; //Remove the trailing comma.
+		if(mysql_query(&charsql_handle, tmp_sql)){
+			ShowSQL("DB error - %s\n",mysql_error(&charsql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
+	}
+	ShowInfo("charsql_save_scdata(): saved %d status changes of '%d:%d'.\n", count, account_id, char_id);
+	return;
+}
 #endif

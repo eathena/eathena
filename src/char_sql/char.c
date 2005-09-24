@@ -44,6 +44,7 @@
 static struct dbt *char_db_;
 
 char char_db[256] = "char";
+char scdata_db[256] = "sc_data";
 char cart_db[256] = "cart_inventory";
 char inventory_db[256] = "inventory";
 char charlog_db[256] = "charlog";
@@ -2374,7 +2375,7 @@ int parse_tologin(int fd) {
 int parse_frommap(int fd) {
 	int i = 0, j = 0;
 	int id;
-	int auth_fifo_flag=0;
+//	int auth_fifo_flag=0;
 
 	// Sometimes fd=0, and it will cause server crash. Don't know why. :(
 	if (fd <= 0) {
@@ -2480,6 +2481,7 @@ int parse_frommap(int fd) {
 			RFIFOSKIP(fd,RFIFOW(fd,2));
 			break;
 
+/* This packet is deprecated by Kevin's new auth system.
 		// auth request
 		case 0x2afc:
 			if (RFIFOREST(fd) < 22)
@@ -2497,30 +2499,30 @@ int parse_frommap(int fd) {
 				    !auth_fifo[i].delflag) {
 					auth_fifo[i].delflag = 1;
 					auth_fifo_flag=1;
-                                         if(charsave_method == 1){ //NEW ONE
-                                        		WFIFOW(fd, 0) = 0x2b1e;
-                                                 WFIFOL(fd, 2) = RFIFOL(fd, 2); //AID
-                                                 WFIFOL(fd, 6) = auth_fifo[i].login_id2; //SESID #2
-                                                 WFIFOL(fd, 10) = (unsigned long)auth_fifo[i].connect_until_time; //connect until ...
-                                                 WFIFOL(fd, 14) = auth_fifo[i].char_id;
-                                                 WFIFOW(fd, 18) = auth_fifo[i].sex; //Sex
-                                                 WFIFOSET(fd, 20); //20 bytes long
-                                                 set_char_online(auth_fifo[i].char_id, RFIFOL(fd, 2)); //set ON
-                                                 break;
-                                         }else{ //OLD
-	                                         WFIFOW(fd,0) = 0x2afd;
-	                                         WFIFOW(fd,2) = 16 + sizeof(struct mmo_charstatus);
-	                                         WFIFOL(fd,4) = RFIFOL(fd,2);
-	                                         WFIFOL(fd,8) = auth_fifo[i].login_id2;
-	                                         WFIFOL(fd,12) = (unsigned long)auth_fifo[i].connect_until_time;
-	                                         mmo_char_fromsql(auth_fifo[i].char_id, char_dat, 1);
-	                                         char_dat[0].sex = auth_fifo[i].sex;
-	                                         memcpy(WFIFOP(fd,16), &char_dat[0], sizeof(struct mmo_charstatus));
-	                                         WFIFOSET(fd, WFIFOW(fd,2));
-	                                         //printf("auth_fifo search success (auth #%d, account %d, character: %d).\n", i, RFIFOL(fd,2), RFIFOL(fd,6));
-	                                         break;
-                                         }
-                                         //AID SES2 CONNECT UNTIL TIME SEX
+					if(charsave_method == 1){ //NEW ONE
+						WFIFOW(fd, 0) = 0x2b1e;
+						WFIFOL(fd, 2) = RFIFOL(fd, 2); //AID
+						WFIFOL(fd, 6) = auth_fifo[i].login_id2; //SESID #2
+						WFIFOL(fd, 10) = (unsigned long)auth_fifo[i].connect_until_time; //connect until ...
+						WFIFOL(fd, 14) = auth_fifo[i].char_id;
+						WFIFOW(fd, 18) = auth_fifo[i].sex; //Sex
+						WFIFOSET(fd, 20); //20 bytes long
+						set_char_online(auth_fifo[i].char_id, RFIFOL(fd, 2)); //set ON
+						break;
+					}else{ //OLD
+						WFIFOW(fd,0) = 0x2afd;
+						WFIFOW(fd,2) = 16 + sizeof(struct mmo_charstatus);
+						WFIFOL(fd,4) = RFIFOL(fd,2);
+						WFIFOL(fd,8) = auth_fifo[i].login_id2;
+						WFIFOL(fd,12) = (unsigned long)auth_fifo[i].connect_until_time;
+						mmo_char_fromsql(auth_fifo[i].char_id, char_dat, 1);
+						char_dat[0].sex = auth_fifo[i].sex;
+						memcpy(WFIFOP(fd,16), &char_dat[0], sizeof(struct mmo_charstatus));
+						WFIFOSET(fd, WFIFOW(fd,2));
+						//printf("auth_fifo search success (auth #%d, account %d, character: %d).\n", i, RFIFOL(fd,2), RFIFOL(fd,6));
+						break;
+					}
+					//AID SES2 CONNECT UNTIL TIME SEX
 				}
 			}
 			if (auth_fifo_flag==0) {
@@ -2532,7 +2534,58 @@ int parse_frommap(int fd) {
 			auth_fifo_flag=0;
 			RFIFOSKIP(fd,22);
 			break;
+*/
+		//Packet command is now used for sc_data request. [Skotlex]
+		case 0x2afc:
+			if (RFIFOREST(fd) < 10)
+				return 0;
+		{
+			int aid, cid;
+			aid = RFIFOL(fd,2);
+			cid = RFIFOL(fd,6);
+			RFIFOSKIP(fd, 10);
 
+			sprintf(tmp_sql, "SELECT type, tick, val1, val2, val3, val4 from `%s` WHERE `account_id` = '%d' AND `char_id`='%d'",
+				scdata_db, aid, cid);
+			if (mysql_query(&mysql_handle, tmp_sql)) {
+				ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+				break;
+			}
+			sql_res = mysql_store_result(&mysql_handle);
+			if (sql_res) {
+				struct status_change_data data;
+				int count = 0;
+				WFIFOW(fd, 0) = 0x2b1d;
+				WFIFOL(fd, 4) = aid;
+				WFIFOL(fd, 8) = cid;
+				while((sql_row = mysql_fetch_row(sql_res)))
+				{
+					data.type = atoi(sql_row[0]);
+					data.tick = atoi(sql_row[1]);
+					data.val1 = atoi(sql_row[2]);
+					data.val2 = atoi(sql_row[3]);
+					data.val3 = atoi(sql_row[4]);
+					data.val4 = atoi(sql_row[5]);
+					memcpy(WFIFOP(fd, 14+count*sizeof(struct status_change_data)), &data, sizeof(struct status_change_data));
+					count++;
+				}
+				if (count > 0)
+				{
+					WFIFOW(fd, 2) = 14 + count*sizeof(struct status_change_data);
+					WFIFOW(fd, 12) = count;
+					WFIFOSET(fd, WFIFOW(fd,2));
+
+					//Clear the data once loaded.
+					sprintf(tmp_sql, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_id`='%d'", scdata_db, aid, cid);
+					if (mysql_query(&mysql_handle, tmp_sql)) {
+						ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+						ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+					}
+				}
+			}
+			break;
+		}
 		// set MAP user
 		case 0x2aff:
 			if (RFIFOREST(fd) < 6 || RFIFOREST(fd) < RFIFOW(fd,2))
@@ -2947,6 +3000,37 @@ int parse_frommap(int fd) {
 
 			mapif_sendall(buf, len);
 			RFIFOSKIP(fd,2);
+			break;
+		}
+		//Request saving sc_data of a player. [Skotlex]
+		case 0x2b1c:
+			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
+				return 0;
+		{
+			int count, aid, cid, i;
+			struct status_change_data data;
+			
+			aid = RFIFOL(fd, 4);
+			cid = RFIFOL(fd, 8);
+			count = RFIFOW(fd, 12);
+			
+			sprintf(tmp_sql, "INSERT INTO `%s` (`account_id`, `char_id`, `type`, `tick`, `val1`, `val2`, `val3`, `val4`) VALUES ", scdata_db);
+			
+			for (i = 0; i < count; i++)
+			{
+				memcpy (&data, RFIFOP(fd, 14+i*sizeof(struct status_change_data)), sizeof(struct status_change_data));
+				sprintf (tmp_sql, "%s ('%d','%d','%hu','%d','%d','%d','%d','%d'),", tmp_sql, aid, cid,
+					data.type, data.tick, data.val1, data.val2, data.val3, data.val4);
+			}
+			if (count > 0)
+			{
+				tmp_sql[strlen(tmp_sql)-1] = '\0'; //Remove final comma.
+				if (mysql_query(&mysql_handle, tmp_sql)) {
+					ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
+					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+				}
+			}
+			RFIFOSKIP(fd, RFIFOW(fd, 2));
 			break;
 		}
 
@@ -3881,6 +3965,8 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 			strcpy(login_db, w2);
 		}else if(strcmpi(w1,"char_db")==0){
 			strcpy(char_db,w2);
+		}else if(strcmpi(w1,"scdata_db")==0){
+			strcpy(scdata_db,w2);
 		}else if(strcmpi(w1,"cart_db")==0){
 			strcpy(cart_db,w2);
 		}else if(strcmpi(w1,"inventory_db")==0){
@@ -4003,8 +4089,6 @@ int char_config_read(const char *cfgName) {
 				memcpy(bind_ip_str, w2, 16);
 		} else if (strcmpi(w1, "char_port") == 0) {
 			char_port = atoi(w2);
-		} else if (strcmpi(w1, "charsave_method") == 0){
-			charsave_method = atoi(w2);
 		} else if (strcmpi(w1, "char_maintenance") == 0) {
 			char_maintenance = atoi(w2);
 		} else if (strcmpi(w1, "char_new")==0){

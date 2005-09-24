@@ -1,0 +1,178 @@
+#include <stdio.h>
+
+#include "int_status.h"
+#include "../common/db.h"
+#include "../common/lock.h"
+#include "../common/malloc.h"
+#include "../common/showmsg.h"
+
+static struct dbt * scdata_db = NULL;	//Contains all the status change data in-memory. [Skotlex]
+char scdata_txt[1024]="save/scdata.txt"; //By [Skotlex]
+
+/*==========================================
+ * Loads status change data of the player given. [Skotlex]
+ *------------------------------------------
+ */
+struct scdata* status_search_scdata(int aid, int cid)
+{
+	struct scdata *data;
+	data = numdb_search(scdata_db, cid);
+	if (data == NULL)
+	{
+		data = aCalloc(1, sizeof(struct scdata));
+		data->account_id = aid;
+		data->char_id = cid;
+		numdb_insert(scdata_db, cid, data);
+	}
+	return data;
+}
+
+/*==========================================
+ * Deletes status change data of the player given. [Skotlex]
+ * Should be invoked after the data of said player was successfully loaded.
+ *------------------------------------------
+ */
+void status_delete_scdata(int aid, int cid)
+{
+	struct scdata *scdata = numdb_search(scdata_db, cid);
+	if (scdata)
+	{
+		if (scdata->data)
+			aFree(scdata->data);
+		numdb_erase(scdata_db, cid);
+		aFree(scdata);
+	}
+}
+
+
+static void inter_status_tostr(char* line, struct scdata *sc_data)
+{
+	int i, len;
+
+	len = sprintf(line, "%d,%d,%d\t", sc_data->account_id, sc_data->char_id, sc_data->count);
+	for(i = 0; i < sc_data->count; i++) {
+		len += sprintf(line + len, "%d,%d,%d,%d,%d,%d\t", sc_data->data[i].type, sc_data->data[i].tick,
+			sc_data->data[i].val1, sc_data->data[i].val2, sc_data->data[i].val3, sc_data->data[i].val4);
+	}
+	return;
+}
+
+static int inter_scdata_fromstr(char *line, struct scdata *sc_data)
+{
+	int i, len, next;
+	
+	if (sscanf(line,"%d,%d,%d\t%n",&sc_data->account_id, &sc_data->char_id, &sc_data->count, &next) < 3)
+		return 0;
+
+	if (sc_data->count < 1)
+		return 0;
+	
+	sc_data->data = aCalloc(sc_data->count, sizeof (struct status_change_data));
+
+	for (i = 0; i < sc_data->count; i++)
+	{
+		if (sscanf(line + next, "%hu,%d,%d,%d,%d,%d\t%n", &sc_data->data[i].type, &sc_data->data[i].tick,
+			&sc_data->data[i].val1, &sc_data->data[i].val2, &sc_data->data[i].val3, &sc_data->data[i].val4, &len) < 6)
+		{
+			aFree(sc_data->data);
+			return 0;
+		}
+		next+=len;
+	}
+	return 1;
+}
+/*==========================================
+ * Loads all scdata from the given filename.
+ *------------------------------------------
+ */
+void status_load_scdata(const char* filename)
+{
+	FILE *fp;
+	int lock;
+	int sd_count=0, sc_count=0;
+	char line[8192];
+	struct scdata *sc;
+
+	if ((fp = fopen(filename, "r")) == NULL) {
+		ShowError("status_load_scdata: Cannot open file %s!\n", filename);
+		return;
+	}
+
+	while(fgets(line, sizeof(line) - 1, fp)) {
+		sc = (struct scdata*)aCalloc(1, sizeof(struct scdata));
+		if (inter_scdata_fromstr(line, sc)) {
+			numdb_insert(scdata_db, sc->char_id, sc);
+			sd_count++;
+			sc_count+= sc->count;
+		} else {
+			ShowError("status_load_scdata: Broken line data: %s\n", line);
+			aFree(sc);
+		}
+	}
+	fclose(fp);
+	ShowStatus("Loaded %d saved status changes for %d characters.\n", sc_count, sd_count);
+}
+
+static int inter_status_save_sub(void *key, void *data, va_list ap) {
+	char line[8192];
+	struct scdata * sc_data;
+	FILE *fp;
+
+	sc_data = (struct scdata *)data;
+	if (sc_data->count < 1)
+		return 0;
+	
+	fp = va_arg(ap, FILE *);
+	inter_status_tostr(line, sc_data);
+	fprintf(fp, "%s" RETCODE, line);
+	return 0;
+}
+
+/*==========================================
+ * Saves all scdata to the given filename.
+ *------------------------------------------
+ */
+void inter_status_save()
+{
+	FILE *fp;
+	int lock;
+
+	if ((fp = lock_fopen(scdata_txt, &lock)) == NULL) {
+		ShowError("int_status: cant write [%s] !!! data is lost !!!\n", scdata_txt);
+		return;
+	}
+	numdb_foreach(scdata_db, inter_status_save_sub, fp);
+	lock_fclose(fp,scdata_txt, &lock);
+}
+
+/*==========================================
+ * Initializes db.
+ *------------------------------------------
+ */
+void status_init()
+{
+	scdata_db = numdb_init();
+	status_load_scdata(scdata_txt);
+}
+
+/*==========================================
+ * Frees up memory.
+ *------------------------------------------
+ */
+static int scdata_db_final(void *k,void *d,va_list ap)
+{
+	struct scdata *data = (struct scdata*)d;
+	if (data->data)
+		aFree(data->data);
+	aFree(data);
+	return 0;
+}
+
+/*==========================================
+ * Final cleanup.
+ *------------------------------------------
+ */
+void status_final(void)
+{
+	numdb_final(scdata_db, scdata_db_final);
+}

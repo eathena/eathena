@@ -53,8 +53,10 @@ int char_married(int pl1,int pl2);
 int char_child(int parent_id, int child_id);
 
 extern int autosave_interval;
+extern int charsave_method;
 extern char db_path[];
 extern char char_db[256];
+extern char scdata_db[256];
 extern char cart_db[256];
 extern char inventory_db[256];
 extern char charlog_db[256];
