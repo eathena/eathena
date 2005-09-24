@@ -103,9 +103,8 @@ conf:
 
 
 ifdef SQLFLAG
-sql: src/common/GNUmakefile src/login_sql/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile conf
+sql: src/common/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile conf
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd ..
-	cd src ; cd login_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
 	cd src ; cd char_sql ; $(MAKE) $(MYLIB) $@ ; cd ..
 	cd src ; cd map ; $(MAKE) $(MYLIB) $@ ; cd ..
 	cd src ; cd addons ; $(MAKE) $(MKDEF) $@ ; cd ..
@@ -123,17 +122,12 @@ webserver:
 
 clean: src/common/GNUmakefile src/map/GNUmakefile
 	cd src ; cd common ; $(MAKE) $(MKDEF) $@ ; cd ..
-	cd src ; cd login_sql ; $(MAKE) $(MKLIB) $@ ; cd ..
 	cd src ; cd char_sql ; $(MAKE) $(MKLIB) $@ ; cd ..
 	cd src ; cd map ; $(MAKE) $(MKLIB) $@ ; cd ..
 	cd src ; cd addons ; $(MAKE) $(MKDEF) $@ ; cd ..
 
 src/common/GNUmakefile: src/common/Makefile 
 	sed -e 's/$$>/$$^/' src/common/Makefile > src/common/GNUmakefile
-src/login/GNUmakefile: src/login/Makefile 
-	sed -e 's/$$>/$$^/' src/login/Makefile > src/login/GNUmakefile
-src/login_sql/GNUmakefile: src/login_sql/Makefile 
-	sed -e 's/$$>/$$^/' src/login_sql/Makefile > src/login_sql/GNUmakefile
 src/char/GNUmakefile: src/char/Makefile 
 	sed -e 's/$$>/$$^/' src/char/Makefile > src/char/GNUmakefile
 src/char_sql/GNUmakefile: src/char_sql/Makefile 

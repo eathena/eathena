@@ -31,6 +31,7 @@
 #define RET RETCODE
 
 #define FIFOSIZE_SERVERLINK	128*1024
+#define AUTH_FIFO_SIZE 256
 
 // set to 0 to not check IP of player between each server.
 // set to another value if you want to check (1)
@@ -408,6 +409,30 @@ enum {
 #define JOB_BABY_DANCER 4043
 #define JOB_BABY_CRUSADER2 4044
 #define JOB_SUPER_BABY 4045
+
+// Structs used by clownphobia login-server
+
+struct mmo_char_server {
+        char name[20];
+        long ip;
+        short port;
+        int users;
+        int maintenance;                
+        int new;
+};
+
+struct mmo_account {
+	char* userid;
+	char* passwd;
+	int passwdenc;
+
+	long account_id;
+	long login_id1;
+	long login_id2;
+	long char_id;
+	char lastlogin[24];
+	int sex;
+};
 
 #ifndef __WIN32
 	#ifndef strcmpi

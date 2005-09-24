@@ -227,7 +227,6 @@ enum AtCommandType {
 	AtCommand_SkillTree, // by MouseJstr
 	AtCommand_Marry, // by MouseJstr
 	AtCommand_Divorce, // by MouseJstr
-	AtCommand_Rings, // by MouseJstr
 	AtCommand_Grind, // by MouseJstr
 	AtCommand_Grind2, // by MouseJstr
 

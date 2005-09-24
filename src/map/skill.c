@@ -1398,10 +1398,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		nullpo_retr(0, sd = (struct map_session_data *)src);
 	} else if (src->type == BL_MOB){
 		nullpo_retr(0, md = (struct mob_data *)src);
-	} else// if (src->type == BL_PET){
-//		nullpo_retr(0, pd = (struct pet_data *)src);
-		return 0; //Only mobs/players can be affected. [Skotlex]
-//	}
+	} 
 
 	if(bl->type == BL_PC) {
 		nullpo_retr(0, dstsd=(struct map_session_data *)bl);
@@ -1441,10 +1438,9 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 			skillid = (dstsd->autospell2_id[i] > 0) ? dstsd->autospell2_id[i] : -dstsd->autospell2_id[i];
 			skilllv = (dstsd->autospell2_lv[i] > 0) ? dstsd->autospell2_lv[i] : 1;
-			rate = ((sd && !sd->state.arrow_atk) || (status_get_range(src)<=2)) ?
-				dstsd->autospell2_rate[i] : dstsd->autospell2_rate[i] / 2;
+			rate = dstsd->autospell2_rate[i];
 			
-			if (rand()%1000 > rate)
+			if (rand()%100 > rate)
 				continue;
 			if (dstsd->autospell2_id[i] < 0)
 				tbl = bl;
@@ -1670,19 +1666,14 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	dmg=battle_calc_attack(attack_type,src,bl,skillid,skilllv,flag&0xff ); //ダメ?ジ計算
 	if(skillid==ASC_BREAKER)
 	{
-		if(sc_data && sc_data[SC_MAGICROD].timer != -1)
-			clif_skill_nodamage(bl,bl,SA_MAGICROD,sc_data[SC_MAGICROD].val1,1);
-		else
-		{
-			struct Damage dmg2;
-			dmg2=battle_calc_attack(BF_MAGIC,src,bl,skillid,skilllv,flag&0xff);
-			dmg.damage+=dmg2.damage;
-			dmg.damage2+=dmg2.damage2;
-		}
+		struct Damage dmg2;
+		dmg2=battle_calc_attack(BF_MAGIC,src,bl,skillid,skilllv,flag&0xff);
+		dmg.damage+=dmg2.damage;
+		dmg.damage2+=dmg2.damage2;
 	}
 
 //マジックロッド?理ここから
-	if(attack_type&BF_MAGIC && sc_data && sc_data[SC_MAGICROD].timer != -1 && src == dsrc) { //魔法攻?でマジックロッド?態でsrc=dsrcなら
+	if((attack_type&BF_MAGIC || skillid==ASC_BREAKER) && sc_data && sc_data[SC_MAGICROD].timer != -1 && src == dsrc) { //魔法攻?でマジックロッド?態でsrc=dsrcなら
 		dmg.damage = dmg.damage2 = 0; //ダメ?ジ0
 		if(bl->type == BL_PC) { //?象がPCの場合
 			struct map_session_data *sd = (struct map_session_data *)bl;
@@ -4371,17 +4362,14 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if(status_isimmune(bl))
 				break;
-			for(i=0;i<136;i++){
+			for(i=0;i<SC_SENDMAX;i++){
 				if(i==SC_RIDING || i==SC_FALCON || i==SC_HALLUCINATION || i==SC_WEIGHT50
 					|| i==SC_WEIGHT90 || i==SC_STRIPWEAPON || i==SC_STRIPSHIELD || i==SC_STRIPARMOR
 					|| i==SC_STRIPHELM || i==SC_CP_WEAPON || i==SC_CP_SHIELD || i==SC_CP_ARMOR
-					|| i==SC_CP_HELM || i==SC_COMBO || i==SC_LULLABY || i==SC_RICHMANKIM
-					|| i==SC_ETERNALCHAOS || i==SC_DRUMBATTLE || i==SC_NIBELUNGEN || i==SC_ROKISWEIL
-					|| i==SC_INTOABYSS || i==SC_SIEGFRIED || i==SC_DISSONANCE || i==SC_WHISTLE
-					|| i==SC_ASSNCROS || i==SC_POEMBRAGI || i==SC_APPLEIDUN || i==SC_UGLYDANCE
-					|| i==SC_HUMMING || i==SC_DONTFORGETME || i==SC_FORTUNE || i==SC_SERVICE4U
-					|| i==SC_MOONLIT || i==SC_LONGING || i==SC_HERMODE || i== SC_DANCING)
+					|| i==SC_CP_HELM || i==SC_COMBO || i==SC_GRAVITATION || i==SC_HERMODE || i==SC_MOONLIT)
 						continue;
+				if(i>=149 && i<=171)
+					continue;
 				status_change_end(bl,i,-1);
 			}
 		}
@@ -5960,7 +5948,10 @@ struct skill_unit_group *skill_unitsetting( struct block_list *src, int skillid,
 
 	limit = skill_get_time(skillid,skilllv);
 	range = skill_get_unit_range(skillid);
-	interval = skill_get_unit_interval(skillid);
+	if(skillid == HW_GRAVITATION)
+		interval = 1000/(skilllv+1);
+	else
+		interval = skill_get_unit_interval(skillid);
 	target = skill_get_unit_target(skillid);
 	unit_flag = skill_get_unit_flag(skillid);
 	layout = skill_get_unit_layout(skillid,skilllv,src,x,y);

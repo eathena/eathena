@@ -2521,6 +2521,64 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount)
 	return 0;
 }
 
+
+// Same as pc_additem, but sets gm_made flag
+int pc_addgmitem(struct map_session_data *sd,struct item *item_data,int amount)
+{
+	struct item_data *data;
+	int i,w;
+
+	nullpo_retr(1, sd);
+	nullpo_retr(1, item_data);
+
+	if(item_data->nameid <= 0 || amount <= 0)
+		return 1;
+	data = itemdb_search(item_data->nameid);
+	if((w = data->weight*amount) + sd->weight > sd->max_weight)
+		return 2;
+
+	i = MAX_INVENTORY;
+
+	if (!itemdb_isequip2(data)){
+		// 装 備品ではないので、既所有品なら個数のみ変化させる
+		for (i = 0; i < MAX_INVENTORY; i++)
+			if(sd->status.inventory[i].nameid == item_data->nameid &&
+				sd->status.inventory[i].card[0] == item_data->card[0] &&
+				sd->status.inventory[i].card[1] == item_data->card[1] &&
+				sd->status.inventory[i].card[2] == item_data->card[2] &&
+				sd->status.inventory[i].card[3] == item_data->card[3])
+			{
+				if (sd->status.inventory[i].amount + amount > MAX_AMOUNT)
+					return 5;
+				sd->status.inventory[i].amount += amount;
+				// One gm-made item will flag the whole pile as Gm-made
+				sd->status.inventory[i].gm_made = 1;
+				clif_additem(sd,i,amount,0);
+				break;
+			}
+	}
+	if (i >= MAX_INVENTORY){
+		// 装 備品か未所有品だったので空き欄へ追加
+		i = pc_search_inventory(sd,0);
+		if(i >= 0) {
+			// clear equips field first, just in case
+			if (item_data->equip != 0)
+				item_data->equip = 0;
+			memcpy(&sd->status.inventory[i], item_data, sizeof(sd->status.inventory[0]));
+			sd->status.inventory[i].amount = amount;
+			sd->status.inventory[i].gm_made = 1;
+			sd->inventory_data[i] = data;
+			clif_additem(sd,i,amount,0);
+		}
+		else return 4;
+	}
+	sd->weight += w;
+	clif_updatestatus(sd,SP_WEIGHT);
+
+	return 0;
+}
+
+
 /*==========================================
  * アイテムを減らす
  *------------------------------------------

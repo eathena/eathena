@@ -4381,7 +4381,8 @@ struct Damage battle_calc_magic_attack(
 			matk_flag = 0; // don't consider matk and matk2
 			break;
 		case HW_GRAVITATION:
-			damage = 200 + skill_lv * 200;
+			// Now gives more hits per second with high skill level (Aru)
+			damage = 200; // + skill_lv * 200;
 			normalmagic_flag = 0;
 			no_cardfix = 1;
 			no_elefix = 1;
@@ -4709,7 +4710,7 @@ struct Damage battle_calc_attack(	int attack_type,
 	struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag)
 {
 	struct Damage d;
-
+#if 1
 	if(skill_num == 0 && bl->type == BL_PC)
 	{
 		struct status_change *sc_data = status_get_sc_data(bl);
@@ -4723,7 +4724,7 @@ struct Damage battle_calc_attack(	int attack_type,
 				status_change_end(bl, SC_SACRIFICE, -1);
 		}
 	}
-
+#endif
 	switch(attack_type){
 	case BF_WEAPON:
 		return battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
@@ -4861,7 +4862,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 		battle_delay_damage(tick+wd.amotion, src, target, (wd.damage+wd.damage2), 0);
 
 		if (wd.damage > 0 || wd.damage2 > 0) //Added counter effect [Skotlex]
-			skill_counter_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
+			skill_counter_additional_effect(src, target, 0, 1, BF_WEAPON, tick);
 
 		if (target->prev != NULL && (wd.damage > 0 || wd.damage2 > 0)) {
 			skill_additional_effect(src, target, 0, 0, BF_WEAPON, tick);

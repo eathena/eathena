@@ -10492,7 +10492,7 @@ void clif_parse_GMReqNoChat(int fd,struct map_session_data *sd)
 	if (type == 0)
 		limit = 0 - limit;
 
-	if (type == 2)
+	if (type == 2 && limit == 60)
 	{
 		char logbuf[200];
 		sprintf(logbuf,"req mute - limit:%d",limit);

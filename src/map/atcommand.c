@@ -252,7 +252,6 @@ ACMD_FUNC(skilltree); // by MouseJstr
 
 ACMD_FUNC(marry); // by MouseJstr
 ACMD_FUNC(divorce); // by MouseJstr
-ACMD_FUNC(rings); // by MouseJstr
 
 ACMD_FUNC(grind); // by MouseJstr
 ACMD_FUNC(grind2); // by MouseJstr
@@ -556,7 +555,6 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_SkillTree,			"@skilltree",		40, atcommand_skilltree }, // [MouseJstr]
 	{ AtCommand_Marry,				"@marry",			40, atcommand_marry }, // [MouseJstr]
 	{ AtCommand_Divorce,			"@divorce",			40, atcommand_divorce }, // [MouseJstr]
-	{ AtCommand_Rings,				"@rings",			40, atcommand_rings }, // [MouseJstr]
 	{ AtCommand_Grind,				"@grind",			99, atcommand_grind }, // [MouseJstr]
 	{ AtCommand_Grind2,				"@grind2",			99, atcommand_grind2 }, // [MouseJstr]
 
@@ -2421,7 +2419,7 @@ int atcommand_item(
 				item_tmp.nameid = item_id;
 				item_tmp.identify = 1;
 				item_tmp.gm_made = 1;
-				if ((flag = pc_additem((struct map_session_data*)sd, &item_tmp, get_count)))
+				if ((flag = pc_addgmitem((struct map_session_data*)sd, &item_tmp, get_count)))
 					clif_additem((struct map_session_data*)sd, 0, 0, flag);
 			}
 		}
@@ -2498,7 +2496,7 @@ int atcommand_item2(
 			item_tmp.card[2] = c3;
 			item_tmp.card[3] = c4;
 			item_tmp.gm_made = 1;
-			if ((flag = pc_additem(sd, &item_tmp, get_count)))
+			if ((flag = pc_addgmitem(sd, &item_tmp, get_count)))
 				clif_additem(sd, 0, 0, flag);
 		}
 		clif_displaymessage(fd, msg_table[18]); // Item created.
@@ -3660,9 +3658,10 @@ int atcommand_produce(
 		tmp_item.card[1] = ((star * 5) << 8) + attribute;
 		tmp_item.card[2] = GetWord(sd->char_id, 0);
 		tmp_item.card[3] = GetWord(sd->char_id, 1);
+		tmp_item.gm_made = 1;
 		clif_produceeffect(sd, 0, item_id); // 製造エフェクトパケット
 		clif_misceffect(&sd->bl, 3); // 他人にも成功を通知
-		if ((flag = pc_additem(sd, &tmp_item, 1)))
+		if ((flag = pc_addgmitem(sd, &tmp_item, 1)))
 			clif_additem(sd, 0, 0, flag);
 	} else {
 		if (battle_config.error_log)
@@ -7809,36 +7808,6 @@ atcommand_divorce(const int fd, struct map_session_data* sd,
   return -1;
 }
 
-/*==========================================
- * @rings by [MouseJstr]
- *
- * Give two players rings
- *------------------------------------------
- */
-int
-atcommand_rings(const int fd, struct map_session_data* sd,
-	const char* command, const char* message)
-{
-  struct item item_tmp;
-  int flag;
-
-  memset(&item_tmp, 0, sizeof(item_tmp));
-
-  item_tmp.nameid = 2634;
-  item_tmp.identify = 1;
-
-  if ((flag = pc_additem((struct map_session_data*)sd, &item_tmp, 1)))
-    clif_additem((struct map_session_data*)sd, 0, 0, flag);
-
-  item_tmp.nameid = 2635;
-  item_tmp.identify = 1;
-  if ((flag = pc_additem((struct map_session_data*)sd, &item_tmp, 1)))
-    clif_additem((struct map_session_data*)sd, 0, 0, flag);
-
-  clif_displaymessage(fd, "You have rings!  Give them to the lovers.");
-
-  return 0;
-}
 
 #ifdef DMALLOC
 unsigned long dmark_;
