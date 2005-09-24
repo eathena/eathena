@@ -124,7 +124,7 @@ int inter_accreg_fromsql(int account_id,struct accreg *reg)
 	reg->account_id=account_id;
 
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
-	sprintf (tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%d'",reg_db, reg->account_id);
+	sprintf (tmp_sql, "SELECT `str`, `value` FROM `%s` WHERE `account_id`='%d'",account_reg_db, reg->account_id);
 	if(mysql_query(&mysql_handle, tmp_sql) ) {
 		printf("DB server Error (select `global_reg_value`)- %s\n", mysql_error(&mysql_handle) );
 	}
