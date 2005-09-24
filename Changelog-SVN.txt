@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/24
+	* Removed Assert in pet_walk, use a less unstable debugging tool, causes
+	  errors in remote shells. [Kevin]
 	* Fixed TXT char login with new auth system. [Kevin]
 	* Done: Adjustable players titles for @who, @who2, @who3 commands [Lupus]
 	- Check msg_athena.conf for new lines

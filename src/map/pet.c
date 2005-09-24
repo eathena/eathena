@@ -382,8 +382,6 @@ static int pet_walk(struct pet_data *pd,unsigned int tick,int data)
 
 	nullpo_retr(0, pd);
 
-	Assert((pd->msd == 0) || (pd->msd->pd == pd));
-
 	pd->state.state=MS_IDLE;
 	if(pd->walkpath.path_pos >= pd->walkpath.path_len || pd->walkpath.path_pos != data)
 		return 0;
