@@ -295,14 +295,10 @@ bool CAccountDB_sql::init(const char* configfile)
 	mysql_init(&mysqldb_handle);
 
 /*
-	// All tables used for login: login_auth, login_reg, login_log, login_status <- nice names, and cleaned up the columns
+	// All tables used for login: login_auth, login_reg, login_log, login_status
 
-//	bool query=false; // i dont know how a bool is set..
+//	bool wipe=false; // i dont know how a bool is set..
 	char query[512];
-	//set log.
-
-	// Will work on IF statements built into MySQL to check if a table doesnt exist, if it doesnt, insert.
-	// Also for updates that may occur, i may do a check on table names. and making sure they exist.
 
 	if (wipe){
 		size_t sz = sprintf(query, "DROP TABLE IF EXISTS login_auth");
@@ -327,6 +323,10 @@ bool CAccountDB_sql::init(const char* configfile)
 		"PRIMARY KEY(`account_id`)"
 		");" );
 	this->mysql_SendQuery(query, sz);
+
+
+
+
 
 	if (wipe){
 		size_t sz = sprintf(query, "DROP TABLE IF EXISTS login_reg");
