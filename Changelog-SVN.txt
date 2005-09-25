@@ -1,6 +1,10 @@
 Date	Added
 =======
 
+09/25
+	* Modified battle_weapon_delay so that additional status effects are
+	  invoked even if the attack does no damage, as long as the attack connects
+	  (that is, it is not a miss/lucky dodge) [Skotlex]
 09/24
 	* Updated several mob stats for the Lighthalzen and later mobs from the
 	  data provided by Viccious Pucca. [Skotlex]

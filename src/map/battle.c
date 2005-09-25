@@ -159,6 +159,7 @@ struct delay_damage {
 	int skill_id;
 	int damage;
 	int delay;
+	int dmg_lv;
 	int flag;
 };
 
@@ -168,21 +169,23 @@ int battle_delay_damage_sub (int tid, unsigned int tick, int id, int data)
 	struct block_list *target = map_id2bl(dat->target);
 	if (target && dat && map_id2bl(id) == dat->src && target->prev != NULL && !status_isdead(target))
 	{
-		if (battle_damage(dat->src, target, dat->damage, dat->delay, dat->flag) > 0 && !status_isdead(target) && dat->attack_type)
+		battle_damage(dat->src, target, dat->damage, dat->delay, dat->flag);
+		if (!status_isdead(target) && (dat->dmg_lv == ATK_DEF || dat->damage > 0) && dat->attack_type)
 			skill_additional_effect(dat->src,target,dat->skill_id,dat->skill_lv,dat->attack_type, tick);
 	}
 	aFree(dat);
 	return 0;
 }
 
-int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, int delay, int flag)
+int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, int delay, int dmg_lv, int flag)
 {
 	struct delay_damage *dat;
 	nullpo_retr(0, src);
 	nullpo_retr(0, target);
 
 	if (!battle_config.delay_battle_damage) {
-		if (battle_damage(src, target, damage, delay, flag) > 0 && !status_isdead(target) && attack_type)
+		battle_damage(src, target, damage, delay, flag);
+		if (!status_isdead(target) && (damage > 0 || dmg_lv == ATK_DEF) && attack_type)
 			skill_additional_effect(src, target, skill_id, skill_lv, attack_type, gettick());
 		return 0;
 	}
@@ -194,6 +197,7 @@ int battle_delay_damage (unsigned int tick, struct block_list *src, struct block
 	dat->attack_type = attack_type;
 	dat->damage = damage;
 	dat->delay = delay;
+	dat->dmg_lv = dmg_lv;
 	dat->flag = flag;
 	add_timer(tick, battle_delay_damage_sub, src->id, (int)dat);
 
@@ -2597,9 +2601,9 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 
 		map_freeblock_lock();
 
-		battle_delay_damage(tick+wd.amotion, src, target, BF_WEAPON, 0, 0, (wd.damage+wd.damage2), wd.dmotion, 0);
+		battle_delay_damage(tick+wd.amotion, src, target, BF_WEAPON, 0, 0, (wd.damage+wd.damage2), wd.dmotion, wd.dmg_lv, 0);
 
-		if (wd.damage > 0 || wd.damage2 > 0) //Added counter effect [Skotlex]
+		if (wd.dmg_lv == ATK_DEF || wd.damage > 0 || wd.damage2 > 0) //Added counter effect [Skotlex]
 			skill_counter_additional_effect(src, target, 0, 0, BF_WEAPON, tick);
 		if (!status_isdead(target) && (wd.damage > 0 || wd.damage2 > 0)) {
 			if (sd) {
@@ -2759,7 +2763,7 @@ int battle_weapon_attack( struct block_list *src,struct block_list *target,
 */
 		}
 		if (rdamage > 0) //By sending attack type "none" skill_additional_effect won't be invoked. [Skotlex]
-			battle_delay_damage(tick+wd.amotion, target, src, 0, 0, 0, rdamage, 0, 0);
+			battle_delay_damage(tick+wd.amotion, target, src, 0, 0, 0, rdamage, 0, ATK_DEF, 0);
 
 		if (tsc_data) {
 			if (tsc_data && tsc_data[SC_POISONREACT].timer != -1 && 

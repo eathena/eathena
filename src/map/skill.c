@@ -1803,9 +1803,10 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 	/* ?Û‚Éƒ_ƒ?ƒW?—‚ðs‚¤ */
 	if ((skillid || flag) && !(skillid == ASC_BREAKER && attack_type&BF_WEAPON)) {  // do not really deal damage for ASC_BREAKER's 1st attack
 		if (attack_type&BF_WEAPON)
-			battle_delay_damage(tick+dmg.amotion,src,bl,attack_type,skillid,skilllv,damage,dmg.dmotion,0);
+			battle_delay_damage(tick+dmg.amotion,src,bl,attack_type,skillid,skilllv,damage,dmg.dmotion, dmg.dmg_lv, 0);
 		else {
-			if (battle_damage(src,bl,damage,dmg.dmotion, 0) > 0 && !status_isdead(bl))
+			battle_damage(src,bl,damage,dmg.dmotion, 0);
+			if (!status_isdead(bl) && (dmg.dmg_lv == ATK_DEF || damage > 0))
 				skill_additional_effect(src,bl,skillid,skilllv,attack_type,tick);
 		}
 	}
@@ -1910,7 +1911,7 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 
 	if ((skillid || flag) && rdamage>0) {
 		if (attack_type&BF_WEAPON)
-			battle_delay_damage(tick+dmg.amotion,bl,src,0,0,0,rdamage,dmg.dmotion,0);
+			battle_delay_damage(tick+dmg.amotion,bl,src,0,0,0,rdamage,dmg.dmotion,ATK_DEF,0);
 		else
 			battle_damage(bl,src,rdamage,dmg.dmotion,0);
 	}
