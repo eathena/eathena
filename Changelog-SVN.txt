@@ -2,6 +2,11 @@ Date	Added
 =======
 
 09/26
+	* Removed card modifiers from Meteor Assault. [Skotlex]
+	* Corrected skill_out_range_consume so that spells effectively fail if the
+	  target goes out of range. [Skotlex]
+	* Another another check on the new auth system which may help prevent
+	  exploits. [Skotlex]
 	* General cleanup and code improvements needed because of the new auth
 	  system. [Skotlex]
 	* Fixed a bug in the new auth system (TXT) which was causing the gender to

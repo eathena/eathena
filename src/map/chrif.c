@@ -444,6 +444,10 @@ int chrif_authreq(struct map_session_data *sd)
 void chrif_authok(int fd) {
 	struct auth_node *new_node;
 	
+	if (map_id2sd(RFIFOL(fd, 4)) != NULL)
+	//Someone with this account is already in! Do not store the info to prevent possible sync exploits. [Skotlex]
+		return;
+	
 	if ((new_node =numdb_search(auth_db, RFIFOL(fd, 4))) != NULL)
 	{ //Delete the previously received node.
 		aFree(new_node);

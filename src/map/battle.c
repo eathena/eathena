@@ -1442,6 +1442,7 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case ASC_METEORASSAULT:
 					skillratio+= 40*skill_lv-60;
+					flag.cardfix = 0;
 					break;
 				case SN_SHARPSHOOTING:
 					skillratio+= 100+50*skill_lv;

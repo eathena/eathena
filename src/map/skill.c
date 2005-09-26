@@ -5549,29 +5549,23 @@ int skill_castend_id( int tid, unsigned int tick, int id,int data )
 		range += skill_get_blewcount(MO_COMBOFINISH,sd->sc_data[SC_COMBO].val2);
 	*/
 
-	if(battle_config.skill_out_range_consume) { // changed to allow casting when target walks out of range [Valaris]
-		if(range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y)) {
-			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			sd->skillitem = sd->skillitemlv = -1;
-			return 0;
-		}
-	}
-	if(!skill_check_condition(sd,1)) {		/* 使用?件チェック */
+	if(range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y))
+	{
+		clif_skill_fail(sd,sd->skillid,0,0);
+		if(battle_config.skill_out_range_consume) //Consume items anyway. [Skotlex]
+			skill_check_condition(sd,1);
+			
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
 		sd->skillitem = sd->skillitemlv = -1;
 		return 0;
 	}
 
-	if(battle_config.skill_out_range_consume) {
-		if(range < distance(sd->bl.x,sd->bl.y,bl->x,bl->y)) {
-			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			return 0;
-		}
+	if(!skill_check_condition(sd,1)) {		/* 使用?件チェック */
+		sd->canact_tick = tick;
+		sd->canmove_tick = tick;
+		sd->skillitem = sd->skillitemlv = -1;
+		return 0;
 	}
 
 	if(battle_config.pc_skill_log)
@@ -5674,31 +5668,25 @@ int skill_castend_pos( int tid, unsigned int tick, int id,int data )
 	if(range < 0)
 		range = status_get_range(&sd->bl) - (range + 1);
 	range += battle_config.pc_skill_add_range;
-	if(battle_config.skill_out_range_consume) {  // changed to allow casting when target walks out of range [Valaris]
-		if(range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
-			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			sd->skillitem = sd->skillitemlv = -1;
-			return 0;
-		}
-	}
-	if(!skill_check_condition(sd,1)) {		/* 使用?件チェック */
+	
+	if(range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
+		clif_skill_fail(sd,sd->skillid,0,0);
+		if(battle_config.skill_out_range_consume) //Consume items anyway.
+			skill_check_condition(sd,1);
+			
 		sd->canact_tick = tick;
 		sd->canmove_tick = tick;
 		sd->skillitem = sd->skillitemlv = -1;
 		return 0;
 	}
 
-	if(battle_config.skill_out_range_consume) {
-		if(range < distance(sd->bl.x,sd->bl.y,sd->skillx,sd->skilly)) {
-			clif_skill_fail(sd,sd->skillid,0,0);
-			sd->canact_tick = tick;
-			sd->canmove_tick = tick;
-			return 0;
-		}
-	}
 
+	if(!skill_check_condition(sd,1)) {		/* 使用?件チェック */
+		sd->canact_tick = tick;
+		sd->canmove_tick = tick;
+		sd->skillitem = sd->skillitemlv = -1;
+		return 0;
+	}
 	if(battle_config.pc_skill_log)
 		ShowInfo("PC %d skill castend skill=%d\n",sd->bl.id,sd->skillid);
 	pc_stop_walking(sd,0);
