@@ -2,6 +2,11 @@ Date	Added
 =======
 
 09/26
+	* General cleanup and code improvements needed because of the new auth
+	  system. [Skotlex]
+	* Fixed a bug in the new auth system (TXT) which was causing the gender to
+	  be pretty much randomly sent. [Skotlex]
+	* Fixed a bug in changesex at the TXT char server level. [Skotlex]
 	* Updated new logging system. Now logs TRADE, NPC Shops [Lupus]
 	* Fixed a possible exploit in the new auth system. Thanks to End of Exam
 	  for the information. [Skotlex]

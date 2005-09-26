@@ -3541,7 +3541,7 @@ void char_online_check(void)
 
 	for (i = 0; i < users; i++) {
 		if ((sd = all_sd[i]) && !(battle_config.hide_GM_session && pc_isGM(sd)))
-			if(sd->status.char_id)
+			if(sd->status.char_id && sd->fd) //Avoid setting chars with no fd online, it will block them from further logons! [Skotlex]
 				 chrif_char_online(sd);
 	}
 }
@@ -3650,9 +3650,8 @@ void do_final(void) {
 
 #ifndef TXT_ONLY
     map_sql_close();
-    if(charsave_method == 1){
-        	charsql_db_init(0); //Connecting to chardb
-    }
+	if(charsave_method)
+		charsql_db_init(0); //Connecting to chardb
 #endif /* not TXT_ONLY */
 	ShowStatus("Successfully terminated.\n");
 }
@@ -3801,9 +3800,8 @@ int do_init(int argc, char *argv[]) {
 	charid_db = numdb_init();
 #ifndef TXT_ONLY
 	map_sql_init();
-         if(charsave_method == 1){
-         	charsql_db_init(1); //Connecting to chardb
-         }
+	if(charsave_method)
+		charsql_db_init(1); //Connecting to chardb
 #endif /* not TXT_ONLY */
 
 	grfio_init(GRF_PATH_FILENAME);

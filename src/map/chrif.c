@@ -40,7 +40,7 @@ static const int packet_len_table[0x3d] = {
 	 6,-1,18, 7,-1,49,44,10,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, U->2b07
 	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	-1,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
-	-1,-1,-1,-1,-1,-1,20, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, U->2b1c, U->2b1d, U->2b1e, U->2b1f
+	-1,-1,-1,-1,-1,-1,-1, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, U->2b1c, U->2b1d, F->2b1e, U->2b1f
 	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b20-2b27: U->2b20, F->2b21, F->2b22, F->2b23, F->2b24, F->2b25, F->2b26, F->2b27
 };
 
@@ -86,7 +86,7 @@ static const int packet_len_table[0x3d] = {
 //2b1b: Incomming, chrif_recvfamelist -> 'answer of 2b1a ..... the famelist top10^^'
 //2b1c: Outgoing, chrif_save_scdata -> 'Send sc_data of player for saving.'
 //2b1d: Incomming, chrif_load_scdata -> 'received sc_data of player for loading.'
-//2b1e: Incomming, chrif_pcauthok -> 'ack when player connects' NOTE: this is the newone (the mapserver loads / save the char itself!) (SQL ONLY)
+//2b1e: FREE
 //2b1f: Incomming, chrif_disconnectplayer -> 'disconnects a player (aid X) with the message XY ... 0x81 ..' [Sirius]
 //2b20: Incomming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
 //2b21-2b27: FREE
@@ -160,7 +160,6 @@ int chrif_save(struct map_session_data *sd)
 	nullpo_retr(-1, sd);
 
 	chrif_check(-1);
-
 	pc_makesavestatus(sd);
 
 #ifndef TXT_ONLY
@@ -406,11 +405,13 @@ int chrif_scdata_request(int account_id, int char_id)
 
 /*==========================================
  * new auth system [Kevin]
+ * Returns -1: internal error. 0: auth failed, 1: auth ok.
  *------------------------------------------
  */
 int chrif_authreq(struct map_session_data *sd)
 {
 	struct auth_node *search_node;
+	int result = 0;
 
 	nullpo_retr(-1, sd);
 
@@ -427,7 +428,7 @@ int chrif_authreq(struct map_session_data *sd)
 
 			pc_authok(search_node->account_id, search_node->login_id2, search_node->connect_until_time, &search_node->char_dat);
 			chrif_scdata_request(search_node->account_id, search_node->char_dat.char_id);
-
+			result = 1;
 		} else {
 			pc_authfail(sd->bl.id);
 		}
@@ -436,14 +437,18 @@ int chrif_authreq(struct map_session_data *sd)
 	} else {
 		pc_authfail(sd->bl.id);
 	}
-
-
-	return 0;
+	return result;
 }
 
 //character selected, insert into auth db
 void chrif_authok(int fd) {
-	struct auth_node *new_node=(struct auth_node *)aCalloc(1, sizeof(struct auth_node));
+	struct auth_node *new_node;
+	
+	if ((new_node =numdb_search(auth_db, RFIFOL(fd, 4))) != NULL)
+	{ //Delete the previously received node.
+		aFree(new_node);
+	}
+	new_node = (struct auth_node *)aCalloc(1, sizeof(struct auth_node));
 
 	new_node->account_id=RFIFOL(fd, 4);
 	new_node->login_id1=RFIFOL(fd, 8);
@@ -1176,12 +1181,6 @@ int chrif_load_scdata(int fd)
 	struct status_change_data data;
 	int aid, cid, i, count;
 
-	if (charsave_method)
-	{
-		ShowFatalError("Char server is using charsave_method=0 while mapserver is using charsave_method=1! Correct this inmediately.\n");
-		exit(1);
-	}
-
 	aid = RFIFOL(fd,4); //Player Account ID
 	cid = RFIFOL(fd,8); //Player Char ID
 	
@@ -1337,32 +1336,6 @@ int chrif_disconnect(int fd) {
 	return 0;
 }
 
-//The New-One char LOAD/SAVE system (SQL)
-int chrif_pcauthok(int fd){
-#ifndef TXT_ONLY
-	struct mmo_charstatus *temp;
-#endif
-
-	if(!charsave_method){
-		ShowFatalError("Char server is using charsave_method=1 while mapserver is using charsave_method=0! Correct this inmediately.\n");
-		exit(1);
-	}
-
-#ifndef TXT_ONLY
-	temp = charsave_loadchar(RFIFOL(fd, 14));
-
-	if(temp == NULL) {
-		pc_authfail(RFIFOL(fd, 2));
-	} else {
-		temp->sex = RFIFOW(fd, 18);
-		pc_authok(RFIFOL(fd, 2), RFIFOL(fd, 6), (time_t)RFIFOL(fd, 10), temp);
-		chrif_scdata_request(temp->account_id, temp->char_id);
-		aFree(temp);
-	}
-#endif
-  return 0;
-}
-
 /*==========================================
  *
  *------------------------------------------
@@ -1427,7 +1400,6 @@ int chrif_parse(int fd)
 		case 0x2b15: chrif_recvgmaccounts(fd); break;
 		case 0x2b1b: chrif_recvfamelist(fd); break;
 		case 0x2b1d: chrif_load_scdata(fd); break;
-		case 0x2b1e: chrif_pcauthok(fd); break;
 		case 0x2b1f: chrif_disconnectplayer(fd); break;
 		case 0x2b20: chrif_removemap(fd); break; //Remove maps of a server [Sirius]
 

@@ -231,8 +231,6 @@ int inter_config_read(const char *cfgName) {
 		else if(strcmpi(w1,"login_server_db")==0){
 			strcpy(login_server_db, w2);
 			ShowStatus ("set login_server_db : %s\n",w2);
-		} else if (strcmpi(w1, "charsave_method") == 0){
-			charsave_method = atoi(w2);
 		} else if(strcmpi(w1,"import")==0){
 			inter_config_read(w2);
 		}

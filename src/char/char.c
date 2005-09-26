@@ -1875,7 +1875,6 @@ int parse_tologin(int fd) {
 				i = auth_fifo_pos;
 				auth_fifo_pos++;
 			}
-			//printf("auth_fifo set (auth #%d) - account: %d, secure: %08x-%08x\n", i, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10));
 			auth_fifo[i].account_id = RFIFOL(fd,2);
 			auth_fifo[i].char_id = 0;
 			auth_fifo[i].login_id1 = RFIFOL(fd,6);
@@ -1884,7 +1883,6 @@ int parse_tologin(int fd) {
 			auth_fifo[i].char_pos = 0;
 			auth_fifo[i].connect_until_time = 0; // unlimited/unknown time by default (not display in map-server)
 			auth_fifo[i].ip = RFIFOL(fd,14);
-			//auth_fifo[i].map_auth = 0;
 			RFIFOSKIP(fd,18);
 			break;
 
@@ -1912,11 +1910,14 @@ int parse_tologin(int fd) {
 			sex = RFIFOB(fd,6);
 			RFIFOSKIP(fd, 7);
 			if (acc > 0) {
+				for(i = 0; i < AUTH_FIFO_SIZE; i++) {
+					if (auth_fifo[i].account_id == acc)	
+						auth_fifo[i].sex = sex;
+				}
 				for (i = 0; i < char_num; i++) {
 					if (char_dat[i].account_id == acc) {
 						int jobclass = char_dat[i].class_;
 						char_dat[i].sex = sex;
-						auth_fifo[i].sex = sex;
 						if (jobclass == 19 || jobclass == 20 ||
 						    jobclass == 4020 || jobclass == 4021 ||
 						    jobclass == 4042 || jobclass == 4043) {
@@ -2327,46 +2328,6 @@ int parse_frommap(int fd) {
 			RFIFOSKIP(fd,RFIFOW(fd,2));
 			break;
 
-/* This packet is deprecated by Kevin's new auth system.
-		// ”FØ—v‹
-		// Send character data to map-server
-		case 0x2afc:
-			if (RFIFOREST(fd) < 22)
-				return 0;
-			//printf("auth_fifo search: account: %d, char: %d, secure: %08x-%08x\n", RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10), RFIFOL(fd,14));
-			for(i = 0; i < AUTH_FIFO_SIZE; i++) {
-				if (auth_fifo[i].account_id == RFIFOL(fd,2) &&
-				    auth_fifo[i].char_id == RFIFOL(fd,6) &&
-				    auth_fifo[i].login_id1 == RFIFOL(fd,10) &&
-#if CMP_AUTHFIFO_LOGIN2 != 0
-				// here, it's the only area where it's possible that we doesn't know login_id2 (map-server asks just after 0x72 packet, that doesn't given the value)
-				    (auth_fifo[i].login_id2 == RFIFOL(fd,14) || RFIFOL(fd,14) == 0) && // relate to the versions higher than 18
-#endif
-				    (!check_ip_flag || auth_fifo[i].ip == RFIFOL(fd,18)) &&
-				    !auth_fifo[i].delflag) {
-					auth_fifo[i].delflag = 1;
-					WFIFOW(fd,0) = 0x2afd;
-					WFIFOW(fd,2) = 16 + sizeof(struct mmo_charstatus);
-					WFIFOL(fd,4) = RFIFOL(fd,2);
-					WFIFOL(fd,8) = auth_fifo[i].login_id2;
-					WFIFOL(fd,12) = (unsigned long)auth_fifo[i].connect_until_time;
-					set_char_online(auth_fifo[i].char_id, auth_fifo[i].account_id);
-					char_dat[auth_fifo[i].char_pos].sex = auth_fifo[i].sex;
-					memcpy(WFIFOP(fd,16), &char_dat[auth_fifo[i].char_pos], sizeof(struct mmo_charstatus));
-					WFIFOSET(fd, WFIFOW(fd,2));
-					//printf("auth_fifo search success (auth #%d, account %d, character: %d).\n", i, RFIFOL(fd,2), RFIFOL(fd,6));
-					break;
-				}
-			}
-			if (i == AUTH_FIFO_SIZE) {
-				WFIFOW(fd,0) = 0x2afe;
-				WFIFOL(fd,2) = RFIFOL(fd,2);
-				WFIFOSET(fd,6);
-				ShowError("Character request data search error! Character %d (account %d) not authentified.\n", RFIFOL(fd,6),  RFIFOL(fd,2));
-			}
-			RFIFOSKIP(fd,22);
-			break;
-*/
 		//Packet command is now used for sc_data request. [Skotlex]
 		case 0x2afc:
 			if (RFIFOREST(fd) < 10)
@@ -2465,7 +2426,6 @@ int parse_frommap(int fd) {
 				return 0;
 			if (auth_fifo_pos >= AUTH_FIFO_SIZE)
 				auth_fifo_pos = 0;
-			//printf("auth_fifo set (auth #%d) - account: %d, secure: %08x-%08x\n", auth_fifo_pos, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10));
 			auth_fifo[auth_fifo_pos].account_id = RFIFOL(fd,2);
 			auth_fifo[auth_fifo_pos].char_id = 0;
 			auth_fifo[auth_fifo_pos].login_id1 = RFIFOL(fd,6);
@@ -2490,7 +2450,6 @@ int parse_frommap(int fd) {
 				auth_fifo_pos = 0;
 			WFIFOW(fd,0) = 0x2b06;
 			memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 42);
-			//printf("auth_fifo set (auth#%d) - account: %d, secure: 0x%08x-0x%08x\n", auth_fifo_pos, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10));
 			auth_fifo[auth_fifo_pos].account_id = RFIFOL(fd,2);
 			auth_fifo[auth_fifo_pos].char_id = RFIFOL(fd,14);
 			auth_fifo[auth_fifo_pos].login_id1 = RFIFOL(fd,6);
@@ -3093,7 +3052,6 @@ int parse_char(int fd) {
 					WFIFOL(fd,2) = char_dat[sd->found_char[ch]].char_id;
 					memcpy(WFIFOP(fd,6), char_dat[sd->found_char[ch]].last_point.map, MAP_NAME_LENGTH);
 					ShowInfo("Character selection '%s' (account: %d, slot: %d).\n", char_dat[sd->found_char[ch]].name, sd->account_id, ch);
-					//printf("--Send IP of map-server. ");
 					if (lan_ip_check(p))
 						WFIFOL(fd, 22) = inet_addr(lan_map_ip);
 					else
@@ -3102,7 +3060,6 @@ int parse_char(int fd) {
 					WFIFOSET(fd,28);
 					if (auth_fifo_pos >= AUTH_FIFO_SIZE)
 						auth_fifo_pos = 0;
-					//printf("auth_fifo set #%d - account %d, char: %d, secure: %08x-%08x\n", auth_fifo_pos, sd->account_id, char_dat[sd->found_char[ch]].char_id, sd->login_id1, sd->login_id2);
 					auth_fifo[auth_fifo_pos].account_id = sd->account_id;
 					auth_fifo[auth_fifo_pos].char_id = char_dat[sd->found_char[ch]].char_id;
 					auth_fifo[auth_fifo_pos].login_id1 = sd->login_id1;
@@ -3114,29 +3071,24 @@ int parse_char(int fd) {
 					auth_fifo[auth_fifo_pos].ip = session[fd]->client_addr.sin_addr.s_addr;
 
 					//Send NEW auth packet [Kevin]
-					//DUDE, we already have the destination's map server index, we should send the data to that server ONLY. [Skotlex]
-//					for(i = 0; i < MAX_MAP_SERVERS; i++) {
-						if ((map_fd = server_fd[i]) > 0) { //0 Should not be a valid server_fd [Skotlex]
-							if (session[map_fd] == NULL)
-							{	//Could this be the crash's source? [Skotlex]
-								ShowError("parse_char: Attempting to write to invalid session %d! Map Server #%d disconnected.\n", map_fd, i);
-								server_fd[i] = -1;
-								memset(&server[i], 0, sizeof(struct mmo_map_server));
-								break;
-							}	
+					if ((map_fd = server_fd[i]) < 1 || session[map_fd] == NULL)
+					{	//0 Should not be a valid server_fd [Skotlex]
+						ShowError("parse_char: Attempting to write to invalid session %d! Map Server #%d disconnected.\n", map_fd, i);
+						server_fd[i] = -1;
+						memset(&server[i], 0, sizeof(struct mmo_map_server));
+						break;
+					}	
+					WFIFOW(map_fd,0) = 0x2afd;
+					WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
+					WFIFOL(map_fd,4) = auth_fifo[auth_fifo_pos].account_id;
+					WFIFOL(map_fd,8) = auth_fifo[auth_fifo_pos].login_id1;
+					WFIFOL(map_fd,16) = auth_fifo[auth_fifo_pos].login_id2;
+					WFIFOL(map_fd,12) = (unsigned long)auth_fifo[auth_fifo_pos].connect_until_time;
+					set_char_online(auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
+					char_dat[auth_fifo[auth_fifo_pos].char_pos].sex = auth_fifo[auth_fifo_pos].sex;
+					memcpy(WFIFOP(map_fd,20), &char_dat[auth_fifo[auth_fifo_pos].char_pos], sizeof(struct mmo_charstatus));
+					WFIFOSET(map_fd, WFIFOW(map_fd,2));
 
-							WFIFOW(map_fd,0) = 0x2afd;
-							WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
-							WFIFOL(map_fd,4) = auth_fifo[auth_fifo_pos].account_id;
-							WFIFOL(map_fd,8) = auth_fifo[auth_fifo_pos].login_id1;
-							WFIFOL(map_fd,16) = auth_fifo[auth_fifo_pos].login_id2;
-							WFIFOL(map_fd,12) = (unsigned long)auth_fifo[auth_fifo_pos].connect_until_time;
-							set_char_online(auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
-							char_dat[auth_fifo[auth_fifo_pos].char_pos].sex = auth_fifo[i].sex;
-							memcpy(WFIFOP(map_fd,20), &char_dat[auth_fifo[auth_fifo_pos].char_pos], sizeof(struct mmo_charstatus));
-							WFIFOSET(map_fd, WFIFOW(map_fd,2));
-						}
-//					}
 					auth_fifo_pos++;
 				}
 			}

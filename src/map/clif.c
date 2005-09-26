@@ -7983,16 +7983,22 @@ void clif_parse_WantToConnection(int fd, struct map_session_data *sd)
 			clif_authfail_fd(fd, 8); // still recognizes last connection
 		} else {
 			sd = (struct map_session_data*)aCalloc(1, sizeof(struct map_session_data));
-			session[fd]->session_data = sd;
 			sd->fd = fd;
 			sd->packet_ver = packet_ver;
+			session[fd]->session_data = sd;
 
 			pc_setnewpc(sd, account_id, char_id, login_id1, client_tick, sex, fd);
 			WFIFOL(fd,0) = sd->bl.id;
 			WFIFOSET(fd,4);
 
 			map_addiddb(&sd->bl);
-			chrif_authreq(sd);
+			if (chrif_authreq(sd) != 1)
+			{	//Remove player.
+				chrif_char_offline(sd); //Set him offline, the char server likely has it set as online already.
+				map_deliddb(&sd->bl);
+				aFree(sd);
+				session[fd]->session_data = NULL;
+			}
 		}
 	}
 	return;
@@ -10765,8 +10771,6 @@ int clif_parse(int fd) {
 		ShowInfo("Closing session #%d (Not connected to Char server)\n", fd);
 		if (sd && sd->state.auth)
 			clif_quitsave(fd, sd); // the function doesn't send to inter-server/char-server if it is not connected [Yor]
-		else if (sd)
-			map_deliddb(&sd->bl); // account_id has been included in the DB before auth answer [Yor]
 		do_close(fd);
 		return 0;
 	} else
@@ -10783,9 +10787,6 @@ int clif_parse(int fd) {
 				ShowInfo("%sCharacter '"CL_WHITE"%s"CL_RESET"' logged off.\n", (pc_isGM(sd))?"GM ":"",sd->status.name); // Player logout display [Valaris]
 			else
 				ShowInfo("%sCharacter with Account ID '"CL_WHITE"%d"CL_RESET"' logged off.\n", (pc_isGM(sd))?"GM ":"", sd->bl.id); // Player logout display [Yor]
-		} else if (sd) { // not authentified! (refused by char-server or disconnect before to be authentified)
-			ShowInfo("Player not authenticated (Account '"CL_WHITE"%d"CL_RESET"', Session '"CL_WHITE"%d"CL_RESET"', PacketVer '"CL_WHITE"%d"CL_RESET"') logged off.\n", sd->bl.id, fd, sd->packet_ver); // Player logout display [Yor]
-			map_deliddb(&sd->bl); // account_id has been included in the DB before auth answer [Yor]
 		} else {
 			unsigned char *ip = (unsigned char *) &session[fd]->client_addr.sin_addr;
 			ShowInfo("Player not identified with IP '"CL_WHITE"%d.%d.%d.%d"CL_RESET"' logged off.\n", ip[0],ip[1],ip[2],ip[3]);
