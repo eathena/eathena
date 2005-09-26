@@ -88,7 +88,6 @@ static int inter_scdata_fromstr(char *line, struct scdata *sc_data)
 void status_load_scdata(const char* filename)
 {
 	FILE *fp;
-	int lock;
 	int sd_count=0, sc_count=0;
 	char line[8192];
 	struct scdata *sc;

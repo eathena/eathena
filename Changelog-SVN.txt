@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/26
+	* Fixed a possible exploit in the new auth system. Thanks to End of Exam
+	  for the information. [Skotlex]
 	* Corrected True Sight critical bonus. [Skotlex]
 	* Water Ball will now do the full number of hits regardless of available
 	  water when used by non-players. [Skotlex]
