@@ -1813,6 +1813,11 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 					fitem = (struct flooritem_data *)tbl;
 					if (md->lootitem_count < LOOTITEM_SIZE) {
 						memcpy (&md->lootitem[md->lootitem_count++], &fitem->item_data, sizeof(md->lootitem[0]));
+						//Logs items, taken by (L)ooter Mobs [Lupus]
+						struct map_session_data *asd;
+						if(log_config.pick > 0 && (asd = map_id2sd(md->attacked_id)))
+							log_pick(asd, "L", md->class_, md->lootitem[md->lootitem_count-1].nameid, md->lootitem[md->lootitem_count-1].amount, &md->lootitem[md->lootitem_count-1]);
+						//Logs
 					} else if (battle_config.monster_loot_type == 1 && md->lootitem_count >= LOOTITEM_SIZE) {
 						mob_unlocktarget(md,tick);
 						return 0;
@@ -2600,6 +2605,11 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			ditem->third_sd = third_sd;
 			add_timer(tick+500+i, mob_delay_item_drop, (int)ditem, 0);
 
+			//Logs items, dropped by mobs [Lupus]
+			if(sd && log_config.pick > 0 )
+				log_pick(sd, "M", md->class_, ditem->nameid, 1, NULL);
+			//Logs
+
 			//A Rare Drop Global Announce by Lupus
 			if(drop_rate<=battle_config.rare_drop_announce) {
 				struct item_data *i_data;
@@ -2627,6 +2637,11 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 			ditem->second_sd = second_sd;
 			ditem->third_sd = third_sd;
 			add_timer(tick+500+i,mob_delay_item_drop,(int)ditem,0);
+
+			//Logs items, dropped by mobs [Lupus]
+			if(sd && log_config.pick > 0 )
+				log_pick(sd, "M", md->class_, ditem->nameid, 1, NULL);
+			//Logs
 		}
 
 		//this drop log contains ALL dropped items + ORE (if there was ORE Recovery) [Lupus]
@@ -2658,6 +2673,11 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 					ditem->second_sd = second_sd;
 					ditem->third_sd = third_sd;
 					add_timer(tick+520+i,mob_delay_item_drop,(int)ditem,0);
+
+					//Logs items, dropped by mobs [Lupus]
+					if(sd && log_config.pick > 0 )
+						log_pick(sd, "M", md->class_, ditem->nameid, 1, NULL);
+					//Logs
 				}
 			}
 			if(sd->get_zeny_num && rand()%100 < sd->get_zeny_rate) //Gets get_zeny_num per level +/-10% [Skotlex]
@@ -2676,6 +2696,11 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 				ditem->second_sd = second_sd;
 				ditem->third_sd = third_sd;
 				add_timer(tick+540+i,mob_delay_item_drop2,(int)ditem,0);
+
+				//Logs LOOTED items, dropped by looter mobs [Lupus]
+				if(sd && log_config.pick > 0 )
+					log_pick(sd, "L", md->class_, md->lootitem[i].nameid, -md->lootitem[i].amount, &md->lootitem[i]);
+				//Logs
 			}
 		}
 	}

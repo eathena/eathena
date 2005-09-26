@@ -41,7 +41,7 @@ time_t curtime;
 //11 - Log refined items (if their refine >= refine_log )
 //12 - Log rare items (if their drop chance <= rare_log )
 
-//check if this item should be logger according the settings
+//check if this item should be logged according the settings
 int should_log_item(int filter, int nameid) {
 	struct item_data *item_data;
 	if (nameid<512 || (item_data= itemdb_search(nameid)) == NULL) return 0;
@@ -91,6 +91,63 @@ int log_branch(struct map_session_data *sd)
 	}
 #endif
 	return 0;
+}
+
+
+int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, int amount, struct item *itm)
+{
+	FILE *logfp;
+
+	if(log_config.enable_logs <= 0)
+		return 0;
+	nullpo_retr(0, sd);
+	//Should we log this item? [Lupus]
+	if (!should_log_item(log_config.pick,nameid))
+		return 0; //we skip logging this items set - they doesn't met our logging conditions [Lupus]
+
+#ifndef TXT_ONLY
+	if(log_config.sql_logs > 0)
+	{
+		if (mob_id) {
+		//we log mobs drop
+			if (itm==NULL) {
+			//We log common mobs drop
+				sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `map`) VALUES (NOW(), '%d', '%s', '%d', '%d', '%s') ",
+				 log_config.log_pick_db, mob_id, type, nameid, -amount, sd->mapname);
+			} else {
+			//We log LOOTED item mobs drop
+				sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s') ",
+				 log_config.log_pick_db, mob_id, type, itm->nameid, -amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], sd->mapname);
+			}
+			if(mysql_query(&logmysql_handle, tmp_sql))
+			{
+				ShowSQL("DB error - %s\n",mysql_error(&logmysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
+		} else {
+		//we log players drop/take
+			sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s') ",
+			 log_config.log_pick_db, sd->char_id, type, itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], sd->mapname);
+			if(mysql_query(&logmysql_handle, tmp_sql))
+			{
+				ShowSQL("DB error - %s\n",mysql_error(&logmysql_handle));
+				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+			}
+		}
+
+	} else {
+#endif
+		if((logfp=fopen(log_config.log_pick,"a+")) != NULL) {
+			time_t curtime;
+			time(&curtime);
+			strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+			//fprintf(logfp,"%s - %s[%d:%d]\t%d\t%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%s", timestring, sd->status.name, sd->status.account_id, sd->status.char_id, monster_id, log_drop[0], log_drop[1], log_drop[2], log_drop[3], log_drop[4], log_drop[5], log_drop[6], log_drop[7], log_drop[8], log_drop[9], RETCODE);
+			fclose(logfp);
+		}
+#ifndef TXT_ONLY
+	}
+#endif
+	return 1; //Logged
 }
 
 int log_drop(struct map_session_data *sd, int monster_id, int *log_drop)
@@ -720,6 +777,8 @@ int log_config_read(char *cfgName)
 //end of common filter settings
 			} else if(strcmpi(w1,"log_branch") == 0) {
 				log_config.branch = (atoi(w2));
+			} else if(strcmpi(w1,"log_pick") == 0) {
+				log_config.pick = (atoi(w2));
 			} else if(strcmpi(w1,"log_drop") == 0) {
 				log_config.drop = (atoi(w2));
 			} else if(strcmpi(w1,"log_steal") == 0) {
@@ -756,6 +815,10 @@ int log_config_read(char *cfgName)
 				strcpy(log_config.log_branch_db, w2);
 				if(log_config.branch == 1)
 					ShowNotice("Logging Dead Branch Usage to table `%s`\n", w2);
+			} else if(strcmpi(w1, "log_pick_db") == 0) {
+				strcpy(log_config.log_pick_db, w2);
+				if(log_config.pick == 1)
+					ShowNotice("Logging Item Picks to table `%s`\n", w2);
 			} else if(strcmpi(w1, "log_drop_db") == 0) {
 				strcpy(log_config.log_drop_db, w2);
 				if(log_config.drop == 1)
@@ -819,6 +882,10 @@ int log_config_read(char *cfgName)
 				strcpy(log_config.log_drop, w2);
 				if(log_config.drop > 0 && log_config.sql_logs < 1)
 					ShowNotice("Logging Item Drops to file `%s`.txt\n", w2);
+			} else if(strcmpi(w1, "log_pick_file") == 0) {
+				strcpy(log_config.log_pick, w2);
+				if(log_config.pick > 0 && log_config.sql_logs < 1)
+					ShowNotice("Logging Item Picks to file `%s`.txt\n", w2);
 			} else if(strcmpi(w1, "log_mvpdrop_file") == 0) {
 				strcpy(log_config.log_mvpdrop, w2);
 				if(log_config.mvpdrop > 0 && log_config.sql_logs < 1)

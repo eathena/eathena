@@ -1,6 +1,25 @@
 Date	Added
 =======
 
+09/26
+	* Added new Players / Monster Drops / Pickups Logging system [Lupus]
+	- Changed new log table, now it has field 'type':
+		M = Monsters Drop, P = Players Drop/Take, L = Mobs Loot Drop/Take, T = Players Trade Give/Take,
+		V = Players Vending Sell/Take, S = Shop Sell/Take, N = NPC Give/Take
+		NOTE: 'looted drop' might has cards, refine, etc. 'common drop' has item w/o cards/refine
+	- Now you can see Players(cheaters) passing any items w/o trade
+	- Now MOBS+PLAYERS drops come in the same table (easy to query)
+		Poring -5 Apple
+		Zelgadis +5 Apple
+	- You can tell off monsters by their LOW id.  < 2000~ 
+	- Negative value of AMOUNT shows that a mob, or a player has dropped that items amount
+	- Positive value of AMOUNT shows that a player has pickedup that items amount
+	- It works 5x faster than old DROPLOGS
+	- TXT logs don't work yet
+	- TODO: Add Autolooted & MVP items in the log, too.
+	- TODO: Add Mobs Looters DROP items in the log. (Now only attacked mobs log loot drops)
+	- TODO: Add NPC/Scripts/Vending/Trade logs
+
 09/25
 	* Modified battle_weapon_delay so that additional status effects are
 	  invoked even if the attack does no damage, as long as the attack connects
