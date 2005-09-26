@@ -1150,7 +1150,7 @@ int chrif_save_scdata(struct map_session_data *sd)
 		if (sd->sc_data[i].timer == -1)
 			continue;
 		timer = get_timer(sd->sc_data[i].timer);
-		if (timer == NULL || timer->tick < tick)
+		if (timer == NULL || timer->func != status_change_timer || timer->tick < tick)
 			continue;
 		data.tick = timer->tick - tick; //Duration that is left before ending.
 		data.type = i;

@@ -478,7 +478,7 @@ void charsave_save_scdata(int account_id, int char_id, struct status_change* sc_
 		if (sc_data[i].timer == -1)
 			continue;
 		timer = get_timer(sc_data[i].timer);
-		if (timer == NULL || timer->tick < tick)
+		if (timer == NULL || timer->func != status_change_timer || timer->tick < tick)
 			continue;
 		
 		sprintf (tmp_sql, "%s ('%d','%d','%hu','%d','%d','%d','%d','%d'),", tmp_sql, account_id, char_id,

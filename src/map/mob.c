@@ -2648,7 +2648,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 		if(sd && log_config.drop > 0 && drop_items) //we check were there any drops.. and if not - don't write the log
 			log_drop(sd, md->class_, log_item); //mvp_sd
 
-		if(sd && sd->state.attack_type == BF_WEAPON) {
+		if(sd/* && sd->state.attack_type == BF_WEAPON*/) { //Player reports indicate this SHOULD work with all skills. [Skotlex]
 			int itemid = 0;
 			for (i = 0; i < sd->monster_drop_item_count; i++) {
 				struct delay_item_drop *ditem;

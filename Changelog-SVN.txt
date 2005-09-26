@@ -2,6 +2,12 @@ Date	Added
 =======
 
 09/26
+	* Corrected True Sight critical bonus. [Skotlex]
+	* Water Ball will now do the full number of hits regardless of available
+	  water when used by non-players. [Skotlex]
+	* Changed the emoticon delay to 1 second. [Skotlex]
+	* Zeny/item kill bonuses now work on all skills, and not just physical
+	  weapon attacks. [Skotlex]
 	* Added official Ayothaya Town script by MasterOfMuppets [Lupus]
 	* Added new Players / Monster Drops / Pickups Logging system [Lupus]
 	- Changed new log table, now it has field 'type':

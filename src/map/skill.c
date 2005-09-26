@@ -2909,6 +2909,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl,int s
 			if (cnt > 0)
 				skill_addtimerskill(src,tick+150,bl->id,0,0,
 					skillid,skilllv,cnt,flag);
+		} else if (skilllv > 1) {
+			//Mobs/etc don't check for water requirements.
+			int cnt = skill_get_num(skillid,skilllv) - 1;
+			if (cnt > 0)
+				skill_addtimerskill(src,tick+150,bl->id,0,0,
+					skillid,skilllv,cnt,flag);
 		}
 		break;
 

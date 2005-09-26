@@ -8559,12 +8559,12 @@ void clif_parse_Emotion(int fd, struct map_session_data *sd) {
 		}
 		// fix flood of emotion icon (ro-proxy): flood only the hacker player
 		if (sd->emotionlasttime >= time(NULL)) {
-			sd->emotionlasttime = time(NULL) + 2; // not more than 1 every 2 seconds (normal client is every 3-4 seconds)
+			sd->emotionlasttime = time(NULL) + 1; // not more than 1 per second (using /commands the client can spam it)
 			clif_skill_fail(sd, 1, 0, 1);
 			return;
 		}
-		sd->emotionlasttime = time(NULL) + 2; // not more than 1 every 2 seconds (normal client is every 3-4 seconds)
-
+		sd->emotionlasttime = time(NULL) + 1; // not more than 1 per second (using /commands the client can spam it)
+		
 		WBUFW(buf,0) = 0xc0;
 		WBUFL(buf,2) = sd->bl.id;
 		WBUFB(buf,6) = RFIFOB(fd,2);
