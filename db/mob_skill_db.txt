@@ -1567,7 +1567,7 @@
 1272,Dark Lord@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
 1272,Dark Lord@AL_TELEPORT,idle,26,1,500,0,5000,yes,self,rudeattacked,,,,,,,
 1272,Dark Lord@AL_TELEPORT,walk,26,1,500,0,5000,yes,self,rudeattacked,,,,,,,
-1272,Dark Lord@NPC_AGIUP,attack,350,5,10000,0,30000,yes,self,myhpltmaxrate,30,,,,,,6
+//1272,Dark Lord@NPC_AGIUP,attack,350,5,10000,0,30000,yes,self,myhpltmaxrate,30,,,,,,6
 1272,Dark Lord@MG_FIREWALL,chase,18,10,2000,500,5000,no,target,always,0,,,,,,
 1272,Dark Lord@NPC_CALLSLAVE,attack,352,1,10000,0,30000,yes,target,always,0,,,,,,
 1272,Dark Lord@NPC_CALLSLAVE,idle,352,1,10000,0,30000,yes,self,always,0,,,,,,
@@ -2436,59 +2436,144 @@
 1514,Dancing Dragon@NPC_EMOTION,idle,197,1,10000,0,3000,yes,self,always,0,22,,,,,
 1514,Dancing Dragon@NPC_EMOTION,attack,197,1,10000,0,3000,yes,self,always,0,19,,,,,
 1514,Dancing Dragon@NPC_EMOTION,chase,197,1,10000,0,3000,yes,self,always,0,6,,,,,
-// Lupus's skills for the newer mobs.
-//Einbroch
-1613,Metaling@NPC_PROVOCATION,idle,194,1,20,0,0,yes,self,always,0,1,,,,,
-1613,Metaling@NPC_WATERATTACK,attack,184,1,1000,0,15000,yes,target,always,0,,,,,,
-1613,Metaling@NPC_EMOTION,loot,197,1,150,0,10000,yes,self,always,0,2,,,,,
-1614,Mineral@TF_HIDING,attack,51,1,3000,1000,20000,yes,self,myhpltmaxrate,30,,,,,,
-1614,Mineral@TF_HIDING,chase,51,1,3000,1000,20000,yes,self,myhpltmaxrate,30,,,,,,
-1614,Mineral@CR_REFLECTSHIELD,attack,252,5,1000,1000,40000,yes,target,always,0,,,,,,
-1615,Osidian@CR_SHIELDCHARGE,attack,250,10,2500,1100,10000,no,target,always,0,,,,,,
-1617,Waste Stove@NPC_STUNATTACK,attack,179,4,3000,1000,10000,no,target,myhpltmaxrate,30,,,,,,
-1617,Waste Stove@NPC_STUNATTACK,attack,179,4,1000,1000,10000,no,target,always,0,,,,,,
-1617,Waste Stove@TF_THROWSTONE,chase,152,1,300,10000,10000,yes,target,myhpltmaxrate,30,,,,,,
-1617,Waste Stove@TF_THROWSTONE,chase,152,1,100,10000,10000,yes,target,always,0,,,,,,
-//Mini-Boss Ungoliant, Petrify/Assumptio?
-1618,Ungoliant@NPC_SUMMONSLAVE,attack,196,4,5000,3000,36000,no,self,myhpltmaxrate,5,1625,,,,,
-1618,Ungoliant@NPC_SUMMONSLAVE,chase,196,4,10000,3000,36000,no,self,slavele,0,1625,,,,,
-1618,Ungoliant@NPC_PETRIFYATTACK,attack,180,5,1000,1000,40000,yes,target,always,0,,,,,,
-1618,Ungoliant@HP_ASSUMPTIO,attack,361,5,1000,1000,40000,yes,self,always,0,,,,,,
-1620,Noxious@NPC_SELFDESTRUCTION,idle,173,1,1600,0,0,no,self,myhpltmaxrate,90,,,,,,
-1620,Noxious@NPC_SELFDESTRUCTION,idle,173,1,10000,0,0,no,self,skillused,173,,,,,,
-//Venomous - Self-Explode(maybe)
-1621,Venomous@NPC_SELFDESTRUCTION,idle,173,1,1600,0,0,no,self,myhpltmaxrate,90,,,,,,
-1621,Venomous@NPC_SELFDESTRUCTION,idle,173,1,10000,0,0,no,self,skillused,173,,,,,,
-1622,Teddy Bear@SM_BASH,attack,5,10,3000,0,15000,yes,target,always,0,,,,,,
-1622,Teddy Bear@NPC_CRITICALSLASH,attack,170,1,1000,0,30000,no,target,always,0,,,,,,
-1623,RSX 08026@NPC_SUMMONSLAVE,attack,196,2,5000,3000,36000,no,self,myhpltmaxrate,5,1624,,,,,
-1623,RSX 08026@NPC_SUMMONSLAVE,chase,196,2,10000,3000,36000,no,self,slavele,0,1624,,,,,
-1624,Waste Stove@NPC_STUNATTACK,attack,179,4,3000,1000,10000,no,target,myhpltmaxrate,30,,,,,,
-1624,Waste Stove@NPC_STUNATTACK,attack,179,4,1000,1000,10000,no,target,always,0,,,,,,
-1624,Waste Stove@TF_THROWSTONE,chase,152,1,300,10000,10000,yes,target,myhpltmaxrate,30,,,,,,
-1624,Waste Stove@TF_THROWSTONE,chase,152,1,100,10000,10000,yes,target,always,0,,,,,,
+
+//Re-constructed mobs skills (ACCORDING TO THE AVAILABLE INFO)
+
 // Easter Bunny (not in the db?? it's in db2!)
 1921,Easter Bunny@NPC_SUMMONSLAVE,attack,196,5,10000,3000,10000,no,self,slavele,2,1063,,,,,
 1921,Easter Bunny@NPC_SUMMONSLAVE,idle,196,5,5000,2000,40000,no,self,always,2,1920,,,,,
 
+//Einbroch
+// by MasterOfMuppets
+1613,Metaling@MC_MAMMONITE,attack,42,5,500,800,5000,no,target,always,0,,,,,,
+1613,Metaling@CR_REFLECTSHIELD,attack,252,2,500,0,300000,no,self,always,0,,,,,,
+1613,Metaling@NPC_EMOTION,loot,197,1,150,0,10000,yes,self,always,0,2,,,,,
+1613,Metaling@RG_STRIPWEAPON,attack,215,3,500,0,30000,yes,target,always,0,,,,,,
+1613,Metaling@CR_AUTOGUARD,attack,249,3,500,0,300000,yes,self,always,0,,,,,,
+
+1614,Mineral@CR_REFLECTSHIELD,attack,252,2,500,0,300000,no,self,always,0,,,,,,
+1614,Mineral@NPC_RANDOMATTACK,attack,183,3,500,500,5000,no,target,always,0,,,,,,
+1614,Mineral@NPC_BARRIER,attack,204,1,2000,3000,5000,no,self,myhpltmaxrate,30,,,,,,
+1614,Mineral@TF_HIDING,attack,51,1,2000,500,5000,no,self,myhpltmaxrate,30,,,,,,
+1614,Mineral@NPC_SPLASHATTACK,attack,174,1,2000,0,5000,yes,target,attackpcgt,2,,,,,,
+
+1615,Obsidian@CR_SHIELDCHARGE,attack,250,1,500,0,5000,no,target,always,,,,,,
+1615,Obsidian@NPC_BARRIER,attack,204,1,2000,3000,5000,no,self,myhpltmaxrate,30,,,,,,
+1615,Obsidian@TF_HIDING,attack,51,1,2000,500,5000,no,self,myhpltmaxrate,30,,,,,,
+1615,Obsidian@SM_MAGNUM,attack,7,5,500,500,5000,no,target,always,0,,,,,,
+1615,Obsidian@NPC_GROUNDATTACK,attack,185,3,500,500,5000,no,target,always,0,,,,,,
+
+1616,Pitman@TF_SPRINKLESAND,attack,149,1,500,0,5000,yes,target,always,0,,,,,,
+1616,Pitman@HT_CLAYMORETRAP,idle,123,3,50,0,300000,yes,self,always,0,,,,,,
+1616,Pitman@NPC_COMBOATTACK,attack,171,1,1000,700,5000,no,target,always,0,,,,,,
+1616,Pitman@NPC_POWERUP,attack,349,1,1500,0,100000,yes,self,myhpltmaxrate,30,,,,,,
+
+1617,Waste Stove@NPC_STUNATTACK,attack,179,4,500,1500,5000,no,target,always,0,,,,,,
+1617,Waste Stove@NPC_RANDOMATTACK,attack,183,5,500,500,5000,no,target,always,0,,,,,,
+1617,Waste Stove@NPC_SPLASHATTACK,attack,174,1,2000,0,5000,yes,target,attackpcgt,2,,,,,,
+1617,Waste Stove@TF_THROWSTONE,chase,152,1,2000,0,5000,yes,target,always,0,,,,,,
+
+1618,Ungoliant@NPC_SUMMONSLAVE,attack,196,4,5000,3000,36000,no,self,myhpltmaxrate,5,1625,,,,,
+1618,Ungoliant@NPC_SUMMONSLAVE,chase,196,4,10000,3000,36000,no,self,slavele,0,1625,,,,,
+1618,Ungoliant@MG_STONECURSE,attack,16,10,500,1500,5000,no,target,always,0,,,,,,
+1618,Ungoliant@NPC_DARKBREATH,attack,202,3,500,800,5000,no,target,always,0,,,,,,
+1618,Ungoliant@NPC_BLOODDRAIN,attack,199,1,500,0,5000,yes,target,always,0,,,,,,
+1618,Ungoliant@NPC_POISONATTACK,attack,188,5,2000,0,5000,yes,target,always,0,,,,,,
+1618,Ungoliant@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,0,,,,,,
+
+1619,Porcellio@NPC_KEEPING,attack,201,1,2000,0,5000,yes,self,attackpcgt,2,,,,,,
+1619,Porcellio@AL_PNEUMA,attack,25,1,10000,0,10000,yes,self,longrangeattacked,,,,,,,
+1619,Porcellio@NPC_GROUNDATTACK,attack,185,2,500,500,5000,no,target,always,0,,,,,,
+
+1620,Noxious@NPC_SELFDESTRUCTION,attack,173,1,500,2000,5000,no,self,myhpltmaxrate,50,,,,,,
+1620,Noxious@NPC_MENTALBREAKER,attack,159,3,500,800,5000,no,target,always,0,,,,,,
+1620,Noxious@NPC_TELEKINESISATTACK,attack,191,3,500,0,5000,yes,target,always,0,,,,,,
+
+1621,Venomous@NPC_SELFDESTRUCTION,attack,173,1,500,2000,5000,no,self,myhpltmaxrate,50,,,,,,
+1621,Venomous@NPC_POISON,attack,176,5,500,800,5000,no,target,always,0,,,,,,
+1621,Venomous@NPC_BLINDATTACK,attack,177,3,500,0,5000,yes,target,always,0,,,,,,
+
+1622,Teddy Bear@NPC_SELFDESTRUCTION,attack,173,1,500,2000,5000,no,self,myhpltmaxrate,30,,,,,,
+1622,Teddy Bear@SA_DISPELL,chase,289,5,500,0,30000,yes,target,always,0,,,,,,
+1622,Teddy Bear@NPC_CRITICALSLASH,attack,170,1,500,500,5000,no,target,always,0,,,,,,
+1622,Teddy Bear@NPC_CURSEATTACK,attack,181,3,500,800,5000,no,target,always,0,,,,,,
+
+1623,RSX 0806@NPC_SUMMONSLAVE,attack,196,2,5000,3000,36000,no,self,myhpltmaxrate,5,1624,,,,,
+1623,RSX 0806@NPC_SUMMONSLAVE,chase,196,2,10000,3000,36000,no,self,slavele,0,1624,,,,,
+1623,RSX 0806@NPC_AGIUP,attack,350,5,10000,0,30000,yes,self,myhpltmaxrate,30,,,,,,
+1623,RSX 0806@NPC_AGIUP,chase,350,5,10000,0,30000,yes,self,myhpltmaxrate,30,,,,,,
+1623,RSX 0806@NPC_POWERUP,attack,349,5,10000,0,30000,yes,self,myhpltmaxrate,30,,,,,,
+1623,RSX 0806@AS_SONICBLOW,attack,136,10,500,800,5000,no,target,always,0,,,,,,
+1623,RSX 0806@BS_HAMMERFALL,attack,110,11,2000,0,5000,yes,target,always,0,,,,,,
+1623,RSX 0806@BS_HAMMERFALL,chase,110,11,2000,0,5000,yes,target,always,0,,,,,,
+1623,RSX 0806@NPC_WEAPONBRAKER,attack,343,5,500,0,30000,yes,target,always,0,,,,,,
+1623,RSX 0806@NPC_CRITICALSLASH,attack,170,1,500,500,5000,no,target,always,0,,,,,,
+1623,RSX 0806@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,0,,,,,,
+
+1624,Waste Stove@NPC_STUNATTACK,attack,179,4,500,1500,5000,no,target,always,0,,,,,,
+1624,Waste Stove@NPC_RANDOMATTACK,attack,183,5,500,500,5000,no,target,always,0,,,,,,
+1624,Waste Stove@NPC_SPLASHATTACK,attack,174,1,2000,0,5000,yes,target,attackpcgt,2,,,,,,
+1624,Waste Stove@TF_THROWSTONE,chase,152,1,2000,0,5000,yes,target,always,0,,,,,,
+
+1625,Porcellio@NPC_KEEPING,attack,201,1,2000,0,5000,yes,self,attackpcgt,2,,,,,,
+1625,Porcellio@AL_PNEUMA,attack,25,1,10000,0,10000,yes,self,longrangeattacked,,,,,,,
+1625,Porcellio@NPC_GROUNDATTACK,attack,185,2,500,500,5000,no,target,always,0,,,,,,
+
 //Lighthalzen/Juperos temp skills
-//first class mobs
-1653,Whikebain@TF_DOUBLE,attack,48,10,500,0,10000,no,target,always,0,,,,,,
-1653,Whikebain@TF_POISON,attack,52,10,500,0,10000,no,target,always,0,,,,,,
+// by MasterOfMuppets
 1652,Ygnizem@SM_MAGNUM,attack,7,10,500,500,5000,no,target,always,0,,,,,,
 1652,Ygnizem@NPC_CRITICALSLASH,attack,170,1,1000,0,30000,no,target,always,0,,,,,,
 1652,Ygnizem@SM_BASH,attack,5,10,3000,0,15000,yes,target,always,0,,,,,,
+1652,Ygnizem@SM_PROVOKE,chase,6,10,500,600,5000,no,target,always,0,,,,,,
+1652,Ygnizem@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,
+1652,Ygnizem@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
+
+1653,Whikebain@TF_THROWSTONE,chase,152,1,500,0,10000,no,target,always,0,,,,,,
+1653,Whikebain@TF_POISON,attack,52,10,500,0,20000,no,target,always,0,,,,,,
+1653,Whikebain@NPC_POISONATTACK,attack,188,3,500,0,10000,no,target,always,0,,,,,,
+1653,Whikebain@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
+
+1654,Armaia@MC_MAMMONITE,angry,42,7,500,800,5000,no,target,always,0,,,,,,
+1654,Armaia@NPC_STUNATTACK,attack,179,4,500,1000,10000,no,target,always,0,,,,,,
+1654,Armaia@NPC_GROUNDATTACK,attack,185,3,1000,0,10000,no,target,always,0,,,,,,
+1654,Armai@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
+
 1655,Erend@AL_DECAGI,chase,30,10,2000,0,60000,no,target,always,0,,,,,,29
 1655,Erend@AL_HEAL,attack,28,9,10000,500,5000,no,self,myhpltmaxrate,30,,,,,,18
 1655,Erend@AL_HOLYLIGHT,chase,156,1,500,800,5000,yes,target,always,0,,,,,,
-1657,Rawrel@MG_LIGHTNINGBOLT,chase,20,5,500,1500,5000,yes,target,always,0,,,,,,
-1657,Rawrel@MG_LIGHTNINGBOLT,attack,20,5,500,1500,5000,yes,target,always,0,,,,,,
-1657,Rawrel@MG_SOULSTRIKE,chase,13,9,500,500,5000,yes,target,always,0,,,,,,
-1657,Rawrel@MG_FROSTDIVER,chase,15,10,500,1000,5000,yes,target,always,0,,,,,,
-1654,Armaia@MC_MAMMONITE,angry,42,7,500,800,5000,no,target,always,0,,,,,,
-1654,Armaia@NPC_STUNATTACK,attack,179,4,1000,1000,10000,no,target,always,0,,,,,,
+1655,Erend@AL_PNEUMA,attack,25,1,10000,0,10000,yes,self,longrangeattacked,,,,,,,
+1655,Erend@PR_LEXDIVINA,attack,76,1,500,1000,10000,yes,target,always,0,,,,,,
+1655,Erend@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
+
 1656,Kavac@NPC_WINDATTACK,attack,187,1,2000,0,5000,yes,target,always,0,,,,,,
 1656,Kavac@AC_DOUBLE,attack,46,10,500,1000,5000,no,target,always,0,,,,,,
+1656,Kavac@AC_SHOWER,attack,47,10,2000,1000,5000,no,target,attackpcgt,2,,,,,,
+1656,Kavac@NPC_PIERCINGATT,attack,158,5,500,0,5000,no,target,always,0,,,,,,
+1656,Kavac@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
+
+1657,Rawrel@MG_LIGHTNINGBOLT,chase,20,5,500,1500,5000,yes,target,always,0,,,,,,
+1657,Rawrel@MG_LIGHTNINGBOLT,attack,20,5,500,1500,5000,yes,target,always,0,,,,,,
+1657,Rawrel@MG_THUNDERSTORM,attack,21,5,500,1500,5000,no,target,attackpcgt,2,,,,,,
+1657,Rawrel@MG_SOULSTRIKE,chase,13,9,500,500,5000,yes,target,always,0,,,,,,
+1657,Rawrel@MG_FROSTDIVER,chase,15,10,500,1000,5000,yes,target,always,0,,,,,,
+1657,Rawrel@MG_FIREWALL,attack,18,5,500,500,5000,yes,target,always,,,,,,,
+1657,Rawrel@MG_FIREWALL,chase,18,5,500,500,5000,yes,target,always,,,,,,,
+1657,Rawrel@MG_SAFETYWALL,attack,12,5,1000,1000,5000,no,self,myhpltmaxrate,30,,,,,,
+1657,Rawrel@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
+
+1658,Ygnizem@SM_MAGNUM,attack,7,10,500,500,5000,no,target,always,0,,,,,,
+1658,Ygnizem@NPC_CRITICALSLASH,attack,170,1,1000,0,30000,no,target,always,0,,,,,,
+1658,Ygnizem@AL_TELEPORT,idle,26,1,10000,0,0,yes,self,rudeattacked,,,,,,,
+1658,Ygnizem@SM_BASH,attack,5,10,3000,0,15000,yes,target,always,0,,,,,,
+1658,Ygnizem@SM_PROVOKE,chase,6,10,500,600,5000,no,target,always,0,,,,,,
+1658,Ygnizem@NPC_FIREATTACK,attack,186,3,500,500,5000,no,target,always,0,,,,,,
+1658,Ygnizem@NPC_SUMMONSLAVE,idle,196,5,10000,2000,60000,no,self,slavele,3,1652,,,,,
+1658,Ygnizem@KN_TWOHANDQUICKEN,attack,60,10,10000,0,120000,yes,self,myhpltmaxrate,30,,,,,,
+1658,Ygnizem@NPC_CHANGEWIND,attack,165,1,10000,2000,600000,no,self,myhpltmaxrate,5,,,,,,
+1658,Ygnizem@NPC_CHANGEWATER,attack,162,1,10000,2000,600000,no,self,myhpltmaxrate,20,,,,,,
+1658,Ygnizem@NPC_SHIELDBRAKE,attack,346,5,500,0,5000,yes,target,always,0,,,,,,,
+
+
 //not sure if these summon like the advanced classes(commented out for now)
 //1653,Whikebain@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1658,1661,1663,1660,1662,0
 //1652,Ygnizem@NPC_SUMMONSLAVE,attack,196,5,10000,2000,10000,no,self,slavele,0,1659,1661,1663,1660,1662,0
@@ -2499,9 +2584,6 @@
 //first class slaves?
 1659,Whikebain@TF_DOUBLE,attack,48,10,500,0,10000,no,target,always,0,,,,,,
 1659,Whikebain@TF_POISON,attack,52,10,500,0,10000,no,target,always,0,,,,,,
-1658,Ygnizem@SM_MAGNUM,attack,7,10,500,500,5000,no,target,always,0,,,,,,
-1658,Ygnizem@NPC_CRITICALSLASH,attack,170,1,1000,0,30000,no,target,always,0,,,,,,
-1658,Ygnizem@SM_BASH,attack,5,10,3000,0,15000,yes,target,always,0,,,,,,
 1661,Erend@AL_DECAGI,chase,30,10,2000,0,60000,no,target,always,0,,,,,,29
 1661,Erend@AL_HEAL,attack,28,9,10000,500,5000,no,self,myhpltmaxrate,30,,,,,,18
 1661,Erend@AL_HOLYLIGHT,chase,156,1,500,800,5000,yes,target,always,0,,,,,,
@@ -2665,4 +2747,3 @@
 1645,Katrinn@WZ_VERMILION,chase,85,6,2000,500,2000,no,target,always,0,,,,,,29
 1645,Katrinn@WZ_WATERBALL,chase,86,5,2000,1000,5000,yes,target,always,0,,,,,,
 1645,Katrinn@WZ_WATERBALL,attack,86,5,1000,0,5000,yes,target,always,0,,,,,,
-

@@ -35,6 +35,9 @@
 	--
 
 09/26
+	* Restored sell prices of Feather&Sticky Webfoot, thx to Dr.Evil for note [Lupus]
+	* Updated some Lighthalzen mobs drops and skills, thanks to MasterOfMuppets
+	* Updated Einbroch mobs drops, thanks to MasterOfMuppets
 	* Fixed Tengu Drops (removed 2nd Mr.Smile) [Lupus]
 09/23
 	* Updated Lighthalzen mobs.[Nexon]

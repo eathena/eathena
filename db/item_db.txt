@@ -267,7 +267,7 @@
 915,Chrysalis,Chrysalis,3,,4,10,,,,,,,,,,,,{},{}
 916,Feather_of_Birds,Feather of Birds,3,,5,10,,,,,,,,,,,,{},{}
 917,Talon,Talon,3,,10,10,,,,,,,,,,,,{},{}
-918,Sticky_Webfoot,Sticky Webfoot,3,,0,10,,,,,,,,,,,,{},{}
+918,Sticky_Webfoot,Sticky Webfoot,3,,5,10,,,,,,,,,,,,{},{}
 919,Animal_Skin,Animal Skin,3,,18,10,,,,,,,,,,,,{},{}
 920,Wolf_Claw,Wolf Claw,3,,29,10,,,,,,,,,,,,{},{}
 921,Mushroom_Spore,Mushroom Spore,3,,18,10,,,,,,,,,,,,{},{}
@@ -296,7 +296,7 @@
 946,Snail's_Shell,Snails Shell,3,,32,10,,,,,,,,,,,,{},{}
 947,Horn,Horn,3,,58,10,,,,,,,,,,,,{},{}
 948,Bear's_Footskin,Bears Footskin,3,,87,10,,,,,,,,,,,,{},{}
-949,Feather,Feather,3,,0,10,,,,,,,,,,,,{},{}
+949,Feather,Feather,3,,5,10,,,,,,,,,,,,{},{}
 950,Heart_of_Mermaid,Heart of Mermaid,3,,132,10,,,,,,,,,,,,{},{}
 951,Fin,Fin,3,,206,10,,,,,,,,,,,,{},{}
 952,Cactus_Needle,Cactus Needle,3,,41,10,,,,,,,,,,,,{},{}
