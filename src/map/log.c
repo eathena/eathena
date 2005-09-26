@@ -44,7 +44,7 @@ time_t curtime;
 //check if this item should be logged according the settings
 int should_log_item(int filter, int nameid) {
 	struct item_data *item_data;
-	if (nameid<512 || (item_data= itemdb_search(nameid)) == NULL) return 0;
+	if (nameid<501 || (item_data= itemdb_search(nameid)) == NULL) return 0;
 	if ( (filter&1) || // Filter = 1, we log any item
 		(filter&2 && item_data->type == 0 ) ||	//healing items
 		(filter&4 && (item_data->type == 3 || item_data->type == 10) ) ||	//etc+arrows
@@ -97,6 +97,7 @@ int log_branch(struct map_session_data *sd)
 int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, int amount, struct item *itm)
 {
 	FILE *logfp;
+	int obj_id;
 
 	if(log_config.enable_logs <= 0)
 		return 0;
@@ -108,33 +109,28 @@ int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, in
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		if (mob_id) {
-		//we log mobs drop
-			if (itm==NULL) {
-			//We log common mobs drop
-				sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `map`) VALUES (NOW(), '%d', '%s', '%d', '%d', '%s') ",
-				 log_config.log_pick_db, mob_id, type, nameid, -amount, sd->mapname);
-			} else {
-			//We log LOOTED item mobs drop
-				sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s') ",
-				 log_config.log_pick_db, mob_id, type, itm->nameid, -amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], sd->mapname);
-			}
-			if(mysql_query(&logmysql_handle, tmp_sql))
-			{
-				ShowSQL("DB error - %s\n",mysql_error(&logmysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
+		//either PLAYER or MOB
+		if(mob_id) {
+			obj_id = mob_id;
 		} else {
-		//we log players drop/take
-			sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s') ",
-			 log_config.log_pick_db, sd->char_id, type, itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], sd->mapname);
-			if(mysql_query(&logmysql_handle, tmp_sql))
-			{
-				ShowSQL("DB error - %s\n",mysql_error(&logmysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
+			obj_id = sd->char_id;
 		}
 
+		if (itm==NULL) {
+		//We log common item
+			sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `map`) VALUES (NOW(), '%d', '%s', '%d', '%d', '%s')",
+			 log_config.log_pick_db, obj_id, type, nameid, amount, sd->mapname);
+		} else {
+		//We log Extended item
+			sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s')",
+			 log_config.log_pick_db, obj_id, type, itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], sd->mapname);
+		}
+
+		if(mysql_query(&logmysql_handle, tmp_sql))
+		{
+			ShowSQL("DB error - %s\n",mysql_error(&logmysql_handle));
+			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		}
 	} else {
 #endif
 		if((logfp=fopen(log_config.log_pick,"a+")) != NULL) {

@@ -33,12 +33,14 @@
 	7420,Skull //PvP Item(maybe drop item?) maybe like that custom bone drop?
 
 	--
+
+09/26
+	* Fixed Tengu Drops (removed 2nd Mr.Smile) [Lupus]
 09/23
 	* Updated Lighthalzen mobs.[Nexon]
 	- Some still need to be implemented.
 	* Updated const.txt with new emotes.[Nexon]
 	- Skotlex told me to.
-	
 09/22
 	* Updated the item_db file, now the sell column is used. Those items that
 	  had buy price 20 and sell price blank now have buy price blanka nd sell

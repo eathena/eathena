@@ -11,6 +11,7 @@
 #include "nullpo.h"
 #include "malloc.h"
 #include "map.h"
+#include "log.h"
 #include "npc.h"
 #include "clif.h"
 #include "intif.h"
@@ -1031,6 +1032,11 @@ int npc_buylist(struct map_session_data *sd,int n,unsigned short *item_list)
 		item_tmp.identify = 1;	// npc販売アイテムは鑑定済み
 
 		pc_additem(sd,&item_tmp,item_list[i*2]);
+
+		//Logs items, Bought in NPC (S)hop [Lupus]
+		if(sd && log_config.pick > 0 )
+			log_pick(sd, "S", 0, item_tmp.nameid, item_list[i*2], NULL);
+		//Logs
 	}
 
 	//商人経験値
@@ -1086,6 +1092,12 @@ int npc_selllist(struct map_session_data *sd,int n,unsigned short *item_list)
 			sd->status.inventory[item_id].card[0] == (short)0xff00)
 				if(search_petDB_index(sd->status.inventory[item_id].nameid, PET_EGG) >= 0)
 					intif_delete_petdata(MakeDWord(sd->status.inventory[item_id].card[1],sd->status.inventory[item_id].card[2]));
+
+		//Logs items, Sold to NPC (S)hop [Lupus]
+		if(sd && log_config.pick > 0 )
+			log_pick(sd, "S", 0, sd->status.inventory[item_id].nameid, -item_list[i*2+1], NULL);
+		//Logs
+
 		pc_delitem(sd,item_id,item_list[i*2+1],0);
 	}
 

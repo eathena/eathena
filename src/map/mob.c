@@ -2607,7 +2607,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 
 			//Logs items, dropped by mobs [Lupus]
 			if(sd && log_config.pick > 0 )
-				log_pick(sd, "M", md->class_, ditem->nameid, 1, NULL);
+				log_pick(sd, "M", md->class_, ditem->nameid, -1, NULL);
 			//Logs
 
 			//A Rare Drop Global Announce by Lupus
@@ -2640,7 +2640,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 
 			//Logs items, dropped by mobs [Lupus]
 			if(sd && log_config.pick > 0 )
-				log_pick(sd, "M", md->class_, ditem->nameid, 1, NULL);
+				log_pick(sd, "M", md->class_, ditem->nameid, -1, NULL);
 			//Logs
 		}
 
@@ -2676,7 +2676,7 @@ int mob_damage(struct block_list *src,struct mob_data *md,int damage,int delay,i
 
 					//Logs items, dropped by mobs [Lupus]
 					if(sd && log_config.pick > 0 )
-						log_pick(sd, "M", md->class_, ditem->nameid, 1, NULL);
+						log_pick(sd, "M", md->class_, ditem->nameid, -1, NULL);
 					//Logs
 				}
 			}

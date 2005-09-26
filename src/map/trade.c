@@ -368,10 +368,16 @@ void trade_tradecommit(struct map_session_data *sd) {
                                                         log_trade(sd, target_sd, n, sd->deal_item_amount[trade_i]);
 
 							flag = pc_additem(target_sd, &sd->status.inventory[n], sd->deal_item_amount[trade_i]);
-							if (flag == 0)
+							if (flag == 0) {
+								//Logs (T)rade [Lupus]
+								if(log_config.pick > 0 )
+									log_pick(sd, "T", 0, sd->status.inventory[n].nameid, -(sd->deal_item_amount[trade_i]), &sd->status.inventory[n]);
+									log_pick(target_sd, "T", 0, sd->status.inventory[n].nameid, sd->deal_item_amount[trade_i], &sd->status.inventory[n]);
+								//Logs
 								pc_delitem(sd, n, sd->deal_item_amount[trade_i], 1);
-							else
+							} else {
 								clif_additem(sd, n, sd->deal_item_amount[trade_i], 0);
+							}
 							sd->deal_item_index[trade_i] = 0;
 							sd->deal_item_amount[trade_i] = 0;
                                                         
@@ -382,12 +388,19 @@ void trade_tradecommit(struct map_session_data *sd) {
 							if (target_sd->status.inventory[n].amount < target_sd->deal_item_amount[trade_i])
 								target_sd->deal_item_amount[trade_i] = target_sd->status.inventory[n].amount;
 
-                                                        log_trade(target_sd, sd, n, target_sd->deal_item_amount[trade_i]);
+							log_trade(target_sd, sd, n, target_sd->deal_item_amount[trade_i]);
+
 							flag = pc_additem(sd, &target_sd->status.inventory[n], target_sd->deal_item_amount[trade_i]);
-							if (flag == 0)
+							if (flag == 0) {
+								//Logs (T)rade [Lupus]
+								if(log_config.pick > 0 )
+									log_pick(target_sd, "T", 0, target_sd->status.inventory[n].nameid, -(target_sd->deal_item_amount[trade_i]), &target_sd->status.inventory[n]);
+									log_pick(sd, "T", 0, target_sd->status.inventory[n].nameid, target_sd->deal_item_amount[trade_i], &target_sd->status.inventory[n]);
+								//Logs
 								pc_delitem(target_sd, n, target_sd->deal_item_amount[trade_i], 1);
-							else
+							} else {
 								clif_additem(target_sd, n, target_sd->deal_item_amount[trade_i], 0);
+							}
 							target_sd->deal_item_index[trade_i] = 0;
 							target_sd->deal_item_amount[trade_i] = 0;
 						}

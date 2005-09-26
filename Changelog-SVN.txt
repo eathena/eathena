@@ -2,6 +2,7 @@ Date	Added
 =======
 
 09/26
+	* Updated new logging system. Now logs TRADE, NPC Shops [Lupus]
 	* Fixed a possible exploit in the new auth system. Thanks to End of Exam
 	  for the information. [Skotlex]
 	* Corrected True Sight critical bonus. [Skotlex]
@@ -27,7 +28,7 @@ Date	Added
 	- TXT logs don't work yet
 	- TODO: Add Autolooted & MVP items in the log, too.
 	- TODO: Add Mobs Looters DROP items in the log. (Now only attacked mobs log loot drops)
-	- TODO: Add NPC/Scripts/Vending/Trade logs
+	- TODO: Add Scripts/Vending logs
 
 09/25
 	* Modified battle_weapon_delay so that additional status effects are
