@@ -9,6 +9,7 @@
 static struct dbt * scdata_db = NULL;	//Contains all the status change data in-memory. [Skotlex]
 char scdata_txt[1024]="save/scdata.txt"; //By [Skotlex]
 
+#ifdef ENABLE_SC_SAVING
 /*==========================================
  * Loads status change data of the player given. [Skotlex]
  *------------------------------------------
@@ -175,3 +176,4 @@ void status_final(void)
 {
 	numdb_final(scdata_db, scdata_db_final);
 }
+#endif

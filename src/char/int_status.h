@@ -11,10 +11,11 @@ struct scdata {
 
 extern char scdata_txt[1024];
 
+#ifdef ENABLE_SC_SAVING
 struct scdata *status_search_scdata(int aid, int cid);
 void status_delete_scdata(int aid, int cid);
 void inter_status_save();
 void status_init();
 void status_final(void);
-
+#endif
 #endif

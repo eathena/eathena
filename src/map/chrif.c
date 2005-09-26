@@ -390,6 +390,7 @@ int chrif_sendmapack(int fd)
  */
 int chrif_scdata_request(int account_id, int char_id)
 {
+#ifdef ENABLE_SC_SAVING
 #ifndef TXT_ONLY
 	if (charsave_method)
 		return charsave_load_scdata(account_id, char_id);
@@ -400,6 +401,7 @@ int chrif_scdata_request(int account_id, int char_id)
 	WFIFOL(char_fd, 2) = account_id;
 	WFIFOL(char_fd, 6) = char_id;
 	WFIFOSET(char_fd,10);
+#endif
 	return 0;
 }
 
@@ -1135,6 +1137,7 @@ int chrif_recvfamelist(int fd)
 
 int chrif_save_scdata(struct map_session_data *sd)
 {	//parses the sc_data of the player and sends it to the char-server for saving. [Skotlex]
+#ifdef ENABLE_SC_SAVING
 	int i, count=0;
 	unsigned int tick;
 	struct status_change_data data;
@@ -1176,11 +1179,13 @@ int chrif_save_scdata(struct map_session_data *sd)
 	WFIFOW(char_fd,12) = count;
 	WFIFOW(char_fd,2) = 14 +count*sizeof(struct status_change_data); //Total packet size
 	WFIFOSET(char_fd,WFIFOW(char_fd,2));
+#endif
 	return 0;
 }
 
 int chrif_load_scdata(int fd)
 {	//Retrieve and load sc_data for a player. [Skotlex]
+#ifdef ENABLE_SC_SAVING
 	struct map_session_data *sd;
 	struct status_change_data data;
 	int aid, cid, i, count;
@@ -1205,6 +1210,7 @@ int chrif_load_scdata(int fd)
 		memcpy(&data, RFIFOP(fd,14 + i*sizeof(struct status_change_data)), sizeof(struct status_change_data));
 		status_change_start(&sd->bl, data.type, data.val1, data.val2, data.val3, data.val4, data.tick, 7);
 	}
+#endif
 	return 0;
 }
 

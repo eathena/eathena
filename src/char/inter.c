@@ -243,7 +243,9 @@ int inter_log(char *fmt,...) {
 
 // ƒZ[ƒu
 int inter_save() {
+#ifdef ENABLE_SC_SAVING
 	inter_status_save();
+#endif
 	inter_party_save();
 	inter_guild_save();
 	inter_storage_save();

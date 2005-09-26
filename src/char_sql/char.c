@@ -2487,7 +2487,7 @@ int parse_frommap(int fd) {
 			aid = RFIFOL(fd,2);
 			cid = RFIFOL(fd,6);
 			RFIFOSKIP(fd, 10);
-
+#ifdef ENABLE_SC_SAVING
 			sprintf(tmp_sql, "SELECT type, tick, val1, val2, val3, val4 from `%s` WHERE `account_id` = '%d' AND `char_id`='%d'",
 				scdata_db, aid, cid);
 			if (mysql_query(&mysql_handle, tmp_sql)) {
@@ -2527,6 +2527,7 @@ int parse_frommap(int fd) {
 					}
 				}
 			}
+#endif
 			break;
 		}
 		// set MAP user
@@ -2948,6 +2949,7 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 		{
+#ifdef ENABLE_SC_SAVING
 			int count, aid, cid, i;
 			struct status_change_data data;
 			
@@ -2971,6 +2973,7 @@ int parse_frommap(int fd) {
 					ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 				}
 			}
+#endif
 			RFIFOSKIP(fd, RFIFOW(fd, 2));
 			break;
 		}

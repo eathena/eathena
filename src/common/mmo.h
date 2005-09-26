@@ -40,6 +40,9 @@
 
 #define CMP_AUTHFIFO_LOGIN2 1
 
+//Remove/Comment this line to disable sc_data saving. [Skotlex]
+#define ENABLE_SC_SAVING 
+
 #define MAX_MAP_PER_SERVER 1024
 #define MAX_INVENTORY 100
 //Number of slots carded equipment can have. Never set to less than 4 as they are also used to keep the data of forged items/equipment. [Skotlex]

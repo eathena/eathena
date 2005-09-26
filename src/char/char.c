@@ -2333,11 +2333,14 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 10)
 				return 0;
 		{
+#ifdef ENABLE_SC_SAVING
 			int aid, cid;
 			struct scdata *data;
 			aid = RFIFOL(fd,2);
 			cid = RFIFOL(fd,6);
+#endif
 			RFIFOSKIP(fd, 10);
+#ifdef ENABLE_SC_SAVING
 			data = status_search_scdata(aid, cid);
 			if (data->count > 0)
 			{	//Deliver status change data.
@@ -2353,6 +2356,7 @@ int parse_frommap(int fd) {
 				WFIFOSET(fd, WFIFOW(fd,2));
 				status_delete_scdata(aid, cid); //Data sent, so it needs be discarded now.
 			}
+#endif
 			break;
 		}
 		
@@ -2769,12 +2773,12 @@ int parse_frommap(int fd) {
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 		{
+#ifdef ENABLE_SC_SAVING
 			int count, aid, cid, i;
 			struct scdata *data;
 			aid = RFIFOL(fd, 4);
 			cid = RFIFOL(fd, 8);
 			count = RFIFOW(fd, 12);
-			
 			data = status_search_scdata(aid, cid);
 			if (data->count != count)
 			{
@@ -2783,7 +2787,7 @@ int parse_frommap(int fd) {
 			}
 			for (i = 0; i < count; i++)
 				memcpy (&data->data[i], RFIFOP(fd, 14+i*sizeof(struct status_change_data)), sizeof(struct status_change_data));
-
+#endif
 			RFIFOSKIP(fd, RFIFOW(fd, 2));
 			break;
 		}
@@ -3770,7 +3774,9 @@ void do_final(void) {
 	delete_session(login_fd);
 	delete_session(char_fd);
 
+#ifdef ENABLE_SC_SAVING
 	status_final();
+#endif
 	inter_final();
 
 	char_log("----End of char-server (normal end with closing of all files)." RETCODE);
@@ -3830,7 +3836,9 @@ int do_init(int argc, char **argv) {
 		online_chars[i].server = -1;
 	}
 	mmo_char_init();
+#ifdef ENABLE_SC_SAVING
 	status_init();
+#endif
 	update_online = time(NULL);
 	create_online_files(); // update online players files at start of the server
 
