@@ -2,6 +2,7 @@ Date	Added
 =======
 
 09/26
+	* Fixed cloaking/hiding. [Skotlex]
 	* Updates to status_change_start, scdata loading now should display on the
 	  targetted player. [Skotlex]
 	* Removed card modifiers from Meteor Assault. [Skotlex]

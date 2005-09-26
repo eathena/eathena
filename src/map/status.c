@@ -3713,7 +3713,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_CHASEWALK:
 		case SC_CLOAKING:		/* ƒNƒ?ƒLƒ“ƒO */
-			if (type&4)
+			if (flag&4)
 				break;
 			if(bl->type == BL_PC) {
 				calc_flag = 1; // [Celest]
