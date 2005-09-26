@@ -2,6 +2,7 @@ Date	Added
 =======
 
 09/26
+	* Guild Extension now adds 6 per level. [Skotlex]
 	* Added define ENABLE_SC_SAVING in common/mmo.h, comment/remove this line
 	  to disable saving of status changes (temporary measure) [Skotlex]
 	* Updated Double Casting to only work on Firebolt, Coldbolt and

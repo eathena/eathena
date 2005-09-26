@@ -899,7 +899,7 @@ int guild_calcinfo(struct guild *g)
 	g->next_exp = guild_nextexp(g->guild_lv);
 
 	// メンバ上限（ギルド拡張適用）
-	g->max_member = 16 + guild_checkskill(g, GD_EXTENSION) * 4; //Guild Extention skill - currently adds 4 to max per skill lv.
+	g->max_member = 16 + guild_checkskill(g, GD_EXTENSION) * 6; //Guild Extention skill - currently adds 6 to max per skill lv.
 
 	// 平均レベルとオンライン人数
 	g->average_lv=0;
