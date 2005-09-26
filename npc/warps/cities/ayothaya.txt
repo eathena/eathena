@@ -1,29 +1,22 @@
-// ---------------------------------------------------------------------------------------
-//
-// Ayothaya Town Warps v 1.1 - Warp Locations
-// - Created by Muad_Dib.
-// - 1.1 Fixed Armory part by massdriller [Thanks to akusarujin]
-//
-//========================================================================================
+//===== Athena Script ========================================
+//= Ayothaya Town Warps Script
+//===== By: ==================================================
+//= Muad_Dib, L0ne_W0lf (1.0)
+//===== Current Version: =====================================
+//= 1.2
+//===== Compatible With: =====================================
+//= Any Athena Version; RO Episode 8+
+//===== Description: =========================================
+//= Warp Points for Ayothaya
+//===== Additional Comments: =================================
+//= 1.1 Fixed Armory part by massdriller [Thanks to akusarujin]
+//= 1.2 Revised warps, due to official Ayothaya Town NPC [MasterOfMuppets]
+//============================================================
+
 
 //Entrance / Exit 
 ayothaya.gat,277,176,0	warp	ayothayawarp001	2,2,ayo_fild01.gat,36,239
 ayo_fild01.gat,32,241,0	warp	ayothayawarp002	2,2,ayothaya.gat,274,176
-
-//Field
-ayo_fild02.gat,18,138,0	warp	ayothayawarp003	2,2,ayo_fild01.gat,120,204
-ayo_fild01.gat,123,207,0	warp	ayothayawarp004	2,2,ayo_fild02.gat,21,138
-
-//Dungeon 
-ayo_fild02.gat,285,150,0	warp	ayothayawarp005	2,2,ayo_dun01.gat,9,149
-ayo_dun01.gat,6,149,0	warp	ayothayawarp006	2,2,ayo_fild02.gat,282,150
-ayo_dun01.gat,27,27,0	warp	ayothayawarp051	2,2,ayo_dun02.gat,24,26
-ayo_dun02.gat,24,21,0	warp	ayothayawarp052	2,2,ayo_dun01.gat,27,30
-ayo_dun02.gat,275,21,0	warp	ayothayawarp053	2,2,ayo_dun01.gat,275,30
-ayo_dun01.gat,272,272,0	warp	ayothayawarp054	2,2,ayo_dun02.gat,230,234
-ayo_dun02.gat,230,239,0	warp	ayothayawarp055	2,2,ayo_dun01.gat,272,269
-ayo_dun01.gat,26,272,0	warp	ayothayawarp056	2,2,ayo_dun02.gat,72,234
-ayo_dun02.gat,72,239,0	warp	ayothayawarp057	2,2,ayo_dun01.gat,26,269
 
 //Castle
 ayothaya.gat,207,285,0	warp	ayothayawarp007	2,2,ayo_in02.gat,99,149
@@ -37,13 +30,6 @@ ayo_in01.gat,47,183,0	warp	ayothayawarp012	2,2,ayothaya.gat,131,98
 ayothaya.gat,130,75,0	warp	ayothayawarp013	2,2,ayo_in01.gat,17,155
 ayo_in01.gat,17,152,0	warp	ayothayawarp014	2,2,ayothaya.gat,132,73
 
-
-// ---------------------------------------------------------------------------------------
-//
-// Ayothaya Town Warps - Warp Locations (inside <-> outside)
-// - Created by L0ne_W0lf.
-//
-//========================================================================================
 //Restaurant/Bar -- Facing North
 ayothaya.gat,229,70,0	warp	ayothayawarp015	2,2,ayo_in01.gat,137,192
 ayo_in01.gat,137,194,0	warp	ayothayawarp016	2,2,ayothaya.gat,232,75
@@ -68,13 +54,9 @@ ayo_in01.gat,73,174,0	warp	ayothayawarp022	2,2,ayothaya.gat,163,90
 //ayothaya.gat,60,148,0	warp	ayothayawarp025	2,2,ayo_in01.gat,,
 //ayo_in01.gat,,,0	warp	ayothayawarp026	2,2,ayothaya.gat,61,146
 
-//Straw-roof hut -- East Side (Upper) -- Facing East
-ayothaya.gat,49,124,0	warp	ayothayawarp027	2,2,ayo_in01.gat,191,183
-ayo_in01.gat,194,183,0	warp	ayothayawarp028	2,2,ayothaya.gat,53,124
-
 //Straw-roof hut -- East Side (Middle) -- Facing East
-//ayothaya.gat,61,104,0	warp	ayothayawarp029	2,2,ayo_in01.gat,,
-//ayo_in01.gat,,,0	warp	ayothayawarp030	2,2,ayothaya.gat,66,104
+ayothaya.gat,61,104,0	warp	ayothayawarp029	2,2,ayo_in01.gat,191,183
+ayo_in01.gat,194,183,0	warp	ayothayawarp030	2,2,ayothaya.gat,66,104
 
 //Straw-roof hut -- East Side (Lower) -- Facing North
 //ayothaya.gat,77,88,0	warp	ayothayawarp031	2,2,ayo_in01.gat,,

@@ -2,6 +2,7 @@ Date	Added
 =======
 
 09/26
+	* Added official Ayothaya Town script by MasterOfMuppets [Lupus]
 	* Added new Players / Monster Drops / Pickups Logging system [Lupus]
 	- Changed new log table, now it has field 'type':
 		M = Monsters Drop, P = Players Drop/Take, L = Mobs Loot Drop/Take, T = Players Trade Give/Take,

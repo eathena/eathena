@@ -29,6 +29,10 @@ TODO:
 
 Date		Added
 ======
+09/26	
+	* Added official Ayothaya Town script by MasterOfMuppets [Lupus]
+	- Fixed Ayothaya warp scripts
+	- Updated BBS
 09/23
 	* Al De Baran: Finally added the Kafras Special Reserve 2 Lotto with official prizes [Lupus]
 	  (80% official, 4-5 entries are made up) also changed typo Orange Potions -> Red Potions 

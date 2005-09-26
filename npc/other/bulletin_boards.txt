@@ -3,13 +3,14 @@
 //===== By: ==================================================
 //= MasterOfMuppets (1.1)
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
 //= 1.0 Added Alberta, Prontera, Izlude, Payon, Byalan Island,
 //= 	Archer Village, Payon Cave and Coal Mine
 //= 1.1 Geffen, Orc Dungeon
+//= 1.2 Added 5 more Boards [MasterOfMuppets]
 //============================================================
 
 alberta.gat,111,59,5	script	Bulletin Board	837,{
@@ -183,5 +184,149 @@ mjolnir_02.gat,76,362,5	script	Bulletin Board	837,{
 	next;
 	mes "[Coal Mine]";
 	mes "In the third level, monsters tend to attack adventurers in swarms, so avoid being surrounded. Since this area is a mine, many Ores can be found within the depths of this dungeon.";
+	close;
+}
+
+morocc.gat,152,110,5	script	Bulletin Board	837,{
+	mes "[Morroc: The Frontier Town]";
+	mes "Welcome to Morroc, the City of the";
+	mes "Desert. Morroc was built on an";
+	mes "on an oasis, so this town can accomodate";
+	mes "its many visitors and travelers.";
+	next;
+	mes "[Morroc: The Frontier Town]";
+	mes "Morroc Castle lies in the center of";
+	mes "this city. Please feel free to";
+	mes "explore this town, and enjoy its";
+	mes "unique atmosphere. However, watch";
+	mes "your pockets and beware of Rogues";
+	mes "and Thieves.";
+	next;
+	mes "[Morroc: The Frontier Town]";
+	mes "From Morroc, the ^6B1312Pyramid Dungeon^000000";
+	mes "can be found to the Northwest, and";
+	mes "the ^6B1312Sphinx Dungeon^000000 can be found to";
+	mes "the West. To the southeast, you may";
+	mes "find ^6B1312Ant Hell.";
+	next;
+	mes "[Morroc: The Frontier Town]";
+	mes "The Assassin Guild is rumored to be";
+	mes "located to the Southeast. When you";
+	mes "head East from Morroc, and then";
+	mes "North, you will arrive at";
+	mes "^6D6FE0Prontera^000000.";
+}
+
+comodo.gat,210,148,5	script	Bulletin Board	837,{
+	mes "[Comodo: The Beach City]";
+	mes "Welcome! This town of Comodo is";
+	mes "surrounded by many ancient relics";
+	mes "from a forgotten era.";
+	next;
+	mes "[Comodo: The Beach City]";
+	mes "Only in Comodo can you find the";
+	mes "Dancer Guild and Bard Guild which";
+	mes "provide the opportunity for";
+	mes "adventurers to change their jobs to";
+	mes "Dancers and Bards.";
+	next;
+	mes "[Comodo: The Beach City]";
+	mes "You can also visit the Casino,";
+	mes "which is a popular as a tourist";
+	mes "attraction and place to lounge";
+	next;
+	mes "[Comodo: The Beach City]";
+	mes "You can buy Berserk Potions, a";
+	mes "special product of Comodo, from the";
+	mes "Tool Dealers in the area.";
+	next;
+	mes "[Comodo: The Beach City]";
+	mes "There are 3 caves around Comodo";
+	mes "that are inhabited by many";
+	mes "different monsters. If you enter";
+	mes "these areas, please be extremely";
+	mes "careful.";
+	next;
+	mes "[Comodo: The Beach City]";
+	mes "From Comodo, you can travel to";
+	mes "^866C4BMorroc^000000 through the East Cave";
+	mes "and to ^7D2272Umbala^000000 through the North";
+	mes "Cave.";
+	next;
+	mes "[Comodo: The Beach City]";
+	mes "To the East, you can find ^BF2B0DParos";
+	mes "^BF2B0DLighthouse^000000, where the Rogue Guild";
+	mes "is located. Enjoy the Comodo night";
+	mes "life~";
+	close;
+}
+
+umbala.gat,137,94,5	script	Bulletin Board	837,{
+	mes "[Umbala: The Utan Village]";
+	mes "Welcome to Umbala,";
+	mes "the village of the Utan tribe.";
+	next;
+	mes "[Umbala: The Utan Village]";
+	mes "Umbala, as well as the Utan tribe";
+	mes "which speak their own unique";
+	mes "language, was recently discovered";
+	mes "by a few intrepid adventurers.";
+	next;
+	mes "[Umbala: The Utan Village]";
+	mes "Scholars believe that Umbala may be";
+	mes "the border between our world";
+	mes "and another realm. They believe the";
+	mes "junction between the worlds might";
+	mes "be the Yggdrasil tree to the North.";
+	next;
+	mes "[Umbala: The Utan Village]";
+	mes "Points of interest include the";
+	mes "Chief's House, the Shaman's House,";
+	mes "and the Bungee Jump Area. Thousands";
+	mes "of tourists visit the Bungee Jump";
+	mes "Area to test their courage.";
+	next;
+	mes "[Umbala: The Utan Village]";
+	mes "From Umbala, head South to go to";
+	mes "^D91B73Comodo^000000. Please enjoy your";
+	mes "stay here in Umbala.";
+	close;
+}
+
+gef_fild09.gat,227,29,4	script	Bulletin Board	835,{
+	mes "[Orc Village]";
+	mes "^6B1312Caution!^000000";
+	mes "Beyond this point";
+	mes "lies the Orc Village.";
+	next;
+	mes "[Orc Village]";
+	mes "Be aware that this village is";
+	mes "teeming with dangerous Orcs, namely";
+	mes "Orc Warriors, Orc Ladies and High";
+	mes "Orcs. Two boss monsters, ^6B1312Orc Hero^000000";
+	mes "and ^6B1312Orc Lord^000000 will also appear at certain times.";
+	close;
+}
+
+prt_fild05.gat,278,220,5	script	Bulletin Board	837,{
+	mes "[Culvert]";
+	mes "Culvert is comprised of a total of";
+	mes "4 levels, and is a good training";
+	mes "ground for new adventurers.";
+	next;
+	mes "[Culvert]";
+	mes "In order to access the Culver, you";
+	mes "must volunteer as a monster";
+	mes "exterminator at the Prontera";
+	mes "Chivalry. Remember that the";
+	mes "monsters here may attack in";
+	mes "swarms.";
+	next;
+	mes "[Culvert]";
+	mes "In the foruth level of the Prontera";
+	mes "Culvert, you may encounter the boss";
+	mes "monster known as the ^6B1312Golden Thief";
+	mes "^6B1312Bug^000000. New adventurers should";
+	mes "exercise caution.";
 	close;
 }
