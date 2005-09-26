@@ -3136,7 +3136,13 @@ int status_get_sc_def(struct block_list *bl, int type)
 }
 
 /*==========================================
- * ステータス異常開始
+ * Starts a status change.
+ * type = type, val1~4 depend on the type.
+ * Tick is base duration
+ * flag:
+ * &1: Cannot be avoided (it has to start)
+ * &2: Tick should not be altered
+ * &4: sc_data loaded, no value has to be altered.
  *------------------------------------------
  */
 int status_change_start(struct block_list *bl,int type,int val1,int val2,int val3,int val4,int tick,int flag)
@@ -3198,7 +3204,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		if( sd && type == SC_ADRENALINE && !(skill_get_weapontype(BS_ADRENALINE)&(1<<sd->status.weapon)))
 			return 0;
 
-		if(SC_STONE<=type && type<=SC_BLIND){	/* カ?ドによる耐性 */
+		if(SC_STONE<=type && type<=SC_BLIND && !(flag&1)){
 			if( sd && sd->reseff[type-SC_STONE] > 0 && rand()%10000<sd->reseff[type-SC_STONE]){
 				if(battle_config.battle_log)
 					ShowInfo("PC %d skill_sc_start: cardによる異常耐性?動\n",sd->bl.id);
@@ -3273,7 +3279,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_AUTOBERSERK:
 			{
-				tick = 60*1000;
+				if (!(flag&2))
+					tick = 60*1000;
 				if (bl->type == BL_PC && sd->status.hp<sd->status.max_hp>>2 &&
 					(sc_data[SC_PROVOKE].timer==-1 || sc_data[SC_PROVOKE].val2==0))
 					status_change_start(bl,SC_PROVOKE,10,1,0,0,0,0);
@@ -3286,7 +3293,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				status_change_end(bl,SC_DECREASEAGI,-1);
 			break;
 		case SC_DECREASEAGI:		/* 速度減少 */
-			if (bl->type == BL_PC)	// Celest
+			if (bl->type == BL_PC && !(tick&2))	// Celest
 				tick>>=1;
 			calc_flag = 1;
 			if(sc_data[SC_INCREASEAGI].timer!=-1 )
@@ -3303,7 +3310,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_SIGNUMCRUCIS:		/* シグナムクルシス */
 			calc_flag = 1;
 			val2 = 10 + val1*2;
-			tick = 600*1000;
+			if (!(flag&2))
+				tick = 600*1000;
 			clif_emotion(bl,4);
 			break;
 		case SC_SLOWPOISON:
@@ -3319,27 +3327,30 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_ADRENALINE:			/* アドレナリンラッシュ */
 			if(sc_data[SC_DECREASEAGI].timer!=-1)
 				return 0;
-			if(bl->type == BL_PC)
+			if(bl->type == BL_PC && !(flag&2))
 				if(pc_checkskill(sd,BS_HILTBINDING)>0)
 					tick += tick / 10;
 			calc_flag = 1;
 			break;
 		case SC_WEAPONPERFECTION:	/* ウェポンパ?フェクション */
-			if(bl->type == BL_PC)
+			if(bl->type == BL_PC && !(flag&2))
 				if(pc_checkskill(sd,BS_HILTBINDING)>0)
 					tick += tick / 10;
 			break;
 		case SC_OVERTHRUST:			/* オ?バ?スラスト */
-			if(bl->type == BL_PC)
+			if(bl->type == BL_PC && !(flag&2))
 				if(pc_checkskill(sd,BS_HILTBINDING)>0)
 					tick += tick / 10;
 			*opt3 |= 2;
 			break;
 		case SC_MAXIMIZEPOWER:		/* マキシマイズパワ?(SPが1減る時間,val2にも) */
-			if(bl->type == BL_PC)
-				val2 = tick;
-			else
-				tick = 5000*val1;
+			if (!(flag&2))
+			{
+				if(bl->type == BL_PC)
+					val2 = tick;
+				else
+					tick = 5000*val1;
+			}
 			break;
 		case SC_ENCPOISON:			/* エンチャントポイズン */
 			calc_flag = 1;
@@ -3351,7 +3362,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			calc_flag = 1;
 			break;
 		case SC_POISONREACT:	/* ポイズンリアクト */
-			val2=val1/2 + val1%2; // [Celest]
+			if (!(flag&4))
+				val2=val1/2 + val1%2; // [Celest]
 			break;
 		case SC_ENERGYCOAT:			/* エナジ?コ?ト */
 			*opt3 |= 4;
@@ -3360,8 +3372,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			val2 = val1*20;
 			break;
 		case SC_KYRIE:				/* キリエエレイソン */
-			val2 = status_get_max_hp(bl) * (val1 * 2 + 10) / 100;/* 耐久度 */
-			val3 = (val1 / 2 + 5);	/* 回? */
+			if (!(flag&4))
+			{
+				val2 = status_get_max_hp(bl) * (val1 * 2 + 10) / 100;/* 耐久度 */
+				val3 = (val1 / 2 + 5);	/* 回? */
+			}
 // -- moonsoul (added to undo assumptio status if target has it)
 			if(sc_data[SC_ASSUMPTIO].timer!=-1 )
 				status_change_end(bl,SC_ASSUMPTIO,-1);
@@ -3398,7 +3413,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			val2 = 1;
 			break;
 		case SC_SACRIFICE:
-			val2 = 5;
+			if (!(flag&4))
+				val2 = 5;
 			break;
 		case SC_ASPERSIO:			/* アスペルシオ */
 			skill_enchant_elemental_end(bl,SC_ASPERSIO);
@@ -3511,8 +3527,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_DANCING:			/* ダンス/演奏中 */
 			calc_flag = 1;
-			val3= tick / 1000;
-			tick = 1000;
+			if (!(flag&4))
+			{
+				val3= tick / 1000;
+				tick = 1000;
+			}
 			break;
 
 		case SC_EXPLOSIONSPIRITS:	// 爆裂波動
@@ -3534,7 +3553,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_ASPDPOTION2:
 		case SC_ASPDPOTION3:
 			calc_flag = 1;
-			tick = 1000 * tick;
+			if (!(flag&2))
+				tick = 1000 * tick;
 			val2 = 5*(2+type-SC_ASPDPOTION0);
 			// Since people complain so much about the various icons showing up, here we disable the visual of any other potions [Skotlex] 
 			if (sc_data[SC_ASPDPOTION0].timer != -1)
@@ -3571,8 +3591,9 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 				if(!battle_config.muting_players)
 					return 0;
-
-				tick = 60000;
+				
+				if (!(flag&2))
+					tick = 60000;
 				if(!val2)
 					val2 = (int)time(&timer);
 				updateflag = SP_MANNER;
@@ -3586,7 +3607,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				int sc_def = status_get_mdef(bl)*200;
 				tick = tick - sc_def;
 			}
-			val3 = tick/1000;
+			if (!(flag&4))
+				val3 = tick/1000;
 			if(val3 < 1) val3 = 1;
 			tick = 5000;
 			val2 = 1;
@@ -3637,7 +3659,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				int sc_def = 100 - (status_get_vit(bl) + status_get_luk(bl)/5);
 				tick = tick * sc_def / 100;
 			}
-			val3 = tick/1000;
+			if(!(flag&4))
+				val3 = tick/1000;
 			if(val3 < 1) val3 = 1;
 			tick = 1000;
 			break;
@@ -3655,8 +3678,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			}
 			break;
 		case SC_CONFUSION:
-			val2 = tick;
-			tick = 100;
+			if (!(flag&4))
+			{
+				val2 = tick;
+				tick = 100;
+			}
 			clif_emotion(bl,1);
 			if (sd) {
 				pc_stop_walking (sd, 0);
@@ -3680,13 +3706,15 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		/* option */
 		case SC_HIDING:		/* ハイディング */
 			calc_flag = 1;
-			if(bl->type == BL_PC) {
+			if(bl->type == BL_PC && !(flag&4)) {
 				val2 = tick / 1000;		/* 持?時間 */
 				tick = 1000;
 			}
 			break;
 		case SC_CHASEWALK:
 		case SC_CLOAKING:		/* クロ?キング */
+			if (type&4)
+				break;
 			if(bl->type == BL_PC) {
 				calc_flag = 1; // [Celest]
 				val2 = tick;
@@ -3697,6 +3725,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 		case SC_SIGHT:			/* サイト/ルアフ */
 		case SC_RUWACH:
+			if (flag&4)
+				break;
 			val2 = tick/250;
 			tick = 10;
 			break;
@@ -3716,6 +3746,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_READYCOUNTER:
 		case SC_READYTURN:
 		case SC_DODGE:
+			if (flag&4)
+				break;
 			tick = 600*1000;
 			break;
 // Taekwon kicks SCs, waiting to know how they should work [Dralnu]
@@ -3775,6 +3807,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 
 		case SC_TENSIONRELAX:	/* テンションリラックス */
+			if (flag&4)
+				break;
 			if(bl->type == BL_PC) {
 				tick = 10000;
 			} else return 0;
@@ -3796,7 +3830,7 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 			break;
 
 		case SC_BERSERK:		/* バ?サ?ク */
-			if(sd){
+			if(sd && !(flag&4)){
 				sd->status.hp = sd->status.max_hp * 3;
 				sd->status.sp = 0;
 				clif_updatestatus(sd,SP_HP);
@@ -3804,7 +3838,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 				sd->canregen_tick = gettick() + 300000;
 			}
 			*opt3 |= 128;
-			tick = 10000;
+			if (!(flag&4))
+				tick = 10000;
 			calc_flag = 1;
 			break;
 
@@ -3817,6 +3852,8 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 
 		case SC_GOSPEL:
 			if (val4 == BCT_SELF) {	// self effect
+				if (flag&4)
+					break;
 				val2 = tick;
 				tick = 1000;
 				status_change_clear_buffs(bl);
@@ -3865,12 +3902,14 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 		case SC_REGENERATION:
 			val1 = 2;
 		case SC_BATTLEORDERS:
-			tick = 60000; // 1 minute
+			if (!(flag&4))
+				tick = 60000; // 1 minute
 			calc_flag = 1;
 			break;
 		case SC_GUILDAURA:
 			calc_flag = 1;
-			tick = 1000;
+			if (!(flag&4))
+				tick = 1000;
 			break;
 
 		case SC_CARTBOOST:		/* カ?トブ?スト */
@@ -3971,7 +4010,11 @@ int status_change_start(struct block_list *bl,int type,int val1,int val2,int val
 	}
 
 	if (bl->type == BL_PC && (battle_config.display_hallucination || type != SC_HALLUCINATION))
+	{
+		if (flag&4)
+			clif_status_load(bl,type); //Sending to owner since they aren't in the map yet. [Skotlex]
 		clif_status_change(bl,type,1);	/* アイコン表示 */
+	}
 
 	/* optionの?更 */
 	switch(type){

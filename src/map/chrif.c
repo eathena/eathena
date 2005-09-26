@@ -1203,8 +1203,7 @@ int chrif_load_scdata(int fd)
 	for (i = 0; i < count; i++)
 	{
 		memcpy(&data, RFIFOP(fd,14 + i*sizeof(struct status_change_data)), sizeof(struct status_change_data));
-		status_change_start(&sd->bl, data.type, data.val1, data.val2, data.val3, data.val4, data.tick, 3);
-		//Flag 3 is 1&2, 1: Force status start, 2: Do not modify the tick value sent.
+		status_change_start(&sd->bl, data.type, data.val1, data.val2, data.val3, data.val4, data.tick, 7);
 	}
 	return 0;
 }

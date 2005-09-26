@@ -97,7 +97,6 @@ int log_branch(struct map_session_data *sd)
 int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, int amount, struct item *itm)
 {
 	FILE *logfp;
-	int obj_id;
 
 	if(log_config.enable_logs <= 0)
 		return 0;
@@ -109,6 +108,8 @@ int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, in
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
+		int obj_id;
+
 		//either PLAYER or MOB
 		if(mob_id) {
 			obj_id = mob_id;

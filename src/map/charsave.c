@@ -451,8 +451,7 @@ int charsave_load_scdata(int account_id, int char_id)
 		while ((sql_row = mysql_fetch_row(sql_res)))
 		{
 			status_change_start(&sd->bl, atoi(sql_row[0]), atoi(sql_row[2]), atoi(sql_row[3]),
-				atoi(sql_row[4]), atoi(sql_row[5]), atoi(sql_row[1]), 3);
-			//Flag 3 is 1&2, 1: Force status start, 2: Do not modify the tick value sent.
+				atoi(sql_row[4]), atoi(sql_row[5]), atoi(sql_row[1]), 7);
 		}
 	}
 

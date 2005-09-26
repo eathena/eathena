@@ -4997,6 +4997,28 @@ int clif_skill_produce_mix_list(struct map_session_data *sd,int trigger)
 }
 
 /*==========================================
+ * Sends a status change packet to the object only, used for loading status changes. [Skotlex]
+ *------------------------------------------
+ */
+int clif_status_load(struct block_list *bl,int type)
+{
+	int fd;
+	if (type >= SC_SENDMAX) //Status changes above this value are not displayed on the client. [Skotlex]
+		return 0;
+	
+	if (bl->type != BL_PC)
+		return 0;
+
+	fd = ((struct map_session_data*)bl)->fd;
+	
+	WFIFOW(fd,0)=0x0196;
+	WFIFOW(fd,2)=type;
+	WFIFOL(fd,4)=bl->id;
+	WFIFOB(fd,8)=1; //Status start
+	WFIFOSET(fd, packet_len_table[0x196]);
+	return 0;
+}
+/*==========================================
  * 状態異常アイコン/メッセージ表示
  *------------------------------------------
  */
