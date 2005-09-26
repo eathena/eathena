@@ -1916,14 +1916,16 @@ int skill_attack( int attack_type, struct block_list* src, struct block_list *ds
 			battle_damage(bl,src,rdamage,dmg.dmotion,0);
 	}
 
-	if ((skillid == MG_NAPALMBEAT || skillid == MG_SOULSTRIKE ||
-		skillid == MG_COLDBOLT || skillid == MG_FROSTDIVER ||		
-		skillid == MG_FIREBOLT || skillid == MG_FIREBALL ||
-		skillid == MG_LIGHTNINGBOLT) &&
+	if (!(flag & 1) &&
+		(
+//			skillid == MG_NAPALMBEAT || skillid == MG_SOULSTRIKE ||
+//			skillid == MG_FIREBALL || skillid == MG_FROSTDIVER ||		
+			skillid == MG_COLDBOLT || skillid == MG_FIREBOLT || skillid == MG_LIGHTNINGBOLT
+		) &&
 		(sc_data = status_get_sc_data(src)) &&
 		sc_data[SC_DOUBLECAST].timer != -1 &&
-		rand() % 100 < 40+10*skilllv) {
-		if (!(flag & 1))
+		rand() % 100 < 40+10*skilllv)
+	{
 			skill_castend_delay (src, bl, skillid, skilllv, tick + dmg.div_*dmg.amotion, flag|1);
 	}
 

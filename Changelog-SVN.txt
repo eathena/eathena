@@ -2,6 +2,8 @@ Date	Added
 =======
 
 09/26
+	* Updated Double Casting to only work on Firebolt, Coldbolt and
+	  Thunderbolt. [Skotlex]
 	* Fixed cloaking/hiding. [Skotlex]
 	* Updates to status_change_start, scdata loading now should display on the
 	  targetted player. [Skotlex]

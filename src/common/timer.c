@@ -203,11 +203,9 @@ int acquire_timer (void)
 	if (i >= timer_data_num && i >= timer_data_max) {
 		if (timer_data_max == 0) {
 			timer_data_max = 256;
-			//CALLOC(timer_data, struct TimerData, timer_data_max);
 			timer_data = (struct TimerData*) aCalloc( sizeof(struct TimerData) , timer_data_max);
 		} else {
 			timer_data_max += 256;
-			//REALLOC(timer_data, struct TimerData, timer_data_max);
 			timer_data = (struct TimerData *) aRealloc( timer_data, sizeof(struct TimerData) * timer_data_max);
 			memset(timer_data + (timer_data_max - 256), 0, sizeof(struct TimerData) * 256);
 		}
@@ -371,7 +369,6 @@ int do_timer(unsigned int tick)
 				timer_data[i].type = 0;
 				if (free_timer_list_pos >= free_timer_list_max) {
 					free_timer_list_max += 256;
-					//REALLOC(free_timer_list, int, free_timer_list_max);
 					free_timer_list = (int *) aRealloc(free_timer_list, sizeof(int) * free_timer_list_max);
 					memset(free_timer_list + (free_timer_list_max - 256), 0, 256 * sizeof(int));
 				}
