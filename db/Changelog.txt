@@ -35,6 +35,7 @@
 	--
 
 09/27
+	* Fixed Thanatos Mobs. Thanks to andz [Nexon]
 	* Added missing bonus +5 Int to Excalibur [Lupus]
 	* Fixed drop rate of Emperium: [Lupus]
 		Pharaoh 5.5% (there was a typo), Abyss Knight 0.3%, Zherlthsh 0.15%, Gryphon 0.25%
