@@ -130,6 +130,7 @@ int buildin_getnameditem(struct script_state *st);
 int buildin_grouprandomitem(struct script_state *st);
 int buildin_makeitem(struct script_state *st);
 int buildin_delitem(struct script_state *st);
+int buildin_delitem2(struct script_state *st);
 int buildin_viewpoint(struct script_state *st);
 int buildin_countitem(struct script_state *st);
 int buildin_checkweight(struct script_state *st);
@@ -389,6 +390,7 @@ struct {
 	{buildin_grouprandomitem,"groupranditem","i"},
 	{buildin_makeitem,"makeitem","iisii"},
 	{buildin_delitem,"delitem","ii"},
+	{buildin_delitem2,"delitem2","iiiiiiiii"},
 	{buildin_cutin,"cutin","si"},
 	{buildin_cutincard,"cutincard","i"},
 	{buildin_viewpoint,"viewpoint","iiiii"},
@@ -2904,7 +2906,6 @@ int buildin_delitem(struct script_state *st)
 		//eprintf("wrong item ID or amount<=0 : delitem %i,\n",nameid,amount);
 		return 0;
 	}
-	sd=script_rid2sd(st);
 	//1st pass
 	//here we won't delete items with CARDS, named items but we count them
 	for(i=0;i<MAX_INVENTORY;i++){
@@ -2953,6 +2954,72 @@ int buildin_delitem(struct script_state *st)
 			}
 		}
 
+	return 0;
+}
+
+/*==========================================
+* advanced version of delitem [modified by Mihilion]
+*------------------------------------------
+*/
+int buildin_delitem2(struct script_state *st)
+{
+	int nameid=0,amount,i=0;
+	int iden,ref,attr,c1,c2,c3,c4;
+	struct map_session_data *sd;
+	struct script_data *data;
+
+	sd = script_rid2sd(st);
+
+	data=&(st->stack->stack_data[st->start+2]);
+	get_val(st,data);
+	if( data->type==C_STR || data->type==C_CONSTSTR ){
+		const char *name=conv_str(st,data);
+		struct item_data *item_data = itemdb_searchname(name);
+		//nameid=512;
+		if( item_data )
+			nameid=item_data->nameid;
+	}else
+		nameid=conv_num(st,data);
+
+	amount=conv_num(st,& (st->stack->stack_data[st->start+3]));
+	iden=conv_num(st,& (st->stack->stack_data[st->start+4]));
+	ref=conv_num(st,& (st->stack->stack_data[st->start+5]));
+	attr=conv_num(st,& (st->stack->stack_data[st->start+6]));
+	c1=conv_num(st,& (st->stack->stack_data[st->start+7]));
+	c2=conv_num(st,& (st->stack->stack_data[st->start+8]));
+	c3=conv_num(st,& (st->stack->stack_data[st->start+9]));
+	c4=conv_num(st,& (st->stack->stack_data[st->start+10]));
+
+	if (nameid<500 || amount<=0 ) {//by Lupus. Don't run FOR if u got wrong item ID or amount<=0
+	 //eprintf("wrong item ID or amount<=0 : delitem %i,\n",nameid,amount);
+	 return 0;
+	}
+
+	for(i=0;i<MAX_INVENTORY;i++){
+	//we don't delete wrong item or equipped item
+		if(sd->status.inventory[i].nameid<=0 || sd->inventory_data[i] == NULL ||
+			sd->status.inventory[i].amount<=0 || sd->status.inventory[i].nameid!=nameid ||
+			sd->status.inventory[i].identify!=iden || sd->status.inventory[i].refine!=ref ||
+			sd->status.inventory[i].attribute!=attr || sd->status.inventory[i].card[0]!=c1 ||
+			sd->status.inventory[i].card[1]!=c2 || sd->status.inventory[i].card[2]!=c3 ||
+			sd->status.inventory[i].card[3]!=c4)
+			continue;
+	//1 egg uses 1 cell in the inventory. so it's ok to delete 1 pet / per cycle
+		if(sd->inventory_data[i]->type==7 && sd->status.inventory[i].card[0] == (short)0xff00 && search_petDB_index(nameid, PET_EGG) >= 0 ){
+			intif_delete_petdata( MakeDWord(sd->status.inventory[i].card[1], sd->status.inventory[i].card[2]) );
+			//clear egg flag. so it won't be put in IMPORTANT items (eggs look like item with 2 cards ^_^)
+			sd->status.inventory[i].card[1] = sd->status.inventory[i].card[0] = 0;
+			//now this egg'll be deleted as a common unimportant item
+		}
+
+		if(sd->status.inventory[i].amount>=amount){
+			pc_delitem(sd,i,amount,0);
+			return 0; //we deleted exact amount of items. now exit
+		} else {
+			amount-=sd->status.inventory[i].amount;
+			pc_delitem(sd,i,sd->status.inventory[i].amount,0);
+		}
+	}
 	return 0;
 }
 
