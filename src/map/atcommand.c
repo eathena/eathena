@@ -271,6 +271,7 @@ ACMD_FUNC(size); //[Valaris]
 ACMD_FUNC(showexp); //moved from charcommand [Kevin]
 ACMD_FUNC(showdelay); //moved from charcommand [Kevin]
 ACMD_FUNC(autotrade);// durf
+ACMD_FUNC(changeleader);// [Skotlex]
 ACMD_FUNC(changegm);// durf
 
 /*==========================================
@@ -569,6 +570,7 @@ static AtCommandInfo atcommand_info[] = {
 	{ AtCommand_ShowDelay,					"@showdelay",					0, atcommand_showdelay},
 	{ AtCommand_AutoTrade,			"@autotrade",		10,	atcommand_autotrade }, // durf
 	{ AtCommand_ChangeGM,			"@changegm",		10,	atcommand_changegm }, // durf
+	{ AtCommand_ChangeLeader,			"@changeleader",		10,	atcommand_changeleader }, // durf
 
 
 // add new commands before this line
@@ -7313,6 +7315,68 @@ atcommand_changegm(
 	}
 
 	guild_gm_change(sd->status.guild_id, pl_sd);
+	return 0;  
+}   
+
+/*==========================================
+ *Changes the leader of a party.
+ *------------------------------------------
+ *by Skotlex
+ */
+int
+atcommand_changeleader(
+	const int fd, struct map_session_data* sd,
+	const char* command, const char* message)
+{
+	struct party *p;
+	struct map_session_data *pl_sd;
+	int mi, pl_mi;
+	nullpo_retr(-1, sd);
+
+	if (sd->status.party_id == 0 || (p = party_search(sd->status.party_id)) == NULL)
+	{
+		clif_displaymessage(fd, "You need to be a party's leader to use this command.");
+		return -1;
+	}
+	
+	for (mi = 0; mi < MAX_PARTY && p->member[mi].sd != sd; mi++);
+	
+	if (mi == MAX_PARTY)
+		return -1; //Shouldn't happen
+
+	if (!p->member[mi].leader)
+	{
+		clif_displaymessage(fd, "You need to be the party's leader to use this command.");
+		return -1;
+	}
+	
+	if (strlen(message)==0)
+	{
+		clif_displaymessage(fd, "Command usage: @changeleader <party member name>");
+		return -1;
+	}
+	
+	if((pl_sd=map_nick2sd((char *) message)) == NULL || pl_sd->status.party_id != sd->status.party_id) {
+		clif_displaymessage(fd, "Target character must be online and be in your party.");
+		return -1;
+	}
+
+	for (pl_mi = 0; pl_mi < MAX_PARTY && p->member[pl_mi].sd != pl_sd; pl_mi++);
+	
+	if (pl_mi == MAX_PARTY)
+		return -1; //Shouldn't happen
+
+	//Change leadership.
+	p->member[mi].leader = 0;
+	if (p->member[mi].sd->fd)
+		clif_displaymessage(p->member[mi].sd->fd, "Leadership transferred.");
+	p->member[pl_mi].leader = 1;
+	if (p->member[pl_mi].sd->fd)
+		clif_displaymessage(p->member[pl_mi].sd->fd, "You've become the party leader.");
+
+	//Update info.
+	clif_party_info(p,-1);
+	
 	return 0;  
 }   
 

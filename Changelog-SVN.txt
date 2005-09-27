@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/27
+	* Added atcommand @changeleader, transfers the leadership of a party to
+	  someone else. [Skotlex]
+	  (defaults as a GM-level 10 command, not quite yet tested)
 	* Added delitem2 script command with script sample by Mihilion [Lupus]
 	* Removed the check that prevented chars from logging out during status
 	  changes, as the current system should save and restore these correctly.

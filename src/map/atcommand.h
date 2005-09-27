@@ -248,6 +248,7 @@ enum AtCommandType {
 	AtCommand_ShowExp,
 	AtCommand_AutoTrade,//durf
 	AtCommand_ChangeGM,//durf
+	AtCommand_ChangeLeader,
 	// end <- Ahem, guys, don't place AtCommands after AtCommand_Unknown! [Skotlex]
 	AtCommand_Unknown,
 	AtCommand_MAX
