@@ -2,6 +2,7 @@ Date	Added
 =======
 
 09/26
+	* Fixed MAX GUILD capasity in mmo.h to allow correct +6 Guild Extension [Lupus]
 	* Changed back the TIMER_MIN_INTERVAL to 50. Who changed it back to 25?
 	  (note to self: make this a setting in inter_athena.conf) [Skotlex]
 	* Guild Extension now adds 6 per level. [Skotlex]
