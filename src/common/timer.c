@@ -43,6 +43,8 @@ static int timer_heap_num = 0;
 static int timer_heap_max = 0;
 static int* timer_heap = NULL;
 
+static int fix_heap_flag =0; //Flag for fixing the stack only once per tick loop. May not be the best way, but it's all I can think of currently :X [Skotlex]
+
 // for debug
 struct timer_func_list {
 	int (*func)(int,unsigned int,int,int);
@@ -342,8 +344,11 @@ int do_timer(unsigned int tick)
 {
 	int i, nextmin = 1000;
 
-	if (tick < 0x010000)
+	if (tick < 0x010000 && fix_heap_flag)
+	{
 		fix_timer_heap(tick);
+		fix_heap_flag = 0;
+	}
 
 	while(timer_heap_num) {
 		i = timer_heap[timer_heap_num - 1]; // next shorter element
@@ -390,6 +395,8 @@ int do_timer(unsigned int tick)
 	if (nextmin < TIMER_MIN_INTERVAL)
 		nextmin = TIMER_MIN_INTERVAL;
 
+	if ((unsigned int)(tick + nextmin) < tick) //Tick will loop, rearrange the heap on the next iteration.
+		fix_heap_flag = 1;
 	return nextmin;
 }
 
