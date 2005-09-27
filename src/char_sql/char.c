@@ -987,6 +987,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 		if (!sql_row)
 		{	//Just how does this happens? [Skotlex]
 			ShowError("Requested non-existant character id: %d!\n", char_id);
+			numdb_erase(char_db_,char_id);
 			return 0;	
 		}
 
@@ -1171,52 +1172,6 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus *p, int online){
 		strcat (t_msg, " reg_values");
 	}
 	p->global_reg_num=i;
-
-
-         /*
-	//Friends List Load
-
-	for(i=0;i<20;i++) {
-		p->friend_id[i] = 0;
-		p->friend_name[i][0] = '\0';
-	}
-
-	tmp_p += sprintf(tmp_p, "SELECT `id`, `account_id`");
-
-	for(i=0;i<20;i++)
-		tmp_p += sprintf(tmp_p, ", `friend_id%d`, `name%d`", i, i);
-
-	tmp_p += sprintf(tmp_p, " FROM `%s` WHERE `account_id`='%d' ", friend_db, char_id); // TBR
-
-	if (mysql_query(&mysql_handle, tmp_sql)) {
-		printf("DB server Error (select `friends list`)- %s\n", mysql_error(&mysql_handle));
-	}
-
-	sql_res = mysql_store_result(&mysql_handle);
-	sql_row = mysql_fetch_row(sql_res);
-
-	i=mysql_num_rows(sql_res);
-
-	// debugg
-	//printf("mysql: %d\n",i);
-
-	// Create an entry for the character if it doesnt already have one
-	if(!i) {
-		insert_friends(char_id);
-	} else {
-		if (sql_res) {
-			for(i=0;i<20;i++) {
-				p->friend_id[i] = atoi(sql_row[i*2 +2]);
-				sprintf(p->friend_name[i], "%s", sql_row[i*2 +3]);
-			}
-			mysql_free_result(sql_res);
-		}
-	}
-
-	printf("friends ");
-         */
-	//-- end friends list load --
-
 
 	//Shamelessly stolen from its_sparky (ie: thanks) and then assimilated by [Skotlex]
 	//Friend list 
