@@ -34,6 +34,9 @@
 
 	--
 
+09/27
+	* Fixed drop rate of Emperium: [Lupus]
+		Pharaoh 5.5% (there was a typo), Abyss Knight 0.3%, Zherlthsh 0.15%, Gryphon 0.25%
 09/26
 	* Restored sell prices of Feather&Sticky Webfoot, thx to Dr.Evil for note [Lupus]
 	* Updated some Lighthalzen mobs drops and skills, thanks to MasterOfMuppets

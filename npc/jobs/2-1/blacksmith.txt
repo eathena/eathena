@@ -7,7 +7,7 @@
 //= Optimized and further edited by kobra_k88.
 //= Further bugfixed and tested by Lupus
 //===== Current Version: =====================================
-//= 1.6
+//= 1.7
 //===== Compatible With: =====================================
 //= eAthena  1.0+
 //===== Description: =========================================
@@ -22,6 +22,7 @@
 //= 1.6 Added a func which prevent advanced classes passing
 //= 2nd Job Quests again. It also guides adv classes where
 //= to go. [Lupus]
+//= 1.7 item quantity/ids typos fix
 ==============================================================
 
 
@@ -641,7 +642,7 @@ L_CheckTest2:
 			next;
 			goto R_item1;
 	L_2b:
-		if(countitem(1001) < 2 || countitem(932) < 1 || countitem(912) < 1 || countitem(1219) < 1) goto sL_NtEnuf2;
+		if(countitem(1001) < 2 || countitem(932) < 2 || countitem(912) < 1 || countitem(1219) < 1) goto sL_NtEnuf2;
 		mes "[Geshupenschte]";
 		mes "Didn't I ask for 3 Star Dusts?";
 		next;
@@ -649,7 +650,7 @@ L_CheckTest2:
 		mes "Oh yea, 2, that's right.";
 		mes "Okay, gimme a sec.";
 		delitem 1001,2;
-		delitem 932,1;
+		delitem 932,2;
 		delitem 912,1;
 		delitem 1219,1;
 		callsub sF_Make;
@@ -668,7 +669,6 @@ L_CheckTest2:
 		mes "[Geshupenschte]";
 		mes "Well, go to Morroc and give it the Wickebine and bring the receipt back.";
 		close;
-		next;
 
 		sL_NtEnuf2:
 			mes "[Geshupenschte]";
@@ -816,7 +816,7 @@ L_Test3:
 		mes "Baisulitst should be at 11 o'clock of Geffen ";
 		close;
 	L_3b:
-		if (countitem(1210) < 1) goto L_LostItem;
+		if (countitem(1219) < 1) goto L_LostItem;
 		mes "Take it to Wickebine near the Sword Mace dealer in Morroc.";
 		close;
 	L_3c:

@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Darkchild
 //===== Current Version: ===================================== 
-//= 1.7
+//= 1.8
 //===== Compatible With: ===================================== 
 //= Any eAthena
 //===== Description: ========================================= 
@@ -17,13 +17,14 @@
 //= 1.6 Added a fix which prevent High Novices passing
 //= this Job Quests again. [Lupus]
 //= 1.7 Fixed Baby Class Support. [Lupus]
+//= 1.8 Now a Baby can become a Super Baby [Lupus]
 //============================================================ 
 
 
 // -- Jobchanger --
 aldeba_in.gat,223,167,3	script	Tozel	709,{
 	if(SUPNOV_Q == 1) goto L_Start2;
-	if(BaseJob == 23) goto L_Twice;
+	if(BaseJob == Job_SuperNovice) goto L_Twice;
 	if(BaseJob != 0 || Upper==1) goto L_Otherjob;
 	mes "[Tozel]";
 	mes "Hello, Novice!";
@@ -94,6 +95,8 @@ L_Well:
 L_Start2:
 	if(countitem(938) < 30) goto L_ItemError;
 	if(countitem(907) < 30) goto L_ItemError;
+	delitem 938,30;
+	delitem 907,30;
 	mes "[Tozel]";
 	mes "Well, your performance seems to be uh...common, but that's good enough for us!";
 	mes "Welcome to the Novice Guild!";
@@ -106,9 +109,8 @@ L_Start2:
 	mes "- Tozel's uncommon demeanor catches you off guard, -";
 	mes "- leaving you speechless! -";
 	next;
-	callfunc "Job_Change",Job_SuperNovice;
-	delitem 938,30;
-	delitem 907,30;
+	if (Upper==0) jobchange Job_SuperNovice;
+	if (Upper==2) jobchange Job_Super_Baby;
 	getitem 2339,1;
 	callfunc "F_ClearJobVar";
 	mes "[Tozel]";
@@ -178,7 +180,7 @@ L_Otherjob:
 
 // -- Totaly Useless :) --
 aldeba_in.gat,216,169,5	script	Serei	86,{
-	if(BaseJob == 23) goto L_Supernovice;
+	if(BaseJob == Job_SuperNovice) goto L_Supernovice;
 	if(BaseJob != 0) goto L_Otherjob;
 	mes "[Serei]";
 	mes "You're pretty common.";
@@ -215,7 +217,7 @@ L_Otherjob:
 
 // -- Car Rental --
 aldebaran.gat,54,238,5	script	Kafra	117,{
-	if(BaseJob != 23) goto L_Otherjob;
+	if(BaseJob != Job_SuperNovice) goto L_Otherjob;
 	if(checkcart(0) == 1) goto L_GotCart;
 	mes "[Kafra]";
 	mes "Oh, a Super Novice!";

@@ -29,7 +29,11 @@ TODO:
 
 Date		Added
 ======
-09/26	
+09/28
+	* Fixed Super Novice quest. Now BABY can be a SUPER BABY. Finally 8) [Lupus]
+	* Updated some warps (Payon / Guilds) thanks to Yor
+	* Fixed Blacksmith Job Quest items typos, thanks to Yor
+09/26
 	* Added official Ayothaya Town script by MasterOfMuppets [Lupus]
 	- Fixed Ayothaya warp scripts
 	- Updated BBS

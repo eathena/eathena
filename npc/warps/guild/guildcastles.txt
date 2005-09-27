@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Athena (1.0)
 //===== Current Version: =====================================
-//= 2.0
+//= 2.1
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Description: =========================================
@@ -13,6 +13,7 @@
 //= Split off npc_warp.txt
 //= fixed aldg504-1 warp [Lupus]
 //= 2.0 Added Novice Guilds warps, optimized aldg408r warp [Lupus]
+//= 2.1 Fixed some warps positions [Yor]
 //============================================================
 
 
@@ -57,8 +58,8 @@ aldeg_cas02.gat,50,185,0	warp	aldg202	1,1,aldeg_cas02.gat,192,192
 aldeg_cas02.gat,192,196,0	warp	aldg202-1	1,1,aldeg_cas02.gat,50,180
 aldeg_cas02.gat,33,174,0	warp	aldg203	1,1,aldeg_cas02.gat,126,61
 aldeg_cas02.gat,130,61,0	warp	aldg203-1	1,1,aldeg_cas02.gat,33,179
-aldeg_cas02.gat,22,194,0	warp	aldg204	1,1,aldeg_cas02.gat,88,13
-aldeg_cas02.gat,88,9,0	warp	aldg204-1	1,1,aldeg_cas02.gat,22,190
+aldeg_cas02.gat,22,193,0	warp	aldg204	1,1,aldeg_cas02.gat,88,11
+aldeg_cas02.gat,88,8,0	warp	aldg204-1	1,1,aldeg_cas02.gat,22,190
 aldeg_cas02.gat,121,88,0	warp	aldg205	1,1,aldeg_cas02.gat,177,135
 aldeg_cas02.gat,177,131,0	warp	aldg205-1	1,1,aldeg_cas02.gat,121,84
 aldeg_cas02.gat,206,196,0	warp	aldg206	1,1,aldeg_cas02.gat,197,13
@@ -85,8 +86,8 @@ aldeg_cas04.gat,185,87,0	warp	aldg403	1,1,aldeg_cas04.gat,111,210
 aldeg_cas04.gat,108,210,0	warp	aldg403-1	1,1,aldeg_cas04.gat,186,92
 aldeg_cas04.gat,171,100,0	warp	aldg404	1,1,aldeg_cas04.gat,152,210
 aldeg_cas04.gat,156,210,0	warp	aldg404-1	1,1,aldeg_cas04.gat,169,97
-aldeg_cas04.gat,196,86,0	warp	aldg405	1,1,aldeg_cas04.gat,49,57
-aldeg_cas04.gat,49,53,0	warp	aldg405-1	1,1,aldeg_cas04.gat,196,82
+aldeg_cas04.gat,196,85,0	warp	aldg405	1,1,aldeg_cas04.gat,49,54
+aldeg_cas04.gat,49,52,0	warp	aldg405-1	8,1,aldeg_cas04.gat,196,82
 aldeg_cas04.gat,21,123,0	warp	aldg406	1,1,aldeg_cas04.gat,125,168
 aldeg_cas04.gat,121,168,0	warp	aldg406-1	1,1,aldeg_cas04.gat,25,123
 aldeg_cas04.gat,132,209,0	warp	aldg407	1,1,aldeg_cas04.gat,14,196
@@ -247,12 +248,12 @@ pay_gld.gat,321,293,0	warp	payg03	1,1,payg_cas03.gat,226,26
 payg_cas03.gat,226,22,0	warp	payg03-1	1,1,pay_gld.gat,317,293
 pay_gld.gat,140,156,0	warp	payg04	1,1,payg_cas04.gat,252,271
 payg_cas04.gat,252,275,0	warp	payg04-1	1,1,pay_gld.gat,140,160
-pay_gld.gat,204,270,0	warp	payg05	1,1,payg_cas05.gat,62,227
-payg_cas05.gat,62,223,0	warp	payg05-1	1,1,pay_gld.gat,198,264
+pay_gld.gat,204,269,0	warp	payg05	3,1,payg_cas05.gat,62,225
+payg_cas05.gat,62,222,0	warp	payg05-1	5,1,pay_gld.gat,204,266
 
 //Payon Guild Castles
-payg_cas01.gat,201,126,0	warp	payg101	1,1,payg_cas01.gat,102,21
-payg_cas01.gat,102,17,0	warp	payg101-1	1,1,payg_cas01.gat,201,121
+payg_cas01.gat,201,125,0	warp	payg101	1,1,payg_cas01.gat,102,19
+payg_cas01.gat,102,16,0	warp	payg101-1	3,1,payg_cas01.gat,201,122
 payg_cas01.gat,222,130,0	warp	payg102	1,1,payg_cas01.gat,130,43
 payg_cas01.gat,134,43,0	warp	payg102-1	1,1,payg_cas01.gat,226,130
 payg_cas01.gat,218,112,0	warp	payg103	1,1,payg_cas01.gat,230,94
@@ -272,8 +273,8 @@ payg_cas02.gat,215,31,0	warp	payg203	1,1,payg_cas02.gat,65,288
 payg_cas02.gat,65,292,0	warp	payg203-1	1,1,payg_cas02.gat,215,35
 payg_cas02.gat,47,223,0	warp	payg204	1,1,payg_cas02.gat,280,287
 payg_cas02.gat,280,291,0	warp	payg204-1	1,1,payg_cas02.gat,47,227
-payg_cas02.gat,254,239,0	warp	payg205	1,1,payg_cas02.gat,13,38
-payg_cas02.gat,13,42,0	warp	payg205-1	1,1,payg_cas02.gat,254,243
+payg_cas02.gat,254,240,0	warp	payg205	3,1,payg_cas02.gat,13,40
+payg_cas02.gat,13,43,0	warp	payg205-1	7,1,payg_cas02.gat,254,243
 payg_cas03.gat,255,76,0	warp	payg301	1,1,payg_cas03.gat,24,19
 payg_cas03.gat,20,19,0	warp	payg301-1	1,1,payg_cas03.gat,255,72
 payg_cas03.gat,269,79,0	warp	payg302	1,1,payg_cas03.gat,53,19
@@ -282,14 +283,14 @@ payg_cas03.gat,255,64,0	warp	payg303	1,1,payg_cas03.gat,245,37
 payg_cas03.gat,245,41,0	warp	payg303-1	1,1,payg_cas03.gat,255,68
 payg_cas03.gat,262,71,0	warp	payg304	1,1,payg_cas03.gat,39,9
 payg_cas03.gat,39,5,0	warp	payg304-1	1,1,payg_cas03.gat,263,66
-payg_cas03.gat,272,68,0	warp	payg305	1,1,payg_cas03.gat,261,38
-payg_cas03.gat,261,34,0	warp	payg305-1	1,1,payg_cas03.gat,270,66
+payg_cas03.gat,271,68,0	warp	payg305	0,1,payg_cas03.gat,261,37
+payg_cas03.gat,261,34,0	warp	payg305-1	1,1,payg_cas03.gat,269,68
 payg_cas03.gat,39,84,0	warp	payg306	1,1,payg_cas03.gat,29,249
 payg_cas03.gat,29,245,0	warp	payg306-1	1,1,payg_cas03.gat,39,80
 payg_cas03.gat,29,269,0	warp	payg307	1,1,payg_cas03.gat,269,287
 payg_cas03.gat,269,290,0	warp	payg307-1	1,1,payg_cas03.gat,29,273
-payg_cas04.gat,260,212,0	warp	payg401	1,1,payg_cas04.gat,70,240
-payg_cas04.gat,74,240,0	warp	payg401-1	1,1,payg_cas04.gat,256,212
+payg_cas04.gat,259,212,0	warp	payg401	1,1,payg_cas04.gat,72,240
+payg_cas04.gat,75,240,0	warp	payg401-1	1,5,payg_cas04.gat,256,212
 payg_cas04.gat,232,189,0	warp	payg402	1,1,payg_cas04.gat,74,261
 payg_cas04.gat,78,261,0	warp	payg402-1	1,1,payg_cas04.gat,236,189
 payg_cas04.gat,229,208,0	warp	payg403	1,1,payg_cas04.gat,70,282
@@ -302,8 +303,8 @@ payg_cas05.gat,23,283,0	warp	payg501	1,1,payg_cas05.gat,237,282
 payg_cas05.gat,237,286,0	warp	payg501-1	1,1,payg_cas05.gat,19,282
 payg_cas05.gat,56,255,0	warp	payg502	1,1,payg_cas05.gat,223,256
 payg_cas05.gat,219,256,0	warp	payg502-1	1,1,payg_cas05.gat,52,255
-payg_cas05.gat,39,264,0	warp	payg503	1,1,payg_cas05.gat,237,231
-payg_cas05.gat,237,227,0	warp	payg503-1	1,1,payg_cas05.gat,40,260
+payg_cas05.gat,40,263,0	warp	payg503	3,1,payg_cas05.gat,237,229
+payg_cas05.gat,237,226,0	warp	payg503-1	5,1,payg_cas05.gat,40,260
 payg_cas05.gat,283,256,0	warp	payg504	1,1,payg_cas05.gat,286,43
 payg_cas05.gat,290,43,0	warp	payg504-1	1,1,payg_cas05.gat,287,256
 payg_cas05.gat,242,41,0	warp	payg505	1,1,payg_cas05.gat,18,18
@@ -442,8 +443,8 @@ nguild_gef.gat,90,51,0	warp	ngefg102-1	1,1,nguild_gef.gat,54,185
 n_castle.gat,18,181,0	warp	npayg01	1,1,nguild_pay.gat,214,48
 nguild_pay.gat,214,44,0	warp	npayg01-1	1,1,n_castle.gat,18,178
 
-nguild_pay.gat,201,126,0	warp	npayg101	1,1,nguild_pay.gat,102,21
-nguild_pay.gat,102,17,0	warp	npayg101-1	1,1,nguild_pay.gat,201,121
+nguild_pay.gat,201,125,0	warp	npayg101	1,1,nguild_pay.gat,102,19
+nguild_pay.gat,102,16,0	warp	npayg101-1	3,1,nguild_pay.gat,201,122
 nguild_pay.gat,222,130,0	warp	npayg102	1,1,nguild_pay.gat,130,43
 nguild_pay.gat,134,43,0	warp	npayg102-1	1,1,nguild_pay.gat,226,130
 nguild_pay.gat,218,112,0	warp	npayg103	1,1,nguild_pay.gat,230,94
