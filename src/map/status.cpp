@@ -1459,7 +1459,6 @@ int status_calc_pc(struct map_session_data& sd, int first)
 		sd.speed += 450;
 
 	if(sd.sc_data[SC_TRUESIGHT].timer!=-1) //トゥル?サイト
-		//sd.critical += sd.critical*(sd.sc_data[SC_TRUESIGHT].val1.num)/100;
 		sd.critical += sd.sc_data[SC_TRUESIGHT].val1.num; // not +10% CRIT but +CRIT!! [Lupus] u can see it in any RO calc stats
 
 	if(sd.sc_data[SC_BERSERK].timer!=-1) {	//All Def/MDef reduced to 0 while in Berserk [DracoRPG]
@@ -2388,7 +2387,7 @@ int status_get_critical(struct block_list *bl)
 			if (sc_data[SC_EXPLOSIONSPIRITS].timer != -1)
 				critical += sc_data[SC_EXPLOSIONSPIRITS].val2.num;
 			if (sc_data[SC_TRUESIGHT].timer != -1) //トゥルーサイト
-				critical += critical*sc_data[SC_TRUESIGHT].val1.num / 100;
+				critical += sc_data[SC_TRUESIGHT].val1.num;
 		}
 	}
 	if (critical < 1) critical = 1;
@@ -4567,8 +4566,8 @@ int status_change_end( struct block_list* bl, int type, int tid )
 				}
 				break;
 			case SC_RUN:
-				if (sc_data[SC_RUN].val1.num >= 7 && !sc_data[SC_RUN].val2.num && (bl->type != BL_PC || ((struct map_session_data *)bl)->status.weapon == 0))
-					status_change_start(bl, SC_INCSTR,10,0,0,0,skill_get_time2(TK_RUN,sc_data[SC_RUN].val1.num),0);
+				if (sc_data[type].val1.num >= 7 && !sc_data[type].val2.num && (bl->type != BL_PC || ((struct map_session_data *)bl)->status.weapon == 0))
+					status_change_start(bl, SC_INCSTR,10,0,0,0,skill_get_time2(TK_RUN,sc_data[type].val1.num),0);
 				break;
 
 		/* option1 */
@@ -4818,9 +4817,12 @@ int status_change_timer(int tid, unsigned long tick, int id, intptr data)
 		{
 			int range = 5;
 			if ( type == SC_SIGHT ) range = 7;
-			map_foreachinarea( status_change_timer_sub,
-				bl->m, ((int)bl->x)-range, ((int)bl->y)-range, ((int)bl->x)+range,((int)bl->y)+range,0,
-				bl,type,tick);
+
+			CMap::foreachinarea( CStatusChangetimer(*bl,type,tick),
+				bl->m, ((int)bl->x)-range, ((int)bl->y)-range, ((int)bl->x)+range,((int)bl->y)+range,0);
+//			map_foreachinarea( status_change_timer_sub,
+//				bl->m, ((int)bl->x)-range, ((int)bl->y)-range, ((int)bl->x)+range,((int)bl->y)+range,0,
+//				bl,type,tick);
 
 			if( (--sc_data[type].val2.num)>0 ){
 				/* タイマ?再設定 */
@@ -4966,7 +4968,7 @@ int status_change_timer(int tid, unsigned long tick, int id, intptr data)
 		sc_data[type].timer=add_timer( tick+1000*600,status_change_timer, bl->id, data );
 		return 0;
 	case SC_RUN:
-		sc_data[SC_RUN].val2 = 1; // Once the first second is spent, no more STR bonus when stopping
+		sc_data[type].val2 = 1; // Once the first second is spent, no more STR bonus when stopping
 		sc_data[type].timer=add_timer( 1000*600+tick,status_change_timer, bl->id, data );
 		return 0;
 	case SC_DANCING: //ダンススキルの時間SP消費
@@ -5277,6 +5279,7 @@ int status_change_timer(int tid, unsigned long tick, int id, intptr data)
  * ステータス異常タイマー範囲処理
  *------------------------------------------
  */
+ /*
 int status_change_timer_sub(struct block_list &bl, va_list &ap )
 {
 	struct block_list *src;
@@ -5293,14 +5296,14 @@ int status_change_timer_sub(struct block_list &bl, va_list &ap )
 		return 0;
 
 	switch( type ){
-	case SC_SIGHT:	/* サイト */
+	case SC_SIGHT:	// サイト 
 	case SC_CONCENTRATE:
 		if( (*status_get_option(&bl))&6 ){
 			status_change_end( &bl, SC_HIDING, -1);
 			status_change_end( &bl, SC_CLOAKING, -1);
 		}
 		break;
-	case SC_RUWACH:	/* ルアフ */
+	case SC_RUWACH:	// ルアフ 
 		if( (*status_get_option(&bl))&6 ){
 			struct status_change *sc_data = status_get_sc_data(&bl);	// check whether the target is hiding/cloaking [celest]
 			if (sc_data && (sc_data[SC_HIDING].timer != -1 ||	// if the target is using a special hiding, i.e not using normal hiding/cloaking, don't bother
@@ -5312,6 +5315,38 @@ int status_change_timer_sub(struct block_list &bl, va_list &ap )
 			}
 		}
 		break;
+	}
+	return 0;
+}
+*/
+int CStatusChangetimer::process(struct block_list& bl) const
+{
+	if(bl.type==BL_PC || bl.type==BL_MOB)
+	{
+		switch( type ){
+		case SC_SIGHT:	// サイト 
+		case SC_CONCENTRATE:
+			if( (*status_get_option(&bl))&6 ){
+				status_change_end( &bl, SC_HIDING, -1);
+				status_change_end( &bl, SC_CLOAKING, -1);
+			}
+			break;
+		case SC_RUWACH:	// ルアフ 
+			if( (*status_get_option(&bl))&6 )
+			{	
+				struct status_change *sc_data = status_get_sc_data(&bl);	
+				// check whether the target is hiding/cloaking [celest]
+				// if the target is using a special hiding, i.e not using normal hiding/cloaking, don't bother
+				if (sc_data && (sc_data[SC_HIDING].timer != -1 ||	
+					sc_data[SC_CLOAKING].timer != -1)) {
+					status_change_end( &bl, SC_HIDING, -1);
+					status_change_end( &bl, SC_CLOAKING, -1);
+					if(battle_check_target( &src, &bl, BCT_ENEMY ) > 0)
+						skill_attack(BF_MAGIC,&src,&src,&bl,AL_RUWACH,1,tick,0);
+				}
+			}
+			break;
+		}
 	}
 	return 0;
 }

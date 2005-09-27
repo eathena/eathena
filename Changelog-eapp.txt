@@ -1,4 +1,17 @@
 Date	Added
+09/27	* replaced varargs with callback objects providing type safe argument passing
+	  additionally it is a bit faster since it does not copy the passed variables
+	  though, readability might be strange for habitual C programmers
+	* started class wrapping for general map management and the database subsystem
+	  currently only covering the map_foreach...-functions and the db_foreach
+	* changed the database to also make use of the doubled linked list
+	  since the nodes contained the necessary items, just the table anchors were not implemented
+	  the list allows a very simplified db_foreach and deletion safe iterator support
+	  the iterator might be a more intuitive replacement for the db_foreach
+	* rewrote the current database into a class by wrapping up the functions
+	  currently not in use, still need to check if replacing the current red-black tree 
+	  with another binary tree (ie. AVL) or with an order-N balanced tree is favourable
+	  (Hinoko, you could check if the (N)BTree from Caldon would fit while I'm on travel) [Shinomori]
 09/22
 	* try to temporarily overcome the vararg issue on the amd64
 	  appearently the changed structures and storing on the amd64 

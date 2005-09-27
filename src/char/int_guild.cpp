@@ -28,7 +28,6 @@ int guild_check_empty(struct guild *g);
 int guild_calcinfo(struct guild *g);
 int mapif_guild_basicinfochanged(uint32 guild_id, int type, uint32 data);
 int mapif_guild_info(int fd, struct guild *g);
-int guild_break_sub(void *key, void *data, va_list &ap);
 
 // ギルドデータの文字列への変換
 int inter_guild_tostr(char *str, struct guild *g)
@@ -477,13 +476,13 @@ int inter_guild_init()
 	return 0;
 }
 
-int castle_db_final (void *k, void *data, va_list &ap)
+int castle_db_final (void *k, void *data)
 {
 	struct guild_castle *gc = (guild_castle *)data;
 	if (gc) aFree(gc);
 	return 0;
 }
-int guild_db_final (void *k, void *data, va_list &ap)
+int guild_db_final (void *k, void *data)
 {
 	struct guild *g = (struct guild *)data;
 	if (g) aFree(g);
@@ -512,6 +511,7 @@ struct guild *inter_guild_search(uint32 guild_id)
 }
 
 // ギルドデータのセーブ用
+/*
 int inter_guild_save_sub(void *key,void *data,va_list &ap)
 {
 	char line[16384];
@@ -523,8 +523,9 @@ int inter_guild_save_sub(void *key,void *data,va_list &ap)
 
 	return 0;
 }
-
+*/
 // ギルド城データのセーブ用
+/*
 int inter_castle_save_sub(void *key, void *data, va_list &ap)
 {
 	char line[16384];
@@ -536,7 +537,35 @@ int inter_castle_save_sub(void *key, void *data, va_list &ap)
 
 	return 0;
 }
-
+*/
+class CDBguild_save : public CDBProcessor
+{
+	FILE *fp;
+	mutable char line[65536];
+public:
+	CDBguild_save(FILE *f) : fp(f)			{}
+	virtual ~CDBguild_save()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		inter_guild_tostr(line,(struct guild *)data);
+		fprintf(fp,"%s" RETCODE,line);
+		return 0;
+	}
+};
+class CDBcastle_save : public CDBProcessor
+{
+	FILE *fp;
+	mutable char line[65536];
+public:
+	CDBcastle_save(FILE *f) : fp(f)			{}
+	virtual ~CDBcastle_save()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		inter_guildcastle_tostr(line, (struct guild_castle *)data);
+		fprintf(fp, "%s" RETCODE, line);
+		return 0;
+	}
+};
 // ギルドデータのセーブ
 int inter_guild_save()
 {
@@ -547,7 +576,8 @@ int inter_guild_save()
 		ShowMessage("int_guild: cant write [%s] !!! data is lost !!!\n", guild_txt);
 		return 1;
 	}
-	numdb_foreach(guild_db, inter_guild_save_sub, fp);
+	numdb_foreach(guild_db, CDBguild_save(fp) );
+//	numdb_foreach(guild_db, inter_guild_save_sub, fp);
 //	fprintf(fp, "%d\t%%newid%%\n", guild_newid);
 	lock_fclose(fp, guild_txt, &lock);
 //	ShowMessage("int_guild: %s saved.\n", guild_txt);
@@ -556,13 +586,15 @@ int inter_guild_save()
 		ShowMessage("int_guild: cant write [%s] !!! data is lost !!!\n", castle_txt);
 		return 1;
 	}
-	numdb_foreach(castle_db, inter_castle_save_sub, fp);
+	numdb_foreach(castle_db, CDBcastle_save(fp) );
+//	numdb_foreach(castle_db, inter_castle_save_sub, fp);
 	lock_fclose(fp, castle_txt, &lock);
 
 	return 0;
 }
 
 // ギルド名検索用
+/*
 int search_guildname_sub(void *key, void *data, va_list &ap)
 {
 	struct guild *g = (struct guild *)data, **dst;
@@ -574,15 +606,72 @@ int search_guildname_sub(void *key, void *data, va_list &ap)
 		*dst = g;
 	return 0;
 }
+*/
+class CDBsearch_guildname : public CDBProcessor
+{
+	const char *str;
+	struct guild *&dst;
+public:
+	CDBsearch_guildname(const char *s, struct guild *&p) : 	str(s), dst(p)	{}
+	virtual ~CDBsearch_guildname()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct guild *g = (struct guild *)data;
+		if(g && g->name && strcasecmp(g->name, str) == 0)
+		{
+			dst = g;
+			return false;
+		}
+		return true;
+	}
+};
 
 // ギルド名検索
 struct guild* search_guildname(char *str)
 {
 	struct guild *g = NULL;
-	numdb_foreach(guild_db, search_guildname_sub, str, &g);
+	if(str)
+		numdb_foreach(guild_db, CDBsearch_guildname(str, g) );
+//	numdb_foreach(guild_db, search_guildname_sub, str, &g);
 	return g;
 }
 
+
+
+
+// ギルド解散処理用（同盟/敵対を解除）
+/*
+int guild_break_sub(void *key, void *data, va_list &ap)
+{
+	struct guild *g = (struct guild *)data;
+	uint32 guild_id = va_arg(ap, uint32);
+	int i;
+
+	for(i = 0; i < MAX_GUILDALLIANCE; i++) {
+		if (g->alliance[i].guild_id == guild_id)
+			g->alliance[i].guild_id = 0;
+	}
+	return 0;
+}
+*/
+class CDBguild_break : public CDBProcessor
+{
+	uint32 guild_id;
+public:
+	CDBguild_break(uint32 gid) : guild_id(gid)	{}
+	virtual ~CDBguild_break()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct guild *g = (struct guild *)data;
+		int i;
+		for(i = 0; i < MAX_GUILDALLIANCE; i++)
+		{
+			if (g->alliance[i].guild_id == guild_id)
+				g->alliance[i].guild_id = 0;
+		}
+		return true;
+	}
+};
 // ギルドが空かどうかチェック
 int guild_check_empty(struct guild *g)
 {
@@ -594,7 +683,9 @@ int guild_check_empty(struct guild *g)
 		}
 	}
 		// 誰もいないので解散
-	numdb_foreach(guild_db, guild_break_sub, g->guild_id);
+	
+	numdb_foreach(guild_db, CDBguild_break(g->guild_id) );
+//	numdb_foreach(guild_db, guild_break_sub, g->guild_id);
 	numdb_erase(guild_db, g->guild_id);
 	inter_guild_storage_delete(g->guild_id);
 	mapif_guild_broken(g->guild_id, 0);
@@ -604,6 +695,7 @@ int guild_check_empty(struct guild *g)
 }
 
 // キャラの競合がないかチェック用
+/*
 int guild_check_conflict_sub(void *key, void *data, va_list &ap)
 {
 	struct guild *g = (struct guild *)data;
@@ -625,13 +717,43 @@ int guild_check_conflict_sub(void *key, void *data, va_list &ap)
 			mapif_parse_GuildLeave(-1, g->guild_id, account_id, char_id, 0, "**データ競合**");
 		}
 	}
-
 	return 0;
 }
+*/
+class CDBguild_check_conflict : public CDBProcessor
+{
+	uint32 guild_id;
+	uint32 account_id;
+	uint32 char_id;
+public:
+	CDBguild_check_conflict(uint32 gid, uint32 aid,  uint32 cid)
+		: guild_id(gid), account_id(aid), char_id(cid) 	{}
+	virtual ~CDBguild_check_conflict()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct guild *g = (struct guild *)data;
+		size_t i;
+
+		if (g->guild_id != guild_id)	// 本来の所属なので問題なし
+		{
+			for(i = 0; i < MAX_GUILD; i++)
+			{
+				if (g->member[i].account_id == account_id && g->member[i].char_id == char_id) {
+					// 別のギルドに偽の所属データがあるので脱退
+					ShowMessage("int_guild: guild conflict! %d,%d %d!=%d\n", 
+						account_id, char_id, guild_id, g->guild_id);
+					mapif_parse_GuildLeave(-1, g->guild_id, account_id, char_id, 0, "**データ競合**");
+				}
+			}
+		}
+		return true;
+	}
+};
 // キャラの競合がないかチェック
 int guild_check_conflict(uint32 guild_id, uint32 account_id, uint32 char_id)
 {
-	numdb_foreach(guild_db, guild_check_conflict_sub, guild_id, account_id, char_id);
+	numdb_foreach(guild_db, CDBguild_check_conflict(guild_id, account_id, char_id) );
+//	numdb_foreach(guild_db, guild_check_conflict_sub, guild_id, account_id, char_id);
 	return 0;
 }
 
@@ -678,7 +800,7 @@ int guild_calcinfo(struct guild *g)
 		g->next_exp = guild_nextexp(g->guild_lv);
 
 		// メンバ上限（ギルド拡張適用）
-		g->max_member = 16 + guild_checkskill(*g, GD_EXTENSION) * 4; //  Guild Extention skill - adds by 4 people per level to Max Member [Lupus]
+		g->max_member = 16 + guild_checkskill(*g, GD_EXTENSION) * 6; //  Guild Extention skill - adds by 6 people per level to Max Member [Lupus]
 
 		// 平均レベルとオンライン人数
 		g->average_lv = 0;
@@ -969,7 +1091,7 @@ int mapif_guild_castle_datasave(int castle_id, int index, int value)
 
 	return 0;
 }
-
+/*
 int mapif_guild_castle_alldataload_sub(void *key, void *data, va_list &ap)
 {
 	int fd = va_arg(ap, int);
@@ -984,18 +1106,32 @@ int mapif_guild_castle_alldataload_sub(void *key, void *data, va_list &ap)
 	(*offset) += sizeof(struct guild_castle);
 	return 0;
 }
-
+*/
+class CDBguild_castle_alldataload : public CDBProcessor
+{
+	int fd;
+	size_t &offset;
+public:
+	CDBguild_castle_alldataload(int f, size_t o) : fd(f), offset(o)	{}
+	virtual ~CDBguild_castle_alldataload()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		if(data)
+			guild_castle_tobuffer( *((struct guild_castle*)data), WFIFOP(fd,offset));
+		offset += sizeof(struct guild_castle);
+		return true;
+	}
+};
 int mapif_guild_castle_alldataload(int fd)
 {
-	int len = 4;
+	size_t len = 4;
 	if( !session_isActive(fd) )
 		return 0;
-
 	WFIFOW(fd,0) = 0x3842;
-	numdb_foreach(castle_db, mapif_guild_castle_alldataload_sub, fd, &len);
+	numdb_foreach(castle_db, CDBguild_castle_alldataload(fd, len) );
+//	numdb_foreach(castle_db, mapif_guild_castle_alldataload_sub, fd, &len);
 	WFIFOW(fd,2) = len;
 	WFIFOSET(fd, len);
-
 	return 0;
 }
 
@@ -1172,20 +1308,6 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd, uint32 guild_id, uint32 accou
 	return 0;
 }
 
-// ギルド解散処理用（同盟/敵対を解除）
-int guild_break_sub(void *key, void *data, va_list &ap)
-{
-	struct guild *g = (struct guild *)data;
-	uint32 guild_id = va_arg(ap, uint32);
-	int i;
-
-	for(i = 0; i < MAX_GUILDALLIANCE; i++) {
-		if (g->alliance[i].guild_id == guild_id)
-			g->alliance[i].guild_id = 0;
-	}
-	return 0;
-}
-
 // ギルド解散要求
 int mapif_parse_BreakGuild(int fd, int guild_id)
 {
@@ -1195,7 +1317,8 @@ int mapif_parse_BreakGuild(int fd, int guild_id)
 	if(g == NULL)
 		return 0;
 
-	numdb_foreach(guild_db, guild_break_sub, guild_id);
+	numdb_foreach(guild_db, CDBguild_break(guild_id) );
+//	numdb_foreach(guild_db, guild_break_sub, guild_id);
 	numdb_erase(guild_db, guild_id);
 	inter_guild_storage_delete(guild_id);
 	mapif_guild_broken(guild_id, 0);

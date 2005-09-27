@@ -273,12 +273,14 @@ int inter_storage_init()
 	return 0;
 }
 
-int storage_db_final (void *k, void *data, va_list &ap) {
+int storage_db_final (void *k, void *data)
+{
 	struct pc_storage *p = (struct pc_storage *)data;
 	if (p) aFree(p);
 	return 0;
 }
-int guild_storage_db_final (void *k, void *data, va_list &ap) {
+int guild_storage_db_final (void *k, void *data)
+{
 	struct guild_storage *p = (struct guild_storage *) data;
 	if (p) aFree(p);
 	return 0;
@@ -297,7 +299,7 @@ void inter_storage_final()
 	}
 	return;
 }
-
+/*
 int inter_storage_save_sub(void *key,void *data,va_list &ap)
 {
 	char line[65536];
@@ -308,6 +310,22 @@ int inter_storage_save_sub(void *key,void *data,va_list &ap)
 		fprintf(fp,"%s" RETCODE,line);
 	return 0;
 }
+*/
+class CDBstorage_save : public CDBProcessor
+{
+	FILE *fp;
+	mutable char line[65536];
+public:
+	CDBstorage_save(FILE *f) : fp(f)			{}
+	virtual ~CDBstorage_save()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		storage_tostr(line,(struct pc_storage *)data);
+		if(*line)
+			fprintf(fp,"%s" RETCODE,line);
+		return 0;
+	}
+};
 //---------------------------------------------------------
 // 倉庫データを書き込む
 int inter_storage_save()
@@ -318,12 +336,13 @@ int inter_storage_save()
 		ShowMessage("int_storage: cant write [%s] !!! data is lost !!!\n",storage_txt);
 		return 1;
 	}
-	numdb_foreach(storage_db,inter_storage_save_sub,fp);
+	numdb_foreach(storage_db, CDBstorage_save(fp) );
+//	numdb_foreach(storage_db,inter_storage_save_sub,fp);
 	lock_fclose(fp,storage_txt,&lock);
 //	ShowMessage("int_storage: %s saved.\n",storage_txt);
 	return 0;
 }
-
+/*
 int inter_guild_storage_save_sub(void *key,void *data,va_list &ap)
 {
 	char line[65536];
@@ -336,6 +355,25 @@ int inter_guild_storage_save_sub(void *key,void *data,va_list &ap)
 	}
 	return 0;
 }
+*/
+class CDBguild_storage_save : public CDBProcessor
+{
+	FILE *fp;
+	mutable char line[65536];
+public:
+	CDBguild_storage_save(FILE *f) : fp(f)			{}
+	virtual ~CDBguild_storage_save()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		if(inter_guild_search(((struct guild_storage *)data)->guild_id) != NULL)
+		{
+			guild_storage_tostr(line,(struct guild_storage *)data);
+			if(*line)
+				fprintf(fp,"%s" RETCODE,line);
+		}
+		return 0;
+	}
+};
 //---------------------------------------------------------
 // 倉庫データを書き込む
 int inter_guild_storage_save()
@@ -346,7 +384,8 @@ int inter_guild_storage_save()
 		ShowMessage("int_storage: cant write [%s] !!! data is lost !!!\n",guild_storage_txt);
 		return 1;
 	}
-	numdb_foreach(guild_storage_db,inter_guild_storage_save_sub,fp);
+	numdb_foreach(guild_storage_db, CDBguild_storage_save(fp) );
+//	numdb_foreach(guild_storage_db,inter_guild_storage_save_sub,fp);
 	lock_fclose(fp,guild_storage_txt,&lock);
 //	ShowMessage("int_storage: %s saved.\n",guild_storage_txt);
 	return 0;

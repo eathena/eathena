@@ -149,6 +149,7 @@ struct guild *guild_search(uint32 guild_id)
 {
 	return (struct guild *)numdb_search(guild_db,guild_id);
 }
+/*
 int guild_searchname_sub(void *key,void *data,va_list &ap)
 {
 	struct guild *g=(struct guild *)data,**dst;
@@ -159,11 +160,31 @@ int guild_searchname_sub(void *key,void *data,va_list &ap)
 		*dst=g;
 	return 0;
 }
+*/
+class CDBGuildSearchname : public CDBProcessor
+{
+	const char *str;
+	guild *&dst;
+public:
+	CDBGuildSearchname(const char *s, guild *&g) : str(s), dst(g)	{}
+	virtual ~CDBGuildSearchname()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct guild *g=(struct guild *)data;
+		if(strcasecmp(g->name,str)==0)
+		{
+			dst=g;
+			return false;
+		}
+		return true;
+	}
+};
 // ƒMƒ‹ƒh–¼ŒŸõ
 struct guild* guild_searchname(const char *str)
 {
 	struct guild *g=NULL;
-	numdb_foreach(guild_db,guild_searchname_sub,str,&g);
+	numdb_foreach(guild_db, CDBGuildSearchname(str,g) );
+//	numdb_foreach(guild_db,guild_searchname_sub,str,&g);
 	return g;
 }
 struct guild_castle *guild_castle_search(uint32 gcid)
@@ -240,6 +261,7 @@ int guild_check_conflict(struct map_session_data &sd)
 }
 
 // ƒMƒ‹ƒh‚ÌEXPƒLƒƒƒbƒVƒ…‚ğinterI‚Éƒtƒ‰ƒbƒVƒ…‚·‚é
+/*
 int guild_payexp_timer_sub(void *key, void *data, va_list &ap)
 {
 	int i, *dellist, *delp;
@@ -267,10 +289,44 @@ int guild_payexp_timer_sub(void *key, void *data, va_list &ap)
 	aFree(c);
 	return 0;
 }
+*/
+class CDBGuildPayexp : public CDBProcessor
+{
+	int *dellist;
+	int &delp;
+public:
+	CDBGuildPayexp(int *dl, int &dp) : dellist(dl), delp(dp)	{}
+	virtual ~CDBGuildPayexp()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		int i;
+		struct guild *g;
+		double exp2;
+		ssize_t dataid = (ssize_t)key;
+		struct guild_expcache *c=(struct guild_expcache *)data;
+
+		nullpo_retr(0, c);
+		if( delp < GUILD_PAYEXP_LIST &&
+			(g = guild_search(c->guild_id)) &&
+			(i = guild_getindex(*g, c->account_id, c->char_id)) >= 0)
+		{	// It is *already* fixed... this would be more appropriate ^^; [celest]
+			exp2 = (double)g->member[i].exp + (double)c->exp;
+			g->member[i].exp = (exp2 > double(INT_MAX)) ? INT_MAX : (int)exp2;
+			intif_guild_change_memberinfo(g->guild_id,c->account_id,c->char_id,GMI_EXP,g->member[i].exp);
+			c->exp=0;
+
+			dellist[(delp)++]=dataid;
+			aFree(c);
+		}
+		return true;
+	}
+};
+
 int guild_payexp_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	int dellist[GUILD_PAYEXP_LIST], delp = 0, i;
-	numdb_foreach(guild_expcache_db, guild_payexp_timer_sub, dellist, &delp);
+	numdb_foreach(guild_expcache_db, CDBGuildPayexp(dellist, delp) );
+//	numdb_foreach(guild_expcache_db, guild_payexp_timer_sub, dellist, &delp);
 	for (i = 0; i < delp; i++)
 		numdb_erase(guild_expcache_db, dellist[i]);
 	if(battle_config.etc_log && delp)
@@ -1302,6 +1358,7 @@ int guild_allianceack(uint32 guild_id1,uint32 guild_id2,uint32 account_id1,uint3
 	return 0;
 }
 // ƒMƒ‹ƒh‰ğU’Ê’m—p
+/*
 int guild_broken_sub(void *key,void *data,va_list &ap)
 {
 	struct guild *g=(struct guild *)data;
@@ -1322,7 +1379,36 @@ int guild_broken_sub(void *key,void *data,va_list &ap)
 	}
 	return 0;
 }
+*/
+class CDBGuildBroken : public CDBProcessor
+{
+	uint32 guild_id;
+public:
+	CDBGuildBroken(uint32 gid) : guild_id(gid)	{}
+	virtual ~CDBGuildBroken()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct guild *g=(struct guild *)data;
+		int i,j;
+		struct map_session_data *sd=NULL;
+
+		nullpo_retr(0, g);
+
+		for(i=0;i<MAX_GUILDALLIANCE;i++){	// ŠÖŒW‚ğ”jŠü
+			if(g->alliance[i].guild_id==guild_id){
+				for(j=0;j<g->max_member;j++)
+					if( (sd=g->member[j].sd)!=NULL )
+						clif_guild_delalliance(*sd,guild_id,g->alliance[i].opposition);
+				intif_guild_alliance(g->guild_id, guild_id,0,0,g->alliance[i].opposition|8);
+				g->alliance[i].guild_id=0;
+			}
+		}
+		return true;
+	}
+};
+
 //Invoked on Castles when a guild is broken. [Skotlex]
+/*
 int castle_guild_broken_sub(void *key,void *data,va_list &ap)
 {
 	struct guild_castle *gc=(struct guild_castle *)data;
@@ -1337,7 +1423,25 @@ int castle_guild_broken_sub(void *key,void *data,va_list &ap)
 	}
 	return 0;
 }
-
+*/
+class CDBCastleBroken : public CDBProcessor
+{
+	uint32 guild_id;
+public:
+	CDBCastleBroken(uint32 gid) : guild_id(gid)	{}
+	virtual ~CDBCastleBroken()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct guild_castle *gc=(struct guild_castle *)data;
+		nullpo_retr(0, gc);
+		if (gc->guild_id == guild_id)
+		{	//Save the new 'owner', this should invoke guardian clean up and other such things.
+			gc->guild_id = 0;
+			guild_castledatasave(gc->castle_id, 1, 0);
+		}
+		return true;
+	}
+};
 // ƒMƒ‹ƒh‰ğU’Ê’m
 int guild_broken(uint32 guild_id,int flag)
 {
@@ -1357,8 +1461,10 @@ int guild_broken(uint32 guild_id,int flag)
 		}
 	}
 
-	numdb_foreach(guild_db,guild_broken_sub,guild_id);
-	numdb_foreach(castle_db,castle_guild_broken_sub,guild_id);
+	numdb_foreach(guild_db, CDBGuildBroken(guild_id) );
+//	numdb_foreach(guild_db,guild_broken_sub,guild_id);
+	numdb_foreach(guild_db, CDBCastleBroken(guild_id) );
+//	numdb_foreach(castle_db,castle_guild_broken_sub,guild_id);
 	numdb_erase(guild_db,guild_id);
 	guild_storage_delete(guild_id);
 	aFree(g);
@@ -1743,6 +1849,7 @@ bool guild_isallied(uint32 guild_id, uint32 guild_id2)
 	}
 	return false;
 }
+/*
 int guild_send_xy_sub(void *key,void *data,va_list &ap)
 {
 	struct guild *g=(struct guild *)data;
@@ -1764,36 +1871,61 @@ int guild_send_xy_sub(void *key,void *data,va_list &ap)
 	}
 	return 0;
 }
+*/
+class CDBGuildSendXY : public CDBProcessor
+{
+	unsigned long tick;
+public:
+	CDBGuildSendXY(unsigned long t) : tick(t)	{}
+	virtual ~CDBGuildSendXY()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct guild *g=(struct guild *)data;
+		size_t i;
+		nullpo_retr(0, g);
+
+		for(i=0;i<MAX_GUILD;i++)
+		{
+			struct map_session_data *sd=g->member[i].sd;
+			if(sd!=NULL)
+			{	// À•W’Ê’m
+				if(sd->party_x!=sd->bl.x || sd->party_y!=sd->bl.y)
+				{
+					clif_guild_xy(*sd);
+					sd->party_x=sd->bl.x;
+					sd->party_y=sd->bl.y;
+				}
+			}
+		}
+		return true;
+	}
+};
+
 void guild_send_xy(unsigned long tick)
 {
-	numdb_foreach(guild_db,guild_send_xy_sub,tick);
+	numdb_foreach(guild_db, CDBGuildSendXY(tick) );
+//	numdb_foreach(guild_db,guild_send_xy_sub,tick);
 }
 
-int guild_db_final(void *key,void *data,va_list &ap)
+int guild_db_final(void *key,void *data)
 {
 	struct guild *g=(struct guild *) data;
-
 	aFree(g);
-
 	return 0;
 }
-int castle_db_final(void *key,void *data,va_list &ap)
+int castle_db_final(void *key,void *data)
 {
 	struct guild_castle *gc=(struct guild_castle *) data;
-
 	aFree(gc);
-
 	return 0;
 }
-int guild_expcache_db_final(void *key,void *data,va_list &ap)
+int guild_expcache_db_final(void *key,void *data)
 {
 	struct guild_expcache *c=(struct guild_expcache *) data;
-
 	aFree(c);
-
 	return 0;
 }
-int guild_infoevent_db_final(void *key,void *data,va_list &ap)
+int guild_infoevent_db_final(void *key,void *data)
 {
 	struct eventlist *ev, *ev2;
 	ev =(struct eventlist *) data;

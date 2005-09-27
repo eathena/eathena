@@ -97,12 +97,11 @@ int intif_delete_petdata(uint32 pet_id)
 }
 
 // GMメッセージを送信
-int intif_GMmessage(const char* mes, int flag)
+int intif_GMmessage(const char* mes, size_t len, int flag)
 {
 	if(mes)
 	{
 		int lp = (flag&0x10) ? 8 : 4;
-		int len = strlen(mes)+1;
 		if( !session_isActive(char_fd) )
 			return 0;
 		WFIFOW(char_fd,0) = 0x3000;
@@ -112,7 +111,7 @@ int intif_GMmessage(const char* mes, int flag)
 		WFIFOSET(char_fd, lp + len);
 
 		// Send to the local players
-		clif_GMmessage(NULL, mes, flag);
+		clif_GMmessage(NULL, mes, len,flag);
 	}
 	return 0;
 }
@@ -1128,7 +1127,7 @@ int intif_parse(int fd)
 	}
 	// 処理分岐
 	switch(cmd){
-	case 0x3800:	clif_GMmessage(NULL,(char*)RFIFOP(fd,4),0); break;
+	case 0x3800:	clif_GMmessage(NULL,(char*)RFIFOP(fd,4),packet_len-4,0); break;
 	case 0x3801:	intif_parse_WisMessage(fd); break;
 	case 0x3802:	intif_parse_WisEnd(fd); break;
 	case 0x3803:	mapif_parse_WisToGM(fd); break;

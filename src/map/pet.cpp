@@ -393,7 +393,12 @@ int pet_walk(struct pet_data &pd,unsigned long tick,int data)
 		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
 
 		pd.state.state=MS_WALK;
-		map_foreachinmovearea(clif_petoutsight,pd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,&pd);
+
+		CMap::foreachinmovearea( CClifPetOutsight(pd),
+			pd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC);
+//		map_foreachinmovearea(clif_petoutsight,
+//			pd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,
+//			&pd);
 
 		x += dx;
 		y += dy;
@@ -403,7 +408,11 @@ int pet_walk(struct pet_data &pd,unsigned long tick,int data)
 		pd.bl.y = y;
 		if(moveblock) map_addblock(pd.bl);
 
-		map_foreachinmovearea(clif_petinsight,pd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC,&pd);
+		CMap::foreachinmovearea( CClifPetInsight(pd),
+			pd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC);
+//		map_foreachinmovearea(clif_petinsight,
+//			pd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC,
+//			&pd);
 		pd.state.state=MS_IDLE;
 	}
 	if((i=calc_next_walk_step(pd))>0){
@@ -1339,7 +1348,68 @@ int pet_randomwalk(struct pet_data &pd,unsigned long tick)
 	}
 	return 0;
 }
+/*
+int pet_ai_sub_hard_lootsearch(struct block_list &bl,va_list &ap)
+{
+	struct pet_data* pd;
+	int dist,*itc;
 
+	nullpo_retr(0, ap);
+	pd=va_arg(ap,struct pet_data*);
+	nullpo_retr(0, pd);
+	nullpo_retr(0, itc=va_arg(ap,int *));
+
+	if(!pd->target_id){
+		struct flooritem_data *fitem = (struct flooritem_data *)&bl;
+		struct map_session_data *sd = NULL;
+		// ルート権無し
+		if(fitem && fitem->first_get_id>0)
+			sd = map_id2sd(fitem->first_get_id);
+
+		if(pd->loot == NULL || pd->loot->item == NULL || (pd->loot->count >= pd->loot->max) || (sd && sd->pd != pd))
+			return 0;
+		if(bl.m == pd->bl.m && (dist=distance(pd->bl.x,pd->bl.y,bl.x,bl.y))<5){
+			if( pet_can_reach(*pd,bl.x,bl.y)		// 到達可能性判定
+				 && rand()%1000<1000/(++(*itc)) ){	// 範囲内PCで等確率にする
+				pd->target_id=bl.id;
+			}
+		}
+	}
+	return 0;
+}
+*/
+class CPetAiHardLootsearch : public CMapProcessor
+{
+	struct pet_data& pd;
+public:
+	mutable int itc;
+	CPetAiHardLootsearch(struct pet_data& p) : pd(p), itc(0)	{}
+	~CPetAiHardLootsearch()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		int dist;
+		if( !pd.target_id )
+		{
+			struct flooritem_data *fitem = (struct flooritem_data *)&bl;
+			struct map_session_data *sd = NULL;
+			// ルート権無し
+			if(fitem && fitem->first_get_id>0)
+				sd = map_id2sd(fitem->first_get_id);
+
+			if(pd.loot == NULL || pd.loot->item == NULL || (pd.loot->count >= pd.loot->max) || (sd && sd->pd && sd->pd->bl.id != pd.bl.id))
+				return 0;
+			if(bl.m == pd.bl.m && (dist=distance(pd.bl.x,pd.bl.y,bl.x,bl.y))<5)
+			{
+				if( pet_can_reach(pd,bl.x,bl.y) &&		// 到達可能性判定
+					rand()%1000<1000/(++itc) )			// 範囲内PCで等確率にする
+				{	
+					pd.target_id=bl.id;
+				}
+			}
+		}
+		return 0;
+	}
+};
 int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 {
 	struct map_session_data *sd = pd.msd;
@@ -1364,10 +1434,15 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 	// ペットによるルート
 	if(!pd.target_id && pd.loot && pd.loot->count < pd.loot->max && DIFF_TICK(gettick(),pd.loot->loottick)>0)
 	{
-		map_foreachinarea(pet_ai_sub_hard_lootsearch,pd.bl.m,
-						  ((int)pd.bl.x)-AREA_SIZE/2,((int)pd.bl.y)-AREA_SIZE/2,
-						  ((int)pd.bl.x)+AREA_SIZE/2,((int)pd.bl.y)+AREA_SIZE/2,
-						  BL_ITEM,&pd,&i);
+		CPetAiHardLootsearch pal(pd);
+
+		CMap::foreachinarea( pal,
+			pd.bl.m, ((int)pd.bl.x)-AREA_SIZE/2,((int)pd.bl.y)-AREA_SIZE/2, ((int)pd.bl.x)+AREA_SIZE/2,((int)pd.bl.y)+AREA_SIZE/2,BL_ITEM);
+		i=pal.itc;
+//		i=0;
+//		map_foreachinarea(pet_ai_sub_hard_lootsearch,
+//			pd.bl.m, ((int)pd.bl.x)-AREA_SIZE/2,((int)pd.bl.y)-AREA_SIZE/2, ((int)pd.bl.x)+AREA_SIZE/2,((int)pd.bl.y)+AREA_SIZE/2,BL_ITEM,
+//			&pd,&i);
 	}
 
 	if(sd->pet.intimate > 0)
@@ -1513,7 +1588,7 @@ int pet_ai_sub_hard(struct pet_data &pd, unsigned long tick)
 	}
 	return 0;
 }
-
+/*
 int pet_ai_sub_foreachclient(struct map_session_data &sd,va_list &ap)
 {
 	unsigned long tick;
@@ -1524,43 +1599,27 @@ int pet_ai_sub_foreachclient(struct map_session_data &sd,va_list &ap)
 
 	return 0;
 }
-
+*/
+class CClifpet_ai : public CClifProcessor
+{
+	unsigned long tick;
+public:
+	CClifpet_ai(unsigned long t) : tick(t)	{}
+	virtual ~CClifpet_ai()	{}
+	virtual bool process(struct map_session_data& sd) const
+	{
+		if(sd.status.pet_id && sd.pd && sd.petDB)
+			pet_ai_sub_hard(*sd.pd, tick);
+		return 0;
+	}
+};
 int pet_ai_hard(int tid, unsigned long tick, int id, intptr data)
 {
-
-	clif_foreachclient(pet_ai_sub_foreachclient,tick);
-
+	clif_foreachclient( CClifpet_ai(tick) );
+//	clif_foreachclient(pet_ai_sub_foreachclient,tick);
 	return 0;
 }
 
-int pet_ai_sub_hard_lootsearch(struct block_list &bl,va_list &ap)
-{
-	struct pet_data* pd;
-	int dist,*itc;
-
-	nullpo_retr(0, ap);
-	pd=va_arg(ap,struct pet_data*);
-	nullpo_retr(0, pd);
-	nullpo_retr(0, itc=va_arg(ap,int *));
-
-	if(!pd->target_id){
-		struct flooritem_data *fitem = (struct flooritem_data *)&bl;
-		struct map_session_data *sd = NULL;
-		// ルート権無し
-		if(fitem && fitem->first_get_id>0)
-			sd = map_id2sd(fitem->first_get_id);
-
-		if(pd->loot == NULL || pd->loot->item == NULL || (pd->loot->count >= pd->loot->max) || (sd && sd->pd != pd))
-			return 0;
-		if(bl.m == pd->bl.m && (dist=distance(pd->bl.x,pd->bl.y,bl.x,bl.y))<5){
-			if( pet_can_reach(*pd,bl.x,bl.y)		// 到達可能性判定
-				 && rand()%1000<1000/(++(*itc)) ){	// 範囲内PCで等確率にする
-				pd->target_id=bl.id;
-			}
-		}
-	}
-	return 0;
-}
 int pet_lootitem_drop(struct pet_data &pd,struct map_session_data *sd)
 {
 	size_t i,flag=0;

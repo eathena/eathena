@@ -4,7 +4,7 @@
 
 int intif_parse(int fd);
 
-int intif_GMmessage(const char* mes,int flag);
+int intif_GMmessage(const char* mes,size_t len, int flag);
 
 int intif_wis_message(struct map_session_data &sd, const char *nick, const char *mes, size_t len);
 int intif_wis_message_to_gm(const char *Wisp_name, int min_gm_level, const char *mes);

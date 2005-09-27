@@ -33,6 +33,7 @@ static struct item_group itemgroup_db[MAX_ITEMGROUP];
  *------------------------------------------
  */
 // name = item alias, so we should find items aliases first. if not found then look for "jname" (full name)
+/*
 int itemdb_searchname_sub(void *key,void *data,va_list &ap)
 {
 	struct item_data *item=(struct item_data *)data,**dst;
@@ -43,11 +44,31 @@ int itemdb_searchname_sub(void *key,void *data,va_list &ap)
 		*dst=item;
 	return 0;
 }
+*/
+class CDBItemSearchname : public CDBProcessor
+{
+	const char* str;
+	item_data*& dst;
+public:
+	CDBItemSearchname(const char* s, item_data*& d) : str(s), dst(d)	{}
+	virtual ~CDBItemSearchname()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct item_data *item=(struct item_data *)data;
+		if( strcasecmp(item->name,str)==0 )
+		{
+			dst = item;
+			return false;
+		}
+		return true;
+	}
+};
 
 /*==========================================
  * –¼‘O‚ÅŒŸõ—p
  *------------------------------------------
  */
+/*
 int itemdb_searchjname_sub(void *key,void *data,va_list &ap)
 {
 	struct item_data *item=(struct item_data *)data,**dst;
@@ -58,6 +79,26 @@ int itemdb_searchjname_sub(void *key,void *data,va_list &ap)
 		*dst=item;
 	return 0;
 }
+*/
+class CDBItemSearchjname : public CDBProcessor
+{
+	const char* str;
+	item_data*& dst;
+public:
+	CDBItemSearchjname(const char* s, item_data*& d) : str(s), dst(d)	{}
+	virtual ~CDBItemSearchjname()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct item_data *item=(struct item_data *)data;
+		if( strcasecmp(item->jname,str)==0 )
+		{
+			dst = item;
+			return false;
+		}
+		return true;
+	}
+};
+
 /*==========================================
  * –¼‘O‚ÅŒŸõ
  *------------------------------------------
@@ -65,7 +106,8 @@ int itemdb_searchjname_sub(void *key,void *data,va_list &ap)
 struct item_data* itemdb_searchname(const char *str)
 {
 	struct item_data *item=NULL;
-	numdb_foreach(item_db,itemdb_searchname_sub,str,&item);
+	numdb_foreach(item_db, CDBItemSearchjname(str,item) );
+//	numdb_foreach(item_db,itemdb_searchname_sub,str,&item);
 	return item;
 }
 
@@ -989,6 +1031,7 @@ void itemdb_read(void)
  * Initialize / Finalize
  *------------------------------------------
  */
+/*
 int itemdb_final_sub (void *key,void *data,va_list &ap)
 {
 	struct item_data *id = (struct item_data *)data;
@@ -1006,11 +1049,35 @@ int itemdb_final_sub (void *key,void *data,va_list &ap)
 	}
 	return 0;
 }
+*/
+class CDBItemFinal : public CDBProcessor
+{
+	int flag;
+public:
+	CDBItemFinal(int f) : flag(f)	{}
+	virtual ~CDBItemFinal()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct item_data *id = (struct item_data *)data;
+		if( id )
+		{
+			if (id->use_script)
+				aFree(id->use_script);
+			if (id->equip_script)
+				aFree(id->equip_script);
+			// Whether to clear the item data
+			if (flag)
+				aFree(id);
+		}
+		return true;
+	}
+};
 
 void itemdb_reload(void)
 {
 	// free up all item scripts first
-	numdb_foreach(item_db, itemdb_final_sub, 0);
+	numdb_foreach(item_db, CDBItemFinal(0) );
+//	numdb_foreach(item_db, itemdb_final_sub, 0);
 	itemdb_read();
 }
 
@@ -1018,7 +1085,8 @@ void do_final_itemdb(void)
 {
 	if (item_db)
 	{
-		numdb_final(item_db, itemdb_final_sub, 1);
+		numdb_final(item_db, CDBItemFinal(1) );
+//		numdb_final(item_db, itemdb_final_sub, 1);
 		item_db = NULL;
 	}
 }
@@ -1027,7 +1095,8 @@ int do_init_itemdb(void)
 {
 	if(item_db)
 	{
-		numdb_final(item_db, itemdb_final_sub, 1);
+		numdb_final(item_db, CDBItemFinal(1) );
+//		numdb_final(item_db, itemdb_final_sub, 1);
 		item_db=NULL;
 	}
 	item_db = numdb_init();

@@ -39,10 +39,13 @@ other code
 * capsualting and reworking the current code
   [just as topic, also need to check what functions are really necessary and what not, a lot of the current stuff is not threadsafe and could be dome far more efficient]
   {grfio in progress}
+  {db in progress, 80% rewrite; interface might change, 50% testing, benchmarking with other trees missing}
 
 * addign real server control with webinterface for ie. managing accounts/editing chars etc
   [to be honest; this is to completely replace the sql database back infusion php control stuff]
-  {conception/case study in progress} (from CLOWNISIUS: Please send me, clownisius, a copy of what ever white papers you have on this please, i would like to keep track of what is going on.)
+  {conception/case study in progress} 
+  (from CLOWNISIUS: Please send me, clownisius, a copy of what ever white papers you have on this please, i would like to keep track of what is going on.)
+  (Shinomori: I prepare something readable when patching the material together, maybe this or within next week)
 
 ///////////////////////////////////////////////////////////////////////////////
 login:

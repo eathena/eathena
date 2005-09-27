@@ -7,13 +7,14 @@
 #include "utils.h"
 #include "showmsg.h"
 
-#define MALLOC_DBN
 
-// Backup cleaning routine in case the core doesn't do so properly,
-// only enabled if malloc_dbn is not defined.
-// As a temporary solution the root of the problem should still be found and fixed
-struct dbn *head;
-struct dbn *tail;
+
+CDBBase::CDBNode::CDBMemory CDBBase::CDBNode::cMem;
+
+
+
+
+#define MALLOC_DBN
 
 #ifdef MALLOC_DBN
 #define ROOT_SIZE 4096
@@ -61,26 +62,18 @@ void exit_dbn (void)
 }
 #else
 void exit_dbn(void)
-{
-	struct dbn *p = head, *p2;
-	while (p) {
-		p2 = p->next;
-		aFree(p);
-		p = p2;
-	}
-	return;
-}
+{  }
 #endif
 
-// maybe change the void* to const char* ???
-int strdb_cmp (struct dbt* table, void* a, void* b)
+
+ssize_t strdb_cmp (struct dbt* table, void* a, void* b)
 {
 	if(table->maxlen)
 		return strncmp((char*)a,(char*)b,table->maxlen);
 	return strcmp((char*)a,(char*)b);
 }
 
-// maybe change the void* to unsigned char* ???
+
 size_t strdb_hash (struct dbt* table, void* a)
 {
 	size_t h = 0;
@@ -113,16 +106,11 @@ struct dbt* strdb_init_ (int maxlen, const char *file, int line)
 	return table;
 }
 
-int numdb_cmp (struct dbt *table, void *a, void *b)
+ssize_t numdb_cmp (struct dbt *table, void *a, void *b)
 {
 	size_t ia, ib;
-
 	ia = (size_t)a;
 	ib = (size_t)b;
-
-	if ((ia^ib) & 0x80000000)
-		return ia < 0 ? -1 : 1;
-
 	return ia - ib;
 }
 
@@ -409,19 +397,26 @@ void db_rebalance_erase(struct dbn *z,struct dbn **root)
 	}
 }
 
-void db_free_lock(struct dbt *table) {
+void db_free_lock(struct dbt *table)
+{
 	table->free_lock++;
 }
 
-void db_free_unlock(struct dbt *table) {
+void db_free_unlock(struct dbt *table)
+{
 	if(table->free_lock>0) table->free_lock--;
 	if(table->free_lock == 0)
 	{
 		int i;
-		for(i = 0; i < table->free_count ; i++) {
-			db_rebalance_erase(table->free_list[i].z,table->free_list[i].root);
-			if(table->cmp == strdb_cmp) {
+		for(i = 0; i < table->free_count ; i++)
+		{
+			db_rebalance_erase(table->free_list[i].z, table->free_list[i].root);
+			// made a local copy of the key before
+			// need to free it now
+			if(table->cmp == strdb_cmp)
+			{
 				aFree(table->free_list[i].z->key);
+				table->free_list[i].z->key=NULL;
 			}
 #ifdef MALLOC_DBN
 			free_dbn(table->free_list[i].z);
@@ -436,31 +431,34 @@ void db_free_unlock(struct dbt *table) {
 
 struct dbn* db_insert(struct dbt *table,void* key,void* data)
 {
-	struct dbn *p,*priv;
-	int c;
-	size_t hash;
 
 //	if(NULL==key || NULL==data)
 //	{
 //		ShowMessage("db insert 0: key=%p, data=%p\n", key, data);
 //	}
-
-	hash = table->hashfunc(table,key) % HASH_SIZE;
-	for(c=0,priv=NULL ,p = table->ht[hash];p;){
+	int c = 0;
+	size_t hash = table->hashfunc(table,key) % HASH_SIZE;
+	struct dbn *priv = NULL;
+	struct dbn *p = table->ht[hash];
+	while(p)
+	{
 		c=table->cmp(table,key,p->key);
-		if(c==0){ // replace
-                        if (table->release)
-                            table->release(p, 3);
-			if(p->deleted) {
-				// 削除されたデータなので、free_list 上の削除予定を消す
+		if(c==0)
+		{	// replace
+			if(table->release)
+				table->release(p, 3);
+			if(p->deleted)
+			{	// 削除されたデータなので、free_list 上の削除予定を消す
 				int i;
-				for(i = 0; i < table->free_count ; i++) {
-					if(table->free_list[i].z == p) {
+				for(i = 0; i < table->free_count ; i++)
+				{
+					if(table->free_list[i].z == p)
+					{
 						memmove(
 							&table->free_list[i],
 							&table->free_list[i+1],
 							sizeof(struct db_free)*(table->free_count - i - 1)
-						);
+							);
 						break;
 					}
 				}
@@ -503,12 +501,15 @@ struct dbn* db_insert(struct dbt *table,void* key,void* data)
 	p->deleted = 0;
 	p->prev = NULL;
 	p->next = NULL;
-	if (head == NULL)
-		head = tail = p;
-	else {
-		p->prev = tail;
-		tail->next = p;
-		tail = p;
+
+	// double linked list with order of insertion
+	if(table->head == NULL)
+		table->head = table->tail = p;
+	else
+	{
+		p->prev = table->tail;
+		table->tail->next = p;
+		table->tail = p;
 	}
 
 	if(c==0){ // hash entry is empty
@@ -527,19 +528,17 @@ struct dbn* db_insert(struct dbt *table,void* key,void* data)
 		}
 	}
 	table->item_count++;
-	
 	return p;
 }
 
 void* db_erase(struct dbt *table,void* key)
 {
 	void *data;
-	struct dbn *p;
 	int c;
-	size_t hash;
-
-	hash = table->hashfunc(table,key) % HASH_SIZE;
-	for(c=0,p = table->ht[hash];p;){
+	size_t hash = table->hashfunc(table,key) % HASH_SIZE;
+	struct dbn *p = table->ht[hash];
+	while(p)
+	{
 		c=table->cmp(table,key,p->key);
 		if(c==0)
 			break;
@@ -551,7 +550,8 @@ void* db_erase(struct dbt *table,void* key)
 	if(!p)
 		return NULL;
 	data=p->data;
-	if(table->free_lock) {
+	if(table->free_lock)
+	{
 		if(table->free_count == table->free_max) {
 			table->free_max += 32;
 			table->free_list = (struct db_free*)aRealloc(table->free_list,sizeof(struct db_free) * table->free_max);
@@ -561,6 +561,9 @@ void* db_erase(struct dbt *table,void* key)
 		table->free_count++;
 		p->deleted = 1;
 		p->data    = NULL;
+
+		// assuming that the key is part of the data,
+		// we need to prepare a local copy since the data is gone
 		if(table->cmp == strdb_cmp) {
 			if(table->maxlen) {
 				char *key = (char*)aMalloc(table->maxlen);
@@ -570,16 +573,18 @@ void* db_erase(struct dbt *table,void* key)
 				p->key = aStrdup((const char*)p->key);
 			}
 		}
-	} else {
+	}
+	else
+	{
 		db_rebalance_erase(p,&table->ht[hash]);
 		if (p->prev)
 			p->prev->next = p->next;
 		else
-			head = p->next;
+			table->head = p->next;
 		if (p->next)
 			p->next->prev = p->prev;
 		else
-			tail = p->prev;
+			table->tail = p->prev;
 
 	#ifdef MALLOC_DBN
 		free_dbn(p);
@@ -590,7 +595,7 @@ void* db_erase(struct dbt *table,void* key)
 	}
 	return data;
 }
-
+/*
 void db_foreach(struct dbt *table,int (*func)(void*,void*,va_list &),...)
 {
 	size_t i,sp;
@@ -640,7 +645,33 @@ void db_foreach(struct dbt *table,int (*func)(void*,void*,va_list &),...)
 		);
 	}
 }
-
+*/
+void db_foreach(struct dbt* table, const CDBProcessor& elem)
+{
+	int count = table->item_count;
+	struct dbn *p = table->head;
+	db_free_lock(table);
+	while(p)
+	{
+		if(!p->deleted)
+		{	// stop traversal on request
+			if( !elem.process(p->key, p->data) )
+			{
+				count=0;
+				break;
+			}
+		}
+		count--;
+		p=p->next;
+	}
+	db_free_unlock(table);
+	if(count)
+	{
+		ShowError("db_foreach : data lost %d item(s) allocated from %s line %d\n",
+			count, table->alloc_file, table->alloc_line);
+	}
+}
+/*
 void db_final(struct dbt *table,int (*func)(void*,void*,va_list &),...)
 {
 	int i,sp;
@@ -676,11 +707,11 @@ void db_final(struct dbt *table,int (*func)(void*,void*,va_list &),...)
 			if (p->prev)
 				p->prev->next = p->next;
 			else
-				head = p->next;
+				table->head = p->next;
 			if (p->next)
 				p->next->prev = p->prev;
 			else
-				tail = p->prev;
+				table->tail = p->prev;
 #ifdef MALLOC_DBN
 			free_dbn(p);
 #else
@@ -688,6 +719,95 @@ void db_final(struct dbt *table,int (*func)(void*,void*,va_list &),...)
 #endif
 			p=pn;
 		}
+	}
+	db_free_unlock(table);
+	if(table->free_list)
+	{
+		aFree(table->free_list);
+		table->free_list=NULL;
+	}
+	if(table)
+	{
+		aFree(table);
+		table=NULL;
+	}
+}
+*/
+void db_final(struct dbt *table,int (*func)(void*,void*))
+{
+	struct dbn *pn, *p = table->head;
+	db_free_lock(table);
+	while(p)
+	{
+		if(func && !p->deleted)
+		{
+			func(p->key,p->data);
+			p->key=NULL;
+			p->data=NULL;
+		}
+
+		pn=p->next;
+
+		if (p->prev)
+			p->prev->next = p->next;
+		else
+			table->head = p->next;
+		if (p->next)
+			p->next->prev = p->prev;
+		else
+			table->tail = p->prev;
+
+#ifdef MALLOC_DBN
+		free_dbn(p);
+#else
+		aFree(p);
+#endif
+
+		p=pn;
+	}
+	db_free_unlock(table);
+	if(table->free_list)
+	{
+		aFree(table->free_list);
+		table->free_list=NULL;
+	}
+	if(table)
+	{
+		aFree(table);
+		table=NULL;
+	}
+}
+void db_final(struct dbt* table, const CDBProcessor& elem)
+{
+	struct dbn *pn, *p = table->head;
+	db_free_lock(table);
+	while(p)
+	{
+		if(!p->deleted)
+		{
+			// ignore return value
+			elem.process(p->key,p->data);
+			p->key=NULL;
+			p->data=NULL;
+		}
+		pn = p->next;
+
+		if (p->prev)
+			p->prev->next = p->next;
+		else
+			table->head = p->next;
+		if (p->next)
+			p->next->prev = p->prev;
+		else
+			table->tail = p->prev;
+
+#ifdef MALLOC_DBN
+		free_dbn(p);
+#else
+		aFree(p);
+#endif
+
+		p=pn;
 	}
 	db_free_unlock(table);
 	if(table->free_list)

@@ -1022,6 +1022,8 @@ typedef enum {
 	CELL_CHKNOPASS,		// 通過不可(セルタイプ1,5)
 	CELL_CHKHOLE,		// a hole in morroc desert
 	CELL_GETTYPE,		// セルタイプを返す
+	CELL_CHKNOPASS_NPC,
+
 	CELL_CHKNPC=0x10,	// タッチタイプのNPC(セルタイプ0x80フラグ)
 	CELL_SETNPC,		// タッチタイプのNPCをセット
 	CELL_CLRNPC,		// タッチタイプのNPCをclear suru
@@ -1294,11 +1296,11 @@ int map_delblock(struct block_list &bl);
 ///////////////////////////////////////////////////////////////////////////////
 // virtual base class which is called for each block
 ///////////////////////////////////////////////////////////////////////////////
-class CMapElements : public noncopyable
+class CMapProcessor : public noncopyable
 {
 public:
-	CMapElements()			{}
-	virtual ~CMapElements()	{}
+	CMapProcessor()			{}
+	virtual ~CMapProcessor()	{}
 	virtual int process(struct block_list& bl) const = 0;
 };
 
@@ -1307,10 +1309,12 @@ class CMap
 public:
 	CMap()	{}
 	~CMap()	{}
-static int foreachinarea(const CMapElements& elem, unsigned short m, int x0,int y0,int x1,int y1,int type);
-static int foreachincell(const CMapElements& elem, unsigned short m,int x,int y,int type);
-static int foreachinmovearea(const CMapElements& elem, unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type);
-static int foreachinpath(const CMapElements& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,int type);
+static int foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int y0,int x1,int y1,int type);
+static int foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,int type);
+static int foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type);
+static int foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,int type);
+static int foreachpartymemberonmap(const CMapProcessor& elem, struct map_session_data &sd, int type);
+static int foreachobject(const CMapProcessor& elem,int type);
 };
 
 
@@ -1318,20 +1322,22 @@ static int foreachinpath(const CMapElements& elem, unsigned short m,int x0,int y
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int map_foreachinarea(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int type,...);
+//int map_foreachinarea(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int type,...);
 // -- moonsoul (added map_foreachincell)
-int map_foreachincell(int (*func)(struct block_list&,va_list &),unsigned short m,int x,int y,int type,...);
-int map_foreachinmovearea(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type,...);
-int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int range,int type,...); // Celest
+//int map_foreachincell(int (*func)(struct block_list&,va_list &),unsigned short m,int x,int y,int type,...);
+//int map_foreachinmovearea(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type,...);
+//int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int range,int type,...); // Celest
+//void party_foreachsamemap(int (*func)(struct block_list&,va_list &),struct map_session_data &sd,int type,...);
+//void map_foreachobject(int (*)(struct block_list*,va_list &),int,...);
+
 int map_countnearpc(unsigned short m, int x, int y);
 //block関連に追加
 int map_count_oncell(unsigned short m,int x,int y, int type);
-struct skill_unit *map_find_skill_unit_oncell(struct block_list *,int x,int y,unsigned short skill_id,struct skill_unit *);
+struct skill_unit *map_find_skill_unit_oncell(struct block_list &target,int x,int y,unsigned short skill_id,struct skill_unit *out_unit);
 // 一時的object関連
 int map_addobject(struct block_list &bl);
 int map_delobject(int);
 int map_delobjectnofree(int id);
-void map_foreachobject(int (*)(struct block_list*,va_list &),int,...);
 //
 int map_quit(struct map_session_data &sd);
 // npc
@@ -1360,7 +1366,7 @@ int map_eraseipport(const char *name, ipset &mapset);
 int map_eraseallipport(void);
 void map_addiddb(struct block_list &bl);
 void map_deliddb(struct block_list &bl);
-int map_foreachiddb(int (*)(void*,void*,va_list &),...);
+dbt* get_iddb();
 void map_addnickdb(struct map_session_data &sd);
 struct map_session_data * map_nick2sd(const char *nick);
 int compare_item(struct item *a, struct item *b);
@@ -1375,8 +1381,6 @@ bool path_search_long(unsigned short m,unsigned short x0,unsigned short y0,unsig
 int path_blownpos(unsigned short m,int x0,int y0,int dx,int dy,int count);
 
 int map_who(int fd);
-
-int cleanup_sub(struct block_list &bl, va_list &ap);
 
 void map_helpscreen(); // [Valaris]
 int map_delmap(const char *mapname);

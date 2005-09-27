@@ -56,7 +56,6 @@ int pet_unequipitem(struct map_session_data &sd);
 int pet_food(struct map_session_data &sd);
 int pet_lootitem_drop(struct pet_data &pd,struct map_session_data *sd);
 int pet_delay_item_drop2(int tid, unsigned long tick, int id, intptr data);
-int pet_ai_sub_hard_lootsearch(struct block_list &bl,va_list &ap);
 int petskill_use(struct pet_data &pd, struct block_list &target, short skill_id, short skill_lv, unsigned int tick);
 int pet_skill_support_timer(int tid, unsigned long tick, int id, intptr data); // [Skotlex]
 int pet_skill_bonus_timer(int tid, unsigned long tick, int id, intptr data); // [Valaris]

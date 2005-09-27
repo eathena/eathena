@@ -116,7 +116,7 @@ int inter_party_init()
 	return 0;
 }
 
-int party_db_final (void *k, void *data, va_list &ap) {
+int party_db_final (void *k, void *data) {
 	struct party *p = (struct party *) data;
 	if (p) aFree(p);
 	return 0;
@@ -132,7 +132,9 @@ void inter_party_final()
 }
 
 // パ?ティ?デ?タのセ?ブ用
-int inter_party_save_sub(void *key, void *data, va_list &ap) {
+/*
+int inter_party_save_sub(void *key, void *data, va_list &ap)
+{
 	char line[8192];
 	FILE *fp;
 
@@ -142,7 +144,21 @@ int inter_party_save_sub(void *key, void *data, va_list &ap) {
 
 	return 0;
 }
-
+*/
+class CDBparty_save : public CDBProcessor
+{
+	FILE *fp;
+	mutable char line[65536];
+public:
+	CDBparty_save(FILE *f) : fp(f)			{}
+	virtual ~CDBparty_save()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		inter_party_tostr(line, (struct party *)data);
+		fprintf(fp, "%s" RETCODE, line);
+		return 0;
+	}
+};
 // パーティーデータのセーブ
 int inter_party_save() {
 	FILE *fp;
@@ -152,7 +168,8 @@ int inter_party_save() {
 		ShowMessage("int_party: cant write [%s] !!! data is lost !!!\n", party_txt);
 		return 1;
 	}
-	numdb_foreach(party_db, inter_party_save_sub, fp);
+	numdb_foreach(party_db, CDBparty_save(fp) );
+//	numdb_foreach(party_db, inter_party_save_sub, fp);
 //	fprintf(fp, "%d\t%%newid%%\n", party_newid);
 	lock_fclose(fp,party_txt, &lock);
 //	ShowMessage("int_party: %s saved.\n", party_txt);
@@ -161,7 +178,9 @@ int inter_party_save() {
 }
 
 // パーティ名検索用
-int search_partyname_sub(void *key,void *data,va_list &ap) {
+/*
+int search_partyname_sub(void *key,void *data,va_list &ap)
+{
 	struct party *p = (struct party *)data,**dst;
 	char *str;
 
@@ -172,12 +191,32 @@ int search_partyname_sub(void *key,void *data,va_list &ap) {
 
 	return 0;
 }
-
+*/
+class CDBsearch_partyname : public CDBProcessor
+{
+	const char *str;
+	struct party *&dst;
+public:
+	CDBsearch_partyname(const char *s, struct party *&p) : 	str(s), dst(p)	{}
+	virtual ~CDBsearch_partyname()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct party *p = (struct party *)data;
+		if(p && p->name && 0==strcasecmp(p->name, str) )
+		{
+			dst = p;
+			return false;
+		}
+		return true;
+	}
+};
 // パーティ名検索
-struct party* search_partyname(char *str) {
+struct party* search_partyname(char *str)
+{
 	struct party *p = NULL;
-	numdb_foreach(party_db, search_partyname_sub, str, &p);
-
+	if(str)
+		numdb_foreach(party_db, CDBsearch_partyname(str, p) );
+//	numdb_foreach(party_db, search_partyname_sub, str, &p);
 	return p;
 }
 
@@ -241,6 +280,7 @@ bool party_isempty(struct party *p)
 }
 
 // キャラの競合がないかチェック用
+/*
 int party_check_conflict_sub(void *key, void *data, va_list &ap)
 {
 	struct party *p = (struct party *)data;
@@ -262,14 +302,43 @@ int party_check_conflict_sub(void *key, void *data, va_list &ap)
 			mapif_parse_PartyLeave(-1, p->party_id, account_id);
 		}
 	}
-
 	return 0;
 }
-
+*/
+class CDBparty_check_conflict : public CDBProcessor
+{
+	uint32 party_id;
+	uint32 account_id;
+	const char *nick;
+public:
+	CDBparty_check_conflict(uint32 pid, uint32 aid, const char *n)
+		: 	party_id(pid), account_id(aid), nick(n)	{}
+	virtual ~CDBparty_check_conflict()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct party *p = (struct party *)data;
+		size_t i;
+		// 本来の所属なので問題なし
+		if( p->party_id != party_id )
+		{
+			for(i = 0; i < MAX_PARTY; i++)
+			{
+				if( p->member[i].account_id == account_id && 0==strcmp(p->member[i].name, nick) )
+				{	// 別のパーティに偽の所属データがあるので脱退
+					ShowMessage("int_party: party conflict! %d %d %d\n", account_id, party_id, p->party_id);
+					mapif_parse_PartyLeave(-1, p->party_id, account_id);
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+};
 // キャラの競合がないかチェック
-int party_check_conflict(uint32 party_id, uint32 account_id, char *nick) {
-	numdb_foreach(party_db, party_check_conflict_sub, party_id, account_id, nick);
-
+int party_check_conflict(uint32 party_id, uint32 account_id, char *nick)
+{
+	numdb_foreach(party_db, CDBparty_check_conflict(party_id, account_id, nick) );
+//	numdb_foreach(party_db, party_check_conflict_sub, party_id, account_id, nick);
 	return 0;
 }
 

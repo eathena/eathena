@@ -212,7 +212,17 @@ struct skill_unit_group *skill_check_dancing( struct block_list *src );
 void skill_stop_dancing(struct block_list *src, int flag);
 
 // Guild skills [celest]
-int skill_guildaura_sub (struct block_list &bl,va_list &ap);
+//int skill_guildaura_sub (struct block_list &bl,va_list &ap);
+class CSkillGuildaura : public CMapProcessor
+{
+	uint32 id;
+	uint32 gid;
+	int flag;
+public:
+	CSkillGuildaura(uint32 i, uint32 g, int f) : id(i), gid(g), flag(f)	{}
+	~CSkillGuildaura()	{}
+	virtual int process(struct block_list& bl) const;
+};
 
 // ‰r¥ƒLƒƒƒ“ƒZƒ‹
 int skill_castcancel(struct block_list *bl,int type);

@@ -2018,7 +2018,7 @@ int parse_frommap(int fd)
 			break;
 		}
 		///////////////////////////////////////////////////////////////////////
-		// string with status changes
+		// status changes
 		// for testing purpose
 		case 0x2b22:
 		{	size_t sz;

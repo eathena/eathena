@@ -39,7 +39,7 @@
 #define MAX_STORAGE 300
 #define MAX_GUILD_STORAGE 1000
 #define MAX_PARTY 12
-#define MAX_GUILD 16+10*4	// increased max guild members to accomodate for +4 increase for extension levels [Lupus]
+#define MAX_GUILD 16+10*6	// increased max guild members to accomodate for +6 increase for extension levels [Lupus]
 #define MAX_GUILDPOSITION 20	// increased max guild positions to accomodate for all members [Valaris] (removed) [PoW]
 #define MAX_GUILDEXPLUSION 32
 #define MAX_GUILDALLIANCE 16
@@ -275,6 +275,53 @@ extern inline void X_frombuffer(uchar *valin, const uchar *buf, const size_t sz)
 /////////////////////////////////////////////////////////////////////////////
 // predeclaration
 struct map_session_data;
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+struct sc_data
+{
+	ushort type; //SC_type
+	uint32 val1;
+	uint32 val2;
+	uint32 val3;
+	uint32 val4;
+	uint32 tick; //Remaining duration (only 32bits used)
+};
+
+extern inline void _scdata_tobuffer(const struct sc_data &p, uchar *&buf)
+{
+	if(NULL==buf )	return;
+	_W_tobuffer( (p.type),			buf);
+	_L_tobuffer( (p.val1),			buf);
+	_L_tobuffer( (p.val2),			buf);
+	_L_tobuffer( (p.val3),			buf);
+	_L_tobuffer( (p.val4),			buf);
+	_L_tobuffer( (p.tick),			buf);
+}
+extern inline void scdata_tobuffer(const struct sc_data &p, uchar *buf)
+{
+	_scdata_tobuffer(p, buf);
+}
+
+extern inline void _scdata_frombuffer(struct sc_data &p, const uchar *&buf)
+{
+	if(NULL==buf )	return;
+	_W_frombuffer( (p.type),		buf);
+	_L_frombuffer( (p.val1),		buf);
+	_L_frombuffer( (p.val2),		buf);
+	_L_frombuffer( (p.val3),		buf);
+	_L_frombuffer( (p.val4),		buf);
+	_L_frombuffer( (p.tick),		buf);
+}
+extern inline void scdata_frombuffer(struct sc_data &p, const uchar *buf)
+{
+	_scdata_frombuffer(p, buf);
+}
+
+
 
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////

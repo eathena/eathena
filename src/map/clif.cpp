@@ -525,7 +525,7 @@ int clif_countusers(void)
  * 全てのclientに対してfunc()実行
  *------------------------------------------
  */
- 
+/*
 int clif_foreachclient(int (*func)(struct map_session_data&, va_list &),...)
 {
 	size_t i;
@@ -543,11 +543,26 @@ int clif_foreachclient(int (*func)(struct map_session_data&, va_list &),...)
 	
 	return 0;
 }
-
+*/
+int clif_foreachclient(const CClifProcessor& elem)
+{
+	int returnvalue = 0;
+	size_t i;
+	struct map_session_data *sd;
+	for(i = 0; i < fd_max; i++)
+	{
+		if(session[i] && (sd = (struct map_session_data*)session[i]->session_data) && sd->state.auth)
+		{
+			returnvalue += elem.process(*sd);
+		}
+	}
+	return returnvalue;
+}
 /*==========================================
  * clif_sendでAREA*指定時用
  *------------------------------------------
  */
+/*
 int clif_send_sub(block_list &bl, va_list &ap)
 {
 	struct map_session_data& sd = (struct map_session_data&)bl;
@@ -601,7 +616,61 @@ int clif_send_sub(block_list &bl, va_list &ap)
 	}
 	return 0;
 }
+*/
+class CClifSend : public CMapProcessor
+{
+	unsigned char *&buf;
+	size_t len;
+	struct block_list &src_bl;
+	int type;
+public:
 
+	CClifSend(unsigned char *&b, size_t l, struct block_list &bl, int ty)
+		: buf(b), len(l), src_bl(bl), type(ty)
+	{}
+	~CClifSend()	{}
+
+	virtual int process(struct block_list& bl) const
+	{
+		struct map_session_data& sd = (struct map_session_data&)bl;
+		if(bl.type==BL_PC && session_isActive(sd.fd) )
+		{
+			switch(type) {
+			case AREA_WOS:
+				if(sd.bl.id == src_bl.id)
+					return 0;
+				break;
+			case AREA_WOC:
+				if (sd.chatID || sd.bl.id == src_bl.id)
+					return 0;
+				break;
+			case AREA_WOSC:
+			{
+				struct map_session_data &ssd = (struct map_session_data &)(src_bl);
+				if(src_bl.type==BL_PC && sd.chatID && sd.chatID == ssd.chatID)
+					return 0;
+				break;
+			}
+			}
+			if(WFIFOP(sd.fd,0) == buf)
+			{
+				ShowMessage("WARNING: Invalid use of clif_send function\n");
+				ShowMessage("         Packet x%4x use a WFIFO of a player instead of to use a buffer.\n", (unsigned short)WBUFW(buf,0));
+				ShowMessage("         Please correct your code.\n");
+				// don't send to not move the pointer of the packet for next sessions in the loop
+			}
+			else
+			{
+				if(packet_db[sd.packet_ver][RBUFW(buf,0)].len)
+				{	// packet must exist for the client version
+					memcpy(WFIFOP(sd.fd,0), buf, len);
+					WFIFOSET(sd.fd,len);
+				}
+			}
+		}
+		return 0;
+	}
+};
 /*==========================================
  *
  *------------------------------------------
@@ -616,9 +685,8 @@ int clif_send (unsigned char *buf, size_t len, struct block_list *bl, int type)
 
 	if (type != ALL_CLIENT) {
 		nullpo_retr(0, bl);
-		if (bl->type == BL_PC) {
-			nullpo_retr (0, sd = (struct map_session_data *)bl);
-		}
+		if(bl->type == BL_PC)
+			sd = (struct map_session_data *)bl;
 	}
 
 	switch(type) {
@@ -647,12 +715,18 @@ int clif_send (unsigned char *buf, size_t len, struct block_list *bl, int type)
 	case AREA_WOS:
 	case AREA_WOC:
 	case AREA_WOSC:
-		map_foreachinarea(clif_send_sub, bl->m, ((int)bl->x)-AREA_SIZE, ((int)bl->y)-AREA_SIZE, ((int)bl->x)+AREA_SIZE, ((int)bl->y)+AREA_SIZE,
-			BL_PC, buf, len, bl, type);
+		CMap::foreachinarea( CClifSend(buf, len, *bl, type),
+			bl->m, ((int)bl->x)-AREA_SIZE, ((int)bl->y)-AREA_SIZE, ((int)bl->x)+AREA_SIZE, ((int)bl->y)+AREA_SIZE,BL_PC);
+//		map_foreachinarea(clif_send_sub, 
+//			bl->m, ((int)bl->x)-AREA_SIZE, ((int)bl->y)-AREA_SIZE, ((int)bl->x)+AREA_SIZE, ((int)bl->y)+AREA_SIZE,BL_PC, 
+//			buf, len, bl, type);
 		break;
 	case AREA_CHAT_WOC:
-		map_foreachinarea(clif_send_sub, bl->m, ((int)bl->x)-(AREA_SIZE-5), ((int)bl->y)-(AREA_SIZE-5),((int)bl->x)+(AREA_SIZE-5), ((int)bl->y)+(AREA_SIZE-5), 
-			BL_PC, buf, len, bl, AREA_WOC);
+		CMap::foreachinarea( CClifSend(buf, len, *bl, type),
+			bl->m, ((int)bl->x)-(AREA_SIZE-5), ((int)bl->y)-(AREA_SIZE-5),((int)bl->x)+(AREA_SIZE-5), ((int)bl->y)+(AREA_SIZE-5), BL_PC);
+//		map_foreachinarea(clif_send_sub, 
+//			bl->m, ((int)bl->x)-(AREA_SIZE-5), ((int)bl->y)-(AREA_SIZE-5),((int)bl->x)+(AREA_SIZE-5), ((int)bl->y)+(AREA_SIZE-5), BL_PC, 
+//			buf, len, bl, AREA_WOC);
 		break;
 	case CHAT:
 	case CHAT_WOS:
@@ -4443,7 +4517,8 @@ int clif_01ac(struct block_list &bl)
  *
  *------------------------------------------
  */
- int clif_getareachar(struct block_list& bl,va_list &ap)
+/*
+int clif_getareachar(struct block_list& bl,va_list &ap)
 {
 	struct map_session_data *sd;
 	nullpo_retr(0, ap);
@@ -4480,11 +4555,130 @@ int clif_01ac(struct block_list &bl)
 	}
 	return 0;
 }
+*/
+class CClifGetAreaChar : public CMapProcessor
+{
+	struct map_session_data &sd;
+public:
+
+	CClifGetAreaChar(struct map_session_data &s) : sd(s)	{}
+	~CClifGetAreaChar()	{}
+
+	virtual int process(struct block_list& bl) const
+	{
+		if( session_isActive(sd.fd) )
+		{
+			switch(bl.type)
+			{
+			case BL_PC:
+				if(sd.bl.id == bl.id)
+					break;
+				clif_getareachar_pc(sd, ((struct map_session_data&)bl));
+				break;
+			case BL_NPC:
+				clif_getareachar_npc(sd, ((struct npc_data&) bl));
+				break;
+			case BL_MOB:
+				clif_getareachar_mob(sd,((struct mob_data&) bl));
+				break;
+			case BL_PET:
+				clif_getareachar_pet(sd, ((struct pet_data&) bl));
+				break;
+			case BL_ITEM:
+				clif_getareachar_item(sd, ((struct flooritem_data&) bl));
+				break;
+			case BL_SKILL:
+				clif_getareachar_skillunit(sd, ((struct skill_unit&)bl));
+				break;
+			default:
+				if(battle_config.error_log)
+					ShowMessage("get area char ??? (bl.type=%d)\n",bl.type);
+				break;
+			}
+		}
+		return 0;
+	}
+};
 
 /*==========================================
  *
  *------------------------------------------
  */
+/*
+int clif_pcinsight(struct block_list &bl,va_list &ap)
+{
+	struct map_session_data *sd;
+
+	nullpo_retr(0, ap);
+	nullpo_retr(0, sd=va_arg(ap,struct map_session_data*));
+
+	switch(bl.type){
+	case BL_PC:
+	{
+		struct map_session_data &dstsd=(struct map_session_data&)bl;
+		if(sd->bl.id != dstsd.bl.id) {
+			clif_getareachar_pc(*sd, dstsd);
+			clif_getareachar_pc(dstsd, *sd);
+		}
+		break;
+	}
+	case BL_NPC:
+		clif_getareachar_npc(*sd, ((struct npc_data&)bl));
+		break;
+	case BL_MOB:
+		clif_getareachar_mob(*sd, ((struct mob_data&)bl));
+		break;
+	case BL_PET:
+		clif_getareachar_pet(*sd, ((struct pet_data&)bl));
+		break;
+	case BL_ITEM:
+		clif_getareachar_item(*sd, ((struct flooritem_data&)bl));
+		break;
+	case BL_SKILL:
+		clif_getareachar_skillunit(*sd, ((struct skill_unit&)bl));
+		break;
+	}
+
+	return 0;
+}
+*/
+int CClifPCInsight::process(struct block_list& bl) const
+{
+	switch(bl.type)
+	{
+	case BL_PC:
+	{
+		struct map_session_data &dstsd=(struct map_session_data&)bl;
+		if(sd.bl.id != dstsd.bl.id)
+		{
+			clif_getareachar_pc(sd, dstsd);
+			clif_getareachar_pc(dstsd, sd);
+		}
+		break;
+	}
+	case BL_NPC:
+		clif_getareachar_npc(sd, ((struct npc_data&)bl));
+		break;
+	case BL_MOB:
+		clif_getareachar_mob(sd, ((struct mob_data&)bl));
+		break;
+	case BL_PET:
+		clif_getareachar_pet(sd, ((struct pet_data&)bl));
+		break;
+	case BL_ITEM:
+		clif_getareachar_item(sd, ((struct flooritem_data&)bl));
+		break;
+	case BL_SKILL:
+		clif_getareachar_skillunit(sd, ((struct skill_unit&)bl));
+		break;
+	}
+	return 0;
+}
+/*==========================================
+ *
+ *------------------------------------------
+ */
+/*
 int clif_pcoutsight(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data *sd;
@@ -4539,52 +4733,87 @@ int clif_pcoutsight(struct block_list &bl,va_list &ap)
 	}
 	return 0;
 }
-
-/*==========================================
- *
- *------------------------------------------
- */
-int clif_pcinsight(struct block_list &bl,va_list &ap)
+*/
+int CClifPCOutsight::process(struct block_list& bl) const
 {
-	struct map_session_data *sd;
-
-	nullpo_retr(0, ap);
-	nullpo_retr(0, sd=va_arg(ap,struct map_session_data*));
-
-	switch(bl.type){
+	switch(bl.type)
+	{
 	case BL_PC:
 	{
-		struct map_session_data &dstsd=(struct map_session_data&)bl;
-		if(sd->bl.id != dstsd.bl.id) {
-			clif_getareachar_pc(*sd, dstsd);
-			clif_getareachar_pc(dstsd, *sd);
+		struct map_session_data &dstsd = (struct map_session_data&)bl;
+		if(sd.bl.id != dstsd.bl.id)
+		{
+			clif_clearchar_id(sd.fd, dstsd.bl.id, 0);
+			clif_clearchar_id(dstsd.fd, sd.bl.id, 0);
+
+			if(dstsd.disguise_id || sd.disguise_id)
+			{
+				clif_clearchar_id(sd.fd, dstsd.bl.id|FLAG_DISGUISE, 0);
+				clif_clearchar_id(dstsd.fd, sd.bl.id|FLAG_DISGUISE, 0);
+			}
+
+			if(dstsd.chatID){
+				struct chat_data *cd;
+				cd=(struct chat_data*)map_id2bl(dstsd.chatID);
+				if(cd->usersd[0] && cd->usersd[0]->bl.id==dstsd.bl.id)
+					clif_dispchat(*cd,sd.fd);
+			}
+			if(dstsd.vender_id)
+			{
+				clif_closevendingboard(dstsd.bl,sd.fd);
+			}
 		}
 		break;
 	}
 	case BL_NPC:
-		clif_getareachar_npc(*sd, ((struct npc_data&)bl));
+		if( ((struct npc_data &)bl).class_ != INVISIBLE_CLASS )
+			clif_clearchar_id(sd.fd,bl.id,0);
 		break;
 	case BL_MOB:
-		clif_getareachar_mob(*sd, ((struct mob_data&)bl));
-		break;
 	case BL_PET:
-		clif_getareachar_pet(*sd, ((struct pet_data&)bl));
+		clif_clearchar_id(sd.fd,bl.id,0);
 		break;
 	case BL_ITEM:
-		clif_getareachar_item(*sd, ((struct flooritem_data&)bl));
+		clif_clearflooritem( ((struct flooritem_data&)bl),sd.fd);
 		break;
 	case BL_SKILL:
-		clif_getareachar_skillunit(*sd, ((struct skill_unit&)bl));
+		clif_clearchar_skillunit( ((struct skill_unit&)bl),sd.fd);
 		break;
 	}
-
 	return 0;
 }
-
 /*==========================================
  *
  *------------------------------------------
  */
+/*
+int clif_mobinsight(struct block_list &bl,va_list &ap)
+{
+	struct map_session_data &sd=(struct map_session_data&)bl;
+	struct mob_data *md;
+
+	nullpo_retr(0, ap);
+
+	md=va_arg(ap,struct mob_data*);
+	if(bl.type==BL_PC && session[sd.fd] != NULL) {
+		clif_getareachar_mob(sd,*md);
+	}
+
+	return 0;
+}
+*/
+int CClifMobInsight::process(struct block_list& bl) const
+{
+	struct map_session_data &sd=(struct map_session_data&)bl;
+	if(bl.type==BL_PC && session_isActive(sd.fd))
+		clif_getareachar_mob(sd, md);
+	return 0;
+}
+/*==========================================
+ *
+ *------------------------------------------
+ */
+/*
 int clif_moboutsight(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data &sd = (struct map_session_data&)bl;
@@ -4600,65 +4829,19 @@ int clif_moboutsight(struct block_list &bl,va_list &ap)
 
 	return 0;
 }
-
+*/
+int CClifMobOutsight::process(struct block_list& bl) const
+{
+	struct map_session_data &sd = (struct map_session_data&)bl;
+	if(bl.type==BL_PC && session_isActive(sd.fd) )
+		clif_clearchar_id(sd.fd, md.bl.id, 0);
+	return 0;
+}
 /*==========================================
  *
  *------------------------------------------
  */
-int clif_mobinsight(struct block_list &bl,va_list &ap)
-{
-	struct map_session_data &sd=(struct map_session_data&)bl;
-	struct mob_data *md;
-
-	nullpo_retr(0, ap);
-
-	md=va_arg(ap,struct mob_data*);
-	if(bl.type==BL_PC && session[sd.fd] != NULL) {
-		clif_getareachar_mob(sd,*md);
-	}
-
-	return 0;
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-int clif_petoutsight(struct block_list &bl,va_list &ap)
-{
-	struct map_session_data &sd=(struct map_session_data&)bl;
-	struct pet_data *pd;
-
-	nullpo_retr(0, ap);
-	nullpo_retr(0, pd=va_arg(ap,struct pet_data*));
-
-	if(bl.type==BL_PC && session[sd.fd] != NULL) {
-		clif_clearchar_id(sd.fd,pd->bl.id,0);
-	}
-
-	return 0;
-}
-
-// npc walking [Valaris]
-int clif_npcoutsight(struct block_list &bl,va_list &ap)
-{
-	struct map_session_data &sd=(struct map_session_data&)bl;
-	struct npc_data *nd;
-
-	nullpo_retr(0, ap);
-	nullpo_retr(0, nd=va_arg(ap,struct npc_data*));
-
-	if(bl.type==BL_PC && session[sd.fd] != NULL) {
-		clif_clearchar_id(sd.fd,nd->bl.id,0);
-	}
-
-	return 0;
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
+/*
 int clif_petinsight(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data &sd=(struct map_session_data&)bl;
@@ -4673,8 +4856,48 @@ int clif_petinsight(struct block_list &bl,va_list &ap)
 
 	return 0;
 }
+*/
+int CClifPetInsight::process(struct block_list& bl) const
+{
+	struct map_session_data &sd=(struct map_session_data&)bl;
+	if( bl.type==BL_PC && session_isActive(sd.fd) )
+		clif_getareachar_pet(sd,pd);
+	return 0;
+}
+/*==========================================
+ *
+ *------------------------------------------
+ */
+/*
+int clif_petoutsight(struct block_list &bl,va_list &ap)
+{
+	struct map_session_data &sd=(struct map_session_data&)bl;
+	struct pet_data *pd;
 
+	nullpo_retr(0, ap);
+	nullpo_retr(0, pd=va_arg(ap,struct pet_data*));
+
+	if(bl.type==BL_PC && session[sd.fd] != NULL) {
+		clif_clearchar_id(sd.fd,pd->bl.id,0);
+	}
+	return 0;
+}
+*/
+int CClifPetOutsight::process(struct block_list& bl) const
+{
+	struct map_session_data &sd=(struct map_session_data&)bl;
+	if( bl.type==BL_PC && session_isActive(sd.fd) )
+		clif_clearchar_id(sd.fd, pd.bl.id,0);
+	return 0;
+}
+
+
+
+/*==========================================
 // npc walking [Valaris]
+ *------------------------------------------
+ */
+/*
 int clif_npcinsight(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data &sd=(struct map_session_data&)bl;
@@ -4687,6 +4910,41 @@ int clif_npcinsight(struct block_list &bl,va_list &ap)
 		clif_getareachar_npc(sd,*nd);
 	}
 
+	return 0;
+}
+*/
+int CClifNpcInsight::process(struct block_list& bl) const
+{
+	struct map_session_data &sd=(struct map_session_data&)bl;
+	if( bl.type==BL_PC && session_isActive(sd.fd) )
+		clif_getareachar_npc(sd,nd);
+	return 0;
+}
+/*==========================================
+// npc walking [Valaris]
+ *------------------------------------------
+ */
+/*
+int clif_npcoutsight(struct block_list &bl,va_list &ap)
+{
+	struct map_session_data &sd=(struct map_session_data&)bl;
+	struct npc_data *nd;
+
+	nullpo_retr(0, ap);
+	nullpo_retr(0, nd=va_arg(ap,struct npc_data*));
+
+	if(bl.type==BL_PC && session[sd.fd] != NULL) {
+		clif_clearchar_id(sd.fd,nd->bl.id,0);
+	}
+
+	return 0;
+}
+*/
+int CClifNpcOutsight::process(struct block_list& bl) const
+{
+	struct map_session_data &sd=(struct map_session_data&)bl;
+	if( bl.type==BL_PC && session_isActive(sd.fd) )
+		clif_clearchar_id(sd.fd, nd.bl.id,0);
 	return 0;
 }
 
@@ -4903,7 +5161,7 @@ int clif_skill_damage(struct block_list &src,struct block_list &dst,unsigned lon
 	WBUFW(buf,26)=skill_lv;
 	WBUFW(buf,28)=div;
 	WBUFB(buf,30)=(type>0)?type:skill_get_hit(skill_id);
-	return clif_send(buf,packet_len_table[0x114],src,AREA);
+	return clif_send(buf,packet_len_table[0x114],&src,AREA);
 #else
 	WBUFW(buf,0)=0x1de;
 	WBUFW(buf,2)=skill_id;
@@ -5228,23 +5486,22 @@ int clif_displaymessage(int fd, const char* mes)
  * 天の声を送信する
  *------------------------------------------
  */
-int clif_GMmessage(struct block_list *bl, const char* mes, int flag)
+int clif_GMmessage(struct block_list *bl, const char* mes, size_t len, int flag)
 {
 	if(mes)
 	{
 		unsigned char buf[512];
 		size_t lp;
-		size_t len = strlen(mes)+1;
 
-	lp = (flag & 0x10) ? 8 : 4;
-		if( len > 512-lp ) len = 512-lp;
+		lp = (flag & 0x10) ? 8 : 4;
+			if( len > 512-lp ) len = 512-lp;
 
-	WBUFW(buf,0) = 0x9a;
-	WBUFW(buf,2) = len + lp;
-	WBUFL(buf,4) = 0x65756c62;
-	memcpy(WBUFP(buf,lp), mes, len);
-		buf[511] = 0; //force EOS
-	flag &= 0x07;
+		WBUFW(buf,0) = 0x9a;
+		WBUFW(buf,2) = len + lp;
+		WBUFL(buf,4) = 0x65756c62;
+		memcpy(WBUFP(buf,lp), mes, len);
+			buf[511] = 0; //force EOS
+		flag &= 0x07;
 		clif_send(buf, len + lp, bl,
 	          (flag == 1) ? ALL_SAMEMAP :
 	          (flag == 2) ? AREA :
@@ -8247,9 +8504,12 @@ int clif_parse_LoadEndAck(int fd, struct map_session_data &sd)
 		if(sd.status.inventory[i].equip && sd.status.inventory[i].equip & 0x0010 && sd.status.inventory[i].attribute==1)
 			status_change_start(&sd.bl,SC_BROKNARMOR,0,0,0,0,0,0);
 	}
-	map_foreachinarea(clif_getareachar,sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,0,&sd);
 
-
+	CMap::foreachinarea( CClifGetAreaChar(sd),
+		sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,0);
+//	map_foreachinarea(clif_getareachar,
+//		sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,0,
+//		&sd);
 
 	// ============================================
 	// ADDITION Qamera death/disconnect/connect event mod
@@ -8483,7 +8743,11 @@ int clif_parse_GlobalMessage(int fd, struct map_session_data &sd)
 	WFIFOW(fd,0) = 0x8e;
 	WFIFOSET(fd, size);
 
-	map_foreachinarea(npc_chat_sub, sd.bl.m, ((int)sd.bl.x)-AREA_SIZE, ((int)sd.bl.y)-AREA_SIZE, ((int)sd.bl.x)+AREA_SIZE, ((int)sd.bl.y)+AREA_SIZE, BL_NPC, RFIFOP(fd,4), strlen((char*)RFIFOP(fd,4)), &sd.bl);
+	CMap::foreachinarea( CNpcChat(((char*)RFIFOP(fd,4)), strlen((char*)RFIFOP(fd,4)), sd),
+		sd.bl.m, ((int)sd.bl.x)-AREA_SIZE, ((int)sd.bl.y)-AREA_SIZE, ((int)sd.bl.x)+AREA_SIZE, ((int)sd.bl.y)+AREA_SIZE, BL_NPC);
+//	map_foreachinarea(npc_chat_sub, 
+//		sd.bl.m, ((int)sd.bl.x)-AREA_SIZE, ((int)sd.bl.y)-AREA_SIZE, ((int)sd.bl.x)+AREA_SIZE, ((int)sd.bl.y)+AREA_SIZE, BL_NPC, 
+//		RFIFOP(fd,4), strlen((char*)RFIFOP(fd,4)), &sd);
 
 	// Celest
 	if (pc_calc_base_job2 (sd.status.class_) == 23 ) {
@@ -8617,10 +8881,10 @@ int clif_parse_Emotion(int fd, struct map_session_data &sd)
 		// fix flood of emotion icon (ro-proxy): flood only the hacker player
 		if(sd.emotionlasttime >= time(NULL))
 		{
-			sd.emotionlasttime = time(NULL) + 2; // not more than 1 every 2 seconds (normal client is every 3-4 seconds)
+			sd.emotionlasttime = time(NULL) + 1; // not more than 1 every second (normal client is every 3-4 seconds)
 			return clif_skill_fail(sd, 1, 0, 1);
 		}
-		sd.emotionlasttime = time(NULL) + 2; // not more than 1 every 2 seconds (normal client is every 3-4 seconds)
+		sd.emotionlasttime = time(NULL) + 1; // not more than 1 every second (normal client is every 3-4 seconds)
 
 		WBUFW(buf,0) = 0xc0;
 		WBUFL(buf,2) = sd.bl.id;
@@ -8892,7 +9156,7 @@ int clif_parse_GMmessage(int fd, struct map_session_data &sd)
 
 	if( (battle_config.atc_gmonly == 0 || pc_isGM(sd)) &&
 	    pc_isGM(sd) >= get_atcommand_level(AtCommand_Broadcast) )
-		intif_GMmessage((char*)RFIFOP(fd,4), 0);
+		intif_GMmessage((char*)RFIFOP(fd,4),RFIFOW(fd,2)-4, 0);
 	return 0;
 }
 

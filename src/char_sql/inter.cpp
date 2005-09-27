@@ -343,7 +343,7 @@ int inter_sql_test (void)
 }
 
 // finalize
-int wis_db_final (void *k, void *data, va_list &ap) {
+int wis_db_final (void *k, void *data) {
 	struct WisData *p = (struct WisData *)data;
 	if (p) aFree(p);
 	return 0;
@@ -478,8 +478,8 @@ int mapif_send_gmaccounts()
 
 
 //--------------------------------------------------------
-
 // Existence check of WISP data
+/*
 int check_ttl_wisdata_sub(void *key, void *data, va_list &ap) {
 	unsigned long tick;
 	struct WisData *wd = (struct WisData *)data;
@@ -490,14 +490,29 @@ int check_ttl_wisdata_sub(void *key, void *data, va_list &ap) {
 
 	return 0;
 }
-
+*/
+class CDBttl_wisdata : public CDBProcessor
+{
+	unsigned long tick;
+public:
+	CDBttl_wisdata(unsigned long t) : tick(t)			{}
+	virtual ~CDBttl_wisdata()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct WisData *wd = (struct WisData *)data;
+		if( wd && DIFF_TICK(tick, wd->tick) > WISDATA_TTL && wis_delnum < WISDELLIST_MAX)
+			wis_dellist[wis_delnum++] = wd->id;
+		return true;
+	}
+};
 int check_ttl_wisdata() {
 	unsigned long tick = gettick();
 	int i;
 
 	do {
 		wis_delnum = 0;
-		numdb_foreach(wis_db, check_ttl_wisdata_sub, tick);
+		numdb_foreach(wis_db, CDBttl_wisdata(tick) );
+//		numdb_foreach(wis_db, check_ttl_wisdata_sub, tick);
 		for(i = 0; i < wis_delnum; i++) {
 			struct WisData *wd = (struct WisData*)numdb_search(wis_db, wis_dellist[i]);
 			ShowMessage("inter: wis data id=%d time out : from %s to %s\n", wd->id, wd->src, wd->dst);

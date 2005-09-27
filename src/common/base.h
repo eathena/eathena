@@ -4189,5 +4189,24 @@ public:
 };
 
 
+///////////////////////////////////////////////////////////////////////////////
+// modifies a value on a scope change (actually on object destruction)
+// removes the necessity of writing bunches of value settings before returns
+// on spagetti code like frequently found especially here
+///////////////////////////////////////////////////////////////////////////////
+template <class T> class TScopeChange
+{
+	T& val;
+	T  tar;
+public:
+	TScopeChange(T& v, const T&t) : val(v), tar(t)	{}
+	~TScopeChange()			{ val=tar; }
+	void disable()			{ tar = val; }
+	void set(const T& t)	{ tar = t; }
+};
+
+
+
+
 #endif//_BASE_H_
 

@@ -23,7 +23,7 @@ int party_send_xyhp_timer(int tid, unsigned long tick, int id, intptr data);
  * 終了
  *------------------------------------------
  */
-int party_db_final(void *key,void *data,va_list &ap)
+int party_db_final(void *key,void *data)
 {
 	aFree(data);
 	return 0;
@@ -49,6 +49,7 @@ struct party *party_search(uint32 party_id)
 {
 	return (struct party *)numdb_search(party_db,party_id);
 }
+/*
 int party_searchname_sub(void *key,void *data,va_list &ap)
 {
 	struct party *p=(struct party *)data,**dst;
@@ -59,11 +60,33 @@ int party_searchname_sub(void *key,void *data,va_list &ap)
 		*dst=p;
 	return 0;
 }
+*/
+class CDBPartySearchname : public CDBProcessor
+{
+	const char *str;
+	struct party*& dsp;
+public:
+	CDBPartySearchname(const char *s, struct party*& p) : str(s),dsp(p)	{}
+	virtual ~CDBPartySearchname()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct party *p=(struct party *)data;
+		if(strcasecmp(p->name,str)==0)
+		{
+			dsp=p;
+			// found -> stop db traverse
+			return false;
+		}
+		return true;
+	}
+
+};
 // パーティ名検索
 struct party* party_searchname(const char *str)
 {
 	struct party *p=NULL;
-	numdb_foreach(party_db,party_searchname_sub,str,&p);
+	numdb_foreach(party_db, CDBPartySearchname(str,p) );
+	//numdb_foreach(party_db,party_searchname_sub,str,&p);
 	return p;
 }
 // 作成要求
@@ -515,6 +538,7 @@ int party_check_conflict(struct map_session_data &sd)
 
 
 // 位置やＨＰ通知用
+/*
 int party_send_xyhp_timer_sub(void *key,void *data,va_list &ap)
 {
 	struct party *p=(struct party *)data;
@@ -546,10 +570,50 @@ int party_send_xyhp_timer_sub(void *key,void *data,va_list &ap)
 	}
 	return 0;
 }
+*/
+class CDBPartySendXYHP : public CDBProcessor
+{
+	unsigned long tick;
+public:
+	CDBPartySendXYHP(unsigned long t) : tick(t)	{}
+	virtual ~CDBPartySendXYHP()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct party *p=(struct party *)data;
+		int i;
+
+		nullpo_retr(true, p);
+
+		for(i=0;i<MAX_PARTY;i++)
+		{
+			struct map_session_data *sd=p->member[i].sd;
+			if(sd!=NULL)
+			{
+				// 座標通知
+				if(sd->party_x!=sd->bl.x || sd->party_y!=sd->bl.y)
+				{
+					clif_party_xy(*p,*sd);
+					if(sd->status.guild_id)
+						clif_guild_xy(*sd);
+					sd->party_x=sd->bl.x;
+					sd->party_y=sd->bl.y;
+				}
+				// ＨＰ通知
+				if(sd->party_hp!=sd->status.hp)
+				{
+					clif_party_hp(*p,*sd);
+					sd->party_hp=sd->status.hp;
+				}
+			}
+		}
+		return true;
+	}
+};
 // 位置やＨＰ通知
 int party_send_xyhp_timer(int tid, unsigned long tick, int id, intptr data)
 {
-	numdb_foreach(party_db,party_send_xyhp_timer_sub,tick);
+	numdb_foreach(party_db, CDBPartySendXYHP(tick) );
+//	numdb_foreach(party_db,party_send_xyhp_timer_sub,tick);
 	guild_send_xy(tick);
 	return 0;
 }
@@ -569,6 +633,7 @@ int party_send_xy_clear(struct party &p)
 	return 0;
 }
 // HP通知の必要性検査用（map_foreachinmoveareaから呼ばれる）
+/*
 int party_send_hp_check(struct block_list &bl,va_list &ap)
 {
 	uint32 party_id;
@@ -581,6 +646,17 @@ int party_send_hp_check(struct block_list &bl,va_list &ap)
 	
 	if(sd.status.party_id==party_id){
 		*flag=1;
+		sd.party_hp=-1;
+	}
+	return 0;
+}
+*/
+int CPartySendHP::process(struct block_list& bl) const
+{
+	struct map_session_data &sd = (struct map_session_data &)bl;
+	if(sd.status.party_id==party_id)
+	{
+		flag=1;
 		sd.party_hp=-1;
 	}
 	return 0;
@@ -701,54 +777,6 @@ int party_exp_share2(struct party &p, unsigned short map, uint32 base_exp, uint3
 		}
 	}
 	return 0;
-}
-
-// 同じマップのパーティメンバー全体に処理をかける
-// type==0 同じマップ
-//     !=0 画面内
-void party_foreachsamemap(int (*func)(struct block_list&,va_list &), struct map_session_data &sd, int type,...)
-{
-	struct party *p;
-	int x0,y0,x1,y1;
-	struct block_list *list[MAX_PARTY];
-	size_t i, blockcount=0;
-	
-	if((p=party_search(sd.status.party_id))==NULL)
-		return;
-
-	x0=sd.bl.x-AREA_SIZE;
-	y0=sd.bl.y-AREA_SIZE;
-	x1=sd.bl.x+AREA_SIZE;
-	y1=sd.bl.y+AREA_SIZE;
-
-	for(i=0;i<MAX_PARTY;i++)
-	{
-		struct party_member *m=&p->member[i];
-		if(m->sd!=NULL)
-		{
-			if(sd.bl.m != m->sd->bl.m)
-				continue;
-			if(type!=0 &&
-				(m->sd->bl.x<x0 || m->sd->bl.y<y0 ||
-				 m->sd->bl.x>x1 || m->sd->bl.y>y1 ) )
-				continue;
-			list[blockcount++]=&m->sd->bl; 
-		}
-	}
-
-	map_freeblock_lock();	// メモリからの解放を禁止する
-	for(i=0;i<blockcount;i++)
-	{
-		if(list[i] && list[i]->prev)	// 有効かどうかチェック
-		{
-			va_list ap;
-			va_start(ap,type);
-			func(*list[i],ap);
-			va_end(ap);
-		}
-	}
-	map_freeblock_unlock();	// 解放を許可する
-
 }
 
 int party_send_dot_remove(struct map_session_data &sd)

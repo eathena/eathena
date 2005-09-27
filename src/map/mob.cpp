@@ -160,13 +160,13 @@ int mob_once_spawn (struct map_session_data *sd, const char *mapname,
 			}
 		}
 	}
-	else if (x <= 0 || y <= 0 || map_getcell(m, x, y, CELL_CHKNOPASS))
+	else if (x <= 0 || y <= 0 || map_getcell(m, x, y, CELL_CHKNOPASS_NPC))
 	{
 		i = j = 0;
 		do {
 			x = rand() % (map[m].xs - 2) + 1;
 			y = rand() % (map[m].ys - 2) + 1;
-		} while ((i = map_getcell(m, x, y, CELL_CHKNOPASS)) && j++ < 64);
+		} while ((i = map_getcell(m, x, y, CELL_CHKNOPASS_NPC)) && j++ < 64);
 		if (i) {
 			ShowMessage("mob_once_spawn: ?? %i %i %p (%s,%s)\n", x,y,sd,mapname,event);
 			x = 0;
@@ -249,7 +249,7 @@ int mob_once_spawn_area(struct map_session_data *sd,const char *mapname,
 		do{
 			x=rand()%(x1-x0+1)+x0;
 			y=rand()%(y1-y0+1)+y0;
-		} while(map_getcell(m,x,y,CELL_CHKNOPASS) && (++j)<max);
+		} while(map_getcell(m,x,y,CELL_CHKNOPASS_NPC) && (++j)<max);
 
 		if(j>=max){
 			if(dx>=0){	// Since reference went wrong, the place which boiled before is used.
@@ -503,7 +503,11 @@ int mob_walk(struct mob_data &md, unsigned long tick, int data)
 		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
 
 		md.state.state=MS_WALK;
-		map_foreachinmovearea(clif_moboutsight,md.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,&md);
+		CMap::foreachinmovearea( CClifMobOutsight(md),
+			md.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC);
+//		map_foreachinmovearea(clif_moboutsight,
+//			md.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,
+//			&md);
 
 		x += dx;
 		y += dy;
@@ -516,8 +520,11 @@ int mob_walk(struct mob_data &md, unsigned long tick, int data)
 		md.bl.y = y;
 		if(moveblock) map_addblock(md.bl);
 		skill_unit_move(md.bl,tick,1);
-
-		map_foreachinmovearea(clif_mobinsight,md.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC,&md);
+		CMap::foreachinmovearea( CClifMobInsight(md),
+			md.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC);
+//		map_foreachinmovearea(clif_mobinsight,
+//			md.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC,
+//			&md);
 		md.state.state=MS_IDLE;
 
 		if(md.option&4)
@@ -652,6 +659,7 @@ int mob_attack(struct mob_data &md,unsigned long tick,int data)
  * The callback function of clif_foreachclient
  *------------------------------------------
  */
+ /*
 int mob_stopattacked(struct map_session_data &sd,va_list &ap)
 {
 	uint32 id;
@@ -662,6 +670,20 @@ int mob_stopattacked(struct map_session_data &sd,va_list &ap)
 		pc_stopattack(sd);
 	return 0;
 }
+*/
+class CClifMobStopattacked : public CClifProcessor
+{
+	uint32 id;
+public:
+	CClifMobStopattacked(uint32 i) : id(i)	{}
+	virtual ~CClifMobStopattacked()	{}
+	virtual bool process(struct map_session_data& sd) const
+	{
+		if(sd.attacktarget==id)
+			pc_stopattack(sd);
+		return 0;
+	}
+};
 /*==========================================
  * The timer in which the mob's states changes
  *------------------------------------------
@@ -710,7 +732,10 @@ int mob_changestate(struct mob_data &md,int state,int type)
 		md.state.skillstate=MSS_DEAD;
 		md.last_deadtime=gettick();
 		// Since it died, all aggressors' attack to this mob is stopped.
-		clif_foreachclient(mob_stopattacked,md.bl.id);
+
+		clif_foreachclient( CClifMobStopattacked(md.bl.id) );
+//		clif_foreachclient(mob_stopattacked,md.bl.id);
+
 		skill_unit_move(md.bl,gettick(),0);
 		status_change_clear(&md.bl,2);	// ステータス異常を解除する
 		skill_clear_unitgroup(&md.bl);	// 全てのスキルユニットグループを削除する
@@ -1011,7 +1036,7 @@ int mob_spawn(uint32 id)
 				y = md->cache->y0+rand()%(md->cache->ys+1)-md->cache->ys/2;
 			}
 			i++;
-		} while(map_getcell(md->bl.m,x,y,CELL_CHKNOPASS) && i < 50);
+		} while(map_getcell(md->bl.m,x,y,CELL_CHKNOPASS_NPC) && i < 50);
 
 		if (i >= 50) {
 			// retry again later
@@ -1222,6 +1247,7 @@ int mob_target(struct mob_data &md,struct block_list *bl,int dist)
  * The ?? routine of an active monster
  *------------------------------------------
  */
+/*
 int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list &ap)
 {
 	int mode,race,dist,*pcc;
@@ -1292,11 +1318,85 @@ int mob_ai_sub_hard_activesearch(struct block_list &bl,va_list &ap)
 	}
 	return 0;
 }
+*/
+class CMobAiHardActivesearch : public CMapProcessor
+{
+	struct mob_data &smd;
+public:
+	mutable int &pcc;
+	CMobAiHardActivesearch(struct mob_data &m, int &i) : smd(m), pcc(i)	{}
+	~CMobAiHardActivesearch()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		int mode,race,dist;
 
+		if(bl.type!=BL_PC && bl.type!=BL_MOB)
+			return 0;
+
+		//敵味方判定
+		if(battle_check_target(&smd.bl,&bl,BCT_ENEMY)<=0)
+			return 0;
+
+		if(!smd.mode)
+			mode=mob_db[smd.class_].mode;
+		else
+			mode=smd.mode;
+
+		// アクティブでターゲット射程内にいるなら、ロックする
+		if( mode&0x04 )
+		{
+			race=mob_db[smd.class_].race;
+		
+			if(bl.type==BL_PC)
+			{	//対象がPCの場合
+				struct map_session_data &tsd=(struct map_session_data &)bl;
+
+				if( !pc_isdead(tsd) &&
+					tsd.bl.m == smd.bl.m &&
+					tsd.invincible_timer == -1 &&
+					!pc_isinvisible(tsd) &&
+					!tsd.ScriptEngine.isRunning() &&
+					(dist=distance(smd.bl.x,smd.bl.y,tsd.bl.x,tsd.bl.y))<9 )
+				if( mode&0x20 ||
+					(tsd.sc_data[SC_TRICKDEAD].timer == -1 && tsd.sc_data[SC_BASILICA].timer == -1 &&
+					((!pc_ishiding(tsd) && !tsd.state.gangsterparadise) || ((race == 4 || race == 6 || mode&0x100) 
+					&& !tsd.state.perfect_hiding) )))
+				{	// 妨害がないか判定
+
+
+					if( ((mob_db[smd.class_].range > 6) || mob_can_reach(smd,bl,12)) && 	// 到達可能性判定
+						rand()%1000<1000/(++pcc) )	// 範囲内PCで等確率にする
+					{
+						smd.target_id=tsd.bl.id;
+						smd.state.targettype = ATTACKABLE;
+						smd.min_chase=13;
+					}
+				}
+			}
+			else if(bl.type==BL_MOB) 
+			{	//対象がMobの場合
+				struct mob_data &tmd=(struct mob_data &)bl;
+				if( tmd.bl.m == smd.bl.m &&
+					(dist=distance(smd.bl.x,smd.bl.y,tmd.bl.x,tmd.bl.y))<9 )
+				{
+					if( mob_can_reach(smd,bl,12) && 		// 到達可能性判定
+						rand()%1000<1000/(++pcc) )
+					{	// 範囲内で等確率にする
+						smd.target_id=bl.id;
+						smd.state.targettype = ATTACKABLE;
+						smd.min_chase=13;
+					}
+				}
+			}
+		}
+		return 0;
+	}
+};
 /*==========================================
  * loot monster item search
  *------------------------------------------
  */
+/*
 int mob_ai_sub_hard_lootsearch(struct block_list &bl,va_list &ap)
 {
 	struct mob_data* md;
@@ -1326,11 +1426,46 @@ int mob_ai_sub_hard_lootsearch(struct block_list &bl,va_list &ap)
 	}
 	return 0;
 }
+*/
+class CMobAiHardLootsearch : public CMapProcessor
+{
+	struct mob_data &md;
+public:
+	mutable int &itc;
+	CMobAiHardLootsearch(struct mob_data &m, int &i) : md(m), itc(i)	{}
+	~CMobAiHardLootsearch()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		int mode,dist;
 
+		if(!md.mode)
+			mode=mob_db[md.class_].mode;
+		else
+			mode=md.mode;
+
+		if( !md.target_id && mode&0x02)
+		{
+			if(!md.lootitem || (battle_config.monster_loot_type == 1 && md.lootitem_count >= LOOTITEM_SIZE) )
+				return 0;
+			if(bl.m == md.bl.m && (dist=distance(md.bl.x,md.bl.y,bl.x,bl.y))<9)
+			{	// Reachability judging
+				if( mob_can_reach(md, bl, 12) && 		
+					rand()%1000<1000/(++itc) )
+				{	// It is made a probability, such as within the limits PC.
+					md.target_id=bl.id;
+					md.state.targettype = NONE_ATTACKABLE;
+					md.min_chase=13;
+				}
+			}
+		}
+		return 0;
+	}
+};
 /*==========================================
  * The ?? routine of a link monster
  *------------------------------------------
  */
+/*
 int mob_ai_sub_hard_linksearch(struct block_list &bl,va_list &ap)
 {
 	struct mob_data &tmd = (struct mob_data &)bl;
@@ -1351,9 +1486,38 @@ int mob_ai_sub_hard_linksearch(struct block_list &bl,va_list &ap)
 			}
 		}
 	}
-
 	return 0;
 }
+*/
+class CMobAiHardLinksearch : public CMapProcessor
+{
+	struct mob_data& md;
+	struct block_list& target;
+public:
+	CMobAiHardLinksearch(struct mob_data& m, struct block_list& t)
+		: md(m), target(t)
+	{}
+	~CMobAiHardLinksearch()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &tmd = (struct mob_data &)bl;
+		if( bl.type==BL_MOB && 
+			md.attacked_id > 0 && mob_db[md.class_].mode&0x08)
+		{
+			if( tmd.class_ == md.class_ && tmd.bl.m == md.bl.m && (!tmd.target_id || md.state.targettype == NONE_ATTACKABLE))
+			{
+				if( mob_can_reach(tmd,target,12) )
+				{	// Reachability judging
+					tmd.target_id = md.attacked_id;
+					md.attacked_count = 0;
+					tmd.state.targettype = ATTACKABLE;
+					tmd.min_chase=13;
+				}
+			}
+		}
+		return 0;
+	}
+};
 /*==========================================
  * Processing of slave monsters
  *------------------------------------------
@@ -1570,6 +1734,7 @@ int mob_randomwalk(struct mob_data &md,unsigned long tick)
  * AI of MOB whose is near a Player
  *------------------------------------------
  */
+/*
 int mob_ai_sub_hard(struct block_list &bl,va_list &ap)
 {
 	struct mob_data &md = (struct mob_data&)bl;
@@ -1622,11 +1787,13 @@ int mob_ai_sub_hard(struct block_list &bl,va_list &ap)
 		struct map_session_data *asd = map_id2sd (md.attacked_id);
 		if( asd && !pc_isdead(*asd) && !pc_isinvisible(*asd) )
 		{
-			map_foreachinarea(mob_ai_sub_hard_linksearch, md.bl.m,
-				((int)md.bl.x)-AREA_SIZE, ((int)md.bl.y)-AREA_SIZE, 
-				((int)md.bl.x)+AREA_SIZE, ((int)md.bl.y)+AREA_SIZE,
-				BL_MOB, &md, &asd->bl);
-		} else //If the target is not reachable, unlock it. [Skotlex]
+			CMap::foreachinarea(CMobAiHardLinksearch(md, asd->bl),
+				md.bl.m, ((int)md.bl.x)-AREA_SIZE, ((int)md.bl.y)-AREA_SIZE, ((int)md.bl.x)+AREA_SIZE, ((int)md.bl.y)+AREA_SIZE, BL_MOB);
+//			map_foreachinarea(mob_ai_sub_hard_linksearch,
+//				md.bl.m, ((int)md.bl.x)-AREA_SIZE, ((int)md.bl.y)-AREA_SIZE, ((int)md.bl.x)+AREA_SIZE, ((int)md.bl.y)+AREA_SIZE, BL_MOB,
+//				&md, &asd->bl);
+		}
+		else //If the target is not reachable, unlock it. [Skotlex]
 			mob_unlocktarget(md, tick);
 	}
 	// It checks to see it was attacked first (if active, it is target change at 25% of probability).
@@ -1711,18 +1878,21 @@ int mob_ai_sub_hard(struct block_list &bl,va_list &ap)
 
 	// アクティヴモンスターの策敵 (?? of a bitter taste TIVU monster)
 	if((!md.target_id || md.state.targettype == NONE_ATTACKABLE) && (mode&0x04) && 
-		!md.state.master_check && battle_config.monster_active_enable) {
-		i = 0;
+		!md.state.master_check && battle_config.monster_active_enable)
+	{
 		search_size = (blind_flag) ? 3 : AREA_SIZE*2;
-		if (md.state.special_mob_ai)
-			map_foreachinarea (mob_ai_sub_hard_activesearch, md.bl.m,
-					((int)md.bl.x)-search_size, ((int)md.bl.y)-search_size,
-					((int)md.bl.x)+search_size, ((int)md.bl.y)+search_size,
-					0, &md, &i);
-		else map_foreachinarea(mob_ai_sub_hard_activesearch, md.bl.m,
-					((int)md.bl.x)-search_size,((int)md.bl.y)-search_size,
-					((int)md.bl.x)+search_size,((int)md.bl.y)+search_size,
-					BL_PC, &md, &i);
+		i=0;
+		CMap::foreachinarea( CMobAiHardActivesearch(md,i),
+			md.bl.m, ((int)md.bl.x)-search_size, ((int)md.bl.y)-search_size, ((int)md.bl.x)+search_size, ((int)md.bl.y)+search_size, (md.state.special_mob_ai)?0:BL_PC);
+
+//		if (md.state.special_mob_ai)
+//			map_foreachinarea(mob_ai_sub_hard_activesearch, 
+//				md.bl.m, ((int)md.bl.x)-search_size, ((int)md.bl.y)-search_size, ((int)md.bl.x)+search_size, ((int)md.bl.y)+search_size, 0,
+//				&md, &i);
+//		else 
+//			map_foreachinarea(mob_ai_sub_hard_activesearch, 
+//				md.bl.m, ((int)md.bl.x)-search_size, ((int)md.bl.y)-search_size, ((int)md.bl.x)+search_size, ((int)md.bl.y)+search_size, BL_PC,
+//				&md, &i);
 	}
 
 	// The item search of a loot monster
@@ -1730,12 +1900,12 @@ int mob_ai_sub_hard(struct block_list &bl,va_list &ap)
 	{
 		i = 0;
 		search_size = (blind_flag) ? 3 : AREA_SIZE*2;
-		map_foreachinarea (mob_ai_sub_hard_lootsearch, md.bl.m,
-					((int)md.bl.x)-search_size, ((int)md.bl.y)-search_size,
-					((int)md.bl.x)+search_size, ((int)md.bl.y)+search_size,
-					BL_ITEM, &md, &i);
+		CMap::foreachinarea( CMobAiHardLootsearch(md,i),
+			md.bl.m, ((int)md.bl.x)-search_size, ((int)md.bl.y)-search_size, ((int)md.bl.x)+search_size, ((int)md.bl.y)+search_size, BL_ITEM);
+//		map_foreachinarea (mob_ai_sub_hard_lootsearch, 
+//			md.bl.m, ((int)md.bl.x)-search_size, ((int)md.bl.y)-search_size, ((int)md.bl.x)+search_size, ((int)md.bl.y)+search_size, BL_ITEM,
+//			&md, &i);
 	}
-
 	// It will attack, if the candidate for an attack is.
 	if (md.target_id > 0)
 	{
@@ -1920,7 +2090,9 @@ int mob_ai_sub_hard(struct block_list &bl,va_list &ap)
 
 	// 歩行処理
 	if (mode & 1 && mob_can_move(md) &&	// 移動可能MOB&動ける状態にある
-		(md.master_id == 0 || /*md.state.special_mob_ai || */md.master_dist > 10))	//取り巻きMOBじゃない
+		(md.master_id == 0 || 
+		//md.state.special_mob_ai || 
+		md.master_dist > 10))	//取り巻きMOBじゃない
 	{
 		if(DIFF_TICK(md.next_walktime, tick) > 7000 &&
 			(md.walkpath.path_len == 0 || md.walkpath.path_pos >= md.walkpath.path_len))
@@ -1935,11 +2107,386 @@ int mob_ai_sub_hard(struct block_list &bl,va_list &ap)
 		md.state.skillstate = MSS_IDLE;
 	return 0;
 }
+*/
+class CMobAiHard : public CMapProcessor
+{
+	unsigned long tick;
+public:
+	CMobAiHard(unsigned long t) : tick(t)	{}
+	~CMobAiHard()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &md = (struct mob_data&)bl;
+		struct mob_data *tmd = NULL;
+		struct map_session_data *tsd = NULL;
+		struct block_list *tbl = NULL;
+		struct flooritem_data *fitem;
+		int i, dx, dy, ret, dist;
+		int attack_type = 0;
+		int mode, race;
+		int search_size = AREA_SIZE*2;
+		int blind_flag = 0;
 
+		if(bl.type!=BL_MOB)
+			return 0;
+
+		if( DIFF_TICK(tick, md.last_thinktime) < MIN_MOBTHINKTIME )
+			return 0;
+		md.last_thinktime = tick;
+
+		if (md.skilltimer != -1 || md.bl.prev == NULL ){	// Casting skill, or has died
+			if( DIFF_TICK (tick, md.next_walktime) > MIN_MOBTHINKTIME )
+				md.next_walktime = tick;
+			return 0;
+		}
+
+		// Abnormalities
+		if((md.opt1 > 0 && md.opt1 != 6) || md.state.state == MS_DELAY || md.sc_data[SC_BLADESTOP].timer != -1)
+			return 0;
+
+		if (md.sc_data && md.sc_data[SC_BLIND].timer != -1)
+			blind_flag = 1;
+
+		if (!md.mode)
+			mode = mob_db[md.class_].mode;
+		else
+			mode = md.mode;
+		race = mob_db[md.class_].race;	
+
+		if (!(mode & 0x80) && md.target_id > 0)
+			md.target_id = 0;
+
+		if( md.attacked_id > 0 && (mode&0x08) )
+		{	// Link monster
+			struct map_session_data *asd = map_id2sd (md.attacked_id);
+			if( asd && !pc_isdead(*asd) && !pc_isinvisible(*asd) )
+			{
+				CMap::foreachinarea(CMobAiHardLinksearch(md, asd->bl),
+					md.bl.m, ((int)md.bl.x)-AREA_SIZE, ((int)md.bl.y)-AREA_SIZE, ((int)md.bl.x)+AREA_SIZE, ((int)md.bl.y)+AREA_SIZE, BL_MOB);
+	//			map_foreachinarea(mob_ai_sub_hard_linksearch,
+	//				md.bl.m, ((int)md.bl.x)-AREA_SIZE, ((int)md.bl.y)-AREA_SIZE, ((int)md.bl.x)+AREA_SIZE, ((int)md.bl.y)+AREA_SIZE, BL_MOB,
+	//				&md, &asd->bl);
+			}
+			else //If the target is not reachable, unlock it. [Skotlex]
+				mob_unlocktarget(md, tick);
+		}
+		// It checks to see it was attacked first (if active, it is target change at 25% of probability).
+		if( mode>0 && 
+			md.attacked_id>0 && 
+			(!md.target_id || md.state.targettype == NONE_ATTACKABLE || ( (mode&0x04) && rand()%100<25)) )
+		{
+			struct block_list *abl = map_id2bl(md.attacked_id);
+			struct map_session_data *asd = NULL;
+			
+			if (abl)
+			{
+				dist = distance(md.bl.x, md.bl.y, abl->x, abl->y);
+
+				if (abl->type == BL_PC)
+					asd = (struct map_session_data *)abl;
+				
+				if (asd == NULL || md.bl.m != abl->m || abl->prev == NULL ||
+					dist>= 32 ||
+					battle_check_target(&bl, abl, BCT_ENEMY) <= 0 ||
+					!mob_can_reach(md, *abl, dist) )
+				{
+					md.attacked_id = 0;
+	//				if (md.attacked_count++ > 3) 
+	// waiting for 3 hits until checking if fleeing is an option is stupid of the mob
+					md.attacked_count++;
+					{
+						if( 0==mobskill_use(md, tick, MSC_RUDEATTACKED) && 
+							(mode&1) )
+						{
+							static const int mask[8][2] = {{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1},{1,0},{1,1}};
+							int dist = rand()%10 + 1;	//後退する距離
+							int dir = map_calc_dir(*abl, bl.x, bl.y);
+
+							if( mob_can_move(md) )
+							{
+								mob_walktoxy(md, md.bl.x + dist * mask[dir][0], md.bl.y + dist * mask[dir][1], 0);
+								md.next_walktime = tick + 200+rand()%600;
+							}
+							else
+							{	// mob is blocked, most likly by the damage delay time
+								//!! add something to enable
+								//!! the mob to flee away from the attacker
+								//!! possibly a new state together with additional transitions
+								md.to_x=md.bl.x + dist * mask[dir][0];
+								md.to_y=md.bl.y + dist * mask[dir][1];
+							}
+							md.attacked_count = 0;// move this away later
+						}
+					}
+				}
+				else if (blind_flag && dist > 2 && DIFF_TICK(tick,md.next_walktime) < 0) {
+					md.target_id = 0;
+					md.attacked_id = 0;
+					md.state.targettype = NONE_ATTACKABLE;
+					if (mode & 1 && mob_can_move(md)) {
+						dx = abl->x - md.bl.x;
+						dy = abl->y - md.bl.y;
+						md.next_walktime = tick + 1000;
+						ret = mob_walktoxy(md, md.bl.x+dx, md.bl.y+dy, 0);
+					}
+				}
+				else
+				{	//距離が遠い場合はタゲを変更しない
+					if (!md.target_id || dist< 3 ) {
+						md.target_id = md.attacked_id; // set target
+						md.state.targettype = ATTACKABLE;
+						attack_type = 1;
+						md.attacked_id = md.attacked_count = 0;
+						md.min_chase = dist + 13;
+						if (md.min_chase > 26)
+							md.min_chase = 26;
+					}
+				}
+			}
+		}
+
+		md.state.master_check = 0;
+		// Processing of slave monster
+		if(md.master_id > 0)// && md.state.special_mob_ai == 0)
+			mob_ai_sub_hard_slavemob(md, tick);
+
+		// アクティヴモンスターの策敵 (?? of a bitter taste TIVU monster)
+		if((!md.target_id || md.state.targettype == NONE_ATTACKABLE) && (mode&0x04) && 
+			!md.state.master_check && battle_config.monster_active_enable)
+		{
+			search_size = (blind_flag) ? 3 : AREA_SIZE*2;
+			i=0;
+			CMap::foreachinarea( CMobAiHardActivesearch(md,i),
+				md.bl.m, ((int)md.bl.x)-search_size, ((int)md.bl.y)-search_size, ((int)md.bl.x)+search_size, ((int)md.bl.y)+search_size, (md.state.special_mob_ai)?0:BL_PC);
+
+//			if (md.state.special_mob_ai)
+//				map_foreachinarea(mob_ai_sub_hard_activesearch, 
+//					md.bl.m, ((int)md.bl.x)-search_size, ((int)md.bl.y)-search_size, ((int)md.bl.x)+search_size, ((int)md.bl.y)+search_size, 0,
+//					&md, &i);
+//			else 
+//				map_foreachinarea(mob_ai_sub_hard_activesearch, 
+//					md.bl.m, ((int)md.bl.x)-search_size, ((int)md.bl.y)-search_size, ((int)md.bl.x)+search_size, ((int)md.bl.y)+search_size, BL_PC,
+//					&md, &i);
+		}
+
+		// The item search of a loot monster
+		if (!md.target_id && (mode&0x02) && !md.state.master_check)
+		{
+			i = 0;
+			search_size = (blind_flag) ? 3 : AREA_SIZE*2;
+			CMap::foreachinarea( CMobAiHardLootsearch(md,i),
+				md.bl.m, ((int)md.bl.x)-search_size, ((int)md.bl.y)-search_size, ((int)md.bl.x)+search_size, ((int)md.bl.y)+search_size, BL_ITEM);
+	//		map_foreachinarea (mob_ai_sub_hard_lootsearch, 
+	//			md.bl.m, ((int)md.bl.x)-search_size, ((int)md.bl.y)-search_size, ((int)md.bl.x)+search_size, ((int)md.bl.y)+search_size, BL_ITEM,
+	//			&md, &i);
+		}
+		// It will attack, if the candidate for an attack is.
+		if (md.target_id > 0)
+		{
+			if ((tbl = map_id2bl(md.target_id)))
+			{
+				if (tbl->type == BL_PC)
+					tsd = (struct map_session_data *)tbl;
+				else if(tbl->type == BL_MOB)
+					tmd = (struct mob_data *)tbl;
+
+				if(tsd || tmd)
+				{	// pc or mob
+					if( tbl->m != md.bl.m || tbl->prev == NULL || 
+						(dist = distance(md.bl.x, md.bl.y, tbl->x, tbl->y)) >= search_size || 
+						(tsd && pc_isdead(*tsd)) )
+					{
+						mob_unlocktarget(md,tick);	// 別マップか、視界外
+					}
+					else if (blind_flag && dist > 2 && DIFF_TICK(tick,md.next_walktime) < 0)
+					{
+						md.target_id = 0;
+						md.attacked_id = 0;
+						md.state.targettype = NONE_ATTACKABLE;
+						if (!(mode & 1) || !mob_can_move(md))
+							return 0;
+						dx = tbl->x - md.bl.x;
+						dy = tbl->y - md.bl.y;
+						md.next_walktime = tick + 800+rand()%400;
+						ret = mob_walktoxy(md, md.bl.x+dx, md.bl.y+dy, 0);
+					}
+					else if( tsd && !(mode & 0x20) &&
+						(tsd->sc_data[SC_TRICKDEAD].timer != -1 ||
+						tsd->sc_data[SC_BASILICA].timer != -1 ||
+						((pc_ishiding(*tsd) || tsd->state.gangsterparadise) &&
+						!((race == 4 || race == 6 || mode&0x100) && !tsd->state.perfect_hiding))))
+					{
+						mob_unlocktarget(md,tick);	// スキルなどによる策敵妨害
+					}
+					else if (!battle_check_range (&md.bl, tbl, mob_db[md.class_].range))
+					{	// 攻撃範囲外なので移動
+						if(!(mode & 1))
+						{	// 移動しないモード
+							mob_unlocktarget(md,tick);
+							return 0;
+						}
+						if (!mob_can_move(md))	// 動けない状態にある
+							return 0;
+						md.state.skillstate = MSS_CHASE;	// 突撃時スキル
+						mobskill_use (md, tick, -1);
+						if (md.timer != -1 && md.state.state != MS_ATTACK &&
+							(DIFF_TICK (md.next_walktime, tick) < 0 ||
+							distance(md.to_x, md.to_y, tbl->x, tbl->y) < 2))
+						{
+							return 0; // 既に移動中
+						}
+						search_size = (blind_flag) ? 3 : ((md.min_chase>13) ? md.min_chase : 13);
+						if (!mob_can_reach(md, *tbl, search_size))
+							mob_unlocktarget(md,tick);	// 移動できないのでタゲ解除（IWとか？）
+						else
+						{	// 追跡
+							md.next_walktime = tick + 200+rand()%600;
+							i = 0;
+							do
+							{
+								if (i == 0)
+								{	// 最初はAEGISと同じ方法で検索
+									dx = tbl->x - md.bl.x;
+									dy = tbl->y - md.bl.y;
+									if (dx < 0) dx++;
+									else if (dx > 0) dx--;
+									if (dy < 0) dy++;
+									else if (dy > 0) dy--;
+								}
+								else
+								{	// だめならAthena式(ランダム)
+									dx = tbl->x - md.bl.x + rand()%3 - 1;
+									dy = tbl->y - md.bl.y + rand()%3 - 1;
+								}
+								ret = mob_walktoxy(md, md.bl.x + dx, md.bl.y + dy, 0);
+								i++;
+							} while (ret && i < 5);
+
+							if (ret)
+							{	// 移動不可能な所からの攻撃なら2歩下る
+								if (dx < 0) dx = 2;
+								else if (dx > 0) dx = -2;
+								if (dy < 0) dy = 2;
+								else if (dy > 0) dy = -2;
+								mob_walktoxy (md, md.bl.x+dx, md.bl.y+dy, 0);
+							}
+						}
+					}
+					else
+					{	// 攻撃射程範囲内
+						md.state.skillstate = MSS_ATTACK;
+						if (md.state.state == MS_WALK)
+							mob_stop_walking(md, 1);	// 歩行中なら停止
+						if (md.state.state == MS_ATTACK)
+							return 0; // 既に攻撃中
+						mob_changestate(md, MS_ATTACK, attack_type);
+					}
+					return 0;
+				}
+				else
+				{	// other target types
+					// ルートモンスター処理
+					if (tbl == NULL || tbl->type != BL_ITEM || tbl->m != md.bl.m ||
+						(dist = distance(md.bl.x, md.bl.y, tbl->x, tbl->y)) >= md.min_chase || !md.lootitem ||
+						(blind_flag && dist >= 4))
+					{
+						 // 遠すぎるかアイテムがなくなった
+						mob_unlocktarget (md, tick);
+						if (md.state.state == MS_WALK)
+							mob_stop_walking(md,1);	// 歩行中なら停止
+					}
+					else if (dist)
+					{
+						if (!(mode & 1))
+						{	// 移動しないモード
+							mob_unlocktarget(md,tick);
+							return 0;
+						}
+						if (!mob_can_move(md))	// 動けない状態にある
+							return 0;
+						md.state.skillstate = MSS_LOOT;	// ルート時スキル使用
+						mobskill_use(md, tick, -1);
+						if( md.timer != -1 && md.state.state != MS_ATTACK &&
+							(DIFF_TICK(md.next_walktime,tick) < 0 ||
+							 distance(md.to_x, md.to_y, tbl->x, tbl->y) <= 0) )
+						{
+							return 0; // 既に移動中
+						}
+						md.next_walktime = tick + 500;
+						dx = tbl->x - md.bl.x;
+						dy = tbl->y - md.bl.y;
+						ret = mob_walktoxy(md, md.bl.x+dx, md.bl.y+dy, 0);
+						if (ret)
+							mob_unlocktarget(md, tick);// 移動できないのでタゲ解除（IWとか？）
+					}
+					else
+					{	// アイテムまでたどり着いた
+						if (md.state.state == MS_ATTACK)
+							return 0; // 攻撃中
+						if (md.state.state == MS_WALK)
+							mob_stop_walking(md,1);	// 歩行中なら停止
+						fitem = (struct flooritem_data *)tbl;
+						if(md.lootitem_count < LOOTITEM_SIZE)
+						{
+							memcpy (&md.lootitem[md.lootitem_count++], &fitem->item_data, sizeof(md.lootitem[0]));
+						}
+						else if (battle_config.monster_loot_type == 1 && md.lootitem_count >= LOOTITEM_SIZE)
+						{
+							mob_unlocktarget(md,tick);
+							return 0;
+						}
+						else
+						{
+							if (md.lootitem[0].card[0] == 0xff00)
+								intif_delete_petdata( MakeDWord(md.lootitem[0].card[1],md.lootitem[0].card[2]) );
+							for (i = 0; i < LOOTITEM_SIZE - 1; i++)
+								memcpy (&md.lootitem[i], &md.lootitem[i+1], sizeof(md.lootitem[0]));
+							memcpy (&md.lootitem[LOOTITEM_SIZE-1], &fitem->item_data, sizeof(md.lootitem[0]));
+						}
+						map_clearflooritem (tbl->id);
+						mob_unlocktarget (md,tick);
+					}
+					return 0;
+				}
+			}
+			else
+			{
+				mob_unlocktarget(md,tick);
+				if (md.state.state == MS_WALK)
+					mob_stop_walking(md,4);	// 歩行中なら停止
+				return 0;
+			}
+		}
+
+		// It is skill use at the time of /standby at the time of a walk. 
+		if( mobskill_use(md, tick, -1) )
+			return 0;
+
+		// 歩行処理
+		if (mode & 1 && mob_can_move(md) &&	// 移動可能MOB&動ける状態にある
+			(md.master_id == 0 || 
+			//md.state.special_mob_ai || 
+			md.master_dist > 10) )	//取り巻きMOBじゃない
+		{
+			if(DIFF_TICK(md.next_walktime, tick) > 7000 &&
+				(md.walkpath.path_len == 0 || md.walkpath.path_pos >= md.walkpath.path_len))
+				md.next_walktime = tick + 3000 * rand() % 2000;
+			// Random movement
+			if(mob_randomwalk(md,tick))
+				return 0;
+		}
+
+		// Since he has finished walking, it stands by.
+		if (md.walkpath.path_len == 0 || md.walkpath.path_pos >= md.walkpath.path_len)
+			md.state.skillstate = MSS_IDLE;
+		return 0;
+	}
+};
 /*==========================================
  * Serious processing for mob in PC field of view (foreachclient)
  *------------------------------------------
  */
+ /*
 int mob_ai_sub_foreachclient(struct map_session_data &sd,va_list &ap)
 {
 	unsigned long tick;
@@ -1947,21 +2494,36 @@ int mob_ai_sub_foreachclient(struct map_session_data &sd,va_list &ap)
 	nullpo_retr(0, ap);
 	tick=va_arg(ap,unsigned long);
 
-	map_foreachinarea(mob_ai_sub_hard,sd.bl.m,
-					  ((int)sd.bl.x)-AREA_SIZE*2,((int)sd.bl.y)-AREA_SIZE*2,
-					  ((int)sd.bl.x)+AREA_SIZE*2,((int)sd.bl.y)+AREA_SIZE*2,
-					  BL_MOB,tick);
+	CMap::foreachinarea( CMobAiHard(tick),
+		sd.bl.m, ((int)sd.bl.x)-AREA_SIZE*2,((int)sd.bl.y)-AREA_SIZE*2, ((int)sd.bl.x)+AREA_SIZE*2,((int)sd.bl.y)+AREA_SIZE*2, BL_MOB);
+
+//	map_foreachinarea(mob_ai_sub_hard,
+//		sd.bl.m, ((int)sd.bl.x)-AREA_SIZE*2,((int)sd.bl.y)-AREA_SIZE*2, ((int)sd.bl.x)+AREA_SIZE*2,((int)sd.bl.y)+AREA_SIZE*2, BL_MOB,
+//		tick);
 	return 0;
 }
-
+*/
+class CClifMobAi : public CClifProcessor
+{
+	unsigned long tick;
+public:
+	CClifMobAi(unsigned long t) : tick(t)	{}
+	virtual ~CClifMobAi()	{}
+	virtual bool process(struct map_session_data& sd) const
+	{
+		CMap::foreachinarea( CMobAiHard(tick),
+			sd.bl.m, ((int)sd.bl.x)-AREA_SIZE*2,((int)sd.bl.y)-AREA_SIZE*2, ((int)sd.bl.x)+AREA_SIZE*2,((int)sd.bl.y)+AREA_SIZE*2, BL_MOB);
+		return 0;
+	}
+};
 /*==========================================
  * Serious processing for mob in PC field of view   (interval timer function)
  *------------------------------------------
  */
 int mob_ai_hard(int tid, unsigned long tick, int id, intptr data)
 {
-	clif_foreachclient(mob_ai_sub_foreachclient,tick);
-
+	clif_foreachclient( CClifMobAi(tick) );
+//	clif_foreachclient(mob_ai_sub_foreachclient,tick);
 	return 0;
 }
 
@@ -1969,11 +2531,11 @@ int mob_ai_hard(int tid, unsigned long tick, int id, intptr data)
  * Negligent mode MOB AI (PC is not in near)
  *------------------------------------------
  */
-int mob_ai_sub_lazy(void *key,void *data, va_list &app)
+/*
+int mob_ai_sub_lazy(void *key,void *data, va_list &ap)
 {
 	struct mob_data *md=(struct mob_data *)data;
 	struct mob_data *mmd=NULL;
-	va_list ap;
 	unsigned long tick;
 
 	if(NULL==md)
@@ -1981,7 +2543,7 @@ int mob_ai_sub_lazy(void *key,void *data, va_list &app)
 		ShowError("md NULL pointer, key=%p\n", key);
 	}
 	nullpo_retr(0, md);
-	nullpo_retr(0, app);
+	nullpo_retr(0, ap);
 
 	if(md->bl.type!=BL_MOB)
 		return 0;
@@ -1991,7 +2553,6 @@ int mob_ai_sub_lazy(void *key,void *data, va_list &app)
 		if (mbl && mbl->type == BL_MOB) 
 			mmd = (struct mob_data *)mbl;	//自分のBOSSの情報
 	}
-	ap  =va_arg(app,va_list);
 	tick=va_arg(ap,unsigned long);
 
 	if(DIFF_TICK(tick,md->last_thinktime)<MIN_MOBTHINKTIME*10)
@@ -2036,6 +2597,75 @@ int mob_ai_sub_lazy(void *key,void *data, va_list &app)
 	}
 	return 0;
 }
+*/
+class CDBMobAiLazy : public CDBProcessor
+{
+	unsigned long tick;
+public:
+	CDBMobAiLazy(unsigned long t) : tick(t)	{}
+	virtual ~CDBMobAiLazy()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct mob_data *md=(struct mob_data *)data;
+		struct mob_data *mmd=NULL;
+
+		if(NULL==md)
+			ShowError("md NULL pointer, key=%p\n", key);
+
+		nullpo_retr(0, md);
+
+		if(md->bl.type!=BL_MOB)
+			return true;
+
+		if (md->master_id > 0) {
+			struct block_list *mbl = map_id2bl(md->master_id);
+			if (mbl && mbl->type == BL_MOB) 
+				mmd = (struct mob_data *)mbl;	//自分のBOSSの情報
+		}
+
+		if(DIFF_TICK(tick,md->last_thinktime)<MIN_MOBTHINKTIME*10)
+			return true;
+		md->last_thinktime=tick;
+
+		if(md->bl.prev==NULL || md->skilltimer!=-1){
+			if(DIFF_TICK(tick,md->next_walktime)>MIN_MOBTHINKTIME*10)
+				md->next_walktime=tick;
+			return true;
+		}
+
+		// 取り巻きモンスターの処理（呼び戻しされた時）
+		//if(mmd && md->state.special_mob_ai == 0 && mmd->state.recall_flag == 1) {
+		if(md->master_id > 0) {
+			mob_ai_sub_hard_slavemob (*md,tick);
+			return true;
+		}
+
+		if( DIFF_TICK(md->next_walktime,tick)<0 &&
+			(mob_db[md->class_].mode&1) && mob_can_move(*md) )
+		{
+			if( map[md->bl.m].users>0 )
+			{	// Since PC is in the same map, somewhat better negligent processing is carried out.
+				// It sometimes moves.
+				if(rand()%1000<MOB_LAZYMOVEPERC)
+					mob_randomwalk(*md,tick);
+
+				// MOB which is not not the summons MOB but BOSS, either sometimes reboils.
+				else if( rand()%1000<MOB_LAZYWARPPERC && md->master_id!=0 &&
+					mob_db[md->class_].mexp <= 0 && !(mob_db[md->class_].mode & 0x20))
+					mob_spawn(md->bl.id);
+			}
+			else
+			{	// Since PC is not even in the same map, suitable processing is carried out even if it takes.
+				// MOB which is not BOSS which is not Summons MOB, either -- a case -- sometimes -- leaping
+				if( rand()%1000<MOB_LAZYWARPPERC && md->master_id!=0 &&
+					mob_db[md->class_].mexp <= 0 && !(mob_db[md->class_].mode & 0x20))
+					mob_warp(*md,-1,-1,-1,-1);
+			}
+			md->next_walktime = tick+(unsigned long)rand()%10000+5000;
+		}
+		return true;
+	}
+};
 
 /*==========================================
  * Negligent processing for mob outside PC field of view   (interval timer function)
@@ -2043,7 +2673,8 @@ int mob_ai_sub_lazy(void *key,void *data, va_list &app)
  */
 int mob_ai_lazy(int tid, unsigned long tick, int id, intptr data)
 {
-	map_foreachiddb(mob_ai_sub_lazy, tick);
+	numdb_foreach(get_iddb(), CDBMobAiLazy(tick) );
+	//numdb_foreach(get_iddb(), mob_ai_sub_lazy, tick);
 	return 0;
 }
 
@@ -2249,6 +2880,7 @@ int mob_timer_delete(int tid, unsigned long tick, int id, intptr data)
  *
  *------------------------------------------
  */
+/*
 int mob_deleteslave_sub(struct block_list &bl,va_list &ap)
 {
 	struct mob_data &md = (struct mob_data &)bl;
@@ -2261,6 +2893,24 @@ int mob_deleteslave_sub(struct block_list &bl,va_list &ap)
 		mob_damage(md,md.hp,1,NULL);
 	return 0;
 }
+*/
+class CMobDeleteSlave : public CMapProcessor
+{
+	uint32 id;
+public:
+	CMobDeleteSlave(uint32 i) : id(i)	{}
+	~CMobDeleteSlave()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &md = (struct mob_data &)bl;
+		if(bl.type==BL_MOB && md.master_id == id )
+		{
+			mob_damage(md,md.hp,1,NULL);
+			return 1;
+		}
+		return 0;
+	}
+};
 /*==========================================
  *
  *------------------------------------------
@@ -2269,9 +2919,11 @@ int mob_deleteslave(struct mob_data &md)
 {
 	if( md.state.is_master )
 	{
-		map_foreachinarea(mob_deleteslave_sub, md.bl.m,
-			0,0,map[md.bl.m].xs-1,map[md.bl.m].ys-1,
-			BL_MOB, md.bl.id);
+		CMap::foreachinarea( CMobDeleteSlave(md.bl.id),
+			md.bl.m, 0,0,map[md.bl.m].xs-1,map[md.bl.m].ys-1, BL_MOB);
+//		map_foreachinarea(mob_deleteslave_sub, 
+//			md.bl.m, 0,0,map[md.bl.m].xs-1,map[md.bl.m].ys-1, BL_MOB, 
+//			md.bl.id);
 	}
 	return 0;
 }
@@ -2807,11 +3459,12 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 				char buf[1024];
 				struct item_data *i_data;
 				i_data = itemdb_exists(ditem->nameid);
+				size_t sz=1;
 				if (sd!=NULL && sd->status.name != NULL)
-					sprintf(buf, "'%s' won %s's %s (chance: %%%0.02f)", sd->status.name, mob_db[md.class_].jname, i_data->jname, (float)drop_rate/1000);
+					sz+=sprintf(buf, "'%s' won %s's %s (chance: %%%0.02f)", sd->status.name, mob_db[md.class_].jname, i_data->jname, (float)drop_rate/1000);
 				else
-					sprintf(buf, "GM won %s's %s (chance: %%%0.02f)", mob_db[md.class_].jname, i_data->jname, (float)drop_rate/1000);
-				intif_GMmessage(buf,0);
+					sz+=sprintf(buf, "GM won %s's %s (chance: %%%0.02f)", mob_db[md.class_].jname, i_data->jname, (float)drop_rate/1000);
+				intif_GMmessage(buf,sz,0);
 			}
 		}
 
@@ -2838,7 +3491,7 @@ int mob_damage(struct mob_data &md,int damage,int type,struct block_list *src)
 		if(sd && log_config.drop > 0 && drop_items) //we check were there any drops.. and if not - don't write the log
 			log_drop(*sd, md.class_, log_item); //mvp_sd
 
-		if(sd && sd->state.attack_type == BF_WEAPON) {
+		if(sd /*&& sd->state.attack_type == BF_WEAPON*/) {
 			int itemid = 0;
 			for (i = 0; i < sd->monster_drop_item_count; i++) {
 				struct delay_item_drop *ditem;
@@ -3126,6 +3779,7 @@ int mob_heal(struct mob_data &md,int heal)
  * Added by RoVeRT
  *------------------------------------------
  */
+/*
 int mob_warpslave_sub(struct block_list &bl,va_list &ap)
 {
 	struct mob_data &md=(struct mob_data &)bl;
@@ -3138,18 +3792,37 @@ int mob_warpslave_sub(struct block_list &bl,va_list &ap)
 	}
 	return 0;
 }
-
+*/
+class CMobWarpSlave : public CMapProcessor
+{
+	uint32 id;
+	ushort x;
+	ushort y;
+public:
+	CMobWarpSlave(uint32 i, ushort xx,  ushort yy) : id(i), x(xx), y(yy)	{}
+	~CMobWarpSlave()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &md=(struct mob_data &)bl;
+		if( bl.type==BL_MOB && md.master_id==id )
+		{
+			mob_warp(md,-1,x,y,2);
+			return 1;
+		}
+		return 0;
+	}
+};
 /*==========================================
  * Added by RoVeRT
  *------------------------------------------
  */
-int mob_warpslave(struct mob_data &md,int x, int y)
+int mob_warpslave(struct mob_data &md, int x, int y)
 {
-//ShowMessage("warp slave\n");
-	map_foreachinarea(mob_warpslave_sub, md.bl.m,
-		x-AREA_SIZE,y-AREA_SIZE,
-		x+AREA_SIZE,y+AREA_SIZE,BL_MOB,
-		md.bl.id, md.bl.x, md.bl.y );
+	CMap::foreachinarea( CMobWarpSlave(md.bl.id, md.bl.x, md.bl.y),
+		md.bl.m, ((int)x)-AREA_SIZE,((int)y)-AREA_SIZE, ((int)x)+AREA_SIZE,((int)y)+AREA_SIZE,BL_MOB);
+//	map_foreachinarea(mob_warpslave_sub, 
+//		md.bl.m, x-AREA_SIZE,y-AREA_SIZE, x+AREA_SIZE,y+AREA_SIZE,BL_MOB,
+//		md.bl.id, md.bl.x, md.bl.y );
 	return 0;
 }
 
@@ -3226,6 +3899,7 @@ int mob_warp(struct mob_data &md,int m,int x,int y,int type)
  * 画面内の取り巻きの数計算用(foreachinarea)
  *------------------------------------------
  */
+/*
 int mob_countslave_sub(struct block_list &bl,va_list &ap)
 {
 	uint32 id;
@@ -3241,17 +3915,32 @@ int mob_countslave_sub(struct block_list &bl,va_list &ap)
 		(*c)++;
 	return 0;
 }
+*/
+class CMobCountSlave : public CMapProcessor
+{
+	uint32 id;
+public:
+	CMobCountSlave(uint32 i) : id(i) {}
+	~CMobCountSlave()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &md = (struct mob_data &)bl;
+		return ( bl.type==BL_MOB && md.master_id==id );
+	}
+};
 /*==========================================
  * 画面内の取り巻きの数計算
  *------------------------------------------
  */
 unsigned int mob_countslave(struct mob_data &md)
 {
-	unsigned int c=0;
-	map_foreachinarea(mob_countslave_sub, md.bl.m,
-		0,0,map[md.bl.m].xs-1,map[md.bl.m].ys-1,
-		BL_MOB,md.bl.id,&c);
-	return c;
+	return CMap::foreachinarea( CMobCountSlave(md.bl.id),
+		md.bl.m, 0,0,map[md.bl.m].xs-1,map[md.bl.m].ys-1, BL_MOB);
+//	unsigned int c=0;
+//	map_foreachinarea(mob_countslave_sub, 
+//		md.bl.m, 0,0,map[md.bl.m].xs-1,map[md.bl.m].ys-1, BL_MOB,
+//		md.bl.id,&c);
+//	return c;
 }
 /*==========================================
  * 手下MOB召喚
@@ -3286,7 +3975,7 @@ int mob_summonslave(struct mob_data &md2, int *value, size_t amount, unsigned sh
 			do{
 				x=bx + rand()%15-7;
 				y=by + rand()%15-7;
-			}while( map_getcell(m,x,y,CELL_CHKNOPASS) && ((t++)<100));
+			}while( map_getcell(m,x,y,CELL_CHKNOPASS_NPC) && ((t++)<100));
 			if(t>=100){
 				x=bx;
 				y=by;
@@ -3723,6 +4412,7 @@ int mobskill_use_pos( struct mob_data *md, int skill_x, int skill_y, unsigned sh
  * Friendly Mob whose HP is decreasing by a nearby MOB is looked for.
  *------------------------------------------
  */
+/*
 int mob_getfriendhpltmaxrate_sub(struct block_list &bl,va_list &ap)
 {
 	int rate;
@@ -3742,14 +4432,37 @@ int mob_getfriendhpltmaxrate_sub(struct block_list &bl,va_list &ap)
 		(*fr) = &md;
 	return 0;
 }
+*/
+class CMobGetfriendhpltmaxrate : public CMapProcessor
+{
+	struct mob_data &mmd;
+	int rate;
+	struct mob_data *&fr;
+public:
+	CMobGetfriendhpltmaxrate(struct mob_data &m, int r, struct mob_data *f)
+		: mmd(m), rate(r), fr(f)
+	{}
+	~CMobGetfriendhpltmaxrate()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &md=(struct mob_data &)bl;
+		if( bl.type==BL_MOB && 
+			mmd.bl.id != bl.id &&
+			battle_check_target(&mmd.bl,&bl,BCT_ENEMY)<=0 &&
+			md.hp < md.max_hp * rate/100 )
+			fr = &md;
+		return 0;
+	}
+};
 struct mob_data *mob_getfriendhpltmaxrate(struct mob_data &md,int rate)
 {
 	struct mob_data *fr=NULL;
 	const int r=8;
-
-	map_foreachinarea(mob_getfriendhpltmaxrate_sub, md.bl.m,
-		((int)md.bl.x)-r ,((int)md.bl.y)-r, ((int)md.bl.x)+r, ((int)md.bl.y)+r,
-		BL_MOB, &md, rate, &fr);
+	CMap::foreachinarea( CMobGetfriendhpltmaxrate(md,rate,fr),
+		md.bl.m, ((int)md.bl.x)-r, ((int)md.bl.y)-r, ((int)md.bl.x)+r, ((int)md.bl.y)+r, BL_MOB);
+//	map_foreachinarea(mob_getfriendhpltmaxrate_sub, 
+//		md.bl.m, ((int)md.bl.x)-r, ((int)md.bl.y)-r, ((int)md.bl.x)+r, ((int)md.bl.y)+r, BL_MOB,
+//		&md, rate, &fr);
 	return fr;
 }
 /*==========================================
@@ -3770,6 +4483,7 @@ struct block_list *mob_getmasterhpltmaxrate(struct mob_data &md,int rate)
  * What a status state suits by nearby MOB is looked for.
  *------------------------------------------
  */
+/*
 int mob_getfriendstatus_sub(struct block_list &bl,va_list &ap)
 {
 	int cond1,cond2;
@@ -3799,14 +4513,51 @@ int mob_getfriendstatus_sub(struct block_list &bl,va_list &ap)
 
 	return 0;
 }
+*/
+class CMobGetfriendstatus : public CMapProcessor
+{
+	struct mob_data &mmd;
+	int cond1;
+	int cond2;
+	struct mob_data *&fr;
+public:
+	CMobGetfriendstatus(struct mob_data &m, int c1,int c2, struct mob_data *&f)
+		: mmd(m),cond1(c1),cond2(c2),fr(f)	{}
+	~CMobGetfriendstatus()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &md = (struct mob_data &)bl;
+		int flag=0;
+
+		if( bl.type==BL_MOB &&
+			mmd.bl.id != bl.id &&
+			battle_check_target(&mmd.bl,&bl,BCT_ENEMY)<=0)
+		{
+			if( cond2==-1 )
+			{
+				int j;
+				for(j=SC_STONE;j<=SC_BLIND && !flag;j++)
+					flag=(md.sc_data[j].timer!=-1 );
+			}
+			else
+				flag=( md.sc_data[cond2].timer!=-1 );
+			if( flag^( cond1==MSC_FRIENDSTATUSOFF ) )
+				fr = &md;
+		}
+		return 0;
+	}
+};
 struct mob_data *mob_getfriendstatus(struct mob_data &md,int cond1,int cond2)
 {
 	struct mob_data *fr=NULL;
 	const int r=8;
 
-	map_foreachinarea(mob_getfriendstatus_sub, md.bl.m,
-		((int)md.bl.x)-r ,((int)md.bl.y)-r, ((int)md.bl.x)+r, ((int)md.bl.y)+r,
-		BL_MOB,&md,cond1,cond2,&fr);
+	CMap::foreachinarea( CMobGetfriendstatus(md,cond1,cond2,fr),
+		md.bl.m, ((int)md.bl.x)-r ,((int)md.bl.y)-r, ((int)md.bl.x)+r, ((int)md.bl.y)+r, BL_MOB);
+
+//	map_foreachinarea(mob_getfriendstatus_sub, 
+//		md.bl.m, ((int)md.bl.x)-r ,((int)md.bl.y)-r, ((int)md.bl.x)+r, ((int)md.bl.y)+r, BL_MOB,
+//		&md,cond1,cond2,&fr);
 	return fr;
 }
 

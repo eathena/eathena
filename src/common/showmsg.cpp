@@ -80,7 +80,7 @@
 
 
 
-int	VPRINTF(const char *fmt, va_list &argptr)
+int	VPRINTF(const char *fmt, va_list argptr)
 {
 	static char		tempbuf[4096]; // initially using a static fixed buffer size 
 	static Mutex	mtx;
@@ -262,7 +262,7 @@ int	PRINTF(const char *fmt, ...)
 
 
 
-int _vShowMessage(enum msg_type flag, const char *string, va_list &ap)
+int _vShowMessage(enum msg_type flag, const char *string, va_list ap)
 {	// Return: 0 = Successful, 1 = Failed.
 	const char *prefix = "";
 

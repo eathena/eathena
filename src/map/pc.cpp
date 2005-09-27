@@ -2943,6 +2943,7 @@ int pc_item_refine(struct map_session_data &sd, unsigned short idx)
  * スティル品公開
  *------------------------------------------
  */
+/*
 int pc_show_steal(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data *sd;
@@ -2972,6 +2973,40 @@ int pc_show_steal(struct block_list &bl,va_list &ap)
 
 	return 0;
 }
+*/
+class CPcShowSteal : public CMapProcessor
+{
+	struct map_session_data& sd;
+	int itemid;
+	int type;
+public:
+	CPcShowSteal(struct map_session_data& s, int iid, int ty)
+		: sd(s), itemid(iid), type(ty)
+	{}
+	~CPcShowSteal()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct map_session_data& ssd = (struct map_session_data &)bl;
+		if( session_isActive(ssd.fd) )
+		{
+			char output[100];
+			if(!type)
+			{
+				struct item_data *item=itemdb_exists(itemid);
+				if(item==NULL)
+					snprintf(output, sizeof(output), "%s stole an Unknown_Item.", sd.status.name);
+				else
+					snprintf(output, sizeof(output), "%s stole %s.", sd.status.name,item->jname);
+			}
+			else
+			{
+				snprintf(output, sizeof(output), "%s has not stolen the item because of being overweight.",sd.status.name);
+			}
+			clif_displaymessage(ssd.fd, output);
+		}
+		return 0;
+	}
+};
 /*==========================================
  *
  *------------------------------------------
@@ -3019,13 +3054,15 @@ int pc_steal_item(struct map_session_data &sd,struct block_list *bl)
 							flag = pc_additem(sd,tmp_item,1);
 							if(battle_config.show_steal_in_same_party)
 							{
-								party_foreachsamemap(pc_show_steal,sd,1,&sd,tmp_item.nameid,0);
+								CMap::foreachpartymemberonmap( CPcShowSteal(sd,tmp_item.nameid,0), sd,1);
+//								party_foreachsamemap(pc_show_steal,sd,1,&sd,tmp_item.nameid,0);
 							}
 							if(flag)
 							{
 								if(battle_config.show_steal_in_same_party)
 								{
-									party_foreachsamemap(pc_show_steal,sd,1,&sd,tmp_item.nameid,1);
+									CMap::foreachpartymemberonmap( CPcShowSteal(sd,tmp_item.nameid,1), sd,1);
+//									party_foreachsamemap(pc_show_steal,sd,1,&sd,tmp_item.nameid,1);
 								}
 
 								clif_additem(sd,0,0,flag);
@@ -3326,7 +3363,7 @@ int pc_randomwarp(struct map_session_data &sd, int type)
 	do{
 		x=rand()%(map[m].xs-2)+1;
 		y=rand()%(map[m].ys-2)+1;
-	}while(map_getcell(m,x,y,CELL_CHKNOPASS) && (i++)<1000 );
+	}while(map_getcell(m,x,y,CELL_CHKNOPASS_NPC) && (i++)<1000 );
 
 	if (i < 1000)
 		pc_setpos(sd,map[m].mapname,x,y,type);
@@ -3482,7 +3519,12 @@ int pc_walk(int tid, unsigned long tick, int id, intptr data)
 		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
 
 		sd->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
-		map_foreachinmovearea(clif_pcoutsight,sd->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,0,sd);
+
+		CMap::foreachinmovearea( CClifPCOutsight(*sd),
+			sd->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,0);
+//		map_foreachinmovearea(clif_pcoutsight,
+//			sd->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,0,
+//			sd);
 		sd->walktimer = -1;	// set back so not to disturb future pc_stopwalking calls
 
 		x += dx;
@@ -3495,16 +3537,23 @@ int pc_walk(int tid, unsigned long tick, int id, intptr data)
 		skill_unit_move(sd->bl,tick,1);
 
 		sd->walktimer = 1;	// temporarily set (so that in clif_set007x the player will still appear as walking)
-		map_foreachinmovearea(clif_pcinsight,sd->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,0,sd);
+		CMap::foreachinmovearea( CClifPCInsight(*sd),
+			sd->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,0);
+//		map_foreachinmovearea(clif_pcinsight,
+//			sd->bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,0,
+//			sd);
 		sd->walktimer = -1;	// set back so not to disturb future pc_stop_walking calls
 
 		if (sd->status.party_id > 0) {	// パ?ティのＨＰ情報通知?査
 			struct party *p = party_search(sd->status.party_id);
 			if (p != NULL) {
 				int p_flag = 0;
-				map_foreachinmovearea (party_send_hp_check, sd->bl.m,
-					x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE,
-					-dx, -dy, BL_PC, sd->status.party_id, &p_flag);
+
+				CMap::foreachinmovearea(CPartySendHP(sd->status.party_id, p_flag),
+					sd->bl.m, x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE, -dx, -dy, BL_PC);
+//				map_foreachinmovearea (party_send_hp_check, 
+//					sd->bl.m, x-AREA_SIZE, y-AREA_SIZE, x+AREA_SIZE, y+AREA_SIZE, -dx, -dy, BL_PC,
+//					sd->status.party_id, &p_flag);
 				if (p_flag)
 					sd->party_hp = -1;
 			}
@@ -3620,11 +3669,15 @@ int pc_walktoxy (struct map_session_data &sd, unsigned short x,unsigned short y)
 				guildflag |= skill<<4;
 			if ((skill = guild_checkskill(*g, GD_CHARISMA)) > 0)
 				guildflag |= skill;
-				if (guildflag)
+
+			if (guildflag)
 			{
-				map_foreachinarea (skill_guildaura_sub, sd.bl.m,
-					((int)sd.bl.x)-2, ((int)sd.bl.y)-2, ((int)sd.bl.x)+2, ((int)sd.bl.y)+2, BL_PC,
-					sd.bl.id, sd.status.guild_id, &guildflag);
+	
+				CMap::foreachinarea( CSkillGuildaura(sd.bl.id, sd.status.guild_id, guildflag),
+					sd.bl.m,((int)sd.bl.x)-2, ((int)sd.bl.y)-2, ((int)sd.bl.x)+2, ((int)sd.bl.y)+2, BL_PC);
+//				map_foreachinarea (skill_guildaura_sub, 
+//					sd.bl.m,((int)sd.bl.x)-2, ((int)sd.bl.y)-2, ((int)sd.bl.x)+2, ((int)sd.bl.y)+2, BL_PC,
+//					sd.bl.id, sd.status.guild_id, &guildflag);
 			}
 		}
 	}
@@ -3712,7 +3765,11 @@ int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y)
 
 	moveblock = ( sd.bl.x/BLOCK_SIZE != x/BLOCK_SIZE || sd.bl.y/BLOCK_SIZE != y/BLOCK_SIZE);
 
-	map_foreachinmovearea(clif_pcoutsight,sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,dx,dy,0,&sd);
+	CMap::foreachinmovearea( CClifPCOutsight(sd),
+		sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,dx,dy,0);
+//	map_foreachinmovearea(clif_pcoutsight,
+//		sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,dx,dy,0,
+//		&sd);
 
 	skill_unit_move(sd.bl,tick,0);
 	if(moveblock) map_delblock(sd.bl);
@@ -3721,7 +3778,11 @@ int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y)
 	if(moveblock) map_addblock(sd.bl);
 	skill_unit_move(sd.bl,tick,1);
 
-	map_foreachinmovearea(clif_pcinsight,sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,-dx,-dy,0,&sd);
+	CMap::foreachinmovearea( CClifPCOutsight(sd),
+		sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,-dx,-dy,0);
+//	map_foreachinmovearea(clif_pcinsight,
+//		sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,-dx,-dy,0,
+//		&sd);
 
 	if(sd.status.party_id>0)
 	{	// パ?ティのＨＰ情報通知?査
@@ -3729,7 +3790,11 @@ int pc_movepos(struct map_session_data &sd, unsigned short x,unsigned short y)
 		if(p!=NULL)
 		{
 			int flag=0;
-			map_foreachinmovearea(party_send_hp_check,sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,-dx,-dy,BL_PC,sd.status.party_id, &flag);
+			CMap::foreachinmovearea( CPartySendHP(sd.status.party_id, flag),
+				sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,-dx,-dy,BL_PC);
+//			map_foreachinmovearea(party_send_hp_check,
+//				sd.bl.m,((int)sd.bl.x)-AREA_SIZE,((int)sd.bl.y)-AREA_SIZE,((int)sd.bl.x)+AREA_SIZE,((int)sd.bl.y)+AREA_SIZE,-dx,-dy,BL_PC,
+//				sd.status.party_id, &flag);
 			if(flag)
 				sd.party_hp=-1;
 		}
@@ -6660,6 +6725,7 @@ int pc_checkoversp(struct map_session_data &sd)
  * PVP順位計算用(foreachinarea)
  *------------------------------------------
  */
+/*
 int pc_calc_pvprank_sub(struct block_list &bl,va_list &ap)
 {
 	struct map_session_data *sd1,*sd2=NULL;
@@ -6673,23 +6739,42 @@ int pc_calc_pvprank_sub(struct block_list &bl,va_list &ap)
 		sd2->pvp_rank++;
 	return 0;
 }
+*/
+class CPcCalcPvprank : public CMapProcessor
+{
+	struct map_session_data &sd2;
+public:
+	CPcCalcPvprank(struct map_session_data &s) : sd2(s)	{}
+	~CPcCalcPvprank()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct map_session_data &sd1=(struct map_session_data &)bl;
+		if( bl.type==BL_PC && sd1.pvp_point > sd2.pvp_point )
+			sd2.pvp_rank++;
+		return 0;
+	}
+};
 /*==========================================
  * PVP順位計算
  *------------------------------------------
  */
 int pc_calc_pvprank(struct map_session_data &sd)
 {
-	uint32 old=sd.pvp_rank;
 	struct map_data &m=map[sd.bl.m];
+	if( (m.flag.pvp) )
+	{
+		uint32 old=sd.pvp_rank;
+		sd.pvp_rank=1;
 
-	if( !(m.flag.pvp) )
-		return 0;
-	sd.pvp_rank=1;
-	map_foreachinarea(pc_calc_pvprank_sub,sd.bl.m,0,0,m.xs-1,m.ys-1,BL_PC,&sd);
+		CMap::foreachinarea( CPcCalcPvprank(sd),
+			sd.bl.m,0,0,m.xs-1,m.ys-1,BL_PC);
+//		map_foreachinarea(pc_calc_pvprank_sub,sd.bl.m,0,0,m.xs-1,m.ys-1,BL_PC,&sd);
 
-	if(old!=sd.pvp_rank || sd.pvp_lastusers!=m.users)
-		clif_pvpset(sd,sd.pvp_rank,sd.pvp_lastusers=m.users,0);
-	return sd.pvp_rank;
+		if(old!=sd.pvp_rank || sd.pvp_lastusers!=m.users)
+			clif_pvpset(sd,sd.pvp_rank,sd.pvp_lastusers=m.users,0);
+		return sd.pvp_rank;
+	}
+	return 0;
 }
 /*==========================================
  * PVP順位計算(timer)
@@ -7208,7 +7293,7 @@ int pc_bleeding (struct map_session_data *sd)
  * HP/SP 自然回復 各クライアント
  *------------------------------------------
  */
-
+/*
 int pc_natural_heal_sub(struct map_session_data &sd,va_list &ap)
 {
 	int skill;
@@ -7252,7 +7337,53 @@ int pc_natural_heal_sub(struct map_session_data &sd,va_list &ap)
 
 	return 0;
 }
+*/
+class CClifpc_natural_heal : public CClifProcessor
+{
+	unsigned long tick;
+public:
+	CClifpc_natural_heal(unsigned long t) : tick(t)	{}
+	virtual ~CClifpc_natural_heal()	{}
+	virtual bool process(struct map_session_data& sd) const
+	{
+		int skill;
+		// -- moonsoul (if conditions below altered to disallow natural healing if under berserk status)
+		if((battle_config.natural_heal_weight_rate > 100 || sd.weight*100 < sd.max_weight * battle_config.natural_heal_weight_rate) &&
+			!pc_isdead(sd) &&
+			!pc_ishiding(sd) &&
+		//-- cannot regen for 5 minutes after using Berserk --- [Celest]
+			DIFF_TICK (tick, sd.canregen_tick)>=0 &&
+			(sd.sc_data && !(sd.sc_data[SC_POISON].timer != -1 && sd.sc_data[SC_SLOWPOISON].timer == -1) &&
+			sd.sc_data[SC_BERSERK].timer == -1 ))
+		{
+			pc_natural_heal_hp(&sd);
+			if( sd.sc_data && sd.sc_data[SC_EXTREMITYFIST].timer == -1 &&	//阿修羅?態ではSPが回復しない
+				sd.sc_data[SC_DANCING].timer == -1 && //ダンス?態ではSPが回復しない
+				sd.sc_data[SC_BERSERK].timer == -1 )   //バ?サ?ク?態ではSPが回復しない
+				pc_natural_heal_sp(&sd);
+			sd.canregen_tick = tick;
+		} else {
+			sd.hp_sub = sd.inchealhptick = 0;
+			sd.sp_sub = sd.inchealsptick = 0;
+		}
+		if((skill = pc_checkskill(sd,MO_SPIRITSRECOVERY)) > 0 && !pc_ishiding(sd) &&
+			sd.sc_data[SC_POISON].timer == -1 && sd.sc_data[SC_BERSERK].timer == -1){
+			pc_spirit_heal_hp(&sd);
+			pc_spirit_heal_sp(&sd);
+		}
+		else {
+			sd.inchealspirithptick = 0;
+			sd.inchealspiritsptick = 0;
+		}
+		if (sd.hp_loss_value > 0 || sd.sp_loss_value > 0)
+			pc_bleeding(&sd);
+		else
+			sd.hp_loss_tick = sd.sp_loss_tick = 0;
 
+		return 0;
+	}
+
+};
 /*==========================================
  * HP/SP自然回復 (interval timer??)
  *------------------------------------------
@@ -7261,7 +7392,9 @@ int pc_natural_heal(int tid, unsigned long tick, int id, intptr data)
 {
 	natural_heal_tick = tick;
 	natural_heal_diff_tick = DIFF_TICK(natural_heal_tick,natural_heal_prev_tick);
-	clif_foreachclient(pc_natural_heal_sub, tick);
+
+	clif_foreachclient( CClifpc_natural_heal(tick) );
+//	clif_foreachclient(pc_natural_heal_sub, tick);
 
 	natural_heal_prev_tick = tick;
 	return 0;
@@ -7286,7 +7419,7 @@ int pc_setsavepoint(struct map_session_data &sd,const char *mapname,unsigned sho
  *------------------------------------------
  */
 static int last_save_fd,save_flag;
-
+/*
 int pc_autosave_sub(struct map_session_data &sd,va_list &ap)
 {
 
@@ -7310,7 +7443,35 @@ int pc_autosave_sub(struct map_session_data &sd,va_list &ap)
 
 	return 0;
 }
+*/
+class CClifpc_autosave : public CClifProcessor
+{
+public:
+	CClifpc_autosave()	{}
+	virtual ~CClifpc_autosave()	{}
+	virtual bool process(struct map_session_data& sd) const
+	{
+		if(save_flag==0 && sd.fd>last_save_fd && !sd.state.waitingdisconnect)
+		{
+	//		if(battle_config.save_log)
+	//			ShowMessage("autosave %d\n",sd->fd);
+			// pet
+			if(sd.status.pet_id > 0 && sd.pd)
+				intif_save_petdata(sd.status.account_id,sd.pet);
+			pc_makesavestatus(sd);
+			chrif_save(sd);
+			storage_storage_dirty(sd);
+			storage_storage_save(sd);
+			if(sd.state.storage_flag)
+				storage_guild_storagesave(sd);
 
+			save_flag=1;
+			last_save_fd = sd.fd;
+		}
+
+		return 0;
+	}
+};
 /*==========================================
  * 自動セ?ブ (timer??)
  *------------------------------------------
@@ -7318,9 +7479,9 @@ int pc_autosave_sub(struct map_session_data &sd,va_list &ap)
 int pc_autosave(int tid, unsigned long tick, int id, intptr data)
 {
 	int interval;
-
 	save_flag=0;
-	clif_foreachclient(pc_autosave_sub);
+	clif_foreachclient( CClifpc_autosave() );
+//	clif_foreachclient(pc_autosave_sub);
 	if(save_flag==0)
 		last_save_fd=0;
 

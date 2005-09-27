@@ -116,6 +116,7 @@ int clif_guildstorageequiplist(struct map_session_data &sd,struct guild_storage 
 int clif_updateguildstorageamount(struct map_session_data &sd,struct guild_storage &stor);
 int clif_guildstorageitemadded(struct map_session_data &sd,struct guild_storage &stor,unsigned short index,uint32 amount);
 
+/*
 int clif_pcinsight(struct block_list &bl,va_list &ap);	// map_forallinmovearea callback
 int clif_pcoutsight(struct block_list &bl,va_list &ap);	// map_forallinmovearea callback
 int clif_mobinsight(struct block_list &bl,va_list &ap);	// map_forallinmovearea callback
@@ -124,6 +125,80 @@ int clif_petoutsight(struct block_list &bl,va_list &ap);
 int clif_petinsight(struct block_list &bl,va_list &ap);
 int clif_npcoutsight(struct block_list &bl,va_list &ap);
 int clif_npcinsight(struct block_list &bl,va_list &ap);
+*/
+class CClifPCInsight : public CMapProcessor
+{
+	struct map_session_data &sd;
+public:
+	CClifPCInsight(struct map_session_data &s):sd(s)	{}
+	~CClifPCInsight()	{}
+	virtual int process(struct block_list& bl) const;
+};
+class CClifPCOutsight : public CMapProcessor
+{
+	struct map_session_data &sd;
+public:
+	CClifPCOutsight(struct map_session_data &s):sd(s)	{}
+	~CClifPCOutsight()	{}
+	virtual int process(struct block_list& bl) const;
+};
+class CClifMobInsight : public CMapProcessor
+{
+	struct mob_data &md;
+public:
+	CClifMobInsight(struct mob_data &m):md(m)	{}
+	~CClifMobInsight()	{}
+	virtual int process(struct block_list& bl) const;
+};
+class CClifMobOutsight : public CMapProcessor
+{
+	struct mob_data &md;
+public:
+	CClifMobOutsight(struct mob_data &m):md(m)	{}
+	~CClifMobOutsight()	{}
+	virtual int process(struct block_list& bl) const;
+};
+class CClifPetInsight : public CMapProcessor
+{
+	struct pet_data &pd;
+public:
+	CClifPetInsight(struct pet_data &p):pd(p)	{}
+	~CClifPetInsight()	{}
+	virtual int process(struct block_list& bl) const;
+};
+class CClifPetOutsight : public CMapProcessor
+{
+	struct pet_data &pd;
+public:
+	CClifPetOutsight(struct pet_data &p):pd(p)	{}
+	~CClifPetOutsight()	{}
+	virtual int process(struct block_list& bl) const;
+};
+class CClifNpcInsight : public CMapProcessor
+{
+	struct npc_data &nd;
+public:
+	CClifNpcInsight(struct npc_data &n):nd(n)	{}
+	~CClifNpcInsight()	{}
+	virtual int process(struct block_list& bl) const;
+};
+class CClifNpcOutsight : public CMapProcessor
+{
+	struct npc_data &nd;
+public:
+	CClifNpcOutsight(struct npc_data &n):nd(n)	{}
+	~CClifNpcOutsight()	{}
+	virtual int process(struct block_list& bl) const;
+};
+
+
+
+
+
+
+
+
+
 
 int clif_class_change(struct block_list &bl,unsigned short class_,unsigned char type);
 int clif_mob_class_change(struct mob_data &md,unsigned short class_);
@@ -246,7 +321,7 @@ int clif_guild_xy_remove(struct map_session_data &sd);
 // atcommand
 int clif_displaymessage(int fd,const char* mes);
 int clif_disp_onlyself(struct map_session_data &sd,const char *mes);
-int clif_GMmessage(struct block_list *bl,const char* mes,int flag);
+int clif_GMmessage(struct block_list *bl,const char* mes, size_t len, int flag);
 int clif_heal(int fd,unsigned short type,unsigned short val);
 int clif_resurrection(struct block_list &bl,unsigned short type);
 int clif_set0199(int fd,unsigned short type);
@@ -282,7 +357,16 @@ int clif_GM_kick(struct map_session_data &sd,struct map_session_data &tsd,int ty
 int clif_GM_silence(struct map_session_data &sd,struct map_session_data &tsd,int type);
 int clif_timedout(struct map_session_data &sd);
 
-int clif_foreachclient(int (*)(struct map_session_data&,va_list &),...);
+
+class CClifProcessor : public noncopyable
+{
+public:
+	CClifProcessor()			{}
+	virtual ~CClifProcessor()	{}
+	virtual bool process(struct map_session_data& sd) const=0;
+};
+int clif_foreachclient(const CClifProcessor& elem);
+//int clif_foreachclient(int (*)(struct map_session_data&,va_list &),...);
 int clif_disp_overhead(struct map_session_data &sd, const char* mes);
 
 

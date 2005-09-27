@@ -28,6 +28,7 @@ struct Battle_Config battle_config;
  * 自分をロックしているMOBの?を?える(foreachclient)
  *------------------------------------------
  */
+/*
 int battle_counttargeted_sub(struct block_list &bl, va_list &ap)
 {
 	uint32 id;
@@ -65,6 +66,46 @@ int battle_counttargeted_sub(struct block_list &bl, va_list &ap)
 
 	return 0;
 }
+*/
+class CBattleCountTargeted : public CMapProcessor
+{
+	uint32 id;
+	struct block_list *src;
+	unsigned short target_lv;
+public:
+	mutable int c;
+
+	CBattleCountTargeted(uint32 i, struct block_list *s, unsigned short lv)
+		: id(i), src(s), target_lv(lv), c(0)
+	{}
+	~CBattleCountTargeted()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		if (id == bl.id || (src && id == src->id))
+			return 0;
+		if (bl.type == BL_PC)
+		{
+			struct map_session_data &sd = (struct map_session_data &)bl;
+			if(sd.attacktarget == id && sd.attacktimer != -1 && sd.attacktarget_lv >= target_lv)
+				c++;
+		}
+		else if (bl.type == BL_MOB)
+		{
+			struct mob_data &md = (struct mob_data &)bl;
+			if(md.target_id == id && md.timer != -1 && md.state.state == MS_ATTACK && md.target_lv >= target_lv)		
+				c++;
+			//ShowMessage("md->target_lv:%d, target_lv:%d\n", md->target_lv, target_lv);
+		}
+		else if (bl.type == BL_PET)
+		{
+			struct pet_data &pd = (struct pet_data &)bl;
+			if( pd.target_id == id && pd.timer != -1 && pd.state.state == MS_ATTACK && pd.target_lv >= target_lv)
+				c++;
+		}
+
+		return 0;
+	}
+};
 /*==========================================
  * 自分をロックしている対象の数を返す(汎用)
  * 戻りは整数で0以上
@@ -72,20 +113,22 @@ int battle_counttargeted_sub(struct block_list &bl, va_list &ap)
  */
 unsigned int battle_counttargeted(struct block_list &bl,struct block_list *src,  unsigned short target_lv)
 {
-	unsigned int c = 0;
-
-	map_foreachinarea(battle_counttargeted_sub, bl.m,
-		((int)bl.x)-AREA_SIZE, ((int)bl.y)-AREA_SIZE,
-		((int)bl.x)+AREA_SIZE, ((int)bl.y)+AREA_SIZE, 0,
-		bl.id, &c, src, target_lv);
-
-	return c;
+//	unsigned int c = 0;
+//	map_foreachinarea(battle_counttargeted_sub, 
+//		bl.m, ((int)bl.x)-AREA_SIZE, ((int)bl.y)-AREA_SIZE, ((int)bl.x)+AREA_SIZE, ((int)bl.y)+AREA_SIZE, 0,
+//		bl.id, &c, src, target_lv);
+//	return c;
+	CBattleCountTargeted bct(bl.id, src, target_lv);
+	CMap::foreachinarea( bct,
+		bl.m, ((int)bl.x)-AREA_SIZE, ((int)bl.y)-AREA_SIZE, ((int)bl.x)+AREA_SIZE, ((int)bl.y)+AREA_SIZE, 0);
+	return bct.c;
 }
 
 /*==========================================
  * Get random targetting enemy
  *------------------------------------------
  */
+/*
 int battle_gettargeted_sub(struct block_list &bl, va_list &ap)
 {
 	struct block_list **bl_list;
@@ -124,18 +167,66 @@ int battle_gettargeted_sub(struct block_list &bl, va_list &ap)
 	bl_list[(*c)++] = &bl;
 	return 0;
 }
+*/
+class CBattleGetTargeted : public CMapProcessor
+{
+	struct block_list &target;
+public:
+	mutable struct block_list *bl_list[32];
+	mutable int c;
+
+	CBattleGetTargeted(struct block_list &t) : target(t), c(0)	{}
+	~CBattleGetTargeted()	{}
+
+	virtual int process(struct block_list& bl) const
+	{
+		if (bl.id == target.id)
+			return 0;
+
+		if (c >= sizeof(bl_list)/sizeof(bl_list[0]))
+			return 0;
+
+		if (bl.type == BL_PC)
+		{
+			struct map_session_data &sd = (struct map_session_data &)bl;
+			if(sd.attacktarget != target.id || sd.attacktimer == -1)
+				return 0;
+		}
+		else if (bl.type == BL_MOB)
+		{
+			struct mob_data &md = (struct mob_data &)bl;
+			if(md.target_id != target.id || md.timer == -1 || md.state.state != MS_ATTACK)
+				return 0;
+		}
+		else if (bl.type == BL_PET)
+		{
+			struct pet_data &pd = (struct pet_data &)bl;
+			if(pd.target_id != target.id || pd.timer == -1 || pd.state.state != MS_ATTACK)
+				return 0;
+		}
+		bl_list[c++] = &bl;
+		return 0;
+	}
+};
 struct block_list* battle_gettargeted(struct block_list &target)
 {
-	struct block_list *bl_list[24];
-	int c = 0;
+//	struct block_list *bl_list[24];
+//	int c = 0;
+//	memset(bl_list, 0, sizeof(bl_list));
+//	map_foreachinarea(battle_gettargeted_sub, 
+//		target.m, ((int)target.x)-AREA_SIZE, ((int)target.y)-AREA_SIZE, ((int)target.x)+AREA_SIZE, ((int)target.y)+AREA_SIZE, 0,
+//		bl_list, &c, &target);
+//	if (c == 0 || c > 24)
+//		return NULL;
+//	return bl_list[rand()%c];
 
-	memset(bl_list, 0, sizeof(bl_list));
-	map_foreachinarea(battle_gettargeted_sub, target.m,
-		((int)target.x)-AREA_SIZE, ((int)target.y)-AREA_SIZE,
-		((int)target.x)+AREA_SIZE, ((int)target.y)+AREA_SIZE, 0, bl_list, &c, &target);
-	if (c == 0 || c > 24)
+	CBattleGetTargeted bgt(target);
+	CMap::foreachinarea( bgt,
+		target.m, ((int)target.x)-AREA_SIZE, ((int)target.y)-AREA_SIZE, ((int)target.x)+AREA_SIZE, ((int)target.y)+AREA_SIZE, 0);
+	if(bgt.c<1)
 		return NULL;
-	return bl_list[rand()%c];
+	else
+		return bgt.bl_list[rand()%bgt.c];
 }
 
 // ダメージの遅延
@@ -977,6 +1068,7 @@ static struct Damage battle_calc_pet_weapon_attack(
 			case CR_HOLYCROSS:	// ホーリークロス
 				damage = damage*(100+ 35*skill_lv)/100;
 				break;
+			case NPC_GRANDDARKNESS:
 			case CR_GRANDCROSS:
 				hitrate= 1000000;
 				break;
@@ -1176,10 +1268,10 @@ static struct Damage battle_calc_pet_weapon_attack(
 	if(t_mode&0x40 && damage > 0)
 		damage = 1;
 
-	if(is_boss(target))
+	if( is_boss(target) )
 		blewcount = 0;
 
-	if(skill_num != CR_GRANDCROSS)
+	if( skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS )
 		damage=battle_calc_damage(src,target,damage,div_,skill_num,skill_lv,flag);
 
 	wd.damage=damage;
@@ -1245,7 +1337,7 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 
 	if(skill_num == 0 || (target->type == BL_PC && battle_config.pc_auto_counter_type&2) ||
 		(target->type == BL_MOB && battle_config.monster_auto_counter_type&2)) {
-		if(skill_num != CR_GRANDCROSS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1) {
+		if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1) {
 			int dir = map_calc_dir(*src,target->x,target->y),t_dir = status_get_dir(target);
 			int dist = distance(src->x,src->y,target->x,target->y);
 			if(dist <= 0 || map_check_dir(dir,t_dir) ) {
@@ -1261,7 +1353,7 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 				return wd;
 			}
 			else ac_flag = 1;
-		} else if(skill_num != CR_GRANDCROSS && t_sc_data && t_sc_data[SC_POISONREACT].timer != -1) {   // poison react [Celest]
+		} else if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_POISONREACT].timer != -1) {   // poison react [Celest]
 			t_sc_data[SC_POISONREACT].val3 = 0;
 			t_sc_data[SC_POISONREACT].val4 = 1;
 			t_sc_data[SC_POISONREACT].val3 = src->id;
@@ -1508,6 +1600,7 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 			case CR_HOLYCROSS:	// ホーリークロス
 				damage = damage*(100+ 35*skill_lv)/100;
 				break;
+			case NPC_GRANDDARKNESS:
 			case CR_GRANDCROSS:
 				hitrate= 1000000;
 				break;
@@ -1762,7 +1855,7 @@ struct Damage battle_calc_mob_weapon_attack(struct block_list *src,struct block_
 	if( tsd && tsd->state.no_weapon_damage)
 		damage = 0;
 
-	if(skill_num != CR_GRANDCROSS)
+	if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS)
 		damage=battle_calc_damage(src,target,damage,div_,skill_num,skill_lv,flag);
 
 	wd.damage=damage;
@@ -1829,7 +1922,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 	opt2=status_get_opt2(src); //毒、呪い、沈黙、暗闇？
 	t_race2=status_get_race2(target);
 
-	if(skill_num != CR_GRANDCROSS) //グランドクロスでないなら
+	if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS) //グランドクロスでないなら
 		sd->state.attack_type = BF_WEAPON; //攻撃タイプは武器攻撃
 
 	// ターゲット
@@ -1846,7 +1939,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 //オートカウンター処理ここから
 	if(skill_num == 0 || (target->type == BL_PC && battle_config.pc_auto_counter_type&2) ||
 		(target->type == BL_MOB && battle_config.monster_auto_counter_type&2)) {
-		if(skill_num != CR_GRANDCROSS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1) { //グランドクロスでなく、対象がオートカウンター状態の場合
+		if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && t_sc_data && t_sc_data[SC_AUTOCOUNTER].timer != -1) { //グランドクロスでなく、対象がオートカウンター状態の場合
 			int dir = map_calc_dir(*src,target->x,target->y),t_dir = status_get_dir(target);
 			int dist = distance(src->x,src->y,target->x,target->y);
 			if(dist <= 0 || map_check_dir(dir,t_dir) ) { //対象との距離が0以下、または対象の正面？
@@ -1862,7 +1955,8 @@ static struct Damage battle_calc_pc_weapon_attack(
 				return wd; //ダメージ構造体を返して終了
 			}
 			else ac_flag = 1;
-		} else if(skill_num != CR_GRANDCROSS && t_sc_data && t_sc_data[SC_POISONREACT].timer != -1) {   // poison react [Celest]
+		} else if(skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS &&
+			t_sc_data && t_sc_data[SC_POISONREACT].timer != -1) {   // poison react [Celest]
 			t_sc_data[SC_POISONREACT].val3 = 0;
 			t_sc_data[SC_POISONREACT].val4 = 1;
 			t_sc_data[SC_POISONREACT].val3 = src->id;
@@ -2258,6 +2352,7 @@ static struct Damage battle_calc_pc_weapon_attack(
 			case CR_HOLYCROSS:	// ホーリークロス
 				damage_rate += 35*skill_lv;
 				break;
+			case NPC_GRANDDARKNESS:
 			case CR_GRANDCROSS:
 				hitrate= 1000000;
 				if(!battle_config.gx_cardfix)
@@ -2552,7 +2647,9 @@ static struct Damage battle_calc_pc_weapon_attack(
 
 	// スキル修正２（修練系）
 	// 修練ダメージ(右手のみ) ソニックブロー時は別処理（1撃に付き1/8適応)
-	if( skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST && skill_num != CR_GRANDCROSS) {			//修練ダメージ無視
+	if( skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST && 
+		skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS )
+	{	//修練ダメージ無視
 		damage = battle_addmastery(sd,target,damage,0);
 		damage2 = battle_addmastery(sd,target,damage2,1);
 	}
@@ -2826,10 +2923,13 @@ static struct Damage battle_calc_pc_weapon_attack(
 		blewcount = 0;
 
 	//bNoWeaponDamage(設定アイテム無し？)でグランドクロスじゃない場合はダメージが0
-	if( tsd && tsd->state.no_weapon_damage && skill_num != CR_GRANDCROSS)
+	if( tsd && tsd->state.no_weapon_damage && 
+		skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS )
 		damage = damage2 = 0;
 
-	if(skill_num != CR_GRANDCROSS && (damage > 0 || damage2 > 0) ) {
+	if( skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS && 
+		(damage > 0 || damage2 > 0) )
+	{
 		if(damage2<1)		// ダメージ最終修正
 			damage=battle_calc_damage(src,target,damage,div_,skill_num,skill_lv,flag);
 		else if(damage<1)	// 右手がミス？
@@ -2978,7 +3078,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 			return wd;
 	}
 
-	if(sd && skill_num != CR_GRANDCROSS)
+	if(sd && skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS)
 		sd->state.attack_type = BF_WEAPON;
 
 	//Set miscelanous data that needs be filled regardless of hit/miss
@@ -3016,6 +3116,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 			case ASC_BREAKER:
 			case PA_SHIELDCHAIN:
 			case AM_ACIDTERROR:
+			case NPC_GRANDDARKNESS:
 			case CR_GRANDCROSS:	//GrandCross really shouldn't count as short-range, aight?
 			case ITM_TOMAHAWK:	//Tomahawk is a ranged attack! [Skotlex]
 				wd.flag=(wd.flag&~BF_RANGEMASK)|BF_LONG;
@@ -3049,7 +3150,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 	}
 
 	//Check for counter 
-	if(skill_num != CR_GRANDCROSS &&
+	if( skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS &&
  		(!skill_num ||
 		(tsd && battle_config.pc_auto_counter_type&2) ||
 		(tmd && battle_config.monster_auto_counter_type&2)))
@@ -3206,6 +3307,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 		{
 			case NPC_GUIDEDATTACK:
 			case RG_BACKSTAP:
+			case NPC_GRANDDARKNESS:
 			case CR_GRANDCROSS:
 			case AM_ACIDTERROR:
 			case MO_INVESTIGATE:
@@ -3283,7 +3385,8 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 			flag.hit =1;
 	}	//End hit/miss calculation
 
-	if(tsd && tsd->state.no_weapon_damage && skill_num != CR_GRANDCROSS)	
+	if( tsd && tsd->state.no_weapon_damage && 
+		skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS)	
 		return wd;
 
 	if (flag.hit && !(t_mode&0x40)) //No need to do the math for plants
@@ -3581,6 +3684,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 				case CR_HOLYCROSS:
 					skillratio+= 35*skill_lv;
 					break;
+				case NPC_GRANDDARKNESS:
 				case CR_GRANDCROSS:
 					if(!battle_config.gx_cardfix)
 						flag.cardfix = 0;
@@ -3663,6 +3767,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 					break;
 				case ASC_METEORASSAULT:
 					skillratio+= 40*skill_lv-60;
+					flag.cardfix = 0;
 					break;
 				case SN_SHARPSHOOTING:
 					skillratio+= 100+50*skill_lv;
@@ -3850,7 +3955,8 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 		if (flag.rh && wd.damage < 1) wd.damage = 1;
 		if (flag.lh && wd.damage2 < 1) wd.damage2 = 1;
 
-		if (sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST && skill_num != CR_GRANDCROSS)
+		if( sd && skill_num != MO_INVESTIGATE && skill_num != MO_EXTREMITYFIST &&
+			skill_num != CR_GRANDCROSS && skill_num != NPC_GRANDDARKNESS)
 		{	//Add mastery damage
 			wd.damage = battle_addmastery(sd,target,wd.damage,0);
 			if (flag.lh) wd.damage2 = battle_addmastery(sd,target,wd.damage2,1);
@@ -4076,7 +4182,7 @@ struct Damage battle_calc_weapon_attack_sub(struct block_list *src,struct block_
 		}
 	}
 
-	if(skill_num != CR_GRANDCROSS && (wd.damage > 0 || wd.damage2 > 0) )
+	if( skill_num!=CR_GRANDCROSS && skill_num!=NPC_GRANDDARKNESS && (wd.damage > 0 || wd.damage2 > 0) )
 	{
 		if(wd.damage2<1)
 			wd.damage=battle_calc_damage(src,target,wd.damage,wd.div_,skill_num,skill_lv,wd.flag);
@@ -4486,7 +4592,8 @@ struct Damage battle_calc_magic_attack(struct block_list *bl,struct block_list *
 	if (!no_elefix)
 		damage=battle_attr_fix(damage, ele, status_get_element(target) );		// 属 性修正
 
-	if(skill_num == CR_GRANDCROSS) {	// グランドクロス
+	if(skill_num == CR_GRANDCROSS || skill_num == NPC_GRANDDARKNESS)
+	{	// グランドクロス
 		struct Damage wd;
 		wd=battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
 		damage = (damage + wd.damage) * (100 + 40*skill_lv)/100;

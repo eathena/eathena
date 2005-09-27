@@ -5,9 +5,8 @@
 #include "nullpo.h"
 #include "showmsg.h"
 
-#include "map.h"
-#include "status.h"
 #include "npc.h"
+#include "status.h"
 #include "chat.h"
 #include "script.h"
 #include "battle.h"
@@ -354,6 +353,7 @@ void npc_chat_finalize(struct npc_data *nd)
 /**
  * Handler called whenever a global message is spoken in a NPC's area
  */
+/*
 int npc_chat_sub(struct block_list &bl, va_list &ap)
 {
     struct npc_data &nd = (struct npc_data &)bl;
@@ -460,6 +460,106 @@ int npc_chat_sub(struct block_list &bl, va_list &ap)
     }
     return 0;
 }
+*/
+int CNpcChat::process(block_list &bl) const
+{
+    struct npc_data &nd = (struct npc_data &)bl;
+    struct npc_parse *npcParse = (struct npc_parse *)nd->chatdb;
+    int pos, i;
+    struct npc_label_list *lst;
+    struct pcrematch_set *pcreset;
+
+    // Not interested in anything you might have to say...
+    if (npcParse == NULL || npcParse->active_ == NULL)
+        return 0;
+
+    // grab the active list
+    pcreset = npcParse->active_;
+
+    // interate across all active sets
+    while (pcreset != NULL) {
+        struct pcrematch_entry *e = pcreset->head_;
+        // interate across all patterns in that set
+        while (e != NULL) {
+            int offsets[20];
+            char buf[255];
+            // perform pattern match
+            int r = pcre_exec(e->pcre_, e->pcre_extra_, msg, len, 0, 
+				0, offsets, sizeof(offsets) / sizeof(offsets[0]));
+            if (r >= 0) {
+                // save out the matched strings
+                switch (r) {
+                case 10:
+                    memcpy(buf, &msg[offsets[18]], offsets[19]);
+                    buf[offsets[19]] = '\0';
+                    set_var("$p9$", buf);
+                case 9:
+                    memcpy(buf, &msg[offsets[16]], offsets[17]);
+                    buf[offsets[17]] = '\0';
+                    set_var("$p8$", buf);
+                case 8:
+                    memcpy(buf, &msg[offsets[14]], offsets[15]);
+                    buf[offsets[15]] = '\0';
+                    set_var("$p7$", buf);
+                case 7:
+                    memcpy(buf, &msg[offsets[12]], offsets[13]);
+                    buf[offsets[13]] = '\0';
+                    set_var("$p6$", buf);
+                case 6:
+                    memcpy(buf, &msg[offsets[10]], offsets[11]);
+                    buf[offsets[11]] = '\0';
+                    set_var("$p5$", buf);
+                case 5:
+                    memcpy(buf, &msg[offsets[8]], offsets[9]);
+                    buf[offsets[9]] = '\0';
+                    set_var("$p4$", buf);
+                case 4:
+                    memcpy(buf, &msg[offsets[6]], offsets[7]);
+                    buf[offsets[7]] = '\0';
+                    set_var("$p3$", buf);
+                case 3:
+                    memcpy(buf, &msg[offsets[4]], offsets[5]);
+                    buf[offsets[5]] = '\0';
+                    set_var("$p2$", buf);
+                case 2:
+                    memcpy(buf, &msg[offsets[2]], offsets[3]);
+                    buf[offsets[3]] = '\0';
+                    set_var("$p1$", buf);
+                case 1:
+                    memcpy(buf, &msg[offsets[0]], offsets[1]);
+                    buf[offsets[1]] = '\0';
+                    set_var("$p0$", buf);
+                }
+
+                // find the target label.. this sucks..
+				if( nd->u.scr.ref )
+				{
+					pos = -1;
+					lst=nd.u.scr.ref->label_list;           
+					for (i = 0; i < nd.u.scr.ref->label_list_num; i++) {
+						if( strcmp(lst[i].labelname, e->label_ ) == 0) {
+							pos = lst[i].pos;
+							break;
+						}
+					}
+					if (pos == -1) {
+						// unable to find label... do something..
+						ShowMessage("Unable to find label: %s", e->label_);
+						
+					}
+					else
+					{	// run the npc script
+						CScriptEngine::run(nd.u.scr.ref->script,pos,sd.bl.id,nd.bl.id);
+					}
+				}
+                return 0;
+            }
+            e = e->next_;
+        }
+        pcreset = pcreset->next_;
+    }
+    return 0;
+}
 
 // Various script builtins used to support these functions
 int buildin_defpattern(CScriptEngine &st)
@@ -503,7 +603,9 @@ int buildin_deletepset(CScriptEngine &st)
 #else
 
 void npc_chat_finalize(struct npc_data *nd)			{}
-int npc_chat_sub(struct block_list &bl, va_list &ap){ return 0; }
+
+//int npc_chat_sub(struct block_list &bl, va_list &ap){ return 0; }
+int CNpcChat::process(block_list &bl) const			{ return 0; }
 int buildin_defpattern(CScriptEngine &st)			{ return 0; }
 int buildin_activatepset(CScriptEngine &st)			{ return 0; }
 int buildin_deactivatepset(CScriptEngine &st)		{ return 0; }

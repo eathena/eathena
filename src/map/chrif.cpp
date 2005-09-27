@@ -2,6 +2,10 @@
 #include "base.h"
 #include "socket.h"
 #include "timer.h"
+#include "nullpo.h"
+#include "utils.h"
+#include "showmsg.h"
+
 #include "map.h"
 #include "battle.h"
 #include "chrif.h"
@@ -9,67 +13,58 @@
 #include "intif.h"
 #include "npc.h"
 #include "pc.h"
-#include "nullpo.h"
-#include "utils.h"
-#include "showmsg.h"
-
-//Updated table (only doc^^) [Sirius]
-//Used Packets: U->2af8 
-//Free Packets: F->2af8 
+#include "status.h"
 
 static const int packet_len_table[0x3d] = {
-	60, 3,-1,27,22,-1, 6,-1,	// 2af8-2aff: U->2af8, U->2af9, U->2afa, U->2afb, U->2afc, U->2afd, U->2afe, U->2aff
-	 6,-1,18, 7,-1,49,44, 0,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, F->2b07
-	 6,30,-1,10,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, U->2b0a, U->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
-	-1,-1,10, 6,11,-1, 0, 0,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, U->2b15, U->2b16, U->2b17
-	-1,-1,-1,-1,-1,-1,-1, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, F->2b1c, F->2b1d, F->2b1e, U->2b1f
-	-1,-1,-1,-1,-1,-1,-1,-1,	// 2b20-2b27: U->2b20, F->2b21, F->2b22, F->2b23, F->2b24, F->2b25, F->2b26, F->2b27
+	70,	// 2af8: Outgoing, chrif_connect -> 'connect to charserver / auth @ charserver' 
+	 3,	// 2af9: Incomming, chrif_connectack -> 'awnser of the 2af8 login(ok / fail)' 
+	-1,	// 2afa: Outgoing, chrif_sendmap -> 'sending our maps'
+	27,	// 2afb: Incomming, chrif_sendmapack -> 'Maps recived successfully / or not ..'
+	22,	// 2afc: Outgoing, chrif_authreq -> 'validate the incomming client' ? (not sure)
+	-1,	// 2afd: Incomming, pc_authok -> 'ok awnser of the 2afc'
+	 6,	// 2afe: Incomming, pc_authfail -> 'fail awnser of the 2afc' ? (not sure)
+	-1,	// 2aff: Outgoing, send_users_tochar -> 'sends all actual connected charactersids to charserver'
+	 6,	// 2b00: Incomming, map_setusers -> 'set the actual usercount? PACKET.2B COUNT.L.. ?' (not sure)
+	-1,	// 2b01: Outgoing, chrif_save -> 'charsave of char XY account XY (complete struct)' 
+	18,	// 2b02: Outgoing, chrif_charselectreq -> 'player returns from ingame to charserver to select another char.., this packets includes sessid etc' ? (not 100% sure)
+	 7,	// 2b03: Incomming, clif_charselectok -> '' (i think its the packet after enterworld?) (not sure)
+	-1,	// 2b04: Incomming, chrif_recvmap -> 'getting maps from charserver of other mapserver's'
+	49,	// 2b05: Outgoing, chrif_changemapserver -> 'Tell the charserver the mapchange / quest for ok...' 
+	44,	// 2b06: Incomming, chrif_changemapserverack -> 'awnser of 2b05, ok/fail, data: dunno^^'
+	 0,	// 2b07: FREE
+	 6,	// 2b08: Outgoing, chrif_searchcharid -> '...'
+	30,	// 2b09: Incomming, map_addchariddb -> 'dunno^^'
+	-1,	// 2b0a: Outgoing, chrif_changegm -> 'level change of acc/char XY'
+	10,	// 2b0b: Incomming, chrif_changedgm -> 'awnser of 2b0a..'
+	86,	// 2b0c: Outgoing, chrif_changeemail -> 'change mail address ...'
+	 7,	// 2b0d: Incomming, chrif_changedsex -> 'Change sex of acc XY'
+	44,	// 2b0e: Outgoing, chrif_char_ask_name -> 'Do some operations (change sex, ban / unban etc)'
+	34,	// 2b0f: Incomming, chrif_char_ask_name_answer -> 'awnser of the 2b0e'
+	-1,	// 2b10: Outgoing, chrif_saveaccountreg2 -> dunno? (register an account??)
+	-1,	// 2b11: Outgoing, chrif_changesex -> 'change sex of acc X'
+	10,	// 2b12: Incomming, chrif_divorce -> 'divorce a wedding of charid X and partner id X'
+	 6,	// 2b13: Incomming, chrif_accountdeletion -> 'Delete acc XX, if the player is on, kick ....'
+	11,	// 2b14: Incomming, chrif_accountban -> 'not sure: kick the player with message XY'
+	-1,	// 2b15: Incomming, chrif_recvgmaccounts -> 'recive gm accs from charserver (seems to be incomplete !)'
+	 0,	// 2b16: Outgoing, chrif_ragsrvinfo -> 'sends motd / rates ....'
+	 0,	// 2b17: Outgoing, chrif_char_offline -> 'tell the charserver that the char is now offline'
+	-1,	// 2b18: Outgoing, chrif_char_reset_offline -> 'set all players OFF!'
+	-1,	// 2b19: Outgoing, chrif_char_online -> 'tell the charserver that the char .. is online'
+	-1,	// 2b1a: Outgoing, chrif_reqfamelist -> 'Request the fame list (top10)'
+	-1,	// 2b1b: Incomming, chrif_recvfamelist -> 'awnser of 2b1a ..... the famelist top10^^'
+	-1,	// 2b1c: FREE
+	-1,	// 2b1d: FREE
+	-1,	// 2b1e: FREE
+	 7,	// 2b1f: Incomming, chrif_disconnectplayer -> 'disconnects a player (aid X) with the message XY ... 0x81 ..' [Sirius]
+	-1,	// 2b20: Incomming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
+	-1,	// 2b21: Auth in/out (out not used)
+	-1,	// 2b22: SC in/out
+	-1,	// 2b23: FREE
+	-1,	// 2b24: FREE
+	-1,	// 2b25: FREE
+	-1,	// 2b26: FREE
+	-1,	// 2b27: FREE
 };
-
-//Used Packets:
-//2af8: Outgoing, chrif_connect -> 'connect to charserver / auth @ charserver' 
-//2af9: Incomming, chrif_connectack -> 'awnser of the 2af8 login(ok / fail)' 
-//2afa: Outgoing, chrif_sendmap -> 'sending our maps'
-//2afb: Incomming, chrif_sendmapack -> 'Maps recived successfully / or not ..'
-//2afc: Outgoing, chrif_authreq -> 'validate the incomming client' ? (not sure)
-//2afd: Incomming, pc_authok -> 'ok awnser of the 2afc'
-//2afe: Incomming, pc_authfail -> 'fail awnser of the 2afc' ? (not sure)
-//2aff: Outgoing, send_users_tochar -> 'sends all actual connected charactersids to charserver'
-//2b00: Incomming, map_setusers -> 'set the actual usercount? PACKET.2B COUNT.L.. ?' (not sure)
-//2b01: Outgoing, chrif_save -> 'charsave of char XY account XY (complete struct)' 
-//2b02: Outgoing, chrif_charselectreq -> 'player returns from ingame to charserver to select another char.., this packets includes sessid etc' ? (not 100% sure)
-//2b03: Incomming, clif_charselectok -> '' (i think its the packet after enterworld?) (not sure)
-//2b04: Incomming, chrif_recvmap -> 'getting maps from charserver of other mapserver's'
-//2b05: Outgoing, chrif_changemapserver -> 'Tell the charserver the mapchange / quest for ok...' 
-//2b06: Incomming, chrif_changemapserverack -> 'awnser of 2b05, ok/fail, data: dunno^^'
-//2b07: FREE
-//2b08: Outgoing, chrif_searchcharid -> '...'
-//2b09: Incomming, map_addchariddb -> 'dunno^^'
-//2b0a: Outgoing, chrif_changegm -> 'level change of acc/char XY'
-//2b0b: Incomming, chrif_changedgm -> 'awnser of 2b0a..'
-//2b0c: Outgoing, chrif_changeemail -> 'change mail address ...'
-//2b0d: Incomming, chrif_changedsex -> 'Change sex of acc XY'
-//2b0e: Outgoing, chrif_char_ask_name -> 'Do some operations (change sex, ban / unban etc)'
-//2b0f: Incomming, chrif_char_ask_name_answer -> 'awnser of the 2b0e'
-//2b10: Outgoing, chrif_saveaccountreg2 -> dunno? (register an account??)
-//2b11: Outgoing, chrif_changesex -> 'change sex of acc X'
-//2b12: Incomming, chrif_divorce -> 'divorce a wedding of charid X and partner id X'
-//2b13: Incomming, chrif_accountdeletion -> 'Delete acc XX, if the player is on, kick ....'
-//2b14: Incomming, chrif_accountban -> 'not sure: kick the player with message XY'
-//2b15: Incomming, chrif_recvgmaccounts -> 'recive gm accs from charserver (seems to be incomplete !)'
-//2b16: Outgoing, chrif_ragsrvinfo -> 'sends motd / rates ....'
-//2b17: Outgoing, chrif_char_offline -> 'tell the charserver that the char is now offline'
-//2b18: Outgoing, chrif_char_reset_offline -> 'set all players OFF!'
-//2b19: Outgoing, chrif_char_online -> 'tell the charserver that the char .. is online'
-//2b1a: Outgoing, chrif_reqfamelist -> 'Request the fame list (top10)'
-//2b1b: Incomming, chrif_recvfamelist -> 'awnser of 2b1a ..... the famelist top10^^'
-//2b1c: FREE
-//2b1d: FREE
-//2b1e: FREE
-//2b1f: Incomming, chrif_disconnectplayer -> 'disconnects a player (aid X) with the message XY ... 0x81 ..' [Sirius]
-//2b20: Incomming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
-//2b21-2b27: FREE
-
 
 
 TslistDST<CAuth> cAuthList;
@@ -283,28 +278,46 @@ int chrif_save_sc(struct map_session_data &sd)
 */			};
 	if( !session_isActive(char_fd) || !chrif_isconnect() )
 		return -1;
-	size_t i, p=12;
+	size_t i, cnt, p;
 	struct TimerData *td;
+	struct sc_data data;
 	unsigned long tick = gettick();
 
-
-	WFIFOB(char_fd,p)=0;	
-	for(i=0; i<MAX_STATUSCHANGE; i++)
+	for(i=0, cnt=0, p=14; i<MAX_STATUSCHANGE; i++)
 	{
 		if(sd.sc_data[i].timer != -1)
 		{
 			td = get_timer(sd.sc_data[i].timer);
-			if(td && tick > td->tick)
-				p += sprintf( (char*)WFIFOP(char_fd,p), "(%u,%lu)", i, (unsigned long)(tick-td->tick));
+			
+			if( td && td->func == status_change_timer &&
+				DIFF_TICK(td->tick, tick)>0 &&
+				!sd.sc_data[i].val1.isptr &&
+				!sd.sc_data[i].val2.isptr &&
+				!sd.sc_data[i].val3.isptr &&
+				!sd.sc_data[i].val4.isptr )
+			{
+				data.type = i;
+				data.val1 = sd.sc_data[i].val1.num;
+				data.val2 = sd.sc_data[i].val2.num;
+				data.val3 = sd.sc_data[i].val3.num;
+				data.val4 = sd.sc_data[i].val4.num;
+				data.tick = td->tick - tick; //Duration that is left before ending.
+				scdata_tobuffer(data, RFIFOP(char_fd,p));
+				p+=sizeof(struct sc_data);
+				cnt++;
+			}
 		}
 	}
-	WFIFOW(char_fd,0) = 0x2b22;
-	WFIFOW(char_fd,2) = p+1;
-	WFIFOL(char_fd,4) = sd.bl.id;
-	WFIFOL(char_fd,8) = sd.status.char_id;
-	WFIFOSET(char_fd, p+1);
+	WFIFOW(char_fd, 0) = 0x2b22;
+	WFIFOW(char_fd, 2) = p;
+	WFIFOL(char_fd, 4) = sd.bl.id;
+	WFIFOL(char_fd, 8) = sd.status.char_id;
+	WFIFOW(char_fd,12) = cnt;
+	WFIFOSET(char_fd, p);
+	
 	return 0;
 }
+
 int chrif_read_sc(int fd)
 {
 	if( !session_isActive(fd) || !chrif_isconnect() )
@@ -313,12 +326,19 @@ int chrif_read_sc(int fd)
 	struct map_session_data *sd = map_charid2sd( RFIFOL(fd,8) );
 	if(sd && sd->bl.id==RFIFOL(fd,4))
 	{
-		//char *p = (char *)RFIFOP(char_fd,12);
-		//"(%i,%i)"
-		//status_change_start(&sd->bl, type, ....
+		size_t i, p, count = RFIFOW(fd,12); //sc_count
+		struct sc_data data;
+		for (i=0, p=14; i<count; i++, p+=14+sizeof(struct sc_data))
+		{
+			scdata_frombuffer(data, RFIFOP(fd,p));
+			status_change_start(&sd->bl, data.type, data.val1, data.val2, data.val3, data.val4, data.tick, 3);
+			//Flag 3 is 1&2, 1: Force status start, 2: Do not modify the tick value sent.
+
+		}
 	}
 	return 0;
 }
+
 
 /*==========================================
  *
@@ -402,25 +422,18 @@ int chrif_recvmap(int fd)
 int chrif_removemap(int fd)
 {
 	int i, j;
-//	uint32 ip;
-//	unsigned short port;
-	
-
 	if( !session_isActive(fd) || !chrif_isconnect() )
 		return -1;
 	
-//	ip = RFIFOLIP(fd, 4);
-//	port = RFIFOW(fd, 8);
-
 	ipset mapset( RFIFOLIP(fd,4), RFIFOLIP(fd,8),RFIFOW(fd,12), RFIFOLIP(fd,14), RFIFOW(fd,18) );
+
 	for(i=20, j=0; i<RFIFOW(fd, 2); i+=16, j++)
 	{
 		map_eraseipport((char*)RFIFOP(fd, i), mapset);
 	}
 	if(battle_config.etc_log)
 		ShowStatus("remove maps of server %s (%d maps)\n", mapset.getstring(), j);
-	
-	
+
 	return 0;	
 }
 	
@@ -1489,7 +1502,6 @@ int chrif_parse(int fd)
 				cAuthList[pos]=auth;
 			else
 				cAuthList.insert(auth);
-
 			break;
 		}
 		case 0x2b22: chrif_read_sc(fd); break;

@@ -665,8 +665,7 @@ char *msg_table[MAX_MSG]; // Server messages (0-499 reserved for GM commands, 50
 //-----------------------------------------------------------
 const char *msg_txt(size_t msg_number)
 {
-	if(msg_number < MAX_MSG &&
-	    msg_table[msg_number] != NULL && 
+	if( msg_number < MAX_MSG &&
 		msg_table[msg_number][0] != '\0')
 		return msg_table[msg_number];
 	return "??";
@@ -691,7 +690,7 @@ bool msg_config_read(const char *cfgName)
 	{
 		memset(&msg_table[0], 0, sizeof(msg_table[0]) * MAX_MSG);
 		initialized=true;
-		}
+	}
 	while(fgets(line, sizeof(line), fp))
 	{
 		if( !skip_empty_line(line) )
@@ -701,7 +700,7 @@ bool msg_config_read(const char *cfgName)
 			if(strcasecmp(w1, "import") == 0)
 			{
 				msg_config_read(w2);
-	}
+			}
 			else
 			{
 				msg_number = atoi(w1);
@@ -920,27 +919,6 @@ AtCommandType is_atcommand(const int fd, struct map_session_data &sd, const char
 		return info.type;
 	}
 	return AtCommand_None;
-}
-
-
-/*==========================================
- *
- *------------------------------------------
- */
-int atkillmonster_sub(struct block_list &bl, va_list &ap)
-{
-	struct mob_data &md = (struct mob_data &)bl;
-	int flag;
-
-	nullpo_retr(0, ap);
-	flag = va_arg(ap, int);
-
-	if(flag)
-		mob_damage(md, md.hp, 2, NULL);
-	else
-		mob_remove_map(md,1);
-
-	return 0;
 }
 
 
@@ -2101,7 +2079,7 @@ bool atcommand_kami(int fd, struct map_session_data &sd, const char* command, co
 		return false;
 	}
 	sscanf(message, "%199[^\n]", output);
-	intif_GMmessage(output, (*(command + 5) == 'b') ? 0x10 : 0);
+	intif_GMmessage(output, 1+strlen(output), (command[5]=='b') ? 0x10 : 0);
 	return true;
 }
 
@@ -3260,6 +3238,40 @@ bool atcommand_monsterbig(int fd, struct map_session_data &sd, const char* comma
  *
  *------------------------------------------
  */
+/*
+int atkillmonster_sub(struct block_list &bl, va_list &ap)
+{
+	struct mob_data &md = (struct mob_data &)bl;
+	int flag;
+
+	nullpo_retr(0, ap);
+	flag = va_arg(ap, int);
+
+	if(flag)
+		mob_damage(md, md.hp, 2, NULL);
+	else
+		mob_remove_map(md,1);
+
+	return 0;
+}
+*/
+class CAtKillMonster : public CMapProcessor
+{
+	int flag;
+public:
+	CAtKillMonster(int f) : flag(f)	{}
+		~CAtKillMonster()			{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &md = (struct mob_data &)bl;
+		if(flag)
+			mob_damage(md, md.hp, 2, NULL);
+		else
+			mob_remove_map(md,1);
+		return 0;
+	}
+};
+
 bool atcommand_killmonster_sub(int fd, struct map_session_data &sd, const char* message, const int drop)
 {
 	int map_id;
@@ -3278,8 +3290,12 @@ bool atcommand_killmonster_sub(int fd, struct map_session_data &sd, const char* 
 
 	if(map_id>0 && map_id<(int)map_num)
 	{
-	map_foreachinarea(atkillmonster_sub, map_id, 0, 0, map[map_id].xs-1, map[map_id].ys-1, BL_MOB, drop);
-	clif_displaymessage(fd, msg_table[165]); // All monsters killed!
+		CMap::foreachinarea( CAtKillMonster(drop),
+			map_id, 0, 0, map[map_id].xs-1, map[map_id].ys-1, BL_MOB);
+//		map_foreachinarea(atkillmonster_sub, 
+//			map_id, 0, 0, map[map_id].xs-1, map[map_id].ys-1, BL_MOB,
+//			drop);
+		clif_displaymessage(fd, msg_table[165]); // All monsters killed!
 		return true;
 }
 	return false;
@@ -6368,8 +6384,8 @@ bool atcommand_broadcast(int fd, struct map_session_data &sd, const char* comman
 		return false;
 	}
 
-	sprintf(output, "%s : %s", sd.status.name, message);
-	intif_GMmessage(output, 0);
+	size_t sz=1+sprintf(output, "%s : %s", sd.status.name, message);
+	intif_GMmessage(output, sz,0);
 
 	return true;
 }
@@ -6388,9 +6404,8 @@ bool atcommand_localbroadcast(int fd, struct map_session_data &sd, const char* c
 		return false;
 	}
 
-	sprintf(output, "%s : %s", sd.status.name, message);
-
-	clif_GMmessage(&sd.bl, output, 1); // 1: ALL_SAMEMAP
+	size_t sz=1+sprintf(output, "%s : %s", sd.status.name, message);
+	clif_GMmessage(&sd.bl, output, sz, 1); // 1: ALL_SAMEMAP
 
 	return true;
 }
@@ -7578,6 +7593,7 @@ bool atcommand_sound(int fd, struct map_session_data &sd, const char *command, c
  * Mob search
  *------------------------------------------
  */
+/*
 int atmobsearch_sub(struct block_list &bl,va_list &ap)
 {
 	int mob_id,fd;
@@ -7599,6 +7615,27 @@ int atmobsearch_sub(struct block_list &bl,va_list &ap)
 	}
 	return 0;
 }
+*/
+class CAtMobSearch : public CMapProcessor
+{
+	int mob_id;
+	int fd;
+	mutable int number;
+	mutable char output[128];
+public:
+	CAtMobSearch(int m, int f) : mob_id(m), fd(f), number(0)	{}
+	~CAtMobSearch()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &md = (struct mob_data &)bl;
+		if( bl.type==BL_MOB && fd && (mob_id==-1 || (md.class_==mob_id)) )
+		{
+			snprintf(output, sizeof(output), "%2d[%3d:%3d] %s",++number,bl.x, bl.y,md.name);
+			clif_displaymessage(fd, output);
+		}
+		return 0;
+	}
+};
 
 bool atcommand_mobsearch(int fd, struct map_session_data& sd, const char* command, const char* message)
 {
@@ -7628,11 +7665,13 @@ bool atcommand_mobsearch(int fd, struct map_session_data& sd, const char* comman
 		mob_name, sd.mapname);
 	clif_displaymessage(fd, output);
 
-	map_foreachinarea(atmobsearch_sub, map_id, 0, 0,
-		map[map_id].xs-1, map[map_id].ys-1, BL_MOB, mob_id, fd);
-
-	va_list ap=NULL;
-	atmobsearch_sub(sd.bl,ap);		// 番号リセット
+	CMap::foreachinarea( CAtMobSearch(mob_id, fd),
+		map_id, 0, 0, map[map_id].xs-1, map[map_id].ys-1, BL_MOB);
+//	map_foreachinarea(atmobsearch_sub, 
+//		map_id, 0, 0, map[map_id].xs-1, map[map_id].ys-1, BL_MOB, 
+//		mob_id, fd);
+//	va_list ap=NULL;
+//	atmobsearch_sub(sd.bl,ap);		// 番号リセット
 
 	return true;
 }
@@ -7644,19 +7683,31 @@ bool atcommand_mobsearch(int fd, struct map_session_data& sd, const char* comman
  * cleanmap
  *------------------------------------------
  */
+/*
 int atcommand_cleanmap_sub(struct block_list &bl, va_list &ap)
 {
 	map_clearflooritem(bl.id);
 	return 0;
 }
-
+*/
+class CAtCleanMap : public CMapProcessor
+{
+public:
+	CAtCleanMap()	{}
+	~CAtCleanMap()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		map_clearflooritem(bl.id);
+		return 0;
+	}
+};
 
 bool atcommand_cleanmap(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
-	map_foreachinarea(atcommand_cleanmap_sub, sd.bl.m,
-		((int)sd.bl.x)-AREA_SIZE*2, ((int)sd.bl.y)-AREA_SIZE*2,
-		((int)sd.bl.x)+AREA_SIZE*2, ((int)sd.bl.y)+AREA_SIZE*2,
-		BL_ITEM);
+	CMap::foreachinarea( CAtCleanMap(),
+		sd.bl.m, ((int)sd.bl.x)-AREA_SIZE*2, ((int)sd.bl.y)-AREA_SIZE*2, ((int)sd.bl.x)+AREA_SIZE*2, ((int)sd.bl.y)+AREA_SIZE*2, BL_ITEM);
+//	map_foreachinarea(atcommand_cleanmap_sub, 
+//		sd.bl.m, ((int)sd.bl.x)-AREA_SIZE*2, ((int)sd.bl.y)-AREA_SIZE*2, ((int)sd.bl.x)+AREA_SIZE*2, ((int)sd.bl.y)+AREA_SIZE*2, BL_ITEM);
 	clif_displaymessage(fd, "All dropped items have been cleaned up.");
 	return true;
 }
@@ -7716,7 +7767,7 @@ bool atcommand_pettalk(int fd, struct map_session_data &sd, const char* command,
 
 static struct dbt *users_db;
 static int users_all;
-
+/*
 int atcommand_users_sub1(struct map_session_data &sd, va_list &va)
 {
 	size_t users = (size_t)strdb_search(users_db,sd.mapname) + 1;
@@ -7724,7 +7775,21 @@ int atcommand_users_sub1(struct map_session_data &sd, va_list &va)
 	strdb_insert(users_db,sd.mapname,(void *)users);
 	return 0;
 }
-
+*/
+class CClifAtUsers : public CClifProcessor
+{
+public:
+	CClifAtUsers()	{}
+	virtual ~CClifAtUsers()	{}
+	virtual bool process(struct map_session_data& sd) const
+	{
+		size_t users = (size_t)strdb_search(users_db,sd.mapname) + 1;
+		users_all++;
+		strdb_insert(users_db,sd.mapname,(void *)users);
+		return 0;
+	}
+};
+/*
 int atcommand_users_sub2(void* key,void* val,va_list &va)
 {
 	char buf[256];
@@ -7736,14 +7801,45 @@ int atcommand_users_sub2(void* key,void* val,va_list &va)
 	}
 	return 0;
 }
-
+*/
+class CDBAtUsers : public CDBProcessor
+{
+	struct map_session_data &sd;
+public:
+	CDBAtUsers(struct map_session_data &s) : sd(s)	{}
+	virtual ~CDBAtUsers()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		char buf[256];
+		snprintf(buf, sizeof(buf), "%s : %d (%d%%)",(char *)key,(ssize_t)data,(ssize_t)data * 100 / users_all);
+		clif_displaymessage(sd.fd, buf);
+		return true;
+	}
+};
+int atcommand_users_sub2(iterator iter, struct map_session_data& sd)
+{
+	char buf[256];
+	while(iter)
+	{
+		sprintf(buf,"%s : %d (%d%%)",(char *)iter.key(),(ssize_t)iter.data(),(ssize_t)iter.data()* 100 / users_all);
+		clif_displaymessage(sd.fd,buf);
+		iter++;
+	}
+	return 0;
+}
 bool atcommand_users(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	char buf[256];
 	users_all = 0;
 	users_db = strdb_init(24);
-	clif_foreachclient(atcommand_users_sub1);
-	strdb_foreach(users_db, atcommand_users_sub2, &sd);
+
+	clif_foreachclient( CClifAtUsers() );
+//	clif_foreachclient(atcommand_users_sub1);
+	
+	strdb_foreach(users_db, CDBAtUsers(sd) );
+//	atcommand_users_sub2( users_db, sd);
+//	strdb_foreach(users_db, atcommand_users_sub2, &sd);
+
 	sprintf(buf,"all : %d",users_all);
 	clif_displaymessage(fd,buf);
 	strdb_final(users_db,NULL);
@@ -8106,7 +8202,7 @@ bool atcommand_gmotd(int fd, struct map_session_data &sd, const char* command, c
 					break;
 				}
 			}
-			intif_GMmessage(buf,8);
+			intif_GMmessage(buf, i+1, 8);
 		}
 		fclose(fp);
 	}
@@ -8946,6 +9042,11 @@ bool atcommand_version(int fd, struct map_session_data &sd, const char* command,
 	return true;
 }
 
+/*==========================================
+ * @mutearea by MouseJstr
+ *------------------------------------------
+ */
+/*
 int atcommand_mutearea_sub(struct block_list &bl,va_list &ap)
 {
 	int time;
@@ -8962,13 +9063,32 @@ int atcommand_mutearea_sub(struct block_list &bl,va_list &ap)
 		if(sd.status.manner < 0)
 			status_change_start(&sd.bl,SC_NOCHAT,0,0,0,0,0,0);
 	}
-	return true;
+	return 0;
 }
-
-/*==========================================
- * @mutearea by MouseJstr
- *------------------------------------------
- */
+*/
+class CAtMuteArea : public CMapProcessor
+{
+	uint32 id;
+	int time;
+public:
+	CAtMuteArea(uint32 i, int t) : id(i), time(t)	{}
+	~CAtMuteArea()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		if(bl.type==BL_PC)
+		{
+			struct map_session_data &sd = (struct map_session_data &)bl;
+			if( id != bl.id && !pc_isGM(sd) )
+			{
+				sd.status.manner -= time;
+				if(sd.status.manner < 0)
+					status_change_start(&sd.bl,SC_NOCHAT,0,0,0,0,0,0);
+			}
+			return 0;
+		}
+		return 1;
+	}
+};
 bool atcommand_mutearea(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	int time;
@@ -8981,18 +9101,12 @@ bool atcommand_mutearea(int fd, struct map_session_data &sd, const char* command
 	time = atoi(message);
 	if (time <= 0)
 		time = 15; // 15 minutes default
-	map_foreachinarea(atcommand_mutearea_sub,sd.bl.m, 
-		((int)sd.bl.x)-AREA_SIZE, ((int)sd.bl.y)-AREA_SIZE, 
-		((int)sd.bl.x)+AREA_SIZE, ((int)sd.bl.y)+AREA_SIZE, BL_PC, sd.bl.id, time);
 
-	return true;
-}
-
-int atcommand_shuffle_sub(struct block_list &bl,va_list &ap)
-{
-	struct map_session_data &sd = (struct map_session_data &) bl;
-	if( bl.type==BL_PC && !pc_isGM(sd))
-		pc_setpos(sd, sd.mapname, rand() % 399 + 1, rand() % 399 + 1, 3);
+	CMap::foreachinarea( CAtMuteArea(sd.bl.id, time),
+		sd.bl.m,  ((int)sd.bl.x)-AREA_SIZE, ((int)sd.bl.y)-AREA_SIZE,  ((int)sd.bl.x)+AREA_SIZE, ((int)sd.bl.y)+AREA_SIZE, BL_PC);
+//	map_foreachinarea(atcommand_mutearea_sub,
+//		sd.bl.m,  ((int)sd.bl.x)-AREA_SIZE, ((int)sd.bl.y)-AREA_SIZE,  ((int)sd.bl.x)+AREA_SIZE, ((int)sd.bl.y)+AREA_SIZE, BL_PC, 
+//		sd.bl.id, time);
 	return true;
 }
 
@@ -9000,28 +9114,55 @@ int atcommand_shuffle_sub(struct block_list &bl,va_list &ap)
  * @shuffle by MouseJstr
  *------------------------------------------
  */
+/*
+int atcommand_shuffle_sub(struct block_list &bl,va_list &ap)
+{
+	struct map_session_data &sd = (struct map_session_data &) bl;
+	if( bl.type==BL_PC && !pc_isGM(sd))
+		pc_setpos(sd, sd.mapname, rand() % 399 + 1, rand() % 399 + 1, 3);
+	return 0;
+}
+*/
+class CAtShuffle : public CMapProcessor
+{
+public:
+	CAtShuffle()	{}
+	~CAtShuffle()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct map_session_data &sd = (struct map_session_data &) bl;
+		if( bl.type==BL_PC && !pc_isGM(sd))
+			pc_setpos(sd, sd.mapname, rand() % 399 + 1, rand() % 399 + 1, 3);
+		return 0;
+	}
+};
 bool atcommand_shuffle(int fd, struct map_session_data &sd, const char* command, const char* message)
 {
 	if (strcmp(message, "area")== 0)
 	{
-		map_foreachinarea(atcommand_shuffle_sub,sd.bl.m,
-			((int)sd.bl.x)-AREA_SIZE, ((int)sd.bl.y)-AREA_SIZE,
-			((int)sd.bl.x)+AREA_SIZE, ((int)sd.bl.y)+AREA_SIZE, BL_PC);
+		CMap::foreachinarea( CAtShuffle(),
+			sd.bl.m, ((int)sd.bl.x)-AREA_SIZE, ((int)sd.bl.y)-AREA_SIZE, ((int)sd.bl.x)+AREA_SIZE, ((int)sd.bl.y)+AREA_SIZE, BL_PC);
+//		map_foreachinarea(atcommand_shuffle_sub,
+//			sd.bl.m, ((int)sd.bl.x)-AREA_SIZE, ((int)sd.bl.y)-AREA_SIZE, ((int)sd.bl.x)+AREA_SIZE, ((int)sd.bl.y)+AREA_SIZE, BL_PC);
 	}
 	else if (strcmp(message, "map")== 0)
 	{
-		map_foreachinarea(atcommand_shuffle_sub,sd.bl.m,
-			0, 0, map[sd.bl.m].xs, map[sd.bl.m].ys, BL_PC);
+		CMap::foreachinarea( CAtShuffle(),
+			sd.bl.m, 0, 0, map[sd.bl.m].xs, map[sd.bl.m].ys, BL_PC);
+//		map_foreachinarea(atcommand_shuffle_sub,
+//			sd.bl.m, 0, 0, map[sd.bl.m].xs, map[sd.bl.m].ys, BL_PC);
 	}
 	else if (strcmp(message, "world") == 0)
 	{
 		struct map_session_data *pl_sd;
 		size_t i;
-		va_list ap=NULL;
+//		va_list ap=NULL;
+		CAtShuffle cs;
 		for (i = 0; i < fd_max; i++) 
-			if (session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) != NULL && pl_sd->state.auth)
+			if(session[i] && (pl_sd = (struct map_session_data *)session[i]->session_data) != NULL && pl_sd->state.auth)
 			{
-				atcommand_shuffle_sub(pl_sd->bl, ap);
+//				atcommand_shuffle_sub(pl_sd->bl, ap);
+				cs.process(pl_sd->bl);
 			}
 	}
 	else

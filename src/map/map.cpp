@@ -460,13 +460,13 @@ int map_count_oncell(unsigned short m, int x, int y, int type)
 /*
  * ｫｻｫ・ｾｪﾎｪﾋﾌｸｪﾄｪｱｪｿｫｹｫｭｫ・讚ﾋｫﾃｫﾈｪｹ
  */
-struct skill_unit *map_find_skill_unit_oncell(struct block_list *target,int x,int y,unsigned short skill_id,struct skill_unit *out_unit)
+struct skill_unit *map_find_skill_unit_oncell(struct block_list &target,int x,int y,unsigned short skill_id,struct skill_unit *out_unit)
 {
 	int m,bx,by;
 	struct block_list *bl;
 	int i,c;
 	struct skill_unit *unit;
-	m = target->m;
+	m = target.m;
 
 	if (x < 0 || y < 0 || (x >= map[m].xs) || (y >= map[m].ys))
 		return NULL;
@@ -482,7 +482,7 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list *target,int x,in
 		if (unit==out_unit || !unit->alive ||
 				!unit->group || unit->group->skill_id!=skill_id)
 			continue;
-		if (battle_check_target(&unit->bl,target,unit->group->target_flag)>0)
+		if (battle_check_target(&unit->bl,&target,unit->group->target_flag)>0)
 			return unit;
 	}
 	return NULL;
@@ -492,7 +492,7 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list *target,int x,in
 //////////////////////////////////////////////////////////////////////////
 
 
-int CMap::foreachinpath(const CMapElements& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,int type)
+int CMap::foreachinpath(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int range,int type)
 {
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
 /*
@@ -961,7 +961,7 @@ int CMap::foreachinpath(const CMapElements& elem, unsigned short m,int x0,int y0
 
 }
 
-int CMap::foreachincell(const CMapElements& elem, unsigned short m,int x,int y,int type)
+int CMap::foreachincell(const CMapProcessor& elem, unsigned short m,int x,int y,int type)
 {
 	int bx,by;
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
@@ -1012,7 +1012,7 @@ int CMap::foreachincell(const CMapElements& elem, unsigned short m,int x,int y,i
 	return returnCount;
 }
 
-int CMap::foreachinmovearea(const CMapElements& elem, unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type)
+int CMap::foreachinmovearea(const CMapProcessor& elem, unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type)
 {
 	int bx,by;
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
@@ -1117,7 +1117,7 @@ int CMap::foreachinmovearea(const CMapElements& elem, unsigned short m,int x0,in
 	return returnCount;
 }
 
-int CMap::foreachinarea(const CMapElements& elem, unsigned short m, int x0,int y0,int x1,int y1,int type)
+int CMap::foreachinarea(const CMapProcessor& elem, unsigned short m, int x0,int y0,int x1,int y1,int type)
 {
 	int bx,by;
 	int returnCount =0;	//total sum of returned values of func() [Skotlex]
@@ -1177,13 +1177,142 @@ int CMap::foreachinarea(const CMapElements& elem, unsigned short m, int x0,int y
 
 	return returnCount;	//[Skotlex]
 }
+int CMap::foreachpartymemberonmap(const CMapProcessor& elem, struct map_session_data &sd, int type)
+{
+	int returncount=0;
+	struct party *p;
+	int x0,y0,x1,y1;
+	struct block_list *list[MAX_PARTY];
+	size_t i, blockcount=0;
+	
+	if((p=party_search(sd.status.party_id))==NULL)
+		return 0;
 
+	x0=sd.bl.x-AREA_SIZE;
+	y0=sd.bl.y-AREA_SIZE;
+	x1=sd.bl.x+AREA_SIZE;
+	y1=sd.bl.y+AREA_SIZE;
+
+	for(i=0;i<MAX_PARTY;i++)
+	{
+		struct party_member *m=&p->member[i];
+		if(m->sd!=NULL)
+		{
+			if(sd.bl.m != m->sd->bl.m)
+				continue;
+			if(type!=0 &&
+				(m->sd->bl.x<x0 || m->sd->bl.y<y0 ||
+				 m->sd->bl.x>x1 || m->sd->bl.y>y1 ) )
+				continue;
+			list[blockcount++]=&m->sd->bl; 
+		}
+	}
+
+	map_freeblock_lock();	// メモリからの解放を禁止する
+	for(i=0;i<blockcount;i++)
+	{
+		if(list[i] && list[i]->prev)	// 有効かどうかチェック
+		{
+			returncount += elem.process(*list[i]);
+		}
+	}
+	map_freeblock_unlock();	// 解放を許可する
+	return returncount;
+}
+int CMap::foreachobject(const CMapProcessor& elem,int type)
+{
+	int returncount=0;
+	int i;
+	int blockcount=bl_list_count;
+
+	for(i=2;i<=last_object_id;i++)
+	{
+		if(objects[i])
+		{
+			if(type && objects[i]->type!=type)
+				continue;
+			if(bl_list_count>=BL_LIST_MAX)
+			{
+				if(battle_config.error_log)
+					ShowMessage("map_foreachobject: too many block !\n");
+			}
+			else
+				bl_list[bl_list_count++]=objects[i];
+		}
+	}
+
+	map_freeblock_lock();
+
+	for(i=blockcount;i<bl_list_count;i++)
+	{
+		if( bl_list[i]->prev || bl_list[i]->next )
+		{
+			returncount += elem.process(*bl_list[i]);
+		}
+	}
+	map_freeblock_unlock();
+	bl_list_count = blockcount;
+	return returncount;
+}
+
+
+
+// 同じマップのパーティメンバー全体に処理をかける
+// type==0 同じマップ
+//     !=0 画面内
+/*
+void party_foreachsamemap(int (*func)(struct block_list&,va_list &), struct map_session_data &sd, int type,...)
+{
+	struct party *p;
+	int x0,y0,x1,y1;
+	struct block_list *list[MAX_PARTY];
+	size_t i, blockcount=0;
+	
+	if((p=party_search(sd.status.party_id))==NULL)
+		return;
+
+	x0=sd.bl.x-AREA_SIZE;
+	y0=sd.bl.y-AREA_SIZE;
+	x1=sd.bl.x+AREA_SIZE;
+	y1=sd.bl.y+AREA_SIZE;
+
+	for(i=0;i<MAX_PARTY;i++)
+	{
+		struct party_member *m=&p->member[i];
+		if(m->sd!=NULL)
+		{
+			if(sd.bl.m != m->sd->bl.m)
+				continue;
+			if(type!=0 &&
+				(m->sd->bl.x<x0 || m->sd->bl.y<y0 ||
+				 m->sd->bl.x>x1 || m->sd->bl.y>y1 ) )
+				continue;
+			list[blockcount++]=&m->sd->bl; 
+		}
+	}
+
+	map_freeblock_lock();	// メモリからの解放を禁止する
+	for(i=0;i<blockcount;i++)
+	{
+		if(list[i] && list[i]->prev)	// 有効かどうかチェック
+		{
+			va_list ap;
+			va_start(ap,type);
+			func(*list[i],ap);
+			va_end(ap);
+		}
+	}
+	map_freeblock_unlock();	// 解放を許可する
+
+}
+*/
 /*==========================================
  * map m (x0,y0)-(x1,y1)?の全objに?して
  * funcを呼ぶ
  * type!=0 ならその種類のみ
  *------------------------------------------
  */
+/*
 int map_foreachinarea(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int type,...)
 {
 	
@@ -1250,7 +1379,7 @@ int map_foreachinarea(int (*func)(struct block_list&,va_list &),unsigned short m
 	bl_list_count = blockcount;
 	return returnCount;	//[Skotlex]
 }
-
+*/
 /*==========================================
  * 矩形(x0,y0)-(x1,y1)が(dx,dy)移動した暫ﾌ
  * 領域外になる領域(矩形かL字形)?のobjに
@@ -1259,6 +1388,7 @@ int map_foreachinarea(int (*func)(struct block_list&,va_list &),unsigned short m
  * dx,dyは-1,0,1のみとする（どんな値でもいいっぽい？）
  *------------------------------------------
  */
+/*
 int map_foreachinmovearea(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int dx,int dy,int type,...)
 {
 	int bx,by;
@@ -1366,11 +1496,12 @@ int map_foreachinmovearea(int (*func)(struct block_list&,va_list &),unsigned sho
 	bl_list_count = blockcount;
 	return returnCount;
 }
-
+*/
 // -- moonsoul	(added map_foreachincell which is a rework of map_foreachinarea but
 //			 which only checks the exact single x/y passed to it rather than an
 //			 area radius - may be more useful in some instances)
 //
+/*
 int map_foreachincell(int (*func)(struct block_list&,va_list &),unsigned short m,int x,int y,int type,...)
 {
 	int bx,by;
@@ -1426,11 +1557,12 @@ int map_foreachincell(int (*func)(struct block_list&,va_list &),unsigned short m
 	bl_list_count = blockcount;
 	return returnCount;
 }
-
+*/
 /*============================================================
 * For checking a path between two points (x0, y0) and (x1, y1)
 *------------------------------------------------------------
  */
+ /*
 int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m,int x0,int y0,int x1,int y1,int range,int type,...)
 {
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
@@ -1761,7 +1893,7 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 	map_freeblock_unlock();	// 解放を許可する
 	bl_list_count = blockcount;
 */
-
+/*
 //////////////////////////////////////////////////////////////
 //
 // sharp shooting 2 version 2
@@ -1906,10 +2038,50 @@ int map_foreachinpath(int (*func)(struct block_list&,va_list &),unsigned short m
 	bl_list_count = blockcount;
 
 	return returnCount;
-
 }
+*/
+/*==========================================
+ * 全一三bj相手にfuncを呼ぶ
+ *
+ *------------------------------------------
+ */
+/*
+void map_foreachobject(int (*func)(struct block_list*,va_list &),int type,...)
+{
+	int i;
+	int blockcount=bl_list_count;
 
+	for(i=2;i<=last_object_id;i++)
+	{
+		if(objects[i])
+		{
+			if(type && objects[i]->type!=type)
+				continue;
+			if(bl_list_count>=BL_LIST_MAX)
+			{
+				if(battle_config.error_log)
+					ShowMessage("map_foreachobject: too many block !\n");
+			}
+			else
+				bl_list[bl_list_count++]=objects[i];
+		}
+	}
 
+	map_freeblock_lock();
+	for(i=blockcount;i<bl_list_count;i++)
+	{
+		if( bl_list[i]->prev || bl_list[i]->next )
+		{
+			va_list ap;
+			va_start(ap,type);
+			func(bl_list[i],ap);
+			va_end(ap);
+		}
+	}
+	map_freeblock_unlock();
+	bl_list_count = blockcount;
+}
+*/
 /*==========================================
  * 床アイテムやエフェクト用の一三bj割り?て
  * object[]への保存とid_db登?まで
@@ -1980,48 +2152,6 @@ int map_delobject(int id)
 	map_freeblock(obj);
 
 	return 0;
-}
-
-/*==========================================
- * 全一三bj相手にfuncを呼ぶ
- *
- *------------------------------------------
- */
-void map_foreachobject(int (*func)(struct block_list*,va_list &),int type,...)
-{
-	int i;
-	int blockcount=bl_list_count;
-
-	for(i=2;i<=last_object_id;i++)
-	{
-		if(objects[i])
-		{
-			if(type && objects[i]->type!=type)
-				continue;
-			if(bl_list_count>=BL_LIST_MAX)
-			{
-				if(battle_config.error_log)
-					ShowMessage("map_foreachobject: too many block !\n");
-			}
-			else
-				bl_list[bl_list_count++]=objects[i];
-		}
-	}
-
-	map_freeblock_lock();
-
-	for(i=blockcount;i<bl_list_count;i++)
-	{
-		if( bl_list[i]->prev || bl_list[i]->next )
-		{
-			va_list ap;
-			va_start(ap,type);
-			func(bl_list[i],ap);
-			va_end(ap);
-		}
-	}
-	map_freeblock_unlock();
-	bl_list_count = blockcount;
 }
 
 /*==========================================
@@ -2524,14 +2654,7 @@ struct block_list * map_id2bl(uint32 id)
  * id_db?の全てにfuncを?行
  *------------------------------------------
  */
-int map_foreachiddb(int (*func)(void*,void*,va_list &),...)
-{
-	va_list ap;
-	va_start(ap,func);
-	numdb_foreach(id_db,func,ap);
-	va_end(ap);
-	return 0;
-}
+dbt* get_iddb()	{ return id_db; }
 
 /*==========================================
  * map.npcへ追加 (warp等の領域持ちのみ)
@@ -2620,8 +2743,8 @@ void map_spawnmobs(unsigned short m)
 	}
 	if (battle_config.etc_log && k > 0)
 		ShowStatus("Map %s: Spawned '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[m].mapname, k);
-	}
-
+}
+/*
 int mob_cache_cleanup_sub(struct block_list &bl, va_list &ap)
 {
 	struct mob_data &md = (struct mob_data &)bl;
@@ -2651,30 +2774,64 @@ int mob_cache_cleanup_sub(struct block_list &bl, va_list &ap)
 	mob_unload(md);	
 	return 1;
 }
+*/
+class CMapMobCacheCleanup : public CMapProcessor
+{
+public:
+	CMapMobCacheCleanup()	{}
+	~CMapMobCacheCleanup()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &md = (struct mob_data &)bl;
+		//When not to remove:
+		//1: Mob is not from a cache
+		//2: Mob is damaged 
 
+		if( bl.type==BL_MOB &&
+			// cached, not delayed and not already on delete schedule
+			(md.cache && !md.cache->delay1 && !md.cache->delay2 && -1==md.deletetimer) &&
+			// unhurt enemies	
+			(battle_config.mob_remove_damaged || (md.hp == md.max_hp)) )
+		{
+			// cleaning a master will also clean its slaves
+			if( md.state.is_master )
+				mob_deleteslave(md);
+			// check the mob into the cache
+			md.cache->num++;
+			// and unload it
+			mob_unload(md);	
+			return 1;
+		}
+		return 0;
+	}
+};
 int map_removemobs_timer(int tid, unsigned long tick, int id, intptr data)
 {
 	int k;
-	
-	if (id < 0 || id >= MAX_MAP_PER_SERVER)
+	unsigned short m = id;
+	if(m >= map_num)
 	{	//Incorrect map id!
 		if (battle_config.error_log)
-			ShowError("map_removemobs_timer error: timer %d points to invalid map %d\n",tid, id);
+			ShowError("map_removemobs_timer error: timer %d points to invalid map %d\n",tid, m);
 		return 0;
 	}
-	if (map[id].mob_delete_timer != tid)
+	if (map[m].mob_delete_timer != tid)
 	{	//Incorrect timer call!
 		if (battle_config.error_log)
-			ShowError("map_removemobs_timer mismatch: %d != %d (map %s)\n",map[id].mob_delete_timer, tid, map[id].mapname);
+			ShowError("map_removemobs_timer mismatch: %d != %d (map %s)\n",map[m].mob_delete_timer, tid, map[m].mapname);
 		return 0;
 	}
-	map[id].mob_delete_timer = -1;
-	if (map[id].users > 0) //Map not empty!
+	map[m].mob_delete_timer = -1;
+	if (map[m].users > 0) //Map not empty!
 		return 1;
-	
-	k = map_foreachinarea(mob_cache_cleanup_sub, id, 0, 0, map[id].xs-1, map[id].ys-1, BL_MOB);
+
+	k = CMap::foreachinarea( CMapMobCacheCleanup(),
+		m, 0, 0, map[m].xs-1, map[m].ys-1, BL_MOB);		
+//	k = map_foreachinarea(mob_cache_cleanup_sub, 
+//		m, 0, 0, map[m].xs-1, map[m].ys-1, BL_MOB);
+
 	if (battle_config.etc_log && k > 0)
-		ShowStatus("Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[id].mapname, k);
+		ShowStatus("Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[m].mapname, k);
 	return 1;
 }
 
@@ -2844,6 +3001,8 @@ int map_getcellp(struct map_data& m, unsigned short x, unsigned short y, cell_t 
 		return (mg->type != GAT_WALL && mg->type != GAT_GROUND);
 	case CELL_CHKNOPASS:
 		return (mg->type == GAT_WALL || mg->type == GAT_GROUND);
+	case CELL_CHKNOPASS_NPC:
+		return (mg->type == GAT_WALL || mg->type == GAT_GROUND || mg->npc);
 	case CELL_CHKWALL:
 		return (mg->type == GAT_WALL);
 	case CELL_CHKWATER:
@@ -2988,6 +3147,7 @@ int map_setipport(const char *name, ipset &mapset)
  * 他鯖管理のマップを全て削除
  *------------------------------------------
  */
+/*
 int map_eraseallipport_sub(void *key,void *data,va_list &va)
 {
 	struct map_data_other_server *mdos = (struct map_data_other_server*)data;
@@ -3003,10 +3163,33 @@ int map_eraseallipport_sub(void *key,void *data,va_list &va)
 	}
 	return 0;
 }
+*/
+class CDBMapEraseallipport : public CDBProcessor
+{
+public:
+	CDBMapEraseallipport()	{}
+	virtual ~CDBMapEraseallipport()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct map_data_other_server *mdos = (struct map_data_other_server*)data;
+		if(mdos->gat == NULL)
+		{
+			struct map_data *md = mdos->map;
+			strdb_erase(map_db,key);
+			aFree(mdos);
+			if( md )
+			{	// real mapdata exists
+				strdb_insert(map_db,md->mapname, md);
+			}
+		}
+		return true;
+	}
+};
 
 int map_eraseallipport(void)
 {
-	strdb_foreach(map_db,map_eraseallipport_sub);
+	strdb_foreach(map_db, CDBMapEraseallipport() );
+//	strdb_foreach(map_db,map_eraseallipport_sub);
 	return 1;
 }
 
@@ -4116,28 +4299,28 @@ int online_timer(int tid, unsigned long tick, int id, intptr data)
 	return 0;
 }
 
-
-
-int id_db_final(void *k,void *d,va_list &ap) 
+int id_db_final(void *k,void *d) 
 {
 	return 0; 
 }
-int map_db_final(void *k,void *d,va_list &ap) 
+
+int map_db_final(void *k,void *d) 
 {
 	return 0; 
 }
-int nick_db_final(void *k,void *d,va_list &ap)
+int nick_db_final(void *k,void *d)
 {
 	char *p = (char *) d;
 	if (p) aFree(p);
 	return 0;
 }
-int charid_db_final(void *k,void *d,va_list &ap)
+int charid_db_final(void *k,void *d)
 {
 	struct charid2nick *p = (struct charid2nick *) d;
 	if (p) aFree(p);
 	return 0;
 }
+/*
 int cleanup_sub(struct block_list &bl, va_list &ap) 
 {
 	switch(bl.type)
@@ -4165,6 +4348,40 @@ int cleanup_sub(struct block_list &bl, va_list &ap)
 	}
 	return 0;
 }
+*/
+class CMapCleanup : public CMapProcessor
+{
+public:
+	CMapCleanup()	{}
+	~CMapCleanup()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		switch(bl.type)
+		{
+			case BL_PC:
+				map_quit( (struct map_session_data &)bl );
+				break;
+			case BL_NPC:
+				npc_unload( (struct npc_data *)&bl );
+				break;
+			case BL_MOB:
+				mob_unload( (struct mob_data &)bl);
+				break;
+			case BL_PET:
+				pet_remove_map( (struct map_session_data &)bl );
+				break;
+			case BL_ITEM:
+				map_clearflooritem(bl.id);
+				break;
+			case BL_SKILL:
+				skill_delunit( (struct skill_unit *)&bl);
+				break;
+			default:
+				ShowError("cleanup_sub unhandled block, type%i\n", bl.type);
+		}
+		return 0;
+	}
+};
 void map_checknpcsleft(void)
 {
 	size_t i, m,n=0;
@@ -4206,8 +4423,11 @@ void do_final(void)
 	do_final_npc();
 	// additional removing
 	for (i = 0; i < map_num; i++)
+	{
 		if (map[i].m >= 0)
-			map_foreachinarea(cleanup_sub, i, 0, 0, map[i].xs-1, map[i].ys-1, 0);
+			CMap::foreachinarea( CMapCleanup(), i, 0, 0, map[i].xs-1, map[i].ys-1, 0);
+//			map_foreachinarea(cleanup_sub, i, 0, 0, map[i].xs-1, map[i].ys-1, 0);
+	}
 	// and a check
 	map_checknpcsleft();
 

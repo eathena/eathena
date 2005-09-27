@@ -75,6 +75,7 @@ int npc_walktoxy_sub(struct npc_data &nd); // [Valaris]
 
 // ============================================
 // ADDITION Qamera death/disconnect/connect event mod
+/*
 int npc_event_doall_attached_sub(void *key,void *data,va_list &ap)
 {
 	char *p=(char *)key;
@@ -95,6 +96,30 @@ int npc_event_doall_attached_sub(void *key,void *data,va_list &ap)
 	}
 	return 0;
 }
+*/
+class CDBNPCevent_doall_attached : public CDBProcessor
+{
+	struct npc_att_data &nad;
+	int &c;
+public:
+	CDBNPCevent_doall_attached(struct npc_att_data &n, int &cc) : nad(n), c(cc)	{}
+	virtual ~CDBNPCevent_doall_attached()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		char *p=(char *)key;
+		struct event_data *ev=(struct event_data *)data;
+		nullpo_retr(0, ev);
+
+		if( (p=strchr(p,':')) && p && strcasecmp(nad.buf,p)==0 )
+		if(ev->nd && ev->nd->u.scr.ref)
+		{
+			CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos,nad.sd->bl.id,ev->nd->bl.id);
+			c++;
+		}
+		return true;
+	}
+};
+
 int npc_event_doall_attached(const char *name, struct map_session_data &sd)
 {
 	int c=0;
@@ -108,7 +133,8 @@ int npc_event_doall_attached(const char *name, struct map_session_data &sd)
 		memcpy(nad.buf+2,name,len);
 		nad.buf[sizeof(nad.buf)-1]=0;//force EOS
 		nad.sd=&sd;
-		strdb_foreach(ev_db, npc_event_doall_attached_sub, &c, &nad);
+		strdb_foreach(ev_db, CDBNPCevent_doall_attached(nad,c) );
+//		strdb_foreach(ev_db, npc_event_doall_attached_sub, &c, &nad);
 	}
 	return c;   
 }
@@ -120,6 +146,7 @@ int npc_event_doall_attached(const char *name, struct map_session_data &sd)
  * npc_enable_sub 有効時にOnTouchイベントを実行
  *------------------------------------------
  */
+/*
 int npc_enable_sub( struct block_list &bl, va_list &ap)
 {
 	struct npc_data *nd;
@@ -144,7 +171,32 @@ int npc_enable_sub( struct block_list &bl, va_list &ap)
 	}
 	return 0;
 }
+*/
+class CNpcEnable : public CMapProcessor
+{
+	struct npc_data &nd;
+public:
+	CNpcEnable(struct npc_data &n) : nd(n)	{}
+	~CNpcEnable()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		if(bl.type == BL_PC )
+		{
+			struct map_session_data &sd=(struct map_session_data &)bl;
+			char name[50];
 
+			if (nd.flag&1)	// 無効化されている
+				return 1;
+			if(sd.areanpc_id==nd.bl.id)
+				return 1;
+			sd.areanpc_id=nd.bl.id;
+
+			sprintf(name,"%s::OnTouch", nd.name);
+			npc_event(sd,name,0);
+		}
+		return 0;
+	}
+};
 int npc_enable(const char *name,int flag)
 {
 	struct npc_data *nd= (struct npc_data *) strdb_search(npcname_db,name);
@@ -167,9 +219,13 @@ int npc_enable(const char *name,int flag)
 		clif_clearchar(nd->bl,0);
 	}
 	if(flag&3 && (nd->u.scr.xs > 0 || nd->u.scr.ys >0))
-		map_foreachinarea( npc_enable_sub,nd->bl.m,
-		((int)nd->bl.x)-nd->u.scr.xs,((int)nd->bl.y)-nd->u.scr.ys,
-		((int)nd->bl.x)+nd->u.scr.xs,((int)nd->bl.y)+nd->u.scr.ys,BL_PC,nd);
+	{
+		CMap::foreachinarea( CNpcEnable(*nd),
+			nd->bl.m, ((int)nd->bl.x)-nd->u.scr.xs,((int)nd->bl.y)-nd->u.scr.ys, ((int)nd->bl.x)+nd->u.scr.xs,((int)nd->bl.y)+nd->u.scr.ys,BL_PC);
+//		map_foreachinarea( npc_enable_sub,
+//			nd->bl.m, ((int)nd->bl.x)-nd->u.scr.xs,((int)nd->bl.y)-nd->u.scr.ys, ((int)nd->bl.x)+nd->u.scr.xs,((int)nd->bl.y)+nd->u.scr.ys,BL_PC,
+//			nd);
+	}
 
 	return 0;
 }
@@ -307,6 +363,7 @@ int npc_timer_event(const char *eventname)	// Added by RoVeRT
  * npc_parse_script->strdb_foreachから呼ばれる
  *------------------------------------------
  */
+/*
 int npc_event_export(void *key,void *data,va_list &ap)
 {
 	char *lname=(char *)key;
@@ -335,11 +392,12 @@ int npc_event_export(void *key,void *data,va_list &ap)
 	}
 	return 0;
 }
-
+*/
 /*==========================================
  * 全てのNPCのOn*イベント実行
  *------------------------------------------
  */
+/*
 int npc_event_doall_sub(void *key,void *data,va_list &ap)
 {
 	char *p=(char *)key;
@@ -367,12 +425,42 @@ int npc_event_doall_sub(void *key,void *data,va_list &ap)
 	}
 	return 0;
 }
+*/
+class CDBNPCevent_doall : public CDBProcessor
+{
+	const char *name;
+	uint32 rid;
+	int map;
+	int& c;
+public:
+	CDBNPCevent_doall(const char *n, uint32 id, int m, int& cc)
+		: name(n), rid(id), map(m), c(cc)
+	{}
+	virtual ~CDBNPCevent_doall()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		char *p=(char *)key;
+		struct event_data *ev=(struct event_data *)data;
+		nullpo_retr(0, ev);
+		nullpo_retr(0, ev->nd);
+
+		if( (p=strchr(p,':')) && p && strcasecmp(name,p)==0 && (map<0 || ev->nd->bl.m>=map_num || map==ev->nd->bl.m))
+		{
+			if(ev->nd->u.scr.ref)
+				CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos, rid, ev->nd->bl.id);
+			c++;
+		}
+		return true;
+	}
+};
+
 int npc_event_doall(const char *name)
 {
 	int c=0;
 	char buf[128]="::";
 	safestrcpy(buf+2,name,sizeof(buf)-2);
-	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf, 0, -1);
+	strdb_foreach(ev_db, CDBNPCevent_doall(buf, 0, -1, c) );
+//	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf, 0, -1);
 	return c;
 }
 int npc_event_doall_id(const char *name, int rid, int map)
@@ -380,9 +468,11 @@ int npc_event_doall_id(const char *name, int rid, int map)
 	int c=0;
 	char buf[128]="::";
 	safestrcpy(buf+2,name,sizeof(buf)-2);
-	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf,rid, map);
+	strdb_foreach(ev_db, CDBNPCevent_doall(buf, rid, map, c) );
+//	strdb_foreach(ev_db,npc_event_doall_sub,&c,buf,rid, map);
 	return c;
 }
+/*
 int npc_event_do_sub(void *key,void *data,va_list &ap)
 {
 	char *p=(char *)key;
@@ -399,9 +489,32 @@ int npc_event_do_sub(void *key,void *data,va_list &ap)
 		CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos,0,ev->nd->bl.id);
 		(*c)++;
 	}
-
 	return 0;
 }
+*/
+class CDBNPCevent_do : public CDBProcessor
+{
+	const char *name;
+	int& c;
+public:
+	CDBNPCevent_do(const char *n, int& cc)
+		: name(n), c(cc)
+	{}
+	virtual ~CDBNPCevent_do()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		char *p=(char *)key;
+		struct event_data *ev=(struct event_data *)data;
+		nullpo_retr(0, ev);
+		if (p && strcasecmp(name,p)==0 ) {
+			if(ev->nd && ev->nd->u.scr.ref)
+			CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos,0,ev->nd->bl.id);
+			c++;
+		}
+		return true;
+	}
+};
+
 int npc_event_do(const char *name)
 {
 	int c=0;
@@ -409,8 +522,8 @@ int npc_event_do(const char *name)
 	if (*name==':' && name[1]==':') {
 		return npc_event_doall(name+2);
 	}
-
-	strdb_foreach(ev_db,npc_event_do_sub,&c,name);
+	strdb_foreach(ev_db, CDBNPCevent_do(name,c) );
+//	strdb_foreach(ev_db,npc_event_do_sub,&c,name);
 	return c;
 }
 
@@ -473,7 +586,7 @@ int npc_event_do_oninit(void)
 	return 0;
 }
 
-
+/*
 int npc_do_ontimer_sub(void *key,void *data,va_list &ap)
 {
 	char *p = (char *)key;
@@ -500,9 +613,43 @@ int npc_do_ontimer_sub(void *key,void *data,va_list &ap)
 	}
 	return 0;
 }
+*/
+class CDBNPContimer : public CDBProcessor
+{
+	uint32 npc_id;
+	struct map_session_data &sd;
+	int option;
+public:
+	CDBNPContimer(uint32 id, struct map_session_data &s, int o)
+		: npc_id(id), sd(s), option(o)	{}
+	virtual ~CDBNPContimer()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		char *p = (char *)key;
+		struct event_data *ev = (struct event_data *)data;
+		unsigned long tick=0;
+		char temp[10];
+		char event[50];
+
+		if(ev->nd->bl.id==npc_id && (p=strchr(p,':')) && p && strncasecmp("::OnTimer",p,8)==0 )
+		{
+			sscanf(&p[9], "%s", temp);
+			tick = atoi(temp);
+			strcpy(event, ev->nd->name);
+			strcat(event, p);
+			if (option!=0)
+				pc_addeventtimer(sd,tick,event);
+			else
+				pc_deleventtimer(sd,event);
+		}
+		return true;
+	}
+};
+
 int npc_do_ontimer(uint32 npc_id, struct map_session_data &sd, int option)
 {
-	strdb_foreach(ev_db,npc_do_ontimer_sub,&npc_id,&sd,option);
+	strdb_foreach(ev_db, CDBNPContimer(npc_id,sd,option) );
+//	strdb_foreach(ev_db,npc_do_ontimer_sub,&npc_id,&sd,option);
 	return 0;
 }
 /*==========================================
@@ -510,6 +657,7 @@ int npc_do_ontimer(uint32 npc_id, struct map_session_data &sd, int option)
  * npc_parse_script->strdb_foreachから呼ばれる
  *------------------------------------------
  */
+/*
 int npc_timerevent_import(void *key,void *data,va_list &ap)
 {
 	char *lname=(char *)key;
@@ -539,6 +687,44 @@ int npc_timerevent_import(void *key,void *data,va_list &ap)
 	}
 	return 0;
 }
+*/
+class CDBNPCtimerevent_import : public CDBProcessor
+{
+	struct npc_data &nd;
+public:
+	CDBNPCtimerevent_import(struct npc_data &n) : nd(n)	{}
+	virtual ~CDBNPCtimerevent_import()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		char *lname=(char *)key;
+		size_t pos=(size_t)data;
+		int t=0,i=0;
+
+		if(sscanf(lname,"OnTimer%d%n",&t,&i)==1 && lname[i]==':') {
+			// タイマーイベント
+			struct npc_timerevent_list *te=nd.u.scr.timer_event;
+			int j,i=nd.u.scr.timeramount;
+			if(te==NULL) 
+				te = (struct npc_timerevent_list*)aMalloc( sizeof(struct npc_timerevent_list) );
+			else 
+				te = (struct npc_timerevent_list*)aRealloc( te, (i+1)*sizeof(struct npc_timerevent_list) );
+
+			for(j=0;j<i;j++){
+				if(te[j].timer>t){
+					memmove(te+j+1,te+j,sizeof(struct npc_timerevent_list)*(i-j));
+					break;
+				}
+			}
+			te[j].timer=t;
+			te[j].pos=pos;
+			nd.u.scr.timer_event=te;
+			nd.u.scr.timeramount=i+1;
+		}
+		return true;
+	}
+};
+
+
 /*==========================================
  * タイマーイベント実行
  *------------------------------------------
@@ -701,7 +887,7 @@ int npc_event(struct map_session_data &sd,const char *eventname,int mob_kill)
 	return 0;
 }
 
-
+/*
 int npc_command_sub(void *key,void *data,va_list &ap)
 {
 	char *p=(char *)key;
@@ -722,10 +908,37 @@ int npc_command_sub(void *key,void *data,va_list &ap)
 
 	return 0;
 }
+*/
+class CDBNPCcommand : public CDBProcessor
+{
+	const char *npcname;
+	const char *command;
+public:
+	CDBNPCcommand(const char *n, const char *c) : 	npcname(n),command(c)	{}
+	virtual ~CDBNPCcommand()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		char *p=(char *)key;
+		struct event_data *ev=(struct event_data *)data;
+		char temp[100];
+
+		if(NULL==ev)		return true;
+		if(NULL==ev->nd)	return true;
+		
+		if(strcmp(ev->nd->name,npcname)==0 && (p=strchr(p,':')) && p && strncasecmp("::OnCommand",p,10)==0 ){
+			sscanf(&p[11],"%s",temp);
+
+			if( (strcmp(command,temp)==0) && ev->nd->u.scr.ref)
+				CScriptEngine::run(ev->nd->u.scr.ref->script,ev->pos,0,ev->nd->bl.id);
+		}
+		return true;
+	}
+};
 
 int npc_command(struct map_session_data &sd,const char *npcname, const char *command)
 {
-	strdb_foreach(ev_db,npc_command_sub,npcname,command);
+	strdb_foreach(ev_db, CDBNPCcommand(npcname,command) );
+//	strdb_foreach(ev_db,npc_command_sub,npcname,command);
 	return 0;
 }
 /*==========================================
@@ -1145,22 +1358,29 @@ int npc_walk(struct npc_data &nd,unsigned long tick,int data)
 		moveblock = ( x/BLOCK_SIZE != (x+dx)/BLOCK_SIZE || y/BLOCK_SIZE != (y+dy)/BLOCK_SIZE);
 
 		nd.state.npcstate=MS_WALK;
-		map_foreachinmovearea(clif_npcoutsight,nd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,&nd);
+
+		CMap::foreachinmovearea( CClifNpcOutsight(nd),
+			nd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC);
+//		map_foreachinmovearea(clif_npcoutsight,
+//			nd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,dx,dy,BL_PC,
+//			&nd);
 
 		x += dx;
 		y += dy;
 
 
 		// ontouch fix for moving npcs with ontouch area
-		if (nd.class_>=0 && nd.u.scr.xs>0 && nd.u.scr.ys>0) {
+		if (nd.class_>=0 && nd.u.scr.xs>0 && nd.u.scr.ys>0)
+		{
 			for(i=0;i<nd.u.scr.ys;i++)
-			for(j=0;j<nd.u.scr.xs;j++) {
+			for(j=0;j<nd.u.scr.xs;j++)
+			{
 				if(map_getcell(nd.bl.m,nd.bl.x-nd.u.scr.xs/2+j,nd.bl.y-nd.u.scr.ys/2+i,CELL_CHKNOPASS))
 					continue;
 
 				// remove npc ontouch area from map_cells
 				map_setcell(nd.bl.m,nd.bl.x-nd.u.scr.xs/2+j,nd.bl.y-nd.u.scr.ys/2+i,CELL_CLRNPC);
-	}
+			}
 		}
 
 		if(moveblock) map_delblock(nd.bl);
@@ -1170,17 +1390,22 @@ int npc_walk(struct npc_data &nd,unsigned long tick,int data)
 
 
 		// ontouch fix for moving npcs with ontouch area
-		if (nd.class_>=0 && nd.u.scr.xs>0 && nd.u.scr.ys>0) {
+		if (nd.class_>=0 && nd.u.scr.xs>0 && nd.u.scr.ys>0)
+		{
 			for(i=0;i<nd.u.scr.ys;i++)
-			for(j=0;j<nd.u.scr.xs;j++) {
+			for(j=0;j<nd.u.scr.xs;j++)
+			{
 				if(map_getcell(nd.bl.m,nd.bl.x-nd.u.scr.xs/2+j,nd.bl.y-nd.u.scr.ys/2+i,CELL_CHKNOPASS))
 					continue;
 				// add npc ontouch area from map_cells
 				map_setcell(nd.bl.m,nd.bl.x-nd.u.scr.xs/2+j,nd.bl.y-nd.u.scr.ys/2+i,CELL_SETNPC);
 			}
 		}
-
-		map_foreachinmovearea(clif_npcinsight,nd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC,&nd);
+		CMap::foreachinmovearea( CClifNpcInsight(nd),
+			nd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC);
+//		map_foreachinmovearea(clif_npcinsight,
+//			nd.bl.m,x-AREA_SIZE,y-AREA_SIZE,x+AREA_SIZE,y+AREA_SIZE,-dx,-dy,BL_PC,
+//			&nd);
 		nd.state.npcstate=MS_IDLE;
 	}
 	if((i=calc_next_walk_step(nd))>0){
@@ -1594,6 +1819,7 @@ int npc_parse_shop(const char *w1,const char *w2,const char *w3,const char *w4)
  * NPCのラベルデータコンバート
  *------------------------------------------
  */
+/*
 int npc_convertlabel_db(void *key, void *data, va_list &ap)
 {
 	char *lname = (char *)key;
@@ -1636,6 +1862,51 @@ int npc_convertlabel_db(void *key, void *data, va_list &ap)
 
 	return 0;
 }
+*/
+class CDBNPCconverlabel : public CDBProcessor
+{
+	struct npc_data &nd;
+public:
+	CDBNPCconverlabel(struct npc_data &n) : nd(n)	{}
+	virtual ~CDBNPCconverlabel()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		const char *lname = (const char *)key;
+		size_t pos = (size_t)data;
+		struct npc_label_list *lst;
+		int num;
+		const char *p = strchr(lname,':');
+		if(NULL==p)	return true;
+
+		if(NULL==nd.u.scr.ref)
+			return true;
+		
+		lst= nd.u.scr.ref->label_list;
+		num= nd.u.scr.ref->label_list_num;
+		if (!lst)
+		{
+			lst=(struct npc_label_list *)aMalloc(sizeof(struct npc_label_list));
+			num = 0;
+		}
+		else
+		{
+			lst=(struct npc_label_list *)aRealloc(lst,(num+1)*sizeof(struct npc_label_list));
+		}
+				
+		if( (p-lname) > 23)
+		{
+			ShowError("npc_parse_script: label name longer than 23 chars! '%s'\n", lname);
+			exit(1);
+		}
+		memcpy(lst[num].labelname,lname,p-lname);
+		lst[num].labelname[p-lname] = 0; // add eos
+		lst[num].pos = pos;
+		nd.u.scr.ref->label_list    = lst;
+		nd.u.scr.ref->label_list_num= num+1;
+
+		return true;
+	}
+};
 
 /*==========================================
  * script行解析
@@ -1675,6 +1946,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 
 	if(strcmp(w2,"script")==0)
 	{
+
 		// スクリプトの解析
 		srcbuf=(unsigned char*)aMalloc(srcsize*sizeof(unsigned char ));
 		if (strchr(first_line,'{')) 
@@ -1695,11 +1967,12 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 			(*lines)++;
 			if (feof(fp))
 				break;
+
 			if (strlen((char *) srcbuf)+strlen((char *) line)+1>=srcsize) 
 			{
 				srcsize += 65536;
-					srcbuf = (unsigned char *)aRealloc(srcbuf, srcsize*sizeof(unsigned char));
-					memset(srcbuf + srcsize - 65536, 0, 65536*sizeof(unsigned char));
+				srcbuf = (unsigned char *)aRealloc(srcbuf, srcsize*sizeof(unsigned char));
+				memset(srcbuf + srcsize - 65536, 0, 65536*sizeof(unsigned char));
 			}
 			if (srcbuf[0]!='{') 
 			{
@@ -1708,7 +1981,7 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 					strcpy((char*)srcbuf,strchr((char*)line,'{'));
 					startline = *lines;
 				}
-		}
+			}
 			else
 				strcat((char*)srcbuf,(char*)line);
 		}//end while
@@ -1859,8 +2132,10 @@ int npc_parse_script(const char *w1,const char *w2,const char *w3,const char *w4
 	{	// script本体がある場合の処理
 		// ラベルデータのコンバート
 		if(!dummy_npc)
-			strdb_foreach(script_get_label_db(), npc_convertlabel_db, nd);
-
+		{
+			strdb_foreach(script_get_label_db(), CDBNPCconverlabel(*nd) );
+//			strdb_foreach(script_get_label_db(), npc_convertlabel_db, nd);
+		}
 		// もう使わないのでバッファ解放
 		aFree(srcbuf);
 	}
@@ -2572,7 +2847,7 @@ int npc_read_indoors (void)
 	return -1;
 }
 
-int ev_db_final (void *key,void *data,va_list &ap)
+int ev_db_final (void *key,void *data)
 {
 	if(data) aFree(data);
 	if(key && strstr((char*)key,"::")!=NULL)
@@ -2581,7 +2856,7 @@ int ev_db_final (void *key,void *data,va_list &ap)
 }
 
 
-int npcname_db_final (void *key,void *data,va_list &ap)
+int npcname_db_final (void *key,void *data)
 {
 	struct npc_data *nd = (struct npc_data *) data;
 	npc_unload(nd, false);// we are inside the db function and cannot call erase from here
@@ -2592,6 +2867,7 @@ int npcname_db_final (void *key,void *data,va_list &ap)
  * 
  *------------------------------------------
  */
+/*
 int npc_cleanup_sub (struct block_list &bl, va_list &ap)
 {
 	switch(bl.type) {
@@ -2604,14 +2880,33 @@ int npc_cleanup_sub (struct block_list &bl, va_list &ap)
 	}
 	return 0;
 }
-
+*/
+class CNpcCleanup : public CMapProcessor
+{
+public:
+	CNpcCleanup()	{}
+	~CNpcCleanup()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		switch(bl.type) {
+		case BL_NPC:
+			npc_unload((struct npc_data *)&bl);
+			break;
+		case BL_MOB:
+			mob_unload((struct mob_data &)bl);
+			break;
+		}
+		return 0;
+	}
+};
 int npc_reload (void)
 {
 	size_t m;
 
 	for (m = 0; m < map_num; m++)
 	{
-		map_foreachinarea(npc_cleanup_sub, m, 0, 0, map[m].xs-1, map[m].ys-1, 0);
+		CMap::foreachinarea( CNpcCleanup(), m, 0, 0, map[m].xs-1, map[m].ys-1, 0);
+//		map_foreachinarea(npc_cleanup_sub, m, 0, 0, map[m].xs-1, map[m].ys-1, 0);
 		clear_moblist(m);
 		map[m].npc_num = 0;
 	}
@@ -2760,6 +3055,7 @@ int do_final_npc(void)
  * npc初期化
  *------------------------------------------
  */
+
 int do_init_npc(void)
 {
 
@@ -2773,7 +3069,39 @@ int do_init_npc(void)
 	memset(&ev_tm_b, -1, sizeof(ev_tm_b));
 
 	npc_parsesrcfiles( );
-	
+
+/*
+	{
+		CStrDB<struct npc_data*> xxxxx(false, false);
+
+
+		iterator iter(npcname_db);
+		const char*k;
+
+		while(iter)
+		{
+			xxxxx.insert((char*)iter.key(), (struct npc_data*)iter.data());
+			if(5==rand()%10)
+			{
+				k = (const char*)iter.key();
+				break;
+			}
+			iter++;
+		}
+		CIterator ii( xxxxx );
+		while(ii)
+		{
+
+			printf("%s - %s\n", xxxxx.key(ii), xxxxx.data(ii)->exname);
+			++ii;
+		}
+
+		ii++;
+
+
+	}
+*/
+
 	add_timer_func_list(npc_walktimer,"npc_walktimer"); // [Valaris]
 	add_timer_func_list(npc_event_timer,"npc_event_timer");
 	add_timer_func_list(npc_event_do_clock,"npc_event_do_clock");

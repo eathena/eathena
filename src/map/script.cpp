@@ -795,18 +795,23 @@ void CParser::appendInt(int a)
 	this->appendByte(a|0x80);
 }
 
-void CParser::appendL(int l)
+void CParser::appendLabel(int l)
 {
 	int backpatch = cStrData[l].backpatch;
 
 	switch(cStrData[l].type)
 	{
-	case CScriptEngine::C_POS:
+	// we have a jump position already, append it
+	case CScriptEngine::C_POS:		
 		this->appendCommand(CScriptEngine::C_POS);
 		this->appendByte(cStrData[l].label);
 		this->appendByte(cStrData[l].label>>8);
 		this->appendByte(cStrData[l].label>>16);
 		break;
+	// we don't have a jump position yet
+	// so form a list of all waiting jumps
+	// put this address into the strdata and 
+	// append the address of the previous waiting position
 	case CScriptEngine::C_NOP:
 		// ラベルの可能性があるのでbackpatch用データ埋め込み
 		this->appendCommand(CScriptEngine::C_NAME);
@@ -815,9 +820,11 @@ void CParser::appendL(int l)
 		this->appendByte(backpatch>>8);
 		this->appendByte(backpatch>>16);
 		break;
+	// we add a value, so just append it
 	case CScriptEngine::C_INT:
 		this->appendInt(cStrData[l].val);
 		break;
+	// otherwise we append the reference to a name
 	default:
 		// もう他の用途と確定してるので数字をそのまま
 		this->appendCommand(CScriptEngine::C_NAME);
@@ -832,11 +839,16 @@ void CParser::setLabel(size_t l, size_t pos)
 {
 	sint32 i,next;
 
+	// we can set the jump position now
 	cStrData[l].type=CScriptEngine::C_POS;
 	cStrData[l].label=pos;
 
-	this->cScript->cLabels.append( CLabel(cStrData[l].str,pos) );
+	// and store a text label at the script
+	if(cStrData[l].str)
+		this->cScript->cLabels.append( CLabel(cStrData[l].str,pos) );
 
+	// if there are waiting jumps already, 
+	// put the correct jump positions into the script
 	i=cStrData[l].backpatch;
 	while(i>0 && i!=0x00ffffff)
 	{
@@ -849,6 +861,8 @@ void CParser::setLabel(size_t l, size_t pos)
 		cScript->cProgramm[i+2]=pos>>16;
 		i=next;
 	}
+	// mark that the lable has been processed
+	cStrData[l].backpatch = -1;
 }
 
 bool CParser::skipSpaceComment(const char *&p)
@@ -1006,9 +1020,9 @@ bool CParser::parseSimpleExpr(const char *&p)
 
 			if( cStrData[l].type!=CScriptEngine::C_FUNC && *p=='[' )
 			{	// array(name[i] => getelementofarray(name,i) )
-				appendL( cStrData.searchString("getelementofarray") );
+				appendLabel( cStrData.searchString("getelementofarray") );
 				appendCommand(CScriptEngine::C_ARG);
-				appendL(l);
+				appendLabel(l);
 				p++;
 				parseSubExpr(p,-1);
 				skipSpaceComment(p);
@@ -1020,7 +1034,7 @@ bool CParser::parseSimpleExpr(const char *&p)
 				appendCommand(CScriptEngine::C_FUNC);
 			}
 			else
-				appendL(l);
+				appendLabel(l);
 		}
 		return true;
 	}
@@ -1043,7 +1057,7 @@ bool CParser::parseSubExpr(const char *&p, int limit)
 		skipSpaceComment(tmpp);
 		if(*tmpp==';' || *tmpp==',')
 		{
-			appendL(LABEL_NEXTLINE);
+			appendLabel(LABEL_NEXTLINE);
 			p++;
 			return skipSpaceComment(p);
 		}
@@ -1163,34 +1177,38 @@ bool CParser::parseLine(const char *&p)
 		return false;
 
 	skipSpaceComment(p);
+
+	// empty command
 	if(*p==';')
 	{	p++;
 		return true;
 	}
 
-	cParseCommandIf=0;	// warn_cmd_no_commaのために必要
-
+	// lefthand expression
 	// 最初は関数名
+	cParseCommandIf=0;	// warn_cmd_no_commaのために必要
 	p2 = p;
 	if( !parseSimpleExpr(p) )
 		return false;
-	skipSpaceComment(p);
-
 	cmd=cParseCommand;
 	if( cStrData[cmd].type!=CScriptEngine::C_FUNC )
 	{
 		this->ErrorMessage("expect command", p2);
 		return false;
 	}
-
+	
+	// arguments
 	this->appendCommand(CScriptEngine::C_ARG);
+	skipSpaceComment(p);
 	while(p && *p && *p!=';' && i<128)
 	{
 		plist[i]=p;
+		// each argment consits of an expression, parse it
 		if( !parseExpr(p) )
 			return false;
 		skipSpaceComment(p);
 
+		// check for next argument or end of argument list
 		// 引数区切りの,処理
 		if(*p==',')
 		{
@@ -1210,8 +1228,7 @@ bool CParser::parseLine(const char *&p)
 		ErrorMessage("need ';'",p);
 		return false;
 	}
-	appendCommand(CScriptEngine::C_FUNC);
-
+	// chech the argument count
 	if( cStrData[cmd].type==CScriptEngine::C_FUNC && script_config.warn_cmd_mismatch_paramnum)
 	{
 		const char *arg=buildin_func[cStrData[cmd].val].arg;
@@ -1223,6 +1240,9 @@ bool CParser::parseLine(const char *&p)
 			return false;
 		}
 	}
+
+	// all ok, append the execution command
+	appendCommand(CScriptEngine::C_FUNC);
 	return true;
 }
 
@@ -1295,7 +1315,8 @@ CScript CParser::parseScript(const char *name, const char *src, size_t line)
 		// finalizing with a nop command
 		appendCommand(CScriptEngine::C_NOP);
 		
-		// fill in jump targets of unprocessed labels
+		// fill in targets of unprocessed strings,
+		// they are used as variable names now
 		for(i=LABEL_START; i<cStrData.size(); i++)
 		{
 			if (cStrData[i].type == CScriptEngine::C_NOP)
@@ -1314,6 +1335,7 @@ CScript CParser::parseScript(const char *name, const char *src, size_t line)
 					cScript->cProgramm[j+2] = i>>16;
 					j = next;
 				}
+				cStrData[i].backpatch = -1;
 			}
 		}
 		// finalize the script and return it
@@ -1418,7 +1440,7 @@ static struct dbt *userfunc_db=NULL;
 struct dbt* script_get_label_db(){ return scriptlabel_db; }
 struct dbt* script_get_userfunc_db(){ if(!userfunc_db) userfunc_db=strdb_init(50); return userfunc_db; }
 
-int scriptlabel_final(void *k,void *d,va_list &ap){ return 0; }
+int scriptlabel_final(void *k,void *d){ return 0; }
 static char positions[11][64] = {"頭","体","左手","右手","ローブ","靴","アクセサリー1","アクセサリー2","頭2","頭3","装着していない"};
 
 struct Script_Config script_config;
@@ -2497,23 +2519,23 @@ uint32 CScriptEngine::defoid = npc_get_new_npc_id();
 
 uint32 CScriptEngine::send_defaultnpc(bool send)
 {
-/*
-v5	2004-05-25	no text & no input
-v5  2004-06-28	text & input ok
-v6		...untested...
-v7		...untested...
-v8		...untested...
-v9		...untested...
-v10		text & input ok
-v11		text & input ok
-v12		...untested...
-v13		...untested...
-v14		...untested...
-v15		...untested...
-v16		text & input ok
-v17		text & input ok
-v18 	text & input ok
-*/
+/*/////////////////////////////////////////////////////////////////////////////
+ v5	2004-05-25	no text & no input
+ v5	2004-06-28	text & input ok
+ v6	xxxx-xx-xx	...untested...
+ v7	xxxx-xx-xx	...untested...
+ v8	xxxx-xx-xx	...untested...
+ v9	xxxx-xx-xx	...untested...
+v10	xxxx-xx-xx	text & input ok
+v11	xxxx-xx-xx	text & input ok
+v12	xxxx-xx-xx	...untested...
+v13	xxxx-xx-xx	...untested...
+v14	xxxx-xx-xx	...untested...
+v15	xxxx-xx-xx	...untested...
+v16	xxxx-xx-xx	text & input ok
+v17	xxxx-xx-xx	text & input ok
+v18 xxxx-xx-xx	text & input ok
+*//////////////////////////////////////////////////////////////////////////////
 
 	uint32 ret = 0;
 	if( this->sd )
@@ -4076,6 +4098,7 @@ int buildin_warp(CScriptEngine &st)
  * エリア指定ワープ
  *------------------------------------------
  */
+/*
 int buildin_areawarp_sub(struct block_list &bl,va_list &ap)
 {
 	int x,y;
@@ -4089,6 +4112,44 @@ int buildin_areawarp_sub(struct block_list &bl,va_list &ap)
 		pc_setpos(((struct map_session_data &)bl),map,x,y,0);
 	return 0;
 }
+*/
+class CBuildinAreawarpXY : public CMapProcessor
+{
+	const char*& map;
+	ushort x;
+	ushort y;
+public:
+	CBuildinAreawarpXY(const char*&m, ushort xx, ushort yy)
+		: map(m), x(xx), y(yy)
+	{}
+	~CBuildinAreawarpXY()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		if(bl.type==BL_PC)
+		{
+			pc_setpos(((struct map_session_data &)bl),map,x,y,0);
+			return 1;
+		}
+		return 0;
+	}
+};
+class CBuildinAreawarpRnd : public CMapProcessor
+{
+	ushort x;
+	ushort y;
+public:
+	CBuildinAreawarpRnd()	{}
+	~CBuildinAreawarpRnd()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		if(bl.type==BL_PC)
+		{
+			pc_randomwarp(((struct map_session_data &)bl),3);
+			return 1;
+		}
+		return 0;
+	}
+};
 
 int buildin_areawarp(CScriptEngine &st)
 {
@@ -4097,15 +4158,23 @@ int buildin_areawarp(CScriptEngine &st)
 	int y0=st.GetInt(st[4]);
 	int x1=st.GetInt(st[5]);
 	int y1=st.GetInt(st[6]);
-	const char *str=st.GetString((st[7]));
+	const char *targetmap=st.GetString((st[7]));
 	int x=st.GetInt(st[8]);
 	int y=st.GetInt(st[9]);
 	int m=map_mapname2mapid(mapname);
 
 	if( m>=0 && (size_t)m<map_num)
 	{	//!! broadcast command if not on this mapserver
-		map_foreachinarea(buildin_areawarp_sub,
-			m,x0,y0,x1,y1,BL_PC, str,x,y );
+
+		if( 0==strcmp(targetmap,"Random") )
+			CMap::foreachinarea( CBuildinAreawarpRnd(),
+				m,x0,y0,x1,y1,BL_PC);
+		else
+			CMap::foreachinarea( CBuildinAreawarpXY(targetmap,x,y),
+				m,x0,y0,x1,y1,BL_PC);
+//		map_foreachinarea(buildin_areawarp_sub,
+//			m,x0,y0,x1,y1,BL_PC, 
+//			targetmap,x,y );
 	}
 	return 0;
 }
@@ -5815,6 +5884,7 @@ int buildin_areamonster(CScriptEngine &st)
  * モンスター削除
  *------------------------------------------
  */
+/*
 int buildin_killmonster_sub(struct block_list &bl,va_list &ap)
 {
 	struct mob_data &md =(struct mob_data&)bl;
@@ -5833,40 +5903,97 @@ int buildin_killmonster_sub(struct block_list &bl,va_list &ap)
 	}
 	return 0;
 }
-
-int buildin_killmonster(CScriptEngine &st)
-{
-	const char *mapname,*event;
-	int m,allflag=0;
-	mapname=st.GetString(st[2]);
-	event=st.GetString(st[3]);
-	if(strcmp(event,"All")==0)
-		allflag = 1;
-
-	if( (m=map_mapname2mapid(mapname))<0 )
-		return 0;
-//!! broadcast command if not on this mapserver
-	map_foreachinarea(buildin_killmonster_sub,
-		m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB, event ,allflag);
-	return 0;
-}
-
 int buildin_killmonsterall_sub(struct block_list &bl,va_list &ap)
 {
 	mob_remove_map((struct mob_data &)bl, 1);
 	return 0;
 }
+*/
+class CBuildinKillSummonedmob : public CMapProcessor
+{
+public:
+	CBuildinKillSummonedmob()	{}
+	~CBuildinKillSummonedmob()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &md =(struct mob_data&)bl;
+		
+		if(bl.type==BL_MOB && !md.cache)
+		{	// delete all script-summoned mobs
+			mob_unload(md);
+			return 1;
+		}
+		return 0;
+	}
+};
+class CBuildinKillEventmob : public CMapProcessor
+{
+	const char *&event;
+public:
+	CBuildinKillEventmob(const char*&e) : event(e)	{}
+	~CBuildinKillEventmob()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &md =(struct mob_data&)bl;
+		if(bl.type==BL_MOB && 0==strcmp(event, md.npc_event))
+		{	// delete only mobs with same event name
+			mob_remove_map(md, 0);
+			return 1;
+		}
+		return 0;
+	}
+};
+class CBuildinKillallmob : public CMapProcessor
+{
+public:
+	CBuildinKillallmob()	{}
+	~CBuildinKillallmob()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &md =(struct mob_data&)bl;
+		if(bl.type==BL_MOB )
+		{	
+			mob_remove_map(md, 1);
+			return 1;
+		}
+		return 0;
+	}
+};
+int buildin_killmonster(CScriptEngine &st)
+{
+	const char *mapname=st.GetString(st[2]);
+	const char *event=st.GetString(st[3]);
+	unsigned short m=map_mapname2mapid(mapname);
+
+	if( m < map_num )
+	{	//!! broadcast command if not on this mapserver
+		if(strcmp(event,"All")==0)
+			CMap::foreachinarea( CBuildinKillSummonedmob(),
+				m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
+		else
+			CMap::foreachinarea( CBuildinKillEventmob(event),
+				m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
+
+//		if(strcmp(event,"All")==0)
+//			allflag = 1;
+//		map_foreachinarea(buildin_killmonster_sub,
+//			m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB, event ,allflag);
+	}
+	return 0;
+}
+
 int buildin_killmonsterall(CScriptEngine &st)
 {
-	const char *mapname;
-	int m;
-	mapname=st.GetString(st[2]);
+	const char *mapname=st.GetString(st[2]);
+	ushort m =map_mapname2mapid(mapname);
+	if( m < map_num )
+	{	//!! broadcast command if not on this mapserver
+		CMap::foreachinarea( CBuildinKillallmob(),
+			m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
 
-	if( (m=map_mapname2mapid(mapname))<0 )
-		return 0;
-//!! broadcast command if not on this mapserver
-	map_foreachinarea(buildin_killmonsterall_sub,
-		m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
+//		map_foreachinarea(buildin_killmonsterall_sub,
+//			m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
+	}
 	return 0;
 }
 
@@ -6076,24 +6203,24 @@ int buildin_detachnpctimer(CScriptEngine &st)
  */
 int buildin_announce(CScriptEngine &st)
 {
-	const char *str;
-	int flag;
-	str=st.GetString(st[2]);
-	flag=st.GetInt(st[3]);
+	const char *str=st.GetString(st[2]);
+	int flag=st.GetInt(st[3]);
+	size_t len=1+strlen(str);
 
 	if(flag&0x0f)
 	{
 		struct block_list *bl=(flag&0x08)? map_id2bl(st.oid) : &st.sd->bl;
-		clif_GMmessage(bl,str,flag);
+		clif_GMmessage(bl,str,len,flag);
 	}
 	else
-		intif_GMmessage(str,flag);
+		intif_GMmessage(str,len,flag);
 	return 0;
 }
 /*==========================================
  * 天の声アナウンス（特定マップ）
  *------------------------------------------
  */
+/*
 int buildin_mapannounce_sub(struct block_list &bl,va_list &ap)
 {
 	char *str;
@@ -6101,24 +6228,39 @@ int buildin_mapannounce_sub(struct block_list &bl,va_list &ap)
 	str=va_arg(ap,char *);
 	len=va_arg(ap,int);
 	flag=va_arg(ap,int);
-	clif_GMmessage(&bl,str,flag|3);
+	clif_GMmessage(&bl,str,len,flag|3);
 	return 0;
 }
-
+*/
+class CBuildinMapannounce : public CMapProcessor
+{
+	const char*&str;
+	size_t len;
+	int flag;
+public:
+	CBuildinMapannounce(const char*&s, size_t l, int f)
+		: str(s),len(l),flag(f|3)	{}
+	~CBuildinMapannounce()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		clif_GMmessage(&bl,str,len,flag);
+		return 0;
+	}
+};
 int buildin_mapannounce(CScriptEngine &st)
 {
-	const char *mapname,*str;
-	int flag,m;
-
-	mapname=st.GetString(st[2]);
-	str=st.GetString(st[3]);
-	flag=st.GetInt(st[4]);
-
-	if( (m=map_mapname2mapid(mapname))<0 )
-		return 0;
-//!! broadcast command if not on this mapserver
-	map_foreachinarea(buildin_mapannounce_sub,
-		m,0,0,map[m].xs-1,map[m].ys-1,BL_PC, str,strlen(str)+1,flag&0x10);
+	const char *mapname=st.GetString(st[2]);
+	const char *str=st.GetString(st[3]);
+	int flag=st.GetInt(st[4]);
+	ushort m=map_mapname2mapid(mapname);
+	if( m<map_num )
+	{	//!! broadcast command if not on this mapserver
+		CMap::foreachinarea( CBuildinMapannounce(str,1+strlen(str),flag),
+			m,0,0,map[m].xs-1,map[m].ys-1,BL_PC);
+//		map_foreachinarea(buildin_mapannounce_sub,
+//			m,0,0,map[m].xs-1,map[m].ys-1,BL_PC,
+//			str,strlen(str)+1,flag&0x10);
+	}
 	return 0;
 }
 /*==========================================
@@ -6127,23 +6269,22 @@ int buildin_mapannounce(CScriptEngine &st)
  */
 int buildin_areaannounce(CScriptEngine &st)
 {
-	const char *map,*str;
-	int flag,m;
-	int x0,y0,x1,y1;
-
-	map=st.GetString(st[2]);
-	x0=st.GetInt(st[3]);
-	y0=st.GetInt(st[4]);
-	x1=st.GetInt(st[5]);
-	y1=st.GetInt(st[6]);
-	str=st.GetString(st[7]);
-	flag=st.GetInt(st[8]);
-
-	if( (m=map_mapname2mapid(map))<0 )
-		return 0;
-//!! broadcast command if not on this mapserver
-	map_foreachinarea(buildin_mapannounce_sub,
-		m,x0,y0,x1,y1,BL_PC, str,strlen(str)+1,flag&0x10 );
+	const char *mapname=st.GetString(st[2]);
+	int x0=st.GetInt(st[3]);
+	int y0=st.GetInt(st[4]);
+	int x1=st.GetInt(st[5]);
+	int y1=st.GetInt(st[6]);
+	const char *str=st.GetString(st[7]);
+	int flag=st.GetInt(st[8]);
+	ushort m=map_mapname2mapid(mapname);
+	if( m<map_num )
+	{	//!! broadcast command if not on this mapserver
+		CMap::foreachinarea( CBuildinMapannounce(str,1+strlen(str),flag&0x10),
+			m,x0,y0,x1,y1,BL_PC);
+//		map_foreachinarea(buildin_mapannounce_sub,
+//			m,x0,y0,x1,y1,BL_PC, 
+//			str,strlen(str)+1,flag&0x10 );
+	}
 	return 0;
 }
 /*==========================================
@@ -6194,43 +6335,51 @@ int buildin_getusersname(CScriptEngine &st)
  */
 int buildin_getmapusers(CScriptEngine &st)
 {
-	const char *str;
-	int m;
-	str=st.GetString(st[2]);
-	if( (m=map_mapname2mapid(str))< 0){
-		st.push_val(CScriptEngine::C_INT,-1);
-		return 0;
-	}
-//!! broadcast command if not on this mapserver
-	st.push_val(CScriptEngine::C_INT,map[m].users);
+	
+	const char *mapname=st.GetString(st[2]);
+	ushort m=map_mapname2mapid(mapname);
+	//!! broadcast command if not on this mapserver
+	int val = (m<map_num) ? (int)map[m].users : -1;
+	st.push_val(CScriptEngine::C_INT, val);
 	return 0;
 }
 /*==========================================
  * エリア指定ユーザー数所得
  *------------------------------------------
  */
+/*
 int buildin_getareausers_sub(struct block_list &bl,va_list &ap)
 {
 	int *users=va_arg(ap,int *);
 	(*users)++;
 	return 0;
 }
+*/
+class CBuildinCountObject : public CMapProcessor
+{
+	int type;// double check actually not necessary, just paranoia
+public:
+	CBuildinCountObject(int t) : type(t)	{}
+	~CBuildinCountObject()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		return (bl.type==type);
+	}
+};
 int buildin_getareausers(CScriptEngine &st)
 {
-	const char *str;
-	int m,x0,y0,x1,y1,users=0;
-	str=st.GetString(st[2]);
-	x0=st.GetInt(st[3]);
-	y0=st.GetInt(st[4]);
-	x1=st.GetInt(st[5]);
-	y1=st.GetInt(st[6]);
-	if( (m=map_mapname2mapid(str))< 0){
-		st.push_val(CScriptEngine::C_INT,-1);
-		return 0;
-	}
-//!! broadcast command if not on this mapserver
-	map_foreachinarea(buildin_getareausers_sub,
-		m,x0,y0,x1,y1,BL_PC,&users);
+	const char *mapname=st.GetString(st[2]);
+	int x0=st.GetInt(st[3]);
+	int y0=st.GetInt(st[4]);
+	int x1=st.GetInt(st[5]);
+	int y1=st.GetInt(st[6]);
+	ushort m=map_mapname2mapid(mapname);
+	//!! broadcast command if not on this mapserver
+	int users = ( m>=map_num )? -1 : 
+		CMap::foreachinarea( CBuildinCountObject(BL_PC), m,x0,y0,x1,y1,BL_PC);
+
+//	map_foreachinarea(buildin_getareausers_sub,
+//		m,x0,y0,x1,y1,BL_PC,&users);
 	st.push_val(CScriptEngine::C_INT,users);
 	return 0;
 }
@@ -6239,6 +6388,7 @@ int buildin_getareausers(CScriptEngine &st)
  * エリア指定ドロップアイテム数所得
  *------------------------------------------
  */
+/*
 int buildin_getareadropitem_sub(struct block_list &bl,va_list &ap)
 {
 	int item=va_arg(ap,int);
@@ -6250,35 +6400,51 @@ int buildin_getareadropitem_sub(struct block_list &bl,va_list &ap)
 
 	return 0;
 }
+*/
+class CBuildinCountDropitem : public CMapProcessor
+{
+	int item;
+public:
+	CBuildinCountDropitem(int i):item(i)	{}
+	~CBuildinCountDropitem()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct flooritem_data &drop=(struct flooritem_data &)bl;
+		return (drop.item_data.nameid==item) ? drop.item_data.amount : 0;
+	}
+};
 int buildin_getareadropitem(CScriptEngine &st)
 {
-	const char *str;
-	int m,x0,y0,x1,y1,item,amount=0;
-	CScriptEngine::CValue &data= st[7];
+	const char *mapname = st.GetString(st[2]);
+	int x0  = st.GetInt(st[3]);
+	int y0  = st.GetInt(st[4]);
+	int x1  = st.GetInt(st[5]);
+	int y1  = st.GetInt(st[6]);
+	int item;
+	int amount=0;
+	ushort m=map_mapname2mapid(mapname);
 
-	str = st.GetString(st[2]);
-	x0  = st.GetInt(st[3]);
-	y0  = st.GetInt(st[4]);
-	x1  = st.GetInt(st[5]);
-	y1  = st.GetInt(st[6]);
+	if( m<map_num )
+	{	//!! broadcast command if not on this mapserver
+		CScriptEngine::CValue &data= st[7];
+		st.ConvertName(data);
+		if( data.isString() )
+		{
+			const char *name=st.GetString(data);
+			struct item_data *item_data = itemdb_searchname(name);
+			item=512;
+			if( item_data )
+				item=item_data->nameid;
+		}
+		else
+			item=st.GetInt(data);
 
-	st.ConvertName(data);
-	if( data.isString() ){
-		const char *name=st.GetString(data);
-		struct item_data *item_data = itemdb_searchname(name);
-		item=512;
-		if( item_data )
-			item=item_data->nameid;
-	}else
-		item=st.GetInt(data);
+		amount = CMap::foreachinarea( CBuildinCountDropitem(item),
+			m,x0,y0,x1,y1,BL_ITEM);
 
-	if( (m=map_mapname2mapid(str))< 0){
-		st.push_val(CScriptEngine::C_INT,-1);
-		return 0;
+//		map_foreachinarea(buildin_getareadropitem_sub,
+//			m,x0,y0,x1,y1,BL_ITEM,item,&amount);
 	}
-//!! broadcast command if not on this mapserver
-	map_foreachinarea(buildin_getareadropitem_sub,
-		m,x0,y0,x1,y1,BL_ITEM,item,&amount);
 	st.push_val(CScriptEngine::C_INT,amount);
 	return 0;
 }
@@ -7163,7 +7329,7 @@ int buildin_emotion(CScriptEngine &st)
 	if(bl) clif_emotion(*bl,type);
 	return 0;
 }
-
+/*
 int buildin_maprespawnguildid_sub(struct block_list &bl,va_list &ap)
 {
 	uint32 g_id=va_arg(ap,uint32);
@@ -7190,16 +7356,49 @@ int buildin_maprespawnguildid_sub(struct block_list &bl,va_list &ap)
 	}
 	return 0;
 }
-
+*/
+class CBuildinRespawnGuild : public CMapProcessor
+{
+	uint32 g_id;
+	int flag;
+public:
+	CBuildinRespawnGuild(uint32 g, int f) : g_id(g), flag(f)	{}
+	~CBuildinRespawnGuild()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		if(bl.type == BL_PC)
+		{
+			struct map_session_data &sd=(struct map_session_data&)bl;
+			if( (sd.status.guild_id == 0) ||
+				((sd.status.guild_id == g_id) && (flag&1)) ||
+				((sd.status.guild_id != g_id) && (flag&2)) )
+			{	// move players out that not belong here
+				pc_setpos(sd,sd.status.save_point.map,sd.status.save_point.x,sd.status.save_point.y,3);
+			}
+		}
+		else if(bl.type == BL_MOB)
+		{
+			struct mob_data &md=(struct mob_data &)bl;
+			// guardians
+			if( flag&4 && (md.class_ < 1285 || md.class_ > 1288) )
+				mob_remove_map(md, 1);
+		}
+		return 0;
+	}
+};
 int buildin_maprespawnguildid(CScriptEngine &st)
 {
 	const char *mapname=st.GetString(st[2]);
 	int g_id=st.GetInt(st[3]);
 	int flag=st.GetInt(st[4]);
-
-	int m=map_mapname2mapid(mapname);
-
-	if(m) map_foreachinarea(buildin_maprespawnguildid_sub,m,0,0,map[m].xs-1,map[m].ys-1,BL_NUL,g_id,flag);
+	ushort m=map_mapname2mapid(mapname);
+	if( m<map_num )
+	{
+		CMap::foreachinarea( CBuildinRespawnGuild(g_id,flag),
+			m,0,0,map[m].xs-1,map[m].ys-1,BL_NUL);
+//		map_foreachinarea(buildin_maprespawnguildid_sub,
+//			m,0,0,map[m].xs-1,map[m].ys-1,BL_NUL,g_id,flag);
+	}
 	return 0;
 }
 
@@ -7547,25 +7746,27 @@ int buildin_failedremovecards(CScriptEngine &st)
 
 int buildin_mapwarp(CScriptEngine &st)	// Added by RoVeRT
 {
-	int x,y,m;
-	const char *str;
-	const char *mapname;
-	int x0,y0,x1,y1;
+	const char *mapname=st.GetString(st[2]);
+	const char *targetmap=st.GetString(st[3]);
+	int x=st.GetInt(st[4]);
+	int y=st.GetInt(st[5]);
+	ushort m = map_mapname2mapid(mapname);
+	if( m<map_num )
+	{	//!! broadcast command if not on this mapserver
+		int x0=0;
+		int y0=0;
+		int x1=map[m].xs;
+		int y1=map[m].ys;
 
-	mapname=st.GetString(st[2]);
-	x0=0;
-	y0=0;
-	x1=map[map_mapname2mapid(mapname)].xs;
-	y1=map[map_mapname2mapid(mapname)].ys;
-	str=st.GetString(st[3]);
-	x=st.GetInt(st[4]);
-	y=st.GetInt(st[5]);
-
-	if( (m=map_mapname2mapid(mapname))< 0)
-		return 0;
-//!! broadcast command if not on this mapserver
-	map_foreachinarea(buildin_areawarp_sub,
-		m,x0,y0,x1,y1,BL_PC, str,x,y );
+		if( 0==strcmp(targetmap,"Random") )
+			CMap::foreachinarea( CBuildinAreawarpRnd(),
+				m,x0,y0,x1,y1,BL_PC);
+		else
+			CMap::foreachinarea( CBuildinAreawarpXY(targetmap,x,y),
+				m,x0,y0,x1,y1,BL_PC);
+//		map_foreachinarea(buildin_areawarp_sub,
+//			m,x0,y0,x1,y1,BL_PC, str,x,y );
+	}
 	return 0;
 }
 
@@ -7598,7 +7799,7 @@ int buildin_stoptimer(CScriptEngine &st)	// Added by RoVeRT
 
 	return 0;
 }
-
+/*
 int buildin_mobcount_sub(struct block_list &bl,va_list &ap)	// Added by RoVeRT
 {
 	char *event=va_arg(ap,char *);
@@ -7608,23 +7809,38 @@ int buildin_mobcount_sub(struct block_list &bl,va_list &ap)	// Added by RoVeRT
 		(*c)++;
 	return 0;
 }
-
-int buildin_mobcount(CScriptEngine &st)	// Added by RoVeRT
+*/
+class CBuildinMapCount : public CMapProcessor
 {
-	const char *mapname,*event;
-	int m,c=0;
-	mapname=st.GetString(st[2]);
-	event=st.GetString(st[3]);
-
-	if( (m=map_mapname2mapid(mapname))<0 ) {
-		st.push_val(CScriptEngine::C_INT,-1);
+	int type;
+	const char *event;
+public:
+	CBuildinMapCount(int t, const char *e) : type(t), event(e)	{}
+	~CBuildinMapCount()	{}
+	virtual int process(struct block_list& bl) const
+	{
+		struct mob_data &md = (struct mob_data &)bl;
+		if(	bl.type==type && 
+			(bl.type!=BL_MOB || !event || 0==strcmp(event, md.npc_event)) )
+			return 1;
 		return 0;
 	}
-	map_foreachinarea(buildin_mobcount_sub,
-		m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB, event,&c );
-
-	st.push_val(CScriptEngine::C_INT, (c));
-
+};
+int buildin_mobcount(CScriptEngine &st)
+{
+	const char *mapname=st.GetString(st[2]);
+	const char *event=st.GetString(st[3]);
+	ushort m = map_mapname2mapid(mapname);
+	int amount = -1;
+	if( m<map_num )
+	{	//!! broadcast if not on this mapserver
+		amount = CMap::foreachinarea( CBuildinMapCount(BL_MOB,event),
+			m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
+//		map_foreachinarea(buildin_mobcount_sub,
+//			m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB, event,&c );
+		return 0;
+	}
+	st.push_val(CScriptEngine::C_INT, amount);
 	return 0;
 }
 int buildin_marriage(CScriptEngine &st)
@@ -8431,38 +8647,21 @@ int buildin_checkequipedcard(CScriptEngine &st)
  */
 int buildin_getmapmobs(CScriptEngine &st)
 {
-	const char *str;
-	int m=-1,bx,by,i;
-	int count=0,c;
-	struct block_list *bl;
+	unsigned short m=0xFFFF;
+	int count=-1;
+	const char *str=st.GetString(st[2]);
 
-	str=st.GetString(st[2]);
-
-	if(strcmp(str,"this")==0){
-		struct map_session_data *sd=st.sd;
-		if(sd)
-			m=sd->bl.m;
-		else{
-			st.push_val(CScriptEngine::C_INT,-1);
-			return 0;
-		}
-	}else
-		m=map_mapname2mapid(str);
-
-	if(m < 0){
-		st.push_val(CScriptEngine::C_INT,-1);
-		return 0;
+	if( 0==strcmp(str,"this") ) 
+	{
+		if(st.sd)
+			m=st.sd->bl.m;
 	}
-
-	for(by=0;by<=(map[m].ys-1)/BLOCK_SIZE;by++){
-		for(bx=0;bx<=(map[m].xs-1)/BLOCK_SIZE;bx++){
-			bl = map[m].block_mob[bx+by*map[m].bxs];
-			c = map[m].block_mob_count[bx+by*map[m].bxs];
-			for(i=0;i<c && bl;i++,bl=bl->next){
-				if(bl->x<map[m].xs && bl->y<map[m].ys)
-					count++;
-			}
-		}
+	else
+		m=map_mapname2mapid(str);
+	if(m < map_num)
+	{
+		count = CMap::foreachinarea( CBuildinMapCount(BL_MOB,NULL),
+			m,0,0,map[m].xs-1,map[m].ys-1,BL_MOB);
 	}
 	st.push_val(CScriptEngine::C_INT,count);
 	return 0;
@@ -9543,7 +9742,7 @@ int mapreg_setregstr(int num,const char *str)
 		return 0;
 	}
 	p=(char *)aMalloc( (strlen(str)+1)*sizeof(char));
-	strcpy(p,str);
+	memcpy(p,str,(strlen(str)+1)*sizeof(char));
 	numdb_insert(mapregstr_db,num,p);
 	mapreg_dirty=1;
 	return 0;
@@ -9593,6 +9792,7 @@ int script_load_mapreg()
  * 永続的マップ変数の書き込み
  *------------------------------------------
  */
+/*
 int script_save_mapreg_intsub(void *key,void *data,va_list &ap)
 {
 	FILE *fp=va_arg(ap,FILE*);
@@ -9619,15 +9819,57 @@ int script_save_mapreg_strsub(void *key,void *data,va_list &ap)
 	}
 	return 0;
 }
+*/
+class CDBScriptSaveMapregInt : public CDBProcessor
+{
+	FILE* &fp;
+public:
+	CDBScriptSaveMapregInt(FILE* &f) : fp(f)	{}
+	virtual ~CDBScriptSaveMapregInt()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		int num=((size_t)key)&0x00FFFFFF, i=(((size_t)key)>>24)&0xFF;
+		char *name=str_buf+str_data[num].str;
+		if( name[1]!='@' ){
+			if(i==0)
+				fprintf(fp,"%s\t%d\n", name, (size_t)data);
+			else
+				fprintf(fp,"%s,%d\t%d\n", name, i, (size_t)data);
+		}
+		return true;
+	}	
+};
+class CDBScriptSaveMapregStr : public CDBProcessor
+{
+	FILE* &fp;
+public:
+	CDBScriptSaveMapregStr(FILE* &f) : fp(f)	{}
+	virtual ~CDBScriptSaveMapregStr()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		int num=((size_t)key)&0x00FFFFFF, i=(((size_t)key)>>24)&0xFF;
+		char *name=str_buf+str_data[num].str;
+		if( name[1]!='@' ){
+			if(i==0)
+				fprintf(fp,"%s\t%s\n", name, (char *)data);
+			else
+				fprintf(fp,"%s,%d\t%s\n", name, i, (char *)data);
+		}
+		return true;
+	}
+};
 int script_save_mapreg()
 {
 	FILE *fp;
 	int lock;
-
 	if( (fp=lock_fopen(mapreg_txt,&lock))==NULL )
 		return -1;
-	numdb_foreach(mapreg_db,script_save_mapreg_intsub,fp);
-	numdb_foreach(mapregstr_db,script_save_mapreg_strsub,fp);
+
+	numdb_foreach(mapreg_db,    CDBScriptSaveMapregInt(fp) );
+	numdb_foreach(mapregstr_db, CDBScriptSaveMapregStr(fp) );
+//	numdb_foreach(mapreg_db,script_save_mapreg_intsub,fp);
+//	numdb_foreach(mapregstr_db,script_save_mapreg_strsub,fp);
+
 	lock_fclose(fp,mapreg_txt,&lock);
 	mapreg_dirty=0;
 	return 0;
@@ -9752,20 +9994,20 @@ int script_config_read(const char *cfgName)
  * 終了
  *------------------------------------------
  */
-int mapreg_db_final(void *key,void *data,va_list &ap)
+int mapreg_db_final(void *key,void *data)
 {
 	return 0;
 }
-int mapregstr_db_final(void *key,void *data,va_list &ap)
+int mapregstr_db_final(void *key,void *data)
 {
 	aFree(data);
 	return 0;
 }
-int scriptlabel_db_final(void *key,void *data,va_list &ap)
+int scriptlabel_db_final(void *key,void *data)
 {
 	return 0;
 }
-int userfunc_db_final(void *key,void *data,va_list &ap)
+int userfunc_db_final(void *key,void *data)
 {
 	aFree(key);
 	aFree(data);

@@ -2,7 +2,7 @@
 #ifndef _PARTY_H_
 #define _PARTY_H_
 
-#include <stdarg.h>
+#include "map.h"
 
 struct party;
 struct map_session_data;
@@ -38,12 +38,17 @@ int party_recv_message(uint32 party_id,uint32 account_id,const char *mes,size_t 
 int party_check_conflict(struct map_session_data &sd);
 
 int party_send_xy_clear(struct party &p);
-int party_send_hp_check(struct block_list &bl,va_list &ap);
-
+//int party_send_hp_check(struct block_list &bl,va_list &ap);
+class CPartySendHP : public CMapProcessor
+{
+	uint32 party_id;
+	int& flag;
+public:
+	CPartySendHP(uint32 p, int& f) : party_id(p), flag(f)	{}
+	~CPartySendHP()	{}
+	virtual int process(struct block_list& bl) const;
+};
 int party_exp_share(struct party &p,unsigned short map,uint32 base_exp,uint32 job_exp,uint32 zeny);
-
-void party_foreachsamemap(int (*func)(struct block_list&,va_list &),struct map_session_data &sd,int type,...);
-
 int party_send_dot_remove(struct map_session_data &sd);
 
 #endif

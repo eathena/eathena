@@ -1654,7 +1654,7 @@ void sql_config_read(const char *cfgName){ /* Kalaspuff, to get login_db */
 //--------------------------------------
 // Function called at exit of the server
 //--------------------------------------
-int online_db_final(void *key,void *data,va_list &ap)
+int online_db_final(void *key,void *data)
 {
 	int *p = (int *) data;
 	if (p) aFree(p);

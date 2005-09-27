@@ -2,6 +2,8 @@
 #ifndef _NPC_H_
 #define _NPC_H_
 
+#include "map.h"
+
 #define START_NPC_NUM 110000000
 
 #define WARP_CLASS 45
@@ -11,7 +13,23 @@
 
 void npc_chat_finalize(struct npc_data *nd);
 
-int npc_chat_sub(struct block_list &bl, va_list &ap);
+//int npc_chat_sub(struct block_list &bl, va_list &ap);
+
+class CNpcChat : public CMapProcessor
+{
+    char *msg;
+    size_t len;
+    struct map_session_data &sd;
+public:
+	CNpcChat(char *m, size_t l, struct map_session_data &s)
+		: msg(m), len(l), sd(s)
+	{}
+	~CNpcChat()	{}
+	virtual int process(struct block_list& bl) const;
+};
+
+
+
 //int npc_event_dequeue(struct map_session_data &sd);
 //int npc_event_enqueue(struct map_session_data &sd, const char *eventname);
 int npc_event_timer(int tid, unsigned long tick, int id, intptr data);
@@ -63,7 +81,6 @@ int npc_reload(void);
 
 // ============================================
 // ADDITION Qamera death/disconnect/connect event mod
-int npc_event_doall_attached_sub(void *key,void *data,va_list &ap);
 int npc_event_doall_attached(const char *name, struct map_session_data &sd);
 struct npc_att_data {
 	struct map_session_data * sd;

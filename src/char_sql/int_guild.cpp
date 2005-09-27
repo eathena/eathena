@@ -35,9 +35,8 @@ int guild_check_empty(struct guild *g);
 int guild_calcinfo(struct guild *g);
 int mapif_guild_basicinfochanged(uint32 guild_id,int type, uint32 data);
 int mapif_guild_info(int fd,struct guild *g);
-int guild_break_sub(void *key,void *data,va_list &ap);
 
-
+/*
 int _erase_guild(void *key, void *data, va_list &ap)
 {
     uint32 guild_id = va_arg(ap, uint32);
@@ -49,6 +48,25 @@ int _erase_guild(void *key, void *data, va_list &ap)
     }
     return 0;
 }
+*/
+class CDBerase_guild : public CDBProcessor
+{
+	uint32 guild_id;
+public:
+	CDBerase_guild(uint32 g) : guild_id(g)	{}
+	virtual ~CDBerase_guild()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct guild_castle * castle = (struct guild_castle *) data;
+		if (castle->guild_id == guild_id)
+		{
+			aFree(castle);
+			db_erase(castle_db_, key);
+		}
+		return 0;
+	}
+};
+
 
 // Save guild into sql
 int inter_guild_tosql(struct guild *g,int flag)
@@ -162,7 +180,8 @@ int inter_guild_tosql(struct guild *g,int flag)
 			if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 				ShowMessage("DB server Error (delete `guild_castle`)- %s\n", mysql_error(&mysql_handle) );
 			}
-			db_foreach(castle_db_, _erase_guild, g->guild_id);
+			db_foreach(castle_db_, CDBerase_guild(g->guild_id) );
+//			db_foreach(castle_db_, _erase_guild, g->guild_id);
 		}
 	}
 
@@ -515,8 +534,9 @@ struct guild * inter_guild_fromsql(int guild_id)
 	numdb_insert(guild_db_, guild_id,g);
 	return g;
 }
-
-int _set_guild_castle(void *key, void *data, va_list &ap) {
+/*
+int _set_guild_castle(void *key, void *data, va_list &ap)
+{
     unsigned short castle_id = (unsigned short)va_arg(ap, int);
     uint32 guild_id   = va_arg(ap, uint32);
     struct guild * g = (struct guild *) data;
@@ -527,7 +547,24 @@ int _set_guild_castle(void *key, void *data, va_list &ap) {
         g->castle_id = castle_id;
     return 0;
 }
-
+*/
+class CDBset_guild_castle : public CDBProcessor
+{
+	ushort castle_id;
+	uint32 guild_id;
+public:
+	CDBset_guild_castle(ushort c, uint32 g) : castle_id(c), guild_id(g)	{}
+	virtual ~CDBset_guild_castle()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct guild * g = (struct guild *) data;
+		if( g->castle_id == castle_id )
+			g->castle_id = 0xFFFF;
+		if( g->guild_id == guild_id )
+			g->castle_id = castle_id;
+		return 0;
+	}
+};
 int inter_guildcastle_tosql(struct guild_castle *gc)
 {
 	struct guild_castle *gcopy;
@@ -561,7 +598,8 @@ int inter_guildcastle_tosql(struct guild_castle *gc)
 	}
 	mysql_free_result(sql_res) ; //resource free
 	
-	db_foreach(guild_db_, _set_guild_castle, gc->castle_id,gc->guild_id);
+	db_foreach(guild_db_, CDBset_guild_castle(gc->castle_id,gc->guild_id) );
+//	db_foreach(guild_db_, _set_guild_castle, gc->castle_id,gc->guild_id);
 
 	return 0;
 }
@@ -700,7 +738,7 @@ int inter_guild_sql_init()
 	return 0;
 }
 
-int guild_db_final (void *k, void *data, va_list &ap)
+int guild_db_final (void *k, void *data)
 {
 	struct guild *g = (struct guild *)data;
 	if(g)
@@ -716,7 +754,7 @@ int guild_db_final (void *k, void *data, va_list &ap)
 	}
 	return 0;
 }
-int castle_db_final (void *k, void *data, va_list &ap)
+int castle_db_final (void *k, void *data)
 {
 	struct guild_castle *gc = (struct guild_castle *)data;
 	if (gc) aFree(gc);
@@ -820,7 +858,7 @@ int guild_calcinfo(struct guild *g)
 		g->next_exp = guild_nextexp(g->guild_lv);
 
 		// メンバ上限（ギルド拡張適用）
-		g->max_member = 16 + guild_checkskill(*g, GD_EXTENSION) * 4; //  Guild Extention skill - adds by 4 people per level to Max Member [Lupus]
+		g->max_member = 16 + guild_checkskill(*g, GD_EXTENSION) * 6; //  Guild Extention skill - adds by 6 people per level to Max Member [Lupus]
 
 		// 平均レベルとオンライン人数
 		g->average_lv=0;
@@ -1406,8 +1444,9 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 	if(mysql_SendQuery(&mysql_handle, tmp_sql) ) {
 		ShowMessage("DB server Error (delete `guild_position`)- %s\n", mysql_error(&mysql_handle) );
 	}
-	
-	db_foreach(castle_db_, _erase_guild, guild_id);
+
+	db_foreach(castle_db_, CDBerase_guild(guild_id) );
+//	db_foreach(castle_db_, _erase_guild, guild_id);
 
 	//ShowMessage("- Update guild %d of char\n",guild_id);
 	sprintf(tmp_sql, "UPDATE `%s` SET `guild_id`='0' WHERE `guild_id`='%d'",char_db, guild_id);

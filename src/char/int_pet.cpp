@@ -105,7 +105,7 @@ int inter_pet_init()
 	return 0;
 }
 
-int pet_db_final (void *k, void *data, va_list &ap) {
+int pet_db_final (void *k, void *data) {
 	struct s_pet *p = (struct s_pet *)data;
 	if (p) aFree(p);
 	return 0;
@@ -119,7 +119,7 @@ void inter_pet_final()
 	}
 	return;
 }
-
+/*
 int inter_pet_save_sub(void *key,void *data,va_list &ap)
 {
 	char line[8192];
@@ -129,7 +129,21 @@ int inter_pet_save_sub(void *key,void *data,va_list &ap)
 	fprintf(fp,"%s" RETCODE,line);
 	return 0;
 }
-
+*/
+class CDBpet_save : public CDBProcessor
+{
+	FILE *fp;
+	mutable char line[65536];
+public:
+	CDBpet_save(FILE *f) : fp(f)			{}
+	virtual ~CDBpet_save()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		inter_pet_tostr(line,(struct s_pet *)data);
+		fprintf(fp,"%s" RETCODE,line);
+		return 0;
+	}
+};
 int inter_pet_save()
 {
 	FILE *fp;
@@ -138,7 +152,8 @@ int inter_pet_save()
 		ShowMessage("int_pet: cant write [%s] !!! data is lost !!!\n",pet_txt);
 		return 1;
 	}
-	numdb_foreach(pet_db,inter_pet_save_sub,fp);
+	numdb_foreach(pet_db, CDBpet_save(fp) );
+//	numdb_foreach(pet_db,inter_pet_save_sub,fp);
 	lock_fclose(fp,pet_txt,&lock);
 //	ShowMessage("int_pet: %s saved.\n",pet_txt);
 	return 0;

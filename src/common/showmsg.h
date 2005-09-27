@@ -68,7 +68,7 @@
 
 enum msg_type {MSG_NONE,MSG_STATUS,MSG_SQL,MSG_INFORMATION,MSG_CONSOLE,MSG_NOTICE,MSG_WARNING,MSG_DEBUG,MSG_ERROR,MSG_FATALERROR};
 
-extern int _vShowMessage(enum msg_type flag, const char *string, va_list &va);
+extern int _vShowMessage(enum msg_type flag, const char *string, va_list va);
 extern int _ShowMessage(enum msg_type flag, const char *string, ...);
 
 #ifdef __GNUC__ 

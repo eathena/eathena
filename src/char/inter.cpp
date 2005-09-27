@@ -138,7 +138,9 @@ int inter_accreg_init(void) {
 }
 
 // アカウント変数のセーブ用
-int inter_accreg_save_sub(void *key, void *data, va_list &ap) {
+/*
+int inter_accreg_save_sub(void *key, void *data, va_list &ap)
+{
 	char line[8192];
 	FILE *fp;
 	struct accreg *reg = (struct accreg *)data;
@@ -151,6 +153,25 @@ int inter_accreg_save_sub(void *key, void *data, va_list &ap) {
 
 	return 0;
 }
+*/
+class CDBAccregSave : public CDBProcessor
+{
+	FILE *&fp;
+public:
+	CDBAccregSave(FILE *&f) : fp(f)			{}
+	virtual ~CDBAccregSave()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		char line[8192];
+		struct accreg *reg = (struct accreg *)data;
+		if(reg && reg->reg_num > 0)
+		{
+			inter_accreg_tostr(line,reg);
+			fprintf(fp, "%s" RETCODE, line);
+		}
+		return true;
+	}
+};
 
 // アカウント変数のセーブ
 int inter_accreg_save(void) {
@@ -161,7 +182,8 @@ int inter_accreg_save(void) {
 		ShowMessage("int_accreg: cant write [%s] !!! data is lost !!!\n", accreg_txt);
 		return 1;
 	}
-	numdb_foreach(accreg_db, inter_accreg_save_sub,fp);
+	numdb_foreach(accreg_db, CDBAccregSave(fp) );
+//	numdb_foreach(accreg_db, inter_accreg_save_sub,fp);
 	lock_fclose(fp, accreg_txt, &lock);
 //	ShowMessage("inter: %s saved.\n", accreg_txt);
 
@@ -267,12 +289,14 @@ int inter_init(const char *file) {
 }
 
 // finalize
-int accreg_db_final (void *k, void *data, va_list &ap) {	
+int accreg_db_final (void *k, void *data)
+{	
 	struct accreg *p = (struct accreg *) data;
 	if (p) aFree(p);
 	return 0;
 }
-int wis_db_final (void *k, void *data, va_list &ap) {
+int wis_db_final (void *k, void *data)
+{
 	struct WisData *p = (struct WisData *) data;
 	if (p) aFree(p);
 	return 0;
@@ -391,7 +415,9 @@ int mapif_account_reg_reply(int fd, uint32 account_id) {
 //--------------------------------------------------------
 
 // Existence check of WISP data
-int check_ttl_wisdata_sub(void *key, void *data, va_list &ap) {
+/*
+int check_ttl_wisdata_sub(void *key, void *data, va_list &ap)
+{
 	unsigned long tick;
 	struct WisData *wd = (struct WisData *)data;
 	tick = (unsigned long)va_arg(ap, unsigned long);
@@ -401,6 +427,21 @@ int check_ttl_wisdata_sub(void *key, void *data, va_list &ap) {
 
 	return 0;
 }
+*/
+class CDBttl_wisdata : public CDBProcessor
+{
+	unsigned long tick;
+public:
+	CDBttl_wisdata(unsigned long t) : tick(t)			{}
+	virtual ~CDBttl_wisdata()	{}
+	virtual bool process(void *key, void *data) const
+	{
+		struct WisData *wd = (struct WisData *)data;
+		if( wd && DIFF_TICK(tick, wd->tick) > WISDATA_TTL && wis_delnum < WISDELLIST_MAX)
+			wis_dellist[wis_delnum++] = wd->id;
+		return true;
+	}
+};
 
 int check_ttl_wisdata(void) {
 	unsigned long tick = gettick();
@@ -408,7 +449,8 @@ int check_ttl_wisdata(void) {
 
 	do {
 		wis_delnum = 0;
-		numdb_foreach(wis_db, check_ttl_wisdata_sub, tick);
+		numdb_foreach(wis_db, CDBttl_wisdata(tick) );
+//		numdb_foreach(wis_db, check_ttl_wisdata_sub, tick);
 		for(i = 0; i < wis_delnum; i++) {
 			struct WisData *wd = (struct WisData*)numdb_search(wis_db, wis_dellist[i]);
 			ShowMessage("inter: wis data id=%d time out : from %s to %s\n", wd->id, wd->src, wd->dst);

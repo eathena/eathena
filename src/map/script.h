@@ -224,7 +224,7 @@ private:
 	}
 	void appendCommand(int a);
 	void appendInt(int a);
-	void appendL(int l);
+	void appendLabel(int l);
 	void setLabel(size_t l, size_t pos);
 	bool skipSpaceComment(const char *&p);
 	bool skipWord(const char *&p);

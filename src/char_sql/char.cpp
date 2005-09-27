@@ -1940,7 +1940,6 @@ int parse_frommap(int fd)
 		unsigned char buf[16384];
 		WBUFW(buf,0) = 0x2b20;
 		WBUFW(buf,2) = server[id].maps * 16 + 20;
-
 		WBUFLIP(buf,4) = server[id].address.LANIP();
 		WBUFLIP(buf,8) = server[id].address.LANMask();
 		WBUFW(buf,12) = server[id].address.LANPort();
@@ -2516,7 +2515,7 @@ int parse_frommap(int fd)
 			break;
 		}
 		///////////////////////////////////////////////////////////////////////
-		// string with status changes
+		// status changes
 		// for testing purpose
 		case 0x2b22:
 		{	
@@ -3417,7 +3416,7 @@ int check_connect_login_server(int tid, unsigned long tick, int id, intptr data)
 	return 0;
 }
 
-int char_db_final(void *key,void *data,va_list &ap)
+int char_db_final(void *key,void *data)
 {
 	struct mmo_charstatus *p = (struct mmo_charstatus *) data;
 	if (p) aFree(p);
