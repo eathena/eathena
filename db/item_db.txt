@@ -486,7 +486,7 @@
 1134,Caesar's_Sword,Caesar's Sword,4,,10,700,140,,1,0,414946,2,2,4,40,1,2,{},{ bonus2 bAddRace,RC_Plant,25; bonus bIgnoreDefRace,RC_Plant; }
 1135,Cutlas,Cutlas,4,,10,900,150,,1,0,414946,2,2,4,40,1,2,{},{ skill 5,5; bonus bStr,2; bonus bDef,1; }
 1136,Solar_Sword,Solar Sword,4,,10,1200,85,,1,0,414946,2,2,4,40,1,2,{},{ bonus bAtkEle,Ele_Fire; bonus bHitRate,30; bonus2 bHPDrainRate,1000,1; bonus2 bSPLossRate,15,10000; }
-1137,Excalibur,Excalibur,4,,10,1200,150,,1,0,414946,2,2,4,40,1,2,{},{ bonus bLuk,10; bonus bDex,-1; bonus bAtkEle,Ele_Holy; }
+1137,Excalibur,Excalibur,4,,10,1200,150,,1,0,414946,2,2,4,40,1,2,{},{ bonus bInt,5; bonus bLuk,10; bonus bDex,-1; bonus bAtkEle,Ele_Holy; }
 1138,Mysteltainn_,Mysteltainn,4,,10,1000,170,,1,0,414946,2,2,4,40,1,2,{},{ bonus bAtkEle,Ele_Dark; bonus2 bAddEle,Ele_Ghost,15; bonus2 bAddEff,Eff_Stone,100; bonus bDex,3; }
 1139,Talefing_,Talefing,4,,10,1000,200,,1,0,414946,2,2,4,40,1,2,{},{ bonus bAtkEle,Ele_Dark; bonus2 bSPDrainRate,50,-35; }
 1140,Byeollungum,Byeollungum,4,,10,900,150,,1,0,414946,2,2,4,40,1,2,{},{ bonus2 bSubRace,RC_NonBoss,-10; bonus2 bAddRace,RC_Boss,50; bonus bAllStats,2; }
