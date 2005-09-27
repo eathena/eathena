@@ -1708,10 +1708,10 @@ int status_calc_flee(struct block_list *bl, int flee)
 	if(sc_data){
 		if(sc_data[SC_INCFLEE].timer!=-1)
 			flee += sc_data[SC_INCFLEE].val1;
-		if(sc_data[SC_WINDWALK].timer!=-1)
-			flee += sc_data[SC_WINDWALK].val2;
 		if(sc_data[SC_WHISTLE].timer!=-1)
 			flee += sc_data[SC_WHISTLE].val2;
+		if(sc_data[SC_WINDWALK].timer!=-1)
+			flee += flee * sc_data[SC_WINDWALK].val2/100;
 		if(sc_data[SC_INCFLEERATE].timer!=-1)
 			flee += flee * sc_data[SC_INCFLEERATE].val1/100;
 		if(sc_data[SC_VIOLENTGALE].timer!=-1 && status_get_elem_type(bl)==4)
@@ -1844,7 +1844,7 @@ int status_calc_speed(struct block_list *bl, int speed)
 			else if(sc_data[SC_INCREASEAGI].timer!=-1)
 				speed -= speed * 25/100;
 			else if(sc_data[SC_WINDWALK].timer!=-1)
-				speed -= speed * 4*sc_data[SC_WINDWALK].val1/100;
+				speed -= speed * 4*sc_data[SC_WINDWALK].val2/100;
 			if(sc_data[SC_CARTBOOST].timer!=-1)
 				speed -= speed * 20/100;
 			if(sc_data[SC_BERSERK].timer!=-1)

@@ -2,6 +2,9 @@ Date	Added
 =======
 
 09/27
+	* Corrected Wind Walk's walk and flee bonus (walk was a +4*skill_lv%
+	  increase! and flee was +5 flee, rather than +5% flee of your total).
+	  [Skotlex]
 	* Added atcommand @changeleader, transfers the leadership of a party to
 	  someone else. [Skotlex]
 	  (defaults as a GM-level 10 command, not quite yet tested)
