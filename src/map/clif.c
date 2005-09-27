@@ -8248,12 +8248,14 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd) {
  *------------------------------------------
  */
 void clif_parse_QuitGame(int fd, struct map_session_data *sd) {
-	unsigned int tick=gettick();
-	struct skill_unit_group* sg;
+//	unsigned int tick=gettick();
+//	struct skill_unit_group* sg;
 
 	nullpo_retv(sd);
 
 	WFIFOW(fd,0) = 0x18b;
+
+	/* sc_data saving makes this check unnecessary. [Skotlex]
 	if ((!pc_isdead(sd) && (sd->opt1 || (sd->opt2 && !(night_flag == 1 && sd->opt2 == STATE_BLIND)))) ||
 	    sd->skilltimer != -1 ||
 	    (DIFF_TICK(tick, sd->canact_tick) < 0) ||
@@ -8262,7 +8264,7 @@ void clif_parse_QuitGame(int fd, struct map_session_data *sd) {
 		WFIFOSET(fd,packet_len_table[0x18b]);
 		return;
 	}
-
+	*/
 	/*	Rovert's prevent logout option fixed [Valaris]	*/
 	if (!battle_config.prevent_logout ||
 		(gettick() - sd->canlog_tick) >= 10000 ||

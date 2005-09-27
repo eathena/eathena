@@ -1,6 +1,10 @@
 Date	Added
 =======
 
+09/27
+	* Removed the check that prevented chars from logging out during status
+	  changes, as the current system should save and restore these correctly.
+	  [Skotlex]
 09/26
 	* Fixed MAX GUILD capasity in mmo.h to allow correct +6 Guild Extension [Lupus]
 	* Changed back the TIMER_MIN_INTERVAL to 50. Who changed it back to 25?
