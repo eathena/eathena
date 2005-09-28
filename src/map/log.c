@@ -98,6 +98,7 @@ int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, in
 {
 	FILE *logfp;
 	char *mapname;
+	int obj_id;
 
 	if(log_config.enable_logs <= 0)
 		return 0;
@@ -106,21 +107,21 @@ int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, in
 	if (!should_log_item(log_config.pick,nameid))
 		return 0; //we skip logging this items set - they doesn't met our logging conditions [Lupus]
 
+	//either PLAYER or MOB (here we get map name and objects ID)
+	if(mob_id) {
+		obj_id = mob_id;
+		struct mob_data *md = (struct mob_data*)sd;
+		mapname = map[md->m].name;
+	} else {
+		obj_id = sd->char_id;
+		mapname = sd->mapname;
+	}
+	if(mapname==NULL)
+		mapname="";
+
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		int obj_id;
-
-		//either PLAYER or MOB
-		if(mob_id) {
-			obj_id = mob_id;
-			struct mob_data *md = (struct mob_data*)sd;
-			mapname = map[md->m].name;
-		} else {
-			obj_id = sd->char_id;
-			mapname = sd->mapname;
-		}
-
 		if (itm==NULL) {
 		//We log common item
 			sprintf(tmp_sql, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `map`) VALUES (NOW(), '%d', '%s', '%d', '%d', '%s')",
@@ -142,7 +143,17 @@ int log_pick(struct map_session_data *sd, char *type, int mob_id, int nameid, in
 			time_t curtime;
 			time(&curtime);
 			strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-			//fprintf(logfp,"%s - %s[%d:%d]\t%d\t%d,%d,%d,%d,%d,%d,%d,%d,%d,%d%s", timestring, sd->status.name, sd->status.account_id, sd->status.char_id, monster_id, log_drop[0], log_drop[1], log_drop[2], log_drop[3], log_drop[4], log_drop[5], log_drop[6], log_drop[7], log_drop[8], log_drop[9], RETCODE);
+
+			if (itm==NULL) {
+			//We log common item
+				fprintf(logfp,"%s - %d\t%s\t%d,%d,%s%s",
+					timestring, obj_id, type, nameid, amount, mapname, RETCODE);
+
+			} else {
+			//We log Extended item
+				fprintf(logfp,"%s - %d\t%s\t%d,%d,%d,%d,%d,%d,%d,%s%s",
+					timestring, obj_id, type, itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], mapname, RETCODE);
+			}
 			fclose(logfp);
 		}
 #ifndef TXT_ONLY

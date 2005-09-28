@@ -1,6 +1,9 @@
 Date	Added
 =======
 
+09/29
+	* Fixed crash, related to STEAL logs [Lupus]
+	* Added TXT logs for Pick_log [Lupus]
 09/28
 	* Added 'scripts items operations' and 'vending' into pick_log: [Lupus]
 	  Tested with refine, getitem, getnameditem, removecards, etc commands. They are all supported.

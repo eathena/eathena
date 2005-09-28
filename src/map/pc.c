@@ -2498,7 +2498,7 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
 	}
 
 	//Logs items, dropped by (P)layers [Lupus]
-	if(sd && log_config.pick > 0 )
+	if(log_config.pick > 0 )
 		log_pick(sd, "P", 0, sd->status.inventory[n].nameid, -amount, (struct item*)&sd->status.inventory[n]);
 	//Logs
 
@@ -2565,7 +2565,7 @@ int pc_takeitem(struct map_session_data *sd,struct flooritem_data *fitem)
 			pc_stopattack(sd);
 
 		//Logs items, taken by (P)layers [Lupus]
-		if(sd && log_config.pick > 0 )
+		if(log_config.pick > 0 )
 			log_pick(sd, "P", 0, fitem->item_data.nameid, fitem->item_data.amount, (struct item*)&fitem->item_data);
 		//Logs
 
@@ -2882,8 +2882,8 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 						flag = pc_additem(sd,&tmp_item,1);
 
 						//Logs items, Stolen from mobs [Lupus]
-						if(sd && log_config.pick > 0 ) {
-							log_pick(sd, "M", md->class_, itemid, -1, NULL);
+						if(log_config.pick > 0 ) {
+							log_pick((struct map_session_data*)md, "M", md->class_, itemid, -1, NULL);
 							log_pick(sd, "P", 0, itemid, 1, NULL);
 						}
 						//Logs
