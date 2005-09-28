@@ -2866,8 +2866,9 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 
 			if(0 < skill)
 			{
-				for(count = 10; count <= 10 && count != 0; count--) //8 -> 10 Lupus
-				{
+				//I removed this exploit. Because THIEF has only 1 chance to steal per skill usage, not 10
+				//for(count = 10; count <= 10 && count != 0; count--) //8 -> 10 Lupus
+				//{
 					i = rand()%10; //8 -> 10 Lupus
 					itemid = md->db->dropitem[i].nameid;
 
@@ -2882,6 +2883,13 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 							tmp_item.amount = 1;
 							tmp_item.identify = !itemdb_isequip3(itemid);
 							flag = pc_additem(sd,&tmp_item,1);
+
+							//Logs items, Stolen from mobs [Lupus]
+							if(sd && log_config.pick > 0 ) {
+								log_pick(sd, "M", md->class_, itemid, -1, NULL);
+								log_pick(sd, "P", 0, itemid, 1, NULL);
+							}
+							//Logs
 
 							//this drop log contains ALL stolen items [Lupus]
 							if(log_config.steal) { //we check were there any drops.. and if not - don't write the log
@@ -2918,7 +2926,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl)
 							return 1;
 						}
 					}
-				}
+				//}
 			}
 		}
 	}

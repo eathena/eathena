@@ -1031,7 +1031,7 @@
 2405,Boots,Boots,5,18000,,600,,4,,0,1989866,2,64,,0,1,0,{},{}
 2406,Boots_,Boots,5,18000,,600,,4,,1,1989866,2,64,,0,1,0,{},{}
 2407,Crystal_Pumps,Crystal Pumps,5,,10,100,,0,,0,10477567,0,64,,0,1,0,{},{ bonus bMdef,10; bonus bLuk,5; }
-2408,Cuffs,Cuffs,5,5000,,3000,,3,,0,10477567,2,64,,0,1,0,{},{}
+2408,Cuffs,Shackles,5,5000,,3000,,3,,0,10477567,2,64,,0,1,0,{},{}
 2409,Spiky_Heel,Spiky Heel,5,8500,,600,,2,,0,10477567,2,64,,0,1,0,{},{ bonus bMdef,5; }
 2410,Sleipnir,Sleipnir,5,,10,3500,,5,,0,10477567,2,64,,94,0,0,{},{ bonus bMdef,10; bonus bMaxHPrate,20; bonus bMaxSPrate,20; bonus bSPrecovRate,15; bonus bSpeedRate,25; }
 2411,Greaves,Greaves,5,48000,,750,,5,,0,16512,2,64,,65,1,0,{},{}

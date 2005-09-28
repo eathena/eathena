@@ -1,6 +1,10 @@
 Date	Added
 =======
 
+09/28
+	* Removed 10 chances to pick an item from STEAL skill (it should have only 1 chance) [Lupus]
+	* Added Autolooted and Stolen items into pick_log [Lupus]
+	- TODO: Only Vending and Scripts logs aren't implemented yet
 09/27
 	* Corrected again Wind Walk. Just +5 flee at lv10, walk bonus does not
 	  stacks with other speed giving skills. [Skotlex]
